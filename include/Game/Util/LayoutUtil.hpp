@@ -8,6 +8,7 @@
 
 class LayoutActor;
 class LayoutHolder;
+struct ResTIMG;
 
 namespace nw4r {
     namespace lyt {
@@ -122,6 +123,7 @@ namespace MR {
     void setPaneRotate(const LayoutActor*, f32, f32, f32, const char*);
     void setLayoutScalePosAtPaneScaleTrans(LayoutActor*, const LayoutActor*, const char*);
     nw4r::lyt::TexMap* createLytTexMap(const char*, const char*);
+    nw4r::lyt::TexMap* createLytTexMap(ResTIMG*);
     nw4r::lyt::TexMap* getLytTexMap(LayoutActor*, const char*, u8);
     void replacePaneTexture(LayoutActor*, const char*, const nw4r::lyt::TexMap*, u8);
     f32 getAnimFrame(const LayoutActor*, u32);
@@ -146,6 +148,7 @@ namespace MR {
     void setCometPaneAnimFromId(LayoutActor*, const char*, int, u32);
     IconAButton* createAndSetupIconAButton(LayoutActor*, bool, bool);
     void setCometAnimFromId(LayoutActor*, int, u32);
+    void createAndAddPaneCtrl(LayoutActor*, const char*, u32);
 };  // namespace MR
 
 // Merged from Petari (core lane): overloads missing here

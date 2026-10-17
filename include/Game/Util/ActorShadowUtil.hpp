@@ -101,3 +101,10 @@ namespace MR {
     void excludeCalcShadowToCollision(LiveActor*, const char*, CollisionParts*);
     void invalidateShadowGroup(LiveActor*, const char*);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void addShadowVolumeLine(LiveActor*, const char*, LiveActor*, const char*, f32, LiveActor*, const char*, f32);
+};  // namespace MR

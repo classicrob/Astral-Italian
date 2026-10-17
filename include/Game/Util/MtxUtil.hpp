@@ -91,3 +91,17 @@ namespace MR {
     void calcMtxRotAxis(TVec3f*, MtxPtr, MtxPtr);
     MtxPtr tmpMtxTrans(const TVec3f&);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void makeMtxRotate(MtxPtr, s16, s16, s16);
+    void makeMtxTransRotateY(MtxPtr, f32, f32, f32, f32);
+    void preScaleMtx(MtxPtr, const TVec3f&);
+    void preScaleMtx(MtxPtr, f32, f32, f32);
+    void scaleMtxToLocalMtx(MtxPtr, MtxPtr, const TVec3f&);
+    void makeMtxTRS(MtxPtr, f32, f32, f32, f32, f32, f32, f32, f32, f32);
+    void makeMtxTRS(MtxPtr, const TVec3f&, const TVec3f&, const TVec3f&);
+    void flattenMtx(MtxPtr, const TVec3f&);
+};  // namespace MR

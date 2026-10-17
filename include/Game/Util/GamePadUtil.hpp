@@ -93,3 +93,12 @@ namespace MR {
     bool testSubPadStickTriggerUp(s32 channel);
     bool testSubPadStickTriggerDown(s32 channel);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void getCorePadPointingPosBasedOnScreen(TVec2f* pPos, s32 channel);
+    void getCorePadPointingPos(TVec2f* pPos, s32 channel);
+    void getCorePadPastPointingPos(TVec2f* pPos, s32 idx, s32 channel);
+};  // namespace MR

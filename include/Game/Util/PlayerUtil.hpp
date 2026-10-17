@@ -260,3 +260,11 @@ namespace MR {
     bool isPlayerOnPress();
     CubeCameraArea* getCameraCube();
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void calcPlayerJointMtx(TPos3f*, const char*);
+    JUTTexture* getFullScreenBlurTexture();
+};  // namespace MR

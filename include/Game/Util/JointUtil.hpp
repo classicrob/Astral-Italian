@@ -32,3 +32,25 @@ namespace MR {
     J3DJoint* searchChildJoint(J3DJoint* pRoot, J3DJoint* pJoint);
     J3DJoint* getParentJoint(J3DModelData*, J3DJoint*);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    J3DJoint* getJoint(const LiveActor*, const char*);
+    J3DJoint* getJoint(const LiveActor*, u16);
+    MtxPtr getJointMtx(J3DModel*, const char*);
+    u16 getJointIndex(const LiveActor*, const char*) NO_INLINE;
+    void copyJointPos(const LiveActor*, const char*, TVec3f*);
+    void copyJointPos(J3DModel*, int, TVec3f*);
+    void copyJointPos(const LiveActor*, int, TVec3f*);
+    void hideJoint(J3DModel*, const char*);
+    void hideJoint(const LiveActor*, const char*);
+    void hideJointAndChildren(J3DModel*, const char*);
+    void hideJointAndChildren(const LiveActor*, const char*);
+    void showJoint(J3DModel*, const char*);
+    void showJoint(const LiveActor*, const char*);
+    void showJointAndChildren(J3DModel*, const char*);
+    void showJointAndChildren(const LiveActor*, const char*);
+    J3DJoint* getParentJoint(const LiveActor*, J3DJoint*);
+};  // namespace MR

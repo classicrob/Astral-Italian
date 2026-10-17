@@ -31,3 +31,10 @@ namespace MR {
     void initActorStateKeeper(NerveExecutor* pExecutor, s32 capacity);
     bool updateActorState(LiveActor* pActor, ActorStateBaseInterface* pActorState);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void initActorState(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState, const Nerve* pNerve, const char* pStateName);
+};  // namespace MR

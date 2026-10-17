@@ -147,3 +147,31 @@ namespace MR {
     IconAButton* createAndSetupIconAButton(LayoutActor*, bool, bool);
     void setCometAnimFromId(LayoutActor*, int, u32);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void createAndAddPaneCtrl(LayoutActor*, const char*, u32);
+    void createAndAddGroupCtrl(LayoutActor*, const char*, u32);
+    bool isExistPaneCtrl(LayoutActor*, const char*);
+    nw4r::lyt::TexMap* createLytTexMap(ResTIMG*);
+    s16 getAnimFrameMax(const LayoutActor*, const char*);
+    void emitEffect(LayoutActor*, const char*);
+    void deleteEffect(LayoutActor*, const char*);
+    void forceDeleteEffect(LayoutActor*, const char*);
+    void deleteEffectAll(LayoutActor*);
+    void forceDeleteEffectAll(LayoutActor*);
+    void setEffectHostMtx(LayoutActor*, const char*, MtxPtr);
+    void pauseOffEffectAll(LayoutActor*);
+    bool isRegisteredEffect(const LayoutActor*, const char*);
+    bool isNewNerve(const LayoutActor*) NO_INLINE;
+    f32 calcNerveEaseInRate(const LayoutActor*, s32);
+    f32 calcNerveEaseInValue(const LayoutActor*, s32, s32, f32, f32);
+    void setNerveAtStep(LayoutActor*, const Nerve*, s32);
+    void stopAnimFrame(LayoutActor*);
+    void releaseAnimFrame(LayoutActor*);
+    void onCalcAnim(LayoutActor*);
+    void offCalcAnim(LayoutActor*);
+    nw4r::lyt::Pane* getPane(const LayoutActor*, const char*);
+};  // namespace MR

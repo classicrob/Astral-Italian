@@ -197,3 +197,13 @@ namespace MR {
     void setVelocityBlowAttack(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
     f32 turnDirectionAndGravityH(TQuat4f*, const LiveActor*, const TVec3f&, f32, f32);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    bool makeMtxOnMapCollision(TPos3f*, LiveActor*, f32);
+    void addVelocityAwayFromTarget(LiveActor*, const TVec3f&, f32);
+    void turnDirectionFromTargetDegree(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
+    void turnDirectionFromTargetDegreeHorizon(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
+};  // namespace MR

@@ -121,3 +121,10 @@ namespace MR {
     const char* getDemoSheetName(const JMapInfoIter& rIter);
     bool getNextLinkRailID(const JMapInfoIter& rIter, s32*);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    bool getJMapInfoArgNoInit(const JMapInfoIter& rIter, const char* pFieldName, f32*);
+};  // namespace MR

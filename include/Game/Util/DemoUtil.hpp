@@ -85,3 +85,18 @@ namespace MR {
     bool isDemoPartTalk(const char*);
     void startTalkingSequence(NameObj*);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    bool tryRegisterDemoCast(LiveActor*, const char*, const JMapInfoIter&);
+    void registerDemoSimpleCastAll(LayoutActor*);
+    bool tryStartDemo(LayoutActor*, const char*);
+    bool tryStartTimeKeepDemoMarioPuppetable(LiveActor*, const char*, const char*);
+    bool requestStartDemoWithoutCinemaFrame(LayoutActor*, const char*, const Nerve*, const Nerve*);
+    bool requestStartDemoMarioPuppetable(NerveExecutor*, LiveActor*, const char*, const Nerve*, const Nerve*);
+    bool requestStartTimeKeepDemo(NameObj*, const char*, const char*);
+    bool requestStartTimeKeepDemoMarioPuppetable(NameObj*, const char*, const char*);
+    bool isDemoActive(const char*);
+};  // namespace MR

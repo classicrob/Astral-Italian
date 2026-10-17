@@ -285,3 +285,13 @@ namespace MR {
     void appearKinokoSuper(BenefitItemLifeUp*, MtxPtr, f32);
     bool tryRumblePadVeryStrongLong(const void*, s32);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void listenNameObjStageSwitchOnOffAppear(const NameObj*, const StageSwitchCtrl*, const MR::FunctorBase&, const MR::FunctorBase&);
+    void listenNameObjStageSwitchOnOffA(const NameObj*, const StageSwitchCtrl*, const MR::FunctorBase&, const MR::FunctorBase&);
+    void listenNameObjStageSwitchOnOffB(const NameObj*, const StageSwitchCtrl*, const MR::FunctorBase&, const MR::FunctorBase&);
+    bool appearStarPieceToDirection(const NameObj*, const TVec3f&, const TVec3f&, s32, f32, f32, bool);
+};  // namespace MR

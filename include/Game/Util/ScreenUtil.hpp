@@ -124,3 +124,13 @@ namespace MR {
     void startDownWipe();
     void requestOneUp();
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    s32 getFrameBufferWidth() NO_INLINE;
+    void appearInformationMessage(const wchar_t*, bool);
+    bool isYesNoSelected() NO_INLINE;
+    bool isYesNoSelectedYes() NO_INLINE;
+};  // namespace MR

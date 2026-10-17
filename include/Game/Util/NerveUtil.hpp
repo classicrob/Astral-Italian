@@ -15,3 +15,23 @@ namespace MR {
     /// @return `true` if the working frame of execution is greater than or equal to `step`, `false` otherwise.
     bool isGreaterEqualStep(const NerveExecutor* pExecutor, s32 step);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    bool isStep(const NerveExecutor* pExecutor, s32 step) NO_INLINE;
+    bool isFirstStep(const NerveExecutor* pExecutor);
+    bool isLessStep(const NerveExecutor* pExecutor, s32 step);
+    bool isLessEqualStep(const NerveExecutor* pExecutor, s32 step);
+    bool isGreaterStep(const NerveExecutor* pExecutor, s32 step);
+    bool isIntervalStep(const NerveExecutor* pExecutor, s32 step);
+    bool isNewNerve(const NerveExecutor* pExecutor);
+    f32 calcNerveRate(const NerveExecutor* pExecutor, s32 stepMax);
+    f32 calcNerveEaseInRate(const NerveExecutor* pExecutor, s32 stepMax);
+    f32 calcNerveEaseOutRate(const NerveExecutor* pExecutor, s32 stepMax);
+    f32 calcNerveValue(const NerveExecutor* pExecutor, s32 stepMax, f32 valueStart, f32 valueEnd);
+    f32 calcNerveEaseInOutValue(const NerveExecutor* pExecutor, s32 stepMax, f32 valueStart, f32 valueEnd);
+    f32 calcNerveEaseInOutValue(const NerveExecutor* pExecutor, s32 stepMin, s32 stepMax, f32 valueStart, f32 valueEnd);
+    void setNerveAtStep(NerveExecutor* pExecutor, const Nerve* pNerve, s32 step);
+};  // namespace MR

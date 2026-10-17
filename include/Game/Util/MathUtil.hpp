@@ -683,3 +683,10 @@ namespace MR {
 
 f32 PSVECKillElement(const Vec*, const Vec*, const Vec*);
 f32 JMASqrt(f32);
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void PSvecBlend(const TVec3f* pFrom, const TVec3f* pTo, TVec3f* pDst, f32 invRate, f32 rate);
+};  // namespace MR

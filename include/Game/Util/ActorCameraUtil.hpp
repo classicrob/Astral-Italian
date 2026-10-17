@@ -70,3 +70,10 @@ namespace MR {
     void startRumbleWithShakeCameraNormalWeak(const LiveActor* pActor, const char*, const char*, f32, f32);
     void startRumbleWithShakeCameraStrong(const LiveActor* pActor, const char*, const char*, f32, f32);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    bool startMultiActorCameraTargetOther(const LiveActor*, const ActorCameraInfo*, const char*, const CameraTargetArg&, s32 = -1);
+};  // namespace MR

@@ -72,3 +72,24 @@ namespace MR {
     J3DModel* newJ3DModel(const ResourceHolder*, const char*, J3DMdlFlag);
     bool isUseFur(const J3DModelData*);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    s16 getBckFrameMax(const LiveActor*, const char*);
+    s16 getBrkFrameMax(const LiveActor*, const char*);
+    s16 getBvaFrameMax(const LiveActor*, const char*);
+    bool isBckPlaying(XanimePlayer*, const char*);
+    u16 getMaterialNo(J3DModel*, const char*);
+    J3DMaterial* getMaterial(J3DModelData*, int);
+    J3DMaterial* getMaterial(J3DModel*, int);
+    J3DMaterial* getMaterial(const LiveActor*, int);
+    void hideMaterial(const LiveActor*, const char*);
+    void showMaterial(const LiveActor*, const char*);
+    ResTIMG* getResTIMG(const J3DModelData*, int);
+    void copyJointAnimation(LiveActor*, const LiveActor*);
+    void syncMaterialAnimation(J3DModel*, J3DModel*);
+    s32 getLightNum(J3DMaterial*);
+    J3DModelData* getJ3DModelData(const char*);
+};  // namespace MR

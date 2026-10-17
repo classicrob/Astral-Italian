@@ -42,3 +42,10 @@ namespace MR {
     void activateGameSceneDraw3D();
     void deactivateGameSceneDraw3D();
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void clearAlphaBuffer(u8, const TVec2f&, const TVec2f&);
+};  // namespace MR

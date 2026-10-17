@@ -407,3 +407,18 @@ namespace MR {
     Flag* createMapFlag(const char*, const char*, const TVec3f*, const TVec3f&, f32, f32, f32, s32, s32, f32);
     void tryRumblePadAndCameraDistanceVeryStrong(const LiveActor*, f32, f32, f32);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+class J3DGXColor;
+
+namespace MR {
+    bool isExistIndirectTexture(const LiveActor*);
+    void initDLMakerMatColor0(LiveActor*, const char*, const J3DGXColor*);
+    bool isNewNerve(const LiveActor*);
+    void initCollisionPartsFromResourceHolder(LiveActor*, const char*, HitSensor*, ResourceHolder*, MtxPtr);
+    CollisionParts* createCollisionPartsFromLiveActor(LiveActor*, const char*, HitSensor*, MR::CollisionScaleType);
+    CollisionParts* createCollisionPartsFromLiveActor(LiveActor*, const char*, HitSensor*, MtxPtr, MR::CollisionScaleType);
+    CollisionParts* createCollisionPartsFromResourceHolder(ResourceHolder*, const char*, HitSensor*, const TPos3f&, MR::CollisionScaleType);
+    PartsModel* createPartsModelEnemyAndFix(LiveActor*, const char*, const char*, MtxPtr, const TVec3f&, const TVec3f&, const char*);
+    PartsModel* createPartsModelNpcAndFix(LiveActor*, const char*, const char*, const char*);
+};  // namespace MR

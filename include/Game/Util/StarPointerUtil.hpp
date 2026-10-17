@@ -116,3 +116,10 @@ namespace MR {
     bool requestFileSelectCopyGuidance();
     bool requestStarPieceLectureGuidance();
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    bool isStarPointerPointing(const TVec3f&, f32, s32, bool);
+};  // namespace MR

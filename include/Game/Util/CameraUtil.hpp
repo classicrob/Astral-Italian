@@ -122,3 +122,10 @@ namespace MR {
     void startLauncherFlightCamera(s32);
     void cleanEventCameraTarget_temporally();
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    bool isEventCameraActive();
+};  // namespace MR

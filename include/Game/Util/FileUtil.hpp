@@ -77,3 +77,11 @@ namespace MR {
     bool makeObjectArchiveFileName(char* pDst, u32 size, const char* pFileName);
     bool makeLayoutArchiveFileName(char* pDst, u32 size, const char* pFileName);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void* receiveFile(const char* pFilePath);
+    void receiveAllRequestedFile();
+};  // namespace MR

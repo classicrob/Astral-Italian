@@ -93,3 +93,10 @@ namespace MR {
     void scans16x4(const char* pSrc, const char* pSubStr, s16* pDst);
     void scanf32x4(const char* pSrc, const char* pSubStr, f32* pDst);
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void copyString(wchar_t* pDst, const wchar_t* pSrc, u32 num);
+};  // namespace MR

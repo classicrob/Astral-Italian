@@ -96,3 +96,11 @@ namespace MR {
     s32 getCurrentPlacementZoneId();
     const char* getCurrentPlacementZoneName();
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    s32 getZoneNum();
+    const TPos3f* getZonePlacementMtx(s32);
+};  // namespace MR

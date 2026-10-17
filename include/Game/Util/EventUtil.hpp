@@ -276,3 +276,10 @@ namespace MR {
     bool isOnMessageAlreadyRead(s8);
     void onMsgLedPattern();
 };  // namespace MR
+
+// Merged from Petari (core lane): overloads missing here
+
+
+namespace MR {
+    void setRaceBestTime(int, u32);
+};  // namespace MR

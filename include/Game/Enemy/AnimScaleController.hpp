@@ -54,3 +54,8 @@ public:
     TVec3f _C;
     f32 _18;
 };
+
+class LiveActor;
+namespace MR {
+    void updateBaseScale(LiveActor*, AnimScaleController*);
+};

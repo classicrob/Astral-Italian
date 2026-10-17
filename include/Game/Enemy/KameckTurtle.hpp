@@ -28,8 +28,9 @@ public:
     void appearJetTurtle(bool);
 
     /* 0x8C */ SmallKameckBeamEventListener* mEventListener;
-    /* 0x90 */ JetTurtle* mTurtle;
-    /* 0x94 */ TQuat4f mRotateQuat;
-    /* 0xA4 */ TVec3f _A4;
-    /* 0xB0 */ TVec3f _B0;
+    /* 0x94 */ u32 _94;
+    /* 0x98 */ JetTurtle* mTurtle;
+    /* 0x9C */ TQuat4f mRotateQuat;
+    /* 0xAC */ TVec3f _A4;
+    /* 0xB8 */ TVec3f _B0;
 };

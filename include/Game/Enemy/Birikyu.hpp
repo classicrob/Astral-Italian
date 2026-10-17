@@ -30,6 +30,7 @@ public:
     void exeAttackWait();
     void exeStopPointing();
 
+    const char* _8C_pad;
     const char* _8C;
     TVec3f _90;
     TVec3f _9C;

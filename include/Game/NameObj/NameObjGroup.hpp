@@ -18,12 +18,31 @@ public:
         return mObjectCount;
     }
 
+    // Petari-compatible accessors
+    NameObj* getObj(int index) const {
+        return mObjects[index];
+    }
+
+    s32 getObjNum() const {
+        return mObjectCount;
+    }
+
     template < typename T >
     T getObj(s32 idx) const {
         return reinterpret_cast< T >(mObjects[idx]);
     }
 
-    s32 mMaxCount;       // 0x14
-    s32 mObjectCount;    // 0x18
-    NameObj** mObjects;  // 0x1C
+    // Anonymous unions keep Petari's field names (mObjNumMax/mObjNum/mObjArray) usable.
+    union {
+        s32 mMaxCount;  // 0x14
+        s32 mObjNumMax;
+    };
+    union {
+        s32 mObjectCount;  // 0x18
+        s32 mObjNum;
+    };
+    union {
+        NameObj** mObjects;  // 0x1C
+        NameObj** mObjArray;
+    };
 };

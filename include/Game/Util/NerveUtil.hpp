@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Game/Util/LayoutUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
+
 #include <revolution/types.h>
 
 class Nerve;

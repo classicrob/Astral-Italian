@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Game/Util/EventUtil.hpp"
+
 #include "Game/Util/JMapInfo.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>

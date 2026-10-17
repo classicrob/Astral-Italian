@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Game/Util/ObjUtil.hpp"
+
 #include <revolution/types.h>
 
 namespace nw4r {

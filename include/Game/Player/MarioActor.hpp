@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Player/Mario.hpp"
 #include "Game/Player/MatrixControl.hpp"

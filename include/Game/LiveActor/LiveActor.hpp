@@ -70,6 +70,35 @@ public:
     void initShadowControllerList(u32);
     void initActorCollisionParts(const char*, HitSensor*, ResourceHolder*, MtxPtr, bool, bool);
     void initStageSwitch(const JMapInfoIter&);
+    void initActorStarPointerTarget(f32, const TVec3f*, MtxPtr, TVec3f);
+    void initActorLightCtrl();
+    void calcAnmMtx();
+    void updateBinder();
+
+    // Petari-compatible accessors
+    HitSensorKeeper* getSensorKeeper() const {
+        return mSensorKeeper;
+    }
+
+    Binder* getBinder() const {
+        return mBinder;
+    }
+
+    const TVec3f* getGravity() const {
+        return &mGravity;
+    }
+
+    const TVec3f* getVelocity() const {
+        return &mVelocity;
+    }
+
+    const TVec3f* getPosition() const {
+        return &mPosition;
+    }
+
+    TVec3f* editPosition() {
+        return &mPosition;
+    }
 
     TVec3f mPosition;                   // 0x14
     TVec3f mRotation;                   // 0x20
@@ -85,9 +114,21 @@ public:
     EffectKeeper* mEffectKeeper;        // 0x68
     ActorSoundHolder* mSoundHolder;     // 0x6C
     LiveActorFlag mFlags;               // 0x70
-    ShadowControllerList* mShadowList;  // 0x7C
+    union {
+        ShadowControllerList* mShadowList;  // 0x7C
+        ShadowControllerList* mShadowControllerList;
+    };
     CollisionParts* mCollisionParts;    // 0x80
-    StageSwitchCtrl* mSwitchCtrl;       // 0x84
-    StarPointerTarget* mPointerTarget;  // 0x88
-    ActorLightCtrl* mLightCtrl;         // 0x8C
+    union {
+        StageSwitchCtrl* mSwitchCtrl;  // 0x84
+        StageSwitchCtrl* mStageSwitchCtrl;
+    };
+    union {
+        StarPointerTarget* mPointerTarget;  // 0x88
+        StarPointerTarget* mStarPointerTarget;
+    };
+    union {
+        ActorLightCtrl* mLightCtrl;  // 0x8C
+        ActorLightCtrl* mActorLightCtrl;
+    };
 };

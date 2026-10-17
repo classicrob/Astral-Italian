@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Game/Util/LiveActorUtil.hpp"
+
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <revolution/types.h>
 

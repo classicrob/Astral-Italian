@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Game/Util/ActorAnimUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
+
 class LiveActor;
 
 namespace MR {

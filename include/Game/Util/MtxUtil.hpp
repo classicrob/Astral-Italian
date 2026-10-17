@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Game/Util/ActorMovementUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
+
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution.h>

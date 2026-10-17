@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Game/Util/CameraUtil.hpp"
+
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution.h>
 

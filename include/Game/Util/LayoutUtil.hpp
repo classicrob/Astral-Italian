@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Game/Util/EffectUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
+
 #include "Game/Screen/LayoutCoreUtil.hpp"
 #include <revolution.h>
 

@@ -61,6 +61,7 @@ public:
     /* 0x0E8 */ TMtx34f _E8;
     /* 0x118 */ JointController* mBeanStartJointCtrl;
     /* 0x11C */ JointController* mBeamEndJointCtrl;
+    /* 0x120 */ s32 _120;  // SMG2 extra field (layout from target asm)
     /* 0x120 */ TVec3f mBeamStart;
     /* 0x12C */ TVec3f mBeamEnd;
     /* 0x138 */ f32 _138;

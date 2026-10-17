@@ -4,13 +4,34 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class ModelObj;
+class AnimScaleParam;
+class AnimScaleController;
 class PartsModel;
+
+class YoshiLockOnTarget;
+
+namespace YoshiFunction {
+    void tryYoshiProjectile(YoshiLockOnTarget*);
+};
+
+extern "C" void fn_804221D0();
+extern "C" void fn_80422250();
+
+namespace MR {
+    void startSoundInPlayerDistance(LiveActor*, const char*, s32, s32, f32);
+    bool isMsgYoshiStartTongue(u32);
+    bool isMsgYoshiLoopTongue(u32);
+    bool isMsgYoshiStartEaten(u32);
+    bool isMsgYoshiCancelEaten(u32);
+    bool isMsgYoshiReleaseEaten(u32);
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
+};
 
 class HomingKiller : public LiveActor {
 public:
     enum Type { Type_HomingKiller = 0, Type_Torpedo = 1, Type_MagnumKiller = 2 };
 
-    HomingKiller(const char*);
+    HomingKiller(const char* = "ホーミングキラー");
 
     virtual void init(const JMapInfoIter&);
     virtual void appear();
@@ -22,7 +43,18 @@ public:
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void appear(const TVec3f&, const TVec3f&);
+    bool isNerveAppear() const;
     bool isMoveStart() const;
+    void setTypeMagnumKiller();
+    void setChaseRotateSpeed(f32);
+    void initSpeed();
+    void setType(s32);
+    void setMovementType(s32);
+    bool isNormalNerve() const;
+    bool isYoshiHold() const;
+    bool isShotEnd() const;
+    bool isEaten() const;
+    bool isBreakByEnemyAttack(u32, HitSensor*);
     void setChaseStartEndDistance(f32, f32);
     void initMapToolInfo(const JMapInfoIter&);
     void calcInitPosture();
@@ -57,6 +89,13 @@ public:
     void exeFreeze();
     void exeBreak();
     void exeGoToTarget();
+    void exeTongue() {}
+    void endEaten() {
+        fn_804221D0();
+        fn_80422250();
+    }
+    void exeEaten();
+    void exeShot();
 
     inline f32 getScale() {
         return mType == Type_MagnumKiller ? 4.0f : 1.0f;
@@ -67,34 +106,40 @@ public:
         mBaseFront.set(front);
     }
 
-    bool isInactive() const;
-    bool isMoveNormal() const;
-    bool isGravityIgnored() const;
+    bool isGravityIgnored() const {
+        return mIsLinearShot || mUseFullSightAngle;
+    }
 
-    /* 0x8C */ Type mType;
-    /* 0x90 */ f32 mChaseStartDist;
-    /* 0x94 */ f32 mChaseEndDist;
-    /* 0x98 */ f32 mChaseRotateSpeed;
-    /* 0x9C */ f32 mChaseStartAngle;
-    /* 0xA0 */ TVec3f mFront;
-    /* 0xAC */ TVec3f mUp;
-    /* 0xB8 */ TVec3f mBasePos;
-    /* 0xC4 */ TVec3f mBaseFront;
-    /* 0xD0 */ TVec3f mBaseUp;
-    /* 0xDC */ TPos3f mBaseMtx;
-    /* 0x10C */ s32 mFreezeTime;
-    /* 0x110 */ TVec3f mFreezePos;
-    /* 0x11C */ const Nerve* mUnfreezeNerve;
-    /* 0x120 */ s32 mChaseInvalidTime;
-    /* 0x124 */ s32 mMoveTime;
-    /* 0x128 */ TPos3f mEffectMtx;
-    /* 0x158 */ HitSensor* mTargetSensor;
-    /* 0x15C */ bool mDisableChase;
-    /* 0x15D */ bool mIsLinearShot;       // if set, ignore gravity and disable chase
-    /* 0x15E */ bool mUseFullSightAngle;  // if set, ignore gravity but use full sight angle to start chase
-                                          // In game, this seems to only be used in Drip Drop for the Torpedos
-    /* 0x160 */ PartsModel* mPropeller;
-    /* 0x164 */ ModelObj* mTorpedoLight;
+    /* 0x90 */ Type mType;
+    /* 0x94 */ f32 mSpeed;
+    /* 0x98 */ f32 mChaseStartDist;
+    /* 0x9C */ f32 mChaseEndDist;
+    /* 0xA0 */ f32 mChaseRotateSpeed;
+    /* 0xA4 */ f32 mChaseStartAngle;
+    /* 0xA8 */ TVec3f mFront;
+    /* 0xB4 */ TVec3f mUp;
+    /* 0xC0 */ TVec3f mBasePos;
+    /* 0xCC */ TVec3f mBaseFront;
+    /* 0xD8 */ TVec3f mBaseUp;
+    /* 0xE4 */ TPos3f mBaseMtx;
+    /* 0x114 */ const Nerve* mUnfreezeNerve;
+    /* 0x118 */ s32 mChaseInvalidTime;
+    /* 0x11C */ s32 mMoveTime;
+    /* 0x120 */ TPos3f mEffectMtx;
+    /* 0x150 */ HitSensor* mTargetSensor;
+    /* 0x154 */ bool mDisableChase;
+    /* 0x155 */ bool mIsLinearShot;
+    /* 0x156 */ bool mUseFullSightAngle;
+    /* 0x158 */ PartsModel* mPropeller;
+    /* 0x15C */ ModelObj* mTorpedoLight;
+    /* 0x160 */ s32 mShotBindTime;
+    /* 0x164 */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0x168 */ s32 mMovementType;
+    /* 0x16C */ s32 mForceKillTime;
+    /* 0x170 */ s32 mChaseInvalidFrame;
+    /* 0x174 */ s32 mShotTime;
+    /* 0x178 */ AnimScaleParam* mScaleParam;
+    /* 0x17C */ AnimScaleController* mScaleController;
 };
 
 class HomingKillerLauncher : public LiveActor {
@@ -108,5 +153,7 @@ public:
     void exeAppearKiller();
     void exeDeadKiller();
 
-    /* 0x8C */ HomingKiller* mKiller;
+    /* 0x90 */ HomingKiller* mKillers;
+    /* 0x94 */ s32 mKillerNum;
+    /* 0x98 */ s32 mAppearInterval;
 };

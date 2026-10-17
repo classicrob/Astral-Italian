@@ -13,6 +13,7 @@ public:
     Meramera(const char*);
 
     virtual void init(const JMapInfoIter&);
+    virtual void initAfterPlacement();
     virtual void makeActorAppeared();
     virtual void kill();
     virtual void startClipped();
@@ -25,11 +26,8 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void initElementType(const JMapInfoIter&);
+    s32 initElementType(const JMapInfoIter&);
     void initEffect();
-    void initSensor();
-    void initBind() NO_INLINE;
-    void initShadow();
     void initAppearState(const JMapInfoIter&);
     bool requestDamage(HitSensor*, HitSensor*);
     bool requestFire(HitSensor*, HitSensor*);
@@ -102,11 +100,6 @@ public:
     bool isHitRecover() const;
     bool findDivingPoint(TVec3f, const TVec3f&);
     void resetAppear();
-    void emitEffectHead(s32);
-    void deleteEffectHead(bool);
-    void emitEffectHeatBody();
-    void emitEffectCoolDownBody();
-    void emitEffectColdBody();
     void turnFireDirectionToSpin(f32);
     void startWaitLevelSound();
     void startChaseLevelSound();
@@ -136,9 +129,8 @@ public:
     /* 0x1AC */ s32 mAppearStatus;  // Obj_arg0
     /* 0x1B0 */ s32 mElementType;
     /* 0x1B4 */ s32 mEffectType;
-    /* 0x1B8 */ s32 mBodyEffectType;
     /* 0x1BC */ s32 mRunawayTimer;
     /* 0x1C0 */ bool mCanDive;
-    /* 0x1C1 */ bool _1C1;
-    /* 0x1C2 */ bool mIsValidRestart;  // Obj_arg2
+    /* 0x1C1 */ bool mIsValidRestart;  // Obj_arg2
+    /* 0x1C2 */ bool mIsBindFire;
 };

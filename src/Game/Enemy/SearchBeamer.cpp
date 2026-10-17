@@ -311,8 +311,7 @@ void SearchBeamer::calcAndSetBaseMtx() {
     TPos3f mtx;
     MR::makeMtxFrontUpPos(&mtx, _94, _A0, mPosition);
     MR::setBaseTRMtx(this, mtx);
-    TVec3f scale = mScaleController->_C * mScale;
-    MR::setBaseScale(this, scale);
+    MR::updateBaseScale(this, mScaleController);
     mPropellerJointCtrl->registerCallBack();
     mBeanStartJointCtrl->registerCallBack();
     mBeamEndJointCtrl->registerCallBack();
@@ -458,7 +457,9 @@ void SearchBeamer::updateBeamShadow() {
 
 void SearchBeamer::initBeamPos() {
     MR::copyJointPos(this, "Core", &mBeamStart);
-    mBeamEnd.set(mBeamStart);
+    mBeamEnd.x = mBeamStart.x;
+    mBeamEnd.y = mBeamStart.y;
+    mBeamEnd.z = mBeamStart.z;
     MR::hideMaterial(this, "lambert5_v");
 }
 

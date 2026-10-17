@@ -469,15 +469,15 @@ void MechanicKoopaMini::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             }
         } else if (MR::isSensorPlayer(pReceiver)) {
             if (!MR::isPlayerHipDropFalling()) {
-                TVec3f pos(pReceiver->mPosition);
-                pos -= pSender->mPosition;
-                f32 SenderRad = pSender->mRadius;
-                f32 ReceiverRad = pReceiver->mRadius;
+                TVec3f pos(*MR::getSensorPos(pReceiver));
+                pos -= *MR::getSensorPos(pSender);
+                f32 SenderRad = MR::getSensorRadius(pSender);
+                f32 ReceiverRad = MR::getSensorRadius(pReceiver);
                 if (!(((ReceiverRad + SenderRad) - ::hPushUpRangeSub) < pos.dot(-mGravity))) {
                     MR::sendMsgPush(pReceiver, pSender);
                 }
             }
-        } else if (MR::isSensorEnemy(pReceiver)) {
+        } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
             MR::sendMsgPush(pReceiver, pSender);
         }
     }
@@ -575,5 +575,5 @@ void MechanicKoopaMini::updateHitSensor(HitSensor* pSensor) {
 
 void MechanicKoopaMini::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
-    MR::setBaseScale(this, mScaleController->_C * mScale);
+    MR::updateBaseScale(this, mScaleController);
 }

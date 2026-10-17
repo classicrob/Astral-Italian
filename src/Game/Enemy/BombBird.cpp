@@ -556,8 +556,7 @@ void BombBird::calcAndSetBaseMtx() {
     TPos3f mtx;
     MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
     MR::setBaseTRMtx(this, mtx);
-    TVec3f scale(mScaleController->_C * mScale);
-    MR::setBaseScale(this, scale);
+    MR::updateBaseScale(this, mScaleController);
     if (mHoldBomb && mHeldBomb) {
         mFixedPos->calc();
         mFixedPos->copyTrans(&mHeldBomb->mPosition);

@@ -156,7 +156,6 @@ void Kameck::appear() {
 
 void Kameck::kill() {
     LiveActor::kill();
-    MR::appearCoinPop(this, mPosition, 1);
     MR::emitEffect(this, "Death");
 }
 
@@ -173,11 +172,15 @@ void Kameck::startClipped() {
 
 void Kameck::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mRotateQuat);
-    MR::setBaseScale(this, mAnimScaleController->_C * mScale);
+    MR::updateBaseScale(this, mAnimScaleController);
 }
 
 void Kameck::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver) && !MR::isPlayerHipDropFalling() && MR::isSensorEnemyAttack(pSender)) {
+        requestAttack(pSender, pReceiver);
+    }
+
+    if (MR::isSensorYoshi(pReceiver)) {
         requestAttack(pSender, pReceiver);
     }
 }
@@ -222,8 +225,31 @@ bool Kameck::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     return false;
 }
 
+namespace MR {
+    bool isMsgYoshiStartTongue(u32 msg);  // not in shared headers yet (unit-local decl)
+    bool isMsgYoshiLoopTongue(u32 msg);
+    bool isMsgYoshiReleaseEaten(u32 msg);
+    bool isMsgYoshiCancelEaten(u32 msg);
+};  // namespace MR
+
+extern "C" u32 lbl_807D2808; // unnamed 8-byte nerve (Yoshi tongue start)
+
 bool Kameck::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStartPowerStarGet(msg)) {
+        makeActorDead();
+        return true;
+    }
+
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        setNerve(reinterpret_cast<const Nerve*>(&lbl_807D2808));
+        return true;
+    }
+
+    if (MR::isMsgYoshiLoopTongue(msg)) {
+        return true;
+    }
+
+    if (MR::isMsgYoshiReleaseEaten(msg) || MR::isMsgYoshiCancelEaten(msg)) {
         makeActorDead();
         return true;
     }
@@ -371,6 +397,7 @@ void Kameck::setNonActive() {
     MR::offCalcShadow(this, nullptr);
     MR::validateClipping(this);
     MR::deleteEffectAll(this);
+    MR::startAction(this, "Wait"); // target string lbl_80689BFC not verified
     setNerve(GET_NERVE(Kameck, KameckNrvNonActive));
 }
 
@@ -686,6 +713,9 @@ void Kameck::setBeamType(s32 type) {
 }
 
 bool Kameck::canNonActive() const {
+    if (MR::isValidSwitchA(this)) {
+        return !MR::isOnSwitchA(this);
+    }
     return !MR::isNearPlayerAnyTime(this, mActiveDistance);
 }
 

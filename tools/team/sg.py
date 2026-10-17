@@ -10,7 +10,7 @@ UNIT may be "Game/AreaObj/AreaObj", "src/Game/AreaObj/AreaObj.cpp" or "main/Game
 SYMBOL is a mangled name or a unique substring of one (mangled or demangled).
 Run from the repo root (or any worktree root). Petari reference: $PETARI (default ~/MacioGalaxy2-team/Petari).
 """
-import bisect, json, os, re, subprocess, sys, tempfile
+import bisect, json, os, re, subprocess, sys, tempfile, time
 from collections import defaultdict
 
 ROOT = os.getcwd()
@@ -81,14 +81,42 @@ def objdiff_unit(u):
     sys.exit(f"unit main/{u} not in objdiff.json (run configure.py / ninja once?)")
 
 
-def build_and_diff(u):
+def ensure_configured(u):
+    """Re-run configure.py (under a lock) if UNIT has a source file objdiff.json doesn't know about yet."""
     x = objdiff_unit(u)
+    if x.get("base_path") or not any(os.path.exists(f"{ROOT}/src/{u}{e}") for e in (".cpp", ".c")):
+        return x
+    lock = f"{ROOT}/build/.sg-configure.lock"
+    while True:
+        try:
+            os.mkdir(lock)
+            break
+        except FileExistsError:
+            time.sleep(0.5)
+    try:
+        subprocess.run(["python3", "configure.py"], cwd=ROOT, capture_output=True, check=True)
+    finally:
+        os.rmdir(lock)
+    return objdiff_unit(u)
+
+
+def compile_unit(base):
+    """Compile one object without invoking ninja's state (safe for parallel agents in one worktree)."""
+    cmds = subprocess.run(["ninja", "-t", "commands", base], cwd=ROOT, capture_output=True, text=True).stdout.strip().splitlines()
+    if not cmds:
+        sys.exit(f"no build command for {base}")
+    os.makedirs(os.path.dirname(f"{ROOT}/{base}"), exist_ok=True)
+    r = subprocess.run(cmds[-1], shell=True, cwd=ROOT, capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.stdout.write((r.stdout + r.stderr)[-6000:])
+        sys.exit("compile failed")
+
+
+def build_and_diff(u):
+    x = ensure_configured(u)
     base = x.get("base_path")
     if base:
-        r = subprocess.run(["ninja", base], cwd=ROOT, capture_output=True, text=True)
-        if r.returncode != 0:
-            sys.stdout.write(r.stdout[-6000:])
-            sys.exit("build failed")
+        compile_unit(base)
     fd, out = tempfile.mkstemp(suffix=".json")
     os.close(fd)
     r = subprocess.run([f"{ROOT}/build/tools/objdiff-cli", "-L", "error", "diff", "-p", ROOT, "-u", "main/" + u, "-o", out],

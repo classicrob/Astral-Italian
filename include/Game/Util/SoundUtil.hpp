@@ -1,6 +1,7 @@
 #pragma once
 
 #include <revolution.h>
+#include "Game/Util/BgmUtil.hpp"
 
 class AudSeKeeper;
 class AudSoundObject;

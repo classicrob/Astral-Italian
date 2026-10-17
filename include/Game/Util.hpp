@@ -11,6 +11,7 @@
 #include "Game/Util/AreaObjUtil.hpp"
 #include "Game/Util/Array.hpp"
 #include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
+#include "Game/Util/BgmUtil.hpp"
 #include "Game/Util/BitArray.hpp"
 #include "Game/Util/BothDirList.hpp"
 #include "Game/Util/CameraUtil.hpp"

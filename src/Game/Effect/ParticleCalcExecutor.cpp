@@ -39,6 +39,7 @@ void ParticleCalcExecutor::movementNormal() {
         mEffectSystem->mEmitterManager->calc(6);
         mEffectSystem->mEmitterManager->calc(7);
         mEffectSystem->mEmitterManager->calc(8);
+        mEffectSystem->mEmitterManager->calc(9);
     }
 
     mUpdateRequested = false;

@@ -38,9 +38,8 @@ public:
     u8 _1D;
     void* _20[4];
     /* 0x30 */ f32 mWeights[4];
-    XanimeOfsInfo** _40;
-    /* 0x44 */ u32 mHash;
-    /* 0x48 */ const char* mBckName;
+    /* 0x40 */ u32 _40;
+    /* 0x44 */ const char* mBckName;
 
     void init();
 };

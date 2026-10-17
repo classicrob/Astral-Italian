@@ -575,10 +575,6 @@ namespace {
 };  // namespace
 
 void FileSelectItem::updateRotate() {
-    if (mIsInvalidRotate) {
-        return;
-    }
-
     const s32 duration = _168;
     if (duration > 0) {
         _160 = 0.0f;
@@ -605,8 +601,13 @@ void FileSelectItem::updateRotate() {
         FileSelectItemSub::BlinkController* pBlink = mBlinkCtrl;
         pBlink->open();
         pBlink->setNerve(GET_NERVE_DIRECT(FileSelectItemSub, BlinkControllerNrvOpen));
+    }
+
+    if (mIsInvalidRotate) {
         return;
-    } else if (MR::isStarPointerInScreen(0)) {
+    }
+
+    if (MR::isStarPointerInScreen(0)) {
         TVec3f center = mPosition + TVec3f(0.0f, 900.0f, 0.0f);
         TVec2f screenPos(*MR::getStarPointerScreenPosition(0));
 

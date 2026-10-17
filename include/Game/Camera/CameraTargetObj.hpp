@@ -66,6 +66,14 @@ public:
         return false;
     }
 
+    virtual bool isYoshiMode() const {
+        return false;
+    }
+
+    virtual bool isYoshiLightMode() const {
+        return false;
+    }
+
     virtual u32 getSpecialMode() const {
         return 0;
     }
@@ -73,9 +81,6 @@ public:
     virtual bool isCameraStateOn(u32) const {
         return false;
     };
-    virtual CubeCameraArea* getCubeCameraArea() const {
-        return nullptr;
-    }
 
     virtual Triangle* getGroundTriangle() const {
         return nullptr;
@@ -129,7 +134,6 @@ public:
         return 150.0f;
     }
 
-    virtual CubeCameraArea* getCubeCameraArea() const;
     virtual Triangle* getGroundTriangle() const;
 
     /* 0x10 */ const LiveActor* mActor;
@@ -163,7 +167,6 @@ public:
     virtual bool isFooFighterMode() const;
     virtual u32 getSpecialMode() const;
     virtual bool isCameraStateOn(u32) const;
-    virtual CubeCameraArea* getCubeCameraArea() const;
     virtual Triangle* getGroundTriangle() const;
     virtual GravityInfo* getGravityInfo() const;
     virtual bool isDebugMode() const;

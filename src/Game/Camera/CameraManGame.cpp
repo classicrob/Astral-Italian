@@ -3,6 +3,7 @@
 #include "Game/Boss/SkeletalFishGuard.hpp"
 #include "Game/Camera/CamHeliEffector.hpp"
 #include "Game/Camera/CamKarikariEffector.hpp"
+#include "Game/Camera/CamYoshiEffector.hpp"
 #include "Game/Camera/Camera.hpp"
 #include "Game/Camera/CameraDirector.hpp"
 #include "Game/Camera/CameraHeightArrange.hpp"
@@ -40,7 +41,7 @@ namespace {
 
 CameraManGame::CameraManGame(CameraHolder* pHolder, CameraParamChunkHolder* pChunkHolder, const char* pName)
     : CameraMan(pName), mHolder(pHolder), mChunkHolder(pChunkHolder), mRequestReset(), _5C(), mKarikari(new CamKarikariEffector()),
-      mHeli(new CamHeliEffector()), mTypeState(), mIsStartPosActive(), mInterpolateOffCounter(), mZoomedIn() {
+      mHeli(new CamHeliEffector()), mYoshi(new CamYoshiEffector()), mTypeState(), mIsStartPosActive(), mInterpolateOffCounter(), mZoomedIn() {
     mCamera = mHolder->getDefaultCamera();
     mChunk = nullptr;
     CameraLocalUtil::setWatchPos(this, TVec3f(0.0f, 0.0f, ::sMinDistance));
@@ -56,6 +57,7 @@ void CameraManGame::calc() {
     setSafePose();
     mKarikari->update(this);
     mHeli->update(this);
+    mYoshi->update(this);
 }
 
 void CameraManGame::notifyActivate() {
@@ -184,7 +186,9 @@ void CameraManGame::selectCameraChunk() {
 
         switch (mTypeState) {
         case CubeCameraArea::ECategory_Normal:
-            updateNormal();
+            if (!setCubeChunk(CubeCameraArea::ECategory_Normal)) {
+                updateNormal();
+            }
             break;
         case CubeCameraArea::ECategory_Swim:
             updateSwim();
@@ -193,12 +197,20 @@ void CameraManGame::selectCameraChunk() {
             updateWaterSurface();
             break;
         case CubeCameraArea::ECategory_GCapture:
-            updateGCapture();
+            if (!setCubeChunk(CubeCameraArea::ECategory_GCapture) && !setCubeChunk(CubeCameraArea::ECategory_Normal)) {
+                updateNormal();
+            }
             break;
         case CubeCameraArea::ECategory_FooFighter:
             updateFooFighter();
             break;
-        case CubeCameraArea::ECategory_None:
+        case 5:
+            if (!setCubeChunk(static_cast< CubeCameraArea::ECategory >(5)) && !setCubeChunk(CubeCameraArea::ECategory_Normal)) {
+                updateNormal();
+            }
+            break;
+        case 6:
+            updateYoshiLight();
             break;
         }
     }
@@ -524,7 +536,7 @@ void CameraManGame::createZoomCamera() {
 }
 
 void CameraManGame::checkStateShift() {
-    if (!tryShiftToGCapture() && !tryShiftToSwimOrWaterSurface() && !tryShiftToFooFighter()) {
+    if (!tryShiftToGCapture() && !tryShiftToSwimOrWaterSurface() && !tryShiftToFooFighter() && !tryShiftToYoshiLight() && !tryShiftToYoshi()) {
         mTypeState = CubeCameraArea::ECategory_Normal;
     }
 }
@@ -561,11 +573,25 @@ bool CameraManGame::tryShiftToFooFighter() {
     return false;
 }
 
-void CameraManGame::updateNormal() {
-    if (setCubeChunk(CubeCameraArea::ECategory_Normal)) {
-        return;
+bool CameraManGame::tryShiftToYoshi() {
+    if (CameraLocalUtil::getTarget(this)->isYoshiMode()) {
+        mTypeState = 5;
+        return true;
     }
 
+    return false;
+}
+
+bool CameraManGame::tryShiftToYoshiLight() {
+    if (CameraLocalUtil::getTarget(this)->isYoshiLightMode()) {
+        mTypeState = 6;
+        return true;
+    }
+
+    return false;
+}
+
+void CameraManGame::updateNormal() {
     Triangle* tri = CameraLocalUtil::getTarget(this)->getGroundTriangle();
     if (tri != nullptr && tri->isValid()) {
         u32 id = MR::getCameraID(tri);
@@ -603,22 +629,6 @@ void CameraManGame::updateWaterSurface() {
     }
 }
 
-void CameraManGame::updateGCapture() {
-    CubeCameraArea::setCurrentCategory(CubeCameraArea::ECategory_GCapture);
-
-    CubeCameraArea* area = reinterpret_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", CameraLocalUtil::getTarget(this)->getPosition()));
-
-    if (area != nullptr) {
-        CameraParamChunkID_Tmp chunkID = CameraParamChunkID_Tmp();
-        chunkID.createCubeID(area->mZoneID, static_cast< u16 >(area->mObjArg0));
-
-        setChunk(chunkID);
-        CubeCameraArea::setCurrentCategory(CubeCameraArea::ECategory_Normal);
-    } else {
-        updateNormal();
-    }
-}
-
 void CameraManGame::updateFooFighter() {
     if (!setCubeChunk(CubeCameraArea::ECategory_FooFighter)) {
         CameraParamChunkID_Tmp chunkID = CameraParamChunkID_Tmp();
@@ -628,14 +638,21 @@ void CameraManGame::updateFooFighter() {
     }
 }
 
+void CameraManGame::updateYoshiLight() {
+    if (!setCubeChunk(static_cast< CubeCameraArea::ECategory >(6)) && !setCubeChunk(static_cast< CubeCameraArea::ECategory >(5)) &&
+        !setCubeChunk(CubeCameraArea::ECategory_Normal)) {
+        updateNormal();
+    }
+}
+
 bool CameraManGame::setCubeChunk(CubeCameraArea::ECategory category) {
     CubeCameraArea::setCurrentCategory(static_cast< s32 >(category));
-    CameraTargetObj* target = CameraLocalUtil::getTarget(this);
-    CubeCameraArea* area = target->getCubeCameraArea();
+    CubeCameraArea* area = reinterpret_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", CameraLocalUtil::getTarget(this)->getPosition()));
 
-    if (area != nullptr) {
+    if (area != nullptr && area->isValidCameraID()) {
         CameraParamChunkID_Tmp chunkID = CameraParamChunkID_Tmp();
-        chunkID.createCubeID(area->mZoneID, static_cast< u16 >(area->mObjArg0));
+        s32 zoneID = area->mZoneID;
+        chunkID.createCubeID(zoneID, area->getCameraID());
 
         setChunk(chunkID);
         return true;
@@ -643,7 +660,6 @@ bool CameraManGame::setCubeChunk(CubeCameraArea::ECategory category) {
 
     return false;
 }
-
 bool CameraManGame::tryStartPosCamera() {
     if (!mIsStartPosActive) {
         return false;

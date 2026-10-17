@@ -7,6 +7,15 @@ class CameraParamChunk;
 class CameraParamChunkID;
 class JKRHeap;
 
+// SMG2-only helper owned by the holder (8 bytes, two words zeroed by an inlined ctor)
+struct CameraParamChunkHolderExtra {
+    CameraParamChunkHolderExtra() : _0(0), _4(0) {
+    }
+
+    /* 0x0 */ s32 _0;
+    /* 0x4 */ s32 _4;
+};
+
 class CameraParamChunkHolder : public NameObj {
 public:
     CameraParamChunkHolder(CameraHolder* pCameraHolder, const char* pName);
@@ -28,4 +37,5 @@ public:
     /* 0x18 */ CameraParamChunk** mChunks;
     /* 0x1C */ u32 mCameraVersion;
     /* 0x20 */ bool mIsSorted;
+    /* 0x24 */ CameraParamChunkHolderExtra* mExtra;
 };

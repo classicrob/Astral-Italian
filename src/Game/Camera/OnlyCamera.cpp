@@ -86,6 +86,11 @@ void OnlyCamera::calcSafePose(CameraMan* pCameraMan) {
     }
 
     moveToIdealPosition(&pos);
+
+    if (!mIsZeroFrameMoveOff) {
+        checkSafePose(&pos, &watchPos);
+    }
+
     mIsZeroFrameMoveOff = false;
 
     TVec3f front = watchPos - pos;
@@ -136,8 +141,8 @@ void OnlyCamera::moveToIdealPosition(TVec3f* pPos) {
         }
 
         if (dist < mSpeed || mSpeed == 0.0f) {
-            mCalcIdeal = false;
             mSpeed = 0.0f;
+            mCalcIdeal = false;
             pPos->set(pos);
         } else {
             MR::normalize(&offset);
@@ -149,3 +154,8 @@ void OnlyCamera::moveToIdealPosition(TVec3f* pPos) {
     }
     mPos.set(pos);
 }
+
+#pragma dont_inline on
+void OnlyCamera::checkSafePose(TVec3f* pPos, TVec3f* pWatchPos) {
+}
+#pragma dont_inline reset

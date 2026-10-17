@@ -18,7 +18,7 @@ public:
     virtual const TVec3f& getGroundPos() const;
     virtual const TVec3f& getGravityVector() const;
 
-    virtual CubeCameraArea* getCubeCameraArea() const;
+    CubeCameraArea* getCubeCameraArea() const;  // SMG2 removed this virtual (cube area is looked up by position)
 
     void invalidateLastMove();
 

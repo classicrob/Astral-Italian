@@ -101,17 +101,15 @@ void MultiEmitterCallBack::setSRTFromHostMtx(JPABaseEmitter* pEmitter, MtxPtr pM
         }
 
         vecD0.add(vecE8);
+
+        if (MR::Effect::isEffect2D(mEmitter)) {
+            vecD0.y = -vecD0.y;
+        }
+
         pEmitter->mGlobalTrs.set(vecD0);
     }
 
     if (rFlag.mRotation) {
-        if (MR::Effect::isEffect2D(mEmitter)) {
-            TRot3f mtxC4;
-            mtxC4.identity();
-            mtxC4.setEulerZ(PI);
-            mtx94.concat(mtxC4);
-        }
-
         JPASetRMtxfromMtx(mtx94, pEmitter->mGlobalRot);
     }
 
@@ -145,6 +143,10 @@ void MultiEmitterCallBack::setSRTFromHostSRT(JPABaseEmitter* pEmitter, const Fla
         }
 
         vecE0.add(*mScale);
+
+        if (MR::Effect::isEffect2D(mEmitter)) {
+            vecE0.y = -vecE0.y;
+        }
 
         pEmitter->mGlobalTrs.set(vecE0);
     }

@@ -13,7 +13,7 @@
 
 CameraParamChunkHolder::CameraParamChunkHolder(CameraHolder* pCameraHolder, const char* pName)
     : NameObj(pName), mCameraHolder(pCameraHolder), mChunkCapacity(CHUNK_CAPACITY), mNrChunks(), mChunks(new CameraParamChunk*[CHUNK_CAPACITY]),
-      mIsSorted() {
+      mIsSorted(), mExtra(new CameraParamChunkHolderExtra()) {
 }
 
 CameraParamChunkHolder::~CameraParamChunkHolder() {
@@ -297,6 +297,14 @@ void CameraParamChunkHolder::arrangeChunk(CameraParamChunk* pChunk) {
 
         if (mCameraHolder->getIndexOf("CAM_TYPE_XZ_PARA") == index) {
             pChunk->mGeneralParam->mNum1 = 0;
+        }
+    }
+
+    if (mCameraVersion < 0x30017) {
+        index = pChunk->mCameraTypeIndex;
+
+        if (mCameraHolder->getIndexOf("CAM_TYPE_CUBE_PLANET") == index) {
+            pChunk->mGeneralParam->mNum1 = 1;
         }
     }
 }

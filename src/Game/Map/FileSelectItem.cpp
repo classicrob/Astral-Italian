@@ -9,6 +9,7 @@
 #include "Game/NPC/MiiFaceRecipe.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/FileSelectNumber.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
@@ -38,13 +39,15 @@ void FileSelectItem_FORCE_MATCH_SDATA2() {
     (void)6.0f;
 }
 
-namespace {
+namespace NrvFileSelectItem {
     NEW_NERVE(FileSelectItemNrvNewWait, FileSelectItem, NewWait);
     NEW_NERVE(FileSelectItemNrvExistWait, FileSelectItem, ExistWait);
     NEW_NERVE(FileSelectItemNrvFormat, FileSelectItem, Format);
     NEW_NERVE(FileSelectItemNrvChangeFellow, FileSelectItem, ChangeFellow);
     NEW_NERVE(FileSelectItemNrvChangeMii, FileSelectItem, ChangeMii);
+};  // namespace NrvFileSelectItem
 
+namespace {
     bool checkCollisionOfPointAndCylinder(const TVec3f& rVec1, const TVec3f& rVec2, const TVec3f& rVec3, f32 f1) {
         f32 length = rVec3.length();
         TVec3f vecCopy(rVec3);
@@ -128,7 +131,12 @@ void FileSelectItem::init(const JMapInfoIter& rIter) {
     createNumber();
     MR::initStarPointerTarget(this, 1000.0f, TVec3f(0.0f, 900.0f, 0.0f));
     MR::invalidateClipping(this);
-    initNerve(GET_NERVE_ANON(FileSelectItemNrvNewWait));
+
+    TVec3f soundPos;
+    soundPos.setAll<f32>(0.0f);
+    initSound(4, "FileSelectItem", nullptr, soundPos);
+
+    initNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvNewWait));
     MR::createCenterScreenBlur();
     makeActorAppeared();
 }
@@ -137,9 +145,8 @@ void FileSelectItem::appear() {
     LiveActor::appear();
 
     if (_8C) {
-        killAllModels();
-        mPlanetMapObj->makeActorAppeared();
-        setNerve(GET_NERVE_ANON(FileSelectItemNrvNewWait));
+        setPlanetColor();
+        setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvNewWait));
     } else {
         if (mIconID->isMii()) {
             killAllModels();
@@ -148,7 +155,7 @@ void FileSelectItem::appear() {
             appearFellowModel();
         }
 
-        setNerve(GET_NERVE_ANON(FileSelectItemNrvExistWait));
+        setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvExistWait));
     }
 }
 
@@ -170,15 +177,15 @@ void FileSelectItem::makeActorDead() {
 }
 
 bool FileSelectItem::isNew() const {
-    return isNerve(GET_NERVE_ANON(FileSelectItemNrvNewWait));
+    return isNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvNewWait));
 }
 
 bool FileSelectItem::isExist() const {
-    return isNerve(GET_NERVE_ANON(FileSelectItemNrvExistWait));
+    return isNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvExistWait));
 }
 
 void FileSelectItem::format() {
-    setNerve(GET_NERVE_ANON(FileSelectItemNrvFormat));
+    setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvFormat));
     deleteCompleteEffect();
     _8C = 1;
 }
@@ -187,9 +194,9 @@ void FileSelectItem::change(const FileSelectIconID& rID, bool a2) {
     mIconID->set(rID);
 
     if (rID.isMii()) {
-        setNerve(GET_NERVE_ANON(FileSelectItemNrvChangeMii));
+        setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvChangeMii));
     } else {
-        setNerve(GET_NERVE_ANON(FileSelectItemNrvChangeFellow));
+        setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvChangeFellow));
     }
 
     deleteCompleteEffect();
@@ -211,7 +218,7 @@ void FileSelectItem::forceChange(const FileSelectIconID& rID, bool a2) {
 
     _147 = a2;
     emitCompleteEffect();
-    setNerve(GET_NERVE_ANON(FileSelectItemNrvExistWait));
+    setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvExistWait));
     _8C = 0;
 }
 
@@ -245,10 +252,10 @@ void FileSelectItem::setSelectDelegator(FileSelectItemDelegatorBase* pDele) {
 
 void FileSelectItem::onPointing() {
     if (!mIsInvalidateSelect) {
-        if (isNerve(GET_NERVE_ANON(FileSelectItemNrvNewWait))) {
-            playPointedNotUsingME();
+        if (isNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvNewWait))) {
+            MR::startActionSound(this, "FileUnUsedPoint", -1, -1, -1);
         } else {
-            playPointedME();
+            MR::startActionSound(this, "FilePoint", -1, -1, -1);
         }
 
         _A0->onSelectIn();
@@ -275,19 +282,25 @@ void FileSelectItem::turnToFront(s32 angle) {
     _16C = 0;
 }
 
+void FileSelectItem::setPlanetColor() {
+    killAllModels();
+    mPlanetMapObj->makeActorAppeared();
+    MR::startBrk(mPlanetMapObj, "FileSelectDataPlanet");
+    MR::setBrkFrameAndStop(mPlanetMapObj, static_cast<f32>(static_cast<u32>(_140 - 1)));
+}
+
 void FileSelectItem::exeFormat() {
     if (MR::isFirstStep(this)) {
     }
 
     if (MR::isLessStep(this, 40)) {
-        MR::startSystemLevelSE("SE_SY_LV_FILE_SEL_MORPHBLUR");
+        MR::startActionSound(this, "SyLvFileSelMorphblur", -1, -1, -1);
     }
 
     if (MR::isStep(this, 40)) {
-        MR::startSystemSE("SE_SY_FILE_SEL_MORPH_DUMMY");
+        MR::startActionSound(this, "SyFileSelMorphDummy", -1, -1, -1);
         emitVanish();
-        killAllModels();
-        mPlanetMapObj->makeActorAppeared();
+        setPlanetColor();
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
         MR::shakeCameraNormal();
     }
@@ -298,7 +311,7 @@ void FileSelectItem::exeFormat() {
     }
 
     if (MR::isStep(this, 60)) {
-        setNerve(GET_NERVE_ANON(FileSelectItemNrvNewWait));
+        setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvNewWait));
     }
 }
 
@@ -331,7 +344,7 @@ void FileSelectItem::exeChangeFellow() {
     }
 
     if (MR::isStep(this, 150)) {
-        setNerve(GET_NERVE_ANON(FileSelectItemNrvExistWait));
+        setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvExistWait));
     }
 }
 
@@ -369,7 +382,7 @@ void FileSelectItem::exeChangeMii() {
     }
 
     if (MR::isStep(this, 150)) {
-        setNerve(GET_NERVE_ANON(FileSelectItemNrvExistWait));
+        setNerve(GET_NERVE(FileSelectItem, FileSelectItemNrvExistWait));
     }
 }
 

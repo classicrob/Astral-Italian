@@ -23,6 +23,7 @@ SaveDataBannerCreator::SaveDataBannerCreator() : NerveExecutor("BannerCreator"),
 }
 
 void SaveDataBannerCreator::execute() {
+    _50 = false;
     setNerve(GET_NERVE_ANON(SaveDataBannerCreatorCreateOnTemporary));
 }
 
@@ -66,6 +67,8 @@ void SaveDataBannerCreator::exeMoveToHomeDir() {
     if (!mNANDRequestInfo->isDone()) {
         return;
     }
+
+    _50 = false;
 
     NANDResultCode resultCode = mNANDRequestInfo->mResult;
 

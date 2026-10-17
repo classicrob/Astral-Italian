@@ -426,9 +426,8 @@ void StarPointerOnOffController::clearInfo() {
     }
 
     for (RequestInfo** request = mRequests.begin(); request < mRequests.end(); request++) {
-        RequestInfo* info = *request;
-        info->mRequester = nullptr;
-        info->mMode = -1;
+        (*request)->mRequester = nullptr;
+        (*request)->mMode = -1;
     }
 
     #if (VERSION == RMGK01)

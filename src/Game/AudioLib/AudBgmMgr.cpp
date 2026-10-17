@@ -37,6 +37,10 @@ void AudBgmMgr::movement() {
 }
 
 JAISoundHandle* AudBgmMgr::start(s32 bgmIndex, u32 soundID, bool lock, s32) {
+    if (soundID == static_cast< u32 >(-1)) {
+        return nullptr;
+    }
+
     if (mBgm[bgmIndex] != nullptr) {
         mBgm[bgmIndex]->rejectFromSyncStream();
         mBgm[bgmIndex]->stop(false);

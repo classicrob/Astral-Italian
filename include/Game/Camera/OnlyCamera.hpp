@@ -14,6 +14,7 @@ public:
     void calcStartPose(CameraMan*);
     void calcSafePose(CameraMan*);
     void moveToIdealPosition(TVec3f*);
+    void checkSafePose(TVec3f*, TVec3f*);  // SMG2: empty stub (debug leftover)
 
     /* 0x0C */ CameraPoseParam* mPoseParam;
     /* 0x10 */ bool mStartPose;

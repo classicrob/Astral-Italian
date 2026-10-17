@@ -23,4 +23,5 @@ private:
     /* 0x08 */ NANDRequestInfo* mNANDRequestInfo;
     /* 0x0C */ NANDBanner* mBanner;
     /* 0x10 */ char mHomeDir[NAND_MAX_PATH];
+    /* 0x50 */ bool _50;
 };

@@ -349,6 +349,16 @@ namespace MR {
     void vecBlend(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, f32 rate);  // DIFFERENT THAN SMG1
     void vecBlendNormal(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, f32 rate);
     bool vecBlendSphere(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, f32 rate);
+    // Petari (SMG1) argument order; SMG2 moved pDst first.
+    inline void vecBlend(const TVec3f& rFrom, const TVec3f& rTo, TVec3f* pDst, f32 rate) {
+        vecBlend(pDst, rFrom, rTo, rate);
+    }
+    inline void vecBlendNormal(const TVec3f& rFrom, const TVec3f& rTo, TVec3f* pDst, f32 rate) {
+        vecBlendNormal(pDst, rFrom, rTo, rate);
+    }
+    inline bool vecBlendSphere(const TVec3f& rFrom, const TVec3f& rTo, TVec3f* pDst, f32 rate) {
+        return vecBlendSphere(pDst, rFrom, rTo, rate);
+    }
     void vecRotAxis(const TVec3f& rFrom, const TVec3f& rTo, const TVec3f& rAxis, TVec3f* pVec, f32 angle);
     void rotAxisVecRad(const TVec3f&, const TVec3f&, TVec3f*, f32);
 

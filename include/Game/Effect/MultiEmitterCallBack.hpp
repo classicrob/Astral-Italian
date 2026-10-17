@@ -65,7 +65,7 @@ public:
     }
 
     inline void turnFlagOff(u16 flag) {
-        mFlags &= ~flag;
+        mFlags &= static_cast<u16>(~flag);
     }
 
     /* 0x04 */ const MultiEmitter* mEmitter;

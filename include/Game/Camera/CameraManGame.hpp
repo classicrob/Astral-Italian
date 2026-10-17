@@ -10,6 +10,7 @@ class CameraParamChunkHolder;
 class CameraParamChunkID;
 class CamKarikariEffector;
 class CamHeliEffector;
+class CamYoshiEffector;
 
 class CameraManGame : public CameraMan {
 public:
@@ -58,11 +59,13 @@ public:
     bool tryShiftToGCapture();
     bool tryShiftToSwimOrWaterSurface();
     bool tryShiftToFooFighter();
+    bool tryShiftToYoshi();
+    bool tryShiftToYoshiLight();
     void updateNormal();
     void updateSwim();
     void updateWaterSurface();
-    void updateGCapture();
     void updateFooFighter();
+    void updateYoshiLight();
     bool setCubeChunk(CubeCameraArea::ECategory);
     bool tryStartPosCamera();
     bool tryZoomCamera();
@@ -76,7 +79,8 @@ public:
     /* 0x5C */ u32 _5C;
     /* 0x60 */ CamKarikariEffector* mKarikari;
     /* 0x64 */ CamHeliEffector* mHeli;
-    /* 0x68 */ u32 mTypeState;
+    /* 0x68 */ CamYoshiEffector* mYoshi;
+    /* 0x68 */ s32 mTypeState;
     /* 0x6C */ bool mIsStartPosActive;
     /* 0x70 */ s32 mInterpolateOffCounter;
     /* 0x74 */ bool mZoomedIn;

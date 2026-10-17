@@ -1,10 +1,17 @@
 #include "Game/System/LayoutHolder.hpp"
-#include "Game/Util/StringUtil.hpp"
 #include "Game/Util/SystemUtil.hpp"
 #include <JSystem/JKernel/JKRArchive.hpp>
 #include <JSystem/JKernel/JKRFileFinder.hpp>
 #include <cstdio>
 #include <cstring>
+
+#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+#include "Game/Util/StringUtil.hpp"
+#endif
+
+extern "C" {
+int strncasecmp(const char* s1, const char* s2, size_t n);
+}
 
 namespace {
     const char* const sLayoutExt[] = {
@@ -54,6 +61,7 @@ void* LayoutHolder::GetResource(u32 resourceKind, const char* pName, u32* pResou
     return pResource;
 }
 
+#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
 nw4r::ut::Font* LayoutHolder::GetFont(const char* pName) {
     if (!MR::strcasecmp(pName, "MessageFont26.brfnt")) {
         return MR::getFontOnCurrentLanguage();
@@ -71,16 +79,37 @@ nw4r::ut::Font* LayoutHolder::GetFont(const char* pName) {
         return MR::getPictureFontNW4R();
     }
 
-    if (MR::strcasecmp(pName, "MenuFont96.brfnt") == 0) {
-        return MR::getMenuFont96NW4R();
-    }
-
-    if (MR::strcasecmp(pName, "StaffFont18.brfnt") == 0) {
-        return MR::getStaffFontNW4R();
+    if (MR::strcasecmp(pName, "CinemaFont26.brfnt") == 0) {
+        return MR::getCinemaFontNW4R();
     }
 
     return MR::getFontOnCurrentLanguage();
 }
+#else
+nw4r::ut::Font* LayoutHolder::GetFont(const char* pName) {
+    if (strncasecmp(pName, "MessageFont26", strlen("MessageFont26")) == 0) {
+        return MR::getFontOnCurrentLanguage();
+    }
+
+    if (strncasecmp(pName, "MenuFont64", strlen("MenuFont64")) == 0) {
+        return MR::getMenuFontNW4R();
+    }
+
+    if (strncasecmp(pName, "NumberFont", strlen("NumberFont")) == 0) {
+        return MR::getNumberFontNW4R();
+    }
+
+    if (strncasecmp(pName, "PictureFont", strlen("PictureFont")) == 0) {
+        return MR::getPictureFontNW4R();
+    }
+
+    if (strncasecmp(pName, "CinemaFont26", strlen("CinemaFont26")) == 0) {
+        return MR::getCinemaFontNW4R();
+    }
+
+    return MR::getFontOnCurrentLanguage();
+}
+#endif
 
 bool LayoutHolder::isAnimationHashEqual(u32 hash, u32 fileID) const {
     return mAnimRes.getFileInfo(fileID)->isEqualHashCode(hash);

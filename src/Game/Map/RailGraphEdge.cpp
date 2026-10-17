@@ -2,8 +2,8 @@
 #include "Game/Util.hpp"
 
 RailGraphEdge::RailGraphEdge() {
-    mDistance = 0.0f;
     _4 = -1;
+    mDistance = 0.0f;
     _8 = -1;
     _C = -1;
     _10 = -1;
@@ -18,8 +18,8 @@ RailGraphEdge::RailGraphEdge() {
 }
 
 void RailGraphEdge::clearConnectInfo() {
-    mDistance = 0.0f;
     _4 = -1;
+    mDistance = 0.0f;
     _8 = -1;
     _C = -1;
     _10 = -1;

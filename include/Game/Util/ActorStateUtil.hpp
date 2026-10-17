@@ -23,3 +23,11 @@ namespace MR {
     /// @note Only transitions to the next nerve if the state indicates it should update.
     bool updateActorStateAndNextNerve(LiveActor* pActor, const Nerve* pNextNerve);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+
+
+namespace MR {
+    void initActorStateKeeper(NerveExecutor* pExecutor, s32 capacity);
+    bool updateActorState(LiveActor* pActor, ActorStateBaseInterface* pActorState);
+};  // namespace MR

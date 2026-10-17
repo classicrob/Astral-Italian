@@ -75,3 +75,10 @@ namespace MR {
     void updateEffectFloorCodeLineToMap(LiveActor* pActor, const TVec3f& pStart, const TVec3f& pEnd);
     void updateEffectFloorCodeLineToMap(LiveActor* pActor, f32 pStart, f32 pEnd);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+class MultiEmitter;
+
+namespace MR {
+    void initEffectSyncBck(LiveActor*, const char*, const char* const*);
+};  // namespace MR

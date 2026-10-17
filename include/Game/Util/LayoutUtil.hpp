@@ -77,3 +77,70 @@ namespace MR {
     nw4r::lyt::Pane* getRootPane(const LayoutActor*);
     void clearTextBoxMessageRecursive(LayoutActor*, const char*);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include "Game/Screen/CustomTagProcessor.hpp"
+#include <JSystem/JGeometry/TBox.hpp>
+class IconAButton;
+class J3DFrameCtrl;
+class Nerve;
+class ResTIMG;
+class SimpleLayout;
+class TextBoxRecursiveOperation;
+
+namespace MR {
+    u8 getPaneAlpha(const LayoutActor*, const char*);
+    void setInfluencedAlphaToChild(const LayoutActor*);
+    void setLayoutAlpha(const LayoutActor*, u8);
+    void setLayoutAlphaFloat(const LayoutActor*, f32);
+    void setPaneAlpha(const LayoutActor*, const char*, u8);
+    void setPaneAlphaFloat(const LayoutActor*, const char*, f32);
+    void executeTextBoxRecursive(LayoutActor*, const char*, const TextBoxRecursiveOperation&);
+    void setTextBoxLayoutMessageRecursive(LayoutActor*, const char*, const char*);
+    void setTextBoxSystemMessageRecursive(LayoutActor*, const char*, const char*);
+    void setTextBoxFormatRecursive(LayoutActor*, const char*, const wchar_t*, ...);
+    void setTextBoxArgStringRecursive(LayoutActor*, const char*, const wchar_t*, s32);
+    void setTextBoxArgGameMessageRecursive(LayoutActor*, const char*, const char*, s32);
+    void setTextBoxVerticalPositionTopRecursive(LayoutActor*, const char*);
+    void setTextBoxVerticalPositionCenterRecursive(LayoutActor*, const char*);
+    void setTextBoxVerticalPositionBottomRecursive(LayoutActor*, const char*);
+    void setTextBoxHorizontalPositionLeftRecursive(LayoutActor*, const char*);
+    void setTextBoxHorizontalPositionCenterRecursive(LayoutActor*, const char*);
+    void updateClearTimeTextBox(LayoutActor*, const char*, u32);
+    void updateMinuteAndSecondTextBox(LayoutActor*, const char*, u32);
+    void setTextBoxFontRecursive(LayoutActor*, const char*, nw4r::ut::Font*);
+    f32 getPaneTransX(const LayoutActor*, const char*);
+    f32 getPaneTransY(const LayoutActor*, const char*);
+    void setLayoutPosAtPaneTrans(LayoutActor*, const LayoutActor*, const char*);
+    void copyPaneScale(TVec2f*, const LayoutActor*, const char*);
+    void setPaneScale(const LayoutActor*, f32, f32, const char*);
+    void setLayoutScaleAtPaneScale(LayoutActor*, const LayoutActor*, const char*);
+    void copyPaneRotate(TVec3f*, const LayoutActor*, const char*);
+    void setPaneRotate(const LayoutActor*, f32, f32, f32, const char*);
+    void setLayoutScalePosAtPaneScaleTrans(LayoutActor*, const LayoutActor*, const char*);
+    nw4r::lyt::TexMap* createLytTexMap(const char*, const char*);
+    nw4r::lyt::TexMap* getLytTexMap(LayoutActor*, const char*, u8);
+    void replacePaneTexture(LayoutActor*, const char*, const nw4r::lyt::TexMap*, u8);
+    f32 getAnimFrame(const LayoutActor*, u32);
+    f32 getPaneAnimFrame(const LayoutActor*, const char*, u32);
+    s16 getAnimFrameMax(const LayoutActor*, u32);
+    s16 getPaneAnimFrameMax(const LayoutActor*, const char*, u32);
+    J3DFrameCtrl* getAnimCtrl(const LayoutActor*, u32);
+    J3DFrameCtrl* getPaneAnimCtrl(const LayoutActor*, const char*, u32);
+    void setEffectRate(LayoutActor*, const char*, f32);
+    void setEffectDirectionalSpeed(LayoutActor*, const char*, f32);
+    void copyLayoutDrawInfoWithAspect(nw4r::lyt::DrawInfo*, const LayoutActor*, bool);
+    void calcAnimLayoutWithDrawInfo(const LayoutActor*, const nw4r::lyt::DrawInfo&);
+    void drawLayoutWithDrawInfoWithoutProjectionSetup(const LayoutActor*, const nw4r::lyt::DrawInfo&);
+    void setNerveAtAnimStopped(LayoutActor*, const Nerve*, u32);
+    void setNerveAtPaneAnimStopped(LayoutActor*, const char*, const Nerve*, u32);
+    void killAtAnimStopped(LayoutActor*, u32);
+    SimpleLayout* createSimpleLayout(const char*, const char*, u32);
+    SimpleLayout* createSimpleLayoutTalkParts(const char*, const char*, u32);
+    void calcTextBoxRectRecursive(TBox2f*, const LayoutActor*, const char*);
+    u32 getTextLineNumMaxRecursive(const LayoutActor*, const char*);
+    void invalidateParentAnim(LayoutActor*);
+    void setCometPaneAnimFromId(LayoutActor*, const char*, int, u32);
+    IconAButton* createAndSetupIconAButton(LayoutActor*, bool, bool);
+    void setCometAnimFromId(LayoutActor*, int, u32);
+};  // namespace MR

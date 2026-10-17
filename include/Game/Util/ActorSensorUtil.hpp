@@ -302,3 +302,37 @@ namespace MR {
     void calcPosBetweenSensors(TVec3f* pPosition, const HitSensor* pSensorA, const HitSensor* pSensorB, f32 offset);
     bool tryForceKillIfMsgStartPowerStarGet(LiveActor* pActor, u32 msg);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+
+
+namespace MR {
+    HitSensor* addHitSensorTransferableBinder(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius, const TVec3f& rOffset);
+    HitSensor* addHitSensorMapObjPress(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius, const TVec3f& rOffset);
+    HitSensor* addHitSensorEnemySimple(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius, const TVec3f& rOffset);
+    HitSensor* addHitSensorPosBinder(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius, const TVec3f* pPos, const TVec3f& rOffset);
+    HitSensor* addHitSensorPosEye(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius, const TVec3f* pPos, const TVec3f& rOffset);
+    HitSensor* addHitSensorMtxMapObj(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius, MtxPtr pMtx, const TVec3f& rOffset);
+    HitSensor* addHitSensorMtxNpc(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius, MtxPtr pMtx, const TVec3f& rOffset);
+    HitSensor* addHitSensorAtJointEye(LiveActor* pActor, const char* pName, const char* pJointName, u16 groupSize, f32 radius, const TVec3f& rOffset);
+    HitSensor* addHitSensorCallbackMapObjSimple(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius);
+    HitSensor* addHitSensorCallbackEnemy(LiveActor* pActor, const char* pName, u16 groupSize, f32 radius);
+    HitSensor* addBodyMessageSensorMapObjMoveCollision(LiveActor* pActor);
+    HitSensor* addMessageSensorMapObj(LiveActor* pActor, const char* pName);
+    HitSensor* addMessageSensorMapObjMoveCollision(LiveActor* pActor, const char* pName);
+    HitSensor* addMessageSensorEnemy(LiveActor* pActor, const char* pName);
+    HitSensor* getTaking(const LiveActor* pActor);
+    void setHitSensorApart(HitSensor* pSender, HitSensor* pReceiver);
+    bool isValidHitSensor(LiveActor* pActor, const char* pName);
+    bool isSensor(const HitSensor* pSensor, const char* pName);
+    bool sendMsgKick(HitSensor* pReceiver, HitSensor* pSender);
+    bool sendMsgEnemyAttackFlipMaximum(HitSensor* pReceiver, HitSensor* pSender);
+    bool sendMsgEnemyAttackHeatBeam(HitSensor* pReceiver, HitSensor* pSender);
+    bool isMsgInvalidHit(u32 msg);
+    bool isMsgTutorialStart(u32 msg);
+    bool isMsgTutorialNext(u32 msg);
+    bool isMsgTutorialPrev(u32 msg);
+    bool isMsgTutorialPass(u32 msg);
+    bool isMsgTutorialOmit(u32 msg);
+    s32 getNumStarPieceGift(u32 msg);
+};  // namespace MR

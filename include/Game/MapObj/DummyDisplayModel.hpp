@@ -41,3 +41,11 @@ namespace MR {
     s32 getDummyDisplayModelId(const JMapInfoIter&, s32);
     s32 getDummyDisplayModelId(const LiveActor*);
 }  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+class NameObjArchiveListCollector;
+class JMapInfoIter;
+
+namespace MR {
+    void makeArchiveListDummyDisplayModel(NameObjArchiveListCollector*, const JMapInfoIter&);
+};  // namespace MR

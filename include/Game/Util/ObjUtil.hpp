@@ -250,3 +250,38 @@ namespace MR {
     bool tryFindLinkNamePos(const NameObj* pLinkedObj, const char* pPosName, TVec3f* pPosition, TVec3f* pRotation);
     bool tryFindLinkNamePos(const NameObj* pLinkedObj, const char* pPosName, MtxPtr pMtx);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include <revolution/gx.h>
+#include <revolution/wpad.h>
+class BenefitItemObj;
+class JMapInfo;
+class JMapInfoIter;
+class NameObjGroup;
+class ResTIMG;
+
+namespace MR {
+    bool isJudgedToClipFrustum100m(const TVec3f&, f32);
+    void connectToSceneCollisionMapObjMovementCalcAnim(LiveActor*);
+    void connectToSceneCollisionEnemyMovement(NameObj*);
+    void connectToSceneMapParts(LiveActor*);
+    void connectToSceneTalkLayoutNoMovement(NameObj*);
+    void connectToSceneLayoutOnPauseNoMovement(NameObj*);
+    void connectToSceneLayoutOnPauseMovementCalcAnim(NameObj*);
+    void connectToSceneMovie(NameObj*);
+    void connectToSceneMirrorMapObjNoMovement(LiveActor*);
+    void connectToSceneNoSilhouettedMapObjWeakLightNoMovement(LiveActor*);
+    void connectToSceneCrystal(LiveActor*);
+    void connectToSceneNormalMapObj(LiveActor*);
+    NameObjGroup* joinToMovementOnOffGroup(const char*, NameObj*, u32);
+    void onMovementOnOffGroup(const char*);
+    NameObjAdaptor* createDrawAdaptor(const char*, const MR::FunctorBase&);
+    void* loadResourceFromArc(const char*, const char*);
+    bool isExistResourceInArc(const char*, const char*);
+    const ResTIMG* loadTexFromArc(const char*, const char*);
+    bool isStageStateScenarioOpeningCamera();
+    bool isStageStatePowerStarAppeared();
+    void appearCoinFix(const NameObj*, const TVec3f&, s32);
+    void appearKinokoSuper(BenefitItemLifeUp*, MtxPtr, f32);
+    bool tryRumblePadVeryStrongLong(const void*, s32);
+};  // namespace MR

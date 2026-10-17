@@ -54,3 +54,26 @@ namespace MR {
     /// @param[in] pStageName A pointer to the null-terminated name of the galaxy.
     void makeScenarioArchiveFileName(char* pDst, u32 size, const char* pStageName);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include <JSystem/JKernel/JKRDvdRipper.hpp>
+#include <revolution/types.h>
+class JKRArchive;
+class JKRHeap;
+class JKRMemArchive;
+
+namespace MR {
+    s32 convertPathToEntrynumConsideringLanguage(const char* pFilePath);
+    void loadAsyncToMainRAM(const char* pFilePath, u8* pDst, JKRHeap* pHeap, JKRDvdRipper::EAllocDirection allocDir);
+    JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap);
+    void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap);
+    void mountAsyncArchiveByObjectOrLayoutName(const char* pFilePrefix, JKRHeap* pHeap);
+    void removeFileConsideringLanguage(const char* pFilePath);
+    void removeResourceAndFileHolderIfIsEqualHeap(JKRHeap* pHeap);
+    bool isLoadedFile(const char* pFilePath);
+    bool isMountedArchive(const char* pFilePath);
+    bool isLoadedObjectOrLayoutArchive(const char* pFilePrefix);
+    void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath);
+    bool makeObjectArchiveFileName(char* pDst, u32 size, const char* pFileName);
+    bool makeLayoutArchiveFileName(char* pDst, u32 size, const char* pFileName);
+};  // namespace MR

@@ -63,3 +63,33 @@ namespace MR {
     /// @return `true` if the pointer to the string is `nullptr` or contains no characters, `false` otherwise.
     bool isNullOrEmptyString(const char* pStr);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+
+
+namespace MR {
+    void addFilePrefix(char* pDst, u32 size, const char* pChild, const char* pParent);
+    void makeDateString(wchar_t* pDst, s32 size, s32 year, s32 month, s32 day);
+    void makeTimeString(wchar_t* pDst, s32 size, s32 hour, s32 minute);
+    void makeClearTimeString(wchar_t* pDst, u32 frame);
+    void makeMinuteAndSecondString(wchar_t* pDst, u32 frame);
+    wchar_t* addNumberFontTag(wchar_t* pDst, int tag);
+    void makeRaceBestTimeString(wchar_t* pDst, int raceId);
+    void makeRaceCurrentTimeString(wchar_t* pDst);
+    wchar_t* addPictureFontCode(wchar_t* pDst, int code);
+    wchar_t* addPictureFontTag(wchar_t* pDst, int tag);
+    wchar_t* addPictureFontTagPlayerIcon(wchar_t* pDst);
+    wchar_t* addNewLine(wchar_t* pDst);
+    int convertUTF16ToASCII(char* pDst, const wchar_t* pSrc, s32 num);
+    bool isDigitStringTail(const char* pStr, int digitNum);
+    bool isExistString(const char* pStr, const char* const* ppStr, u32 strNum);
+    bool isMessageEditorNextTag(const wchar_t*);
+    int getStringLengthWithMessageTag(const wchar_t*);
+    void scan32(const char* pSrc, const char* pSubStr, s32* pDst);
+    void scan16(const char* pSrc, const char* pSubStr, u16* pDst);
+    void scan8(const char* pSrc, const char* pSubStr, u8* pDst);
+    void scanf32(const char* pSrc, const char* pSubStr, f32* pDst);
+    void scanu8x4(const char* pSrc, const char* pSubStr, u8* pDst);
+    void scans16x4(const char* pSrc, const char* pSubStr, s16* pDst);
+    void scanf32x4(const char* pSrc, const char* pSubStr, f32* pDst);
+};  // namespace MR

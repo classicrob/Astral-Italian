@@ -37,3 +37,18 @@ namespace MR {
     /// @param size The number of bytes to fill.
     void zeroMemory(void* pDst, u32 size);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+class JKRHeap;
+
+namespace MR {
+    MEMAllocator* getHomeButtonLayoutAllocator();
+    f32 getHeapFreeRatio(JKRHeap* pHeap);
+    JKRHeap* getAproposHeapForSceneArchive(f32 maxFreeSizeRate);
+    JKRSolidHeap* getSceneHeapNapa();
+    JKRSolidHeap* getSceneHeapGDDR3();
+    void fillMemory(void* pDst, u8 ch, u32 size);
+    u32 calcCheckSum(const void* pPtr, u32 size);
+    void* allocFromWPadHeap(u32 size);
+    u8 freeFromWPadHeap(void* pPtr);
+};  // namespace MR

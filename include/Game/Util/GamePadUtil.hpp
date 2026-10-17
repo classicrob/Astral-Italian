@@ -84,3 +84,12 @@ class WPadFunction {
 public:
     static WPadRumble* getWPadRumble(s32);
 };
+
+// Merged from Petari (core lane): declarations missing here
+#include <revolution/wpad.h>
+
+namespace MR {
+    bool testSubPadReleaseZ(s32 channel);
+    bool testSubPadStickTriggerUp(s32 channel);
+    bool testSubPadStickTriggerDown(s32 channel);
+};  // namespace MR

@@ -87,3 +87,17 @@ namespace MR {
     bool isShadowProjectedAny(const LiveActor* pActor);
     f32 getShadowNearProjectionLength(const LiveActor* pActor);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+class CollisionParts;
+
+namespace MR {
+    void initShadowFromCSV(LiveActor*, const char*);
+    void initShadowVolumeBox(LiveActor*, const TVec3f&);
+    void initShadowController(LiveActor*, u32);
+    void addShadowSurfaceCircle(LiveActor*, const char*, f32);
+    void addShadowVolumeSphere(LiveActor*, const char*, f32);
+    void setShadowDropStartOffset(LiveActor*, const char*, f32);
+    void excludeCalcShadowToCollision(LiveActor*, const char*, CollisionParts*);
+    void invalidateShadowGroup(LiveActor*, const char*);
+};  // namespace MR

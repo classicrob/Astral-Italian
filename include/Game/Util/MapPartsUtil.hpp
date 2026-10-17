@@ -11,7 +11,6 @@ class MapPartsRailRotator;
 class LiveActor;
 
 namespace MR {
-    const HitSensor* getBodySensor(LiveActor*);
     void setBodySensorType(LiveActor*, u32);
     void setBodySensorTypeMapObj(LiveActor*);
     void setBodySensorTypePress(LiveActor*);

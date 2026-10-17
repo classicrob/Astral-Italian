@@ -51,3 +51,40 @@ namespace MR {
     void orderRotateMtx(s16, const TVec3f&, MtxPtr);
     void inverseConcatMtx(MtxPtr, MtxPtr, TMtx34f*);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include <JSystem/JGeometry.hpp>
+#include <revolution/mtx.h>
+class LiveActor;
+
+namespace MR {
+    void makeMtxRotateY(MtxPtr, f32);
+    void rotateMtxLocalX(MtxPtr, f32);
+    void rotateMtxLocalY(MtxPtr, f32);
+    void rotateMtxLocalZ(MtxPtr, f32);
+    void rotateMtxLocalXDegree(MtxPtr, f32);
+    void rotateMtxLocalYDegree(MtxPtr, f32);
+    void rotateMtxLocalZDegree(MtxPtr, f32);
+    void preScaleMtx(MtxPtr, f32);
+    void scaleMtxToLocalMtx(MtxPtr, MtxPtr, MtxPtr, const TVec3f&);
+    void scaleMtxToDir(TPos3f*, const TVec3f&, const TVec3f&);
+    void setMtxAxisXYZ(MtxPtr, const TVec3f&, const TVec3f&, const TVec3f&);
+    void flattenMtx(MtxPtr, MtxPtr, const TVec3f&);
+    void blendMtxRotate(MtxPtr, MtxPtr, f32, MtxPtr);
+    void blendMtxRotateSlerp(MtxPtr, MtxPtr, f32, MtxPtr);
+    void blendMtx(MtxPtr, MtxPtr, f32, MtxPtr);
+    void makeMtxWithoutScale(TPos3f*, const TPos3f&);
+    void makeRTFromMtxPtr(TVec3f*, TVec3f*, MtxPtr, bool);
+    void orthogonalize(TPos3f*);
+    void turnMtxToXDirRate(TPos3f*, const TVec3f&, f32);
+    void turnMtxToXDirDegree(TPos3f*, const TVec3f&, f32);
+    void turnMtxToYDirRate(TPos3f*, const TVec3f&, f32);
+    void turnMtxToYDirDegree(TPos3f*, const TVec3f&, f32);
+    void turnMtxToLocalDirDegree(TPos3f*, const TVec3f&, const TVec3f&, f32);
+    void makeMtxMoment(TPos3f*, const TVec3f&);
+    void rotateMtxMoment(TPos3f*, const TPos3f&, const TVec3f&);
+    bool isSameMtx(MtxPtr, MtxPtr);
+    bool isRotAxisY(MtxPtr, MtxPtr);
+    void calcMtxRotAxis(TVec3f*, MtxPtr, MtxPtr);
+    MtxPtr tmpMtxTrans(const TVec3f&);
+};  // namespace MR

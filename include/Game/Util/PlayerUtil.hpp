@@ -232,3 +232,31 @@ namespace MR {
 
     bool changePlayerAnimAndStartBvaIfExist(const char*);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include <JSystem/JGeometry/TMatrix.hpp>
+class CubeCameraArea;
+class JUTTexture;
+class Triangle;
+
+namespace MR {
+    void forceKillPlayerByWaterRace();
+    void forceKillPlayerByGhostRace();
+    void setPlayerWalkingResist(f32);
+    bool checkPlayerActionTrigger();
+    f32 getPlayerShadowHeight();
+    bool isPlayerElementMode(s32);
+    bool isPlayerSkating();
+    void changePlayerItemStatus(s32);
+    void validatePlayerSensor();
+    bool isPlayerTakingActor(const char*);
+    void setRasterScroll(s32, s32, s32);
+    void noticePlayerDashChance();
+    void preventPlayerRush();
+    void initPlayerAfterOpeningDemo();
+    void readyPlayerDemo();
+    void onFollowDemoEffect();
+    void requestMovementOnPlayer();
+    bool isPlayerOnPress();
+    CubeCameraArea* getCameraCube();
+};  // namespace MR

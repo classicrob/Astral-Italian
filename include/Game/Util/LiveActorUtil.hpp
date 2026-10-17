@@ -350,3 +350,56 @@ namespace MR {
     HitSensor* getBodySensor(LiveActor* pActor);
     void setBodySensorType(LiveActor* pActor, u32 sensorType);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include "Game/Animation/AnmPlayer.hpp"
+#include "Game/Util/JMapInfo.hpp"
+#include <JSystem/J3DGraphBase/J3DStruct.hpp>
+#include <revolution/mtx.h>
+class BckCtrlData;
+class BrkCtrl;
+class BtkCtrl;
+class Flag;
+class MsgSharedGroup;
+class TexMtxCtrl;
+class XjointTransform;
+
+namespace MR {
+    CollisionParts* tryCreateCollisionSunshade(LiveActor*, HitSensor*);
+    bool isBindedWallOrSlopeGround(const LiveActor*, f32, TVec3f*);
+    bool isPressedMovingWall(const LiveActor*);
+    void initDefaultPosNoRepeat(LiveActor*, const JMapInfoIter&);
+    bool isActionStart(const LiveActor*, const char*);
+    bool tryStartAction(const LiveActor*, const char*);
+    void startAllAnim(const LiveActor*, const char*);
+    bool isBckExist(const LiveActor*, const char*);
+    bool isBtkExist(const LiveActor*, const char*);
+    bool isBrkExist(const LiveActor*, const char*);
+    bool isBpkExist(const LiveActor*, const char*);
+    bool isBtpExist(const LiveActor*, const char*);
+    bool isBvaExist(const LiveActor*, const char*);
+    void changeModelDataTexAll(LiveActor*, const char*, const ResTIMG&);
+    XjointTransform* getJointTransform(const LiveActor*, const char*);
+    void setJointTransformLocalMtx(const LiveActor*, const char*, MtxPtr);
+    void initLightCtrlNoDrawEnemy(LiveActor*);
+    void initLightCtrlNoDrawMapObj(LiveActor*);
+    void calcLightPos0(TVec3f*, const LiveActor*);
+    void calcLightPos1(TVec3f*, const LiveActor*);
+    const GXColor* getLightAmbientColor(const LiveActor*);
+    void calcWallNormalHorizontal(TVec3f*, const LiveActor*);
+    f32 calcHitPowerToGround(const LiveActor*);
+    LiveActor* getPairedGroupMember(const LiveActor*);
+    s32 countHideGroupMember(const LiveActor*);
+    s32 countShowGroupMember(const LiveActor*);
+    void addToAttributeGroupReflectSpinningBox(const LiveActor*);
+    bool isExistInAttributeGroupReflectSpinningBox(const LiveActor*);
+    CollisionParts* tryCreateCollisionAllOtherCategory(LiveActor*, HitSensor*, CollisionParts**, CollisionParts**, CollisionParts**);
+    bool isExistKcl(LiveActor*, const char*);
+    void onUpdateCollisionPartsOnetimeImmediately(LiveActor*);
+    u32 getCollisionSensorType(const CollisionParts*);
+    ModelObj* createModelObjNpc(const char*, const char*, MtxPtr);
+    ModelObj* createModelObjPlanetLow(const char*, const char*, MtxPtr);
+    LodCtrl* createLodCtrlMapObj(LiveActor*, const JMapInfoIter&, f32);
+    Flag* createMapFlag(const char*, const char*, const TVec3f*, const TVec3f&, f32, f32, f32, s32, s32, f32);
+    void tryRumblePadAndCameraDistanceVeryStrong(const LiveActor*, f32, f32, f32);
+};  // namespace MR

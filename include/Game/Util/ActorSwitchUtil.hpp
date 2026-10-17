@@ -63,3 +63,10 @@ namespace MR {
     bool isValidSwitchParam(const LiveActor* pActor);
     bool isOnSwitchParam(const LiveActor* pActor);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+
+
+namespace MR {
+    void useStageSwitchSleep(LiveActor*, const JMapInfoIter&);
+};  // namespace MR

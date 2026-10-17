@@ -134,3 +134,16 @@ namespace MR {
     bool getNextRailPointArg7NoInit(const LiveActor*, f32*);
     bool getNextRailPointArg2WithInit(const LiveActor*, bool*);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include <JSystem/JGeometry.hpp>
+#include <JSystem/JGeometry/TBox.hpp>
+
+namespace MR {
+    f32 calcRailPosNearestPlayer(TVec3f*, const LiveActor*);
+    void calcRailStartPointDirection(TVec3f*, const LiveActor*);
+    void calcRailRateToNextPoint(f32*, const LiveActor*);
+    bool getRailArg2NoInit(const LiveActor*, s32*);
+    bool getRailArg4NoInit(const LiveActor*, s32*);
+    bool getRailPointArg3WithInit(const LiveActor*, s32, f32*);
+};  // namespace MR

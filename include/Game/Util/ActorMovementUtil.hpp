@@ -181,3 +181,19 @@ namespace MR {
     void moveAndTurnToPlayer(LiveActor*, f32, f32, f32, f32);
     void moveAndTurnAlongRail(LiveActor*, f32, f32, f32, f32, f32, bool*);
 };  // namespace MR
+
+// Merged from Petari (core lane): declarations missing here
+#include "Game/LiveActor/LiveActor.hpp"
+#include <revolution/types.h>
+
+namespace MR {
+    bool isBindedWallFront(const LiveActor*, const TVec3f&, f32);
+    void calcAndSetBaseMtxFromGravityAndZAxis(LiveActor*, const TVec3f&);
+    void calcActorAxisX(TVec3f*, const LiveActor*);
+    void addVelocityClockwiseToDirection(LiveActor*, const TVec3f&, f32);
+    void addVelocityClockwiseToPlayer(LiveActor*, f32);
+    void scaleVelocity(LiveActor*, f32);
+    void setVelocityJumpAwayFromPlayer(LiveActor*, f32, f32);
+    void setVelocityBlowAttack(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
+    f32 turnDirectionAndGravityH(TQuat4f*, const LiveActor*, const TVec3f&, f32, f32);
+};  // namespace MR

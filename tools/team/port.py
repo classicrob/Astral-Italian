@@ -10,6 +10,8 @@ Rewrites:
   - MR::startSound / MR::startLevelSound(actor, "SE_EM_GESSO_SWIM_L", ...) ->
     MR::startActionSound(actor, "EmGessoSwimL", ...): SMG2 plays sounds through the action-sound table,
     keyed by the CamelCased SE name without the "SE_" prefix. Extra args are kept.
+  - initSound(N, false) -> initSound(N, "<EnclosingClass>", nullptr, TVec3f(0.0f)) (SMG2 signature; the name is
+    usually the class/archive name: check the string in the target .data)
 Check the result with sg.py; these are heuristics, not guarantees.
 """
 import re, sys
@@ -26,7 +28,21 @@ def rewrite(s):
     s = "\n".join(lines)
     s = re.sub(r'MR::start(?:Level)?Sound\(([^,()]+(?:\([^()]*\))?),\s*"SE_([A-Z0-9_]+)"',
                lambda m: f'MR::startActionSound({m.group(1)}, "{camel(m.group(2))}"', s)
-    return s
+    # binder getters return const TVec3f& in Garigari (Petari: pointer). Same mangled name, so just adapt uses.
+    g = r"MR::get(?:Ground|Wall|Roof|Binded)(?:Normal|HitPos)\(|MR::getBindedFixReactionVector\("
+    s = re.sub(r"\*\s*(" + g + ")", r"\1", s)
+    s = re.sub(r"(TVec3f\*\s*\w+\s*=\s*)(" + g + ")", r"\1&\2", s)
+    s = re.sub(r"(TVec3f\*\s*\w+\s*=\s*)\(?(" + g + r"[^;]*?\))\)?;", r"\1&\2;", s) if False else s
+    # LiveActor::initSound(s32, bool) -> SMG2 initSound(s32, "<ClassName>", nullptr, TVec3f(0.0f))
+    out, cls = [], None
+    for l in s.split("\n"):
+        m = re.match(r"^[\w:<>*& ]*?\b(\w+)::\w+\(", l)
+        if m and not l.startswith(" "):
+            cls = m.group(1)
+        if cls:
+            l = re.sub(r"\binitSound\((\w+), (?:false|true)\)", lambda mm: f'initSound({mm.group(1)}, "{cls}", nullptr, TVec3f(0.0f))', l)
+        out.append(l)
+    return "\n".join(out)
 
 
 def main():

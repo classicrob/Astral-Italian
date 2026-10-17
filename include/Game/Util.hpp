@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 #include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"

@@ -32,7 +32,6 @@ public:
 
 namespace MR {
     void registerChangeObj(ChangeObj*, const JMapInfoIter&);
-    void setBaseTRMtx(LiveActor*, const TQuat4f&);
 };  // namespace MR
 
 class BegomanBase : public LiveActor, public ChangeObj {

@@ -9,6 +9,7 @@
 #include "Game/Util/ActorInitUtil.hpp"
 
 class ActorLightCtrl;
+class ActorPoseTQ;
 struct BckCtrlData;
 class BreakModel;
 class CollisionObj;
@@ -76,9 +77,8 @@ namespace MR {
 
     void setBaseTRMtx(LiveActor* pActor, MtxPtr pTRMtx);
     void setBaseTRMtx(LiveActor* pActor, const TPos3f& rMtx);
-    // TODO: Need Quaternion
-    // void setBaseTRMtx(LiveActor* pActor, const TQuat4f& rQuat);
-    // setBaseTRMtx operating on some unknown struct
+    void setBaseTRMtx(LiveActor* pActor, const TQuat4f& rQuat);
+    void setBaseTRMtx(LiveActor* pActor, ActorPoseTQ* pPose);
     void setBaseScale(LiveActor* pActor, const TVec3f& rScale);
 
     ResourceHolder* getResourceHolder(const LiveActor* pActor);

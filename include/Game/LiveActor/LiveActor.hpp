@@ -57,6 +57,10 @@ public:
     HitSensor* getSensor(const char*) const;
 
     void initModelManagerWithAnm(const char*, const char*, const char*, bool);
+    // Petari (SMG1) signature; SMG2 added a third archive name. Lets Petari code compile unchanged.
+    inline void initModelManagerWithAnm(const char* pModelArcName, const char* pAnimArcName, bool a3) {
+        initModelManagerWithAnm(pModelArcName, pAnimArcName, nullptr, a3);
+    }
     void initNerve(const Nerve*, s32 = 0);
     void initHitSensor(s32);
     void initBinder(f32, f32, u32);

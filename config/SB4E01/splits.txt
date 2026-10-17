@@ -1613,8 +1613,10 @@ Game/Enemy/FireBubble.cpp:
 Game/Enemy/Gesso.cpp:
 	.text       start:0x80182860 end:0x80184560
 	.ctors      start:0x80644110 end:0x80644114
-	.data       start:0x80686E48 end:0x80686F78
+	.rodata     start:0x80648268 end:0x80648270
+	.data       start:0x80686D58 end:0x80686F78
 	.sbss       start:0x807D2470 end:0x807D24A0
+	.sdata2     start:0x807DA3F8 end:0x807DA480
 
 Game/Enemy/GliderShooterBullet.cpp:
 	.text       start:0x80184560 end:0x80184B30

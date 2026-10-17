@@ -56,7 +56,7 @@ void Dossun::init(const JMapInfoIter& rIter) {
     MR::useStageSwitchReadA(this, rIter);
     MR::useStageSwitchSleep(this, rIter);
     initMapToolInfo(rIter);
-    initModelManagerWithAnm("Dossun", nullptr, false);
+    MR::initActor(this, rIter, "Dossun", false);
     MR::startBva(this, "Wait");
     if (mHasShadow) {
         MR::connectToSceneCollisionEnemyStrongLight(this);
@@ -157,7 +157,7 @@ void Dossun::exeUpper() {
 
 void Dossun::exeFallSign() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "FallStart");
+        MR::startAction(this, "FallStart");
         MR::startBva(this, "Attack");
 
         if (MR::isGalaxyQuickCometAppearInCurrentStage()) {
@@ -168,7 +168,7 @@ void Dossun::exeFallSign() {
         MR::startActionSound(this, "OjDossunFallSign");
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Dossun, DossunNrvFalling));
     }
 }

@@ -378,7 +378,7 @@ void Teresa::setStartNerve() {
 }
 
 bool Teresa::tryAppearFromWallEnd() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setStartNerve();
         return true;
     }
@@ -387,7 +387,7 @@ bool Teresa::tryAppearFromWallEnd() {
 }
 
 bool Teresa::tryAppearFromGroundEnd() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setStartNerve();
         return true;
     }
@@ -535,7 +535,7 @@ bool Teresa::tryLoveEnd() {
 }
 
 bool Teresa::tryLoveFindEnd() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Teresa, TeresaNrvLoveChase));
         return true;
     }
@@ -553,7 +553,7 @@ bool Teresa::tryLoveChaseEnd() {
 }
 
 bool Teresa::tryLoveHitEnd() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Teresa, TeresaNrvLoveChase));
         return true;
     }

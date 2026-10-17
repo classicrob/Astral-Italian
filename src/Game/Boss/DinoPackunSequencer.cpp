@@ -1,4 +1,5 @@
 #include "Game/Boss/DinoPackunSequencer.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/DinoPackunAction.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 

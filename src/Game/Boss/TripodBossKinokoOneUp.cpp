@@ -1,4 +1,5 @@
 #include "Game/Boss/TripodBossKinokoOneUp.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/TripodBossAccesser.hpp"
 #include "Game/MapObj/BenefitItemOneUp.hpp"
 #include "Game/Util/JMapUtil.hpp"

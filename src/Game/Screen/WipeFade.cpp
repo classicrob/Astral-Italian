@@ -1,4 +1,5 @@
 #include "Game/Screen/WipeFade.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/DrawUtil.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/MathUtil.hpp"

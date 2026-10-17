@@ -158,7 +158,7 @@ void CocoNutBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool CocoNutBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (isValidReceivePunch()) {
             setNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvHitBackToHost));
             return true;
@@ -369,7 +369,7 @@ void CocoNutBall::freeze() {
 }
 
 bool CocoNutBall::isFreezable() {
-    return !MR::isHiddenModel(this) && MR::isStarPointerPointing2POnPressButton(this, "弱", true, false);
+    return !MR::isHiddenModel(this) && MR::isStarPointerPointing2PAttachTarget(this);
 }
 
 void CocoNutBall::processApproachToPlayer() {
@@ -393,7 +393,7 @@ void CocoNutBall::processApproachToPlayer() {
 
 void CocoNutBall::exeThrow() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "SpinX");
+        MR::startAction(this, "SpinX");
         MR::emitEffect(this, "CocoNutLight");
 
         if (_D8) {

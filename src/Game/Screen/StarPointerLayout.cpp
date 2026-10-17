@@ -1,4 +1,5 @@
 #include "Game/Screen/StarPointerLayout.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/LayoutCoreUtil.hpp"
 #include "Game/Screen/StarPointerBlur.hpp"

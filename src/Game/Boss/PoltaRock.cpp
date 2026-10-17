@@ -28,7 +28,7 @@ PoltaRock::PoltaRock(const char* pName)
 
 void PoltaRock::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("PoltaRock", nullptr, false);
+    MR::initActor(this, rIter, "PoltaRock", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     MR::onCalcGravity(this);

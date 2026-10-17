@@ -89,7 +89,7 @@ KuriboMini::KuriboMini(const char* pName) : LiveActor(pName) {
 
 void KuriboMini::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("KuriboMini", nullptr, false);
+    MR::initActor(this, rIter, "KuriboMini", false);
     MR::connectToSceneEnemy(this);
     MR::makeQuatAndFrontFromRotate(&_A8, &_B8, this);
     MR::onCalcGravity(this);

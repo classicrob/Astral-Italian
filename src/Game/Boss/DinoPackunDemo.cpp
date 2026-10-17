@@ -142,7 +142,7 @@ void DinoPackunDemo::exeOpeningDemo() {
         MR::startActionSound(getHost(), "BmDPakkunTailAttack");
     }
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         MR::startStageBGM("MBGM_GALAXY_INTER", false);
         getHost()->mDemoPos->endDemo();
         getHost()->resetPosition();
@@ -168,7 +168,7 @@ void DinoPackunDemo::exeCryDemo() {
         MR::startCenterScreenBlur(::sCryBlurTime, ::sCryBlurOffset, ::sCryBlurAlpha, ::sCryBlurFadeIn, ::sCryBlurFadeOut);
     }
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         MR::startBossBGM(MR::BossBgmID_DinoPackunA);
         getHost()->endDemo("ディノパックン泣きデモ");
         MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "CryDemo", -1, -1);
@@ -207,7 +207,7 @@ void DinoPackunDemo::exeAngryDemo() {
         }
     }
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         MR::startBossBGM(MR::BossBgmID_DinoPackunB);
         getHost()->endDemo("ディノパックン怒りデモ");
         MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "AngryDemo", -1, 1);
@@ -235,7 +235,7 @@ void DinoPackunDemo::exeDownDemo() {
         MR::startActionSound(getHost(), "BmDPakkunFallDown");
     }
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         MR::startActionSound(getHost(), "BmDPakkunExplode");
         MR::tryRumblePadVeryStrong(getHost(), WPAD_CHAN0);
         MR::hideModel(getHost());

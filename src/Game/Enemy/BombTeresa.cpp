@@ -251,7 +251,7 @@ bool BombTeresa::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     if (MR::isSensorEnemy(pSender)) {
-        TVec3f deltaPos = MR::getSensorPos(pReceiver) - MR::getSensorPos(pSender);
+        TVec3f deltaPos = *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender);
 
         if (MR::normalizeOrZero(&deltaPos)) {
             MR::getRandomVector(&deltaPos, 1.0);
@@ -271,7 +271,7 @@ bool BombTeresa::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         return requestDrift();
     }
 
@@ -569,7 +569,7 @@ void BombTeresa::exeDirectTackleSign() {
     MR::addVelocityKeepHeight(this, *MR::getPlayerCenterPos(), 100.0f, 0.6f, 100.0f);
     updateNormalVelocity();
     _C4 = mPosition;
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BombTeresa, BombTeresaNrvDirectTackle));
     }
 }

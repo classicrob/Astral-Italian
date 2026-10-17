@@ -301,7 +301,7 @@ void StringSpider::reactDPD() {
         _BC--;
     }
 
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         if (!_B8 && _BC == 0) {
             TVec2f screenVel = *MR::getStarPointerScreenVelocity(1);
             if (screenVel.length() < 20.0f) {
@@ -314,7 +314,7 @@ void StringSpider::reactDPD() {
             mVelocity.add(a1);
             _B8 = true;
             TVec3f a2(mPosition);
-            f32 radius = getSensor("body")->mRadius;
+            f32 radius = MR::getSensorRadius(this, "body");
             a1.setLength(radius);
             a2.add(a1);
             MR::emitEffectHit(this, a2, nullptr);
@@ -728,7 +728,7 @@ void StringSpider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             return;
         }
 
-        if (MR::isPlayerExistUp(this, getSensor("body")->mRadius, 0.25f)) {
+        if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
             MR::sendMsgPush(pReceiver, pSender);
             return;
         }
@@ -899,7 +899,7 @@ bool StringSpider::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (isNerve(GET_NERVE(StringSpider, HostTypeNrvSpinned))) {
             if (_C4 != nullptr) {
                 TVec3f v14(pSender->mPosition - pReceiver->mPosition);

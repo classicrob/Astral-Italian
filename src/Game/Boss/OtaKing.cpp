@@ -907,7 +907,7 @@ void OtaKing::exeThrowCocoNut() {
         mMagma->attack();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (isValidBubbleAttack()) {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvBubbleAttack));
             return;
@@ -956,7 +956,7 @@ void OtaKing::exeThrowFireBall() {
         mMagma->fireAttack();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (isValidBubbleAttack()) {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvBubbleAttack));
         } else if (mHits > 0 && isValidThrowCocoNut()) {
@@ -983,7 +983,7 @@ void OtaKing::exeDamage() {
         MR::shakeCameraNormalStrong();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (isValidBubbleAttack()) {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvBubbleAttack));
         } else if (isValidThrowFireBall()) {
@@ -1049,7 +1049,7 @@ void OtaKing::exePowerUp() {
         MR::startCenterScreenBlur(::cBlurTotalFrame, 15.0f, 80, 5, 30);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::startBrk(this, "Wait");
         MR::startBpk(this, "Wait");
 
@@ -1217,7 +1217,7 @@ void OtaKing::exeHitBack() {
         mMagma->hitBack();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (isValidBubbleAttack()) {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvBubbleAttack));
             return;
@@ -1248,7 +1248,7 @@ void OtaKing::exeNearAttack() {
         mMagma->attack();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (isValidBubbleAttack()) {
             setNerve(GET_NERVE(OtaKing, OtaKingNrvBubbleAttack));
         } else {

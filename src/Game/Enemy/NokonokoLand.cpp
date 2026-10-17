@@ -53,7 +53,7 @@ namespace {
             pBtp = pBck;
         }
 
-        MR::startBck(pActor, pBck);
+        MR::startAction(pActor, pBck);
         if (MR::isExistBtp(pActor, pBtp)) {
             MR::startBtp(pActor, pBtp);
         }
@@ -370,7 +370,7 @@ bool NokonokoLand::tryRattle() {
 }
 
 bool NokonokoLand::tryBindStarPointer() {
-    if (!MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
         return false;
     }
     if (!isStateWalk()) {
@@ -511,16 +511,16 @@ void NokonokoLand::tearAppearStart() {
 
 void NokonokoLand::exeAppear() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Appear");
+        MR::startAction(this, "Appear");
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(NokonokoLand, HostTypeWalk));
     }
 }
 
 void NokonokoLand::exeFlyAway() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Rotate");
+        MR::startAction(this, "Rotate");
         MR::startActionSound(this, "EmTurtleHit");
         MR::startActionSound(this, "EvNokonokoDamage");
 
@@ -580,9 +580,9 @@ void NokonokoLand::exeWalk() {
 
 void NokonokoLand::exeLookAround() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "LookAround");
+        MR::startAction(this, "LookAround");
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(NokonokoLand, HostTypeWalk));
     }
 }
@@ -591,7 +591,7 @@ void NokonokoLand::exeTurnStart() {
     if (MR::isFirstStep(this)) {
         ::startBckBtp(this, "TurnStart", "WalkWait");
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::reverseRailDirection(this);
         setNerve(GET_NERVE(NokonokoLand, HostTypeTurn));
     }
@@ -621,7 +621,7 @@ void NokonokoLand::exeTurnEnd() {
     if (MR::isFirstStep(this)) {
         ::startBckBtp(this, "TurnEnd", "WalkWait");
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(NokonokoLand, HostTypeWalk));
     }
 }
@@ -630,7 +630,7 @@ void NokonokoLand::exeAttack() {
     if (MR::isFirstStep(this)) {
         ::startBckBtp(this, "Attack");
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (isNerve(GET_NERVE(NokonokoLand, HostTypeAttackTurn))) {
             setNerve(GET_NERVE(NokonokoLand, HostTypeTurn));
         } else {
@@ -645,7 +645,7 @@ void NokonokoLand::exeRattle() {
     }
 
     MR::startActionSound(this, "EmLvNokolandRattle");
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (isNerve(GET_NERVE(NokonokoLand, HostTypeRattleTurn))) {
             setNerve(GET_NERVE(NokonokoLand, HostTypeTurn));
         } else {
@@ -673,7 +673,7 @@ void NokonokoLand::exeBindStarPointer() {
 
 void NokonokoLand::exeShellStartTrample() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "ShellStart");
+        MR::startAction(this, "ShellStart");
         MR::startActionSound(this, "EmTurtleShellTrample");
         MR::startActionSound(this, "EvNokonokoTrample");
         MR::emitEffect(this, "ShellStart");
@@ -683,14 +683,14 @@ void NokonokoLand::exeShellStartTrample() {
         MR::validateHitSensor(this, "shell");
         calcAnim();
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(NokonokoLand, HostTypeShellWait));
     }
 }
 
 void NokonokoLand::exeShellStartPunch() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "ShellStartPunch");
+        MR::startAction(this, "ShellStartPunch");
         MR::startActionSound(this, "EmNokolandShellPunch");
         MR::startActionSound(this, "EvNokonokoPunchHit");
         MR::emitEffect(this, "ShellStart");
@@ -702,7 +702,7 @@ void NokonokoLand::exeShellStartPunch() {
         MR::stopScene(::sSceneStopTimePunch);
 
         if (!MR::isNearZero(::sPushPower)) {
-            TVec3f direction(*MR::getPlayerCenterPos() - getSensor("shell")->mPosition);
+            TVec3f direction(*MR::getPlayerCenterPos() - (*MR::getSensorPos(this, "shell")));
             MR::vecKillElement(direction, mGravity, &direction);
             MR::normalize(&direction);
             TVec3f pushVelocity(direction);
@@ -710,14 +710,14 @@ void NokonokoLand::exeShellStartPunch() {
             MR::pushPlayer(pushVelocity);
         }
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(NokonokoLand, HostTypeShellWait));
     }
 }
 
 void NokonokoLand::exeShellWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "ShellWait");
+        MR::startAction(this, "ShellWait");
     }
     if (MR::isStep(this, ::sShellWaitTime)) {
         setNerve(GET_NERVE(NokonokoLand, HostTypeShellEnd));
@@ -726,11 +726,11 @@ void NokonokoLand::exeShellWait() {
 
 void NokonokoLand::exeShellEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "ShellEnd");
+        MR::startAction(this, "ShellEnd");
         MR::startActionSound(this, "EmNokolandRecverShell");
         MR::startActionSound(this, "EvNokonokoRecover");
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::validateHitSensor(this, "body");
         MR::validateHitSensor(this, "attack");
         MR::invalidateHitSensor(this, "shell");

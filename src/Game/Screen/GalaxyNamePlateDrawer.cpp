@@ -1,4 +1,5 @@
 #include "Game/Screen/GalaxyNamePlateDrawer.hpp"
+#include "Game/Util.hpp"
 #include "Game/NameObj/NameObj.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"

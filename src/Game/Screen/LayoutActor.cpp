@@ -1,4 +1,5 @@
 #include "Game/Screen/LayoutActor.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/Screen/LayoutCoreUtil.hpp"
 #include "Game/Screen/LayoutManager.hpp"

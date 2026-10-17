@@ -1,4 +1,5 @@
 #include "Game/Screen/CometMedalCounter.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/CounterLayoutAppearer.hpp"
 #include "Game/Screen/CounterLayoutController.hpp"

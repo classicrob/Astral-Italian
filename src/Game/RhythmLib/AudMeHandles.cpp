@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudMeHandles.hpp"
+#include "Game/Util.hpp"
 
 AudMeHandles::AudMeHandles(AudMeHandle* pHandles, int numHandles) : mHandles(pHandles), mNumHandles(numHandles) {
 }

@@ -93,9 +93,7 @@ Karon::Karon(const char* pName) : LiveActor(pName) {
 void Karon::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::useStageSwitchWriteDead(this, rIter);
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 
     bool needsFixWait = false;
     if (MR::useStageSwitchReadA(this, rIter)) {
@@ -115,7 +113,7 @@ void Karon::init(const JMapInfoIter& rIter) {
         mStopSwAnim = true;
     }
 
-    initModelManagerWithAnm("Karon", nullptr, false);
+    MR::initActor(this, rIter, "Karon", false);
     MR::connectToSceneEnemy(this);
     initBinder(70.0f, 70.0f, 0);
     MR::onCalcGravity(this);
@@ -158,7 +156,7 @@ void Karon::kill() {
     }
 
     MR::emitEffect(this, "Death");
-    MR::startSoundSeVer(this, "SE_EM_EXPLODE_S");
+    MR::startActionSound(this, "EmExplodeS");
 }
 
 void Karon::exeFixWait() {
@@ -501,12 +499,12 @@ void Karon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
     if (getSensor("body") == pSender) {
         if (MR::isSensorPlayer(pReceiver)) {
-            if (MR::isPlayerExistUp(this, getSensor("body")->mRadius, 0.25f) && MR::isOnGroundPlayer()) {
+            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f) && MR::isOnGroundPlayer()) {
                 if (MR::sendMsgTouchJump(pReceiver, pSender)) {
                     setNerve(GET_NERVE(Karon, HostTypeNrvStepBroken));
                 }
             } else if (!isNerve(GET_NERVE(Karon, HostTypeNrvHitReaction)) && !isNerve(GET_NERVE(Karon, HostTypeNrvFixWait)) &&
-                       !MR::isPlayerExistUp(this, getSensor("body")->mRadius, 0.25f) && MR::isOnGroundPlayer() && !MR::isPlayerHipDropFalling() &&
+                       !MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f) && MR::isOnGroundPlayer() && !MR::isPlayerHipDropFalling() &&
                        !MR::isPlayerHipDropLand() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
                 TVec3f v18(pSender->mPosition);
                 v18 -= pReceiver->mPosition;
@@ -551,7 +549,7 @@ bool Karon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg) || MR::isMsgJetTurtleAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) || MR::isMsgJetTurtleAttack(msg)) {
         MR::startBlowHitSound(this);
         setNerve(GET_NERVE(Karon, HostTypeNrvBroken));
         return true;

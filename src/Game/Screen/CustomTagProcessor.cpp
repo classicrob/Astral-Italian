@@ -1,4 +1,5 @@
 #include "Game/Screen/CustomTagProcessor.hpp"
+#include "Game/Util.hpp"
 #include "Game/Screen/ReplaceTagProcessor.hpp"
 #include "Game/System/Language.hpp"
 #include "Game/Util/MemoryUtil.hpp"

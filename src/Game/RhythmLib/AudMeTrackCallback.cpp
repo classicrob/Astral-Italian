@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudMeTrackCallback.hpp"
+#include "Game/Util.hpp"
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 
 AudCallback AudMeTrackCallback::sMeTrackCallback;

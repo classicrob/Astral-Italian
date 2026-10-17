@@ -129,7 +129,7 @@ KuriboChief::KuriboChief(const char* pName) : LiveActor(pName) {
 
 void KuriboChief::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("KuriboChief", nullptr, false);
+    MR::initActor(this, rIter, "KuriboChief", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     MR::onCalcGravity(this);
@@ -453,7 +453,7 @@ void KuriboChief::exeBlowDownLand() {
         MR::startActionSound(this, "EmKuribochiefBoundLast");
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::emitEffect(this, "Death");
         MR::startActionSound(this, "EmKuribochiefRun");
         kill();

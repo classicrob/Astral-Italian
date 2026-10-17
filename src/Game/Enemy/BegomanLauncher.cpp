@@ -67,7 +67,7 @@ void BegomanLauncher::init(const JMapInfoIter& rIter) {
         }
     }
 
-    initModelManagerWithAnm("BegomanLauncher", nullptr, false);
+    MR::initActor(this, rIter, "BegomanLauncher", false);
     MR::connectToSceneEnemy(this);
     initNerve(GET_NERVE(BegomanLauncher, HostTypeNrvWait));
     initEffectKeeper(0, "BegomanLauncher", false);

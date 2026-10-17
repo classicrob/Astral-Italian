@@ -91,7 +91,7 @@ void KoteBug::init(const JMapInfoIter& rIter) {
         MR::useStageSwitchSyncAppear(this, rIter);
     }
 
-    initModelManagerWithAnm("KoteBug", nullptr, false);
+    MR::initActor(this, rIter, "KoteBug", false);
     TPos3f mtx;
     mtx.set(getBaseMtx());
     mtx.getZDir(mFront);
@@ -255,7 +255,7 @@ void KoteBug::exePreEscape() {
 
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, ::hPreEscapeTurnLimitDegree);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvFlyEscape));
     }
 }
@@ -373,7 +373,7 @@ void KoteBug::exePreRecover() {
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
     MR::killVelocityOnGroundH(this);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvRecover));
     }
 }
@@ -528,7 +528,7 @@ bool KoteBug::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
     }
 
     if (MR::isMsgPlayerKick(msg)) {
-        if (MR::isPlayerExistUp(this, getSensor("body")->mRadius, 0.25f)) {
+        if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
             return false;
         }
 
@@ -595,7 +595,7 @@ void KoteBug::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
 
         if (isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyStart)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue))) {
-            if (MR::isPlayerExistUp(this, getSensor("body")->mRadius, 0.25f)) {
+            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
                 MR::sendMsgPush(pReceiver, pSender);
                 return;
             }

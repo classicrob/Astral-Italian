@@ -623,7 +623,7 @@ void HanachanParts::exeOverturnWait() {
         mIsLanded = false;
     }
 
-    if (!mIsLanded && MR::isBckStopped(this)) {
+    if (!mIsLanded && MR::isActionEnd(this)) {
         MR::startAction(this, "OverturnWait");
         s16 frameMax = MR::getBckFrameMax(this, "OverturnWait");
         s32 frame = mPartsIndex * ::hWalkStep;
@@ -707,7 +707,7 @@ void HanachanParts::exeHipDropped() {
     if (MR::isOnGround(this)) {
         if (MR::isGreaterStep(this, mActionStartStep)) {
             if (mPartsIndex == mHost->calcNearestInfectionId()) {
-                MR::isBckStopped(this);
+                MR::isActionEnd(this);
                 mIsLanded = true;
             } else {
                 mIsLanded = true;
@@ -1285,7 +1285,7 @@ void Hanachan::setDelayAllPartsAtId(s32 id, s32 delay, s32 step) {
 
 bool Hanachan::isStarPointerPointing() {
     for (s32 i = 0; i < mBodyParts.size(); i++) {
-        if (MR::isStarPointerPointing2POnPressButton(mBodyParts[i], "弱", true, false)) {
+        if (MR::isStarPointerPointing2PAttachTarget(mBodyParts[i])) {
             return true;
         }
     }

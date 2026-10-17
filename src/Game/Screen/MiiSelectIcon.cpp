@@ -1,4 +1,5 @@
 #include "Game/Screen/MiiSelectIcon.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/FileSelectIconID.hpp"
 #include "Game/NPC/MiiFaceIcon.hpp"

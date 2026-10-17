@@ -1,4 +1,5 @@
 #include "Game/Enemy/BegomanBaby.hpp"
+#include "Game/Util.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/Util/ActorStateUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
@@ -352,7 +353,7 @@ void BegomanBaby::exeAfterLaunchOnGround() {
     reboundWallAndGround(&mFaceVec, false);
     MR::applyVelocityDampAndGravity(this, 3.0f, 0.8f, 0.98f, 0.98f, 1.0f);
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BegomanBaby, HostTypeNrvWait));
     }
 }

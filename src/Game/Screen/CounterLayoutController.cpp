@@ -1,4 +1,5 @@
 #include "Game/Screen/CounterLayoutController.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/CoinCounter.hpp"
 #include "Game/Screen/MarioMeter.hpp"

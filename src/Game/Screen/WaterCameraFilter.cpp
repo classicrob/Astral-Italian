@@ -1,4 +1,5 @@
 #include "Game/Screen/WaterCameraFilter.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/WaterAreaHolder.hpp"
 #include "Game/Scene/SceneFunction.hpp"

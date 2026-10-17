@@ -97,7 +97,7 @@ void BasaBasa::init(const JMapInfoIter& rIter) {
 
 void BasaBasa::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         mHangModel->appear();
         _B4 = MR::getPlayerCenterPos();
         MR::validateClipping(this);
@@ -113,7 +113,7 @@ void BasaBasa::exeWait() {
 
 void BasaBasa::exeAirWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Fly");
+        MR::startAction(this, "Fly");
         if (MR::isExistRail(this)) {
             _B4 = &MR::getRailPos(this);
         } else {
@@ -135,7 +135,7 @@ void BasaBasa::exeAirWait() {
 
 void BasaBasa::exeChaseStart() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "FlyStart");
+        MR::startAction(this, "FlyStart");
         MR::startActionSound(this, "EvBasabasaFind");
     }
 
@@ -151,7 +151,7 @@ void BasaBasa::exeChaseStart() {
         mHangModel->kill();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvChase));
     }
 }
@@ -227,7 +227,7 @@ void BasaBasa::exeTrampleDown() {
 
 void BasaBasa::exePunchDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Blow");
+        MR::startAction(this, "Blow");
         MR::invalidateClipping(this);
         MR::invalidateHitSensors(this);
         MR::startActionSound(this, "EvBasabasaDamage");
@@ -240,7 +240,7 @@ void BasaBasa::exePunchDown() {
 
 void BasaBasa::exeAttackStart() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "AttackStart");
+        MR::startAction(this, "AttackStart");
     }
 
     MR::turnDirectionToTargetDegree(this, &_9C, *_B4, 2.55f);
@@ -253,7 +253,7 @@ void BasaBasa::exeAttackStart() {
     }
 
     mVelocity.scaleAdd(0.2f, v3, mVelocity);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvAttack));
     } else {
         trySetNerveDPDSwoon();
@@ -262,7 +262,7 @@ void BasaBasa::exeAttackStart() {
 
 void BasaBasa::exeAttack() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
         MR::startActionSound(this, "EvBasabasaAttack");
         TVec3f playerUp;
         MR::getPlayerUpVec(&playerUp);
@@ -293,7 +293,7 @@ void BasaBasa::exeAttack() {
 
 void BasaBasa::exeAttackEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "AttackEnd");
+        MR::startAction(this, "AttackEnd");
         if (MR::getShadowProjectionLength(this, nullptr) < 200.0f) {
             MR::emitEffect(this, "AttackEnd");
         }
@@ -320,7 +320,7 @@ void BasaBasa::exeAttackEndRecover() {
         mVelocity.scaleAdd(0.3f, v3, mVelocity);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvChase));
     }
 
@@ -329,7 +329,7 @@ void BasaBasa::exeAttackEndRecover() {
 
 void BasaBasa::exeHitBack() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Reaction");
+        MR::startAction(this, "Reaction");
         MR::onBind(this);
         MR::turnDirectionToPlayerDegree(this, &_9C, 180.0f);
         MR::startActionSound(this, "EmIcebasaSpinBlow");
@@ -346,7 +346,7 @@ void BasaBasa::exeHitBack() {
         mVelocity.scaleAdd(15.0f, v3, mVelocity);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvHitBackEnd));
     } else {
         trySetNerveDPDSwoon();
@@ -390,7 +390,7 @@ void BasaBasa::exeComeHome() {
 
 void BasaBasa::exeAttachCelling() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Return");
+        MR::startAction(this, "Return");
         MR::offBind(this);
         MR::invalidateHitSensors(this);
     }
@@ -409,7 +409,7 @@ void BasaBasa::exeAttachCelling() {
         mHangModel->appear();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         mVelocity.zero();
         MR::validateHitSensors(this);
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvWait));
@@ -426,7 +426,7 @@ void BasaBasa::exeDPDSwoon() {
 
     MR::startDPDFreezeLevelSound(this);
 
-    if (!MR::isStarPointerPointing2POnPressButton(this, "弱", 1, 0)) {
+    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvAirWait));
     }
 }
@@ -438,12 +438,12 @@ void BasaBasa::endDPDSwoon() {
 
 void BasaBasa::exeStun() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Swoon");
+        MR::startAction(this, "Swoon");
         MR::startActionSound(this, "EvBasabasaDamage");
     }
 
     mVelocity.scaleAdd(1.0f, mGravity, mVelocity);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvChase));
     }
 }
@@ -568,7 +568,7 @@ bool BasaBasa::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     }
 
     if (mIsIceModel && !MR::isPlayerElementModeIce()) {
-        if (MR::isMsgPlayerSpinAttack(msg)) {
+        if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
             return false;
         } else if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
             MR::sendMsgEnemyAttackFreeze(pSender, pReceiver);
@@ -668,7 +668,7 @@ bool BasaBasa::tryClippingAndResetPos() {
         return false;
     }
 
-    f32 radius = getSensor("body")->mRadius;
+    f32 radius = MR::getSensorRadius(this, "body");
     if (!MR::isJudgedToClipFrustum(mPosition, radius) || MR::isNearPlayer(this, 2500.0f)) {
         _E8 = 0;
         return false;
@@ -692,7 +692,7 @@ bool BasaBasa::tryClippingAndResetPos() {
 }
 
 bool BasaBasa::trySetNerveDPDSwoon() {
-    if (!MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
         return false;
     }
 

@@ -1,4 +1,5 @@
 #include "Game/Boss/BossStinkBugFunction.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"

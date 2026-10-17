@@ -1,4 +1,5 @@
 #include "Game/Screen/ImageEffectLocalUtil.hpp"
+#include "Game/Util.hpp"
 #include "Game/NameObj/NameObjAdaptor.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Screen/BloomEffect.hpp"

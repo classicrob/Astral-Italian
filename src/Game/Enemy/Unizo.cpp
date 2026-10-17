@@ -175,20 +175,20 @@ void Unizo::init(const JMapInfoIter& rIter) {
     initType(rIter);
 
     if (mType == TypeSea) {
-        initModelManagerWithAnm("Unizo", nullptr, false);
+        MR::initActor(this, rIter, "Unizo", false);
         mBreakModel = new ModelObj("ウニゾー壊れモデル", "UnizoBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
     } else if (mType == TypeLand) {
         mRollHeight = ::sRollHeightLand;
         mGravityRate = ::sGravityRateLand;
-        initModelManagerWithAnm("UnizoLand", nullptr, false);
+        MR::initActor(this, rIter, "UnizoLand", false);
         mBreakModel = new ModelObj("陸ウニゾー壊れモデル", "UnizoLandBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
         MR::initFur(this);
     } else if (mType == TypeShoal) {
-        initModelManagerWithAnm("UnizoShoal", nullptr, false);
+        MR::initActor(this, rIter, "UnizoShoal", false);
         mBreakModel = new ModelObj("浅瀬ウニゾー壊れモデル", "UnizoShoalBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
@@ -401,7 +401,7 @@ void Unizo::exeCollideEnemy() {
 }
 
 void Unizo::exeBreak() {
-    if (MR::isDead(mBreakModel) || (MR::isBckStopped(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
+    if (MR::isDead(mBreakModel) || (MR::isActionEnd(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
         kill();
     }
 }
@@ -421,7 +421,7 @@ void Unizo::exeFireDown() {
         }
     }
 
-    if (MR::isDead(mBreakModel) || (MR::isBckStopped(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
+    if (MR::isDead(mBreakModel) || (MR::isActionEnd(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
         kill();
     }
     if (MR::isGreaterEqualStep(this, ::sDamageFloorFrame)) {
@@ -442,7 +442,7 @@ void Unizo::exeJumpDown() {
     calcAndSetBaseMtx();
     mBreakModel->mPosition.set(mPosition);
 
-    if (MR::isDead(mBreakModel) || (MR::isBckStopped(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
+    if (MR::isDead(mBreakModel) || (MR::isActionEnd(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
         kill();
     }
     if (MR::isGreaterEqualStep(this, ::sDamageFloorFrame)) {
@@ -512,7 +512,7 @@ bool Unizo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
         MR::addVelocityMoveToDirection(this, direction, ::sReboundEnemy * distance);
         startWallHitSound();
         if (!MR::isBckPlaying(this, "Shock")) {
-            MR::startBck(this, "Shock");
+            MR::startAction(this, "Shock");
         }
     } else {
         doBreak();
@@ -690,10 +690,10 @@ void Unizo::doAttack(HitSensor* pSensor) {
 void Unizo::doJumpDown() {
     appearBreakModel();
     if (mType == TypeShoal) {
-        MR::startBck(mBreakModel, "Firedown");
+        MR::startAction(mBreakModel, "Firedown");
         MR::startBrk(mBreakModel, "Break");
     } else if (mType == TypeLand) {
-        MR::startBck(mBreakModel, "Firedown");
+        MR::startAction(mBreakModel, "Firedown");
         MR::startBrk(mBreakModel, "FireDown");
     }
     mVelocity.set(mGravity * -::sDamageFloorVertical);
@@ -706,7 +706,7 @@ void Unizo::doFireDown(const TVec3f& rDirection) {
         if (MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, true)) {
             MR::startActionSound(this, "OjStarPieceBurst");
         }
-        MR::startBck(mBreakModel, "Firedown");
+        MR::startAction(mBreakModel, "Firedown");
         MR::startBrk(mBreakModel, "Break");
         MR::startActionSound(this, "EmUnizoBreak");
         MR::shakeCameraNormal();
@@ -714,7 +714,7 @@ void Unizo::doFireDown(const TVec3f& rDirection) {
         setNerve(GET_NERVE(Unizo, UnizoNrvBreak));
     } else {
         if (mType == TypeLand) {
-            MR::startBck(mBreakModel, "Firedown");
+            MR::startAction(mBreakModel, "Firedown");
             MR::startBrk(mBreakModel, "FireDown");
         }
         MR::zeroVelocity(this);
@@ -737,15 +737,15 @@ void Unizo::doBreak() {
     appearBreakModel();
     if (mType == TypeSea) {
         MR::shakeCameraNormal();
-        MR::startBck(mBreakModel, "Break");
+        MR::startAction(mBreakModel, "Break");
         MR::startBrk(mBreakModel, "Break");
         MR::emitEffect(this, "Death");
     } else if (mType == TypeShoal) {
         MR::shakeCameraNormal();
-        MR::startBck(mBreakModel, "Break");
+        MR::startAction(mBreakModel, "Break");
         MR::startBrk(mBreakModel, "Break");
     } else if (mType == TypeLand) {
-        MR::startBck(mBreakModel, "FireDown");
+        MR::startAction(mBreakModel, "FireDown");
         MR::startBrk(mBreakModel, "FireDown");
     }
     mBreakModel->appear();
@@ -763,7 +763,7 @@ void Unizo::doSpin() {
     }
     if (mSpinAnimTimer == 0 && !MR::isBckPlaying(this, "Shock")) {
         mSpinAnimTimer = ::sSpinAnimationCount;
-        MR::startBck(this, "Shock");
+        MR::startAction(this, "Shock");
     }
 }
 

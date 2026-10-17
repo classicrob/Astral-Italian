@@ -19,7 +19,7 @@ TakoHeiInk::TakoHeiInk(const char* pName) : LiveActor(pName) {
 
 void TakoHeiInk::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("TakoHeiInk", nullptr, false);
+    MR::initActor(this, rIter, "TakoHeiInk", false);
     MR::connectToSceneEnemy(this);
     MR::onCalcGravity(this);
     initHitSensor(1);

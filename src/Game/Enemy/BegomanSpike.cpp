@@ -1,4 +1,5 @@
 #include "Game/Enemy/BegomanSpike.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/Util/ActorStateUtil.hpp"
@@ -469,7 +470,7 @@ void BegomanSpike::exeBrokenPiece() {
         generateItem();
     }
 
-    if (MR::isBckStopped(mBrokenModel)) {
+    if (MR::isActionEnd(mBrokenModel)) {
         MR::showModel(this);
         kill();
     }

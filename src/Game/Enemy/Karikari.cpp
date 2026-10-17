@@ -122,7 +122,7 @@ void Karikari::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::useStageSwitchWriteDead(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
-    initModelManagerWithAnm("Karipon", nullptr, false);
+    MR::initActor(this, rIter, "Karipon", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     initSound(4, "Karikari", nullptr, TVec3f(0.0f));
@@ -191,7 +191,7 @@ void Karikari::control() {
 
 void Karikari::exeFall() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         _9E = false;
         mIsPushable = true;
         MR::onBind(this);
@@ -215,7 +215,7 @@ void Karikari::exeLand() {
     mVelocity += mGravity * ::sGravity;
 
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Land");
+        MR::startAction(this, "Land");
         MR::startBtp(this, "Land");
         _9E = false;
         mIsPushable = true;
@@ -242,7 +242,7 @@ void Karikari::exeLand() {
     }
 
     if (MR::isStep(this, ::sBeginWaitMotionFrame)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         return;
@@ -280,7 +280,7 @@ void Karikari::exeWait() {
         MR::onCalcShadow(this, nullptr);
         MR::onCalcGravity(this);
         MR::validateHitSensors(this);
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         _9E = true;
@@ -310,7 +310,7 @@ void Karikari::exePrePursue() {
         MR::onCalcGravity(this);
         MR::validateHitSensors(this);
         MR::startActionSound(this, "EmKarikariFind");
-        MR::startBck(this, "Search");
+        MR::startAction(this, "Search");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         _9E = true;
@@ -349,7 +349,7 @@ void Karikari::exePursue() {
         MR::onCalcShadow(this, nullptr);
         MR::onCalcGravity(this);
         MR::validateHitSensors(this);
-        MR::startBck(this, "Jump");
+        MR::startAction(this, "Jump");
         MR::setBckRate(this, ::sJumpAnimRate);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
@@ -408,7 +408,7 @@ void Karikari::exeWatchFor() {
         MR::onCalcShadow(this, nullptr);
         MR::onCalcGravity(this);
         MR::validateHitSensors(this);
-        MR::startBck(this, "Glad");
+        MR::startAction(this, "Glad");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         _9E = false;
@@ -452,7 +452,7 @@ void Karikari::exePreCling() {
         MR::onCalcShadow(this, nullptr);
         MR::onCalcGravity(this);
         MR::validateHitSensors(this);
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         _9E = false;
@@ -486,7 +486,7 @@ void Karikari::exeCling() {
         _9E = false;
         mIsPushable = false;
         MR::setBckRate(this, 1.0f);
-        MR::startBck(this, "Bite");
+        MR::startAction(this, "Bite");
         MR::startBtp(this, "Bite");
         MR::startActionSound(this, "EmKarikariTouch");
         mVelocity.zero();
@@ -522,7 +522,7 @@ void Karikari::exeSpinAttacked() {
         MR::onCalcGravity(this);
         MR::validateShadow(this, nullptr);
         MR::validateHitSensors(this);
-        MR::startBck(this, "SpinX");
+        MR::startAction(this, "SpinX");
         MR::setBckRate(this, ::sSpinXAnimRate);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
@@ -547,7 +547,7 @@ void Karikari::exeDPDAttacked() {
         MR::onCalcGravity(this);
         MR::validateShadow(this, nullptr);
         MR::validateHitSensors(this);
-        MR::startBck(this, "SpinX");
+        MR::startAction(this, "SpinX");
         MR::setBckRate(this, ::sSpinXAnimRate);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
@@ -578,7 +578,7 @@ void Karikari::exeFrozen() {
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         mVelocity.zero();
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::setBckFrameAndStop(this, 0.0f);
         MR::emitEffect(this, "KarikariCrystalLight");
         mFrozenTime = ::sFrozenLimitTime;
@@ -610,7 +610,7 @@ void Karikari::exeFrozenRecover() {
         MR::deleteEffect(this, "KarikariCrystalLight");
         MR::emitEffect(this, "KarikariCrystalBreak");
         MR::startActionSound(this, "EmKarikariCrushCrystalM");
-        MR::startBck(this, "SpinX");
+        MR::startAction(this, "SpinX");
         MR::setBckRate(this, ::sSpinXAnimRate);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
@@ -635,7 +635,7 @@ void Karikari::exeBlowOut() {
         _9E = false;
         mIsPushable = true;
         MR::startActionSound(this, "EmKarikariBlow");
-        MR::startBck(this, "SpinX");
+        MR::startAction(this, "SpinX");
         MR::setBckRate(this, ::sSpinXAnimRate);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
@@ -661,7 +661,7 @@ void Karikari::exeInTornado() {
         MR::onCalcShadow(this, nullptr);
         MR::onCalcGravity(this);
         MR::validateHitSensors(this);
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::setBckRate(this, 2.0f);
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
@@ -689,7 +689,7 @@ void Karikari::exePress() {
         MR::onCalcShadow(this, nullptr);
         MR::onCalcGravity(this);
         MR::invalidateHitSensors(this);
-        MR::startBck(this, "Press");
+        MR::startAction(this, "Press");
         MR::startBtp(this, "Bite");
         MR::setBtpFrameAndStop(this, 0.0f);
         MR::startActionSound(this, "EmKarikariStomped");
@@ -767,7 +767,7 @@ bool Karikari::tryDPDAttacked() {
     // FIXME: TVec2 copy operations are done via memregs, not float regs
     // https://decomp.me/scratch/W6YWF
 
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         MR::startDPDHitSound();
         s32 padChannel = *MR::getStarPointerLastPointedPort(this);
         TVec2f pointerVel(*MR::getStarPointerScreenVelocity(padChannel));

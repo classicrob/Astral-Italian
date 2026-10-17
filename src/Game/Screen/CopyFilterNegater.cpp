@@ -1,4 +1,5 @@
 #include "Game/Screen/CopyFilterNegater.hpp"
+#include "Game/Util.hpp"
 #include <JSystem/JUtility/JUTVideo.hpp>
 
 CopyFilterNegater::CopyFilterNegater() {

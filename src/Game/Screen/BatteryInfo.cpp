@@ -1,4 +1,5 @@
 #include "Game/Screen/BatteryInfo.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/System/WPad.hpp"
 #include "Game/System/WPadHolder.hpp"

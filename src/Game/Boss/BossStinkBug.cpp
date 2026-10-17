@@ -1,4 +1,5 @@
 #include "Game/Boss/BossStinkBug.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/BossStinkBugActionSequencer.hpp"
 #include "Game/Boss/BossStinkBugBomb.hpp"
 #include "Game/Boss/BossStinkBugBombHolder.hpp"

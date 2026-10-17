@@ -58,7 +58,7 @@ inline void Petari::initHitSensors() {
 
 void Petari::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("Petari", nullptr, false);
+    MR::initActor(this, rIter, "Petari", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     initHitSensors();
@@ -73,9 +73,7 @@ void Petari::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE_ANON(PetariNrvLurk));
     initFrontVec();
     MR::onCalcGravity(this);
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
     MR::useStageSwitchWriteDead(this, rIter);
     initStarPiece(rIter);
     MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 70.0f, 0.0f));
@@ -219,7 +217,7 @@ void Petari::exeSwoonStart() {
     if (MR::isFirstStep(this)) {
         calcSpinOutVelocity(5.0f);
         MR::showModel(this);
-        MR::startBck(this, "Appearance");
+        MR::startAction(this, "Appearance");
         MR::startBlowHitSound(this);
         MR::startActionSound(this, "EmPetariAppear");
         mRequestSmoke = true;
@@ -238,7 +236,7 @@ void Petari::exeSwoonStart() {
 void Petari::exeSwoon() {
     if (MR::isFirstStep(this)) {
         mVelocity.zero();
-        MR::startBck(this, "Swoon");
+        MR::startAction(this, "Swoon");
     }
     calcCenter();
 
@@ -254,7 +252,7 @@ void Petari::exeSwoon() {
 
 void Petari::exeSwoonEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Hide");
+        MR::startAction(this, "Hide");
         MR::startActionSound(this, "EmPetariWakeUp");
     }
     if (MR::checkPassBckFrame(this, 60.0f)) {
@@ -297,7 +295,7 @@ void Petari::exeLand() {
 void Petari::exeSmash() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
-        MR::startBck(this, "Press");
+        MR::startAction(this, "Press");
         MR::startActionSound(this, "EmStompedS");
         MR::startActionSound(this, "OjStarPieceBurst");
     }
@@ -314,7 +312,7 @@ void Petari::exeSmash() {
 void Petari::exeSpinOut() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
-        MR::startBck(this, "Damage");
+        MR::startAction(this, "Damage");
         MR::startBlowHitSound(this);
         MR::startActionSound(this, "OjStarPieceBurst");
     }
@@ -360,7 +358,7 @@ void Petari::exeFreeze() {
 
     MR::startDPDFreezeLevelSound(this);
 
-    if (!MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
         setNerve(GET_NERVE_ANON(PetariNrvWait));
     }
 }
@@ -560,7 +558,7 @@ bool Petari::receivePlayerAttackAtBody(u32 msg, HitSensor* pSender, HitSensor* p
         return false;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg) || MR::isMsgFreezeAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) || MR::isMsgFreezeAttack(msg)) {
         MR::setVelocityBlowAttack(this, pSender, pReceiver, 10.0f, 0.0f, 4);
         setNerve(GET_NERVE_ANON(PetariNrvSpinOut));
         return true;
@@ -574,7 +572,7 @@ bool Petari::receivePlayerAttackAtBody(u32 msg, HitSensor* pSender, HitSensor* p
 }
 
 bool Petari::receivePlayerAttackAtSpin(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isMsgPlayerSpinAttack(msg) && !MR::isMsgFreezeAttack(msg)) {
+    if (!MR::isMsgPlayerSpinAttackOrSupportTico(msg) && !MR::isMsgFreezeAttack(msg)) {
         return false;
     }
 
@@ -749,7 +747,7 @@ void Petari::appearStarPieceAll() {
 }
 
 bool Petari::reflectStarPointer2P() {
-    if (!MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
         return false;
     }
 

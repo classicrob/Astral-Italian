@@ -1,4 +1,5 @@
 #include "Game/Screen/GalaxyCometScreenFilter.hpp"
+#include "Game/Util.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"

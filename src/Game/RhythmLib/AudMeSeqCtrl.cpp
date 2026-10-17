@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudMeSeqCtrl.hpp"
+#include "Game/Util.hpp"
 
 AudMeSeqParser AudMeSeqCtrl::sDefaultParser = AudMeSeqParser();
 

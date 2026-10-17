@@ -558,7 +558,7 @@ void BegomanSpring::exeHop() {
     }
 
     updateRotateY(0.0f, 1.0f / ::sHopRotateBrakeTime);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BegomanSpring, HostTypeNrvWait));
     }
 }

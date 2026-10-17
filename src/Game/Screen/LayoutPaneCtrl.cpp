@@ -1,4 +1,5 @@
 #include "Game/Screen/LayoutPaneCtrl.hpp"
+#include "Game/Util.hpp"
 #include "Game/Animation/LayoutAnmPlayer.hpp"
 #include "Game/Screen/LayoutManager.hpp"
 #include "Game/Util/LayoutUtil.hpp"

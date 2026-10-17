@@ -101,7 +101,7 @@ Metbo::Metbo(const char* pName) : LiveActor(pName) {
 
 void Metbo::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("Metbo", nullptr, false);
+    MR::initActor(this, rIter, "Metbo", false);
     MR::connectToSceneEnemy(this);
     initHitSensor(2);
     MR::addHitSensorEnemy(this, "body", 8, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
@@ -170,7 +170,7 @@ void Metbo::endNonActive() {
 
 void Metbo::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     moveOrFall(::sDontMoveParam, nullptr);
@@ -181,7 +181,7 @@ void Metbo::exeWait() {
 
 void Metbo::exeWalkAround() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Walk");
+        MR::startAction(this, "Walk");
     }
 
     bool isNear = MR::isNear(this, _98, ::sWalkAroundRadius) == false;
@@ -213,38 +213,38 @@ void Metbo::exeWalkAround() {
 
 void Metbo::exeSearch() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Search");
-        MR::startSoundSeVer(this, "SE_EM_METBO_FIND");
+        MR::startAction(this, "Search");
+        MR::startActionSound(this, "EmMetboFind");
     }
 
     moveOrFall(::sSearchParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Metbo, MetboNrvChaseStart));
     }
 }
 
 void Metbo::exeChaseStart() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "RunStart");
+        MR::startAction(this, "RunStart");
     }
 
     if (MR::isBindedGround(this)) {
-        MR::startLevelSoundSeVer(this, "SE_EM_LV_KURIBO_DASH1");
+        MR::startActionSound(this, "EmLvKuriboDash1");
     }
 
     moveOrFall(::sDontMoveParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Metbo, MetboNrvChase));
     }
 }
 
 void Metbo::exeChase() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Run");
+        MR::startAction(this, "Run");
     }
 
     if (MR::isBindedGround(this)) {
-        MR::startLevelSoundSeVer(this, "SE_EM_LV_KURIBO_DASH1");
+        MR::startActionSound(this, "EmLvKuriboDash1");
     }
 
     moveOrFall(::sChaseParam, nullptr);
@@ -269,24 +269,24 @@ void Metbo::endChase() {
 
 void Metbo::exeGuard() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Guard");
+        MR::startAction(this, "Guard");
     }
 
     moveOrFall(::sDontMoveParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Metbo, MetboNrvWait));
     }
 }
 
 void Metbo::exeTrampleDown() {
     if (MR::isFirstStep(this)) {
-        MR::startSoundSeVer(this, "SE_EM_STOMPED_S");
-        MR::startBck(this, "Press");
+        MR::startActionSound(this, "EmStompedS");
+        MR::startAction(this, "Press");
         MR::invalidateHitSensors(this);
     }
 
     moveOrFall(::sDontMoveParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::appearCoinPop(this, mPosition, 1);
         kill();
     }
@@ -295,7 +295,7 @@ void Metbo::exeTrampleDown() {
 void Metbo::exeBlowDown() {
     if (MR::isFirstStep(this)) {
         MR::startBlowHitSound(this);
-        MR::startBck(this, "Blow");
+        MR::startAction(this, "Blow");
         MR::invalidateHitSensors(this);
     }
     mSpinHitController->execute(this);
@@ -303,18 +303,18 @@ void Metbo::exeBlowDown() {
 
 void Metbo::exeAttack() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
     }
 
     moveOrFall(::sDontMoveParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Metbo, MetboNrvRest));
     }
 }
 
 void Metbo::exeRest() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     moveOrFall(::sDontMoveParam, nullptr);
@@ -325,8 +325,8 @@ void Metbo::exeRest() {
 
 void Metbo::exeSwoonStart() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "SwoonStart");
-        MR::startSoundSeVer(this, "SE_EM_CRASH_S");
+        MR::startAction(this, "SwoonStart");
+        MR::startActionSound(this, "EmCrashS");
     } else {
         MR::moveAndTurnToPlayer(this, &_A4, ::sFallParam._0, ::sFallParam._4, ::sFallParam._8, ::sFallParam._C);
         if (MR::isBindedGround(this)) {
@@ -337,34 +337,34 @@ void Metbo::exeSwoonStart() {
 
 void Metbo::exeSwoonLand() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "SwoonLand");
+        MR::startAction(this, "SwoonLand");
     }
 
-    MR::startLevelSoundSeVer(this, "SE_EM_LV_METBO_STAGGER");
+    MR::startActionSound(this, "EmLvMetboStagger");
     moveOrFall(::sSkateMoveParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Metbo, MetboNrvSwoonSpin));
     }
 }
 
 void Metbo::exeSwoonSpin() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "SwoonSpin");
+        MR::startAction(this, "SwoonSpin");
     }
 
-    MR::startLevelSoundSeVer(this, "SE_EM_LV_METBO_STAGGER");
+    MR::startActionSound(this, "EmLvMetboStagger");
     moveOrFall(::sSkateMoveParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Metbo, MetboNrvSwoonWait));
     }
 }
 
 void Metbo::exeSwoonWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "SwoonWait");
+        MR::startAction(this, "SwoonWait");
     }
 
-    MR::startLevelSoundSeVer(this, "SE_EM_LV_METBO_SWOON");
+    MR::startActionSound(this, "EmLvMetboSwoon");
     moveOrFall(::sDontMoveParam, nullptr);
     if (MR::isStep(this, ::sStepForSwoonWait)) {
         setNerve(GET_NERVE(Metbo, MetboNrvRecover));
@@ -373,12 +373,12 @@ void Metbo::exeSwoonWait() {
 
 void Metbo::exeRecover() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Recover");
-        MR::startSoundSeVer(this, "SE_EM_METBO_SWOON_RECOVER");
+        MR::startAction(this, "Recover");
+        MR::startActionSound(this, "EmMetboSwoonRecover");
     }
 
     moveOrFall(::sDontMoveParam, nullptr);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Metbo, MetboNrvWait));
     }
 }
@@ -396,7 +396,7 @@ void Metbo::initAfterPlacement() {
 }
 
 void Metbo::kill() {
-    MR::startSoundSeVer(this, "SE_EM_EXPLODE_S");
+    MR::startActionSound(this, "EmExplodeS");
     MR::emitEffect(this, "Death");
 
     if (MR::isValidSwitchDead(this)) {
@@ -465,7 +465,7 @@ bool Metbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return true;
     } else if (MR::isMsgStarPieceReflect(msg)) {
-        MR::startSoundSeVer(this, "SE_EM_METBO_TRAMPLE");
+        MR::startActionSound(this, "EmMetboTrample");
         if (!isNrvSwoon() && !isNerve(GET_NERVE(Metbo, MetboNrvRecover))) {
             setNerve(GET_NERVE(Metbo, MetboNrvGuard));
         }
@@ -474,7 +474,7 @@ bool Metbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
         if (isNrvDown()) {
             return false;
         } else if (MR::isMsgPlayerHipDrop(msg)) {
-            MR::startSoundSeVer(this, "SE_EM_METBO_TRAMPLE");
+            MR::startActionSound(this, "EmMetboTrample");
             if (isNerve(GET_NERVE(Metbo, MetboNrvRecover))) {
                 return false;
             } else if (isNerve(GET_NERVE(Metbo, MetboNrvSwoonStart))) {
@@ -490,7 +490,7 @@ bool Metbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
                 return true;
             }
         } else if (MR::isMsgPlayerTrample(msg)) {
-            MR::startSoundSeVer(this, "SE_EM_METBO_TRAMPLE");
+            MR::startActionSound(this, "EmMetboTrample");
             if (isNerve(GET_NERVE(Metbo, MetboNrvRecover))) {
                 return true;
             } else if (isNerve(GET_NERVE(Metbo, MetboNrvSwoonStart))) {
@@ -504,12 +504,12 @@ bool Metbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
                 }
                 return true;
             }
-        } else if (MR::isMsgPlayerSpinAttack(msg)) {
+        } else if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
             if (isNerve(GET_NERVE(Metbo, MetboNrvSwoonStart))) {
                 return false;
             } else {
                 MR::stopScene(3);
-                MR::startSoundSeVer(this, "SE_EM_METBO_SPIN_HIT");
+                MR::startActionSound(this, "EmMetboSpinHit");
                 MR::startBlowHitSound(this);
                 startSwoon(false);
                 return true;

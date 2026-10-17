@@ -1,4 +1,5 @@
 #include "Game/Screen/BloomEffect.hpp"
+#include "Game/Util.hpp"
 #include "Game/Screen/CopyFilterNegater.hpp"
 #include "Game/Screen/ImageEffectLocalUtil.hpp"
 #include "Game/Screen/ImageEffectResource.hpp"

@@ -20,7 +20,7 @@ ElectricPressureBullet::ElectricPressureBullet(const char* pName) : LiveActor(pN
 }
 
 void ElectricPressureBullet::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("ElectricBullet", nullptr, false);
+    MR::initActor(this, rIter, "ElectricBullet", false);
     MR::connectToSceneEnemy(this);
     initHitSensor(1);
     MR::addHitSensorEnemyAttack(this, "body", 8, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
@@ -54,12 +54,12 @@ void ElectricPressureBullet::shotElectricBullet(LiveActor* actor, const TPos3f& 
 
 void ElectricPressureBullet::exeFly() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Shot");
+        MR::startAction(this, "Shot");
         MR::startBtk(this, "ElectricBullet");
     }
 
     if (MR::isBckOneTimeAndStopped(this)) {
-        MR::startBck(this, "Move");
+        MR::startAction(this, "Move");
     }
     MR::startActionSound(this, "EmLvElecbublletFly");
     if (MR::isGreaterEqualStep(this, 10)) {

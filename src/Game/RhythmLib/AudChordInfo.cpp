@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudChordInfo.hpp"
+#include "Game/Util.hpp"
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 #include <JSystem/JKernel/JKRArchive.hpp>
 

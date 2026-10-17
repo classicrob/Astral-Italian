@@ -1,4 +1,5 @@
 #include "Game/Boss/BossStinkBugFlyDemo.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Demo/DemoPositionController.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"

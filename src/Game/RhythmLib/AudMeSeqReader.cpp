@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudMeSeqReader.hpp"
+#include "Game/Util.hpp"
 
 bool AudMeSeqReader::call(u32 addr) {
     if (mNumStacks >= 8) {

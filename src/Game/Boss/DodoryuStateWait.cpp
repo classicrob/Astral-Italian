@@ -1,4 +1,5 @@
 #include "Game/Boss/DodoryuStateWait.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/Dodoryu.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"

@@ -319,7 +319,7 @@ void HammerHeadPackun::exeNumb() {
         mJointRumbler->start();
     }
 
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         mNumbTime = 0;
     }
 
@@ -358,7 +358,7 @@ inline bool HammerHeadPackun::checkBlowAttack() const {
 }
 
 void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!checkBlowAttack() && MR::isSensor(pSender, "blow") && MR::getSensorHost(pReceiver) &&
+    if (!checkBlowAttack() && MR::isEqualSensor(pSender, this, "blow") && MR::getSensorHost(pReceiver) &&
         !strcmp(MR::getSensorHost(pReceiver)->mName, "パンチングキノコ")) {
         f32 recvRadius = pReceiver->mRadius;
         f32 sendRadius = pSender->mRadius;
@@ -393,12 +393,12 @@ void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    MR::isSensor(pReceiver, "body");
-    MR::isSensor(pReceiver, "blow");
-    MR::isSensor(pReceiver, "push1");
-    MR::isSensor(pReceiver, "push2");
-    MR::isSensor(pReceiver, "push3");
-    MR::isSensor(pReceiver, "push4");
+    MR::isEqualSensor(pReceiver, this, "body");
+    MR::isEqualSensor(pReceiver, this, "blow");
+    MR::isEqualSensor(pReceiver, this, "push1");
+    MR::isEqualSensor(pReceiver, this, "push2");
+    MR::isEqualSensor(pReceiver, this, "push3");
+    MR::isEqualSensor(pReceiver, this, "push4");
 
     if (!checkBlowAttack() && (MR::isMsgJetTurtleAttack(msg) || MR::isMsgFireBallAttack(msg))) {
         f32 sendRadius = pReceiver->mRadius;
@@ -587,7 +587,7 @@ void HammerHeadPackun::verticalizeFrontVec() {
 }
 
 bool HammerHeadPackun::tryShiftNumb() {
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         setNerve(GET_NERVE_ANON(HammerHeadPackunNrvNumb));
         return true;
     }
@@ -604,7 +604,7 @@ bool HammerHeadPackun::receiveMsgPlayerAttackChance(u32 msg, HitSensor* pSender,
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         setNerve(GET_NERVE_ANON(HammerHeadPackunNrvSmashKill));
         return true;
-    } else if (MR::isMsgPlayerSpinAttack(msg)) {
+    } else if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (mImmunityTime >= 3u) {
             setNerve(GET_NERVE_ANON(HammerHeadPackunNrvRise));
         } else {

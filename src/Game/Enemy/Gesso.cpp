@@ -365,7 +365,7 @@ void Gesso::exeRotate() {
     }
 
     MR::startActionSound(this, "EmLvGessoStarPieceHit");
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Gesso, GessoNrvWait));
     }
 }

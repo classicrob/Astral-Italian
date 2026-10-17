@@ -1,4 +1,5 @@
 #include "Game/Boss/Dodoryu.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/DodoryuDemo.hpp"
 #include "Game/Boss/DodoryuHill.hpp"
 #include "Game/Boss/DodoryuMove.hpp"
@@ -277,7 +278,7 @@ void Dodoryu::init(const JMapInfoIter& rIter) {
 
     mScale.set(1.0f, 1.0f, 1.0f);
 
-    initModelManagerWithAnm("Dodoryu", nullptr, false);
+    MR::initActor(this, rIter, "Dodoryu", false);
 
     mMoveStateHolder = new DodoryuSub::MoveStateHolder(this);
 
@@ -822,7 +823,7 @@ void DodoryuBank::init(const JMapInfoIter& rIter) {
 }
 
 void DodoryuBank::exeAppear() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         kill();
         MR::validateClipping(this);
     }

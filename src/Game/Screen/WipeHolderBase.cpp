@@ -1,4 +1,5 @@
 #include "Game/Screen/WipeHolderBase.hpp"
+#include "Game/Util.hpp"
 #include "Game/Screen/WipeLayoutBase.hpp"
 #include <cstdio>
 

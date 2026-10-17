@@ -1,4 +1,5 @@
 #include "Game/Enemy/TerritoryMover.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>

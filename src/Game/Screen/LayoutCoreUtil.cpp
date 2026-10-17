@@ -1,4 +1,5 @@
 #include "Game/Screen/LayoutCoreUtil.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 #include <cstdio>

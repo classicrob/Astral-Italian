@@ -139,7 +139,7 @@ void BombHei::init(const JMapInfoIter& rIter) {
     MR::useStageSwitchWriteDead(this, rIter);
     MR::useStageSwitchReadA(this, rIter);
 
-    initModelManagerWithAnm("BombHei", nullptr, false);
+    MR::initActor(this, rIter, "BombHei", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
 
@@ -226,7 +226,7 @@ void BombHei::endCountdown() {
 
 void BombHei::exeLaunch() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Stop");
+        MR::startAction(this, "Stop");
         mRotQuat.set< f32 >(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
@@ -243,11 +243,11 @@ void BombHei::exeLaunch() {
 
     if (!MR::isOnGroundCos(this, ::hGroundCosine)) {
         mVelocity.add(mGravity * ::hGravity);
-        f32 radius = getSensor("body")->mRadius;
+        f32 radius = MR::getSensorRadius(this, "body");
         MR::rotateQuatRollBall(&mRotQuat, velH * ::hMultVelAngle, -mGravity, radius);
     } else {
         startBoundSound();
-        f32 radius = getSensor("body")->mRadius;
+        f32 radius = MR::getSensorRadius(this, "body");
         MR::rotateQuatRollBall(&mRotQuat, mVelocity, MR::getGroundNormal(this), radius);
 
         if (mGravity.dot(mVelocity) < 5.0f) {
@@ -266,7 +266,7 @@ void BombHei::exeLaunch() {
 void BombHei::exeStarting() {
     if (MR::isFirstStep(this)) {
         MR::validateExCollisionParts(this);
-        MR::startBck(this, "Starting");
+        MR::startAction(this, "Starting");
         mVelocity.zero();
     }
 
@@ -274,14 +274,14 @@ void BombHei::exeStarting() {
         MR::blendQuatUpFront(&mRotQuat, -mGravity, mFront, 0.5f, 0.5f);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BombHei, HostTypeNrvWait));
     }
 }
 
 void BombHei::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     MR::moveAndTurnToPlayer(this, &mFront, ::hNoMoveNoTurnParam.mSpeedH, ::hNoMoveNoTurnParam.mGravAccel, ::hNoMoveNoTurnParam.mFriction,
@@ -307,7 +307,7 @@ void BombHei::exeWait() {
 
 void BombHei::exeWalk() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Walk");
+        MR::startAction(this, "Walk");
         TVec3f randDir;
         MR::getRandomVector(&randDir, 1.0f);
         MR::vecKillElement(randDir, mGravity, &randDir);
@@ -371,7 +371,7 @@ void BombHei::exePursue() {
 
 void BombHei::exePursueHit() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Hit");
+        MR::startAction(this, "Hit");
         MR::startActionSound(this, "EmBombheiHit");
     }
 
@@ -393,7 +393,7 @@ void BombHei::exePursueHit() {
 
 void BombHei::exeSpinHit() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Spin");
+        MR::startAction(this, "Spin");
         MR::startBlowHitSound(this);
         mVelocity.set(mGravity * -::hSpinHitJumpVel);
         MR::invalidateExCollisionParts(this);
@@ -407,7 +407,7 @@ void BombHei::exeSpinHit() {
     }
 
     if (MR::isOnGroundCos(this, ::hGroundCosine)) {
-        if (MR::isBckStopped(this)) {
+        if (MR::isActionEnd(this)) {
             setNerve(GET_NERVE(BombHei, HostTypeNrvPhysics));
         }
     } else {
@@ -450,14 +450,14 @@ void BombHei::exePhysics() {
 
     if (!MR::isOnGroundCos(this, ::hGroundCosine)) {
         mVelocity.add(mGravity * ::hGravity);
-        f32 radius = getSensor("body")->mRadius;
+        f32 radius = MR::getSensorRadius(this, "body");
         MR::rotateQuatRollBall(&mRotQuat, velH * ::hMultVelAngle, mGravity, radius);
     } else {
         mVelocity.add(mGravity * ::hGravityPhysicsOnGround);
-        f32 radius = getSensor("body")->mRadius;
+        f32 radius = MR::getSensorRadius(this, "body");
         MR::rotateQuatRollBall(&mRotQuat, mVelocity, MR::getGroundNormal(this), radius);
 
-        if (MR::isBckStopped(this) && mVelocity.length() < ::hToStopVelLen) {
+        if (MR::isActionEnd(this) && mVelocity.length() < ::hToStopVelLen) {
             setNerve(GET_NERVE(BombHei, HostTypeNrvStop));
             return;
         }
@@ -471,7 +471,7 @@ void BombHei::exePhysics() {
 
 void BombHei::exeStop() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Stop");
+        MR::startAction(this, "Stop");
     }
 
     MR::addVelocityToGravityOrGround(this, ::hGravity);
@@ -479,11 +479,11 @@ void BombHei::exeStop() {
 
     if (MR::isOnGround(this)) {
         MR::attenuateVelocity(this, ::hStopDampValue);
-        f32 radius = getSensor("body")->mRadius;
+        f32 radius = MR::getSensorRadius(this, "body");
         MR::rotateQuatRollBall(&mRotQuat, mVelocity, MR::getGroundNormal(this), radius);
     } else {
         MR::attenuateVelocity(this, 0.98f);
-        f32 radius = getSensor("body")->mRadius;
+        f32 radius = MR::getSensorRadius(this, "body");
         MR::rotateQuatRollBall(&mRotQuat, mVelocity, -mGravity, radius);
     }
 
@@ -492,7 +492,7 @@ void BombHei::exeStop() {
 
 void BombHei::exeThrown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Stop");
+        MR::startAction(this, "Stop");
         MR::startSoundPlayer("SE_PV_THROW", -1, -1);
         MR::startActionSound(this, "EmBombThrow");
         MR::invalidateExCollisionParts(this);
@@ -501,7 +501,7 @@ void BombHei::exeThrown() {
 
     TVec3f velH(0, 0, 0);
     MR::vecKillElement(mVelocity, mGravity, &velH);
-    f32 radius = getSensor("body")->mRadius;
+    f32 radius = MR::getSensorRadius(this, "body");
     MR::rotateQuatRollBall(&mRotQuat, velH * ::hMultVelAngle, mGravity, radius);
     mTargetFront.set(velH);
     MR::normalizeOrZero(&mTargetFront);
@@ -520,7 +520,7 @@ void BombHei::exeThrown() {
         mVelocity.add(mGravity * ::hGravityThrown);
     } else {
         startBoundSound();
-        MR::startBck(this, "Bound");
+        MR::startAction(this, "Bound");
         setNerve(GET_NERVE(BombHei, HostTypeNrvPhysics));
         return;
     }
@@ -534,7 +534,7 @@ void BombHei::endThrown() {
 
 void BombHei::exeTaken() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Carry");
+        MR::startAction(this, "Carry");
         if (MR::sendMsgTaken(mCarrySensor, getSensor("body"))) {
             getSensor("body")->invalidate();
             MR::startSoundPlayer("SE_PV_LIFT_UP", -1, -1);
@@ -747,7 +747,7 @@ bool BombHei::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg) && mType == BOMB_HEI && !isNerve(GET_NERVE(BombHei, HostTypeNrvSpinHit))) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && mType == BOMB_HEI && !isNerve(GET_NERVE(BombHei, HostTypeNrvSpinHit))) {
         setNerve(GET_NERVE(BombHei, HostTypeNrvSpinHit));
         startCountdown();
         MR::stopScene(::hStopFrame);
@@ -811,7 +811,7 @@ bool BombHei::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
     }
 
     if (msg == 0x3D /* ACTMES_TAKE_TOUCH? */) {
-        MR::startBck(this, "Carry");
+        MR::startAction(this, "Carry");
         return true;
     }
 

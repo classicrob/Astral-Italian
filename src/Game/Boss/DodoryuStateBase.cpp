@@ -1,4 +1,5 @@
 #include "Game/Boss/DodoryuStateBase.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/Dodoryu.hpp"
 #include "Game/Boss/DodoryuUtil.hpp"
 #include "Game/Util/MathUtil.hpp"

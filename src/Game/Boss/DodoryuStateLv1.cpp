@@ -1,4 +1,5 @@
 #include "Game/Boss/DodoryuStateLv1.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/Dodoryu.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"

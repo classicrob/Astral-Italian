@@ -97,7 +97,7 @@ TakoHei::TakoHei(const char* pName)
 void TakoHei::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     mScale.mult(::sBaseScale);
-    initModelManagerWithAnm("TakoHei", nullptr, false);
+    MR::initActor(this, rIter, "TakoHei", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     MR::onCalcGravity(this);
@@ -501,7 +501,7 @@ void TakoHei::exeNonActive() {
 
 void TakoHei::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::startBtp(this, "Open");
     }
 
@@ -523,7 +523,7 @@ void TakoHei::exeWait() {
 
 void TakoHei::exeWalk() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Walk");
+        MR::startAction(this, "Walk");
         MR::startBtp(this, "Open");
         decideNextTargetPos();
     }
@@ -551,7 +551,7 @@ void TakoHei::exeWalk() {
 
 void TakoHei::exeFindTurn() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Turn");
+        MR::startAction(this, "Turn");
         MR::startBtp(this, "Open");
         MR::startActionSound(this, "EmTakoheiFind");
     }
@@ -571,7 +571,7 @@ void TakoHei::exeFindTurn() {
 
 void TakoHei::exeFind() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Search");
+        MR::startAction(this, "Search");
         MR::startBtp(this, "Search");
     }
 
@@ -584,7 +584,7 @@ void TakoHei::exeFind() {
 
 void TakoHei::exePursue() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Run");
+        MR::startAction(this, "Run");
         MR::startBtp(this, "Blink");
     }
 
@@ -619,7 +619,7 @@ void TakoHei::exePursue() {
 
 void TakoHei::exeCoolDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "CoolDown");
+        MR::startAction(this, "CoolDown");
         MR::startBtp(this, "Cry");
     }
 
@@ -638,7 +638,7 @@ void TakoHei::exeCoolDown() {
 
 void TakoHei::exeAttackSign() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "ShotStart");
+        MR::startAction(this, "ShotStart");
         MR::startBtp(this, "Angry");
     }
 
@@ -656,7 +656,7 @@ void TakoHei::exeAttackSign() {
         return;
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvAttack));
     }
 }
@@ -668,7 +668,7 @@ void TakoHei::exeAttack() {
         mouthMtx.mult(::sInkShotOffset, mult);
         MR::spurtTakoHeiInk(mult, _B0 * ::sSpurtPowerH + mGravity * ::sSpurtPowerV);
 
-        MR::startBck(this, "Shot");
+        MR::startAction(this, "Shot");
         MR::startActionSound(this, "EmTakoheiSpitOut");
     }
 
@@ -678,14 +678,14 @@ void TakoHei::exeAttack() {
         return;
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvWait));
     }
 }
 
 void TakoHei::exeAttackSuccess() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
         MR::startBtp(this, "Angry");
     }
 
@@ -706,12 +706,12 @@ void TakoHei::endBindStarPointer() {
 
 void TakoHei::exeSwoon() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "StunStart");
+        MR::startAction(this, "StunStart");
         MR::startBtp(this, "Cry");
     }
 
     if (MR::isBckOneTimeAndStopped(this)) {
-        MR::startBck(this, "Stun");
+        MR::startAction(this, "Stun");
     }
 
     if (MR::isBckPlaying(this, "Stun")) {
@@ -727,7 +727,7 @@ void TakoHei::exeSwoon() {
 
 void TakoHei::exeRecover() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "StunEnd");
+        MR::startAction(this, "StunEnd");
         MR::startBtp(this, "BlinkTwice");
         MR::startActionSound(this, "EvTakoheiRecover");
     }
@@ -741,7 +741,7 @@ void TakoHei::exeRecover() {
 
 void TakoHei::exePressDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "HipDropDown");
+        MR::startAction(this, "HipDropDown");
         MR::startBtp(this, "Cry");
         MR::startActionSound(this, "EmTakoheiStompedL");
         MR::zeroVelocity(this);
@@ -754,7 +754,7 @@ void TakoHei::exePressDown() {
 
 void TakoHei::exeHipDropDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "HipDropDown");
+        MR::startAction(this, "HipDropDown");
         MR::startBtp(this, "Cry");
         MR::startActionSound(this, "EmTakoheiStompedL");
         MR::zeroVelocity(this);
@@ -767,7 +767,7 @@ void TakoHei::exeHipDropDown() {
 
 void TakoHei::exeFlatDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "FlatDown");
+        MR::startAction(this, "FlatDown");
         MR::startBtp(this, "Cry");
         MR::startActionSound(this, "EmTakoheiStomped");
         MR::zeroVelocity(this);
@@ -780,7 +780,7 @@ void TakoHei::exeFlatDown() {
 
 void TakoHei::exePunchDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "PunchDown");
+        MR::startAction(this, "PunchDown");
         MR::startBtp(this, "Cry");
         MR::turnDirectionToTarget(this, &_B0, *MR::getPlayerPos(), -1.0f);
         MR::stopScene(::sPunchStopSceneTime);

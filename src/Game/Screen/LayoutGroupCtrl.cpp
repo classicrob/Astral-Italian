@@ -1,4 +1,5 @@
 #include "Game/Screen/LayoutGroupCtrl.hpp"
+#include "Game/Util.hpp"
 #include "Game/Animation/LayoutAnmPlayer.hpp"
 #include "Game/Screen/LayoutManager.hpp"
 #include <nw4r/lyt/group.h>

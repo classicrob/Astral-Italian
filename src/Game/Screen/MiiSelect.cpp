@@ -1,4 +1,5 @@
 #include "Game/Screen/MiiSelect.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/FileSelectFunc.hpp"
 #include "Game/Map/FileSelectIconID.hpp"

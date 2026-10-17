@@ -37,7 +37,7 @@ def rewrite(s):
     s = re.sub(r"(TVec3f\*\s*\w+\s*=\s*)\(?(" + g + r"[^;]*?\))\)?;", r"\1&\2;", s) if False else s
     # MR::getSensorPos returns const TVec3f* in Garigari (Petari: const TVec3f&). Without the deref,
     # `getSensorPos(a) - getSensorPos(b)` silently compiles as a POINTER difference.
-    s = re.sub(r"(?<![*&\w])MR::getSensorPos\(", "*MR::getSensorPos(", s)
+    s = re.sub(r"(?<![*&\w])MR::getSensorPos\(([^()]*(?:\([^()]*\)[^()]*)*)\)(?!\s*->)", r"*MR::getSensorPos(\1)", s)
     s = s.replace("&*MR::getSensorPos(", "MR::getSensorPos(")
     # SMG2: `if (MR::useStageSwitchReadAppear(this, rIter)) { MR::syncStageSwitchAppear(this); }`
     #   -> `MR::useStageSwitchSyncAppear(this, rIter);` (seen in Gesso, Teresa, ...)
@@ -53,9 +53,9 @@ def rewrite(s):
     s = re.sub(r"MR::isSensor\(([^,()]+), (\"[^\"]*\")\)", r"MR::isEqualSensor(\1, this, \2)", s)
     s = re.sub(r"MR::isStarPointerPointing2POnPressButton\(([^,()]+),[^()]*\)", r"MR::isStarPointerPointing2PAttachTarget(\1)", s)
     # getSensor("name")->mRadius / ->mPosition  ->  MR::getSensorRadius(this, "name") / *MR::getSensorPos(this, "name")
-    s = re.sub(r"(?<![\w.>])getSensor\((\"[^\"]*\")\)->(?:mRadius|getRadius\(\))", r"MR::getSensorRadius(this, \1)", s)
-    s = re.sub(r"(?<![\w.>])getSensor\((\"[^\"]*\")\)->(?:mPosition|getPosition\(\))", r"(*MR::getSensorPos(this, \1))", s)
-    s = re.sub(r"(?<![\w.>])getSensor\(([^()]*)\)->(?:mRadius|getRadius\(\))", r"MR::getSensorRadius(getSensor(\1))", s)
+    s = re.sub(r"(?<![\w.>])getSensor\((\"[^\"]*\")\)->(?:mRadius(?!\s*[-+*/]?=(?!=))|getRadius\(\))", r"MR::getSensorRadius(this, \1)", s)
+    s = re.sub(r"(?<![\w.>&])getSensor\((\"[^\"]*\")\)->(?:mPosition(?!\s*[-+*/]?=(?!=)|\.)|getPosition\(\))", r"(*MR::getSensorPos(this, \1))", s)
+    s = re.sub(r"(?<![\w.>])getSensor\(([^()]*)\)->(?:mRadius(?!\s*[-+*/]?=(?!=))|getRadius\(\))", r"MR::getSensorRadius(getSensor(\1))", s)
     s = re.sub(r"MR::initEffectAfterPlacement\(([^,()]+)\)", r"MR::initEffectAfterPlacement(\1, nullptr)", s)
     # LiveActor::initSound(s32, bool) -> SMG2 initSound(s32, "<ClassName>", nullptr, TVec3f(0.0f))
     out, cls, sig = [], None, ""

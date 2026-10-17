@@ -1,3 +1,9 @@
+> [!IMPORTANT]
+> **MacioGalaxy2: a private, AI-assisted fork of [SMGCommunity/Garigari](https://github.com/SMGCommunity/Garigari).**
+> Not affiliated with or endorsed by the Garigari or Petari projects; not intended for upstream.
+> Please do not contact their maintainers or Discord about anything in this fork.
+> Team workflow: [docs/team/TEAM.md](docs/team/TEAM.md).
+
 Garigari
 [![Build Status]][actions] ![SB4E01_Code]![SB4E01_Link] [![Discord Badge]][discord]
 =============

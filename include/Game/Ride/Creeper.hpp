@@ -48,6 +48,7 @@ public:
     virtual ~Creeper();
 
     virtual void init(const JMapInfoIter&);
+    virtual void makeActorAppeared();
     virtual void control();
     virtual void draw() const;
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
@@ -91,8 +92,8 @@ public:
     /* 0xD0 */ f32 mJumpSpeedUp;
     /* 0xD4 */ ActorCameraInfo* mCameraInfo;
     /* 0xD8 */ TVec3f mClippingCenter;
-    /* 0xE4 */ JUTTexture* mTexture;
-    /* 0xE8 */ PartsModel* mFlowerModel;
-    /* 0xEC */ PartsModel* mLeafModel;
-    /* 0xF0 */ TPos3f mTopMtx;
+    /* 0xE8 */ JUTTexture* mTexture;
+    /* 0xEC */ PartsModel* mFlowerModel;
+    /* 0xF0 */ PartsModel* mLeafModel;
+    /* 0xF4 */ TPos3f mTopMtx;
 };

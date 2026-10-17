@@ -21,6 +21,10 @@ public:
         mZoneID = rhs.mZoneID;
     }
 
+    bool operator==(const JMapIdInfo& rhs) const {
+        return _0 == rhs._0 && mZoneID == rhs.mZoneID;
+    }
+
     int getZoneID() const {
         return mZoneID;
     }

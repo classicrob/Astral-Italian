@@ -12,12 +12,10 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void appear();
 
+    virtual void initCoinCount(const JMapInfoIter&);
     virtual void initCoinArray(const JMapInfoIter&) = 0;
-    virtual void placementCoin() {
-    }
-    virtual const char* getCoinName() const {
-        return "コイン(グループ配置)";
-    }
+    virtual void placementCoin();
+    virtual const char* getCoinName() const;
 
     void killCoinAll();
     void appearCoinAll();
@@ -26,12 +24,13 @@ public:
     void setCoinTrans(s32, const TVec3f&);
     void exeAppear();
     void exeTryStartDemo();
+    void exeWait();
     void exeDemoAppear();
     void exeKill();
 
-    /* 0x8C */ Coin** mCoinArray;
-    /* 0x90 */ ActorCameraInfo* mCameraInfo;
-    /* 0x94 */ u32 mCoinCount;
-    /* 0x98 */ s32 mTimeLimit;
-    /* 0x9C */ bool mIsPurpleCoinGroup;
+    /* 0x90 */ Coin** mCoinArray;
+    /* 0x94 */ ActorCameraInfo* mCameraInfo;
+    /* 0x98 */ u32 mCoinCount;
+    /* 0x9C */ s32 mTimeLimit;
+    /* 0xA0 */ bool mIsPurpleCoinGroup;
 };

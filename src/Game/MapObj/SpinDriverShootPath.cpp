@@ -1,4 +1,5 @@
 #include "Game/MapObj/SpinDriverShootPath.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/RailRider.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ParabolicPath.hpp"

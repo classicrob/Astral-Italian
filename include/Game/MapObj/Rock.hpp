@@ -66,7 +66,7 @@ public:
     }
 
     inline bool isRockSensor(HitSensor* pSensor) const {
-        return pSensor->isType(ATYPE_ROCK) || pSensor->isType(ATYPE_WANWAN);
+        return MR::isSensorType(pSensor, 0x2F /* ATYPE_ROCK */) || MR::isSensorType(pSensor, 0x30 /* ATYPE_WANWAN */);
     }
 
     /* 0x8C */ RockCreator* mCreator;

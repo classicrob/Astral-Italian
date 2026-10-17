@@ -2,7 +2,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/RailRider.hpp"
 #include "Game/Util.hpp"
-#include <cstdio>
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -29,36 +28,19 @@ SoundEmitter::SoundEmitter(const char* pName) : LiveActor(pName) {
 }
 
 void SoundEmitter::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneMapObjMovement(this);
     MR::initDefaultPos(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &_8C);
-    MR::getJMapInfoArg1NoInit(rIter, &_94);
-
-    s32 arg2 = -1;
-    MR::getJMapInfoArg2NoInit(rIter, &arg2);
-    _98 = arg2 >= 0;
-    _99 = arg2 == 1;
-
-    s32 arg3 = -1;
-    MR::getJMapInfoArg3NoInit(rIter, &arg3);
-    _9A = arg3 >= 0;
-
-    if (!_98) {
-        MR::registerDemoSimpleCastAll(this);
-    }
-
-    // TODO: `if (_99) fn_80147220(this);` (unnamed in SMG2 symbols, not ported)
+    MR::connectToSceneMapObjMovement(this);
+    MR::registerDemoSimpleCastAll(this);
 
     if (MR::isConnectedWithRail(rIter)) {
         initRailRider(rIter);
     }
 
-    char name[256];
-    snprintf(name, 0x100, "SoundEmitterPoint%d", _8C);
-    initSound(2, name, nullptr, TVec3f(0.0f));
+    initSound(8, "SoundEmitter", nullptr, TVec3f(0.0f));
     MR::setClippingTypeSphere(this, 20000.0f);
-    MR::initUseStageSwitchReadAppear(this, rIter);
-    MR::initUseStageSwitchReadA(this, rIter);
+    MR::useStageSwitchReadAppear(this, rIter);
+    MR::useStageSwitchReadA(this, rIter);
 
     if (MR::isValidSwitchAppear(this)) {
         initNerve(GET_NERVE(SoundEmitter, SoundEmitterNrvStandBy));

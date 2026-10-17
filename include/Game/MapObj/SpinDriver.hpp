@@ -56,6 +56,7 @@ public:
     /* 0x08C */ LiveActor* _8C;
     /* 0x090 */ SpinDriverShootPath* mShootPath;
     /* 0x094 */ SpinDriverCamera* mSpinDriverCamera;
+    /* 0x098 */ Mtx _SMG2Mtx;  // new in SMG2 (0x30 bytes)
     /* 0x098 */ TQuat4f _98;
     /* 0x0A8 */ TQuat4f _A8;
     /* 0x0B8 */ TVec3f _B8;

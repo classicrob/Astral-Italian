@@ -7,6 +7,7 @@ public:
     enum EDeathType { DeathType_Any, DeathType_AnyNoPlayer };
 
     DeathArea(int, const char*);
+    DeathArea(const char*);
 
     virtual void init(const JMapInfoIter&);
     virtual void movement();

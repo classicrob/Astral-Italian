@@ -87,7 +87,7 @@ public:
     void launch(const TVec3f&, const TVec3f&, bool, bool);
     f32 calcEffectScale(f32, f32, bool);
     f32 calcNearCameraScale();
-    f32 calcDistToCamera() NO_INLINE;
+    f32 calcDistToCamera();
     void emitTouchEffect(s32, f32);
     void emitGettableEffect(f32);
     void tryGotJudge();
@@ -99,6 +99,7 @@ public:
     bool isIgnoreTriOnThrow(const Triangle*);
     bool touchPlayer();
     void setHostInfo(StarPieceHostInfo*);
+    bool isNerveToPlayerEnd();
 
     TVec3f _8C;
 
@@ -113,6 +114,7 @@ public:
     /* 0xC4 */ HitSensor* mTargetSensor;
     s32 _C8;
     /* 0xCC */ s32 mGettableDelayCounter;
+    s32 _SMG2New;  // new in SMG2, init -1
     /* 0xD0 */ s32 mFallKillTimer;
 
     /* 0xD4 */ J3DGXColor mColor;

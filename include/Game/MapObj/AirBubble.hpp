@@ -23,13 +23,13 @@ public:
     void exeKillWait();
     bool canSpinGet() const;
 
-    /* 0x8C */ TVec3f _8C;
-    /* 0x98 */ u8 _98[0xC];
-    /* 0xA4 */ TVec3f _A4;
-    /* 0xB0 */ f32 _B0;
-    /* 0xB4 */ u8 _B4[0xC];
-    /* 0xC0 */ f32 mRailMoveSpeed;
-    /* 0xC4 */ s32 mLife;
-    /* 0xC8 */ bool mIsFollowRail;
-    /* 0xC9 */ bool _C9;
+    /* 0x90 */ TVec3f _8C;
+    /* 0x9C */ u8 _98[0xC];
+    /* 0xA8 */ TVec3f _A4;
+    /* 0xB4 */ f32 _B0;
+    /* 0xB8 */ u8 _B4[0xC];
+    /* 0xC4 */ f32 mRailMoveSpeed;
+    /* 0xC8 */ s32 mLife;
+    /* 0xCC */ bool mIsFollowRail;
+    /* 0xCD */ bool _C9;
 };

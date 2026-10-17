@@ -26,6 +26,7 @@ namespace NrvMapPartsRotator {
 MapPartsRotator::MapPartsRotator(LiveActor* pActor) : MapPartsRotatorBase(pActor, "自身回転") {
     _18 = 0.0f;
     mRotateAngle = 0.0f;
+    mRotateTime = 0;
     mRotateStopTime = 0;
     mTargetAngle = 0.0f;
     mRotateSpeed = 0.0f;
@@ -42,11 +43,17 @@ MapPartsRotator::MapPartsRotator(LiveActor* pActor) : MapPartsRotatorBase(pActor
     mRotateMtx.set(mBaseHostMtx);
 }
 
+// NONMATCHING: arg setup/branch order differs slightly from target (98%)
 void MapPartsRotator::init(const JMapInfoIter& rIter) {
+    MapPartsFunction::init(rIter);
     MR::getMapPartsArgRotateAngle(&mRotateAngle, rIter);
     MR::getMapPartsArgRotateAxis(&mRotateAxis, rIter);
     MR::getMapPartsArgRotateAccelType(&mRotateAccelType, rIter);
-    initRotateSpeed(rIter);
+    MR::getMapPartsArgRotateSpeed(&_18, rIter);
+    if (mRotateAccelType == 2) {
+        MR::getMapPartsArgRotateTime(&mRotateTime, rIter);
+        initRotateSpeed(rIter);
+    }
     MR::getMapPartsArgRotateStopTime(&mRotateStopTime, rIter);
     MR::getMapPartsArgRotateType(&mRotateType, rIter);
     MR::getMapPartsArgSignMotionType(&mSignMotionType, rIter);
@@ -106,6 +113,7 @@ bool MapPartsRotator::isMoving() const {
     return isNerve(GET_NERVE(MapPartsRotator, HostTypeRotate));
 }
 
+// NONMATCHING: SMG2 velocity logic differs (getSpeed scaling, sound); not recovered (77%)
 void MapPartsRotator::updateVelocity() {
     if (MR::isNearZero(mRotateAngle) || isAccelTypeConstantSpeed()) {
         mIsOnReverse = false;
@@ -141,7 +149,7 @@ void MapPartsRotator::updateVelocity() {
 }
 
 void MapPartsRotator::updateAngle() {
-    mAngle += mRotateSpeed;
+    mAngle += mRotateSpeed * getSpeed();
 
     if (MR::isNearZero(mRotateAngle)) {
         MR::repeatDegree(&mAngle);
@@ -178,12 +186,7 @@ void MapPartsRotator::restartAtEnd() {
 
 void MapPartsRotator::initRotateSpeed(const JMapInfoIter& rIter) {
     if (mRotateAccelType == 2) {
-        s32 rotate_time = 0;
-        MR::getMapPartsArgRotateTime(&rotate_time, rIter);
-        _18 = mRotateAngle / rotate_time;
-    } else {
-        MR::getMapPartsArgRotateSpeed(&_18, rIter);
-        _18 *= 0.01f;
+        _18 = mRotateAngle / mRotateTime;
     }
 
     if (mRotateAngle < 0.0f) {
@@ -231,6 +234,7 @@ void MapPartsRotator::exeNeverMove() {
 void MapPartsRotator::exeWait() {
 }
 
+// NONMATCHING: SMG2 adds startLevelSound calls and a speed-threshold sound block (recovery pending, 64%)
 void MapPartsRotator::exeRotate() {
     updateVelocity();
     updateAngle();
@@ -256,6 +260,7 @@ void MapPartsRotator::exeRotate() {
     updateRotateMtx((AxisType)mRotateAxis, mAngle);
 }
 
+// NONMATCHING: SMG2 adds two startLevelSound calls on isFirstStep, sound-name table in .data (77%)
 void MapPartsRotator::exeRotateStart() {
     if (isFirstStep()) {
         _A0 = mAngle;
@@ -271,6 +276,7 @@ void MapPartsRotator::exeRotateStart() {
     }
 }
 
+// NONMATCHING: not in Petari; target tail-calls it from execute and its SMG2 body (sound block) is not recovered (41%)
 void MapPartsRotator::exeStopAtEnd() {
     if (isStep(mRotateStopTime)) {
         restartAtEnd();

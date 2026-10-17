@@ -1,4 +1,5 @@
 #include "Game/MapObj/MapPartsFloatingForce.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/FloaterFunction.hpp"

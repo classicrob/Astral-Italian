@@ -75,7 +75,8 @@ public:
 
     /* 0x18 */ f32 _18;
     /* 0x1C */ f32 mRotateAngle;
-    /* 0x20 */ s32 mRotateStopTime;
+    /* 0x20 */ s32 mRotateTime;
+    /* 0x24 */ s32 mRotateStopTime;
     /* 0x24 */ f32 mTargetAngle;
     /* 0x28 */ f32 mRotateSpeed;
     /* 0x2C */ f32 mAngle;

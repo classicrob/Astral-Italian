@@ -27,21 +27,21 @@ public:
     void noticeGet(ChipBase*);
     void receiveAppearRequest();
 
-    /* 0x0C */ ChipEntry mChips[5];
-    /* 0x34 */ StageSwitchCtrl* mSwitchCtrl;
-    /* 0x38 */ TVec3f mUIPos;
-    /* 0x44 */ s32 mGotCount;
-    /* 0x48 */ s32 mTotalCount;
-    /* 0x4C */ s32 mStageSwitchArg;
-    /* 0x50 */ s32 mChipType;
-    /* 0x54 */ s32 mFlashFrame;
-    /* 0x58 */ s32 mCounterTimer;
-    /* 0x5C */ f32 mUIRange;
-    /* 0x60 */ f32 mUIRangeFixed;
-    /* 0x64 */ u32 mIsDeactivated;
-    /* 0x68 */ s32 mAlreadyDoneFlag;
-    /* 0x6C */ u8 mIsListeningAppear;
-    /* 0x6D */ u8 mIsCounterVisible;
+    /* 0x14 */ ChipEntry mChips[5];
+    /* 0x3C */ StageSwitchCtrl* mSwitchCtrl;
+    /* 0x40 */ TVec3f mUIPos;
+    /* 0x4C */ s32 mGotCount;
+    /* 0x50 */ s32 mTotalCount;
+    /* 0x54 */ s32 mStageSwitchArg;
+    /* 0x58 */ s32 mChipType;
+    /* 0x5C */ s32 mFlashFrame;
+    /* 0x60 */ s32 mCounterTimer;
+    /* 0x64 */ f32 mUIRange;
+    /* 0x68 */ f32 mUIRangeFixed;
+    /* 0x6C */ bool mIsDeactivated;
+    /* 0x70 */ s32 mAlreadyDoneFlag;
+    /* 0x74 */ u8 mIsListeningAppear;
+    /* 0x75 */ u8 mIsCounterVisible;
 };
 
 class BlueChipGroup : public ChipGroup {

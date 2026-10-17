@@ -11,6 +11,7 @@ public:
     Fluff(const char* pName);
 
     virtual void init(const JMapInfoIter& rIter);
+    void onDemoAction();
     virtual void initAfterPlacement();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
@@ -42,7 +43,7 @@ public:
     /* 0xF8 */ f32 mWindDistance;
     /* 0xFC */ s32 mWindSpinTimer;
     /* 0x100 */ s32 mSpinsRemaining;
-    /* 0x104 */ ModelObj* mModel;
-    /* 0x108 */ LiveActor* mRider;
-    /* 0x10C */ CameraTargetMtx* mCameraTargetMtx;
+    /* 0x108 */ ModelObj* mModel;
+    /* 0x10C */ LiveActor* mRider;
+    /* 0x110 */ CameraTargetMtx* mCameraTargetMtx;
 };

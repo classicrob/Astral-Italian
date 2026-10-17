@@ -16,6 +16,7 @@ MapPartsRailPosture::MapPartsRailPosture(LiveActor* pHost) : MapPartsFunction(pH
 }
 
 void MapPartsRailPosture::init(const JMapInfoIter& rIter) {
+    MapPartsFunction::init(rIter);
     MR::getMapPartsArgMovePosture(&mMovePosture, mHost);
 
     if (mMovePosture == 0) {

@@ -31,16 +31,16 @@ public:
         return 0.0f < mLaunchSpeed;
     }
 
-    /* 0x8C */ TPos3f mBaseMtx;
-    /* 0xBC */ LiveActor* mBoundActor;
-    /* 0xC0 */ TPos3f mActorMtx;
-    /* 0xF0 */ TQuat4f mLaunchQuat;
-    /* 0x100 */ ActorCameraInfo* mCameraInfo;
-    /* 0x104 */ f32 mLaunchSpeed;
-    /* 0x108 */ bool mIsWeakGravity;
-    /* 0x109 */ bool mCalcShadow;
-    /* 0x10C */ s32 mPoseType;
-    /* 0x110 */ s32 mShadowDropLengthType;
-    /* 0x114 */ TVec3f mShadowPos;
-    /* 0x120 */ f32 mShadowDropLength;
+    /* 0x90 */ TPos3f mBaseMtx;
+    /* 0xC0 */ LiveActor* mBoundActor;
+    /* 0xC4 */ TPos3f mActorMtx;
+    /* 0xF4 */ TQuat4f mLaunchQuat;
+    /* 0x104 */ ActorCameraInfo* mCameraInfo;
+    /* 0x108 */ f32 mLaunchSpeed;
+    /* 0x10C */ bool mIsWeakGravity;
+    /* 0x10D */ bool mCalcShadow;
+    /* 0x110 */ s32 mPoseType;
+    /* 0x114 */ s32 mShadowDropLengthType;
+    /* 0x118 */ TVec3f mShadowPos;
+    /* 0x124 */ f32 mShadowDropLength;
 };

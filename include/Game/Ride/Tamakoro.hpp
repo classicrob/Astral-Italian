@@ -10,6 +10,7 @@ class JointController;
 class JointControllerInfo;
 class SphereAccelSensorController;
 class TamakoroTutorial;
+class Coin;
 
 class Tamakoro : public LiveActor {
 public:
@@ -25,7 +26,6 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void initSensor();
     void initJointControl();
     bool ringMtxCallBack(TPos3f*, const JointControllerInfo&);
     void updateBindActorMatrix();
@@ -38,6 +38,7 @@ public:
     bool tryJump();
     bool tryBumpWall();
     bool tryLand();
+    bool tryBindStarPointer();
     void reactionCollision();
     void exeStandByTutorial();
     void exeStandByBind();
@@ -49,6 +50,7 @@ public:
     void exeJump();
     void exeBumpWall();
     void exeLand();
+    void exeFreeze();
     void exeJumpHole();
     void exeJumpHoleSetUp();
     void exeJumpHoleLaunch();
@@ -62,7 +64,7 @@ public:
     void exeBindEnd();
     void addVelocityOperate();
     f32 updateRideRail();
-    void updateVelocityNormal(f32);
+    inline void updateVelocityNormal(f32);
     void updateMoment();
     void updateAirTime();
     void updateMarioPose(f32);
@@ -78,28 +80,29 @@ public:
     bool isRideRail() const NO_INLINE;
     bool isNeedTutorial() const NO_INLINE;
     void startRotateLevelSound();
+    void startTamakoroBgm();
 
     inline void setTutorial() {
         mHasTutorial = true;
     }
 
     inline bool isBindedSphereDash(HitSensor* pSender, HitSensor* pReceiver) const {
-        if (pReceiver->isType(ATYPE_SPHERE_DASH)) {
-            return pReceiver->receiveMessage(ACTMES_SPHERE_PLAYER_BINDED, pSender);
+        if (MR::isSensorType(pReceiver, 0x75)) {
+            return MR::sendArbitraryMsg(0xA4, pReceiver, pSender);
         }
         return false;
     }
 
     inline bool isBindedJumpHole(HitSensor* pSender, HitSensor* pReceiver) const {
-        if (pReceiver->isType(ATYPE_JUMP_HOLE)) {
-            return pReceiver->receiveMessage(ACTMES_SPHERE_PLAYER_BINDED, pSender);
+        if (MR::isSensorType(pReceiver, 0x74)) {
+            return MR::sendArbitraryMsg(0xA4, pReceiver, pSender);
         }
         return false;
     }
 
     inline bool isBindedBallRail(HitSensor* pSender, HitSensor* pReceiver) const {
-        if (pReceiver->isType(ATYPE_BALL_RAIL)) {
-            return pReceiver->receiveMessage(ACTMES_SPHERE_PLAYER_BINDED, pSender);
+        if (MR::isSensorType(pReceiver, 0x76)) {
+            return MR::sendArbitraryMsg(0xA4, pReceiver, pSender);
         }
         return false;
     }
@@ -108,6 +111,7 @@ private:
     /* 0x08C */ SphereAccelSensorController* mAccelSensorCtrl;
     /* 0x090 */ TamakoroTutorial* mTutorial;
     /* 0x094 */ JointController* mJointCtrl;
+    /* 0x098 */ Coin* mPurpleCoin;
     /* 0x098 */ TQuat4f mBallRotateQuat;
     /* 0x0A8 */ TQuat4f mMarioRotateQuat;
     /* 0x0B8 */ TVec3f mRingUp;
@@ -125,9 +129,11 @@ private:
     /* 0x138 */ f32 mMarioOffset;
     /* 0x13C */ f32 mMarioOffsetVelocity;
     /* 0x140 */ s32 mAirTime;
+    /* 0x14C */ s32 _14C;
     /* 0x144 */ AudTamakoroBgmCtrl* mBgmCtrl;
     /* 0x148 */ bool mControlDisabled;
     /* 0x149 */ bool mHasTutorial;
+    /* 0x14A */ bool mIsPurple;
 };
 
 namespace MR {

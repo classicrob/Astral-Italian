@@ -29,7 +29,7 @@ SimpleFloaterObj::~SimpleFloaterObj() {
 void SimpleFloaterObj::init(const JMapInfoIter& rrIter) {
     MR::initDefaultPos(this, rrIter);
     MR::getObjectName(&_8C, rrIter);
-    MR::initActor(this, rrIter, _8C, false);
+    initModelManagerWithAnm(_8C, nullptr, false);
     MR::connectToSceneMapObj(this);
     initHitSensor(1);
     MR::addBodyMessageSensorMapObj(this);
@@ -38,7 +38,7 @@ void SimpleFloaterObj::init(const JMapInfoIter& rrIter) {
     initEffectKeeper(0, nullptr, false);
     _94.set(mPosition);
     MR::setEffectHostSRT(this, ::cEffectName, &_94, &mRotation, nullptr);
-    initSound(4, _8C, nullptr, TVec3f(0.0f));
+    initSound(4, "SimpleFloaterObj", nullptr, TVec3f(0.0f));
     MR::setClippingTypeSphereContainsModelBoundingBox(this, 100.0f);
     _90 = new MapPartsFloatingForce(this);
     _90->init(rrIter);

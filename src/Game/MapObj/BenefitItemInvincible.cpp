@@ -1,4 +1,5 @@
 #include "Game/MapObj/BenefitItemInvincible.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
@@ -106,7 +107,7 @@ void BenefitItemInvincible::doEscape() {
 
         _BC = mFwdAxis * 10.0f - mGravity * ::cBoundUpSpd;
 
-        MR::startSound(this, "SE_OJ_POW_INVINCIBLE_BOUND");
+        MR::startActionSound(this, "OjPowInvincibleBound");
 
         _C8.zero();
     } else {

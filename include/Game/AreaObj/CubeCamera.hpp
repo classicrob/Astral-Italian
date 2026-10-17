@@ -19,6 +19,8 @@ public:
     virtual void movement();
     virtual bool isInVolume(const TVec3f&) const;
     virtual s32 getCategoryArg() const;
+    virtual s32 getAreaPriority() const;
+    virtual const char* getManagerName() const;
 
     bool isValidCameraID() const;
     u16 getCameraID() const;

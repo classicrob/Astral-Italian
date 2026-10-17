@@ -29,16 +29,6 @@ PhantomTorch::PhantomTorch(const char* pName) : LiveActor(pName) {
     mIsDecorative = false;
 }
 
-namespace {
-    const char* sRotateParticleName = "PhantomTorchRotate";
-}
-
-void PhantomTorch::initFromRisePictureBook() {
-    mItem = 1;
-    mParticle = sRotateParticleName;
-    NameObj::initWithoutIter();
-}
-
 void PhantomTorch::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     f32 x = mScale.x;
@@ -105,7 +95,7 @@ void PhantomTorch::kill() {
         break;
     case 0:
         if (MR::appearStarPiece(this, mPosition, 1, 10.0f, 40.0f, false)) {
-            MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+            MR::startActionSound(this, "OjStarPieceBurst");
         }
         break;
     }
@@ -129,19 +119,6 @@ void PhantomTorch::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-bool PhantomTorch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (mIsDecorative) {
-        return false;
-    }
-
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && isNerve(GET_NERVE(PhantomTorch, HostTypeWait))) {
-        setNerve(GET_NERVE(PhantomTorch, HostTypeAttack));
-        return true;
-    }
-
-    return false;
-}
-
 bool PhantomTorch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (mIsDecorative) {
         return false;
@@ -155,13 +132,13 @@ bool PhantomTorch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
 }
 
 void PhantomTorch::soundOrder() {
-    if (MR::getGroupFromArray(this) && MR::getGroupFromArray(this)->getObjectCount() > 0) {
+    if (MR::getGroupFromArray(this) && MR::getGroupFromArray(this)->getObjNum() > 0) {
         s32 i;
         LiveActorGroup* group;
         s32 num = 0;
         group = MR::getGroupFromArray(this);
 
-        for (i = 0; i < group->getObjectCount(); i++) {
+        for (i = 0; i < group->getObjNum(); i++) {
             if (!MR::isDead(group->getActor(i))) {
                 num++;
             }
@@ -190,9 +167,9 @@ void PhantomTorch::soundOrder() {
 
 void PhantomTorch::exeWait() {
     if (MR::isEqualString(mParticle, "PhantomBonfire")) {
-        MR::startLevelSound(this, "SE_OJ_LV_BONFIRE_BURN");
+        MR::startActionSound(this, "OjLvBonfireBurn");
     } else {
-        MR::startLevelSound(this, "SE_OJ_LV_PHANTOM_TOACH_BURN");
+        MR::startActionSound(this, "OjLvPhantomToachBurn");
     }
 }
 
@@ -200,9 +177,9 @@ void PhantomTorch::exeAttack() {
     if (MR::isStep(this, 30)) {
         setNerve(GET_NERVE(PhantomTorch, HostTypeWait));
     } else if (MR::isEqualString(mParticle, "PhantomBonfire")) {
-        MR::startLevelSound(this, "SE_OJ_LV_BONFIRE_BURN");
+        MR::startActionSound(this, "OjLvBonfireBurn");
     } else {
-        MR::startLevelSound(this, "SE_OJ_LV_PHANTOM_TOACH_BURN");
+        MR::startActionSound(this, "OjLvPhantomToachBurn");
     }
 }
 
@@ -210,7 +187,7 @@ void PhantomTorch::exeExtinguish() {
     if (MR::isFirstStep(this)) {
         MR::deleteEffect(this, mParticle);
         MR::emitEffectWithParticleCallBack(this, "Extinguish", mPullParticle);
-        MR::startSound(this, "SE_OJ_PHANTOM_TOACH_OFF");
+        MR::startActionSound(this, "OjPhantomToachOff");
     }
 
     if (MR::isStep(this, 15)) {

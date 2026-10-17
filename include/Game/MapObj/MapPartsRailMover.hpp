@@ -47,6 +47,11 @@ public:
     void exeWaitForRestartByPlayerOn();
     void exeStopAtEndWithPlayerOn();
     void exeRotateAtEndPoint();
+    void exeWaitForRestart();
+
+    void setStopTypeStopAtEnd();
+    void setSignMotionTypeShake();
+    bool isStarting() const;
 
     /* 0x18 */ MapPartsRailPointPassChecker* mRailPointPassChecker;
     /* 0x1C */ s32 mMoveConditionType;

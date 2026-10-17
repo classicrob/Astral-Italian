@@ -34,11 +34,10 @@ public:
     void endBindItem();
     void putItem();
 
-    /* 0x8C */ AnimScaleController* mScaleController;
-    /* 0x90 */ WalkerStateBindStarPointer* mStarPointerState;
-    /* 0x94 */ LiveActor* mItem;
-    /* 0x98 */ s32 mItemType;
-    /* 0x9C */ bool mIsItemBound;
-    /* 0xA0 */ CollisionParts* mLowCollision;
-    bool _A4;
+    /* 0x90 */ AnimScaleController* mScaleController;
+    /* 0x94 */ WalkerStateBindStarPointer* mStarPointerState;
+    /* 0x98 */ LiveActor* mItem;
+    /* 0x9C */ s32 mItemType;
+    /* 0xA0 */ bool mIsItemBound;
+    /* 0xA4 */ CollisionParts* mLowCollision;
 };

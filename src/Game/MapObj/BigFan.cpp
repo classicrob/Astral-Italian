@@ -1,10 +1,8 @@
-#pragma auto_inline off
 #include "Game/MapObj/BigFan.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/BigFanHolder.hpp"
 #include "Game/Util.hpp"
-#include "Game/Util/ActionSoundUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
 namespace {
@@ -27,7 +25,7 @@ void BigFan::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     const char* object_name;
     MR::getObjectName(&object_name, rIter);
-    MR::initActor(this, rIter, object_name, false);
+    initModelManagerWithAnm(object_name, 0, false);
     MR::connectToSceneNoSilhouettedMapObj(this);
 
     if (MR::isExistCollisionResource(this, object_name)) {
@@ -52,8 +50,8 @@ void BigFan::init(const JMapInfoIter& rIter) {
     }
 
     initNerve(GET_NERVE(BigFan, BigFanNrvWait));
-    if (MR::initUseStageSwitchReadAppear(this, rIter)) {
-        MR::listenStageSwitchOnAppear(this, MR::FunctorV0M< BigFan*, void (BigFan::*)() >(this, &BigFan::start));
+    if (MR::useStageSwitchReadAppear(this, rIter)) {
+        MR::listenStageSwitchOnAppear(this, MR::Functor(this, &BigFan::start));
         setNerve(GET_NERVE(BigFan, BigFanNrvStop));
         mWindModel->kill();
     }
@@ -135,9 +133,9 @@ void BigFan::exeStart() {
         MR::startAction(mWindModel, "Appear");
 
         if (mIsTeresaGalaxy) {
-            MR::startActionSound(this, "SE_OJ_BIG_FAN_START_FAR");
+            MR::startActionSound(this, "OjBigFanStartFar");
         } else {
-            MR::startActionSound(this, "SE_OJ_BIG_FAN_START");
+            MR::startActionSound(this, "OjBigFanStart");
         }
     }
 
@@ -153,9 +151,9 @@ void BigFan::exeWait() {
     }
 
     if (mIsTeresaGalaxy) {
-        MR::startLevelSound(this, "SE_OJ_LV_BIG_FAN_FAR");
+        MR::startActionSound(this, "OjLvBigFanFar");
     } else {
-        MR::startLevelSound(this, "SE_OJ_LV_BIG_FAN");
+        MR::startActionSound(this, "OjLvBigFan");
     }
 }
 

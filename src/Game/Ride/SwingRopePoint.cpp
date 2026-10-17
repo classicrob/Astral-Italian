@@ -1,5 +1,5 @@
-#pragma auto_inline off
 #include "Game/Ride/SwingRopePoint.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/MathUtil.hpp"
 
 SwingRopePoint::SwingRopePoint(const TVec3f& rPos)

@@ -10,8 +10,7 @@ class MapPartsFunction : public NameObj {
 public:
     MapPartsFunction(LiveActor* pHost, const char* pName);
 
-    virtual void init(const JMapInfoIter& rIter) {
-    }
+    virtual void init(const JMapInfoIter& rIter);
 
     virtual void movement();
 
@@ -30,6 +29,7 @@ public:
     }
 
     bool sendMsgToHost(u32 msg);
+    f32 getSpeed() const;
     void initNerve(const Nerve* pNerve);
     void setNerve(const Nerve* pNerve);
     s32 getStep() const;
@@ -37,7 +37,9 @@ public:
     bool isNerve(const Nerve* pNerve) const;
     bool isFirstStep() const;
 
-    /* 0x0C */ Spine* mSpine;
-    /* 0x10 */ LiveActor* mHost;
-    /* 0x14 */ bool mIsActive;
+    /* 0x14 */ Spine* mSpine;
+    /* 0x18 */ LiveActor* mHost;
+    /* 0x1C */ bool mIsActive;
+    /* 0x20 */ f32 mParamScale;         // SMG2, init 1.0f
+    /* 0x24 */ const char* mSensorName;  // SMG2, init "Body"
 };

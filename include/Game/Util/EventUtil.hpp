@@ -84,7 +84,7 @@ namespace MR {
 
     bool isPreventDisplayInformationMessage();
 
-    bool setupAlreadyDoneFlag(int* outIndex, const char* name, const JMapInfoIter& rIter, bool useless);
+    bool setupAlreadyDoneFlag(int* outIndex, const char* name, const JMapInfoIter& rIter, s32 useless);
     void onAlreadyDoneFlag(const char* name);
     void onAlreadyDoneFlag(int index);
     bool isOnAlreadyDoneFlag(const char* name);

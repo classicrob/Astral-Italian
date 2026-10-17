@@ -13,7 +13,7 @@ class XanimeResourceTable;
 
 namespace MR {
     bool isOnGroundPlayer();
-    void getPlayerGroundingPolygon();
+    const void* getPlayerGroundingPolygon();  // returns a pointer (cmpwi r3,0 in SMG2 callers)
     void forceKillPlayerByAbyss();
     void forceKillPlayerByWaterOrGroundRace();
     void forceKillPlayerByGroundRace();
@@ -173,6 +173,7 @@ namespace MR {
 
     void startSoundPlayer(const char*, s32, s32);
     void startLevelSoundPlayer(const char*, s32, s32);
+    void startLevelSoundPlayer(const char*, s32);  // SMG2 fn_80050E10 (unnamed in symbols.txt)
     void startLevelSoundPlayerOrYoshi(const char* pPlayerSoundName, const char* pYoshiSoundName, s32 unk);
 
     void stopSoundPlayer(const char*, u32);
@@ -267,4 +268,5 @@ namespace MR {
 namespace MR {
     void calcPlayerJointMtx(TPos3f*, const char*);
     JUTTexture* getFullScreenBlurTexture();
+    void createPlayerFollowPass();
 };  // namespace MR

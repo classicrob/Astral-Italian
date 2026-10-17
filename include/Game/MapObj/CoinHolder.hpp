@@ -22,8 +22,10 @@ public:
     bool appearCoinPopToDirection(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity, s32 count);
     bool appearCoinToVelocity(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity, s32 count);
     bool appearCoinCircle(const NameObj* pObj, const TVec3f& rPosition, s32 count);
+    bool appearCoinAgainstGravity(const NameObj* pObj, const TVec3f& rPosition, s32 count);
     CoinHostInfo* declare(const NameObj* pObj, s32 count);
     s32 getDeclareRemnantCoinCount(const NameObj* pObj) const;
+    s32 getUncollectedCoinCount(const NameObj* pObj) const;
     CoinHostInfo* findHostInfo(const NameObj* pObj) const;
     bool appearCoin(const NameObj* pObj, const TVec3f& rPosition, const TVec3f& rVelocity, s32 count, s32 life, s32 cannotTime, f32 randomize);
 

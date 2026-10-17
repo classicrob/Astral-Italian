@@ -1,4 +1,5 @@
 #include "Game/MapObj/BenefitItemLifeUp.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/EventUtil.hpp"

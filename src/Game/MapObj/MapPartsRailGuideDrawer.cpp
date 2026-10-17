@@ -1,4 +1,5 @@
 #include "Game/MapObj/MapPartsRailGuideDrawer.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/MapPartsRailGuidePoint.hpp"
 #include "Game/Util/JMapInfo.hpp"

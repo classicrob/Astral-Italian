@@ -1,4 +1,5 @@
 #include "Game/MapObj/MeteorStrike.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -138,7 +139,7 @@ void MeteorStrike::appear(s32 step) {
     MR::invalidateShadow(this, nullptr);
 
     if (mType == MeteorStrikeType_Cannon) {
-        MR::startSound(this, "SE_OJ_CANNON_SHELL_SHOOT");
+        MR::startActionSound(this, "OjCannonShellShoot");
     }
 
     setNerve(GET_NERVE(MeteorStrike, MeteorStrikeNrvMove));
@@ -257,7 +258,7 @@ void MeteorStrike::calcBreakPosture(const TVec3f& rVec, TPos3f* pDst) {
     }
 
     TVec3f vec;
-    MR::normalize(&vec, rVec);
+    MR::normalize(rVec, &vec);
     MR::makeMtxUpNoSupportPos(pDst, vec, mPosition);
 
     if (mType == MeteorStrikeType_Environment) {
@@ -305,7 +306,7 @@ void MeteorStrike::exeMove() {
 
             MR::emitEffect(this, "MeteorStrike");
 
-            MR::startSound(this, "SE_OJ_METEOR_FALL");
+            MR::startActionSound(this, "OjMeteorFall");
         }
     } else if (mType == MeteorStrikeType_Environment && !isInScreen()) {
         kill();
@@ -313,7 +314,7 @@ void MeteorStrike::exeMove() {
     }
 
     if (mType == MeteorStrikeType_Environment) {
-        MR::startLevelSound(this, "SE_OJ_LV_METEOR_ENV_FLY");
+        MR::startActionSound(this, "OjLvMeteorEnvFly");
     }
 
     mRotation.x = MR::repeatDegree(::cRotateSpeed + mRotation.x);
@@ -347,7 +348,7 @@ void MeteorStrike::exeMove() {
         emitEffectColumn(pos);
 
         if (MR::isBindedGroundDamageFire(this)) {
-            MR::startSound(this, "SE_OJ_METEOR_FALL_MAGMA");
+            MR::startActionSound(this, "OjMeteorFallMagma");
             startRumble();
 
             kill();
@@ -378,13 +379,13 @@ void MeteorStrike::exeBreak() {
         MR::deleteEffect(this, "MeteorStrike");
         MR::emitEffect(this, "MeteorStrikeBreak");
 
-        MR::startSound(this, "SE_OJ_METEOR_BREAK");
+        MR::startActionSound(this, "OjMeteorBreak");
 
         startRumble();
 
         mBrokenModel->appear();
         MR::invalidateClipping(mBrokenModel);
-        MR::startAction(mBrokenModel, "Break");
+        MR::startBck(mBrokenModel, "Break");
         MR::startBrk(mBrokenModel, "Break");
     }
 

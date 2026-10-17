@@ -11,7 +11,8 @@ public:
     virtual void placementCoin();
     virtual const char* getCoinName() const;
 
-    /* 0xA0 */ f32 mCoinRadius;
+    /* 0xA4 */ NameObj* mPlacementCircleObj;  // PlacementCircleObj (no decl in tree yet)
+    /* 0xA8 */ f32 mCoinRadius;
 };
 
 namespace MR {

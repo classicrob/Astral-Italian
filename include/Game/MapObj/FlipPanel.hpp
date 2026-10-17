@@ -6,7 +6,7 @@
 template < typename T >
 class JointControlDelegator;
 class JointControllerInfo;
-class MsgSharedGroup;
+class LiveActorGroup;
 
 class FlipPanel : public MapObjActor {
 public:
@@ -27,7 +27,7 @@ public:
     bool checkPlayerOnTop();
 
     /* 0xC4 */ JointControlDelegator< FlipPanel >* mDelegator;
-    /* 0xC8 */ MsgSharedGroup* mFlipPanelGroup;
+    /* 0xC8 */ LiveActorGroup* mFlipPanelGroup;
     /* 0xCC */ bool _CC;
     /* 0xCD */ u8 _CD;
     /* 0xD0 */ s32 _D0;
@@ -46,7 +46,7 @@ public:
     void exeComplete();
     void exeDemoWait();
 
-    /* 0x8C */ MsgSharedGroup* _8C;
+    /* 0x8C */ LiveActorGroup* _8C;
     /* 0x90 */ s32 _90;
     /* 0x94 */ s32 mDemoDelay;
     /* 0x98 */ s32 mPowerStarId;

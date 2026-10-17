@@ -17,10 +17,10 @@ public:
     void registerChipGroup(ChipGroup*);
     ChipGroup* findChipGroup(s32) const;
 
-    /* 0x0C */ ChipCounter* mChipCounter;
-    /* 0x10 */ ChipGroup** mChipGroups;
-    /* 0x14 */ s32 mNumChipGroups;
-    /* 0x18 */ s32 mChipType;  ///< Determines whether the chip is blue (`0`) or yellow (`1`).
+    /* 0x14 */ ChipCounter* mChipCounter;
+    /* 0x18 */ ChipGroup** mChipGroups;
+    /* 0x1C */ s32 mNumChipGroups;
+    /* 0x20 */ s32 mChipType;  ///< Determines whether the chip is blue (`0`) or yellow (`1`).
 };
 
 namespace MR {
@@ -28,6 +28,7 @@ namespace MR {
     ChipHolder* getChipHolder(s32);
     void registerChipGroup(s32, ChipGroup* pChipGroup);
     void registerChip(s32, ChipBase*, s32);
+    void updateChipCounterUIRange(s32, ChipBase*, s32);
     void noticeGetChip(s32, ChipBase*, s32);
     void showChipCounter(s32, s32);
     void hideChipCounter(s32, s32);

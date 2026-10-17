@@ -39,12 +39,12 @@ public:
     bool isMinusLimit() const;
     s32 getOneStep() const;
 
-    /* 0x8C */ f32 mRotAngle;
-    /* 0x90 */ s32 mRotYTargetIndex;
-    /* 0x94 */ f32 mRotSpeed;
-    /* 0x98 */ s32 mSwitchType;
-    /* 0x9C */ bool mLockAfterRotate;
-    /* 0x9D */ bool mIsRotPlus;
-    /* 0x9E */ bool _9E;
-    /* 0x9F */ bool mIsPunch;
+    /* 0x90 */ f32 mRotAngle;
+    /* 0x94 */ s32 mRotYTargetIndex;
+    /* 0x98 */ f32 mRotSpeed;
+    /* 0x9C */ s32 mSwitchType;
+    /* 0xA0 */ bool mLockAfterRotate;
+    /* 0xA1 */ bool mIsRotPlus;
+    /* 0xA2 */ bool _9E;
+    /* 0xA3 */ bool mIsPunch;
 };

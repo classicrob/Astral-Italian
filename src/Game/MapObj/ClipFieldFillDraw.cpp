@@ -1,4 +1,5 @@
 #include "Game/MapObj/ClipFieldFillDraw.hpp"
+#include "Game/Util.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/ScreenAlphaCapture.hpp"

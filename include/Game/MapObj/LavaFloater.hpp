@@ -24,10 +24,11 @@ public:
     void exeFloat();
     void exeSink();
 
-    /* 0x8C */ FloaterFloatingForceTypeNormal* mFloatingForce;
-    /* 0x90 */ ProjmapEffectMtxSetter* mMtxSetter;
-    /* 0x94 */ LodCtrl* mLodCtrlPlanet;
-    /* 0x98 */ const char* mObjectName;
-    /* 0x9C */ TVec3f _9C;
-    /* 0xA8 */ f32 _A8;
+    /* 0x90 */ FloaterFloatingForceTypeNormal* mFloatingForce;
+    /* 0x94 */ ProjmapEffectMtxSetter* mMtxSetter;
+    /* 0x98 */ LodCtrl* mLodCtrlPlanet;
+    /* 0x9C */ const char* mObjectName;
+    /* 0xA0 */ TVec3f _A0;
+    /* 0xAC */ f32 _AC;
+    /* 0xB0 */ bool _B0;
 };

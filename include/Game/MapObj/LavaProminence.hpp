@@ -4,6 +4,7 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class PartsModel;
+class ModelObj;
 
 class LavaProminence : public LiveActor {
 public:
@@ -45,7 +46,7 @@ public:
     /* 0x0CC */ TPos3f mEffectStartMtx;
     /* 0x0FC */ TPos3f mEffectEndMtx;
     /* 0x12C */ TVec3f _12C;
-    /* 0x138 */ PartsModel* mBloomModel;
+    /* 0x138 */ ModelObj* mBloomModel;
     /* 0x13C */ TPos3f mBloomModelMtx;
     /* 0x16C */ TQuat4f _16C;
     /* 0x17C */ TVec3f mRailDir;

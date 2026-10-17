@@ -27,9 +27,11 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void makeActorDead();
+    virtual void makeActorAppeared();
+    virtual void startClipped();
 
-    /* 0x8C */ s32 mNumEffects;
-    /* 0x90 */ FluffWindEffect** mEffects;
+    /* 0x90 */ s32 mNumEffects;
+    /* 0x94 */ FluffWindEffect** mEffects;
 };
 
 class FluffWindHolder : public LiveActorGroup {

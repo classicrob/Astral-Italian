@@ -42,7 +42,7 @@ class TalkNodeCtrl {
 public:
     TalkNodeCtrl();
 
-    void createFlowNodeDirect(TalkMessageCtrl*, const JMapInfoIter&, const char*, ActorCameraInfo**);
+    bool createFlowNodeDirect(TalkMessageCtrl*, const JMapInfoIter&, const char*, ActorCameraInfo**);
     void resetFlowNode();
     void resetTempFlowNode();
     void recordTempFlowNode();
@@ -60,11 +60,11 @@ public:
     void readMessage();
     const wchar_t* getSubMessage() const;
     void forwardCurrentBranchNode(bool);
-    void createFlowNode(TalkMessageCtrl*, const JMapInfoIter&, const char*, ActorCameraInfo**);
+    bool createFlowNode(TalkMessageCtrl*, const JMapInfoIter&, const char*, ActorCameraInfo**);
     void initNodeRecursive(TalkMessageCtrl*, const JMapInfoIter&, ActorCameraInfo*, RecursiveHelper*);
 
     /* 0x00 */ char* _0;
-    /* 0x04 */ s32 mCurrentNodeIdx;
+    /* 0x04 */ s32 mCurrentNodeIdx;  // SMG2 passes this slot to setupAlreadyDoneFlag as a name (layout differs)
     /* 0x08 */ TalkMessageInfo mMessageInfo;
     /* 0x14 */ TalkMessageHistory mHistory;
     /* 0x38 */ TalkNode* _38;

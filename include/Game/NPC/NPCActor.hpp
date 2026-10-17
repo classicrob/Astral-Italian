@@ -25,14 +25,14 @@ public:
     void setDefault();
     void setIndirect();
 
-    const char* _0;
+    /* 0x00 */ const char* _0;
     /* 0x04 */ bool mModel;
     /* 0x08 */ const char* mObjectName;
     /* 0x0C */ bool mMakeActor;
     /* 0x0D */ bool mHostIO;
     /* 0x0E */ bool mMessage;
-    bool _F;
-    const char* _10;
+    /* 0x0F */ bool _F;
+    /* 0x10 */ const char* _10;
     /* 0x14 */ TVec3f mMessageOffset;
     /* 0x20 */ MtxPtr mTalkMtx;
     /* 0x24 */ const char* mTalkJointName;
@@ -41,36 +41,39 @@ public:
     /* 0x2A */ bool mLightCtrl;
     /* 0x2B */ bool mEffect;
     /* 0x2C */ bool mSound;
-    /* 0x30 */ s32 mSoundSize;
-    /* 0x34 */ bool mAttribute;
-    /* 0x35 */ bool mPosition;
-    /* 0x36 */ bool mLodCtrl;
-    /* 0x37 */ bool mNerve;
-    /* 0x38 */ bool mBinder;
-    /* 0x3C */ f32 mBinderSize;
-    /* 0x40 */ bool mSensor;
-    /* 0x44 */ const char* mSensorJoint;
-    /* 0x48 */ f32 mSensorSize;
-    /* 0x4C */ TVec3f mSensorOffset;
-    /* 0x58 */ s32 mSensorMax;
-    /* 0x5C */ bool mShadow;
-    /* 0x5D */ bool mUseShadow;
-    u8 _5E;
-    u8 _5F;
-    f32 mShadowSize;
-    /* 0x64 */ bool mRailRider;
-    /* 0x65 */ bool mSwitchDead;
-    /* 0x66 */ bool mSwitchAppear;
-    u8 _67;
-    /* 0x68 */ bool mPointer;
-    const char* _6C;
-    const char* _70;
-    /* 0x74 */ TVec3f mStarPointerOffs;
-    /* 0x80 */ f32 mPointerSize;
-    /* 0x84 */ s32 mSceneConnectionType;
-    /* 0x88 */ Nerve* mWaitNerve;
-    /* 0x8C */ Nerve* mTalkNerve;
-    /* 0x90 */ Nerve* mReactionNerve;
+    /* 0x30 */ const char* mSoundName;  // new in SMG2
+    /* 0x34 */ s32 mSoundSize;
+    /* 0x38 */ bool mAttribute;
+    /* 0x39 */ bool mPosition;
+    /* 0x3A */ bool mLodCtrl;
+    /* 0x3B */ bool mNerve;
+    /* 0x3C */ s32 mNerveStep;  // new in SMG2 (second arg of initNerve)
+    /* 0x40 */ bool mBinder;
+    /* 0x44 */ f32 mBinderSize;
+    /* 0x48 */ bool mSensor;
+    /* 0x4C */ const char* mSensorJoint;
+    /* 0x50 */ f32 mSensorSize;
+    /* 0x54 */ TVec3f mSensorOffset;
+    /* 0x60 */ s32 mSensorMax;
+    /* 0x64 */ bool mShadow;
+    /* 0x65 */ bool mUseShadow;
+    /* 0x68 */ f32 mShadowSize;
+    /* 0x6C */ bool mRailRider;
+    /* 0x6D */ bool mSwitchDead;
+    /* 0x6E */ bool mSwitchAppear;
+    /* 0x6F */ bool _67;
+    /* 0x70 */ bool mPointer;
+    /* 0x74 */ const char* _6C;
+    /* 0x78 */ const char* _70;
+    /* 0x7C */ bool _7C;  // new in SMG2
+    /* 0x80 */ TVec3f mStarPointerOffs;
+    /* 0x8C */ f32 mPointerSize;
+    /* 0x90 */ s32 mSceneConnectionType;
+    /* 0x94 */ bool _94;  // new in SMG2
+    /* 0x95 */ bool _95;  // new in SMG2 (setDefault sets it)
+    /* 0x98 */ Nerve* mWaitNerve;
+    /* 0x9C */ Nerve* mTalkNerve;
+    /* 0xA0 */ Nerve* mReactionNerve;
 };
 
 class NPCActor : public LiveActor {
@@ -86,6 +89,8 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
     static void addArchive(NameObjArchiveListCollector*, const NPCActorItem&);
@@ -104,6 +109,7 @@ public:
     const Nerve* popNerve();
     bool tryPullNullNerve();
     bool isEmptyNerve() const;
+    bool isReactionNerve() const;
     bool isScaleAnim() const;
     bool isPointingSe() const;
     void updateReaction();
@@ -134,7 +140,7 @@ public:
 
     void setInitPose();
 
-    void initialize(const JMapInfoIter&, const NPCActorCaps&);
+    void initialize(const JMapInfoIter&, const NPCActorCaps&, const char*, const char*, bool);
 
     void equipment(const NPCActorItem&, bool);
 
@@ -251,7 +257,8 @@ public:
     const char* _13C;
     /* 0x140 */ AnimScaleController* mScaleController;
     /* 0x144 */ JointController* mDelegator;
-    /* 0x148 */ const Nerve* mCurNerve;
+    void* mYoshiTarget;  // 0x14C, new in SMG2 (YoshiLockOnTarget*)
+    /* 0x150 */ const Nerve* mCurNerve;
     /* 0x14C */ Nerve* mWaitNerve;
     /* 0x150 */ Nerve* mTalkNerve;
     /* 0x154 */ Nerve* mReactionNerve;

@@ -1,4 +1,5 @@
 #include "Game/MapObj/IceStep.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -25,7 +26,7 @@ IceStep::~IceStep() {
 
 void IceStep::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    MR::initActor(this, rIter, "IceStep", false);
+    initModelManagerWithAnm("IceStep", nullptr, false);
 
     MR::connectToSceneMapObjStrongLight(this);
 
@@ -107,9 +108,9 @@ void IceStep::setOn(u32 a1, const TVec3f& rPosition, const TVec3f& rRotation) {
     TVec3f offset = upVec * static_cast< f32 >(scale) * 0.2f;
     mPosition = rPosition + offset;
 
-    MR::startAction(this, "Start");
+    MR::startBck(this, "Start");
     MR::startBpk(this, "Start");
-    MR::startSound(this, "SE_OJ_ICE_FLOOR_FREEZE");
+    MR::startActionSound(this, "OjIceFloorFreeze");
 
     mTimer = 1200;
 
@@ -126,9 +127,9 @@ void IceStep::setOn(u32 a1, const TVec3f& rPosition, const TVec3f& rRotation) {
 }
 
 void IceStep::destroy() {
-    MR::startAction(this, "End");
+    MR::startBck(this, "End");
     MR::startBpk(this, "End");
-    MR::startSound(this, "SE_OJ_ICE_FLOOR_MELT");
+    MR::startActionSound(this, "OjIceFloorMelt");
 
     mTimer = 0;
 }
@@ -139,8 +140,8 @@ void IceStep::doHit() {
     setNerve(GET_NERVE(IceStep, IceStepNrvHit));
 
     MR::emitEffect(this, "Break");
-    MR::startSound(this, "SE_OJ_ICE_FLOOR_BREAK");
-    MR::startAction(this, "End");
+    MR::startActionSound(this, "OjIceFloorBreak");
+    MR::startBck(this, "End");
 
     mTimer = 0;
 }

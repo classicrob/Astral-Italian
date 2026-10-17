@@ -7,6 +7,7 @@ CircleCoinGroup::CircleCoinGroup(const char* pName) : CoinGroup(pName) {
     mCoinRadius = 200.0f;
 }
 
+// NONMATCHING: target also allocates a PlacementCircleObj (0xB0 bytes, ctor + virtual init) into mPlacementCircleObj; class not in tree yet
 void CircleCoinGroup::initCoinArray(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg2NoInit(rIter, &mCoinRadius);
     MR::initDefaultPos(this, rIter);

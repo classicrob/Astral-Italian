@@ -45,7 +45,7 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &StarPieceMother::onSwitchA), MR::Functor(this, &StarPieceMother::offSwitchA));
     }
 
-    MR::initActor(this, rIter, "StarPieceMother", false);
+    initModelManagerWithAnm("StarPieceMother", nullptr, false);
     MR::connectToSceneNoSilhouettedMapObj(this);
     MR::onCalcGravity(this);
     MR::initShadowVolumeSphere(this, 60.0f);
@@ -99,7 +99,7 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
 
 void StarPieceMother::kill() {
     MR::stopSound(this, "SE_OJ_STAR_PIECE_MO_ST");
-    MR::startSound(this, "SE_OJ_STAR_PIECE_MO_ED");
+    MR::startActionSound(this, "OjStarPieceMoEd");
     LiveActor::kill();
 
     if (MR::isValidSwitchDead(this)) {
@@ -113,16 +113,16 @@ void StarPieceMother::control() {
 
 void StarPieceMother::exeMoveOnRail() {
     if (MR::isFirstStep(this)) {
-        MR::startSound(this, "SE_OJ_STAR_PIECE_MO_ST");
+        MR::startActionSound(this, "OjStarPieceMoSt");
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_STAR_PIECE_MO_MV");
+    MR::startActionSound(this, "OjLvStarPieceMoMv");
     MR::moveCoordAndFollowTrans(this, _A0);
 
     f32 railCoord = MR::getRailCoord(this);  // Necessary to match
     if (_90[_98] <= railCoord) {
         mStarPieceArray[_98]->appear();
-        MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+        MR::startActionSound(this, "OjStarPieceBurst");
         _98++;
     }
 
@@ -175,7 +175,7 @@ void StarPieceMother::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 void StarPieceMother::emitStarPieces() {
     for (u32 idx = 0; idx < _94; idx++) {
         TVec3f position;
-        position = *MR::getPlayerCenterPos();
+        position.set(*MR::getPlayerCenterPos());
         position.sub(mPosition);
         MR::normalizeOrZero(&position);
         MR::addRandomVector(&position, position, ::hAddRandomVectorValue);

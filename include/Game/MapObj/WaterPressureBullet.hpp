@@ -39,14 +39,14 @@ public:
     bool inviteMario(HitSensor*);
     void updateSuffererMtx();
 
-    /* 0x8C */ TVec3f _8C;
-    /* 0x98 */ TVec3f _98;
-    /* 0xA4 */ LiveActor* _A4;
-    /* 0xA8 */ f32 _A8;
-    /* 0xAC */ LiveActor* mHostActor;
-    /* 0xB0 */ bool _B0;
-    /* 0xB1 */ bool _B1;
-    /* 0xB2 */ bool _B2;
-    /* 0xB3 */ u8 _B3;
-    /* 0xB4 */ ActorCameraInfo** mCameraInfo;
+    /* 0x90 */ TVec3f _8C;
+    /* 0x9C */ TVec3f _98;
+    /* 0xA8 */ LiveActor* _A4;
+    /* 0xAC */ f32 _A8;
+    /* 0xB0 */ LiveActor* mHostActor;
+    /* 0xB4 */ bool _B0;
+    /* 0xB5 */ bool _B1;
+    /* 0xB6 */ bool _B2;
+    /* 0xB7 */ u8 _B3;
+    /* 0xB8 */ ActorCameraInfo** mCameraInfo;
 };

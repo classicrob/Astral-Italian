@@ -113,8 +113,8 @@ public:
     /* 0x15C */ s32 _15C;
     /* 0x160 */ s32 mDrawPathRangeIdx;
     /* 0x164 */ f32 mPlayerLandRotation;
-    /* 0x168 */ u32 _168;
-    /* 0x16C */ s32 mAlreadyDoneFlagIdx;
+    /* 0x168 */ bool _168;
+    /* 0x16C */ int mAlreadyDoneFlagIdx;
     /* 0x170 */ s32 mColor;
     /* 0x174 */ bool _174;
     // u8 _175;

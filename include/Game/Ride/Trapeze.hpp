@@ -17,6 +17,7 @@ public:
     virtual void draw() const;
     virtual void updateHitSensor(HitSensor* pSensor);
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void exeStop();
@@ -51,7 +52,9 @@ public:
     /* 0xB4 */ SwingRopePoint* mStickPoint;
     /* 0xB8 */ PartsModel* mTrapezeModel;
     /* 0xBC */ TPos3f mPosMtx;
-    /* 0xEC */ LiveActor* mRider;
+    /* 0xF0 */ f32 mShadowLengthAdd;
+    /* 0xF4 */ f32 mShadowLengthSub;
+    /* 0xF8 */ LiveActor* mRider;
     /* 0xF0 */ SwingRopePoint* mHangPoint;
     /* 0xF4 */ f32 mGrabCoord;
     /* 0xF8 */ f32 mSwingVel;

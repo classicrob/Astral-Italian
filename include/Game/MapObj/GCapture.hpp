@@ -70,6 +70,7 @@ public:
     void decideTractTarget();
     void releaseTractTarget();
     void updateCameraTargetMatrix();
+    void endStarPointerMode();
 
     void exeCoolDown();
     void exeWait();

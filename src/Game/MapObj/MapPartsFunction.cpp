@@ -1,14 +1,29 @@
+#include "Game/Util.hpp"
 #include "Game/MapObj/MapPartsFunction.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Spine.hpp"
 
 MapPartsFunction::MapPartsFunction(LiveActor* pHost, const char* pName)
-    : NameObj(pName != nullptr ? pName : "マップパーツ機能"), mSpine(), mHost(pHost), mIsActive(true) {
+    : NameObj(pName != nullptr ? pName : "マップパーツ機能"), mSpine(), mHost(pHost), mIsActive(true), mParamScale(1.0f), mSensorName("Body") {
+}
+
+void MapPartsFunction::init(const JMapInfoIter& rIter) {
+    MR::useStageSwitchReadParam(mHost, rIter);
+    MR::getJMapInfoParamScale(rIter, &mParamScale);
 }
 
 bool MapPartsFunction::sendMsgToHost(u32 msg) {
+    if (mSensorName == nullptr) {
+        return false;
+    }
+
+    if (MR::getSensorNum(mHost) <= 0) {
+        return false;
+    }
+
     LiveActor* host = mHost;
-    return host->receiveMessage(msg, host->getSensor("body"), host->getSensor("body"));
+    HitSensor* pSender = host->getSensor(mSensorName);
+    return host->receiveMessage(msg, pSender, host->getSensor(mSensorName));
 }
 
 void MapPartsFunction::movement() {
@@ -16,6 +31,14 @@ void MapPartsFunction::movement() {
         mSpine->update();
         control();
     }
+}
+
+f32 MapPartsFunction::getSpeed() const {
+    if (MR::isValidSwitchParam(mHost) && MR::isOnSwitchParam(mHost)) {
+        return mParamScale;
+    }
+
+    return 1.0f;
 }
 
 void MapPartsFunction::initNerve(const Nerve* pNerve) {

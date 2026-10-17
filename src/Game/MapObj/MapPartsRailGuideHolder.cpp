@@ -1,4 +1,5 @@
 #include "Game/MapObj/MapPartsRailGuideHolder.hpp"
+#include "Game/Util.hpp"
 #include "Game/MapObj/MapPartsRailGuideDrawer.hpp"
 #include "Game/Util/JMapInfo.hpp"
 

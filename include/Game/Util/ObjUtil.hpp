@@ -261,6 +261,7 @@ class BenefitItemObj;
 class JMapInfo;
 class JMapInfoIter;
 class NameObjGroup;
+class JUTTexture;
 class ResTIMG;
 
 namespace MR {
@@ -282,6 +283,8 @@ namespace MR {
     void* loadResourceFromArc(const char*, const char*);
     bool isExistResourceInArc(const char*, const char*);
     const ResTIMG* loadTexFromArc(const char*, const char*);
+    const ResTIMG* loadTexFromArc(const char*, const char*, ResTIMG*);
+    JUTTexture* loadTexFromArc(LiveActor*, const char*, const char*);
     bool isStageStateScenarioOpeningCamera();
     bool isStageStatePowerStarAppeared();
     void appearCoinFix(const NameObj*, const TVec3f&, s32);

@@ -82,8 +82,8 @@ public:
 
     virtual ~TalkMessageCtrl();
 
-    void createMessage(const JMapInfoIter&, const char*);
-    void createMessageDirect(const JMapInfoIter&, const char*);
+    bool createMessage(const JMapInfoIter&, const char*);
+    bool createMessageDirect(const JMapInfoIter&, const char*);
     u32 getMessageID() const;
     bool requestTalk();
     bool requestTalkForce();
@@ -120,25 +120,31 @@ public:
     void startCamera(s32);
     const char* getBranchID() const;
 
-    /* 0x0C */ LiveActor* mHostActor;
-    /* 0x10 */ TalkNodeCtrl* mNodeCtrl;
-    /* 0x14 */ s32 mZoneID;
-    /* 0x18 */ u32 _18;
-    /* 0x1C */ TVec3f _1C;
-    /* 0x28 */ MtxPtr mMtx;
-    /* 0x2C */ TVec3f mMsgBalloonFollowOffs;
-    /* 0x38 */ f32 mTalkDistance;
-    /* 0x3C */ u32 _3C;
-    /* 0x40 */ u32 mAlreadyDoneFlags;
-    /* 0x44 */ bool mIsOnRootNodeAuto;
-    /* 0x45 */ bool mIsOnReadNodeAuto;
-    /* 0x46 */ bool mIsStartOnlyFront;
-    /* 0x48 */ ActorCameraInfo* mCameraInfo;
-    /* 0x4C */ TalkMessageFuncBase* mBranchFunc;
-    /* 0x50 */ TalkMessageFuncBase* mEventFunc;
-    /* 0x54 */ TalkMessageFuncBase* mAnimeFunc;
-    /* 0x58 */ TalkMessageFuncBase* mKillFunc;
-    /* 0x5C */ CustomTagArg mTagArg;
+    /* 0x14 */ LiveActor* mHostActor;
+    /* 0x18 */ TalkNodeCtrl* mNodeCtrl;
+    /* 0x1C */ s32 mZoneID;
+    /* 0x20 */ u32 _18;
+    /* 0x24 */ TVec3f _1C;
+    /* 0x30 */ MtxPtr mMtx;
+    /* 0x34 */ TVec3f mMsgBalloonFollowOffs;
+    /* 0x40 */ f32 mTalkDistance;
+    /* 0x44 */ bool _3C;
+    /* 0x48 */ int mAlreadyDoneFlags;
+    /* 0x4C */ bool mIsOnRootNodeAuto;
+    /* 0x4D */ bool mIsOnReadNodeAuto;
+    /* 0x4E */ bool mIsStartOnlyFront;
+    /* 0x4F */ bool _SMG2_4F;
+    /* 0x50 */ bool _SMG2_50;  // init true
+    /* 0x51 */ bool _SMG2_51;
+    /* 0x52 */ bool _SMG2_52;
+    /* 0x53 */ bool _SMG2_53;
+    /* 0x54 */ bool _SMG2_54;
+    /* 0x58 */ ActorCameraInfo* mCameraInfo;
+    /* 0x5C */ TalkMessageFuncBase* mBranchFunc;
+    /* 0x60 */ TalkMessageFuncBase* mEventFunc;
+    /* 0x64 */ TalkMessageFuncBase* mAnimeFunc;
+    /* 0x68 */ TalkMessageFuncBase* mKillFunc;
+    /* 0x6C */ CustomTagArg mTagArg;
 };
 
 class TalkFunction {

@@ -8,7 +8,21 @@
 class FlashingCtrl;
 class PartsModel;
 class MapObjConnector;
-class CoinHostInfo;
+
+class CoinHostInfo {
+public:
+    CoinHostInfo() {
+        mHostActor = nullptr;
+        _4 = 0;
+        _8 = 0;
+        _C = 0;
+    }
+
+    /* 0x0 */ const NameObj* mHostActor;
+    /* 0x4 */ s32 _4;
+    /* 0x8 */ s32 _8;
+    /* 0xC */ u32 _C;
+};
 
 class Coin : public LiveActor {
 public:
@@ -29,12 +43,16 @@ public:
 
     void exeNonActive();
     void exeFix();
+    void exeFixHide() {
+    }
     void exeFixTimer();
     void exeMove();
     void exeControled();
     void exeSpinDrained();
     void exeHop();
     void exeSupportTicoThrow();
+    void exeGot() {
+    }
 
     void appearFixInit();
     void appearFix();
@@ -57,7 +75,7 @@ public:
     void setCannotTime(s32 cannotTime);
 
     void calcRebouond();
-    f32 attenuateVelocity();
+    void attenuateVelocity();
     bool isNeedBubble(const JMapInfoIter& rIter);
     bool canStartMove() const;
 
@@ -66,7 +84,7 @@ public:
     PartsModel* mAirBubble;          // 0x98
     MapObjConnector* mConnector;     // 0x9C
     TVec3f mShadowDropPos;           // 0xA0
-    TVec3f _AC;                      // 0xAC : unused
+    TVec3f mClippingRange;           // 0xAC
     TVec3f _B8;                      // 0xB8 : unused
     s32 mLifeTime;                   // 0xC4
     s32 mCannotTime;                 // 0xC8

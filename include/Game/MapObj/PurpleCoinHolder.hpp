@@ -16,7 +16,7 @@ public:
     void start();
     void registStarter(PurpleCoinStarter*);
 
-    /* 0x18 */ PurpleCoinStarter* mStarter;
+    /* 0x20 */ PurpleCoinStarter* mStarter;
 };
 
 namespace MR {

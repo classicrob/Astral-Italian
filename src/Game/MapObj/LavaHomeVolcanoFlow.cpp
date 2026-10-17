@@ -1,4 +1,5 @@
 #include "Game/MapObj/LavaHomeVolcanoFlow.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
@@ -17,7 +18,7 @@ LavaHomeVolcanoFlow::LavaHomeVolcanoFlow(const char* pName) : LiveActor(pName) {
 
 void LavaHomeVolcanoFlow::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    MR::initActor(this, rIter, "LavaHomeVolcanoFlow", false);
+    initModelManagerWithAnm("LavaHomeVolcanoFlow", nullptr, false);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "LavaHomeVolcanoFlow", nullptr, TVec3f(0.0f));
     MR::setClippingTypeSphereContainsModelBoundingBox(this, 100.0f);
@@ -48,19 +49,19 @@ void LavaHomeVolcanoFlow::exeWait() {
         return;
     }
     if (isNerve(GET_NERVE(LavaHomeVolcanoFlow, HostTypeDone))) {
-        MR::startLevelSound(this, "SE_OJ_LV_VOLCANO_ERUPTION");
+        MR::startActionSound(this, "OjLvVolcanoEruption");
     }
 }
 
 void LavaHomeVolcanoFlow::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "LavaHomeVolcanoFlow");
+        MR::startBck(this, "LavaHomeVolcanoFlow");
     }
-    MR::startLevelSound(this, "SE_OJ_LV_VOLCANO_EXPL_SIGN");
+    MR::startActionSound(this, "OjLvVolcanoExplSign");
     if (MR::isStep(this, 60)) {
         MR::emitEffect(this, "Active");
         MR::emitEffect(this, "Loop");
-        MR::startSound(this, "SE_OJ_VOLCANO_EXPLODE");
+        MR::startActionSound(this, "OjVolcanoExplode");
         MR::tryRumblePadVeryStrong(this, WPAD_CHAN0);
         setNerve(GET_NERVE(LavaHomeVolcanoFlow, HostTypeDone));
     }

@@ -1,4 +1,5 @@
 #include <revolution/types.h>
+#include "Game/Util.hpp"
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/MapObj/LavaHomeSeesawRotator.hpp"
@@ -139,7 +140,7 @@ void LavaHomeSeesawRotator::exeMoveStart() {
         baseMtx.getZDir(mRotateAxis);
         MR::normalize(&mRotateAxis);
         MR::shakeCameraWeak();
-        MR::startSound(mHost, "SE_OJ_LAVA_FLOATER_ON_METAL");
+        MR::startActionSound(mHost, "OjLavaFloaterOnMetal");
     }
 
     if (isStep(::sGroundOnReboundTime)) {

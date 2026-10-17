@@ -13,6 +13,7 @@ public:
     TamakoroTutorial(const char* pName);
 
     virtual void init(const JMapInfoIter&);
+    virtual void initAfterPlacement();
     virtual void control();
     virtual void updateHitSensor(HitSensor*);
     virtual void attackSensor(HitSensor*, HitSensor*);

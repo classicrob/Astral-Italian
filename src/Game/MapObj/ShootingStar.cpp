@@ -38,7 +38,7 @@ ShootingStar::ShootingStar(const char* pName)
 }
 
 void ShootingStar::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "ShootingStar", false);
+    initModelManagerWithAnm("ShootingStar", nullptr, false);
     MR::connectToSceneMapObj(this);
     MR::initDefaultPos(this, rIter);
     mBasePos = mPosition;
@@ -67,7 +67,7 @@ void ShootingStar::init(const JMapInfoIter& rIter) {
     MR::addHitSensorMapObj(this, "message", 1, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initShadowVolumeSphere(this, 30.0f);
 
-    if (MR::initUseStageSwitchReadAppear(this, rIter)) {
+    if (MR::useStageSwitchReadAppear(this, rIter)) {
         MR::listenStageSwitchOnOffAppear(this, MR::Functor(this, &ShootingStar::appearPreShooting), MR::Functor< LiveActor >(this, &LiveActor::kill));
         makeActorDead();
     } else {
@@ -117,7 +117,7 @@ void ShootingStar::exeShooting() {
         mScale.set(1.0f, 1.0f, 1.0f);
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_STAR_PIECE_FALL");
+    MR::startActionSound(this, "OjLvStarPieceFall");
     if (MR::isGreaterStep(this, ::sShootingLimitTime)) {
         setNerve(GET_NERVE(ShootingStar, HostTypeNrvPreShooting));
         MR::deleteEffect(this, "ShootingStarBlur");
@@ -128,9 +128,9 @@ void ShootingStar::exeShooting() {
         setNerve(GET_NERVE(ShootingStar, HostTypeNrvWaitForNextShoot));
 
         if (MR::appearStarPiece(this, mPosition, mNumBurstStarPiece, 15.0f, ::sLaunchYVel, false)) {
-            MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+            MR::startActionSound(this, "OjStarPieceBurst");
         } else {
-            MR::startSound(this, "SE_OJ_STAR_PIECE_NOT_BURST");
+            MR::startActionSound(this, "OjStarPieceNotBurst");
         }
 
         MR::deleteEffect(this, "ShootingStarBlur");

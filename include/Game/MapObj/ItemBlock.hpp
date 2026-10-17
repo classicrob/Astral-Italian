@@ -24,10 +24,10 @@ public:
     void exeAppearItemSplash();
     void decTimer();
 
-    /* 0x8C */ s32 mKind;
-    /* 0x90 */ s32 mTimer;
-    /* 0x94 */ s32 mItemCount;
-    /* 0x98 */ u8 _98;
-    /* 0x99 */ bool mCalcShadow;
-    /* 0x9A */ bool mNoCalcAnim;
+    /* 0x90 */ s32 mKind;
+    /* 0x94 */ s32 mTimer;
+    /* 0x98 */ s32 mItemCount;
+    /* 0x9C */ u8 _98;
+    /* 0x9D */ bool mCalcShadow;
+    /* 0x9E */ bool mNoCalcAnim;
 };

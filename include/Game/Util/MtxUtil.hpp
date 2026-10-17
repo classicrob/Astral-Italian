@@ -28,6 +28,7 @@ namespace MR {
     void makeMtxFrontNoSupport(TPos3f*, const TVec3f&);
     void makeMtxFrontNoSupportPos(TPos3f*, const TVec3f&, const TVec3f&);
     void setMtxTrans(MtxPtr, f32, f32, f32);
+    void setMtxTrans(MtxPtr, const TVec3f&);
     void addTransMtx(MtxPtr, const TVec3f&);
     void addTransMtxLocal(MtxPtr, const TVec3f&);
     void addTransMtxLocalX(MtxPtr, f32);
@@ -104,10 +105,7 @@ namespace MR {
     void makeMtxTRS(MtxPtr, f32, f32, f32, f32, f32, f32, f32, f32, f32);
     void makeMtxTRS(MtxPtr, const TVec3f&, const TVec3f&, const TVec3f&);
     void flattenMtx(MtxPtr, const TVec3f&);
-};  // namespace MR
-
-namespace MR {
-    // Non-official symbol (Petari).
+    // Non-official symbol (inline in SMG2 too).
     inline void multMtx(Mtx pOut, const Mtx pA, const Mtx pB) {
         PSMTXConcat(pB, pA, pOut);
     }

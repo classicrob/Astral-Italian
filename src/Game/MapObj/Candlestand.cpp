@@ -250,7 +250,7 @@ void Candlestand::appearItem() {
         }
     } else if (mItem == 0) {
         if (MR::appearStarPiece(this, position, 1, 10.0f, 40.0f, false)) {
-            MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+            MR::startActionSound(this, "OjStarPieceBurst");
         }
     }
 
@@ -263,7 +263,7 @@ void Candlestand::exeWaitFire() {
 void Candlestand::exeFire() {
     if (MR::isFirstStep(this)) {
         emitEffectFire();
-        MR::startSound(this, "SE_OJ_FIRE_STAND_IGNIT");
+        MR::startActionSound(this, "OjFireStandIgnit");
     }
 
     MR::startLevelSound(this, ::sBurnSound);
@@ -285,7 +285,7 @@ void Candlestand::exeExtinguish() {
     if (MR::isFirstStep(this)) {
         deleteEffectFire();
         emitEffectExtinguishFire();
-        MR::startSound(this, "SE_OJ_PHANTOM_TOACH_OFF");
+        MR::startActionSound(this, "OjPhantomToachOff");
     }
 
     if (MR::isStep(this, 15)) {
@@ -312,7 +312,7 @@ void Candlestand::exeFlicker() {
             MR::emitEffect(this, "Extinguish");
         }
 
-        MR::startSound(this, "SE_OJ_PHANTOM_TOACH_OFF");
+        MR::startActionSound(this, "OjPhantomToachOff");
     }
 
     if (MR::isStep(this, 30)) {

@@ -29,15 +29,15 @@ public:
     void exeFlow();
     void exeGroup();
 
-    /* 0x8C */ StarPiece** mPieces;
-    /* 0x90 */ f32* mRailCoords;
+    /* 0x90 */ StarPiece** mPieces;
+    /* 0x94 */ f32* mRailCoords;
     bool _94;
     bool _95;
-    /* 0x98 */ s32 mNumPieces;
-    /* 0x9C */ f32 mCircleRadius;
-    /* 0xA0 */ bool mIsRail;
-    /* 0xA1 */ bool mPlaceAtPathPoints;
+    /* 0x9C */ s32 mNumPieces;
+    /* 0xA0 */ f32 mCircleRadius;
+    /* 0xA4 */ bool mIsRail;
+    /* 0xA5 */ bool mPlaceAtPathPoints;
     s32 _A4;
-    /* 0xA8 */ f32 mRailSpeed;
+    /* 0xAC */ f32 mRailSpeed;
     TVec3f _AC;
 };

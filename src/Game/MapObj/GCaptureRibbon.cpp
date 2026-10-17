@@ -1,4 +1,5 @@
 #include "Game/MapObj/GCaptureRibbon.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/ActorLightCtrl.hpp"
 #include "Game/Util/DirectDraw.hpp"
 #include "Game/Util/JMapInfo.hpp"

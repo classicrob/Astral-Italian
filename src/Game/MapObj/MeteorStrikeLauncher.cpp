@@ -1,4 +1,5 @@
 #include "Game/MapObj/MeteorStrikeLauncher.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/MeteorStrike.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"

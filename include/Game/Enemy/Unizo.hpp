@@ -48,6 +48,7 @@ public:
     bool isEnablePointBind() const;
     void appearBreakModel();
     void startWallHitSound();
+    void startNeedleSound();
 
     void exeWait();
     void exeJump();

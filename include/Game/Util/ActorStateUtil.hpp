@@ -22,6 +22,7 @@ namespace MR {
     /// @return True if the state was updated and nerve transition occurred, false otherwise.
     /// @note Only transitions to the next nerve if the state indicates it should update.
     bool updateActorStateAndNextNerve(LiveActor* pActor, const Nerve* pNextNerve);
+    bool updateActorStateAndNextNerve(LiveActor* pActor, ActorStateBaseInterface* pActorState, const Nerve* pNextNerve);
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here
@@ -37,4 +38,6 @@ namespace MR {
 
 namespace MR {
     void initActorState(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState, const Nerve* pNerve, const char* pStateName);
+    bool updateActorState(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState);
+    bool updateActorStateAndNextNerve(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState, const Nerve* pNextNerve);
 };  // namespace MR

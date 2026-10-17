@@ -28,6 +28,10 @@ namespace NrvStarPieceCounter {
     NEW_NERVE(StarPieceCounterNrvDisappear, StarPieceCounter, Disappear);
 };  // namespace NrvStarPieceCounter
 
+bool StarPieceCounter::isDispCenter() const {
+    return MR::isStageAstroLocation() || mMode != 0 || _3C == 2;
+}
+
 StarPieceCounter::StarPieceCounter(const char* pName)
     : LayoutActor(pName, true), mStarPieceNum(0), mStarPieceDisplayNum(0), mInvalidCountUpFrame(0), mLayoutAppearer(nullptr), mPaneRumbler(nullptr),
       mFollowPos(0.0f, 0.0f), _3C(0), mMode(0) {
@@ -204,11 +208,19 @@ bool StarPieceCounter::isValidAppearSituation() const {
         return !MR::isExistStarPointerGuidanceFrame1P();
     }
 
-    return MR::isStarPointerInScreenAnyPort(0) && !CounterLayoutController::isInvalidSystemStateShowCounter();
-}
+    bool result;
 
-bool StarPieceCounter::isDispCenter() const {
-    return MR::isStageAstroLocation() || mMode != 0 || _3C == 2;
+    if (CounterLayoutController::isInvalidSystemStateShowCounter()) {
+        result = false;
+    } else {
+        result = false;
+
+        if (MR::isStarPointerInScreen(0) && (!MR::isPlayerElementModeYoshi() || MR::isStarPointerInScreen(1))) {
+            result = true;
+        }
+    }
+
+    return result;
 }
 
 bool StarPieceCounter::tryChangeModeTicoEat(int mode) {

@@ -35,7 +35,7 @@ namespace MR {
     void setRailDirectionCloseToCoord(LiveActor*, f32);
     void setRailDirectionCloseToNearestPos(LiveActor*, const TVec3f&);
     void reverseRailDirection(LiveActor*);
-    void calcMovingDirectionAlongRail(LiveActor*, TVec3f*, const TVec3f&, f32, bool, bool*);
+    f32 calcMovingDirectionAlongRail(LiveActor*, TVec3f*, const TVec3f&, f32, bool, bool*);  // returns f32 in SMG2 (Hanachan)
     void calcMovingDirectionAlongRailH(LiveActor*, TVec3f*, const TVec3f&, f32, bool*);
     void calcRailClippingInfo(TVec3f*, f32*, const LiveActor*, f32, f32);
     void initAndSetRailClipping(TVec3f*, LiveActor*, f32, f32);

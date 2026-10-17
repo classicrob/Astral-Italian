@@ -130,6 +130,7 @@ namespace MR {
 
 namespace MR {
     s32 getFrameBufferWidth() NO_INLINE;
+    s32 getFrameBufferHeight() NO_INLINE;
     void appearInformationMessage(const wchar_t*, bool);
     bool isYesNoSelected() NO_INLINE;
     bool isYesNoSelectedYes() NO_INLINE;

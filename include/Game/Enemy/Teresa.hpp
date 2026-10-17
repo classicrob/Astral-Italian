@@ -3,7 +3,11 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 
+class AnimScaleController;
+class ClipAreaDrop;
 class KeySwitch;
+class WalkerStateBindStarPointer;
+class YoshiLockOnTarget;
 class PartsModel;
 class Triangle;
 
@@ -24,8 +28,6 @@ public:
 
     void initDummyModel(const JMapInfoIter&);
     void initFromJMapParam(const JMapInfoIter&);
-    void initSensor();
-    void initBind();
     bool filterBind(const Triangle*);
     bool requestAttack(HitSensor*, HitSensor*);
     bool requestDrift();
@@ -40,6 +42,7 @@ public:
     bool tryWalkEnd();
     bool tryChase();
     bool tryCheseEnd();
+    bool tryFreeze();
     bool tryShay();
     bool tryShayEnd();
     bool tryLoveFind();
@@ -74,6 +77,8 @@ public:
     void exeHideWater();
     void exeAscension();
     void exeStop();
+    void exeFreeze();
+    void exeEaten();
     void updateNormalVelocity();
     void addDriftVelocity();
     void updateDriftAnimScale();
@@ -85,6 +90,9 @@ public:
     bool canSearchLightDead() const;
     bool isEnableStarPieceStop() const;
     bool isCheckWater() const;
+    bool isEatable() const;
+    bool isShayCondition() const;
+    bool isFreeze() const;
     bool isShay() const;
     void endDrift();
     void endAppearFromGround();
@@ -95,20 +103,24 @@ public:
         return isNearPlayer;
     }
 
-    /* 0x8C */ PartsModel* mDisplayModel;
-    /* 0x90 */ KeySwitch* mKeySwitch;
-    /* 0x94 */ TQuat4f _94;
-    /* 0xA4 */ TVec3f mWallNormal;
-    /* 0xB0 */ TVec3f mWallHitPos;
-    /* 0xBC */ TVec3f _BC;
-    /* 0xC8 */ TVec3f _C8;
-    /* 0xD4 */ TVec3f _D4;
-    /* 0xE0 */ TVec3f _E0;
-    /* 0xEC */ f32 _EC;
-    /* 0xF0 */ f32 _F0;
-    /* 0xF4 */ f32 _F4;
-    /* 0xF8 */ s32 mAppearanceType;
-    /* 0xFC */ u8 _FC;
-    /* 0xFD */ u8 _FD;
-    /* 0xFE */ u8 _FE;
+    /* 0x90 */ PartsModel* mDisplayModel;
+    /* 0x94 */ KeySwitch* mKeySwitch;
+    /* 0x98 */ ClipAreaDrop* mClipAreaDrop;
+    /* 0x9C */ AnimScaleController* mScaleController;
+    /* 0xA0 */ WalkerStateBindStarPointer* mBindStarPointer;
+    /* 0xA4 */ TQuat4f _94;
+    /* 0xB4 */ TVec3f mWallNormal;
+    /* 0xC0 */ TVec3f mWallHitPos;
+    /* 0xCC */ TVec3f _BC;
+    /* 0xD8 */ TVec3f _C8;
+    /* 0xE4 */ TVec3f _D4;
+    /* 0xF0 */ TVec3f _E0;
+    /* 0xFC */ f32 _EC;
+    /* 0x100 */ f32 _F0;
+    /* 0x104 */ f32 _F4;
+    /* 0x108 */ s32 mAppearanceType;
+    /* 0x10C */ u8 _FC;
+    /* 0x10D */ u8 _FD;
+    /* 0x10E */ u8 _FE;
+    /* 0x110 */ YoshiLockOnTarget* mLockOnTarget;
 };

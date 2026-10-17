@@ -1,4 +1,5 @@
 #include "Game/Boss/PoltaRockHolder.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/PoltaRock.hpp"
 
 namespace {

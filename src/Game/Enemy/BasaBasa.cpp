@@ -493,7 +493,7 @@ void BasaBasa::calcAndSetBaseMtx() {
     v11.mMtx[1][3] = mPosition.y;
     v11.mMtx[2][3] = mPosition.z;
     MR::setBaseTRMtx(this, v11);
-    MR::setBaseScale(this, mScaleController->_C);
+    MR::updateBaseScale(this, mScaleController);
 }
 
 void BasaBasa::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

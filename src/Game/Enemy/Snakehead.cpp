@@ -238,8 +238,7 @@ void Snakehead::calcAndSetBaseMtx() {
     MR::makeMtxFrontUpPos(&frontUp, endPntDir, -mGravity, mPosition);
     MR::setBaseTRMtx(this, frontUp);
 
-    TVec3f scale = mController->_C * mScale;
-    MR::setBaseScale(this, scale);
+    MR::updateBaseScale(this, mController);
 }
 
 void Snakehead::exeWaylay() {

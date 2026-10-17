@@ -1,4 +1,5 @@
 #include "Game/Screen/MarioMeter.hpp"
+#include "Game/Util.hpp"
 #include "Game/Screen/MeterLayout.hpp"
 #include "Game/Screen/SuddenDeathMeter.hpp"
 #include "Game/Util/ObjUtil.hpp"

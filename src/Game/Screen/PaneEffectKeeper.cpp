@@ -1,4 +1,5 @@
 #include "Game/Screen/PaneEffectKeeper.hpp"
+#include "Game/Util.hpp"
 #include "Game/Effect/EffectSystemUtil.hpp"
 #include "Game/Effect/MultiEmitter.hpp"
 #include "Game/Effect/ParticleResourceHolder.hpp"

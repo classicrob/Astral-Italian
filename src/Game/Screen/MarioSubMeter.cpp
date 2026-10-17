@@ -1,4 +1,5 @@
 #include "Game/Screen/MarioSubMeter.hpp"
+#include "Game/Util.hpp"
 #include "Game/Screen/SubMeterLayout.hpp"
 
 MarioSubMeter::MarioSubMeter(const char* pName) : NameObj(pName) {

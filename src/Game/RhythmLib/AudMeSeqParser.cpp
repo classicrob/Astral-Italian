@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudMeSeqParser.hpp"
+#include "Game/Util.hpp"
 #include "Game/RhythmLib/AudMeTrack.hpp"
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 

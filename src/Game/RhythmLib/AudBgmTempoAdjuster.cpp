@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudBgmTempoAdjuster.hpp"
+#include "Game/Util.hpp"
 #include "Game/AudioLib/AudParams.hpp"
 #include <JSystem/JAudio2/JAIStream.hpp>
 #include <JSystem/JAudio2/JASCriticalSection.hpp>

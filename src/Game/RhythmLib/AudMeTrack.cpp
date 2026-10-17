@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudMeTrack.hpp"
+#include "Game/Util.hpp"
 #include "Game/AudioLib/AudSystem.hpp"
 #include "Game/RhythmLib/AudChordInfo.hpp"
 #include "Game/RhythmLib/AudMeChannelMgr.hpp"

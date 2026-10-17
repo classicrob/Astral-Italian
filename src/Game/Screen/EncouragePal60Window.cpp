@@ -1,4 +1,5 @@
 #include "Game/Screen/EncouragePal60Window.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/IconAButton.hpp"
 #include "Game/Util/GamePadUtil.hpp"

@@ -1,4 +1,5 @@
 #include "Game/Enemy/WalkerStateFunction.hpp"
+#include "Game/Util.hpp"
 #include "Game/Enemy/WalkerStateParam.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"

@@ -1,4 +1,5 @@
 #include "Game/Screen/NoteCounter.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/GameSceneLayoutHolder.hpp"

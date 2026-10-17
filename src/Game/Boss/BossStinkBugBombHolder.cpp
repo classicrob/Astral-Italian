@@ -1,4 +1,5 @@
 #include "Game/Boss/BossStinkBugBombHolder.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/BossStinkBugBomb.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 

@@ -1,4 +1,5 @@
 #include "Game/Boss/DinoPackunTail.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/DinoPackunTailNode.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/MathUtil.hpp"

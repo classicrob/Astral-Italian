@@ -1,4 +1,5 @@
 #include "Game/Screen/CaptureScreenDirector.hpp"
+#include "Game/Util.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"

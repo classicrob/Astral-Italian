@@ -1,4 +1,5 @@
 #include "Game/Boss/DinoPackunTailPart.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/DinoPackun.hpp"
 #include "Game/Boss/DinoPackunAction.hpp"
 #include "Game/LiveActor/Nerve.hpp"

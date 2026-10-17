@@ -1,4 +1,5 @@
 #include "Game/Boss/PoltaSensorCtrl.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/Polta.hpp"
 #include "Game/Boss/PoltaArm.hpp"
 #include "Game/LiveActor/HitSensor.hpp"

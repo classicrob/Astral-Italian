@@ -1,4 +1,5 @@
 #include "Game/RhythmLib/AudRhythmSeqParser.hpp"
+#include "Game/Util.hpp"
 #include "Game/RhythmLib/AudChordInfo.hpp"
 #include "Game/RhythmLib/AudMeTrackCallback.hpp"
 #include <JSystem/JAudio2/JASCriticalSection.hpp>

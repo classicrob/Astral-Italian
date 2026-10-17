@@ -1,4 +1,5 @@
 #include "Game/Enemy/KirairaChain.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/LiveActor/SimpleJ3DModelDrawer.hpp"
 #include "Game/Ride/SwingRopePoint.hpp"

@@ -1,4 +1,5 @@
 #include "Game/Screen/WipeKoopa.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>

@@ -1,4 +1,5 @@
 #include "Game/Screen/CenterScreenBlur.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Screen/FullScreenBlur.hpp"

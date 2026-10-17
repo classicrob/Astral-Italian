@@ -1,4 +1,5 @@
 #include "Game/Boss/DodoryuHill.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/Dodoryu.hpp"
 
 namespace {

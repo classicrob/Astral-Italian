@@ -1,4 +1,5 @@
 #include "Game/Boss/PoltaWaitStart.hpp"
+#include "Game/Util.hpp"
 #include "Game/Boss/Polta.hpp"
 #include "Game/Boss/PoltaActionBase.hpp"
 #include "Game/Boss/PoltaFunction.hpp"

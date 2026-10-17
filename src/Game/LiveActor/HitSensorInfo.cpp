@@ -19,7 +19,7 @@ HitSensorInfo::HitSensorInfo(const char* pSensorName, HitSensor* pSensor, const 
 // https://decomp.me/scratch/IDjcw
 void HitSensorInfo::update() {
     if (mHasCallback) {
-        mSensor->mHostActor->updateHitSensor(mSensor);
+        mSensor->mHost->updateHitSensor(mSensor);
         return;
     }
 
@@ -35,10 +35,10 @@ void HitSensorInfo::update() {
         if (mFollowPos != nullptr) {
             v20.set(mFollowPos->x, mFollowPos->y, mFollowPos->z);
         } else {
-            v20.set< f32 >(mSensor->mHostActor->mPosition);
+            v20.set< f32 >(mSensor->mHost->mPosition);
         }
 
-        MtxPtr mtx = mSensor->mHostActor->getBaseMtx();
+        MtxPtr mtx = mSensor->mHost->getBaseMtx();
 
         if (mtx != nullptr) {
             v20.x += (((*mtx)[2] * _C.z) + (((*mtx)[0] * _C.x) + ((*mtx)[1] * _C.y)));
@@ -49,13 +49,13 @@ void HitSensorInfo::update() {
         }
     }
 
-    mSensor->mOffset.set< f32 >(v20);
+    mSensor->mPosition.set< f32 >(v20);
 }
 
 void HitSensorInfo::doObjCol() {
     for (s32 i = 0; i < mSensor->mSensorCount; i++) {
-        if (!MR::isDead(mSensor->mSensors[i]->mHostActor)) {
-            mSensor->mHostActor->attackSensor(mSensor, mSensor->mSensors[i]);
+        if (!MR::isDead(mSensor->mSensors[i]->mHost)) {
+            mSensor->mHost->attackSensor(mSensor, mSensor->mSensors[i]);
         }
     }
 }

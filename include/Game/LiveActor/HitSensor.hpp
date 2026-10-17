@@ -19,8 +19,20 @@ public:
     void invalidateBySystem();
     void addHitSensor(HitSensor*);
 
+    const TVec3f& getPosition() const {
+        return mPosition;
+    }
+
+    f32 getRadius() const {
+        return mRadius;
+    }
+
+    inline bool isValid() const {
+        return mValidByHost && mValidBySystem;
+    }
+
     u32 mType;                  // 0x0
-    TVec3f mOffset;             // 0x4
+    TVec3f mPosition;           // 0x4
     f32 mRadius;                // 0x10
     u16 mSensorCount;           // 0x14
     u16 mGroupSize;             // 0x16
@@ -28,5 +40,5 @@ public:
     SensorGroup* mSensorGroup;  // 0x1C
     bool mValidBySystem;        // 0x20
     bool mValidByHost;          // 0x21
-    LiveActor* mHostActor;      // 0x24
+    LiveActor* mHost;           // 0x24
 };

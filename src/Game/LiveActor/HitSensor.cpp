@@ -6,7 +6,7 @@
 // HitSensor::HitSensor
 
 bool HitSensor::receiveMessage(u32 msg, HitSensor* pOther) {
-    return mHostActor->receiveMessage(msg, pOther, this);
+    return mHost->receiveMessage(msg, pOther, this);
 }
 
 void HitSensor::setType(u32 type) {

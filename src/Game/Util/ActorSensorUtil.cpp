@@ -237,7 +237,7 @@ namespace MR {
     }
 
     void setSensorPos(HitSensor* pSensor, const TVec3f& rPos) {
-        pSensor->mOffset.set< f32 >(rPos);
+        pSensor->mPosition.set< f32 >(rPos);
     }
 
     void setSensorPos(LiveActor* pActor, const char* pName, const TVec3f& rPos) {
@@ -267,11 +267,11 @@ namespace MR {
     }
 
     TVec3f& getSensorHostPos(const HitSensor* pSensor) {
-        return pSensor->mHostActor->mPosition;
+        return pSensor->mHost->mPosition;
     }
 
     TVec3f& getSensorHostGravity(const HitSensor* pSensor) {
-        return pSensor->mHostActor->mGravity;
+        return pSensor->mHost->mGravity;
     }
 
     void validateHitSensors(LiveActor* pActor) {
@@ -341,7 +341,7 @@ namespace MR {
     }
 
     LiveActor* getSensorHost(const HitSensor* pSensor) {
-        return pSensor->mHostActor;
+        return pSensor->mHost;
     }
 
     bool isEqualSensor(const HitSensor* pSensor, LiveActor* pActor, const char* pName) {
@@ -415,11 +415,11 @@ namespace MR {
     }
 
     const TVec3f* getSensorPos(const HitSensor* pSensor) {
-        return &pSensor->mOffset;
+        return &pSensor->mPosition;
     }
 
     const TVec3f* getSensorPos(const LiveActor* pActor, const char* pName) {
-        return &pActor->getSensor(pName)->mOffset;
+        return &pActor->getSensor(pName)->mPosition;
     }
 
     /* ... */

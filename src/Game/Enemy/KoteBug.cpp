@@ -175,7 +175,7 @@ void KoteBug::exeNoCalcWait() {
         MR::offCalcGravity(this);
     }
 
-    mVelocity.zero();
+    MR::zeroVelocity(this);
     if (MR::calcDistanceToPlayer(mPosition) < ::hDistNoCalcWait) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvWait));
     }
@@ -433,7 +433,7 @@ void KoteBug::exeStampDeath() {
     if (MR::isFirstStep(this)) {
         MR::stopBck(this);
         MR::invalidateClipping(this);
-        mVelocity.zero();
+        MR::zeroVelocity(this);
         mStampController->startAnim(mGravity);
         MR::setBinderRadius(this, 10.0f);
         MR::forceBindOnGround(this, 0.0f, 1.0f);

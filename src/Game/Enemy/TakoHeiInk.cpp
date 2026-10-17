@@ -43,7 +43,7 @@ void TakoHeiInk::control() {
 }
 
 void TakoHeiInk::start(const TVec3f& startPos, const TVec3f& startVelocity, bool startOffBind) {
-    mPosition.set(startPos);
+    MR::setPosition(this, startPos);
     setNerve(GET_NERVE(TakoHeiInk, TakoHeiInkNrvWait));
     appear();
     mVelocity.set(startVelocity);

@@ -417,7 +417,7 @@ void Kuribo::onNoGravitySupport() {
 }
 
 void Kuribo::setUp(const TVec3f& a1, const TQuat4f& a2, const TVec3f& a3) {
-    mPosition.set(a1);
+    MR::setPosition(this, a1);
     mVelocity.set(a3);
     _A8.x = a2.x;
     _A8.y = a2.y;

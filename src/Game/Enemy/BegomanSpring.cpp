@@ -232,7 +232,7 @@ void BegomanSpring::control() {
         if (MR::isJudgedToClipFrustum(mPosition, radius)) {
             f32 hideRadius = MR::getSensorRadius(this, "Body");
             if (MR::isJudgedToClipFrustum(mHidePos, hideRadius)) {
-                mPosition.set(mHidePos);
+                MR::setPosition(this, mHidePos);
                 setNerve(GET_NERVE(BegomanSpring, HostTypeNrvHide));
                 return;
             }
@@ -508,7 +508,7 @@ void BegomanSpring::exeBlow() {
 void BegomanSpring::exeElectricDeath() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "electricshock");
-        mVelocity.zero();
+        MR::zeroVelocity(this);
         MR::invalidateHitSensor(this, "Body");
         MR::startActionSound(this, "EmBegomanElecDamage");
         MR::invalidateClipping(this);
@@ -534,7 +534,7 @@ void BegomanSpring::exeHide() {
     }
 
     updateRotateY(0.0f, 1.0f);
-    mVelocity.zero();
+    MR::zeroVelocity(this);
     TVec3f toPlayer(*MR::getPlayerPos());
     toPlayer.sub(mPosition);
     toPlayer.squared();

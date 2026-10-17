@@ -328,9 +328,9 @@ void Mogucchi::updatePosition() {
     mGrounded = MR::getFirstPolyOnLineToMap(&v1, &triangle, MR::getRailPos(this), mRailGravity.scaleInline(1000.0f));
 
     if (mGrounded) {
-        mPosition.set(v1);
+        MR::setPosition(this, v1);
     } else {
-        mPosition.set(MR::getRailPos(this));
+        MR::setPosition(this, MR::getRailPos(this));
     }
 }
 

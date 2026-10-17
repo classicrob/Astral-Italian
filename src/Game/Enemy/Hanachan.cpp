@@ -633,7 +633,7 @@ void HanachanParts::exeOverturnWait() {
         mIsLanded = true;
     }
 
-    mVelocity.zero();
+    MR::zeroVelocity(this);
     mVelocity.add(mPushVelocity);
 }
 
@@ -742,7 +742,7 @@ void HanachanParts::exeStarPointerBind() {
     if (MR::isFirstStep(this)) {
         MR::startDPDHitSound();
         MR::stopBck(this);
-        mVelocity.zero();
+        MR::zeroVelocity(this);
         MR::emitEffect(this, "PointerTouch");
     }
 
@@ -903,7 +903,7 @@ void Hanachan::control() {
         }
     }
 
-    mPosition.set(mBodyParts[2]->mPosition);
+    MR::setPosition(this, mBodyParts[2]->mPosition);
 
     if (MR::isFirstStep(this)) {
         if (isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanWalk))) {

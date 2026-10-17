@@ -73,7 +73,7 @@ void Birikyu::initAfterPlacement() {
         MR::normalize(&_AC);
         matrix.getZDir(_B8);
         MR::normalize(&_B8);
-        mPosition.set(_9C + _B8 * 400.0f);
+        MR::setPosition(this, _9C + _B8 * 400.0f);
     }
 }
 
@@ -224,7 +224,7 @@ void Birikyu::exeMoveCircle() {
         TVec3f temp = _B8 * 400.0f;
         matrix.mult(temp, temp);
         TVec3f matrix2 = (_9C + temp);
-        mPosition.set(matrix2);
+        MR::setPosition(this, matrix2);
     }
 }
 
@@ -240,7 +240,7 @@ void Birikyu::exeWaitAtEdge() {
 
 void Birikyu::exeAttack() {
     if (MR::isFirstStep(this)) {
-        mVelocity.zero();
+        MR::zeroVelocity(this);
         MR::emitEffect(this, "Hit");
     }
 

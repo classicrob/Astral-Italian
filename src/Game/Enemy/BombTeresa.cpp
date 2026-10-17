@@ -851,7 +851,7 @@ bool BombTeresa::appearNormal(const TVec3f& rPosition, const TVec3f& rVelocity) 
     }
 
     setNerve(GET_NERVE(BombTeresa, BombTeresaNrvAppear));
-    mPosition.set(rPosition);
+    MR::setPosition(this, rPosition);
     appear();
     MR::showModel(this);
     mVelocity.set(rVelocity);

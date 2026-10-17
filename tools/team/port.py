@@ -10,6 +10,8 @@ Rewrites:
   - MR::startSound / MR::startLevelSound(actor, "SE_EM_GESSO_SWIM_L", ...) ->
     MR::startActionSound(actor, "EmGessoSwimL", ...): SMG2 plays sounds through the action-sound table,
     keyed by the CamelCased SE name without the "SE_" prefix. Extra args are kept.
+  - useStageSwitchReadAppear + syncStageSwitchAppear block -> MR::useStageSwitchSyncAppear(this, rIter)
+  - *MR::getSensorPos(...) deref (Garigari returns a pointer; Petari a reference)
   - initSound(N, false) -> initSound(N, "<EnclosingClass>", nullptr, TVec3f(0.0f)) (SMG2 signature; the name is
     usually the class/archive name: check the string in the target .data)
 Check the result with sg.py; these are heuristics, not guarantees.
@@ -37,6 +39,10 @@ def rewrite(s):
     # `getSensorPos(a) - getSensorPos(b)` silently compiles as a POINTER difference.
     s = re.sub(r"(?<![*&\w])MR::getSensorPos\(", "*MR::getSensorPos(", s)
     s = s.replace("&*MR::getSensorPos(", "MR::getSensorPos(")
+    # SMG2: `if (MR::useStageSwitchReadAppear(this, rIter)) { MR::syncStageSwitchAppear(this); }`
+    #   -> `MR::useStageSwitchSyncAppear(this, rIter);` (seen in Gesso, Teresa, ...)
+    s = re.sub(r"if \(MR::useStageSwitchReadAppear\((\w+), (\w+)\)\) \{\s*MR::syncStageSwitchAppear\(\1\);\s*\}",
+               r"MR::useStageSwitchSyncAppear(\1, \2);", s)
     # LiveActor::initSound(s32, bool) -> SMG2 initSound(s32, "<ClassName>", nullptr, TVec3f(0.0f))
     out, cls = [], None
     for l in s.split("\n"):

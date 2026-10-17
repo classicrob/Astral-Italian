@@ -62,4 +62,5 @@ public:
     /* 0xA4 */ WalkerStateBindStarPointer* mStateBindStarPointer;
     /* 0xA8 */ TQuat4f _A8;
     /* 0xB8 */ TVec3f _B8;
+    /* 0xC8 */ bool _C8;
 };

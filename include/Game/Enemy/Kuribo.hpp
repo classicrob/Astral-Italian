@@ -89,6 +89,8 @@ public:
     /* 0xB8 */ TVec3f _B8;
     /* 0xC4 */ bool _C4;
     /* 0xC5 */ u8 _C5;
+    /* 0xCA */ u8 _CA[4];
+    /* 0xCE */ bool _CE;
 };
 
 namespace MR {

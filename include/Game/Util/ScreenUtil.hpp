@@ -59,6 +59,7 @@ namespace MR {
     void turnOnNormalBloom();
     void turnOnDepthOfField(bool);
     void turnOffImageEffect();
+    bool isExistImageEffectDirector();
     void forceOffImageEffect();
     void createNormalBloom();
     bool isNormalBloomOn();

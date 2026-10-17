@@ -126,7 +126,7 @@ void DinoPackun::init(const JMapInfoIter& rIter) {
     MR::declarePowerStar(this);
     MR::needStageSwitchReadA(this, rIter);
     MR::useStageSwitchWriteDead(this, rIter);
-    MR::startBck(this, "OpeningDemo");
+    MR::startAction(this, "OpeningDemo");
     MR::stopBck(this);
     MR::startBtp(this, "FlowerAll");
     MR::startBrk(this, "Normal");
@@ -451,7 +451,6 @@ void DinoPackun::appearStarPiece(s32 num) {
     TVec3f pos;
     MR::copyJointPos(this, "Head", &pos);
     MR::appearStarPieceToDirection(this, pos, -mGravity, num, 50.0f, 60.0f, false);
-    MR::startActionSound(this, "OjStarPieceBurst");
 }
 
 bool DinoPackun::isSensorEgg(const HitSensor* pSensor) const {
@@ -529,7 +528,9 @@ void DinoPackun::offAimTailBall(s32 a1) {
 
 void DinoPackun::startDemo() {
     onMovementParts();
-    MR::turnOffImageEffect();
+    if (MR::isExistImageEffectDirector()) {
+        MR::turnOffImageEffect();
+    }
 }
 
 void DinoPackun::startDemoAndReset() {
@@ -537,7 +538,9 @@ void DinoPackun::startDemoAndReset() {
     resetPosition();
     mFootPrint->clear();
     onMovementParts();
-    MR::turnOffImageEffect();
+    if (MR::isExistImageEffectDirector()) {
+        MR::turnOffImageEffect();
+    }
 }
 
 void DinoPackun::endDemo(const char* pName) {

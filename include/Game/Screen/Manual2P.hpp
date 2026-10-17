@@ -34,4 +34,9 @@ private:
     /* 0x30 */ bool _30;
     /* 0x31 */ bool _31;
     /* 0x34 */ BackButton* mBackButton;
+    /* 0x38 */ s32 _38;
+    /* 0x3C */ bool _3C;
+    /* 0x3D */ bool _3D;
+    /* 0x40 */ s32 _40;
+    /* 0x44 */ s32 _44;
 };

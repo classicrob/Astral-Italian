@@ -30,6 +30,11 @@ GXColor sOceanSphereKColor0Back = {0x78, 0xFF, 0xFF, 0x00};
 GXColor sOceanSphereTevReg0Env = {0x00, 0x69, 0xB8, 0x14};
 GXColor sOceanSphereTevReg1Env = {0x00, 0x00, 0x00, 0xFF};
 
+namespace MR {
+    // SMG2 LiveActor overload (returns a JUTTexture). Not declared in ObjUtil.hpp yet.
+    JUTTexture* loadTexFromArc(LiveActor*, const char*, const char*);
+}  // namespace MR
+
 namespace NrvOceanSphere {
     NEW_NERVE(OceanSphereNrvRiseUp, OceanSphere, RiseUp);
     NEW_NERVE(OceanSphereNrvWait, OceanSphere, Wait);
@@ -165,7 +170,7 @@ OceanSphere::OceanSphere(const char* pName)
 }
 
 void OceanSphere::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, MR::MovementType_MapObj, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_OceanSphere);
+    MR::connectToScene(this, MR::MovementType_Environment, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_OceanSphere);
     MR::initDefaultPos(this, rIter);
     mRadius = 100.0f * mScale.x;
     mRadiusTarget = mRadius;
@@ -174,11 +179,12 @@ void OceanSphere::init(const JMapInfoIter& rIter) {
     initDisplayList();
     WaterAreaFunction::entryOceanSphere(this);
 
-    mWaterTex = new JUTTexture(MR::loadTexFromArc("WaterWave.arc", "OceanSphere.bti"), 0);
-    mWaterEnvTex = new JUTTexture(MR::loadTexFromArc("WaterWave.arc", "OceanSphereEnvRef.bti"), 0);
+    mWaterTex = MR::loadTexFromArc(this, "WaterWave.arc", "OceanSphere.bti");
+    mWaterEnvTex = MR::loadTexFromArc(this, "WaterWave.arc", "OceanSphereEnvRef.bti");
 
     MR::setClippingTypeSphere(this, mRadius);
     MR::setClippingFarMax(this);
+    initSound(4, "OceanSphere", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(OceanSphere, OceanSphereNrvWait));
 
     if (MR::isEqualStageName("SkullSharkGalaxy")) {
@@ -704,6 +710,7 @@ void OceanSphere::loadMaterialBack() const {
     GXSetNumTevStages(1);
     GXSetTevColor(GX_TEVREG0, sOceanSphereTevReg0Env);
     GXSetTevColor(GX_TEVREG1, sOceanSphereTevReg1Env);
+    GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_8_8);
     GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR_NULL);
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_C0, GX_CC_C1, GX_CC_TEXC, GX_CC_ZERO);
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);

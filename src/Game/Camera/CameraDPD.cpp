@@ -74,9 +74,9 @@ void CameraDPD::reset() {
     }
 
     MR::getCorePadPointingPos(&mRealPointPos, WPAD_CHAN0);
-    mResetPointingPos = true;
     mBlendPointPos.set(0.0f, 0.0f);
     mRealPointPos.set(0.0f, 0.0f);
+    mResetPointingPos = true;
 }
 
 CameraTargetObj* CameraDPD::calc() {

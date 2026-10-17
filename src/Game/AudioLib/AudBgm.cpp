@@ -15,7 +15,7 @@
 #include <JSystem/JAudio2/JAISoundInfo.hpp>
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 
-AudBgm::AudBgm() : mVolumeController() {
+AudBgm::AudBgm() : mVolumeController(), _14(-1), _18(0) {
 }
 
 void AudBgm::resetAuxVolume() {

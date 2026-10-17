@@ -3,7 +3,7 @@
 #include "Game/AudioLib/AudBgmKeeper.hpp"
 #include <JSystem/JAudio2/JAISound.hpp>
 
-AudBgmMgr::AudBgmMgr() : _8FC(false) {
+AudBgmMgr::AudBgmMgr() : _954(0), _958(false) {
     for (int idx = 0; idx < 2; idx++) {
         mBgm[idx] = nullptr;
         mNextBGM[idx] = -1;
@@ -13,9 +13,16 @@ AudBgmMgr::AudBgmMgr() : _8FC(false) {
 }
 
 void AudBgmMgr::movement() {
-    volDownStageBgmWhenSubBgmPlaying();
+    if (_954 > 0) {
+        _954--;
+    }
+
+    if (_954 <= 0) {
+        volDownStageBgmWhenSubBgmPlaying();
+    }
+
     for (int idx = 0; idx < 2; idx++) {
-        if (_8FC) {
+        if (_958) {
             mVolumeController[idx].mIsMuted = true;
         } else {
             mVolumeController[idx].mIsMuted = false;
@@ -29,7 +36,7 @@ void AudBgmMgr::movement() {
     }
 }
 
-JAISoundHandle* AudBgmMgr::start(s32 bgmIndex, u32 soundID, bool lock) {
+JAISoundHandle* AudBgmMgr::start(s32 bgmIndex, u32 soundID, bool lock, s32) {
     if (mBgm[bgmIndex] != nullptr) {
         mBgm[bgmIndex]->rejectFromSyncStream();
         mBgm[bgmIndex]->stop(false);
@@ -77,7 +84,7 @@ JAISoundHandle* AudBgmMgr::startLastBGM(s32 bgmIndex) {
     if (mLastBGM[bgmIndex] == -1) {
         return nullptr;
     }
-    return start(bgmIndex, mLastBGM[bgmIndex], false);
+    return start(bgmIndex, mLastBGM[bgmIndex], false, -1);
 }
 
 void AudBgmMgr::clearLastBGM(s32 bgmIndex) {
@@ -141,7 +148,7 @@ void AudBgmMgr::startNextBgmWhenStopping(s32 bgmIndex) {
     }
 
     if (mBgm[bgmIndex]->isStopping()) {
-        start(bgmIndex, mNextBGM[bgmIndex], false);
+        start(bgmIndex, mNextBGM[bgmIndex], false, -1);
         clearNextBGM(bgmIndex);
     }
 }

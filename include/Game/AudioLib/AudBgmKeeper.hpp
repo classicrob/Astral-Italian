@@ -20,7 +20,7 @@ public:
     AudMultiBgm* getValidMultiBgm();
 
     /* 0x000 */ AudSingleBgm mSingleBgm[2];
-    /* 0x3B8 */ AudMultiBgm mMultiBgm[2];
-    /* 0x7B8 */ u8 mSingleBgmActiveFlags;
-    /* 0x7B9 */ u8 mMultiBgmActiveFlags;
+    /* 0x3C8 */ AudMultiBgm mMultiBgm[2];
+    /* 0x7D8 */ u8 mSingleBgmActiveFlags;
+    /* 0x7D9 */ u8 mMultiBgmActiveFlags;
 };

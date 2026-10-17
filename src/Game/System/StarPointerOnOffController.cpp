@@ -4,6 +4,10 @@
 #include "Game/System/NerveExecutor.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
+namespace GameSequenceFunction {
+    bool isPadMode2();
+};
+
 namespace {
     // static const f32 hDebugPrintX =
     // static const f32 hDebugPrintY =
@@ -63,7 +67,9 @@ void StarPointerOnOffController::popState(void* pRequester) {
 }
 
 void StarPointerOnOffController::requestMode(void* pRequester, StarPointerModeEnum mode) {
-    mRequested[mode] = true;
+    if (!GameSequenceFunction::isPadMode2()) {
+        mRequested[mode] = true;
+    }
 }
 
 void StarPointerOnOffController::setupHomeButton() {
@@ -170,21 +176,11 @@ void StarPointerOnOffController::setup1PInvalid2PValid() {
     ::getStarPointerDirector()->startStarPointer();
     ::getStarPointerLayout(WPAD_CHAN0)->validate();
     ::getStarPointerLayout(WPAD_CHAN1)->validate();
-    MR::deactiveStarPointerGuidance();
-    MR::enableStarPointerShootStarPiece();
-}
-
-void StarPointerOnOffController::setupMarioLauncher() {
-    ::getStarPointerLayout(WPAD_CHAN0)->hide();
-    ::getStarPointerLayout(WPAD_CHAN1)->show();
-    ::getStarPointerDirector()->startFingerPointer();
-    ::getStarPointerLayout(WPAD_CHAN0)->invalidate();
-    ::getStarPointerLayout(WPAD_CHAN1)->invalidate();
     MR::activeStarPointerGuidance();
     MR::disableStarPointerShootStarPiece();
 }
 
-void StarPointerOnOffController::setupChooseYesNo() {
+void StarPointerOnOffController::setupMarioLauncher() {
     ::getStarPointerLayout(WPAD_CHAN0)->show();
     ::getStarPointerLayout(WPAD_CHAN1)->show();
     ::getStarPointerDirector()->startFingerPointer();
@@ -192,6 +188,16 @@ void StarPointerOnOffController::setupChooseYesNo() {
     ::getStarPointerLayout(WPAD_CHAN1)->validate();
     MR::activeStarPointerGuidance();
     MR::disableStarPointerShootStarPiece();
+}
+
+void StarPointerOnOffController::setupChooseYesNo() {
+    ::getStarPointerLayout(WPAD_CHAN0)->show();
+    ::getStarPointerLayout(WPAD_CHAN1)->show();
+    ::getStarPointerDirector()->startStarPointer();
+    ::getStarPointerLayout(WPAD_CHAN0)->validate();
+    ::getStarPointerLayout(WPAD_CHAN1)->validate();
+    MR::deactiveStarPointerGuidance();
+    MR::enableStarPointerShootStarPiece();
 }
 
 void StarPointerOnOffController::setupPauseMenu() {
@@ -336,7 +342,7 @@ void StarPointerOnOffController::updateMode() {
                     setupErrorWindow();
                     break;
                 case StarPointerMode_SaveLoad:
-                    setupPauseMenu();
+                    setupPictureBook();
                     break;
                 case StarPointerMode_Logo:
                     setupLogo();
@@ -347,23 +353,20 @@ void StarPointerOnOffController::updateMode() {
                 case StarPointerMode_FileSelect:
                     setupFileSelect();
                     break;
-                case StarPointerMode_PauseMenu:
-                    setupPauseMenu();
-                    break;
-                case StarPointerMode_ChooseYesNo:
-                    setupChooseYesNo();
-                    break;
                 case StarPointerMode_PictureBook:
                     setupPictureBook();
+                    break;
+                case StarPointerMode_PauseMenu:
+                    setupPauseMenu();
                     break;
                 case StarPointerMode_Demo:
                     setupDemo();
                     break;
-                case StarPointerMode_DemoWithStarPointer:
-                    setupDemoWithStarPointer();
+                case StarPointerMode_1PInvalid2PValid:
+                    setup1PInvalid2PValid();
                     break;
-                case StarPointerMode_DemoWithHandPointerFinger:
-                    setupDemoWithHandPointerFinger();
+                case StarPointerMode_MarioLauncher:
+                    setupMarioLauncher();
                     break;
                 case StarPointerMode_DemoMarioDeath:
                     setupDemoMarioDeath();
@@ -371,20 +374,17 @@ void StarPointerOnOffController::updateMode() {
                 case StarPointerMode_PowerStarGetDemo:
                     setupPowerStarGetDemo();
                     break;
-                case StarPointerMode_1PInvalid2PValid:
-                    setup1PInvalid2PValid();
+                case StarPointerMode_ChooseYesNo:
+                    setupChooseYesNo();
                     break;
                 case StarPointerMode_ScenarioSelectScene:
                     setupScenarioSelectScene();
                     break;
-                case StarPointerMode_SphereSelectorOnReaction:
-                    setupSphereSelectorOnReaction();
-                    break;
                 case StarPointerMode_SphereSelectorFinger:
                     setupSphereSelectorFinger();
                     break;
-                case StarPointerMode_MarioLauncher:
-                    setupMarioLauncher();
+                case StarPointerMode_DemoWithHandPointerFinger:
+                    setupDemoWithHandPointerFinger();
                     break;
                 case StarPointerMode_BlueStar:
                     setupBlueStar();
@@ -398,14 +398,17 @@ void StarPointerOnOffController::updateMode() {
                 case StarPointerMode_BigBubble:
                     setupBigBubble();
                     break;
-                case StarPointerMode_CommandStream:
-                    setupCommandStream();
-                    break;
                 case StarPointerMode_Base:
                     setupBase();
                     break;
                 case StarPointerMode_Game:
                     setupGame();
+                    break;
+                case StarPointerMode_CommandStream:
+                    setupCommandStream();
+                    break;
+                case StarPointerMode_DemoWithStarPointer:
+                    setupDemoWithStarPointer();
                     break;
                 }
             }
@@ -423,8 +426,9 @@ void StarPointerOnOffController::clearInfo() {
     }
 
     for (RequestInfo** request = mRequests.begin(); request < mRequests.end(); request++) {
-        (*request)->mRequester = nullptr;
-        (*request)->mMode = -1;
+        RequestInfo* info = *request;
+        info->mRequester = nullptr;
+        info->mMode = -1;
     }
 
     #if (VERSION == RMGK01)
@@ -433,6 +437,10 @@ void StarPointerOnOffController::clearInfo() {
 }
 
 void StarPointerOnOffController::incModeCounter(void* pRequester, s32 mode) {
+    if (GameSequenceFunction::isPadMode2()) {
+        return;
+    }
+
     if (mode == -1) {
         return;
     }

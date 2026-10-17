@@ -150,6 +150,10 @@ bool CameraManGame::isCorrectingErpPositionOff() const {
     return mCamera != nullptr && mCamera->isCorrectingErpPositionOff();
 }
 
+bool CameraManGame::isUnknownOff() const {
+    return mCamera != nullptr && mCamera->isUnknownOff();
+}
+
 bool CameraManGame::isEnableToRoundLeft() const {
     if (mCamera != nullptr) {
         return mCamera->isEnableToRoundLeft();

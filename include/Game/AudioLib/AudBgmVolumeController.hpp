@@ -2,7 +2,7 @@
 
 #include "Game/AudioLib/AudFader.hpp"
 
-#define NUM_FADERS 5
+#define NUM_FADERS 6
 
 class AudBgmVolumeController {
 public:
@@ -25,7 +25,7 @@ public:
     };
 
     /* 0x00 */ s32 mTimers[NUM_FADERS];
-    /* 0x14 */ FaderCtrl mFaderCtrl[NUM_FADERS];
-    /* 0x50 */ AudFader mFaders[NUM_FADERS];
-    /* 0x8C */ bool mIsMuted;
+    /* 0x18 */ FaderCtrl mFaderCtrl[NUM_FADERS];
+    /* 0x60 */ AudFader mFaders[NUM_FADERS];
+    /* 0xA8 */ bool mIsMuted;
 };

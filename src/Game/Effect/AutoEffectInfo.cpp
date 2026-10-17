@@ -45,7 +45,7 @@ namespace {
 
     static const DrawOrderData sDrawOrderDataTable[] = {
         {0, "3D"}, {1, "PAUSE_IGNORE"},    {2, "INDIRECT"},     {3, "AFTER_INDIRECT"}, {4, "BLOOM_EFFECT"}, {5, "AFTER_IMAGE_EFFECT"},
-        {6, "2D"}, {7, "2D_PAUSE_IGNORE"}, {8, "FOR_2D_MODEL"},
+        {6, "2D"}, {7, "2D_PAUSE_IGNORE"}, {8, "FOR_2D_MODEL"}, {9, "WORLD_MAP_MINI_ICON"},
     };
 
     s32 getDrawOrderData(const char* pDrawOrder) {
@@ -86,7 +86,7 @@ void AutoEffectInfo::init(const JMapInfoIter& rIter) {
     if (::isValueOn(rIter, "ContinueAnimEnd")) {
         mFlag |= FLAG_CONTINUE_ANIM_END;
     } else {
-        mFlag &= ~FLAG_CONTINUE_ANIM_END;
+        mFlag &= static_cast<u16>(~FLAG_CONTINUE_ANIM_END);
     }
 
     mJointName = ::getStringValue(rIter, "JointName");
@@ -101,37 +101,37 @@ void AutoEffectInfo::init(const JMapInfoIter& rIter) {
     if (::isValueOnT(rIter, "Affect")) {
         mFlag |= FLAG_AFFECT_TRANS;
     } else {
-        mFlag &= ~FLAG_AFFECT_TRANS;
+        mFlag &= static_cast<u16>(~FLAG_AFFECT_TRANS);
     }
 
     if (::isValueOnR(rIter, "Affect")) {
         mFlag |= FLAG_AFFECT_ROTATE;
     } else {
-        mFlag &= ~FLAG_AFFECT_ROTATE;
+        mFlag &= static_cast<u16>(~FLAG_AFFECT_ROTATE);
     }
 
     if (::isValueOnS(rIter, "Affect")) {
         mFlag |= FLAG_AFFECT_SCALE;
     } else {
-        mFlag &= ~FLAG_AFFECT_SCALE;
+        mFlag &= static_cast<u16>(~FLAG_AFFECT_SCALE);
     }
 
     if (::isValueOnT(rIter, "Follow")) {
         mFlag |= FLAG_FOLLOW_TRANS;
     } else {
-        mFlag &= ~FLAG_FOLLOW_TRANS;
+        mFlag &= static_cast<u16>(~FLAG_FOLLOW_TRANS);
     }
 
     if (::isValueOnR(rIter, "Follow")) {
         mFlag |= FLAG_FOLLOW_ROTATE;
     } else {
-        mFlag &= ~FLAG_FOLLOW_ROTATE;
+        mFlag &= static_cast<u16>(~FLAG_FOLLOW_ROTATE);
     }
 
     if (::isValueOnS(rIter, "Follow")) {
         mFlag |= FLAG_FOLLOW_SCALE;
     } else {
-        mFlag &= ~FLAG_FOLLOW_SCALE;
+        mFlag &= static_cast<u16>(~FLAG_FOLLOW_SCALE);
     }
 
     rIter.getValue("ScaleValue", &mScaleValue);

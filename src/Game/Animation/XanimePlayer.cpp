@@ -172,7 +172,12 @@ void XanimePlayer::changeTrackAnimation(u8 arg1, u32 index) {
 }
 
 void XanimePlayer::changeAnimationBck(const char* pName) {
-    changeAnimation(pName);
+    const XanimeGroupInfo* info = mResourceTable->getGroupInfo(pName);
+    if (info == nullptr) {
+        changeSimpleBck(pName);
+    } else {
+        changeAnimation(info);
+    }
 }
 
 bool XanimePlayer::changeSimpleBck(const char* pName) {
@@ -333,7 +338,7 @@ void XanimePlayer::changeAnimationSimple(J3DAnmTransform* pAnm) {
     _68 = nullptr;
     _84 = 0.0f;
     _88 = false;
-    _89 = false;
+    _89 = true;
 }
 
 void XanimePlayer::changeSpeed(f32 speed) {

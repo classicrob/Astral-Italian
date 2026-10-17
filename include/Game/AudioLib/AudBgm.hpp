@@ -44,6 +44,8 @@ public:
 
     /* 0x04 */ AudBgmVolumeController* mVolumeController;
     /* 0x08 */ AudBgmRhythmStrategy mRhythmStrategy;
+    /* 0x14 */ s32 _14;
+    /* 0x18 */ s32 _18;
 };
 
 class AudSingleBgm : public AudBgm {
@@ -110,9 +112,9 @@ public:
     void stopTrackControl();
     void updateTrackControl();
 
-    /* 0x14 */ JAISoundHandle mHandle;
-    /* 0x18 */ JAISoundID mSoundID;
-    /* 0x1C */ AudTrackController mTrackController[mNumTracks];
+    /* 0x1C */ JAISoundHandle mHandle;
+    /* 0x20 */ JAISoundID mSoundID;
+    /* 0x24 */ AudTrackController mTrackController[mNumTracks];
 };
 
 class AudMultiBgm : public AudBgm {
@@ -151,11 +153,11 @@ public:
 
     static const s32 mNumFaders = 2;
 
-    /* 0x014 */ JAISoundHandle mHandle;
-    /* 0x018 */ JAISoundHandle mRhythmHandle;
-    /* 0x01C */ AudTrackController mTrackController[mNumTracks];
-    /* 0x1DC */ AudFader mFader[mNumFaders];
-    /* 0x1F4 */ s32 mSyncState;
-    /* 0x1F8 */ s32 mBgmId;
-    /* 0x1FC */ bool mIsLocked;
+    /* 0x01C */ JAISoundHandle mHandle;
+    /* 0x020 */ JAISoundHandle mRhythmHandle;
+    /* 0x024 */ AudTrackController mTrackController[mNumTracks];
+    /* 0x1E4 */ AudFader mFader[mNumFaders];
+    /* 0x1FC */ s32 mSyncState;
+    /* 0x200 */ s32 mBgmId;
+    /* 0x204 */ bool mIsLocked;
 };

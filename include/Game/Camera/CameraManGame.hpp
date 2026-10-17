@@ -25,6 +25,7 @@ public:
     virtual bool isZeroFrameMoveOff() const;
     virtual bool isSubjectiveCameraOff() const;
     virtual bool isCorrectingErpPositionOff() const;
+    virtual bool isUnknownOff() const;
     virtual bool isEnableToReset() const;
     virtual bool isEnableToRoundLeft() const;
     virtual bool isEnableToRoundRight() const;

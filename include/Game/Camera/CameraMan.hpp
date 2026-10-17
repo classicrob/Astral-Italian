@@ -34,6 +34,9 @@ public:
     virtual bool isCorrectingErpPositionOff() const {
         return false;
     }
+    virtual bool isUnknownOff() const {  // SMG2-only virtual (CameraMan vtable +0x4C)
+        return false;
+    }
     virtual bool isEnableToReset() const {
         return false;
     }

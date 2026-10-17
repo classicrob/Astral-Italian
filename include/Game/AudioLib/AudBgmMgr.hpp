@@ -17,7 +17,7 @@ public:
 
     ~AudBgmMgr() {};
     void movement();
-    JAISoundHandle* start(s32, u32, bool);
+    JAISoundHandle* start(s32, u32, bool, s32);
     void setNextBGM(s32, u32);
     void clearNextBGM(s32);
     JAISoundHandle* startLastBGM(s32);
@@ -37,6 +37,7 @@ public:
     /* 0x010 */ u32 mCurrentBGM[2];
     /* 0x018 */ u32 mLastBGM[2];
     /* 0x020 */ AudBgmKeeper mKeeper;
-    /* 0x7DC */ AudBgmVolumeController mVolumeController[2];
-    /* 0x8FC */ bool _8FC;
+    /* 0x7FC */ AudBgmVolumeController mVolumeController[2];
+    /* 0x954 */ s32 _954;
+    /* 0x958 */ bool _958;
 };

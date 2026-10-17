@@ -40,6 +40,9 @@ public:
     virtual bool isCorrectingErpPositionOff() const {
         return false;
     }
+    virtual bool isUnknownOff() const {  // SMG2-only virtual (Camera vtable +0x48)
+        return false;
+    }
     virtual void roundLeft() {};
     virtual void roundRight() {};
     virtual bool isEnableToRoundLeft() const {

@@ -19,6 +19,7 @@ public:
     void startAppearDemo();
     void startDownDemo();
     void endDemo();
+    void startWait();
     void initSensor();
 
     void exeWait();

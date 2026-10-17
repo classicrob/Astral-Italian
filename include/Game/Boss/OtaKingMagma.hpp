@@ -17,6 +17,8 @@ public:
     void hitBack();
     void damage();
     void down();
+    void wait();
+    void endWait();
 
     void exeWait();
     void exeAppearDemo();

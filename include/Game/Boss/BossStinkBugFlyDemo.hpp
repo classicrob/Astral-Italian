@@ -13,6 +13,7 @@ public:
 
     void exeDemo();
     void exeTryStart();
+    void exeDemoEnd();
 
     /* 0x64 */ DemoPositionController* mDemoPositionController;
 };

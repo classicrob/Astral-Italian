@@ -13,6 +13,13 @@ class BossStinkBugFinishDemo;
 class BossStinkBugFlyDemo;
 class BossStinkBugOpeningDemo;
 class HitSensor;
+class ActorStateBaseInterface;
+class Nerve;
+
+namespace MR {
+    // symbols.txt: updateActorStateAndNextNerve__2MRFP13NerveExecutorP23ActorStateBaseInterfacePC5Nerve
+    bool updateActorStateAndNextNerve(NerveExecutor*, ActorStateBaseInterface*, const Nerve*);
+};  // namespace MR
 
 class BossStinkBugActionSequencer : public NerveExecutor {
 public:

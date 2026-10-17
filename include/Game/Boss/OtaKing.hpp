@@ -1,5 +1,6 @@
 #pragma once
 
+class AudAnmSoundObject;
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
@@ -12,6 +13,12 @@ class FireBubble;
 class FixedPosition;
 class NameObjArchiveListCollector;
 class OtaKingMagma;
+
+namespace MR {
+    // SMG2 LiveActor overloads (symbols.txt: copyJointPos__2MRFPC9LiveActorPCcPQ29JGeometry8TVec3<f>, hideMaterial__2MRFPC9LiveActorPCc)
+    void copyJointPos(const LiveActor*, const char*, TVec3f*);
+    void hideMaterial(const LiveActor*, const char*);
+};
 class OtaKingLongFoot;
 class PartsModel;
 
@@ -52,6 +59,7 @@ public:
     bool isNerveValidNearAttack() const;
     void appearBubble();
     void startDemo();
+    void disappearParts();
     void appearStarPiece();
     void initLongFoot(const JMapInfoIter& rIter);
     bool tryThrowCocoNutOrFireBallIfWait(s32);
@@ -67,7 +75,6 @@ public:
     void exePowerUp();
     void exeDown();
     void exeDownDemo();
-    void exeAppearStar();
     void exeDead();
     void exeHitBackStart();
     void exeHitBack();

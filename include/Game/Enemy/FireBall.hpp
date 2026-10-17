@@ -27,4 +27,5 @@ public:
 
     /* 0x8C */ LiveActor* mHost;
     /* 0x90 */ TVec3f mUp;
+    u8 _padSmg2[0x18];  // SMG2 sizeof(FireBall) == 0xB8; real fields not yet ported (needed by OtaKing array stride)
 };

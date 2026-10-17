@@ -51,4 +51,5 @@ public:
     TVec3f _C8;
     f32 _D4;
     bool _D8;
+    u8 _padSmg2[8];  // SMG2 sizeof(CocoNutBall) == 0xE8; real fields not yet ported (needed by OtaKing array stride)
 };

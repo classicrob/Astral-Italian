@@ -21,6 +21,7 @@ class ModelManager {
 public:
     /// @brief Creates a new `ModelManager`.
     ModelManager();
+    ModelManager(const f32 (*)[4]);
 
     void update();
     void calcAnim();
@@ -79,6 +80,7 @@ public:
     /* 0x14 */ XanimeResourceTable* mXanimeResourceTable;
     /* 0x18 */ XanimePlayer* mXanimePlayer;
     /* 0x1C */ J3DModel* mModel;
-    /* 0x20 */ ResourceHolder* mModelResourceHolder;
-    /* 0x24 */ DisplayListMaker* mDisplayListMaker;
+    /* 0x20 */ const f32 (*_20)[4];
+    /* 0x24 */ ResourceHolder* mModelResourceHolder;
+    /* 0x28 */ DisplayListMaker* mDisplayListMaker;
 };

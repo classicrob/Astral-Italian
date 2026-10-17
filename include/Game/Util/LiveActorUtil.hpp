@@ -177,20 +177,20 @@ namespace MR {
     bool isPressedRoofAndGround(const LiveActor* pActor);
     bool isPressedBetweenWalls(const LiveActor* pActor);
 
-    const TVec3f* getGroundNormal(const LiveActor* pActor);
-    const TVec3f* getWallNormal(const LiveActor* pActor);
-    const TVec3f* getRoofNormal(const LiveActor* pActor);
-    const TVec3f* getBindedNormal(const LiveActor* pActor);
-    const TVec3f* getBindedHitPos(const LiveActor* pActor);
-    const TVec3f* getGroundHitPos(const LiveActor* pActor);
-    const TVec3f* getWallHitPos(const LiveActor* pActor);
-    const TVec3f* getRoofHitPos(const LiveActor* pActor);
+    const TVec3f& getGroundNormal(const LiveActor* pActor);
+    const TVec3f& getWallNormal(const LiveActor* pActor);
+    const TVec3f& getRoofNormal(const LiveActor* pActor);
+    const TVec3f& getBindedNormal(const LiveActor* pActor);
+    const TVec3f& getBindedHitPos(const LiveActor* pActor);
+    const TVec3f& getGroundHitPos(const LiveActor* pActor);
+    const TVec3f& getWallHitPos(const LiveActor* pActor);
+    const TVec3f& getRoofHitPos(const LiveActor* pActor);
     f32 calcHitPowerToWall(const LiveActor* pActor);
 
     u32 getBindedPlaneNum(const LiveActor* pActor);
     const TVec3f* getBindedPlaneNormal(const LiveActor* pActor, int);
     HitSensor* getBindedPlaneSensor(const LiveActor* pActor, int);
-    const TVec3f* getBindedFixReactionVector(const LiveActor* pActor);
+    const TVec3f& getBindedFixReactionVector(const LiveActor* pActor);
     void setBinderOffsetVec(LiveActor* pActor, const TVec3f* pOffset, bool);
     void setBinderRadius(LiveActor* pActor, f32 radius);
     void scaleBinderRadius(LiveActor* pActor, f32 scale);

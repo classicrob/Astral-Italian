@@ -19,7 +19,7 @@ class ViewProjmapEffectMtxSetter;
 
 class DisplayListMaker {
 public:
-    DisplayListMaker(J3DModel*, const ResourceHolder*);
+    DisplayListMaker(J3DModel*, const f32 (*)[4], const ResourceHolder*);
 
     void update();
     void diff();
@@ -56,5 +56,6 @@ public:
     /* 0x10 */ u32* mCurFlag;
     /* 0x14 */ J3DModel* mModel;
     /* 0x18 */ FogCtrl* mFogCtrl;
-    /* 0x1C */ const ResourceHolder* mResHolder;
+    /* 0x1C */ const f32 (*_1C)[4];
+    /* 0x20 */ const ResourceHolder* mResHolder;
 };

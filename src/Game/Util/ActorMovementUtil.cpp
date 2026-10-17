@@ -312,7 +312,7 @@ namespace MR {
 
     bool isBindedWallFront(const LiveActor* pActor, const TVec3f& rV1, f32 a3) {
         if (isBindedWall(pActor)) {
-            TVec3f wallNormal(*getWallNormal(pActor));
+            TVec3f wallNormal(getWallNormal(pActor));
             if (rV1.dot(wallNormal) < -a3) {
                 return true;
             }
@@ -528,7 +528,7 @@ namespace MR {
     }
 
     void blendQuatFromGroundAndFront(TQuat4f* pDst, const LiveActor* pActor, const TVec3f& rFrontVec, f32 upVecBlendRate, f32 frontVecBlendRate) {
-        MR::blendQuatUpFront(pDst, MR::isBindedGround(pActor) ? *MR::getGroundNormal(pActor) : -pActor->mGravity, rFrontVec, upVecBlendRate,
+        MR::blendQuatUpFront(pDst, MR::isBindedGround(pActor) ? MR::getGroundNormal(pActor) : -pActor->mGravity, rFrontVec, upVecBlendRate,
                              frontVecBlendRate);
     }
 
@@ -604,7 +604,7 @@ namespace MR {
         calcVelocityMoveToDirectionHorizon(pA1, pActor, rA3, a4);
 
         if (isOnGround(pActor)) {
-            pA1->orthogonalize(*getGroundNormal(pActor));
+            pA1->orthogonalize(getGroundNormal(pActor));
         }
     }
 
@@ -612,7 +612,7 @@ namespace MR {
         calcVelocityMoveToDirectionHorizon(pA1, pActor, rA3, a4, a5, a6, a7);
 
         if (isOnGround(pActor)) {
-            pA1->orthogonalize(*getGroundNormal(pActor));
+            pA1->orthogonalize(getGroundNormal(pActor));
         }
     }
 
@@ -716,7 +716,7 @@ namespace MR {
 
     void addVelocityToGravityOrGround(LiveActor* pActor, f32 a2) {
         if (isBindedGround(pActor)) {
-            pActor->mVelocity.scaleAdd(-a2, *getGroundNormal(pActor), pActor->mVelocity);
+            pActor->mVelocity.scaleAdd(-a2, getGroundNormal(pActor), pActor->mVelocity);
         } else {
             addVelocityToGravity(pActor, a2);
         }
@@ -727,7 +727,7 @@ namespace MR {
             return false;
         }
 
-        TVec3f stack_14(*getBindedFixReactionVector(pActor));
+        TVec3f stack_14(getBindedFixReactionVector(pActor));
 
         if (isNearZero(stack_14)) {
             return false;
@@ -837,14 +837,14 @@ namespace MR {
 
     void killVelocityOnGroundH(LiveActor* pActor) {
         if (isOnGround(pActor)) {
-            const TVec3f* pNormal = getGroundNormal(pActor);
+            const TVec3f* pNormal = &getGroundNormal(pActor);
             pActor->mVelocity.scale(pNormal->dot(pActor->mVelocity), *pNormal);
         }
     }
 
     void killVelocityOnGroundCosH(LiveActor* pActor, f32 a2) {
-        if (isOnGround(pActor) && isFloorPolygonCos(*getGroundNormal(pActor), pActor->mGravity, a2)) {
-            const TVec3f* pNormal = getGroundNormal(pActor);
+        if (isOnGround(pActor) && isFloorPolygonCos(getGroundNormal(pActor), pActor->mGravity, a2)) {
+            const TVec3f* pNormal = &getGroundNormal(pActor);
             pActor->mVelocity.scale(pNormal->dot(pActor->mVelocity), *pNormal);
         }
     }
@@ -879,7 +879,7 @@ namespace MR {
             return false;
         }
 
-        TVec3f bindedReactnVec = *getBindedFixReactionVector(pActor);
+        TVec3f bindedReactnVec = getBindedFixReactionVector(pActor);
         if (isNearZero(bindedReactnVec)) {
             return false;
         }
@@ -915,7 +915,7 @@ namespace MR {
             return false;
         }
 
-        TVec3f bindedReactnVec = *getBindedFixReactionVector(pActor);
+        TVec3f bindedReactnVec = getBindedFixReactionVector(pActor);
         if (isNearZero(bindedReactnVec)) {
             return false;
         }
@@ -985,7 +985,7 @@ namespace MR {
 
         pActor->mVelocity.set(stack_38 + stack_2c);
         if (isOnGround(pActor)) {
-            TVec3f stack_20(*getGroundNormal(pActor));
+            TVec3f stack_20(getGroundNormal(pActor));
             TVec3f* pVelocity2 = &pActor->mVelocity;
             stack_38.killElement(*pVelocity2, stack_20);
             if (stack_38.squared() < a6 * a6) {
@@ -1122,7 +1122,7 @@ namespace MR {
     bool turnDirectionToTargetUseGroundNormalDegree(const LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4) {
         TVec3f stack_8 = rA3 - pActor->mPosition;
         a4 = cosDegree(a4);
-        return turnVecToVecCosOnPlane(pA2, stack_8, isBindedGround(pActor) ? *getGroundNormal(pActor) : (pActor->mGravity), a4);
+        return turnVecToVecCosOnPlane(pA2, stack_8, isBindedGround(pActor) ? getGroundNormal(pActor) : (pActor->mGravity), a4);
     }
 
     void turnDirectionToPlayerDegree(const LiveActor* pActor, TVec3f* pA2, f32 a3) {
@@ -1191,7 +1191,7 @@ namespace MR {
     void turnDirectionToGround(const LiveActor* pActor, TVec3f* pA2) {
         TVec3f stack_8;
         if (isBindedGround(pActor)) {
-            stack_8.scale(-1.0f, *getGroundNormal(pActor));
+            stack_8.scale(-1.0f, getGroundNormal(pActor));
         } else {
             stack_8.set(pActor->mGravity);
         }
@@ -1247,7 +1247,7 @@ namespace {
         TVec3f stack_20;
         TVec3f stack_14;
         if (MR::isBindedGround(pActor)) {
-            stack_38.set(*MR::getGroundNormal(pActor));
+            stack_38.set(MR::getGroundNormal(pActor));
         } else {
             TVec3f stack_8 = -pActor->mGravity;
             stack_38.set(stack_8);

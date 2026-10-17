@@ -67,7 +67,7 @@ public:
     }
     virtual CamTranslatorBase* createTranslator();
 
-    void setParam(u8*, f32);
+    void setParam(u8*, f32, bool = false);
     bool isAnimEnd() const;
     static u32 getAnimFrame(u8*);
     bool loadBin(u8*);
@@ -78,7 +78,8 @@ public:
     /* 0x58 */ bool mIsKey;
     /* 0x5C */ f32 mSpeed;
     /* 0x60 */ f32 mCurrentFrame;
-    /* 0x64 */ BaseCamAnmDataAccessor* mFileDataAccessor;
+    /* 0x64 */ bool mIsLoop;
+    /* 0x68 */ BaseCamAnmDataAccessor* mFileDataAccessor;
     /* 0x68 */ CamAnmDataAccessor* mDataAccessor;
     /* 0x6C */ KeyCamAnmDataAccessor* mKeyDataAccessor;
     /* 0x70 */ u32 mNrValues;

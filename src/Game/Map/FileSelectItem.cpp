@@ -286,7 +286,7 @@ void FileSelectItem::setPlanetColor() {
     killAllModels();
     mPlanetMapObj->makeActorAppeared();
     MR::startBrk(mPlanetMapObj, "FileSelectDataPlanet");
-    MR::setBrkFrameAndStop(mPlanetMapObj, static_cast<f32>(static_cast<u32>(_140 - 1)));
+    MR::setBrkFrameAndStop(mPlanetMapObj, static_cast<f32>(_140 - 1));
 }
 
 void FileSelectItem::exeFormat() {
@@ -320,11 +320,11 @@ void FileSelectItem::exeChangeFellow() {
     }
 
     if (MR::isLessStep(this, 40)) {
-        MR::startSystemLevelSE("SE_SY_LV_FILE_SEL_MORPHBLUR");
+        MR::startActionSound(this, "SyLvFileSelMorphblur", -1, -1, -1);
     }
 
     if (MR::isStep(this, 40)) {
-        MR::startSystemSE("SE_SY_FILE_SEL_MORPH_MARIO");
+        MR::startActionSound(this, "SyFileSelMorphMario", -1, -1, -1);
         appearFellowModel();
         emitCompleteEffect();
 
@@ -353,7 +353,7 @@ void FileSelectItem::exeChangeMii() {
     }
 
     if (MR::isLessStep(this, 40)) {
-        MR::startSystemLevelSE("SE_SY_LV_FILE_SEL_MORPHBLUR");
+        MR::startActionSound(this, "SyLvFileSelMorphblur", -1, -1, -1);
     }
 
     if (MR::isStep(this, 39)) {
@@ -361,7 +361,7 @@ void FileSelectItem::exeChangeMii() {
     }
 
     if (MR::isStep(this, 40)) {
-        MR::startSystemSE("SE_SY_FILE_SEL_MORPH_MARIO");
+        MR::startActionSound(this, "SyFileSelMorphMario", -1, -1, -1);
         killAllModels();
         mFaceParts->makeActorAppeared();
         emitCompleteEffect();
@@ -412,7 +412,7 @@ void FileSelectItem::control() {
 
     mPlanetMapObj->mScale.setAll< f32 >(30.0f * mScaleCtrl->getScale());
 
-    for (s32 i = 0; i < 5; i++) {
+    for (s32 i = 0; i < 7; i++) {
         mModels[i]->mScale.setAll< f32 >(30.0f * mScaleCtrl->getScale());
     }
 

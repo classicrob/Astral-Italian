@@ -17,8 +17,13 @@
 #include <cstdio>
 
 ModelManager::ModelManager()
-    : mBtkPlayer(), mBrkPlayer(), mBtpPlayer(), mBpkPlayer(), mBvaPlayer(), mXanimeResourceTable(), mXanimePlayer(), mModel(), mModelResourceHolder(),
-      mDisplayListMaker() {
+    : mBtkPlayer(), mBrkPlayer(), mBtpPlayer(), mBpkPlayer(), mBvaPlayer(), mXanimeResourceTable(), mXanimePlayer(), mModel(), _20(nullptr),
+      mModelResourceHolder(), mDisplayListMaker() {
+}
+
+ModelManager::ModelManager(const f32 (*pArr)[4])
+    : mBtkPlayer(), mBrkPlayer(), mBtpPlayer(), mBpkPlayer(), mBvaPlayer(), mXanimeResourceTable(), mXanimePlayer(), mModel(), _20(pArr),
+      mModelResourceHolder(), mDisplayListMaker() {
 }
 
 void ModelManager::update() {
@@ -427,7 +432,7 @@ void ModelManager::init(const char* pModelName, const char* pAnimationName, bool
     }
 
     if (flags & J3DMdlFlag_DifferedDLBuffer) {
-        mDisplayListMaker = new DisplayListMaker(getJ3DModel(), getResourceHolder());
+        mDisplayListMaker = new DisplayListMaker(getJ3DModel(), _20, getResourceHolder());
         if (!deferDisplayList) {
             mDisplayListMaker->newDifferedDisplayList();
         }

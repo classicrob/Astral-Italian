@@ -130,7 +130,7 @@ f32 KeyCamAnmDataAccessor::calcHermite(f32 key, f32 tA, f32 pA, f32 mA, f32 tB, 
 }
 
 CameraAnim::CameraAnim(const char* pName)
-    : Camera(pName), _4C(), _50(1), mNrFrames(), mIsKey(), mSpeed(1.0f), mFileDataAccessor(), mDataAccessor(new CamAnmDataAccessor()),
+    : Camera(pName), _4C(), _50(1), mNrFrames(), mIsKey(), mSpeed(1.0f), mCurrentFrame(0.0f), mIsLoop(), mFileDataAccessor(), mDataAccessor(new CamAnmDataAccessor()),
       mKeyDataAccessor(new KeyCamAnmDataAccessor()), mNrValues(), _74(), mFileData(), mIsPaused() {
 }
 
@@ -139,8 +139,8 @@ void CameraAnim::reset() {
     CameraLocalUtil::setWatchPos(this, CameraLocalUtil::getWatchPos(mCameraMan));
     CameraLocalUtil::setPos(this, CameraLocalUtil::getPos(mCameraMan));
     CameraLocalUtil::setUpVec(this, CameraLocalUtil::getUpVec(mCameraMan));
-    mIsPaused = false;
     mCurrentFrame = 0.0f;
+    mIsPaused = false;
 }
 
 CameraTargetObj* CameraAnim::calc() {
@@ -172,6 +172,10 @@ CameraTargetObj* CameraAnim::calc() {
 
         if (!mIsPaused) {
             mCurrentFrame += mSpeed;
+
+            if (mIsLoop && mCurrentFrame >= mNrFrames) {
+                mCurrentFrame -= mNrFrames;
+            }
         }
     } else {
         const f32 frame = mNrFrames - 1;
@@ -182,13 +186,18 @@ CameraTargetObj* CameraAnim::calc() {
     return nullptr;
 }
 
-void CameraAnim::setParam(u8* pFile, f32 speed) {
+void CameraAnim::setParam(u8* pFile, f32 speed, bool isLoop) {
     loadBin(pFile);
     mFileData = pFile;
     mSpeed = speed;
+    mIsLoop = isLoop;
 }
 
 bool CameraAnim::isAnimEnd() const {
+    if (mIsLoop) {
+        return false;
+    }
+
     return mNrFrames == 0 || mCurrentFrame >= mNrFrames;
 }
 

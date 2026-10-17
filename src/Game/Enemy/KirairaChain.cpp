@@ -208,14 +208,14 @@ void KirairaChain::control() {
 }
 
 void KirairaChain::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, MR::MovementType_MapObj, -1, -1, MR::DrawType_KirairaChain);
+    MR::connectToScene(this, 0x21 /* MovementType_MapObj */, -1, -1, 0x1a /* DrawType_KirairaChain */);
     initPoints();
 
     mModelDrawer = new SimpleJ3DModelDrawer(this, "キライラの鎖描画", "KirairaChain", -1);
     mModelDrawer->initWithoutIter();
 
-    mFixPointTop = MR::createModelObjEnemy("キライラの固定点[Top]", "KirairaFixPointTop", mFixPointTopMtx.toMtxPtr());
-    mFixPointBottom = MR::createModelObjEnemy("キライラの固定点[Bottom]", "KirairaFixPointBottom", mFixPointBottomMtx.toMtxPtr());
+    mFixPointTop = MR::createModelObjEnemy("キライラの固定点[Top]", "KirairaFixPointTop", mFixPointBottomMtx.toMtxPtr());
+    mFixPointBottom = MR::createModelObjEnemy("キライラの固定点[Bottom]", "KirairaFixPointBottom", mFixPointTopMtx.toMtxPtr());
 
     mFixPointTop->appear();
     mFixPointBottom->appear();

@@ -45,12 +45,17 @@ public:
     void exeMove();
     void exeStamp();
 
-    /* 0x8C */ TPos3f _8C;
-    /* 0xBC */ TVec3f _BC;
-    /* 0xC8 */ TQuat4f _C8;
-    /* 0xD8 */ TQuat4f _D8;
-    /* 0xE8 */ TQuat4f _E8;
-    /* 0xF8 */ TVec3f _F8;
+    /* 0x90 */ s32 _90;
+    s32 _94;
+    s32 _98;
+    s32 _9C;
+    s32 _A0;
+    /* 0xA4 */ TPos3f _A4;
+    /* 0xD4 */ TVec3f _D4;
+    /* 0xE0 */ TQuat4f _E0;
+    /* 0xF0 */ TQuat4f _F0;
+    /* 0x100 */ TQuat4f _100;
+    /* 0x110 */ TVec3f _110;
 };
 
 namespace OnimasuFunction {

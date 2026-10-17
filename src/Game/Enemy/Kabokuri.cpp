@@ -61,9 +61,11 @@ namespace NrvKabokuri {
 };  // namespace NrvKabokuri
 
 Kabokuri::Kabokuri(const char* pName)
-    : LiveActor(pName), mKuribo(), mBreakModel(), mAnimeScale(), mStateBindStartPointer(), mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f),
-      mFrontVec(0.0f, 0.0f, 1.0f), _B8(-1), mIsValidDropFire() {
+    : LiveActor(pName), mKuribo(), mBreakModel(), mAnimeScale(), mStateBindStartPointer(), _100(0), _104(0), mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f),
+      mFrontVec(0.0f, 0.0f, 1.0f), _B8(-1), mCounter(0), mIsValidDropFire() {
     KabokuriFireHolderFunc::createHolder();
+    _9C.identity();
+    _CC.identity();
 }
 
 void Kabokuri::init(const JMapInfoIter& rIter) {

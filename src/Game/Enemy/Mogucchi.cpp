@@ -62,9 +62,9 @@ void Mogucchi::init(const JMapInfoIter& rIter) {
     MR::setEffectHostMtx(this, "PointerTouchManual", MR::getJointMtx(this, "Nose"));
     initSound(4, "Mogucchi", nullptr, TVec3f(0.0f));
     initRailRider(rIter);
-    MR::declareCoin(this, 1);
+    MR::declareStarPiece(this, 3);
     initNerve(GET_NERVE_ANON(MogucchiNrvStroll));
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
 
     MR::initStarPointerTargetAtJoint(this, "Head", 83.0f, TVec3f(::sHeadOffset));
     createMogucchiHill();

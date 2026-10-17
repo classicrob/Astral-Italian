@@ -50,5 +50,6 @@ public:
     f32 _E4;
     /* 0xE8 */ f32 mStrollSpeed;
     /* 0xEC */ f32 mMaxStrollSpeed;
-    /* 0xF0 */ bool mIsStoppedByP2;
+    /* 0xF4 */ s32 _F4;
+    /* 0xF8 */ bool mIsStoppedByP2;
 };

@@ -45,6 +45,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &_B0);
     MR::getJMapInfoArg1NoInit(rIter, &mRadius);
     MR::getJMapInfoArg7NoInit(rIter, &_C4);
+    initSound(4, "StinkBugSmall", nullptr, TVec3f(0.0f));
     initHitSensor(3);
     TVec3f v9;
     if (_C4) {
@@ -69,7 +70,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     MR::setBinderExceptActor(this, this);
     MR::setBinderIgnoreMovingCollision(this);
     if (!MR::isValidSwitchDead(this)) {
-        MR::declareStarPiece(this, 3);
+        MR::declareCoin(this, 1);
     }
 
     TVec3f v7;
@@ -79,7 +80,7 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     MR::initStarPointerTarget(this, 130.0f * mScale.x, v7);
     mScaleController = new AnimScaleController(nullptr);
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
-    MR::useStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
     MR::startBrk(this, "Death");
     MR::setBrkFrameAndStop(this, 0.0f);
     initNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvWait));
@@ -301,8 +302,7 @@ void StinkBugSmall::kill() {
     }
 
     if (!MR::isValidSwitchDead(this)) {
-        MR::appearStarPiece(this, mPosition, 3, 10.0f, 40.0f, false);
-        MR::startActionSound(this, "OjStarPieceBurst");
+        MR::appearCoinPop(this, mPosition, 1);
     }
 
     MR::emitEffect(this, "Death");

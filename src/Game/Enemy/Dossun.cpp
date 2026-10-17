@@ -38,12 +38,13 @@ namespace NrvDossun {
 };  // namespace NrvDossun
 
 Dossun::Dossun(const char* pName) : LiveActor(pName) {
-    _8C.x = 0.0f;
-    _8C.y = 0.0f;
-    _8C.z = 0.0f;
-    _98.x = 0.0f;
-    _98.y = 0.0f;
-    _98.z = 0.0f;
+    _90.x = 0.0f;
+    _90.y = 0.0f;
+    _90.z = 0.0f;
+    _A0.x = 0.0f;
+    _A0.y = 0.0f;
+    _A0.z = 0.0f;
+    _8C = 0;
     mFallingTime = 0;
     mHoldTime = 0;
     mMovementDist = ::sUpperHeight;
@@ -81,7 +82,7 @@ void Dossun::appear() {
     LiveActor::appear();
     getSensor("body")->invalidate();
     calcParameters();
-    mPosition.set(_8C);
+    mPosition.set(_90);
     if (MR::isValidSwitchA(this)) {
         setNerve(GET_NERVE(Dossun, DossunNrvReady));
     } else {
@@ -98,7 +99,7 @@ void Dossun::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg3NoInit(rIter, &shadowType);
     mHasShadow = shadowType != -1;
     MR::setGroupClipping(this, rIter, 16);
-    _98.set(mPosition);
+    _A0.set(mPosition);
 }
 
 void Dossun::initShadow() {
@@ -118,7 +119,7 @@ void Dossun::calcParameters() {
     mtx.set(getBaseMtx());
     TVec3f offset(0.0f, mMovementDist, 0.0f);
     mtx.mult33(offset);
-    _8C.add(_98, offset);
+    _90.add(_A0, offset);
 
     mFallingTime =
         static_cast< s16 >(mMovementDist / (MR::isGalaxyQuickCometAppearInCurrentStage() ? ::sFallingSpeed * ::sQuickRatio : ::sFallingSpeed));
@@ -147,7 +148,7 @@ void Dossun::exeReady() {
 
 void Dossun::exeUpper() {
     if (MR::isFirstStep(this)) {
-        mPosition.set(_8C);
+        mPosition.set(_90);
     }
 
     if (MR::isStep(this, getUpperFrame())) {
@@ -175,7 +176,7 @@ void Dossun::exeFallSign() {
 
 void Dossun::exeFalling() {
     f32 ease = MR::getEaseInValue(getNerveStep(), 0.0f, 1.0f, mFallingTime);
-    mPosition.lerp(_8C, _98, ease);
+    mPosition.lerp(_90, _A0, ease);
     MR::startActionSound(this, "OjLvDossunFall");
     if (MR::isStep(this, mFallingTime)) {
         setNerve(GET_NERVE(Dossun, DossunNrvOnGround));
@@ -184,7 +185,7 @@ void Dossun::exeFalling() {
 
 void Dossun::exeOnGround() {
     if (MR::isFirstStep(this)) {
-        mPosition.set(_98);
+        mPosition.set(_A0);
         MR::startRumbleWithShakeCameraNormalWeak(this, "中", "弱", ::sCamShakeDistanceStrong, ::sCamShakeDistanceWeak);
         MR::startActionSound(this, "OjDossunLand");
         MR::emitEffect(this, "Land");
@@ -202,7 +203,7 @@ void Dossun::exeRising() {
     }
 
     f32 ease = MR::getEaseInOutValue(getNerveStep(), 0.0f, 1.0f, mHoldTime);
-    mPosition.lerp(_98, _8C, ease);
+    mPosition.lerp(_A0, _90, ease);
     MR::startActionSound(this, "OjLvDossunUpper");
     if (MR::isStep(this, mHoldTime)) {
         MR::startActionSound(this, "OjDossunStop");

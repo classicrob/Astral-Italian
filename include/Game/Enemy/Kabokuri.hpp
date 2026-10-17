@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
 
 class AnimScaleController;
 class Kuribo;
@@ -48,12 +49,16 @@ public:
     /* 0x8C */ Kuribo* mKuribo;
     /* 0x90 */ ModelObj* mBreakModel;
     /* 0x94 */ AnimScaleController* mAnimeScale;
-    /* 0x98 */ WalkerStateBindStarPointer* mStateBindStartPointer;
-    /* 0x9C */ TQuat4f mRotationQuat;
-    /* 0xAC */ TVec3f mFrontVec;
-    /* 0xB8 */ s32 _B8;
-    /* 0xBC */ bool mIsFloating;
-
+    /* 0x9C */ TMtx34f _9C;
+    /* 0xCC */ TMtx34f _CC;
+    /* 0xFC */ WalkerStateBindStarPointer* mStateBindStartPointer;
+    /* 0x100 */ s32 _100;
+    /* 0x104 */ s32 _104;
+    /* 0x108 */ TQuat4f mRotationQuat;
+    /* 0x118 */ TVec3f mFrontVec;
+    /* 0x124 */ s32 _B8;
+    /* 0x128 */ s32 mCounter;
+    /* 0x12C */ bool mIsFloating;
     /// @brief Drops fire on every point of the rail reached, except the first one.
-    /* 0xBD */ bool mIsValidDropFire;
+    /* 0x12D */ bool mIsValidDropFire;
 };

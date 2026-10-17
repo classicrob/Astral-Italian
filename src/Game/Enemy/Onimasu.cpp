@@ -31,12 +31,8 @@ void Onimasu_FORCE_MATCH_SDATA2() {
 }
 
 namespace {
-    static const s32 sWaitTime = 90;
-    static const s32 sTimeToNextPoint = 30;
     static const f32 sGravityScalar = 1.6f;
     // static const f32 sQuickRatio = ;
-    static const s32 sWaitTimeQuick = 45;
-    static const s32 sTimeToNextPointQuick = 15;
     static const f32 sGravityScalarQuick = 6.4f;
     static const f32 sCamShakeDistanceStrong = 2000.0f;
     static const f32 sCamShakeDistanceWeak = 3500.0f;
@@ -54,11 +50,11 @@ namespace NrvOnimasu {
 Onimasu::~Onimasu() {
 }
 
-Onimasu::Onimasu(const char* pName) : LiveActor(pName), _BC(1.0f, 0.0f, 0.0f), _F8(gZeroVec) {
-    _8C.identity();
-    _C8.set(0.0f, 0.0f, 0.0f, 1.0f);
-    _D8.set(0.0f, 0.0f, 0.0f, 1.0f);
-    _E8.set(0.0f, 0.0f, 0.0f, 1.0f);
+Onimasu::Onimasu(const char* pName) : LiveActor(pName), _90(0), _94(90), _98(30), _9C(45), _A0(15), _D4(1.0f, 0.0f, 0.0f), _110(gZeroVec) {
+    _A4.identity();
+    _E0.set(0.0f, 0.0f, 0.0f, 1.0f);
+    _F0.set(0.0f, 0.0f, 0.0f, 1.0f);
+    _100.set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void Onimasu::init(const JMapInfoIter& rIter) {
@@ -72,7 +68,7 @@ void Onimasu::init(const JMapInfoIter& rIter) {
     MR::initLightCtrl(this);
     initEffectKeeper(0, nullptr, false);
 
-    MR::setEffectHostMtx(this, "Move", _8C);
+    MR::setEffectHostMtx(this, "Move", _A4);
 
     initSound(4, "Onimasu", nullptr, TVec3f(0.0f));
 
@@ -80,7 +76,7 @@ void Onimasu::init(const JMapInfoIter& rIter) {
     MR::initCollisionParts(this, "Onimasu", MR::addHitSensor(this, "body", ATYPE_MAP_OBJ_PRESS, 8, ::sSensorRadius, TVec3f(0.0f, 0.0f, 0.0f)),
                            nullptr);
 
-    MR::initAndSetRailClipping(&_F8, this, 100.0f, 500.0f);
+    MR::initAndSetRailClipping(&_110, this, 100.0f, 500.0f);
 
     MR::setGroupClipping(this, rIter, 16);
 
@@ -110,13 +106,13 @@ void Onimasu::initAfterPlacement() {
     MR::setBaseTRMtx(this, mtx);
 
     if (MR::isEqualStageName("FactoryGalaxy")) {
-        mtx.getXDir(_BC);
-        MR::normalize(&_BC);
+        mtx.getXDir(_D4);
+        MR::normalize(&_D4);
     }
 
-    mtx.getQuat(_C8);
-    _D8.set(_C8);
-    _E8.set(_D8);
+    mtx.getQuat(_E0);
+    _F0.set(_E0);
+    _100.set(_F0);
 
     if (MR::isEqualStageName("FactoryGalaxy")) {
         f32 turnDirection = 0.0f;
@@ -137,9 +133,9 @@ void Onimasu::calcTargetPose() {
             mtx.identity();
             const f32 pi = MR::pi();
             mtx.makeRotate(getLastPointNormal(), pi * turnDirection);
-            mtx.mult(_BC, _BC);
+            mtx.mult(_D4, _D4);
 
-            MR::normalize(&_BC);
+            MR::normalize(&_D4);
         } else {
             TVec3f lastPointPos;
             MR::calcRailPointPos(&lastPointPos, this, getLastPointNo());
@@ -152,36 +148,36 @@ void Onimasu::calcTargetPose() {
 
             TVec3f down;
             calcGravityDir(&down);
-            _BC.cross(railDir, down);
-            MR::normalize(&_BC);
+            _D4.cross(railDir, down);
+            MR::normalize(&_D4);
         }
     } else {
         TQuat4f normalRotation;
         normalRotation.set(0.0f, 0.0f, 0.0f, 1.0f);
         normalRotation.setRotate(getLastPointNormal(), getNextPointNormal());
         rotationChange.set(normalRotation);
-        normalRotation.getRotate(_BC);
-        MR::normalize(&_BC);
+        normalRotation.getRotate(_D4);
+        MR::normalize(&_D4);
     }
 
-    _C8.set(_D8);
+    _E0.set(_F0);
 
     TQuat4f quarterTurn;
     quarterTurn.set(0.0f, 0.0f, 0.0f, 1.0f);
-    quarterTurn.setRotate(_BC, MR::pi() / 2.0f);
+    quarterTurn.setRotate(_D4, MR::pi() / 2.0f);
     rotationChange.mult(quarterTurn);
-    _D8.mult(rotationChange);
+    _F0.mult(rotationChange);
 
     TVec3f startFront;
-    _C8.getZDir(startFront);
+    _E0.getZDir(startFront);
 
     TVec3f targetFront;
-    _D8.getZDir(targetFront);
+    _F0.getZDir(targetFront);
 
     if (MR::isSameDirection(startFront, targetFront)) {
         TQuat4f adjustment;
-        adjustment.setRotate(_BC, MR::pi() * 0.001f);
-        _C8.mult(adjustment);
+        adjustment.setRotate(_D4, MR::pi() * 0.001f);
+        _E0.mult(adjustment);
     }
 }
 
@@ -191,15 +187,15 @@ void Onimasu::updatePose() {
         nerveRate = 1.0f;
     }
 
-    _E8.set(_C8);
-    _E8.slerp(_D8, nerveRate);
-    _E8.normalize();
+    _100.set(_E0);
+    _100.slerp(_F0, nerveRate);
+    _100.normalize();
 }
 
 void Onimasu::calcAndSetBaseMtx() {
     TPos3f baseMtx;
     baseMtx.identity();
-    baseMtx.setQT(_E8, mPosition);
+    baseMtx.setQT(_100, mPosition);
 
     MR::setBaseTRMtx(this, baseMtx);
 }
@@ -261,12 +257,12 @@ f32 Onimasu::getGravityScalar() const {
 
 s32 Onimasu::getTimeToNextPoint() const {
     bool quick = MR::isGalaxyQuickCometAppearInCurrentStage();
-    return quick ? ::sTimeToNextPointQuick : ::sTimeToNextPoint;
+    return quick ? _A0 : _98;
 }
 
 s32 Onimasu::getWaitTime() const {
     bool quick = MR::isGalaxyQuickCometAppearInCurrentStage();
-    return quick ? ::sWaitTimeQuick : ::sWaitTime;
+    return quick ? _9C : _94;
 }
 
 void Onimasu::emitEffectLand() {
@@ -275,10 +271,10 @@ void Onimasu::emitEffectLand() {
 
     railPointPos.add((-getNextPointNormal() * ::sSensorRadius) * 0.5f);
 
-    if (MR::isSameDirection(_BC, getNextPointNormal())) {
-        MR::makeMtxUpNoSupportPos(&_8C, getNextPointNormal(), railPointPos);
+    if (MR::isSameDirection(_D4, getNextPointNormal())) {
+        MR::makeMtxUpNoSupportPos(&_A4, getNextPointNormal(), railPointPos);
     } else {
-        MR::makeMtxUpSidePos(&_8C, getNextPointNormal(), _BC, railPointPos);
+        MR::makeMtxUpSidePos(&_A4, getNextPointNormal(), _D4, railPointPos);
     }
 
     MR::emitEffect(this, "Move");

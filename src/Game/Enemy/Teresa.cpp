@@ -3,8 +3,16 @@
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 
+class ClipAreaDrop;
 class YoshiLockOnTarget;
+namespace YoshiFunction {
+    bool tryYoshiLick(YoshiLockOnTarget*);
+};
+extern "C" void fn_8020E640(Teresa* pTeresa) NO_INLINE;
+extern "C" void fn_8020E910(Teresa* pTeresa) NO_INLINE;
 namespace MR {
+    void createClipAreaDropHolder();
+    ClipAreaDrop* appearClipAreaDrop(const TVec3f&, f32);
     bool isMsgYoshiStartTongue(u32);
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
     bool updateActorState(LiveActor*);
@@ -112,6 +120,8 @@ void Teresa::init(const JMapInfoIter& rIter) {
     setStartNerve();
 }
 
+// NONMATCHING: target passes two extra TVec3f(0,0,0) args to createDummyDisplayModel (symbols.txt names it
+// ...PCcl, likely a misnamed 6-arg overload)
 void Teresa::initDummyModel(const JMapInfoIter& rIter) {
     if (MR::isValidInfo(rIter)) {
         mDisplayModel = MR::createDummyDisplayModel(this, rIter, "SklRoot", -1);
@@ -126,18 +136,19 @@ void Teresa::initDummyModel(const JMapInfoIter& rIter) {
             _FC = 0;
         }
 
-        if (MR::isBckExist(mDisplayModel, "InTeresa")) {
-            MR::startBck(mDisplayModel, "InTeresa");
-        }
+        MR::tryStartAllAnim(mDisplayModel, "InTeresa");
     }
 }
 
 void Teresa::initFromJMapParam(const JMapInfoIter& rIter) {
     if (MR::isValidInfo(rIter)) {
-        MR::initDefaultPos(this, rIter);
-        mScale.mult(1.0f);
-        MR::makeQuatAndFrontFromRotate(&_94, &mWallNormal, this);
         MR::getJMapInfoArg0WithInit(rIter, &mAppearanceType);
+        f32 dropRadius = -1.0f;
+        MR::getJMapInfoArg1WithInit(rIter, &dropRadius);
+        if (dropRadius >= 1.0f) {
+            MR::createClipAreaDropHolder();
+            mClipAreaDrop = MR::appearClipAreaDrop(mPosition, dropRadius);
+        }
     }
 }
 
@@ -193,17 +204,26 @@ namespace {
 };  // namespace
 
 void Teresa::control() {
+    mScaleController->updateNerve();
     if (!isNerve(GET_NERVE(Teresa, TeresaNrvDrift)) && !isNerve(GET_NERVE(Teresa, TeresaNrvAscension))) {
         _D4.x = 1.0f + (0.95f * (_D4.x - 1.0f));
         _D4.z = 1.0f / _D4.x;
     }
 
     tryHideWater();
-    ::blendTeresaQuat(&_94, mGravity, mWallNormal);
+    fn_8020E640(this);
     _FE = 0;
 
     if (_F4 > 0.9f) {
         MR::requestPointLight(this, TVec3f(mPosition), ::sPointLightColor, 1.0f, -1);
+    }
+
+    if (mClipAreaDrop != nullptr) {
+        MR::setPosition((LiveActor*)mClipAreaDrop, mPosition);
+    }
+
+    if (isEatable()) {
+        YoshiFunction::tryYoshiLick(mLockOnTarget);
     }
 }
 
@@ -239,7 +259,7 @@ bool Teresa::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     if (MR::isSensorEnemy(pSender)) {
-        TVec3f v9 = MR::getSensorPos(pReceiver) - MR::getSensorPos(pSender);
+        TVec3f v9 = *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender);
         MR::normalizeOrZero(&v9);
         mVelocity.add(v9 * 0.1f);
         return true;
@@ -418,24 +438,17 @@ bool Teresa::tryWalkEnd() {
     return false;
 }
 
-inline bool Teresa::isShayCondition() const {
-    if (MR::isPlayerSquat()) {
-        return false;
-    }
-
-    if (!isShay()) {
-        return false;
-    }
-
-    return MR::isNearPlayer(this, 1500.0f);
-}
-
 bool Teresa::tryChase() {
     if (MR::isPlayerElementModeTeresa()) {
         return false;
     }
 
-    if (!isShayCondition() && MR::isNearPlayer(this, 1800.0f)) {
+    bool isShayCond = false;
+    if (!MR::isPlayerSquat() && isShay() && MR::isNearPlayer(this, 1500.0f)) {
+        isShayCond = true;
+    }
+
+    if (!isShayCond && MR::isNearPlayer(this, 1800.0f)) {
         setNerve(GET_NERVE(Teresa, TeresaNrvChase));
         return true;
     }
@@ -466,7 +479,12 @@ bool Teresa::tryShay() {
         return false;
     }
 
-    if (isShayCondition()) {
+    bool isShayCond = false;
+    if (!MR::isPlayerSquat() && isShay() && MR::isNearPlayer(this, 1500.0f)) {
+        isShayCond = true;
+    }
+
+    if (isShayCond) {
         setNerve(GET_NERVE(Teresa, TeresaNrvShay));
         return true;
     }
@@ -478,7 +496,14 @@ bool Teresa::tryShayEnd() {
     if (MR::isPlayerElementModeTeresa()) {
         setStartNerve();
         return true;
-    } else if (!isShayCondition()) {
+    }
+
+    bool isShayCond = false;
+    if (!MR::isPlayerSquat() && isShay() && MR::isNearPlayer(this, 1500.0f)) {
+        isShayCond = true;
+    }
+
+    if (!isShayCond) {
         if (MR::isExistRail(this)) {
             setStartNerve();
         } else {
@@ -854,12 +879,7 @@ void Teresa::exeShay() {
         MR::startActionSound(this, "OjLvPowStarExist");
     }
 
-    if (mDisplayModel != nullptr) {
-        setTransparency(MR::calcNerveEaseInOutValue(this, 60, _F4, 0.5f));
-    } else {
-        updateNormalTransparency();
-    }
-
+    fn_8020E910(this);
     updateNormalVelocity();
 
     if (!tryAscension() && !tryFreeze()) {
@@ -1053,6 +1073,14 @@ void Teresa::updateNormalTransparency() {
     }
 
     setTransparency(_F4);
+}
+
+extern "C" void fn_8020E910(Teresa* pTeresa) {
+    if (pTeresa->mDisplayModel != nullptr) {
+        pTeresa->setTransparency(MR::calcNerveEaseInOutValue(pTeresa, 60, pTeresa->_F4, 0.5f));
+    } else {
+        pTeresa->updateNormalTransparency();
+    }
 }
 
 void Teresa::setTransparency(f32 val) {

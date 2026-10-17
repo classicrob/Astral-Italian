@@ -2,6 +2,7 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 
 class AnimScaleController;
 class ClipAreaDrop;
@@ -91,9 +92,8 @@ public:
     bool isEnableStarPieceStop() const;
     bool isCheckWater() const;
     bool isEatable() const;
-    bool isShayCondition() const;
-    bool isFreeze() const;
-    bool isShay() const;
+    bool isFreeze() const NO_INLINE;
+    bool isShay() const NO_INLINE;
     void endDrift();
     void endAppearFromGround();
     void endAppearFromWall();

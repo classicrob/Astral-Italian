@@ -33,6 +33,10 @@ def rewrite(s):
     s = re.sub(r"\*\s*(" + g + ")", r"\1", s)
     s = re.sub(r"(TVec3f\*\s*\w+\s*=\s*)(" + g + ")", r"\1&\2", s)
     s = re.sub(r"(TVec3f\*\s*\w+\s*=\s*)\(?(" + g + r"[^;]*?\))\)?;", r"\1&\2;", s) if False else s
+    # MR::getSensorPos returns const TVec3f* in Garigari (Petari: const TVec3f&). Without the deref,
+    # `getSensorPos(a) - getSensorPos(b)` silently compiles as a POINTER difference.
+    s = re.sub(r"(?<![*&\w])MR::getSensorPos\(", "*MR::getSensorPos(", s)
+    s = s.replace("&*MR::getSensorPos(", "MR::getSensorPos(")
     # LiveActor::initSound(s32, bool) -> SMG2 initSound(s32, "<ClassName>", nullptr, TVec3f(0.0f))
     out, cls = [], None
     for l in s.split("\n"):

@@ -34,8 +34,9 @@ public:
     }  // required to match instruction order in generateKill
 
     /* 0x8C */ Polta* mOwner;
-    TQuat4f _90;
-    TVec3f _A0;
-    TVec3f _AC;
-    /* 0xB8 */ s32 mType;
+    s32 _94;
+    TQuat4f _98;
+    TVec3f _A8;
+    TVec3f _B4;
+    /* 0xC0 */ s32 mType;
 };

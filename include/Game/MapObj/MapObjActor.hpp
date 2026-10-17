@@ -13,6 +13,28 @@ class ModelObj;
 class MapPartsFunction;
 class ProjmapEffectMtxSetter;
 
+// SMG2: per-object camera shake / pad rumble parameters read from the "StageEffectCamera"/"StageEffectPad" csv.
+struct MapObjStageEffectCamera {
+    MapObjStageEffectCamera() : _0(nullptr), _4(0.0f), _8(0.0f), _C(nullptr), _10(0.0f) {
+    }
+
+    /* 0x00 */ const char* _0;
+    /* 0x04 */ f32 _4;
+    /* 0x08 */ f32 _8;
+    /* 0x0C */ const char* _C;
+    /* 0x10 */ f32 _10;
+};
+
+struct MapObjStageEffectPad {
+    MapObjStageEffectPad() : _0(nullptr), _4(nullptr), _8(nullptr), _C(0.0f) {
+    }
+
+    /* 0x00 */ const char* _0;
+    /* 0x04 */ const char* _4;
+    /* 0x08 */ const char* _8;
+    /* 0x0C */ f32 _C;
+};
+
 class MapObjActor : public LiveActor {
 public:
     MapObjActor(const char* pName);
@@ -26,44 +48,50 @@ public:
     virtual void endClipped();
     virtual void control();
     virtual void calcAndSetBaseMtx();
+    virtual void setPlayAppearSe();
     virtual void connectToScene(const MapObjActorInitInfo& rInfo);
     virtual void initCaseUseSwitchA(const MapObjActorInitInfo& rInfo);
     virtual void initCaseNoUseSwitchA(const MapObjActorInitInfo& rInfo);
     virtual void initCaseUseSwitchB(const MapObjActorInitInfo& rInfo);
     virtual void initCaseNoUseSwitchB(const MapObjActorInitInfo& rInfo);
-    virtual void makeSubModels(const JMapInfoIter& rIter, const MapObjActorInitInfo& rInfo) {
-    }
+    virtual void makeSubModels(const JMapInfoIter& rIter, const MapObjActorInitInfo& rInfo);
+    virtual void updateProjmapMtx();
+    virtual bool tryEmitWaitEffect();
+    virtual bool tryDeleteWaitEffect();
 
     void initialize(const JMapInfoIter& rIter, const MapObjActorInitInfo& rInfo);
     bool isObjectName(const char* pName) const;
     bool tryCreateBreakModel(const MapObjActorInitInfo& rInfo);
-    bool tryEmitWaitEffect();
-    bool tryDeleteWaitEffect();
+    bool initStageEffectCamera();
+    bool initStageEffectPad();
     void startMapPartsFunctions();
     void endMapPartsFunctions();
     void pauseMapPartsFunctions();
+    void resumeMapPartsFunctions();
     void setStateWait();
-    void updateProjmapMtx();
     void exeWait();
     void exeMove();
     void exeDone();
 
-    /* 0x8C */ const char* mObjectName;
-    /* 0x90 */ LodCtrl* mPlanetLodCtrl;
-    /* 0x94 */ ModelObj* mBloomModel;
-    /* 0x98 */ ModelObj* mModelObj;
-    /* 0x9C */ ProjmapEffectMtxSetter* mMatrixSetter;
-    /* 0xA0 */ MapPartsRailMover* mRailMover;
-    /* 0xA4 */ MapPartsRotatorBase* mRotator;
-    /* 0xA8 */ MapPartsRailRotator* mRailRotator;
-    /* 0xAC */ MapPartsRailPosture* mRailPosture;
-    /* 0xB0 */ MapPartsRailGuideDrawer* mRailGuideDrawer;
-    /* 0xB4 */ u8 _B4;
-    /* 0xB5 */ u8 _B5;
-    /* 0xB6 */ u8 _B6;
-    /* 0xB8 */ Nerve* mWaitNrv;
-    /* 0xBC */ Nerve* mMoveNrv;
-    /* 0xC0 */ Nerve* mDoneNrv;
+    /* 0x90 */ const char* mObjectName;
+    /* 0x94 */ LodCtrl* mPlanetLodCtrl;
+    /* 0x98 */ ModelObj* mBloomModel;
+    /* 0x9C */ ModelObj* mModelObj;
+    /* 0xA0 */ ProjmapEffectMtxSetter* mMatrixSetter;
+    /* 0xA4 */ MapPartsRailMover* mRailMover;
+    /* 0xA8 */ MapPartsRotatorBase* mRotator;
+    /* 0xAC */ MapPartsRailRotator* mRailRotator;
+    /* 0xB0 */ MapPartsRailPosture* mRailPosture;
+    /* 0xB4 */ MapPartsRailGuideDrawer* mRailGuideDrawer;
+    /* 0xB8 */ u8 _B8;  // Petari _B4
+    /* 0xB9 */ u8 _B9;
+    /* 0xBA */ u8 _BA;  // Petari _B5
+    /* 0xBB */ u8 _BB;  // Petari _B6 (play appear SE)
+    /* 0xBC */ Nerve* mWaitNrv;
+    /* 0xC0 */ Nerve* mMoveNrv;
+    /* 0xC4 */ Nerve* mDoneNrv;
+    /* 0xC8 */ MapObjStageEffectCamera* mStageEffectCamera;
+    /* 0xCC */ MapObjStageEffectPad* mStageEffectPad;
 };
 
 class MapObjActorUtil {

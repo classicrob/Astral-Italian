@@ -21,10 +21,10 @@ public:
     void exeWait();
 
 private:
-    /* 0x8C */ StarPiece** mStarPieceArray;
-    /* 0x90 */ f32* _90;
-    /* 0x94 */ s32 _94;
-    /* 0x98 */ u32 _98;
-    /* 0x9C */ u32 _9C;
-    /* 0xA0 */ f32 _A0;
+    /* 0x90 */ StarPiece** mStarPieceArray;
+    /* 0x94 */ f32* _90;
+    /* 0x98 */ s32 _94;
+    /* 0x9C */ u32 _98;
+    /* 0xA0 */ u32 _9C;
+    /* 0xA4 */ f32 _A0;
 };

@@ -10,6 +10,7 @@
 
 class ActorLightCtrl;
 class ActorPoseTQ;
+class AnimScaleController;
 struct BckCtrlData;
 class BreakModel;
 class CollisionObj;
@@ -80,6 +81,7 @@ namespace MR {
     void setBaseTRMtx(LiveActor* pActor, const TQuat4f& rQuat);
     void setBaseTRMtx(LiveActor* pActor, ActorPoseTQ* pPose);
     void setBaseScale(LiveActor* pActor, const TVec3f& rScale);
+    void updateBaseScale(LiveActor* pActor, AnimScaleController* pScaleController);
 
     ResourceHolder* getResourceHolder(const LiveActor* pActor);
     ResourceHolder* getModelResourceHolder(const LiveActor* pActor);

@@ -36,11 +36,11 @@ public:
     void exeMove();
     void exeBreak();
 
-    /* 0x8C */ s32 mType;
-    /* 0x90 */ f32 mStepSize;  // Obj_arg0
-    /* 0x94 */ TVec3f mRailDir;
-    /* 0xA0 */ ModelObj* mBrokenModel;
-    /* 0xA4 */ s32 mStepsLeft;
-    /* 0xA8 */ s32 mTotalSteps;
-    /* 0xAC */ TMtx34f mLavaColumnPos;
+    /* 0x90 */ s32 mType;
+    /* 0x94 */ f32 mStepSize;  // Obj_arg0
+    /* 0x98 */ TVec3f mRailDir;
+    /* 0xA4 */ ModelObj* mBrokenModel;
+    /* 0xA8 */ s32 mStepsLeft;
+    /* 0xAC */ s32 mTotalSteps;
+    /* 0xB0 */ TMtx34f mLavaColumnPos;
 };

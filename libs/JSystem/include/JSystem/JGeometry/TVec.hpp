@@ -368,6 +368,12 @@ namespace JGeometry {
         TVec3(const TVec3< f32 >& vec);
 #endif
 
+        TVec3(f32 _x, f32 _y, f32 _z) {
+            x = _x;
+            y = _y;
+            z = _z;
+        }
+
         template < typename T >
         TVec3(T _x, T _y, T _z) {
             x = _x;

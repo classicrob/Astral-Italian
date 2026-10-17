@@ -16,6 +16,6 @@ public:
     void exeWait();
     void exeMove();
 
-    /* 0x8C */ const char* mFountainName;
-    /* 0x90 */ TVec3f mUp;
+    /* 0x90 */ const char* mFountainName;
+    /* 0x94 */ TVec3f mUp;
 };

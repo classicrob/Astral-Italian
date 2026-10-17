@@ -34,10 +34,10 @@ public:
     void exeHitPointer();
     void exeActive();
 
-    /* 0x90 */ MapPartsRailMover* mRailMover;
-    /* 0x94 */ f32 mStarAnimSpeed;
-    /* 0x98 */ ActorCameraInfo* mCameraInfo;
-    /* 0x9C */ f32 mReleaseDistance;
-    /* 0xA0 */ f32 mPointableRange;
-    /* 0xA4 */ bool mFarAwayColor;
+    /* 0x94 */ MapPartsRailMover* mRailMover;
+    /* 0x98 */ f32 mStarAnimSpeed;
+    /* 0x9C */ ActorCameraInfo* mCameraInfo;
+    /* 0xA0 */ f32 mReleaseDistance;
+    /* 0xA4 */ f32 mPointableRange;
+    /* 0xA8 */ bool mFarAwayColor;
 };

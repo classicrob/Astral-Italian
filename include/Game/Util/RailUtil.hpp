@@ -40,7 +40,7 @@ namespace MR {
     void calcRailClippingInfo(TVec3f*, f32*, const LiveActor*, f32, f32);
     void initAndSetRailClipping(TVec3f*, LiveActor*, f32, f32);
     f32 calcNearestRailCoord(const LiveActor*, const TVec3f&);
-    void calcNearestRailPos(TVec3f*, const LiveActor*, const TVec3f&);
+    f32 calcNearestRailPos(TVec3f*, const LiveActor*, const TVec3f&);
     void calcNearestRailDirection(TVec3f*, const LiveActor*, const TVec3f&);
     void calcNearestRailPosAndDirection(TVec3f*, TVec3f*, const LiveActor*, const TVec3f&);
 

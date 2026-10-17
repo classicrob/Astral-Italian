@@ -2904,11 +2904,17 @@ Game/MapObj/ManholeCover.cpp:
 Game/MapObj/MapObjActor.cpp:
 	.text       start:0x802C9B00 end:0x802CBBB0
 	.ctors      start:0x806444C8 end:0x806444CC
-	.data       start:0x806A5D68 end:0x806A5E50
+	.rodata     start:0x80649568 end:0x80649570
+	.data       start:0x806A5BC8 end:0x806A5E50
+	.sdata      start:0x807CFD50 end:0x807CFD54
 	.sbss       start:0x807D3F50 end:0x807D3F60
+	.sdata2     start:0x807DDC50 end:0x807DDC88
 
 Game/MapObj/MapObjActorInitInfo.cpp:
-	.text       start:0x802CBBB0 end:0x802CBEB0
+	.text       start:0x802CBBB0 end:0x802CC2F0
+	.rodata     start:0x80649570 end:0x80649590
+	.data       start:0x806A5E50 end:0x806A6058
+	.sdata2     start:0x807DDC88 end:0x807DDCA0
 
 Game/MapObj/MapObjConnector.cpp:
 	.text       start:0x802CC2F0 end:0x802CC690

@@ -36,6 +36,7 @@ namespace MR {
     bool isStarPointerPointing1P(const LiveActor*, const char*, bool, bool);
     bool isStarPointerPointing1PWithoutCheckZ(const LiveActor*, const char*, bool, bool);
     bool isStarPointerPointing2P(const LiveActor*, const char*, bool, bool);
+    bool isStarPointerPointing2PAttachTarget(const LiveActor*);
     bool isStarPointerPointing2POnPressButton(const LiveActor*, const char*, bool, bool);
     bool isStarPointerPointing2POnTriggerButton(const LiveActor*, const char*, bool, bool);
     bool isStarPointerPointingFileSelect(const LiveActor*);

@@ -9,7 +9,7 @@
 
 namespace {
     SpiderThreadWindCtrl* getWindCtrl() {
-        return MR::getSceneObj< SpiderThread >(SceneObj_SpiderThread)->mWindCtrl;
+        return MR::getSceneObj< SpiderThread* >(0x65 /* SceneObj_SpiderThread */)->mWindCtrl;
     }
 
     static const f32 sAccelRate = 0.02f;

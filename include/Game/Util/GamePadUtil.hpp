@@ -19,6 +19,7 @@ namespace MR {
     bool testCorePadButtonRight(s32);
     bool testCorePadButtonA(s32);
     bool testCorePadButtonB(s32);
+    bool testCorePadButtonAorB(s32);
     bool testCorePadButtonPlus(s32);
     bool testCorePadButtonMinus(s32);
     bool testSubPadButtonC(s32);
@@ -30,6 +31,7 @@ namespace MR {
     bool testCorePadTriggerRight(s32);
     bool testCorePadTriggerA(s32);
     bool testCorePadTriggerB(s32);
+    bool testCorePadTriggerAorB(s32);
     bool testCorePadTrigger1(s32);
     bool testCorePadTrigger2(s32);
     bool testCorePadTriggerPlus(s32);

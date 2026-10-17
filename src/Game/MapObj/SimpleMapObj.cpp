@@ -29,10 +29,10 @@ void SimpleMapObj::init(const JMapInfoIter& rIter) {
 
 void SimpleEnvironmentObj::connectToScene(const MapObjActorInitInfo& rInfo) {
     if (rInfo.mConnectToScene) {
-        if (rInfo._5C == 1) {
+        if (rInfo.mMultiFur == 1) {
             MR::connectToSceneEnvironmentStrongLight(this);
             return;
-        } else if (rInfo._5C != 1) {
+        } else if (rInfo.mMultiFur != 1) {
             MR::connectToSceneEnvironment(this);
             return;
         }
@@ -46,10 +46,10 @@ void SimpleMapObjFarMax::init(const JMapInfoIter& rIter) {
 
 void SimpleMapObjNoSilhouetted::connectToScene(const MapObjActorInitInfo& rInfo) {
     if (rInfo.mConnectToScene) {
-        if (rInfo._5C == 1) {
+        if (rInfo.mMultiFur == 1) {
             MR::connectToSceneNoSilhouettedMapObjStrongLight(this);
             return;
-        } else if (rInfo._5C != 1) {
+        } else if (rInfo.mMultiFur != 1) {
             MR::connectToSceneNoSilhouettedMapObj(this);
             return;
         }

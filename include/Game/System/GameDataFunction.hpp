@@ -8,4 +8,5 @@ class JMapInfoIter;
 
 namespace GameDataFunction {
     bool isOnGalaxyFlagTicoCoin(const char* pStageName);
+    bool isOnGameEventFlagStarPieceCounterStop();
 }

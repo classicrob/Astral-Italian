@@ -119,6 +119,7 @@ namespace MR {
     bool tryGetItem(HitSensor*, HitSensor*);
 
     const TVec3f* getSensorPos(const HitSensor* pSensor);
+    TVec3f* getSensorPos2(const HitSensor* pSensor);
     const TVec3f* getSensorPos(const LiveActor* pActor, const char* pSensorName);
     const TVec3f* tryGetSensorPos(const HitSensor* pSensor);
     const TVec3f* tryGetSensorPos(const LiveActor* pActor, const char* pSensorName);
@@ -206,8 +207,8 @@ namespace MR {
     bool sendMsgExplosionToNearActor(HitSensor* pSender, f32 range);
 
     bool isInSpinStormRange(u32 msg, HitSensor* pSender, HitSensor* pReceiver, f32 range);
-    void receiveItemShowMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    void receiveItemHideMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    bool receiveItemShowMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    bool receiveItemHideMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     HitSensor* getGroundSensor(const LiveActor* pActor);
     HitSensor* getRoofSensor(const LiveActor* pActor);

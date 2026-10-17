@@ -17,6 +17,9 @@ public:
     virtual void endClipped();
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+
+    void initFromRisePictureBook();
 
     void soundOrder();
     void exeWait();

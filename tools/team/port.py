@@ -57,6 +57,11 @@ def rewrite(s):
     s = re.sub(r"(?<![\w.>&])getSensor\((\"[^\"]*\")\)->(?:mPosition(?!\s*[-+*/]?=(?!=)|\.)|getPosition\(\))", r"(*MR::getSensorPos(this, \1))", s)
     s = re.sub(r"(?<![\w.>])getSensor\(([^()]*)\)->(?:mRadius(?!\s*[-+*/]?=(?!=))|getRadius\(\))", r"MR::getSensorRadius(getSensor(\1))", s)
     s = re.sub(r"MR::initEffectAfterPlacement\(([^,()]+)\)", r"MR::initEffectAfterPlacement(\1, nullptr)", s)
+    # SpinHitController: SMG2 ctors are (actor) and (actor, killStep, stopSceneFrame, gravity, hSpeed, upSpeed);
+    # Petari (obj, itemCount, coin) / (obj, kill, itemStep, stopScene, g, h, up, itemCount, coin). Item drop moved out.
+    s = re.sub(r"SpinHitController\((\w+), [^,()]+, (?:true|false)\)", r"SpinHitController(\1)", s)
+    s = re.sub(r"SpinHitController\((\w+), ([^,()]+), [^,()]+, ([^,()]+), ([^,()]+), ([^,()]+), ([^,()]+), [^,()]+, (?:true|false)\)",
+               r"SpinHitController(\1, \2, \3, \4, \5, \6)", s)
     # LiveActor::initSound(s32, bool) -> SMG2 initSound(s32, "<ClassName>", nullptr, TVec3f(0.0f))
     out, cls, sig = [], None, ""
     for l in s.split("\n"):

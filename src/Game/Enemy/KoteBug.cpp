@@ -108,7 +108,7 @@ void KoteBug::init(const JMapInfoIter& rIter) {
     MR::initStarPointerTarget(this, 110.0f, TVec3f(0.0f, 80.0f, 0.0f));
     MR::declareStarPiece(this, 3);
     MR::declareCoin(this, 1);
-    mSpinHitController = new SpinHitController(this, 3, false);
+    mSpinHitController = new SpinHitController(this);
     mScaleController = new AnimScaleController(nullptr);
     mStampController = new AnimStampController();
     mStarPointer = new WalkerStateBindStarPointer(this, mScaleController);

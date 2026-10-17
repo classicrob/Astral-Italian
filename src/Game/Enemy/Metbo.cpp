@@ -133,7 +133,7 @@ void Metbo::init(const JMapInfoIter& rIter) {
     mAnimScaleController->setParamTight();
     mStarPointerBind = new WalkerStateBindStarPointer(this, mAnimScaleController);
     MR::calcFrontVec(&_A4, this);
-    mSpinHitController = new SpinHitController(this, 20, 20, 4, 0.2f, 40.0f, 20.0f, 3, false);
+    mSpinHitController = new SpinHitController(this, 20, 4, 0.2f, 40.0f, 20.0f);
     _98.set(mPosition);
     initNerve(GET_NERVE(Metbo, MetboNrvWait));
     makeActorAppeared();

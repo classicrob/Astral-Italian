@@ -90,7 +90,7 @@ void BombBird::init(const JMapInfoIter& rIter) {
     MR::declareStarPiece(this, 3);
     mFixedPos = new FixedPosition(this, "BombPos", TVec3f(0, 0, 0), TVec3f(0, 0, 0));
     mFixedPos->mNormalizeScale = false;
-    mSpinHitController = new SpinHitController(this, 25, 20, 4, 1.5f, 30.0f, 40.0f, 3, false);
+    mSpinHitController = new SpinHitController(this, 25, 4, 1.5f, 30.0f, 40.0f);
 
     for (BombBirdBomb** it = mBombs.begin(); it < mBombs.end(); it++) {
         *it = new BombBirdBomb("バクダン鳥のボム");

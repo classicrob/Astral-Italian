@@ -8,22 +8,18 @@ class LiveActor;
 
 class SpinHitController {
 public:
-    SpinHitController(const NameObj*, s32, bool);
-    SpinHitController(const NameObj*, s32, s32, s32, f32, f32, f32, s32, bool);
+    SpinHitController(const LiveActor*);
+    SpinHitController(const LiveActor*, s32, s32, f32, f32, f32);
 
-    void setParameter(const NameObj*, s32, s32, s32, f32, f32, f32, s32, bool);
+    void setParameter(const LiveActor*, s32, s32, f32, f32, f32);
     void start(LiveActor*, const TVec3f&, const TVec3f&);
     void startWithoutStopScene(LiveActor*, const TVec3f&, const TVec3f&);
     bool execute(LiveActor*);
-    void emitItem(LiveActor*);
 
-    s32 _0;
-    s32 _4;
-    s32 _8;
-    f32 _C;
-    f32 _10;
-    f32 _14;
-    bool _18;
-    bool _19;
-    u32 _1C;
+    /* 0x00 */ s32 mKillStep;
+    /* 0x04 */ s32 mStopSceneFrame;
+    /* 0x08 */ f32 mGravityAccel;
+    /* 0x0C */ f32 mHorizontalSpeed;
+    /* 0x10 */ f32 mUpSpeed;
+    /* 0x14 */ bool mIsStopScene;
 };

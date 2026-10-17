@@ -74,7 +74,7 @@ void SamboHead::init(const JMapInfoIter& rIter) {
         makeActorAppeared();
     }
 
-    mSpinCtrl = new SpinHitController(this, 3, false);
+    mSpinCtrl = new SpinHitController(this);
 }
 
 void SamboHead::appear() {

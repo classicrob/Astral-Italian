@@ -181,7 +181,7 @@ void StringSpider::init(const JMapInfoIter& rIter) {
     MR::declareStarPiece(this, 6);
     MR::declareStarPiece(this, 3);
     MR::declareCoin(this, 1);
-    mSpinHitController = new SpinHitController(this, 3, false);
+    mSpinHitController = new SpinHitController(this);
     mScaleController = new AnimScaleController(nullptr);
     mStampController = new AnimStampController();
     MR::onCalcGravity(this);

@@ -12,6 +12,7 @@ class ModelObj;
 class ResourceHolder;
 class NameObjAdaptor;
 class BenefitItemOneUp;
+class BenefitItemObj;
 class BenefitItemLifeUp;
 class StageSwitchCtrl;
 class Color8;
@@ -207,6 +208,7 @@ namespace MR {
     void appearKinokoOneUp(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
     void appearKinokoOneUpPop(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
     void appearKinokoOneUpHop(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
+    void appearKinokoOneUpPop(BenefitItemObj* pKinoko, MtxPtr pMtx);
 
     BenefitItemLifeUp* createKinokoSuper();
     void appearKinokoSuperPop(BenefitItemLifeUp* pKinoko, MtxPtr pMtx);

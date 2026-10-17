@@ -33,7 +33,6 @@ public:
     /* 0x20 */ LiveActor** mCastList;
     /* 0x24 */ MR::FunctorBase** mFunctors;
     /* 0x28 */ const Nerve** mNerves;
-    /* 0x2C */ u8 _2C;
 };
 
 class DemoActionKeeper {
@@ -52,4 +51,5 @@ public:
     /* 0x00 */ const DemoExecutor* mDemoExecutor;
     /* 0x04 */ s32 mNumInfos;
     /* 0x08 */ DemoActionInfo** mInfoArray;
+    /* 0x0C */ u8 _C;
 };

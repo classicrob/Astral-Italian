@@ -18,10 +18,6 @@
 #define WII_REMOTE_STATUS_UNPLAGGED 3
 
 namespace {
-    const GameSystemErrorWatcher::Message cMessageFatalError = {
-        "DISC_04",
-        ErrorMessageWindow::MessageType_System,
-    };
     const GameSystemErrorWatcher::Message cMessageNoDisk = {
         "DISC_01",
         ErrorMessageWindow::MessageType_System,
@@ -60,7 +56,7 @@ namespace {
 
 GameSystemErrorWatcher::GameSystemErrorWatcher()
     : NerveExecutor("ErrorWatcher"), mWindow(nullptr), mMessage(nullptr), mUnplaggedTexMap(nullptr), mBatteryLayout(nullptr),
-      mDriveStatus(DVD_STATE_END), _1C(nullptr), mWiiRemoteStatus(WII_REMOTE_STATUS_OK), mCounterIgnoreCheckFreeStyle(0),
+      mDriveStatus(DVD_STATE_END), _1C(nullptr), mWiiRemoteStatus(WII_REMOTE_STATUS_OK), mCounterIgnoreCheckFreeStyle(0), mCounterUnplagged(16),
       mCounterDecideDisconnect(::sCounterMaxDecideDisconnect), mWiiRemoteBattery(WPAD_BATTERY_LEVEL_MAX), mPermissionUpdateWiiRemoteStatus(false) {
     mWindow = new ErrorMessageWindow();
     mWindow->initWithoutIter();
@@ -225,8 +221,14 @@ void GameSystemErrorWatcher::updateWiiRemoteStatus() {
 
         if (mCounterIgnoreCheckFreeStyle == 0) {
             if (_1C->getLevel() && !MR::getWPad(WPAD_CHAN0)->mIsSubPadConnected) {
-                mWiiRemoteStatus = WII_REMOTE_STATUS_UNPLAGGED;
-                isOk = false;
+                if (mCounterUnplagged != 0) {
+                    mCounterUnplagged--;
+                } else {
+                    mWiiRemoteStatus = WII_REMOTE_STATUS_UNPLAGGED;
+                    isOk = false;
+                }
+            } else {
+                mCounterUnplagged = 16;
             }
 
             if (!isWaitDecideDisconnect) {
@@ -248,8 +250,6 @@ void GameSystemErrorWatcher::updateWiiRemoteStatus() {
 
 const GameSystemErrorWatcher::Message* GameSystemErrorWatcher::getProperMessageId() const {
     switch (mDriveStatus) {
-    case DVD_STATE_FATAL_ERROR:
-        return &::cMessageFatalError;
     case DVD_STATE_NO_DISK:
         return &::cMessageNoDisk;
     case DVD_STATE_WRONG_DISK:

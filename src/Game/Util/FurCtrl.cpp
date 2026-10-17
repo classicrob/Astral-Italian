@@ -83,12 +83,14 @@ void FurCtrl::calcLayerForm() {
     }
 
     for (s32 i = 0; i < mDrawer->mNumLayers; i++) {
-        const FurDrawer* pDrawer = mDrawer;
-        f32 length = pDrawer->mLength.calcValue(i, pDrawer->mNumLayers);
-        mShader->_8 = pow(rate * i / mDrawer->mNumLayers, 4.0);
-        mLayerModels[i]->mVertexBuffer.frameInit();
-        mShader->_1C = length;
-        mShader->calc(mLayerModels[i]);
+        if (mShader) {
+            const FurDrawer* pDrawer = mDrawer;
+            f32 length = pDrawer->mLength.calcValue(i, pDrawer->mNumLayers);
+            mShader->_8 = pow(rate * i / mDrawer->mNumLayers, 4.0);
+            mLayerModels[i]->mVertexBuffer.frameInit();
+            mShader->_1C = length;
+            mShader->calc(mLayerModels[i]);
+        }
     }
 }
 

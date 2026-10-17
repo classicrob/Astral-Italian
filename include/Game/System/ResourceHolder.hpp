@@ -13,7 +13,7 @@ typedef const char* ArchiveName;
 
 class ResourceHolder {
 public:
-    ResourceHolder(JKRArchive&);
+    ResourceHolder(JKRArchive&, const char*);
 
     const char* getMotionName(u32) const;
     bool isExistMaterialAnm() const;
@@ -90,4 +90,5 @@ public:
     /* 0x44 */ JKRArchive* mArchive;
     /* 0x48 */ JKRHeap* mHeap;
     /* 0x4C */ u32 mTotalResourceSize;
+    /* 0x50 */ char* mName;
 };

@@ -599,6 +599,20 @@ bool AudSystem::isPauseMenuActive() const {
     return true;
 }
 
+// Used by AudBgmVolumeController::update and AudSystemVolumeController::updateSeVolumeSetLevel.
+// The byte at +0x998 is the DVD error flag (set in doDvdErrorProcess, cleared in exitDvdErrorProcess).
+extern "C" u8 fn_8007A760(const AudSystem* pSystem) {
+    if (pSystem->isPauseMenuActive()) {
+        return 1;
+    }
+
+    if (pSystem->isHomeButtonMenuActive()) {
+        return 1;
+    }
+
+    return *(const u8*)((const u8*)pSystem + 0x998);
+}
+
 void AudSystem::screenSaverProcess() {
     if (VIGetDimmingCount() > 0) {
         return;

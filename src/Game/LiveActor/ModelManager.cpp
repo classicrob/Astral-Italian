@@ -139,25 +139,25 @@ void ModelManager::startBckWithInterpole(const char* pBckName, s32 interpole) {
 void ModelManager::startBtk(const char* pBtkName) {
     stopBtk();
     mBtkPlayer->start(pBtkName);
-    mDisplayListMaker->onCurFlagBtk(mBtkPlayer->mAnmRes);
+    mDisplayListMaker->onCurFlagBtk(mBtkPlayer->mAnmRes, pBtkName);
 }
 
 void ModelManager::startBrk(const char* pBrkName) {
     stopBrk();
     mBrkPlayer->start(pBrkName);
-    mDisplayListMaker->onCurFlagBrk(mBrkPlayer->mAnmRes);
+    mDisplayListMaker->onCurFlagBrk(mBrkPlayer->mAnmRes, pBrkName);
 }
 
 void ModelManager::startBtp(const char* pBtpName) {
     stopBtp();
     mBtpPlayer->start(pBtpName);
-    mDisplayListMaker->onCurFlagBtp(mBtpPlayer->mAnmRes);
+    mDisplayListMaker->onCurFlagBtp(mBtpPlayer->mAnmRes, pBtpName);
 }
 
 void ModelManager::startBpk(const char* pBpkName) {
     stopBpk();
     mBpkPlayer->start(pBpkName);
-    mDisplayListMaker->onCurFlagBpk(mBpkPlayer->mAnmRes);
+    mDisplayListMaker->onCurFlagBpk(mBpkPlayer->mAnmRes, pBpkName);
 }
 
 void ModelManager::startBva(const char* pBvaName) {

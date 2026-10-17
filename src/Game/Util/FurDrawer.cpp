@@ -243,10 +243,7 @@ void FurDrawer::setupLayerMaterial(s32 layer) const {
     kColor.b = blend;
     kColor.a = 255;
     GXSetTevKColor(GX_KCOLOR3, kColor);
-    GXColor color;
-    color.r = mColor.r;
-    color.g = mColor.g;
-    color.b = mColor.b;
+    GXColor color = mColor;
     color.a = 255;
     GXSetTevColor(GX_TEVREG2, color);
 

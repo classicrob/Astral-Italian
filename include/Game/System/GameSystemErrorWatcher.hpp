@@ -44,7 +44,8 @@ private:
     /* 0x1C */ TriggerChecker* _1C;
     /* 0x20 */ s32 mWiiRemoteStatus;
     /* 0x24 */ s32 mCounterIgnoreCheckFreeStyle;
-    /* 0x28 */ s32 mCounterDecideDisconnect;
-    /* 0x2C */ s32 mWiiRemoteBattery;
-    /* 0x30 */ bool mPermissionUpdateWiiRemoteStatus;
+    /* 0x28 */ s32 mCounterUnplagged;
+    /* 0x2C */ s32 mCounterDecideDisconnect;
+    /* 0x30 */ s32 mWiiRemoteBattery;
+    /* 0x34 */ bool mPermissionUpdateWiiRemoteStatus;
 };

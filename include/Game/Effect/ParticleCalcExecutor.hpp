@@ -11,6 +11,7 @@ public:
     void movementIgnorePause2D();
     void movementCheckUpdate();
     void requestMovementOnPauseIgnore();
+    void requestMovementOffPauseIgnore();
     void initMovementAdaptor();
 
     /* 0x00 */ const EffectSystem* mEffectSystem;

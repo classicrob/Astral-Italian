@@ -32,24 +32,27 @@ namespace {
     // static const __ sPlanetLowSizeBorder = ;
 };  // namespace
 
-ResourceHolder::ResourceHolder(JKRArchive& rArchive)
+ResourceHolder::ResourceHolder(JKRArchive& rArchive, const char* pName)
     : mModelResTable(&mDefaultTable), mMotionResTable(&mDefaultTable), mBtkResTable(&mDefaultTable), mBpkResTable(&mDefaultTable),
       mBtpResTable(&mDefaultTable), mBlkResTable(&mDefaultTable), mBrkResTable(&mDefaultTable), mBasResTable(&mDefaultTable),
       mBmtResTable(&mDefaultTable), mBvaResTable(&mDefaultTable), mBanmtResTable(&mDefaultTable), mFileInfoTable(&mDefaultTable), mArchive(&rArchive),
-      mMaterialBuf(nullptr), mBckCtrl(nullptr), mBackupMaterialData(nullptr), mTotalResourceSize(0) {
+      mMaterialBuf(nullptr), mBckCtrl(nullptr), mBackupMaterialData(nullptr), mTotalResourceSize(0), mName(nullptr) {
     mHeap = MR::getCurrentHeap();
+
+    const char* pBasename = MR::getBasename(pName);
+    s32 len = strlen(pBasename) - 3;
+    char* pNameBuf = new char[len];
+    snprintf(pNameBuf, len, pBasename);
+    mName = pNameBuf;
+
     initializeArc(*mArchive);
 
     if (mModelResTable->mCount != 0 && isExistMaterialAnm()) {
-        newMaterialAnmBuffer(reinterpret_cast< J3DModelData* >(mModelResTable->getRes(getModelName())));
+        newMaterialAnmBuffer(reinterpret_cast< J3DModelData* >(mModelResTable->getRes(mName)));
     }
 
     if (mMotionResTable->mCount != 0) {
         newBckCtrl();
-    }
-
-    if (mModelResTable->mCount != 0) {
-        backupInitMaterialData(reinterpret_cast< J3DModelData* >(mModelResTable->getRes(getModelName())));
     }
 }
 

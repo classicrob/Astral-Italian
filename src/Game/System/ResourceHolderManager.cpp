@@ -135,7 +135,7 @@ void ResourceHolderManager::createResourceHolder(const char* pParam1, CreateReso
     MR::getMountedArchiveAndHeap(pParam1, &pArchive, &pArgs->mHeap);
     MR::CurrentHeapRestorer heapRestorer(pArgs->mHeap);
 
-    pArgs->mResourceHolder = new ResourceHolder(*pArchive);
+    pArgs->mResourceHolder = new ResourceHolder(*pArchive, pParam1);
 }
 
 void ResourceHolderManager::createLayoutHolder(const char* pParam1, CreateResourceHolderArgs* pArgs) {

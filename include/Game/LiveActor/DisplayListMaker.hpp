@@ -33,13 +33,13 @@ public:
     TexMtxCtrl* addTexMtxCtrl(const char*);
     ProjmapEffectMtxSetter* addProjmapEffectMtxSetter();
     MirrorReflectionMtxSetter* addMirrorReflectionMtxSetter();
-    void onCurFlagBpk(const J3DAnmBase*);
+    void onCurFlagBpk(const J3DAnmBase*, const char*);
     void offCurFlagBpk(const J3DAnmBase*);
-    void onCurFlagBtp(const J3DAnmBase*);
+    void onCurFlagBtp(const J3DAnmBase*, const char*);
     void offCurFlagBtp(const J3DAnmBase*);
-    void onCurFlagBtk(const J3DAnmBase*);
+    void onCurFlagBtk(const J3DAnmBase*, const char*);
     void offCurFlagBtk(const J3DAnmBase*);
-    void onCurFlagBrk(const J3DAnmBase*);
+    void onCurFlagBrk(const J3DAnmBase*, const char*);
     void offCurFlagBrk(const J3DAnmBase*);
     void push(MaterialCtrl*);
     void onBothFlag(u16, u32);

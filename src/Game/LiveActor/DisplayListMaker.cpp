@@ -106,31 +106,31 @@ MirrorReflectionMtxSetter* DisplayListMaker::addMirrorReflectionMtxSetter() {
 }
 
 void DisplayListMaker::offCurFlagBpk(const J3DAnmBase* pAnm) {
-    MR::offDiffFlagBpk(mCurFlag, static_cast< const J3DAnmColorKey* >(pAnm), "");
+    MR::offDiffFlagBpk(mCurFlag, static_cast< const J3DAnmColorKey* >(pAnm), mResHolder->mName);
 }
 
-void DisplayListMaker::onCurFlagBtp(const J3DAnmBase* pAnm) {
-    MR::onDiffFlagBtp(mCurFlag, static_cast< const J3DAnmTexPattern* >(pAnm), "");
+void DisplayListMaker::onCurFlagBtp(const J3DAnmBase* pAnm, const char* pName) {
+    MR::onDiffFlagBtp(mCurFlag, static_cast< const J3DAnmTexPattern* >(pAnm), pName);
 }
 
 void DisplayListMaker::offCurFlagBtp(const J3DAnmBase* pAnm) {
-    MR::offDiffFlagBtp(mCurFlag, static_cast< const J3DAnmTexPattern* >(pAnm), "");
+    MR::offDiffFlagBtp(mCurFlag, static_cast< const J3DAnmTexPattern* >(pAnm), mResHolder->mName);
 }
 
-void DisplayListMaker::onCurFlagBtk(const J3DAnmBase* pAnm) {
-    MR::onDiffFlagBtk(mCurFlag, static_cast< const J3DAnmTextureSRTKey* >(pAnm), "");
+void DisplayListMaker::onCurFlagBtk(const J3DAnmBase* pAnm, const char* pName) {
+    MR::onDiffFlagBtk(mCurFlag, static_cast< const J3DAnmTextureSRTKey* >(pAnm), pName);
 }
 
 void DisplayListMaker::offCurFlagBtk(const J3DAnmBase* pAnm) {
-    MR::offDiffFlagBtk(mCurFlag, static_cast< const J3DAnmTextureSRTKey* >(pAnm), "");
+    MR::offDiffFlagBtk(mCurFlag, static_cast< const J3DAnmTextureSRTKey* >(pAnm), mResHolder->mName);
 }
 
-void DisplayListMaker::onCurFlagBrk(const J3DAnmBase* pAnm) {
-    MR::onDiffFlagBrk(mCurFlag, static_cast< const J3DAnmTevRegKey* >(pAnm), "");
+void DisplayListMaker::onCurFlagBrk(const J3DAnmBase* pAnm, const char* pName) {
+    MR::onDiffFlagBrk(mCurFlag, static_cast< const J3DAnmTevRegKey* >(pAnm), pName);
 }
 
 void DisplayListMaker::offCurFlagBrk(const J3DAnmBase* pAnm) {
-    MR::offDiffFlagBrk(mCurFlag, static_cast< const J3DAnmTevRegKey* >(pAnm), "");
+    MR::offDiffFlagBrk(mCurFlag, static_cast< const J3DAnmTevRegKey* >(pAnm), mResHolder->mName);
 }
 
 void DisplayListMaker::push(MaterialCtrl* pCtrl) {
@@ -186,8 +186,8 @@ MarioShadowProjmapMtxSetter* DisplayListMaker::addMarioShadowProjmapMtxSetter() 
     return setter;
 }
 
-void DisplayListMaker::onCurFlagBpk(const J3DAnmBase* pAnm) {
-    MR::onDiffFlagBpk(mCurFlag, static_cast< const J3DAnmColorKey* >(pAnm), "");
+void DisplayListMaker::onCurFlagBpk(const J3DAnmBase* pAnm, const char* pName) {
+    MR::onDiffFlagBpk(mCurFlag, static_cast< const J3DAnmColorKey* >(pAnm), pName);
 }
 
 void DisplayListMaker::checkTexture() {

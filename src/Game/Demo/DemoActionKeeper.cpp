@@ -37,7 +37,7 @@ DemoActionInfo::DemoActionInfo() {
     mPartName = nullptr;
     mCastName = nullptr;
     mCastID = -1;
-    mActionType = 0;
+    mActionType = 1;
     mPosName = nullptr;
     mAnimName = nullptr;
     _18 = 128;
@@ -45,7 +45,6 @@ DemoActionInfo::DemoActionInfo() {
     mCastList = nullptr;
     mFunctors = nullptr;
     mNerves = nullptr;
-    _2C = 0;
     mCastList = new LiveActor*[128];
     mFunctors = new MR::FunctorBase*[_18];
     mNerves = new const Nerve*[_18];
@@ -134,7 +133,7 @@ void DemoActionInfo::executeActionLast() const {
 
     for (s32 i = 0; i < mCastCount; i++) {
         LiveActor* const actor = mCastList[i];
-        if (mActionType == 9) {
+        if (mActionType == 10 || mActionType == 18 || mActionType == 20) {
             ::setTalkAnimCtrlInterpole(actor, -1);
         }
     }
@@ -226,6 +225,7 @@ DemoActionKeeper::DemoActionKeeper(const DemoExecutor* pExector) {
     mDemoExecutor = pExector;
     mNumInfos = 0;
     mInfoArray = nullptr;
+    _C = 0;
     JMapInfo* jmap = nullptr;
     mNumInfos = DemoFunction::createSheetParser(mDemoExecutor, "Action", &jmap);
     mInfoArray = new DemoActionInfo*[mNumInfos];

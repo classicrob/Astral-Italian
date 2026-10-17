@@ -63,6 +63,12 @@ void ParticleCalcExecutor::movementCheckUpdate() {
     mUpdateRequested = true;
 }
 
+void ParticleCalcExecutor::requestMovementOffPauseIgnore() {
+    MR::requestMovementOff(mNormalAdaptor);
+    MR::requestMovementOff(mIgnorePause3DAdaptor);
+    MR::requestMovementOff(mIgnorePause2DAdaptor);
+}
+
 void ParticleCalcExecutor::requestMovementOnPauseIgnore() {
     MR::requestMovementOn(mNormalAdaptor);
     MR::requestMovementOn(mIgnorePause3DAdaptor);

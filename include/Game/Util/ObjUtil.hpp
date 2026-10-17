@@ -5,6 +5,7 @@
 #include <JSystem/JGeometry/TVec.hpp>
 
 class NameObj;
+class NameObjGroup;
 class LiveActor;
 class LayoutActor;
 class ModelObj;
@@ -103,7 +104,7 @@ namespace MR {
     void requestMovementOff(LiveActor* pActor);
     void requestMovementOff(LayoutActor* pLayout);
 
-    void joinToNameObjGroup(NameObj* pObj, const char* pGroupName);
+    NameObjGroup* joinToNameObjGroup(NameObj* pObj, const char* pGroupName);
     void registerPreDrawFunction(const MR::FunctorBase& rFunctor, int drawType);
     void registerPreDrawFunctionIfNotExist(const MR::FunctorBase& rFunctor, int drawType);
 
@@ -125,11 +126,11 @@ namespace MR {
     // more ResourceHolder stuff...
     bool isExistFileInArc(const ResourceHolder* pResArc, const char* pPathFormat, ...);
 
-    const JMapInfo* createCsvParser(const ResourceHolder* pResArc, const char* pPathFormat, ...);
-    const JMapInfo* createCsvParser(const char* pArcName, const char* pPathFormat, ...);
-    const JMapInfo* tryCreateCsvParser(const ResourceHolder* pResArc, const char* pPathFormat, ...);
-    const JMapInfo* tryCreateCsvParser(const LiveActor* pActor, const char* pPathFormat, ...);
-    const JMapInfo* tryCreateCsvParser(const char* pArcName, const char* pPathFormat, ...);
+    JMapInfo* createCsvParser(const ResourceHolder* pResArc, const char* pPathFormat, ...);
+    JMapInfo* createCsvParser(const char* pArcName, const char* pPathFormat, ...);
+    JMapInfo* tryCreateCsvParser(const ResourceHolder* pResArc, const char* pPathFormat, ...);
+    JMapInfo* tryCreateCsvParser(const LiveActor* pActor, const char* pPathFormat, ...);
+    JMapInfo* tryCreateCsvParser(const char* pArcName, const char* pPathFormat, ...);
 
     const JMapInfo* tryCreateStageCsvParser(const char* pStageName, const char* pArcName, const char* pPathFormat, ...);
     const JMapInfo* tryCreateStageZoneInfoCsvParser(const char* pPathFormat, ...);
@@ -183,19 +184,19 @@ namespace MR {
     void declareCoin(const NameObj* pHost, s32 numItems);
     s32 getDeclareRemnantCoinCount(const NameObj* pHost);
     s32 getUncollectedCoinCount(const NameObj* pHost);
-    bool hopCoin(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rDirection);
-    bool appearCoinPop(const NameObj* pHost, const TVec3f&, s32 numItems);
-    bool appearCoinPopToDirection(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rDirection, s32 numItems);
+    void hopCoin(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rDirection);
+    void appearCoinPop(const NameObj* pHost, const TVec3f&, s32 numItems);
+    void appearCoinPopToDirection(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rDirection, s32 numItems);
     bool appearCoinAgainstGravity(const NameObj* pHost, const TVec3f& rPosition, s32 numItems);
-    bool appearCoinToVelocity(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rVelocity, s32 numItems);
-    bool appearCoinCircle(const NameObj* pHost, const TVec3f& rPosition, s32 numItems);
+    void appearCoinToVelocity(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rVelocity, s32 numItems);
+    void appearCoinCircle(const NameObj* pHost, const TVec3f& rPosition, s32 numItems);
 
     void declareStarPiece(const NameObj* pHost, s32 numItems);
     s32 getDeclareRemnantStarPieceCount(const NameObj* pHost);
     s32 getDeclareRemnantStarPieceCountNotExist(const NameObj* pHost);
     void declareStarPieceReceiver(const NameObj* pHost, s32);
     void clearGotCountStarPieceReceiver(const NameObj* pHost);
-    bool hopStarPiece(const NameObj* pHost, const TVec3f&, const TVec3f&);
+    void hopStarPiece(const NameObj* pHost, const TVec3f&, const TVec3f&);
     bool appearStarPiece(const NameObj* pHost, const TVec3f& rPosition, s32 numItems, f32 radius, f32 height, bool);
     bool appearStarPieceToDirection(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rDirection, s32 numItems, f32 radius, f32 height,
                                     bool);
@@ -243,10 +244,10 @@ namespace MR {
     bool tryRegisterNamePosLinkObj(const NameObj* pLinkedObj, const JMapInfoIter& rIter, const char* pPosName);
     bool findNamePos(const char* pPosName, MtxPtr pMtx);
     bool findNamePos(const char* pPosName, TVec3f* pPosition, TVec3f* pRotation);
-    bool findNamePosOnGround(const char* pPosName, MtxPtr pMtx);
+    void findNamePosOnGround(const char* pPosName, MtxPtr pMtx);
     bool tryFindNamePos(const char* pPosName, MtxPtr pMtx);
     bool tryFindNamePos(const char* pPosName, TVec3f* pPosition, TVec3f* pRotation);
-    bool findLinkNamePos(const NameObj* pLinkedObj, const char* pPosName, MtxPtr pMtx);
+    void findLinkNamePos(const NameObj* pLinkedObj, const char* pPosName, MtxPtr pMtx);
     bool tryFindLinkNamePos(const NameObj* pLinkedObj, const char* pPosName, TVec3f* pPosition, TVec3f* pRotation);
     bool tryFindLinkNamePos(const NameObj* pLinkedObj, const char* pPosName, MtxPtr pMtx);
 };  // namespace MR

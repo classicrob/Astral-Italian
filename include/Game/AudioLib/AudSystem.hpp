@@ -151,5 +151,7 @@ public:
     /* 0x132C */ SpkSystem* mSpkSystem;
 };
 
+extern "C" u8 fn_8007A760(const AudSystem*);
+
 AudSystem* AudNewAudSystem(JKRSolidHeap*, void*, JKRArchive*, JKRArchive*, JKRArchive*, JKRArchive*) NO_INLINE;
 AudSystem* AudNewAudSystem_(JAUSectionHeap*, JKRArchive*, JKRArchive*, JKRArchive*, int) NO_INLINE;

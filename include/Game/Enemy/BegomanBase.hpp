@@ -11,7 +11,7 @@ class JointControlDelegator;
 class WalkerStateBindStarPointer;
 
 namespace MR {
-    class ActorMoveParam;
+    struct ActorMoveParam;
     class FunctorBase;
 };  // namespace MR
 
@@ -19,7 +19,23 @@ struct BegomanSound {
     const char* mSound;
 };
 
-class BegomanBase : public LiveActor {
+class ChangeObj {
+public:
+    ChangeObj(LiveActor* pActor) : mActor(pActor) {}
+    virtual ~ChangeObj() {}
+    virtual void doChange(ChangeObj*) {}
+
+    void changeTRSVGFromOther(const ChangeObj*);
+
+    /* 0x04 */ LiveActor* mActor;
+};
+
+namespace MR {
+    void registerChangeObj(ChangeObj*, const JMapInfoIter&);
+    void setBaseTRMtx(LiveActor*, const TQuat4f&);
+};  // namespace MR
+
+class BegomanBase : public LiveActor, public ChangeObj {
 public:
     BegomanBase(const char*);
 
@@ -37,6 +53,7 @@ public:
     virtual const Nerve* getNerveWait() = 0;
     virtual void addVelocityOnPushedFromElectricRail(const TVec3f&, const TVec3f&);
     virtual bool requestAttack();
+    virtual void doChange(ChangeObj*);
 
     const BegomanSound* getSoundBaby();
     const BegomanSound* getSoundNormal();
@@ -99,28 +116,28 @@ public:
     bool incAndCheckTiredCounter();
     bool isInWaterAndSetWaterNerve(const Nerve*, TPos3f*);
 
-    /* 0x8C */ JointControlDelegator< BegomanBase >* mBaseDelegator;
+    /* 0x98 */ JointControlDelegator< BegomanBase >* mBaseDelegator;
 
-    /* 0x90 */ TVec3f mFaceVec;
-    /* 0x9C */ TVec3f mTargetVec;
+    /* 0x9C */ TVec3f mFaceVec;
+    /* 0xA8 */ TVec3f mTargetVec;
 
-    /* 0xA8 */ TVec3f _A8;
-    /* 0xB4 */ TVec3f _B4;
+    /* 0xB4 */ TVec3f _A8;
+    /* 0xC0 */ TVec3f _B4;
 
-    /* 0xC0 */ TQuat4f _C0;
-    /* 0xD0 */ TQuat4f _D0;
+    /* 0xCC */ TQuat4f _C0;
+    /* 0xDC */ TQuat4f _D0;
 
-    /* 0xE0 */ s32 mTiredCounter;
-    /* 0xE4 */ s32 mElectricCounter;
+    /* 0xEC */ s32 mTiredCounter;
+    /* 0xF0 */ s32 mElectricCounter;
 
-    /* 0xE8 */ TVec3f mInitPos;
+    /* 0xF4 */ TVec3f mInitPos;
 
-    /* 0xF4 */ AnimScaleController* mScaleControler;
-    /* 0xF8 */ WalkerStateBindStarPointer* mStarPointBind;
+    /* 0x100 */ AnimScaleController* mScaleControler;
+    /* 0x104 */ WalkerStateBindStarPointer* mStarPointBind;
 
-    /* 0xFC */ bool mIsTouchElectricRail;
-    /* 0xFD */ bool mCanTrySetReturn;
-    /* 0xFE */ bool mInvertSideVec;
+    /* 0x108 */ bool mIsTouchElectricRail;
+    /* 0x109 */ bool mCanTrySetReturn;
+    /* 0x10A */ bool mInvertSideVec;
 };
 
 class BegomanAttackPermitter : public LiveActor {

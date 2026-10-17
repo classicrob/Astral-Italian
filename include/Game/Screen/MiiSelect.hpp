@@ -56,6 +56,8 @@ public:
     void createButtons();
     void callbackLeft();
     void callbackRight();
+    bool isLeftTriggered();
+    bool isRightTriggered();
     void appearButtons();
     void disappearButtons();
     void updateButtons();

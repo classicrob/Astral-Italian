@@ -249,6 +249,11 @@ namespace MR {
     /// @return `true` if the vector could not be converted and was initialized with the zero vector, `false` otherwise.
     bool normalizeOrZero(TVec3f* pDst, const TVec3f& rSrc);
 
+    // Petari (SMG1) argument order (src, dst). SMG2 only has the (dst, src) versions; these forward to them.
+    inline void normalize(const TVec2f& rSrc, TVec2f* pDst) { normalize(pDst, rSrc); }
+    inline void normalize(const TVec3f& rSrc, TVec3f* pDst) { normalize(pDst, rSrc); }
+    inline bool normalizeOrZero(const TVec3f& rSrc, TVec3f* pDst) { return normalizeOrZero(pDst, rSrc); }
+
     /// @brief Extracts the magnitude and direction from a two-dimensional vector.
     /// @param[out] pScalar A pointer to the magnitude to initialize.
     /// @param[out] pDir A pointer to the two-dimensional directional vector to initialize.

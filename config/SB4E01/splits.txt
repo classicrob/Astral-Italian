@@ -3938,8 +3938,9 @@ Game/Ride/SwingRope.cpp:
 	.sbss       start:0x807D5198 end:0x807D51C0
 
 Game/Ride/SwingRopePoint.cpp:
-	.text       start:0x80443F20 end:0x804440A0
+	.text       start:0x80443BB0 end:0x804442D0
 	.data       start:0x806EE4C8 end:0x806EE4D8
+	.sdata2     start:0x807E0F08 end:0x807E0F18
 
 Game/Ride/Tamakoro.cpp:
 	.text       start:0x804442D0 end:0x80447DB0

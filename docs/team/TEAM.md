@@ -63,4 +63,4 @@ they are suspicious (a logic diff, not register allocation).
 
 ## Disk
 
-Never let free space on / drop below 40 GB (`df -h /`). A worktree with its build takes about 0.5 GB.
+Never let free space on / drop below 33 GB (`df -h /`). A worktree with its build takes about 0.5 GB.

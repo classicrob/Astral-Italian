@@ -1,4 +1,5 @@
 #include "Game/Player/MarioBump.hpp"
+#include "Game/Util.hpp"
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Player/Mario.hpp"
 #include "Game/Player/MarioActor.hpp"

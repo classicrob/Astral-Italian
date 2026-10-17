@@ -1,4 +1,5 @@
 #include "Game/Player/Mario.hpp"
+#include "Game/Util.hpp"
 #include "Game/Player/MarioMove.hpp"
 
 MarioMove::MarioMove(MarioActor* pActor) : MarioModule(pActor) {

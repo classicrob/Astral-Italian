@@ -1,4 +1,5 @@
 #include "Game/Player/MarioWall.hpp"
+#include "Game/Util.hpp"
 #include "Game/Enemy/KarikariDirector.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/Map/HitInfo.hpp"

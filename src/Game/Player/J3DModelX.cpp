@@ -1,4 +1,5 @@
 #include "Game/Player/J3DModelX.hpp"
+#include "Game/Util.hpp"
 #include "Game/System/ShapePacketUserData.hpp"
 #include "Game/Util/DirectDraw.hpp"
 #include "Game/Util/MathUtil.hpp"

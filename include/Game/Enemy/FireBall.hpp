@@ -26,6 +26,11 @@ public:
     void exeReflect();
 
     /* 0x8C */ LiveActor* mHost;
-    /* 0x90 */ TVec3f mUp;
-    u8 _padSmg2[0x18];  // SMG2 sizeof(FireBall) == 0xB8; real fields not yet ported (needed by OtaKing array stride)
+    /* 0x94 */ s32 _94;
+    s32 _98;
+    f32 _9C;
+    f32 _A0;
+    f32 _A4;
+    /* 0xA8 */ TVec3f mUp;
+    f32 _B4;
 };

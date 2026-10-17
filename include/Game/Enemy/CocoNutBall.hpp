@@ -13,7 +13,7 @@ public:
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    void initSensors(const char*, const char*);
+    void initSensors();
     void appearAndThrow(const TVec3f&, f32);
     void hitBackToPlayer();
     void demoBreak(const TVec3f&);
@@ -51,5 +51,8 @@ public:
     TVec3f _C8;
     f32 _D4;
     bool _D8;
-    u8 _padSmg2[8];  // SMG2 sizeof(CocoNutBall) == 0xE8; real fields not yet ported (needed by OtaKing array stride)
+    bool _DD;
+    bool _DE;
+    f32 _E0;
+    s32 _E4;
 };

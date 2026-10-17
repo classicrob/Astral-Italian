@@ -36,7 +36,7 @@ namespace NrvFireBall {
     NEW_NERVE(FireBallNrvReflect, FireBall, Reflect);
 };  // namespace NrvFireBall
 
-FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), mUp(0.0f, 1.0f, 0.0f) {
+FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), _94(0), _98(0), _9C(0.0f), _A0(1.0f), _A4(0.0f), mUp(0.0f, 1.0f, 0.0f), _B4(1.0f) {
 }
 
 inline void FireBall::initHitSensors(const char* const hitSensor) {

@@ -159,7 +159,7 @@ void StringSpider::init(const JMapInfoIter& rIter) {
         MR::useStageSwitchReadA(this, rIter);
     }
 
-    initModelManagerWithAnm("StringSpider", nullptr, false);
+    MR::initActor(this, rIter, "StringSpider", false);
     MR::makeQuatFromRotate(&_A0, this);
 
     if (_C0 != nullptr) {
@@ -265,11 +265,11 @@ void StringSpider::doSwingAction(f32 a1, bool a2) {
         }
 
         if (MR::isFirstStep(this)) {
-            MR::startBck(this, "PreAttack");
+            MR::startAction(this, "PreAttack");
         }
 
         if (MR::isStep(this, 30)) {
-            MR::startBck(this, "Attack");
+            MR::startAction(this, "Attack");
         }
 
         if (MR::isLessStep(this, 30)) {
@@ -424,7 +424,7 @@ void StringSpider::calcPosture(f32 a1, bool a2) {
 void StringSpider::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     calcPosture(0.25f, false);
@@ -445,33 +445,33 @@ void StringSpider::endWait() {
 
 void StringSpider::exeDownStart() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "DownStart");
+        MR::startAction(this, "DownStart");
     }
 
     calcPosture(0.25f, false);
     MR::calcDistanceToPlayer(this);
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StringSpider, HostTypeNrvDown));
     }
 }
 
 void StringSpider::exeDownEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "DownEnd");
+        MR::startAction(this, "DownEnd");
     }
 
     calcPosture(0.25f, false);
     MR::calcDistanceToPlayer(this);
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StringSpider, HostTypeNrvSearch));
     }
 }
 
 void StringSpider::exeDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Down");
+        MR::startAction(this, "Down");
     }
 
     MR::startActionSound(this, "EmLvStrspiderDown");
@@ -490,7 +490,7 @@ void StringSpider::exeDown() {
 
 void StringSpider::exeUp() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Up");
+        MR::startAction(this, "Up");
     }
 
     MR::startActionSound(this, "EmLvStrspiderUp");
@@ -508,7 +508,7 @@ void StringSpider::exeUp() {
 
 void StringSpider::exeSearch() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     calcPosture(0.25f, true);
@@ -537,7 +537,7 @@ void StringSpider::exeSearch() {
 
 void StringSpider::exeAttack() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     calcPosture(0.25f, true);
@@ -557,14 +557,14 @@ void StringSpider::exeAttack() {
 
 void StringSpider::exeHit() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Hit");
+        MR::startAction(this, "Hit");
         MR::startActionSound(this, "EvStrspiderHit");
     }
 
     calcPosture(0.25f, true);
     extendString();
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StringSpider, HostTypeNrvSearch));
     }
 }
@@ -572,7 +572,7 @@ void StringSpider::exeHit() {
 void StringSpider::exeSpinned() {
     if (MR::isFirstStep(this)) {
         MR::startBlowHitSound(this);
-        MR::startBck(this, "Spin");
+        MR::startAction(this, "Spin");
     }
 
     f32 nerveRate = MR::calcNerveRate(this, 480);
@@ -606,7 +606,7 @@ void StringSpider::exeSpinned() {
 
 void StringSpider::exeTrampleFall() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Press");
+        MR::startAction(this, "Press");
         MR::startActionSound(this, "EmStompedS");
         MR::startActionSound(this, "EvStrspiderDead");
         MR::calcReflectionVector(&mVelocity, mGravity, 0.25f, 1.0f);
@@ -631,7 +631,7 @@ void StringSpider::exeWallHitDeath() {
 
 void StringSpider::exeBlow() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Blow");
+        MR::startAction(this, "Blow");
         MR::startActionSound(this, "EvStrspiderDead");
         MR::startBlowHitSound(this);
         mString->kill();
@@ -642,7 +642,7 @@ void StringSpider::exeBlow() {
 
 void StringSpider::exeDpdGripped() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Spin");
+        MR::startAction(this, "Spin");
         if (!MR::tryStartStarPointerCommandStream(this, &mPosition, *MR::getStarPointerLastPointedPort(this), false)) {
             setNerve(GET_NERVE(StringSpider, HostTypeNrvSearch));
             return;
@@ -936,7 +936,7 @@ void StringSpider::startSwingLevelSound() {
 }
 
 StringSpiderString::StringSpiderString(const char* pName) : LiveActor(pName), _8C(0, 0, 0, 1), _9C(0, 0, 0) {
-    initModelManagerWithAnm("StringSpiderString", nullptr, false);
+    MR::initActor(this, "StringSpiderString", false);
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_MapObjDecoration, MR::DrawBufferType_Enemy, MR::DrawType_None);
     MR::invalidateClipping(this);
 }

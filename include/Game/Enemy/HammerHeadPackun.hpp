@@ -31,6 +31,8 @@ public:
     void exeCrow();
     void exeSmashKill();
     void exeBlowKill();
+    void exeBlowKillRock();
+    void appearStarPiece();
     void exeNumb();
     void endNumb();
     void initPosture();

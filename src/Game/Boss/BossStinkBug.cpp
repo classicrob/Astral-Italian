@@ -79,7 +79,6 @@ void BossStinkBug::kill() {
     }
 }
 
-// NONMATCHING: TVec3f(f32) temp ctor is inlined by our TVec.hpp; target calls __ct__Q29JGeometry8TVec3<f>Ff out of line
 void BossStinkBug::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "BossStinkBug", false);

@@ -7,6 +7,8 @@ public:
     BegomanSpike(const char*);
 
     virtual void init(const JMapInfoIter&);
+    virtual void makeActorAppeared();
+    virtual void makeActorDead();
     virtual void appear();
     virtual void control();
     virtual void calcAnim();
@@ -23,6 +25,7 @@ public:
     virtual void setNerveLaunch();
     virtual const Nerve* getNerveWait();
     void onSwitchB();
+    bool receiveMsgPushEnemy(HitSensor*, HitSensor*);
     void tearDownPursue();
     void generateItem() NO_INLINE;
     void exeNoCalcWait();

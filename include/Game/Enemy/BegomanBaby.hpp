@@ -27,6 +27,7 @@ public:
     virtual const Nerve* getNerveWait();
 
     bool receiveMsgTrample(HitSensor*, HitSensor*);
+    bool receiveMsgPushEnemy(HitSensor*, HitSensor*);
     void appearFromLaunch(const TVec3f&, const TVec3f&);
     void appearFromGuarder();
     void killWithGenItem();

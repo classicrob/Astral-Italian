@@ -28,6 +28,7 @@ public:
     virtual bool onTouchElectric(const TVec3f& rPos, const TVec3f& rDirection);
     virtual bool setNerveReturn();
     virtual const Nerve* getNerveWait();
+    virtual void doChange(ChangeObj*);
 
     void initEventCameras(const JMapInfoIter& rIter);
     void exeNoCalcWait();
@@ -54,7 +55,6 @@ public:
     void endWait();
     void endPursue();
     void endHide();
-    void endBindStarPointer();
     void generateItem() NO_INLINE;
     void startCamera() NO_INLINE;
     void updateCamera();
@@ -67,6 +67,8 @@ public:
     /* 0x168 */ TVec3f mCameraStartPos;
     /* 0x174 */ bool mIsCameraActive;
     /* 0x178 */ ActorCameraInfo* mCameraInfo;
+    s32 mBindCooldown;
+    bool mBindFromTrample;
     /* 0x17C */ s32 mType;
     /* 0x180 */ BegomanBaby* mBaby;
     /* 0x184 */ TVec3f mHidePos;

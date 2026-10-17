@@ -7,6 +7,7 @@
 #include "Game/Map/WaterInfo.hpp"
 #include "Game/MapObj/ElectricRailHolder.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
@@ -85,9 +86,9 @@ namespace {
     // static const _32 hLaunchDampVelGround = _;
     static const s32 hReceiveLimitTime = 2;
     static const s32 hPermitLimitTime = 30;
-    static const BegomanSound sound_baby = {"SE_EM_LV_BABYBEGO_DASH"};
-    static const BegomanSound sound_normal = {"SE_EM_LV_BEGOMAN_DASH"};
-    static const BegomanSound sound_boss = {"SE_BM_LV_BBEGO_DASH"};
+    static const BegomanSound sound_baby = {"EmLvBabybegoDash"};
+    static const BegomanSound sound_normal = {"EmLvBegomanDash"};
+    static const BegomanSound sound_boss = {"BmLvBbegoDash"};
 };  // namespace
 
 namespace {
@@ -201,8 +202,8 @@ void BegomanBase::initSensor(s32 extraSensorNum, f32 radius, f32 pushedRailRadiu
     f32 yScale = mScale.y;
     initHitSensor(extraSensorNum + 3);
 
-    MR::addHitSensor(this, "check", 0x7A /* ATYPE_EYE */, 1, radius * yScale, TVec3f(0.0f, 0.5f * radius * yScale, 1.5f * radius * yScale));
-    MR::addHitSensorAtJoint(this, "body", pSensorJointName, 0x21 /* ATYPE_BEGOMAN */, 32, radius * yScale, TVec3f(0.0f, 0.5f * radius * yScale, 0.0f));
+    MR::addHitSensor(this, "Check", 0x7A /* ATYPE_EYE */, 1, radius * yScale, TVec3f(0.0f, 0.5f * radius * yScale, 1.5f * radius * yScale));
+    MR::addHitSensorAtJoint(this, "Body", pSensorJointName, 0x21 /* ATYPE_BEGOMAN */, 32, radius * yScale, TVec3f(0.0f, 0.5f * radius * yScale, 0.0f));
     MR::addHitSensorAtJoint(this, "pushed_rail", pSensorJointName, 0x7A /* ATYPE_EYE */, 32, pushedRailRadius * yScale,
                             TVec3f(0.0f, 0.5f * pushedRailRadius * yScale, 0.0f));
 }
@@ -221,7 +222,7 @@ void BegomanBase::appear() {
     LiveActor::appear();
     MR::onBind(this);
     MR::onCalcGravity(this);
-    getSensor("body")->validate();
+    MR::validateHitSensor(this, "Body");
 }
 
 void BegomanBase::kill() {
@@ -232,6 +233,7 @@ void BegomanBase::kill() {
     }
 }
 
+// NONMATCHING: stack slot order of upVec/yAxis temporaries and f31 load order
 void BegomanBase::control() {
     if (mScaleControler != nullptr) {
         mScaleControler->updateNerve();
@@ -320,7 +322,7 @@ void BegomanBase::exeWaitCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
         if (!isFallNextMove(150.0f, 150.0f)) {
             TVec3f touchRailVec;
 
-            if (!ElectricRailFunction::isTouchRail(getSensor("check"), &touchRailVec, nullptr)) {
+            if (!ElectricRailFunction::isTouchRail(getSensor("Check"), &touchRailVec, nullptr)) {
                 if (requestAttack()) {
                     setNerve(pNerve1);
                     return;
@@ -331,7 +333,7 @@ void BegomanBase::exeWaitCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
             }
 
             TVec3f touchRailToSensor(touchRailVec);
-            touchRailToSensor.sub(getSensor("check")->mPosition);
+            touchRailToSensor.sub((*MR::getSensorPos(this, "Check")));
             MR::normalizeOrZero(&touchRailToSensor);
 
             if (!MR::isNearZero(touchRailToSensor)) {
@@ -401,7 +403,7 @@ void BegomanBase::exePursueCore(const MR::ActorMoveParam& rMoveParam, const Nerv
         return;
     }
 
-    if (ElectricRailFunction::isTouchRail(getSensor("check"), nullptr, nullptr)) {
+    if (ElectricRailFunction::isTouchRail(getSensor("Check"), nullptr, nullptr)) {
         setNerve(pNerve1);
         return;
     }
@@ -436,7 +438,7 @@ void BegomanBase::exeTurnCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
     reboundWallAndGround(&mFaceVec, true);
 
     if (!notCheckRail) {
-        if (ElectricRailFunction::isTouchRail(getSensor("check"), nullptr, nullptr)) {
+        if (ElectricRailFunction::isTouchRail(getSensor("Check"), nullptr, nullptr)) {
             setNerve(pNerve1);
             return;
         }
@@ -466,6 +468,7 @@ void BegomanBase::exeTurnCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
     }
 }
 
+// NONMATCHING: branch layout/instruction order
 void BegomanBase::exeBrakeCore(const Nerve* pNerve) {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Brake");
@@ -484,7 +487,7 @@ void BegomanBase::exeBrakeCore(const Nerve* pNerve) {
     if (isFallNextMove(150.0f, 150.0f)) {
         MR::addVelocityLimit(this, (-mFaceVec) * 0.0f);
     } else {
-        if (!ElectricRailFunction::isTouchRail(getSensor("check"), nullptr, nullptr) && MR::isGreaterStep(this, ::hBrakeTime)) {
+        if (!ElectricRailFunction::isTouchRail(getSensor("Check"), nullptr, nullptr) && MR::isGreaterStep(this, ::hBrakeTime)) {
             MR::startAction(this, "Brake");
             setNerve(pNerve);
         }
@@ -674,6 +677,7 @@ bool BegomanBase::incAndCheckTiredCounter() {
 
 #pragma push
 #pragma opt_propagation off
+// NONMATCHING: temp stack order / instruction order
 void BegomanBase::launchBegomanCore(LiveActor* pActor, BegomanBase** pBegomanArray, s32 numBegoman, f32 radius, f32 velH, f32 velV,
                                     const TVec3f* pVec) {
     TVec3f vec2;
@@ -759,9 +763,9 @@ bool BegomanBase::reboundPlaneWithEffect(const TVec3f& rVec, f32 f1, f32 f2, con
     bool reflected = MR::calcReflectionVector(&mVelocity, rVec, f1, f2);
 
     if (pEffectName != nullptr && reflected) {
-        TVec3f bodySensorPos(getSensor("body")->mPosition);
+        TVec3f bodySensorPos((*MR::getSensorPos(this, "Body")));
 
-        bodySensorPos.sub(rVec * getSensor("body")->mRadius);
+        bodySensorPos.sub(rVec * MR::getSensorRadius(this, "Body"));
         MR::emitEffectHit(this, bodySensorPos, pEffectName);
     }
 
@@ -789,7 +793,7 @@ void BegomanBase::reboundWallAndGround(TVec3f* pOut, bool emitEffect) {
         mVelocity.add(wallNormal * ::hReboundWallAddVel);
 
         if (reboundWall) {
-            MR::startLevelSound(this, "SE_EM_LV_BEGOMAN_COLLI_WALL");
+            MR::startActionSound(this, "EmLvBegomanColliWall");
         }
 
         if (pOut != nullptr) {
@@ -833,7 +837,7 @@ void BegomanBase::calcDirectionAwayFromRail(TVec3f* pOut, const TVec3f& rVec1, c
     }
 
     TVec3f vec2(rVec1);
-    vec2.sub(getSensor("body")->mPosition);
+    vec2.sub((*MR::getSensorPos(this, "Body")));
 
     if (0.0f < vec2.dot(vec1)) {
         vec1 = -vec1;
@@ -874,7 +878,7 @@ bool BegomanBase::checkTouchElectricRail(bool notCheckPush) {
         }
     }
 
-    if (ElectricRailFunction::isTouchRail(getSensor("body"), &vec1, &vec2)) {
+    if (ElectricRailFunction::isTouchRail(getSensor("Body"), &vec1, &vec2)) {
         ret = onTouchElectric(vec1, vec2);
     }
 
@@ -898,7 +902,7 @@ bool BegomanBase::onTouchElectric(const TVec3f& rVec1, const TVec3f& rVec2) {
         mElectricCounter = 0;
         return true;
     } else {
-        pushedFromElectricRail(getSensor("body"), rVec1, rVec2, 8.0f, 8.0f, true);
+        pushedFromElectricRail(getSensor("Body"), rVec1, rVec2, 8.0f, 8.0f, true);
         return false;
     }
 }
@@ -907,7 +911,7 @@ void BegomanBase::pushedFromElectricRail(HitSensor* pSensor, const TVec3f& rVec1
     TVec3f directionAwayFromRail;
     calcDirectionAwayFromRail(&directionAwayFromRail, rVec1, rVec2);
 
-    TVec3f vec(pSensor->mPosition);
+    TVec3f vec(*MR::getSensorPos(pSensor));
 
     vec.sub(rVec1);
     MR::vecKillElement(vec, mGravity, &vec);
@@ -975,13 +979,13 @@ bool BegomanBase::isInWaterAndSetWaterNerve(const Nerve* pWaterNerve, TPos3f* pP
 void BegomanBase::calcBlowReaction(const TVec3f& rVec1, const TVec3f& rVec2, f32 blowStrengthParallel, f32 blowStrengthVertical) {
     TVec3f blowDirection(rVec2 - rVec1);
     TVec3f effectVec(-blowDirection);
-    f32 sensorRadius = getSensor("body")->mRadius;
+    f32 sensorRadius = MR::getSensorRadius(this, "Body");
 
     effectVec.setLength(sensorRadius);
-    effectVec.add(getSensor("body")->mPosition);
+    effectVec.add((*MR::getSensorPos(this, "Body")));
 
     MR::emitEffectHit(this, effectVec, "Hit");
-    MR::startSound(this, "SE_EM_BEGOMAN_KNOCK_SUCCESS");
+    MR::startActionSound(this, "EmBegomanKnockSuccess");
     MR::vecKillElement(blowDirection, mGravity, &blowDirection);
     MR::normalizeOrZero(&blowDirection);
 
@@ -1046,7 +1050,7 @@ void BegomanBase::doChange(ChangeObj* pOther) {
     _A8 = mGravity;
     MR::setRotation(this, 0.0f);
 
-    TVec3f gravityOffset = -mGravity;
+    TVec3f gravityOffset(TVec3f(-mGravity));
     gravityOffset.scale(0.5f);
     mPosition.add(gravityOffset);
 

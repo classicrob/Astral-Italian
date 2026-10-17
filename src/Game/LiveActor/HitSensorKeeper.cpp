@@ -24,7 +24,7 @@ HitSensorInfo* HitSensorKeeper::add(const char* pSensorName, u32 sensorType, u16
 }
 
 HitSensorInfo* HitSensorKeeper::addCallback(const char* pSensorName, u32 sensorType, u16 numSensors, f32 radius, LiveActor* pActor) {
-    HitSensorInfo* info = new HitSensorInfo(pSensorName, new HitSensor(sensorType, numSensors, radius, pActor), nullptr, nullptr, TVec3f(0.0f), true);
+    HitSensorInfo* info = new HitSensorInfo(pSensorName, new HitSensor(sensorType, numSensors, radius, pActor), nullptr, nullptr, TVec3f(0.0f, 0.0f, 0.0f), true);
     registHitSensorInfo(info);
     return info;
 }

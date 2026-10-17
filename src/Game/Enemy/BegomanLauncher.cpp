@@ -152,7 +152,7 @@ void BegomanLauncher::exeLaunch() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
         MR::emitEffect(this, "Launcher");
-        MR::startActionSound(this, "SE_EM_BEGOMANLAUN_LAUNCH", -1, -1, -1);
+        MR::startActionSound(this, "EmBegomanlaunLaunch");
     }
 
     if (MR::isGreaterStep(this, ::sLaunchTime)) {
@@ -179,10 +179,10 @@ void BegomanLauncher::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
         MR::emitEffect(this, "Launcher");
-        MR::startBck(this, "BegomanLauncher");
+        MR::startAction(this, "BegomanLauncher");
     }
 
-    MR::startLevelSound(this, "SE_EM_LV_BEGOMANLAUN_APPEAR");
+    MR::startActionSound(this, "EmLvBegomanlaunAppear");
     if (MR::isGreaterStep(this, 90)) {
         MR::stopBck(this);
         setNerve(GET_NERVE(BegomanLauncher, HostTypeNrvLaunch));
@@ -192,7 +192,7 @@ void BegomanLauncher::exeAppear() {
 void BegomanLauncher::exeDisappear() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
-        MR::startBck(this, "BegomanLauncher");
+        MR::startAction(this, "BegomanLauncher");
         MR::setBckFrame(this, 90.0f);
         MR::deleteEffect(this, "Launcher");
     }

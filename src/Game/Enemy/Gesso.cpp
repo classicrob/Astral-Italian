@@ -85,7 +85,6 @@ Gesso::Gesso(const char* pName)
       _B8(0.0f, 1.0f, 0.0f), _C4(), _C8(0.0f, 0.0f, 0.0f), mIsMarioLeft(), mIsHighSpeedMode() {
 }
 
-// NONMATCHING: target calls TVec3f(f32) ctor out of line for initSound's offset arg; ours inlines it
 void Gesso::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     _94 = mPosition;

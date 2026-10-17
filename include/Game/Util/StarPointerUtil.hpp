@@ -5,7 +5,7 @@
 class LiveActor;
 
 namespace MR {
-    void initStarPointerTarget(LiveActor*, f32, const TVec3f&);
+    void initStarPointerTarget(LiveActor*, f32, const TVec3f& = TVec3f(0.0f));
 
     void initStarPointerTargetAtJoint(LiveActor*, const char*, f32, const TVec3f&);
     f32 calcPointRadius2D(const TVec3f&, f32);

@@ -105,3 +105,10 @@ namespace MR {
     void makeMtxTRS(MtxPtr, const TVec3f&, const TVec3f&, const TVec3f&);
     void flattenMtx(MtxPtr, const TVec3f&);
 };  // namespace MR
+
+namespace MR {
+    // Non-official symbol (Petari).
+    inline void multMtx(Mtx pOut, const Mtx pA, const Mtx pB) {
+        PSMTXConcat(pB, pA, pOut);
+    }
+};  // namespace MR

@@ -81,33 +81,42 @@ void CameraParamChunk::setCameraType(const char* pType, const CameraHolder* pHol
 }
 
 void CameraParamChunk::setUseFovy(bool value) {
-    mExParam.mFlag &= ~(1 << 1);
+    u16 flag = mExParam.mFlag;
+    flag &= (u16)~(1 << 1);
+    mExParam.mFlag = flag;
 
     if (!value) {
         return;
     }
 
-    mExParam.mFlag |= 1 << 1;
+    flag |= 1 << 1;
+    mExParam.mFlag = flag;
 }
 
 void CameraParamChunk::setLOfsErpOff(bool value) {
-    mExParam.mFlag &= ~(1 << 2);
+    u16 flag = mExParam.mFlag;
+    flag &= (u16)~(1 << 2);
+    mExParam.mFlag = flag;
 
     if (!value) {
         return;
     }
 
-    mExParam.mFlag |= 1 << 2;
+    flag |= 1 << 2;
+    mExParam.mFlag = flag;
 }
 
 void CameraParamChunk::setCollisionOff(bool value) {
-    mExParam.mFlag &= ~(1 << 4);
+    u16 flag = mExParam.mFlag;
+    flag &= (u16)~(1 << 4);
+    mExParam.mFlag = flag;
 
     if (!value) {
         return;
     }
 
-    mExParam.mFlag |= 1 << 4;
+    flag |= 1 << 4;
+    mExParam.mFlag = flag;
 }
 
 void CameraParamChunk::copy(const CameraParamChunk* pOther) {

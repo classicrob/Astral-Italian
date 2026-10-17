@@ -37,8 +37,7 @@ namespace {
     }
 }
 
-#pragma push
-#pragma global_optimizer off
+// NONMATCHING: t kept in f31 in target vs f1 temp (regalloc only)
 void CamKarikariEffector::update(CameraMan* pCameraMan) {
     if (MR::isPlayerDead()) {
         CameraLocalUtil::setFovy(pCameraMan, CameraLocalUtil::getFovy(pCameraMan));
@@ -55,21 +54,15 @@ void CamKarikariEffector::update(CameraMan* pCameraMan) {
         }
     }
 
-    f32 t;
-
-    if (MR::getClingNumMax() == 0) {
-        t = ::sKarikariViewRate;
-    } else {
-        t = static_cast< f32 >(MR::getKarikariClingNum()) / MR::getClingNumMax();
-    }
+    f32 t = MR::getClingNumMax() == 0 ? ::sKarikariViewRate : static_cast< f32 >(MR::getKarikariClingNum()) / MR::getClingNumMax();
 
     if (mCounter <= 0) {
         return;
     }
 
-    t = 1.0f - t;
-    t *= t;
-    t = 1.0f - t;
+    f32 u = 1.0f - t;
+    u *= u;
+    t = 1.0f - u;
 
     TVec3f diffWatchPos = CameraLocalUtil::getWatchPos(pCameraMan) - CameraLocalUtil::getPos(pCameraMan);
     TVec3f toWatchPos(diffWatchPos);
@@ -101,4 +94,3 @@ void CamKarikariEffector::update(CameraMan* pCameraMan) {
         CameraLocalUtil::setFovy(pCameraMan, (fovy * 180.0f * t) / MR::pi() + (1.0f - t) * CameraLocalUtil::getFovy(pCameraMan));
     }
 }
-#pragma pop

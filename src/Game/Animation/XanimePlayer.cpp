@@ -110,6 +110,7 @@ void XanimePlayer::init() {
     _7D = false;
     _7C = false;
     _88 = false;
+    _89 = false;
     _80 = false;
 
     for (int i = 0; i < ARRAY_SIZE(mWeights); i++) {
@@ -171,7 +172,7 @@ void XanimePlayer::changeTrackAnimation(u8 arg1, u32 index) {
 }
 
 void XanimePlayer::changeAnimationBck(const char* pName) {
-    changeSimpleBck(pName);
+    changeAnimation(pName);
 }
 
 bool XanimePlayer::changeSimpleBck(const char* pName) {
@@ -239,6 +240,7 @@ void XanimePlayer::changeAnimation(const XanimeGroupInfo* pInfo) {
     }
 
     swapFrameCtrl(pInfo);
+    _89 = true;
     _68 = pInfo;
     changeCurrentAnimation(pInfo);
     mCurrentBckName = pInfo->mBckName;
@@ -331,6 +333,7 @@ void XanimePlayer::changeAnimationSimple(J3DAnmTransform* pAnm) {
     _68 = nullptr;
     _84 = 0.0f;
     _88 = false;
+    _89 = false;
 }
 
 void XanimePlayer::changeSpeed(f32 speed) {
@@ -429,12 +432,11 @@ void XanimePlayer::updateAfterMovement() {
 
     if (_20->checkState(1) != 0) {
         f32 unusedCast = _20->getEnd();
-    } else if (!_88) {
+    } else if (!_88 && !_89) {
         f32 rate = _20->getRate();
-        f32 frame = _20->getFrame();
 
         _20->update();
-        _84 = frame;
+        _84 = _20->getFrame();
         _88 = true;
 
         if (_20->checkState(1) != 0) {

@@ -10,7 +10,7 @@ class DotCamReader;
 class CameraGeneralParam {
 public:
     CameraGeneralParam()
-        : mString(), mDist(1200.0f), mAxis(0.0f, 1.0f, 0.0f), mWPoint(0.0f, 0.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), mAngleA(), mAngleB(0.3f), mNum1(),
+        : mString(), mDist(1200.0f), mAxis(0.0f, 1.0f, 0.0f), mWPoint(0.0f, 0.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), mAngleA(), mAngleB(0.3f), mNum1(1),
           mNum2() {
     }
 
@@ -35,7 +35,7 @@ public:
         }
 
         void init() {
-            mWOffset.set< f32 >(0.0f, 100.0f, 0.0f);
+            mWOffset.set< f32 >(0.0f, 0.0f, 0.0f);
             mLOffset = 0.0f;
             mLOffsetV = 0.0f;
             mRoll = 0.0f;

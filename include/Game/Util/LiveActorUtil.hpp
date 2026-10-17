@@ -32,7 +32,7 @@ class TriangleFilterBase;
 class ProjmapEffectMtxSetter;
 
 namespace MR {
-    enum CollisionScaleType { CollisionScaleType_AutoEqualScale, CollisionScaleType_NotUsingScale, CollisionScaleType_Default };
+    enum CollisionScaleType { CollisionScaleType_AutoEqualScale, CollisionScaleType_NotUsingScale, CollisionScaleType_Default, CollisionScaleType_Unk2 = CollisionScaleType_Default };
     void initSensors(LiveActor*, const char*, const char*);
     void initSwitches(LiveActor*, const JMapInfoIter&, const char*, const char*);
 

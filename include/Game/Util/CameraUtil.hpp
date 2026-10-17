@@ -22,10 +22,10 @@ namespace MR {
 
     void declareEventCamera(const ActorCameraInfo*, const char*);
     void declareEventCameraProgrammable(const char*);
-    void startEventCamera(const ActorCameraInfo*, const char*, const CameraTargetArg&, s32);
+    void startEventCamera(const ActorCameraInfo*, const char*, const CameraTargetArg&, s32 = -1);
     void startEventCameraAnim(const ActorCameraInfo*, const char*, const CameraTargetArg&, s32, f32);
-    void startGlobalEventCameraNoTarget(const char*, s32);
-    void endEventCamera(const ActorCameraInfo*, const char*, bool, s32);
+    void startGlobalEventCameraNoTarget(const char*, s32 = -1);
+    void endEventCamera(const ActorCameraInfo*, const char*, bool, s32 = -1);
     void endEventCameraAtLanding(const ActorCameraInfo*, const char*, s32);
     void endGlobalEventCamera(const char*, s32, bool);
     bool isEventCameraActive(const ActorCameraInfo*, const char*);
@@ -36,7 +36,7 @@ namespace MR {
     s32 getEventCameraFrames(const ActorCameraInfo*, const char*);
 
     void declareEventCameraAnim(const ActorCameraInfo*, const char*, void*);
-    bool endMultiActorCameraAtLanding(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char*, s32);
+    bool endMultiActorCameraAtLanding(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char*, s32 = -1);
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

@@ -74,17 +74,17 @@ namespace MR {
     void calcActorAxisY(TVec3f*, const LiveActor*);
     void calcActorAxisZ(TVec3f*, const LiveActor*);
     // TODO: Needs TQuat4
-    // void faceToVector(TQuat4f*, TVec3f, f32);
+    void faceToVector(TQuat4f*, TVec3f, f32);
     void faceToVector(MtxPtr, TVec3f, f32);
     void faceToPoint(MtxPtr, TVec3f, f32);
 
     // TODO: Needs TQuat4
-    // void makeQuatFromRotate(TQuat4f*, const LiveActor*);
-    // void makeQuatAndFrontFromRotate(TQuat4f*, TVec3f*, const LiveActor*);
+    void makeQuatFromRotate(TQuat4f*, const LiveActor*);
+    void makeQuatAndFrontFromRotate(TQuat4f*, TVec3f*, const LiveActor*);
 
-    // void turnQuatUpToGravity(TQuat4f*, const TQuat4f&, const LiveActor*);
+    void turnQuatUpToGravity(TQuat4f*, const TQuat4f&, const LiveActor*);
 
-    // void blendQuatFromGroundAndFront(TQuat4f*, const LiveActor*, const TVec3f&, f32, f32);
+    void blendQuatFromGroundAndFront(TQuat4f*, const LiveActor*, const TVec3f&, f32, f32);
 
     void resetPosition(LiveActor*);
     void resetPosition(LiveActor*, const TVec3f&);
@@ -130,7 +130,7 @@ namespace MR {
     void forceBindOnGround(LiveActor*, f32, f32);
 
     bool reboundVelocityFromEachCollision(LiveActor*, f32, f32, f32, f32);
-    bool reboundVelocityFromCollision(LiveActor*, f32, f32, f32);
+    bool reboundVelocityFromCollision(LiveActor*, f32 = 0.0f, f32 = 0.0f, f32 = 1.0f);
     void zeroVelocity(LiveActor*);
     void setVelocity(LiveActor*, const TVec3f&);
     void addVelocity(LiveActor*, const TVec3f&);

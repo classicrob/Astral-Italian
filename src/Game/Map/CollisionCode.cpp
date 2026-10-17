@@ -9,7 +9,7 @@ CollisionCode::CollisionCode() : mFloorTable(0), mWallTable(0), mSoundTable(0), 
 }
 
 void CollisionCode::createFloorTable() {
-    mFloorTable = new CodeTable(0x23);
+    mFloorTable = new CodeTable(0x2C);
 
     mFloorTable->add("Normal", 0);
     mFloorTable->add("Death", 1);
@@ -87,7 +87,7 @@ void CollisionCode::createWallTable() {
 }
 
 void CollisionCode::createSoundTable() {
-    mSoundTable = new CodeTable(0x10);
+    mSoundTable = new CodeTable(0x17);
 
     mSoundTable->add("null", 0);
     mSoundTable->add("Soil", 1);

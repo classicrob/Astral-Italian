@@ -121,5 +121,5 @@ namespace MR {
     void invalidateTalkDirector();
     void setTalkDirectorDrawSyncToken();
     bool isActiveTalkBalloonShort();
-    void endNPCTalkCamera(bool, s32);
+    void endNPCTalkCamera(bool, s32 = -1);
 };  // namespace MR

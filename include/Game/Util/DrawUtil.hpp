@@ -15,6 +15,16 @@ class J3DModel;
 class J3DMaterial;
 class JUTTexture;
 
+class J2DOrthoGraphSimple : public J2DOrthoGraph {
+public:
+    J2DOrthoGraphSimple();
+
+    virtual ~J2DOrthoGraphSimple() {
+    }
+
+    virtual void setPort();
+};
+
 namespace MR {
     void drawInit();
     void reinitGX();

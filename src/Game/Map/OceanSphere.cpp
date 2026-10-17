@@ -3,6 +3,7 @@
 #include "Game/Map/OceanSpherePoint.hpp"
 #include "Game/Map/WaterAreaHolder.hpp"
 #include "Game/Scene/SceneFunction.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -218,8 +219,13 @@ void OceanSphere::exeWait() {
 }
 
 void OceanSphere::exeRiseUp() {
+    if (MR::isDemoPartFirstStep("湧き水上昇")) {
+        MR::startActionSound(this, "RiseUpStart", -1, -1, -1);
+    }
+
     f32 rate = MR::calcDemoPartStepRate("湧き水上昇");
     mRadius = 1000.0f + (rate * (mRadiusTarget - 1000.0f));
+    MR::startActionSound(this, "RisingUp", -1, -1, -1);
 
     if (MR::isDemoPartLastStep("湧き水上昇")) {
         setNerve(GET_NERVE(OceanSphere, OceanSphereNrvWait));

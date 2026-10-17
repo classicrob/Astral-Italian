@@ -55,7 +55,7 @@ void DinoPackunTrackFire::init(const JMapInfoIter& rIter) {
 void DinoPackunTrackFire::control() {
     MR::makeMtxUpNoSupportPos(&_8C, -mGravity, mPosition);
 
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         kill();
     }
 }

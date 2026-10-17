@@ -71,7 +71,7 @@ void Kabokuri::init(const JMapInfoIter& rIter) {
     initRailRider(rIter);
     MR::moveCoordAndTransToNearestRailPos(this);
     MR::makeQuatAndFrontFromRotate(&mRotationQuat, &mFrontVec, this);
-    initModelManagerWithAnm("Kabokuri", nullptr, false);
+    MR::initActor(this, rIter, "Kabokuri", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     MR::getJMapInfoArg0WithInit(rIter, &mIsFloating);

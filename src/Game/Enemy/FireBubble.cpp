@@ -50,7 +50,7 @@ void FireBubble::init(const JMapInfoIter& rIter) {
         initMapToolInfo(rIter);
     }
 
-    initModelManagerWithAnm("FireBubble", nullptr, false);
+    MR::initActor(this, rIter, "FireBubble", false);
     MR::connectToSceneEnemy(this);
     initHitSensors("body", "Body");
     initBinder(::cBinderRadius, 40.0f, 0);
@@ -228,7 +228,7 @@ bool FireBubble::tryChaseEnd() {
 }
 
 bool FireBubble::tryReflect() {
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         TVec2f starPointerScreenVelocity(*MR::getStarPointerScreenVelocity(*MR::getStarPointerLastPointedPort(this)));
         if (::cReflectCursorSpeed < starPointerScreenVelocity.length()) {
             MR::onCalcGravity(this);
@@ -256,7 +256,7 @@ bool FireBubble::isMovingDown() {
 
 void FireBubble::exeAppear() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Appear");
+        MR::startAction(this, "Appear");
         MR::emitEffect(this, "Wait");
         MR::startActionSound(this, "EmFireBubbleLaunch");
         MR::showModel(this);
@@ -287,7 +287,7 @@ void FireBubble::exeAppear() {
 
 void FireBubble::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         mVelocity.zero();
         mActFrame = MR::getRandom((s32)0, ::cRandomActFrame) + ::cForceKillFrame;
     }
@@ -307,7 +307,7 @@ void FireBubble::exeWait() {
 
 void FireBubble::exeChase() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::emitEffect(this, "Wait");
     }
 
@@ -326,7 +326,7 @@ void FireBubble::exeChase() {
 
 void FireBubble::exeReflect() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "DPDHit");
+        MR::startAction(this, "DPDHit");
         calcReflectVelocity(&mVelocity);
         MR::deleteEffect(this, "Wait");
         MR::emitEffect(this, "WaitS");
@@ -346,7 +346,7 @@ void FireBubble::exeReflect() {
 
 void FireBubble::exeReflectLand() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "DPDHitDown");
+        MR::startAction(this, "DPDHitDown");
         mVelocity.zero();
         MR::offCalcGravity(this);
     }
@@ -358,7 +358,7 @@ void FireBubble::exeReflectLand() {
 
 void FireBubble::exeReflectWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "DPDHitDownWait");
+        MR::startAction(this, "DPDHitDownWait");
     }
 
     if (!tryChaseEnd() && !tryReflect() && MR::isStep(this, ::cReflectWaitFrame)) {
@@ -370,7 +370,7 @@ void FireBubble::exeReflectWait() {
 
 void FireBubble::exeDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Down");
+        MR::startAction(this, "Down");
         MR::deleteEffect(this, "Wait");
         MR::deleteEffect(this, "WaitS");
         MR::startActionSound(this, "EmFireBubbleDie");
@@ -381,7 +381,7 @@ void FireBubble::exeDown() {
     updateChaseFrontVecAndVelocity(::cChaseRotateSpeed);
 
     updateGravity(::cChaseGravity);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         killOrWaitToApppear();
     }
 }

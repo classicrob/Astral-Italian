@@ -48,7 +48,7 @@ void SamboHead::init(const JMapInfoIter& rIter) {
     }
 
     _A4.set(mPosition);
-    initModelManagerWithAnm("SamboHead", nullptr, false);
+    MR::initActor(this, rIter, "SamboHead", false);
     TPos3f mtx = getBaseMtx();
     mtx.getZDir(_98);
     MR::connectToSceneEnemy(this);
@@ -491,7 +491,7 @@ bool SamboHead::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
         return true;
     }
     if (MR::isMsgPlayerKick(msg)) {
-        if (!MR::isPlayerExistSide(this, getSensor("body")->mRadius, 0.25f)) {
+        if (!MR::isPlayerExistSide(this, MR::getSensorRadius(this, "body"), 0.25f)) {
             return false;
         }
         if (isNerve(GET_NERVE(SamboHead, HostTypeNrvStarPieceHit))) {

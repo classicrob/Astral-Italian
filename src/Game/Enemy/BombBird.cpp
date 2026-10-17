@@ -76,14 +76,14 @@ void BombBird::init(const JMapInfoIter& rIter) {
         mSearchPlayer = false;
     }
 
-    initModelManagerWithAnm("BombBird", nullptr, false);
+    MR::initActor(this, rIter, "BombBird", false);
     MR::connectToSceneEnemy(this);
     initNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRail));
     initHitSensor(1);
     MR::addHitSensorEnemy(this, "body", 16, 100.0f, TVec3f(0.0f, 100.0f, 0.0f));
     initSound(4, "BombBird", nullptr, TVec3f(0.0f));
     MR::onCalcGravity(this);
-    MR::initShadowVolumeSphere(this, getSensor("body")->getRadius());
+    MR::initShadowVolumeSphere(this, MR::getSensorRadius(this, "body"));
     initBinder(100.0f, 100.0f, 0);
     MR::initLightCtrl(this);
     MR::declareCoin(this, 1);
@@ -106,7 +106,7 @@ void BombBird::init(const JMapInfoIter& rIter) {
     }
 
     initEffectKeeper(1, nullptr, false);
-    MR::initStarPointerTarget(this, getSensor("body")->getRadius(), TVec3f(0.0f, 0.5f * getSensor("body")->getRadius(), 0.0f));
+    MR::initStarPointerTarget(this, MR::getSensorRadius(this, "body"), TVec3f(0.0f, 0.5f * MR::getSensorRadius(this, "body"), 0.0f));
     mScaleController = new AnimScaleController(nullptr);
     mStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     if (MR::isValidSwitchAppear(this)) {
@@ -158,7 +158,7 @@ void BombBird::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(BombBird, HostTypeNrvEscape)) || isNerve(GET_NERVE(BombBird, HostTypeNrvDamage)) ||
         isNerve(GET_NERVE(BombBird, HostTypeNrvFall)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) ||
         isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd)) ||
-        MR::isPlayerExistUp(this, getSensor("body")->getRadius(), 0.25f) || MR::isPlayerHipDropFalling() || MR::isPlayerHipDropLand()) {
+        MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f) || MR::isPlayerHipDropFalling() || MR::isPlayerHipDropLand()) {
         MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
     } else if (!MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
@@ -451,7 +451,7 @@ void BombBird::exeTrample() {
     MR::moveAndTurnToPlayer(this, &mFront, param->_0, param->_4, param->_8, param->_C);
 
     if (MR::isStep(this, 36)) {
-        TVec3f pos(mPosition - mGravity * getSensor("body")->getRadius());
+        TVec3f pos(mPosition - mGravity * MR::getSensorRadius(this, "body"));
         MR::appearCoinPop(this, pos, 1);
         MR::startActionSound(this, "EmExplodeS");
         MR::emitEffect(this, "Death");

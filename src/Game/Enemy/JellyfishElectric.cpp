@@ -51,7 +51,7 @@ JellyfishElectric::JellyfishElectric(const char* pName) : LiveActor(pName) {
 
 void JellyfishElectric::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("JellyfishElectric", nullptr, false);
+    MR::initActor(this, rIter, "JellyfishElectric", false);
     MR::connectToSceneEnemy(this);
     MR::addToAttributeGroupSearchTurtle(this);
     initHitSensor(1);
@@ -149,7 +149,7 @@ void JellyfishElectric::exeDamage() {
         MR::startAllAnim(this, "Damage");
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         _A4 = 1;
         MR::startAllAnim(this, "DangerWait");
         MR::startBas(this, "DangerBrk", false, 0.0f, 0.0f);
@@ -179,7 +179,7 @@ void JellyfishElectric::exeAttack() {
 
     MR::startActionSound(this, "EmLvJellyelecAttack");
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(JellyfishElectric, JellyfishElectricNrvWait));
     }
 }
@@ -249,7 +249,7 @@ bool JellyfishElectric::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitS
         knockOut();
         return true;
     } else {
-        if (MR::isMsgPlayerSpinAttack(msg)) {
+        if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
             return tryToAttackElectric(pSender, pReceiver);
         }
     }

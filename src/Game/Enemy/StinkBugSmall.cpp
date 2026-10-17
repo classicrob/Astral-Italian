@@ -116,14 +116,14 @@ void StinkBugSmall::exeSearch() {
 
 void StinkBugSmall::exeDashSign() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "RushStart");
+        MR::startAction(this, "RushStart");
         MR::startActionSound(this, "EvStinkbugSFind");
     }
 
     MR::startActionSound(this, "EmLvStinkbugSDashSign");
     fixInitPos();
     tryTurnDashSign(3.0f);
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvDashSignEnd));
     }
 }
@@ -136,7 +136,7 @@ void StinkBugSmall::exeDashSignEnd() {
 
 void StinkBugSmall::exeDash() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Rush");
+        MR::startAction(this, "Rush");
         MR::validateHitSensors(this);
     }
 
@@ -153,18 +153,18 @@ void StinkBugSmall::exeDash() {
 
 void StinkBugSmall::exeDashEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "RushStop");
+        MR::startAction(this, "RushStop");
     }
 
     mVelocity.zero();
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvBack));
     }
 }
 
 void StinkBugSmall::exeBack() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Back");
+        MR::startAction(this, "Back");
         MR::invalidateHitSensor(this, "head");
     }
 
@@ -183,7 +183,7 @@ void StinkBugSmall::exeBack() {
 
 void StinkBugSmall::exeHipDropDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Death");
+        MR::startAction(this, "Death");
         MR::startBrk(this, "Death");
         if (!_C4) {
             MR::invalidateCollisionParts(this);
@@ -196,37 +196,37 @@ void StinkBugSmall::exeHipDropDown() {
     }
 
     mVelocity.zero();
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         kill();
     }
 }
 
 void StinkBugSmall::exeAttack() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
     }
 
     mVelocity.zero();
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvBack));
     }
 }
 
 void StinkBugSmall::exeSpinReaction() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "SpinAction");
+        MR::startAction(this, "SpinAction");
         MR::startActionSound(this, "EmGuardS");
     }
 
     mVelocity.zero();
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvBack));
     }
 }
 
 void StinkBugSmall::exeShakeStart() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Repel");
+        MR::startAction(this, "Repel");
     }
 
     if (MR::isStep(this, 40)) {
@@ -235,14 +235,14 @@ void StinkBugSmall::exeShakeStart() {
 }
 
 void StinkBugSmall::exeShake() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvBack));
     }
 }
 
 void StinkBugSmall::exePanic() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Loss");
+        MR::startAction(this, "Loss");
         MR::invalidateHitSensor(this, "head");
     }
 
@@ -429,7 +429,7 @@ bool StinkBugSmall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
     }
 
     if (!isNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvSpinReaction)) && !isNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvDash)) &&
-        MR::isMsgPlayerSpinAttack(msg) && pReceiver == getSensor("body")) {
+        MR::isMsgPlayerSpinAttackOrSupportTico(msg) && pReceiver == getSensor("body")) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvSpinReaction));
         return true;
     }

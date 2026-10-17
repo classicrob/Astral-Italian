@@ -20,7 +20,7 @@ DinoPackunDemoPosition::DinoPackunDemoPosition(const char* pName) : LiveActor(pN
 void DinoPackunDemoPosition::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     initNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoPositionNrvOpeningDemo));
-    initModelManagerWithAnm("DinoPackunDemoPosition", nullptr, false);
+    MR::initActor(this, rIter, "DinoPackunDemoPosition", false);
     MR::invalidateClipping(this);
     makeActorDead();
 }
@@ -40,7 +40,7 @@ void DinoPackunDemoPosition::endDemo() {
 
 void DinoPackunDemoPosition::exeOpeningDemo() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "OpeningDemo");
+        MR::startAction(this, "OpeningDemo");
     }
 
     if (MR::isStep(this, 0)) {

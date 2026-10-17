@@ -20,7 +20,7 @@ BossStinkBugBomb::BossStinkBugBomb(const char* pName) : LiveActor(pName), _8C(0.
 }
 
 void BossStinkBugBomb::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("BossStinkBugBomb", nullptr, false);
+    MR::initActor(this, rIter, "BossStinkBugBomb", false);
     MR::connectToSceneEnemy(this);
     MR::onCalcGravity(this);
     initHitSensor(2);

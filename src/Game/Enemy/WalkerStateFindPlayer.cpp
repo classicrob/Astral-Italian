@@ -56,7 +56,7 @@ void WalkerStateFindPlayer::exeFindJumpStart() {
 
     WalkerStateFunction::calcPassiveMovement(getHost(), mStateParam);
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         setNerve(GET_NERVE(WalkerStateFindPlayer, WalkerStateFindPlayerNrvFindJump));
     }
 }
@@ -81,7 +81,7 @@ void WalkerStateFindPlayer::exeFindJumpEnd() {
 
     WalkerStateFunction::calcPassiveMovement(getHost(), mStateParam);
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         kill();
     }
 }

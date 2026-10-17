@@ -35,7 +35,7 @@ DinoPackunFire::DinoPackunFire(const char* pName) : LiveActor(pName) {
 
 void DinoPackunFire::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("DinoPackunFireBall", nullptr, false);
+    MR::initActor(this, rIter, "DinoPackunFireBall", false);
     MR::connectToSceneEnemy(this);
     initHitSensor(1);
     TVec3f attackOffs;

@@ -34,7 +34,7 @@ void DinoPackunStateAwake::exeFind() {
     MR::turnDirectionToPlayerDegree(getHost(), &getHost()->_E8, 4.0f);
     getHost()->updateNormalVelocity();
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         kill();
     }
 }

@@ -37,7 +37,7 @@ KameckFireBall::KameckFireBall(const char* pName) : LiveActor(pName), mRotateQua
 
 void KameckFireBall::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("BossKameckFireBall", nullptr, false);
+    MR::initActor(this, rIter, "BossKameckFireBall", false);
     MR::connectToSceneEnemy(this);
     initNerve(GET_NERVE(BossKameckBeamFire, KameckFireBallNrvWait));
     initHitSensor(1);
@@ -148,7 +148,7 @@ void KameckFireBall::exeWait() {
         }
     }
 
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", 1, 0)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         kill();
     } else if (MR::isGreaterStep(this, ::sLife) || MR::isInWater(mPosition)) {
         kill();

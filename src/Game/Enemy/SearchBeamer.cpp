@@ -53,7 +53,7 @@ SearchBeamer::SearchBeamer(const char* pName) : LiveActor(pName) {
 
 void SearchBeamer::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("SearchBeamer", nullptr, false);
+    MR::initActor(this, rIter, "SearchBeamer", false);
     MR::connectToSceneCollisionMapObjStrongLight(this);
     MR::initLightCtrl(this);
     initHitSensor(2);
@@ -156,20 +156,20 @@ void SearchBeamer::exeCloseWaitNear() {
 
 void SearchBeamer::exeOpenMouth() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Open");
+        MR::startAction(this, "Open");
         MR::startActionSound(this, "EmSearchbeamerPreBeam");
     }
 
     bowToPlayer();
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvBeamPrepare));
     }
 }
 
 void SearchBeamer::exeBeamPrepare() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
     }
 
     if (MR::isStep(this, 10)) {
@@ -234,7 +234,7 @@ void SearchBeamer::exeBeamAim() {
 
 void SearchBeamer::exeCloseMouth() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Close");
+        MR::startAction(this, "Close");
         MR::deleteEffectAll(this);
         MR::invalidateHitSensor(this, "beam");
         MR::invalidateShadow(this, "beam");
@@ -252,7 +252,7 @@ void SearchBeamer::exeCloseMouth() {
         initBeamPos();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::validateClipping(this);
         setNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvCloseWaitNear));
     }
@@ -270,7 +270,7 @@ void SearchBeamer::exeStopStart() {
 
     reformDirection(true);
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvStop));
     }
 }

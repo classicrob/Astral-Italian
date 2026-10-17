@@ -126,7 +126,7 @@ bool OtaRock::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
 }
 
 void OtaRock::initModel() {
-    initModelManagerWithAnm("OtaRock", nullptr, false);
+    MR::initActor(this, "OtaRock", false);
 
     if (!mNoThrowCocoNut) {
         mCocoNutArray = new CocoNutBall[4];
@@ -249,7 +249,7 @@ bool OtaRock::tryToHide() {
 
 void OtaRock::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         if (mNoThrowCocoNut) {
             mWaitFrame = MR::getRandom(::cWaitFrameMinNoThrowCocoNut, ::cWaitFrameMaxNoThrowCocoNut);
         } else {
@@ -273,21 +273,21 @@ void OtaRock::exeWait() {
 
 void OtaRock::exeThrowCocoNut() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
         MR::startActionSound(this, "EvOtarockPreRallyball");
     }
     OtaRock::updateBaseMtx();
     if (MR::isStep(this, ::cThrowBallStep)) {
         throwCocoNut();
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
     }
 }
 
 void OtaRock::exeThrowFireBall() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
         MR::startActionSound(this, "EvOtarockPreHotball");
     }
     OtaRock::updateBaseMtx();
@@ -295,7 +295,7 @@ void OtaRock::exeThrowFireBall() {
         MR::startActionSound(this, "EmOtarockFireOut");
         throwFireBall();
     }
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
     }
 }
@@ -330,14 +330,14 @@ void OtaRock::exeDown() {
         MR::shakeCameraNormal();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         kill();
     }
 }
 
 void OtaRock::exeHide() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Hide");
+        MR::startAction(this, "Hide");
         MR::startActionSound(this, "EmOtarockHide");
     }
     updateBaseMtx();

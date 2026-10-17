@@ -45,7 +45,7 @@ void Balloonfish::init(const JMapInfoIter& rIter) {
         MR::listenStageSwitchOnAppear(this, MR::Functor(this, &Balloonfish::appear));
     }
 
-    initModelManagerWithAnm("Balloonfish", nullptr, false);
+    MR::initActor(this, rIter, "Balloonfish", false);
     mQuat.setEuler(mRotation);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
@@ -88,7 +88,7 @@ void Balloonfish::exeWait() {
         mVelocity.zero();
         if (mNerveBeforeBind != mSpine->getCurrentNerve()) {
             mNotBoundStep = 0;
-            MR::startBck(this, "appearance");
+            MR::startAction(this, "appearance");
             MR::startActionSound(this, "EmBlnfishPreDash");
         }
 
@@ -110,7 +110,7 @@ void Balloonfish::exeWait() {
     }
 
     // "weak"
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         mNerveBeforeBind = mSpine->getCurrentNerve();
         setNerve(GET_NERVE(Balloonfish, HostTypeNrvStarPointerBind));
         return;
@@ -124,13 +124,13 @@ void Balloonfish::exeDash() {
         if (isNerve(GET_NERVE(Balloonfish, HostTypeNrvDash))) {
             if (mNerveBeforeBind != mSpine->getCurrentNerve()) {
                 mNotBoundStep = 0;
-                MR::startBck(this, "Attack");
+                MR::startAction(this, "Attack");
                 MR::emitEffect(this, "SwimBubble");
             }
         } else {
             if (mNerveBeforeBind != mSpine->getCurrentNerve()) {
                 mNotBoundStep = 0;
-                MR::startBck(this, "AttackEnd");
+                MR::startAction(this, "AttackEnd");
                 MR::emitEffect(this, "SwimBubble");
             }
         }
@@ -163,13 +163,13 @@ void Balloonfish::exeDash() {
         }
     }
 
-    if (!MR::isInWater(getSensor("body")->mPosition)) {
+    if (!MR::isInWater((*MR::getSensorPos(this, "body")))) {
         kill();
         return;
     }
 
     // "weak"
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         mNerveBeforeBind = mSpine->getCurrentNerve();
         setNerve(GET_NERVE(Balloonfish, HostTypeNrvStarPointerBind));
         return;
@@ -190,7 +190,7 @@ void Balloonfish::exeStarPointerBind() {
     mVelocity.zero();
 
     // "weak"
-    if (!MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
         setNerve(mNerveBeforeBind);
     }
 }

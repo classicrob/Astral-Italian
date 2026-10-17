@@ -46,7 +46,7 @@ void BombHeiLauncher::init(const JMapInfoIter& rIter) {
         MR::useStageSwitchSleep(this, rIter);
     }
 
-    initModelManagerWithAnm("BombHeiLauncher", nullptr, false);
+    MR::initActor(this, rIter, "BombHeiLauncher", false);
     MR::connectToSceneCollisionEnemy(this);
     MR::initLightCtrl(this);
     MR::onCalcGravity(this);
@@ -135,7 +135,7 @@ void BombHeiLauncher::exeLauncherWait() {
             return;
         }
 
-        MR::startBck(this, "Open");
+        MR::startAction(this, "Open");
         MR::startActionSound(this, "EmBomblaunLaunch");
 
         mBomb->appear();

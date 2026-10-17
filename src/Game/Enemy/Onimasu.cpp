@@ -65,7 +65,7 @@ void Onimasu::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     initRailRider(rIter);
     initFromRailPoint();
-    initModelManagerWithAnm("Onimasu", nullptr, false);
+    MR::initActor(this, rIter, "Onimasu", false);
 
     MR::connectToSceneCollisionEnemyNoShadowedMapObjStrongLight(this);
 

@@ -87,7 +87,7 @@ void WalkerStateStagger::exeStaggerEnd() {
 
     WalkerStateFunction::calcPassiveMovement(getHost(), mStateParam);
 
-    if (MR::isBckStopped(getHost())) {
+    if (MR::isActionEnd(getHost())) {
         kill();
     }
 }

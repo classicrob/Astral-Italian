@@ -57,7 +57,7 @@ Kameck::Kameck(const char* pName)
 
 void Kameck::init(const JMapInfoIter& rIter) {
     initJMapParam(rIter);
-    initModelManagerWithAnm("Kameck", nullptr, false);
+    MR::initActor(this, rIter, "Kameck", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     MR::onCalcGravity(this);
@@ -385,7 +385,7 @@ bool Kameck::tryActive() {
 }
 
 bool Kameck::tryAppearEnd() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (!tryAttackWait()) {
             setNerve(GET_NERVE(Kameck, KameckNrvWait));
         }
@@ -429,7 +429,7 @@ bool Kameck::tryAttackEnd() {
 }
 
 bool Kameck::tryHitEnd() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Kameck, KameckNrvMoveHide));
         return true;
     }
@@ -438,7 +438,7 @@ bool Kameck::tryHitEnd() {
 }
 
 bool Kameck::tryMove() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Kameck, KameckNrvMove));
         return true;
     }
@@ -468,7 +468,7 @@ bool Kameck::tryPointBind() {
 
 void Kameck::exeOpeningDemo() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::showModel(this);
         MR::validateHitSensors(this);
         MR::validateClipping(this);
@@ -481,14 +481,14 @@ void Kameck::exeOpeningDemo() {
 
 void Kameck::exeDemoAppear() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Appear");
+        MR::startAction(this, "Appear");
         MR::startActionSound(this, "EmKameckSmoke");
         MR::startActionSound(this, "EmKameckAppear");
     }
 
     MR::turnDirectionToTarget(this, &mFrontVec, *MR::getPlayerPos(), ::sTurnPlayerLimit);
     if (MR::isBckOneTimeAndStopped(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 }
 
@@ -507,7 +507,7 @@ void Kameck::exeNonActive() {
 
 void Kameck::exeAppear() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Appear");
+        MR::startAction(this, "Appear");
         MR::startActionSound(this, "EmKameckSmoke");
         MR::startActionSound(this, "EmKameckAppear");
         MR::showModel(this);
@@ -526,7 +526,7 @@ void Kameck::exeAppear() {
 
 void Kameck::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
         MR::validateClipping(this);
         MR::validateHitSensors(this);
     }
@@ -541,7 +541,7 @@ void Kameck::exeHide() {
 
 void Kameck::exeAttackWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "AttackWait");
+        MR::startAction(this, "AttackWait");
         MR::invalidateClipping(this);
     }
 
@@ -555,7 +555,7 @@ void Kameck::exeAttackWait() {
 
 void Kameck::exeGuard() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Guard");
+        MR::startAction(this, "Guard");
     }
 
     if (!tryPointBind() && MR::isGreaterStep(this, ::sGuardTime)) {
@@ -565,7 +565,7 @@ void Kameck::exeGuard() {
 
 void Kameck::exeAttack() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Attack");
+        MR::startAction(this, "Attack");
         MR::startActionSound(this, "EmKameckStaffSwing");
         MR::startActionSound(this, "EvKameckStaffSwing");
     }
@@ -583,7 +583,7 @@ void Kameck::exeAttack() {
 
 void Kameck::exeHit() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Hit");
+        MR::startAction(this, "Hit");
     }
 
     if (!tryPointBind() && tryHitEnd()) {
@@ -593,7 +593,7 @@ void Kameck::exeHit() {
 
 void Kameck::exeMoveHide() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Hide");
+        MR::startAction(this, "Hide");
         MR::startActionSound(this, "EmKameckHide");
     }
 
@@ -606,7 +606,7 @@ void Kameck::exeMoveHide() {
 
 void Kameck::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Move");
+        MR::startAction(this, "Move");
         MR::hideModelAndOnCalcAnim(this);
         MR::invalidateHitSensors(this);
         MR::invalidateClipping(this);
@@ -646,7 +646,7 @@ void Kameck::endBindStarPointer() {
 
 void Kameck::exeDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Down");
+        MR::startAction(this, "Down");
         MR::startBlowHitSound(this);
         MR::startActionSound(this, "EvKameckDeadBlow");
     }
@@ -654,7 +654,7 @@ void Kameck::exeDown() {
     MR::addVelocityToGravity(this, ::sDownGravityAccel);
     MR::attenuateVelocity(this, ::sDownFreq);
 
-    if (MR::isBckStopped(this) || MR::isBinded(this)) {
+    if (MR::isActionEnd(this) || MR::isBinded(this)) {
         MR::startActionSound(this, "EmExplodeS");
         kill();
     }
@@ -662,13 +662,13 @@ void Kameck::exeDown() {
 
 void Kameck::exePressDown() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Press");
+        MR::startAction(this, "Press");
         MR::startActionSound(this, "EmStompedS");
         MR::startActionSound(this, "EvKameckDeadStomped");
         MR::zeroVelocity(this);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::startActionSound(this, "EmExplodeS");
         kill();
     }

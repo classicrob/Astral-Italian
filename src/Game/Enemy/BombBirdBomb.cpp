@@ -38,17 +38,17 @@ BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f
 }
 
 void BombBirdBomb::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("BombBirdBomb", nullptr, false);
+    MR::initActor(this, rIter, "BombBirdBomb", false);
     MR::connectToSceneEnemy(this);
     MR::onCalcGravity(this);
     initHitSensor(2);
     MR::addHitSensorEnemy(this, "body", 8, 60.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorEnemyAttack(this, "bomb", 8, ::sExplosionRadius, TVec3f(0.0f, 0.0f, 0.0f));
     MR::invalidateHitSensor(this, "bomb");
-    initBinder(getSensor("body")->mRadius, 0.0f, 0);
+    initBinder(MR::getSensorRadius(this, "body"), 0.0f, 0);
     initEffectKeeper(0, nullptr, false);
     initSound(3, "BombBirdBomb", nullptr, TVec3f(0.0f));
-    f32 radius = getSensor("body")->mRadius;
+    f32 radius = MR::getSensorRadius(this, "body");
     MR::initShadowVolumeSphere(this, radius);
     initNerve(GET_NERVE(BombBirdBomb, HostTypeNrvHold));
     MR::invalidateClipping(this);

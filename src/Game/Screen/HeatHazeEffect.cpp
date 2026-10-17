@@ -32,7 +32,7 @@ HeatHazeDirector::HeatHazeDirector(const char* pName) : NameObj(pName) {
 }
 
 void HeatHazeEffect::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("ShimmerBoard", nullptr, false);
+    MR::initActor(this, rIter, "ShimmerBoard", false);
     MR::connectToSceneIndirectMapObj(this);
     MR::invalidateClipping(this);
     makeActorDead();

@@ -52,7 +52,7 @@ bool DinoPackunBattleEgg::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, Hi
         return false;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
     }
 
     return MR::isMsgStarPieceReflect(msg);

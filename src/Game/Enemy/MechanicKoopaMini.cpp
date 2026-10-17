@@ -108,7 +108,7 @@ void MechanicKoopaMini::init(const JMapInfoIter& rIter) {
     }
 
     initRailRider(rIter);
-    initModelManagerWithAnm("MechanicKoopaMini", nullptr, false);
+    MR::initActor(this, rIter, "MechanicKoopaMini", false);
     MR::connectToSceneEnemy(this);
     initBinder(120.0f, 0.0f, 0);
     MR::setBinderOffsetVec(this, &::hBinderOffset, true);
@@ -522,7 +522,7 @@ bool MechanicKoopaMini::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitS
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (!isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) || !MR::isLessStep(this, 120)) {
             setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit));
         }
@@ -569,7 +569,7 @@ void MechanicKoopaMini::updateHitSensor(HitSensor* pSensor) {
     f32 frontDist = MR::clamp(dot, 0.0f, nerveRate);
 
     pSensor->mPosition.set(mPosition);
-    pSensor->mPosition.add(up * getSensor("body")->getRadius());
+    pSensor->mPosition.add(up * MR::getSensorRadius(this, "body"));
     pSensor->mPosition.add(front * frontDist);
 }
 

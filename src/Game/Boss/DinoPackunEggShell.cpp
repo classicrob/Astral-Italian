@@ -16,7 +16,7 @@ DinoPackunEggShell::DinoPackunEggShell(const char* pName, HitSensor* pSensor, Mt
 
 void DinoPackunEggShell::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("DinoPackunEggShell", nullptr, false);
+    MR::initActor(this, rIter, "DinoPackunEggShell", false);
     MR::connectToSceneEnemyDecoration(this);
     MR::initLightCtrl(this);
     MR::initCollisionParts(this, "DinoPackunEggShell", _8C, nullptr);

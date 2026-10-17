@@ -104,7 +104,7 @@ void MogucchiHillPiece::initWithModelName(const char* pModelName, const char* pJ
 void MogucchiHillPiece::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
-        MR::startBck(this, "Lead");
+        MR::startAction(this, "Lead");
         MR::startBrk(this, "Normal");
         MR::startActionSound(this, "EmMoghillAppear");
     }
@@ -126,11 +126,11 @@ void MogucchiHillPiece::exeWait() {
 
 void MogucchiHillPiece::exeCrumble() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Fade");
+        MR::startAction(this, "Fade");
         MR::startBrk(this, "Fade");
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         kill();
     }
 }

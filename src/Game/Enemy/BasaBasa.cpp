@@ -583,7 +583,7 @@ bool BasaBasa::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
-        mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
+        mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvPunchDown));
         return true;
     }
@@ -617,13 +617,13 @@ bool BasaBasa::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgToEnemyAttackBlow(msg)) {
-        mSpinHitController->startWithoutStopScene(this, pSender->mPosition, pReceiver->mPosition);
+        mSpinHitController->startWithoutStopScene(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvPunchDown));
         return true;
     }
 
     if (MR::isMsgToEnemyAttackTrample(msg)) {
-        mSpinHitController->startWithoutStopScene(this, pSender->mPosition, pReceiver->mPosition);
+        mSpinHitController->startWithoutStopScene(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvPunchDown));
         return true;
     }

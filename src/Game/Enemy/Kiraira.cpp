@@ -236,7 +236,7 @@ bool Kiraira::isDown() const {
 
 void Kiraira::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isDown() && (pSender == getSensor("mind_eye")) && pReceiver->mType == 0x12) {
-        MR::turnDirectionToTargetDegree(this, &mFront, pReceiver->mPosition, 20.0f);
+        MR::turnDirectionToTargetDegree(this, &mFront, (*MR::getSensorPos(pReceiver)), 20.0f);
         openEyes();
     }
     if (!isDown() && MR::isSensorEnemy(pSender) && MR::isSensorPlayerOrRide(pReceiver)) {
@@ -288,7 +288,7 @@ bool Kiraira::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
         return false;
     }
     if (msg == 0x7C) {
-        MR::turnDirectionToTargetDegree(this, &mFront, pSender->mPosition, 20.0f);
+        MR::turnDirectionToTargetDegree(this, &mFront, (*MR::getSensorPos(pSender)), 20.0f);
         openEyes();
         return true;
     }

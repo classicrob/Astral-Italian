@@ -502,14 +502,14 @@ bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgInvincibleAttack(msg) || MR::isMsgFireBallAttack(msg)) {
-        mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
+        mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
         setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
         return true;
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
         if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn))) {
-            mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
+            mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
             setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
             return true;
         }
@@ -534,7 +534,7 @@ bool KoteBug::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 
         if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) ||
             isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover))) {
-            mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
+            mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
             setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
             return true;
         }
@@ -546,8 +546,8 @@ bool KoteBug::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 void KoteBug::setOverturnFall(HitSensor* pSender, HitSensor* pReceiver) {
     MR::startActionSound(this, "EmKotebugTrample");
 
-    TVec3f direction(pReceiver->mPosition);
-    direction -= pSender->mPosition;
+    TVec3f direction((*MR::getSensorPos(pReceiver)));
+    direction -= (*MR::getSensorPos(pSender));
     MR::vecKillElement(direction, mGravity, &direction);
     MR::normalizeOrZero(&direction);
     mVelocity.add(direction * 10.0f);
@@ -561,13 +561,13 @@ bool KoteBug::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     }
 
     if (MR::isMsgExplosionAttack(msg)) {
-        mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
+        mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
         setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
         return true;
     }
 
     if (MR::isMsgToEnemyAttackBlow(msg)) {
-        mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
+        mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
         setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
         return true;
     }

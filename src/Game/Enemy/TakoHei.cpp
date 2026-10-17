@@ -313,7 +313,7 @@ bool TakoHei::requestPunch(HitSensor* pReceiver, HitSensor* pSender) {
 
 bool TakoHei::requestAttackSuccess(HitSensor* pSender, HitSensor* pReceiver) {
     if (canAttack()) {
-        MR::addVelocityMoveToDirection(this, pSender->mPosition - pReceiver->mPosition, ::sAttackSuccessHitPower);
+        MR::addVelocityMoveToDirection(this, (*MR::getSensorPos(pSender)) - (*MR::getSensorPos(pReceiver)), ::sAttackSuccessHitPower);
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvAttackSuccess));
         return true;
     }

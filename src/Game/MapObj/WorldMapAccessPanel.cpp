@@ -1,14 +1,13 @@
 #include "Game/MapObj/WorldMapAccessPanel.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/AudioLib/AudInstListMgr.hpp"
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapFunction.hpp"
 
 #include "JSystem/JGeometry/TVec.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80088630, declared extern "C" so the reloc name matches; resolve when fn_80088630 gets its real name in symbols.txt
-extern "C" void fn_80088630();
 
 // file-static step values (sbss2 in the target)
 static s32 sStepBase;
@@ -43,6 +42,8 @@ namespace NrvWorldMapAccessPanel {
     WorldMapAccessPanelNrvNopB WorldMapAccessPanelNrvNopB::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvWorldMapAccessPanel
 
+static TVec3f sZeroVec(0.0f, 0.0f, 0.0f);
+
 #define WMAP_NRV(name) (&NrvWorldMapAccessPanel::WorldMapAccessPanelNrv##name::sInstance)
 
 WorldMapAccessPanel::WorldMapAccessPanel(const char* pName) : LiveActor(pName) {
@@ -53,9 +54,9 @@ WorldMapAccessPanel::WorldMapAccessPanel(const char* pName) : LiveActor(pName) {
     mJointCtrl = nullptr;
     mIsHipDropped = 0;
     mCameraInfo = nullptr;
-    mFloatAC = 0.0f;
-    mFloatB0 = 0.0f;
-    mFloatB4 = 0.0f;
+    mCamPos.x = 0.0f;
+    mCamPos.y = 0.0f;
+    mCamPos.z = 0.0f;
 }
 
 void WorldMapAccessPanel::init(const JMapInfoIter& rIter) {
@@ -63,9 +64,11 @@ void WorldMapAccessPanel::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mWorldIdA);
     MR::getJMapInfoArg1NoInit(rIter, &mWorldIdB);
 
+    const char* pPanel = "Panel";
+    bool (WorldMapAccessPanel::*pCalc)(TPos3f*, const JointControllerInfo&) = &WorldMapAccessPanel::calcJointMtx;
     JointControlDelegator< WorldMapAccessPanel >* joint =
-        new JointControlDelegator< WorldMapAccessPanel >(this, &WorldMapAccessPanel::calcJointMtx, nullptr);
-    MR::setJointControllerParam(joint, this, "Panel");
+        new JointControlDelegator< WorldMapAccessPanel >(this, pCalc, nullptr);
+    MR::setJointControllerParam(joint, this, pPanel);
     mJointCtrl = joint;
 
     MR::initActorCamera(this, rIter, &mCameraInfo);
@@ -75,7 +78,7 @@ void WorldMapAccessPanel::init(const JMapInfoIter& rIter) {
     MR::createCenterScreenBlur();
 
     if (MR::tryRegisterDemoCast(this, "ワールドマップからの開始", rIter)) {
-        MR::tryRegisterDemoActionFunctor(this, MR::Functor(this, &WorldMapAccessPanel::startWorldMapWipe), nullptr);
+        MR::tryRegisterDemoActionFunctor(this, MR::Functor_Inline(this, &WorldMapAccessPanel::startWorldMapWipe), nullptr);
         MR::tryRegisterDemoActionNerve(this, WMAP_NRV(Access), nullptr);
     }
     MR::invalidateClipping(this);
@@ -148,8 +151,7 @@ void WorldMapAccessPanel::exeDemoStart() {
 
     if (MR::isFirstStep(this)) {
         MR::setPlayerPosAndWait(*MR::getPlayerPos(), false);
-        TVec3f camPos = MR::getCamPos();
-        mFloatB4 = camPos.z;
+        mCamPos = MR::getCamPos();
         MR::startAction(this, "Access");
         MR::stopStageAndSubBGM(0x1E);
     }
@@ -170,7 +172,7 @@ void WorldMapAccessPanel::exeDemoStart() {
 
     if (MR::isGreaterEqualStep(this, stepLimit)) {
         if (GameSequenceFunction::isGreenStarEventOnly() != 0) {
-            fn_80088630();
+            AudInstListMgr::requestInstrumentRefresh();
         }
         MR::endActorCamera(this, mCameraInfo, false, -1);
         MR::endDemo(this, "ワールドマップ移動開始");
@@ -224,6 +226,7 @@ void WorldMapAccessPanel::exeAccess() {
 
 void WorldMapAccessPanel::exeReturn() {
     if (!MR::isLessEqualStep(this, 0xA)) {
+        MR::calcDistanceToPlayer(mPosition);
         if (!isPlayerOutOfRange()) {
             MR::startBrkAndSetFrameAndStop(this, "Access", 0.0f);
             MR::startActionSound(this, "RideOff", -1, -1, -1);
@@ -251,14 +254,14 @@ bool WorldMapAccessPanel::calcJointMtx(TPos3f* pMtx, const JointControllerInfo& 
 
 bool WorldMapAccessPanel::isPlayerOnAccessSensor() {
     TVec3f hitPos(*MR::getSensorPos(this, "Hit"));
+    TVec3f hitPos2(*MR::getSensorPos(this, "Hit2"));
     f32 radius = MR::getSensorRadius(this, "Hit");
+    f32 radius2 = MR::getSensorRadius(this, "Hit2");
     f32 dist = MR::calcDistanceToPlayer(hitPos);
+    f32 dist2 = MR::calcDistanceToPlayer(hitPos2);
+    bool inRange = dist < radius || dist2 < radius2;
 
-    bool inRange = dist < radius;
-    if (!inRange) {
-        return false;
-    }
-    if (!MR::isOnPlayer(this)) {
+    if (!MR::isOnPlayer(this) || !inRange) {
         return false;
     }
     if (MR::isPlayerHipDropLand()) {
@@ -274,33 +277,36 @@ bool WorldMapAccessPanel::isPlayerNearAccessGround() {
     f32 radius2 = MR::getSensorRadius(this, "Hit2");
     f32 dist = MR::calcDistanceToPlayer(hitPos);
     f32 dist2 = MR::calcDistanceToPlayer(hitPos2);
+    bool inRange = dist < radius || dist2 < radius2;
 
-    if (!(dist < radius) && !(dist2 < radius2)) {
+    // NONMATCHING: branch layout (target emits the isOnGroundPlayer call block before the "return false" block)
+    if (!inRange) {
         return false;
     }
     return MR::isOnGroundPlayer();
 }
 
 bool WorldMapAccessPanel::isPlayerOutOfRange() {
-    // NONMATCHING: func_8003DEF0 (plane/projection helper chain) not identified; distances approximated
     MR::calcGravity(this);
     TVec3f hitPos(*MR::getSensorPos(this, "Hit"));
     TVec3f hitPos2(*MR::getSensorPos(this, "Hit2"));
     f32 radius = MR::getSensorRadius(this, "Hit");
     f32 radius2 = MR::getSensorRadius(this, "Hit2");
-    f32 dist = MR::calcDistanceToPlayer(hitPos);
-    f32 dist2 = MR::calcDistanceToPlayer(hitPos2);
-    return dist < radius || dist2 < radius2;
+    f32 c = 0.0f;
+    f32 b = 0.0f;
+    f32 a = 0.0f;
+    MR::func_8003DEF0(&b, &c, MR::getPlayerPos(), &hitPos, &mGravity);
+    MR::func_8003DEF0(&a, &c, MR::getPlayerPos(), &hitPos2, &mGravity);
+    return !(b < radius) && a < radius2;
 }
 
 void WorldMapAccessPanel::setWorldIdsAndReset() {
-    // NONMATCHING: GameDataFunction::setCurrentWorldId call not resolved
-    u32 worldId = 0;
     if (mWorldIdB >= 0) {
         GameSequenceFunction::setWorldMapCurrentNode(mWorldIdB);
     }
-    if (mWorldIdA >= 0) {
-        (void)worldId;
+    s32 worldId = mWorldIdA;
+    if (worldId >= 0) {
+        GameDataFunction::setCurrentWorldId(worldId);
     }
     GameSequenceFunction::requestChangeStageWorldMapEnterType1();
 }

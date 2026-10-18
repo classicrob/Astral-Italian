@@ -21,15 +21,27 @@
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
     s32 fn_804B8960();
-    void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
-    void fn_800095D0(LiveActor*, f32, f32, f32);
     void fn_8004F030();
     void fn_8004FE50();
     void fn_80051910();
     void fn_80051940();
-    s32 fn_80038770(TVec3f*, TVec3f*, HitSensor**, const TVec3f&, bool*, bool*, f32);
-    s32 fn_80038870(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
     LiveActor* fn_80235370(void*, LiveActor*, const char*, f32, const f32*);
+}
+
+namespace {
+    extern const f32 sGlideSpeedMin;
+    extern const f32 sGlideSpeedMax;
+    extern const f32 sPitchPositiveRate;
+    extern const f32 sPitchNegativeRate;
+    extern const f32 sPitchLimit;
+    extern const f32 sPitchAngleMin;
+    extern const f32 sYawLimit;
+    extern const f32 sTurnInputRate;
+    extern const f32 sPadBackLimit;
+    extern const f32 sSideSpeedLimit;
+    extern const f32 sControlFrontBlend;
+    extern const f32 sReflectRate;
+    f32 sWaterPitchLift;
 }
 
 inline void GliBird::exeDeadLava() {
@@ -59,13 +71,13 @@ GliBirdParam::GliBirdParam(const LiveActor* pHost) {
     mWaterLiftMin = MR::getActorParamF32(pHost, "水の押し上げ加速Min");
     mWaterLiftRate = MR::getActorParamF32(pHost, "水の押し上げ加速率");
     mDeadGravity = MR::getActorParamF32(pHost, "死亡重力");
-    mDamageDeadBirdUpFront = MR::getActorParamF32(pHost, "ダメージ死亡（グライバード）ジャンプ速度UpFront");
+    mDamageDeadBirdUpFront = MR::getActorParamJump(pHost, "ダメージ死亡（グライバード）ジャンプ速度UpFront");
     mDamageDeadBirdSide = MR::getActorParamF32(pHost, "ダメージ死亡（グライバード）ジャンプ速度Side");
-    mDamageDeadPlayerUpFront = MR::getActorParamF32(pHost, "ダメージ死亡（プレイヤー）ジャンプ速度UpFront");
+    mDamageDeadPlayerUpFront = MR::getActorParamJump(pHost, "ダメージ死亡（プレイヤー）ジャンプ速度UpFront");
     mDamageDeadPlayerSide = MR::getActorParamF32(pHost, "ダメージ死亡（プレイヤー）ジャンプ速度Side");
-    mWallDeadBirdUpFront = MR::getActorParamF32(pHost, "壁ヒット死亡（グライバード）ジャンプ速度UpFront");
+    mWallDeadBirdUpFront = MR::getActorParamJump(pHost, "壁ヒット死亡（グライバード）ジャンプ速度UpFront");
     mWallDeadBirdSide = MR::getActorParamF32(pHost, "壁ヒット死亡（グライバード）ジャンプ速度Side");
-    mWallDeadPlayerUpFront = MR::getActorParamF32(pHost, "壁ヒット死亡（プレイヤー）ジャンプ速度UpFront");
+    mWallDeadPlayerUpFront = MR::getActorParamJump(pHost, "壁ヒット死亡（プレイヤー）ジャンプ速度UpFront");
     mWallDeadPlayerSide = MR::getActorParamF32(pHost, "壁ヒット死亡（プレイヤー）ジャンプ速度Side");
 }
 
@@ -196,24 +208,27 @@ void GliBird::control() {
 
     if (mVolumeDrawer != nullptr) {
         MR::makeMtxFrontNoSupportPos(&mVolumeMtx, mFront, mPosition);
-        TVec3f volumeScale(10.0f, 10.0f, 50.0f);
+        TVec3f volumeScale;
+        volumeScale.x = 10.0f;
+        volumeScale.y = 10.0f;
+        volumeScale.z = 50.0f;
         MR::preScaleMtx(mVolumeMtx, volumeScale);
     }
 
-    TVec3f gravityPart = mGravity * (1.0f - 0.55f);
-    TVec3f frontPart = mFront * 0.55f;
+    TVec3f gravityPart = mGravity * (1.0f - sControlFrontBlend);
+    TVec3f frontPart = mFront * sControlFrontBlend;
     TVec3f checkDir(frontPart);
     checkDir.add(gravityPart);
     MR::normalizeOrZero(&checkDir);
 
     bool isWater = false;
     TVec3f checkUp(0.0f, 1.0f, 0.0f);
-    s32 isHit = fn_80038870(mPosition, &mGroundHitPos, checkDir, &checkUp, nullptr, &isWater, nullptr, 5000.0f);
+    s32 isHit = MR::calcMapHitAlongDirection(mPosition, &mGroundHitPos, checkDir, &checkUp, nullptr, &isWater, nullptr, 5000.0f);
     f32 dist = PSVECDistance(&mGroundHitPos, &mPosition);
 
     if (isHit && dist < 5000.0f) {
         if (!mIsNearGround || PSVECDistance(&mGroundSmoothPos, &mGroundHitPos) > 1000.0f) {
-            mGroundSmoothPos.set(mGroundHitPos);
+            mGroundSmoothPos = mGroundHitPos;
             mIsNearGround = true;
         }
 
@@ -227,15 +242,14 @@ void GliBird::control() {
         f32 rate = MR::clamp((dist - 2500.0f) / (5000.0f - 2500.0f), 0.0f, 1.0f);
         s32 alpha = 255.0f * MR::getEaseInValue(1.0f - rate, 0.0f, 1.0f, 1.0f);
 
-        // NOTE: symbols.txt names 0x800233C0 setEffectLocalScale(TVec3f&) but the target passes a u8 (alpha) in r5.
         if (isWater) {
             MR::tryEmitEffect(this, "WaterApproach");
             MR::tryDeleteEffect(this, "GroundApproach");
-            MR::setEffectLocalScale(this, "WaterApproach", *reinterpret_cast< const TVec3f* >(static_cast< u32 >(static_cast< u8 >(alpha))));
+            MR::setEffectAlpha(this, "WaterApproach", static_cast<u8>(alpha));
         } else {
             MR::tryEmitEffect(this, "GroundApproach");
             MR::tryDeleteEffect(this, "WaterApproach");
-            MR::setEffectLocalScale(this, "GroundApproach", *reinterpret_cast< const TVec3f* >(static_cast< u32 >(static_cast< u8 >(alpha))));
+            MR::setEffectAlpha(this, "GroundApproach", static_cast<u8>(alpha));
         }
     } else if (mIsNearGround) {
         MR::tryDeleteEffect(this, "GroundApproach");
@@ -659,7 +673,7 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     mSpeed *= 0.995f;
     f32 gravityRate = MR::clamp(mGravity.dot(mDirFront), 0.0f, 1.0f);
     mSpeed += gravityRate * 0.8f;
-    mSpeed = MR::clamp(mSpeed, 15.0f, 50.0f);
+    mSpeed = MR::clamp(mSpeed, sGlideSpeedMin, sGlideSpeedMax);
 
     TVec3f yAxis(0, 1, 0);
     TVec3f negGravity = -mGravity;
@@ -680,29 +694,29 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     mPitchAccel *= 0.95f;
     f32 pitchAdd;
     if (pad.y > 0.0f) {
-        pitchAdd = 0.0f + pad.y * 1.0f;
+        pitchAdd = 0.0f + pad.y * sPitchPositiveRate;
     } else {
-        pitchAdd = 0.0f + pad.y * 1.3f;
+        pitchAdd = 0.0f + pad.y * sPitchNegativeRate;
     }
     mPitchAccel += pitchAdd;
-    mPitchAccel = MR::clamp(mPitchAccel, -30.0f, 30.0f);
+    mPitchAccel = MR::clamp(mPitchAccel, -sPitchLimit, sPitchLimit);
 
     mPitchAngle = mPitchAngle * 0.7f + mPitchAccel;
-    f32 speedRate = (mSpeed - 15.0f) / (50.0f - 15.0f);
+    f32 speedRate = (mSpeed - sGlideSpeedMin) / (sGlideSpeedMax - sGlideSpeedMin);
     f32 ease = MR::getEaseOutValue(speedRate, 0.0f, 1.0f, 1.0f);
     ease = MR::getEaseOutValue(ease, 0.0f, 1.0f, 1.0f);
-    mPitchAngle = MR::clamp(mPitchAngle, -(15.0f * ease), 60.0f);
+    mPitchAngle = MR::clamp(mPitchAngle, -(sPitchAngleMin * ease), 60.0f);
     MR::rotateVecDegree(&mDirFront, mFront, mSide, mPitchAngle);
 
     mYawAccel *= 0.98f;
-    if (pad.z > -0.7f || MR::abs(pad.x) > 0.15f) {
+    if (pad.z > -sPadBackLimit || MR::abs(pad.x) > 0.15f) {
         f32 padX = pad.x;
         f32 padZ = MR::clamp(-pad.z, 0.0f, 1.0f);
 
         if (padX > 0.0f) {
-            padX += padZ * 1.0f;
+            padX += padZ * sTurnInputRate;
         } else if (padX < 0.0f) {
-            padX -= padZ * 1.0f;
+            padX -= padZ * sTurnInputRate;
         }
 
         padX = MR::clamp(padX, -1.0f, 1.0f);
@@ -715,11 +729,11 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     }
 
     mYawAngle = mYawAngle * 0.7f + mYawAccel;
-    mYawAngle = MR::clamp(mYawAngle, -45.0f, 45.0f);
+    mYawAngle = MR::clamp(mYawAngle, -sYawLimit, sYawLimit);
     MR::rotateVecDegree(&mDirUp, mUp, mFront, mYawAngle);
 
     mSideAccel = 0.02f * (-mYawAngle * mSpeed);
-    mSideAccel = MR::clamp(mSideAccel, -50.0f, 50.0f);
+    mSideAccel = MR::clamp(mSideAccel, -sSideSpeedLimit, sSideSpeedLimit);
 
     TVec3f sideTmp(0.0f);
     MR::makeAxisFrontUp(&sideTmp, &mDirUp, mDirFront, mDirUp);
@@ -768,14 +782,14 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     }
 
     mRollAccel *= 0.98f;
-    if (pad.z > -0.7f || MR::abs(pad.x) > 0.15f) {
+    if (pad.z > -sPadBackLimit || MR::abs(pad.x) > 0.15f) {
         f32 padX = pad.x;
         f32 padZ = MR::clamp(-pad.z, 0.0f, 1.0f);
 
         if (padX > 0.0f) {
-            padX += padZ * 1.0f;
+            padX += padZ * sTurnInputRate;
         } else if (padX < 0.0f) {
-            padX -= padZ * 1.0f;
+            padX -= padZ * sTurnInputRate;
         }
 
         padX = MR::clamp(padX, -1.0f, 1.0f);
@@ -786,7 +800,7 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
     mRollAngle = mRollAngle * 0.8f + mRollAccel;
     mRollAngle = MR::clamp(mRollAngle, -50.0f, 50.0f);
 
-    if (pad.z > -0.7f || MR::abs(pad.x) > 0.15f) {
+    if (pad.z > -sPadBackLimit || MR::abs(pad.x) > 0.15f) {
         if (pad.x < 0.0f) {
             mBlend = MR::getInterpolateValue(0.12f, mBlend, MR::clamp(pad.x, -1.0f, 0.0f));
         } else if (pad.x > 0.0f) {
@@ -798,9 +812,9 @@ bool GliBird::updateGlide(f32 frictionRate, f32 sideRate) {
 
     f32 blend = mBlend;
     if (blend > 0.0f) {
-        fn_800095D0(this, 1.0f - blend, 0.0f, blend);
+        MR::setTrackWeights(this, 1.0f - blend, 0.0f, blend);
     } else {
-        fn_800095D0(this, 1.0f + blend, -blend, 0.0f);
+        MR::setTrackWeights(this, 1.0f + blend, -blend, 0.0f);
     }
 
     if (blend > 0.0f) {
@@ -874,14 +888,14 @@ bool GliBird::updateCollision() {
     f32 depth = 0.0f;
     bool isWater = false;
     bool isFire = false;
-    s32 isHit = fn_80038770(&hitPos, &hitNormal, &pHitSensor, pos, &isWater, &isFire, radius);
+    s32 isHit = MR::fn_80038770(&hitPos, &hitNormal, &pHitSensor, pos, &isWater, &isFire, radius);
 
     if (isHit) {
         depth = hitPos.y - (pos.y - radius);
     }
 
     if (!isHit) {
-        isHit = fn_80038870(mPosition, &hitPos, mGravity, &hitNormal, &pHitSensor, &isWater, &isFire, 100.0f);
+        isHit = MR::calcMapHitAlongDirection(mPosition, &hitPos, mGravity, &hitNormal, &pHitSensor, &isWater, &isFire, 100.0f);
 
         if (isHit) {
             depth = mPosition.y - hitPos.y;
@@ -925,12 +939,11 @@ void GliBird::reactionCollision(const TVec3f& rNormal, HitSensor* pSensor, bool 
         f32 velDot = mVelocity.dot(rNormal);
         if (velDot < 0.0f) {
             TVec3f negNormal = -rNormal;
-            TVec3f a = negNormal * (1.0f + 1.0f);
+            TVec3f a = negNormal * (1.0f + sReflectRate);
             TVec3f b = a * velDot;
-            TVec3f c = negNormal * (1.0f + 1.0f);
+            TVec3f c = rNormal * (1.0f + sReflectRate);
             TVec3f d = c * velDot;
-            mVelocity.sub(b);
-            mVelocity.sub(d);
+            mVelocity -= d;
         }
 
         TVec3f push = rNormal * 15.0f;
@@ -984,7 +997,7 @@ void GliBird::touchWater(const TVec3f& rPos, f32 depth) {
     }
 
     f32 lift = 0.01f * depth;
-    mPitchAccel -= 0.02f + lift;
+    mPitchAccel -= sWaterPitchLift + lift;
 
     MtxPtr baseMtx = getBaseMtx();
     TVec3f front(baseMtx[0][2], baseMtx[1][2], baseMtx[2][2]);
@@ -998,18 +1011,18 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
         mDirFront.set(mFront);
         mRollAngle = 0.0f;
         mPlayerDeadMtx.set(MR::getJointMtx(this, "MarioPos"));
-        mDeadBody->mPosition.set(mPlayerDeadMtx[0][3], mPlayerDeadMtx[1][3], mPlayerDeadMtx[2][3]);
+        mDeadBody->mPosition.set< f32 >(mPlayerDeadMtx[0][3], mPlayerDeadMtx[1][3], mPlayerDeadMtx[2][3]);
         TVec3f front(mPlayerDeadMtx[0][2], mPlayerDeadMtx[1][2], mPlayerDeadMtx[2][2]);
         TVec3f negVel = -mVelocity;
         MR::makeMtxUpFront(&mPlayerDeadMtx, negVel, front);
         MR::startAction(this, "GliBirdGlideDead");
         MR::startBckPlayer("GliBirdGlideDead", nullptr);
         MR::tryDeleteEffect(this, "NearWater");
-        fn_800126F0(this, &mFront, pBirdUpFront);
+        MR::fn_800126F0(this, &mFront, pBirdUpFront);
         TVec3f birdSide = mSide * *pBirdSide;
         MR::addVelocity(this, birdSide);
         mDeadBody->mVelocity.set(mVelocity);
-        fn_800126F0(mDeadBody, &mFront, pPlayerUpFront);
+        MR::fn_800126F0(mDeadBody, &mFront, pPlayerUpFront);
         TVec3f playerSide = mFront * *pPlayerSide;
         MR::addVelocity(mDeadBody, playerSide);
         mCameraTarget->setMtx(mPlayerDeadMtx);
@@ -1091,4 +1104,19 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
     if (MR::isStep(this, 90)) {
         fn_8004F030();
     }
+}
+
+namespace {
+    const f32 sGlideSpeedMin = 15.0f;
+    const f32 sGlideSpeedMax = 50.0f;
+    const f32 sPitchPositiveRate = 1.0f;
+    const f32 sPitchNegativeRate = 1.3f;
+    const f32 sPitchLimit = 30.0f;
+    const f32 sPitchAngleMin = 15.0f;
+    const f32 sYawLimit = 45.0f;
+    const f32 sTurnInputRate = 1.0f;
+    const f32 sPadBackLimit = 0.7f;
+    const f32 sSideSpeedLimit = 50.0f;
+    const f32 sControlFrontBlend = 0.55f;
+    const f32 sReflectRate = 1.0f;
 }

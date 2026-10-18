@@ -4,6 +4,7 @@
 #include "Game/LiveActor/ShadowVolumeDrawer.hpp"
 #include "Game/MapObj/ElectricRailHolder.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/AreaObjUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
@@ -18,6 +19,9 @@
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SchedulerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+
+// PLACEHOLDER(objects): projects a sensor position into tower-mode areas; resolve when core names fn_800143D0.
+extern "C" void fn_800143D0(TVec3f*);
 
 namespace {
     const char* cSensorNameTable[] = {"body0", "body1", "body2", "body3", "body4", "body5", "body6", "body7"};
@@ -44,7 +48,7 @@ ElectricRailPoint::ElectricRailPoint(const char* pName) : LiveActor(pName), mHas
 }
 
 void ElectricRailPoint::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("ElectricRailPoint", nullptr, 0);
+    MR::initActor(this, "ElectricRailPoint", false);
     MR::connectToSceneMapObjDecoration(this);
 
     if (mHasShadow) {
@@ -58,6 +62,16 @@ void ElectricRailPoint::init(const JMapInfoIter& rIter) {
     MR::addHitSensorMapObj(this, "body", 8, 35.0f, TVec3f(0.0f, 0.0f, 0.0f));
 
     makeActorAppeared();
+}
+
+void ElectricRailPoint::control() {
+    f32 radius;
+    if (MR::isPlayerHipDropFalling()) {
+        radius = ElectricRailFunction::getHipDropSensorRadius();
+    } else {
+        radius = 35.0f;
+    }
+    MR::setSensorRadius(this, "body", radius);
 }
 
 void ElectricRailPoint::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -236,6 +250,7 @@ void ElectricRail::init(const JMapInfoIter& rIter) {
         MR::calcDropShadowVector(this, mPosition, &mGravity, nullptr, 0);
     }
 
+    MR::getJMapInfoArg5NoInit(rIter, &_B9);
     initSensor();
 
     MR::setClippingFar200m(this);
@@ -256,11 +271,11 @@ void ElectricRail::init(const JMapInfoIter& rIter) {
 
     initNerve(GET_NERVE(ElectricRail, ElectricRailNrvWait));
 
-    if (MR::isExistStageSwitchSleep(rIter)) {
-        MR::useStageSwitchSleep(this, rIter);
+    if (MR::isExistStageSwitchAwake(rIter)) {
+        MR::useStageSwitchAwake(this, rIter);
         makeActorDead();
     } else {
-        makeActorAppeared();
+        MR::useStageSwitchSyncAppear(this, rIter);
     }
 }
 
@@ -321,10 +336,6 @@ void ElectricRail::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (MR::isPlayerSquat()) {
-        return;
-    }
-
     MR::sendMsgEnemyAttackElectric(pReceiver, pSender);
 }
 
@@ -333,8 +344,8 @@ void ElectricRail::initMapToolInfo(const JMapInfoIter& rIter) {
 
     MR::getJMapInfoArg0NoInit(rIter, &mRailHeight);
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
-        MR::listenStageSwitchOnA(this, MR::Functor(this, &ElectricRail::disappear));
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
+        MR::listenStageSwitchOnA(this, MR::Functor_Inline(this, &ElectricRail::disappear));
     }
 }
 
@@ -369,6 +380,10 @@ void ElectricRail::initPoints() {
         curRail++;
     }
 
+    if (mPointCount == 0) {
+        return;
+    }
+
     mPointCount *= mRailHeight;
     mPoints = new ElectricRailPoint[mPointCount];
 
@@ -384,7 +399,7 @@ void ElectricRail::initPoints() {
             point = &mPoints[curPointIdx];
             TVec3f pos;
             MR::calcRailPointPos(&pos, this, curRailPoint);
-            point->mPosition.set(pos);
+            MR::setPosition(point, pos);
             curPointIdx++;
 
             if (mRailHeight > 1) {
@@ -397,7 +412,7 @@ void ElectricRail::initPoints() {
                 while (curHeight < mRailHeight) {
                     point = &mPoints[curPointIdx];
                     pos.add(outGrav);
-                    point->mPosition.set(pos);
+                    MR::setPosition(point, pos);
                     point->mHasShadow = flag;
                     curPointIdx++;
                     curHeight++;
@@ -554,10 +569,10 @@ void ElectricRail::initShadow(const JMapInfoIter& rIter) {
     f32 dropLength;
 
     if (flag) {
-        MR::initShadowController(this, 2);
+        MR::initShadowControllerList(this, 2);
         dropLength = arg2;
     } else {
-        MR::initShadowController(this, 3);
+        MR::initShadowControllerList(this, 3);
         dropLength = arg1;
     }
 
@@ -589,16 +604,28 @@ void ElectricRail::initShadow(const JMapInfoIter& rIter) {
 void ElectricRail::updateHitSensorPos() {
     MR::calcNearestRailPos(_94, this, *MR::getPlayerCenterPos());
 
-    if (mRailHeight <= 1) {
-        return;
+    if (mRailHeight > 1) {
+        TVec3f gravity;
+        calcGravity(&gravity, *_94);
+        gravity.scale(-100.0f);
+        for (s32 i = 1; i < mRailHeight; i++) {
+            _94[i].add(_94[i - 1], gravity);
+        }
     }
 
-    TVec3f gravity;
-    calcGravity(&gravity, *_94);
-    gravity.scale(-100.0);
-
-    for (s32 i = 1; i < mRailHeight; i++) {
-        _94[i].add(_94[i - 1], gravity);
+    f32 radius;
+    if (MR::isPlayerHipDropFalling()) {
+        radius = ElectricRailFunction::getHipDropSensorRadius();
+    } else {
+        radius = ElectricRailFunction::getHitSensorRadius();
+    }
+    for (s32 i = 0; i < mRailHeight; i++) {
+        MR::setSensorRadius(MR::getSensorWithIndex(this, i), radius);
+    }
+    if (MR::isInTowerModeCylinder(_94[0], nullptr, nullptr, nullptr)) {
+        for (s32 i = 0; i < mRailHeight; i++) {
+            fn_800143D0(&_94[i]);
+        }
     }
 }
 
@@ -629,7 +656,7 @@ void ElectricRail::exeDisappear() {
 
 void ElectricRail::exeWait() {
     updateHitSensorPos();
-    if (mIsCalcGravity) {
+    if (_B9) {
         MR::startActionSound(this, "KoopaBeam", -1, -1, -1);
     } else {
         MR::startActionSound(this, "OjLvElecRailHam", -1, -1, -1);

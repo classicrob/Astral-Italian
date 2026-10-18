@@ -1,3 +1,5 @@
+#define JGEOMETRY_VEC3_MUL_NOINLINE
+
 #include "Game/MapObj/SnowBall.hpp"
 #include "Game/MapObj/ClipAreaDropHolder.hpp"
 #include "Game/MapObj/SnowStep.hpp"
@@ -11,16 +13,6 @@ extern "C" {
 void fn_80034820(LiveActor*);
 }
 
-namespace {
-    const char* const cSnowBallName = "SnowBall";
-    const char* const cPushSensorName = "Push";
-    const char* const cBodySensorName = "Body";
-    const char* const cMeltSoundName = "Melt";
-    const char* const cBreakSoundName = "Break";
-    const char* const cMoveActionName = "Move";
-    const char* const cRollSoundName = "Roll";
-    const char* const cThawActionName = "Thaw";
-}  // namespace
 
 // ---- nerves (sinit order: Hide, Break, Thaw, Blow, Roll, Fall, Wait) ----
 
@@ -94,21 +86,7 @@ public:
 };
 SnowBallNrvWait SnowBallNrvWait::sInstance ATTRIBUTE_WEAK;
 
-// ---- helpers (state tests) ----
-
-// fn_803020E0
-#pragma dont_inline on
-bool SnowBall::isBlowOrThawNerve() const {
-    return isNerve(&SnowBallNrvThaw::sInstance) || isNerve(&SnowBallNrvBlow::sInstance);
-}
-
-// fn_80302140
-bool SnowBall::isHideBreakOrThawNerve() const {
-    return isNerve(&SnowBallNrvHide::sInstance) || isNerve(&SnowBallNrvBreak::sInstance) || isNerve(&SnowBallNrvThaw::sInstance);
-}
-#pragma dont_inline reset
-
-// fn_803019C0: maps the radius to the sensor radius
+static f32 calcSensorRadius(f32 radius) NO_INLINE;
 static f32 calcSensorRadius(f32 radius) {
     if (radius <= 50.0f) {
         return radius;
@@ -144,7 +122,7 @@ SnowBall::~SnowBall() {
 }
 
 void SnowBall::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, cSnowBallName, nullptr, false);
+    MR::initActor(this, rIter, "SnowBall", false);
     MR::makeQuatFromRotate(&mQuat, this);
     mBaseRadius = mScale.x;
     mRadius = 100.0f * mBaseRadius;
@@ -152,21 +130,45 @@ void SnowBall::init(const JMapInfoIter& rIter) {
     mBasePos.set(mPosition);
     mPrevPos.set(mPosition);
     MR::setAllEffectHostMtx(this, mBaseMtx);
-    MR::onCalcGravity(this);
     MR::setBinderExceptSensorType(this, SnowStep::getSensorType());
+    MR::onCalcGravity(this);
     initNerve(&SnowBallNrvThaw::sInstance, 0);
     makeActorAppeared();
+}
+
+void SnowBall::setRadius(f32 radius) {
+    f32 value = radius;
+    if (value < 1.0f) {
+        value = 1.0f;
+    }
+    MR::setScale(this, value / 100.0f);
+    MR::setBinderRadius(this, value);
+    MR::setSensorRadius(this, "Push", calcSensorRadius(mRadius));
+    MR::setSensorRadius(this, "Body", mRadius);
+    MR::setClippingTypeSphere(this, 1.2f * mRadius);
+    MR::setStarPointerTargetRadius3d(this, mRadius);
+}
+
+void SnowBall::tryDropSnowStep(const TVec3f& rPos) {
+    mStepCount++;
+    if (mStepCount > 30 || PSVECDistance(&rPos, &mLastStepPos) > 150.0f) {
+        bool isLong = mSpeedTarget - 4.0f < 50.0f;
+        f32 speed = isLong ? 400.0f : 200.0f + mSpeedTarget;
+        s32 size = isLong ? 40 : 25;
+        TVec3f down(-mGravity);
+        if (MR::tryAppearSnowStep(rPos, down, size, 240, 120, speed)) {
+            MR::startActionSound(this, "Melt", -1, -1, -1);
+            mLastStepPos.set(rPos);
+            mStepCount = 0;
+            mSpeedTarget -= 4.0f;
+        }
+    }
 }
 
 void SnowBall::control() {
     mPrevPos.set(mPosition);
     setRadius(mRadius);
-    TVec3f offset(mGravity);
-    offset *= mRadius;
-    TVec3f center(mPosition);
-    center += offset;
-    TVec3f up(-mGravity);
-    MR::makeMtxUpNoSupportPos(&mBaseMtx, up, center);
+    MR::makeMtxUpNoSupportPos(&mBaseMtx, -mGravity, mPosition + mGravity * mRadius);
 }
 
 void SnowBall::calcAndSetBaseMtx() {
@@ -178,10 +180,10 @@ void SnowBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
     if (MR::isSensorPlayer(pReceiver) || MR::isSensorYoshi(pReceiver)) {
-        if (MR::isEqualSensor(pSender, this, cPushSensorName)) {
+        if (MR::isEqualSensor(pSender, this, "Push")) {
             MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
         }
-    } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorMapObj(pReceiver) || MR::isSensorNpc(pReceiver)) {
+    } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorMapObj(pReceiver) || MR::isSensorNpc(pReceiver) || MR::isSensorPush(pReceiver)) {
         if (!MR::sendMsgToEnemyAttackTrample(pReceiver, pSender)) {
             MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
         }
@@ -197,8 +199,7 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         if (isHideBreakOrThawNerve()) {
             TVec3f dir;
             MR::calcSensorHorizonNormalize(&dir, mGravity, pSender, pReceiver);
-            dir *= 5.0f;
-            MR::addVelocity(this, dir);
+            MR::addVelocity(this, dir * 5.0f);
             mStopCount = 0;
             return true;
         }
@@ -208,8 +209,8 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
     if (MR::isMsgPlayerHitAll(msg) && isHideBreakOrThawNerve()) {
-        MR::invalidateClipping(this);
         MR::addVelocitySeparateHV(this, pSender, pReceiver, 0.0f, 70.0f);
+        MR::invalidateClipping(this);
         setNerve(&SnowBallNrvBlow::sInstance);
         mStopCount = 0;
         return true;
@@ -219,7 +220,7 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
 bool SnowBall::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pSender)) {
-        if (MR::isEqualSensor(pReceiver, this, cPushSensorName) && isHideBreakOrThawNerve()) {
+        if (MR::isEqualSensor(pReceiver, this, "Push") && isHideBreakOrThawNerve()) {
             TVec3f front;
             MR::getPlayerFrontVec(&front);
             front.killElement(front, mGravity);
@@ -229,13 +230,10 @@ bool SnowBall::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
             MR::calcSensorHorizonNormalize(&dir, mGravity, pSender, pReceiver);
             if (dir.dot(front) > 0.0f && mVelocity.dot(dir) < 20.0f) {
                 if (dir.dot(front) > 0.0f) {
-                    TVec3f side(front);
-                    side -= dir;
-                    MR::addVelocity(this, side * 0.5f);
+                    MR::addVelocity(this, (front - dir) * 0.5f);
                 }
 
-                TVec3f push(dir);
-                MR::addVelocity(this, push * 1.0f);
+                MR::addVelocity(this, dir * 1.0f);
                 mStopCount = 0;
                 return true;
             }
@@ -252,46 +250,26 @@ bool SnowBall::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     return false;
 }
 
-void SnowBall::setRadius(f32 radius) {
-    f32 value = radius;
-    if (value < 1.0f) {
-        value = 1.0f;
+// ---- helpers (state tests) ----
+
+// fn_803020E0
+#pragma dont_inline on
+bool SnowBall::isBlowOrThawNerve() const {
+    if (isNerve(&SnowBallNrvThaw::sInstance) || isNerve(&SnowBallNrvBlow::sInstance)) {
+        return true;
     }
-    MR::setScale(this, value / 100.0f);
-    MR::setBinderRadius(this, value);
-    MR::setSensorRadius(this, "Push", calcSensorRadius(mRadius));
-    MR::setSensorRadius(this, "Body", calcSensorRadius(mRadius));
-    MR::setClippingTypeSphere(this, 1.2f * mRadius);
-    MR::setStarPointerTargetRadius3d(this, mRadius);
+    return false;
 }
 
-void SnowBall::tryDropSnowStep(const TVec3f& rPos) {
-    mStepCount++;
-    if (mStepCount > 30 || PSVECDistance(&rPos, &mLastStepPos) > 150.0f) {
-        bool isLong = mStepCount > 30;
-        f32 speed = isLong ? 400.0f : 4.0f + mSpeedTarget;
-        s32 size = isLong ? 40 : 25;
-        TVec3f down(-mGravity);
-        if (MR::tryAppearSnowStep(rPos, down, size, 240, 120, speed)) {
-            MR::startActionSound(this, cMeltSoundName, -1, -1, -1);
-            mLastStepPos.set(rPos);
-            mStepCount = 0;
-            mSpeedTarget -= 4.0f;
-        }
+// fn_80302140
+bool SnowBall::isHideBreakOrThawNerve() const {
+    if (isNerve(&SnowBallNrvHide::sInstance) || isNerve(&SnowBallNrvBreak::sInstance) || isNerve(&SnowBallNrvThaw::sInstance)) {
+        return true;
     }
+    return false;
 }
+#pragma dont_inline reset
 
-void SnowBall::launch(const TVec3f& rPos, const TVec3f& rVel, bool canRespawn) {
-    mBasePos.set(rPos);
-    mCanRespawn = canRespawn;
-    resetRoll();
-    appear();
-    MR::invalidateClipping(this);
-    setNerve(&SnowBallNrvBreak::sInstance);
-    MR::setVelocity(this, rVel);
-}
-
-// fn_803021B0: give up after the break; respawn is only possible when mCanRespawn
 void SnowBall::breakAndWait() {
     if (!mCanRespawn) {
         kill();
@@ -306,7 +284,16 @@ void SnowBall::breakAndWait() {
     setNerve(&SnowBallNrvWait::sInstance);
 }
 
-// fn_803022B0: put the snowball back at its base position in the thaw state
+void SnowBall::launch(const TVec3f& rPos, const TVec3f& rVel, bool canRespawn) {
+    mBasePos.set(rPos);
+    mCanRespawn = canRespawn;
+    resetRoll();
+    appear();
+    MR::invalidateClipping(this);
+    setNerve(&SnowBallNrvBreak::sInstance);
+    MR::setVelocity(this, rVel);
+}
+
 void SnowBall::resetRoll() {
     MR::onCalcGravity(this);
     MR::onBind(this);
@@ -322,12 +309,13 @@ void SnowBall::resetRoll() {
     mStepCount = 0;
 }
 
-// fn_80302350: rolling / binded ground update, returns true when the ball is too small to keep going
 bool SnowBall::updateBindedGroundRoll(bool bindHit) {
     if (MR::isBindedGroundSnow(this)) {
-        const TVec3f* pNormal = &MR::getGroundNormal(this);
+        const TVec3f* pNormal;
+        const TVec3f* pVel = &mVelocity;
+        pNormal = &MR::getGroundNormal(this);
         TVec3f proj;
-        JMAVECScaleAdd(pNormal, &mVelocity, &proj, -pNormal->dot(mVelocity));
+        JMAVECScaleAdd(pNormal, pVel, &proj, -pNormal->dot(*pVel));
         f32 len = PSVECMag(&proj);
         mSpeedTarget += len / 50.0f;
         if (mSpeedTarget > 200.0f) {
@@ -340,9 +328,8 @@ bool SnowBall::updateBindedGroundRoll(bool bindHit) {
     }
 
     if (MR::isBindedGround(this)) {
-        const TVec3f* pNormal = &MR::getGroundNormal(this);
         TVec3f negGravity(-mGravity);
-        f32 deg = 57.29578f * JMAAcosRadian(pNormal->dot(negGravity));
+        f32 deg = 57.29578f * JMAAcosRadian(MR::getGroundNormal(this).dot(negGravity));
         if (deg > 35.0f) {
             f32 k = MR::normalize(deg, 35.0f, 60.0f);
             MR::addVelocityToGravity(this, 2.0f * k);
@@ -358,16 +345,17 @@ bool SnowBall::updateBindedGroundRoll(bool bindHit) {
         MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f);
     }
 
-    f32 damp = (mGroundCount < 5) ? 0.96f : 0.99f;
-    MR::attenuateVelocity(this, damp);
+    MR::attenuateVelocity(this, (mGroundCount < 5) ? 0.96f : 0.99f);
     mRadius = MR::lerp(mRadius, mSpeedTarget, 0.1f);
 
+    const TVec3f* pUp;
     if (MR::isBindedGround(this)) {
-        MR::rotateQuatRollBall(&mQuat, mVelocity, MR::getGroundNormal(this), mRadius);
+        pUp = &MR::getGroundNormal(this);
     } else {
         TVec3f up(-mGravity);
-        MR::rotateQuatRollBall(&mQuat, mVelocity, up, mRadius);
+        pUp = &up;
     }
+    MR::rotateQuatRollBall(&mQuat, mVelocity, *pUp, mRadius);
     f32 velLen = MR::calcVelocityLength(this);
     if (velLen < 4.0f) {
         mStopCount++;
@@ -387,82 +375,17 @@ bool SnowBall::updateBindedGroundRoll(bool bindHit) {
     return false;
 }
 
-void SnowBall::exeHide() {
+void SnowBall::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::hideModel(this);
+        MR::tryStartActionNotPlaying(this, "Stable");
+        MR::validateClipping(this);
         MR::zeroVelocity(this);
     }
-    if (MR::isJudgedToClipFrustum50m(mBasePos, 100.0f * mBaseRadius)) {
-        resetRoll();
-    }
-}
-
-void SnowBall::exeBreak() {
-    if (MR::isFirstStep(this)) {
-        MR::tryHitReactionBreak(this);
-        MR::zeroVelocity(this);
-        MR::startActionSound(this, cBreakSoundName, -1, -1, -1);
-    }
-    if (MR::isGreaterStep(this, 5)) {
-        breakAndWait();
-    }
-}
-
-void SnowBall::exeThaw() {
-    if (MR::isFirstStep(this)) {
-        MR::zeroVelocity(this);
-        MR::startAction(this, cThawActionName);
-        mSpeedTarget = mRadius;
-    }
-    mRadius = MR::calcNerveEaseInOutValue(this, 0, 40, 50.0f, 0.05f);
-    if (MR::isGreaterStep(this, 40)) {
-        breakAndWait();
-    }
-}
-
-void SnowBall::exeBlow() {
-    if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, cMoveActionName);
-        fn_80034820(this);
-    }
-    bool bindHit = MR::sendMsgEnemyAttackToBindedSensor(this, getSensor(cBodySensorName));
-    if (MR::sendMsgEnemyAttackRollToBindedSensor(this, getSensor(cBodySensorName)) && !bindHit) {
-        setNerve(&SnowBallNrvFall::sInstance);
-        return;
-    }
-    if (updateBindedGroundRoll(bindHit)) {
-        setNerve(&SnowBallNrvRoll::sInstance);
-        return;
-    }
-    if (MR::sendMsgToBindedSensor(0x12, this, getSensor(cBodySensorName))) {
-        setNerve(&SnowBallNrvThaw::sInstance);
-        return;
-    }
-    if (MR::isGreaterStep(this, 30)) {
+    MR::killVelocityOnGroundH(this);
+    if (mStopCount <= 0) {
         setNerve(&SnowBallNrvThaw::sInstance);
     }
-}
-
-void SnowBall::exeRoll() {
-    if (MR::isFirstStep(this)) {
-        MR::invalidateClipping(this);
-        MR::tryStartActionNotPlaying(this, cMoveActionName);
-    }
-    bool bindHit = MR::sendMsgEnemyAttackToBindedSensor(this, getSensor(cBodySensorName));
-    if (updateBindedGroundRoll(bindHit)) {
-        setNerve(&SnowBallNrvRoll::sInstance);
-        return;
-    }
-    if (mStopCount > 60) {
-        if (MR::isBindedGround(this) && !MR::isBindedGroundDamageFire(this)) {
-            setNerve(&SnowBallNrvHide::sInstance);
-            return;
-        }
-    }
-    f32 velLen = MR::calcVelocityLength(this);
-    if (mGroundCount < 5 && velLen > 4.0f) {
-        MR::startActionSound(this, cRollSoundName, (s8) (s32) (3.0f * (velLen * velLen)), -1, -1);
-    }
+    MR::attachSupportTicoToTarget(this);
 }
 
 void SnowBall::exeFall() {
@@ -480,16 +403,82 @@ void SnowBall::exeFall() {
     }
 }
 
-void SnowBall::exeWait() {
+void SnowBall::exeRoll() {
     if (MR::isFirstStep(this)) {
-        MR::zeroVelocity(this);
-        MR::validateClipping(this);
-        MR::tryStartActionNotPlaying(this, "Stable");
+        MR::tryStartActionNotPlaying(this, "Move");
+        MR::invalidateClipping(this);
     }
-    MR::killVelocityOnGroundH(this);
-    if (mStopCount <= 0) {
-        setNerve(&SnowBallNrvThaw::sInstance);
+    bool bindHit = MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"));
+    if (updateBindedGroundRoll(bindHit)) {
+        setNerve(&SnowBallNrvRoll::sInstance);
+        return;
+    }
+    if (mStopCount > 60) {
+        if (MR::isBindedGround(this) && !MR::isBindedGroundDamageFire(this)) {
+            setNerve(&SnowBallNrvHide::sInstance);
+            return;
+        }
     }
     MR::attachSupportTicoToTarget(this);
+    f32 velLen = MR::calcVelocityLength(this);
+    if (mGroundCount < 5 && velLen > 4.0f) {
+        MR::startActionSound(this, "Roll", (s32) (3.0f * (velLen * velLen)), -1, -1);
+    }
+}
+
+void SnowBall::exeBlow() {
+    if (MR::isFirstStep(this)) {
+        MR::tryStartActionNotPlaying(this, "Move");
+        fn_80034820(this);
+    }
+    bool bindHit = MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"));
+    if (MR::sendMsgEnemyAttackRollToBindedSensor(this, getSensor("Body")) && !bindHit) {
+        setNerve(&SnowBallNrvFall::sInstance);
+        return;
+    }
+    if (updateBindedGroundRoll(bindHit)) {
+        setNerve(&SnowBallNrvRoll::sInstance);
+        return;
+    }
+    if (MR::sendMsgToBindedSensor(0x12, this, getSensor("Body"))) {
+        setNerve(&SnowBallNrvThaw::sInstance);
+        return;
+    }
+    if (MR::isGreaterStep(this, 30)) {
+        setNerve(&SnowBallNrvThaw::sInstance);
+    }
+}
+
+void SnowBall::exeThaw() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Thaw");
+        MR::zeroVelocity(this);
+        mSpeedTarget = mRadius;
+    }
+    mRadius = MR::calcNerveEaseInOutValue(this, 40, 50.0f, 0.05f);
+    if (MR::isGreaterStep(this, 40)) {
+        breakAndWait();
+    }
+}
+
+void SnowBall::exeBreak() {
+    if (MR::isFirstStep(this)) {
+        MR::tryHitReactionBreak(this);
+        MR::startActionSound(this, "Break", -1, -1, -1);
+        MR::zeroVelocity(this);
+    }
+    if (MR::isGreaterStep(this, 5)) {
+        breakAndWait();
+    }
+}
+
+void SnowBall::exeHide() {
+    if (MR::isFirstStep(this)) {
+        MR::hideModel(this);
+        MR::zeroVelocity(this);
+    }
+    if (MR::isJudgedToClipFrustum50m(mBasePos, 100.0f * mBaseRadius)) {
+        resetRoll();
+    }
 }
 

@@ -606,7 +606,11 @@ namespace JGeometry {
             JMathInlineVEC::PSVECSubtract(&a, &b, this);
         }
 
+#ifdef JGEOMETRY_VEC3_MUL_NOINLINE
+        TVec3 operator*(f32 scalar) const NO_INLINE {
+#else
         TVec3 operator*(f32 scalar) const JGEOMETRY_WMR_NOINLINE {
+#endif
             TVec3 ret(*this);
             ret *= scalar;
             return ret;

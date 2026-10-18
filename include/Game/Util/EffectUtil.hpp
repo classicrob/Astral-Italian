@@ -64,6 +64,7 @@ namespace MR {
     void setEffectPrmColor(LiveActor* pActor, const char* pEffectName, u8 r, u8 g, u8 b);
     void setEffectEnvColor(LiveActor* pActor, const char* pEffectName, u8 r, u8 g, u8 b);
     void setEffectLocalScale(LiveActor* pActor, const char* pEffectName, const TVec3f& rLocalScale);
+    void setEffectAlpha(LiveActor*, const char*, u8);
     void addEffectHitNormal(LiveActor* pActor, const char* pEffectName);
 
     void emitEffectHit(LiveActor* pActor, const TVec3f& rPosition, const char* pEffectName);

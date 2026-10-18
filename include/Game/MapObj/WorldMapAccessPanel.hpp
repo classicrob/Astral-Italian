@@ -34,7 +34,5 @@ public:
     /* 0xA0 */ JointController* mJointCtrl;
     /* 0xA4 */ u8 mIsHipDropped;
     /* 0xA8 */ ActorCameraInfo* mCameraInfo;
-    /* 0xAC */ f32 mFloatAC;
-    /* 0xB0 */ f32 mFloatB0;
-    /* 0xB4 */ f32 mFloatB4;
+    /* 0xAC */ TVec3f mCamPos;
 };

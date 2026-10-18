@@ -52,7 +52,8 @@ public:
     bool isEnableCrushed() const;
     bool isEnableTrample() const;
     bool isEnableBlowed() const NO_INLINE;
-    bool isCrushed() const NO_INLINE;
+    bool isCrushedOrPointSnaped() const;
+    bool isCrushed() const;
 
     void addVelocityKeepHeight();
     void addVelocityToUpPos(f32, f32, f32);

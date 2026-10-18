@@ -24,6 +24,7 @@ public:
     void exeAppearNote();
     void exeEndWait();
     void exeSuccessDemo();
+    void exeSuccessDemoWait();
     void exeSuccess();
     void enterDemoAppear(const Nerve*, bool);
     bool isDeadAllNotes();

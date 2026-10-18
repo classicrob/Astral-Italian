@@ -38,10 +38,12 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual void updateHitSensor(HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
 
+    void enablePlayerTornado();
     void initSandstormParam();
     void initTrapModel();
     void updateBindActorMtx();

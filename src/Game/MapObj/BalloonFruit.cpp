@@ -1,4 +1,5 @@
 #pragma auto_inline off
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 
 #include "Game/MapObj/BalloonFruit.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -113,11 +114,11 @@ void BalloonFruit::init(const JMapInfoIter& rIter) {
     MR::addHitSensor(this, "Body", 0x4E, 0x20, 80.0f, TVec3f(0.0f, 80.0f, 0.0f));
     initEffectKeeper(0, nullptr, false);
     MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
-    MR::onCalcGravity(this);
     MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 100.0f, 0.0f));
+    MR::onCalcGravity(this);
 
-    mHomePos.set(mPosition);
-    mHomeRot.set(mRotation);
+    mHomePos = mPosition;
+    mHomeRot = mRotation;
     mBaseScale = mScale.x;
     mMtxAC.identity();
     TVec3f sp8;
@@ -129,49 +130,52 @@ void BalloonFruit::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-// NONMATCHING: isActionEnd/isStarPointer and step-check shapes are approximate (m2c passes the star-pointer result as the actor argument).
 void BalloonFruit::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Appear");
     }
+    mMtxAC.set(getBaseMtx());
+    MR::addTransMtxLocalY(mMtxAC, 100.0f);
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvWait));
     }
 }
 
-// NONMATCHING: isActionEnd/isStarPointer and step-check shapes are approximate (m2c passes the star-pointer result as the actor argument).
 void BalloonFruit::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
     }
+    mMtxAC.set(getBaseMtx());
+    MR::addTransMtxLocalY(mMtxAC, 100.0f);
+    tryStartBind();
 }
 
-// NONMATCHING: isActionEnd/isStarPointer and step-check shapes are approximate (m2c passes the star-pointer result as the actor argument).
 void BalloonFruit::exeTrampled() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Trampled");
     }
-    if (MR::isActionEnd(this) || MR::isStarPointerPointing2PAttachTarget(this)) {
+    MR::isStarPointerPointing2PAttachTarget(this);
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvWait));
     }
 }
 
-// NONMATCHING: isActionEnd/isStarPointer and step-check shapes are approximate (m2c passes the star-pointer result as the actor argument).
 void BalloonFruit::exeSpin() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Spin");
     }
-    if (MR::isActionEnd(this) || MR::isStarPointerPointing2PAttachTarget(this)) {
+    MR::isStarPointerPointing2PAttachTarget(this);
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvWait));
     }
 }
 
-// NONMATCHING: isActionEnd/isStarPointer and step-check shapes are approximate (m2c passes the star-pointer result as the actor argument).
 void BalloonFruit::exeShake() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Shake");
     }
-    if (MR::isActionEnd(this) || MR::isStarPointerPointing2PAttachTarget(this)) {
+    MR::isStarPointerPointing2PAttachTarget(this);
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvWait));
     }
 }
@@ -194,18 +198,17 @@ void BalloonFruit::exeBreak() {
     }
 }
 
-// NONMATCHING: isActionEnd/isStarPointer and step-check shapes are approximate (m2c passes the star-pointer result as the actor argument).
 void BalloonFruit::exeHipDropCrash() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "HipDropCrash");
     }
     TVec3f toPlayer(*MR::getPlayerPos());
-    toPlayer.sub(mPosition);
-    f32 d = toPlayer.dot(*MR::getPlayerGravity());
+    toPlayer.sub(toPlayer, mPosition);
+    f32 d = MR::getPlayerGravity()->dot(toPlayer);
     if (d > 75.0f) {
         TVec3f sp8(*MR::getPlayerGravity());
         sp8.scale(d);
-        toPlayer.add(sp8);
+        mPosition.add(mPosition, sp8);
     }
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvDead));
@@ -232,63 +235,45 @@ void BalloonFruit::reset() {
     setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvAppear));
 }
 
-// NONMATCHING: the atan2/asin decomposition and fmod-free angle wrap are approximations of the target matrix math.
+static inline f32 wrapAngle(f32 v, f32 base) {
+    return base + (f32)fmod(6.2831855f + (v - base), 6.2831855f);
+}
+
+static inline f32 degToRad(f32 deg) {
+    return (3.1415927f * deg) / 180.0f;
+}
+
 void BalloonFruit::control() {
     if (mTimerE0 != 0) {
         mTimerE0 = mTimerE0 - 1;
     }
     if (isNerveSpinOrStill()) {
-        // NONMATCHING: rotation math is a Rodrigues matrix about the gravity axis, decomposed back
-        // into yaw/pitch/roll; target uses the same formulas but the matrix/concat order is not verified.
-        TVec3f axis(0.0f, 1.0f, 0.0f);
-        TVec3f n = axis;
-        PSVECNormalize(&n, &n);
-        f32 s = (f32)sin(mAngleE4);
-        f32 c = (f32)cos(mAngleE4);
-        f32 t = 1.0f - c;
-        f32 nx = n.x;
-        f32 ny = n.y;
-        f32 nz = n.z;
         TPos3f rot;
-        rot[0][0] = c + t * (nx * nx);
-        rot[0][1] = t * nx * ny - s * nz;
-        rot[0][2] = t * nx * nz + s * ny;
-        rot[1][0] = t * nx * ny + s * nz;
-        rot[1][1] = c + t * (ny * ny);
-        rot[1][2] = t * ny * nz - s * nx;
-        rot[2][0] = t * nx * nz - s * ny;
-        rot[2][1] = t * ny * nz + s * nx;
-        rot[2][2] = c + t * (nz * nz);
         TPos3f mtx;
-        TVec3f zero(0.0f, 0.0f, 0.0f);
+        TVec3f zero;
+        rot.makeRotate(TVec3f(0.0f, 1.0f, 0.0f), mAngleE4);
+        zero.setAll< f32 >(0.0f);
         MR::makeMtxTR(mtx, zero, mHomeRot);
         mtx.concat(rot);
 
-        if ((rot[2][0] - 1.0f) == -3.81469727e-06f) {
-            mRotation.x = JMath::sAtanTable.atan2_(-mtx[1][2], mtx[1][1]);
+        if (mtx[2][0] - 1.0f >= -3.81469727e-06f) {
+            mRotation.x = JMath::sAtanTable.atan2_(-mtx[0][1], mtx[1][1]);
             mRotation.y = -1.5707964f;
             mRotation.z = 0.0f;
-        } else if ((rot[2][0] + 1.0f) == 3.81469727e-06f) {
-            mRotation.x = JMath::sAtanTable.atan2_(mtx[1][2], mtx[1][1]);
+        } else if (mtx[2][0] + 1.0f <= 3.81469727e-06f) {
+            mRotation.x = JMath::sAtanTable.atan2_(mtx[0][1], mtx[1][1]);
             mRotation.y = 1.5707964f;
             mRotation.z = 0.0f;
         } else {
-            mRotation.x = JMath::sAtanTable.atan2_(mRotation.x, mtx[0][0]);
-            f32 yaw = JMath::sAtanTable.atan2_(mtx[2][1], mtx[2][2]);
-            mRotation.z = yaw;
-            mRotation.y = JGeometry::TUtil< f32 >::asin(-rot[2][0]);
+            mRotation.x = JMath::sAtanTable.atan2_(mtx[2][1], mtx[2][2]);
+            mRotation.z = JMath::sAtanTable.atan2_(mtx[1][0], mtx[0][0]);
+            mRotation.y = JGeometry::TUtil< f32 >::asin(-mtx[2][0]);
         }
-
-        f32 rx = mRotation.x * 57.295776f;
-        f32 ry = mRotation.y * 57.295776f;
-        f32 rz = mRotation.z * 57.295776f;
-        mAngleE4 = mAngleE4 + (3.1415927f * 1.0f) / 180.0f;
-        mRotation.x = rx;
-        mRotation.y = ry;
-        mRotation.z = rz;
-        if (mAngleE4 >= 6.2831855f) {
-            mAngleE4 -= 6.2831855f;
-        }
+        mAngleE4 = mAngleE4 + degToRad(1.0f);
+        mRotation.x *= 57.295776f;
+        mRotation.y *= 57.295776f;
+        mRotation.z *= 57.295776f;
+        mAngleE4 = wrapAngle(mAngleE4, 0.0f);
     }
     if (isNerveNoYoshiEat()) {
         if (MR::isPlayerElementModeYoshi()) {
@@ -307,10 +292,8 @@ void BalloonFruit::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-// NONMATCHING: target body is a bare blr (void-like); the LiveActor base returns bool here.
 bool BalloonFruit::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
-    tryStartShake();
-    return false;
+    return tryStartShake();
 }
 
 bool BalloonFruit::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -404,8 +387,7 @@ bool BalloonFruit::isNerveNoYoshiEat() const {
     if (isSwitchA()) {
         return false;
     }
-    // NONMATCHING: remaining nerve checks (Appear/Pop/Hide/Break/...) not all verified.
-    return !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvAppear)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvPop)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvHide)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvBreak));
+    return !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvAppear)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvPop)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvHide)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvBreak)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvHipDropCrash)) && !isNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvDead));
 }
 
 bool BalloonFruit::isNerveYoshiAttackable() const {

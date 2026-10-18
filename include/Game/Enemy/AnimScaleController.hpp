@@ -40,7 +40,7 @@ public:
     void startDpdHitVibration();
     bool isHitReaction(s32) const;
 
-    void stop();
+    void stop(const TVec3f& rScale);
     void stopAndReset();
     void resetScale();
 

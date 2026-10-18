@@ -18,11 +18,8 @@
 
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
-void fn_80010D10(LiveActor*, const TVec3f&, f32);
-bool fn_80012BA0(LiveActor*, HitSensor*, HitSensor*, f32);
 void fn_8004FFA0();
 void fn_8004FFB0();
-void fn_800513C0(const TQuat4f*, const TVec3f*);
 }
 
 #define sNameRollState "\x8a\xe2\x83}\x83\x8a\x83I\x83S\x83\x8d\x83S\x83\x8d\x8f\xf3\x91\xd4"
@@ -137,7 +134,7 @@ bool RollingRockStateRoll::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiv
     if (!MR::isEqualSensor(pReceiver, mHost, "Body")) {
         return false;
     }
-    if (fn_80012BA0(mHost, pReceiver, pSender, 0.7f)) {
+    if (MR::fn_80012BA0(mHost, pReceiver, pSender, 0.7f)) {
         if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvMove::sInstance) ||
             isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAccel::sInstance) ||
             isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAccel::sInstance) ||
@@ -380,18 +377,20 @@ void RollingRockStateRoll::updateVelocity() {
 
 void RollingRockStateRoll::updatePoseNoMoment() {
     if (MR::isSameDirection(mHost->mGravity, mDir, 0.01f)) {
+        TPos3f* matrix = &mCameraTarget->mMatrix;
         TVec3f up;
         up.negate(mHost->mGravity);
-        MR::makeMtxUpNoSupportPos(&mCameraTarget->mMatrix, up, mHost->mPosition);
+        MR::makeMtxUpNoSupportPos(matrix, up, mHost->mPosition);
     } else {
+        TPos3f* matrix = &mCameraTarget->mMatrix;
         TVec3f up;
         up.negate(mHost->mGravity);
-        MR::makeMtxUpFrontPos(&mCameraTarget->mMatrix, up, mDir, mHost->mPosition);
+        MR::makeMtxUpFrontPos(matrix, up, mDir, mHost->mPosition);
     }
 }
 
 void RollingRockStateRoll::setPlayerPose() {
-    fn_800513C0(&mHost->mQuat, &mHost->mPosition);
+    MR::fn_800513C0(&mHost->mQuat, &mHost->mPosition);
 }
 
 void RollingRockStateRoll::updateStep() {
@@ -650,7 +649,7 @@ void RollingRockStateRoll::exeAccel() {
         MR::startLevelSoundPlayer("RockAccel", -1, -1);
         MR::tryHitReaction(mHost, sRumbleAccel);
         TVec3f vel(mHost->mVelocity);
-        fn_80010D10(mHost, vel, mTurnRate);
+        MR::fn_80010D10(mHost, vel, mTurnRate);
         mHost->appearBlur();
         mDashStep -= 100;
         if (mDashStep <= 0) {

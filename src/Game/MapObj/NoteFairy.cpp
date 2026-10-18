@@ -15,6 +15,7 @@ namespace NrvNoteFairy {
     NEW_NERVE(NoteFairyNrvAppearNote, NoteFairy, AppearNote);
     NEW_NERVE(NoteFairyNrvEndWait, NoteFairy, EndWait);
     NEW_NERVE(NoteFairyNrvSuccessDemo, NoteFairy, SuccessDemo);
+    NEW_NERVE(NoteFairyNrvSuccessDemoWait, NoteFairy, SuccessDemoWait);
     NEW_NERVE(NoteFairyNrvSuccess, NoteFairy, Success);
 };  // namespace NrvNoteFairy
 
@@ -157,7 +158,7 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
         }
 
         mNoteArray[i] = new Note("音符", MR::getRailDirection(this), this);
-        mNoteArray[i]->mPosition.set(stack_24);
+        MR::setPosition(mNoteArray[i], stack_24);
         mNoteArray[i]->initWithoutIter();
         mNoteArray[i]->mCounter = mTimeLimit;
     }
@@ -174,8 +175,8 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
     _98.y = (0.5f * mPosition.y) + (0.5f * MR::getRailPos(this).y);
     _98.z = stack_18.z + mPosition.z;
     MR::needStageSwitchReadAppear(this, rIter);
-    MR::useStageSwitchWriteA(this, rIter);
-    MR::useStageSwitchReadB(this, rIter);
+    MR::initUseStageSwitchWriteA(this, rIter);
+    MR::initUseStageSwitchReadB(this, rIter);
     MR::initActorCamera(this, rIter, &mCameraInfo);
     initNerve(GET_NERVE(NoteFairy, NoteFairyNrvHide));
     makeActorAppeared();
@@ -212,7 +213,7 @@ void NoteFairy::exeHide() {
 
     if (MR::isOnSwitchAppear(this)) {
         if (!_D0) {
-            MR::startSystemSE("SE_SY_READ_RIDDLE_S", -1, -1);
+            MR::startActionSound(this, "SyReadRiddleS", -1, -1, -1);
         }
 
         MR::invalidateClipping(this);
@@ -238,6 +239,7 @@ void NoteFairy::exeHide() {
     }
 }
 
+// NONMATCHING: vector subtraction register allocation and saved-register frame differ.
 void NoteFairy::exeStartAppearDemo() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
@@ -245,9 +247,7 @@ void NoteFairy::exeStartAppearDemo() {
     }
 
     if (MR::isStep(this, 30)) {
-        TVec3f* pos = MR::getPlayerPos();
-        TVec3f stack_8(_8C);
-        stack_8.sub(*pos);
+        TVec3f stack_8 = _8C - *MR::getPlayerPos();
         MR::setPlayerFrontVec(stack_8, 1);
         enterDemoAppear(GET_NERVE(NoteFairy, NoteFairyNrvDemoAppear), true);
     }
@@ -370,10 +370,12 @@ void NoteFairy::exeEndWait() {
 }
 
 void NoteFairy::exeSuccessDemo() {
-    if (MR::isFirstStep(this)) {
-        MR::tryStartDemoRegistered(this, nullptr);
+    if (MR::tryStartDemoRegistered(this, nullptr)) {
+        setNerve(GET_NERVE(NoteFairy, NoteFairyNrvSuccessDemoWait));
     }
+}
 
+void NoteFairy::exeSuccessDemoWait() {
     if (!MR::isTimeKeepDemoActive()) {
         setNerve(GET_NERVE(NoteFairy, NoteFairyNrvSuccess));
     }

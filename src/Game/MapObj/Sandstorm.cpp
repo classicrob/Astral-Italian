@@ -3,7 +3,11 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NameObj/NameObjArchiveListCollector.hpp"
 #include "Game/Util.hpp"
+#include "Game/Player/MarioHolder.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
+
+// PLACEHOLDER(objects): player damage-state exception used to allow tornado binding; resolve when core names fn_80050350.
+extern "C" bool fn_80050350();
 
 namespace {
     static const f32 sRailSpeed = 3.0f;
@@ -104,7 +108,7 @@ void Sandstorm::init(const JMapInfoIter& rIter) {
         mType = Type_TwisterSanSlim;
     }
 
-    initModelManagerWithAnm(objName, nullptr, false);
+    MR::initActor(this, rIter, objName, false);
     MR::connectToSceneNoShadowedMapObj(this);
     initSandstormParam();
     initHitSensor(2);
@@ -125,6 +129,12 @@ void Sandstorm::init(const JMapInfoIter& rIter) {
         initTrapModel();
     }
 
+    bool white = false;
+    MR::getJMapInfoArg1NoInit(rIter, &white);
+    if (white) {
+        MR::startBrk(this, "White");
+    }
+
     initRailRider(rIter);
     MR::moveCoordAndTransToNearestRailPos(this);
 
@@ -138,7 +148,7 @@ void Sandstorm::init(const JMapInfoIter& rIter) {
 
     MR::setClippingTypeSphere(this, boundingRadius + railBoundingRadius, &_A0);
     MR::setGroupClipping(this, rIter, 8);
-    MR::useStageSwitchWriteA(this, rIter);
+    MR::initUseStageSwitchWriteA(this, rIter);
 
     if (MR::isValidSwitchA(this)) {
         MR::onSwitchA(this);
@@ -146,6 +156,10 @@ void Sandstorm::init(const JMapInfoIter& rIter) {
 
     initNerve(GET_NERVE(Sandstorm, SandstormNrvWait));
     makeActorAppeared();
+}
+
+void Sandstorm::enablePlayerTornado() {
+    MR::enablePlayerResourceTornado();
 }
 
 void Sandstorm::exeNonActive() {
@@ -227,9 +241,7 @@ void Sandstorm::exeStormEnd() {
             MR::onSwitchA(this);
         }
 
-        // BUG: Invokes `__ptmf_test` instead of calling the function.
-
-        if (isSunakazeKun) {
+        if (isSunakazeKun()) {
             MR::startActionSound(this, "OjSandstormSBindEnd");
         } else {
             MR::startActionSound(this, "OjSandstormBindEnd");
@@ -303,13 +315,13 @@ bool Sandstorm::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
         TVec3f up;
         MR::calcUpVec(&up, this);
 
-        f32 verticalDistance = MR::calcDistanceVertical(this, pSender->mPosition, up);
+        f32 verticalDistance = MR::calcDistanceVertical(this, *MR::getSensorPos(pSender), up);
 
         if (verticalDistance > mSensorHeight + mSizeUpRate * mSensorHeight) {
             return false;
         }
 
-        f32 horizontalDistance = MR::calcDistanceHorizontal(this, pSender->mPosition, up);
+        f32 horizontalDistance = MR::calcDistanceHorizontal(this, *MR::getSensorPos(pSender), up);
         bool ret = horizontalDistance <= MR::max(mSensorMin, mSizeUpRate * verticalDistance);
 
         if (ret) {
@@ -319,6 +331,17 @@ bool Sandstorm::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
         return ret;
     }
 
+    return false;
+}
+
+bool Sandstorm::receiveMsgEnemyAttack(u32 msg, HitSensor*, HitSensor* receiver) {
+    if (mBindActor != nullptr && MR::isEqualSensor(receiver, this, "binder")) {
+        MR::endActorCamera(this, _8C, true, -1);
+        MR::endBindAndPlayerDamageMsg(this, msg);
+        mBindActor = nullptr;
+        setNerve(GET_NERVE(Sandstorm, SandstormNrvStormEnd));
+        return true;
+    }
     return false;
 }
 
@@ -363,8 +386,9 @@ void Sandstorm::updateHitSensor(HitSensor* pSensor) {
     TVec3f vec;
     vec.scaleAdd(mSensorHeight, up, mPosition);
 
-    f32 val = MR::calcPerpendicFootToLineInside(&pSensor->mPosition, *MR::getPlayerCenterPos(), mPosition, vec);
-    pSensor->mRadius = MR::max(mSensorMin, mSizeUpRate * val * mSensorHeight);
+    const TVec3f* playerCenter = MR::getPlayerCenterPos();
+    f32 val = MR::calcPerpendicFootToLineInside(MR::getSensorPos2(pSensor), *playerCenter, mPosition, vec);
+    MR::setSensorRadius(pSensor, MR::max(mSensorMin, mSizeUpRate * val * mSensorHeight));
 }
 
 void Sandstorm::initSandstormParam() {
@@ -501,7 +525,7 @@ bool Sandstorm::tryStartBind(HitSensor* pSensor) {
         return false;
     }
 
-    if (MR::isPlayerDamaging()) {
+    if (MR::isPlayerDamaging() && !fn_80050350()) {
         return false;
     }
 
@@ -509,13 +533,14 @@ bool Sandstorm::tryStartBind(HitSensor* pSensor) {
         return false;
     }
 
-    mBindActor = pSensor->mHost;
+    mBindActor = MR::getSensorHost(pSensor);
 
     MR::tryRumblePadStrong(this, 0);
     MR::shakeCameraNormal();
     MR::startActorCameraTargetSelf(this, _8C);
+    MR::resetPlayerStatus();
     MR::startBckPlayer("StormIn");
-    MR::startActionSound(mBindActor, "PvUpset");
+    MR::startSoundPlayer("PvUpset", -1, -1);
     MR::invalidateClipping(this);
 
     _B8 = 0.0f;
@@ -559,10 +584,6 @@ bool Sandstorm::isSunakazeKun() const {
     return mType == Type_SunakazeKun;
 }
 
-TVec3f Sandstorm_FORCE_MATCH(f32 v) {
-    return TVec3f(v);
-}
 
-void Sandstorm_FORCE_MATCH_SUB(TVec3f* pDest, const TVec3f& rA, const TVec3f& rB) {
-    pDest->sub(rA, rB);
-}
+
+

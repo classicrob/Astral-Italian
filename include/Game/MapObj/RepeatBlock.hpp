@@ -150,9 +150,9 @@ public:
     RepeatBlockGrid(const TPos3f&, f32, f32, f32);
 
     void calcCellPos(TVec3f*, const RepeatBlockCell&) const;
-    void calcWorldCellPos(TVec3f*, const RepeatBlockCell&) const;
+    void calcWorldCellPos(TVec3f*, const RepeatBlockCell&) const __attribute__((noinline));
     void calcCell(RepeatBlockCell*, const TVec3f&) const;
-    void localToWorld(TVec3f*, const TVec3f&) const;
+    void localToWorld(TVec3f*, const TVec3f&) const __attribute__((noinline));
     void worldToCell(RepeatBlockCell*, const TVec3f&) const;
     void getAxisX(TVec3f*) const;
     void getAxisY(TVec3f*) const;

@@ -37,7 +37,7 @@ namespace NrvPlantSlider {
 };  // namespace NrvPlantSlider
 
 namespace {
-    extern const s32 sLeafPointStart;
+    extern s32 sLeafPointStart;
     extern const s32 sSpringRange;
     extern const f32 sTaperRange;
     Color8 sColorWhite(0xFF, 0xFF, 0xFF, 0xFF);
@@ -129,13 +129,14 @@ void PlantSlider::init(const JMapInfoIter& rIter) {
         }
     }
 
-    mNumLeaves = (mNumPoints - sLeafPointStart) / 30;
+    s32 leafStart = sLeafPointStart;
+    mNumLeaves = (mNumPoints - leafStart) / 30;
     mLeafGroup = new LiveActorGroup("葉っぱ保持", mNumLeaves);
     mLeafGroup->initWithoutIter();
 
     mLeafMtxs = new TPos3f[mNumLeaves];
     for (s32 i = 0; i < mNumLeaves; i++) {
-        PlantSliderPoint* pPoint = mSliderPoints[sLeafPointStart + i * 30];
+        PlantSliderPoint* pPoint = mSliderPoints[leafStart + i * 30];
 
         TVec3f gravity(mGravity);
         gravity.scale(2.0f);
@@ -228,10 +229,15 @@ void PlantSlider::endClipped() {
 
 // NONMATCHING: loop setup scheduling and stack temporary placement differ.
 void PlantSlider::control() {
+    if (mNumLeaves <= 0) {
+        return;
+    }
+    s32 leafStart = sLeafPointStart;
+    const TVec3f* gravityPos = &mGravity;
     for (s32 i = 0; i < mNumLeaves; i++) {
-        PlantSliderPoint* pPoint = mSliderPoints[sLeafPointStart + i * 30];
+        PlantSliderPoint* pPoint = mSliderPoints[leafStart + i * 30];
 
-        TVec3f gravity(mGravity);
+        TVec3f gravity(*gravityPos);
         gravity.scale(2.0f);
         TVec3f side(pPoint->mSide);
         side.scale(1.5f);
@@ -369,8 +375,7 @@ bool PlantSlider::tryReachGoal() {
     MR::endMultiActorCamera(this, mCameraInfo, "滑り", false, -1);
     MR::setGameCameraTargetToPlayer();
 
-    TVec3f jumpPos;
-    MR::restrictVelocityToPlaneModeArea(&jumpPos, mPosition);
+    MR::restrictVelocityToPlaneModeArea(&camUp, mPosition);
     MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, camUp);
 
     mRider = nullptr;
@@ -595,7 +600,7 @@ void PlantSliderPoint::updateSprings(f32 pHeight, f32 pInterp, f32 pDamping, f32
 }
 
 namespace {
-    const s32 sLeafPointStart = 0;
+    s32 sLeafPointStart = 0;
     const s32 sSpringRange = 60;
     const f32 sTaperRange = 16.0f;
 }

@@ -9,6 +9,7 @@ public:
 
     virtual ~ElectricRailPoint();
     virtual void init(const JMapInfoIter&);
+    virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
 
     /* 0x8C */ bool mHasShadow;
@@ -84,3 +85,7 @@ public:
     /* 0xB8 */ bool mIsCalcGravity;  // Obj_arg4
     /* 0xB9 */ bool _B9;
 };
+
+namespace ElectricRailFunction {
+    f32 getHipDropSensorRadius();
+}

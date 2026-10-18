@@ -109,6 +109,7 @@ public:
     static void startRotator(const MapObjActor* pActor);
     static void startRailMover(const MapObjActor* pActor);
     static void endRotator(const MapObjActor* pActor);
+    static void startRailMoverDirect(const MapObjActor* pActor);
     static void pauseRotator(const MapObjActor* pActor);
     static void resetRailMoverToInitPos(const MapObjActor* pActor);
     static void startBreak(MapObjActor* pActor);

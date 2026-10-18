@@ -135,7 +135,10 @@ void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInf
         MR::initDefaultPos(this, rIter);
     }
 
-    bool useDisplayList = rInfo.mUseProjectMapMtx || rInfo.mUseMirrorReflection || rInfo.mDummyChangeTexture != nullptr;
+    bool useDisplayList = false;
+    if (rInfo.mUseProjectMapMtx || rInfo.mUseMirrorReflection || rInfo.mDummyChangeTexture != nullptr) {
+        useDisplayList = true;
+    }
     MR::initActor(this, rIter, mObjectName, useDisplayList);
 
     if (rInfo.mDummyChangeTexture != nullptr) {
@@ -659,7 +662,7 @@ bool MapObjActor::tryDeleteWaitEffect() {
         return false;
     }
 
-    if (MR::isNearPlayer(this, 4000.0f)) {
+    if (MR::isNearPlayer(this, 10000.0f)) {
         return false;
     }
 
@@ -853,8 +856,8 @@ void MapObjActorUtil::startRailMover(const MapObjActor* pActor) {
     pActor->mRailMover->start();
 }
 
-void MapObjActorUtil::endRotator(const MapObjActor* pActor) {
-    pActor->mRotator->end();
+void MapObjActorUtil::startRailMoverDirect(const MapObjActor* pActor) {
+    pActor->mRailMover->doStart();
 }
 
 void MapObjActorUtil::pauseRotator(const MapObjActor* pActor) {

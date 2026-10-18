@@ -102,22 +102,27 @@ struct RepeatBlockHistoryNode {
 
 class RepeatBlockHead : public LiveActor {
 public:
+    RepeatBlockHead(const char*, RepeatBlock*);
+    virtual void appear();
+    void updateAtomPositions();
     virtual ~RepeatBlockHead();
     virtual void kill();
 
-    /* 0x90 */ u8 _90[0x30];
+    /* 0x90 */ TPos3f mBaseMtx;
     /* 0xC0 */ RepeatBlock* mParent;
     /* 0xC4 */ RepeatBlockAtom** mAtoms;
 };
 
 class RepeatBlockAtom : public LiveActor {
 public:
+    RepeatBlockAtom(RepeatBlock*);
     virtual ~RepeatBlockAtom();
     virtual void appear();
 };
 
 class RepeatBlockTail : public RepeatBlockHead {
 public:
+    RepeatBlockTail(RepeatBlock*, const char*);
     virtual ~RepeatBlockTail();
     virtual void appear();
     virtual void kill();

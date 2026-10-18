@@ -14,6 +14,7 @@ public:
     virtual void connectToScene();
 
     static s32 getMoveStartSignalTime();
+    static s32 getMoveStartSignalTimeForRail();
     void initModelAndCollision(const JMapInfoIter&);
 
     TVec3f _8C;

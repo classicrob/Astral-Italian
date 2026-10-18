@@ -430,7 +430,7 @@ void MapPartsRailMover::exeMoveStart() {
 
     MR::setRailCoord(mHost, _48 + (7.0f * (v3 * ((getStep() % 3)))));
     _28.set(MR::getRailPos(mHost));
-    if (isStep(MapParts::getMoveStartSignalTime())) {
+    if (isStep(MapParts::getMoveStartSignalTimeForRail())) {
         MR::setRailCoord(mHost, _48);
 
         if (MR::isExistCollisionParts(mHost)) {

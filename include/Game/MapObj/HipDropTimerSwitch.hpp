@@ -25,6 +25,7 @@ public:
     void exeSwitchDown();
     void exeOn();
     void exeSwitchUp();
+    void exeSyncOff();
 
     u32 _8C;
     /* 0x90 */ SpringValue* mSpring;

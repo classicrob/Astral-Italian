@@ -1,0 +1,2 @@
+#include "Game/MapObj/StemFruit.hpp"
+StemFruitParam::StemFruitParam(const char* model, const char* childModel, bool flag08, s32 respawnStep, bool flag10, bool flag11, bool flag12, s32 radius, f32 offsetY, f32 sensorRadius, f32 timerStep, bool flag24, const char* effect) : mModelName(model), mChildModelName(childModel), mFlag08(flag08), mRespawnStep(respawnStep), mFlag10(flag10), mFlag11(flag11), mFlag12(flag12), mStarPointerRadiusS32(radius), mStarPointerOffsetY(offsetY), mHitSensorRadius(sensorRadius), mTimerStep(timerStep), mFlag24(flag24), mEffectName(effect) {}

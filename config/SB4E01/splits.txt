@@ -4315,9 +4315,15 @@ Game/MapObj/CymbalsStep.cpp:
 	.text       start:0x802934E0 end:0x80293DB0
 	.ctors      start:0x80644394 end:0x80644398
 
+Game/MapObj/DashFruitHooks.cpp:
+	.text       start:0x80293DB0 end:0x80293DD0
+
 Game/MapObj/DashFruit.cpp:
-	.text       start:0x80293DD0 end:0x80293F70
+	.text       start:0x80293DD0 end:0x80293F20
 	.ctors      start:0x80644398 end:0x8064439C
+
+Game/MapObj/StemFruitParam.cpp:
+	.text       start:0x80293F20 end:0x80293F70
 
 Game/MapObj/DashRing.cpp:
 	.text       start:0x80293F70 end:0x802948F0
@@ -4360,7 +4366,7 @@ Game/MapObj/ElectricRail.cpp:
 	.data       start:0x8069FDA0 end:0x8069FEF8
 
 Game/MapObj/ElectricRail2Point.cpp:
-	.text       start:0x8029ABA0 end:0x8029AF30
+	.text       start:0x8029ABA0 end:0x8029AED0
 
 Game/MapObj/ElectricRail2Point2.cpp:
 	.text       start:0x8029AF30 end:0x8029B9C0
@@ -4397,10 +4403,7 @@ Game/MapObj/FallDownBridge.cpp:
 	.sbss       start:0x807D3AC8 end:0x807D3AD0
 
 Game/MapObj/FallDownWall.cpp:
-	.text       start:0x8029F860 end:0x8029FA50
-
-Game/MapObj/FallDownWall2.cpp:
-	.text       start:0x8029FA60 end:0x8029FAE0
+	.text       start:0x8029F860 end:0x8029FAE0
 	.ctors      start:0x806443C8 end:0x806443CC
 
 Game/MapObj/FallOutFieldDraw.cpp:
@@ -4439,11 +4442,8 @@ Game/MapObj/FlipPanel.cpp:
 	.data       start:0x806A0E44 end:0x806A0FF0
 
 Game/MapObj/FlowerBlossomRellayPlanet.cpp:
-	.text       start:0x802A4360 end:0x802A44B0
+	.text       start:0x802A4360 end:0x802A45F0
 	.ctors      start:0x806443E4 end:0x806443E8
-
-Game/MapObj/NrvFlowerBlossomRelayPlanet.cpp:
-	.text       start:0x802A44B0 end:0x802A45F0
 
 Game/MapObj/Fountain.cpp:
 	.text       start:0x802A45F0 end:0x802A4D80
@@ -4533,12 +4533,9 @@ Game/MapObj/HipDropSwitch.cpp:
 	.data       start:0x806A25E8 end:0x806A2688
 
 Game/MapObj/HipDropTimerSwitch.cpp:
-	.text       start:0x802AFC20 end:0x802B0780
+	.text       start:0x802AFC20 end:0x802B0880
 	.ctors      start:0x80644438 end:0x8064443C
 	.data       start:0x806A2798 end:0x806A2818
-
-Game/MapObj/NrvHipDropTimerSwitch.cpp:
-	.text       start:0x802B0780 end:0x802B0880
 
 Game/MapObj/IceMeteor.cpp:
 	.text       start:0x802B0880 end:0x802B1220
@@ -4759,7 +4756,9 @@ Game/MapObj/MeteorStrikeLauncher.cpp:
 	.data       start:0x806A69A8 end:0x806A6A38
 
 Game/MapObj/MorphItemCollection.cpp:
-	.text       start:0x802D1BC0 end:0x802D1FA0
+	.text       start:0x802D1BC0 end:0x802D1FD0
+	.ctors      start:0x806444E8 end:0x806444EC
+	.sbss       start:0x807D3FC0 end:0x807D3FC4
 
 Game/MapObj/MorphItemObjNeo.cpp:
 	.text       start:0x802D20D0 end:0x802D45A0
@@ -4798,13 +4797,7 @@ Game/MapObj/OldFortressCover.cpp:
 	.ctors      start:0x80644504 end:0x80644508
 
 Game/MapObj/PetitPorter.cpp:
-	.text       start:0x802D8690 end:0x802D9A00
-
-Game/MapObj/JointControlDelegator4.cpp:
-	.text       start:0x802D9A00 end:0x802D9B20
-
-Game/MapObj/PetitPorter2.cpp:
-	.text       start:0x802D9B20 end:0x802D9E80
+	.text       start:0x802D8690 end:0x802D9E80
 	.ctors      start:0x80644508 end:0x8064450C
 
 Game/MapObj/PhantomTorch.cpp:
@@ -4813,15 +4806,12 @@ Game/MapObj/PhantomTorch.cpp:
 	.data       start:0x806A7DB8 end:0x806A7E78
 
 Game/MapObj/PicketSwitch.cpp:
-	.text       start:0x802DAA40 end:0x802DB040
+	.text       start:0x802DAA40 end:0x802DAEF0
 	.ctors      start:0x80644510 end:0x80644514
 	.data       start:0x806A7EC8 end:0x806A7F68
 
-Game/MapObj/PlacementCircleObj.cpp:
-	.text       start:0x802DB040 end:0x802DB280
-
-Game/MapObj/PlacementRailObj.cpp:
-	.text       start:0x802DB280 end:0x802DB560
+Game/MapObj/PlacementObj.cpp:
+	.text       start:0x802DAEF0 end:0x802DB510
 
 Game/MapObj/PlantGroup.cpp:
 	.text       start:0x802DB560 end:0x802DE0C0
@@ -4912,14 +4902,10 @@ Game/MapObj/RailMoveObj.cpp:
 	.sbss       start:0x807D41D0 end:0x807D41E0
 
 Game/MapObj/RailMoveObjGenerator.cpp:
-	.text       start:0x802EB480 end:0x802EB7F0
-
-Game/MapObj/KoopaJrLv2LiftGenerator.cpp:
-	.text       start:0x802EB7F0 end:0x802EB8D0
-
-Game/MapObj/RailMoveObjGenerator2.cpp:
-	.text       start:0x802EB8D0 end:0x802EBAC0
+	.text       start:0x802EB480 end:0x802EBAC0
 	.ctors      start:0x80644548 end:0x8064454C
+	.data       start:0x806AA410 end:0x806AA580
+	.sbss       start:0x807D41E8 end:0x807D41F8
 
 Game/MapObj/RailMoveTimerObj.cpp:
 	.text       start:0x802EBAC0 end:0x802EBED0
@@ -4929,10 +4915,13 @@ Game/MapObj/RailPlacementPoleObstacle.cpp:
 	.text       start:0x802EBED0 end:0x802EC170
 
 Game/MapObj/RelayDrill2DPlanet.cpp:
-	.text       start:0x802EC170 end:0x802EC410
+	.text       start:0x802EC170 end:0x802EC370
+
+Game/MapObj/RepeatBlockAtom.cpp:
+	.text       start:0x802EC370 end:0x802EC410
 
 Game/MapObj/RepeatBlockHead.cpp:
-	.text       start:0x802EC7B0 end:0x802ECAD0
+	.text       start:0x802EC610 end:0x802ECAD0
 
 Game/MapObj/RepeatBlock.cpp:
 	.text       start:0x802ECAD0 end:0x802F0C90
@@ -5040,7 +5029,7 @@ Game/MapObj/SimpleSeesawObj.cpp:
 	.text       start:0x802FFB30 end:0x802FFDA0
 
 Game/MapObj/PictureJoinPlanet.cpp:
-	.text       start:0x802FFDA0 end:0x80300170
+	.text       start:0x802FFDA0 end:0x802FFE30
 
 Game/MapObj/SmallStone.cpp:
 	.text       start:0x80300170 end:0x80301850
@@ -5333,11 +5322,15 @@ Game/MapObj/YoshiCapture.cpp:
 	.ctors      start:0x80644664 end:0x80644668
 
 Game/MapObj/YoshiFruit.cpp:
-	.text       start:0x8032F720 end:0x8032F950
-	.ctors      start:0x80644668 end:0x80644670
+	.text       start:0x8032F720 end:0x8032F830
+	.ctors      start:0x80644668 end:0x8064466C
+
+Game/MapObj/YoshiFruitBig.cpp:
+	.text       start:0x8032F830 end:0x8032F940
+	.ctors      start:0x8064466C end:0x80644670
 
 Game/MapObj/MapParts.cpp:
-	.text       start:0x8032F950 end:0x8032F960
+	.text       start:0x8032F940 end:0x8032F960
 
 Game/MapObj/GeneralMapParts.cpp:
 	.text       start:0x8032F960 end:0x8032FD70

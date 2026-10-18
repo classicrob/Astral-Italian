@@ -54,6 +54,7 @@ public:
 class PetitPorterWarpPoint : public LiveActor {
 public:
     PetitPorterWarpPoint(const char*);
+    virtual ~PetitPorterWarpPoint();
 
     virtual void init(const JMapInfoIter&);
     virtual MtxPtr getBaseMtx() const;
@@ -64,6 +65,7 @@ public:
 class PetitPorterExitPoint : public LiveActor {
 public:
     PetitPorterExitPoint(const char*);
+    virtual ~PetitPorterExitPoint();
 
     virtual void init(const JMapInfoIter&);
     virtual MtxPtr getBaseMtx() const;

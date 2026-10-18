@@ -27,12 +27,22 @@ namespace {
                                            {"SE_SY_TIMER_B_2", "SE_SY_TIMER_B_1", "SE_SY_TIMER_B_QUASI_0", "SE_SY_TIMER_B_0"}};
 };  // namespace
 
-namespace NrvHipDropSwitch {
+namespace NrvHipDropTimerSwitch {
     NEW_NERVE(HipDropTimerSwitchNrvOff, HipDropTimerSwitch, Off);
     NEW_NERVE(HipDropTimerSwitchNrvSwitchDown, HipDropTimerSwitch, SwitchDown);
     NEW_NERVE(HipDropTimerSwitchNrvOn, HipDropTimerSwitch, On);
     NEW_NERVE(HipDropTimerSwitchNrvSwitchUp, HipDropTimerSwitch, SwitchUp);
-};  // namespace NrvHipDropSwitch
+    class HipDropTimerSwitchNrvSyncOn : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const {
+            HipDropTimerSwitch* actor = static_cast<HipDropTimerSwitch*>(spine->mExecutor);
+            if (MR::isFirstStep(actor)) MR::startAction(actor, "SyncOn");
+        }
+        static HipDropTimerSwitchNrvSyncOn sInstance;
+    };
+    HipDropTimerSwitchNrvSyncOn HipDropTimerSwitchNrvSyncOn::sInstance;
+    NEW_NERVE(HipDropTimerSwitchNrvSyncOff, HipDropTimerSwitch, SyncOff);
+};  // namespace NrvHipDropTimerSwitch
 
 HipDropTimerSwitch::HipDropTimerSwitch(const char* pName)
     : LiveActor(pName), _8C(0), mMapObjConnector(nullptr), mCollisionParts(nullptr), mTimerMax(300), mTimerSFXType(0), mWasLightPressed(false),
@@ -56,7 +66,7 @@ void HipDropTimerSwitch::init(const JMapInfoIter& rIter) {
     MR::initCollisionParts(this, "HipDropTimerSwitch", getSensor("body"), nullptr);
     mCollisionParts = MR::createCollisionPartsFromLiveActor(this, "Move", getSensor("hit"), MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mCollisionParts);
-    initNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvOff));
+    initNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff));
     MR::needStageSwitchWriteA(this, rIter);
     MR::tryRegisterDemoCast(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &mTimerMax);
@@ -157,9 +167,9 @@ bool HipDropTimerSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, Hit
         return true;
     }
 
-    if (MR::isMsgPlayerHipDropFloor(msg) && mCollisionParts->mHitSensor == pReceiver && isNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvOff))) {
+    if (MR::isMsgPlayerHipDropFloor(msg) && mCollisionParts->mHitSensor == pReceiver && isNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff))) {
         MR::invalidateClipping(this);
-        setNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvSwitchDown));
+        setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvSwitchDown));
         mSpring->reset();
         return true;
     }
@@ -205,7 +215,7 @@ void HipDropTimerSwitch::exeSwitchDown() {
     }
 
     if (MR::isGreaterStep(this, 0) && MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvOn));
+        setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOn));
     }
 }
 
@@ -219,7 +229,7 @@ void HipDropTimerSwitch::exeOn() {
     updateTimerSE();
 
     if (MR::isGreaterStep(this, mTimerMax)) {
-        setNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvSwitchUp));
+        setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvSwitchUp));
     }
 }
 
@@ -230,9 +240,14 @@ void HipDropTimerSwitch::exeSwitchUp() {
     }
 
     if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvOff));
+        setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff));
     }
 }
 
 HipDropTimerSwitch::~HipDropTimerSwitch() {
+}
+
+void HipDropTimerSwitch::exeSyncOff() {
+    if (MR::isFirstStep(this)) MR::startAction(this, "SyncOff");
+    if (MR::isActionEnd(this)) setNerve(GET_NERVE(HipDropTimerSwitch, HipDropTimerSwitchNrvOff));
 }

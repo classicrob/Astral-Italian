@@ -465,3 +465,8 @@ bool PetitPorterFunction::isDemo() {
     }
     return false;
 }
+
+PetitPorter::~PetitPorter() {}
+PetitPorterWarpPoint::~PetitPorterWarpPoint() {}
+PetitPorterExitPoint::~PetitPorterExitPoint() {}
+PetitPorterMediator::~PetitPorterMediator() {}

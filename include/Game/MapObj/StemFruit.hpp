@@ -22,6 +22,7 @@ namespace MR {
 // Per-fruit parameter block returned by StemFruit::getParam() (virtual slot 0xC0, implemented by the
 // concrete fruit classes in other TUs). Offsets read from StemFruit / StemFruitChild code.
 struct StemFruitParam {
+    StemFruitParam(const char*, const char*, bool, s32, bool, bool, bool, s32, f32, f32, f32, bool, const char*) NO_INLINE;
     /* 0x00 */ const char* mModelName;
     /* 0x04 */ const char* mChildModelName;
     /* 0x08 */ u8 mFlag08;
@@ -34,6 +35,7 @@ struct StemFruitParam {
     /* 0x1C */ f32 mHitSensorRadius;
     /* 0x20 */ f32 mTimerStep;
     /* 0x24 */ u8 mFlag24;
+    /* 0x28 */ u32 mReserved28;
     /* 0x2C */ const char* mEffectName;
 };
 

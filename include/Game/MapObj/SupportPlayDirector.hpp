@@ -1,26 +1,21 @@
 #pragma once
-
 #include "Game/NameObj/NameObj.hpp"
-
 class LiveActor;
 class LiveActorGroup;
-
-/// SMG2: coordinates the actors of the co-op "support play" group (SceneObj_SupportPlayDirector).
+class SupportPlayGuidance;
 class SupportPlayDirector : public NameObj {
 public:
     SupportPlayDirector();
-
     virtual ~SupportPlayDirector();
     virtual void init(const JMapInfoIter&);
     virtual void movement();
-
     void registerActor(LiveActor*);
-    void sendMsgGroupStart(LiveActor*);
-    void sendMsgGroupStop(LiveActor*);
+    void sendMsgGroupStart();
+    void sendMsgGroupStop();
     bool isActive() const;
-
-    /* 0x14 */ LiveActorGroup* mGroup;
-    /* 0x18 */ s32 _18;
-    /* 0x1C */ s32 mActiveCount;
-    /* 0x20 */ s32 _20;
+    void updateGuidance();
+    SupportPlayGuidance* mGuidance;
+    LiveActorGroup* mGroup;
+    s32 mActiveCount;
+    s32 mGuidanceFrames;
 };

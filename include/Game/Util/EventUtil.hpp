@@ -308,3 +308,7 @@ namespace MR {
     // PLACEHOLDER(m1): event predicate name unknown; resolve when MarioFaceShip event semantics are recovered.
     bool fn_804C24E0();
 }
+
+namespace MR {
+    void incYoshiFruitEaten();
+}

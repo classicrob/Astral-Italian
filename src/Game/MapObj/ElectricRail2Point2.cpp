@@ -28,7 +28,7 @@ void ElectricRail2Point::attackSensor(HitSensor* pSender, HitSensor* pReceiver) 
 }
 
 // NONMATCHING: the shadow-volume calls match; the helper-set order for the second actor differs slightly.
-bool ElectricRail2Point::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+void ElectricRail2Point::initShadow(const JMapInfoIter&) {
     MR::initShadowControllerList(this, 3);
     MR::addShadowVolumeCylinder(this, "start", 20.0f);
     MR::addShadowVolumeCylinder(this, "end", 20.0f);
@@ -42,10 +42,6 @@ bool ElectricRail2Point::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor*
     // NONMATCHING: the 8-argument addShadowVolumeLine call (rail shadow line between this and the drop volumes) is not
     // fully resolved from the target's register setup.
     MR::addShadowVolumeLine(this, "line", this, "start", 20.0f, this, "end", 20.0f);
-    (void)msg;
-    (void)pSender;
-    (void)pReceiver;
-    return false;
 }
 
 void ElectricRail2Point::makeActorAppeared() {
@@ -166,9 +162,6 @@ void writeGxVec3(f32 x, f32 y, f32 z) {
     *gxFifoF32() = x;
     *gxFifoF32() = y;
     *gxFifoF32() = z;
-}
-
-ElectricRail2Point::ElectricRail2Point(const char* pName) : LiveActor(pName) {
 }
 
 namespace NrvElectricRail2Point {

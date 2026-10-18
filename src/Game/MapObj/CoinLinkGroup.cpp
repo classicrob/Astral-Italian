@@ -7,10 +7,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/Functor.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_802DAF40, declared extern "C" so the reloc name matches; resolve when fn_802DAF40 gets its real name in symbols.txt
-extern "C" s32 fn_802DAF40(NameObj*);
-// PLACEHOLDER(objects): unnamed target symbol fn_802DAF50, declared extern "C" so the reloc name matches; resolve when fn_802DAF50 gets its real name in symbols.txt
-extern "C" void fn_802DAF50(NameObj*, s32, TVec3f*);
 
 namespace MR {
     void initChildObj(NameObj*, const JMapInfoIter&, s32);
@@ -107,12 +103,12 @@ void CoinLinkGroup::init(const JMapInfoIter& rIter) {
 
 void CoinLinkGroup::initCoins(const JMapInfoIter& rIter) {
     s32 childNum = MR::getChildObjNum(rIter);
-    mChildren = new NameObj*[childNum];
+    mChildren = new PlacementObj*[childNum];
     mChildCount = 0;
     for (s32 i = 0; i < childNum; i++) {
         const char* pName;
         MR::getChildObjName(&pName, rIter, i);
-        NameObj* pChild = nullptr;
+        PlacementObj* pChild = nullptr;
         if (MR::isEqualString(pName, "CircleCoinGroup")) {
             pChild = new PlacementCircleObj();
         } else if (MR::isEqualString(pName, "RailCoin")) {
@@ -129,15 +125,15 @@ void CoinLinkGroup::initCoins(const JMapInfoIter& rIter) {
 void CoinLinkGroup::createCoins() {
     s32 total = 0;
     for (s32 i = 0; i < mChildCount; i++) {
-        total += fn_802DAF40(mChildren[i]);
+        total += mChildren[i]->getPlacementNum();
     }
     if (total > 0) {
         mCoins = new Coin*[total];
         mCoinCount = 0;
         for (s32 i = 0; i < mChildCount; i++) {
-            for (s32 k = 0; k < fn_802DAF40(mChildren[i]); k++) {
+            for (s32 k = 0; k < mChildren[i]->getPlacementNum(); k++) {
                 TVec3f pos;
-                fn_802DAF50(mChildren[i], k, &pos);
+                mChildren[i]->calcPlacementPosition(k, &pos);
                 Coin* pCoin = MR::createCoin(this, "\x83\x8A\x83\x93\x83\x4E\x83\x4F\x83\x8B\x81\x5B\x83\x76\x97\x70\x83\x52\x83\x43\x83\x93");
                 MR::setPosition(pCoin, pos);
                 pCoin->initWithoutIter();

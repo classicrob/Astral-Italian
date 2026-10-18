@@ -1,3 +1,4 @@
+#include "Game/MapObj/StarPieceFlowerController.hpp"
 #include "Game/MapObj/StarPieceFlower.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
@@ -12,8 +13,6 @@ namespace MR {
     bool getJMapInfoArg0NoInit(const JMapInfoIter&, bool*);
 };  // namespace MR
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80318760, declared extern "C" so the reloc name matches; resolve when fn_80318760 gets its real name in symbols.txt
-extern "C" void fn_80318760(TVec3f*);
 // PLACEHOLDER(objects): unnamed target symbol fn_8004DB60, declared extern "C" so the reloc name matches; resolve when fn_8004DB60 gets its real name in symbols.txt
 extern "C" void fn_8004DB60(LiveActor*, TVec3f*, TVec3f*, f32, s32, s32, s32, s32);
 
@@ -75,7 +74,7 @@ void StarPieceFlower::control() {
         mPosition.z = mTargetPos->z;
     } else {
         TVec3f rot;
-        fn_80318760(&rot);
+        MR::getStarPieceFlowerRotation(&rot);
         mAngle = rot.y;
         mAngle = normalizeAngle(rot.y, 0.0f);
     }

@@ -11,10 +11,6 @@ extern "C" {
 void fn_802EC450(RepeatBlockAtom*, RepeatBlock*, s32);
 void fn_802EC4E0(RepeatBlockAtom*, RepeatBlock*, s32);
 void fn_802EC590(LiveActor*);
-RepeatBlockHead* fn_802EC610(RepeatBlockHead*, const char*, RepeatBlock*);
-void fn_802EC740(RepeatBlockHead*);
-void fn_802EC820(RepeatBlockHead*);
-RepeatBlockTail* fn_802ECA00(RepeatBlockTail*, RepeatBlock*, const char*);
 }
 
 namespace {
@@ -286,7 +282,7 @@ void RepeatBlock::init(const JMapInfoIter& rIter) {
 
 void RepeatBlock::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-    fn_802EC740(mHead);
+    mHead->RepeatBlockHead::appear();
     mShadowDrawer->makeVertexBuffer();
 }
 
@@ -307,7 +303,7 @@ void RepeatBlock::makeActorDead() {
 
 void RepeatBlock::exeMove() {
     if (MR::isFirstStep(this)) {
-        fn_802EC820(mTail);
+        mTail->updateAtomPositions();
         mTail->appear();
         stepForward();
     }
@@ -349,12 +345,9 @@ bool RepeatBlock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
 }
 
 void RepeatBlock::initHead() {
-    RepeatBlockHead* pHead = static_cast< RepeatBlockHead* >(::operator new(0xC8));
-    if (pHead != nullptr) {
-        pHead = fn_802EC610(pHead, "頭ブロック", this);
-    }
+    RepeatBlockHead* pHead = new RepeatBlockHead("頭ブロック", this);
     mHead = pHead;
-    fn_802EC740(mHead);
+    mHead->RepeatBlockHead::appear();
 }
 
 void RepeatBlock::updateHead() {
@@ -375,14 +368,11 @@ void RepeatBlock::updateHead() {
     mShadowDrawer->mOffset = mCellRate;
     mShadowDrawer->makeFace();
     MR::setPosition(mHead, mPosition);
-    fn_802EC820(mHead);
+    mHead->updateAtomPositions();
 }
 
 void RepeatBlock::initTail() {
-    RepeatBlockTail* pTail = static_cast< RepeatBlockTail* >(::operator new(0xD8));
-    if (pTail != nullptr) {
-        pTail = fn_802ECA00(pTail, this, "尻ブロック");
-    }
+    RepeatBlockTail* pTail = new RepeatBlockTail(this, "尻ブロック");
     mTail = pTail;
     mTail->kill();
 }
@@ -391,17 +381,14 @@ void RepeatBlock::updateTail() {
     mTail->movement();
     if (mHistoryFull) {
         calcMovedPos(&mTail->mPosition, mDirHistory[mHistoryRead]);
-        fn_802EC820(mTail);
+        mTail->updateAtomPositions();
     }
 }
 
 void RepeatBlock::initTails() {
     mTails = new RepeatBlockTail*[mTailNum];
     for (s32 i = 0; i < mTailNum; i++) {
-        RepeatBlockTail* pTail = static_cast< RepeatBlockTail* >(::operator new(0xD8));
-        if (pTail != nullptr) {
-            pTail = fn_802ECA00(pTail, this, "リピートブロック本体");
-        }
+        RepeatBlockTail* pTail = new RepeatBlockTail(this, "リピートブロック本体");
         mTails[i] = pTail;
         mTails[i]->kill();
     }
@@ -423,7 +410,7 @@ void RepeatBlock::initShadow() {
 void RepeatBlock::appearNextTail() {
     RepeatBlockTail* pTail = mTails[mTailIdx];
     MR::setPosition(pTail, mPosition);
-    fn_802EC820(pTail);
+    pTail->updateAtomPositions();
     pTail->appear();
     mTailIdx++;
     if (mTailIdx >= mTailNum) {

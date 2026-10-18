@@ -1,7 +1,13 @@
 #pragma once
-
+#include "Game/LiveActor/LiveActorGroup.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
-
+class CollectTico;
+class CollectTicoHolder : public LiveActorGroup {
+public:
+    CollectTicoHolder();
+    virtual ~CollectTicoHolder();
+};
 namespace MR {
+    void registerCollectTico(CollectTico*);
     void launchRescuedStrayTico(const TPos3f&);
-};  // namespace MR
+}

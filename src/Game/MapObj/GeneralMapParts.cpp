@@ -390,7 +390,7 @@ void GeneralMapParts::exeMoveStart() {
 
         setNerve(GET_NERVE(GeneralMapParts, HostTypeWaitForPlayerOn));
     } else {
-        if (MR::isStep(this, MapParts::getMoveStartSignalTime())) {
+        if (MR::isStep(this, MapParts::getMoveStartSignalTimeForRail())) {
             if (mRailMover != nullptr) {
                 mRailMover->start();
             }

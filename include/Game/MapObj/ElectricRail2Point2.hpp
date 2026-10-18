@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/MapObj/ElectricRailMoving.hpp"
 
 class LiveActorGroup;
 
@@ -17,12 +18,13 @@ public:
     ElectricRail2Point(const char* pName);
 
     virtual ~ElectricRail2Point();
-    virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual void init(const JMapInfoIter&);
     virtual void makeActorAppeared();
     virtual void makeActorDead();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual void draw() const;
 
+    virtual void initShadow(const JMapInfoIter&);
     void exeMove();
     // unnamed fn_8029B490 in the target: keeps the two side vectors perpendicular to the rail direction
     void updateSideVectors(const TVec3f& rDir);
@@ -36,7 +38,7 @@ public:
     /* 0xA4 */ s32 mDivCount;
     /* 0xA8 */ TVec3f mSideA;
     /* 0xB4 */ TVec3f mSideB;
-    /* 0xC0 */ ElectricRail2PointElem* mElems;
+    /* 0xC0 */ ElectricRailMovingPoint* mElems;
     /* 0xC4 */ s32 mElemCount;
 };
 

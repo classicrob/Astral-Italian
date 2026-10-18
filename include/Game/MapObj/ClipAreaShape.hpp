@@ -44,6 +44,8 @@ public:
 
     virtual bool isInArea(const TVec3f&) const;
 
+    virtual void calcVolumeMatrix(TPos3f*, const TPos3f&, const TVec3f&) const;
+
     /* 0x08 */ f32 _8;
     /* 0x0C */ f32 _C;
     /* 0x10 */ s32 _10;

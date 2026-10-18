@@ -17,16 +17,7 @@ class Yoshi;
 class WaterInfo;
 class XanimeResourceTable;
 class BreakModel;
-class YoshiAnimationModelCtrl {
-public:
-    YoshiAnimationModelCtrl(Yoshi*, XanimePlayer*, const char*);
-    virtual ~YoshiAnimationModelCtrl();
-    virtual void calcAnim();
-    virtual void appear();
-    virtual void kill();
-    void fn_8040B6D0(const char*);
-    u8 _4[0x28];
-};
+#include "Game/Player/YoshiAnimationModelCtrl.hpp"
 #include "Game/Player/YoshiFruitCtrl.hpp"
 
 #include "Game/Player/YoshiSilhouette.hpp"
@@ -235,8 +226,12 @@ public:
     void fn_8040EE70(const char*);
     void fn_8040ED90(const char*);
     void fn_8040EDE0(const char*);
+    f32 fn_8040F180() const;
+    void fn_8040F3C0();
+    void fn_804107D0() NO_INLINE;
+    bool fn_80411860() const;
     void fn_8040F030();
-    void fn_8040F050();
+    void fn_8040F050() NO_INLINE;
     void fn_8040F080();
     void fn_8040F020();
     void fn_8040F0A0();
@@ -244,7 +239,7 @@ public:
     void fn_8040F0D0();
     void fn_8040F110();
     void fn_8040F310();
-    void fn_8040F230(const JMapInfoIter&);
+    bool fn_8040F230(const JMapInfoIter&);
     MtxPtr fn_8040F300();
     void fn_8040EF40();
     void fn_8040EFB0();
@@ -354,3 +349,5 @@ namespace YoshiParam {
     f32 fn_8041BDD0();
     f32 fn_8041BDE0();
 };  // namespace YoshiParam
+
+void fn_8040BD00(TPos3f*, const TVec3f&, f32, f32);

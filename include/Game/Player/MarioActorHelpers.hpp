@@ -7,11 +7,78 @@ class HashSortTable;
 class LiveActor;
 class MarioActor;
 class MatrixValueGetter;
-class MarioActorCondition;
+class HitSensor;
+
+class MarioActorCondition {
+public:
+    MarioActorCondition(MarioActor* actor) : mActor(actor), mSensor(nullptr) {}
+    virtual bool canGet();
+    virtual void execute();
+    virtual bool result();
+
+    MarioActor* mActor;
+    HitSensor* mSensor;
+};
+
+class MarioActorCondition1 : public MarioActorCondition {
+public:
+    MarioActorCondition1(MarioActor*) NO_INLINE;
+    virtual bool canGet();
+    virtual bool result();
+};
+
+class MarioActorCondition2 : public MarioActorCondition {
+public:
+    MarioActorCondition2(MarioActor*) NO_INLINE;
+    virtual bool canGet();
+    virtual void execute();
+    virtual bool result();
+};
+
+class MarioActorCondition3 : public MarioActorCondition {
+public:
+    MarioActorCondition3(MarioActor*) NO_INLINE;
+    virtual bool canGet();
+    virtual void execute();
+    virtual bool result();
+};
+
+class MarioActorCondition4 : public MarioActorCondition {
+public:
+    MarioActorCondition4(MarioActor*) NO_INLINE;
+    virtual bool canGet();
+    virtual void execute();
+    virtual bool result();
+};
+
+class MarioActorCondition5 : public MarioActorCondition {
+public:
+    MarioActorCondition5(MarioActor*) NO_INLINE;
+    virtual bool canGet();
+    virtual bool result();
+};
+
+class MarioActorCondition6 : public MarioActorCondition {
+public:
+    MarioActorCondition6(MarioActor*) NO_INLINE;
+    virtual bool canGet();
+    virtual bool result();
+};
+
+class MarioActorCondition7 : public MarioActorCondition {
+public:
+    MarioActorCondition7(MarioActor*) NO_INLINE;
+    virtual bool canGet();
+    virtual void execute();
+    virtual bool result();
+};
 
 class MarioActorConditionGroup {
 public:
     MarioActorConditionGroup(MarioActor*);
+    bool tryGetItem(HitSensor*);
+    MarioActorCondition* getCondition(HitSensor*);
+
     MarioActor* mActor;
     MarioActorCondition* mConditions[8];
 };

@@ -697,7 +697,7 @@ void MarioFoo::draw3D() const {
         const Color8 color1(255, 64, 64, 255);
         GXSetTevColor(GX_TEVREG1, color1);
 
-        TVec3f center = mActor->_2A0 + getPlayer()->getUpVec() * 50.0f;
+        TVec3f center = mActor->_240 + getPlayer()->getUpVec() * 50.0f;
         TVec3f back = -getPlayer()->getUpVec();
         TVec3f side(getPlayer()->mSideVec);
         TVec3f up;

@@ -1653,147 +1653,24 @@ void Mario::initAfterConst() {
 
 
 void Mario::writeBackPhyisicalVector() {
-    f32 slowdown;
-    s32 planeCount;
-    u32 i;
-    if (_1C._10) {
-        TVec3f stack_104(mPosHolder->mPos);
-        addTrans(mVelocity, nullptr);
-        if (calcDistToCeil(false) < 200.0f) {
-            mVelocity.zero();
-            stopWalk();
-        }
-
+    fn_803880D0();
+    fn_80388150();
+    if ((_10_LOW_WORD >> 12) & 1) {
+        TVec3f pos;
+        MR::fn_80051760(&pos, mPosHolder->mPos, _6F4, _700, _718);
+        const TVec3f& oldPos = mPosHolder->mPos;
+        TVec3f delta(pos);
+        delta.sub(oldPos);
+        mPosHolder->fn_80406010(delta);
     }
-
-    if (mMovementStates._37 || _10._15) {
-        TVec3f stack_f8(mPosHolder->mPos - _688);
-        MR::vecKillElement(stack_f8, _6A0, &stack_f8);
-        MR::vecKillElement(mVelocity, _6A0, &mVelocity);
-        TVec3f stack_ec;
-        f32 f29 = MR::vecKillElement(_694 - _688, _6A0, &stack_ec);
-        if (f29 > 1.0f) {
-            f29 = 1.0f;
-        } else if (f29 < -1.0f) {
-            f29 = -1.0f;
-        }
-
-        stack_ec = _6A0;
-        stack_ec.setLength(f29);
-        _688 += stack_ec;
-    }
-
-    fixPositionInTower();
     if (mMovementStates.jumping) {
-        bool rising = false;
-        if (isRising()) {
-            rising = true;
-        }
-
-        if (mActor->_334 != 0) {
-            _578 = 0;
-        }
-
-        if (!mMovementStates._22) {
-            for (i = 0; i < _578; i++) {
-                TVec3f stack_e0;
-                if (!(MR::vecKillElement(mVelocity, *_57C[i]->getNormal(0), &stack_e0) < 0.0f)) {
-                    continue;
-                }
-
-                mVelocity = stack_e0;
-
-                if (!_1C._D) {
-                    TVec3f stack_d4;
-                    f32 f28 = MR::vecKillElement(mJumpVec, *_57C[i]->getNormal(0), &stack_d4);
-                    if (f28 <= 0.0f) {
-                        mJumpVec = stack_d4 + *_57C[i]->getNormal(0) * f28 * 0.5f;
-                    }
-                } else if (MR::diffAngleAbs(*getGravityVec(), mJumpVec) < MR::toRadian(6.0f)) {
-                    TVec3f stack_c8;
-                    MR::vecKillElement(*_57C[i]->getNormal(0), *getGravityVec(), &stack_c8);
-                    f32 _2D4Mag = mJumpVec.length();
-                    MR::normalizeOrZero(&stack_c8);
-                    mJumpVec += stack_c8;
-                    mJumpVec.setLength(_2D4Mag);
-                }
-
-                if (rising) {
-                    if (_57C[i]->getNormal(0)->dot(*getGravityVec()) > 0.707f) {
-                        mActor->sendMsgUpperPunch(_57C[i]->mSensor);
-                    }
-                }
-
-                if (isPlayerModeBee() && mActor->mBeeWallWalk == 0) {
-                    const char* wallCodeString = MR::getWallCodeString(_57C[i]);
-                    if (wallCodeString != nullptr && strcmp(wallCodeString, "Fur") == 0) {
-                        Triangle stack_110 = Triangle();
-                        MarioActor* pActor = mActor;
-                        TVec3f stack_bc;
-                        if (MR::getFirstPolyOnLineToMap(&stack_bc, &stack_110, pActor->_2A0, -(*_57C[i]->getNormal(0)) * 300.0f)) {
-                            wallCodeString = MR::getWallCodeString(&stack_110);
-                            if (wallCodeString != nullptr && strcmp(wallCodeString, "Fur") == 0) {
-                                MarioActor* pActor2 = getActor();
-                                pActor2->entryWallWalkMode(stack_bc, *stack_110.getNormal(0));
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        fn_803882A0();
     } else if (isSwimming()) {
-        if (!mMovementStates._22) {
-            for (u32 j = 0; j < _578; j++) {
-                TVec3f stack_b0;
-                if (MR::vecKillElement(mVelocity, *_57C[j]->getNormal(0), &stack_b0) < 0.0f) {
-                    mVelocity = stack_b0;
-                    mSwim->fn_803F7C20(_57C[j]->getNormal(0));
-                }
-            }
-        }
-    } else if (!_1C._C && mActor->_288.dot(_368) < 0.707f && !MR::isNearZero(mActor->_288, 1.0f)) {
-        TVec3f stack_a4(mActor->_288);
-        MR::normalizeOrZero(&stack_a4);
-        TVec3f stack_98;
-        f32 f2 = MR::vecKillElement(mVelocity, stack_a4, &stack_98);
-        if (f2 < 0.0f) {
-            mVelocity = stack_98;
-            MR::normalizeOrZero(&stack_a4);
-            slowdown = 1.0f - MR::clamp((-stack_a4.dot(mFrontVec) - 0.3f) * 1.4285715f, 0.0f, 1.0f);
-            if (!mMovementStates._8 && slowdown < 0.1f) {
-                if (mMovementStates._1A) {
-                    mVelocity += getSideWallNorm() * -f2;
-                } else {
-                    planeCount = mActor->mBinder->mPlaneNum;
-                    if (planeCount != 0) {
-                        f32 f28 = 0.0f;
-                        u32 index = 0;
-                        i = 0;
-                        for (; i < planeCount; i++) {
-                            f32 dot = mActor->mBinder->getPlane(i)->mParentTriangle.getNormal(0)->dot(mFrontVec);
-                            if (dot < f28) {
-                                index = i;
-                                f28 = dot;
-                            }
-                        }
-
-                        const TVec3f& hitPos = mActor->mBinder->getPlane(index)->_64;
-                        TVec3f stack_8c;
-                        MR::vecKillElement(mPosHolder->mPos - hitPos, *getGravityVec(), &stack_8c);
-                        MR::vecKillElement(stack_8c, stack_a4, &stack_8c);
-                        if (!MR::isNearZero(stack_8c)) {
-                            stack_8c.setLength(-f2);
-                            mVelocity += stack_8c;
-                        }
-                    }
-                }
-            }
-
-            mTargetWalkSpeedIndex = 0;
-            mWalkSpeed *= slowdown;
-        }
+        fn_803885F0();
+    } else {
+        fn_803886B0();
     }
-
+    mPosHolder->fn_80405EF0(getCurrentStatus());
     mActor->mVelocity = mVelocity;
     mActor->mPosition = mPosHolder->mPos;
 }
@@ -18101,7 +17978,7 @@ void Mario::doCubeWarp() {
         return;
     }
 
-    WarpCube* pWarpCube = static_cast< WarpCube* >(MR::getAreaObj("WarpCube", mActor->_2A0));
+    WarpCube* pWarpCube = static_cast< WarpCube* >(MR::getAreaObj("WarpCube", mActor->_240));
     WarpCubeMgr* pWarpCubeMgr = static_cast< WarpCubeMgr* >(MR::getAreaObjManager("WarpCube"));
 
     if (pWarpCube != nullptr) {

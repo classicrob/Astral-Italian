@@ -246,7 +246,7 @@ bool Mario::fn_803972D0(const TVec3f* arg1) {
 }
 
 void Mario::fn_8039CFD0() {
-    FLD<TVec3f>(this, 0x4B0) = this->mPosHolder->mPos;
+    this->_4B0 = this->mPosHolder->mPos;
 }
 
 void Mario::fn_803A1E40() {

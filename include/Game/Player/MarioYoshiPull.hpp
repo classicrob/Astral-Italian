@@ -15,4 +15,7 @@ public:
 
     // SMG2-only (original names unknown; named by address)
     void fn_804090C0();
+    bool exePull();
+    s32 mPhase;
+    s32 mTimer;
 };

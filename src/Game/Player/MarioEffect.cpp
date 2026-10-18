@@ -1226,7 +1226,7 @@ void MarioEffect::playSwingEffect() {
     }
 
     if (!getPlayer()->mMovementStates._1) {
-        if (!(getPlayer()->mVerticalSpeed < 0.0f)) {
+        if (!(getPlayer()->mVerticalSpeed < 50.0f)) {
             return;
         }
     }

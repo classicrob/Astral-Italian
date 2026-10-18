@@ -6112,7 +6112,8 @@ Game/Player/CloudMarioHat.cpp:
 	.text       start:0x803D9A80 end:0x803DAA10
 
 Game/Player/MarioActorConditionGroup.cpp:
-	.text       start:0x803DAF60 end:0x803DB270
+	.text       start:0x803DAC50 end:0x803DB270
+	.data       start:0x806C76C0 end:0x806C7780
 
 Game/Player/MarioActionTable.cpp:
 	.text       start:0x803DB270 end:0x803DB650
@@ -6333,6 +6334,8 @@ Game/Player/MarioWarp.cpp:
 
 Game/Player/MarioYoshiPull.cpp:
 	.text       start:0x80408F20 end:0x804092C0
+	.data       start:0x806DF038 end:0x806DF0B8
+	.sdata2     start:0x807E0538 end:0x807E0540
 
 Game/Player/MatrixValueGetter.cpp:
 	.text       start:0x804092C0 end:0x80409470
@@ -6379,7 +6382,10 @@ Game/Player/EventRaceDown.cpp:
 	.data       start:0x806DF768 end:0x806DF8A0
 
 Game/Player/YoshiAnimationModelCtrl.cpp:
-	.text       start:0x8040B440 end:0x8040B760
+	.text       start:0x8040B250 end:0x8040B760
+	.data       start:0x806DF8A0 end:0x806DF918
+	.sdata      start:0x807D00A8 end:0x807D00BC
+	.sdata2     start:0x807E0548 end:0x807E0558
 
 Game/Player/TornadoMario.cpp:
 	.text       start:0x8040B8C0 end:0x8040BD00
@@ -6389,7 +6395,8 @@ Game/Player/Yoshi.cpp:
 	.text       start:0x8040BF30 end:0x80413C40
 	.ctors      start:0x806447E8 end:0x806447EC
 	.data       start:0x806EA4A4 end:0x806EA718
-	.sbss       start:0x807D4EB8 end:0x807D4F30
+	.bss        start:0x8072B448 end:0x8072B480
+	.sbss       start:0x807D4EB8 end:0x807D4F38
 
 Game/Player/YoshiArrow.cpp:
 	.text       start:0x80413C40 end:0x80414290
@@ -6408,9 +6415,12 @@ Game/Player/YoshiFruitCtrl.cpp:
 
 Game/Player/YoshiDashStep.cpp:
 	.text       start:0x80415A10 end:0x80415E10
+	.data       start:0x806EAA20 end:0x806EAAC8
 
 Game/Player/MarioYoshiDash.cpp:
 	.text       start:0x80415E10 end:0x80415FA0
+	.data       start:0x806EAAC8 end:0x806EAB10
+	.sdata2     start:0x807E06F8 end:0x807E0700
 
 Game/Player/YoshiEgg.cpp:
 	.text       start:0x80415FA0 end:0x804178C0
@@ -6441,6 +6451,8 @@ Game/Player/YoshiHeadCtrl.cpp:
 
 Game/Player/MarioYoshiShot.cpp:
 	.text       start:0x8041AD80 end:0x8041B120
+	.data       start:0x806EB018 end:0x806EB098
+	.sdata2     start:0x807E0758 end:0x807E0768
 
 Game/Player/YoshiSilhouette.cpp:
 	.text       start:0x8041B120 end:0x8041B570

@@ -9,14 +9,7 @@ class YoshiTongueTarget;
 class YoshiArrow;
 class YoshiFruitCounter;
 class YoshiEgg;
-class YoshiHistory15C50 {
-public:
-    YoshiHistory15C50();
-    void fn_80415CF0(MtxPtr);
-    void fn_80415DA0();
-    void* mEntries;
-    u32 mIndex;
-};
+#include "Game/Player/YoshiDashStep.hpp"
 class YoshiHolder {
 public:
     YoshiHolder(Mario*);

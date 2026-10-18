@@ -71,6 +71,7 @@ public:
     /* 0x2C */ bool mLocked;
 
     // SMG2-only (original names unknown; named by address)
+    void fn_80405EF0(s32);
     void fn_80405F90(const TVec3f&);  // set(pos) unless locked
     void fn_80406010(const TVec3f&);  // pos += v unless locked
     void fn_80406040();               // push pos (pos copied to +0x20, depth++)

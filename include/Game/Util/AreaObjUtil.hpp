@@ -62,3 +62,7 @@ namespace MR {
     bool getWaterAreaObj(WaterInfo*, const TVec3f&);
     bool getWaterAreaInfo(WaterInfo* pInfo, const TVec3f& rPos, const TVec3f& rGravity, bool skipConnectedArea);
 };  // namespace MR
+
+namespace MR {
+    bool isInTowerModeCylinder(const TVec3f&, TVec3f*, TVec3f*, f32*);
+}

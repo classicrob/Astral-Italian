@@ -408,11 +408,11 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName), _1B0(0xFFFFFFFF) {
     _F24 = 0;
     _F28 = 0;
 
-    PSMTXIdentity((MtxPtr)&_C2C);
-    PSMTXIdentity((MtxPtr)&_C5C);
-    PSMTXIdentity((MtxPtr)&_D1C);
-    PSMTXIdentity((MtxPtr)&_D4C);
-    PSMTXIdentity((MtxPtr)&_D7C);
+    PSMTXIdentity((MtxPtr)&mHandLMatrix);
+    PSMTXIdentity((MtxPtr)&mHandRMatrix);
+    PSMTXIdentity((MtxPtr)&mFootRMatrix);
+    PSMTXIdentity((MtxPtr)&mSpine1Matrix);
+    PSMTXIdentity((MtxPtr)&mCapMatrix);
 
     _1B4 = 0;
     _1C3 = false;
@@ -1495,18 +1495,18 @@ bool MarioActor::checkClapCatchStart() {
 
 void MarioActor::updateRealMtx() {
     updateBaseScaleMtx();
-    getRealMtx(_C2C.toMtxPtr(), "HandL");
-    getRealMtx(_C5C.toMtxPtr(), "HandR");
-    PSMTXCopy(MR::getJointMtx(this, "HandL"), _C8C.toMtxPtr());
-    PSMTXCopy(MR::getJointMtx(this, "HandR"), _CBC.toMtxPtr());
-    PSMTXCopy(MR::getJointMtx(this, "Face0"), _CEC.toMtxPtr());
-    getRealMtx(_D1C.toMtxPtr(), "FootR");
-    getRealMtx(_D4C.toMtxPtr(), "Spine1");
-    getRealMtx(_D7C.toMtxPtr(), "CapPosition");
-    getRealMtx(_DAC.toMtxPtr(), "Hip");
-    getRealMtx(_DDC.toMtxPtr(), "Spine2");
+    getRealMtx(mHandLMatrix.toMtxPtr(), "HandL");
+    getRealMtx(mHandRMatrix.toMtxPtr(), "HandR");
+    PSMTXCopy(MR::getJointMtx(this, "HandL"), mHandLJointMatrix.toMtxPtr());
+    PSMTXCopy(MR::getJointMtx(this, "HandR"), mHandRJointMatrix.toMtxPtr());
+    PSMTXCopy(MR::getJointMtx(this, "Face0"), mFaceJointMatrix.toMtxPtr());
+    getRealMtx(mFootRMatrix.toMtxPtr(), "FootR");
+    getRealMtx(mSpine1Matrix.toMtxPtr(), "Spine1");
+    getRealMtx(mCapMatrix.toMtxPtr(), "CapPosition");
+    getRealMtx(mHipMatrix.toMtxPtr(), "Hip");
+    getRealMtx(mSpine2Matrix.toMtxPtr(), "Spine2");
     TVec3f stack_50;
-    MR::extractMtxTrans(_DDC.toMtxPtr(), &stack_50);
+    MR::extractMtxTrans(mSpine2Matrix.toMtxPtr(), &stack_50);
     if (MR::isNan(stack_50)) {
         MR::getJointMtx(this, "Spine2");
         getBaseMtx();
@@ -1522,8 +1522,8 @@ void MarioActor::updateRealMtx() {
     }
 
     TVec3f stack_44, stack_38;
-    MR::extractMtxTrans(_D7C.toMtxPtr(), &stack_44);
-    MR::extractMtxTrans(_DAC.toMtxPtr(), &stack_38);
+    MR::extractMtxTrans(mCapMatrix.toMtxPtr(), &stack_44);
+    MR::extractMtxTrans(mHipMatrix.toMtxPtr(), &stack_38);
     _4B8 = stack_44 - stack_38;
     _4C4 = stack_38 - stack_44;
     if (MR::normalizeOrZero(&_4B8)) {
@@ -4031,7 +4031,7 @@ void MarioActor::initBeeMario() {
     _9E8 = new MarioParts(this, "B-WING", "BeeMarioWing", false, nullptr, nullptr);
     _9E8->initWithoutIter();
 
-    _9E8->initFixedPosition(_DDC.toMtxPtr(), TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
+    _9E8->initFixedPosition(mSpine2Matrix.toMtxPtr(), TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
     _9E8->makeActorDead();
 
     _9F0 = 0;
@@ -4250,26 +4250,26 @@ void MarioActor::calcViewAndEntry() {
     calcViewSearchLight();
 
     if (_A40 != nullptr) {
-        _A40->updateMtx(_C8C.toMtxPtr());
+        _A40->updateMtx(mHandLJointMatrix.toMtxPtr());
     }
 
     if (_A44 != nullptr) {
-        _A44->updateMtx(_CBC.toMtxPtr());
+        _A44->updateMtx(mHandRJointMatrix.toMtxPtr());
     }
 
-    _A48->updateMtx(_C8C.toMtxPtr());
+    _A48->updateMtx(mHandLJointMatrix.toMtxPtr());
 
-    _A4C->updateMtx(_CBC.toMtxPtr());
+    _A4C->updateMtx(mHandRJointMatrix.toMtxPtr());
 
     if (_A50 != nullptr) {
-        _A50->updateMtx(_C8C.toMtxPtr());
+        _A50->updateMtx(mHandLJointMatrix.toMtxPtr());
     }
 
     if (_A54 != nullptr) {
-        _A54->updateMtx(_CBC.toMtxPtr());
+        _A54->updateMtx(mHandRJointMatrix.toMtxPtr());
     }
 
-    _A5C->updateMtx(_CEC.toMtxPtr());
+    _A5C->updateMtx(mFaceJointMatrix.toMtxPtr());
 
     updateDarkMask(0x96);
     updateDarkMask(0x96);
@@ -4529,29 +4529,16 @@ void MarioActor::updateFace() {
 
 
 void MarioActor::initBlur() {
-    _B14 = 0;
-    for (u32 i = 0; i < 6; i++) {
-        if (mModels[i] != nullptr) {
-            const u16 jointNum = mModels[i]->mModelData->getDrawMtxNum();
-            if (jointNum > _B14) {
-                _B14 = jointNum;
-            }
+    mBlurJointCount = mAllModel->fn_803E7B30();
+    for (u32 i = 0; i < 2; ++i) {
+        for (u32 j = 0; j < 8; ++j) {
+            mBlurMatrices[i][j] = new (0x20) Mtx[mBlurJointCount];
+            for (u32 k = 0; k < mBlurJointCount; ++k) PSMTXIdentity(mBlurMatrices[i][j][k]);
         }
     }
-
-    for (u32 i = 0; i < 2; i++) {
-        for (u32 j = 0; j < 8; j++) {
-            mBlurMatrices[i][j] = new (0x20) Mtx[_B14];
-
-            for (u32 k = 0; k < _B14; k++) {
-                PSMTXIdentity(mBlurMatrices[i][j][k]);
-            }
-        }
-    }
-
-    _A6E = false;
-    _B12 = 0;
-    _B10 = 0;
+    _A6E = 0;
+    mBlurHistoryIndex = 0;
+    mBlurBufferIndex = 0;
 }
 
 
@@ -4762,7 +4749,7 @@ void MarioActor::drawModelBlur() const {
         return;
     }
 
-    J3DModelX* model = getJ3DModel();
+    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
     if (!model->_1E4) {
         model->_1E5 = true;
         return;
@@ -4779,18 +4766,18 @@ void MarioActor::drawModelBlur() const {
     PSMTXInverse(const_cast< TMtx34f& >(_AB0).toMtxPtr(), inv);
     MR::multMtx(inv, inv, MR::getCameraViewMtx());
     for (u32 i = 1; i < 8; i++) {
-        const u32 idx = static_cast< u32 >(i + _B12) & 7;
-        model->setDrawViewBuffer(mBlurMatrices[_B10][idx][0]);
+        const u32 idx = static_cast< u32 >(i + mBlurHistoryIndex) & 7;
+        model->setDrawViewBuffer(mBlurMatrices[mBlurBufferIndex][idx][0]);
 
-        if (!_1C1) {
-            for (u32 joint = 0; joint < getModelData()->getDrawMtxNum(); joint++) {
-                MR::multMtx(mBlurMatrices[_B10][idx][joint], mBlurMatrices[1 - _B10][idx][joint], inv);
+        if (!_A0C) {
+            for (u32 joint = 0; joint < mAllModel->getJ3DModel()->mModelData->getDrawMtxNum(); joint++) {
+                MR::multMtx(mBlurMatrices[mBlurBufferIndex][idx][joint], mBlurMatrices[1 - mBlurBufferIndex][idx][joint], inv);
             }
         }
 
-        DCStoreRange(mBlurMatrices[_B10][idx], getModelData()->getDrawMtxNum() * sizeof(Mtx));
+        DCStoreRange(mBlurMatrices[mBlurBufferIndex][idx], mAllModel->getJ3DModel()->mModelData->getDrawMtxNum() * sizeof(Mtx));
 
-        _94[idx + ((i - 1) << 3)]->addDL(model);
+        mBlurDisplayLists[idx + ((i - 1) << 3)]->addDL(model);
         model->directDraw(nullptr);
     }
 
@@ -6360,7 +6347,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
             return;
         }
 
-        if (tryGetItem(pSensor)) {
+        if (mConditionGroup->tryGetItem(pSensor)) {
             return;
         }
 
@@ -6385,7 +6372,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
                     return;
                 }
 
-                if (tryGetItem(pSensor)) {
+                if (mConditionGroup->tryGetItem(pSensor)) {
                     return;
                 }
 
@@ -6422,7 +6409,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
                     return;
                 }
 
-                if (tryGetItem(pSensor)) {
+                if (mConditionGroup->tryGetItem(pSensor)) {
                     return;
                 }
 
@@ -6450,7 +6437,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
         f32 sensorRadius = pSensor->getRadius();
         TVec3f offset = pSensor->mPosition - _2A0;
         f32 depth = MR::vecKillElement(offset, mCamDirZ, &offset);
-        if (depth < 250.0f && depth > -250.0f && cylinderPushCheck(offset, sensorRadius, width, height) && tryGetItem(pSensor)) {
+        if (depth < 250.0f && depth > -250.0f && cylinderPushCheck(offset, sensorRadius, width, height) && mConditionGroup->tryGetItem(pSensor)) {
             return;
         }
     }
@@ -6504,7 +6491,7 @@ void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
         sensorRadius = pReceiver->mRadius;
 
         if (cylinderPushCheck(pReceiver->mPosition - _2A0, sensorRadius, width, height)) {
-            if (tryGetItem(pReceiver)) {
+            if (mConditionGroup->tryGetItem(pReceiver)) {
                 return;
             }
 
@@ -6535,7 +6522,7 @@ void MarioActor::attackOrPushSensorInDamage(HitSensor* pReceiver, f32 radius) {
     f32 sensorRadius = pReceiver->mRadius;
     TVec3f offset = pReceiver->mPosition - _2A0;
     f32 depth = MR::vecKillElement(offset, mCamDirZ, &offset);
-    if (depth < 250.0f && depth > -250.0f && cylinderPushCheck(offset, sensorRadius, width, height) && tryGetItem(pReceiver)) {
+    if (depth < 250.0f && depth > -250.0f && cylinderPushCheck(offset, sensorRadius, width, height) && mConditionGroup->tryGetItem(pReceiver)) {
         return;
     }
 }
@@ -6547,7 +6534,7 @@ void MarioActor::attackOrPushSensorInRush(HitSensor* pSensor, f32 radius) {
         f32 width = 20.0f + _4B0;
         f32 height = _4B4;
         if (cylinderPushCheck(pSensor->mPosition - _2A0, sensorRadius, width, height)) {
-            if (tryGetItem(pSensor)) {
+            if (mConditionGroup->tryGetItem(pSensor)) {
                 return;
             }
 
@@ -6657,13 +6644,13 @@ bool MarioActor::tryTrampleAttack(HitSensor* pSensor) {
     if (isUnder && isHorizontalCheck) {
         _FCD = true;
 
-        bool isReceiveMessage = pSensor->receiveMessage(ACTMES_PLAYER_TRAMPLE, getSensor("body"));
+        bool isReceiveMessage = pSensor->receiveMessage(ACTMES_PLAYER_TRAMPLE, getSensor("Body"));
 
         _FCD = false;
 
         if (isReceiveMessage) {
             doTrampleJump(pSensor);
-            tryGetItem(pSensor);
+            mConditionGroup->tryGetItem(pSensor);
         }
 
         return isReceiveMessage;
@@ -6699,156 +6686,7 @@ void MarioActor::tryCounterJetAttack(HitSensor* pReceiver) {
 }
 
 
-bool MarioActor::tryGetItem(HitSensor* pSensor) {
-    if (_934) {
-        switch (pSensor->mType) {
-        case ATYPE_JET_TURTLE:
-        case ATYPE_JET_TURTLE_SLOW:
-        case ATYPE_BOMBHEI:
-        case ATYPE_NOKONOKO:
-            return false;
-        }
-    }
 
-    if (!isEnableNerveChange()) {
-        return false;
-    }
-
-    if (!mHealth) {
-        switch (pSensor->mType) {
-        case ATYPE_JET_TURTLE:
-        case ATYPE_JET_TURTLE_SLOW:
-        case ATYPE_BOMBHEI:
-        case ATYPE_NOKONOKO:
-        case ATYPE_MORPH_ITEM:
-            return false;
-        }
-    }
-
-    switch (pSensor->mType) {
-    case ATYPE_SWITCH:
-        break;
-    case ATYPE_NOKONOKO:
-        if (isDamaging()) {
-            return false;
-        }
-
-        if (!mActionTable1080->isActionOk("カメ持ち")) {
-            return false;
-        }
-
-        if (_468 != 0) {
-            return false;
-        }
-
-        if (!pSensor->receiveMessage(ACTMES_ITEM_GET, getSensor("dummy"))) {
-            return false;
-        }
-
-        _38C = 2;
-        return false;
-    case ATYPE_JET_TURTLE:
-    case ATYPE_JET_TURTLE_SLOW:
-    case ATYPE_COINTHROW:
-    case ATYPE_BOMBHEI: {
-        if (_3AC) {
-            return false;
-        }
-
-        if (isDamaging()) {
-            return false;
-        }
-
-        if (!mActionTable1080->isActionOk("カメ持ち")) {
-            return false;
-        }
-
-        if (_468 != 0) {
-            return false;
-        }
-
-        bool moving = false;
-        TVec3f horizontal;
-        if (MR::vecKillElement(*getShadowPos() - pSensor->mPosition, getGravityVector(), &horizontal) > 100.0f) {
-            moving = true;
-        }
-
-        if (!MR::isNearZero(pSensor->mHost->mVelocity)) {
-            moving = true;
-        }
-
-        if (getMovementStates()._B) {
-            moving = false;
-        }
-
-        if (!moving && !mMario->isSwimming() && !mMario->getMovementStates()._1 && _424 == nullptr) {
-            if (getMovementStates()._B) {
-                return false;
-            }
-
-            doTrampleJump(pSensor);
-        }
-
-        break;
-    }
-
-    case ATYPE_MORPH_ITEM:
-        if (_3D8) {
-            return false;
-        }
-
-        if (mMario->mMorphResetTimer) {
-            return false;
-        }
-
-        break;
-    }
-
-    if (!pSensor->receiveMessage(ACTMES_ITEM_GET, getSensor("dummy"))) {
-        return false;
-    }
-
-    switch (pSensor->mType) {
-    case ATYPE_COIN:
-    case ATYPE_SWITCH:
-    case ATYPE_KINOKO_ONEUP:
-        break;
-    case ATYPE_JET_TURTLE:
-    case ATYPE_JET_TURTLE_SLOW:
-    case ATYPE_COINTHROW:
-    case ATYPE_BOMBHEI:
-        mMarioAnim->changePickupAnimation(pSensor);
-        if (!mMario->isSwimming()) {
-            if (getMovementStates()._1 && _B92 != -3) {
-                if (pSensor->mType == ATYPE_BOMBHEI) {
-                    _38C = 40;
-                } else {
-                    _38C = 25;
-                }
-            }
-
-            mVelocity.zero();
-            mMario->mWalkSpeed = 0.0f;
-            if (mMario->mMovementStates._1) {
-                mMario->stopJump();
-                mMario->mVerticalSpeed = 0.0f;
-            }
-        }
-
-        _424 = pSensor;
-        _480 = 1;
-        break;
-    case ATYPE_MORPH_ITEM:
-        if (_4A4 != nullptr) {
-            _4A4->mHost->kill();
-        }
-
-        _4A4 = pSensor;
-        break;
-    }
-
-    return true;
-}
 
 
 namespace {
@@ -9029,7 +8867,7 @@ void MarioActorSensor_FORCE_MATCH_SDATA2() {
 void MarioActor::setupSensors() {
     initHitSensor(4);
 
-    MR::addHitSensorCallback(this, "body", ATYPE_PLAYER, 32, 100.0f);
+    MR::addHitSensorCallback(this, "Body", ATYPE_PLAYER, 32, 100.0f);
     MR::addHitSensorCallback(this, "ex-eye", ATYPE_PUSH, 32, 100.0f);
     MR::addHitSensorCallback(this, "eye", ATYPE_EYE, 64, 2000.0f);
 
@@ -9933,7 +9771,7 @@ f32 MarioActor::calcCylinderToCenter(const AreaObj* pAreaObj, TVec3f* pVec) {
 
 
 void MarioActor::calcViewBlurModel() {
-    J3DModelX* pModel = getJ3DModel();
+    J3DModelX* pModel = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
     if (pModel->_1E5) {
         if (_A6E == 1) {
             _A6E = 2;
@@ -9950,7 +9788,7 @@ void MarioActor::calcViewBlurModel() {
         return;
     }
 
-    if (_1C1) {
+    if (_A0C) {
         return;
     }
 
@@ -9965,22 +9803,22 @@ void MarioActor::calcViewBlurModel() {
 
     if (_A6E == 2) {
         for (u32 i = 0; i < 8; i++) {
-            for (u32 j = 0; j < getModelData()->getDrawMtxNum(); j++) {
-                PSMTXCopy(pModel->getDrawMtx(j), _A70[i][j]);
-                PSMTXCopy(pModel->getDrawMtx(j), _A90[i][j]);
+            for (u32 j = 0; j < mAllModel->getJ3DModel()->mModelData->getDrawMtxNum(); j++) {
+                PSMTXCopy(pModel->getDrawMtx(j), mBlurMatrices[0][i][j]);
+                PSMTXCopy(pModel->getDrawMtx(j), mBlurMatrices[1][i][j]);
             }
         }
 
-        _B12 = 0;
+        mBlurHistoryIndex = 0;
         _A6E = 1;
     } else if (_37C % 3 == 0) {
-        _B12 = (_B12 + 1) & 7;
-        for (u32 j = 0; j < getModelData()->getDrawMtxNum(); j++) {
-            PSMTXCopy(pModel->getDrawMtx(j), mBlurMatrices[1 - _B10][_B12][j]);
+        mBlurHistoryIndex = (mBlurHistoryIndex + 1) & 7;
+        for (u32 j = 0; j < mAllModel->getJ3DModel()->mModelData->getDrawMtxNum(); j++) {
+            PSMTXCopy(pModel->getDrawMtx(j), mBlurMatrices[1 - mBlurBufferIndex][mBlurHistoryIndex][j]);
         }
     }
 
-    _B10 = 1 - _B10;
+    mBlurBufferIndex = 1 - mBlurBufferIndex;
     pModel->_1E4 = 1;
 }
 
@@ -10414,7 +10252,7 @@ void MarioActor::createRainbowDL() {
 
     for (u32 alpha = 0; alpha < 8; alpha++) {
         for (u32 index = 0; index < 8; index++) {
-            _94[alpha * 8 + index] = new DLchanger(1, 32);
+            mBlurDisplayLists[alpha * 8 + index] = new DLchanger(1, 32);
             GDInitGDLObj(&displayList, buffer, sizeof(buffer));
             __GDCurrentDL = &displayList;
             GXColor color = {0, 0, 0, 0};
@@ -10442,7 +10280,7 @@ void MarioActor::createRainbowDL() {
             GDPadCurr32();
             u32 length = displayList.ptr - displayList.start;
             u32 size = (length + 31) & ~31;
-            DLchanger* changer = _94[alpha * 8 + index];
+            DLchanger* changer = mBlurDisplayLists[alpha * 8 + index];
             holder = &changer->mBuffers[changer->mCurrentBuffer];
             holder->mSize = length;
             MR::copyMemory(holder->mDL, buffer, size);
@@ -11194,7 +11032,7 @@ void MarioActor::flushCoinPull() {
         if (MR::isDead(_4D0[idx]->mHost)) {
             _4D0[idx] = nullptr;
         } else {
-            tryGetItem(_4D0[idx]);
+            mConditionGroup->tryGetItem(_4D0[idx]);
             _4D0[idx] = nullptr;
         }
     }
@@ -11299,7 +11137,7 @@ bool MarioActor::releaseThrowMemoSensor() {
                 if (!_428[idx]->receiveMessage(ACTMES_THROW, _F24)) {
                     return false;
                 }
-            } else if (!_428[idx]->receiveMessage(ACTMES_THROW, getSensor("body"))) {
+            } else if (!_428[idx]->receiveMessage(ACTMES_THROW, getSensor("Body"))) {
                 return false;
             }
 
@@ -11446,7 +11284,7 @@ void MarioActor::tryTornadoPull(HitSensor* pSensor) {
     case ATYPE_JET_TURTLE_SLOW:
         if (mActionTable1080->isActionOk("カメ持ち") && pSensor->receiveMessage(ACTMES_IS_PULL_ENABLE, getSensor("body"))) {
             if ((pSensor->mPosition - mPosition).length() < 120.0f) {
-                tryGetItem(pSensor);
+                mConditionGroup->tryGetItem(pSensor);
                 return;
             }
 
@@ -12285,7 +12123,7 @@ void MarioActor::initEffect() {
 
     {
         const char* groupName = "雪煙レベル";
-        mEffectKeeper->registerEffect("CrestGetFlyC", _D1C.toMtxPtr(), groupName, nullptr);
+        mEffectKeeper->registerEffect("CrestGetFlyC", mFootRMatrix.toMtxPtr(), groupName, nullptr);
     }
 
     const TVec3f* scale = &mScale;
@@ -12319,7 +12157,7 @@ void MarioActor::initEffect() {
 
     {
         const char* groupName = "ラケット消去";
-        mEffectKeeper->registerEffect("TestMarioBaobabooPowerDown", _DAC.toMtxPtr(), groupName, nullptr);
+        mEffectKeeper->registerEffect("TestMarioBaobabooPowerDown", mHipMatrix.toMtxPtr(), groupName, nullptr);
     }
 
     {
@@ -12361,7 +12199,7 @@ void MarioActor::initEffect() {
     mEffectKeeper->finalizeSort();
 
     ModelObj* obj = new ModelObj("WaterColumn", "WaterColumn", nullptr, -2, -2, -2, false);
-    _BA8 = obj;
+    mWaterColumn = obj;
     obj->kill();
 }
 
@@ -12371,22 +12209,21 @@ void MarioActor::emitEffectWaterColumn(const TVec3f& rDir, const TVec3f& rTrans)
         return;
     }
 
-    _BA8->appear();
-    MR::startAction(_BA8, "WaterColumn");
-    MR::startBrk(_BA8, "WaterColumn");
+    mWaterColumn->appear();
+    MR::startAction(mWaterColumn, "Splash");
 
     TVec3f rot;
     TPos3f mtx;
     MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
     MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
 
-    _BA8->mPosition = rTrans;
-    _BA8->mRotation = rot;
-    _BA8->calcAnim();
+    mWaterColumn->mPosition = rTrans;
+    mWaterColumn->mRotation = rot;
+    mWaterColumn->calcAnim();
 
-    MR::emitEffect(_BA8, "WaterColumn");
+    MR::emitEffect(mWaterColumn, "Splash");
     Mario* player = mMario;
-    player->pushTask(&Mario::taskOnEffectCheck, 2);
+    player->fn_80395400(2);
 }
 
 
@@ -12700,8 +12537,8 @@ void MarioActor::updateEffect() {
 
 
 bool MarioActor::checkEffectWaterColumn() {
-    if (MR::isActionEnd(_BA8)) {
-        _BA8->kill();
+    if (MR::isActionEnd(mWaterColumn)) {
+        mWaterColumn->kill();
         return false;
     }
 

@@ -238,7 +238,7 @@ bool YoshiTongueAction::fn_8041FAA0() const {
 
 f32 YoshiTongueAction::fn_8041FB30() const { return 1.0f; }
 void YoshiTongueAction::fn_8041FB40(TVec3f* output) const { mTarget->fn_8041C240(output); }
-f32 YoshiTongueAction::fn_8041FB50() const { return 4.0f; }
+f32 YoshiTongueAction::fn_8041FB50() { return 4.0f; }
 
 bool YoshiTongueAction::fn_8041FB60() {
     if (_2C) _8D = true;

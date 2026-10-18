@@ -45,7 +45,7 @@ public:
     bool fn_8041FAA0() const;
     f32 fn_8041FB30() const;
     void fn_8041FB40(TVec3f*) const;
-    f32 fn_8041FB50() const;
+    static f32 fn_8041FB50();
     bool fn_8041FB60();
     bool fn_8041FBD0();
     bool fn_8041FC60();

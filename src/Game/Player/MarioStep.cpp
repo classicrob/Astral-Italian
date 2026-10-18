@@ -177,7 +177,7 @@ bool MarioStep::start() {
     _18 = getPlayer()->mWalkSpeed;
     MR::clamp(_18, 0.0f, 1.0f);
 
-    s32 v2 = 20 - static_cast< s32 >(16.0f * _18);
+    s32 v2 = 10 - static_cast< s32 >(6.0f * _18);
 
     if (v2 < 4) {
         v2 = 4;

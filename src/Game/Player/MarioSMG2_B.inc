@@ -615,7 +615,7 @@ void Mario::fn_803B0E60() {
     if (this->isPlayerModeYoshi() && YoshiParam::fn_8041BD60() != 0) {
         if (this->mActor->fn_803B9810()->fn_8041F910() != 0 && this->checkTrgA() && this->checkLvlZ()) {
             m->fn_803B0EF0();
-            FLD<u32>(m, 0xA91) = 1;
+            FLD<u8>(m, 0xA91) = 1;
         }
     }
 }

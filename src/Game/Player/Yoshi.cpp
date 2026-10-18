@@ -1,4 +1,6 @@
 #include "Game/Player/Yoshi.hpp"
+#include "Game/NPC/TalkMessageFunc.hpp"
+#include "Game/Util/TalkUtil.hpp"
 #include "Game/Map/WaterInfo.hpp"
 #include "Game/Effect/MultiEmitter.hpp"
 #include "Game/Util/MtxUtil.hpp"
@@ -2328,3 +2330,108 @@ bool Yoshi::fn_804113C0() {
     if (fn_80411410()) return true;
     return fn_80411550();
 }
+
+void Yoshi::fn_8040CCD0(const TVec3f& velocity) {
+    fn_80410350(velocity);fn_804107D0();*mJumpRequested=false;setNerve(&NrvYoshi::YoshiNrv80413920::sInstance);
+}
+void Yoshi::fn_8040CD20(const TVec3f& velocity) {
+    fn_80410350(velocity);TVec3f front;mBaseMtx.getZDir(front);
+    if(front.dot(velocity)>0.0f){fn_8040EDA0("空中後方ダメージ（Ｎｐｃ）");_130=true;}
+    else{fn_8040EDA0("空中前方ダメージ（Ｎｐｃ）");_130=false;}
+    fn_804107D0();setNerve(&NrvYoshi::YoshiNrv80413930::sInstance);
+}
+void Yoshi::fn_8040CDD0(const TVec3f& velocity) {
+    fn_80410350(velocity);TVec3f front;mBaseMtx.getZDir(front);
+    if(front.dot(velocity)>0.0f){fn_8040EDA0("後方ダメージ（Ｎｐｃ）");_130=true;}
+    else{fn_8040EDA0("前方ダメージ（Ｎｐｃ）");_130=false;}
+    fn_804107D0();setNerve(&NrvYoshi::YoshiNrv80413950::sInstance);
+}
+void Yoshi::fn_8040CE80(){fn_80410350(TVec3f(0.0f));MR::fn_80422520();setNerve(&NrvYoshi::YoshiNrv80413960::sInstance);}
+void Yoshi::fn_8040CED0(){fn_80410350(TVec3f(0.0f));MR::fn_80422550();setNerve(&NrvYoshi::YoshiNrv80413970::sInstance);}
+void Yoshi::fn_8040D6E0(){
+    if(MR::isFirstStep(this)){fn_8040EDA0("ターン（Ｎｐｃ）");mMovementVelocity.zero();}
+    f32 rate;if(getNerveStep()<30)rate=1.0f/(30-getNerveStep());else rate=1.0f;
+    fn_8040BD00(&mBaseMtx,mEscapeDirection->mDirection,rate,3.1415927410125732f);
+    if(!mAutoDisappearTask->mTimer){setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);return;}
+    if(_144){setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);return;}
+    if(MR::isGreaterEqualStep(this,30))setNerve(&NrvYoshi::YoshiNrv80413870::sInstance);
+}
+void Yoshi::fn_8040DDA0(){
+    if(MR::isFirstStep(this)){fn_8040EDA0("乗り捨て（Ｎｐｃ）");YoshiGroundChecker* ground=mGroundChecker;ground->mAirborneFrames=4;ground->mUpdated=false;}
+    if(fn_8040F590(nullptr))fn_80410280();
+}
+// NONMATCHING: String-pool address hoisting and register allocation differ.
+void Yoshi::fn_8040DE20(){
+    if(MR::isFirstStep(this)){YoshiGroundChecker* ground=mGroundChecker;ground->mAirborneFrames=4;ground->mUpdated=false;MR::startActionSound(this,"YoshiDamageRunAway",-1,-1,-1);}
+    if(fn_8040F590(nullptr)){if(_130)fn_8040EDA0("空中後方ダメージ落下（Ｎｐｃ）");else fn_8040EDA0("空中前方ダメージ落下（Ｎｐｃ）");}
+    if(mGroundChecker->isGrounded()){setNerve(&NrvYoshi::YoshiNrv80413940::sInstance);return;}
+    if(MR::isGreaterEqualStep(this,120))setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+}
+void Yoshi::fn_8040DF10(){
+    if(MR::isFirstStep(this)){if(_130)fn_8040EDA0("空中後方ダメージ着地（Ｎｐｃ）");else fn_8040EDA0("空中前方ダメージ着地（Ｎｐｃ）");}
+    if(mGroundChecker->isAirborne()){setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);return;}
+    if(fn_8040F590(nullptr))fn_80410280();
+}
+// NONMATCHING: GPR/FPR allocation and scalar-load scheduling differ.
+void Yoshi::fn_8040DFB0(){
+    if(MR::isFirstStep(this))MR::startActionSound(this,"YoshiDamageRunAway",-1,-1,-1);
+    if(mGroundChecker->isGrounded()){JMAVECScaleAdd(&mGravity,&mMovementVelocity,&mMovementVelocity,-mGravity.dot(mMovementVelocity));mMovementVelocity.x*=.9f;mMovementVelocity.y*=.9f;mMovementVelocity.z*=.9f;}
+    if(fn_8040F590(nullptr))fn_80410280();
+}
+void Yoshi::fn_8040E080(){
+    if(MR::isFirstStep(this)){_13C=0;MR::emitEffect(this,"FireDamage");}
+    if(MR::isStep(this,1))fn_8040EDA0("ファイア死亡（Ｎｐｃ）");
+    if(fn_8040F590(nullptr)&&MR::isGreaterEqualStep(this,1))++_13C;
+    if(_13C==2){MR::deleteEffect(this,"FireDamage");makeActorDead();}
+}
+void Yoshi::fn_8040E160(){
+    if(MR::isFirstStep(this)){mFruitCtrl->fn_80415810();_13C=0;}
+    if(MR::isStep(this,1))fn_8040EDA0("電気ダメージ死亡（Ｎｐｃ）");
+    if(fn_8040F590(nullptr)&&MR::isGreaterEqualStep(this,1))++_13C;
+    if(_13C==2){mFruitCtrl->fn_80415820();makeActorDead();}
+}
+void Yoshi::fn_8040E230(){
+    if(MR::isFirstStep(this)){mMovementVelocity.zero();fn_8040EDA0("消滅（Ｎｐｃ）");MR::fn_804224F0();MR::offBind(this);MR::startActionSound(this,"TurnToEgg",-1,-1,-1);}
+    if(fn_8040F590(nullptr))makeActorDead();
+}
+void Yoshi::fn_8040E2D0(){
+    if(MR::isFirstStep(this)){mMovementVelocity.zero();MR::hideModel(mTongue);}
+    if(!MR::isDemoActive()){setNerve(&NrvYoshi::YoshiNrv80413870::sInstance);MR::showModel(mTongue);MR::startBtk(this,"Normal");}
+}
+void Yoshi::fn_8040EF40(){mDashTimer=0;MR::tryForceDeleteEffect(this,"Dash");mFruitCtrl->_5=true;YoshiModelVisibility* visibility=mModelVisibility;visibility->mAppeared=false;visibility->mModelCtrl->kill();}
+void Yoshi::fn_8040EFB0(){mFruitCtrl->_5=false;YoshiModelVisibility* visibility=mModelVisibility;visibility->mAppeared=true;visibility->mModelCtrl->appear();MR::emitEffect(this,"BalloonEnd");}
+void Yoshi::fn_8040F020(){mFruitCtrl->fn_80415800();}
+void Yoshi::fn_8040F030(){mFruitCtrl->mLightFruitActive=true;MR::emitEffect(this,"Glow");}
+void Yoshi::fn_8040F050(){mFruitCtrl->mLightFruitActive=false;MR::deleteEffect(this,"Glow");}
+bool Yoshi::fn_8040F070()const{return mFruitCtrl->mLightFruitActive;}
+void Yoshi::fn_8040F080(){YoshiFruitCtrl* fruit=mFruitCtrl;fruit->_10=true;fruit->_11=false;}
+void Yoshi::fn_8040F0A0(){mFruitCtrl->_10=false;}
+void Yoshi::fn_8040F0B0(){YoshiFruitCtrl* fruit=mFruitCtrl;fruit->_11=true;fruit->_10=false;}
+void Yoshi::fn_8040F0D0(){mFruitCtrl->_11=false;}
+void Yoshi::fn_8040F110(){mDashTimer=480;MR::startCenterScreenBlur(35,15.0f,80,5,30);MR::startActionSound(this,"Dash",-1,-1,-1);}
+f32 Yoshi::fn_8040F180()const{return 1.8f;}
+bool Yoshi::fn_8040F230(const JMapInfoIter& iter){
+    if(MR::isDemoExist("ヨッシー出会いデモ")){
+        TalkMessageCtrl* talk=MR::createTalkCtrlDirectOnRootNodeAutomatic(this,iter,"DemoMeetYoshi",TVec3f(0.0f,0.0f,0.0f),nullptr);
+        MR::initDemoSheetTalkAnim(this,iter,"ヨッシー出会いデモ","DemoMeetYoshi",talk,TVec3f(0.0f,0.0f,0.0f),nullptr);
+        return MR::tryRegisterDemoActionNerve(this,&NrvYoshi::YoshiNrv80413850::sInstance,nullptr);
+    }
+    return false;
+}
+MtxPtr Yoshi::fn_8040F300(){return MR::getJointMtx(this,"Mouth");}
+void Yoshi::fn_8040F310(){MR::tryEmitEffect(this,"Get");}
+void Yoshi::fn_8040F3C0(){fn_8040EE70(nullptr);mDashTimer=0;MR::tryForceDeleteEffect(this,"Dash");if(mFruitCtrl->mLightFruitActive)MR::endYoshiLightFruit();fn_8040F050();mFruitCtrl->_10=false;mFruitCtrl->_11=false;}
+void Yoshi::fn_804107D0(){mRandomTurn->reset();*mJumpRequested=true;}
+bool Yoshi::fn_80411550(){
+    TVec3f center,axis;f32 radius;if(!MR::isInTowerModeCylinder(mPosition,&center,&axis,&radius))return false;
+    bool inAir=false;if(isNerve(&NrvYoshi::YoshiNrv804138A0::sInstance)||isNerve(&NrvYoshi::YoshiNrv804138B0::sInstance))inAir=true;
+    if(inAir)setNerve(&NrvYoshi::YoshiNrv80413990::sInstance);
+    TVec3f position;MR::fn_80051760(&position,mPosition,center,axis,radius);MR::setPosition(this,position);MR::fn_80051680(&_18C,mPosition,center,axis);return true;
+}
+void Yoshi::fn_804117F0(){if(mSupportSpinTimer>0){--mSupportSpinTimer;return;}if(fn_80411860()&&MR::isStarPointerPointing2PAttachTarget(this))setNerve(&NrvYoshi::YoshiNrv804139F0::sInstance);}
+namespace {template<class T> inline const Nerve* getYoshiNerve(){return &T::sInstance;}}
+bool Yoshi::fn_80411860()const{
+    static const Nerve* nerves[]={getYoshiNerve<NrvYoshi::YoshiNrv80413840>(),getYoshiNerve<NrvYoshi::YoshiNrv80413860>(),getYoshiNerve<NrvYoshi::YoshiNrv80413910>(),getYoshiNerve<NrvYoshi::YoshiNrv80413920>(),getYoshiNerve<NrvYoshi::YoshiNrv80413930>(),getYoshiNerve<NrvYoshi::YoshiNrv80413940>(),getYoshiNerve<NrvYoshi::YoshiNrv80413950>(),getYoshiNerve<NrvYoshi::YoshiNrv80413960>(),getYoshiNerve<NrvYoshi::YoshiNrv80413970>(),getYoshiNerve<NrvYoshi::YoshiNrv80413980>(),getYoshiNerve<NrvYoshi::YoshiNrv80413850>(),getYoshiNerve<NrvYoshi::YoshiNrv804139F0>(),getYoshiNerve<NrvYoshi::YoshiNrv80413A00>(),getYoshiNerve<NrvYoshi::YoshiNrv80413A10>()};
+    for(u32 i=0;i<14;++i)if(isNerve(nerves[i]))return false;return true;
+}
+void YoshiPlayerFacingCtrl::fn_80413110(){TVec3f position;mBaseMtx->getTrans(position);TVec3f direction(*MR::getPlayerPos());direction.sub(position);if(MR::normalizeOrZero(&direction))mBaseMtx->getZDir(direction);fn_8040BD00(mBaseMtx,direction,1.0f,0.05235987901687622f);if(fn_804131C0(direction))++mTurnTimer;else mTurnTimer=0;}

@@ -720,3 +720,8 @@ namespace MR {
 namespace MR {
     void func_8003DEF0(f32*, f32*, const TVec3f*, const TVec3f*, TVec3f*);
 }
+
+namespace MR {
+    void fn_80051680(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&);
+    void fn_80051760(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&, f32);
+}

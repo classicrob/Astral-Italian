@@ -5,8 +5,15 @@
 class LayoutActor;
 class Nerve;
 class StaffRollPart;
+class StaffRollLine;
+struct StaffRollPartInfo {
+    s32 mType;
+    TVec2f mPosition;
+};
 
 namespace StaffRollUtil {
+    StaffRollLine* createLine(const wchar_t*, u32, s32, bool*);
+    bool readPartInfo(StaffRollPartInfo*, const wchar_t*, u32);
     StaffRollPart* createPart(const wchar_t*, u32*);
     void initPane(LayoutActor*, TVec2f*, const char*);
     bool updatePaneAppear(LayoutActor*, const char*, const Nerve*);

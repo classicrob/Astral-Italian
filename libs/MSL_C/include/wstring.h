@@ -14,6 +14,9 @@ int wcscmp(const wchar_t*, const wchar_t*);
 wchar_t* wcsncpy(wchar_t*, const wchar_t*, size_t);
 size_t wcslen(const wchar_t*);
 
+int swprintf(wchar_t*, size_t, const wchar_t*, ...);
+int wtoi(const wchar_t*);
+
 long wcstol(const wchar_t*, wchar_t**, int);
 
 #ifdef __cplusplus

@@ -8,7 +8,11 @@ public:
     s32 mIds[18];
     s32 mCount;
 };
+class PostManLetter;
+namespace PostmanEvent { s32 getTalkType(const PostManLetter*); }
+
 class PostManLetter : public LayoutActor {
+    friend s32 PostmanEvent::getTalkType(const PostManLetter*);
 public:
     PostManLetter(s32);
     virtual ~PostManLetter();

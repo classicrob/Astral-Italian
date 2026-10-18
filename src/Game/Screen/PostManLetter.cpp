@@ -96,7 +96,7 @@ void PostManLetter::init(const JMapInfoIter&) {
 }
 
 void PostManLetter::control() {
-    mPager->LayoutPager::update();
+    mPager->updateButtons();
     MR::setSeVolumeSetLevelForMenu();
 }
 

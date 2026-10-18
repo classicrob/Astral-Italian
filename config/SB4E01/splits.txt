@@ -6297,17 +6297,21 @@ Game/Screen/LayoutManager.cpp:
 	.sdata      start:0x807D0240 end:0x807D0248
 	.sdata2     start:0x807E14E8 end:0x807E1500
 
+Game/Screen/LayoutPager.cpp:
+	.text       start:0x8047D960 end:0x8047E710
+	.ctors      start:0x80644908 end:0x8064490C
+	.data       start:0x806F4E18 end:0x806F4F90
+	.sbss       start:0x807D5610 end:0x807D5630
+
 Game/Screen/LayoutPaneCtrl.cpp:
 	.text       start:0x8047E710 end:0x8047ED30
 	.sdata2     start:0x807E1500 end:0x807E1508
 
 Game/Screen/LensFlare.cpp:
-	.text       start:0x8047ED30 end:0x8047FF20
+	.text       start:0x8047ED30 end:0x80480020
 	.ctors      start:0x8064490C end:0x80644910
-	.data       start:0x806F5010 end:0x806F5230
-
-Game/Screen/NrvLensFlareModel.cpp:
-	.text       start:0x8047FF20 end:0x80480020
+	.data       start:0x806F5010 end:0x806F5280
+	.sbss       start:0x807D5630 end:0x807D5648
 
 Game/Screen/LogoFader.cpp:
 	.text       start:0x80480020 end:0x804803B0
@@ -6505,6 +6509,27 @@ Game/Screen/StaffRoll.cpp:
 	.sdata      start:0x807D02A8 end:0x807D02B4
 	.sbss       start:0x807D5818 end:0x807D5868
 	.sdata2     start:0x807E1710 end:0x807E1728
+
+Game/Screen/StaffRollPart.cpp:
+	.text       start:0x804930F0 end:0x80493DD0
+	.ctors      start:0x8064496C end:0x80644970
+	.data       start:0x806F77B0 end:0x806F7870
+	.bss        start:0x8072B6C0 end:0x8072B6C8
+	.sbss       start:0x807D5868 end:0x807D5878
+	.sdata2     start:0x807E1728 end:0x807E1740
+
+Game/Screen/StaffRollUtil.cpp:
+	.text       start:0x80493DD0 end:0x80494540
+	.data       start:0x806F7870 end:0x806F78B8
+
+Game/Screen/StaffRollLine.cpp:
+	.text       start:0x80494540 end:0x80494AA0
+	.ctors      start:0x80644970 end:0x80644974
+	.rodata     start:0x8064CB80 end:0x8064CBB0
+	.data       start:0x806F78B8 end:0x806F7960
+	.sdata      start:0x807D02C0 end:0x807D02D8
+	.sbss       start:0x807D5878 end:0x807D5888
+	.sdata2     start:0x807E1740 end:0x807E1748
 
 Game/Screen/StageResultInformer.cpp:
 	.text       start:0x80494AA0 end:0x80496A40

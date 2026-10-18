@@ -92,7 +92,7 @@ void WaterCameraFilter::exeWaterToAir() {
 }
 
 
-// NONMATCHING: equivalent color-copy temporaries use different stack slots and scheduling.
+// NONMATCHING: GXColor argument and return temporaries use different stack slots.
 void WaterCameraFilter::control() {
     if (MR::isCameraInWater()) {
         mWavePhase += 0.5f;
@@ -102,8 +102,9 @@ void WaterCameraFilter::control() {
         }
 
         f32 depth = MR::clamp(WaterAreaFunction::getCameraWaterDepth(), 0.0f, mDepthLow);
+        f32 ratio = depth / mDepthLow;
         GXColor color;
-        color = MR::lerp(mHighColor.mGXColor, mLowColor.mGXColor, depth / mDepthLow);
+        color = MR::lerp(mHighColor.mGXColor, mLowColor.mGXColor, ratio);
         mWaterColor.mGXColor = color;
     }
 }

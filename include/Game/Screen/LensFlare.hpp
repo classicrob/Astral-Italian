@@ -107,3 +107,38 @@ namespace MR {
     void setLensFlareDrawSyncToken();
     u32 getLensFlareDrawSyncTokenIndex();
 };  // namespace MR
+
+#include "Game/LiveActor/Nerve.hpp"
+
+namespace NrvLensFlareModel {
+    class LensFlareModelNrvKill : public Nerve {
+    public:
+        LensFlareModelNrvKill();
+        virtual void execute(Spine*) const;
+        static LensFlareModelNrvKill sInstance;
+    };
+    class LensFlareModelNrvHide : public Nerve {
+    public:
+        LensFlareModelNrvHide();
+        virtual void execute(Spine*) const;
+        static LensFlareModelNrvHide sInstance;
+    };
+    class LensFlareModelNrvShow : public Nerve {
+    public:
+        LensFlareModelNrvShow();
+        virtual void execute(Spine*) const;
+        static LensFlareModelNrvShow sInstance;
+    };
+    class LensFlareModelNrvFadeIn : public Nerve {
+    public:
+        LensFlareModelNrvFadeIn();
+        virtual void execute(Spine*) const;
+        static LensFlareModelNrvFadeIn sInstance;
+    };
+    class LensFlareModelNrvFadeOut : public Nerve {
+    public:
+        LensFlareModelNrvFadeOut();
+        virtual void execute(Spine*) const;
+        static LensFlareModelNrvFadeOut sInstance;
+    };
+}

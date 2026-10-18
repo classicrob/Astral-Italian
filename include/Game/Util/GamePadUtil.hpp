@@ -54,7 +54,8 @@ namespace MR {
     bool testSystemPadTriggerDecide();
     bool testSystemTriggerA();
     bool testSystemTriggerB();
-    // two unknown functions here
+    bool testSystemTriggerRight();
+    bool testSystemTriggerLeft();
     bool testDPDMenuPadDecideTrigger();
     bool testPlayer1TriggerA();
     bool testFpViewStartTrigger();
@@ -107,4 +108,8 @@ namespace MR {
 
 namespace MR {
     bool testHBMKPadTriggerHome(s32);
+}
+
+namespace MR {
+    bool testCorePadOnlyMinus(s32);
 }

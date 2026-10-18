@@ -13,13 +13,13 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/TriggerChecker.hpp"
 
-namespace {
-    NEW_NERVE(LensFlareModelNrvKill, LensFlareModel, Kill);
-    NEW_NERVE(LensFlareModelNrvHide, LensFlareModel, Hide);
-    NEW_NERVE(LensFlareModelNrvShow, LensFlareModel, Show);
-    NEW_NERVE(LensFlareModelNrvFadeIn, LensFlareModel, FadeIn);
-    NEW_NERVE(LensFlareModelNrvFadeOut, LensFlareModel, FadeOut);
-};  // namespace
+namespace NrvLensFlareModel {
+    LensFlareModelNrvKill LensFlareModelNrvKill::sInstance;
+    LensFlareModelNrvHide LensFlareModelNrvHide::sInstance;
+    LensFlareModelNrvShow LensFlareModelNrvShow::sInstance;
+    LensFlareModelNrvFadeIn LensFlareModelNrvFadeIn::sInstance;
+    LensFlareModelNrvFadeOut LensFlareModelNrvFadeOut::sInstance;
+}
 
 namespace {
     LensFlareDirector* getLensFlareDirector() {
@@ -35,7 +35,7 @@ LensFlareModel::LensFlareModel(const char* pName, const char* pArcName)
 
     MR::invalidateClipping(this);
 
-    initNerve(GET_NERVE_ANON(LensFlareModelNrvKill));
+    initNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvKill));
 
     kill();
 }
@@ -46,17 +46,17 @@ void LensFlareModel::update(bool param1, bool param2) {
     if (_98->getOnTrigger()) {
         notifyInArea();
     } else if (_98->getOffTrigger()) {
-        setNerve(GET_NERVE_ANON(LensFlareModelNrvFadeOut));
+        setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvFadeOut));
     }
 
     _9C->update(param2 && param1);
 
     if (_9C->getOnTrigger()) {
-        if (isNerve(GET_NERVE_ANON(LensFlareModelNrvHide))) {
-            setNerve(GET_NERVE_ANON(LensFlareModelNrvShow));
+        if (isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvHide))) {
+            setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvShow));
         }
-    } else if (_9C->getOffTrigger() && (isNerve(GET_NERVE_ANON(LensFlareModelNrvShow)) || isNerve(GET_NERVE_ANON(LensFlareModelNrvFadeIn)))) {
-        setNerve(GET_NERVE_ANON(LensFlareModelNrvHide));
+    } else if (_9C->getOffTrigger() && (isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvShow)) || isNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvFadeIn)))) {
+        setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvHide));
     }
 }
 
@@ -90,7 +90,7 @@ void LensFlareModel::exeFadeIn() {
 
     if (_90 >= 1.0f) {
         _90 = 1.0f;
-        setNerve(GET_NERVE_ANON(LensFlareModelNrvShow));
+        setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvShow));
     }
 }
 
@@ -99,7 +99,7 @@ void LensFlareModel::exeFadeOut() {
 
     if (_90 <= 0.0f) {
         _90 = 0.0f;
-        setNerve(GET_NERVE_ANON(LensFlareModelNrvKill));
+        setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvKill));
     }
 }
 
@@ -118,9 +118,9 @@ void LensFlareModel::notifyInArea() {
     }
 
     if (_9C->getLevel() > 0.0f) {
-        setNerve(GET_NERVE_ANON(LensFlareModelNrvFadeIn));
+        setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvFadeIn));
     } else {
-        setNerve(GET_NERVE_ANON(LensFlareModelNrvHide));
+        setNerve(GET_NERVE_DIRECT(NrvLensFlareModel, LensFlareModelNrvHide));
     }
 }
 
@@ -335,4 +335,35 @@ namespace MR {
 
 TVec2f LensFlare_FORCE_MATCH(const TVec2f& rA, const TVec2f& rB) {
     return rA - rB;
+}
+
+namespace NrvLensFlareModel {
+    LensFlareModelNrvKill::LensFlareModelNrvKill() {}
+    LensFlareModelNrvHide::LensFlareModelNrvHide() {}
+    LensFlareModelNrvShow::LensFlareModelNrvShow() {}
+    LensFlareModelNrvFadeIn::LensFlareModelNrvFadeIn() {}
+    LensFlareModelNrvFadeOut::LensFlareModelNrvFadeOut() {}
+    void LensFlareModelNrvFadeOut::execute(Spine* spine) const {
+        LensFlareModel* host = static_cast<LensFlareModel*>(spine->mExecutor);
+        host->exeFadeOut();
+    }
+    void LensFlareModelNrvFadeIn::execute(Spine* spine) const {
+        LensFlareModel* host = static_cast<LensFlareModel*>(spine->mExecutor);
+        host->exeFadeIn();
+    }
+    void LensFlareModelNrvShow::execute(Spine* spine) const {
+        LensFlareModel* host = static_cast<LensFlareModel*>(spine->mExecutor);
+        host->exeShow();
+    }
+    void LensFlareModelNrvHide::execute(Spine* spine) const {
+        LensFlareModel* host = static_cast<LensFlareModel*>(spine->mExecutor);
+        host->exeHide();
+    }
+    void LensFlareModelNrvKill::execute(Spine* spine) const {
+        LensFlareModel* host = static_cast<LensFlareModel*>(spine->mExecutor);
+        if (MR::isFirstStep(host)) {
+            MR::hideModel(host);
+            host->kill();
+        }
+    }
 }

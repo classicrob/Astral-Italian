@@ -868,21 +868,21 @@ public:
     /* 0x628 */ f32 _61C;
     /* 0x62C */ u8 _638;
     /* 0x62D */ u8 _pad62D[0x3];
-    /* 0x630 */ TVec3f _628;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x63C */ f32 _634;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x640 */ TVec3f mSide2D;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x64C */ TVec3f mUp2D;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x658 */ TVec3f mNormal2D;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x664 */ TVec3f _660;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x670 */ bool _66C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x671 */ u8 _pad671[0x3];
-    /* 0x674 */ TVec3f _670;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x680 */ TVec3f _67C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x68C */ TVec3f _688;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x698 */ TVec3f _694;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x6A4 */ u8 _6AC;
-    /* 0x6A5 */ u8 _6AD;
-    /* 0x6A6 */ u8 _pad6A6[0x2];
+    /* 0x630 */ TVec3f mSide2D;
+    /* 0x63C */ TVec3f mUp2D;
+    /* 0x648 */ TVec3f mNormal2D;
+    /* 0x654 */ TVec3f _660;
+    /* 0x660 */ bool _66C;
+    /* 0x661 */ u8 _pad661[0x3];
+    /* 0x664 */ TVec3f _670;
+    /* 0x670 */ TVec3f _67C;
+    /* 0x67C */ TVec3f _688;
+    /* 0x688 */ TVec3f _694;
+    /* 0x694 */ u8 _6AC;
+    /* 0x695 */ u8 _6AD;
+    /* 0x696 */ u8 _pad696[0x2];
+    /* 0x698 */ TVec3f _628;  // SMG2: moved (guess); 0x630.. is the 2D block
+    /* 0x6A4 */ f32 _634;  // SMG2: moved (guess)
     /* 0x6A8 */ TVec3f _6B0;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6B4 */ TVec3f _6BC;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6C0 */ TVec2f _6C8;

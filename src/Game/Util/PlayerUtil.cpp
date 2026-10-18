@@ -48,7 +48,7 @@ namespace MR {
     }
 
     f32 getPlayerShadowHeight() {
-        return MarioAccess::getShadowHeight();
+        return MarioAccess::fn_803B57A0();
     }
 
 
@@ -69,7 +69,7 @@ namespace MR {
     }
 
     TVec3f* getPlayerPos() {
-        if (!MarioAccess::isVisible() && isCurrentRushActor("岩マリオ")) {
+        if (!MarioAccess::fn_803B5FE0() && isCurrentRushActor("岩マリオ")) {
             return &getCurrentRushActor()->mPosition;
         }
 
@@ -116,9 +116,9 @@ namespace MR {
         return MarioAccess::getPlayerActor()->mPlayerMode == (s16)6 ? 100.0f : 60.0f;
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7170 (gravity scale)
-    void resetPlayerGravityScale() {
-        MarioAccess::fn_803B7170();
+    // Yoshi-eat item launch velocity (MarioAccess::fn_803B7170 -> fn_8041BE00: velocity * 2 - gravity * 40); caller ActorItemGenerator
+    void calcYoshiEatItemVelocity(TVec3f* pOut) {
+        MarioAccess::fn_803B7170(pOut);
     }
 
     // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7240 (confront-death ? const : actor 0x724)
@@ -411,11 +411,11 @@ namespace MR {
     }
 
     s32 getPlayerLife() {
-        return MarioAccess::getLife();
+        return MarioAccess::fn_803B5970();
     }
 
     bool isPlayerLifeOne() {
-        return MarioAccess::getLife() == 1;
+        return MarioAccess::fn_803B5970() == 1;
     }
 
     // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B59A0 (swim/life decrement)
@@ -487,7 +487,7 @@ namespace MR {
     }
 
     // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B6050 (actor 0xE28 = arg)
-    void setPlayerFootState(void* pParam1) {
+    void setPlayerFootState(s32 pParam1) {
         MarioAccess::fn_803B6050(pParam1);
     }
 
@@ -829,7 +829,7 @@ namespace MR {
     }
 
     bool isPlayerVisible() {
-        return MarioAccess::isVisible();
+        return MarioAccess::fn_803B5FE0();
     }
 
     void setPlayerSpot(f32 param1, u32 param2) {
@@ -951,7 +951,7 @@ namespace MR {
     }
 
     void killPlayerFireBalls() {
-        MarioAccess::killFireBalls();
+        MarioAccess::fn_803B70E0();
     }
 
 

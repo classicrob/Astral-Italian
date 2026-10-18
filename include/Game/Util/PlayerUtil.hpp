@@ -346,12 +346,12 @@ namespace MR {
     // PLACEHOLDER(core) names below are by behavior (see src/Game/Util/PlayerUtil.cpp); resolve when the owner is named
     bool startPlayerBvaWithCtrl(const char*, const BckCtrlData&);
     f32 getPlayerConfrontDeathParam();
-    void resetPlayerGravityScale();
+    void calcYoshiEatItemVelocity(TVec3f*);
     void decrementPlayerSwimLife();
     bool isPlayerInJumpAction();
     bool isPlayerSwingActionStartNow();
     void resetPlayerFootState();
-    void setPlayerFootState(void*);
+    void setPlayerFootState(s32);
     void clearPlayerFootprints();
     void setPlayerRollingOn();
     void setPlayerRollingOff();

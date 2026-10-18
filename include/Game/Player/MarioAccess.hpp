@@ -32,10 +32,6 @@ namespace MarioAccess {
     void fn_803B72A0();
 
     f32 fn_803B57A0();  // SMG2-only (original name unknown; by address)
-    // PlayerUtil callees (unnamed in symbols.txt; names by behavior, PLACEHOLDER(core) where guessed)
-    s32 getLife();                       // fn_803B5970: player actor mLife (0x6B0)
-    bool isVisible();                    // fn_803B5FE0: !actor->_76A  PLACEHOLDER(core): name by behavior
-    void killFireBalls();                // fn_803B70E0: actor->killAllFireBall()
     void concatWithJointMtx(TPos3f*, const char*);
     void setWalkingResist(f32);
     void fn_803B7070(s32);               // PLACEHOLDER(core): incAirWalkTimer loop when state 0x6F8 == 4

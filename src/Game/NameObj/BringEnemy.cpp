@@ -109,7 +109,7 @@ f32 BringEnemy::calcNearestEnemy(TVec3f* pVec, const LiveActor* pActor) {
         if (pGroup != NULL) {
             s32 groupNum = *(s32*)((u8*)pGroup + 0x90);
             for (s32 j = 0; j < groupNum; j++) {
-                LiveActor* pChild = static_cast< BegomanLauncher* >(pGroup)->getBegoman(j);
+                LiveActor* pChild = static_cast< BegomanLauncher* >(pGroup)->fn_80163200(j);
                 if (pChild != NULL && !MR::isDead(pChild)) {
                     f32 dist = MR::calcDistance(pActor, pChild);
                     if (dist < minDist) {
@@ -150,7 +150,7 @@ bool BringEnemy::receiveMessage(u32 msg, HitSensor* pSender, HitSensor* pReceive
     for (s32 i = 0; i < mChildNum; i++) {
         LiveActor* pGroup = mChildGroups[i];
         if (pGroup != NULL) {
-            if (static_cast< BegomanLauncher* >(pGroup)->hasBegoman(MR::getSensorHost(pReceiver))) {
+            if (static_cast< BegomanLauncher* >(pGroup)->fn_801631C0(MR::getSensorHost(pReceiver))) {
                 mTargetEnemy = MR::getSensorHost(pReceiver);
                 mBroughtNum++;
             }

@@ -87,6 +87,7 @@ namespace MR {
     void invalidateHitSensor(HitSensor* pSensor);
     void validateHitSensor(LiveActor* pActor, const char* pSensorName);
     void invalidateHitSensor(LiveActor* pActor, const char* pSensorName);
+    void invalidateHitSensor(LiveActor* pActor, const char* pSensorName);
     bool tryValidateHitSensor(LiveActor* pActor, const char* pSensorName);
     bool tryInvalidateHitSensor(LiveActor* pActor, const char* pSensorName);
     void clearHitSensors(LiveActor* pActor);

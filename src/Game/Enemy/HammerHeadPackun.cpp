@@ -542,43 +542,28 @@ bool HammerHeadPackun::isInFieldOfView(const TVec3f& rPos) const {
 }
 
 bool HammerHeadPackun::isAttackSensorValid() const {
+    bool valid = true;
     if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill)) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill)) ||
         isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock))) {
-        return false;
+        valid = false;
+    } else if (_C4) {
+        valid = true;
+    } else if ((isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack)) && MR::isNewNerve(this)) ||
+               isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest)) ||
+               (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 40)) ||
+               isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage)) ||
+               (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessStep(this, 60)) ||
+               isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb))) {
+        valid = false;
     }
-
-    if (_C4) {
-        return true;
-    }
-
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack)) && MR::isNewNerve(this)) {
-        return false;
-    }
-
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest))) {
-        return false;
-    }
-
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 40)) {
-        return false;
-    }
-
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage))) {
-        return false;
-    }
-
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessStep(this, 60)) {
-        return false;
-    }
-
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb))) {
-        return false;
-    }
-
-    return true;
+    return valid;
 }
 
 bool HammerHeadPackun::isChance() const {
+    if (_C4) {
+        return false;
+    }
+
     bool isChance = false;
     if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest)) && !MR::isNewNerve(this) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage)) ||
         isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 50) ||

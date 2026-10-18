@@ -5339,7 +5339,8 @@ Game/Player/MarioAccess.cpp:
 	.sdata2     start:0x807DFBB8 end:0x807DFBC8
 
 Game/Player/MarioActor.cpp:
-	.text       start:0x803B7470 end:0x803C4F70
+	.text       start:0x803B7470 end:0x803D9920
+	.ctors      start:0x806447C8 end:0x806447CC
 	.rodata     start:0x8064BCB8 end:0x8064BD50
 	.data       start:0x806C7430 end:0x806C74D8
 	.sdata      start:0x807CFFDC end:0x807CFFF0

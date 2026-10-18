@@ -87,7 +87,7 @@ public:
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
-    virtual bool receiveMsgTaken(HitSensor*, HitSensor*);
+    bool receiveMsgTaken(HitSensor*, HitSensor*);  // SMG2: no longer a LiveActor virtual
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
     virtual const TVec3f& getLastMove() const;
     virtual void getLastMove(TVec3f*) const;
@@ -1041,6 +1041,8 @@ public:
 
 // header defined since these actually get defined in CamHeliEffector
 // and in sinit of NameObjFactory
+// SMG2: only MarioActor.cpp instantiates these (other Player TUs' __sinit do not).
+#ifdef MARIO_ACTOR_DEFINE_NERVES
 namespace NrvMarioActor {
     NEW_NERVE(MarioActorNrvWait, MarioActor, Wait);
     NEW_NERVE(MarioActorNrvGameOver, MarioActor, GameOver);
@@ -1053,3 +1055,58 @@ namespace NrvMarioActor {
     NEW_NERVE(MarioActorNrvTimeWait, MarioActor, TimeWait);
     NEW_NERVE(MarioActorNrvNoRush, MarioActor, Wait);
 };  // namespace NrvMarioActor
+#else
+// declarations only (the instances are defined in MarioActor.cpp)
+namespace NrvMarioActor {
+    class MarioActorNrvWait : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvWait sInstance;
+    };
+    class MarioActorNrvGameOver : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOver sInstance;
+    };
+    class MarioActorNrvGameOverAbyss : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOverAbyss sInstance;
+    };
+    class MarioActorNrvGameOverAbyss2 : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOverAbyss2 sInstance;
+    };
+    class MarioActorNrvGameOverFire : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOverFire sInstance;
+    };
+    class MarioActorNrvGameOverBlackHole : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOverBlackHole sInstance;
+    };
+    class MarioActorNrvGameOverNonStop : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOverNonStop sInstance;
+    };
+    class MarioActorNrvGameOverSink : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOverSink sInstance;
+    };
+    class MarioActorNrvTimeWait : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvTimeWait sInstance;
+    };
+    class MarioActorNrvNoRush : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvNoRush sInstance;
+    };
+};  // namespace NrvMarioActor
+#endif

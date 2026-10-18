@@ -1,4 +1,5 @@
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
+#define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
 #include "Game/Player/MarioActor.hpp"
 #include "Game/Util.hpp"
 #include "Game/Animation/XanimeCore.hpp"

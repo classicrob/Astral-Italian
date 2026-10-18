@@ -74,6 +74,7 @@ namespace MR {
     void setMessageArg(TalkMessageCtrl*, const wchar_t*);
     TalkMessageCtrl* createTalkCtrl(LiveActor*, const JMapInfoIter&, const char*, const TVec3f&, MtxPtr);
     TalkMessageCtrl* createTalkCtrlDirect(LiveActor*, const JMapInfoIter&, const char*, const TVec3f&, MtxPtr);
+    TalkMessageCtrl* createTalkCtrlDirect(LiveActor*, const char*, const TVec3f&, MtxPtr);
     TalkMessageCtrl* createTalkCtrlDirectOnRootNodeAutomatic(LiveActor*, const JMapInfoIter&, const char*, const TVec3f&, MtxPtr);
     TalkMessageCtrl* tryCreateTalkCtrlDirectOnRootNodeAutomatic(LiveActor*, const JMapInfoIter&, const char*, const TVec3f&, MtxPtr);
     bool tryTalkNearPlayer(TalkMessageCtrl*);

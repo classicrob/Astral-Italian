@@ -136,6 +136,7 @@ namespace RaceManagerFunction {
     void entryRacerOthers(AbstractRacer*);
     void entryAudience(AbstractAudience*);
     void entryRacerPlayer(PlayerRacer*);
+    void entryPlayerRide(LiveActor*);
     void startRaceWithWipe();
     void startRaceImmediately();
     u32 getRaceRank();

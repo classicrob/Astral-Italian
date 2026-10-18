@@ -35,6 +35,7 @@ namespace MR {
     bool isExistMapCollision(const TVec3f&, const TVec3f&);
     bool isExistMoveLimitCollision(const TVec3f&, const TVec3f&);
     bool isExistMapCollisionExceptActor(const TVec3f&, const TVec3f&, const LiveActor*);
+    bool isExistMapCollisionExceptSensor(const TVec3f&, const TVec3f&, const LiveActor*);
     bool checkStrikePointToMap(const TVec3f&, HitInfo*);
     bool checkStrikeBallToMap(const TVec3f&, f32);
     bool calcMapGround(const TVec3f&, TVec3f*, f32);
@@ -49,6 +50,7 @@ namespace MR {
     bool trySetMoveLimitCollision(LiveActor*);
     bool isBindedGroundIce(const LiveActor*);
     bool isBindedGroundSand(const LiveActor*);
+    bool isBindedGroundSnow(const LiveActor*);
     bool isBindedGroundDamageFire(const LiveActor*);
     bool isBindedGroundWaterBottomH(const LiveActor*);
     bool isBindedGroundWaterBottomM(const LiveActor*);
@@ -77,6 +79,7 @@ namespace MR {
     bool isGroundCodeDamageElectric(const Triangle*);
     bool isGroundCodeWaterBottomH(const Triangle*);
     bool isGroundCodeWaterBottomM(const Triangle*);
+    bool isGroundCodeForceDash(const Triangle*);
     bool isGroundCodeSinkDeath(const Triangle*);
     bool isGroundCodeRailMove(const Triangle*);
     bool isGroundCodeAreaMove(const Triangle*);

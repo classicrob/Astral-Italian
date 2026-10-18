@@ -1,5 +1,21 @@
 #pragma once
+#include "Game/LiveActor/LiveActorGroup.hpp"
+#include "Game/Util/Array.hpp"
+#include <JSystem/JGeometry.hpp>
 class ClipArea;
-namespace MR { void registerStarLightArea(ClipArea*); }
 class HitSensor;
-namespace MR { bool tryRegisterStarLightReceiver(HitSensor*); }
+class StarLightAreaHolder : public DeriveActorGroup<ClipArea> {
+public:
+    StarLightAreaHolder(const char*);
+    virtual ~StarLightAreaHolder();
+    virtual void init(const JMapInfoIter&);
+    virtual void movement();
+    bool isInStarLight(const TVec3f&);
+    bool tryRegisterReceiver(HitSensor*);
+    MR::AssignableArray<HitSensor*> mReceivers;
+    s32 mReceiverCount;
+};
+namespace MR {
+    void registerStarLightArea(ClipArea*);
+    bool tryRegisterStarLightReceiver(HitSensor*);
+}

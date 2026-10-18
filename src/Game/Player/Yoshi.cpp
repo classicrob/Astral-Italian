@@ -8,6 +8,8 @@
 #include "Game/Animation/BtkPlayer.hpp"
 #include "Game/Animation/BrkPlayer.hpp"
 #include "Game/Util/MapUtil.hpp"
+#include "Game/Util/YoshiUtil.hpp"
+#include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -1197,8 +1199,8 @@ void Yoshi::fn_8040CC20() {
     mModelVisibility->fn_80413330();
 }
 
-void Yoshi::fn_8040CC30() {
-    mAnimationModelCtrl->fn_8040B6D0();
+void Yoshi::fn_8040CC30(const char* name) {
+    mAnimationModelCtrl->fn_8040B6D0(name);
 }
 
 void Yoshi::fn_8040FCD0() {
@@ -1846,4 +1848,483 @@ void Yoshi::fn_8040EBF0() {
         MR::startSoundInPlayerDistance(this, "SendOffOnce", -1, -1, 1800.0f);
     }
     mPlayerFacingCtrl->fn_80413110();
+}
+
+void Yoshi::fn_8040CFC0() {
+    if (MR::isFirstStep(this)) {
+        if (*mJumpRequested) fn_8040EDA0("キョロキョロ（Ｎｐｃ）");
+        else fn_8040EDA0("待機（Ｎｐｃ）");
+    }
+    if (*mJumpRequested) MR::startActionSound(this, "Wander", -1, -1, -1);
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    if (*mJumpRequested && fn_8040F590(nullptr)) {
+        setNerve(&NrvYoshi::YoshiNrv804138A0::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+}
+
+void Yoshi::fn_8040D130() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("待機（Ｎｐｃ）");
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    if (MR::isInAreaObj("YoshiSendOffArea", mPosition)) {
+        setNerve(&NrvYoshi::YoshiNrv80413A10::sInstance);
+        return;
+    }
+    if (mPlayerFacingCtrl->fn_80413040()) setNerve(&NrvYoshi::YoshiNrv80413890::sInstance);
+}
+
+void Yoshi::fn_8040D260() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("待機ターン（Ｎｐｃ）");
+        mPlayerFacingCtrl->mTurnTimer = 0;
+    }
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    mPlayerFacingCtrl->fn_80413110();
+    YoshiPlayerFacingCtrl* facing = mPlayerFacingCtrl;
+    if (facing->mTurnTimer > 30) {
+        facing->mTimer = 0;
+        fn_80410280();
+    }
+}
+
+void Yoshi::fn_8040D5B0() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("おっとっと（Ｎｐｃ）");
+        mEscapeDirection->reset();
+    }
+    mEscapeDirection->update();
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    if (mEscapeDirection->mStep >= 16 && fn_8040F590(nullptr)) setNerve(&NrvYoshi::YoshiNrv804138C0::sInstance);
+}
+
+void Yoshi::fn_8040D7F0() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("落下（Ｎｐｃ）");
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isGrounded()) setNerve(&NrvYoshi::YoshiNrv804138E0::sInstance);
+}
+
+void Yoshi::fn_8040D8E0() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("着地（Ｎｐｃ）");
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    if (fn_8040F590(nullptr)) {
+        YoshiGroundChecker* ground = mGroundChecker;
+        bool slipping = false;
+        if (ground->isGrounded() && ground->mSlipping) slipping = true;
+        if (slipping) {
+            setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+            return;
+        }
+        if (*mJumpRequested) {
+            setNerve(&NrvYoshi::YoshiNrv804138A0::sInstance);
+            return;
+        }
+        setNerve(&NrvYoshi::YoshiNrv80413870::sInstance);
+    }
+}
+
+void Yoshi::fn_8040D9F0() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("坂すべり仰向け（Ｎｐｃ）");
+    fn_80410570(0.05f);
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isGrounded()) {
+        YoshiGroundChecker* ground = mGroundChecker;
+        bool slipping = false;
+        if (ground->isGrounded() && ground->mSlipping) slipping = true;
+        if (!slipping && MR::isGreaterEqualStep(this, 30)) setNerve(&NrvYoshi::YoshiNrv80413900::sInstance);
+    }
+}
+
+void Yoshi::fn_8040DB10() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("坂すべり仰向け終了（Ｎｐｃ）");
+        mMovementVelocity.zero();
+    }
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (fn_8040F590(nullptr)) fn_80410280();
+}
+
+void Yoshi::fn_804103F0() {
+    MR::calcGravity(this);
+    TVec3f up;
+    mBaseMtx.getYDir(up);
+    TVec3f front;
+    mBaseMtx.getZDir(front);
+    TVec3f side;
+    mBaseMtx.getXDir(side);
+    TVec3f gravityUp;
+    JGeometry::negateInternal(&mGravity.x, &gravityUp.x);
+    TVec3f axis;
+    PSVECCrossProduct(&up, &gravityUp, &axis);
+    f32 length = PSVECMag(&axis);
+    TQuat4f rotation;
+    if (length <= 0.000003814697265625f) rotation.set<f32>(0.0f, 0.0f, 0.0f, 1.0f);
+    else {
+        f32 angle = 0.1f * (0.5f * JMAATan2(length, up.dot(gravityUp)));
+        f32 factor = static_cast<f32>(::sin(angle)) / length;
+        TVec3f* imaginary = reinterpret_cast<TVec3f*>(&rotation);
+        imaginary->scale(factor, axis);
+        rotation.w = static_cast<f32>(::cos(angle));
+    }
+    rotation.transform(up);
+    rotation.transform(front);
+    rotation.transform(side);
+    mBaseMtx.setXDir(side);
+    mBaseMtx.setYDir(up);
+    mBaseMtx.setZDir(front);
+    TVec3f angles;
+    mBaseMtx.getEulerXYZ(angles);
+    MR::setRotation(this, angles);
+}
+
+void Yoshi::fn_80411740() {
+    mBreakModelMtx.fn_80409700(getBaseMtx());
+    if (mWaterInfo->isInWater()) {
+        TVec3f up;
+        mBreakModelMtx.fn_80409680(&up);
+        MarioMtxPos surface;
+        surface.fn_80409710(up, mWaterInfo->mSurfaceNormal);
+        mBreakModelMtx.preConcat(surface);
+        mBreakModelMtx.setTranslation(mWaterInfo->mSurfacePos);
+    }
+    mBreakModel->appear();
+}
+bool Yoshi::fn_80411CB0() const {
+    Triangle triangle;
+    TVec3f ray(mGravity);
+    ray.scale(70.0f);
+    TVec3f hit;
+    return MR::getFirstPolyOnLineToMap(&hit, &triangle, _14C, ray);
+}
+void Yoshi::fn_8040DC20() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("水中泳ぎ（Ｎｐｃ）");
+    if (!fn_8040F490("水面泳ぎ（Ｎｐｃ）") && !fn_8040F490("水中泳ぎ（Ｎｐｃ）")) {
+        if (_145) fn_8040EDA0("水面泳ぎ（Ｎｐｃ）");
+        else fn_8040EDA0("水中泳ぎ（Ｎｐｃ）");
+    }
+    if (!mAutoDisappearTask->mTimer) {
+        fn_80411740();
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (!_144) {
+        if (mGroundChecker->isGrounded()) {
+            setNerve(&NrvYoshi::YoshiNrv80413880::sInstance);
+            TVec3f center;
+            MR::copyJointPos(this, "Center", &center);
+            MtxPtr matrix = getBaseMtx();
+            TVec3f up(matrix[0][1], matrix[1][1], matrix[2][1]);
+            TVec3f offset(up);
+            offset.scale(50.0f);
+            TVec3f position(center);
+            position.sub(offset);
+            MR::setPosition(this, position);
+            return;
+        }
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+    }
+}
+void Yoshi::fn_80410890() {
+    TVec3f center;
+    MR::copyJointPos(this, "Center", &center);
+    MR::getWaterAreaObj(mWaterInfo, center);
+    if (mWaterInfo->isInWater()) {
+        _14C = center;
+        MR::getWaterAreaInfo(mWaterInfo, _14C, mGravity, false);
+        if (!_144 && !fn_80411CB0()) {
+            _144 = true;
+            fn_80411740();
+        }
+    } else if (!mGroundChecker->isGrounded()) {
+        TVec3f displacement(_14C);
+        displacement.sub(center);
+        TVec3f planar;
+        f32 vertical = MR::vecKillElement(displacement, mGravity, &planar);
+        TVec3f offset(mGravity);
+        offset.scale(vertical);
+        TVec3f position(center);
+        position.add(offset);
+        WaterInfo unused;
+        MR::getWaterAreaObj(mWaterInfo, center);
+        if (!mWaterInfo->isInWater()) _144 = false;
+    } else _144 = false;
+}
+void Yoshi::fn_80410350(const TVec3f& velocity) {
+    MR::onBind(this);
+    mMovementVelocity.set(velocity);
+    mAutoDisappearTask->mTimer = 600;
+    YoshiVelocityAdjustment* adjustment = mVelocityAdjustment;
+    adjustment->mMinimum.zero();
+    adjustment->mMaximum.zero();
+    mDashTimer = 0;
+    if (mFruitCtrl->mLightFruitActive) MR::endYoshiLightFruit();
+    mTongue->fn_8041CBA0();
+    _144 = false;
+    _145 = false;
+}
+
+void YoshiAnimationSync::fn_80413440() {
+    if (_8) {
+        if (mActor->mUpperAnimationActive) {
+            MR::setBvaRate(mActor, mActor->mXanimePlayerUpper->_20->mRate);
+            MR::setBvaFrame(mActor, mActor->mXanimePlayerUpper->_20->mFrame);
+        } else {
+            MR::setBvaRate(mActor, mActor->mXanimePlayer->_20->mRate);
+            MR::setBvaFrame(mActor, mActor->mXanimePlayer->_20->mFrame);
+        }
+    }
+    if (_9) {
+        if (mActor->mUpperAnimationActive) {
+            MR::setBtpRate(mActor, mActor->mXanimePlayerUpper->_20->mRate);
+            MR::setBtpFrame(mActor, mActor->mXanimePlayerUpper->_20->mFrame);
+        } else {
+            MR::setBtpRate(mActor, mActor->mXanimePlayer->_20->mRate);
+            MR::setBtpFrame(mActor, mActor->mXanimePlayer->_20->mFrame);
+        }
+    }
+    if (_A) {
+        if (mActor->mUpperAnimationActive) {
+            MR::setBtkRate(mActor, mActor->mXanimePlayerUpper->_20->mRate);
+            MR::setBtkFrame(mActor, mActor->mXanimePlayerUpper->_20->mFrame);
+        } else {
+            MR::setBtkRate(mActor, mActor->mXanimePlayer->_20->mRate);
+            MR::setBtkFrame(mActor, mActor->mXanimePlayer->_20->mFrame);
+        }
+    }
+}
+
+void YoshiAnimationSync::fn_804135A0(const char* animation) {
+    if (MR::isExistBva(mActor, animation)) {
+        MR::startBva(mActor, animation);
+        _8 = true;
+    } else {
+        MR::startBva(mActor, "Blink");
+        _8 = false;
+    }
+    if (MR::isExistBtp(mActor, animation)) {
+        MR::startBtp(mActor, animation);
+        _9 = true;
+    } else {
+        if (MR::isExistBtp(mActor, "Blink")) MR::startBtp(mActor, "Blink");
+        _9 = false;
+    }
+    if (MR::isExistBtk(mActor, animation)) {
+        MR::startBtk(mActor, animation);
+        _A = true;
+    } else {
+        if (MR::isExistBtk(mActor, "Normal")) MR::startBtk(mActor, "Normal");
+        _A = false;
+    }
+    mAnimation = animation;
+}
+
+bool Yoshi::fn_80411410() {
+    AreaObj* area = MR::getAreaObj("PlaneModeCube", mPosition);
+    if (!area) return false;
+    if (!MR::isAreaFormCube(area)) return false;
+    bool running = false;
+    if (isNerve(&NrvYoshi::YoshiNrv804138A0::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138B0::sInstance)) running = true;
+    if (running) setNerve(&NrvYoshi::YoshiNrv80413990::sInstance);
+    TVec3f origin;
+    MR::calcCubePos(area, &origin);
+    TVec3f axis;
+    MR::calcCubeAxisZ(area, &axis);
+    TVec3f displacement(mPosition);
+    displacement.sub(origin);
+    f32 distance = axis.dot(displacement);
+    TVec3f normalOffset(axis);
+    normalOffset.scale(distance);
+    TVec3f position(mPosition);
+    position.sub(normalOffset);
+    MR::setPosition(this, position);
+    MR::calcCubeAxisZ(area, &_18C);
+    return true;
+}
+void Yoshi::fn_804109E0() {
+    if (fn_80412310() && mGroundChecker->isGrounded()) {
+        YoshiGroundChecker* ground = mGroundChecker;
+        bool slipping = false;
+        if (ground->isGrounded() && ground->mSlipping) slipping = true;
+        if (slipping) {
+            TVec3f slope;
+            if (fn_80410810(&slope) && slope.dot(mMovementVelocity) < 0.0f) {
+                JMAVECScaleAdd(&slope, &mMovementVelocity, &mMovementVelocity, -slope.dot(mMovementVelocity));
+            }
+        } else mMovementVelocity.zero();
+    }
+}
+void Yoshi::fn_80410AC0() {
+    YoshiGroundChecker* ground = mGroundChecker;
+    TVec3f movement;
+    if (!ground->isGrounded()) movement.zero();
+    else ground->mGroundHit.mParentTriangle.calcForceMovePower(&movement, mPosition);
+    f32 vertical = mGravity.dot(movement);
+    if (vertical < 0.0f) {
+        TVec3f offset(mGravity);
+        offset.scale(vertical);
+        movement.sub(offset);
+    }
+    TVec3f adjustment(movement);
+    adjustment.scale(0.5f);
+    mAdditionalVelocity.add(adjustment);
+}
+bool Yoshi::fn_80411AC0() const {
+    bool result = false;
+    if (isNerve(&NrvYoshi::YoshiNrv80413870::sInstance) || isNerve(&NrvYoshi::YoshiNrv80413880::sInstance) || isNerve(&NrvYoshi::YoshiNrv80413890::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138A0::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138B0::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138C0::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138D0::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138E0::sInstance) || isNerve(&NrvYoshi::YoshiNrv804138F0::sInstance) || isNerve(&NrvYoshi::YoshiNrv80413900::sInstance) || isNerve(&NrvYoshi::YoshiNrv80413A00::sInstance) || isNerve(&NrvYoshi::YoshiNrv80413920::sInstance)) result = true;
+    return result;
+}
+bool Yoshi::fn_80411BF0() {
+    if (!fn_80411AC0()) return false;
+    if (MR::isBindedGroundDamageFire(this)) {
+        TVec3f velocity(0.0f);
+        fn_80410350(velocity);
+        MR::fn_80422520();
+        setNerve(&NrvYoshi::YoshiNrv80413960::sInstance);
+        return true;
+    }
+    if (MR::isBindedGroundDamageElectric(this)) {
+        TVec3f velocity(0.0f);
+        fn_80410350(velocity);
+        MR::fn_80422550();
+        setNerve(&NrvYoshi::YoshiNrv80413970::sInstance);
+        return true;
+    }
+    return false;
+}
+
+bool XanimePlayer::fn_8040F600() const {
+    return (_24[_54].mState & 1) != 0;
+}
+bool Yoshi::fn_8040F5F0() const {
+    return mXanimePlayerUpper->fn_8040F600();
+}
+void Yoshi::fn_80411A30() {
+    if (mUpperAnimationActive) {
+        XanimePlayer* upper = mXanimePlayerUpper;
+        upper->updateBeforeMovement();
+        upper->updateAfterMovement();
+        if (mXanimePlayerUpper->fn_8040F600() && mXanimePlayerUpper->_20->mAttribute != 1 && !mUpperDefaultAnimationEnabled) fn_8040EE70(nullptr);
+    }
+}
+bool Yoshi::fn_804113C0() {
+    if (fn_80411410()) return true;
+    return fn_80411550();
 }

@@ -25,6 +25,7 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/SequenceUtil.hpp"
 #include "Game/Player/Yoshi.hpp"
+#include "Game/Player/MarioActorHelpers.hpp"
 
 
 
@@ -151,7 +152,7 @@ void MarioDamage::stopHead(const TVec3f& rNormal) {
 
 bool MarioDamage::fn_803E48F0() {
     this->addVelocity(this->_1C);
-    this->_1C += this->mActor->_240 * this->mActor->getConst().getTable()->mGravityDamage;
+    this->_1C += this->mActor->mAppliedGravityVec * this->mActor->getConst().getTable()->mGravityDamage;
     if (this->_14 > 20) {
         if (this->_28) {
             this->changeAnimation(this->_28);
@@ -168,7 +169,7 @@ bool MarioDamage::fn_803E48F0() {
 
     if (this->getPlayer()->mMovementStates._1) {
         if (this->getPlayer()->mVerticalSpeed > 30.0f &&
-            (*(MarioActor**)((u8*)this->mActor + 0x1080))->fn_803DB380(MR::getSensorHost(this->getSensor(this->getGroundPolygon()))->mName, "ダメージ中跳ねる")) {
+            mActor->mActionTable1080->testEffect(MR::getSensorHost(this->getSensor(this->getGroundPolygon()))->mName, "ダメージ中跳ねる")) {
             Mario* player = this->getPlayer();
             this->_1C += player->_368 * 20.0f;
             this->getPlayer()->mMovementStates._1 = false;
@@ -179,7 +180,7 @@ bool MarioDamage::fn_803E48F0() {
         this->getPlayer()->mMovementStates.jumping = false;
         this->playSound("吹っ飛び倒れ");
         this->playEffect("共通ダメージ着地");
-        MR::vecKillElement(this->_1C, this->mActor->_240, &this->_1C);
+        MR::vecKillElement(this->_1C, this->mActor->mAppliedGravityVec, &this->_1C);
         this->_18 = 1;
         this->_14 = 0;
         if (!this->mActor->mHealth) {

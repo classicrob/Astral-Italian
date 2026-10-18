@@ -6,6 +6,7 @@ class LiveActor;
 class J3DFrameCtrl;
 
 namespace MR {
+    bool fn_80008F00(const LiveActor*, const char*);
     void startBck(const LiveActor*, const char*, const char* = nullptr);
     bool isBckStopped(const LiveActor*);
     bool tryStartAllAnim(const LiveActor*, const char*);

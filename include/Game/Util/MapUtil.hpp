@@ -55,6 +55,7 @@ namespace MR {
     bool isBindedGroundSand(const LiveActor*);
     bool isBindedGroundSnow(const LiveActor*);
     bool isBindedGroundDamageFire(const LiveActor*);
+    bool isBindedGroundDamageElectric(const LiveActor*);
     bool isBindedGroundWaterBottomH(const LiveActor*);
     bool isBindedGroundWaterBottomM(const LiveActor*);
     bool isBindedGroundWaterBottomL(const LiveActor*);

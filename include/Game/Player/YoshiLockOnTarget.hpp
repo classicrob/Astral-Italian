@@ -1,4 +1,5 @@
 #pragma once
+#include "Game/Util/BothDirList.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 class LiveActor;
 class YoshiTargetMark;
@@ -10,13 +11,16 @@ struct YoshiLockOnTarget {
 };
 typedef YoshiLockOnTarget YoshiLockOnTargetInfo;
 struct YoshiLockOnTargetDesc {
+    YoshiLockOnTargetDesc();
     LiveActor* mActor;
     MtxPtr mMtx;
     TVec3f mOffset;
     u32 mType;
 };
-class YoshiLockOnTargetControl {
+class YoshiLockOnTargetControl : public MR::BothDirPtrLink {
 public:
+    YoshiLockOnTargetControl() : MR::BothDirPtrLink(this) { reset(); }
+    void reset() NO_INLINE;
     bool isInvalid() const;
     bool isMarkDead() const;
     void copyTargetInfo(YoshiLockOnTargetDesc*) const;
@@ -26,7 +30,7 @@ public:
     void calcScreenPosition();
     void updateMarkPosition();
     void invalidate();
-    u8 _0[0x10];
+
     YoshiLockOnTargetInfo* mTarget;
     u32 mTimer;
     YoshiTargetMark* mMark;

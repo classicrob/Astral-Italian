@@ -18187,3 +18187,11 @@ bool Mario::doPointWarpRecovery(const TVec3f& rVec1, const TVec3f& rVec2) {
 
 #include "../src/Game/Player/MarioSMG2_A.inc"
 #include "../src/Game/Player/MarioSMG2_B.inc"
+
+bool Mario::isStateHanging() const {
+    return getCurrentStatus() == MarioStatus_Hang;
+}
+
+bool Mario::isStateBury() const {
+    return getCurrentStatus() == MarioStatus_Bury;
+}

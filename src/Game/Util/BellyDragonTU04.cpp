@@ -76,7 +76,7 @@ bool fn_8008EDA0(LiveActor*);
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_8008EDB0(void*, f32);
 extern "C" void fn_80013880(LiveActor*, TVec3f*, s32);
-extern "C" s32 fn_80008F00(LiveActor*, const char*);
+
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_80093450(void*, const f32 (*)[4]);
@@ -321,7 +321,7 @@ extern "C" void fn_80093B50(BellyDragon* pHost, const char* pName) {
     MR::setPosition(pHost, sp8);
     MR::zeroVelocity(pHost);
     pHost->mBody->freeze();
-    if (fn_80008F00(pHost, pName)) {
+    if (MR::fn_80008F00(pHost, pName)) {
         MR::startAction(pHost, pName);
     }
     MR::calcAnimDirect(pHost);

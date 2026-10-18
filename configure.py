@@ -2916,7 +2916,6 @@ config.libs = [
             Object(NonMatching, "Game/Player/YoshiFunction.cpp"),
             Object(NonMatching, "Game/Player/YoshiHeadCtrl.cpp"),
             Object(NonMatching, "Game/Player/YoshiHolder.cpp"),
-            Object(NonMatching, "Game/Player/YoshiLockOnManager.cpp"),
             Object(NonMatching, "Game/Player/YoshiSilhouette.cpp"),
         ],
     ),

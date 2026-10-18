@@ -6209,6 +6209,8 @@ Game/Player/MarioFrontStep.cpp:
 Game/Player/MarioHairAndHatModel.cpp:
 	.text       start:0x803EC500 end:0x803ECB50
 	.ctors      start:0x806447DC end:0x806447E0
+	.data       start:0x806DD390 end:0x806DD550
+	.sbss       start:0x807D4E90 end:0x807D4EA0
 
 Game/Player/MarioHang.cpp:
 	.text       start:0x803ECB50 end:0x803ED7E0
@@ -6391,6 +6393,8 @@ Game/Player/Yoshi.cpp:
 
 Game/Player/YoshiArrow.cpp:
 	.text       start:0x80413C40 end:0x80414290
+	.data       start:0x806EA718 end:0x806EA7C8
+	.sdata2     start:0x807E0658 end:0x807E0688
 
 Game/Player/MarioYoshiBalloon.cpp:
 	.text       start:0x80414290 end:0x804155D0
@@ -6399,6 +6403,8 @@ Game/Player/MarioYoshiBalloon.cpp:
 
 Game/Player/YoshiFruitCtrl.cpp:
 	.text       start:0x804155D0 end:0x80415A10
+	.data       start:0x806EA908 end:0x806EAA20
+	.sdata      start:0x807D00C8 end:0x807D00D0
 
 Game/Player/YoshiDashStep.cpp:
 	.text       start:0x80415A10 end:0x80415E10
@@ -6424,24 +6430,28 @@ Game/Player/YoshiModelCtrl.cpp:
 	.sdata2     start:0x807E0720 end:0x807E0750
 
 Game/Player/YoshiLockOnTarget.cpp:
-	.text       start:0x80419720 end:0x80419BD0
-	.sdata      start:0x807D00E0 end:0x807D00F4
+	.text       start:0x80419720 end:0x8041A8B0
+	.data       start:0x806EAF38 end:0x806EB018
+	.sdata      start:0x807D00D8 end:0x807D00F8
 	.sdata2     start:0x807E0750 end:0x807E0758
-
-Game/Player/YoshiLockOnManager.cpp:
-	.text       start:0x80419BD0 end:0x8041A8B0
 
 Game/Player/YoshiHeadCtrl.cpp:
 	.text       start:0x8041A9A0 end:0x8041AD80
+	.rodata     start:0x8064BEF0 end:0x8064BF00
 
 Game/Player/MarioYoshiShot.cpp:
 	.text       start:0x8041AD80 end:0x8041B120
 
 Game/Player/YoshiSilhouette.cpp:
 	.text       start:0x8041B120 end:0x8041B570
+	.data       start:0x806EB098 end:0x806EB128
+	.sdata2     start:0x807E0768 end:0x807E0770
 
 Game/Player/YoshiHolder.cpp:
 	.text       start:0x8041B570 end:0x8041C550
+	.data       start:0x806EB128 end:0x806EB178
+	.sdata      start:0x807D00F8 end:0x807D0100
+	.sdata2     start:0x807E0770 end:0x807E07A0
 
 Game/Player/YoshiTongue.cpp:
 	.text       start:0x8041C550 end:0x8041DE20

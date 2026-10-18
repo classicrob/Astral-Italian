@@ -616,13 +616,13 @@ void MarioActor::fn_803CCF20(HitSensor* s) {
     F(s32, 0x794) = 0;
 }
 
-void MarioActor::fn_803CCF90(s32 v) {
+void MarioActor::fn_803CCF90(HitSensor* sensor) {
     HitSensor* old = F(HitSensor*, 0x790);
     if (old != nullptr) {
         old->receiveMessage(0x8F, this->getSensor("Body"));
     }
     F(HitSensor*, 0x790) = nullptr;
-    F(s32, 0x794) = v;
+    F(HitSensor*, 0x794) = sensor;
 }
 
 

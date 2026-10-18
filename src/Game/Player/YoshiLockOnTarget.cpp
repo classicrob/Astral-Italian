@@ -4,11 +4,14 @@
 #include "Game/Screen/StarPointerTarget.hpp"
 #include "Game/Util.hpp"
 namespace {
+const char* sParamFile="lockonparams";
+s32 sTimer=30;
 f32 sDistance0=1250.0f;
 f32 sDistance1=1250.0f;
 f32 sDistance2=1250.0f;
 f32 sDistance4=1250.0f;
 f32 sDistance5=1250.0f;
+s32 sTargetMax=3;
 }
 f32 getYoshiLockOnDistance(s32 type) {
     if(static_cast<u32>(type-2)<=1) return sDistance2;
@@ -49,3 +52,5 @@ void YoshiLockOnTargetControl::updateMarkPosition() {
     if(mMark) {TVec3f pos;mTarget->mActor->mStarPointerTarget->calcPosition(&pos);mMark->mTargetPosition=pos;}
 }
 void YoshiLockOnTargetControl::invalidate() { if(mTarget) mTarget->mValid=false; }
+
+#include "../src/Game/Player/YoshiLockOnManager.cpp"

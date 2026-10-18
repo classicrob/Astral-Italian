@@ -682,7 +682,7 @@ void YoshiTongueAction::fn_8041F6F0() {
     if (_A8 && mPlayer->isAnimationTerminate("ヨッシー引っ張り食べ終了")) {
         mPlayer->changeAnimation("基本", static_cast<const char*>(nullptr));
         mPlayer->fn_803B17C0();
-        mYoshi->fn_8040EE30("飲み下す");
+        mYoshi->fn_8040EE30("噛む");
         setNerve(&NrvYoshiTongueAction::State5::sInstance);
     }
 }
@@ -723,7 +723,7 @@ void YoshiTongueAction::fn_8041F590() {
             return;
         }
         if (mYoshi->mDashTimer > 0) mYoshi->fn_8040EE70(nullptr);
-        else mYoshi->fn_8040EE30("飲み下す");
+        else mYoshi->fn_8040EE30("噛む");
         setNerve(&NrvYoshiTongueAction::State5::sInstance);
     }
 }

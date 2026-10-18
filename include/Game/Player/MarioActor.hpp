@@ -240,7 +240,7 @@ public:
     void fn_803CBC50();
     void fn_803CCE60(HitSensor* a, s16 b);
     void fn_803CCF20(HitSensor* s);
-    void fn_803CCF90(s32 v);
+    void fn_803CCF90(HitSensor* sensor);
     bool fn_803CD000();
     bool fn_803CD0A0();
     bool fn_803CD180();

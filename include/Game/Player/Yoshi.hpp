@@ -24,33 +24,12 @@ public:
     virtual void calcAnim();
     virtual void appear();
     virtual void kill();
-    void fn_8040B6D0();
+    void fn_8040B6D0(const char*);
     u8 _4[0x28];
 };
-class YoshiFruitCtrl {
-public:
-    YoshiFruitCtrl(Yoshi*);
-    void fn_80415630();
-    void fn_804157E0();
-    void fn_80415800();
-    Yoshi* mActor;
-    bool mLightFruitActive;
-    bool _5;
-    u8 _6[2];
-    s32 _8;
-    s32 _C;
-    bool _10;
-    bool _11;
-    u8 _12[2];
-    s32 _14;
-    s32 _18;
-};
+#include "Game/Player/YoshiFruitCtrl.hpp"
 
-class YoshiSilhouette : public LiveActor {
-public:
-    YoshiSilhouette(Yoshi*);
-    u8 _90[8];
-};
+#include "Game/Player/YoshiSilhouette.hpp"
 class YoshiModelVisibility {
 public:
     YoshiModelVisibility(Yoshi*, YoshiAnimationModelCtrl*);
@@ -156,22 +135,7 @@ public:
 
 // SMG2 Yoshi riding system. Unknown method names retain their target addresses.
 
-class YoshiHeadCtrl {
-public:
-    YoshiHeadCtrl(YoshiModelCtrl*);
-    void fn_8041A9F0();
-    bool fn_8041AD70(s32) const;
-    void fn_8041AA70(s32, const TVec3f*);
-    void fn_8041AB50(s32);
-    void fn_8041AD20(s32);
-    void fn_8041AC40(s32);
-    YoshiModelCtrl* mModelCtrl;
-    s32 _4;
-    s32 mTargetCount;
-    bool mEnabled[2];
-    bool _E[2];
-    const TVec3f* mTargets[2];
-};
+#include "Game/Player/YoshiHeadCtrl.hpp"
 
 /// @brief The Yoshi actor (LiveActor subclass, units around 0x8040B000..0x80410000).
 class Yoshi : public LiveActor {
@@ -228,9 +192,9 @@ public:
     void fn_80410AC0();
     void fn_80410BA0();
     void fn_804117F0();
-    void fn_80411BF0();
+    bool fn_80411BF0();
     bool fn_80412270() const;
-    bool fn_804113C0() const;
+    bool fn_804113C0();
     bool fn_8040FEE0() const;
     bool fn_804100E0() const;
     bool fn_804101D0() const;
@@ -241,11 +205,12 @@ public:
     void fn_80410280();
     void fn_804103F0();
     void fn_80411A30();
+    bool fn_80411AC0() const;
     void fn_8040CBD0();
     void fn_8040CBF0();
     void fn_8040CC00();
     void fn_8040CC20();
-    void fn_8040CC30();
+    void fn_8040CC30(const char*);
     void fn_8040CC40();
     void fn_8040EF20();
     void fn_8040EF30();
@@ -298,6 +263,11 @@ public:
     void fn_80410570(f32);
     bool fn_80410810(TVec3f*) const;
     void fn_80411630();
+    bool fn_80411CB0() const NO_INLINE;
+    void fn_80411740();
+    bool fn_80411410();
+    bool fn_80411550();
+    void fn_80410350(const TVec3f&);
     void fn_804121A0(const TVec3f&, const TVec3f&);
     bool fn_80412590(f32) const;
     void fn_804124D0(f32);
@@ -362,6 +332,7 @@ public:
     /* 0x1A2 */ bool _1A2;
     /* 0x1A4 */ BreakModel* mBreakModel;
     /* 0x1A8 */ MarioMtxPos mBreakModelMtx;
+    /* 0x1DC */ u8 _1DC[4];
 };
 
 /// @brief The object owned by MarioActor that bundles the Yoshi actor, tongue action and tongue (size 0x50).
@@ -369,6 +340,11 @@ public:
 
 /// @brief Static queries of Yoshi's tuning values (they ignore their object).
 namespace YoshiParam {
+    s32 fn_8041BD50();
+    s32 fn_8041BD70();
+    s32 fn_8041BDF0();
+    f32 fn_8041BDA0();
+    f32 fn_8041BDB0();
     void fn_8041BE00(TVec3f*);
     s32 fn_8041BD40();
     s32 fn_8041BD60();

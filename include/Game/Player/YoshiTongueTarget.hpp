@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JSystem/JGeometry/TVec.hpp>
+#include "Game/Player/YoshiLockOnTarget.hpp"
 
 class LiveActor;
 class HitSensor;
@@ -28,6 +29,12 @@ public:
     bool fn_8041C030();
     void fn_8041C240(TVec3f*) const;
     LiveActor* fn_8041C4A0() const;
-    u8 _0[0x14];
+    MtxPtr fn_8041C4C0() const;
+    bool fn_8041C4E0(u32);
+    u32 mCapacity;
+    u32 mCount;
+    u32 mIndex;
+    YoshiLockOnTargetDesc* mTargets;
+    YoshiLockOnManager* mManager;
     HitSensor* mSensor;
 };

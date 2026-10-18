@@ -12,6 +12,7 @@ class WaterInfo;
 
 namespace MR {
     bool isInTowerModeCylinder(const TVec3f&, TVec3f*, TVec3f*, f32*);
+    bool isExistAreaObj(const char*);
     void calcSpherePos(TVec3f*, const AreaObj*);
     f32 getSphereRadius(const AreaObj*);
     AreaObjMgr* getAreaObjManager(const char*);

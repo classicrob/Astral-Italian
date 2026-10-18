@@ -1,3 +1,4 @@
+#include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/MapObj/CrystalCageOpa.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -6,8 +7,7 @@
 #include "Game/Util/SupportPlayUtil.hpp"
 #include "math_types.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80008F00, declared extern "C" so the reloc name matches; resolve when fn_80008F00 gets its real name in symbols.txt
-extern "C" bool fn_80008F00(const LiveActor*, const char*);
+
 // PLACEHOLDER(objects): extern "C" declaration of a target symbol with a non-C++ name (relocs must match); resolve when the symbol is renamed in symbols.txt
 extern "C" void exeFall__11CrystalCageFv(LiveActor*);
 
@@ -108,7 +108,7 @@ void CrystalCageOpa::exeBreak() {
         mBreakModel->appear();
 
         if (mIsStartAnim) {
-            if (fn_80008F00(this, pBase + 0x8)) {
+            if (MR::fn_80008F00(this, pBase + 0x8)) {
                 MR::setBckFrameAndStop(this, 0.0f);
             }
         }

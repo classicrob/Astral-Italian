@@ -37,6 +37,7 @@ class TriangleFilterBase;
 class ProjmapEffectMtxSetter;
 
 namespace MR {
+    void fn_800328A0(LiveActor*, const char*, const BckCtrlData&);
     void tryHitReactionDead(const LiveActor*);
     void tryHitReactionBreak(const LiveActor*);
     void tryHitReactionAppear(const LiveActor*);

@@ -52,6 +52,7 @@ public:
     void updateInterpoleRatio();
     void getMainAnimationTrans(u32, TVec3f*) const;
     bool isRun(const char*) const;
+    bool fn_8040F600() const NO_INLINE;
     bool isTerminate(const char*) const;
     bool isTerminate() const;
     void setDefaultAnimation(const char*);

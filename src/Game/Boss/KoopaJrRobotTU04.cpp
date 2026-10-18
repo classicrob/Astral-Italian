@@ -167,8 +167,7 @@ s32 KoopaJrRobotStateBase::updateTurn(s32 dir) {
         return 0;
     }
     s32 r = 0;
-    // MR::turnDirectionToPlayerDegreeHorizon returns bool in SMG2 (core header still says void)
-    if (reinterpret_cast< bool (*)(const LiveActor*, TVec3f*, f32) >(&MR::turnDirectionToPlayerDegreeHorizon)(mHost, &mHost->mZAxis, 2.0f)) {
+    if (MR::turnDirectionToPlayerDegreeHorizon(mHost, &mHost->mZAxis, 2.0f)) {
         r = dir;
     }
     return r;

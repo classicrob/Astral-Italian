@@ -1110,10 +1110,10 @@ namespace MR {
         turnVecToVecCosOnPlane(pA2, stack_8, (pActor->mGravity), cosDegree(a4));
     }
 
-    void turnDirectionToTargetDegreeHorizon(const LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4) {
+    bool turnDirectionToTargetDegreeHorizon(const LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4) {
         TVec3f stack_8 = rA3 - pActor->mPosition;
         vecKillElement(stack_8, pActor->mGravity, &stack_8);
-        turnVecToVecCosOnPlane(pA2, stack_8, pActor->mGravity, cosDegree(a4));
+        return turnVecToVecCosOnPlane(pA2, stack_8, pActor->mGravity, cosDegree(a4));
     }
 
     bool turnDirectionToTargetUseGroundNormalDegree(const LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4) {
@@ -1126,8 +1126,8 @@ namespace MR {
         turnDirectionToTargetDegree(pActor, pA2, *getPlayerPos(), a3);
     }
 
-    void turnDirectionToPlayerDegreeHorizon(const LiveActor* pActor, TVec3f* pA2, f32 a3) {
-        turnDirectionToTargetDegreeHorizon(pActor, pA2, *getPlayerPos(), a3);
+    bool turnDirectionToPlayerDegreeHorizon(const LiveActor* pActor, TVec3f* pA2, f32 a3) {
+        return turnDirectionToTargetDegreeHorizon(pActor, pA2, *getPlayerPos(), a3);
     }
 
     void turnDirectionFromTargetDegree(const LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4) {

@@ -138,10 +138,10 @@ namespace MR {
     void turnDirectionDegree(const LiveActor*, TVec3f*, const TVec3f&, f32);
     void turnDirectionToTarget(const LiveActor*, TVec3f*, const TVec3f&, f32);
     void turnDirectionToTargetDegree(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
-    void turnDirectionToTargetDegreeHorizon(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
+    bool turnDirectionToTargetDegreeHorizon(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
     bool turnDirectionToTargetUseGroundNormalDegree(const LiveActor*, TVec3f*, const TVec3f&, f32);
     void turnDirectionToPlayerDegree(const LiveActor*, TVec3f*, f32);
-    void turnDirectionToPlayerDegreeHorizon(const LiveActor*, TVec3f*, f32);
+    bool turnDirectionToPlayerDegreeHorizon(const LiveActor*, TVec3f*, f32);
     void turnDirectionFromTargetDegree(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
     void turnDirectionFromTargetDegreeHorizon(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
     void turnDirectionFromPlayerDegree(const LiveActor*, TVec3f*, f32);

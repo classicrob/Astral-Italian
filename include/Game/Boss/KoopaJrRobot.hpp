@@ -196,9 +196,71 @@ public:
     void exeDemo();
 };
 
+class HomingKiller;
+class FixedPosition;
+
+// SMG2 CollisionObj (0x94 bytes); only the ctor is needed here (defined in another unit)
+class CollisionObj : public LiveActor {
+public:
+    CollisionObj(LiveActor*, const char*, const char*, bool, MtxPtr, s32);
+    virtual ~CollisionObj();
+    /* 0x90 */ u32 _90;
+};
+
+// TU03: pool of homing killers shared by the launchers (no vtable, 0x10 bytes)
+class KoopaJrRobotKillerPool {
+public:
+    struct Entry {
+        HomingKiller* mKiller;
+        LiveActor* mOwner;
+    };
+
+    KoopaJrRobotKillerPool(LiveActor*, s32);              // fn_800DCDF0
+    void movementAll();                                   // fn_800DCED0
+    void killUnused();                                    // fn_800DCF40
+    HomingKiller* allocate(LiveActor*);                   // fn_800DCFD0
+    bool release(LiveActor*, HomingKiller*);              // fn_800DD090
+    bool isShotEnd(HitSensor*);                           // fn_800DD140
+    bool isReserved(HomingKiller*) const;                 // fn_800DD1D0
+    LiveActor* getOwner(HomingKiller*) const;             // fn_800DD220
+    void releaseFinished();                               // fn_800DD260
+
+    /* 0x0 */ LiveActor* mHost;
+    /* 0x4 */ Entry* mEntries;
+    /* 0x8 */ s32 mNum;
+    /* 0xC */ s32 mCursor;
+};
+
+// TU03: robot killer launcher
+class KoopaJrRobotKillerLauncher : public LiveActor {
+public:
+    KoopaJrRobotKillerLauncher(KoopaJrRobot*, s32, FixedPosition*);  // fn_800DD2F0
+    virtual ~KoopaJrRobotKillerLauncher();                           // fn_800DDA00
+    virtual void init(const JMapInfoIter&);                          // fn_800DD360
+    virtual void appear();                                           // fn_800DD410
+    virtual void kill();                                             // fn_800DD450
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);       // fn_800DD840
+
+    bool releaseKiller();                    // fn_800DD500
+    void startShot();                        // fn_800DD520
+    void updateTransform();                  // fn_800DD5E0
+    static f32 normalizeAngle(f32);          // fn_800DD7A0
+    bool isShootable();                      // fn_800DD7F0
+    bool launch(const TVec3f&, const TVec3f&);  // fn_800DD850
+    HomingKiller* getKiller() const;         // fn_800DD990
+    void exeShot();                          // fn_800DD9B0
+
+    /* 0x90 */ KoopaJrRobot* mHost;
+    /* 0x94 */ s32 mType;
+    /* 0x98 */ HomingKiller* mMagnumKiller;
+    /* 0x9C */ HomingKiller* mKiller;
+    /* 0xA0 */ FixedPosition* mFixedPosition;
+};
+
 class KoopaJrRobotSeq : public NerveExecutor {
 public:
     KoopaJrRobotSeq(KoopaJrRobot*);  // TU02 fn_800DC310
+    virtual ~KoopaJrRobotSeq();      // fn_800DCC10
     void fn_800DC380();
     void fn_800DC6B0();
     void fn_800DC740();
@@ -211,6 +273,17 @@ public:
     void fn_800DC9E0();
     void fn_800DC870();
     void fn_800DC880();
+    void fn_800DC8E0();
+    void exeA();  // fn_800DCA00
+    void exeB();  // fn_800DCAD0
+    void exeC();  // fn_800DCB70
+
+    /* 0x08 */ KoopaJrRobot* mHost;
+    /* 0x0C */ KoopaJrRobotKillerPool* mPool;
+    /* 0x10 */ KoopaJrRobotKillerLauncher* mMagnumLauncher;
+    /* 0x14 */ KoopaJrRobotKillerLauncher* mLaunchers[8];
+    /* 0x34 */ bool mFlagA;
+    /* 0x35 */ bool mFlagB;
 };
 
 class KoopaJrRobotPart : public NerveExecutor {
@@ -343,6 +416,9 @@ public:
 
     void killParts();
     void fn_800DB9C0();
+    HomingKiller* allocKiller(LiveActor*);              // fn_800DB990
+    bool releaseKiller(LiveActor*, HomingKiller*);      // fn_800DB9A0
+    LiveActor* getKillerOwner(HomingKiller*);           // fn_800DBCB0
     bool fn_800DB9B0(HitSensor*);
     bool fn_800DEB50(const char*, const TVec3f&);
     bool fn_800DBB30(f32);

@@ -38,7 +38,6 @@ extern "C" {
 class WorldMapResultCommand;
 extern "C" {
     void fn_804F0700(WorldMapResultCommand*);
-    void fn_804F0810(WorldMapResultCommand*);
     void fn_804F08C0(WorldMapResultCommand*);
     void fn_804F0920(WorldMapResultCommand*);
     void fn_804F0BA0(WorldMapResultCommand*, const char*, s32);
@@ -60,6 +59,7 @@ extern "C" {
 
 class WorldMapResultCommand;
 class LayoutActor;
+class WorldMapResultWorld;
 
 /// Layout used by the comet-appear state (0x44 bytes).
 class WorldMapResultCometLayout : public LayoutActor {
@@ -81,12 +81,23 @@ public:
     u8 _90[4];
 };
 
-/// Opaque helper object (0x404 bytes) of the route-open state; its count lives at 0x400.
+/// One step of a route: two map nodes, the step in which it opens and the direction.
+struct WorldMapResultEdge {
+    s32 mFrom;
+    s32 mTo;
+    s32 mStep;
+    u8 mReverse;
+    u8 _D[3];
+};
+
+/// Helper object (0x404 bytes) of the route-open state; its count lives at 0x400.
 class WorldMapResultRoute {
 public:
     WorldMapResultRoute();
 
-    u8 _0[0x400];
+    void collect(WorldMapResultWorld*);
+
+    WorldMapResultEdge mEdges[64];
     s32 mCount;
 };
 
@@ -94,14 +105,59 @@ extern "C" {
     void fn_804F0970(WorldMapResultCommand*, s32, WorldMapResultRoute*);
     void fn_804F09C0(WorldMapResultCommand*, s32, WorldMapResultRoute*);
     void fn_804F0A40(WorldMapResultCommand*, s32, WorldMapResultRoute*);
-    bool fn_804F0B00(WorldMapResultCommand*, s32, WorldMapResultRoute*, s32);
     bool fn_804F0B20(WorldMapResultCommand*, s32, WorldMapResultRoute*);
-    void fn_804F0EE0(WorldMapResultCommand*, s32);
+    bool fn_804F0EE0(WorldMapResultCommand*, s32);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 // Classes of this translation unit
 // ---------------------------------------------------------------------------------------------------------------
+
+/// One node (island/point) of the result map (0x14 bytes).
+struct WorldMapResultNode {
+    TVec3f mPos;
+    u8 _C[4];
+    u8 mIsHidden;
+    u8 mFlag11;
+    u8 mIsValid;
+    u8 _13;
+};
+
+/// Node table of a world: count at 4, nodes at 8.
+class WorldMapResultMapData {
+public:
+    bool isNodeValid(s32) const NO_INLINE;
+    bool isNodeHidden(s32) const NO_INLINE;
+
+    /* 0x00 */ void* _0;
+    /* 0x04 */ s32 mNum;
+    /* 0x08 */ WorldMapResultNode* mNodes;
+};
+
+class WorldMapResultWorld;
+class WorldMapResultBox;
+
+/// Breadth-first path table between the nodes of a world.
+class WorldMapResultPathFinder {
+public:
+    struct Entry {
+        Entry();
+
+        s32 mDistance;
+        s32* mPath;
+    };
+
+    WorldMapResultPathFinder(WorldMapResultWorld*) NO_INLINE;
+
+    void update(s32);
+    bool isReachable(s32) const NO_INLINE;
+    s32 getDistance(s32) const NO_INLINE;
+    s32 getPath(s32, s32) const NO_INLINE;
+    void allocate();
+
+    /* 0x00 */ WorldMapResultWorld* mWorld;
+    /* 0x04 */ Entry* mEntries;
+};
 
 /// One world of the result map ("WorldMapXX.arc"). Methods are defined in a later part of the unit.
 class WorldMapResultWorld {
@@ -114,14 +170,78 @@ public:
     void finish();
     void disappear();
     void fn_EF190() NO_INLINE {
-        fn_804EAB40(_C);
+        fn_804EAB40(mWorldData);
     }
 
+    JMapInfo* createParser(const char*) const;
+    s32 getNodeNum() const NO_INLINE;
+    WorldMapResultNode* getNode(s32) const;
+    bool isNodeValid(s32) const NO_INLINE;
+    bool isNodeHidden(s32) const;
+    bool isNodeFlag11(s32) const;
+    bool isLinked(s32, s32) const NO_INLINE;
+    bool isLinked14(s32, s32) const NO_INLINE;
+    bool isLinkedDirect(s32, s32) const;
+    bool isPathReachable(s32) const;
+    void resetLinks();
+    void resetLinks2();
+    bool isNodeOpened(s32) const;
+    void updatePaths(s32);
+    s32 getPathDistance(s32) const;
+    s32 getPathNode(s32, s32) const;
+    bool setupNode(s32, s32);
+    void refreshNode(s32);
+    void refreshNodeFull(s32);
+    bool isNodeNotReady(s32) const;
+    bool hasWorldData(s32) const NO_INLINE;
+    bool hasWorldDataAndComet(s32) const NO_INLINE;
+    bool isWorldDataType(s32, s32) const NO_INLINE;
+    bool isWorldDataType3(s32) const;
+    bool isWorldDataType4(s32) const;
+    bool isWorldDataType5(s32) const;
+    bool callU14_6D0(s32) const;
+    void callU14_450(s32);
+    void callU14_860(s32);
+    void callU14_8A0(s32);
+    void callU14_620(s32);
+    void callU14_2B0(s32);
+    void callU14_310(s32);
+    void setLinkProgress(s32, s32, f32);
+    void setLinkProgressFull(s32, s32);
+    s32 getWorldId() const;
+    void setupRouteSteps(WorldMapResultRoute*, s32);
+    void refreshRouteComet();
+    void fn2ED0();
+    void fn2F00();
+    void setupRoute(WorldMapResultRoute*);
+    void setupRouteFromNode(WorldMapResultRoute*, s32);
+    bool updateRouteStep(WorldMapResultRoute*, s32, f32);
+    bool isRouteNotHeld(WorldMapResultRoute*) const;
+
     /* 0x00 */ s32 mWorldId;
-    /* 0x04 */ s32 _4;
-    /* 0x08 */ s32 _8;
-    /* 0x0C */ void* _C;
-    /* 0x10 */ s32 _10[4];
+    /* 0x04 */ WorldMapResultMapData* mMapData;
+    /* 0x08 */ void* mLinks;
+    /* 0x0C */ void* mWorldData;
+    /* 0x10 */ s32 _10;
+    /* 0x14 */ void* mUnit14;
+    /* 0x18 */ void* mUnit18;
+    /* 0x1C */ WorldMapResultPathFinder* mPathFinder;
+};
+
+/// Axis aligned bounding box of the map: min at 0, max at 0xC.
+class WorldMapResultBox {
+public:
+    WorldMapResultBox();
+
+    void extend(const TVec3f&) NO_INLINE;
+    void getCenter(TVec3f*) const NO_INLINE;
+    void getCameraPos(TVec3f*) const NO_INLINE;
+    f32 calcCameraDistance() const NO_INLINE;
+    void extendByRoute(WorldMapResultWorld*, WorldMapResultRoute*);
+    void extendByWorld(WorldMapResultWorld*);
+
+    TVec3f mMin;
+    TVec3f mMax;
 };
 
 class WorldMapResultDraw : public NameObj {
@@ -282,3 +402,7 @@ public:
 };
 
 s32 getResultEndStep() NO_INLINE;
+
+// TU02 helpers (take the nerve rate in f1)
+bool updateTicoRoad(WorldMapResultCommand*, f32);
+bool updateRouteExtend(WorldMapResultCommand*, s32, WorldMapResultRoute*, s32, f32);

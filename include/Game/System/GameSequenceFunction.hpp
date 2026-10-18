@@ -9,6 +9,7 @@ namespace GameSequenceFunction {
     void collectTicoCoinInStage();
     bool isCollectTicoCoinInStage();
     bool isCollectTicoCoinSaved();
+    bool isPadMode();
     bool isPadModeSuperDreamer();
     bool tryNANDErrorSequence(s32);
     void requestChangeScenarioSelect(const char*);
@@ -18,6 +19,13 @@ namespace GameSequenceFunction {
 };
 
 // Merged from Petari (core lane, symbols.txt-verified)
+
+namespace GameSequenceFunction {
+    void requestChangeStageWorldMap();
+    void startGameDataSaveSequence(bool, bool, bool);
+    bool isActiveSaveDataHandleSequence();
+};
+
 
 namespace GameSequenceFunction {
     void notifyToGameSequenceProgressToEndScene();

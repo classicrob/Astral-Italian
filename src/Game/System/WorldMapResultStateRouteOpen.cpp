@@ -40,8 +40,8 @@ bool WorldMapResultStateRouteOpen::isXXX() const {
 
 void WorldMapResultStateRouteOpen::exeExtend() {
     WorldMapResultCommand* pHost = mHost;
-    MR::calcNerveRate(this, 30);
-    bool done = fn_804F0B00(pHost, mWorldId, mRoute, mCount);
+    f32 rate = MR::calcNerveRate(this, 30);
+    bool done = updateRouteExtend(pHost, mWorldId, mRoute, mCount, rate);
     MR::startActionSound(mHost->mRocket, "RoadExtend", -1, -1, -1);
 
     if (MR::isGreaterStep(this, 30)) {

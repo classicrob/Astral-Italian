@@ -46,8 +46,8 @@ void WorldMapResultStateCreateTico::exeOpen() {
 
 void WorldMapResultStateCreateTico::exeExtend() {
     WorldMapResultCommand* pHost = mHost;
-    MR::calcNerveRate(this, 90);
-    fn_804F0810(pHost);
+    f32 rate = MR::calcNerveRate(this, 90);
+    updateTicoRoad(pHost, rate);
     MR::startActionSound(mHost->mRocket, "RoadExtend", -1, -1, -1);
 
     if (MR::isStep(this, 90)) {

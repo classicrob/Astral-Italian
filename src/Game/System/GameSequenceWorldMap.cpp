@@ -1,0 +1,74 @@
+#include "Game/System/GameSequenceWorldMap.hpp"
+
+#include "Game/LiveActor/Nerve.hpp"
+#include "Game/NameObj/NameObj.hpp"
+#include "Game/System/GameSequenceInGame.hpp"
+#include "Game/System/PlayResultWorldMapHolder.hpp"
+#include "Game/Util/ActorStateUtil.hpp"
+#include "Game/Util/NerveUtil.hpp"
+#include "Game/Util/ScreenUtil.hpp"
+
+extern "C" {
+    s32 fn_804D8630();
+    s32 fn_804D78F0();
+    void fn_804D8620();
+    s32 fn_80059330();
+    void fn_804B4220(void*, s32);
+};
+
+namespace NrvGameSequenceWorldMap {
+    void GameSequenceWorldMapNrvClose::execute(Spine* pSpine) const {
+        reinterpret_cast< GameSequenceWorldMap* >(pSpine->mExecutor)->exeClose();
+    }
+    void GameSequenceWorldMapNrvWait::execute(Spine* pSpine) const {
+        reinterpret_cast< GameSequenceWorldMap* >(pSpine->mExecutor)->exeWait();
+    }
+    void GameSequenceWorldMapNrvEnd::execute(Spine* pSpine) const {
+        reinterpret_cast< GameSequenceWorldMap* >(pSpine->mExecutor)->exeEnd();
+    }
+
+    GameSequenceWorldMapNrvClose GameSequenceWorldMapNrvClose::sInstance ATTRIBUTE_WEAK;
+    GameSequenceWorldMapNrvWait GameSequenceWorldMapNrvWait::sInstance ATTRIBUTE_WEAK;
+    GameSequenceWorldMapNrvEnd GameSequenceWorldMapNrvEnd::sInstance ATTRIBUTE_WEAK;
+};  // namespace NrvGameSequenceWorldMap
+
+GameSequenceWorldMap::GameSequenceWorldMap(GameSequenceInGame* pHost) : ActorStateBase< GameSequenceInGame >("GameSequenceWorldMap", pHost) {
+    mPlayResultHolder = new PlayResultWorldMapHolder();
+    mNameObj = new NameObj("\x83\x8f\x81[\x83\x8b\x83h\x83}\x83""b\x83v\x83""f\x83\x82\x8aJ\x8en\x8e\xd2");
+}
+
+GameSequenceWorldMap::~GameSequenceWorldMap() {
+}
+
+void GameSequenceWorldMap::init() {
+    initNerve(GET_NERVE_DIRECT(NrvGameSequenceWorldMap, GameSequenceWorldMapNrvClose), 0);
+}
+
+void GameSequenceWorldMap::appear() {
+    mIsDead = false;
+    setNerve(GET_NERVE_DIRECT(NrvGameSequenceWorldMap, GameSequenceWorldMapNrvClose));
+}
+
+PlayResultWorldMapHolder* GameSequenceWorldMap::getPlayResultHolder() const {
+    return mPlayResultHolder;
+}
+
+void GameSequenceWorldMap::exeClose() {
+    if (fn_804D8630() != 0) {
+        if (fn_804D78F0() != 0) {
+            MR::forceCloseSystemWipeFade();
+        } else {
+            MR::forceCloseSystemWipeWhiteFade();
+        }
+        setNerve(GET_NERVE_DIRECT(NrvGameSequenceWorldMap, GameSequenceWorldMapNrvWait));
+    }
+}
+
+void GameSequenceWorldMap::exeWait() {
+    if (fn_80059330() != 0) {
+        setNerve(GET_NERVE_DIRECT(NrvGameSequenceWorldMap, GameSequenceWorldMapNrvEnd));
+    }
+}
+
+void GameSequenceWorldMap::exeEnd() {
+}

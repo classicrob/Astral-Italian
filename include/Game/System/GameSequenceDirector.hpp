@@ -22,5 +22,6 @@ public:
     /* 0x00 */ GameDataTemporaryInGalaxy* mGameDataTemporaryInGalaxy;
     /* 0x04 */ GameSequenceProgress* mGameSequenceProgress;
     /* 0x08 */ SaveDataHandleSequence* mSaveDataHandleSequence;
-    /* 0x0C */ NWC24Messenger* mNWC24Messenger;
+    /* 0x0C */ class StarPointerOnOffController* mStarPointerOnOffController;  // SMG2
+    /* 0x10 */ NWC24Messenger* mNWC24Messenger;
 };

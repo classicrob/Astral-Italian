@@ -18,13 +18,13 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include "Game/Util/StringUtil.hpp"
 
+namespace GameSequenceFunction {
+    SaveDataHandleSequence* getSaveDataHandleSequence() NO_INLINE;
+};
+
 namespace {
     GameSequenceProgress* getGameSequenceProgress() NO_INLINE {
         return SingletonHolder< GameSystem >::get()->mSequenceDirector->mGameSequenceProgress;
-    }
-
-    SaveDataHandleSequence* getSaveDataHandleSequence() NO_INLINE {
-        return SingletonHolder< GameSystem >::get()->mSequenceDirector->mSaveDataHandleSequence;
     }
 
     GameDataTemporaryInGalaxy* getGameDataTemporaryInGalaxy() {
@@ -37,6 +37,10 @@ namespace {
 };  // namespace
 
 namespace GameSequenceFunction {
+    SaveDataHandleSequence* getSaveDataHandleSequence() {
+        return SingletonHolder< GameSystem >::get()->mSequenceDirector->mSaveDataHandleSequence;
+    }
+
     void activateGalaxyCometScheduler() {
         ::getGameSequenceProgress()->getGalaxyCometScheduler()->activate();
     }
@@ -154,7 +158,7 @@ namespace GameSequenceFunction {
             return false;
         }
 
-        GameDataHolder* pGameDataHolder = ::getSaveDataHandleSequence()->getBackupUserFile()->mGameDataHolder;
+        GameDataHolder* pGameDataHolder = GameSequenceFunction::getSaveDataHandleSequence()->getBackupUserFile()->mGameDataHolder;
 
         return pGameDataHolder->hasPowerStar(getClearedStageName(), getClearedPowerStarId());
     }
@@ -200,59 +204,59 @@ namespace GameSequenceFunction {
     }
 
     void startPreLoadSaveDataSequence() {
-        ::getSaveDataHandleSequence()->startPreLoad();
+        GameSequenceFunction::getSaveDataHandleSequence()->startPreLoad();
     }
 
     void startTotalMailSizeSaveSequence() {
-        ::getSaveDataHandleSequence()->startSaveTotalMailSize();
+        GameSequenceFunction::getSaveDataHandleSequence()->startSaveTotalMailSize();
     }
 
     void startGameDataLoadSequence(int userFileIndex, bool isPlayerMario) {
-        ::getSaveDataHandleSequence()->startLoad(userFileIndex, isPlayerMario);
+        GameSequenceFunction::getSaveDataHandleSequence()->startLoad(userFileIndex, isPlayerMario);
     }
 
     void startCreateUserFileSequence(int userFileIndex) {
-        ::getSaveDataHandleSequence()->startCreateUserFile(userFileIndex);
+        GameSequenceFunction::getSaveDataHandleSequence()->startCreateUserFile(userFileIndex);
     }
 
     void startDeleteUserFileSequence(int userFileIndex) {
-        ::getSaveDataHandleSequence()->startDeleteUserFile(userFileIndex);
+        GameSequenceFunction::getSaveDataHandleSequence()->startDeleteUserFile(userFileIndex);
     }
 
     void storeMiiOrIconIdUserFileSequence(int userFileIndex, const void* pMiiId, const u32* pIconId) {
-        ::getSaveDataHandleSequence()->storeMiiOrIconId(userFileIndex, pMiiId, pIconId);
+        GameSequenceFunction::getSaveDataHandleSequence()->storeMiiOrIconId(userFileIndex, pMiiId, pIconId);
     }
 
     void storeCopyUserFileSequence(int userFileIndexDst, int userFileIndexSrc) {
-        ::getSaveDataHandleSequence()->storeCopyUserFile(userFileIndexDst, userFileIndexSrc);
+        GameSequenceFunction::getSaveDataHandleSequence()->storeCopyUserFile(userFileIndexDst, userFileIndexSrc);
     }
 
     void startSaveAllUserFileSequence() {
-        ::getSaveDataHandleSequence()->startSaveAll();
+        GameSequenceFunction::getSaveDataHandleSequence()->startSaveAll();
     }
 
     bool isActiveSaveDataHandleSequence() {
-        return ::getSaveDataHandleSequence()->isActive();
+        return GameSequenceFunction::getSaveDataHandleSequence()->isActive();
     }
 
     bool isSuccessSaveDataHandleSequence() {
-        return ::getSaveDataHandleSequence()->_24 == 2;
+        return GameSequenceFunction::getSaveDataHandleSequence()->_24 == 2;
     }
 
     void restoreUserFile(UserFile* pUserFile, int userFileIndex) {
-        ::getSaveDataHandleSequence()->restoreUserFile(pUserFile, userFileIndex);
+        GameSequenceFunction::getSaveDataHandleSequence()->restoreUserFile(pUserFile, userFileIndex);
     }
 
     void restoreUserFile(UserFile* pUserFile, int userFileIndex, bool isPlayerMario) {
-        ::getSaveDataHandleSequence()->restoreUserFile(pUserFile, userFileIndex, isPlayerMario);
+        GameSequenceFunction::getSaveDataHandleSequence()->restoreUserFile(pUserFile, userFileIndex, isPlayerMario);
     }
 
     bool tryNANDErrorSequence(s32 code) {
-        return ::getSaveDataHandleSequence()->tryNANDErrorSequence(code);
+        return GameSequenceFunction::getSaveDataHandleSequence()->tryNANDErrorSequence(code);
     }
 
     void reserveUserName(const wchar_t* pUserName) {
-        ::getSaveDataHandleSequence()->getCurrentUserFile()->setUserName(pUserName);
+        GameSequenceFunction::getSaveDataHandleSequence()->getCurrentUserFile()->setUserName(pUserName);
     }
 
     void requestPrepareResetNWC24() {

@@ -672,11 +672,12 @@ Game/Util/BellyDragonTU06.cpp:
 	.ctors      start:0x80643D84 end:0x80643D88
 
 Game/Util/BossBussun.cpp:
-	.text       start:0x80097F50 end:0x8009AFB0
+	.text       start:0x80097F50 end:0x80099AF0
 	.ctors      start:0x80643D98 end:0x80643D9C
 
-Game/Util/JointControlDelegator.cpp:
-	.text       start:0x8009AFB0 end:0x8009B0D0
+Game/Util/BossBussunShot.cpp:
+	.text       start:0x80099AF0 end:0x8009B240
+	.ctors      start:0x80643D9C end:0x80643DA0
 
 Game/Util/BossBussunStateChangeSide.cpp:
 	.text       start:0x8009B240 end:0x8009BBA0
@@ -687,7 +688,8 @@ Game/Util/BossBussunStateDamage.cpp:
 	.ctors      start:0x80643DA4 end:0x80643DA8
 
 Game/Util/BossBussunStateDash.cpp:
-	.text       start:0x8009C040 end:0x8009C110
+	.text       start:0x8009C040 end:0x8009C4E0
+	.ctors      start:0x80643DA8 end:0x80643DAC
 
 Game/Util/BossBussunStateDemo.cpp:
 	.text       start:0x8009C4E0 end:0x8009C8B0

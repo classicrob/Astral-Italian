@@ -399,7 +399,7 @@ void StemFruitChild::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayerOrRide(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         if (isNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvWait))) {
             if (mParent->getParam()->mFlag11 != 0) {
-                if (YoshiFunction::tryYoshiPushEat(reinterpret_cast<YoshiLockOnTarget*>(const_cast<StemFruitParam*>(mParent->getParam())))) {
+                if (YoshiFunction::tryYoshiPushEat()) {
                     return;
                 }
             }
@@ -442,7 +442,7 @@ bool StemFruitChild::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSens
         return true;
     }
     if (mParent->getParam()->mFlag11 != 0) {
-        if (YoshiFunction::tryYoshiPushEat(reinterpret_cast<YoshiLockOnTarget*>(const_cast<StemFruitParam*>(mParent->getParam())))) {
+        if (YoshiFunction::tryYoshiPushEat()) {
             if (MR::isMsgSupportTicoSpin(msg)) {
                 return mParent->tryStartSpin();
             }

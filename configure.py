@@ -1519,7 +1519,6 @@ config.libs = [
             Object(NonMatching, "Game/MapObj/MysteryMountainPlanet.cpp"),
             Object(NonMatching, "Game/MapObj/NeedleTrap.cpp"),
             Object(NonMatching, "Game/MapObj/NrvFlowerBlossomRelayPlanet.cpp"),
-            Object(NonMatching, "Game/MapObj/NrvGliderBalloon.cpp"),
             Object(NonMatching, "Game/MapObj/NrvHipDropTimerSwitch.cpp"),
             Object(NonMatching, "Game/MapObj/NrvLavaSeparateWaterfall.cpp"),
             Object(NonMatching, "Game/MapObj/NrvLightFruitClipArea.cpp"),

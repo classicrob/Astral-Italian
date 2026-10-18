@@ -710,3 +710,7 @@ namespace MR {
 namespace MR {
     void rotateQuatLocalYDegree(TQuat4f*, const TQuat4f&, f32);
 }
+
+namespace MR {
+    void func_8003DEF0(f32*, f32*, const TVec3f*, const TVec3f*, TVec3f*);
+}

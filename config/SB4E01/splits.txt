@@ -4447,10 +4447,8 @@ Game/MapObj/GliderCometMedalCage.cpp:
 	.ctors      start:0x80644400 end:0x80644404
 
 Game/MapObj/GliderBalloon.cpp:
-	.text       start:0x802A9B40 end:0x802AA3A0
-
-Game/MapObj/NrvGliderBalloon.cpp:
-	.text       start:0x802AA440 end:0x802AA4E0
+	.text       start:0x802A9B40 end:0x802AA4E0
+	.ctors      start:0x80644404 end:0x80644408
 
 Game/MapObj/GliderTree.cpp:
 	.text       start:0x802AA4E0 end:0x802AA760
@@ -5287,11 +5285,11 @@ Game/MapObj/YoshiBlock.cpp:
 	.ctors      start:0x80644660 end:0x80644664
 
 Game/MapObj/YoshiCapture.cpp:
-	.text       start:0x8032EDE0 end:0x8032F740
+	.text       start:0x8032EDE0 end:0x8032F720
 	.ctors      start:0x80644664 end:0x80644668
 
 Game/MapObj/YoshiFruit.cpp:
-	.text       start:0x8032F740 end:0x8032F950
+	.text       start:0x8032F720 end:0x8032F950
 	.ctors      start:0x80644668 end:0x80644670
 
 Game/MapObj/MapParts.cpp:

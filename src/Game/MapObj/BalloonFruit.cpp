@@ -12,7 +12,7 @@ class YoshiLockOnTarget;
 
 namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
-    bool tryYoshiPushEat(YoshiLockOnTarget*);
+    bool tryYoshiPushEat();
 }
 
 namespace MR {
@@ -303,7 +303,7 @@ void BalloonFruit::control() {
 
 void BalloonFruit::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayerOrRide(pReceiver)) {
-        if (isNerveYoshiAttackable() && YoshiFunction::tryYoshiPushEat(mYoshiLockOn) == 0) {
+        if (isNerveYoshiAttackable() && YoshiFunction::tryYoshiPushEat() == 0) {
             MR::sendMsgPush(pReceiver, pSender);
         }
     }
@@ -335,7 +335,7 @@ bool BalloonFruit::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
         setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvBreak));
         return true;
     }
-    if (YoshiFunction::tryYoshiPushEat(mYoshiLockOn)) {
+    if (YoshiFunction::tryYoshiPushEat()) {
         if (MR::isMsgSupportTicoSpin(msg)) {
             return tryStartSpin();
         }

@@ -10,7 +10,7 @@ class YoshiLockOnTarget;
 namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
     void tryYoshiPull(YoshiLockOnTarget*);
-    bool tryYoshiPushEat(YoshiLockOnTarget*);
+    bool tryYoshiPushEat();
 }
 
 namespace MR {

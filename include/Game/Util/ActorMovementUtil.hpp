@@ -231,3 +231,7 @@ class ActorPoseTQ;
 namespace MR {
     void initActorPoseTQ(ActorPoseTQ*, const LiveActor*);
 }
+
+namespace MR {
+    void setRotationFromQuat(LiveActor*, const TQuat4f&);
+}

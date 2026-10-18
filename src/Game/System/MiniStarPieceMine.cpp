@@ -1,5 +1,6 @@
 #pragma auto_inline off
 #include "Game/System/MiniPartsActors.hpp"
+#include "Game/MapObj/StarPieceTracking.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
@@ -8,8 +9,6 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 
-// PLACEHOLDER(core): fn_80319950 is the constructor of the 0xD8-byte star piece child ("追尾スターピース"); its class is not named yet. Resolve when that class has a header.
-extern "C" NameObj* fn_80319950(NameObj*, const char*);
 // PLACEHOLDER(core): fn_80319C80 is the per-child attack (piece, position, up vector, 10.0f, 100.0f); owner unnamed. Resolve when named.
 extern "C" void fn_80319C80(NameObj*, const TVec3f*, const TVec3f*, f32, f32);
 // PLACEHOLDER(core): fn_804E8AF0 / fn_804E8B00 are unnamed helpers in the WorldMapModel unit (0x804E8AF0 / 0x804E8B00). Resolve when named there.
@@ -33,10 +32,7 @@ void MiniStarPieceMine::init(const JMapInfoIter& rIter) {
 
     mPieces = new NameObj*[8];
     for (s32 idx = 0; idx < 8; idx++) {
-        NameObj* pPiece = (NameObj*)::operator new(0xD8);
-        if (pPiece != nullptr) {
-            pPiece = fn_80319950(pPiece, "追尾スターピース");
-        }
+        NameObj* pPiece = new StarPieceTrackingPiece("追尾スターピース");
         mPieces[idx] = pPiece;
         mPieces[idx]->initWithoutIter();
     }

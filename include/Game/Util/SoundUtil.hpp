@@ -207,3 +207,4 @@ namespace MR {
 namespace MR {
     void startPlayerSoundForYoshiMode(const char*, const char*, s32);
 }
+namespace MR { void fn_8005AE10(LiveActor*); }

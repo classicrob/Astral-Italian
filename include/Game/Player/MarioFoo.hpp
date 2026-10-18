@@ -33,7 +33,8 @@ public:
     void spin();
     f32 calcRingAcc();
 
-    /* 0x11 */ char _pad11[3];  // SMG2: 3 bytes before _11 (target stb/lbz 0x14)
+    /* 0x11 */ u8 _pad11;
+    /* 0x12 */ u16 _A8;
     /* 0x14 */ u8 _11;
     /* 0x15 */ u8 _12;
     /* 0x16 */ char _pad16[2];  // SMG2: align _14 (+4 total vs SMG1)
@@ -62,10 +63,9 @@ public:
     /* 0x74 */ f32 _70;
     /* 0x78 */ f32 _74;
     /* 0x7C */ TMtx34f _78;
-    /* 0xAC */ u16 _A8;
-    /* 0xAE */ u16 _AA;
-    /* 0xB0 */ u16 _AC;
-    /* 0xB2 */ u8 _AE;
+    /* 0xAC */ u16 _AA;
+    /* 0xAE */ u16 _AC;
+    /* 0xB0 */ u8 _AE;
     /* 0xB4 */ TVec3f _B0[64];
     /* 0x3B4 */ TVec3f _3B0[64];
     /* 0x6B4 */ u32 _6B0;

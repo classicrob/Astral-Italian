@@ -173,12 +173,12 @@ s32 MarioActor::fn_803B9A70() {
     return 0;
 }
 
-s32 MarioActor::fn_803B9A90() {
+f32 MarioActor::fn_803B9A90() {
     YoshiHolder* p = F(YoshiHolder*, 0xEE4);
     if (p != nullptr) {
         return p->fn_8041BB50();
     }
-    return 0;
+    return 0.0f;
 }
 
 bool MarioActor::fn_803B9AB0() {
@@ -2247,4 +2247,33 @@ void J3DModelX::setDynamicDL(u8* dl, u32 size) {
     }
     FP(this, u8*, 0x1B8) = dl;
     FP(this, u32, 0x1BC) = size;
+}
+
+// NONMATCHING: Matrix-address reuse, equivalent bit tests, and boolean-store scheduling.
+void MarioActor::movement() {
+    F(u32, 0x754) = 0;
+    ++_378;
+    _1E1 = false;
+    F(u8, 0x1070) = 0;
+    F(f32, 0x79C) = 0.7853981852531433f;
+    F(s32, 0x798) = 0;
+    PSMTXCopy(F(TMtx34f, 0x224).toMtxPtr(), F(TMtx34f, 0x1F4).toMtxPtr());
+    PSMTXCopy(MR::getCameraViewMtx(), F(TMtx34f, 0x224).toMtxPtr());
+    updateCameraInfo();
+    mMarioAnim->fn_803DFAC0();
+    mMarioAnim->fn_803DFB70();
+    LiveActor::movement();
+    fn_803C1940();
+    if (mMario->mDrawStates_WORD & 0x20) {
+        mMario->mDrawStates_WORD &= ~0x20;
+        mMarioAnim->update();
+    }
+    mMario->recordRelativePosition();
+    updateTransForCamera();
+    calcAnimInMovement();
+    _935 = false;
+    mMario->_2D0 = 0.0f;
+    mFrontHistory->update();
+    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->mRideModelVisible = fn_803D9430() != 0;
+    F(MarioSensorSlots*, 0x108C)->fn_803DAB90();
 }

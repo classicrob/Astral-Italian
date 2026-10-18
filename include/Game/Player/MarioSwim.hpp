@@ -287,7 +287,7 @@ public:
     void forceStopSpin();
     void resetAndFixPose();
     f32 checkUnderWaterFull(const TVec3f&);
-    void hitHead(const HitInfo*);
+    void hitHead(const Triangle*, const TVec3f&);
 
     f32 calcWaterEdgeDist() const {
         if (isOnWaterSurface()) {

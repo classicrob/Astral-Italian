@@ -136,6 +136,7 @@ namespace Collision {
     s32 checkStrikeBallToMapWithMovingReaction(const TVec3f&, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeBallToMapWithThickness(const TVec3f&, f32, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeLineToMap(const TVec3f&, const TVec3f&, s32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
+    s32 checkStrikeLineToDashYoshiStepAndMap(const TVec3f&, const TVec3f&, s32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeLineToSunshade(const TVec3f&, const TVec3f&, s32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     const HitInfo* getStrikeInfoMap(u32);
     s32 checkStrikeBallToDashYoshiStepAndMap(const TVec3f&, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);

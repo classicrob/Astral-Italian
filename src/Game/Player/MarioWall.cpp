@@ -748,15 +748,15 @@ void Mario::tryWallPunch() {
             playSound("声スピンキャンセル");
             playEffectTrans("壁ヒット", getWallPos());
             if (getPlayer()->mMovementStates._8) {
-                sendPunch(mFrontWallTriangle->mSensor, true);
+                sendPunch(mFrontWallTriangle->mSensor, mFrontWallTriangle, true);
             }
 
             if (getPlayer()->mMovementStates._19) {
-                sendPunch(mBackWallTriangle->mSensor, true);
+                sendPunch(mBackWallTriangle->mSensor, mBackWallTriangle, true);
             }
 
             if (getPlayer()->mMovementStates._1A) {
-                sendPunch(mSideWallTriangle->mSensor, true);
+                sendPunch(mSideWallTriangle->mSensor, mSideWallTriangle, true);
             }
 
             mActor->_EF6 = 30;

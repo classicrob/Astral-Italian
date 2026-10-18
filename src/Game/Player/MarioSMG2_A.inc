@@ -383,19 +383,17 @@ bool Mario::fn_803902B0(HitSensor* arg1) {
     return r;
 }
 
-bool Mario::fn_80391260(Triangle* arg1) {
-    if (!((FLD<u32>(this, 0x10) >> 8) & 1)) {
-        return false;
+bool Mario::fn_80391260(const Triangle* triangle) {
+    if ((mMovementStates_HIGH_WORD >> 8) & 1) {
+        if (MR::abs(triangle->getNormal(0)->dot(mSwimSideVec694)) > 0.707f) return true;
     }
-    f32 d = arg1->getNormal(0)->dot(FLD<TVec3f>(this, 0x694));
-    d = d < 0.0f ? -d : d;
-    return d > 0.707f;
+    return false;
 }
 
-void Mario::fn_803912D0(Triangle* arg1) {
-    if (this->fn_80391330(arg1)) {
-        *FLD<Triangle*>(this, 0x4D8) = *arg1;
-        FLD<TVec3f>(this, 0x514) = FLD<TVec3f>(arg1, 0x64);
+void Mario::fn_803912D0(const HitInfo* hit, const TVec3f& normal, const TVec3f& direction) {
+    if (fn_80391330(hit, normal, direction)) {
+        *_4DC = hit->mParentTriangle;
+        _518 = hit->_64;
     }
 }
 
@@ -1393,11 +1391,11 @@ void Mario::fn_8038C620(s32 arg3) {
 }
 
 // NONMATCHING: the wall-contact push-out is approximated
-void Mario::fn_8038E1A0(Triangle* tri, s32 arg2) {
+void Mario::fn_8038E1A0(const Triangle* tri, s32 arg2) {
     if (!MR::isThroughPolygon(tri)) {
         if (this->isThroughWall(tri)) {
         }
-        if (reinterpret_cast<HitInfo*>(tri)->isCollisionAtEdge() || reinterpret_cast<HitInfo*>(tri)->isCollisionAtCorner()) {
+        if (reinterpret_cast<const HitInfo*>(tri)->isCollisionAtEdge() || reinterpret_cast<const HitInfo*>(tri)->isCollisionAtCorner()) {
             FLD<u32>(this, 0xC) |= 0x400000;
         }
         const TVec3f* n = tri->getNormal(0);
@@ -1592,10 +1590,21 @@ void Mario::fn_8038A600() {
     }
 }
 
-// NONMATCHING: the two-branch ground/air selection is approximated
-// NONMATCHING: the ground-normal test is approximated from the draft
-bool Mario::fn_80391330(Triangle* tri) {
-    return tri->getNormal(0)->dot(this->mFrontVec) > 0.0f;
+// NONMATCHING: register allocation and position-reference load scheduling.
+bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& direction) {
+    f32 angle = 180.0f * (marioAcos(-getGravityVec()->dot(normal)) / 3.14159f);
+    TVec3f fromBase(hit->_64);
+    fromBase.sub(mPosHolder->mPos);
+    MR::normalizeOrZero(&fromBase);
+    bool result = false;
+    bool slip = false;
+    bool inFront = false;
+    bool flat = false;
+    if (angle >= mActor->getConst().getTable()->mFlatAngle && direction.dot(mFrontVec) > 0.0f) flat = true;
+    if (flat && fromBase.dot(mFrontVec) > 0.0f) inFront = true;
+    if (inFront && calcAngleD(normal) <= mActor->getConst().getTable()->mSlipAngle) slip = true;
+    if (slip && MR::diffAngleAbs(_368, normal) > 30.0f) result = true;
+    return result;
 }
 
 // NONMATCHING: m2c draft's table/switch on the mode is approximated with the same weights

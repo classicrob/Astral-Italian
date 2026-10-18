@@ -13,7 +13,7 @@ MarioScreenStrip::MarioScreenStrip() {
     mBlend = 0.0f;
 }
 
-void MarioScreenStrip::fn_803DB9D0(s32 progress, s16 mode, s32 blend) {
+void MarioScreenStrip::fn_803DB9D0(s32 progress, s32 mode, s32 blend) {
     mMode = mode;
     mProgress = 0.9f * mProgress + 0.1f * progress;
     mBlend = blend;

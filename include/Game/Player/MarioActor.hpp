@@ -27,6 +27,8 @@ class JUTTexture;
 class JetTurtleShadow;
 class MarioAnimator;
 class MarioActorConditionGroup;
+class MarioFrontHistory;
+class MarioScreenStrip;
 class MarioConst;
 class MarioEffect;
 class CollectCounter;
@@ -123,7 +125,7 @@ public:
     void fn_803B9A30();
     void fn_803B9A50();
     s32 fn_803B9A70();
-    s32 fn_803B9A90();
+    f32 fn_803B9A90();
     bool fn_803B9AB0();
     void fn_803B9F10();
     void fn_803BA070();
@@ -488,7 +490,7 @@ public:
     // Defined in MarioActorPunch
     bool isEnableSpinPunch();
     void reactionPunch(HitSensor*);
-    bool sendPunch(HitSensor*, bool);
+    bool sendPunch(HitSensor*, const Triangle*, bool);
     bool doFreezeAttack(HitSensor*) NO_INLINE;
     bool trySpinPunch();
     void printHitMark(HitSensor*);
@@ -803,7 +805,7 @@ public:
         u32 _4;
     };
 
-    /* 0x090 */ u8 _pad90[0x2];
+    /* 0x090 */ union { u8 _pad90[0x2]; bool mInitializing90; };
     /* 0x092 */ u8 _8C;  // SMG2 offset guess  // SMG2 offset guess  // SMG2 offset guess
     /* 0x093 */ u8 _pad93[0x1];
     /* 0x094 */ DLchanger* mDLchanger;  // SMG2 offset guess-gap
@@ -868,6 +870,8 @@ public:
         struct {
     union {
         struct {
+    union {
+        struct {
     /* 0x27C */ TMtx34f _BC8;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x2AC */ TMtx34f _BF8;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
         };
@@ -896,6 +900,10 @@ public:
         };
     };
     /* 0x4CC */ TVec3f mBlackHolePosition;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
+        };
+        struct { u8 _padJointMatrix27C[0x22C]; TMtx34f mMainJointMatrix4A8; };
+        struct { u8 _padJointCache27C[0x48]; Mtx* mJointMatrices2C4; };
+    };
     /* 0x4D8 */ u16 mBlendMtxTimer;
     /* 0x4DA */ u8 _pad4DA[0x2];
     /* 0x4DC */ f32 _EA0;
@@ -943,8 +951,7 @@ public:
     /* 0x561 */ bool mSwimFogDisabled;
     /* 0x562 */ u16 _1E8;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x564 */ CollectCounter* _1B8;  // SMG2 offset inh  // SMG2 offset guess  // SMG2 offset inh
-    /* 0x568 */ u8 _pad568[0x3];
-    /* 0x56B */ bool _1C1;  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
+    union { struct { u8 _pad568[3]; bool _1C1; }; MarioMessenger* mMessenger568; };  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
     /* 0x56C */ bool _1C0;
     /* 0x56D */ u8 _A0C;  // SMG2 offset guess-gap  // SMG2 offset vote-gap  // SMG2 offset vote-gap
     /* 0x56E */ bool _1C3;
@@ -956,11 +963,13 @@ public:
     /* 0x57C */ u16 _1C6;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x57E */ bool _3E4;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x57F */ u8 _1D1;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x580 */ f32 _1C8;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x580 */ union { f32 _1C8; CollisionShadow* mCollisionShadow580; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x584 */ Mario* mMario;
     /* 0x588 */ MarioAnimator* mMarioAnim;
     /* 0x58C */ MarioEffect* mMarioEffect;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x590 */ MarioConst* mConst;
+    union {
+        struct {
     union {
         /* 0x594 */ TVec3f mAppliedGravityVec;
         struct {
@@ -977,6 +986,9 @@ public:
     };
     /* 0x5A4 */ f32 _1EC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5A8 */ f32 _208;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+        };
+        struct { u8 _padGravity594[0xC]; TVec3f mPreviousGravityVec; };
+    };
     /* 0x5AC */ TVec3f _258;  // SMG2 offset guess-gap
     /* 0x5B8 */ TVec3f _1F0;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5C4 */ TVec3f _1FC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1221,7 +1233,7 @@ public:
     /* 0xF04 */ u8 _padF04[4];
     /* 0xF08 */ ModelHolder* _A00;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xF0C */ TVec3f _A18;
-    /* 0xF18 */ ModelHolder* _A04;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
+    /* 0xF18 */ union { ModelHolder* _A04; struct { u8 mFlagF18; u8 mFlagF19; }; };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xF1C */ u8 mCurrModel;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xF1D */ u8 _A0B;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xF1E */ u8 _padF1E[0x1];
@@ -1238,13 +1250,14 @@ public:
     /* 0xF6C */ ModelHolder* _A40;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0xF70 */ ModelHolder* _A44;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
         };
+        struct { u8 _padHandF24[8]; ModelHolder* mHandModelL; ModelHolder* mHandModelR; };
         struct { u8 _padF24[0x2C]; TVec2f mScreenF50; TVec2f mScreenF58; TVec2f mScreenF60; TVec2f mScreenF68; u8* mScreenBuffer; };
     };
     /* 0xF74 */ FootPrint* _B48;
     /* 0xF78 */ IceStep** _B4C;  // SMG2 offset guess-gap
     /* 0xF7C */ u16 _B50;  // _B4C count  // SMG2 offset guess-gap
     /* 0xF7E */ u16 _B6A;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
-    /* 0xF80 */ J3DModelX* mModels[6];  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0xF80 */ union { J3DModelX* mModels[6]; struct { FireMarioBall* mFireBalls[5]; s32 mFireBallDelay; }; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0xF98 */ union { ModelHolder* _A48; struct { u8 mBlinkF98; u8 _padF99[3]; }; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0xF9C */ union { ModelHolder* _A4C; struct { u8 mBlinkF9C; u8 _padF9D; u16 mBlinkF9E; }; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0xFA0 */ union { ModelHolder* _A50; J3DAnmTexPattern* mEyeRes; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1342,9 +1355,11 @@ public:
             /* 0x1054 */ Mtx* _A70[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
             /* 0x1074 */ Mtx* _A90[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
         };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
-        struct { u8 _padInput1054[0x12]; bool mInputDisabled1066; };
+        struct { u8 _padPunch1054[0x18]; const Triangle* mPunchTriangle106C; };
+        struct { u8 _padFront1054[0x24]; MarioFrontHistory* mFrontHistory; };
+        struct { u8 _padInput1054[0x12]; bool mInputDisabled1066; bool mBlinkRequested1067; };
         struct { u8 _padCondition1054[0x34]; MarioActorConditionGroup* mConditionGroup; };
-        struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; MarioActionTable* mActionTable1080; };
+        struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; MarioActionTable* mActionTable1080; MarioScreenStrip* mScreenStrip1084; };
         /* 0x1054 */ Mtx* mLegacyBlurMatrices[2][8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
     };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
     /* 0x1094 */ union { MarioActionHash* mActionHash; void* _B44; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset guess

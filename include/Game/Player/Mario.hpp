@@ -3,6 +3,7 @@
 #include "Game/Map/HitInfo.hpp"
 
 #include "Game/Player/MarioModule.hpp"
+#include "Game/Player/MarioPosHolder.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
@@ -60,24 +61,6 @@ class MarioWarp;
 class Triangle;
 struct SoundList;
 
-// SMG2: Mario's position lives in a separate holder object (Mario+0x138). The setters are unnamed in the target.
-class MarioPosHolder {
-public:
-    /* 0x00 */ u8 _0[0xC];
-    /* 0x0C */ TVec3f mPos;
-    /* 0x18 */ bool _18;  // set when a set() moved it further than a threshold
-    /* 0x19 */ bool _19;  // enables that distance check
-    /* 0x1A */ u8 _1A[0x12];
-    /* 0x2C */ bool mLocked;
-
-    // SMG2-only (original names unknown; named by address)
-    void fn_80405EF0(s32);
-    void fn_80405F90(const TVec3f&);  // set(pos) unless locked
-    void fn_80406010(const TVec3f&);  // pos += v unless locked
-    void fn_80406040();               // push pos (pos copied to +0x20, depth++)
-    void fn_80406080();               // pop pos (pos restored from +0x20, depth--)
-};
-
 /// @brief One collected strike result of Mario::fn_803B4300 (size 0x70). Original name unknown.
 struct MarioStrikeEntry {
     /* 0x00 */ Triangle mTriangle;
@@ -120,12 +103,12 @@ public:
     void fn_8038C620(s32 arg3);
     bool fn_8038CCF0();
     void fn_8038CE40();
-    void fn_8038E1A0(Triangle* tri, s32 arg2);
+    void fn_8038E1A0(const Triangle* tri, s32 arg2);
     bool fn_80390210(HitSensor* arg);
     bool fn_803902B0(HitSensor* arg1);
-    bool fn_80391260(Triangle* arg1);
-    void fn_803912D0(Triangle* arg1);
-    bool fn_80391330(Triangle* tri);
+    bool fn_80391260(const Triangle*);
+    void fn_803912D0(const HitInfo*, const TVec3f&, const TVec3f&);
+    bool fn_80391330(const HitInfo*, const TVec3f&, const TVec3f&);
     void fn_803929A0();
     bool fn_80393C40();
     bool fn_80394550(const TVec3f* arg);
@@ -269,7 +252,7 @@ public:
     bool fn_803B28E0(const TVec3f&, const TVec3f&, const LiveActor*);
     s32 fn_803B2950();
     s32 fn_803B29B0(const TVec3f&, f32);
-    s32 fn_803B2A20(const TVec3f&, f32, f32);
+    s32 fn_803B2A20(const TVec3f&, f32, f32) NO_INLINE;
     const HitInfo* fn_803B2AA0(u32);
     bool fn_803B2AF0(const TVec3f&, HitInfo*);
     bool fn_803B2B50(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
@@ -285,7 +268,7 @@ public:
     void fn_803B3280(const TVec3f& rPos, Triangle* pTri);
     void fn_803B35D0(const TVec3f& rPos, u32 count);
     f32 fn_803B3870();
-    void fn_803B38B0(Triangle* arg1, TVec3f* arg2);
+    void fn_803B38B0(const HitInfo*, const TVec3f*);
     void fn_803B3AE0(const HitInfo*, const TVec3f*);
     void fn_803B3BB0(const HitInfo*, const TVec3f*);
     void fn_803B3CE0();
@@ -670,7 +653,7 @@ public:
     void pushedByReaction();
     void addReaction(const TVec3f&);
     void tryPushToVelocity();
-    void push(const TVec3f&);
+    void push(const TVec3f&) NO_INLINE;
     void push2(const TVec3f&);
     void powerAreaMove();
     void powerRailMove();
@@ -1256,7 +1239,7 @@ public:
     /* 0xA5C */ TVec3f _A58;  // SMG2 offset inh  // SMG2 offset inh
     /* 0xA68 */ f32 _A64;
     /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
-    /* 0xA70 */ union { u8 _A6C[0x20]; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; bool mCometHopperApplied; bool mCometRainbowApplied; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
+    /* 0xA70 */ union { struct { u8 _padJumpA70[0x1C]; s32 mJumpFallTimer; }; u8 _A6C[0x20]; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; bool mCometHopperApplied; bool mCometRainbowApplied; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93[9];
 };

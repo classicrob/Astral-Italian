@@ -118,6 +118,7 @@ void MarioFoo::init() {
     _6B8 = new JUTTexture(MR::getTexture(MR::getModelResourceHolder(mActor), "FooLine.bti"), 0);
 }
 
+// NONMATCHING: equivalent string-pool offsets.
 bool MarioFoo::start() {
     _20 = 0.0f;
     _24 = 0.0f;
@@ -157,6 +158,7 @@ bool MarioFoo::start() {
     return true;
 }
 
+// NONMATCHING: equivalent string-pool offsets.
 bool MarioFoo::update() {
     _14++;
     if (checkTrgZ()) {
@@ -363,11 +365,11 @@ bool MarioFoo::update() {
     updateTilt();
 
     if (_48 != nullptr) {
-        TVec3f center;
-        MR::calcSpherePos(&center, _48);
-        f32 radius = MR::getSphereRadius(_48);
-        TVec3f distance = getTrans() - center;
-        if (!_1E && distance.length() > radius) {
+        AreaObj* currentArea = MR::getAreaObj("CelestrialArea", getTrans());
+        if (!_1E && currentArea != _48) {
+            TVec3f center;
+            MR::getAreaCenterPos(&center, _48);
+            TVec3f distance = getTrans() - center;
             _1E = 30;
             hitWall(-distance, nullptr);
         } else if (_1E) {
@@ -421,14 +423,12 @@ bool MarioFoo::close() {
         changeAnimation(nullptr, "基本");
     }
 
-    Mario* player = getPlayer();
-    player->_4B0 = player->mPosHolder->mPos;
+    getPlayer()->fn_8039CFD0();
     getPlayer()->forceSetHeadVecKeepSide(-getGravityVec());
     changeAnimationInterpoleFrame(6);
     mActor->setBlendMtxTimer(4);
     getPlayer()->unlockGroundCheck(this);
     mActor->_F44 = true;
-    mActor->resetWaterLife();
     _54 = 0.0f;
     getPlayer()->_10._7 = true;
     return true;
@@ -438,6 +438,7 @@ const TVec3f& MarioFoo::getGravityVec() const {
     return MarioModule::getGravityVec();
 }
 
+// NONMATCHING: independent stores are scheduled in a different order.
 void MarioFoo::jet() {
     f32 acceleration = calcRingAcc();
     f32 speed;
@@ -560,7 +561,7 @@ void MarioFoo::updateTilt() {
 }
 
 void MarioFoo::hitWall(const TVec3f& rNormal, HitSensor* pSensor) {
-    if (sendPunch(pSensor, false) != true) {
+    if (sendPunch(pSensor, nullptr, false) != true) {
         _11 = 1;
         if (MR::diffAngleAbs(rNormal, -getGravityVec()) <= 0.7853982f) {
             if (MR::diffAngleAbs(rNormal, -getPlayer()->_1FC) <= 0.7853982f) {
@@ -629,6 +630,7 @@ bool MarioFoo::passRing(const HitSensor* pSensor) {
     return true;
 }
 
+// NONMATCHING: equivalent string-pool offsets.
 f32 MarioFoo::calcRingAcc() {
     if (_4E) {
         if (_50) {

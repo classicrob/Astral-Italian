@@ -1086,29 +1086,29 @@ s32 Mario::fn_803B41F0() {
     return result;
 }
 
-// NONMATCHING: front-wall capture and slip-floor flags approximated from the draft
-void Mario::fn_803B38B0(Triangle* arg1, TVec3f* arg2) {
-    *this->mFrontWallTriangle = *arg1;
-    FLD<TVec3f>(this, 0x4E8) = FLD<TVec3f>(arg1, 0x64);
-    TVec3f sp14(FLD<TVec3f>(arg1, 0x64));
-    sp14 -= *arg2;
-    MR::normalizeOrZero(&sp14);
-    f32 t31 = sp14.dot(*arg1->getNormal(0));
-    if (t31 < this->fn_803B3870()) {
-        FLD<u32>(this, 0xC) |= 0x800000;
-    } else {
-        FLD<u32>(this, 0x10) |= 0x2000;
+// NONMATCHING: repeated flag loads and boolean materialization.
+void Mario::fn_803B38B0(const HitInfo* hit, const TVec3f* center) {
+    *mFrontWallTriangle = hit->mParentTriangle;
+    _4E8 = hit->_64;
+    TVec3f direction(hit->_64);
+    direction.sub(*center);
+    MR::normalizeOrZero(&direction);
+    f32 facing = direction.dot(*hit->mParentTriangle.getNormal(0));
+    if (facing < fn_803B3870()) mMovementStates._8 = true;
+    else mMovementStates._32 = true;
+    if (mMovementStates._1 && mMovementStates._15 && mMovementStates._39) {
+        TVec3f delta(_4A4);
+        delta.sub(_4E8);
+        if (delta.dot(*getGravityVec()) >= 0.0f) mMovementStates._8 = false;
     }
-    if (((FLD<u32>(this, 0xC) >> 30) & 1) && ((FLD<u32>(this, 0xC) >> 10) & 1) && ((FLD<u32>(this, 0x10) >> 6) & 1)) {
-        TVec3f sp8(FLD<TVec3f>(this, 0x4A4));
-        sp8 -= FLD<TVec3f>(this, 0x4E8);
-        if (sp8.dot(*this->getGravityVec()) == 0.0f) {
-            FLD<u32>(this, 0xC) &= 0xFF7FFFFF;
+    if (!_60D && !mMovementStates._8) {
+        if (calcAngleD(*mFrontWallTriangle->getNormal(0)) < mActor->getConst().getTable()->mSlipAngle &&
+            !isSlipFloorCode(_95C->getCode(mFrontWallTriangle)) &&
+            hit->mParentTriangle.getNormal(0)->dot(mFrontVec) < 0.0f && direction.dot(mFrontVec) > 0.0f &&
+            direction.dot(*hit->mParentTriangle.getNormal(0)) < 0.0f) {
+            mDrawStates._F = true;
+            _380 = *mFrontWallTriangle->getNormal(0);
         }
-    }
-    if (FLD<u8>(this, 0x60D) == 0 && !((FLD<u32>(this, 0xC) >> 23) & 1)) {
-        FLD<u32>(this, 0x1C) |= 0x10000;
-        FLD<TVec3f>(this, 0x380) = *this->mFrontWallTriangle->getNormal(0);
     }
 }
 

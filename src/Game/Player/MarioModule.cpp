@@ -594,11 +594,11 @@ Triangle* MarioModule::getTmpPolygon() const {
     return mActor->mMario->mTmpPolygon;
 }
 
-bool MarioModule::sendPunch(HitSensor* pSensor, bool a2) {
+bool MarioModule::sendPunch(HitSensor* pSensor, const Triangle* pTriangle, bool a2) {
     if (!pSensor) {
         return false;
     }
-    bool ret = mActor->sendPunch(pSensor, a2);
+    bool ret = mActor->sendPunch(pSensor, pTriangle, a2);
     if (ret) {
         mActor->reactionPunch(pSensor);
     }

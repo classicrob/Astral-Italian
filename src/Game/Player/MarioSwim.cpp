@@ -1537,18 +1537,18 @@ bool MarioSwim::tryJetAttack(HitSensor* pHitSensor) {
     }
 }
 
-void MarioSwim::hitHead(const HitInfo* pHit) {
+void MarioSwim::hitHead(const Triangle* pTriangle, const TVec3f& hitPos) {
     if (mJet->mJetTimer != 0) {
-        if (sendPunch(pHit->mParentTriangle.mSensor, false) == 1) {
+        if (sendPunch(pTriangle->mSensor, pTriangle, false)) {
             startCamVib(0);
             return;
         }
 
-        if (tryJetAttack(pHit->mParentTriangle.mSensor)) {
+        if (tryJetAttack(pTriangle->mSensor)) {
             return;
         }
 
-        const TVec3f* normal = pHit->mParentTriangle.getNormal(0);
+        const TVec3f* normal = pTriangle->getNormal(0);
         if (normal->dot(getGravityVec()) > 0.0f) {
             Mario* player = getPlayer();
             TVec3f direction;
@@ -1570,8 +1570,8 @@ void MarioSwim::hitHead(const HitInfo* pHit) {
         }
     }
 
-    TVec3f pushBack = getTrans() - pHit->_64;
-    MR::vecKillElement(pushBack, *pHit->mParentTriangle.getNormal(0), &pushBack);
+    TVec3f pushBack = getTrans() - hitPos;
+    MR::vecKillElement(pushBack, *pTriangle->getNormal(0), &pushBack);
     pushBack.setLength(5.0f);
     addVelocity(pushBack);
 }
@@ -1644,7 +1644,7 @@ void MarioSwim::hitWall(const TVec3f& rNormal, HitSensor* pSensor) {
         if (mJet->mJetTimer != 0 || (!MR::isNearZero(mWaterStreamDir) && mActionLockTimer != 0)) {
             bool punched = false;
             if (mJet->mJetTimer != 0) {
-                punched = sendPunch(pSensor, false);
+                punched = sendPunch(pSensor, nullptr, false);
             }
 
             if (!punched) {
@@ -1737,7 +1737,7 @@ void MarioSwim::hitWall(const TVec3f& rNormal, HitSensor* pSensor) {
 
         // Spin Attack Collision
         if (mSpin->mSpinDashTimer != 0) {
-            if (!sendPunch(pSensor, true)) {
+            if (!sendPunch(pSensor, nullptr, true)) {
                 mForwardSpeed = 0.0f;
                 forceStopSpin();
                 changeAnimation("水泳壁ヒット");
@@ -1749,7 +1749,7 @@ void MarioSwim::hitWall(const TVec3f& rNormal, HitSensor* pSensor) {
 
             isHit = true;
         } else if (mSpin->mSpinTimer != 0) {
-            if (!sendPunch(pSensor, false)) {
+            if (!sendPunch(pSensor, nullptr, false)) {
                 mSpin->mSpinTimer = 0;
                 mForwardSpeed = 0.0f;
                 playEffectTrans("壁ヒット", getPlayer()->getWallPos());

@@ -122,7 +122,7 @@ public:
     f32 calcPolygonAngleD(const Triangle*) const;
     f32 calcAngleD(const TVec3f&) const;
     Triangle* getTmpPolygon() const;
-    bool sendPunch(HitSensor*, bool);
+    bool sendPunch(HitSensor*, const Triangle*, bool);
     HitSensor* getSensor(const Triangle*) const;
     f32 marioAcos(f32) const;
     bool isInputDisable() const;

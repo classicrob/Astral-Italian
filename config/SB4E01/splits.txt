@@ -6315,6 +6315,10 @@ Game/Player/MarioTeresa.cpp:
 	.sdata      start:0x807D0098 end:0x807D00A0
 	.sdata2     start:0x807E0400 end:0x807E0490
 
+Game/Player/MarioPosHolder.cpp:
+	.text       start:0x80405E40 end:0x80406390
+	.sdata2     start:0x807E0498 end:0x807E04A8
+
 Game/Player/MarioWait.cpp:
 	.text       start:0x80406390 end:0x80406AC0
 	.data       start:0x806DED30 end:0x806DED78
@@ -6390,6 +6394,9 @@ Game/Player/YoshiAnimationModelCtrl.cpp:
 Game/Player/TornadoMario.cpp:
 	.text       start:0x8040B8C0 end:0x8040BD00
 	.data       start:0x806DF968 end:0x806DF9D8
+
+Game/Player/YoshiMatrixUtil.cpp:
+	.text       start:0x8040BD00 end:0x8040BF30
 
 Game/Player/Yoshi.cpp:
 	.text       start:0x8040BF30 end:0x80413C40

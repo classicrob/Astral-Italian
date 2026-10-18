@@ -108,7 +108,7 @@ public:
 class MarioScreenStrip {
 public:
     MarioScreenStrip();
-    void fn_803DB9D0(s32, s16, s32);
+    void fn_803DB9D0(s32, s32, s32);
     void fn_803DBA40();
     void fn_803DBAA0(u32);
     void fn_803DBB10(u32, u32);
@@ -146,6 +146,7 @@ class MarioSensorSlots {
 public:
     MarioSensorSlots();
     void fn_803DAB10(LiveActor*);
+    void fn_803DAB90();
 
     /* 0x00 */ u8 _0[0x80];
     /* 0x80 */ s32 mCount;
@@ -212,3 +213,4 @@ public:
     MarioNameMatrix* mAutoBind;
     MarioNameMatrix* mEffects;
 };
+

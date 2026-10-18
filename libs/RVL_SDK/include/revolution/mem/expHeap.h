@@ -57,6 +57,7 @@ void* MEMDestroyExpHeap(MEMHeapHandle);
 void* MEMAllocFromExpHeapEx(MEMHeapHandle, u32, int);
 void MEMFreeToExpHeap(MEMHeapHandle, void*);
 u32 MEMGetAllocatableSizeForExpHeapEx(MEMHeapHandle, int);
+u16 MEMSetGroupIDForExpHeap(MEMHeapHandle, u16);
 
 #ifdef __cplusplus
 }

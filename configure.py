@@ -1175,6 +1175,7 @@ config.libs = [
         "Map",
         [
             Object(NonMatching, "Game/Map/CollisionCode.cpp"),
+            Object(NonMatching, "Game/Map/CollisionHitInfoList.cpp"),
             Object(NonMatching, "Game/Map/KCollision.cpp"),
             Object(NonMatching, "Game/Map/RailGraph.cpp"),
             Object(NonMatching, "Game/Map/RailGraphEdge.cpp"),
@@ -3569,6 +3570,7 @@ config.libs = [
         "libnw4r_db",
         [
             Object(NonMatching, "nw4r/db/db_console.cpp"),
+            Object(NonMatching, "nw4r/db/db_DbgPrintBase.cpp"),
             Object(NonMatching, "nw4r/db/db_assert.cpp"),
         ],
     ),

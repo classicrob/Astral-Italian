@@ -99,7 +99,7 @@ void GrandStarReturnDemoStarter::updateRushStarPos(const TVec3f& rPosition, s32 
     TVec3f offset;
     TVec3f newPosition;
 
-    offset.scale(100.0f * frame, mDistanceToCore);
+    offset.scale(1000.0f * frame, mDistanceToCore);
     newPosition.add(rPosition, offset);
     mTransform.setTrans(newPosition);
 }

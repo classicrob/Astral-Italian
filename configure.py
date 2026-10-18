@@ -1237,7 +1237,6 @@ config.libs = [
             Object(NonMatching, "Game/Map/HeadLight.cpp"),
             Object(NonMatching, "Game/Map/KoopaBattlePlanet.cpp"),
             Object(NonMatching, "Game/Map/KoopaFinalStarPlanet.cpp"),
-            Object(NonMatching, "Game/Map/NrvFileSelectModel.cpp"),
             Object(NonMatching, "Game/Map/OmoteuLandSky.cpp"),
             Object(NonMatching, "Game/Map/RepeatTimerSwitch.cpp"),
             Object(NonMatching, "Game/Map/ShadowColorSetter.cpp"),
@@ -1858,7 +1857,6 @@ config.libs = [
             Object(NonMatching, "Game/System/SaveDataHandleSequence.cpp"),
             Object(NonMatching, "Game/System/SaveDataHandler.cpp"),
             Object(NonMatching, "Game/System/ShapePacketUserData.cpp"),
-            Object(NonMatching, "Game/System/StarPieceAlmsStorage.cpp"),
             Object(NonMatching, "Game/System/StarPointerOnOffController.cpp"),
             Object(NonMatching, "Game/System/StationedArchiveLoader.cpp"),
             Object(NonMatching, "Game/System/StationedFileInfo.cpp"),
@@ -1944,6 +1942,8 @@ config.libs = [
             Object(NonMatching, "Game/System/WorldMapResultTU22.cpp"),
             Object(NonMatching, "Game/System/WorldMapResultTU23.cpp"),
             Object(NonMatching, "Game/System/WorldMapResultTU24.cpp"),
+            Object(NonMatching, "Game/System/GameDataSomeScenarioAccessor.cpp"),
+            Object(NonMatching, "Game/System/GameSequenceNameEntryTable.cpp"),
         ],
     ),
     GameLib(
@@ -2057,6 +2057,8 @@ config.libs = [
             Object(NonMatching, "Game/Util/PadRecorder.cpp"),
             Object(NonMatching, "Game/Util/ResourceShare.cpp"),
             Object(NonMatching, "Game/Util/TDDraw.cpp"),
+            Object(NonMatching, "Game/Util/DiceMover.cpp"),
+            Object(NonMatching, "Game/Util/BellyDragonWeakPoint.cpp"),
         ],
     ),
     GameLib(
@@ -2661,6 +2663,7 @@ config.libs = [
             Object(NonMatching, "Game/GameAudio/AudTalkSoundData.cpp"),
             Object(NonMatching, "Game/GameAudio/AudTamakoroBgmCtrl.cpp"),
             Object(NonMatching, "Game/GameAudio/ActionSoundInfo.cpp"),
+            Object(NonMatching, "Game/GameAudio/ActionSoundKeeper.cpp"),
         ],
     ),
     GameLib(

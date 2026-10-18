@@ -211,6 +211,7 @@ public:
     /* 0x48 */ f32 mPriorityRate;
     /* 0x4C */ f32 mFxMixRate;
     /* 0x50 */ bool mFarCamera;
+    /* 0x54 */ f32 mCameraRate;  // SMG2; ctor-initialized constant, set from the player-camera distance (AudSystem::setCameraRate)
 };
 
 class AudAudience_withSetting_doppler : public AudAudience_withSetting {
@@ -222,8 +223,9 @@ public:
 template < int MAX_CHANNELS, class Audible, class AudienceState, class Audience >
 class AudAudience_ : public Audience {
 public:
-    AudAudience_() : Audience(), mMaxChannels(MAX_CHANNELS) {
-        for (int i = 0; i < MAX_CHANNELS; i++) {
+    // SMG2: two audience states (players), independent of MAX_CHANNELS (vtable is still AudAudience_<4,...>)
+    AudAudience_() : Audience(), mMaxChannels(AUDIENCE_STATE_NUM) {
+        for (int i = 0; i < AUDIENCE_STATE_NUM; i++) {
             TPos3f mtx;
             mtx.identity();
             mStates[i].resetMtx(mtx);
@@ -416,8 +418,9 @@ public:
         }
     }
 
-    /* 0x054 */ int mMaxChannels;
-    /* 0x058 */ AudienceState mStates[MAX_CHANNELS];
+    enum { AUDIENCE_STATE_NUM = 2 };
+    /* 0x058 */ int mMaxChannels;
+    /* 0x05C */ AudienceState mStates[AUDIENCE_STATE_NUM];
     /* 0x1A8 */  // Audible* mAudible;
 };
 

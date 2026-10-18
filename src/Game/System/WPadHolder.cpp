@@ -1,13 +1,26 @@
 #include "Game/System/WPadHolder.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSystemFunction.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/WPad.hpp"
 #include "Game/System/WPadPointer.hpp"
 #include "Game/Util/MemoryUtil.hpp"
+#include "Game/Util/PadRecorder.hpp"
 #include "Game/Util/SingletonHolder.hpp"
 #include <revolution/wpad.h>
 
 #define KPAD_STATUS_ARRAY_SIZE 120
+
+namespace {
+    bool isEnablePadUpdate() {
+        if (GameSystemFunction::isHomeButtonMenuActive()) {
+            return false;
+        }
+
+        return !GameSystemFunction::isOccurredSystemWarning();
+    }
+};  // namespace
 
 WPadReadDataInfo::WPadReadDataInfo() : mStatusArray(), mValidStatusCount() {
     mStatusArray = new KPADStatus[KPAD_STATUS_ARRAY_SIZE];
@@ -23,14 +36,28 @@ KPADStatus* WPadReadDataInfo::getKPadStatus(u32 index) const {
     return &mStatusArray[index];
 }
 
+KPADStatus* WPadReadDataInfo::getReadBuffer() {
+    return mStatusArray;
+}
+
 u32 WPadReadDataInfo::getValidStatusCount() const {
     return mValidStatusCount;
 }
 
-WPadHolder::WPadHolder() : mReadDataInfoArray(), mMode(WPAD_SENSOR_BAR_POS_TOP) {
-    WPADRegisterAllocator(MR::allocFromWPadHeap, MR::freeFromWPadHeap);
-    KPADInit();
+void WPadReadDataInfo::copy(const WPadReadDataInfo* pOther) {
+    mValidStatusCount = pOther->mValidStatusCount;
 
+    for (s32 i = 0; i < static_cast< s32 >(mValidStatusCount); i++) {
+        mStatusArray[i] = pOther->mStatusArray[i];
+    }
+}
+
+WPadHolder::WPadHolder() : mReadDataInfoArray(), mUnifiedStatusBuffer(), mMode(MODE_GAME) {
+    WPADRegisterAllocator(MR::allocFromWPadHeap, MR::freeFromWPadHeap);
+    mUnifiedStatusBuffer = new KPADUnifiedWpadStatus[WPAD_MAX_CONTROLLERS * KPAD_STATUS_ARRAY_SIZE];
+    KPADInitEx(mUnifiedStatusBuffer, WPAD_MAX_CONTROLLERS * KPAD_STATUS_ARRAY_SIZE);
+
+    mRawReadDataInfoArray = new WPadReadDataInfo[WPAD_MAX_CONTROLLERS];
     mReadDataInfoArray = new WPadReadDataInfo[WPAD_MAX_CONTROLLERS];
 
     for (u32 i = 0; i < ARRAY_SIZE(mPad); i++) {
@@ -46,14 +73,27 @@ void WPadHolder::updateReadDataOnly() {
     WPadReadDataInfo* pReadData;
 
     for (s32 chan = WPAD_CHAN0; chan < WPAD_MAX_CONTROLLERS; chan++) {
-        pReadData = &mReadDataInfoArray[chan];
-        pReadData->mValidStatusCount = KPADRead(chan, pReadData->mStatusArray, KPAD_STATUS_ARRAY_SIZE);
+        pReadData = &mRawReadDataInfoArray[chan];
+        s32 error = 0;
+        pReadData->mValidStatusCount = KPADReadEx(chan, pReadData->mStatusArray, KPAD_STATUS_ARRAY_SIZE, &error);
     }
+
+    for (s32 chan = WPAD_CHAN0; chan < WPAD_MAX_CONTROLLERS; chan++) {
+        mReadDataInfoArray[chan].copy(&mRawReadDataInfoArray[chan]);
+    }
+
+    readPadData();
 }
 
 void WPadHolder::updateProjectPadData() {
     for (u32 i = 0; i < ARRAY_SIZE(mPad); i++) {
         mPad[i]->update();
+    }
+}
+
+void WPadHolder::updateRumbleAndInfoChecker() {
+    for (u32 i = 0; i < ARRAY_SIZE(mPad); i++) {
+        mPad[i]->updateRumbleAndInfoChecker();
     }
 }
 
@@ -75,14 +115,22 @@ void WPadHolder::updateInGame() {
 
 void WPadHolder::update() {
     updateReadDataOnly();
-    updateProjectPadData();
 
-    switch (mMode) {
-    case WPAD_SENSOR_BAR_POS_TOP:
+    bool isReplaying = GameSequenceFunction::isPadMode();
+    if (isReplaying) {
+        isReplaying = MR::isPadRecorderReading();
+    }
+    if (isReplaying) {
+        isReplaying = !isEnablePadUpdate();
+    }
+    if (isReplaying) {
+        updateRumbleAndInfoChecker();
+    } else {
+        updateProjectPadData();
+    }
+
+    if (mMode == MODE_GAME) {
         updateInGame();
-        break;
-    case WPAD_SENSOR_BAR_POS_BOTTOM:
-        break;
     }
 }
 
@@ -104,14 +152,6 @@ void WPadHolder::initSensorBarPosition() {
     }
 }
 
-void WPadHolder::resetPad() {
-    KPADReset();
-
-    for (u32 i = 0; i < ARRAY_SIZE(mPad); i++) {
-        mPad[i]->resetPad();
-    }
-}
-
 WPad* WPadHolder::getWPad(s32 channel) {
     u32 channelMax = ARRAY_SIZE(mPad);
 
@@ -124,8 +164,25 @@ WPad* WPadHolder::getWPad(s32 channel) {
 
 void WPadHolder::setConnectCallback() {
     for (s32 chan = WPAD_CHAN0; chan < WPAD_MAX_CONTROLLERS; chan++) {
-        WPADSetConnectCallback(chan, WPad::connectCallback);
+        KPADSetConnectCallback(chan, WPad::connectCallback);
         WPADSetExtensionCallback(chan, WPad::extensionCallback);
+    }
+}
+
+void WPadHolder::readPadData() {
+    if (isEnablePadUpdate()) {
+        for (s32 chan = WPAD_CHAN0; chan < WPAD_MAX_CONTROLLERS; chan++) {
+            MR::readPadData(chan, &mReadDataInfoArray[chan]);
+        }
+    }
+}
+
+// PLACEHOLDER(core): Petari-only; resolve when GameSystemSceneController is ported from the target
+void WPadHolder::resetPad() {
+    KPADReset();
+
+    for (u32 i = 0; i < ARRAY_SIZE(mPad); i++) {
+        mPad[i]->resetPad();
     }
 }
 
@@ -151,20 +208,20 @@ namespace MR {
         WPadHolder* pWPadHolder;
 
         pWPadHolder = ::getWPadHolder();
-        pWPadHolder->mMode = WPAD_SENSOR_BAR_POS_BOTTOM;
+        pWPadHolder->mMode = WPadHolder::MODE_HOME_BUTTON;
     }
 
     void setWPadHolderModeGame() {
         WPadHolder* pWPadHolder;
 
         pWPadHolder = ::getWPadHolder();
-        pWPadHolder->mMode = WPAD_SENSOR_BAR_POS_TOP;
+        pWPadHolder->mMode = WPadHolder::MODE_GAME;
     }
 
     u32 getHBMKPadData(HBMKPadData* pPadData, s32 chan) {
         u32 type;
         s32 err = WPADProbe(chan, &type);
-        KPADStatus* pStatus = ::getWPadHolder()->mReadDataInfoArray[chan].mStatusArray;
+        KPADStatus* pStatus = ::getWPadHolder()->mRawReadDataInfoArray[chan].mStatusArray;
 
         switch (err) {
         case WPAD_ERR_NONE:

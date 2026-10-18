@@ -114,13 +114,13 @@ WorldMapResultStateCreateTico::~WorldMapResultStateCreateTico() {
 }
 
 namespace NrvWorldMapResultStateCreateTico {
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoClose, WorldMapResultStateCreateTico, Close);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoOpen, WorldMapResultStateCreateTico, Open);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoExtend, WorldMapResultStateCreateTico, Extend);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteClose, WorldMapResultStateCreateTico, WhiteClose);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoClose, WorldMapResultStateCreateTico, End);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoOpen, WorldMapResultStateCreateTico, CloseEnd);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoExtend, WorldMapResultStateCreateTico, Message);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteClose, WorldMapResultStateCreateTico, WhiteOpen);
     WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteWait, WorldMapResultStateCreateTico, WhiteWait);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteOpen, WorldMapResultStateCreateTico, WhiteOpen);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoMessage, WorldMapResultStateCreateTico, Message);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoCloseEnd, WorldMapResultStateCreateTico, CloseEnd);
-    WMR_NERVE_DEF(WorldMapResultStateCreateTicoEnd, WorldMapResultStateCreateTico, End);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoWhiteOpen, WorldMapResultStateCreateTico, WhiteClose);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoMessage, WorldMapResultStateCreateTico, Extend);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoCloseEnd, WorldMapResultStateCreateTico, Open);
+    WMR_NERVE_DEF(WorldMapResultStateCreateTicoEnd, WorldMapResultStateCreateTico, Close);
 };  // namespace NrvWorldMapResultStateCreateTico

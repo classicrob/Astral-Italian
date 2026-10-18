@@ -194,11 +194,11 @@ namespace MR {
     }
 
     f32 getEaseInValueWithNormalize(f32 x, f32 min, f32 max, f32 start, f32 end) {
-        return getEaseInValue(normalize(x, min, max), start, end, 0.0f);
+        return getEaseInValue(normalize(x, min, max), start, end, 1.0f);
     }
 
     f32 getEaseInOutValue(f32 x, f32 min, f32 max, f32 start, f32 end) {
-        return getEaseInOutValue(normalize(x, min, max), start, end, 0.0f);
+        return getEaseInOutValue(normalize(x, min, max), start, end, 1.0f);
     }
 
     f32 getTwoStageEaseOutValue(f32 x, f32 start, f32 length, f32 end) {

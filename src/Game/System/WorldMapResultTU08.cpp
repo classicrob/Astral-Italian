@@ -1,30 +1,23 @@
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/Screen/GalaxyConfirmLayout.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 
 extern "C" {
-    void fn_804F6B10(WorldMapResultCommand*);
-    void* fn_804F6E90(WorldMapResultCommand*);
-    void* fn_804F6FE0(WorldMapResultCommand*);
-    void fn_804F8380(WorldMapResultCommand*, const char*);
-    void fn_804F8470(WorldMapResultCommand*, const char*, s32);
-    void fn_804F7580(WorldMapResultCommand*, const char*);
-    void fn_804F82C0(WorldMapResultCommand*, s32, s32);
-    bool fn_804F72D0(WorldMapResultCommand*);
-    void fn_804E8480(WorldMapResultCommand*, const TVec3f*);
-    void fn_804E84D0(WorldMapResultCommand*, const TVec3f*);
-    void fn_804E89F0(WorldMapResultCommand*, void*);
-    void fn_804E88A0(WorldMapResultCommand*, const TVec3f*, const TVec3f*, s32);
-    void fn_804E8780(WorldMapResultCommand*);
-    LiveActor* fn_804E8470(WorldMapResultCommand*);
-    TVec3f* fn_804E8510(WorldMapResultCommand*);
-    s32 fn_804F7620(WorldMapResultCommand*, f32);
-    bool fn_804F6F20(WorldMapResultCommand*);
-    bool fn_804F6F60(WorldMapResultCommand*);
-    bool fn_804F6FA0(WorldMapResultCommand*);
+    // PLACEHOLDER(core): mapped callee signature (symbols.txt name) does not match this call's arguments; resolve when the callee's real signature is confirmed
+    s32 fn_804F7620(WorldMapOwner*, f32);
+    void fn_804F6B10(WorldMapOwner*);
+    void* fn_804F6FE0(WorldMapOwner*);
+    void fn_804E8480(WorldMapOwner*, const TVec3f*);
+    void fn_804E84D0(WorldMapOwner*, const TVec3f*);
+    void fn_804E88A0(WorldMapOwner*, const TVec3f*, const TVec3f*, s32);
+    void fn_804E8780(WorldMapOwner*);
+    TVec3f* fn_804E8510(WorldMapOwner*);
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     extern const char* lbl_807D0550;
     extern const char* lbl_807D0554;
@@ -79,7 +72,7 @@ namespace MR {
 }
 
 /// Galaxy-entry step ("State[ギャラクシーに入る]"): zooms the camera into the galaxy and starts the demo.
-WMR_STATE_DECL(WorldMapResultStateEnterGalaxy, virtual void control(); void exeZoomIn(); void exeWait(); void exeDemo(); void exeZoomOut();
+WMR_OWNER_STATE_DECL(WorldMapResultStateEnterGalaxy, virtual void control(); void exeZoomIn(); void exeWait(); void exeDemo(); void exeZoomOut();
                /* 0x10 */ TVec3f mPos; /* 0x1C */ TVec3f* mTargetPos; /* 0x20 */ const char* mCameraName; /* 0x24 */ const char* mAnimName;
                /* 0x28 */ GalaxyConfirmLayout* mConfirmLayout; /* 0x2C */ ActorCameraInfo* mCamInfo; /* 0x30 */ const s32* mBlurNear;
                /* 0x34 */ const s32* mBlurFar; /* 0x38 */ f32 mRate; /* 0x3C */ bool mFlag;);
@@ -91,7 +84,7 @@ namespace NrvWorldMapResultStateEnterGalaxy {
     WMR_NERVE_DECL(WorldMapResultStateEnterGalaxyZoomOut);
 };  // namespace NrvWorldMapResultStateEnterGalaxy
 
-WorldMapResultStateEnterGalaxy::WorldMapResultStateEnterGalaxy(WorldMapResultCommand* pHost) : ActorStateBase< WorldMapResultCommand >("State[ギャラクシーに入る]", pHost) {
+WorldMapResultStateEnterGalaxy::WorldMapResultStateEnterGalaxy(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ギャラクシーに入る]", pHost) {
     mPos.x = 0.0f;
     mPos.y = 0.0f;
     mPos.z = 0.0f;
@@ -106,10 +99,10 @@ WorldMapResultStateEnterGalaxy::WorldMapResultStateEnterGalaxy(WorldMapResultCom
 }
 
 void WorldMapResultStateEnterGalaxy::init() {
-    fn_804F8380(mHost, lbl_807D0560);
-    fn_804F8380(mHost, lbl_807D0564);
-    fn_804F8380(mHost, lbl_807D0568);
-    fn_804F8380(mHost, lbl_807D056C);
+    mHost->declareCamera(lbl_807D0560);
+    mHost->declareCamera(lbl_807D0564);
+    mHost->declareCamera(lbl_807D0568);
+    mHost->declareCamera(lbl_807D056C);
     mConfirmLayout = new GalaxyConfirmLayout(0);
     mConfirmLayout->initWithoutIter();
     initNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyZoomIn), 0);
@@ -124,21 +117,21 @@ void WorldMapResultStateEnterGalaxy::init() {
 
 void WorldMapResultStateEnterGalaxy::appear() {
     mIsDead = false;
-    if (fn_804F6F20(mHost)) {
+    if (mHost->isWorldDataType3AtCurrent()) {
         mTargetPos = &lbl_8072BA38.mB;
         mCameraName = lbl_807D0564;
         mAnimName = lbl_807D0554;
         mBlurNear = &lbl_807E1D1C;
         mBlurFar = &lbl_807E1D20;
         mRate = lbl_807E1D18;
-    } else if (fn_804F6F60(mHost)) {
+    } else if (mHost->isWorldDataType4AtCurrent()) {
         mTargetPos = &lbl_8072BA38.mC;
         mCameraName = lbl_807D0568;
         mAnimName = lbl_807D0558;
         mBlurNear = &lbl_807E1D28;
         mBlurFar = &lbl_807E1D2C;
         mRate = lbl_807E1D24;
-    } else if (fn_804F6FA0(mHost)) {
+    } else if (mHost->isWorldDataType5AtCurrent()) {
         mTargetPos = &lbl_8072BA38.mD;
         mCameraName = lbl_807D056C;
         mAnimName = lbl_807D055C;
@@ -153,9 +146,9 @@ void WorldMapResultStateEnterGalaxy::appear() {
         mBlurFar = &lbl_807E1D14;
         mRate = lbl_807E1D0C;
     }
-    mFlag = fn_804F72D0(mHost);
-    fn_804F8470(mHost, mCameraName, -1);
-    fn_804F7580(mHost, "Wait");
+    mFlag = mHost->isCurrentGalaxyInfoShown();
+    mHost->startCameraAtCurrent(mCameraName, -1);
+    mHost->changeRocketAction("Wait");
     mPos = *fn_804E8510(mHost);
     setNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyZoomIn));
 }
@@ -175,10 +168,10 @@ WorldMapResultStateEnterGalaxy::~WorldMapResultStateEnterGalaxy() {
 
 void WorldMapResultStateEnterGalaxy::exeZoomIn() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(fn_804E8470(mHost), "ZoomInGalaxy", -1, -1, -1);
+        MR::startActionSound(mHost->getRocket(), "ZoomInGalaxy", -1, -1, -1);
     }
     if (mFlag) {
-        fn_804E89F0(mHost, fn_804F6E90(mHost));
+        mHost->showGalaxyInfo(mHost->getCurrentGalaxyName());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
     TVec3f sum = mPos + *mTargetPos;
@@ -201,7 +194,7 @@ void WorldMapResultStateEnterGalaxy::exeWait() {
     if (MR::isFirstStep(this)) {
         mConfirmLayout->appear();
     }
-    fn_804E89F0(mHost, fn_804F6E90(mHost));
+    mHost->showGalaxyInfo(mHost->getCurrentGalaxyName());
     if (mConfirmLayout->isSelectionComplete() != 0 && mConfirmLayout->isSelectedYes() != 0) {
         setNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyDemo));
         return;
@@ -216,7 +209,7 @@ void WorldMapResultStateEnterGalaxy::exeDemo() {
         MR::showPlayer();
         fn_804E8780(mHost);
         MR::startAction(MR::getPlayerDemoActor(), mAnimName);
-        fn_804F7580(mHost, lbl_807D0550);
+        mHost->changeRocketAction(lbl_807D0550);
         MR::startAnimCameraTargetPlayer(MR::getPlayerDemoActor(), mCamInfo, mAnimName, -1, false, 1.0f);
         TVec3f camZ = MR::getCamZdir();
         TVec3f negCamZ(-camZ.x, -camZ.y, -camZ.z);
@@ -241,8 +234,8 @@ void WorldMapResultStateEnterGalaxy::exeDemo() {
 void WorldMapResultStateEnterGalaxy::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         MR::setImageEffectControlAuto();
-        fn_804F82C0(mHost, -1, -1);
-        MR::startActionSound(fn_804E8470(mHost), "ZoomOutGalaxy", -1, -1, -1);
+        mHost->startNodeCamera(-1, -1);
+        MR::startActionSound(mHost->getRocket(), "ZoomOutGalaxy", -1, -1, -1);
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
     TVec3f scaled = mPos * rate;
@@ -252,7 +245,7 @@ void WorldMapResultStateEnterGalaxy::exeZoomOut() {
     fn_804E8480(mHost, &merged);
     TVec3f uniform((lbl_807E1D00 - mRate) + (rate * mRate));
     fn_804E84D0(mHost, &uniform);
-    fn_804E89F0(mHost, fn_804F6E90(mHost));
+    mHost->showGalaxyInfo(mHost->getCurrentGalaxyName());
     if (MR::isGreaterEqualStep(this, 30)) {
         MR::showPlayer();
         kill();

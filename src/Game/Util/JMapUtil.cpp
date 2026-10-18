@@ -437,7 +437,7 @@ namespace MR {
         }
 
         s32 id = -1;
-        ::getJMapInfoArgNoInit(rIter, "SW_A", &id);
+        rIter.getValue< s32 >("SW_A", &id);
         return id != -1;
     }
 
@@ -447,7 +447,7 @@ namespace MR {
         }
 
         s32 id = -1;
-        ::getJMapInfoArgNoInit(rIter, "SW_B", &id);
+        rIter.getValue< s32 >("SW_B", &id);
         return id != -1;
     }
 
@@ -457,7 +457,7 @@ namespace MR {
         }
 
         s32 id = -1;
-        ::getJMapInfoArgNoInit(rIter, "SW_APPEAR", &id);
+        rIter.getValue< s32 >("SW_APPEAR", &id);
         return id != -1;
     }
 
@@ -467,7 +467,7 @@ namespace MR {
         }
 
         s32 id = -1;
-        ::getJMapInfoArgNoInit(rIter, "SW_DEAD", &id);
+        rIter.getValue< s32 >("SW_DEAD", &id);
         return id != -1;
     }
 
@@ -477,7 +477,7 @@ namespace MR {
         }
 
         s32 id = -1;
-        ::getJMapInfoArgNoInit(rIter, "SW_AWAKE", &id);
+        rIter.getValue< s32 >("SW_AWAKE", &id);
         return id != -1;
     }
 
@@ -487,7 +487,7 @@ namespace MR {
         }
 
         s32 id = -1;
-        ::getJMapInfoArgNoInit(rIter, "SW_PARAM", &id);
+        rIter.getValue< s32 >("SW_PARAM", &id);
         return id != -1;
     }
 
@@ -497,7 +497,7 @@ namespace MR {
         }
 
         s32 id = -1;
-        ::getJMapInfoArgNoInit(rIter, "MessageId", &id);
+        rIter.getValue< s32 >("MessageId", &id);
         return id != -1;
     }
 

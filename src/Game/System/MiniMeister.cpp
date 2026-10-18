@@ -160,7 +160,7 @@ void MiniMeister::updateTalkScreenPos(f32 ratio) {
 }
 
 // fn_804E3F80: starts one of the talk actions by type; always returns 1.
-s32 MiniMeister::startTalkAction(s32 type) {
+bool MiniMeister::startTalkAction(u32 type) {
     switch (type) {
     case 0:
         MR::startAction(this, "Talk");

@@ -38,6 +38,7 @@ extern "C" {
 }
 
 class WorldMapResultCommand;
+class WorldMapOwner;
 extern "C" {
     void fn_804F0700(WorldMapResultCommand*);
     void fn_804F08C0(WorldMapResultCommand*);
@@ -214,11 +215,11 @@ public:
     bool isWorldDataType4(s32) const;
     bool isWorldDataType5(s32) const;
     bool callU14_6D0(s32) const;
-    void callU14_450(s32);
-    void callU14_860(s32);
-    void callU14_8A0(s32);
-    void callU14_620(s32);
-    void callU14_2B0(s32);
+    bool callU14_450(s32);
+    bool callU14_860(s32);
+    bool callU14_8A0(s32);
+    bool callU14_620(s32);
+    s32 callU14_2B0(s32);
     s32 callU14_310(s32);
     void setLinkProgress(s32, s32, f32);
     void setLinkProgressFull(s32, s32);
@@ -333,16 +334,22 @@ namespace NrvWorldMapResultStateCometAppear {
     WMR_NERVE_DECL(WorldMapResultStateCometAppearEnd);
 };  // namespace NrvWorldMapResultStateCometAppear
 
-#define WMR_STATE_DECL(name, extra)                                                                                                                 \
-    class name : public ActorStateBase< WorldMapResultCommand > {                                                                                    \
+#define WMR_STATE_DECL_HOST(host, name, extra)                                                                                                       \
+    class name : public ActorStateBase< host > {                                                                                                     \
     public:                                                                                                                                          \
-        name(WorldMapResultCommand*);                                                                                                                \
+        name(host*);                                                                                                                                 \
         virtual ~name();                                                                                                                             \
         virtual void init();                                                                                                                         \
         virtual void appear();                                                                                                                       \
         virtual void kill();                                                                                                                         \
         extra                                                                                                                                        \
     }
+
+/// State of the result cutscenes (host: WorldMapResultCommand).
+#define WMR_STATE_DECL(name, extra) WMR_STATE_DECL_HOST(WorldMapResultCommand, name, extra)
+
+/// State of the world-map sequence (WorldMapSequence; host: WorldMapOwner).
+#define WMR_OWNER_STATE_DECL(name, extra) WMR_STATE_DECL_HOST(WorldMapOwner, name, extra)
 
 WMR_STATE_DECL(WorldMapResultStateStart, void exeWait(); void exeEnd(););
 WMR_STATE_DECL(WorldMapResultStateEnd, void exeWait(); void exeEnd(););

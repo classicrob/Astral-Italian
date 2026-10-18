@@ -95,7 +95,7 @@ namespace MR {
 
 
     s32 getScreenWidth() {
-        return isScreen16Per9() ? 832 : 608;
+        return isScreen16Per9() ? 812 : 608;  // SMG2 16:9 width (0x32C); SMG1 used 832
     }
 
     s32 getSafetyFrameWidth() {
@@ -229,7 +229,7 @@ namespace MR {
     }
 
     void closeSystemWipeFadeWithCaptureScreen(s32 frame) {
-        closeSystemWipeFade(frame);
+        closeSystemWipeWhiteFade(frame);
         ::getSystemWipeHolder()->startGameScreenCapture();
     }
 

@@ -83,8 +83,8 @@ WorldMapResultStateRouteOpen::~WorldMapResultStateRouteOpen() {
 
 namespace NrvWorldMapResultStateRouteOpen {
     WMR_NERVE_DEF(WorldMapResultStateRouteOpenStart, WorldMapResultStateRouteOpen, Start);
-    WMR_NERVE_DEF(WorldMapResultStateRouteOpenExtend, WorldMapResultStateRouteOpen, Extend);
+    WMR_NERVE_DEF(WorldMapResultStateRouteOpenExtend, WorldMapResultStateRouteOpen, Message);
     WMR_NERVE_DEF(WorldMapResultStateRouteOpenWaitNext, WorldMapResultStateRouteOpen, WaitNext);
-    WMR_NERVE_DEF(WorldMapResultStateRouteOpenMessage, WorldMapResultStateRouteOpen, Message);
+    WMR_NERVE_DEF(WorldMapResultStateRouteOpenMessage, WorldMapResultStateRouteOpen, Extend);
     WMR_NERVE_DEF(WorldMapResultStateRouteOpenEnd, WorldMapResultStateRouteOpen, End);
 };  // namespace NrvWorldMapResultStateRouteOpen

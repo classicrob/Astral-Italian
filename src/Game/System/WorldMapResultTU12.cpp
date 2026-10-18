@@ -1,5 +1,6 @@
 #include "Game/System/WorldMapResultLocal.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     void fn_80059270();
     void* fn_80059330();

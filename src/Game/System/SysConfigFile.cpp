@@ -8,7 +8,7 @@ SysConfigChunk::SysConfigChunk() : mHeaderSerializer(nullptr) {
 }
 
 u32 SysConfigChunk::makeHeaderHashCode() const {
-    return 0x1;
+    return 0x3;
 }
 
 u32 SysConfigChunk::getSignature() const {

@@ -12,7 +12,7 @@
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/SaveDataHandleSequence.hpp"
 #include "Game/System/ScenarioDataParser.hpp"
-#include "Game/System/StarPieceAlmsStorage.hpp"
+#include "Game/System/GameDataTicoFatStorage.hpp"
 #include "Game/System/SysConfigFile.hpp"
 #include "Game/System/UserFile.hpp"
 #include "Game/Util/SingletonHolder.hpp"
@@ -22,10 +22,6 @@
 extern "C" {
     // PLACEHOLDER(core): fn_804DE190 is a GameDataPlayerStatus member in an unowned gap (stores mPlayerLeft into mUnknown14, sets mPlayerLeft to 4); resolve when its owner is ported
     void fn_804DE190(GameDataPlayerStatus*);
-    // PLACEHOLDER(core): fn_804DE390 is a member of the TicoFat alms storage (feed-name hash insert); resolve when its owner is ported
-    void fn_804DE390(StarPieceAlmsStorage*, const char*);
-    // PLACEHOLDER(core): fn_804DE3E0 is a member of the TicoFat alms storage (feed-name hash lookup); resolve when its owner is ported
-    bool fn_804DE3E0(StarPieceAlmsStorage*, const char*);
     // PLACEHOLDER(core): fn_804DEA50 reads a counter from the SysConfig chunk (SysConfigFile unit); resolve when SysConfigFile is ported
     s32 fn_804DEA50(SysConfigChunk*);
     // PLACEHOLDER(core): fn_804D88F0 is GameSequenceFunction-lane code (galaxy name, bool); resolve when GameSequenceFunction names it
@@ -56,7 +52,7 @@ namespace GameDataFunction {
         return getCurrentGameDataHolder()->mAllGalaxyStorage->makeAccessor(pGalaxyName);
     }
 
-    StarPieceAlmsStorage* getCurrentGameDataTicoFatStorage() {
+    GameDataTicoFatStorage* getCurrentGameDataTicoFatStorage() {
         return getCurrentGameDataHolder()->mTicoFatStorage;
     }
 
@@ -436,27 +432,27 @@ namespace GameDataFunction {
 
     s32 getTicoFatStarPieceAlms(s32 index) {
         GameDataWorldMapStorage* pWorldMap = getCurrentGameDataWorldMapStorage();
-        StarPieceAlmsStorage* pTicoFat = getCurrentGameDataTicoFatStorage();
+        GameDataTicoFatStorage* pTicoFat = getCurrentGameDataTicoFatStorage();
         return pTicoFat->getValue(index + (pWorldMap->mCurrentWorldNo - 1) * 6);
     }
 
     s32 getTicoFatStarPieceAlmsFromWorld(s32 worldNo, s32 index) {
-        StarPieceAlmsStorage* pTicoFat = getCurrentGameDataTicoFatStorage();
+        GameDataTicoFatStorage* pTicoFat = getCurrentGameDataTicoFatStorage();
         return pTicoFat->getValue(index + (worldNo - 1) * 6);
     }
 
     void addTicoFatStarPieceAlms(s32 index, s32 value) {
         GameDataWorldMapStorage* pWorldMap = getCurrentGameDataWorldMapStorage();
-        StarPieceAlmsStorage* pTicoFat = getCurrentGameDataTicoFatStorage();
+        GameDataTicoFatStorage* pTicoFat = getCurrentGameDataTicoFatStorage();
         pTicoFat->addValue(index + (pWorldMap->mCurrentWorldNo - 1) * 6, value);
     }
 
     void onTicoCoinFeed(const char* pName) {
-        fn_804DE390(getCurrentGameDataTicoFatStorage(), pName);
+        getCurrentGameDataTicoFatStorage()->onTicoCoinFeed(pName);
     }
 
     bool isTicoCoinFeed(const char* pName) {
-        return fn_804DE3E0(getCurrentGameDataTicoFatStorage(), pName);
+        return getCurrentGameDataTicoFatStorage()->isTicoCoinFeed(pName);
     }
 
     s32 getPlayerLeft() {

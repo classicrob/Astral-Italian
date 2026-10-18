@@ -203,7 +203,7 @@ void StarPointerOnOffController::setupPauseMenu() {
     ::getStarPointerDirector()->startFingerPointer();
     ::getStarPointerLayout(WPAD_CHAN0)->validate();
     ::getStarPointerLayout(WPAD_CHAN1)->validate();
-    MR::deactiveStarPointerGuidance();
+    MR::activeStarPointerGuidance();
     MR::disableStarPointerShootStarPiece();
 }
 
@@ -291,7 +291,7 @@ void StarPointerOnOffController::setupBigBubble() {
 void StarPointerOnOffController::setupCommandStream() {
     ::getStarPointerLayout(WPAD_CHAN0)->show();
     ::getStarPointerLayout(WPAD_CHAN1)->show();
-    ::getStarPointerDirector()->startStarPointer();
+    ::getStarPointerDirector()->startYoshiPointer();
     ::getStarPointerLayout(WPAD_CHAN0)->validate();
     ::getStarPointerLayout(WPAD_CHAN1)->validate();
     MR::activeStarPointerGuidance();

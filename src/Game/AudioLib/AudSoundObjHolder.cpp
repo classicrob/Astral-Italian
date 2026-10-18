@@ -3,10 +3,10 @@
 #include "Game/AudioLib/AudSoundObject.hpp"
 #include <JSystem/JKernel/JKRHeap.hpp>
 
-AudSoundObjHolder::AudSoundObjHolder(JKRHeap* pHeap, s32 capacity) {
+AudSoundObjHolder::AudSoundObjHolder(s32 capacity) {
     mCapacity = capacity;
     mSize = 0;
-    mArray = new (pHeap, 0) AudSoundObject*[capacity];
+    mArray = new AudSoundObject*[capacity];
 }
 
 void AudSoundObjHolder::update() {

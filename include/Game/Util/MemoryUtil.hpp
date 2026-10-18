@@ -31,7 +31,7 @@ namespace MR {
     JKRExpHeap* getStationedHeapGDDR3();
     JKRHeap* getHeapNapa(const JKRHeap* pHeap);
     JKRHeap* getHeapGDDR3(const JKRHeap* pHeap);
-    void becomeCurrentHeap(JKRHeap* pHeap) NO_INLINE;
+    JKRHeap* becomeCurrentHeap(JKRHeap* pHeap) NO_INLINE;  // returns the previous current heap
     bool isEqualCurrentHeap(JKRHeap* pHeap);
     void adjustHeapSize(JKRExpHeap* pHeap);
 

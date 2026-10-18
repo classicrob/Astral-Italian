@@ -1,18 +1,15 @@
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 
 extern "C" {
-    s32 fn_804E8A10(WorldMapResultCommand*);
-    s32 fn_804E8A20(WorldMapResultCommand*);
-    s32 fn_804E89F0(WorldMapResultCommand*);
+    // PLACEHOLDER(core): mapped callee signature (symbols.txt name) does not match this call's arguments; resolve when the callee's real signature is confirmed
+    s32 fn_804E89F0(WorldMapOwner*);
+    // PLACEHOLDER(core): the symbol at 0x804E8A20 is named getGalaxyInfoName() (const char*) but this caller stores the result in an s32; resolve when the return type is confirmed
+    s32 fn_804E8A20(WorldMapOwner*);
     s32 fn_804F4CB0(s32);
-    void fn_804F6B10(WorldMapResultCommand*);
-    void fn_804F7480(WorldMapResultCommand*);
-    void fn_804F7490(WorldMapResultCommand*);
-    void fn_804F72A0(WorldMapResultCommand*);
-    bool fn_804F72D0(WorldMapResultCommand*);
-    s32 fn_804F74C0(WorldMapResultCommand*);
-    void fn_804F7840(WorldMapResultCommand*);
-    bool fn_804F7920(WorldMapResultCommand*, s32);
+    void fn_804F6B10(WorldMapOwner*);
+    bool fn_804F7920(WorldMapOwner*, s32);
 }
 
 namespace MR {
@@ -23,7 +20,7 @@ namespace MR {
 /// Result-map step that moves the cursor ("State[移動]").
 class WorldMapResultStateMove : public NerveExecutor {
 public:
-    WorldMapResultStateMove(WorldMapResultCommand*);
+    WorldMapResultStateMove(WorldMapOwner*);
     virtual ~WorldMapResultStateMove();
 
     void init();
@@ -35,7 +32,7 @@ public:
     virtual void onMoveEnd();
 
     /* 0x08 */ bool mIsDead;
-    /* 0x0C */ WorldMapResultCommand* mHost;
+    /* 0x0C */ WorldMapOwner* mHost;
     /* 0x10 */ u8 mFlagA;
     /* 0x11 */ bool mFlagB;
     /* 0x14 */ s32 mTarget;
@@ -45,7 +42,7 @@ namespace NrvWorldMapResultStateMove {
     WMR_NERVE_DECL(WorldMapResultStateMoveMove);
 };  // namespace NrvWorldMapResultStateMove
 
-WorldMapResultStateMove::WorldMapResultStateMove(WorldMapResultCommand* pHost) : NerveExecutor("State[移動]") {
+WorldMapResultStateMove::WorldMapResultStateMove(WorldMapOwner* pHost) : NerveExecutor("State[移動]") {
     mIsDead = true;
     mHost = pHost;
     mFlagA = false;
@@ -59,26 +56,26 @@ void WorldMapResultStateMove::init() {
 }
 
 void WorldMapResultStateMove::appear() {
-    if (fn_804E8A10(mHost) != 0 && fn_804F72D0(mHost) == 0) {
+    if (mHost->isGalaxyInfoAppeared() != 0 && mHost->isCurrentGalaxyInfoShown() == 0) {
         mTarget = fn_804E8A20(mHost);
     } else {
         mTarget = 0;
     }
 
     mFlagB = false;
-    mFlagA = fn_804F74C0(mHost);
+    mFlagA = mHost->isZoomButtonAppeared();
     mIsDead = false;
-    fn_804F7840(mHost);
+    mHost->resetCameraMove();
     setNerve(GET_NERVE(WorldMapResultStateMove, WorldMapResultStateMoveMove));
 }
 
 void WorldMapResultStateMove::exeMove() {
     fn_804F6B10(mHost);
-    fn_804F7480(mHost);
-    fn_804F72A0(mHost);
+    mHost->requestAppearWorldName();
+    mHost->startAllPointingAnim();
 
     if (mFlagA) {
-        fn_804F7490(mHost);
+        mHost->requestAppearZoomButton();
     }
 
     if (mTarget != 0) {

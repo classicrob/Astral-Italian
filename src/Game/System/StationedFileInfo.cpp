@@ -1,16 +1,28 @@
 #include "Game/System/StationedFileInfo.hpp"
 
-namespace MR {
+namespace {
+    using MR::StationedFileInfo;
+
     const StationedFileInfo cStationedFileInfo[] = {
         {
-            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO,
             "/ObjectData/MarioAnime.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO,
             "/ObjectData/BoneMario.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO,
+            "/ObjectData/CloudMario.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO,
+            "/ObjectData/CloudMarioCap.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_NAPA,
@@ -28,19 +40,34 @@ namespace MR {
             "/ObjectData/MarioShadow.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::HEAP_TYPE_NAPA,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO,
-            "/ObjectData/MarioTornado.arc",
+            "/ObjectData/MarioHair.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO,
+            "/ObjectData/MarioHairAnimMarioFaceShipGalaxy2.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI,
             "/ObjectData/MarioAnime.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI,
             "/ObjectData/BoneLuigi.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI,
+            "/ObjectData/CloudLuigi.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI,
+            "/ObjectData/CloudLuigiCap.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_NAPA,
@@ -58,34 +85,29 @@ namespace MR {
             "/ObjectData/LuigiShadow.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::HEAP_TYPE_NAPA,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI,
-            "/ObjectData/LuigiTornado.arc",
+            "/ObjectData/LuigiHair.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI,
+            "/ObjectData/LuigiHairAnimMarioFaceShipGalaxy2.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
             "/ObjectData/MarioHandL.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
             "/ObjectData/MarioHandR.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
             "/ObjectData/MarioDummyItem.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_NAPA,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/IceStep.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_NAPA,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/MarioFireBall.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -95,7 +117,7 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/MarioFreezeIce.arc",
+            "/ObjectData/MarioConst.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -105,67 +127,7 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/Coin.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinokoOneUp.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinokoLifeUp.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/PowerUpLife.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/Kinoko.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/SearchLightCone.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/ShadowVolumeCylinder.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/ShadowVolumeSphere.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/ShadowVolumeOval.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/StarPiece.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
             "/ObjectData/WaterColumn.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/YellowChip.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/StarPointerBlur.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -178,9 +140,24 @@ namespace MR {
             "/ObjectData/Koura.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::HEAP_TYPE_NAPA,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/RailPoint.arc",
+            "/ObjectData/ShadowVolumeSphere.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/StarPiece.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/StarPointerBlur.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/SearchLightCone.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -198,479 +175,24 @@ namespace MR {
             "/ObjectData/ScenarioSelectSky.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/MapTicoIcon.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/GalaxyNamePlate.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/IconComet.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/MapTitle.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/GalaxyDetail.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/ResultWindow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/MapGalaxyIcon.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/IconMario.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/MapButton.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/MapDomeIcon.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/AllStarList.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/SuperSpinDriver.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/PauseMenu.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/MapGalaxyBG.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/MapGrandGalaxy.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/SpinDriverPath.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/MarioHair.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/VROrbit.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/Butler.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/GalaxyInfoTexture.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/Butterfly.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroNamePlateData.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/SuperSpinDriverShadow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/StarPieceTargetMeter.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinopioGoodsPickel.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/SignBoard.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/TicoLow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/CutBush.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/CrystalBox.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/TicoMiddle.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/DemoAstroReturn.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroMapBoard.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinopioLow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/SuperSpinDriverEmpty.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/PowerupFoo.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinopioGoodsMailBag.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/WoodBox.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/TicoFatGoodsStarPiece.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinopioMiddle.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/WoodBoxBreak.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/CrystalBoxBreak.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinopioGoodsLight.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDecoratePartsA.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/KinopioGoodsRucksack.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/MiniSurprisedGalaxy.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroStarPlateObservatory.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroStarPlateWell.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroStarPlateBedRoom.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/WarpPod.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/RosettaLow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroCore.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDecoratePartsGearA.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/Tico.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroStarPlateMachine.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/TicoFat.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroStarPlateKitchen.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroRotateStepB.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroParking.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroStarPlateTower.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/RosettaMiddle.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/Kinopio.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroBaseCenterTop.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/GrandStar.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroBaseKitchen.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroBaseCenterA.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroLibrary.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroRotateStepA.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroBaseCenterB.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroBaseC.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::HEAP_TYPE_NAPA,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeEntranceMachine.arc",
+            "/ObjectData/WipeModelCloud.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeEntranceBedRoom.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeEntranceObservatory.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeEntranceKitchen.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroChildRoom.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/TicoCometGoodsStar.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/LuigiNPCLow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/LuigiNPCMiddle.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/TicoComet.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/GlareGlow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/GlareLine.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/LensFlare.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/Sun.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/GalaxyInfo.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/GalaxySelect.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/GCaptureRibbon.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/MiniatureGalaxySelect.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeDemoCamera.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/MiniatureGalaxyShadow.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeCometBloom.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/GCaptureTarget.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeDemoAstroGalaxy.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/AstroDomeComet.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::HEAP_TYPE_NAPA,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/MiniatureGalaxyUnknown.arc",
+            "/ObjectData/WipeModelGalaxy.arc",
         },
         {
-            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::HEAP_TYPE_NAPA,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/DemoSheet.arc",
+            "/ObjectData/WipeModelSpace.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/LightData.arc",
+            "/LightData/LightData.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -690,11 +212,6 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/BlueChipCounter.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
             "/LayoutData/CameraInfo.arc",
         },
         {
@@ -705,27 +222,17 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/CinemaSuper.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
             "/LayoutData/CoinCounter.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
+            "/LayoutData/CometMedalCounter.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
             "/LayoutData/CollectCounter.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/CometScreenFilter.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/CommandStream.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -795,16 +302,6 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/PurpleCoinCounter.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/RetryButton.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
             "/LayoutData/SelectButton.arc",
         },
         {
@@ -826,6 +323,11 @@ namespace MR {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
             "/LayoutData/StarPieceCounter.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
+            "/LayoutData/SupportPlayGuidance.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -865,12 +367,42 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/WipeRing.arc",
+            "/LayoutData/WipeMario.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/YellowChipCounter.arc",
+            "/LayoutData/WipeRing.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/Yoshi.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/Penguin.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/Tico.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/SupportTico.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
+            "/LayoutData/GalaxyNamePlate.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
+            "/LayoutData/YoshiTargetMark.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -890,12 +422,12 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT,
-            "/ParticleData/Effect.arc",
+            "/SystemData/ObjNameTable.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT,
-            "/StageData/ObjNameTable.arc",
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/SaveIconBanner.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -909,28 +441,23 @@ namespace MR {
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/TimeLimit.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT,
-            "/LayoutData/TimeUp.arc",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_FILE,
-            "/ModuleData/HomeButtonMenuWrapperRSO.rso",
-        },
-        {
-            StationedFileInfo::HEAP_TYPE_GDDR,
-            StationedFileInfo::LOAD_TYPE_FILE,
-            "/ModuleData/product.sel",
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
+            "/ObjectData/ProductMapObjDataTable.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE,
-            "/ObjectData/SaveIconBanner.arc",
+            "/ObjectData/SystemDataTable.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_FILE,
+            "/ModuleData/HomeButtonMenuWrapperRSO.rso",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_FILE,
+            "/ModuleData/product.sel",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -945,7 +472,17 @@ namespace MR {
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
             StationedFileInfo::LOAD_TYPE_MOUNT,
-            "/MessageData/Message.arc",
+            "/MessageData/SystemMessage.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT,
+            "/MessageData/SceneCommonMessage.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT,
+            "/MessageData/LayoutMessage.arc",
         },
         {
             StationedFileInfo::HEAP_TYPE_GDDR,
@@ -953,12 +490,884 @@ namespace MR {
             "/LayoutData/GameOver.arc",
         },
         {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/Coin.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinokoOneUp.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinokoLifeUp.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PowerUpLife.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/Kinoko.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/ShadowVolumeCylinder.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/ShadowVolumeOval.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YellowChip.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/RailPoint.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/GalaxyInfoTexture.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniAbekobeGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniAncientExcavationGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniBigGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniBigTree2Galaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniBigWaterFallGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniChallengeGliderGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniChaosGravityGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniCloudGardenGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniDigMineGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniDimensionBigCastleGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniFlowerHighlandGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniGhostConveyorGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniGoroRockGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniHomeCenterGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniHoneyBeeVillageGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniJungleGliderGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniKachikochiLavaGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniKingOfKingsGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniKoopaCastleGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniKoopaJrCastleGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniLongForCastleGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniMadnessOnimasuGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniMagicGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniMarioOnMarioGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniMemoryRoadGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniMysteryCandyGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniOmoteuLandGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniQuicksandGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniRedBlueExGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniSecretAthleticGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniStarCreekGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniSwitchMoveBlockGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTamakoroPlanetGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTamakoroSliderGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTeresaLabyrinthGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniThunderFleetGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTimerSwitchingPlatformGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTropicalResortGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTwisterTowerGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniUnderGroundDangeonGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniVsKoopaLv3Galaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWanwanFactoryGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWhiteSnowGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorld01.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorld02.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorld03.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorld04.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorld05.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorld06.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorld07.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniYosshiHomeGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniComet.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniIslandFleetGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniMokumokuValleyGalaxy.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniPlayerRocket.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/TicoFatGoodsStarPiece.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap01.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap02.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap03.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap04.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap05.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap06.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap07.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMap08.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/CometScreenFilter.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/PurpleCoinCounter.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/YellowChipCounter.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/TimeLimit.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/PauseMenu.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/AllStarList.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiTongue.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiHandL.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiHandR.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiArrow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiArrowShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/Moc.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PlantB03.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/GrandStar.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/SpinDriver.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/SpinDriverShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/SignBoard.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiFruitStem.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiFruit.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YCaptureTarget.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PunchingKinoko.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/SpinDriverPath.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PenguinMiddle.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PowerUpCloud.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/SpinCloudBlock.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiEgg.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiNest.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/YoshiEggBreak.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/ItemDrill.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniRouteLine.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniRouteLineShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniGalaxyShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniGalaxyBackEffect01.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniWorldWarpPoint.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniStarCheckPoint.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniStarCheckPointMark.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTicoMaster.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniTicoMasterMark.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniRoutePoint.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniRoutePointShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniEarthenPipe.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/SeaGull.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PostFog.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsLightOff.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsStarPiece.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsSnorkel.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsPickel.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsWeapon.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsGlasses.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WiiMessageImage.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/DashYoshiStep.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/CloudStepShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PowerUpRock.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PlantC01.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PowerUpBee.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PowerUpTeresa.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PowerUpHopper.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PowerUpFire.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/ItemRoomDoor.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/StumpObj.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/LuckyDice.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PositiveDice.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/ItemRoomItemBase.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/SpinCloudBlockShadow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniGreenComet.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/WorldMapCamera.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/EarthenPipe.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/Pole.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/PenguinLow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/CloudStep.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/HoneyBee.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MoonRabbit.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/TicoMiddle.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/TicoLow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/Kinopio.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioMiddle.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioLow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsMailBag.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/KinopioGoodsRucksack.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/LuigiNPC.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/LuigiNPCMiddle.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/LuigiNPCLow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/JumpStand.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/HoneyBeeMiddle.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/HoneyBeeLow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/BombHeiRed.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/Pichan.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/TreasureBox.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniFlag.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_NAPA,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE,
+            "/ObjectData/MiniStarPieceMine.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/ResultMapBG.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/ResultWindow.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/GalaxyInfo.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/GalaxySelect.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/MapGalaxyReport.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/MapGalaxyState.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/MapGalaxyWorld.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/MapGalaxyZoomButton.arc",
+        },
+        {
+            StationedFileInfo::HEAP_TYPE_GDDR,
+            StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE,
+            "/LayoutData/MapGalaxyArrow.arc",
+        },
+        {
             StationedFileInfo::HEAP_TYPE_NAPA,
             StationedFileInfo::LOAD_TYPE_FILE,
             nullptr,
         },
     };
+}  // namespace
 
+namespace MR {
     const StationedFileInfo* getStationedFileInfoTable() {
         return cStationedFileInfo;
     }

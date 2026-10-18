@@ -23,6 +23,11 @@ namespace MR {
     f32 calcCameraDistanceZ(const TVec3f&);
 
     void declareEventCamera(const ActorCameraInfo*, const char*);
+    // PLACEHOLDER(core): provisional names of the camera-by-param-id wrappers fn_8001D460/fn_8001D4B0/fn_8001D510 (CameraDirector calls with a
+    // getCameraParamId() id); resolve when the CameraUtil unit names them
+    void declareEventCameraById(s32 cameraId, const char*);
+    void startEventCameraById(s32 cameraId, const char*, const CameraTargetArg&, s32);
+    void endEventCameraById(s32 cameraId, const char*, s32, s32);
     void declareEventCameraProgrammable(const char*);
     void startEventCamera(const ActorCameraInfo*, const char*, const CameraTargetArg&, s32 = -1);
     void startEventCameraAnim(const ActorCameraInfo*, const char*, const CameraTargetArg&, s32, f32);

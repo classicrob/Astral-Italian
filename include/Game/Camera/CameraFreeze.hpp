@@ -4,7 +4,7 @@
 
 class CameraFreeze : public Camera {
 public:
-    CameraFreeze(const char* pName);
+    CameraFreeze(const char* pName = "CameraFreeze");
 
     virtual void reset();
     virtual CameraTargetObj* calc();

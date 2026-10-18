@@ -15,7 +15,7 @@ public:
     static MiniCometNrvWait sInstance;
 };
 
-MiniComet::MiniComet(const char* pName) : LiveActor("コメット") {
+MiniComet::MiniComet(const char* pName) : LiveActor("コメット（ワールドマップ）") {
     mName = pName;
 }
 

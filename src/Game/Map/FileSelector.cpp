@@ -1,3 +1,4 @@
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/Map/FileSelector.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -33,11 +34,6 @@ namespace GameSequenceFunction {
     void startCreateUserFileSequence(int);
     void startDeleteUserFileSequence(int);
     void requestChangeStageAfterFileSelect();
-}
-
-namespace GameDataFunction {
-    typedef wchar_t* WideStr;
-    void setUserName(const WideStr);
 }
 
 namespace MR {
@@ -238,6 +234,7 @@ void FileSelector::notifyItem(FileSelectItem* pItem, s32 msg) {
 }
 
 // NONMATCHING: register allocation (i/offset/temp pointer registers swapped in the first loop)
+// NONMATCHING: stack slot/register allocation (named offset/actor locals in the second loop shift the frame; target uses unnamed temps)
 void FileSelector::control() {
     _BC = nullptr;
 
@@ -248,7 +245,9 @@ void FileSelector::control() {
     }
 
     for (int i = 0; i < mItems->getObjNum(); i++) {
-        MR::setPosition(&mSelectEffect[i], mItems->getActor(i)->mPosition + TVec3f(0.0f, 1000.0f, 0.0f));
+        TVec3f offset(0.0f, 1000.0f, 0.0f);
+        LiveActor* pActor = mItems->getActor(i);
+        MR::setPosition(&mSelectEffect[i], pActor->mPosition + offset);
     }
 
     updateBgm();
@@ -704,7 +703,7 @@ FileSelectIconID::EFellowID FileSelector::getUserFileFellowID(s32 id) const {
     if (mUserFile[id - 1].getIconId(&iconId)) {
         FileSelectIconID::EFellowID fellowId = FileSelectIconID::Mario;
 
-        if (iconId <= 5) {
+        if (iconId <= 7) {
             fellowId = static_cast< FileSelectIconID::EFellowID >(iconId - 1);
         }
 
@@ -1266,7 +1265,7 @@ void FileSelector::exeMiiSelectStart() {
         mMiiSelect->validateAllSpecialMii();
 
         if (!mUserFile[_B0->_140 - 1].isView120StarsEnding()) {
-            mMiiSelect->invalidateSpecialMii(static_cast< FileSelectIconID::EFellowID >(5));
+            mMiiSelect->invalidateSpecialMii(FileSelectIconID::Rosetta);
         }
 
         mMiiSelect->appear();

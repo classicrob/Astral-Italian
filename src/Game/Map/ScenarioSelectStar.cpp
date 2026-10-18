@@ -57,10 +57,10 @@ void ScenarioSelectStar::appear() {
     mRotateSpeed = 0.0f;
     updatePos();
     s32 frame = PowerStar::getBtpFrameCurrentStage(mScenarioNo);
-    MultiScene::startBtp(this, "PowerStar");
-    MultiScene::startBrk(this, "PowerStar");
-    MultiScene::startBtk(this, "PowerStar");
-    MultiScene::startBva(this, "PowerStar");
+    MultiScene::startBtp(this, "PowerStarColor");
+    MultiScene::startBrk(this, "PowerStarColor");
+    MultiScene::startBtk(this, "PowerStarColor");
+    MultiScene::startBva(this, "PowerStarColor");
     MultiScene::setBtpFrameAndStop(this, frame);
     MultiScene::setBrkFrameAndStop(this, frame);
     MultiScene::setBckFrameAndStop(this, frame);

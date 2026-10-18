@@ -65,7 +65,6 @@ class JKRMemArchive;
 namespace MR {
     s32 convertPathToEntrynumConsideringLanguage(const char* pFilePath);
     void loadAsyncToMainRAM(const char* pFilePath, u8* pDst, JKRHeap* pHeap, JKRDvdRipper::EAllocDirection allocDir);
-    JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap);
     JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap, bool);
     void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap);
     void mountAsyncArchiveByObjectOrLayoutName(const char* pFilePrefix, JKRHeap* pHeap);
@@ -75,6 +74,8 @@ namespace MR {
     bool isMountedArchive(const char* pFilePath);
     bool isLoadedObjectOrLayoutArchive(const char* pFilePrefix);
     void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath);
+    // SMG2 fn_80025460 (unnamed): the bool selects no distinct code path in the target (both branches are identical).
+    void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath, bool);
     bool makeObjectArchiveFileName(char* pDst, u32 size, const char* pFileName);
     bool makeLayoutArchiveFileName(char* pDst, u32 size, const char* pFileName);
 };  // namespace MR

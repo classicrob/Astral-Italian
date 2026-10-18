@@ -232,7 +232,7 @@ namespace MR {
     }
 
     void getLayoutMessageID(char* pDst, const char* pSuperMessageId, const char* pSubMessageId) {
-        snprintf(pDst, MESSAGE_ID_BUFFER_SIZE, "Layout_%s%s", pSuperMessageId, pSubMessageId);
+        snprintf(pDst, MESSAGE_ID_BUFFER_SIZE, "%s_%s", pSuperMessageId, pSubMessageId);
     }
 
     void makeCometMessageID(char* pDst, u32 bufferSize, const char* pCometName) {

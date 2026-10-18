@@ -10,7 +10,7 @@
 
 static const char* sAppearActionName = "MiniGreenComet";
 
-MiniGreenComet::MiniGreenComet() : LiveActor("グリーン") {
+MiniGreenComet::MiniGreenComet() : LiveActor("グリーンコメット（ワールドマップ）") {
 }
 
 void MiniGreenComet::init(const JMapInfoIter& rIter) {
@@ -42,7 +42,7 @@ void MiniGreenComet::control() {
 MiniGreenComet::~MiniGreenComet() {
 }
 
-MiniGreenCometShower::MiniGreenCometShower() : LiveActor("降り注ぐ") {
+MiniGreenCometShower::MiniGreenCometShower() : LiveActor("降り注ぐグリーンコメット（ワールドマップ）") {
 }
 
 void MiniGreenCometShower::init(const JMapInfoIter& rIter) {

@@ -183,15 +183,29 @@ public:
     /* 0x190 */ TPos3f mHillMtxB;
 };
 
-// PLACEHOLDER(core): weak-point actor of the body, its TU is not split/sourced yet (ctor fn_80097900); resolve when that TU gets a src
+// Weak-point actor of the body (LiveActor, size 0xC8). Ctor (sensor, owning body part); nerves live in its TU (NrvBellyDragonWeakPoint).
 class BellyDragonWeakPoint : public LiveActor {
 public:
     BellyDragonWeakPoint(HitSensor*, BellyDragonBodyPart*);
 
+    virtual ~BellyDragonWeakPoint();
+    virtual void init(const JMapInfoIter&);
+    virtual void makeActorAppeared();
+    virtual void calcAndSetBaseMtx();
+    virtual void attackSensor(HitSensor*, HitSensor*);
+    virtual bool receiveMsgPush(HitSensor*, HitSensor*);
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+
+    bool isAttackable() NO_INLINE;      // fn_80097A60
+    void setNerveWaitC();     // fn_80097A50
     void setNerveChance();    // fn_80097A10
     void setNerveWaitA();     // fn_80097A20
     void setNerveBurn();      // fn_80097A30
     void setNerveWaitB();     // fn_80097A40
+    void exeWait() NO_INLINE;           // fn_80097AC0
+    void exeBurn() NO_INLINE;           // fn_80097B50
+    void exeWaitC();          // fn_80097EA0 (inline body of its nerve execute)
+    void exeChance();         // fn_80097EF0 (inline body of its nerve execute)
     void updateMtx();         // fn_80097BE0
 
     /* 0x90 */ TPos3f mMtx;

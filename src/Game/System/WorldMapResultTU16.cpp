@@ -1,10 +1,11 @@
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
-    bool fn_804F71E0(WorldMapResultCommand*);
-    void fn_804E8780(WorldMapResultCommand*);
-    void fn_804E8850(WorldMapResultCommand*);
-    void fn_804F7580(WorldMapResultCommand*, const char*);
+    void fn_804E8780(WorldMapOwner*);
+    void fn_804E8850(WorldMapOwner*);
     void fn_804F4CB0(s32);
 }
 
@@ -24,7 +25,7 @@ namespace NrvWorldMapResultStateOpenGalaxy {
 /// Result-map step that opens the galaxy ("State[ギャラクシーをオープンする]").
 class WorldMapResultStateOpenGalaxy : public NerveExecutor {
 public:
-    WorldMapResultStateOpenGalaxy(WorldMapResultCommand*);
+    WorldMapResultStateOpenGalaxy(WorldMapOwner*);
     virtual ~WorldMapResultStateOpenGalaxy();
 
     void init();
@@ -47,14 +48,14 @@ public:
     virtual void onOpenEnd();
 
     /* 0x08 */ bool mIsDead;
-    /* 0x0C */ WorldMapResultCommand* mHost;
+    /* 0x0C */ WorldMapOwner* mHost;
     /* 0x10 */ f32 _10;
     /* 0x14 */ f32 _14;
     /* 0x18 */ f32 _18;
 };
 
 
-WorldMapResultStateOpenGalaxy::WorldMapResultStateOpenGalaxy(WorldMapResultCommand* pHost) : NerveExecutor("State[ギャラクシーをオープンする]") {
+WorldMapResultStateOpenGalaxy::WorldMapResultStateOpenGalaxy(WorldMapOwner* pHost) : NerveExecutor("State[ギャラクシーをオープンする]") {
     mIsDead = true;
     mHost = pHost;
     _10 = 0.0f;
@@ -70,9 +71,9 @@ void WorldMapResultStateOpenGalaxy::init() {
 void WorldMapResultStateOpenGalaxy::appear() {
     mIsDead = false;
     setNerve(GET_NERVE(WorldMapResultStateOpenGalaxy, WorldMapResultStateOpenGalaxyOpen));
-    if (fn_804F71E0(mHost)) {
+    if (mHost->tryOpenCurrentGalaxy()) {
         fn_804E8780(mHost);
-        fn_804F7580(mHost, "Wait");
+        mHost->changeRocketAction("Wait");
         MR::hidePlayer();
     } else {
         mIsDead = true;

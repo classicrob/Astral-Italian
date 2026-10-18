@@ -10,8 +10,13 @@
 #include <JSystem/JAudio2/JAUSoundMgr.hpp>
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+class AudBgmParamTable;
 class AudChordInfo;
 class AudEffector;
+class AudInstListMgr;
+class AudMultiBgmInfo;
+class AudSeLifeTable;
+class AudStageUseResourceList;
 class AudMeObject;
 class AudRemixMgr;
 class AudRhythmMeSystem;
@@ -20,11 +25,13 @@ class AudSeStrategyMgr;
 class AudSoundObjHolder;
 class AudSoundObject;
 class AudSystemVolumeController;
+class JAISe;
 class JAISoundHandle;
 class JAISoundID;
 class JAUSectionHeap;
 class JAUStreamStaticAramMgr;
 class JKRArchive;
+class JKRHeap;
 class JKRSolidHeap;
 class SpkSystem;
 
@@ -35,6 +42,40 @@ extern const char sJaiMeArc[];
 extern const char sJaiRemixArc[];
 extern const char sJaiAudioArc[];
 extern const char sJaiSeqResArc[];
+extern const char sJaiInstListArc[];
+
+// Archives handed to AudNewAudSystem (AudSystemWrapper keeps one). SMG2 only; SMG1 passed them as separate arguments.
+struct AudArchiveSet {
+    AudArchiveSet() {
+        reset();
+    }
+
+    void reset() NO_INLINE {
+        mSmrRes = nullptr;
+        mSeqArchive = nullptr;
+        mChordArchive = nullptr;
+        mMeArchive = nullptr;
+        mRemixArchive = nullptr;
+        mInstListArchive = nullptr;
+    }
+
+    /* 0x00 */ void* mSmrRes;
+    /* 0x04 */ JKRArchive* mSeqArchive;
+    /* 0x08 */ JKRArchive* mChordArchive;
+    /* 0x0C */ JKRArchive* mMeArchive;
+    /* 0x10 */ JKRArchive* mRemixArchive;
+    /* 0x14 */ JKRArchive* mInstListArchive;
+};
+
+// SMG2: per-sound-ID polyphony limiter; up to 3 playing SEs of one sound ID, ordered by score.
+struct AudSeLimitEntry {
+    /* 0x00 */ JAISe* mSe;
+    /* 0x04 */ f32 mScore;
+};
+
+struct AudSeLimitGroup {
+    /* 0x00 */ AudSeLimitEntry mEntries[3];
+};
 
 class AudSystem : public JAUSoundMgr {
 public:
@@ -51,7 +92,7 @@ public:
         MenuType_Error = 2,
     };
 
-    AudSystem(JAUSectionHeap*, JKRArchive*, JKRArchive*, JKRArchive*);
+    AudSystem(JKRHeap*, JAUSectionHeap*, AudArchiveSet*);
 
     virtual void frameWork();
     virtual void calc();
@@ -78,6 +119,7 @@ public:
     void exitPauseMenu();
     void updatePauseMenu();
     bool isPauseMenuActive() const;
+    bool isMenuOrErrorActive() const;
     void screenSaverProcess();
     bool isEnableStartSound(JAISoundID);
     void doDvdErrorProcess();
@@ -101,6 +143,7 @@ public:
     void updateLimitedSound();
     bool isAlreadyPlayingSoundNear(JAISoundID, const TVec3f*, f32);
     void setVolumeZeroForce(s32);
+    void setCameraRate(f32);
 
     bool isRestrictedSound(JAISoundID);
     void stopAllSounds(u32 fadeTime);
@@ -110,6 +153,9 @@ public:
     bool isHomeButtonMenuLeaving() const;
     void pauseSeCategories(s32 menuType, bool pause);
     void stopMenuSystemSounds();
+    void clearSeLimitGroups();
+    void updateSeLimitGroups();
+    s32 registerSeLimit(JAISe*, s32);
     void setField9A0(s32 value);
     void setField9A4(bool value);
     static void setField834(s32 value);
@@ -138,32 +184,42 @@ public:
     /* 0x082B */ bool _82B;  // blocks startSound
     /* 0x082C */ bool _82C;  // blocks startLevelSound
     /* 0x0830 */ s32 _830;
-    /* 0x0834 */ JAUStdSoundInfo* mSoundInfo;
-    /* 0x0838 */ JAUSectionHeap* mSectionHeap;
-    /* 0x083C */ JAUStreamStaticAramMgr* mStreamAramMgr;
-    /* 0x0840 */ AudAudience< 4 > mAudience;
-    /* 0x09E8 */ AudDopplerAudible< 4 >* mAudible;  // TODO: should this be merged into AudAudience<>??
-    /* 0x09EC */ AudSoundObject* mSystemSeObject;
-    /* 0x09F0 */ AudSoundObject* mAtmosphereSeObject;
-    /* 0x09F4 */ AudMeObject* mSystemMeObject;
-    /* 0x09F8 */ AudSceneMgr* mSceneMgr;
-    /* 0x09FC */ AudBgmMgr mBgmMgr;
-    /* 0x12FC */ AudSoundObjHolder* mSoundObjHolder;
-    /* 0x1300 */ AudRhythmMeSystem* mRhythmMeSystem;
-    /* 0x1304 */ AudRemixMgr* mRemixMgr;
-    /* 0x1308 */ AudEffector* mAudEffector;
-    /* 0x130C */ AudSeStrategyMgr* mSeStrategyMgr;
-    /* 0x1310 */ AudSystemVolumeController* mVolumeController;
-    /* 0x1314 */ s32 mHomeButtonMenuState;
-    /* 0x1318 */ s32 mHomeButtonToggleTime;
-    /* 0x131C */ s32 mPauseMenuState;
-    /* 0x1320 */ s32 mPauseMenuToggleTime;
-    /* 0x1324 */ bool mIsDvdError;
-    /* 0x1328 */ AudLimitedSoundInfo* mLimitedSoundInfo;
-    /* 0x132C */ SpkSystem* mSpkSystem;
+    /* 0x0834 */ s32 mRestrictedSoundFrames;  // SMG2; >= 0 enables isRestrictedSound filtering, counts down per frame
+    /* 0x0838 */ JAUStdSoundInfo* mSoundInfo;
+    /* 0x083C */ JKRHeap* mHeap;  // SMG2; heap the system-lifetime objects are created in (ctor arg)
+    /* 0x0840 */ JAUSectionHeap* mSectionHeap;
+    /* 0x0844 */ JAUStreamStaticAramMgr* mStreamAramMgr;
+    /* 0x0848 */ AudAudience< 4 > mAudience;
+    /* 0x094C */ s32 mSoundMode;  // SCGetSoundMode()
+    /* 0x0950 */ AudSoundObject* mSystemSeObject;
+    /* 0x0954 */ AudSoundObject* mAtmosphereSeObject;
+    /* 0x0958 */ AudMeObject* mSystemMeObject;
+    /* 0x095C */ AudSceneMgr* mSceneMgr;
+    /* 0x0960 */ AudBgmMgr* mBgmMgr;  // SMG2: heap object (SMG1 embedded it)
+    /* 0x0964 */ AudSoundObjHolder* mSoundObjHolder;
+    /* 0x0968 */ AudRhythmMeSystem* mRhythmMeSystem;
+    /* 0x096C */ AudRemixMgr* mRemixMgr;
+    /* 0x0970 */ AudEffector* mAudEffector;
+    /* 0x0974 */ AudSeStrategyMgr* mSeStrategyMgr;
+    /* 0x0978 */ AudSystemVolumeController* mVolumeController;
+    /* 0x097C */ AudInstListMgr* mInstListMgr;
+    /* 0x0980 */ AudMultiBgmInfo* mMultiBgmInfo;
+    /* 0x0984 */ AudBgmParamTable* mBgmParamTable;
+    /* 0x0988 */ s32 mHomeButtonMenuState;
+    /* 0x098C */ s32 mHomeButtonToggleTime;
+    /* 0x0990 */ s32 mPauseMenuState;
+    /* 0x0994 */ s32 mPauseMenuToggleTime;
+    /* 0x0998 */ bool mIsDvdError;
+    /* 0x099C */ AudLimitedSoundInfo* mLimitedSoundInfo;
+    /* 0x09A0 */ s32 _9A0;
+    /* 0x09A4 */ bool _9A4;
+    /* 0x09A5 */ bool mIsDestroySceneKeepAllSound;
+    /* 0x09A8 */ SpkSystem* mSpkSystem;
+    /* 0x09AC */ AudSeLifeTable* mSeLifeTable;
+    /* 0x09B0 */ AudStageUseResourceList* mStageUseResourceList;
+    /* 0x09B4 */ s32 mNumSeLimitGroups;
+    /* 0x09B8 */ AudSeLimitGroup mSeLimitGroups[32];  // SMG2; 0x300 bytes
 };
 
-extern "C" u8 fn_8007A760(const AudSystem*);
-
-AudSystem* AudNewAudSystem(JKRSolidHeap*, void*, JKRArchive*, JKRArchive*, JKRArchive*, JKRArchive*) NO_INLINE;
-AudSystem* AudNewAudSystem_(JAUSectionHeap*, JKRArchive*, JKRArchive*, JKRArchive*, int) NO_INLINE;
+AudSystem* AudNewAudSystem(JKRHeap*, JKRSolidHeap*, AudArchiveSet*);
+AudSystem* AudNewAudSystem_(JKRHeap*, JAUSectionHeap*, int, AudArchiveSet*) NO_INLINE;

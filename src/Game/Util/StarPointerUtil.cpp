@@ -358,7 +358,7 @@ namespace MR {
     }
 
     bool requestBlueStarGuidance() {
-        if (MR::isInAreaObj("BlueStarGuidanceCube", *MR::getPlayerPos()) && !MR::isSystemTalking()) {
+        if (MR::isInAreaObj("BlueStarGuidanceArea", *MR::getPlayerPos()) && !MR::isSystemTalking()) {
             return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_BlueStar", true);
         }
 

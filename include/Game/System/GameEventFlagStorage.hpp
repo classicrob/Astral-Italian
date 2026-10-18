@@ -18,8 +18,8 @@ public:
     virtual s32 deserialize(const u8*, u32);
     virtual void initializeData();
 
-    void set(const GameEventFlag*, bool);
-    bool isOn(const GameEventFlag*) const;
+    void set(const char*, bool);
+    bool isOn(const char*) const;
 
     /* 0x04 */ void* mUnk04;  // target stores a vtable-like address here in the ctor (extra base?), purpose unknown
     /* 0x08 */ MR::BitArray* mFlagBitArray;

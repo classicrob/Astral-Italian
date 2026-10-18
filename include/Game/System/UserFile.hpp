@@ -22,7 +22,6 @@ public:
     void setCreated();
     void setMiiOrIconId(const void*, const u32*);
     void setLastLoadedMario(bool);
-    void onCompleteEndingCurrentPlayer();
     void updateLastModified();
     void setUserName(const wchar_t*);
     const char* getGameDataName() const;
@@ -43,8 +42,7 @@ public:
 
     /* 0x00 */ GameDataHolder* mGameDataHolder;
     /* 0x04 */ ConfigDataHolder* mConfigDataHolder;
-    /* 0x08 */ bool mIsPlayerMario;
-    /* 0x09 */ bool mIsGameDataCorrupted;
-    /* 0x0A */ bool mIsConfigDataCorrupted;
+    /* 0x08 */ bool mIsGameDataCorrupted;
+    /* 0x09 */ bool mIsConfigDataCorrupted;
     /* 0x0C */ wchar_t* mUserName;
 };

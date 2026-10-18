@@ -9,7 +9,7 @@
 
 ParticleResourceHolder::ParticleResourceHolder(const char* pArchiveName)
     : mResourceMgr(), mAutoEffectList(new JMapInfo), mParticleNames(new JMapInfo), mNumEffectNums() {
-    JKRMemArchive* pArchive = MR::mountArchive(pArchiveName, nullptr);
+    JKRMemArchive* pArchive = MR::mountArchive(pArchiveName, nullptr, true);
     mResourceMgr = new JPAResourceManager(pArchive->getResource("Particles.jpc"), MR::getCurrentHeap());
     mParticleNames->attach(pArchive->getResource("ParticleNames.bcsv"));
     mAutoEffectList->attach(pArchive->getResource("AutoEffectList.bcsv"));

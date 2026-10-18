@@ -1,5 +1,6 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 
 // Callees living in other WorldMapResult translation units (unnamed in the target).
 // PLACEHOLDER(core): unnamed SMG2 callees, and WorldMapResultState* members/ctors whose classes have no header yet; resolve when their owners name them or the WorldMapResultState* headers exist
@@ -20,37 +21,13 @@ extern "C" {
     void* fn_804F90A0(void*, void*);
     void* fn_804F9740(void*, void*);
     void* fn_804F99E0(void*, void*);
-    void fn_804F8120(void*);
-    void fn_804F82C0(void*, s32, s32);
-    void* fn_804E8300(void*);
-    void fn_804E86E0(void*, s32);
     void fn_804E87F0(void*);
     void* fn_804E8850(void*);
     bool fn_804E8DC0();
     bool fn_804E8E30();
     u64 fn_80088630();
-    bool fn_804F60E0();
-    bool fn_804F60F0();
-    bool fn_804F6230(void*, void*);
-    bool fn_804F6A10(void*, void*);
-    bool fn_804F67F0(void*);
-    bool fn_804F62C0(void*);
-    void fn_804F71E0(void*);
-    bool fn_804F6440(void*);
-    bool fn_804F6880(void*);
-    bool fn_804F69A0(void*, void*);
-    bool fn_804F7550(void*);
-    s32 fn_804F6B70(void*);
     void fn_804FD4E0(void*, s32);
     void fn_804FD540(void*);
-    bool fn_804F6510(void*, s32);
-    bool fn_804F6700(void*);
-    bool fn_804F6150(void*, void*, s32);
-    bool fn_804F63D0(void*, s32);
-    bool fn_804F6330(void*, s32);
-    bool fn_804F68D0(void*, void*, s32);
-    bool fn_804F6760(void*, s32);
-    s32 fn_804F65B0(void*, f32);
     bool fn_804FD820(void*);
     bool fn_804FD2D0(void*);
     bool fn_804FD350(void*);
@@ -342,24 +319,24 @@ bool WorldMapResultWorld::callU14_6D0(s32 index) const {
     return mUnit14->isStarCheckPointPending(index);
 }
 
-void WorldMapResultWorld::callU14_450(s32 index) {
-    mUnit14->isTicoCreatorNotFull(index);
+bool WorldMapResultWorld::callU14_450(s32 index) {
+    return mUnit14->isTicoCreatorNotFull(index);
 }
 
-void WorldMapResultWorld::callU14_860(s32 index) {
-    mUnit14->isEarthenPipe(index);
+bool WorldMapResultWorld::callU14_860(s32 index) {
+    return mUnit14->isEarthenPipe(index);
 }
 
-void WorldMapResultWorld::callU14_8A0(s32 index) {
-    mUnit14->isWorldWarp(index);
+bool WorldMapResultWorld::callU14_8A0(s32 index) {
+    return mUnit14->isWorldWarp(index);
 }
 
-void WorldMapResultWorld::callU14_620(s32 index) {
-    mUnit14->isStarCheckPointReady(index);
+bool WorldMapResultWorld::callU14_620(s32 index) {
+    return mUnit14->isStarCheckPointReady(index);
 }
 
-void WorldMapResultWorld::callU14_2B0(s32 index) {
-    mUnit14->getPipeTarget(index);
+s32 WorldMapResultWorld::callU14_2B0(s32 index) {
+    return mUnit14->getPipeTarget(index);
 }
 
 s32 WorldMapResultWorld::callU14_310(s32 index) {
@@ -825,7 +802,7 @@ public:
 
 class WorldMapSequence : public NerveExecutor {
 public:
-    WorldMapSequence(void*);
+    WorldMapSequence(WorldMapOwner*);
 
     virtual ~WorldMapSequence();
 
@@ -840,7 +817,7 @@ public:
     bool updatePoint(bool) NO_INLINE;
     bool checkWorldNews() NO_INLINE;
 
-    /* 0x08 */ void* mOwner;
+    /* 0x08 */ WorldMapOwner* mOwner;
     /* 0x0C */ void* mStateWait;
     /* 0x10 */ void* mStatePointEvent;
     /* 0x14 */ void* mStateTicoRoute;
@@ -850,7 +827,7 @@ public:
     /* 0x24 */ bool mFlag;
 };
 
-WorldMapSequence::WorldMapSequence(void* pOwner) : NerveExecutor("シーケンス管理") {
+WorldMapSequence::WorldMapSequence(WorldMapOwner* pOwner) : NerveExecutor("シーケンス管理") {
     mOwner = pOwner;
     mStateWait = nullptr;
     mStatePointEvent = nullptr;
@@ -860,7 +837,7 @@ WorldMapSequence::WorldMapSequence(void* pOwner) : NerveExecutor("シーケン�
 }
 
 void WorldMapSequence::init(bool startAtMap) {
-    fn_804F8120(mOwner);
+    mOwner->initCameraNodeNames();
     initNerve(&NrvWorldMapSequence::WorldMapSequenceStart::sInstance, 0x14);
     void* p = ::operator new(0x20);
 
@@ -980,11 +957,11 @@ void WorldMapSequence::init(bool startAtMap) {
     }
 
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceGreenStarDemo::sInstance, "GreenStarDemo");
-    u8* pBase = static_cast< u8* >(fn_804E8300(mOwner));
-    fn_804E86E0(mOwner, *reinterpret_cast< s32* >(pBase + 0x3C));
+    u8* pBase = reinterpret_cast< u8* >(mOwner->getCamera());
+    mOwner->warpRocketToNode(*reinterpret_cast< s32* >(pBase + 0x3C));
     reinterpret_cast< SlotActor* >(*reinterpret_cast< void** >(pBase + 0x50))->slot10();
     MR::startStarPointerModeSphereSelectorOnReaction(this);
-    fn_804F82C0(mOwner, -1, 0);
+    mOwner->startNodeCamera(-1, 0);
 
     if (startAtMap) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceGalaxyMap::sInstance);
@@ -1011,7 +988,7 @@ void WorldMapSequence::exeStart() {
 
 void WorldMapSequence::exeWait() {
     if (MR::isFirstStep(this)) {
-        mFlag = fn_804F60F0();
+        mFlag = WorldMapOwner::isStickTilted();
     }
 
     MR::updateActorState(this);
@@ -1023,28 +1000,29 @@ void WorldMapSequence::exeWait() {
 
 void WorldMapSequence::exePointMove() {
     if (MR::updateActorState(this)) {
-        if (fn_804F6230(mOwner, mStatePointEvent)) {
+        if (mOwner->tryStartPointEvent2(static_cast< WorldMapResultStatePointEvent* >(mStatePointEvent))) {
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointEvent::sInstance);
             return;
         }
 
-        if (fn_804F6A10(mOwner, mStateWorldWarp)) {
+        // PLACEHOLDER(core): the world-warp state is handed to the owner as PartsWarpInfo* (the target's ABI); resolve when the WorldWarp state class and its PartsWarpInfo view are written
+        if (mOwner->tryWorldWarpFromNext(static_cast< PartsWarpInfo* >(mStateWorldWarp))) {
             setNerve(&NrvWorldMapSequence::WorldMapSequenceWorldWarp::sInstance);
             return;
         }
 
-        if (fn_804F67F0(mOwner)) {
+        if (mOwner->tryStickWarp()) {
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointWarp::sInstance);
             return;
         }
 
-        if (fn_804F62C0(mOwner)) {
-            fn_804F71E0(mOwner);
+        if (mOwner->isHomeNotOpened()) {
+            mOwner->tryOpenCurrentGalaxy();
             setNerve(&NrvWorldMapSequence::WorldMapSequenceWait::sInstance);
             return;
         }
 
-        if (fn_804F6440(mOwner)) {
+        if (mOwner->tryOpenKoopaDemoFlag()) {
             setNerve(&NrvWorldMapSequence::WorldMapSequenceEnterKoopaCastle::sInstance);
             return;
         }
@@ -1055,12 +1033,12 @@ void WorldMapSequence::exePointMove() {
 
 void WorldMapSequence::exePointWarp() {
     if (MR::updateActorState(this)) {
-        if (fn_804F6230(mOwner, mStatePointEvent)) {
+        if (mOwner->tryStartPointEvent2(static_cast< WorldMapResultStatePointEvent* >(mStatePointEvent))) {
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointEvent::sInstance);
             return;
         }
 
-        if (fn_804F6880(mOwner)) {
+        if (mOwner->tryApplyNextNode()) {
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointMove::sInstance);
             return;
         }
@@ -1092,18 +1070,19 @@ bool WorldMapSequence::isGalaxyMap() const {
 }
 
 bool WorldMapSequence::updatePoint(bool canAct) {
-    u8* pBase = static_cast< u8* >(fn_804E8300(mOwner));
+    u8* pBase = reinterpret_cast< u8* >(mOwner->getCamera());
     LiveActor* pActor = *reinterpret_cast< LiveActor** >(pBase + 0x50);
 
-    if (fn_804F69A0(mOwner, mStateWorldWarp)) {
+    // PLACEHOLDER(core): the world-warp state is handed to the owner as PartsWarpInfo* (the target's ABI); resolve when the WorldWarp state class and its PartsWarpInfo view are written
+    if (mOwner->tryWorldWarpFromStick(static_cast< PartsWarpInfo* >(mStateWorldWarp))) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceWorldWarp::sInstance);
         return true;
     }
 
     s32 point = -1;
 
-    if (!fn_804F7550(mOwner)) {
-        point = fn_804F6B70(mOwner);
+    if (!mOwner->isZoomButtonPointing()) {
+        point = mOwner->updatePointing();
     }
 
     if (point > -1) {
@@ -1112,8 +1091,8 @@ bool WorldMapSequence::updatePoint(bool canAct) {
         fn_804FD540(mStateWait);
     }
 
-    bool moved = fn_804F6510(mOwner, point);
-    bool warped = fn_804F6700(mOwner);
+    bool moved = mOwner->tryWarpToNode(point);
+    bool warped = mOwner->tryStickMove();
 
     if (moved) {
         MR::startActionSound(pActor, "PushAButton", -1, -1, -1);
@@ -1124,53 +1103,53 @@ bool WorldMapSequence::updatePoint(bool canAct) {
         return true;
     }
 
-    if (fn_804F7550(mOwner)) {
+    if (mOwner->isZoomButtonPointing()) {
         return false;
     }
 
     if (canAct) {
-        if (fn_804F6150(mOwner, mStatePointEvent, point)) {
+        if (mOwner->tryStartStarCheckEvent(static_cast< WorldMapResultStatePointEvent* >(mStatePointEvent), point)) {
             MR::startActionSound(pActor, "PushAButton", -1, -1, -1);
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointEvent::sInstance);
             return true;
         }
 
-        if (fn_804F63D0(mOwner, point)) {
+        if (mOwner->tryEnterGalaxy(point)) {
             MR::startActionSound(pActor, "PushAButton", -1, -1, -1);
             setNerve(&NrvWorldMapSequence::WorldMapSequenceEnterGalaxy::sInstance);
             return true;
         }
 
-        if (fn_804F6330(mOwner, point)) {
+        if (mOwner->tryEnterHome(point)) {
             MR::startActionSound(pActor, "PushAButton", -1, -1, -1);
             setNerve(&NrvWorldMapSequence::WorldMapSequenceEnterHome::sInstance);
             return true;
         }
 
-        if (fn_804F68D0(mOwner, mStateTicoRoute, point)) {
+        if (mOwner->tryStartTicoRoute(static_cast< WorldMapStateTicoRoute* >(mStateTicoRoute), point)) {
             MR::startActionSound(pActor, "PushAButton", -1, -1, -1);
             setNerve(&NrvWorldMapSequence::WorldMapSequenceTicoRouteCreator::sInstance);
             return true;
         }
     }
 
-    if (fn_804F6760(mOwner, point)) {
+    if (mOwner->tryWarpByA(point)) {
         setNerve(&NrvWorldMapSequence::WorldMapSequencePointWarp::sInstance);
         MR::startCSSound("CS_CLICK_WMAP", nullptr, 0, 0, 1.0f);
         return true;
     }
 
-    if (!moved && point > 0 && fn_804F60E0()) {
+    if (!moved && point > 0 && WorldMapOwner::isPressedA()) {
         MR::startActionSound(pActor, "NoMove", -1, -1, -1);
     }
 
-    bool blocked = fn_804F65B0(mOwner, 0.1f) >= 0;
+    bool blocked = mOwner->findStickTarget(0.1f) >= 0;
 
-    if (!warped && !mFlag && fn_804F60F0() && !blocked) {
+    if (!warped && !mFlag && WorldMapOwner::isStickTilted() && !blocked) {
         MR::startActionSound(pActor, "NoMove", -1, -1, -1);
     }
 
-    mFlag = fn_804F60F0();
+    mFlag = WorldMapOwner::isStickTilted();
     return false;
 }
 

@@ -30,7 +30,7 @@ public:
     s32 isTalkEnding() const;
     void calcPositionFromCamera(const TVec3f&);
     void updateTalkScreenPos(f32);
-    s32 startTalkAction(s32);
+    bool startTalkAction(u32);
 
     void exeTalkStart();
     void exeTalkStartWait();

@@ -1,4 +1,6 @@
 #include "Game/System/MiniPartsActors.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/Util/TalkUtil.hpp"
 
@@ -6,35 +8,23 @@ namespace MR {
     void forceOpenSystemWipeWhiteFade(s32);
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     void fn_804E17D0(void*);
     void fn_804E17E0(void*);
     void fn_804E1930(void*, s32);
-    void fn_804E86E0(WorldMapResultCommand*, s32);
-    void fn_804F6DF0(WorldMapResultCommand*);
-    void fn_804F6E40(WorldMapResultCommand*);
+    void fn_804F6DF0(WorldMapOwner*);
+    void fn_804F6E40(WorldMapOwner*);
     void fn_804E17F0(void*);
-    void fn_804E8780(WorldMapResultCommand*);
-    void fn_804E8850(WorldMapResultCommand*);
+    void fn_804E8780(WorldMapOwner*);
+    void fn_804E8850(WorldMapOwner*);
     void fn_804F33F0(TVec3f*, const TVec3f*, const TVec3f*, s32, s32);
-    void fn_804F72A0(WorldMapResultCommand*);
-    void fn_804F75C0(WorldMapResultCommand*, const char*);
-    void fn_804F7F00(WorldMapResultCommand*);
-    void fn_804F7F50(WorldMapResultCommand*);
-    LiveActor* fn_804F7F80(WorldMapResultCommand*);
-    void fn_804F7F90(WorldMapResultCommand*);
-    bool fn_804F7FE0(WorldMapResultCommand*);
-    void fn_804F7FC0(WorldMapResultCommand*);
-    void fn_804F7FD0(WorldMapResultCommand*);
-    bool fn_804F7FF0(WorldMapResultCommand*);
-    void fn_804F8740(WorldMapResultCommand*, GalaxyWorldMapInfo**);
-    void* fn_804F60D0(WorldMapResultCommand*);
 }
 
 extern s32 lbl_807E3148;
 
 /// Green-star demo state ("State[グリーンスター出現デモ]"): two comet actors, a counter array and a talk ctrl.
-WMR_STATE_DECL(WorldMapResultStateGreenStarDemo, virtual void control(); void showComets(); void exeStart(); void exeShower(); void exeTalkStart(); void exeTalk(); void exeEnd();
+WMR_OWNER_STATE_DECL(WorldMapResultStateGreenStarDemo, virtual void control(); void showComets(); void exeStart(); void exeShower(); void exeTalkStart(); void exeTalk(); void exeEnd();
                /* 0x10 */ MiniGreenComet* mComet; /* 0x14 */ MiniGreenCometShower* mShower; /* 0x18 */ GalaxyWorldMapInfo** mCounts; /* 0x1C */ TalkMessageCtrl* mTalkCtrl;);
 
 namespace NrvWorldMapResultStateGreenStarDemo {
@@ -61,7 +51,7 @@ static TVec3f sCameraTable[8] = {
 /// Camera name of the demo ("グリーンスターデモカメラ").
 static const char* sCameraName = "グリーンスターデモカメラ";
 
-WorldMapResultStateGreenStarDemo::WorldMapResultStateGreenStarDemo(WorldMapResultCommand* pHost) : ActorStateBase< WorldMapResultCommand >("State[グリーンスター出現デモ]", pHost) {
+WorldMapResultStateGreenStarDemo::WorldMapResultStateGreenStarDemo(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[グリーンスター出現デモ]", pHost) {
     mComet = NULL;
     mShower = NULL;
     mCounts = NULL;
@@ -72,7 +62,7 @@ void WorldMapResultStateGreenStarDemo::init() {
     initNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart), 0);
     MR::declareEventCameraProgrammable(sCameraName);
     TVec3f zero(0.0f, 0.0f, 0.0f);
-    mTalkCtrl = MR::createTalkCtrlDirect(fn_804F7F80(mHost), "WorldMapNewsStartWorld08", zero, NULL);
+    mTalkCtrl = MR::createTalkCtrlDirect(mHost->getMeister(), "WorldMapNewsStartWorld08", zero, NULL);
     mComet = new MiniGreenComet();
     mComet->initWithoutIter();
     mComet->makeActorDead();
@@ -89,12 +79,12 @@ void WorldMapResultStateGreenStarDemo::init() {
 void WorldMapResultStateGreenStarDemo::appear() {
     mIsDead = false;
     setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart));
-    fn_804E17D0(fn_804F60D0(mHost));
-    fn_804E17F0(fn_804F60D0(mHost));
+    fn_804E17D0(mHost->getMainLayout());
+    fn_804E17F0(mHost->getMainLayout());
     fn_804F6E40(mHost);
-    fn_804E1930(fn_804F60D0(mHost), 0);
-    fn_804F75C0(mHost, "Wait");
-    fn_804F7F00(mHost);
+    fn_804E1930(mHost->getMainLayout(), 0);
+    mHost->changeRocketActionBck("Wait");
+    mHost->hideRocket();
     MR::startGlobalEventCameraNoTarget(sCameraName, 0);
     fn_804E8780(mHost);
 }
@@ -107,13 +97,13 @@ void WorldMapResultStateGreenStarDemo::kill() {
 
 void WorldMapResultStateGreenStarDemo::control() {
     if (!isNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart))) {
-        fn_804F72A0(mHost);
+        mHost->startAllPointingAnim();
     }
 }
 
 void WorldMapResultStateGreenStarDemo::showComets() {
     mShower->appear();
-    fn_804F8740(mHost, mCounts);
+    mHost->collectInfos(mCounts);
     for (s32 i = 0; i < 7; i++) {
         mCounts[i]->endPointingAnim();
     }
@@ -140,10 +130,10 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
         MR::closeWipeFade(60);
     }
     if (MR::isWipeBlank()) {
-        fn_804E17E0(fn_804F60D0(mHost));
+        fn_804E17E0(mHost->getMainLayout());
         fn_804F6DF0(mHost);
-        fn_804E86E0(mHost, 0);
-        fn_804F7F50(mHost);
+        mHost->warpRocketToNode(0);
+        mHost->showRocket();
         MR::endGlobalEventCamera(sCameraName, -1, true);
         setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoShower));
     }
@@ -176,16 +166,16 @@ void WorldMapResultStateGreenStarDemo::exeShower() {
 
 void WorldMapResultStateGreenStarDemo::exeTalkStart() {
     if (MR::isFirstStep(this)) {
-        fn_804F7F90(mHost);
+        mHost->appearMeister();
     }
-    if (!fn_804F7FE0(mHost)) {
+    if (!mHost->isMeisterTalkStarting()) {
         setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoTalk));
     }
 }
 
 void WorldMapResultStateGreenStarDemo::exeTalk() {
     if (MR::isFirstStep(this)) {
-        fn_804F7FC0(mHost);
+        mHost->setMeisterTalk();
     }
     if (MR::tryTalkForceWithoutDemoAtEnd(mTalkCtrl)) {
         setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoEnd));
@@ -194,9 +184,9 @@ void WorldMapResultStateGreenStarDemo::exeTalk() {
 
 void WorldMapResultStateGreenStarDemo::exeEnd() {
     if (MR::isFirstStep(this)) {
-        fn_804F7FD0(mHost);
+        mHost->setMeisterTalkEndWait();
     }
-    if (!fn_804F7FF0(mHost)) {
+    if (!mHost->isMeisterTalkEnding()) {
         kill();
     }
 }

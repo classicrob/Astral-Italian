@@ -7,9 +7,9 @@
 #define USER_NAME_SIZE (RFL_NAME_LEN + 1)
 
 UserFile::UserFile()
-    : mGameDataHolder(nullptr), mConfigDataHolder(nullptr), mIsPlayerMario(true), mIsGameDataCorrupted(false), mIsConfigDataCorrupted(false),
+    : mGameDataHolder(nullptr), mConfigDataHolder(nullptr), mIsGameDataCorrupted(false), mIsConfigDataCorrupted(false),
       mUserName(nullptr) {
-    mGameDataHolder = new GameDataHolder(this);
+    mGameDataHolder = new GameDataHolder();
     mConfigDataHolder = new ConfigDataHolder();
     mUserName = new wchar_t[USER_NAME_SIZE];
 
@@ -25,7 +25,7 @@ s32 UserFile::getPowerStarNum() const {
 }
 
 s32 UserFile::getStarPieceNum() const {
-    return mGameDataHolder->getStockedStarPieceNum();
+    return mGameDataHolder->getStocketStarPieceNum();
 }
 
 s32 UserFile::getPlayerMissNum() const {
@@ -62,14 +62,6 @@ void UserFile::setMiiOrIconId(const void* pMiiId, const u32* pIconId) {
 
 void UserFile::setLastLoadedMario(bool lastLoadedMario) {
     mConfigDataHolder->setLastLoadedMario(lastLoadedMario);
-}
-
-void UserFile::onCompleteEndingCurrentPlayer() {
-    if (mIsPlayerMario) {
-        mConfigDataHolder->onCompleteEndingMario();
-    } else {
-        mConfigDataHolder->onCompleteEndingLuigi();
-    }
 }
 
 void UserFile::updateLastModified() {

@@ -10,7 +10,7 @@ void MiniWorldMapMark::init(const JMapInfoIter&) {
         MR::connectToSceneWorldMapMiniObj(this);
     }
     MR::setClippingFarMax(this);
-    MR::setClippingTypeSphereContainsModelBoundingBox(this, 1.0f);
+    MR::setClippingTypeSphereContainsModelBoundingBox(this, 100.0f);
     MR::copyTransRotateScale(mOwner, this);
     makeActorDead();
 }

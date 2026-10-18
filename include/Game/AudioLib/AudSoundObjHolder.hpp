@@ -8,7 +8,7 @@ class JKRHeap;
 class AudSoundObjHolder {
 public:
     /// @brief Creates a new AudSoundObjHolder
-    AudSoundObjHolder(JKRHeap* pHeap, s32 capacity);
+    AudSoundObjHolder(s32 capacity);
     void update();
     void add(AudSoundObject* pSound);
     void remove(AudSoundObject* pSsound);

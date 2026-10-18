@@ -31,7 +31,7 @@ namespace MR {
     bool isPlayerRefuseTalk();
     bool isPlayerTeresaDisappear();
     bool isPlayerInAreaObj(const char*);
-    TVec3f* getPlayerPos();
+    TVec3f* getPlayerPos() NO_INLINE;
     TVec3f* getPlayerCenterPos();
     void getPlayerTakePos(TVec3f*);
     void setPlayerPos(const TVec3f&);

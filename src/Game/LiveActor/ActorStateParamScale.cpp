@@ -97,8 +97,8 @@ void ActorStateParamScale::update() {
     const Nerve* nerve = mHost->mSpine->getCurrentNerve();
     s32 step = mHost->getNerveStep();
     if (isNeedForReset(nerve, step)) {
-        mNerveStepRate = 0.0f;
         mPrevNerveStepRate = -speed;
+        mNerveStepRate = 0.0f;
     } else {
         mPrevNerveStepRate = mNerveStepRate;
         mNerveStepRate = mNerveStepRate + speed;

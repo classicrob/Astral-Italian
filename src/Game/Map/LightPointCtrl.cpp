@@ -94,7 +94,7 @@ void LightPointCtrl::clearPointLight(PointLightInfo* pInfo) {
     color.a = 255;
     pInfo->mColor = color;
 
-    pInfo->mRefBrightness = 0.001f;
+    pInfo->mRefBrightness = 0.5f;
     pInfo->mRefDistance = ::sDefaultDistRef;
     pInfo->mDistAttnFn = GX_DA_STEEP;
     mBlendTime = ::sDefaultBlendTime;

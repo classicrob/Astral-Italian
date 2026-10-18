@@ -550,7 +550,7 @@ namespace MR {
     }
 
     void resetPosition(LiveActor* pActor, const TVec3f& rPosition) {
-        pActor->mPosition.set(rPosition);
+        MR::setPosition(pActor, rPosition);
 
         MR::resetPosition(pActor);
     }
@@ -645,7 +645,7 @@ namespace MR {
         TVec3f fromTarget = pActor->mPosition - rTarget;
 
         TVec3f accel;
-        calcVelocityMoveToDirection(&accel, pActor, fromTarget, a3);
+        calcVelocityMoveToDirectionHorizon(&accel, pActor, fromTarget, a3);
 
         addVelocity(pActor, accel);
     }
@@ -1236,7 +1236,7 @@ namespace MR {
 
 };  // namespace MR
 
-namespace {
+namespace MR {
     void calcRotate(LiveActor* pActor, const TVec3f& rA2, f32 a3) {
         TPos3f stack_44;
         TVec3f stack_38;
@@ -1263,14 +1263,12 @@ namespace {
 
         pActor->mRotation.set< f32 >(stack_14.x * _180_PI, stack_14.y * _180_PI, stack_14.z * _180_PI);
     }
-};  // namespace
 
-namespace MR {
     void moveAndTurnToDirection(LiveActor* pActor, const TVec3f& rA2, f32 a3, f32 a4, f32 a5, f32 a6) {
         TVec3f stack_8;
         calcFrontVec(&stack_8, pActor);
         moveAndTurnToDirection(pActor, &stack_8, rA2, a3, a4, a5, a6);
-        ::calcRotate(pActor, stack_8, a6);
+        calcRotate(pActor, stack_8, a6);
     }
 
     void moveAndTurnToTarget(LiveActor* pActor, const TVec3f& rA2, f32 a3, f32 a4, f32 a5, f32 a6) {
@@ -1279,7 +1277,7 @@ namespace MR {
         normalizeOrZero(&stack_14);
         TVec3f stack_8 = rA2 - pActor->mPosition;
         moveAndTurnToDirection(pActor, &stack_14, stack_8, a3, a4, a5, a6);
-        ::calcRotate(pActor, stack_14, a6);
+        calcRotate(pActor, stack_14, a6);
     }
 
     void moveAndTurnToPlayer(LiveActor* pActor, f32 a2, f32 a3, f32 a4, f32 a5) {
@@ -1294,7 +1292,7 @@ namespace MR {
         TVec3f stack_8(0, 0, 0);
         calcMovingDirectionAlongRailH(pActor, &stack_8, pActor->mPosition, a2, pA7);
         moveAndTurnToDirection(pActor, &stack_14, stack_8, a3, a4, a5, a6);
-        ::calcRotate(pActor, stack_14, a6);
+        calcRotate(pActor, stack_14, a6);
     }
     f32 calcDistance(const LiveActor* pActorA, const LiveActor* pActorB) {
         return PSVECDistance(&pActorA->mPosition, &pActorB->mPosition);

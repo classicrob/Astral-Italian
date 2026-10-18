@@ -18,6 +18,7 @@ class JAISoundHandle;
 
 namespace AudWrap {
     AudSystem* getSystem();
+    bool hasSystem();
     AudSoundInfo* getSoundInfo();
     AudSceneMgr* getSceneMgr();
     AudBgmMgr* getBgmMgr();

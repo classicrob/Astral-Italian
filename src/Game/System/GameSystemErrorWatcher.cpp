@@ -131,7 +131,7 @@ void GameSystemErrorWatcher::exeNoError() {
 
         setNerve(GET_NERVE_ANON(GameSystemErrorWatcherErrorWindowIn));
 
-        if (AudWrap::getSystem() != nullptr) {
+        if (AudWrap::hasSystem()) {
             AudWrap::getSystem()->doDvdErrorProcess();
         }
     }
@@ -177,7 +177,7 @@ void GameSystemErrorWatcher::exeErrorWindowOut() {
 
             setNerve(GET_NERVE_ANON(GameSystemErrorWatcherErrorWindowIn));
         } else {
-            if (AudWrap::getSystem() != nullptr) {
+            if (AudWrap::hasSystem()) {
                 AudWrap::getSystem()->exitDvdErrorProcess();
             }
 

@@ -249,6 +249,9 @@ Game/Util/RailUtil.cpp:
 	.data       start:0x80669148 end:0x80669228
 	.sdata2     start:0x807D7118 end:0x807D7128
 
+Game/Util/DiceMover.cpp:
+	.text       start:0x800547F0 end:0x80056470
+
 Game/Util/SceneUtil.cpp:
 	.text       start:0x80056470 end:0x800583F0
 	.ctors      start:0x80643D30 end:0x80643D34
@@ -787,6 +790,8 @@ Game/Util/BellyDragonTU01.cpp:
 Game/Util/BellyDragonTU02.cpp:
 	.text       start:0x8008F7B0 end:0x80092E70
 	.ctors      start:0x80643D74 end:0x80643D78
+	.data       start:0x8066CB60 end:0x8066CE68
+	.sdata2     start:0x807D7700 end:0x807D7818
 
 Game/Util/BellyDragonTU03.cpp:
 	.text       start:0x80092E70 end:0x80093310
@@ -803,6 +808,10 @@ Game/Util/BellyDragonTU05.cpp:
 Game/Util/BellyDragonTU06.cpp:
 	.text       start:0x80095530 end:0x80095A40
 	.ctors      start:0x80643D84 end:0x80643D88
+
+Game/Util/BellyDragonWeakPoint.cpp:
+	.text       start:0x80097900 end:0x80097F50
+	.ctors      start:0x80643D94 end:0x80643D98
 
 Game/Util/BossBussun.cpp:
 	.text       start:0x80097F50 end:0x80099AF0
@@ -3163,6 +3172,9 @@ Game/GameAudio/AudTamakoroBgmCtrl.cpp:
 	.sdata      start:0x807CF9C8 end:0x807CF9F0
 	.sdata2     start:0x807DC238 end:0x807DC240
 
+Game/GameAudio/ActionSoundKeeper.cpp:
+	.text       start:0x80222860 end:0x80222AD0
+
 Game/Gravity/BarrelGravity.cpp:
 	.text       start:0x80222AD0 end:0x80222BB0
 	.data       start:0x806942E0 end:0x806942F0
@@ -3649,7 +3661,7 @@ Game/Map/CollisionParts.cpp:
 	.text       start:0x80249FB0 end:0x8024B920
 
 Game/Map/FileSelectCameraController.cpp:
-	.text       start:0x8024B920 end:0x8024C170
+	.text       start:0x8024B920 end:0x8024C210
 	.ctors      start:0x8064429C end:0x806442A0
 	.rodata     start:0x80648B18 end:0x80648B50
 	.data       start:0x806969A8 end:0x80696A18
@@ -3678,13 +3690,10 @@ Game/Map/FileSelectItem.cpp:
 	.sdata2     start:0x807DC6D0 end:0x807DC718
 
 Game/Map/FileSelectModel.cpp:
-	.text       start:0x8024EDB0 end:0x8024F120
+	.text       start:0x8024EDB0 end:0x8024F220
 	.ctors      start:0x806442A8 end:0x806442AC
 	.data       start:0x80696F60 end:0x80697018
 	.sdata2     start:0x807DC718 end:0x807DC720
-
-Game/Map/NrvFileSelectModel.cpp:
-	.text       start:0x8024F120 end:0x8024F220
 
 Game/Map/FileSelector.cpp:
 	.text       start:0x8024F220 end:0x80253360
@@ -6659,7 +6668,7 @@ Game/Screen/GalaxyCometScreenFilter.cpp:
 Game/Screen/GalaxyConfirmLayout.cpp:
 	.text       start:0x8046F5D0 end:0x8046FD98
 	.ctors      start:0x806448DC end:0x806448E0
-	.data       start:0x806F3820 end:0x806F39D4
+	.data       start:0x806F3820 end:0x806F39D8
 	.sbss       start:0x807D5558 end:0x807D5568
 
 Game/Screen/GalaxyMapGalaxyPlain.cpp:
@@ -7087,7 +7096,8 @@ Game/Screen/StarPointerTarget.cpp:
 	.text       start:0x8049F320 end:0x8049FD70
 
 Game/Map/StartCountdownLayout.cpp:
-	.text       start:0x8049FD70 end:0x804A0090
+	.text       start:0x8049FD70 end:0x804A0100
+	.ctors      start:0x80644990 end:0x80644994
 	.data       start:0x806F8998 end:0x806F8A30
 	.sdata      start:0x807D02F0 end:0x807D02F8
 
@@ -7265,6 +7275,9 @@ Game/Speaker/SpkSound.cpp:
 	.ctors      start:0x806449F0 end:0x806449F4
 	.rodata     start:0x8064CE80 end:0x8064CE88
 	.sdata2     start:0x807E1928 end:0x807E1930
+
+Game/System/GameSequenceNameEntryTable.cpp:
+	.text       start:0x804AD7C0 end:0x804ADB70
 
 Game/System/ArchiveHolder.cpp:
 	.text       start:0x804ADB70 end:0x804AE050
@@ -7579,7 +7592,7 @@ Game/System/WPadHVSwing.cpp:
 	.sdata2     start:0x807E19A8 end:0x807E19B8
 
 Game/System/WPadHolder.cpp:
-	.text       start:0x804CF500 end:0x804CFD90
+	.text       start:0x804CF4C0 end:0x804CFD90
 	.data       start:0x806FE740 end:0x806FE750
 	.sdata2     start:0x807E19B8 end:0x807E19C8
 
@@ -7627,7 +7640,7 @@ Game/System/GameDataConst.cpp:
 	.data       start:0x806FF340 end:0x806FF350
 
 Game/System/GameDataFunction.cpp:
-	.text       start:0x804D2410 end:0x804D4540
+	.text       start:0x804D2410 end:0x804D4760
 	.data       start:0x806FF350 end:0x806FF5E8
 
 Game/System/GameDataHolder.cpp:
@@ -7682,6 +7695,9 @@ Game/System/GameEventValueChecker.cpp:
 	.text       start:0x804DC690 end:0x804DCD30
 	.data       start:0x80700620 end:0x80700660
 
+Game/System/GameDataSomeScenarioAccessor.cpp:
+	.text       start:0x804DCE30 end:0x804DCFE0
+
 Game/System/GameDataSomeGalaxyStorage.cpp:
 	.text       start:0x804DCFE0 end:0x804DD3B0
 
@@ -7694,11 +7710,8 @@ Game/System/GameDataPlayerStatus.cpp:
 	.data       start:0x80700710 end:0x80700798
 
 Game/System/GameDataTicoFatStorage.cpp:
-	.text       start:0x804DE2B0 end:0x804DE340
+	.text       start:0x804DE2B0 end:0x804DE5E0
 	.data       start:0x807007B0 end:0x807007E8
-
-Game/System/StarPieceAlmsStorage.cpp:
-	.text       start:0x804DE340 end:0x804DE350
 
 Game/System/GameDataWorldMapStorage.cpp:
 	.text       start:0x804DE5E0 end:0x804DE8B0
@@ -7897,7 +7910,7 @@ Game/NWC24/NWC24System.cpp:
 	.sdata      start:0x807D05B0 end:0x807D05B8
 
 Game/NWC24/ReceiverTagMail.cpp:
-	.text       start:0x80500980 end:0x80500A10
+	.text       start:0x80500880 end:0x80500A10
 
 Game/NWC24/WiiMessageBoardMailSenderState.cpp:
 	.text       start:0x80500A50 end:0x80500F60

@@ -14,6 +14,7 @@ public:
     void setCutoff(s32);
     void setSpecialFx(s32);
     void initParams();
+    void update();  // fn_80084400, empty
 
     static JASDsp::FxlineConfig_ mFxLine[];
 

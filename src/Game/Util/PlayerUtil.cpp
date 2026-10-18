@@ -52,7 +52,7 @@ namespace MR {
     }
 
     bool isPlayerInAreaObj(const char* pName) {
-        return isInAreaObj(pName, MarioAccess::getPlayerActor()->mPosition);
+        return isInAreaObj(pName, *getPlayerPos());
     }
 
     TVec3f* getPlayerPos() {
@@ -424,7 +424,7 @@ namespace MR {
 
 
     void curePlayerElementMode() {
-        changePlayerItemStatus(8);
+        MarioAccess::changeItemStatus(8);
     }
 
     bool isPlayerParalyzing() {
@@ -536,32 +536,32 @@ namespace MR {
 
     void endBindAndPlayerDamageMsg(LiveActor* pActor, u32 param2, const TVec3f& rParam3) {
         switch (param2) {
-        case 0x57:
-        case 0x58:
-        case 0x59:
+        case 0x65:
+        case 0x66:
+        case 0x67:
             endBindAndPlayerFireDamage(pActor);
             break;
-        case 0x5C:
+        case 0x6A:
             endBindAndPlayerAcidDamage(pActor);
             break;
-        case 0x5D:
+        case 0x6B:
             endBindAndPlayerFreezeDamage(pActor);
+            break;
+        case 0x68:
+        case 0x69:
+            endBindAndPlayerElectricDamage(pActor);
+            break;
+        case 0x64:
+            endBindAndPlayerDamage(pActor, rParam3);
             break;
         case 0x5A:
         case 0x5B:
-            endBindAndPlayerElectricDamage(pActor);
-            break;
-        case 0x56:
-            endBindAndPlayerDamage(pActor, rParam3);
-            break;
-        case 0x4C:
-        case 0x4D:
-        case 0x4E:
-        case 0x51:
-        case 0x52:
+        case 0x5C:
+        case 0x5F:
+        case 0x60:
             endBindAndPlayerWeakGravityLimitJump(pActor, rParam3);
             break;
-        case 0x50:
+        case 0x5E:
             endBindAndPlayerFlip(pActor, rParam3);
             break;
         default:
@@ -588,7 +588,7 @@ namespace MR {
 
     void endBindAndPlayerFireDamage(LiveActor* pActor) {
         RushEndInfo info = RushEndInfo(pActor, 3, TVec3f(0.0f, 0.0f, 0.0f), true, 0);
-        info._20 |= 0xC0000000;
+        info._20 |= 0x40000000;
         info.mFlags.mDamageType = 2;
 
         MarioAccess::endRush(&info);

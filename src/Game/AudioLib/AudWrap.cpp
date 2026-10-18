@@ -12,6 +12,10 @@ namespace AudWrap {
         return AudSystem::msBasic;
     }
 
+    bool hasSystem() {
+        return getSystem() != nullptr;
+    }
+
     AudSoundInfo* getSoundInfo() {
         return AudSoundInfo::getInstance();
     }
@@ -21,7 +25,7 @@ namespace AudWrap {
     }
 
     AudBgmMgr* getBgmMgr() {
-        return &getSystem()->mBgmMgr;
+        return getSystem()->mBgmMgr;
     }
 
     AudBgm* getStageBgm() {

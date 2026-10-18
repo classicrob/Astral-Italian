@@ -16,7 +16,7 @@ extern "C" void fn_80319C80(NameObj*, const TVec3f*, const TVec3f*, f32, f32);
 extern "C" void fn_804E8AF0(MiniStarPieceMine*);
 extern "C" s32 fn_804E8B00(MiniStarPieceMine*);
 
-MiniStarPieceMine::MiniStarPieceMine(s32 worldId, s32 pointIndex) : LiveActor("スターピース") {
+MiniStarPieceMine::MiniStarPieceMine(s32 worldId, s32 pointIndex) : LiveActor("スターピース鉱山") {
     mWorldId = worldId;
     mPointIndex = pointIndex;
 }

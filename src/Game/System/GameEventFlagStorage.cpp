@@ -12,12 +12,12 @@ GameEventFlagStorage::GameEventFlagStorage() : mUnk04(nullptr), mFlagBitArray(nu
     mFlagBitArray = new MR::BitArray(GameEventFlagTable::getTableSize());
 }
 
-void GameEventFlagStorage::set(const GameEventFlag* pFlag, bool isOn) {
-    mFlagBitArray->set(GameEventFlagTable::getIndex(pFlag), isOn);
+void GameEventFlagStorage::set(const char* pFlagName, bool isOn) {
+    mFlagBitArray->set(GameEventFlagTable::getIndex(GameEventFlagTable::findFlag(pFlagName)), isOn);
 }
 
-bool GameEventFlagStorage::isOn(const GameEventFlag* pFlag) const {
-    return mFlagBitArray->isOn(GameEventFlagTable::getIndex(pFlag));
+bool GameEventFlagStorage::isOn(const char* pFlagName) const {
+    return mFlagBitArray->isOn(GameEventFlagTable::getIndex(GameEventFlagTable::findFlag(pFlagName)));
 }
 
 u32 GameEventFlagStorage::getSignature() const {
@@ -34,7 +34,7 @@ s32 GameEventFlagStorage::serialize(u8* pData, u32 size) const {
 
         GameEventFlagAccessor accessor(iter.getFlag());
         u16 hash = MR::getHashCode(accessor.getName()) & 0x7FFF;
-        u16 data = hash | (isOn(iter.getFlag()) ? 0x8000 : 0);
+        u16 data = hash | (mFlagBitArray->isOn(GameEventFlagTable::getIndex(iter.getFlag())) ? 0x8000 : 0);
         stream.write(&data, sizeof(data));
     }
 

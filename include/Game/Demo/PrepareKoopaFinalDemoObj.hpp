@@ -11,7 +11,6 @@ public:
     virtual void control();
     virtual ~PrepareKoopaFinalDemoObj();
 
-    void exeWait();
     void exeShake();
     void exeStopShake();
     void requestWorldMapAfterWipe(s32);

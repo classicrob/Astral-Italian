@@ -3,6 +3,7 @@
 
 // Result-map helpers of WorldMapResultCommand that drive the worlds of TU07 (route opening, comet and Tico road effects).
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     const Vec* fn_804E8530();
     const Vec* fn_804E8540();
@@ -23,6 +24,7 @@ static TVec3f sRotation(0.0f, 0.0f, 0.0f);
 
 bool updateTicoRoad(WorldMapResultCommand*, f32);
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     WorldMapResultLinkItem* fn_804F0500(WorldMapResultCommand*) NO_INLINE;
     WorldMapResultWorld* fn_804F0560(WorldMapResultCommand*) NO_INLINE;
@@ -31,11 +33,13 @@ extern "C" {
     TVec3f* fn_804F0B40(WorldMapResultCommand*, const char*) NO_INLINE;
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" WorldMapResultLinkItem* fn_804F0500(WorldMapResultCommand* pCommand) {
     s32 index = GameDataFunction::getCurrentWorldId() - 1;
     return static_cast< WorldMapResultLinkItem* >(pCommand->mWorlds[index]->mUnit14->getTicoCreator(GameSequenceFunction::getWorldMapCurrentNode()));
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" WorldMapResultWorld* fn_804F0560(WorldMapResultCommand* pCommand) {
     s32 index = GameDataFunction::getCurrentWorldId() - 1;
     return pCommand->mWorlds[index];
@@ -45,6 +49,7 @@ s32 getResultEndStep() {
     return 5;
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F05B0(WorldMapResultCommand* pCommand, const TVec3f& rPos) {
     LiveActor* pActor = pCommand->mRocket;
     pActor->mPosition.x = rPos.x;
@@ -55,6 +60,7 @@ extern "C" void fn_804F05B0(WorldMapResultCommand* pCommand, const TVec3f& rPos)
     MR::startBckNoInterpole(pActor, "Wait");
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0630(WorldMapResultCommand* pCommand, s32 worldId, s32 nodeIndex) {
     WorldMapResultNode* pNode = &pCommand->mWorlds[worldId - 1]->mMapData->mNodes[nodeIndex];
     Vec offset;
@@ -69,6 +75,7 @@ extern "C" void fn_804F0630(WorldMapResultCommand* pCommand, s32 worldId, s32 no
 }
 
 // NONMATCHING: callee-saved register assignment and temp order
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0700(WorldMapResultCommand* pCommand) {
     WorldMapResultLinkItem* pItem = fn_804F0500(pCommand);
     s32 from = pItem->mFrom;
@@ -102,6 +109,7 @@ bool updateTicoRoad(WorldMapResultCommand* pCommand, f32 rate) {
     return rate >= 1.0f;
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F08C0(WorldMapResultCommand* pCommand) {
     WorldMapResultLinkItem* pItem = fn_804F0500(pCommand);
 
@@ -110,17 +118,20 @@ extern "C" void fn_804F08C0(WorldMapResultCommand* pCommand) {
     }
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0920(WorldMapResultCommand* pCommand) {
     s32 index = GameDataFunction::getCurrentWorldId() - 1;
     pCommand->mWorlds[index]->mUnit18->updateAll();
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0970(WorldMapResultCommand* pCommand, s32 worldId, WorldMapResultRoute* pRoute) {
     pCommand->mWorlds[worldId - 1]->setupRoute(pRoute);
     fn_804F0560(pCommand)->finish();
 }
 
 // NONMATCHING: register copy order at entry
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F09C0(WorldMapResultCommand* pCommand, s32 worldId, WorldMapResultRoute* pRoute) {
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
     GalaxyWorldMapInfo* pInfo = pWorld->mWorldData->findByName("SwitchMoveBlockGalaxy");
@@ -129,6 +140,7 @@ extern "C" void fn_804F09C0(WorldMapResultCommand* pCommand, s32 worldId, WorldM
     pWorld->finish();
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0A40(WorldMapResultCommand* pCommand, s32 worldId, WorldMapResultRoute* pRoute) {
     WorldMapResultBox box;
     box.extendByRoute(pCommand->mWorlds[worldId - 1], pRoute);
@@ -149,22 +161,26 @@ bool updateRouteExtend(WorldMapResultCommand* pCommand, s32 worldId, WorldMapRes
     return pCommand->mWorlds[worldId - 1]->updateRouteStep(pRoute, step, rate);
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" bool fn_804F0B20(WorldMapResultCommand* pCommand, s32 worldId, WorldMapResultRoute* pRoute) {
     return pCommand->mWorlds[worldId - 1]->isRouteNotHeld(pRoute);
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" TVec3f* fn_804F0B40(WorldMapResultCommand* pCommand, const char* pName) {
     s32 worldId = fn_804E8960(pName);
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
     return &pWorld->mWorldData->findByName(pName)->mPosition;
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0BA0(WorldMapResultCommand* pCommand, const char* pName, s32) {
     s32 worldId = fn_804E8960(pName);
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
     pWorld->mWorldData->findByName(pName)->endPointingAnim();
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0C00(WorldMapResultCommand* pCommand, const char* pName) {
     s32 worldId = fn_804E8960(pName);
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
@@ -172,6 +188,7 @@ extern "C" void fn_804F0C00(WorldMapResultCommand* pCommand, const char* pName) 
 }
 
 // NONMATCHING: scheduling of the sPosOffset address load / actor register
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0C60(WorldMapResultCommand* pCommand, const char* pName, LiveActor* pActor) {
     TVec3f pos = *fn_804F0B40(pCommand, pName) + sPosOffset;
     MR::setPosition(pActor, pos);
@@ -179,6 +196,7 @@ extern "C" void fn_804F0C60(WorldMapResultCommand* pCommand, const char* pName, 
     pActor->appear();
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0D00(WorldMapResultCommand* pCommand, const char* pName) {
     s32 worldId = fn_804E8960(pName);
     pCommand->mWorlds[worldId - 1]->setupNode(0, -1);
@@ -191,6 +209,7 @@ extern "C" void fn_804F0D00(WorldMapResultCommand* pCommand, const char* pName) 
 }
 
 // NONMATCHING: stack slot order of target/eye
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" bool fn_804F0D90(WorldMapResultCommand* pCommand, const char* pName, TVec3f* pFrom, TVec3f* pTo, f32 rate) {
     WorldMapResultBox box;
     box.extend(*fn_804F0B40(pCommand, pName));
@@ -211,6 +230,7 @@ extern "C" bool fn_804F0D90(WorldMapResultCommand* pCommand, const char* pName, 
 }
 
 // NONMATCHING: target normalizes the first flag before the call (ori r4,r3,0)
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" bool fn_804F0EE0(WorldMapResultCommand* pCommand, s32 worldId) {
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
     bool hasValue = pWorld->mWorldData->startOpenSoundAll();

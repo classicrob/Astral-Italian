@@ -30,7 +30,7 @@ namespace {
     NEW_NERVE(SaveDataHandleSequenceSaveAllWithoutKeyWaitDisappear, SaveDataHandleSequence, SaveAllWithoutKeyWaitDisappear);
     NEW_NERVE(SaveDataHandleSequenceSaveAllWithoutWindow, SaveDataHandleSequence, SaveAllWithoutWindow);
     NEW_NERVE(SaveDataHandleSequencePreLoad, SaveDataHandleSequence, PreLoad);
-    NEW_NERVE(SaveDataHandleSequencePreLoadDone, SaveDataHandleSequence, PreLoadDone);
+    NEW_NERVE(SaveDataHandleSequencePreLoadDone, SaveDataHandleSequence, NoSaveConfirmRemind);
     NEW_NERVE(SaveDataHandleSequenceNoSaveConfirmRemind, SaveDataHandleSequence, NoSaveConfirmRemind);
     NEW_NERVE(SaveDataHandleSequenceErrorHandling, SaveDataHandleSequence, ErrorHandling);
 };  // namespace
@@ -384,7 +384,7 @@ void SaveDataHandleSequence::exePreLoadDone() {
 void SaveDataHandleSequence::exeNoSaveConfirmRemind() {
     bool isSelectedYes = false;
 
-    if (!tryConfirm("ConfirmEndGame", &isSelectedYes)) {
+    if (!tryConfirm("System_ConfirmNoSave", &isSelectedYes)) {
         return;
     }
 

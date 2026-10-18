@@ -309,6 +309,7 @@ namespace MR {
 
     ModelObj* createModelObjMapObjDecoration(const char* pName, const char* pModelName, MtxPtr pMtx);
     ModelObj* createModelObjMapObj(const char* pName, const char* pModelName, MtxPtr pMtx);
+    ModelObj* createModelObjNpc(const char* pName, const char* pModelName, MtxPtr pMtx);
     ModelObj* createModelObjMapObjStrongLight(const char* pName, const char* pModelName, MtxPtr pMtx);
     ModelObj* createModelObjNoSilhouettedMapObj(const char* pName, const char* pModelName, MtxPtr pMtx);
     ModelObj* createModelObjNoSilhouettedMapObjStrongLight(const char* pName, const char* pModelName, MtxPtr pMtx);

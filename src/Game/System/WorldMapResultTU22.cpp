@@ -1,36 +1,24 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
-    void fn_804F82C0(WorldMapResultCommand*, s32, s32);
-    void fn_804F73F0(WorldMapResultCommand*, s32);
-    s32 fn_804F7810(WorldMapResultCommand*);
-    bool fn_804F72D0(WorldMapResultCommand*);
     bool fn_804E8E00(bool);
-    void fn_804F7250(WorldMapResultCommand*);
-    void fn_804F72A0(WorldMapResultCommand*);
-    void fn_804F6D30(WorldMapResultCommand*, s32);
-    s32 fn_804E8A10(WorldMapResultCommand*);
-    bool fn_804F7550(WorldMapResultCommand*);
-    bool fn_804F7360(WorldMapResultCommand*);
-    bool fn_804F7520(WorldMapResultCommand*);
-    WorldMapResultWorld* fn_804F60C0(WorldMapResultCommand*);
-    void fn_804F6B10(WorldMapResultCommand*);
-    void fn_804F74F0(WorldMapResultCommand*);
-    void fn_804F7480(WorldMapResultCommand*);
-    void fn_804F7490(WorldMapResultCommand*);
+    s32 fn_804E8A10(WorldMapOwner*);
+    bool fn_804F7520(WorldMapOwner*);
+    void fn_804F6B10(WorldMapOwner*);
 }
 
 /// Wait step of the result map ("State[ウェイト]").
-WMR_STATE_DECL(WorldMapResultStateWait, virtual void control(); void exeMain(); bool isXXX() const; bool isYYY() const; bool isZZZ() const; void setTarget(s32); void clearTarget();
+WMR_OWNER_STATE_DECL(WorldMapResultStateWait, virtual void control(); void exeMain(); bool isXXX() const; bool isYYY() const; bool isZZZ() const; void setTarget(s32); void clearTarget();
                /* 0x10 */ u8 mFlagA; /* 0x11 */ u8 _11; /* 0x12 */ u8 mFlagB; /* 0x14 */ s32 mTarget; /* 0x18 */ s32 mTargetSet; /* 0x1C */ s32 mTimer;);
 
 namespace NrvWorldMapResultStateWait {
     WMR_NERVE_DECL(WorldMapResultStateWaitMain);
 };  // namespace NrvWorldMapResultStateWait
 
-WorldMapResultStateWait::WorldMapResultStateWait(WorldMapResultCommand* pHost) : ActorStateBase< WorldMapResultCommand >("State[ウェイト]", pHost) {
+WorldMapResultStateWait::WorldMapResultStateWait(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ウェイト]", pHost) {
     mFlagA = false;
     mFlagB = true;
     mTarget = -1;
@@ -45,13 +33,13 @@ void WorldMapResultStateWait::init() {
 
 void WorldMapResultStateWait::appear() {
     mIsDead = false;
-    fn_804F82C0(mHost, -1, -1);
+    mHost->startNodeCamera(-1, -1);
     setNerve(GET_NERVE(WorldMapResultStateWait, WorldMapResultStateWaitMain));
     MR::deactivateDefaultGameLayout();
-    fn_804F73F0(mHost, -1);
-    GameSequenceFunction::setWorldMapCurrentNode(fn_804F7810(mHost));
+    mHost->setupWorldName(-1);
+    GameSequenceFunction::setWorldMapCurrentNode(mHost->getCurrentNode());
     mTimer = 10;
-    bool flag = fn_804F72D0(mHost);
+    bool flag = mHost->isCurrentGalaxyInfoShown();
     mFlagA = flag;
     mFlagB = fn_804E8E00(flag);
 }
@@ -76,13 +64,13 @@ void WorldMapResultStateWait::control() {
     mTimer = next;
 
     if (mTimer > 40) {
-        fn_804F74F0(mHost);
+        mHost->requestAppearCoinsAndLives();
     }
 
     if (mTimer > 10) {
-        fn_804F7480(mHost);
+        mHost->requestAppearWorldName();
         if (!mFlagB) {
-            fn_804F7490(mHost);
+            mHost->requestAppearZoomButton();
         }
     }
 }
@@ -111,24 +99,24 @@ bool WorldMapResultStateWait::isZZZ() const {
 
 // NONMATCHING: mFlagA = (fn_804E8A10() == 0) keeps a different cntlzw/srwi temp shape
 void WorldMapResultStateWait::exeMain() {
-    fn_804F7250(mHost);
-    fn_804F72A0(mHost);
-    fn_804F6D30(mHost, -1);
+    mHost->showCurrentNamePlate();
+    mHost->startAllPointingAnim();
+    mHost->tryTalkPoint(-1);
 
     if (MR::isStep(this, 30) && !mFlagA) {
-        mFlagA = fn_804E8A10(mHost) == 0;
+        mFlagA = mHost->isGalaxyInfoAppeared() == 0;
     }
 
     if (MR::isStep(this, 180)) {
         mFlagA = false;
     }
 
-    if (fn_804F7550(mHost)) {
+    if (mHost->isZoomButtonPointing()) {
         mFlagA = false;
     }
 
     if (mFlagA) {
-        mFlagA = fn_804F7360(mHost);
+        mFlagA = mHost->tryShowCurrentGalaxyInfo();
     }
 }
 
@@ -142,7 +130,7 @@ bool WorldMapResultStateWait::isYYY() const {
 
 void WorldMapResultStateWait::setTarget(s32 pTarget) {
     if (mTargetSet == 0) {
-        fn_804F60C0(mHost)->startRoutePointOpenSound(pTarget);
+        mHost->getWorld()->startRoutePointOpenSound(pTarget);
     }
 
     mTarget = pTarget;
@@ -151,7 +139,7 @@ void WorldMapResultStateWait::setTarget(s32 pTarget) {
 
 void WorldMapResultStateWait::clearTarget() {
     if (mTargetSet != 0) {
-        fn_804F60C0(mHost)->startRoutePointCloseSound(mTarget);
+        mHost->getWorld()->startRoutePointCloseSound(mTarget);
     }
 
     mTarget = -1;

@@ -336,7 +336,7 @@ void MR::copyPaneScale(TVec2f* pScale, const LayoutActor* pActor, const char* pP
 void MR::setLayoutScaleAtPaneScale(LayoutActor* pActor, const LayoutActor* pFollowActor, const char* pPaneName) {
     TVec2f scale;
     copyPaneScale(&scale, pFollowActor, pPaneName);
-    setPaneScale(pActor, scale.x, scale.y, nullptr);
+    setPaneScale(pActor, nullptr, scale.x, scale.y);
 }
 
 void MR::copyPaneRotate(TVec3f* pRotate, const LayoutActor* pActor, const char* pPaneName) {

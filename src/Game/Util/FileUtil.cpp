@@ -60,10 +60,16 @@ namespace MR {
         SingletonHolder< FileLoader >::get()->requestLoadToMainRAM(filePath, pDst, pHeap, allocDir, false);
     }
 
-    JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap) {
-        mountAsyncArchive(pFilePath, pHeap);
+    JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap, bool) {
+        char filePath[256];
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath, false);
 
-        return receiveArchive(pFilePath);
+        SingletonHolder< FileLoader >::get()->requestMountArchive(filePath, pHeap, JKRDvdRipper::ALLOC_DIRECTION_FORWARD, false);
+
+        char archivePath[256];
+        makeFileNameConsideringLanguage(archivePath, sizeof(archivePath), pFilePath, false);
+
+        return SingletonHolder< FileLoader >::get()->receiveArchive(archivePath);
     }
 
 
@@ -133,8 +139,14 @@ namespace MR {
 
 
 
-    inline void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath) {
-        addFilePrefix(pDst, size, pFilePath, getCurrentLanguagePrefix());
+    void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath) {
+        makeFileNameConsideringLanguage(pDst, size, pFilePath, true);
+    }
+
+    void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath, bool) {
+        char prefix[256];
+        snprintf(prefix, sizeof(prefix), "/LocalizeData/%s", getCurrentLanguagePrefix());
+        addFilePrefix(pDst, size, pFilePath, prefix);
 
         if (!isFileExist(pDst, false)) {
             snprintf(pDst, size, "%s", pFilePath);

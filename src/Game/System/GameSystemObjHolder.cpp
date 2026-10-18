@@ -11,6 +11,7 @@
 #include "Game/System/ErrorMessageArchive.hpp"
 #include "Game/System/FileLoader.hpp"
 #include "Game/System/FunctionAsyncExecutor.hpp"
+#include "Game/Speaker/SpkSystem.hpp"
 #include "Game/System/HeapMemoryWatcher.hpp"
 #include "Game/System/Language.hpp"
 #include "Game/System/MainLoopFramework.hpp"
@@ -128,8 +129,9 @@ void GameSystemObjHolder::initNAND() {
 }
 
 void GameSystemObjHolder::initAudio() {
-    mAudioSystem = new AudSystemWrapper((JKRSolidHeap*)MR::getStationedHeapNapa(), MR::getStationedHeapNapa());
+    mAudioSystem = new AudSystemWrapper(SingletonHolder< HeapMemoryWatcher >::get()->mAudSystemHeap, MR::getStationedHeapNapa(), MR::getStationedHeapGDDR3());
     mAudioSystem->requestResourceForInitialize();
+    SpkSystem::setup();
 }
 
 void GameSystemObjHolder::initRenderMode() {

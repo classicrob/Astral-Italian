@@ -256,12 +256,12 @@ namespace MR {
         TPos3f mtx;
         mtx.set(rMtx);
         mtx.getEuler(pActor->mRotation);
-        pActor->mRotation.mult(57.29578f);
+        pActor->mRotation.mult(57.295776f);
     }
 
     void setRotation(LiveActor* pActor, const TQuat4f& rQuat) {
         rQuat.getEuler(pActor->mRotation);
-        pActor->mRotation.mult(57.29578f);
+        pActor->mRotation.mult(57.295776f);
     }
 
     void setScale(LiveActor* pActor, const TVec3f& rScale) {
@@ -1706,7 +1706,7 @@ namespace MR {
         }
 
         pParts->_CC = true;
-        pParts->_CD = true;
+        pParts->_CE = true;
     }
 
     void invalidateCollisionParts(LiveActor* pActor) {
@@ -1736,7 +1736,7 @@ namespace MR {
             validateCollisionParts(pActor);
         }
 
-        pActor->mCollisionParts->_CD = true;
+        pActor->mCollisionParts->_CE = true;
     }
 
 

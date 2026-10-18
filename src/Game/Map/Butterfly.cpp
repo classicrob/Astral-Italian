@@ -402,7 +402,7 @@ void Butterfly::exeHive() {
 }
 
 void Butterfly::exePerchOn() {
-    HitSensor* bodySensor = getSensor("body");
+    HitSensor* bodySensor = getSensor("Body");
     if (MR::isNear(bodySensor, mPerchTarget, bodySensor->getRadius() + mPerchTarget->getRadius())) {
         mVelocity.zero();
         MR::setBckRate(this, MR::converge(MR::getBckRate(this), ::sPerchOnAnimRate, ::sAnimInterpolateRate));

@@ -13,6 +13,7 @@ public:
     void setResource(JKRArchive*, u16, u16);
     void framework();
     void startSound(s32, s32, SpkSoundHandle*);
+    void stopSound(s32 padChannel, s32 fadeFrames);  // padChannel < 0: all channels; fn_804AC160
     static void newSoundMemPool(s32);
     static void setup();
     static void connect(s32);

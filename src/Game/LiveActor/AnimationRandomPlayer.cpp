@@ -29,7 +29,7 @@ void AnimationRandomPlayer::updateStartStep() {
 void AnimationRandomPlayer::exeWait() {
     if (MR::isFirstStep(this)) {
         if (_10) {
-            MR::startAllAnim(mActor, _10);
+            MR::startAction(mActor, _10);
         }
     }
 
@@ -40,7 +40,7 @@ void AnimationRandomPlayer::exeWait() {
 
 void AnimationRandomPlayer::exePlay() {
     if (MR::isFirstStep(this)) {
-        MR::startAllAnim(mActor, _C);
+        MR::startAction(mActor, _C);
     }
 
     if (MR::isAnyAnimOneTimeAndStopped(mActor, _C)) {

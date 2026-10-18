@@ -234,6 +234,7 @@ void LiveActor::calcAnim() {
 }
 
 namespace {
+    // PLACEHOLDER(core): SMG2 calls J3DModel::setBaseScale out of line, but libs/JSystem J3DModel.hpp defines it inline; resolve when that header marks it NO_INLINE
     NO_INLINE void setBaseScaleNI(J3DModel* pModel, const TVec3f& rScale) {
         pModel->setBaseScale(rScale);
     }

@@ -54,11 +54,12 @@ public:
     /* 0xC4 */ KCollisionServer* mServer;
     /* 0xC8 */ HitSensor* mHitSensor;
     /* 0xCC */ bool _CC;
-    /* 0xCD */ bool _CD;
-    /* 0xCE */ bool _CE;
+    /* 0xCD */ bool _CD;  // SMG2 has one more byte here than SMG1 (flags below shifted +1)
+    /* 0xCE */ bool _CE;  // updated flag (LiveActorUtil onUpdate/offUpdate writes 0xCE in SMG2)
     /* 0xCF */ bool _CF;
     /* 0xD0 */ bool _D0;
-    /* 0xD1 */ u8 _D1[3];
+    /* 0xD1 */ bool _D1;
+    /* 0xD2 */ u8 _D2[2];
     /* 0xD4 */ s32 _D4;
     /* 0xD8 */ f32 _D8;
     /* 0xDC */ f32 _DC;

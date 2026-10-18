@@ -266,7 +266,7 @@ void ScenarioStarter::updateShootMotion() {
 }
 
 void ScenarioStarter::turnBindHead(const TVec3f& rHead, f32 rate) {
-    MR::turnQuatYDirRad(&_A8, _A8, _90, PI);
+    MR::turnQuatYDirRate(&_A8, _A8, _90, 1.0f);
     TVec3f head;
     _A8.getYDir(head);
     TQuat4f rotation;

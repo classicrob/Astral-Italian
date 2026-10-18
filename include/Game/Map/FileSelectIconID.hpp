@@ -21,6 +21,12 @@ public:
 
         /// @brief The Peach icon.
         Peach,
+
+        /// @brief The Rosetta icon.
+        Rosetta,
+
+        /// @brief The Tico icon.
+        Tico,
     };
 
     /// @brief Creates a new `FileSelectIconID`.

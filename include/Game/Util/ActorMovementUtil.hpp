@@ -127,6 +127,8 @@ namespace MR {
     bool reboundVelocityFromEachCollision(LiveActor*, f32, f32, f32, f32);
     bool reboundVelocityFromCollision(LiveActor*, f32 = 0.0f, f32 = 0.0f, f32 = 1.0f);
     void zeroVelocity(LiveActor*);
+    // PLACEHOLDER(core): provisional name of fn_8000F500 (|velocity| >= limit); resolve when the ActorMovementUtil unit names it
+    s32 isVelocityGreaterEqual(const LiveActor*, f32);
     void setVelocity(LiveActor*, const TVec3f&);
     void addVelocity(LiveActor*, const TVec3f&);
     void scaleVelocity(LiveActor*, f32);

@@ -5,87 +5,41 @@
 class BinaryDataChunkHolder;
 class GameDataAllGalaxyStorage;
 class GameDataPlayerStatus;
-class GameDataSomeScenarioAccessor;
+class GameDataTicoFatStorage;
 class GameDataWorldMapStorage;
-class GameEventFlagChecker;
+class GameEventFlagStorage;
 class GameEventValueChecker;
-class JMapInfo;
-class ScenarioProgressTestRun;
-class SpinDriverPathStorage;
-class StarPieceAlmsStorage;
-class UserFile;
 
+// SMG2 layout (0x2C bytes): the holder owns one save chunk per record and has no UserFile back pointer.
 class GameDataHolder {
 public:
-    GameDataHolder(const UserFile*);
+    GameDataHolder();
 
-    bool isDataMario() const;
-    s32 getGalaxyNumCanOpen() const;
-    bool canOnGameEventFlag(const char*) const;
     bool isOnGameEventFlag(const char*) const;
-    void tryOnGameEventFlag(const char*);
-    s32 getGameEventValue(const char*) const;
-    void setGameEventValue(const char*, u16);
-    bool isOnGameEventValueForBit(const char*, int) const;
-    void setGameEventValueForBit(const char*, int, bool);
-    s32 getPictureBookChapterCanRead() const;
-    s32 getPictureBookChapterAlreadyRead() const;
-    void setPictureBookChapterAlreadyRead(int);
-    void setRaceBestTime(const char*, u32);
-    u32 getRaceBestTime(const char*) const;
-    void addMissPoint(int);
-    void resetMissPoint();
-    bool isPointCollectForLetter() const;
-    void incPlayerMissNum();
-    s32 getPlayerMissNum() const;
-    bool hasPowerStar(const char*, s32) const;
-    bool hasGrandStar(int) const;
-    void setPowerStar(const char*, s32, bool);
-    s32 getPowerStarNumOwned(const char*) const;
-    s32 calcCurrentPowerStarNum() const;
-    GameDataSomeScenarioAccessor makeGalaxyScenarioAccessor(const char*, s32);
-    GameDataSomeScenarioAccessor makeGalaxyScenarioAccessor(const char*, s32) const;
-    bool isOnGalaxyScenarioFlagAlreadyVisited(const char*, s32) const;
-    void onGalaxyScenarioFlagAlreadyVisited(const char*, s32);
-    bool isAppearGalaxy(const char*) const;
-    s32 getPlayerLeft() const;
-    void addPlayerLeft(int);
-    s32 getStockedStarPieceNum() const;
-    // SMG2 symbol spelling (core h10)
-    s32 getStocketStarPieceNum() const;
-    s32 calcNormalPowerStarNum() const;
-    s32 calcTicoCoinNum() const;
     void onGameEventFlag(const char*);
     void offGameEventFlag(const char*);
+    s32 getGameEventValue(const char*) const;
+    void setGameEventValue(const char*, u16);
+    void incPlayerMissNum();
+    s32 getPlayerMissNum() const;
+    s32 calcCurrentPowerStarNum() const;
+    s32 calcNormalPowerStarNum() const;
+    bool hasGrandStar(int) const;
+    s32 calcTicoCoinNum() const;
+    s32 getStocketStarPieceNum() const;
     void addStockedStarPieceNum(int);
-    s32 getCumulativePlayTime() const;
     void incCumulativePlayTime();
-    s32 setupSpinDriverPathStorage(const char*, int, int, int, f32*);
-    void updateSpinDriverPathStorage(const char*, int, int, f32);
-    s32 getStarPieceNumGivingToTicoSeed(int) const;
-    s32 getStarPieceNumMaxGivingToTicoSeed(int) const;
-    void addStarPieceGivingToTicoSeed(int, int);
-    bool isCompleteMarioAndLuigi() const;
+    s32 getCumulativePlayTime() const;
     void resetAllData();
     u32 makeFileBinary(u8*, u32);
     bool loadFromFileBinary(const char*, const u8*, u32);
 
-    /* 0x00 */ GameEventFlagChecker* mEventFlagChecker;
+    /* 0x00 */ GameEventFlagStorage* mEventFlagStorage;
     /* 0x04 */ GameEventValueChecker* mEventValueChecker;
     /* 0x08 */ GameDataPlayerStatus* mPlayerStatus;
     /* 0x0C */ GameDataAllGalaxyStorage* mAllGalaxyStorage;
-    // SMG2 slots at 0x10 / 0x14 are the TicoFat alms storage and the world map storage (Petari names kept as aliases)
-    /* 0x10 */ union {
-        SpinDriverPathStorage* mSpinDriverPathStorage;
-        StarPieceAlmsStorage* mTicoFatStorage;
-    };
-    /* 0x14 */ union {
-        StarPieceAlmsStorage* mStarPieceAlmsStorage;
-        GameDataWorldMapStorage* mWorldMapStorage;
-    };
-    /* 0x18 */ JMapInfo* mMapInfo;
-    /* 0x1C */ ScenarioProgressTestRun* mScenarioProgressTestRun;
-    /* 0x20 */ BinaryDataChunkHolder* mChunkHolder;
-    /* 0x24 */ char mName[16];
-    /* 0x34 */ const UserFile* mUserFile;
+    /* 0x10 */ GameDataTicoFatStorage* mTicoFatStorage;
+    /* 0x14 */ GameDataWorldMapStorage* mWorldMapStorage;
+    /* 0x18 */ BinaryDataChunkHolder* mChunkHolder;
+    /* 0x1C */ char mName[16];
 };

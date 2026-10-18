@@ -12,6 +12,10 @@ public:
     virtual void initializeData() = 0;
 };
 
+// Non-polymorphic empty base: `class C : public EmptyNonPolymorphicBase, public BinaryDataChunkBase`
+// gives C its own vptr at +0 and the BinaryDataChunkBase vptr at +4 (fields from +8), as in SMG2.
+class EmptyNonPolymorphicBase {};
+
 struct BinaryDataChunkHolderChunkData {
 public:
     u32 getDataOffset() const {

@@ -25,6 +25,6 @@ namespace NrvGameSequenceInGame {
         MR::updateActorState(static_cast< NerveExecutor* >(pSpine->mExecutor));
     }
     void GameSequenceInGameNrvOpening::execute(Spine* pSpine) const {
-        MR::updateActorState(static_cast< NerveExecutor* >(pSpine->mExecutor));
+        reinterpret_cast< GameSequenceInGame* >(pSpine->mExecutor)->exeOpening();
     }
 };  // namespace NrvGameSequenceInGame

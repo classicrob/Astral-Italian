@@ -71,9 +71,9 @@ namespace MR {
         return SingletonHolder< HeapMemoryWatcher >::get()->getHeapGDDR3(pHeap);
     }
 
-    void becomeCurrentHeap(JKRHeap* pHeap) {
+    JKRHeap* becomeCurrentHeap(JKRHeap* pHeap) {
         JASMutexLock lock(&MR::MutexHolder< 1 >::sMutex);
-        pHeap->becomeCurrentHeap();
+        return pHeap->becomeCurrentHeap();
     }
 
     bool isEqualCurrentHeap(JKRHeap* pHeap) {

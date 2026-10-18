@@ -20,6 +20,10 @@ u16 AudSoundInfo::getSoundSw(JAISoundID soundID) const {
     return 0;
 }
 
+s32 AudSoundInfo::getLimitNum(JAISoundID soundID) const {
+    return (getSoundSw(soundID) >> 3) & 3;
+}
+
 bool AudSoundInfo::isLimitNumPlaying(JAISoundID soundID) const {
     s32 numOfPlaying = AudWrap::getSystem()->getNumOfPlaying(soundID);
     u16 sw = (getSoundSw(soundID) >> 3) & 3;

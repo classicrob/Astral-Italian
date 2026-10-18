@@ -40,6 +40,8 @@ struct PadRecordHeader {
 };
 
 /// Replays recorded pad input (SMG2: demo / "pad mode").
+class WPadReadDataInfo;
+
 class PadRecorder : public NameObj {
 public:
     PadRecorder();
@@ -71,7 +73,9 @@ public:
 };
 
 namespace MR {
+    void readPadData(int, WPadReadDataInfo*);
     bool isPadRecorderStopped();
+    bool isPadRecorderReading();
     bool isRequestedStopReplayPad();
     void stopReplayPad();
 }

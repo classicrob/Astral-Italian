@@ -1,15 +1,23 @@
 #include "Game/AudioLib/AudSystem.hpp"
+#include "Game/AudioLib/AudBgmParamTable.hpp"
 #include "Game/AudioLib/AudEffector.hpp"
+#include "Game/AudioLib/AudInstListMgr.hpp"
+#include "Game/AudioLib/AudMultiBgmInfo.hpp"
+#include "Game/AudioLib/AudSeLifeTable.hpp"
+#include "Game/AudioLib/AudStageUseResourceList.hpp"
 #include "Game/AudioLib/AudLimitedSound.hpp"
 #include "Game/AudioLib/AudParams.hpp"
 #include "Game/AudioLib/AudRemixMgr.hpp"
 #include "Game/AudioLib/AudSceneMgr.hpp"
 #include "Game/AudioLib/AudSeStrategy.hpp"
 #include "Game/AudioLib/AudSoundId.hpp"
+#include "Game/AudioLib/AudSoundNameConverter.hpp"
 #include "Game/AudioLib/AudSoundInfo.hpp"
 #include "Game/AudioLib/AudSoundObjHolder.hpp"
 #include "Game/AudioLib/AudSoundObject.hpp"
 #include "Game/AudioLib/AudSystemVolumeController.hpp"
+#include "Game/Util.hpp"
+#include "Game/Util/SingletonHolder.hpp"
 #include "Game/RhythmLib/AudChordInfo.hpp"
 #include "Game/RhythmLib/AudMeChannelMgr.hpp"
 #include "Game/RhythmLib/AudMeObject.hpp"
@@ -40,10 +48,6 @@
 #include <revolution/sc.h>
 #include <revolution/vi/vifuncs.h>
 
-// SMG2 AudSystem has a different layout from the one in AudSystem.hpp (SMG1 layout, shared with the rest of AudioLib).
-// Members that only exist at SMG2 offsets are accessed through this overlay until the header is re-laid out.
-#define AUD_FIELD(type, offset) (*reinterpret_cast< type* >((u8*)this + (offset)))
-
 const char sAudioResFile[] = "/AudioRes/SMR.szs";
 const char sJaiSeqArc[] = "/AudioRes/Seqs/JaiSeq.arc";
 const char sJaiChordArc[] = "/AudioRes/Info/JaiChord.arc";
@@ -51,17 +55,18 @@ const char sJaiMeArc[] = "/AudioRes/Info/JaiMe.arc";
 const char sJaiRemixArc[] = "/AudioRes/Info/JaiRemixSeq.arc";
 const char sJaiAudioArc[] = "AudioRes/SMR.baa";
 const char sJaiSeqResArc[] = "/AudioRes/JaiSeq.arc";
+const char sJaiInstListArc[] = "/AudioRes/Info/SoundIdToInstList.arc";
 
 AudSystem* AudSystem::msBasic;
 
-AudSystem* AudNewAudSystem_(JAUSectionHeap* pHeap, JKRArchive* pChordArchive, JKRArchive* pMeArchive, JKRArchive* pRemixArchive, int maxChannels) {
-    AudSystem* system = new AudSystem(pHeap, pChordArchive, pMeArchive, pRemixArchive);
+AudSystem* AudNewAudSystem_(JKRHeap* pHeap, JAUSectionHeap* pSectionHeap, int maxChannels, AudArchiveSet* pArchives) {
+    AudSystem* system = new AudSystem(pHeap, pSectionHeap, pArchives);
     system->mAudience.mMaxChannels = maxChannels;
     return system;
 }
 
 namespace {
-    int init_JAS_JAI_(JKRSolidHeap* pHeap) NO_INLINE {
+    int init_JAS_JAI_(JKRSolidHeap* pHeap) {
         JAU_JASInitializer initJAS;
         initJAS.audioMemory_ = AudParams::aramAddr;
         initJAS.audioMemSize_ = AudParams::aramSize;
@@ -94,14 +99,12 @@ namespace {
     }
 };  // namespace
 
-AudSystem* AudNewAudSystem(JKRSolidHeap* pHeap, void* pV, JKRArchive* pSeqArchive, JKRArchive* pChordArchive, JKRArchive* pMeArchive,
-                           JKRArchive* pRemixArchive) {
-    JKRHeap* currHeap = JKRGetCurrentHeap();
-    int maxNumSeq = ::init_JAS_JAI_(pHeap);
+AudSystem* AudNewAudSystem(JKRHeap* pHeap, JKRSolidHeap* pSolidHeap, AudArchiveSet* pArchives) {
+    int maxNumSeq = ::init_JAS_JAI_(pSolidHeap);
     JAUSectionHeap* newHeap = JAUNewSectionHeap(true);
-    newHeap->getHeap()->becomeCurrentHeap();
+    JKRHeap* prevHeap = MR::becomeCurrentHeap(newHeap->getHeap());
 
-    if (pV == nullptr) {
+    if (pArchives->mSmrRes == nullptr) {
         if (DVDConvertPathToEntrynum(sAudioResFile) >= 0) {
             JAUAudioArcLoader loader(newHeap);
             loader.load(sAudioResFile);
@@ -109,12 +112,12 @@ AudSystem* AudNewAudSystem(JKRSolidHeap* pHeap, void* pV, JKRArchive* pSeqArchiv
         }
     } else {
         JAUAudioArcLoader loader(newHeap);
-        loader.load(pV);
+        loader.load(pArchives->mSmrRes);
         newHeap->getHeap()->freeTail();
     }
 
     u32 maxSeqDataSize;
-    if (pSeqArchive == nullptr) {
+    if (pArchives->mSeqArchive == nullptr) {
         if (DVDConvertPathToEntrynum(sJaiSeqArc) >= 0) {
             JKRArchive* seqArc = JKRArchive::mount(sJaiSeqArc, JKRArchive::MOUNT_MODE_DVD, newHeap->getHeap(), JKRArchive::MOUNT_DIRECTION_1);
             newHeap->setSeqDataArchive(seqArc);
@@ -123,24 +126,24 @@ AudSystem* AudNewAudSystem(JKRSolidHeap* pHeap, void* pV, JKRArchive* pSeqArchiv
             maxNumSeq = 0;
         }
     } else {
-        newHeap->setSeqDataArchive(pSeqArchive);
+        newHeap->setSeqDataArchive(pArchives->mSeqArchive);
         maxSeqDataSize = AudParams::maxSeqDataSize;
     }
 
-    if (pChordArchive == nullptr) {
-        pChordArchive = JKRArchive::mount(sJaiChordArc, JKRArchive::MOUNT_MODE_MEM, newHeap->getHeap(), JKRArchive::MOUNT_DIRECTION_1);
+    if (pArchives->mChordArchive == nullptr) {
+        pArchives->mChordArchive = JKRArchive::mount(sJaiChordArc, JKRArchive::MOUNT_MODE_MEM, newHeap->getHeap(), JKRArchive::MOUNT_DIRECTION_1);
     }
 
-    if (pMeArchive == nullptr) {
-        pMeArchive = JKRArchive::mount(sJaiMeArc, JKRArchive::MOUNT_MODE_MEM, newHeap->getHeap(), JKRArchive::MOUNT_DIRECTION_1);
+    if (pArchives->mMeArchive == nullptr) {
+        pArchives->mMeArchive = JKRArchive::mount(sJaiMeArc, JKRArchive::MOUNT_MODE_MEM, newHeap->getHeap(), JKRArchive::MOUNT_DIRECTION_1);
     }
 
-    AudSystem* system = AudNewAudSystem_(newHeap, pChordArchive, pMeArchive, pRemixArchive, 1);
+    AudSystem* system = AudNewAudSystem_(pHeap, newHeap, 1, pArchives);
     if (maxSeqDataSize != 0) {
         newHeap->newDynamicSeqBlocks(maxSeqDataSize, maxNumSeq);
     }
 
-    currHeap->becomeCurrentHeap();
+    MR::becomeCurrentHeap(prevHeap);
     newHeap->finishBuild();
 
     return system;
@@ -157,14 +160,30 @@ static JAUStdSoundInfo* newSoundInfo(JAUSection* pSection) {
     return soundInfo;
 }
 
-AudSystem::AudSystem(JAUSectionHeap* pSectionHeap, JKRArchive* pChordArchive, JKRArchive* pMeArchive, JKRArchive* pRemixArchive)
-    : mIsResetReady(), mIsReset(), mStopThreads(), _828(), mIsPaused(), _82A(), _82B(), _82C(), _830(-1), mSoundInfo(), mSectionHeap(pSectionHeap),
-      mStreamAramMgr(), mAudible(), mSystemSeObject(), mSystemMeObject(), mSceneMgr(), mRhythmMeSystem(), mRemixMgr(), mAudEffector(),
-      mSeStrategyMgr(), mVolumeController(), mHomeButtonMenuState(), mHomeButtonToggleTime(-1), mPauseMenuState(), mPauseMenuToggleTime(-1),
-      mIsDvdError(), mLimitedSoundInfo(), mSpkSystem() {
+namespace {
+    // position of the sound's audible (if it has one)
+    bool getSoundPos(JAISound& rSound, TVec3f* pPos) NO_INLINE {
+        JAIAudible* audible = rSound.mAudible;
+        if (audible != nullptr) {
+            pPos->set(audible->getPos());
+            return true;
+        }
+
+        return false;
+    }
+};  // namespace
+
+AudSystem::AudSystem(JKRHeap* pHeap, JAUSectionHeap* pSectionHeap, AudArchiveSet* pArchives)
+    : mIsResetReady(), mIsReset(), mStopThreads(), _828(), mIsPaused(), _82A(), _82B(), _82C(), _830(-1), mRestrictedSoundFrames(-1), mSoundInfo(),
+      mHeap(pHeap), mSectionHeap(pSectionHeap), mStreamAramMgr(), mSoundMode(), mSystemSeObject(), mSystemMeObject(), mSceneMgr(), mBgmMgr(),
+      mRhythmMeSystem(), mRemixMgr(), mAudEffector(), mSeStrategyMgr(), mVolumeController(), mInstListMgr(), mMultiBgmInfo(), mBgmParamTable(),
+      mHomeButtonMenuState(), mHomeButtonToggleTime(-1), mPauseMenuState(), mPauseMenuToggleTime(-1), mIsDvdError(), mLimitedSoundInfo(), _9A0(),
+      _9A4(true), mIsDestroySceneKeepAllSound(), mSpkSystem(), mSeLifeTable(), mStageUseResourceList(), mNumSeLimitGroups() {
     msBasic = this;
+    mSoundMode = SCGetSoundMode();
     mLimitedSoundInfo = new (mSectionHeap->getHeap(), 0) AudLimitedSoundInfo[2];
     clearAllLimitedSound();
+    clearSeLimitGroups();
 
     JAISeqDataMgr* seSeqDataMgr = pSectionHeap->getSeSeqDataMgr();
     if (seSeqDataMgr != nullptr) {
@@ -199,33 +218,134 @@ AudSystem::AudSystem(JAUSectionHeap* pSectionHeap, JKRArchive* pChordArchive, JK
     initCategoryArrangement();
     initVolumeSetting();
 
-    mSoundObjHolder = new (mSectionHeap->getHeap(), 0) AudSoundObjHolder(mSectionHeap->getHeap(), AudParams::numInspectableSoundObj);
     mSystemSeObject = new (mSectionHeap->getHeap(), 0) AudSoundObject(nullptr, 10, mSectionHeap->getHeap());
-    mAtmosphereSeObject = new (mSectionHeap->getHeap(), 0) AudSoundObject(nullptr, 8, mSectionHeap->getHeap());
     mSceneMgr = new (mSectionHeap->getHeap(), 0) AudSceneMgr(mSectionHeap);
+    mBgmMgr = new AudBgmMgr();
     mRhythmMeSystem = new (mSectionHeap->getHeap(), 0) AudRhythmMeSystem(mSectionHeap->getHeap(), 3, true);
     mRemixMgr = new (mSectionHeap->getHeap(), 0) AudRemixMgr(mSectionHeap->getHeap());
     mRemixMgr->init();
     mSeStrategyMgr = new (mSectionHeap->getHeap(), 0) AudSeStrategyMgr();
     mSeMgr.setStrategyMgr(mSeStrategyMgr);
-    mAudEffector = new (mSectionHeap->getHeap(), 0) AudEffector();
-    mAudEffector->initFxLine(mSectionHeap->getHeap());
 
-    if (pChordArchive != nullptr) {
-        mRhythmMeSystem->mChordInfo.init(pChordArchive);
+    if (pArchives->mChordArchive != nullptr) {
+        mRhythmMeSystem->mChordInfo.init(pArchives->mChordArchive);
     }
 
-    if (pMeArchive != nullptr) {
-        setMeResource(pMeArchive, 1, 0);
+    if (pArchives->mMeArchive != nullptr) {
+        setMeResource(pArchives->mMeArchive, 1, 0);
     }
 
-    if (pRemixArchive != nullptr) {
-        mRemixMgr->setRemixSeqResource(pRemixArchive->getResource(static_cast< u16 >(0)));
+    if (pArchives->mRemixArchive != nullptr) {
+        mRemixMgr->setRemixSeqResource(pArchives->mRemixArchive->getResource(static_cast< u16 >(0)));
     }
 
     mSystemMeObject = new (mSectionHeap->getHeap(), 0) AudMeObject(nullptr, 8, mSectionHeap->getHeap());
-    mSpkSystem = new (mSectionHeap->getHeap(), 0) SpkSystem(mSectionHeap->getHeap());
     mVolumeController = new (mSectionHeap->getHeap(), 0) AudSystemVolumeController(this);
+    mAudEffector = new (mSectionHeap->getHeap(), 0) AudEffector();
+    mAudEffector->initFxLine(mSectionHeap->getHeap());
+
+    JKRHeap* prevHeap = MR::becomeCurrentHeap(mHeap);
+
+    AudSingletonHolder< AudSoundNameConverter >::init();
+
+    mSpkSystem = new SpkSystem(mHeap);
+    mInstListMgr = new AudInstListMgr(mSectionHeap, pArchives->mInstListArchive);
+    mInstListMgr->loadInstList();
+    mSoundObjHolder = new AudSoundObjHolder(AudParams::numInspectableSoundObj);
+    mAtmosphereSeObject = new AudSoundObject(nullptr, 8, nullptr);
+    mMultiBgmInfo = new AudMultiBgmInfo();
+    mBgmParamTable = new AudBgmParamTable();
+    mSeLifeTable = new AudSeLifeTable();
+    mStageUseResourceList = new AudStageUseResourceList();
+    MR::becomeCurrentHeap(prevHeap);
+}
+
+void AudSystem::clearSeLimitGroups() {
+    mNumSeLimitGroups = 0;
+
+    for (s32 i = 0; i < 32; i++) {
+        for (s32 j = 0; j < 3; j++) {
+            mSeLimitGroups[i].mEntries[j].mSe = nullptr;
+            mSeLimitGroups[i].mEntries[j].mScore = 0.0f;
+        }
+    }
+}
+
+void AudSystem::updateSeLimitGroups() {
+    AudSoundInfo* pSoundInfo = AudWrap::getSoundInfo();
+    clearSeLimitGroups();
+
+    for (s32 category = 0; category < JAISeMgr::NUM_CATEGORIES; category++) {
+        for (JSULink< JAISe >* it = getSeMgr().getCategory(category)->getSeList()->getFirst(); it != nullptr; it = it->getNext()) {
+            JAISe* pSe = it->getObject();
+
+            if (pSe->isStopping()) {
+                continue;
+            }
+
+            s32 limit = pSoundInfo->getLimitNum(pSe->mSoundID);
+            if (limit > 0) {
+                s32 index = registerSeLimit(pSe, limit);
+                if (index < 0 || index >= limit) {
+                    pSe->stop();
+                }
+            }
+        }
+    }
+}
+
+// NONMATCHING: register allocation / loop counters only (instruction sequence identical)
+s32 AudSystem::registerSeLimit(JAISe* pSe, s32 limit) {
+    f32 score = 0.0f;
+    TVec3f pos;
+    if (getSoundPos(*pSe, &pos)) {
+        score = PSVECDistance(reinterpret_cast< const Vec* >(&pos), reinterpret_cast< const Vec* >(&mAudience.mStates[0].getPos()));
+    }
+
+    for (s32 i = 0; i < mNumSeLimitGroups; i++) {
+        AudSeLimitEntry* pEntries = mSeLimitGroups[i].mEntries;
+        if (pEntries[0].mSe->mSoundID != pSe->mSoundID) {
+            continue;
+        }
+
+        for (s32 j = 0; j < limit; j++) {
+            if (pEntries[j].mSe == nullptr) {
+                pEntries[j].mSe = pSe;
+                pEntries[j].mScore = score;
+                return j;
+            }
+
+            if (pEntries[j].mScore > score) {
+                AudSeLimitEntry newEntry;
+                newEntry.mSe = pSe;
+                newEntry.mScore = score;
+                AudSeLimitEntry dropped;
+                dropped = pEntries[limit - 1];
+
+                for (s32 k = j; k < limit - 1; k++) {
+                    pEntries[k + 1] = pEntries[k];
+                }
+
+                pEntries[j] = newEntry;
+                if (dropped.mSe != nullptr) {
+                    dropped.mSe->stop();
+                }
+
+                return j;
+            }
+        }
+
+        return -1;
+    }
+
+    if (mNumSeLimitGroups < 32) {
+        mSeLimitGroups[mNumSeLimitGroups].mEntries[0].mSe = pSe;
+        mSeLimitGroups[mNumSeLimitGroups].mEntries[0].mScore = score;
+        mNumSeLimitGroups++;
+        return 0;
+    }
+
+    return -1;
 }
 
 AudChordInfo* AudSystem::getChordInfo() {
@@ -246,9 +366,10 @@ void AudSystem::frameWork() {
         mVolumeController->update();
     }
 
-    mBgmMgr.movement();
+    mBgmMgr->movement();
     mRhythmMeSystem->update();
     mRemixMgr->update();
+    updateSeLimitGroups();
     JAUSoundMgr::calc();
     mixOut();
     mSoundObjHolder->update();
@@ -264,7 +385,20 @@ void AudSystem::frameWork() {
         }
     }
 
+    if (mRestrictedSoundFrames >= 0) {
+        mRestrictedSoundFrames--;
+        if (mRestrictedSoundFrames <= 0) {
+            mRestrictedSoundFrames = -1;
+        }
+    }
+
     updateLimitedSound();
+    mAudEffector->update();
+    mAudience.updateSetting();
+
+    if (mHomeButtonMenuState == MenuState_Off && mPauseMenuState == MenuState_Off) {
+        mSeLifeTable->update();
+    }
 }
 
 void AudSystem::calc() {
@@ -300,6 +434,10 @@ bool AudSystem::startSound(JAISoundID soundID, JAISoundHandle* pHandle, const TV
         return false;
     }
 
+    if (mRestrictedSoundFrames >= 0 && isRestrictedSound(soundID)) {
+        return false;
+    }
+
     if (_82B && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
         return false;
     }
@@ -308,7 +446,7 @@ bool AudSystem::startSound(JAISoundID soundID, JAISoundHandle* pHandle, const TV
         return false;
     }
 
-    if (soundID.getGroupID() != 0xD && mHomeButtonMenuState != 0) {  // disable non-home-menu sounds if menu is not cleared
+    if (soundID.getGroupID() != 0xD && mHomeButtonMenuState == MenuState_Active) {  // disable non-home-menu sounds while the menu is active
         return false;
     }
 
@@ -338,6 +476,10 @@ bool AudSystem::startLevelSound(JAISoundID soundID, JAISoundHandle* pHandle, con
     }
 
     if (_830 >= 0 && soundID.getGroupID() != 0xD && soundID.getGroupID() != 0x0) {  // HOMESE, SE_SY
+        return false;
+    }
+
+    if (mRestrictedSoundFrames >= 0 && isRestrictedSound(soundID)) {
         return false;
     }
 
@@ -409,12 +551,15 @@ bool AudSystem::isSubmitSeByVolumeSetting(JAISoundID soundID) {
 void AudSystem::updateOutputMode() {
     switch (SCGetSoundMode()) {
     case 0:
+        mSoundMode = 0;
         JASDriver::setOutputMode(0);  // neither? (TODO)
         break;
     case 1:
+        mSoundMode = 1;
         JASDriver::setOutputMode(1);  // only pan
         break;
     case 2:
+        mSoundMode = 2;
         JASDriver::setOutputMode(2);  // pan and effect
         break;
     }
@@ -423,10 +568,10 @@ void AudSystem::updateOutputMode() {
 void AudSystem::preProcessToReset() {
     mSeqMgr.stop(0);
     mStreamMgr.stop(0);
-    mBgmMgr.clearLastBGM(AudBgmMgr::BgmType_Stage);
-    mBgmMgr.clearLastBGM(AudBgmMgr::BgmType_Sub);
-    mBgmMgr.clearNextBGM(AudBgmMgr::BgmType_Stage);
-    mBgmMgr.clearNextBGM(AudBgmMgr::BgmType_Sub);
+    mBgmMgr->clearLastBGM(AudBgmMgr::BgmType_Stage);
+    mBgmMgr->clearLastBGM(AudBgmMgr::BgmType_Sub);
+    mBgmMgr->clearNextBGM(AudBgmMgr::BgmType_Stage);
+    mBgmMgr->clearNextBGM(AudBgmMgr::BgmType_Sub);
 
     if (mRhythmMeSystem != nullptr) {
         mRhythmMeSystem->mMeMgr->stopAll(-2);
@@ -482,19 +627,18 @@ void AudSystem::pause() {
         return;
     }
 
-    mBgmMgr.pause();
+    mBgmMgr->pause();
     mRhythmMeSystem->setIdle(true);
     mIsPaused = true;
 }
 
 void AudSystem::unpause() {
-    mBgmMgr.unpause();
+    mBgmMgr->unpause();
     mRhythmMeSystem->setIdle(false);
     mIsPaused = false;
 }
 
 
-extern "C" void fn_804AC160(SpkSystem*, s32, s32);
 
 void AudSystem::stopAllSounds(u32 fadeTime) {
     JAUSoundMgr::stop(fadeTime);
@@ -517,11 +661,11 @@ void AudSystem::stopSeCategories(u32 fadeTime) {
 }
 
 bool AudSystem::isHomeButtonMenuEntering() const {
-    return AUD_FIELD(s32, 0x988) == 1;
+    return mHomeButtonMenuState == 1;
 }
 
 bool AudSystem::isHomeButtonMenuLeaving() const {
-    return static_cast< u32 >(AUD_FIELD(s32, 0x988) - 2) <= 1;
+    return static_cast< u32 >(mHomeButtonMenuState - 2) <= 1;
 }
 
 void AudSystem::pauseSeCategories(s32 menuType, bool pause) {
@@ -533,58 +677,58 @@ void AudSystem::pauseSeCategories(s32 menuType, bool pause) {
 }
 
 void AudSystem::stopMenuSystemSounds() {
-    AudSoundObject* pObject = AUD_FIELD(AudSoundObject*, 0x950);
+    AudSoundObject* pObject = mSystemSeObject;
 
     if (pObject != nullptr) {
         pObject->stopSound(JAISoundID(0x11), 0);
-        AUD_FIELD(AudSoundObject*, 0x950)->stopSound(JAISoundID(3), 0);
+        mSystemSeObject->stopSound(JAISoundID(3), 0);
     }
 }
 
 void AudSystem::enterHomeButtonMenu() {
     stopMenuSystemSounds();
-    AUD_FIELD(s32, 0x988) = MenuState_Enter;
-    AUD_FIELD(s32, 0x98C) = 15 + 1;
+    mHomeButtonMenuState = MenuState_Enter;
+    mHomeButtonToggleTime = 15 + 1;
     mSeqMgr.getParams()->moveVolume(0.0f, 15);
     mStreamMgr.getParams()->moveVolume(0.0f, 15);
 
-    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    AudSystemVolumeController* pController = mVolumeController;
     if (pController != nullptr) {
         pController->setSeVolumeSetTrig(5, 15);
     }
 
-    fn_804AC160(AUD_FIELD(SpkSystem*, 0x9A8), -1, 100);
+    mSpkSystem->stopSound(-1, 100);
 }
 
 void AudSystem::exitHomeButtonMenu() {
     updateOutputMode();
-    AUD_FIELD(s32, 0x988) = MenuState_Exit;
-    AUD_FIELD(s32, 0x98C) = 20 + 1;
+    mHomeButtonMenuState = MenuState_Exit;
+    mHomeButtonToggleTime = 20 + 1;
 
     if (!isPauseMenuActive()) {
         mSeqMgr.getParams()->moveVolume(AudParams::masterVolBgm, 20);
         mStreamMgr.getParams()->moveVolume(AudParams::masterVolStream, 15);
     }
 
-    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    AudSystemVolumeController* pController = mVolumeController;
     if (pController != nullptr) {
         pController->recoverSeVolumeSet(20);
     }
 
-    if (!isPauseMenuActive() && AUD_FIELD(u8, 0x998) == 0) {
+    if (!isPauseMenuActive() && !mIsDvdError) {
         pauseSeCategories(0, false);
         unpause();
     }
 }
 
 void AudSystem::updateHomeButtonMenu() {
-    switch (AUD_FIELD(s32, 0x988)) {
+    switch (mHomeButtonMenuState) {
     case MenuState_Off:
         break;
     case MenuState_Enter:
-        if (AUD_FIELD(s32, 0x98C) > 0 && --AUD_FIELD(s32, 0x98C) <= 0) {
-            AUD_FIELD(s32, 0x98C) = -1;
-            AUD_FIELD(s32, 0x988) = MenuState_Active;
+        if (mHomeButtonToggleTime > 0 && --mHomeButtonToggleTime <= 0) {
+            mHomeButtonToggleTime = -1;
+            mHomeButtonMenuState = MenuState_Active;
             if (!isPauseMenuActive()) {
                 pause();
                 pauseSeCategories(0, true);
@@ -593,9 +737,9 @@ void AudSystem::updateHomeButtonMenu() {
 
         break;
     case MenuState_Exit:
-        if (AUD_FIELD(s32, 0x98C) > 0 && --AUD_FIELD(s32, 0x98C) <= 0) {
-            AUD_FIELD(s32, 0x98C) = -1;
-            AUD_FIELD(s32, 0x988) = MenuState_Off;
+        if (mHomeButtonToggleTime > 0 && --mHomeButtonToggleTime <= 0) {
+            mHomeButtonToggleTime = -1;
+            mHomeButtonMenuState = MenuState_Off;
         }
 
         break;
@@ -605,7 +749,7 @@ void AudSystem::updateHomeButtonMenu() {
 }
 
 bool AudSystem::isHomeButtonMenuActive() const {
-    if (AUD_FIELD(s32, 0x988) == MenuState_Off || AUD_FIELD(s32, 0x988) == MenuState_Exit) {
+    if (mHomeButtonMenuState == MenuState_Off || mHomeButtonMenuState == MenuState_Exit) {
         return false;
     }
 
@@ -614,26 +758,26 @@ bool AudSystem::isHomeButtonMenuActive() const {
 
 void AudSystem::enterPauseMenu() {
     stopMenuSystemSounds();
-    AUD_FIELD(s32, 0x990) = MenuState_Enter;
-    AUD_FIELD(s32, 0x994) = 1;
+    mPauseMenuState = MenuState_Enter;
+    mPauseMenuToggleTime = 1;
     mSeqMgr.getParams()->moveVolume(0.0f, 0);
     mStreamMgr.getParams()->moveVolume(0.0f, 0);
 
-    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    AudSystemVolumeController* pController = mVolumeController;
     if (pController != nullptr) {
         pController->setSeVolumeSetTrig(6, 0);
     }
 
-    fn_804AC160(AUD_FIELD(SpkSystem*, 0x9A8), -1, 100);
+    mSpkSystem->stopSound(-1, 100);
 }
 
 void AudSystem::exitPauseMenu() {
-    AUD_FIELD(s32, 0x990) = MenuState_Exit;
-    AUD_FIELD(s32, 0x994) = 20 + 1;
+    mPauseMenuState = MenuState_Exit;
+    mPauseMenuToggleTime = 20 + 1;
     mSeqMgr.getParams()->moveVolume(AudParams::masterVolBgm, 20);
     mStreamMgr.getParams()->moveVolume(AudParams::masterVolStream, 20);
 
-    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    AudSystemVolumeController* pController = mVolumeController;
     if (pController != nullptr) {
         pController->recoverSeVolumeSet(20);
     }
@@ -643,22 +787,22 @@ void AudSystem::exitPauseMenu() {
 }
 
 void AudSystem::updatePauseMenu() {
-    switch (AUD_FIELD(s32, 0x990)) {
+    switch (mPauseMenuState) {
     case MenuState_Off:
         break;
     case MenuState_Enter:
-        if (AUD_FIELD(s32, 0x994) > 0 && --AUD_FIELD(s32, 0x994) <= 0) {
-            AUD_FIELD(s32, 0x994) = -1;
-            AUD_FIELD(s32, 0x990) = MenuState_Active;
+        if (mPauseMenuToggleTime > 0 && --mPauseMenuToggleTime <= 0) {
+            mPauseMenuToggleTime = -1;
+            mPauseMenuState = MenuState_Active;
             pause();
             pauseSeCategories(1, true);
         }
 
         break;
     case MenuState_Exit:
-        if (AUD_FIELD(s32, 0x994) > 0 && --AUD_FIELD(s32, 0x994) <= 0) {
-            AUD_FIELD(s32, 0x994) = -1;
-            AUD_FIELD(s32, 0x990) = MenuState_Off;
+        if (mPauseMenuToggleTime > 0 && --mPauseMenuToggleTime <= 0) {
+            mPauseMenuToggleTime = -1;
+            mPauseMenuState = MenuState_Off;
         }
 
         break;
@@ -668,7 +812,7 @@ void AudSystem::updatePauseMenu() {
 }
 
 bool AudSystem::isPauseMenuActive() const {
-    if (AUD_FIELD(s32, 0x990) == MenuState_Off || AUD_FIELD(s32, 0x990) == MenuState_Exit) {
+    if (mPauseMenuState == MenuState_Off || mPauseMenuState == MenuState_Exit) {
         return false;
     }
 
@@ -676,11 +820,11 @@ bool AudSystem::isPauseMenuActive() const {
 }
 
 void AudSystem::setField9A0(s32 value) {
-    AUD_FIELD(s32, 0x9A0) = value;
+    _9A0 = value;
 }
 
 void AudSystem::setField9A4(bool value) {
-    AUD_FIELD(bool, 0x9A4) = value;
+    _9A4 = value;
 }
 
 void AudSystem::setField834(s32 value) {
@@ -689,25 +833,26 @@ void AudSystem::setField834(s32 value) {
 
 // Used by AudBgmVolumeController::update and AudSystemVolumeController::updateSeVolumeSetLevel.
 // The byte at +0x998 is the DVD error flag (set in doDvdErrorProcess, cleared in exitDvdErrorProcess).
-extern "C" u8 fn_8007A760(const AudSystem* pSystem) {
-    if (pSystem->isPauseMenuActive()) {
-        return 1;
+bool AudSystem::isMenuOrErrorActive() const {
+    if (isPauseMenuActive()) {
+        return true;
     }
 
-    if (pSystem->isHomeButtonMenuActive()) {
-        return 1;
+    if (isHomeButtonMenuActive()) {
+        return true;
     }
 
-    return *(const u8*)((const u8*)pSystem + 0x998);
+    return mIsDvdError;
 }
 
+// NONMATCHING: target calls VIGetDVDStopMotorCount (we still name it VIGetDimmingCount) and AudSystemVolumeController::setSeVolumeSetLevel takes (level, -1, 2) in SMG2
 void AudSystem::screenSaverProcess() {
     if (VIGetDimmingCount() > 0) {
         return;
     }
 
     setSeVolumeSetLevel(AudSystemVolumeController::VolumeSet_ScreenSaver);
-    mBgmMgr.volDownLevel(false);
+    mBgmMgr->volDownLevel(false);
 }
 
 bool AudSystem::isEnableStartSound(JAISoundID soundID) {
@@ -727,7 +872,7 @@ bool AudSystem::isEnableStartSound(JAISoundID soundID) {
         return false;
     }
 
-    if (AUD_FIELD(s32, 0x834) >= 0 && isRestrictedSound(soundID)) {
+    if (mRestrictedSoundFrames >= 0 && isRestrictedSound(soundID)) {
         return false;
     }
 
@@ -778,7 +923,7 @@ bool AudSystem::isRestrictedSound(JAISoundID soundID) {
 }
 
 void AudSystem::doDvdErrorProcess() {
-    AUD_FIELD(u8, 0x998) = 1;
+    mIsDvdError = true;
 
     if (!isPauseMenuActive() && !isHomeButtonMenuActive() && !isHomeButtonMenuEntering()) {
         pauseSeCategories(2, true);
@@ -796,7 +941,7 @@ void AudSystem::exitDvdErrorProcess() {
         pauseSeCategories(2, false);
     }
 
-    AUD_FIELD(u8, 0x998) = 0;
+    mIsDvdError = false;
 }
 
 s32 AudSystem::getNumOfPlaying(JAISoundID soundID) {
@@ -837,6 +982,10 @@ const TVec3f& AudSystem::getMicPos(s32 mic) {
     return mAudience.mStates[mic].getPos();
 }
 
+void AudSystem::setCameraRate(f32 rate) {
+    mAudience.mCameraRate = MR::fastSqrtf(rate);
+}
+
 void AudSystem::setFarCamera(bool isFar) {
     mAudience.mFarCamera = isFar;
 }
@@ -869,6 +1018,7 @@ void AudSystem::initVolumeSetting() {
     }
 }
 
+// NONMATCHING: SMG2 copies the 28 bytes with hoisted lbz from per-byte sda21 symbols and byte stores; we emit lhz/sth struct copies
 void AudSystem::initCategoryArrangement() {
     JAISeCategoryArrangement arrangement;
 
@@ -901,49 +1051,35 @@ void AudSystem::setMeResource(JKRArchive* pArchive, u16 a1, u16 a2) {
     mRhythmMeSystem->mMeMgr->setMeSeq(meSeq);
 }
 
+// PLACEHOLDER(core): SMG2 BGM sound-id enum is not recovered (AudSoundId.hpp is the SMG1 table); resolve when the SMG2 ids are named
+// NONMATCHING: AudBgm::getSoundID is vtable slot 0x4c in SMG2 (0x44 in our AudBgm: two virtuals missing before it)
 void AudSystem::seFanfareProcess() {
-    if (mBgmMgr.mBgm[AudBgmMgr::BgmType_Stage] != nullptr) {
-        switch (mBgmMgr.mBgm[AudBgmMgr::BgmType_Stage]->getSoundID()) {
-        case STM_BOSS_01_A:
-        case STM_BOSS_02_A:
-        case STM_BOSS_02_B:
-        case STM_BOSS_03_A:
-        case STM_BOSS_03_B:
-        case STM_RACE_01:
-        case STM_BOSS_04:
-        case STM_BOSS_05_A:
-        case STM_BOSS_06_A:
-        case STM_BOSS_06_B:
-        case STM_BOSS_01_B:
-        case STM_BOSS_05_B:
-        case STM_KINOPIO_TANKEN:
-        case STM_BOSS_09_A:
-        case STM_BOSS_09_B:
-            return;
-        }
+    if (_9A0 > 0) {
+        _9A0--;
+        return;
     }
 
-    if (mBgmMgr.mBgm[AudBgmMgr::BgmType_Sub] != nullptr) {
-        switch (mBgmMgr.mBgm[AudBgmMgr::BgmType_Sub]->getSoundID()) {
-        case BGM_MISS:
-        case BGM_GAMEOVER:
-        case BGM_PINCH_1:
-            mBgmMgr.volDownLevel(true);
-            return;
-        }
-    }
-
-    bool firstMorph = false;
-    if (getNumOfPlaying(SE_SY_MORPH) != 0) {
-        if (mBgmMgr.mBgm[AudBgmMgr::BgmType_Sub] != nullptr) {
-            if (mBgmMgr.mBgm[AudBgmMgr::BgmType_Sub]->getSoundID() == BGM_FIRST_MORPH_B) {
-                firstMorph = true;
+    if (_9A4) {
+        if (mBgmMgr->mBgm[AudBgmMgr::BgmType_Sub] != nullptr) {
+            u32 id = mBgmMgr->mBgm[AudBgmMgr::BgmType_Sub]->getSoundID();
+            if (id - 0x1000000 <= 1 || id == 0x100002C) {
+                mBgmMgr->volDownLevel(true);
+                return;
             }
         }
-    }
 
-    if (isFanfareSePlaying()) {
-        mBgmMgr.volDownLevel(firstMorph);
+        bool firstMorph = false;
+        if (getNumOfPlaying(SE_SY_MORPH) != 0) {
+            if (mBgmMgr->mBgm[AudBgmMgr::BgmType_Sub] != nullptr) {
+                if (mBgmMgr->mBgm[AudBgmMgr::BgmType_Sub]->getSoundID() == 0x1000005) {
+                    firstMorph = true;
+                }
+            }
+        }
+
+        if (isFanfareSePlaying()) {
+            mBgmMgr->volDownLevel(firstMorph);
+        }
     }
 }
 
@@ -965,14 +1101,14 @@ void AudSystem::registerLimitedSound(JAISoundID soundID, s32 delay) {
     stopSoundID(soundID);
 
     for (s32 i = 0; i < 2; i++) {
-        if (AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].mSoundID == soundID) {
+        if (mLimitedSoundInfo[i].mSoundID == soundID) {
             return;
         }
     }
 
     for (s32 i = 0; i < 2; i++) {
-        if (AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].isFree()) {
-            AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].set(soundID, delay);
+        if (mLimitedSoundInfo[i].isFree()) {
+            mLimitedSoundInfo[i].set(soundID, delay);
             break;
         }
     }
@@ -980,13 +1116,13 @@ void AudSystem::registerLimitedSound(JAISoundID soundID, s32 delay) {
 
 void AudSystem::clearAllLimitedSound() {
     for (s32 i = 0; i < 2; i++) {
-        AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].init();
+        mLimitedSoundInfo[i].init();
     }
 }
 
 bool AudSystem::isRegisteredLimitedSound(JAISoundID soundID) {
     for (s32 i = 0; i < 2; i++) {
-        if (AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].mSoundID == soundID) {
+        if (mLimitedSoundInfo[i].mSoundID == soundID) {
             return true;
         }
     }
@@ -996,33 +1132,29 @@ bool AudSystem::isRegisteredLimitedSound(JAISoundID soundID) {
 
 void AudSystem::updateLimitedSound() {
     for (s32 i = 0; i < 2; i++) {
-        AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].update();
+        mLimitedSoundInfo[i].update();
     }
 }
 
 bool AudSystem::isAlreadyPlayingSoundNear(JAISoundID soundID, const TVec3f* pPos, f32 range) {
+    if (pPos == nullptr) {
+        return false;
+    }
+
     TVec3f pos;
     for (s32 category = 0; category < JAISeMgr::NUM_CATEGORIES; category++) {
         for (JSULink< JAISe >* it = getSeMgr().getCategory(category)->getSeList()->getFirst(); it != getSeMgr().getCategory(0)->getSeList()->getEnd();
              it = it->getNext()) {
-            if (it->getObject()->mSoundID != soundID) {
+            JAISound& rSound = *it->getObject();
+            if (rSound.mSoundID != soundID) {
                 continue;
             }
 
-            bool valid;
-            JAIAudible* audible = it->getObject()->mAudible;
-            if (audible != nullptr) {
-                pos.set(audible->getPos());
-                valid = true;
-            } else {
-                valid = false;
-            }
-
-            if (!valid) {
+            if (!getSoundPos(rSound, &pos)) {
                 continue;
             }
 
-            TVec3f diff(0.0f);
+            TVec3f diff(0.0f, 0.0f, 0.0f);
             diff.sub(pos, *pPos);
             if (diff.length() <= range && diff.length() != 0.0f) {
                 return true;

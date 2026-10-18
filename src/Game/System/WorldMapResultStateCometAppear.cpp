@@ -214,11 +214,11 @@ void WorldMapResultStateCometAppear::exeEnd() {
 
 namespace NrvWorldMapResultStateCometAppear {
     WMR_NERVE_DEF(WorldMapResultStateCometAppearWait, WorldMapResultStateCometAppear, Wait);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearClose, WorldMapResultStateCometAppear, Close);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearOpen, WorldMapResultStateCometAppear, Open);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearAppearComet, WorldMapResultStateCometAppear, AppearComet);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearClose, WorldMapResultStateCometAppear, End);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearOpen, WorldMapResultStateCometAppear, Message);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearAppearComet, WorldMapResultStateCometAppear, Zoom);
     WMR_NERVE_DEF(WorldMapResultStateCometAppearMove, WorldMapResultStateCometAppear, Move);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearZoom, WorldMapResultStateCometAppear, Zoom);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearMessage, WorldMapResultStateCometAppear, Message);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearEnd, WorldMapResultStateCometAppear, End);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearZoom, WorldMapResultStateCometAppear, AppearComet);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearMessage, WorldMapResultStateCometAppear, Open);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearEnd, WorldMapResultStateCometAppear, Close);
 };  // namespace NrvWorldMapResultStateCometAppear

@@ -6,11 +6,11 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-namespace {
+namespace NrvFileSelectEffect {
     NEW_NERVE(FileSelectEffectNrvAppear, FileSelectEffect, Appear);
     NEW_NERVE(FileSelectEffectNrvWait, FileSelectEffect, Wait);
     NEW_NERVE(FileSelectEffectNrvDisappear, FileSelectEffect, Disappear);
-};  // namespace
+};  // namespace NrvFileSelectEffect
 
 FileSelectEffect::FileSelectEffect(const char* pName) : LiveActor(pName), mEffectFrame() {
 }
@@ -19,32 +19,32 @@ void FileSelectEffect::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "MiniatureGalaxySelect", false);
     MR::connectToSceneMapObj(this);
     MR::invalidateClipping(this);
-    initNerve(GET_NERVE_ANON(FileSelectEffectNrvWait));
+    initNerve(GET_NERVE(FileSelectEffect, FileSelectEffectNrvWait));
     makeActorDead();
 }
 
 void FileSelectEffect::appear() {
     LiveActor::appear();
-    setNerve(GET_NERVE_ANON(FileSelectEffectNrvAppear));
+    setNerve(GET_NERVE(FileSelectEffect, FileSelectEffectNrvAppear));
 }
 
 void FileSelectEffect::disappear() {
-    if (MR::isDead(this) || isNerve(GET_NERVE_ANON(FileSelectEffectNrvDisappear))) {
+    if (MR::isDead(this) || isNerve(GET_NERVE(FileSelectEffect, FileSelectEffectNrvDisappear))) {
         return;
     }
 
-    if (isNerve(GET_NERVE_ANON(FileSelectEffectNrvAppear))) {
+    if (isNerve(GET_NERVE(FileSelectEffect, FileSelectEffectNrvAppear))) {
         if (MR::isNewNerve(this)) {
             kill();
             return;
         }
 
         mEffectFrame = MR::getBrkCtrl(this)->getFrame();
-    } else if (isNerve(GET_NERVE_ANON(FileSelectEffectNrvWait))) {
+    } else if (isNerve(GET_NERVE(FileSelectEffect, FileSelectEffectNrvWait))) {
         mEffectFrame = MR::getBrkCtrl(this)->getEnd();
     }
 
-    setNerve(GET_NERVE_ANON(FileSelectEffectNrvDisappear));
+    setNerve(GET_NERVE(FileSelectEffect, FileSelectEffectNrvDisappear));
 }
 
 void FileSelectEffect::exeAppear() {
@@ -54,7 +54,7 @@ void FileSelectEffect::exeAppear() {
     }
 
     if (MR::isBrkOneTimeAndStopped(this)) {
-        setNerve(GET_NERVE_ANON(FileSelectEffectNrvWait));
+        setNerve(GET_NERVE(FileSelectEffect, FileSelectEffectNrvWait));
     }
 }
 

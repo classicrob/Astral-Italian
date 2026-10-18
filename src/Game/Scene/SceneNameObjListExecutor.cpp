@@ -73,10 +73,6 @@ namespace {
             32,
         },
         {
-            MR::MovementType_Movie,
-            1,
-        },
-        {
             MR::MovementType_MovieSubtitles,
             8,
         },

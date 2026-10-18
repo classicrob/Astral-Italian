@@ -51,7 +51,21 @@ typedef union KPADEXStatus {
         f32 ltrigger;
         f32 rtrigger;
     } cl;
+
+    // Balance board (SMG2 SDK; this member makes the union 0x50 bytes)
+    struct {
+        f64 tgc_weight;
+        f64 weight[4];
+        f64 weight_ave[4];
+        s32 weight_err;
+        s32 tgc_weight_err;
+    } bl;
 } KPADEXStatus;
+
+// MotionPlus data (SMG2 SDK; 0x3C bytes, member layout not recovered)
+typedef struct KPADMPLSStatus {
+    u32 data[15];
+} KPADMPLSStatus;
 
 typedef struct KPADStatus {
     /* 0x00 */ u32 hold;
@@ -75,6 +89,8 @@ typedef struct KPADStatus {
     /* 0x5E */ s8 dpd_valid_fg;
     /* 0x5F */ u8 data_format;
     /* 0x60 */ KPADEXStatus ex_status;
+    /* 0xB0 */ KPADMPLSStatus mpls;
+    /* 0xEC */ u32 unk_EC;  // SMG2 SDK field, purpose not recovered
 } KPADStatus;
 
 typedef struct KPADUnifiedWpadStatus {
@@ -181,6 +197,7 @@ typedef struct {
 } KPADInsideStatus;
 
 void KPADInit();
+void KPADInitEx(KPADUnifiedWpadStatus* uniBuf, u32 length);
 
 void KPADSetBtnRepeat(s32, f32, f32);
 void KPADSetSensorHeight(s32, f32);
@@ -191,6 +208,8 @@ void KPADSetDistParam(s32, f32, f32);
 
 void KPADReset(void);
 s32 KPADRead(s32, KPADStatus[], u32);
+s32 KPADReadEx(s32 chan, KPADStatus samplingBufs[], u32 length, s32* pErr);
+void KPADSetConnectCallback(s32 chan, WPADConnectCallback callback);
 
 extern KPADInsideStatus inside_kpads[];
 

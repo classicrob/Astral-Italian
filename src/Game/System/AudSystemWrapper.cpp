@@ -18,22 +18,16 @@ namespace AudRhythmWrap {
     void rhythmProc();
 };  // namespace AudRhythmWrap
 
-AudSystemWrapper::AudSystemWrapper(JKRSolidHeap* pSolidHeap, JKRHeap* pHeap) {
-    volatile AudSystemWrapper* self = this;
-
-    self->mIsResetDone = false;
-    self->mSolidHeap = pSolidHeap;
-    self->mAudSystem = nullptr;
-    self->mHeap = pHeap;
-    self->mSmrRes = nullptr;
-    self->mJaiSeqRes = nullptr;
-    self->mJaiChordRes = nullptr;
-    self->mJaiMeRes = nullptr;
-    self->mJaiRemixSeqRes = nullptr;
-    self->mSpkRes = nullptr;
-    self->_28 = false;
-    self->mDisableReset = false;
-    mSpkHeap = JKRExpHeap::create(AudSpeakerWrap::getRequiredHeapSize(), pSolidHeap, false);
+AudSystemWrapper::AudSystemWrapper(JKRSolidHeap* pSolidHeap, JKRHeap* pHeap, JKRHeap* pSystemHeap) {
+    mIsResetDone = false;
+    mAudSystem = nullptr;
+    mSolidHeap = pSolidHeap;
+    mHeap = pHeap;
+    mSystemHeap = pSystemHeap;
+    mSpkRes = nullptr;
+    _28 = false;
+    mDisableReset = false;
+    mSpkHeap = JKRExpHeap::create(AudSpeakerWrap::getRequiredHeapSize(), pSystemHeap, false);
 }
 
 void AudSystemWrapper::requestResourceForInitialize() {
@@ -43,6 +37,8 @@ void AudSystemWrapper::requestResourceForInitialize() {
     MR::mountAsyncArchive(sJaiMeArc, mSolidHeap);
     MR::mountAsyncArchive(AudSpeakerWrap::getResName(), mSpkHeap);
     MR::mountAsyncArchive(sJaiRemixArc, mSolidHeap);
+    // PLACEHOLDER(core): SMG2 MR::mountAsyncArchive takes two more arguments (1, 2 here; 1, 1 above); resolve when FileUtil's signature is recovered
+    MR::mountAsyncArchive(sJaiInstListArc, mHeap);
 }
 
 void AudSystemWrapper::createAudioSystem() {
@@ -53,11 +49,11 @@ void AudSystemWrapper::createAudioSystem() {
     }
 
     mDisableReset = true;
-    mAudSystem = AudNewAudSystem(mSolidHeap, mSmrRes, mJaiSeqRes, mJaiChordRes, mJaiMeRes, mJaiRemixSeqRes);
+    mAudSystem = AudNewAudSystem(mSystemHeap, mSolidHeap, &mArchives);
     mDisableReset = false;
 
     MR::removeFileConsideringLanguage(sAudioResFile);
-    mSmrRes = nullptr;
+    mArchives.reset();
 
     mAudSystem->setSpeakerResource(mSpkRes);
     createSoundNameConverter();
@@ -226,10 +222,12 @@ void AudSystemWrapper::resumeReset() {
 }
 
 void AudSystemWrapper::receiveResourceForInitialize() {
-    mSmrRes = MR::receiveFile(sAudioResFile);
-    mJaiSeqRes = MR::receiveArchive(sJaiSeqArc);
-    mJaiChordRes = MR::receiveArchive(sJaiChordArc);
-    mJaiMeRes = MR::receiveArchive(sJaiMeArc);
+    mArchives.reset();
+    mArchives.mSmrRes = MR::receiveFile(sAudioResFile);
+    mArchives.mSeqArchive = MR::receiveArchive(sJaiSeqArc);
+    mArchives.mChordArchive = MR::receiveArchive(sJaiChordArc);
+    mArchives.mMeArchive = MR::receiveArchive(sJaiMeArc);
     mSpkRes = MR::receiveArchive(AudSpeakerWrap::getResName());
-    mJaiRemixSeqRes = MR::receiveArchive(sJaiRemixArc);
+    mArchives.mRemixArchive = MR::receiveArchive(sJaiRemixArc);
+    mArchives.mInstListArchive = MR::receiveArchive(sJaiInstListArc);
 }

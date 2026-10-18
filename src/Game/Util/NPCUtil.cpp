@@ -129,7 +129,7 @@ namespace MR {
     }
 
     void decidePose(NPCActor* pActor, const TVec3f& rUp, const TVec3f& rFront, const TVec3f& rPos, f32 upBlend, f32 frontBlend, f32 posBlend) {
-        blendVec(&pActor->mPosition, pActor->mPosition, rPos, posBlend);
+        vecBlend(&pActor->mPosition, pActor->mPosition, rPos, posBlend);
         if (upBlend == 1.0f && frontBlend == 1.0f) {
             makeQuatUpFront(&pActor->_A0, rUp, rFront);
         } else {
@@ -309,12 +309,12 @@ namespace MR {
     }
 
     bool isActionContinuous(const LiveActor* pActor) {
-        return getBckCtrl(pActor)->getAttribute() == 0 && !isBckStopped(pActor);
+        return getBckCtrl(pActor)->getAttribute() == 0 && !isActionEnd(pActor);
     }
 
     bool isActionLoopedOrStopped(const LiveActor* pActor) {
         if (getBckCtrl(pActor)->getAttribute() == 0) {
-            return isBckStopped(pActor);
+            return isActionEnd(pActor);
         }
 
         return isBckLooped(pActor);
@@ -388,7 +388,7 @@ namespace MR {
         }
 
         if (!isNullOrEmptyString(pAction)) {
-            bool started = tryStartAction(pActor, pAction);
+            bool started = tryStartActionNotPlaying(pActor, pAction);
             if (movingTalk) {
                 setBckRate(pActor, pActor->_118);
             } else {
@@ -429,7 +429,7 @@ namespace MR {
             return false;
         }
 
-        return tryStartAction(pActor, pAction);
+        return tryStartActionNotPlaying(pActor, pAction);
     }
 
     bool tryStartMoveTurnAction(NPCActor* pActor) {
@@ -442,7 +442,7 @@ namespace MR {
             return false;
         }
 
-        return tryStartAction(pActor, pActor->_11C);
+        return tryStartActionNotPlaying(pActor, pActor->_11C);
     }
 };  // namespace MR
 

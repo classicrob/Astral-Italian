@@ -46,11 +46,14 @@ void StationedArchiveLoader::loadResourcesFromTable(const StationedArchiveLoader
             MR::loadToMainRAM(pInfo->mArchive, nullptr, pHeap, 0);
             break;
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT:
+        case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESERVED:
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO:
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI:
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE:
+        case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE:
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT:
-            MR::mountArchive(pInfo->mArchive, pHeap);
+        case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE:
+            MR::mountArchive(pInfo->mArchive, pHeap, true);
             break;
         }
     }
@@ -66,9 +69,11 @@ void StationedArchiveLoader::createAndAddResourcesFromTable(const Condition& rCo
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_MARIO:
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LUIGI:
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE:
+        case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_STAGE:
             SingletonHolder< ResourceHolderManager >::get()->createAndAddStationed(pInfo->mArchive);
             break;
         case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT:
+        case MR::StationedFileInfo::LOAD_TYPE_MOUNT_RESOURCE_LAYOUT_SCENE:
             SingletonHolder< ResourceHolderManager >::get()->createAndAddLayoutHolderStationed(pInfo->mArchive);
             break;
         default:
@@ -92,7 +97,7 @@ void StationedArchiveLoader::loadScenarioData(JKRHeap* pHeap) {
         MR::makeScenarioArchiveFileName(name, sizeof(name), dirEntry.name);
 
         if (MR::isFileExist(name, false)) {
-            MR::mountArchive(name, pHeap);
+            MR::mountArchive(name, pHeap, true);
         }
     }
 

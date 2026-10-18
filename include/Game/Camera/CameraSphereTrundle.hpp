@@ -17,7 +17,7 @@ public:
 
 class CameraSphereTrundle : public Camera {
 public:
-    CameraSphereTrundle(const char*);
+    CameraSphereTrundle(const char* pName = "球トランドルカメラ");
     virtual ~CameraSphereTrundle();
 
     virtual void reset();

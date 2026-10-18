@@ -24,7 +24,7 @@ namespace NrvGameSequenceInGame {
     GameSequenceInGameNrvBeforeKoopaVs3 GameSequenceInGameNrvBeforeKoopaVs3::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvGameSequenceInGame
 
-GameSequenceInGame::GameSequenceInGame(GameSequence* pHost) : ActorStateBase< GameSequence >("GameSequenceInGame", pHost) {
+GameSequenceInGame::GameSequenceInGame(GameSequence* pHost) : ActorStateBase< GameSequence >("[シーケンス]ゲーム中", pHost) {
     mMarioFace = nullptr;
     mWorldMap = nullptr;
     mInStage = nullptr;

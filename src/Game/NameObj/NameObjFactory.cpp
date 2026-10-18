@@ -4,8 +4,12 @@
 #include <revolution/types.h>
 #include "Game/Effect/CaveStream.hpp"
 #include "Game/Demo/KoopaAssaultFallObj.hpp"
+#include "Game/Demo/DemoEndStartPosCameraSetter.hpp"
 #include "Game/Demo/TransformFaceTicoBabyDemoObj.hpp"
 #include "Game/Map/HeadLight.hpp"
+#include "Game/Map/RepeatTimerSwitch.hpp"
+#include "Game/Effect/WaterFortressRain.hpp"
+#include "Game/Camera/CompleteEndingDemoObj.hpp"
 #include "Game/NPC/Pichan.hpp"
 #include "Game/NPC/KoopaNpc.hpp"
 #include "Game/NPC/GhostAttackGhost.hpp"
@@ -432,7 +436,6 @@ class Fountain { public: Fountain(const char*); u8 _[0xa0]; };
 class FountainBig { public: FountainBig(const char*); u8 _[0xa0]; };
 class RandomEffectObj { public: RandomEffectObj(const char*); u8 _[0xb0]; };
 class PhantomTorch { public: PhantomTorch(const char*); u8 _[0xa0]; };
-class WaterFortressRain { public: WaterFortressRain(const char*); u8 _[0xc0]; };
 class InvisiblePolygonObj { public: InvisiblePolygonObj(const char*); u8 _[0xc0]; };
 class YoshiEgg { public: YoshiEgg(const char*); u8 _[0xc4]; };
 class PullTargetBridge { public: PullTargetBridge(const char*); u8 _[0xb4]; };
@@ -449,11 +452,8 @@ class SoundSyncSwitch { public: SoundSyncSwitch(const char*); u8 _[0x38]; };
 class RaceRail { public: RaceRail(const char*); u8 _[0x18]; };
 class TimerSwitch { public: TimerSwitch(const char*); u8 _[0x9c]; };
 class SwitchSynchronizer { public: SwitchSynchronizer(const char*); u8 _[0x1c]; };
-class RepeatTimerSwitch { public: RepeatTimerSwitch(const char*); u8 _[0x28]; };
 class DemoExecutor { public: DemoExecutor(const char*); u8 _[0x3d0]; };
 class DemoCastSubGroup { public: DemoCastSubGroup(const char*); u8 _[0x20]; };
-class DemoEndStartPosCameraSetter { public: DemoEndStartPosCameraSetter(const char*); u8 _[0x90]; };
-class CompleteEndingDemoObj { public: CompleteEndingDemoObj(const char*); u8 _[0xa0]; };
 class DemoTitleAnim { public: DemoTitleAnim(const char*); u8 _[0xa8]; };
 class MarioFaceAfterGrandStarTakeOffDemoObj { public: MarioFaceAfterGrandStarTakeOffDemoObj(const char*); u8 _[0x9c]; };
 class MarioFacePlanetTakeOffDemoObj { public: MarioFacePlanetTakeOffDemoObj(const char*); u8 _[0x9c]; };

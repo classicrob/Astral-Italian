@@ -1,4 +1,7 @@
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/Screen/WorldMapArrow.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/NPC/TalkMessageFunc.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
 #include "Game/System/GameDataFunction.hpp"
@@ -7,23 +10,14 @@
 
 class TalkMessageCtrl;
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
-    TalkMessageCtrl* fn_804F8000(WorldMapResultCommand*, const char*);
     void* fn_804A88E0();
-    void fn_804A89F0(void*, const TVec2f*, s32);
-    void fn_804A8A40(void*);
-    TVec2f* fn_804F71A0(WorldMapResultCommand*, const char*);
-    s32 fn_804E8950(WorldMapResultCommand*);
-    bool fn_804E8CA0(WorldMapResultCommand*);
-    bool fn_804F6A80(WorldMapResultCommand*);
-    void fn_804F7FB0(WorldMapResultCommand*, const TVec2f*);
-    void fn_804F7F90(WorldMapResultCommand*);
-    bool fn_804F7FE0(WorldMapResultCommand*);
-    void fn_804F7FC0(WorldMapResultCommand*);
-    void fn_804F7FD0(WorldMapResultCommand*);
-    bool fn_804F7FF0(WorldMapResultCommand*);
-    void fn_804E8780(WorldMapResultCommand*);
-    void fn_804E8850(WorldMapResultCommand*);
+    s32 fn_804E8950(WorldMapOwner*);
+    bool fn_804E8CA0(WorldMapOwner*);
+    bool fn_804F6A80(WorldMapOwner*);
+    void fn_804E8780(WorldMapOwner*);
+    void fn_804E8850(WorldMapOwner*);
 }
 
 extern const char* lbl_807039D8[12];
@@ -31,7 +25,7 @@ extern TVec2f lbl_8072BB30;
 extern char lbl_807038E0[];
 
 /// World-news state ("State[ワールドニュース]"): talk controls for the stage news, one per entry.
-WMR_STATE_DECL(WorldMapResultStateWorldNews, virtual void control(); bool eventFunc(u32); bool checkStep(); void setIndexFlag(); bool isIndexInRange() const; void nextTalkNerve(); void exeStart(); void exeTalk(); void exeEnd(); void exeSave(); void startNextTalk();
+WMR_OWNER_STATE_DECL(WorldMapResultStateWorldNews, virtual void control(); bool eventFunc(u32); bool checkStep(); void setIndexFlag(); bool isIndexInRange() const; void nextTalkNerve(); void exeStart(); void exeTalk(); void exeEnd(); void exeSave(); void startNextTalk();
                /* 0x10 */ s32 mIndex; /* 0x14 */ TalkMessageCtrl** mTalkCtrls; /* 0x18 */ u8 _18[0xC]; /* 0x24 */ void* mPanel;);
 
 namespace NrvWorldMapResultStateWorldNews {
@@ -45,7 +39,7 @@ namespace NrvWorldMapResultStateWorldNews {
 /// Talk-callback object of the world-news state: the state's member function, as registered with the talk ctrls.
 typedef TalkMessageFuncM< WorldMapResultStateWorldNews*, bool (WorldMapResultStateWorldNews::*)(u32) > WorldMapResultNewsTalkFunc;
 
-WorldMapResultStateWorldNews::WorldMapResultStateWorldNews(WorldMapResultCommand* pHost) : ActorStateBase< WorldMapResultCommand >("State[ワールドニュース]", pHost) {
+WorldMapResultStateWorldNews::WorldMapResultStateWorldNews(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ワールドニュース]", pHost) {
     mIndex = -1;
     mTalkCtrls = NULL;
 }
@@ -54,7 +48,7 @@ void WorldMapResultStateWorldNews::init() {
     initNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsStart), 0);
     mTalkCtrls = new TalkMessageCtrl*[12];
     for (s32 i = 0; i < 12; i++) {
-        mTalkCtrls[i] = fn_804F8000(mHost, lbl_807039D8[i]);
+        mTalkCtrls[i] = mHost->createMeisterTalk(lbl_807039D8[i]);
         MR::registerEventFunc(mTalkCtrls[i], WorldMapResultNewsTalkFunc(this, &WorldMapResultStateWorldNews::eventFunc));
     }
     mPanel = fn_804A88E0();
@@ -73,7 +67,7 @@ void WorldMapResultStateWorldNews::appear() {
 
 void WorldMapResultStateWorldNews::kill() {
     fn_804E8850(mHost);
-    fn_804A8A40(mPanel);
+    reinterpret_cast< WorldMapArrow* >(mPanel)->disappear();
     mIsDead = true;
 }
 
@@ -88,7 +82,7 @@ void WorldMapResultStateWorldNews::control() {
 }
 
 bool WorldMapResultStateWorldNews::eventFunc(u32) {
-    fn_804A89F0(mPanel, fn_804F71A0(mHost, "YosshiHomeGalaxy"), 60);
+    reinterpret_cast< WorldMapArrow* >(mPanel)->start(mHost->findGalaxyByName("YosshiHomeGalaxy"), 60);
     return true;
 }
 
@@ -216,19 +210,19 @@ void WorldMapResultStateWorldNews::startNextTalk() {
 void WorldMapResultStateWorldNews::exeStart() {
     if (MR::isFirstStep(this)) {
         if (mIndex == 0) {
-            fn_804F7FB0(mHost, &lbl_8072BB30);
+            mHost->appearMeisterAtScreenPos(lbl_8072BB30);
         } else {
-            fn_804F7F90(mHost);
+            mHost->appearMeister();
         }
     }
-    if (!fn_804F7FE0(mHost)) {
+    if (!mHost->isMeisterTalkStarting()) {
         setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));
     }
 }
 
 void WorldMapResultStateWorldNews::exeTalk() {
     if (MR::isFirstStep(this)) {
-        fn_804F7FC0(mHost);
+        mHost->setMeisterTalk();
     }
     if (MR::tryTalkForceWithoutDemoAtEnd(mTalkCtrls[mIndex])) {
         startNextTalk();
@@ -237,9 +231,9 @@ void WorldMapResultStateWorldNews::exeTalk() {
 
 void WorldMapResultStateWorldNews::exeEnd() {
     if (MR::isFirstStep(this)) {
-        fn_804F7FD0(mHost);
+        mHost->setMeisterTalkEndWait();
     }
-    if (!fn_804F7FF0(mHost)) {
+    if (!mHost->isMeisterTalkEnding()) {
         if (isIndexInRange()) {
             setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsSave));
             return;

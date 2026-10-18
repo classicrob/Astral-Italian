@@ -35,7 +35,7 @@ WorldMapCameraHolder::WorldMapCameraHolder() {
     mCameraTarget = nullptr;
     mCameraInfo = nullptr;
     mCameraId = -1;
-    mIsChanging = false;
+    mMovingLeft = false;
     mHasNext = false;
     mPrevious = -1;
 }

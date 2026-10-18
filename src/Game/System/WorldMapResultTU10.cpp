@@ -1,10 +1,11 @@
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callee (no symbol name yet); resolve when its owner names it
 extern "C" {
     void fn_8001C030(s32);
-    void fn_804F7650(s32, TVec3f*, f32);
-    s32 fn_804F7810(s32);
 }
 
 namespace MR {
@@ -14,7 +15,7 @@ namespace MR {
 /// Result-map step that leaves for Koopa's castle (name "State[クッパ城へ]").
 class WorldMapResultStateKoopaCastle : public NerveExecutor {
 public:
-    WorldMapResultStateKoopaCastle(s32);
+    WorldMapResultStateKoopaCastle(WorldMapOwner*);
     virtual ~WorldMapResultStateKoopaCastle();
 
     void init();
@@ -22,14 +23,14 @@ public:
     void exeWait();
 
     /* 0x08 */ bool mIsDead;
-    /* 0x0C */ s32 mWorldId;
+    /* 0x0C */ WorldMapOwner* mHost;
 };
 
 namespace NrvWorldMapResultStateKoopaCastle {
     WMR_NERVE_DECL(WorldMapResultStateKoopaCastleWait);
 };  // namespace NrvWorldMapResultStateKoopaCastle
 
-WorldMapResultStateKoopaCastle::WorldMapResultStateKoopaCastle(s32 pWorldId) : NerveExecutor("State[クッパ城へ]"), mIsDead(true), mWorldId(pWorldId) {
+WorldMapResultStateKoopaCastle::WorldMapResultStateKoopaCastle(WorldMapOwner* pHost) : NerveExecutor("State[クッパ城へ]"), mIsDead(true), mHost(pHost) {
 }
 
 void WorldMapResultStateKoopaCastle::init() {
@@ -48,13 +49,13 @@ void WorldMapResultStateKoopaCastle::exeWait() {
     }
 
     if (MR::isStep(this, 0x1E)) {
-        GameSequenceFunction::setWorldMapCurrentNode(fn_804F7810(mWorldId));
+        GameSequenceFunction::setWorldMapCurrentNode(mHost->getCurrentNode());
         MR::startSystemWipeCircleWithCaptureScreen(0x5A);
         GameSequenceFunction::requestChangeStageMarioFaceShipBeforeKoopaVs3();
     }
 
     TVec3f pos(1.0f, 0.0f, 0.0f);
-    fn_804F7650(mWorldId, &pos, 1.0f);
+    mHost->faceRocket(&pos);
 }
 
 WorldMapResultStateKoopaCastle::~WorldMapResultStateKoopaCastle() {

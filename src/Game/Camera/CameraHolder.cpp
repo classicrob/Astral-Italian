@@ -4,7 +4,6 @@
 #include "Game/Camera/CameraBehind.hpp"
 #include "Game/Camera/CameraBlackHole.hpp"
 #include "Game/Camera/CameraCharmedFix.hpp"
-#include "Game/Camera/CameraCharmedTripodBoss.hpp"
 #include "Game/Camera/CameraCharmedVecReg.hpp"
 #include "Game/Camera/CameraCharmedVecRegTower.hpp"
 #include "Game/Camera/CameraCubePlanet.hpp"
@@ -14,6 +13,7 @@
 #include "Game/Camera/CameraFixedPoint.hpp"
 #include "Game/Camera/CameraFixedThere.hpp"
 #include "Game/Camera/CameraFollow.hpp"
+#include "Game/Camera/CameraFreeze.hpp"
 #include "Game/Camera/CameraFooFighter.hpp"
 #include "Game/Camera/CameraFooFighterPlanet.hpp"
 #include "Game/Camera/CameraFrontAndBack.hpp"
@@ -31,13 +31,12 @@
 #include "Game/Camera/CameraRailFollow.hpp"
 #include "Game/Camera/CameraRailWatch.hpp"
 #include "Game/Camera/CameraSlide.hpp"
+#include "Game/Camera/CameraSphereTrundle.hpp"
 #include "Game/Camera/CameraSpiral.hpp"
 #include "Game/Camera/CameraSubjective.hpp"
 #include "Game/Camera/CameraTalk.hpp"
 #include "Game/Camera/CameraTower.hpp"
 #include "Game/Camera/CameraTowerPos.hpp"
-#include "Game/Camera/CameraTripodBoss.hpp"
-#include "Game/Camera/CameraTripodBossJoint.hpp"
 #include "Game/Camera/CameraTripodPlanet.hpp"
 #include "Game/Camera/CameraTrundle.hpp"
 #include "Game/Camera/CameraTwistedPassage.hpp"
@@ -70,19 +69,17 @@ namespace {
         {"CAM_TYPE_SLIDER", "スライダー", createCamera< CameraBehind >, true},
         {"CAM_TYPE_INWARD_TOWER", "塔内部", createCamera< CameraInwardTower >, true},
         {"CAM_TYPE_EYEPOS_FIX_THERE", "その場定点", createCamera< CameraFixedThere >, true},
-        {"CAM_TYPE_TRIPOD_BOSS", "三脚ボス", createCamera< CameraTripodBoss >, true},
         {"CAM_TYPE_TOWER_POS", "塔（サブターゲット付き）", createCamera< CameraTowerPos >, true},
         {"CAM_TYPE_TRIPOD_PLANET", "三脚惑星", createCamera< CameraTripodPlanet >, true},
         {"CAM_TYPE_DEAD", "通常死亡", createCamera< CameraDead >, true},
         {"CAM_TYPE_INWARD_SPHERE", "球内部", createCamera< CameraInwardSphere >, true},
         {"CAM_TYPE_RAIL_DEMO", "レールデモ", createCamera< CameraRailDemo >, true},
         {"CAM_TYPE_RAIL_FOLLOW", "レールフォロー", createCamera< CameraRailFollow >, true},
-        {"CAM_TYPE_TRIPOD_BOSS_JOINT", "三脚ボスジョイント", createCamera< CameraTripodBossJoint >, true},
-        {"CAM_TYPE_CHARMED_TRIPOD_BOSS", "三脚ボスジョイント注視", createCamera< CameraCharmedTripodBoss >, true},
         {"CAM_TYPE_OBJ_PARALLEL", "オブジェ並行", createCamera< CameraObjParallel >, true},
         {"CAM_TYPE_CHARMED_FIX", "サンボ", createCamera< CameraCharmedFix >, true},
         {"CAM_TYPE_GROUND", "地面", createCamera< CameraGround >, true},
         {"CAM_TYPE_TRUNDLE", "トランドル", createCamera< CameraTrundle >, true},
+        {"CAM_TYPE_SPHERE_TRUNDLE", "球トランドル", createCamera< CameraSphereTrundle >, true},
         {"CAM_TYPE_CUBE_PLANET", "キューブ惑星", createCamera< CameraCubePlanet >, true},
         {"CAM_TYPE_INNER_CYLINDER", "円筒内部", createCamera< CameraInnerCylinder >, true},
         {"CAM_TYPE_SPIRAL_DEMO", "螺旋デモ", createCamera< CameraSpiral >, true},
@@ -98,6 +95,7 @@ namespace {
         {"CAM_TYPE_2D_SLIDE", "２Ｄスライド", createCamera< CameraSlide >, true},
         {"CAM_TYPE_FOO_FIGHTER", "フーファイター", createCamera< CameraFooFighter >, true},
         {"CAM_TYPE_FOO_FIGHTER_PLANET", "フーファイタープラネット", createCamera< CameraFooFighterPlanet >, true},
+        {"CAM_TYPE_FREEZE", "その場完全固定", createCamera< CameraFreeze >, true},
         {"CAM_TYPE_BLACK_HOLE", "ブラックホール", createCamera< CameraBlackHole >, false},
         {"CAM_TYPE_ANIM", "アニメ", createCamera< CameraAnim >, false},
         {"CAM_TYPE_DPD", "ＤＰＤ", createCamera< CameraDPD >, true},

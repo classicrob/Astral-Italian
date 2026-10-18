@@ -40,6 +40,7 @@ namespace MR {
     void registerDemoCast(LiveActor*, const char*, const JMapInfoIter&);
     void initTalkAnimDemoCast(LiveActor*, const JMapInfoIter&, const char*, const char*);
     void registerDemoActionFunctorDirect(const LiveActor*, const MR::FunctorBase&, const char*, const char*);
+    void registerDemoActionNerveDirect(const LiveActor*, const Nerve*, const char*, const char*);
     bool tryRegisterDemoActionFunctorDirect(const LiveActor*, const MR::FunctorBase&, const char*, const char*);
     bool tryStartDemoRegistered(LiveActor*, const char*);
     bool tryStartDemoRegisteredMarioPuppetable(LiveActor*, const char*);
@@ -70,6 +71,7 @@ namespace MR {
     void initDemoSheetTalkAnimWithMessageName(LiveActor*, const JMapInfoIter&, const char*, const char*, const char*);
     void initDemoSheetTalkAnimFunctor(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*, const MR::FunctorBase&);
     bool tryInitDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*);
+    bool tryInitDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*, TVec3f, MtxPtr);
     void startTimeKeepDemo(NameObj*, const char*, const char*);
     void startTimeKeepDemoMarioPuppetable(NameObj*, const char*, const char*);
     bool isDemoExist(const char*);

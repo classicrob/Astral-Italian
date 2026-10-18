@@ -42,6 +42,8 @@ void AudEffector::setSpecialFx(s32 specialFx) {
     mSpecialFx = specialFx;
 }
 
+void AudEffector::update() {}
+
 void AudEffector::initParams() {
     mCutoff = 0x7F;
     mFxSend = 0.0f;

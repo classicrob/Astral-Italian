@@ -76,12 +76,6 @@ void PrepareKoopaFinalDemoObj::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-void PrepareKoopaFinalDemoObj::exeWait() {
-    if (MR::isStep(this, 0x168) || (MR::isGreaterEqualStep(this, 0xF0) && MR::getRandom(static_cast< s32 >(0), 10) == 0)) {
-        setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvShake));
-    }
-}
-
 void PrepareKoopaFinalDemoObj::exeShake() {
     if (MR::isFirstStep(this)) {
         MR::shakeCameraInfinity(this, lbl_807D981C, lbl_807D9810);
@@ -153,7 +147,7 @@ void PrepareKoopaFinalDemoObj::setRandomBckFrame(s32 offset) {
 // Nerve execute bodies (each nerve's sInstance is defined below).
 namespace NrvPrepareKoopaFinalDemoObj {
     void PrepareKoopaFinalDemoObjNrvWait::execute(Spine* pSpine) const {
-        reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeWait();
+        reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeStopShake();
     }
     void PrepareKoopaFinalDemoObjNrvShake::execute(Spine* pSpine) const {
         reinterpret_cast< PrepareKoopaFinalDemoObj* >(pSpine->mExecutor)->exeShake();

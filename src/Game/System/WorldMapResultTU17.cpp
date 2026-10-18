@@ -1,33 +1,23 @@
 #pragma auto_inline off
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/WorldMapResultStatePointEvent.hpp"
 #include "Game/Util/TalkUtil.hpp"
 
 extern "C" {
-    void fn_804E8780(WorldMapResultCommand*);
-    void fn_804E8850(WorldMapResultCommand*);
-    void fn_804F72A0(WorldMapResultCommand*);
-    void fn_804F7580(WorldMapResultCommand*, const char*);
-    TVec3f* fn_804E8510(WorldMapResultCommand*);
-    void fn_804F83E0(WorldMapResultCommand*, const char*, s32);
-    s32 fn_804F7810(WorldMapResultCommand*);
-    void fn_804F6B10(WorldMapResultCommand*);
-    void fn_804F7F90(WorldMapResultCommand*);
-    bool fn_804F7FE0(WorldMapResultCommand*);
-    void fn_804F7FC0(WorldMapResultCommand*);
-    void fn_804F7FD0(WorldMapResultCommand*);
-    bool fn_804F7FF0(WorldMapResultCommand*);
-    LiveActor* fn_804F7F80(WorldMapResultCommand*);
-    void fn_804F8380(WorldMapResultCommand*, const char*);
-    s32 fn_804F8700(WorldMapResultCommand*, WorldMapResultRoute*, s32);
-    bool fn_804F8710(WorldMapResultCommand*, WorldMapResultRoute*);
-    void fn_804F85C0(WorldMapResultCommand*, WorldMapResultRoute*);
-    void fn_804F8650(WorldMapResultCommand*, const char*);
-    void fn_804F82C0(WorldMapResultCommand*, s32, s32);
-    void fn_804E8480(WorldMapResultCommand*, const TVec3f*);
+    // PLACEHOLDER(core): mapped callee signature (symbols.txt name) does not match this call's arguments; resolve when the callee's real signature is confirmed
+    s32 fn_804F8700(WorldMapOwner*, WorldMapResultRoute*, s32);
+    // PLACEHOLDER(core): the symbol at 0x804F8650 is named startRouteCamera(WorldMapResultRoute*, const char*) but this call passes (owner, name); resolve when the callee's real signature is confirmed
+    void fn_804F8650(WorldMapOwner*, const char*);
+    void fn_804E8780(WorldMapOwner*);
+    void fn_804E8850(WorldMapOwner*);
+    TVec3f* fn_804E8510(WorldMapOwner*);
+    void fn_804F6B10(WorldMapOwner*);
+    void fn_804E8480(WorldMapOwner*, const TVec3f*);
     TVec3f* fn_804E8530();
     TVec3f* fn_804E8540();
-    LiveActor* fn_804E8470(WorldMapResultCommand*);
 }
 
 extern s32 lbl_807E3158;
@@ -40,13 +30,6 @@ static const char* sTalkNames[3] = {"WorldMapEventStarCheckPointClose", "WorldMa
 
 /// Offset of the point-event camera path (defined below the nerves, constructed last in the sinit).
 extern TVec3f sPointEventOffset;
-
-/// Point event state ("State[ポイントイベント]"): star checkpoint event on the result map.
-WMR_STATE_DECL(WorldMapResultStatePointEvent, virtual void control(); void setIndex(s32, s32); void moveCamera(f32); void exeStart(); void exeMove();
-               void exeTalkStart(); void exeTalk(); void exeTalkEnd(); void exeFade(); void exeEaseIn(); void exeEvent(); void exeExtend();
-               void exeWaitExtend(); void exeMessage(); void exeEnd();
-               /* 0x10 */ WorldMapResultRoute* mRoute; /* 0x14 */ s32 mCount; /* 0x18 */ s32 mIndex; /* 0x1C */ s32 mSubIndex;
-               /* 0x20 */ TVec3f mPos; /* 0x2C */ TVec3f mOffset; /* 0x38 */ TalkMessageCtrl** mTalkCtrls;);
 
 namespace NrvWorldMapResultStatePointEvent {
     WMR_NERVE_DECL(WorldMapResultStatePointEventStart);
@@ -65,7 +48,7 @@ namespace NrvWorldMapResultStatePointEvent {
     WMR_NERVE_DECL(WorldMapResultStatePointEventEnd);
 };  // namespace NrvWorldMapResultStatePointEvent
 
-WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapResultCommand* pHost) : ActorStateBase< WorldMapResultCommand >("State[ポイントイベント]", pHost) {
+WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ポイントイベント]", pHost) {
     mIsDead = true;
     mRoute = NULL;
     mCount = 0;
@@ -83,12 +66,12 @@ WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapResultComma
 void WorldMapResultStatePointEvent::init() {
     initNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventStart), 0);
     MR::declareEventCameraProgrammable(sCameraName);
-    fn_804F8380(mHost, "イベント（スターチェックポイント：スター足りない）");
+    mHost->declareCamera("イベント（スターチェックポイント：スター足りない）");
     mTalkCtrls = new TalkMessageCtrl*[3];
     TVec3f zero(0.0f, 0.0f, 0.0f);
     for (s32 i = 0; i < 3; i++) {
         if (sTalkNames[i] != NULL) {
-            mTalkCtrls[i] = MR::createTalkCtrlDirect(fn_804F7F80(mHost), sTalkNames[i], zero, NULL);
+            mTalkCtrls[i] = MR::createTalkCtrlDirect(mHost->getMeister(), sTalkNames[i], zero, NULL);
         }
     }
     mRoute = new WorldMapResultRoute();
@@ -98,12 +81,12 @@ void WorldMapResultStatePointEvent::init() {
 void WorldMapResultStatePointEvent::appear() {
     mIsDead = false;
     mCount = 0;
-    fn_804F7580(mHost, "Wait");
+    mHost->changeRocketAction("Wait");
     mPos = *fn_804E8510(mHost);
     fn_804E8780(mHost);
     MR::hidePlayer();
     if ((u32)mIndex <= 1U) {
-        fn_804F83E0(mHost, "イベント（スターチェックポイント：スター足りない）", -1);
+        mHost->startCamera("イベント（スターチェックポイント：スター足りない）", -1);
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventStart));
     } else if (mIndex == 2) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEaseIn));
@@ -113,7 +96,7 @@ void WorldMapResultStatePointEvent::appear() {
         sp14 = sp8 + *fn_804E8540();
         mOffset = sp14;
     }
-    GameSequenceFunction::setWorldMapCurrentNode(fn_804F7810(mHost));
+    GameSequenceFunction::setWorldMapCurrentNode(mHost->getCurrentNode());
 }
 
 void WorldMapResultStatePointEvent::kill() {
@@ -130,7 +113,7 @@ void WorldMapResultStatePointEvent::control() {
         isNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventWaitExtend)) ||
         isNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventMessage)) ||
         isNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEnd))) {
-        fn_804F72A0(mHost);
+        mHost->startAllPointingAnim();
         return;
     }
     MR::setDepthOfFieldBlurIntensity(1.0f);
@@ -160,16 +143,16 @@ void WorldMapResultStatePointEvent::exeMove() {
 
 void WorldMapResultStatePointEvent::exeTalkStart() {
     if (MR::isFirstStep(this)) {
-        fn_804F7F90(mHost);
+        mHost->appearMeister();
     }
-    if (!fn_804F7FE0(mHost)) {
+    if (!mHost->isMeisterTalkStarting()) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventTalk));
     }
 }
 
 void WorldMapResultStatePointEvent::exeTalk() {
     if (MR::isFirstStep(this)) {
-        fn_804F7FC0(mHost);
+        mHost->setMeisterTalk();
     }
     if (MR::tryTalkForceWithoutDemoAtEnd(mTalkCtrls[mIndex])) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventTalkEnd));
@@ -178,9 +161,9 @@ void WorldMapResultStatePointEvent::exeTalk() {
 
 void WorldMapResultStatePointEvent::exeTalkEnd() {
     if (MR::isFirstStep(this)) {
-        fn_804F7FD0(mHost);
+        mHost->setMeisterTalkEndWait();
     }
-    if (!fn_804F7FF0(mHost)) {
+    if (!mHost->isMeisterTalkEnding()) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventWaitFade));
     }
 }
@@ -204,7 +187,7 @@ void WorldMapResultStatePointEvent::exeEaseIn() {
 
 void WorldMapResultStatePointEvent::exeEvent() {
     if (MR::isStep(this, lbl_807E3158)) {
-        fn_804F85C0(mHost, mRoute);
+        mHost->setupRouteOpen(mRoute);
     }
     if (MR::isGreaterEqualStep(this, 0xF0)) {
         if (mRoute->mCount == 0) {
@@ -219,7 +202,7 @@ void WorldMapResultStatePointEvent::exeEvent() {
 void WorldMapResultStatePointEvent::exeExtend() {
     MR::calcNerveRate(this, 30);
     s32 result = fn_804F8700(mHost, mRoute, mCount);
-    MR::startActionSound(fn_804E8470(mHost), "RoadExtend", -1, -1, -1);
+    MR::startActionSound(mHost->getRocket(), "RoadExtend", -1, -1, -1);
     if (MR::isGreaterEqualStep(this, 30)) {
         if (result != 0) {
             setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventWaitExtend));
@@ -231,7 +214,7 @@ void WorldMapResultStatePointEvent::exeExtend() {
 }
 
 void WorldMapResultStatePointEvent::exeWaitExtend() {
-    if (fn_804F8710(mHost, mRoute)) {
+    if (mHost->isRouteNotHeld(mRoute)) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventMessage));
     }
 }
@@ -251,7 +234,7 @@ void WorldMapResultStatePointEvent::exeMessage() {
 void WorldMapResultStatePointEvent::exeEnd() {
     if (MR::isFirstStep(this)) {
         MR::endGlobalEventCamera(sCameraName, -1, true);
-        fn_804F82C0(mHost, -1, -1);
+        mHost->startNodeCamera(-1, -1);
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
     TVec3f sp8 = mPos + sPointEventOffset;

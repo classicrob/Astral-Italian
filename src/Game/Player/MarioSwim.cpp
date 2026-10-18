@@ -3263,3 +3263,151 @@ void MarioSwim::doJetJump(u8 type) {
         changeAnimationNonStop("水泳ジェット");
     }
 }
+MarioSwimModule::~MarioSwimModule() {}
+
+MarioSwimSpin::MarioSwimSpin(MarioSwim* swim) : MarioSwimModule(swim) {
+    _8 = 0;
+    mSpinTimer = 0;
+    mSpinDashTimer = 0;
+    _E = 0;
+}
+
+void MarioSwimSpin::reset() {
+    mSpinTimer = 0;
+    mSpinDashTimer = 0;
+    _E = 0;
+}
+
+bool MarioSwimSpin::isActive() const {
+    return mSpinTimer || mSpinDashTimer;
+}
+
+MarioSwimJet::MarioSwimJet(MarioSwim* swim) : MarioSwimModule(swim) {
+    _8 = 0;
+    mJetTimer = 0;
+    mCooldownTimer = 0;
+}
+
+f32 MarioSwimJet::calcSpeedScale() const {
+    if (mJetTimer) {
+        return 3.0f;
+    }
+    return 1.0f;
+}
+
+MarioSwimRingDash::MarioSwimRingDash(MarioSwim* swim) : MarioSwimModule(swim) {
+    mTimer = 0;
+    mChargeTimer = 0;
+    mMaxDuration = 0;
+    mSpeedScale = 0.0f;
+    mBlurOffset = 0.0f;
+}
+
+void MarioSwimRingDash::reset() {
+    mTimer = 0;
+    mChargeTimer = 0;
+    mBlurOffset = 0.0f;
+}
+
+void MarioSwimRingDash::updateBlur() {
+    if (mChargeTimer == 0) {
+        if (mTimer != 0) {
+            mBlurOffset += 0.5f;
+            if (mBlurOffset > 30.0f) {
+                mBlurOffset = 30.0f;
+            }
+        }
+        if (mBlurOffset > 0.0f) {
+            mBlurOffset -= 0.5f;
+            return;
+        }
+        mBlurOffset = 0.0f;
+    }
+}
+
+MarioSwimDamage::MarioSwimDamage(MarioSwim* swim) : MarioSwimModule(swim) {
+    mVelocity.x = 0.0f;
+    mVelocity.y = 0.0f;
+    mVelocity.z = 0.0f;
+    mDamageType = 0;
+    _15 = 0;
+    mTimer = 0;
+}
+
+void MarioSwimDamage::update() {
+    mTimer--;
+    if (mTimer < 120) {
+        mVelocity.x *= 0.98f;
+        mVelocity.y *= 0.98f;
+        mVelocity.z *= 0.98f;
+    }
+}
+
+void MarioSwimDamage::reflect(const TVec3f* normal) {
+    f32 projection = MR::vecKillElement(mVelocity, *normal, &mVelocity);
+    mVelocity.add((*normal * projection) * 0.5f);
+}
+
+void MarioSwimDamage::reset() {
+    mTimer = 0;
+    mDamageType = 0;
+    mVelocity.zero();
+}
+
+MarioSwimTilt::MarioSwimTilt(MarioSwim* swim) : MarioSwimModule(swim) {
+    mTiltX = 0.0f;
+    mTiltY = 0.0f;
+    PSMTXIdentity(mJointMtx.toMtxPtr());
+}
+
+void MarioSwimSpin::startAnimation(u16 frontTime, u16 lockTime, const char* animation) {
+    mSwim->mDashTimer = frontTime;
+    mSwim->mActionLockTimer = lockTime;
+    mSwim->mSwimYAccTimer = 50;
+    mSwim->changeAnimation(animation);
+}
+
+void MarioSwim::fn_803F9D50() {
+    u16 timer = mSinkTimer;
+    if (timer != 0) {
+        addVelocity(getGravityVec(), 0.25f * timer);
+        mSinkTimer--;
+    }
+}
+
+bool MarioSwim::fn_80401EC0() const {
+    return !mIsSwimmingAtSurface && mIdleWaitTimer == 0 && mActionLockTimer != 0;
+}
+
+void MarioSwim::fn_80402040() {
+    if (mVerticalAngle <= 1.57079637051f && mIdleWaitTimer > 30) {
+        _1E = 1;
+    }
+}
+
+void MarioSwim::fn_804020F0() {
+    mIdleWaitTimer++;
+    if (mIdleWaitTimer >= 120) {
+        mIdleWaitTimer = 120;
+    }
+}
+
+f32 MarioSwim::fn_80402160() const {
+    f32 ratio = mIdleWaitTimer / 120.0f;
+    if (ratio > 1.0f) {
+        ratio = 1.0f;
+    }
+    return ratio;
+}
+
+// NONMATCHING: equivalent multiply operand order.
+f32 MarioSwim::fn_80402200() const {
+    f32 speed = mForwardSpeed;
+    if (speed < 2.0f) {
+        return 1.0f;
+    }
+    if (speed > 10.0f) {
+        return 0.0f;
+    }
+    return 1.0f - (0.125f * (speed - 2.0f));
+}

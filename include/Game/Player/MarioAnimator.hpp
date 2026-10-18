@@ -10,10 +10,32 @@ class XanimeResourceTable;
 class XanimePlayer;
 class HitSensor;
 
-class MarioAnimator : public MarioModule {
+class MarioAnimator {
 public:
     MarioAnimator(MarioActor*);
+    inline Mario* getPlayer() const;
 
+    void setAnimationFlag(u32);
+    void resetAnimationFlag(u32);
+    bool isAnimationFlag(u32) const;
+    void enableExtraAnimation();
+    void disableExtraAnimation();
+    void changeExtraAnimation(const char*);
+    const char* getUpperAnimationName() const;
+    const char* getAnimationStringPointer(const char*) const;
+    bool isUpperAnimationTerminated(const char*) const;
+    f32 getWalkWeight(u32) const;
+    f32 getAnimationInterpoleRatio() const;
+    bool isFrameCtrlAttribute(u32) const;
+    void changeTrackAnim(u8, const char*);
+    XanimePlayer* getYoshiAnimationPlayer() const;
+    XanimePlayer* getYoshiUpperAnimationPlayer() const;
+    void setAnimationFrameCtrlAttribute(u8);
+    void setAnimationPaused(bool);
+    void setAnimationInterpoleFrame(s32);
+    void setAnimationFrame(f32);
+    void resetAnimationUpdateFlags();
+    f32 getAnimationTrackWeight(u32);
     void init();
     void update();
     void calc();
@@ -98,16 +120,18 @@ public:
     }
 
     inline bool isTeresaClear() const {
-        return !isPlayerModeTeresa();
+        return !getPlayer()->isPlayerModeTeresa();
     }
 
     inline XanimePlayer* getXanimePlayer() {
         return mXanimePlayer;
     }
 
-    /* 0x008 */ XanimeResourceTable* mResourceTable;
-    /* 0x00C */ XanimePlayer* mXanimePlayer;
-    /* 0x010 */ XanimePlayer* mXanimePlayerUpper;
+    /* 0x000 */ MarioActor* mActor;
+    /* 0x004 */ XanimeResourceTable* mResourceTable;
+    /* 0x008 */ XanimePlayer* mXanimePlayer;
+    /* 0x00C */ XanimePlayer* mXanimePlayerUpper;
+    /* 0x010 */ XanimePlayer* mXanimePlayerExtra;
     /* 0x014 */ u8 _14;
     /* 0x015 */ u8 _15;
     /* 0x016 */ u8 _16;
@@ -134,6 +158,11 @@ public:
     /* 0x114 */ const char* mCurrBck;
     /* 0x118 */ f32 _118;
 
-    /* 0x11C */ s32 mCallbackId;
-    /* 0x120 */ HashSortTable* mCallbackTable;
+    u32 _11C;
+    u32 _120;
+    u32 _124;
+    bool mExtraAnimationEnabled;
+    u8 mAnimationFlags[32];
+    /* 0x14C */ s32 mCallbackId;
+    /* 0x150 */ HashSortTable* mCallbackTable;
 };

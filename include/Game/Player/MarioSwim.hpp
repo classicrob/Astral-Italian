@@ -9,6 +9,73 @@ class HitInfo;
 class MarioActor;
 class MarineSnow;
 
+class MarioSwim;
+
+class MarioSwimModule {
+public:
+    explicit MarioSwimModule(MarioSwim* swim) : mSwim(swim) {}
+    virtual ~MarioSwimModule();
+    MarioSwim* mSwim;
+};
+
+class MarioSwimSpin : public MarioSwimModule {
+public:
+    explicit MarioSwimSpin(MarioSwim*);
+    virtual ~MarioSwimSpin() {}
+    void reset();
+    bool isActive() const;
+    void startAnimation(u16, u16, const char*);
+    u8 _8;
+    u16 mSpinTimer;
+    u16 mSpinDashTimer;
+    u16 _E;
+};
+
+class MarioSwimJet : public MarioSwimModule {
+public:
+    explicit MarioSwimJet(MarioSwim*);
+    virtual ~MarioSwimJet() {}
+    f32 calcSpeedScale() const;
+    u32 _8;
+    u16 mJetTimer;
+    u16 mCooldownTimer;
+};
+
+class MarioSwimRingDash : public MarioSwimModule {
+public:
+    explicit MarioSwimRingDash(MarioSwim*);
+    virtual ~MarioSwimRingDash() {}
+    void reset();
+    void updateBlur();
+    u16 mTimer;
+    u16 mChargeTimer;
+    u16 mMaxDuration;
+    f32 mSpeedScale;
+    f32 mBlurOffset;
+};
+
+class MarioSwimDamage : public MarioSwimModule {
+public:
+    explicit MarioSwimDamage(MarioSwim*);
+    virtual ~MarioSwimDamage() {}
+    void update();
+    void reflect(const TVec3f*);
+    void reset();
+    TVec3f mVelocity;
+    u8 mDamageType;
+    u8 _15;
+    u16 mTimer;
+};
+
+class MarioSwimTilt : public MarioSwimModule {
+public:
+    explicit MarioSwimTilt(MarioSwim*);
+    virtual ~MarioSwimTilt() {}
+    f32 mTiltX;
+    f32 mTiltY;
+    TMtx34f mJointMtx;
+};
+
 class MarioSwim : public MarioState {
 public:
     enum WaterExitAction {
@@ -25,6 +92,12 @@ public:
     MarioSwim(MarioActor*);
 
     // SMG2-only (original names unknown; named by address)
+    void fn_803F9D50();
+    bool fn_80401EC0() const;
+    void fn_80402040();
+    void fn_804020F0();
+    f32 fn_80402160() const;
+    f32 fn_80402200() const;
     void fn_803F7C00();
     void fn_803F7C20(const TVec3f*);
     void fn_803FD5E0(s32);

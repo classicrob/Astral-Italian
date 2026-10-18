@@ -1249,7 +1249,8 @@ public:
     /* 0xA68 */ f32 _A64;
     /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
     /* 0xA70 */ u8 _A6C[0x20];  // animations  // SMG2 offset guess  // SMG2 offset guess
-    /* 0xA90 */ u8 _padA90[0xc];
+    /* 0xA90 */ MarioFlags3 mStateFlags;
+    /* 0xA93 */ u8 _padA93[9];
     /* 0xA9C */ Triangle* _57C[0x20];  // SMG2 offset guess-TAIL  // SMG2 offset guess-TAIL
 };
 

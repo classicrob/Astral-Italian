@@ -331,76 +331,85 @@ struct MarioConstTable {
     /* 0x4C4 */ f32 mSwimFrontOnWaterSpeed;  // SMG2 offset guess
     /* 0x4C8 */ f32 mSwimFrontJetSpeed;  // SMG2 offset guess
     /* 0x4CC */ f32 mSwimFrontJetSpeedSlow;  // SMG2 offset guess
-    /* 0x4D0 */ f32 mSwimAccRatio;  // SMG2 offset guess
-    /* 0x4D4 */ f32 mSwimAccMinRatio;  // SMG2 offset guess
-    /* 0x4D8 */ f32 mSwimFrontIne;  // SMG2 offset guess
-    /* 0x4DC */ f32 mSwimStopIne;  // SMG2 offset guess
-    /* 0x4E0 */ f32 mSwimStopIneSurface;  // SMG2 offset guess
-    /* 0x4E4 */ f32 mSwimRotSpeedX;  // SMG2 offset guess
-    /* 0x4E8 */ f32 mSwimRotSpeedZ;  // SMG2 offset guess
-    /* 0x4EC */ f32 mSwimRotSpeedZStop;  // SMG2 offset guess
-    /* 0x4F0 */ f32 mSwimRotXIne;  // SMG2 offset guess
-    /* 0x4F4 */ f32 mSwimRotZIne;  // SMG2 offset guess
-    /* 0x4F8 */ f32 mSwimRotXIneT;  // SMG2 offset guess
-    /* 0x4FC */ f32 mSwimRotZIneT;  // SMG2 offset guess
-    /* 0x500 */ f32 mSwimUpAcc;  // SMG2 offset guess
-    /* 0x504 */ f32 mSwimUpMaxSpeed;  // SMG2 offset guess
-    /* 0x508 */ f32 mWeightBlendRatioSwim;  // SMG2 offset guess
-    /* 0x50C */ f32 mWeightBlendRatioSwimB;  // SMG2 offset guess
-    /* 0x510 */ f32 mSwimFreeXback;  // SMG2 offset guess
-    /* 0x514 */ f32 mSwimFreeXback2;  // SMG2 offset guess
-    /* 0x518 */ f32 mSwimSpdYratio;  // SMG2 offset guess
-    /* 0x51C */ f32 mSwimRotSpeedRatioSurface;  // SMG2 offset guess
-    /* 0x520 */ u16 mJumpSinkTimer;  // SMG2 offset guess
-    /* 0x522 */ u16 mJumpDamageSinkTimer;  // SMG2 offset guess
-    /* 0x524 */ f32 mSwimToWalkSpd;  // SMG2 offset guess
-    /* 0x528 */ u16 mWaterDecInterval;  // SMG2 offset guess
-    /* 0x52A */ u16 mWaterDecSpinAcc;  // SMG2 offset guess
-    /* 0x52C */ u16 mOxygenMax;  // SMG2 offset guess
-    /* 0x52E */ u8 _pad52E[0x2];
-    /* 0x530 */ f32 mSwimXJetRotRatio;  // SMG2 offset guess
-    /* 0x534 */ f32 mSwimXJetRotRatioRed;  // SMG2 offset guess
-    /* 0x538 */ f32 mTurboReductionStream;  // SMG2 offset guess
-    /* 0x53C */ f32 mTurboReductionHitWall;  // SMG2 offset guess
-    /* 0x540 */ f32 mTurboReductionHitFloor;  // SMG2 offset guess
-    /* 0x544 */ u16 mSwimJetPeriod1;  // SMG2 offset guess
-    /* 0x546 */ u16 mSwimJetPeriod2;  // SMG2 offset guess
-    /* 0x548 */ f32 mSwimJetPeriod1Ratio;  // SMG2 offset guess
-    /* 0x54C */ f32 mSwimJetPeriod3Ratio;  // SMG2 offset guess
-    /* 0x550 */ f32 mZsinkAngleX;  // SMG2 offset guess
-    /* 0x554 */ u16 mZsinkMoveTimer;  // SMG2 offset guess
-    /* 0x556 */ u16 mZsinkSinkTimer;  // SMG2 offset guess
-    /* 0x558 */ u16 mZsinkStartTimer;  // SMG2 offset guess
-    /* 0x55A */ u8 _pad55A[0x2];
-    /* 0x55C */ f32 mZsinkFrontSpeed;  // SMG2 offset guess
-    /* 0x560 */ u16 mSwimSpecStartTimerA[3];  // SMG2 offset guess
-    /* 0x566 */ u16 mSwimSpecStartTimerB[3];  // SMG2 offset guess
-    /* 0x56C */ u16 mSwimSpinReadyTime;  // SMG2 offset guess
-    /* 0x56E */ u16 mSwimSpinTime;  // SMG2 offset guess
-    /* 0x570 */ u16 mSwimDashTime;  // SMG2 offset guess
-    /* 0x572 */ u16 mSwimSpinFrontTime;  // SMG2 offset guess
-    /* 0x574 */ u16 mSwimSpinYspeedTime;  // SMG2 offset guess
-    /* 0x576 */ u16 mSwimSpinDownStep;  // SMG2 offset guess
-    /* 0x578 */ f32 mSwimSpinSpeed;  // SMG2 offset guess
-    /* 0x57C */ f32 mSwimSpinAcc1;  // SMG2 offset guess
-    /* 0x580 */ f32 mSwimSpinAcc2;  // SMG2 offset guess
-    /* 0x584 */ u16 mSwimSpinMissOfsTime;  // SMG2 offset guess
-    /* 0x586 */ u8 _pad586[0x2];
-    /* 0x588 */ f32 mSwimSpinAccRatio;  // SMG2 offset guess
-    /* 0x58C */ f32 mSwimSpinSurfaceAccRatio;  // SMG2 offset guess
-    /* 0x590 */ f32 mSwimSpinAccRatioR;  // SMG2 offset guess
-    /* 0x594 */ f32 mSwimSpinSurfaceAccRatioR;  // SMG2 offset guess
-    /* 0x598 */ u16 mSwimRingDashChargeTime;  // SMG2 offset guess
-    /* 0x59A */ u16 mSwimRingDashTime;  // SMG2 offset guess
-    /* 0x59C */ u16 mSwimRingDashFinishTime;  // SMG2 offset guess
-    /* 0x59E */ u8 _pad59E[0x2];
-    /* 0x5A0 */ f32 mSwimRingDashSpeedRatio;  // SMG2 offset guess
-    /* 0x5A4 */ f32 mSwimSurfaceSpeed;  // SMG2 offset guess
-    /* 0x5A8 */ f32 mSwimWaterSpeed;  // SMG2 offset guess
-    /* 0x5AC */ f32 mSwimDriftSpeed;  // SMG2 offset guess
-    /* 0x5B0 */ u16 mSwimConnectIn;  // SMG2 offset guess
-    /* 0x5B2 */ u16 mSwimConnectOut;  // SMG2 offset guess
-    /* 0x5B4 */ u8 _pad5B4[0x2c];
+    /* 0x4D0 */ f32 mSwimFrontAccYoshi;
+    /* 0x4D4 */ f32 mSwimFrontMaxSpeedYoshi;
+    /* 0x4D8 */ f32 mSwimFrontSpinSpeedYoshi;
+    /* 0x4DC */ f32 mSwimFrontNormalSpeedYoshi;
+    /* 0x4E0 */ f32 mSwimFrontOnWaterSpeedYoshi;
+    /* 0x4E4 */ f32 mSwimFrontJetSpeedYoshi;
+    /* 0x4E8 */ f32 mSwimFrontJetSpeedSlowYoshi;
+    /* 0x4EC */ f32 mSwimAccRatio;  // SMG2 offset guess
+    /* 0x4F0 */ f32 mSwimAccMinRatio;  // SMG2 offset guess
+    /* 0x4F4 */ f32 mSwimFrontIne;  // SMG2 offset guess
+    /* 0x4F8 */ f32 mSwimStopIne;  // SMG2 offset guess
+    /* 0x4FC */ f32 mSwimStopIneSurface;  // SMG2 offset guess
+    /* 0x500 */ f32 mSwimRotSpeedX;  // SMG2 offset guess
+    /* 0x504 */ f32 mSwimRotSpeedZ;  // SMG2 offset guess
+    /* 0x508 */ f32 mSwimRotSpeedZStop;  // SMG2 offset guess
+    /* 0x50C */ f32 mSwimRotXIne;  // SMG2 offset guess
+    /* 0x510 */ f32 mSwimRotZIne;  // SMG2 offset guess
+    /* 0x514 */ f32 mSwimRotXIneT;  // SMG2 offset guess
+    /* 0x518 */ f32 mSwimRotZIneT;  // SMG2 offset guess
+    /* 0x51C */ f32 mSwimUpAcc;  // SMG2 offset guess
+    /* 0x520 */ f32 mSwimUpMaxSpeed;  // SMG2 offset guess
+    /* 0x524 */ f32 mSwimUpAccYoshi;
+    /* 0x528 */ f32 mSwimUpMaxSpeedYoshi;
+    /* 0x52C */ f32 mWeightBlendRatioSwim;  // SMG2 offset guess
+    /* 0x530 */ f32 mWeightBlendRatioSwimB;  // SMG2 offset guess
+    /* 0x534 */ f32 mSwimFreeXback;  // SMG2 offset guess
+    /* 0x538 */ f32 mSwimFreeXback2;  // SMG2 offset guess
+    /* 0x53C */ f32 mSwimSpdYratio;  // SMG2 offset guess
+    /* 0x540 */ f32 mSwimRotSpeedRatioSurface;  // SMG2 offset guess
+    /* 0x544 */ u16 mJumpSinkTimer;  // SMG2 offset guess
+    /* 0x546 */ u16 mJumpDamageSinkTimer;  // SMG2 offset guess
+    /* 0x548 */ f32 mSwimToWalkSpd;  // SMG2 offset guess
+    /* 0x54C */ u16 mWaterDecInterval;  // SMG2 offset guess
+    /* 0x54E */ u16 mWaterDecSpinAcc;  // SMG2 offset guess
+    /* 0x550 */ u16 mOxygenMax;  // SMG2 offset guess
+    /* 0x552 */ u8 _pad52E[0x2];
+    /* 0x554 */ f32 mSwimXJetRotRatio;  // SMG2 offset guess
+    /* 0x558 */ f32 mSwimXJetRotRatioRed;  // SMG2 offset guess
+    /* 0x55C */ f32 mTurboReductionStream;  // SMG2 offset guess
+    /* 0x560 */ f32 mTurboReductionHitWall;  // SMG2 offset guess
+    /* 0x564 */ f32 mTurboReductionHitFloor;  // SMG2 offset guess
+    /* 0x568 */ u16 mSwimJetPeriod1;  // SMG2 offset guess
+    /* 0x56A */ u16 mSwimJetPeriod2;  // SMG2 offset guess
+    /* 0x56C */ f32 mSwimJetPeriod1Ratio;  // SMG2 offset guess
+    /* 0x570 */ f32 mSwimJetPeriod3Ratio;  // SMG2 offset guess
+    /* 0x574 */ f32 mZsinkAngleX;  // SMG2 offset guess
+    /* 0x578 */ u16 mZsinkMoveTimer;  // SMG2 offset guess
+    /* 0x57A */ u16 mZsinkSinkTimer;  // SMG2 offset guess
+    /* 0x57C */ u16 mZsinkStartTimer;  // SMG2 offset guess
+    /* 0x57E */ u8 _pad55A[0x2];
+    /* 0x580 */ f32 mZsinkFrontSpeed;  // SMG2 offset guess
+    /* 0x584 */ u16 mSwimSpecStartTimerA[3];  // SMG2 offset guess
+    /* 0x58A */ u16 mSwimSpecStartTimerB[3];  // SMG2 offset guess
+    /* 0x590 */ u16 mSwimSpinReadyTime;  // SMG2 offset guess
+    /* 0x592 */ u16 mSwimSpinTime;  // SMG2 offset guess
+    /* 0x594 */ u16 mSwimDashTime;  // SMG2 offset guess
+    /* 0x596 */ u16 mSwimSpinFrontTime;  // SMG2 offset guess
+    /* 0x598 */ u16 mSwimSpinYspeedTime;  // SMG2 offset guess
+    /* 0x59A */ u16 mSwimSpinDownStep;  // SMG2 offset guess
+    /* 0x59C */ f32 mSwimSpinSpeed;  // SMG2 offset guess
+    /* 0x5A0 */ f32 mSwimSpinAcc1;  // SMG2 offset guess
+    /* 0x5A4 */ f32 mSwimSpinAcc2;  // SMG2 offset guess
+    /* 0x5A8 */ u16 mSwimSpinMissOfsTime;  // SMG2 offset guess
+    /* 0x5AA */ u8 _pad586[0x2];
+    /* 0x5AC */ f32 mSwimSpinAccRatio;  // SMG2 offset guess
+    /* 0x5B0 */ f32 mSwimSpinSurfaceAccRatio;  // SMG2 offset guess
+    /* 0x5B4 */ f32 mSwimSpinAccRatioR;  // SMG2 offset guess
+    /* 0x5B8 */ f32 mSwimSpinSurfaceAccRatioR;  // SMG2 offset guess
+    /* 0x5BC */ u16 mSwimRingDashChargeTime;  // SMG2 offset guess
+    /* 0x5BE */ u16 mSwimRingDashTime;  // SMG2 offset guess
+    /* 0x5C0 */ u16 mSwimRingDashFinishTime;  // SMG2 offset guess
+    /* 0x5C2 */ u8 _pad59E[0x2];
+    /* 0x5C4 */ f32 mSwimRingDashSpeedRatio;  // SMG2 offset guess
+    /* 0x5C8 */ f32 mSwimSurfaceSpeed;  // SMG2 offset guess
+    /* 0x5CC */ f32 mSwimWaterSpeed;  // SMG2 offset guess
+    /* 0x5D0 */ f32 mSwimDriftSpeed;  // SMG2 offset guess
+    /* 0x5D4 */ u16 mSwimConnectIn;  // SMG2 offset guess
+    /* 0x5D6 */ u16 mSwimConnectOut;  // SMG2 offset guess
+    /* 0x5D8 */ u8 _pad5D8[8];
     /* 0x5E0 */ f32 mSwimTiltZup;
     /* 0x5E4 */ f32 mSwimTiltZdown;
     /* 0x5E8 */ f32 mSwimTiltReal;  // SMG2 offset inh

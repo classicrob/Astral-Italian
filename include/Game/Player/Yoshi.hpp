@@ -5,6 +5,7 @@
 
 class Mario;
 class MarioActor;
+class XanimePlayer;
 
 // SMG2 Yoshi riding system. Only the members the Player units call are declared; names are by address
 // (original names unknown), layouts are not recovered.
@@ -22,6 +23,10 @@ public:
     void fn_8040EDE0(const char*);
     bool fn_8040F0E0() const;
     void fn_8040F370();
+
+    /* 0x90 */ u8 _90[8];
+    /* 0x98 */ XanimePlayer* mXanimePlayer;
+    /* 0x9C */ XanimePlayer* mXanimePlayerUpper;
 };
 
 /// @brief The state machine that drives Yoshi's tongue (MarioActor holder + 0x8).

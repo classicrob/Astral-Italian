@@ -1,3 +1,4 @@
+#include "Game/NPC/EventDirector.hpp"
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
 #include "Game/Player/MarioActor.hpp"
@@ -1105,44 +1106,11 @@ void MarioActor::control() {
 
 
 void MarioActor::control2() {
-    if ((_3D8 && mPlayerMode) || _3DA) {
-        mMario->_350.zero();
-        mMario->_35C.zero();
-        _7DC = 0;
-        _930 = 0;
-        mVelocity.zero();
-        mLastMove.zero();
-        _270 = mPosition;
-        if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
-            mMario->mPosHolder->fn_80405F90(mPosition);
-            mMario->checkEnforceMove();
-            mPosition = mMario->mPosHolder->mPos;
-        }
-    } else {
-        if (_BC4) {
-            _BC4--;
-        }
-
-        _951 = 0;
-        controlMain();
-        if (!_EA4) {
-            if (!_F44) {
-                MR::offBind(this);
-            } else {
-                MR::onBind(this);
-            }
-        }
-
-        _978 = mVelocity;
-        if (getDrawStates()._B) {
-            mBinder->_1EC._1 = false;
-        } else {
-            mBinder->_1EC._1 = true;
-        }
-
-        if (mMario->isDamaging()) {
-            _424 = 0;
-        }
+    fn_803C2010();
+    controlMain();
+    fn_803C2030();
+    if (mMario->isDamaging()) {
+        _424 = nullptr;
     }
 }
 
@@ -1650,46 +1618,17 @@ void MarioActor::setUpperRotateY(f32 angle) {
 
 
 void MarioActor::decLife(u16 amt) {
-    if (getMovementStates()._1F) {
+    if (getMovementStates()._1F) return;
+    if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
+        MR::decCometTimer(1200);
         return;
     }
-
-    if (_388 > 0 && amt > _388) {
-        return;
+    if (amt && _92C > amt) _92C = amt;
+    if (_92C == 0) {
+        decreaseLifeByOne();
+        _92C = 0;
+        fn_803D9740();
     }
-
-    if (amt) {
-        _388 = amt;
-        return;
-    }
-
-    if (mHealth) {
-        mHealth--;
-    }
-
-    _388 = 0;
-    if (gIsLuigi) {
-        if (mMaxHealth == 3) {
-            return;
-        }
-
-        if (mHealth > 3) {
-            return;
-        }
-
-        mMaxHealth = 3;
-        return;
-    }
-
-    if (mMaxHealth == 3) {
-        return;
-    }
-
-    if (mHealth > 3) {
-        return;
-    }
-
-    mMaxHealth = 3;
 }
 
 
@@ -1827,25 +1766,16 @@ bool MarioActor::doPressing() {
 
 
 void MarioActor::careMovingObject() {
-    if (_1E0) {
-        return;
-    }
-
-    if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
+    if (!_1E0) {
+        fn_803C38D0();
         mMario->mPosHolder->fn_80405F90(mPosition);
-        mMario->checkEnforceMove();
+        mMario->mVelocity.zero();
+        mMario->powerAreaMove();
+        mMario->powerRailMove();
         mPosition = mMario->mPosHolder->mPos;
+        mMario->checkGround();
+        mMario->updateFloorCode();
     }
-
-    mMario->mPosHolder->fn_80405F90(mPosition);
-    mMario->mVelocity.zero();
-    mMario->powerAreaMove();
-    mMario->powerRailMove();
-    mMario->mPosHolder->mPos += mMario->mVelocity;
-    mMario->mVelocity.zero();
-    mPosition = mMario->mPosHolder->mPos;
-    mMario->checkGround();
-    mMario->updateFloorCode();
 }
 
 
@@ -6695,9 +6625,7 @@ bool MarioActor::selectSpinCatchInRush(const char* pName) const {
 }
 
 
-bool MarioActor::selectHomingInSuperHipDrop(const char* pName) const {
-    return !_FC4->isExist(pName) ? false : _FC4->getBit(pName, 3);
-}
+
 
 
 bool MarioActor::selectNotHomingSensor(const HitSensor* pSensor) const {

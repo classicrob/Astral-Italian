@@ -23,6 +23,8 @@ public:
     XanimePlayer(J3DModel*, XanimeResourceTable*);
     XanimePlayer(J3DModel*, XanimeResourceTable*, XanimePlayer*);
 
+    f32 getAnimationFrame() const;
+    void setAnimationFrame(f32);
     void init();
     void stopAnimation();
     void stopAnimation(const char*);

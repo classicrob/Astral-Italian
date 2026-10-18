@@ -288,6 +288,7 @@ namespace MR {
     void onMovementOnOffGroup(const char*);
     void* loadResourceFromArc(const char*, const char*);
     bool isExistResourceInArc(const char*, const char*);
+    const ResTIMG* loadTexFromArc(const char*, const ResourceHolder*);
     const ResTIMG* loadTexFromArc(const char*, const char*);
     const ResTIMG* loadTexFromArc(const char*, const char*, ResTIMG*);
     JUTTexture* loadTexFromArc(LiveActor*, const char*, const char*);

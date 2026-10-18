@@ -9546,12 +9546,13 @@ PROC_HIP_DROP_MOVE:
                 speed = 500.0f;
             }
 
-            s32 strikeNum = Collision::checkStrikeBallToMapWithThickness(mShadowPos, speed, speed, nullptr, nullptr);
+            s32 strikeNum = fn_803B2A20(mShadowPos, speed, speed);
 
             for (u32 i = 0; i < strikeNum; i++) {
-                const HitInfo* strikeInfo = Collision::getStrikeInfoMap(i);
+                const HitInfo* strikeInfo = fn_803B2AA0(i);
 
-                if (mActor->selectHomingInSuperHipDrop(strikeInfo->mParentTriangle.mSensor->mHost->mName)) {
+                if (!mActor->sendMsgToSensor(strikeInfo->mParentTriangle.mSensor, 6) &&
+                    fn_803EFA30(strikeInfo->mParentTriangle.mSensor, "SHDホーミング許可")) {
                     TVec3f sensorPos(strikeInfo->mParentTriangle.mSensor->mPosition);
 
                     if (MR::diffAngleAbs(sensorPos - mActor->_2A0, *getGravityVec()) < maxAngle) {

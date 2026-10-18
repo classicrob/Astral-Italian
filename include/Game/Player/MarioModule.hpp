@@ -115,6 +115,7 @@ public:
     HitSensor* getSensor(const Triangle*) const;
     f32 marioAcos(f32) const;
     bool isInputDisable() const;
+    bool fn_803EFA30(const HitSensor*, const char*) const;
 
     /* 0x4 */ MarioActor* mActor;
 };

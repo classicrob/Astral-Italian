@@ -17,5 +17,6 @@ if [ $rc -ne 0 ] && printf '%s\n' "$out" | grep -q "still dirty"; then
   rm -f .ninja_deps .ninja_log
   out=$(ninja "$@" 2>&1); rc=$?
 fi
+[ $rc -eq 0 ] || printf '%s\n' "$out" > build/ninja-error.log
 [ $rc -eq 0 ] || printf '%s\n' "$out" | tail -40
 exit $rc

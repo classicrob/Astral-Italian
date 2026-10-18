@@ -998,7 +998,7 @@ void MarioActor::fn_803C34F0(const char* name) {
     if (F(s32, 0x6B4) != 0) {
         F(s32, 0x6B4) -= 1;
         if (F(s32, 0x6B4) == 0) {
-            this->selectHomingInSuperHipDrop(name);
+            this->decreaseLifeByOne();
             this->fn_803D9740();
         }
     }

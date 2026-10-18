@@ -642,7 +642,7 @@ public:
     bool selectAutoBind(const char*, u8*) const;
     bool selectCustomEffectSpinHitSound(const char*) const;
     bool selectSpinCatchInRush(const char*) const;
-    bool selectHomingInSuperHipDrop(const char*) const;
+    void decreaseLifeByOne();
     bool selectNotHomingSensor(const HitSensor*) const;
     bool selectInvalidMovingCollision(const char*) const;
     bool selectQuickResetBeeWallGravity(const char*) const;

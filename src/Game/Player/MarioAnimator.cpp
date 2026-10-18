@@ -23,6 +23,8 @@
 #include "Game/Util/HashUtil.hpp"
 #include "Game/Player/Yoshi.hpp"
 
+inline Mario* MarioAnimator::getPlayer() const { return mActor->getMario(); }
+
 // ---- enum names missing from the SMG2 ActorSensorUtil.hpp ----
 static const s32 ACTMES_STAR_PIECE_GIFT_1 = 0x10;  // Petari value, SMG2 unverified
 
@@ -95,13 +97,13 @@ void MarioAnimator::runningCallback() {
     }
 
     mCallbackEnded = true;
-    if (isAnimationStop() || isAnimationTerminate(nullptr)) {
+    if (isAnimationStop() || getPlayer()->MarioModule::isAnimationTerminate(nullptr)) {
         closeCallback();
         return;
     }
 
     mCallbackEnded = false;
-    if (!isAnimationRun(marioCallbackTable[mCallbackId].mAnimation)) {
+    if (!getPlayer()->MarioModule::isAnimationRun(marioCallbackTable[mCallbackId].mAnimation)) {
         closeCallback();
         return;
     }
@@ -122,19 +124,19 @@ void MarioAnimator::closeCallback() {
 void MarioAnimator::spinEntry() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        playEffect("スピンライト");
+        getPlayer()->MarioModule::playEffect("スピンライト");
         break;
     case 1:
-        playEffect("アイススピン");
+        getPlayer()->MarioModule::playEffect("アイススピン");
         break;
     case 2:
-        playEffect("ファイアスピン");
+        getPlayer()->MarioModule::playEffect("ファイアスピン");
         break;
     case 3:
         if (gIsLuigi) {
-            playEffect("ハチルイージスピン");
+            getPlayer()->MarioModule::playEffect("ハチルイージスピン");
         } else {
-            playEffect("ハチスピン");
+            getPlayer()->MarioModule::playEffect("ハチスピン");
         }
 
         break;
@@ -143,26 +145,26 @@ void MarioAnimator::spinEntry() {
 
 void MarioAnimator::spinUpdate() {
     if (getFrame() > 30.0f) {
-        stopEffect("スピンライト");
+        getPlayer()->MarioModule::stopEffect("スピンライト");
     }
 }
 
 void MarioAnimator::spinClose() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        stopEffect("スピンライト");
+        getPlayer()->MarioModule::stopEffect("スピンライト");
         break;
     case 1:
-        stopEffect("アイススピン");
+        getPlayer()->MarioModule::stopEffect("アイススピン");
         break;
     case 2:
-        stopEffect("ファイアスピン");
+        getPlayer()->MarioModule::stopEffect("ファイアスピン");
         break;
     case 3:
         if (gIsLuigi) {
-            stopEffect("ハチルイージスピン");
+            getPlayer()->MarioModule::stopEffect("ハチルイージスピン");
         } else {
-            stopEffect("ハチスピン");
+            getPlayer()->MarioModule::stopEffect("ハチスピン");
         }
 
         break;
@@ -172,12 +174,12 @@ void MarioAnimator::spinClose() {
 void MarioAnimator::stageInCheck() {
     if (static_cast< s32 >(getFrame()) == 50) {
         Mario* player = getPlayer();
-        playEffectRT("属性ステージイン", player->_368, getTrans());
+        getPlayer()->MarioModule::playEffectRT("属性ステージイン", player->_368, getPlayer()->MarioModule::getTrans());
     }
 }
 
 void MarioAnimator::throwCheck() {
-    if (mActor->_38C == 0 && getStickP() && !getPlayer()->mMovementStates.jumping) {
+    if (mActor->_38C == 0 && getPlayer()->MarioModule::getStickP() && !getPlayer()->mMovementStates.jumping) {
         stopAnimation(nullptr, nullptr);
     }
 }
@@ -185,10 +187,10 @@ void MarioAnimator::throwCheck() {
 void MarioAnimator::throwEntry() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        playEffect("こうら投げ");
+        getPlayer()->MarioModule::playEffect("こうら投げ");
         break;
     case 1:
-        playEffect("ファイアボール投げ");
+        getPlayer()->MarioModule::playEffect("ファイアボール投げ");
         break;
     }
 }
@@ -196,10 +198,10 @@ void MarioAnimator::throwEntry() {
 void MarioAnimator::throwClose() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        stopEffect("こうら投げ");
+        getPlayer()->MarioModule::stopEffect("こうら投げ");
         break;
     case 1:
-        stopEffect("ファイアボール投げ");
+        getPlayer()->MarioModule::stopEffect("ファイアボール投げ");
         break;
     }
 }
@@ -225,33 +227,8 @@ extern XanimeAuxInfo marioAnimeAuxTable[];
 extern XanimeOfsInfo marioAnimeOfsTable[];
 extern XanimeSwapTable luigiAnimeSwapTable[];
 
-MarioAnimator::MarioAnimator(MarioActor* pActor) : MarioModule(pActor) {
+MarioAnimator::MarioAnimator(MarioActor* pActor) : mActor(pActor), mExtraAnimationEnabled(false) {
     init();
-}
-
-void MarioAnimator_FORCE_MATCH_SDATA2() {
-    (void)79.0f;
-    (void)59.0f;
-    (void)0.00100000005f;
-    (void)0.899999976f;
-    (void)0.100000001f;
-    (void)0.949999988f;
-    (void)0.0500000007f;
-    (void)0.25f;
-    (void)0.970000029f;
-    (void)0.0299999993f;
-    (void)10.0f;
-    (void)1.41421294f;
-    (void)6.28318548f;
-    (void)30.0f;
-    (void)-2607.59448f;
-    (void)2607.59448f;
-    (void)0.699999988f;
-    (void)60.0f;
-    (void)5.0f;
-    (void)-0.707000017f;
-    (void)0.707000017f;
-    (void)-0.5f;
 }
 
 void MarioAnimator::stopAnimation(const char* pAnim1, const char* pAnim2) {
@@ -380,32 +357,32 @@ void MarioAnimator::initWalkWeight() {
 }
 
 bool MarioAnimator::isLandingAnimationRun() const {
-    if (isPlayerModeTeresa()) {
+    if (getPlayer()->MarioModule::isPlayerModeTeresa()) {
         return false;
     }
 
-    if (isAnimationRun("着地") || isAnimationRun("着地B") || isAnimationRun("着地C") || isAnimationRun("着地ターン") ||
-        isAnimationRun("着地幅とび")) {
+    if (getPlayer()->MarioModule::isAnimationRun("着地") || getPlayer()->MarioModule::isAnimationRun("着地B") || getPlayer()->MarioModule::isAnimationRun("着地C") || getPlayer()->MarioModule::isAnimationRun("着地ターン") ||
+        getPlayer()->MarioModule::isAnimationRun("着地幅とび")) {
         return true;
     }
 
-    if (isAnimationRun("すべり着地")) {
+    if (getPlayer()->MarioModule::isAnimationRun("すべり着地")) {
         return true;
     }
 
-    if (isAnimationRun(getPlayer()->_728)) {
+    if (getPlayer()->MarioModule::isAnimationRun(getPlayer()->_728)) {
         return true;
     }
 
-    if (isAnimationRun("ハード着地")) {
+    if (getPlayer()->MarioModule::isAnimationRun("ハード着地")) {
         return true;
     }
 
-    if (isAnimationRun("逆着地")) {
+    if (getPlayer()->MarioModule::isAnimationRun("逆着地")) {
         return true;
     }
 
-    if (isAnimationRun("ショート着地")) {
+    if (getPlayer()->MarioModule::isAnimationRun("ショート着地")) {
         return true;
     }
 
@@ -417,12 +394,12 @@ bool MarioAnimator::isLandingAnimationRun() const {
 }
 
 bool MarioAnimator::isCancelableAnimationRun() const {
-    if (isAnimationRun("着地") || isAnimationRun("着地B") || isAnimationRun("着地C") || isAnimationRun("着地ターン") ||
-        isAnimationRun("着地幅とび")) {
+    if (getPlayer()->MarioModule::isAnimationRun("着地") || getPlayer()->MarioModule::isAnimationRun("着地B") || getPlayer()->MarioModule::isAnimationRun("着地C") || getPlayer()->MarioModule::isAnimationRun("着地ターン") ||
+        getPlayer()->MarioModule::isAnimationRun("着地幅とび")) {
         return true;
     }
 
-    if (isAnimationRun("すべり着地")) {
+    if (getPlayer()->MarioModule::isAnimationRun("すべり着地")) {
         return true;
     }
 
@@ -435,24 +412,24 @@ bool MarioAnimator::isCancelableAnimationRun() const {
 
 bool MarioAnimator::isWalkOrWaitingMotion() const {
     if (isAnimationStop()) {
-        if (isAnimationRun("基本") || isAnimationRun("テニス基本")) {
+        if (getPlayer()->MarioModule::isAnimationRun("基本") || getPlayer()->MarioModule::isAnimationRun("テニス基本")) {
             return true;
         }
     }
 
-    if (isAnimationRun("坂前後ウエイト")) {
+    if (getPlayer()->MarioModule::isAnimationRun("坂前後ウエイト")) {
         return true;
     }
 
-    if (isAnimationRun("坂左右ウエイト")) {
+    if (getPlayer()->MarioModule::isAnimationRun("坂左右ウエイト")) {
         return true;
     }
 
-    if (isAnimationRun("カリカリ限界")) {
+    if (getPlayer()->MarioModule::isAnimationRun("カリカリ限界")) {
         return true;
     }
 
-    if (isAnimationRun("飛び込み準備")) {
+    if (getPlayer()->MarioModule::isAnimationRun("飛び込み準備")) {
         return true;
     }
 
@@ -493,7 +470,7 @@ void MarioAnimator::update() {
     player = getPlayer();
     player->_71D = prevWalkState;
 
-    if (isWalkOrWaitingMotion() || isAnimationRun("しゃがみ基本")) {
+    if (isWalkOrWaitingMotion() || getPlayer()->MarioModule::isAnimationRun("しゃがみ基本")) {
         player = getPlayer();
         _14 = walkStateTable[player->mTargetWalkSpeedIndex];
     } else {
@@ -502,7 +479,7 @@ void MarioAnimator::update() {
 
     player = getPlayer();
     if (player->mDrawStates._A) {
-        bool normalMode = !isPlayerModeHopper();
+        bool normalMode = !getPlayer()->MarioModule::isPlayerModeHopper();
         if (normalMode) {
             player = getPlayer();
             if (!player->isStatusActive(MarioStatus_Freeze)) {
@@ -518,7 +495,7 @@ void MarioAnimator::update() {
                 }
 
                 if (isAnimationStop()) {
-                    changeAnimation("崖ふんばり");
+                    getPlayer()->MarioModule::changeAnimation("崖ふんばり");
                 }
             }
         }
@@ -526,7 +503,7 @@ void MarioAnimator::update() {
         goto afterBrake;
     }
 
-    if (isAnimationRun("崖ふんばり")) {
+    if (getPlayer()->MarioModule::isAnimationRun("崖ふんばり")) {
         player = getPlayer();
         if (!player->mMovementStates._1) {
             stopAnimation("崖ふんばり", "落下");
@@ -588,7 +565,7 @@ squatWalk:
             player->startBas(nullptr, false, 0.0f, 0.0f);
             break;
         default: {
-            if (!isAnimationRun("幅とび")) {
+            if (!getPlayer()->MarioModule::isAnimationRun("幅とび")) {
                 player = getPlayer();
                 player->startBas("SquatWalk", false, 0.0f, 79.0f);
             } else {
@@ -598,7 +575,7 @@ squatWalk:
         }
         }
 
-        f32 frame = getAnimator()->mXanimePlayer->tellAnimationFrame();
+        f32 frame = getPlayer()->MarioModule::getAnimator()->mXanimePlayer->tellAnimationFrame();
         player = getPlayer();
         player->skipBas(frame);
     }
@@ -631,12 +608,12 @@ notSquat:
         goto afterBrake;
     }
 
-    if (isAnimationRun("氷上慣性走行")) {
+    if (getPlayer()->MarioModule::isAnimationRun("氷上慣性走行")) {
         stopAnimation(nullptr, nullptr);
         goto doBrake;
     }
 
-    if (isAnimationRun("壁押し", 0)) {
+    if (getPlayer()->MarioModule::isAnimationRun("壁押し", 0)) {
         player = getPlayer();
         player->decideWalkSpeed();
         player = getPlayer();
@@ -651,8 +628,8 @@ notSquat:
         goto doBrake;
     }
 
-    if (!isAnimationRun("ハード着地")) {
-        if (isAnimationRun("がんばり走り")) {
+    if (!getPlayer()->MarioModule::isAnimationRun("ハード着地")) {
+        if (getPlayer()->MarioModule::isAnimationRun("がんばり走り")) {
             player = getPlayer();
             if (player->_8F0 < 1.0f) {
                 stopAnimation(nullptr, nullptr);
@@ -667,17 +644,17 @@ doBrake:
     player->updateBrakeAnimation();
 
 afterBrake:
-    if (isAnimationRun("基本") || isAnimationRun("がんばり走り")) {
+    if (getPlayer()->MarioModule::isAnimationRun("基本") || getPlayer()->MarioModule::isAnimationRun("がんばり走り")) {
         setTilt();
     } else {
         resetTilt();
     }
 
-    if (isAnimationRun("スライダー尻")) {
+    if (getPlayer()->MarioModule::isAnimationRun("スライダー尻")) {
         setHipSliderTilt();
     }
 
-    if (isAnimationRun("坂すべり下向きあおむけ", 3)) {
+    if (getPlayer()->MarioModule::isAnimationRun("坂すべり下向きあおむけ", 3)) {
         setHipSlipTilt();
     }
 
@@ -756,7 +733,7 @@ startBas:
     }
 
     {
-        f32 frame = getAnimator()->mXanimePlayer->tellAnimationFrame();
+        f32 frame = getPlayer()->MarioModule::getAnimator()->mXanimePlayer->tellAnimationFrame();
         getPlayer()->skipBas(frame);
     }
 
@@ -785,11 +762,11 @@ void MarioAnimator::setTilt() {
     f32 tiltAngle = 0.0f;
 
     if (!MR::isNearZero(_60)) {
-        f32 frontDot = _60.dot(getFrontVec());
+        f32 frontDot = _60.dot(getPlayer()->MarioModule::getFrontVec());
         tiltAngle = 1.0f - frontDot;
 
         if (tiltAngle > 0.001f) {
-            TVec3f cross = _60.cross(getFrontVec());
+            TVec3f cross = _60.cross(getPlayer()->MarioModule::getFrontVec());
 
             f32 gravDot = cross.dot(*getPlayer()->getGravityVec());
             if (gravDot < 0.0f) {
@@ -800,7 +777,7 @@ void MarioAnimator::setTilt() {
         }
     }
 
-    _60 = getFrontVec();
+    _60 = getPlayer()->MarioModule::getFrontVec();
 
     Mario* player = getPlayer();
     MarioConstTable* table = mActor->mConst->getTable();
@@ -864,7 +841,7 @@ void MarioAnimator::setHoming() {
         if (talkActor != nullptr) {
             hasTarget = 1;
             f32 height = mActor->getFaceLookHeight(talkActor->mName);
-            targetPos = talkActor->mPosition - getGravityVec() * height;
+            targetPos = talkActor->mPosition - getPlayer()->MarioModule::getGravityVec() * height;
         }
     }
 
@@ -883,7 +860,7 @@ void MarioAnimator::setHoming() {
             f32 dist2 = toTarget.length();
             vAngle = JMath::sAtanTable.atan2_(angleH, dist2);
 
-            if (isStatusActiveID(MarioStatus_Talk)) {
+            if (getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Talk)) {
                 if (vAngle > 1.0f) {
                     vAngle = 1.0f;
                 }
@@ -901,14 +878,14 @@ void MarioAnimator::setHoming() {
             }
         }
 
-        angleH = MR::diffAngleAbs(toTarget, getFrontVec());
+        angleH = MR::diffAngleAbs(toTarget, getPlayer()->MarioModule::getFrontVec());
 
         MarioConstTable* table = mActor->mConst->getTable();
         if (angleH > table->mLookMaxAngleH) {
             angleH = table->mLookMaxAngleH;
         }
 
-        TVec3f cross = toTarget.cross(getFrontVec());
+        TVec3f cross = toTarget.cross(getPlayer()->MarioModule::getFrontVec());
         Mario* player2 = getPlayer();
         f32 gravDot = cross.dot(player2->_1FC);
         if (gravDot < 0.0f) {
@@ -995,14 +972,14 @@ void MarioAnimator::setHipSlidingTilt(f32 stickX, f32 stickY) {
 }
 
 void MarioAnimator::setHipSliderTilt() {
-    f32 stickX = getStickX();
-    f32 stickY = getStickY();
+    f32 stickX = getPlayer()->MarioModule::getStickX();
+    f32 stickY = getPlayer()->MarioModule::getStickY();
     setHipSlidingTilt(stickX, stickY);
 }
 
 void MarioAnimator::setHipSlipTilt() {
-    TVec3f worldPadDir(getWorldPadDir());
-    f32 frontDot = MR::vecKillElement(worldPadDir, getFrontVec(), &worldPadDir);
+    TVec3f worldPadDir(getPlayer()->MarioModule::getWorldPadDir());
+    f32 frontDot = MR::vecKillElement(worldPadDir, getPlayer()->MarioModule::getFrontVec(), &worldPadDir);
     Mario* player = getPlayer();
     f32 gravDot = MR::vecKillElement(worldPadDir, player->mSideVec, &worldPadDir);
     setHipSlidingTilt(-gravDot, frontDot);
@@ -1010,27 +987,32 @@ void MarioAnimator::setHipSlipTilt() {
 
 void MarioAnimator::setSpeed(f32 speed) {
     mXanimePlayer->changeSpeed(speed);
+    if (getPlayer()->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->changeSpeed(speed);
+        mXanimePlayerExtra->changeSpeed(speed);
+    }
 }
 
 f32 MarioAnimator::getFrame() const {
-    return mXanimePlayer->tellAnimationFrame();
+    if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->getAnimationFrame();
+    return mXanimePlayer->getAnimationFrame();
 }
 
 f32 MarioAnimator::getUpperFrame() const {
-    return mXanimePlayerUpper->tellAnimationFrame();
+    return mXanimePlayerUpper->getAnimationFrame();
 }
 
 void MarioAnimator::setWalkMode() {
     if (!getPlayer()->mMovementStates._F && getPlayer()->mMovementStates._10 && !getPlayer()->mMovementStates._A && 0.0f == getPlayer()->_8F0 &&
         static_cast< u8 >(getPlayer()->checkStickFrontBack()) == 2) {
-        if (!isStatusActiveID(MarioStatus_Magic) && !isStatusActiveID(MarioStatus_Skate)) {
+        if (!getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Magic) && !getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Skate)) {
             if (getPlayer()->mMovementStates._35) {
                 change("ブレーキ滑り床");
             } else {
                 change("ブレーキ");
             }
         }
-    } else if (isAnimationRun("ブレーキ")) {
+    } else if (getPlayer()->MarioModule::isAnimationRun("ブレーキ")) {
         getPlayer()->doBrakingAnimation();
         getPlayer()->mTargetWalkSpeedIndex = 0;
     } else {
@@ -1204,15 +1186,15 @@ void MarioAnimator::updateJointRumble() {
     if (getPlayer()->mMovementStates._1 && !getPlayer()->mMovementStates._37 && getPlayer()->mTargetWalkSpeedIndex == 0 &&
         getPlayer()->calcAngleD(getPlayer()->_368) > 5.0f) {
         TVec3f dir;
-        const TVec3f* airGrav = &getAirGravityVec();
+        const TVec3f* airGrav = &getPlayer()->MarioModule::getAirGravityVec();
         Mario* playerVec = getPlayer();
         MR::vecKillElement(playerVec->_368, *airGrav, &dir);
         MR::normalizeOrZero(&dir);
 
-        if (getFrontVec().dot(dir) < -0.707f) {
+        if (getPlayer()->MarioModule::getFrontVec().dot(dir) < -0.707f) {
             hipRot = -hipRot;
         } else {
-            hipRot = getFrontVec().dot(dir) > 0.707f ? hipRot : 0.9f * _118;
+            hipRot = getPlayer()->MarioModule::getFrontVec().dot(dir) > 0.707f ? hipRot : 0.9f * _118;
         }
 
         PSMTXRotRad(_AC.toMtxPtr(), 'Z', hipRot);
@@ -1307,14 +1289,14 @@ bool MarioAnimator::isMirrorAnimation() {
         return false;
     }
 
-    TVec3f camDir = getCamDirX();
+    TVec3f camDir = getPlayer()->MarioModule::getCamDirX();
     Mario* player = getPlayer();
-    f32 dot = player->_1FC.dot(getCamDirY());
+    f32 dot = player->_1FC.dot(getPlayer()->MarioModule::getCamDirY());
     if (dot < 0.0f) {
         camDir = -camDir;
     }
 
-    if (isAnimationRun("壁すべり") || isAnimationRun("壁くっつき")) {
+    if (getPlayer()->MarioModule::isAnimationRun("壁すべり") || getPlayer()->MarioModule::isAnimationRun("壁くっつき")) {
         if (!_10C) {
             const TVec3f& wallNorm = getPlayer()->getWallNorm();
             f32 wallDot = camDir.dot(wallNorm);
@@ -1332,7 +1314,7 @@ bool MarioAnimator::isMirrorAnimation() {
 
     // Check if walling (player mMovementStates._37 bit check)
     if (getPlayer()->mMovementStates._37) {
-        if (isAnimationRun("ブレーキ") || isAnimationRun("ターンブレーキ") || isAnimationRun("ターンジャンプ")) {
+        if (getPlayer()->MarioModule::isAnimationRun("ブレーキ") || getPlayer()->MarioModule::isAnimationRun("ターンブレーキ") || getPlayer()->MarioModule::isAnimationRun("ターンジャンプ")) {
             if (!_10C) {
                 f32 frontDot = camDir.dot(getPlayer()->mFrontVec);
                 if (frontDot > 0.0f) {
@@ -1350,7 +1332,7 @@ bool MarioAnimator::isMirrorAnimation() {
 
     // Clear cache flag
     _10C = false;
-    if (isAnimationRun("左空パンチ")) {
+    if (getPlayer()->MarioModule::isAnimationRun("左空パンチ")) {
         return true;
     }
 
@@ -1397,7 +1379,7 @@ void MarioAnimator::changePickupAnimation(const HitSensor* pSensor) {
     switch (type) {
     case ACTMES_STAR_PIECE_GIFT_MAX:
         mActor->_494 = mActor->_49C;
-        changeAnimation("カブ抜き");
+        getPlayer()->MarioModule::changeAnimation("カブ抜き");
         mActor->changeNullAnimation("PullOut", -2);
         getPlayer()->stopWalk();
         break;
@@ -1406,22 +1388,22 @@ void MarioAnimator::changePickupAnimation(const HitSensor* pSensor) {
         mActor->_494 = mActor->_498;
         if (!getPlayer()->isSwimming()) {
             if (mActor->_424 == pSensor) {
-                changeAnimationUpper("ひろいクイック");
-                playEffect("ひろいクイック");
+                getPlayer()->MarioModule::changeAnimationUpper("ひろいクイック");
+                getPlayer()->MarioModule::playEffect("ひろいクイック");
                 mActor->clearNullAnimation(-3);
-                startPadVib(2);
+                getPlayer()->MarioModule::startPadVib(2);
             } else if (getPlayer()->mMovementStates.jumping && !getPlayer()->mMovementStates._B) {
-                changeAnimation("ひろい空中");
+                getPlayer()->MarioModule::changeAnimation("ひろい空中");
                 mActor->clearNullAnimation(-3);
                 getPlayer()->stopWalk();
             } else {
-                changeAnimation("ひろい");
+                getPlayer()->MarioModule::changeAnimation("ひろい");
                 mActor->changeNullAnimation("CarryStart", -2);
                 getPlayer()->stopWalk();
             }
         } else {
             mActor->clearNullAnimation(0);
-            startPadVib(2);
+            getPlayer()->MarioModule::startPadVib(2);
         }
 
         break;
@@ -1446,7 +1428,7 @@ void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     switch (type) {
     case ACTMES_STAR_PIECE_GIFT_MAX:
         stopAnimation(nullptr, nullptr);
-        changeAnimationUpper("カブウエイト");
+        getPlayer()->MarioModule::changeAnimationUpper("カブウエイト");
         mActor->clearNullAnimation(0);
         mActor->offTakingFlag();
         break;
@@ -1454,14 +1436,14 @@ void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     case ACTMES_STAR_PIECE_GIFT_1:
         if (!getPlayer()->isSwimming()) {
             s32 shouldChange = 1;
-            if (isAnimationRun("ひろいクイック")) {
-                shouldChange = isAnimationTerminateUpper(nullptr);
+            if (getPlayer()->MarioModule::isAnimationRun("ひろいクイック")) {
+                shouldChange = getPlayer()->MarioModule::isAnimationTerminateUpper(nullptr);
             }
 
             if (shouldChange) {
-                if (!isAnimationRun("ひろい空中") && mActor->isStopNullAnimation()) {
-                    changeAnimationUpper("ひろいウエイト");
-                    startPadVib(2);
+                if (!getPlayer()->MarioModule::isAnimationRun("ひろい空中") && mActor->isStopNullAnimation()) {
+                    getPlayer()->MarioModule::changeAnimationUpper("ひろいウエイト");
+                    getPlayer()->MarioModule::startPadVib(2);
                     mActor->clearNullAnimation(0);
                     mActor->offTakingFlag();
                 }
@@ -1478,20 +1460,20 @@ void MarioAnimator::changeThrowAnimation(const HitSensor* pSensor) {
     u32 type = pSensor->mType;
     switch (type) {
     case ACTMES_STAR_PIECE_GIFT_MAX:
-        stopAnimationUpper(nullptr);
-        changeAnimation("両手投げ");
-        startPadVib("マリオ[亀投げ]");
+        getPlayer()->MarioModule::stopAnimationUpper(nullptr);
+        getPlayer()->MarioModule::changeAnimation("両手投げ");
+        getPlayer()->MarioModule::startPadVib("マリオ[亀投げ]");
         break;
     case ACTMES_STAR_PIECE_GIFT:
     case ACTMES_STAR_PIECE_GIFT_1:
-        stopAnimationUpper(nullptr);
+        getPlayer()->MarioModule::stopAnimationUpper(nullptr);
         if (getPlayer()->isSwimming()) {
-            changeAnimation("水泳亀投げ", "水泳基本");
+            getPlayer()->MarioModule::changeAnimation("水泳亀投げ", "水泳基本");
         } else {
-            changeAnimation("投げ");
+            getPlayer()->MarioModule::changeAnimation("投げ");
         }
 
-        startPadVib("マリオ[亀投げ]");
+        getPlayer()->MarioModule::startPadVib("マリオ[亀投げ]");
         break;
     }
 }
@@ -1512,12 +1494,12 @@ void MarioAnimator::waterToGround() {
     switch (state) {
     case ACTMES_STAR_PIECE_GIFT:
     case ACTMES_STAR_PIECE_GIFT_1:
-        changeAnimationUpper("ひろいウエイト");
+        getPlayer()->MarioModule::changeAnimationUpper("ひろいウエイト");
         mActor->clearNullAnimation(0);
         MR::deleteEffect(swimSensor->mHost, "SwimBubble");
         break;
     case ACTMES_STAR_PIECE_GIFT_MAX:
-        changeAnimationUpper("カブウエイト");
+        getPlayer()->MarioModule::changeAnimationUpper("カブウエイト");
         mActor->clearNullAnimation(0);
         break;
     }
@@ -1533,4 +1515,106 @@ HitSensor* MarioActor::getLookTargetSensor() const {
     }
 
     return _46C;
+}
+void MarioAnimator::setAnimationFlag(u32 index) { mAnimationFlags[index] = 1; }
+void MarioAnimator::resetAnimationFlag(u32 index) { mAnimationFlags[index] = 0; }
+bool MarioAnimator::isAnimationFlag(u32 index) const { return mAnimationFlags[index] != 0; }
+void MarioAnimator::enableExtraAnimation() { mExtraAnimationEnabled = true; }
+void MarioAnimator::disableExtraAnimation() { mExtraAnimationEnabled = false; }
+void MarioAnimator::changeExtraAnimation(const char* name) {
+    if (mExtraAnimationEnabled) mXanimePlayerExtra->changeSimpleBck(name);
+}
+XanimePlayer* MarioAnimator::fn_803DFBF0() const { return mXanimePlayerExtra; }
+const char* MarioAnimator::fn_803DF0D0() const { return mXanimePlayer->getCurrentBckName(); }
+f32 MarioAnimator::fn_803DF0E0() const { return mXanimePlayer->_20->getFrame(); }
+const char* MarioAnimator::getUpperAnimationName() const { return mXanimePlayerUpper->getCurrentAnimationName(); }
+const char* MarioAnimator::getAnimationStringPointer(const char* name) const { return mXanimePlayer->getNameStringPointer(name); }
+bool MarioAnimator::isUpperAnimationTerminated(const char* name) const {
+    if (name) return mXanimePlayerUpper->isTerminate(name);
+    return mXanimePlayerUpper->isTerminate();
+}
+f32 MarioAnimator::getWalkWeight(u32 index) const { return (&_18)[index]; }
+f32 MarioAnimator::getAnimationInterpoleRatio() const { return mXanimePlayer->_0C; }
+bool MarioAnimator::isFrameCtrlAttribute(u32 attribute) const { return mXanimePlayer->_20->getAttribute() == attribute; }
+
+// NONMATCHING: equivalent null-return block ordering.
+XanimePlayer* MarioAnimator::getYoshiAnimationPlayer() const {
+    XanimePlayer* result;
+    if (!mActor->fn_803B97F0()) result = nullptr;
+    else result = mActor->fn_803B97F0()->mXanimePlayer;
+    return result;
+}
+// NONMATCHING: equivalent null-return block ordering.
+XanimePlayer* MarioAnimator::getYoshiUpperAnimationPlayer() const {
+    XanimePlayer* result;
+    if (!mActor->fn_803B97F0()) result = nullptr;
+    else result = mActor->fn_803B97F0()->mXanimePlayerUpper;
+    return result;
+}
+f32 XanimePlayer::getAnimationFrame() const {
+    if (isTerminate()) return _20->mEnd;
+    return _20->mFrame;
+}
+// NONMATCHING: redundant rounding instruction and pointer-load scheduling.
+void XanimePlayer::setAnimationFrame(f32 frame) {
+    _20->mFrame = _84 = frame;
+}
+void MarioAnimator::changeTrackAnim(u8 index, const char* name) {
+    mXanimePlayer->changeTrackAnimation(index, name);
+    if (getPlayer()->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->changeTrackAnimation(index, name);
+        mXanimePlayerExtra->changeTrackAnimation(index, name);
+    }
+}
+void MarioAnimator::setAnimationPaused(bool paused) {
+    mXanimePlayer->_7E = paused;
+    if (getPlayer()->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->_7E = paused;
+        mXanimePlayerExtra->_7E = paused;
+    }
+}
+void MarioAnimator::setAnimationFrameCtrlAttribute(u8 attribute) {
+    mXanimePlayer->_20->mAttribute = attribute;
+    if (getPlayer()->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->_20->mAttribute = attribute;
+        mXanimePlayerExtra->_20->mAttribute = attribute;
+    }
+}
+void MarioAnimator::setAnimationInterpoleFrame(s32 frame) {
+    mXanimePlayer->changeInterpoleFrame(frame);
+    if (getPlayer()->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->changeInterpoleFrame(frame);
+        mXanimePlayerExtra->changeInterpoleFrame(frame);
+    }
+}
+void MarioAnimator::setAnimationFrame(f32 frame) {
+    if (mActor->_B90) return;
+    mXanimePlayer->setAnimationFrame(frame);
+    if (getPlayer()->isPlayerModeYoshi()) {
+        mActor->fn_803B97F0()->mXanimePlayer->setAnimationFrame(frame);
+        if (!mExtraAnimationEnabled) mXanimePlayerExtra->setAnimationFrame(frame);
+    }
+}
+void MarioAnimator::resetAnimationUpdateFlags() {
+    XanimePlayer* player = mXanimePlayer;
+    player->_88 = false;
+    player->_89 = false;
+    player = mXanimePlayerUpper;
+    player->_88 = false;
+    player->_89 = false;
+    if (getPlayer()->isPlayerModeYoshi()) {
+        XanimePlayer* player = getYoshiAnimationPlayer();
+        player->_88 = false;
+        player->_89 = false;
+        player = getYoshiUpperAnimationPlayer();
+        player->_88 = false;
+        player->_89 = false;
+        player = mXanimePlayerExtra;
+        player->_88 = false;
+        player->_89 = false;
+    }
+}
+f32 MarioAnimator::getAnimationTrackWeight(u32 index) {
+    if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->mWeights[index];
+    return mXanimePlayer->mWeights[index];
 }

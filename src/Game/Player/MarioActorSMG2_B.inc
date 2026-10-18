@@ -1925,3 +1925,9 @@ void MarioActor::fn_803D9740() {
         F(u32, 0x1AC) = 3;
     }
 }
+
+void MarioActor::decreaseLifeByOne() {
+    if (mMario->isPlayerModeYoshi()) fn_803B9870();
+    if (mHealth) --mHealth;
+    F(u8, 0x1070) = 1;
+}

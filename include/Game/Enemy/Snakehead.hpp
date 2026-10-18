@@ -32,8 +32,6 @@ public:
     void exeRest();
     void exeMoveBack();
     void exeTurtleDown();
-    void exeDPDSwoon();
-    void endDPDSwoon();
     void choiceAndStartBck(const char*);
     bool tryDPDSwoon();
     bool isNearPlayerFromRail() const;
@@ -56,4 +54,5 @@ public:
     /* 0xDC */ TVec3f mRailCenter;
     /* 0xE8 */ SnakeheadType _E8;
     /* 0xEC */ BenefitItemOneUp* mItem;
+    /* 0xF0 */ bool mIsValidateShadow;
 };

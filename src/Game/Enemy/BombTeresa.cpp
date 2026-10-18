@@ -65,63 +65,37 @@ BombTeresa::BombTeresa(const char* pName)
 }
 
 void BombTeresa::init(const JMapInfoIter& rIter) {
-    initFromJMapParam(rIter);
-    initModelManagerWithAnm("BombTeresa", 0, 0);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    initSensor();
-    f32 scale = mScale.x;
-    initBinder(scale * 70.0f, 0.0f, 0);
-    initEffectKeeper(1, nullptr, false);
-    initSound(8, "BombTeresa", nullptr, TVec3f(0.0f));
-    MR::initShadowVolumeSphere(this, 80.0f);
-    MR::onShadowFollowHostScale(this, nullptr);
-    initTongue();
-    initNerve(GET_NERVE(BombTeresa, BombTeresaNrvAppear));
-    mScaleController = new AnimScaleController(nullptr);
-    mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActor(this, rIter, "BombTeresa", false);
+    MR::setSensorFollowPos(this, "tungue", &_C4);
+    MR::makeQuatAndFrontFromRotate(&_9C, &_AC, this);
+    _D0 = mPosition;
     if (MR::isValidInfo(rIter)) {
-        if (MR::useStageSwitchReadAppear(this, rIter)) {
-            MR::syncStageSwitchAppear(this);
-            makeActorDead();
-            return;
-        }
-
-        makeActorAppeared();
-        return;
+        bool arg1Bool;
+        MR::getJMapInfoArg1WithInit(rIter, &arg1Bool);
+        mDisableRespawning = arg1Bool == false;
     }
 
-    makeActorDead();
+    initTongue();
+    initNerve(GET_NERVE(BombTeresa, BombTeresaNrvAppear), 1);
+    mScaleController = new AnimScaleController(nullptr);
+    mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(BombTeresa, BombTeresaNrvBindStarPointer), "SupportFreeze");
+    MR::initUseStageSwitchWriteDead(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
+    if (MR::isValidInfo(rIter)) {
+        MR::useStageSwitchSyncAppear(this, rIter);
+    } else {
+        makeActorDead();
+    }
 }
 
 void BombTeresa::initAfterPlacement() {
     MR::trySetMoveLimitCollision(this);
 }
 
-void BombTeresa::initFromJMapParam(const JMapInfoIter& rIter) {
-    if (MR::isValidInfo(rIter)) {
-        MR::initDefaultPos(this, rIter);
-        mScale.mult(1.0f);
-        MR::makeQuatAndFrontFromRotate(&_9C, &_AC, this);
-        _D0 = mPosition;
-        bool arg1Bool;
-        MR::getJMapInfoArg1WithInit(rIter, &arg1Bool);
-        mDisableRespawning = arg1Bool == false;
-        MR::useStageSwitchWriteDead(this, rIter);
-    }
-}
-
 void BombTeresa::initTongue() {
     mJointDelegator = MR::createJointDelegator< BombTeresa >(this, this, nullptr, &BombTeresa::rootTongueMtxCallBack, "Tongue1");
     mJointDelegator2 = MR::createJointDelegatorWithNullChildFunc(this, &BombTeresa::endTongueMtxCallBack, "Tongue2");
-}
-
-void BombTeresa::initSensor() {
-    f32 mScaleXTemp = mScale.x;
-    initHitSensor(2);
-    MR::addHitSensorPosEye(this, "tungue", 8, (mScaleXTemp * 20.0f), &_C4, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorEnemy(this, "body", 8, (mScaleXTemp * 85.0f), TVec3f(0.0f, 0.0f, 0.0f));
-    MR::initStarPointerTarget(this, (mScaleXTemp * 85.0f), TVec3f(0.0f, 0.0f, 0.0f));
 }
 
 void BombTeresa::makeActorAppeared() {
@@ -193,6 +167,7 @@ bool BombTeresa::rootTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& 
     return true;
 }
 
+// NONMATCHING: target calls out-of-line TVec3::operator*(f32) const (__ml__CFf); the in-class header definition always inlines (__ct+__amu in ours). Needs a shared TVec.hpp change.
 bool BombTeresa::endTongueMtxCallBack(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     if (_DC == 0.0f) {
         return false;
@@ -245,6 +220,7 @@ void BombTeresa::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+// NONMATCHING: target calls out-of-line TVec3::operator*(f32) const (__ml__CFf); the in-class header definition always inlines (__ct+__amu in ours). Needs a shared TVec.hpp change.
 bool BombTeresa::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorEnemy(pReceiver)) {
         return false;
@@ -258,7 +234,7 @@ bool BombTeresa::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
             MR::normalizeOrZero(&deltaPos);
         }
 
-        mVelocity += deltaPos.multInLine(3.0f);
+        mVelocity += deltaPos * 3.0f;
         return true;
     }
 
@@ -267,6 +243,11 @@ bool BombTeresa::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool BombTeresa::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceAttack(msg) && isEnableStarPieceAttack()) {
+        setNerve(GET_NERVE(BombTeresa, BombTeresaNrvDisperse));
+        return true;
+    }
+
+    if (MR::isMsgSupportTicoSpin(msg) && isEnableDrift()) {
         setNerve(GET_NERVE(BombTeresa, BombTeresaNrvDisperse));
         return true;
     }
@@ -283,6 +264,7 @@ bool BombTeresa::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     return false;
 }
 
+// NONMATCHING: target calls out-of-line TVec3::operator*(f32) const (__ml__CFf); the in-class header definition always inlines (__ct+__amu in ours). Needs a shared TVec.hpp change.
 bool BombTeresa::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgToEnemyAttackBlow(msg) && isEnableHitExplosion()) {
         MR::zeroVelocity(this);
@@ -291,11 +273,9 @@ bool BombTeresa::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
     }
 
     if (MR::isMsgToEnemyAttackShockWave(msg) && isEnableShockWave()) {
-        TVec3f uVar1;
-        MR::calcSensorDirectionNormalize(&uVar1, pSender, pReceiver);
-        TVec3f v16(uVar1);
-        v16.mult(20.0f);
-        mVelocity.set(v16);
+        TVec3f dir;
+        MR::calcSensorDirectionNormalize(&dir, pSender, pReceiver);
+        mVelocity.set(dir * 20.0f);
         setNerve(GET_NERVE(BombTeresa, BombTeresaNrvShock));
         return false;
     }
@@ -692,7 +672,7 @@ void BombTeresa::exeDriftRelease() {
 }
 
 void BombTeresa::exeBindStarPointer() {
-    MR::updateActorStateAndNextNerve(this, mBindStarPointer, GET_NERVE(BombTeresa, BombTeresaNrvWait));
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(BombTeresa, BombTeresaNrvWait));
 }
 
 void BombTeresa::endBindStarPointer() {

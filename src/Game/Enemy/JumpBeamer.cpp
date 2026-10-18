@@ -1,7 +1,9 @@
 #include "Game/Enemy/JumpBeamer.hpp"
 #include "Game/Util.hpp"
+#include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/JumpGuarder.hpp"
 #include "Game/Enemy/RingBeam.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
@@ -18,6 +20,24 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
+// SMG2 step-tracking state, stored at JumpEmitter+0xC8 (not declared in our headers yet).
+class ActorStateParamScale {
+public:
+    bool isFirstStep();
+    bool isGreaterEqualStep(s32);
+    bool isIntervalStep(s32, s32);
+    f32 getNerveStepRate();
+};
+
+static ActorStateParamScale* getParamScale(const JumpBeamer* pBeamer) {
+    return *reinterpret_cast< ActorStateParamScale* const* >(reinterpret_cast< const char* >(pBeamer) + 0xC8);
+}
+
+// Unnamed SMG2 bind-star-pointer exe (called from the nerve execute).
+extern "C" void fn_801A0860(JumpBeamer*);
+extern "C" void fn_8000A320(void*);
+extern "C" void fn_8000A400(void*);
+
 namespace NrvJumpBeamer {
     NEW_NERVE(JumpBeamerNrvHide, JumpBeamer, Hide);
     NEW_NERVE(JumpBeamerNrvUp, JumpBeamer, Up);
@@ -31,24 +51,82 @@ namespace NrvJumpBeamer {
     NEW_NERVE(JumpBeamerNrvOpen, JumpBeamer, Open);
     NEW_NERVE(JumpBeamerNrvClose, JumpBeamer, Close);
     NEW_NERVE(JumpBeamerNrvInter, JumpBeamer, Inter);
+
+    // NONMATCHING: execute bodies are inlined here; SMG2 has them as unnamed fn_801A0C00 / fn_801A0C10
+    class JumpBeamerNrvBindStarPointer : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            fn_801A0860(reinterpret_cast< JumpBeamer* >(pSpine->mExecutor));
+        };
+        static JumpBeamerNrvBindStarPointer sInstance;
+    };
+    JumpBeamerNrvBindStarPointer JumpBeamerNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
+
+    class JumpBeamerNrvBindStarPointerHop : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            JumpBeamer* actor = reinterpret_cast< JumpBeamer* >(pSpine->mExecutor);
+            if (MR::updateActorState(actor)) {
+                actor->setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait));
+            }
+        };
+        static JumpBeamerNrvBindStarPointerHop sInstance;
+    };
+    JumpBeamerNrvBindStarPointerHop JumpBeamerNrvBindStarPointerHop::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvJumpBeamer
 
 JumpBeamer::JumpBeamer(const char* pName) : JumpEmitter(pName) {
 }
 
 void JumpBeamer::control() {
-    PartsModel* head = mHeadModel;
+    mAnimScaleController->updateNerve();
     TMtx34f mtx;
+    TVec3f rotation = mHeadModel->mRotation;
+    TVec3f scale = mHeadModel->mScale;
     mtx.identity();
-    MR::makeMtxTRS(mtx, TVec3f(0.0f, 0.0f, 0.0f), head->mRotation, head->mScale);
+    scale.x *= mScale.x;
+    scale.y *= mScale.y;
+    scale.z *= mScale.z;
+    MR::makeMtxTRS(mtx, TVec3f(0.0f, 0.0f, 0.0f), rotation, scale);
     _90.setInline(mBodyJointMtx);
     TMtx34f v5;
     v5.concat(_90, mtx);
     _90.setInline(v5);
     updateEventCamera();
+    JumpEmitter::control();
+
+    if (isStarPointerBindable() && mBindStarPointer->tryStartPointBind()) {
+        if (isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait))) {
+            if (MR::isGreaterEqualStep(this, 30)) {
+                setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvBindStarPointerHop));
+            }
+        } else {
+            setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvBindStarPointer));
+        }
+    }
+}
+
+void JumpBeamer::calcAndSetBaseMtx() {
+    if (!isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvBindStarPointerHop))) {
+        MR::updateBaseScale(this, mAnimScaleController);
+    }
+
+    LiveActor::calcAndSetBaseMtx();
+}
+
+bool JumpBeamer::isStarPointerBindable() const {
+    bool ret = false;
+    if (!isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait)) && !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvPreOpen)) &&
+        !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvOpen)) && !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvClose)) &&
+        !isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait)) && isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvInter))) {
+        ret = true;
+    }
+
+    return ret;
 }
 
 void JumpBeamer::init(const JMapInfoIter& rIter) {
+    JumpEmitter::init(rIter);
     MR::initActor(this, rIter, "JumpBeamerBody", false);
     mHeadModel = MR::createPartsModelMapObjStrongLight(this, "ジャンプビーマー頭", "JumpBeamerHead", _90);
     MR::initLightCtrl(mHeadModel);
@@ -58,27 +136,32 @@ void JumpBeamer::init(const JMapInfoIter& rIter) {
     initHitSensor(2);
     MR::addHitSensorMtx(this, "Jump", 0x23, 8, 145.0f, MR::getJointMtx(mHeadModel, "SpringJoint3"), TVec3f(0.0f, -100.0f, 0.0f));
     MR::addHitSensorMtxEnemy(this, "Body", 8, 145.0f, MR::getJointMtx(this, "Body"), TVec3f(0.0f, 35.0f, 0.0f));
-    getSensor("Body")->setType(0x21);
-    getSensor("Body")->validate();
-    getSensor("Jump")->invalidate();
+    MR::setSensorType(this, "Body", 0x21);
+    MR::validateHitSensor(this, "Body");
+    MR::invalidateHitSensor(this, "Jump");
     MR::initShadowVolumeSphere(this, 140.0f);
     MR::invalidateShadow(this, nullptr);
     initEffectKeeper(1, nullptr, false);
     initSound(8, "JumpBeamer", nullptr, TVec3f(0.0f));
     MR::invalidateClipping(this);
-    initNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHide));
+    initNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHide), 2);
+    MR::initStarPointerTarget(this, 150.0f, TVec3f(0.0f, 50.0f, 0.0f));
+    mAnimScaleController = new AnimScaleController(nullptr);
+    mBindStarPointer = new WalkerStateBindStarPointer(this, mAnimScaleController);
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(JumpBeamer, JumpBeamerNrvBindStarPointer), "SupportFreeze");
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(JumpBeamer, JumpBeamerNrvBindStarPointerHop), "SupportFreezeHop");
     MR::startBckWithInterpole(this, "Down", 0);
     MR::setBckFrame(this, MR::getBckCtrl(this)->getEnd() - 1);
     MR::calcAnimDirect(this);
     mBodyJointMtx = MR::getJointMtx(this, "Top");
-    MR::useStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
 
-    if (MR::useStageSwitchReadB(this, rIter)) {
-        MR::listenStageSwitchOffB(this, MR::Functor(this, &JumpBeamer::syncSwitchOffB));
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
+        MR::listenStageSwitchOffB(this, MR::FunctorV0M< JumpBeamer*, void (JumpBeamer::*)() >(this, &JumpBeamer::syncSwitchOffB));
     }
 
     initEventCamera(rIter);
-    MR::joinToGroupArray(this, rIter, nullptr, 32);
+    MR::joinToGroupArray(this, rIter, getName(), 32);
     makeActorAppeared();
     f32 arg1 = 20.0f;
     s32 arg0 = 100;
@@ -99,7 +182,7 @@ void JumpBeamer::init(const JMapInfoIter& rIter) {
 }
 
 void JumpBeamer::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver)) {
+    if (MR::isSensorPlayerOrYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -225,8 +308,7 @@ void JumpBeamer::exeHopStart() {
         MR::startAction(this, "Damage");
         MR::deleteEffect(this, "Charge");
         MR::startActionSound(this, "EmJguarderHit");
-        HitSensor* bodySensor = getSensor("Body");
-        bodySensor->mRadius = 120.0f;
+        MR::setSensorRadius(this, "Body", 120.0f);
     }
 
     MR::startActionSound(this, "EmLvJguarderShake");
@@ -237,10 +319,10 @@ void JumpBeamer::exeHopStart() {
 }
 
 void JumpBeamer::exeHopWait() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::stopBck(this);
         MR::startAction(mHeadModel, "HopWait");
-        getSensor("Jump")->validate();
+        MR::validateHitSensor(this, "Jump");
     }
 
     MR::startActionSound(this, "EmLvJguarderShake");
@@ -271,9 +353,8 @@ void JumpBeamer::exeHopEnd() {
 
     if (MR::isActionEnd(this)) {
         if (MR::isActionEnd(mHeadModel)) {
-            HitSensor* bodySensor = getSensor("Body");
-            bodySensor->mRadius = 145.0f;
-            getSensor("Jump")->invalidate();
+            MR::setSensorRadius(this, "Body", 145.0f);
+            MR::invalidateHitSensor(this, "Jump");
             setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait));
         }
     }
@@ -293,22 +374,22 @@ void JumpBeamer::exePreOpen() {
 }
 
 void JumpBeamer::exeOpen() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::startAction(this, "Open");
     }
 
-    if (MR::isGreaterEqualStep(this, 240)) {
+    if (getParamScale(this)->isGreaterEqualStep(240)) {
         setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvClose));
     } else {
-        if (!(getNerveStep() % 80)) {
+        if (getParamScale(this)->isIntervalStep(80, 0)) {
             MR::emitEffect(this, "Charge");
         }
 
-        if (getNerveStep() % 80 == 79) {
+        if (getParamScale(this)->isIntervalStep(80, 79)) {
             MR::deleteEffect(this, "Charge");
 
-            if (mBeams[getNerveStep() / 80] != nullptr) {
-                mBeams[getNerveStep() / 80]->appear();
+            if (mBeams[(s32)getParamScale(this)->getNerveStepRate() / 80] != nullptr) {
+                mBeams[(s32)getParamScale(this)->getNerveStepRate() / 80]->appear();
             }
         }
     }
@@ -342,5 +423,19 @@ void JumpBeamer::exeInter() {
         }
 
         setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvWait));
+    }
+}
+
+// SMG2 unnamed bind-star-pointer exe (fn_801A0860).
+void fn_801A0860(JumpBeamer* pBeamer) {
+    if (getParamScale(pBeamer)->isFirstStep()) {
+        fn_8000A320(pBeamer->mHeadModel);
+        fn_8000A320(pBeamer);
+    }
+
+    if (MR::updateActorState(pBeamer)) {
+        fn_8000A400(pBeamer->mHeadModel);
+        fn_8000A400(pBeamer);
+        pBeamer->setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait));
     }
 }

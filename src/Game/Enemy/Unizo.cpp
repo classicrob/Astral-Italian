@@ -126,6 +126,10 @@ namespace {
     }
 };  // namespace
 
+namespace ScoreAttackFunction {
+    void score300Points(const LiveActor*);
+};
+
 namespace {
     inline TVec3f getVelocityHorizon(LiveActor* pActor) {
         TVec3f velH;
@@ -176,20 +180,20 @@ void Unizo::init(const JMapInfoIter& rIter) {
 
     if (mType == TypeSea) {
         MR::initActor(this, rIter, "Unizo", false);
-        mBreakModel = new ModelObj("ウニゾー壊れモデル", "UnizoBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
+        mBreakModel = new ModelObj("ウニゾー壊れモデル", "UnizoBreak", nullptr, 0x13 /* DrawBufferType_Enemy (SMG2) */, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
     } else if (mType == TypeLand) {
         mRollHeight = ::sRollHeightLand;
         mGravityRate = ::sGravityRateLand;
         MR::initActor(this, rIter, "UnizoLand", false);
-        mBreakModel = new ModelObj("陸ウニゾー壊れモデル", "UnizoLandBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
+        mBreakModel = new ModelObj("陸ウニゾー壊れモデル", "UnizoLandBreak", nullptr, 0x13 /* DrawBufferType_Enemy (SMG2) */, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
         MR::initFur(this);
     } else if (mType == TypeShoal) {
         MR::initActor(this, rIter, "UnizoShoal", false);
-        mBreakModel = new ModelObj("浅瀬ウニゾー壊れモデル", "UnizoShoalBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
+        mBreakModel = new ModelObj("浅瀬ウニゾー壊れモデル", "UnizoShoalBreak", nullptr, 0x13 /* DrawBufferType_Enemy (SMG2) */, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
     }
@@ -201,7 +205,7 @@ void Unizo::init(const JMapInfoIter& rIter) {
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     initHitSensor(1);
-    MR::addHitSensor(this, "Body", 0x24, 8, 115.2f * mRadiusScale, TVec3f(0.0f, 126.36f * mRadiusScale, 0.0f));
+    MR::addHitSensor(this, "Body", 0x28 /* SMG2 ATYPE (SMG1 0x24) */, 8, 115.2f * mRadiusScale, TVec3f(0.0f, 126.36f * mRadiusScale, 0.0f));
     MR::initStarPointerTarget(this, 115.2f * mRadiusScale, TVec3f(0.0f, 126.36f * mRadiusScale, 0.0f));
     initBinder(126.36f * mRadiusScale, 126.36f * mRadiusScale, 8);
     MR::initShadowVolumeSphere(this, 106.36f * mRadiusScale);
@@ -212,7 +216,6 @@ void Unizo::init(const JMapInfoIter& rIter) {
     }
 
     initSound(4, "Unizo", nullptr, TVec3f(0.0f));
-    initNerve(GET_NERVE(Unizo, UnizoNrvWait));
     MR::onCalcGravity(this);
     MR::startBtp(this, "Blink");
     mBlinkFrame = MR::getRandom(100L, 200L);
@@ -221,9 +224,14 @@ void Unizo::init(const JMapInfoIter& rIter) {
     mAnimScaleController = new AnimScaleController(nullptr);
     mAnimScaleController->setParamTight();
     mBindStarPointerState = new WalkerStateBindStarPointer(this, mAnimScaleController);
+    initNerve(GET_NERVE(Unizo, UnizoNrvWait), 1);
+    MR::initActorState(this, mBindStarPointerState, GET_NERVE(Unizo, UnizoNrvPointing), "SupportFreeze");
     MR::setGroupClipping(this, rIter, 16);
     makeActorAppeared();
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
+    if (mType == TypeLand) {
+        MR::initUseStageSwitchWriteDead(this, rIter);
+    }
 }
 
 void Unizo::initAfterPlacement() {
@@ -413,12 +421,10 @@ void Unizo::exeFireDown() {
     }
     updateRotate();
     calcAndSetBaseMtx();
-    mBreakModel->mPosition.set(mPosition);
+    MR::setPosition(mBreakModel, mPosition);
 
     if (MR::isStep(this, ::sFireDownStarPiece)) {
-        if (MR::appearStarPiece(this, mBreakModel->mPosition, ::sStarPieceNum, 10.0f, 40.0f, true)) {
-            MR::startActionSound(this, "OjStarPieceBurst");
-        }
+        MR::appearStarPiece(this, mBreakModel->mPosition, ::sStarPieceNum, 10.0f, 40.0f, true);
     }
 
     if (MR::isDead(mBreakModel) || (MR::isActionEnd(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
@@ -431,7 +437,7 @@ void Unizo::exeFireDown() {
 
 void Unizo::exeJumpDown() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "EmUnizoBreak");
+        MR::startActionSound(this, "EmUnizoBreak", -1, -1, -1);
     }
 
     MR::addVelocityToGravity(this, ::sFireDownGravity);
@@ -440,7 +446,7 @@ void Unizo::exeJumpDown() {
     }
     updateRotate();
     calcAndSetBaseMtx();
-    mBreakModel->mPosition.set(mPosition);
+    MR::setPosition(mBreakModel, mPosition);
 
     if (MR::isDead(mBreakModel) || (MR::isActionEnd(mBreakModel) && MR::isBrkStopped(mBreakModel))) {
         kill();
@@ -487,27 +493,29 @@ bool Unizo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
         return false;
     }
 
-    if (MR::isMsgFireBallAttack(msg)) {
+    if (MR::isMsgFireBallAttack(msg) || MR::isMsgJetTurtleAttack(msg)) {
         if (mType == TypeSea) {
-            doBreak();
+            doBreak(msg, pSender);
         } else {
-            TVec3f direction = pReceiver->mPosition - *MR::getPlayerPos();
+            TVec3f direction = *MR::getSensorPos(pReceiver) - *MR::getPlayerPos();
             MR::normalizeOrZero(&direction);
-            doFireDown(direction);
+            doFireDown(msg, direction);
         }
         return true;
     }
-    if (MR::isMsgJetTurtleAttack(msg)) {
-        doBreak();
+    if (MR::isMsgPlayerHitProjectiles(msg)) {
+        doBreak(msg, pSender);
         return true;
     }
     return false;
 }
 
 bool Unizo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorType(pSender, 0x24)) {
-        TVec3f direction = pReceiver->mPosition - pSender->mPosition;
+    if (MR::isSensorType(pSender, 0x28 /* SMG2 ATYPE (SMG1 0x24) */)) {
+        TVec3f direction = *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender);
         f32 distance = direction.length();
+        MR::getSensorRadius(pSender);  // dead calls kept: present in the target
+        MR::getSensorRadius(pReceiver);
         MR::normalizeOrZero(&direction);
         MR::addVelocityMoveToDirection(this, direction, ::sReboundEnemy * distance);
         startWallHitSound();
@@ -515,7 +523,7 @@ bool Unizo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
             MR::startAction(this, "Shock");
         }
     } else {
-        doBreak();
+        doBreak(msg, pSender);
     }
     return true;
 }
@@ -574,7 +582,7 @@ void Unizo::udpateInfluence() {
     }
 
     if (rebound) {
-        f32 verticalSpeed = -mGravity.dot(mVelocity);
+        f32 verticalSpeed = -MR::calcGravitySpeed(this);
         if (verticalSpeed >= ::sLandSoundLandSpeed) {
             if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
                 MR::startActionSound(this, "EmLvUnizoLandWater", 100.0f * verticalSpeed, 30);
@@ -624,6 +632,7 @@ void Unizo::udpateBlink() {
     }
 }
 
+// NONMATCHING: stack frame is 0x70 in the target, ours 0x60 (extra local/temp in the WaterInfo path not identified).
 void Unizo::updateSurfaceEffect() {
     if (mType == TypeShoal) {
         WaterInfo waterInfo;
@@ -678,7 +687,7 @@ void Unizo::doJump() {
 }
 
 void Unizo::doAttack(HitSensor* pSensor) {
-    TVec3f direction = mPosition - pSensor->mHost->mPosition;
+    TVec3f direction = mPosition - MR::getSensorHost(pSensor)->mPosition;
     TVec3f up = -mGravity;
     MR::normalizeOrZero(&direction);
     MR::normalizeOrZero(&up);
@@ -700,12 +709,11 @@ void Unizo::doJumpDown() {
     setNerve(GET_NERVE(Unizo, UnizoNrvJumpDown));
 }
 
-void Unizo::doFireDown(const TVec3f& rDirection) {
+void Unizo::doFireDown(u32 msg, const TVec3f& rDirection) {
+    ScoreAttackFunction::score300Points(this);
     appearBreakModel();
     if (mType == TypeShoal) {
-        if (MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, true)) {
-            MR::startActionSound(this, "OjStarPieceBurst");
-        }
+        MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, true);
         MR::startAction(mBreakModel, "Firedown");
         MR::startBrk(mBreakModel, "Break");
         MR::startActionSound(this, "EmUnizoBreak");
@@ -723,15 +731,11 @@ void Unizo::doFireDown(const TVec3f& rDirection) {
     }
 }
 
-void Unizo::doBreak() {
-    bool appeared;
+void Unizo::doBreak(u32 msg, HitSensor* pSender) {
     if (mType == TypeSea) {
-        appeared = MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, false);
+        MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, false);
     } else {
-        appeared = MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, true);
-    }
-    if (appeared) {
-        MR::startActionSound(this, "OjStarPieceBurst");
+        MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, true);
     }
     MR::startActionSound(this, "EmUnizoBreak");
     appearBreakModel();
@@ -749,6 +753,7 @@ void Unizo::doBreak() {
         MR::startBrk(mBreakModel, "FireDown");
     }
     mBreakModel->appear();
+    ScoreAttackFunction::score300Points(this);
     setNerve(GET_NERVE(Unizo, UnizoNrvBreak));
 }
 
@@ -767,8 +772,13 @@ void Unizo::doSpin() {
     }
 }
 
-// NONMATCHING: SMG2 Binder.hpp (LiveActor/*, core-owned) has no getPlane/mPlaneNum; target loops over plane count at +0x28.
 bool Unizo::isBreakGround() {
+    for (u32 i = 0; i < mBinder->mPlaneNum; i++) {
+        const Triangle* pTriangle = &mBinder->getPlane(i)->mParentTriangle;
+        if (MR::isGroundCodeDamage(pTriangle) || MR::isGroundCodeDamageFire(pTriangle)) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -805,9 +815,9 @@ void Unizo::appearBreakModel() {
     f32 y = toDeg(rotation.y);
     f32 z = toDeg(rotation.z);
     rotation.set(x, y, z);
-    mBreakModel->mPosition.set(mPosition);
-    mBreakModel->mScale.set(mScale);
-    mBreakModel->mRotation.set(rotation);
+    MR::setPosition(mBreakModel, mPosition);
+    MR::setScale(mBreakModel, mScale);
+    MR::setRotation(mBreakModel, rotation);
     mBreakModel->appear();
     MR::hideModel(this);
     MR::invalidateHitSensors(this);

@@ -28,8 +28,6 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void initTongue();
-    void initSensor();
-    void initFromJMapParam(const JMapInfoIter&);
     void exeAppear();
     void exeShadowAppear();
     void exeBallAppear();

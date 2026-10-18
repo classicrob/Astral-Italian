@@ -21,6 +21,11 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
+class ScoreAttackFunction {
+public:
+    static void score300Points(const LiveActor*);
+};
+
 namespace {
     struct SnakeheadData {
         const s32* _0;
@@ -71,21 +76,30 @@ namespace NrvSnakehead {
     NEW_NERVE(SnakeheadNrvRest, Snakehead, Rest);
     NEW_NERVE(SnakeheadNrvMoveBack, Snakehead, MoveBack);
     NEW_NERVE(SnakeheadNrvTurtleDown, Snakehead, TurtleDown);
-    NEW_NERVE_ONEND(SnakeheadNrvDPDSwoon, Snakehead, DPDSwoon, DPDSwoon);
+    class SnakeheadNrvDPDSwoon : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            Snakehead* actor = reinterpret_cast< Snakehead* >(pSpine->mExecutor);
+            MR::updateActorStateAndNextNerve(actor, GET_NERVE(Snakehead, SnakeheadNrvMoveBack));
+        };
+        static SnakeheadNrvDPDSwoon sInstance;
+    };
+    SnakeheadNrvDPDSwoon SnakeheadNrvDPDSwoon::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvSnakehead
 
 Snakehead::Snakehead(const char* pName)
     : LiveActor(pName), mController(), mStarPointer(), _C4(0.0f, 0.0f, 0.0f), mForwardSpeed(::sDefaultForwardSpeed),
-      mBackwardSpeed(::sDefaultBackSpeed), mActivationRadius(1000.0f), mRailCenter(0.0f, 0.0f, 0.0f), _E8(), mItem() {
+      mBackwardSpeed(::sDefaultBackSpeed), mActivationRadius(1000.0f), mRailCenter(0.0f, 0.0f, 0.0f), _E8(), mItem(), mIsValidateShadow(true) {
     mBodyMtx.identity();
 }
 
+// NONMATCHING: 97.3%; this/rIter and string-base register allocation swapped (r30/r31/r28 vs r31/r28/r29), and the smoke-name getParam reload (lwz r4,0x18(r4)) is CSE'd away in ours
 void Snakehead::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
     const char* objectName;
     MR::getObjectName(&objectName, rIter);
-    initModelManagerWithAnm(objectName, nullptr, false);
+    MR::initActor(this, rIter, objectName, false);
 
     MR::getJMapInfoArg0NoInit(rIter, &mForwardSpeed);
     MR::getJMapInfoArg1NoInit(rIter, &mBackwardSpeed);
@@ -96,25 +110,31 @@ void Snakehead::init(const JMapInfoIter& rIter) {
 
     _E8 = static_cast< SnakeheadType >(MR::isEqualString(objectName, "SnakeheadSmall") + arg3 * 2);
 
+    bool arg4 = false;
+    MR::getJMapInfoArg4NoInit(rIter, &arg4);
+    if (arg4) {
+        mIsValidateShadow = false;
+    }
+
     MR::connectToSceneEnemy(this);
 
     if (isSmall()) {
-        initHitSensor(2);
+        initHitSensor(3);
+        MR::addHitSensorAtJointEnemy(this, "upper_jaw", "UpperJaw", 8, 150.0f, TVec3f(50.0f, 0.0f, 0.0f));
         MR::addHitSensorAtJointEnemy(this, "head", "Head", 8, 100.0f, TVec3f(140.0f, -70.0f, 0.0f));
-        MR::addHitSensorAtJointEnemy(this, "body", "Body03", 8, 300.0f, TVec3f(0.0f, 0.0f, 0.0f));
+        MR::addHitSensorAtJointEnemy(this, "Body", "Body03", 8, 300.0f, TVec3f(0.0f, 0.0f, 0.0f));
     } else {
         initHitSensor(3);
         MR::addHitSensorAtJointEnemy(this, "upper_jaw", "UpperJaw", 8, 250.0f, TVec3f(100.0f, 0.0f, 0.0f));
         MR::addHitSensorAtJointEnemy(this, "lower_jaw", "LowerJaw", 8, 200.0f, TVec3f(250.0f, 0.0f, 0.0f));
-        MR::addHitSensorAtJointEnemy(this, "body", "Body03", 8, 600.0f, TVec3f(0.0f, 0.0f, 0.0f));
+        MR::addHitSensorAtJointEnemy(this, "Body", "Body03", 8, 600.0f, TVec3f(0.0f, 0.0f, 0.0f));
     }
 
     initEffectKeeper(1, nullptr, false);
 
-    const char* smokeName = ::getParam(_E8)->_18;
-    if (smokeName != nullptr) {
+    if (::getParam(_E8)->_18 != nullptr) {
         _C4 = mPosition;
-        MR::setEffectHostSRT(this, smokeName, &_C4, nullptr, nullptr);
+        MR::setEffectHostSRT(this, ::getParam(_E8)->_18, &_C4, nullptr, nullptr);
     }
 
     initSound(4, "Snakehead", nullptr, TVec3f(0.0f));
@@ -133,7 +153,7 @@ void Snakehead::init(const JMapInfoIter& rIter) {
     mBodyMtx.set(MR::getJointMtx(this, "Body04"));
 
     if (MR::isEqualString(objectName, "Snakehead")) {
-        MR::initShadowController(this, 2);
+        MR::initShadowControllerList(this, 2);
         MR::addShadowVolumeFlatModel(this, "Head", "SnakeheadShadow", mBodyMtx);
         MR::addShadowVolumeBox(this, "Body", TVec3f(480.0f, 300.0f, 680.0f));
     } else {
@@ -141,10 +161,15 @@ void Snakehead::init(const JMapInfoIter& rIter) {
         MR::setShadowDropLength(this, "SnakeheadSmallShadow", 500.0f);
     }
 
+    if (arg4) {
+        MR::invalidateShadowAll(this);
+    }
+
     MR::initLightCtrl(this);
 
     initRailRider(rIter);
     MR::initAndSetRailClipping(&mRailCenter, this, 100.0f, 500.0f);
+    MR::setGroupClipping(this, rIter, 16);
     MR::setRailCoord(this, ::sStartCoord);
     MR::moveTransToCurrentRailPos(this);
 
@@ -156,10 +181,13 @@ void Snakehead::init(const JMapInfoIter& rIter) {
         mItem = MR::createKinokoOneUp();
     }
 
+    initNerve(GET_NERVE(Snakehead, SnakeheadNrvWait));
+    MR::initActorState(this, mStarPointer, GET_NERVE(Snakehead, SnakeheadNrvDPDSwoon), "SupportFreeze");
+
     if (isMove()) {
-        initNerve(GET_NERVE(Snakehead, SnakeheadNrvWait));
+        setNerve(GET_NERVE(Snakehead, SnakeheadNrvWait));
     } else {
-        initNerve(GET_NERVE(Snakehead, SnakeheadNrvWaylay));
+        setNerve(GET_NERVE(Snakehead, SnakeheadNrvWaylay));
 
         MR::hideModel(this);
 
@@ -178,7 +206,7 @@ void Snakehead::initAfterPlacement() {
 
     TVec3f v7;
     v7.scaleAdd(-50.0f, mGravity, headPos);
-    MR::getFirstPolyOnLineToMapExceptSensor(&_C4, nullptr, v7, mGravity * 1000.0f, getSensor("body"));
+    MR::getFirstPolyOnLineToMapExceptSensor(&_C4, nullptr, v7, mGravity * 1000.0f, getSensor("Body"));
 
     mBodyMtx.set(MR::getJointMtx(this, "Body04"));
 }
@@ -192,8 +220,6 @@ void Snakehead::kill() {
         TVec3f headPos;
         MR::copyJointPos(this, "Head", &headPos);
         MR::appearStarPiece(this, headPos, 9, 10.0f, 40.0f, 0);
-
-        MR::startActionSound(this, "OjStarPieceBurstW");
     } else {
         TVec3f attPos;
         MR::copyJointPos(this, "Antenna", &attPos);
@@ -256,7 +282,7 @@ void Snakehead::exeWaylay() {
         MR::showModel(this);
     }
 
-    if (MR::getBckFrame(this) == 2.0f) {
+    if (MR::getBckFrame(this) == 2.0f && mIsValidateShadow) {
         MR::validateShadow(this, nullptr);
     }
 
@@ -338,6 +364,7 @@ void Snakehead::exeTurtleDown() {
     }
 
     if (MR::isActionEnd(this)) {
+        ScoreAttackFunction::score300Points(this);
         kill();
     }
 }
@@ -351,11 +378,11 @@ void Snakehead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (!MR::isSensorPlayerOrRide(pReceiver) && !MR::isSensorEnemy(pReceiver)) {
+    if (!MR::isSensorPlayerOrRide(pReceiver) && !MR::isSensorEnemy(pReceiver) && !MR::isSensorYoshi(pReceiver)) {
         return;
     }
 
-    if (pSender != getSensor("body")) {
+    if (pSender != getSensor("Body")) {
         if (isNerve(GET_NERVE(Snakehead, SnakeheadNrvDPDSwoon)) || !MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
             MR::sendMsgPush(pReceiver, pSender);
         }
@@ -363,15 +390,15 @@ void Snakehead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (pSender != getSensor("body")) {
+    if (pSender != getSensor("Body")) {
         return;
     }
 
     TVec3f vec40;
-    MR::calcPerpendicFootToLineInside(&vec40, pReceiver->mPosition, MR::getRailPointPosStart(this), MR::getRailPointPosEnd(this));
+    MR::calcPerpendicFootToLineInside(&vec40, *MR::getSensorPos(pReceiver), MR::getRailPointPosStart(this), MR::getRailPointPosEnd(this));
 
     TVec3f vec4C;
-    vec4C.sub(pReceiver->mPosition, vec40);
+    vec4C.sub(*MR::getSensorPos(pReceiver), vec40);
 
     f32 pushRadius = isSmall() ? 100.0f : ::sStartCoord;
     if (vec4C.length() > pushRadius) {
@@ -382,16 +409,16 @@ void Snakehead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    TVec3f pos((*MR::getSensorPos(this, "body")));
-    f32 radius = MR::getSensorRadius(this, "body");
+    TVec3f pos((*MR::getSensorPos(this, "Body")));
+    f32 radius = MR::getSensorRadius(this, "Body");
 
-    MR::getSensorPos2(this, "body")->set(vec40);
-    MR::setSensorRadius(this, "body", pushRadius);
+    MR::setSensorPos(this, "Body", vec40);
+    MR::setSensorRadius(this, "Body", pushRadius);
 
     MR::sendMsgPush(pReceiver, pSender);
 
-    MR::getSensorPos2(this, "body")->set(pos);
-    MR::setSensorRadius(this, "body", radius);
+    MR::setSensorPos(this, "Body", pos);
+    MR::setSensorRadius(this, "Body", radius);
 }
 
 bool Snakehead::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -448,7 +475,7 @@ bool Snakehead::tryDPDSwoon() {
         return false;
     }
 
-    if (isNerve(GET_NERVE(Snakehead, SnakeheadNrvWaylay))) {
+    if (isNerve(GET_NERVE(Snakehead, SnakeheadNrvWaylay)) && MR::getBckFrame(this) <= 2.0f) {
         return false;
     }
 
@@ -470,12 +497,4 @@ bool Snakehead::isNearPlayerFromRail() const {
     MR::calcNearestRailPos(&nearestPos, this, *MR::getPlayerPos());
 
     return nearestPos.distance(*MR::getPlayerPos()) <= mActivationRadius;
-}
-
-void Snakehead::endDPDSwoon() {
-    mStarPointer->kill();
-}
-
-void Snakehead::exeDPDSwoon() {
-    MR::updateActorStateAndNextNerve(this, mStarPointer, GET_NERVE(Snakehead, SnakeheadNrvMoveBack));
 }

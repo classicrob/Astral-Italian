@@ -39,8 +39,8 @@ public:
     void doJump();
     void doAttack(HitSensor*);
     void doJumpDown();
-    void doFireDown(const TVec3f&);
-    void doBreak();
+    void doFireDown(u32, const TVec3f&);
+    void doBreak(u32, HitSensor*);
     void doSpin();
     bool isBreakGround();
     bool isBreakNow() const;

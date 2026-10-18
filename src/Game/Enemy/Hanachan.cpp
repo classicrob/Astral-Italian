@@ -809,14 +809,14 @@ void Hanachan::init(const JMapInfoIter& rIter) {
         mIsChasePlayer = true;
     }
 
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
     MR::connectToSceneEnemyMovement(this);
     initNerve(GET_NERVE(Hanachan, HanachanNrvHanachanWalk));
     initSound(6, "Hanachan", nullptr, TVec3f(0.0f));
     MR::validateClipping(this);
     mScaleController = new AnimScaleController(nullptr);
     MR::declareStarPiece(this, 6);
-    appear();
+    MR::setGroupClipping(this, rIter, 16);
 
     mBodyParts[0] = new HanachanParts(this, 0, "頭パーツ", "HanachanHead");
     mBodyParts[1] = new HanachanParts(this, 1, "体パーツ", "HanachanBodyS");
@@ -834,13 +834,13 @@ void Hanachan::init(const JMapInfoIter& rIter) {
     MR::moveTransToOtherActorRailPos(mBodyParts[0], this);
     MR::reverseRailDirection(this);
 
-    MR::moveCoord(this, mBodyParts[0]->getSensor("body")->getRadius() / 2.0f + mBodyParts[1]->getSensor("body")->getRadius() / 2.0f);
+    MR::moveCoord(this, MR::getSensorRadius(mBodyParts[0], "Body") / 2.0f + MR::getSensorRadius(mBodyParts[1], "Body") / 2.0f);
     MR::moveTransToOtherActorRailPos(mBodyParts[1], this);
-    MR::moveCoord(this, mBodyParts[1]->getSensor("body")->getRadius() / 2.0f + mBodyParts[2]->getSensor("body")->getRadius() / 2.0f);
+    MR::moveCoord(this, MR::getSensorRadius(mBodyParts[1], "Body") / 2.0f + MR::getSensorRadius(mBodyParts[2], "Body") / 2.0f);
     MR::moveTransToOtherActorRailPos(mBodyParts[2], this);
-    MR::moveCoord(this, mBodyParts[2]->getSensor("body")->getRadius() / 2.0f + mBodyParts[3]->getSensor("body")->getRadius() / 2.0f);
+    MR::moveCoord(this, MR::getSensorRadius(mBodyParts[2], "Body") / 2.0f + MR::getSensorRadius(mBodyParts[3], "Body") / 2.0f);
     MR::moveTransToOtherActorRailPos(mBodyParts[3], this);
-    MR::moveCoord(this, mBodyParts[3]->getSensor("body")->getRadius() / 2.0f + mBodyParts[4]->getSensor("body")->getRadius() / 2.0f);
+    MR::moveCoord(this, MR::getSensorRadius(mBodyParts[3], "Body") / 2.0f + MR::getSensorRadius(mBodyParts[4], "Body") / 2.0f);
     MR::moveTransToOtherActorRailPos(mBodyParts[4], this);
     MR::reverseRailDirection(this);
 
@@ -849,6 +849,9 @@ void Hanachan::init(const JMapInfoIter& rIter) {
     mBodyParts[2]->appear();
     mBodyParts[3]->appear();
     mBodyParts[4]->appear();
+
+    MR::useStageSwitchAwake(this, rIter);
+    appear();
 }
 
 void Hanachan::initAfterPlacement() {
@@ -1149,7 +1152,7 @@ void Hanachan::exeStarPointerBind() {
         mScaleController->startDpdHitVibration();
     }
 
-    if (MR::isGreaterStep(this, ::hBindMinStep) && !isStarPointerPointing()) {
+    if (!isStarPointerPointing() && MR::isGreaterStep(this, ::hBindMinStep)) {
         if (isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanStarPointerBindOverturn))) {
             setNerve(GET_NERVE(Hanachan, HanachanNrvHanachanStarPointerBindEndOverturn));
         } else {
@@ -1169,7 +1172,7 @@ s32 Hanachan::calcNearestInfectionId() {
     s32 nearestId = -1;
 
     for (s32 i = 0; i < mBodyParts.size(); i++) {
-        f32 dist = mBodyParts[i]->getSensor("body")->mPosition.squared(mAttackPos);
+        f32 dist = MR::getSensorPos(mBodyParts[i], "Body")->squared(mAttackPos);
 
         if (dist < nearestDist) {
             nearestDist = dist;
@@ -1335,22 +1338,30 @@ TVec3f Hanachan::calcSensorDirection(const HitSensor* pSensor, const HitSensor* 
 }
 
 void Hanachan::moveBodyAlongHead() {
-    TVec3f* grav;
     for (s32 i = 1; i < mBodyParts.size(); i++) {
-        TVec3f toPrev = mBodyParts[i - 1]->getSensor("body")->mPosition;
-        toPrev.sub(mBodyParts[i]->getSensor("body")->mPosition);
+        TVec3f toPrev = *MR::getSensorPos(mBodyParts[i - 1], "Body");
+        toPrev.sub(*MR::getSensorPos(mBodyParts[i], "Body"));
 
         TVec3f push = -toPrev;
-        push.setLength(::hCollideRange + mBodyParts[i - 1]->getSensor("body")->getRadius() / 2.0f +
-                       mBodyParts[i]->getSensor("body")->getRadius() / 2.0f);
+        push.setLength(::hCollideRange + MR::getSensorRadius(mBodyParts[i - 1], "Body") / 2.0f +
+                       MR::getSensorRadius(mBodyParts[i], "Body") / 2.0f);
 
         mBodyParts[i]->mPushVelocity.add(toPrev + push);
 
-        grav = &mBodyParts[i]->mGravity;
-        HitSensor* pTarget = mBodyParts[i - 1]->getSensor("body");
-        HitSensor* pSensor = mBodyParts[i]->getSensor("body");
-        TQuat4f* pRotation = &mBodyParts[i]->mRotationQuat;
+        if (MR::isBindedWall(mBodyParts[i])) {
+            HanachanParts* parts = mBodyParts[i];
+            TVec3f fall(*parts->getCommonGravity());
+            fall.scale(-5.0f);
+            parts->mFallVelocity.set(fall);
+        }
 
-        MR::blendQuatUpFront(pRotation, -*grav, calcSensorDirection(pSensor, pTarget), 0.3f, 0.5f);
+        TVec3f* grav = &mBodyParts[i]->mGravity;
+        const TVec3f* pTargetPos = MR::getSensorPos(mBodyParts[i - 1], "Body");
+        const TVec3f* pSensorPos = MR::getSensorPos(mBodyParts[i], "Body");
+        TQuat4f* pRotation = &mBodyParts[i]->mRotationQuat;
+        TVec3f dir = *pTargetPos - *pSensorPos;
+        MR::normalizeOrZero(&dir);
+
+        MR::blendQuatUpFront(pRotation, -*grav, dir, 0.3f, 0.5f);
     }
 }

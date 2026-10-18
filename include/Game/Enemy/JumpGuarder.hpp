@@ -13,6 +13,8 @@ public:
     JumpEmitter(const char*);
 
     virtual void kill();
+    virtual void init(const JMapInfoIter&);
+    virtual void control();
 
     void initEventCamera(const JMapInfoIter&);
     void startEventCamera();

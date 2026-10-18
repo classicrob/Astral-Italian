@@ -11,6 +11,7 @@ class LiveActor;
 class MarioActionHash {
 public:
     MarioActionHash();  // fn_803DB5E0
+    bool fn_803DB650(const char**, const char*, u16, u16);
 
     /* 0x00 */ HashSortTable* mTable;
     /* 0x04 */ s32 _4;

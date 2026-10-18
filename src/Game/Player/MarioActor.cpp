@@ -1074,34 +1074,14 @@ void MarioActor::movement() {
 
 
 void MarioActor::control() {
-    if (mSuperKinokoCollected) {
-        if (MR::tryStartDemoWithoutCinemaFrame(this, "マリオスーパー化")) {  // 6-up camera
-            mSuperKinokoCollected = false;
-            changeMaxLife(6);
-            MR::stopAnimFrame(this);
-            MR::requestPowerUpHPMeter();
-            mMario->startPadVib("マリオ[変身]");
-            MR::startSystemSE("SE_SY_SUPER_KINOKO_GET");
-            _3DA = 0x5a;
-        }
-    } else if (mPowerupCollected) {
-        if (MR::tryStartDemoWithoutCinemaFrame(this, "マリオ変身")) {
-            mPowerupCollected = false;
-            mTransforming = true;
-            if (mPlayerMode == 6) {
-                MR::requestMovementOn(_9A4);
-                changeTeresaAnimation("change", -1);
-            }
-
-            _3D8 = 0x40;
-            MR::stopAnimFrame(this);
-            playEffect("変身");
-            mMario->startPadVib("マリオ[変身]");
-        }
-    }
-
-    control2();
-    _294 = mPosition;
+    if (!fn_803C1C60()) fn_803C1D30();
+    Mario* mario = mMario;
+    mario->mStateFlags._0 = false;
+    mario->mStateFlags._1 = false;
+    mario->mStateFlags._2 = false;
+    if (fn_803C1E40()) fn_803C1E80();
+    else control2();
+    mPreviousPosition = mPosition;
 }
 
 
@@ -1262,74 +1242,28 @@ void MarioActor::updatePunching() {
 
 
 bool MarioActor::doRush() {
-    if (_934) {
-        tryCoinPull();
-        tryRushInRush();
-        if (!_934) {
-            return false;
-        }
-
-        updateGravityVec(false, false);
-        if (!checkClapCatchStart() && _7DC) {
-            bodyClap();
-        }
-
-        _7DC = 0;
-        _7E2 = false;
-        mMario->mPosHolder->fn_80405F90(mPosition);
-        mMario->updateGroundInfo();
-        mMario->updateCubeCode();
-        mMario->decDamageAfterTimer();
-        if (selectWaterInOutRush(_924)) {
-            WaterInfo stack_44;
-            if (!MR::getWaterAreaObj(&stack_44, mPosition)) {
-                mMario->forceExitSwim();
-            }
-        } else if (!selectWaterInOutEffect(_924->mHost->mName)) {
-            s32 initial = mMario->mSwim->mSwimState;
-            mMario->mSwim->checkWaterCube(false);
-            if (mMario->mSwim->mSwimState != initial) {
-                if ((u32)mMario->mSwim->mSwimState <= MarioSwim::SWIM_STATE_ENTERING && (u32)initial - 2 <= 1) {
-                    playEffectRT("水面ジャンプ水柱", mMario->mSwim->mSurfacePos, mMario->mSwim->mSurfaceNorm);
-                    emitEffectWaterColumn(mMario->mSwim->mSurfacePos, mMario->mSwim->mSurfaceNorm);
-                    // SWIM_STATE_UNDERWATER and SWIM_STATE_SURFACE
-                } else if ((u32)initial <= 1 && (u32)(mMario->mSwim->mSwimState - MarioSwim::SWIM_STATE_UNDERWATER) <= 1) {
-                    playEffectRT("水面ジャンプ水柱", -mMario->_328, mMario->mSwim->mSurfaceNorm);
-                    emitEffectWaterColumn(mMario->mSwim->mSurfacePos, mMario->mSwim->mSurfaceNorm);
-                }
-
-                if (initial == 2) {
-                    mWaterLife = 8;
-                    MR::getGameSceneLayoutHolder()->changeLifeMeterModeGround();
-                    mMario->forceExitSwim();
-                } else if (initial == 0) {
-                    MR::getGameSceneLayoutHolder()->changeLifeMeterModeWater();
-                }
-            }
-        }
-
-        if (mMario->isForceStopRush()) {
-            bool received = _924->receiveMessage(0x95 /* RUSH_DAMAGE_CANCEL, verify */, getSensor("body"));
-            if (_934 && received) {
-                RushEndInfo stack_20(nullptr, 4, TVec3f(0.0f, 0.0f, 0.0f), false, 0);
-                endRush(&stack_20);
-            }
-        }
-
-        mMarioAnim->setHoming();
-        updateTornado();
-        if (_934 && selectRecoverFlyMeter(_924)) {
-            for (u32 i = 0; i < 4; i++) {
-                mMario->incAirWalkTimer();
-            }
-        }
-
-        updateSwingTimer();
-        return true;
-    } else {
-        _7E2 = false;
-        return false;
+    if (!_934) return false;
+    tryCoinPull();
+    tryRushInRush();
+    if (!_934) return false;
+    updateGravityVec(false, false);
+    if (!checkClapCatchStart()) bodyClap();
+    _7DC = 0;
+    mMario->mPosHolder->fn_80405F90(mPosition);
+    mMario->updateGroundInfo();
+    mMario->updateCubeCode();
+    if (!_934) return false;
+    mMario->decDamageAfterTimer();
+    fn_803C2900();
+    fn_803C2AA0();
+    mMarioAnim->setHoming();
+    updateTornado();
+    fn_803C2B50();
+    updateSwingTimer();
+    if (mHealth == 0 && isEnableNerveChange()) {
+        setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOver));
     }
+    return true;
 }
 
 
@@ -3988,11 +3922,11 @@ namespace {
   // namespace
 
 void MarioActor::initDrawAndModel() {
-    _218 = new DrawAdaptor(MR::Functor(this, &MarioActor::drawShadow), MR::DrawType_AlphaShadow);
-    _21C = new DrawAdaptor(MR::Functor(this, &MarioActor::drawSilhouette), (MR::DrawType)0x28 /* Petari DrawType_0x28 */);
-    _220 = new DrawAdaptor(MR::Functor(this, &MarioActor::drawPreWipe), MR::DrawType_CometScreenFilter);
-    _228 = new DrawAdaptor(MR::Functor(this, &MarioActor::drawScreenBlend), MR::DrawType_CenterScreenBlur);
-    _22C = new DrawAdaptor(MR::Functor(this, &MarioActor::drawIndirect), (MR::DrawType)0x24 /* Petari DrawType_0x24 */);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawShadow), (MR::DrawType)0x2d);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawSilhouette), (MR::DrawType)0x2c);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawPreWipe), (MR::DrawType)0x49);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawScreenBlend), (MR::DrawType)0x34);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawIndirect), (MR::DrawType)0x27);
 
     if (gIsLuigi) {
         initModelManagerWithAnm("Luigi", "MarioAnime", true);
@@ -4000,25 +3934,19 @@ void MarioActor::initDrawAndModel() {
         initModelManagerWithAnm("Mario", "MarioAnime", true);
     }
 
-    J3DModelX* baseModel = static_cast< J3DModelX* >(MR::getJ3DModel(this));
-    baseModel->_DD = 8;
-
-    ::initExtraMtxBuffer(baseModel);
-
-    MR::initDLMakerFog(this, true);
-    MR::newDifferedDLBuffer(this);
-
-    mModels[0] = baseModel;
+    mAllModel->registerModel(0, this, false, true);
     _9E4 = nullptr;
-    _9C0 = nullptr;
+    _9BC = nullptr;
     _B4C = nullptr;
-    _9C8 = nullptr;
-    _A00 = nullptr;
-    _A04 = nullptr;
-    mTornadoMario = nullptr;
-    initFireBall();
-
-    _3D2 |= 0x4;
+    _9C0 = nullptr;
+    mModelEDC = nullptr;
+    mModelEE0 = nullptr;
+    _1BC = nullptr;
+    mModelEE8 = nullptr;
+    mModelEEC = nullptr;
+    mModelEF4 = nullptr;
+    mModelEF0 = nullptr;
+    initFireMario();
 
     initBeeMario();
     initIceMario();
@@ -4028,10 +3956,11 @@ void MarioActor::initDrawAndModel() {
     _3D2 |= 0x80;
     initBoneMario();
     initTornadoMario();
+    initYoshi();
+    initCloudMario();
+    initRockMario();
     initBlur();
 
-    mCurrModel = 0;
-    _A0B = 0;
     initShadow();
     initHand();
 
@@ -4044,7 +3973,8 @@ void MarioActor::initDrawAndModel() {
     mDLchanger = new DLchanger(2, 0x100);
     _1A4 = 0.0f;
 
-    swapTextureInit();
+    mAllModel->fn_803E7BB0(this);
+    initBlink();
     createRainbowDL();
 
     {
@@ -4060,7 +3990,7 @@ void MarioActor::initDrawAndModel() {
             mMaskTextures[i]->init();
         }
 
-        _B88 = 0;
+        mRandomTextureIndex = 0;
         updateRandomTexture(1000.0f);
         updateRandomTexture(1000.0f);
     }
@@ -6073,12 +6003,6 @@ void MarioActor::initMember() {
     _210 = 0;
     _211 = 0;
     _214 = nullptr;
-    _218 = nullptr;
-    _21C = nullptr;
-    _220 = nullptr;
-    mDrawSearchLight = nullptr;
-    _228 = nullptr;
-    _22C = nullptr;
     mMario = nullptr;
     mMarioAnim = nullptr;
     mMarioEffect = nullptr;
@@ -6336,7 +6260,7 @@ void MarioActor::initMember() {
     _B7C = 0;
     _B80 = 0;
     _B84 = 0;
-    _B88 = 0;
+    mRandomTextureIndex = 0;
     mNullAnimation = nullptr;
     _B90 = 0;
     _B91 = 0;
@@ -6796,23 +6720,9 @@ void MarioActor::initMorphStringTable() {
 
 
 const char* MarioActor::changeMorphString(const char* name) const {
-    u32 hash = MR::getHashCode(name);
-    for (myStruct* item = cMorphStringTable;; item++) {
-        if (item->_0[0] == nullptr) {
-            break;
-        }
-        if (item->_24 == hash) {
-            const char* morph = item->_0[mPlayerMode];
-            if (morph == nullptr || mPlayerMode == PlayerMode_Normal) {
-                if (gIsLuigi) {
-                    if (item->_0[8] != nullptr) {
-                        return item->_0[8];
-                    }
-                }
-                return item->_0[0];
-            }
-            return morph;
-        }
+    const char* result = nullptr;
+    if (mActionHash->fn_803DB650(&result, name, gIsLuigi != 0, mPlayerMode)) {
+        return result;
     }
     return name;
 }
@@ -7603,12 +7513,7 @@ bool MarioActor::isRequestSpin() const {
     if (_935) {
         return false;
     }
-
-    if (isJumping() && mMario->_3BC > 6 && MR::isStarPointerPointing2P(this, "弱", true, false) && MR::testCorePadTriggerA(1)) {
-        return true;
-    }
-
-    return checkButtonType(_F12, false);
+    return checkButtonType(mInputConfig->mSpinButton, false);
 }
 
 
@@ -10620,11 +10525,12 @@ void MarioActor::initScreenBox() {
 
 
 bool MarioActor::isUseScreenBox() const {
-    if (_A08 == 3) {
-        return true;
+    if (mScreenBoxRequested || mScreenBoxForced) {
+        if (!mScreenBoxSuppressed) {
+            return true;
+        }
     }
-
-    return !(_A08 - 7);
+    return false;
 }
 
 
@@ -11054,9 +10960,9 @@ void MarioActor::drawScreenBlend() const {
 
 
 void MarioActor::updateRandomTexture(f32 distance) {
-    _B88 = 1 - _B88;
+    mRandomTextureIndex = 1 - mRandomTextureIndex;
     u8* pixel;
-    u8* image = mMaskTextures[_B88]->mImage;
+    u8* image = mMaskTextures[mRandomTextureIndex]->mImage;
     distance = 1.0f - distance / 1000.0f;
     f32 probability = MR::clamp(distance, 0.0f, 1.0f);
 
@@ -11413,9 +11319,9 @@ void MarioActor::updateDarkMask(u16 unused) {
         return;
     }
 
-    u8* previous = mMaskTextures[_B88]->mImage;
-    _B88 = 1 - _B88;
-    u8* image = mMaskTextures[_B88]->mImage;
+    u8* previous = mMaskTextures[mRandomTextureIndex]->mImage;
+    mRandomTextureIndex = 1 - mRandomTextureIndex;
+    u8* image = mMaskTextures[mRandomTextureIndex]->mImage;
     u8 x = MR::getRandom(0L, 8L);
     u8 y = MR::getRandom(0L, 8L);
     s32 index = x + y * 8;
@@ -11435,7 +11341,7 @@ bool MarioActor::drawDarkMask() const {
     GXSetAlphaUpdate(GX_TRUE);
     GXSetColorUpdate(GX_FALSE);
     GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
-    mMaskTextures[_B88]->load(GX_TEXMAP0);
+    mMaskTextures[mRandomTextureIndex]->load(GX_TEXMAP0);
     GXSetZCompLoc(GX_FALSE);
     GXSetAlphaCompare(GX_GREATER, 1, GX_AOP_AND, GX_ALWAYS, 0);
     GXSetDstAlpha(GX_TRUE, 255);
@@ -13273,7 +13179,7 @@ void MarioActor::updateSearchLight() {
         return;
     }
 
-    if (mMario->isStatusActive(MarioStatus_Swim) && (mMario->mSwim->mJetTimer != 0)) {
+    if (mMario->isStatusActive(MarioStatus_Swim) && mMario->mSwim->fn_80400910()) {
         if (MR::isDead(mSearchLight)) {
             mSearchLight->appear();
             MR::hideModel(mSearchLight);
@@ -13301,14 +13207,7 @@ namespace {
 void MarioActor::initSearchLight() {
     mSearchLight = new MarioSearchLight(this);
     mSearchLight->initWithoutIter();
-    mSearchLight->makeActorDead();
-    J3DModelX* model = static_cast< J3DModelX* >(MR::getJ3DModel(mSearchLight));
-    model->_DD = 16;
-
-    s32 drawMtxNum = model->getModelData()->getDrawMtxNum();
-    ::initExtraMtxBuffer(model, drawMtxNum);
-
-    mDrawSearchLight = new DrawAdaptor(MR::Functor(this, &MarioActor::drawSearchLight), MR::DrawType_0x33);
+    new DrawAdaptor(MR::Functor(this, &MarioActor::drawSearchLight), (MR::DrawType)0x38);
 }
 
 
@@ -13376,7 +13275,7 @@ void MarioActor::drawSearchLight() const {
         return;
     }
 
-    if (!(mMario->isStatusActive(MarioStatus_Swim) && mMario->mSwim->mJetTimer != 0)) {
+    if (!(mMario->isStatusActive(MarioStatus_Swim) && mMario->mSwim->fn_80400910())) {
         return;
     }
 
@@ -13384,7 +13283,7 @@ void MarioActor::drawSearchLight() const {
         return;
     }
 
-    if (mMario->mSwim->mJetCooldownTimer > 0) {
+    if (mMario->mSwim->fn_80400930()) {
         return;
     }
 
@@ -13713,7 +13612,7 @@ XanimeBckTable2 teresaAnime2[] = {
 
 void MarioActor::initTeresaMarioAnimation() {
     _9B0 = 0.0f;
-    _9BC = new XanimeResourceTable(MR::getResourceHolder(_9A4), teresaAnimeTable, nullptr, nullptr, nullptr, teresaAnime2, nullptr, nullptr, nullptr);
+    _9BC = new XanimeResourceTable(MR::getResourceHolder(_9A4), teresaAnimeTable, nullptr, nullptr, nullptr, teresaAnime2, nullptr, nullptr);
     _9B8 = new XanimePlayer(MR::getJ3DModel(_9A4), _9BC);
     _9B8->setDefaultAnimation("基本");
     _9B8->changeAnimation("基本");

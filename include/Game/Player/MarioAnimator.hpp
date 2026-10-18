@@ -36,6 +36,17 @@ public:
     void setAnimationFrame(f32);
     void resetAnimationUpdateFlags();
     f32 getAnimationTrackWeight(u32);
+    void setMainJointMatrix(u32, MtxPtr);
+    void setYoshiJointMatrix(const char*, MtxPtr);
+    void setMainJointOffset(u32, const TVec3f&);
+    void setYoshiJointOffset(const char*, const TVec3f&);
+    void setAnimationModel(J3DModel*);
+    void setAnimationInterpoleRatio(f32);
+    bool isAnimationRun(const char*) const;
+    bool isMainAnimationRun(const char*) const;
+    bool isAnimationTerminate(const char*) const;
+    bool isUpperAnimationActive() const;
+    bool isAnimationRun(const char*, u32);
     void init();
     void update();
     void calc();
@@ -48,6 +59,7 @@ public:
     void waterToGround();
     void initCallbackTable();
     void change(const char*);
+    void fn_803E0E40(const char*);
     void changeDefault(const char*);
     void stopAnimation(const char*, const char*);  // SMG2 (fn_803DF490)
     void changeUpper(const char*);

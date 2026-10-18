@@ -516,7 +516,7 @@ void MarioActor::fn_803BF9D0() {
 void MarioActor::fn_803BFAE0() {
     F(s8, 0x666) = 0;
     F(s16, 0x668) = 0;
-    F(MarioActionHash*, 0x1094) = new MarioActionHash();
+    mActionHash = new MarioActionHash();
 }
 
 void MarioActor::fn_803BFB30() {

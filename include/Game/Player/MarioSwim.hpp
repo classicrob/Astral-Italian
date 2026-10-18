@@ -23,8 +23,11 @@ public:
     explicit MarioSwimSpin(MarioSwim*);
     virtual ~MarioSwimSpin() {}
     void reset();
-    bool isActive() const;
+    bool isActive() const NO_INLINE;
     void startAnimation(u16, u16, const char*);
+    void update();
+    void startDash() NO_INLINE;
+    u16 getReadyTimer() const;
     u8 _8;
     u16 mSpinTimer;
     u16 mSpinDashTimer;
@@ -76,6 +79,18 @@ public:
     TMtx34f mJointMtx;
 };
 
+class MarioSwimCollisionNode {
+public:
+    MarioSwimCollisionNode();
+    /* 0x00 */ TVec3f mOffset;
+    /* 0x0C */ f32 mRadius;
+    /* 0x10 */ u8 _10;
+    /* 0x14 */ TVec3f _14;
+    /* 0x20 */ const WaterArea* mWaterArea;
+    /* 0x24 */ TVec3f _24;
+    /* 0x30 */ u8 _30;
+};
+
 class MarioSwim : public MarioState {
 public:
     enum WaterExitAction {
@@ -93,11 +108,21 @@ public:
 
     // SMG2-only (original names unknown; named by address)
     void fn_803F9D50();
+    f32 fn_803FA8E0() const;
+    f32 fn_803FA950() const;
+    f32 fn_803FA9C0() const;
+    f32 fn_803FAA30() const;
+    f32 fn_803FAAA0() const;
+    f32 fn_803FAB10() const;
+    f32 fn_803FAB80() const;
+    f32 fn_803FABF0() const;
+
     bool fn_80401EC0() const;
     void fn_80402040();
     void fn_804020F0();
     f32 fn_80402160() const;
     f32 fn_80402200() const;
+    void fn_803F7C10();
     void fn_803F7C00();
     void fn_803F7C20(const TVec3f*);
     void fn_803FD5E0(s32);
@@ -114,7 +139,7 @@ public:
     virtual void hitPoly(u8, const TVec3f&, HitSensor*);
     virtual bool passRing(const HitSensor*);
     virtual f32 getBlurOffset() const {
-        return mBlurOffset;
+        return mRingDash->mBlurOffset;
     }
 
     virtual void draw3D() const;
@@ -127,6 +152,11 @@ public:
     void onSurface() NO_INLINE;
     void doJetJump(u8);
     void updateLifeByTime();
+    bool isInColdWater() const NO_INLINE;
+    void updateColdWaterDamage() NO_INLINE;
+    void recoverOxygenAtSurface() NO_INLINE;
+    void updateOxygenByTime() NO_INLINE;
+    void fn_803F8430();
     bool surfacePaddle();
     void flowOnWave(f32);
     bool checkWaterBottom();
@@ -163,7 +193,6 @@ public:
     void dropJet(bool);
     void updateOxygenWatch();
     void doDecLifeByCold();
-    void startSpinDash();
     void ringDash();
     void resetJet();
     void forceStopSpin();
@@ -225,7 +254,7 @@ public:
     }
 
     inline bool check7Aand7C() const {
-        return mSpinTimer || mSpinDashTimer;
+        return mSpin->mSpinTimer || mSpin->mSpinDashTimer;
     }
 
     inline bool isOnWaterSurface() const {
@@ -256,9 +285,9 @@ public:
     /* 0x03A */ u16 mBuoyancyDelayTimer;
     /* 0x03C */ u16 mIdleWaitTimer;
     /* 0x03E */ u16 mWaveFlowTimer;
-    /* 0x040 */ u16 mJetCooldownTimer;
+    /* 0x040 */ u16 _40;
     /* 0x042 */ u16 mFloorContactTimer;
-    /* 0x044 */ u16 _44;
+    /* 0x044 */ u32 _44;
     /* 0x048 */ f32 mSurfaceOffset;
     /* 0x04C */ f32 mStickInputYInertia;
     /* 0x050 */ f32 mStickInputXInertia;
@@ -267,50 +296,48 @@ public:
     /* 0x05C */ f32 mVerticalAngle;
     /* 0x060 */ TVec3f mFrontVec;
     /* 0x06C */ TVec3f mUpVec;
-    /* 0x078 */ bool _78;
-    /* 0x07A */ u16 mSpinTimer;
-    /* 0x07C */ u16 mSpinDashTimer;
-    /* 0x080 */ f32 _80;
-    /* 0x084 */ f32 _84;
-    /* 0x088 */ u8 _88;
-    /* 0x08A */ u16 mJetTimer;
-    /* 0x08C */ u16 mRingDashTimer;
-    /* 0x08E */ u16 mRingDashChargeTimer;
-    /* 0x090 */ u16 mRingDashMaxDuration;
-    /* 0x094 */ f32 mRingDashSpeedScale;
-    /* 0x098 */ f32 mBlurOffset;
-    /* 0x09C */ bool _9C;
-    /* 0x09D */ u8 _9D;
-    /* 0x09E */ u8 mNextAction;
-    /* 0x09F */ u8 mEffectState;
-    /* 0x0A0 */ TVec3f mKnockbackVel;
-    /* 0x0AC */ u8 mDamageType;
-    /* 0x0AD */ u8 _AD;
-    /* 0x0AE */ u16 mKnockbackTimer;
-    /* 0x0B0 */ TMtx34f mUpperBodyJointMtx;
-    /* 0x0E0 */ f32 mCurrentTiltX;
-    /* 0x0E4 */ f32 mCurrentTiltY;
-    /* 0x0E8 */ u16 mDrownTimer;
-    /* 0x0EA */ u16 mOxygen;
-    /* 0x0EC */ u16 mOxygenWarningTimer;
-    /* 0x0EE */ u16 mOxygenDecreaseDelay;
-    /* 0x0F0 */ u16 mColdWaterDamageInterval;
-    /* 0x0F4 */ WaterInfo mWaterInfo;
-    /* 0x144 */ s32 mSwimState;
-    /* 0x148 */ TVec3f _148;
-    /* 0x154 */ TVec3f mAreaFollowMtxPos;
-    /* 0x160 */ TVec3f mSurfacePos;
-    /* 0x16C */ TVec3f mSurfaceNorm;
-    /* 0x178 */ TVec3f _178;
-    /* 0x184 */ TVec3f mWaterStreamVel;
-    /* 0x190 */ TVec3f mWaterStreamDir;
-    /* 0x19C */ f32 mWaterDepth;
-    /* 0x1A0 */ f32 _1A0;
-    /* 0x1A4 */ f32 mDistToFloor;
-    /* 0x1A8 */ f32 _1A8;
-    /* 0x1AC */ f32 mDistanceToWaterSurface;
-    /* 0x1B0 */ u16 mWallStickTimer;
-    /* 0x1B2 */ u8 _1B2;
-    /* 0x1B4 */ f32 mWaterDistanceTarget;
-    /* 0x1B8 */ f32 _1B8;
+    /* 0x078 */ TVec3f mPoseVec;
+    /* 0x084 */ MarioSwimSpin* mSpin;
+    /* 0x088 */ MarioSwimJet* mJet;
+    /* 0x08C */ MarioSwimRingDash* mRingDash;
+    /* 0x090 */ MarioSwimDamage* mDamage;
+    /* 0x094 */ MarioSwimTilt* mTilt;
+    /* 0x098 */ bool _9C;
+    /* 0x099 */ u8 _9D;
+    /* 0x09A */ u8 mNextAction;
+    /* 0x09B */ u8 mEffectState;
+    /* 0x09C */ u8 _9CFlag;
+    /* 0x09E */ u16 mDrownTimer;
+    /* 0x0A0 */ u16 mOxygen;
+    /* 0x0A2 */ u16 mOxygenDecreaseDelay;
+    /* 0x0A4 */ u16 mColdWaterDamageInterval;
+    /* 0x0A8 */ WaterInfo mWaterInfo;
+    /* 0x0FC */ s32 mSwimState;
+    /* 0x100 */ TVec3f _148;
+    /* 0x10C */ TVec3f mAreaFollowMtxPos;
+    /* 0x118 */ const TVec3f* _118;
+    /* 0x11C */ TVec3f mSurfacePos;
+    /* 0x128 */ TVec3f mSurfaceNorm;
+    /* 0x134 */ TVec3f _178;
+    /* 0x140 */ TVec3f mWaterStreamVel;
+    /* 0x14C */ TVec3f mWaterStreamDir;
+    /* 0x158 */ f32 mWaterDepth;
+    /* 0x15C */ f32 _1A0;
+    /* 0x160 */ f32 mDistToFloor;
+    /* 0x164 */ f32 _1A8;
+    /* 0x168 */ f32 mDistanceToWaterSurface;
+    /* 0x16C */ u16 mWallStickTimer;
+    /* 0x16E */ u8 _1B2;
+    /* 0x170 */ f32 mWaterDistanceTarget;
+    /* 0x174 */ f32 _1B8;
+    /* 0x178 */ MarioSwimCollisionNode* mCollisionNodes;
+    /* 0x17C */ u32 mCollisionNodeCount;
+    /* 0x180 */ u32 _180;
+    /* 0x184 */ WaterInfo mPreviousWaterInfo;
+    /* 0x1D8 */ TVec3f mPreviousPos;
+    /* 0x1E4 */ TVec3f mCollisionNodeCenter;
+    /* 0x1F0 */ TVec3f _1F0;
+    /* 0x1FC */ f32 _1FC;
+    /* 0x200 */ f32 _200;
+    /* 0x204 */ s32 _204;
 };

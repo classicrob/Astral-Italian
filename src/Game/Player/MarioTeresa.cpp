@@ -764,7 +764,7 @@ XanimeBckTable2 teresaAnime2[] = {
 
 void MarioActor::initTeresaMarioAnimation() {
     _9B0 = 0.0f;
-    _9BC = new XanimeResourceTable(MR::getResourceHolder(_9A4), teresaAnimeTable, nullptr, nullptr, nullptr, teresaAnime2, nullptr, nullptr, nullptr);
+    _9BC = new XanimeResourceTable(MR::getResourceHolder(_9A4), teresaAnimeTable, nullptr, nullptr, nullptr, teresaAnime2, nullptr, nullptr);
     _9B8 = new XanimePlayer(MR::getJ3DModel(_9A4), _9BC);
     _9B8->setDefaultAnimation("基本");
     _9B8->changeAnimationBck("基本");

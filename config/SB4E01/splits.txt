@@ -5990,7 +5990,7 @@ Game/Player/CloudMarioHat.cpp:
 	.text       start:0x803D9ED0 end:0x803DAA10
 
 Game/Player/MarioAnimator.cpp:
-	.text       start:0x803DC0F0 end:0x803E0030
+	.text       start:0x803DC0F0 end:0x803E1940
 	.ctors      start:0x806447D0 end:0x806447D4
 	.rodata     start:0x8064BDB8 end:0x8064BDC0
 	.data       start:0x806DC164 end:0x806DC3F0
@@ -6019,7 +6019,7 @@ Game/Player/HorrorDamageExecutor.cpp:
 	.text       start:0x803E6E50 end:0x803E70A0
 
 Game/Player/MarioAllModel.cpp:
-	.text       start:0x803E7720 end:0x803E7BB0
+	.text       start:0x803E7720 end:0x803E7C80
 
 Game/Player/MarioEffect.cpp:
 	.text       start:0x803E7C80 end:0x803E8300

@@ -20,13 +20,25 @@ public:
     void fn_8040CED0();
     void fn_8040CF20();
     bool fn_8040CF40() const;
+    void fn_8040EDA0(const char*);
+    void fn_8040EE30(const char*);
+    void fn_8040EE70(const char*);
+    void fn_8040ED90(const char*);
     void fn_8040EDE0(const char*);
+    void fn_8040EE00(const char*);
+    bool fn_8040F450(const char*);
+    bool fn_8040F490(const char*);
+    bool fn_8040F540(const char*);
+    bool fn_8040F570();
+    bool fn_8040F590(const char*);
     bool fn_8040F0E0() const;
     void fn_8040F370();
 
     /* 0x90 */ u8 _90[8];
     /* 0x98 */ XanimePlayer* mXanimePlayer;
     /* 0x9C */ XanimePlayer* mXanimePlayerUpper;
+    /* 0xA0 */ u8 _A0[5];
+    /* 0xA5 */ bool mUpperAnimationActive;
 };
 
 /// @brief The state machine that drives Yoshi's tongue (MarioActor holder + 0x8).

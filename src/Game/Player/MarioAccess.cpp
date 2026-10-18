@@ -583,7 +583,7 @@ namespace MarioAccess {
     }
 
     void addVelocity(const TVec3f& rVec) {
-        if (getPlayerActor()->IsMarioSwimming() && getPlayerActor()->getMario()->mSwim->mJetTimer != 0) {
+        if (getPlayerActor()->IsMarioSwimming() && getPlayerActor()->getMario()->mSwim->fn_80400910()) {
             return;
         }
 
@@ -603,7 +603,7 @@ namespace MarioAccess {
     }
 
     void addVelocityFromArea(const TVec3f& rVec) {
-        if (getPlayerActor()->IsMarioSwimming() && getPlayerActor()->getMario()->mSwim->mJetTimer != 0) {
+        if (getPlayerActor()->IsMarioSwimming() && getPlayerActor()->getMario()->mSwim->fn_80400910()) {
             return;
         }
 

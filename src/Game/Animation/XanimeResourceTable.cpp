@@ -29,7 +29,6 @@ XanimeResourceTable::XanimeResourceTable(ResourceHolder* pArg) {
     _1C.mParent.mAnimationName = "non-group";
     _1C._8 = 1;
     _1C.mBckTableVariant = 1;
-    _1C._1D = 0;
 }
 
 void XanimeResourceTable::init() {
@@ -40,7 +39,6 @@ void XanimeResourceTable::init() {
     mAmountOfSimpleGroupInfos = 0;
     mGroupInfos = nullptr;
     mDirectories = nullptr;
-    mBckTables = nullptr;
 
     mResourceHolder = nullptr;
     mSortTable = nullptr;

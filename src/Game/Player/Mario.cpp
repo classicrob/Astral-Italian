@@ -1750,8 +1750,7 @@ void Mario::writeBackPhyisicalVector() {
                 TVec3f stack_b0;
                 if (MR::vecKillElement(mVelocity, *_57C[j]->getNormal(0), &stack_b0) < 0.0f) {
                     mVelocity = stack_b0;
-                    f32 f28 = MR::vecKillElement(mSwim->mKnockbackVel, *_57C[j]->getNormal(0), &mSwim->mKnockbackVel);
-                    mSwim->mKnockbackVel += *_57C[j]->getNormal(0) * f28 * 0.5f;
+                    mSwim->fn_803F7C20(_57C[j]->getNormal(0));
                 }
             }
         }
@@ -5201,7 +5200,7 @@ bool Mario::isDamaging() const {
 bool Mario::damageLarge(const TVec3f& rDirection) {
     if (damage(rDirection)) {
         if (isStatusActive(MarioStatus_Swim)) {
-            mSwim->_AD = 1;
+            mSwim->fn_803F7C00();
         } else {
             mDamage->setVecSize(mActor->getConst().getTable()->mJumpDistLargeDamage, mActor->getConst().getTable()->mJumpHeightLargeDamage);
             playSound("投げられ");
@@ -5496,8 +5495,8 @@ bool Mario::damagePolygonCheck(const Triangle* pTriangle) {
 bool Mario::flipLarge(const TVec3f& rDirection) {
     if (damage(rDirection)) {
         if (isStatusActive(MarioStatus_Swim)) {
-            mSwim->_AD = 1;
-            mSwim->mDamageType = 1;
+            mSwim->fn_803F7C00();
+            mSwim->fn_803F7C10();
         } else {
             mDamage->_11 = 1;
         }
@@ -6638,7 +6637,7 @@ bool Mario::doFlipWeak(const TVec3f& rVec) {
 
     if (faint(rVec)) {
         if (isStatusActive(MarioStatus_Swim)) {
-            mSwim->mDamageType = 1;
+            mSwim->fn_803F7C10();
             mFaint->mNoDamage = false;
         }
 

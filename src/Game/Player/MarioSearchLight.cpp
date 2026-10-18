@@ -1,366 +1,171 @@
 #include "Game/Player/MarioSearchLight.hpp"
-#include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
-#include "Game/Player/DrawAdaptor.hpp"
+#include "Game/Map/HitInfo.hpp"
 #include "Game/Player/J3DModelX.hpp"
-#include "Game/Player/Mario.hpp"
-#include "Game/Player/MarioActor.hpp"
-#include "Game/Player/MarioConst.hpp"
-#include "Game/Player/MarioSwim.hpp"
-#include "Game/Scene/SceneFunction.hpp"
-#include "Game/Util/ActorMovementUtil.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
-#include "Game/Util/DemoUtil.hpp"
-#include "Game/Util/DirectDraw.hpp"
-#include "Game/Util/EffectUtil.hpp"
-#include "Game/Util/FixedPosition.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
+#include "Game/Util/MapUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
-#include "Game/Util/ObjUtil.hpp"
-#include <JSystem/JGeometry/TVec.hpp>
 #include <JSystem/JKernel/JKRHeap.hpp>
-#include <revolution/gx/GXCull.h>
-#include <revolution/gx/GXEnum.h>
-#include <revolution/gx/GXPixel.h>
-#include <revolution/gx/GXTev.h>
 #include <revolution/mtx.h>
 
-MarioSearchLight::MarioSearchLight(LiveActor* pActor) : PartsModel(pActor, "サーチライト", "SearchLightCone", nullptr, -1, 0), _9C(), _A0(), _A4() {
+namespace {
+    const char* sSensorNames[] = {"eye1", "eye2", "eye3", "eye4"};
 }
 
-void MarioSearchLight::init(const JMapInfoIter& rParam1) {
-    PartsModel::init(rParam1);
-    initHitSensor(1);
-    _9C = 0.0f;
-    _A4 = nullptr;
-    _A0 = 0;
-    MR::addHitSensorCallback(this, "eye", ATYPE_EYE, 4, 100.0f);
+MarioSearchLight::MarioSearchLight(LiveActor* actor)
+    : PartsModel(actor, "サーチライト", "SearchLightCone", nullptr, -1, false),
+      _A0(0), _A4(nullptr), _A8(false), _AC(0.0f, 0.0f, 1.0f), _B8(false), _BC(0.0f), _C0(5000.0f), _C4(0) {
 }
 
-void MarioSearchLight::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver)) {
+// NONMATCHING: loop-counter and actor register allocation.
+void MarioSearchLight::init(const JMapInfoIter& iter) {
+    PartsModel::init(iter);
+    initHitSensor(4);
+    for (u32 i = 0; i < 4; i++) {
+        MR::addHitSensorCallback(this, sSensorNames[i], 0x7A, 16, 300.0f);
+    }
+    makeActorDead();
+    J3DModelX* model = static_cast<J3DModelX*>(MR::getJ3DModel(this));
+    model->_DD = 16;
+    u32 matrixCount = model->getModelData()->getDrawMtxNum();
+    for (u32 i = 0; i < model->_DD; i++) {
+        model->mExtraMtxBuffer[i] = new (0x20) Mtx[matrixCount];
+    }
+}
+
+void MarioSearchLight::initAfterPlacement() {
+    _B8 = true;
+}
+
+// NONMATCHING: equivalent distance-check branch folding.
+void MarioSearchLight::attackSensor(HitSensor* sender, HitSensor* receiver) {
+    if (MR::isSensorPlayer(receiver)) {
         return;
     }
-
-    if (MR::sendArbitraryMsg(ACTMES_SEARCHLIGHT_ATTACK, pReceiver, pSender)) {
+    if (_C4 < 30) {
         return;
     }
-
-    if (!MR::isExistInAttributeGroupSearchTurtle(pReceiver->mHost)) {
+    TVec3f front;
+    MR::calcFrontVec(&front, this);
+    TVec3f perpendicular;
+    TVec3f delta = *MR::getSensorPos(receiver) - *MR::getSensorPos(sender);
+    JMAVECScaleAdd(&front, &delta, &perpendicular, -front.dot(delta));
+    if (_A8 && MR::abs(_AC.dot(front)) < 0.17364799976348877f) {
+        JMAVECScaleAdd(&_AC, &perpendicular, &perpendicular, -_AC.dot(perpendicular));
+    }
+    if (perpendicular.squared() > 22500.0f) {
         return;
     }
+    TVec3f toReceiver = *MR::getSensorPos(receiver) - mPosition;
+    f32 distance = front.dot(toReceiver);
+    if (distance < 0.0f) {
+        return;
+    }
+    if (distance > _C0) {
+        return;
+    } else {
+        if (MR::sendArbitraryMsg(0xC, receiver, sender)) {
+            return;
+        }
+        if (MR::isExistInAttributeGroupSearchTurtle(MR::getSensorHost(receiver))) {
+            fn_803F1E80(receiver);
+        }
+    }
+}
 
-    if (pReceiver != _A4) {
+void MarioSearchLight::fn_803F1E80(HitSensor* sensor) {
+    if (sensor != _A4) {
         MR::tryRumblePadWeak(this, WPAD_CHAN0);
     }
-
-    _A4 = pReceiver;
+    _A4 = sensor;
     _A0 = 30;
 }
 
-void MarioSearchLight::updateHitSensor(HitSensor* pSensor) {
-    TVec3f frontVec;
-    MR::calcFrontVec(&frontVec, this);
-
-    TVec3f frontPosition = mPosition + frontVec * _9C;
-
-    pSensor->mPosition.x = frontPosition.x;
-    pSensor->mPosition.y = frontPosition.y;
-    pSensor->mPosition.z = frontPosition.z;
-
-    _9C += 80.0f;
-    if (_9C > 2000.0f) {
-        _9C = 0.0f;
-    }
-
-    if (_A4 != nullptr) {
-        if (!_A4->mValidByHost) {
-            _A4 = nullptr;
+// NONMATCHING: two constructor-argument setup instructions are reversed.
+void MarioSearchLight::updateHitSensor(HitSensor* sensor) {
+    f32 spacing = 1250.0f;
+    for (s32 i = 0; static_cast<u32>(i) < 4; i++) {
+        if (getSensor(sSensorNames[i]) == sensor) {
+            TVec3f front;
+            MR::calcFrontVec(&front, this);
+            TVec3f position = mPosition + front * (_BC + spacing * i);
+            sensor->mPosition.x = position.x;
+            sensor->mPosition.y = position.y;
+            sensor->mPosition.z = position.z;
+            return;
         }
-    }
-
-    if (_A0 != 0) {
-        _A0--;
-    }
-
-    if (_A0 == 0) {
-        _A4 = nullptr;
     }
 }
 
 void MarioSearchLight::calcAndSetBaseMtx() {
     Mtx baseMtx;
     PSMTXCopy(getBaseMtx(), baseMtx);
-
     PartsModel::calcAndSetBaseMtx();
     MR::blendMtxRotateSlerp(baseMtx, getBaseMtx(), 0.1f, baseMtx);
-
     TVec3f trans;
     MR::extractMtxTrans(getBaseMtx(), &trans);
     MR::setMtxTrans(baseMtx, trans.x, trans.y, trans.z);
     MR::setBaseTRMtx(this, baseMtx);
 }
 
-void MarioActor::initThrowing() {
-    mSearchLightThrowPos = new FixedPosition(this, "HandR", TVec3f(13.19f, 41.57f, 19.02f), TVec3f(-3.63f, -41.69f, 15.76f));
+void MarioSearchLight::appear() {
+    LiveActor::appear();
+    _C4 = 0;
 }
 
-void MarioActor::updateSearchLight() {
-    if (mSearchLight == nullptr) {
-        return;
+// NONMATCHING: floating-point register allocation.
+void MarioSearchLight::control() {
+    f32 offset = _BC + 100.0f;
+    _BC = offset;
+    if (offset >= 1250.0f) {
+        _BC = 0.0f;
     }
-
-    if (mMario->isStatusActive(MarioStatus_Swim) && (mMario->mSwim->mJetTimer != 0)) {
-        if (MR::isDead(mSearchLight)) {
-            mSearchLight->appear();
-            MR::hideModel(mSearchLight);
-            MR::emitEffect(mSearchLight, "Glow");
-        }
-    } else {
-        mSearchLight->kill();
-    }
-}
-
-namespace {
-    inline J3DModelX* getModelX(LiveActor* pActor) {
-        return static_cast< J3DModelX* >(MR::getJ3DModel(pActor));
-    }
-
-    inline void initExtraMtxBuffer(J3DModelX* pModel, s32 num) {
-        for (u32 i = 0; i < pModel->_DD; i++) {
-            pModel->mExtraMtxBuffer[i] = new (0x20) Mtx[num];
-        }
-    }
-};  // namespace
-
-void MarioActor::initSearchLight() {
-    mSearchLight = new MarioSearchLight(this);
-    mSearchLight->initWithoutIter();
-    mSearchLight->makeActorDead();
-    J3DModelX* model = static_cast< J3DModelX* >(MR::getJ3DModel(mSearchLight));
-    model->_DD = 16;
-
-    s32 drawMtxNum = model->getModelData()->getDrawMtxNum();
-    ::initExtraMtxBuffer(model, drawMtxNum);
-
-    mDrawSearchLight = new DrawAdaptor(MR::Functor(this, &MarioActor::drawSearchLight), MR::DrawType_0x33);
-}
-
-void MarioActor::updateThrowing() {
-    if (mSearchLightThrowPos == nullptr) {
-        return;
-    }
-
-    mSearchLightThrowPos->calc();
-
-    if (mSearchLight == nullptr) {
-        return;
-    }
-
-    TVec3f trans;
-    mSearchLightThrowPos->mMtx.getTrans(trans);
-
-    TVec3f& position = mSearchLight->mPosition;
-    position = trans + mVelocity;
-
-    mSearchLightThrowPos->copyRotate(&mSearchLight->mRotation);
-
-    MR::calcAnimDirect(mSearchLight);
-}
-
-void MarioActor::calcViewSearchLight() {
-    if (mSearchLight == nullptr) {
-        return;
-    }
-
-    if (!MR::isDead(mSearchLight)) {
-        J3DModelX* model = ::getModelX(mSearchLight);
-
-        // The search light is has three scaled cone "shells" to fake a blur effect.
-        Mtx modelMdx;
-        MR::multMtx(modelMdx, model->getBaseTRMtx(), j3dSys.getViewMtx());
-
-        Mtx invBaseMtx;
-        PSMTXInverse(model->getBaseTRMtx(), invBaseMtx);
-
-        model->viewCalc3(0, nullptr);
-
-        for (u32 i = 0; i < ARRAY_SIZE(mConst->getTable()->mSearchLightBlurScale); i++) {
-            Mtx scaledMtx;
-            f32 scale = mConst->getTable()->mSearchLightBlurScale[i];
-            PSMTXScale(scaledMtx, scale, scale, scale);
-
-            MR::multMtx(scaledMtx, scaledMtx, modelMdx);
-            MR::multMtx(j3dSys.getViewMtx(), invBaseMtx, scaledMtx);
-
-            model->viewCalc3(i + 1, nullptr);
-        }
-
-        MR::loadViewMtx();
-        mSearchLightTimer++;
-    } else {
-        mSearchLightTimer = 0;
+    fn_803F21E0();
+    fn_803F2160();
+    fn_803F2280();
+    if (_C4 < 30) {
+        _C4++;
     }
 }
 
-void MarioActor::drawSearchLight() const {
-    if (mSearchLight == nullptr) {
-        return;
+void MarioSearchLight::fn_803F2160() {
+    if (_A4 != nullptr && !MR::isSensorValid(_A4)) {
+        _A4 = nullptr;
     }
-
-    if (!(mMario->isStatusActive(MarioStatus_Swim) && mMario->mSwim->mJetTimer != 0)) {
-        return;
+    if (_A0 != 0) {
+        _A0--;
     }
-
-    if (MR::isSystemTalking()) {
-        return;
+    if (_A0 == 0) {
+        _A4 = nullptr;
     }
+}
 
-    if (mMario->mSwim->mJetCooldownTimer > 0) {
-        return;
-    }
-
-    TVec3f throwVec;
-    getThrowVec(&throwVec);
-
-    TVec2f screenPos1;
-    TDDraw::project2D(&screenPos1, mPosition);
-
-    TVec2f screenPos2;
-    TDDraw::project2D(&screenPos2, mPosition + throwVec * 10000.0f);
-
-    TVec2f minimum;
-    TVec2f maximum;
-    if (screenPos1.x >= screenPos2.x) {
-        minimum.x = screenPos2.x;
-        maximum.x = screenPos1.x;
-    } else {
-        minimum.x = screenPos1.x;
-        maximum.x = screenPos2.x;
-    }
-
-    if (screenPos1.y >= screenPos2.y) {
-        minimum.y = screenPos2.y;
-        maximum.y = screenPos1.y;
-    } else {
-        minimum.y = screenPos1.y;
-        maximum.y = screenPos2.y;
-    }
-
-    screenPos1 = minimum + TVec2f(-10.0f, -10.0f);
-    screenPos2 = maximum + TVec2f(10.0f, 10.0f);
-
-    TDDraw::setup(0, 0, 2);
-
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetAlphaUpdate(GX_TRUE);
-    GXSetColorUpdate(GX_FALSE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_NOOP);
-    GXSetDstAlpha(GX_TRUE, 0);
-
-    TDDraw::drawFillBox(screenPos1, screenPos2, 0);
-    TDDraw::setup(0, 1, 1);
-
-    J3DModelX* model = static_cast< J3DModelX* >(MR::getJ3DModel(mSearchLight));
-    J3DMaterial* const material = model->getModelData()->getMaterialNodePointer(0);
-    if (model->simpleDrawSetup(material)) {
-        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-        GXSetAlphaUpdate(GX_TRUE);
-        GXSetColorUpdate(GX_FALSE);
-        GXSetDstAlpha(GX_FALSE, 0);
-
-        // Gradually fade in the search light.
-        f32 lightBrightness = 1.0f;
-        if (mSearchLightTimer < 30) {
-            lightBrightness = 0.0f;
-        } else if (mSearchLightTimer < 180) {
-            lightBrightness = (mSearchLightTimer - 30) / 150.0f;
-        }
-
-        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-        GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-
-        GXColorS10 color = {255, 255, 255, (u8)(lightBrightness * mConst->getTable()->mSearchLightColor[3])};
-
-        GXSetTevColorS10(GX_TEVREG0, color);
-
-        // Render intersection of light cone with the scene by subtracting
-        // visible back faces from front faces.
-        GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_NOOP);
-        GXSetCullMode(GX_CULL_BACK);
-        model->setDrawView(0);
-        model->simpleDrawShape(material);
-
-        GXSetCullMode(GX_CULL_FRONT);
-        GXSetBlendMode(GX_BM_SUBTRACT, GX_BL_ONE, GX_BL_ONE, GX_LO_NOOP);
-        model->simpleDrawShape(material);
-
-        TDDraw::setup(0, 1, 2);
-        GXSetCullMode(GX_CULL_NONE);
-        GXSetAlphaUpdate(GX_TRUE);
-        GXSetColorUpdate(GX_TRUE);
-        GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_NOOP);
-        GXSetDstAlpha(GX_TRUE, 0);
-
-        u8* col = mConst->getTable()->mSearchLightColor;
-        TDDraw::drawFillBox(screenPos1, screenPos2, col[0] << 24 | col[1] << 16 | col[2] << 8);
-
-        GXSetDstAlpha(GX_FALSE, 0);
-        GXSetAlphaUpdate(GX_FALSE);
-
-        TDDraw::setup(0, 1, 1);
-        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-        GXSetAlphaCompare(GX_GREATER, 4, GX_AOP_AND, GX_ALWAYS, 0);
-        bool res = model->simpleDrawSetup(material);
-
-        GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
-        GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-
-        // Colour of the light cone.
-        GXColorS10 searchLightCol = {255, 255, 255, (u8)(lightBrightness * mConst->getTable()->mSearchLightAlphaLevel)};
-        GXSetTevColorS10(GX_TEVREG0, searchLightCol);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_KONST, GX_CA_ZERO, GX_CA_A0, GX_CA_RASA);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-
-        if (res) {
-            // Draw central light cone.
-            model->simpleDrawShape(material);
-        } else {
-            return;
-        }
-
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_A1, GX_CA_A0, GX_CA_RASA, GX_CA_ZERO);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_DIVIDE_2, GX_TRUE, GX_TEVPREV);
-
-        // Draw soft falloff outside light cone.
-        for (u32 i = 0; i < ARRAY_SIZE(mConst->getTable()->mSearchLightBlurAlpha); i++) {
-            model->setDrawView(i + 1);
-
-            // Cone falloff colour.
-            GXColorS10 color3 = {255, 255, 255, (u8)(lightBrightness * mConst->getTable()->mSearchLightBlurAlpha[i])};
-            GXSetTevColorS10(GX_TEVREG0, color3);
-
-            // End cap falloff colour.
-            GXColorS10 endCapCol = {255, 255, 255, 4};
-            GXSetTevColorS10(GX_TEVREG1, endCapCol);
-
-            model->simpleDrawShape(material);
+void MarioSearchLight::fn_803F21E0() {
+    TVec3f front;
+    MR::calcFrontVec(&front, this);
+    _C0 = 5000.0f;
+    if (_B8) {
+        Triangle triangle;
+        TVec3f hitPosition;
+        if (MR::getFirstPolyOnLineToMap(&hitPosition, &triangle, mPosition, front * 5000.0f)) {
+            _C0 = (hitPosition - mPosition).length();
         }
     }
 }
 
-void MarioActor::getThrowVec(TVec3f* pVec) const {
-    TVec3f rotate;
-    mSearchLightThrowPos->copyRotate(&rotate);
+void MarioSearchLight::fn_803F2280() {
+    f32 scale = _C0 / 5000.0f;
+    mScale.z = scale;
+    f32 width = 0.3f + 0.7f * scale;
+    mScale.x = width;
+    mScale.y = width;
+}
 
-    TVec3f dirZ(0.0f, 0.0f, 1.0f);
-
-    Mtx trMtx;
-    MR::makeMtxTR(trMtx, 0.0f, 0.0f, 0.0f, rotate.x, rotate.y, rotate.z);
-
-    PSMTXMultVec(trMtx, dirZ, pVec);
+MarioSearchLight::~MarioSearchLight() {
 }

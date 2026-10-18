@@ -394,7 +394,7 @@ struct MarioConstTable {
     /* 0x5A0 */ f32 mSwimSpinAcc1;  // SMG2 offset guess
     /* 0x5A4 */ f32 mSwimSpinAcc2;  // SMG2 offset guess
     /* 0x5A8 */ u16 mSwimSpinMissOfsTime;  // SMG2 offset guess
-    /* 0x5AA */ u8 _pad586[0x2];
+    /* 0x5AA */ u16 mSwimSpinMissOfsTimeYoshi;
     /* 0x5AC */ f32 mSwimSpinAccRatio;  // SMG2 offset guess
     /* 0x5B0 */ f32 mSwimSpinSurfaceAccRatio;  // SMG2 offset guess
     /* 0x5B4 */ f32 mSwimSpinAccRatioR;  // SMG2 offset guess

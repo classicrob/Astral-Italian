@@ -19,7 +19,7 @@ bool Mario::doFlipWeak(const TVec3f& rVec) {
 
     if (faint(rVec)) {
         if (isStatusActive(MarioStatus_Swim)) {
-            mSwim->mDamageType = 1;
+            mSwim->fn_803F7C10();
             mFaint->mNoDamage = false;
         }
 

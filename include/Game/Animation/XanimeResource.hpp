@@ -108,14 +108,14 @@ public:
 
         XanimeGroupInfo*, XanimeAuxInfo*, XanimeOfsInfo*,
 
-        XanimeBckTable*, XanimeBckTable2*, XanimeBckTable3*, XanimeBckTable4*,
+        XanimeBckTable*, XanimeBckTable2*, XanimeBckTable3*,
 
         XanimeSwapTable*);
 
     XanimeResourceTable(ResourceHolder*);
 
     u32 initGroupInfo(ResourceHolder*, XanimeGroupInfo*, XanimeAuxInfo*, XanimeOfsInfo*, XanimeBckTable*, XanimeBckTable2*, XanimeBckTable3*,
-                      XanimeBckTable4*, XanimeSwapTable*);
+                      XanimeSwapTable*);
 
     const XanimeGroupInfo* getGroupInfo(const char*) const;
     const XanimeGroupInfo* getGroupInfo(const char*, XanimeDirectory*) const;
@@ -138,11 +138,13 @@ public:
     /* 0x08 */ u32 mAmountOfBckTables;
     /* 0x0C */ u32 mAmountOfSimpleGroupInfos;
     /* 0x10 */ XanimeGroupInfo* mGroupInfos;
-    /* 0x14 */ XanimeDirectory* mDirectories;
-    /* 0x18 */ XanimeBckTable1* mBckTables;
-    XanimeGroupInfo _1C;
-    /* 0x68 */ XanimeGroupInfo* mSimpleGroupInfos;
-    /* 0x6C */ ResourceHolder* mResourceHolder;
-    /* 0x70 */ HashSortTable* mSortTable;
-    /* 0x74 */ XanimeSwapTable* mSwapTable;
+    union {
+        /* 0x14 */ XanimeDirectory* mDirectories;
+        /* 0x14 */ XanimeBckTable1* mBckTables;
+    };
+    /* 0x18 */ XanimeGroupInfo _1C;
+    /* 0x60 */ XanimeGroupInfo* mSimpleGroupInfos;
+    /* 0x64 */ ResourceHolder* mResourceHolder;
+    /* 0x68 */ HashSortTable* mSortTable;
+    /* 0x6C */ XanimeSwapTable* mSwapTable;
 };

@@ -226,30 +226,25 @@ extern XanimeGroupInfo marioAnimeTable[];
 extern XanimeAuxInfo marioAnimeAuxTable[];
 extern XanimeOfsInfo marioAnimeOfsTable[];
 extern XanimeSwapTable luigiAnimeSwapTable[];
+extern XanimeGroupInfo marioRideAnimeTable[];
+extern XanimeAuxInfo marioRideAnimeAuxTable[];
+extern XanimeOfsInfo marioRideAnimeOfsTable[];
+extern XanimeBckTable1 marioRideSingleAnimeTable[];
+extern XanimeBckTable2 marioRideDoubleAnimeTable[];
+extern XanimeBckTable3 marioRideTripleAnimeTable[];
 
 MarioAnimator::MarioAnimator(MarioActor* pActor) : mActor(pActor), mExtraAnimationEnabled(false) {
     init();
 }
 
-void MarioAnimator::stopAnimation(const char* pAnim1, const char* pAnim2) {
-    if (pAnim2) {
-        changeDefault(pAnim2);
-    }
-
-    if (pAnim1) {
-        mXanimePlayer->stopAnimation(pAnim1);
-    } else {
-        mXanimePlayer->stopAnimation();
-    }
-
-    if (mActor->getMario()->isPlayerModeYoshi()) {
-        mActor->fn_803B97F0()->fn_8040EDE0(pAnim1);
-    }
-
-    if (pAnim1) {
-        mXanimePlayerUpper->stopAnimation(pAnim1);
-    } else {
-        mXanimePlayerUpper->stopAnimation();
+void MarioAnimator::stopAnimation(const char* name, const char* defaultName) {
+    if (defaultName) changeDefault(defaultName);
+    if (name) mXanimePlayer->stopAnimation(name);
+    else mXanimePlayer->stopAnimation();
+    if (getPlayer()->isPlayerModeYoshi()) {
+        mActor->fn_803B97F0()->fn_8040EDE0(name);
+        if (name) mXanimePlayerExtra->stopAnimation(name);
+        else mXanimePlayerExtra->stopAnimation();
     }
 }
 
@@ -261,11 +256,11 @@ void MarioAnimator::init() {
 
     mResourceTable = new XanimeResourceTable(MR::getResourceHolder(mActor), marioAnimeTable, marioAnimeAuxTable, marioAnimeOfsTable,
                                              reinterpret_cast< XanimeBckTable* >(singleAnimeTable), doubleAnimeTable, tripleAnimeTable,
-                                             quadAnimeTable, luigiAnimations);
+                                             luigiAnimations);
 
-    _14 = 0;
     _15 = 0;
-    _16 = 1;
+    _14 = 0;
+    _16 = 0;
 
     _18 = 0.0f;
     _1C = 0.0f;
@@ -286,6 +281,7 @@ void MarioAnimator::init() {
     mUpperDefaultSet = false;
     mCurrBck = nullptr;
     _118 = 0.0f;
+    for (s32 index = 0; index < 32; ++index) mAnimationFlags[index] = 0;
     _70 = 0.0f;
     _74 = 0;
     _78 = 0;
@@ -303,12 +299,20 @@ void MarioAnimator::init() {
     mActor->mModelManager->mXanimePlayer = mXanimePlayer;
     mXanimePlayerUpper = new XanimePlayer(MR::getJ3DModel(mActor), mResourceTable, mXanimePlayer);
     changeDefaultUpper("基本");
-    mXanimePlayerUpper->changeAnimation("基本");
+    mXanimePlayerUpper->changeAnimationBck("基本");
     mXanimePlayerUpper->mCore->shareJointTransform(mXanimePlayer->mCore);
+    XanimeResourceTable* rideResources = new XanimeResourceTable(MR::getResourceHolder(mActor), marioRideAnimeTable,
+        marioRideAnimeAuxTable, marioRideAnimeOfsTable, reinterpret_cast<XanimeBckTable*>(marioRideSingleAnimeTable),
+        marioRideDoubleAnimeTable, marioRideTripleAnimeTable, nullptr);
+    mXanimePlayerExtra = new XanimePlayer(MR::getJ3DModel(mActor), rideResources);
+    mXanimePlayerExtra->setDefaultAnimation("基本");
+    mXanimePlayerExtra->changeAnimationBck("基本");
+    mXanimePlayerExtra->mCore->enableJointTransform(MR::getJ3DModelData(mActor));
     PSMTXCopy(MR::tmpMtxRotYRad(PI), _DC.toMtxPtr());
 }
 
 bool MarioAnimator::isAnimationStop() const {
+    if (getPlayer()->isPlayerModeYoshi()) return mActor->fn_803B97F0()->fn_8040F570();
     return mXanimePlayer->mCurrentAnimation == mXanimePlayer->mDefaultAnimation;
 }
 
@@ -1068,29 +1072,37 @@ void MarioAnimator::calc() {
     }
 }
 
+#pragma dont_inline on
+void MarioAnimator::fn_803E0E40(const char* pName) {
+    const XanimeGroupInfo* info = mXanimePlayer->mCurrentAnimation;
+    if (info->mAttribute == 2) {
+        getPlayer()->startBas(pName, false, info->mLoop, info->mEnd);
+    } else {
+        getPlayer()->startBas(pName, false, 0.0f, 0.0f);
+    }
+}
+#pragma dont_inline reset
+
 void MarioAnimator::change(const char* pName) {
     if (mActor->_B90) {
         return;
     }
 
     if (isTeresaClear()) {
-        mXanimePlayer->changeAnimation(pName);
+        mXanimePlayer->changeAnimationBck(pName);
+        if (getPlayer()->isPlayerModeYoshi()) {
+            mActor->fn_803B97F0()->fn_8040EDA0(pName);
+            if (!mExtraAnimationEnabled) mXanimePlayerExtra->changeAnimationBck(pName);
+        }
     }
 
     const char* bck = mXanimePlayer->getCurrentBckName();
     if (bck != nullptr) {
-        const XanimeGroupInfo* info = mXanimePlayer->mCurrentAnimation;
-        if (info->mAttribute == 2) {
-            f32 arg1 = info->mLoop, arg2 = info->mEnd;
-            getPlayer()->startBas(bck, false, arg1, arg2);
-        } else {
-            getPlayer()->startBas(bck, false, 0.0f, 0.0f);
-        }
-
-        mActor->setBlink(bck);
+        fn_803E0E40(bck);
+        mActor->fn_803BBFD0(bck);
     } else {
         getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
-        mActor->setBlink(nullptr);
+        mActor->fn_803BBFD0(nullptr);
     }
 
     mActor->changeSpecialModeAnimation(pName);
@@ -1099,40 +1111,48 @@ void MarioAnimator::change(const char* pName) {
 }
 
 void MarioAnimator::changeUpper(const char* pName) {
-    mXanimePlayerUpper->changeAnimation(pName);
+    mXanimePlayerUpper->changeAnimationBck(pName);
+    if (getPlayer()->isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040EE30(pName);
     _6C = true;
 }
 
+// NONMATCHING: stop-condition boolean uses a different register.
 void MarioAnimator::stopUpper(const char* pName) {
     if (!_6C) {
         return;
     }
 
     bool shouldStop = false;
-    if (pName == nullptr) {
-        shouldStop = true;
-    } else if (mXanimePlayerUpper->isRun(pName)) {
+    if (pName == nullptr || mXanimePlayerUpper->isRun(pName)) {
         shouldStop = true;
     }
 
     if (shouldStop) {
         u16 jointID = MR::getJointIndex(mActor, "Spine1");
         XanimeCore* upperCore = mXanimePlayerUpper->getCore();
-        J3DModelData* modelData = mActor->getModelData();
+        J3DModelData* modelData = MR::getJ3DModelData(mActor);
         XanimeCore* lowerCore = mXanimePlayer->getCore();
         upperCore->freezeCopy(modelData, lowerCore, (u16)jointID, 8);
         mXanimePlayerUpper->stopAnimation();
+        if (getPlayer()->isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040EE70(pName);
         _6C = false;
     }
 }
 
+#pragma dont_inline on
 void MarioAnimator::changeDefault(const char* pName) {
     getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
 
     mXanimePlayer->setDefaultAnimation(pName);
+    if (getPlayer()->isPlayerModeYoshi()) {
+        mActor->fn_803B97F0()->fn_8040ED90(pName);
+        mXanimePlayerExtra->setDefaultAnimation(pName);
+    }
 }
 
+#pragma dont_inline reset
 bool MarioAnimator::isDefaultAnimationRun(const char* pName) const {
+    if (getPlayer()->isPlayerModeYoshi()) return mActor->fn_803B97F0()->fn_8040F450(pName);
     return strcmp(mXanimePlayer->getDefaultAnimationName(), pName) == 0;
 }
 
@@ -1140,6 +1160,7 @@ void MarioAnimator::changeDefaultUpper(const char* pName) {
     if (pName != nullptr) {
         mUpperDefaultSet = true;
         mXanimePlayerUpper->setDefaultAnimation(pName);
+        if (getPlayer()->isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040EE00(pName);
     } else {
         mUpperDefaultSet = false;
     }
@@ -1436,12 +1457,12 @@ void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     case ACTMES_STAR_PIECE_GIFT_1:
         if (!getPlayer()->isSwimming()) {
             s32 shouldChange = 1;
-            if (getPlayer()->MarioModule::isAnimationRun("ひろいクイック")) {
-                shouldChange = getPlayer()->MarioModule::isAnimationTerminateUpper(nullptr);
+            if (isAnimationRun("ひろいクイック")) {
+                shouldChange = isUpperAnimationTerminated(nullptr);
             }
 
             if (shouldChange) {
-                if (!getPlayer()->MarioModule::isAnimationRun("ひろい空中") && mActor->isStopNullAnimation()) {
+                if (!isAnimationRun("ひろい空中") && mActor->isStopNullAnimation()) {
                     getPlayer()->MarioModule::changeAnimationUpper("ひろいウエイト");
                     getPlayer()->MarioModule::startPadVib(2);
                     mActor->clearNullAnimation(0);
@@ -1617,4 +1638,71 @@ void MarioAnimator::resetAnimationUpdateFlags() {
 f32 MarioAnimator::getAnimationTrackWeight(u32 index) {
     if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->mWeights[index];
     return mXanimePlayer->mWeights[index];
+}
+
+void MarioAnimator::setMainJointMatrix(u32 index, MtxPtr matrix) {
+    mXanimePlayer->mCore->getJointTransform(index)->_64 = matrix;
+}
+void MarioAnimator::setYoshiJointMatrix(const char* joint, MtxPtr matrix) {
+    if (getPlayer()->isPlayerModeYoshi()) {
+        Yoshi* actor = mActor->fn_803B97F0();
+        XanimeCore* core = getYoshiAnimationPlayer()->mCore;
+        core->getJointTransform(MR::getJointIndex(actor, joint))->_64 = matrix;
+    }
+}
+void MarioAnimator::setMainJointOffset(u32 index, const TVec3f& offset) {
+    mXanimePlayer->mCore->getJointTransform(index)->_2C = offset;
+}
+void MarioAnimator::setYoshiJointOffset(const char* joint, const TVec3f& offset) {
+    if (getPlayer()->isPlayerModeYoshi()) {
+        Yoshi* actor = mActor->fn_803B97F0();
+        XanimeCore* core = getYoshiAnimationPlayer()->mCore;
+        core->getJointTransform(MR::getJointIndex(actor, joint))->_2C = offset;
+    }
+}
+void MarioAnimator::setAnimationModel(J3DModel* model) {
+    mXanimePlayer->setModel(model);
+    mXanimePlayerUpper->setModel(model);
+    if (getPlayer()->isPlayerModeYoshi()) mXanimePlayerExtra->setModel(model);
+}
+void MarioAnimator::setAnimationInterpoleRatio(f32 ratio) {
+    mXanimePlayer->_0C = ratio;
+    if (getPlayer()->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->_0C = ratio;
+        mXanimePlayerExtra->_0C = ratio;
+    }
+}
+
+bool MarioAnimator::isUpperAnimationActive() const {
+    if (getPlayer()->isPlayerModeYoshi()) return mActor->fn_803B97F0()->mUpperAnimationActive;
+    return _6C;
+}
+bool MarioAnimator::isAnimationRun(const char* name) const {
+    if (getPlayer()->isPlayerModeYoshi()) return mActor->fn_803B97F0()->fn_8040F490(name);
+    if (!name) return mXanimePlayer->mCurrentAnimation != mXanimePlayer->mDefaultAnimation;
+    if (mXanimePlayer->isRun(name)) return true;
+    if (isUpperAnimationActive() && mXanimePlayerUpper->isRun(name)) return true;
+    return false;
+}
+bool MarioAnimator::isMainAnimationRun(const char* name) const {
+    if (getPlayer()->isPlayerModeYoshi()) return mActor->fn_803B97F0()->fn_8040F540(name);
+    if (!name) return mXanimePlayer->mCurrentAnimation != mXanimePlayer->mDefaultAnimation;
+    return mXanimePlayer->isRun(name);
+}
+bool MarioAnimator::isAnimationTerminate(const char* name) const {
+    if (getPlayer()->isPlayerModeYoshi()) return mActor->fn_803B97F0()->fn_8040F590(name);
+    if (name) return mXanimePlayer->isTerminate(name);
+    return mXanimePlayer->isTerminate();
+}
+bool MarioAnimator::isAnimationRun(const char* name, u32 index) {
+    if (!mAnimationFlags[index]) return false;
+    if (!isAnimationRun(name)) {
+        mAnimationFlags[index] = 0;
+        return false;
+    }
+    return true;
+}
+f32 MarioAnimator::fn_803DD530() {
+    if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->_20->mEnd;
+    return mXanimePlayer->_20->mEnd;
 }

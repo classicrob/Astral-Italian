@@ -370,7 +370,7 @@ void StarPiece::appearHop(const TVec3f& rVec1, const TVec3f& rVec2) {
         MR::normalize(-rVec2, &mGravity);
     }
 
-    mPosition.set(rVec1);
+    MR::setPosition(this, rVec1);
     makeActorAppeared();
     mVelocity.set(rVec2 * 30.0f);
     setNerve(GET_NERVE(StarPiece, HostTypeNrvHop));
@@ -533,7 +533,7 @@ void StarPiece::exeToTarget() {
 
         MR::offBind(this);
         MR::invalidateClipping(this);
-        mVelocity.zero();
+        MR::zeroVelocity(this);
         _98 = 0.02f;
         _9C = 0.0f;
         MR::forceDeleteEffect(this, "StarPieceFlyingBlur");
@@ -663,7 +663,7 @@ void StarPiece::exeToPlayerEnd() {
 
         _B4.set(mPosition);
         _B4 -= (*MR::getPlayerCenterPos());
-        mVelocity.zero();
+        MR::zeroVelocity(this);
 
         MR::deleteEffect(this, "StarPieceGetBlur");
 
@@ -676,7 +676,7 @@ void StarPiece::exeToPlayerEnd() {
 
     f32 newScale = 1.0f - MR::calcNerveRate(this, 10);
     changeScale(newScale);
-    mPosition.set(*MR::getPlayerCenterPos());
+    MR::setPosition(this, *MR::getPlayerCenterPos());
     mPosition += _B4 * newScale;
 
     if (MR::isGreaterStep(this, 30)) {
@@ -688,7 +688,7 @@ void StarPiece::exeToPlayerEnd() {
 
 void StarPiece::exeThrow() {
     if (MR::isFirstStep(this)) {
-        mVelocity.zero();
+        MR::zeroVelocity(this);
         MR::offBind(this);
         MR::setBinderRadius(this, 20.0f);
         MR::setBindTriangleFilter(this, mDelegator);
@@ -900,7 +900,7 @@ void StarPiece::giftToTarget(StarPieceReceiverInfo* pReceiverInfo, u32 numGift, 
     mNumGift = numGift;
     mFlags.isGoToPlayer = false;
     mTargetSensor = pSensor;
-    mPosition.set(rVec1);
+    MR::setPosition(this, rVec1);
     _8C.set(*MR::getSensorPos(pSensor) - rVec1);
     MR::normalizeOrZero(&_8C);
 

@@ -116,7 +116,7 @@ void LavaProminence::initAfterPlacement() {
     TVec3f initPosVec(mPosition);
     TVec3f upVec;
 
-    mPosition.set(mRailStartPos);
+    MR::setPosition(this, mRailStartPos);
     MR::calcGravityVectorOrZero(this, &upVec, nullptr, 0);
 
     if (MR::isNearZero(upVec)) {
@@ -125,7 +125,7 @@ void LavaProminence::initAfterPlacement() {
     }
 
     MR::makeMtxUpNoSupportPos(&mEffectStartMtx, -upVec, mRailStartPos);
-    mPosition.set(mRailEndPos);
+    MR::setPosition(this, mRailEndPos);
     MR::calcGravityVectorOrZero(this, &upVec, nullptr, 0);
 
     if (MR::isNearZero(upVec)) {
@@ -134,7 +134,7 @@ void LavaProminence::initAfterPlacement() {
     }
 
     MR::makeMtxUpNoSupportPos(&mEffectEndMtx, -upVec, mRailEndPos);
-    mPosition.set(initPosVec);
+    MR::setPosition(this, initPosVec);
 }
 
 void LavaProminence::startClipped() {
@@ -239,7 +239,7 @@ void LavaProminence::exeMoveStartExtra() {
         MR::startActionSound(this, "OjProminenceStart", -1, -1, -1);
         mMoveRailCoord = 0.0f;
         MR::setRailCoord(this, 0.0f);
-        mPosition.set(mRailStartPos - mRailStartDir * 300.0f);
+        MR::setPosition(this, mRailStartPos - mRailStartDir * 300.0f);
         mRailDir.set(mRailStartDir);
         MR::showModel(this);
         MR::emitEffect(this, "DropEffect");

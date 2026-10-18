@@ -881,7 +881,7 @@ void TrickRabbit::doJump() {
         checkDivingThicket((stack_5C - (mGravity * 70.0f)), (mPosition - stack_5C));
     }
 
-    mPosition.set(stack_5C);
+    MR::setPosition(this, stack_5C);
 }
 
 void TrickRabbit::tearDownWait() {

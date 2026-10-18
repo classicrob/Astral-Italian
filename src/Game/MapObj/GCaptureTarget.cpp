@@ -131,7 +131,7 @@ void GCaptureTarget::endClipped() {
 void GCaptureTarget::control() {
     if (mRailMover != nullptr) {
         mRailMover->movement();
-        mPosition.set(mRailMover->_28);
+        MR::setPosition(this, mRailMover->_28);
     }
 }
 

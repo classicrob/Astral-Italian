@@ -903,8 +903,16 @@ Game/Boss/DinoPackunVs2.cpp:
 	.sbss       start:0x807D1338 end:0x807D1340
 
 Game/Boss/DinoPackunBaby.cpp:
-	.text       start:0x800B78F0 end:0x800BAFC0
-	.ctors      start:0x80643E44 end:0x80643E50
+	.text       start:0x800B78F0 end:0x800B81E0
+	.ctors      start:0x80643E44 end:0x80643E48
+
+Game/Boss/DinoPackunBabyTU01.cpp:
+	.text       start:0x800B81E0 end:0x800BAB10
+	.ctors      start:0x80643E48 end:0x80643E4C
+
+Game/Boss/DinoPackunBabyTU02.cpp:
+	.text       start:0x800BAB10 end:0x800BAFC0
+	.ctors      start:0x80643E4C end:0x80643E50
 
 Game/Boss/Dodoryu.cpp:
 	.text       start:0x800BB600 end:0x800BE450
@@ -963,12 +971,84 @@ Game/Boss/KoopaDemoChamber.cpp:
 	.ctors      start:0x80643E70 end:0x80643E74
 
 Game/Boss/KoopaFinalBattlePos.cpp:
-	.text       start:0x800CA6A0 end:0x800CC560
-	.ctors      start:0x80643E74 end:0x80643E7C
+	.text       start:0x800CA6A0 end:0x800CAE50
+	.ctors      start:0x80643E74 end:0x80643E78
+
+Game/Boss/KoopaFinalBattlePosTU01.cpp:
+	.text       start:0x800CAE50 end:0x800CC560
+	.ctors      start:0x80643E78 end:0x80643E7C
 
 Game/Boss/KoopaJrCastle.cpp:
-	.text       start:0x800CC560 end:0x800DA9D0
-	.ctors      start:0x80643E7C end:0x80643EC4
+	.text       start:0x800CC560 end:0x800CD1F0
+	.ctors      start:0x80643E7C end:0x80643E80
+
+Game/Boss/KoopaJrCastleBody.cpp:
+	.text       start:0x800CD1F0 end:0x800CEFF0
+	.ctors      start:0x80643E80 end:0x80643E84
+
+Game/Boss/KoopaJrCastleStateBodyMove.cpp:
+	.text       start:0x800CEFF0 end:0x800D0370
+	.ctors      start:0x80643E84 end:0x80643E88
+
+Game/Boss/KoopaJrCastleCannon.cpp:
+	.text       start:0x800D0370 end:0x800D1650
+	.ctors      start:0x80643E88 end:0x80643E8C
+
+Game/Boss/KoopaJrCastleCannonBall.cpp:
+	.text       start:0x800D1650 end:0x800D1E30
+	.ctors      start:0x80643E8C end:0x80643E90
+
+Game/Boss/KoopaJrCastleCapsule.cpp:
+	.text       start:0x800D1E30 end:0x800D2380
+	.ctors      start:0x80643E90 end:0x80643E94
+
+Game/Boss/KoopaJrCastleTU06.cpp:
+	.text       start:0x800D2380 end:0x800D3510
+	.ctors      start:0x80643E94 end:0x80643E98
+
+Game/Boss/KoopaJrCastleFunction.cpp:
+	.text       start:0x800D3510 end:0x800D6310
+	.ctors      start:0x80643E98 end:0x80643E9C
+
+Game/Boss/KoopaJrCastleTU08.cpp:
+	.text       start:0x800D6310 end:0x800D6CC0
+	.ctors      start:0x80643E9C end:0x80643EA0
+
+Game/Boss/KoopaJrCastleTU09.cpp:
+	.text       start:0x800D6CC0 end:0x800D7080
+	.ctors      start:0x80643EA0 end:0x80643EA4
+
+Game/Boss/KoopaJrCastleTU10.cpp:
+	.text       start:0x800D7080 end:0x800D78B0
+	.ctors      start:0x80643EA4 end:0x80643EA8
+
+Game/Boss/KoopaJrCastleTU11.cpp:
+	.text       start:0x800D78B0 end:0x800D7E70
+	.ctors      start:0x80643EA8 end:0x80643EAC
+
+Game/Boss/KoopaJrCastleTU12.cpp:
+	.text       start:0x800D7E70 end:0x800D81C0
+	.ctors      start:0x80643EAC end:0x80643EB0
+
+Game/Boss/KoopaJrCastleTU13.cpp:
+	.text       start:0x800D81C0 end:0x800D8710
+	.ctors      start:0x80643EB0 end:0x80643EB4
+
+Game/Boss/KoopaJrCastleTU14.cpp:
+	.text       start:0x800D8710 end:0x800D9220
+	.ctors      start:0x80643EB4 end:0x80643EB8
+
+Game/Boss/KoopaJrCastleTU15.cpp:
+	.text       start:0x800D9220 end:0x800D9630
+	.ctors      start:0x80643EB8 end:0x80643EBC
+
+Game/Boss/KoopaJrCastleWindHolder.cpp:
+	.text       start:0x800D9630 end:0x800DA250
+	.ctors      start:0x80643EBC end:0x80643EC0
+
+Game/Boss/KoopaJrCastleWindUp.cpp:
+	.text       start:0x800DA250 end:0x800DA9D0
+	.ctors      start:0x80643EC0 end:0x80643EC4
 
 Game/Boss/KoopaJrRobot.cpp:
 	.text       start:0x800DA9D0 end:0x800DB790
@@ -3779,8 +3859,12 @@ Game/MapObj/FirePressureBulletHolder.cpp:
 	.data       start:0x806A0B04 end:0x806A0B30
 
 Game/MapObj/FireRing.cpp:
-	.text       start:0x802A2080 end:0x802A3180
-	.ctors      start:0x806443D8 end:0x806443E0
+	.text       start:0x802A2080 end:0x802A2D70
+	.ctors      start:0x806443D8 end:0x806443DC
+
+Game/MapObj/FireRingTU01.cpp:
+	.text       start:0x802A2D70 end:0x802A3180
+	.ctors      start:0x806443DC end:0x806443E0
 
 Game/MapObj/FlipPanel.cpp:
 	.text       start:0x802A3180 end:0x802A4360
@@ -3866,8 +3950,12 @@ Game/MapObj/GravityTimerChangeWall.cpp:
 	.ctors      start:0x80644424 end:0x80644428
 
 Game/MapObj/HipDropMoveBlock.cpp:
-	.text       start:0x802ADB00 end:0x802AEB00
-	.ctors      start:0x80644428 end:0x80644430
+	.text       start:0x802ADB00 end:0x802AE550
+	.ctors      start:0x80644428 end:0x8064442C
+
+Game/MapObj/HipDropMoveBlockTU01.cpp:
+	.text       start:0x802AE550 end:0x802AEB00
+	.ctors      start:0x8064442C end:0x80644430
 
 Game/MapObj/HipDropRock.cpp:
 	.text       start:0x802AEB00 end:0x802AF2A0
@@ -3888,8 +3976,12 @@ Game/MapObj/NrvHipDropTimerSwitch.cpp:
 	.text       start:0x802B0780 end:0x802B0880
 
 Game/MapObj/IceMeteor.cpp:
-	.text       start:0x802B0880 end:0x802B1670
-	.ctors      start:0x8064443C end:0x80644444
+	.text       start:0x802B0880 end:0x802B1220
+	.ctors      start:0x8064443C end:0x80644440
+
+Game/MapObj/IceMeteorTU01.cpp:
+	.text       start:0x802B1220 end:0x802B1670
+	.ctors      start:0x80644440 end:0x80644444
 
 Game/MapObj/IceStep.cpp:
 	.text       start:0x802B1670 end:0x802B1CD0
@@ -4017,8 +4109,12 @@ Game/MapObj/MagmaBoatPlanetIce.cpp:
 	.ctors      start:0x806444A4 end:0x806444A8
 
 Game/MapObj/MagmaMeteorParts.cpp:
-	.text       start:0x802C5E80 end:0x802C6BD0
-	.ctors      start:0x806444A8 end:0x806444B0
+	.text       start:0x802C5E80 end:0x802C6840
+	.ctors      start:0x806444A8 end:0x806444AC
+
+Game/MapObj/MagmaMeteorPartsTU01.cpp:
+	.text       start:0x802C6840 end:0x802C6BD0
+	.ctors      start:0x806444AC end:0x806444B0
 
 Game/MapObj/MagmaSeaWave.cpp:
 	.text       start:0x802C6BD0 end:0x802C70C0
@@ -4297,8 +4393,12 @@ Game/MapObj/RockReflector.cpp:
 	.ctors      start:0x80644570 end:0x80644574
 
 Game/MapObj/RollingWater.cpp:
-	.text       start:0x802F5CB0 end:0x802F73D0
-	.ctors      start:0x80644574 end:0x8064457C
+	.text       start:0x802F5CB0 end:0x802F6F60
+	.ctors      start:0x80644574 end:0x80644578
+
+Game/MapObj/RollingWaterTU01.cpp:
+	.text       start:0x802F6F60 end:0x802F73D0
+	.ctors      start:0x80644578 end:0x8064457C
 
 Game/MapObj/RotateHammerPressure.cpp:
 	.text       start:0x802F73D0 end:0x802F7460
@@ -4313,8 +4413,12 @@ Game/MapObj/RotateSeesawTrampoline.cpp:
 	.ctors      start:0x80644584 end:0x80644588
 
 Game/MapObj/SandBird.cpp:
-	.text       start:0x802F83D0 end:0x802F99F0
-	.ctors      start:0x80644588 end:0x80644590
+	.text       start:0x802F83D0 end:0x802F8F60
+	.ctors      start:0x80644588 end:0x8064458C
+
+Game/MapObj/SandBirdTU01.cpp:
+	.text       start:0x802F8F60 end:0x802F99F0
+	.ctors      start:0x8064458C end:0x80644590
 
 Game/MapObj/Sandstorm.cpp:
 	.text       start:0x802F99F0 end:0x802FB580
@@ -4558,8 +4662,12 @@ Game/MapObj/TimeAttackClock.cpp:
 	.sdata2     start:0x807DEC08 end:0x807DEC10
 
 Game/MapObj/Togepin.cpp:
-	.text       start:0x80323730 end:0x80324D90
-	.ctors      start:0x80644630 end:0x80644638
+	.text       start:0x80323730 end:0x80324380
+	.ctors      start:0x80644630 end:0x80644634
+
+Game/MapObj/TogepinTU01.cpp:
+	.text       start:0x80324380 end:0x80324D90
+	.ctors      start:0x80644634 end:0x80644638
 
 Game/MapObj/TreasureBoxCracked.cpp:
 	.text       start:0x80324D90 end:0x803259A0
@@ -4851,8 +4959,12 @@ Game/NPC/JointControlDelegator.cpp:
 	.text       start:0x8034A4F0 end:0x8034A610
 
 Game/NPC/GhostAttackGhostFootprint.cpp:
-	.text       start:0x8034A610 end:0x8034B2E0
-	.ctors      start:0x806446BC end:0x806446C4
+	.text       start:0x8034A610 end:0x8034A860
+	.ctors      start:0x806446BC end:0x806446C0
+
+Game/NPC/GhostAttackGhostFootprintTU01.cpp:
+	.text       start:0x8034A860 end:0x8034B2E0
+	.ctors      start:0x806446C0 end:0x806446C4
 
 Game/NPC/GhostAttackAccessor.cpp:
 	.text       start:0x8034B2E0 end:0x8034B3E0
@@ -4967,8 +5079,12 @@ Game/NPC/TalkMessageFuncM7.cpp:
 	.text       start:0x80356250 end:0x80356340
 
 Game/NPC/MonteThrow.cpp:
-	.text       start:0x803563D0 end:0x80357770
-	.ctors      start:0x80644700 end:0x80644708
+	.text       start:0x803563D0 end:0x80356AA0
+	.ctors      start:0x80644700 end:0x80644704
+
+Game/NPC/MonteThrowTU01.cpp:
+	.text       start:0x80356AA0 end:0x80357770
+	.ctors      start:0x80644704 end:0x80644708
 
 Game/NPC/Peach.cpp:
 	.text       start:0x80357770 end:0x80357940
@@ -5112,8 +5228,12 @@ Game/NPC/TalkMessageFuncM14.cpp:
 	.text       start:0x80369240 end:0x80369330
 
 Game/NPC/TicoFatStarPiece.cpp:
-	.text       start:0x803695B0 end:0x8036B8B0
-	.ctors      start:0x80644774 end:0x8064477C
+	.text       start:0x803695B0 end:0x8036B040
+	.ctors      start:0x80644774 end:0x80644778
+
+Game/NPC/TicoFatStarPieceTU01.cpp:
+	.text       start:0x8036B040 end:0x8036B8B0
+	.ctors      start:0x80644778 end:0x8064477C
 
 Game/NPC/TicoRail.cpp:
 	.text       start:0x8036B8B0 end:0x8036C910

@@ -7,6 +7,10 @@
 #include "Game/LiveActor/LiveActorGroup.hpp"
 #include <JSystem/JGeometry.hpp>
 
+namespace MR {
+    f32 calcNerveEaseOutValue(const NerveExecutor*, s32, f32, f32);
+}
+
 class ActorCameraInfo;
 class FluffWindEffect;
 class BreakModel;
@@ -92,10 +96,10 @@ public:
     void exe800CFC40();
     void exe800CF700();
     void exe800CFDD0();
-    void calcVelocityDir(TVec3f*);
+    void calcTargetDir(TVec3f*);
     bool isTurnEnd(f32);
     bool startBtkKeepFrame(const char*);
-    bool isNeedTurn() const;
+    bool isOutsideCenter();
     void setMoveRate(f32);
 
     /* 0x10 */ TVec3f mDirection;
@@ -123,7 +127,6 @@ public:
     void exeWait();
     void exeFall();
     void exeDead();
-    void exeStop();
 
     NO_INLINE void setNerveDummy1();
     NO_INLINE void setNerveDummy2();

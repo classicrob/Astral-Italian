@@ -209,6 +209,7 @@ namespace MR {
     void appearKinokoOneUpPop(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
     void appearKinokoOneUpHop(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
     void appearKinokoOneUpPop(BenefitItemObj* pKinoko, MtxPtr pMtx);
+    void appearKinokoOneUpHop(BenefitItemObj* pKinoko, MtxPtr pMtx);
 
     BenefitItemLifeUp* createKinokoSuper();
     void appearKinokoSuperPop(BenefitItemLifeUp* pKinoko, MtxPtr pMtx);

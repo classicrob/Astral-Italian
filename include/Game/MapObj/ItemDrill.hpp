@@ -35,6 +35,9 @@ public:
     void endFireDamage();
     s32 calcDiveStep();
     bool isOtherTriangleOnLine(Triangle*, const TVec3f&);
+    bool tryAlignToTriangle(Triangle*, const TVec3f&);
+    bool updateDrillMove(const TVec3f&);
+    void alignDrillMtx(const TPos3f&, const TVec3f&);
     void reflectDrillAt(TMtx34f*);
     bool checkDrillStart();
     bool checkAimDirection(HitSensor*, HitSensor*);

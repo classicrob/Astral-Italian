@@ -6,6 +6,7 @@
 class NameObjArchiveListCollector;
 class NerveExecutor;
 class TurnJointCtrl;
+class TakeOutStar;
 
 class Rosetta : public NPCActor {
 public:
@@ -16,23 +17,11 @@ public:
     virtual void init(const JMapInfoIter& rIter);
     virtual void control();
     virtual void calcAndSetBaseMtx();
-    virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*);
 
-    bool branchFunc(u32);
-    bool eventFunc(u32);
-
-    static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
-    void startDemo(NerveExecutor*);
-    void endDemo();
-    void endDemoWithInterpole();
     bool canUpdateStarePos() const;
-    void exeDemo();
-    void exeReaction();
 
 private:
-    /* 0x15C */ FadeStarter mFadeStarter;
-    /* 0x170 */ NerveExecutor* mDemoExecutor;
-    /* 0x174 */ NerveExecutor* mTalkDemoExecutor;
-    /* 0x178 */ TurnJointCtrl* mTurnJointCtrl;
-    /* 0x17C */ s32 mObjArg0;
+    /* 0x164 */ TurnJointCtrl* mTurnJointCtrl;
+    /* 0x168 */ bool _168;
+    /* 0x16C */ TakeOutStar* mTakeOutStar;
 };

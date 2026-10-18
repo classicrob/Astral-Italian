@@ -13,7 +13,6 @@ public:
 
     void init();
     bool isStartEvent(const char*) const;
-    bool isStartTimeLimitEvent() const;
     void startCometEventIfExist();
     void endCometEvent();
     void pauseCometTimer();
@@ -22,12 +21,11 @@ public:
     void hideCometTimer();
     void addCometTimer(s32);
     void decCometTimer(s32);
-    static u32 getTimeLimitFromTable(const GalaxyTimeLimitInfo*, int);
     void initCometStatus();
 
 private:
     /* 0x0 */ CometEventExecutorTimeLimit* mExecutorTimeLimit;
     /* 0x4 */ GalaxyCometScreenFilter* mScreenFilter;
-    /* 0x8 */ const char* mCometName;
-    /* 0xC */ s32 mCometStateIndex;
+    /* 0x8 */ s32 mCometStateIndex;
+    /* 0xC */ const char* mCometName;
 };

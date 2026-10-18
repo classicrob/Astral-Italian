@@ -256,6 +256,7 @@ namespace MR {
     bool isMsgRushCancel(u32 msg);
     bool isMsgRushEnd(u32 msg);
     bool isMsgRushEnable(u32 msg);
+    bool isMsgIsRushEnable(u32 msg);
     bool isMsgIsRushTakeOver(u32 msg);
     bool isMsgFloorTouch(u32 msg);
     bool isMsgWallTouch(u32 msg);

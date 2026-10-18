@@ -33,6 +33,8 @@ public:
     /* 0xA0 */ ModelObj* mBloomModel;
     /* 0xA4 */ PartsModel* mWaterModel;
     /* 0xA8 */ PartsModel* mIndirectModel;
+    // PLACEHOLDER(core): SMG2 PlanetMap 0xB0 field, zeroed in ctor, not identified; resolve when its users are found
+    /* 0xB0 */ void* _B0;
 };
 
 class FurPlanetMap : public PlanetMap {

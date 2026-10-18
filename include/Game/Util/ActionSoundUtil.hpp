@@ -6,7 +6,10 @@ extern "C" void fn_800083F0(const LiveActor*, const char*, s32, s32, s32);
 
 class LayoutActor;
 
+class ActionSoundSystem;
+
 namespace MR {
+    ActionSoundSystem* getActionSoundData(const char* pName);
     void startActionSoundAuto(const LayoutActor*, const char*, s32 = -1, s32 = -1);
     void startActionSoundOneShot(const LayoutActor*, const char*, s32 = -1, s32 = -1);
     void startActionSound(const LayoutActor*, const char*, s32 = -1, s32 = -1);

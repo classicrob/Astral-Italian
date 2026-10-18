@@ -54,7 +54,7 @@ extern "C" void fn_80095CD0(void*, const char*, TPos3f*);
 extern "C" void fn_80094C90(BellyDragonPod*);
 
 // Host helpers (TU04)
-extern "C" u8 fn_80093310(BellyDragon*);
+extern "C" s32 fn_80093310(BellyDragon*);  // SMG2 callers test the full word (cmpwi), not clrlwi.
 extern "C" s32 fn_80093320(NerveExecutor*, BellyDragon*);
 extern "C" void fn_80093370(BellyDragon*, LiveActor*);
 extern "C" void fn_80093590(TPos3f*, NameObj*, const f32 (*)[4], f32);

@@ -32,7 +32,7 @@ namespace {
 };  // namespace
 
 PlanetMap::PlanetMap(const char* pName, const char* pModelName)
-    : LiveActor(pName), mModelName(pModelName), _90(0.0f, 0.0f, 0.0f), mLODCtrl(), mBloomModel(), mWaterModel(), mIndirectModel() {
+    : LiveActor(pName), mModelName(pModelName), _90(0.0f, 0.0f, 0.0f), mLODCtrl(), mBloomModel(), mWaterModel(), mIndirectModel(), _B0() {
 }
 
 void PlanetMap::init(const JMapInfoIter& rIter) {
@@ -205,7 +205,7 @@ RailPlanetMap::RailPlanetMap(const char* pName) : PlanetMap(pName, nullptr) {
 
 
 s32 PlanetMapAnimLow::getLowMovementType() const {
-    return 29;
+    return 0x1C;
 }
 
 FurPlanetMap::~FurPlanetMap() {

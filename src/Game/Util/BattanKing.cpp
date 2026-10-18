@@ -44,7 +44,7 @@ namespace {
 
 void BattanKing::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFront);
-    PSMTXCopy(getTakingMtx(), mMtxFollow);
+    PSMTXCopy(getBaseMtx(), mMtxFollow);
     MR::addTransMtxLocal(mMtxFollow, BattanKingVec::sOffset920);
     MR::calcFrontVec(&mFront, this);
 }

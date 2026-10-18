@@ -27,25 +27,15 @@ namespace {
 
 namespace {
     struct RaceStructData {
-        s32 getMaxTime() const {
-            return mMaxTime;
-        }
-
         /* 0x00 */ const char* mName;
-        /* 0x04 */ s32 mEventBgmId;
-        /* 0x08 */ s32 mMaxTime;
-        /* 0x0C */ const char* mMessageId;
-        /* 0x10 */ const char* mGalaxyName;
-        /* 0x14 */ s32 mScenarioNo;
-        /* 0x18 */ bool mIsDemoWithStarPointer;
+        /* 0x04 */ const char* mGalaxyName;
+        /* 0x08 */ bool mIsDemoWithStarPointer;
     };
 
     static const RaceStructData sRaceStruct[] = {
-        {"ペンギンレース[オーシャンリング]", MR::EventBgmID_PenguinRace, 120, "RaceName_Penguin", "OceanRingGalaxy", 2, false},
-        {"テレサレース[ファントム]", MR::EventBgmID_TeresaRace, 120, "RaceName_TeresaPhantom", "PhantomGalaxy", 2, true},
-        {"テレサレース[デスプロムナード]", MR::EventBgmID_TeresaRace, 120, "RaceName_TeresaDeathPromenade", "TeresaMario2DGalaxy", 1, false},
-        {"サーフィン[トライアル]", MR::EventBgmID_Surfing, 0, "RaceName_SurfingTrial", "SurfingLv1Galaxy", 1, false},
-        {"サーフィン[チャレンジ]", MR::EventBgmID_Surfing, 180, "RaceName_SurfingChallenge", "SurfingLv2Galaxy", 1, false}};
+        {"グライダー[ジャングル]", "JungleGliderGalaxy", false},
+        {"グライダー[チャレンジ]", "ChallengeGliderGalaxy", false},
+    };
 
     const RaceStructData& getRaceStruceData(s32 id) {
         return ::sRaceStruct[id];
@@ -208,7 +198,7 @@ void RaceManager::exePrep() {
     if (isNerve(GET_NERVE(RaceManager, RaceManagerNrvPrepWipe))) {
         setNerve(GET_NERVE(RaceManager, RaceManagerNrvPreWipeOut));
     } else {
-        prepBind();
+        prepRace();
         setNerve(GET_NERVE(RaceManager, RaceManagerNrvIntro));
     }
 }
@@ -301,10 +291,6 @@ void RaceManager::exeCount() {
         MR::startSystemSE("SE_SY_RACE_COUNT_DOWN");
     }
 
-    if (MR::isStep(this, ::sBgmStartStep)) {
-        MR::startEventBGM(::getRaceStruceData(mCurrentRace).mEventBgmId);
-    }
-
     if (mLayout->isPlayCountAnim()) {
         return;
     }
@@ -319,14 +305,7 @@ void RaceManager::exeRace() {
         MR::startSystemSE("SE_SY_RACE_START");
     }
 
-    s32 maxTime = ::getRaceStruceData(mCurrentRace).getMaxTime();
     MR::updateClearTimeTextBox(mLayout, "TimeCounter", getNerveStep());
-    if (maxTime > 0 && getNerveStep() >= maxTime * 60) {
-        mRank = 0;
-        renewTime();
-        setNerve(GET_NERVE(RaceManager, RaceManagerNrvDemo));
-        return;
-    }
 
     if (mRacerNum > 1) {
         mLayout->playRank(getRank(mPlayerRacer));
@@ -414,6 +393,7 @@ bool RaceManager::startImmediately() {
 
 void RaceManager::prepRace() {
     mPlayerRacer->prepRacer(this);
+    prepBind();
 
     for (s32 i = 0; i < mRacerNum; i++) {
         AbstractRacer* pRacer = mRacer[i];
@@ -551,24 +531,14 @@ namespace RaceManagerFunction {
         return ::getRaceStruceData(index).mName;
     }
 
-    const char* getRaceMessageId(int index) {
-        return ::getRaceStruceData(index).mMessageId;
-    }
-
-    s32 getRaceId(const char* pGalaxyName, s32 scenarioNo) {
+    s32 getRaceId(const char* pGalaxyName) {
         for (u32 i = 0; i < ARRAY_SIZE(::sRaceStruct); i++) {
-            const RaceStructData& rRaceStructData = ::getRaceStruceData(i);
-
-            if (MR::isEqualString(rRaceStructData.mGalaxyName, pGalaxyName) && rRaceStructData.mScenarioNo == scenarioNo) {
+            if (MR::isEqualString(::sRaceStruct[i].mGalaxyName, pGalaxyName)) {
                 return i;
             }
         }
 
         return -1;
-    }
-
-    bool hasPowerStarRaceScenario(int index) {
-        return MR::isOnGameEventFlagPowerStarSuccess(::getRaceStruceData(index).mGalaxyName, ::getRaceStruceData(index).mScenarioNo);
     }
 };  // namespace RaceManagerFunction
 

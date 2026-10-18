@@ -155,10 +155,7 @@ namespace RaceManagerFunction {
     u32 getRaceRank();
     u32 getRaceTime();
     const char* getRaceName(int);
-    const char* getRaceMessageId(int);
     s32 getRaceId(const char*);
-    s32 getRaceId(const char*, s32);
-    bool hasPowerStarRaceScenario(int);
 };  // namespace RaceManagerFunction
 
 namespace RaceManagerFunction {

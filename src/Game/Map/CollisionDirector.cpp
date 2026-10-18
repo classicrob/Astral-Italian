@@ -5,7 +5,7 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-#define CATEGORY_KEEPER_NUM 4
+#define CATEGORY_KEEPER_NUM 5
 
 CollisionDirector::CollisionDirector() : NameObj("地形コリジョン"), mCategoryKeeper(), mCode() {
     mCode = new CollisionCode();

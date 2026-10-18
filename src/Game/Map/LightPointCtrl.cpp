@@ -10,7 +10,7 @@ namespace {
 
 LightPointCtrl::LightPointCtrl()
     : mStep(-1), mBlendTime(::sDefaultBlendTime), mCurrentActor(), mPreviousActor(), mCandidateActor(), mCurrentInfo(), mTargetInfo(),
-      mPreviousInfo() {
+      mPreviousInfo(), mNeedReset() {
     mCurrentInfo = new PointLightInfo();
     mTargetInfo = new PointLightInfo();
     mPreviousInfo = new PointLightInfo();
@@ -21,6 +21,15 @@ LightPointCtrl::LightPointCtrl()
 }
 
 void LightPointCtrl::loadPointLight() {
+    if (mNeedReset) {
+        clearPointLight(mCurrentInfo);
+        clearPointLight(mTargetInfo);
+        clearPointLight(mPreviousInfo);
+        mStep = -1;
+        mBlendTime = 0;
+        mNeedReset = false;
+    }
+
     LightFunction::loadPointLightInfo(mCurrentInfo);
 }
 

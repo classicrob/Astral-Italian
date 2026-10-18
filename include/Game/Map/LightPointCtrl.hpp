@@ -42,4 +42,5 @@ public:
     /* 0x14 */ PointLightInfo* mCurrentInfo;
     /* 0x18 */ PointLightInfo* mTargetInfo;
     /* 0x1C */ PointLightInfo* mPreviousInfo;
+    /* 0x20 */ bool mNeedReset;  // SMG2: when set, loadPointLight clears all infos and restarts the blend
 };

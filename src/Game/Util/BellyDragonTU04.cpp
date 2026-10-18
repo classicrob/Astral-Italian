@@ -313,7 +313,7 @@ extern "C" HitSensor* fn_80093B30(LiveActor* pActor) {
 
 extern "C" void fn_80093B40(BellyDragon* pHost, const char* pName) {
     BellyDragonPod* pPod = pHost->mPod;
-    MR::initAnimCamera(pHost, pPod->mCameraInfo, pName, reinterpret_cast<ResourceHolder*>(pPod));
+    MR::initAnimCamera(pHost, pPod->mCameraInfo, pName);
 }
 
 extern "C" void fn_80093B50(BellyDragon* pHost, const char* pName) {
@@ -410,7 +410,7 @@ extern "C" s32 fn_80093DC0(BellyDragon* pHost, s32 idx, bool useFirst, f32 farg0
 }
 
 extern "C" void fn_80094080(LiveActor* pActor, const JMapInfoIter& rIter, s32 unusedA, s32 unusedB, bool flag) {
-    MR::initActor(pActor, rIter, lbl_8066D004, NULL, flag);
+    MR::initActor(pActor, rIter, lbl_8066D004, false);
     pActor->initNerve(&NrvBellyDragonPodActor::BellyDragonPodActorNrvWait::sInstance, 0);
     pActor->makeActorDead();
 }

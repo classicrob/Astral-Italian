@@ -438,14 +438,14 @@ void MR::setAnimFrameAndStopAdjustTextWidth(LayoutActor* pActor, const char* pPa
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     nw4r::ut::Rect rect;
     ::getTextDrawRectRecursive(&rect, pPane, false);
-    setAnimFrameAndStop(pActor, rect.GetWidth(), animLayer);
+    setAnimFrameAndStop(pActor, MR::abs(rect.GetWidth()), animLayer);
 }
 
 void MR::setAnimFrameAndStopAdjustTextHeight(LayoutActor* pActor, const char* pPaneName, u32 animLayer) {
     nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
     nw4r::ut::Rect rect;
     ::getTextDrawRectRecursive(&rect, pPane, false);
-    setAnimFrameAndStop(pActor, rect.GetHeight(), animLayer);
+    setAnimFrameAndStop(pActor, MR::abs(rect.GetHeight()), animLayer);
 }
 
 void MR::setPaneAnimFrameAndStop(LayoutActor* pActor, const char* pPaneName, f32 animFrame, u32 animLayer) {
@@ -720,7 +720,7 @@ SimpleLayout* MR::createSimpleLayout(const char* pName, const char* pArcName, u3
 SimpleLayout* MR::createSimpleLayoutTalkParts(const char* pName, const char* pArcName, u32 rootPaneAnimLayerNum) {
     SimpleLayout* simpleLayout;
 
-    simpleLayout = new SimpleLayout(pName, pArcName, rootPaneAnimLayerNum, MR::DrawType_0x44);
+    simpleLayout = new SimpleLayout(pName, pArcName, rootPaneAnimLayerNum, MR::DrawType_0x4C);
     simpleLayout->initWithoutIter();
 
     return simpleLayout;

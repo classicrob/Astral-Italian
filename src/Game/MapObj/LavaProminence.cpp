@@ -1,4 +1,5 @@
 #include "Game/MapObj/LavaProminence.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
@@ -61,7 +62,7 @@ void LavaProminence::init(const JMapInfoIter& rIter) {
     const char* name = nullptr;
     MR::getObjectName(&name, rIter);
     bool isWithoutShadow = false;
-    initModelManagerWithAnm("LavaProminence", nullptr, false);
+    MR::initActor(this, rIter, "LavaProminence", false);
     MR::startBtk(this, "LavaProminence");
 
     if (MR::isEqualString(name, "LavaProminenceWithoutShadow")) {
@@ -177,11 +178,11 @@ void LavaProminence::setGravityAndMakeMtx() {
 
 void LavaProminence::updateEffectClipping(bool a1) {
     if (!mEmitDropEffect) {
-        if (!a1 || MR::isJudgedToClipFrustum(mPosition, getSensor("body")->getRadius())) {
+        if (!a1 || MR::isJudgedToClipFrustum(mPosition, MR::getSensorRadius(this, "body"))) {
             MR::deleteEffect(this, "DropEffect");
             mEmitDropEffect = true;
         }
-    } else if (a1 && !MR::isJudgedToClipFrustum(mPosition, getSensor("body")->getRadius())) {
+    } else if (a1 && !MR::isJudgedToClipFrustum(mPosition, MR::getSensorRadius(this, "body"))) {
         MR::emitEffect(this, "DropEffect");
         mEmitDropEffect = false;
     }

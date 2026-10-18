@@ -30,7 +30,7 @@ WaterPressureBullet::WaterPressureBullet(const char* pName) : LiveActor(pName) {
 }
 
 void WaterPressureBullet::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("WaterBullet", nullptr, false);
+    MR::initActor(this, rIter, "WaterBullet", false);
     MR::connectToSceneMapObjStrongLight(this);
     initHitSensor(2);
     MR::addHitSensor(this, "body", 0x1C /* ATYPE_WATER_PRESSURE_BULLET */, 4, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
@@ -55,7 +55,7 @@ void WaterPressureBullet::kill() {
     }
 
     MR::emitEffect(this, "Break");
-    MR::startSound(this, "SE_OJ_W_PRESS_BUBBLE_BREAK");
+    MR::startActionSound(this, "OjWPressBubbleBreak");
     LiveActor::kill();
 }
 
@@ -122,7 +122,7 @@ void WaterPressureBullet::exeFly() {
     }
 
     if (isBound()) {
-        MR::startLevelSound(this, "SE_OJ_LV_W_PRESS_BUBBLE_SUS");
+        MR::startActionSound(this, "OjLvWPressBubbleSus");
     }
 
     if (!_B0) {
@@ -130,8 +130,8 @@ void WaterPressureBullet::exeFly() {
     }
 
     if (MR::isPadSwing(WPAD_CHAN0) && isBound() && !_B2) {
-        MR::startSound(mHostActor, "SE_PV_TWIST_START");
-        MR::startSound(mHostActor, "SE_PM_SPIN_ATTACK");
+        MR::startActionSound(mHostActor, "PvTwistStart");
+        MR::startActionSound(mHostActor, "PmSpinAttack");
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         setNerve(GET_NERVE(WaterPressureBullet, WaterPressureBulletNrvSpinKill));
         return;
@@ -207,8 +207,8 @@ bool WaterPressureBullet::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
         if (!inviteMario(pSender)) {
             return false;
         } else {
-            MR::startSound(this, "SE_OJ_W_PRESS_BUBBLE_IN");
-            MR::startSound(mHostActor, "SE_PV_CATCH");
+            MR::startActionSound(this, "OjWPressBubbleIn");
+            MR::startActionSound(mHostActor, "PvCatch");
 
             return true;
         }

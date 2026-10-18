@@ -141,7 +141,7 @@ void ItemBlock::initBlock() {
     case 3:
     case 4:
     case 5:
-        initModelManagerWithAnm("CoinBlock", nullptr, false);
+        MR::initActor(this, "CoinBlock", false);
         TPos3f mtx;
         MR::addHitSensorMtxMapObj(this, "body", 8, 100.0f, MR::getJointMtx(this, "CoinBlock"), TVec3f(0.0f, 100.0f, 0.0f));
         MR::initCollisionPartsAutoEqualScale(this, "CoinBlock", getSensor("body"), MR::getJointMtx(this, "CoinBlock"));
@@ -163,7 +163,7 @@ void ItemBlock::appear() {
 }
 
 void ItemBlock::kill() {
-    MR::startSound(this, "SE_EM_EXPLODE_S");
+    MR::startActionSound(this, "EmExplodeS");
     MR::emitEffect(this, "Break");
     LiveActor::kill();
 }
@@ -265,7 +265,7 @@ void ItemBlock::exeAppearItem() {
                 MR::hopStarPiece(this, position, -gravVec);
             }
 
-            MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+            MR::startActionSound(this, "OjStarPieceBurst");
             break;
         case 2:
         default:
@@ -276,7 +276,7 @@ void ItemBlock::exeAppearItem() {
 
     decTimer();
 
-    if (!MR::isBckStopped(this)) {
+    if (!MR::isActionEnd(this)) {
         return;
     }
 
@@ -293,7 +293,7 @@ void ItemBlock::exeAppearItemSplash() {
         MR::startAction(this, "Bomb");
     }
 
-    if (!MR::isBckStopped(this)) {
+    if (!MR::isActionEnd(this)) {
         return;
     }
 
@@ -305,7 +305,7 @@ void ItemBlock::exeAppearItemSplash() {
         }
     } else if (mKind == 4) {
         MR::appearStarPiece(this, mPosition, mItemCount, ::hLastBonusSplashRangeH, 40.0f, false);
-        MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+        MR::startActionSound(this, "OjStarPieceBurst");
     } else if (mKind == 5) {
         MR::onSwitchDead(this);
     }

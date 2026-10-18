@@ -24,7 +24,7 @@ KeySwitch::KeySwitch(const char* pName) : LiveActor(pName) {
 
 void KeySwitch::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("KeySwitch", 0, false);
+    MR::initActor(this, rIter, "KeySwitch", false);
     MR::connectToSceneMapObjDecoration(this);
     initHitSensor(1);
     TVec3f box;
@@ -98,7 +98,7 @@ void KeySwitch::exeAppear() {
         MR::startAction(this, "Rotation");
         mVelocity.scale(-40.0f, mGravity);
         MR::invalidateClipping(this);
-        MR::startSound(this, "SE_OJ_KEY_SWITCH_APPEAR");
+        MR::startActionSound(this, "OjKeySwitchAppear");
     }
 
     MR::setBckRate(this, MR::calcNerveValue(this, 0xB4, 3.0f, 1.5f));
@@ -114,7 +114,7 @@ void KeySwitch::exeAppear() {
                 mag = 0x64;
             }
 
-            MR::startSound(this, "SE_OJ_KEY_SWITCH_BOUND", mag);
+            MR::startActionSound(this, "OjKeySwitchBound", mag);
             TVec3f neg;
             neg.negate(mGravity);
             MR::calcReboundVelocity(&mVelocity, neg, 0.60f, 0.7f);
@@ -186,7 +186,7 @@ bool KeySwitch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     }
 
     if (MR::isMsgItemGet(msg)) {
-        MR::startSound(this, "SE_OJ_KEY_SWITCH_GET");
+        MR::startActionSound(this, "OjKeySwitchGet");
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         kill();
         return true;

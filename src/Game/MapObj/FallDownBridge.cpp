@@ -1,4 +1,5 @@
 #include "Game/MapObj/FallDownBridge.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -85,7 +86,7 @@ void FallDownBridge::control() {
     _98 += _9C;
 
     if (!_A8 && MR::abs(_9C) >= 0.06f) {
-        MR::startLevelSound(this, "SE_OJ_LV_CHAL_FD_BRIDGE_FL");
+        MR::startActionSound(this, "OjLvChalFdBridgeFl");
     }
 
     bool ret = false;
@@ -102,7 +103,7 @@ void FallDownBridge::control() {
 
     if (ret) {
         if (MR::abs(_9C) > ::sShakeCameraNormalVelocity) {
-            MR::startSound(this, "SE_OJ_CHAL_FD_BRIDGE_END");
+            MR::startActionSound(this, "OjChalFdBridgeEnd");
             MR::shakeCameraNormal();
         } else {
             if (MR::abs(_9C) > ::sShakeCameraWeakVelocity) {
@@ -156,7 +157,7 @@ bool FallDownBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
 
         if (msg == 0x41 /* ACTMES_BALL_DASH_WALL */) {
             val = 0.45f;
-            MR::startSound(this, "SE_OJ_CHAL_FD_BRIDGE_HIT");
+            MR::startActionSound(this, "OjChalFdBridgeHit");
         } else {
             val = 0.3f;
         }

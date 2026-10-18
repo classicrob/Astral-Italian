@@ -1,4 +1,5 @@
 #include "Game/Ride/Plant.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -155,7 +156,7 @@ void Plant::appear() {
 
 void Plant::exeWaitFar() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(mSeedPartsModel, "Wait", nullptr);
+        MR::startAction(mSeedPartsModel, "Wait");
     }
 
     if (MR::isNear(this, *MR::getPlayerPos(), ::sDistanceNear)) {
@@ -165,7 +166,7 @@ void Plant::exeWaitFar() {
 
 void Plant::exeSeedWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(mSeedPartsModel, "Bud", nullptr);
+        MR::startAction(mSeedPartsModel, "Bud");
         MR::startActionSound(this, "SE_OJ_PLANT_BUD", -1, -1, -1);
         mTopPartsModel->kill();
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -182,7 +183,7 @@ void Plant::exeWaitDemoWaitGrowUp() {
 
 void Plant::exeDemoWaitGrowUp() {
     if (MR::isStep(this, ::sStepDemoAppearEffect)) {
-        MR::startBck(mSeedPartsModel, "Bud", nullptr);
+        MR::startAction(mSeedPartsModel, "Bud");
         MR::startActionSound(this, "SE_OJ_PLANT_BUD", -1, -1, -1);
     }
 
@@ -193,7 +194,7 @@ void Plant::exeDemoWaitGrowUp() {
 
 void Plant::exeGrowUp() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(mSeedPartsModel, "GrowUp", nullptr);
+        MR::startAction(mSeedPartsModel, "GrowUp");
         MR::startActionSound(this, "SE_OJ_PLANT_SEED_BREAK", -1, -1, -1);
         MR::startSystemSE("SE_SY_ITEM_APPEAR");
         MR::startActionSound(this, "SE_OJ_PLANT_GROW_START", -1, -1, -1);
@@ -301,7 +302,7 @@ void Plant::exeHangStart() {
         MR::startBckPlayer("GrowPlantCatch", nullptr);
     }
 
-    if (!updateHangUp(::sHangStartRotateSpeed) && MR::isBckStopped(mRider)) {
+    if (!updateHangUp(::sHangStartRotateSpeed) && MR::isActionEnd(mRider)) {
         setNerve(GET_NERVE(Plant, PlantNrvHangUp));
     }
 }
@@ -453,7 +454,7 @@ void Plant::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool Plant::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (isNerve(GET_NERVE(Plant, PlantNrvSeedWait))) {
             MR::invalidateClipping(this);
             mTopPartsModel->appear();
@@ -556,7 +557,7 @@ bool Plant::updateGrowUp() {
     }
 
     MR::tryRumblePadWeak(this, WPAD_CHAN0);
-    MR::startLevelSound(this, "SE_OJ_LV_PLANT_GROW");
+    MR::startActionSound(this, "OjLvPlantGrow");
 
     if (growStalk) {
         if (mPlayAppearDemo) {

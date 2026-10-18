@@ -114,14 +114,14 @@ void Fluff::exeFreeBloom() {
         MR::calcGravity(this);
         MR::offCalcGravity(this);
         MR::offBind(this);
-        MR::startBck(mModel, "Bloom", nullptr);
+        MR::startAction(mModel, "Bloom");
         MR::setShadowVolumeSphereRadius(this, nullptr, 30.0f);
         MR::invalidateHitSensors(this);
         MR::validateHitSensor(this, "WindReceiver");
         MR::hideModel(this);
     }
-    if (MR::isBckStopped(mModel)) {
-        MR::startBck(mModel, "Wait", nullptr);
+    if (MR::isActionEnd(mModel)) {
+        MR::startAction(mModel, "Wait");
         setNerve(GET_NERVE(Fluff, FluffNrvFreeWaitOnGround));
     }
 }
@@ -140,8 +140,8 @@ void Fluff::exeFreeWaitOnGround() {
 void Fluff::exeFreeWaitAir() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
-        MR::startBck(this, "WaitAir", nullptr);
-        MR::startBck(mModel, "Spin", nullptr);
+        MR::startAction(this, "WaitAir");
+        MR::startAction(mModel, "Spin");
         MR::startActionSound(this, "SE_OJ_FLUFF_RISE_UP_BLOW", -1, -1, -1);
         MR::onBind(this);
         MR::validateHitSensor(this, "bind");
@@ -182,7 +182,7 @@ void Fluff::exeFreeWaitInvalid() {
 
 void Fluff::exeRideStart() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Fly", nullptr);
+        MR::startAction(this, "Fly");
         MR::startBckPlayer("FluffStart", nullptr);
         MR::offBind(this);
     }
@@ -256,15 +256,15 @@ void Fluff::exeRideSpinUp() {
             MR::startSpinHitSound(this);
             if (mSpinsRemaining == 2) {
                 MR::startActionSound(this, "SE_OJ_FLUFF_RISE_UP_1", -1, -1, -1);
-                MR::startBck(this, "Spin1st", nullptr);
+                MR::startAction(this, "Spin1st");
                 MR::startBrk(this, "Spin1st");
             } else if (mSpinsRemaining == 1) {
                 MR::startActionSound(this, "SE_OJ_FLUFF_RISE_UP_2", -1, -1, -1);
-                MR::startBck(this, "Spin2nd", nullptr);
+                MR::startAction(this, "Spin2nd");
                 MR::startBrk(this, "Spin2nd");
             } else {
                 MR::startActionSound(this, "SE_OJ_FLUFF_RISE_UP_4", -1, -1, -1);
-                MR::startBck(this, "Spin3rd", nullptr);
+                MR::startAction(this, "Spin3rd");
                 MR::startBrk(this, "Spin3rd");
             }
         }
@@ -289,7 +289,7 @@ void Fluff::exeRideSpinUp() {
         mWindSpinTimer = ::sWindRemainTime;
     }
 
-    if (!trySpinUp(::sStepToSpinUp2nd) && MR::isBckStopped(this)) {
+    if (!trySpinUp(::sStepToSpinUp2nd) && MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Fluff, FluffNrvRideFly));
     }
 }
@@ -307,7 +307,7 @@ void Fluff::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool Fluff::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (isNerve(GET_NERVE(Fluff, FluffNrvFreeBloom)) && MR::isGreaterStep(this, ::sFreeBloomFlyUpStep) ||
             isNerve(GET_NERVE(Fluff, FluffNrvFreeWaitOnGround))) {
             MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -497,7 +497,7 @@ bool Fluff::updateRide() {
         front.scale(::sRideMoveFrontAccel);
         mVelocity.add(front);
         mSide.cross(mUp, mFront);
-        MR::startLevelSound(this, "SE_OJ_LV_FLUFF_SIDE_MOVE");
+        MR::startActionSound(this, "OjLvFluffSideMove");
     }
 
     updateWind();
@@ -531,11 +531,11 @@ void Fluff::updateWind() {
         if (MR::getSubPadStickX(WPAD_CHAN0) == 0.0f || MR::getSubPadStickY(WPAD_CHAN0) == 0.0f) {
             MR::vecBlend(&mFront, mFront, windFront, ::sBlendRateToWind);
         }
-        MR::startLevelSound(this, "SE_OJ_LV_FLUFF_FLY");
+        MR::startActionSound(this, "OjLvFluffFly");
     } else {
         MR::rotateVecDegree(&mSide, mUp, ::sRideFallRotateSpeed);
         MR::rotateVecDegree(&mFront, mUp, ::sRideFallRotateSpeed);
-        MR::startLevelSound(this, "SE_OJ_LV_FLUFF_FLY_FALL");
+        MR::startActionSound(this, "OjLvFluffFlyFall");
     }
 
     TVec3f gravity = mGravity;

@@ -47,19 +47,19 @@ void JumpStand::init(const JMapInfoIter& rIter) {
 void JumpStand::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
-        MR::startBck(this, "Wait", nullptr);
+        MR::startAction(this, "Wait");
     }
 }
 
 void JumpStand::exeTrampleBound() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Bound", nullptr);
+        MR::startAction(this, "Bound");
         MR::startActionSound(this, "SE_OJ_JUMP_STAND_LAND_S", -1, -1, -1);
     }
 
     if (MR::isLessEqualStep(this, 5) && MR::testCorePadTriggerA(0)) {
         mIsMarioJumpingHigh = true;
-        MR::startBck(this, "BoundJump", nullptr);
+        MR::startAction(this, "BoundJump");
         MR::setBckFrame(this, getNerveStep());
     }
 
@@ -85,7 +85,7 @@ void JumpStand::exeTrampleBound() {
         MR::validateCollisionParts(this);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         mIsMarioJumpingHigh = false;
         setNerve(GET_NERVE(JumpStand, JumpStandNrvWait));
     }
@@ -93,7 +93,7 @@ void JumpStand::exeTrampleBound() {
 
 void JumpStand::exeHipDropBound() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "BoundHipDrop", nullptr);
+        MR::startAction(this, "BoundHipDrop");
         MR::stopSound(mBindedActor, "SE_PM_HIPDROP", 0);
         MR::startActionSound(this, "SE_OJ_JUMP_STAND_LAND_L", -1, -1, -1);
     }
@@ -115,7 +115,7 @@ void JumpStand::exeHipDropBound() {
         MR::validateCollisionParts(this);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::validateCollisionParts(this);
         setNerve(GET_NERVE(JumpStand, JumpStandNrvWait));
     }
@@ -123,11 +123,11 @@ void JumpStand::exeHipDropBound() {
 
 void JumpStand::exeStarPieceBound() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Bound", nullptr);
+        MR::startAction(this, "Bound");
         MR::startActionSound(this, "SE_OJ_JUMP_STAND_LAND_S", -1, -1, -1);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(JumpStand, JumpStandNrvWait));
     }
 }

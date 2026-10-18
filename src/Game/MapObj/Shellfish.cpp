@@ -136,10 +136,10 @@ void Shellfish::exeOpenWait() {
 
 void Shellfish::exeCloseSignal() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "CloseSignal", nullptr);
+        MR::startAction(this, "CloseSignal");
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_SHELLFISH_SIGNAL");
+    MR::startActionSound(this, "OjLvShellfishSignal");
 
     if (MR::isStep(this, ::sStepToClose)) {
         setNerve(GET_NERVE(Shellfish, ShellfishNrvClose));
@@ -148,7 +148,7 @@ void Shellfish::exeCloseSignal() {
 
 void Shellfish::exeClose() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Close", nullptr);
+        MR::startAction(this, "Close");
         MR::startActionSound(this, "SE_OJ_SHELLFISH_CLOSE", -1, -1, -1);
     }
 
@@ -164,7 +164,7 @@ void Shellfish::exeClose() {
         MR::sendArbitraryMsg(0x87 /* ACTMES_ITEM_HIDE */, mItem->getSensor(nullptr), getSensor("Body"));
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::validateCollisionParts(this);
         setNerve(GET_NERVE(Shellfish, ShellfishNrvWait));
     }

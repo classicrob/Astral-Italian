@@ -56,7 +56,7 @@ void QuestionCoin::init(const JMapInfoIter& rIter) {
         MR::makeMtxTR(mBaseMtx.toMtxPtr(), this);
     }
 
-    initModelManagerWithAnm("QuestionCoin", nullptr, false);
+    MR::initActor(this, rIter, "QuestionCoin", false);
     MR::startBpk(this, "QuestionCoin");
     MR::connectToSceneItemStrongLight(this);
     initEffectKeeper(0, nullptr, false);
@@ -79,7 +79,7 @@ void QuestionCoin::init(const JMapInfoIter& rIter) {
 
 void QuestionCoin::initAfterPlacement() {
     if (MR::isInWater(mPosition)) {
-        getSensor("binder")->mRadius = ::sInWaterScale * getSensor("binder")->mRadius;
+        getSensor("binder")->mRadius = ::sInWaterScale * MR::getSensorRadius(this, "binder");
     }
 
     TPos3f rotation;
@@ -220,7 +220,7 @@ void QuestionCoin::updateActorMtx() {
     TVec3f startPos;
     mActorMtx.getTrans(startPos);
     TVec3f position;
-    position.lerp(startPos, getSensor("binder")->getPosition(), rate);
+    position.lerp(startPos, (*MR::getSensorPos(this, "binder")), rate);
     TPos3f mtx;
     mtx.setQT(quat, position);
     MR::setBaseTRMtx(mBoundActor, mtx);
@@ -233,7 +233,7 @@ void QuestionCoin::exeThrowActor() {
         MR::tryRumblePadMiddle(this, 0);
         MR::hideModel(this);
         MR::startAction(mBoundActor, "QuestionCoinJumpStart");
-        MR::startSound(mBoundActor, "SE_PV_JUMP_JOY");
+        MR::startActionSound(mBoundActor, "PvJumpJoy");
 
         if (MR::isExistActorCamera(mCameraInfo)) {
             MR::startActorCameraNoTarget(this, mCameraInfo, -1);

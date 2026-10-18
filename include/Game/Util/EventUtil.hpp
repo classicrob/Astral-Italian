@@ -185,6 +185,7 @@ namespace MR {
     bool isUFOKinokoUnderConstruction();
     bool isButlerMapAppear();
     void updateAlreadyDoneFlag(int, u32);
+    void updateAlreadyDoneFlag(int);
     bool isOnGameEventFlagGalaxyOpen(const char*);
     bool isAlreadyVisitedStage(const char*);
     bool canOpenGalaxy(const char*);

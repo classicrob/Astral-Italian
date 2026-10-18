@@ -37,7 +37,19 @@ void SphereRailDash::init(const JMapInfoIter& rIter) {
 }
 
 bool SphereRailDash::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (msg == 0xA4 /* ACTMES_SPHERE_PLAYER_BINDED */) {
+    if (msg == 0xA4 /* ACTMES_SPHERE_PLAYER_BINDED */ && isNerve(GET_NERVE(SphereRailDash, SphereRailDashNrvWait))) {
+        TVec3f hostVel(MR::getSensorHost(pSender)->mVelocity);
+        const TVec3f* pRecvPos = MR::getSensorPos(pReceiver);
+        TVec3f diff = *MR::getSensorPos(pSender) - *pRecvPos;
+        if (diff.dot(hostVel) > 0.0f) {
+            return false;
+        }
+        if (mGravity.dot(diff) > 0.0f) {
+            MR::normalizeOrZero(&diff);
+            diff.dot(hostVel);
+            MR::zeroVelocity(MR::getSensorHost(pSender));
+            return false;
+        }
         _8C = pSender;
         return true;
     }

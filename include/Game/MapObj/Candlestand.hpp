@@ -18,6 +18,7 @@ public:
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
+    bool tryExtinguish();
     void emitEffectFire();
     void deleteEffectFire();
     void emitEffectExtinguishFire();

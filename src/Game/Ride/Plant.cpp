@@ -431,9 +431,9 @@ void Plant::endClipped() {
 
 void Plant::updateHitSensor(HitSensor* pSensor) {
     if (isNerve(GET_NERVE(Plant, PlantNrvWaitFar)) || isNerve(GET_NERVE(Plant, PlantNrvSeedWait))) {
-        pSensor->mPosition.set(mSeedPartsModel->mPosition);
+        MR::setSensorPos(pSensor, mSeedPartsModel->mPosition);
     } else {
-        mStalk->calcNearestPos(&pSensor->mPosition, *MR::getPlayerPos());
+        mStalk->calcNearestPos(MR::getSensorPos2(pSensor), *MR::getPlayerPos());
     }
 }
 

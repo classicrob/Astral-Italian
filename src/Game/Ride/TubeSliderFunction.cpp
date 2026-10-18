@@ -1,6 +1,7 @@
 #include "Game/Ride/TubeSliderFunction.hpp"
 #include "Game/Ride/TubeSlider.hpp"
 #include "Game/Ride/TubeSliderCoinCreator.hpp"
+#include "Game/Ride/TubeSliderDamageObjCreator.hpp"
 #include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
@@ -16,20 +17,18 @@ namespace TubeSliderFunction {
             const char* pName = nullptr;
             MR::getChildObjName(&pName, rIter, i);
 
+            // NONMATCHING: TubeSliderEnemy, HanachanRunaway and TubeSliderObjCreator are not ported yet
+            // (no complete type to `new`), so those three branches only run the name check.
             if (MR::isEqualString(pName, "TubeSliderCoinCreator")) {
                 MR::initChildObj(new TubeSliderCoinCreator(pSlider, false), rIter, i);
-                continue;
             } else if (MR::isEqualString(pName, "TubeSliderCoinCreatorPurple")) {
                 MR::initChildObj(new TubeSliderCoinCreator(pSlider, true), rIter, i);
-                continue;
             } else if (MR::isEqualString(pName, "TubeSliderDamageObj")) {
-                continue;
+                MR::initChildObj(new TubeSliderDamageObjCreator(pSlider), rIter, i);
             } else if (MR::isEqualString(pName, "TubeSliderEnemy")) {
-                continue;
             } else if (MR::isEqualString(pName, "TubeSliderHana")) {
-                continue;
             } else {
-                // TubeSliderObjCreator
+                // TubeSliderObjCreator(pSlider, pName)
             }
         }
     }

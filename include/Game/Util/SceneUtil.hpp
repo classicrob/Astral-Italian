@@ -48,6 +48,7 @@ class JMapLinkInfo;
 
 namespace MR {
     bool isStageBeginPrologueEvent();
+    bool isStageNoPauseMenuStars();
     bool isStageBeginFadeWipe();
     bool isStageBeginTitleWipe();
     bool isStageBeginWithoutWipe();

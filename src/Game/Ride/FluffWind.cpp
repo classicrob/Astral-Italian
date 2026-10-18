@@ -1,6 +1,7 @@
 #include "Game/Ride/FluffWind.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
@@ -35,6 +36,7 @@ void FluffWindEffect::initEffectInfo(const TVec3f& rFront, const TVec3f& rUp, co
     mEffectName = pEffectName;
     initEffectKeeper(0, pEffectName, false);
     MR::setEffectHostMtx(this, mEffectName, mMtx);
+    initSound(2, "FluffWind", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(FluffWindEffect, FluffWindEffectNrvBrowWind));
     if (radius > 0.0f) {
         MR::setClippingTypeSphere(this, radius);
@@ -43,6 +45,11 @@ void FluffWindEffect::initEffectInfo(const TVec3f& rFront, const TVec3f& rUp, co
 
 void FluffWindEffect::init(const JMapInfoIter&) {
     makeActorAppeared();
+}
+
+void FluffWindEffect::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    setNerve(GET_NERVE(FluffWindEffect, FluffWindEffectNrvBrowWind));
 }
 
 void FluffWindEffect::makeActorDead() {
@@ -54,6 +61,7 @@ void FluffWindEffect::exeBrowWind() {
     if (MR::isFirstStep(this)) {
         MR::emitEffect(this, mEffectName);
         mTimer = MR::getRandom(::sStepBrowWindMin, ::sStepBrowWindMax);
+        MR::startActionSound(this, "OjLvFluffwindeffWind", -1, -1, -1);
     }
 
     if (MR::isStep(this, ::sStepToValidateClipping)) {
@@ -108,11 +116,11 @@ void FluffWind::init(const JMapInfoIter& rIter) {
         mEffects[i] = effect;
     }
 
-    if (MR::useStageSwitchReadB(this, rIter)) {
-        MR::listenStageSwitchOnB(this, MR::Functor(this, &FluffWind::makeActorDead));
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
+        MR::listenStageSwitchOnB(this, MR::FunctorV0M< FluffWind*, void (FluffWind::*)() >(this, &FluffWind::makeActorDead));
     }
 
-    makeActorAppeared();
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void FluffWind::makeActorDead() {
@@ -125,16 +133,20 @@ void FluffWind::makeActorDead() {
 FluffWindHolder::FluffWindHolder() : LiveActorGroup("わたげ風", 8) {
 }
 
-void FluffWindHolder::calcWindInfo(const TVec3f& rPosition, TVec3f* pWindDirection, f32* pWindDistance) const {
+bool FluffWindHolder::calcWindInfo(const TVec3f& rPosition, TVec3f* pWindDirection, f32* pWindDistance) const {
     pWindDirection->zero();
     *pWindDistance = -1.0f;
 
     f32 bestDistance = 1000000.0f;
     TVec3f bestDir(0.0f, 0.0f, 0.0f);
 
+    bool found = false;
     LiveActor* pActor;
     for (s32 i = 0; i < getObjNum(); i++) {
         pActor = getActor(i);
+        if (MR::isDead(pActor)) {
+            continue;
+        }
 
         TVec3f railDir(0.0f, 0.0f, 0.0f);
         TVec3f nearestPos;
@@ -144,11 +156,13 @@ void FluffWindHolder::calcWindInfo(const TVec3f& rPosition, TVec3f* pWindDirecti
         if (distance < bestDistance) {
             bestDistance = distance;
             bestDir = railDir;
+            found = true;
         }
     }
 
     pWindDirection->set(bestDir);
     *pWindDistance = bestDistance;
+    return found;
 }
 
 bool FluffFunction::calcFluffWindInfo(const TVec3f& rPosition, TVec3f* pWindDirection, f32* pWindDistance) {
@@ -159,7 +173,5 @@ bool FluffFunction::calcFluffWindInfo(const TVec3f& rPosition, TVec3f* pWindDire
         return false;
     }
 
-    ::getFluffWindHolder()->calcWindInfo(rPosition, pWindDirection, pWindDistance);
-
-    return true;
+    return ::getFluffWindHolder()->calcWindInfo(rPosition, pWindDirection, pWindDistance);
 }

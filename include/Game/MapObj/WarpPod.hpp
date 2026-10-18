@@ -47,6 +47,7 @@ public:
     void endEventCamera();
     void initDraw();
     void drawCylinder(u32) const;
+    void startWaitAfterDelay(u16 delay);
 
     /* 0x8C */ JMapIdInfo* mJMapIdInfo;
     /* 0x90 */ s32 mGroupId;

@@ -25,7 +25,7 @@ namespace {
 
 BenefitItemInvincible::BenefitItemInvincible(const char* pName) : BenefitItemObj(pName, "PowerupInvincible") {
     if (MR::isGalaxyDarkCometAppearInCurrentStage()) {
-        _D8 = 1;
+        _DC = 1;
     }
 }
 
@@ -42,11 +42,11 @@ void BenefitItemInvincible::exeCatch() {
 void BenefitItemInvincible::init(const JMapInfoIter& rIter) {
     BenefitItemObj::init(rIter);
 
-    if (_D8) {
+    if (_DC) {
         return;
     }
 
-    if (_DC) {
+    if (_E0) {
         MR::setShadowVolumeCylinderRadius(this, nullptr, 60.0f);
     }
 
@@ -61,7 +61,7 @@ void BenefitItemInvincible::init(const JMapInfoIter& rIter) {
 }
 
 void BenefitItemInvincible::initModelAndEfx() {
-    initModelManagerWithAnm(_120, nullptr, false);
+    initModelManagerWithAnm(mModelName, nullptr, false);
     initEffectKeeper(5, "BenefitItemObj", false);
 
     initBinder(60.0f, 60.0f, 0);
@@ -72,14 +72,14 @@ void BenefitItemInvincible::initModelAndEfx() {
 }
 
 void BenefitItemInvincible::appearThrowUp() {
-    if (!_DA) {
+    if (!_DE) {
         BenefitItemObj::appearThrowUp();
         return;
     }
 
     MR::startSystemSE("SE_SY_ITEM_APPEAR");
 
-    setNerve(GET_NERVE(BenefitItemObj, HostTypeNrvShoot));
+    setNerveShoot();
 
     mVelocity = mUpAxis * ::cAppearThrowUpSpd + mFwdAxis * ::cAppearThrowFwdSpd;
 
@@ -91,8 +91,8 @@ void BenefitItemInvincible::initEscape() {
 
     MR::calcGravity(this);
 
-    _BC = -mGravity * ::cBoundUpSpd;
-    _BC += mFwdAxis * 10.0f;
+    _C4 = -mGravity * ::cBoundUpSpd;
+    _C4 += mFwdAxis * 10.0f;
 
     _13A = 60;
 }
@@ -105,21 +105,21 @@ void BenefitItemInvincible::doEscape() {
         MR::vecKillElement(mFwdAxis, mGravity, &mFwdAxis);
         MR::normalizeOrZero(&mFwdAxis);
 
-        _BC = mFwdAxis * 10.0f - mGravity * ::cBoundUpSpd;
+        _C4 = mFwdAxis * 10.0f - mGravity * ::cBoundUpSpd;
 
         MR::startActionSound(this, "OjPowInvincibleBound");
 
-        _C8.zero();
+        _D0.zero();
     } else {
-        _BC.x *= 0.98f;
-        _BC.y *= 0.98f;
-        _BC.z *= 0.98f;
-        _E5 = 1;
+        _C4.x *= 0.98f;
+        _C4.y *= 0.98f;
+        _C4.z *= 0.98f;
+        _FA = 1;
 
-        _C8 += mGravity * 0.5f;
+        _D0 += mGravity * 0.5f;
 
-        if (_C8.length() > 20.0f) {
-            _C8.setLength(20.0f);
+        if (_D0.length() > 20.0f) {
+            _D0.setLength(20.0f);
         }
     }
 

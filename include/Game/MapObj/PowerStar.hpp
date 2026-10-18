@@ -26,17 +26,20 @@ public:
     void setDemoAppearPos(const TVec3f&);
     bool isEndAppearDemo() const;
     void offAppearDemo();
-    static void setupColor(LiveActor*, const NameObj*, s32);
-    static void setupColorAtResultSequence(LiveActor*, bool);
+    // fn_802DF9A0: marks the star as appearing from below (boss demo) and shifts the appear position along gravity
+    void setAppearFromBelow();
+    static s32 setupColor(LiveActor*, const NameObj*, s32);
+    static s32 setupColorAtResultSequence(LiveActor*, bool);
     static void requestPointLight(const LiveActor*, const NameObj*, s32);
     static void requestPointLightAtResultSequence(const LiveActor*);
     static f32 getPowerStarWaitRotateSpeed();
     static s32 getBtpFrameCurrentStage(s32);
     static bool isCurrentStageKoopaVs3();
-    static void initShadowPowerStar(LiveActor*, bool);
-    static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
+    static void initShadowPowerStar(LiveActor*, bool, f32 = -1.0f);
+    // fn_802DFD00
+    static void emitColorEffect(LiveActor*, const char*, s32, bool);
     void initMapToolInfo(const JMapInfoIter&);
-    void initModel();
+    void initModel(const JMapInfoIter&);
     void initSensorGrandStar();
     void initShadow(const JMapInfoIter&);
     void initPosture();
@@ -45,48 +48,51 @@ public:
     LiveActor* getAppearCameraActor();
     ActorCameraInfo* getAppearCameraInfo() const;
     void requestAppearOrWait();
+    const char* getStarGetAnimCameraName() const;
     void calcAppearDemoRiseTrans(TVec3f*, f32) const;
+    void applyAppearDemoRiseTrans(const TVec3f&, f32, f32);
+    void startAppearDemoCommon();  // fn_802E07C0
+    void endAppearDemoMove();      // fn_802E0D50
     void processWait(f32);
+    void calcStageClearDemoMtx();
+    void startExistLevelSound();
     void exeWaitStartAppear();
     void exeAppearDemoRise();
     void exeAppearDemoMove();
-    void exeAppearDemoKoopa();
+    void exeAppearDemoBossFormer();  // fn_802E1250
+    void exeAppearDemoBossLatter();  // fn_802E1350
     void exeWait();
-    void exeWeak();
-    void exeWeakNoRotate();
-    void exeWeakToWait();
     void exeStageClearDemo();
 
     inline bool isGrandStar() {
         return mIsGrandStar;
     }
 
-    /* 0x08C */ s32 mPowerStarId;
-    /* 0x090 */ bool mIsInDemo;
-    /* 0x094 */ TVec3f mAppearPosition;
-    /* 0x0A0 */ TVec3f mInitRotation;
-    /* 0x0AC */ TVec3f mInitPosition;
-    /* 0x0B8 */ TPos3f _B8;
-    /* 0x0E8 */ TPos3f mBaseMtx;
-    /* 0x118 */ ModelObj* mPowerStarModelObj;
-    /* 0x11C */ u8 _11C;
-    /* 0x11D */ u8 _11D;
-    /* 0x11E */ u8 _11E;
-    /* 0x11F */ u8 _11F;
-
+    /* 0x090 */ s32 mPowerStarId;
+    /* 0x094 */ bool mIsInDemo;
+    /* 0x098 */ TVec3f mAppearPosition;
+    /* 0x0A4 */ TVec3f mInitRotation;
+    /* 0x0B0 */ TVec3f mInitPosition;
+    /* 0x0BC */ TPos3f _B8;
+    /* 0x0EC */ TPos3f mBaseMtx;
+    /* 0x11C */ ModelObj* mPowerStarModelObj;
+    /* 0x120 */ LiveActor* mPeachModel;
+    /* 0x124 */ LiveActor* mTicoBabyModel;
+    /* 0x128 */ LiveActor* mSupportTicoModel;
+    /* 0x12C */ bool _12C;
+    /* 0x12D */ bool _12D;
     // this isn't what they wrote but oh well
     union {
-        /* 0x120 */ vs32 mColorFrame_v;
-        /* 0x120 */ s32 mColorFrame;
+        /* 0x130 */ vs32 mColor_v;
+        /* 0x130 */ s32 mColor;
     };
-
-    /* 0x124 */ volatile bool mIsGrandStar;
-    /* 0x125 */ bool _125;
-    /* 0x126 */ bool _126;
-    /* 0x127 */ bool _127;
-    /* 0x128 */ ActorCameraInfo* mCameraInfo;
-    /* 0x12C */ PowerStarAppearPoint* mCameraActor;
-    /* 0x130 */ ModelObj* mLuigiNPC;
-    /* 0x134 */ TMtx34f _134;
-    /* 0x164 */ bool _164;
+    /* 0x134 */ volatile bool mIsGrandStar;
+    /* 0x135 */ bool mIsGreenStar;
+    /* 0x136 */ bool _136;
+    /* 0x137 */ bool _137;
+    /* 0x138 */ bool _138;
+    /* 0x13C */ ActorCameraInfo* mCameraInfo;
+    /* 0x140 */ PowerStarAppearPoint* mCameraActor;
+    /* 0x144 */ TMtx34f _144;
+    /* 0x174 */ bool _174;
 };

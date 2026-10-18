@@ -42,10 +42,12 @@ void ElectricRailMovingPoint::init(const JMapInfoIter& rIter) {
 }
 
 void ElectricRailMovingPoint::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (_8D) {
-        MR::sendMsgEnemyAttackElectric(pReceiver, pSender);
-    } else {
-        MR::sendMsgPush(pReceiver, pSender);
+    if (MR::isSensorPlayer(pReceiver)) {
+        if (_8D) {
+            MR::sendMsgEnemyAttackElectric(pReceiver, pSender);
+        } else {
+            MR::sendMsgPush(pReceiver, pSender);
+        }
     }
 }
 

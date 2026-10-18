@@ -233,6 +233,12 @@ namespace MR {
     bool isMsgJetTurtleAttack(u32 msg);
     bool isMsgYoshiProjectile(u32 msg);
     bool isMsgYoshiEat(u32 msg);
+    bool isMsgYoshiStartTongue(u32);
+    bool isMsgYoshiLoopTongue(u32);
+    bool isMsgYoshiStartEaten(u32);
+    bool isMsgYoshiCancelEaten(u32);
+    bool isMsgYoshiReleaseEaten(u32);
+    MtxPtr getYoshiMouthMtx();
     bool isMsgYoshiProjectileOrEat(u32 msg);
     bool isMsgFireBallAttack(u32 msg);
     bool isMsgSearchlightAttack(u32 msg);

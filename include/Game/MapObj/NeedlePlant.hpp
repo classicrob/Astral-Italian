@@ -16,7 +16,7 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual void connectToScene(const MapObjActorInitInfo&);
 
-    void exeWait();
+    void exeWait() NO_INLINE;  // NrvWait::execute tail-calls it in the target
     void exeShake();
 
     /* 0xC4 */ s32 mObjArg0;

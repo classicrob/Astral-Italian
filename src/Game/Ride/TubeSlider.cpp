@@ -21,6 +21,8 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
+extern "C" void fn_80051940();
+
 namespace {
     f32 one = 1.0f;
     f32 thirty = 30.0f;
@@ -371,7 +373,10 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         f32 dotA = scratch.dot(scratch2);
         f32 dotB = _10C.dot(scratch2);
 
-        if (dotB < 0.0f && !(dotA >= 50.0f) && isOffSlide()) {
+        f32 wallDist = 0.0f;
+        if (dotB < 0.0f && (dotA >= 50.0f || TubeSliderFunction::isHitLeftWall(this, &wallDist) ||
+                            TubeSliderFunction::isHitRightWall(this, &wallDist)) &&
+            isOffSlide()) {
             MR::tryRumblePadMiddle(this, 0);
             MR::shakeCameraNormal();
             if (MR::isPlayerDead())
@@ -379,7 +384,7 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             else if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage)))
                 setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamageLand));
             else {
-                // Missing mario function
+                fn_80051940();
                 setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideLand));
             }
 

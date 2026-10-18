@@ -31,7 +31,7 @@ void PowerStarHolder::requestAppearPowerStar(int starNum, const TVec3f* pPos, bo
     }
 
     if (forceAppear) {
-        star->_11C = true;
+        star->_12C = true;
         star->appear();
     } else {
         star->requestAppear();

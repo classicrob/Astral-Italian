@@ -45,6 +45,8 @@ public:
     bool testHitCollision() NO_INLINE;
     bool isBreak(const Triangle*);
 
+    bool isFollowValid(s32) const;
+
     void onSwitchA();
     void offSwitchA();
 
@@ -59,6 +61,8 @@ public:
     /* 0x190 */ TPos3f mPlayerMtx;
     /* 0x1C0 */ TPos3f mPlayerBaseMtx;
     /* 0x1F0 */ TPos3f mLauncherBaseMtx;
+    /* 0x228 */ bool _228;
+    /* 0x22C */ s32 _22C;
 };
 
 class MarioLauncherLayout : public LayoutActor {

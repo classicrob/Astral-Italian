@@ -75,22 +75,25 @@ void RotateMoveObj::exeWaitForPlayerOn() {
 void RotateMoveObj::exeWait() {
 }
 
+extern "C" void fn_80310A40(LiveActor*, const char*, bool);
+
 void RotateMoveObj::exeMove() {
     if (MR::isFirstStep(this)) {
+        MR::startActionSound(this, "RotateMoveObjStart", -1, -1, -1);
         MR::StageEffect::tryStageEffectStart(this, mObjectName);
     }
 
+    MR::startActionSound(this, "RotateMoveObjMove", -1, -1, -1);
+
     if (!MapObjActorUtil::isRotatorMoving(this)) {
         setNerve(GET_NERVE(RotateMoveObj, HostTypeStop));
-    } else {
-        if (mRotator->mIsActive) {
-            if (MR::isEqualString(mObjectName, "OceanRingRuinsGearBig") || MR::isEqualString(mObjectName, "OceanRingRuinsGearSmall")) {
-                if (mRotator->getRotateSpeed() != 0.0f) {
-                    MR::StageEffect::tryStageEffectMoving(this, mObjectName);
-                }
-            } else {
-                MR::StageEffect::tryStageEffectMoving(this, mObjectName);
-            }
+    } else if (mRotator->mIsActive) {
+        if (MR::isValidSwitchParam(this)) {
+            const char* pObjectName = mObjectName;
+            bool isOn = MR::isOnSwitchParam(this);
+            fn_80310A40(this, pObjectName, isOn);
+        } else {
+            MR::StageEffect::tryStageEffectMoving(this, mObjectName);
         }
     }
 }
@@ -99,6 +102,7 @@ void RotateMoveObj::exeStop() {
     if (MapObjActorUtil::isRotatorMoving(this)) {
         setNerve(GET_NERVE(RotateMoveObj, HostTypeMove));
     } else if (MR::isFirstStep(this)) {
+        MR::startActionSound(this, "RotateMoveObjStop", -1, -1, -1);
         MR::StageEffect::tryStageEffectStop(this, mObjectName);
     }
 }

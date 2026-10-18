@@ -101,10 +101,7 @@ void WarpPodMgr::endEventCamera() {
 
     const_cast< WarpPod* >(static_cast< const WarpPod* >(_C))->endEventCamera();
 
-    WarpPod* pPairPod = getPairPod(_C);
-    pPairPod->mDelay = 60;
-    MR::startAction(pPairPod, "Wait");
-    MR::startBrk(pPairPod, "Wait");
+    getPairPod(_C)->startWaitAfterDelay(60);
 
     _C = nullptr;
 }
@@ -114,20 +111,20 @@ void WarpPodMgr::notifyWarpEnd(WarpPod* pWarpPod) {
         return;
     }
 
-    WarpPod* pPairPod = getPairPod(pWarpPod);
-    pPairPod->mDelay = 60;
-    MR::startAction(pPairPod, "Wait");
-    MR::startBrk(pPairPod, "Wait");
+    getPairPod(pWarpPod)->startWaitAfterDelay(60);
 
     _C = nullptr;
 }
 
 void WarpPodMgr::draw() const {
-    for (u32 i = 0; i < _10->getObjNum(); i++) {
-        static_cast< WarpPod* >(_10->getActor(i))->drawCylinder(MR::mDrawTimer);
-    }
-
     MR::mDrawTimer++;
+}
+
+void WarpPod::startWaitAfterDelay(u16 delay) {
+    mDelay = delay;
+    if (mArg2 != 0) {
+        MR::startAction(this, "Wait");
+    }
 }
 
 void WarpPod::init(const JMapInfoIter& rIter) {

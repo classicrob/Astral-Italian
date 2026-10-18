@@ -42,6 +42,14 @@ namespace {
 };  // namespace
 
 namespace NrvFluff {
+    class FluffNrvBeforeBloom : public Nerve {
+    public:
+        virtual void execute(Spine*) const {
+        };
+        static FluffNrvBeforeBloom sInstance;
+    };
+    FluffNrvBeforeBloom FluffNrvBeforeBloom::sInstance ATTRIBUTE_WEAK;
+
     NEW_NERVE(FluffNrvFreeBloom, Fluff, FreeBloom);
     NEW_NERVE(FluffNrvFreeWaitOnGround, Fluff, FreeWaitOnGround);
     NEW_NERVE(FluffNrvFreeWaitAir, Fluff, FreeWaitAir);
@@ -85,10 +93,9 @@ void Fluff::init(const JMapInfoIter& rIter) {
     MR::useStageSwitchAwake(this, rIter);
 }
 
-// NONMATCHING: target transitions to NrvFluff::FluffNrvBeforeBloom (no exe body in SMG2 target); ours uses FreeWaitOnGround.
 void Fluff::onDemoAction() {
-    MR::requestMovementOn(this);
-    setNerve(GET_NERVE(Fluff, FluffNrvFreeWaitOnGround));
+    MR::requestMovementOn(mModel);
+    setNerve(GET_NERVE(Fluff, FluffNrvBeforeBloom));
 }
 
 void Fluff::initAfterPlacement() {
@@ -322,13 +329,33 @@ bool Fluff::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
 
 // NONMATCHING: SMG2 damage path differs (isEqualSensor checks, endBindAndPlayerDamageMsg, offSwitchA, startBrk/deleteEffect); not ported yet.
 bool Fluff::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (mRider != nullptr &&
-        (MR::isSensor(pReceiver, "DamageMario") || MR::isSensor(pReceiver, "DamageMiddle") || MR::isSensor(pReceiver, "DamageHead"))) {
-        endBind(0.0f);
-        return true;
+    if (mRider == nullptr) {
+        return false;
     }
 
-    return false;
+    if (!MR::isEqualSensor(pReceiver, this, "DamageMario") && !MR::isEqualSensor(pReceiver, this, "DamageMiddle")) {
+        if (!MR::isEqualSensor(pReceiver, this, "DamageHead")) {
+            return false;
+        }
+    }
+
+    MR::endBindAndPlayerDamageMsg(this, msg);
+    MR::setGameCameraTargetToPlayer();
+
+    if (MR::isValidSwitchA(this)) {
+        MR::offSwitchA(this);
+    }
+
+    mRider = nullptr;
+    MR::startBrk(this, "Fluff");
+    MR::deleteEffect(this, "HardWind");
+    MR::deleteEffect(this, "Blur");
+    MR::emitEffect(this, "Splash");
+    MR::startActionSound(this, "SE_OJ_FLUFF_BREAK", -1, -1, -1);
+    MR::releaseSoundHandle(this, "SE_OJ_FLUFF_BREAK");
+
+    setNerve(GET_NERVE(Fluff, FluffNrvFreeWaitInvalid));
+    return true;
 }
 
 bool Fluff::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {

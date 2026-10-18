@@ -243,7 +243,7 @@ void Creeper::exeHangDown() {
         setNerve(GET_NERVE(Creeper, CreeperNrvFreeInvalid));
     } else {
         MR::moveCoord(this, mHangSpeed);
-        MR::startLevelSound(mRider, "SE_OJ_LV_CREEPER_DOWN");
+        MR::startLevelSoundPlayer("SE_OJ_LV_CREEPER_DOWN", -1);
         calcAndGetCurrentInfo(&mPosition, &mUp);
         MR::rotateVecDegree(&mFront, mUp, mHangSpeed * ::sHangRotateSpeedRate);
     }
@@ -450,7 +450,7 @@ bool Creeper::updateHangUp(f32 rotateSpeed) {
     }
 
     MR::moveCoord(this, mHangSpeed);
-    MR::startLevelSound(mRider, "SE_OJ_LV_CREEPER_UP");
+    MR::startLevelSoundPlayer("SE_OJ_LV_CREEPER_UP", -1);
 
     if (tryJump()) {
         return true;

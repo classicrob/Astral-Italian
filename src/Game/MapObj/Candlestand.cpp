@@ -175,17 +175,25 @@ bool Candlestand::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* 
 }
 
 bool Candlestand::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isInSpinStormRange(msg, pSender, pReceiver, (350.0f * mScale.x)) && isNerve(GET_NERVE(Candlestand, HostTypeBurn))) {
-        if (::getParam(mObjectName)->mCanUseSwitch) {
-            setNerve(GET_NERVE(Candlestand, HostTypeFlicker));
-            return true;
-        } else {
-            setNerve(GET_NERVE(Candlestand, HostTypeExtinguish));
-            return true;
-        }
+    if (MR::isInSpinStormRange(msg, pSender, pReceiver, (350.0f * mScale.x))) {
+        return tryExtinguish();
     }
 
     return false;
+}
+
+bool Candlestand::tryExtinguish() {
+    if (!isNerve(GET_NERVE(Candlestand, HostTypeBurn))) {
+        return false;
+    }
+
+    if (::getParam(mObjectName)->mCanUseSwitch) {
+        setNerve(GET_NERVE(Candlestand, HostTypeFlicker));
+    } else {
+        setNerve(GET_NERVE(Candlestand, HostTypeExtinguish));
+    }
+
+    return true;
 }
 
 void Candlestand::emitEffectFire() {

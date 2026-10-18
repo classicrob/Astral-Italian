@@ -10,6 +10,7 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void makeActorDead();
+    virtual void makeActorAppeared();
     virtual void startClipped();
 
     void initEffectInfo(const TVec3f&, const TVec3f&, const TVec3f&, const char*, f32);
@@ -38,7 +39,7 @@ class FluffWindHolder : public LiveActorGroup {
 public:
     FluffWindHolder();
 
-    void calcWindInfo(const TVec3f& rPosition, TVec3f* pWindDirection, f32* pWindStrength) const;
+    bool calcWindInfo(const TVec3f& rPosition, TVec3f* pWindDirection, f32* pWindStrength) const;
 };
 
 namespace FluffFunction {

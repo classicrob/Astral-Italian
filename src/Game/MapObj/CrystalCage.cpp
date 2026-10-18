@@ -182,7 +182,15 @@ bool CrystalCage::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
         return false;
     }
 
-    if (!MR::isMsgPlayerHitAll(msg)) {
+    if (MR::isMsgPlayerUpperPunch(msg)) {
+        return false;
+    }
+
+    if (mCrystalCageType == 2) {
+        if (!MR::isMsgPlayerHitAll(msg) || MR::isMsgSupportTicoSpin(msg)) {
+            return false;
+        }
+    } else if (!MR::isMsgPlayerHitAll(msg)) {
         return false;
     }
 
@@ -192,23 +200,27 @@ bool CrystalCage::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
             MR::invalidateCollisionParts(this);
             MR::invalidateHitSensors(this);
             setNerve(GET_NERVE(CrystalCage, CrystalCageNrvBreak));
-            MR::startCSSound("CS_SPIN_HIT", nullptr, 0);
             return true;
         }
 
-        if (MR::sendMsgReflect(pSender, pReceiver)) {
+        if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && !MR::sendMsgReflect(pSender, pReceiver)) {
+            return false;
+        }
+
+        {
             _C8 = 20;
             _C4 = _C4 - 1;
 
             MR::setBvaFrameAndStop(this, 1.0f);
             if (mCrystalCageType == 2) {
-                MR::startSound(this, "SE_OJ_CRYSTAL_CAGE_L_DAMAGE");
+                MR::startActionSound(this, "OjCrystalCageLDamage", -1, -1, -1);
             } else {
-                MR::startSound(this, "SE_OJ_CRYSTAL_CAGE_S_DAMAGE");
+                MR::startActionSound(this, "OjCrystalCageSDamage", -1, -1, -1);
             }
 
             mRumbleCalc->start(0);
-            _D0.sub(pSender->mPosition, pReceiver->mPosition);
+            const TVec3f* pReceiverPos = MR::getSensorPos(pReceiver);
+            _D0.sub(*MR::getSensorPos(pSender), *pReceiverPos);
             MR::normalize(&_D0);
 
             return true;

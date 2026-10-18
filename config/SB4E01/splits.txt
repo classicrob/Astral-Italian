@@ -7780,6 +7780,9 @@ Game/System/JKRAram.cpp:
 Game/System/J3DMaterial.cpp:
 	.text       start:0x804C7BF0 end:0x804C7E00
 
+JSystem/JParticle/JPAResourceManagerInline.cpp:
+	.text       start:0x804C8400 end:0x804C8410
+
 Game/System/JASMemPool_MultiThreaded.cpp:
 	.text       start:0x804C85B0 end:0x804C86D0
 
@@ -8189,7 +8192,7 @@ Game/NWC24/WiiMessageBoardMailSenderState.cpp:
 JSystem/JKernel/JKRHeap.cpp:
 	.text       start:0x80500F60 end:0x805019F0 align:16
 	.data       start:0x80704000 end:0x80704060
-	.bss       start:0x8072BB98 end:0x8072BBB0
+	.bss        start:0x8072BB98 end:0x8072BBB0
 
 JSystem/JKernel/JKRExpHeap.cpp:
 	.text       start:0x805019F0 end:0x80503670 align:16
@@ -8533,19 +8536,19 @@ JSystem/JParticle/JPAResourceManager.cpp:
 
 JSystem/JParticle/JPAResource.cpp:
 	.text       start:0x8053AF30 end:0x8053D8B0 align:16
-	.rodata       start:0x806545B8 end:0x806545C0
+	.rodata     start:0x806545B8 end:0x806545C0
 	.data       start:0x80706E60 end:0x80707064
-	.sdata2       start:0x807E2070 end:0x807E2080
+	.sdata2     start:0x807E2070 end:0x807E2080
 
 JSystem/JParticle/JPABaseShape.cpp:
 	.text       start:0x8053E7B0 end:0x8053F970 align:16
-	.rodata       start:0x806545C0 end:0x806545D0
+	.rodata     start:0x806545C0 end:0x806545D0
 	.data       start:0x80707080 end:0x80707230
 
 JSystem/JParticle/JPAExtraShape.cpp:
 	.text       start:0x8053F970 end:0x8053FFF0 align:16
-	.rodata       start:0x806545D0 end:0x806545D8
-	.sdata2       start:0x807E2098 end:0x807E20B0
+	.rodata     start:0x806545D0 end:0x806545D8
+	.sdata2     start:0x807E2098 end:0x807E20B0
 
 JSystem/JParticle/JPAChildShape.cpp:
 	.text       start:0x8053FFF0 end:0x80540190 align:16
@@ -8555,8 +8558,8 @@ JSystem/JParticle/JPAExTexShape.cpp:
 
 JSystem/JParticle/JPADynamicsBlock.cpp:
 	.text       start:0x80540280 end:0x80540EE0 align:16
-	.rodata       start:0x806545D8 end:0x806545E8
-	.sdata2       start:0x807E20B8 end:0x807E20C8
+	.rodata     start:0x806545D8 end:0x806545E8
+	.sdata2     start:0x807E20B8 end:0x807E20C8
 
 JSystem/JParticle/JPAFieldBlock.cpp:
 	.text       start:0x805416E0 end:0x805419B0 align:16
@@ -8580,8 +8583,8 @@ JSystem/JParticle/JPAEmitter.cpp:
 
 JSystem/JParticle/JPAParticle.cpp:
 	.text       start:0x80542BE0 end:0x80543B10 align:16
-	.rodata       start:0x806545F0 end:0x80654600
-	.sdata2       start:0x807E20E0 end:0x807E20F0
+	.rodata     start:0x806545F0 end:0x80654600
+	.sdata2     start:0x807E20E0 end:0x807E20F0
 
 JSystem/JParticle/JPAMath.cpp:
 	.text       start:0x80543C40 end:0x80544010 align:16
@@ -10678,6 +10681,3 @@ Runtime/__mem.c:
 
 MetroTRK/debugger/embedded/MetroTRK/Processor/ppc/Generic/exception.s:
 	.init       start:0x80004744 end:0x80006678
-
-JSystem/JParticle/JPAResourceManagerInline.cpp:
-	.text       start:0x804C8400 end:0x804C8410

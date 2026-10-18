@@ -26,7 +26,9 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    s32 initElementType(const JMapInfoIter&);
+    static s32 initElementType(const JMapInfoIter&);
+    static void initPlayerResource(const JMapInfoIter&);
+    void appearAtPos(const TVec3f&);
     void initEffect();
     void initAppearState(const JMapInfoIter&);
     bool requestDamage(HitSensor*, HitSensor*);
@@ -39,27 +41,15 @@ public:
     bool sendMsgElementAttack(HitSensor*, HitSensor*);
     bool tryWalk();
     bool tryWalkEnd();
-    bool tryEndShrink();
     bool tryChase();
-    bool tryChaseStartToDash();
-    bool tryChaseDashToTurn();
-    bool tryChaseTurnToDash();
     bool tryEndChase();
-    bool tryRunaway();
     bool tryStartDiving();
-    bool tryDiving();
-    bool tryEndDiving();
-    bool tryFloat();
-    bool tryEndFloat();
-    bool tryEndIgnition();
     bool tryForceSink();
     bool tryRecovery();
-    bool tryEndAttackSuccess();
     bool tryPointBind();
 
     void exeWait();
     void exeWalk();
-    void exeShrink();
     void exeChaseStart();
     void exeChaseDash();
     void exeChaseTurn();
@@ -84,6 +74,7 @@ public:
     void exeReadyRestart();
 
     bool isAffectedSpin() const;
+    bool isEnableStarPieceReflect() const;
     bool isEnableAttack() const;
     bool isPushMoved() const;
     bool isEnableFireball() const;
@@ -128,8 +119,8 @@ public:
     /* 0x1A8 */ f32 mChaseDistance;
     /* 0x1AC */ s32 mAppearStatus;  // Obj_arg0
     /* 0x1B0 */ s32 mElementType;
-    /* 0x1B4 */ s32 mEffectType;
-    /* 0x1BC */ s32 mRunawayTimer;
+    /* 0x1B4 */ s32 mRunawayTimer;
+    /* 0x1BC */ s32 mAppearTimer;
     /* 0x1C0 */ bool mCanDive;
     /* 0x1C1 */ bool mIsValidRestart;  // Obj_arg2
     /* 0x1C2 */ bool mIsBindFire;

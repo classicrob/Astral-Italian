@@ -20,7 +20,6 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void initSensor();
     void generateCoin() NO_INLINE;
     bool tryPress();
     void exeMove();

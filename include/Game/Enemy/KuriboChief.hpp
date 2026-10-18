@@ -9,7 +9,6 @@ class WalkerStateFindPlayer;
 class WalkerStateChase;
 class WalkerStateStagger;
 class WalkerStateBindStarPointer;
-class ItemGenerator;
 class KeySwitch;
 
 class KuriboChief : public LiveActor {
@@ -18,6 +17,7 @@ public:
 
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
+    virtual void makeActorAppeared();
     virtual void kill();
     virtual void control();
     virtual void calcAndSetBaseMtx();
@@ -26,7 +26,6 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void initSensor();
     void initState();
     void initKeySwitch(const JMapInfoIter&);
     static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
@@ -40,7 +39,6 @@ public:
     void exeStagger();
     void exeTrample();
     void exeBindStarPointer();
-    void endBindStarPointer();
     void exeAttackSuccess();
     void exeBlowDown();
     void exeBlowDownLand();
@@ -54,8 +52,8 @@ public:
     /* 0x98 */ WalkerStateChase* mStateChase;
     /* 0x9C */ WalkerStateStagger* mStateStagger;
     /* 0xA0 */ WalkerStateBindStarPointer* mStateBindStarPointer;
-    /* 0xA4 */ ItemGenerator* mItemGenerator;
     /* 0xA8 */ KeySwitch* mKeySwitch;
     /* 0xAC */ TQuat4f _AC;
     /* 0xBC */ TVec3f _BC;
+    /* 0xC8 */ bool _C8;
 };

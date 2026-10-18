@@ -12,6 +12,7 @@ class NameObj;
 class XanimeResourceTable;
 
 namespace MR {
+    void enablePlayerResourceFreezeIce();
     bool isOnGroundPlayer();
     const void* getPlayerGroundingPolygon();  // returns a pointer (cmpwi r3,0 in SMG2 callers)
     void forceKillPlayerByAbyss();

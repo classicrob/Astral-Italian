@@ -6,6 +6,7 @@
 class HitSensor;
 class LayoutActor;
 class LiveActor;
+class MultiEmitter;
 class MultiEmitterCallBackBase;
 class MultiEmitterParticleCallBack;
 class Triangle;
@@ -20,14 +21,14 @@ namespace MR {
     void requestEffectStopSceneEnd();
 
     void addEffect(LiveActor* pActor, const char* pEffectName);
-    void getEffect(const LiveActor* pActor, const char* pEffectName);
+    MultiEmitter* getEffect(const LiveActor* pActor, const char* pEffectName);
     void* getEffect(const LayoutActor* pLayout, const char* pEffectName);
     bool isExistEffectKeeper(const LiveActor* pActor);
     bool isExistEffectKeeper(const LayoutActor* pLayout);
 
-    void emitEffect(LiveActor* pActor, const char* pEffectName);
+    MultiEmitter* emitEffect(LiveActor* pActor, const char* pEffectName);
     void emitEffectWithScale(LiveActor* pActor, const char* pEffectName, f32 scale, s32 emitterIndex);
-    void emitEffectWithEmitterCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterCallBackBase* mEmitterCallBack);
+    MultiEmitter* emitEffectWithEmitterCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterCallBackBase* mEmitterCallBack);
     void emitEffectWithParticleCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterParticleCallBack* mParticleCallBack);
     bool tryEmitEffect(LiveActor* pActor, const char* pEffectName);
 

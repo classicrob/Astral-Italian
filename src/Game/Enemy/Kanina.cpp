@@ -4,6 +4,8 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/JointRumbler.hpp"
+#include "Game/Util/ActorStateUtil.hpp"
+#include "Game/LiveActor/ActorStateBase.hpp"
 #include <revolution/wpad.h>
 
 void Kanina_FORCE_MATCH_SDATA2() {
@@ -49,16 +51,39 @@ void Kanina_FORCE_MATCH_SDATA2() {
     (void)1.7f;
 }
 
+extern "C" void fn_800345E0(LiveActor*, const char*);
+extern "C" void fn_80034910(LiveActor*);
+extern "C" void fn_8005B750(LiveActor*, s32);
+extern "C" void fn_8022BA10(LiveActor*);
+class KaninaYoshiState : public ActorStateBaseInterface {
+public:
+    KaninaYoshiState(const char* pName) : ActorStateBaseInterface(pName) {}
+    virtual void attackSensor(HitSensor*, HitSensor*);
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+};
+
+extern "C" KaninaYoshiState* fn_801ACD60(void*, Kanina*, bool);
+extern "C" bool fn_801AD370(KaninaYoshiState*, u32, HitSensor*, HitSensor*);
+extern "C" bool fn_801AD4B0(KaninaYoshiState*);
+extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
+
+void* operator new(unsigned long);
+
+void Kanina::exeEaten() {
+    if (MR::updateActorState(this)) {
+        makeActorDead();
+    }
+}
+
 namespace NrvKanina {
     NEW_NERVE(HostTypeAppear, Kanina, Appear);
     NEW_NERVE(HostTypeWait, Kanina, Wait);
     NEW_NERVE(HostTypeAttack, Kanina, Attack);
     NEW_NERVE(HostTypeVauntAttackSuccess, Kanina, VauntAttackSuccess);
     NEW_NERVE(HostTypeGuard, Kanina, Guard);
+    NEW_NERVE(HostTypeGuardHipDrop, Kanina, Guard);
     NEW_NERVE(HostTypeGuardEnd, Kanina, GuardEnd);
     NEW_NERVE(HostTypeDamageFireBall, Kanina, DamageFireBall);
-    NEW_NERVE(HostTypeDamageHipDrop, Kanina, DamageHipDrop);
-    NEW_NERVE(HostTypeDamageTrampleInvincivle, Kanina, DamageHipDrop);
     NEW_NERVE(HostTypeDig, Kanina, Dig);
     NEW_NERVE(HostTypeWaitUnderGround, Kanina, WaitUnderGround);
     NEW_NERVE(HostTypeFindPlayer, Kanina, FindPlayer);
@@ -72,7 +97,9 @@ namespace NrvKanina {
     NEW_NERVE(HostTypeRunAway, Kanina, RunAway);
     NEW_NERVE(HostTypeRunAwayReboundDirection, Kanina, RunAwayReboundDirection);
     NEW_NERVE(HostTypeHitWall, Kanina, HitWall);
-
+    NEW_NERVE(HostTypeShot, Kanina, Shot);
+    NEW_NERVE(HostTypeTongue, Kanina, Tongue);
+    NEW_NERVE(HostTypeEaten, Kanina, Eaten);
 };  // namespace NrvKanina
 
 namespace {
@@ -138,68 +165,28 @@ namespace {
 };  // namespace
 
 namespace {
-    u32 getRunAwayBreakTimeRandom() {
-        f32 random = MR::getRandom();
-        if (0.0f <= random && random < 0.25f) {
-            return ::sRunAwayIntervalTime1;
-        }
-
-        if (0.25f <= random && random < 0.5f) {
-            return ::sRunAwayIntervalTime2;
-        }
-
-        if (0.5f <= random && random < 0.75f) {
-            return ::sRunAwayIntervalTime3;
-        }
-
-        return ::sRunAwayIntervalTime4;
-    }
-
-    u32 getRunAwayTimeRandom() {
-        f32 random = MR::getRandom();
-        if (0.0f <= random && random < 0.25f) {
-            return ::sRunAwayRunningTime1;
-        }
-
-        if (0.25f <= random && random < 0.5f) {
-            return ::sRunAwayRunningTime2;
-        }
-
-        if (0.5f <= random && random < 0.75f) {
-            return ::sRunAwayRunningTime3;
-        }
-
-        return ::sRunAwayRunningTime4;
-    }
+    void calcWalkDirection(TVec3f*, const LiveActor*, f32) NO_INLINE;
+    u32 getRunAwayTimeRandom() NO_INLINE;
+    u32 getRunAwayBreakTimeRandom();
 };  // namespace
 
 Kanina::Kanina(const char* pName)
-    : LiveActor(pName), mJointRumbler(), mKinokoOneUp(), mAnimationRandomPlayer(), _98(gZeroVec), _B4(15), _B8(10), _BC(1.0f), _C0(0.0f, 0.0f, 1.0f),
-      mType(KaninaType_Blue), _D0(0.0f, 0.0f, 1.0f), _DC() {
+    : LiveActor(pName), mType(KaninaType_Blue), mState(nullptr), mJointRumbler(), mKinokoOneUp(), mAnimationRandomPlayer(), mYoshiLockOn(),
+      _98(gZeroVec), _B4(0), _B8(0), _BC(1.0f), _C0(0.0f, 0.0f, 1.0f), _D0(0.0f, 0.0f, 1.0f), _DC(0), mGuardTimer(0), mTimer2(0),
+      mIsNoDig(false) {
     _A4.set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void Kanina::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::makeQuatAndFrontFromRotate(&_A4, &_D0, this);
-    _98.set(mPosition);
-
     const char* objectName = nullptr;
 
     MR::getObjectName(&objectName, rIter);
-    initModelManagerWithAnm(objectName, nullptr, false);
+    MR::initActor(this, rIter, objectName, false);
+    _98.set(mPosition);
+    MR::makeQuatAndFrontFromRotate(&_A4, &_D0, this);
     mAnimationRandomPlayer = new AnimationRandomPlayer(this, "Blink", "Normal", ::sAnimIntervalBlink, 0.25f);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    initSound(4, "Kanina", nullptr, TVec3f(0.0f));
-    initHitSensor(2);
-    MR::addHitSensorMtxEnemy(this, "Body", 8, ::sSensorRadius, MR::getJointMtx(this, "Body"), TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorMtxEnemyAttack(this, "attack", 8, ::sSensorRadiusAttack, MR::getJointMtx(this, "Body"), TVec3f(0.0f, 0.0f, 0.0f));
-    initBinder(::sBinderRadius, ::sBinderOffsetY, 8);
-    initEffectKeeper(1, "Kanina", false);
     MR::addEffectHitNormal(this, nullptr);
     MR::onCalcGravity(this);
-    MR::initShadowVolumeSphere(this, ::sShadowRadius);
     MR::addToAttributeGroupSearchTurtle(this);
     mJointRumbler = new JointRumbler(this, "Root", 6.0f, 0.1f, 45, true, 0);
 
@@ -209,11 +196,24 @@ void Kanina::init(const JMapInfoIter& rIter) {
         initForType(rIter, KaninaType_Blue);
     }
 
-    MR::initStarPointerTarget(this, ::sSensorRadius);
-    initNerve(GET_NERVE(Kanina, HostTypeAppear));
-    MR::needStageSwitchReadAppear(this, rIter);
-    MR::syncStageSwitchAppear(this);
-    makeActorDead();
+    MR::getJMapInfoArg0NoInit(rIter, &mIsNoDig);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, MR::getJointMtx(this, "Body"), TVec3f(0.0f));
+    initNerve(GET_NERVE(Kanina, HostTypeAppear), 1);
+    KaninaYoshiState* state = static_cast< KaninaYoshiState* >(::operator new(112));
+    if (state) {
+        state = fn_801ACD60(state, this, true);
+    }
+    mState = state;
+    MR::initActorState(this, mState, GET_NERVE(Kanina, HostTypeEaten), nullptr);
+
+    if (MR::useStageSwitchSyncAppear(this, rIter)) {
+        makeActorDead();
+    } else {
+        makeActorAppeared();
+        MR::startBtp(this, "Normal");
+        MR::validateHitSensors(this);
+        setNerve(GET_NERVE(Kanina, HostTypeWait));
+    }
 }
 
 void Kanina::initAfterPlacement() {
@@ -221,48 +221,50 @@ void Kanina::initAfterPlacement() {
 }
 
 void Kanina::kill() {
-    MR::emitEffect(this, "Death");
-    MR::startActionSound(this, "EmExplodeS");
+    if (MR::isValidSwitchA(this) && !MR::isOnSwitchA(this)) {
+        MR::onSwitchA(this);
+    }
+
+    fn_80034910(this);
     LiveActor::kill();
 }
 
-void Kanina::appearItemPunch() {
-    if (mType == KaninaType_Red) {
-        MR::appearStarPiece(this, mPosition, ::sStarPieceNum, 10.0f, 40.0f, false);
-        MR::startActionSound(this, "OjStarPieceBurst");
-    } else if (mType == KaninaType_Blue) {
-        MR::appearKinokoOneUpPop(mKinokoOneUp, getBaseMtx());
-    }
+void Kanina::makeActorDead() {
+    LiveActor::makeActorDead();
 }
 
 void Kanina::appearItemTrample() {
     if (mType == KaninaType_Red) {
-        // most likely a copy-paste error from appearItemPunch
-        MR::appearCoinPop(this, mPosition, ::sStarPieceNum);
+        fn_8022BA10(this);
     } else if (mType == KaninaType_Blue) {
         MR::appearKinokoOneUpPop(mKinokoOneUp, getBaseMtx());
     }
 }
 
 void Kanina::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isYoshiNerve()) {
+        return;
+    }
+
+    if (isNerve(GET_NERVE(Kanina, HostTypeEaten))) {
+        mState->attackSensor(pSender, pReceiver);
+        return;
+    }
+
     if (MR::isSensorEnemyAttack(pSender)) {
-        if (!tryAttack(pSender, pReceiver)) {
+        if (!tryAttackPlayer(pSender, pReceiver)) {
             if (MR::isSensorPlayer(pReceiver)) {
                 MR::sendMsgPush(pReceiver, pSender);
-            } else if (tryPushEach(pSender, pReceiver)) {
+            } else if (tryPushEachEnemy(pSender, pReceiver)) {
                 return;
             }
         }
-    } else if ((MR::isSensorPlayer(pReceiver) && !isStatePossibleToAttack()) || MR::isSensorEnemy(pReceiver)) {
+    } else if ((MR::isSensorPlayer(pReceiver) && !isStatePossibleToAttack()) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
 
 bool Kanina::tryAttack(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isSensorPlayer(pReceiver)) {
-        return false;
-    }
-
     if (!MR::isSensorPlayer(pReceiver)) {
         return false;
     }
@@ -275,13 +277,26 @@ bool Kanina::tryAttack(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
+    return !isNerve(GET_NERVE(Kanina, HostTypePointing));
+}
+
+bool Kanina::tryAttackPlayer(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!tryAttack(pSender, pReceiver)) {
+        return false;
+    }
+
     if (!MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         return false;
     }
 
     MR::emitEffectHitBetweenSensors(this, pSender, pReceiver, 0.0f, nullptr);
-    setNerve(GET_NERVE(Kanina, HostTypeAttack));
 
+    if (isNerve(GET_NERVE(Kanina, HostTypeEaten))) {
+        kill();
+        return true;
+    }
+
+    setNerve(GET_NERVE(Kanina, HostTypeAttack));
     return true;
 }
 
@@ -302,6 +317,14 @@ bool Kanina::tryPushEach(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
+    return !isNerve(GET_NERVE(Kanina, HostTypeEaten));
+}
+
+bool Kanina::tryPushEachEnemy(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!tryPushEach(pSender, pReceiver)) {
+        return false;
+    }
+
     if (!MR::sendMsgPush(pReceiver, pSender)) {
         return false;
     }
@@ -312,16 +335,38 @@ bool Kanina::tryPushEach(HitSensor* pSender, HitSensor* pReceiver) {
     MR::calcUpVec(&upVec, this);
     MR::vecKillElement(diff, upVec, &diff);
 
-    mVelocity.add(diff * ::sPushAccel + upVec * ::sPushAccel);
+    MR::addVelocity(this, diff * ::sPushAccel + upVec * ::sPushAccel);
     setNerve(GET_NERVE(Kanina, HostTypeReboundEach));
     return true;
 }
 
+bool Kanina::isNotYoshiNerve() const {
+    if (isYoshiNerve()) {
+        return false;
+    }
+
+    return !isNerve(GET_NERVE(Kanina, HostTypeEaten));
+}
+
 bool Kanina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(GET_NERVE(Kanina, HostTypeEaten))) {
+        return mState->receiveMsgPlayerAttack(msg, pSender, pReceiver);
+    }
+
     if (MR::isMsgPlayerTrample(msg)) {
+        if (!isNotYoshiNerve()) {
+            return false;
+        }
+
         if (MR::isPlayerElementModeInvincible()) {
-            appearItemPunch();
+            appearItemTrample();
             kill();
+            return true;
+        }
+
+        if (isNerve(GET_NERVE(Kanina, HostTypePointing))) {
+            setNerve(GET_NERVE(Kanina, HostTypeGuardHipDrop));
+            MR::tryRumblePad(this, "中", WPAD_CHAN0);
             return true;
         }
 
@@ -335,6 +380,10 @@ bool Kanina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
         return receiveFireBall(pSender, pReceiver);
     }
 
+    if (MR::isMsgYoshiProjectileOrEat(msg)) {
+        return receiveFireBall(pSender, pReceiver);
+    }
+
     if (MR::isMsgPlayerHipDrop(msg)) {
         return receiveHipDrop(pSender, pReceiver);
     }
@@ -343,7 +392,7 @@ bool Kanina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
         return receiveFireBall(pSender, pReceiver);
     }
 
-    if (MR::isMsgInvincibleAttack(msg)) {
+    if (MR::isMsgInvincibleAttack(msg) || MR::isMsgRockAttack(msg)) {
         return receiveInvincibleAttack(pSender, pReceiver);
     }
 
@@ -352,7 +401,8 @@ bool Kanina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     }
 
     if (MR::isMsgStarPieceReflect(msg)) {
-        setNerve(GET_NERVE(Kanina, HostTypeGuard));
+        mGuardTimer = 60;
+        setNerve(GET_NERVE(Kanina, HostTypeGuardHipDrop));
         return true;
     }
 
@@ -360,6 +410,18 @@ bool Kanina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
 }
 
 bool Kanina::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(GET_NERVE(Kanina, HostTypeDamageFireBall))) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(Kanina, HostTypeEaten))) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(Kanina, HostTypeTongue))) {
+        return false;
+    }
+
     if (MR::isSensorPlayer(pSender)) {
         return false;
     }
@@ -373,9 +435,50 @@ bool Kanina::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     return true;
 }
 
+bool Kanina::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    return receiveMsgYoshi(msg, pSender, pReceiver);
+}
+
+bool Kanina::receiveMsgYoshi(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(GET_NERVE(Kanina, HostTypeEaten))) {
+        return fn_801AD370(mState, msg, pSender, pReceiver);
+    }
+
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        return tryYoshiStartTongue();
+    }
+
+    if (MR::isMsgYoshiLoopTongue(msg) && isNerve(GET_NERVE(Kanina, HostTypeTongue))) {
+        return true;
+    }
+
+    if (MR::isMsgYoshiStartEaten(msg) && isNerve(GET_NERVE(Kanina, HostTypeTongue))) {
+        if (MR::isValidSwitchA(this)) {
+            MR::onSwitchA(this);
+        }
+
+        setNerve(GET_NERVE(Kanina, HostTypeEaten));
+        MR::startAction(this, "Eaten");
+        MR::hideModelAndOnCalcAnim(this);
+        MR::offBind(this);
+        return true;
+    }
+
+    if (MR::isMsgYoshiCancelEaten(msg)) {
+        if (MR::isValidSwitchA(this)) {
+            MR::onSwitchA(this);
+        }
+
+        makeActorDead();
+        return true;
+    }
+
+    return false;
+}
+
 bool Kanina::receiveTrample(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerve(GET_NERVE(Kanina, HostTypeAttack))) {
-        setNerve(GET_NERVE(Kanina, HostTypeGuard));
+        setNerve(GET_NERVE(Kanina, HostTypeGuardHipDrop));
         return true;
     }
 
@@ -387,20 +490,27 @@ bool Kanina::receivePunch(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
+    if (isNerve(GET_NERVE(Kanina, HostTypeGuard))) {
+        return false;
+    }
+
     if (isPlayerBackward(::sBackwardAngle)) {
         MR::stopScene(::sStopSceneTimePunchBackword);
-        doDamageFireBall(pSender, pReceiver);
+        startDamageFireBall(pSender, pReceiver);
         return true;
     }
 
-    if (!isNerve(GET_NERVE(Kanina, HostTypeAttack))) {
-        if (!isStateDamageNoFireBall()) {
-            TVec3f vec;
-            MR::calcVecFromTargetPosH(&vec, this, (*MR::getSensorPos(pSender)), nullptr);
-            mVelocity.add(vec * ::sPunchAccel);
-            setNerve(GET_NERVE(Kanina, HostTypeGuard));
-            return true;
-        }
+    if (mGuardTimer > 0) {
+        return false;
+    }
+
+    if (!isNerve(GET_NERVE(Kanina, HostTypeAttack)) && !isNerve(GET_NERVE(Kanina, HostTypeDamageFireBall))) {
+        TVec3f vec;
+        MR::calcVecFromTargetPosH(&vec, this, (*MR::getSensorPos(pSender)), nullptr);
+        MR::addVelocity(this, vec * ::sPunchAccel);
+        mGuardTimer = 30;
+        setNerve(GET_NERVE(Kanina, HostTypeGuard));
+        return true;
     }
 
     return false;
@@ -411,12 +521,12 @@ bool Kanina::receiveFireBall(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    doDamageFireBall(pSender, pReceiver);
+    startDamageFireBall(pSender, pReceiver);
     return true;
 }
 
-void Kanina::doDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
-    MR::setVelocityBlowAttack(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
+void Kanina::startDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
+    fn_80012B90(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
     MR::isNearZero(mVelocity);
     TVec3f vec;
     MR::vecKillElement(mVelocity, -mGravity, &vec);
@@ -425,6 +535,18 @@ void Kanina::doDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
     setNerve(GET_NERVE(Kanina, HostTypeDamageFireBall));
 }
 
+void Kanina::doDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
+    fn_800345E0(this, "ゴロ岩ヒット");
+    fn_80012B90(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
+    MR::isNearZero(mVelocity);
+    TVec3f vec;
+    MR::vecKillElement(mVelocity, -mGravity, &vec);
+    MR::normalizeOrZero(&vec);
+    _D0.set(-vec);
+    setNerve(GET_NERVE(Kanina, HostTypeDamageFireBall));
+}
+
+// NONMATCHING: target passes a 3rd arg (li r5,0) to calcVecFromPlayerH, whose symbol in symbols.txt only has 2 params
 void Kanina::startRun() {
     if (mType == KaninaType_Red) {
         MR::startAction(this, "ChaseRun");
@@ -457,7 +579,7 @@ void Kanina::startRun() {
 
     MR::normalizeOrZero(&multVec);
 
-    mVelocity.set(multVec * getFloatDependentType(::sWalkSpeedRunAwayRed, ::sWalkSpeedRunAway));
+    MR::setVelocity(this, multVec * getFloatDependentType(::sWalkSpeedRunAwayRed, ::sWalkSpeedRunAway));
 
     f32 faceAngle = -1.0f * BC *
                     (getFloatDependentType(::sRunAwayDirectionAngleRed, ::sRunAwayDirectionAngle) +
@@ -508,7 +630,7 @@ void Kanina::calcAndSetBaseMtx() {
     TQuat4f quat;
     baseMtx.getQuat(quat);
 
-    if (isNerve(GET_NERVE(Kanina, HostTypeDamageFireBall))) {
+    if (isNerve(GET_NERVE(Kanina, HostTypeDamageFireBall)) || isNerve(GET_NERVE(Kanina, HostTypeAppear))) {
         quat.set(_A4);
     } else {
         quat.slerp(_A4, ::sPoseLerpRate);
@@ -521,16 +643,25 @@ void Kanina::control() {
     mJointRumbler->update();
     MR::blendQuatFromGroundAndFront(&_A4, this, _D0, ::sUpVecBlendRate, ::sFrontVecBlendRate);
     updateMovement();
-
-    if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-        MR::setSeVersion(this, SeVersion_WATER);
-    } else {
-        MR::setSeVersion(this, SeVersion_NORMAL);
-    }
+    updateTimers();
+    updateSeVersion();
 
     if (isStateBlink()) {
         mAnimationRandomPlayer->updateNerve();
     }
+}
+
+void Kanina::updateSeVersion() {
+    if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        fn_8005B750(this, SeVersion_WATER);
+    } else {
+        fn_8005B750(this, SeVersion_NORMAL);
+    }
+}
+
+inline bool Kanina::isStateGuard() const {
+    return isNerve(GET_NERVE(Kanina, HostTypeGuard)) || isNerve(GET_NERVE(Kanina, HostTypeGuardHipDrop)) ||
+           isNerve(GET_NERVE(Kanina, HostTypeGuardEnd));
 }
 
 bool Kanina::isStateStayOnGround() const {
@@ -555,10 +686,6 @@ bool Kanina::isStateStayOnGround() const {
 
 void Kanina::initForType(const JMapInfoIter& rIter, KaninaType type) {
     mType = type;
-    if (mType == KaninaType_Red) {
-        MR::declareStarPiece(this, ::sStarPieceNum);
-        MR::declareCoin(this, ::sCoinNum);
-    }
 
     if (mType == KaninaType_Blue) {
         // Likely FAKEMATCH, however including the BenefitItemOneUp header (and by proxy BenefitItemObj)
@@ -583,11 +710,11 @@ bool Kanina::isStatePossibleToAttack() const {
         return false;
     }
 
-    if (isStateDamageNoFireBall()) {
+    if (isNerve(GET_NERVE(Kanina, HostTypeDamageFireBall))) {
         return false;
     }
 
-    return true;
+    return !isYoshiNerve();
 }
 
 bool Kanina::isStateBlink() const {
@@ -598,28 +725,51 @@ bool Kanina::isStateBlink() const {
            isNerve(GET_NERVE(Kanina, HostTypeTurnEnd)) || isNerve(GET_NERVE(Kanina, HostTypeFindPlayer));
 }
 
-bool Kanina::isStateGuard() const {
-    return isNerve(GET_NERVE(Kanina, HostTypeGuard)) || isNerve(GET_NERVE(Kanina, HostTypeGuardEnd));
+bool Kanina::isYoshiNerve() const {
+    if (isNerve(GET_NERVE(Kanina, HostTypeTongue))) {
+        return true;
+    }
+
+    if (isNerve(GET_NERVE(Kanina, HostTypeShot))) {
+        return true;
+    }
+
+    return fn_801AD4B0(mState);
 }
 
-bool Kanina::isStateDamageNoFireBall() const {
-    return isNerve(GET_NERVE(Kanina, HostTypeDamageHipDrop)) || isNerve(GET_NERVE(Kanina, HostTypeDamageTrampleInvincivle));
+f32 Kanina::getGravityAccel() const {
+    if (isNerve(GET_NERVE(Kanina, HostTypeDamageFireBall))) {
+        return ::sDownGravityAccel;
+    }
+
+    if (isNerve(GET_NERVE(Kanina, HostTypeHitWall))) {
+        return ::sGravityAccelHitWall;
+    }
+
+    if (isNerve(GET_NERVE(Kanina, HostTypeDig)) || isNerve(GET_NERVE(Kanina, HostTypeAppear)) ||
+        isNerve(GET_NERVE(Kanina, HostTypeFindPlayer)) || isNerve(GET_NERVE(Kanina, HostTypeWaitUnderGround))) {
+        return 0.0f;
+    }
+
+    return ::sGravityAccel;
 }
 
 bool Kanina::isBindedGroundWaterBottom() const {
-    return MR::isBindedGroundWaterBottomH(this) || MR::isBindedGroundWaterBottomM(this);
+    bool ret = false;
+    if (MR::isBindedGroundWaterBottomH(this) || MR::isBindedGroundWaterBottomM(this)) {
+        ret = true;
+    }
+
+    return ret;
 }
 
 void Kanina::updateMovement() {
-    if (!MR::isOnGround(this)) {
-        f32 gravityAccel = ::sGravityAccel;
-        if (isNerve(GET_NERVE(Kanina, HostTypeDamageFireBall))) {
-            gravityAccel = ::sDownGravityAccel;
-        } else if (isNerve(GET_NERVE(Kanina, HostTypeHitWall))) {
-            gravityAccel = ::sGravityAccelHitWall;
-        }
+    if (isNerve(GET_NERVE(Kanina, HostTypeEaten))) {
+        return;
+    }
 
-        MR::addVelocityToGravity(this, gravityAccel);
+    if (!MR::isOnGround(this)) {
+        MR::addVelocityToGravity(this, getGravityAccel());
     }
 
     if (!isStateStayOnGround()) {
@@ -639,6 +789,16 @@ void Kanina::updateMovement() {
     }
 
     MR::attenuateVelocity(this, frec);
+}
+
+void Kanina::updateTimers() {
+    if (mGuardTimer > 0) {
+        mGuardTimer--;
+    }
+
+    if (mTimer2 > 0) {
+        mTimer2--;
+    }
 }
 
 bool Kanina::tryFindPlayer() {
@@ -675,6 +835,49 @@ bool Kanina::tryHitWall() {
     return true;
 }
 
+bool Kanina::tryAvoidFallNextMove() {
+    if (MR::isFallNextMove(this, 150.0f, 150.0f, 150.0f, nullptr)) {
+        MR::zeroVelocity(this);
+
+        if (!mIsNoDig) {
+            setNerve(GET_NERVE(Kanina, HostTypeDig));
+            return true;
+        }
+
+        setNerve(GET_NERVE(Kanina, HostTypeTurn));
+        return true;
+    }
+
+    return false;
+}
+
+// NONMATCHING: temp stack slots of TVec3f(0)/-gravity are swapped (8 vs 32)
+bool Kanina::tryAvoidWaterAhead() {
+    if (!MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        return false;
+    }
+
+    if (!MR::isInWater(this, -mGravity * 150.0f)) {
+        return false;
+    }
+
+    if (!mIsNoDig) {
+        setNerve(GET_NERVE(Kanina, HostTypeDig));
+        return true;
+    }
+
+    setNerve(GET_NERVE(Kanina, HostTypeTurn));
+    return true;
+}
+
+bool Kanina::tryDigOrTurn() {
+    if (tryAvoidFallNextMove()) {
+        return true;
+    }
+
+    return tryAvoidWaterAhead();
+}
+
 bool Kanina::tryTurn() {
     if (mType == KaninaType_Blue) {
         return false;
@@ -688,13 +891,33 @@ bool Kanina::tryTurn() {
     return true;
 }
 
+bool Kanina::tryDig() {
+    if (mIsNoDig) {
+        return false;
+    }
+
+    setNerve(GET_NERVE(Kanina, HostTypeDig));
+    return true;
+}
+
 bool Kanina::tryPointing() {
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (mTimer2 == 0 && MR::isStarPointerPointing2PAttachTarget(this)) {
         setNerve(GET_NERVE(Kanina, HostTypePointing));
         return true;
     }
 
     return false;
+}
+
+bool Kanina::tryYoshiStartTongue() {
+    bool canStart = !isYoshiNerve();
+    if (!canStart) {
+        return false;
+    }
+
+    setNerve(GET_NERVE(Kanina, HostTypeTongue));
+    MR::zeroVelocity(this);
+    return true;
 }
 
 void Kanina::exeAppear() {
@@ -706,8 +929,13 @@ void Kanina::exeAppear() {
 
     MR::startActionSound(this, "EmLvKaninaPreAppear");
 
-    if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(Kanina, HostTypeWait));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+        MR::zeroVelocity(this);
+
+        if (MR::isActionEnd(this)) {
+            setNerve(GET_NERVE(Kanina, HostTypeWait));
+        }
     }
 }
 
@@ -717,39 +945,25 @@ void Kanina::exeWait() {
         MR::startAction(this, "Wait");
     }
 
-    if (!tryFindPlayer() && !tryPointing() && MR::isStep(this, ::sWaitTime)) {
-        if (isBindedGroundWaterBottom()) {
-            setNerve(GET_NERVE(Kanina, HostTypeDig));
-            return;
-        }
+    if (!tryFindPlayer() && !tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
 
-        if (mType == KaninaType_Blue && _DC >= ::sWalkCount) {
-            setNerve(GET_NERVE(Kanina, HostTypeDig));
-            return;
-        }
+        if (MR::isStep(this, ::sWaitTime)) {
+            if (isBindedGroundWaterBottom()) {
+                tryDig();
+                return;
+            }
 
-        setNerve(GET_NERVE(Kanina, HostTypeWalk));
+            if (mType == KaninaType_Blue && _DC >= ::sWalkCount) {
+                tryDig();
+                return;
+            }
+
+            setNerve(GET_NERVE(Kanina, HostTypeWalk));
+        }
     }
 }
 
-namespace {
-    inline void calcWalkDirection(TVec3f* pDirection, const LiveActor* pActor) {
-        TVec3f front;
-        TVec3f up;
-        MR::calcFrontVec(&front, pActor);
-        MR::calcUpVec(&up, pActor);
-
-        f32 angle = MR::getRandom(-HALF_PI, HALF_PI);
-
-        TPos3f rotate;
-        rotate.identity();
-        rotate.makeRotate(up, angle);
-        rotate.mult(front, front);
-
-        MR::normalize(&front);
-        pDirection->set(front);
-    }
-};  // namespace
 
 void Kanina::exeWalk() {
     if (MR::isFirstStep(this)) {
@@ -757,19 +971,23 @@ void Kanina::exeWalk() {
         MR::startAction(this, "Walk");
 
         TVec3f temp;
-        ::calcWalkDirection(&temp, this);
+        ::calcWalkDirection(&temp, this, HALF_PI);
         _D0.set(temp);
 
         MR::blendQuatFromGroundAndFront(&_A4, this, _D0, ::sUpVecBlendRate, ::sFrontVecBlendRate);
 
         TVec3f quatX;
         _A4.getXDir(quatX);
-        mVelocity.set(quatX * (::sWalkSpeed * MR::getSignHalfProbability()));
+        MR::setVelocity(this, quatX * (::sWalkSpeed * MR::getSignHalfProbability()));
     }
 
-    if (!tryFindPlayer() && !tryPointing() && MR::isStep(this, ::sWalkTime)) {
-        MR::zeroVelocity(this);
-        setNerve(GET_NERVE(Kanina, HostTypeWait));
+    if (!tryFindPlayer() && !tryPointing() && !tryDigOrTurn()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
+        if (MR::isStep(this, ::sWalkTime)) {
+            MR::zeroVelocity(this);
+            setNerve(GET_NERVE(Kanina, HostTypeWait));
+        }
     }
 }
 
@@ -780,11 +998,13 @@ void Kanina::exeRunAway() {
 
     startRunAwayLevelSound();
 
-    if (!tryHitWall() && !tryPointing()) {
+    if (!tryHitWall() && !tryPointing() && !tryDigOrTurn()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
         if (::sTerritoryRadius < MR::calcDistanceToPlayerH(this)) {
             MR::zeroVelocity(this);
             if ((mType == KaninaType_Red && MR::isHalfProbability()) || mType == KaninaType_Blue) {
-                setNerve(GET_NERVE(Kanina, HostTypeDig));
+                tryDig();
             } else {
                 setNerve(GET_NERVE(Kanina, HostTypeWait));
             }
@@ -804,14 +1024,16 @@ void Kanina::exeRunAwayReboundDirection() {
         TVec3f vec(_C0);
         MR::vecKillElement(vec, up, &vec);
         MR::normalizeOrZero(&vec);
-        mVelocity.set(vec * getFloatDependentType(::sWalkSpeedRunAwayRed, ::sWalkSpeedRunAway));
+        MR::setVelocity(this, vec * getFloatDependentType(::sWalkSpeedRunAwayRed, ::sWalkSpeedRunAway));
         _B4 = ::getRunAwayBreakTimeRandom();
         _BC *= -1.0f;
     }
 
     startRunAwayLevelSound();
 
-    if (!tryHitWall() && !tryPointing()) {
+    if (!tryHitWall() && !tryPointing() && !tryDigOrTurn()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
         if (::sTerritoryRadius < MR::calcDistanceToPlayer(this)) {
             setNerve(GET_NERVE(Kanina, HostTypeWait));
             return;
@@ -829,13 +1051,17 @@ void Kanina::exeRunAwayBreak() {
         _B8 = ::getRunAwayBreakTimeRandom();
     }
 
-    if (!tryTurn() && !tryPointing() && MR::isStep(this, _B8)) {
-        if (isBindedGroundWaterBottom()) {
-            setNerve(GET_NERVE(Kanina, HostTypeDig));
-            return;
-        }
+    if (!tryTurn() && !tryPointing() && !tryDigOrTurn()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
 
-        setNerve(GET_NERVE(Kanina, HostTypeRunAway));
+        if (MR::isStep(this, _B8)) {
+            if (isBindedGroundWaterBottom()) {
+                tryDig();
+                return;
+            }
+
+            setNerve(GET_NERVE(Kanina, HostTypeRunAway));
+        }
     }
 }
 
@@ -857,8 +1083,12 @@ void Kanina::exeVauntAttackSuccess() {
         MR::startBtp(this, "Angry");
     }
 
-    if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(Kanina, HostTypeRunAwayBreak));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
+        if (MR::isActionEnd(this)) {
+            setNerve(GET_NERVE(Kanina, HostTypeRunAwayBreak));
+        }
     }
 }
 
@@ -867,7 +1097,7 @@ void Kanina::exeHitWall() {
         mJointRumbler->start();
         TVec3f up;
         MR::calcUpVec(&up, this);
-        mVelocity.set(_C0 * ::sWallHitReboundAcc + up * ::sWallHitReboundAccY);
+        MR::setVelocity(this, _C0 * ::sWallHitReboundAcc + up * ::sWallHitReboundAccY);
         TVec3f vec(_C0);
         MR::vecKillElement(vec, up, &vec);
         MR::normalizeOrZero(&vec);
@@ -876,8 +1106,12 @@ void Kanina::exeHitWall() {
 
     startRunAwayLevelSound();
 
-    if (MR::isGreaterStep(this, ::sHitWallTime) && MR::isBindedGround(this)) {
-        setNerve(GET_NERVE(Kanina, HostTypeRunAwayReboundDirection));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
+        if (MR::isGreaterStep(this, ::sHitWallTime) && MR::isBindedGround(this)) {
+            setNerve(GET_NERVE(Kanina, HostTypeRunAwayReboundDirection));
+        }
     }
 }
 
@@ -887,21 +1121,29 @@ void Kanina::exeReboundEach() {
         mJointRumbler->start();
     }
 
-    if (MR::isGreaterStep(this, ::sHitWallTime) && MR::isBindedGround(this)) {
-        setNerve(GET_NERVE(Kanina, HostTypeRunAwayReboundDirection));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
+        if (MR::isGreaterStep(this, ::sHitWallTime) && MR::isBindedGround(this)) {
+            setNerve(GET_NERVE(Kanina, HostTypeRunAwayReboundDirection));
+        }
     }
 }
 
 void Kanina::exeGuard() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Guard");
-        MR::startActionSound(this, "EmKaninaGuard");
-        MR::tryRumbleDefaultHit(this, 0);
-        MR::calcVecToPlayerH(&_D0, this, nullptr);
+        fn_800345E0(this, "ガード");
+
+        if (!isNerve(GET_NERVE(Kanina, HostTypeGuardHipDrop))) {
+            MR::calcVecToPlayerH(&_D0, this, nullptr);
+        }
     }
 
-    if (MR::isStep(this, ::sGuardTime)) {
-        setNerve(GET_NERVE(Kanina, HostTypeGuardEnd));
+    if (!tryPointing()) {
+        if (MR::isStep(this, ::sGuardTime)) {
+            setNerve(GET_NERVE(Kanina, HostTypeGuardEnd));
+        }
     }
 }
 
@@ -912,24 +1154,6 @@ void Kanina::exeGuardEnd() {
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(Kanina, HostTypeRunAwayBreak));
-    }
-}
-
-void Kanina::exeDamageHipDrop() {
-    if (MR::isFirstStep(this)) {
-        if (isNerve(GET_NERVE(Kanina, HostTypeDamageHipDrop)) || isNerve(GET_NERVE(Kanina, HostTypeDamageTrampleInvincivle))) {
-            MR::startAction(this, "HipDropDown");
-        }
-
-        MR::startBtp(this, "Swoon");
-        MR::startActionSound(this, "EmStompedS");
-        MR::tryRumblePad(this, "強", WPAD_CHAN0);
-        MR::invalidateHitSensors(this);
-    }
-
-    if (MR::isStep(this, ::sHipDropDownTime)) {
-        appearItemTrample();
-        kill();
     }
 }
 
@@ -945,7 +1169,7 @@ void Kanina::exeDamageFireBall() {
     if (MR::isStep(this, ::sPunchDamageTime)) {
         MR::validateClipping(this);
         MR::validateHitSensors(this);
-        appearItemPunch();
+        fn_8022BA10(this);
         kill();
     }
 }
@@ -954,12 +1178,19 @@ void Kanina::exeDig() {
     if (MR::isFirstStep(this)) {
         _DC = 0;
         MR::startAction(this, "Dig");
+        MR::invalidateClipping(this);
     }
 
     MR::startActionSound(this, "EmLvKaninaDig");
 
-    if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(Kanina, HostTypeWaitUnderGround));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+        MR::zeroVelocity(this);
+
+        if (MR::isActionEnd(this)) {
+            MR::validateClipping(this);
+            setNerve(GET_NERVE(Kanina, HostTypeWaitUnderGround));
+        }
     }
 }
 
@@ -967,11 +1198,15 @@ void Kanina::exeWaitUnderGround() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
         MR::invalidateShadow(this, nullptr);
-        mPosition.set(_98);
+        MR::invalidateHitSensors(this);
+        MR::setPosition(this, _98);
     }
+
+    MR::zeroVelocity(this);
 
     if (MR::isGreaterStep(this, ::sWaitUnderGroundTime) && ::sKeepUnderGroundDistance < MR::calcDistanceToPlayer(this)) {
         MR::validateShadow(this, nullptr);
+        MR::validateHitSensors(this);
         setNerve(GET_NERVE(Kanina, HostTypeAppear));
     }
 }
@@ -983,8 +1218,13 @@ void Kanina::exeFindPlayer() {
         MR::calcVecToPlayerH(&_D0, this, nullptr);
     }
 
-    if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(Kanina, HostTypeRunAway));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+        MR::zeroVelocity(this);
+
+        if (MR::isActionEnd(this)) {
+            setNerve(GET_NERVE(Kanina, HostTypeRunAway));
+        }
     }
 }
 
@@ -993,8 +1233,12 @@ void Kanina::exeTurn() {
         MR::startAction(this, "Turn");
     }
 
-    if (MR::turnDirectionToTargetUseGroundNormalDegree(this, &_D0, *MR::getPlayerPos(), ::sTurnSpeed)) {
-        setNerve(GET_NERVE(Kanina, HostTypeTurnEnd));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
+        if (MR::turnDirectionToTargetUseGroundNormalDegree(this, &_D0, *MR::getPlayerPos(), ::sTurnSpeed)) {
+            setNerve(GET_NERVE(Kanina, HostTypeTurnEnd));
+        }
     }
 }
 
@@ -1003,8 +1247,12 @@ void Kanina::exeTurnEnd() {
         MR::startAction(this, "Wait");
     }
 
-    if (MR::isStep(this, ::sTurnEndTime)) {
-        setNerve(GET_NERVE(Kanina, HostTypeRunAway));
+    if (!tryPointing()) {
+        YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
+        if (MR::isStep(this, ::sTurnEndTime)) {
+            setNerve(GET_NERVE(Kanina, HostTypeRunAway));
+        }
     }
 }
 
@@ -1014,12 +1262,15 @@ void Kanina::exePointing() {
         MR::startDPDHitSound();
     }
 
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    bool isPointing = MR::isStarPointerPointing2PAttachTarget(this);
+    if (isPointing) {
         MR::startDPDFreezeLevelSound(this);
         MR::tryEmitEffect(this, "Touch");
     }
 
-    if (!MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
+
+    if (!isPointing) {
         setNerve(GET_NERVE(Kanina, HostTypePointingEnd));
     }
 }
@@ -1030,3 +1281,57 @@ void Kanina::endPointing() {
 
 Kanina::~Kanina() {
 }
+
+namespace {
+    // NONMATCHING: target inlines TPos3f::makeRotate here (this body is 0x184 bytes, ours calls makeRotate out of line)
+    void calcWalkDirection(TVec3f* pDirection, const LiveActor* pActor, f32 maxAngle) {
+        TVec3f front;
+        TVec3f up;
+        MR::calcFrontVec(&front, pActor);
+        MR::calcUpVec(&up, pActor);
+
+        f32 angle = MR::getRandom(-maxAngle, maxAngle);
+
+        TPos3f rotate;
+        rotate.identity();
+        rotate.makeRotate(up, angle);
+        rotate.mult(front, front);
+
+        MR::normalize(&front);
+        pDirection->set(front);
+    }
+
+    u32 getRunAwayTimeRandom() {
+        f32 random = MR::getRandom();
+        if (0.0f <= random && random < 0.25f) {
+            return ::sRunAwayRunningTime1;
+        }
+
+        if (0.25f <= random && random < 0.5f) {
+            return ::sRunAwayRunningTime2;
+        }
+
+        if (0.5f <= random && random < 0.75f) {
+            return ::sRunAwayRunningTime3;
+        }
+
+        return ::sRunAwayRunningTime4;
+    }
+
+    u32 getRunAwayBreakTimeRandom() {
+        f32 random = MR::getRandom();
+        if (0.0f <= random && random < 0.25f) {
+            return ::sRunAwayIntervalTime1;
+        }
+
+        if (0.25f <= random && random < 0.5f) {
+            return ::sRunAwayIntervalTime2;
+        }
+
+        if (0.5f <= random && random < 0.75f) {
+            return ::sRunAwayIntervalTime3;
+        }
+
+        return ::sRunAwayIntervalTime4;
+    }
+};  // namespace

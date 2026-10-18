@@ -1,7 +1,6 @@
 #include "Game/Enemy/KuriboChief.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
-#include "Game/Enemy/ItemGenerator.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/Enemy/WalkerStateChase.hpp"
 #include "Game/Enemy/WalkerStateFindPlayer.hpp"
@@ -35,6 +34,10 @@
 #include <revolution/os.h>
 #include <revolution/types.h>
 
+extern "C" bool fn_801BC910(const KuriboChief*);
+extern "C" void fn_801BC140(KuriboChief*);
+extern "C" void fn_8022BA10(LiveActor*);
+
 namespace {
     static const f32 sBinderSize = 300.0f;
     static const f32 sBinderYOffset = 300.0f;
@@ -59,7 +62,9 @@ namespace {
         KuriboChiefParam();
 
         WalkerStateParam mStateParam1;
+        u32 _18;
         WalkerStateParam mStateParam2;
+        u32 _34;
         WalkerStateStaggerParam mStaggerParam;
         WalkerStateFindPlayerParam mFindPlayerParam;
         WalkerStateChaseParam mChaseParam;
@@ -106,9 +111,15 @@ namespace NrvKuriboChief {
     NEW_NERVE(KuriboChiefNrvAttackSuccess, KuriboChief, AttackSuccess);
     NEW_NERVE(KuriboChiefNrvStagger, KuriboChief, Stagger);
     NEW_NERVE(KuriboChiefNrvTrample, KuriboChief, Trample);
-    NEW_NERVE_ONEND(KuriboChiefNrvBindStarPointer, KuriboChief, BindStarPointer, BindStarPointer);
+    NEW_NERVE(KuriboChiefNrvBindStarPointer, KuriboChief, BindStarPointer);
     NEW_NERVE(KuriboChiefNrvBlowDown, KuriboChief, BlowDown);
     NEW_NERVE(KuriboChiefNrvBlowDownLand, KuriboChief, BlowDownLand);
+    class KuriboChiefNrvDead : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static KuriboChiefNrvDead sInstance;
+    };
+    KuriboChiefNrvDead KuriboChiefNrvDead::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvKuriboChief
 
 KuriboChief::KuriboChief(const char* pName) : LiveActor(pName) {
@@ -118,7 +129,6 @@ KuriboChief::KuriboChief(const char* pName) : LiveActor(pName) {
     mStateChase = nullptr;
     mStateStagger = nullptr;
     mStateBindStarPointer = nullptr;
-    mItemGenerator = nullptr;
     mKeySwitch = nullptr;
     _AC.x = 0.0f;
     _AC.y = 0.0f;
@@ -128,65 +138,47 @@ KuriboChief::KuriboChief(const char* pName) : LiveActor(pName) {
 }
 
 void KuriboChief::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "KuriboChief", false);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
     MR::onCalcGravity(this);
-    mItemGenerator = new ItemGenerator();
-    initEffectKeeper(1, nullptr, false);
-    MR::initShadowFromCSV(this, "Shadow");
     mScaleController = new AnimScaleController(&::sParam.mScaleParam);
-    MR::initStarPointerTargetAtJoint(this, "Body", 350.0f, TVec3f(350.0f, 0.0f, 0.0f));
-    initSensor();
-    initBinder(::sBinderSize, ::sBinderYOffset, 0);
-    initNerve(GET_NERVE(KuriboChief, KuriboChiefNrvWander));
-    initSound(6, "KuriboChief", nullptr, TVec3f(0.0f));
     initState();
     initKeySwitch(rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
-    MR::declareStarPiece(this, 6);
 
-    s32 arg = -1;
-    MR::getJMapInfoArg7WithInit(rIter, &arg);
-    if (arg != -1) {
-        MR::declareCameraRegisterVec(this, arg, &mPosition);
+    if (MR::isValidInfo(rIter)) {
+        s32 arg = -1;
+        MR::getJMapInfoArg7WithInit(rIter, &arg);
+        if (arg != -1) {
+            MR::declareCameraRegisterVec(this, arg, &mPosition);
+        }
     }
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void KuriboChief::initAfterPlacement() {
     MR::trySetMoveLimitCollision(this);
 }
 
-void KuriboChief::initSensor() {
-    LiveActor::initHitSensor(8);
-    MR::addHitSensorAtJointEnemy(this, "Body", "Body", 8, 150.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorAtJointEnemy(this, "Head1", "Head", 8, 300.0f, TVec3f(120.0f, 0.0f, 0.0f));
-    MR::addHitSensorAtJointEnemy(this, "Head2", "Head", 8, 150.0f, TVec3f(360.0f, 0.0f, 0.0f));
-    MR::addHitSensorAtJointEnemy(this, "LegL", "LegL", 8, 130.0f, TVec3f(60.0f, -50.0f, 0.0f));
-    MR::addHitSensorAtJointEnemy(this, "LegR", "LegR", 8, 130.0f, TVec3f(60.0f, -50.0f, 0.0f));
-    MR::addHitSensorEnemy(this, "Punch", 8, 400.0f, TVec3f(0.0f, 150.0f, 0.0f));
+void KuriboChief::makeActorAppeared() {
+    if (!isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvDead))) {
+        LiveActor::makeActorAppeared();
+    }
 }
 
 void KuriboChief::initState() {
+    initNerve(GET_NERVE(KuriboChief, KuriboChiefNrvWander), 2);
     mStateFindPlayer = new WalkerStateFindPlayer(this, &_BC, &::sParam.mStateParam1, &::sParam.mFindPlayerParam);
     mStateWander = new WalkerStateWander(this, &_BC, &::sParam.mStateParam1, &::sParam.mWanderParam);
     mStateChase = new WalkerStateChase(this, &_BC, &::sParam.mStateParam1, &::sParam.mChaseParam);
     mStateStagger = new WalkerStateStagger(this, &_BC, &::sParam.mStateParam2, &::sParam.mStaggerParam);
     mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActorState(this, mStateBindStarPointer, GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer), "SupportFreeze");
+    MR::initActorState(this, mStateStagger, GET_NERVE(KuriboChief, KuriboChiefNrvStagger), "Stagger");
 }
 
 void KuriboChief::initKeySwitch(const JMapInfoIter& rIter) {
-    if (MR::useStageSwitchWriteA(this, rIter)) {
+    if (MR::isValidSwitchA(this)) {
         mKeySwitch = new KeySwitch("鍵スイッチ");
         mKeySwitch->initKeySwitchByOwner(rIter);
     }
@@ -198,21 +190,19 @@ void KuriboChief::makeArchiveList(NameObjArchiveListCollector* pCollector, const
     }
 }
 
-void KuriboChief_FORCE_MATCH_DATA() {
-    OSReport("head");
-}
-
 void KuriboChief::kill() {
+    MR::emitEffect(this, "Death");
+    MR::startActionSound(this, "Explode", -1, -1, -1);
+
     if (MR::isValidSwitchDead(this)) {
         MR::onSwitchDead(this);
     }
 
     if (mKeySwitch != nullptr) {
         mKeySwitch->appearKeySwitch(mPosition);
-    } else {
-        mItemGenerator->generate(this);
     }
 
+    setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvDead));
     LiveActor::kill();
 }
 
@@ -222,6 +212,8 @@ void KuriboChief::control() {
     }
 
     MR::blendQuatFromGroundAndFront(&_AC, this, _BC, ::sUpVecBlendRate, ::sFrontVecBlendRate);
+    MR::changeShowModelFlagSyncNearClipping(this, 900.0f);
+    fn_801BC140(this);
 }
 
 void KuriboChief::calcAndSetBaseMtx() {
@@ -239,17 +231,32 @@ void KuriboChief::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool KuriboChief::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver != getSensor("Punch")) {
-        if (MR::isMsgStarPieceReflect(msg)) {
+    if (MR::isMsgStarPieceReflect(msg)) {
+        if (pReceiver == getSensor("Punch")) {
+            return false;
+        }
+
+        if (!isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer))) {
             mScaleController->startHitReaction();
-            return true;
         }
 
-        if (MR::isMsgInvincibleAttack(msg)) {
-            return requestBlowDown(pSender, pReceiver);
+        return true;
+    }
+
+    if (MR::isMsgPlayerHitProjectiles(msg)) {
+        if (pReceiver == getSensor("Punch")) {
+            return false;
         }
 
-        return false;
+        return requestBlowDown(pSender, pReceiver);
+    }
+
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        if (isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvStagger))) {
+            return false;
+        }
+
+        return requestStagger(pSender, pReceiver);
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
@@ -285,13 +292,11 @@ bool KuriboChief::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
     }
 
     if (MR::isMsgInhaleBlackHole(msg)) {
-        mItemGenerator->setTypeNone();
         kill();
         return true;
     }
 
     if (MR::isMsgPlayerKick(msg) && MR::isSensorPlayer(pSender) && isEnableKick() && requestBlowDown(pSender, pReceiver)) {
-        mItemGenerator->setTypeStarPeace(6);
         return true;
     }
 
@@ -301,7 +306,9 @@ bool KuriboChief::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
 bool KuriboChief::requestStagger(HitSensor* pSender, HitSensor* pReceiver) {
     bool isDwn = isDown() == false;
     if (isDwn) {
-        mStateStagger->setPunchDirection(pSender, pReceiver), setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvStagger));
+        mStateStagger->setPunchDirection(pSender, pReceiver);
+        mStateStagger->mIsDead = false;
+        setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvStagger));
         return true;
     }
 
@@ -309,13 +316,15 @@ bool KuriboChief::requestStagger(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool KuriboChief::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
-    bool isDwn = isDown() == false;
+    bool isDwn = fn_801BC910(this) == false;
     if (!isDwn) {
         return false;
     }
 
     MR::setVelocityBlowAttack(this, pSender, pReceiver, 25.0f, 35.0f, 4);
     setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBlowDown));
+    MR::invalidateClipping(this);
+    MR::invalidateHitSensors(this);
     return true;
 }
 
@@ -330,6 +339,7 @@ bool KuriboChief::tryFind() {
 
 bool KuriboChief::tryPointBind() {
     if (mStateBindStarPointer->tryStartPointBind()) {
+        _C8 = mStateStagger->isUpsideDown();
         setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer));
         return true;
     }
@@ -406,11 +416,14 @@ void KuriboChief::exeTrample() {
 }
 
 void KuriboChief::exeBindStarPointer() {
-    MR::updateActorStateAndNextNerve(this, mStateBindStarPointer, GET_NERVE(KuriboChief, KuriboChiefNrvWander));
-}
-
-void KuriboChief::endBindStarPointer() {
-    mStateBindStarPointer->kill();
+    if (MR::updateActorState(this, mStateBindStarPointer)) {
+        if (_C8) {
+            mStateStagger->mIsDead = true;
+            setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvStagger));
+        } else {
+            setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvWander));
+        }
+    }
 }
 
 void KuriboChief::exeAttackSuccess() {
@@ -450,12 +463,14 @@ void KuriboChief::exeBlowDown() {
 void KuriboChief::exeBlowDownLand() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "BlowDownLand");
-        MR::startActionSound(this, "EmKuribochiefBoundLast");
+        MR::startActionSound(this, "EmKuribochiefBoundLast", -1, -1, -1);
     }
 
     if (MR::isActionEnd(this)) {
-        MR::emitEffect(this, "Death");
-        MR::startActionSound(this, "EmKuribochiefRun");
+        if (mKeySwitch == nullptr) {
+            fn_8022BA10(this);
+        }
+
         kill();
     }
 }
@@ -474,11 +489,17 @@ bool KuriboChief::isEnableKick() const {
         return mStateStagger->isEnableKick();
     }
 
+    if (isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer))) {
+        return _C8;
+    }
+
     return false;
 }
 
 bool KuriboChief::isDown() const {
-    if (isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBlowDown)) || isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBlowDownLand))) {
+    if (isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvWander)) || isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvFindPlayer)) ||
+        isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvChase)) || isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvAttackSuccess)) ||
+        isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvTrample)) || isNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBindStarPointer))) {
         return true;
     }
 

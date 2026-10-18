@@ -9,7 +9,7 @@ in it and placed in the directory of its header if one exists, else in the direc
 (the linker order follows the source tree, so neighbours share a directory). Units must hold at least
 --min bytes of named class code (default 0x80).
 
-  newunits.py [--write] [--min BYTES]
+  newunits.py [--write] [--min BYTES] [--only Dir1,Dir2]   (run it for YOUR lane dirs only)
 --write appends .text-only blocks to config/SB4E01/splits.txt (sorted by address on the next dtk split) and
 NonMatching entries to configure.py (in the matching GameLib). Then: `tools/team/nj.sh`.
 """
@@ -53,7 +53,8 @@ def related(c, seg):
     return any(b.startswith(k.removeprefix("Nrv")) or k.removeprefix("Nrv").startswith(b) for k in seg["classes"])
 
 
-SKIP_DIRS = {"Player"}  # enemies lane is building SMG2 unity TUs for Mario/MarioActor by hand
+SKIP_DIRS = set()
+ONLY = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None  # e.g. --only MapObj,Ride
 fns = load_fns()
 text, cur = [], None
 lines_all = open(SPLITS).read().split("\n")
@@ -101,7 +102,7 @@ for k in range(len(text) - 1):
             continue
         main = sg["classes"].most_common(1)[0][0]
         d = hdr.get(main, neighbour_dir)
-        if d in SKIP_DIRS:
+        if d in SKIP_DIRS or (ONLY is not None and d not in ONLY):
             continue
         u = f"Game/{d}/{main}.cpp"
         i = 2

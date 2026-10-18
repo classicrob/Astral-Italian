@@ -13,7 +13,7 @@ namespace NrvGalaxyConfirmLayout {
     NEW_NERVE(GalaxyConfirmLayoutNrvSelected, GalaxyConfirmLayout, Selected);
 };  // namespace NrvGalaxyConfirmLayout
 
-GalaxyConfirmLayout::GalaxyConfirmLayout() : LayoutActor("ギャラクシー確認レイアウト", true), mPaneCtrl(nullptr), mBackButton(nullptr) {
+GalaxyConfirmLayout::GalaxyConfirmLayout() : LayoutActor("ギャラクシー確認レイアウト", true), mPaneCtrl(nullptr), mBackButton(nullptr), mGalaxyType(0) {
 }
 
 void GalaxyConfirmLayout::init(const JMapInfoIter& rIter) {
@@ -21,7 +21,18 @@ void GalaxyConfirmLayout::init(const JMapInfoIter& rIter) {
     MR::connectToSceneLayout(this);
 
     mPaneCtrl = new ButtonPaneController(this, "StartButton", "BoxStartButton", 0, true);
-    mBackButton = new BackButton("戻るボタン", true);
+
+    if (mGalaxyType == 0) {
+        MR::setTextBoxGameMessageRecursive(this, "SButton", "GalaxySelect_StartGalaxy");
+    } else if (mGalaxyType == 1) {
+        MR::setTextBoxGameMessageRecursive(this, "SButton", "GalaxySelect_StartTico");
+    } else if (mGalaxyType == 2) {
+        MR::setTextBoxGameMessageRecursive(this, "SButton", "GalaxySelect_StartMarioFace");
+    }
+
+    BackButton* pBackButton = new BackButton("戻るボタン", false);
+    MR::connectToSceneLayoutDecoration(pBackButton);
+    mBackButton = pBackButton;
     mBackButton->initWithoutIter();
 
     initNerve(GET_NERVE(GalaxyConfirmLayout, GalaxyConfirmLayoutNrvSelecting));

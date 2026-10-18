@@ -223,6 +223,10 @@ void HomeButtonLayout::forceToDeactive() {
 
     RSO::HBMStartBlackOut();
     _25 = true;
+
+    if (isNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutActive))) {
+        setNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutDeactive));
+    }
 }
 
 bool HomeButtonLayout::isActive() const {

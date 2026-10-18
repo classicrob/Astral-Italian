@@ -33,17 +33,59 @@ namespace NrvOtaRock {
     NEW_NERVE(OtaRockNrvShow, OtaRock, Show);
 };  // namespace NrvOtaRock
 
+extern "C" u32 lbl_807D2D6C;
+
+extern "C" void fn_801DC550(OtaRock* pActor, const JMapInfoIter& rIter) {
+    MR::initDefaultPos(pActor, rIter);
+    MR::initUseStageSwitchReadA(pActor, rIter);
+    MR::initUseStageSwitchWriteDead(pActor, rIter);
+    MR::useStageSwitchAwake(pActor, rIter);
+    MR::getJMapInfoArg0NoInit(rIter, &pActor->mNoThrowCocoNut);
+    bool flag = false;
+    MR::getJMapInfoArg1NoInit(rIter, &flag);
+    if (flag) {
+        pActor->mThrowCocoNutCounter = 0;
+    }
+}
+
+extern "C" void fn_801DCC50(OtaRock* pActor) {
+    if (pActor->mNoThrowCocoNut) {
+        pActor->setNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
+    } else {
+        pActor->setNerve(GET_NERVE(OtaRock, OtaRockNrvHideWait));
+    }
+}
+
+extern "C" void fn_801DCC50(OtaRock* pActor);
+
+extern "C" void fn_801DD210(OtaRock* pActor) {
+    if (MR::isFirstStep(pActor)) {
+        MR::startAction(pActor, "Wait");
+    }
+
+    pActor->updateBaseMtx();
+
+    if (!MR::isStageStateScenarioOpeningCamera()) {
+        fn_801DCC50(pActor);
+    }
+}
+
+extern "C" bool fn_801DCC00(OtaRock* pActor) {
+    if (MR::isStageStateScenarioOpeningCamera()) {
+        pActor->setNerve(reinterpret_cast< const Nerve* >(&lbl_807D2D6C));
+        return true;
+    }
+    return false;
+}
+
 OtaRock::OtaRock(const char* pName)
     : LiveActor(pName), mNoThrowCocoNut(false), mCocoNutArray(nullptr), mFireBallArray(nullptr), mFixedPosition(nullptr),
-      mThrowCocoNutCounter(nullptr), mWaitFrame(0), _A4(), _D4(0.0f, 0.0f, 1.0f), mAnimScaleController(nullptr) {
+      mThrowCocoNutCounter(1), mWaitFrame(0), _A4(), _D4(0.0f, 0.0f, 1.0f), mAnimScaleController(nullptr) {
     _A4.identity();
 }
 
 void OtaRock::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchReadA(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::getJMapInfoArg0NoInit(rIter, &mNoThrowCocoNut);
+    fn_801DC550(this, rIter);
     MR::calcGravity(this);
     initModel();
     MR::connectToSceneEnemy(this);
@@ -53,8 +95,14 @@ void OtaRock::init(const JMapInfoIter& rIter) {
     initSound(8, "OtaRock", nullptr, TVec3f(0.0f));
     MR::addToAttributeGroupSearchTurtle(this);
     mAnimScaleController = new AnimScaleController(nullptr);
-    initNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
-    appear();
+    initNerve(GET_NERVE(OtaRock, OtaRockNrvWait), 0);
+    fn_801DCC50(this);
+
+    if (MR::isExistStageSwitchAwake(rIter)) {
+        makeActorAppeared();
+    } else {
+        makeActorDead();
+    }
 }
 
 void OtaRock::appear() {
@@ -95,13 +143,15 @@ void OtaRock::calcAndSetBaseMtx() {
 }
 
 void OtaRock::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isSensorPlayer(pReceiver)) {
-        return;
+    if (MR::isSensorPlayer(pReceiver)) {
+        if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
+            mAnimScaleController->startHitReaction();
+        } else {
+            MR::sendMsgPush(pReceiver, pSender);
+        }
     }
 
-    if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
-        mAnimScaleController->startHitReaction();
-    } else {
+    if (MR::isSensorYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -257,7 +307,7 @@ void OtaRock::exeWait() {
         }
     }
     updateBaseMtx();
-    if (!tryToHide() && MR::isGreaterStep(this, mWaitFrame)) {
+    if (!fn_801DCC00(this) && !tryToHide() && MR::isGreaterStep(this, mWaitFrame)) {
         if (!mNoThrowCocoNut && mThrowCocoNutCounter < 2) {
             if (isValidThrowCocoNut()) {
                 setNerve(GET_NERVE(OtaRock, OtaRockNrvThrowCocoNut));
@@ -349,6 +399,10 @@ void OtaRock::exeHideWait() {
         MR::startBckNoInterpole(this, "HideWait");
     }
     updateBaseMtx();
+
+    if (fn_801DCC00(this)) {
+        return;
+    }
 
     bool show;
 

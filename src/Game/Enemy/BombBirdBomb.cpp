@@ -10,6 +10,9 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
+
+extern "C" void fn_80012B80(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
 
 namespace {
     static const f32 sGroundFric = 1.0f;
@@ -32,41 +35,36 @@ namespace NrvBombBirdBomb {
     NEW_NERVE(HostTypeNrvHold, BombBirdBomb, Hold);
     NEW_NERVE(HostTypeNrvWait, BombBirdBomb, Wait);
     NEW_NERVE(HostTypeNrvExplosion, BombBirdBomb, Explosion);
+    NEW_NERVE(HostTypeNrvBindStarPointer, BombBirdBomb, BindStarPointer);
 };  // namespace NrvBombBirdBomb
 
-BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 0.0f, 1.0f), _9C(0.0f, 0.0f, 0.0f) {
+BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), mBindStarPtr(), _94(0.0f, 0.0f, 0.0f, 1.0f), _A4(0.0f, 0.0f, 0.0f), _B0(0), _B4(0) {
 }
 
 void BombBirdBomb::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "BombBirdBomb", false);
-    MR::connectToSceneEnemy(this);
-    MR::onCalcGravity(this);
-    initHitSensor(2);
-    MR::addHitSensorEnemy(this, "body", 8, 60.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorEnemyAttack(this, "bomb", 8, ::sExplosionRadius, TVec3f(0.0f, 0.0f, 0.0f));
     MR::invalidateHitSensor(this, "bomb");
-    initBinder(MR::getSensorRadius(this, "body"), 0.0f, 0);
-    initEffectKeeper(0, nullptr, false);
-    initSound(3, "BombBirdBomb", nullptr, TVec3f(0.0f));
-    f32 radius = MR::getSensorRadius(this, "body");
-    MR::initShadowVolumeSphere(this, radius);
-    initNerve(GET_NERVE(BombBirdBomb, HostTypeNrvHold));
+    MR::onCalcGravity(this);
+    initNerve(GET_NERVE(BombBirdBomb, HostTypeNrvHold), 1);
+    mBindStarPtr = new WalkerStateBindStarPointer(this, nullptr);
+    MR::initActorState(this, mBindStarPtr, GET_NERVE(BombBirdBomb, HostTypeNrvBindStarPointer), "SupportFreeze");
     MR::invalidateClipping(this);
     makeActorDead();
 }
 
 void BombBirdBomb::kill() {
     LiveActor::kill();
+    MR::deleteEffect(this, "PointerTouch");
     MR::deleteEffect(this, "LocusSmoke");
 }
 
 void BombBirdBomb::control() {
-    _9C.mult(::sMomentFric);
-    MR::rotateQuatMoment(&_8C, _9C);
+    _A4.mult(::sMomentFric);
+    MR::rotateQuatMoment(&_94, _A4);
 }
 
 void BombBirdBomb::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, _8C);
+    MR::setBaseTRMtx(this, _94);
     MR::setBaseScale(this, mScale);
 }
 
@@ -78,13 +76,15 @@ void BombBirdBomb::hold(const TVec3f& rPos) {
 }
 
 void BombBirdBomb::start(const TVec3f& rTrans, const TVec3f& rVelocity) {
-    mPosition.set(rTrans);
+    MR::setPosition(this, rTrans);
     MR::showModel(this);
-    MR::validateHitSensor(this, "body");
+    MR::validateHitSensor(this, "Body");
     MR::invalidateHitSensor(this, "bomb");
     setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait));
     mVelocity.set(rVelocity);
     MR::emitEffect(this, "LocusSmoke");
+    _B0 = 150;
+    _B4 = 0;
 }
 
 void BombBirdBomb::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -115,7 +115,44 @@ bool BombBirdBomb::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool BombBirdBomb::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    return MR::isMsgStarPieceReflect(msg);
+    if (MR::isMsgStarPieceReflect(msg)) {
+        return true;
+    }
+
+    if (MR::isMsgFireBallAttack(msg)) {
+        setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion));
+        return true;
+    }
+
+    if (MR::isMsgSupportTicoSpin(msg) && _B4 == 0 && !isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion))) {
+        fn_80012B80(this, pSender, pReceiver, 18.0f, 18.0f, 4);
+        _B4 = 30;
+        setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait));
+        return true;
+    }
+
+    return false;
+}
+
+bool BombBirdBomb::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion))) {
+        return false;
+    }
+
+    if (MR::isMsgExplosionAttack(msg)) {
+        setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion));
+        return true;
+    }
+
+    return false;
+}
+
+void BombBirdBomb::exeBindStarPointer() {
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBirdBomb, HostTypeNrvWait));
+    _B4 = _B4 - 1;
+    if (_B4 < 0) {
+        _B4 = 0;
+    }
 }
 
 void BombBirdBomb::exeHold() {

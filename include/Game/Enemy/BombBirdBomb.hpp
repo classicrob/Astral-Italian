@@ -2,6 +2,8 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 
+class WalkerStateBindStarPointer;
+
 class BombBirdBomb : public LiveActor {
 public:
     /// @brief Creates a new `BombBirdBomb`.
@@ -15,6 +17,7 @@ public:
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
 
     void hold(const TVec3f&);
     void start(const TVec3f&, const TVec3f&);
@@ -22,7 +25,11 @@ public:
     void exeHold();
     void exeWait();
     void exeExplosion();
+    void exeBindStarPointer();
 
-    TQuat4f _8C;
-    TVec3f _9C;
+    /* 0x90 */ WalkerStateBindStarPointer* mBindStarPtr;
+    /* 0x94 */ TQuat4f _94;
+    /* 0xA4 */ TVec3f _A4;
+    /* 0xB0 */ s32 _B0;
+    /* 0xB4 */ s32 _B4;
 };

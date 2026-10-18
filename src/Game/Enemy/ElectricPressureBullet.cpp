@@ -12,36 +12,32 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
+extern "C" void fn_800348C0(LiveActor*);
+
 namespace NrvElectricPressureBullet {
     NEW_NERVE(ElectricPressureBulletNrvFly, ElectricPressureBullet, Fly);
 };  // namespace NrvElectricPressureBullet
 
-ElectricPressureBullet::ElectricPressureBullet(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 0.0f), _98(), _9C(0.0f) {
+ElectricPressureBullet::ElectricPressureBullet(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 0.0f), _98(), _9C(0.0f), _A4(false) {
 }
 
 void ElectricPressureBullet::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "ElectricBullet", false);
-    MR::connectToSceneEnemy(this);
-    initHitSensor(1);
-    MR::addHitSensorEnemyAttack(this, "body", 8, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    initBinder(100.0f, 0.0f, 0);
-    initEffectKeeper(0, nullptr, false);
-    initSound(1, "ElectricPressureBullet", nullptr, TVec3f(0.0f));
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0, 0, 0));
-    MR::initShadowVolumeCylinder(this, 75.0f);
     initNerve(GET_NERVE(ElectricPressureBullet, ElectricPressureBulletNrvFly));
     makeActorDead();
 }
 
 void ElectricPressureBullet::kill() {
+    fn_800348C0(this);
     MR::emitEffect(this, "Break");
     MR::startActionSound(this, "EmElecbublletBreak");
     LiveActor::kill();
 }
 
-void ElectricPressureBullet::shotElectricBullet(LiveActor* actor, const TPos3f& pos, const f32& value) {
+void ElectricPressureBullet::shotElectricBullet(LiveActor* actor, const TPos3f& pos, const f32& value, bool flag) {
     _98 = actor;
     _9C = value;
+    _A4 = flag;
     pos.getZDir(_8C);
     mVelocity.scale(_9C, _8C);
     pos.getTrans(mPosition);
@@ -83,7 +79,7 @@ void ElectricPressureBullet::exeFly() {
 }
 
 void ElectricPressureBullet::control() {
-    if (MR::isStarPointerPointing2POnTriggerButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         kill();
     }
 }
@@ -92,4 +88,13 @@ void ElectricPressureBullet::attackSensor(HitSensor* pSender, HitSensor* pReceiv
     if (MR::isSensorPlayer(pReceiver) && MR::sendMsgEnemyAttackElectric(pReceiver, pSender)) {
         kill();
     }
+}
+
+bool ElectricPressureBullet::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgStartPowerStarGet(msg)) {
+        kill();
+        return true;
+    }
+
+    return false;
 }

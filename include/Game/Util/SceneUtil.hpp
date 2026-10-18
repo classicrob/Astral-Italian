@@ -57,6 +57,7 @@ namespace MR {
     bool isStageStarPieceFollowGroupLimit();
     bool isStageFileSelect();
     bool isStageMarioFaceShipOrWorldMap();
+    bool isStageStoryBook();
     bool isStageKoopaVs();
     bool isStageKoopaVs1();
     bool isStageKoopaVs2();

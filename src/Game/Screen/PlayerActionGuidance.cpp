@@ -74,6 +74,13 @@ void PlayerActionGuidance::createSpinLayout() {
     }
 
     mSpinLayout = new SimpleLayout("スピンガイダンス", "SpinGuidance", 1, -1);
+
+    if (MR::isStageStoryBook()) {
+        MR::hidePane(mSpinLayout, "SpinGuidance");
+    } else {
+        MR::hidePane(mSpinLayout, "SpinGuidanceDemo");
+    }
+
     mSpinLayout->appear();
 }
 
@@ -99,7 +106,6 @@ void PlayerActionGuidance::exeWaitFocusIn() {
 void PlayerActionGuidance::exeFadein() {
     if (MR::isFirstStep(this)) {
         hideAllLayout();
-        MR::showLayout(mCurrentLayout);
         startWaitAnimAllLayout();
         setAnimFrameAndStopAllLayout(0.0f);
         calcAnim();
@@ -144,7 +150,7 @@ void PlayerActionGuidance::exeDisplay() {
         startWaitAnimAllLayout();
 
         if (mSpinLayout != nullptr) {
-            MR::startCSSound("CS_NOTICE_USE_DPD", "SE_SY_CS_NOTICE_USE_DPD", 0);
+            MR::startCSSound("CS_NOTICE_USE_DPD", "SE_SY_CS_NOTICE_USE_DPD", 0, 0, 1.0f);
         }
 
         if (mTamakoroLayout != nullptr && mGuidanceState == 0) {
@@ -245,6 +251,18 @@ bool PlayerActionGuidance::isInVolumePlayer(const char* pObjName, bool param2) c
     AreaObj* pObj = MR::getAreaObj(pObjName, *MR::getPlayerPos());
 
     if (pObj == nullptr) {
+        return false;
+    }
+
+    if (pObj->mObjArg0 == 0 && !MR::isPlayerElementModeCloud()) {
+        return false;
+    }
+
+    if (pObj->mObjArg0 == 1 && !MR::isPlayerElementModeTeresa()) {
+        return false;
+    }
+
+    if (pObj->mObjArg0 == 2 && !MR::isCurrentRushTamakoro()) {
         return false;
     }
 

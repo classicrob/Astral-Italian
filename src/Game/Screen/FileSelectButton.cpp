@@ -98,10 +98,6 @@ void FileSelectButton::exeDisappear() {
 
 void FileSelectButton::control() {
     for (int i = 0; i < ARRAY_SIZE(mButtonCtrl); i++) {
-        if (mButtonCtrl[i]->isDecidedWait()) {
-            mButtonCtrl[i]->forceToWait();
-        }
-
         mButtonCtrl[i]->update();
     }
 

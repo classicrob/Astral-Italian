@@ -33,7 +33,7 @@ GameSceneLayoutHolder::GameSceneLayoutHolder()
     mCameraInfo = new CameraInfo("カメラ情報表示");
     mCameraInfo->initWithoutIter();
 
-    mInformationMessage = new InformationMessage();
+    mInformationMessage = new InformationMessage(true);
     mInformationMessage->initWithoutIter();
 
     mOneUpBoard = new OneUpBoard();

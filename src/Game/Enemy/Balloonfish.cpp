@@ -1,6 +1,7 @@
 #include "Game/Enemy/Balloonfish.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
+#include "Game/Enemy/SupportTicoStop.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -14,6 +15,8 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+
+extern "C" void fn_8022BA10(LiveActor*);
 
 namespace {
     static const s32 hWaitTime = 120;
@@ -30,41 +33,26 @@ namespace {
 namespace NrvBalloonfish {
     NEW_NERVE(HostTypeNrvWait, Balloonfish, Wait);
     NEW_NERVE(HostTypeNrvDash, Balloonfish, Dash);
-    NEW_NERVE(HostTypeNrvDashEnd, Balloonfish, Dash);
-    NEW_NERVE_ONEND(HostTypeNrvStarPointerBind, Balloonfish, StarPointerBind, StarPointerBind);
 };  // namespace NrvBalloonfish
 
 Balloonfish::Balloonfish(const char* pName)
-    : LiveActor(pName), mAnimScaleController(), mNerveBeforeBind(), mQuat(0.0f, 0.0f, 0.0f, 1.0f), mRotateAngle(::hRotateAngle) {
+    : LiveActor(pName), mAnimScaleController(), mSupportTicoStop(), mQuat(0.0f, 0.0f, 0.0f, 1.0f), mRotateAngle(::hRotateAngle), mWaitScale(1.0f), mNotBoundStep() {
 }
 
 void Balloonfish::init(const JMapInfoIter& rIter) {
-    if (MR::isValidInfo(rIter)) {
-        MR::initDefaultPos(this, rIter);
-        MR::needStageSwitchReadAppear(this, rIter);
-        MR::listenStageSwitchOnAppear(this, MR::Functor(this, &Balloonfish::appear));
-    }
-
     MR::initActor(this, rIter, "Balloonfish", false);
+    MR::listenStageSwitchOnAppear(this, MR::FunctorV0M< Balloonfish*, void (Balloonfish::*)() >(this, &Balloonfish::appear));
     mQuat.setEuler(mRotation);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-
-    f32 scale = mScale.y;
-    initBinder(100.0f * scale, 0.0f, 0);
-    initHitSensor(1);
-    MR::addHitSensorEnemy(this, "body", 32, 100.0f * scale, TVec3f(0.0f, 60.0f * scale, 0.0f));
-    initEffectKeeper(0, "Balloonfish", false);
-    initSound(2, "Balloonfish", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(Balloonfish, HostTypeNrvWait));
-    f32 zero = 0.0f;
-    MR::initStarPointerTarget(this, 110.0f, TVec3f(zero, 80.0f, zero));
     mAnimScaleController = new AnimScaleController(nullptr);
-    MR::onCalcGravity(this);
-    MR::initShadowVolumeSphere(this, 80.0f * mScale.y);
-    MR::declareCoin(this, 1);
+    mSupportTicoStop = new SupportTicoStop(this, mAnimScaleController);
     MR::invalidateClipping(this);
     makeActorDead();
+}
+
+void Balloonfish::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    setNerve(GET_NERVE(Balloonfish, HostTypeNrvWait));
 }
 
 void Balloonfish::appear() {
@@ -80,19 +68,20 @@ void Balloonfish::kill() {
 }
 
 void Balloonfish::control() {
+    mSupportTicoStop->updateNerve();
     mAnimScaleController->updateNerve();
 }
 
 void Balloonfish::exeWait() {
     if (MR::isFirstStep(this)) {
         mVelocity.zero();
-        if (mNerveBeforeBind != mSpine->getCurrentNerve()) {
-            mNotBoundStep = 0;
-            MR::startAction(this, "appearance");
-            MR::startActionSound(this, "EmBlnfishPreDash");
-        }
+        mNotBoundStep = 0;
+        MR::startAction(this, "appearance");
+        MR::startActionSound(this, "EmBlnfishPreDash", -1, -1, -1);
+    }
 
-        mNerveBeforeBind = nullptr;
+    if (mSupportTicoStop->tryAttachTouch()) {
+        return;
     }
 
     TVec3f toPredictedPlayerPos(*MR::getPlayerCenterPos());
@@ -100,19 +89,11 @@ void Balloonfish::exeWait() {
     toPredictedPlayerPos -= mPosition;
 
     f32 ratio = static_cast< f32 >(mNotBoundStep) / ::hWaitTime;
-    f32 scale = (1.0f - ratio) * 1.0f + ratio * ::hWaitMaxScale;
-    mScale.set(scale, scale, scale);
+    mWaitScale = (1.0f - ratio) * 1.0f + ratio * ::hWaitMaxScale;
     MR::blendQuatFrontUp(&mQuat, -mGravity, toPredictedPlayerPos, 0.02f, 0.1f);
 
     if (mNotBoundStep > ::hWaitTime) {
         setNerve(GET_NERVE(Balloonfish, HostTypeNrvDash));
-        return;
-    }
-
-    // "weak"
-    if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        mNerveBeforeBind = mSpine->getCurrentNerve();
-        setNerve(GET_NERVE(Balloonfish, HostTypeNrvStarPointerBind));
         return;
     }
 
@@ -121,88 +102,71 @@ void Balloonfish::exeWait() {
 
 void Balloonfish::exeDash() {
     if (MR::isFirstStep(this)) {
+        mNotBoundStep = 0;
         if (isNerve(GET_NERVE(Balloonfish, HostTypeNrvDash))) {
-            if (mNerveBeforeBind != mSpine->getCurrentNerve()) {
-                mNotBoundStep = 0;
-                MR::startAction(this, "Attack");
-                MR::emitEffect(this, "SwimBubble");
-            }
+            MR::startAction(this, "Attack");
+            MR::emitEffect(this, "SwimBubble");
         } else {
-            if (mNerveBeforeBind != mSpine->getCurrentNerve()) {
-                mNotBoundStep = 0;
-                MR::startAction(this, "AttackEnd");
-                MR::emitEffect(this, "SwimBubble");
-            }
+            MR::startAction(this, "AttackEnd");
+            MR::emitEffect(this, "SwimBubble");
         }
 
         TVec3f zDir;
         mQuat.getZDir(zDir);
         mVelocity.set(zDir * ::hDashVel);
-
-        mNerveBeforeBind = nullptr;
     }
 
-    MR::startActionSound(this, "EmLvBlnfishDash");
+    MR::startActionSound(this, "EmLvBlnfishDash", -1, -1, -1);
+
+    if (mSupportTicoStop->tryAttachTouch()) {
+        return;
+    }
+
+    if (mSupportTicoStop->mIsTouching) {
+        TVec3f zDir;
+        mQuat.getZDir(zDir);
+        mVelocity.set(zDir * 0.0f);
+    }
 
     s32 nerveMaxDuration;
     if (isNerve(GET_NERVE(Balloonfish, HostTypeNrvDash))) {
         nerveMaxDuration = ::hDashTime;
-        f32 ratio = static_cast< f32 >(mNotBoundStep) / nerveMaxDuration;
-        mScale.set(::hWaitMaxScale * (1.0f - ratio) + ::hDashScale * ratio);
+        f32 ratio = MR::calcNerveRate(this, nerveMaxDuration);
+        mWaitScale = (1.0f - ratio) * ::hWaitMaxScale + ratio * 1.0f;
     } else {
         nerveMaxDuration = ::hDashEndTime;
     }
 
     if (nerveMaxDuration < mNotBoundStep) {
-        if (isNerve(GET_NERVE(Balloonfish, HostTypeNrvDash))) {
-            setNerve(GET_NERVE(Balloonfish, HostTypeNrvDashEnd));
-            return;
-        } else {
-            kill();
-            return;
-        }
-    }
-
-    if (!MR::isInWater((*MR::getSensorPos(this, "body")))) {
         kill();
         return;
     }
 
-    // "weak"
-    if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        mNerveBeforeBind = mSpine->getCurrentNerve();
-        setNerve(GET_NERVE(Balloonfish, HostTypeNrvStarPointerBind));
+    if (MR::isBindedWall(this)) {
+        kill();
+        return;
+    }
+
+    if (!MR::isInWater(*MR::getSensorPos(this, "Body"))) {
+        kill();
         return;
     }
 
     mNotBoundStep++;
 }
 
-void Balloonfish::exeStarPointerBind() {
-    if (MR::isFirstStep(this)) {
-        MR::startDPDHitSound();
-        MR::setBckRate(this, 0.0f);
-        mAnimScaleController->startDpdHitVibration();
-        MR::emitEffect(this, "Touch");
-    }
-
-    MR::startDPDFreezeLevelSound(this);
-    mVelocity.zero();
-
-    // "weak"
-    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
-        setNerve(mNerveBeforeBind);
-    }
-}
-
 void Balloonfish::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isSensorPlayer(pReceiver)) {
+    if (!MR::isSensorPlayerOrYoshiOrRide(pReceiver)) {
         return;
     }
 
-    if (isNerve(GET_NERVE(Balloonfish, HostTypeNrvWait)) && MR::isLessStep(this, ::hAttackBeginTime) ||
-        isNerve(GET_NERVE(Balloonfish, HostTypeNrvStarPointerBind))) {
+    if (isNerve(GET_NERVE(Balloonfish, HostTypeNrvWait)) && MR::isLessStep(this, ::hAttackBeginTime)) {
         MR::sendMsgPush(pReceiver, pSender);
+        return;
+    }
+
+    if (mSupportTicoStop->isTouching()) {
+        MR::sendMsgEnemyAttackStrong(pReceiver, pSender);
         return;
     }
 
@@ -213,13 +177,14 @@ void Balloonfish::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool Balloonfish::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceReflect(msg)) {
-        if (!isNerve(GET_NERVE(Balloonfish, HostTypeNrvStarPointerBind))) {
+        if (!mSupportTicoStop->isTouching()) {
             mAnimScaleController->startHitReaction();
         }
         return true;
     }
 
     if (MR::isMsgJetTurtleAttack(msg)) {
+        fn_8022BA10(this);
         kill();
         return true;
     }
@@ -238,12 +203,7 @@ void Balloonfish::calcAndSetBaseMtx() {
     mtx.setTrans(mPosition);
     MR::setBaseTRMtx(this, mtx);
 
-    TVec3f scale(mAnimScaleController->_C * mScale);
+    MR::updateBaseScale(this, mAnimScaleController);
+    TVec3f scale(mScale * mWaitScale);
     MR::setBaseScale(this, scale);
-}
-
-void Balloonfish::endStarPointerBind() {
-    MR::setBckRate(this, 1.0f);
-    mAnimScaleController->startAnim();
-    MR::deleteEffect(this, "Touch");
 }

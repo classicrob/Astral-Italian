@@ -3,6 +3,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class AnimScaleController;
+class SupportTicoStop;
 
 /// @brief Spiny Cheep Cheep
 class Balloonfish : public LiveActor {
@@ -10,6 +11,7 @@ public:
     Balloonfish(const char*);
 
     virtual void init(const JMapInfoIter& rIter);
+    virtual void makeActorAppeared();
     virtual void appear();
     virtual void kill();
     virtual void control();
@@ -19,13 +21,11 @@ public:
 
     void exeWait();
     void exeDash();
-    void exeDashEnd();
-    void exeStarPointerBind();
-    void endStarPointerBind();
 
-    /* 0x8C */ AnimScaleController* mAnimScaleController;
-    /* 0x90 */ const Nerve* mNerveBeforeBind;
-    /* 0x94 */ s32 mNotBoundStep;
+    /* 0x90 */ AnimScaleController* mAnimScaleController;
+    /* 0x94 */ SupportTicoStop* mSupportTicoStop;
     /* 0x98 */ TQuat4f mQuat;
     /* 0xA8 */ f32 mRotateAngle;
+    /* 0xAC */ f32 mWaitScale;
+    /* 0xB0 */ s32 mNotBoundStep;
 };

@@ -164,21 +164,8 @@ void WipeRing::startAnim(const char* pAnimName) {
     MR::getAnimCtrl(this, 0)->setRate(static_cast< f32 >(MR::getAnimCtrl(this, 0)->getEnd()) / mAnimFrame);
 }
 
-namespace {
-    bool canCenterOnMario() {
-        if (MR::isEqualStageName("IceVolcanoGalaxy") && MR::getCurrentScenarioNo() == 1) {
-            TVec3f position(15060.0f, -11800.0f, 1260.0f);
-            if (MR::getPlayerPos()->distance(position) < 600.0f) {
-                return false;
-            }
-        }
-
-        return !MR::isStageSuddenDeathDodoryu();
-    }
-};  // namespace
-
 bool WipeRing::getMarioCenterPos(TVec3f* pCenterPos) {
-    if (MR::isExistMario() && ::canCenterOnMario()) {
+    if (MR::isExistMario()) {
         pCenterPos->set(static_cast< const Vec& >(*MR::getPlayerCenterPos()));
 
         return true;

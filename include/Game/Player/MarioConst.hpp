@@ -164,9 +164,9 @@ struct MarioConstTable {
     /* 0x27C */ u16 mAutoBdashTime;  // SMG2 offset guess
     /* 0x27E */ u16 mSlowStartTime;  // SMG2 offset guess
     /* 0x280 */ f32 mStartSpinAnimeRatio;  // SMG2 offset guess
-    /* 0x284 */ f32 mSlopeAnimeRatio;  // SMG2 offset guess
-    /* 0x288 */ f32 mSlopeSpinAnimeRatio;  // SMG2 offset guess
-    /* 0x28C */ u8 _pad28C[0x4];
+    /* 0x284 */ union { f32 mSlopeAnimeRatio; f32 mStartSpinAnimeRatioSMG2; };
+    /* 0x288 */ union { f32 mSlopeSpinAnimeRatio; f32 mSlopeAnimeRatioSMG2; };
+    /* 0x28C */ union { u8 _pad28C[0x4]; f32 mSlopeSpinAnimeRatioSMG2; };
     /* 0x290 */ f32 mItemDashRatio;
     /* 0x294 */ u16 mItemDashTimer;  // SMG2 offset inh
     /* 0x296 */ u8 _pad296[0x2];

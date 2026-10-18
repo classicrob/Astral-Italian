@@ -388,6 +388,11 @@ bool Mario::isEnableStickWall() {
     return MR::getKarikariClingNum() == 0;
 }
 
+#pragma auto_inline off
+
+#pragma dont_inline on
+
+// NONMATCHING: register allocation, stack temporaries and literal-pool layout.
 bool MarioWall::start() {
     _18 = 0;
     _20 = 0.0f;
@@ -401,15 +406,32 @@ bool MarioWall::start() {
 
     if (getPlayerMode() == PlayerMode_Ice && getPlayer()->getWallPolygon()->mSensor->isType(0x51)) {
         MarioActor* actor = mActor;
-        actor->createIceWall(getPlayer()->getWallPos() - getPlayer()->getWallNorm() * 30.0f, getPlayer()->getWallNorm());
-        playEffectRT("氷壁ジャンプ", getPlayer()->getWallNorm(), getPlayer()->getWallPos() - getPlayer()->getWallNorm() * 15.0f);
+        TVec3f offset(getPlayer()->getWallNorm());
+        offset *= 30.0f;
+        const TVec3f& normal = getPlayer()->getWallNorm();
+        TVec3f position = getPlayer()->getWallPos().operator-(offset);
+        actor->createIceWall(position, normal);
+        TVec3f effectOffset(getPlayer()->getWallNorm());
+        effectOffset *= 15.0f;
+        TVec3f effectPosition = getPlayer()->getWallPos().operator-(effectOffset);
+        playEffectRT("氷壁ジャンプ", getPlayer()->getWallNorm(), effectPosition);
         playSound("スケート着地");
         _1E = 1;
     }
 
+    MarioActor* actor = mActor;
+    if (!actor->_944) {
+        actor->_945 = 0;
+        actor->_974 = 0;
+    }
+    actor->_944 = 0;
+    getPlayer()->fn_803A2420();
     return true;
 }
 
+#pragma dont_inline reset
+
+// NONMATCHING: register allocation, stack temporaries and literal-pool layout.
 bool MarioWall::update() {
     bool release = false;
     if (mActor->_334) {
@@ -489,14 +511,27 @@ bool MarioWall::update() {
     }
 
     if (mActor->isRequestRush()) {
-        getPlayer()->mMovementStates._2B = false;
-        changeAnimation("空中ひねり");
-        getPlayer()->tryWallPunch();
+        if (isPlayerModeFire()) {
+            mActor->updateFireSpin();
+        } else {
+            getPlayer()->mMovementStates._2B = false;
+            if (isPlayerModeCloud()) {
+                changeAnimation("雲スピン空中");
+            } else {
+                changeAnimation("空中ひねり");
+            }
+            getPlayer()->tryWallPunch();
+        }
         getPlayer()->setWallCancel();
         return false;
     }
 
     if (!getPlayer()->fixWallingPosition(false)) {
+        getPlayer()->setWallCancel();
+        return false;
+    }
+
+    if (getPlayer()->checkWallCode("NoAction", true)) {
         getPlayer()->setWallCancel();
         return false;
     }
@@ -624,6 +659,7 @@ bool MarioWall::startJump() {
     return true;
 }
 
+// NONMATCHING: register allocation, stack temporaries and literal-pool layout.
 bool MarioWall::startBackJump(u32 type) {
     if (getPlayer()->isInhibitWall()) {
         return false;
@@ -640,8 +676,7 @@ bool MarioWall::startBackJump(u32 type) {
     getPlayer()->tryWallJump(velocity, false);
     switch (type) {
     case 0: {
-        playEffectRTZ("結界ヒット", _24, getPlayer()->getWallPos());
-        playSound("結界ヒット");
+        playSound("トランポリンジャンプ大");
         Mario* player = getPlayer();
         player->_402 = 0;
         player = getPlayer();
@@ -663,6 +698,8 @@ bool MarioWall::startBackJump(u32 type) {
     getPlayer()->mMovementStates._2B = true;
     return true;
 }
+
+#pragma auto_inline on
 
 bool Mario::fixWallingDist() {
     if (mMovementStates._19 & mMovementStates._8) {

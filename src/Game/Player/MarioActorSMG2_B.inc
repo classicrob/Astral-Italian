@@ -741,16 +741,15 @@ void MarioActor::fn_803CD450(HitSensor* s) {
 }
 
 
-void MarioActor::fn_803CD4B0(HitSensor* s, f32 f0, f32 f1) {
+bool MarioActor::fn_803CD4B0(HitSensor* s, f32 f0, f32 f1) {
     f32 r = FP(s, f32, 0x10);
     TVec3f d(FP(s, TVec3f, 4));
     d -= F(TVec3f, 0x5F4);
     void* h = FP(s, void*, 0x24);
     if (h != nullptr && MR::isEqualString(FP(h, const char*, 4), "ヨッシー")) {
-        this->fn_803CD8A0(&d, r, 40.0f, 10.0f);
-        return;
+        return this->fn_803CD8A0(&d, r, 40.0f, 10.0f);
     }
-    this->cylinderPushCheck(d, r, f0, f1);
+    return this->cylinderPushCheck(d, r, f0, f1);
 }
 
 void MarioActor::sendWallTouch(u32 msg, HitSensor* a, HitSensor* b) {

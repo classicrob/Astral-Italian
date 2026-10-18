@@ -254,7 +254,7 @@ public:
     bool fn_803CD380();
     bool fn_803CD3C0();
     void fn_803CD450(HitSensor* s);
-    void fn_803CD4B0(HitSensor* s, f32 f0, f32 f1);
+    bool fn_803CD4B0(HitSensor* s, f32 f0, f32 f1);
     bool fn_803CD8A0(TVec3f* v, f32 f0, f32 f1, f32 f2);
     void fn_803CE8A0(HitSensor* s);
     void fn_803CE9D0(HitSensor* s);
@@ -1117,12 +1117,14 @@ public:
     /* 0x78C */ FixedPosition* mSearchLightThrowPos;  // SMG2 offset guess-gap
     /* 0x790 */ HitSensor* _4A4;  // used in calcAnimInMovement()
     /* 0x794 */ u32 _3A0;
+    union { struct {
     union {
         struct {
     /* 0x798 */ TVec3f _30C;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
     /* 0x7A4 */ TVec3f _2E8;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x7B0 */ TVec3f _438[4];  // SMG2 offset inh-gap  // SMG2 offset guess-gap  // SMG2 offset inh
         };
+        struct { HitSensor* mNearestUnderSensor798; f32 mNearestUnderAngle79C; f32 mBodyRadius7A0; f32 mBodyHeight7A4; };
         struct { u8 _padBody798To7A8[0x10]; union { TVec3f mBodyUpDirection; TVec3f _4B8; }; union { TVec3f mBodyDownDirection; TVec3f _4C4; }; };
     };
     /* 0x7E0 */ TVec3f _318;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1150,6 +1152,7 @@ public:
     /* 0x940 */ u8 _pad940[0x48];
     /* 0x988 */ TMtx34f _legacyAB0;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x9B8 */ u8 _pad9B8[8];
+    }; struct { u8 _padPull798[0x28]; HitSensor* mPulledSensors7C0[128]; }; };
     /* 0x9C0 */ bool _6D0;
     /* 0x9C1 */ u8 _pad9C1[0x3];
     /* 0x9C4 */ f32 _6D4;

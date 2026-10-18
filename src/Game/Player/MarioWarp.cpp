@@ -42,6 +42,7 @@ MarioWarp::MarioWarp(MarioActor* pActor) : MarioState(pActor, MarioStatus_Warp),
 }
 
 
+// NONMATCHING: floating-point operand and register scheduling.
 void MarioWarp::calcAxis() {
     TVec3f axis;
     TVec3f normal;
@@ -109,13 +110,15 @@ void MarioWarp::updateJump() {
         position = position * remaining + _14 * (1.0f - remaining);
     }
 
-    getPlayer()->addTrans((position - getTrans()) * followRate, "Module");
+    MarioPosHolder* holder = getPlayer()->mPosHolder;
+    holder->fn_80406010((position - getTrans()) * followRate);
     if (_45 == 2) {
         getPlayer()->setFrontVecKeepUp(_38, 0.2f);
     }
 }
 
 
+// NONMATCHING: vector operand scheduling and ignored addTrans tag setup.
 bool MarioWarp::start() {
     _52 = 0;
     _58 = 0;
@@ -185,6 +188,7 @@ bool MarioWarp::start() {
 }
 
 
+// NONMATCHING: ignored addTrans tag setup and string pool offsets.
 bool MarioWarp::update() {
     if (!_44) {
         getPlayer()->mMovementStates._2B = true;

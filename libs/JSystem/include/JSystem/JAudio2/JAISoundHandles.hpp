@@ -32,8 +32,8 @@ public:
     JAISoundHandle* getFreeHandle();
     JAISoundHandle* getHandleUserData(u32);
 
+    bool hasActiveSound() const;
     void setPos(const TVec3f&);
-    bool fn_80596A60() const;
 
     /* 0x00 */ JAISoundHandle* mHandles;
     /* 0x04 */ int mNumHandles;

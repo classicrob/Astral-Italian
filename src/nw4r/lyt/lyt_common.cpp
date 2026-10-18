@@ -1,5 +1,8 @@
 #include "nw4r/lyt/common.h"
 #include "nw4r/lyt/layout.h"
+#include "nw4r/lyt/group.h"
+#include "nw4r/lyt/animation.h"
+#include "nw4r/lyt/util.h"
 #include <revolution/gx/GXEnum.h>
 #include <revolution/gx/GXGeometry.h>
 #include <revolution/gx/GXVert.h>
@@ -176,5 +179,12 @@ namespace nw4r {
                 DrawQuad(basePt, size, num, texCoords, vtxColors ? colors : 0);
             }
         };  // namespace detail
+        void BindAnimation(Group* group, AnimTransform* transform, bool recursive, bool disable) {
+            PaneLinkList& panes = group->GetPaneList();
+            for (PaneLinkList::Iterator it = panes.GetBeginIter(); it != panes.GetEndIter(); ++it) {
+                it->mTarget->BindAnimation(transform, recursive, disable);
+            }
+        }
+
     };  // namespace lyt
 };  // namespace nw4r

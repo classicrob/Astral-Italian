@@ -221,7 +221,7 @@ namespace nw4r {
 
             AnimTransform* const pAnimTrans = CreateAnimTransform();
             const u16 bindGroupNum = animRes.GetGroupNum();
-            u16 animNum = 0;
+            u32 animNum = 0;
 
             if (bindGroupNum == 0) {
                 animNum = animRes.GetResourceBlock()->animContNum;

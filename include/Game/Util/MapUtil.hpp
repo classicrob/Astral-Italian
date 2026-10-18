@@ -131,6 +131,8 @@ namespace MR {
 };  // namespace MR
 
 namespace Collision {
+    s32 checkStrikeLineToDashYoshiStep(const TVec3f&, const TVec3f&, s32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
+    const HitInfo* getStrikeInfoDashYoshiStep(u32);
     s32 checkStrikePointToMap(const TVec3f&, HitInfo*);
     s32 checkStrikeBallToMap(const TVec3f&, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeBallToMapWithMovingReaction(const TVec3f&, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);

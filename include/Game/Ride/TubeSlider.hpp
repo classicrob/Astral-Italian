@@ -38,9 +38,9 @@ public:
     bool tryEndSlide();
 
     bool tryPlayerJump(bool);
-    bool tryPlayerSpin();
+    bool tryPlayerJumpSpin();
     bool tryPlayerFall();
-    void startDamage();
+    void damagePlayer();
     void startJump(f32 power);
     bool updateOnGround();
     bool updatePlayer();    // updates player movement
@@ -54,7 +54,7 @@ public:
     void exeRideWallHit();
     void exeRideLand();
     void exeDamageDeath();
-    void exeRideSlam();
+    void exeKillPlayer();
 
     inline f32 getPlayerTheta() const {
         return mPlayerTheta;

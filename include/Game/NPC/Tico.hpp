@@ -5,6 +5,8 @@
 #include "Game/Util/NPCUtil.hpp"
 
 class TicoDemoGetPower;
+class ActorCameraInfo;
+class DemoObj;
 
 /// @brief Luma
 class Tico : public NPCActor {
@@ -18,46 +20,57 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
+    virtual void initAfterPlacement();
+    virtual bool isReactionNerve() const;
 
-    void initBase(s32);
     void initBase(const JMapInfoIter&, s32);
     void initMessage(const JMapInfoIter&, const char*);
     void initMessage(const char*);
+    void initRail(const JMapInfoIter&);
     bool tryReaction();
-    void setNerveMeta();
-    void setNerveWait();
     bool killFunc(u32);
-    bool isReactionNerve() const;
+    bool eventFunc(u32);
+    bool branchFunc(u32);
 
     void exeReaction();
     void exeDelight();
+    void exeReactionTalk();
+    void exeAppearRail();
     void exeAppear();
     void exeNoReaction();
+    void exeTogglePlayerControl();
     void exeWait();
     void exeTalk();
     void exeMeta();
-    void exeBlue0();
-    void exeBlue1();
-    void exeRed0();
-    void exeRed1();
-    void exeRed2();
-    void exeSpin0();
-    void exeGuide0();
-    void exeGuide1();
-    void exeGuide2();
-    void exeGuide3();
-    void exeLead0();
+    void exeWaitSwitchABeforeRail();
+    void exeMoveRail();
+    void exeWaitAfterRail();
+    void exeWaitBeforeRail();
+    void exeMoveRailForceTalk();
+    void exeFall();
+    void exeFallRecover();
+    void exeDemoWait() NO_INLINE;
+
+    inline bool isRailType() const {
+        return _15C == 6 || _15C == 8;
+    }
 
     static const f32 sFloatSeMinVolume;
 
-    /* 0x15C */ u32 _15C;
-    /* 0x160 */ TVec3f _160;
-    /* 0x16C */ f32 _16C;
-    /* 0x170 */ TicoDemoGetPower* mDemoGetPower;
-    /* 0x174 */ TalkMessageCtrl* _174;
-    /* 0x178 */ MtxPtr _178;
-    /* 0x17C */ Color8 _17C;
-    /* 0x180 */ const Nerve* _180;
-    /* 0x184 */ DemoStarter mDemoStarter;
+    /* 0x164 */ s32 _15C;
+    /* 0x168 */ TVec3f _160;
+    /* 0x174 */ f32 _16C;
+    /* 0x178 */ TicoDemoGetPower* mDemoGetPower;
+    /* 0x17C */ TalkMessageCtrl* _174;
+    /* 0x180 */ TalkMessageCtrl* _178Ctrl;
+    /* 0x184 */ MtxPtr _178;
+    /* 0x188 */ Color8 _17C;
+    /* 0x18C */ const Nerve* _180;
+    /* 0x190 */ DemoStarter mDemoStarter;
+    /* 0x19C */ bool _19C;
+    /* 0x19D */ bool _19D;
+    /* 0x19E */ bool _19E;
+    /* 0x1A0 */ f32 _1A0;
+    /* 0x1A4 */ ActorCameraInfo* mCameraInfo;
+    /* 0x1A8 */ DemoObj* mDemoObj;
 };

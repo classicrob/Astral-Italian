@@ -30,7 +30,7 @@ ShadowControllerHolder::ShadowControllerHolder() : NameObj("影管理"), _C(), _
 
 ShadowController::ShadowController(LiveActor* pActor, const char* pName)
     : mActor(pActor), mName(pName), mGroupName(""), mDrawer(), mProjectedSensor(), mCollisionPartsFilter(), _18(), _1C(), mDropPos(), mDropDir(),
-      mProjPos(), mProjNorm(), _30(0.0f, 0.0f, 0.0f), _3C(0.0f, -1.0f, 0.0f), _48(0.0f, 0.0f, 0.0f), _54(0.0f, 1.0f, 0.0f), _60(1), _61(), _62(),
+      mProjPos(), mProjNorm(), _30(0.0f, 0.0f, 0.0f), _3C(0.0f, -1.0f, 0.0f), _48(0.0f, 0.0f, 0.0f), _54(0.0f, 1.0f, 0.0f), _60Vec(0.0f, 0.0f, 0.0f), _60(1), _61(), _62(),
       _63(), _64(), _65(), _66(), _67(), mStartOffset(50.0f), mDropLength(), _70(), _71(1), _72(1) {
     MR::createSceneObj(SceneObj_ShadowControllerHolder);
     MR::addShadowController(this);

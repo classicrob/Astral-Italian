@@ -18,6 +18,9 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
+// SMG2 unnamed helper (ActorMovementUtil area, fn_80011F80): settles velocity toward a target speed.
+extern "C" void fn_80011F80(LiveActor* pActor, f32 speed, f32 decel);
+
 namespace NrvStinkBugSmall {
     NEW_NERVE(StinkBugSmallNrvWait, StinkBugSmall, Wait);
     NEW_NERVE(StinkBugSmallNrvSearch, StinkBugSmall, Search);
@@ -83,7 +86,8 @@ void StinkBugSmall::init(const JMapInfoIter& rIter) {
     MR::initUseStageSwitchReadA(this, rIter);
     MR::startBrk(this, "Death");
     MR::setBrkFrameAndStop(this, 0.0f);
-    initNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvWait));
+    initNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvWait), 1);
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(StinkBugSmall, StinkBugSmallNrvDPDSwoon), "SupportFreeze");
     makeActorAppeared();
 }
 
@@ -197,6 +201,7 @@ void StinkBugSmall::exeHipDropDown() {
     }
 
     mVelocity.zero();
+    fn_80011F80(this, 500.0f, -1.0f);
     if (MR::isActionEnd(this)) {
         kill();
     }
@@ -279,7 +284,7 @@ void StinkBugSmall::exeDPDSwoon() {
         MR::deleteEffect(this, "RushSmoke");
     }
 
-    MR::updateActorStateAndNextNerve(this, mBindStarPointer, GET_NERVE(StinkBugSmall, StinkBugSmallNrvBack));
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(StinkBugSmall, StinkBugSmallNrvBack));
 }
 
 void StinkBugSmall::endDPDSwoon() {
@@ -288,6 +293,7 @@ void StinkBugSmall::endDPDSwoon() {
 
 void StinkBugSmall::exeForceFall() {
     if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Loss");
         mVelocity.zero();
         MR::calcGravity(this);
         MR::onBind(this);
@@ -363,8 +369,7 @@ void StinkBugSmall::calcAndSetBaseMtx() {
     MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, _8C);
     MR::blendMtx(getBaseMtx(), mtx, 0.3f, mtx);
     MR::setBaseTRMtx(this, mtx);
-    TVec3f scale = mScaleController->_C * mScale;
-    MR::setBaseScale(this, scale);
+    MR::updateBaseScale(this, mScaleController);
 }
 
 void StinkBugSmall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -420,6 +425,10 @@ bool StinkBugSmall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
         return true;
     }
 
+    if (isNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvForceFall))) {
+        return false;
+    }
+
     if (MR::isMsgStarPieceReflect(msg) && pReceiver == getSensor("body")) {
         if (isNrvEnableStarPieceAttack()) {
             setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvSpinReaction));
@@ -459,6 +468,10 @@ bool StinkBugSmall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRec
         return false;
     }
 
+    if (isNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvForceFall))) {
+        return false;
+    }
+
     if (MR::isMsgFloorTouch(msg)) {
         if (MR::isOnPlayer(getSensor("body"))) {
             if (StinkBugSmall::isShakeChance()) {
@@ -493,6 +506,10 @@ bool StinkBugSmall::tryDPDSwoon() {
 
 bool StinkBugSmall::tryForceFall() {
     if (!MR::isValidSwitchA(this) || !MR::isOnSwitchA(this)) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvHipDropDown))) {
         return false;
     }
 

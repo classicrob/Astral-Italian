@@ -47,7 +47,6 @@ public:
     void exeShowGetPictureBook();
     void exeShowTicoGalaxyAppear();
     void exeShowAstroMapForTico();
-    void initBestScoreWindow();
     void decideNextNerve();
     bool tryWaitSystemPadTriggerDecide(const Nerve*);
     bool tryWaitIntervalBeforeKeyWait(const Nerve*, int);

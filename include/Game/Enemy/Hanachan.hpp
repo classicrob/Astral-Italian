@@ -19,6 +19,8 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void kill();
     virtual void calcAndSetBaseMtx();
+    virtual void control();
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
@@ -65,6 +67,8 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void kill();
+    virtual void makeActorAppeared();
+    virtual void makeActorDead();
     virtual void startClipped();
     virtual void endClipped();
     virtual void control();

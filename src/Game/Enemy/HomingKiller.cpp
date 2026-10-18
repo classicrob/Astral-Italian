@@ -1305,11 +1305,8 @@ void HomingKiller::exeShot() {
 }
 
 namespace NrvHomingKillerLauncher {
-    class HomingKillerLauncherNrvAppearKiller : public Nerve {
-    public:
-        virtual void execute(Spine*) const;
-        static HomingKillerLauncherNrvAppearKiller sInstance;
-    };
+    NEW_NERVE(HomingKillerLauncherNrvAppearKiller, HomingKillerLauncher, AppearKiller);
+    NEW_NERVE(HomingKillerLauncherNrvDeadKiller, HomingKillerLauncher, DeadKiller);
 };  // namespace NrvHomingKillerLauncher
 
 HomingKillerLauncher::HomingKillerLauncher(const char* pName) : LiveActor("ホーミングキラーランチャー"), mKillers(nullptr), mKillerNum(1), mAppearInterval(180) {
@@ -1339,4 +1336,44 @@ void HomingKillerLauncher::init(const JMapInfoIter& rIter) {
     }
 
     makeActorDead();
+}
+
+void HomingKillerLauncher::appear() {
+    LiveActor::appear();
+    setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvAppearKiller));
+}
+
+bool HomingKillerLauncher::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    return MR::tryForceKillIfMsgStartPowerStarGet(this, msg);
+}
+
+extern "C" HomingKiller* fn_80198540(HomingKillerLauncher* pLauncher) {
+    for (s32 i = 0; i < pLauncher->mKillerNum; i++) {
+        HomingKiller* pKiller = &pLauncher->mKillers[i];
+        if (MR::isDead(pKiller)) {
+            return pKiller;
+        }
+    }
+
+    return nullptr;
+}
+
+void HomingKillerLauncher::exeAppearKiller() {
+    if (MR::isFirstStep(this) && fn_80198540(this)) {
+        fn_80198540(this)->appear();
+    }
+
+    if (mKillerNum == 1) {
+        if (fn_80198540(this)) {
+            setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvDeadKiller));
+        }
+    } else {
+        setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvDeadKiller));
+    }
+}
+
+void HomingKillerLauncher::exeDeadKiller() {
+    if (MR::isGreaterStep(this, mAppearInterval) && fn_80198540(this)) {
+        setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvAppearKiller));
+    }
 }

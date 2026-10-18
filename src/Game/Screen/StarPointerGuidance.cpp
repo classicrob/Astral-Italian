@@ -7,6 +7,14 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
+extern "C" u32 lbl_807D5960;
+extern "C" u32 lbl_807D5964;
+extern "C" u32 lbl_807D5968;
+extern "C" u32 lbl_807D596C;
+extern "C" u32 lbl_807D5970;
+extern "C" u32 lbl_807D5974;
+extern "C" u32 lbl_807D5978;
+
 namespace {
     static const s32 hOutScreenTime = 60;
     static const s32 hRequestTime = 30;
@@ -28,41 +36,34 @@ namespace NrvStarPointerGuidance {
 };  // namespace NrvStarPointerGuidance
 
 StarPointerGuidance::StarPointerGuidance(const char* pName)
-    : LayoutActor(pName, true), mSpineFrame1P(nullptr), mSpineGuidance(nullptr), mSpineFrame2P(nullptr), mOutScreenTime(0), mRequestTime1P(0),
-      mRequestTime2P(0), mGuidanceMessage(nullptr), mPrevGuidanceMessage(nullptr), _40(0), mIsActiveRequest1P(false), mIsActive(true),
-      mIsGuidanceDisabled(false), mTextLineNum1P(1), mTextLineNum2P(1), mTextLineNumGuidance(1) {
+    : LayoutActor(pName, true), mSpineFrame1P(nullptr), mSpineGuidance(nullptr), mSpineFrame2P(nullptr), mRequestTime1P(0),
+      mGuidanceMessage(nullptr), mPrevGuidanceMessage(nullptr), mIsActiveRequest1P(false), mIsActive(true), mIsGuidanceDisabled(false),
+      mTextLineNum1P(1), mTextLineNum2P(1) {
 }
 
 void StarPointerGuidance::init(const JMapInfoIter& rIter) {
     initLayoutManager("PointerGuidance", 1);
     MR::createAndAddPaneCtrl(this, "NPointerGuide", 1);
     MR::createAndAddPaneCtrl(this, "PointerFrame1", 1);
-    MR::createAndAddPaneCtrl(this, "PointerFrame2", 1);
 
-    mSpineFrame1P = new Spine(this, GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
-    mSpineGuidance = new Spine(this, GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
-    mSpineFrame2P = new Spine(this, GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
+    mSpineFrame1P = new Spine(this, reinterpret_cast<const Nerve*>(&lbl_807D5978));
+    mSpineGuidance = new Spine(this, reinterpret_cast<const Nerve*>(&lbl_807D5978));
 
     appear();
     MR::hidePaneRecursive(this, "NPointerGuide");
     MR::hidePaneRecursive(this, "PointerFrame1");
-    MR::hidePaneRecursive(this, "PointerFrame2");
 
-    mTextLineNum1P = MR::getTextLineNumMaxRecursive(this, "PointerFrame1");
-    mTextLineNum2P = MR::getTextLineNumMaxRecursive(this, "PointerFrame2");
+    mTextLineNum2P = MR::getTextLineNumMaxRecursive(this, "PointerFrame1");
 }
 
 void StarPointerGuidance::control() {
     mSpineFrame1P->update();
     mSpineGuidance->update();
-    mSpineFrame2P->update();
 
     if (!mIsActive) {
         mIsActiveRequest1P = false;
-        mIsActiveRequest2P = false;
     }
 
-    checkRequest2P();
     checkRequest1P();
 }
 
@@ -78,7 +79,7 @@ void StarPointerGuidance::checkRequest2P() {
 
         if (!MR::isStarPointerInScreen(WPAD_CHAN1)) {
             if (mSpineFrame2P->getCurrentNerve() == GET_NERVE(StarPointerGuidance, HostTypeNrvEnd2P) ||
-                mSpineFrame2P->getCurrentNerve() == GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait)) {
+                mSpineFrame2P->getCurrentNerve() == reinterpret_cast<const Nerve*>(&lbl_807D5978)) {
                 mSpineFrame2P->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvAppear2P));
 
                 if (mRequestTime2P == 1) {
@@ -110,13 +111,13 @@ void StarPointerGuidance::checkRequest1P() {
             return;
         }
 
-        if (mSpineFrame1P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvAppear1P)) ||
-            mSpineFrame1P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvWait1P))) {
-            mSpineFrame1P->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEnd1P));
+        if (mSpineFrame1P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5960)) ||
+            mSpineFrame1P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5964))) {
+            mSpineFrame1P->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5968));
         }
 
-        if (mSpineGuidance->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvWaitBlueStarGuide))) {
-            mSpineGuidance->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndBlueStarGuide));
+        if (mSpineGuidance->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5970))) {
+            mSpineGuidance->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5974));
         }
 
         return;
@@ -129,13 +130,13 @@ void StarPointerGuidance::checkRequest1P() {
 
     if (!MR::isStarPointerInScreen(WPAD_CHAN0)) {
         if (mOutScreenTime > ::hOutScreenTime || mRequestTime1P == 1) {
-            if (mSpineGuidance->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvWaitBlueStarGuide))) {
-                mSpineGuidance->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndBlueStarGuide));
+            if (mSpineGuidance->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5970))) {
+                mSpineGuidance->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5974));
             }
 
-            if (mSpineFrame1P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEnd1P)) ||
-                mSpineFrame1P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait))) {
-                mSpineFrame1P->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvAppear1P));
+            if (mSpineFrame1P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5968)) ||
+                mSpineFrame1P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978))) {
+                mSpineFrame1P->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5960));
                 MR::startCSSound("CS_NOTICE_USE_DPD", "SE_SY_CS_NOTICE_USE_DPD", WPAD_CHAN0);
             }
         } else {
@@ -149,23 +150,23 @@ void StarPointerGuidance::checkRequest1P() {
             }
 
             if (mRequestTime1P > ::hRequestTime) {
-                if (mSpineGuidance->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait))) {
+                if (mSpineGuidance->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978))) {
                     mTextLineNumGuidance = MR::countMessageLine(mGuidanceMessage);
                     MR::setTextBoxMessageRecursive(this, "NPointerGuide", mGuidanceMessage);
-                    mSpineGuidance->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvAppearBlueStarGuide));
+                    mSpineGuidance->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D596C));
                 }
             }
 
         } else {
-            if (mSpineGuidance->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvWaitBlueStarGuide))) {
+            if (mSpineGuidance->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5970))) {
                 MR::clearTextBoxMessageRecursive(this, "NPointerGuide");
-                mSpineGuidance->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndBlueStarGuide));
+                mSpineGuidance->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5974));
             }
         }
 
-        if (mSpineFrame1P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvAppear1P)) ||
-            mSpineFrame1P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvWait1P))) {
-            mSpineFrame1P->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEnd1P));
+        if (mSpineFrame1P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5960)) ||
+            mSpineFrame1P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5964))) {
+            mSpineFrame1P->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5968));
         }
 
         mOutScreenTime = 0;
@@ -175,7 +176,7 @@ void StarPointerGuidance::checkRequest1P() {
 }
 
 void StarPointerGuidance::exeAppear1P() {
-    exeAppearCore(mSpineFrame1P, "PointerFrame1", mTextLineNum1P, GET_NERVE(StarPointerGuidance, HostTypeNrvWait1P));
+    exeAppearCore(mSpineFrame1P, "PointerFrame1", mTextLineNum1P, reinterpret_cast<const Nerve*>(&lbl_807D5964));
 }
 
 void StarPointerGuidance::exeWait1P() {
@@ -187,7 +188,7 @@ void StarPointerGuidance::exeEnd1P() {
 }
 
 void StarPointerGuidance::exeAppearBlueStarGuide() {
-    exeAppearCore(mSpineGuidance, "NPointerGuide", mTextLineNumGuidance, GET_NERVE(StarPointerGuidance, HostTypeNrvWaitBlueStarGuide));
+    exeAppearCore(mSpineGuidance, "NPointerGuide", mTextLineNumGuidance, reinterpret_cast<const Nerve*>(&lbl_807D5970));
 }
 
 void StarPointerGuidance::exeWaitBlueStarGuide() {
@@ -274,7 +275,7 @@ s32 StarPointerGuidance::exeEndCore(Spine* pSpine, const char* pPaneName, u32 nu
 
     if (MR::isPaneAnimStopped(this, pPaneName, 0)) {
         MR::hidePaneRecursive(this, pPaneName);
-        pSpine->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
+        pSpine->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978));
 
         return 2;
     }
@@ -303,15 +304,15 @@ void StarPointerGuidance::tryResetTimeout() {
         return;
     }
 
-    mSpineGuidance->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvWaitBlueStarGuide));
+    mSpineGuidance->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5970));
 }
 
 bool StarPointerGuidance::isExistGuidanceOrFrame() {
-    return isExistGuidance() || isExistFrame1P() || isExistFrame2P();
+    return isExistGuidance() || isExistFrame1P();
 }
 
 bool StarPointerGuidance::isExistGuidance() {
-    if (mSpineGuidance->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait))) {
+    if (mSpineGuidance->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978))) {
         return false;
     }
 
@@ -319,11 +320,11 @@ bool StarPointerGuidance::isExistGuidance() {
 }
 
 bool StarPointerGuidance::isExistFrame1P() {
-    return !mSpineFrame1P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
+    return !mSpineFrame1P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978));
 }
 
 bool StarPointerGuidance::isExistFrame2P() {
-    return !mSpineFrame2P->isCurrentNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
+    return !mSpineFrame2P->isCurrentNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978));
 }
 
 void StarPointerGuidance::deactive() {
@@ -331,13 +332,10 @@ void StarPointerGuidance::deactive() {
 
     MR::hidePaneRecursive(this, "PointerFrame1");
     MR::hidePaneRecursive(this, "NPointerGuide");
-    MR::hidePaneRecursive(this, "PointerFrame2");
-    mSpineFrame1P->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
-    mSpineGuidance->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
-    mSpineFrame2P->setNerve(GET_NERVE(StarPointerGuidance, HostTypeNrvEndWait));
+    mSpineFrame1P->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978));
+    mSpineGuidance->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D5978));
 
     mPrevGuidanceMessage = nullptr;
     mGuidanceMessage = nullptr;
     mIsActiveRequest1P = false;
-    mIsActiveRequest2P = false;
 }

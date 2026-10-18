@@ -27,6 +27,7 @@ public:
     void initCallbackTable();
     void change(const char*);
     void changeDefault(const char*);
+    void stopAnimation(const char*, const char*);  // SMG2 (fn_803DF490)
     void changeUpper(const char*);
     void changeDefaultUpper(const char*);
     void stopUpper(const char*);

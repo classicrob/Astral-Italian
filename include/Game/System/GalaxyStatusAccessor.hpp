@@ -16,6 +16,13 @@ public:
 
     s32 getWorldNo() const;
 
+    // SMG2 additions (symbols.txt 0x804D1900..); only what the Screen units use
+    s32 getNormalPowerStarNumWithoutComet() const;
+    s32 getGreenStarNum() const;
+    bool isValidComet(s32) const;
+    bool isNotNormalStar(s32) const;
+    bool isOpenScenario(s32) const;
+
     const ScenarioData* mScenarioData;  // 0x00
 };
 

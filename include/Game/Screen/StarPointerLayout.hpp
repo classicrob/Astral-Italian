@@ -114,23 +114,18 @@ public:
         return mRadius;
     }
 
-    /* 0x20 */ TVec2f mPosition;
-    /* 0x28 */ StarPointerKind mPointerKind;
-    /* 0x2C */ AnimType mAnimType;
-    /* 0x30 */ s32 mTouchTimer;
-    /* 0x34 */ s32 mPadChannel;
-    /* 0x38 */ f32 mRadius;
-    /* 0x3C */ f32 _3C;
-    /* 0x40 */ StarPointerDirector* mDirector;
-    /* 0x44 */ StarPointerBlur* mBlur;
-    /* 0x48 */ StarPointerCommandStream* mCommandStream;
-    /* 0x4C */ StarPointerNumber* mNumber;
-    /* 0x50 */ const LiveActor* mActor;
-    /* 0x54 */ u32 mNewTouchedID;  // holds a unique identifier of the last touched object (pointer-compare with extra steps)
-    /* 0x58 */ u32 _58;
-    /* 0x5C */ u32 mTouchedID;
-    /* 0x60 */ u32 _60;
-    /* 0x64 */ u32 _64;
+    /* 0x2C */ TVec2f mPosition;
+    /* 0x34 */ StarPointerKind mPointerKind;
+    /* 0x38 */ AnimType mAnimType;
+    /* 0x3C */ s32 mTouchTimer;
+    /* 0x40 */ s32 mPadChannel;
+    /* 0x44 */ f32 mRadius;
+    /* 0x48 */ f32 _48;
+    /* 0x4C */ StarPointerDirector* mDirector;
+    /* 0x50 */ StarPointerBlur* mBlur;
+    /* 0x54 */ StarPointerNumber* mNumber;
+    /* 0x58 */ u64 mNewTouchedID;  // holds a unique identifier of the last touched object (pointer-compare with extra steps)
+    /* 0x60 */ u64 mTouchedID;
     /* 0x68 */ bool mIsNewTouch;
     /* 0x69 */ bool mStartTouch;
     /* 0x6A */ bool mStartDisableShoot;
@@ -140,7 +135,7 @@ public:
     /* 0x6E */ bool mIsPointerValid;
     /* 0x6F */ bool mIsAppear;
     /* 0x70 */ s32 mAppearTime;
-    /* 0x74 */ u32 _74;
+    /* 0x74 */ const LiveActor* mActor;
 };
 
 class StarPointerNumber : public LayoutActor {

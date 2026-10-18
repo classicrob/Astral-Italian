@@ -257,8 +257,9 @@ void BegomanBase::control() {
     MR::makeQuatUpFront(&_C0, blendVec, mFaceVec);
     _A8.set(mGravity);
 
+    f32 rotY = mRotation.y;
     TVec3f yAxis(0, 1, 0);
-    yRotationQuat.setRotate(yAxis, mRotation.y);
+    yRotationQuat.setRotate(yAxis, rotY);
     PSQUATMultiply(&yRotationQuat, &_D0, &_D0);
 }
 

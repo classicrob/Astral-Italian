@@ -18,6 +18,7 @@ public:
 
     void initKeySwitchByOwner(const JMapInfoIter&);
     void appearKeySwitch(const TVec3f&);
+    void prepareDemoStart();
     void exeDemoStart();
     void exeAppear();
     void exeWait();

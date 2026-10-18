@@ -368,13 +368,15 @@ CustomTagProcessor::CustomTagProcessor(nw4r::lyt::TextBox* textBox)
     mTextBox = textBox;
 }
 
+extern "C" f32 fn_80468830(const nw4r::ut::CharWriter*);
+
 CustomTagProcessor::Operation CustomTagProcessor::CalcRect(nw4r::ut::Rect* rect, u16 code, ContextType* context) {
     if (isIgnoreTag(code, context)) {
         return MessageTagSkipTagProcessor::CalcRect(rect, code, context);
     }
 
     if (!mNoCharSpace && !(context->flags & 1)) {
-        context->writer->MoveCursorX(context->writer->GetCharSpace());
+        context->writer->mCursorPos.x += fn_80468830(context->writer);
     }
 
     MessageEditorMessageTag tag(context);
@@ -394,7 +396,7 @@ CustomTagProcessor::Operation CustomTagProcessor::Process(u16 code, ContextType*
     }
 
     if (!mNoCharSpace && !(context->flags & 1)) {
-        context->writer->MoveCursorX(context->writer->GetCharSpace());
+        context->writer->mCursorPos.x += fn_80468830(context->writer);
     }
 
     MessageEditorMessageTag tag(context);

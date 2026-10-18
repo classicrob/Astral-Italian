@@ -25,6 +25,7 @@ class ActorStateParamScale {
 public:
     bool isFirstStep();
     bool isGreaterEqualStep(s32);
+    bool isStep(s32);
     bool isIntervalStep(s32, s32);
     f32 getNerveStepRate();
 };
@@ -75,7 +76,7 @@ namespace NrvJumpBeamer {
     JumpBeamerNrvBindStarPointerHop JumpBeamerNrvBindStarPointerHop::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvJumpBeamer
 
-JumpBeamer::JumpBeamer(const char* pName) : JumpEmitter(pName) {
+JumpBeamer::JumpBeamer(const char* pName) : JumpEmitter(pName), mAnimScaleController(nullptr), mBindStarPointer(nullptr) {
 }
 
 void JumpBeamer::control() {
@@ -160,7 +161,6 @@ void JumpBeamer::init(const JMapInfoIter& rIter) {
         MR::listenStageSwitchOffB(this, MR::FunctorV0M< JumpBeamer*, void (JumpBeamer::*)() >(this, &JumpBeamer::syncSwitchOffB));
     }
 
-    initEventCamera(rIter);
     MR::joinToGroupArray(this, rIter, getName(), 32);
     makeActorAppeared();
     f32 arg1 = 20.0f;
@@ -206,9 +206,10 @@ bool JumpBeamer::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     } else if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (!isNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopStart))) {
             setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopStart));
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     return MR::isMsgStarPieceReflect(msg);
@@ -244,7 +245,7 @@ void JumpBeamer::exeHide() {
         updateRotate();
     }
 
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::startAction(mHeadModel, "Wait");
         MR::startBrk(mHeadModel, "Green");
         MR::validateClipping(this);
@@ -257,7 +258,7 @@ void JumpBeamer::exeHide() {
 }
 
 void JumpBeamer::exeUp() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::startAction(this, "Up");
         MR::startActionSound(this, "EmJguarderAppear");
         MR::validateShadow(this, nullptr);
@@ -288,7 +289,7 @@ void JumpBeamer::exeWait() {
 }
 
 void JumpBeamer::exeDown() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::startAction(this, "Down");
         MR::startActionSound(this, "EmJguarderHide");
     }
@@ -302,7 +303,7 @@ void JumpBeamer::exeDown() {
 }
 
 void JumpBeamer::exeHopStart() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::startAction(mHeadModel, "HopStart");
         MR::startBrk(mHeadModel, "OnAndOff");
         MR::startAction(this, "Damage");
@@ -327,13 +328,13 @@ void JumpBeamer::exeHopWait() {
 
     MR::startActionSound(this, "EmLvJguarderShake");
 
-    if (MR::isStep(this, 300)) {
+    if (getParamScale(this)->isStep(300)) {
         setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopEnd));
     }
 }
 
 void JumpBeamer::exeHopJump() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::startAction(mHeadModel, "HopJump");
         MR::startActionSound(this, "EmJguarderTrample");
     }
@@ -344,7 +345,7 @@ void JumpBeamer::exeHopJump() {
 }
 
 void JumpBeamer::exeHopEnd() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
         MR::startAction(this, "HopEnd");
         MR::startAction(mHeadModel, "HopEnd");
         MR::startBrk(mHeadModel, "Green");
@@ -367,7 +368,7 @@ void JumpBeamer::exePreOpen() {
         MR::sendMsgToGroupMember(0x7E, this, getSensor("Body"), "Body");
 
     } else {
-        if (MR::isStep(this, 0)) {
+        if (getParamScale(this)->isStep(0)) {
             setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvOpen));
         }
     }
@@ -396,7 +397,7 @@ void JumpBeamer::exeOpen() {
 }
 
 void JumpBeamer::exeClose() {
-    if (MR::isFirstStep(this)) {
+    if (getParamScale(this)->isFirstStep()) {
     }
 
     MR::startActionSound(this, "EmLvJguarderShutterClose");
@@ -415,7 +416,7 @@ void JumpBeamer::exeInter() {
 
     if (!MR::enableGroupAttack(this, 3200.0f, 500.0f)) {
         MR::sendMsgToGroupMember(0x7E, this, getSensor("Body"), "Body");
-    } else if (MR::isGreaterEqualStep(this, 80)) {
+    } else if (getParamScale(this)->isGreaterEqualStep(80)) {
         for (s32 i = 0; i < 3; i++) {
             if (!MR::isDead(mBeams[i])) {
                 return;

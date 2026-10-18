@@ -34,7 +34,7 @@ public:
     bool trySelect();
     ScenarioSelectStar* getSelectedStar() const;
     void calcWorldPositionFromScreenPos(TVec3f*, const TVec2f&, f32) const;
-    bool calcDisplayScenarioNum(s32*, s32*) const;
+    void calcDisplayScenarioNum(s32*, s32*) const;
     void appearAllStar(s32, s32, bool);
     void appearStar(s32, s32, int);
     bool isAppearStarEndAll() const;

@@ -77,6 +77,10 @@ void CocoNutBall::kill() {
     MR::emitEffect(this, CocoNut::getBreakEffectName());
 }
 
+#pragma push
+#pragma dont_inline on
+#pragma push
+#pragma dont_inline on
 void CocoNutBall::appearAndThrow(const TVec3f& rAppearPos, f32 f1) {
     mPosition.set(rAppearPos);
     MR::calcGravity(this);
@@ -85,6 +89,8 @@ void CocoNutBall::appearAndThrow(const TVec3f& rAppearPos, f32 f1) {
     _BD = MR::isHalfProbability();
     appear();
 }
+#pragma pop
+#pragma pop
 
 void CocoNutBall::hitBackToPlayer() {
     f32 rand = MR::getRandom(12.5f, 17.5f);
@@ -117,9 +123,13 @@ void CocoNutBall::demoBreak(const TVec3f& rPos) {
 void CocoNutBall::calcAndSetBaseMtx() {
     if (!MR::isNearZero(mVelocity)) {
         TVec3f velocityDirection;
-        MR::normalize(mVelocity, &velocityDirection);
+        MR::normalize(&velocityDirection, mVelocity);
         TPos3f baseTRMtx;
-        MR::makeMtxFrontUpPos(&baseTRMtx, velocityDirection, _C8, mPosition);
+        if (MR::isSameDirection(velocityDirection, _C8, 0.01f)) {
+            MR::makeMtxFrontNoSupportPos(&baseTRMtx, velocityDirection, mPosition);
+        } else {
+            MR::makeMtxFrontUpPos(&baseTRMtx, velocityDirection, _C8, mPosition);
+        }
         MR::setBaseTRMtx(this, baseTRMtx);
     }
 }
@@ -191,12 +201,20 @@ bool CocoNutBall::isNerveTrowToOrFreeze() const {
            isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreeze)) || isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreezeRelease));
 }
 
+// SMG2 unnamed helper fn_80178940: Throw / HitBackToPlayer / Freeze / FreezeRelease / Rebound.
+extern "C" bool fn_80178940(const CocoNutBall* pBall) {
+    return pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvThrow)) || pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvHitBackToPlayer)) ||
+           pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreeze)) || pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreezeRelease)) ||
+           pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvRebound));
+}
+
+// NONMATCHING: SMG2 also accepts CocoNutBallNrvFreezeStart here (nerve not ported yet).
 bool CocoNutBall::isValidReceivePunch() const {
-    if (MR::isDead(this) || (!isNerveTrowToOrFreeze() && !isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvRebound)))) {
+    if (MR::isDead(this) || !fn_80178940(this)) {
         return false;
-    } else {
-        return mPosition.distance(*MR::getPlayerCenterPos()) < 400.0f;
     }
+
+    return mPosition.distance(*MR::getPlayerCenterPos()) < 400.0f;
 }
 
 void CocoNutBall::calcHitBackVelocitAndGravity() {
@@ -401,6 +419,12 @@ void CocoNutBall::exeThrow() {
         } else {
             MR::startActionSound(this, "OjCoconutBallSpitOut");
         }
+
+        if (_DD) {
+            MR::startActionSound(this, "Fall");
+        } else {
+            MR::startActionSound(this, "Fly");
+        }
     }
 
     processApproachToPlayer();
@@ -463,30 +487,112 @@ void CocoNutBall::exeHitBackToPlayer() {
 
 void CocoNutBall::exeRebound() {
     if (MR::isFirstStep(this)) {
-        MR::setBckRate(this, 0.25f);
-        MR::deleteEffect(this, "CocoNutBlur");
-        MR::deleteEffect(this, "CocoNutLight");
-
-        TVec3f vec1;
-        vec1.sub(mPosition, *MR::getPlayerPos());
-
-        TPos3f pos;
-        pos.identity();
-
-        MR::makeMtxUpFront(&pos, _C8, vec1);
-
-        mVelocity.set(::cReboundVelocity);
-
-        pos.mult33(mVelocity);
+        MR::setBckRate(this, 1.0f);
+        MR::deleteEffect(this, "Touch");
+        MR::emitEffect(this, "CocoNutBlur");
+        MR::emitEffect(this, "CocoNutLight");
+        MR::emitEffect(this, "SpinHitMark");
+        MR::onBind(this);
+        mVelocity.add(_90);
     }
-
-    TVec3f twoGravity;
-    twoGravity.scale(2.0f, mGravity);
-    mVelocity.add(twoGravity);
 
     if (tryToKill(!MR::isNearPlayer(this, 5000.0f))) {
         return;
     }
+
+    TVec3f playerPos(*MR::getPlayerCenterPos());
+    TVec3f offset(_C8);
+    offset.scale(100.0f);
+    playerPos.add(offset);
+
+    TVec3f diff(playerPos);
+    diff.sub(mPosition);
+
+    TVec3f dir(diff);
+    if (MR::normalizeOrZero(&dir)) {
+        return;
+    }
+
+    MR::vecKillElement(dir, mGravity, &dir);
+    if (MR::normalizeOrZero(&dir)) {
+        return;
+    }
+
+    TVec3f vel(mVelocity);
+    if (MR::normalizeOrZero(&vel)) {
+        return;
+    }
+
+    MR::vecKillElement(vel, mGravity, &vel);
+    if (MR::normalizeOrZero(&vel)) {
+        return;
+    }
+
+    MR::vecKillElement(dir, vel, &dir);
+    if (MR::normalizeOrZero(&dir)) {
+        return;
+    }
+
+    f32 diffDotDir = diff.dot(dir);
+    TVec3f dirScaled(dir);
+    dirScaled.scale(diffDotDir);
+
+    TVec3f tangent(diff);
+    if (MR::normalizeOrZero(&tangent)) {
+        return;
+    }
+
+    MR::vecKillElement(tangent, dir, &tangent);
+    if (MR::normalizeOrZero(&tangent)) {
+        return;
+    }
+
+    f32 velDotTangent = tangent.dot(vel);
+    f32 diffDotTangent = diff.dot(tangent);
+    TVec3f tangentScaled(tangent);
+    tangentScaled.scale(diffDotTangent);
+    tangent = tangentScaled;
+
+    f32 rate = MR::calcNerveRate(this, 1, (s32)(1.0f + _E0));
+    if (velDotTangent < 0.0f) {
+        if (mGravity.dot(diff) < 0.0f) {
+            tangent.set(0.0f, 0.0f, 0.0f);
+        } else {
+            f32 gravDot = mGravity.dot(diff);
+            TVec3f gravityScaled(mGravity);
+            gravityScaled.scale(gravDot);
+            tangent.set(gravityScaled);
+        }
+    }
+
+    f32 velDotGravity = mVelocity.dot(mGravity);
+    if (velDotGravity < 0.0f) {
+        velDotGravity = 0.0f;
+    }
+
+    f32 mag = diff.length();
+    velDotGravity += rate * (rate * mag);
+
+    TVec3f gravityScaled2(mGravity);
+    gravityScaled2.scale(velDotGravity);
+    TVec3f newVel(vel);
+    newVel.add(gravityScaled2);
+    mVelocity.set(newVel);
+
+    TVec3f tangentRate(tangent);
+    tangentRate.scale(rate);
+    TVec3f dirRate(dirScaled);
+    dirRate.scale(rate);
+    TVec3f pos(mPosition);
+    pos.add(dirRate);
+    TVec3f pos2(pos);
+    pos2.add(tangentRate);
+    TVec3f pos3(pos2);
+    pos3.scale(rate);
+    TVec3f keep(mPosition);
+    keep.scale(1.0f - rate);
+    keep.add(pos3);
+    mPosition = keep;
 }
 
 #pragma push

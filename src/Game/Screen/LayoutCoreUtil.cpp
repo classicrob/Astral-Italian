@@ -1,6 +1,11 @@
 #include "Game/Screen/LayoutCoreUtil.hpp"
 #include "Game/Util.hpp"
+#include "Game/Screen/CustomTagProcessor.hpp"
+#include "Game/Screen/ReplaceTagProcessor.hpp"
 #include "Game/Util/MemoryUtil.hpp"
+#include "Game/Util/StringUtil.hpp"
+#include "Game/Util/MessageUtil.hpp"
+#include <cstring>
 #include "Game/Util/ScreenUtil.hpp"
 #include <cstdio>
 #include <nw4r/db/assert.h>
@@ -16,7 +21,7 @@ namespace LayoutCoreUtil {
     using namespace nw4r::lyt::res;
 
     f32 getPaneAutoScale(nw4r::lyt::Pane* pPane) {
-        if (pPane != nullptr) {
+        if (pPane == nullptr) {
             return 0.85f;
         }
 
@@ -45,8 +50,57 @@ namespace LayoutCoreUtil {
         return pUserData;
     }
 
-    // u16 setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg)
-    // void initTextBoxPane(nw4r::lyt::TextBox* pTextBox, const char* pMessageId, u32 allocSize)
+    u16 setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg) {
+        wchar_t buffer[512];
+        ReplaceTagProcessor::Replace(buffer, pMsg);
+        return pTextBox->SetString(buffer, 0, MR::getStringLengthWithMessageTag(buffer));
+    }
+
+    void initTextBoxPane(nw4r::lyt::TextBox* pTextBox, const char* pMessageId, u32 allocSize) {
+        CustomTagProcessor* processor = new CustomTagProcessor(pTextBox);
+
+        if (strncmp(pTextBox->mName, "Sha", 3) == 0) {
+            processor->mIsShadow = true;
+        } else {
+            processor->mIsShadow = false;
+        }
+
+        if (strncmp(pTextBox->mName, "Txt", 3) == 0) {
+            processor->mIsText = true;
+        } else {
+            processor->mIsText = false;
+        }
+
+        if (strncmp(pTextBox->mName, "Inf", 3) == 0) {
+            processor->mIsInfo = true;
+        } else {
+            processor->mIsInfo = false;
+        }
+
+        pTextBox->mpTagProcessor = processor;
+
+        const wchar_t* message = nullptr;
+        if (pMessageId != nullptr) {
+            message = MR::getLayoutMessageDirect(pMessageId);
+        }
+
+        if (message != nullptr) {
+            reallocateTextBoxMessage(pTextBox, MR::getStringLengthWithMessageTag(message));
+            setTextBoxMessage(pTextBox, message);
+        } else {
+            reallocateTextBoxMessage(pTextBox, allocSize - 1);
+#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+            const wchar_t* message = ::sDefaultMsg;
+#else
+            s32 maxNumChars = pTextBox->mSize.width / pTextBox->mFontSize.width;
+            wchar_t message[] = L"XXXXXXXX";
+
+            s32 end = maxNumChars <= 9 ? maxNumChars : 9;
+            message[end] = L'\0';
+#endif
+            setTextBoxMessage(pTextBox, message);
+        }
+    }
 
     void reallocateTextBoxMessage(nw4r::lyt::TextBox* pTextBox, u32 allocSize) {
         pTextBox->AllocStringBuffer(allocSize + 1);

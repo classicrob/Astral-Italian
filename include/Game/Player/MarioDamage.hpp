@@ -3,6 +3,7 @@
 #include "Game/Player/MarioState.hpp"
 
 class MarioActor;
+class HorrorDamageExecutor;
 
 class MarioDamage : public MarioState {
 public:
@@ -17,6 +18,7 @@ public:
     void setVecSize(f32, f32);
 
     void stopHead(const TVec3f&);
+    bool updateHorrorDamage();
 
     inline void setStrings(const char* pChar1, const char* pChar2) {
         _28 = pChar1;
@@ -31,4 +33,8 @@ public:
     /* 0x1C */ TVec3f _1C;
     /* 0x28 */ const char* _28;
     /* 0x2C */ const char* _2C;
+    /* 0x30 */ bool _30;
+    /* 0x34 */ TVec3f _34;
+    /* 0x40 */ HorrorDamageExecutor* mHorrorDamageExecutor;
+    /* 0x44 */ u16 _44;
 };

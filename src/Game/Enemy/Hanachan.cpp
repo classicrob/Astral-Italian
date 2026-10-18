@@ -21,6 +21,8 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
+extern "C" u32 lbl_807D25C0;
+
 void Hanachan_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;
@@ -138,47 +140,70 @@ namespace NrvHanachan {
 };  // namespace NrvHanachan
 
 HanachanParts::HanachanParts(Hanachan* pHost, s32 partsIndex, const char* pName, const char* pModelName)
-    : LiveActor(pName), mHost(pHost), mPushVelocity(0.0f), mFallVelocity(0.0f), mPartsType(PartsType_Body), mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f),
-      mPartsIndex(partsIndex), mActionStartStep(-1), mIsLanded() {
-    initModelManagerWithAnm(pModelName, nullptr, false);
-
-    if (MR::isEqualString(pModelName, "HanachanBody")) {
-        mPartsType = PartsType_Body;
-    } else if (MR::isEqualString(pModelName, "HanachanBodyS")) {
-        mPartsType = PartsType_BodyS;
-    } else if (MR::isEqualString(pModelName, "HanachanHead")) {
-        mPartsType = PartsType_Head;
-    }
+    : LiveActor(pName), mHost(pHost), mPushVelocity(0.0f, 0.0f, 0.0f), mFallVelocity(0.0f, 0.0f, 0.0f), mPartsType(PartsType_Body),
+      mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f), mPartsIndex(partsIndex), mActionStartStep(-1), mIsLanded() {
 }
 
 void HanachanParts::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_MapObjDecoration, MR::DrawBufferType_Enemy, MR::DrawType_None);
-    initNerve(GET_NERVE(Hanachan, HanachanPartsNrvWalk));
-    initHitSensor(1);
-
-    if (mPartsType == PartsType_Body) {
-        MR::addHitSensorEnemy(this, "body", 32, 85.0f, TVec3f(0.0f, 100.0f, 0.0f));
-    } else if (mPartsType == PartsType_BodyS) {
-        MR::addHitSensorEnemy(this, "body", 32, 85.0f, TVec3f(0.0f, 85.0f, 0.0f));
-    } else if (mPartsType == PartsType_Head) {
-        MR::addHitSensorEnemy(this, "body", 32, 85.0f, TVec3f(0.0f, 100.0f, 0.0f));
+    const char* pName;
+    if (mPartsIndex == 0) {
+        mPartsType = PartsType_Head;
+        pName = "HanachanHead";
+    } else if (mPartsIndex % 2 == 1) {
+        mPartsType = PartsType_BodyS;
+        pName = "HanachanBodyS";
+    } else {
+        mPartsType = PartsType_Body;
+        pName = "HanachanBody";
     }
+    MR::initActor(this, pName, false);
 
-    initBinder(100.0f, 100.0f, 0);
-
-    initEffectKeeper(1, mPartsType == PartsType_Head ? "HanachanHead" : "HanachanBody", false);
     MR::addEffect(this, "PointerTouch");
-    MR::initLightCtrl(this);
-    initSound(2, "HanachanParts", nullptr, TVec3f(0.0f));
-    MR::invalidateClipping(this);
-    MR::onCalcGravity(this);
-    MR::initShadowVolumeSphere(this, 70.0f);
-    MR::initStarPointerTarget(this, 110.0f, TVec3f(0.0f, 80.0f, 0.0f));
+    initNerve(GET_NERVE(Hanachan, HanachanPartsNrvWalk));
     MR::startBrk(this, "Normal");
 
     if (mPartsType == PartsType_Head) {
         MR::startBva(this, "normal");
     }
+}
+
+extern "C" void fn_801905E0(Hanachan* pHost) {
+    pHost->kill();
+
+    HanachanParts** pEnd = &pHost->mBodyParts[5];
+    HanachanParts** pIter = &pHost->mBodyParts[0];
+    while (pIter < pEnd) {
+        (*pIter)->kill();
+        pIter++;
+    }
+}
+
+void HanachanParts::control() {
+    TVec3f zero;
+    zero.x = 0.0f;
+    zero.y = 0.0f;
+    zero.z = 0.0f;
+
+    if (MR::isInDeath(this, zero)) {
+        return;
+    }
+
+    if (MR::isBindedGroundDamageFire(this)) {
+        return;
+    }
+
+    if (MR::isInWater(this, mPosition)) {
+        fn_801905E0(mHost);
+    }
+}
+
+bool HanachanParts::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgInhaleBlackHole(msg)) {
+        fn_801905E0(mHost);
+        return true;
+    }
+
+    return false;
 }
 
 void HanachanParts::kill() {
@@ -188,7 +213,6 @@ void HanachanParts::kill() {
 
     if (mPartsType == PartsType_Body || mPartsType == PartsType_Head) {
         MR::appearStarPiece(mHost, mPosition, 2, 10.0f, 40.0f, false);
-        MR::startActionSound(mHost, "OjStarPieceBurst");
     }
 }
 
@@ -218,14 +242,14 @@ void HanachanParts::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 }
 
                 MR::sendMsgPush(pReceiver, pSender);
-            } else if (!isNerve(GET_NERVE(Hanachan, HanachanPartsNrvHipDropped)) &&
-                       !isNerve(GET_NERVE(Hanachan, HanachanPartsNrvOverturnHipDropped))) {
+            } else if (!mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanHipDropped)) &&
+                       !mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanOverturnHipDropped))) {
                 MR::sendMsgPush(pReceiver, pSender);
             }
         } else {
             MR::sendMsgPush(pReceiver, pSender);
         }
-    } else if (MR::isSensorEnemy(pReceiver)) {
+    } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         if (!mHost->isOwnSensor(pReceiver) &&
             (isNerve(GET_NERVE(Hanachan, HanachanPartsNrvBecomeAngry)) || isNerve(GET_NERVE(Hanachan, HanachanPartsNrvAngryPursue))) &&
             MR::sendMsgToEnemyAttackBlow(pReceiver, pSender) && mPartsType == PartsType_Head) {
@@ -243,7 +267,7 @@ bool HanachanParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
             return false;
         }
 
-        mHost->setNerveBlow(pSender->mPosition);
+        mHost->setNerveBlow(*MR::getSensorPos(pSender));
         return true;
     }
 
@@ -258,13 +282,13 @@ bool HanachanParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
     if (MR::isMsgStarPieceAttack(msg)) {
         if (mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanOverturnWait))) {
             mHost->setNerve(GET_NERVE(Hanachan, HanachanNrvHanachanOverturnBound));
-            mHost->mAttackPos = pSender->mPosition;
+            mHost->mAttackPos = *MR::getSensorPos(pSender);
             return true;
         }
 
         if (mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanWalk))) {
             mHost->setNerve(GET_NERVE(Hanachan, HanachanNrvHanachanStarPointerBindEnd));
-            mHost->mAttackPos = pSender->mPosition;
+            mHost->mAttackPos = *MR::getSensorPos(pSender);
             return true;
         }
 
@@ -287,7 +311,7 @@ bool HanachanParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
                 mHost->setNerve(GET_NERVE(Hanachan, HanachanNrvHanachanHipDropped));
             }
 
-            mHost->mAttackPos = pSender->mPosition;
+            mHost->mAttackPos = *MR::getSensorPos(pSender);
             return true;
         }
 
@@ -310,13 +334,13 @@ bool HanachanParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
             mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanStarPointerBindOverturn)) ||
             mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanStarPointerBindEndOverturn))) {
             mHost->setNerve(GET_NERVE(Hanachan, HanachanNrvHanachanOverturnHipDropped));
-            mHost->mAttackPos = pSender->mPosition;
+            mHost->mAttackPos = *MR::getSensorPos(pSender);
             return true;
         }
 
         if (mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanWalk))) {
             mHost->setNerve(GET_NERVE(Hanachan, HanachanNrvHanachanTrample));
-            mHost->mAttackPos = pSender->mPosition;
+            mHost->mAttackPos = *MR::getSensorPos(pSender);
             return true;
         }
 
@@ -337,7 +361,7 @@ bool HanachanParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
             mHost->setNerve(GET_NERVE(Hanachan, HanachanNrvHanachanOverturn));
         }
 
-        mHost->mAttackPos = pSender->mPosition;
+        mHost->mAttackPos = *MR::getSensorPos(pSender);
         return true;
     }
 
@@ -353,18 +377,21 @@ bool HanachanParts::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    TVec3f dir = pReceiver->mPosition - pSender->mPosition;
+    TVec3f dir(*MR::getSensorPos(pReceiver));
+    dir.sub(*MR::getSensorPos(pSender));
 
     f32 depth;
 
     if (!mHost->isOwnSensor(pSender)) {
-        f32 senderRadius = pSender->mRadius;
-        f32 receiverRadius = pReceiver->mRadius;
-        depth = (receiverRadius + senderRadius) - dir.length();
+        f32 length = dir.length();
+        f32 senderRadius = MR::getSensorRadius(pSender);
+        f32 receiverRadius = MR::getSensorRadius(pReceiver);
+        depth = (receiverRadius + senderRadius) - length;
     } else {
-        f32 senderRadius = pSender->mRadius;
-        f32 receiverRadius = pReceiver->mRadius;
-        depth = (receiverRadius / 2.0f + senderRadius / 2.0f) - dir.length();
+        f32 length = dir.length();
+        f32 senderHalf = MR::getSensorRadius(pSender) / 2.0f;
+        f32 receiverRadius = MR::getSensorRadius(pReceiver);
+        depth = (receiverRadius / 2.0f + senderHalf) - length;
 
         if (depth < 0.0f) {
             return false;
@@ -385,7 +412,7 @@ void HanachanParts::calcAndSetBaseMtx() {
     mtx.setTrans(mPosition);
 
     MR::setBaseTRMtx(this, mtx);
-    MR::setBaseScale(this, mHost->mScaleController->_C * mScale);
+    MR::updateBaseScale(this, mHost->mScaleController);
 }
 
 void HanachanParts::exeWalk() {
@@ -692,16 +719,9 @@ void HanachanParts::exeHipDropped() {
     }
 
     if (MR::isStep(this, mActionStartStep)) {
-        s32 nearestId = mHost->calcNearestInfectionId();
+        mHost->calcNearestInfectionId();
         bool isOverturn = isNerve(GET_NERVE(Hanachan, HanachanPartsNrvOverturnHipDropped));
-
-        if (mPartsIndex == nearestId) {
-            MR::startAction(this, isOverturn ? "OverturnPress" : "Press");
-        } else if (nearestId == 1 && mPartsType == PartsType_Head) {
-            MR::startAction(this, isOverturn ? "OverturnPress" : "Press");
-        } else {
-            MR::stopBck(this);
-        }
+        MR::startAction(this, isOverturn ? "OverturnPress" : "Press");
     }
 
     if (MR::isOnGround(this)) {
@@ -858,7 +878,24 @@ void Hanachan::initAfterPlacement() {
     MR::trySetMoveLimitCollision(mBodyParts[0]);
 }
 
-extern "C" u32 lbl_807D25C0;
+
+void Hanachan::makeActorDead() {
+    LiveActor::makeActorDead();
+
+    for (s32 i = 0; i < 5; i++) {
+        mBodyParts[i]->makeActorDead();
+    }
+}
+
+void Hanachan::makeActorAppeared() {
+    if (!isNerve(reinterpret_cast<const Nerve*>(&lbl_807D25C0))) {
+        LiveActor::makeActorAppeared();
+
+        for (s32 i = 0; i < 5; i++) {
+            mBodyParts[i]->makeActorAppeared();
+        }
+    }
+}
 
 void Hanachan::kill() {
     MR::startActionSound(this, "EmExplodeS");

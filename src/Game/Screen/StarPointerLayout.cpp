@@ -22,6 +22,36 @@
 #include <JSystem/JUtility/JUTTexture.hpp>
 #include <revolution/wpad.h>
 
+extern "C" u32 lbl_807D59A4;
+
+// SMG2 nerve instances of this unit are unnamed .sbss objects (12 consecutive words in declaration order).
+extern "C" u32 lbl_807D5980;
+extern "C" u32 lbl_807D5984;
+extern "C" u32 lbl_807D5988;
+extern "C" u32 lbl_807D598C;
+extern "C" u32 lbl_807D5990;
+extern "C" u32 lbl_807D5994;
+extern "C" u32 lbl_807D5998;
+extern "C" u32 lbl_807D599C;
+extern "C" u32 lbl_807D59A0;
+extern "C" u32 lbl_807D59A4;
+extern "C" u32 lbl_807D59A8;
+extern "C" u32 lbl_807D59AC;
+#define SPL_NRV_HostTypeNrvWait lbl_807D5980
+#define SPL_NRV_HostTypeNrvOnReaction lbl_807D5984
+#define SPL_NRV_HostTypeNrvGrip lbl_807D5988
+#define SPL_NRV_HostTypeNrvHold lbl_807D598C
+#define SPL_NRV_HostTypeNrvHoldTouch lbl_807D5990
+#define SPL_NRV_HostTypeNrvRelease lbl_807D5994
+#define SPL_NRV_HostTypeNrvOutScreen lbl_807D5998
+#define SPL_NRV_HostTypeNrvNotConnected lbl_807D599C
+#define SPL_NRV_HostTypeNrvHide lbl_807D59A0
+#define SPL_NRV_HostTypeNrvHideImmediately lbl_807D59A4
+#define SPL_NRV_HostTypeNrvInvalidate lbl_807D59A8
+#define SPL_NRV_HostTypeNrvInvalidateWait lbl_807D59AC
+#undef GET_NERVE
+#define GET_NERVE(cls, nerve) reinterpret_cast<const Nerve*>(&SPL_NRV_##nerve)
+
 namespace {
     // TODO: names
     static GXColor sColorA[] = {
@@ -76,9 +106,8 @@ namespace NrvStarPointerLayout {
 
 StarPointerLayout::StarPointerLayout(const char* pName)
     : LayoutActor(pName, true), mPosition(0.0f, 0.0f), mPointerKind(StarPointerKind_NULL), mAnimType(AnimType_HandPaa), mTouchTimer(),
-      mPadChannel(-1), mRadius(::sNormalRadius), _3C(),
-      mDirector(), mBlur(), mCommandStream(), mNumber(), mActor(), mNewTouchedID(), mTouchedID(), mStartTouch(), mStartDisableShoot(), mSingleTouch(),
-      mShootDisabled(), mIsPointerValid(true), mIsAppear(true), mAppearTime() {
+      mPadChannel(-1), mRadius(::sNormalRadius), _48(), mDirector(), mBlur(), mNumber(), mNewTouchedID(), mTouchedID(), mStartTouch(),
+      mStartDisableShoot(), mSingleTouch(), mShootDisabled(), mIsPointerValid(true), mIsAppear(true), mAppearTime() {
 }
 
 void StarPointerLayout::initWithPort(s32 channel) {
@@ -96,17 +125,15 @@ void StarPointerLayout::initWithPort(s32 channel) {
     if (mPadChannel == WPAD_CHAN0) {
         MR::createAndAddPaneCtrl(this, "PicNozzle", 1);
     }
+    MR::createAndAddPaneCtrl(this, "YoshiPointer", 2);
     MR::createAndAddGroupCtrl(this, "GroupRing", 1);
 
     initNerve(GET_NERVE(StarPointerLayout, HostTypeNrvHideImmediately));
 
-    mBlur = new StarPointerBlur(new JUTTexture(MR::loadTexFromArc("StarPointerBlur.arc", "Blur.bti"), 0));
+    mBlur = new StarPointerBlur(new JUTTexture(MR::loadTexFromArc("StarPointerBlur.arc", "Blur.bti", nullptr), 0));
 
-    mCommandStream = new StarPointerCommandStream(&mPosition);
 
     mBlur->setPortAndColor(mPadChannel, &::sColorA[mPadChannel], &::sColorB[mPadChannel]);
-    mCommandStream->setPortAndColor(mPadChannel, &::sColorA[mPadChannel]);
-    mCommandStream->initWithoutIter();
 
     mNumber = new StarPointerNumber(this, mPadChannel, "スターポインタナンバー");
     mNumber->initWithoutIter();
@@ -127,11 +154,6 @@ void StarPointerLayout::kill() {
 }
 
 bool StarPointerLayout::startCommandStream(const LiveActor* pActor, const TVec3f* pPos, bool b) {
-    if (mCommandStream->mWorldPos != nullptr) {
-        return false;
-    }
-
-    mCommandStream->start(pPos, b);
     hideBlur();
     mActor = pActor;
     MR::startStarPointerModeCommandStream(this);
@@ -144,14 +166,12 @@ void StarPointerLayout::endCommandStream(const LiveActor* pActor) {
 }
 
 void StarPointerLayout::forceEndCommandStream() {
-    mCommandStream->hide();
-    mCommandStream->clear();
     mBlur->show();
     mActor = nullptr;
 }
 
 bool StarPointerLayout::isCommandStream(const LiveActor* pActor) {
-    return mCommandStream->mWorldPos != nullptr && mActor == pActor;
+    return mActor == pActor;
 }
 
 void StarPointerLayout::exeWait() {
@@ -197,12 +217,7 @@ void StarPointerLayout::exeGrip() {
             if (mPadChannel == WPAD_CHAN1) {
                 startAnimStarPointer("Grip");
             } else {
-                if (mCommandStream->mWorldPos != nullptr) {
-                    mCommandStream->show();
-                    startAnimHandGuu();
-                } else {
-                    startAnimStarPointer("Wait");
-                }
+                startAnimStarPointer("Wait");
             }
         } else if (mPointerKind == StarPointerKind_HandPointer) {
             startAnimHandGuu();
@@ -248,12 +263,7 @@ void StarPointerLayout::exeHold() {
                 startAnimStarPointer("Hold");
                 mRadius = ::sHoldRadius;
             } else {
-                if (mCommandStream->mWorldPos != nullptr) {
-                    mCommandStream->show();
-                    startAnimHandGuu();
-                } else {
-                    startAnimStarPointer("Wait");
-                }
+                startAnimStarPointer("Wait");
             }
         } else if (mPointerKind == StarPointerKind_HandPointer) {
             startAnimHandGuu();
@@ -447,7 +457,7 @@ void StarPointerLayout::exeOutScreen() {
         return;
     }
 
-    if (mCommandStream->mWorldPos != nullptr && MR::testCorePadButtonA(mPadChannel)) {
+    if (MR::testCorePadButtonA(mPadChannel)) {
         setNerve(GET_NERVE(StarPointerLayout, HostTypeNrvOutScreen));
         return;
     }
@@ -459,7 +469,6 @@ void StarPointerLayout::exeOutScreen() {
 
 void StarPointerLayout::hideAll() {
     hideBlur();
-    mCommandStream->hide();
     if (mPadChannel == WPAD_CHAN0) {
         MR::hidePane(this, "PicNozzle");
         MR::hidePane(this, "HandArrow");
@@ -494,7 +503,6 @@ void StarPointerLayout::exeHide() {
         }
 
         hideBlur();
-        mCommandStream->hide();
     }
 
     if (isNerve(GET_NERVE(StarPointerLayout, HostTypeNrvHide)) || isNerve(GET_NERVE(StarPointerLayout, HostTypeNrvHideImmediately))) {
@@ -522,7 +530,6 @@ void StarPointerLayout::tearDownHide() {
 
 void StarPointerLayout::calcAnim() {
     LayoutActor::calcAnim();
-    mCommandStream->calcAnim();
     mNumber->calcAnim();
 }
 
@@ -551,7 +558,6 @@ void StarPointerLayout::drawDecoration() const {
 
     MR::loadProjectionMtxFor2D();
     mBlur->draw();
-    mCommandStream->draw();
 }
 
 void StarPointerLayout::control() {
@@ -727,35 +733,25 @@ void StarPointerLayout::changeLayout(StarPointerKind pointerKind) {
 
     switch (pointerKind) {
     case StarPointerKind_StarPointer:
-        if (mCommandStream->mWorldPos == nullptr) {
-            mAnimType = AnimType_NULL;
-        } else {
-            mCommandStream->show();
-        }
+        mAnimType = AnimType_NULL;
         mRadius = ::sNormalRadius;
         break;
     case StarPointerKind_HandPointer:
-        mCommandStream->hide();
         mRadius = ::sHandRadius;
         break;
     case StarPointerKind_2:
-        mCommandStream->hide();
         mRadius = ::sHandRadius;
         break;
     case StarPointerKind_HandPointerReactionWithCrossCursor:
-        mCommandStream->hide();
         mRadius = ::sHandRadius;
         break;
     case StarPointerKind_FingerPointer:
-        mCommandStream->hide();
         mRadius = ::sHandRadius;
         break;
     case StarPointerKind_5:
-        mCommandStream->hide();
         mRadius = ::sHandRadius;
         break;
     case StarPointerKind_StarPointerNozzle:
-        mCommandStream->hide();
         mRadius = ::sNormalRadius;
         break;
     }
@@ -896,11 +892,7 @@ void StarPointerLayout::updateDecoration() {
         return;
     }
 
-    if (mCommandStream->mWorldPos != nullptr) {
-        mCommandStream->movement();
-    } else {
-        mBlur->movement();
-    }
+    mBlur->movement();
 }
 
 StarPointerNumber::StarPointerNumber(StarPointerLayout* pParent, s32 padChannel, const char* pName)

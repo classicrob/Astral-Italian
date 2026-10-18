@@ -12,7 +12,8 @@ u32 MessageEditorMessageTag::getTagLength() const {
 }
 
 u32 MessageEditorMessageTag::getSkipLength() const {
-    return getTagLength() / 2;
+    const u16* pHeader = reinterpret_cast< const u16* >(mMessage);
+    return (static_cast< u32 >(pHeader[2]) >> 1) + 3;
 }
 
 s32 MessageEditorMessageTag::getParamLength() const {

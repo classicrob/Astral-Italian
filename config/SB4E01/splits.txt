@@ -6324,6 +6324,8 @@ Game/Player/InfernoMarioAppearance.cpp:
 Game/Player/J3DModelX.cpp:
 	.text       start:0x803845B0 end:0x803861E0
 	.data       start:0x806C13E0 end:0x806C1408
+	.sdata      start:0x807CFFA8 end:0x807CFFB0
+	.sdata2     start:0x807DF930 end:0x807DF948
 
 Game/Player/JetTurtleShadow.cpp:
 	.text       start:0x803861E0 end:0x803863B0

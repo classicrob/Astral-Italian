@@ -775,9 +775,9 @@ bool Mario::fn_803B2470() {
     return !MR::isNearZero(sum, 0.001f);
 }
 
-s32 Mario::fn_803B2530(Triangle* triangle) {
+s32 Mario::fn_803B2530(bool squat) {
     if (fn_803EF7C0() == 0x20 || static_cast<u16>(getPlayerMode()) == 4 || isPlayerModeYoshi() || _430 == 3) return 0;
-    if (triangle != nullptr && mWalkSpeed > 0.3f && !((mMovementStates_HIGH_WORD >> 28) & 1)) {
+    if (squat && mWalkSpeed > 0.3f && !((mMovementStates_HIGH_WORD >> 28) & 1)) {
         trySquatJump();
         return 1;
     }

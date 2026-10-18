@@ -287,8 +287,8 @@ void J3DModelX::storeDisplayList(GDLObj* obj, u32 index) {
 
 J3DModelX::J3DModelX(J3DModelData* data, u32 flags, u32 bufferFlags) : J3DModel(data, flags, bufferFlags) {
     MR::ProhibitSchedulerAndInterrupts guard(false);
-    _DC = 0;
     _DD = 0;
+    _DC = 0;
     _120 = nullptr;
     _128 = nullptr;
     _12C = nullptr;
@@ -376,6 +376,7 @@ J3DModelX::J3DModelX(J3DModelData* data, u32 flags, u32 bufferFlags) : J3DModel(
     GDSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_AND, GX_ALWAYS, 0);
     GDSetChanCtrl(GX_COLOR0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_CLAMP, GX_AF_NONE);
     GDSetChanCtrl(GX_ALPHA0, GX_TRUE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT0, GX_DF_CLAMP, GX_AF_NONE);
+    GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_1);
     GDSetTevAlphaCalcAndSwap(GX_TEVSTAGE0, GX_CA_KONST, GX_CA_ZERO, GX_CA_RASA, GX_CA_ZERO, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE,
                              GX_TEVPREV, GX_TEV_SWAP0, GX_TEV_SWAP0);
     storeDisplayList(&obj, 7);
@@ -465,7 +466,6 @@ J3DModelX::J3DModelX(J3DModelData* data, u32 flags, u32 bufferFlags) : J3DModel(
         _1C8[i] = nullptr;
         _1CC[i] = 0;
     }
-    _DC = 0;
 }
 
 void J3DModelX::shapePacketDrawFast(J3DShapePacketX* packet) const {

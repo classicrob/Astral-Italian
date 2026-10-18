@@ -203,6 +203,10 @@ def cmd_unit(argv):
         if pi:
             ptxt = f"petari {pi[0]:#x}{' SAME' if pi[0] == sz else ''} {pi[1] or '?'}"
         m = "  ----" if mp < 0 else f"{mp:6.1f}"
+        if 99.95 <= mp < 100:
+            m = f"{mp:9.6f}"
+            if m.strip() == "100.000000":
+                m = "    <100"
         print(f"{m} {sz:#7x}  {name}  [{ptxt}]")
 
 

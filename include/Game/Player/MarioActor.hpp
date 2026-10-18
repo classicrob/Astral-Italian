@@ -116,11 +116,11 @@ public:
     void* fn_803B9820();
     YoshiHolder* fn_803B9830();
     bool fn_803B9840();
-    void fn_803B9850();
+    MtxPtr fn_803B9850();
     void fn_803B9870();
     void fn_803B98C0();
     void fn_803B98E0();
-    u8 fn_803B9900();
+    s32 fn_803B9900();
     bool fn_803B9920();
     void fn_803B9A10();
     void fn_803B9A30();
@@ -323,6 +323,7 @@ public:
     void calcBaseFrontVec(const TVec3f&);
     void playSound(const char*, s32);
     void changeAnimation(const char*, const char* = nullptr);
+    void getFrontHistoryVec(TVec3f*);
     void changeAnimationNonStop(const char*);
     void changeAnimationUpper(const char*);
     void stopAnimation(const char*);
@@ -926,6 +927,7 @@ public:
     /* 0x4D8 */ u16 mBlendMtxTimer;
     /* 0x4DA */ u8 _pad4DA[0x2];
     /* 0x4DC */ f32 _EA0;
+    union { struct {
     /* 0x4E0 */ bool _EA4;
     /* 0x4E1 */ bool _EA5;
     /* 0x4E2 */ bool _EA6;  // SMG2 offset guess  // SMG2 offset guess  // SMG2 offset inh
@@ -941,6 +943,7 @@ public:
     };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0x4FC */ u8 _pad4FC[0xc];
     /* 0x508 */ TVec3f _2B8;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    }; struct { u8 _padRemote4E0[4]; TMtx34f mRemoteDemoMtx4E4; }; };
     /* 0x514 */ bool mSuperKinokoCollected;
     /* 0x515 */ bool mPowerupCollected;
     /* 0x516 */ bool mTransforming;
@@ -951,11 +954,13 @@ public:
     /* 0x51F */ u8 _pad51F[0x1];
     /* 0x520 */ HitSensor* _F48;  // SMG2 offset guess-gap
     /* 0x524 */ BlackHole* mBlackHole;
+    union { TVec3f mBlackHolePosition528; struct {
     /* 0x528 */ const char* _EE4;  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
     /* 0x52C */ f32 _1E4;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x530 */ u8 _pad530[0x2];
     /* 0x532 */ u8 _1E2;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x533 */ u8 _F38;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    }; };
     /* 0x534 */ TVec3f _ED8;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0x540 */ TVec3f _2C4;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0x54C */ const Nerve* _FB4;  // SMG2 offset guess-gap

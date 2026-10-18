@@ -93,8 +93,8 @@ bool MarioActor::fn_803B9840() {
     return F(YoshiHolder*, 0xEE4) != nullptr;
 }
 
-void MarioActor::fn_803B9850() {
-    mYoshiHolder->mYoshi->getBaseMtx();
+MtxPtr MarioActor::fn_803B9850() {
+    return mYoshiHolder->mYoshi->getBaseMtx();
 }
 
 void MarioActor::fn_803B9870() {
@@ -115,7 +115,7 @@ void MarioActor::fn_803B98E0() {
     }
 }
 
-u8 MarioActor::fn_803B9900() {
+s32 MarioActor::fn_803B9900() {
     YoshiHolder* p = F(YoshiHolder*, 0xEE4);
     if (p != nullptr) {
         return FP(p, u8, 0x3C);

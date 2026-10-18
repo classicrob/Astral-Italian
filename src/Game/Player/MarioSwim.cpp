@@ -1923,7 +1923,7 @@ void MarioSwim::decOxygen(u16 amount) {
 
 void MarioSwim::draw3D() const {
     WaterInfo camWaterInfo;
-    MR::getWaterAreaObj(&camWaterInfo, getCamPos());
+    MR::getWaterAreaObj(&camWaterInfo, fn_803EF570());
     if (camWaterInfo.isInWater()) {
         mMarineSnow->view();
     } else {

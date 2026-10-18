@@ -7294,296 +7294,155 @@ void Mario::checkWallRiseAndSlipFront() {
 }
 
 
+// NONMATCHING: temporary/register allocation; complete SMG2 jump orchestration recovered.
 void Mario::tryJump() {
-    bool isMudFloorJump = false;
-    bool useStickJumpAnim = false;
-
-    TVec3f stickTotal(_190 + _19C);
-
-    if (mMovementStates.jumping) {
-        return;
-    }
-
-    if (mSinkTimer != 0) {
-        if (checkCurrentFloorCodeSevere(0x19)) {
-            if (mSinkTimer > 32) {
-                mSinkTimer -= 32;
-            }
-
-            if (mSinkTimer < 64) {
-                mSinkTimer = 64;
-            }
-
-            mMovementStates._38 = false;
-            return;
-        }
-
-        if (checkCurrentFloorCodeSevere(0x1F)) {
-            return;
-        }
-
-        if (mSinkTimer > 100) {
-            if (mSinkTimer > 200) {
-                mSinkTimer = 128;
-                changeAnimation("埋まりジャンプA");
-            } else {
-                mSinkTimer = 32;
-                changeAnimation("埋まりジャンプB");
-            }
-
-            if (checkCurrentFloorCodeSevere(0x12)) {
-                playSound("毒沼脱出");
-            } else {
-                playSound("砂脱出");
-            }
-
-            playSound("声砂脱出");
-            return;
-        }
-    }
-
+    bool mud = false;
+    TVec3f stickTotal(_190);
+    stickTotal += _19C;
+    if ((mMovementStates_LOW_WORD >> 31) || fn_80399D30()) return;
     playEffect("共通跳躍");
     stopEffectForce("スピンリング");
-
-    const bool isSquat = checkSquat(true);
-    mMovementStates._21 = true;
-    mMovementStates._29 = false;
-    mMovementStates._38 = false;
-    _10._23 = true;
-    mMovementStates._B = false;
-    _42A = 0;
-
-    if (_3CE > mActor->getConst().getTable()->mJumpConnectTime || !mMovementStates._5) {
-        _430 = 0;
-    } else {
-        _430++;
-    }
-
-    if (_430 > 2) {
-        _430 = 0;
-    }
-
-    if (_430 == 2 && mWalkSpeed < mActor->getConst().getTable()->mJumpConnectSpeed) {
-        _430 = 0;
-    }
-
-    if (getPlayerMode() == 4 || getPlayerMode() == 6) {
-        _430 = 0;
-    }
-
-    if (_1C._B) {
-        _430 = 2;
-        MR::start2PJumpAssistJustSound();
-    } else if (_1C._A) {
-        MR::start2PJumpAssistSound();
-    }
-
-    if (isPlayerModeInvincible() && mWalkSpeed > 1.0f) {
-        _430 = 1;
-        _42A = 1;
-    }
-
-    if (!MR::isNearZero(stickTotal) && mSinkTimer != 0) {
-        _430 = 0;
-        mMovementStates._4 = false;
-        _3D2 = 0;
-    }
-
+    bool squat = checkSquat(true);
+    mMovementStates_HIGH_WORD = (mMovementStates_HIGH_WORD | 0x40000000) & 0xFFBFFFFF & 0xFFFFFF7F;
+    _10_HIGH_WORD |= 0x10000000;
+    mMovementStates_LOW_WORD &= 0xFFEFFFFF;
+    fn_80399E60(&stickTotal);
     forceStopTornado();
-
-    u32 floorCode = getFloorCode();
-    if (floorCode != 0x20 && getPlayerMode() != 4 && (((mMovementStates._4) != 0) || (_3D2 != 0 && static_cast< u8 >(checkStickFrontBack()) == 2))) {
-        if ((mActor->mConst->getTable()->mTurnSlipTime - _3D0) >= mActor->getConst().getTable()->mTurnJumpInhibitTime) {
-            tryTurnJump();
-            return;
-        }
-
-        _3D0 = 0;
-        mMovementStates._4 = false;
-    }
-
+    if (tryTurnJump()) return;
     checkWallRiseAndSlipFront();
-
-    const f32 floorAngle = calcPolygonAngleD(mGroundPolygon);
-    useStickJumpAnim = false;
-    if (!MR::isNearZero(_8F8) && (mMovementStates._23)) {
-        useStickJumpAnim = true;
-    }
-
+    f32 floorAngle = calcPolygonAngleD(mGroundPolygon);
+    bool stickJump = false;
+    if (!MR::isNearZero(_8F8, 0.001f) && ((mMovementStates_HIGH_WORD >> 28) & 1)) stickJump = true;
     if (floorAngle < 15.0f) {
-        mMovementStates._23 = false;
+        mMovementStates_HIGH_WORD &= 0xEFFFFFFF;
         _8F8.zero();
     }
-
-    if (getPlayerMode() != 6 && !_10._1A) {
-        if (mDrawStates._C && isSlipPolygon(_45C)) {
-            const bool dotFront = mFrontVec.dot(_368) < 0.0f;
-            const bool dotPad = mWorldPadDir.dot(_368) <= 0.0f;
-            const bool diff = MR::diffAngleAbsHorizontal(_16C, _368, getAirGravityVec()) > 1.5707964f;
-            const bool movementstate = mMovementStates._A;
-
-            if (dotFront || dotPad || diff || movementstate) {
-                if (dotFront && !dotPad) {
-                    mMovementStates._2B = true;
-                    _430 = 0;
-                } else {
-                    mWalkSpeed *= 0.5f;
-                    if (getPlayerMode() != 4) {
-                        _402 = 0;
-                        _430 = 3;
-                        mMovementStates._2B = true;
-                    }
-
-                    useStickJumpAnim = false;
-                }
-            } else {
-                mMovementStates._23 = false;
+    if (getPlayerMode() != 6 && !((_10_LOW_WORD >> 5) & 1)) {
+        if ((((mDrawStates_WORD >> 19) & 1) && isSlipPolygon(_45C)) || isStatusActive(7)) {
+            MR::isNearZero(mAirGravityVec, 0.001f);
+            if (MR::diffAngleAbsHorizontal(_16C, _368, mAirGravityVec) > 1.5707964f) mWalkSpeed = 0.0f;
+            if (getPlayerMode() != 4) {
+                _402 = 0;
+                _430 = 3;
+                mMovementStates_HIGH_WORD |= 0x100000;
             }
         }
-
-        if (checkCurrentFloorCodeSevere(0x11)) {
-            isMudFloorJump = true;
+        if (_960 == 0x11) {
+            mud = true;
             _430 = 3;
             mWalkSpeed *= 0.5f;
         }
     }
-
-    floorCode = getFloorCode();
-    if (floorCode != 0x20 && getPlayerMode() != 4 && _430 != 3) {
-        if (isSquat && mWalkSpeed > 0.3f && ((mMovementStates._23) == 0)) {
-            trySquatJump();
-            return;
-        }
-
-        if ((mMovementStates._A) && ((mMovementStates._23) == 0)) {
-            tryBackJump();
-            return;
-        }
-    }
-
-    if (mDrawStates._5) {
-        mJumpVec = _334 * mWalkSpeed * mActor->getConst().getTable()->mJumpFrontSpeed;
+    if (fn_803B2530(squat)) return;
+    if ((mDrawStates_WORD >> 26) & 1) {
+        f32 speed = fn_803B1CA0();
+        f32 walkSpeed = mWalkSpeed;
+        TVec3f first(_334);
+        first *= walkSpeed;
+        TVec3f second(first);
+        second *= speed;
+        mJumpVec = second;
     } else {
-        mJumpVec = mFrontVec * mWalkSpeed * mActor->getConst().getTable()->mJumpFrontSpeed;
+        f32 speed = fn_803B1CA0();
+        f32 walkSpeed = mWalkSpeed;
+        TVec3f first(mFrontVec);
+        first *= walkSpeed;
+        TVec3f second(first);
+        second *= speed;
+        mJumpVec = second;
     }
-
-    _10._17 = false;
-    if (mDrawStates._B) {
+    _10_LOW_WORD &= 0xFFFFFEFF;
+    if ((mDrawStates_WORD >> 20) & 1) {
         recordJumpEnforceMove();
-
         f32 enforce;
         if (getStickP() == 0.0f) {
-            mJumpVec = _184;
             mJumpVec.zero();
             enforce = 1.0f;
         } else {
-            const f32 angle = MR::diffAngleAbsHorizontal(mFrontVec, _184, getAirGravityVec());
-            enforce = 1.0f - (angle / 1.5707964f);
-            if (enforce < 0.0f) {
-                enforce = 0.0f;
-            }
-
-            const f32 speed = mJumpVec.length();
-            const f32 speedBonus = MR::clamp(1.0f - ((speed - 4.0f) / 10.0f), 0.0f, 1.0f);
-            enforce += speedBonus;
-            enforce = MR::clamp(enforce, 0.0f, 1.0f);
+            MR::isNearZero(mAirGravityVec, 0.001f);
+            f32 factor = 1.0f - MR::diffAngleAbsHorizontal(mFrontVec, _184, mAirGravityVec) / 1.5707964f;
+            if (factor < 0.0f) factor = 0.0f;
+            f32 speed = PSVECMag(&mJumpVec);
+            f32 bonus = MR::clamp(1.0f - (speed - 4.0f) / 10.0f, 0.0f, 1.0f);
+            enforce = MR::clamp(factor + bonus, 0.0f, 1.0f);
         }
-
+        if (MR::isInAreaObj("EnforceJumpArea", mPosHolder->mPos) && _8D8 == _45C->mSensor) enforce = 1.0f;
         doEnforceJump(enforce);
     }
-
-    if (!MR::isNearZero(stickTotal)) {
+    if (!MR::isNearZero(stickTotal, 0.001f)) {
         addVelocity(-stickTotal);
-
-        MR::vecKillElement(stickTotal, mActor->_240, &stickTotal);
+        MR::vecKillElement(stickTotal, mActor->mAppliedGravityVec, &stickTotal);
         cutGravityElementFromJumpVec(true);
-
         if (stickTotal.dot(mJumpVec) > 0.0f) {
-            mJumpVec += stickTotal * 1.0f;
+            TVec3f extra(stickTotal);
+            extra *= 1.0f;
+            mJumpVec += extra;
         } else {
-            mJumpVec += stickTotal * 0.5f;
+            TVec3f extra(stickTotal);
+            extra *= 0.5f;
+            mJumpVec += extra;
         }
     }
-
-    if (useStickJumpAnim) {
-        mJumpVec += _16C;
-        cutGravityElementFromJumpVec(true);
+    if (stickJump) {
+        MR::isNearZero(mAirGravityVec, 0.001f);
+        TVec3f projected;
+        JMAVECScaleAdd(&mAirGravityVec, &_368, &projected, -mAirGravityVec.dot(_368));
+        if (!MR::normalizeOrZero(&projected) && _16C.dot(projected) > 0.0f) {
+            mJumpVec += _16C;
+            cutGravityElementFromJumpVec(true);
+        }
     }
-
     _340 = 1.0f - mWalkSpeed;
-    if (_340 < 0.0f) {
-        _340 = 0.0f;
-    }
-
-    f32 jumpRatio = 1.0f;
-    if (getFloorCode() == 0x20) {
-        jumpRatio = mActor->getConst().getTable()->mMudFloorJumpWeakRatio;
-    }
-
-    if (_1C._B) {
-        jumpRatio = 0.9f;
-    }
-
-    mJumpVec += -mActor->_240 * mActor->getConst().getTable()->mJumpHeight[_430] * jumpRatio;
-
-    mMovementStates._E = false;
-    mMovementStates._1 = false;
-    if (getPlayerMode() != 4 && getFloorCode() == 0x20) {
+    if (_340 < 0.0f) _340 = 0.0f;
+    f32 ratio = 1.0f;
+    if (fn_803EF7C0() == 0x20) ratio = mActor->mConst->getTable()->mMudFloorJumpWeakRatio;
+    if ((_1C_WORD >> 20) & 1) ratio = 0.9f;
+    f32 height = fn_803B1BA0();
+    TVec3f negativeGravity(-mActor->mAppliedGravityVec);
+    TVec3f scaled(negativeGravity);
+    scaled *= height;
+    TVec3f weakened(scaled);
+    weakened *= ratio;
+    mJumpVec += weakened;
+    mMovementStates_LOW_WORD = mMovementStates_LOW_WORD & 0xFFFDFFFF & 0xBFFFFFFF;
+    if (getPlayerMode() != 4 && fn_803EF7C0() == 0x20) {
         _430 = 3;
-        isMudFloorJump = true;
-        mMovementStates._2B = true;
+        mud = true;
+        mMovementStates_HIGH_WORD |= 0x100000;
     }
-
-    if (_10._1A) {
-        _430 = 0;
-    }
-
+    if ((_10_LOW_WORD >> 5) & 1) _430 = 0;
     procJump(true);
-    mMovementStates.jumping = true;
-
-    if (_42A == 1 && _430 == 1) {
-        _430 = 2;
-    }
-
+    mMovementStates_LOW_WORD |= 0x80000000;
+    if (_42A == 1 && _430 == 1) _430 = 2;
     switch (_430) {
     case 0:
-        if ((mMovementStates._17) != 0) {
-            changeAnimation("壁上昇", "落下");
-        } else {
-            changeAnimation("ジャンプ", "落下");
-        }
-
-        if (mActor->mBeeWallWalk != 0) {
-            playSound("ハチ壁ジャンプ");
-        } else {
-            playSound("小ジャンプ");
-        }
-
-        if (getPlayerMode() != 6) {
-            playSound("声小ジャンプ");
-            playSound("ジャンプ踏切");
-        }
-
-        if (useStickJumpAnim) {
+        if ((mMovementStates_LOW_WORD >> 8) & 1) changeAnimation("壁上昇", "落下");
+        else if (isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer > 0) {
+            MR::startCenterScreenBlur(35, 15.0f, 80, 5, 30);
+            playEffect("ダッシュジャンプ煙");
+            changeAnimation("ヨッシージャンプ", "落下");
+        } else changeAnimation("ジャンプ", "落下");
+        if (mActor->mBeeWallWalk != 0) playSound("ハチ壁ジャンプ");
+        else playSound("小ジャンプ");
+        if (getPlayerMode() != 6) mStateFlags._0 = true;
+        if (stickJump) {
             changeAnimation("尻滑りジャンプ");
-            _428 = 0x1E;
+            _428 = 30;
         }
-
         if (getPlayerMode() == 4) {
             changeAnimation("ハチジャンプ");
             mActor->syncJumpBeeStickMode();
         }
-
-        if (_10._1A) {
-            changeAnimation("ショートジャンプ", "落下");
-        }
-
+        if ((_10_LOW_WORD >> 5) & 1) changeAnimation("ショートジャンプ", "落下");
         break;
     case 1:
         changeAnimationNonStop("ジャンプB");
         changeAnimation(nullptr, "落下");
+        if (isPlayerModeYoshi()) {
+            if (mActor->fn_803B97F0()->mDashTimer > 0) MR::startActionSound(mActor->fn_803B97F0(), "DashJumpL", -1, -1, -1);
+            else MR::startActionSound(mActor->fn_803B97F0(), "JumpM", -1, -1, -1);
+        } else playSound("声中ジャンプ");
         playSound("中ジャンプ");
-        playSound("声中ジャンプ");
         playSound("ジャンプ踏切");
         break;
     case 2:
@@ -7591,57 +7450,55 @@ void Mario::tryJump() {
         playSound("声大ジャンプ");
         playSound("ジャンプ踏切");
         playEffect("共通ハイジャンプ");
-
-        if (_1C._B) {
-            changeAnimation("スカイラブジャンプ", "落下");
-        } else if (getPlayerMode() == 1 && mWalkSpeed > 1.0f) {
-            changeAnimation("ダッシュジャンプ", "落下");
-        } else {
-            changeAnimation("ジャンプC", "落下");
-        }
-
+        if ((_1C_WORD >> 20) & 1) changeAnimation("スカイラブジャンプ", "落下");
+        else if (getPlayerMode() == 1 && mWalkSpeed > 1.0f) changeAnimation("ダッシュジャンプ", "落下");
+        else changeAnimation("ジャンプC", "落下");
         break;
     case 3:
-        if (isMudFloorJump) {
-            changeAnimation("埋まり脱出ジャンプ", "落下");
-        } else {
-            changeAnimation("腹ばいジャンプ", "落下");
-            playSound("声小ジャンプ");
+        if (mud) changeAnimation("埋まり脱出ジャンプ", "落下");
+        else {
+            if (!isAnimationRun("坂すべり上向きうつぶせ")) changeAnimation("尻滑りジャンプ", "落下");
+            else changeAnimation("腹ばいジャンプ", "落下");
+            if (isPlayerModeYoshi()) MR::startActionSound(mActor->fn_803B97F0(), "JumpHardly", -1, -1, -1);
+            else playSound("声ミスジャンプ");
             playSound("ジャンプ踏切");
         }
-
-        break;
-    default:
         break;
     }
-
-    if (_42A == 1 && _430 == 2) {
-        _430 = 1;
-    }
-
-    const f32 waterDist = mSwim->checkUnderWaterFull(mFrontVec);
-    if (waterDist > 500.0f && mStickPos.z == 0.0f) {
-        mMovementStates._E = true;
+    if (_42A == 1 && _430 == 2) _430 = 1;
+    if (mSwim->checkUnderWaterFull(mFrontVec) > 500.0f && mStickPos.z == 0.0f) {
+        mMovementStates_LOW_WORD |= 0x20000;
         changeAnimationNonStop("飛び込みジャンプ");
-        playSound("声高飛び込み");
+        if (isPlayerModeYoshi()) MR::startActionSound(mActor->fn_803B97F0(), "PreLandTurn", -1, -1, -1);
+        else playSound("声高飛び込み");
         playSound("ジャンプ踏切");
-
         if (mStickPos.z < 0.1f) {
-            mJumpVec += mFrontVec * 5.0f;
+            TVec3f extra(mFrontVec);
+            extra *= 5.0f;
+            mJumpVec += extra;
         }
     }
-
-    mMovementStates._5 = true;
-    return;
+    mMovementStates_LOW_WORD |= 0x04000000;
 }
 
 
-void Mario::tryTurnJump() {
+// NONMATCHING: temporary/register allocation; verified full SMG2 eligibility gate.
+bool Mario::tryTurnJump() {
+    if (fn_803EF7C0() == 0x20) return false;
+    if (getPlayerMode() == 4) return false;
+    if (!((mMovementStates_LOW_WORD >> 27) & 1) && (_3D2 == 0 || static_cast<u8>(checkStickFrontBack()) != 2)) return false;
+    MarioConstTable* table = mActor->mConst->getTable();
+    if (static_cast<s32>(table->mTurnSlipTime - _3D0) < table->mTurnJumpInhibitTime) {
+        _3D0 = 0;
+        mMovementStates_LOW_WORD &= 0xF7FFFFFF;
+        return false;
+    }
     _430 = 0x4;
 
     if (_3D2 != 0) {
         TVec3f horizontal;
-        MR::vecKillElement(_3E4, getAirGravityVec(), &horizontal);
+        MR::isNearZero(mAirGravityVec, 0.001f);
+        MR::vecKillElement(_3E4, mAirGravityVec, &horizontal);
         MR::normalizeOrZero(&horizontal);
 
         const f32 turnJumpFrontSpeed = mActor->getConst().getTable()->mTurnJumpFrontSpeed;
@@ -7651,15 +7508,16 @@ void Mario::tryTurnJump() {
         _220 = _3E4;
     } else {
         TVec3f horizontal;
-        MR::vecKillElement(_220, getAirGravityVec(), &horizontal);
+        MR::isNearZero(mAirGravityVec, 0.001f);
+        MR::vecKillElement(_220, mAirGravityVec, &horizontal);
         MR::normalizeOrZero(&horizontal);
 
         const f32 turnJumpFrontSpeed = mActor->getConst().getTable()->mTurnJumpFrontSpeed;
         mJumpVec = -horizontal * turnJumpFrontSpeed;
     }
 
-    const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
-    mJumpVec += -mActor->_240 * jumpHeight;
+    const f32 jumpHeight = fn_803B1BA0();
+    mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     _10._17 = false;
     if (mDrawStates._B) {
@@ -7671,9 +7529,10 @@ void Mario::tryTurnJump() {
     procJump(true);
     changeAnimation("ターンジャンプ", "落下");
     playSound("後ジャンプ");
-    playSound("声後ジャンプ");
     playSound("ジャンプ踏切");
     playEffect("共通ハイジャンプ");
+    if (isPlayerModeYoshi()) MR::startActionSound(mActor->fn_803B97F0(), "JumpHigh", -1, -1, -1);
+    else playSound("声後ジャンプ");
 
     _3D0 = 0;
     mMovementStates.jumping = true;
@@ -7682,7 +7541,7 @@ void Mario::tryTurnJump() {
     mMovementStates._5 = false;
     mWalkSpeed = 0.0f;
     _10._A = false;
-    return;
+    return true;
 }
 
 
@@ -9291,371 +9150,172 @@ void Mario::checkAndTryForceJump() {
 }
 
 
+// NONMATCHING: register allocation and independent load scheduling; SMG2 orchestration recovered.
 void Mario::doLanding() {
-    bool doHardLanding = false;
-    bool blendWait = false;
-    bool keepFrontSlip = false;
-
-    if (getPlayerMode() == 6) {
-        return;
-    }
-
-    if (mMovementStates._37) {
-        afterLanding2D();
-    }
-
-    mMovementStates.jumping = false;
-    _10._1F = false;
-    _10._21 = false;
+    bool hard = false;
+    bool blend = false;
+    bool keepSlip = false;
+    if (getPlayerMode() == 6) return;
+    mMovementStates_LOW_WORD &= 0x7FFFFFFF;
+    _10_LOW_WORD &= 0xFFFFFFFE;
+    _10_HIGH_WORD &= 0xBFFFFFFF;
     _3CE = 0;
     _1C_WORD |= 0x2000;
-
-    f32 deltadot = MR::abs((mPosHolder->mPos - _4B0).dot(*getGravityVec()));
-    if (_3BC <= 3 && deltadot < 1.0f && mJumpVec.length() < 10.0f) {
+    TVec3f delta(mPosHolder->mPos);
+    delta -= _4B0;
+    f32 distance = MR::abs(delta.dot(*getGravityVec()));
+    if (_3BC <= 3 && distance < 1.0f && PSVECMag(&mJumpVec) < 10.0f) {
         stopAnimation(nullptr, "基本");
         return;
     }
-
-    if (mActor->_EEB && (mMovementStates._2B) && _10._19 && _430 != 3) {
-        _10._19 = false;
-        mActor->_946 = 0x10;
+    if (mActor->_EEB && ((mMovementStates_HIGH_WORD >> 20) & 1)) {
+        if (((_10_LOW_WORD >> 6) & 1) && _430 != 3) {
+            _10_LOW_WORD &= 0xFFFFFFBF;
+            mActor->_946 = 16;
+        }
     }
-
     resetTornado();
-
-    if (mActor->mBeeWallWalk != 0) {
-        playSound("ハチ壁くっつき");
-    } else {
-        playSound("着地");
-    }
-
-    if ((isAnimationRun("スケートアクセルジャンプ") || isAnimationRun("スケートジャンプ2") || isAnimationRun("スケートジャンプ3")) &&
-        (getPlayerMode() == 3 || getPlayerMode() == 0)) {
+    if (mActor->mBeeWallWalk != 0) playSound("ハチ壁くっつき");
+    else playSound("着地");
+    if ((isAnimationRun("スケートアクセルジャンプ") || isAnimationRun("スケートジャンプ2") || isAnimationRun("スケートジャンプ3")) && (getPlayerMode() == 3 || getPlayerMode() == 0)) {
         playEffect("スケート着地");
         if (getStickP() == 0.0f) {
             mJumpVec.zero();
             stopWalk();
             changeAnimation("スケート静止着地", "基本");
-        } else {
-            changeStatus(mSkate);
+            return;
         }
-
+        changeStatus(mSkate);
         return;
     }
-
     if (_430 == 5 && isSkatableFloor()) {
         if (checkSquat(false)) {
-            mMovementStates._A = true;
+            mMovementStates_LOW_WORD |= 0x200000;
             mWalkSpeed = 1.0f;
+            if (isAnimationRun("カリカリ限界")) stopAnimationUpper(nullptr, nullptr);
             stopAnimation(nullptr, "しゃがみ基本");
-        } else {
-            cancelSquatMode();
-            stopAnimationUpper(nullptr);
-            changeAnimation("スケート静止着地", "基本");
+            return;
         }
-
+        cancelSquatMode();
+        stopAnimationUpper(nullptr, nullptr);
+        changeAnimation("スケート静止着地", "基本");
         return;
     }
-
     if (isAnimationRun("フーファイター着地")) {
         stopAnimation(nullptr, "基本");
         return;
     }
-
-    if (getPlayer()->_10._2) {
-        getPlayer()->_10._2 = false;
-        _430 = 0xE;
-    } else {
-        const u32 landingType = mMovementStates._3E;
-        if (landingType == 2) {
-            getPlayer()->mMovementStates._3E = 0;
+    if ((getPlayer()->_10_LOW_WORD >> 29) & 1) {
+        Mario* player = getPlayer();
+        player->_10_LOW_WORD &= ~0x20000000;
+        _430 = 14;
+        goto COMMON_LANDING;
+    }
+    {
+        u32 type = mMovementStates_HIGH_WORD & 3;
+        if (type == 2) {
+            Mario* player = getPlayer();
+            player->mMovementStates_HIGH_WORD &= ~3;
             stopWalk();
-            playSound("重い着地");
             playSound("声ステージイン着地");
+            playSound("重い着地");
             changeAnimation("ステージインB", "基本");
             startCamVib(4);
             return;
         }
-
-        if (landingType == 1) {
-            getPlayer()->mMovementStates._3E = 0;
+        if (type == 1) {
+            Mario* player = getPlayer();
+            player->mMovementStates_HIGH_WORD &= ~3;
             playEffect("スーパースピンドライバ終了");
             playEffect("共通着地大");
-            if (!isStickFull()) {
-                keepFrontSlip = true;
-            }
-
-            doHardLanding = true;
+            if (!isStickFull()) keepSlip = true;
+            hard = true;
             if (_1FC.dot(_368) < 0.0f) {
-                if (_960 == 0xD || _960 == 0x1E || _960 == 5 || _960 == 0x17) {
+                if (!isPlayerModeYoshi() && (_960 == 0xD || _960 == 0x1E || _960 == 5 || _960 == 0x17)) {
                     changeStatus(mSukekiyo);
-                } else {
-                    stopWalk();
-                    startCamVib(4);
-                    changeAnimation("ハード着地", "基本");
-                    _3CE += 0x10;
-                    forceSetHeadVecKeepSide(_368);
-                }
-
-                return;
-            }
-        } else {
-            if (isCurrentFloorSink()) {
-                stopAnimation(nullptr, "基本");
-                mSinkTimer = 64;
-                return;
-            }
-
-            if ((_960 == 0x1B || _960 == 0x1C)) {
-                if (!strcmp(MR::getSoundCodeString(_45C), "Sand")) {
-                    stopAnimation(nullptr, "基本");
-                    mSinkTimer = 32;
                     return;
                 }
-            } else if (_3BC > 10) {
-                playEffect("共通着地普通");
+                stopWalk();
+                startCamVib(4);
+                changeAnimation("ハード着地", "基本");
+                _3CE += 16;
+                forceSetHeadVecKeepSide(_368);
+                return;
             }
+            goto COMMON_LANDING;
         }
     }
-
-    switch (_430) {
-    case 0:
-    case 0xA:
-    case 0xB:
-    case 0xE:
-        startPadVib(static_cast< u32 >(0));
-        break;
-    default:
-        startPadVib(2);
-        break;
-    case 2:
-    case 4:
-    case 6:
-        startPadVib(3);
-        break;
+    if (isCurrentFloorSink()) {
+        stopAnimation(nullptr, "基本");
+        mSinkTimer = 64;
+        return;
     }
-
-    getAnimator()->addRumblePower(5.0f, 0x3C);
-    mMovementStates._21 = false;
-
-    if (getPlayerMode() != 4) {
-        _402 = mActor->getConst().getTable()->mAirWalkTime;
-    } else {
-        _71E = 0;
+    if (static_cast<u16>(_960 + 0xFFE5) <= 1) {
+        if (!strcmp(MR::getSoundCodeString(_45C), "Sand")) {
+            stopAnimation(nullptr, "基本");
+            mSinkTimer = 32;
+            return;
+        }
+        goto COMMON_LANDING;
     }
-
+    if (_3BC > 10) playEffect("共通着地普通");
+COMMON_LANDING:
+    if (static_cast<u32>(_430 - 10) > 1 && _430 != 0 && _430 != 14) {
+        if (_430 != 2 && _430 != 6 && _430 != 4) startPadVib(2);
+        else startPadVib(3);
+    } else startPadVib(static_cast<u32>(0));
+    getAnimator()->addRumblePower(5.0f, 60);
+    mMovementStates_HIGH_WORD &= 0xBFFFFFFF;
+    if (getPlayerMode() != 4) _402 = mActor->mConst->getTable()->mAirWalkTime;
+    else _71E = 0;
     if (!isSoftLandingFloor()) {
-        f32 deltadot = (_4B0 - mPosHolder->mPos).dot(-(*getGravityVec()));
-        if (deltadot > mActor->getConst().getTable()->mHardLandingHeight) {
-            doHardLanding = true;
-        }
+        const TVec3f& position = mPosHolder->mPos;
+        TVec3f fall(_4B0);
+        fall -= position;
+        TVec3f negativeGravity(-*getGravityVec());
+        if (fall.dot(negativeGravity) > mActor->mConst->getTable()->mHardLandingHeight) hard = true;
     }
-
-    if (doHardLanding && isCurrentFloorSand()) {
+    if (hard && isCurrentFloorSand() && !isPlayerModeYoshi()) {
         changeStatus(mBury);
         return;
     }
-
-    if (isBlendWaitGround()) {
-        blendWait = true;
-    }
-
+    if (isBlendWaitGround()) blend = true;
     fixFrontVecByGravity();
-
-    if (!doHardLanding && !mDrawStates._C && _430 != 0xE && !isAnimationRun("飛び込みジャンプ") && !isAnimationRun("後方飛び込みジャンプ") &&
-        !_10._8 && !isAnimationRun("水上ダメージ中")) {
-        if (_430 == 5 && checkSquat(false)) {
-            mMovementStates._A = true;
-            mWalkSpeed = 1.0f;
-            stopAnimation(nullptr, "しゃがみ基本");
-            goto POST_LANDING;
-        }
-
-        if (((isStickFull() || _60D) && _3CA == 0) || (((mMovementStates._B) == 0) && checkSquat(false))) {
-            stopAnimation(nullptr, "基本");
-            if (!_10._A) {
-                recordTurnSlipAngle();
-            }
-
-            if (_430 == 5) {
-                cancelSquatMode();
-            }
-
-            goto POST_LANDING;
-        }
-
-        switch (_430) {
-        case 2:
-        case 4:
-        case 5:
-        case 6:
-        case 8:
-        case 0xB:
-            keepFrontSlip = true;
-            break;
-        default:
-            break;
-        }
-
-        if (_10._17 && _8D8 == _45C->mSensor) {
-            TVec3f jumpDelta(mJumpVec - _8DC);
-            if (jumpDelta.dot(mJumpVec) < 0.0f) {
-                mJumpVec.zero();
-            } else {
-                mJumpVec = jumpDelta;
-            }
-        }
-
-        const f32 frontDot = mFrontVec.dot(mJumpVec);
-        if (frontDot > 6.0f && !keepFrontSlip) {
-            mWalkSpeed = frontDot / mActor->getConst().getTable()->mJumpFrontSpeed;
-            mWalkSpeed = MR::clamp(mWalkSpeed, 0.0f, 2.0f);
-            stopAnimation(nullptr, "基本");
-            _3FA = 0;
-            _71E = 0;
-
-            if (!_10._A) {
-                recordTurnSlipAngle();
-            }
-
-            goto POST_LANDING;
-        }
+    if (hard || ((mDrawStates_WORD >> 19) & 1) || _430 == 14 || isAnimationRun("飛び込みジャンプ") || isAnimationRun("後方飛び込みジャンプ") || ((_10_LOW_WORD >> 23) & 1) || isAnimationRun("水上ダメージ中")) {
+        fn_803A0490(hard, blend);
+        return;
     }
-
-    if (_430 == 4) {
-        setFrontVecKeepUp(-_220);
-    }
-
-    if (isAnimationRun("飛び込みジャンプ") || isAnimationRun("後方飛び込みジャンプ") || _10._8) {
-        if (isAnimationRun("後方飛び込みジャンプ")) {
-            setFrontVecKeepUp(-mFrontVec);
-        }
-
-        if (_10._8) {
-            doHardLanding = true;
-        }
-
-        stopWalk();
-        if (doHardLanding || isAnimationRun("後方飛び込みジャンプ")) {
-            if (doHardLanding) {
-                changeAnimation("飛び込み失敗回転着地", "基本");
-                startSlidingTask(8, 5.0f, 0x19);
-                startCamVib(0);
-            } else {
-                changeAnimation("飛び込み失敗着地", "基本");
-            }
-        } else {
-            changeAnimation("飛び込み失敗着地", "基本");
-        }
-
-        goto POST_LANDING;
-    }
-
-    if (!mDrawStates._C) {
-        clearSlope();
-        switch (_430) {
-        case 0:
-        case 7:
-            changeAnimation("着地", "基本");
-            break;
-        case 1:
-            changeAnimation("着地B", "基本");
-            break;
-        case 2:
-            changeAnimation("着地C", "基本");
-            break;
-        case 4:
-            changeAnimation("着地ターン", "基本");
-            break;
-        case 5:
-            if (!checkSquat(false)) {
-                cancelSquatMode();
-            }
-
-            if (mActor->_468 == 0) {
-                stopAnimationUpper(nullptr);
-            }
-
-            changeAnimation("着地幅とび", "基本");
-            break;
-        case 6:
-            changeAnimation("しゃがみジャンプ着地", "基本");
-            break;
-        default:
-            if (isAnimationRun("水上ダメージ中")) {
-                changeAnimation("中ダメージ着地", "基本");
-            } else {
-                changeAnimation("着地", "基本");
-            }
-
-            break;
-        case 3:
-        case 0xA:
-            stopAnimation(nullptr, "基本");
-            break;
-        case 0xE:
-            playSound("倒れ");
-            playSound("着地");
-            playSound("声小ダメージ");
-            playEffect("共通引き戻し着地");
-            changeAnimation("引き戻し着地", "基本");
-            doHardLanding = false;
-            blendWait = false;
-            break;
-        }
-
-        stopWalk();
-        if (blendWait) {
-            changeAnimation("ショート着地", "基本");
-        }
-
-        if (doHardLanding) {
-            changeAnimation("ハード着地", "基本");
-            playSound("重い着地");
-            playSound("声着地停止");
-            startCamVib(4);
-            _3CE += 0x10;
-        }
-
-        if (mActor->mBeeWallWalk != 0) {
-            changeAnimation("ハチ匍匐着地", "基本");
-        }
+    if (_430 == 5 && checkSquat(false)) {
+        mMovementStates_LOW_WORD |= 0x200000;
+        mWalkSpeed = 1.0f;
+        if (isAnimationRun("カリカリ限界")) stopAnimationUpper(nullptr, nullptr);
+        stopAnimation(nullptr, "しゃがみ基本");
+    } else if (((isStickFull() || _60D) && _3CA == 0) || (!((mMovementStates_LOW_WORD >> 20) & 1) && checkSquat(false))) {
+        stopAnimation(nullptr, "基本");
+        if (!((_10_LOW_WORD >> 21) & 1)) recordTurnSlipAngle();
+        if (_430 == 5) cancelSquatMode();
     } else {
-        if (!isAnimationRun("坂すべり上向きうつぶせ", 2) && !isAnimationRun("坂すべり下向きあおむけ", 3)) {
-            stopAnimation(nullptr, "基本");
-        }
-
-        changeAnimation("すべり着地", "基本");
-        _71E = 0;
+        fn_803A02F0(keepSlip, hard, blend);
     }
-
-POST_LANDING:
-    if (mDrawStates._C) {
-        TVec3f jumpNoGrav;
-        MR::vecKillElement(mJumpVec, *getGravityVec(), &jumpNoGrav);
-
-        if (jumpNoGrav.dot(*mGroundPolygon->getNormal(0)) > 0.0f) {
-            mMovementStates._23 = true;
+    if ((mDrawStates_WORD >> 19) & 1) {
+        TVec3f horizontal;
+        MR::vecKillElement(mJumpVec, *getGravityVec(), &horizontal);
+        if (horizontal.dot(*mGroundPolygon->getNormal(0)) > 0.0f) {
+            mMovementStates_HIGH_WORD |= 0x10000000;
             _8F0 = 10.0f;
         } else {
-            const f32 ratio = (90.0f - calcPolygonAngleD(mGroundPolygon)) / 90.0f;
-            mWalkSpeed = mWalkSpeed * ratio;
+            f32 ratio = (90.0f - calcPolygonAngleD(mGroundPolygon)) / 90.0f;
+            mWalkSpeed *= ratio;
             mWalkSpeed = MR::clamp(mWalkSpeed, 0.0f, 2.0f);
-
-            const f32 minVel = 10.0f - (10.0f * ratio);
-            if (_8F0 < minVel) {
-                _8F0 = minVel;
-            }
+            f32 minVelocity = 10.0f - 10.0f * ratio;
+            if (_8F0 < minVelocity) _8F0 = minVelocity;
         }
-
-        if (jumpNoGrav.length() < _8F8.length()) {
-            _8F8.setLength(0.5f * (_8F8.length() + jumpNoGrav.length()));
+        f32 length = PSVECMag(&_8F8);
+        if (PSVECMag(&horizontal) < length) {
+            f32 speed = PSVECMag(&horizontal);
+            _8F8.setLength(0.5f * (PSVECMag(&_8F8) + speed));
         }
-    } else {
-        _8F8.zero();
-    }
-
-    return;
+    } else _8F8.zero();
 }
 
 

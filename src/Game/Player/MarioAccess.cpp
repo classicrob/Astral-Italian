@@ -14,6 +14,8 @@
 #include "Game/Player/MarioState.hpp"
 #include "Game/Player/MarioSwim.hpp"
 #include "Game/Player/Yoshi.hpp"
+#include "Game/Player/YoshiTongueAction.hpp"
+#include "Game/Player/MarioActorHelpers.hpp"
 #include "Game/Player/RushEndInfo.hpp"
 #include "Game/Util.hpp"
 
@@ -126,7 +128,7 @@ namespace MarioAccess {
     }
 
     bool isSkating() {
-        return getPlayerActor()->getMario()->isStatusActive(MarioStatus_Skate);
+        return getPlayerActor()->_3E5;
     }
 
     Triangle* getGroundingPolygon(u32) {
@@ -157,16 +159,16 @@ namespace MarioAccess {
         return nullptr;
     }
 
-    f32 getShadowHeight() {
-        return getPlayerActor()->getMario()->mVerticalSpeed;
+    void forceGameOverSink() {
+        getPlayerActor()->forceGameOverSink();
     }
 
     void forceKill(u32 type, u32) {
         getPlayerActor()->forceKill(type);
     }
 
-    bool isOnPress() {
-        return getPlayerActor()->_390 != 0;
+    void fn_803B5020(s32 value) {
+        getPlayerActor()->fn_803BEB10(value);
     }
 
     bool isDisableFpView() {
@@ -185,7 +187,7 @@ namespace MarioAccess {
     }
 
     void noticeDashChance() {
-        getPlayerActor()->getMario()->_436 = 5;
+        getPlayerActor()->getMario()->fn_80395310();
     }
 
     void fn_803B51B0() {
@@ -248,22 +250,31 @@ namespace MarioAccess {
         actor->_3D0 = a2;
     }
 
+    // NONMATCHING: equivalent player flag extraction.
     void getThrowVec(TVec3f* pOut) {
+        if (getPlayerActor()->getMario()->isPlayerModeYoshi()) {
+            pOut->set(getPlayerActor()->fn_803B9810()->_90);
+            return;
+        }
         if (getPlayerActor()->getMario()->isStatusActive(MarioStatus_Foo)) {
             *pOut = getPlayerActor()->getMario()->mHeadVec;
             return;
         }
-
+        if (getPlayerActor()->getMario()->mMovementStates_HIGH_WORD & 0x100) {
+            if (getPlayerActor()->getMario()->isSwimming()) {
+                getPlayerActor()->getMario()->mSwim->fn_80400A40(pOut);
+                return;
+            }
+        }
         if (getPlayerActor()->getMario()->isSwimming()) {
             getPlayerActor()->getThrowVec(pOut);
             return;
         }
-
-        pOut->set(getPlayerActor()->_F3CVec[getPlayerActor()->_F40]);
+        getPlayerActor()->getFrontHistoryVec(pOut);
     }
 
     void setTrans(const TVec3f& rTrans, u16) {
-        getPlayerActor()->mPosition.set(rTrans);
+        MR::setPosition(getPlayerActor(), rTrans);
         getPlayerActor()->getMario()->mPosHolder->fn_80405F90(rTrans);
 
         if (getPlayerActor()->getMovementStates()._37) {
@@ -272,7 +283,7 @@ namespace MarioAccess {
 
         getPlayerActor()->_1C0 = true;
 
-        getPlayerActor()->mCameraTrans = rTrans;
+        getPlayerActor()->_294 = rTrans;
         MR::updateHitSensorsAll(getPlayerActor());
     }
 
@@ -379,6 +390,7 @@ namespace MarioAccess {
     }
 
     void changeAnimationJ(const char* pAnimName) {
+        getPlayerActor()->mMarioAnim->setAnimationFrame(0.0f);
         getPlayerActor()->changeAnimationNonStop(pAnimName);
     }
 
@@ -423,8 +435,8 @@ namespace MarioAccess {
     }
 
     void keepCurrentAnimation() {
-        if (getPlayerActor()->mMarioAnim->getXanimePlayer()->_20->getAttribute() == 0) {
-            getPlayerActor()->mMarioAnim->getXanimePlayer()->_20->setAttribute(1);
+        if (getPlayerActor()->mMarioAnim->isFrameCtrlAttribute(0)) {
+            getPlayerActor()->mMarioAnim->setAnimationFrameCtrlAttribute(1);
         }
     }
 
@@ -478,13 +490,14 @@ namespace MarioAccess {
         getPlayerActor()->getMario()->endTalk();
     }
 
+    // NONMATCHING: zero-vector constructor inlines to three stores.
     void readyRemoteDemo() {
         if (getPlayerActor()->_EA4) {
             return;
         }
 
         if (getPlayerActor()->getMario()->isStatusActive(MarioStatus_13) || getPlayerActor()->mPlayerMode == PlayerMode_Hopper) {
-            offControl();
+            MR::offPlayerControl();
             getPlayerActor()->getMario()->_10._20 = true;
             return;
         }
@@ -492,7 +505,7 @@ namespace MarioAccess {
         getPlayerActor()->getMario()->_10._20 = false;
 
         if (getPlayerActor()->_934) {
-            getPlayerActor()->_924->receiveMessage(ACTMES_RUSH_CANCEL, getPlayerActor()->getSensor("body"));
+            getPlayerActor()->_924->receiveMessage(ACTMES_RUSH_CANCEL, getPlayerActor()->getSensor("Body"));
             if (getPlayerActor()->_934) {
                 RushEndInfo endInfo(nullptr, 4, TVec3f(0.0f, 0.0f, 0.0f), false, 0);
                 endRush(&endInfo);
@@ -506,12 +519,12 @@ namespace MarioAccess {
         getPlayerActor()->flushCoinPull();
         getPlayerActor()->calcAndSetBaseMtx();
 
-        offControl();
+        MR::offPlayerControl();
 
         getPlayerActor()->_EA4 = true;
         MR::invalidateHitSensors(getPlayerActor());
 
-        PSMTXCopy(getPlayerActor()->getBaseMtx(), getPlayerActor()->_EA8);
+        PSMTXCopy(getPlayerActor()->getBaseMtx(), getPlayerActor()->mRemoteDemoMtx4E4.toMtxPtr());
 
         getPlayerActor()->_B90 = true;
         getPlayerActor()->getMario()->stopWalk();
@@ -519,9 +532,7 @@ namespace MarioAccess {
         MR::deleteEffectAll(getPlayerActor());
 
         getPlayerActor()->_1B8->kill();
-        getPlayerActor()->_1E4 = 0.0f;
-        getPlayerActor()->_ED8 = getPlayerActor()->mPosition;
-        getPlayerActor()->_EE4 = getPlayerActor()->mMarioAnim->getXanimePlayer()->getCurrentAnimationName();
+        getPlayerActor()->mScreenStrip1084->mProgress = 0.0f;
         getPlayerActor()->_EA6 = false;
     }
 
@@ -537,9 +548,11 @@ namespace MarioAccess {
 
     MtxPtr getBaseMtx() {
         if (getPlayerActor()->_EA5) {
-            return getPlayerActor()->_EA8;
+            return getPlayerActor()->mRemoteDemoMtx4E4.toMtxPtr();
         }
 
+        if (getPlayerActor()->getMario()->isPlayerModeYoshi())
+            return getPlayerActor()->fn_803B9850();
         return getPlayerActor()->getBaseMtx();
     }
 
@@ -629,7 +642,7 @@ namespace MarioAccess {
 
     void scatterStarPiece(u32 amt) {
         if (MR::getStarPieceNum() > 0) {
-            MR::startActionSound(getPlayerActor(), "OjStarPieceBurst");
+            MR::startSound(getPlayerActor(), "SE_OJ_STAR_PIECE_BURST", -1, -1);
         }
 
         for (int i = 0; i < amt; i++) {
@@ -645,7 +658,7 @@ namespace MarioAccess {
     }
 
     void startDownWipe() {
-        if (getPlayerActor()->isNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverSink))) {
+        if (getPlayerActor()->fn_803BED10()) {
             return;
         }
 
@@ -657,7 +670,7 @@ namespace MarioAccess {
             return;
         }
 
-        getPlayerActor()->_A61 = true;
+        getPlayerActor()->fn_803BBAD0();
     }
 
     // Not in SB4E01 (no caller, no symbol). Uses ACTMES_RUSH_FORCE_CANCEL, which is not in our headers.
@@ -746,13 +759,21 @@ namespace MarioAccess {
                 return;
             }
 
+            if (getPlayerActor()->mHealth == 6) {
+                MR::addPlayerLeft(1);
+                return;
+            }
             if (getPlayerActor()->mMaxHealth > 3) {
-                MR::startActionSound(getPlayerActor(), "OjMorphItemInvalid");
+                MR::startSound(getPlayerActor(), "SE_OJ_MORPH_ITEM_INVALID", -1, -1);
                 getPlayerActor()->changeMaxLife(6);
                 return;
             }
 
             getPlayerActor()->mSuperKinokoCollected = true;
+            break;
+        case 11:
+            getPlayerActor()->setPlayerMode(PlayerMode_Normal, false, false);
+            break;
         }
     }
 };  // namespace MarioAccess

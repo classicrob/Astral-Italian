@@ -70,9 +70,9 @@ namespace MarioAccess {
     bool isSkating();
     Triangle* getGroundingPolygon(u32);
     Triangle* getShadowingPolygon();
-    f32 getShadowHeight();
+    void forceGameOverSink();
     void forceKill(u32, u32);
-    bool isOnPress();
+    void fn_803B5020(s32);
     bool isDisableFpView();
     bool isFpViewChangingFailure();
     void stopFpView();

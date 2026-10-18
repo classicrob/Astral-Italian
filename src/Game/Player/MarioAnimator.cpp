@@ -178,26 +178,31 @@ void MarioAnimator::spinClose() {
     }
 }
 
+#pragma auto_inline off
+#pragma dont_inline on
+// NONMATCHING: literal-label naming.
 void MarioAnimator::stageInCheck() {
     if (static_cast< s32 >(getFrame()) == 50) {
         Mario* player = getPlayer();
-        getPlayer()->MarioModule::playEffectRT("属性ステージイン", player->_368, getPlayer()->MarioModule::getTrans());
+        MarioActor* actor = mActor;
+        const TVec3f& translation = getPlayer()->MarioModule::getTrans();
+        actor->playEffectRT("属性ステージイン", player->_368, translation);
     }
 }
 
 void MarioAnimator::throwCheck() {
     if (mActor->_38C == 0 && getPlayer()->MarioModule::getStickP() && !getPlayer()->mMovementStates.jumping) {
-        stopAnimation(nullptr, nullptr);
+        getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
     }
 }
 
 void MarioAnimator::throwEntry() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        getPlayer()->MarioModule::playEffect("こうら投げ");
+        mActor->playEffect("こうら投げ");
         break;
     case 1:
-        getPlayer()->MarioModule::playEffect("ファイアボール投げ");
+        mActor->playEffect("ファイアボール投げ");
         break;
     }
 }
@@ -205,26 +210,28 @@ void MarioAnimator::throwEntry() {
 void MarioAnimator::throwClose() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        getPlayer()->MarioModule::stopEffect("こうら投げ");
+        mActor->stopEffect("こうら投げ");
         break;
     case 1:
-        getPlayer()->MarioModule::stopEffect("ファイアボール投げ");
+        mActor->stopEffect("ファイアボール投げ");
         break;
     }
 }
 
 void MarioAnimator::squatSpinCheck() {
     if (!getPlayer()->mMovementStates._A && getFrame() >= 40.0f) {
-        stopAnimation(nullptr, nullptr);
+        getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
     }
 }
 
 void MarioAnimator::walkinClose() {
     if (mCallbackEnded) {
-        stopAnimation(nullptr, nullptr);
+        getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
         getPlayer()->changeAnimationInterpoleFrame(16);
     }
 }
+#pragma dont_inline off
+#pragma auto_inline on
 extern XanimeBckTable4 quadAnimeTable[];
 extern XanimeBckTable3 tripleAnimeTable[];
 extern XanimeBckTable2 doubleAnimeTable[];
@@ -1205,48 +1212,49 @@ void MarioAnimator::changePickupAnimation(const HitSensor* pSensor) {
     }
 }
 
+// NONMATCHING: equivalent literal-pool base materialization and prologue scheduling.
 void MarioAnimator::updateTakingAnimation(const HitSensor* pSensor) {
     if (pSensor == nullptr) {
         return;
     }
-
-    LiveActor* sensorActor = pSensor->mHost;
-    if (MR::isDead(sensorActor)) {
+    if (MR::isDead(MR::getSensorHost(pSensor))) {
         if (mActor->_468 != 0) {
             mActor->rushDropThrowMemoSensor();
         }
-
         return;
     }
-
-    u32 type = pSensor->mType;
-    switch (type) {
-    case ACTMES_STAR_PIECE_GIFT_MAX:
-        stopAnimation(nullptr, nullptr);
-        getPlayer()->MarioModule::changeAnimationUpper("カブウエイト");
+    if (MR::getSensorHost(pSensor) != nullptr && MR::isEqualString(MR::getSensorHost(pSensor)->mName, "アイテムドリル")) {
+        mActor->mMario->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+        mActor->mMario->MarioModule::changeAnimationUpper("ドリルウエイト");
         mActor->clearNullAnimation(0);
-        mActor->offTakingFlag();
+        mActor->fn_803BA220();
+        return;
+    }
+    switch (pSensor->mType) {
+    case ATYPE_BOMBHEI:
+        mActor->mMario->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+        mActor->mMario->MarioModule::changeAnimationUpper("カブウエイト");
+        mActor->clearNullAnimation(0);
+        mActor->fn_803BA220();
         break;
-    case ACTMES_STAR_PIECE_GIFT:
-    case ACTMES_STAR_PIECE_GIFT_1:
-        if (!getPlayer()->isSwimming()) {
+    case ATYPE_JET_TURTLE:
+    case ATYPE_JET_TURTLE_SLOW:
+        if (!mActor->mMario->isSwimming()) {
             s32 shouldChange = 1;
             if (isAnimationRun("ひろいクイック")) {
                 shouldChange = isUpperAnimationTerminated(nullptr);
             }
-
             if (shouldChange) {
                 if (!isAnimationRun("ひろい空中") && mActor->isStopNullAnimation()) {
-                    getPlayer()->MarioModule::changeAnimationUpper("ひろいウエイト");
-                    getPlayer()->MarioModule::startPadVib(2);
+                    mActor->mMario->MarioModule::changeAnimationUpper("ひろいウエイト");
+                    mActor->mMario->MarioModule::startPadVib(2);
                     mActor->clearNullAnimation(0);
-                    mActor->offTakingFlag();
+                    mActor->fn_803BA220();
                 }
             }
         } else {
-            MR::emitEffect(pSensor->mHost, "SwimBubble");
+            MR::emitEffect(MR::getSensorHost(pSensor), "SwimBubble");
         }
-
         break;
     }
 }

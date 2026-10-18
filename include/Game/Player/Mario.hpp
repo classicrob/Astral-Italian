@@ -116,7 +116,7 @@ public:
     bool fn_80395310();
     void fn_80395400(u32 arg);
     bool fn_803972D0(const TVec3f* arg1);
-    void fn_80399D30();
+    bool fn_80399D30();
     void fn_80399E60(TVec3f* arg1);
     void fn_8039A020();
     void fn_8039A090();
@@ -242,7 +242,7 @@ public:
     void fn_803B1EF0(TVec3f* arg1, f32 fself);
     void fn_803B23E0(const TVec3f*, const TVec3f*, f32);
     bool fn_803B2470();
-    s32 fn_803B2530(Triangle* arg1);
+    s32 fn_803B2530(bool squat);
     void fn_803B2610();
     bool fn_803B26C0();
     bool fn_803B2730();
@@ -344,7 +344,7 @@ public:
     void actionMain();
     void touchWater();
 
-    bool isBlendWaitGround() const;
+    bool isBlendWaitGround() const NO_INLINE;
     void checkSpecialWaitAnimation();
     void resetSleepTimer();
 
@@ -441,7 +441,7 @@ public:
     bool isRising() const;
     void checkWallRiseAndSlipFront();
     void tryJump();
-    void tryTurnJump();
+    bool tryTurnJump();
     void trySquatJump();
     void tryBackJump();
     void tryTornadoJump();

@@ -1460,77 +1460,57 @@ void Mario::fn_8038E1A0(const Triangle* tri, s32 arg2) {
 }
 
 // NONMATCHING: sink/animation selection from the draft; the speed/timer flags are approximated
-void Mario::fn_80399D30() {
-    u32 temp_r4 = this->mSinkTimer;
-    if (temp_r4 == 0) {
+// NONMATCHING: verified string arguments use different pooled offsets.
+bool Mario::fn_80399D30() {
+    u8 timer = mSinkTimer;
+    if (timer == 0) return false;
+    u16 code = FLD<u16>(this, 0x964);
+    if (code == 0x19) {
+        if (timer > 0x20) mSinkTimer = timer - 0x20;
+        if (mSinkTimer < 0x40) mSinkTimer = 0x40;
+        mMovementStates_HIGH_WORD &= 0xFFFFFF7F;
+        return true;
     }
-    s32 mode = FLD<u16>(this, 0x964);
-    if (mode == 0x19) {
-        if (temp_r4 > 0x20) {
-            this->mSinkTimer = temp_r4 - 0x20;
-        }
-        if (this->mSinkTimer < 0x40) {
-            this->mSinkTimer = 0x40;
-        }
-        FLD<u32>(this, 0x10) &= 0xFFFFFF7F;
-    }
-    if (mode == 0x1F) {
-    }
-    if (temp_r4 <= 100) {
-    }
-    if (temp_r4 > 200) {
-        this->mSinkTimer = 0x80;
-        this->changeAnimation("毒沼脱出", (const char*)nullptr);
+    if (code == 0x1F) return true;
+    if (timer <= 100) return false;
+    if (timer > 200) {
+        mSinkTimer = 128;
+        changeAnimation("埋まりジャンプA");
     } else {
-        this->mSinkTimer = 0x20;
-        this->changeAnimation("埋まりジャンプB", (const char*)nullptr);
+        mSinkTimer = 32;
+        changeAnimation("埋まりジャンプB");
     }
-    if (FLD<u16>(this, 0x964) == 0x12) {
-        this->playSound("砂脱出", -1);
-    } else {
-        this->playSound("声砂脱出", -1);
-    }
-    this->playSound("埋まりジャンプA", -1);
+    if (FLD<u16>(this, 0x964) == 0x12) playSound("毒沼脱出");
+    else playSound("砂脱出");
+    playSound("声砂脱出");
+    return true;
 }
 
-// NONMATCHING: the timer-driven jump-stage bookkeeping is approximated
-void Mario::fn_80399E60(TVec3f* arg1) {
-    FLD<u16>(this, 0x42A) = 0;
-    void* e = marioCurTableEntry(this);
-    if (FLD<s16>(this, 0x3CE) > FLD<s16>(e, 0x68) || !((FLD<u32>(this, 0xC) >> 26) & 1)) {
-        FLD<u32>(this, 0x42C) = 0;
-    } else {
-        FLD<u32>(this, 0x42C) += 1;
+void Mario::fn_80399E60(TVec3f* stick) {
+    _42A = 0;
+    MarioConst* constants = mActor->mConst;
+    if (_3CE > constants->mTable[constants->mCurrentTable]->mJumpConnectTime || !((mMovementStates_LOW_WORD >> 26) & 1)) _430 = 0;
+    else _430++;
+    if (_430 > 2) _430 = 0;
+    if (_430 == 2) {
+        constants = mActor->mConst;
+        if (mWalkSpeed < constants->mTable[constants->mCurrentTable]->mJumpConnectSpeed) _430 = 0;
     }
-    if (FLD<u32>(this, 0x42C) > 2) {
-        FLD<u32>(this, 0x42C) = 0;
-    }
-    if (FLD<u32>(this, 0x42C) == 2) {
-        if (FLD<f32>(this, 0x278) < FLD<f32>(e, 0x6C)) {
-            FLD<u32>(this, 0x42C) = 0;
-        }
-    }
-    if (this->getPlayerMode() == 4 || this->getPlayerMode() == 6) {
-        FLD<u32>(this, 0x42C) = 0;
-    }
-    if (this->isPlayerModeYoshi() && FLD<u32>(this, 0x42C) > 1) {
-        FLD<u32>(this, 0x42C) = 0;
-    }
-    u32 t = FLD<u32>(this, 0x1C);
-    if ((t >> 20) & 1) {
-        FLD<u32>(this, 0x42C) = 2;
+    if (getPlayerMode() == 4 || getPlayerMode() == 6) _430 = 0;
+    if (isPlayerModeYoshi() && _430 > 1) _430 = 0;
+    u32 flags = _1C_WORD;
+    if ((flags >> 20) & 1) {
+        _430 = 2;
         MR::start2PJumpAssistJustSound();
-    } else if ((t >> 21) & 1) {
-        MR::start2PJumpAssistSound();
+    } else if ((flags >> 21) & 1) MR::start2PJumpAssistSound();
+    if ((isPlayerModeInvincible() || FLD<u8>(this, 0xA79) != 0) && mWalkSpeed > 1.0f) {
+        _430 = 1;
+        _42A = 1;
     }
-    if ((this->isPlayerModeInvincible() || FLD<u32>(this, 0xA79) != 0) && FLD<f32>(this, 0x278) > 1.0f) {
-        FLD<u32>(this, 0x42C) = 1;
-        FLD<u16>(this, 0x42A) = 1;
-    }
-    if (!MR::isNearZero(*arg1, 0.001f) && FLD<s32>(this, 0x72C) != 0) {
-        FLD<u32>(this, 0x42C) = 0;
-        FLD<u32>(this, 0xC) &= 0xF7FFFFFF;
-        FLD<u16>(this, 0x3D2) = 0;
+    if (!MR::isNearZero(*stick, 0.001f) && mSinkTimer != 0) {
+        _430 = 0;
+        mMovementStates_LOW_WORD &= 0xF7FFFFFF;
+        _3D2 = 0;
     }
 }
 
@@ -1695,36 +1675,25 @@ f32 Mario::fn_8039A810() {
     return var_f31 * this->fn_8039ADC0();
 }
 
-// NONMATCHING: the wall-slide/ground-dive branches are approximated
-void Mario::fn_803A02F0(s32 arg1, s32 arg2, s32 arg3) {
-    u32 m = FLD<u32>(this, 0x42C);
-    s32 var_r31 = arg1;
-    if (m - 4 <= 2 || m == 8 || m == 2 || m == 0xB) {
-        var_r31 = 1;
+// NONMATCHING: temporary register allocation; verified collision-sensor and velocity gates.
+void Mario::fn_803A02F0(s32 keepSlip, s32 hard, s32 blend) {
+    u32 mode = _430;
+    if (mode - 4 <= 2 || mode == 8 || mode == 2 || mode == 11) keepSlip = 1;
+    if (((_10_LOW_WORD >> 8) & 1) && _8D8 == _45C->mSensor) {
+        TVec3f delta(mJumpVec);
+        delta -= _8DC;
+        if (delta.dot(mJumpVec) < 0.0f) mJumpVec.zero();
+        else mJumpVec = delta;
     }
-    if (((FLD<u32>(this, 0x10) >> 8) & 1) && FLD<u32>(this, 0x8D8) == FLD<u32>(this, 0x8D8)) {
-        TVec3f sp8(FLD<TVec3f>(this, 0x2D4));
-        sp8 -= FLD<TVec3f>(this, 0x8DC);
-        if (sp8.dot(FLD<TVec3f>(this, 0x2D4)) < 0.0f) {
-            FLD<TVec3f>(this, 0x2D4).zero();
-        } else {
-            FLD<TVec3f>(this, 0x2D4) = sp8;
-        }
-    }
-    if ((this->mFrontVec.dot(FLD<TVec3f>(this, 0x2D4)) > 6.0f && var_r31 == 0) ||
-        (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0)) {
-        f32 t31 = this->fn_803B1CA0();
-        f32 dt = this->mFrontVec.dot(FLD<TVec3f>(this, 0x2D4));
-        this->mWalkSpeed = MR::clamp(dt / t31, 0.0f, 2.0f);
-        this->stopAnimation((const char*)nullptr, "基本");
-        FLD<u16>(this, 0x3FA) = 0;
-        FLD<u16>(this, 0x71E) = 0;
-        if (!((FLD<u32>(this, 0x10) >> 21) & 1)) {
-            this->recordTurnSlipAngle();
-        }
-    } else {
-        this->fn_803A0490(arg2, arg3);
-    }
+    if ((mFrontVec.dot(mJumpVec) > 6.0f && keepSlip == 0) || (isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer > 0)) {
+        f32 speed = fn_803B1CA0();
+        mWalkSpeed = mFrontVec.dot(mJumpVec) / speed;
+        mWalkSpeed = MR::clamp(mWalkSpeed, 0.0f, 2.0f);
+        stopAnimation(nullptr, "基本");
+        _3FA = 0;
+        _71E = 0;
+        if (!((_10_LOW_WORD >> 21) & 1)) recordTurnSlipAngle();
+    } else fn_803A0490(hard, blend);
 }
 
 // NONMATCHING: the state dispatch chain is recovered from the draft; ordering of the sub-states is approximate
@@ -1800,22 +1769,20 @@ void Mario::fn_803A2A70() {
     addVelocity(scaled);
 }
 
-// NONMATCHING: the animation switch on the mode is approximated (fallthrough cases kept, sounds/effects follow the draft)
+// NONMATCHING: temporary/register scheduling; full landing switch and return structure recovered.
 void Mario::fn_803A0490(s32 arg1, s32 arg2) {
     s32 var_r29 = arg1;
     s32 var_r28 = arg2;
     if (FLD<u32>(this, 0x42C) == 4) {
-        TVec3f sp14;
-        sp14 = -FLD<TVec3f>(this, 0x220);
+        TVec3f sp14(-FLD<TVec3f>(this, 0x220));
         this->setFrontVecKeepUp(sp14);
     }
-    if (this->isAnimationRun("飛び込みジャンプ") || this->isAnimationRun("後方飛び込みジャンプ") || ((FLD<u32>(this, 0x10) >> 23) & 1)) {
+    if (this->isAnimationRun("飛び込みジャンプ") || this->isAnimationRun("後方飛び込みジャンプ") || ((FLD<u32>(this, 0x14) >> 23) & 1)) {
         if (this->isAnimationRun("後方飛び込みジャンプ")) {
-            TVec3f sp8;
-            sp8 = -this->mFrontVec;
+            TVec3f sp8(-this->mFrontVec);
             this->setFrontVecKeepUp(sp8);
         }
-        if ((FLD<u32>(this, 0x10) >> 23) & 1) {
+        if ((FLD<u32>(this, 0x14) >> 23) & 1) {
             var_r29 = 1;
         }
         this->stopWalk();
@@ -1824,27 +1791,30 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
                 this->changeAnimation("飛び込み失敗回転着地", "基本");
                 this->startSlidingTask(8, 5.0f, 25);
                 this->startCamVib(0);
+                return;
             }
             this->changeAnimation("飛び込み失敗着地", "基本");
+            return;
         }
         this->changeAnimation("飛び込み失敗着地", "基本");
+        return;
     }
-    if (!((FLD<u32>(this, 0x14) >> 19) & 1)) {
+    if (!((FLD<u32>(this, 0x1C) >> 19) & 1)) {
         this->clearSlope();
         switch (FLD<u32>(this, 0x42C)) {
         case 0:
         case 7:
             this->changeAnimation("着地", "基本");
-            // fallthrough
+            break;
         case 1:
             this->changeAnimation("着地B", "基本");
-            // fallthrough
+            break;
         case 2:
             this->changeAnimation("着地C", "基本");
-            // fallthrough
+            break;
         case 4:
             this->changeAnimation("着地ターン", "基本");
-            // fallthrough
+            break;
         case 5:
             if (!this->checkSquat(false)) {
                 this->cancelSquatMode();
@@ -1853,14 +1823,21 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
                 this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
             }
             this->changeAnimation("着地幅とび", "基本");
-            // fallthrough
+            break;
         case 6:
             this->changeAnimation("しゃがみジャンプ着地", "基本");
+            break;
+        default:
+            if (this->isAnimationRun("水上ダメージ中")) {
+                this->changeAnimation("中ダメージ着地", "基本");
+            } else {
+                this->changeAnimation("着地", "基本");
+            }
             break;
         case 3:
         case 10:
             this->stopAnimation((const char*)nullptr, "基本");
-            // fallthrough
+            break;
         case 14:
             this->playSound("倒れ", -1);
             this->playSound("着地", -1);
@@ -1870,13 +1847,7 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
             var_r29 = 0;
             var_r28 = 0;
             break;
-        default:
-            if (this->isAnimationRun("水上ダメージ中")) {
-                this->changeAnimation("中ダメージ着地", "基本");
-            } else {
-                this->changeAnimation("着地", "基本");
-            }
-            break;
+
         }
         this->stopWalk();
         if (var_r28 != 0) {
@@ -1886,14 +1857,14 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
             this->changeAnimation("ハード着地", "基本");
             this->playSound("重い着地", -1);
             if (this->isPlayerModeYoshi()) {
-                MR::startActionSound(reinterpret_cast<const LiveActor*>(this->mActor->fn_803B97F0()), "Land", -1, -1, -1);
+                MR::startActionSound(this->mActor->fn_803B97F0(), "Land", -1, -1, -1);
             } else {
                 this->playSound("声着地停止", -1);
             }
             this->startCamVib(4);
-            FLD<s16>(this, 0x3CE) += 0x10;
+            FLD<u16>(this, 0x3CE) += 0x10;
         }
-        if (FLD<u32>(this->mActor, 0xECD) != 0) {
+        if (FLD<u8>(this->mActor, 0xECD) != 0) {
             this->changeAnimation("ハチ匍匐着地", "基本");
         }
     } else {
@@ -1901,7 +1872,7 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
             this->stopAnimation((const char*)nullptr, "基本");
         }
         this->changeAnimation("すべり着地", "基本");
-        FLD<u16>(this, 0x71E) = 0;
+        FLD<u8>(this, 0x716) = 0;
     }
 }
 

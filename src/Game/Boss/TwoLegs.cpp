@@ -2,6 +2,7 @@
 #include "Game/Boss/TwoLegs.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/MapObj/DummyDisplayModel.hpp"
 
 // PLACEHOLDER(objects): unnamed target symbol fn_8000F910, declared extern "C" so the reloc name matches; resolve when fn_8000F910 gets its real name in symbols.txt
 extern "C" void fn_8000F910(LiveActor*, const TVec3f&, const TVec3f&);

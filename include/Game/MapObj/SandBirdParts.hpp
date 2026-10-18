@@ -39,7 +39,7 @@ public:
     /* 0x94 */ MapObjConnector* mConnector;
     /* 0x98 */ HitSensor* mBodySensor;
     /* 0x9C */ TPos3f mCollisionMtx;
-    /* 0xCC */ TVec3f mBasePos;
+    /* 0xCC */ TVec3f mBaseScale;
     /* 0xD8 */ s32 mStepLimit;
 };
 

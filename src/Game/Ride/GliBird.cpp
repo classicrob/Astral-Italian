@@ -153,8 +153,8 @@ void GliBird::init(const JMapInfoIter& rIter) {
 
 void GliBird::showBird() {
     if (!MR::isDead(mNpc)) {
-        MR::showModel(this);
         MR::validateHitSensors(this);
+        MR::showModel(this);
         mNpc->makeActorDead();
     }
 }
@@ -271,8 +271,8 @@ void GliBird::control() {
 
 void GliBird::exeHide() {
     if (MR::isFirstStep(this)) {
-        MR::hideModel(this);
         MR::invalidateHitSensors(this);
+        MR::hideModel(this);
         mNpc->makeActorAppeared();
         mDirFront.x = 0.0f;
         mDirFront.y = 0.0f;

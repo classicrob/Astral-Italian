@@ -15,6 +15,7 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
     virtual void initCaseUseSwitchB(const MapObjActorInitInfo&);
     virtual void initCaseNoUseSwitchB(const MapObjActorInitInfo&);
+    virtual void initDemoAction();
     virtual void setupInitInfo(const JMapInfoIter&, MapObjActorInitInfo*);
     virtual bool tryStartMove();
     virtual void startMoveInner();

@@ -77,7 +77,7 @@ void MeteorStrikeLauncher::kill() {
 void MeteorStrikeLauncher::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
-    MR::useStageSwitchReadAppear(this, rIter);
+    MR::syncStageSwitchAppearAndSync(this, rIter);
 
     if (MR::getJMapInfoArg1NoInit(rIter, &mIntervalStep)) {
         mIntervalStep *= 60;

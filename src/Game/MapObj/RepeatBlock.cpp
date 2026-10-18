@@ -20,11 +20,8 @@ RepeatBlockTail* fn_802ECA00(RepeatBlockTail*, RepeatBlock*, const char*);
 namespace {
     // direction -> opposite direction
     const s32 sOppositeDir[6] = {1, 0, 3, 2, 5, 4};
-    // direction -> cell offset
-    RepeatBlockCell sDirTable[6] = {
-        RepeatBlockCell(1, 0, 0), RepeatBlockCell(-1, 0, 0), RepeatBlockCell(0, 1, 0), RepeatBlockCell(0, -1, 0), RepeatBlockCell(0, 0, 1), RepeatBlockCell(0, 0, -1),
-    };
 };  // namespace
+
 
 namespace NrvRepeatBlock {
     NEW_NERVE(RepeatBlockNrvWait, RepeatBlock, Wait);
@@ -78,6 +75,11 @@ namespace NrvRepeatBlock {
     NEW_NERVE(RepeatBlockNrvTailWait, RepeatBlockTail, Wait);
     NEW_NERVE(RepeatBlockNrvTailAppearLoop, RepeatBlockTail, AppearLoop);
 };  // namespace NrvRepeatBlock
+
+// direction -> cell offset
+static RepeatBlockCell sDirTable[6] = {
+    RepeatBlockCell(1, 0, 0), RepeatBlockCell(-1, 0, 0), RepeatBlockCell(0, 1, 0), RepeatBlockCell(0, -1, 0), RepeatBlockCell(0, 0, 1), RepeatBlockCell(0, 0, -1),
+};
 
 void RepeatBlockTail::appear() {
     LiveActor::appear();
@@ -410,7 +412,7 @@ void RepeatBlock::initHistory() {
 }
 
 void RepeatBlock::initGrid() {
-    mGrid = new RepeatBlockGrid(mMtx, 0.5f * mNumX, 0.5f * mNumY, 0.5f * mNumZ);
+    mGrid = new RepeatBlockGrid(mMtx, 200.0f * mNumX, 200.0f * mNumY, 200.0f * mNumZ);
 }
 
 void RepeatBlock::initShadow() {
@@ -448,6 +450,7 @@ void RepeatBlock::moveTails() {
     }
 }
 
+// NONMATCHING: target has a 0x50 frame with extra TVec3 temporaries (__as__ out of line, worldToCell not inlined); structure not recovered
 bool RepeatBlock::stepForward() {
     mGrid->worldToCell(&mRailCell, mPosition);
     if (mRailCell.isEqual(mCell)) {
@@ -696,7 +699,12 @@ void RepeatBlock::exeStop() {
     }
 }
 
-RepeatBlockGrid::RepeatBlockGrid(const TPos3f& rMtx, f32 x, f32 y, f32 z) : mMtx(rMtx), mInvMtx(rMtx), mCellSize(x, y, z) {
+// NONMATCHING: target copies rMtx into mInvMtx with psq_l/psq_st before invert; ours emits the lwz/stw loop (same calls, same order of stores)
+RepeatBlockGrid::RepeatBlockGrid(const TPos3f& rMtx, f32 x, f32 y, f32 z) : mMtx(rMtx) {
+    mCellSize.x = x;
+    mCellSize.y = y;
+    mCellSize.z = z;
+    mInvMtx = rMtx;
     mInvMtx.invert(mInvMtx);
 }
 
@@ -709,6 +717,7 @@ void RepeatBlockGrid::calcWorldCellPos(TVec3f* pDst, const RepeatBlockCell& rCel
     mMtx.mult(*pDst, *pDst);
 }
 
+// NONMATCHING: target inlines TVec3 += (psq ps_add) and *= (fmuls); header in-class members ignore the file pragma, so ours calls PSVECAdd/__amu out of line
 void RepeatBlockGrid::calcCell(RepeatBlockCell* pCell, const TVec3f& rPos) const {
     TVec3f pos(rPos);
     TVec3f half(mCellSize);
@@ -815,6 +824,7 @@ void RepeatBlockHistory::propagate() {
     }
 }
 
+// NONMATCHING: target inlines the RepeatBlockCell copy-ctor from sDirTable (lwz/stw/lhz); ours calls __ct__15RepeatBlockCellFRC out of line
 void RepeatBlockHistory::connect(RepeatBlockHistoryNode* pNode) {
     for (s32 i = 0; i < 6; i++) {
         pNode->mNeighbor[i] = -1;
@@ -854,7 +864,7 @@ RepeatBlockShadowDrawer::RepeatBlockShadowDrawer(RepeatBlockHistory* pHistory, R
     mDirection = 3;
     mMaxLength = 16;
     mVolume = new RepeatBlockVolume(pGrid);
-    mOffset = 0.5f;
+    mOffset = 0.0f;
     mHeadPoints = new TVec3f[8];
     mHasHead = false;
     mTailPoints = new TVec3f[8];
@@ -890,6 +900,7 @@ void RepeatBlockShadowDrawer::setDirection(s32 dir) {
     mDirection = dir;
 }
 
+// NONMATCHING: target calls getAxisX/Y/Z out of line and uses __ct/__amu TVec3 temporaries; ours inlines the getAxis bodies (NO_INLINE on them made it worse, 87.9%)
 void RepeatBlockShadowDrawer::makeVertexBuffer() {
     mPointNum = 0;
     TVec3f axisX, axisY, axisZ;
@@ -1003,6 +1014,7 @@ void RepeatBlockShadowDrawer::calcDropOffset(TVec3f* pDst) const {
     }
 }
 
+// NONMATCHING: target keeps the diff struct in a 0x20 frame with by-value temporary copies; ours uses the straight-line diff
 s32 RepeatBlockShadowDrawer::calcDirection(const RepeatBlockCell* pFrom, const RepeatBlockCell* pTo) const {
     REPEAT_BLOCK_CELL_SUB(diff, *pTo, *pFrom);
     if (diff.mX < 0) {

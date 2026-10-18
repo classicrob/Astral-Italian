@@ -7,10 +7,9 @@
 
 // Float constants (.sdata2) used by LeafBoard.
 
-namespace MR {
-    // NONMATCHING: SMG2 target calls scaleVelocity__2MRFP9LiveActorf with a TVec3f ref and reads f1 (symbol name looks wrong).
-    f32 scaleVelocity(LiveActor*, const TVec3f&);
-}
+// SMG2 target calls the symbol scaleVelocity__2MRFP9LiveActorf with (actor, const TVec3f&) and reads the f32 result in f1.
+// The name does not match the C++ signature, so declare it extern "C" to get the same reloc name.
+extern "C" f32 scaleVelocity__2MRFP9LiveActorf(LiveActor*, const TVec3f*);
 
 // Unnamed SMG2 helpers (C linkage so the target reloc names match).
 // PLACEHOLDER(objects): unnamed target symbol fn_802C2AA0, declared extern "C" so the reloc name matches; resolve when fn_802C2AA0 gets its real name in symbols.txt
@@ -136,7 +135,7 @@ void LeafBoard::updateMoveSound() {
 void LeafBoard::reboundFromWall() {
     if (MR::isBindedWall(this)) {
         TVec3f normal = -MR::getWallNormal(this);
-        f32 speed = MR::scaleVelocity(this, normal);
+        f32 speed = scaleVelocity__2MRFP9LiveActorf(this, &normal);
         if (speed > 5.0f) {
             MR::startAction(this, "Reaction");
             MR::tryHitReaction(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");

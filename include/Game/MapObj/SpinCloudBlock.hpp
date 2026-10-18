@@ -25,7 +25,7 @@ public:
     void spawnAt(const TVec3f&);
     void calcWind();
     void adjustOnPlayer();
-    bool updateScaleEase(s32);
+    bool updateScaleEase(s32) NO_INLINE;
 
     /* 0x90 */ SpringValue* mSpring;
     /* 0x94 */ TQuat4f mQuat;

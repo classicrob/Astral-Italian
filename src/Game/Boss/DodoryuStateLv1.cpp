@@ -92,7 +92,7 @@ void DodoryuStateLv1::exeHide() {
     }
 
     mHost->tryRumblePad();
-    MR::startActionSound(mHost, "SE_BM_LV_DODORYU_MOVE_U_SHALLOW", -1, -1, -1);
+    MR::startActionSound(mHost, "BmLvDodoryuMoveUShallow", -1, -1, -1);
 
     if (MR::isGreaterEqualStep(this, mHideStep)) {
         setNerve(GET_NERVE_ANON(DodoryuStateLv1NrvAppearSign));
@@ -124,7 +124,7 @@ void DodoryuStateLv1::exeAppearStart() {
         mHost->validateStarPieceSensor();
     }
 
-    MR::startActionSound(mHost, "SE_BM_LV_DODORYU_MOVE_U_SHALLOW", -1, -1, -1);
+    MR::startActionSound(mHost, "BmLvDodoryuMoveUShallow", -1, -1, -1);
 
     if (MR::isActionEnd(mHost)) {
         setNerve(GET_NERVE_ANON(DodoryuStateLv1NrvAppear));
@@ -144,7 +144,7 @@ void DodoryuStateLv1::exeAppear() {
         mHost->validateStarPieceSensor();
     }
 
-    MR::startActionSound(mHost, "SE_BM_LV_DODORYU_MOVE_GROUND", -1, -1, -1);
+    MR::startActionSound(mHost, "BmLvDodoryuMoveGround", -1, -1, -1);
 
     if (MR::isGreaterEqualStep(this, mAppearStep)) {
         setNerve(GET_NERVE_ANON(DodoryuStateLv1NrvAppearEnd));
@@ -170,8 +170,8 @@ void DodoryuStateLv1::exeAppearEnd() {
 void DodoryuStateLv1::exeJumpOut() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "SwoonStart");
-        MR::startActionSound(mHost, "SE_BM_DODORYU_JUMP_OUT", -1, -1, -1);
-        MR::startActionSound(mHost, "SE_BV_DODORYU_HIPDRP_DAMAGE", -1, -1, -1);
+        MR::startActionSound(mHost, "BmDodoryuJumpOut", -1, -1, -1);
+        MR::startActionSound(mHost, "BvDodoryuHipdrpDamage", -1, -1, -1);
         MR::validateShadowAll(mHost);
         mHost->stopHillForce();
         mHost->killLeadHill();
@@ -194,7 +194,7 @@ void DodoryuStateLv1::exeDamage() {
     }
 
     updatePop();
-    MR::startActionSound(mHost, "SE_BM_LV_DODORYU_SWOON", -1, -1, -1);
+    MR::startActionSound(mHost, "BmLvDodoryuSwoon", -1, -1, -1);
     MR::startActionSound(mHost, "SE_BV_LV_DODORYU_SWOON", -1, -1, -1);
 
     if (MR::isGreaterEqualStep(this, ::sSwoonTerm)) {
@@ -205,7 +205,7 @@ void DodoryuStateLv1::exeDamage() {
 void DodoryuStateLv1::exeDive() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "SwoonEnd");
-        MR::startActionSound(mHost, "SE_BV_DODORYU_WAKEUP", -1, -1, -1);
+        MR::startActionSound(mHost, "BvDodoryuWakeup", -1, -1, -1);
         MR::startBva(mHost, "Normal");
     }
 
@@ -228,7 +228,7 @@ void DodoryuStateLv1::exeSpinOut() {
         mHost->stopHillForce();
         MR::startBva(mHost, "Cry");
         mHost->startSpinOutCamera();
-        MR::startActionSound(mHost, "SE_BV_DODORYU_SPIN_DMG_1", -1, -1, -1);
+        MR::startActionSound(mHost, "BvDodoryuSpinDmg1", -1, -1, -1);
         mHost->invalidateEyeSensor();
     }
 
@@ -378,7 +378,7 @@ void DodoryuStateLv1::executeHideJump() {
     MR::startAction(mHost, "Jump");
     mHost->startLeadHillBck("Jump");
     MR::startBva(mHost, "Cry");
-    MR::startActionSound(mHost, "SE_BM_DODORYU_HIPDRP_REACTION", -1, -1, -1);
+    MR::startActionSound(mHost, "BmDodoryuHipdrpReaction", -1, -1, -1);
 }
 
 void DodoryuStateLv1::startPop() {

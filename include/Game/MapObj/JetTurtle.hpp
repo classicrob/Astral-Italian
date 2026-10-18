@@ -19,8 +19,9 @@ public:
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
-    virtual bool receiveMsgThrow(HitSensor*, HitSensor*);
+    bool receiveMsgThrow(HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
+    virtual void exeThrowing();
     virtual void resetPosition();
     virtual void reset(u32);
 
@@ -29,7 +30,6 @@ public:
     void exeWait2();
     void endWait2();
     void exeThrowWait();
-    virtual void exeThrowing();
     void exeTakenReserve();
     void exeTakenStart();
     void exeRestart();

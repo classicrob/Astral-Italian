@@ -41,7 +41,7 @@ namespace MR {
     DummyDisplayModel* tryCreateDummyModel(LiveActor* pHost, const JMapInfoIter& rIter, s32, int);
     DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, const JMapInfoIter& rIter, s32, const TVec3f&, const TVec3f&);
     DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, const JMapInfoIter& rIter, const char*, s32);
-    DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, const JMapInfoIter& rIter, MtxPtr, s32, const TVec3f&, const TVec3f&);
+    DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, s32, const char*, const TVec3f&, const TVec3f&);
     DummyDisplayModel* createDummyDisplayModelCrystalItem(LiveActor* pHost, const JMapInfoIter& rIter, const TVec3f&, const TVec3f&);
     DummyDisplayModel* createDummyDisplayModelCrystalItem(LiveActor* pHost, s32, const TVec3f&, const TVec3f&);
     s32 getDummyDisplayModelId(const JMapInfoIter&, s32);

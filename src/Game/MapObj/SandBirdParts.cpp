@@ -46,7 +46,7 @@ namespace NrvSandBirdParts {
 };  // namespace NrvSandBirdParts
 
 SandBirdParts::SandBirdParts(const char* pName, LiveActor* pParent, HitSensor* pSensor)
-    : LiveActor(pName), mParent(pParent), mConnector(nullptr), mBodySensor(pSensor), mBasePos(1.0f, 1.0f, 1.0f), mStepLimit(100) {
+    : LiveActor(pName), mParent(pParent), mConnector(nullptr), mBodySensor(pSensor), mBaseScale(1.0f, 1.0f, 1.0f), mStepLimit(100) {
     mCollisionMtx.identity();
 }
 
@@ -56,7 +56,7 @@ void SandBirdParts::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, name, false);
     MR::initCollisionParts(this, name, mBodySensor, mCollisionMtx);
     initNerve(GET_NERVE(SandBirdParts, SandBirdPartsNrvWait), 0);
-    mBasePos.set(mPosition);
+    mBaseScale.set(mScale);
     MR::getJMapInfoArg0NoInit(rIter, &mStepLimit);
     MR::excludeCalcShadowToActorAll(this, mParent);
     MR::validateClipping(this);
@@ -110,7 +110,7 @@ void SandBirdParts::exeHide() {
         MR::startAction(this, "Hide");
         MR::hideModelAndOnCalcAnim(this);
         MR::invalidateCollisionParts(this);
-        mPosition.set(mBasePos * 0.05f);
+        mScale.set(mBaseScale * 0.05f);
     }
 
     if (MR::isGreaterStep(this, mStepLimit)) {
@@ -144,13 +144,13 @@ void SandBirdParts::exeShrinkHide() {
         MR::startAction(this, "Hide");
         MR::hideModelAndOnCalcAnim(this);
         MR::invalidateCollisionParts(this);
-        mPosition.set(mBasePos * 0.05f);
+        mScale.set(mBaseScale * 0.05f);
     }
 }
 
 bool SandBirdParts::updateShrink() {
     f32 ease = MR::calcNerveEaseInOutValue(this, 0x1E, 1.0f, 0.05f);
-    mPosition.set(mBasePos * ease);
+    mScale.set(mBaseScale * ease);
     return MR::isGreaterStep(this, 0x1E);
 }
 
@@ -161,7 +161,7 @@ bool SandBirdParts::updateAppear() {
     }
 
     f32 ease = MR::calcNerveEaseInOutValue(this, 0x1E, 0.05f, 1.0f);
-    mPosition.set(mBasePos * ease);
+    mScale.set(mBaseScale * ease);
     if (MR::isGreaterStep(this, 0x1E)) {
         return true;
     }

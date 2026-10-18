@@ -6,7 +6,7 @@
 class ActorCameraInfo;
 struct TubeSliderInfo {
 public:
-    void init(f32);
+    TubeSliderInfo(f32);
     bool hasWall(bool) const;
 
     f32 mRadius;               // 0x00 | 0x124 : Relative to it's usage in TubeSlider

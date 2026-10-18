@@ -48,7 +48,7 @@ void MapPartsBreaker::exeBreak() {
     }
 
     if (isStep(15)) {
-        sendMsgToHost(206);
+        sendMsgToHost(219);
         mHost->kill();
     }
 }

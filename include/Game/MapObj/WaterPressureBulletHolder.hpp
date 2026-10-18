@@ -15,5 +15,5 @@ public:
 
     WaterPressureBullet* callEmptyBullet();
 
-    /* 0x0C */ WaterPressureBullet* mBullet[16];
+    /* 0x0C */ WaterPressureBullet* mBullet[32];
 };

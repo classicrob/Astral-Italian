@@ -98,7 +98,7 @@ void BossStinkBugActionSequencer::exeOpeningDemo() {
 
 void BossStinkBugActionSequencer::exeGround() {
     if (MR::isFirstStep(this)) {
-        MR::startBossBGM(MR::BossBgmID_StinkBugA);
+        MR::startBossBGM(7); // SMG2 BGM id (StinkBugA); SoundUtil.hpp BossBgmID is SMG1 numbering
         mCurrentAction = mActionGround;
     }
     MR::updateActorStateAndNextNerve(this, mActionGround, GET_NERVE(BossStinkBugActionSequencer, BossStinkBugActionSequencerNrvFlyDemo));
@@ -114,7 +114,7 @@ void BossStinkBugActionSequencer::exeFlyDemo() {
 void BossStinkBugActionSequencer::exeFlyLow() {
     if (MR::isFirstStep(this)) {
         mStinkBug->appearStarPiece(8);
-        MR::startBossBGM(MR::BossBgmID_StinkBugB);
+        MR::startBossBGM(8); // SMG2 BGM id (StinkBugB); SoundUtil.hpp BossBgmID is SMG1 numbering
         mCurrentAction = mActionFlyLow;
     }
     MR::updateActorStateAndNextNerve(this, mActionFlyLow, GET_NERVE(BossStinkBugActionSequencer, BossStinkBugActionSequencerNrvAngryDemo));

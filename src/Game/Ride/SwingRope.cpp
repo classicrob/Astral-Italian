@@ -205,7 +205,7 @@ void SwingRope::exeBindSlideDownStart() {
         mSlideSpeed = 0.0f;
     }
 
-    if (!updateSlideDown() && MR::isBckStopped(mRider)) {
+    if (!updateSlideDown() && MR::isActionEnd(mRider)) {
         setNerve(GET_NERVE(SwingRope, SwingRopeNrvBindSlideDown));
     }
 }

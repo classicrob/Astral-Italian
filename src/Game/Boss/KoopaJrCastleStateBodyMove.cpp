@@ -111,7 +111,45 @@ void KoopaJrCastleStateBodyMove::exe800CF2A0() {
     }
 }
 
-// NONMATCHING: exe800CF3B0 (TurnA) not written yet: target uses a bool-returning MR::turnDirectionToPlayerDegreeHorizon
+void KoopaJrCastleStateBodyMove::exe800CF3B0() {
+    KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
+    if (MR::isFirstStep(this)) {
+        _1C = 0.0f;
+        KoopaJrCastleFunction::fireBarOff();
+    }
+    if (MR::isPlayerLeftSide(mHost)) {
+        if (startBtkKeepFrame("MoveR")) {
+            MR::setBtkRate(mHost, 1.0f);
+        }
+    } else {
+        if (startBtkKeepFrame("MoveL")) {
+            MR::setBtkRate(mHost, 1.0f);
+        }
+    }
+    MR::startActionSound(mHost, "MoveRotate", -1, -1, -1);
+    f32 rate = 0.0f;
+    f32 temp = _1C + 0.025f;
+    _1C = temp;
+    if (temp >= rate) {
+        rate = 0.5f;
+        if (temp <= rate) {
+            rate = temp;
+        }
+    }
+    _1C = rate;
+    if (MR::turnDirectionToPlayerDegreeHorizon(pCastle, &pCastle->mFrontVec, rate)) {
+        KoopaJrCastleFunction::fireBarOn();
+        setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvTurnB::sInstance);
+        return;
+    }
+    if (MR::isGreaterStep(this, 150)) {
+        KoopaJrCastleFunction::fireBarOn();
+        setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvTurnB::sInstance);
+        return;
+    }
+    setMoveRate(MR::calcNerveEaseOutValue(this, 10, 0.1f, 1.8f));
+    mHost->validateCollisionA();
+}
 
 void KoopaJrCastleStateBodyMove::exe800CF530() {
     if (MR::isFirstStep(this)) {
@@ -344,12 +382,12 @@ bool KoopaJrCastleStateBodyMove::isTurnEnd(f32 dir) {
     return false;
 }
 
-// NONMATCHING: 3200.0f - 50.0f is not folded in the target (two sdata2 loads + fsubs)
 bool KoopaJrCastleStateBodyMove::isOutsideCenter() {
     f32 dist;
     TVec3f dir;
     MR::separateScalarAndDirection(&dist, &dir, mDirection - KoopaJrCastleFunction::getCastle()->mPosition);
-    return dist > 3200.0f - 50.0f;
+    f32 margin = 50.0f;
+    return dist > 3200.0f - margin;
 }
 
 void KoopaJrCastleStateBodyMove::setMoveRate(f32 rate) {

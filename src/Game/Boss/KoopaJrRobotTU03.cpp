@@ -223,7 +223,7 @@ void KoopaJrRobotKillerLauncher::updateTransform() {
 }
 
 static inline f32 wrapAngle(f32 v, f32 base) {
-    return base + (f32)fmod(6.2831855f + (v - base), 6.283185307179586);
+    return base + (f32)fmod(6.2831855f + (v - base), 6.2831855f);
 }
 
 f32 KoopaJrRobotKillerLauncher::normalizeAngle(f32 angle) {

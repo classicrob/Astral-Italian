@@ -303,7 +303,8 @@ void PetitPorter::exeLeaveCamera() {
         JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
         MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203A\203E\203g", mCameraTargetMtx, -1);
         if (mBgmHandle1 != 0) {
-            MR::startStageBGM(mBgmHandle1, false);
+            // SMG2 binary calls the const char* overload with the stored id (startStageBGM__2MRFPCcb).
+            MR::startStageBGM(reinterpret_cast<const char*>(mBgmHandle1), false);
         }
         if (mBgmHandle2 > 0) {
             MR::setStageBGMState(mBgmHandle2, sRescueBgmState);

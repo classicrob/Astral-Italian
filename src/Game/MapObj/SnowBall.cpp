@@ -97,6 +97,7 @@ SnowBallNrvWait SnowBallNrvWait::sInstance ATTRIBUTE_WEAK;
 // ---- helpers (state tests) ----
 
 // fn_803020E0: blow or thaw nerve
+#pragma dont_inline on
 static bool isBlowOrThawNerve(const LiveActor* pActor) {
     return pActor->isNerve(&SnowBallNrvBlow::sInstance) || pActor->isNerve(&SnowBallNrvThaw::sInstance);
 }
@@ -106,13 +107,14 @@ static bool isHideBreakOrThawNerve(const LiveActor* pActor) {
     return pActor->isNerve(&SnowBallNrvHide::sInstance) || pActor->isNerve(&SnowBallNrvBreak::sInstance) ||
            pActor->isNerve(&SnowBallNrvThaw::sInstance);
 }
+#pragma dont_inline reset
 
 // fn_803019C0: maps the radius to the sensor radius
 static f32 calcSensorRadius(f32 radius) {
-    if (radius == 50.0f) {
+    if (radius <= 50.0f) {
         return radius;
     }
-    if (radius == 125.0f) {
+    if (radius >= 125.0f) {
         return radius - 25.0f;
     }
     return 16.666666f + (0.6666667f * radius);
@@ -250,10 +252,10 @@ void SnowBall::setRadius(f32 radius) {
     }
     MR::setScale(this, value / 100.0f);
     MR::setBinderRadius(this, value);
-    MR::setSensorRadius(this, cPushSensorName, calcSensorRadius(mRadius));
-    MR::setSensorRadius(this, cBodySensorName, calcSensorRadius(mRadius));
-    MR::setStarPointerTargetRadius3d(this, value);
-    MR::setClippingTypeSphere(this, value);
+    MR::setSensorRadius(this, "Push", calcSensorRadius(mRadius));
+    MR::setSensorRadius(this, "Body", calcSensorRadius(mRadius));
+    MR::setClippingTypeSphere(this, 1.2f * mRadius);
+    MR::setStarPointerTargetRadius3d(this, mRadius);
 }
 
 void SnowBall::tryDropSnowStep(const TVec3f& rPos) {
@@ -276,6 +278,7 @@ void SnowBall::launch(const TVec3f& rPos, const TVec3f& rVel, bool canRespawn) {
     mBasePos.set(rPos);
     mCanRespawn = canRespawn;
     resetRoll();
+    appear();
     MR::invalidateClipping(this);
     setNerve(&SnowBallNrvBreak::sInstance);
     MR::setVelocity(this, rVel);
@@ -287,6 +290,8 @@ void SnowBall::breakAndWait() {
         kill();
         return;
     }
+    MR::hideModel(this);
+    MR::invalidateClipping(this);
     MR::invalidateHitSensors(this);
     MR::offBind(this);
     MR::offCalcGravity(this);
@@ -302,8 +307,8 @@ void SnowBall::resetRoll() {
     MR::showModel(this);
     MR::resetPosition(this, mBasePos);
     mPrevPos.set(mPosition);
-    MR::zeroVelocity(this);
     setNerve(&SnowBallNrvThaw::sInstance);
+    MR::zeroVelocity(this);
     mRadius = 100.0f * mBaseRadius;
     mSpeedTarget = mRadius;
     setRadius(mRadius);
@@ -312,12 +317,10 @@ void SnowBall::resetRoll() {
 
 // fn_80302350: rolling / binded ground update, returns true when the ball is too small to keep going
 bool SnowBall::updateBindedGroundRoll(bool bindHit) {
-    TVec3f up(-mGravity);
     if (MR::isBindedGroundSnow(this)) {
         const TVec3f* pNormal = &MR::getGroundNormal(this);
-        TVec3f proj(*pNormal);
-        proj *= -pNormal->dot(mVelocity);
-        proj += mVelocity;
+        TVec3f proj;
+        JMAVECScaleAdd(pNormal, &mVelocity, &proj, -pNormal->dot(mVelocity));
         f32 len = PSVECMag(&proj);
         mSpeedTarget += len / 50.0f;
         if (mSpeedTarget > 200.0f) {
@@ -334,15 +337,11 @@ bool SnowBall::updateBindedGroundRoll(bool bindHit) {
         TVec3f negGravity(-mGravity);
         f32 deg = 57.29578f * JMAAcosRadian(pNormal->dot(negGravity));
         if (deg > 35.0f) {
-            f32 k = (deg - 35.0f) / 25.0f;
-            if (k > 1.0f) {
-                k = 1.0f;
-            }
+            f32 k = MR::normalize(deg, 35.0f, 60.0f);
             MR::addVelocityToGravity(this, 2.0f * k);
             mStopCount = 0;
         }
         mGroundCount = 0;
-        up = *pNormal;
     } else {
         MR::addVelocityToGravity(this, 2.0f);
         mGroundCount++;
@@ -354,9 +353,14 @@ bool SnowBall::updateBindedGroundRoll(bool bindHit) {
 
     f32 damp = (mGroundCount < 5) ? 0.96f : 0.99f;
     MR::attenuateVelocity(this, damp);
-    mRadius += (mSpeedTarget - mRadius) * 0.1f;
+    mRadius = MR::lerp(mRadius, mSpeedTarget, 0.1f);
 
-    MR::rotateQuatRollBall(&mQuat, mVelocity, up, mRadius);
+    if (MR::isBindedGround(this)) {
+        MR::rotateQuatRollBall(&mQuat, mVelocity, MR::getGroundNormal(this), mRadius);
+    } else {
+        TVec3f up(-mGravity);
+        MR::rotateQuatRollBall(&mQuat, mVelocity, up, mRadius);
+    }
     f32 velLen = MR::calcVelocityLength(this);
     if (velLen < 4.0f) {
         mStopCount++;

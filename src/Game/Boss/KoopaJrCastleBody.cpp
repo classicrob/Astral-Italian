@@ -12,6 +12,7 @@
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
+#include <JSystem/J3DGraphAnimator/J3DJoint.hpp>
 
 namespace NrvKoopaJrCastleBody { KoopaJrCastleBodyNrvWait KoopaJrCastleBodyNrvWait::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleBody { KoopaJrCastleBodyNrvStop KoopaJrCastleBodyNrvStop::sInstance ATTRIBUTE_WEAK; }
@@ -41,9 +42,20 @@ namespace {
     TVec3f sAxisBack(0.0f, 0.0f, -1.0f);
     TVec3f sAxisFront(0.0f, 0.0f, 1.0f);
 
+    typedef bool (KoopaJrCastleBody::*GearCalcFunc)(TPos3f*, const JointControllerInfo&);
+
+    // 0..10: body gear / propeller / windmill callbacks, 11: GearL, 12: GearR (target .data table)
+    static GearCalcFunc sGearFuncs[13] = {
+        &KoopaJrCastleBody::calcBodyGear1, &KoopaJrCastleBody::calcBodyGear2, &KoopaJrCastleBody::calcBodyGear3,
+        &KoopaJrCastleBody::calcPropeller, &KoopaJrCastleBody::calcPropeller, &KoopaJrCastleBody::calcPropeller,
+        &KoopaJrCastleBody::calcPropeller, &KoopaJrCastleBody::calcWindmill, &KoopaJrCastleBody::calcWindmill,
+        &KoopaJrCastleBody::calcWindmill, &KoopaJrCastleBody::calcWindmill, &KoopaJrCastleBody::calcGearL,
+        &KoopaJrCastleBody::calcGearR,
+    };
+
     typedef JointControlDelegator< KoopaJrCastleBody > BodyDelegator;
 
-    static JointController* createBodyJoint(KoopaJrCastleBody* pHost, const char* pName, bool (KoopaJrCastleBody::*pFunc)(TPos3f*, const JointControllerInfo&)) {
+    static JointController* createBodyJoint(KoopaJrCastleBody* pHost, const char* pName, GearCalcFunc pFunc) {
         BodyDelegator* pCtrl = new BodyDelegator(pHost, pFunc, nullptr);
         MR::setJointControllerParam(pCtrl, pHost, pName);
         return pCtrl;
@@ -58,6 +70,67 @@ KoopaJrCastleBody::KoopaJrCastleBody(LiveActor* pHost, const char* pName)
 }
 
 KoopaJrCastleBody::~KoopaJrCastleBody() {}
+
+void KoopaJrCastleBody::init(const JMapInfoIter& rInfo) {
+    mGearCtrl = new JointController*[11];
+    for (s32 i = 0; i < 11; i++) {
+        mGearCtrl[i] = nullptr;
+    }
+    mGearCtrl[0] = createBodyJoint(this, sGearNames[0], sGearFuncs[0]);
+    mGearCtrl[1] = createBodyJoint(this, sGearNames[1], sGearFuncs[1]);
+    mGearCtrl[2] = createBodyJoint(this, sGearNames[2], sGearFuncs[2]);
+    mGearCtrl[3] = createBodyJoint(this, sGearNames[3], sGearFuncs[3]);
+    mGearCtrl[4] = createBodyJoint(this, sGearNames[4], sGearFuncs[4]);
+    mGearCtrl[5] = createBodyJoint(this, sGearNames[5], sGearFuncs[5]);
+    mGearCtrl[6] = createBodyJoint(this, sGearNames[6], sGearFuncs[6]);
+    mGearCtrl[7] = createBodyJoint(this, sGearNames[7], sGearFuncs[7]);
+    mGearCtrl[8] = createBodyJoint(this, sGearNames[8], sGearFuncs[8]);
+    mGearCtrl[9] = createBodyJoint(this, sGearNames[9], sGearFuncs[9]);
+    mGearCtrl[10] = createBodyJoint(this, sGearNames[10], sGearFuncs[10]);
+
+    mGearCtrlLR = new JointController*[28];
+    for (s32 i = 0; i < 14; i++) {
+        mGearCtrlLR[i] = createBodyJoint(this, sGearTable[i].mName, sGearFuncs[11]);
+    }
+    for (s32 i = 14; i < 28; i++) {
+        mGearCtrlLR[i] = createBodyJoint(this, sGearTable[i].mName, sGearFuncs[12]);
+    }
+
+    MR::initJointTransform(this);
+    mLowModel = MR::createModelObjMapObj("LOW\x83L\x83\x83\x83" "b\x83X\x83\x8B", "KoopaJrCastleBodyLow", nullptr);
+    MR::setClippingFarMax(mLowModel);
+    PartsModel::init(rInfo);
+
+    mCollision = new CollisionParts*[2];
+    mCollision[0] = MR::createCollisionPartsFromLiveActor(this, "KoopaJrCastleBody", getSensor("Collision"), getBaseMtx(),
+                                                          MR::CollisionScaleType_Default);
+    mCollision[1] = MR::createCollisionPartsFromLiveActor(this, "KoopaJrCastleBodyMove", getSensor("Collision"), getBaseMtx(),
+                                                          MR::CollisionScaleType_Default);
+
+    mState = new KoopaJrCastleStateBodyMove(this);
+
+    s32 jointNum = MR::getJointNum(this);
+    mJointIdx = new s32[jointNum];
+    for (s32 i = 0; i < jointNum; i++) {
+        mJointIdx[i] = -1;
+    }
+    for (s32 i = 0; i < 28; i++) {
+        mJointIdx[MR::getJointIndex(this, sGearTable[i].mName)] = i;
+    }
+
+    mGearMtx = new TPos3f[28];
+    for (s32 i = 0; i < 28; i++) {
+        PSMTXIdentity(reinterpret_cast< MtxPtr >(&mGearMtx[i]));
+    }
+
+    initNerve(&NrvKoopaJrCastleBody::KoopaJrCastleBodyNrvWait::sInstance, 1);
+    MR::initActorState(this, mState, &NrvKoopaJrCastleBody::KoopaJrCastleBodyNrvMove::sInstance, "Move");
+    makeActorAppeared();
+    validateCollisionB();
+    _F0 = -1600.0f;
+    _B4 = false;
+    _F6 = false;
+}
 
 void KoopaJrCastleBody::makeActorAppeared() {
     PartsModel::makeActorAppeared();
@@ -136,6 +209,20 @@ void KoopaJrCastleBody::control() {
             mWindStep = 0;
         }
         MR::startActionSound(this, "BodyGear", -1, -1, -1);
+    }
+}
+
+void KoopaJrCastleBody::calcAndSetBaseMtx() {
+    calcGearMtx();
+    for (s32 i = 0; i < 11; i++) {
+        mGearCtrl[i]->registerCallBack();
+    }
+    for (s32 i = 0; i < 28; i++) {
+        mGearCtrlLR[i]->registerCallBack();
+    }
+    PartsModel::calcAndSetBaseMtx();
+    if (!MR::isDead(mLowModel)) {
+        MR::copyTransRotate(this, mLowModel);
     }
 }
 
@@ -278,4 +365,189 @@ bool KoopaJrCastleBody::isMoveState() const {
         ret = true;
     }
     return ret;
+}
+
+u8 KoopaJrCastleBody::getStateFlag() const {
+    return mState->getFlag();
+}
+
+bool KoopaJrCastleBody::calcBodyGear1(TPos3f* pMtx, const JointControllerInfo&) {
+    MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
+    f32 step = (f32)mGearStep;
+    TVec3f sp8(sAxisY);
+    sp8.scale(360.0f);
+    TVec3f sp14(sp8);
+    sp14.scale(step);
+    TVec3f sp20(sp14);
+    s32 gearMax = 500;
+    sp20.scale(1.0f / (f32)gearMax);
+    Mtx rot;
+    PSMTXIdentity(rot);
+    MR::makeMtxRotate(rot, sp20);
+    PSMTXConcat(pDst, rot, pDst);
+    return true;
+}
+
+bool KoopaJrCastleBody::calcBodyGear2(TPos3f* pMtx, const JointControllerInfo&) {
+    MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
+    TVec3f sp8 = -sAxisY;
+    f32 step = (f32)mGearStep;
+    TVec3f sp14(sp8);
+    sp14.scale(360.0f);
+    TVec3f sp20(sp14);
+    sp20.scale(step);
+    TVec3f sp2C(sp20);
+    s32 gearMax = 500;
+    sp2C.scale(1.0f / (f32)gearMax);
+    Mtx rot;
+    PSMTXIdentity(rot);
+    MR::makeMtxRotate(rot, sp2C);
+    PSMTXConcat(pDst, rot, pDst);
+    return true;
+}
+
+bool KoopaJrCastleBody::calcBodyGear3(TPos3f* pMtx, const JointControllerInfo&) {
+    MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
+    f32 angle = -KoopaJrCastleFunction::getFireBarB0();
+    TVec3f sp8(sAxisY);
+    sp8.scale(angle);
+    Mtx rot;
+    PSMTXIdentity(rot);
+    MR::makeMtxRotate(rot, sp8);
+    PSMTXConcat(pDst, rot, pDst);
+    return true;
+}
+
+bool KoopaJrCastleBody::calcPropeller(TPos3f* pMtx, const JointControllerInfo&) {
+    MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
+    f32 step = (f32)mPropStep;
+    TVec3f sp8(sAxisBack);
+    sp8.scale(360.0f);
+    TVec3f sp14(sp8);
+    sp14.scale(step);
+    TVec3f sp20(sp14);
+    s32 propMax = 20;
+    sp20.scale(1.0f / (f32)propMax);
+    Mtx rot;
+    PSMTXIdentity(rot);
+    MR::makeMtxRotate(rot, sp20);
+    PSMTXConcat(pDst, rot, pDst);
+    return true;
+}
+
+bool KoopaJrCastleBody::calcWindmill(TPos3f* pMtx, const JointControllerInfo&) {
+    MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
+    f32 step = (f32)mWindStep;
+    TVec3f sp8(sAxisFront);
+    sp8.scale(360.0f);
+    TVec3f sp14(sp8);
+    sp14.scale(step);
+    TVec3f sp20(sp14);
+    s32 propMax = 20;
+    sp20.scale(1.0f / (f32)propMax);
+    Mtx rot;
+    PSMTXIdentity(rot);
+    MR::makeMtxRotate(rot, sp20);
+    PSMTXConcat(pDst, rot, pDst);
+    return true;
+}
+
+bool KoopaJrCastleBody::calcGearL(TPos3f* pMtx, const JointControllerInfo& rInfo) {
+    MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
+    if (_B4) {
+        return false;
+    }
+    u16 jntNo = rInfo.mJoint->getJntNo();
+    if (mJointIdx[jntNo] < 0) {
+        return false;
+    }
+    TVec3f trans;
+    MR::extractMtxTrans(pDst, &trans);
+    MtxPtr jointMtx = MR::getJointMtx(this, "GearL");
+    PSMTXConcat(jointMtx, reinterpret_cast< MtxPtr >(&mGearMtx[mJointIdx[jntNo]]), pDst);
+    MR::setMtxTrans(pDst, trans.x, trans.y, trans.z);
+    return true;
+}
+
+bool KoopaJrCastleBody::calcGearR(TPos3f* pMtx, const JointControllerInfo& rInfo) {
+    MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
+    if (_B4) {
+        return false;
+    }
+    u16 jntNo = rInfo.mJoint->getJntNo();
+    if (mJointIdx[jntNo] < 0) {
+        return false;
+    }
+    TVec3f trans;
+    MR::extractMtxTrans(pDst, &trans);
+    MtxPtr jointMtx = MR::getJointMtx(this, "GearR");
+    PSMTXConcat(jointMtx, reinterpret_cast< MtxPtr >(&mGearMtx[mJointIdx[jntNo]]), pDst);
+    MR::setMtxTrans(pDst, trans.x, trans.y, trans.z);
+    return true;
+}
+
+void KoopaJrCastleBody::calcGearMtx() {
+    if (MR::getPlayingBckName(this) != nullptr) {
+        f32 f30 = _F8 / 480.0f;
+        f32 f31 = _FC / 480.0f;
+        Mtx sp70;
+        Mtx sp40;
+        Mtx sp10;
+
+        PSMTXIdentity(sp70);
+        PSMTXIdentity(sp40);
+        PSMTXIdentity(sp10);
+
+        f32 angle = 360.0f * f30;
+        MR::repeatDegree(&angle);
+        MR::makeMtxRotate(sp70, angle, 0.0f, 0.0f);
+        angle = 2.0f * (360.0f * f30);
+        MR::repeatDegree(&angle);
+        MR::makeMtxRotate(sp40, angle, 0.0f, 0.0f);
+        angle = -2.0f * (360.0f * f30);
+        MR::repeatDegree(&angle);
+        MR::makeMtxRotate(sp10, angle, 0.0f, 0.0f);
+
+        for (s32 i = 0; i < 14; i++) {
+            switch (sGearTable[i].mType) {
+            case 1:
+                PSMTXCopy(sp70, reinterpret_cast< MtxPtr >(&mGearMtx[i]));
+                break;
+            case 2:
+                PSMTXCopy(sp40, reinterpret_cast< MtxPtr >(&mGearMtx[i]));
+                break;
+            case -2:
+                PSMTXCopy(sp10, reinterpret_cast< MtxPtr >(&mGearMtx[i]));
+                break;
+            }
+        }
+
+        angle = 360.0f * f31;
+        MR::repeatDegree(&angle);
+        MR::makeMtxRotate(sp70, angle, 0.0f, 0.0f);
+        angle = 2.0f * (360.0f * f31);
+        MR::repeatDegree(&angle);
+        MR::makeMtxRotate(sp40, angle, 0.0f, 0.0f);
+        angle = -2.0f * (360.0f * f31);
+        MR::repeatDegree(&angle);
+        MR::makeMtxRotate(sp10, angle, 0.0f, 0.0f);
+
+        for (s32 i = 14; i < 28; i++) {
+            switch (sGearTable[i].mType) {
+            case 1:
+                PSMTXCopy(sp70, reinterpret_cast< MtxPtr >(&mGearMtx[i]));
+                break;
+            case 2:
+                PSMTXCopy(sp40, reinterpret_cast< MtxPtr >(&mGearMtx[i]));
+                break;
+            case -2:
+                PSMTXCopy(sp10, reinterpret_cast< MtxPtr >(&mGearMtx[i]));
+                break;
+            }
+        }
+    }
+}
+
+void KoopaJrCastleBody::startMoveSound() {
+    MR::startActionSound(this, "MoveLR", (s32)(100.0f * mRate), -1, -1);
 }

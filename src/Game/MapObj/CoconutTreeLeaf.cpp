@@ -42,7 +42,7 @@ CoconutTreeLeaf::CoconutTreeLeaf(const CoconutTreeLeafGroup* pGroup, MtxPtr pJoi
 void CoconutTreeLeaf::init(const JMapInfoIter& rIter) {
     initHitSensor(1);
     MR::addBodyMessageSensorMapObj(this);
-    MR::initCollisionPartsFromResourceHolder(this, "CoconutTreeLeaf", getSensor("body"), MR::getResourceHolder(mGroup), mJointMtx);
+    MR::initCollisionPartsFromResourceHolder(this, "CoconutTreeLeaf", getSensor("Body"), MR::getResourceHolder(mGroup), mJointMtx);
     MR::invalidateClipping(this);
     makeActorAppeared();
 }

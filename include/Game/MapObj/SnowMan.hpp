@@ -4,6 +4,7 @@
 
 class AnimScaleController;
 class AnimScaleParam;
+class DemoObj;
 
 class SnowMan : public LiveActor {
 public:
@@ -25,8 +26,9 @@ public:
     void exeWaitBody();
     void exeWaitHead();
 
-    /* 0x8C */ CollisionParts* mHeadCollisionParts;
-    /* 0x90 */ CollisionParts* mBodyCollisionParts;
-    /* 0x94 */ AnimScaleController* mAnimScaleCtrl;
-    /* 0x98 */ AnimScaleParam* mAnimScaleParam;
+    /* 0x90 */ CollisionParts* mHeadCollisionParts;
+    /* 0x94 */ CollisionParts* mBodyCollisionParts;
+    /* 0x98 */ DemoObj* mBreakDustDemo;
+    /* 0x9C */ AnimScaleController* mAnimScaleCtrl;
+    /* 0xA0 */ AnimScaleParam* mAnimScaleParam;
 };

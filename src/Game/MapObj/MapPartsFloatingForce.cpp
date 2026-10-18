@@ -48,7 +48,7 @@ void MapPartsFloatingForce::init(const JMapInfoIter& rIter) {
         initForNormalMotion(rIter);
     }
 
-    MR::useStageSwitchReadA(mHost, rIter);
+    MR::initUseStageSwitchReadA(mHost, rIter);
 }
 
 void MapPartsFloatingForce::setObjectName(const char* pName) {

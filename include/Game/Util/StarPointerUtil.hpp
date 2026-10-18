@@ -2,6 +2,7 @@
 
 #include <JSystem/JGeometry/TVec.hpp>
 
+class HitSensor;
 class LiveActor;
 
 namespace MR {
@@ -26,6 +27,7 @@ namespace MR {
     void setStarPointerCameraMtxAtGameScene();
     void initStarPointerTargetAtPos(LiveActor*, f32, const TVec3f*, const TVec3f&);
     void initStarPointerTargetAtMtx(LiveActor*, f32, MtxPtr, const TVec3f&);
+    void tryRegisterStarLightReceiver(HitSensor*);
     void addStarPointerTargetCircle(LayoutActor*, const char*, f32, const TVec2f&, const char*);
     bool isStarPointerValid(s32);
     bool isStarPointerPointing(const LiveActor*, s32, bool, const char*);

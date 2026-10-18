@@ -388,7 +388,7 @@ bool GCapture::tryFireDamage() {
 
 bool GCapture::tryRelease() {
     if (MR::isGreaterStep(this, 180) || MR::isBinded(this)) {
-        if (MR::sendMsgToBindedSensor(197, this, getSensor("Body"))) {
+        if (MR::sendMsgToBindedSensor(208, this, getSensor("Body"))) {
             return false;
         }
 
@@ -721,7 +721,7 @@ void GCapture::addRotateAccelPointing() {
 }
 
 bool GCapture::tryAddVelocityReflectJumpCollision() {
-    bool ret = MR::sendMsgToBindedSensor(196, this, getSensor("Body"));
+    bool ret = MR::sendMsgToBindedSensor(207, this, getSensor("Body"));
     if (ret) {
         MR::addVelocityToCollisionNormal(this, 25.0f);
 

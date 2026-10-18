@@ -247,19 +247,14 @@ namespace MR {
         return mdl;
     }
 
-    DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, const JMapInfoIter& rIter, MtxPtr mtx, s32 a3, const TVec3f& a4, const TVec3f& a5) {
-        DummyDisplayModel* mdl = MR::tryCreateDummyModel(pHost, rIter, a3, -1);
-
-        if (mdl == nullptr) {
-            return nullptr;
-        }
-
-        mdl->initFixedPosition(mtx, a4, a5);
+    DummyDisplayModel* createDummyDisplayModel(LiveActor* pHost, s32 itemType, const char* pJointName, const TVec3f& rTrans, const TVec3f& rRot) {
+        DummyDisplayModel* mdl = MR::tryCreateDummyModel(pHost, JMapInfoIter(), itemType, -1);
+        mdl->initFixedPosition(rTrans, rRot, pJointName);
         return mdl;
     }
 
     DummyDisplayModel* createDummyDisplayModelCrystalItem(LiveActor* pHost, const JMapInfoIter& rIter, const TVec3f& a4, const TVec3f& a5) {
-        DummyDisplayModel* mdl = MR::tryCreateDummyModel(pHost, rIter, -1, 0x21);
+        DummyDisplayModel* mdl = MR::tryCreateDummyModel(pHost, rIter, -1, 0x22);
 
         if (mdl == nullptr) {
             return nullptr;
@@ -270,7 +265,7 @@ namespace MR {
     }
 
     DummyDisplayModel* createDummyDisplayModelCrystalItem(LiveActor* pHost, s32 a2, const TVec3f& a3, const TVec3f& a4) {
-        DummyDisplayModel* mdl = MR::tryCreateDummyModel(pHost, JMapInfoIter(), a2, 0x21);
+        DummyDisplayModel* mdl = MR::tryCreateDummyModel(pHost, JMapInfoIter(), a2, 0x22);
         mdl->initFixedPosition(a3, a4, nullptr);
         return mdl;
     }

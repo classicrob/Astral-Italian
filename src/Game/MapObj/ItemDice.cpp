@@ -280,7 +280,7 @@ const char* LuckyDice::getModelName() {
 }
 
 void LuckyDice::initItems(const JMapInfoIter&) {
-    for (s32 i = 0; i < 5; i++) {
+    for (u32 i = 0; i < 5; i++) {
         void* pMem = ::operator new(0x154);
         BenefitItemObj* pItem = static_cast<BenefitItemObj*>(pMem);
         if (pMem != nullptr) {

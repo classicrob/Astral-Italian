@@ -4,7 +4,7 @@
 
 class LightArea : public AreaObj {
 public:
-    LightArea(int, const char*);
+    LightArea(const char*);
 
     virtual void init(const JMapInfoIter&);
 
@@ -12,5 +12,5 @@ public:
         return "LightArea";
     }
 
-    /* 0x3C */ s32 mPlacedZoneID;
+    /* 0x48 */ bool _48;
 };

@@ -31,7 +31,7 @@ WaterPressureBullet::WaterPressureBullet(const char* pName) : LiveActor(pName) {
 }
 
 void WaterPressureBullet::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "WaterBullet", false);
+    MR::initActor(this, "WaterBullet", false);
     MR::connectToSceneMapObjStrongLight(this);
     initHitSensor(2);
     MR::addHitSensor(this, "body", 0x1C /* ATYPE_WATER_PRESSURE_BULLET */, 4, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));

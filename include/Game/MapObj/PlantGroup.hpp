@@ -53,8 +53,8 @@ public:
 
     virtual ~PlantMember();
     virtual void init(const JMapInfoIter&);
-    virtual void makeActorAppeared();
     virtual void appear();
+    virtual void makeActorAppeared();
     virtual void control();
 
     bool tryEmitHint();

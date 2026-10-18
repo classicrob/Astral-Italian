@@ -349,6 +349,8 @@ void BrightSun::draw() const {
 }
 
 void BrightSun::calcBrightInfo(u16 index, const BrightCamInfo& rCamInfo) {
+    mBrightness = 0.0f;
+
     if (MR::isDead(this)) {
         return;
     }
@@ -361,7 +363,7 @@ void BrightSun::getNowCenter(TVec2f* pDst) const {
 }
 
 void BrightSun::controlSunModel() {
-    mSun->mPosition.set(mPosition);
+    MR::setPosition(mSun, mPosition);
     mSun->mScale.set(::sSunModelScale);
 
     TVec3f camDir(MR::getCamPos() - mPosition);
@@ -381,7 +383,7 @@ void BrightSun::controlSunModel() {
         rotation.scale(57.295776f);
     }
 
-    mSun->mRotation.set(rotation);
+    MR::setRotation(mSun, rotation);
 }
 
 BrightObj::~BrightObj() {
@@ -418,17 +420,12 @@ void BrightSun::init(const JMapInfoIter& rIter) {
 
     MR::invalidateClipping(this);
 
-    MR::connectToScene(this, MR::MovementType_Environment, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_BrightSun);
+    // SMG2 MovementType_Environment is 0x20 (our enum: 0x21)
+    MR::connectToScene(this, 0x20, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_BrightSun);
 
     mSun = new Sun("太陽");
     mSun->initWithoutIter();
 
     MR::tryRegisterDemoCast(this, rIter);
-
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 }

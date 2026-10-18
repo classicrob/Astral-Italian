@@ -45,7 +45,7 @@ void FloaterFloatingForceTypeNormal::init(const JMapInfoIter& rIter) {
     FloaterFloatingForce::init(rIter);
     MR::getMapPartsArgRotateSpeed(&mRotateSpeed, rIter);
     MR::getMapPartsArgRotateAngle(&mRotateAngle, rIter);
-    MR::useStageSwitchReadA(mHost, rIter);
+    MR::initUseStageSwitchReadA(mHost, rIter);
     MapPartsFunction::initNerve(GET_NERVE(FloaterFloatingForceTypeNormal, HostTypeWait));
 }
 

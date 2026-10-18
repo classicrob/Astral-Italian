@@ -38,8 +38,6 @@ namespace MR {
     void hideModelIfShown(LiveActor*);
     void showModelIfHidden(LiveActor*);
     void calcDirectionVec(TVec3f*, const TVec3f&, const TVec3f&);
-    // SMG2 overload: (host, item type, joint name, offset, rotate); target symbol is createDummyDisplayModel(LiveActor*, JMapInfoIter&, MtxPtr, long, ...) in symbols.txt
-    LiveActor* createDummyDisplayModel(LiveActor*, s32, const char*, const TVec3f&, const TVec3f&);
     void createCenterScreenBlur();
     void startCenterScreenBlur(s32, f32, u8, s32, s32);
 };  // namespace MR

@@ -215,7 +215,7 @@ void Trapeze::exeSwingSlideDownStart() {
         MR::startBckPlayer("TrapezeSlideDownStart", nullptr);
     }
 
-    if (!updateSlideDown() && MR::isBckStopped(mRider)) {
+    if (!updateSlideDown() && MR::isActionEnd(mRider)) {
         setNerve(GET_NERVE(Trapeze, TrapezeNrvSwingSlideDown));
     }
 }

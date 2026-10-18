@@ -62,7 +62,7 @@ namespace NrvDinoPackunDemo {
     NEW_NERVE(DinoPackunDemoNrvAppearPowerStar, DinoPackunDemo, AppearPowerStar);
 };  // namespace NrvDinoPackunDemo
 
-DinoPackunDemo::DinoPackunDemo(DinoPackun* pBoss) : DinoPackunAction("ディノパックンデモ", pBoss), _14(), mDemoName() {
+DinoPackunDemo::DinoPackunDemo(DinoPackun* pBoss) : DinoPackunAction("ディノパックンデモ", pBoss), _14(), mDemoName(), mCameraName() {
     MR::createCenterScreenBlur();
 }
 

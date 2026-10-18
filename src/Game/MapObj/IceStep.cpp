@@ -35,11 +35,11 @@ void IceStep::init(const JMapInfoIter& rIter) {
 
     f32 radius = 90.0f * mScale.x;
     initHitSensor(1);
-    MR::addHitSensorMapObj(this, "body", 8, radius, TVec3f(0.0f, radius, 0.0f));
+    MR::addHitSensorMapObj(this, "Body", 8, radius, TVec3f(0.0f, radius, 0.0f));
 
     PSMTXIdentity(_8C);
 
-    MR::initCollisionParts(this, "IceStep", getSensor("body"), nullptr);
+    MR::initCollisionParts(this, "IceStep", getSensor("Body"), nullptr);
 
     MR::validateClipping(this);
 

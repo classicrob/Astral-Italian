@@ -475,7 +475,7 @@ Game/AreaObj/BgmChangeArea.cpp:
 	.text       start:0x80071930 end:0x80071E70
 
 Game/AreaObj/BgmVolumeFadeArea.cpp:
-	.text       start:0x80071E70 end:0x800720C0
+	.text       start:0x80071E70 end:0x80072120
 
 Game/AreaObj/ImageEffectArea.cpp:
 	.text       start:0x80072120 end:0x80072180
@@ -931,7 +931,7 @@ Game/Boss/BossStinkBugFlyDemo.cpp:
 	.ctors      start:0x80643DF4 end:0x80643DF8
 
 Game/Boss/BossStinkBugFunction.cpp:
-	.text       start:0x800AA240 end:0x800AAAB0
+	.text       start:0x800AA240 end:0x800AAC00
 
 Game/Boss/BossStinkBugOpeningDemo.cpp:
 	.text       start:0x800AAC00 end:0x800AAF50
@@ -1464,8 +1464,52 @@ Game/Boss/PoltaWaitStart.cpp:
 	.data       start:0x8067A020 end:0x8067A050
 
 Game/Boss/Sandy.cpp:
-	.text       start:0x800FAC80 end:0x80102CA0
-	.ctors      start:0x80643F9C end:0x80643FCC
+	.text       start:0x800FAC80 end:0x800FBA60
+	.ctors      start:0x80643F9C end:0x80643FA0
+
+Game/Boss/SandyBall.cpp:
+	.text       start:0x800FBA60 end:0x800FD1F0
+	.ctors      start:0x80643FA0 end:0x80643FA4
+
+Game/Boss/SandyHand.cpp:
+	.text       start:0x800FD1F0 end:0x800FF0C0
+	.ctors      start:0x80643FA4 end:0x80643FA8
+
+Game/Boss/SandyMini.cpp:
+	.text       start:0x800FF0C0 end:0x800FFDA0
+	.ctors      start:0x80643FA8 end:0x80643FAC
+
+Game/Boss/SandyBlur.cpp:
+	.text       start:0x800FFDA0 end:0x800FFF70
+	.ctors      start:0x80643FAC end:0x80643FB0
+
+Game/Boss/SandyStateDamage.cpp:
+	.text       start:0x800FFF70 end:0x80100B90
+	.ctors      start:0x80643FB0 end:0x80643FB4
+
+Game/Boss/SandyStateDemoStart.cpp:
+	.text       start:0x80100B90 end:0x80100EA0
+	.ctors      start:0x80643FB4 end:0x80643FB8
+
+Game/Boss/SandyStateDemoDown.cpp:
+	.text       start:0x80100EA0 end:0x801012B0
+	.ctors      start:0x80643FB8 end:0x80643FBC
+
+Game/Boss/SandyStateDemoPowerUp.cpp:
+	.text       start:0x801012B0 end:0x80101750
+	.ctors      start:0x80643FBC end:0x80643FC0
+
+Game/Boss/SandyStatePhase1.cpp:
+	.text       start:0x80101750 end:0x80101D50
+	.ctors      start:0x80643FC0 end:0x80643FC4
+
+Game/Boss/SandyStatePhase2.cpp:
+	.text       start:0x80101D50 end:0x80102320
+	.ctors      start:0x80643FC4 end:0x80643FC8
+
+Game/Boss/SandyStatePhase3.cpp:
+	.text       start:0x80102320 end:0x80102CA0
+	.ctors      start:0x80643FC8 end:0x80643FCC
 
 Game/Boss/TwoLegs.cpp:
 	.text       start:0x80102CA0 end:0x801042E0
@@ -3977,6 +4021,10 @@ Game/MapObj/ActorStateDemoAppearance.cpp:
 	.data       start:0x8069AA88 end:0x8069AAF8
 	.sbss       start:0x807D36C0 end:0x807D36C8
 
+Game/MapObj/ActorStatePlayerPosReset.cpp:
+	.text       start:0x8026DE50 end:0x8026E320
+	.ctors      start:0x806442E0 end:0x806442E4
+
 Game/MapObj/AirBubble.cpp:
 	.text       start:0x8026E320 end:0x8026EEB0
 	.ctors      start:0x806442E4 end:0x806442E8
@@ -4067,6 +4115,10 @@ Game/MapObj/BigFanCloud.cpp:
 Game/MapObj/JointControlDelegator.cpp:
 	.text       start:0x80279680 end:0x802797A0
 
+Game/MapObj/BigFanCloud2.cpp:
+	.text       start:0x802797A0 end:0x802798C0
+	.ctors      start:0x8064431C end:0x80644320
+
 Game/MapObj/BigFanHolder.cpp:
 	.text       start:0x802798C0 end:0x80279BF0
 	.data       start:0x8069C448 end:0x8069C478
@@ -4098,20 +4150,8 @@ Game/MapObj/BreakableCage.cpp:
 	.ctors      start:0x80644334 end:0x80644338
 	.data       start:0x8069CBC0 end:0x8069CC60
 
-Game/MapObj/BrightInfo.cpp:
-	.text       start:0x8027D7B0 end:0x8027D950
-
-Game/MapObj/BrightDrawInfo.cpp:
-	.text       start:0x8027D950 end:0x8027DA30
-
-Game/MapObj/BrightCamInfo.cpp:
-	.text       start:0x8027DA30 end:0x8027DC10
-
-Game/MapObj/BrightObjBase.cpp:
-	.text       start:0x8027DC10 end:0x8027E350
-
-Game/MapObj/BrightSun.cpp:
-	.text       start:0x8027E350 end:0x8027E880
+Game/MapObj/BrightObj.cpp:
+	.text       start:0x8027D620 end:0x8027E990
 
 Game/MapObj/Candlestand.cpp:
 	.text       start:0x8027E990 end:0x8027F9C0
@@ -4169,9 +4209,9 @@ Game/MapObj/ClipArea.cpp:
 	.data       start:0x8069DAB8 end:0x8069DB30
 
 Game/MapObj/ClipAreaDrop.cpp:
-	.text       start:0x80285B50 end:0x80285FE0
+	.text       start:0x80285B50 end:0x80285FF0
 	.ctors      start:0x80644360 end:0x80644364
-	.data       start:0x8069DB30 end:0x8069DBB8
+	.data       start:0x8069DB30 end:0x8069DBC8
 
 Game/MapObj/ClipAreaDropHolder.cpp:
 	.text       start:0x80285FF0 end:0x802861E0
@@ -4223,7 +4263,7 @@ Game/MapObj/CoinAppearSpot.cpp:
 	.text       start:0x8028DE30 end:0x8028DFD0
 
 Game/MapObj/CoinGroup.cpp:
-	.text       start:0x8028DFD0 end:0x8028E970
+	.text       start:0x8028DFD0 end:0x8028E9C0
 	.ctors      start:0x80644370 end:0x80644374
 	.data       start:0x8069E5C8 end:0x8069E6A8
 
@@ -4271,7 +4311,7 @@ Game/MapObj/CrystalCage.cpp:
 	.data       start:0x8069EEB8 end:0x8069EF78
 
 Game/MapObj/CrystalCageOpa.cpp:
-	.text       start:0x80292ED0 end:0x802934E0
+	.text       start:0x80292ED0 end:0x802935A0
 	.ctors      start:0x80644390 end:0x80644394
 
 Game/MapObj/CymbalsStep.cpp:
@@ -4283,6 +4323,10 @@ Game/MapObj/JointControlDelegator2.cpp:
 Game/MapObj/CymbalsStep2.cpp:
 	.text       start:0x80293CB0 end:0x80293DD0
 	.ctors      start:0x80644394 end:0x80644398
+
+Game/MapObj/DashFruit.cpp:
+	.text       start:0x80293DD0 end:0x80293F70
+	.ctors      start:0x80644398 end:0x8064439C
 
 Game/MapObj/DashRing.cpp:
 	.text       start:0x80293F70 end:0x802948F0
@@ -4325,7 +4369,7 @@ Game/MapObj/ElectricRail.cpp:
 	.data       start:0x8069FDA0 end:0x8069FEF8
 
 Game/MapObj/ElectricRail2Point.cpp:
-	.text       start:0x8029ABA0 end:0x8029AEC0
+	.text       start:0x8029ABA0 end:0x8029AF30
 
 Game/MapObj/ElectricRail2Point2.cpp:
 	.text       start:0x8029AF30 end:0x8029B9C0
@@ -4364,18 +4408,19 @@ Game/MapObj/FallDownBridge.cpp:
 Game/MapObj/FallDownWall.cpp:
 	.text       start:0x8029F860 end:0x8029FA50
 
+Game/MapObj/FallDownWall2.cpp:
+	.text       start:0x8029FA60 end:0x8029FAE0
+	.ctors      start:0x806443C8 end:0x806443CC
+
 Game/MapObj/FallOutFieldDraw.cpp:
 	.text       start:0x8029FAE0 end:0x802A0380
 	.ctors      start:0x806443CC end:0x806443D0
 	.data       start:0x806A07DC end:0x806A0808
 
-Game/MapObj/FireBarBall.cpp:
-	.text       start:0x802A0380 end:0x802A0760
-
 Game/MapObj/FireBar.cpp:
-	.text       start:0x802A0760 end:0x802A1610
+	.text       start:0x802A0380 end:0x802A1630
 	.ctors      start:0x806443D0 end:0x806443D4
-	.sbss       start:0x807D3AE0 end:0x807D3AE4
+	.sbss       start:0x807D3AD8 end:0x807D3AE8
 
 Game/MapObj/FirePressure.cpp:
 	.text       start:0x802A1630 end:0x802A1900
@@ -4534,6 +4579,10 @@ Game/MapObj/DiceBase.cpp:
 
 Game/MapObj/ItemDice.cpp:
 	.text       start:0x802B4860 end:0x802B5510
+
+Game/MapObj/LuckyDice.cpp:
+	.text       start:0x802B5510 end:0x802B5880
+	.ctors      start:0x80644450 end:0x80644454
 
 Game/MapObj/ItemDrill.cpp:
 	.text       start:0x802B5880 end:0x802B8A30
@@ -4726,12 +4775,12 @@ Game/MapObj/MorphItemCollection.cpp:
 	.text       start:0x802D1BC0 end:0x802D1FA0
 
 Game/MapObj/MorphItemObjNeo.cpp:
-	.text       start:0x802D20D0 end:0x802D4500
+	.text       start:0x802D20D0 end:0x802D45A0
 	.ctors      start:0x806444EC end:0x806444F0
 	.sbss       start:0x807D3FC8 end:0x807D3FE0
 
 Game/MapObj/MorphItemRock.cpp:
-	.text       start:0x802D45A0 end:0x802D4780
+	.text       start:0x802D45A0 end:0x802D48C0
 
 Game/MapObj/MoveBlockFunction.cpp:
 	.text       start:0x802D48C0 end:0x802D4DA0
@@ -4777,7 +4826,7 @@ Game/MapObj/PhantomTorch.cpp:
 	.data       start:0x806A7DB8 end:0x806A7E78
 
 Game/MapObj/PicketSwitch.cpp:
-	.text       start:0x802DAA40 end:0x802DAEF0
+	.text       start:0x802DAA40 end:0x802DB040
 	.ctors      start:0x80644510 end:0x80644514
 	.data       start:0x806A7EC8 end:0x806A7F68
 
@@ -4785,7 +4834,7 @@ Game/MapObj/PlacementCircleObj.cpp:
 	.text       start:0x802DB040 end:0x802DB280
 
 Game/MapObj/PlacementRailObj.cpp:
-	.text       start:0x802DB280 end:0x802DB450
+	.text       start:0x802DB280 end:0x802DB560
 
 Game/MapObj/PlantGroup.cpp:
 	.text       start:0x802DB560 end:0x802DE0C0
@@ -4826,6 +4875,10 @@ Game/MapObj/PullTargetBridge.cpp:
 
 Game/MapObj/JointControlDelegator5.cpp:
 	.text       start:0x802E4B10 end:0x802E4C30
+
+Game/MapObj/PullTargetDrawer.cpp:
+	.text       start:0x802E4C30 end:0x802E4D80
+	.ctors      start:0x80644524 end:0x80644528
 
 Game/MapObj/PunchBox.cpp:
 	.text       start:0x802E4D80 end:0x802E5750
@@ -4874,12 +4927,16 @@ Game/MapObj/RailMoveObjGenerator.cpp:
 Game/MapObj/KoopaJrLv2LiftGenerator.cpp:
 	.text       start:0x802EB7F0 end:0x802EB8D0
 
+Game/MapObj/RailMoveObjGenerator2.cpp:
+	.text       start:0x802EB8D0 end:0x802EBAC0
+	.ctors      start:0x80644548 end:0x8064454C
+
 Game/MapObj/RailMoveTimerObj.cpp:
 	.text       start:0x802EBAC0 end:0x802EBED0
 	.ctors      start:0x8064454C end:0x80644550
 
 Game/MapObj/RailPlacementPoleObstacle.cpp:
-	.text       start:0x802EBED0 end:0x802EC110
+	.text       start:0x802EBED0 end:0x802EC170
 
 Game/MapObj/RelayDrill2DPlanet.cpp:
 	.text       start:0x802EC170 end:0x802EC410
@@ -4990,10 +5047,10 @@ Game/MapObj/SimpleMapObj.cpp:
 	.rodata     start:0x80649740 end:0x806497A0
 
 Game/MapObj/SimpleSeesawObj.cpp:
-	.text       start:0x802FFB30 end:0x802FFD50
+	.text       start:0x802FFB30 end:0x802FFDA0
 
 Game/MapObj/PictureJoinPlanet.cpp:
-	.text       start:0x802FFDA0 end:0x802FFED0
+	.text       start:0x802FFDA0 end:0x80300170
 
 Game/MapObj/SmallStone.cpp:
 	.text       start:0x80300170 end:0x80301850

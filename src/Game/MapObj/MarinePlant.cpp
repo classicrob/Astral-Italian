@@ -256,7 +256,7 @@ bool MarinePlantMember::tryReactToSensor(HitSensor* pSensor) {
     }
 
     TVec3f diff(MR::getSensorHostPos(pSensor));
-    diff.sub(mPosition);
+    diff -= mPosition;
     MR::vecKillElement(diff, mGravity, &diff);
 
     f32 dist = PSVECMag(&diff);

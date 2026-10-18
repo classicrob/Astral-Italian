@@ -47,6 +47,7 @@ void SnowMan::init(const JMapInfoIter& rrIter) {
     mAnimScaleParam->_24 = 0.60f;
     mAnimScaleParam->_28 = 0.8f;
     mAnimScaleCtrl = new AnimScaleController(mAnimScaleParam);
+    mBreakDustDemo = MR::tryCreateBreakDustDemoObj(this, getBaseMtx());
     initEffectKeeper(0, nullptr, false);
     initSound(4, "SnowMan", nullptr, TVec3f(0.0f));
     MR::useStageSwitchWriteA(this, rrIter);

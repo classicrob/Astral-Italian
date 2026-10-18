@@ -308,7 +308,7 @@ TwoLegsReflectCtrl::TwoLegsReflectCtrl(LiveActor* pHost)
     mJointCtrl = nullptr;
     mJointName = nullptr;
     mDir.set(0.0f, 1.0f, 0.0f);
-    mJointCtrl = new ActorJointCtrl(pHost);
+    mJointCtrl = new ActorJointCtrl(mHost);
     initNerve(&NrvTwoLegsReflectCtrl::TwoLegsReflectCtrlNrvWait::sInstance, 0);
 }
 

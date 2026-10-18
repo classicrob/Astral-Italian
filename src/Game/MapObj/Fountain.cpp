@@ -38,7 +38,7 @@ void Fountain::init(const JMapInfoIter& rIter) {
     initEffectKeeper(0, mFountainName, false);
     initSound(4, "Fountain", nullptr, TVec3f(0.0f));
     initHitSensor(1);
-    initHitSensors("body");
+    initHitSensors("Body");
     MR::setClippingTypeSphere(this, ::sClippingRadius);
     MR::useStageSwitchReadA(this, rIter);
     initNerve(GET_NERVE(Fountain, HostTypeMove));
@@ -105,7 +105,7 @@ void Fountain::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 void Fountain::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::invalidateHitSensor(this, "body");
+        MR::invalidateHitSensor(this, "Body");
     }
 
     if (MR::isOnSwitchA(this)) {
@@ -115,9 +115,9 @@ void Fountain::exeWait() {
 
 void Fountain::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::validateHitSensor(this, "body");
+        MR::validateHitSensor(this, "Body");
         MR::emitEffect(this, mFountainName);
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_FOUNTAIN");
+    MR::startActionSound(this, "OjLvFountain");
 }

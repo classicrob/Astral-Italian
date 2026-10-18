@@ -1,11 +1,20 @@
 #include "Game/AreaObj/LightArea.hpp"
 #include "Game/Util.hpp"
-#include "Game/Util/SceneUtil.hpp"
 
-LightArea::LightArea(int formType, const char* pName) : AreaObj(formType, pName), mPlacedZoneID(-1) {
+LightArea::LightArea(const char* pName) : AreaObj(pName), _48(false) {
 }
 
 void LightArea::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
-    mPlacedZoneID = MR::getPlacedZoneId(rIter);
+
+    s32 id = 0;
+    if (MR::getLinkObjID(rIter, &id)) {
+        if (id != -1) {
+            _48 = true;
+        }
+    } else if (MR::getMapPartsID(rIter, &id)) {
+        if (id != -1) {
+            _48 = true;
+        }
+    }
 }

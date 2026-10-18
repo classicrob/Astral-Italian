@@ -104,7 +104,7 @@ bool ClipAreaShape::isInArea(const TVec3f&) const {
     return false;
 }
 
-ClipAreaShapeSphere::ClipAreaShapeSphere() : ClipAreaShape("ClipVolumeSphere"), mRadius(500.0f) {
+ClipAreaShapeSphere::ClipAreaShapeSphere(const char* pName) : ClipAreaShape(pName), mRadius(500.0f) {
 }
 
 ClipAreaShapeBox::ClipAreaShapeBox(s32 u1) : ClipAreaShape("ClipVolumeBox") {

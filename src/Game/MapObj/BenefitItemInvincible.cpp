@@ -23,7 +23,7 @@ namespace {
     f32 cBoundUpSpd = 20.0f;
 };  // namespace
 
-BenefitItemInvincible::BenefitItemInvincible(const char* pName) : BenefitItemObj(pName, "PowerupInvincible") {
+BenefitItemInvincible::BenefitItemInvincible(const char* pName) : BenefitItemObj(pName, "PowerUpInvincible") {
     if (MR::isGalaxyDarkCometAppearInCurrentStage()) {
         _DC = 1;
     }
@@ -68,7 +68,7 @@ void BenefitItemInvincible::initModelAndEfx() {
     initHitSensor(1);
     MR::addHitSensorMapObj(this, "body", 4, 60.0f, TVec3f(0.0f, 60.0f, 0.0f));
 
-    MR::startBrk(this, "PowerupInvincible");
+    MR::startBrk(this, "PowerUpInvincible");
 }
 
 void BenefitItemInvincible::appearThrowUp() {

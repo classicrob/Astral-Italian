@@ -23,8 +23,8 @@ StarPieceDirector* MR::getStarPieceDirector() {
 void MR::createStarPiece() {
     int max = 70;
 
-    if (MR::isEqualStageName("AstroGalaxy")) {
-        max = 70;
+    if (!MR::isEqualStageName("AstroGalaxy")) {
+        max = 30;
     }
 
     for (int i = 0; i < max; i++) {

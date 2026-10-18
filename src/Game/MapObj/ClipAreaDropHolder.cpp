@@ -1,16 +1,17 @@
 #include "Game/MapObj/ClipAreaDropHolder.hpp"
 #include "Game/MapObj/ClipAreaDrop.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
 
 namespace {
-    static const s32 sMaxClipAreaDrop = 32;
+    static const s32 sMaxClipAreaDrop = 256;
 };  // namespace
 
 ClipAreaDropHolder::ClipAreaDropHolder() : DeriveActorGroup< ClipAreaDrop >("クリップエリアのしずく管理", ::sMaxClipAreaDrop) {
     ClipAreaDrop* pClipAreaDrop = nullptr;
 
     for (int i = 0; i < ::sMaxClipAreaDrop; i++) {
-        pClipAreaDrop = new ClipAreaDrop("クリップエリアのしずく");
+        pClipAreaDrop = new ClipAreaDrop("クリップエリアのしずく", "VolumeSphereLow");
         pClipAreaDrop->initWithoutIter();
         registerActor(pClipAreaDrop);
     }
@@ -32,9 +33,10 @@ namespace MR {
             return nullptr;
         }
 
-        pClipAreaDrop->mPosition.set(rPos);
+        MR::setPosition(pClipAreaDrop, rPos);
         pClipAreaDrop->setBaseSize(baseSize);
         pClipAreaDrop->appear();
+        pClipAreaDrop->startHold();
 
         return pClipAreaDrop;
     }

@@ -14,7 +14,7 @@ ClipFieldFillDraw::ClipFieldFillDraw(const char* pName)
     : NameObj(pName), mFillBlendMode(GX_BM_BLEND), mFillSrcFactor(GX_BL_SRCALPHA), mFillDstFactor(GX_BL_ONE), mFillLogicOp(GX_LO_NOOP),
       _1C(255, 230, 80, 200), _20(255, 255, 255, 255), _24(), _25() {
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_ClipFieldFillDraw);
-    MR::createScreenAlphaSceneObj(1, 1.0f);
+    MR::createScreenAlphaSceneObj(2, 1.0f);
 }
 
 void ClipFieldFillDraw::init(const JMapInfoIter& rIter) {
@@ -105,7 +105,7 @@ void ClipFieldFillDraw::sendFillScreen(GXColor color) const {
 }
 
 void ClipFieldFillDraw::draw() const {
-    MR::loadScreenAlphaTexture(1, GX_TEXMAP0);
+    MR::loadScreenAlphaTexture(2, GX_TEXMAP0);
     setUpFillScreen();
     sendFillScreen(_1C);
     MR::loadViewMtx();

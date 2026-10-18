@@ -183,9 +183,12 @@ bool RollingWater::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
     return false;
 }
 
+#pragma dont_inline on
 bool RollingWater::isNerveRide() const {
     return isNerve(GET_NERVE(RollingWater, Ride));
 }
+
+#pragma dont_inline reset
 
 bool RollingWater::moveRoute() {
     if (MR::isExistRail(this)) {
@@ -262,8 +265,9 @@ void RollingWater::resetToStart() {
         MR::resetPosition(this);
     } else {
         MR::resetPosition(this, mStartPos);
-        MR::zeroVelocity(this);
     }
+
+    MR::zeroVelocity(this);
 }
 
 void RollingWater::appearFromCreator(LiveActor* pCreator, s32 timer) {

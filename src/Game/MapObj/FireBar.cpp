@@ -2,6 +2,9 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
+#include "Game/Util/ActorStateUtil.hpp"
+#include "Game/NameObj/NameObjExecuteHolder.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/JMath/JMath.hpp>
@@ -10,9 +13,16 @@
 extern "C" const char* fn_800578F0(const JMapInfoIter&, s32);
 
 namespace NrvFireBar {
-    // PLACEHOLDER(objects): nerves A (807D3AD8, exe fn_802A1620) and B (807D3ADC, exe fn_802A1610) call core helpers; resolve when their callees are named
-    NEW_NERVE(FireBarNrvA, FireBar, NerveA);
-    NEW_NERVE(FireBarNrvB, FireBar, NerveB);
+    NEW_NERVE(FireBarNrvA, FireBarBall, NerveA);
+
+    class FireBarNrvB : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            MR::updateActorStateAndNextNerve(reinterpret_cast< FireBarBall* >(pSpine->mExecutor), GET_NERVE_DIRECT(NrvFireBar, FireBarNrvA));
+        }
+        static FireBarNrvB sInstance;
+    };
+    FireBarNrvB FireBarNrvB::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(FireBarNrvWait, FireBar, Wait);
     NEW_NERVE(FireBarNrvC, FireBar, NerveC);
 };  // namespace NrvFireBar
@@ -23,17 +33,17 @@ FireBarBall::~FireBarBall() {
 FireBar::~FireBar() {
 }
 
-FireBarBall::FireBarBall(LiveActor* pParent) : ModelObj("ファイアバー玉", "FireBarBall", 0, MR::DrawBufferType_NoShadowedMapObj, -2, -2, false) {
-    mFireBarParent = pParent;
+FireBarBall::FireBarBall(LiveActor* pParent) : LiveActor("ファイアバー玉"), mFireBarParent(pParent), mBindStarPointer(nullptr), mIsClipped(false) {
 }
 
 void FireBarBall::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "FireBarBall", false);
+
     f32 shadowDropDist = 100.0f;
     MR::getJMapInfoArg6NoInit(rIter, &shadowDropDist);
 
     if (0.0f != shadowDropDist) {
-        MR::initShadowVolumeCylinder(this, 55.0f);
-        MR::setShadowDropLength(this, 0, shadowDropDist);
+        MR::setShadowDropLength(this, nullptr, shadowDropDist);
         s32 shadowDropRotate = -1;
         MR::getJMapInfoArg4NoInit(rIter, &shadowDropRotate);
 
@@ -41,29 +51,65 @@ void FireBarBall::init(const JMapInfoIter& rIter) {
             TVec3f upVec;
             MR::calcUpVec(&upVec, mFireBarParent);
             upVec.negate();
-            MR::setShadowDropDirection(this, 0, upVec);
+            MR::setShadowDropDirection(this, nullptr, upVec);
         }
 
         s32 cutShadows = -1;
         MR::getJMapInfoArg2NoInit(rIter, &cutShadows);
 
         if (cutShadows == 0) {
-            MR::setShadowVolumeEndDropOffset(this, 0, 20.0f);
-            MR::onShadowVolumeCutDropLength(this, 0);
-            MR::onCalcShadow(this, 0);
+            MR::setShadowVolumeEndDropOffset(this, nullptr, 20.0f);
+            MR::onShadowVolumeCutDropLength(this, nullptr);
+            MR::onCalcShadow(this, nullptr);
         }
+    } else {
+        MR::invalidateShadow(this, nullptr);
     }
 
-    MR::setClippingTypeSphereContainsModelBoundingBox(this, 100.0f);
-    makeActorAppeared();
+    MR::invalidateClipping(this);
+    initNerve(GET_NERVE_DIRECT(NrvFireBar, FireBarNrvA), 1);
+    mBindStarPointer = new WalkerStateBindStarPointer(this, nullptr);
+    MR::initActorState(this, mBindStarPointer, GET_NERVE_DIRECT(NrvFireBar, FireBarNrvB), nullptr);
+    makeActorDead();
 }
 
 void FireBarBall::initAfterPlacement() {
     MR::calcGravity(this);
 }
 
-void FireBarBall::control() {
-    controlEmitEffect();
+void FireBarBall::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    setNerve(GET_NERVE_DIRECT(NrvFireBar, FireBarNrvA));
+}
+
+void FireBarBall::movement() {
+    if (MR::isClipped(mFireBarParent)) {
+        if (!mIsClipped) {
+            mIsClipped = true;
+            MR::invalidateHitSensors(this);
+            MR::deleteEffect(this, "FireBarBall");
+            MR::disconnectToDrawTemporarily(this);
+        }
+    } else {
+        if (mIsClipped) {
+            mIsClipped = false;
+            MR::validateHitSensors(this);
+            MR::emitEffect(this, "FireBarBall");
+            MR::connectToDrawTemporarily(this);
+        }
+
+        LiveActor::movement();
+    }
+}
+
+void FireBarBall::exeNerveA() {
+    if (MR::isFirstStep(this)) {
+        MR::emitEffect(this, "FireBarBall");
+    }
+
+    if (mBindStarPointer->tryStartPointBind()) {
+        setNerve(GET_NERVE_DIRECT(NrvFireBar, FireBarNrvB));
+    }
 }
 
 void FireBarBall::startClipped() {
@@ -72,15 +118,8 @@ void FireBarBall::startClipped() {
 }
 
 void FireBarBall::endClipped() {
+    MR::emitEffect(this, "FireBarBall");
     LiveActor::endClipped();
-}
-
-void FireBarBall::controlEmitEffect() {
-    if (MR::isNearPlayerAnyTime(this, 5000.0f)) {
-        MR::emitEffect(this, "FireBarBall");
-    } else {
-        MR::deleteEffect(this, "FireBarBall");
-    }
 }
 
 FireBar::FireBar(const char* pName) : LiveActor(pName) {

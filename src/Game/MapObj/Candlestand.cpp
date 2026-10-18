@@ -274,7 +274,7 @@ void Candlestand::exeFire() {
         MR::startActionSound(this, "OjFireStandIgnit");
     }
 
-    MR::startLevelSound(this, ::sBurnSound);
+    MR::startActionSound(this, ::sBurnSound);
 
     if (MR::isStep(this, 60)) {
         if (MR::isValidSwitchA(this)) {
@@ -286,7 +286,7 @@ void Candlestand::exeFire() {
 }
 
 namespace {
-    char sBurnSound[] = "SE_OJ_LV_PHANTOM_TOACH_BURN";
+    char sBurnSound[] = "OjLvPhantomToachBurn";
 };  // namespace
 
 void Candlestand::exeExtinguish() {
@@ -333,12 +333,12 @@ void Candlestand::exeAttack() {
     if (MR::isStep(this, 30)) {
         setNerve(GET_NERVE(Candlestand, HostTypeBurn));
     } else {
-        MR::startLevelSound(this, ::sBurnSound);
+        MR::startActionSound(this, ::sBurnSound);
     }
 }
 
 void Candlestand::exeBurn() {
-    MR::startLevelSound(this, ::sBurnSound);
+    MR::startActionSound(this, ::sBurnSound);
 }
 
 Candlestand::~Candlestand() {

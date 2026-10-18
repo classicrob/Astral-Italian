@@ -124,7 +124,7 @@ void DinoPackunBaby::init(const JMapInfoIter& rIter) {
     MR::hideModel(this);
     mScaleController = new AnimScaleController(&sParam);
     MR::declarePowerStar(this);
-    kill();
+    makeActorAppeared();
 }
 
 void DinoPackunBaby::exeDemoBattleStart() {

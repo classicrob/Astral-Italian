@@ -81,6 +81,6 @@ public:
     /* 0xA8 */ s32 mRailHeight;  // Obj_arg0
     /* 0xAC */ f32 mEaseIn;
     /* 0xB0 */ ElectricRailShadowDrawer* mShadowDrawer;
-    /* 0xB8 */ bool _B8;
-    /* 0xB9 */ bool mIsCalcGravity;  // Obj_arg4
+    /* 0xB8 */ bool mIsCalcGravity;  // Obj_arg4
+    /* 0xB9 */ bool _B9;
 };

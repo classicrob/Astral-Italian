@@ -14,5 +14,5 @@ void PowerStarAppearPoint::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::joinToGroupArray(this, rIter, "パワースター出現ポイントグループ", 16);
     MR::initActorCamera(this, rIter, &mCameraInfo);
-    makeActorAppeared();
+    makeActorDead();
 }

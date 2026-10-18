@@ -25,9 +25,9 @@ void BossStinkBugBomb::init(const JMapInfoIter& rIter) {
     MR::onCalcGravity(this);
     initHitSensor(2);
 
-    MR::addHitSensorEnemy(this, "body", 8, 60.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorEnemyAttack(this, "bomb", 8, 280.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::invalidateHitSensor(this, "bomb");
+    MR::addHitSensorEnemy(this, "Body", 8, 60.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorEnemyAttack(this, "Bomb", 8, 280.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::invalidateHitSensor(this, "Bomb");
 
     initBinder(60.0f, 0.0f, 0);
     initEffectKeeper(0, nullptr, false);
@@ -53,8 +53,8 @@ void BossStinkBugBomb::start(const TVec3f& startPos, const TVec3f& startVelocity
     mPosition.set(startPos);
     MR::showModel(this);
 
-    MR::validateHitSensor(this, "body");
-    MR::invalidateHitSensor(this, "bomb");
+    MR::validateHitSensor(this, "Body");
+    MR::invalidateHitSensor(this, "Bomb");
 
     setNerve(GET_NERVE(BossStinkBugBomb, BossStinkBugBombNrvWait));
     appear();
@@ -123,8 +123,8 @@ void BossStinkBugBomb::exeExplosion() {
     if (MR::isFirstStep(this)) {
         MR::hideModel(this);
 
-        MR::validateHitSensor(this, "bomb");
-        MR::invalidateHitSensor(this, "body");
+        MR::validateHitSensor(this, "Bomb");
+        MR::invalidateHitSensor(this, "Body");
 
         MR::emitEffect(this, "Explosion");
         MR::startActionSound(this, "BmBossBugBombBang");
@@ -137,7 +137,7 @@ void BossStinkBugBomb::exeExplosion() {
         MR::zeroVelocity(this);
     }
 
-    MR::setSensorRadius(this, "bomb", MR::calcNerveEaseOutValue(this, 10, 0.0f, 280.0f));
+    MR::setSensorRadius(this, "Bomb", MR::calcNerveEaseOutValue(this, 10, 0.0f, 280.0f));
 
     if (MR::isGreaterStep(this, 20)) {
         kill();

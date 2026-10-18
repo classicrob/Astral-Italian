@@ -351,7 +351,7 @@ void Dodoryu::snapToGround() {
     Triangle triangle;
     TVec3f v4;
 
-    if (MR::getFirstPolyOnLineToMap(&v4, &triangle, mPosition - mGravity.scaleInline(200.0f), mGravity.scaleInline(1200.0f))) {
+    if (MR::getFirstPolyOnLineToMap(&v4, &triangle, mPosition - mGravity.scaleInline(200.0f), mGravity.scaleInline(2200.0f))) {
         _128 = *triangle.getNormal(0);
 
         turnUpVecTo(-mGravity);
@@ -454,7 +454,7 @@ void Dodoryu::getPlayerResetMtx(TPos3f* pMtx, u32 param2) const {
 bool Dodoryu::checkWallWithVelocity() {
     mClosedAreaObj = nullptr;
 
-    AreaObj* closedAreaObj = MR::getAreaObj("DodoryuClosedCylinder", mPosition);
+    AreaObj* closedAreaObj = MR::getAreaObj("DodoryuClosedArea", mPosition);
 
     if (closedAreaObj == nullptr) {
         return false;
@@ -502,7 +502,7 @@ void Dodoryu::endSpinOutCamera() {
 }
 
 bool Dodoryu::keepOffFromClosedArea(TVec3f* pDirection) {
-    AreaObj* pArea = MR::getAreaObj("DodoryuClosedCylinder", mPosition);
+    AreaObj* pArea = MR::getAreaObj("DodoryuClosedArea", mPosition);
     if (pArea == nullptr) {
         return false;
     }
@@ -692,7 +692,7 @@ void Dodoryu::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 bool Dodoryu::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pReceiver, this, ::sStarPieceSensorName)) {
         if (MR::isMsgStarPieceAttack(msg)) {
-            MR::startActionSound(this, "SE_OJ_STAR_PIECE_HIT_STOP", -1, -1, -1);
+            MR::startActionSound(this, "OjStarPieceHitStop", -1, -1, -1);
             mAnimScaleCtrl->startHitReaction();
             mMoveStateHolder->brake();
 
@@ -910,7 +910,7 @@ void DodoryuRabbit::exeEscape() {
     }
 
     if (MR::checkPassBckFrame(this, 3.0f)) {
-        MR::startActionSound(this, "SE_SM_RABBIT_JUMP", -1, -1, -1);
+        MR::startActionSound(this, "SmRabbitJump", -1, -1, -1);
     }
 
     updatePos(::sRabbitFastSpeed);
@@ -928,7 +928,7 @@ void DodoryuRabbit::exeEscapeSlow() {
     }
 
     if (MR::checkPassBckFrame(this, 3.0f)) {
-        MR::startActionSound(this, "SE_SM_RABBIT_JUMP", -1, -1, -1);
+        MR::startActionSound(this, "SmRabbitJump", -1, -1, -1);
     }
 
     updatePos(::sRabbitSlowSpeed);
@@ -1057,7 +1057,7 @@ void DodoryuRabbit::updatePos(f32 f1) {
 
     Triangle triangle = Triangle();
     TVec3f vecA4;
-    if (!MR::getFirstPolyOnLineToMap(&vecA4, &triangle, mPosition - mGravity.scaleInline(200.0f), mGravity.scaleInline(1200.0f))) {
+    if (!MR::getFirstPolyOnLineToMap(&vecA4, &triangle, mPosition - mGravity.scaleInline(200.0f), mGravity.scaleInline(2200.0f))) {
         vecA4.set(railPos);
     }
 

@@ -4,17 +4,20 @@
 #include "Game/LiveActor/LiveActorGroupArray.hpp"
 #include "Game/Util/JointController.hpp"
 
+class ActorStateParamScale;
+
 class PressureMessenger : public LiveActor {
 public:
-    PressureMessenger(MsgSharedGroup*, const char*);
+    PressureMessenger(MsgSharedGroup*, ActorStateParamScale*, const char*);
 
     virtual ~PressureMessenger(){};
     virtual void init(const JMapInfoIter&);
 
     void exeSync();
 
-    /* 0x8C */ MsgSharedGroup* mSharedGroup;
-    /* 0x90 */ s32 mWaitSyncTime;
+    /* 0x90 */ MsgSharedGroup* mSharedGroup;
+    /* 0x94 */ ActorStateParamScale* mParamScale;
+    /* 0x98 */ s32 mWaitSyncTime;
 };
 
 class PressureBase : public LiveActor {
@@ -53,7 +56,7 @@ public:
     bool isShotTypeOnGravity() const;
     bool isShotTypeFollow() const;
 
-    /* 0x90 */ u32 _90;
+    /* 0x90 */ ActorStateParamScale* mParamScale;
     /* 0x94 */ JointControlDelegator< PressureBase >* mJointController;
     /* 0x98 */ TVec3f mFront;
     /* 0xA4 */ f32 mRelaxAngle;

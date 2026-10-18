@@ -167,7 +167,7 @@ void Plant::exeWaitFar() {
 void Plant::exeSeedWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mSeedPartsModel, "Bud");
-        MR::startActionSound(this, "SE_OJ_PLANT_BUD", -1, -1, -1);
+        MR::startActionSound(this, "OjPlantBud", -1, -1, -1);
         mTopPartsModel->kill();
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
     }
@@ -184,7 +184,7 @@ void Plant::exeWaitDemoWaitGrowUp() {
 void Plant::exeDemoWaitGrowUp() {
     if (MR::isStep(this, ::sStepDemoAppearEffect)) {
         MR::startAction(mSeedPartsModel, "Bud");
-        MR::startActionSound(this, "SE_OJ_PLANT_BUD", -1, -1, -1);
+        MR::startActionSound(this, "OjPlantBud", -1, -1, -1);
     }
 
     if (MR::isStep(this, ::sStepDemoWaitGrowUp)) {

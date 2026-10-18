@@ -51,7 +51,7 @@ bool ClipArea::isInArea(const TVec3f& rParam1, f32 param2) const {
 
 namespace MR {
     void setClipSphereArea(ClipArea* pClipArea) {
-        pClipArea->setShape(new ClipAreaShapeSphere());
+        pClipArea->setShape(new ClipAreaShapeSphere("VolumeSphere"));
     }
 
     void setClipCenterBoxArea(ClipArea* pClipArea) {

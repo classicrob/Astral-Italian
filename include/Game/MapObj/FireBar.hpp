@@ -1,22 +1,27 @@
 #pragma once
 
-#include "Game/LiveActor/ModelObj.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
-class FireBarBall : public ModelObj {
+class WalkerStateBindStarPointer;
+
+class FireBarBall : public LiveActor {
 public:
     FireBarBall(LiveActor*);
 
     virtual ~FireBarBall();
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
+    virtual void movement();
+    virtual void makeActorAppeared();
     virtual void startClipped();
     virtual void endClipped();
-    virtual void control();
 
-    void controlEmitEffect();
+    void exeNerveA();
 
     /* 0x90 */ LiveActor* mFireBarParent;
+    /* 0x94 */ WalkerStateBindStarPointer* mBindStarPointer;
+    /* 0x98 */ bool mIsClipped;
 };
 
 class FireBar : public LiveActor {
@@ -32,8 +37,6 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void exeWait();
-    void exeNerveA();  // PLACEHOLDER(objects): nerve A exe, see FireBar.cpp
-    void exeNerveB();  // PLACEHOLDER(objects): nerve B exe, see FireBar.cpp
     void exeNerveC();
     void initFireBarBall(const JMapInfoIter&);
     void fixFireBarBall();

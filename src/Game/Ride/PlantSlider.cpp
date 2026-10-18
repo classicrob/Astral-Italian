@@ -169,7 +169,7 @@ TVec3f* PlantSlider::getPointUp(PlantRailInfo* pRailInfo, s32 index) {
 
 void PlantSlider::exeCooldown() {
     updatePoints();
-    if (MR::isStep(this, 60) && MR::isOnGroundPlayer()) {
+    if (MR::isStep(this, 60) || MR::isOnGroundPlayer()) {
         setNerve(GET_NERVE(PlantSlider, PlantSliderNrvWait));
     }
 }

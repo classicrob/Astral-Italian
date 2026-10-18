@@ -164,7 +164,7 @@ void Sandstorm::exeNonActive() {
 
 void Sandstorm::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startAllAnim(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     MR::turnDirectionToPlayerDegree(this, &_94, ::sTurnRate);

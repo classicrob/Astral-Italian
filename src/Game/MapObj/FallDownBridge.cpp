@@ -197,7 +197,7 @@ void FallDownBridge::calcAndSetBaseMtx() {
 
     TPos3f baseMtx;
     baseMtx.identity();
-    baseMtx.makeRotate(TVec3f(0, 0, 1), MR::toRadian(_98));
+    baseMtx.makeRotate(TVec3f(0, 0, -1), MR::toRadian(_98));
 
     baseMtx.concat(baseMtx, mtx88);
 

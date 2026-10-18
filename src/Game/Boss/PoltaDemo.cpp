@@ -40,7 +40,7 @@ namespace NrvPoltaDemo {
     NEW_NERVE(PoltaDemoNrvDownDemo, PoltaDemo, DownDemo);
 };  // namespace NrvPoltaDemo
 
-PoltaDemo::PoltaDemo(Polta* pPolta) : PoltaActionBase("ポルタデモ", pPolta), mCurDemoNerve(), mCurDemoName() {
+PoltaDemo::PoltaDemo(Polta* pPolta) : PoltaActionBase("ポルタデモ", pPolta), mCurDemoNerve(), mCurDemoName(), mCameraName() {
 }
 
 void PoltaDemo::init() {

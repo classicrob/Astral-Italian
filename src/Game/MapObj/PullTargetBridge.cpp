@@ -15,7 +15,7 @@ namespace MR {
 };
 
 // PLACEHOLDER(objects): unnamed target symbol fn_804222D0, declared extern "C" so the reloc name matches; resolve when fn_804222D0 gets its real name in symbols.txt
-extern "C" void fn_804222D0(LiveActor*);
+extern "C" void fn_804222D0();
 
 PullTargetAnim::PullTargetAnim(LiveActor* pHost) {
     mHost = pHost;
@@ -141,7 +141,7 @@ void PullTargetBridge::exePull() {
     if (isPulled) {
         PullTarget* target = mPullTarget;
         target->mIsEnable = false;
-        fn_804222D0(target);
+        fn_804222D0();
         setNerve(&NrvPullTargetBridge::PullTargetBridgeNrvFall::sInstance);
     }
 }
@@ -262,12 +262,12 @@ void PullTargetDrawer::exePull() {
         MR::tryRumblePadStrong(this, 0);
         PullTarget* target = mPullTarget;
         target->mIsEnable = false;
-        fn_804222D0(target);
+        fn_804222D0();
         setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvExtend));
         return;
     }
     if (!mPullTarget->isFacingPlayer()) {
-        fn_804222D0(mPullTarget);
+        fn_804222D0();
         setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvWait));
     }
 }

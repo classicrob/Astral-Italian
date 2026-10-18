@@ -330,6 +330,7 @@ void KingTossin::exeWaitStart() {
 void KingTossin::exeDemoOpening() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "DemoOpening");
+        fn_8001BA80();
         mPlayerMtx.set(MR::getPlayerBaseMtx());
         TPos3f mtx;
         mtx.identity();
@@ -1073,7 +1074,7 @@ bool KingTossin::isRolling() {
 
     if (isNerve(&NrvKingTossin::KingTossinNrvRollingStart::sInstance) || isNerve(&NrvKingTossin::KingTossinNrvRollingEnd::sInstance)
         || isNerve(&NrvKingTossin::KingTossinNrvRollingLv1::sInstance) || isNerve(&NrvKingTossin::KingTossinNrvRollingLv2::sInstance)
-        || isNerve(&NrvKingTossin::KingTossinNrvRollingLv3::sInstance) || isNerve(&NrvKingTossin::KingTossinNrvSliding::sInstance)
+        || isNerve(&NrvKingTossin::KingTossinNrvRollingLv3::sInstance) || isNerve(&NrvKingTossin::KingTossinNrvDownRecover::sInstance)
         || isNerve(&NrvKingTossin::KingTossinNrvChanceEnd::sInstance)) {
         isRolling = true;
     }

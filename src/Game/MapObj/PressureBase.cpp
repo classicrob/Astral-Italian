@@ -1,4 +1,5 @@
 #include "Game/MapObj/PressureBase.hpp"
+#include "Game/LiveActor/ActorStateParamScale.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
@@ -30,7 +31,8 @@ namespace NrvPressureBase {
     NEW_NERVE(PressureBaseNrvShot, PressureBase, Shot);
 };  // namespace NrvPressureBase
 
-PressureMessenger::PressureMessenger(MsgSharedGroup* pGroup, const char* pName) : LiveActor(pName), mSharedGroup(pGroup), mWaitSyncTime() {
+PressureMessenger::PressureMessenger(MsgSharedGroup* pGroup, ActorStateParamScale* pParamScale, const char* pName)
+    : LiveActor(pName), mSharedGroup(pGroup), mParamScale(pParamScale), mWaitSyncTime() {
 }
 
 void PressureMessenger::init(const JMapInfoIter& rIter) {
@@ -43,7 +45,7 @@ void PressureMessenger::init(const JMapInfoIter& rIter) {
 }
 
 void PressureMessenger::exeSync() {
-    if (MR::isStep(this, mWaitSyncTime)) {
+    if (mParamScale->isStep(mWaitSyncTime)) {
         mSharedGroup->sendMsgToGroupMember(0x7A /* ACTMES_GROUP_MOVE_START */, getSensor("body"), "body");
         setNerve(GET_NERVE(PressureMessenger, PressureMessengerNrvSync));
     }
@@ -82,6 +84,7 @@ void PressureBase::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg2NoInit(rIter, &mBallSpeed);
     MR::getJMapInfoArg3NoInit(rIter, &mShotType);
     MR::calcGravity(this);
+    mParamScale = new ActorStateParamScale(this);
 
     MR::setGroupClipping(this, rIter, 32);
     mGroup = MR::joinToGroupArray(this, rIter, "プレッシャー軍団", 32);
@@ -89,7 +92,7 @@ void PressureBase::init(const JMapInfoIter& rIter) {
         PressureBase* actor = static_cast< PressureBase* >(mGroup->getActor(0));
 
         if (this == actor) {
-            mMessenger = new PressureMessenger(static_cast< MsgSharedGroup* >(mGroup), "プレッシャー同期メッセンジャー");
+            mMessenger = new PressureMessenger(static_cast< MsgSharedGroup* >(mGroup), mParamScale, "プレッシャー同期メッセンジャー");
             mMessenger->initWithoutIter();
         }
     }

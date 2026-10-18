@@ -94,7 +94,7 @@ bool TwoLegsStateWalkNoDamage::isWalkEnd() {
 void TwoLegsStateWalkNoDamage::exeWalk() {
     if (MR::isFirstStep(this)) {
         mHost->placeAtAllRoot();
-        mHost->startActionLR("Walk");
+        mHost->startActionLR("WalkDown");
         MR::setBckRate(mHost, 1.3f);
         mStepCount++;
     }

@@ -10,8 +10,6 @@ public:
 
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
-    virtual void appear();
-    virtual void kill();
     virtual void control();
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
@@ -19,17 +17,17 @@ public:
     void appearMove(const TVec3f&, s32);
     void exeWait();
     void exeMove();
+    void exeVanish();
+    void exeGather();
     void exeBreak();
     void exeKillWait();
     bool canSpinGet() const;
+    bool startVanish();
+    bool tryStartGather();
+    bool tryStartGatherFromVanish();
 
-    /* 0x90 */ TVec3f _8C;
-    /* 0x9C */ u8 _98[0xC];
-    /* 0xA8 */ TVec3f _A4;
-    /* 0xB4 */ f32 _B0;
-    /* 0xB8 */ u8 _B4[0xC];
-    /* 0xC4 */ f32 mRailMoveSpeed;
-    /* 0xC8 */ s32 mLife;
-    /* 0xCC */ bool mIsFollowRail;
-    /* 0xCD */ bool _C9;
+    /* 0x90 */ TVec3f mAnchorPos;
+    /* 0x9C */ TVec3f _9C;
+    /* 0xA8 */ f32 _A8;
+    /* 0xAC */ s32 mLife;
 };

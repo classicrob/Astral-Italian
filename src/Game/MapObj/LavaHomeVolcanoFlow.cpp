@@ -55,7 +55,7 @@ void LavaHomeVolcanoFlow::exeWait() {
 
 void LavaHomeVolcanoFlow::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "LavaHomeVolcanoFlow");
+        MR::startBckIfExist(this, "LavaHomeVolcanoFlow");
     }
     MR::startActionSound(this, "OjLvVolcanoExplSign");
     if (MR::isStep(this, 60)) {

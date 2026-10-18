@@ -219,7 +219,7 @@ void SuperSpinDriver::makeActorDead() {
     LiveActor::makeActorDead();
 
     if (mPathDrawer != nullptr) {
-        mPathDrawer->kill();
+        mPathDrawer->makeActorDead();
     }
 }
 

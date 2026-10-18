@@ -25,4 +25,5 @@ public:
 
     /* 0x14 */ const Nerve* mCurDemoNerve;
     /* 0x18 */ const char* mCurDemoName;
+    /* 0x1C */ const char* mCameraName;
 };

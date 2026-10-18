@@ -32,7 +32,7 @@ void JumpStand::init(const JMapInfoIter& rIter) {
     MR::addHitSensorPriorBinder(this, "binder", 4, 200.0f, binderOffs);
     MR::invalidateHitSensor(this, "binder");
     _90.set(MR::getJointMtx(this, "JumpStandJoint03"));
-    MR::initCollisionParts(this, "JumpStand", getSensor("body"), _90);
+    MR::initCollisionParts(this, "JumpStand", getSensor("Body"), _90);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "JumpStand", nullptr, TVec3f(0.0f));
     MR::setGroupClipping(this, rIter, 16);
@@ -54,7 +54,7 @@ void JumpStand::exeWait() {
 void JumpStand::exeTrampleBound() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Bound");
-        MR::startActionSound(this, "SE_OJ_JUMP_STAND_LAND_S", -1, -1, -1);
+        MR::startActionSound(this, "OjJumpStandLandS", -1, -1, -1);
     }
 
     if (MR::isLessEqualStep(this, 5) && MR::testCorePadTriggerA(0)) {
@@ -124,7 +124,7 @@ void JumpStand::exeHipDropBound() {
 void JumpStand::exeStarPieceBound() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Bound");
-        MR::startActionSound(this, "SE_OJ_JUMP_STAND_LAND_S", -1, -1, -1);
+        MR::startActionSound(this, "OjJumpStandLandS", -1, -1, -1);
     }
 
     if (MR::isActionEnd(this)) {
@@ -174,7 +174,7 @@ bool JumpStand::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
         return false;
     }
 
-    if (!MR::isOnPlayer(getSensor("body"))) {
+    if (!MR::isOnPlayer(getSensor("Body"))) {
         return false;
     } else {
         if (!MR::isPlayerHipDropLand()) {

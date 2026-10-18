@@ -19,109 +19,62 @@ void AirBubble_FORCE_MATCH_SDATA2() {
     (void)2.0f;
 }
 
+namespace MR {
+    // PLACEHOLDER(objects): not declared in any Util header yet (attachSupportTicoToTarget__2MRFPC9LiveActor)
+    void attachSupportTicoToTarget(const LiveActor*);
+};  // namespace MR
+
 namespace {
-    const f32 cHitSensorRadius = 130.0f;
-    const f32 cSwingRange = 250.0f;
-    // const s32 cGrowTime = _;
     const f32 cCorioriRotSpeed = 1.5f;
-    // const f32 cCoriolisAccel = _;
     const f32 cMoveStartAccel = 7.0f;
-    // const f32 cFloatAccel = _;
+    const f32 cSwingRange = 250.0f;
     const s32 cDefaultLife = 360;
 };  // namespace
 
 namespace NrvAirBubble {
     NEW_NERVE(AirBubbleNrvWait, AirBubble, Wait);
     NEW_NERVE(AirBubbleNrvMove, AirBubble, Move);
+    NEW_NERVE(AirBubbleNrvVanish, AirBubble, Vanish);
+    NEW_NERVE(AirBubbleNrvGather, AirBubble, Gather);
     NEW_NERVE(AirBubbleNrvBreak, AirBubble, Break);
     NEW_NERVE(AirBubbleNrvKillWait, AirBubble, KillWait);
 };  // namespace NrvAirBubble
 
-AirBubble::AirBubble(const char* pName) : LiveActor(pName), _A4(0.0f, 0.0f, 1.0f), _B0(), mLife(::cDefaultLife) {
+AirBubble::AirBubble(const char* pName) : LiveActor(pName), mAnchorPos(0.0f, 0.0f, 0.0f), _9C(0.0f, 0.0f, 1.0f), _A8(0.0f), mLife(::cDefaultLife) {
 }
 
 void AirBubble::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
     MR::initActor(this, rIter, "AirBubble", false);
-    MR::connectToSceneItem(this);
-    initHitSensor(1);
-    MR::addHitSensorMapObj(this, "body", 8, mScale.x * ::cHitSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
-    initEffectKeeper(0, nullptr, false);
-    initSound(2, "AirBubble", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(AirBubble, AirBubbleNrvWait));
-    mIsFollowRail = false;
     makeActorAppeared();
     MR::setClippingFar100m(this);
     MR::startAction(this, "Move");
-    _C9 = false;
 }
 
 void AirBubble::initAfterPlacement() {
-    if (mIsFollowRail) {
-        MR::moveCoordAndTransToNearestRailPos(this);
-    }
-
-    _8C = mPosition;
-}
-
-void AirBubble::appear() {
-    LiveActor::appear();
-}
-
-void AirBubble::kill() {
-    if (MR::isValidSwitchDead(this)) {
-        MR::onSwitchDead(this);
-    }
-
-    LiveActor::kill();
+    mAnchorPos = mPosition;
 }
 
 void AirBubble::control() {
 }
 
 void AirBubble::appearMove(const TVec3f& rTrans, s32 life) {
-    _8C.set(rTrans);
+    mAnchorPos.set(rTrans);
     mPosition.set(rTrans);
     appear();
     MR::showModel(this);
+    MR::validateHitSensors(this);
     setNerve(GET_NERVE(AirBubble, AirBubbleNrvMove));
     MR::invalidateClipping(this);
 
     mLife = life > 0 ? life : ::cDefaultLife;
 }
 
-// required to match
-// TODO remove
-#pragma push
-#pragma opt_propagation off
 void AirBubble::exeWait() {
-    if (MR::isFirstStep(this)) {
-    }
-
-    _B0 = MR::sin(MR::calcNerveRate(this, 120) * MR::pi() * 2.0f);
-
-    if (mIsFollowRail) {
-        if (MR::isRailReachedGoal(this)) {
-            MR::reverseRailDirection(this);
-        }
-
-        f32 arg0;
-
-        if (MR::getCurrentRailPointArg0WithInit(this, &arg0)) {
-            mRailMoveSpeed = arg0;
-        }
-
-        MR::moveCoordAndFollowTrans(this, mRailMoveSpeed);
-    }
-
-    if (_C9) {
-        return;
-    }
-
-    mPosition = _8C + TVec3f(0.0f, 1.0f, 0.0f) * _B0 * 1.0f;
+    _A8 = MR::sin(MR::calcNerveRate(this, 120) * MR::pi() * 2.0f);
+    mPosition = mAnchorPos + TVec3f(0.0f, 1.0f, 0.0f) * _A8 * 1.0f;
+    MR::attachSupportTicoToTarget(this);
 }
-#pragma pop
 
 void AirBubble::exeMove() {
     if (MR::isFirstStep(this)) {
@@ -131,15 +84,15 @@ void AirBubble::exeMove() {
         mVelocity.set((-mGravity).multInLine2(::cMoveStartAccel));
     }
 
-    MR::rotateVecDegree(&_A4, mGravity, ::cCorioriRotSpeed);
-    _A4.killElement(_A4, mGravity);
+    MR::rotateVecDegree(&_9C, mGravity, ::cCorioriRotSpeed);
+    _9C.killElement(_9C, mGravity);
 
-    if (MR::isNearZero(_A4)) {
-        MR::getRandomVector(&_A4, 1.0f);
+    if (MR::isNearZero(_9C)) {
+        MR::getRandomVector(&_9C, 1.0f);
     }
 
-    MR::normalizeOrZero(&_A4);
-    mVelocity += _A4 * 0.1f;
+    MR::normalizeOrZero(&_9C);
+    mVelocity += _9C * 0.1f;
     mVelocity -= mGravity * 0.3f;
     mVelocity.mult(0.85f);
 
@@ -149,6 +102,31 @@ void AirBubble::exeMove() {
         MR::emitEffect(this, "RecoveryBubbleBreak");
         MR::offCalcGravity(this);
         setNerve(GET_NERVE(AirBubble, AirBubbleNrvKillWait));
+    } else {
+        MR::attachSupportTicoToTarget(this);
+    }
+}
+
+void AirBubble::exeVanish() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateHitSensors(this);
+    }
+
+    if (!MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        MR::hideModel(this);
+        MR::startActionSound(this, "OjAirBubbleBreak");
+        MR::emitEffect(this, "RecoveryBubbleBreak");
+        kill();
+    }
+
+    MR::zeroVelocity(this);
+}
+
+void AirBubble::exeGather() {
+    MR::vecBlend(&mPosition, mPosition, *MR::getPlayerPos(), MR::calcNerveRate(this, 15));
+
+    if (MR::isGreaterStep(this, 15)) {
+        setNerve(GET_NERVE(AirBubble, AirBubbleNrvBreak));
     }
 }
 
@@ -169,6 +147,10 @@ void AirBubble::exeKillWait() {
 }
 
 bool AirBubble::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!canSpinGet()) {
+        return false;
+    }
+
     if (MR::isSensorPlayer(pSender)) {
         if (isNerve(GET_NERVE(AirBubble, AirBubbleNrvKillWait))) {
             MR::incPlayerOxygen(8);
@@ -195,23 +177,50 @@ bool AirBubble::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     }
 
     if (MR::isMsgItemStartMove(msg)) {
-        _C9 = true;
-
-        return true;
+        return startVanish();
     }
 
-    if (MR::isMsgItemEndMove(msg)) {
-        _C9 = false;
-        _8C = mPosition;
+    if (MR::isMsgItemSupportTicoDrop(msg)) {
+        return tryStartGatherFromVanish();
+    }
 
-        return true;
+    if (MR::isMsgItemEndMoveOrDrop(msg)) {
+        mAnchorPos = mPosition;
+        return tryStartGather();
     }
 
     if (MR::isMsgSpinStormRange(msg) && canSpinGet()) {
-        if ((pSender->mPosition - mPosition).length() < ::cSwingRange) {
+        if ((*MR::getSensorPos(pSender) - mPosition).length() < ::cSwingRange) {
             setNerve(GET_NERVE(AirBubble, AirBubbleNrvBreak));
             return true;
         }
+    }
+
+    return false;
+}
+
+bool AirBubble::startVanish() {
+    if (canSpinGet()) {
+        setNerve(GET_NERVE(AirBubble, AirBubbleNrvVanish));
+        return true;
+    }
+
+    return false;
+}
+
+bool AirBubble::tryStartGatherFromVanish() {
+    if (isNerve(GET_NERVE(AirBubble, AirBubbleNrvVanish))) {
+        setNerve(GET_NERVE(AirBubble, AirBubbleNrvGather));
+        return true;
+    }
+
+    return false;
+}
+
+bool AirBubble::tryStartGather() {
+    if (canSpinGet()) {
+        setNerve(GET_NERVE(AirBubble, AirBubbleNrvGather));
+        return true;
     }
 
     return false;

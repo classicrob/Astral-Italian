@@ -48,9 +48,9 @@ void KoopaJrRobotShockWave::attackSensor(HitSensor* pSender, HitSensor* pReceive
         } else if (ratio <= 0.0f) {
             limit = 1.0f;
         } else {
-            limit = 57.295776f * JMAAsinRadian(ratio);
+            limit = 57.29578f * JMAAsinRadian(ratio);
         }
-        if (__fabs(_94 - 57.295776f * MR::diffAngleAbs(up, dir)) < limit && MR::isSensorPlayer(pReceiver)) {
+        if (__fabs(_94 - 57.29578f * MR::diffAngleAbs(up, dir)) < limit && MR::isSensorPlayer(pReceiver)) {
             TVec3f out;
             TVec3f negUp = -up;
             JMAVECScaleAdd(&dir, &negUp, &out, -dir.dot(negUp));

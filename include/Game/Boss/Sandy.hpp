@@ -30,6 +30,7 @@ class WalkerStateBindStarPointer;
 
 void turnToPlayer(TQuat4f*, LiveActor*, f32);
 void attachBallToJoint(const LiveActor*, SandyBall*, const char*, const TVec3f&);
+AnimScaleParam* createScaleParam();
 
 // Holder of all the cactus balls the Sandy boss throws (5 ball kinds).
 class SandyBallHolder : public NameObj {

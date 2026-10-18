@@ -149,6 +149,7 @@ public:
     NO_INLINE bool isMove() const;
     NO_INLINE bool isMoveState() const;
     void clearStateMoveCount();
+    u8 getStateFlag() const;
     bool calcBodyGear1(TPos3f*, const JointControllerInfo&);
     bool calcBodyGear2(TPos3f*, const JointControllerInfo&);
     bool calcBodyGear3(TPos3f*, const JointControllerInfo&);
@@ -193,13 +194,15 @@ public:
     NO_INLINE bool fn_800D5880();
     NO_INLINE bool fn_800D58D0() const;
     bool fn_800D5E90();
+    bool fn_800D5F50(MtxPtr);
+    void calcAndSetBaseMtx();
     void exe800D5960();
     void exe800D59F0();
     void exe800D5A80();
     void exe800D5B10();
     void exe800D5BF0();
     void exe800D5D20();
-    /* 0xA0 */ void* _A0;
+    /* 0xA0 */ JointController* _A0;
     /* 0xA4 */ Mtx _A4;
     /* 0xD4 */ bool _D4;
 };
@@ -294,6 +297,7 @@ public:
     virtual ~KoopaJrCastleRingBeam();
     void setup(LiveActor*, const TVec3f&, const TVec3f&, const char*);
     void exe800D7C00();
+    void fn_800D7CE0();
     /* 0x90 */ void* _90;
     /* 0x94 */ f32 _94;
 };
@@ -315,6 +319,8 @@ public:
     KoopaJrCastleDominate(const char*);
     virtual ~KoopaJrCastleDominate();
     void exe800D7570();
+    void fn_800D7560(const char*, const char*);
+    bool fn_800D71B0(LiveActor*, s32, const TVec3f*, s32);
     /* 0x90 */ void* _90;
     /* 0x94 */ f32 _94;
     /* 0x98 */ f32 _98;

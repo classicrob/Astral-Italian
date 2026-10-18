@@ -5,6 +5,8 @@
 #include "Game/Map/GroundChecker.hpp"
 #include "Game/Util/JointController.hpp"
 
+class WalkerStateBindStarPointer;
+
 class PunchingKinoko : public LiveActor {
 public:
     PunchingKinoko(const char*);
@@ -20,16 +22,14 @@ public:
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
-
-    void initShadow();
-    void initSensor();
-    void initCamera(const JMapInfoIter&);
-    void initJointControl();
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     bool requestPunch(HitSensor*, HitSensor*);
     bool requestEnemyBlow(HitSensor*, HitSensor*);
     bool requestTrample(HitSensor*, HitSensor*);
     bool requestCrush();
+    bool requestCrushedShrink();
+    bool requestCrushedRecover();
 
     void exeWait();
     void exeSwing();
@@ -58,13 +58,14 @@ public:
     void addVelocityToUpPos(f32, f32, f32);
 
 private:
-    /* 0x8C */ GroundChecker* mGroundChecker;
-    /* 0x90 */ AnimScaleController* mScaleController;
-    /* 0x94 */ JointControlDelegator< PunchingKinoko >* mDelegator;
-    /* 0x98 */ s32 _98;
-    /* 0x9C */ TVec3f _9C;
-    /* 0xA8 */ TVec3f _A8;
-    /* 0xB4 */ s32 mStarPointerHitCoolDown;
-    /* 0xB8 */ bool _B8;
-    /* 0xBC */ s32 mInvincibleHitCoolDown;
+    /* 0x90 */ GroundChecker* mGroundChecker;
+    /* 0x94 */ AnimScaleController* mScaleController;
+    /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
+    /* 0x9C */ JointControlDelegator< PunchingKinoko >* mDelegator;
+    /* 0xA0 */ s32 mCameraNo;
+    /* 0xA4 */ TVec3f _A4;
+    /* 0xB0 */ TVec3f _B0;
+    /* 0xBC */ s32 mStarPointerHitCoolDown;
+    /* 0xC0 */ bool _C0;
+    /* 0xC4 */ s32 mInvincibleHitCoolDown;
 };

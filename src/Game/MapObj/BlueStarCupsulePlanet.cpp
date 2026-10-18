@@ -149,7 +149,7 @@ void BlueStarCupsulePlanet::decidedTarget() {
 void BlueStarCupsulePlanet::releasedTarget() {
     if (!isNerve(GET_NERVE(BlueStarCupsulePlanet, BlueStarCupsulePlanetNrvWait))) {
         setNerve(GET_NERVE(BlueStarCupsulePlanet, BlueStarCupsulePlanetNrvWait));
-        MR::startAllAnim(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 }
 
@@ -225,7 +225,7 @@ void BlueStarCupsulePlanet::exeHitPointer() {
 void BlueStarCupsulePlanet::exeActive() {
     if (MR::isFirstStep(this)) {
         emitNerveEffect();
-        MR::startAllAnim(this, "React");
+        MR::startAction(this, "React");
         MR::startActionSound(this, "OjMagicPntGOn");
     }
 

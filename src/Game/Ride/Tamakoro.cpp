@@ -835,7 +835,7 @@ void Tamakoro::endJumpHoleLaunch() {
 void Tamakoro::exeDashRail() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("BallRoll", nullptr);
-        MR::startSoundPlayer("SE_PV_JUMP_JOY", -1, -1);
+        MR::startLevelSoundPlayer("SE_PV_JUMP_JOY", -1, -1);
         MR::startActionSound(this, "SmIronsphRaildash", -1, -1, -1);
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
         mAccelDir.zero();
@@ -1187,9 +1187,9 @@ void Tamakoro::startRotateLevelSound() {
 
     s32 lvl = ((mag * 10000.0f) / TWO_PI);
     if (isNerve(GET_NERVE(Tamakoro, TamakoroNrvRideRail))) {
-        MR::startLevelSound(this, "SmLvIronsphRollRail", lvl);
+        MR::startActionSound(this, "SmLvIronsphRollRail", lvl, -1, -1);
     } else {
-        MR::startLevelSound(this, "SmLvIronsphRoll1", lvl);
+        MR::startActionSound(this, "SmLvIronsphRoll1", lvl, -1, -1);
     }
 }
 

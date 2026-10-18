@@ -35,16 +35,14 @@ public:
 
     bool hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVec3f* pNormal);
 
-    /* 0x3C */ u32 _3C;
-    /* 0x40 */ f32 _40;
-    /* 0x44 */ TVec3f _44;
-    /* 0x50 */ s32 _50;
-    /* 0x54 */ s32 _54;
-    /* 0x58 */ bool _58;
-    /* 0x59 */ u8 _59[3];
+    /* 0x48 */ u32 _48;
+    /* 0x4C */ f32 _4C;
+    /* 0x50 */ TVec3f _50;
     /* 0x5C */ s32 _5C;
     /* 0x60 */ s32 _60;
-    /* 0x64 */ AreaPolygon* mPolygon;
-    /* 0x68 */ bool mIsValid;
-    /* 0x69 */ u8 _69[3];
+    /* 0x64 */ bool _64;
+    /* 0x68 */ s32 _68;
+    /* 0x6C */ s32 _6C;
+    /* 0x70 */ AreaPolygon* mPolygon;
+    /* 0x74 */ bool mIsValid;
 };

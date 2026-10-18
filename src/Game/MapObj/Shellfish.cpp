@@ -106,7 +106,7 @@ void Shellfish::exeWait() {
 void Shellfish::exeOpen() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Open");
-        MR::startActionSound(this, "SE_OJ_SHELLFISH_OPEN", -1, -1, -1);
+        MR::startActionSound(this, "OjShellfishOpen", -1, -1, -1);
         putItem();
     }
 
@@ -149,7 +149,7 @@ void Shellfish::exeCloseSignal() {
 void Shellfish::exeClose() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Close");
-        MR::startActionSound(this, "SE_OJ_SHELLFISH_CLOSE", -1, -1, -1);
+        MR::startActionSound(this, "OjShellfishClose", -1, -1, -1);
     }
 
     if (MR::isStep(this, ::sStepToHitSensorOn)) {

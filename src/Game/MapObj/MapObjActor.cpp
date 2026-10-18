@@ -634,7 +634,7 @@ bool MapObjActor::tryEmitWaitEffect() {
         return false;
     }
 
-    if (MR::calcCameraDistanceZ(mPosition) > 4000.0f) {
+    if (MR::calcCameraDistanceZ(mPosition) > 10000.0f) {
         return false;
     }
 
@@ -655,7 +655,7 @@ bool MapObjActor::tryDeleteWaitEffect() {
         return false;
     }
 
-    if (MR::calcCameraDistanceZ(mPosition) <= 4000.0f) {
+    if (MR::calcCameraDistanceZ(mPosition) <= 10000.0f) {
         return false;
     }
 
@@ -727,7 +727,7 @@ void MapObjActor::updateProjmapMtx() {
         return;
     }
 
-    if (!_B8) {
+    if (!_B9) {
         return;
     }
 

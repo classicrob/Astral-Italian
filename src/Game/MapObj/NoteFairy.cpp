@@ -286,7 +286,7 @@ void NoteFairy::exeDemoAppear() {
         mPosition.z = (_98.z * (1.0f - ease)) + (ease * MR::getRailPos(this).z);
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_FLOWER_FAIRY_MOVE", -1, -1, -1);
+    MR::startActionSound(this, "OjLvFlowerFairyMove", -1, -1, -1);
     mRotation.y = MR::getSceneObj< NoteGroup >(SceneObj_NoteGroup)->mRotation;
 
     if (MR::isStep(this, 130)) {
@@ -305,7 +305,7 @@ void NoteFairy::exeAppearNoteBloom() {
         MR::endActorCamera(this, mCameraInfo, false);
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_FLOWER_FAIRY_MOVE", -1, -1, -1);
+    MR::startActionSound(this, "OjLvFlowerFairyMove", -1, -1, -1);
     MR::moveCoordAndFollowTrans(this, mAppearanceSpeed);
     mRotation.y = MR::getSceneObj< NoteGroup >(SceneObj_NoteGroup)->mRotation;
 
@@ -444,7 +444,7 @@ bool NoteFairy::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
         case -1:
             break;
         case 0:
-            MR::startActionSound(this, "SE_SY_TOTAL_COMPLETE");
+            MR::startActionSound(this, "SyTotalComplete");
             break;
         }
 

@@ -16,14 +16,14 @@ void CollisionArea_FORCE_MATCH_SDATA2() {
 }
 
 CollisionArea::CollisionArea(int formType, const char* pName) : AreaObj(formType, pName) {
-    _3C = 0;
-    _40 = 0.0f;
-    _44.zero();
-    _50 = 0;
-    _54 = 0;
-    _58 = false;
+    _48 = 0;
+    _4C = 0.0f;
+    _50.zero();
     _5C = 0;
     _60 = 0;
+    _64 = false;
+    _68 = 0;
+    _6C = 0;
     mPolygon = nullptr;
     mIsValid = false;
 }
@@ -32,21 +32,21 @@ void CollisionArea::init(const JMapInfoIter& rIter) {
     AreaObj::init(rIter);
     MR::connectToSceneAreaObj(this);
 
-    _50 = -1;
-    _3C = 0;
-    _40 = 0.0f;
-    _54 = -1;
-    _5C = 0;
+    _5C = -1;
+    _48 = 0;
+    _4C = 0.0f;
     _60 = -1;
+    _68 = 0;
+    _6C = -1;
 
-    MR::getJMapInfoArg0NoInit(rIter, &_50);
-    MR::getJMapInfoArg1NoInit(rIter, &_54);
-    MR::getJMapInfoArg2NoInit(rIter, &_5C);
-    MR::getJMapInfoArg3NoInit(rIter, &_60);
+    MR::getJMapInfoArg0NoInit(rIter, &_5C);
+    MR::getJMapInfoArg1NoInit(rIter, &_60);
+    MR::getJMapInfoArg2NoInit(rIter, &_68);
+    MR::getJMapInfoArg3NoInit(rIter, &_6C);
 
-    _58 = false;
+    _64 = false;
 
-    if (_60 == 0) {
+    if (_6C == 0) {
         mPolygon = nullptr;
     } else {
         mPolygon = new AreaPolygon();
@@ -80,21 +80,21 @@ void CollisionArea::movement() {
             mIsValid = true;
         }
 
-        if (_54 == -1 && MR::isPlayerTeresaDisappear()) {
-            _58 = true;
+        if (_60 == -1 && MR::isPlayerTeresaDisappear()) {
+            _64 = true;
 
             if (mPolygon != nullptr) {
                 MR::invalidateCollisionParts(mPolygon->mParts);
             }
         } else {
             TVec3f playerPos = *MR::getPlayerCenterPos();
-            f32 radius = static_cast< f32 >(_5C);
+            f32 radius = static_cast< f32 >(_68);
 
-            if (_5C == 0) {
+            if (_68 == 0) {
                 radius = MR::getPlayerHitRadius();
             }
 
-            if (_58) {
+            if (_64) {
                 radius += 5.0f;
             }
 
@@ -102,19 +102,19 @@ void CollisionArea::movement() {
             TVec3f hitNormal;
 
             if (!hitCheck(playerPos, radius, &hitPos, &hitNormal)) {
-                if (_58) {
-                    _58 = false;
+                if (_64) {
+                    _64 = false;
 
                     if (mPolygon != nullptr) {
                         MR::validateCollisionParts(mPolygon->mParts);
                     }
                 }
-            } else if (!_58 && _50 == -1) {
+            } else if (!_64 && _5C == -1) {
                 TVec3f push;
 
-                if (_3C == 0) {
+                if (_48 == 0) {
                     push = hitNormal;
-                    push.setLength(radius + _40);
+                    push.setLength(radius + _4C);
                 } else {
                     push = playerPos - hitPos;
                     push.setLength(radius);
@@ -136,7 +136,7 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
     s32 surface = -1;
     TPos3f matrix;
     pCube->calcWorldMtx(&matrix);
-    pCube->calcWorldPos(&_44);
+    pCube->calcWorldPos(&_50);
     TVec3f localPoint;
     TVec3f axisX;
     TVec3f axisY;
@@ -155,7 +155,7 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
     sizeZ *= 0.5f * (pCube->mScale.z * pCube->getBaseSize());
     TVec3f expanded(sizeX + radius, sizeY + radius, sizeZ + radius);
     TVec3f relative(rPos);
-    relative.sub(_44);
+    relative.sub(_50);
     f32 x = relative.dot(axisX);
     f32 y = relative.dot(axisY);
     f32 z = relative.dot(axisZ);
@@ -185,7 +185,7 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
         count++;
     }
 
-    _3C = count;
+    _48 = count;
     TVec3f corner;
     TVec3f depth;
     if (count == 3) {
@@ -223,13 +223,13 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
         depth.y = sizeY - absolute.y;
         depth.z = sizeZ - absolute.z;
         if (depth.x < depth.y && depth.x < depth.z) {
-            _40 = depth.x;
+            _4C = depth.x;
             outside[0] = true;
         } else if (depth.y < depth.x && depth.y < depth.z) {
-            _40 = depth.y;
+            _4C = depth.y;
             outside[1] = true;
         } else {
-            _40 = depth.z;
+            _4C = depth.z;
             outside[2] = true;
         }
 
@@ -308,9 +308,9 @@ bool CollisionArea::hitCheck(const TVec3f& rPos, f32 radius, TVec3f* pPoint, TVe
         }
     }
 
-    pPoint->set(axisX * localPoint.x + axisY * localPoint.y + axisZ * localPoint.z + _44);
+    pPoint->set(axisX * localPoint.x + axisY * localPoint.y + axisZ * localPoint.z + _50);
     MR::normalizeOrZero(pNormal);
-    if (mPolygon != nullptr && (_60 & (1 << surface))) {
+    if (mPolygon != nullptr && (_6C & (1 << surface))) {
         mPolygon->setSurfaceAndSync(surface);
     }
 

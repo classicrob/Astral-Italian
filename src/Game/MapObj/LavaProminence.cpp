@@ -73,7 +73,7 @@ void LavaProminence::init(const JMapInfoIter& rIter) {
     initHitSensor(1);
     TVec3f offset;
     offset.set(0.0f);
-    MR::addHitSensorMapObjSimple(this, "body", 8, 120.0f, offset);
+    MR::addHitSensorMapObjSimple(this, "Body", 8, 120.0f, offset);
     initRailRider(rIter);
     MR::calcRailPosAtCoord(&mRailStartPos, this, 0.0f);
     MR::calcRailPosAtCoord(&mRailEndPos, this, MR::getRailTotalLength(this));
@@ -178,11 +178,11 @@ void LavaProminence::setGravityAndMakeMtx() {
 
 void LavaProminence::updateEffectClipping(bool a1) {
     if (!mEmitDropEffect) {
-        if (!a1 || MR::isJudgedToClipFrustum(mPosition, MR::getSensorRadius(this, "body"))) {
+        if (!a1 || MR::isJudgedToClipFrustum(mPosition, MR::getSensorRadius(this, "Body"))) {
             MR::deleteEffect(this, "DropEffect");
             mEmitDropEffect = true;
         }
-    } else if (a1 && !MR::isJudgedToClipFrustum(mPosition, MR::getSensorRadius(this, "body"))) {
+    } else if (a1 && !MR::isJudgedToClipFrustum(mPosition, MR::getSensorRadius(this, "Body"))) {
         MR::emitEffect(this, "DropEffect");
         mEmitDropEffect = false;
     }

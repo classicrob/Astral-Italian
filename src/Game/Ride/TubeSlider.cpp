@@ -37,7 +37,7 @@ namespace {
     f32 twohundred = 200.0f;
 }  // namespace
 
-void TubeSliderInfo::init(f32 f) {
+TubeSliderInfo::TubeSliderInfo(f32 f) {
     mRadius = f;
     mPrimaryFloorType = 0;
     mPrimaryFloorAngle = 0.0f;
@@ -69,38 +69,12 @@ namespace NrvTubeSlider {
     NEW_NERVE(TubeSliderNrvRideSlamWall, TubeSlider, KillPlayer);
 }  // namespace NrvTubeSlider
 
-TubeSlider::TubeSlider(const char* pName) : LiveActor(pName) {
-    _90 = nullptr;
-    _94 = 0.0f;
-    _98.set(0.0f, 0.0f, 1.0f);
-    _A4.set(0.0f, 1.0f, 0.0f);
-    _E0 = 0.0f;
-    mCameraInfo = nullptr;
-    mPlayerTheta = 0.0f;
-    _EC = 0.0f;
-    _F0 = 0.0f;
-    _F4 = 0.0f;
-    _F8 = 4.0f;
-    _FC = 0.0f;
-    _100.set(0.0f, 0.0f, 0.0f);
-    _10C.set(0.0f, 0.0f, 0.0f);
-    _118 = 0;
-    _11C = 0.0f;
-    _120 = 0;
-    mInfo.init(500.0f);
-    mRadiusDefault = 500.0f;
-    mFloorCodeDefault = 0;
-    _148.set(0.0f, 0.0f, 0.0f);
-    mShadowDropPos.set(0.0f, 0.0f, 0.0f);
-    mShadowDropDir.set(0.0f, 1.0f, 0.0f);
-    _16C.set(0.0f, 0.0f, 0.0f);
-    _178.set(0.0f, 0.0f, 0.0f);
-    _184.set(0.0f, 0.0f, 1.0f);
-    _190.set(0.0f, 1.0f, 0.0f);
-    _19C = 150.0f;
-    _1A0 = &thirty;
-    _1A4 = &onefifty;
-    _1A8 = false;
+TubeSlider::TubeSlider(const char* pName)
+    : LiveActor(pName), _90(nullptr), _94(0.0f), _98(0.0f, 0.0f, 1.0f), _A4(0.0f, 1.0f, 0.0f), _E0(0.0f), mCameraInfo(nullptr),
+      mPlayerTheta(0.0f), _EC(0.0f), _F0(0.0f), _F4(0.0f), _F8(4.0f), _FC(0.0f), _100(0.0f, 0.0f, 0.0f), _10C(0.0f, 0.0f, 0.0f), _118(0),
+      _11C(0.0f), _120(0), mInfo(500.0f), mRadiusDefault(500.0f), mFloorCodeDefault(0), _148(0.0f, 0.0f, 0.0f),
+      mShadowDropPos(0.0f, 0.0f, 0.0f), mShadowDropDir(0.0f, 1.0f, 0.0f), _16C(0.0f, 0.0f, 0.0f), _178(0.0f, 0.0f, 0.0f),
+      _184(0.0f, 0.0f, 1.0f), _190(0.0f, 1.0f, 0.0f), _19C(150.0f), _1A0(&thirty), _1A4(&onefifty), _1A8(false) {
     _B0.identity();
 }
 
@@ -115,7 +89,7 @@ void TubeSlider::init(const JMapInfoIter& rIter) {
     }
     initRailRider(rIter);
     MR::connectToScene(this, 0x28, -1, -1, -1);
-    initSound(8, "Tubeslider", nullptr, TVec3f(0.0f));
+    initSound(8, "TubeSlider", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(TubeSlider, TubeSliderNrvWait), 0);
     MR::initAndSetRailClipping(&_148, this, 100.0f, 500.0f);
     MR::calcRailStartPointPos(&mPosition, this);

@@ -37,7 +37,7 @@ namespace {
     static const f32 sBindStartRotateSpeedFast = 9.0f;
     static const f32 sInvalidPlayerSpeedMaxXZ = 5.0f;
     static const f32 sInvalidPlayerSpeedMinY = 1.0f;
-    static const s32 sStepInvalid = 45;
+    static const s32 sStepInvalid = 30;
     static const f32 sClimbUpSpeedRate = 6.0f;
     static const f32 sFallDownAccelRate = 0.3f;
     static const f32 sFallDownSpeedMaxY = 15.0f;
@@ -299,7 +299,7 @@ void Pole::exeFreeInvalid() {
 
     exeFree();
 
-    if (MR::isOnGroundPlayer() || (mIsTwisterTower && MR::isGreaterStep(this, 30)) || MR::calcDistanceToPlayer(this) > ::sPlayerDistanceToValid || MR::isGreaterStep(this, ::sStepInvalid)) {
+    if ((MR::isOnGroundPlayer() && (!mIsTwisterTower || MR::isGreaterStep(this, 30))) || MR::calcDistanceToPlayer(this) > ::sPlayerDistanceToValid || MR::isGreaterStep(this, ::sStepInvalid)) {
         MR::validateHitSensors(this);
         setNerve(GET_NERVE(Pole, PoleNrvFree));
     }
@@ -570,7 +570,9 @@ void Pole::exeBindHandstandWait() {
     }
 
     if (!Pole::tryJump(true, 0.0f) && !Pole::tryHandstandTurn()) {
-        if (getPoleSubPadStickY() < -::sEndHandstandStickY) {
+        f32 stickY = getPoleSubPadStickY();
+        f32 stickEnd = ::sEndHandstandStickY;
+        if (stickY < -stickEnd) {
             setNerve(GET_NERVE(Pole, PoleNrvBindHandstandEnd));
         }
     }
@@ -590,7 +592,7 @@ void Pole::exeBindHandstandEnd() {
     }
 
     if (!tryTurn()) {
-        if (MR::isBckStopped(mRider)) {
+        if (MR::isActionEnd(mRider)) {
             setNerve(GET_NERVE(Pole, PoleNrvBindWait));
         }
     }
@@ -852,7 +854,7 @@ bool Pole::tryTurn() {
 }
 
 bool Pole::tryClimbUp() {
-    if (getPoleSubPadStickY() > 0.0f) {
+    if (getPoleSubPadStickY() > 0.3f) {
         setNerve(GET_NERVE(Pole, PoleNrvBindClimbUp));
         return true;
     }
@@ -860,7 +862,9 @@ bool Pole::tryClimbUp() {
 }
 
 bool Pole::tryFallDown() {
-    if (getPoleSubPadStickY() < -::sFallDownStickMin) {
+    f32 stickY = getPoleSubPadStickY();
+    f32 stickMin = ::sFallDownStickMin;
+    if (stickY < -stickMin) {
         setNerve(GET_NERVE(Pole, PoleNrvBindFallDown));
         return true;
     }

@@ -65,10 +65,9 @@ public:
     /* 0x197 */ u8 _197;
     /* 0x198 */ PartsModel* mPipeStreamModel;
     /* 0x19C */ bool _19C;
-    /* 0x19D */ bool _19D;
-    /* 0x19E */ bool _19E;
-    /* 0x19F */ bool _19F;
-    /* 0x1A0 */ ActorCameraInfo* mCameraInfo;
+    /* 0x1A0 */ s32 _1A0;
+    /* 0x1A4 */ bool mIsPipeStreamShown;
+    /* 0x1A8 */ ActorCameraInfo* mCameraInfo;
 };
 
 class EarthenPipeMediator : public NameObj {

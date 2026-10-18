@@ -130,7 +130,7 @@ void FluffWind::makeActorDead() {
     LiveActor::makeActorDead();
 }
 
-FluffWindHolder::FluffWindHolder() : LiveActorGroup("わたげ風", 8) {
+FluffWindHolder::FluffWindHolder() : LiveActorGroup("わたげ風", 0x20) {
 }
 
 bool FluffWindHolder::calcWindInfo(const TVec3f& rPosition, TVec3f* pWindDirection, f32* pWindDistance) const {

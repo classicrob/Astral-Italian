@@ -7,7 +7,7 @@
 #include "Game/Util.hpp"
 
 namespace {
-    static const s32 sClipAreaMax = 64;
+    static const s32 sClipAreaMax = 0x200;
 };  // namespace
 
 namespace {

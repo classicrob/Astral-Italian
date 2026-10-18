@@ -85,7 +85,7 @@ void FlipPanel::exeFrontLand() {
         MR::startActionSound(this, "OjFlipPanelChange", -1, -1, -1);
 
         if (_CD) {
-            MR::sendMsgToGroupMember(0x77 /* ACTMES_FAILURE */, this, getSensor(0), "body");
+            MR::sendMsgToGroupMember(0x77 /* ACTMES_FAILURE */, this, getSensor(0), "Body");
             _CD = 0;
         }
     }
@@ -114,7 +114,7 @@ void FlipPanel::exeBackLand() {
         MR::startActionSound(this, "OjFlipPanelChange", -1, -1, -1);
 
         if (!_CD) {
-            MR::sendMsgToGroupMember(0x76 /* ACTMES_SUCCESS */, this, getSensor(0), "body");
+            MR::sendMsgToGroupMember(0x76 /* ACTMES_SUCCESS */, this, getSensor(0), "Body");
             _CD = 1;
         }
     }
@@ -326,7 +326,7 @@ void FlipPanelObserver::exeComplete() {
     if (MR::isFirstStep(this)) {
         MR::callRequestMovementOnAllGroupMember(this);
         MR::requestMovementOn(_8C);
-        MR::sendMsgToGroupMember(0x7B /* ACTMES_GROUP_MOVE_STOP */, this, getSensor(0), "body");
+        MR::sendMsgToGroupMember(0x7B /* ACTMES_GROUP_MOVE_STOP */, this, getSensor(0), "Body");
     }
 
     if (MR::isGreaterStep(this, mDemoDelay)) {

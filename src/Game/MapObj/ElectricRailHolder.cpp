@@ -148,7 +148,7 @@ void ElectricRailHolder::initDraw() const {
 }
 
 void ElectricRailHolder::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, MR::MovementType_MapObjDecoration, MR::CalcAnimType_MapObj, MR::DrawBufferType_None, MR::DrawType_ElectricRailHolder);
+    MR::connectToScene(this, 0x22 /* SMG2 MovementType_MapObjDecoration (our enum: 0x23) */, MR::CalcAnimType_MapObj, MR::DrawBufferType_None, MR::DrawType_ElectricRailHolder);
 
     MR::invalidateClipping(this);
 

@@ -108,7 +108,7 @@ void ChipBase::initSensor() {
         radius = ::sBodyHitRadius;
     }
 
-    MR::addHitSensorEnemy(this, "body", 8, radius * scale, TVec3f(0.0f, ::sBodyHitYOffset, 0.0f));
+    MR::addHitSensorEnemy(this, "Body", 8, radius * scale, TVec3f(0.0f, ::sBodyHitYOffset, 0.0f));
 }
 
 void ChipBase::initShadow(const JMapInfoIter& rIter) {

@@ -175,7 +175,7 @@ void KoopaJrRobot::control() {
 void KoopaJrRobot::movement() {
     LiveActor::movement();
     mBody->movement();
-    calcAndSetBaseMtx();
+    calcAnim();
 }
 
 void KoopaJrRobot::calcAnim() {

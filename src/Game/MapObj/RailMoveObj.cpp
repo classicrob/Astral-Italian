@@ -74,6 +74,10 @@ void RailMoveObj::init(const JMapInfoIter& rIter) {
         setNerve(GET_NERVE(RailMoveObj, HostTypeWaitForPlayerOn));
     }
 
+    initDemoAction();
+}
+
+void RailMoveObj::initDemoAction() {
     if (MR::isDemoCast(this, 0) && MR::tryRegisterDemoActionNerve(this, GET_NERVE(RailMoveObj, HostTypeMove), 0)) {
         setNerve(GET_NERVE(RailMoveObj, HostTypeWait));
     }

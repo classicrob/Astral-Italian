@@ -16,7 +16,7 @@ namespace NrvPoltaStateStagger {
 };  // namespace NrvPoltaStateStagger
 
 PoltaStateStagger::PoltaStateStagger(Polta* pPolta) : ActorStateBase< Polta >("[state]ポルタ弱り状態", pPolta) {
-    mActionName = "Stagger";
+    mActionName = "StaggerNormal";
     _20 = true;
     initNerve(GET_NERVE(PoltaStateStagger, PoltaStateStaggerNrvWait));
 }

@@ -390,6 +390,7 @@ void Coin::exeMove() {
 void Coin::exeControled() {
     if (MR::isFirstStep(this)) {
         MR::onCalcShadow(this, nullptr);
+        MR::onCalcGravity(this);
         MR::onCalcShadowDropPrivateGravity(this, nullptr);
     }
 

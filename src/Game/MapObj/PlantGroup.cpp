@@ -195,7 +195,7 @@ void PlantGroup::makeActorAppeared() {
 
     for (s32 i = 0; i < mMemberCount; i++) {
         if (!MR::isValidSwitchAppear(this)) {
-            mMembers[i]->appear();
+            mMembers[i]->makeActorAppeared();
         }
     }
 }
@@ -423,7 +423,7 @@ void PlantGroup::initAfterPlacement() {
     }
 
     TPos3f mtx;
-    mtx.identity();
+    PSMTXIdentity(mtx.toMtxPtr());
     MR::makeMtxRotate(mtx.toMtxPtr(), mRotation);
     TVec3f front;
     MR::extractMtxZDir(mtx.toMtxPtr(), &front);
@@ -641,7 +641,7 @@ void PlantMember::init(const JMapInfoIter&) {
     MR::onCalcAnim(this);
     initSound(1, "PlantMember", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(PlantMember, HostTypeNrvWait), 0);
-    appear();
+    makeActorAppeared();
 }
 
 void PlantMember::makeActorAppeared() {

@@ -7,7 +7,7 @@ BloomArea::BloomArea(int formType, const char* pName)
 }
 
 void BloomArea::init(const JMapInfoIter& rIter) {
-    AreaObj::init(rIter);
+    ImageEffectArea::init(rIter);
     MR::createNormalBloom();
 
     if (mObjArg0 >= 0) {

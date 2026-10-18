@@ -45,6 +45,8 @@ EarthenPipe::EarthenPipe(const char* pName) : LiveActor(pName) {
     _194 = 0;
     mPipeStreamModel = nullptr;
     _19C = 0;
+    _1A0 = 0;
+    mIsPipeStreamShown = 0;
     mCameraInfo = nullptr;
     _F0.identity();
     _120.identity();
@@ -155,9 +157,9 @@ void EarthenPipe::init(const JMapInfoIter& rIter) {
         MR::setClippingTypeSphere(mPipeStreamModel, 500.0f);
         MR::tryStartAllAnim(mPipeStreamModel, "EarthenPipeStream");
         mPipeStreamModel->appear();
-        _19C = 1;
+        mIsPipeStreamShown = 1;
     } else {
-        _19C = 0;
+        mIsPipeStreamShown = 0;
     }
 
     MR::useStageSwitchReadA(this, rIter);
@@ -231,7 +233,7 @@ void EarthenPipe::exeWait() {
                 if (mPipeStreamModel != nullptr) {
                     mPipeStreamModel->appear();
                     MR::startAction(mPipeStreamModel, "Appear");
-                    _19C = 1;
+                    mIsPipeStreamShown = 1;
                 }
             }
         } else if (MR::isValidHitSensor(this, "binder")) {
@@ -240,7 +242,7 @@ void EarthenPipe::exeWait() {
                 mPipeStreamModel->kill();
             }
 
-            _19C = 0;
+            mIsPipeStreamShown = 0;
         }
     }
 }
@@ -396,7 +398,7 @@ void EarthenPipe::exeHideDown() {
 
 void EarthenPipe::control() {
     MR::updateMaterial(this);
-    if (_19C) {
+    if (mIsPipeStreamShown) {
         MR::startActionSound(this, "OjLvPipeInWater", -1, -1, -1);
     }
 }

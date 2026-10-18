@@ -28,7 +28,7 @@ void FountainBig::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "FountainBig", false);
     MR::connectToSceneMapObj(this);
     initHitSensor(1);
-    MR::addHitSensorCallbackEye(this, "body", 4, 60.0f);
+    MR::addHitSensorCallbackEye(this, "Body", 4, 60.0f);
     MR::invalidateHitSensors(this);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "FountainBig", nullptr, TVec3f(0.0f));
@@ -57,7 +57,7 @@ void FountainBig::exeSign() {
     if (MR::isFirstStep(this)) {
         MR::emitEffect(this, "FountainBigSign");
     }
-    MR::startLevelSound(this, "SE_OJ_LV_FOUNTAIN_BIG_SIGN");
+    MR::startActionSound(this, "OjLvFountainBigSign");
     if (MR::isStep(this, 80)) {
         setNerve(GET_NERVE(FountainBig, FountainBigNrvSignStop));
     }

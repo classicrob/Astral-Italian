@@ -16,7 +16,7 @@ ClipFieldSwitch::ClipFieldSwitch(const char* pName) : LiveActor(pName) {
 void ClipFieldSwitch::control() {
     mPosition = *MR::getPlayerPos();
 
-    if (MR::isInClipArea(*MR::getPlayerPos(), 5.0f)) {
+    if (MR::isInClipArea(*MR::getPlayerPos())) {
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
         }

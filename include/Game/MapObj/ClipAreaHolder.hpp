@@ -13,7 +13,7 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
 
-    bool isInArea(const TVec3f&, f32) const;
+    bool isInArea(const TVec3f&) const;
 
     /* 0x18 */ bool mIsActive;
 };
@@ -32,7 +32,7 @@ namespace MR {
     void createClipAreaHolder();
     bool isExistClipAreaHolder();
     void addClipArea(ClipArea*);
-    bool isInClipArea(const TVec3f&, f32) NO_INLINE;
+    bool isInClipArea(const TVec3f&) NO_INLINE;
     bool isActiveClipArea();
     void activateClipArea();
     void deactivateClipArea();

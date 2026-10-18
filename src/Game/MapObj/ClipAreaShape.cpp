@@ -14,7 +14,7 @@ ClipAreaShape::ClipAreaShape(const char* pName) : mModelData() {
     mModelData = MR::getJ3DModelData(pName);
 }
 
-bool ClipAreaShape::isInArea(const TVec3f& rPosition, f32 radius, const TPos3f& rMtx, const TVec3f& rScale) const {
+bool ClipAreaShape::isInArea(const TVec3f& rPosition, const TPos3f& rMtx, const TVec3f& rScale) const {
     if (MR::isNearZero(rScale.x) || (MR::isNearZero(rScale.y) || MR::isNearZero(rScale.z))) {
         return false;
     }

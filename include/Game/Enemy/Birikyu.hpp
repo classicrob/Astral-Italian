@@ -2,6 +2,8 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 
+class ActorStateParamScale;
+
 class Birikyu : public LiveActor {
 public:
     Birikyu(const char*);
@@ -9,6 +11,7 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void appear();
+    virtual void control();
     virtual void startClipped();
     virtual void endClipped();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
@@ -29,8 +32,10 @@ public:
     void exeAttack();
     void exeAttackWait();
     void exeStopPointing();
+    void endStopPointing();
+    void exeKill() {}
 
-    const char* _8C_pad;
+    ActorStateParamScale* mParamScale;
     const char* _8C;
     TVec3f _90;
     TVec3f _9C;
@@ -47,9 +52,12 @@ public:
     BirikyuWithFace(const char*);
 
     virtual void init(const JMapInfoIter&);
+    virtual void initAfterPlacement();
     virtual void calcAndSetBaseMtx();
     virtual f32 getHitRadius() const;
     virtual char* getCenterJointName() const;
 
     bool _CC;
+    s32 _D4;
+    s32 _D8;
 };

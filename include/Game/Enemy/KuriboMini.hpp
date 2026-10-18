@@ -3,7 +3,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class AnimScaleController;
-class ItemGenerator;
+class YoshiLockOnTarget;
 class WalkerStateWander;
 class WalkerStateFindPlayer;
 class WalkerStateChase;
@@ -17,6 +17,7 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void makeActorAppeared();
+    virtual void makeActorDead();
     virtual void kill();
     virtual void control();
     virtual void calcAndSetBaseMtx();
@@ -26,8 +27,6 @@ public:
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void initSensor();
-    void initState();
     bool requestHipDropDown(HitSensor*, HitSensor*);
     bool requestFlatDown(HitSensor*, HitSensor*);
     bool requestPressDown();
@@ -54,13 +53,13 @@ public:
     bool isDown() const;
 
     /* 0x8C */ AnimScaleController* mScaleController;
-    /* 0x90 */ ItemGenerator* mItemGenerator;
-    /* 0x94 */ WalkerStateWander* mStateWander;
-    /* 0x98 */ WalkerStateFindPlayer* mStateFindPlayer;
-    /* 0x9C */ WalkerStateChase* mStateChase;
-    /* 0xA0 */ WalkerStateStagger* mStateStagger;
-    /* 0xA4 */ WalkerStateBindStarPointer* mStateBindStarPointer;
+    /* 0x90 */ WalkerStateWander* mStateWander;
+    /* 0x94 */ WalkerStateFindPlayer* mStateFindPlayer;
+    /* 0x98 */ WalkerStateChase* mStateChase;
+    /* 0x9C */ WalkerStateStagger* mStateStagger;
+    /* 0xA0 */ WalkerStateBindStarPointer* mStateBindStarPointer;
+    /* 0xA4 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0xA8 */ TQuat4f _A8;
     /* 0xB8 */ TVec3f _B8;
-    /* 0xC8 */ bool _C8;
+    /* 0xC4 */ bool _C8;
 };

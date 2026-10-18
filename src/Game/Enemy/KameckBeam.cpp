@@ -371,27 +371,14 @@ void KameckBeam::exeShoot() {
     MR::startActionSound(this, "BmLvKameckMagicComm");
 }
 
+extern "C" bool fn_801A7590(KameckBeam*);
+extern "C" void fn_801A79D0(KameckBeam*);
+
 void KameckBeam::exeExplosion() {
-    switch (mBeamKind) {
-    case BeamType_Turtle:
-        if (tryChangeTurtle()) {
-            MR::shakeCameraNormalWeak();
-            MR::tryRumblePadStrong(this, WPAD_CHAN0);
-            MR::emitEffect(this, "BeamTurtleBreak");
-            return;
-        }
-        break;
-    case BeamType_FireBall1:
-    case BeamType_FireBall2:
-    case BeamType_FireBall3:
-        if (tryChangeFire()) {
-            MR::shakeCameraNormalWeak();
-            MR::tryRumblePadStrong(this, WPAD_CHAN0);
-            MR::emitEffect(this, "BeamFireBreak");
-            MR::startActionSound(this, "BmKameckFireExplosion");
-            return;
-        }
-        break;
+    if (fn_801A7590(this)) {
+        MR::shakeCameraNormalWeak();
+        MR::tryRumblePadStrong(this, WPAD_CHAN0);
+        fn_801A79D0(this);
     }
 
     kill();

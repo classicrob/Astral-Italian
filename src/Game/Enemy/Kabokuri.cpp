@@ -58,10 +58,11 @@ namespace NrvKabokuri {
     NEW_NERVE(KabokuriNrvHitAttacked, Kabokuri, HitAttacked);
     NEW_NERVE(KabokuriNrvHipDropped, Kabokuri, HipDropped);
     NEW_NERVE(KabokuriNrvBreak, Kabokuri, Break);
+    NEW_NERVE(KabokuriNrvEaten, Kabokuri, Eaten);
 };  // namespace NrvKabokuri
 
 Kabokuri::Kabokuri(const char* pName)
-    : LiveActor(pName), mKuribo(), mBreakModel(), mAnimeScale(), mStateBindStartPointer(), _100(0), _104(0), mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f),
+    : LiveActor(pName), mKuribo(), mBreakModel(), mHeadModel(), mAnimeScale(), mStateBindStartPointer(), mYoshiLockOn(), mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f),
       mFrontVec(0.0f, 0.0f, 1.0f), _B8(-1), mCounter(0), mIsValidDropFire() {
     KabokuriFireHolderFunc::createHolder();
     _9C.identity();
@@ -69,13 +70,13 @@ Kabokuri::Kabokuri(const char* pName)
 }
 
 void Kabokuri::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    initRailRider(rIter);
-    MR::moveCoordAndTransToNearestRailPos(this);
-    MR::makeQuatAndFrontFromRotate(&mRotationQuat, &mFrontVec, this);
     MR::initActor(this, rIter, "Kabokuri", false);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
+
+    if (MR::isExistRail(this)) {
+        MR::moveCoordAndTransToNearestRailPos(this);
+        MR::makeQuatAndFrontFromRotate(&mRotationQuat, &mFrontVec, this);
+    }
+
     MR::getJMapInfoArg0WithInit(rIter, &mIsFloating);
 
     if (!mIsFloating) {
@@ -89,18 +90,13 @@ void Kabokuri::init(const JMapInfoIter& rIter) {
         mGravity.set(-upVec);
     }
 
-    initBinder(::sBinderRadius * mScale.y, ::sBinderRadius * mScale.y, 0);
-    initEffectKeeper(1, nullptr, false);
-    initSound(2, "Kabokuri", nullptr, TVec3f(0.0f));
-    initSensor();
-    MR::initShadowVolumeSphere(this, ::sShadowRadius);
-    initNerve(GET_NERVE(Kabokuri, KabokuriNrvWait));
-    MR::initStarPointerTarget(this, 90.0f * mScale.y, TVec3f(0.0f, 90.0f * mScale.y, 0.0f));
+    initNerve(GET_NERVE(Kabokuri, KabokuriNrvWait), 1);
 
     mAnimeScale = new AnimScaleController(nullptr);
     mAnimeScale->setParamTight();
 
     mStateBindStartPointer = new WalkerStateBindStarPointer(this, mAnimeScale);
+    MR::initActorState(this, mStateBindStartPointer, GET_NERVE(Kabokuri, KabokuriNrvBindStarPointer), "SupportFreeze");
 
     // "Kabokuri kuribo"
     mKuribo = new Kuribo("カボクリクリボー");
@@ -109,21 +105,20 @@ void Kabokuri::init(const JMapInfoIter& rIter) {
         mKuribo->onNoGravitySupport();
     }
 
+    MR::copyTransRotateScale(this, mKuribo);
     mKuribo->initWithoutIter();
     mKuribo->makeActorDead();
 
     // "Broken model"
     mBreakModel = MR::createModelObjMapObjStrongLight("壊れモデル", "KabokuriBreak", getBaseMtx());
     mBreakModel->kill();
+    // "Eaten model"
+    mHeadModel = MR::createModelObjMapObjStrongLight("食べられモデル", "KabokuriHead", _9C);
+    mHeadModel->kill();
 
-    MR::useStageSwitchWriteDead(this, rIter);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, "Head", TVec3f(0.0f));
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void Kabokuri::initSensor() {
@@ -135,20 +130,92 @@ void Kabokuri::initSensor() {
     MR::addHitSensorEnemyAttack(this, "attack", 8, ::sAttackHitRadius * scale, TVec3f(0.0f, ::sAttackHitYOffset * scale, 0.0f));
 }
 
+void Kabokuri::initAfterPlacement() {
+    TVec3f dir = mGravity * 500.0f;
+    TVec3f hitPos;
+
+    if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, mPosition, dir)) {
+        MR::resetPosition(this, hitPos);
+    }
+}
+
 void Kabokuri::control() {
     mAnimeScale->updateNerve();
 
     if (mIsFloating) {
         MR::calcGravityOrZero(this);
+
+        if (MR::isBindedGround(this)) {
+            mCounter = 0;
+        } else {
+            mCounter++;
+        }
     }
 
     updatePose();
     tryPointBind();
+    tryYoshiEat();
+}
+
+void Kabokuri::exeEaten() {
+    if (MR::isStep(this, 1)) {
+        MR::hideModel(this);
+    }
+
+    MR::makeMtxTR(_9C, mPosition, mRotation);
+    _9C.concat(_CC);
+    MR::setScale(mHeadModel, mScale);
+}
+
+void Kabokuri::requestEaten() {
+    if (!isEatable()) {
+        return;
+    }
+
+    MR::invalidateHitSensors(this);
+    setNerve(GET_NERVE(Kabokuri, KabokuriNrvEaten));
+}
+
+bool Kabokuri::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        requestEaten();
+        return false;
+    }
+
+    if (MR::isMsgYoshiLoopTongue(msg)) {
+        return true;
+    }
+
+    if (!MR::isMsgYoshiReleaseEaten(msg)) {
+        if (MR::isMsgYoshiCancelEaten(msg)) {
+            kill();
+            mHeadModel->kill();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Kabokuri::tryYoshiEat() {
+    if (isEatable()) {
+        YoshiFunction::tryYoshiEat(mYoshiLockOn);
+    }
+}
+
+bool Kabokuri::isEatable() const {
+    bool ret = false;
+    if (!isNerve(GET_NERVE(Kabokuri, KabokuriNrvWait)) && !isNerve(GET_NERVE(Kabokuri, KabokuriNrvWalk)) &&
+        !isNerve(GET_NERVE(Kabokuri, KabokuriNrvBindStarPointer)) && isNerve(GET_NERVE(Kabokuri, KabokuriNrvDropFire))) {
+        ret = true;
+    }
+
+    return ret;
 }
 
 void Kabokuri::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mRotationQuat);
-    MR::setBaseScale(this, mAnimeScale->_C * mScale);
+    MR::updateBaseScale(this, mAnimeScale);
 }
 
 void Kabokuri::updatePose() {
@@ -223,7 +290,7 @@ void Kabokuri::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if ((MR::isSensorPlayer(pReceiver) && !isEnableAttack() || MR::isSensorEnemy(pReceiver)) && isEnablePush()) {
+    if ((MR::isSensorPlayer(pReceiver) && !isEnableAttack() || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) && isEnablePush()) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -282,9 +349,12 @@ bool Kabokuri::requestHipDropped() {
     return false;
 }
 
+extern "C" void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
+
 bool Kabokuri::requestHitAttacked(HitSensor* pSender, HitSensor* pReceived) {
     if (isEnableTrampled()) {
         MR::setVelocityBlowAttack(this, pSender, pReceived, ::sHitAttackedAccelH, ::sHitAttackedAccelV, 4);
+        fn_80034760(this, pSender, pReceived);
         setNerve(GET_NERVE(Kabokuri, KabokuriNrvHitAttacked));
         MR::invalidateHitSensors(this);
         return true;

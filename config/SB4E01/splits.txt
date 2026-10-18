@@ -5038,7 +5038,7 @@ Game/Player/MarineSnow.cpp:
 	.text       start:0x80386500 end:0x80386D30
 
 Game/Player/Mario.cpp:
-	.text       start:0x80386D60 end:0x803B0BA0
+	.text       start:0x80386D60 end:0x803B48E0
 	.data       start:0x806C4B60 end:0x806C4B90
 
 Game/Player/MarioAccess.cpp:
@@ -5605,12 +5605,9 @@ Game/Screen/CountUpPaneRumbler.cpp:
 	.text       start:0x80466290 end:0x80466460
 
 Game/Screen/CustomTagProcessor.cpp:
-	.text       start:0x80466460 end:0x80468A50
-	.data       start:0x806F24F8 end:0x806F250C
-
-Game/Screen/MessageTagSkipTagProcessor.cpp:
-	.text       start:0x80468A50 end:0x8046AB40
+	.text       start:0x80466460 end:0x8046AB40
 	.ctors      start:0x806448B8 end:0x806448BC
+	.data       start:0x806F24F8 end:0x806F250C
 
 Game/Screen/DepthOfFieldBlur.cpp:
 	.text       start:0x8046AB40 end:0x8046BC20
@@ -5827,6 +5824,9 @@ Game/Screen/MarioMeter.cpp:
 Game/Screen/MarioSubMeter.cpp:
 	.text       start:0x80481700 end:0x804819C0
 	.data       start:0x806F55D8 end:0x806F5608
+
+Game/Screen/MessageTagSkipTagProcessor.cpp:
+	.text       start:0x804819C0 end:0x80481B10
 
 Game/Screen/MeterLayout.cpp:
 	.text       start:0x80481B10 end:0x80482E30

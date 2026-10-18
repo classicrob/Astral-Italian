@@ -18,6 +18,9 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
+#include "Game/Enemy/AnimScaleController.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
 
 void Karikari_FORCE_MATCH_SDATA2() {
@@ -112,39 +115,22 @@ namespace NrvKarikari {
 };  // namespace NrvKarikari
 
 Karikari::Karikari(const char* pName)
-    : LiveActor(pName), mFront(0.0f, 0.0f, 1.0f), mClingPosition(nullptr), mIsReadyToLandTornado(false), _9D(false), _9E(true), mIsPushable(true),
-      mFrozenTime(0), _A4(0) {
+    : LiveActor(pName), mFront(0.0f, 0.0f, 1.0f), _9C(0.0f, 0.0f, 0.0f, 1.0f), mClingPosition(nullptr), mAnimScale(nullptr), mStarPointer(nullptr),
+      _9E(true), mIsPushable(true), mFrozenTime(0) {
 }
 
 void Karikari::init(const JMapInfoIter& rIter) {
     MR::createSceneObj(SceneObj_KarikariDirector);
     MR::joinToGroup(this, "カリカリディレクター");
-    MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSyncAppear(this, rIter);
     MR::initActor(this, rIter, "Karipon", false);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    initSound(4, "Karikari", nullptr, TVec3f(0.0f));
-    f32 size = ::sSize * mScale.y;
-    initBinder(size, size, 0);
-    initEffectKeeper(0, nullptr, false);
+    MR::makeQuatAndFrontFromRotate(&_9C, &mFront, this);
+    initNerve(GET_NERVE(Karikari, HostTypeNrvFall), 1);
 
-    initHitSensor(1);
-    MR::addHitSensor(this, "body", 0x20 /* ATYPE_KARIKARI */, 32, 100.0f, TVec3f(0.0f, 30.0f, 0.0f));
-    MR::initShadowVolumeSphere(this, ::sSize);
-    MR::onCalcShadowOneTime(this, nullptr);
-    initNerve(GET_NERVE(Karikari, HostTypeNrvFall));
-    MR::initStarPointerTarget(this, 40.0f, TVec3f(0.0f, 25.0f, 0.0f));
-
-    if (MR::isValidSwitchAppear(this)) {
-        makeActorDead();
-    } else {
-        appear();
-    }
-
-    MR::onCalcGravity(this);
+    mAnimScale = new AnimScaleController(nullptr);
+    mStarPointer = new WalkerStateBindStarPointer(this, mAnimScale);
+    MR::initActorState(this, mStarPointer, GET_NERVE(Karikari, HostTypeNrvPress), "SupportFreeze");
     MR::declareStarPiece(this, 3);
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void Karikari::applyEnvironmentInfluenceToVelocity() {
@@ -184,6 +170,9 @@ void Karikari::killedInFrozenState() {
 }
 
 void Karikari::control() {
+    mAnimScale->updateNerve();
+    MR::blendQuatFromGroundAndFront(&_9C, this, mFront, 0.05f, 0.5f);
+
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) || MR::isInWater(mPosition)) {
         kill();
     }
@@ -529,7 +518,7 @@ void Karikari::exeSpinAttacked() {
         MR::startSystemME("ME_MAGIC");
         _9E = false;
         mIsPushable = true;
-        _A4 = 0;
+        _C0 = 0;
     }
 
     applyEnvironmentInfluenceToVelocity();
@@ -553,7 +542,7 @@ void Karikari::exeDPDAttacked() {
         MR::setBtpFrameAndStop(this, 0.0f);
         _9E = false;
         mIsPushable = true;
-        _A4 = 0;
+        _C0 = 0;
         MR::startActionSound(this, "EmKarikariRelease");
         MR::emitEffect(this, "Touch");
     }
@@ -683,23 +672,28 @@ void Karikari::exeInTornado() {
     mIsReadyToLandTornado = false;
 }
 
+bool Karikari::tryStarPointerBind() {
+    if (MR::attachSupportTicoToTarget(this)) {
+        setNerve(GET_NERVE(Karikari, HostTypeNrvPress));
+        return true;
+    }
+
+    return false;
+}
+
 void Karikari::exePress() {
     if (MR::isFirstStep(this)) {
         MR::onBind(this);
         MR::onCalcShadow(this, nullptr);
-        MR::onCalcGravity(this);
-        MR::invalidateHitSensors(this);
-        MR::startAction(this, "Press");
-        MR::startBtp(this, "Bite");
-        MR::setBtpFrameAndStop(this, 0.0f);
-        MR::startActionSound(this, "EmKarikariStomped");
+        MR::offCalcGravity(this);
+        MR::validateHitSensors(this);
     }
 
-    applyEnvironmentInfluenceToVelocity();
-    mVelocity += mGravity * ::sGravity;
+    mIsPushable = true;
+    _9E = false;
 
-    if (MR::isGreaterStep(this, ::sPressTime)) {
-        kill();
+    if (MR::updateActorStateAndNextNerve(this, GET_NERVE(Karikari, HostTypeNrvWait))) {
+        MR::onCalcGravity(this);
     }
 }
 
@@ -869,6 +863,10 @@ bool Karikari::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver
         return true;
     }
 
+    if (MR::isMsgPlayerKick(msg) && isNerve(GET_NERVE(Karikari, HostTypeNrvPress))) {
+        return tryBlowOut(*MR::getSensorPos(pReceiver), false);
+    }
+
     return false;
 }
 
@@ -977,14 +975,14 @@ void Karikari::tryTurnToDirection(const TVec3f& rDir, f32 turnRatio) {
 }
 
 void Karikari::calcAndSetBaseMtx() {
+    MR::updateBaseScale(this, mAnimScale);
+
     if (isNerve(GET_NERVE(Karikari, HostTypeNrvCling))) {
         MR::setBaseTRMtx(this, mClingPosition->mMtx);
         return;
     }
 
-    TPos3f mtx;
-    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
-    MR::setBaseTRMtx(this, mtx);
+    MR::setBaseTRMtx(this, _9C);
 }
 
 Karikari::~Karikari() {

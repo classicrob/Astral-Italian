@@ -1,5 +1,7 @@
 #pragma once
 
+class YoshiLockOnTarget;
+
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -79,18 +81,18 @@ public:
     bool isEnablePushMove() const;
 
     /* 0x8C */ AnimScaleController* mScaleController;
-    /* 0x90 */ ItemGenerator* mItemGenerator;
-    /* 0x94 */ WalkerStateWander* mStateWander;
-    /* 0x98 */ WalkerStateFindPlayer* mStateFindPlayer;
-    /* 0x9C */ WalkerStateBindStarPointer* mBindStarPointer;
-    /* 0xA0 */ WalkerStateStagger* mStateStagger;
-    /* 0xA4 */ WalkerStateChase* mStateChase;
+    /* 0x90 */ WalkerStateWander* mStateWander;
+    /* 0x94 */ WalkerStateFindPlayer* mStateFindPlayer;
+    /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
+    /* 0x9C */ WalkerStateStagger* mStateStagger;
+    /* 0xA0 */ WalkerStateChase* mStateChase;
+    /* 0xA4 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0xA8 */ TQuat4f _A8;
     /* 0xB8 */ TVec3f _B8;
-    /* 0xC4 */ bool _C4;
-    /* 0xC5 */ u8 _C5;
-    /* 0xCA */ u8 _CA[4];
-    /* 0xCE */ bool _CE;
+    /* 0xC4 */ s32 _C8;
+    /* 0xC8 */ bool _C4;
+    /* 0xC9 */ u8 _C5;
+    /* 0xCA */ bool _CE;
 };
 
 namespace MR {

@@ -81,7 +81,7 @@ namespace NrvKoteBug {
 
 KoteBug::KoteBug(const char* pName)
     : LiveActor(pName), mScaleController(), mStampController(), mSpinHitController(), mStarPointer(), mFront(0, 0, 1), mPosture(0, 0, 0, 1),
-      mJointController() {
+      mYoshiLockOn(), _C0(0), _C4(false), mJointController() {
 }
 
 void KoteBug::init(const JMapInfoIter& rIter) {
@@ -447,8 +447,20 @@ void KoteBug::exeStampDeath() {
     }
 }
 
+namespace YoshiFunction {
+    void tryYoshiEat(YoshiLockOnTarget*);
+};
+
 void KoteBug::exeBindStarPointer() {
-    MR::updateActorStateAndNextNerve(this, mStarPointer, GET_NERVE(KoteBug, HostTypeNrvWait));
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
+
+    if (MR::updateActorState(this)) {
+        if (_C4) {
+            setNerve(GET_NERVE(KoteBug, HostTypeNrvRecover));
+        } else {
+            setNerve(GET_NERVE(KoteBug, HostTypeNrvWait));
+        }
+    }
 }
 
 void KoteBug::endBindStarPointer() {
@@ -634,8 +646,7 @@ void KoteBug::calcAndSetBaseMtx() {
     mtx.setTrans(mPosition);
     MR::setBaseTRMtx(this, mtx);
 
-    TVec3f scale = mScaleController->_C * mScale;
-    MR::setBaseScale(this, scale);
+    MR::updateBaseScale(this, mScaleController);
     mJointController->registerCallBack();
 }
 

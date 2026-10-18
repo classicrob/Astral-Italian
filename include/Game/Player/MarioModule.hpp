@@ -30,6 +30,7 @@ public:
     bool isStatusActiveID(u32) const;
     bool isStatusActiveS(MarioState*) const;
     u16 getPlayerMode() const;
+    bool isPlayerModeYoshi() const;
     bool isPlayerModeBee() const;
     bool isPlayerModeIce() const;
     bool isPlayerModeTeresa() const;

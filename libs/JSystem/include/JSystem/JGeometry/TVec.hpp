@@ -10,6 +10,10 @@
 
 namespace JGeometry {
 #ifdef __MWERKS__
+#ifdef JGEOMETRY_VEC3_SUB_NEG_NOINLINE
+    // SMG2 Player TUs (Mario.o, MarioActor.o) call negateInternal/sub out of line and inline operator-()/-=
+    inline void negateInternal(register const f32* rSrc, register f32* rDest) NO_INLINE;
+#endif
     inline void negateInternal(register const f32* rSrc, register f32* rDest) {
         register f32 xy;
         __asm {
@@ -502,7 +506,11 @@ namespace JGeometry {
             sub(op);
         }
 
+#ifdef JGEOMETRY_VEC3_SUB_NEG_NOINLINE
+        void sub(const TVec3< f32 >& b) NO_INLINE {
+#else
         void sub(const TVec3< f32 >& b) {
+#endif
             JMathInlineVEC::PSVECSubtract(this, &b, this);
         }
 
@@ -608,7 +616,11 @@ namespace JGeometry {
 
         TVec3 operator-() const {
             TVec3 ret;
+#ifdef JGEOMETRY_VEC3_SUB_NEG_NOINLINE
+            JGeometry::negateInternal(&this->x, &ret.x);
+#else
             ret.negate(*this);
+#endif
             return ret;
         }
 

@@ -23,6 +23,10 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
 
+namespace MR {
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
+};  // namespace MR
+
 namespace {
     // hGravity
     // hTurnLimitRadian
@@ -84,64 +88,44 @@ namespace NrvKaron {
 
 Karon::Karon(const char* pName) : LiveActor(pName) {
     mTerritoryMover = nullptr;
-    _90 = 0;
+    mYoshiLockOn = nullptr;
+    _95 = false;
+    _98 = 0.0f;
     mStopSwAnim = false;
     mScaleController = nullptr;
     mStateStarPointer = nullptr;
 }
 
 void Karon::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSyncAppear(this, rIter);
-
-    bool needsFixWait = false;
-    if (MR::useStageSwitchReadA(this, rIter)) {
-        needsFixWait = true;
-    }
-
-    if (MR::isConnectedWithRail(rIter)) {
-        initRailRider(rIter);
-    }
+    MR::initActor(this, rIter, "Karon", false);
 
     s32 arg0 = -1;
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
-
     if (arg0 == -1) {
         mStopSwAnim = false;
     } else {
         mStopSwAnim = true;
     }
 
-    MR::initActor(this, rIter, "Karon", false);
-    MR::connectToSceneEnemy(this);
-    initBinder(70.0f, 70.0f, 0);
-    MR::onCalcGravity(this);
-    initSound(4, "Karon", nullptr, TVec3f(0.0f));
-    initEffectKeeper(1, nullptr, false);
-
-    if (needsFixWait) {
-        initNerve(GET_NERVE(Karon, HostTypeNrvFixWait));
-    } else {
-        initNerve(GET_NERVE(Karon, HostTypeNrvWait));
+    MR::getJMapInfoArg1NoInit(rIter, &_95);
+    if (_95) {
+        _98 = 20.0f;
+        mTerritoryMover = new TerritoryMover(500.0f);
+        mTerritoryMover->mCenter.set(mPosition);
     }
 
-    initHitSensor(1);
-    TVec3f offset;
-    f32 yScale = mScale.y;
-    offset.set(0.0f, 90.0f * yScale, 0.0f);
-    MR::addHitSensorEnemy(this, "body", 16, 90.0f * yScale, offset);
-    MR::initShadowVolumeSphere(this, 60.0f);
-    MR::initLightCtrl(this);
-    MR::declareStarPiece(this, 3);
-    MR::validateClipping(this);
-    MR::setGroupClipping(this, rIter, 32);
-    mTerritoryMover = new TerritoryMover(500.0f);
-    mTerritoryMover->mCenter.set(mPosition);
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 50.0f, 0.0f));
-    mScaleController = new AnimScaleController(0);
+    mScaleController = new AnimScaleController(nullptr);
+    mScaleController->setParamTight();
     mStateStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
-    makeActorAppeared();
+    initNerve(GET_NERVE(Karon, HostTypeNrvWait), 1);
+    MR::initActorState(this, mStateStarPointer, GET_NERVE(Karon, HostTypeNrvBindStarPointer), "SupportFreeze");
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, "Center", TVec3f(0.0f));
+
+    if (MR::isValidSwitchA(this)) {
+        initNerve(GET_NERVE(Karon, HostTypeNrvFixWait), 1);
+    }
+
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void Karon::initAfterPlacement() {
@@ -150,13 +134,8 @@ void Karon::initAfterPlacement() {
 
 void Karon::kill() {
     LiveActor::kill();
-
-    if (MR::isValidSwitchDead(this)) {
-        MR::onSwitchDead(this);
-    }
-
     MR::emitEffect(this, "Death");
-    MR::startActionSound(this, "EmExplodeS");
+    MR::startActionSound(this, "EmExplodeS", -1, -1, -1);
 }
 
 void Karon::exeFixWait() {

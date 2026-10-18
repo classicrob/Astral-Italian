@@ -4,6 +4,7 @@
 #include "Game/Util/ActorMovementUtil.hpp"
 
 class SpinHitController;
+class YoshiLockOnTarget;
 class AnimScaleController;
 class WalkerStateBindStarPointer;
 
@@ -14,6 +15,7 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void kill();
+    virtual void makeActorAppeared();
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
@@ -55,8 +57,10 @@ public:
     /* 0x8C */ SpinHitController* mSpinHitController;
     /* 0x90 */ AnimScaleController* mAnimScaleController;
     /* 0x94 */ WalkerStateBindStarPointer* mStarPointerBind;
-    /* 0x98 */ TVec3f _98;
-    /* 0xA4 */ TVec3f _A4;
-    /* 0xB0 */ TVec3f _B0;
-    /* 0xBC */ bool mIsClipped;
+    /* 0x98 */ WalkerStateBindStarPointer* mStateDPDSwoon;
+    /* 0x9C */ TVec3f _98;
+    /* 0xA8 */ TVec3f _A4;
+    /* 0xB4 */ TVec3f _B0;
+    /* 0xC0 */ bool mIsClipped;
+    /* 0xC4 */ YoshiLockOnTarget* mYoshiLockOn;
 };

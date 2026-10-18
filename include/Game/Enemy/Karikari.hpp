@@ -3,6 +3,8 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class FixedPosition;
+class AnimScaleController;
+class WalkerStateBindStarPointer;
 
 class Karikari : public LiveActor {
 public:
@@ -45,6 +47,7 @@ public:
     bool tryElectricKill();
     bool tryHipDropRelease();
     bool tryDPDRelease(const TVec2f&);
+    bool tryStarPointerBind();
     bool tryDPDAttacked();
 
     void setVelocityFromCursorMove(const TVec2f&);
@@ -55,11 +58,14 @@ public:
     bool inClingNerve() const;
 
     /* 0x8C */ TVec3f mFront;
-    /* 0x98 */ FixedPosition* mClingPosition;
-    /* 0x9C */ bool mIsReadyToLandTornado;
-    /* 0x9D */ bool _9D;
-    /* 0x9E */ bool _9E;
-    /* 0x9F */ bool mIsPushable;
-    /* 0xA0 */ s32 mFrozenTime;
-    /* 0xA4 */ u32 _A4;
+    /* 0x9C */ TQuat4f _9C;
+    /* 0xAC */ FixedPosition* mClingPosition;
+    /* 0xB0 */ AnimScaleController* mAnimScale;
+    /* 0xB4 */ WalkerStateBindStarPointer* mStarPointer;
+    /* 0xB8 */ bool _9E;
+    /* 0xB9 */ bool mIsPushable;
+    /* 0xBC */ s32 mFrozenTime;
+    /* 0xC0 */ u32 _C0;
+    /* 0xC4 */ bool mIsReadyToLandTornado;
+    /* 0xC5 */ bool _9D;
 };

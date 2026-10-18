@@ -8,6 +8,7 @@ class AnimStampController;
 class SpinHitController;
 class WalkerStateBindStarPointer;
 class JointController;
+class YoshiLockOnTarget;
 struct JointControllerInfo;
 
 class KoteBug : public LiveActor {
@@ -53,5 +54,8 @@ public:
     /* 0x98 */ WalkerStateBindStarPointer* mStarPointer;
     /* 0x9C */ TVec3f mFront;
     /* 0xA8 */ TQuat4f mPosture;
-    /* 0xB8 */ JointController* mJointController;
+    /* 0xBC */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0xC0 */ s32 _C0;
+    /* 0xC4 */ bool _C4;
+    /* 0xC8 */ JointController* mJointController;
 };

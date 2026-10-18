@@ -210,12 +210,13 @@ void RingBeam::appear() {
     mBloomModel->appear();
 }
 
+extern "C" void fn_801F6B00(RingBeam*, f32);
+
 void RingBeam::kill() {
     setNerve(GET_NERVE(RingBeam, RingBeamNrvSpread));
     initPos(_8c);
-    setRadius(0.0f);
+    fn_801F6B00(this, 0.0f);
     LiveActor::kill();
-    mBloomModel->kill();
 }
 
 void RingBeam::startBrk(const char* pchar) {

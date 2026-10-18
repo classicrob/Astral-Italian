@@ -1,7 +1,6 @@
 #include "Game/Enemy/KuriboMini.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
-#include "Game/Enemy/ItemGenerator.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/Enemy/WalkerStateChase.hpp"
 #include "Game/Enemy/WalkerStateFindPlayer.hpp"
@@ -59,6 +58,28 @@ namespace {
     static KuriboMiniParam sParam;
 };  // namespace
 
+namespace MR {
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
+};  // namespace MR
+
+namespace MR {
+    bool isMsgYoshiStartTongue(u32 msg);
+    bool isMsgYoshiLoopTongue(u32 msg);
+    bool isMsgYoshiReleaseEaten(u32 msg);
+    bool isMsgYoshiCancelEaten(u32 msg);
+};  // namespace MR
+
+extern "C" u32 lbl_807D2A70;
+
+namespace YoshiFunction {
+    void tryYoshiEat(YoshiLockOnTarget*);
+};  // namespace YoshiFunction
+
+extern "C" bool fn_801BE5A0(KuriboMini*);
+extern "C" bool fn_801BDAA0(KuriboMini*);
+extern "C" void fn_8022BA10(LiveActor*);
+extern "C" void fn_8022BAA0(LiveActor*);
+
 namespace NrvKuriboMini {
     NEW_NERVE(KuriboMiniNrvWander, KuriboMini, Wander);
     NEW_NERVE(KuriboMiniNrvFindPlayer, KuriboMini, FindPlayer);
@@ -74,94 +95,82 @@ namespace NrvKuriboMini {
 
 KuriboMini::KuriboMini(const char* pName) : LiveActor(pName) {
     mScaleController = nullptr;
-    mItemGenerator = nullptr;
     mStateWander = nullptr;
     mStateFindPlayer = nullptr;
     mStateChase = nullptr;
     mStateStagger = nullptr;
     mStateBindStarPointer = nullptr;
+    mYoshiLockOn = nullptr;
     _A8.x = 0.0f;
     _A8.y = 0.0f;
     _A8.z = 0.0f;
     _A8.w = 1.0f;
     _B8.set(0.0f, 0.0f, 1.0f);
+    _C8 = false;
 }
 
 void KuriboMini::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "KuriboMini", false);
-    MR::connectToSceneEnemy(this);
     MR::makeQuatAndFrontFromRotate(&_A8, &_B8, this);
     MR::onCalcGravity(this);
-    MR::initLightCtrl(this);
-    MR::declareStarPiece(this, 3);
-    MR::declareCoin(this, 1);
-    mItemGenerator = new ItemGenerator();
+
     mScaleController = new AnimScaleController(nullptr);
-    initSound(4, "KuriboMini", nullptr, TVec3f(0.0f));
-    initEffectKeeper(1, nullptr, false);
-    MR::initStarPointerTarget(this, 40.0f, TVec3f(0.0f, 60.0f, 0.0f));
-    MR::initShadowVolumeSphere(this, 40.0f);
-    initSensor();
-    initBinder(60.0f, 60.0f, 0);
-    initNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander));
-    initState();
+    initNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander), 2);
+
+    mStateFindPlayer = new WalkerStateFindPlayer(this, &_B8, &::sParam.mStateParam, &::sParam.mFindPlayerParam);
+    mStateWander = new WalkerStateWander(this, &_B8, &::sParam.mStateParam, &::sParam.mWanderParam);
+    mStateChase = new WalkerStateChase(this, &_B8, &::sParam.mStateParam, &::sParam.mChaseParam);
+    mStateStagger = new WalkerStateStagger(this, &_B8, &::sParam.mStateParam, &::sParam.mStaggerParam);
+    mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActorState(this, mStateBindStarPointer, GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer), "SupportFreeze");
+    MR::initActorState(this, mStateStagger, GET_NERVE(KuriboMini, KuriboMiniNrvStagger), "Stagger");
 
     if (MR::isValidInfo(rIter)) {
         MR::setGroupClipping(this, rIter, 32);
     }
 
     MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
     if (MR::useStageSwitchReadB(this, rIter)) {
-        MR::listenStageSwitchOnB(this, MR::Functor< KuriboMini >(this, &KuriboMini::makeActorDead));
+        MR::listenStageSwitchOnB(this, MR::FunctorV0M<KuriboMini*, void (KuriboMini::*)()>(this, &KuriboMini::makeActorDead));
     }
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, "Head", TVec3f(0.0f));
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void KuriboMini::initAfterPlacement() {
     MR::trySetMoveLimitCollision(this);
 }
 
-void KuriboMini::initSensor() {
-    initHitSensor(2);
-    MR::addHitSensorEnemy(this, "body", 8, 60.0f, TVec3f(0.0f, 60.0f, 0.0f));
-    MR::addHitSensorEnemyAttack(this, "attack", 8, 40.0f, TVec3f(0.0f, 60.0f, 0.0f));
-}
-
-void KuriboMini::initState() {
-    mStateFindPlayer = new WalkerStateFindPlayer(this, &_B8, &::sParam.mStateParam, &::sParam.mFindPlayerParam);
-    mStateWander = new WalkerStateWander(this, &_B8, &::sParam.mStateParam, &::sParam.mWanderParam);
-    mStateChase = new WalkerStateChase(this, &_B8, &::sParam.mStateParam, &::sParam.mChaseParam);
-    mStateStagger = new WalkerStateStagger(this, &_B8, &::sParam.mStateParam, &::sParam.mStaggerParam);
-    mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
-}
-
 void KuriboMini::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-    mItemGenerator->setTypeStarPeace(3);
 }
 
-void KuriboMini::kill() {
+void KuriboMini::makeActorDead() {
+    LiveActor::makeActorDead();
     if (MR::isValidSwitchDead(this)) {
         MR::onSwitchDead(this);
     }
+}
 
+void KuriboMini::kill() {
     MR::emitEffect(this, "Death");
     MR::startActionSound(this, "EmExplodeS");
-    mItemGenerator->generate(this);
     LiveActor::kill();
 }
 
 void KuriboMini::control() {
     MR::blendQuatFromGroundAndFront(&_A8, this, _B8, 0.05f, 0.5f);
     mScaleController->updateNerve();
+
+    if (isDown() == false) {
+        YoshiFunction::tryYoshiEat(mYoshiLockOn);
+    }
+
+    if (MR::isPressedRoofAndGround(this)) {
+        requestPressDown();
+    }
 }
 
 void KuriboMini::calcAndSetBaseMtx() {
@@ -196,22 +205,18 @@ bool KuriboMini::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     }
 
     if (MR::isMsgPlayerTrample(msg) && requestFlatDown(pSender, pReceiver)) {
-        mItemGenerator->setTypeCoin(1);
         return true;
     }
 
     if (MR::isMsgInvincibleAttack(msg) && requestBlowDown(pSender, pReceiver)) {
-        mItemGenerator->setTypeCoin(1);
         return true;
     }
 
     if (MR::isMsgPlayerHipDrop(msg) && requestHipDropDown(pSender, pReceiver)) {
-        mItemGenerator->setTypeCoin(1);
         return true;
     }
 
     if (MR::isMsgPlayerHitAll(msg) && requestBlowDown(pSender, pReceiver)) {
-        mItemGenerator->setTypeCoin(1);
         return true;
     }
 
@@ -224,7 +229,6 @@ bool KuriboMini::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
     }
 
     if (MR::isMsgToEnemyAttackTrample(msg) && requestPressDown()) {
-        mItemGenerator->setTypeStarPeace(3);
         return true;
     }
 
@@ -233,7 +237,6 @@ bool KuriboMini::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
     }
 
     if ((MR::isMsgExplosionAttack(msg) || MR::isMsgToEnemyAttackBlow(msg)) && requestBlowDown(pSender, pReceiver)) {
-        mItemGenerator->setTypeStarPeace(3);
         return true;
     }
 
@@ -249,9 +252,8 @@ bool KuriboMini::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    if ((MR::isSensorEnemy(pSender) || MR::isSensorRide(pSender) || !isEnableAttack() && MR::isSensorPlayer(pSender))) {
-        bool isDwn = isDown() == false;
-        if (isDwn) {
+    if (MR::isSensorEnemy(pSender) || MR::isSensorYoshi(pSender) || MR::isSensorRide(pSender) || (!isEnableAttack() && MR::isSensorPlayer(pSender))) {
+        if (!isDown()) {
             MR::addVelocityFromPush(this, 1.5f, pSender, pReceiver);
             return true;
         }
@@ -266,13 +268,32 @@ bool KuriboMini::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     }
 
     if (MR::isMsgInhaleBlackHole(msg)) {
-        mItemGenerator->setTypeNone();
         kill();
         return true;
     }
 
     if (MR::isMsgPlayerKick(msg) && isEnableKick() && requestBlowDown(pSender, pReceiver)) {
-        mItemGenerator->setTypeStarPeace(3);
+        return true;
+    }
+
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        MR::stopBck(this);
+        MR::invalidateHitSensors(this);
+        setNerve(reinterpret_cast<const Nerve*>(&lbl_807D2A70));
+        return true;
+    }
+
+    if (MR::isMsgYoshiLoopTongue(msg)) {
+        return true;
+    }
+
+    if (MR::isMsgYoshiReleaseEaten(msg)) {
+        makeActorDead();
+        return true;
+    }
+
+    if (MR::isMsgYoshiCancelEaten(msg)) {
+        makeActorDead();
         return true;
     }
 
@@ -288,8 +309,7 @@ bool KuriboMini::requestHipDropDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    MR::startActionSound(this, "EmStompedS");
-    MR::startAction(this, "FlatDown");
+    _C8 = fn_801BE5A0(this);
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvHipDropDown));
     MR::offBind(this);
     return true;
@@ -300,8 +320,7 @@ bool KuriboMini::requestFlatDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    MR::startActionSound(this, "EmStompedS");
-    MR::startAction(this, "FlatDown");
+    _C8 = fn_801BE5A0(this);
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvFlatDown));
     MR::offBind(this);
     return true;
@@ -312,8 +331,7 @@ bool KuriboMini::requestPressDown() {
         return false;
     }
 
-    MR::startActionSound(this, "EmStompedS");
-    MR::startAction(this, "FlatDown");
+    _C8 = fn_801BE5A0(this);
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvPressDown));
     MR::offBind(this);
     return true;
@@ -373,6 +391,7 @@ bool KuriboMini::tryFind() {
 
 bool KuriboMini::tryPointBind() {
     if (mStateBindStarPointer->tryStartPointBind()) {
+        _C8 = fn_801BE5A0(this);
         setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer));
         return true;
     }
@@ -382,7 +401,6 @@ bool KuriboMini::tryPointBind() {
 
 bool KuriboMini::tryDeadMap() {
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) || MR::isBindedGroundDamageFire(this) || MR::isInWater(mPosition)) {
-        mItemGenerator->setTypeNone();
         kill();
         return true;
     }
@@ -392,8 +410,8 @@ bool KuriboMini::tryDeadMap() {
 
 void KuriboMini::exeWander() {
     MR::updateActorState(this, mStateWander);
-    if (!tryFind() && !tryDeadMap() && tryPointBind()) {
-        return;
+    if (!tryFind() && !tryDeadMap() && !tryPointBind()) {
+        fn_801BDAA0(this);
     }
 }
 
@@ -403,8 +421,8 @@ void KuriboMini::exeFindPlayer() {
             MR::startActionSound(this, "EmKuribominiFind");
         }
 
-        if (!tryDeadMap() && tryPointBind()) {
-            return;
+        if (!tryDeadMap() && !tryPointBind()) {
+            fn_801BDAA0(this);
         }
     }
 }
@@ -418,8 +436,8 @@ void KuriboMini::exeChase() {
         MR::startActionSound(this, "EmLvKuribominiDash");
     }
 
-    if (!tryDeadMap() && tryPointBind()) {
-        return;
+    if (!tryDeadMap() && !tryPointBind()) {
+        fn_801BDAA0(this);
     }
 }
 
@@ -438,8 +456,8 @@ void KuriboMini::exeStagger() {
             MR::startActionSound(this, "EmKuriboSwoonRecover");
         }
 
-        if (tryDeadMap()) {
-            return;
+        if (!tryDeadMap() && MR::isGreaterStep(this, 20)) {
+            tryPointBind();
         }
     }
 }
@@ -468,8 +486,8 @@ void KuriboMini::exeAttackSuccess() {
     MR::turnDirectionToPlayerDegree(this, &_B8, 5.0f);
     calcPassiveMovement();
 
-    if (tryDeadMap() || tryPointBind()) {
-        return;
+    if (!tryDeadMap() && !tryPointBind()) {
+        fn_801BDAA0(this);
     }
 
     if (MR::isGreaterStep(this, 60)) {
@@ -479,33 +497,45 @@ void KuriboMini::exeAttackSuccess() {
 
 void KuriboMini::exeHipDropDown() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "EmCrashS");
-        MR::zeroVelocity(this);
+        MR::startActionSound(this, "EmStompedS", -1, -1, -1);
     }
 
+    MR::startAction(this, _C8 ? "FlatDownReverse" : "FlatDown");
+    MR::startActionSound(this, "EmCrashS", -1, -1, -1);
+    MR::zeroVelocity(this);
+
     if (MR::isGreaterStep(this, 40)) {
+        fn_8022BAA0(this);
         kill();
     }
 }
 
 void KuriboMini::exeFlatDown() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "EmCrashS");
-        MR::zeroVelocity(this);
+        MR::startActionSound(this, "EmStompedS", -1, -1, -1);
     }
 
+    MR::startAction(this, _C8 ? "FlatDownReverse" : "FlatDown");
+    MR::startActionSound(this, "EmCrashS", -1, -1, -1);
+    MR::zeroVelocity(this);
+
     if (MR::isGreaterStep(this, 20)) {
+        fn_8022BAA0(this);
         kill();
     }
 }
 
 void KuriboMini::exePressDown() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "EmCrashS");
-        MR::zeroVelocity(this);
+        MR::startActionSound(this, "EmStompedS", -1, -1, -1);
     }
 
+    MR::startAction(this, _C8 ? "FlatDownReverse" : "FlatDown");
+    MR::startActionSound(this, "EmCrashS", -1, -1, -1);
+    MR::zeroVelocity(this);
+
     if (MR::isGreaterStep(this, 180)) {
+        fn_8022BAA0(this);
         kill();
     }
 }
@@ -521,6 +551,7 @@ void KuriboMini::exeBlowDown() {
     MR::turnDirectionDegree(this, &_B8, -mVelocity, 30.0f);
 
     if (MR::isGreaterStep(this, 30)) {
+        fn_8022BA10(this);
         kill();
     }
 }
@@ -553,7 +584,15 @@ bool KuriboMini::isEnableAttack() const {
 }
 
 bool KuriboMini::isEnableKick() const {
-    return isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvStagger));
+    if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvStagger))) {
+        return true;
+    }
+
+    if (isNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer))) {
+        return _C8;
+    }
+
+    return false;
 }
 
 bool KuriboMini::isDown() const {

@@ -7,6 +7,20 @@ class AnimScaleController;
 class Kuribo;
 class ModelObj;
 class WalkerStateBindStarPointer;
+class YoshiLockOnTarget;
+
+namespace YoshiFunction {
+    void tryYoshiEat(YoshiLockOnTarget*);
+};
+
+namespace MR {
+    bool isMsgYoshiStartTongue(u32);
+    bool isMsgYoshiLoopTongue(u32);
+    bool isMsgYoshiCancelEaten(u32);
+    bool isMsgYoshiReleaseEaten(u32);
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
+    void makeMtxTR(MtxPtr, const TVec3f&, const TVec3f&);
+};  // namespace MR
 
 /// @brief Jack O'Goomba
 class Kabokuri : public LiveActor {
@@ -14,6 +28,7 @@ public:
     Kabokuri(const char*);
 
     virtual void init(const JMapInfoIter&);
+    virtual void initAfterPlacement();
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
@@ -30,6 +45,11 @@ public:
     bool requestHipDropped();
     bool requestHitAttacked(HitSensor*, HitSensor*);
     bool tryPointBind();
+    NO_INLINE void tryYoshiEat();
+    void requestEaten();
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
+    void exeEaten();
+    NO_INLINE bool isEatable() const;
     void exeWait();
     void exeWalk();
     void exeDropFire();
@@ -48,12 +68,12 @@ public:
 
     /* 0x8C */ Kuribo* mKuribo;
     /* 0x90 */ ModelObj* mBreakModel;
-    /* 0x94 */ AnimScaleController* mAnimeScale;
+    /* 0x94 */ ModelObj* mHeadModel;
     /* 0x9C */ TMtx34f _9C;
     /* 0xCC */ TMtx34f _CC;
-    /* 0xFC */ WalkerStateBindStarPointer* mStateBindStartPointer;
-    /* 0x100 */ s32 _100;
-    /* 0x104 */ s32 _104;
+    /* 0xFC */ AnimScaleController* mAnimeScale;
+    /* 0x100 */ WalkerStateBindStarPointer* mStateBindStartPointer;
+    /* 0x104 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x108 */ TQuat4f mRotationQuat;
     /* 0x118 */ TVec3f mFrontVec;
     /* 0x124 */ s32 _B8;

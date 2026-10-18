@@ -131,15 +131,9 @@ void MarioModule::changeAnimationWithAttr(const char* pAnim, u32 attribute) {
 }
 
 void MarioModule::stopAnimation(const char* pAnim1, const char* pAnim2) {
+    // SMG2: the body moved into MarioAnimator::stopAnimation(const char*, const char*)
     if (!mActor->_B90) {
-        if (pAnim2) {
-            mActor->mMarioAnim->changeDefault(pAnim2);
-        }
-        if (pAnim1) {
-            mActor->mMarioAnim->mXanimePlayer->stopAnimation(pAnim1);
-        } else {
-            mActor->mMarioAnim->mXanimePlayer->stopAnimation();
-        }
+        mActor->mMarioAnim->stopAnimation(pAnim1, pAnim2);
     }
 }
 

@@ -45,7 +45,7 @@ namespace NrvPackunPetit {
 };  // namespace NrvPackunPetit
 
 PackunPetit::PackunPetit(const char* pName)
-    : LiveActor(pName), mScaleController(nullptr), mStarPointerState(nullptr), _94(0.0f, 0.0f, 1.0f), mBlownModel(nullptr), mDontTurn(false) {
+    : LiveActor(pName), mScaleController(nullptr), mStarPointerState(nullptr), _94(0.0f, 0.0f, 1.0f), mBlownModel(nullptr), mDontTurn(false), _A9(false), mYoshiLockOn(nullptr), _110(0.0f, 0.0f, 1.0f) {
 }
 
 inline void PackunPetit::initStarPointer(const char* hitSensor) {
@@ -292,27 +292,19 @@ void PackunPetit::endDPDSwoon() {
     mStarPointerState->kill();
 }
 
+extern "C" void fn_80034910(LiveActor*);
+
 void PackunPetit::kill() {
     if (!MR::isDead(mBlownModel)) {
         if (!MR::isHiddenModel(mBlownModel)) {
             MR::emitEffect(mBlownModel, "Death");
-            MR::appearStarPiece(this, mBlownModel->mPosition, 3, 10.0f, 40.0f, false);
-            MR::startActionSound(mBlownModel, "OjStarPieceBurst");
+            MR::startActionSound(mBlownModel, "EmExplodeS", -1, -1, -1);
         }
 
         mBlownModel->kill();
-    } else {
-        if (!MR::isValidSwitchDead(this)) {
-            MR::appearCoinPop(this, mPosition, 1);
-        }
     }
 
-    if (MR::isValidSwitchDead(this)) {
-        MR::onSwitchDead(this);
-    }
-
-    MR::emitEffect(this, "Death");
-    MR::startActionSound(this, "EmExplodeS");
+    fn_80034910(this);
     LiveActor::kill();
 }
 
@@ -327,9 +319,38 @@ void PackunPetit::calcAndSetBaseMtx() {
     MR::setBaseScale(this, scale);
 }
 
+namespace YoshiFunction {
+    void tryYoshiPull(YoshiLockOnTarget*);
+};
+
+namespace {
+    struct TurnParam {
+        f32 _0;
+        f32 _4;
+        f32 _8;
+        f32 _C;
+    };
+
+    const TurnParam sTurnParam = {0.0f, 3.0f, 0.98f, 0.0f};
+};  // namespace
+
 void PackunPetit::control() {
+    PSMTXCopy(MR::getJointMtx(this, "Head"), mJointMtx.toMtxPtr());
+    MR::addTransMtxLocalX(mJointMtx.toMtxPtr(), -10.0f);
+
     mScaleController->updateNerve();
     tryDPDSwoon();
+
+    if (_A9) {
+        MR::moveAndTurnToPlayer(this, &_94, sTurnParam._0, sTurnParam._4, sTurnParam._8, sTurnParam._C);
+    }
+
+    // TODO: SMG2 also checks two unnamed nerves (lbl_807D2E44/lbl_807D2E48) here.
+    if (!isNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown)) && !isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPunchDown))) {
+        MR::copyJointPos(this, "Head", &mBlownModel->mPosition);
+    }
+
+    YoshiFunction::tryYoshiPull(mYoshiLockOn);
 }
 
 void PackunPetit::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

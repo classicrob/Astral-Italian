@@ -123,7 +123,7 @@ namespace NrvStringSpider {
 
 StringSpider::StringSpider(const char* pName)
     : LiveActor(pName), mSpinHitController(nullptr), mScaleController(nullptr), mStampController(nullptr), mString(nullptr), mFixedPos(nullptr),
-      _A0(0, 0, 0, 1), _B8(false), _B0(300.0f), _B4(300.0f), _BC(0), _C0(nullptr), _C4(nullptr) {
+      _A4(nullptr), _A0(0, 0, 0, 1), _B4v(0, 0, 0), _B0(300.0f), _B4(300.0f), _B8(false) {
 }
 
 s32 StringSpider::getSearchToAttackTime() {

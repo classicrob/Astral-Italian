@@ -35,6 +35,13 @@ void Metbo_FORCE_MATCH_SDATA2() {
     (void)-1.0f;
 }
 
+namespace MR {
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
+};  // namespace MR
+
+extern "C" u32 lbl_807D2BDC;
+extern "C" u32 lbl_807D2BE4;
+
 namespace {
     // sSpeedMax
     static const f32 sReceivePushPower = 1.5f;
@@ -87,6 +94,7 @@ Metbo::Metbo(const char* pName) : LiveActor(pName) {
     mSpinHitController = nullptr;
     mAnimScaleController = nullptr;
     mStarPointerBind = nullptr;
+    mStateDPDSwoon = nullptr;
     _98.x = 0.0f;
     _98.y = 0.0f;
     _98.z = 0.0f;
@@ -97,45 +105,28 @@ Metbo::Metbo(const char* pName) : LiveActor(pName) {
     _B0.y = 0.0f;
     _B0.z = 0.0f;
     mIsClipped = false;
+    mYoshiLockOn = nullptr;
 }
 
 void Metbo::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "Metbo", false);
-    MR::connectToSceneEnemy(this);
-    initHitSensor(2);
-    MR::addHitSensorEnemy(this, "body", 8, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorEnemyAttack(this, "attack", 8, 80.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    initBinder(100.0f, 100.0f, 0);
-    MR::initLightCtrl(this);
-    initEffectKeeper(2, nullptr, false);
     MR::addEffectHitNormal(this, nullptr);
-    initSound(4, "Metbo", nullptr, TVec3f(0.0f));
-
-    if (MR::isEqualStageName("KoopaBattleVs2Galaxy")) {
-        MR::setSeVersion(this, 1);
-    } else {
-        MR::setSeVersion(this, 0);
-    }
-
-    MR::initShadowVolumeSphere(this, 80.0f);
     s32 arg;
     mIsClipped = MR::getJMapInfoClippingGroupID(rIter, &arg);
-    MR::setGroupClipping(this, rIter, 32);
-    MR::useStageSwitchReadA(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
     MR::onCalcGravity(this);
-    MR::declareCoin(this, 1);
-    MR::declareStarPiece(this, 3);
-    MR::initStarPointerTarget(this, 100.0f);
+
     mAnimScaleController = new AnimScaleController(nullptr);
     mAnimScaleController->setParamTight();
     mStarPointerBind = new WalkerStateBindStarPointer(this, mAnimScaleController);
+    mStateDPDSwoon = new WalkerStateBindStarPointer(this, mAnimScaleController);
+
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, getBaseMtx(), TVec3f(0.0f, 0.0f, 0.0f));
     MR::calcFrontVec(&_A4, this);
     mSpinHitController = new SpinHitController(this, 20, 4, 0.2f, 40.0f, 20.0f);
     _98.set(mPosition);
-    initNerve(GET_NERVE(Metbo, MetboNrvWait));
+    initNerve(GET_NERVE(Metbo, MetboNrvWait), 2);
+    MR::initActorState(this, mStarPointerBind, GET_NERVE(Metbo, MetboNrvDPDSwoon), "SupportFreezeStand");
+    MR::initActorState(this, mStateDPDSwoon, reinterpret_cast<const Nerve*>(&lbl_807D2BDC), "SupportFreezeSwoon");
     makeActorAppeared();
 }
 
@@ -396,13 +387,14 @@ void Metbo::initAfterPlacement() {
 }
 
 void Metbo::kill() {
-    MR::startActionSound(this, "EmExplodeS");
-    MR::emitEffect(this, "Death");
-
-    if (MR::isValidSwitchDead(this)) {
-        MR::onSwitchDead(this);
-    }
+    setNerve(reinterpret_cast<const Nerve*>(&lbl_807D2BE4));
     LiveActor::kill();
+}
+
+void Metbo::makeActorAppeared() {
+    if (!isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2BE4))) {
+        LiveActor::makeActorAppeared();
+    }
 }
 
 void Metbo::calcAndSetBaseMtx() {

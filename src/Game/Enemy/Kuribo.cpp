@@ -28,6 +28,14 @@
 #include "Game/Util/VectorUtil.hpp"
 #include <revolution/mtx.h>
 
+namespace MR {
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
+};  // namespace MR
+
+extern "C" void fn_8022BC70(LiveActor*);
+extern "C" u32 lbl_807D29E0;
+extern "C" u32 lbl_807D2A14;
+
 namespace {
     class KuriboParam {
     public:
@@ -77,16 +85,19 @@ namespace NrvKuribo {
 };  // namespace NrvKuribo
 
 Kuribo::Kuribo(const char* pName)
-    : LiveActor(pName), mScaleController(nullptr), mItemGenerator(nullptr), mStateWander(nullptr), mStateFindPlayer(nullptr),
-      mBindStarPointer(nullptr), mStateStagger(nullptr), mStateChase(nullptr), _A8(0.0f, 0.0f, 0.0f, 1.0f), _B8(0, 0, 1), _C4(0), _C5(1) {
+    : LiveActor(pName), mScaleController(nullptr), mStateWander(nullptr), mStateFindPlayer(nullptr), mBindStarPointer(nullptr),
+      mStateStagger(nullptr), mStateChase(nullptr), mYoshiLockOn(nullptr), _A8(0.0f, 0.0f, 0.0f, 1.0f), _B8(0, 0, 1), _C8(-1),
+      _C4(0), _C5(1), _CE(0) {
 }
 
 void Kuribo::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "Kuribo", false);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
+    if (!_C5) {
+        fn_8022BC70(this);
+    }
+
     MR::makeQuatAndFrontFromRotate(&_A8, &_B8, this);
+
     if (MR::isValidInfo(rIter)) {
         MR::getJMapInfoArg0WithInit(rIter, &_C4);
     }
@@ -102,37 +113,16 @@ void Kuribo::init(const JMapInfoIter& rIter) {
     }
 
     mScaleController = new AnimScaleController(nullptr);
-    mItemGenerator = new ItemGenerator();
-    MR::initStarPointerTarget(this, 70.0f * mScale.y, TVec3f(0.0f, 75.0f * mScale.y, 0.0f));
-    initSound(4, "Kuribo", nullptr, TVec3f(0.0f));
-    if (MR::isEqualStageName("KoopaBattleVs2Galaxy")) {
-        MR::setSeVersion(this, 1);
-    } else {
-        MR::setSeVersion(this, 0);
-    }
-
-    initBinder((70.0f * mScale.y), (70.0f * mScale.y), 0);
-    initEffectKeeper(1, nullptr, false);
-    initSensor();
-    MR::initShadowVolumeSphere(this, 60.0f);
     initState();
-    initNerve(GET_NERVE(Kuribo, KuriboNrvWander));
     initAppearState(rIter);
-    MR::declareStarPiece(this, 3);
-    MR::declareCoin(this, 1);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
+
     if (MR::isValidInfo(rIter)) {
         MR::setGroupClipping(this, rIter, 32);
     }
 
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, "Center", TVec3f(0.0f));
 }
 
 void Kuribo::initAfterPlacement() {
@@ -141,11 +131,14 @@ void Kuribo::initAfterPlacement() {
 }
 
 void Kuribo::initState() {
+    initNerve(GET_NERVE(Kuribo, KuriboNrvWander), 4);
     mStateFindPlayer = new WalkerStateFindPlayer(this, &_B8, &::sParam.mStateParam, &::sParam.mFindPlayerParam);
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     mStateStagger = new WalkerStateStagger(this, &_B8, &::sParam.mStateParam, &::sParam.mStaggerParam);
     mStateWander = new WalkerStateWander(this, &_B8, &::sParam.mStateParam, &::sParam.mWanderParam);
     mStateChase = new WalkerStateChase(this, &_B8, &::sParam.mStateParam, &::sParam.mChaseParam);
+    MR::initActorState(this, mStateStagger, GET_NERVE(Kuribo, KuriboNrvStagger), "Stagger");
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(Kuribo, KuriboNrvBindStarPointer), "SupportFreeze");
 }
 
 void Kuribo::initSensor() {
@@ -156,12 +149,12 @@ void Kuribo::initSensor() {
 }
 
 void Kuribo::initAppearState(const JMapInfoIter& rIter) {
-    s32 state = -1;
+    _C8 = -1;
     if (MR::isValidInfo(rIter)) {
-        MR::getJMapInfoArg1NoInit(rIter, &state);
+        MR::getJMapInfoArg1NoInit(rIter, &_C8);
     }
 
-    switch (state) {
+    switch (_C8) {
     case -1:
         setNerve(GET_NERVE(Kuribo, KuriboNrvWander));
         break;
@@ -169,12 +162,17 @@ void Kuribo::initAppearState(const JMapInfoIter& rIter) {
         setNerve(GET_NERVE(Kuribo, KuriboNrvAppearFromBox));
         _A8.getZDir(_B8);
         break;
+    case 1:
+        setNerve(reinterpret_cast<const Nerve*>(&lbl_807D29E0));
+        _A8.getZDir(_B8);
+        break;
     }
 }
 
 void Kuribo::makeActorAppeared() {
-    LiveActor::makeActorAppeared();
-    mItemGenerator->setTypeStarPeace(3);
+    if (!isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2A14))) {
+        LiveActor::makeActorAppeared();
+    }
 }
 
 void Kuribo::makeActorDead() {
@@ -306,7 +304,6 @@ bool Kuribo::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool Kuribo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgInhaleBlackHole(msg)) {
-        mItemGenerator->setTypeNone();
         kill();
         return true;
     }
@@ -347,7 +344,6 @@ bool Kuribo::requestFlatDown(HitSensor* pSender, HitSensor* pReceiver) {
     _CE = isUpsideDown();
     setNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown));
     MR::offBind(this);
-    mItemGenerator->setTypeCoin(1);
     return true;
 }
 
@@ -363,7 +359,6 @@ bool Kuribo::requestHipDropDown(HitSensor* pSender, HitSensor* pReceiver) {
     _CE = isUpsideDown();
     setNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown));
     MR::offBind(this);
-    mItemGenerator->setTypeCoin(1);
     return true;
 }
 
@@ -397,7 +392,6 @@ bool Kuribo::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
     MR::deleteEffectAll(this);
     MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 30.0f, 4);
     setNerve(GET_NERVE(Kuribo, KuriboNrvBlowDown));
-    mItemGenerator->setTypeStarPeace(3);
     return true;
 }
 
@@ -442,7 +436,6 @@ void Kuribo::appearHipDropped(const TVec3f& a1, const TQuat4f& a2) {
     MR::startAction(this, "HipDropDown");
     setNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown));
     MR::offBind(this);
-    mItemGenerator->setTypeCoin(1);
 }
 
 bool Kuribo::tryNonActive() {
@@ -506,7 +499,6 @@ bool Kuribo::tryPointBind() {
 bool Kuribo::tryDead() {
     if (isEnableDead()) {
         if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) || MR::isBindedGroundDamageFire(this) || MR::isInWater(mPosition)) {
-            mItemGenerator->setTypeNone();
             kill();
             return true;
         }

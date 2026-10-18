@@ -60,13 +60,15 @@ public:
     /* 0x94 */ AnimStampController* mStampController;
     /* 0x98 */ StringSpiderString* mString;
     /* 0x9C */ FixedPosition* mFixedPos;
-    /* 0xA0 */ TQuat4f _A0;
-    /* 0xB0 */ f32 _B0;
-    /* 0xB4 */ f32 _B4;
-    /* 0xB8 */ bool _B8;
-    /* 0xBC */ s32 _BC;
-    /* 0xC0 */ TVec3f* _C0;
-    /* 0xC4 */ TVec3f* _C4;
+    /* 0xA0 */ void* _A4;
+    /* 0xA4 */ TQuat4f _A0;
+    /* 0xB4 */ TVec3f _B4v;
+    /* 0xC4 */ f32 _B0;
+    /* 0xC8 */ f32 _B4;
+    /* 0xCC */ bool _B8;
+    /* 0xD0 */ s32 _BC;
+    /* 0xD4 */ TVec3f* _C0;
+    /* 0xD8 */ TVec3f* _C4;
 };
 
 class StringSpiderString : public LiveActor {

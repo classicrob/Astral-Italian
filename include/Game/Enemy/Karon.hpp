@@ -5,6 +5,7 @@
 class AnimScaleController;
 class WalkerStateBindStarPointer;
 class TerritoryMover;
+class YoshiLockOnTarget;
 
 class Karon : public LiveActor {
 public:
@@ -42,8 +43,13 @@ public:
     void endBindStarPointer();
 
     /* 0x8C */ TerritoryMover* mTerritoryMover;
-    /* 0x90 */ u32 _90;  // unused
+    /* 0x90 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x94 */ bool mStopSwAnim;
-    /* 0x98 */ AnimScaleController* mScaleController;
-    /* 0x9C */ WalkerStateBindStarPointer* mStateStarPointer;
+    /* 0x95 */ bool _95;
+    /* 0x98 */ f32 _98;
+    /* 0x9C */ u32 _9C;
+    /* 0xA0 */ u32 _A0;
+    /* 0xA4 */ u32 _A4;
+    /* 0xA8 */ AnimScaleController* mScaleController;
+    /* 0xAC */ WalkerStateBindStarPointer* mStateStarPointer;
 };

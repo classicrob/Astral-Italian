@@ -3,6 +3,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class AnimScaleController;
+class KeySwitch;
 class WalkerStateBindStarPointer;
 
 class MechanicKoopaMini : public LiveActor {
@@ -34,6 +35,7 @@ public:
     void exeFireAttack();
     void endFireAttack();
     void exeFireAttackEnd();
+    void exePreFireAttackAfterBind();
     void exeAttackHit();
     void exeSpinHit();
     void exeTrample();
@@ -43,6 +45,8 @@ public:
 
     /* 0x8C */ bool mIsAppearJumping;
     /* 0x8D */ bool mIsForbidPause;
-    /* 0x90 */ AnimScaleController* mScaleController;
-    /* 0x94 */ WalkerStateBindStarPointer* mBindStarPointer;
+    /* 0x8E */ bool _8E;
+    /* 0x94 */ KeySwitch* mKeySwitch;
+    /* 0x98 */ AnimScaleController* mScaleController;
+    /* 0x9C */ WalkerStateBindStarPointer* mBindStarPointer;
 };

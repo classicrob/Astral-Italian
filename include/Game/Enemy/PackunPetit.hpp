@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
 
 class AnimScaleController;
 class ModelObj;
 class WalkerStateBindStarPointer;
+class YoshiLockOnTarget;
 
 class PackunPetit : public LiveActor {
 public:
@@ -51,5 +53,10 @@ public:
     /* 0x90 */ WalkerStateBindStarPointer* mStarPointerState;
     /* 0x94 */ TVec3f _94;
     /* 0xA0 */ ModelObj* mBlownModel;
-    /* 0xA4 */ bool mDontTurn;
+    /* 0xA8 */ bool mDontTurn;
+    /* 0xA9 */ bool _A9;
+    /* 0xAA */ u8 _AA[0xDC - 0xAA];
+    /* 0xDC */ TPos3f mJointMtx;
+    /* 0x10C */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0x110 */ TVec3f _110;
 };

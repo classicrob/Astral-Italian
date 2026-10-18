@@ -8,6 +8,21 @@ namespace FileSelectInfoSub {
     class CharaState;
 };  // namespace FileSelectInfoSub
 
+struct FileSelectFileInfo {
+    /* 0x00 */ u16* mName;
+    /* 0x04 */ s32 mFileId;
+    /* 0x08 */ s32 mPowerStarNum;
+    /* 0x0C */ s32 mGrandStarNum;
+    /* 0x10 */ bool mHas120Stars;
+    /* 0x11 */ bool mIsViewed120StarsEnding;
+    /* 0x12 */ bool mIsComplete;
+    /* 0x13 */ bool mHas240Stars;
+    /* 0x14 */ const wchar_t* mDate;
+    /* 0x18 */ const wchar_t* mTime;
+    /* 0x1C */ s32 mMissCount;
+    /* 0x20 */ const wchar_t* mPlayTime;
+};
+
 class FileSelectInfo : public LayoutActor {
 public:
     /// @brief Creates a new `FileSelectInfo`.
@@ -22,6 +37,7 @@ public:
     void disappear();
     void slide();
     void slideBack();
+    void setInfo(const FileSelectFileInfo&);
     void setInfo(u16*, s32, s32, s32, bool, bool, bool, const wchar_t*, const wchar_t*, s32);
     void change();
     void forceChange();

@@ -71,6 +71,7 @@ namespace MR {
     void addFilePrefix(char* pDst, u32 size, const char* pChild, const char* pParent);
     void makeDateString(wchar_t* pDst, s32 size, s32 year, s32 month, s32 day);
     void makeTimeString(wchar_t* pDst, s32 size, s32 hour, s32 minute);
+    void makePlayTimeString(wchar_t* pDst, s32 size, u32 time);
     void makeClearTimeString(wchar_t* pDst, u32 frame);
     void makeMinuteAndSecondString(wchar_t* pDst, u32 frame);
     wchar_t* addNumberFontTag(wchar_t* pDst, int tag);

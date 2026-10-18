@@ -37,6 +37,8 @@ public:
     bool isPowerStarGetFinalChallengeGalaxy() const;
     bool isView120StarsEnding() const;
     bool hasGrandStar(int) const;
+    bool isComplete() const;
+    s32 calcNormalPowerStarNum() const;
     s32 getCumulativePlayTime() const;
 
     /* 0x00 */ GameDataHolder* mGameDataHolder;

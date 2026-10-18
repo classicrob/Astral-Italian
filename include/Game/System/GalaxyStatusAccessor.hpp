@@ -22,6 +22,25 @@ public:
     bool isValidComet(s32) const;
     bool isNotNormalStar(s32) const;
     bool isOpenScenario(s32) const;
+    // SMG2 additions (core lane, from symbols.txt): declared for the Petari port of GalaxyStatusAccessor.cpp
+    const char* getZoneName(int) const;
+    const char* getAppearPowerStarObjName(s32) const;
+    bool hasCometScenario() const;
+    s32 getCometScenarioId() const;
+    const char* getCometName(s32) const;
+    s32 getCometLimitTimer(s32) const;
+    bool isGreenStar(s32) const;
+    bool isGrandStar(s32) const;
+    bool hasPowerStar(s32) const;
+    bool isOwnBronzeStar(s32) const;
+    bool isCompletedNoGreen() const;
+    bool isCompletedWithGreen() const;
+    bool isCompletedGreenStars() const;
+    s32 getPowerStarNumOwnedTotal() const;
+    bool isOpened() const;
+    bool isExistPowerStarAtScenario(s32, s32) const;
+    s32 getPowerStarNumOwned() const;
+    s32 getGreenStarNumOwned() const;
 
     const ScenarioData* mScenarioData;  // 0x00
 };

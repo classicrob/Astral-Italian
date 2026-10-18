@@ -644,8 +644,32 @@ Game/Util/BattanKingCollisionPress.cpp:
 	.ctors      start:0x80643D64 end:0x80643D68
 
 Game/Util/BellyDragon.cpp:
-	.text       start:0x8008E8A0 end:0x80095A40
-	.ctors      start:0x80643D6C end:0x80643D88
+	.text       start:0x8008E8A0 end:0x8008F380
+	.ctors      start:0x80643D6C end:0x80643D70
+
+Game/Util/BellyDragonTU01.cpp:
+	.text       start:0x8008F380 end:0x8008F7B0
+	.ctors      start:0x80643D70 end:0x80643D74
+
+Game/Util/BellyDragonTU02.cpp:
+	.text       start:0x8008F7B0 end:0x80092E70
+	.ctors      start:0x80643D74 end:0x80643D78
+
+Game/Util/BellyDragonTU03.cpp:
+	.text       start:0x80092E70 end:0x80093310
+	.ctors      start:0x80643D78 end:0x80643D7C
+
+Game/Util/BellyDragonTU04.cpp:
+	.text       start:0x80093310 end:0x800942E0
+	.ctors      start:0x80643D7C end:0x80643D80
+
+Game/Util/BellyDragonTU05.cpp:
+	.text       start:0x800942E0 end:0x80095530
+	.ctors      start:0x80643D80 end:0x80643D84
+
+Game/Util/BellyDragonTU06.cpp:
+	.text       start:0x80095530 end:0x80095A40
+	.ctors      start:0x80643D84 end:0x80643D88
 
 Game/Util/BossBussun.cpp:
 	.text       start:0x80097F50 end:0x8009AFB0
@@ -682,8 +706,28 @@ Game/Util/BossBussunStateSleep.cpp:
 	.ctors      start:0x80643DB8 end:0x80643DBC
 
 Game/Util/BossJugem.cpp:
-	.text       start:0x8009D310 end:0x800A31D0
-	.ctors      start:0x80643DBC end:0x80643DD4
+	.text       start:0x8009D310 end:0x800A0890
+	.ctors      start:0x80643DBC end:0x80643DC0
+
+Game/Util/BossJugemTU01.cpp:
+	.text       start:0x800A0890 end:0x800A1900
+	.ctors      start:0x80643DC0 end:0x80643DC4
+
+Game/Util/BossJugemTU02.cpp:
+	.text       start:0x800A1900 end:0x800A1D80
+	.ctors      start:0x80643DC4 end:0x80643DC8
+
+Game/Util/BossJugemTU03.cpp:
+	.text       start:0x800A1D80 end:0x800A2030
+	.ctors      start:0x80643DC8 end:0x80643DCC
+
+Game/Util/BossJugemTU04.cpp:
+	.text       start:0x800A2030 end:0x800A2970
+	.ctors      start:0x80643DCC end:0x80643DD0
+
+Game/Util/BossJugemTU05.cpp:
+	.text       start:0x800A2970 end:0x800A31D0
+	.ctors      start:0x80643DD0 end:0x80643DD4
 
 Game/Boss/BossStinkBug.cpp:
 	.text       start:0x800A31D0 end:0x800A4580
@@ -6860,12 +6904,112 @@ Game/System/WorldMapModel.cpp:
 	.ctors      start:0x80644A7C end:0x80644A84
 
 Game/System/GalaxyWorldMapInfo.cpp:
-	.text       start:0x804E90A0 end:0x804EE9C0
-	.ctors      start:0x80644A84 end:0x80644A8C
+	.text       start:0x804E90A0 end:0x804EA540
+	.ctors      start:0x80644A84 end:0x80644A88
+
+Game/System/GalaxyWorldMapInfoTU01.cpp:
+	.text       start:0x804EA540 end:0x804EE9C0
+	.ctors      start:0x80644A88 end:0x80644A8C
 
 Game/System/WorldMapResultCommand.cpp:
-	.text       start:0x804EE9C0 end:0x804FE450
-	.ctors      start:0x80644A8C end:0x80644AF0
+	.text       start:0x804EE9C0 end:0x804EF9C0
+	.ctors      start:0x80644A8C end:0x80644A90
+
+Game/System/WorldMapResultStateCometAppear.cpp:
+	.text       start:0x804EF9C0 end:0x804F0500
+	.ctors      start:0x80644A90 end:0x80644A94
+
+Game/System/WorldMapResultTU02.cpp:
+	.text       start:0x804F0500 end:0x804F0F90
+	.ctors      start:0x80644A94 end:0x80644A98
+
+Game/System/WorldMapResultStateEnd.cpp:
+	.text       start:0x804F0F90 end:0x804F1250
+	.ctors      start:0x80644A98 end:0x80644A9C
+
+Game/System/WorldMapResultStateStart.cpp:
+	.text       start:0x804F1250 end:0x804F14F0
+	.ctors      start:0x80644A9C end:0x80644AA0
+
+Game/System/WorldMapResultStateRouteOpen.cpp:
+	.text       start:0x804F14F0 end:0x804F1A10
+	.ctors      start:0x80644AA0 end:0x80644AA4
+
+Game/System/WorldMapResultStateCreateTico.cpp:
+	.text       start:0x804F1A10 end:0x804F20A0
+	.ctors      start:0x80644AA4 end:0x80644AA8
+
+Game/System/WorldMapResultTU07.cpp:
+	.text       start:0x804F20A0 end:0x804F4C20
+	.ctors      start:0x80644AA8 end:0x80644AAC
+
+Game/System/WorldMapResultTU08.cpp:
+	.text       start:0x804F4C20 end:0x804F5670
+	.ctors      start:0x80644AAC end:0x80644AB0
+
+Game/System/WorldMapResultTU09.cpp:
+	.text       start:0x804F5670 end:0x804F5DC0
+	.ctors      start:0x80644AB0 end:0x80644AB4
+
+Game/System/WorldMapResultTU10.cpp:
+	.text       start:0x804F5DC0 end:0x804F5F90
+	.ctors      start:0x80644AB4 end:0x80644AB8
+
+Game/System/WorldMapResultTU11.cpp:
+	.text       start:0x804F5F90 end:0x804F90A0
+	.ctors      start:0x80644AB8 end:0x80644ABC
+
+Game/System/WorldMapResultTU12.cpp:
+	.text       start:0x804F90A0 end:0x804F9330
+	.ctors      start:0x80644ABC end:0x80644AC0
+
+Game/System/WorldMapResultTU13.cpp:
+	.text       start:0x804F9330 end:0x804F9740
+	.ctors      start:0x80644AC0 end:0x80644AC4
+
+Game/System/WorldMapResultTU14.cpp:
+	.text       start:0x804F9740 end:0x804F99E0
+	.ctors      start:0x80644AC4 end:0x80644AC8
+
+Game/System/WorldMapResultTU15.cpp:
+	.text       start:0x804F99E0 end:0x804FA3D0
+	.ctors      start:0x80644AC8 end:0x80644ACC
+
+Game/System/WorldMapResultTU16.cpp:
+	.text       start:0x804FA3D0 end:0x804FA6E0
+	.ctors      start:0x80644ACC end:0x80644AD0
+
+Game/System/WorldMapResultTU17.cpp:
+	.text       start:0x804FA6E0 end:0x804FB4D0
+	.ctors      start:0x80644AD0 end:0x80644AD4
+
+Game/System/WorldMapResultTU18.cpp:
+	.text       start:0x804FB4D0 end:0x804FB770
+	.ctors      start:0x80644AD4 end:0x80644AD8
+
+Game/System/WorldMapResultTU19.cpp:
+	.text       start:0x804FB770 end:0x804FBB40
+	.ctors      start:0x80644AD8 end:0x80644ADC
+
+Game/System/WorldMapResultTU20.cpp:
+	.text       start:0x804FBB40 end:0x804FC9B0
+	.ctors      start:0x80644ADC end:0x80644AE0
+
+Game/System/WorldMapResultTU21.cpp:
+	.text       start:0x804FC9B0 end:0x804FD0D0
+	.ctors      start:0x80644AE0 end:0x80644AE4
+
+Game/System/WorldMapResultTU22.cpp:
+	.text       start:0x804FD0D0 end:0x804FD620
+	.ctors      start:0x80644AE4 end:0x80644AE8
+
+Game/System/WorldMapResultTU23.cpp:
+	.text       start:0x804FD620 end:0x804FE0C0
+	.ctors      start:0x80644AE8 end:0x80644AEC
+
+Game/System/WorldMapResultTU24.cpp:
+	.text       start:0x804FE0C0 end:0x804FE450
+	.ctors      start:0x80644AEC end:0x80644AF0
 
 Game/NWC24/NWC24Function.cpp:
 	.text       start:0x804FE450 end:0x804FE6D0

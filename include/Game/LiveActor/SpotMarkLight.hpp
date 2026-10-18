@@ -9,4 +9,6 @@ public:
     virtual ~SpotMarkLight();
     virtual void control();
     virtual void calcAndSetBaseMtx();
+
+    bool _9B;
 };

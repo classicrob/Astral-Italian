@@ -32,6 +32,7 @@ namespace NameObjFactory {
         /* 0x4 */ ArchiveFuncPtr mArchiveFunc;
     };
 
+    NameObj* initChildObj(const JMapInfoIter&, int);
     CreatorFuncPtr getCreator(const char*);
     void requestMountObjectArchives(const char*, const JMapInfoIter&);
     bool isReadResourceFromDVD(const char*, const JMapInfoIter&);

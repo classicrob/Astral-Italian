@@ -31,6 +31,7 @@ public:
     bool isStatusActiveS(MarioState*) const;
     u16 getPlayerMode() const;
     bool isPlayerModeYoshi() const;
+    bool isPlayerModeCloud() const;
     bool isPlayerModeBee() const;
     bool isPlayerModeIce() const;
     bool isPlayerModeTeresa() const;

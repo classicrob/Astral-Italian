@@ -935,7 +935,10 @@ public:
     /* 0x7A8 */ MarioFrontStep* mFrontStep;
     /* 0x7AC */ MarioSkate* mSkate;
     /* 0x7B0 */ MarioTalk* mTalk;
-    /* 0x7B4 */ u8 _pad7B4[0x10];
+    /* 0x7B4 */ MarioState* _7B4;  // SMG2 states (status 0x26..0x29)
+    /* 0x7B8 */ MarioState* _7B8;
+    /* 0x7BC */ MarioState* _7BC;
+    /* 0x7C0 */ MarioState* _7C0;
     /* 0x7C4 */ MarioDamage* mDamage;
     /* 0x7C8 */ TVec3f _7C4;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x7D4 */ u16 _7D0;  // SMG2 offset inh

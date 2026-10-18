@@ -11,10 +11,14 @@ public:
     SignBoard(const char* pName);
 
     virtual void init(const JMapInfoIter&);
-    virtual void control();
-    virtual void attackSensor(HitSensor*, HitSensor*);
+    virtual void appear();
+    virtual void kill();
+    virtual void makeActorDead();
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void exeWait();
 
-    /* 0x15C */ u32 _15C;
+    /* 0x164 */ s32 _164;
+    /* 0x168 */ s32 _168;
 };

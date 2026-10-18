@@ -17,21 +17,10 @@ public:
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
 
-    void fadeOut();
-    void fadeIn();
-    void talkEntry();
-    void switchFunc();
-
     void exeWait();
     void exeReady();
-    void exeDemo();
-    void exeFade();
-    void exeTalk();
-    void exeItch();
-    void exeEvent();
-    void exeAfter();
 
     /* 0x15C */ ModelObj* mWing;
-    /* 0x160 */ CollisionParts* mCollisionParts[10];
-    /* 0x188 */ s32 _188;
+    /* 0x164 */ s32 _164;
+    /* 0x168 */ CollisionParts* mCollisionParts[10];
 };

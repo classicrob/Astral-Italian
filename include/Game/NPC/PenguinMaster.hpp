@@ -11,6 +11,5 @@ public:
     virtual void init(const JMapInfoIter& rIter);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    void exeWait();
     void exeReaction();
 };

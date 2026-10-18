@@ -29,6 +29,8 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void control();
     virtual void calcAndSetBaseMtx();
+    virtual void makeActorAppeared();
+    bool isReactionNerve() const;
 
     void calcRailPos(TVec3f*);
     bool isNeedTurn(const TVec3f&);

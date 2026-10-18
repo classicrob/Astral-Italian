@@ -18,6 +18,13 @@ class TimeAttackEventKeeper;
 namespace MR {
     void declareEventPowerStar(const char*, s32);
     void declareEventPowerStar(const NameObj*, s32);
+    bool isBronzeEventPowerStar(const char*, s32);
+    s32 getEventPowerStarID(const char*);
+    void pauseCometTimer();
+    void resumeCometTimer();
+    void showCometTimer();
+    void hideCometTimer();
+    void decCometTimer(s32);
     void initEventSystemAfterPlacement();
     bool isSuccessEventPowerStar(const char*, s32);
     bool isGreenEventPowerStar(const char*, s32);
@@ -33,11 +40,10 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
 
-    PowerStarEventKeeper* mPowerStarEventKeeper;
-    StageStateKeeper* mStageStateKeeper;
-    PowerStarHolder* mPowerStarHolder;
-    CometEventKeeper* mCometEventKeeper;
-    TimeAttackEventKeeper* mTimeAttackEventKeeper;
+    /* 0x10 */ StageStateKeeper* mStageStateKeeper;  // not set in SMG2 init; see report
+    /* 0x14 */ PowerStarEventKeeper* mPowerStarEventKeeper;
+    /* 0x18 */ PowerStarHolder* mPowerStarHolder;
+    /* 0x1C */ CometEventKeeper* mCometEventKeeper;
 };
 
 namespace EventFunction {
@@ -45,7 +51,6 @@ namespace EventFunction {
     StageStateKeeper* getStageStateKeeper();
     PowerStarHolder* getPowerStarHolder();
     CometEventKeeper* getCometEventKeeper();
-    TimeAttackEventKeeper* getTimeAttackEventKeeper();
     bool isStartCometEvent(const char*);
     void startCometEvent();
     void endCometEvent();

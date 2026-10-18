@@ -1,5 +1,4 @@
 #include "Game/NPC/RabbitStateCaught.hpp"
-#include "Game/Player/MarioActor.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"

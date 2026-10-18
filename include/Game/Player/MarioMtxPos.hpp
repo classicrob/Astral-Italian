@@ -9,6 +9,8 @@ class MarioMtxPos {
 public:
     MarioMtxPos();                      // fn_804095C0
     MarioMtxPos(const TMtx34f&);
+    MarioMtxPos(TPos3f*);
+    bool invert();
     void fn_80409650(const MarioMtxPos&);
     void fn_804096E0(TVec3f*) const;
     void fn_80409710(const TVec3f&, const TVec3f&);

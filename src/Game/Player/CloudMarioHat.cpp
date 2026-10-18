@@ -1,5 +1,7 @@
 #include "Game/Player/CloudMarioHat.hpp"
 #include "Game/Player/MarioMtxPos.hpp"
+#include <JSystem/JMath/JMATrigonometric.hpp>
+#include <cmath>
 #include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -171,3 +173,96 @@ void CloudMarioHat::updateJoint(TPos3f* matrix, s32 index) {
 }
 
 TMtx34f* MarioMtxPos::fn_vf0() { return &mMtx; }
+
+CloudHatPoint::CloudHatPoint() : mPosition(0.0f) {
+    mVelocity.x = 0.0f;
+    mVelocity.y = 0.0f;
+    mVelocity.z = 0.0f;
+    mAcceleration.x = 0.0f;
+    mAcceleration.y = 0.0f;
+    mAcceleration.z = 0.0f;
+}
+
+void CloudHatPoint::update() {
+    mVelocity.add(mAcceleration);
+    mVelocity.scale(0.9f);
+    mAcceleration.zero();
+}
+
+CloudHatSpring::CloudHatSpring(TPos3f* matrix, CloudHatPoint* start, CloudHatPoint* end) {
+    mMatrix = matrix;
+    mStart = start;
+    mEnd = end;
+    mAnchor.x = 0.0f;
+    mAnchor.y = 0.0f;
+    mAnchor.z = 0.0f;
+    mDirection.x = 0.0f;
+    mDirection.y = 0.0f;
+    mDirection.z = 0.0f;
+    mRestOffset.zero();
+    mLength = 0.0f;
+    mPreviousDirection.x = 1.0f;
+    mPreviousDirection.y = 0.0f;
+    mPreviousDirection.z = 0.0f;
+}
+
+void CloudHatSpring::update(const TVec3f& acceleration) {
+    MarioMtxPos matrix(mMatrix);
+    TVec3f rest(mRestOffset);
+    matrix.fn_804096E0(&rest);
+    TVec3f difference(mEnd->mPosition);
+    difference.sub(mStart->mPosition);
+    PSVECMag(&difference);
+    TVec3f direction(difference);
+    if (MR::normalizeOrZero(&direction)) direction = mPreviousDirection;
+    else mPreviousDirection = direction;
+    TVec3f cross;
+    PSVECCrossProduct(&rest, &direction, &cross);
+    f32 crossLength = PSVECMag(&cross);
+    f32 angle = __fabs(JMath::sAtanTable.atan2_(crossLength, rest.dot(direction)));
+    if (angle > 0.0f) {
+        TVec3f axis;
+        PSVECCrossProduct(&direction, &rest, &axis);
+        MR::normalize(&axis);
+        TVec3f correction;
+        PSVECCrossProduct(&axis, &direction, &correction);
+        correction.scale(angle * 0.6f);
+        mEnd->mAcceleration.add(correction);
+    }
+    mEnd->mAcceleration.add(acceleration);
+    mEnd->update();
+    f32 projection = direction.dot(mEnd->mVelocity);
+    TVec3f normalVelocity(direction);
+    normalVelocity.scale(projection);
+    mEnd->mVelocity.sub(normalVelocity);
+    TVec3f predicted(mEnd->mPosition);
+    predicted.add(mEnd->mVelocity);
+    TVec3f relative(predicted);
+    relative.sub(mAnchor);
+    f32 planeDistance = mDirection.dot(relative);
+    if (planeDistance < 0.0f) {
+        TVec3f correction(mDirection);
+        correction.scale(planeDistance);
+        mEnd->mVelocity.sub(correction);
+    }
+    mEnd->mPosition.add(mEnd->mVelocity);
+    TVec3f offset(mEnd->mPosition);
+    offset.sub(mStart->mPosition);
+    MR::normalize(&offset);
+    offset.scale(mLength);
+    TVec3f position(mStart->mPosition);
+    position.add(offset);
+    mEnd->mPosition.set<f32>(position);
+}
+
+void CloudHatSpring::reset() {
+    TVec3f difference(mEnd->mPosition);
+    difference.sub(mStart->mPosition);
+    mLength = PSVECMag(&difference);
+    mPreviousDirection = difference;
+    MR::normalize(&mPreviousDirection);
+    MarioMtxPos matrix(mMatrix);
+    matrix.invert();
+    mRestOffset = difference;
+    matrix.fn_804096E0(&mRestOffset);
+}

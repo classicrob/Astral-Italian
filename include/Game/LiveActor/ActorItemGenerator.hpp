@@ -43,6 +43,7 @@ public:
 
 // Item emission by ActorItemGenerator entry name: "ヒット" hit, "踏み" stomp, "ヨッシー食べる" Yoshi eat, "ボスダメージ" boss damage.
 namespace MR {
+    void emitItem(LiveActor*, const char*);
     void emitItemHit(LiveActor* pActor);
     void emitItemHitAtPos(LiveActor* pActor, const TVec3f* pPos);
     void emitItemStomp(LiveActor* pActor);

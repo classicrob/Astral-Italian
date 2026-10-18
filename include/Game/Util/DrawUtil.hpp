@@ -2,7 +2,10 @@
 
 #include <revolution/types.h>
 
+class LiveActor;
+
 namespace MR {
+    void fn_800222A0(const LiveActor*);
     void setupDrawForNW4RLayout(f32);
 };
 

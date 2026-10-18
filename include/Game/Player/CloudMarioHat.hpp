@@ -6,9 +6,10 @@
 class CloudHatPoint {
 public:
     CloudHatPoint();
+    void update();
     TVec3f mPosition;
-    TVec3f _C;
-    TVec3f _18;
+    TVec3f mVelocity;
+    TVec3f mAcceleration;
 };
 
 class CloudHatSpring {
@@ -20,7 +21,9 @@ public:
     TPos3f* mMatrix;
     CloudHatPoint* mStart;
     CloudHatPoint* mEnd;
-    u8 _C[0x1C];
+    TVec3f mRestOffset;
+    f32 mLength;
+    TVec3f mPreviousDirection;
     TVec3f mAnchor;
     TVec3f mDirection;
 };

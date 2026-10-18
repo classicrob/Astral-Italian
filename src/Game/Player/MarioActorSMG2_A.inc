@@ -4,19 +4,8 @@
 #define F(T, off) (*(T*)((u8*)this + (off)))
 #define FP(p, T, off) (*(T*)((u8*)(p) + (off)))
 
-// PLACEHOLDER(enemies): generic object with N virtual slots (CW vtable: slot i at 8+4*i); resolve when the Yoshi/LiveActor virtual that fn_803B9850 calls (slot 14) is identified and declared
-struct SMG2VObj {
-    virtual void v0(); virtual void v1(); virtual void v2(); virtual void v3();
-    virtual void v4(); virtual void v5(); virtual void v6(); virtual void v7();
-    virtual void v8(); virtual void v9(); virtual void v10(); virtual void v11();
-    virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
-    virtual void v16(); virtual void v17(); virtual void v18(); virtual void v19();
-};
 
-// PLACEHOLDER(enemies): raw data label used as a Nerve*; resolve when the MarioActor nerve class at 0x807D4E50 is recovered and declared in NrvMarioActor
-extern u32 lbl_807D4E50;
-
-void MarioActor::fn_803B83F0() {
+void MarioActor::exeGameOverNoDemo() {
     if (MR::isFirstStep(this)) {
         MR::setCubeBgmChangeInvalid();
         MR::clearBgmQueue();
@@ -105,7 +94,7 @@ bool MarioActor::fn_803B9840() {
 }
 
 void MarioActor::fn_803B9850() {
-    (*F(SMG2VObj**, 0xEE4))->v14();
+    mYoshiHolder->mYoshi->getBaseMtx();
 }
 
 void MarioActor::fn_803B9870() {
@@ -217,7 +206,7 @@ void MarioActor::fn_803BA070() {
         if (this->mMario->isAnimationRun("ひろいクイック")) {
             this->mMario->stopAnimationUpperForce();
             F(s8, 0xFBA) = 0;
-            F(SMG2VObj*, 0xFB4)->v11();
+            mNullAnimation->kill();
             F(u8, 0x768) = 0;
         }
     } else {
@@ -240,7 +229,7 @@ void MarioActor::fn_803BA070() {
             F(u8, 0x768) = 0;
         }
         F(s8, 0xFBA) = 0;
-        F(SMG2VObj*, 0xFB4)->v11();
+        mNullAnimation->kill();
         this->tryReleaseWithMsg(0x2D);
         this->updateSearchLight();
         if (F(HitSensor*, 0x70C) != nullptr) {
@@ -256,7 +245,7 @@ void MarioActor::fn_803BA220() {
 
 void MarioActor::fn_803BAFE0() {
     if (this->isEnableNerveChange()) {
-        this->setNerve(reinterpret_cast<const Nerve*>(&lbl_807D4E50));
+        this->setNerve(&NrvMarioActor::MarioActorNrvGameOverSink::sInstance);
     }
 }
 
@@ -433,7 +422,7 @@ void* MarioActor::fn_803BECC0() {
 }
 
 bool MarioActor::fn_803BED10() {
-    return this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D4E50));
+    return this->isNerve(&NrvMarioActor::MarioActorNrvGameOverSink::sInstance);
 }
 
 
@@ -869,8 +858,6 @@ bool MarioActor::fn_803C2710() {
     return a;
 }
 
-// PLACEHOLDER(enemies): raw data label used as a Nerve*; resolve when the MarioActor nerve class at 0x807D4E34 is recovered and declared in NrvMarioActor
-extern u32 lbl_807D4E34;
 
 void MarioActor::fn_803C2900() {
     if (mActionTable1080->testEffect(MR::getSensorHost(F(HitSensor*, 0xE14))->mName, "水陸移動特殊処理")) {
@@ -1198,7 +1185,7 @@ void MarioActor::calcAnimPlayerMode() {
     switch (mode) {
     case 1:
         F(MarioAllModel*, 0xF00)->fn_803E7880(4);
-        F(SMG2VObj*, 0xEA4)->v6();
+        _9C0->calcAnim();
         if (F(u8, 0x702) != 0) {
             F(u8, 0x1B1) = 2;
         }
@@ -1265,7 +1252,7 @@ void MarioActor::calcAnimHorrorBone() {
             if (FP(p, s32, 4) != 1) {
                 FP(p, s32, 8) = FP(p, s32, 4);
             }
-            if ((F(s32, 0x6AC) & 3) && (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D4E34)) || this->isNerve(&NrvMarioActor::MarioActorNrvNoRush::sInstance))) {
+            if ((F(s32, 0x6AC) & 3) && (this->isNerve(&NrvMarioActor::MarioActorNrvWait::sInstance) || this->isNerve(&NrvMarioActor::MarioActorNrvNoRush::sInstance))) {
                 F(MarioAllModel*, 0xF00)->fn_803E7880(1);
                 return;
             }

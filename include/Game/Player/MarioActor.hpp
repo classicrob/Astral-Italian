@@ -95,7 +95,7 @@ public:
     bool fn_803CB010() const;
 
     // SMG2-only functions (original names unknown; named by address)
-    void fn_803B83F0();
+    void exeGameOverNoDemo();
     const TVec3f& fn_803B8520();
     u32 fn_803B89E0();
     void fn_803B8A80();
@@ -1307,6 +1307,7 @@ namespace NrvMarioActor {
     NEW_NERVE(MarioActorNrvGameOverBlackHole, MarioActor, GameOverBlackHole2);
     NEW_NERVE(MarioActorNrvGameOverNonStop, MarioActor, GameOverNonStop);
     NEW_NERVE(MarioActorNrvGameOverSink, MarioActor, GameOverSink);
+    NEW_NERVE(MarioActorNrvGameOverNoDemo, MarioActor, GameOverNoDemo);
     NEW_NERVE(MarioActorNrvTimeWait, MarioActor, TimeWait);
     NEW_NERVE(MarioActorNrvNoRush, MarioActor, Wait);
 };  // namespace NrvMarioActor
@@ -1352,6 +1353,11 @@ namespace NrvMarioActor {
     public:
         virtual void execute(Spine*) const;
         static MarioActorNrvGameOverSink sInstance;
+    };
+    class MarioActorNrvGameOverNoDemo : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static MarioActorNrvGameOverNoDemo sInstance;
     };
     class MarioActorNrvTimeWait : public Nerve {
     public:

@@ -42,7 +42,12 @@ public:
 class MarioNameMatrix : public NameObj {
 public:
     MarioNameMatrix(const char*, u32, const char* const*, u32, const char* const*, const char* const*);
+    virtual ~MarioNameMatrix();
     void load(const char*, const char*);
+    bool setValue(const char*, const char*, u8);
+    s32 findIndex(const char*, const char*) const;
+    s32 findRow(const char*) const;
+    s32 findColumn(const char*) const;
     u8 getValue(const char*, const char*) const;
     bool getValueOrNone(const char*, const char*, u8*) const;
 

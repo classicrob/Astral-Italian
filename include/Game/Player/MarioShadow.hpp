@@ -28,6 +28,7 @@ public:
     void drawVolumeBox(const TVec3f&, const TVec3f&) const;
     void draw2() const;
     void draw3() const;
+    void fn_803F40B0() const;
     void createDL();
     void drawVolume() const;
     void doSortPolygons();

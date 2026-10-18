@@ -86,17 +86,24 @@ def ensure_configured(u):
     x = objdiff_unit(u)
     if x.get("base_path") or not any(os.path.exists(f"{ROOT}/src/{u}{e}") for e in (".cpp", ".c")):
         return x
-    lock = f"{ROOT}/build/.sg-configure.lock"
+    lock = f"{ROOT}/build/.build.lock"  # shared with tools/team/nj.sh
     while True:
         try:
             os.mkdir(lock)
+            open(f"{lock}/pid", "w").write(str(os.getpid()))
             break
         except FileExistsError:
+            try:
+                pid = int(open(f"{lock}/pid").read())
+                os.kill(pid, 0)
+            except (OSError, ValueError):
+                subprocess.run(["rm", "-rf", lock])  # stale lock from a dead process
+                continue
             time.sleep(0.5)
     try:
         subprocess.run(["python3", "configure.py"], cwd=ROOT, capture_output=True, check=True)
     finally:
-        os.rmdir(lock)
+        subprocess.run(["rm", "-rf", lock])
     return objdiff_unit(u)
 
 

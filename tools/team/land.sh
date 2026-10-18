@@ -8,8 +8,7 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "commit your changes first" >&2; exit 1; }
 for attempt in 1 2 3 4 5; do
   git rebase main
-  python3 configure.py >/dev/null
-  ninja >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
+  tools/team/nj.sh >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
   until mkdir "$lock" 2>/dev/null; do sleep 2; done
   if git -C "$main" merge --ff-only -q "$branch" 2>/dev/null; then
     rmdir "$lock"

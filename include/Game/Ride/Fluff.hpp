@@ -32,7 +32,7 @@ public:
     bool updateRide();
     void updateWind();
     bool trySpinUp(s32 step);
-    void endBind(f32 ejectForce);
+    void endBind(f32 ejectForce, bool isDamage, u32 msg);
 
     /* 0x8C */ TVec3f mSide;
     /* 0x98 */ TVec3f mUp;

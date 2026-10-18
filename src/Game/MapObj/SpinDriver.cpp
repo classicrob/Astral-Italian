@@ -7,6 +7,7 @@
 #include "Game/MapObj/SpinDriverShootPath.hpp"
 #include "Game/MapObj/SpinDriverUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
+#include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
@@ -25,6 +26,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 #include "Inline.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include <cmath>
@@ -33,75 +35,9 @@
 
 #include "Game/Util/StringUtil.hpp"
 
-void SpinDriver_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)3.814697265625e-06f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)2.0f;
-    (void)-1.0f;
-    (void)3.1415927410125732f;
-    (void)40.0f;
-    (void)0.0010000000474974513f;
-    (void)300.0f;
-    (void)122500.0f;
-    (void)6.2831854820251465f;
-    (void)-3.1415927410125732f;
-    (void)0.949999988079071f;
-    (void)15.0f;
-    (void)0.05000000074505806f;
-    (void)0.15000000596046448f;
-    (void)0.00800000037997961f;
-    (void)20.0f;
-    (void)200.0f;
-    (void)0.03999999910593033f;
-    (void)57600.0f;
-    (void)120.0f;
-    (void)1.5f;
-    (void)0.800000011920929f;
-    (void)0.4000000059604645f;
-}
 
-void SpinDriver_FORCE_MATCH_STRINGS() {
-    MR::isEqualString("SpinDriver", "SpinDriver");
-    MR::isEqualString("Body", "Body");
-    MR::isEqualString("SpinDriverShadow", "SpinDriverShadow");
-    MR::isEqualString("出現", "出現");
-    MR::isEqualString("SpinAttack", "SpinAttack");
-    MR::isEqualString("Water", "Water");
-    MR::isEqualString("PmSpinDrvInWater1", "PmSpinDrvInWater1");
-    MR::isEqualString("Wait", "Wait");
-    MR::isEqualString("SySpinDriverAppear", "SySpinDriverAppear");
-    MR::isEqualString("OjSpinDrvAppear", "OjSpinDrvAppear");
-    MR::isEqualString("Appear", "Appear");
-    MR::isEqualString("OjLvSpinDrvShine", "OjLvSpinDrvShine");
-    MR::isEqualString("SpinDriverLight", "SpinDriverLight");
-    MR::isEqualString("CS_SPIN_BIND", "CS_SPIN_BIND");
-    MR::isEqualString("SpinDriverWait", "SpinDriverWait");
-    MR::isEqualString("SpinDriverCapture", "SpinDriverCapture");
-    MR::isEqualString("Active", "Active");
-    MR::isEqualString("OjLvSpinDrvCapture", "OjLvSpinDrvCapture");
-    MR::isEqualString("SpinDriverStart", "SpinDriverStart");
-    MR::isEqualString("Spin", "Spin");
-    MR::isEqualString("SpinDriverShoot", "SpinDriverShoot");
-    MR::isEqualString("CS_SPIN_DRIVE_SHORT", "CS_SPIN_DRIVE_SHORT");
-    MR::isEqualString("SE_SY_CS_SPIN_DRV_START", "SE_SY_CS_SPIN_DRV_START");
-    MR::isEqualString("ME_MAGIC", "ME_MAGIC");
-    MR::isEqualString("SE_SY_S_SPIN_DRV_ME_ALT", "SE_SY_S_SPIN_DRV_ME_ALT");
-    MR::isEqualString("OjSpinDrvJump", "OjSpinDrvJump");
-    MR::isEqualString("SE_PV_JUMP_JOY", "SE_PV_JUMP_JOY");
-    MR::isEqualString("PmSpinDivInWater2", "PmSpinDivInWater2");
-    MR::isEqualString("SpaceFlyShortStart", "SpaceFlyShortStart");
-    MR::isEqualString("SpinDriverFlyStart", "SpinDriverFlyStart");
-    MR::isEqualString("SpaceFlyShort", "SpaceFlyShort");
-    MR::isEqualString("SpinDriverFlyLoop", "SpinDriverFlyLoop");
-    MR::isEqualString("SpaceFlyEnd", "SpaceFlyEnd");
-    MR::isEqualString("SpinDriverFlyEnd", "SpinDriverFlyEnd");
-    MR::isEqualString("SE_PM_LV_SPIN_DRV_FLY", "SE_PM_LV_SPIN_DRV_FLY");
-    MR::isEqualString("Fall", "Fall");
-    MR::isEqualString("SpinDriverFall", "SpinDriverFall");
-    MR::isEqualString("SpaceFlyStart", "SpaceFlyStart");
-}
+
+
 
 namespace {
     // static const f32 sShadowMaxHeight = _;
@@ -149,9 +85,9 @@ SpinDriver::SpinDriver(const char* pName)
     : LiveActor(pName), _8C(), mShootPath(), mSpinDriverCamera(), _98(0, 0, 0, 1), _A8(0, 0, 0, 1), _B8(0, 0, 0), _C4(0, 0, 0), _D0(0, 0, 1),
       _DC(0, 0, 0), _E8(0, 1, 0), _F4(0, 0, 0), _104(), _100(40.0f), _108(), _10C(0, 0, 0), _11C(), _120(-1.0f), _124(300), _128(-1), _12C(240),
       _130(270), _134(), _138(true), _13C(), _140(), _141(true), _142() {
+    _SMG2Mtx.identity();
 }
 
-// NONMATCHING: TVec3f(f32) temp for initSound is inlined in ours, out-of-line call in target
 void SpinDriver::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "SpinDriver", false);
@@ -182,23 +118,21 @@ void SpinDriver::init(const JMapInfoIter& rIter) {
 
     initNerve(GET_NERVE(SpinDriver, SpinDriverNrvWait));
 
-    MR::initShadowVolumeFlatModel(this, "SpinDriverShadow", MR::getJointMtx(this, "SpinDriver"));
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "SpinDriverShadow");
 
     initParamFromJMapInfo(rIter);
 
     MR::setClippingFar200m(this);
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
+    MR::makeMtxTR(_SMG2Mtx, this);
+    MR::addBaseMatrixFollowTarget(this, rIter, &_SMG2Mtx,
+        MR::createBaseMatrixFollowValidateDelegator(this, &SpinDriver::isValidFollow));
 
-        makeActorDead();
-
+    if (MR::useStageSwitchSyncAppear(this, rIter)) {
         mSpinDriverCamera->initAppearCamera(rIter, this);
-    } else {
-        makeActorAppeared();
     }
 
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
 }
 
 void SpinDriver::initAfterPlacement() {
@@ -354,7 +288,7 @@ bool SpinDriver::tryStartShoot() {
     bool isSwingOr2P = MR::isPadSwing(WPAD_CHAN0) || MR::isPlayerPointedBy2POnTriggerButton();
 
     if (isSwingOr2P) {
-        MR::startActionSound(_8C, "SpinAttack");
+        MR::startLevelSoundPlayer("SpinAttack", -1, -1);
 
         if (MR::isInAreaObj("Water", mPosition)) {
             MR::startActionSound(this, "PmSpinDrvInWater1");
@@ -459,7 +393,7 @@ void SpinDriver::exeNonActive() {
 void SpinDriver::exeAppear() {
     if (MR::isFirstStep(this)) {
         if (!_142) {
-            MR::startSystemSE("SySpinDriverAppear");
+            MR::startActionSound(this, "SySpinDriverAppear");
             MR::startActionSound(this, "OjSpinDrvAppear");
         }
 
@@ -467,7 +401,7 @@ void SpinDriver::exeAppear() {
         mSpinDriverCamera->startAppearCamera(this, _E8, _D0, mPosition);
     }
 
-    if (MR::isBckStopped(this) && MR::isGreaterStep(this, mSpinDriverCamera->getAppearCameraFrames())) {
+    if (MR::isActionEnd(this) && MR::isGreaterStep(this, mSpinDriverCamera->getAppearCameraFrames())) {
         setNerve(GET_NERVE(SpinDriver, SpinDriverNrvWait));
 
         if (mSpinDriverCamera->isUseAppearCamera(this)) {
@@ -498,7 +432,7 @@ void SpinDriver::exeWait() {
 
         if (!_140) {
             MR::emitEffect(this, "SpinDriverLight");
-            MR::startCSSound("CS_SPIN_BIND", nullptr, 0);
+            MR::startCSSound("CS_SPIN_BIND", nullptr, 0, 0, 1.0f);
         }
     } else {
         MR::deleteEffect(this, "SpinDriverLight");
@@ -561,7 +495,7 @@ void SpinDriver::exeShootStart() {
     }
 
     if (MR::isStep(this, 4)) {
-        MR::startCSSound("CS_SPIN_DRIVE_SHORT", "SE_SY_CS_SPIN_DRV_START", 0);
+        MR::startCSSound("CS_SPIN_DRIVE_SHORT", "SE_SY_CS_SPIN_DRV_START", 0, 0, 1.0f);
     }
 
     f32 progress = MR::clamp(getNerveStep() / 20.0f, 0.0f, 1.0f);
@@ -589,7 +523,6 @@ void SpinDriver::exeShootStart() {
     }
 }
 
-// NONMATCHING: SMG2 added Yoshi / support-play sound branches (isPlayerElementModeYoshi, isSupportPlayActive, startLevelSoundPlayer, unnamed fn_80050DB0); not ported
 void SpinDriver::exeShoot() {
     if (tryForceCancel()) {
         return;
@@ -601,11 +534,18 @@ void SpinDriver::exeShoot() {
         if (MR::hasME()) {
             MR::startSystemME("ME_MAGIC");
         } else {
-            MR::startSystemSE("SE_SY_S_SPIN_DRV_ME_ALT");
+            MR::startActionSound(this, "SySSpinDrvMeAlt");
         }
 
         MR::startActionSound(this, "OjSpinDrvJump");
-        MR::startActionSound(_8C, "SE_PV_JUMP_JOY");
+        if (MR::isPlayerElementModeYoshi()) {
+            MR::startActionSoundPlayer("StarRingStart", -1, -1);
+        } else {
+            MR::startLevelSoundPlayer("JumpObj", -1, -1);
+        }
+        if (MR::isSupportPlayActive()) {
+            MR::startLevelSoundPlayer("SupportTicoSpinDriverShoot", -1, -1);
+        }
 
         if (MR::isInAreaObj("Water", mPosition)) {
             MR::startActionSound(this, "PmSpinDivInWater2");
@@ -632,7 +572,7 @@ void SpinDriver::exeShoot() {
         }
 
         if (MR::isLessStep(this, _130)) {
-            MR::startActionSound(_8C, "SE_PM_LV_SPIN_DRV_FLY");
+            MR::startLevelSoundPlayer("SE_PM_LV_SPIN_DRV_FLY", -1);
         }
 
         if (MR::isStep(this, _130)) {
@@ -657,6 +597,7 @@ void SpinDriver::exeCoolDown() {
     }
 }
 
+// Target retains the quaternion assignment call; the shared operator currently inlines it.
 bool SpinDriver::startBind(HitSensor* pSensor) {
     if (!canStartBind()) {
         return false;
@@ -668,10 +609,10 @@ bool SpinDriver::startBind(HitSensor* pSensor) {
         if (MR::hasME()) {
             MR::startSystemME("ME_MAGIC");
         } else {
-            MR::startSystemSE("SE_SY_S_SPIN_DRV_ME_ALT");
+            MR::startActionSound(this, "SySSpinDrvMeAlt");
         }
 
-        MR::startActionSound(MR::getSensorHost(pSensor), "SpinAttack");
+        MR::startLevelSoundPlayer("SpinAttack", -1, -1);
 
         if (MR::isInAreaObj("Water", mPosition)) {
             MR::startActionSound(this, "PmSpinDrvInWater1");
@@ -859,6 +800,12 @@ bool SpinDriver::canBind(HitSensor* pSensor) const {
     return false;
 }
 
-void SpinDriver_FORCE_MATCH(TQuat4f* pDest, const TQuat4f& rSrc) {
-    *pDest = rSrc;
+
+bool SpinDriver::isValidFollow(s32) const {
+    bool valid = false;
+    if (isNerve(GET_NERVE(SpinDriver, SpinDriverNrvShootStart)) || isNerve(GET_NERVE(SpinDriver, SpinDriverNrvShoot))) {
+        valid = true;
+    }
+    return valid;
 }
+

@@ -12,12 +12,16 @@
 #include <revolution/gd/GDBase.h>
 #include <revolution/gx/GXEnum.h>
 
+// PLACEHOLDER(objects): projects a sensor position into tower-mode areas; resolve when core names fn_800143D0.
+extern "C" void fn_800143D0(TVec3f*);
+
 namespace {
     const char* cSensorNameTable[] = {"body0", "body1", "body2", "body3", "body4", "body5", "body6", "body7"};
 };  // namespace
 
 namespace NrvElectricRailMoving {
     NEW_NERVE(ElectricRailMovingNrvWait, ElectricRailMoving, Wait);
+    NEW_NERVE(ElectricRailMovingNrvFreeze, ElectricRailMoving, Freeze);
     NEW_NERVE(ElectricRailMovingNrvDisappear, ElectricRailMoving, Disappear);
     NEW_NERVE(ElectricRailMovingNrvDisappeared, ElectricRailMoving, Disappeared);
 };  // namespace NrvElectricRailMoving
@@ -28,7 +32,7 @@ ElectricRailMovingPoint::ElectricRailMovingPoint(const char* pName) : LiveActor(
 }
 
 void ElectricRailMovingPoint::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("ElectricRailPoint", nullptr, 0);
+    MR::initActor(this, "ElectricRailPoint", false);
     MR::connectToSceneMapObjDecoration(this);
 
     if (_8C) {
@@ -38,7 +42,24 @@ void ElectricRailMovingPoint::init(const JMapInfoIter& rIter) {
 
     initHitSensor(1);
     MR::addHitSensorMapObj(this, "body", 8, 35.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    TVec3f pointerOffset;
+    pointerOffset.x = 0.0f;
+    pointerOffset.y = 0.0f;
+    pointerOffset.z = 0.0f;
+    MR::initStarPointerTarget(this, 50.0f, pointerOffset);
+    initEffectKeeper(1, "ElectricRailMovingPoint", false);
+    MR::addEffect(this, "PointerTouch");
     makeActorAppeared();
+}
+
+void ElectricRailMovingPoint::control() {
+    f32 radius;
+    if (MR::isPlayerHipDropFalling()) {
+        radius = ElectricRailFunction::getHipDropSensorRadius();
+    } else {
+        radius = 35.0f;
+    }
+    MR::setSensorRadius(this, "body", radius);
 }
 
 void ElectricRailMovingPoint::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -80,7 +101,8 @@ void ElectricRailMoving::draw() const {
         GXLoadTexMtxImm(_9C, 0x21, GX_MTX2x4);
         GXSetTevColor(GX_TEVREG1, Color8(0xFF, 0xFF, 0xFF, _CC));
 
-        if (isNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvWait))) {
+        if (isNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvWait)) ||
+            isNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvFreeze))) {
             GXCallDisplayList(_DC, _E0);
         } else {
             drawRailGX(_F0);
@@ -97,11 +119,11 @@ bool ElectricRailMoving::isTouchRail(const HitSensor* pSensor, TVec3f* pPos, TVe
     f32 coord;
 
     TVec3f nearest;
-    coord = MR::calcNearestRailPos(&nearest, this, pSensor->mPosition);
-    radius = pSensor->mRadius;
-    radius += ElectricRailFunction::getHitSensorRadius();
+    coord = MR::calcNearestRailPos(&nearest, this, *MR::getSensorPos(pSensor));
+    f32 railRadius = ElectricRailFunction::getHitSensorRadius();
+    radius = MR::getSensorRadius(const_cast< HitSensor* >(pSensor)) + railRadius;
 
-    if (isValidCoord(coord) && nearest.squared(pSensor->mPosition) < radius * radius) {
+    if (isValidCoord(coord) && nearest.squared(*MR::getSensorPos(pSensor)) < radius * radius) {
         if (pPos != nullptr) {
             pPos->set(nearest);
         }
@@ -130,8 +152,8 @@ void ElectricRailMoving::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg1NoInit(rIter, &mMovementSpeed);
     MR::getJMapInfoArg3NoInit(rIter, &mStackHeight);
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
-        MR::listenStageSwitchOnA(this, MR::Functor(this, &ElectricRailMoving::disappear));
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
+        MR::listenStageSwitchOnA(this, MR::Functor_Inline(this, &ElectricRailMoving::disappear));
     }
 }
 
@@ -184,8 +206,8 @@ void ElectricRailMoving::initPoints() {
         MR::calcRailStartPointPos(&startPos, this);
         MR::calcRailEndPointPos(&endPos, this);
 
-        mMovingPoints[v4++].mPosition.set(startPos);
-        mMovingPoints[v4++].mPosition.set(endPos);
+        MR::setPosition(&mMovingPoints[v4++], startPos);
+        MR::setPosition(&mMovingPoints[v4++], endPos);
         u32 v6 = v4;
 
         if (mStackHeight > 1) {
@@ -199,7 +221,7 @@ void ElectricRailMoving::initPoints() {
 
             for (s32 i = 1; i < mStackHeight; i++) {
                 v16.add(g);
-                mMovingPoints[v6++].mPosition.set(v16);
+                MR::setPosition(&mMovingPoints[v6++], v16);
             }
 
             MR::calcGravityVector(this, endPos, &g, nullptr, 0);
@@ -208,7 +230,7 @@ void ElectricRailMoving::initPoints() {
 
             for (s32 i = 1; i < mStackHeight; i++) {
                 v16.add(g);
-                mMovingPoints[v6++].mPosition.set(v16);
+                MR::setPosition(&mMovingPoints[v6++], v16);
             }
         }
     }
@@ -334,11 +356,23 @@ void ElectricRailMoving::updateHitSensorPos() {
 
     bool isValid = isValidCoord(nearestRailPos);
 
+    f32 radius;
+    if (MR::isPlayerHipDropFalling()) {
+        radius = ElectricRailFunction::getHipDropSensorRadius();
+    } else {
+        radius = ElectricRailFunction::getHitSensorRadius();
+    }
     for (s32 i = 0; i < mStackHeight; i++) {
         if (isValid) {
-            MR::getSensorWithIndex(this, i)->validate();
+            MR::validateHitSensor(MR::getSensorWithIndex(this, i));
+            MR::setSensorRadius(MR::getSensorWithIndex(this, i), radius);
         } else {
-            MR::getSensorWithIndex(this, i)->invalidate();
+            MR::invalidateHitSensor(MR::getSensorWithIndex(this, i));
+        }
+    }
+    if (isValid && MR::isInTowerModeCylinder(mSensorOffsets[0], nullptr, nullptr, nullptr)) {
+        for (s32 i = 0; i < mStackHeight; i++) {
+            fn_800143D0(&mSensorOffsets[i]);
         }
     }
 }
@@ -371,8 +405,8 @@ namespace {
 
             pActor->calcPointPos(&previousPosition, previousCoord);
 
-            pActor->mMovingPoints[pointIndex++].mPosition.set(position);
-            pActor->mMovingPoints[pointIndex++].mPosition.set(previousPosition);
+            MR::setPosition(&pActor->mMovingPoints[pointIndex++], position);
+            MR::setPosition(&pActor->mMovingPoints[pointIndex++], previousPosition);
 
             if (pActor->mStackHeight > 1) {
                 MR::calcGravityVector(pActor, position, &gravity, nullptr, 0);
@@ -382,7 +416,7 @@ namespace {
 
                 for (s32 j = 1; j < pActor->mStackHeight; j++) {
                     stackPosition += gravity;
-                    pActor->mMovingPoints[pointIndex++].mPosition.set(stackPosition);
+                    MR::setPosition(&pActor->mMovingPoints[pointIndex++], stackPosition);
                 }
 
                 MR::calcGravityVector(pActor, previousPosition, &gravity, nullptr, 0);
@@ -392,7 +426,7 @@ namespace {
 
                 for (s32 j = 1; j < pActor->mStackHeight; j++) {
                     stackPosition += gravity;
-                    pActor->mMovingPoints[pointIndex++].mPosition.set(stackPosition);
+                    MR::setPosition(&pActor->mMovingPoints[pointIndex++], stackPosition);
                 }
             }
 
@@ -408,6 +442,7 @@ namespace {
     }
 };  // namespace
 
+// NONMATCHING: loop state uses different saved registers
 bool ElectricRailMoving::updatePointPos() {
     return ::updateMovingPoints(this);
 }
@@ -418,11 +453,15 @@ void ElectricRailMoving::updatePointPosAndModel() {
     if (!MR::isLoopRail(this)) {
         if (updated) {
             for (s32 i = 0; i < 2 * mStackHeight; i++) {
-                MR::showModelIfHidden(&mMovingPoints[_D8 - 1 - i]);
+                ElectricRailMovingPoint* point = &mMovingPoints[_D8 - 1 - i];
+                MR::showModelIfHidden(point);
+                MR::validateHitSensors(point);
             }
         } else {
             for (s32 i = 0; i < 2 * mStackHeight; i++) {
-                MR::hideModelIfShown(&mMovingPoints[_D8 - 1 - i]);
+                ElectricRailMovingPoint* point = &mMovingPoints[_D8 - 1 - i];
+                MR::hideModelIfShown(point);
+                MR::invalidateHitSensors(point);
             }
         }
     }
@@ -454,8 +493,8 @@ void ElectricRailMoving::calcPointPos(TVec3f* pOutPos, f32 c) const {
 
 #pragma push
 #pragma global_optimizer off
-void ElectricRailMoving::move() {
-    _EC = getRepeatedCoord(_EC + mMovementSpeed);
+void ElectricRailMoving::move(f32 speed) {
+    _EC = getRepeatedCoord(_EC + speed);
 
     f32 scale = (100.0f * mSegmentNum) / (0.25f * MR::getRailTotalLength(this));
 
@@ -495,7 +534,7 @@ void ElectricRailMoving::exeDisappear() {
         }
     }
 
-    move();
+    move(mMovementSpeed);
     _F0 = MR::calcNerveEaseInValue(this, 20, 30.0f, 0.0f);
 
     if (MR::isStep(this, 20)) {
@@ -509,10 +548,34 @@ void ElectricRailMoving::exeDisappeared() {
     }
 }
 
+bool ElectricRailMoving::tryFreeze() {
+    bool frozen = false;
+    for (s32 i = 0; i < _D8; i++) {
+        if (MR::isStarPointerPointing2PAttachTarget(&mMovingPoints[i])) {
+            MR::tryEmitEffect(&mMovingPoints[i], "PointerTouch");
+            setNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvFreeze));
+            frozen = true;
+        } else {
+            MR::tryDeleteEffect(&mMovingPoints[i], "PointerTouch");
+        }
+    }
+    return frozen;
+}
+
 void ElectricRailMoving::exeWait() {
-    move();
+    move(mMovementSpeed);
     updateHitSensorPos();
     MR::startActionSound(this, "OjLvElecRailHam", -1, -1, -1);
+    tryFreeze();
+}
+
+void ElectricRailMoving::exeFreeze() {
+    move(0.0f);
+    updateHitSensorPos();
+    MR::startActionSound(this, "OjLvElecRailHam", -1, -1, -1);
+    if (!tryFreeze()) {
+        MR::setNerveAtStep(this, GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvWait), 20);
+    }
 }
 
 ElectricRailMoving::~ElectricRailMoving() {
@@ -521,6 +584,3 @@ ElectricRailMoving::~ElectricRailMoving() {
 ElectricRailMovingPoint::~ElectricRailMovingPoint() {
 }
 
-void ElectricRailMoving_FORCE_MATCH(TVec3f* pVec, f32 scale) {
-    *pVec *= scale;
-}

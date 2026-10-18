@@ -26,6 +26,8 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 #include <JSystem/J3DGraphBase/J3DShapeDraw.hpp>
 #include <revolution/gx/GXTransform.h>
 #include <revolution/mtx.h>
@@ -94,7 +96,9 @@ Plant::Plant(const char* pName)
     mTopMtx.identity();
 }
 
+// NONMATCHING: stack slot order of the zero TVec3f for initStarPointerTarget
 void Plant::init(const JMapInfoIter& pMapInfoIter) {
+    TVec3f starOffset;
     MR::createSceneObj(SceneObj_PlantStalkDrawInit);
     MR::createSceneObj(SceneObj_PlantLeafDrawInit);
 
@@ -119,8 +123,12 @@ void Plant::init(const JMapInfoIter& pMapInfoIter) {
     mSeedPartsModel = new PartsModel(this, "種（伸び植物）", "PlantSeed", mSeedMtx, -1, false);
     mSeedPartsModel->initWithoutIter();
     MR::initShadowVolumeSphere(mSeedPartsModel, 50.0f);
-    mSeedPartsModel->mPosition.set(mPosition);
+    MR::setPosition(mSeedPartsModel, mPosition);
     mSeedMtx.setTrans(mPosition);
+    starOffset.x = 0.0f;
+    starOffset.y = 0.0f;
+    starOffset.z = 0.0f;
+    MR::initStarPointerTarget(mSeedPartsModel, 50.0f, starOffset);
 
     updateTopMtx();
     mTopPartsModel = new PartsModel(this, "先端（伸び植物）", "PlantTop", mTopMtx, -1, false);
@@ -170,6 +178,7 @@ void Plant::exeSeedWait() {
         MR::startActionSound(this, "OjPlantBud", -1, -1, -1);
         mTopPartsModel->kill();
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
+        MR::attachSupportTicoToTarget(mSeedPartsModel);
     }
 }
 
@@ -194,15 +203,14 @@ void Plant::exeDemoWaitGrowUp() {
 
 void Plant::exeGrowUp() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(mSeedPartsModel, "GrowUp");
-        MR::startActionSound(this, "SE_OJ_PLANT_SEED_BREAK", -1, -1, -1);
-        MR::startSystemSE("SE_SY_ITEM_APPEAR");
-        MR::startActionSound(this, "SE_OJ_PLANT_GROW_START", -1, -1, -1);
+        if (MR::tryStartActionNotPlaying(mSeedPartsModel, "GrowUp")) {
+            MR::startActionSound(this, "OjPlantSeedBreak", -1, -1, -1);
+            MR::startActionSound(this, "SyItemAppear", -1, -1, -1);
+            MR::startActionSound(this, "OjPlantGrowStart", -1, -1, -1);
+        }
     }
 
-    if (updateGrowUp()) {
-        return;
-    }
+    updateGrowUp();
 }
 
 void Plant::exeHangWaitGrowUp() {
@@ -225,8 +233,8 @@ void Plant::exeHangWaitGrowUp() {
 void Plant::exeHangUpGrowUp() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("GrowPlantHangUp", nullptr);
-        mAccelTimer = 0;
         mRideVelocity = ::sGrowUpPlayerSpeed;
+        mAccelTimer = 0;
     }
 
     if (updateGrowUp()) {
@@ -439,12 +447,12 @@ void Plant::updateHitSensor(HitSensor* pSensor) {
 }
 
 void Plant::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) && isNerve(GET_NERVE(Plant, PlantNrvSeedWait))) {
-        f32 r = pReceiver->mRadius;
-        if (MR::isNear(pSender, pReceiver, r + ::sDistancePush)) {
-            pSender->mRadius = ::sDistancePush;
+    if (MR::isSensorPlayerOrYoshi(pReceiver) && isNerve(GET_NERVE(Plant, PlantNrvSeedWait)) && MR::isEqualSensor(pSender, this, "seed")) {
+        f32 r = MR::getSensorRadius(pReceiver);
+        if (MR::isNear(pSender, pReceiver, ::sDistancePush + r)) {
+            MR::setSensorRadius(pSender, ::sDistancePush);
             MR::sendMsgPush(pReceiver, pSender);
-            pSender->mRadius = ::sDistanceBody;
+            MR::setSensorRadius(pSender, ::sDistanceBody);
         }
     } else {
         if (mRider != nullptr) {
@@ -459,6 +467,7 @@ bool Plant::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
             MR::invalidateClipping(this);
             mTopPartsModel->appear();
             startGrowUp();
+            MR::tryHitReactionBreak(mSeedPartsModel);
             return true;
         }
 
@@ -466,6 +475,27 @@ bool Plant::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
 
     return false;
+}
+
+bool Plant::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (mRider == nullptr) {
+        return false;
+    }
+
+    if (!MR::isEqualSensor(pReceiver, this, "Ride")) {
+        return false;
+    }
+
+    MR::endMultiActorCameraAtLanding(this, mCameraInfo, "掴まり", -1);
+    MR::endBindAndPlayerDamageMsg(this, msg);
+    mRider = nullptr;
+    if (isNerve(GET_NERVE(Plant, PlantNrvHangWaitGrowUp)) || isNerve(GET_NERVE(Plant, PlantNrvHangUpGrowUp))) {
+        setNerve(GET_NERVE(Plant, PlantNrvGrowUp));
+    } else {
+        setNerve(GET_NERVE(Plant, PlantNrvGrowthWaitInvalid));
+    }
+
+    return true;
 }
 
 bool Plant::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -481,7 +511,7 @@ bool Plant::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
             return false;
         }
 
-        mRider = pSender->mHost;
+        mRider = MR::getSensorHost(pSender);
         MR::invalidateClipping(this);
         MR::moveCoordAndTransToNearestRailPos(this, *MR::getPlayerPos());
         MR::getPlayerFrontVec(&mFront);
@@ -522,7 +552,7 @@ bool Plant::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         TPos3f mtx;
         mtx.setXYZDir(side, mUp, mFront);
         mtx.setTrans(mPosition);
-        MR::setBaseTRMtx(mRider, mtx);
+        MR::setPlayerBaseMtx(mtx);
         return true;
     }
 
@@ -547,7 +577,7 @@ bool Plant::updateGrowUp() {
 
     updateTopMtx();
     f32 growthPercent = mStalk->mGrowthPercent;
-    mTopPartsModel->mScale.set(growthPercent);
+    MR::setScale(mTopPartsModel, growthPercent);
     for (s32 leaf = 0; leaf < mNumLeaves; leaf++) {
         TVec3f axisY;
         TVec3f pos;
@@ -680,10 +710,11 @@ bool Plant::tryReachGoal() {
     MR::startBckPlayer("GrowPlantJump", nullptr);
     MR::stopSound(mRider, "SE_OJ_PLANT_MARIO_UP_START");
     MR::startSoundPlayer("SE_PM_JUMP_L", -1, -1);
-    MR::startSoundPlayer("SE_PV_JUMP_JOY", -1, -1);
+    MR::startLevelSoundPlayer("JumpObj", -1, -1);
 
     MR::endMultiActorCameraAtLanding(this, mCameraInfo, "掴まり", -1);
     MR::endBindAndPlayerForceWeakGravityJump(this, endUp);
+    MR::setPlayerSwingInhibitTimer(0x78);
     mRider = nullptr;
 
     setNerve(GET_NERVE(Plant, PlantNrvGrowthWaitInvalid));

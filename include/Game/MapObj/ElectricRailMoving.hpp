@@ -12,6 +12,7 @@ public:
 
     virtual ~ElectricRailMovingPoint();
     virtual void init(const JMapInfoIter&);
+    virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
 
     u8 _8C;
@@ -44,7 +45,9 @@ public:
     bool isValidCoord(f32) const;
     f32 getRepeatedCoord(f32) const;
     void calcPointPos(TVec3f*, f32) const;
-    void move();
+    void move(f32);
+    bool tryFreeze();
+    void exeFreeze();
     void exeDisappear();
     void exeDisappeared();
     void exeWait();
@@ -68,3 +71,7 @@ public:
     f32 _EC;
     f32 _F0;
 };
+
+namespace ElectricRailFunction {
+    f32 getHipDropSensorRadius();
+}

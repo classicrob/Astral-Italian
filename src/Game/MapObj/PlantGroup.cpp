@@ -30,18 +30,7 @@ namespace {
     const f32 hWeakDist = 500.0f;
 };  // namespace
 
-void PlantGroup_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)3.8146973e-06f;
-    (void)-3.8146973e-06f;
-    (void)0.5f;
-    (void)3.0f;
-    (void)PI;
-    (void)HALF_PI;
-    (void)2.0f;
-    (void)-HALF_PI;
-}
+
 
 namespace NrvPlantMember {
     NEW_NERVE(HostTypeNrvWait, PlantMember, Wait);
@@ -51,71 +40,11 @@ namespace NrvPlantMember {
     NEW_NERVE(HostTypeNrvShakeStrong, PlantMember, ShakeStrong);
 };  // namespace NrvPlantMember
 
-void PlantGroup::makeModelName(char* pDst, u32 size) const {
-    const char* pName = nullptr;
 
-    if (mPlantType == 0) {
-        pName = "PlantA";
-    }
 
-    if (mPlantType == 1) {
-        pName = "PlantB";
-    }
 
-    if (mPlantType == 2) {
-        pName = "PlantC";
-    }
 
-    if (mPlantType == 3) {
-        pName = "PlantD";
-    }
 
-    snprintf(pDst, size, "%s%02d", pName, mPlantShape);
-}
-
-bool PlantGroup::isBloomEnd() const {
-    if (MR::isDead(this)) {
-        return false;
-    }
-
-    return mBloomTimer >> 31;
-}
-
-void PlantGroup::initPlantType(s32* pType, s32* pShape, const JMapInfoIter& rIter) {
-    const char* pName = nullptr;
-    MR::getObjectName(&pName, rIter);
-
-    if (MR::isEqualString(pName, "CutBushGroup")) {
-        *pType = 0;
-        *pShape = 8;
-    } else if (MR::isEqualString(pName, "FlowerBlueGroup")) {
-        *pType = 0;
-        *pShape = 7;
-    } else if (MR::isEqualString(pName, "FlowerGroup")) {
-        *pType = 0;
-        *pShape = 7;
-        mColorFrame = 1;
-    } else {
-        if (MR::isEqualString(pName, "PlantA")) {
-            *pType = 0;
-        } else if (MR::isEqualString(pName, "PlantB")) {
-            *pType = 1;
-        } else if (MR::isEqualString(pName, "PlantC")) {
-            *pType = 2;
-        } else if (MR::isEqualString(pName, "PlantD")) {
-            *pType = 3;
-        }
-
-        s32 shape = -1;
-        MR::getJMapInfoShapeIdWithInit(rIter, &shape);
-
-        if (shape == -1) {
-            shape = 0;
-        }
-
-        *pShape = shape;
-    }
-}
 
 PlantGroup::PlantGroup(const char* pName)
     : LiveActor(pName), mMembers(nullptr), mMemberCount(7), mItemCount(0), mPlantType(0), mPlantShape(-1), mItemType(0), mColorFrame(-1),
@@ -208,6 +137,37 @@ void PlantGroup::makeActorDead() {
     }
 }
 
+void PlantGroup::makeModelName(char* pDst, u32 size) const {
+    const char* pName = nullptr;
+
+    if (mPlantType == 0) {
+        pName = "PlantA";
+    }
+
+    if (mPlantType == 1) {
+        pName = "PlantB";
+    }
+
+    if (mPlantType == 2) {
+        pName = "PlantC";
+    }
+
+    if (mPlantType == 3) {
+        pName = "PlantD";
+    }
+
+    snprintf(pDst, size, "%s%02d", pName, mPlantShape);
+}
+
+bool PlantGroup::isBloomEnd() const {
+    if (MR::isDead(this)) {
+        return false;
+    }
+
+    return mBloomTimer < 0;
+}
+
+// NONMATCHING: loop-invariant string and loop register allocation differ
 void PlantGroup::initMember(s32 itemCount, const JMapInfoIter&) {
     mMembers = new PlantMember*[mMemberCount];
     char modelName[0x40];
@@ -265,6 +225,7 @@ void PlantGroup::initMember(s32 itemCount, const JMapInfoIter&) {
     MR::addHitSensorMapObj(this, "境界球", 16, 100.0f, TVec3f(gZeroVec));
 }
 
+// NONMATCHING: vector temporary stack slots and loop register allocation differ
 s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravity, const TVec3f& rAxisX, const TVec3f& rAxisY) {
     pCenter->set<int>(0, 0, 0);
     f32 spacing;
@@ -298,9 +259,7 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
     for (s32 i = 0; i < mMemberCount; i++) {
         TVec3f offset(rAxisX);
         offset.scale(MR::cos(angle));
-        TVec3f offsetY(rAxisY);
-        offsetY.scale(MR::sin(angle));
-        offset += offsetY;
+        offset += rAxisY * MR::sin(angle);
         offset.scale(radius);
         TVec3f pos(mPosition);
         pos += offset;
@@ -329,9 +288,7 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
     for (s32 i = 0; i < mMemberCount; i++) {
         TVec3f offset(rAxisX);
         offset.scale(MR::cos(angle));
-        TVec3f offsetY(rAxisY);
-        offsetY.scale(MR::sin(angle));
-        offset += offsetY;
+        offset += rAxisY * MR::sin(angle);
         offset.scale(radius);
         TVec3f start(mPosition);
         start -= average;
@@ -342,14 +299,16 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
         TVec3f ray(rGravity);
         ray.scale(::sCheckLineLength);
 
-        if (MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, nullptr, start, ray)) {
-            f32 height = _B4;
-            TVec3f lift(-rGravity);
-            lift.scale(height);
-            mMembers[i]->mPosition += lift;
+        bool hit = MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, nullptr, start, ray);
+        if (hit) {
+            mMembers[i]->mPosition += -rGravity * _B4;
             *pCenter += mMembers[i]->mPosition;
             placedCount++;
-
+        } else {
+            mMembers[i]->kill();
+            continue;
+        }
+        {
             if (mUseGravity) {
                 MR::calcGravity(mMembers[i]);
             } else {
@@ -366,8 +325,6 @@ s32 PlantGroup::placeOnCollisionFormCircle(TVec3f* pCenter, const TVec3f& rGravi
                 angleStep = 2.0f * PI / ringCount;
                 radius = ring * spacing;
             }
-        } else {
-            mMembers[i]->kill();
         }
     }
 
@@ -444,6 +401,7 @@ void PlantGroup::initAfterPlacement() {
     MR::setClippingTypeSphere(this, radius + ::sSize * scale);
 }
 
+// NONMATCHING: integer-to-float conversion temporaries reuse different stack slots
 s32 PlantGroup::placeOnRail(TVec3f* pCenter) {
     f32 length = MR::getRailTotalLength(this);
 
@@ -476,7 +434,11 @@ s32 PlantGroup::placeOnRail(TVec3f* pCenter) {
         if (MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, nullptr, pos, ray)) {
             *pCenter += mMembers[i]->mPosition;
             placedCount++;
-
+        } else {
+            mMembers[i]->kill();
+            continue;
+        }
+        {
             if (mUseGravity) {
                 MR::calcGravity(mMembers[i]);
             } else {
@@ -485,8 +447,6 @@ s32 PlantGroup::placeOnRail(TVec3f* pCenter) {
 
             mMembers[i]->initPosture(mRandomRotation != 0);
             MR::moveRailRider(this);
-        } else {
-            mMembers[i]->kill();
         }
     }
 
@@ -505,6 +465,42 @@ void PlantGroup::control() {
     }
 
     emitHintEffect();
+}
+
+void PlantGroup::initPlantType(s32* pType, s32* pShape, const JMapInfoIter& rIter) {
+    const char* pName = nullptr;
+    MR::getObjectName(&pName, rIter);
+
+    if (MR::isEqualString(pName, "CutBushGroup")) {
+        *pType = 0;
+        *pShape = 8;
+    } else if (MR::isEqualString(pName, "FlowerBlueGroup")) {
+        *pType = 0;
+        *pShape = 7;
+    } else if (MR::isEqualString(pName, "FlowerGroup")) {
+        *pType = 0;
+        *pShape = 7;
+        mColorFrame = 1;
+    } else {
+        if (MR::isEqualString(pName, "PlantA")) {
+            *pType = 0;
+        } else if (MR::isEqualString(pName, "PlantB")) {
+            *pType = 1;
+        } else if (MR::isEqualString(pName, "PlantC")) {
+            *pType = 2;
+        } else if (MR::isEqualString(pName, "PlantD")) {
+            *pType = 3;
+        }
+
+        s32 shape = -1;
+        MR::getJMapInfoShapeIdWithInit(rIter, &shape);
+
+        if (shape == -1) {
+            shape = 0;
+        }
+
+        *pShape = shape;
+    }
 }
 
 void PlantGroup::updateBloom() {
@@ -670,13 +666,14 @@ void PlantMember::appear() {
 
 #define PLANT_APPEAR_SCALE(dst, t)                                                                                                         \
     if ((t) <= 0.75f) {                                                                                                                       \
-        dst = JMAHermiteInterpolation(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
+        dst = JMAHermiteInterpolation< f32 >(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
     } else if ((t) <= 0.92f) {                                                                                                                \
-        dst = JMAHermiteInterpolation(t, 0.75f, 1.0f, -0.9f, 0.92f, 1.0f, 0.55f);                                                             \
+        dst = JMAHermiteInterpolation< f32 >(t, 0.75f, 1.0f, -0.9f, 0.92f, 1.0f, 0.55f);                                                             \
     } else {                                                                                                                                  \
-        dst = JMAHermiteInterpolation(t, 0.92f, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
+        dst = JMAHermiteInterpolation< f32 >(t, 0.92f, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
     }
 
+// NONMATCHING: Hermite threshold loads and floating-point register scheduling differ
 void PlantMember::control() {
     if (isAppearing()) {
         f32 rate = 1.0f;
@@ -848,7 +845,7 @@ bool PlantMember::tryShake(HitSensor* pSensor) {
     diff -= mPosition;
 
     f32 height = diff.dot(mGravity);
-    if (__fabs(height) > 600.0f) {
+    if (__fabsf(height) > 600.0f) {
         return false;
     }
 

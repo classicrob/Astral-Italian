@@ -81,6 +81,8 @@ public:
     MorphItemNeoHopper(const char* pName) : MorphItemObjNeo(pName) {
     }
 
+    virtual void emitAppearEffects();
+
     virtual int getPowerUp() {
         return 1;
     }
@@ -100,6 +102,8 @@ class MorphItemNeoFire : public MorphItemObjNeo {
 public:
     MorphItemNeoFire(const char* pName) : MorphItemObjNeo(pName) {
     }
+
+    virtual void emitAppearEffects();
 
     virtual int getPowerUp() {
         return 5;

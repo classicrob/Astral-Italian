@@ -73,7 +73,7 @@ public:
     void exeExtendWait();
     void exeShrink();
     bool calcJointBridge(TPos3f*, const JointControllerInfo&);
-    void updateClipping(const TVec3f&);
+    void updateClipping();
     void initCollision();
     bool tryPull();
     void updateCollisionMtx();

@@ -79,6 +79,7 @@ Trapeze::Trapeze(const char* pName)
     mPosMtx.identity();
 }
 
+// NONMATCHING: initSound arg scheduling
 void Trapeze::init(const JMapInfoIter& rIter) {
     MR::createSceneObj(SceneObj_TrapezeRopeDrawInit);
     MR::connectToScene(this, 0x28 /* MovementType_Ride (SMG2) */, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_Trapeze);
@@ -164,7 +165,7 @@ void Trapeze::draw() const {
 void Trapeze::exeStop() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
-        getSensor("body")->invalidate();
+        getSensor("Body")->invalidate();
     }
 }
 
@@ -243,7 +244,7 @@ void Trapeze::exeSwingFrontStart() {
         return;
     }
 
-    if (MR::isBckStopped(mRider) && !(mIsSwingFront && mSwingVel < 0.0f)) {
+    if (MR::isActionEnd(mRider) && !(mIsSwingFront && mSwingVel < 0.0f)) {
         if (!mIsSwingFront && mSwingVel < ::sSpeedMinToKeepFreeSwing) {
             setNerve(GET_NERVE(Trapeze, TrapezeNrvSlowSwingFrontEnd));
             return;
@@ -317,7 +318,7 @@ void Trapeze::exeSwingBackStart() {
         return;
     }
 
-    if (MR::isBckStopped(mRider) && !(mIsSwingBack && mSwingVel > 0.0f)) {
+    if (MR::isActionEnd(mRider) && !(mIsSwingBack && mSwingVel > 0.0f)) {
         if (!mIsSwingBack && mSwingVel > -::sSpeedMinToKeepFreeSwing) {
             setNerve(GET_NERVE(Trapeze, TrapezeNrvSlowSwingBackEnd));
             return;
@@ -378,6 +379,7 @@ void Trapeze::exeSwingBackEnd() {
     }
 }
 
+// NONMATCHING: stack temp slot order and f31 allocation
 void Trapeze::updateHitSensor(HitSensor* pSensor) {
     if (MR::isSensorAutoRush(pSensor)) {
         if (isNerve(GET_NERVE(Trapeze, TrapezeNrvStop))) {
@@ -425,6 +427,7 @@ bool Trapeze::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     return false;
 }
 
+// NONMATCHING: register allocation (this in r27 vs r31) and host-position copy scheduling
 bool Trapeze::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgAutoRushBegin(msg)) {
         if ((!isNerve(GET_NERVE(Trapeze, TrapezeNrvStop)) && !isNerve(GET_NERVE(Trapeze, TrapezeNrvFree))) || MR::isOnGroundPlayer() ||
@@ -465,7 +468,7 @@ bool Trapeze::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
         f32 vel = MR::getPlayerVelocity()->dot(mFront);
 
         TVec3f swingVel = mFront;
-        if (MR::abs(vel) < 3.0f && 3.0f < projGrabPointVel) {  // is this a bug??
+        if (MR::abs(vel) < 3.0f && 3.0f < MR::abs(projGrabPointVel)) {
             vel = projGrabPointVel;
         }
         swingVel.scale(vel);
@@ -831,7 +834,7 @@ TrapezeRopeDrawInit::TrapezeRopeDrawInit(const char* pName) : NameObj(pName) {
     mTexture = nullptr;
     mTexture = new JUTTexture(MR::loadTexFromArc("Trapeze.arc", "TrapezeRope.bti", nullptr), 0);
 
-    MR::registerPreDrawFunction(MR::Functor(this, &TrapezeRopeDrawInit::initDraw), MR::DrawType_Trapeze);
+    MR::registerPreDrawFunction(MR::FunctorV0M< const TrapezeRopeDrawInit*, void (TrapezeRopeDrawInit::*)() const >(this, &TrapezeRopeDrawInit::initDraw), MR::DrawType_Trapeze);
 }
 
 void TrapezeRopeDrawInit::initDraw() const {

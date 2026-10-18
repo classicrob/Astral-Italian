@@ -342,6 +342,7 @@ void MorphItemObjNeo::calcContainerBaseMtx() {
     }
 }
 
+// NONMATCHING: unsigned conversion loads and multiply scheduling differ
 void MorphItemObjNeo::calcAndSetBaseMtx() {
     if (isNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait))) {
         if (mContainerType == 1) {
@@ -349,7 +350,10 @@ void MorphItemObjNeo::calcAndSetBaseMtx() {
 
             if (mRailMover != nullptr) {
                 MtxPtr pMtx = getBaseMtx();
-                mPosition.set< f32 >(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
+                f32 z = pMtx[2][3];
+                f32 y = pMtx[1][3];
+                f32 x = pMtx[0][3];
+                mPosition.set< f32 >(x, y, z);
             }
         } else {
             LiveActor::calcAndSetBaseMtx();
@@ -366,8 +370,7 @@ void MorphItemObjNeo::calcAndSetBaseMtx() {
             PSMTXConcat(getBaseMtx(), pMtx, getBaseMtx());
         } else if (mAppearMode != 0) {
             TPos3f rotMtx;
-            f32 angle = mAppearMode;
-            PSMTXRotAxisRad(rotMtx, mVelocity, angle * 0.20943952f);
+            PSMTXRotAxisRad(rotMtx, mVelocity, mAppearMode * 0.20943952f);
 
             TVec3f rotVec;
             PSMTXMultVec(rotMtx, mZRotation, rotVec);
@@ -429,6 +432,7 @@ bool MorphItemObjNeo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
+// NONMATCHING: sensor/vector temporary register allocation differs
 bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isHiddenModel(this)) {
         return false;
@@ -467,24 +471,30 @@ bool MorphItemObjNeo::tryGetItem(HitSensor* pSender, HitSensor* pReceiver) {
             (isNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait)) && mContainerType == 0)) {
             setNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvFly));
 
-            mVelocity = *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender);
+            const TVec3f* senderPos = MR::getSensorPos(pSender);
+            TVec3f velocity(*MR::getSensorPos(pReceiver));
+            velocity -= *senderPos;
+            mVelocity = velocity;
             mVelocity.setLength(50.0f);
 
             MR::calcGravity(this);
 
-            TVec3f up;
-            up.negate(mGravity);
-            mVelocity += up * 30.0f;
+            mVelocity += -mGravity * 30.0f;
         }
 
         return false;
     }
 
+    int powerUp = getPowerUp();
     bool isInvalid = false;
 
-    switch (getPowerUp()) {
+    switch (powerUp) {
     case 4:
+        MR::startActionSound(this, "PowerUp2");
+        break;
     case 5:
+        MR::startActionSound(this, "PowerUp2");
+        break;
     case 6:
         MR::startActionSound(this, "PowerUp2");
         break;
@@ -938,4 +948,14 @@ void MorphItemObjNeo::glowEffect(LiveActor* pActor, int type) {
             break;
         }
     }
+}
+
+void MorphItemNeoHopper::emitAppearEffects() {
+    MR::emitEffect(this, "AppearHopper");
+    MR::startActionSound(this, "OjMorphItemAppear");
+}
+
+void MorphItemNeoFire::emitAppearEffects() {
+    MR::emitEffect(this, "AppearFireFlower");
+    MR::startActionSound(this, "OjMorphFlowerAppear");
 }

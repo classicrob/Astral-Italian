@@ -75,6 +75,27 @@ public:
 
     /* 0x90 */ s32 mPlantType;
     /* 0x94 */ bool mHasItem;
-    /* 0x95 */ bool _95;
+    /* 0x95 */ u8 _95;
     /* 0x98 */ f32 _98;
 };
+
+#pragma push
+#pragma fp_contract off
+// NONMATCHING: non-fused Hermite arithmetic uses different floating-point registers and scheduling.
+template <typename T>
+inline T JMAHermiteInterpolation(T value, T start, T startValue, T startTangent, T end, T endValue, T endTangent) {
+    T distance = value - start;
+    T span = end - start;
+    T t = distance / span;
+    T square = t * t;
+    T twiceT = t + t;
+    T blend = square - t;
+    T difference = startValue - endValue;
+    T weight = twiceT * blend - square;
+    T tangent = startTangent * blend + startTangent;
+    T interpolated = weight * difference + startValue;
+    tangent = endTangent * blend + tangent;
+    tangent = t * startTangent - tangent;
+    return interpolated - distance * tangent;
+}
+#pragma pop

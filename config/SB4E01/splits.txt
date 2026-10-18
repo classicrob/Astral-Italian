@@ -4409,7 +4409,7 @@ Game/MapObj/ElectricRailFunction.cpp:
 	.text       start:0x8029C250 end:0x8029C460
 
 Game/MapObj/ElectricRailMoving.cpp:
-	.text       start:0x8029C460 end:0x8029E420
+	.text       start:0x8029C460 end:0x8029E440
 	.ctors      start:0x806443B8 end:0x806443BC
 	.data       start:0x806A02A8 end:0x806A03C8
 
@@ -4520,8 +4520,12 @@ Game/MapObj/GliderTree.cpp:
 	.ctors      start:0x80644408 end:0x8064440C
 
 Game/MapObj/Gorogoro.cpp:
-	.text       start:0x802AA760 end:0x802ABD80
-	.ctors      start:0x8064440C end:0x80644414
+	.text       start:0x802AA760 end:0x802AB170
+	.ctors      start:0x8064440C end:0x80644410
+
+Game/MapObj/GorogoroCylinderRock.cpp:
+	.text       start:0x802AB170 end:0x802ABD80
+	.ctors      start:0x80644410 end:0x80644414
 
 Game/MapObj/GoroRockLaneParts.cpp:
 	.text       start:0x802ABD80 end:0x802AC160
@@ -4953,8 +4957,12 @@ Game/MapObj/RepeatBlockHead.cpp:
 	.text       start:0x802EC610 end:0x802ECAD0
 
 Game/MapObj/RepeatBlock.cpp:
-	.text       start:0x802ECAD0 end:0x802F0C90
-	.ctors      start:0x80644550 end:0x80644558
+	.text       start:0x802ECAD0 end:0x802EE990
+	.ctors      start:0x80644550 end:0x80644554
+
+Game/MapObj/RepeatBlockGrid.cpp:
+	.text       start:0x802EE990 end:0x802F0C90
+	.ctors      start:0x80644554 end:0x80644558
 
 Game/MapObj/RepeatTimerSwitchingBlock.cpp:
 	.text       start:0x802F0C90 end:0x802F1700

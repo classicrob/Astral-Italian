@@ -6,16 +6,7 @@
 #include "Game/Util/JointController.hpp"
 #include "Game/Map/CollisionParts.hpp"
 
-namespace YoshiFunction {
-    void tryYoshiPull(YoshiLockOnTarget*);
-};
-
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-};
-
-// PLACEHOLDER(objects): unnamed target symbol fn_804222D0, declared extern "C" so the reloc name matches; resolve when fn_804222D0 gets its real name in symbols.txt
-extern "C" void fn_804222D0();
+#include "Game/Player/YoshiFunction.hpp"
 
 PullTargetAnim::PullTargetAnim(LiveActor* pHost) {
     mHost = pHost;
@@ -56,17 +47,20 @@ PullTarget::PullTarget(LiveActor* pHost) : PartsModel(pHost, "引っ張りター
     MR::addHitSensorMapObjSimple(this, "Body", 32, 1.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initFixedPosition("PullTargetPos");
     MR::initStarPointerTarget(this, 300.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    mLockOnTarget = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mLockOnTarget = MR::createYoshiLockOnTarget(this, (MtxPtr)nullptr, TVec3f(0.0f));
 }
 
-// NONMATCHING: target inlines the TPos3f psq copy (gekko_ps_copy12 stays out of line under auto_inline off)
+// Target inlines the matrix copy; the current shared helper stays out of line.
 bool PullTarget::isFacingPlayer() {
     TVec3f toPlayer;
     MR::calcVecToPlayer(&toPlayer, this);
     TPos3f mtx;
     mtx.set(getBaseMtx());
     TVec3f front;
-    front.set< f32 >(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
+    f32 z = mtx.mMtx[2][2];
+    f32 y = mtx.mMtx[1][2];
+    f32 x = mtx.mMtx[0][2];
+    front.set< f32 >(x, y, z);
     return toPlayer.dot(front) > 0.1f;
 }
 
@@ -141,12 +135,12 @@ void PullTargetBridge::exePull() {
     if (isPulled) {
         PullTarget* target = mPullTarget;
         target->mIsEnable = false;
-        fn_804222D0();
+        MR::fn_804222D0();
         setNerve(&NrvPullTargetBridge::PullTargetBridgeNrvFall::sInstance);
     }
 }
 
-// NONMATCHING: register allocation only (sum temp kept in r31 in the target)
+// Target inlines vector addition; the combined TU currently emits the shared operator call.
 void PullTargetBridge::control() {
     TVec3f posA;
     MR::copyJointPos(this, "PullTargetBridge", &posA);
@@ -176,7 +170,7 @@ bool PullTargetBridge::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* p
     return false;
 }
 
-// NONMATCHING: target inlines operator-= (ps_sub); ours calls __ami under auto_inline off
+// Target inlines vector subtraction; the combined TU currently emits the shared operator call.
 bool PullTargetBridge::tryPull() {
     TVec3f move(*MR::getPlayerPos());
     move -= mPlayerPos;
@@ -230,7 +224,7 @@ void PullTargetDrawer::init(const JMapInfoIter& rIter) {
     initEffectKeeper(0, nullptr, false);
     MR::connectToSceneMapObj(this);
     initNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvWait), 0);
-    updateClipping(mRotation);
+    updateClipping();
     initSound(4, "PullTargetDrawer", nullptr, TVec3f(0.0f));
     mPullTarget = new PullTarget(this);
     mJointCtrl = MR::createJointDelegatorWithNullChildFunc(this, &PullTargetDrawer::calcJointBridge, "Drawer");
@@ -262,12 +256,12 @@ void PullTargetDrawer::exePull() {
         MR::tryRumblePadStrong(this, 0);
         PullTarget* target = mPullTarget;
         target->mIsEnable = false;
-        fn_804222D0();
+        MR::fn_804222D0();
         setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvExtend));
         return;
     }
     if (!mPullTarget->isFacingPlayer()) {
-        fn_804222D0();
+        MR::fn_804222D0();
         setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvWait));
     }
 }
@@ -384,11 +378,14 @@ void PullTargetDrawer::calcAndSetBaseMtx() {
     mJointCtrl->registerCallBack();
 }
 
-void PullTargetDrawer::updateClipping(const TVec3f& rRotate) {
+void PullTargetDrawer::updateClipping() {
     TPos3f mtx;
-    MR::makeMtxTR(mtx, mPosition, rRotate);
+    MR::makeMtxTR(mtx, mPosition, mRotation);
     TVec3f front;
-    front.set< f32 >(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
+    f32 z = mtx.mMtx[2][2];
+    f32 y = mtx.mMtx[1][2];
+    f32 x = mtx.mMtx[0][2];
+    front.set< f32 >(x, y, z);
     mClippingCenter.set< f32 >(mPosition + front * mMaxLength * 0.5f);
     MR::setClippingTypeSphere(this, 0.5f * mMaxLength, &mClippingCenter);
 }
@@ -435,7 +432,8 @@ void PullTargetDrawer::updateCollisionValid() {
         index = -1;
     }
     if (index > mValidIndex) {
-        for (s32 i = 0; i < index - mValidIndex; i++) {
+        s32 n = index - mValidIndex;
+        for (s32 i = 0; i < n; i++) {
             MR::validateCollisionParts(mParts[++mValidIndex]);
         }
     } else if (index < mValidIndex) {
@@ -447,7 +445,7 @@ void PullTargetDrawer::updateCollisionValid() {
     }
 }
 
-// NONMATCHING: matrix copy/invert temp layout differs
+// Target inlines the matrix copy; the current shared helper also changes temporary layout.
 void PullTargetDrawer::pushPlayerFromBridge() {
     TPos3f jointMtx(MR::getJointMtx(this, "PullTargetPos"));
     TPos3f inv;

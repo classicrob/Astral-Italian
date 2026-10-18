@@ -74,7 +74,6 @@ TrickRabbit::TrickRabbit(const char* pName)
     mParabolicPath = new ParabolicPath();
 }
 
-// NONMATCHING: effect/shadow setup order differs (onForceDeleteEffectSyncClipping + shadow CSV) and TVec3f(f32) inline issue
 void TrickRabbit::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
@@ -89,10 +88,8 @@ void TrickRabbit::init(const JMapInfoIter& rIter) {
     initSensor();
     initBind();
     initEffectKeeper(0, 0, 0);
-    MR::onEmitEffectSyncClipping(this, "Light");
     MR::onForceDeleteEffectSyncClipping(this, "Light");
-    f32 f = mScale.x;
-    MR::initShadowVolumeSphere(this, f * 45.0f);
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
 
     mFootPrint = TrickRabbitUtil::createRabbitFootPrint(this);
 
@@ -106,7 +103,7 @@ void TrickRabbit::init(const JMapInfoIter& rIter) {
 
     MR::declarePowerStar(this);
     MR::addToAttributeGroupSearchTurtle(this);
-    MR::useStageSwitchWriteA(this, rIter);
+    MR::initUseStageSwitchWriteA(this, rIter);
 
     if (mTalkMessageCtrl == nullptr) {
         setNerve(GET_NERVE(TrickRabbit, TrickRabbitNrvWait));
@@ -279,7 +276,7 @@ bool TrickRabbit::requestCaught() {
 
 bool TrickRabbit::tryStartDemoRunnaway() {
     if (MR::tryStartDemoMarioPuppetable(this, "逃走")) {
-        MR::startEventBGM(MR::EventBgmID_Chase);
+        MR::startStageBGM("MBGM_EV_RABBIT", false);
         if (mMultiEventCamera != nullptr) {
             mMultiEventCamera->start(CameraTargetArg(this), 0);
         }

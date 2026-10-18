@@ -39,3 +39,7 @@ namespace MR {
 
 class JMapInfoIter;
 namespace MR { bool isExistSceneMessage(const char*, const JMapInfoIter&, bool); }
+
+namespace MR {
+    bool isExistSceneMessage(const char*);
+}

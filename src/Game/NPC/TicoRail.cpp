@@ -1,6 +1,9 @@
 #include "Game/NPC/TicoRail.hpp"
 #include "Game/Util.hpp"
-#include "Game/Demo/AstroDemoFunction.hpp"
+#include "Game/Util/DemoUtil.hpp"
+#include "Game/Util/MessageUtil.hpp"
+#include "Game/Util/TalkUtil.hpp"
+#include <cstdio>
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -48,13 +51,14 @@ TicoRail::TicoRail(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 1.0f),
 
 void TicoRail::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    MR::initActor(this, rIter, "Tico", false);
+    MR::initActor(this, rIter, "Tico", "TicoRail", false);
     MR::connectToSceneNpc(this);
     initHitSensor(1);
     MR::addHitSensorNpc(this, "body", 8, 50.0f, TVec3f(0.0f, 50.0f, 0.0f));
     MR::initLightCtrl(this);
     initEffectKeeper(0, nullptr, false);
-    MR::initShadowFromCSV(this, "Shadow");
+    initSound(4, "Tico", nullptr, TVec3f(0.0f));
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     initRailRider(rIter);
     MR::moveCoordAndTransToNearestRailPos(this);
     _8C.set(MR::getRailDirection(this));
@@ -64,8 +68,15 @@ void TicoRail::init(const JMapInfoIter& rIter) {
     s32 color = arg0;
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, color);
-    AstroDemoFunction::tryRegisterGrandStarReturnAndSimpleCast(this, rIter);
-    AstroDemoFunction::tryRegisterDemo(this, "バトラーグリーンドライバ説明", rIter);
+    s32 messageId = color;
+    MR::getJMapInfoArg4NoInit(rIter, &messageId);
+    char message[128];
+    snprintf(message, sizeof(message), "Tico_StarPiece%d", messageId);
+    if (MR::isExistSceneMessage(message)) {
+        mMsgCtrl = MR::createTalkCtrlDirect(this, rIter, message, TVec3f(0.0f, 120.0f, 0.0f), nullptr);
+        if (mMsgCtrl) MR::offRootNodeAutomatic(mMsgCtrl);
+    }
+    MR::registerDemoSimpleCastAll(this);
     s32 rand = MR::getRandom(0l, 2l);
 
     if (rand == 0) {
@@ -74,7 +85,7 @@ void TicoRail::init(const JMapInfoIter& rIter) {
         initNerve(GET_NERVE(TicoRail, TicoRailNrvMove));
     }
 
-    makeActorAppeared();
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void TicoRail::exeWait() {

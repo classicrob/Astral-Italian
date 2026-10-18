@@ -16,7 +16,7 @@ PenguinMaster::PenguinMaster(const char* pName) : NPCActor(pName) {
 void PenguinMaster::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("PenguinMaster");
     caps.setDefault();
-    caps.mMessageOffset = TVec3f(0.0f, 430.0f, 0.0f);
+    caps.mMessageOffset = TVec3f(0.0f, 400.0f, 0.0f);
     caps.mReactionNerve = GET_NERVE(PenguinMaster, PenguinMasterNrvReaction);
     initialize(rIter, caps, "PenguinMaster", nullptr, nullptr);
 

@@ -396,24 +396,10 @@ extern "C" f64 sin(f64);
 
 
 // NONMATCHING: target calls TPosition3::setTrans out of line; the shared TMatrix.hpp setTrans is inlined here. Float op scheduling also differs.
+// NONMATCHING: rotation matches; angle lifetime changes saved FPR allocation.
 void SuperDreamer::updatePlayerBaseMtx() const {
-    f32 cz = (f32)cos(lbl_80729B64.z);
-    f32 cy = (f32)cos(lbl_80729B64.y);
-    f32 cx = (f32)cos(lbl_80729B64.x);
-    f32 sz = (f32)sin(lbl_80729B64.z);
-    f32 sy = (f32)sin(lbl_80729B64.y);
-    f32 sx = (f32)sin(lbl_80729B64.x);
-
     TPos3f mtx;
-    mtx.mMtx[0][0] = cy * cz;
-    mtx.mMtx[0][1] = (sx * sy) * cz - cx * sz;
-    mtx.mMtx[0][2] = (cx * cz) * sy + sx * sz;
-    mtx.mMtx[1][0] = cy * sz;
-    mtx.mMtx[1][1] = cx * cz + (sx * sy) * sz;
-    mtx.mMtx[1][2] = (cx * sz) * sy - sx * cz;
-    mtx.mMtx[2][0] = -sy;
-    mtx.mMtx[2][1] = sx * cy;
-    mtx.mMtx[2][2] = cx * cy;
+    mtx.setRotate(lbl_80729B64.x, lbl_80729B64.y, lbl_80729B64.z);
     mtx.setTrans(lbl_80729B58);
 
     TMtx34f base;

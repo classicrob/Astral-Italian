@@ -9,20 +9,30 @@ public:
     JMapIdInfo() {
     }
 
+    // SMG2 has out-of-line copies of the copy ctor and operator= that a few TUs call (bl). Define
+    // JMAPIDINFO_NOINLINE_COPY / JMAPIDINFO_NOINLINE_ASSIGN before the includes of such a TU.
+#ifdef JMAPIDINFO_NOINLINE_COPY
+    JMapIdInfo(const JMapIdInfo& rInfo);
+#else
     JMapIdInfo(const JMapIdInfo& rInfo) __attribute__((forceinline)) {
         _0 = rInfo._0;
         mZoneID = rInfo.mZoneID;
     }
+#endif
 
     JMapIdInfo(s32, s32);
     JMapIdInfo(s32, const JMapInfoIter&);
 
     void initialize(s32, const JMapInfoIter&);
 
+#ifdef JMAPIDINFO_NOINLINE_ASSIGN
+    void operator=(const JMapIdInfo& rhs);
+#else
     void operator=(const JMapIdInfo& rhs) {
         _0 = rhs._0;
         mZoneID = rhs.mZoneID;
     }
+#endif
 
     bool operator==(const JMapIdInfo& rhs) const {
         return _0 == rhs._0 && mZoneID == rhs.mZoneID;

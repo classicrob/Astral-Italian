@@ -8,9 +8,7 @@ public:
     Color8() : mColor(-1) {
     }
 
-    Color8(GXColor color) {
-        set(color);
-    }
+    Color8(GXColor color);  // out-of-line in SMG2 (src/Game/Util/Color8.cpp)
 
     Color8(u8 r, u8 g, u8 b, u8 a) {
         set(r, g, b, a);

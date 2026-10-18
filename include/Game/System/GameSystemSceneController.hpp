@@ -23,11 +23,11 @@ public:
     void setStage(const char*);
     void setStartIdInfo(const JMapIdInfo&);
 
-    /* 0x00 */ char mScene[32];
-    /* 0x20 */ char mStage[32];
-    /* 0x40 */ s32 mScenarioNo;
-    /* 0x44 */ s32 mSelectedScenarioNo;
-    /* 0x48 */ JMapIdInfo* mStartIdInfo;
+    /* 0x00 */ char mScene[64];  // SMG2: 64 (SMG1 32)
+    /* 0x40 */ char mStage[64];
+    /* 0x80 */ s32 mScenarioNo;
+    /* 0x84 */ s32 mSelectedScenarioNo;
+    /* 0x88 */ JMapIdInfo* mStartIdInfo;
 };
 
 enum SceneInitializeState {

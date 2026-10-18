@@ -18,8 +18,8 @@
 #include <algorithm>
 
 DemoExecutor::DemoExecutor(const char* pName)
-    : DemoCastGroup(pName), mSheetName(), mTimeKeeper(), mSubPartKeeper(), mPlayerKeeper(), mCameraKeeper(), mActionKeeper(), mWipeKeeper(),
-      mSoundKeeper(), mSheetKeeper(), _40(), _44(), _48(), _4C(-1), _50(), mActor(), mTalkAnimCtrl(), mTalkMessageCtrl() {
+    : DemoCastGroup(pName), mSheetName(), _SMG2_20(), mTimeKeeper(), mSubPartKeeper(), mPlayerKeeper(), mCameraKeeper(), mActionKeeper(), mWipeKeeper(),
+      mSoundKeeper(), mSheetKeeper(), _40(), _44(), _48(), _4C(-1), _50(), mActor(), mTalkAnimCtrl(), mTalkMessageCtrl(), _SMG2_3CC(), _SMG2_3CD() {
 }
 
 void DemoExecutor::init(const JMapInfoIter& rIter) {

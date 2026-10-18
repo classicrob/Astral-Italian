@@ -1,3 +1,4 @@
+#define JMAPIDINFO_NOINLINE_ASSIGN
 #include "Game/System/GameSystemSceneController.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"

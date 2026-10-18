@@ -163,6 +163,7 @@ class NameObj;
 
 class SceneObjHolder {
 public:
+    SceneObjHolder();
     NameObj* create(int);
     NameObj* getObj(int) const;
     bool isExist(int) const;

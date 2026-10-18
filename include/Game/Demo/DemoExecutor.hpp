@@ -81,6 +81,7 @@ public:
     void end();
 
     /* 0x014 */ const char* mSheetName;
+    bool _SMG2_20;  // SMG2: new bool after mSheetName (offsets below are SMG1's)
     /* 0x018 */ DemoTimeKeeper* mTimeKeeper;
     /* 0x01C */ DemoSubPartKeeper* mSubPartKeeper;
     /* 0x020 */ DemoPlayerKeeper* mPlayerKeeper;
@@ -97,4 +98,6 @@ public:
     /* 0x054 */ MR::Vector< MR::FixedArray< LiveActor*, 192 > > mActor;
     /* 0x358 */ MR::Vector< MR::FixedArray< DemoTalkAnimCtrl*, 8 > > mTalkAnimCtrl;
     /* 0x37C */ MR::Vector< MR::FixedArray< DemoTalkMessageCtrl, 8 > > mTalkMessageCtrl;
+    bool _SMG2_3CC;  // SMG2
+    bool _SMG2_3CD;  // SMG2
 };

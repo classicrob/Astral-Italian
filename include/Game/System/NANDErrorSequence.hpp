@@ -36,7 +36,10 @@ public:
     bool isEnablePointer() const;
     bool isResultNoSave() const;
     bool isResultFileCorrupted() const;
-    void resetParam();
+    void resetParam() {
+        mSystemMessageId = nullptr;
+        mResult = 0;
+    }
     bool tryConfirm(const char*, bool*);
     bool tryProcessDoneKeyWait(const char*);
     bool tryCheckEnableToCreate();
@@ -44,9 +47,10 @@ public:
 
 private:
     /* 0x10 */ const char* mSystemMessageId;
-    /* 0x14 */ bool _14;
-    /* 0x15 */ bool _15;
-    /* 0x18 */ u32 mAnswer;
-    /* 0x1C */ u32 mResult;
-    /* 0x20 */ SysInfoWindow* mSysInfoWindow;
+    /* 0x14 */ u32 mResult;
+    /* 0x18 */ SysInfoWindow* mSysInfoWindow;
+    // SMG1 only (not in SMG2's layout; kept so the old code compiles)
+    bool _14;
+    bool _15;
+    u32 mAnswer;
 };

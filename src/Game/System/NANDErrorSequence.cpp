@@ -25,7 +25,7 @@ namespace {
 };  // namespace
 
 NANDErrorSequence::NANDErrorSequence(SaveDataHandleSequence* pHost, SysInfoWindow* pParam2, SysInfoWindow*)
-    : ActorStateBase("NANDError", pHost), mSystemMessageId(nullptr), _14(false), _15(false), mResult(0), mSysInfoWindow(pParam2) {
+    : ActorStateBase("NANDError", pHost), mSystemMessageId(nullptr), mResult(0), mSysInfoWindow(pParam2) {
     initNerve(GET_NERVE_ANON(NANDErrorSequenceIdle));
     kill();
     resetParam();
@@ -320,13 +320,6 @@ bool NANDErrorSequence::isResultFileCorrupted() const {
 void NANDErrorSequence::control() {
 }
 
-void NANDErrorSequence::resetParam() {
-    mSystemMessageId = nullptr;
-    _14 = false;
-    _15 = false;
-    mAnswer = 0;
-    mResult = 0;
-}
 
 bool NANDErrorSequence::tryConfirm(const char* pSystemMessageId, bool* pIsSelectedYes) {
     if (MR::isFirstStep(this)) {

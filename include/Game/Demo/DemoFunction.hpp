@@ -88,6 +88,7 @@ namespace DemoFunction {
 };  // namespace DemoFunction
 
 namespace DemoFunction {
+    bool isTalkWaitUserInputFunction(const char*);
     bool isDemoActionAnimRegistered(const LiveActor*);
     bool isDemoPlayerAnimRegistered();
     bool isStoryBookActionActive();

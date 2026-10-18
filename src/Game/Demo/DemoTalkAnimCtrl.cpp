@@ -2,6 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/Demo/DemoExecutor.hpp"
 #include "Game/Demo/DemoFunction.hpp"
+#include "Game/Demo/StoryBookDemo.hpp"
 #include "Game/Demo/DemoSubPartKeeper.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/System/NerveExecutor.hpp"
@@ -94,7 +95,7 @@ void DemoTalkAnimCtrl::updateStoryBook() {
     updateDemo();
     startAnim();
     MR::setAllAnimFrameAndStop(mActor, _18, _24);
-    if (MR::isStoryBookEndingDemoName(_C)) MR::fn_8000A320(mActor);
+    if (MR::isStoryBookEndingDemoName(_C)) MR::stopAllAnim(mActor);
     if (_40) {
         BckCtrlData data;
         data.mPlayFrame = 0;
@@ -118,7 +119,7 @@ void DemoTalkAnimCtrl::resume() {
 
 void DemoTalkAnimCtrl::startAnim() {
     MR::startAction(mActor, _18);
-    if (MR::isStoryBookEndingDemoName(_C)) MR::fn_8000A400(mActor);
+    if (MR::isStoryBookEndingDemoName(_C)) MR::resumeAllAnim(mActor);
 }
 
 void DemoTalkAnimCtrl::startCamera() {
@@ -193,10 +194,12 @@ namespace {
 
 
 
+// NONMATCHING: regalloc
 void DemoTalkAnimCtrl::createBckCtrlData(BckCtrlData* data, s32 totalSteps) const {
     s16 start = MR::max(_24 - 1, 0);
+    bool storyBook = DemoFunction::isStoryBookActionActive();
     u8 loop = 2;
-    if (DemoFunction::isStoryBookActionActive()) loop = 0;
+    if (storyBook) loop = 0;
     data->mLoopMode = loop;
     data->mStartFrame = start + 1;
     data->mRepeatFrame = start + 1;
@@ -222,7 +225,7 @@ bool DemoTalkAnimCtrl::updateDemoPart() {
     if (MR::isEqualString(_14, "")) first = MR::isDemoPartStep(name, 1);
     else first = MR::isDemoPartFirstStep(name);
     if (!first) return false;
-    _32 = DemoFunction::isTalkWaitUserInputFunction();
+    _32 = DemoFunction::isTalkWaitUserInputFunction(name);
     _14 = name;
     BckCtrlData data;
     s32 steps = MR::getDemoPartTotalStep(name);

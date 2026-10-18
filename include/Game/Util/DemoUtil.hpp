@@ -145,8 +145,3 @@ namespace MR {
 }
 
 namespace MR { bool isDemoSubPartLastStep(); }
-
-namespace MR {
-    bool isStoryBookEndingDemoName(const char*);
-    bool isStoryBookTextAppeared();
-}

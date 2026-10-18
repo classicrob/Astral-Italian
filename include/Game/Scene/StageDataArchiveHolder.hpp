@@ -13,6 +13,8 @@ public:
     StageDataArchive(JKRArchive*, const char*, const char*);   // SMG2 0x8045AE00
 
     void initJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir);   // SMG2 0x8045AE50
+    bool isNameListed(const char* pName) const;   // fn_8045AFA0: true if NameList0 is empty or contains pName
+    static JMapInfo* createUseResourceJMapInfo(const char* pName);   // fn_8045AD60
 
     /* 0x00 */ JKRArchive* mArchive;
     /* 0x04 */ MR::Vector< MR::FixedArray< const char*, 16 > > mNameList0;

@@ -136,6 +136,7 @@ namespace MR {
     bool getRestartPosData(TVec3f*, TVec3f*, const JMapInfoIter&);
     const char* getChildObjJapaneseName(const JMapInfoIter&, int);
     void getZoneStageArchiveResource(void**, s32*, const char*, s32);
+    bool tryGetUseResourceArchiveResource(void**, s32*, const char*);   // fn_80057950 (2nd arg unused)
     s32 getZoneIdFromZoneName(const char*);
     const char* getJapaneseObjectNameOrNull(const char*);
 };  // namespace MR

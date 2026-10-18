@@ -2,8 +2,12 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
+#include "Game/LiveActor/PartsModel.hpp"
 #include "Game/Map/OceanHomeMapCtrl.hpp"
+#include "Game/Effect/PeachCastleFireParticleCallBack.hpp"
+#include "Game/LiveActor/MaterialCtrl.hpp"
 #include "Game/Map/PlanetMapFunction.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -153,7 +157,8 @@ s32 PlanetMap::getLowMovementType() const {
 }
 
 void PlanetMap::initModel(const char* pModelName, const JMapInfoIter& rIter) {
-    initModelManagerWithAnm(pModelName, nullptr, false);
+    MR::initActor(this, rIter, pModelName, useProjmapMtx());
+    initProjmapMtx();
     s32 lowMovementType = getLowMovementType();
     f32 farClippingDistance = getFarClipDistance();
     mLODCtrl = MR::createLodCtrlPlanet(this, rIter, farClippingDistance, lowMovementType);
@@ -163,25 +168,21 @@ void PlanetMap::initModel(const char* pModelName, const JMapInfoIter& rIter) {
 }
 
 void PlanetMap::initBloomModel(const char* pModelName) {
-    if (!MR::isExistSubModel(pModelName, "Bloom")) {
-        mBloomModel = nullptr;
-        return;
+    mBloomModel = MR::createBloomModel(this, getBaseMtx());
+
+    if (mBloomModel != nullptr) {
+        MR::setScale(mBloomModel, mScale);
+        f32 radiusBound = 500.0f;
+        MR::calcModelBoundingRadius(&radiusBound, this);
+        MR::setClippingFarMax(mBloomModel);
+        MR::setClippingTypeSphere(mBloomModel, radiusBound);
     }
-
-    char str[256];
-    snprintf(str, 256, "%sBloom", mModelName);
-    const char* name = mName;
-    mBloomModel = MR::createModelObjBloomModel(name, str, getBaseMtx(), true);
-    mBloomModel->mScale.set(mScale);
-
-    f32 radiusBound = 500.0f;
-    MR::calcModelBoundingRadius(&radiusBound, this);
-    MR::setClippingFarMax(mBloomModel);
-    MR::setClippingTypeSphere(mBloomModel, radiusBound);
 }
 
 void PlanetMap::control() {
-    mLODCtrl->update();
+    if (!MR::isValidSwitchB(this) || !MR::isOnSwitchB(this)) {
+        mLODCtrl->update();
+    }
 }
 
 void PlanetMap::startClipped() {
@@ -202,23 +203,7 @@ bool PlanetMap::tryDeleteMyEffect() {
     return PlanetMapFunction::tryForceDeleteEffects(this, mModelName, mEffectNum);
 }
 
-FurPlanetMap::FurPlanetMap(const char* pName) : PlanetMap(pName, nullptr) {
-}
-
 PlanetMap::~PlanetMap() {
-}
-
-void FurPlanetMap::init(const JMapInfoIter& rIter) {
-    PlanetMap::init(rIter);
-    MR::initFurPlanet(this);
-}
-
-RailPlanetMap::RailPlanetMap(const char* pName) : PlanetMap(pName, nullptr) {
-}
-
-
-s32 PlanetMapAnimLow::getLowMovementType() const {
-    return 0x1C;
 }
 
 FurPlanetMap::~FurPlanetMap() {
@@ -226,6 +211,9 @@ FurPlanetMap::~FurPlanetMap() {
 RailPlanetMap::~RailPlanetMap() {
 }
 PlanetMapAnimLow::~PlanetMapAnimLow() {
+}
+
+RailPlanetMap::RailPlanetMap(const char* pName) : PlanetMap(pName, nullptr) {
 }
 
 f32 PlanetMap::getFarClipDistance() const {
@@ -238,4 +226,130 @@ PlanetMapFarClippable::PlanetMapFarClippable(const char* pName) : PlanetMap(pNam
 void PlanetMapFarClippable::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg3NoInit(rIter, &mFarClipDistance);
     PlanetMap::init(rIter);
+}
+
+UFOShapePassThroughPlanet::UFOShapePassThroughPlanet(const char* pName) : PlanetMap(pName) {
+}
+
+void UFOShapePassThroughPlanet::initDemoActionAppear(const JMapInfoIter&) {
+    MR::registerDemoSimpleCastAll(this);
+}
+
+FurPlanetMap::FurPlanetMap(const char* pName) : PlanetMap(pName, nullptr) {
+}
+
+void FurPlanetMap::init(const JMapInfoIter& rIter) {
+    PlanetMap::init(rIter);
+    MR::initFurPlanet(this);
+}
+
+s32 PlanetMapAnimLow::getLowMovementType() const {
+    return 0x1C;
+}
+
+PlanetMapStrongLight::PlanetMapStrongLight(const char* pName) : PlanetMap(pName) {
+}
+
+void PlanetMapStrongLight::connectToScene() {
+    MR::connectToScene(this, 0x1C, 1, 0xB, -1);
+}
+
+PlanetMapProjmap::PlanetMapProjmap(const char* pName) : PlanetMap(pName), mProjmapEffectMtxSetter(nullptr) {
+}
+
+void PlanetMapProjmap::initProjmapMtx() {
+    mProjmapEffectMtxSetter = MR::initDLMakerProjmapEffectMtxSetter(this);
+    MR::newDifferedDLBuffer(this);
+    mProjmapEffectMtxSetter->updateMtxUseBaseMtx();
+}
+
+void PlanetMapPress::init(const JMapInfoIter& rIter) {
+    PlanetMap::init(rIter);
+    MR::setBodySensorType(this, 0x71);
+}
+
+PeachCastleNightPlanet::PeachCastleNightPlanet(const char* pName) : PlanetMap(pName), mFireCallBack(nullptr) {
+}
+
+void PeachCastleNightPlanet::initMyEffect() {
+    PlanetMapFunction::verifyEffects(this, &mEffectNum, mModelName, 16);
+    mFireCallBack = new PeachCastleFireParticleCallBack(this);
+}
+
+bool PeachCastleNightPlanet::tryEmitMyEffect() {
+    s32 num = mEffectNum;
+    const char* pModelName = mModelName;
+
+    if (num <= 0) {
+        return false;
+    }
+
+    for (s32 i = 0; i < num; i++) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        MR::emitEffectWithParticleCallBack(this, buf, mFireCallBack);
+    }
+
+    return true;
+}
+
+void PlanetMapFunction::verifyEffects(LiveActor* pActor, s32* pNum, const char* pModelName, s32 maxNum) {
+    *pNum = 0;
+
+    for (s32 i = 0; i < maxNum; i++) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+
+        if (!MR::isRegisteredEffect(pActor, buf)) {
+            break;
+        }
+
+        (*pNum)++;
+    }
+
+    if (*pNum > 0) {
+        MR::registerDemoSimpleCastAll(pActor);
+    }
+}
+
+bool PlanetMapFunction::tryEmitEffects(LiveActor* pActor, const char* pModelName, s32 num) {
+    if (num <= 0) {
+        return false;
+    }
+
+    for (s32 i = 0; i < num; i++) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        MR::emitEffect(pActor, buf);
+    }
+
+    return true;
+}
+
+bool PlanetMapFunction::tryDeleteEffects(LiveActor* pActor, const char* pModelName, s32 num) {
+    if (num <= 0) {
+        return false;
+    }
+
+    for (s32 i = 0; i < num; i++) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        MR::tryDeleteEffect(pActor, buf);
+    }
+
+    return true;
+}
+
+bool PlanetMapFunction::tryForceDeleteEffects(LiveActor* pActor, const char* pModelName, s32 num) {
+    if (num <= 0) {
+        return false;
+    }
+
+    for (s32 i = 0; i < num; i++) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        MR::tryForceDeleteEffect(pActor, buf);
+    }
+
+    return true;
 }

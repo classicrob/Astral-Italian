@@ -206,7 +206,7 @@ namespace MR {
     void startSpaceWipeForward();
     void startSpaceWipeBackward();
     void requestEndModelWipe();
-    bool tryEndModelWipe();
+    void tryEndModelWipe();
     void forceHideModelWipe();
     bool isHideOrEndModelWipe();
     bool isHiddenModelWipe();

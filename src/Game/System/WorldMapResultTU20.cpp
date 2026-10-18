@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 #pragma auto_inline off
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
@@ -50,6 +51,7 @@ WorldMapResultStateLeaveHome::WorldMapResultStateLeaveHome(WorldMapOwner* pHost)
     mPos.z = 0.0f;
 }
 
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateLeaveHome::init() {
     initNerve(GET_NERVE(WorldMapResultStateLeaveHome, WorldMapResultStateLeaveHomeStart), 0);
     mHost->declareCamera("離脱開始（ホーム）");
@@ -104,9 +106,12 @@ void WorldMapResultStateLeaveHome::kill() {
 
 void WorldMapResultStateLeaveHome::exeStart() {
     if (MR::isFirstStep(this)) {
-        mPos = *mHost->getRocketPosition();
+        const TVec3f* pos = mHost->getRocketPosition();
+        mPos.x = pos->x;
+        mPos.y = pos->y;
+        mPos.z = pos->z;
     }
-    if (MR::tryEndModelWipe()) {
+    if (reinterpret_cast<bool (*)()>(MR::tryEndModelWipe)()) {
         LiveActor* pActor = mHost->getRocket();
         MR::tryForceDeleteEffectAll(pActor);
         s32 type = getHomeLeaveType(mHost);
@@ -148,6 +153,7 @@ void WorldMapResultStateLeaveHome::exeStart() {
     }
 }
 
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateLeaveHome::calcCenter() {
     WorldMapResultBox box;
     box.extendByWorld(mHost->getWorld());
@@ -161,9 +167,12 @@ void WorldMapResultStateLeaveHome::moveCamera(s32 step) {
     MR::setPosition(mHost->getCamera()->mCameraTarget, pos);
 }
 
+#pragma dont_inline on
 void WorldMapResultStateLeaveHome::playEnterSound() {
     MR::startActionSound(mHost->getCamera()->mRocket, "EnterWorld", -1, -1, -1);
 }
+
+#pragma dont_inline reset
 
 void WorldMapResultStateLeaveHome::exeMove() {
     mHost->getCamera();
@@ -179,6 +188,7 @@ void WorldMapResultStateLeaveHome::exeMove() {
     }
 }
 
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateLeaveHome::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -200,6 +210,7 @@ void WorldMapResultStateLeaveHome::exeZoomIn() {
     }
 }
 
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateLeaveHome::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -221,6 +232,7 @@ void WorldMapResultStateLeaveHome::exeZoomOut() {
     }
 }
 
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateLeaveHome::exeZoomOutSub() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
@@ -265,7 +277,8 @@ void WorldMapResultStateLeaveHome::exeFovOut() {
     if (MR::isFirstStep(this)) {
         mFovy = MR::getFovy();
     }
-    f32 fovy = MR::getEaseOutValue((f32)getNerveStep() / (f32)(s32)30, 179.0f, mFovy, 1.0f);
+    s32 duration = 30;
+    f32 fovy = MR::getEaseOutValue((f32)getNerveStep() / (f32)duration, 179.0f, mFovy, 1.0f);
     MR::setFovy(fovy);
     if (MR::isGreaterEqualStep(this, 0x1E)) {
         kill();
@@ -289,15 +302,40 @@ WorldMapResultStateLeaveHome::~WorldMapResultStateLeaveHome() {
 }
 
 namespace NrvWorldMapResultStateLeaveHome {
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeMessageEnd, WorldMapResultStateLeaveHome, MessageEnd);
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeFovOut, WorldMapResultStateLeaveHome, FovOut);
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeMessage, WorldMapResultStateLeaveHome, Message);
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeZoomOutSub, WorldMapResultStateLeaveHome, ZoomOutSub);
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeZoomOut, WorldMapResultStateLeaveHome, ZoomOut);
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeZoomIn, WorldMapResultStateLeaveHome, ZoomIn);
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeMove, WorldMapResultStateLeaveHome, Move);
-    WMR_NERVE_DEF(WorldMapResultStateLeaveHomeStart, WorldMapResultStateLeaveHome, Start);
+    void WorldMapResultStateLeaveHomeMessageEnd::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeMessageEnd();
+    }
+    void WorldMapResultStateLeaveHomeFovOut::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeFovOut();
+    }
+    void WorldMapResultStateLeaveHomeMessage::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeMessage();
+    }
+    void WorldMapResultStateLeaveHomeZoomOutSub::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeZoomOutSub();
+    }
+    void WorldMapResultStateLeaveHomeZoomOut::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeZoomOut();
+    }
+    void WorldMapResultStateLeaveHomeZoomIn::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeZoomIn();
+    }
+    void WorldMapResultStateLeaveHomeMove::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeMove();
+    }
+    void WorldMapResultStateLeaveHomeStart::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateLeaveHome*>(spine->mExecutor)->exeStart();
+    }
+    WorldMapResultStateLeaveHomeStart WorldMapResultStateLeaveHomeStart::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateLeaveHomeMove WorldMapResultStateLeaveHomeMove::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateLeaveHomeZoomIn WorldMapResultStateLeaveHomeZoomIn::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateLeaveHomeZoomOut WorldMapResultStateLeaveHomeZoomOut::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateLeaveHomeZoomOutSub WorldMapResultStateLeaveHomeZoomOutSub::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateLeaveHomeMessage WorldMapResultStateLeaveHomeMessage::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateLeaveHomeFovOut WorldMapResultStateLeaveHomeFovOut::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateLeaveHomeMessageEnd WorldMapResultStateLeaveHomeMessageEnd::sInstance ATTRIBUTE_WEAK;
 };  
+// NONMATCHING: regalloc (static initializer base-load scheduling).
 TVec3f sCameraTable[4] = {
     TVec3f(-16000.0f, 0.0f, 0.0f),
     TVec3f(-9000.0f, 0.0f, 0.0f),

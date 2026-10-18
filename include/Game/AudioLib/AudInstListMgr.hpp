@@ -27,7 +27,9 @@ struct AudInstEntry {
 class AudInstListMgr {
 public:
     AudInstListMgr(JAUSectionHeap*, JKRArchive*);  // fn_80087490
+    static void requestInstrumentRefresh();
     void loadInstList();                           // fn_80087560
+    void requestStageUseInstList(const char*);     // fn_80087740; PLACEHOLDER(core) name
 
     /* 0x0000 */ JAUSectionHeap* mSectionHeap;
     /* 0x0004 */ JKRArchive* mArchive;

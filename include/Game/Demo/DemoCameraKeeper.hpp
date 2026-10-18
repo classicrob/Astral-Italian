@@ -32,6 +32,7 @@ public:
     void start();
     void update();
     void end();
+    void endForce();
     void initActorCamera(DemoCameraInfo*, const JMapInfoIter&);
     void executeType(const DemoCameraInfo*);
     void executeFirst(const DemoCameraInfo*);

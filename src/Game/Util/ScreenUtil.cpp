@@ -6,6 +6,13 @@
 #include "Game/Screen/BloomEffect.hpp"
 #include "Game/Screen/BloomEffectSimple.hpp"
 #include "Game/Screen/CaptureScreenDirector.hpp"
+#include "Game/Screen/CounterLayoutController.hpp"
+#include "Game/Screen/CoinCounter.hpp"
+#include "Game/Screen/DestroyCounter.hpp"
+#include "Game/Screen/InformationMessage.hpp"
+#include "Game/Screen/YesNoLayout.hpp"
+#include "Game/Scene/ModelWipeScene.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Screen/CenterScreenBlur.hpp"
 #include "Game/Screen/CinemaFrame.hpp"
 #include "Game/Screen/CounterLayoutController.hpp"
@@ -41,6 +48,8 @@ namespace {
     char sWipeWhiteFade[] = "白フェードワイプ";
     char sWipeGameOver[] = "ゲームオーバー";
     char sWipeKoopa[] = "クッパ";
+    char sWipeMario[] = "マリオワイプ";
+    char sSoundFiveUp[] = "SE_SY_5UP";
     char sSoundOneUp[] = "SE_SY_1UP";
 
     CaptureScreenDirector* getCaptureScreenDirector() NO_INLINE {
@@ -51,13 +60,7 @@ namespace {
         return SingletonHolder< GameSystem >::get()->mSceneController->mPlayTimerScene;
     }
 
-    void appearInformationMessage(bool hasButtonLayout, bool isCenter) {
-        if (isCenter) {
-            MR::getGameSceneLayoutHolder()->mInformationMessage->setCenter(true);
-        } else {
-            MR::getGameSceneLayoutHolder()->mInformationMessage->setCenter(false);
-        }
-
+    void appearInformationMessage(bool hasButtonLayout) NO_INLINE {
         if (hasButtonLayout) {
             MR::getGameSceneLayoutHolder()->mInformationMessage->setAButtonPos();
         } else {
@@ -71,6 +74,15 @@ namespace {
 
     StarPieceCounter* getStarPieceCounter() NO_INLINE {
         return MR::getGameSceneLayoutHolder()->mCounterLayoutCtrl->mStarPieceCounter;
+    }
+
+    CoinCounter* getCoinCounter() NO_INLINE {
+        return MR::getGameSceneLayoutHolder()->mCounterLayoutCtrl->mCoinCounter;
+    }
+
+    ModelWipeScene* getModelWipeScene() NO_INLINE {
+        // PLACEHOLDER(core): GameSystemSceneController header types 0x13C as ScenarioSelectScene, but the ctor asm stores a ModelWipeScene there
+        return reinterpret_cast< ModelWipeScene* >(SingletonHolder< GameSystem >::get()->mSceneController->mScenarioSelectScene);
     }
 
     SystemWipeHolder* getSystemWipeHolder() {
@@ -98,11 +110,14 @@ namespace MR {
         return isScreen16Per9() ? 812 : 608;  // SMG2 16:9 width (0x32C); SMG1 used 832
     }
 
+// NONMATCHING: regalloc (same calls and order; GPR/FPR assignment differs)
     s32 getSafetyFrameWidth() {
+        s32 screenWidth = getScreenWidth();
+        f32 screenWidthF = static_cast< f32 >(screenWidth);
+        f32 viWidthF = static_cast< f32 >(static_cast< s32 >(getViWidth()));
         s32 viWidthMax = static_cast< u16 >(RenderModeObj::getViWidthMax());
         f32 safetyFrameWidthRatio = viWidthMax * getSafetyVIScreenWidthRatio();
-        s32 screenWidth = getScreenWidth();
-        f32 viWidthRatio = static_cast< f32 >(screenWidth) / static_cast< s32 >(getViWidth());
+        f32 viWidthRatio = screenWidthF / viWidthF;
 
         return safetyFrameWidthRatio * viWidthRatio + 0.5f;
     }
@@ -114,6 +129,16 @@ namespace MR {
     s32 getSafetyFrameRight() {
         return (getScreenWidth() + getSafetyFrameWidth()) / 2;
     }
+
+    u32 getViWidth() {
+        return SingletonHolder< GameSystem >::get()->mObjHolder->getRenderModeObj()->viWidth;
+    }
+
+#pragma dont_inline on
+    f32 getSafetyVIScreenWidthRatio() {
+        return isScreen16Per9() ? 0.87f : 0.844f;
+    }
+#pragma dont_inline reset
 
     void convertFrameBufferPosToScreenPos(TVec2f* pScreenPos, const TVec2f& rFrameBufferPos) {
         f32 posRatio = rFrameBufferPos.x / getFrameBufferWidth();
@@ -137,6 +162,11 @@ namespace MR {
 
     void captureScreenIfAllow(const char* pParam1) {
         ::getCaptureScreenDirector()->captureIfAllow(pParam1);
+    }
+
+// NONMATCHING: target inlines a 0x14 pointer load from CaptureScreenDirector; header layout puts the texture pointer at 0x1C and getResTIMG is out of line
+    bool isExistCaptureScreenTexture() {
+        return ::getCaptureScreenDirector()->getResTIMG() != nullptr;
     }
 
     const ResTIMG* getScreenResTIMG() {
@@ -186,9 +216,27 @@ namespace MR {
         return SceneWipeHolderFunction::getSceneWipeHolder()->isOpen();
     }
 
+    void openSystemWipeCircle(s32 frame) {
+        ::getSystemWipeHolder()->forceClose(::sWipeCircle);
+        ::getSystemWipeHolder()->wipe(nullptr, frame);
+    }
+
+    void openSystemWipeCircleOnPlayer(s32 frame) {  // PLACEHOLDER(core): name guessed
+        openSystemWipeCircle(frame);
+        ::getSystemWipeHolder()->setWipeRingCenterOnPlayer();
+    }
+
     void closeSystemWipeCircle(s32 frame) {
         ::getSystemWipeHolder()->forceOpen(::sWipeCircle);
         ::getSystemWipeHolder()->wipe(nullptr, frame);
+    }
+
+    void forceOpenSystemWipeCircle() {
+        ::getSystemWipeHolder()->forceOpen(::sWipeCircle);
+    }
+
+    void forceCloseSystemWipeCircle() {
+        ::getSystemWipeHolder()->forceClose(::sWipeCircle);
     }
 
     void openSystemWipeFade(s32 frame) {
@@ -205,6 +253,10 @@ namespace MR {
         ::getSystemWipeHolder()->forceOpen(::sWipeFade);
     }
 
+    void forceCloseSystemWipeFade() {
+        ::getSystemWipeHolder()->forceClose(::sWipeFade);
+    }
+
     void openSystemWipeWhiteFade(s32 frame) {
         ::getSystemWipeHolder()->forceClose(::sWipeWhiteFade);
         ::getSystemWipeHolder()->wipe(nullptr, frame);
@@ -215,16 +267,47 @@ namespace MR {
         ::getSystemWipeHolder()->wipe(nullptr, frame);
     }
 
+    void forceOpenSystemWipeWhiteFade(s32) {
+        ::getSystemWipeHolder()->forceOpen(::sWipeWhiteFade);
+    }
+
     void forceCloseSystemWipeWhiteFade() {
         ::getSystemWipeHolder()->forceClose(::sWipeWhiteFade);
+    }
+
+    void openSystemWipeMario(s32 frame) {
+        ::getSystemWipeHolder()->forceClose(::sWipeMario);
+        ::getSystemWipeHolder()->wipe(nullptr, frame);
+    }
+
+    void closeSystemWipeMario(s32 frame) {
+        ::getSystemWipeHolder()->forceOpen(::sWipeMario);
+        ::getSystemWipeHolder()->wipe(nullptr, frame);
+    }
+
+    void forceOpenSystemWipeMario() {
+        ::getSystemWipeHolder()->forceOpen(::sWipeMario);
     }
 
     bool isSystemWipeActive() {
         return ::getSystemWipeHolder()->isWipeIn() || ::getSystemWipeHolder()->isWipeOut();
     }
 
+    bool isSystemWipeBlank() {  // PLACEHOLDER(core): name guessed
+        return ::getSystemWipeHolder()->isClose();
+    }
+
+    bool isSystemWipeOpen() {  // PLACEHOLDER(core): name guessed
+        return ::getSystemWipeHolder()->isOpen();
+    }
+
     void closeSystemWipeCircleWithCaptureScreen(s32 frame) {
         closeSystemWipeCircle(frame);
+        ::getSystemWipeHolder()->startGameScreenCapture();
+    }
+
+    void startSystemWipeCircleWithCaptureScreen(s32 frame) {
+        closeSystemWipeFade(frame);
         ::getSystemWipeHolder()->startGameScreenCapture();
     }
 
@@ -235,6 +318,50 @@ namespace MR {
 
     void setWipeCircleCenterPos(const TVec3f& rCenterPos) {
         ::getSystemWipeHolder()->setWipeRingCenter(rCenterPos);
+    }
+
+    void startCloudWipeForward() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->startCloudWipeForward();
+    }
+
+    void startCloudWipeBackward() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->startCloudWipeBackward();
+    }
+
+    void startGalaxyWipeForward() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->startGalaxyWipeForward();
+    }
+
+    void startGalaxyWipeBackward() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->startGalaxyWipeBackward();
+    }
+
+    void startSpaceWipeForward() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->startSpaceWipeForward();
+    }
+
+    void startSpaceWipeBackward() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->startSpaceWipeBackward();
+    }
+
+    void requestEndModelWipe() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->requestEnd();
+    }
+
+    void tryEndModelWipe() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->tryEnd();
+    }
+
+    void forceHideModelWipe() {  // PLACEHOLDER(core): MR name guessed
+        getModelWipeScene()->forceHide();
+    }
+
+    bool isHideOrEndModelWipe() {  // PLACEHOLDER(core): MR name guessed
+        return getModelWipeScene()->isHideOrEnd();
+    }
+
+    bool isHiddenModelWipe() {  // PLACEHOLDER(core): MR name guessed
+        return getModelWipeScene()->isHidden();
     }
 
     void requestMovementOnImageEffect() {
@@ -326,6 +453,18 @@ namespace MR {
         getImageEffectDirector()->setDepthOfFieldIntensity(intensity);
     }
 
+    void setDepthOfFieldBlurDistance(s32 nearDistance, s32 farDistance) {
+        getImageEffectDirector()->setDepthOfFieldBlurDistance(nearDistance, farDistance);
+    }
+
+    void createPostFog() {
+        createSceneObj(SceneObj_PostFog);
+    }
+
+    void createPostOutline() {
+        createSceneObj(SceneObj_PostOutline);
+    }
+
     void createCenterScreenBlur() {
         createSceneObj(SceneObj_CenterScreenBlur);
     }
@@ -337,6 +476,22 @@ namespace MR {
 
 
 
+
+    void killCenterScreenBlur() {
+        LiveActor* pBlur = static_cast< LiveActor* >(MR::getSceneObjHolder()->getObj(SceneObj_CenterScreenBlur));
+        if (!MR::isDead(pBlur)) {
+            pBlur->kill();
+        }
+    }
+
+    void requestOneUpBoard(s32 num) {
+        if (num >= 5) {
+            startSystemSE(sSoundFiveUp, -1, -1);
+        } else {
+            startSystemSE(sSoundOneUp, -1, -1);
+        }
+        getGameSceneLayoutHolder()->requestOneUp(num);
+    }
 
     void requestPowerUpHPMeter() {
         getGameSceneLayoutHolder()->requestPowerUpHPMeter();
@@ -366,9 +521,16 @@ namespace MR {
         return getGameSceneLayoutHolder()->mIsActiveDefaultGameLayout;
     }
 
+// NONMATCHING: target never sets the bool argument register (r4) before forceAppear(bool); the C form here passes false
     void forceAppearDefaultGameLayout() {
         getGameSceneLayoutHolder()->activateDefaultGameLayout();
         getGameSceneLayoutHolder()->mCounterLayoutCtrl->forceAppear(false);
+    }
+
+    void hideWorldMapInfoLayout() {
+        if (isExistSceneObj(SceneObj_Unk33)) {
+            killWorldMapLayoutCounters(getSceneObjHolder()->getObj(SceneObj_Unk33));
+        }
     }
 
     void pauseOffLensFlare() {
@@ -408,19 +570,28 @@ namespace MR {
         return ::getCinemaFrame()->isStop();
     }
 
-    void appearInformationMessage(const char* pMessageId, bool hasButtonLayout) {
+    void appearInformationMessageUp(const char* pMessageId, bool hasButtonLayout) {
         getGameSceneLayoutHolder()->mInformationMessage->setMessage(pMessageId);
-        ::appearInformationMessage(hasButtonLayout, false);
+        getGameSceneLayoutHolder()->mInformationMessage->setWindowType(0);
+        ::appearInformationMessage(hasButtonLayout);
     }
 
     void appearInformationMessageCenter(const char* pMessageId, bool hasButtonLayout) {
         getGameSceneLayoutHolder()->mInformationMessage->setMessage(pMessageId);
-        ::appearInformationMessage(hasButtonLayout, true);
+        getGameSceneLayoutHolder()->mInformationMessage->setWindowType(1);
+        ::appearInformationMessage(hasButtonLayout);
+    }
+
+    void appearInformationMessageDown(const char* pMessageId, bool hasButtonLayout) {
+        getGameSceneLayoutHolder()->mInformationMessage->setMessage(pMessageId);
+        getGameSceneLayoutHolder()->mInformationMessage->setWindowType(2);
+        ::appearInformationMessage(hasButtonLayout);
     }
 
     void appearInformationMessage(const wchar_t* pMessage, bool hasButtonLayout) {
         getGameSceneLayoutHolder()->mInformationMessage->setMessage(pMessage);
-        ::appearInformationMessage(hasButtonLayout, false);
+        getGameSceneLayoutHolder()->mInformationMessage->setWindowType(0);
+        ::appearInformationMessage(hasButtonLayout);
     }
 
     void setInformationMessageReplaceString(const wchar_t* pMessage, s32 param2) {
@@ -431,10 +602,23 @@ namespace MR {
         getGameSceneLayoutHolder()->mInformationMessage->disappear();
     }
 
+    void disableCloseInformationMessage() {
+        getGameSceneLayoutHolder()->mInformationMessage->setAButtonPosFlag(false);
+    }
+
     bool isDeadInformationMessage() {
         return isDead(getGameSceneLayoutHolder()->mInformationMessage);
     }
 
+
+    void appearYesNoSelector(const char* pMessage1, const char* pMessage2) {
+        getGameSceneLayoutHolder()->mYesNoLayout->appear();
+        getGameSceneLayoutHolder()->mYesNoLayout->setSelectMessage(pMessage1, pMessage2);
+    }
+
+    bool isDeadYesNoLayout() {
+        return isDead(getGameSceneLayoutHolder()->mYesNoLayout);
+    }
 
     bool isYesNoSelected() {
         return getGameSceneLayoutHolder()->mYesNoLayout->mController->isSelected();
@@ -473,12 +657,53 @@ namespace MR {
         ::getStarPieceCounter()->disappear(true);
     }
 
+    void forceSyncCoinCounter() {
+        getCoinCounter()->forceSync();
+    }
+
+    void forceAppearCoinCounterForTicoFat() {
+        getCoinCounter()->forceAppear(true);
+    }
+
+    void disappearCoinCounterForTicoFat() {
+        getCoinCounter()->disappear(true);
+    }
+
     void createPurpleCoinCounter() {
         getGameSceneLayoutHolder()->createPurpleCoinCounter();
     }
 
     void validatePurpleCoinCounter() {
         getGameSceneLayoutHolder()->getPurpleCoinCounter()->validate();
+    }
+
+    void createDestroyCounter(s32 maximum) {
+        getGameSceneLayoutHolder()->createDestroyCounter(maximum);
+    }
+
+    void activateDestroyCounter() {
+        getGameSceneLayoutHolder()->getDestroyCounter()->activate();
+    }
+
+    void setDestroyCounterCount(s32 count) {  // PLACEHOLDER(core): name guessed
+        getGameSceneLayoutHolder()->getDestroyCounter()->mCount = count;
+    }
+
+    void appearDestroyCounter() {
+        getGameSceneLayoutHolder()->appearDestroyCounter();
+    }
+
+    void killDestroyCounter() {
+        getGameSceneLayoutHolder()->killDestroyCounter();
+    }
+
+    void killScoreAttackResults() {
+        hideScoreAttackLayouts();
+        killAllScoreResults();
+    }
+
+    void showScoreAttackResults() {  // PLACEHOLDER(core): name guessed
+        showScoreAttackLayouts();
     }
 
     void requestCounterLayoutAppearanceForTicoEat(bool param1) {

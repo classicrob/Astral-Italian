@@ -1,3 +1,5 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
@@ -18,49 +20,14 @@
 #include "Game/System/WorldMapResultStateGrandGalaxyEnd.hpp"
 #include "Game/System/WorldMapResultStateGreenStarDemo.hpp"
 
-#include "Game/AudioLib/AudWrap.hpp"
+#include "Game/AudioLib/AudInstListMgr.hpp"
 
 static f32 sCameraAngle = 37.86f;
+extern const f32 sCameraWidthScale;
+extern const f32 sCameraScreenWidth;
+extern const f32 sRouteTailRate;
 
-namespace {
-    NO_INLINE TVec3f vecAdd(const TVec3f& rA, const TVec3f& rB) {
-        return rA + rB;
-    }
-
-    NO_INLINE void vecCopy(TVec3f* pDst, const TVec3f& rSrc) {
-        pDst->x = rSrc.x;
-        pDst->y = rSrc.y;
-        pDst->z = rSrc.z;
-    }
-
-    // Stands for the out-of-line TVec3f copy constructor.
-    struct VecCopy : public TVec3f {
-        VecCopy(const TVec3f&) NO_INLINE;
-    };
-
-    VecCopy::VecCopy(const TVec3f& rSrc) {
-        x = rSrc.x;
-        y = rSrc.y;
-        z = rSrc.z;
-    }
-
-    NO_INLINE void vecScale(TVec3f* pVec, f32 scale) {
-        pVec->scale(scale);
-    }
-
-    NO_INLINE void vecSet(TVec3f* pDst, const TVec3f& rSrc) {
-        pDst->set(rSrc);
-    }
-
-    NO_INLINE void vecCtor(TVec3f* pVec, f32 x, f32 y, f32 z) {
-        pVec->x = x;
-        pVec->y = y;
-        pVec->z = z;
-    }
-}  // namespace
-
-WorldMapResultBox::WorldMapResultBox() {
-    vecCtor(&mMin, 100000.0f, 100000.0f, 100000.0f);
+WorldMapResultBox::WorldMapResultBox() : mMin(100000.0f, 100000.0f, 100000.0f) {
     mMax.x = -100000.0f;
     mMax.y = -100000.0f;
     mMax.z = -100000.0f;
@@ -92,15 +59,16 @@ void WorldMapResultBox::extend(const TVec3f& rPos) {
     }
 }
 
-// NONMATCHING: out-of-line copy ctor call sets r4 before r3 in the target (instruction order only)
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void WorldMapResultBox::getCenter(TVec3f* pDst) const {
-    VecCopy center(vecAdd(mMax, mMin));
-    vecScale(&center, 0.5f);
-    vecSet(pDst, center);
+    TVec3f sum = mMax + mMin;
+    TVec3f center(sum);
+    center.scale(0.5f);
+    pDst->set<f32>(center);
     pDst->z -= 2000.0f;
 }
 
-// NONMATCHING: f2/f3 register naming of the sin/cos temps; angle needs a non-const static to avoid constant folding
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void WorldMapResultBox::getCameraPos(TVec3f* pDst) const {
     f32 dist = calcCameraDistance();
     TVec3f center;
@@ -116,19 +84,18 @@ void WorldMapResultBox::getCameraPos(TVec3f* pDst) const {
     } else {
         len = dist;
     }
-    TVec3f scaled;
-    vecCopy(&scaled, dir);
-    vecScale(&scaled, len);
-    TVec3f pos = vecAdd(center, scaled);
-    vecSet(pDst, pos);
+    TVec3f scaled(dir);
+    scaled.scale(len);
+    TVec3f pos = center + scaled;
+    pDst->set<f32>(pos);
 }
 
-// NONMATCHING: instruction scheduling / register numbers
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 f32 WorldMapResultBox::calcCameraDistance() const {
     f32 fov = 0.4537856f;
     f32 tanHalf = JMASinRadian(0.5f * fov) / JMACosRadian(0.5f * fov);
     f32 dist = (0.5f * (f32)MR::getScreenHeight()) / tanHalf;
-    f32 width = (dist * (mMax.x - mMin.x)) / (0.75f * 608.0f);
+    f32 width = (dist * (mMax.x - mMin.x)) / (sCameraWidthScale * sCameraScreenWidth);
     f32 depth = (dist * (mMax.z - mMin.z)) / (0.75f * (f32)MR::getScreenHeight());
     if (width >= depth) {
     } else {
@@ -140,7 +107,7 @@ f32 WorldMapResultBox::calcCameraDistance() const {
 
 static const char sMapArcFormat[] = "WorldMap%02d.arc";
 
-// NONMATCHING: target loads mWorldId after li r4,64 (scheduling)
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 JMapInfo* WorldMapResultWorld::createParser(const char* pFile) const {
     char arc[0x40];
     snprintf(arc, 0x40, sMapArcFormat, mWorldId);
@@ -356,7 +323,7 @@ void WorldMapResultWorld::disappear() {
     mUnit14->resetStarCheckPoints();
 }
 
-// NONMATCHING: scheduling of the first loads (r5 vs r3)
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void WorldMapResultRoute::collect(WorldMapResultWorld* pWorld) {
     mCount = 0;
     WorldMapResultMapData* pMap = pWorld->mMapData;
@@ -376,7 +343,7 @@ void WorldMapResultRoute::collect(WorldMapResultWorld* pWorld) {
     }
 }
 
-// NONMATCHING: callee-saved register assignment and loop-top layout (step check hoisted before the body in the target)
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node) {
     s32 step = 0;
 
@@ -399,11 +366,7 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
 
     bool found;
 
-    for (;;) {
-        if (step > 100) {
-            break;
-        }
-
+    do {
         found = false;
         step++;
 
@@ -419,17 +382,17 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
                     if (i != j && step - 1 == pOther->mStep) {
                         s32 otherFrom = pOther->mFrom;
                         s32 otherTo = pOther->mTo;
-                        bool adjacent = false;
+                        s32 adjacent = 0;
 
                         if (from == otherFrom || from == otherTo || to == otherFrom || to == otherTo) {
-                            adjacent = true;
+                            adjacent = 1;
                         }
 
-                        adjacent = adjacent | isLinked14(from, otherFrom);
-                        adjacent = adjacent | isLinked14(from, otherTo);
-                        adjacent = adjacent | isLinked14(to, otherFrom);
+                        adjacent = (adjacent != 0) | isLinked14(from, otherFrom);
+                        adjacent = (adjacent != 0) | isLinked14(from, otherTo);
+                        adjacent = (adjacent != 0) | isLinked14(to, otherFrom);
 
-                        if (adjacent | isLinked14(to, otherTo)) {
+                        if (((adjacent != 0) | isLinked14(to, otherTo)) != 0) {
                             mLinks->setLineAlpha(from, to, 0.0f);
                             pEdge->mStep = step;
                             found = true;
@@ -447,10 +410,7 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
             }
         }
 
-        if (!found) {
-            break;
-        }
-    }
+    } while (found && step <= 100);
 }
 
 void WorldMapResultWorld::refreshRouteComet() {
@@ -481,7 +441,7 @@ void WorldMapResultWorld::setupRoute(WorldMapResultRoute* pRoute) {
     mUnit14->resetAll();
 }
 
-// NONMATCHING: scheduling of li/stw before the first loads
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 node) {
     mLinks->openFrom(0);
     WorldMapResultRoute route;
@@ -510,7 +470,7 @@ void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 no
     mUnit14->resetAll();
 }
 
-// NONMATCHING: callee-saved register assignment (loop counter r28 vs r30)
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void WorldMapResultBox::extendByRoute(WorldMapResultWorld* pWorld, WorldMapResultRoute* pRoute) {
     s32 i = 0;
     WorldMapResultMapData* pMap = pWorld->mMapData;
@@ -557,7 +517,7 @@ bool WorldMapResultWorld::updateRouteStep(WorldMapResultRoute* pRoute, s32 step,
     return done;
 }
 
-// NONMATCHING: callee-saved register assignment
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 bool WorldMapResultWorld::isRouteNotHeld(WorldMapResultRoute* pRoute) const {
     GalaxyWorldMapInfoHolder* pData = mWorldData;
 
@@ -584,17 +544,17 @@ void WorldMapResultBox::extendByWorld(WorldMapResultWorld* pWorld) {
     }
 }
 
-// NONMATCHING: stack slot order of the three temporaries and one fmuls operand order
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void calcRoutePos(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, s32 step, s32 maxStep) {
     s32 splitStep = (s32)(0.8f * (f32)maxStep);
-    f32 rate = MR::getLinerValue(MR::normalizeAndClamp01((f32)step, 0.0f, (f32)splitStep), 0.0f, 1.0f - 0.12f, 1.0f);
+    f32 rate = MR::getLinerValue(MR::normalizeAndClamp01((f32)step, 0.0f, (f32)splitStep), 0.0f, 1.0f - sRouteTailRate, 1.0f);
     rate += MR::getEaseOutValue(MR::normalizeAndClamp01((f32)step, (f32)splitStep, (f32)maxStep), 0.0f, 0.12f, 1.0f);
-    VecCopy to(rTo);
-    vecScale(&to, rate);
-    VecCopy from(rFrom);
-    vecScale(&from, 1.0f - rate);
-    TVec3f pos = vecAdd(from, to);
-    vecSet(pDst, pos);
+    TVec3f to(rTo);
+    to.scale(rate);
+    TVec3f from(rFrom);
+    from.scale(1.0f - rate);
+    TVec3f pos = from + to;
+    pDst->set<f32>(pos);
 }
 
 void WorldMapResultWorld::setNum(s32 num) {
@@ -613,7 +573,7 @@ WorldMapResultPathFinder::WorldMapResultPathFinder(WorldMapResultWorld* pWorld) 
     update(0);
 }
 
-// NONMATCHING: callee-saved register assignment (target keeps another constant 1 in a register)
+// NONMATCHING: regalloc (stack slots, register assignment, or instruction/branch scheduling).
 void WorldMapResultPathFinder::update(s32 start) {
     s32 num = mWorld->getNodeNum();
 
@@ -950,7 +910,7 @@ void WorldMapSequence::exePointWarp() {
 
 void WorldMapSequence::exeGreenStarDemo() {
     if (MR::isFirstStep(this)) {
-        AudWrap::startGreenStarDemo();
+        AudInstListMgr::requestInstrumentRefresh();
     }
 
     if (MR::updateActorState(this)) {
@@ -1195,3 +1155,7 @@ namespace NrvWorldMapSequence {
         reinterpret_cast< WorldMapSequence* >(pSpine->mExecutor)->exeStart();
     }
 };  // namespace NrvWorldMapSequence
+
+const f32 sCameraWidthScale = 0.75f;
+const f32 sCameraScreenWidth = 608.0f;
+const f32 sRouteTailRate = 0.12f;

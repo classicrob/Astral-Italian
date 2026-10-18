@@ -58,6 +58,7 @@ namespace MR {
     JKRSolidHeap* getSceneHeapGDDR3();
     JKRHeap* getWorldMapHeap();
     JKRHeap* getFileCacheHeap();
+    JKRHeap* getUseResourceHeap();   // fn_80040DE0: HeapMemoryWatcher+0x18; PLACEHOLDER(core) name
     void fillMemory(void* pDst, u8 ch, u32 size);
     u32 calcCheckSum(const void* pPtr, u32 size);
     void* allocFromWPadHeap(u32 size);

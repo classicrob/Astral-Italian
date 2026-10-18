@@ -6,6 +6,8 @@
 class LodCtrl;
 class ModelObj;
 class PartsModel;
+class ProjmapEffectMtxSetter;
+class PeachCastleFireParticleCallBack;
 
 class PlanetMap : public LiveActor {
 public:
@@ -41,7 +43,7 @@ public:
     /* 0x8C */ const char* mModelName;
     /* 0x90 */ TVec3f _90;
     /* 0x9C */ LodCtrl* mLODCtrl;
-    /* 0xA0 */ ModelObj* mBloomModel;
+    /* 0xA0 */ PartsModel* mBloomModel;
     /* 0xA4 */ PartsModel* mWaterModel;
     /* 0xA8 */ PartsModel* mIndirectModel;
     /* 0xB0 */ s32 mEffectNum;  ///< number of registered "<model>%d" effects, see PlanetMapFunction::verifyEffects
@@ -89,4 +91,58 @@ struct PlanetMapClippingInfo {
     /* 0x04 */ f32 mRadius;
     /* 0x08 */ Vec mOffset;
     /* 0x14 */ s32 _14;
+};
+
+class UFOShapePassThroughPlanet : public PlanetMap {
+public:
+    UFOShapePassThroughPlanet(const char*);
+
+    virtual ~UFOShapePassThroughPlanet() {
+    }
+    virtual void initDemoActionAppear(const JMapInfoIter&);
+};
+
+class PlanetMapStrongLight : public PlanetMap {
+public:
+    PlanetMapStrongLight(const char*);
+
+    virtual ~PlanetMapStrongLight() {
+    }
+    virtual void connectToScene();
+};
+
+class PlanetMapProjmap : public PlanetMap {
+public:
+    PlanetMapProjmap(const char*);
+
+    virtual ~PlanetMapProjmap() {
+    }
+    virtual bool useProjmapMtx() const {
+        return true;
+    }
+    virtual void initProjmapMtx();
+
+    /* 0xB4 */ ProjmapEffectMtxSetter* mProjmapEffectMtxSetter;
+};
+
+class PlanetMapPress : public PlanetMap {
+public:
+    PlanetMapPress(const char* pName) : PlanetMap(pName) {
+    }
+
+    virtual ~PlanetMapPress() {
+    }
+    virtual void init(const JMapInfoIter&);
+};
+
+class PeachCastleNightPlanet : public PlanetMap {
+public:
+    PeachCastleNightPlanet(const char*);
+
+    virtual ~PeachCastleNightPlanet() {
+    }
+    virtual void initMyEffect();
+    virtual bool tryEmitMyEffect();
+
+    /* 0xB4 */ PeachCastleFireParticleCallBack* mFireCallBack;
 };

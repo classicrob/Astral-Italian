@@ -42,7 +42,10 @@ public:
     void initCast(LiveActor*, const JMapInfoIter&);
     void registerFunctor(const LiveActor*, const MR::FunctorBase&, const char*);
     void registerNerve(const LiveActor*, const Nerve*, const char*);
+    void start();
     void update();
+    void skip();
+    bool isStoryBookPart(const char*) const;
     bool isRegisteredDemoActionAppear(const LiveActor*) const;
     bool isRegisteredDemoActionFunctor(const LiveActor*) const;
     bool isRegisteredDemoActionNerve(const LiveActor*) const;

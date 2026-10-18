@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -6,41 +7,31 @@
 #include "Game/Util/ActorCameraUtil.hpp"
 #include "Game/System/WorldMapResultStateEnterGalaxy.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" {
-    extern const char* lbl_807D0550;
-    extern const char* lbl_807D0554;
-    extern const char* lbl_807D0558;
-    extern const char* lbl_807D055C;
-    extern const char* lbl_807D0560;
-    extern const char* lbl_807D0564;
-    extern const char* lbl_807D0568;
-    extern const char* lbl_807D056C;
-}
+extern const char* lbl_807D0550;
+extern const char* lbl_807D0554;
+extern const char* lbl_807D0558;
+extern const char* lbl_807D055C;
+extern const char* lbl_807D0560;
+extern const char* lbl_807D0564;
+extern const char* lbl_807D0568;
+extern const char* lbl_807D056C;
 
-extern f32 lbl_807E1D00;
-extern f32 lbl_807E1D08;
-extern f32 lbl_807E1D0C;
-extern s32 lbl_807E1D10;
-extern s32 lbl_807E1D14;
-extern f32 lbl_807E1D18;
-extern s32 lbl_807E1D1C;
-extern s32 lbl_807E1D20;
-extern f32 lbl_807E1D24;
-extern s32 lbl_807E1D28;
-extern s32 lbl_807E1D2C;
-extern f32 lbl_807E1D30;
-extern s32 lbl_807E1D34;
-extern s32 lbl_807E1D38;
+extern const f32 lbl_807E1D00;
+extern const f32 lbl_807E1D08;
+extern const f32 lbl_807E1D0C;
+extern const s32 lbl_807E1D10;
+extern const s32 lbl_807E1D14;
+extern const f32 lbl_807E1D18;
+extern const s32 lbl_807E1D1C;
+extern const s32 lbl_807E1D20;
+extern const f32 lbl_807E1D24;
+extern const s32 lbl_807E1D28;
+extern const s32 lbl_807E1D2C;
+extern const f32 lbl_807E1D30;
+extern const s32 lbl_807E1D34;
+extern const s32 lbl_807E1D38;
 
-/// Camera vectors of the galaxy entry (4 entries of 3 vectors each).
-struct WorldMapResultEnterGalaxyTable {
-    /* 0x00 */ TVec3f mA;
-    /* 0x0C */ TVec3f mB;
-    /* 0x18 */ TVec3f mC;
-    /* 0x24 */ TVec3f mD;
-};
-extern WorldMapResultEnterGalaxyTable lbl_8072BA38;
+extern TVec3f sEnterGalaxyPositions[4];
 
 namespace MR {
     void setDepthOfFieldBlurDistance(s32, s32);
@@ -91,31 +82,33 @@ void WorldMapResultStateEnterGalaxy::init() {
     mIsDead = true;
 }
 
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateEnterGalaxy::appear() {
+    TVec3f* positions = sEnterGalaxyPositions;
     mIsDead = false;
     if (mHost->isWorldDataType3AtCurrent()) {
-        mTargetPos = &lbl_8072BA38.mB;
+        mTargetPos = &positions[1];
         mCameraName = lbl_807D0564;
         mAnimName = lbl_807D0554;
         mBlurNear = &lbl_807E1D1C;
         mBlurFar = &lbl_807E1D20;
         mRate = lbl_807E1D18;
     } else if (mHost->isWorldDataType4AtCurrent()) {
-        mTargetPos = &lbl_8072BA38.mC;
+        mTargetPos = &positions[2];
         mCameraName = lbl_807D0568;
         mAnimName = lbl_807D0558;
         mBlurNear = &lbl_807E1D28;
         mBlurFar = &lbl_807E1D2C;
         mRate = lbl_807E1D24;
     } else if (mHost->isWorldDataType5AtCurrent()) {
-        mTargetPos = &lbl_8072BA38.mD;
+        mTargetPos = &positions[3];
         mCameraName = lbl_807D056C;
         mAnimName = lbl_807D055C;
         mBlurNear = &lbl_807E1D34;
         mBlurFar = &lbl_807E1D38;
         mRate = lbl_807E1D30;
     } else {
-        mTargetPos = &lbl_8072BA38.mA;
+        mTargetPos = &positions[0];
         mCameraName = lbl_807D0560;
         mAnimName = lbl_807D0550;
         mBlurNear = &lbl_807E1D10;
@@ -125,7 +118,10 @@ void WorldMapResultStateEnterGalaxy::appear() {
     mFlag = mHost->isCurrentGalaxyInfoShown();
     mHost->startCameraAtCurrent(mCameraName, -1);
     mHost->changeRocketAction("Wait");
-    mPos = *mHost->getRocketPosition();
+    const TVec3f* pos = mHost->getRocketPosition();
+    mPos.x = pos->x;
+    mPos.y = pos->y;
+    mPos.z = pos->z;
     setNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyZoomIn));
 }
 
@@ -139,15 +135,14 @@ void WorldMapResultStateEnterGalaxy::control() {
     MR::setDepthOfFieldBlurDistance(*mBlurNear, *mBlurFar);
 }
 
-WorldMapResultStateEnterGalaxy::~WorldMapResultStateEnterGalaxy() {
-}
-
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateEnterGalaxy::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(mHost->getRocket(), "ZoomInGalaxy", -1, -1, -1);
     }
     if (mFlag) {
-        mHost->showGalaxyInfo(mHost->getCurrentGalaxyName());
+        WorldMapOwner* infoHost = mHost;
+        infoHost->showGalaxyInfo(infoHost->getCurrentGalaxyName());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 30);
     TVec3f sum = mPos + *mTargetPos;
@@ -156,8 +151,8 @@ void WorldMapResultStateEnterGalaxy::exeZoomIn() {
     TVec3f merged = rest + scaled;
     mHost->setRocketPosWithTarget(&merged);
     f32 ease = MR::calcNerveEaseInRate(this, 30);
-    TVec3f uniform((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - ease) * mRate));
-    mHost->setRocketScale(&uniform);
+    WorldMapOwner* host = mHost;
+    host->setRocketScale(&TVec3f((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - ease) * mRate)));
     if (MR::isStep(this, 16)) {
         MR::turnOnDepthOfField(false);
     }
@@ -170,7 +165,8 @@ void WorldMapResultStateEnterGalaxy::exeWait() {
     if (MR::isFirstStep(this)) {
         mConfirmLayout->appear();
     }
-    mHost->showGalaxyInfo(mHost->getCurrentGalaxyName());
+    WorldMapOwner* infoHost = mHost;
+    infoHost->showGalaxyInfo(infoHost->getCurrentGalaxyName());
     if (mConfirmLayout->isSelectionComplete() != 0 && mConfirmLayout->isSelectedYes() != 0) {
         setNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyDemo));
         return;
@@ -180,6 +176,30 @@ void WorldMapResultStateEnterGalaxy::exeWait() {
     }
 }
 
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
+void WorldMapResultStateEnterGalaxy::exeZoomOut() {
+    if (MR::isFirstStep(this)) {
+        MR::setImageEffectControlAuto();
+        mHost->startNodeCamera(-1, -1);
+        MR::startActionSound(mHost->getRocket(), "ZoomOutGalaxy", -1, -1, -1);
+    }
+    f32 rate = MR::calcNerveEaseInOutRate(this, 30);
+    TVec3f scaled = mPos * rate;
+    TVec3f sum = mPos + *mTargetPos;
+    TVec3f rest = sum * (lbl_807E1D00 - rate);
+    TVec3f merged = rest + scaled;
+    mHost->setRocketPosWithTarget(&merged);
+    WorldMapOwner* host = mHost;
+    host->setRocketScale(&TVec3f((lbl_807E1D00 - mRate) + ((lbl_807E1D00 - (lbl_807E1D00 - rate)) * mRate)));
+    WorldMapOwner* infoHost = mHost;
+    infoHost->showGalaxyInfo(infoHost->getCurrentGalaxyName());
+    if (MR::isGreaterEqualStep(this, 30)) {
+        MR::showPlayer();
+        kill();
+    }
+}
+
+// NONMATCHING: regalloc (stack slots, address calculation, or load scheduling).
 void WorldMapResultStateEnterGalaxy::exeDemo() {
     if (MR::isFirstStep(this)) {
         MR::showPlayer();
@@ -188,10 +208,11 @@ void WorldMapResultStateEnterGalaxy::exeDemo() {
         mHost->changeRocketAction(lbl_807D0550);
         MR::startAnimCameraTargetPlayer(MR::getPlayerDemoActor(), mCamInfo, mAnimName, -1, false, 1.0f);
         TVec3f camZ = MR::getCamZdir();
-        TVec3f negCamZ(-camZ.x, -camZ.y, -camZ.z);
-        const TVec3f* pRocketPos = mHost->getRocketPos();
+        TVec3f negCamZ = -camZ;
+        WorldMapOwner* host = mHost;
+        const TVec3f* pRocketPos = host->getRocketPos();
         TVec3f camY = MR::getCamYdir();
-        mHost->setRocketFrontUpPos(negCamZ, camY, *pRocketPos);
+        host->setRocketFrontUpPos(negCamZ, camY, *pRocketPos);
     }
     MR::isLessEqualStep(this, 170);
     if (MR::isStep(this, 170)) {
@@ -207,30 +228,47 @@ void WorldMapResultStateEnterGalaxy::exeDemo() {
     }
 }
 
-void WorldMapResultStateEnterGalaxy::exeZoomOut() {
-    if (MR::isFirstStep(this)) {
-        MR::setImageEffectControlAuto();
-        mHost->startNodeCamera(-1, -1);
-        MR::startActionSound(mHost->getRocket(), "ZoomOutGalaxy", -1, -1, -1);
-    }
-    f32 rate = MR::calcNerveEaseInOutRate(this, 30);
-    TVec3f scaled = mPos * rate;
-    TVec3f sum = mPos + *mTargetPos;
-    TVec3f rest = sum * (lbl_807E1D00 - rate);
-    TVec3f merged = rest + scaled;
-    mHost->setRocketPosWithTarget(&merged);
-    TVec3f uniform((lbl_807E1D00 - mRate) + (rate * mRate));
-    mHost->setRocketScale(&uniform);
-    mHost->showGalaxyInfo(mHost->getCurrentGalaxyName());
-    if (MR::isGreaterEqualStep(this, 30)) {
-        MR::showPlayer();
-        kill();
-    }
+WorldMapResultStateEnterGalaxy::~WorldMapResultStateEnterGalaxy() {
 }
 
 namespace NrvWorldMapResultStateEnterGalaxy {
-    WMR_NERVE_DEF(WorldMapResultStateEnterGalaxyZoomOut, WorldMapResultStateEnterGalaxy, ZoomOut);
-    WMR_NERVE_DEF(WorldMapResultStateEnterGalaxyDemo, WorldMapResultStateEnterGalaxy, Demo);
-    WMR_NERVE_DEF(WorldMapResultStateEnterGalaxyWait, WorldMapResultStateEnterGalaxy, Wait);
-    WMR_NERVE_DEF(WorldMapResultStateEnterGalaxyZoomIn, WorldMapResultStateEnterGalaxy, ZoomIn);
+    void WorldMapResultStateEnterGalaxyZoomOut::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeZoomOut();
+    }
+    void WorldMapResultStateEnterGalaxyDemo::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeDemo();
+    }
+    void WorldMapResultStateEnterGalaxyWait::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeWait();
+    }
+    void WorldMapResultStateEnterGalaxyZoomIn::execute(Spine* spine) const {
+        reinterpret_cast<WorldMapResultStateEnterGalaxy*>(spine->mExecutor)->exeZoomIn();
+    }
+    WorldMapResultStateEnterGalaxyZoomIn WorldMapResultStateEnterGalaxyZoomIn::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateEnterGalaxyWait WorldMapResultStateEnterGalaxyWait::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateEnterGalaxyDemo WorldMapResultStateEnterGalaxyDemo::sInstance ATTRIBUTE_WEAK;
+    WorldMapResultStateEnterGalaxyZoomOut WorldMapResultStateEnterGalaxyZoomOut::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvWorldMapResultStateEnterGalaxy
+
+// NONMATCHING: regalloc (static initializer base-load scheduling).
+TVec3f sEnterGalaxyPositions[4] = {
+    TVec3f(-770.0f, -60.0f, 290.0f),
+    TVec3f(-770.0f, -60.0f, 290.0f),
+    TVec3f(240.0f, -800.0f, -600.0f),
+    TVec3f(-770.0f, 220.0f, 290.0f),
+};
+
+const f32 lbl_807E1D00 = 1.0f;
+const f32 lbl_807E1D08 = 1.0f;
+const f32 lbl_807E1D0C = 0.5f;
+const s32 lbl_807E1D10 = 8900;
+const s32 lbl_807E1D14 = 9200;
+const f32 lbl_807E1D18 = 0.1f;
+const s32 lbl_807E1D1C = 9350;
+const s32 lbl_807E1D20 = 10000;
+const f32 lbl_807E1D24 = 0.3f;
+const s32 lbl_807E1D28 = 9350;
+const s32 lbl_807E1D2C = 10000;
+const f32 lbl_807E1D30 = 0.3f;
+const s32 lbl_807E1D34 = 9350;
+const s32 lbl_807E1D38 = 10000;

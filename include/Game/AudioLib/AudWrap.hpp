@@ -4,6 +4,7 @@
 
 class AudBgm;
 class AudBgmMgr;
+class AudInstListMgr;
 class AudMeObject;
 class AudRemixMgr;
 class AudRemixSequencer;
@@ -21,6 +22,7 @@ namespace AudWrap {
     bool hasSystem();
     AudSoundInfo* getSoundInfo();
     AudSceneMgr* getSceneMgr();
+    AudInstListMgr* getInstListMgr();   // fn_8007C890
     AudBgmMgr* getBgmMgr();
     AudBgm* getStageBgm();
     AudBgm* getSubBgm();

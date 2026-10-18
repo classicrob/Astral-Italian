@@ -123,3 +123,8 @@ namespace MR {
     void changeTrackWeights(const LiveActor*, const f32*);  // SMG2 fn_80009570; PLACEHOLDER(core4)
     void setTrackWeights(const LiveActor*, f32, f32, f32);  // SMG2 fn_800095D0; PLACEHOLDER(core4)
 }
+
+namespace MR {
+    void stopAllAnim(LiveActor*);
+    void resumeAllAnim(LiveActor*);
+}

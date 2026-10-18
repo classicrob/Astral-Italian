@@ -42,6 +42,15 @@ public:
     PlanetMapData* getTableData(const char*) const;
     bool isScenarioForceLow(const PlanetMapData*) const;
 
+    template < typename T >
+    static NameObj* createNameObj(const char* pName) {
+        return new T(pName);
+    }
+
+    static void makeSubModelName(const char**, const JMapInfo*, s32, const char*, const char*);
+
+    static const PlanetEntry sUniquePlanetCreateFuncTable[78];
+
     /* 0x0C */ PlanetMapData** mPlanetMapData;
     /* 0x10 */ s32 mTableCount;
 };

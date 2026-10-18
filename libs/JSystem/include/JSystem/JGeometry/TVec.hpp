@@ -328,6 +328,12 @@ namespace JGeometry {
         }
     };
 
+#ifdef JGEOMETRY_VEC3_WMR_OUTLINE
+#define JGEOMETRY_WMR_NOINLINE NO_INLINE
+#else
+#define JGEOMETRY_WMR_NOINLINE
+#endif
+
     template <>
     struct TVec3< f32 > : public Vec {
 #ifdef __MWERKS__
@@ -352,7 +358,7 @@ namespace JGeometry {
 #endif
 #ifdef __MWERKS__
         // Used inlined and non-inlined?
-        TVec3(const TVec3< f32 >& vec) {
+        TVec3(const TVec3< f32 >& vec) JGEOMETRY_WMR_NOINLINE {
             const register Vec* v_a = &vec;
             register Vec* v_b = this;
 
@@ -372,7 +378,7 @@ namespace JGeometry {
         TVec3(const TVec3< f32 >& vec);
 #endif
 
-        TVec3(f32 _x, f32 _y, f32 _z) {
+        TVec3(f32 _x, f32 _y, f32 _z) JGEOMETRY_WMR_NOINLINE {
             x = _x;
             y = _y;
             z = _z;
@@ -482,7 +488,7 @@ namespace JGeometry {
             set< f32 >((*mtx)[3], (*mtx)[7], (*mtx)[11]);
         }
 
-        TVec3 operator+(const TVec3& op) const {
+        TVec3 operator+(const TVec3& op) const JGEOMETRY_WMR_NOINLINE {
             TVec3 ret(*this);
             ret += op;
             return ret;
@@ -492,7 +498,7 @@ namespace JGeometry {
             add(op);
         }
 
-        void add(const TVec3< f32 >& b) {
+        void add(const TVec3< f32 >& b) JGEOMETRY_WMR_NOINLINE {
             JMathInlineVEC::PSVECAdd(this, &b, this);
         }
 
@@ -526,7 +532,7 @@ namespace JGeometry {
             JMathInlineVEC::PSVECSubtract(&a, &b, this);
         }
 
-        TVec3 operator*(f32 scalar) const {
+        TVec3 operator*(f32 scalar) const JGEOMETRY_WMR_NOINLINE {
             TVec3 ret(*this);
             ret *= scalar;
             return ret;
@@ -555,7 +561,7 @@ namespace JGeometry {
             return ret;
         }
 
-        void scale(f32 scalar) {
+        void scale(f32 scalar) JGEOMETRY_WMR_NOINLINE {
             this->x = this->x * scalar;
             this->y = this->y * scalar;
             this->z = this->z * scalar;
@@ -1323,3 +1329,5 @@ typedef JGeometry::TVec3< s8 > TVec3Sc;
 typedef JGeometry::TVec3< s16 > TVec3s;
 typedef JGeometry::TVec4< f32 > TVec4f;
 typedef JGeometry::TQuat4< f32 > TQuat4f;
+
+#undef JGEOMETRY_WMR_NOINLINE

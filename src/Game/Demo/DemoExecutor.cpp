@@ -16,6 +16,9 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include <algorithm>
+#include "Game/Demo/StoryBookDemo.hpp"
+#include "Game/Util/PlayerUtil.hpp"
+#include "Game/Util/LightUtil.hpp"
 
 DemoExecutor::DemoExecutor(const char* pName)
     : DemoCastGroup(pName), mSheetName(), _SMG2_20(), mTimeKeeper(), mSubPartKeeper(), mPlayerKeeper(), mCameraKeeper(), mActionKeeper(), mWipeKeeper(),
@@ -25,7 +28,8 @@ DemoExecutor::DemoExecutor(const char* pName)
 void DemoExecutor::init(const JMapInfoIter& rIter) {
     DemoCastGroup::init(rIter);
 
-    mSheetName = MR::getDemoSheetName(rIter);
+    mSheetName = MR::getJMapInfoTimeSheetName(rIter);
+    _SMG2_20 = MR::getJMapInfoDemoSkip(rIter);
     mTimeKeeper = new DemoTimeKeeper(this);
     mSubPartKeeper = new DemoSubPartKeeper(this);
     mPlayerKeeper = new DemoPlayerKeeper(this);
@@ -38,7 +42,7 @@ void DemoExecutor::init(const JMapInfoIter& rIter) {
     _40 = MR::createStageSwitchCtrl(this, rIter);
 
     if (_40->isValidSwitchAppear()) {
-        MR::listenNameObjStageSwitchOnAppear(this, _40, MR::Functor(this, &DemoExecutor::startProperDemoSystem));
+        MR::listenNameObjStageSwitchOnAppear(this, _40, MR::FunctorV0M<DemoExecutor*, void (DemoExecutor::*)()>(this, &DemoExecutor::startProperDemoSystem));
     }
 
     DemoFunction::registerDemoExecutor(this);
@@ -54,22 +58,15 @@ void DemoExecutor::registerDemoActor(LiveActor* pActor, const JMapInfoIter& rIte
     }
 }
 
+void DemoSheetKeeperBase::initCast(LiveActor*, const JMapInfoIter&) {
+}
+
 void DemoExecutor::movement() {
+    if (updateStoryBook()) return;
     mTimeKeeper->update();
-
-    if (mTimeKeeper->isDemoEnd()) {
-        end();
-    } else {
-        if (!mTimeKeeper->mIsPaused) {
-            mSubPartKeeper->update();
-            mPlayerKeeper->update();
-            mCameraKeeper->update();
-            mActionKeeper->update();
-            std::for_each(mSheetKeeper.begin(), mSheetKeeper.end(), std::mem_func(&DemoSheetKeeperBase::update));
-        }
-
-        std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::updateDemo));
-    }
+    if (updateKeepers(false)) return;
+    std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::updateDemo));
+    if (_SMG2_20) MR::tryEndDemoAndSetAlreadyDone(static_cast<LiveActor*>(_44), _48);
 }
 
 void DemoExecutor::start(NameObj* pParam1, const char* pParam2, s32 param3) {
@@ -77,11 +74,16 @@ void DemoExecutor::start(NameObj* pParam1, const char* pParam2, s32 param3) {
     _48 = pParam2;
     _4C = param3;
 
-    mTimeKeeper->start();
-    mCameraKeeper->start();
-    std::for_each(mSheetKeeper.begin(), mSheetKeeper.end(), std::mem_func(&DemoSheetKeeperBase::start));
-
-    std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::startDemo));
+    if (MR::isStoryBookDemoName(pParam2)) {
+        MR::startStoryBookTurnPage();
+        _SMG2_3CC = true;
+    } else {
+        mTimeKeeper->start();
+        mCameraKeeper->start();
+        std::for_each(mSheetKeeper.begin(), mSheetKeeper.end(), std::mem_func(&DemoSheetKeeperBase::start));
+        std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::startDemo));
+        _SMG2_3CC = false;
+    }
 
     mActor.clear();
 
@@ -98,6 +100,9 @@ void DemoExecutor::start(NameObj* pParam1, const char* pParam2, s32 param3) {
         MR::invalidateClipping(actor);
         mActor.push_back(actor);
     }
+}
+
+void DemoSheetKeeperBase::start() {
 }
 
 void DemoExecutor::startPart(NameObj* pParam1, const char* pParam2, const char* pParam3, s32 param4) {
@@ -135,9 +140,9 @@ void DemoExecutor::startDemoSystemPart(const char* pParam1, s32 param2) {
 
 bool DemoExecutor::tryStartProperDemoSystem() {
     if (mPlayerKeeper->mNumPlayerInfos > 0) {
-        return MR::requestStartTimeKeepDemoMarioPuppetable(this, mName, nullptr);
+        return MR::tryStartTimeKeepDemoMarioPuppetable(this, mName, nullptr);
     } else {
-        return MR::requestStartTimeKeepDemo(this, mName, nullptr);
+        return MR::tryStartTimeKeepDemo(this, mName, nullptr);
     }
 }
 
@@ -181,6 +186,20 @@ void DemoExecutor::resume() {
     mTimeKeeper->mIsPaused = false;
 }
 
+void DemoExecutor::skip() {
+    if (mTimeKeeper->mIsPaused) mTimeKeeper->mIsPaused = false;
+    mTimeKeeper->update();
+    while (!mTimeKeeper->isDemoEnd()) {
+        mSubPartKeeper->update();
+        mPlayerKeeper->update();
+        mActionKeeper->skip();
+        mTimeKeeper->update();
+    }
+    mCameraKeeper->endForce();
+    std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::endDemo));
+    end();
+}
+
 void DemoExecutor::addTalkAnimCtrl(DemoTalkAnimCtrl* pCtrl) {
     mTalkAnimCtrl.push_back(pCtrl);
 }
@@ -207,10 +226,77 @@ void DemoExecutor::setTalkMessageCtrl(const LiveActor* pActor, TalkMessageCtrl* 
         if (it->mActor != pActor) {
             continue;
         }
-
         it->mTalkMessageCtrl = pCtrl;
         break;
     }
+}
+
+bool DemoExecutor::updateKeepers(bool skipCamera) {
+    if (mTimeKeeper->isDemoEnd()) {
+        end();
+        return true;
+    }
+    if (!mTimeKeeper->mIsPaused) {
+        mSubPartKeeper->update();
+        mPlayerKeeper->update();
+        if (!skipCamera) mCameraKeeper->update();
+        mActionKeeper->update();
+        std::for_each(mSheetKeeper.begin(), mSheetKeeper.end(), std::mem_func(&DemoSheetKeeperBase::update));
+    }
+    return false;
+}
+
+void DemoSheetKeeperBase::update() {
+}
+
+bool DemoExecutor::updateStoryBookStart() {
+    if (!_SMG2_3CC) return false;
+    if (MR::isStoryBookTurnPageStart()) {
+        MR::resetPointLight();
+        mTimeKeeper->start();
+        mCameraKeeper->start();
+        mPlayerKeeper->start();
+        mActionKeeper->start();
+        std::for_each(mSheetKeeper.begin(), mSheetKeeper.end(), std::mem_func(&DemoSheetKeeperBase::start));
+        std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::startDemo));
+        std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::updateStoryBook));
+        return true;
+    }
+    if (MR::isStoryBookTurnPageEnd()) {
+        std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::resume));
+        _SMG2_3CC = false;
+        return true;
+    }
+    std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::pause));
+    return true;
+}
+
+bool DemoExecutor::updateStoryBook() {
+    if (updateStoryBookStart()) return true;
+    if (_SMG2_3CD) {
+        if (MR::isStoryBookTurnPageEnd()) {
+            for (s32 i = 0; i < mGroup->getObjNum(); i++) MR::requestMovementOn(mGroup->getActor(i));
+            MR::requestMovementOnPlayer();
+            endDemoSystem();
+            _SMG2_3CD = false;
+        }
+        return true;
+    }
+    if (!MR::isStoryBookDemoActive()) return false;
+    if (MR::isDemoSubPartLastStep() && !MR::isDemoPartFirstStep(nullptr) && MR::isStoryBookTurningPage()) return false;
+    if (MR::isStoryBookTurnPageStart()) {
+        mTimeKeeper->update();
+        mCameraKeeper->update();
+        std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::updateStoryBook));
+        return true;
+    }
+    if (MR::isStoryBookTurnPageEnd()) {
+        std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::resume));
+        updateKeepers(true);
+        return true;
+    }
+    std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::pause));
+    return true;
 }
 
 void DemoExecutor::end() {
@@ -218,31 +304,23 @@ void DemoExecutor::end() {
     mSubPartKeeper->end();
     mCameraKeeper->end();
     std::for_each(mSheetKeeper.begin(), mSheetKeeper.end(), std::mem_func(&DemoSheetKeeperBase::end));
+    if (mActionKeeper->isStoryBookPart(mTimeKeeper->mMainPartInfos[static_cast<u32>(mTimeKeeper->mNumPartInfos - 1)].mPartName)) {
+        for (s32 i = 0; i < mGroup->getObjNum(); i++) MR::requestMovementOff(mGroup->getActor(i));
+        MR::requestMovementOff(MR::getPlayerDemoActor());
+        MR::requestMovementOnStoryBook();
+        _SMG2_3CD = true;
+    } else endDemoSystem();
+}
 
-    switch (_4C) {
-    case 1:
-        MR::endDemo(_44, _48);
-        break;
-    case 2:
-        MR::endDemo(_44, _48);
-        break;
-    }
+void DemoSheetKeeperBase::end() {
+}
 
-    if (_40->isValidSwitchDead()) {
-        _40->onSwitchDead();
-    }
-
+void DemoExecutor::endDemoSystem() {
+    MR::endDemo(_44, _48);
     _44 = nullptr;
     _48 = nullptr;
     _4C = -1;
-
+    if (_40->isValidSwitchDead()) _40->onSwitchDead();
     std::for_each(mActor.begin(), mActor.end(), std::ptr_fun(MR::validateClipping));
-
     mActor.clear();
-}
-
-void DemoExecutor_EmitUnused(DemoSheetKeeperBase* pKeeper) {
-    pKeeper->DemoSheetKeeperBase::update();
-    pKeeper->DemoSheetKeeperBase::start();
-    pKeeper->DemoSheetKeeperBase::end();
 }

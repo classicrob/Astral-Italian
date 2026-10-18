@@ -1,0 +1,231 @@
+#include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/Util/TalkUtil.hpp"
+
+class MiniGreenComet : public LiveActor {
+public:
+    MiniGreenComet();
+};
+
+class MiniGreenCometShower : public LiveActor {
+public:
+    MiniGreenCometShower();
+};
+
+namespace MR {
+    void forceOpenSystemWipeWhiteFade(s32);
+}
+
+extern "C" {
+    void fn_804E17D0(void*);
+    void fn_804E17E0(void*);
+    void fn_804E1930(void*, s32);
+    void fn_804E86E0(WorldMapResultCommand*, s32);
+    void fn_804F6DF0(WorldMapResultCommand*);
+    void fn_804F6E40(WorldMapResultCommand*);
+    void fn_804E17F0(void*);
+    void fn_804E8780(WorldMapResultCommand*);
+    void fn_804E8850(WorldMapResultCommand*);
+    void fn_804E9E00(s32);
+    void fn_804E9E10(s32, s32);
+    void fn_804F33F0(TVec3f*, const TVec3f*, const TVec3f*, s32, s32);
+    void fn_804F72A0(WorldMapResultCommand*);
+    void fn_804F75C0(WorldMapResultCommand*, const char*);
+    void fn_804F7F00(WorldMapResultCommand*);
+    void fn_804F7F50(WorldMapResultCommand*);
+    LiveActor* fn_804F7F80(WorldMapResultCommand*);
+    void fn_804F7F90(WorldMapResultCommand*);
+    bool fn_804F7FE0(WorldMapResultCommand*);
+    void fn_804F7FC0(WorldMapResultCommand*);
+    void fn_804F7FD0(WorldMapResultCommand*);
+    bool fn_804F7FF0(WorldMapResultCommand*);
+    void fn_804F8740(WorldMapResultCommand*, s32*);
+    void* fn_804F60D0(WorldMapResultCommand*);
+}
+
+extern s32 lbl_807E3148;
+
+/// Green-star demo state ("State[グリーンスター出現デモ]"): two comet actors, a counter array and a talk ctrl.
+WMR_STATE_DECL(WorldMapResultStateGreenStarDemo, virtual void control(); void showComets(); void exeStart(); void exeShower(); void exeTalkStart(); void exeTalk(); void exeEnd();
+               /* 0x10 */ MiniGreenComet* mComet; /* 0x14 */ MiniGreenCometShower* mShower; /* 0x18 */ s32* mCounts; /* 0x1C */ TalkMessageCtrl* mTalkCtrl;);
+
+namespace NrvWorldMapResultStateGreenStarDemo {
+    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoStart);
+    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoShower);
+    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoWait);
+    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoTalkStart);
+    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoTalk);
+    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoEnd);
+};  // namespace NrvWorldMapResultStateGreenStarDemo
+
+/// Camera vectors of the demo (8 entries, constructed in declaration order).
+static TVec3f sCameraTable[8] = {
+    TVec3f(60000.0f, 30000.0f, 35000.0f),
+    TVec3f(-65000.0f, 30000.0f, 35000.0f),
+    TVec3f(60000.0f, -3000.0f, 8000.0f),
+    TVec3f(-65000.0f, -3000.0f, 8000.0f),
+    TVec3f(40000.0f, 27627.0f, 33520.0f),
+    TVec3f(-50000.0f, 27627.0f, 33520.0f),
+    TVec3f(40000.0f, 0.0f, -2000.0f),
+    TVec3f(-50000.0f, 0.0f, -2000.0f),
+};
+
+/// Camera name of the demo ("グリーンスターデモカメラ").
+static const char* sCameraName = "グリーンスターデモカメラ";
+
+WorldMapResultStateGreenStarDemo::WorldMapResultStateGreenStarDemo(WorldMapResultCommand* pHost) : ActorStateBase< WorldMapResultCommand >("State[グリーンスター出現デモ]", pHost) {
+    mComet = NULL;
+    mShower = NULL;
+    mCounts = NULL;
+    mTalkCtrl = NULL;
+}
+
+void WorldMapResultStateGreenStarDemo::init() {
+    initNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart), 0);
+    MR::declareEventCameraProgrammable(sCameraName);
+    TVec3f zero(0.0f, 0.0f, 0.0f);
+    mTalkCtrl = MR::createTalkCtrlDirect(fn_804F7F80(mHost), "WorldMapNewsStartWorld08", zero, NULL);
+    mComet = new MiniGreenComet();
+    mComet->initWithoutIter();
+    mComet->makeActorDead();
+    mShower = new MiniGreenCometShower();
+    mShower->initWithoutIter();
+    mShower->makeActorDead();
+    mCounts = new s32[7];
+    for (s32 i = 0; i < 7; i++) {
+        mCounts[i] = 0;
+    }
+    mIsDead = true;
+}
+
+void WorldMapResultStateGreenStarDemo::appear() {
+    mIsDead = false;
+    setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart));
+    fn_804E17D0(fn_804F60D0(mHost));
+    fn_804E17F0(fn_804F60D0(mHost));
+    fn_804F6E40(mHost);
+    fn_804E1930(fn_804F60D0(mHost), 0);
+    fn_804F75C0(mHost, "Wait");
+    fn_804F7F00(mHost);
+    MR::startGlobalEventCameraNoTarget(sCameraName, 0);
+    fn_804E8780(mHost);
+}
+
+void WorldMapResultStateGreenStarDemo::kill() {
+    mShower->kill();
+    fn_804E8850(mHost);
+    mIsDead = true;
+}
+
+void WorldMapResultStateGreenStarDemo::control() {
+    if (!isNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart))) {
+        fn_804F72A0(mHost);
+    }
+}
+
+void WorldMapResultStateGreenStarDemo::showComets() {
+    mShower->appear();
+    fn_804F8740(mHost, mCounts);
+    for (s32 i = 0; i < 7; i++) {
+        fn_804E9E00(mCounts[i]);
+    }
+}
+
+void WorldMapResultStateGreenStarDemo::exeStart() {
+    if (MR::isFirstStep(this)) {
+        MR::forceOpenSystemWipeWhiteFade(1);
+        MR::openWipeFade(60);
+    }
+    if (MR::isStep(this, 120)) {
+        mComet->appear();
+    }
+    f32 rate = MR::calcNerveRate(this, 300);
+    TVec3f vec2c = sCameraTable[0] * (1.0f - rate);
+    TVec3f vec38 = sCameraTable[1] * rate;
+    TVec3f vec50 = vec38 + vec2c;
+    TVec3f vec14 = sCameraTable[2] * (1.0f - rate);
+    TVec3f vec20 = sCameraTable[3] * rate;
+    TVec3f vec44 = vec20 + vec14;
+    TVec3f vecUp(0.0f, 1.0f, 0.0f);
+    MR::setProgrammableCameraParam(sCameraName, vec44, vec50, vecUp, true);
+    if (MR::isStep(this, 240)) {
+        MR::closeWipeFade(60);
+    }
+    if (MR::isWipeBlank()) {
+        fn_804E17E0(fn_804F60D0(mHost));
+        fn_804F6DF0(mHost);
+        fn_804E86E0(mHost, 0);
+        fn_804F7F50(mHost);
+        MR::endGlobalEventCamera(sCameraName, -1, true);
+        setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoShower));
+    }
+}
+
+void WorldMapResultStateGreenStarDemo::exeShower() {
+    if (MR::isFirstStep(this)) {
+        showComets();
+        MR::startGlobalEventCameraNoTarget(sCameraName, 0);
+        MR::openWipeFade(60);
+    }
+    s32 steps[7] = {lbl_807E3148, 40, 70, 150, 210, 290, 360};
+    for (s32 i = 0; i < 7; i++) {
+        if (MR::isStep(this, steps[i])) {
+            fn_804E9E10(mCounts[i], 1);
+        }
+    }
+    TVec3f vec20;
+    fn_804F33F0(&vec20, &sCameraTable[4], &sCameraTable[5], getNerveStep(), 500);
+    TVec3f vec14;
+    fn_804F33F0(&vec14, &sCameraTable[6], &sCameraTable[7], getNerveStep(), 500);
+    TVec3f vecUp(0.0f, 1.0f, 0.0f);
+    MR::setProgrammableCameraParam(sCameraName, vec14, vec20, vecUp, true);
+    MR::setProgrammableCameraParamFovy(sCameraName, 26.0f);
+    if (MR::isStep(this, 500)) {
+        mShower->kill();
+        setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoWait));
+    }
+}
+
+void WorldMapResultStateGreenStarDemo::exeTalkStart() {
+    if (MR::isFirstStep(this)) {
+        fn_804F7F90(mHost);
+    }
+    if (!fn_804F7FE0(mHost)) {
+        setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoTalk));
+    }
+}
+
+void WorldMapResultStateGreenStarDemo::exeTalk() {
+    if (MR::isFirstStep(this)) {
+        fn_804F7FC0(mHost);
+    }
+    if (MR::tryTalkForceWithoutDemoAtEnd(mTalkCtrl)) {
+        setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoEnd));
+    }
+}
+
+void WorldMapResultStateGreenStarDemo::exeEnd() {
+    if (MR::isFirstStep(this)) {
+        fn_804F7FD0(mHost);
+    }
+    if (!fn_804F7FF0(mHost)) {
+        kill();
+    }
+}
+
+WorldMapResultStateGreenStarDemo::~WorldMapResultStateGreenStarDemo() {
+}
+
+namespace NrvWorldMapResultStateGreenStarDemo {
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoEnd, WorldMapResultStateGreenStarDemo, End);
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoTalk, WorldMapResultStateGreenStarDemo, Talk);
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoTalkStart, WorldMapResultStateGreenStarDemo, TalkStart);
+    void WorldMapResultStateGreenStarDemoWait::execute(Spine* pSpine) const {
+        WorldMapResultStateGreenStarDemo* pState = reinterpret_cast< WorldMapResultStateGreenStarDemo* >(pSpine->mExecutor);
+        if (MR::isGreaterEqualStep(pState, 120)) {
+            pState->setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoTalkStart));
+        }
+    }
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoShower, WorldMapResultStateGreenStarDemo, Shower);
+    WMR_NERVE_DEF(WorldMapResultStateGreenStarDemoStart, WorldMapResultStateGreenStarDemo, Start);
+    WorldMapResultStateGreenStarDemoWait WorldMapResultStateGreenStarDemoWait::sInstance ATTRIBUTE_WEAK;
+};  // namespace NrvWorldMapResultStateGreenStarDemo

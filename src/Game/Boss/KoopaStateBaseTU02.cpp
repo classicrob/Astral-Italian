@@ -38,6 +38,7 @@ void KoopaStateBattleStart::exeBattleStartLoop() {
     }
 }
 
+// NONMATCHING: register allocation only (target reuses r31 for the temp, then for &mHost->mPosition computed before operator*)
 void KoopaStateBattleStart::exeBattleStartEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "BattleStartEnd");

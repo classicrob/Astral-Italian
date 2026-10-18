@@ -56,7 +56,7 @@ void KoopaStateMeteor::exeStart() {
         }
         MR::startAction(mHost, "MeteorStart");
     }
-    MR::startActionSound(mHost, "MeteorMagic", -1, -1, -1);
+    MR::startActionSound(mHost, "MeteoMagic", -1, -1, -1);
     if (MR::isActionEnd(mHost)) {
         setNerve(&NrvKoopaStateMeteor::KoopaStateMeteorNrvLoop::sInstance);
     }
@@ -69,7 +69,7 @@ void KoopaStateMeteor::exeLoop() {
     if (MR::isIntervalStep(this, mCastInterval)) {
         MR::trySendMsgKoopaCastAttackRockStart();
     }
-    MR::startActionSound(mHost, "MeteorMagic", -1, -1, -1);
+    MR::startActionSound(mHost, "MeteoMagic", -1, -1, -1);
     s32 step = mEndStep + 150 - mEndFrameMax;
     if (step < 0) {
         step = 0;
@@ -86,7 +86,7 @@ void KoopaStateMeteor::exeLoop() {
 }
 
 void KoopaStateMeteor::exeEnd() {
-    MR::startActionSound(mHost, "MeteorMagic", -1, -1, -1);
+    MR::startActionSound(mHost, "MeteoMagic", -1, -1, -1);
     if (MR::isGreaterEqualStep(this, mEndStep)) {
         kill();
     }

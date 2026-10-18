@@ -1,18 +1,12 @@
 #include "Game/MapObj/TreasureBoxCracked.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
-#include "Game/MapObj/AirBubble.hpp"
-#include "Game/MapObj/BenefitItemLifeUp.hpp"
+#include "Game/MapObj/BenefitItemObj.hpp"
 #include "Game/MapObj/BenefitItemOneUp.hpp"
-#include "Game/MapObj/BlueChip.hpp"
-#include "Game/MapObj/Coin.hpp"
-#include "Game/MapObj/YellowChip.hpp"
 #include "Game/Util.hpp"
 
 namespace NrvTreasureBoxCracked {
     NEW_NERVE(TreasureBoxCrackedNrvWait, TreasureBoxCracked, Wait);
-    NEW_NERVE(TreasureBoxCrackedNrvOpen, TreasureBoxCracked, Open);
-    NEW_NERVE(TreasureBoxCrackedNrvItemBound, TreasureBoxCracked, ItemBound);
     NEW_NERVE(TreasureBoxCrackedNrvOpenWait, TreasureBoxCracked, OpenWait);
     NEW_NERVE(TreasureBoxCrackedNrvAlwaysOpen, TreasureBoxCracked, AlwaysOpen);
 };  // namespace NrvTreasureBoxCracked
@@ -35,49 +29,48 @@ namespace {
     const f32 sStepForCollisionMove = 15.0f;
 };  // namespace
 
-TreasureBoxCracked::TreasureBoxCracked(const char* pName)
-    : LiveActor(pName), mBoxCollider(), mBoxType(), mOpenCondition(), mItem(), mItemType(1), mItemVelocity(0.0f), mItemTargetPos(0.0f),
-      mIsItemMoving(), mWaitForSwitchOn(::sDefaultWaitForSwitchOn), mPowerStarId(-1) {
+TreasureBoxCracked::TreasureBoxCracked(const char* pName) : LiveActor(pName) {
+    mBoxCollider = nullptr;
+    mBoxType = 0;
+    mOpenCondition = 0;
+    mItem = nullptr;
+    mItemType = 0;
+    mWaitForSwitchOn = ::sDefaultWaitForSwitchOn;
     mTopMtx.identity();
 }
 
-void TreasureBoxCracked::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchWriteA(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::getJMapInfoArg2NoInit(rIter, &mOpenCondition);
-    const char* objectName;
-    MR::getObjectName(&objectName, rIter);
+void TreasureBoxCracked::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    MR::validateCollisionParts(mBoxCollider);
+}
 
-    if (MR::isEqualSubString(objectName, "TreasureBoxCracked")) {
+void TreasureBoxCracked::makeActorDead() {
+    LiveActor::makeActorDead();
+    MR::invalidateCollisionParts(mBoxCollider);
+}
+
+void TreasureBoxCracked::init(const JMapInfoIter& rIter) {
+    const char* pObjectName;
+    MR::getObjectName(&pObjectName, rIter);
+
+    const char* pName;
+    if (MR::isEqualSubString(pObjectName, "TreasureBoxCracked")) {
         mBoxType = 1;
-    } else if (MR::isEqualSubString(objectName, "TreasureBoxGold")) {
+        pName = "TreasureBoxCracked";
+    } else if (MR::isEqualSubString(pObjectName, "TreasureBoxGold")) {
         mBoxType = 2;
+        pName = "TreasureBoxGold";
     } else {
         mBoxType = 0;
+        pName = "TreasureBox";
     }
 
-    if (mBoxType == 0) {
-        MR::initActor(this, rIter, "TreasureBox", false);
-    } else if (mBoxType == 1) {
-        MR::initActor(this, rIter, "TreasureBoxCracked", false);
-    } else {
-        MR::initActor(this, rIter, "TreasureBoxGold", false);
-    }
-
-    MR::connectToSceneMapObjStrongLight(this);
-    initHitSensor(1);
-    MR::addHitSensor(this, "body", 0x54 /* ATYPE_KILLER_TARGET_MAPOBJ (Petari value, unverified in SB4E01) */, 8, 200.0f, TVec3f(0.0f, 50.0f, 0.0f));
+    MR::initActor(this, rIter, pName, false);
+    MR::getJMapInfoArg2NoInit(rIter, &mOpenCondition);
     mTopMtx.set(MR::getJointMtx(this, "Top"));
-    MR::initCollisionParts(this, "Top", getSensor("body"), mTopMtx.toMtxPtr());
-    mBoxCollider = MR::createCollisionPartsFromLiveActor(this, "Box", getSensor("body"), MR::CollisionScaleType_Unk2);
+    MR::initCollisionParts(this, "Top", getSensor("Body"), mTopMtx.toMtxPtr());
+    mBoxCollider = MR::createCollisionPartsFromLiveActor(this, "Box", getSensor("Body"), MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mBoxCollider);
-    initEffectKeeper(0, nullptr, false);
-    initSound(4, "TreasureBoxCracked", nullptr, TVec3f(0.0f));
-
-    if (mBoxType == 2) {
-        MR::initShadowFromCSV(this, "Shadow");
-    }
 
     if (mOpenCondition == 2) {
         initNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvAlwaysOpen));
@@ -86,8 +79,8 @@ void TreasureBoxCracked::init(const JMapInfoIter& rIter) {
     }
 
     initItem(rIter);
-    makeActorAppeared();
     MR::addToAttributeGroupSearchTurtle(this);
+    makeActorAppeared();
 }
 
 void TreasureBoxCracked::exeWait() {
@@ -105,90 +98,10 @@ void TreasureBoxCracked::exeWait() {
     }
 }
 
-void TreasureBoxCracked::exeOpen() {
-    TVec3f up;
-    MR::calcUpVec(&up, this);
-
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Open");
-        MR::emitEffect(this, "Open");
-
-        if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-            MR::startActionSound(this, "OjTreasureBoxOpenW");
-        } else {
-            MR::startActionSound(this, "OjTreasureBoxOpen");
-        }
-
-        if (mBoxType == 1) {
-            MR::startBrk(this, "Open");
-            MR::deleteEffect(this, "Light");
-        } else if (mBoxType == 2) {
-            MR::deleteEffect(this, "Glow");
-        }
-
-        if (mItemType == 0) {
-            setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpenWait));
-            return;
-        }
-
-        if (mItemType == 7) {
-            setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpenWait));
-            return;
-        }
-
-        mItem->makeActorAppeared();
-        mIsItemMoving = MR::sendArbitraryMsg(ACTMES_ITEM_START_MOVE, mItem->getSensor(nullptr), getSensor("body"));
-
-        if (!mIsItemMoving) {
-            setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpenWait));
-            return;
-        }
-
-        mItemVelocity.scale(::sFirstSpeed, up);
-    }
-
-    mItemVelocity.scaleAdd(::sAccelRate, up, mItemVelocity);
-    mItem->mPosition.add(mItemVelocity);
-
-    if (checkItemPos()) {
-        mItem->mPosition.set(mItemTargetPos);
-        mItemVelocity.zero();
-
-        if (mItemType == 6) {
-            setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpenWait));
-        } else {
-            setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvItemBound));
-        }
-    }
-}
-
-void TreasureBoxCracked::exeItemBound() {
-    TVec3f up;
-    MR::calcUpVec(&up, this);
-    f32 amplitude = ::sBoundSpeedMax - (::sBoundSpeedMax / ::sBoundTime) * getNerveStep();
-    f32 height = amplitude * MR::sinDegree((720.0f / ::sBoundTime) * getNerveStep());
-    TVec3f position;
-    position.scaleAdd(height, up, mItemTargetPos);
-    mItem->mPosition.set(position);
-
-    if (MR::isStep(this, ::sBoundTime)) {
-        mItem->mPosition.set(mItemTargetPos);
-        MR::sendArbitraryMsg(ACTMES_ITEM_END_MOVE, mItem->getSensor(nullptr), getSensor("body"));
-        mIsItemMoving = false;
-        setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpenWait));
-    }
-}
-
 void TreasureBoxCracked::exeOpenWait() {
     if (mItemType == 0 && MR::isStep(this, mWaitForSwitchOn)) {
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
-        }
-    } else if (mItemType == 7 && MR::isStep(this, 10)) {
-        if (mPowerStarId == -1) {
-            MR::requestAppearPowerStar(this, mPosition);
-        } else {
-            MR::requestAppearPowerStar(this, mPowerStarId, mPosition);
         }
     }
 
@@ -219,8 +132,8 @@ void TreasureBoxCracked::control() {
         if (!(frame >= ::sStepForCollisionMove)) {
             f32 rate = frame / ::sStepForCollisionMove;
             TVec3f offset;
-            MR::vecBlend(TVec3f(::sTopOpenStartOffset), TVec3f(::sTopOpenEndOffset), &offset, rate);
             TVec3f position;
+            MR::vecBlend(&offset, ::sTopOpenStartOffset, ::sTopOpenEndOffset, rate);
             PSMTXMultVec(getBaseMtx(), &offset, &position);
             mTopMtx.setTrans(position);
 
@@ -233,8 +146,9 @@ void TreasureBoxCracked::control() {
 
 void TreasureBoxCracked::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isHalfOpen() && MR::isSensorPlayerOrRide(pReceiver)) {
+        const TVec3f* pSenderPos = MR::getSensorPos(pSender);
         TVec3f direction;
-        direction.sub(pReceiver->mPosition, pSender->mPosition);
+        direction.sub(*MR::getSensorPos(pReceiver), *pSenderPos);
         MR::normalize(&direction);
         TVec3f front;
         MR::calcFrontVec(&front, this);
@@ -254,15 +168,15 @@ bool TreasureBoxCracked::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, Hit
         return false;
     }
 
-    if (MR::isMsgJetTurtleAttack(msg)) {
-        if (mOpenCondition == 1 && pSender->mType != 0x14 /* ATYPE_SPECIAL_WEAPON */) {
+    if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg)) {
+        if (mOpenCondition == 1 && !MR::isSensorType(pSender, 0x14)) {
             MR::startAction(this, "Shock");
-            MR::startActionSound(this, "OjTerasBoxGoldRefuse");
-            MR::startSystemSE("SE_SY_FAILURE_1");
+            MR::startActionSound(this, "OjTerasBoxGoldRefuse", -1, -1, -1);
+            MR::startActionSound(this, "SyFailure1", -1, -1, -1);
             return false;
         }
 
-        setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpen));
+        makeOpen();
         return true;
     }
 
@@ -272,11 +186,17 @@ bool TreasureBoxCracked::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, Hit
 bool TreasureBoxCracked::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgExplosionAttack(msg) && isNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvWait))) {
         if (mOpenCondition == 1) {
-            MR::startActionSound(this, "OjTerasBoxGoldRefuse");
+            MR::startActionSound(this, "OjTerasBoxGoldRefuse", -1, -1, -1);
             return false;
         }
 
-        setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpen));
+        makeOpen();
+        return true;
+    }
+
+    if (MR::isMsgToEnemyAttackBlow(msg) && mOpenCondition == 3) {
+        MR::fn_80034820(this);
+        makeOpen();
         return true;
     }
 
@@ -284,119 +204,53 @@ bool TreasureBoxCracked::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitS
 }
 
 void TreasureBoxCracked::initItem(const JMapInfoIter& rIter) {
-    const char* objectName;
-    MR::getObjectName(&objectName, rIter);
+    const char* pObjectName;
+    MR::getObjectName(&pObjectName, rIter);
 
-    if (MR::isEqualSubString(objectName, "Empty")) {
+    if (MR::isEqualSubString(pObjectName, "Empty")) {
         mItemType = 0;
         MR::getJMapInfoArg0NoInit(rIter, &mWaitForSwitchOn);
         return;
     }
 
-    if (MR::isEqualSubString(objectName, "Coin")) {
-        mItemType = 1;
-    } else if (MR::isEqualSubString(objectName, "YellowChip")) {
-        mItemType = 2;
-    } else if (MR::isEqualSubString(objectName, "BlueChip")) {
-        mItemType = 3;
-    } else if (MR::isEqualSubString(objectName, "KinokoOneUp")) {
-        mItemType = 4;
-    } else if (MR::isEqualSubString(objectName, "KinokoLifeUp")) {
-        mItemType = 5;
-    } else if (MR::isEqualSubString(objectName, "AirBubble")) {
-        mItemType = 6;
-    } else if (MR::isEqualSubString(objectName, "PowerStar")) {
-        mItemType = 7;
-        MR::getJMapInfoArg3WithInit(rIter, &mPowerStarId);
-
-        if (mPowerStarId != -1) {
-            MR::declarePowerStar(this, mPowerStarId);
-        } else {
-            MR::declarePowerStar(this);
-        }
-
-        return;
-    }
-
-    if (mItemType == 1) {
-        mItem = static_cast< LiveActor* >(MR::createCoin(this, "コイン"));
-    } else if (mItemType == 2) {
-        mItem = initYellowChip(rIter);
-    } else if (mItemType == 3) {
-        mItem = initBlueChip(rIter);
-    } else if (mItemType == 4) {
-        mItem = initKinokoOneUp(rIter);
-    } else if (mItemType == 5) {
-        mItem = new BenefitItemLifeUp("ライフＵＰキノコ");
-    } else if (mItemType == 6) {
-        mItem = new AirBubble("空気泡");
-    }
-
-    initItemTrans();
+    mItemType = 1;
+    mItem = new BenefitItemOneUp("PtoLmR");
+    MR::setPosition(mItem, mPosition);
+    MR::setRotation(mItem, mRotation);
     mItem->initWithoutIter();
-
-    if (mItemType != 6) {
-        MR::invalidateShadow(mItem, nullptr);
-    }
-
     mItem->makeActorDead();
 }
 
-void TreasureBoxCracked::initItemTrans() {
-    const Vec* offset;
+void TreasureBoxCracked::makeOpen() {
+    MR::startAction(this, "Open");
+    MR::emitEffect(this, "Open");
 
-    if (mItemType == 1) {
-        offset = &::sCoinOffset;
-    } else if (mItemType == 2) {
-        offset = &::sChipOffset;
-    } else if (mItemType == 3) {
-        offset = &::sChipOffset;
-    } else if (mItemType == 4) {
-        offset = &::sKinokoOneUpOffset;
-    } else if (mItemType == 5) {
-        offset = &::sKinokoLifeUpOffset;
-    } else if (mItemType == 6) {
-        offset = &::sAirBubbleOffset;
-    }
-
-    PSMTXMultVec(getBaseMtx(), offset, &mItemTargetPos);
-    mItem->mPosition.set(mPosition);
-    mItem->mRotation.set(mRotation);
-}
-
-LiveActor* TreasureBoxCracked::initYellowChip(const JMapInfoIter& rIter) {
-    s32 groupId;
-    MR::getJMapInfoArg0WithInit(rIter, &groupId);
-    YellowChip* chip = new YellowChip("イエローチップ");
-    chip->setHost(this);
-    chip->setGroupID(groupId);
-    return chip;
-}
-
-LiveActor* TreasureBoxCracked::initBlueChip(const JMapInfoIter& rIter) {
-    s32 groupId;
-    MR::getJMapInfoArg0WithInit(rIter, &groupId);
-    BlueChip* chip = new BlueChip("ブルーチップ");
-    chip->setHost(this);
-    chip->setGroupID(groupId);
-    return chip;
-}
-
-LiveActor* TreasureBoxCracked::initKinokoOneUp(const JMapInfoIter& rIter) {
-    return new BenefitItemOneUp("１ＵＰキノコ");
-}
-
-bool TreasureBoxCracked::checkItemPos() {
-    f32 distance = mPosition.distance(mItem->mPosition);
-    f32 targetDistance = mPosition.distance(mItemTargetPos);
-    TVec3f up;
-    MR::calcUpVec(&up, this);
-
-    if (mItemVelocity.dot(up) >= 0.0f) {
-        return distance >= targetDistance;
+    if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        MR::startActionSound(this, "OjTreasureBoxOpenW", -1, -1, -1);
     } else {
-        return distance <= targetDistance;
+        MR::startActionSound(this, "OjTreasureBoxOpen", -1, -1, -1);
     }
+
+    if (mBoxType == 1) {
+        MR::startBrk(this, "Open");
+        MR::deleteEffect(this, "Light");
+    } else if (mBoxType == 2) {
+        MR::deleteEffect(this, "Glow");
+    }
+
+    if (mItemType == 0) {
+        setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpenWait));
+        return;
+    }
+
+    mItem->_DE = 1;
+    TVec3f front(0.0f, 0.0f, 1.0f);
+    MR::calcFrontVec(&front, this);
+    TVec3f up(0.0f, 1.0f, 0.0f);
+    MR::calcUpVec(&up, this);
+    JMAVECScaleAdd(&up, &mPosition, &mItem->mPosition, 120.0f);
+    mItem->appearPop();
+    setNerve(GET_NERVE(TreasureBoxCracked, TreasureBoxCrackedNrvOpenWait));
 }
 
 bool TreasureBoxCracked::isHalfOpen() const {

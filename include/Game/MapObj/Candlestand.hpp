@@ -2,6 +2,7 @@
 
 #include "Game/MapObj/MapObjActor.hpp"
 
+class MapObjConnector;
 class SpinPullParticleCallBack;
 
 class Candlestand : public MapObjActor {
@@ -10,9 +11,12 @@ public:
 
     virtual ~Candlestand();
     virtual void init(const JMapInfoIter& rIter);
+    virtual void initAfterPlacement();
     virtual void makeActorAppeared();
     virtual void startClipped();
     virtual void endClipped();
+    virtual void control();
+    virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
@@ -30,7 +34,8 @@ public:
     inline void exeAttack();
     inline void exeBurn();
 
-    /* 0xC4 */ s32 mItem;
-    /* 0xC8 */ bool mHasItemAppear;
-    /* 0xCC */ SpinPullParticleCallBack* mSpinPtclCb;
+    /* 0xD0 */ s32 mItem;
+    /* 0xD4 */ bool mHasItemAppear;
+    /* 0xD8 */ SpinPullParticleCallBack* mSpinPtclCb;
+    /* 0xDC */ MapObjConnector* mConnector;
 };

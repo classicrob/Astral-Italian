@@ -1,5 +1,7 @@
 #include "Game/Boss/DinoPackunBaby.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
+
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -11,9 +13,6 @@
 #include "Game/Util/JointUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
-
-// PLACEHOLDER(objects): unnamed core helper (kill-time item/star spawn on the actor); resolve when core names fn_8022BB70
-extern "C" void fn_8022BB70(LiveActor*);
 
 // Nerve classes are declared first so exeWait/exeBattle1st (inlined into their Nrv::execute in the target)
 // can be defined before the executes while still naming the later nerves.
@@ -149,7 +148,7 @@ void DinoPackunBaby::exeDemoPowerUp() {
 void DinoPackunBaby::exeBattle2nd() {
     if (MR::isFirstStep(this)) {
         restoreShells();
-        fn_8022BB70(this);
+        MR::emitItemBossDamage(this);
     }
     if (MR::updateActorState(this)) {
         setNerve(&NrvDinoPackunBaby::DinoPackunBabyNrvDemoDeath::sInstance);

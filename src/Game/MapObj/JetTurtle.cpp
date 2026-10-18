@@ -121,6 +121,7 @@ void JetTurtle::init(const JMapInfoIter& rIter) {
     init2(rIter, 0);
 }
 
+// NONMATCHING: target builds the zero TVec3f for initStarPointerTarget inline (3 stfs of 0.0f) while the 3-arg ctor is a call elsewhere in this fn; ctor-form variants tried, all worse
 void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
     _D8 = 0;
 
@@ -675,7 +676,7 @@ void JetTurtle::exeThrowing() {
         if (!MR::isNearZero(mVelocity)) {
             TPos3f frontUp;
             MR::makeMtxFrontUp(&frontUp, mVelocity, v20);
-            frontUp.getEulerXYZ(mRotation);
+            frontUp.getEuler(mRotation);
             mRotation.mult(57.295776f);
         }
     }

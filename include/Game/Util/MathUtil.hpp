@@ -168,6 +168,9 @@ namespace MR {
     void blendQuatFrontUp(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rFront, const TVec3f& rUp, f32 frontRate, f32 upRate);
     void rotateQuatMoment(TQuat4f* pQuat, const TVec3f& rMoment);
     void rotateQuatRollBall(TQuat4f* pQuat, const TVec3f& rVel, const TVec3f& rNorm, f32 radius);
+    void rotateQuatAroundAxis(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rAxis, f32 rad);
+    void rotateQuatXAxisDegree(TQuat4f* pDst, const TQuat4f& rSrc, f32 degree);
+    void rotateQuatZAxisDegree(TQuat4f* pDst, const TQuat4f& rSrc, f32 degree);
     bool turnQuat(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rFrom, const TVec3f& rTo, f32 angle);
     bool turnQuatXDirRad(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 angle);
     void turnQuatXDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate);
@@ -706,6 +709,7 @@ namespace MR {
 
 namespace MR {
     f32 getEaseInOutValue(f32, f32, f32, f32, f32);
+    f32 getEaseInValueWithNormalize(f32, f32, f32, f32, f32);
 }
 
 namespace MR {

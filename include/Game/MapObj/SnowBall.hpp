@@ -29,6 +29,9 @@ public:
     void exeFall();
     void exeWait();
 
+    bool isBlowOrThawNerve() const;
+    bool isHideBreakOrThawNerve() const;
+
     /* 0x90 */ TPos3f mBaseMtx;
     /* 0xC0 */ TQuat4f mQuat;
     /* 0xD0 */ TVec3f mLastStepPos;

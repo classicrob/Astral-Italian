@@ -33,6 +33,7 @@ namespace MR {
     void initMapPartsShadow(LiveActor*, const JMapInfoIter&);
 
     bool getMapPartsArgMoveConditionType(s32*, const JMapInfoIter&);
+    bool getMapPartsArgMoveSnap(s32*, const LiveActor*);
     bool getMapPartsArgRotateSpeed(f32*, const JMapInfoIter&);
     bool getMapPartsArgRotateTime(s32*, const JMapInfoIter&);
     bool getMapPartsArgRotateAngle(f32*, const JMapInfoIter&);

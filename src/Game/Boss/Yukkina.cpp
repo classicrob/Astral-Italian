@@ -3,98 +3,70 @@
 #include "Game/Util.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 
-extern u8 lbl_8067B8A8[];
-extern u8 lbl_8067B8C0[];
-extern u8 lbl_8067B8CC[];
-extern u8 lbl_8067B8F4[];
-extern u8 lbl_8067B8FC[];
-extern u8 lbl_8067B930[];
-extern u8 lbl_8067B97C[];
-extern u8 lbl_8067B994[];
-extern u8 lbl_8067B99C[];
-extern u8 lbl_807CF678[];
+namespace NrvYukkina {
+    NEW_NERVE(YukkinaNrvHidden, Yukkina, Hidden);
+    NEW_NERVE(YukkinaNrvAppear, Yukkina, Appear);
+    NEW_NERVE(YukkinaNrvAppearEnd, Yukkina, AppearEnd);
+    NEW_NERVE(YukkinaNrvWait, Yukkina, Wait);
+    NEW_NERVE(YukkinaNrvBreak, Yukkina, Break);
+    NEW_NERVE(YukkinaNrvBreakWait, Yukkina, BreakWait);
+    NEW_NERVE(YukkinaNrvJump, Yukkina, Jump);
+    NEW_NERVE(YukkinaNrvJumpWait, Yukkina, JumpWait);
+    NEW_NERVE(YukkinaNrvWaitTurn, Yukkina, WaitTurn);
+    NEW_NERVE(YukkinaNrvSwitchDead, Yukkina, SwitchDead);
+    NEW_NERVE(YukkinaNrvDemoStart, Yukkina, DemoStart);
+    NEW_NERVE(YukkinaNrvDemoEnd, Yukkina, DemoEnd);
 
-extern s32 lbl_807D1D18;
-extern s32 lbl_807D1D1C;
-extern s32 lbl_807D1D20;
-extern s32 lbl_807D1D24;
-extern s32 lbl_807D1D28;
-extern s32 lbl_807D1D2C;
-extern s32 lbl_807D1D30;
-extern s32 lbl_807D1D34;
-extern s32 lbl_807D1D38;
-extern s32 lbl_807D1D3C;
-extern s32 lbl_807D1D40;
-extern s32 lbl_807D1D44;
-extern s32 lbl_807D1D48;
+    class YukkinaNrvWaitPowerStar : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            Yukkina* pActor = reinterpret_cast< Yukkina* >(pSpine->mExecutor);
+            if (MR::isEndPowerStarAppearDemo(pActor)) {
+                MR::showPlayer();
+                pActor->kill();
+            }
+        }
+        static YukkinaNrvWaitPowerStar sInstance;
+    };
+    YukkinaNrvWaitPowerStar YukkinaNrvWaitPowerStar::sInstance ATTRIBUTE_WEAK;
+}  // namespace NrvYukkina
 
-
-#define STR8A8(off) (reinterpret_cast< const char* >(lbl_8067B8A8 + (off)))
-#define STRAT(sym) (reinterpret_cast< const char* >(sym))
-#define NRV(sym) (reinterpret_cast< Nerve* >(&(sym)))
-#define RAW(T, this_, off) (*reinterpret_cast< T* >(reinterpret_cast< u8* >(this_) + (off)))
-
-// PLACEHOLDER(objects): unnamed target symbol fn_8001BA80, declared extern "C" so the reloc name matches; resolve when fn_8001BA80 gets its real name in symbols.txt
-extern "C" void fn_8001BA80();
 // PLACEHOLDER(objects): unnamed target symbol fn_8004FF90, declared extern "C" so the reloc name matches; resolve when fn_8004FF90 gets its real name in symbols.txt
 extern "C" void fn_8004FF90();
 
-Yukkina::Yukkina(const char* pName) : LiveActor(pName) {
-    mCameraInfo = NULL;
-    mQuatC4.set(0.0f, 0.0f, 0.0f, 1.0f);
-    mQuatD4.set(0.0f, 0.0f, 0.0f, 1.0f);
-    mVelE4.x = 0.0f;
-    mVelE4.y = 0.0f;
-    mVelE4.z = 1.0f;
-    mQuatF0.set(0.0f, 0.0f, 0.0f, 1.0f);
-    mPos100.x = 0.0f;
-    mPos100.y = 0.0f;
-    mPos100.z = 0.0f;
-    mPos10C.x = 0.0f;
-    mPos10C.y = 0.0f;
-    mPos10C.z = 0.0f;
-    mSwitch = (NameObj*)-1;
-    mCounter = 0;
-    mStep = 3;
-    _124 = 0.0f;
-    _128 = 0.0f;
-    _12C = 0.0f;
-    mLowAngle = 1.0f;
-    mHighAngle = 3.0f;
-    mRollSpeed = 1.5f;
-    mIdx = 1;
-    mHasPlayerLink = 0;
+Yukkina::Yukkina(const char* pName)
+    : LiveActor(pName), mCameraInfo(NULL), mQuatC4(0.0f, 0.0f, 0.0f, 1.0f), mQuatD4(0.0f, 0.0f, 0.0f, 1.0f), mVelE4(0.0f, 0.0f, 1.0f),
+      mQuatF0(0.0f, 0.0f, 0.0f, 1.0f), mPos100(0.0f, 0.0f, 0.0f), mPos10C(0.0f, 0.0f, 0.0f), mSwitch(-1), mCounter(0), mStep(3), _124(0.0f),
+      _128(0.0f), _12C(0.0f), mLowAngle(1.0f), mHighAngle(3.0f), mRollSpeed(1.5f), mIdx(1), mHasPlayerLink(0) {
     mBaseMtx.identity();
 }
 
-// NONMATCHING: init() call signatures for addBaseMatrixFollowTarget, declareCameraRegisterVec and
-// declarePowerStar are approximations of the target calls.
 void Yukkina::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     MR::makeQuatAndFrontFromRotate(&mQuatC4, &mVelE4, this);
     mQuatF0.set(mQuatC4);
-    mPos100.set(RAW(TVec3f, this, 0x14));
+    mPos100.set(mPosition);
 
-    mCameraInfo = MR::createActorCameraInfo(rIter);
     MR::setAllEffectHostMtx(this, mBaseMtx);
-    MR::initAnimCamera(this, mCameraInfo, STR8A8(0xC));
-    MR::initAnimCamera(this, mCameraInfo, STR8A8(0x18));
-    MR::initMultiActorCamera(this, rIter, &mCameraInfo, STR8A8(0x24));
-    MR::getJMapInfoArg7WithInit(rIter, reinterpret_cast< s32* >(&mSwitch));
-    if (mSwitch != (NameObj*)-1) {
-        MR::declareCameraRegisterVec(this, reinterpret_cast< u32 >(mSwitch), &mPos10C);
+    mCameraInfo = MR::createActorCameraInfo(rIter);
+    MR::initAnimCamera(this, mCameraInfo, "DemoOpening");
+    MR::initAnimCamera(this, mCameraInfo, "DemoDown");
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\x83\x49\x81\x5b\x83\x76\x83\x6a\x83\x93\x83\x4f\x83\x66\x83\x82\x83\x58\x83\x4c\x83\x62\x83\x76");
+    MR::getJMapInfoArg7WithInit(rIter, &mSwitch);
+    if (mSwitch != -1) {
+        MR::declareCameraRegisterVec(this, mSwitch, &mPos10C);
         MR::calcPositionUpOffset(&mPos10C, this, 250.0f);
     }
 
-    TriangleFilterDelegator< Yukkina >* pFilter = new TriangleFilterDelegator< Yukkina >(this, &Yukkina::isInvalidTriangle);
+    TriangleFilterDelegator< Yukkina >* pFilter = MR::createTriangleFilterDelegator(this, &Yukkina::isInvalidTriangle);
     MR::addBaseMatrixFollowTarget(this, rIter, NULL, reinterpret_cast< BaseMatrixFollowValidater* >(pFilter));
-    mHasPlayerLink = MR::tryRegisterNamePosLinkObj(this, rIter, STR8A8(0x40));
-    initNerve(NRV(lbl_807D1D18), 0);
+    mHasPlayerLink = MR::tryRegisterNamePosLinkObj(this, rIter, "\x83\x7d\x83\x8a\x83\x49\x88\xca\x92\x75");
+    initNerve(&NrvYukkina::YukkinaNrvHidden::sInstance, 0);
     MR::hideModel(this);
     MR::declarePowerStar(this);
     MR::initUseStageSwitchWriteDead(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
-    MR::startBva(this, STRAT(lbl_807CF678));
+    MR::startBva(this, "Hp");
     MR::setBvaFrameAndStop(this, 0.0f);
 }
 
@@ -102,12 +74,14 @@ void Yukkina::kill() {
     LiveActor::kill();
 }
 
-// NONMATCHING: JGeometry::negateInternal call is elided (no matching declaration in the repo).
 void Yukkina::control() {
-    if (mSwitch != (NameObj*)-1) {
-        RAW(TVec3f, this, 0x44).set(RAW(TVec3f, this, 0x14));
-        JMAVECScaleAdd(&RAW(Vec, this, 0x44), &mPos10C, &mPos10C, 250.0f);
+    if (mSwitch != -1) {
+        mPos10C.set(mPosition);
+        JMAVECScaleAdd(&mGravity, &mPos10C, &mPos10C, 250.0f);
     }
+    TVec3f up;
+    JGeometry::negateInternal(&mGravity.x, &up.x);
+    MR::makeMtxUpNoSupportPos(&mBaseMtx, up, mPosition);
     if (MR::isBindedGround(this)) {
         mCounter = 0;
         return;
@@ -120,11 +94,10 @@ void Yukkina::calcAndSetBaseMtx() {
 }
 
 void Yukkina::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) && MR::isEqualSensor(pSender, this, STRAT(lbl_8067B8F4))) {
-        if (isNerve(NRV(lbl_807D1D24)) && MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
-            setNerve(NRV(lbl_807D1D30));
-            // NONMATCHING: target passes both sensors and two floats to setVelocitySeparateHV
-            MR::setVelocitySeparateHV(this, mVelE4, 5.0f, 15.0f);
+    if (MR::isSensorPlayer(pReceiver) && MR::isEqualSensor(pSender, this, "Body")) {
+        if (isNerve(&NrvYukkina::YukkinaNrvWait::sInstance) && MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
+            setNerve(&NrvYukkina::YukkinaNrvJump::sInstance);
+            MR::setVelocitySeparateHV(this, pReceiver, pSender, 5.0f, 15.0f);
             return;
         }
         MR::sendMsgPush(pReceiver, pSender);
@@ -138,225 +111,295 @@ bool Yukkina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     if (MR::isMsgStarPieceReflect(msg)) {
         return true;
     }
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && isNerve(NRV(lbl_807D1D24))) {
-        if (MR::isEqualSensor(pReceiver, this, STRAT(lbl_8067B8FC))) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && isNerve(&NrvYukkina::YukkinaNrvWait::sInstance)) {
+        if (MR::isEqualSensor(pReceiver, this, "Nose")) {
             mStep -= 1;
             if (mStep == 1) {
                 MR::stopStageBGM(10);
             }
             if (mStep <= 0) {
                 MR::zeroVelocity(this);
-                setNerve(NRV(lbl_807D1D3C));
+                setNerve(&NrvYukkina::YukkinaNrvSwitchDead::sInstance);
                 return true;
             }
             mIdx += 1;
             TVec3f sp8;
-            MR::calcSensorHorizonNormalize(&sp8, RAW(TVec3f, this, 0x44), pSender, pReceiver);
+            MR::calcSensorHorizonNormalize(&sp8, mGravity, pSender, pReceiver);
             mVelE4.set(sp8);
-            // NONMATCHING: setVelocitySeparateHV argument list
-            MR::setVelocitySeparateHV(this, mVelE4, 20.0f, 40.0f);
-            setNerve(NRV(lbl_807D1D28));
+            MR::setVelocitySeparateHV(this, pSender, pReceiver, 20.0f, 40.0f);
+            setNerve(&NrvYukkina::YukkinaNrvBreak::sInstance);
             return true;
         }
     }
     return false;
 }
 
-// NONMATCHING: fn_8010A970 -> exeHidden. Call to resetPosition uses the 1-arg repo overload.
 void Yukkina::exeHidden() {
     if (MR::isFirstStep(this)) {
         mQuatC4.set(mQuatF0);
+        MR::resetPosition(this, mPos100);
         MR::zeroVelocity(this);
-        MR::resetPosition(this);
-        fn_8001BA80();
+        MR::stopStageBgmForDemo();
     }
     if (MR::isGreaterEqualStep(this, 4)) {
-        if (MR::tryStartDemoMarioPuppetable(this, STR8A8(0x5C))) {
+        if (MR::tryStartDemoMarioPuppetable(this, "\x83\x49\x81\x5b\x83\x76\x83\x6a\x83\x93\x83\x4f")) {
             MR::hidePlayer();
             if (mHasPlayerLink != 0) {
                 MR::showPlayer();
-                MR::setPlayerLinkPosAndWait(this, STR8A8(0x40), false);
-                MR::startBckPlayer(STR8A8(0x6C), NULL);
+                MR::setPlayerLinkPosAndWait(this, "\x83\x7d\x83\x8a\x83\x49\x88\xca\x92\x75", false);
+                MR::startBckPlayer("BattleWait", NULL);
             }
+            MR::startAnimCameraTargetSelf(this, mCameraInfo, "DemoOpening", 0, false, 1.0f);
             fn_8004FF90();
-            setNerve(NRV(lbl_807D1D1C));
+            setNerve(&NrvYukkina::YukkinaNrvAppear::sInstance);
         }
     }
 }
 
-// NONMATCHING: fn_8010AA60 -> exeAppear. endAnimCamera / startAnimCamera argument lists approximated.
 void Yukkina::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
-        MR::startAction(this, STR8A8(0xC));
+        MR::startAction(this, "DemoOpening");
     }
-    if (MR::tryEndDemo(this, STR8A8(0x5C), MR::isActionEnd(this))) {
+    if (MR::tryEndDemo(this, "\x83\x49\x81\x5b\x83\x76\x83\x6a\x83\x93\x83\x4f", MR::isActionEnd(this))) {
+        MR::endAnimCamera(this, mCameraInfo, "DemoOpening", -1, true);
         MR::showPlayer();
-        MR::endAnimCamera(this, mCameraInfo, STR8A8(0xC), -1, true);
-        if (MR::isDemoEndWaitCameraInterpolating() != 0) {
+        if (MR::isDemoEndWaitCameraInterpolating()) {
+            startWaitAction();
             MR::tryForceDeleteEffectAll(this);
-            MR::startMultiActorCameraTargetSelf(this, mCameraInfo, STR8A8(0x24), -1);
-            setNerve(NRV(lbl_807D1D20));
+            MR::startMultiActorCameraTargetSelf(this, mCameraInfo, "\x83\x49\x81\x5b\x83\x76\x83\x6a\x83\x93\x83\x4f\x83\x66\x83\x82\x83\x58\x83\x4c\x83\x62\x83\x76", 0);
+            setNerve(&NrvYukkina::YukkinaNrvAppearEnd::sInstance);
             return;
         }
-        setNerve(NRV(lbl_807D1D24));
+        setNerve(&NrvYukkina::YukkinaNrvWait::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010AB40 -> exeAppearEnd (endMultiActorCamera argument list approximated).
 void Yukkina::exeAppearEnd() {
+    MR::isFirstStep(this);
     if (MR::isGreaterStep(this, 3)) {
-        MR::endMultiActorCamera(this, mCameraInfo, STRAT(lbl_8067B8CC), false, -1);
-        setNerve(NRV(lbl_807D1D24));
+        MR::endMultiActorCamera(this, mCameraInfo, "\x83\x49\x81\x5b\x83\x76\x83\x6a\x83\x93\x83\x4f\x83\x66\x83\x82\x83\x58\x83\x4c\x83\x62\x83\x76", false, -1);
+        setNerve(&NrvYukkina::YukkinaNrvWait::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010ABB0 -> exeWait. Body is a partial reconstruction (isNearPlayer/turn
-// helpers have different signatures in the repo); the nerve transition logic is not reproduced.
 void Yukkina::exeWait() {
     if (MR::isFirstStep(this)) {
         startWaitAction();
     }
     updateSound();
+    if (mCounter < 5) {
+        f32 turn = MR::isNearPlayer(this, 1000.0f) ? mLowAngle : mHighAngle;
+        MR::turnDirectionToTargetUseGroundNormalDegree(this, &mVelE4, *MR::getPlayerPos(), turn);
+        MR::addVelocityMoveToDirection(this, mVelE4, mRollSpeed);
+    } else {
+        MR::addVelocityToGravity(this, 1.5f);
+    }
+    if (MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"))) {
+        TVec3f n;
+        n = MR::getBindedFixReactionVector(this);
+        MR::normalizeOrZero(&n);
+        TVec3f push = n * 25.0f;
+        MR::addVelocity(this, push);
+    }
+    MR::attenuateVelocity(this, mCounter < 5 ? 0.9f : 0.99f);
+    MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f);
+    TVec3f up;
+    JGeometry::negateInternal(&mGravity.x, &up.x);
+    MR::rotateQuatRollBall(&mQuatC4, mVelocity, up, 400.0f * mScale.x);
 }
 
-// NONMATCHING: fn_8010AD30 -> exeBreak. Partial reconstruction.
 void Yukkina::exeBreak() {
     if (MR::isFirstStep(this)) {
         MR::stopScene(5);
-        MR::startAction(this, STR8A8(0x78));
+        MR::startAction(this, "Damage");
         setTurnParam(mIdx);
-        MR::calcVecToPlayerHorizon(NULL, this, 0);
+        TVec3f toPlayer;
+        MR::calcVecToPlayerHorizon(&toPlayer, this, NULL);
+        TVec3f up;
+        JGeometry::negateInternal(&mGravity.x, &up.x);
+        MR::makeQuatUpFront(&mQuatD4, up, toPlayer);
     }
-    if (MR::isGreaterStep(this, 0xA)) {
-        setNerve(NRV(lbl_807D1D2C));
+    MR::addVelocityToGravity(this, 1.5f);
+    MR::attenuateVelocity(this, 0.99f);
+    TVec3f up;
+    JGeometry::negateInternal(&mGravity.x, &up.x);
+    MR::turnQuatZDirRate(&mQuatD4, mQuatD4, up, 0.1f);
+    MR::rotateQuatXAxisDegree(&mQuatC4, mQuatD4, MR::calcNerveEaseOutValue(this, 40, 0.0f, -360.0f));
+    if (!MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"))) {
+        if (MR::isGreaterStep(this, 10) && MR::isBindedGround(this)) {
+            MR::zeroVelocity(this);
+            MR::startAction(this, "Land");
+            setNerve(&NrvYukkina::YukkinaNrvBreakWait::sInstance);
+        }
     }
 }
 
-// NONMATCHING: fn_8010AE80 -> exeBreakWait (sound stage check reconstructed partially).
 void Yukkina::exeBreakWait() {
     MR::isFirstStep(this);
+    if (MR::isStep(this, 0x37) && mStep == 1) {
+        MR::startStageBGMIfNotPlaying("STM_SMG2_BOSS_05B", false);
+    }
     if (MR::isGreaterStep(this, 0x3C)) {
-        setNerve(NRV(lbl_807D1D24));
+        setNerve(&NrvYukkina::YukkinaNrvWait::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010AF00 -> exeJump.
 void Yukkina::exeJump() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, STR8A8(0x8));
+        MR::startAction(this, "AttackSuccess");
     }
-    if (MR::isGreaterStep(this, 0xA)) {
-        setNerve(NRV(lbl_807D1D34));
+    MR::addVelocityToGravity(this, 1.5f);
+    MR::attenuateVelocity(this, 0.99f);
+    TVec3f toPlayer;
+    MR::calcVecToPlayerH(&toPlayer, this, NULL);
+    MR::fn_800104F0(&mQuatC4, this, &toPlayer, 0.2f, 0.1f);
+    if (MR::isGreaterStep(this, 10) && MR::isBindedGround(this)) {
+        MR::zeroVelocity(this);
+        setNerve(&NrvYukkina::YukkinaNrvJumpWait::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010AFC0 -> exeJumpWait.
 void Yukkina::exeJumpWait() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, STR8A8(0x18));
+        MR::startAction(this, "AttackSuccessWait");
     }
+    TVec3f toPlayer;
+    MR::calcVecToPlayerH(&toPlayer, this, NULL);
+    MR::fn_800104F0(&mQuatC4, this, &toPlayer, 0.2f, 0.1f);
     if (MR::isGreaterStep(this, 0x50)) {
-        setNerve(NRV(lbl_807D1D38));
+        setNerve(&NrvYukkina::YukkinaNrvWaitTurn::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010B050 -> exeWaitTurn.
 void Yukkina::exeWaitTurn() {
     if (MR::isFirstStep(this)) {
-        updateSound();
+        MR::calcVecToPlayerH(&mVelE4, this, NULL);
+        JGeometry::negateInternal(&mVelE4.x, &mVelE4.x);
     }
+    updateSound();
+    if (mCounter < 5) {
+        MR::turnDirectionToTargetUseGroundNormalDegree(this, &mVelE4, *MR::getPlayerPos(), 0.0f);
+        MR::addVelocityMoveToDirection(this, mVelE4, mRollSpeed);
+    } else {
+        MR::addVelocityToGravity(this, 1.5f);
+    }
+    if (MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"))) {
+        TVec3f n;
+        n = MR::getBindedFixReactionVector(this);
+        MR::normalizeOrZero(&n);
+        TVec3f push = n * 25.0f;
+        MR::addVelocity(this, push);
+    }
+    MR::attenuateVelocity(this, mCounter < 5 ? 0.9f : 0.99f);
+    MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f);
+    TVec3f up;
+    JGeometry::negateInternal(&mGravity.x, &up.x);
+    MR::rotateQuatRollBall(&mQuatC4, mVelocity, up, 400.0f * mScale.x);
     if (MR::isGreaterStep(this, 0x5A)) {
-        setNerve(NRV(lbl_807D1D24));
+        setNerve(&NrvYukkina::YukkinaNrvWait::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010B1D0 -> exeSwitchDead.
 void Yukkina::exeSwitchDead() {
     if (MR::isFirstStep(this)) {
         MR::stopStageBGM(0);
-        MR::startActionSound(this, STR8A8(0x0), -1, -1, -1);
-        MR::startAction(this, STR8A8(0x0));
+        MR::startActionSound(this, "DamageLast", -1, -1, -1);
+        MR::startAction(this, "Dead");
+        TVec3f toPlayer;
+        MR::calcVecToPlayerHorizon(&toPlayer, this, NULL);
+        TVec3f up;
+        JGeometry::negateInternal(&mGravity.x, &up.x);
+        MR::makeQuatUpFront(&mQuatC4, up, toPlayer);
     }
     if (MR::isActionEnd(this)) {
-        setNerve(NRV(lbl_807D1D40));
+        if (MR::isValidSwitchDead(this)) {
+            MR::onSwitchDead(this);
+        }
+        setNerve(&NrvYukkina::YukkinaNrvDemoStart::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010B2A0 -> exeDemoStart (demo start helper arguments approximated).
 void Yukkina::exeDemoStart() {
-    if (MR::tryStartDemoMarioPuppetable(this, STRAT(lbl_8067B97C))) {
+    if (MR::tryStartDemoMarioPuppetable(this, "\x83\x5f\x83\x45\x83\x93")) {
+        mQuatC4.set(mQuatF0);
+        MR::resetPosition(this, mPos100);
+        MR::zeroVelocity(this);
         MR::showModel(this);
-        MR::resetPosition(this);
-        MR::startAnimCameraTargetSelf(this, mCameraInfo, STRAT(lbl_8067B8C0), false, 0, 1.0f);
-        setNerve(NRV(lbl_807D1D44));
+        MR::startAnimCameraTargetSelf(this, mCameraInfo, "DemoDown", 0, false, 1.0f);
+        setNerve(&NrvYukkina::YukkinaNrvDemoEnd::sInstance);
     }
 }
 
-// NONMATCHING: fn_8010B330 -> exeDemoEnd.
 void Yukkina::exeDemoEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, STR8A8(0x18));
+        MR::startAction(this, "DemoDown");
+        MR::hidePlayer();
     }
     if (MR::isActionEnd(this)) {
-        MR::endDemo(this, STR8A8(0xD4));
+        MR::endDemo(this, "\x83\x5f\x83\x45\x83\x93");
         if (mHasPlayerLink != 0) {
-            MR::setPlayerLinkPosAndWait(this, STR8A8(0x40), false);
+            MR::setPlayerLinkPosAndWait(this, "\x83\x7d\x83\x8a\x83\x49\x88\xca\x92\x75", false);
         }
-        setNerve(NRV(lbl_807D1D48));
+        if (MR::isDemoEndWaitCameraInterpolating()) {
+            MR::startAction(this, "Wait");
+            MR::tryForceDeleteEffectAll(this);
+        } else {
+            MR::tryHitReactionDead(this);
+        }
+        MR::hideModel(this);
+        MR::endAnimCamera(this, mCameraInfo, "DemoDown", -1, true);
+        MR::showPlayer();
+        kill();
+        MR::requestAppearPowerStarFromBelow(this);
+        setNerve(&NrvYukkina::YukkinaNrvWaitPowerStar::sInstance);
     }
 }
 
-// fn_8010B440
 void Yukkina::setTurnParam(s32 arg) {
     switch (arg) {
     case 1:
-        mHighAngle = 3.0f;
         mLowAngle = 1.0f;
+        mHighAngle = 3.0f;
         mRollSpeed = 1.5f;
         return;
     case 2:
-        mHighAngle = 3.0f;
         mLowAngle = 1.0f;
+        mHighAngle = 3.0f;
         mRollSpeed = 2.0f;
         return;
     case 3:
-        mHighAngle = 3.0f;
         mLowAngle = 0.0f;
+        mHighAngle = 3.0f;
         mRollSpeed = 3.0f;
         return;
     }
 }
 
-// fn_8010B4B0 (arg is a const char*, unused by callers in this unit)
 void Yukkina::startWaitAction() {
-    const char* pName = STR8A8(0x0);
-    if (mHasPlayerLink == 1) {
-        pName = STR8A8(0x8);
-    }
-    MR::startAction(this, pName);
-    MR::startBva(this, STRAT(lbl_807CF678));
-    MR::setBvaFrameAndStop(this, (f32)(3 - mHasPlayerLink));
+    MR::startAction(this, mStep == 1 ? "Angry" : "Wait");
+    MR::startBva(this, "Hp");
+    MR::setBvaFrameAndStop(this, (f32)(3 - mStep));
 }
 
-// fn_8010B540
 void Yukkina::updateSound() {
     f32 speed = MR::calcVelocityLength(this);
-    MR::startActionSound(this, STRAT(lbl_8067B994), (s32)(3.0f * (speed * speed)), -1, -1);
+    MR::startActionSound(this, "Roll", (s32)(3.0f * (speed * speed)), -1, -1);
     if (isBindedAndHigh()) {
-        MR::startActionSound(this, STRAT(lbl_8067B99C), -1, -1, -1);
+        MR::startActionSound(this, "Bound", -1, -1, -1);
     }
 }
 
-// fn_8010B5D0
-bool Yukkina::isNotIdle() {
-    if (isNerve(NRV(lbl_807D1D1C)) || isNerve(NRV(lbl_807D1D44)) || isNerve(NRV(lbl_807D1D48))) {
+bool Yukkina::isInvalidTriangle(const Triangle*) {
+    if (isNerve(&NrvYukkina::YukkinaNrvAppear::sInstance) || isNerve(&NrvYukkina::YukkinaNrvDemoEnd::sInstance) || isNerve(&NrvYukkina::YukkinaNrvWaitPowerStar::sInstance)) {
         return false;
     }
     return true;
 }
 
-// fn_8010B640
 bool Yukkina::isBindedAndHigh() {
-    return MR::isBindedGround(this) && mCounter >= 0x14;
+    if (MR::isBindedGround(this) && mCounter >= 0x14) {
+        return true;
+    }
+    return false;
 }

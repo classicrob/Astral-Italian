@@ -1,6 +1,10 @@
 #include "Game/MapObj/WorldMapAccessPanel.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/System/GameDataFunction.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/WorldMapFunction.hpp"
+
 #include "JSystem/JGeometry/TVec.hpp"
 
 // PLACEHOLDER(objects): unnamed target symbol fn_8001C030, declared extern "C" so the reloc name matches; resolve when fn_8001C030 gets its real name in symbols.txt
@@ -13,14 +17,6 @@ extern "C" void fn_80059210();
 extern "C" void fn_800592D0();
 // PLACEHOLDER(objects): unnamed target symbol fn_80088630, declared extern "C" so the reloc name matches; resolve when fn_80088630 gets its real name in symbols.txt
 extern "C" void fn_80088630();
-// PLACEHOLDER(objects): unnamed target symbol fn_804D8290, declared extern "C" so the reloc name matches; resolve when fn_804D8290 gets its real name in symbols.txt
-extern "C" s32 fn_804D8290();
-// PLACEHOLDER(objects): unnamed target symbol fn_804E8E90, declared extern "C" so the reloc name matches; resolve when fn_804E8E90 gets its real name in symbols.txt
-extern "C" s32 fn_804E8E90();
-// PLACEHOLDER(objects): unnamed target symbol fn_804D72A0, declared extern "C" so the reloc name matches; resolve when fn_804D72A0 gets its real name in symbols.txt
-extern "C" u32 fn_804D72A0(s32);
-// PLACEHOLDER(objects): unnamed target symbol fn_804D6520, declared extern "C" so the reloc name matches; resolve when fn_804D6520 gets its real name in symbols.txt
-extern "C" void fn_804D6520();
 
 // file-static step values (sbss2 in the target)
 static s32 sStepBase;
@@ -172,8 +168,8 @@ void WorldMapAccessPanel::exeDemoStart() {
     }
 
     if (MR::isStep(this, stepLimit - 0xA)) {
-        // NONMATCHING: world id query chain (fn_804E8E90 / fn_800592D0 / fn_80059210)
-        if (fn_804E8E90() != 0) {
+        // NONMATCHING: world id query chain (WorldMapFunction::isWorldNoMid / fn_800592D0 / fn_80059210)
+        if (WorldMapFunction::isWorldNoMid(GameDataFunction::getCurrentWorldId()) != 0) {
             fn_800592D0();
         } else {
             fn_80059210();
@@ -181,7 +177,7 @@ void WorldMapAccessPanel::exeDemoStart() {
     }
 
     if (MR::isGreaterEqualStep(this, stepLimit)) {
-        if (fn_804D8290() != 0) {
+        if (GameSequenceFunction::isGreenStarEventOnly() != 0) {
             fn_80088630();
         }
         MR::endActorCamera(this, mCameraInfo, false, -1);
@@ -309,12 +305,12 @@ void WorldMapAccessPanel::setWorldIdsAndReset() {
     // NONMATCHING: GameDataFunction::setCurrentWorldId call not resolved
     u32 worldId = 0;
     if (mWorldIdB >= 0) {
-        worldId = fn_804D72A0(mWorldIdB);
+        GameSequenceFunction::setWorldMapCurrentNode(mWorldIdB);
     }
     if (mWorldIdA >= 0) {
         (void)worldId;
     }
-    fn_804D6520();
+    GameSequenceFunction::requestChangeStageWorldMapEnterType1();
 }
 
 void WorldMapAccessPanel::startWorldMapWipe() {

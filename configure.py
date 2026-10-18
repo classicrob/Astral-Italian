@@ -2204,6 +2204,7 @@ config.libs = [
             Object(NonMatching, "Game/Boss/KoopaJrCastleCapsule.cpp"),
             Object(NonMatching, "Game/Boss/KoopaJrCastleTU06.cpp"),
             Object(NonMatching, "Game/Boss/KoopaJrCastleFunction.cpp"),
+            Object(NonMatching, "Game/Boss/KoopaJrCastleHead.cpp"),
             Object(NonMatching, "Game/Boss/KoopaJrCastleTU08.cpp"),
             Object(NonMatching, "Game/Boss/KoopaJrCastleTU09.cpp"),
             Object(NonMatching, "Game/Boss/KoopaJrCastleTU10.cpp"),

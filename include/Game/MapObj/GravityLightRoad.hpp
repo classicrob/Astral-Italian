@@ -10,20 +10,18 @@ public:
     virtual void updateHitSensor(HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void updateBindActorMtx();
-    void endBind();
-    void startDisappear();
-    bool tryStartBind(LiveActor*);
-    bool isPlayerInCylinder() const;
-    bool isPlayerFall() const;
-    void endPlayerFall();
-
+    void exeAppear();
     void exeWait();
-    void exeDraw();
+    void exePlayerFall();
     void exeDisappear();
+    void endPlayerFall();
+    bool tryPlayerFall();
+    bool isPlayerFall() const;
+    bool isPlayerInVolume();
 
-    /* 0x8C */ LiveActor* mHost;
-    /* 0x90 */ f32 mSpeed;
-    /* 0x94 */ f32 mRadius;
-    /* 0x98 */ TVec3f mEndPos;
+    /* 0x90 */ TQuat4f mQuat;
+    /* 0xA0 */ TVec3f mFallVec;
+    /* 0xAC */ f32 mFallSpeed;
+    /* 0xB0 */ f32 mRadius;
+    /* 0xB4 */ TVec3f mEndPos;
 };

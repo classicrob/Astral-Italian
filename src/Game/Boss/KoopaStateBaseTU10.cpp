@@ -80,9 +80,9 @@ void KoopaStateLastAttack::exeChaseRoll() {
     MR::startSoundInCameraDistance(mHost, "LastChaseRoll", -1, -1, 31000.0f);
     TVec3f toPlayer;
     MR::calcVecToPlayer(&toPlayer, mHost);
-    MR::turnQuatZDirRad(&mQuatA, mQuatA, toPlayer, 0.03490658f);
+    MR::turnQuatZDirRad(&mQuatA, mQuatA, toPlayer, 0.034906585f);
     f32 angle = MR::calcNerveValue(this, 75, 0.0f, 1440.0f);
-    fn_8003D330(&mHost->mQuatA, mQuatA, angle);
+    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mQuatA, angle);
     if (MR::isStep(this, 75)) {
         MR::showModel(mHost);
     }
@@ -103,7 +103,7 @@ void KoopaStateLastAttack::exeAttackSign() {
     if (MR::isLessEqualStep(this, 45)) {
         TVec3f toPlayer;
         MR::calcVecToPlayer(&toPlayer, mHost);
-        MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, toPlayer, 0.03490658f);
+        MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, toPlayer, 0.034906585f);
         MR::calcKoopaNearestAttackRockPos(&mTargetPos);
     }
     if (MR::isActionEnd(mHost)) {
@@ -122,7 +122,7 @@ void KoopaStateLastAttack::exeMoveLoop() {
     TVec3f dir;
     dir.set< f32 >(mTargetPos - mStartPos);
     MR::normalizeOrZero(&dir);
-    MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, dir, 0.03490658f);
+    MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, dir, 0.034906585f);
     MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, MR::calcNerveValue(this, 45, 0.0f, 0.8f));
     if (MR::isGreaterEqualStep(this, 44)) {
         setNerve(&NrvKoopaStateLastAttack::KoopaStateLastAttackNrvAttack::sInstance);
@@ -187,7 +187,7 @@ void KoopaStateLastAttack::exeMoveEndRoll() {
     pQuat->set< f32 >(mQuatA);
     pQuat->slerp(mQuatB, rate);
     f32 angle = MR::calcNerveEaseOutValue(this, 75, 0.0f, -1440.0f);
-    fn_8003D330(&mHost->mQuatA, mHost->mQuatA, angle);
+    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mHost->mQuatA, angle);
     MR::startSoundInCameraDistance(mHost, "LastAttackMoveEndRoll", -1, -1, 31000.0f);
     if (MR::isStep(this, 75) && mIsChaseRoll) {
         MR::showModel(mHost);

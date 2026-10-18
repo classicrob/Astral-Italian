@@ -16,11 +16,12 @@ namespace NrvKoopaStateFireAttack {
 
 KoopaStateFireAttack::KoopaStateFireAttack(KoopaBattle* pHost)
     : ActorStateBase< KoopaBattle >("クッパ炎アタック", pHost), mFireBalls(nullptr), mFireCount(1), mIsLoopStarted(false) {
-    mFireBalls = new LiveActorGroup("火炎管理", 32);
-    for (s32 i = 0; i < mFireBalls->mMaxCount; i++) {
+    DeriveActorGroup< KoopaFireBall >* pGroup = new DeriveActorGroup< KoopaFireBall >("火炎管理", 32);
+    mFireBalls = pGroup;
+    for (s32 i = 0; i < pGroup->mMaxCount; i++) {
         KoopaFireBall* pBall = new KoopaFireBall("クッパ火炎");
         pBall->initWithoutIter();
-        mFireBalls->registerActor(pBall);
+        pGroup->registerActor(pBall);
     }
     initNerve(&NrvKoopaStateFireAttack::KoopaStateFireAttackNrvFireStart::sInstance, 0);
 }
@@ -51,10 +52,10 @@ void KoopaStateFireAttack::exeFireStart() {
     TVec3f toActor = mHost->mPosition - base;
     MR::normalizeOrZero(&toActor);
     TVec3f toTarget;
-    KoopaBattle* pHost = mHost;
-    MR::calcVecToTargetPosH(&toTarget, pHost, *MR::getPlayerPos(), &toActor);
-    MR::turnQuatYDirRad(&pHost->mQuatA, pHost->mQuatA, toTarget, 0.04363323f);
-    MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, -toActor, 0.10471976f);
+    MR::calcVecToTargetPosH(&toTarget, mHost, *MR::getPlayerPos(), &toActor);
+    MR::turnQuatYDirRad(&mHost->mQuatA, mHost->mQuatA, toTarget, 0.04363323f);
+    TVec3f negActor = -toActor;
+    MR::turnQuatZDirRad(&mHost->mQuatA, mHost->mQuatA, negActor, 0.10471976f);
     if (MR::isActionEnd(mHost)) {
         setNerve(&NrvKoopaStateFireAttack::KoopaStateFireAttackNrvFireLoop::sInstance);
     }
@@ -73,8 +74,7 @@ void KoopaStateFireAttack::exeFireLoop() {
     }
     moveAroundArena(MR::calcNerveEaseInOutRate(this, 20));
     if (MR::isIntervalStep(this, 10)) {
-        LiveActorGroup* pGroup = mFireBalls;
-        KoopaFireBall* pBall = pGroup->getDeadActor() ? static_cast< KoopaFireBall* >(pGroup->getDeadActor()) : nullptr;
+        KoopaFireBall* pBall = mFireBalls->getDeadMember();
         if (pBall != nullptr) {
             pBall->shot(mFireCount);
         }
@@ -97,6 +97,7 @@ void KoopaStateFireAttack::exeFireEnd() {
     }
 }
 
+// NONMATCHING: target calls TVec3f::operator*(f32) out of line (bl __ml__) here; ours expands it inline. Calls/constants agree.
 void KoopaStateFireAttack::moveAroundArena(f32 speed) {
     TVec3f base;
     MR::getKoopaBattleBasePos(&base);

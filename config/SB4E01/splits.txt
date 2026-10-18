@@ -1164,8 +1164,14 @@ Game/Boss/KoopaJrCastleTU06.cpp:
 	.ctors      start:0x80643E94 end:0x80643E98
 
 Game/Boss/KoopaJrCastleFunction.cpp:
-	.text       start:0x800D3510 end:0x800D6310
+	.text       start:0x800D3510 end:0x800D53D0
+	.data       start:0x80674D80 end:0x80674E30
+
+Game/Boss/KoopaJrCastleHead.cpp:
+	.text       start:0x800D53D0 end:0x800D6310
 	.ctors      start:0x80643E98 end:0x80643E9C
+	.data       start:0x80674E30 end:0x80675018
+	.sbss       start:0x807D15D8 end:0x807D15F8
 
 Game/Boss/KoopaJrCastleTU08.cpp:
 	.text       start:0x800D6310 end:0x800D6CC0
@@ -1266,10 +1272,18 @@ Game/Boss/KoopaJrRobotTU13.cpp:
 Game/Boss/KoopaJrRobotTU14.cpp:
 	.text       start:0x800E28C0 end:0x800E3630
 	.ctors      start:0x80643EFC end:0x80643F00
+	.data       start:0x80676980 end:0x80676AE0
+	.sdata      start:0x807CF5E0 end:0x807CF5E4
+	.sbss       start:0x807D17F8 end:0x807D1810
+	.sdata2     start:0x807D8630 end:0x807D8638
 
 Game/Boss/KoopaJrRobotTU15.cpp:
 	.text       start:0x800E3630 end:0x800E3F90
 	.ctors      start:0x80643F00 end:0x80643F04
+	.data       start:0x80676AE0 end:0x80676C10
+	.sdata      start:0x807CF5E8 end:0x807CF5EC
+	.sbss       start:0x807D1810 end:0x807D1828
+	.sdata2     start:0x807D8638 end:0x807D8650
 
 Game/Boss/KoopaJrRobotTU16.cpp:
 	.text       start:0x800E3F90 end:0x800E4380
@@ -1564,11 +1578,12 @@ Game/Boss/TwoLegsBulletTU12.cpp:
 	.ctors      start:0x80643FFC end:0x80644000
 
 Game/Boss/Yukkina.cpp:
-	.text       start:0x8010A3D0 end:0x8010B690
+	.text       start:0x8010A3D0 end:0x8010B990
+	.ctors      start:0x80644000 end:0x80644004
 
 Game/Boss/YukkinaGroundSnow.cpp:
-	.text       start:0x8010B6C0 end:0x8010BE80
-	.ctors      start:0x80644000 end:0x80644008
+	.text       start:0x8010B990 end:0x8010BE80
+	.ctors      start:0x80644004 end:0x80644008
 
 Game/Camera/CamHeliEffector.cpp:
 	.text       start:0x8010BE80 end:0x8010C1D0

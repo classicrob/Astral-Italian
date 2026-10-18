@@ -16,7 +16,7 @@
         static name sInstance;                                                                                                                       \
     }
 
-extern s32 lbl_807E3008;
+extern const volatile s32 sKoopaJrCastleBattle3WaitStep;
 namespace KoopaJrCastleFunction {
     bool fn_800D3540(const char*, const char*);
 };
@@ -559,7 +559,7 @@ namespace NrvKoopaJrCastleStateBattle3 {
         virtual void execute(Spine* pSpine) const {
             KoopaJrCastleStateBattle3* a = reinterpret_cast< KoopaJrCastleStateBattle3* >(pSpine->mExecutor);
             MR::isFirstStep(a);
-            if (MR::isGreaterStep(a, lbl_807E3008)) {
+            if (MR::isGreaterStep(a, sKoopaJrCastleBattle3WaitStep)) {
                 a->setNerve(&KoopaJrCastleStateBattle3NrvF::sInstance);
             }
         }
@@ -634,12 +634,7 @@ namespace NrvKoopaJrCastleStateBattle4 {
     };
     class KoopaJrCastleStateBattle4NrvB : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
-            KoopaJrCastleStateBattle4* a = reinterpret_cast< KoopaJrCastleStateBattle4* >(pSpine->mExecutor);
-            if (fn_800D3540("DemoDownKoopaJrCastle", nullptr)) {
-                a->setNerve(&KoopaJrCastleStateBattle4NrvC::sInstance);
-            }
-        }
+        virtual void execute(Spine* pSpine) const;
         static KoopaJrCastleStateBattle4NrvB sInstance;
     };
 }  // namespace NrvKoopaJrCastleStateBattle4

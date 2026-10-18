@@ -15,8 +15,6 @@
 #include <cstdio>
 
 // Unnamed SMG2 helpers outside this unit.
-// PLACEHOLDER(objects): unnamed target symbol fn_8001BA80, declared extern "C" so the reloc name matches; resolve when fn_8001BA80 gets its real name in symbols.txt
-extern "C" void fn_8001BA80();
 
 // Demo/camera names stored as const pointers (they live in .sdata2 in the target).
 static const char* const sDemoStartName = "\203T\203\223\203f\203B\201[\223o\217\352\203f\203\202";
@@ -68,7 +66,7 @@ void SandyStateDemoStart::exeDemo() {
         MR::setPlayerPos("\203}\203\212\203I\203f\203\202\210\312\222u");
         MR::startBckPlayer("BattleWait", nullptr);
         MR::overlayWithPreviousScreen(2);
-        fn_8001BA80();
+        MR::stopStageBgmForDemo();
     }
     Sandy* pHost = mHost;
     if (MR::tryEndDemo(pHost, sDemoStartName, MR::isActionEnd(pHost))) {

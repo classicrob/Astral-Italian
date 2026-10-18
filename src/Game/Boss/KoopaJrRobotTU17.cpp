@@ -1,20 +1,11 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrRobot.hpp"
+#include "Game/Boss/KoopaBattleFunction.hpp"
+
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <JSystem/JMath/JMath.hpp>
-
-// PLACEHOLDER(objects): unnamed target symbol fn_800CAED0, declared extern "C" so the reloc name matches; resolve when fn_800CAED0 gets its real name in symbols.txt
-extern "C" void fn_800CAED0(TVec3f*);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CAF20, declared extern "C" so the reloc name matches; resolve when fn_800CAF20 gets its real name in symbols.txt
-extern "C" f32 fn_800CAF20();
-// PLACEHOLDER(objects): unnamed target symbol fn_800CC280, declared extern "C" so the reloc name matches; resolve when fn_800CC280 gets its real name in symbols.txt
-extern "C" bool fn_800CC280(u32);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CC290, declared extern "C" so the reloc name matches; resolve when fn_800CC290 gets its real name in symbols.txt
-extern "C" bool fn_800CC290(u32);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CB710, declared extern "C" so the reloc name matches; resolve when fn_800CB710 gets its real name in symbols.txt
-extern "C" void fn_800CB710();
 
 namespace NrvKoopaJrRobotShockWave {
     NEW_NERVE(KoopaJrRobotShockWaveNrvHide, KoopaJrRobotShockWave, Hide);
@@ -27,8 +18,7 @@ void KoopaJrRobotShockWave::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "KoopaQuakeWave", false);
     initNerve(&NrvKoopaJrRobotShockWave::KoopaJrRobotShockWaveNrvHide::sInstance, 0);
     MR::invalidateClipping(this);
-    getSensor(nullptr);
-    fn_800CB710();
+    MR::addKoopaBattleReceiverSensor(getSensor(nullptr));
     mShadow = new ShadowVolumeQuakeWave(this);
     makeActorDead();
 }
@@ -60,7 +50,7 @@ void KoopaJrRobotShockWave::attackSensor(HitSensor* pSender, HitSensor* pReceive
 }
 
 bool KoopaJrRobotShockWave::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
-    if (fn_800CC280(msg) || fn_800CC290(msg)) {
+    if (MR::isMsgKoopaBA(msg) || MR::isMsgKoopaBB(msg)) {
         makeActorDead();
         return true;
     }
@@ -69,7 +59,7 @@ bool KoopaJrRobotShockWave::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
 
 void KoopaJrRobotShockWave::start(const TVec3f& rTarget) {
     TVec3f pos;
-    fn_800CAED0(&pos);
+    MR::getKoopaBattleBasePos(&pos);
     TVec3f dir;
     TVec3f diff = rTarget - pos;
     MR::normalizeOrZero(&dir, diff);
@@ -79,7 +69,7 @@ void KoopaJrRobotShockWave::start(const TVec3f& rTarget) {
     appear();
     setNerve(&NrvKoopaJrRobotShockWave::KoopaJrRobotShockWaveNrvHide::sInstance);
     MR::setBckFrameAndStop(this, 0.0f);
-    mShadow->_2C = 100.0f + fn_800CAF20();
+    mShadow->_2C = 100.0f + MR::getKoopaBattleRadius();
     mShadow->_30 = _94;
 }
 

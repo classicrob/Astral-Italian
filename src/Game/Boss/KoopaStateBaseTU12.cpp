@@ -8,13 +8,22 @@
 #include "Game/Util.hpp"
 
 namespace {
-    // [0..1]: single pattern, [2..5]: four corners, [6..9]: four corners (mirrored order)
-    KoopaStateLastChasePattern sPatterns[10] = {
-        KoopaStateLastChasePattern(-1.0f, 0.0f, 40, 150), KoopaStateLastChasePattern(1.0f, 0.0f, 40, 150),
-        KoopaStateLastChasePattern(1.0f, 1.0f, 40, 150),  KoopaStateLastChasePattern(-1.0f, 1.0f, 40, 150),
-        KoopaStateLastChasePattern(1.0f, -1.0f, 40, 150), KoopaStateLastChasePattern(-1.0f, -1.0f, 40, 150),
-        KoopaStateLastChasePattern(1.0f, 1.0f, 40, 150),  KoopaStateLastChasePattern(-1.0f, 1.0f, 40, 150),
-        KoopaStateLastChasePattern(1.0f, -1.0f, 40, 150), KoopaStateLastChasePattern(-1.0f, -1.0f, 40, 150),
+    // single pattern, four corners, four corners (mirrored order)
+    KoopaStateLastChasePattern sPatternsSingle[2] = {
+        KoopaStateLastChasePattern(-1.0f, 0.0f, 40, 150),
+        KoopaStateLastChasePattern(1.0f, 0.0f, 40, 150),
+    };
+    KoopaStateLastChasePattern sPatternsCorner[4] = {
+        KoopaStateLastChasePattern(1.0f, 1.0f, 40, 150),
+        KoopaStateLastChasePattern(-1.0f, 1.0f, 40, 150),
+        KoopaStateLastChasePattern(1.0f, -1.0f, 40, 150),
+        KoopaStateLastChasePattern(-1.0f, -1.0f, 40, 150),
+    };
+    KoopaStateLastChasePattern sPatternsMirror[4] = {
+        KoopaStateLastChasePattern(1.0f, 1.0f, 40, 150),
+        KoopaStateLastChasePattern(-1.0f, 1.0f, 40, 150),
+        KoopaStateLastChasePattern(1.0f, -1.0f, 40, 150),
+        KoopaStateLastChasePattern(-1.0f, -1.0f, 40, 150),
     };
 };  // namespace
 
@@ -51,7 +60,8 @@ inline void KoopaStateLastChase::exeDashEnd() {
     MR::updateActorStateAndNextNerve(this, &NrvKoopaStateLastChase::KoopaStateLastChaseNrvMoveEnd::sInstance);
 }
 
-KoopaStateLastChase::KoopaStateLastChase(KoopaBattle* pHost) : ActorStateBase< KoopaBattle >("クッパ最終追跡", pHost) {
+KoopaStateLastChase::KoopaStateLastChase(KoopaBattle* pHost)
+    : ActorStateBase< KoopaBattle >("クッパ最終追跡", pHost), mDashWait(nullptr), mDashEnd(nullptr) {
     mPosA.x = 0.0f;
     mPosA.y = 0.0f;
     mPosA.z = 0.0f;
@@ -85,18 +95,17 @@ KoopaStateLastChase::KoopaStateLastChase(KoopaBattle* pHost) : ActorStateBase< K
 }
 
 void KoopaStateLastChase::setPatternMode(s32 mode) {
-    KoopaStateLastChasePattern* pBase = sPatterns;
     switch (mode) {
     case 1:
-        mPatterns = pBase;
+        mPatterns = sPatternsSingle;
         mPatternNum = 2;
         break;
     case 2:
-        mPatterns = &pBase[2];
+        mPatterns = sPatternsCorner;
         mPatternNum = 4;
         break;
     case 3:
-        mPatterns = &pBase[6];
+        mPatterns = sPatternsMirror;
         mPatternNum = 4;
         break;
     }
@@ -127,7 +136,7 @@ void KoopaStateLastChase::setupTarget() {
     calcTargetPos(&mPosC, mPosB, mPatternIdx + 1);
     mRollStep = mPatterns[mPatternIdx].mRollStep;
     mHoldStep = mPatterns[mPatternIdx].mHoldStep;
-    mIsLeft = mPatterns[mPatternIdx].mX < 0.0f;
+    mIsLeft = mPatterns[mPatternIdx].mX > 0.0f;
 }
 
 void KoopaStateLastChase::exeDashWait() {
@@ -138,7 +147,8 @@ void KoopaStateLastChase::exeDashWait() {
     }
     TVec3f dir;
     MR::normalizeOrZero(&dir, mPosB - mPosA);
-    MR::turnQuatZDirRate(&mHost->mQuatA, mQuat, dir, 0.5f * MR::calcNerveEaseInOutRate(this, 70));
+    TQuat4f* pQuat = &mHost->mQuatA;
+    MR::turnQuatZDirRate(pQuat, mQuat, dir, 0.5f * MR::calcNerveEaseInOutRate(this, 70));
     MR::updateActorStateAndNextNerve(this, &NrvKoopaStateLastChase::KoopaStateLastChaseNrvRoll::sInstance);
 }
 
@@ -147,7 +157,7 @@ void KoopaStateLastChase::exeRoll() {
         mQuat.set< f32 >(mHost->mQuatA);
         mStep = 0;
     }
-    fn_8003D330(&mHost->mQuatA, mQuat, MR::calcNerveValue(this, mRollStep - 4, 0.0f, 720.0f));
+    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mQuat, MR::calcNerveValue(this, mRollStep - 4, 0.0f, 720.0f));
     moveToTarget();
     MR::startSoundInCameraDistance(mHost, "LastChaseRoll", -1, -1, 31000.0f);
     if (MR::isGreaterStep(this, mRollStep - 5)) {
@@ -155,6 +165,7 @@ void KoopaStateLastChase::exeRoll() {
     }
 }
 
+// NONMATCHING: GPR allocation only (target host/quat pointers r29/r30, ours r30/r29)
 void KoopaStateLastChase::exeMoveEnd() {
     if (MR::isFirstStep(this)) {
         MR::startKoopaBattleFaceCtrl(mHost, 30);
@@ -190,9 +201,11 @@ void KoopaStateLastChase::nextPattern() {
     mPatternIdx = 0;
 }
 
+// NONMATCHING: FPR allocation only (the target keeps 3500.0f in f3 and the summed z in f1; ours f2/f3)
 bool KoopaStateLastChase::calcTargetPos(TVec3f* pDst, const TVec3f& rSrc, s32 idx) {
     s32 num = mPatternNum;
-    f32 z = 3500.0f + MR::calcKoopaBattleFrontDot(rSrc);
+    f32 z = MR::calcKoopaBattleFrontDot(rSrc);
+    z += 3500.0f;
     bool res = false;
     s32 i = (num + idx) % num;
     TVec3f local;
@@ -228,12 +241,15 @@ bool KoopaStateLastChase::moveToTarget() {
     } else {
         rate = 0.8f;
         f32 t = static_cast< f32 >(mStep - mRollStep) / static_cast< f32 >(mHoldStep);
+        f32 clamped;
         if (t < 0.0f) {
-            t = 0.0f;
+            clamped = 0.0f;
         } else if (t > 1.0f) {
-            t = 1.0f;
+            clamped = 1.0f;
+        } else {
+            clamped = t;
         }
-        rate += 0.2f * MR::getEaseOutValue(t, 0.0f, 1.0f, 1.0f);
+        rate += 0.2f * MR::getEaseOutValue(clamped, 0.0f, 1.0f, 1.0f);
     }
     MR::vecBlend(&mHost->mPosition, mPosA, mPosB, rate);
     bool res = false;

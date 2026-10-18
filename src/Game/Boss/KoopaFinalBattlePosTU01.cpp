@@ -168,7 +168,7 @@ namespace MR {
             rate = 1.0f - MR::normalize(angle, 100.0f, 180.0f);
         }
         MR::calcVecToTargetPosH(&toTarget, pBattle, *MR::getPlayerPos(), &toActor);
-        MR::turnQuatYDirRad(&pBattle->mQuatA, pBattle->mQuatA, toTarget, 0.01745329f * (3.0f * rate));
+        MR::turnQuatYDirRad(&pBattle->mQuatA, pBattle->mQuatA, toTarget, 0.017453292f * (3.0f * rate));
         MR::turnQuatZDirRad(&pBattle->mQuatA, pBattle->mQuatA, -toActor, 0.10471976f);
         MR::calcUpVec(&up, pBattle);
         JMAVECScaleAdd(&toActor, &up, &up, -toActor.dot(up));

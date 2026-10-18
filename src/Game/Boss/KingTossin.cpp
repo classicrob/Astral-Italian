@@ -2,15 +2,8 @@
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-// PLACEHOLDER(objects): unnamed core helper (stopStageBGM(10) + mute the scene sound manager); resolve when core names fn_8001BA80
-extern "C" void fn_8001BA80();
-// PLACEHOLDER(objects): unnamed core helper (ActorItemGenerator: emit the 4th item kind of the actor); resolve when core names fn_8022BB70
-extern "C" void fn_8022BB70(LiveActor*);
-// PLACEHOLDER(objects): unnamed core helper (if isActionEnd: end demo + end anim camera, returns true); resolve when core names fn_800202E0
-extern "C" bool fn_800202E0(LiveActor*, ActorCameraInfo*, const char*, s32);
-// PLACEHOLDER(objects): unnamed core helper (getEaseInValue(normalize(t, min, max), start, end, 1)); resolve when core names fn_8003B900
-extern "C" f32 fn_8003B900(f32, f32, f32, f32, f32);
 // PLACEHOLDER(objects): unnamed core helper (move along rail H, then moveAndTurnToDirection); resolve when core names fn_800137F0
 extern "C" void fn_800137F0(LiveActor*, TVec3f*, const TVec3f*, f32, f32, f32, f32, f32);
 // PLACEHOLDER(objects): unnamed core helper (dst = normalizeOrZero(pos - actor pos)); resolve when core names fn_8000E960
@@ -314,7 +307,7 @@ void KingTossin::exeWaitStart() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::hideModel(this);
-        fn_8001BA80();
+        MR::stopStageBgmForDemo();
     }
 
     if (!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) {
@@ -330,7 +323,7 @@ void KingTossin::exeWaitStart() {
 void KingTossin::exeDemoOpening() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "DemoOpening");
-        fn_8001BA80();
+        MR::stopStageBgmForDemo();
         mPlayerMtx.set(MR::getPlayerBaseMtx());
         TPos3f mtx;
         mtx.identity();
@@ -370,7 +363,7 @@ void KingTossin::exeDemoPowerUp() {
             MR::startActorCameraTargetPlayer(this, mCameraInfo, 0);
         }
 
-        fn_8022BB70(this);
+        MR::emitItemBossDamage(this);
         setNerve(getWaitNerve());
     }
 }
@@ -388,7 +381,7 @@ void KingTossin::exeDemoDown() {
         MR::invalidateShadowAll(this);
     }
 
-    if (fn_800202E0(this, mDownCameraInfo, "DemoDown", 0)) {
+    if (MR::endDemoAndAnimCameraIfActionEnd(this, mDownCameraInfo, "DemoDown", 0)) {
         mJointCtrl->startFaceCtrl(-1);
         MR::showPlayer();
         kill();
@@ -416,7 +409,7 @@ void KingTossin::exeDamage() {
         mLife--;
         mMoveDir = mFront;
         MR::startAction(this, "BackSideDamage");
-        fn_8022BB70(this);
+        MR::emitItemBossDamage(this);
 
         TVec3f velocity(0.0f);
         TVec3f up(0.0f);
@@ -507,7 +500,7 @@ void KingTossin::exeChanceSliding() {
 
     s32 start = sBrakeStartStep;
     s32 end = start + 60;
-    f32 speed = fn_8003B900(getNerveStep(), start, end, mSlideSpeed, sBrakeEndSpeed);
+    f32 speed = MR::getEaseInValueWithNormalize(getNerveStep(), start, end, mSlideSpeed, sBrakeEndSpeed);
     TVec3f dir(mVelocity);
     MR::normalizeOrZero(&dir);
     mVelocity.set(dir * speed);
@@ -550,7 +543,7 @@ void KingTossin::exeRun() {
     f32 distance = MR::calcDistance(this, getTargetPos());
 
     if (isTargetInSight(90.0f, 1700.0f)) {
-        f32 rate = fn_8003B900(distance, 1100.0f, 1700.0f, 0.0f, 1.0f);
+        f32 rate = MR::getEaseInValueWithNormalize(distance, 1100.0f, 1700.0f, 0.0f, 1.0f);
         calcBlendDirToTarget(&mMoveDir, this, mFront, rate);
     } else {
         calcBlendDirToTarget(&mMoveDir, this, mFront, 1.0f);
@@ -588,7 +581,7 @@ void KingTossin::exeRolling() {
 
     TVec3f dir(mMoveDir);
     f32 distance = MR::calcDistance(this, getTargetPos());
-    f32 rate = fn_8003B900(distance, 1100.0f, 1700.0f, 0.0f, 1.0f);
+    f32 rate = MR::getEaseInValueWithNormalize(distance, 1100.0f, 1700.0f, 0.0f, 1.0f);
     calcBlendDirToTarget(&mMoveDir, this, mFront, rate);
 
     MR::vecKillElement(mMoveDir, mGravity, &mMoveDir);
@@ -632,7 +625,7 @@ void KingTossin::exeRollingLv2() {
     } else {
         TVec3f dir(mMoveDir);
         f32 distance = MR::calcDistance(this, getTargetPos());
-        f32 rate = fn_8003B900(distance, 1100.0f, 1700.0f, 0.0f, 1.0f);
+        f32 rate = MR::getEaseInValueWithNormalize(distance, 1100.0f, 1700.0f, 0.0f, 1.0f);
         calcBlendDirToTarget(&mMoveDir, this, mFront, rate);
     }
 
@@ -972,7 +965,7 @@ void KingTossin::exeBrake() {
 
     s32 start = sBrakeStartStep;
     s32 end = start + 60;
-    f32 speed = fn_8003B900(getNerveStep(), start, end, mSlideSpeed, sBrakeEndSpeed);
+    f32 speed = MR::getEaseInValueWithNormalize(getNerveStep(), start, end, mSlideSpeed, sBrakeEndSpeed);
     TVec3f dir(mVelocity);
     MR::normalizeOrZero(&dir);
     mVelocity.set(dir * speed);

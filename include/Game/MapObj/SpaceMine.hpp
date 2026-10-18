@@ -3,7 +3,10 @@
 #include "Game/MapObj/MapObjActor.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+class AnimScaleController;
 class BenefitItemObj;
+class WalkerStateBindStarPointer;
+class YoshiLockOnTarget;
 
 class SpaceMine : public MapObjActor {
 public:
@@ -15,21 +18,30 @@ public:
     virtual void kill();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     bool isCalcShadowAlways() const;
     void exeWait();
     void exeAppear();
+    void exeReaction();
+    void exePause();
     bool appearItem();
 
+    // NONMATCHING: target compiles this range test as an inlined cmpwi/ble/cmpwi/bge into a bool temp; the plain
+    // `return` form here folds to a single cmplwi (init/initAfterPlacement/isCalcShadowAlways lose a few rows).
     inline bool isShadowValid(s32 val) const {
         return val > -1 && val < 2;
     }
 
-    /* 0xC4 */ f32 mRotateSpeed;
-    /* 0xC8 */ TVec3f mClippingRange;
-    /* 0xD4 */ s32 mShadowType;
+    /* 0xD0 */ f32 mRotateSpeed;
+    /* 0xD4 */ TVec3f mClippingRange;
+    /* 0xE0 */ s32 mShadowType;
     /* 0xE4 */ s32 mItemType;
     /* 0xE8 */ u8 mIsPlayerNear;
     /* 0xEC */ BenefitItemObj* mBenefitItem;
     /* 0xF0 */ TPos3f mKinokoMtx;
+    /* 0x120 */ YoshiLockOnTarget* mLockOnTarget;
+    /* 0x124 */ AnimScaleController* mAnimScaleCtrl;
+    /* 0x128 */ WalkerStateBindStarPointer* mStarPointerState;
 };

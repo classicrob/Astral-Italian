@@ -15,8 +15,6 @@
 #include <cstdio>
 
 // Unnamed SMG2 helpers outside this unit.
-// PLACEHOLDER(objects): unnamed target symbol fn_8003D2D0, declared extern "C" so the reloc name matches; resolve when fn_8003D2D0 gets its real name in symbols.txt
-extern "C" void fn_8003D2D0(TQuat4f*, const TQuat4f*, const TVec3f&, f32);
 
 // Shared state helpers
 // 80100030
@@ -182,7 +180,7 @@ void SandyStateDamage::exeOpenWaitTurn() {
     f32 rate = mTurnRate;
     TVec3f front;
     TVec3f up = -mHost->mGravity;
-    fn_8003D2D0(&mHost->mTargetQuat, &mHost->mTargetQuat, up, 0.017453292f * rate);
+    MR::rotateQuatAroundAxis(&mHost->mTargetQuat, mHost->mTargetQuat, up, 0.017453292f * rate);
     mHost->mTargetQuat.getZDir(front);
     if (20.0f < 57.29578f * MR::diffAngleAbs(mFrontVec, front)) {
         mTurnRate *= -1.0f;

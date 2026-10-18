@@ -3,7 +3,11 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/MapObjActorInitInfo.hpp"
+#include "Game/MapObj/MapObjConnector.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/DemoUtil.hpp"
+#include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 
 namespace {
     extern char sBurnSound[];
@@ -13,6 +17,19 @@ namespace NrvCandlestand {
     NEW_NERVE(HostTypeWaitFire, Candlestand, WaitFire);
     NEW_NERVE(HostTypeFire, Candlestand, Fire);
     NEW_NERVE(HostTypeBurn, Candlestand, Burn);
+    class HostTypeEmit : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            Candlestand* actor = reinterpret_cast< Candlestand* >(pSpine->mExecutor);
+            if (MR::isFirstStep(actor)) {
+                actor->emitEffectFire();
+            }
+
+            actor->setNerve(GET_NERVE(Candlestand, HostTypeBurn));
+        };
+        static HostTypeEmit sInstance;
+    };
+    HostTypeEmit HostTypeEmit::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(HostTypeAttack, Candlestand, Attack);
     NEW_NERVE(HostTypeExtinguish, Candlestand, Extinguish);
     NEW_NERVE(HostTypeFlicker, Candlestand, Flicker);
@@ -46,7 +63,7 @@ namespace {
     }
 };  // namespace
 
-Candlestand::Candlestand(const char* pName) : MapObjActor(pName), mItem(-1), mHasItemAppear(), mSpinPtclCb() {
+Candlestand::Candlestand(const char* pName) : MapObjActor(pName), mItem(-1), mHasItemAppear(), mSpinPtclCb(), mConnector() {
 }
 
 void Candlestand::init(const JMapInfoIter& rIter) {
@@ -66,37 +83,60 @@ void Candlestand::init(const JMapInfoIter& rIter) {
     info.setupClippingRadius(clippingRadius);
     info.setupNerve(GET_NERVE(Candlestand, HostTypeBurn));
     info.setupAffectedScale();
+    info.setupSound(4, "CandleStand");
     initialize(rIter, info);
 
     const char* pObjName = mObjectName;
     ::getParam(pObjName);
     ::getParam(pObjName);
     MR::getJMapInfoArg0NoInit(rIter, &mItem);
+
+    bool hasConnector = false;
+    MR::getJMapInfoArg1NoInit(rIter, &hasConnector);
+    if (hasConnector) {
+        mConnector = new MapObjConnector(this);
+    }
+
     if (mItem == -1) {
         MR::declareCoin(this, 1);
     }
 
     if (mItem == 0) {
         MR::declareStarPiece(this, 1);
+        MR::initStarPointerTarget(this, 150.0f, TVec3f(0.0f, 150.0f, 0.0f));
     }
 
     if (::getParam(mObjectName)->mCanUseSwitch) {
         if (MR::isValidSwitchA(this)) {
             setNerve(GET_NERVE(Candlestand, HostTypeWaitFire));
         } else {
-            setNerve(GET_NERVE(Candlestand, HostTypeBurn));
+            setNerve(GET_NERVE(Candlestand, HostTypeEmit));
+            MR::registerDemoSimpleCastAll(this);
         }
     }
 
     mSpinPtclCb = new SpinPullParticleCallBack();
 }
 
+void Candlestand::initAfterPlacement() {
+    MapObjActor::initAfterPlacement();
+
+    if (mConnector != nullptr) {
+        mConnector->attachToUnder();
+    }
+}
+
+void Candlestand::calcAndSetBaseMtx() {
+    if (mConnector != nullptr) {
+        mConnector->connect();
+    }
+
+    MapObjActor::calcAndSetBaseMtx();
+}
+
 void Candlestand::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-
-    if (!::getParam(mObjectName)->mCanUseSwitch && !MR::isClipped(this)) {
-        emitEffectFire();
-    }
+    ::getParam(mObjectName);
 }
 
 void Candlestand::startClipped() {
@@ -115,13 +155,19 @@ void Candlestand::endClipped() {
     MapObjActor::endClipped();
 }
 
+void Candlestand::control() {
+    if (isNerve(GET_NERVE(Candlestand, HostTypeBurn))) {
+        MR::attachSupportTicoToTarget(this);
+    }
+}
+
 void Candlestand::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerve(GET_NERVE(Candlestand, HostTypeBurn))) {
         return;
     }
 
     f32 range = mScale.x * 50.0f;
-    f32 radius = pReceiver->mRadius;
+    f32 radius = MR::getSensorRadius(pReceiver);
 
     if (!MR::isNear(pSender, pReceiver, range + radius)) {
         return;
@@ -135,6 +181,10 @@ void Candlestand::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool Candlestand::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        return tryExtinguish();
+    }
+
     if (!isNerve(GET_NERVE(Candlestand, HostTypeWaitFire))) {
         return false;
     }
@@ -144,7 +194,7 @@ bool Candlestand::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
     }
 
     f32 range = mScale.x * 150.0f;
-    f32 radius = pSender->mRadius;
+    f32 radius = MR::getSensorRadius(pSender);
 
     if (!MR::isNear(pSender, pReceiver, range + radius)) {
         return false;
@@ -164,7 +214,7 @@ bool Candlestand::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* 
     }
 
     f32 range = mScale.x * 150.0f;
-    f32 radius = pSender->mRadius;
+    f32 radius = MR::getSensorRadius(pSender);
 
     if (!MR::isNear(pSender, pReceiver, range + radius)) {
         return false;
@@ -189,10 +239,10 @@ bool Candlestand::tryExtinguish() {
 
     if (::getParam(mObjectName)->mCanUseSwitch) {
         setNerve(GET_NERVE(Candlestand, HostTypeFlicker));
-    } else {
-        setNerve(GET_NERVE(Candlestand, HostTypeExtinguish));
+        return true;
     }
 
+    setNerve(GET_NERVE(Candlestand, HostTypeExtinguish));
     return true;
 }
 
@@ -237,7 +287,13 @@ void Candlestand::appearItem() {
         height *= mScale.y;
     }
 
-    position.y += height;
+    TVec3f upVec;
+    MR::calcUpVec(&upVec, this);
+
+    TVec3f offset(upVec);
+    offset *= height;
+    position += offset;
+
     if (mItem == -1) {
         angle = ::getParam(mObjectName)->mCoinAngle;
         if (MR::isNearZero(angle)) {
@@ -257,9 +313,7 @@ void Candlestand::appearItem() {
             MR::appearCoinPopToDirection(this, position, up, 1);
         }
     } else if (mItem == 0) {
-        if (MR::appearStarPiece(this, position, 1, 10.0f, 40.0f, false)) {
-            MR::startActionSound(this, "OjStarPieceBurst");
-        }
+        MR::appearStarPiece(this, position, 1, 10.0f, 40.0f, false);
     }
 
     mHasItemAppear = true;

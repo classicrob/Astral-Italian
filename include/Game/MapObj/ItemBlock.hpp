@@ -1,14 +1,16 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TVec.hpp>
 
 class ItemBlock : public LiveActor {
 public:
     ItemBlock(const char*);
 
     virtual void init(const JMapInfoIter&);
+    virtual void initAfterPlacement();
     virtual void calcAnim();
-    virtual void appear();
+    virtual void makeActorAppeared();
     virtual void kill();
     virtual void startClipped();
     virtual void endClipped();
@@ -16,7 +18,6 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
 
     void checkKind(const JMapInfoIter&);
-    void initBlock();
     bool tryStartJumpPunch();
     void exeStandby();
     void exeWait();
@@ -25,9 +26,11 @@ public:
     void decTimer();
 
     /* 0x90 */ s32 mKind;
-    /* 0x94 */ s32 mTimer;
-    /* 0x98 */ s32 mItemCount;
-    /* 0x9C */ u8 _98;
-    /* 0x9D */ bool mCalcShadow;
-    /* 0x9E */ bool mNoCalcAnim;
+    /* 0x94 */ TVec3f mClippingRange;
+    /* 0xA0 */ s32 mTimer;
+    /* 0xA4 */ s32 mCooldownTimer;
+    /* 0xA8 */ s32 mItemCount;
+    /* 0xAC */ u8 _AC;
+    /* 0xAD */ bool mCalcShadow;
+    /* 0xAE */ bool mNoCalcAnim;
 };

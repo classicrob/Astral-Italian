@@ -12,40 +12,34 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 
-namespace {
-    const f32 sBaseInterpoleRate = 0.2f;
-    const f32 sAccel = 2.0f;
-    const f32 sSpeedMax = 20.0f;
-    const s32 sForceEndBindTime = 1800;
-};  // namespace
-
 namespace NrvGravityLightRoad {
+    NEW_NERVE(GravityLightRoadNrvAppear, GravityLightRoad, Appear);
     NEW_NERVE(GravityLightRoadNrvWait, GravityLightRoad, Wait);
-    NEW_NERVE(GravityLightRoadNrvDraw, GravityLightRoad, Draw);
+    NEW_NERVE(GravityLightRoadNrvPlayerFall, GravityLightRoad, PlayerFall);
     NEW_NERVE(GravityLightRoadNrvDisappear, GravityLightRoad, Disappear);
 };  // namespace NrvGravityLightRoad
 
-void GravityLightRoad_FORCE_MATCH_SDATA2() {
-    (void)2500.0f;
-    (void)250.0f;
-    (void)20.0f;
-    (void)0.2f;
-}
+// PLACEHOLDER(objects): fn_800513C0 (TQuat4f*, TVec3f*) is an unnamed MR quaternion helper called on the base-mtx update msg while falling; resolve when named
+extern "C" void fn_800513C0(TQuat4f*, TVec3f*);
+// PLACEHOLDER(objects): fn_800514B0 (TQuat4f*, TVec3f*) is an unnamed MR helper called when the fall begins; resolve when named
+extern "C" void fn_800514B0(TQuat4f*, TVec3f*);
 
-GravityLightRoad::GravityLightRoad(const char* pName) : LiveActor(pName), mHost(), mSpeed(), mRadius(2500.0f), mEndPos(0.0f, 0.0f, 0.0f) {
+GravityLightRoad::GravityLightRoad(const char* pName) : LiveActor(pName) {
+    mFallVec.x = 0.0f;
+    mFallVec.y = 0.0f;
+    mFallVec.z = 0.0f;
+    mFallSpeed = 0.0f;
+    mRadius = 2500.0f;
+    mEndPos.x = 0.0f;
+    mEndPos.y = 0.0f;
+    mEndPos.z = 0.0f;
+    mQuat.set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void GravityLightRoad::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-
-    mRadius = 2500.0f * mScale.y;
-
     MR::initActor(this, rIter, "GravityLightRoad", false);
 
-    MR::connectToSceneMapObj(this);
-
-    initHitSensor(1);
-    MR::addHitSensorCallbackPriorBinder(this, "body", 4, 250.0f);
+    mRadius = 2500.0f * mScale.y;
 
     f32 boundingRadius;
     MR::calcModelBoundingRadius(&boundingRadius, this);
@@ -60,17 +54,23 @@ void GravityLightRoad::init(const JMapInfoIter& rIter) {
 
     MR::setClippingTypeSphere(this, boundingRadius, &mEndPos);
 
-    MR::useStageSwitchReadA(this, rIter);
-
     if (MR::isValidSwitchA(this)) {
-        MR::listenStageSwitchOnA(this, MR::Functor(this, &GravityLightRoad::startDisappear));
+        MR::listenStageSwitchOnA(this, MR::FunctorV0M< GravityLightRoad*, void (GravityLightRoad::*)() >(this, &GravityLightRoad::endPlayerFall));
     }
 
-    MR::startAllAnim(this, "GravityLightRoad");
+    initNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvAppear));
 
-    initNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvWait));
+    MR::useStageSwitchSyncAppear(this, rIter);
+}
 
-    makeActorAppeared();
+void GravityLightRoad::exeAppear() {
+    if (MR::isFirstStep(this)) {
+        MR::startBrk(this, "Appear");
+    }
+
+    if (MR::isBrkStopped(this)) {
+        setNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvWait));
+    }
 }
 
 void GravityLightRoad::exeWait() {
@@ -79,34 +79,45 @@ void GravityLightRoad::exeWait() {
     }
 }
 
-void GravityLightRoad::exeDraw() {
+// NONMATCHING: same calls and math; remaining diff is ps-vector stack slots and instruction scheduling around the scale/normalize block
+void GravityLightRoad::exePlayerFall() {
     if (MR::isFirstStep(this)) {
-        mSpeed = 0.0f;
+        mFallSpeed = 0.0f;
+        MR::startActionSound(this, "SyReadRiddleS", -1, -1, -1);
+        MR::startBckPlayer("Fall", nullptr);
         MR::startSoundPlayer("SE_PM_GRAV_LIGHT_DRAWN_ST", -1, -1);
     }
 
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);
 
-    mSpeed += ::sAccel;
-
-    mHost->mVelocity.scale(mSpeed, upVec);
-    MR::restrictVelocity(mHost, ::sSpeedMax);
-
-    mHost->mPosition.add(mHost->mVelocity);
-
-    TVec3f dir;
-    dir.sub(mPosition, *MR::getPlayerPos());
-    TVec3f fwdVec = upVec.getOrthogonal(dir);
-
-    if (!MR::isNearZero(fwdVec, ::sAccel)) {
-        TVec3f fwdDir;
-        MR::normalize(fwdVec, &fwdDir);
-        mHost->mPosition.scaleAdd(::sAccel, fwdDir, mHost->mPosition);
+    mFallSpeed += 2.0f;
+    if (mFallSpeed > 30.0f) {
+        mFallSpeed = 30.0f;
     }
 
-    if (MR::isStep(this, ::sForceEndBindTime)) {
-        startDisappear();
+    TVec3f vec(upVec);
+    vec.scale(mFallSpeed);
+    mFallVec.add(vec);
+
+    TVec3f negUp = -upVec;
+    MR::turnQuatYDirRate(&mQuat, mQuat, negUp, 0.1f);
+
+    TVec3f toPlayer;
+    toPlayer.sub(mPosition, *MR::getPlayerPos());
+
+    f32 dot = upVec.dot(toPlayer);
+    TVec3f fwdVec;
+    fwdVec.scaleAdd(-dot, upVec, toPlayer);
+
+    if (!MR::isNearZero(fwdVec, 2.0f)) {
+        TVec3f fwdDir;
+        MR::normalize(fwdVec, &fwdDir);
+        mFallVec.scaleAdd(2.0f, fwdDir, mFallVec);
+    }
+
+    if (MR::isStep(this, 0x708)) {
+        endPlayerFall();
     }
 }
 
@@ -126,11 +137,16 @@ bool GravityLightRoad::receiveOtherMsg(u32 msg, HitSensor* pReceiver, HitSensor*
     }
 
     if (MR::isMsgAutoRushBegin(msg) && MR::isSensorPlayer(pReceiver)) {
-        return tryStartBind(pReceiver->mHost);
+        return tryPlayerFall();
     }
 
-    if (MR::isMsgUpdateBaseMtx(msg) && mHost != nullptr) {
-        updateBindActorMtx();
+    if (MR::isMsgUpdateBaseMtx(msg) && isPlayerFall()) {
+        fn_800513C0(&mQuat, &mFallVec);
+        return true;
+    }
+
+    if (MR::isMsgRushForceCancel(msg) || MR::isMsgRushCancel(msg)) {
+        setNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvDisappear));
         return true;
     }
 
@@ -145,66 +161,43 @@ void GravityLightRoad::updateHitSensor(HitSensor* pSensor) {
     TVec3f vec;
     vec.scaleAdd(mRadius, upVec, mPosition);
 
-    MR::calcPerpendicFootToLineInside(&pSensor->mPosition, *MR::getPlayerCenterPos(), mPosition, vec);
+    MR::calcPerpendicFootToLineInside(MR::getSensorPos2(pSensor), *MR::getPlayerCenterPos(), mPosition, vec);
 }
 
-void GravityLightRoad::updateBindActorMtx() {
-    TPos3f baseMtx;
-    baseMtx.identity();
+void GravityLightRoad::endPlayerFall() {
+    if (isPlayerFall()) {
+        TVec3f upVec;
+        MR::calcUpVec(&upVec, this);
+        upVec.scale(2.0f);
 
-    TVec3f upVec;
-    MR::calcUpVec(&upVec, this);
-    upVec.negate();
-
-    MR::makeMtxUpNoSupport(&baseMtx, upVec);
-
-    MR::blendMtxRotate(mHost->getBaseMtx(), baseMtx, ::sBaseInterpoleRate, baseMtx);
-    baseMtx.setTrans(mHost->mPosition);
-
-    MR::setBaseTRMtx(mHost, baseMtx);
-}
-
-void GravityLightRoad::endBind() {
-    TVec3f upVec;
-    MR::calcUpVec(&upVec, this);
-    upVec.scale(::sAccel);
-
-    MR::endBindAndPlayerForceJump(this, upVec, 0);
-
-    mHost = nullptr;
-
-    MR::validateClipping(this);
-}
-
-void GravityLightRoad::startDisappear() {
-    if (mHost != nullptr) {
-        endBind();
+        MR::endBindAndPlayerForceJump(this, upVec, 0);
+        MR::validateClipping(this);
     }
 
     setNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvDisappear));
 }
 
-bool GravityLightRoad::tryStartBind(LiveActor* pActor) {
-    if (mHost != nullptr) {
+bool GravityLightRoad::tryPlayerFall() {
+    if (isPlayerFall()) {
         return false;
     }
 
-    if (!isPlayerInCylinder()) {
+    if (!isPlayerInVolume()) {
         return false;
     }
 
-    mHost = pActor;
-
-    MR::startBckPlayer("Fall");
-
+    MR::startBckPlayer("Fall", nullptr);
     MR::invalidateClipping(this);
-
-    setNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvDraw));
-
+    fn_800514B0(&mQuat, &mFallVec);
+    setNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvPlayerFall));
     return true;
 }
 
-bool GravityLightRoad::isPlayerInCylinder() const {
+bool GravityLightRoad::isPlayerFall() const {
+    return isNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvPlayerFall));
+}
+
+bool GravityLightRoad::isPlayerInVolume() {
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);
 

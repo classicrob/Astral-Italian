@@ -4,6 +4,12 @@
 
 class HitSensor;
 class KoopaBattle;
+class KoopaBattleCamera;
+class KoopaStateBattleStart;
+class KoopaStateFireAttack;
+class KoopaStateAttackQuake;
+class KoopaStateMeteor;
+class KoopaStateDamage;
 
 // Final Bowser battle stage controller ("クッパ戦闘段階"). Built by KoopaStateLv1/2/3Sequence (fn_800E28C0).
 // It owns the sub-states of one battle phase and runs them through a sequence table (set per stage/variant).
@@ -33,12 +39,12 @@ public:
     bool isInSequence(s32) const;     // fn_800E31F0
     void setNextSequence();           // fn_800E2CA0
 
-    /* 0x10 */ ActorStateBaseInterface* mStateBattleStart;
-    /* 0x14 */ ActorStateBaseInterface* mStateAttackFire;
-    /* 0x18 */ ActorStateBaseInterface* mStateAttackQuake;
-    /* 0x1C */ ActorStateBaseInterface* mStateAttackMeteor;
-    /* 0x20 */ ActorStateBaseInterface* mStateDamage;
-    /* 0x24 */ void* mStateExtra;
+    /* 0x10 */ KoopaStateBattleStart* mStateBattleStart;
+    /* 0x14 */ KoopaStateFireAttack* mStateAttackFire;
+    /* 0x18 */ KoopaStateAttackQuake* mStateAttackQuake;
+    /* 0x1C */ KoopaStateMeteor* mStateAttackMeteor;
+    /* 0x20 */ KoopaStateDamage* mStateDamage;
+    /* 0x24 */ KoopaBattleCamera* mStateExtra;
     /* 0x28 */ const s32* mSequence;
     /* 0x2C */ s32 mSequenceCount;
     /* 0x30 */ s32 mSequenceIndex;
@@ -46,4 +52,5 @@ public:
     /* 0x38 */ s32 mHp;
     /* 0x3C */ s32 mStage;
     /* 0x40 */ s32 mVariant;
+    /* 0x44 */ u32 _44;  // never touched in TU14; allocation size is 0x48 (KoopaStateLv1/2/3Sequence ctors)
 };

@@ -4,9 +4,6 @@
 #include "Game/MapObj/MapPartsRailMover.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_802CB810, declared extern "C" so the reloc name matches; resolve when fn_802CB810 gets its real name in symbols.txt
-extern "C" void fn_802CB810(LiveActor*);
-
 namespace NrvBigRepeatWarpLift {
     class BigRepeatWarpLiftNrvHide : public Nerve {
     public:
@@ -81,7 +78,7 @@ void BigRepeatWarpLift::exeAppear() {
 
 void BigRepeatWarpLift::exeMove() {
     if (MR::isFirstStep(this)) {
-        fn_802CB810(this);
+        MapObjActorUtil::endRotator(this);
     }
 
     MR::startActionSound(this, "Move", -1, -1, -1);

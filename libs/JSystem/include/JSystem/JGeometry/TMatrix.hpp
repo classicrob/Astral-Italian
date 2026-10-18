@@ -592,6 +592,7 @@ namespace JGeometry {
         }
 
         void setScale(const TVec3f& rSrc);
+        void setScale(f32 scale);
         void setScale(f32 x, f32 y, f32 z) NO_INLINE {
             this->mMtx[0][0] = x;
             this->mMtx[0][1] = 0.0f;

@@ -3,6 +3,7 @@
 #include "Game/MapObj/MapObjActor.hpp"
 
 class DemoCtrlBase;
+class PartsModel;
 
 class RailMoveObj : public MapObjActor {
 public:
@@ -27,6 +28,7 @@ public:
     bool isMoving() const;
     void exeWait();
     void exeMove();
+    void exeDemoMove();
     void setNerveMove();
     void setNerveWait();
 
@@ -108,4 +110,69 @@ public:
     virtual void control();
 
     /* 0xE0 */ TVec3f mShadowDropDir;
+};
+
+class RailMoveObjSwitchWarpEnd : public RailMoveObj {
+public:
+    inline RailMoveObjSwitchWarpEnd(const char* pName) : RailMoveObj(pName) {
+    }
+
+    virtual bool tryStartMove();
+    virtual void startMoveInner();
+    virtual void move();
+    virtual void doAtEndPoint();
+
+    /* 0xDD */ u8 _DD;
+};
+
+class RailMoveObjShakeCamera : public RailMoveObj {
+public:
+    RailMoveObjShakeCamera(const char*);
+
+    virtual void doAtEndPoint();
+};
+
+class RailMoveWithIndirectModelObj : public RailMoveObj {
+public:
+    RailMoveWithIndirectModelObj(const char*);
+
+    virtual void init(const JMapInfoIter&);
+
+    /* 0xE0 */ PartsModel* mIndirectModel;
+};
+
+class RailSeesawMoveObj : public RailMoveObj {
+public:
+    inline RailSeesawMoveObj(const char* pName) : RailMoveObj(pName) {
+    }
+
+    virtual void setupInitInfo(const JMapInfoIter&, MapObjActorInitInfo*);
+};
+
+class RailMoveDemoActionObj : public RailMoveObj {
+public:
+    RailMoveDemoActionObj(const char*);
+
+    virtual void initDemoAction();
+};
+
+class RailMoveWithReverseAnimObj : public RailMoveObj {
+public:
+    inline RailMoveWithReverseAnimObj(const char* pName) : RailMoveObj(pName) {
+    }
+
+    virtual void startMoveInner();
+    virtual void doAtEndPoint();
+};
+
+class RailMoveLavaProjmapObj : public RailMoveObj {
+public:
+    RailMoveLavaProjmapObj(const char*);
+
+    virtual void initAfterPlacement();
+    virtual void updateProjmapMtx();
+
+    /* 0xE0 */ TVec3f _E0;
+    /* 0xEC */ f32 _EC;
+    /* 0xF0 */ f32 _F0;
 };

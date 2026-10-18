@@ -1,6 +1,7 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaBattle.hpp"
 #include "Game/Boss/KoopaBattleFunction.hpp"
+#include "Game/Boss/KoopaJrRobotTU14.hpp"
 #include "Game/Boss/KoopaStates.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/Spine.hpp"
@@ -87,9 +88,9 @@ KoopaStateLv3Sequence::KoopaStateLv3Sequence(KoopaBattle* pHost, const JMapInfoI
     pEnd->setCastActor(mLastBattleSky);
     pEnd->initDemo(rIter);
     initNerve(&SINST(DemoOpening), 8);
-    mBattleLv1 = new KoopaStateBattle(pHost, 3, 0);
+    mBattleLv1 = new KoopaBattleStage(pHost, 3, 0);
     MR::initActorState(this, mBattleLv1, &SINST(BattleLv1), "BattleLv1");
-    mBattleLv2 = new KoopaStateBattle(pHost, 3, 1);
+    mBattleLv2 = new KoopaBattleStage(pHost, 3, 1);
     MR::initActorState(this, mBattleLv2, &SINST(BattleLv2), "BattleLv2");
     mLastBattle = new KoopaStateLastBattle(pHost);
     MR::initActorState(this, mLastBattle, &SINST(LastBattle), "LastBattle");

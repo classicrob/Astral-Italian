@@ -10,8 +10,6 @@
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 
-// PLACEHOLDER(objects): unnamed core helper (camera: end demo + anim camera for the non-puppetable demo); resolve when core names fn_800202E0
-extern "C" bool fn_800202E0(LiveActor*, ActorCameraInfo*, const char*, s32);
 // PLACEHOLDER(objects): unnamed core helper (jump toward the player along the front vector with a jump param); resolve when core names fn_800126F0
 extern "C" void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
 // PLACEHOLDER(objects): unnamed core helper (jump with a jump param, same as fn_800126F0 but chase flavour); resolve when core names fn_800127A0
@@ -244,7 +242,7 @@ bool DinoPackunBaby::tryEndDemoWithCamera(const char* pName, bool isPuppetEnd) {
     if (isPuppetEnd) {
         isEnd = MR::tryEndDemoAndAnimCamera(this, mCameraInfo, pName, 0);
     } else {
-        isEnd = fn_800202E0(this, mCameraInfo, pName, 0);
+        isEnd = MR::endDemoAndAnimCameraIfActionEnd(this, mCameraInfo, pName, 0);
     }
     if (isEnd) {
         if (MR::isDemoEndWaitCameraInterpolating()) {

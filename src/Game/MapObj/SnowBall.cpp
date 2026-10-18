@@ -96,16 +96,15 @@ SnowBallNrvWait SnowBallNrvWait::sInstance ATTRIBUTE_WEAK;
 
 // ---- helpers (state tests) ----
 
-// fn_803020E0: blow or thaw nerve
+// fn_803020E0
 #pragma dont_inline on
-static bool isBlowOrThawNerve(const LiveActor* pActor) {
-    return pActor->isNerve(&SnowBallNrvBlow::sInstance) || pActor->isNerve(&SnowBallNrvThaw::sInstance);
+bool SnowBall::isBlowOrThawNerve() const {
+    return isNerve(&SnowBallNrvThaw::sInstance) || isNerve(&SnowBallNrvBlow::sInstance);
 }
 
-// fn_80302140: hide, break or thaw nerve (still being hit or idle)
-static bool isHideBreakOrThawNerve(const LiveActor* pActor) {
-    return pActor->isNerve(&SnowBallNrvHide::sInstance) || pActor->isNerve(&SnowBallNrvBreak::sInstance) ||
-           pActor->isNerve(&SnowBallNrvThaw::sInstance);
+// fn_80302140
+bool SnowBall::isHideBreakOrThawNerve() const {
+    return isNerve(&SnowBallNrvHide::sInstance) || isNerve(&SnowBallNrvBreak::sInstance) || isNerve(&SnowBallNrvThaw::sInstance);
 }
 #pragma dont_inline reset
 
@@ -135,6 +134,7 @@ SnowBall::SnowBall(const char* pName) : LiveActor(pName) {
     mBaseRadius = 1.0f;
     mStepCount = 0;
     mCanRespawn = true;
+    mBaseMtx.identity();
 
     MR::createClipAreaDropHolder();
     MR::createSnowStepHolder();
@@ -174,7 +174,7 @@ void SnowBall::calcAndSetBaseMtx() {
 }
 
 void SnowBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isBlowOrThawNerve(this)) {
+    if (!isBlowOrThawNerve()) {
         return;
     }
     if (MR::isSensorPlayer(pReceiver) || MR::isSensorYoshi(pReceiver)) {
@@ -194,7 +194,7 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
     if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg) || MR::isMsgStarPieceReflect(msg)) {
-        if (isHideBreakOrThawNerve(this)) {
+        if (isHideBreakOrThawNerve()) {
             TVec3f dir;
             MR::calcSensorHorizonNormalize(&dir, mGravity, pSender, pReceiver);
             dir *= 5.0f;
@@ -207,7 +207,7 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         setNerve(&SnowBallNrvFall::sInstance);
         return true;
     }
-    if (MR::isMsgPlayerHitAll(msg) && isHideBreakOrThawNerve(this)) {
+    if (MR::isMsgPlayerHitAll(msg) && isHideBreakOrThawNerve()) {
         MR::invalidateClipping(this);
         MR::addVelocitySeparateHV(this, pSender, pReceiver, 0.0f, 70.0f);
         setNerve(&SnowBallNrvBlow::sInstance);
@@ -219,29 +219,36 @@ bool SnowBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
 bool SnowBall::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pSender)) {
-        if (MR::isEqualSensor(pReceiver, this, cPushSensorName) && isHideBreakOrThawNerve(this)) {
+        if (MR::isEqualSensor(pReceiver, this, cPushSensorName) && isHideBreakOrThawNerve()) {
             TVec3f front;
             MR::getPlayerFrontVec(&front);
-            TVec3f flatFront(front);
-            flatFront -= mGravity * front.dot(mGravity);
-            MR::normalizeOrZero(&flatFront);
+            front.killElement(front, mGravity);
+            MR::normalizeOrZero(&front);
 
             TVec3f dir;
             MR::calcSensorHorizonNormalize(&dir, mGravity, pSender, pReceiver);
-            if (dir.dot(flatFront) > 0.0f && mVelocity.dot(dir) < 20.0f) {
-                TVec3f side(dir);
-                side *= 1.0f;
-                MR::addVelocity(this, side);
+            if (dir.dot(front) > 0.0f && mVelocity.dot(dir) < 20.0f) {
+                if (dir.dot(front) > 0.0f) {
+                    TVec3f side(front);
+                    side -= dir;
+                    MR::addVelocity(this, side * 0.5f);
+                }
+
+                TVec3f push(dir);
+                MR::addVelocity(this, push * 1.0f);
                 mStopCount = 0;
                 return true;
             }
         }
-    } else if (MR::isSensorEnemy(pSender) || MR::isSensorNpc(pSender)) {
-        if (isHideBreakOrThawNerve(this)) {
+    }
+
+    if (MR::isSensorEnemy(pSender) || MR::isSensorNpc(pSender)) {
+        if (isHideBreakOrThawNerve()) {
             MR::killVelocityToTarget(this, *MR::getSensorPos(pSender));
             return true;
         }
     }
+
     return false;
 }
 

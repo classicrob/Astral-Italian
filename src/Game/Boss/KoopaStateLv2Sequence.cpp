@@ -1,6 +1,7 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaBattle.hpp"
 #include "Game/Boss/KoopaBattleFunction.hpp"
+#include "Game/Boss/KoopaJrRobotTU14.hpp"
 #include "Game/Boss/KoopaStates.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/Spine.hpp"
@@ -72,14 +73,14 @@ KoopaStateLv2Sequence::KoopaStateLv2Sequence(KoopaBattle* pHost, const JMapInfoI
     : KoopaStateBase("クッパVs2シーケンス", pHost), mBattleLv1(nullptr), mBattleLv2(nullptr), mPowerUpDemo(nullptr), mDownDemo(nullptr), mSky(nullptr) {
     const char* pArcName = "TicoBabyAnim";
     initNerve(&SINST(DemoOpening), 8);
-    mBattleLv1 = new KoopaStateBattle(pHost, 2, 0);
+    mBattleLv1 = new KoopaBattleStage(pHost, 2, 0);
     MR::initActorState(this, mBattleLv1, &SINST(BattleLv1), "BattleLv1");
-    mBattleLv2 = new KoopaStateBattle(pHost, 2, 1);
-    MR::initActorState(this, mBattleLv2, &SINST(DemoPowerUp), "BattleLv2");
+    mBattleLv2 = new KoopaBattleStage(pHost, 2, 1);
+    MR::initActorState(this, mBattleLv2, &SINST(BattleLv2), "BattleLv2");
     KoopaStateOpeningDemo* pOpening = new KoopaStateOpeningDemo(mHost, rIter, "DemoKoopaVs2Opening", pArcName, false);
     MR::initActorState(this, pOpening, &SINST(DemoOpening), "DemoOpening");
     mPowerUpDemo = new KoopaStatePowerUpDemo(mHost);
-    MR::initActorState(this, mPowerUpDemo, &SINST(BattleLv2), "DemoPowerUp");
+    MR::initActorState(this, mPowerUpDemo, &SINST(DemoPowerUp), "DemoPowerUp");
     mDownDemo = new KoopaStateDownDemo(mHost, rIter, "DemoKoopaVs2Down", pArcName);
     MR::initActorState(this, mDownDemo, &SINST(DemoDown), "DemoDown");
     mSky = MR::createKoopaBattleSky(mHost);

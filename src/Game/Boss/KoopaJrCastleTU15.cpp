@@ -19,4 +19,60 @@ namespace NrvKoopaJrCastleStateBattle4 { KoopaJrCastleStateBattle4NrvC KoopaJrCa
 
 KoopaJrCastleStateBattle4::KoopaJrCastleStateBattle4(KoopaJrCastle* pHost) : ActorStateBase< KoopaJrCastle >("State[\x83_\x83\x81\x81[\x83W]", pHost) {}
 
+using namespace KoopaJrCastleFunction;
+using namespace NrvKoopaJrCastleStateBattle4;
+
+void KoopaJrCastleStateBattle4::init() {
+    initNerve(&KoopaJrCastleStateBattle4NrvA::sInstance, 0);
+    MR::initAnimCamera(mHost->mBody, mHost->mCameraInfo, "DemoDownKoopaJrCastle");
+    kill();
+}
+
+void KoopaJrCastleStateBattle4::appear() {
+    mIsDead = false;
+    KoopaJrCastle* castle = getCastle();
+    fn_800D38A0();
+    s32 phase = castle->mStateBattle->mPhase;
+    if (phase == 3) {
+        castle->mBody->setNerveDummy1();
+        castle->mHead->setNerveA();
+        castle->mStateBattle->mPhase--;
+        setNerve(&KoopaJrCastleStateBattle4NrvA::sInstance);
+        return;
+    }
+    if (phase == 2) {
+        castle->mBody->setNerveDummy2();
+        castle->mHead->setNerveB();
+        castle->mStateBattle->mPhase--;
+        setNerve(&KoopaJrCastleStateBattle4NrvA::sInstance);
+        return;
+    }
+    killFireBar();
+    castle->mBody->setNerveDead();
+    fn_800D5760(castle->mHead);
+    castle->mStateBattle->mPhase--;
+    MR::stopStageBGM(10);
+    MR::startAction(castle->mKoopaJr, "Stumble");
+    setNerve(&KoopaJrCastleStateBattle4NrvB::sInstance);
+}
+
+void KoopaJrCastleStateBattle4::exe800D93F0() {
+    fn_800D3E10(mHost);
+    fn_800D5040(0.4f);
+    if (MR::isGreaterStep(this, 120)) kill();
+}
+
+void KoopaJrCastleStateBattle4::exe800D9450() {
+    if (MR::isFirstStep(this)) fn_800D3770("DemoDownKoopaJrCastle");
+    fn_800D4150();
+    if (MR::isStep(this, 320)) getCastle()->mBreakModel->appear();
+    if (tryEndDemo("DemoDownKoopaJrCastle", nullptr, true)) kill();
+}
+
 KoopaJrCastleStateBattle4::~KoopaJrCastleStateBattle4() {}
+
+void NrvKoopaJrCastleStateBattle4::KoopaJrCastleStateBattle4NrvB::execute(Spine* spine) const {
+    KoopaJrCastleStateBattle4* state = reinterpret_cast<KoopaJrCastleStateBattle4*>(spine->mExecutor);
+    if (KoopaJrCastleFunction::tryStartDemo("DemoDownKoopaJrCastle", nullptr))
+        state->setNerve(&KoopaJrCastleStateBattle4NrvC::sInstance);
+}

@@ -381,12 +381,12 @@ void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInf
             if (clippingRadius < 0.0f) {
                 MR::calcModelBoundingRadius(&clippingRadius, this);
                 MR::setClippingFarMax(mBloomModel);
-            }
-
-            MR::setClippingTypeSphere(mBloomModel, clippingRadius);
-
-            if (rInfo.mFarClipping != 0.0f) {
-                MR::setClippingFar(mBloomModel, rInfo.mFarClipping);
+                MR::setClippingTypeSphere(mBloomModel, clippingRadius);
+            } else {
+                MR::setClippingTypeSphere(mBloomModel, clippingRadius);
+                if (rInfo.mFarClipping != 0.0f) {
+                    MR::setClippingFar(mBloomModel, rInfo.mFarClipping);
+                }
             }
         }
     }

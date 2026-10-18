@@ -7,9 +7,6 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-// PLACEHOLDER(objects): unnamed core helper (clamped normalize of x to [min, max]); resolve when core names fn_8003DBB0
-extern "C" f32 fn_8003DBB0(f32, f32, f32);
-
 namespace NrvClipAreaDrop {
     NEW_NERVE(ClipAreaDropNrvHold, ClipAreaDrop, Hold);
     NEW_NERVE(ClipAreaDropNrvWait, ClipAreaDrop, Wait);
@@ -92,9 +89,9 @@ void ClipAreaDrop::exeWait() {
     f32 radius;
 
     if (mStep < mExtendsEndTime) {
-        radius = MR::getEaseOutValue(fn_8003DBB0(mStep, 0.0f, mExtendsEndTime), 0.0f, mBaseSize, 1.0f);
+        radius = MR::getEaseOutValue(MR::normalizeAndClamp01(mStep, 0.0f, mExtendsEndTime), 0.0f, mBaseSize, 1.0f);
     } else {
-        radius = MR::getEaseOutValue(fn_8003DBB0(mStep, mShrinkStartTime, mShrinkEndTime), mBaseSize, 0.0f, 1.0f);
+        radius = MR::getEaseOutValue(MR::normalizeAndClamp01(mStep, mShrinkStartTime, mShrinkEndTime), mBaseSize, 0.0f, 1.0f);
     }
 
     mShapeSphere->mRadius = radius;

@@ -1,38 +1,45 @@
 #pragma once
 
 #include "Game/Boss/KoopaStateBase.hpp"
+#include "Game/LiveActor/LiveActorGroup.hpp"
 #include <JSystem/JGeometry.hpp>
 
 class JMapInfoIter;
 class LiveActor;
-class LiveActorGroup;
 class KoopaBattle;
+class KoopaFireBall;
 
-// Battle phase states created by the Lv sequences (units KoopaJrRobotTU14 / TU15, not part of the Koopa state family units).
-class KoopaStateBattle : public KoopaStateBase {
+class KoopaBattleStage;  // include/Game/Boss/KoopaJrRobotTU14.hpp (fn_800E28C0)
+
+class KoopaStateLastChase;
+class KoopaStateLastDamage;
+class KoopaStateLastAttack;
+class KoopaLastBattleCamera;
+
+// TU15 (KoopaJrRobotTU15): last battle phase controller created by KoopaStateLv3Sequence.
+class KoopaStateLastBattle : public ActorStateBase< KoopaBattle > {
 public:
-    KoopaStateBattle(KoopaBattle*, s32, s32);  // fn_800E28C0
-
-    virtual ~KoopaStateBattle();
-    virtual void attackSensor(HitSensor*, HitSensor*);
-    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
-    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
-
-    void start(bool);  // fn_800E2B50
-
-    u8 _10[0x38];
-};
-
-class KoopaStateLastBattle : public KoopaStateBase {
-public:
-    KoopaStateLastBattle(KoopaBattle*);  // fn_800E3630
+    KoopaStateLastBattle(KoopaBattle*);
 
     virtual ~KoopaStateLastBattle();
+    virtual void appear();
+    virtual void kill();
+    virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    u8 _10[0x18];
+    void exeStart();
+    void exeDamage();
+    void exeAttack();
+    bool isAttackable() const;
+
+    /* 0x10 */ KoopaStateLastChase* mChase;
+    /* 0x14 */ KoopaStateLastDamage* mDamage;
+    /* 0x18 */ KoopaStateLastAttack* mAttack;
+    /* 0x1C */ KoopaStateLastAttack* mAttackRush;
+    /* 0x20 */ KoopaLastBattleCamera* mCamera;
+    /* 0x24 */ s32 mPhase;
 };
 
 class KoopaStateOpeningDemo;
@@ -58,8 +65,8 @@ public:
     void exeBattleLv2();
     void exeDemoDown();
 
-    /* 0x10 */ KoopaStateBattle* mBattleLv1;
-    /* 0x14 */ KoopaStateBattle* mBattleLv2;
+    /* 0x10 */ KoopaBattleStage* mBattleLv1;
+    /* 0x14 */ KoopaBattleStage* mBattleLv2;
     /* 0x18 */ KoopaStatePowerUpDemo* mPowerUpDemo;
     /* 0x1C */ LiveActor* mSky;
 };
@@ -80,8 +87,8 @@ public:
     void exeBattleLv2();
     void exeDemoDown();
 
-    /* 0x10 */ KoopaStateBattle* mBattleLv1;
-    /* 0x14 */ KoopaStateBattle* mBattleLv2;
+    /* 0x10 */ KoopaBattleStage* mBattleLv1;
+    /* 0x14 */ KoopaBattleStage* mBattleLv2;
     /* 0x18 */ KoopaStatePowerUpDemo* mPowerUpDemo;
     /* 0x1C */ KoopaStateDownDemo* mDownDemo;
     /* 0x20 */ LiveActor* mSky;
@@ -105,8 +112,8 @@ public:
     void exeLastBattle();
     void exeDemoLastBattleEnd();
 
-    /* 0x10 */ KoopaStateBattle* mBattleLv1;
-    /* 0x14 */ KoopaStateBattle* mBattleLv2;
+    /* 0x10 */ KoopaBattleStage* mBattleLv1;
+    /* 0x14 */ KoopaBattleStage* mBattleLv2;
     /* 0x18 */ KoopaStatePowerUpDemo* mPowerUpDemo;
     /* 0x1C */ KoopaStateLastBattle* mLastBattle;
     /* 0x20 */ LiveActor* mSky;
@@ -127,6 +134,38 @@ public:
     /* 0x10 */ bool mIsCameraInterpolating;
 };
 
+class KoopaJrRobotShockWave;
+class KoopaJrRobotQuakeWave;
+class KoopaJrRobotRock;
+class VolumeDrawer;
+
+// TU01: punch attack that sends quake waves over the arena (mode 1..4 picks the wave pattern).
+class KoopaStateAttackQuake : public ActorStateBase< KoopaBattle > {
+public:
+    KoopaStateAttackQuake(KoopaBattle*);
+
+    virtual ~KoopaStateAttackQuake();
+    virtual void appear();
+    virtual void kill();
+
+    void setMode(s32);
+    void exeMoveStart();
+    void exeMoveLoop();
+    void exeStraightPunchStart();
+    void exeStraightPunch();
+    void exeStraightPunchLoop();
+    void exeStraightPunchEnd();
+
+    /* 0x10 */ KoopaJrRobotShockWave* mShockWaves[2];
+    /* 0x18 */ KoopaJrRobotQuakeWave* mQuakeWaves[5];
+    /* 0x2C */ VolumeDrawer* mVolumeDrawer;
+    /* 0x30 */ KoopaJrRobotRock* mRock;
+    /* 0x34 */ u8 _34[4];
+    /* 0x38 */ s32 mMode;
+    /* 0x3C */ f32 mTurnSpeed;
+    /* 0x40 */ s32 mDuration;
+};
+
 // TU02: battle start (Bowser descends into the arena).
 class KoopaStateBattleStart : public ActorStateBase< KoopaBattle > {
 public:
@@ -134,8 +173,8 @@ public:
 
     virtual ~KoopaStateBattleStart();
     virtual void appear();
+    virtual void initPosition();
 
-    void initPosition();
     void exeBattleStartLoop();
     void exeBattleStartEnd();
 
@@ -250,7 +289,7 @@ public:
     void exeFireLoop();
     void exeFireEnd();
 
-    /* 0x10 */ LiveActorGroup* mFireBalls;
+    /* 0x10 */ DeriveActorGroup< KoopaFireBall >* mFireBalls;
     /* 0x14 */ TVec3f _14;
     /* 0x20 */ s32 mFireCount;
     /* 0x24 */ bool mIsLoopStarted;

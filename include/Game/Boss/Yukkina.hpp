@@ -20,9 +20,8 @@ public:
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    bool isNotIdle();
     bool isInvalidTriangle(const Triangle* pTriangle);
-    bool isBindedAndHigh();
+    bool isBindedAndHigh() __attribute__((noinline));
     void updateSound();
     void setTurnParam(s32);
     void startWaitAction();
@@ -49,7 +48,7 @@ private:
     /* 0xF0 */ TQuat4f mQuatF0;
     /* 0x100 */ TVec3f mPos100;
     /* 0x10C */ TVec3f mPos10C;
-    /* 0x118 */ NameObj* mSwitch;
+    /* 0x118 */ s32 mSwitch;
     /* 0x11C */ s32 mCounter;
     /* 0x120 */ s32 mStep;
     /* 0x124 */ f32 _124;

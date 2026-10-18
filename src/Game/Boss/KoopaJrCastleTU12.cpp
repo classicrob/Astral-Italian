@@ -19,4 +19,51 @@ namespace NrvKoopaJrCastleStateBattle1 { KoopaJrCastleStateBattle1NrvC KoopaJrCa
 
 KoopaJrCastleStateBattle1::KoopaJrCastleStateBattle1(KoopaJrCastle* pHost) : ActorStateBase< KoopaJrCastle >("State[\x8dU\x8c\x82:\x91\xe6\x82P\x92i\x8aK]", pHost) {}
 
+using namespace KoopaJrCastleFunction;
+using namespace NrvKoopaJrCastleStateBattle1;
+
+void KoopaJrCastleStateBattle1::init() {
+    initNerve(&KoopaJrCastleStateBattle1NrvA::sInstance, 0);
+    kill();
+}
+
+void KoopaJrCastleStateBattle1::appear() {
+    mIsDead = false;
+    setNerve(&KoopaJrCastleStateBattle1NrvA::sInstance);
+}
+
+void KoopaJrCastleStateBattle1::control() {
+    appearFireBar();
+    killRingBeam();
+}
+
+void KoopaJrCastleStateBattle1::exe800D7F60() {
+    if (MR::isFirstStep(this)) fn_800D4520(reinterpret_cast<LiveActor*>(2), 2);
+    appearFireBar();
+    killRingBeam();
+    if (isPlayerOnCastle()) {
+        setNerve(&KoopaJrCastleStateBattle1NrvC::sInstance);
+        return;
+    }
+    if (isCannonDead()) setNerve(&KoopaJrCastleStateBattle1NrvB::sInstance);
+}
+
+void KoopaJrCastleStateBattle1::exe800D7FE0() {
+    if (MR::isFirstStep(this)) cannonFn_800D4590();
+    appearFireBar();
+    killRingBeam();
+    if (isPlayerOnCastle()) {
+        setNerve(&KoopaJrCastleStateBattle1NrvC::sInstance);
+        return;
+    }
+    if (MR::isGreaterEqualStep(this, 120)) setNerve(&KoopaJrCastleStateBattle1NrvA::sInstance);
+}
+
+void KoopaJrCastleStateBattle1::exe800D8060() {
+    if (MR::isFirstStep(this)) fn_800D46F0();
+    appearFireBar();
+    killRingBeam();
+    if (isHeadFn_800D4790()) setNerve(&KoopaJrCastleStateBattle1NrvA::sInstance);
+}
+
 KoopaJrCastleStateBattle1::~KoopaJrCastleStateBattle1() {}

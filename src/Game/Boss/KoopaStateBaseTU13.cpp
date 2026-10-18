@@ -31,6 +31,7 @@ KoopaStateLastDamage::KoopaStateLastDamage(KoopaBattle* pHost) : ActorStateBase<
     initNerve(&NrvKoopaStateLastDamage::KoopaStateLastDamageNrvDamage::sInstance, 0);
 }
 
+// NONMATCHING: stack slots now match; the target keeps &pos in r31 across the sub/set (one extra mr), ours re-materializes the address
 void KoopaStateLastDamage::appear() {
     TVec3f front;
     TVec3f localPos;
@@ -45,16 +46,13 @@ void KoopaStateLastDamage::appear() {
     MR::calcKoopaBattleWorldPos(&mTargetPos, localPos);
     if (mIsFinal) {
         mHost->mQuatB.getZDir(front);
-        TVec3f offset(front);
-        offset.scale(3000.0f);
-        TVec3f pos(mStartPos);
-        pos.sub(offset);
+        TVec3f pos = mStartPos - front * 3000.0f;
         mTargetPos.set< f32 >(pos);
     }
 }
 
 void KoopaStateLastDamage::moveToTarget() {
-    MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, fn_8003B960(mStep, 0.0f, mDuration, 0.0f, 1.0f));
+    MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, MR::getEaseInOutValue(mStep, 0.0f, mDuration, 0.0f, 1.0f));
     mStep++;
 }
 
@@ -107,7 +105,7 @@ void KoopaStateLastDamage::exeRollEnd() {
     if (MR::isFirstStep(this)) {
         MR::hideModelAndOnCalcAnim(mHost);
     }
-    fn_8003D330(&mHost->mQuatA, mQuatA, MR::calcNerveEaseOutValue(this, 90, 0.0f, -1440.0f));
+    MR::rotateQuatXAxisDegree(&mHost->mQuatA, mQuatA, MR::calcNerveEaseOutValue(this, 90, 0.0f, -1440.0f));
     MR::startSoundInCameraDistance(mHost, "LastDamageRollEnd", -1, -1, 31000.0f);
     if (MR::isGreaterEqualStep(this, 89)) {
         kill();

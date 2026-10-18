@@ -20,6 +20,7 @@ class KoopaJrCastleWind;
 class KoopaJrCastleCannon;
 class KoopaJrCastleFireBar;
 class FixedPosition;
+class RingBeam;
 class KoopaJrCastleRingBeam;
 class KoopaJrCastleElectric;
 class KoopaJrCastleDominate;
@@ -185,6 +186,11 @@ class KoopaJrCastleHead : public PartsModel {
 public:
     KoopaJrCastleHead(LiveActor*, const char*);
     virtual ~KoopaJrCastleHead();
+    virtual void init(const JMapInfoIter&);
+    virtual void calcAndSetBaseMtx();
+    virtual void attackSensor(HitSensor*, HitSensor*);
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
     NO_INLINE void setNerveA();
     NO_INLINE void setNerveB();
     NO_INLINE void setNerveC();
@@ -194,8 +200,7 @@ public:
     NO_INLINE bool fn_800D5880();
     NO_INLINE bool fn_800D58D0() const;
     bool fn_800D5E90();
-    bool fn_800D5F50(MtxPtr);
-    void calcAndSetBaseMtx();
+    bool calcJointCannon(TPos3f*, const JointControllerInfo&);
     void exe800D5960();
     void exe800D59F0();
     void exe800D5A80();
@@ -216,7 +221,14 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 };
 
-class KoopaJrCastleWind : public LiveActor {
+class KoopaJrCastleWindBase : public LiveActor {
+public:
+    KoopaJrCastleWindBase(const char* pName) : LiveActor(pName) {}
+    virtual ~KoopaJrCastleWindBase();
+    virtual bool calcWindInfo(const TVec3f*, TVec3f*, f32*) = 0;  // vtable +0x70
+};
+
+class KoopaJrCastleWind : public KoopaJrCastleWindBase {
 public:
     void exe800D9CF0();
     void exe800D9D60();
@@ -224,9 +236,15 @@ public:
     void exe800D9EC0();
     virtual ~KoopaJrCastleWind();
     KoopaJrCastleWind(KoopaJrCastle*, const char*);
+    virtual void init(const JMapInfoIter&);
+    virtual void appear();
+    virtual void makeActorDead();
+    virtual void control();
+    virtual bool calcWindInfo(const TVec3f*, TVec3f*, f32*);  // vtable +0x70, fn_800D9F30
     void fn_800D9B40();
     bool fn_800D9C40();
-    u8 _pad[0x8];
+    /* 0x90 */ KoopaJrCastle* mCastle;
+    /* 0x94 */ f32 mPower;
 };
 
 class KoopaJrCastleCannon : public LiveActor {
@@ -266,9 +284,14 @@ public:
     void exe800D2BF0();
     virtual ~KoopaJrCastleFireBar();
     KoopaJrCastleFireBar(const char*);
+    virtual void init(const JMapInfoIter&);
     virtual void makeActorAppeared();
     virtual void makeActorDead();
+    virtual void control();
+    virtual void updateHitSensor(HitSensor*);
     virtual void attackSensor(HitSensor*, HitSensor*);
+    void createChildren();
+    void updateChildPositions();
     void setup(LiveActor*, const TVec3f&, const TVec3f&, const char*);
     void setCurrentToMax();
     void requestMovementOnChildren();
@@ -278,9 +301,7 @@ public:
     /* 0x98 */ TPos3f* mMtxs;
     /* 0x9C */ LiveActor** mChildren;
     /* 0xA0 */ s32 mChildCount;
-    /* 0xA4 */ f32 _A4;
-    /* 0xA8 */ f32 _A8;
-    /* 0xAC */ f32 _AC;
+    /* 0xA4 */ TVec3f _A4;
     /* 0xB0 */ f32 _B0;
     /* 0xB4 */ f32 _B4;
     /* 0xB8 */ s32 _B8;
@@ -295,11 +316,15 @@ class KoopaJrCastleRingBeam : public LiveActor {
 public:
     KoopaJrCastleRingBeam(const char*);
     virtual ~KoopaJrCastleRingBeam();
+    virtual void init(const JMapInfoIter&);
+    virtual void appear();
+    virtual MtxPtr getBaseMtx() const;
+    virtual void control();
     void setup(LiveActor*, const TVec3f&, const TVec3f&, const char*);
     void exe800D7C00();
     void fn_800D7CE0();
-    /* 0x90 */ void* _90;
-    /* 0x94 */ f32 _94;
+    /* 0x90 */ FixedPosition* _90;
+    /* 0x94 */ RingBeam** _94;
 };
 
 class KoopaJrCastleElectric : public LiveActor {
@@ -318,19 +343,26 @@ class KoopaJrCastleDominate : public LiveActor {
 public:
     KoopaJrCastleDominate(const char*);
     virtual ~KoopaJrCastleDominate();
+    virtual void init(const JMapInfoIter&);
+    virtual void kill();
+    virtual MtxPtr getBaseMtx() const;
+    virtual void attackSensor(HitSensor*, HitSensor*);
     void exe800D7570();
+    void updateBaseMtx();
     void fn_800D7560(const char*, const char*);
     bool fn_800D71B0(LiveActor*, s32, const TVec3f*, s32);
-    /* 0x90 */ void* _90;
-    /* 0x94 */ f32 _94;
-    /* 0x98 */ f32 _98;
+    /* 0x90 */ LiveActor* _90;
+    /* 0x94 */ LiveActor* _94;
+    /* 0x98 */ s32 _98;
     /* 0x9C */ f32 _9C;
-    /* 0xA0 */ f32 _A0;
-    /* 0xA4 */ f32 _A4;
+    /* 0xA0 */ const char* _A0;
+    /* 0xA4 */ const char* _A4;
 };
 
 class KoopaJrCastleStateOpening : public ActorStateBase< KoopaJrCastle > {
 public:
+    virtual void init();
+    virtual void appear();
     void exe800D6D80();
     void exe800D6E00();
     void exe800D6E90();
@@ -347,6 +379,8 @@ public:
     void exe800D6AD0();
     KoopaJrCastleStateBattle(KoopaJrCastle*);
     virtual ~KoopaJrCastleStateBattle();
+    virtual void init();
+    virtual void appear();
     bool isDemo() const;
     void attackSensor(HitSensor*, HitSensor*);
     bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
@@ -357,6 +391,9 @@ public:
 
 class KoopaJrCastleStateBattle1 : public ActorStateBase< KoopaJrCastle > {
 public:
+    virtual void init();
+    virtual void appear();
+    virtual void control();
     void exe800D7F60();
     void exe800D7FE0();
     void exe800D8060();
@@ -366,6 +403,9 @@ public:
 
 class KoopaJrCastleStateBattle2 : public ActorStateBase< KoopaJrCastle > {
 public:
+    virtual void init();
+    virtual void appear();
+    virtual void control();
     void exe800D82B0();
     void exe800D8330();
     void exe800D83B0();
@@ -393,11 +433,17 @@ public:
     void exe800D8E80();
     KoopaJrCastleStateBattle3(KoopaJrCastle*);
     virtual ~KoopaJrCastleStateBattle3();
+    virtual void init();
+    virtual void appear();
+    virtual void control();
+    NO_INLINE bool tryPlayerOnCastle();
     u8 _pad[0x4];
 };
 
 class KoopaJrCastleStateBattle4 : public ActorStateBase< KoopaJrCastle > {
 public:
+    virtual void init();
+    virtual void appear();
     void exe800D93F0();
     void exe800D9450();
     KoopaJrCastleStateBattle4(KoopaJrCastle*);
@@ -430,12 +476,13 @@ public:
     virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
+    void shoot(MtxPtr, const f32&);
     void exe800D1830();
     /* 0x90 */ TVec3f mDir;
     /* 0x9C */ f32 _9C;
 };
 
-class KoopaJrCastleWindUp : public LiveActor {
+class KoopaJrCastleWindUp : public KoopaJrCastleWindBase {
 public:
     KoopaJrCastleWindUp(const char*);
     virtual ~KoopaJrCastleWindUp();
@@ -444,6 +491,7 @@ public:
     virtual void makeActorAppeared();
     virtual void makeActorDead();
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
+    virtual bool calcWindInfo(const TVec3f*, TVec3f*, f32*);  // vtable +0x70, fn_800DA7A0
     void exe800DA640();
     void exe800DA6F0();
 
@@ -458,7 +506,15 @@ class KoopaJrCastleWindHolder : public LiveActorGroup {
 public:
     KoopaJrCastleWindHolder();
     virtual ~KoopaJrCastleWindHolder();
+
+    bool calcWindInfo(const TVec3f&, TVec3f*, f32*) const;  // fn_800D9680
 };
+
+namespace KoopaJrCastleWindFunction {
+    void createWindHolder() NO_INLINE;   // fn_800D97E0
+    void registerWind(LiveActor*) NO_INLINE;  // fn_800D97F0
+    bool calcWindInfo(const TVec3f*, TVec3f*, f32*) NO_INLINE;  // fn_800D9830
+}  // namespace KoopaJrCastleWindFunction
 
 class KoopaJrCastleAccessor : public NameObj {
 public:
@@ -469,6 +525,21 @@ public:
 };
 
 namespace KoopaJrCastleFunction {
+    void fn_800D4520(LiveActor*, s32);
+    bool fn_800D3C60();
+    void fn_800D46F0();
+    void fn_800D4740();
+    void fn_800D3970();
+    void fn_800D3A40();
+    void fn_800D38A0();
+    bool fn_800D3E10(LiveActor*);
+    void fn_800D4150();
+    bool tryStartDemo(const char*, const char*);
+    bool tryEndDemo(const char*, const char*, bool);
+    void fn_800D3770(const char*);
+    void fn_800D3DB0();
+    bool fn_800D4080(LiveActor*, s32);
+    void fn_800D4240();
     NO_INLINE KoopaJrCastle* getCastle();
     s32 getBattlePhase();
     const TVec3f& getStartPos();
@@ -486,6 +557,7 @@ namespace KoopaJrCastleFunction {
     void bodyTryStop();
     bool bodyIsMoveState();
     void fn_800D4B40();
+    bool isBodyMoveFlagSet();
     u8 bodyGetStateFlag();
     bool bodyIsNotMove();
     void cannonFn_800D4590();
@@ -505,6 +577,9 @@ namespace KoopaJrCastleFunction {
     void killElectric();
     bool isElectricDead();
     MtxPtr getCannon3Mtx(LiveActor*);
+    bool fn_800D5040(f32);
     void appearCapsuleStarPiece();
     bool aimHeadAtPlayer(f32, f32);
 };  // namespace KoopaJrCastleFunction
+
+void fn_800D5760(LiveActor*);

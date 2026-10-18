@@ -41,8 +41,10 @@ public:
     s32 getDeclareRemnantStarPieceCount(const NameObj*);
     s32 getDeclareRemnantStarPieceCountNotExist(const NameObj*);
     bool hopPiece(const NameObj*, const TVec3f&, const TVec3f&);
-    bool appearPiece(const NameObj*, const TVec3f&, s32, f32, f32, bool, bool);
-    bool appearPieceToDirection(const NameObj*, const TVec3f&, const TVec3f&, s32, f32, f32, bool, bool);
+    bool appearPiece(const NameObj*, const TVec3f&, s32, f32, f32, bool, bool, bool = false);
+    bool appearPieceToDirection(const NameObj*, const TVec3f&, const TVec3f&, s32, f32, f32, bool, bool, bool = false);
+    bool appearPieceToDirectionRandom(const NameObj*, const TVec3f&, const TVec3f&, s32, f32, bool, bool, bool);
+    static u32 getRandomColor();
     bool gotByPlayer();
     void updateSound();
     void initCSDelay();

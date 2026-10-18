@@ -1,6 +1,7 @@
 #include "Game/MapObj/ItemBlock.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 
 namespace {
     // static const f32 cVanishEffectScale = ;
@@ -25,32 +26,20 @@ namespace {
     static Color8 hPointLight(0xFF, 0xE6, 0, 0xFF);
 };  // namespace
 
-ItemBlock::ItemBlock(const char* pName) : LiveActor(pName) {
-    mKind = 0;
-    mTimer = 0;
-    mItemCount = 8;
-    _98 = 0;
-    mCalcShadow = false;
+ItemBlock::ItemBlock(const char* pName) : LiveActor(pName), mKind(0), mClippingRange(0.0f, 0.0f, 0.0f), mTimer(0), mCooldownTimer(0), mItemCount(8), _AC(0), mCalcShadow(false) {
 }
 
 void ItemBlock::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     checkKind(rIter);
-    initBlock();
-    MR::connectToSceneMapObjStrongLight(this);
-    MR::useStageSwitchSleep(this, rIter);
-    initEffectKeeper(1, "CoinBlock", false);
+    MR::initActor(this, rIter, mKind == 6 ? "CoinBlock2D" : "CoinBlock", false);
     initNerve(GET_NERVE(ItemBlock, ItemBlockNrvStandby));
+
     s32 arg = -1;
     MR::getJMapInfoArg4NoInit(rIter, &arg);
-    MR::initShadowVolumeBox(this, TVec3f(150.0f, 150.0f, 150.0f));
-    MR::setShadowVolumeStartDropOffset(this, 0, 77.0f);
-
     if (arg != -1) {
         MR::setShadowDropLength(this, nullptr, arg);
     }
 
-    MR::onShadowVolumeCutDropLength(this, nullptr);
     MR::excludeCalcShadowToMyCollision(this, nullptr);
 
     if (mCalcShadow) {
@@ -59,19 +48,19 @@ void ItemBlock::init(const JMapInfoIter& rIter) {
         MR::onCalcShadowOneTime(this, nullptr);
     }
 
+    if (arg == 0) {
+        MR::invalidateShadow(this, nullptr);
+    }
+
     if (MR::isZeroGravity(this)) {
         TVec3f upVec;
         MR::calcUpVec(&upVec, this);
-        MR::setShadowDropDirection(this, 0, -upVec);
+        MR::setShadowDropDirection(this, nullptr, -upVec);
     } else {
         MR::calcGravity(this);
     }
 
-    MR::offCalcGravity(this);
-    MR::setGroupClipping(this, rIter, 16);
-    MR::validateClipping(this);
-
-    appear();
+    makeActorAppeared();
 }
 
 void ItemBlock::startClipped() {
@@ -88,6 +77,12 @@ void ItemBlock::checkKind(const JMapInfoIter& rIter) {
     const char* name = nullptr;
     MR::getObjectName(&name, rIter);
 
+    s32 itemCount = -1;
+    MR::getJMapInfoArg0NoInit(rIter, &itemCount);
+    if (itemCount < 0) {
+        itemCount = 8;
+    }
+
     if (MR::isEqualString(name, "ItemBlockSwitch")) {
         MR::needStageSwitchWriteDead(this, rIter);
         mKind = 5;
@@ -96,27 +91,22 @@ void ItemBlock::checkKind(const JMapInfoIter& rIter) {
         MR::declareCoin(this, 10);
     } else if (MR::isEqualString(name, "SplashCoinBlock")) {
         mKind = 2;
-        MR::declareCoin(this, mItemCount);
+        mItemCount = itemCount;
+        MR::declareCoin(this, itemCount);
     } else if (MR::isEqualString(name, "TimerPieceBlock")) {
         mKind = 3;
         MR::declareStarPiece(this, 20);
     } else if (MR::isEqualString(name, "SplashPieceBlock")) {
         mKind = 4;
-        MR::declareStarPiece(this, mItemCount);
+        mItemCount = itemCount;
+        MR::declareStarPiece(this, itemCount);
+    } else if (MR::isEqualString(name, "CoinBlock2D")) {
+        mKind = 6;
+        mItemCount = 1;
+        MR::declareCoin(this, 1);
     }
 
     s32 arg = -1;
-
-    if (mKind == 2 || mKind == 4) {
-        arg = -1;
-        MR::getJMapInfoArg0NoInit(rIter, &arg);
-
-        if (arg >= 0) {
-            mItemCount = arg;
-        } else {
-            mItemCount = 8;
-        }
-    }
 
     if (mKind == 1 || mKind == 3) {
         MR::getJMapInfoArg1NoInit(rIter, &arg);
@@ -133,23 +123,12 @@ void ItemBlock::checkKind(const JMapInfoIter& rIter) {
     mCalcShadow = !(arg - 1);
 }
 
-void ItemBlock::initBlock() {
-    initHitSensor(1);
-    switch (mKind) {
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-        MR::initActor(this, "CoinBlock", false);
-        TPos3f mtx;
-        MR::addHitSensorMtxMapObj(this, "body", 8, 100.0f, MR::getJointMtx(this, "CoinBlock"), TVec3f(0.0f, 100.0f, 0.0f));
-        MR::initCollisionPartsAutoEqualScale(this, "CoinBlock", getSensor("body"), MR::getJointMtx(this, "CoinBlock"));
-    }
+void ItemBlock::initAfterPlacement() {
+    MR::setClippingRangeIncludeShadow(this, &mClippingRange, 0.0f);
 }
 
-void ItemBlock::appear() {
-    LiveActor::appear();
+void ItemBlock::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
     setNerve(GET_NERVE(ItemBlock, ItemBlockNrvStandby));
 
     switch (mKind) {
@@ -158,6 +137,7 @@ void ItemBlock::appear() {
     case 3:
     case 4:
     case 5:
+    case 6:
         MR::startBrk(this, "CoinBlock");
     }
 }
@@ -171,7 +151,13 @@ void ItemBlock::kill() {
 void ItemBlock::control() {
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);
-    MR::requestPointLight(this, mPosition + upVec * ::hPointLightOffsetY, ::hPointLight, ::hBrightness, -1);
+
+    TVec3f offset = upVec * ::hPointLightOffsetY;
+    MR::requestPointLight(this, mPosition + offset, ::hPointLight, ::hBrightness, -1);
+
+    if (mCalcShadow) {
+        MR::setClippingRangeIncludeShadow(this, &mClippingRange, 0.0f);
+    }
 }
 
 bool ItemBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -180,18 +166,31 @@ bool ItemBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
         return true;
     }
 
+    if (isNerve(GET_NERVE(ItemBlock, ItemBlockNrvStandby)) || (isNerve(GET_NERVE(ItemBlock, ItemBlockNrvWait)) && MR::isMsgSupportTicoSpin(msg))) {
+        if (mCooldownTimer == 0 && tryStartJumpPunch()) {
+            mCooldownTimer = 40;
+        }
+    }
+
     return false;
 }
 
 bool ItemBlock::tryStartJumpPunch() {
     if (isNerve(GET_NERVE(ItemBlock, ItemBlockNrvStandby))) {
-        if (mKind == 1 || mKind == 3) {
+        switch (mKind) {
+        case 1:
+        case 3:
             MR::startAction(this, "Appear");
             calcAnim();
             mNoCalcAnim = true;
             setNerve(GET_NERVE(ItemBlock, ItemBlockNrvAppearItem));
-        } else if (mKind == 2 || mKind == 4 || mKind == 5) {
+            break;
+        case 2:
+        case 4:
+        case 5:
+        case 6:
             setNerve(GET_NERVE(ItemBlock, ItemBlockNrvAppearItemSplash));
+            break;
         }
 
         return true;
@@ -225,6 +224,8 @@ void ItemBlock::exeStandby() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
     }
+
+    MR::attachSupportTicoToTarget(this);
 }
 
 void ItemBlock::exeWait() {
@@ -233,6 +234,7 @@ void ItemBlock::exeWait() {
         MR::invalidateClipping(this);
     }
 
+    MR::attachSupportTicoToTarget(this);
     decTimer();
 }
 
@@ -241,6 +243,7 @@ void ItemBlock::exeAppearItem() {
         if (!mTimer) {
             MR::forceDeleteEffect(this, "Glow");
             MR::startAction(this, "Bomb");
+            MR::startActionSound(this, "Punched");
         }
 
         MR::invalidateClipping(this);
@@ -265,11 +268,10 @@ void ItemBlock::exeAppearItem() {
                 MR::hopStarPiece(this, position, -gravVec);
             }
 
-            MR::startActionSound(this, "OjStarPieceBurst");
+            MR::startActionSound(this, "SyItemAppear");
             break;
         case 2:
         default:
-            MR::startSystemSE("SE_SY_ITEM_APPEAR");
             break;
         }
     }
@@ -297,7 +299,7 @@ void ItemBlock::exeAppearItemSplash() {
         return;
     }
 
-    if (mKind == 2) {
+    if (mKind == 2 || mKind == 6) {
         if (mItemCount == 1) {
             MR::appearCoinPop(this, mPosition, 1);
         } else {
@@ -305,7 +307,6 @@ void ItemBlock::exeAppearItemSplash() {
         }
     } else if (mKind == 4) {
         MR::appearStarPiece(this, mPosition, mItemCount, ::hLastBonusSplashRangeH, 40.0f, false);
-        MR::startActionSound(this, "OjStarPieceBurst");
     } else if (mKind == 5) {
         MR::onSwitchDead(this);
     }
@@ -316,10 +317,15 @@ void ItemBlock::exeAppearItemSplash() {
 
 void ItemBlock::decTimer() {
     --mTimer;
-    if (mTimer > 0) {
+    if (mTimer <= 0) {
+        mTimer = 0;
+    }
+
+    --mCooldownTimer;
+    if (mCooldownTimer > 0) {
         return;
     }
-    mTimer = 0;
+    mCooldownTimer = 0;
 }
 
 void ItemBlock::calcAnim() {

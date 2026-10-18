@@ -1,6 +1,7 @@
 #include "Game/MapObj/RailMoveObj.hpp"
 #include "Game/Util.hpp"
 #include "Game/Demo/DemoCtrlBase.hpp"
+#include "Game/LiveActor/MaterialCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/MapObjActorInitInfo.hpp"
 #include "Game/MapObj/MapPartsRailMover.hpp"
@@ -29,6 +30,7 @@ namespace NrvRailMoveObj {
     NEW_NERVE(HostTypeWaitForPlayerOn, RailMoveObj, Wait);
     NEW_NERVE(HostTypeMove, RailMoveObj, Move);
     NEW_NERVE(HostTypeDone, RailMoveObj, Wait);
+    NEW_NERVE(RailMoveObjHostTypeDemoMove, RailMoveObj, DemoMove);
 };  // namespace NrvRailMoveObj
 
 RailMoveObj::RailMoveObj(const char* pName) : MapObjActor(pName), _D0(gZeroVec) {
@@ -56,6 +58,15 @@ void RailMoveObj::init(const JMapInfoIter& rIter) {
     info.setupBaseMtxFollowTarget();
     info.setupNerve(GET_NERVE(RailMoveObj, HostTypeMove));
     MapObjActorUtil::setupInitInfoTypical(&info, mObjectName);
+
+    const char* objName = mObjectName;
+    if (MR::isEqualString("GravityFollowLift", objName) || MR::isEqualString("GravityFollowLiftB", objName) ||
+        MR::isEqualString("GravityFollowLiftLongPanel", objName) || MR::isEqualString("GravityFollowPanel", objName) ||
+        MR::isEqualString("GravityFollowLiftBig", objName) || MR::isEqualString("KoopaLv2LavaLift", objName) ||
+        MR::isEqualString("LavaBeforeRepeatBlockFloater", objName) || MR::isEqualString("LavaAcrossFloater", objName)) {
+        info.setupProjmapMtx(true, false);
+    }
+
     setupInitInfo(rIter, &info);
     initialize(rIter, info);
 
@@ -181,6 +192,17 @@ bool RailMoveObj::tryStartMove() {
     return true;
 }
 
+void RailMoveObj::exeDemoMove() {
+    if (MR::isFirstStep(this)) {
+        mRailMover->end();
+        MR::startAction(this, "DemoMove");
+    }
+
+    if (MR::isActionEnd(this)) {
+        kill();
+    }
+}
+
 void RailMoveObj::exeMove() {
     if (MR::isFirstStep(this)) {
         startMapPartsFunctions();
@@ -303,7 +325,7 @@ bool RailRotateMoveObj::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* 
 
 void RailRotateMoveObj::initCaseUseSwitchB(const MapObjActorInitInfo& rInfo) {
     setNerve(GET_NERVE(RailMoveObj, HostTypeWait));
-    MR::listenStageSwitchOffB(this, MR::Functor< MapObjActor >(this, &MapObjActor::pauseMapPartsFunctions));
+    MR::listenStageSwitchOffB(this, MR::FunctorV0M< MapObjActor*, void (MapObjActor::*)() >(this, &MapObjActor::pauseMapPartsFunctions));
 }
 
 bool RailRotateMoveObj::tryStartRotateAtPoint() {
@@ -366,4 +388,158 @@ void RailMoveShadowDropYObj::control() {
     MR::calcUpVec(&mShadowDropDir, this);
     TVec3f negated = -mShadowDropDir;
     mShadowDropDir = negated;
+}
+
+// PLACEHOLDER(objects): fn_80333F90 is an unnamed MapPartsRailMover helper (moveCoordToEndPos, fn_80333FF0, reverse, setNerve Wait); resolve when the MapPartsRailMover owner names it
+extern "C" void fn_80333F90(MapPartsRailMover*);
+// PLACEHOLDER(objects): fn_80310770 is an unnamed MapObjActor stage-effect helper (reads mStageEffectCamera at 0xC8); resolve when named
+extern "C" void fn_80310770(RailMoveObj*, const char*);
+
+bool RailMoveObjSwitchWarpEnd::tryStartMove() {
+    if (MR::isValidSwitchA(this) && MR::isOnSwitchA(this)) {
+        fn_80333F90(mRailMover);
+        MR::setPosition(this, mRailMover->_28);
+        MR::onSwitchDead(this);
+        setNerve(GET_NERVE(RailMoveObj, HostTypeDone));
+        return true;
+    }
+
+    setNerve(GET_NERVE(RailMoveObj, HostTypeMove));
+    return true;
+}
+
+void RailMoveObjSwitchWarpEnd::startMoveInner() {
+    if (MR::isRegisteredEffect(this, "Start")) {
+        MR::emitEffect(this, "Start");
+    }
+
+    if (MR::isExistBck(this, "Move")) {
+        MR::startAction(this, "Move");
+    }
+}
+
+void RailMoveObjSwitchWarpEnd::move() {
+    if (!mRailMover->isStarting()) {
+        if (!_DD) {
+            MR::StageEffect::rumblePadStart(this, mObjectName);
+            fn_80310770(this, mObjectName);
+            MR::StageEffect::shakeCameraMoving(this, mObjectName);
+            _DD = 1;
+        }
+
+        if (MapObjActorUtil::isRailMoverWorking(this)) {
+            MR::StageEffect::tryStageEffectMoving(this, mObjectName);
+        }
+    }
+}
+
+void RailMoveObjSwitchWarpEnd::doAtEndPoint() {
+    RailMoveObj::doAtEndPoint();
+    setNerve(GET_NERVE(RailMoveObj, HostTypeDone));
+    MR::onSwitchDead(this);
+}
+
+RailMoveObjShakeCamera::RailMoveObjShakeCamera(const char* pName) : RailMoveObj(pName) {
+}
+
+void RailMoveObjShakeCamera::doAtEndPoint() {
+    if (!MR::isRailGoingToEnd(this)) {
+        MR::StageEffect::tryStageEffectStop(this, mObjectName);
+    }
+
+    if (MR::isExistBck(this, ::cMoveBckName) && MR::isBckPlaying(this, ::cMoveBckName)) {
+        MR::stopBck(this);
+    }
+
+    MR::StageEffect::stopShakingCameraMoving(this, mObjectName);
+}
+
+RailMoveWithIndirectModelObj::RailMoveWithIndirectModelObj(const char* pName) : RailMoveObj(pName) {
+    mIndirectModel = 0;
+}
+
+void RailMoveWithIndirectModelObj::init(const JMapInfoIter& rIter) {
+    RailMoveObj::init(rIter);
+    mIndirectModel = MR::createIndirectModel(this, getBaseMtx());
+}
+
+void RailSeesawMoveObj::setupInitInfo(const JMapInfoIter& rIter, MapObjActorInitInfo* pInfo) {
+    MapObjActorUtil::setupInitInfoSeesaw(pInfo, rIter, 0, 0.0f);
+}
+
+RailMoveDemoActionObj::RailMoveDemoActionObj(const char* pName) : RailMoveObj(pName) {
+}
+
+void RailMoveDemoActionObj::initDemoAction() {
+    if (MR::isDemoCast(this, 0)) {
+        MR::tryRegisterDemoActionNerve(this, GET_NERVE(RailMoveObj, RailMoveObjHostTypeDemoMove), 0);
+    }
+}
+
+void RailMoveWithReverseAnimObj::startMoveInner() {
+    MR::StageEffect::tryStageEffectStart(this, mObjectName);
+
+    if (MR::isRailGoingToEnd(this)) {
+        if (MR::isExistBck(this, ::cMoveBckName)) {
+            MR::startAction(this, ::cMoveBckName);
+        }
+    } else {
+        if (MR::isExistBck(this, "Reverse")) {
+            MR::startAction(this, "Reverse");
+        }
+    }
+
+    MR::StageEffect::shakeCameraMoving(this, mObjectName);
+}
+
+void RailMoveWithReverseAnimObj::doAtEndPoint() {
+    MR::StageEffect::tryStageEffectStop(this, mObjectName);
+
+    if (MR::isExistBck(this, ::cMoveBckName) && MR::isBckPlaying(this, ::cMoveBckName)) {
+        MR::stopBck(this);
+    }
+
+    if (MR::isExistBck(this, "Reverse") && MR::isBckPlaying(this, "Reverse")) {
+        MR::stopBck(this);
+    }
+
+    MR::StageEffect::stopShakingCameraMoving(this, mObjectName);
+}
+
+RailMoveLavaProjmapObj::RailMoveLavaProjmapObj(const char* pName) : RailMoveObj(pName) {
+    _E0.x = 0.0f;
+    _E0.y = 0.0f;
+    _E0.z = 0.0f;
+    _EC = 0.0f;
+    _F0 = 0.0f;
+}
+
+// PLACEHOLDER(objects): fn_800389C0 (TVec3f* out, LiveActor*) is an unnamed MapUtil helper (calcGravityVector, calcModelBoundingRadius); resolve when named
+extern "C" void fn_800389C0(TVec3f*, const LiveActor*);
+
+// NONMATCHING: same ops and calls; target keeps extra f32/TVec3f stack temporaries (frame 0x60, gravity at 0x44) and PS-register allocation differs
+void RailMoveLavaProjmapObj::initAfterPlacement() {
+    MR::calcGravity(this);
+    TVec3f gravity(mGravity);
+    gravity *= 1000.0f;
+
+    if (!MR::getFirstPolyOnLineToMapExceptActor(&_E0, 0, mPosition, gravity, this)) {
+        fn_800389C0(&_E0, this);
+    }
+
+    _EC = PSVECDistance(&mPosition, &_E0);
+
+    TVec3f diff(mPosition);
+    diff -= _E0;
+    if (diff.dot(mGravity) < 0.0f) {
+        _EC *= -1.0f;
+    }
+
+    if (mMatrixSetter) {
+        TVec3f offset(0.0f, _EC, 0.0f);
+        mMatrixSetter->updateMtxUseBaseMtxWithLocalOffset(offset);
+    }
+}
+
+void RailMoveLavaProjmapObj::updateProjmapMtx() {
 }

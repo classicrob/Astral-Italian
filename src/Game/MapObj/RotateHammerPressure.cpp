@@ -6,3 +6,10 @@ RotateHammerPressure::RotateHammerPressure(const char* name)
     PSMTXIdentity(mMatrices[2]);
     PSMTXIdentity(mMatrices[3]);
 }
+
+extern const TVec3f sRotateHammerPressureOffsets[4] = {
+    TVec3f(-800.0f, -600.0f, 0.0f),
+    TVec3f(605.0f, 800.0f, 0.0f),
+    TVec3f(1.0f, 1.0f, 1.0f),
+    TVec3f(-600.0f, 450.0f, 0.0f),
+};

@@ -59,6 +59,7 @@ void KoopaStateLastAttack::attackSensor(HitSensor* pSender, HitSensor* pReceiver
         isNerve(&NrvKoopaStateLastAttack::KoopaStateLastAttackNrvAttack::sInstance)) {
         if (!(MR::isSensorPlayer(pReceiver) && MR::sendMsgEnemyAttackStrongOrPush(pReceiver, pSender))) {
             if (MR::sendMsgKoopaPunchAttack(pReceiver, pSender)) {
+                return;
             }
         }
     }
@@ -151,8 +152,9 @@ void KoopaStateLastAttack::exeAttackEnd() {
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 60);
     MR::vecBlend(&mHost->mPosition, mStartPos, mTargetPos, rate);
+    TQuat4f* pQuat;
     KoopaBattle* pHost = mHost;
-    TQuat4f* pQuat = &pHost->mQuatA;
+    pQuat = &pHost->mQuatA;
     pQuat->set< f32 >(mQuatA);
     pQuat->slerp(pHost->mQuatB, rate);
     if (MR::isActionEnd(mHost) && MR::isGreaterEqualStep(this, 60)) {

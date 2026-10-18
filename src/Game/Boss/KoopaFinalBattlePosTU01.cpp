@@ -230,11 +230,13 @@ namespace MR {
 
     void resetKoopaBattleToDemoChamber(KoopaBattle* pBattle) {
         KoopaDemoChamber* pChamber = getKoopaBattleAccessor()->mDemoChamber;
-        TPos3f mtx(pChamber->getBaseMtx());
+        TPos3f mtx;
+        mtx.set(pChamber->getBaseMtx());
         mtx.getQuat(pBattle->mQuatA);
         mtx.getTrans(pBattle->mPosition);
         MR::resetPosition(pBattle);
-        TPos3f playerMtx(pChamber->getBaseMtx());
+        TPos3f playerMtx;
+        playerMtx.set(pChamber->getBaseMtx());
         MR::setPlayerBaseMtx(playerMtx.toMtxPtr());
         MR::resetPlayerStatus();
         MR::setPlayerStateWait();
@@ -243,11 +245,13 @@ namespace MR {
     void resetKoopaBattleToFinalStar(KoopaBattle* pBattle) {
         KoopaFinalStarPlanet* pPlanet = getKoopaBattleAccessor()->mFinalStarPlanet;
         if (pPlanet != nullptr) {
-            TPos3f mtx(pPlanet->getBaseMtx());
+            TPos3f mtx;
+            mtx.set(pPlanet->getBaseMtx());
             mtx.getQuat(pBattle->mQuatA);
             mtx.getTrans(pBattle->mPosition);
             MR::resetPosition(pBattle);
-            TPos3f playerMtx(pPlanet->getBaseMtx());
+            TPos3f playerMtx;
+            playerMtx.set(pPlanet->getBaseMtx());
             MR::setPlayerBaseMtx(playerMtx.toMtxPtr());
             MR::resetPlayerStatus();
             MR::setPlayerStateWait();

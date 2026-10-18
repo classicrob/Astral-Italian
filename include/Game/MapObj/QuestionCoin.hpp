@@ -12,6 +12,7 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void appear();
+    virtual void makeActorAppeared();
     virtual void kill();
     virtual void startClipped();
     virtual void endClipped();
@@ -23,6 +24,8 @@ public:
     void initShadow();
     void updateActorMtx();
     void exeWait() {
+    }
+    void exeDead() {
     }
 
     void exeThrowActor();

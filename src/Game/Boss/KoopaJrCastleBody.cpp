@@ -383,39 +383,26 @@ bool KoopaJrCastleBody::getStateFlag() const {
     return mState->getFlag();
 }
 
-// NONMATCHING: vector temporary stack slots
 bool KoopaJrCastleBody::calcBodyGear1(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
     f32 step = (f32)mGearStep;
-    TVec3f sp8(sAxisY);
-    sp8.scale(360.0f);
-    TVec3f sp14(sp8);
-    sp14.scale(step);
-    TVec3f sp20(sp14);
-    s32 gearMax = 500;
-    sp20.scale(1.0f / (f32)gearMax);
+    s32 stepMax = 500;
+    TVec3f rotation = (sAxisY * 360.0f * step) / (f32)stepMax;
     Mtx rot;
     PSMTXIdentity(rot);
-    MR::makeMtxRotate(rot, sp20);
+    MR::makeMtxRotate(rot, rotation);
     PSMTXConcat(pDst, rot, pDst);
     return true;
 }
 
-// NONMATCHING: vector temporary stack slots and load scheduling
+// NONMATCHING: negative-axis load scheduling and one extra register move
 bool KoopaJrCastleBody::calcBodyGear2(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
-    TVec3f sp8 = -sAxisY;
-    f32 step = (f32)mGearStep;
-    TVec3f sp14(sp8);
-    sp14.scale(360.0f);
-    TVec3f sp20(sp14);
-    sp20.scale(step);
-    TVec3f sp2C(sp20);
-    s32 gearMax = 500;
-    sp2C.scale(1.0f / (f32)gearMax);
+    s32 stepMax = 500;
+    TVec3f rotation = (-sAxisY * 360.0f * (f32)mGearStep) / (f32)stepMax;
     Mtx rot;
     PSMTXIdentity(rot);
-    MR::makeMtxRotate(rot, sp2C);
+    MR::makeMtxRotate(rot, rotation);
     PSMTXConcat(pDst, rot, pDst);
     return true;
 }
@@ -432,38 +419,26 @@ bool KoopaJrCastleBody::calcBodyGear3(TPos3f* pMtx, const JointControllerInfo&) 
     return true;
 }
 
-// NONMATCHING: vector temporary stack slots
 bool KoopaJrCastleBody::calcPropeller(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
     f32 step = (f32)mPropStep;
-    TVec3f sp8(sAxisBack);
-    sp8.scale(360.0f);
-    TVec3f sp14(sp8);
-    sp14.scale(step);
-    TVec3f sp20(sp14);
-    s32 propMax = 20;
-    sp20.scale(1.0f / (f32)propMax);
+    s32 stepMax = 20;
+    TVec3f rotation = (sAxisBack * 360.0f * step) / (f32)stepMax;
     Mtx rot;
     PSMTXIdentity(rot);
-    MR::makeMtxRotate(rot, sp20);
+    MR::makeMtxRotate(rot, rotation);
     PSMTXConcat(pDst, rot, pDst);
     return true;
 }
 
-// NONMATCHING: vector temporary stack slots
 bool KoopaJrCastleBody::calcWindmill(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
     f32 step = (f32)mWindStep;
-    TVec3f sp8(sAxisFront);
-    sp8.scale(360.0f);
-    TVec3f sp14(sp8);
-    sp14.scale(step);
-    TVec3f sp20(sp14);
-    s32 propMax = 20;
-    sp20.scale(1.0f / (f32)propMax);
+    s32 stepMax = 20;
+    TVec3f rotation = (sAxisFront * 360.0f * step) / (f32)stepMax;
     Mtx rot;
     PSMTXIdentity(rot);
-    MR::makeMtxRotate(rot, sp20);
+    MR::makeMtxRotate(rot, rotation);
     PSMTXConcat(pDst, rot, pDst);
     return true;
 }

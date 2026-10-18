@@ -1,8 +1,5 @@
 #include "Game/Boss/Sandy.hpp"
-// SMG2: MR::appearCoinPop returns bool (ObjUtil.hpp declares it void), declare the real one here.
-#define appearCoinPop appearCoinPopUnused
 #include "Game/Util.hpp"
-#undef appearCoinPop
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
@@ -46,21 +43,30 @@ bool sandyStateClose(ActorStateBase< Sandy >* pState, bool isAll) {
 }
 
 // 80100170
-// NONMATCHING: register allocation / constant materialisation order.
+// NONMATCHING: commuted floating multiply operands in the half-interval conversion.
 bool sandyStateThrow(ActorStateBase< Sandy >* pState, s32 count, s32 interval, bool isBoth) {
     if (MR::isFirstStep(pState)) {
         MR::startAction(pState->mHost, "WaitNormal");
         pState->mHost->getLeftHand()->setWait();
-        pState->mHost->getLeftHand()->mIsThrower = true;
+        {
+            SandyHand* hand = pState->mHost->getLeftHand();
+            hand->mIsThrower = true;
+        }
         pState->mHost->getLeftHand()->mWaitStep = interval;
         if (isBoth) {
-            pState->mHost->getRightHand()->mIsThrower = false;
+            {
+                SandyHand* hand = pState->mHost->getRightHand();
+                hand->mIsThrower = false;
+            }
             pState->mHost->getRightHand()->forceWait();
         }
         pState->mHost->resetCount();
     }
     if (isBoth && MR::isStep(pState, (s32)((f32)interval * 0.5f))) {
-        pState->mHost->getRightHand()->mIsThrower = true;
+        {
+            SandyHand* hand = pState->mHost->getRightHand();
+            hand->mIsThrower = true;
+        }
         pState->mHost->getRightHand()->setWait();
         pState->mHost->getRightHand()->mWaitStep = interval;
     }
@@ -87,7 +93,6 @@ namespace NrvSandyStateDamage {
 };  // namespace NrvSandyStateDamage
 
 // 80100320
-// NONMATCHING: ActorStateBase<Sandy> ctor is expanded inline in the target for this class.
 SandyStateDamage::SandyStateDamage(Sandy* pSandy, s32 damageStep, s32 openStep, s32 damageMax)
     : ActorStateBase< Sandy >("\203_\203\201\201[\203W", pSandy), mDamageCount(0), mFrontVec(0.0f, 0.0f, 1.0f), mTurnRate(0.0f), mIsEnd(false),
       mDamageStep(damageStep), mOpenStep(openStep), mPlayerPos(0.0f, 0.0f, 0.0f), mDamageMax(damageMax) {
@@ -192,6 +197,7 @@ void SandyStateDamage::exeOpenWaitTurn() {
 }
 
 // 80100830
+// NONMATCHING: host-pointer register lifetime around the negative-gravity temporary.
 void SandyStateDamage::exeDamageMini() {
     if (MR::isFirstStep(this)) {
         const char* pName;
@@ -210,8 +216,7 @@ void SandyStateDamage::exeDamageMini() {
         TVec3f front;
         mHost->mTargetQuat.getZDir(front);
         MR::turnDirectionToTargetDegreeHorizon(mHost, &front, mPlayerPos, 3.0f);
-        TVec3f up = -mHost->mGravity;
-        MR::makeQuatUpFront(&mHost->mTargetQuat, up, front);
+        MR::makeQuatUpFront(&mHost->mTargetQuat, -mHost->mGravity, front);
     }
     if (MR::isActionEnd(mHost)) {
         setNerve(&NrvSandyStateDamage::SandyStateDamageNrvOpenWait::sInstance);
@@ -219,13 +224,10 @@ void SandyStateDamage::exeDamageMini() {
 }
 
 // 80100930
+// NONMATCHING: host-pointer load scheduled after the action-name branch.
 void SandyStateDamage::exeDamage() {
     if (MR::isFirstStep(this)) {
-        const char* pName = "DamageNormal";
-        if (mDamageMax != -1) {
-            pName = "DamageDown";
-        }
-        mHost->startActionAll(pName, "Damage");
+        mHost->startActionAll(mDamageMax != -1 ? "DamageDown" : "DamageNormal", "Damage");
         if (mDamageMax != -1) {
             MR::startBrk(mHost, "Damage");
         }

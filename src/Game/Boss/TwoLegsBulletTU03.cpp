@@ -1,4 +1,3 @@
-#pragma auto_inline off
 #include "Game/Boss/TwoLegs.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -33,10 +32,7 @@ TwoLegsCamera::TwoLegsCamera(LiveActor* pHost) {
 void TwoLegsCamera::start() {
     mActive = true;
     mNumTargets = 0;
-    f32 fov;
-    TVec3f center;
-    calcFov(&fov, &center);
-    mFovScale = fov;
+    calcFov(&mFovScale, &mTarget);
     MR::startActorCameraProgrammable(mHost, -1);
 }
 
@@ -51,35 +47,40 @@ void TwoLegsCamera::end(bool) {
     MR::endActorCameraProgrammable(mHost, -1, true);
 }
 
-// NONMATCHING: the TVec3 copy-assign / add calls are out of line here, the target inlines the copy (psq) and emits add as its own weak fn
+// NONMATCHING: vector temporary stack slots; current geometry header expands add to PSVECAdd
 // (0, 0, 1) seed vector for makeMtxUpFront (SB4E01 .data lbl_806478D8)
-extern "C" TVec3f lbl_806478D8;
+namespace {
+    const Vec sCameraUp = {0.0f, 0.0f, 1.0f};
+    extern const f32 sSpinDegree;
+    extern const f32 sCameraFovyRadian;
+}
 
 void TwoLegsCamera::update() {
     if (mActive) {
         f32 fov;
         TVec3f center;
+        TVec3f eye;
+        TVec3f front;
+        TVec3f right;
         calcFov(&fov, &center);
         fov = MR::lerp(mFovScale, fov, 0.2f);
         JMAVECLerp(&mTarget, &center, &center, 0.2f);
-        TVec3f up;
-        up = lbl_806478D8;
-        TVec3f front;
+        TVec3f up(sCameraUp);
         MR::calcDirectionVec(&front, *MR::getPlayerCenterPos(), center);
         TPos3f mtx;
         MR::makeMtxUpFront(&mtx, up, front);
-        TVec3f right;
-        right.set(mtx.mMtx[0][0], mtx.mMtx[1][0], mtx.mMtx[2][0]);
+        right.set<f32>(mtx.mMtx[0][0], mtx.mMtx[1][0], mtx.mMtx[2][0]);
         MR::rotateVecDegree(&up, right, -20.0f);
         TVec3f scaled;
-        scaled = up;
         scaled.x = up.x * fov;
         scaled.y = up.y * fov;
         scaled.z = up.z * fov;
-        TVec3f eye;
         eye.add(center, scaled);
         MR::setProgrammableCameraParamFovy(mHost, 15.0f);
-        TVec3f upVec(0.0f, 1.0f, 0.0f);
+        TVec3f upVec;
+        upVec.x = 0.0f;
+        upVec.y = 1.0f;
+        upVec.z = 0.0f;
         MR::setProgrammableCameraParam(mHost, center, eye, upVec);
         mNumTargets = 0;
         mFovScale = fov;
@@ -87,12 +88,11 @@ void TwoLegsCamera::update() {
     }
 }
 
+
 void TwoLegsCamera::addTarget(LiveActor* pTarget) {
     if (mActive) {
-        u32 num = mNumTargets;
-        if (num < 2) {
-            mTargets[num] = pTarget;
-            mNumTargets = num + 1;
+        if (mNumTargets < 2) {
+            mTargets[mNumTargets++] = pTarget;
         }
     }
 }
@@ -102,78 +102,67 @@ void TwoLegsCamera::reset() {
     mNumTargets = 0;
 }
 
-// NONMATCHING: the target emits TVec3::add as an out-of-line weak fn (fn_80105F30-area, 0x24) and calls it; ours inlines add/sub
+// NONMATCHING: current geometry header expands two-argument add into PSVECAdd
 void TwoLegsCamera::calcBox(TVec3f* pBox) {
     TVec3f center;
-    center.set(*MR::getPlayerCenterPos());
-
     TVec3f root;
-    static_cast< TwoLegs* >(mHost)->calcAllRootPosOnPlane(&root);
-
+    TwoLegsSphere playerSphere;
+    TwoLegsSphere rootSphere;
+    TwoLegsSphere targetSphere;
     TVec3f half;
-    half.setAll< f32 >(350.0f);
-    pBox->sub(center, half);
-    TVec3f* pMax = reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(pBox) + 0xC);
-    pMax->add(center, half);
-
-    TwoLegsSphere sphere;
-    sphere.mPos.set(root);
-    sphere.mRadius = 600.0f;
-    expandBox(pBox, &sphere);
-
-    for (s32 i = 0; i < mNumTargets; i++) {
-        sphere.mPos.set(*reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(mTargets[i]) + 0x14));
-        sphere.mRadius = 250.0f;
-        expandBox(pBox, &sphere);
+    center.set<f32>(*MR::getPlayerCenterPos());
+    static_cast<TwoLegs*>(mHost)->calcAllRootPosOnPlane(&root);
+    playerSphere.mPos.set<f32>(center);
+    playerSphere.mRadius = 350.0f;
+    half.setAll<f32>(playerSphere.mRadius);
+    pBox->sub(playerSphere.mPos, half);
+    pBox[1].add(playerSphere.mPos, half);
+    rootSphere.mPos.set<f32>(root);
+    rootSphere.mRadius = 600.0f;
+    expandBox(pBox, &rootSphere);
+    for (s32 i = 0; i < (s32)mNumTargets; i++) {
+        targetSphere.mPos.set<f32>(mTargets[i]->mPosition);
+        targetSphere.mRadius = 250.0f;
+        expandBox(pBox, &targetSphere);
     }
 }
 
 namespace {
     // grows the box (min at +0, max at +0xC) so that it contains the sphere
+    // NONMATCHING: two-argument vector add is expanded to PSVECAdd by the current geometry header.
     void expandBox(TVec3f* pBox, const TwoLegsSphere* pSphere) {
+        TVec3f bounds[2];
         TVec3f radius;
-        radius.setAll< f32 >(pSphere->mRadius);
-        TVec3f lo;
-        lo.sub(pSphere->mPos, radius);
-        TVec3f hi;
-        hi.add(pSphere->mPos, radius);
-        TVec3f* pMax = reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(pBox) + 0xC);
-        if (lo.x < pBox->x) {
-            pBox->x = lo.x;
-        }
-        if (lo.y < pBox->y) {
-            pBox->y = lo.y;
-        }
-        if (lo.z < pBox->z) {
-            pBox->z = lo.z;
-        }
-        if (hi.x > pMax->x) {
-            pMax->x = hi.x;
-        }
-        if (hi.y > pMax->y) {
-            pMax->y = hi.y;
-        }
-        if (hi.z > pMax->z) {
-            pMax->z = hi.z;
-        }
+        radius.setAll<f32>(pSphere->mRadius);
+        bounds[0].sub(pSphere->mPos, radius);
+        bounds[1].add(pSphere->mPos, radius);
+        if (pBox->x >= bounds[0].x) pBox->x = bounds[0].x;
+        if (pBox->y >= bounds[0].y) pBox->y = bounds[0].y;
+        if (pBox->z >= bounds[0].z) pBox->z = bounds[0].z;
+        if (pBox[1].x <= bounds[1].x) pBox[1].x = bounds[1].x;
+        if (pBox[1].y <= bounds[1].y) pBox[1].y = bounds[1].y;
+        if (pBox[1].z <= bounds[1].z) pBox[1].z = bounds[1].z;
     }
 };  // namespace
 
-// NONMATCHING: the fovy/centre computation uses the JMath sin/cos table inline; approximated via sin/cos
+
+// NONMATCHING: floating-point register assignment and constant-load scheduling
 void TwoLegsCamera::calcFov(f32* pFov, TVec3f* pCenter) {
     TVec3f box[2];
     calcBox(&box[0]);
-    f32 theta = 0.5f * 0.2617993950843811f;
-    f32 tanHalf = JMath::sSinCosTable.sinRadian(theta) / JMath::sSinCosTable.cosRadian(theta);
+    f32 height;
+    f32 fovy = sCameraFovyRadian;
+    f32 tanHalf = JMath::sSinCosTable.sinRadian(0.5f * fovy) / JMath::sSinCosTable.cosRadian(0.5f * fovy);
     f32 dist = (0.5f * static_cast< f32 >(MR::getScreenHeight())) / tanHalf;
     f32 fovX = (dist * (box[1].x - box[0].x)) / 608.0f;
-    f32 fovY = (dist * (box[1].y - box[0].y)) / static_cast< f32 >(MR::getScreenHeight());
-    if (fovX < fovY) {
-        fovX = fovY;
-    }
+    height = box[1].y - box[0].y;
+    f32 fovY = (dist * height) / static_cast< f32 >(MR::getScreenHeight());
+    fovX = (fovX >= fovY) ? fovX : fovY;
     *pFov = fovX;
     JMAVECLerp(&box[1], &box[0], pCenter, 0.5f);
 }
+
+namespace { const f32 sCameraFovyRadian = 0.2617993950843811f; }
 
 // ---------------------------------------------------------------------------------------------
 // TwoLegsCoin
@@ -192,6 +181,7 @@ void TwoLegsCoin::appear(const TVec3f& rPos) {
 // TwoLegsJointCtrl
 // ---------------------------------------------------------------------------------------------
 
+// NONMATCHING: callback member-pointer stack slots and literal-base register assignment
 TwoLegsJointCtrl::TwoLegsJointCtrl(LiveActor* pHost) {
     mSpin = false;
     mJointL = nullptr;
@@ -208,48 +198,49 @@ TwoLegsJointCtrl::TwoLegsJointCtrl(LiveActor* pHost) {
     // XjointTransform+0x68: user matrix pointer read by the joint callbacks
     *reinterpret_cast< TPos3f** >(reinterpret_cast< u8* >(mJointL) + 0x68) = &mMtxR;
     *reinterpret_cast< TPos3f** >(reinterpret_cast< u8* >(mJointR) + 0x68) = &mMtxL;
-    mCtrl = new JointControlDelegator< TwoLegs >(static_cast< TwoLegs* >(pHost), nullptr, &TwoLegs::calcJointCallback);
-    MR::setJointControllerParam(mCtrl, pHost, "EyeBall");
+    bool (TwoLegs::*callback)(TPos3f*, const JointControllerInfo&) = &TwoLegs::calcJointCallback;
+    bool (TwoLegs::*before)(TPos3f*, const JointControllerInfo&) = nullptr;
+    JointController* ctrl = new JointControlDelegator< TwoLegs >(static_cast< TwoLegs* >(pHost), before, callback);
+    MR::setJointControllerParam(ctrl, pHost, "EyeBall");
+    mCtrl = ctrl;
 }
 
 void TwoLegsJointCtrl::update() {
     if (mSpin) {
-        f32 degree = 2.0f;
-        MR::rotateMtxLocalYDegree(mMtxR.toMtxPtr(), degree);
-        MR::rotateMtxLocalYDegree(mMtxL.toMtxPtr(), -degree);
+        MR::rotateMtxLocalYDegree(mMtxR.toMtxPtr(), sSpinDegree);
+        MR::rotateMtxLocalYDegree(mMtxL.toMtxPtr(), -sSpinDegree);
     }
 }
+
+namespace { const f32 sSpinDegree = 2.0f; }
 
 void TwoLegsJointCtrl::registerCallBack() {
     mCtrl->registerCallBack();
 }
 
-// NONMATCHING: mDir.set(front) is an out-of-line call here but an inline copy in the target (TVec3 assign codegen)
 bool TwoLegsJointCtrl::calcJoint(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     TVec3f pos;
-    pos.set(pMtx->mMtx[0][3], pMtx->mMtx[1][3], pMtx->mMtx[2][3]);
+    pMtx->getTrans(pos);
     TVec3f up;
-    up.set(pMtx->mMtx[0][1], pMtx->mMtx[1][1], pMtx->mMtx[2][1]);
+    pMtx->getYDir(up);
+    TVec3f dir;
     TVec3f front;
     if (mTrack) {
-        TVec3f dir;
         MR::calcDirectionVec(&dir, pos, *MR::getPlayerCenterPos());
-        TVec3f axis(0.0f, 0.0f, 1.0f);
         TVec3f negUp;
-        negUp.x = -up.x;
-        negUp.y = -up.y;
-        negUp.z = -up.z;
-        f32 angle = MR::diffAngleSigned(dir, negUp, axis);
-        f32 clamped = angle * 1.5f;
+        negUp.negate(up);
+        f32 angle = MR::diffAngleSigned(dir, negUp, TVec3f(0.0f, 0.0f, 1.0f));
+        f32 clamped = angle;
+        clamped *= 1.5f;
         if (1.5707963705062866f < angle + clamped) {
             clamped = 1.5707963705062866f - angle;
         } else if (angle + clamped < -1.5707963705062866f) {
             clamped = -1.5707963705062866f - angle;
         }
-        MR::rotateVecRadian(&dir, axis, clamped);
-        MR::turnVecToVecDegree(&front, axis, dir, 10.0f, up);
+        MR::rotateVecRadian(&dir, TVec3f(0.0f, 0.0f, 1.0f), clamped);
+        MR::turnVecToVecDegree(&front, TVec3f(0.0f, 0.0f, 1.0f), dir, 10.0f, up);
     } else {
-        front.set(pMtx->mMtx[0][2], pMtx->mMtx[1][2], pMtx->mMtx[2][2]);
+        pMtx->getZDir(front);
     }
     if (mReturn) {
         f32 deg = mTrack ? 0.3f : 5.0f;
@@ -258,7 +249,9 @@ bool TwoLegsJointCtrl::calcJoint(TPos3f* pMtx, const JointControllerInfo& rInfo)
             mReturn = false;
         }
     }
-    mDir.set(front);
+    mDir.x = front.x;
+    mDir.y = front.y;
+    mDir.z = front.z;
     MR::makeMtxFrontUp(pMtx, front, up);
     pMtx->mMtx[0][3] = pos.x;
     pMtx->mMtx[1][3] = pos.y;
@@ -271,8 +264,12 @@ bool TwoLegsJointCtrl::calcJoint(TPos3f* pMtx, const JointControllerInfo& rInfo)
 // ---------------------------------------------------------------------------------------------
 
 TwoLegsBodyDir::TwoLegsBodyDir() {
-    mPos.set(0.0f, 0.0f, 0.0f);
-    mFront.set(0.0f, 0.0f, -1.0f);
+    mPos.x = 0.0f;
+    mPos.y = 0.0f;
+    mPos.z = 0.0f;
+    mFront.x = 0.0f;
+    mFront.y = 0.0f;
+    mFront.z = -1.0f;
 }
 
 f32 TwoLegsBodyDir::getRadius() const {
@@ -337,12 +334,15 @@ void TwoLegsReflectCtrl::start(bool isLeft) {
     } else {
         degree = -10.0f;
     }
-    TVec3f axis(0.0f, 0.0f, 1.0f);
+    TVec3f axis;
+    axis.x = 0.0f;
+    axis.y = 0.0f;
+    axis.z = 1.0f;
     MR::rotateVecDegree(&mDir, axis, degree);
     setNerve(&NrvTwoLegsReflectCtrl::TwoLegsReflectCtrlNrvReflect::sInstance);
 }
 
-// NONMATCHING: pos = joint pos + scaled dir; copy-ctor and scale order differ from target
+// NONMATCHING: saved registers/load order and inline paired-single addition emitted as a PSVECAdd call
 void TwoLegsReflectCtrl::setIK(f32 rate) {
     TVec3f jointPos;
     MR::copyJointPos(mHost, mJointName, &jointPos);
@@ -351,7 +351,7 @@ void TwoLegsReflectCtrl::setIK(f32 rate) {
     scaled.y *= 100.0f;
     scaled.z *= 100.0f;
     TVec3f pos(jointPos);
-    pos.add(scaled);
+    pos += scaled;
     mJointCtrl->setIKEndPosition(mJointName, pos, rate);
 }
 

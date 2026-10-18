@@ -7,6 +7,8 @@
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
+#include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/DirectDraw.hpp"
 #include "Game/Util/DirectDrawUtil.hpp"
@@ -16,6 +18,7 @@
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/NPCUtil.hpp"
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
@@ -122,7 +125,7 @@ void WarpPodMgr::draw() const {
 
 void WarpPod::startWaitAfterDelay(u16 delay) {
     mDelay = delay;
-    if (mArg2 != 0) {
+    if (mVisibilityState != 0) {
         MR::startAction(this, "Wait");
     }
 }
@@ -134,7 +137,6 @@ void WarpPod::init(const JMapInfoIter& rIter) {
 
     LiveActor::init(rIter);
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("WarpPod", nullptr, false);
 
     s32 groupId = -1;
     MR::getJMapInfoGroupID(rIter, &groupId);
@@ -183,6 +185,7 @@ void WarpPod::init(const JMapInfoIter& rIter) {
     if (mVisibilityState == 0) {
         MR::connectToScene(this, MR::MovementType_MapObj, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);
     } else {
+        MR::initActor(this, rIter, "WarpPod", false);
         MR::connectToScene(this, MR::MovementType_MapObj, MR::CalcAnimType_MapObj, MR::DrawBufferType_MapObj, MR::DrawType_None);
     }
 
@@ -198,7 +201,7 @@ void WarpPod::init(const JMapInfoIter& rIter) {
     _A6 = 0;
     _CD = false;
 
-    initEffectKeeper(1, nullptr, false);
+    initEffectKeeper(1, "WarpPod", false);
 
     MR::validateClipping(this);
     MR::setClippingFarMax(this);
@@ -209,31 +212,22 @@ void WarpPod::init(const JMapInfoIter& rIter) {
 
     if (mVisibilityState != 0) {
         MR::startAction(this, "Active");
-        MR::startBrk(this, "Active");
     }
 
     bool isNonActive = false;
 
-    if (MR::calcOpenedAstroDomeNum() < mGrandstarReq) {
-        isNonActive = true;
-    }
-
     if (mArg3 == 0) {
         s32 index = MR::getWarpPodManager()->_14++;
         mPathFlagIndex = index;
-
-        if (MR::isOnWarpPodPathFlag(mPathFlagIndex)) {
-            isNonActive = false;
-        } else {
-            isNonActive = true;
-        }
+        isNonActive = true;
     } else if (!isNonActive) {
         glowEffect();
     }
 
     if (isNonActive) {
-        MR::startAction(this, "Wait");
-        MR::startBrk(this, "Wait");
+        if (mVisibilityState != 0) {
+            MR::startAction(this, "Wait");
+        }
 
         mIsInactive = true;
     } else {
@@ -243,14 +237,18 @@ void WarpPod::init(const JMapInfoIter& rIter) {
 
     _CC = false;
 
+    MR::useStageSwitchAwake(this, rIter);
+    MR::tryRegisterDemoCast(this, rIter);
+    MR::registerMarioFaceShipNpc(this, rIter);
+}
+
+void WarpPod::initAfterPlacement() {
     mPairPod = MR::getWarpPodManager()->getPairPod(this);
 
     if (mPairPod != nullptr) {
         initPair();
         mPairPod->initPair();
     }
-
-    MR::tryRegisterDemoCast(this, rIter);
 }
 
 void WarpPod::glowEffect() {
@@ -323,18 +321,17 @@ void WarpPod::appear() {
         mIsInactive = false;
 
         MR::startActionSound(this, "OjWarpPodPathAppear", -1, -1, -1);
-        MR::startAction(this, "Active");
-        MR::startBrk(this, "Active");
+
+        if (mVisibilityState != 0) {
+            MR::startAction(this, "Active");
+        }
+
         glowEffect();
     }
 }
 
 void WarpPod::appearWithDemo() {
     if (mIsInactive) {
-        if (mArg3 == 0) {
-            MR::setWarpPodPathFlag(mPathFlagIndex, true);
-        }
-
         if (mPairPod->mIsInactive && !mArg7) {
             mPairPod->appearWithDemo();
 
@@ -371,8 +368,9 @@ void WarpPod::control() {
     mIsInactive = false;
     _CC = true;
 
-    MR::startAction(this, "Active");
-    MR::startBrk(this, "Active");
+    if (mVisibilityState != 0) {
+        MR::startAction(this, "Active");
+    }
 
     glowEffect();
 }
@@ -389,8 +387,10 @@ void WarpPod::movement() {
             }
 
             mPairPod->glowEffect();
-            MR::startAction(mPairPod, "Active");
-            MR::startBrk(mPairPod, "Active");
+
+            if (mVisibilityState != 0) {
+                MR::startAction(mPairPod, "Active");
+            }
         }
     } else {
         if (mDelay != 0) {
@@ -403,10 +403,8 @@ void WarpPod::movement() {
             if (mDelay == 0) {
                 MR::validateClipping(this);
 
-                MR::startAction(this, "Active");
-                MR::startBrk(this, "Active");
-
                 if (mVisibilityState != 0) {
+                    MR::startAction(this, "Active");
                     MR::startActionSound(this, "OjWarpPodActive", -1, -1, -1);
                 }
             }
@@ -461,6 +459,10 @@ void WarpPod::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 // FIXME: big tvec mess
 void WarpPod::initDraw() {
     if (!mArg7) {
+        return;
+    }
+
+    if (mVisibilityState == 0) {
         return;
     }
 
@@ -657,6 +659,10 @@ void WarpPod::drawCylinder(u32) const {
 }
 
 void WarpPod::draw() const {
+    if (!MR::isValidDraw(this)) {
+        return;
+    }
+
     if (mVisibilityState == 0) {
         return;
     }

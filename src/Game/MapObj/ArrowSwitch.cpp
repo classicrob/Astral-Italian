@@ -16,7 +16,6 @@
 namespace {
     static const f32 sRotYTargetList[] = {0.0f, 90.0f, 180.0f, -90.0f};
 
-    static const f32 sTestScale = 1.0f;
     static const f32 sPunchVelocit = 6.0f;
     static const s32 sFreqRotY = 4;
 };  // namespace
@@ -25,15 +24,15 @@ namespace NrvArrowSwitch {
     NEW_NERVE(ArrowSwitchNrvWait, ArrowSwitch, Wait);
     NEW_NERVE(ArrowSwitchNrvRotate, ArrowSwitch, Rotate);
     NEW_NERVE(ArrowSwitchNrvLock, ArrowSwitch, Lock);
+    NEW_NERVE(ArrowSwitchNrvStop, ArrowSwitch, Stop);
 };  // namespace NrvArrowSwitch
 
 ArrowSwitch::ArrowSwitch(const char* pName)
-    : LiveActor(pName), mRotAngle(), mRotYTargetIndex(), mRotSpeed(), mSwitchType(-1), mLockAfterRotate(), mIsRotPlus(true), _9E(), mIsPunch() {
+    : LiveActor(pName), mRotAngle(), mRotYTargetIndex(), mRotSpeed(), mSwitchType(-1), mLockAfterRotate(), mIsRotPlus(true), _A5(), mIsPunch() {
 }
 
 void ArrowSwitch::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    mScale.set(::sTestScale);
     MR::initActor(this, rIter, "ArrowSwitch", false);
     MR::connectToSceneNoSilhouettedMapObjStrongLight(this);
 
@@ -41,16 +40,16 @@ void ArrowSwitch::init(const JMapInfoIter& rIter) {
     MR::calcUpVec(&up, this);
     mGravity.set(-up);
 
-    MR::initShadowFromCSV(this, "Shadow");
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     MR::onCalcShadow(this, nullptr);
     MR::onCalcGravity(this);
 
-    if (MR::isInAreaObj("PlaneModeCube", mPosition)) {
+    if (MR::isInPlaneModeCube(mPosition)) {
         initHitSensor(1);
-        MR::addHitSensorMapObj(this, "body", 8, 100.0f, TVec3f(0.0f, 50.0f, 250.0f));
+        MR::addHitSensorMapObj(this, "body", 8, 100.0f * mScale.x, TVec3f(0.0f, 50.0f * mScale.x, 250.0f * mScale.x));
     } else {
         initHitSensor(2);
-        MR::addHitSensorMapObj(this, "body", 8, 100.0f, TVec3f(0.0f, 50.0f, 250.0f));
+        MR::addHitSensorMapObj(this, "body", 8, 100.0f * mScale.x, TVec3f(0.0f, 50.0f * mScale.x, 250.0f * mScale.x));
         MR::addHitSensorMapObjMoveCollision(this, "collision", 8, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
         MR::initCollisionParts(this, "ArrowSwitch", getSensor("collision"), nullptr);
     }
@@ -69,11 +68,11 @@ void ArrowSwitch::init(const JMapInfoIter& rIter) {
 
     MR::needStageSwitchWriteA(this, rIter);
 
-    if (!mLockAfterRotate) {
+    if (mLockAfterRotate == -1) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &ArrowSwitch::listenOnSwitch), MR::Functor(this, &ArrowSwitch::listenOffSwitch));
     }
 
-    makeActorAppeared();
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void ArrowSwitch::control() {
@@ -91,7 +90,7 @@ void ArrowSwitch::calcAndSetBaseMtx() {
 }
 
 void ArrowSwitch::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver)) {
+    if (MR::isSensorPlayer(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -226,26 +225,18 @@ void ArrowSwitch_FORCE_MATCH_SDATA2_2() {
 
 void ArrowSwitch::exeRotate() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "OjArrowSwitchOn");
+        MR::startActionSound(this, "OjArrowSwitchOn", -1, -1, -1);
         MR::onCalcShadow(this, nullptr);
-
-        if (mLockAfterRotate) {
-            MR::invalidateHitSensors(this);
-
-            if (MR::isExistCollisionParts(this)) {
-                MR::invalidateCollisionParts(this);
-            }
-        }
+        MR::startActionSound(this, "OjLvArrowSwitchMove", -1, -1, -1);
     }
 
-    MR::startActionSound(this, "OjLvArrowSwitchMove");
     mRotAngle += mRotSpeed;
     mRotAngle = MR::repeat(mRotAngle, -180.0f, 360.0f);
     f32 diff = MR::repeat(::sRotYTargetList[mRotYTargetIndex] - mRotAngle, -180.0f, 360.0f);
 
     if (mIsRotPlus && diff < 0.0f || !mIsRotPlus && diff > 0.0f) {
-        mRotAngle = ::sRotYTargetList[mRotYTargetIndex];
         mRotSpeed = 0.0f;
+        mRotAngle = ::sRotYTargetList[mRotYTargetIndex];
 
         if (MR::isValidSwitchA(this) && mIsPunch) {
             if (mRotYTargetIndex != 0) {
@@ -253,16 +244,16 @@ void ArrowSwitch::exeRotate() {
             } else {
                 MR::offSwitchA(this);
             }
-
-            MR::startSystemSE("SE_SY_GRAVITY_SWITCHED");
         }
 
-        MR::startActionSound(this, "OjArrowSwitchStop");
-
+        MR::startActionSound(this, "OjArrowSwitchStop", -1, -1, -1);
         mIsPunch = false;
 
-        if (mLockAfterRotate) {
+        if (mLockAfterRotate == 0) {
             setNerve(GET_NERVE(ArrowSwitch, ArrowSwitchNrvLock));
+        } else if (mLockAfterRotate == 1) {
+            setNerve(GET_NERVE(ArrowSwitch, ArrowSwitchNrvStop));
+            kill();
         } else {
             setNerve(GET_NERVE(ArrowSwitch, ArrowSwitchNrvWait));
         }

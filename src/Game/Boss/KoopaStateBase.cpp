@@ -12,9 +12,11 @@ namespace NrvKoopaStateMeteor {
     NEW_NERVE(KoopaStateMeteorNrvEnd, KoopaStateMeteor, End);
 };  // namespace NrvKoopaStateMeteor
 
+// NONMATCHING: ActorStateBase constructor remains out of line; target expands its initialization.
 KoopaStateBase::KoopaStateBase(const char* pName, KoopaBattle* pHost) : ActorStateBase< KoopaBattle >(pName, pHost) {
 }
 
+// NONMATCHING: ActorStateBase constructor remains out of line; target expands its initialization.
 KoopaStateMeteor::KoopaStateMeteor(KoopaBattle* pHost)
     : ActorStateBase< KoopaBattle >("クッパ隕石攻撃", pHost), mMode(1), mCastInterval(60), mEndStep(60), mEndFrameMax(0) {
     mEndFrameMax = MR::getBckFrameMax(pHost, "MeteorEnd");

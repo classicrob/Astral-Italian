@@ -60,6 +60,7 @@ namespace NrvDinoPackunDemo {
     NEW_NERVE(DinoPackunDemoNrvAngryDemo, DinoPackunDemo, AngryDemo);
     NEW_NERVE(DinoPackunDemoNrvDownDemo, DinoPackunDemo, DownDemo);
     NEW_NERVE(DinoPackunDemoNrvAppearPowerStar, DinoPackunDemo, AppearPowerStar);
+    NEW_NERVE(DinoPackunDemoNrvCameraEndDemo, DinoPackunDemo, CameraEndDemo);
 };  // namespace NrvDinoPackunDemo
 
 DinoPackunDemo::DinoPackunDemo(DinoPackun* pBoss) : DinoPackunAction("ディノパックンデモ", pBoss), _14(), mDemoName(), mCameraName() {
@@ -89,17 +90,24 @@ void DinoPackunDemo::startDownDemo() {
     startTryDemo("ディノパックンダウン", GET_NERVE(DinoPackunDemo, DinoPackunDemoNrvDownDemo));
 }
 
+#pragma dont_inline on
 void DinoPackunDemo::startTryDemo(const char* pName, const Nerve* pNerve) {
     appear();
+    _14 = pNerve;
+    mDemoName = pName;
+    setNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoNrvTryStartDemo));
+}
 
-    if (MR::tryStartDemoMarioPuppetable(getHost(), pName)) {
-        MR::overlayWithPreviousScreen(2);
-        setNerve(pNerve);
-    } else {
-        _14 = pNerve;
-        mDemoName = pName;
-        setNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoNrvTryStartDemo));
+#pragma dont_inline off
+
+void DinoPackunDemo::startCameraEndDemo(const char* pCameraName) {
+    mCameraName = pCameraName;
+    if (!MR::isActionEnd(getHost())) {
+        MR::setBckFrameEndAndStop(getHost());
     }
+    MR::setAnimCameraLastFrame(getHost(), getHost()->mCameraInfo, pCameraName);
+    MR::overlayWithPreviousScreen(2);
+    setNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoNrvCameraEndDemo));
 }
 
 void DinoPackunDemo::exeTryStartDemo() {
@@ -113,7 +121,6 @@ void DinoPackunDemo::exeTryStartDemo() {
 
 void DinoPackunDemo::exeOpeningDemo() {
     if (MR::isFirstStep(this)) {
-        MR::stopStageBGM(30);
         getHost()->startDemoAndReset();
         getHost()->mDemoPos->startOpeningDemo();
         MR::startAnimCameraTargetSelf(getHost(), getHost()->mCameraInfo, "OpeningDemo", 0, false, 1.0f);
@@ -126,7 +133,7 @@ void DinoPackunDemo::exeOpeningDemo() {
     getHost()->mDemoPos->movement();
 
     if (MR::isStep(this, 28)) {
-        MR::startSystemSE("SE_DM_MEET_BOSS");
+        MR::startActionSound(getHost(), "DmMeetBoss");
         MR::startActionSound(getHost(), "BvDPakkunEggCreak");
         MR::startActionSound(getHost(), "BmDPakkunSlaver");
         MR::startActionSound(getHost(), "BmDPakkunEggCreak");
@@ -142,14 +149,23 @@ void DinoPackunDemo::exeOpeningDemo() {
         MR::startActionSound(getHost(), "BmDPakkunTailAttack");
     }
 
-    if (MR::isActionEnd(getHost())) {
-        MR::startStageBGM("MBGM_GALAXY_INTER", false);
+    DinoPackun* host = getHost();
+    if (MR::tryEndDemo(host, "ディノパックン開始デモ", MR::isActionEnd(host))) {
+        if (getHost()->isVs1()) {
+            MR::startBossRushBGM();
+        } else {
+            MR::startAfterBossRushBGM();
+        }
         getHost()->mDemoPos->endDemo();
         getHost()->resetPosition();
-        getHost()->endDemo("ディノパックン開始デモ");
-        MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "OpeningDemo", -1, true);
+        getHost()->endDemo();
         getHost()->activateParts();
         MR::validateCollisionParts(getHost()->getEggShell());
+        if (MR::isDemoEndWaitCameraInterpolating()) {
+            startCameraEndDemo("OpeningDemo");
+            return;
+        }
+        MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "OpeningDemo", -1, true);
         kill();
     }
 }
@@ -157,6 +173,7 @@ void DinoPackunDemo::exeOpeningDemo() {
 void DinoPackunDemo::exeCryDemo() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(getHost());
+        MR::stopStageBGMImmediately();
         MR::stopStageBGM(30);
         getHost()->startDemoAndReset();
         MR::startAnimCameraTargetSelf(getHost(), getHost()->mCameraInfo, "CryDemo", 0, false, 1.0f);
@@ -168,11 +185,16 @@ void DinoPackunDemo::exeCryDemo() {
         MR::startCenterScreenBlur(::sCryBlurTime, ::sCryBlurOffset, ::sCryBlurAlpha, ::sCryBlurFadeIn, ::sCryBlurFadeOut);
     }
 
-    if (MR::isActionEnd(getHost())) {
-        MR::startBossBGM(MR::BossBgmID_DinoPackunA);
-        getHost()->endDemo("ディノパックン泣きデモ");
-        MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "CryDemo", -1, -1);
+    DinoPackun* host = getHost();
+    if (MR::tryEndDemo(host, "ディノパックン泣きデモ", MR::isActionEnd(host))) {
+        MR::startBossBGM(3);
+        getHost()->endDemo();
         getHost()->activateParts();
+        if (MR::isDemoEndWaitCameraInterpolating()) {
+            startCameraEndDemo("CryDemo");
+            return;
+        }
+        MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "CryDemo", -1, true);
         kill();
     }
 }
@@ -207,11 +229,16 @@ void DinoPackunDemo::exeAngryDemo() {
         }
     }
 
-    if (MR::isActionEnd(getHost())) {
-        MR::startBossBGM(MR::BossBgmID_DinoPackunB);
-        getHost()->endDemo("ディノパックン怒りデモ");
-        MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "AngryDemo", -1, 1);
+    DinoPackun* host = getHost();
+    if (MR::tryEndDemo(host, "ディノパックン怒りデモ", MR::isActionEnd(host))) {
+        MR::startBossBGM(4);
+        getHost()->endDemo();
         getHost()->activateParts();
+        if (MR::isDemoEndWaitCameraInterpolating()) {
+            startCameraEndDemo("AngryDemo");
+            return;
+        }
+        MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "AngryDemo", -1, true);
         kill();
     }
 }
@@ -235,27 +262,47 @@ void DinoPackunDemo::exeDownDemo() {
         MR::startActionSound(getHost(), "BmDPakkunFallDown");
     }
 
-    if (MR::isActionEnd(getHost())) {
-        MR::startActionSound(getHost(), "BmDPakkunExplode");
-        MR::tryRumblePadVeryStrong(getHost(), WPAD_CHAN0);
-        MR::hideModel(getHost());
-        setNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoNrvAppearPowerStar));
+    if (getHost()->isVs2()) {
+        if (MR::isActionEnd(getHost())) {
+            MR::endDemo(getHost(), "ディノパックンダウン");
+            MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "DownDemo", -1, true);
+            MR::startActionSound(getHost(), "BmDPakkunExplode");
+            MR::tryRumblePadVeryStrong(getHost(), WPAD_CHAN0);
+            getHost()->endDemo();
+            MR::hideModel(getHost());
+            setNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoNrvAppearPowerStar));
+        }
+    } else {
+        DinoPackun* host = getHost();
+        if (MR::tryEndDemo(host, "ディノパックンダウン", MR::isActionEnd(host))) {
+            MR::startActionSound(getHost(), "BmDPakkunExplode");
+            MR::tryRumblePadVeryStrong(getHost(), WPAD_CHAN0);
+            getHost()->endDemo();
+            MR::hideModel(getHost());
+            if (MR::isDemoEndWaitCameraInterpolating()) {
+                startCameraEndDemo("DownDemo");
+            } else {
+                MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "DownDemo", -1, true);
+                kill();
+            }
+            MR::startAfterBossRushBGM();
+        }
     }
 }
 
 void DinoPackunDemo::exeAppearPowerStar() {
-    if (MR::isStep(this, ::sAppearPowerStarTime)) {
-        MR::startAfterBossBGM();
-        MR::appearPowerStarContinueCurrentDemo(getHost(), getHost()->mPosition);
+    if (MR::isFirstStep(this)) {
+        MR::requestAppearPowerStarFromBelow(getHost());
     }
+    if (MR::isEndPowerStarAppearDemo(getHost())) {
+        kill();
+    }
+}
 
-    if (MR::isGreaterStep(this, ::sAppearPowerStarTime)) {
-        if (MR::isEndPowerStarAppearDemo(getHost())) {
-            getHost()->endDemo("ディノパックンダウン");
-            MR::endAnimCamera(getHost(), getHost()->mCameraInfo, "DownDemo", -1, true);
-            getHost()->kill();
-            kill();
-        }
+void DinoPackunDemo::exeCameraEndDemo() {
+    if (MR::isFirstStep(this)) {
+        MR::endAnimCamera(getHost(), getHost()->mCameraInfo, mCameraName, -1, true);
+        kill();
     }
 }
 

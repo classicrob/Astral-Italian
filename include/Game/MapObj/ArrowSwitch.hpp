@@ -35,6 +35,8 @@ public:
     void exeWait();
     void exeRotate();
     void exeLock();
+    void exeStop() {
+    }
     bool isPlusLimit() const;
     bool isMinusLimit() const;
     s32 getOneStep() const;
@@ -43,8 +45,8 @@ public:
     /* 0x94 */ s32 mRotYTargetIndex;
     /* 0x98 */ f32 mRotSpeed;
     /* 0x9C */ s32 mSwitchType;
-    /* 0xA0 */ bool mLockAfterRotate;
-    /* 0xA1 */ bool mIsRotPlus;
-    /* 0xA2 */ bool _9E;
-    /* 0xA3 */ bool mIsPunch;
+    /* 0xA0 */ s32 mLockAfterRotate;
+    /* 0xA4 */ bool mIsRotPlus;
+    /* 0xA5 */ bool _A5;
+    /* 0xA6 */ bool mIsPunch;
 };

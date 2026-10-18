@@ -240,6 +240,14 @@ void DinoPackun::initCamera(const JMapInfoIter& rIter) {
     mCamTargetMtx = new CameraTargetMtx("カメラターゲットダミー");
 }
 
+bool DinoPackun::isVs1() const {
+    return mSequence->getVsCount() == 1;
+}
+
+bool DinoPackun::isVs2() const {
+    return mSequence->getVsCount() == 2;
+}
+
 void DinoPackun::initScaleJointController() {
     _B8 = new AnimScaleController(&::sParam);
     _B4 = MR::createJointDelegatorWithNullChildFunc(this, &DinoPackun::hitScaleJoint, "Spine1");
@@ -543,9 +551,13 @@ void DinoPackun::startDemoAndReset() {
     }
 }
 
-void DinoPackun::endDemo(const char* pName) {
-    MR::endDemo(this, pName);
-    MR::setImageEffectControlAuto();
+void DinoPackun::endDemo() {
+    if (MR::isDemoEndWaitCameraInterpolating()) {
+        MR::tryForceDeleteEffectAll(this);
+    }
+    if (MR::isExistImageEffectDirector()) {
+        MR::setImageEffectControlAuto();
+    }
 }
 
 void DinoPackun::startDamageCamera() {

@@ -34,6 +34,7 @@ public:
     }
 
     virtual void init(const JMapInfoIter& rIter);
+    virtual void initAfterPlacement();
     virtual void movement();
     virtual void draw() const;
     virtual void appear();
@@ -49,31 +50,31 @@ public:
     void drawCylinder(u32) const;
     void startWaitAfterDelay(u16 delay);
 
-    /* 0x8C */ JMapIdInfo* mJMapIdInfo;
-    /* 0x90 */ s32 mGroupId;
-    /* 0x94 */ ActorCameraInfo* mCamInfo;
-    /* 0x98 */ char* mEventCameraName;
-    /* 0x9C */ char* _9C;
-    /* 0xA0 */ u16 mDelay;
-    /* 0xA2 */ u16 _A2;
-    /* 0xA4 */ u16 _A4;
-    /* 0xA6 */ u16 _A6;
-    /* 0xA8 */ s32 mVisibilityState;
-    /* 0xAC */ s32 mArg2;
-    /* 0xB0 */ s32 mArg3;
-    /* 0xB4 */ s32 mPathFlagIndex;
-    /* 0xB8 */ s32 mGrandstarReq;
-    /* 0xBC */ s32 mCameraTime;
-    /* 0xC0 */ s32 mGlowColorIndex;
-    /* 0xC4 */ TVec3f* _C4;
-    /* 0xC8 */ u16 _C8;
-    /* 0xCA */ bool mArg7;
-    /* 0xCB */ bool mIsInactive;
-    /* 0xCC */ u8 _CC;
-    /* 0xCD */ bool _CD;
-    /* 0xD0 */ WarpPod* mPairPod;
-    /* 0xD4 */ JUTTexture* _D4;
-    /* 0xD8 */ JUTTexture* _D8;
+    /* 0x90 */ JMapIdInfo* mJMapIdInfo;
+    /* 0x94 */ s32 mGroupId;
+    /* 0x98 */ ActorCameraInfo* mCamInfo;
+    /* 0x9C */ char* mEventCameraName;
+    /* 0xA0 */ char* _9C;
+    /* 0xA4 */ u16 mDelay;
+    /* 0xA6 */ u16 _A2;
+    /* 0xA8 */ u16 _A4;
+    /* 0xAA */ u16 _A6;
+    /* 0xAC */ s32 mVisibilityState;
+    /* 0xB0 */ s32 mArg2;
+    /* 0xB4 */ s32 mArg3;
+    /* 0xB8 */ s32 mPathFlagIndex;
+    /* 0xBC */ s32 mGrandstarReq;
+    /* 0xC0 */ s32 mCameraTime;
+    /* 0xC4 */ s32 mGlowColorIndex;
+    /* 0xC8 */ TVec3f* _C4;
+    /* 0xCC */ u16 _C8;
+    /* 0xCE */ bool mArg7;
+    /* 0xCF */ bool mIsInactive;
+    /* 0xD0 */ u8 _CC;
+    /* 0xD1 */ bool _CD;
+    /* 0xD4 */ WarpPod* mPairPod;
+    /* 0xD8 */ JUTTexture* _D4;
+    /* 0xDC */ JUTTexture* _D8;
 };
 
 namespace MR {

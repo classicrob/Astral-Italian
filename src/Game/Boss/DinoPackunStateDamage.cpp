@@ -172,7 +172,7 @@ void DinoPackunStateDamage::exeEggBroken() {
     }
 
     if (MR::isGreaterStep(this, 120)) {
-        getHost()->endDemo("ディノパックンダメージ");
+        getHost()->endDemo();
         getHost()->getEggBrokenModel()->kill();
         kill();
         getHost()->endDamageCamera();
@@ -235,7 +235,7 @@ void DinoPackunStateDamage::updateDamage() {
     }
 
     if (MR::isActionEnd(getHost())) {
-        getHost()->endDemo("ディノパックンダメージ");
+        getHost()->endDemo();
         kill();
         getHost()->endDamageCamera();
     }

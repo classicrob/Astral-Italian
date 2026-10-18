@@ -38,6 +38,8 @@ public:
     void initEggShell();
     void initBall();
     void initCamera(const JMapInfoIter&);
+    bool isVs1() const;
+    bool isVs2() const;
     void initScaleJointController();
     void startHitReaction();
     bool isHitReaction(s32) const;
@@ -63,7 +65,7 @@ public:
     void offAimTailBall(s32);
     void startDemo();
     void startDemoAndReset();
-    void endDemo(const char*);
+    void endDemo();
     void startDamageCamera();
     void endDamageCamera();
 

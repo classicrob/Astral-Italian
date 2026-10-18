@@ -4,6 +4,7 @@
 
 class HashSortTable;
 class LiveActor;
+class MarioActor;
 
 // Small helper classes owned by MarioActor in SMG2. Original names unknown; named by role/address.
 
@@ -24,4 +25,14 @@ public:
 
     /* 0x00 */ u8 _0[0x80];
     /* 0x80 */ s32 mCount;
+};
+
+class MarioTeresaModel {
+public:
+    static MarioTeresaModel* create(MarioActor*, bool);
+
+    LiveActor* mActor;
+    f32 _4;
+    f32 _8;
+    u8 _C[0x10];
 };

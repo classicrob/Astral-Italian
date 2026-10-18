@@ -155,7 +155,7 @@ bool MarioActor::fn_803B9920() {
     if ((FP(m, u32, 0xC) >> 0x1F) == 1 && !m->isRising() && ((FP(this->mMario, u32, 0xC) >> 0xC) & 1)) {
         return true;
     }
-    return this->checkButtonType(FP(F(void*, 0x107C), u16, 8), false);
+    return this->checkButtonType(mInputConfig->_8, false);
 }
 
 void MarioActor::fn_803B9A10() {
@@ -262,12 +262,12 @@ void MarioActor::fn_803BAFE0() {
 
 void MarioActor::fn_803BB4F0() {
     if (F(u16, 0x6F8) == 6) {
-        MR::requestMovementOn(*F(LiveActor**, 0xE98));
+        MR::requestMovementOn(mTeresaModel->mActor);
     }
 }
 
 void MarioActor::fn_803BB510(const TVec3f& a, const TVec3f& b) {
-    MR::emitEffectHit(*F(LiveActor**, 0xE98), a, b, "WallHit");
+    MR::emitEffectHit(mTeresaModel->mActor, a, b, "WallHit");
 }
 
 void MarioActor::fn_803BE6D0() {
@@ -1722,7 +1722,7 @@ bool MarioActor::fn_803BDE10() {
     if (F(u8, 0xE2C) != 0) {
         return false;
     }
-    return this->checkButtonType(*F(u16*, 0x107C), false);
+    return this->checkButtonType(mInputConfig->_0, false);
 }
 
 void* MarioActor::fn_803BE0C0() const {

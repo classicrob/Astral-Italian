@@ -1994,7 +1994,7 @@ void MarioActor::calcAnim() {
 
         switch (val) {
         case 1:
-            changeDisplayMode(4);
+            mAllModel->fn_803E7880(4);
             _9C8->calcAnim();
 
             if (_3DE != 0) {
@@ -2003,18 +2003,18 @@ void MarioActor::calcAnim() {
 
             break;
         case 4:
-            changeDisplayMode(2);
+            mAllModel->fn_803E7880(2);
             break;
         case 5:
             _3DF = 0;
-            changeDisplayMode(5);
+            mAllModel->fn_803E7880(5);
             break;
         case 3:
-            changeDisplayMode(3);
+            mAllModel->fn_803E7880(3);
             break;
 
         default:
-            changeDisplayMode(0);
+            mAllModel->fn_803E7880(0);
             u32 frame = 0;
             switch (val) {
             case 7:
@@ -2040,12 +2040,12 @@ void MarioActor::calcAnim() {
         }
 
         if ((_37C & 3) != 0) {
-            changeDisplayMode(1);
+            mAllModel->fn_803E7880(1);
         } else {
-            changeDisplayMode(_A0B);
+            mAllModel->fn_803E7880(_A0B);
         }
     } else if (mCurrModel == 1 && mHealth != 0) {
-        changeDisplayMode(_A0B);
+        mAllModel->fn_803E7880(_A0B);
     }
 
     _3DF = 0;
@@ -3198,12 +3198,12 @@ void MarioActor::getSideVec(TVec3f* pVec) const {
 
 
 void MarioActor::getUpVec(TVec3f* pVec) const {
-    *pVec = mUpVec;
+    *pVec = _270;
 }
 
 
 void MarioActor::getLastMove(TVec3f* pVec) const {
-    *pVec = mLastMove;
+    *pVec = _1F0;
 }
 
 
@@ -3819,12 +3819,7 @@ bool MarioActor::receiveMsgTaken(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     if (mMario->isSwimming() && !mMario->isStatusActive(MarioStatus_Foo)) {
-        u32 type = 0;
-        if (pSender->isType(ATYPE_JET_TURTLE_SLOW)) {
-            type = 1;
-        }
-
-        if (!mMario->mSwim->startJet(type)) {
+        if (!mMario->mSwim->startJet(pSender)) {
             return false;
         }
     } else if (pSender != _424) {
@@ -4164,34 +4159,14 @@ void MarioActor::initInvincibleMario() {
 
 
 void MarioActor::initTeresaMario() {
-    const char* modelName = gIsLuigi ? "TeresaLuigi" : "TeresaMario";
-    if (!MR::isLoadedObjectOrLayoutArchive(modelName)) {
-        return;
-    }
-
-    _9A4 = new MarioParts(this, "テレサの皮", modelName, nullptr);
-    if (gIsLuigi) {
-        _9A4->_9C = "TeresaMario";
-    }
-
-    _9A4->initWithoutIter();
-    _9A4->kill();
-
-    _9A4->initFixedPosition(TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f), nullptr);
-
-    _9A8 = 0.0f;
-    _9AC = 0.0f;
-    _9B4 = 0;
-
-    MR::initShadowVolumeSphere(_9A4, 90.0f);
+    mTeresaModel = MarioTeresaModel::create(this, gIsLuigi);
     _3D2 |= 0x40;
-    initTeresaMarioAnimation();
 }
 
 
 void MarioActor::initTornadoMario() {
     const char* modelName = gIsLuigi ? "LuigiTornado" : "MarioTornado";
-    if (!MR::isLoadedObjectOrLayoutArchive(modelName)) {
+    if (!MR::isCreatePlayerResourceTornado()) {
         return;
     }
 
@@ -4221,20 +4196,13 @@ void MarioActor::initBoneMario() {
 }
 
 
-void MarioActor::changeDisplayMode(u8 mode) {
-    mCurrModel = mode;
-    mMarioAnim->mXanimePlayer->setModel(mModels[mCurrModel]);
-    mMarioAnim->mXanimePlayerUpper->setModel(mModels[mCurrModel]);
-
-    mModelManager->mDisplayListMaker->mModel = mModels[mCurrModel];
-
+void MarioActor::changeDisplayMode() {
+    mMarioAnim->setAnimationModel(mAllModel->getJ3DModel());
+    mModelManager->mDisplayListMaker->mModel = mAllModel->getJ3DModel();
     if (_494 != nullptr) {
-        MtxPtr handMtx = MR::getJointMtx(this, "HandR");
-        _494->setBaseMtx(handMtx);
+        _494->setBaseMtx(MR::getJointMtx(this, "HandR"));
     }
-
-    MtxPtr handMtx = MR::getJointMtx(this, "HandR");
-    mSearchLightThrowPos->setBaseMtx(handMtx);
+    mSearchLightThrowPos->setBaseMtx(MR::getJointMtx(this, "HandR"));
 }
 
 
@@ -4933,9 +4901,9 @@ static u8 sBlinkStates[] = {0, 1, 2, 2, 2, 2, 1, 1, 0, 0};
 
 
 void MarioActor::initBlink() {
-    _B72 = 0;
-    _B74 = 0;
-    _B68 = 0;
+    mBlinkF9C = 0;
+    mBlinkF9E = 0;
+    mBlinkF98 = 0;
     mEyeRes = nullptr;
 }
 
@@ -7474,7 +7442,7 @@ bool MarioActor::isRequestRush() const {
         return false;
     }
 
-    bool out = checkButtonType(_F10, false);
+    bool out = checkButtonType(mInputConfig->_2, false);
     if (mMario->_10._D) {
         if (!out) {
             mMario->_10._D = false;
@@ -7496,7 +7464,7 @@ bool MarioActor::isRequestThrow() const {
         return false;
     }
 
-    bool out = checkButtonType(_F10, false);
+    bool out = checkButtonType(mInputConfig->_2, false);
     if (mMario->_10._D) {
         if (!out) {
             mMario->_10._D = false;
@@ -7526,7 +7494,7 @@ bool MarioActor::isRequestJump() const {
         return false;
     }
 
-    return checkButtonType(_F1A, false);
+    return checkButtonType(mInputConfig->_6, false);
 }
 
 
@@ -8042,7 +8010,7 @@ void MarioActor::changeSpecialModeAnimation(const char* pAnimName) {
         }
 
         changeTeresaAnimation("Sleep", 16);
-        MR::emitEffect(_9A4, "Sleep");
+        MR::emitEffect(mTeresaModel->mActor, "Sleep");
     }
 }
 
@@ -10512,15 +10480,15 @@ void MarioActorSpecialDraw_FORCE_MATCH_SDATA2() {
 
 
 void MarioActor::initScreenBox() {
-    _B44 = new (32) u8[0x20000];
-    _B28 = 0.0f;
-    _B24 = 0.0f;
-    _B30 = 0.0f;
-    _B2C = 0.0f;
-    _B38 = 0.0f;
-    _B34 = 0.0f;
-    _B40 = 0.0f;
-    _B3C = 0.0f;
+    mScreenBuffer = new (32) u8[0x20000];
+    mScreenF50.y = 0.0f;
+    mScreenF50.x = 0.0f;
+    mScreenF58.y = 0.0f;
+    mScreenF58.x = 0.0f;
+    mScreenF60.y = 0.0f;
+    mScreenF60.x = 0.0f;
+    mScreenF68.y = 0.0f;
+    mScreenF68.x = 0.0f;
 }
 
 

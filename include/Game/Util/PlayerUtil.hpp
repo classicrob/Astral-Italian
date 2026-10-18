@@ -14,6 +14,7 @@ class Triangle;
 class XanimeResourceTable;
 
 namespace MR {
+    bool isCreatePlayerResourceTornado();
     bool isPlayerPowerupTransforming();
     bool isPlayerInRushOrDemoOrTalk();
     void enablePlayerResourceFire();

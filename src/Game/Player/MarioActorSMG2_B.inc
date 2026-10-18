@@ -240,7 +240,7 @@ void MarioActor::fn_803CAD10(const char* name, const char* b, const BckCtrlData*
             actor = F(YoshiHolder*, 0xEE4)->mYoshi;
             snprintf(buf, 0x80, "Yoshi%s", name);
         } else if (this->mMario->isPlayerModeTeresa()) {
-            actor = *F(LiveActor**, 0xE98);
+            actor = mTeresaModel->mActor;
             snprintf(buf, 0x80, "%s", name);
         } else {
             snprintf(buf, 0x80, "%s", name);
@@ -309,11 +309,11 @@ void MarioActor::fn_803CB2E0(u16 newMode) {
         MR::setBtpFrameAndStop(this, 0.0f);
         break;
     case 6:
-        MR::deleteEffect(*F(LiveActor**, 0xE98), "Glow");
+        MR::deleteEffect(mTeresaModel->mActor, "Glow");
         if (newMode == 0) {
-            MR::offCalcAnim(*F(LiveActor**, 0xE98));
+            MR::offCalcAnim(mTeresaModel->mActor);
         } else {
-            (*F(LiveActor**, 0xE98))->kill();
+            (mTeresaModel->mActor)->kill();
             F(u8, 0x76B) = 0;
         }
         this->mMario->resetTeresaMode();
@@ -441,19 +441,19 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         this->rushDropThrowMemoSensor();
         break;
     case 6:
-        (*F(LiveActor**, 0xE98))->appear();
-        MR::onCalcAnim(*F(LiveActor**, 0xE98));
+        (mTeresaModel->mActor)->appear();
+        MR::onCalcAnim(mTeresaModel->mActor);
         this->runTeresaBaseAnimation();
-        MR::startBrk(*F(LiveActor**, 0xE98), "Erase");
-        MR::setBrkFrameAndStop(*F(LiveActor**, 0xE98), 0.0f);
-        FP(F(void*, 0xE98), f32, 4) = 0.0f;
-        FP(F(void*, 0xE98), f32, 8) = 0.0f;
+        MR::startBrk(mTeresaModel->mActor, "Erase");
+        MR::setBrkFrameAndStop(mTeresaModel->mActor, 0.0f);
+        mTeresaModel->_4 = 0.0f;
+        mTeresaModel->_8 = 0.0f;
         F(u8, 0x76B) = 1;
         this->rushDropThrowMemoSensor();
         this->mMario->startTeresaMode();
-        (*F(LiveActor**, 0xE98))->calcAnim();
-        MR::emitEffect(*F(LiveActor**, 0xE98), "Glow");
-        MR::emitEffect(*F(LiveActor**, 0xE98), "Appear");
+        (mTeresaModel->mActor)->calcAnim();
+        MR::emitEffect(mTeresaModel->mActor, "Glow");
+        MR::emitEffect(mTeresaModel->mActor, "Appear");
         break;
     case 2:
         MR::startPlayFireMorphBGM();
@@ -993,12 +993,12 @@ void MarioActor::fn_803CF130(MtxPtr mtx) {
             v = 0.0f;
         }
     }
-    FP(F(void*, 0xE98), f32, 8) = 0.02f * v + 0.98f * FP(F(void*, 0xE98), f32, 8);
+    mTeresaModel->_8 = 0.02f * v + 0.98f * mTeresaModel->_8;
     f32 var = CT(0x700);
-    if (FP(F(void*, 0xE98), f32, 8) > 0.0f) {
+    if (mTeresaModel->_8 > 0.0f) {
         var = CT(0x6FC);
     }
-    PSMTXConcat(mtx, MR::tmpMtxRotXRad(var * FP(F(void*, 0xE98), f32, 8)), mtx);
+    PSMTXConcat(mtx, MR::tmpMtxRotXRad(var * mTeresaModel->_8), mtx);
 }
 
 void MarioActor::updateFireSpin() {
@@ -1642,7 +1642,7 @@ void MarioActor::fn_803D8A70(s32 mode) {
     if (t != 0 && F(u16, 0x6F8) == 0) {
         if (mode != F(u16, 0x6F8) && F(u16, 0x6FA) == 6) {
             if (t > 0x1A) {
-                (*F(LiveActor**, 0xE98))->appear();
+                (mTeresaModel->mActor)->appear();
             }
             F(u8, 0x76B) = 1;
             this->updateHand();
@@ -1650,7 +1650,7 @@ void MarioActor::fn_803D8A70(s32 mode) {
             return;
         }
         if (F(u16, 0x6FA) == 6) {
-            (*F(LiveActor**, 0xE98))->kill();
+            (mTeresaModel->mActor)->kill();
             F(u8, 0x76B) = 0;
         }
     }

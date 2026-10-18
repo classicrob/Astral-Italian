@@ -473,12 +473,7 @@ bool MarioSwim::start() {
     if (mActor->_468) {
         if (mJet->mJetTimer == 0) {
             if (mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE) || mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE_SLOW)) {
-                u32 r1b = 0;
-                if (mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE_SLOW)) {
-                    r1b = 1;
-                }
-
-                startJet(r1b);
+                startJet(mActor->getCarrySensor());
 
                 r1e = 2;
                 mIsSwimmingAtSurface = false;
@@ -1160,7 +1155,7 @@ bool MarioSwim::update() {
         _44--;
     }
 
-    updateTilt();
+    mTilt->update();
     jet();
     pushedByWaterWall();
     return true;
@@ -2093,98 +2088,11 @@ void MarioSwim::jet() {
         mJet->mJetTimer = 0;
         mJet->mCooldownTimer = 0;
     }
-
-    if (mJet->mCooldownTimer != 0) {
-        mJet->mCooldownTimer--;
-    }
-
+    f32 factor = calcRingAcc();
     if (mJet->mJetTimer != 0) {
-        MR::setStageBGMStateBit(4);
-
-        f32 accFactor = calcRingAcc();
-        f32 targetSpeed;
-
-        if (accFactor != 1.0f) {
-            targetSpeed = accFactor * mActor->getConst().getTable()->mSwimFrontMaxSpeed;
-            switch (mJet->_8) {
-            case 0:
-                if (targetSpeed < mActor->getConst().getTable()->mSwimFrontJetSpeed) {
-                    targetSpeed = mActor->getConst().getTable()->mSwimFrontJetSpeed;
-                }
-
-                break;
-            default:
-                if (targetSpeed < mActor->getConst().getTable()->mSwimFrontJetSpeedSlow) {
-                    targetSpeed = mActor->getConst().getTable()->mSwimFrontJetSpeedSlow;
-                }
-
-                break;
-            }
-        } else {
-            switch (mJet->_8) {
-            case 0:
-                targetSpeed = mActor->getConst().getTable()->mSwimFrontJetSpeed;
-                break;
-            default:
-                targetSpeed = mActor->getConst().getTable()->mSwimFrontJetSpeedSlow;
-                break;
-            }
-        }
-
-        f32 speedScale = 1.0f;
-        targetSpeed *= speedScale;  // okay nintendo
-
-        if (mJet->mJetTimer == 1) {
-            if (checkLvlZ()) {
-                MR::emitEffect(mActor->getCarrySensor()->mHost, "BrakeLamp");
-                getPlayer()->_1C._9 = 1;
-            }
-        }
-
-        mJet->mJetTimer++;
-
-        if (checkLvlZ()) {
-            if (checkTrgZ() || mStateTimer < 2) {
-                playSound("亀ブレーキ");
-                MR::emitEffect(mActor->getCarrySensor()->mHost, "BrakeLamp");
-            }
-
-            getPlayer()->_1C._9 = 1;
-
-            if (mForwardSpeed > targetSpeed) {
-                mForwardSpeed *= 0.95f;
-                return;
-            }
-
-            if (mForwardSpeed > (0.1f * targetSpeed)) {
-                mForwardSpeed *= 0.96f;
-                return;
-            }
-
-        } else {
-            playSound("亀ジェット泳ぎ");
-            MR::forceDeleteEffect(mActor->getCarrySensor()->mHost, "BrakeLamp");
-        }
-
-        if (mForwardSpeed < targetSpeed) {
-            if (mForwardSpeed < 1.0f) {
-                mForwardSpeed = 1.0f;
-            }
-
-            mForwardSpeed *= 1.02f;
-
-            if (mRingDash->mTimer != 0) {
-                mForwardSpeed *= 1.5f;
-            }
-        } else {
-            if (mForwardSpeed > targetSpeed) {
-                mForwardSpeed *= 0.98f;
-            } else {
-                mForwardSpeed = targetSpeed;
-            }
-        }
+        mJet->update(factor);
     } else {
-        ringDash();
+        ringDash(factor);
     }
 }
 
@@ -2232,22 +2140,16 @@ void MarioSwim::dropJet(bool isDamage) {
     startPadVib(static_cast< u32 >(0));
 }
 
-bool MarioSwim::startJet(u32 type) {
+bool MarioSwim::startJet(const HitSensor* sensor) {
     if (mJet->mJetTimer != 0) {
         return false;
     }
 
-    mJet->_8 = type;
     mJet->mJetTimer = 1;
+    mJet->_8 = sensor->isType(0x13);
 
     forceStopSpin();
-    // Swim Jet
-    if (!isAnimationRun("水泳ジェット")) {
-        // Swim Jet Start
-        changeAnimation("水泳ジェット開始", "水泳ジェット");
-    } else {
-        changeAnimation(nullptr, "水泳ジェット");
-    }
+    updateJetAnimation();
 
     mJet->mCooldownTimer = 20;
     return true;
@@ -2384,82 +2286,6 @@ void MarioSwim::addDamage(const TVec3f& rDamageDir) {
     }
 }
 
-void MarioSwim::updateTilt() {
-    f32 targetTiltX = 0.0f;
-    f32 blendX = 0.1f;
-
-    if (mIsOnSurface) {
-        if (getStickP() > 0.1f) {
-            f32 stickX = getStickX();
-
-            f32 angle = (stickX * JGeometry::TUtil< f32 >::PI()) / 6.0f;
-            f32 absAngle = MR::abs(angle);
-
-            TVec3f padDir = getWorldPadDir();
-            f32 dot = mFrontVec.dot(padDir);
-            f32 scale = MR::clamp(1.0f - dot, 0.0f, 1.0f);
-
-            targetTiltX = absAngle * scale;
-
-            TVec3f cross = mFrontVec.cross(padDir);
-            if (cross.dot(mUpVec) > 0.0f) {
-                targetTiltX = -targetTiltX;
-            }
-
-            if (MR::abs(mTilt->mTiltX) < MR::abs(targetTiltX)) {
-                blendX = 0.1f;
-            } else {
-                blendX = 0.03f;
-            }
-        }
-    } else {
-        targetTiltX = (getStickX() * JGeometry::TUtil< f32 >::PI()) / 5.0f;
-    }
-
-    if (isAnimationRun("水泳ターン左") || isAnimationRun("水泳ターン右") || isAnimationRun("水泳ターン下")) {
-        f32 stickX = getStickX();
-        targetTiltX = (MR::clamp(stickX / 0.7f, -1.0f, 1.0f) * JGeometry::TUtil< f32 >::PI()) / 8.0f;
-    }
-
-    f32 targetTiltY = 0.0f;
-
-    if (!mIsOnSurface) {
-        if (mIdleWaitTimer == 0) {
-            f32 scaledTilt = (getStickY() * JGeometry::TUtil< f32 >::PI());
-            targetTiltY = scaledTilt / 12.0f;
-
-            if (getStickY() > 0.0f && mVerticalAngle <= 2.0f / 3.0f * JGeometry::TUtil< f32 >::PI()) {
-                targetTiltY = getStickY() * JGeometry::TUtil< f32 >::PI() / 8.0f;
-            }
-        } else if (getStickY() < 0.0f) {
-            const MarioConstTable* table = mActor->getConst().getTable();
-            targetTiltY = (getStickY() * JGeometry::TUtil< f32 >::PI()) / table->mSwimTiltZup;
-        } else if (getStickY() > 0.0f) {
-            const MarioConstTable* table = mActor->getConst().getTable();
-            targetTiltY = (getStickY() * JGeometry::TUtil< f32 >::PI()) / table->mSwimTiltZdown;
-        } else if (mIdleWaitTimer != 0) {
-            f32 fade = static_cast< f32 >(mIdleWaitTimer) / 120.0f;
-            if (fade > 1.0f) {
-                fade = 1.0f;
-            }
-
-            targetTiltY = targetTiltY - (fade * (JGeometry::TUtil< f32 >::PI() / 10.0f));
-        } else {
-            targetTiltY = 0.0f;
-        }
-    }
-
-    mTilt->mTiltX = (blendX * targetTiltX) + ((1.0f - blendX) * mTilt->mTiltX);
-    mTilt->mTiltY = (0.1f * targetTiltY) + (0.9f * mTilt->mTiltY);
-
-    Mtx mtxRotX, mtxRotZ;
-    PSMTXRotRad(mtxRotX, 'X', mTilt->mTiltX);
-    PSMTXRotRad(mtxRotZ, 'Z', mTilt->mTiltY);
-    MR::multMtx(mTilt->mJointMtx, mtxRotZ, mtxRotX);
-
-    u16 jointID = getAnimator()->getUpperJointID();
-    setJointGlobalMtx(jointID, mTilt->mJointMtx);
-}
 
 void MarioSwim::pushedByWaterWall() {
     if (!(mDistanceToWaterSurface < 0.0f)) {
@@ -3003,24 +2829,24 @@ bool MarioSwim::passRing(const HitSensor* pSensor) {
     return true;
 }
 
+// NONMATCHING: timer-load reuse and register allocation.
 f32 MarioSwim::calcRingAcc() {
-    if (mRingDash->mTimer != 0) {
-        if (mRingDash->mChargeTimer != 0) {
-            mRingDash->mChargeTimer--;
-
+    mRingDash->updateBlur();
+    MarioSwimRingDash* ring = mRingDash;
+    u16 timer = ring->mTimer;
+    if (timer != 0) {
+        if (ring->mChargeTimer != 0) {
+            ring->mChargeTimer--;
             if (mRingDash->mChargeTimer == 1) {
                 MarioActor* actor = mActor;
-                MarioConstTable* table = actor->mConst->getTable();
-
-                actor->_1AA = table->mStarPieceFogTime;
+                actor->_1AA = actor->mConst->getTable()->mStarPieceFogTime;
                 actor->_1AC = 1.0f;
-                actor->_1B0.r = 0xFF;
-                actor->_1B0.g = 0xFF;
-                actor->_1B0.b = 0xFF;
-                actor->_1B0.a = 0;
-                actor->_1B5 = 0;
+                actor->mSwimFogColor.r = 255;
+                actor->mSwimFogColor.g = 255;
+                actor->mSwimFogColor.b = 255;
+                actor->mSwimFogColor.a = 0;
+                actor->mSwimFogDisabled = false;
             }
-
             if (mRingDash->mChargeTimer == 0) {
                 startPadVib(3);
                 if (mJet->mJetTimer == 0) {
@@ -3029,40 +2855,25 @@ f32 MarioSwim::calcRingAcc() {
                     changeAnimation("カメ持ちリング");
                 }
             }
-
             return 1.0f;
-        } else {
-            mRingDash->mBlurOffset += 0.5f;
-            if (mRingDash->mBlurOffset > 30.0f) {
-                mRingDash->mBlurOffset = 30.0f;
-            }
-
-            f32 result = mRingDash->mSpeedScale;
-            if (mRingDash->mTimer < mRingDash->mMaxDuration) {
-                f32 ratio = static_cast< f32 >(mRingDash->mTimer) / static_cast< f32 >(mRingDash->mMaxDuration);
-                result = (1.0f - ratio) + (mRingDash->mSpeedScale * ratio);
-            }
-
-            mRingDash->mTimer--;
-            return result;
         }
-    } else {
-        if (mRingDash->mBlurOffset > 0.0f) {
-            mRingDash->mBlurOffset -= 0.5f;
-        } else {
-            mRingDash->mBlurOffset = 0.0f;
+        u16 maxDuration = ring->mMaxDuration;
+        f32 result = ring->mSpeedScale;
+        if (timer < maxDuration) {
+            f32 ratio = static_cast<f32>(timer) / static_cast<f32>(maxDuration);
+            result = (1.0f - ratio) + (result * ratio);
         }
-
-        return 1.0f;
+        ring->mTimer--;
+        return result;
     }
+    return 1.0f;
 }
 
-void MarioSwim::ringDash() {
-    f32 accFactor = calcRingAcc();
+void MarioSwim::ringDash(f32 accFactor) {
 
     if (mRingDash->mTimer != 0) {
         const MarioConstTable* table = mActor->getConst().getTable();
-        f32 targetSpeed = accFactor * mActor->getConst().getTable()->mSwimFrontMaxSpeed;
+        f32 targetSpeed = accFactor * fn_803FA8E0();
 
         if (mForwardSpeed < targetSpeed) {
             if (mForwardSpeed < 1.0f) {
@@ -3509,4 +3320,171 @@ u16 MarioSwimSpin::getReadyTimer() const {
         return mSwim->mActor->getConst().getTable()->mSwimSpinMissOfsTime;
     }
     return mSwim->mActor->getConst().getTable()->mSwimSpinMissOfsTimeYoshi;
+}
+
+// NONMATCHING: equivalent multiply operands and pooled string offsets.
+void MarioSwimJet::update(f32 factor) {
+    MR::setStageBGMStateBit(4);
+    if (mCooldownTimer != 0) {
+        mCooldownTimer--;
+    }
+    f32 targetSpeed;
+    if (factor != 1.0f) {
+        targetSpeed = factor * mSwim->fn_803FA8E0();
+        if (getMaxSpeed() > targetSpeed) {
+            targetSpeed = getMaxSpeed();
+        }
+    } else {
+        targetSpeed = getMaxSpeed();
+    }
+    if (mSwim->checkLvlZ() || isBackInput()) {
+        if (mJetTimer == 1) {
+            MR::emitEffect(mSwim->mActor->getCarrySensor()->mHost, "BrakeLamp");
+        } else if (mSwim->checkTrgZ() || mSwim->mStateTimer < 2) {
+            MR::emitEffect(mSwim->mActor->getCarrySensor()->mHost, "BrakeLamp");
+            mSwim->playSound("亀ブレーキ");
+        }
+        mSwim->getPlayer()->_1C._9 = 1;
+        f32 speed = mSwim->mForwardSpeed;
+        if (speed > targetSpeed) {
+            mSwim->mForwardSpeed = 0.95f * speed;
+        } else if (speed > (0.1f * targetSpeed)) {
+            mSwim->mForwardSpeed = 0.96f * speed;
+        } else {
+            updateVelocity(targetSpeed);
+        }
+    } else {
+        mSwim->playSound("亀ジェット泳ぎ");
+        MR::forceDeleteEffect(mSwim->mActor->getCarrySensor()->mHost, "BrakeLamp");
+        updateVelocity(targetSpeed);
+    }
+    mJetTimer++;
+}
+
+f32 MarioSwimJet::calcRotationRatio() const {
+    if (mJetTimer != 0) {
+        if (_8 == 0) {
+            return mSwim->mActor->getConst().getTable()->mSwimXJetRotRatio;
+        }
+        return mSwim->mActor->getConst().getTable()->mSwimXJetRotRatioRed;
+    }
+    return 1.0f;
+}
+
+f32 MarioSwimJet::getMaxSpeed() const {
+    if (_8 == 0) {
+        return mSwim->fn_803FAAA0();
+    }
+    return mSwim->fn_803FAB10();
+}
+
+// NONMATCHING: one equivalent multiply operand order.
+void MarioSwimJet::updateVelocity(f32 targetSpeed) {
+    f32 speed = mSwim->mForwardSpeed;
+    if (speed < targetSpeed) {
+        if (speed < 1.0f) {
+            mSwim->mForwardSpeed = 1.0f;
+        }
+        mSwim->mForwardSpeed *= 1.02f;
+        if (mSwim->mRingDash->mTimer != 0) {
+            mSwim->mForwardSpeed *= 1.5f;
+        }
+        return;
+    }
+    if (speed > targetSpeed) {
+        mSwim->mForwardSpeed = 0.98f * speed;
+        return;
+    }
+    mSwim->mForwardSpeed = targetSpeed;
+}
+
+bool MarioSwimJet::isBackInput() const {
+    if (!mSwim->getPlayer()->mMovementStates._37) {
+        return false;
+    }
+    const TVec3f* upPtr;
+    const TVec3f& pad = mSwim->getWorldPadDir();
+    upPtr = &mSwim->mUpVec;
+    const TVec3f& up = *upPtr;
+    TVec3f direction;
+    JMAVECScaleAdd(&up, &pad, &direction, -up.dot(pad));
+    MR::normalizeOrZero(&direction);
+    return mSwim->mFrontVec.dot(direction) < 0.0f;
+}
+
+void MarioSwim::updateJetAnimation() {
+    if (!isAnimationRun("水泳ジェット")) {
+        changeAnimation("水泳ジェット開始", "水泳ジェット");
+        return;
+    }
+    changeAnimation(nullptr, "水泳ジェット");
+}
+
+// NONMATCHING: boolean register allocation and pooled string offsets.
+bool MarioSwim::isSwimTurnAnimation() const {
+    bool result = false;
+    if (isAnimationRun("水泳ターン左") || isAnimationRun("水泳ターン右") || isAnimationRun("水泳ターン下")) {
+        result = true;
+    }
+    return result;
+}
+
+// NONMATCHING: floating-point register allocation and operation scheduling.
+void MarioSwimTilt::update() {
+    f32 targetTiltX = 0.0f;
+    f32 blendX = 0.1f;
+    if (mSwim->isOnWaterSurface()) {
+        if (mSwim->getStickP() > 0.1f) {
+            MarioSwim* swim = mSwim;
+            f32 dot = swim->mFrontVec.dot(swim->getWorldPadDir());
+            f32 scale = MR::clamp(1.0f - dot, 0.0f, 1.0f);
+            targetTiltX = scale * MR::abs((mSwim->getStickX() * JGeometry::TUtil<f32>::PI()) / 6.0f);
+            TVec3f cross;
+            PSVECCrossProduct(&mSwim->mFrontVec, &mSwim->getWorldPadDir(), &cross);
+            if (cross.dot(mSwim->mUpVec) > 0.0f) {
+                targetTiltX = -targetTiltX;
+            }
+            if (MR::abs(mTiltX) < MR::abs(targetTiltX)) {
+                blendX = 0.1f;
+            } else {
+                blendX = 0.03f;
+            }
+        }
+    } else {
+        targetTiltX = (mSwim->getStickX() * JGeometry::TUtil<f32>::PI()) / 5.0f;
+    }
+    if (mSwim->isSwimTurnAnimation()) {
+        targetTiltX = 0.125f * (MR::clamp(mSwim->getStickX() / 0.7f, -1.0f, 1.0f) * JGeometry::TUtil<f32>::PI());
+    }
+    f32 targetTiltY = 0.0f;
+    if (!mSwim->isOnWaterSurface()) {
+        if (mSwim->mIdleWaitTimer == 0) {
+            targetTiltY = (mSwim->getStickY() * JGeometry::TUtil<f32>::PI()) / 12.0f;
+            if (mSwim->getStickY() > 0.0f && mSwim->mVerticalAngle <= 2.09439516068f) {
+                targetTiltY = 0.125f * (mSwim->getStickY() * JGeometry::TUtil<f32>::PI());
+            }
+        } else if (mSwim->getStickY() < 0.0f) {
+            const MarioConstTable* table = mSwim->mActor->getConst().getTable();
+            targetTiltY = (mSwim->getStickY() * JGeometry::TUtil<f32>::PI()) / table->mSwimTiltZup;
+        } else if (mSwim->getStickY() > 0.0f) {
+            const MarioConstTable* table = mSwim->mActor->getConst().getTable();
+            targetTiltY = (mSwim->getStickY() * JGeometry::TUtil<f32>::PI()) / table->mSwimTiltZdown;
+        } else {
+            targetTiltY = targetTiltY - (0.314159274101f * mSwim->fn_80402160());
+        }
+    }
+    mTiltX = (blendX * targetTiltX) + ((1.0f - blendX) * mTiltX);
+    mTiltY = (0.1f * targetTiltY) + (0.9f * mTiltY);
+    if (mSwim->getPlayer()->mMovementStates._37) {
+        mTiltX = 0.0f;
+        mTiltY = 0.0f;
+    }
+    Mtx rotationX;
+    Mtx rotationZ;
+    PSMTXRotRad(rotationX, 'X', mTiltX);
+    PSMTXRotRad(rotationZ, 'Z', mTiltY);
+    PSMTXConcat(rotationX, rotationZ, mJointMtx.toMtxPtr());
+    MarioSwim* swim = mSwim;
+    u16 joint = swim->getAnimator()->getUpperJointID();
+    swim->setJointGlobalMtx(joint, mJointMtx.toMtxPtr());
 }

@@ -38,23 +38,62 @@ void Mario::fn_803B1710() {
     this->_10_HIGH_WORD &= 0xFFCFFFFF;
 }
 
-// column setters of a 3x4 matrix (X / Y / Z axis)
-void fn_803B2170(TMtx34f* pMtx, const TVec3f& rVec) {
+// Column setters of a 3x3 rotation matrix.
+void fn_803B2170(MarioRotationMatrix* pMtx, const TVec3f& rVec) {
     pMtx->mMtx[0][0] = rVec.x;
     pMtx->mMtx[1][0] = rVec.y;
     pMtx->mMtx[2][0] = rVec.z;
 }
 
-void fn_803B2190(TMtx34f* pMtx, const TVec3f& rVec) {
+void fn_803B2190(MarioRotationMatrix* pMtx, const TVec3f& rVec) {
     pMtx->mMtx[0][1] = rVec.x;
     pMtx->mMtx[1][1] = rVec.y;
     pMtx->mMtx[2][1] = rVec.z;
 }
 
-void fn_803B21B0(TMtx34f* pMtx, const TVec3f& rVec) {
+void fn_803B21B0(MarioRotationMatrix* pMtx, const TVec3f& rVec) {
     pMtx->mMtx[0][2] = rVec.x;
     pMtx->mMtx[1][2] = rVec.y;
     pMtx->mMtx[2][2] = rVec.z;
+}
+
+// NONMATCHING: floating-point register allocation and independent load scheduling only.
+void fn_803B21D0(const MarioRotationMatrix* matrix, TQuat4f& rDest) {
+    if (matrix->mMtx[0][0] + matrix->mMtx[1][1] + matrix->mMtx[2][2] >= 0.0f) {
+        f32 root = matrix->mMtx[0][0] + matrix->mMtx[1][1] + matrix->mMtx[2][2];
+        root += 1.0f;
+        root = JGeometry::TUtil< f32 >::sqrt(root);
+        f32 scale = 0.5f / root;
+        rDest.w = 0.5f * root;
+        rDest.x = scale * (matrix->mMtx[2][1] - matrix->mMtx[1][2]);
+        rDest.y = scale * (matrix->mMtx[0][2] - matrix->mMtx[2][0]);
+        rDest.z = scale * (matrix->mMtx[1][0] - matrix->mMtx[0][1]);
+    } else {
+        f32 maximum = fn_80386D30(matrix->mMtx[0][0], matrix->mMtx[1][1], matrix->mMtx[2][2]);
+
+        if (maximum == matrix->mMtx[0][0]) {
+            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + (matrix->mMtx[0][0] - (matrix->mMtx[1][1] + matrix->mMtx[2][2])));
+            f32 scale = 0.5f / root;
+            rDest.x = 0.5f * root;
+            rDest.y = scale * (matrix->mMtx[0][1] + matrix->mMtx[1][0]);
+            rDest.z = scale * (matrix->mMtx[2][0] + matrix->mMtx[0][2]);
+            rDest.w = scale * (matrix->mMtx[2][1] - matrix->mMtx[1][2]);
+        } else if (maximum == matrix->mMtx[1][1]) {
+            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + (matrix->mMtx[1][1] - (matrix->mMtx[2][2] + matrix->mMtx[0][0])));
+            f32 scale = 0.5f / root;
+            rDest.y = 0.5f * root;
+            rDest.z = scale * (matrix->mMtx[1][2] + matrix->mMtx[2][1]);
+            rDest.x = scale * (matrix->mMtx[0][1] + matrix->mMtx[1][0]);
+            rDest.w = scale * (matrix->mMtx[0][2] - matrix->mMtx[2][0]);
+        } else {
+            f32 root = JGeometry::TUtil< f32 >::sqrt(1.0f + (matrix->mMtx[2][2] - (matrix->mMtx[0][0] + matrix->mMtx[1][1])));
+            f32 scale = 0.5f / root;
+            rDest.z = 0.5f * root;
+            rDest.x = scale * (matrix->mMtx[2][0] + matrix->mMtx[0][2]);
+            rDest.y = scale * (matrix->mMtx[1][2] + matrix->mMtx[2][1]);
+            rDest.w = scale * (matrix->mMtx[1][0] - matrix->mMtx[0][1]);
+        }
+    }
 }
 
 void Mario::fn_803B3010() {
@@ -925,27 +964,53 @@ void Mario::fn_803B1DE0(TVec3f* arg1) {
     }
 }
 
-// NONMATCHING: the quaternion-based frame rotation is approximated (uses the same three cross products)
-void Mario::fn_803B1EF0(TVec3f* arg1, f32 fself) {
-    TVec3f sp6C;
-    PSVECCrossProduct(&this->mFrontVec, arg1, &sp6C);
-    if (MR::normalizeOrZero(&sp6C) == 0) {
-        sp6C = this->mSideVec;
+void Mario::fn_803B1EF0(TVec3f* up, f32 rate) {
+    TVec3f side;
+    PSVECCrossProduct(up, &mFrontVec, &side);
+    if (MR::normalizeOrZero(&side)) {
+        side.set(mSideVec);
     }
-    TVec3f sp60;
-    PSVECCrossProduct(&sp6C, arg1, &sp60);
-    (void)fself;
-    this->setFrontVec(this->mFrontVec);
+    TVec3f front;
+    PSVECCrossProduct(&side, up, &front);
+    MR::normalizeOrZero(&front);
+    PSVECCrossProduct(up, &front, &side);
+
+    MarioRotationMatrix current;
+    fn_803B2170(&current, mSideVec);
+    fn_803B2190(&current, mHeadVec);
+    fn_803B21B0(&current, mFrontVec);
+    TQuat4f currentQuat;
+    fn_803B21D0(&current, currentQuat);
+    MarioRotationMatrix next;
+    fn_803B2170(&next, side);
+    fn_803B2190(&next, *up);
+    fn_803B21B0(&next, front);
+    TQuat4f nextQuat;
+    fn_803B21D0(&next, nextQuat);
+    TQuat4f blended;
+    blended.x = currentQuat.x;
+    blended.y = currentQuat.y;
+    blended.z = currentQuat.z;
+    blended.w = currentQuat.w;
+    blended.slerp(nextQuat, rate);
+    TVec3f newSide, newUp, newFront;
+    blended.getXDir(newSide);
+    blended.getYDir(newUp);
+    blended.getZDir(newFront);
+    mSideVec = newSide;
+    MR::normalize(&mSideVec);
+    mHeadVec = newUp;
+    MR::normalize(&mHeadVec);
+    setFrontVec(newFront);
 }
 
-// NONMATCHING: the head-rotation blend is approximated from the draft (vecBlendSphere then vecRotAxis on mHeadVec)
-void Mario::fn_803B23E0(const TVec3f* arg1, const TVec3f* arg2, const TVec3f* arg3, f32 fself) {
-    TVec3f sp8;
-    if (!MR::vecBlendSphere(&sp8, FLD<TVec3f>(this, 0x1F0), *arg1, fself)) {
-        MR::vecRotAxis(FLD<TVec3f>(this, 0x1F0), *arg1, *arg2, &FLD<TVec3f>(this, 0x1F0), fself);
+void Mario::fn_803B23E0(const TVec3f* direction, const TVec3f* axis, f32 rate) {
+    TVec3f blended;
+    if (!MR::vecBlendSphere(&blended, mHeadVec, *direction, rate)) {
+        MR::vecRotAxis(mHeadVec, *direction, *axis, &blended, rate);
     }
-    MR::normalize(&FLD<TVec3f>(this, 0x1F0));
-    (void)arg3;
+    mHeadVec = blended;
+    MR::normalize(&mHeadVec);
 }
 
 // NONMATCHING: the air-gravity frame update approximated

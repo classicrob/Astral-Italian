@@ -39,6 +39,11 @@ public:
     explicit MarioSwimJet(MarioSwim*);
     virtual ~MarioSwimJet() {}
     f32 calcSpeedScale() const;
+    void update(f32);
+    f32 calcRotationRatio() const;
+    f32 getMaxSpeed() const NO_INLINE;
+    void updateVelocity(f32) NO_INLINE;
+    bool isBackInput() const NO_INLINE;
     u32 _8;
     u16 mJetTimer;
     u16 mCooldownTimer;
@@ -49,7 +54,7 @@ public:
     explicit MarioSwimRingDash(MarioSwim*);
     virtual ~MarioSwimRingDash() {}
     void reset();
-    void updateBlur();
+    void updateBlur() NO_INLINE;
     u16 mTimer;
     u16 mChargeTimer;
     u16 mMaxDuration;
@@ -74,6 +79,7 @@ class MarioSwimTilt : public MarioSwimModule {
 public:
     explicit MarioSwimTilt(MarioSwim*);
     virtual ~MarioSwimTilt() {}
+    void update();
     f32 mTiltX;
     f32 mTiltY;
     TMtx34f mJointMtx;
@@ -107,6 +113,8 @@ public:
     MarioSwim(MarioActor*);
 
     // SMG2-only (original names unknown; named by address)
+    bool isSwimTurnAnimation() const NO_INLINE;
+    void updateJetAnimation() NO_INLINE;
     void fn_803F9D50();
     f32 fn_803FA8E0() const;
     f32 fn_803FA950() const;
@@ -120,7 +128,7 @@ public:
     bool fn_80401EC0() const;
     void fn_80402040();
     void fn_804020F0();
-    f32 fn_80402160() const;
+    f32 fn_80402160() const NO_INLINE;
     f32 fn_80402200() const;
     void fn_803F7C10();
     void fn_803F7C00();
@@ -165,12 +173,11 @@ public:
     void procBuoyancy();
     void decideAnimation();
     void decideEffect(bool);
-    void updateTilt();
     void jet();
     void pushedByWaterWall();
     void setDamage(const TVec3f&, u16);
     void updateUnderWater();
-    bool startJet(u32);
+    bool startJet(const HitSensor*);
     void addDamage(const TVec3f&);
     void addFaint(const TVec3f&);
     bool getWaterAreaInfo(WaterInfo*, const TVec3f&, TVec2f*);
@@ -193,7 +200,7 @@ public:
     void dropJet(bool);
     void updateOxygenWatch();
     void doDecLifeByCold();
-    void ringDash();
+    void ringDash(f32);
     void resetJet();
     void forceStopSpin();
     void resetAndFixPose();

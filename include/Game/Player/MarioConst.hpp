@@ -399,17 +399,18 @@ struct MarioConstTable {
     /* 0x5B0 */ f32 mSwimSpinSurfaceAccRatio;  // SMG2 offset guess
     /* 0x5B4 */ f32 mSwimSpinAccRatioR;  // SMG2 offset guess
     /* 0x5B8 */ f32 mSwimSpinSurfaceAccRatioR;  // SMG2 offset guess
-    /* 0x5BC */ u16 mSwimRingDashChargeTime;  // SMG2 offset guess
-    /* 0x5BE */ u16 mSwimRingDashTime;  // SMG2 offset guess
-    /* 0x5C0 */ u16 mSwimRingDashFinishTime;  // SMG2 offset guess
-    /* 0x5C2 */ u8 _pad59E[0x2];
-    /* 0x5C4 */ f32 mSwimRingDashSpeedRatio;  // SMG2 offset guess
-    /* 0x5C8 */ f32 mSwimSurfaceSpeed;  // SMG2 offset guess
-    /* 0x5CC */ f32 mSwimWaterSpeed;  // SMG2 offset guess
-    /* 0x5D0 */ f32 mSwimDriftSpeed;  // SMG2 offset guess
-    /* 0x5D4 */ u16 mSwimConnectIn;  // SMG2 offset guess
-    /* 0x5D6 */ u16 mSwimConnectOut;  // SMG2 offset guess
-    /* 0x5D8 */ u8 _pad5D8[8];
+    /* 0x5BC */ f32 mSwimSpinAccRatioYoshi;
+    /* 0x5C0 */ f32 mSwimSpinSurfaceAccRatioYoshi;
+    /* 0x5C4 */ u16 mSwimRingDashChargeTime;  // SMG2 offset guess
+    /* 0x5C6 */ u16 mSwimRingDashTime;  // SMG2 offset guess
+    /* 0x5C8 */ u16 mSwimRingDashFinishTime;  // SMG2 offset guess
+    /* 0x5CA */ u8 _pad59E[0x2];
+    /* 0x5CC */ f32 mSwimRingDashSpeedRatio;  // SMG2 offset guess
+    /* 0x5D0 */ f32 mSwimSurfaceSpeed;  // SMG2 offset guess
+    /* 0x5D4 */ f32 mSwimWaterSpeed;  // SMG2 offset guess
+    /* 0x5D8 */ f32 mSwimDriftSpeed;  // SMG2 offset guess
+    /* 0x5DC */ u16 mSwimConnectIn;  // SMG2 offset guess
+    /* 0x5DE */ u16 mSwimConnectOut;  // SMG2 offset guess
     /* 0x5E0 */ f32 mSwimTiltZup;
     /* 0x5E4 */ f32 mSwimTiltZdown;
     /* 0x5E8 */ f32 mSwimTiltReal;  // SMG2 offset inh

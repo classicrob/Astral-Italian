@@ -256,7 +256,7 @@ public:
     bool fn_803B1D60();
     void fn_803B1DE0(TVec3f* arg1);
     void fn_803B1EF0(TVec3f* arg1, f32 fself);
-    void fn_803B23E0(const TVec3f* arg1, const TVec3f* arg2, const TVec3f* arg3, f32 fself);
+    void fn_803B23E0(const TVec3f*, const TVec3f*, f32);
     bool fn_803B2470();
     s32 fn_803B2530(Triangle* arg1);
     void fn_803B2610();
@@ -1255,6 +1255,9 @@ public:
 };
 
 // SMG2-only free helpers of the Mario unit (set one axis column of a 3x4 matrix; original names unknown)
-void fn_803B2170(TMtx34f* pMtx, const TVec3f& rVec);
-void fn_803B2190(TMtx34f* pMtx, const TVec3f& rVec);
-void fn_803B21B0(TMtx34f* pMtx, const TVec3f& rVec);
+struct MarioRotationMatrix { f32 mMtx[3][3]; };
+f32 fn_80386D30(f32, f32, f32);
+void fn_803B21D0(const MarioRotationMatrix*, TQuat4f&);
+void fn_803B2170(MarioRotationMatrix* pMtx, const TVec3f& rVec);
+void fn_803B2190(MarioRotationMatrix* pMtx, const TVec3f& rVec);
+void fn_803B21B0(MarioRotationMatrix* pMtx, const TVec3f& rVec);

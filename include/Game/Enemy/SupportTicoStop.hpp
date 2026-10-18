@@ -11,6 +11,7 @@ public:
     SupportTicoStop(LiveActor*, AnimScaleController*);
 
     bool tryAttachTouch();
+    bool tryTouch();
     bool isTouching() const;
 
     /* 0x08 */ u8 _8[0xD];

@@ -77,10 +77,10 @@ void Mario::checkStep() {
     if (_4D8->isValid() && !mMovementStates._8 && mMovementStates._1) {
         const f32 frontDot = mFrontVec.dot(*_4D8->getNormal(0));
         TVec3f horizontal;
-        MR::vecKillElement(_50C - mPosition, -*getGravityVec(), &horizontal);
+        MR::vecKillElement(_50C - mPosHolder->mPos, -*getGravityVec(), &horizontal);
 
         if (horizontal.length() < 20.0f && MR::abs(frontDot) < 0.3926991f) {
-            f32 stepHeight = (_50C - mPosition).dot(-*getGravityVec());
+            f32 stepHeight = (_50C - mPosHolder->mPos).dot(-*getGravityVec());
             if (stepHeight < mActor->getConst().getTable()->mWalkStepHeight) {
                 startStep(_50C);
             }
@@ -106,7 +106,7 @@ void Mario::checkStep() {
         return;
     }
 
-    f32 stepHeight = (_4A4 - mPosition).dot(-*getGravityVec());
+    f32 stepHeight = (_4A4 - mPosHolder->mPos).dot(-*getGravityVec());
     if (stepHeight < mActor->getConst().getTable()->mWalkStepHeight) {
         startStep(_4A4);
     }
@@ -134,10 +134,10 @@ void Mario::startStep(const TVec3f& rVec) {
         return;
     }
 
-    TVec3f oldPos(mPosition);
-    mPosition = rVec;
+    TVec3f oldPos(mPosHolder->mPos);
+    fn_80405F90(mPosHolder, rVec);
     const f32 ceilDist = calcDistToCeil(false);
-    mPosition = oldPos;
+    fn_80405F90(mPosHolder, oldPos);
 
     if (ceilDist < 200.0f) {
         return;

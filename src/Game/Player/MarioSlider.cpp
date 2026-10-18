@@ -22,9 +22,15 @@ bool Mario::checkSliderMode() const {
 }
 
 MarioSlider::MarioSlider(MarioActor* pActor) : MarioState(pActor, MarioStatus_Slider) {
-    _14.zero();
-    _20.zero();
-    _2C.zero();
+    _14.x = 0.0f;
+    _14.y = 0.0f;
+    _14.z = 0.0f;
+    _20.x = 0.0f;
+    _20.y = 0.0f;
+    _20.z = 0.0f;
+    _2C.x = 0.0f;
+    _2C.y = 0.0f;
+    _2C.z = 0.0f;
     _40 = 0;
     _38 = 0.0f;
     _3C = 0.0f;
@@ -92,7 +98,7 @@ void Mario::startSlider() {
                 mDrawStates._14 = true;
                 playSound("尻ドロップ着地");
                 playSound("声尻ドロップ着地");
-                playEffectRT("属性尻ドロップ", _368, mPosition);
+                playEffectRT("属性尻ドロップ", _368, mPosHolder->mPos);
                 startPadVib("最強");
                 startCamVib(0);
                 MR::removeAllClingingKarikari();
@@ -111,9 +117,9 @@ bool MarioSlider::start() {
     _20 = getFrontVec();
     getPlayer()->cancelSquatMode();
     changeAnimation("スライダー尻", "スライダー尻");
-    _40 = 10;
     _38 = 0.0f;
     _3C = 0.0f;
+    _40 = 10;
     return true;
 }
 

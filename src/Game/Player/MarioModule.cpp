@@ -504,7 +504,7 @@ bool MarioModule::checkSquat(bool a1) {
 }
 
 TVec3f& MarioModule::getTrans() const {
-    return mActor->mMario->mPosition;
+    return mActor->mMario->mPosHolder->mPos;
 }
 
 const Triangle* MarioModule::getGroundPolygon() const {

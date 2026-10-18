@@ -422,7 +422,7 @@ bool MarioFoo::close() {
     }
 
     Mario* player = getPlayer();
-    player->_4B0 = player->mPosition;
+    player->_4B0 = player->mPosHolder->mPos;
     getPlayer()->forceSetHeadVecKeepSide(-getGravityVec());
     changeAnimationInterpoleFrame(6);
     mActor->setBlendMtxTimer(4);

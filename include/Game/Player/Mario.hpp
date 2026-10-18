@@ -54,6 +54,19 @@ class MarioWarp;
 class Triangle;
 struct SoundList;
 
+// SMG2: Mario's position lives in a separate holder object (Mario+0x138). The setters are unnamed in the target.
+class MarioPosHolder {
+public:
+    /* 0x00 */ u8 _0[0xC];
+    /* 0x0C */ TVec3f mPos;
+    /* 0x18 */ bool _18;  // set when a set() moved it further than a threshold
+    /* 0x19 */ bool _19;  // enables that distance check
+    /* 0x1A */ u8 _1A[0x12];
+    /* 0x2C */ bool mLocked;
+};
+extern "C" void fn_80405F90(MarioPosHolder*, const TVec3f&);  // set(pos) unless locked
+extern "C" void fn_80406010(MarioPosHolder*, const TVec3f&);  // pos += v unless locked
+
 class Mario : public MarioModule {
 public:
     enum SeVersion {
@@ -668,18 +681,18 @@ public:
     /* 0x12C */ f32 _124;  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x130 */ f32 _128;  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x134 */ u32 _12C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x138 */ TVec3f mPosition;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x144 */ TVec3f _13C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x150 */ TVec3f _148;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x15C */ TVec3f _154;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x168 */ TVec3f mVelocity;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x174 */ TVec3f _16C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x180 */ TVec3f mVelocityAfter;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x18C */ TVec3f _184;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x198 */ TVec3f _190;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1A4 */ TVec3f _19C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1B0 */ TVec3f _1A8;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1BC */ u8 _pad1BC[0x4];
+    /* 0x138 */ MarioPosHolder* mPosHolder;  // SMG2: position moved into a holder (pos at +0xC)
+    /* 0x13C */ TVec3f _13C;
+    /* 0x148 */ TVec3f _148;
+    /* 0x154 */ TVec3f _154;
+    /* 0x160 */ TVec3f mVelocity;
+    /* 0x16C */ TVec3f _16C;
+    /* 0x178 */ TVec3f mVelocityAfter;
+    /* 0x184 */ TVec3f _184;
+    /* 0x190 */ TVec3f _190;
+    /* 0x19C */ TVec3f _19C;
+    /* 0x1A8 */ TVec3f _1A8;
+    /* 0x1B4 */ u8 _pad1B4[0xC];
     /* 0x1C0 */ TVec3f mStickPos;
     /* 0x1CC */ TVec3f mWorldPadDir;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x1D8 */ TVec3f mAirGravityVec;  // SMG2 offset inh  // SMG2 offset inh

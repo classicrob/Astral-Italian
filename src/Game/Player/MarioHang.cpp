@@ -46,11 +46,11 @@ bool Mario::isHanging() const {
 }
 
 bool Mario::fixHangDir(const TVec3f& rPosition, TVec3f* pDirection) {
-    TVec3f horizontal(rPosition - mPosition);
+    TVec3f horizontal(rPosition - mPosHolder->mPos);
     MR::vecKillElement(horizontal, *getGravityVec(), &horizontal);
     MR::normalizeOrZero(&horizontal);
     Triangle pTriangle;
-    if (MR::getFirstPolyOnLineToMap(nullptr, &pTriangle, mPosition, horizontal * 150.0f)) {
+    if (MR::getFirstPolyOnLineToMap(nullptr, &pTriangle, mPosHolder->mPos, horizontal * 150.0f)) {
         *pDirection = -*pTriangle.getNormal(0);
         mHang->recordWallPolygon(&pTriangle);
         return true;
@@ -132,9 +132,9 @@ void Mario::checkHang() {
         }
     }
 
-    TVec3f previousPosition(mPosition);
+    TVec3f previousPosition(mPosHolder->mPos);
     if (front && mMovementStates._39 && isEnableHang()) {
-        TVec3f direction(_4A4 - mPosition);
+        TVec3f direction(_4A4 - mPosHolder->mPos);
         MR::vecKillElement(direction, getAirGravityVec(), &direction);
         MR::normalizeOrZero(&direction);
         if (getFrontWallNorm().dot(direction) >= -0.8f) {
@@ -159,7 +159,7 @@ void Mario::checkHang() {
     } else if (back && isEnableBackHang()) {
         TVec3f position;
         getLastGroundPos(&position);
-        if ((mPosition - position).dot(getAirGravityVec()) >= 160.0f) {
+        if ((mPosHolder->mPos - position).dot(getAirGravityVec()) >= 160.0f) {
             return;
         }
 
@@ -230,7 +230,7 @@ void Mario::checkHang() {
     } else if (side && isEnableSideHang()) {
         TVec3f position;
         getLastGroundPos(&position);
-        if ((mPosition - position).dot(getAirGravityVec()) >= 160.0f) {
+        if ((mPosHolder->mPos - position).dot(getAirGravityVec()) >= 160.0f) {
             return;
         }
 
@@ -359,7 +359,7 @@ bool Mario::isEnableHang() {
         }
     }
 
-    f32 heightFromMario = (_4A4 - mPosition).dot(-*getGravityVec());
+    f32 heightFromMario = (_4A4 - mPosHolder->mPos).dot(-*getGravityVec());
     if (heightFromMario > mActor->getConst().getTable()->mWallHangMyHeight) {
         return false;
     }
@@ -416,7 +416,7 @@ bool Mario::isEnableBackHang() {
     TVec3f horizontal;
     if (getPlayer()->getShadowNorm().dot(*getGravityVec()) < -0.707f) {
         if (turn) {
-            ground = mPosition;
+            ground = mPosHolder->mPos;
         } else {
             getLastGroundPos(&ground);
         }
@@ -439,7 +439,7 @@ bool Mario::isEnableBackHang() {
     TVec3f distance;
     TVec3f position;
     getLastGroundPos(&position);
-    MR::vecKillElement(position - mPosition, getAirGravityVec(), &distance);
+    MR::vecKillElement(position - mPosHolder->mPos, getAirGravityVec(), &distance);
     return !(distance.length() >= 84.0f);
 }
 
@@ -508,7 +508,7 @@ bool Mario::isEnableSideHang() {
     TVec3f distance;
     TVec3f position;
     getLastGroundPos(&position);
-    MR::vecKillElement(position - mPosition, getAirGravityVec(), &distance);
+    MR::vecKillElement(position - mPosHolder->mPos, getAirGravityVec(), &distance);
     return !(distance.length() >= 84.0f);
 }
 

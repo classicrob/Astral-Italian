@@ -265,7 +265,7 @@ namespace MarioAccess {
 
     void setTrans(const TVec3f& rTrans, u16) {
         getPlayerActor()->mPosition.set(rTrans);
-        getPlayerActor()->getMario()->mPosition = rTrans;
+        fn_80405F90(getPlayerActor()->getMario()->mPosHolder, rTrans);
 
         if (getPlayerActor()->getMovementStates()._37) {
             getPlayerActor()->getMario()->_688 = rTrans;

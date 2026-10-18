@@ -464,7 +464,7 @@ Mario::Mario(MarioActor* pActor) : MarioModule(pActor) {
 void Mario::updateAndClearStrideParameter() {
     _43C = mFrontVec;
     _16C = mVelocity;
-    mPosition = mActor->mPosition;
+    fn_80405F90(mPosHolder, mActor->mPosition);
     mVelocityAfter.zero();
     mVelocity.zero();
     _20_LOW_WORD = mMovementStates_LOW_WORD;
@@ -610,7 +610,7 @@ void Mario::doExtraServices() {
     if (notFoo) {
         bool notTeresa = !isPlayerModeTeresa();
         if (notTeresa && mMovementStates.jumping && _3BC > 300) {
-            TVec3f stack_8(mPosition - *getLastSafetyTrans(nullptr));
+            TVec3f stack_8(mPosHolder->mPos - *getLastSafetyTrans(nullptr));
 
             if (MR::isNearZero(mAirGravityVec)) {
             }
@@ -670,7 +670,7 @@ void Mario::checkForceGrounding() {
 
             f32 dot2 = MR::vecKillElement(mVelocity, vec, &mVelocity);
 
-            dot *= (mShadowPos - mPosition).dot(vec);
+            dot *= (mShadowPos - mPosHolder->mPos).dot(vec);
 
             if (MR::isNearZero(dot)) {
                 return;
@@ -1116,7 +1116,7 @@ void Mario::fixFrontVecByGravity() {
     TVec3f up = -mAirGravityVec;
     MR::normalize(&up);
     if (_10._13) {
-        TVec3f side(mPosition);
+        TVec3f side(mPosHolder->mPos);
         side -= _6F4;
         MR::vecKillElement(side, _700, &side);
         MR::normalizeOrZero(&side);
@@ -1360,7 +1360,7 @@ void Mario::draw() const {
     if (mDrawStates._1) {
         TDDraw::cameraInit3D();
         TDDraw::setup(0, 1, 0);
-        TDDraw::drawCylinder(mPosition, mShadowPos - mActor->_2A0, 32.0f, 0xffff0010, 0xff000004, 8);
+        TDDraw::drawCylinder(mPosHolder->mPos, mShadowPos - mActor->_2A0, 32.0f, 0xffff0010, 0xff000004, 8);
         TVec3f diff2A0_31C(mActor->_2A0 - mShadowPos);
         f32 diffMag = diff2A0_31C.length();
         MR::normalize(&diff2A0_31C);
@@ -1382,7 +1382,7 @@ void Mario::draw() const {
 
 
 void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
-    mPosition += rShift;
+    fn_80406010(mPosHolder, rShift);
     TVec3f _148shift(_148);
     _148shift -= rShift;
     if (MR::abs(_148.x) <= MR::abs(_148shift.x)) {
@@ -1401,8 +1401,8 @@ void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
 
 void Mario::setTrans(const TVec3f& rShift, const char* pA2) {
     TVec3f reqShift(rShift);
-    reqShift -= mPosition;
-    mPosition = rShift;
+    reqShift -= mPosHolder->mPos;
+    fn_80405F90(mPosHolder, rShift);
     TVec3f _148shift(_148);
     _148shift -= reqShift;
     if (MR::abs(_148.x) <= MR::abs(_148shift.x)) {
@@ -1638,14 +1638,14 @@ const TVec3f Mario::getAirFrontVec() const {
 void Mario::initAfterConst() {
     MarioConst* pConst = mActor->mConst;
     _402 = pConst->getTable()->mAirWalkTime;
-    mPosition = mActor->mPosition;
-    mShadowPos = mPosition;
-    mGroundPos = mPosition;
+    fn_80405F90(mPosHolder, mActor->mPosition);
+    mShadowPos = mPosHolder->mPos;
+    mGroundPos = mPosHolder->mPos;
     mMove->initAfter();
     mFoo->init();
     mSwim->init();
-    _7D4 = mPosition;
-    _814 = mPosition;
+    _7D4 = mPosHolder->mPos;
+    _814 = mPosHolder->mPos;
     PSMTXIdentity(_7E4);
     PSMTXIdentity(_824);
     _720 = getAnimationStringPointer("ヒップドロップ開始");
@@ -1659,20 +1659,20 @@ void Mario::writeBackPhyisicalVector() {
     s32 planeCount;
     u32 i;
     if (_1C._10) {
-        TVec3f stack_104(mPosition);
+        TVec3f stack_104(mPosHolder->mPos);
         addTrans(mVelocity, nullptr);
         if (calcDistToCeil(false) < 200.0f) {
             mVelocity.zero();
             stopWalk();
         }
 
-        mPosition = stack_104;
+        fn_80405F90(mPosHolder, stack_104);
     }
 
     if (mMovementStates._37 || _10._15) {
-        TVec3f stack_f8(mPosition - _688);
+        TVec3f stack_f8(mPosHolder->mPos - _688);
         MR::vecKillElement(stack_f8, _6A0, &stack_f8);
-        mPosition = _688 + stack_f8;
+        fn_80405F90(mPosHolder, _688 + stack_f8);
         MR::vecKillElement(mVelocity, _6A0, &mVelocity);
         TVec3f stack_ec;
         f32 f29 = MR::vecKillElement(_694 - _688, _6A0, &stack_ec);
@@ -1784,7 +1784,7 @@ void Mario::writeBackPhyisicalVector() {
 
                         const TVec3f& hitPos = mActor->mBinder->getPlane(index)->_64;
                         TVec3f stack_8c;
-                        MR::vecKillElement(mPosition - hitPos, *getGravityVec(), &stack_8c);
+                        MR::vecKillElement(mPosHolder->mPos - hitPos, *getGravityVec(), &stack_8c);
                         MR::vecKillElement(stack_8c, stack_a4, &stack_8c);
                         if (!MR::isNearZero(stack_8c)) {
                             stack_8c.setLength(-f2);
@@ -1800,7 +1800,7 @@ void Mario::writeBackPhyisicalVector() {
     }
 
     mActor->mVelocity = mVelocity;
-    mActor->mPosition = mPosition;
+    mActor->mPosition = mPosHolder->mPos;
 }
 
 
@@ -2201,7 +2201,7 @@ void Mario::createAngleMtx(MtxPtr pMtx, bool a2) {
 
     if (sensor != nullptr) {
         TVec3f vec5;
-        vec5.set(vec4 - mPosition);
+        vec5.set(vec4 - mPosHolder->mPos);
 
         MR::normalizeOrZero(&vec5);
 
@@ -2280,7 +2280,7 @@ void Mario::updateLookOfs() {
     if (_97C == nullptr) {
         if (isAnimationRun("壁押し")) {
             TVec3f vec2;
-            MR::vecKillElement(_4E8 - mPosition, mHeadVec, &vec2);
+            MR::vecKillElement(_4E8 - mPosHolder->mPos, mHeadVec, &vec2);
             f32 len = vec2.length();
             vec = *mFrontWallTriangle->getNormal(0) * (len - 35.0f);
         }
@@ -2295,7 +2295,7 @@ void Mario::updateLookOfs() {
             vec += *getGravityVec() * mVerticalSpeed;
         } else {
             TVec3f vec3;
-            f32 f1 = MR::vecKillElement(mGroundPos - mPosition, *getGravityVec(), &vec3);
+            f32 f1 = MR::vecKillElement(mGroundPos - mPosHolder->mPos, *getGravityVec(), &vec3);
             vec += *getGravityVec() * f1;
         }
     }
@@ -2565,7 +2565,7 @@ bool Mario::beeMarioOnAir() {
                 }
 
                 mMovementStates._12 = true;
-                _4B0 = mPosition;
+                _4B0 = mPosHolder->mPos;
                 mMovementStates._11 = true;
             }
 
@@ -2669,7 +2669,7 @@ bool Mario::beeMarioOnAir() {
                         _408 = 120;
                     }
 
-                    _4B0 = mPosition;
+                    _4B0 = mPosHolder->mPos;
                     return true;
                 }
             } else {
@@ -2896,21 +2896,21 @@ bool Mario::isIgnoreTriangle(const Triangle* pTriangle) {
 
 
 void Mario::checkBaseTransBall() {
-    TVec3f center = mPosition + mVelocity + mHeadVec * 50.0f;
+    TVec3f center = mPosHolder->mPos + mVelocity + mHeadVec * 50.0f;
     u32 count = Collision::checkStrikeBallToMap(center, 50.0f, nullptr, nullptr);
 
     for (u32 i = 0; i < count; i++) {
         doSwimmingHitCheck(Collision::getStrikeInfoMap(i), 0);
     }
 
-    center = mPosition + mVelocity - mHeadVec * 40.0f;
+    center = mPosHolder->mPos + mVelocity - mHeadVec * 40.0f;
     count = Collision::checkStrikeBallToMap(center, 50.0f, nullptr, nullptr);
 
     for (u32 i = 0; i < count; i++) {
         doSwimmingHitCheck(Collision::getStrikeInfoMap(i), 1);
     }
 
-    center = mPosition + mVelocity;
+    center = mPosHolder->mPos + mVelocity;
     count = Collision::checkStrikeBallToMap(center, 40.0f, nullptr, nullptr);
 
     for (u32 i = 0; i < count; i++) {
@@ -2951,7 +2951,7 @@ void Mario::createAtField(bool force, f32 radius) {
     f32 maxAngle = 120.0f;
 
     for (u32 i = 0; i < count; i++) {
-        TVec3f center = mPosition - getAirGravityVec() * offset * (i + 1);
+        TVec3f center = mPosHolder->mPos - getAirGravityVec() * offset * (i + 1);
 
         if (force && mMovementStates._F && _544 > 1) {
             hits = Collision::checkStrikeBallToMap(center, checkRadius, nullptr, nullptr);
@@ -3063,7 +3063,7 @@ void Mario::doSpinPunchAroundPolygons() {
         return;
     }
 
-    TVec3f center = mPosition + mVelocity + mHeadVec * 80.0f;
+    TVec3f center = mPosHolder->mPos + mVelocity + mHeadVec * 80.0f;
     Triangle triangles[256];
     u32 count = MR::createAreaPolygonList(triangles, 256, center + mFrontVec * 120.0f + mSideVec * 120.0f + mHeadVec * 120.0f,
                                           center - mFrontVec * 120.0f - mSideVec * 120.0f - mHeadVec * 120.0f);
@@ -3089,9 +3089,9 @@ void Mario::checkMap() {
 
     if (isUseSimpleGroundCheck()) {
         if (!mMovementStates._14) {
-            mVerticalSpeed = (mGroundPos - mPosition).dot(gravity);
+            mVerticalSpeed = (mGroundPos - mPosHolder->mPos).dot(gravity);
         } else {
-            mVerticalSpeed = (mShadowPos - mPosition).dot(gravity);
+            mVerticalSpeed = (mShadowPos - mPosHolder->mPos).dot(gravity);
         }
 
         if (!_20._36) {
@@ -3099,7 +3099,7 @@ void Mario::checkMap() {
         }
 
     } else {
-        mVerticalSpeed = (mShadowPos - mPosition).dot(gravity);
+        mVerticalSpeed = (mShadowPos - mPosHolder->mPos).dot(gravity);
     }
 
     if (mVerticalSpeed < 0.0f) {
@@ -3107,7 +3107,7 @@ void Mario::checkMap() {
     }
 
     if (mMovementStates._23 && calcAngleD(_368) >= 30.0f) {
-        TVec3f start = mPosition + _368 * 100.0f;
+        TVec3f start = mPosHolder->mPos + _368 * 100.0f;
         mMovementStates._24 = MR::getFirstPolyOnLineToMap(&_498, _460, start, -_904 * 150.0f);
     } else {
         mMovementStates._24 = false;
@@ -3129,7 +3129,7 @@ f32 Mario::calcDistToCeil(bool saveSensor) {
     }
 
     while (true) {
-        TVec3f start = mPosition + getAirGravityVec() * offset;
+        TVec3f start = mPosHolder->mPos + getAirGravityVec() * offset;
         bool hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, -getAirGravityVec() * (200.0f + offset));
 
         if (isThroughWall(&triangle)) {
@@ -3148,7 +3148,7 @@ f32 Mario::calcDistToCeil(bool saveSensor) {
 
         if (!MR::isSensorPressObj(triangle.mSensor) && _95C->getCode(&triangle) != CollisionFloorCode_Press && !pressGround &&
             _960 != CollisionFloorCode_Press) {
-            if ((hitPos - mPosition).dot(*getGravityVec()) >= 0.0f) {
+            if ((hitPos - mPosHolder->mPos).dot(*getGravityVec()) >= 0.0f) {
                 if (offset <= 1.0f) {
                     offset = -10.0f;
                     continue;
@@ -3164,7 +3164,7 @@ f32 Mario::calcDistToCeil(bool saveSensor) {
             _730 = triangle.mSensor;
         }
 
-        f32 distance = (hitPos - mPosition).length();
+        f32 distance = (hitPos - mPosHolder->mPos).length();
 
         if (!_4C8->isValid()) {
             *_4C8 = triangle;
@@ -3183,18 +3183,18 @@ f32 Mario::calcDistToCeilOnPress() {
     }
 
     TVec3f horizontal;
-    f32 distance1 = MR::vecKillElement(mPosition - *_480->calcAndGetPos(0), *_480->calcAndGetNormal(0), &horizontal);
-    f32 distance2 = MR::vecKillElement(mPosition - *_484->calcAndGetPos(0), *_484->calcAndGetNormal(0), &horizontal);
+    f32 distance1 = MR::vecKillElement(mPosHolder->mPos - *_480->calcAndGetPos(0), *_480->calcAndGetNormal(0), &horizontal);
+    f32 distance2 = MR::vecKillElement(mPosHolder->mPos - *_484->calcAndGetPos(0), *_484->calcAndGetNormal(0), &horizontal);
 
     if (_480->getNormal(0)->dot(mAirGravityVec) < 0.0f) {
-        f32 distance = MR::vecKillElement(*_480->calcAndGetPos(0) - mPosition, *_480->calcAndGetNormal(0), &horizontal);
-        mPosition += *_480->getNormal(0) * distance;
+        f32 distance = MR::vecKillElement(*_480->calcAndGetPos(0) - mPosHolder->mPos, *_480->calcAndGetNormal(0), &horizontal);
+        fn_80406010(mPosHolder, *_480->getNormal(0) * distance);
     } else {
-        f32 distance = MR::vecKillElement(*_484->calcAndGetPos(0) - mPosition, *_484->calcAndGetNormal(0), &horizontal);
-        mPosition += *_484->getNormal(0) * distance;
+        f32 distance = MR::vecKillElement(*_484->calcAndGetPos(0) - mPosHolder->mPos, *_484->calcAndGetNormal(0), &horizontal);
+        fn_80406010(mPosHolder, *_484->getNormal(0) * distance);
     }
 
-    mActor->mPosition.set(mPosition);
+    mActor->mPosition.set(mPosHolder->mPos);
 
     if (distance1 > distance2) {
         return distance2;
@@ -3211,7 +3211,7 @@ f32 Mario::calcDistToCeilHead() {
 
     if (MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, -getAirGravityVec() * 80.0f)) {
         *getTmpPolygon() = triangle;
-        return (hitPos - mPosition).length();
+        return (hitPos - mPosHolder->mPos).length();
     }
 
     return 80.0f;
@@ -3220,8 +3220,8 @@ f32 Mario::calcDistToCeilHead() {
 
 void Mario::fixTransBetweenWall(const TVec3f& rFirst, const TVec3f& rSecond) {
     TVec3f center = (rFirst + rSecond) * 0.5f;
-    MR::vecKillElement(center - mPosition, *getGravityVec(), &center);
-    setTrans(mPosition + center, nullptr);
+    MR::vecKillElement(center - mPosHolder->mPos, *getGravityVec(), &center);
+    setTrans(mPosHolder->mPos + center, nullptr);
 }
 
 
@@ -3250,7 +3250,7 @@ f32 Mario::calcDistWidth() {
         }
     }
 
-    TVec3f center = mPosition + mHeadVec * 80.0f;
+    TVec3f center = mPosHolder->mPos + mHeadVec * 80.0f;
     TVec3f firstPos;
     TVec3f secondPos;
     u32 count = Collision::checkStrikeBallToMap(center, 30.0f, nullptr, nullptr);
@@ -3317,7 +3317,7 @@ void Mario::updateCameraPolygon() {
         return;
     }
 
-    TVec3f start = mPosition - *getGravityVec() * 100.0f;
+    TVec3f start = mPosHolder->mPos - *getGravityVec() * 100.0f;
     const Triangle* cameraTriangle = MR::getCameraPolyFast(start, *getGravityVec() * 5000.0f, nullptr);
 
     if (cameraTriangle != nullptr) {
@@ -3394,7 +3394,7 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
 
         f32 angle = 180.0f * (marioAcos(-getGravityVec()->dot(normal)) / 3.14159f);
         TVec3f fromBase(hit->_64);
-        fromBase -= mPosition;
+        fromBase -= mPosHolder->mPos;
         MR::normalizeOrZero(&fromBase);
 
         if (angle >= mActor->getConst().getTable()->mFlatAngle && direction.dot(mFrontVec) > 0.0f && fromBase.dot(mFrontVec) > 0.0f) {
@@ -3650,7 +3650,7 @@ void Mario::calcFrontFloor() {
         hit = true;
     } else {
         direction = mFrontVec * 100.0f;
-        start = mPosition - *getGravityVec() * 8.0f;
+        start = mPosHolder->mPos - *getGravityVec() * 8.0f;
 
         if (mMovementStates._F && !MR::isNearZero(_328)) {
             MR::vecKillElement(_328, *getGravityVec(), &direction);
@@ -3957,12 +3957,12 @@ void Mario::saveLastSafetyTrans() {
 
     *_7E0 = *mGroundPolygon;
     PSMTXCopy(*mGroundPolygon->getBaseMtx(), _7E4);
-    _7D4 = (mPosition * 5.0f + *mGroundPolygon->getPos(0) + *mGroundPolygon->getPos(1) + *mGroundPolygon->getPos(2)) * 0.125f;
+    _7D4 = (mPosHolder->mPos * 5.0f + *mGroundPolygon->getPos(0) + *mGroundPolygon->getPos(1) + *mGroundPolygon->getPos(2)) * 0.125f;
 
-    if ((_7D4 - mPosition).length() > 50.0f) {
-        TVec3f direction = _7D4 - mPosition;
+    if ((_7D4 - mPosHolder->mPos).length() > 50.0f) {
+        TVec3f direction = _7D4 - mPosHolder->mPos;
         direction.setLength(50.0f);
-        _7D4 = mPosition + direction;
+        _7D4 = mPosHolder->mPos + direction;
     }
 
     _1C._E = true;
@@ -4078,8 +4078,8 @@ bool Mario::isCurrentShadowFloorDangerAction() const {
 
 
 void Mario::checkBaseTransPoint() {
-    bool inside = MR::checkStrikePointToMap(mPosition - *getGravityVec() * 30.0f, nullptr);
-    u32 count = Collision::checkStrikeBallToMap(mPosition, 1.0f, nullptr, nullptr);
+    bool inside = MR::checkStrikePointToMap(mPosHolder->mPos - *getGravityVec() * 30.0f, nullptr);
+    u32 count = Collision::checkStrikeBallToMap(mPosHolder->mPos, 1.0f, nullptr, nullptr);
 
     for (u32 i = 0; i < count; i++) {
         const HitInfo* hit = Collision::getStrikeInfoMap(i);
@@ -4111,7 +4111,7 @@ void Mario::checkBaseTransPoint() {
             continue;
         }
 
-        if ((hit->_64 - mPosition).dot(mHeadVec) < 0.0f) {
+        if ((hit->_64 - mPosHolder->mPos).dot(mHeadVec) < 0.0f) {
             continue;
         }
 
@@ -4133,7 +4133,7 @@ void Mario::checkHeadPoint() {
         height = 50.0f;
     }
 
-    TVec3f center = mPosition - *getGravityVec() * height;
+    TVec3f center = mPosHolder->mPos - *getGravityVec() * height;
 
     if (isStatusActive(MarioStatus_Damage)) {
         mActor->calcHeadPos();
@@ -4161,7 +4161,7 @@ void Mario::checkHeadPoint() {
     }
 
     if (isSwimming()) {
-        center = mPosition + mHeadVec * 60.0f;
+        center = mPosHolder->mPos + mHeadVec * 60.0f;
     }
 
     u32 count = Collision::checkStrikeBallToMap(center, radius, nullptr, nullptr);
@@ -4261,13 +4261,13 @@ void Mario::checkHeadPoint() {
 
 void Mario::calcShadowPos() {
     f32 offset = 100.0f;
-    TVec3f start = mPosition - *getGravityVec() * offset;
+    TVec3f start = mPosHolder->mPos - *getGravityVec() * offset;
 
     if ((getCurrentStatus() == MarioStatus_Hang && mHang->_12 < 2) || mActor->_EA4) {
         mActor->getRealPos("Spine1", &start);
     }
 
-    f32 previousDistance = (mShadowPos - mPosition).length();
+    f32 previousDistance = (mShadowPos - mPosHolder->mPos).length();
     TVec3f point(start);
     TVec3f direction(*getGravityVec());
     direction.scale(400.0f);
@@ -4287,7 +4287,7 @@ void Mario::calcShadowPos() {
         point += direction;
     }
 
-    f32 distance = 10.0f + (mShadowPos - mPosition).length();
+    f32 distance = 10.0f + (mShadowPos - mPosHolder->mPos).length();
     bool changed = false;
 
     if (mMovementStates._2 && MR::abs(previousDistance - distance) > 100.0f) {
@@ -4305,7 +4305,7 @@ void Mario::calcShadowPos() {
     }
 
     if (!mMovementStates._2) {
-        mShadowPos = mPosition + *getGravityVec() * 2500.0f;
+        mShadowPos = mPosHolder->mPos + *getGravityVec() * 2500.0f;
     }
 }
 
@@ -4362,9 +4362,9 @@ bool Mario::updateBinderInfo() {
                     if (hit->isCollisionAtEdge()) {
                         pushDirection = *triangle->getNormal(hit->_88 - 1);
                     } else if (!hit->isCollisionAtCorner()) {
-                        pushDirection = mPosition - hit->_64;
+                        pushDirection = mPosHolder->mPos - hit->_64;
                     } else {
-                        pushDirection = mPosition - hit->_64;
+                        pushDirection = mPosHolder->mPos - hit->_64;
                     }
 
                     TVec3f direction(fromHit);
@@ -4458,7 +4458,7 @@ bool Mario::updateBinderInfo() {
                     mActor->sendMsgToSensor(triangle->mSensor, 0xB4);
 
                     if (!mActor->sendMsgToSensor(triangle->mSensor, 3)) {
-                        TVec3f direction = mPosition - hit->_64;
+                        TVec3f direction = mPosHolder->mPos - hit->_64;
                         TVec3f originalDirection(direction);
                         TVec3f velocity(_1A8);
                         MR::normalizeOrZero(&velocity);
@@ -4642,10 +4642,10 @@ bool Mario::checkGround() {
     }
 
     for (u32 i = 0; i < count; i++) {
-        TVec3f start = mPosition + offset - *getGravityVec() * 30.0f;
+        TVec3f start = mPosHolder->mPos + offset - *getGravityVec() * 30.0f;
 
         if (i == 3) {
-            start = mPosition - *getGravityVec() * 30.0f;
+            start = mPosHolder->mPos - *getGravityVec() * 30.0f;
         }
 
         hit[i] = MR::getFirstPolyOnLineBFast(start, *getGravityVec() * 100.0f, &positions[i], &triangles[i]);
@@ -4655,12 +4655,12 @@ bool Mario::checkGround() {
         }
 
         if (hit[i]) {
-            if (_414 && MR::abs((mPosition - positions[i]).dot(*getGravityVec())) > 0.0f) {
+            if (_414 && MR::abs((mPosHolder->mPos - positions[i]).dot(*getGravityVec())) > 0.0f) {
                 hit[i] = 0;
                 tooFar[i] = 1;
             }
 
-            if (MR::abs((mPosition - positions[i]).dot(*getGravityVec())) > maxDistance) {
+            if (MR::abs((mPosHolder->mPos - positions[i]).dot(*getGravityVec())) > maxDistance) {
                 hit[i] = 0;
                 tooFar[i] = 1;
             }
@@ -4687,7 +4687,7 @@ bool Mario::checkGround() {
                     TVec3f direction(_16C);
                     MR::normalizeOrZero(&direction);
 
-                    if ((positions[i] - mPosition).dot(direction) > (selectedPos - mPosition).dot(direction)) {
+                    if ((positions[i] - mPosHolder->mPos).dot(direction) > (selectedPos - mPosHolder->mPos).dot(direction)) {
                         select = true;
                     }
                 }
@@ -4851,7 +4851,7 @@ bool Mario::checkGround() {
 
     if (mMovementStates._D) {
         mMovementStates._D = false;
-        TVec3f direction = mGroundPos - mPosition;
+        TVec3f direction = mGroundPos - mPosHolder->mPos;
         f32 distance = MR::vecKillElement(direction, *getGravityVec(), &direction);
         addTrans(*getGravityVec() * distance, "force Trans");
         return true;
@@ -4862,11 +4862,11 @@ bool Mario::checkGround() {
         TVec3f horizontal;
 
         if (calcAngleD(*_45C->getNormal(0)) < 55.0f) {
-            distance = MR::vecKillElement(mShadowPos - mPosition, *getGravityVec(), &horizontal);
+            distance = MR::vecKillElement(mShadowPos - mPosHolder->mPos, *getGravityVec(), &horizontal);
         }
 
         if (MR::abs(distance) > 30.0f) {
-            distance = MR::vecKillElement(mGroundPos - mPosition, *getGravityVec(), &horizontal);
+            distance = MR::vecKillElement(mGroundPos - mPosHolder->mPos, *getGravityVec(), &horizontal);
         }
 
         if (MR::abs(distance) < 30.0f && MR::abs(distance) > 1.0f && mMovementStates._1) {
@@ -4893,7 +4893,7 @@ bool Mario::checkGround() {
     }
 
     if (!isStatusActive(MarioStatus_Bury) && count == 4 && noGround) {
-        if (hit[3] == 1 && MR::abs((mPosition - positions[3]).dot(*getGravityVec())) < maxDistance) {
+        if (hit[3] == 1 && MR::abs((mPosHolder->mPos - positions[3]).dot(*getGravityVec())) < maxDistance) {
             noGround = false;
         }
 
@@ -4928,7 +4928,7 @@ bool Mario::checkGround() {
             TVec3f direction;
             f32 distance = MR::vecKillElement(mGroundPos - mShadowPos, _368, &direction);
             f32 maxMove = 5.0f;
-            direction = mShadowPos - mPosition;
+            direction = mShadowPos - mPosHolder->mPos;
 
             if (mMovementStates._8 && direction.dot(getFrontWallNorm()) < -0.01f) {
                 maxMove = 0.0f;
@@ -4944,9 +4944,9 @@ bool Mario::checkGround() {
 
             if (maxMove != 0.0f) {
                 if (direction.length() > maxMove) {
-                    mShadowPos = mShadowPos - mPosition;
+                    mShadowPos = mShadowPos - mPosHolder->mPos;
                     mShadowPos.setLength(maxMove);
-                    mShadowPos += mPosition;
+                    mShadowPos += mPosHolder->mPos;
                 }
 
                 if (distance < maxDistance) {
@@ -4955,8 +4955,8 @@ bool Mario::checkGround() {
             }
         }
 
-        if (!groundCount && MR::abs((mShadowPos - mPosition).dot(*getGravityVec())) < maxDistance) {
-            TVec3f direction = mShadowPos - mPosition;
+        if (!groundCount && MR::abs((mShadowPos - mPosHolder->mPos).dot(*getGravityVec())) < maxDistance) {
+            TVec3f direction = mShadowPos - mPosHolder->mPos;
             f32 distance = MR::vecKillElement(direction, *getGravityVec(), &direction);
 
             if (!MR::isNearZero(distance, 1.0f) || !mMovementStates._1) {
@@ -4968,8 +4968,8 @@ bool Mario::checkGround() {
         }
     }
 
-    if (!groundCount && MR::abs((mGroundPos - mPosition).dot(*getGravityVec())) < maxDistance) {
-        TVec3f direction = mGroundPos - mPosition;
+    if (!groundCount && MR::abs((mGroundPos - mPosHolder->mPos).dot(*getGravityVec())) < maxDistance) {
+        TVec3f direction = mGroundPos - mPosHolder->mPos;
         f32 distance = MR::vecKillElement(direction, *getGravityVec(), &direction);
 
         if (!MR::isNearZero(distance, 1.0f)) {
@@ -4998,10 +4998,10 @@ bool Mario::checkGround() {
 
 CubeCameraArea* Mario::getCameraCubeCode() const {
     if ((isSwimming() && mSwim->isOnWaterSurface()) || (mMovementStates.jumping && isRising())) {
-        return static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosition - *getGravityVec() * 100.0f));
+        return static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosHolder->mPos - *getGravityVec() * 100.0f));
     }
 
-    return static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosition));
+    return static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosHolder->mPos));
 }
 
 
@@ -5012,9 +5012,9 @@ void Mario::updateCubeCode() {
     CubeCameraArea* camera;
 
     if ((isSwimming() && mSwim->isOnWaterSurface()) || (mMovementStates.jumping && isRising())) {
-        camera = static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosition - *getGravityVec() * 100.0f));
+        camera = static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosHolder->mPos - *getGravityVec() * 100.0f));
     } else {
-        camera = static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosition));
+        camera = static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosHolder->mPos));
     }
 
     _568 = camera;
@@ -5035,11 +5035,11 @@ void Mario::updateCubeCode() {
         _564 = -1;
     }
 
-    MR::tryToUpdatePlayerRestartIdInfo(mPosition);
-    AreaObj* pullBack = MR::getAreaObj("PullBackCube", mPosition);
+    MR::tryToUpdatePlayerRestartIdInfo(mPosHolder->mPos);
+    AreaObj* pullBack = MR::getAreaObj("PullBackCube", mPosHolder->mPos);
 
     if (pullBack == nullptr) {
-        pullBack = MR::getAreaObj("PullBackCylinder", mPosition);
+        pullBack = MR::getAreaObj("PullBackCylinder", mPosHolder->mPos);
 
         if (pullBack != nullptr && MR::getAreaObjArg(pullBack, 0) != 1) {
             TVec3f position;
@@ -5059,12 +5059,12 @@ void Mario::updateCubeCode() {
 
     _10._6 = false;
 
-    if (MR::getAreaObj("PlaneCollisionCube", mPosition) != nullptr) {
+    if (MR::getAreaObj("PlaneCollisionCube", mPosHolder->mPos) != nullptr) {
         _10._6 = true;
     }
 
     _10._13 = false;
-    tower = MR::getAreaObj("TowerModeCylinder", mPosition);
+    tower = MR::getAreaObj("TowerModeCylinder", mPosHolder->mPos);
 
     if (tower != nullptr) {
         _10._13 = true;
@@ -5073,16 +5073,16 @@ void Mario::updateCubeCode() {
         _718 = MR::getCylinderRadius(tower);
     }
 
-    if (MR::getAreaObj("ForbidTriangleJumpCube", mPosition) != nullptr) {
+    if (MR::getAreaObj("ForbidTriangleJumpCube", mPosHolder->mPos) != nullptr) {
         mDrawStates._3 = true;
     }
 
     if (getPlayerMode() == PlayerMode_Teresa) {
-        if (MR::getAreaObj("GlaringLightArea", mPosition) != nullptr) {
+        if (MR::getAreaObj("GlaringLightArea", mPosHolder->mPos) != nullptr) {
             mActor->setPlayerMode(PlayerMode_Normal, true);
         }
 
-        if (!MR::isInShadeFromTheSun(mPosition, 2000.0f)) {
+        if (!MR::isInShadeFromTheSun(mPosHolder->mPos, 2000.0f)) {
             mActor->setPlayerMode(PlayerMode_Normal, true);
         }
     }
@@ -5092,7 +5092,7 @@ void Mario::updateCubeCode() {
         playEffectRTZ("水壁ヒット", mHeadVec, mActor->_2AC);
     }
 
-    if (MR::getAreaObj("HeavySteeringCube", mPosition) != nullptr) {
+    if (MR::getAreaObj("HeavySteeringCube", mPosHolder->mPos) != nullptr) {
         _10._11 = true;
         _10._12 = true;
     } else {
@@ -5100,11 +5100,11 @@ void Mario::updateCubeCode() {
         _10._12 = false;
     }
 
-    if (MR::getAreaObj("DashChargeCylinder", mPosition) != nullptr) {
+    if (MR::getAreaObj("DashChargeCylinder", mPosHolder->mPos) != nullptr) {
         _434 = mActor->getConst().getTable()->mItemDashTimer;
     }
 
-    raster = MR::getAreaObj("RasterScrollCube", mPosition);
+    raster = MR::getAreaObj("RasterScrollCube", mPosHolder->mPos);
 
     if (raster != nullptr) {
         first = MR::getAreaObjArg(raster, 0);
@@ -5112,12 +5112,12 @@ void Mario::updateCubeCode() {
         mActor->setRasterScroll(first, second, MR::getAreaObjArg(raster, 2));
     }
 
-    if (MR::getAreaObj("ForbidJumpCube", mPosition) != nullptr) {
+    if (MR::getAreaObj("ForbidJumpCube", mPosHolder->mPos) != nullptr) {
         _1C._7 = true;
     }
 
     if (!isStatusActive(MarioStatus_DarkDamage)) {
-        if (MR::getAreaObj("DarkMatterCube", mPosition) != nullptr) {
+        if (MR::getAreaObj("DarkMatterCube", mPosHolder->mPos) != nullptr) {
             mActor->forceKill(4);
         }
 
@@ -6062,7 +6062,7 @@ void Mario::checkEnforceMoveInner() {
             addTrans(mVelocity, nullptr);
         } else {
             bool v11 = false;
-            TVec3f v14(mPosition);
+            TVec3f v14(mPosHolder->mPos);
 
             if (mMovementStates._A == 0) {
                 if (200.0f == _72C) {
@@ -6074,7 +6074,7 @@ void Mario::checkEnforceMoveInner() {
 
             if (v11) {
                 if (calcDistToCeil(false) < 200.0f) {
-                    mPosition = v14;
+                    fn_80405F90(mPosHolder, v14);
                     _1C._10 = 1;
                 }
             }
@@ -6084,7 +6084,7 @@ void Mario::checkEnforceMoveInner() {
 
         mVelocity.zero();
         MarioActor* actor = mActor;
-        actor->mPosition = mPosition;
+        actor->mPosition = mPosHolder->mPos;
         actor->calcCenterPos();
     }
 }
@@ -6252,7 +6252,7 @@ u32 Mario::moveRelativePosition(u32) {
 
     TVec3f movePos;
     PSMTXMultVec(*rTri->getBaseMtx(), &_8A4, &movePos);
-    _184 = movePos - mPosition;
+    _184 = movePos - mPosHolder->mPos;
 
     if (isSwimming()) {
         TVec3f dist(mActor->_2A0);
@@ -6313,7 +6313,7 @@ u32 Mario::moveRelativePositionWall() {
         PSMTXMultVec(*tri->getBaseMtx(), relPos, &movePos);
 
         TVec3f add(movePos);
-        add -= mPosition;
+        add -= mPosHolder->mPos;
 
         const f32 elem = MR::vecKillElement(add, *tri->getNormal(0), &add);
         if (elem > 0.0f) {
@@ -6477,7 +6477,7 @@ void Mario::push2(const TVec3f& rVec) {
 void Mario::powerAreaMove() {
     _190.zero();
 
-    if (mMovementStates._1 && !mMovementStates.jumping && _960 == 28 && MR::calcAreaMoveVelocity(&_190, mPosition)) {
+    if (mMovementStates._1 && !mMovementStates.jumping && _960 == 28 && MR::calcAreaMoveVelocity(&_190, mPosHolder->mPos)) {
         if (mMovementStates._8 || mMovementStates._19 || mMovementStates._1A) {
             const TVec3f* norm = &getWallNorm();
             f32 dot = norm->dot(_190);
@@ -6503,7 +6503,7 @@ void Mario::powerRailMove() {
         }
 
         TVec3f railDir;
-        MR::calcNearestRailDirection(&railDir, host, mPosition);
+        MR::calcNearestRailDirection(&railDir, host, mPosHolder->mPos);
 
         s32 arg = -1;
         MR::getRailArg3NoInit(host, &arg);
@@ -7086,11 +7086,11 @@ bool Mario::isHanging() const {
 
 
 bool Mario::fixHangDir(const TVec3f& rPosition, TVec3f* pDirection) {
-    TVec3f horizontal(rPosition - mPosition);
+    TVec3f horizontal(rPosition - mPosHolder->mPos);
     MR::vecKillElement(horizontal, *getGravityVec(), &horizontal);
     MR::normalizeOrZero(&horizontal);
     Triangle pTriangle;
-    if (MR::getFirstPolyOnLineToMap(nullptr, &pTriangle, mPosition, horizontal * 150.0f)) {
+    if (MR::getFirstPolyOnLineToMap(nullptr, &pTriangle, mPosHolder->mPos, horizontal * 150.0f)) {
         *pDirection = -*pTriangle.getNormal(0);
         mHang->recordWallPolygon(&pTriangle);
         return true;
@@ -7173,9 +7173,9 @@ void Mario::checkHang() {
         }
     }
 
-    TVec3f previousPosition(mPosition);
+    TVec3f previousPosition(mPosHolder->mPos);
     if (front && mMovementStates._39 && isEnableHang()) {
-        TVec3f direction(_4A4 - mPosition);
+        TVec3f direction(_4A4 - mPosHolder->mPos);
         MR::vecKillElement(direction, getAirGravityVec(), &direction);
         MR::normalizeOrZero(&direction);
         if (getFrontWallNorm().dot(direction) >= -0.8f) {
@@ -7200,7 +7200,7 @@ void Mario::checkHang() {
     } else if (back && isEnableBackHang()) {
         TVec3f position;
         getLastGroundPos(&position);
-        if ((mPosition - position).dot(getAirGravityVec()) >= 160.0f) {
+        if ((mPosHolder->mPos - position).dot(getAirGravityVec()) >= 160.0f) {
             return;
         }
 
@@ -7271,7 +7271,7 @@ void Mario::checkHang() {
     } else if (side && isEnableSideHang()) {
         TVec3f position;
         getLastGroundPos(&position);
-        if ((mPosition - position).dot(getAirGravityVec()) >= 160.0f) {
+        if ((mPosHolder->mPos - position).dot(getAirGravityVec()) >= 160.0f) {
             return;
         }
 
@@ -7401,7 +7401,7 @@ bool Mario::isEnableHang() {
         }
     }
 
-    f32 heightFromMario = (_4A4 - mPosition).dot(-*getGravityVec());
+    f32 heightFromMario = (_4A4 - mPosHolder->mPos).dot(-*getGravityVec());
     if (heightFromMario > mActor->getConst().getTable()->mWallHangMyHeight) {
         return false;
     }
@@ -7459,7 +7459,7 @@ bool Mario::isEnableBackHang() {
     TVec3f horizontal;
     if (getPlayer()->getShadowNorm().dot(*getGravityVec()) < -0.707f) {
         if (turn) {
-            ground = mPosition;
+            ground = mPosHolder->mPos;
         } else {
             getLastGroundPos(&ground);
         }
@@ -7482,7 +7482,7 @@ bool Mario::isEnableBackHang() {
     TVec3f distance;
     TVec3f position;
     getLastGroundPos(&position);
-    MR::vecKillElement(position - mPosition, getAirGravityVec(), &distance);
+    MR::vecKillElement(position - mPosHolder->mPos, getAirGravityVec(), &distance);
     return !(distance.length() >= 84.0f);
 }
 
@@ -7552,7 +7552,7 @@ bool Mario::isEnableSideHang() {
     TVec3f distance;
     TVec3f position;
     getLastGroundPos(&position);
-    MR::vecKillElement(position - mPosition, getAirGravityVec(), &distance);
+    MR::vecKillElement(position - mPosHolder->mPos, getAirGravityVec(), &distance);
     return !(distance.length() >= 84.0f);
 }
 
@@ -7562,7 +7562,7 @@ void Mario::initMember() {
     _40.zero();
     _4C.zero();
     PSMTXIdentity(_F4.toMtxPtr());
-    mPosition.zero();
+    mPosHolder->mPos.zero();
     _16C.zero();
     mVelocityAfter.zero();
     _1B4.zero();
@@ -8261,7 +8261,7 @@ void Mario::startTornadoCentering(HitSensor* pSensor) {
 
 bool Mario::taskOnTornadoCentering(u32 a1) {
     if (_A34 != 0) {
-        TVec3f sensorOffset(reinterpret_cast< HitSensor* >(_A38)->mHost->mPosition - mPosition);
+        TVec3f sensorOffset(reinterpret_cast< HitSensor* >(_A38)->mHost->mPosition - mPosHolder->mPos);
         MR::vecKillElement(sensorOffset, *getGravityVec(), &sensorOffset);
 
         f32 mag = sensorOffset.length();
@@ -8398,7 +8398,7 @@ void Mario::tryForceJump(const TVec3f& rVec, bool a2) {
     _10._8 = false;
     _3BE = 0;
     _344 = mSideVec;
-    _4B0 = mPosition;
+    _4B0 = mPosHolder->mPos;
     _42C = 0;
     _76C = 0;
     procJump(false);
@@ -8503,7 +8503,7 @@ void Mario::tryWallJump(const TVec3f& rVec, bool a2) {
     }
 
     mJumpVec = rVec;
-    _4B0 = mPosition;
+    _4B0 = mPosHolder->mPos;
     _3BC = 0;
     mMovementStates._13 = true;
     mMovementStates._11 = false;
@@ -8579,7 +8579,7 @@ void Mario::trySlipUpJump() {
     mJumpVec = -getAirGravityVec() * mActor->getConst().getTable()->mSlipUpHeight;
 
     f32 ratio = 1.0f;
-    TVec3f predictPos(mPosition - *getGravityVec() * 100.0f);
+    TVec3f predictPos(mPosHolder->mPos - *getGravityVec() * 100.0f);
 
     TVec3f frontVec;
     MR::vecKillElement(mJumpVec, mFrontVec, &frontVec);
@@ -8700,7 +8700,7 @@ void Mario::tryDrop() {
     invalidateRelativePosition();
 
     TVec3f groundDeltaNoGravity;
-    MR::vecKillElement(mGroundPos - mPosition, *getGravityVec(), &groundDeltaNoGravity);
+    MR::vecKillElement(mGroundPos - mPosHolder->mPos, *getGravityVec(), &groundDeltaNoGravity);
 
     if (carryVec.dot(groundDeltaNoGravity) > 0.0f) {
         carryVec = carryVec * 0.1f;
@@ -8802,7 +8802,7 @@ void Mario::initJumpParam() {
         cancelSquatMode();
     }
 
-    _4B0 = mPosition;
+    _4B0 = mPosHolder->mPos;
     _426 = 0;
 
     if (mSinkTimer != 0) {
@@ -8937,7 +8937,7 @@ void Mario::procJump(bool a1) {
         if (ceilDist < 160.0f) {
             jumpGravity = cutGravityElementFromJumpVec(true);
 
-            playEffectTrans("天井ヒット", mPosition - getAirGravityVec() * ceilDist);
+            playEffectTrans("天井ヒット", mPosHolder->mPos - getAirGravityVec() * ceilDist);
 
             f32 reduce;
             switch (_430) {
@@ -9471,7 +9471,7 @@ void Mario::procHipDrop() {
 
             playSound("尻ドロップ着地");
             playSound("声尻ドロップ着地");
-            playEffectRT("属性尻ドロップ", _368, mPosition);
+            playEffectRT("属性尻ドロップ", _368, mPosHolder->mPos);
             startPadVib("最強");
             startCamVib(0);
             mDrawStates._14 = true;
@@ -9847,7 +9847,7 @@ void Mario::cancelTornadoJump() {
         stopAnimation("スピンジャンプ");
     }
 
-    _4B0 = mPosition;
+    _4B0 = mPosHolder->mPos;
     mMovementStates._2B = true;
     _426 = 0;
 }
@@ -10000,7 +10000,7 @@ void Mario::doLanding() {
     _3CE = 0;
     _1C_WORD |= 0x2000;
 
-    f32 deltadot = MR::abs((mPosition - _4B0).dot(*getGravityVec()));
+    f32 deltadot = MR::abs((mPosHolder->mPos - _4B0).dot(*getGravityVec()));
     if (_3BC <= 3 && deltadot < 1.0f && mJumpVec.length() < 10.0f) {
         stopAnimation(nullptr, "基本");
         return;
@@ -10135,7 +10135,7 @@ void Mario::doLanding() {
     }
 
     if (!isSoftLandingFloor()) {
-        f32 deltadot = (_4B0 - mPosition).dot(-(*getGravityVec()));
+        f32 deltadot = (_4B0 - mPosHolder->mPos).dot(-(*getGravityVec()));
         if (deltadot > mActor->getConst().getTable()->mHardLandingHeight) {
             doHardLanding = true;
         }
@@ -11080,7 +11080,7 @@ void Mario::mainMove() {
     if (mMovementStates._32 && _4E0 > 120.0f) {
         if (mVelocity.dot(*mFrontWallTriangle->getNormal(0)) < 0.0f) {
             TVec3f vec4;
-            MR::vecKillElement(mPosition - _4E8, *mFrontWallTriangle->getNormal(0), &vec4);
+            MR::vecKillElement(mPosHolder->mPos - _4E8, *mFrontWallTriangle->getNormal(0), &vec4);
             MR::vecKillElement(vec4, *getGravityVec(), &vec4);
             MR::vecKillElement(vec4, mFrontVec, &vec4);
             MR::normalizeOrZero(&vec4);
@@ -11489,7 +11489,7 @@ void Mario::calcMoveDir(float stickX, float stickY, TVec3f* pMoveDir, bool isDis
         *pMoveDir = groundXDir * stickX - groundYDir * stickY;
 
         if (_10._13) {
-            TVec3f radialDir = mPosition - _6F4;
+            TVec3f radialDir = mPosHolder->mPos - _6F4;
             MR::vecKillElement(radialDir, _700, &radialDir);
             MR::normalizeOrZero(&radialDir);
             MR::vecKillElement(*pMoveDir, _700, pMoveDir);
@@ -11525,7 +11525,7 @@ bool Mario::checkLockOnHoming() {
 
 void Mario::doLockOnHoming() {
     TVec3f direction;
-    direction.set(mActor->_470->mPosition - mPosition);
+    direction.set(mActor->_470->mPosition - mPosHolder->mPos);
     MR::normalize(&direction);
     TVec3f shadowDir;
     calcShadowDir(direction, &shadowDir);
@@ -11543,11 +11543,11 @@ void Mario::doLockOnHoming() {
 
 void Mario::fixPositionInTower() {
     if (_10._13) {
-        TVec3f offset = mPosition - _6F4;
+        TVec3f offset = mPosHolder->mPos - _6F4;
         f32 height = MR::vecKillElement(offset, _700, &offset);
         offset.setLength(_718 - 200.0f);
         offset += _700 * height;
-        mPosition = _6F4 + offset;
+        fn_80405F90(mPosHolder, _6F4 + offset);
     }
 }
 
@@ -11736,7 +11736,7 @@ void Mario::check2DMode() {
     mMovementStates._37 = false;
     _10._15 = false;
 
-    AreaObj* area = MR::getAreaObj("PlaneModeCube", mPosition);
+    AreaObj* area = MR::getAreaObj("PlaneModeCube", mPosHolder->mPos);
     if (area != nullptr) {
         mMovementStates._37 = true;
 
@@ -11745,12 +11745,12 @@ void Mario::check2DMode() {
         MR::makeMtxTR(_F4, 0.0f, 0.0f, 0.0f, rotate.x, rotate.y, rotate.z);
 
         if (!(_20._37)) {
-            _688 = mPosition;
+            _688 = mPosHolder->mPos;
             MR::getRotatedAxisZ(&_6A0, rotate);
             MR::calcCubePos(area, &_694);
         }
     } else {
-        area = MR::getAreaObj("PlaneCircularModeCube", mPosition);
+        area = MR::getAreaObj("PlaneCircularModeCube", mPosHolder->mPos);
         if (area != nullptr) {
             TVec3f rotate;
             MR::calcCubeRotate(area, &rotate);
@@ -11758,7 +11758,7 @@ void Mario::check2DMode() {
             _10._15 = true;
 
             if (!((_28 >> 10) & 1)) {
-                _688 = mPosition;
+                _688 = mPosHolder->mPos;
                 MR::getRotatedAxisZ(&_6A0, rotate);
                 MR::calcCubePos(area, &_694);
             }
@@ -11766,7 +11766,7 @@ void Mario::check2DMode() {
     }
 
     mMovementStates._3A = false;
-    area = MR::getAreaObj("PipeModeCube", mPosition);
+    area = MR::getAreaObj("PipeModeCube", mPosHolder->mPos);
     if (area != nullptr) {
         set25Dmode(area);
     }
@@ -12147,7 +12147,7 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
     if (isStatusActive(MarioStatus_Hang)) {
         position = mActor->_2A0;
     } else {
-        position = mPosition;
+        position = mPosHolder->mPos;
     }
     if (!atCurrentPosition && !mActor->_390) {
         position += mVelocity;
@@ -12244,7 +12244,7 @@ bool Mario::checkSidePressPre() {
             return false;
         }
         TVec3f horizontal;
-        MR::vecKillElement(mPosition - _4F4, getAirGravityVec(), &horizontal);
+        MR::vecKillElement(mPosHolder->mPos - _4F4, getAirGravityVec(), &horizontal);
         if (horizontal.length() < 100.0f) {
             mActor->_3B4 = getWallNorm();
             return true;
@@ -12258,7 +12258,7 @@ bool Mario::checkSidePress() {
     if (isStatusActive(MarioStatus_Hang)) {
         position = mActor->_2A0;
     } else {
-        position = mPosition;
+        position = mPosHolder->mPos;
     }
     f32 radius;
     f32 height;
@@ -12457,7 +12457,7 @@ bool Mario::doRecovery() {
         TVec3f gravity;
         TVec3f position(*getLastSafetyTrans(&gravity));
         position += gravity * 160.0f;
-        TVec3f direction(mPosition - position);
+        TVec3f direction(mPosHolder->mPos - position);
         MR::normalizeOrZero(&direction);
         doPointWarpRecovery(position, direction);
     }
@@ -12608,7 +12608,7 @@ void Mario::startSlider() {
                 mDrawStates._14 = true;
                 playSound("尻ドロップ着地");
                 playSound("声尻ドロップ着地");
-                playEffectRT("属性尻ドロップ", _368, mPosition);
+                playEffectRT("属性尻ドロップ", _368, mPosHolder->mPos);
                 startPadVib("最強");
                 startCamVib(0);
                 MR::removeAllClingingKarikari();
@@ -13120,7 +13120,7 @@ bool Mario::isUseSimpleGroundCheck() const {
     }
     if (calcAngleD(_368) > mActor->getConst().getTable()->mFlatAngle - 5.0f) {
         Triangle ground;
-        if (MR::getFirstPolyOnLineBFast(mPosition - *getGravityVec() * 30.0f, *getGravityVec() * 100.0f, nullptr, &ground)) {
+        if (MR::getFirstPolyOnLineBFast(mPosHolder->mPos - *getGravityVec() * 30.0f, *getGravityVec() * 100.0f, nullptr, &ground)) {
             if (calcAngleD(*ground.getNormal(0)) < mActor->getConst().getTable()->mFlatAngle - 5.0f) {
                 return false;
             }
@@ -13177,7 +13177,7 @@ bool Mario::checkGroundOnSlope() {
     TVec3f positionSum;
     positionSum.zero();
     TVec3f groundPosition;
-    TVec3f origin(mPosition - *getGravityVec() * 30.0f);
+    TVec3f origin(mPosHolder->mPos - *getGravityVec() * 30.0f);
     hit = MR::getFirstPolyOnLineBFast(origin, *getGravityVec() * distance, &hitPosition, &ground);
     if (hit) {
         if (calcAngleD(*ground.getNormal(0)) >= 80.0f) {
@@ -13202,7 +13202,7 @@ bool Mario::checkGroundOnSlope() {
     }
     if (mMovementStates._D) {
         mMovementStates._D = false;
-        TVec3f offset(mGroundPos - mPosition);
+        TVec3f offset(mGroundPos - mPosHolder->mPos);
         f32 vertical = MR::vecKillElement(offset, *getGravityVec(), &offset);
         addTrans(*getGravityVec() * vertical, "force Trans");
         return true;
@@ -13221,8 +13221,8 @@ bool Mario::checkGroundOnSlope() {
         _10._22 = false;
         _1C._C = true;
     } else if ((mMovementStates._23 || mTargetWalkSpeedIndex) && getPlayerMode() != PlayerMode_Teresa) {
-        if (MR::abs((position - mPosition).dot(down)) < distance) {
-            TVec3f offset(position - mPosition);
+        if (MR::abs((position - mPosHolder->mPos).dot(down)) < distance) {
+            TVec3f offset(position - mPosHolder->mPos);
             f32 vertical = MR::vecKillElement(offset, down, &offset);
             if (!MR::isNearZero(vertical, 1.0f)) {
                 mDrawStates._0 = false;
@@ -15137,7 +15137,7 @@ void Mario::checkOnimasu(const HitSensor* pSensor) {
     if (_5FC == nullptr) {
         _5FC = pSensor;
         _60C = 1;
-    } else if (_5FC != pSensor && (pSensor->mPosition - mPosition).length() < (_5FC->mPosition - mPosition).length()) {
+    } else if (_5FC != pSensor && (pSensor->mPosition - mPosHolder->mPos).length() < (_5FC->mPosition - mPosHolder->mPos).length()) {
         _5FC = pSensor;
         _60C = 1;
     }
@@ -15181,7 +15181,7 @@ bool Mario::isNotReflectGlassGround() const {
     }
 
     TVec3f vec(1627.0f, 783.0f, -2152.0f);
-    TVec3f v10 = mPosition - vec;
+    TVec3f v10 = mPosHolder->mPos - vec;
 
     f32 v4 = MR::diffAngleAbs(getCamDirZ(), v10);
     f32 v5 = v4;
@@ -15242,7 +15242,7 @@ void Mario::updateOnimasu() {
         return;
     }
 
-    if ((_5FC->mPosition - mPosition).length() >= 1000.0f) {
+    if ((_5FC->mPosition - mPosHolder->mPos).length() >= 1000.0f) {
         _5FC = nullptr;
         return;
     }
@@ -15291,12 +15291,12 @@ void Mario::updateOnimasu() {
             localPosition = _600;
             TVec3f position;
             PSMTXMultVec(sensor->mHost->mCollisionParts->mBaseMatrix, &localPosition, &position);
-            TVec3f displacement(position - mPosition);
+            TVec3f displacement(position - mPosHolder->mPos);
             f32 height = 10.0f + mVerticalSpeed;
             if (-displacement.dot(getShadowNorm()) > height) {
                 MR::vecKillElement(displacement, getShadowNorm(), &displacement);
                 displacement += -getShadowNorm() * mVerticalSpeed;
-                position = mPosition + displacement;
+                position = mPosHolder->mPos + displacement;
             }
 
             setTrans(position, nullptr);
@@ -15418,7 +15418,7 @@ void Mario::updateOnimasu() {
             TVec3f position;
             PSMTXMultVec(sensor->mHost->mCollisionParts->mBaseMatrix, &localPosition, &position);
             if (mMovementStates._8 || mMovementStates._19 || mMovementStates._1A) {
-                TVec3f displacement(position - mPosition);
+                TVec3f displacement(position - mPosHolder->mPos);
                 if (getWallNorm().dot(displacement) < 0.0f) {
                     addVelocity(-displacement);
                 } else {
@@ -15473,7 +15473,7 @@ bool Mario::isHeadPushEnableArea() const {
     }
 
     if (MR::isEqualStageName("SandClockGalaxy")) {
-        if (MR::isInRange(mPosition.x, -7020.0f, -6920.0f)) {
+        if (MR::isInRange(mPosHolder->mPos.x, -7020.0f, -6920.0f)) {
             return true;
         }
     }
@@ -15799,10 +15799,10 @@ void Mario::checkStep() {
     if (_4D8->isValid() && !mMovementStates._8 && mMovementStates._1) {
         const f32 frontDot = mFrontVec.dot(*_4D8->getNormal(0));
         TVec3f horizontal;
-        MR::vecKillElement(_50C - mPosition, -*getGravityVec(), &horizontal);
+        MR::vecKillElement(_50C - mPosHolder->mPos, -*getGravityVec(), &horizontal);
 
         if (horizontal.length() < 20.0f && MR::abs(frontDot) < 0.3926991f) {
-            f32 stepHeight = (_50C - mPosition).dot(-*getGravityVec());
+            f32 stepHeight = (_50C - mPosHolder->mPos).dot(-*getGravityVec());
             if (stepHeight < mActor->getConst().getTable()->mWalkStepHeight) {
                 startStep(_50C);
             }
@@ -15828,7 +15828,7 @@ void Mario::checkStep() {
         return;
     }
 
-    f32 stepHeight = (_4A4 - mPosition).dot(-*getGravityVec());
+    f32 stepHeight = (_4A4 - mPosHolder->mPos).dot(-*getGravityVec());
     if (stepHeight < mActor->getConst().getTable()->mWalkStepHeight) {
         startStep(_4A4);
     }
@@ -15857,10 +15857,10 @@ void Mario::startStep(const TVec3f& rVec) {
         return;
     }
 
-    TVec3f oldPos(mPosition);
-    mPosition = rVec;
+    TVec3f oldPos(mPosHolder->mPos);
+    fn_80405F90(mPosHolder, rVec);
     const f32 ceilDist = calcDistToCeil(false);
-    mPosition = oldPos;
+    fn_80405F90(mPosHolder, oldPos);
 
     if (ceilDist < 200.0f) {
         return;
@@ -16445,7 +16445,7 @@ bool Mario::taskOnHipDropSlide(u32 flags) {
         return false;
     }
 
-    TVec3f dir(mPosition);
+    TVec3f dir(mPosHolder->mPos);
     dir -= _A4C;
     dir.setLength(_A64);
 
@@ -16490,7 +16490,7 @@ void Mario::startHipDropSlide(const HitSensor* pSensor) {
 
     pushTask(&Mario::taskOnHipDropSlide, 0x100);
 
-    TVec3f dir(mPosition - pSensor->mPosition);
+    TVec3f dir(mPosHolder->mPos - pSensor->mPosition);
 
     if (MR::isSameDirection(dir, getAirGravityVec(), sSameDirEpsilon) || MR::isNearZero(dir, sNearZeroEpsilon)) {
         dir = -mFrontVec;
@@ -16519,7 +16519,7 @@ void Mario::startJumpDropSlide(const HitSensor* pSensor) {
         return;
     }
 
-    TVec3f dir(mPosition - pSensor->mPosition);
+    TVec3f dir(mPosHolder->mPos - pSensor->mPosition);
     MR::normalizeOrZero(&dir);
 
     f32 dot = dir.dot(-getAirGravityVec());
@@ -16529,7 +16529,7 @@ void Mario::startJumpDropSlide(const HitSensor* pSensor) {
 
     pushTask(&Mario::taskOnHipDropSlide, 0x200);
 
-    TVec3f slideDir(mPosition - pSensor->mPosition);
+    TVec3f slideDir(mPosHolder->mPos - pSensor->mPosition);
 
     if (MR::isSameDirection(slideDir, getAirGravityVec(), sSameDirEpsilon) || MR::isNearZero(slideDir, sNearZeroEpsilon)) {
         slideDir = -mFrontVec;
@@ -17883,22 +17883,22 @@ bool Mario::fixWallingDist() {
 
     if (mMovementStates._19) {
         TVec3f position(_4F4 + *mBackWallTriangle->getNormal(0) * 79.0f);
-        f32 distance = MR::vecKillElement(position - mPosition, *mBackWallTriangle->getNormal(0), &position);
-        mPosition += *mBackWallTriangle->getNormal(0) * distance;
+        f32 distance = MR::vecKillElement(position - mPosHolder->mPos, *mBackWallTriangle->getNormal(0), &position);
+        fn_80406010(mPosHolder, *mBackWallTriangle->getNormal(0) * distance);
         if (!fixWallingTop()) {
             return false;
         }
 
-        mPosition = _4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f;
+        fn_80405F90(mPosHolder, _4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
     } else if (mMovementStates._8) {
         if (!fixWallingTop()) {
             return false;
         }
 
-        if (MR::isExistMapCollision(mPosition, mFrontVec * 100.0f) && mFrontVec.dot(*mFrontWallTriangle->getNormal(0)) < -0.999f) {
+        if (MR::isExistMapCollision(mPosHolder->mPos, mFrontVec * 100.0f) && mFrontVec.dot(*mFrontWallTriangle->getNormal(0)) < -0.999f) {
             TVec3f position(_4E8 + *mFrontWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
             TVec3f correction;
-            MR::vecKillElement(position - mPosition, *getGravityVec(), &correction);
+            MR::vecKillElement(position - mPosHolder->mPos, *getGravityVec(), &correction);
             if (!MR::isNearZero(correction)) {
                 TVec3f relative(correction + mActor->_288);
                 if (MR::abs(relative.x) < MR::abs(correction.x)) {
@@ -18058,7 +18058,7 @@ bool Mario::doPointWarp(const TVec3f& rVec1, const TVec3f& rVec2, s32 myInt) {
     mActor->setBlendMtxTimer(16);
 
     mWarp->_14 = rVec1;
-    mWarp->_20 = mPosition;
+    mWarp->_20 = mPosHolder->mPos;
     mWarp->_38 = rVec2;
     mWarp->_45 = 2;
     mWarp->_44 = false;
@@ -18168,7 +18168,7 @@ bool Mario::doPointWarpRecovery(const TVec3f& rVec1, const TVec3f& rVec2) {
     mActor->setBlendMtxTimer(16);
 
     mWarp->_14 = rVec1;
-    mWarp->_20 = mPosition;
+    mWarp->_20 = mPosHolder->mPos;
     mWarp->_38 = rVec2;
     mWarp->_2C.zero();
     mWarp->_45 = 3;
@@ -18182,3 +18182,6 @@ bool Mario::doPointWarpRecovery(const TVec3f& rVec1, const TVec3f& rVec2) {
 
     return true;
 }
+
+#include "../src/Game/Player/MarioSMG2_A.inc"
+#include "../src/Game/Player/MarioSMG2_B.inc"

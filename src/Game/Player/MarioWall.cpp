@@ -671,22 +671,22 @@ bool Mario::fixWallingDist() {
 
     if (mMovementStates._19) {
         TVec3f position(_4F4 + *mBackWallTriangle->getNormal(0) * 79.0f);
-        f32 distance = MR::vecKillElement(position - mPosition, *mBackWallTriangle->getNormal(0), &position);
-        mPosition += *mBackWallTriangle->getNormal(0) * distance;
+        f32 distance = MR::vecKillElement(position - mPosHolder->mPos, *mBackWallTriangle->getNormal(0), &position);
+        fn_80406010(mPosHolder, *mBackWallTriangle->getNormal(0) * distance);
         if (!fixWallingTop()) {
             return false;
         }
 
-        mPosition = _4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f;
+        fn_80405F90(mPosHolder, _4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
     } else if (mMovementStates._8) {
         if (!fixWallingTop()) {
             return false;
         }
 
-        if (MR::isExistMapCollision(mPosition, mFrontVec * 100.0f) && mFrontVec.dot(*mFrontWallTriangle->getNormal(0)) < -0.999f) {
+        if (MR::isExistMapCollision(mPosHolder->mPos, mFrontVec * 100.0f) && mFrontVec.dot(*mFrontWallTriangle->getNormal(0)) < -0.999f) {
             TVec3f position(_4E8 + *mFrontWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
             TVec3f correction;
-            MR::vecKillElement(position - mPosition, *getGravityVec(), &correction);
+            MR::vecKillElement(position - mPosHolder->mPos, *getGravityVec(), &correction);
             if (!MR::isNearZero(correction)) {
                 TVec3f relative(correction + mActor->_288);
                 if (MR::abs(relative.x) < MR::abs(correction.x)) {

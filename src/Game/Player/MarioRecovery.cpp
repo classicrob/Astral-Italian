@@ -32,7 +32,7 @@ bool Mario::doRecovery() {
         TVec3f gravity;
         TVec3f position(*getLastSafetyTrans(&gravity));
         position += gravity * 160.0f;
-        TVec3f direction(mPosition - position);
+        TVec3f direction(mPosHolder->mPos - position);
         MR::normalizeOrZero(&direction);
         doPointWarpRecovery(position, direction);
     }
@@ -102,14 +102,14 @@ bool MarioRecovery::calcFirstVector() {
     _18 = 200;
     f32 extra = (distance - 500.0f) / 20.0f;
     if (extra > 0.0f) {
-        _18 = static_cast< s32 >(extra) + 200;
+        _18 = static_cast< u16 >(static_cast< s32 >(extra)) + 200;
     }
     _88 = _18;
     _80 = _7C / _18;
     _7C = 0.0f;
     mActor->_F44 = false;
     const TVec3f& position = mActor->mPosition;
-    addTrans(position - getTrans(), "Module");
+    getPlayer()->addTrans(position - getTrans(), "Module");
     update();
     _12 = 0;
     return true;
@@ -152,7 +152,7 @@ void MarioRecovery::updateJump() {
         velocity.setLength(30.0f);
     }
     velocity += getGravityVec() * vertical;
-    addTrans(velocity, "Module");
+    getPlayer()->addTrans(velocity, "Module");
 }
 
 bool MarioRecovery::start() {
@@ -222,7 +222,7 @@ bool MarioRecovery::update() {
             _16--;
         }
         if (!_16 || (_34 - getTrans()).length() < 20.0f) {
-            addTrans(_34 - getTrans(), "Module");
+            getPlayer()->addTrans(_34 - getTrans(), "Module");
             return false;
         }
         updateJump();
@@ -267,11 +267,11 @@ bool MarioRecovery::update() {
             TVec3f horizontal;
             f32 distance = MR::vecKillElement(_34 - getTrans(), _58, &horizontal);
             if (MR::abs(distance) < 10.0f) {
-                addTrans(_58 * distance, "Module");
+                getPlayer()->addTrans(_58 * distance, "Module");
                 _1A = 0;
                 calcFirstVector();
             } else {
-                addTrans(_58 * MR::clamp(distance, -10.0f, 10.0f), "Module");
+                getPlayer()->addTrans(_58 * MR::clamp(distance, -10.0f, 10.0f), "Module");
             }
             playSound("引き戻し基本");
         }

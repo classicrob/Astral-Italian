@@ -959,7 +959,7 @@ void MarioActor::movement() {
                     if (MR::vecKillElement(stack_E0 - (mPosition), getGravityVec(), &stack_D4) < -5.0f && pTmp->mParts && !pTmp->mParts->_D4 &&
                         getMovementStates()._3E != 1) {
                         mPosition = stack_E0;
-                        mMario->mPosition = mPosition;
+                        fn_80405F90(mMario->mPosHolder, mPosition);
                         mMario->stopJump();
                         mMario->changeAnimation("基本", "落下");
                         mMario->updateGroundInfo();
@@ -1103,9 +1103,9 @@ void MarioActor::control2() {
         mLastMove.zero();
         _270 = mPosition;
         if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
-            mMario->mPosition = mPosition;
+            fn_80405F90(mMario->mPosHolder, mPosition);
             mMario->checkEnforceMove();
-            mPosition = mMario->mPosition;
+            mPosition = mMario->mPosHolder->mPos;
         }
     } else {
         if (_BC4) {
@@ -1297,7 +1297,7 @@ bool MarioActor::doRush() {
 
         _7DC = 0;
         _7E2 = false;
-        mMario->mPosition = mPosition;
+        fn_80405F90(mMario->mPosHolder, mPosition);
         mMario->updateGroundInfo();
         mMario->updateCubeCode();
         mMario->decDamageAfterTimer();
@@ -1821,18 +1821,18 @@ void MarioActor::careMovingObject() {
     }
 
     if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
-        mMario->mPosition = mPosition;
+        fn_80405F90(mMario->mPosHolder, mPosition);
         mMario->checkEnforceMove();
-        mPosition = mMario->mPosition;
+        mPosition = mMario->mPosHolder->mPos;
     }
 
-    mMario->mPosition = mPosition;
+    fn_80405F90(mMario->mPosHolder, mPosition);
     mMario->mVelocity.zero();
     mMario->powerAreaMove();
     mMario->powerRailMove();
-    mMario->mPosition += mMario->mVelocity;
+    mMario->mPosHolder->mPos += mMario->mVelocity;
     mMario->mVelocity.zero();
-    mPosition = mMario->mPosition;
+    mPosition = mMario->mPosHolder->mPos;
     mMario->checkGround();
     mMario->updateFloorCode();
 }
@@ -1843,9 +1843,9 @@ bool MarioActor::doStun() {
         mMario->mDrawStates._1A = true;
         resetSensorCount();
         if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
-            mMario->mPosition = mPosition;
+            fn_80405F90(mMario->mPosHolder, mPosition);
             mMario->checkEnforceMove();
-            mPosition = mMario->mPosition;
+            mPosition = mMario->mPosHolder->mPos;
         }
 
         if (!--_38C) {
@@ -2562,7 +2562,7 @@ void MarioActor::calcAndSetBaseMtx() {
         case 3:
             if (_390 > 15) {
                 f32 width = mMario->calcDistWidth();
-                mPosition = mMario->mPosition;
+                mPosition = mMario->mPosHolder->mPos;
                 f32 scale = MR::clamp(width / 80.0f, 0.2f, 1.0f);
                 if (_3B0 > scale) {
                     _3B0 = scale;
@@ -2848,7 +2848,7 @@ void MarioActor::jumpHop() {
         mMario->_430 = 0;
     }
 
-    mMario->_4B0 = mMario->mPosition;
+    mMario->_4B0 = mMario->mPosHolder->mPos;
 }
 
 
@@ -9120,7 +9120,7 @@ void MarioActor::resetCondition() {
 
     if (_EA5) {
         MR::extractMtxTrans(_EA8.mMtx, &mPosition);
-        mMario->mPosition = mPosition;
+        fn_80405F90(mMario->mPosHolder, mPosition);
     }
 
     if (mMario->mSwim->checkWaterCube(true)) {
@@ -14099,3 +14099,6 @@ void MarioActor::initTeresaMarioAnimation() {
     _9B8->changeAnimation("基本");
     _9A4->mModelManager->mXanimePlayer = _9B8;
 }
+
+#include "../src/Game/Player/MarioActorSMG2_A.inc"
+#include "../src/Game/Player/MarioActorSMG2_B.inc"

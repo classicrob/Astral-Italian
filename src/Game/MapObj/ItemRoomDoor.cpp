@@ -43,7 +43,7 @@ void ItemRoomDoor::init(const JMapInfoIter& rIter) {
     MR::useStageSwitchSyncAppear(this, rIter);
     MR::tryRegisterDemoCast(this, "\200j6h\200j6\200\200j6\230", rIter);
     if (MR::tryRegisterDemoCast(this, "\200j6\200\200j6\230", rIter)) {
-        MR::tryRegisterDemoActionFunctorDirect(this, reinterpret_cast<const MR::FunctorBase&>(NrvItemRoomDoor::ItemRoomDoorNrvOpen::sInstance), "\200j6\200\200j6\230", nullptr);
+        MR::tryRegisterDemoActionNerveDirect(this, &NrvItemRoomDoor::ItemRoomDoorNrvOpen::sInstance, "\200j6\200\200j6\230", nullptr);
     }
     if (MR::tryRegisterDemoCast(this, "\200j6\230", rIter)) {
         makeActorDead();

@@ -68,7 +68,7 @@ void FlowerMimic::init(const JMapInfoIter& rIter) {
 
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleCtrl);
 
-    mCollisionObj = MR::createCollisionObj(this, "FlowerMimicUnder", getSensor("Collision") != nullptr, nullptr);
+    mCollisionObj = MR::createCollisionObj(this, "FlowerMimicUnder", getSensor("Collision"), nullptr);
     // CollisionObj is laid out as a LiveActor in the target (setScale is applied to it directly).
     MR::setScale(reinterpret_cast< LiveActor* >(mCollisionObj), mScale);
 

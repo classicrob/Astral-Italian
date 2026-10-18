@@ -202,7 +202,7 @@ class FixedPosition;
 // SMG2 CollisionObj (0x94 bytes); only the ctor is needed here (defined in another unit)
 class CollisionObj : public LiveActor {
 public:
-    CollisionObj(LiveActor*, const char*, const char*, bool, MtxPtr, s32);
+    CollisionObj(LiveActor*, const char*, const char*, HitSensor*, MtxPtr, s32);
     virtual ~CollisionObj();
     /* 0x90 */ u32 _90;
 };

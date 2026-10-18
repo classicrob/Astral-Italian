@@ -74,7 +74,6 @@ extern "C" void fn_80096220(ActorStateBaseInterface*, HitSensor*, HitSensor*);
 extern "C" void fn_80096B60(ActorStateBaseInterface*, HitSensor*, HitSensor*);
 extern "C" void fn_80097690(ActorStateBaseInterface*);
 extern "C" void fn_800976A0(ActorStateBaseInterface*);
-extern "C" bool fn_80097A50(ActorStateBaseInterface*);
 extern "C" void fn_8008EDB0(void*, f32);
 
 

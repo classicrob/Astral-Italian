@@ -5,9 +5,12 @@
 #include "Game/Util/StringUtil.hpp"
 
 class NameObj;
+class StageDataArchive;
 
 typedef NameObj* (*CreationFuncPtr)(const char*);
 
+// SMG2: one ordered list of placement entries (0x18). Entries with the same name/shape id are grouped in a SameIdSet;
+// entries owned by a generator (GeneratorID != -1) are kept apart and only get their post-creation call.
 class PlacementInfoOrdered {
 public:
     class Identifier {
@@ -28,9 +31,8 @@ public:
 
     class Index : public MR::BothDirLink< Index > {
     public:
-        Index();
-
-        ~Index();
+        Index() : MR::BothDirLink< Index >(this), mInfoIter(JMapInfoIter()) {
+        }
 
         const JMapInfoIter& getInfoIter() const {
             return mInfoIter;
@@ -41,9 +43,8 @@ public:
 
     class SameIdSet : public Identifier {
     public:
-        SameIdSet();
-
-        ~SameIdSet();
+        SameIdSet() : Identifier(), mList() {
+        }
 
         bool operator<(const SameIdSet& rOther) const {
             if (mPriority == rOther.mPriority) {
@@ -57,25 +58,40 @@ public:
         /* 0x0C */ MR::BothDirList< Index > mList;
     };
 
-    PlacementInfoOrdered(int);
+    PlacementInfoOrdered();
 
+    void attach(const JMapInfo* pInfo, PlacementInfoOrdered* pAfterScenario, const StageDataArchive* pArchive);
     void sort();
     void requestFileLoad();
     void initPlacement();
     void insert(const Identifier&, const JMapInfoIter&);
-    SameIdSet* getSameIdSet(int index) const {
-        return mOrderedSetArray[index];
-    }
-
-    s32 getUsedArrayNum() const;
     SameIdSet* find(const Identifier&) const;
     SameIdSet* createSameIdSet(const Identifier&);
     Index* createIndex(const JMapInfoIter&);
-    void attach(const JMapInfo*, PlacementInfoOrdered*);
+    void addGeneratedIndex(const JMapInfoIter&);   // SMG2 0x804567B0 (outside this unit's split)
 
-    /* 0x00 */ Index* mIndexArray;
-    /* 0x04 */ u32 mIndexCount;
-    /* 0x08 */ SameIdSet* mSetArray;
-    /* 0x0C */ SameIdSet** mOrderedSetArray;
-    /* 0x10 */ int mCount;
+    /* 0x00 */ MR::BothDirList< SameIdSet > mSetList;
+    /* 0x0C */ MR::BothDirList< JMapInfoIter > mGeneratedList;
+};
+
+// SMG2: the five placement lists of a scene (StageDataHolder::mPlacementInfoOrdered).
+class PlacementInfoOrderedHolder {
+public:
+    PlacementInfoOrderedHolder();
+
+    void attachCommon(const StageDataArchive* pArchive);
+    void attachScenario(const StageDataArchive* pArchive);
+    void sortCommon();
+    void sortScenario();
+    void requestFileLoad();
+    void initPlacementHighPriority();
+    void initPlacement();
+    void attachInfos(PlacementInfoOrdered* pPriority, PlacementInfoOrdered* pNormal, PlacementInfoOrdered* pAfterScenario,
+                     const MR::BothDirList< JMapInfo >* pList, const StageDataArchive* pArchive);
+
+    /* 0x00 */ PlacementInfoOrdered* mCommonPriority;
+    /* 0x04 */ PlacementInfoOrdered* mCommon;
+    /* 0x08 */ PlacementInfoOrdered* mScenarioPriority;
+    /* 0x0C */ PlacementInfoOrdered* mScenario;
+    /* 0x10 */ PlacementInfoOrdered* mAfterScenario;
 };

@@ -57,6 +57,10 @@ namespace MR {
                 return static_cast< T* >(mLink->mValue);
             }
 
+            T& operator*() const {
+                return *static_cast< T* >(mLink->mValue);
+            }
+
             void operator++(int) {
                 mLink = mLink->mNextLink;
             }

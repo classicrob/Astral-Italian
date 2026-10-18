@@ -4,7 +4,7 @@
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, bool noSensor, MtxPtr pBaseMtx, int drawType)
+CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, HitSensor* pSensor, MtxPtr pBaseMtx, int drawType)
     : LiveActor(pName), mBaseMtx(nullptr) {
     if (drawType < 0) {
         drawType = 0x1d;
@@ -12,8 +12,7 @@ CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArc
 
     MR::connectToScene(this, drawType, -1, -1, -1);
 
-    HitSensor* pSensor = nullptr;
-    if (!noSensor) {
+    if (pSensor == nullptr) {
         initHitSensor(1);
         MR::addBodyMessageSensorMapObj(this);
         pSensor = getSensor(nullptr);

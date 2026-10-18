@@ -48,7 +48,6 @@ extern "C" {
     void fn_804F0C60(WorldMapResultCommand*, const char*, LiveActor*);
     void fn_804F0D00(WorldMapResultCommand*, const char*);
     bool fn_804F0D90(WorldMapResultCommand*, const char*, TVec3f*, TVec3f*, f32);
-    s32 fn_804E8960(const char*);
     void fn_80458060(NameObj*);
     void fn_804581E0(NameObj*);
     void fn_80457F80();

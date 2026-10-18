@@ -6444,7 +6444,7 @@ Game/Scene/MultiSceneEffectKeeper.cpp:
 	.sdata2     start:0x807E1258 end:0x807E1260
 
 Game/Scene/PlacementInfoOrdered.cpp:
-	.text       start:0x80455DC0 end:0x80456790
+	.text       start:0x80455DC0 end:0x80456830
 	.data       start:0x806EFE90 end:0x806EFEC8
 	.sdata      start:0x807D0148 end:0x807D0150
 
@@ -7287,7 +7287,7 @@ Game/Speaker/SpkSound.cpp:
 	.sdata2     start:0x807E1928 end:0x807E1930
 
 Game/System/GameSequenceNameEntryTable.cpp:
-	.text       start:0x804AD7C0 end:0x804ADB70
+	.text       start:0x804AD660 end:0x804ADB70
 
 Game/System/ArchiveHolder.cpp:
 	.text       start:0x804ADB70 end:0x804AE050

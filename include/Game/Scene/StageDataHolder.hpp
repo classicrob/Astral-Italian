@@ -2,23 +2,28 @@
 
 #include "Game/NameObj/NameObj.hpp"
 #include "Game/Util/Array.hpp"
+#include "Game/Util/BothDirList.hpp"
 #include <JSystem/JGeometry.hpp>
 
 class JKRArchive;
 class JMapIdInfo;
 class JMapInfo;
 class JMapInfoIter;
-class PlacementInfoOrdered;
+class PlacementInfoOrderedHolder;
+
+class StageDataArchiveHolder;
 
 class StageDataHolder : public NameObj {
 public:
     StageDataHolder(const char* pStageName, int zoneID, bool loadCommon);
 
+    virtual ~StageDataHolder();
     virtual void init(const JMapInfoIter& rIter);
 
     void initAfterScenarioSelected();
-    void requestFileLoadCommon();
-    void requestFileLoadScenario();
+    static void requestFileLoadCommon();     // SMG2 0x8045ACA0 (body not written yet: unowned gap before StageDataArchiveHolder)
+    static void requestFileLoadScenario();   // SMG2 0x8045ACE0
+    void initFileLoadPostCreation();
     void initPlacement();
     JMapInfoIter getCommonPathPointInfo(const JMapInfo** ppInfo, int index) const;
     JMapInfoIter getCommonPathPointInfoFromRailDataIndex(const JMapInfo** ppInfo, int index) const;
@@ -31,9 +36,6 @@ public:
     JMapInfoIter getGeneralPosInfoFromDataIndex(int index) const;
     s32 getChildObjNum(const JMapInfoIter& rIter) const;
     JMapInfoIter getChildObjInfoFromDataIndex(const JMapInfoIter& rIter, int index) const;
-
-    JMapInfoIter makeMarioJMapInfoIter(const JMapIdInfo& rInfo) const;
-
     const StageDataHolder* findPlacedStageDataHolder(const JMapInfoIter& rIter) const;
     const StageDataHolder* getStageDataHolderFromZoneId(int zoneID) const;
     StageDataHolder* getStageDataHolderFromZoneId(int zoneID);
@@ -41,60 +43,39 @@ public:
     const char* getJapaneseObjectName(const char* pName) const;
     void* getStageArchiveResource(const char* pName);
     s32 getStageArchiveResourceSize(void* pData);
-
-    JMapInfoIter makeCurrentMarioJMapInfoIter() const;
-
+    void* getUseResourceArchiveResource(const char* pName);
+    JKRArchive* getGhostArchive();
     void initPlacementMario();
-
+    JMapInfoIter makeMarioJMapInfoIter(const JMapIdInfo& rInfo) const;
+    JMapInfoIter makeCurrentMarioJMapInfoIter() const;
+    void initAllLayerJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir);
     void initTableData();
-
-    void calcDataAddress();
-    void updateDataAddress(const MR::AssignableArray< JMapInfo >* pInfoArray);
-
-    void initPlacementInfoOrderedScenario();
     void initPlacementInfoOrderedCommon();
-
-    void createLocalStageDataHolder(const MR::AssignableArray< JMapInfo >& rInfoArray, bool loadCommon);
-
-    void initJmpInfo(MR::AssignableArray< JMapInfo >* pInfo, const char* pName);
-
-    void initLayerJmpInfo(MR::AssignableArray< JMapInfo >* pInfo, const char* pPlacementDir, const char* pMapPartsDir, u32 layerMask);
-    void initAllLayerJmpInfo(MR::AssignableArray< JMapInfo >* pInfo, const char* pPlacementDir, const char* pMapPartsDir);
-    void initAllLayerJmpInfo(MR::AssignableArray< JMapInfo >* pInfo, const char* pName);
-
-    const JMapInfo* findJmpInfoFromArray(const MR::AssignableArray< JMapInfo >* pInfo, const char* pName) const;
+    void initPlacementInfoOrderedScenario();
+    void attachCommonToPlacementInfoOrdered(PlacementInfoOrderedHolder* pOrdered) const;
+    void attachScenarioToPlacementInfoOrdered(PlacementInfoOrderedHolder* pOrdered) const;
+    const JMapInfo* findJmpInfoFromArray(const MR::BothDirList< JMapInfo >* pList, const char* pName) const;
     JMapInfoIter getStartJMapInfoIterFromStartDataIndex(int index) const;
-
+    void calcDataAddress();
+    void updateDataAddress(const MR::BothDirList< JMapInfo >* pList);
+    void createLocalStageDataHolder(const MR::BothDirList< JMapInfo >& rList, bool loadCommon);
     void calcPlacementMtx(const JMapInfoIter& rIter);
 
-    JMapInfo* attachJmpInfoToArray(JMapInfo* pInfo, const char* pDirectory);
-
-    /* 0x0C */ MR::AssignableArray< JMapInfo > mPlacementObjs;
-    /* 0x14 */ MR::AssignableArray< JMapInfo > mStartObjs;
-    /* 0x1C */ MR::AssignableArray< JMapInfo > mGeneralPosObjs;
-    /* 0x24 */ MR::AssignableArray< JMapInfo > mChildObjs;
-    /* 0x2C */ MR::AssignableArray< JMapInfo > mListObjs;
-    /* 0x34 */ MR::AssignableArray< JMapInfo > mPathObjs;
-    /* 0x3C */ JMapInfo* mObjNameTbl;
-    /* 0x40 */ s32 mStageDataHolderCount;
-    /* 0x44 */ StageDataHolder* mStageDataArray[0x18];
-    /* 0xA4 */ JKRArchive* mArchive;
-    /* 0xA8 */ const char* _A8;
-    /* 0xAC */ TPos3f mPlacementMtx;
-    /* 0xDC */ s32 mZoneID;
-    /* 0xE0 */ u8 _E0;
-    /* 0xE1 */ u8 _E1;
-    /* 0xE2 */ u8 _E2;
-    /* 0xE3 */ u8 _E3;
-    /* 0xE4 */ u32 _E4;
-    /* 0xE8 */ u32 _E8;
-    /* 0xEC */ MR::AssignableArray< JMapInfo > _EC;
-    /* 0xF4 */ MR::AssignableArray< JMapInfo > _F4;
-    /* 0xFC */ PlacementInfoOrdered* _FC;
-    /* 0x100 */ PlacementInfoOrdered* _100;
-    /* 0x104 */ PlacementInfoOrdered* _104;
-    /* 0x108 */ PlacementInfoOrdered* _108;
-    /* 0x10C */ PlacementInfoOrdered* _10C;
+    /* 0x14 */ JMapInfo* mObjNameTbl;
+    /* 0x18 */ s32 mStageDataHolderCount;
+    /* 0x1C */ StageDataHolder* mStageDataArray[0x18];
+    /* 0x7C */ const char* mStageName;
+    /* 0x80 */ TPos3f mPlacementMtx;
+    /* 0xB0 */ s32 mZoneID;
+    /* 0xB4 */ bool mLoadCommon;
+    /* 0xB8 */ u32 mDataStart;
+    /* 0xBC */ u32 mDataEnd;
+    /* 0xC0 */ PlacementInfoOrderedHolder* mPlacementInfoOrdered;
+    /* 0xC4 */ StageDataArchiveHolder* mArchiveHolder;
+    /* 0xC8 */ MR::BothDirList< JMapInfo > mPlacementObjs;
+    /* 0xD4 */ MR::BothDirList< JMapInfo > mStartObjs;
+    /* 0xE0 */ MR::BothDirList< JMapInfo > mGeneralPosObjs;
+    /* 0xEC */ MR::BothDirList< JMapInfo > mPathObjs;
 };
 
 namespace MR {

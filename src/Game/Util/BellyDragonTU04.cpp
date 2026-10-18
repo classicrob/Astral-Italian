@@ -77,8 +77,6 @@ bool fn_8008EDA0(LiveActor*);
 extern "C" void fn_8008EDB0(void*, f32);
 extern "C" void fn_80013880(LiveActor*, TVec3f*, s32);
 extern "C" s32 fn_80008F00(LiveActor*, const char*);
-extern "C" void fn_80097A50(LiveActor*);
-extern "C" bool fn_80097A60(LiveActor*);
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_80093450(void*, const f32 (*)[4]);
@@ -241,7 +239,7 @@ extern "C" s32 fn_800938F0(BellyDragon* pHost) {
     s32 count = BODY_COUNT(pHost->mBody);
     s32 alive = 0;
     for (s32 i = 0; i < count; i++) {
-        if (fn_80097A60(BODY_PART(pHost->mBody, i))) {
+        if (BODY_PART(pHost->mBody, i)->isAttackable()) {
             alive += 1;
         }
     }
@@ -263,7 +261,7 @@ extern "C" s32 fn_80093980(BellyDragon* pHost, s32 flag) {
     s32 ok = 0;
     s32 count = BODY_COUNT(pHost->mBody);
     for (s32 i = 0; i < count; i++) {
-        if (!fn_80097A60(BODY_PART(pHost->mBody, i))) {
+        if (!BODY_PART(pHost->mBody, i)->isAttackable()) {
             ok += 1;
             if (ok >= need) {
                 return 1;
@@ -287,7 +285,7 @@ extern "C" s32 fn_80093A30(BellyDragon* pHost, s32 flag) {
 extern "C" void fn_80093A80(BellyDragon* pHost) {
     s32 count = BODY_COUNT(pHost->mBody);
     for (s32 i = 0; i < count; i++) {
-        fn_80097A50(BODY_PART(pHost->mBody, i));
+        BODY_PART(pHost->mBody, i)->setNerveWaitC();
     }
 }
 

@@ -1,16 +1,25 @@
 #pragma once
 
 #include "Game/Util/Array.hpp"
+#include "Game/Util/BothDirList.hpp"
+
+class JKRArchive;
+class JMapInfo;
 
 // Per-directory stage archive object returned by StageDataArchiveHolder::mountArchive (0xE8 bytes).
 // Only the three name lists used by the StageDataArchiveHolder constructor are laid out so far.
 class StageDataArchive {
 public:
-    // PLACEHOLDER(core): 0x00 and 0xD0..0xE8 are not laid out yet; resolve when StageDataArchive is ported.
-    /* 0x00 */ u32 _00;
+    StageDataArchive(JKRArchive*, const char*, const char*);   // SMG2 0x8045AE00
+
+    void initJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir);   // SMG2 0x8045AE50
+
+    /* 0x00 */ JKRArchive* mArchive;
     /* 0x04 */ MR::Vector< MR::FixedArray< const char*, 16 > > mNameList0;
     /* 0x48 */ MR::Vector< MR::FixedArray< const char*, 16 > > mNameList1;
     /* 0x8C */ MR::Vector< MR::FixedArray< const char*, 16 > > mNameList2;
+    /* 0xD0 */ MR::BothDirList< JMapInfo > mCommonInfos;
+    /* 0xDC */ MR::BothDirList< JMapInfo > mScenarioInfos;
 };
 
 // SMG2 stage archive holder. Mounts the Map / Sound / Design / ZoneInfo / UseResource / Ghost archives of one stage.
@@ -19,7 +28,10 @@ public:
     StageDataArchiveHolder(const char*);
 
     StageDataArchive* mountArchive(const char*, const char*);   // SMG2 0x8045B530 (defined with StageDataHolder)
-    void addToArchives(void*, const char*);                    // SMG2 fn_8045B280 (provisional name)
+    void initJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir);
+    void initLayerJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir, u32 layerMask);
+    void initCommonLayerJmpInfo(const char* pDir, u32 layerMask);
+    void initScenarioLayerJmpInfo(const char* pDir, u32 layerMask);
 
     /* 0x00 */ StageDataArchive* mMapArchive;
     /* 0x04 */ StageDataArchive* mSoundArchive;

@@ -93,7 +93,6 @@ void KoopaBattle::init(const JMapInfoIter& rIter) {
     MR::hideModelAndOnCalcAnim(this);
 }
 
-// NONMATCHING: the target passes the raw HitSensor* (getSensor result) as createCollisionObj's `bool` argument without the pointer-to-bool conversion
 void KoopaBattle::appearDefenseForm() {
     if (mDefenseForm == nullptr) {
         mDefenseForm = MR::createPartsModelEnemy(this, "クッパ防御姿勢", "KoopaDefenseForm", getBaseMtx());
@@ -105,7 +104,7 @@ void KoopaBattle::appearDefenseForm() {
         MR::registerDemoSimpleCastAll(mDefenseForm);
     }
     if (mDefenseCollision == nullptr) {
-        mDefenseCollision = MR::createCollisionObj(this, "DefenseCollision", getSensor("Shell2") != nullptr, nullptr);
+        mDefenseCollision = MR::createCollisionObj(this, "DefenseCollision", getSensor("Shell2"), nullptr);
         mDefenseCollision->mScale.set< f32 >(mScale);
         mDefenseCollision->kill();
     }

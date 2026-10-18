@@ -10,9 +10,7 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include <cstdio>
-
-// PLACEHOLDER(core): fn_8045D2D0 is the unnamed constructor of the 0x3C-byte layout object (owner in the unsplit gap at 0x8045D2D0); resolve when named.
-extern "C" LayoutActor* fn_8045D2D0(void*, MiniStarWorldPoint*, const char*, const char*, const TVec3f&, s32, s32);
+#include <new>
 
 MiniStarWorldPoint::MiniStarWorldPoint(WorldMapResultWorld* pWorld, s32 pointIndex, s32 targetWorld)
     : LiveActor("グランドギャラクシーマップ用ワープポイント") {
@@ -45,7 +43,7 @@ void MiniStarWorldPoint::init(const JMapInfoIter& rIter) {
 static void setupCrownLayout(MiniStarWorldPoint* pPoint) {
     LayoutActor* pLayout = (LayoutActor*)::operator new(0x3C);
     if (pLayout != nullptr) {
-        pLayout = fn_8045D2D0(pLayout, pPoint, "コンプリートアイコン", "MapGalaxyState", TVec3f(0.0f), 1, -1);
+        pLayout = new (pLayout) SimpleFollowActorLayout(pPoint, "コンプリートアイコン", "MapGalaxyState", TVec3f(0.0f), 1, -1);
     }
     pPoint->mLayout = pLayout;
     MR::registerDemoSimpleCastAll(pLayout);

@@ -30,11 +30,15 @@ void SceneDataInitializer::waitDoneStageFileLoad() {
 }
 
 void SceneDataInitializer::startActorFileLoadCommon() {
-    mDataHolder->requestFileLoadCommon();
+    StageDataHolder::requestFileLoadCommon();
 }
 
 void SceneDataInitializer::startActorFileLoadScenario() {
-    mDataHolder->requestFileLoadScenario();
+    StageDataHolder::requestFileLoadScenario();
+}
+
+void SceneDataInitializer::startActorFileLoadPostCreation() {
+    mDataHolder->initFileLoadPostCreation();
 }
 
 void SceneDataInitializer::startActorPlacement() {

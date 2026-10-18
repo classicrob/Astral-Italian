@@ -16,6 +16,7 @@ public:
     void waitDoneStageFileLoad();
     void startActorFileLoadCommon();
     void startActorFileLoadScenario();
+    void startActorFileLoadPostCreation();
     void startActorPlacement();
     void initAfterScenarioSelected();
 

@@ -28,6 +28,7 @@ namespace DemoFunction {
     void registerDemoActionFunctorFunction(const LiveActor*, const MR::FunctorBase&, const char*);
     void registerDemoActionFunctorFunction(const LiveActor*, const MR::FunctorBase&, const char*, const char*);
     void registerDemoActionNerveFunction(const LiveActor*, const Nerve*, const char*);
+    void registerDemoActionNerveFunction(const LiveActor*, const Nerve*, const char*, const char*);
 
     bool tryCreateDemoTalkAnimCtrlForActor(LiveActor*, const char*, const char*);
     bool tryCreateDemoTalkAnimCtrlForActorDirect(LiveActor*, const char*, const char*, const char*);

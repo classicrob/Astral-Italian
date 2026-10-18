@@ -22,7 +22,8 @@ class NamePosHolder : public NameObj {
 public:
     NamePosHolder();
 
-    bool tryRegisterLinkObj(const NameObj*, const JMapInfoIter&);
+    bool tryRegisterLinkObj(const NameObj*, const JMapInfoIter&, const char*);
+    bool find(const char*, TVec3f*, TVec3f*) const;
     bool find(const NameObj*, const char*, TVec3f*, TVec3f*) const;
 
     /* 0x0C */ s32 mPosNum;           ///< The number of NamePosInfo instances.

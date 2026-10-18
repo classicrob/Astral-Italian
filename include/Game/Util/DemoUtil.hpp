@@ -41,7 +41,7 @@ namespace MR {
     void initTalkAnimDemoCast(LiveActor*, const JMapInfoIter&, const char*, const char*);
     void registerDemoActionFunctorDirect(const LiveActor*, const MR::FunctorBase&, const char*, const char*);
     void registerDemoActionNerveDirect(const LiveActor*, const Nerve*, const char*, const char*);
-    bool tryRegisterDemoActionFunctorDirect(const LiveActor*, const MR::FunctorBase&, const char*, const char*);
+    bool tryRegisterDemoActionNerveDirect(const LiveActor*, const Nerve*, const char*, const char*);
     bool tryStartDemoRegistered(LiveActor*, const char*);
     bool tryStartDemoRegisteredMarioPuppetable(LiveActor*, const char*);
     bool isDemoCast(const LiveActor*, const char*);
@@ -122,4 +122,11 @@ namespace MR {
 namespace MR {
     bool tryInitDemoSheetAnim(LiveActor*, const JMapInfoIter&, const char*, const char*);
     bool isStoryBookDemoActive();
+}
+
+namespace MR {
+    // PLACEHOLDER(core4): names guessed from the DemoStartRequestUtil::startDemoSystem flags (type, cinema, pointer).
+    bool tryStartDemoSystemFlags111(NameObj*, const char*);              // SMG2 fn_8001FB40
+    bool tryStartDemoMarioPuppetableSystemFlags(NameObj*, const char*);  // SMG2 fn_8001FD30
+    void requestStartDemoMarioPuppetableWithoutCinemaFrame(NameObj*, const char*);  // SMG2 fn_80020030
 }

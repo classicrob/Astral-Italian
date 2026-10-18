@@ -35,6 +35,7 @@ namespace NameObjFactory {
     NameObj* initChildObj(const JMapInfoIter&, int);
     CreatorFuncPtr getCreator(const char*);
     void requestMountObjectArchives(const char*, const JMapInfoIter&);
+    void callPostCreation(const char*, const JMapInfoIter&);
     bool isReadResourceFromDVD(const char*, const JMapInfoIter&);
     bool isPlayerArchiveLoaderObj(const char*);
     const Name2CreateFunc* getName2CreateFunc(const char*, const Name2CreateFunc*);

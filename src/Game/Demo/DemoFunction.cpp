@@ -49,6 +49,10 @@ namespace DemoFunction {
         DemoExecutorFunction::registerDemoActionNerve(findDemoExecutor(pActor), pActor, pNerve, pName);
     }
 
+    void registerDemoActionNerveFunction(const LiveActor* pActor, const Nerve* pNerve, const char* pDemoName, const char* pName) {
+        DemoExecutorFunction::registerDemoActionNerve(findDemoExecutor(pDemoName), pActor, pNerve, pName);
+    }
+
     bool tryStartDemoRegistered(LiveActor* pActor, const char* pPartName) {
         DemoExecutor* executor = findDemoExecutor(pActor);
         if (executor == nullptr) {

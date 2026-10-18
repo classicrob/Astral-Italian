@@ -68,12 +68,12 @@ namespace MR {
         DemoFunction::registerDemoActionFunctorFunction(pActor, rFunctor, pName1, pName2);
     }
 
-    bool tryRegisterDemoActionFunctorDirect(const LiveActor* pActor, const MR::FunctorBase& rFunctor, const char* pName1, const char* pName2) {
-        if (!DemoFunction::isRegisteredDemoActionFunctor(pActor, pName1)) {
+    bool tryRegisterDemoActionNerveDirect(const LiveActor* pActor, const Nerve* pNerve, const char* pDemoName, const char* pName) {
+        if (!DemoFunction::isRegisteredDemoActionFunctor(pActor, pDemoName)) {
             return false;
         }
 
-        DemoFunction::registerDemoActionFunctorFunction(pActor, rFunctor, pName1, pName2);
+        DemoFunction::registerDemoActionNerveFunction(pActor, pNerve, pDemoName, pName);
 
         return true;
     }

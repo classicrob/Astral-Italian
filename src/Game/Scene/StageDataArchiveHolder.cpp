@@ -1,10 +1,5 @@
 #include "Game/Scene/StageDataArchiveHolder.hpp"
 
-// PLACEHOLDER(core): fn_8045AE50 is an unnamed StageDataArchive member in the unowned auto_03 gap (archive, list, name); resolve when named.
-extern "C" {
-    void fn_8045AE50(StageDataArchive*, void*, const char*);
-}
-
 namespace {
     const char* const sSoundNameList[2] = {"ObjInfo", "AreaObjInfo"};
     const char* const sAreaNameList[10] = {
@@ -54,12 +49,12 @@ StageDataArchiveHolder::StageDataArchiveHolder(const char* pStageName) : mMapArc
     }
 }
 
-void StageDataArchiveHolder::addToArchives(void* pList, const char* pName) {
-    fn_8045AE50(mMapArchive, pList, pName);
+void StageDataArchiveHolder::initJmpInfo(MR::BothDirList< JMapInfo >* pList, const char* pDir) {
+    mMapArchive->initJmpInfo(pList, pDir);
     if (mSoundArchive != nullptr) {
-        fn_8045AE50(mSoundArchive, pList, pName);
+        mSoundArchive->initJmpInfo(pList, pDir);
     }
     if (mDesignArchive != nullptr) {
-        fn_8045AE50(mDesignArchive, pList, pName);
+        mDesignArchive->initJmpInfo(pList, pDir);
     }
 }

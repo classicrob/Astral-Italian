@@ -5,6 +5,7 @@
 class EatDemoCoin : public LiveActor {
 public:
     EatDemoCoin(const char*);
+    virtual ~EatDemoCoin();
     virtual void calcAndSetBaseMtx();
     void shoot(const TVec3f&, const TVec3f*);
     void exeShoot();

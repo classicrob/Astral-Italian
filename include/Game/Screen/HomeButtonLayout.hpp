@@ -26,13 +26,14 @@ public:
 
     void forceToDeactive();
     bool isActive() const;
+    bool isActiveOrPreparing() const;
     void updateController();
     bool tryCorePadTriggerHome();
 
     void exeDeactive();
     void exeActive();
+    void exePrepare();
 
     /* 0x20 */ HomeButtonMenuContext* mMenuContext;
-    /* 0x24 */ bool _24;
-    /* 0x25 */ bool _25;
+    bool mForcedDeactivation;
 };

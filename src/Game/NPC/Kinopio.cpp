@@ -1,6 +1,8 @@
+// NONMATCHING: init callback lifetime/register allocation and scalar versus paired-single stores; faceToPlayer register allocation; other residuals are literal aliases.
 #pragma auto_inline off
 
 #include "Game/NPC/Kinopio.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
@@ -79,14 +81,8 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg3NoInit(rIter, &mIsSpawnPowerStarMode);
     MR::getJMapInfoArg4NoInit(rIter, &mAppearBehavior);
     MR::getJMapInfoArg7NoInit(rIter, &mGoodsIndex);
-    mScale.set(::sDefaultScale);
-    initModelManagerWithAnm("Kinopio", nullptr, false);
-    MR::connectToSceneNpc(this);
-    MR::initLightCtrl(this);
-    initSound(4, "Kinopio", nullptr, TVec3f(0.0f));
-    initHitSensor(2);
-    MR::addHitSensorNpc(this, "Body", 8, 50.0f * ::sDefaultScale, TVec3f(0.0f, 50.0f * ::sDefaultScale, 0.0f));
-    MR::addHitSensorNpc(this, "Pickel", 8, 50.0f * ::sDefaultScale, TVec3f(0.0f, 50.0f * ::sDefaultScale, 40.0f * ::sDefaultScale));
+    MR::initActor(this,rIter,"Kinopio",false);
+    mScale=TVec3f(::sDefaultScale);
     MR::invalidateHitSensor(this, "Pickel");
     s32 isInvalidateSensor = -1;
     MR::getJMapInfoArg6NoInit(rIter, &isInvalidateSensor);
@@ -94,24 +90,23 @@ void Kinopio::init(const JMapInfoIter& rIter) {
         MR::invalidateHitSensor(this, "Body");
     }
 
-    initBinder(50.0f * ::sDefaultScale, 50.0f * ::sDefaultScale, 0);
     MR::offBind(this);
-    MR::initShadowVolumeSphere(this, 30.0f * ::sDefaultScale);
-    MR::onCalcShadowOneTime(this, nullptr);
-    initEffectKeeper(0, nullptr, false);
-    initNerve(GET_NERVE(Kinopio, KinopioNrvWait));
+    initNerve(GET_NERVE(Kinopio,KinopioNrvWait));
+    mReactionNerve=GET_NERVE(Kinopio,KinopioNrvReaction);
     mMsgCtrl = MR::createTalkCtrl(this, rIter, "Kinopio", TVec3f(0.0f, 122.0f * ::sDefaultScale, 0.0f), nullptr);
     MR::setDistanceToTalk(mMsgCtrl, ::sDistancePlayerIsNear);
     MR::onRootNodeAutomatic(mMsgCtrl);
     MR::registerEventFunc(mMsgCtrl, TalkMessageFuncM< Kinopio*, bool (Kinopio::*)(u32) >(this, &Kinopio::eventFunc));
+    MR::registerBranchFunc(mMsgCtrl, TalkMessageFuncM< Kinopio*, bool (Kinopio::*)(u32) >(this, &Kinopio::branchFunc));
     if (MR::isConnectedWithRail(rIter)) {
-        initRailRider(rIter);
         MR::moveCoordAndTransToRailStartPoint(this);
         MR::onCalcShadow(this, nullptr);
     }
 
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f));
+    const TVec3f& targetOffset=MR::getStarPointerTargetOffset(this);
+    mYoshiTarget=MR::createYoshiLockOnTarget(this,getBaseMtx(),targetOffset);
     MR::addToAttributeGroupSearchTurtle(this);
+    MR::addEffect(this,"YoshiTongueHit");
     s32 isStrictLodDistances = -1;
     MR::getJMapInfoArg5NoInit(rIter, &isStrictLodDistances);
     mLodCtrl = MR::createLodCtrlNPC(this, rIter);
@@ -125,11 +120,7 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     mScaleController = new AnimScaleController(&::sParam);
     mDelegator = MR::createJointDelegatorWithNullChildFunc< Kinopio >(this, &Kinopio::calcJointScale, "body");
 
-    MR::useStageSwitchReadA(this, rIter);
-    MR::useStageSwitchReadB(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
     MR::tryRegisterDemoCast(this, rIter);
-    setNerve(GET_NERVE(Kinopio, KinopioNrvWait));
     setDefaults();
     _12C = ::sDistancePlayerIsEvent;
     mParam.setDefaultAction();
@@ -180,6 +171,10 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     case 11:
         mParam.setNoTurnAction("Rightened");
         break;
+    case 14:
+        mParam.setMoveAction("Rightened","TurnRightened");
+        mParam.setTalkAction("Rightened","TurnRightened");
+        break;
     case 12: {
         mParam.setSingleAction("StarPieceWait");
         const char* pWaitAction = "StarPieceWait";
@@ -216,24 +211,15 @@ void Kinopio::init(const JMapInfoIter& rIter) {
         setNerve(GET_NERVE(Kinopio, KinopioNrvStarWait));
     }
 
-    MR::useStageSwitchSleep(this, rIter);
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        if (mBehavior != 4) {
-            if (mAppearBehavior == 0) {
-                pushNerve(GET_NERVE(Kinopio, KinopioNrvEscape));
-            } else {
-                pushNerve(GET_NERVE(Kinopio, KinopioNrvAppear));
-            }
-        }
-
-        makeActorDead();
-    } else {
-        makeActorAppeared();
+    MR::useStageSwitchAwake(this,rIter);
+    if(MR::useStageSwitchSyncAppear(this,rIter) && mBehavior!=4) {
+        if(mAppearBehavior==0) pushNerve(GET_NERVE(Kinopio,KinopioNrvEscape));
+        else pushNerve(GET_NERVE(Kinopio,KinopioNrvAppear));
     }
 
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, mObjArg0);
+    MR::registerMarioFaceShipNpc(this,rIter);
 }
 
 void Kinopio::exeReaction() {
@@ -266,10 +252,6 @@ void Kinopio::exeReaction() {
         if (isPointingSe()) {
             MR::startDPDHitSound();
             MR::startActionSound(this, "SvKinopioPointing");
-        }
-
-        if (_D9) {
-            MR::startActionSound(this, "SE_SV_KINOPIO_SPIN");
         }
 
         if (_DB) {
@@ -311,7 +293,7 @@ void Kinopio::exeJump() {
             return;
         }
 
-        if (MR::isActionStart(this, "Notice")) {
+        if (MR::isAnyAnimPlaying(this, "Notice")) {
             turnToPlayer(mParam._8);
         }
 
@@ -412,7 +394,7 @@ void Kinopio::exeAppear() {
 
     if (MR::isBinded(this)) {
         mVelocity.zero();
-        if (MR::isBckStopped(this)) {
+        if (MR::isActionEnd(this)) {
             MR::validateClipping(this);
             popNerve();
         }
@@ -565,7 +547,7 @@ bool Kinopio::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
         return true;
     }
 
-    return false;
+    return NPCActor::receiveOtherMsg(msg,pSender,pReceiver);
 }
 
 void Kinopio::faceToVector(const TVec3f& rDirection, f32 turnLimit) {
@@ -666,3 +648,5 @@ bool Kinopio::tryCancelEvent() {
 bool Kinopio::eventFunc(u32) {
     return mTakeOutStar->takeOut();
 }
+
+bool Kinopio::branchFunc(u32 id) { return MR::branchFuncGameProgress(id); }

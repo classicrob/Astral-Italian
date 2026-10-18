@@ -1,7 +1,7 @@
 #include "Game/AreaObj/PostOutlineArea.hpp"
 #include "Game/Util.hpp"
 
-PostOutlineArea::PostOutlineArea(const char* pName) : ImageEffectArea(4, pName) {
+PostOutlineArea::PostOutlineArea(const char* pName) : ImageEffectArea(IMAGE_EFFECT_TYPE_POST_OUTLINE, pName) {
 }
 
 void PostOutlineArea::init(const JMapInfoIter& rIter) {

@@ -29,7 +29,7 @@ namespace NrvStarPieceCounter {
 };  // namespace NrvStarPieceCounter
 
 bool StarPieceCounter::isDispCenter() const {
-    return MR::isStageAstroLocation() || mMode != 0 || _3C == 2;
+    return mMode != 0 || _3C == 2;
 }
 
 StarPieceCounter::StarPieceCounter(const char* pName)
@@ -45,16 +45,13 @@ void StarPieceCounter::init(const JMapInfoIter& rIter) {
     mPaneRumbler = new CountUpPaneRumbler(this, "TCounter", -1.0f);
     mLayoutAppearer = new CounterLayoutAppearer(this, TVec2f(0.0f, 30.0f));
 
-    if (!MR::isStageAstroLocation()) {
-        MR::createAndAddPaneCtrl(this, "StarPieceCounter", 1);
-        MR::setFollowPos(&mFollowPos, this, "StarPieceCounter");
-        mPaneRumbler->connectPane(this, "Counter");
-    }
+    MR::createAndAddPaneCtrl(this, "StarPieceCounter", 1);
+    MR::setFollowPos(&mFollowPos, this, "StarPieceCounter");
+    mPaneRumbler->connectPane(this, "Counter");
 
     initEffectKeeper(0, nullptr, nullptr);
 
-    mStarPieceNum = MR::getStarPieceNum();
-    mStarPieceDisplayNum = mStarPieceNum;
+    forceSync();
 
     initNerve(GET_NERVE(StarPieceCounter, StarPieceCounterNrvHide));
     MR::connectToSceneLayout(this);
@@ -150,12 +147,14 @@ void StarPieceCounter::updateCounter() {
 
         MR::setTextBoxNumberRecursive(this, "TCounter", mStarPieceDisplayNum);
     } else {
-        if (mStarPieceDisplayNum >= 100) {
-            pPaneName = "Position100";
+        if (mStarPieceDisplayNum >= 1000) {
+            pPaneName = "Position1000";
+        } else if (mStarPieceDisplayNum >= 100) {
+            pPaneName = "Position0100";
         } else if (mStarPieceDisplayNum >= 10) {
-            pPaneName = "Position010";
+            pPaneName = "Position0010";
         } else {
-            pPaneName = "Position001";
+            pPaneName = "Position0001";
         }
 
         MR::setTextBoxNumberRecursive(this, "Counter", mStarPieceDisplayNum);
@@ -177,7 +176,7 @@ void StarPieceCounter::updateCounterValue() {
                 mStarPieceDisplayNum++;
 
                 MR::startAnim(this, "Flash", 0);
-                MR::emitEffect(this, MR::isStageAstroLocation() ? "TStarPieceCounterLight" : "StarPieceCounterLight");
+                emitCountUpEffect();
             } else if (mMode == 1) {
                 if (mStarPieceDisplayNum - mStarPieceNum > 10) {
                     mStarPieceDisplayNum -= ::cDecCounterValueFast;
@@ -201,6 +200,10 @@ void StarPieceCounter::updateCounterValue() {
             }
         }
     }
+}
+
+void StarPieceCounter::emitCountUpEffect() {
+    MR::emitEffect(this, isDispCenter() ? "TStarPieceCounterLight" : "StarPieceCounterLight");
 }
 
 bool StarPieceCounter::isValidAppearSituation() const {
@@ -269,7 +272,7 @@ void StarPieceCounter::exeAppear() {
             MR::hidePaneRecursive(this, "StarPieceCounter");
             mLayoutAppearer->setAppearOffset(TVec2f(0.0f, ::cAppearOffsetCenterY));
 
-            if (MR::isStageAstroLocation()) {
+            if (MR::isStageMarioFaceShipOrWorldMap()) {
                 MR::showPaneRecursive(this, "PicTStarPiece");
                 MR::hidePaneRecursive(this, "PicNStarPiece");
             } else {
@@ -280,6 +283,14 @@ void StarPieceCounter::exeAppear() {
             MR::showPaneRecursive(this, "StarPieceCounter");
             MR::hidePaneRecursive(this, "TSPieceCounter");
             mLayoutAppearer->setAppearOffset(TVec2f(::cAppearOffsetRightX, 0.0f));
+
+            if (MR::isStageMarioFaceShipOrWorldMap()) {
+                MR::showPaneRecursive(this, "PicTStarPieceR");
+                MR::hidePaneRecursive(this, "PicNStarPieceR");
+            } else {
+                MR::showPaneRecursive(this, "PicNStarPieceR");
+                MR::hidePaneRecursive(this, "PicTStarPieceR");
+            }
         }
 
         f32 y = 0.0f;

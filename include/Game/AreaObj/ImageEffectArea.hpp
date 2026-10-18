@@ -6,9 +6,10 @@ class ImageEffectArea : public AreaObj {
 public:
     enum EImageEffectType {
         /* 0x00 */ IMAGE_EFFECT_TYPE_BLOOM,
-        /* 0x01 */ IMAGE_EFFECT_TYPE_SIMPLE_BLOOM,
-        /* 0x02 */ IMAGE_EFFECT_TYPE_BLUR,
-        /* 0x03 */ IMAGE_EFFECT_TYPE_DOF,
+        /* 0x01 */ IMAGE_EFFECT_TYPE_BLUR,
+        /* 0x02 */ IMAGE_EFFECT_TYPE_DOF,
+        /* 0x03 */ IMAGE_EFFECT_TYPE_POST_FOG,
+        /* 0x04 */ IMAGE_EFFECT_TYPE_POST_OUTLINE,
     };
 
     ImageEffectArea(EImageEffectType, int, const char*);

@@ -5343,10 +5343,11 @@ Game/NPC/TicoShopDice.cpp:
 	.sdata2     start:0x807DF688 end:0x807DF690
 
 Game/NPC/TicoStateEatCoin.cpp:
-	.text       start:0x8036DC30 end:0x8036DD10
-
-Game/NPC/EatDemoCoin.cpp:
-	.text       start:0x8036E350 end:0x8036E590
+	.text       start:0x8036DB00 end:0x8036E740
+	.ctors      start:0x80644788 end:0x8064478C
+	.data       start:0x806BEFC8 end:0x806BF190
+	.sbss       start:0x807D4CD0 end:0x807D4CE8
+	.sdata2     start:0x807DF690 end:0x807DF6B0
 
 Game/NPC/TogepinAttackMan.cpp:
 	.text       start:0x8036E740 end:0x8036EDB0
@@ -5439,7 +5440,7 @@ Game/NPC/TalkNodeCtrl.cpp:
 	.data       start:0x806C0548 end:0x806C0550
 
 Game/NPC/TalkState.cpp:
-	.text       start:0x8037C500 end:0x8037D100
+	.text       start:0x8037C4B0 end:0x8037D100
 	.data       start:0x806C05B8 end:0x806C0658
 
 Game/NPC/TalkSupportPlayerWatcher.cpp:
@@ -6226,7 +6227,7 @@ Game/Screen/HeatHazeEffect.cpp:
 	.data       start:0x806F427C end:0x806F4318
 
 Game/Screen/HomeButtonLayout.cpp:
-	.text       start:0x80474B60 end:0x80475570
+	.text       start:0x80474B60 end:0x804755D0
 	.ctors      start:0x806448F8 end:0x806448FC
 	.data       start:0x806F4390 end:0x806F43C8
 
@@ -6257,8 +6258,8 @@ Game/Screen/ImageEffectResource.cpp:
 	.sdata2     start:0x807E1490 end:0x807E14A0
 
 Game/Screen/ImageEffectState.cpp:
-	.text       start:0x80478360 end:0x80478E60
-	.data       start:0x806F4628 end:0x806F4680
+	.text       start:0x80478360 end:0x80478EE0
+	.data       start:0x806F45F0 end:0x806F4680
 
 Game/Screen/ImageEffectSystemHolder.cpp:
 	.text       start:0x80478EE0 end:0x804790E0
@@ -6322,12 +6323,9 @@ Game/Screen/NrvLogoFader.cpp:
 	.text       start:0x804803B0 end:0x80480490
 
 Game/Screen/Manual2P.cpp:
-	.text       start:0x80480490 end:0x80481310
+	.text       start:0x80480490 end:0x80481430
 	.ctors      start:0x80644914 end:0x80644918
 	.data       start:0x806F5450 end:0x806F5498
-
-Game/Screen/NrvManual2P.cpp:
-	.text       start:0x80481310 end:0x80481430
 
 Game/Screen/MarioMeter.cpp:
 	.text       start:0x80481430 end:0x80481700

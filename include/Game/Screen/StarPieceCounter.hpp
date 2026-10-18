@@ -24,6 +24,7 @@ public:
     bool tryOffModeTicoEat();
     void updateCounter();
     void updateCounterValue();
+    void emitCountUpEffect();
     bool isValidAppearSituation() const;
     bool isDispCenter() const;
     bool tryChangeModeTicoEat(int);

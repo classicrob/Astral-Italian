@@ -149,7 +149,6 @@ void FileSelector_FORCE_MATCH_SDATA2() {
 
 extern "C" void fn_8004B340(NameObj*);
 extern "C" void fn_803B6830(int);
-extern "C" void fn_8045E970(BackButton*);
 extern "C" bool fn_8045E9D0(BackButton*);
 extern "C" void fn_80486AA0();
 extern "C" bool fn_804A2BB0(SysInfoWindow*);
@@ -302,7 +301,7 @@ void FileSelector::createOperationButton() {
 void FileSelector::createBackButton() {
     mBackButton = new BackButtonCancelB("戻るボタン", false);
     mBackButton->initWithoutIter();
-    fn_8045E970(mBackButton);
+    mBackButton->waitForSelection();
     MR::connectToScene(mBackButton, 0xE, 0xD, -1, 0x51);
 }
 

@@ -74,3 +74,8 @@ bool BackButton::isSelected() const {
     }
     return _24;
 }
+
+void BackButton::waitForSelection() {
+    mPaneCtrl->_22 = false;
+    mWaitForSelection = true;
+}

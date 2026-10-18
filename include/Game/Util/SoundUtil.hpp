@@ -149,3 +149,7 @@ namespace MR {
 namespace MR {
     void startSoundInPlayerDistance(LiveActor*, const char*, s32, s32, f32);
 }
+
+namespace MR {
+    void stopCSSound(s32, s32);
+}

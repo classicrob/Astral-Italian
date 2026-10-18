@@ -1,4 +1,5 @@
 #include "Game/Screen/HomeButtonLayout.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/AudioLib/AudSystem.hpp"
 #include "Game/AudioLib/AudWrap.hpp"
@@ -32,6 +33,7 @@ namespace {
 
 namespace NrvHomeButtonLayout {
     NEW_NERVE(HomeButtonLayoutDeactive, HomeButtonLayout, Deactive);
+    NEW_NERVE(HomeButtonLayoutPrepare, HomeButtonLayout, Prepare);
     NEW_NERVE(HomeButtonLayoutActive, HomeButtonLayout, Active);
 };  // namespace NrvHomeButtonLayout
 
@@ -72,7 +74,7 @@ void HomeButtonMenuContext::initHomeButtonInfo() {
     mHomeButtonInfo->frameDelta = 1.0f;
 }
 
-HomeButtonLayout::HomeButtonLayout() : LayoutActor("HOMEボタン", false), mMenuContext(), _24(), _25() {
+HomeButtonLayout::HomeButtonLayout() : LayoutActor("HOMEボタン", false), mMenuContext(), mForcedDeactivation() {
 }
 
 void HomeButtonLayout::init(const JMapInfoIter& rIter) {
@@ -102,7 +104,6 @@ void HomeButtonLayout::exeDeactive() {
     if (MR::isFirstStep(this)) {
         mFlag.mIsHidden = true;
         mFlag.mIsOffCalcAnim = true;
-        _24 = false;
     }
 
     if (GameSystemFunction::isResetProcessing()) {
@@ -114,20 +115,22 @@ void HomeButtonLayout::exeDeactive() {
     }
 
     if (tryCorePadTriggerHome()) {
+        setNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutPrepare));
+    }
+}
+
+void HomeButtonLayout::exePrepare() {
+    if (MR::isFirstStep(this)) AudWrap::getSystem()->enterHomeButtonMenu();
+    if (!GameSystemFunction::isResetProcessing() && AudWrap::getSystem()->isHomeButtonMenuLeaving()) {
         setNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutActive));
     }
 }
 
 void HomeButtonLayout::exeActive() {
     if (MR::isFirstStep(this)) {
-        AudWrap::getSystem()->enterHomeButtonMenu();
         MR::startStarPointerModeHomeButton(this);
         GameSystemFunction::onHomeButtonMenuBeginAllRumble();
         MR::setWPadHolderModeHomeButton();
-
-        if (_24) {
-            GameSystemFunction::stopControllerLeaveWatcher();
-        }
 
         mFlag.mIsHidden = false;
         mFlag.mIsOffCalcAnim = false;
@@ -157,7 +160,7 @@ void HomeButtonLayout::exeActive() {
         MR::setStarPointerModeBase();
         break;
     case HBM_SELECT_BTN2:
-        if (!_25) {
+        if (!mForcedDeactivation) {
             AudWrap::getSystem()->preProcessToReset();
         }
 
@@ -180,11 +183,7 @@ void HomeButtonLayout::exeActive() {
     MR::setWPadHolderModeGame();
     GameSystemFunction::setPadConnectCallback();
 
-    if (_24) {
-        GameSystemFunction::startControllerLeaveWatcher();
-    }
-
-    _25 = false;
+    mForcedDeactivation = false;
 
     setNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutDeactive));
 }
@@ -207,7 +206,7 @@ void HomeButtonLayout::draw() const {
 
     Mtx44 projectionMtx;
     f32 screenHalfHeight = static_cast< s32 >(JUTGetVideoManager()->getEfbHeight()) / 2.0f;
-    f32 screenHalfWidth = MR::getScreenWidth() / 2.0f;
+    f32 screenHalfWidth = 0.5f * (MR::isScreen16Per9() ? 832.0f : 608.0f);
     C_MTXOrtho(projectionMtx, screenHalfHeight, -screenHalfHeight, -screenHalfWidth, screenHalfWidth, 0.0f, 500.0f);
     GXSetProjection(projectionMtx, GX_ORTHOGRAPHIC);
 
@@ -222,7 +221,7 @@ void HomeButtonLayout::forceToDeactive() {
     }
 
     RSO::HBMStartBlackOut();
-    _25 = true;
+    mForcedDeactivation = true;
 
     if (isNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutActive))) {
         setNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutDeactive));
@@ -239,16 +238,26 @@ bool HomeButtonLayout::isActive() const {
 
 void HomeButtonLayout::updateController() {
     for (s32 chan = WPAD_CHAN0; chan < WPAD_MAX_CONTROLLERS; chan++) {
-        MR::getHBMKPadData(&mMenuContext->mControllerData->wiiCon[chan], chan);
+        if (MR::getHBMKPadData(&mMenuContext->mControllerData->wiiCon[chan], chan) == WPAD_DEV_CLASSIC) {
+            mMenuContext->mControllerData->wiiCon[chan].use_devtype = WPAD_DEV_CORE;
+        }
     }
 }
 
 bool HomeButtonLayout::tryCorePadTriggerHome() {
-    for (s32 i = 0; i < MR::getWPadMaxCount(); i++) {
-        if (MR::testCorePadTriggerHome(i)) {
-            return true;
+    if (GameSequenceFunction::isPadMode()) {
+        for (u32 chan = 0; chan < MR::getWPadMaxCount(); chan++) {
+            if (MR::testHBMKPadTriggerHome(chan)) return true;
         }
+        return false;
     }
-
+    for (s32 chan = 0; chan < MR::getWPadMaxCount(); chan++) {
+        if (MR::testCorePadTriggerHome(chan)) return true;
+    }
     return false;
+}
+
+bool HomeButtonLayout::isActiveOrPreparing() const {
+    if (MR::isDead(this)) return false;
+    return isNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutPrepare)) || isNerve(GET_NERVE(HomeButtonLayout, HomeButtonLayoutActive));
 }

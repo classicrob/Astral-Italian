@@ -43,7 +43,7 @@ public:
 
     virtual u32 getPageCount() const;
 
-    void balloonOff() const;
+    bool isBalloonDead() const;
     bool isLostMessage(const TalkMessageCtrl*) const;
     bool isSelfInterrupt(const TalkMessageCtrl*) const;
 
@@ -76,6 +76,7 @@ public:
 
     s32 _10;
     s32 _14;
+    s32 mTalkSoundDelay;
     TalkSupportPlayerWatcher* _18;
     u8 _1C;
     bool _1D;
@@ -95,18 +96,6 @@ public:
     /* 0x24 */ IconAButton* mAButton;
 };
 
-class TalkStateCompose : public TalkStateNormal {
-public:
-    TalkStateCompose();
-
-    virtual void init(TalkMessageCtrl*, TalkBalloon*);
-    virtual bool prep(const TalkMessageCtrl*);
-    virtual bool test();
-    virtual void open();
-
-    /* 0x28 */ TalkBalloon* mSecondBalloon;
-};
-
 class TalkStateHolder {
 public:
     TalkStateHolder();
@@ -120,9 +109,7 @@ public:
     /* 0x08 */ TalkStateShort* mTalkShort;
     /* 0x0C */ TalkStateNormal* mTalkNormal;
     /* 0x10 */ TalkStateEvent* mTalkEvent;
-    /* 0x14 */ TalkStateCompose* mTalkCompose;
     /* 0x18 */ TalkState* mTalk;
-    /* 0x1C */ TalkBalloonShort* mBalloonShort;
 };
 
 namespace MR {

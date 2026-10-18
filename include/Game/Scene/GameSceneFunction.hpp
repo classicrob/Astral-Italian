@@ -22,3 +22,5 @@ namespace GameSceneFunction {
     bool isExecAction();
     bool isExecPauseMenu();
 };  // namespace GameSceneFunction
+
+namespace GameSceneFunction { bool isExecSuperDreamerTalk(); }

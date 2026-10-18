@@ -11,15 +11,19 @@
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
 #include <cstdio>
 
-namespace {
+namespace NrvManual2P {
     NEW_NERVE(Manual2PNrvAppear, Manual2P, Appear);
     NEW_NERVE(Manual2PNrvWait, Manual2P, Wait);
     NEW_NERVE(Manual2PNrvScrollRight, Manual2P, ScrollRight);
     NEW_NERVE(Manual2PNrvScrollRightAfter, Manual2P, ScrollRightAfter);
+    NEW_NERVE(Manual2PNrvPreviousPageOver, Manual2P, PreviousPageOver);
     NEW_NERVE(Manual2PNrvScrollLeft, Manual2P, ScrollLeft);
     NEW_NERVE(Manual2PNrvScrollLeftAfter, Manual2P, ScrollLeftAfter);
+    NEW_NERVE(Manual2PNrvNextPageOver, Manual2P, NextPageOver);
     NEW_NERVE(Manual2PNrvDisappear, Manual2P, Disappear);
 };  // namespace
+
+#define MANUAL_NERVE(name) (&NrvManual2P::name::sInstance)
 
 namespace {
     s32 countMessage(const char* pName) {
@@ -36,7 +40,7 @@ namespace {
 };  // namespace
 
 Manual2P::Manual2P(const char* pName)
-    : LayoutActor(pName, true), mPageIndex(), mPageNum(), mLeftPaneCtrl(), mRightPaneCtrl(), _30(true), _31(true), mBackButton(), _38(), _3C(), _3D(), _40(), _44() {
+    : LayoutActor(pName, true), mPageIndex(), mPageNum(), mLeftPaneCtrl(), mRightPaneCtrl(), _30(true), _31(true), mBackButton(), mButtonFrameCtrl() {
 }
 
 void Manual2P::init(const JMapInfoIter& rIter) {
@@ -52,18 +56,24 @@ void Manual2P::init(const JMapInfoIter& rIter) {
     mRightPaneCtrl = new ButtonPaneController(this, "RightButton", "PicRButton", 0, true);
     mRightPaneCtrl->_22 = 0;
 
-    mBackButton = new BackButton("マニュアルの戻るボタン", true);
+    mBackButton = new BackButtonCancelB("マニュアルの戻るボタン", true);
     mBackButton->initWithoutIter();
+    mBackButton->waitForSelection();
 
-    initNerve(GET_NERVE_ANON(Manual2PNrvAppear));
-    MR::connectToSceneLayout(this);
+    initNerve(MANUAL_NERVE(Manual2PNrvAppear));
+    MR::connectToSceneLayoutTemporarily(this);
 
     mPageNum = ::countMessage("2PGuidance");
+    MR::startPaneAnimAndSetFrameAndStop(this, "RightButton", "ButtonWait", 0.0f, 0);
+    mButtonFrameCtrl = new J3DFrameCtrl;
+    mButtonFrameCtrl->init(static_cast<s16>(MR::getPaneAnimFrameMax(this, "RightButton", 0)));
+    mLeftPaneCtrl->mFrameCtrl = mButtonFrameCtrl;
+    mRightPaneCtrl->mFrameCtrl = mButtonFrameCtrl;
 }
 
 void Manual2P::appear() {
     LayoutActor::appear();
-    setNerve(GET_NERVE_ANON(Manual2PNrvAppear));
+    setNerve(MANUAL_NERVE(Manual2PNrvAppear));
 
     mPageIndex = 0;
 
@@ -88,54 +98,37 @@ void Manual2P::exeAppear() {
     }
 
     if (MR::isAnimStopped(this, 0) && mLeftPaneCtrl->isWait() && mRightPaneCtrl->isWait()) {
-        setNerve(GET_NERVE_ANON(Manual2PNrvWait));
+        setNerve(MANUAL_NERVE(Manual2PNrvWait));
     }
 }
 
 void Manual2P::exeWait() {
-    if (MR::isFirstStep(this)) {
-        MR::startAnim(this, "Wait", 0);
-    }
-
+    if (MR::isFirstStep(this)) MR::startAnim(this, "Wait", 0);
     if (_30) {
         mLeftPaneCtrl->trySelect();
-
+        if (MR::testSubPadStickTriggerLeft(WPAD_CHAN0) || MR::testCorePadTriggerLeft(WPAD_CHAN0)) mLeftPaneCtrl->trySelectImmediately();
         if (mLeftPaneCtrl->mIsSelected) {
             MR::startSystemSE("SE_SY_FILE_SEL_TIPS_PAGE");
-            setNerve(GET_NERVE_ANON(Manual2PNrvScrollLeft));
+            setNerve(MANUAL_NERVE(Manual2PNrvScrollLeft));
             return;
         }
-
-        if (MR::testSubPadStickTriggerLeft(WPAD_CHAN0) || MR::testCorePadTriggerLeft(WPAD_CHAN0)) {
-            mLeftPaneCtrl->_24 = false;
-
-            MR::startSystemSE("SE_SY_FILE_SEL_TIPS_PAGE");
-            setNerve(GET_NERVE_ANON(Manual2PNrvScrollLeft));
-            return;
-        }
+    } else if (MR::testSubPadStickTriggerLeft(WPAD_CHAN0) || MR::testCorePadTriggerLeft(WPAD_CHAN0)) {
+        setNerve(MANUAL_NERVE(Manual2PNrvNextPageOver));
+        return;
     }
-
     if (_31) {
         mRightPaneCtrl->trySelect();
-
+        if (MR::testSubPadStickTriggerRight(WPAD_CHAN0) || MR::testCorePadTriggerRight(WPAD_CHAN0)) mRightPaneCtrl->trySelectImmediately();
         if (mRightPaneCtrl->mIsSelected) {
             MR::startSystemSE("SE_SY_FILE_SEL_TIPS_PAGE");
-            setNerve(GET_NERVE_ANON(Manual2PNrvScrollRight));
+            setNerve(MANUAL_NERVE(Manual2PNrvScrollRight));
             return;
         }
-
-        if (MR::testSubPadStickTriggerRight(WPAD_CHAN0) || MR::testCorePadTriggerRight(WPAD_CHAN0)) {
-            mRightPaneCtrl->_24 = false;
-
-            MR::startSystemSE("SE_SY_FILE_SEL_TIPS_PAGE");
-            setNerve(GET_NERVE_ANON(Manual2PNrvScrollRight));
-            return;
-        }
+    } else if (MR::testSubPadStickTriggerRight(WPAD_CHAN0) || MR::testCorePadTriggerRight(WPAD_CHAN0)) {
+        setNerve(MANUAL_NERVE(Manual2PNrvPreviousPageOver));
+        return;
     }
-
-    if (checkSelectedBackButton()) {
-        setNerve(GET_NERVE_ANON(Manual2PNrvDisappear));
-    }
+    if (mBackButton->isSelected()) setNerve(MANUAL_NERVE(Manual2PNrvDisappear));
 }
 
 void Manual2P::exeScrollRight() {
@@ -144,7 +137,7 @@ void Manual2P::exeScrollRight() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(Manual2PNrvScrollRightAfter));
+        setNerve(MANUAL_NERVE(Manual2PNrvScrollRightAfter));
     }
 }
 
@@ -160,7 +153,7 @@ void Manual2P::exeScrollRightAfter() {
     if (MR::isAnimStopped(this, 0)) {
         mRightPaneCtrl->_24 = true;
         mRightPaneCtrl->forceToWait();
-        setNerve(GET_NERVE_ANON(Manual2PNrvWait));
+        setNerve(MANUAL_NERVE(Manual2PNrvWait));
     }
 }
 
@@ -172,7 +165,7 @@ void Manual2P::exeScrollLeft() {
     }
 
     if (MR::getAnimCtrl(this, 0)->getFrame() + MR::getAnimCtrl(this, 0)->getRate() <= 0.0f) {
-        setNerve(GET_NERVE_ANON(Manual2PNrvScrollLeftAfter));
+        setNerve(MANUAL_NERVE(Manual2PNrvScrollLeftAfter));
     }
 }
 
@@ -190,7 +183,7 @@ void Manual2P::exeScrollLeftAfter() {
     if (MR::getAnimCtrl(this, 0)->getFrame() - MR::getAnimCtrl(this, 0)->getRate() <= 0.0f) {
         mLeftPaneCtrl->_24 = true;
         mLeftPaneCtrl->forceToWait();
-        setNerve(GET_NERVE_ANON(Manual2PNrvWait));
+        setNerve(MANUAL_NERVE(Manual2PNrvWait));
     }
 }
 
@@ -198,6 +191,7 @@ void Manual2P::exeDisappear() {
     if (MR::isFirstStep(this)) {
         MR::startAnim(this, "End", 0);
         reflectPageIndex();
+        mBackButton->disappear();
     }
 
     if (MR::isAnimStopped(this, 0) && mBackButton->isHidden()) {
@@ -216,6 +210,11 @@ void Manual2P::control() {
     if (mRightPaneCtrl->isPointingTrigger()) {
         MR::startSystemSE("SE_SY_BUTTON_CURSOR_ON");
     }
+    if (!isLeftButtonWaiting() && !isRightButtonWaiting()) {
+        mButtonFrameCtrl->setFrame(0.0f);
+        return;
+    }
+    mButtonFrameCtrl->update();
 }
 
 void Manual2P::reflectPageIndex() {
@@ -271,17 +270,17 @@ void Manual2P::reflectPageIndex() {
     }
 }
 
-bool Manual2P::checkSelectedBackButton() {
-    if (mBackButton->_24) {
-        return true;
-    }
-
-    if (MR::testSystemTriggerB()) {
-        MR::startSystemSE("SE_SY_GALAXY_DECIDE_CANCEL");
-        mBackButton->disappear();
-
-        return true;
-    }
-
-    return false;
+void Manual2P::exePreviousPageOver() {
+    if (MR::isFirstStep(this)) MR::startAnim(this, "PreviousPageOver", 0);
+    if (MR::isAnimStopped(this, 0)) setNerve(MANUAL_NERVE(Manual2PNrvWait));
+}
+void Manual2P::exeNextPageOver() {
+    if (MR::isFirstStep(this)) MR::startAnim(this, "NextPageOver", 0);
+    if (MR::isAnimStopped(this, 0)) setNerve(MANUAL_NERVE(Manual2PNrvWait));
+}
+bool Manual2P::isLeftButtonWaiting() const {
+    return !mLeftPaneCtrl->isHidden() && mLeftPaneCtrl->isWait() && !MR::isNewNerve(mLeftPaneCtrl);
+}
+bool Manual2P::isRightButtonWaiting() const {
+    return !mRightPaneCtrl->isHidden() && mRightPaneCtrl->isWait() && !MR::isNewNerve(mRightPaneCtrl);
 }

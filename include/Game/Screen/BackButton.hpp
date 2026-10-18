@@ -14,6 +14,7 @@ public:
     virtual void control();
 
     void disappear();
+    void waitForSelection();
     bool isHidden() const;
     bool isAppearing() const;
     bool isDisappearing() const;

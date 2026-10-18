@@ -158,3 +158,5 @@ namespace MR {
     bool isYesNoSelected() NO_INLINE;
     bool isYesNoSelectedYes() NO_INLINE;
 };  // namespace MR
+
+namespace MR { void appearYesNoSelector(const char*,const char*); }

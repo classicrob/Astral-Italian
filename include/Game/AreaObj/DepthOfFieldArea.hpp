@@ -19,6 +19,7 @@ public:
     f32 getIntensity() const;
     s32 getBlurMaxDist() const;
     s32 getBlurMinDist() const;
+    s32 getArg4() const;
 
     /* 0x40 */ bool mIsPlayerSync;
 };

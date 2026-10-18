@@ -1,7 +1,7 @@
 #include "Game/AreaObj/PostFogArea.hpp"
 #include "Game/Util.hpp"
 
-PostFogArea::PostFogArea(const char* pName) : ImageEffectArea(3, pName) {
+PostFogArea::PostFogArea(const char* pName) : ImageEffectArea(IMAGE_EFFECT_TYPE_POST_FOG, pName) {
 }
 
 void PostFogArea::init(const JMapInfoIter& rIter) {

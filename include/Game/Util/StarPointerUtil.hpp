@@ -142,3 +142,5 @@ namespace StarPointerUtil {
 namespace MR {
     bool isStarPointerTargetClipped(const LiveActor*);
 }
+
+namespace MR { const TVec3f& getStarPointerTargetOffset(const LiveActor*); }

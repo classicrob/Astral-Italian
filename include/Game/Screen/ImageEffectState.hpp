@@ -120,5 +120,29 @@ namespace ImageEffectStateImpl {
         void setIntensity(f32 intensity);
         void setBlurMaxDist(s32 blurMaxDist);
         void setBlurMinDist(s32 blurMinDist);
+        void setFogTextureIndex(s32);
     };
 };  // namespace ImageEffectStateImpl
+
+namespace ImageEffectStateImpl {
+    class StatePostFog : public ImageEffectState {
+    public:
+        StatePostFog(ImageEffectDirector* host) : ImageEffectState(host) {}
+        virtual bool doesEffectExist() const;
+        virtual ImageEffectBase* getEffect() const;
+        void setMinRange(u16);
+        void setMaxRange(u16);
+        void setAlpha(u8);
+        void setRed(u8);
+        void setGreen(u8);
+        void setBlue(u8);
+        void setGradType(s32);
+    };
+    class StatePostOutline : public ImageEffectState {
+    public:
+        StatePostOutline(ImageEffectDirector* host) : ImageEffectState(host) {}
+        virtual bool doesEffectExist() const;
+        virtual ImageEffectBase* getEffect() const;
+        void setIntensity(u8);
+    };
+}

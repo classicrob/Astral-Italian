@@ -39,6 +39,6 @@ namespace MR {
     void resetWPad();
     void setWPadHolderModeHomeButton();
     void setWPadHolderModeGame();
-    void getHBMKPadData(HBMKPadData*, s32);
+    u32 getHBMKPadData(HBMKPadData*, s32);
     void setAutoSleepTimeWiiRemote(bool);
 };  // namespace MR

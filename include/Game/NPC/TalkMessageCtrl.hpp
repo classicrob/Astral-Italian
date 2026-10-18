@@ -152,6 +152,7 @@ public:
 
 class TalkFunction {
 public:
+    static bool isSkipEventTalkBalloon();
     static bool isGlobalEventTalk(const TalkMessageCtrl*);
     static bool isForwardNode(const TalkMessageCtrl*);
     static bool isShortTalk(const TalkMessageCtrl*);
@@ -164,7 +165,6 @@ public:
     static bool endTalkSystem(TalkMessageCtrl*);
     static bool isTalkSystemStart(const TalkMessageCtrl*);
     static bool isTalkSystemEnd(const TalkMessageCtrl*);
-    static bool getBranchAstroGalaxyResult(u16);
     static void registerTalkSystem(TalkMessageCtrl*);
 
     static TalkMessageInfo* getMessageInfo(const TalkMessageCtrl*);

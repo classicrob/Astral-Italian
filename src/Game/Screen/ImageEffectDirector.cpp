@@ -2,7 +2,8 @@
 #include "Game/AreaObj/BloomArea.hpp"
 #include "Game/AreaObj/DepthOfFieldArea.hpp"
 #include "Game/AreaObj/ScreenBlurArea.hpp"
-#include "Game/AreaObj/SimpleBloomArea.hpp"
+#include "Game/AreaObj/PostFogArea.hpp"
+#include "Game/AreaObj/PostOutlineArea.hpp"
 #include "Game/Camera/CameraDirector.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/BloomEffect.hpp"
@@ -21,8 +22,9 @@ namespace {
 ImageEffectDirector::ImageEffectDirector(const char* pName)
     : NameObj(pName), mIsAuto(true), mIsPlayerSync(), _E(), _F(), mPlayerSyncIntensity(), mDepthOfFieldIntensity(::sDOFIntensity),
       mStateNull(new ImageEffectStateImpl::StateNull(this)), mStateBloomNormal(new ImageEffectStateImpl::StateBloomNormal(this)),
-      mStateBloomSimple(new ImageEffectStateImpl::StateBloomSimple(this)), mStateScreenBlur(new ImageEffectStateImpl::StateScreenBlur(this)),
-      mStateDepthOfField(new ImageEffectStateImpl::StateDepthOfField(this)), mState(mStateNull), mCurrentEffect() {
+      mStateScreenBlur(new ImageEffectStateImpl::StateScreenBlur(this)),
+      mStateDepthOfField(new ImageEffectStateImpl::StateDepthOfField(this)),
+      mStatePostFog(new ImageEffectStateImpl::StatePostFog(this)), mStatePostOutline(new ImageEffectStateImpl::StatePostOutline(this)), mState(mStateNull), mCurrentEffect() {
     MR::connectToSceneImageEffectMovement(this);
 }
 
@@ -157,26 +159,21 @@ void ImageEffectDirector::setBloomNormalParams(ImageEffectArea* pArea) {
     }
 }
 
-void ImageEffectDirector::setBloomSimpleParams(ImageEffectArea* pArea) {
-    SimpleBloomArea* pSimpleBloomArea = static_cast< SimpleBloomArea* >(pArea);
+// NONMATCHING: equivalent integer argument register scheduling.
+void ImageEffectDirector::setPostFogParams(ImageEffectArea* area) {
+    PostFogArea* fog = static_cast<PostFogArea*>(area);
+    mStatePostFog->setMinRange(fog->getMinRange());
+    mStatePostFog->setMaxRange(fog->getMaxRange());
+    mStatePostFog->setAlpha(fog->getAlpha());
+    mStatePostFog->setRed(fog->getRed());
+    mStatePostFog->setGreen(fog->getGreen());
+    mStatePostFog->setBlue(fog->getBlue());
+    mStatePostFog->setGradType(fog->getGradType());
+}
 
-    switch (pSimpleBloomArea->mMaskFilterColor) {
-    case SimpleBloomArea::MASK_FILTER_ALL:
-        mStateBloomSimple->setMaskFilterAll();
-        break;
-    case SimpleBloomArea::MASK_FILTER_RED:
-        mStateBloomSimple->setMaskFilterRed();
-        break;
-    case SimpleBloomArea::MASK_FILTER_GREEN:
-        mStateBloomSimple->setMaskFilterGreen();
-        break;
-    case SimpleBloomArea::MASK_FILTER_BLUE:
-        mStateBloomSimple->setMaskFilterBlue();
-        break;
-    }
-
-    mStateBloomSimple->setThreshold(pSimpleBloomArea->mThreshold);
-    mStateBloomSimple->setIntensity(pSimpleBloomArea->mIntensity / 255.0f);
+void ImageEffectDirector::setDepthOfFieldBlurDistance(s32 minDist, s32 maxDist) {
+    mStateDepthOfField->setBlurMinDist(minDist);
+    mStateDepthOfField->setBlurMaxDist(maxDist);
 }
 
 void ImageEffectDirector::setScreenBlurParams(ImageEffectArea* pArea) {
@@ -193,6 +190,7 @@ void ImageEffectDirector::setDepthOfFieldParams(ImageEffectArea* pArea) {
     mStateDepthOfField->setIntensity(syncIntensity * areaIntensity);
     mStateDepthOfField->setBlurMaxDist(pDepthOfFieldArea->getBlurMaxDist());
     mStateDepthOfField->setBlurMinDist(pDepthOfFieldArea->getBlurMinDist());
+    mStateDepthOfField->setFogTextureIndex(pDepthOfFieldArea->getArg4());
 }
 
 void ImageEffectDirector::initPlayerSyncIntensity(ImageEffectArea* pArea, ImageEffectState* pState) {
@@ -249,6 +247,7 @@ void ImageEffectDirector::setPlayerSync(bool isPlayerSync) {
     }
 }
 
+// NONMATCHING: equivalent outline intensity argument register scheduling.
 void ImageEffectDirector::updateAuto() {
     AreaObj* pArea = MR::getAreaObj("ImageEffectArea", *MR::getPlayerPos());
 
@@ -263,10 +262,6 @@ void ImageEffectDirector::updateAuto() {
         setBloomNormalParams(pEffectArea);
         setState(mStateBloomNormal);
         break;
-    case ImageEffectArea::IMAGE_EFFECT_TYPE_SIMPLE_BLOOM:
-        setBloomSimpleParams(pEffectArea);
-        setState(mStateBloomSimple);
-        break;
     case ImageEffectArea::IMAGE_EFFECT_TYPE_BLUR:
         setScreenBlurParams(pEffectArea);
         setState(mStateScreenBlur);
@@ -274,6 +269,14 @@ void ImageEffectDirector::updateAuto() {
     case ImageEffectArea::IMAGE_EFFECT_TYPE_DOF:
         setDepthOfFieldParams(pEffectArea);
         setState(mStateDepthOfField);
+        break;
+    case ImageEffectArea::IMAGE_EFFECT_TYPE_POST_FOG:
+        setPostFogParams(pEffectArea);
+        setState(mStatePostFog);
+        break;
+    case ImageEffectArea::IMAGE_EFFECT_TYPE_POST_OUTLINE:
+        mStatePostOutline->setIntensity(static_cast<PostOutlineArea*>(pEffectArea)->getIntensity());
+        setState(mStatePostOutline);
         break;
     default:
         setState(mStateNull);

@@ -1,4 +1,7 @@
+// NONMATCHING: updateButton register allocation and stack layout; other residuals are literal aliases.
 #include "Game/NPC/TalkState.hpp"
+#include "Game/Scene/GameSceneFunction.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NPC/TalkBalloon.hpp"
@@ -28,8 +31,8 @@ u32 TalkState::getPageCount() const {
     return 0;
 }
 
-void TalkState::balloonOff() const {
-    MR::hideScreen(mBalloon);
+bool TalkState::isBalloonDead() const {
+    return MR::isDead(mBalloon);
 }
 
 bool TalkState::isLostMessage(const TalkMessageCtrl* pArg1) const {
@@ -82,6 +85,7 @@ TalkStateEvent::TalkStateEvent() {
     _18 = nullptr;
     _14 = nullptr;
     _10 = nullptr;
+    mTalkSoundDelay = 0;
     _1D = true;
 }
 
@@ -94,28 +98,30 @@ bool TalkStateEvent::test() {
 }
 
 void TalkStateEvent::open() {
-    TalkMessageInfo* info = TalkFunction::getMessageInfo(_04);
-    MR::startTalkSound(info->_6, _04->mHostActor);
-
-    _1C = 1;
-    mPageCount = 0;
-    _10 = 0;
-
-    if (!MR::isTimeKeepDemoActive() || !info->isCameraNormal()) {
-        _04->startCamera(-1);
-    }
-
-    mBalloon->open(_04);
+    TalkMessageInfo* info=TalkFunction::getMessageInfo(_04);
+    _1C=1;
+    mPageCount=0;
+    _10=0;
+    mTalkSoundDelay=0;
+    if(!MR::isTimeKeepDemoActive() || !info->isCameraNormal()) _04->startCamera(-1);
+    if(!TalkFunction::isSkipEventTalkBalloon()) mBalloon->open(_04);
 }
 
 void TalkStateEvent::clos() {
-    mBalloon->close();
+    if(!TalkFunction::isSkipEventTalkBalloon()) mBalloon->close();
 }
 
 bool TalkStateEvent::talk(const TalkMessageCtrl* pArg1) {
+    if(TalkFunction::isSkipEventTalkBalloon()) return true;
+    if(mTalkSoundDelay<12) ++mTalkSoundDelay;
+    else if(mTalkSoundDelay==12) {
+        TalkMessageInfo* info=TalkFunction::getMessageInfo(_04);
+        MR::startTalkSound(info->_6,_04->mHostActor);
+        ++mTalkSoundDelay;
+    }
     if (MR::testCorePadButtonA(0)) {
         if (_10++ > 10) {
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 5; i++) {
                 mBalloon->skipMessage();
             }
         }
@@ -174,7 +180,7 @@ bool TalkStateNormal::test() {
 
 void TalkStateNormal::clos() {
     mAButton->term();
-    mBalloon->close();
+    TalkStateEvent::clos();
 }
 
 bool TalkStateNormal::term(const TalkMessageCtrl* pArg1) {
@@ -183,7 +189,8 @@ bool TalkStateNormal::term(const TalkMessageCtrl* pArg1) {
     }
 
     if (pArg1 != nullptr && TalkFunction::isShortTalk(pArg1)) {
-        return true;
+        if(_14++>5) { _14=0; return true; }
+        return false;
     }
 
     return TalkStateEvent::term(pArg1);
@@ -195,6 +202,7 @@ bool TalkStateNormal::prep(const TalkMessageCtrl* pArg1) {
         return false;
     }
 
+    if(MR::isDemoActive()) { mAButton->term(); return false; }
     TalkStateNormal::updateButton();
 
     if (!_18->isEnableTalkPlayerStateNormal()) {
@@ -202,7 +210,7 @@ bool TalkStateNormal::prep(const TalkMessageCtrl* pArg1) {
     } else if (!MR::testCorePadTriggerA(0)) {
         TalkMessageInfo* info = TalkFunction::getMessageInfo(_04);
         if (!mAButton->isOpen()) {
-            if (info->isBalloonSign()) {
+            if (info->isBalloonSign() || info->_0==nullptr) {
                 mAButton->openWithRead();
             } else {
                 mAButton->openWithTalk();
@@ -213,7 +221,7 @@ bool TalkStateNormal::prep(const TalkMessageCtrl* pArg1) {
     } else {
         mAButton->term();
         MR::startSystemSE("SE_SY_TALK_START");
-        MR::startCSSound("CS_CLICK_OPEN", nullptr, 0);
+        MR::startCSSound("CS_CLICK_OPEN", nullptr, 0, 0, 1.0f);
     }
 
     return true;
@@ -243,67 +251,17 @@ void TalkStateNormal::updateButton() {
     mAButton->setTrans(playerScreenPos);
 }
 
-TalkStateCompose::TalkStateCompose() : TalkStateNormal() {
-}
-
-void TalkStateCompose::init(TalkMessageCtrl* pArg1, TalkBalloon* pArg2) {
-    TalkState::init(pArg1, pArg2);
-    mSecondBalloon->open(pArg1);
-}
-
-bool TalkStateCompose::test() {
-    if (_04->isNearPlayer(_04->mTalkDistance)) {
-        return TalkStateNormal::test();
-    }
-
-    return false;
-}
-
-void TalkStateCompose::open() {
-    TalkStateEvent::open();
-    mSecondBalloon->close();
-}
-
-bool TalkStateCompose::prep(const TalkMessageCtrl* pArg1) {
-    bool unknownBool = true;
-
-    if (TalkState::isLostMessage(pArg1)) {
-        unknownBool = false;
-    } else if (_04->isNearPlayer(_04->mTalkDistance)) {
-        unknownBool = TalkStateNormal::prep(pArg1);
-    } else {
-        mAButton->term();
-    }
-
-    if (!unknownBool) {
-        mAButton->term();
-        mSecondBalloon->close();
-    }
-
-    return unknownBool;
-}
-
 TalkStateHolder::TalkStateHolder() {
     _00 = new TalkSupportPlayerWatcher();
 
     mAButton = new IconAButton(true, false);
     mAButton->initWithoutIter();
 
-    mBalloonShort = new TalkBalloonShort("会話吹き出し[合成会話]");
-    mBalloonShort->initWithoutIter();
-    mBalloonShort->initInterval();
-    mBalloonShort->kill();
-
     mTalkShort = new TalkStateShort();
 
     mTalkNormal = new TalkStateNormal();
     mTalkNormal->mAButton = mAButton;
     mTalkNormal->_18 = _00;
-
-    mTalkCompose = new TalkStateCompose();
-    mTalkCompose->mAButton = mAButton;
-    mTalkCompose->_18 = _00;
-    mTalkCompose->mSecondBalloon = mBalloonShort;
 
     mTalkEvent = new TalkStateEvent();
     mTalkEvent->_18 = _00;
@@ -334,9 +292,11 @@ TalkState* TalkStateHolder::getState(const TalkMessageCtrl* pArg1) {
         return mTalkEvent;
     }
 
-    if (info->isComposeTalk()) {
-        return mTalkCompose;
-    }
-
     return mTalk;
+}
+
+bool TalkFunction::isSkipEventTalkBalloon() {
+    if(GameSceneFunction::isExecSuperDreamerTalk()) return false;
+    if(MR::isDemoActive("ベリードラゴンデモ（クッパＪｒ登場）")) return GameSequenceFunction::isPadMode2();
+    return false;
 }

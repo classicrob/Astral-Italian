@@ -23,6 +23,7 @@ public:
     bool tryStartArgs();
     bool tryCancelEvent();
     bool eventFunc(u32);
+    bool branchFunc(u32);
 
     void exeReaction();
     void exeTakeOutStar();

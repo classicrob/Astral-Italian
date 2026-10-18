@@ -1,3 +1,5 @@
+#include "Game/Screen/PostFog.hpp"
+#include "Game/Screen/PostOutline.hpp"
 #include "Game/Screen/ImageEffectState.hpp"
 #include "Game/Util.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
@@ -7,11 +9,6 @@
 #include "Game/Screen/ImageEffectBase.hpp"
 #include "Game/Screen/ImageEffectDirector.hpp"
 #include "Game/Screen/ScreenBlurEffect.hpp"
-
-void ImageEffectState_FORCE_MATCH_SDATA2() {
-    (void)0.1f;
-    (void)255.0f;
-}
 
 void ImageEffectState::update() {
     ImageEffectBase* pCurrent = mHost->mCurrentEffect;
@@ -221,3 +218,21 @@ namespace ImageEffectStateImpl {
         static_cast< DepthOfFieldBlur* >(StateDepthOfField::getEffect())->mBlurMinDist = blurMinDist;
     }
 };  // namespace ImageEffectStateImpl
+
+namespace ImageEffectStateImpl {
+    void StateDepthOfField::setFogTextureIndex(s32 index) {
+        static_cast<DepthOfFieldBlur*>(StateDepthOfField::getEffect())->mFogTextureIndex = index;
+    }
+    bool StatePostFog::doesEffectExist() const { return MR::isExistSceneObj(SceneObj_PostFog); }
+    ImageEffectBase* StatePostFog::getEffect() const { return static_cast<PostFog*>(MR::getSceneObjHolder()->getObj(SceneObj_PostFog)); }
+    void StatePostFog::setMinRange(u16 value) { static_cast<PostFog*>(StatePostFog::getEffect())->mStartDepth = value; }
+    void StatePostFog::setMaxRange(u16 value) { static_cast<PostFog*>(StatePostFog::getEffect())->mEndDepth = value; }
+    void StatePostFog::setAlpha(u8 value) { static_cast<PostFog*>(StatePostFog::getEffect())->mAlpha = value; }
+    void StatePostFog::setRed(u8 value) { static_cast<PostFog*>(StatePostFog::getEffect())->mRed = value; }
+    void StatePostFog::setGreen(u8 value) { static_cast<PostFog*>(StatePostFog::getEffect())->mGreen = value; }
+    void StatePostFog::setBlue(u8 value) { static_cast<PostFog*>(StatePostFog::getEffect())->mBlue = value; }
+    void StatePostFog::setGradType(s32 value) { static_cast<PostFog*>(StatePostFog::getEffect())->mFogTextureIndex = value; }
+    bool StatePostOutline::doesEffectExist() const { return MR::isExistSceneObj(SceneObj_PostOutline); }
+    ImageEffectBase* StatePostOutline::getEffect() const { return static_cast<PostOutline*>(MR::getSceneObjHolder()->getObj(SceneObj_PostOutline)); }
+    void StatePostOutline::setIntensity(u8 value) { static_cast<PostOutline*>(StatePostOutline::getEffect())->mThreshold = value; }
+}

@@ -104,3 +104,7 @@ namespace MR {
     void getCorePadPointingPos(TVec2f* pPos, s32 channel);
     void getCorePadPastPointingPos(TVec2f* pPos, s32 idx, s32 channel);
 };  // namespace MR
+
+namespace MR {
+    bool testHBMKPadTriggerHome(s32);
+}

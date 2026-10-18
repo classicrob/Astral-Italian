@@ -11,6 +11,7 @@
 
 // BGM state set after the rescue demo: a zero const the target loads from .sbss2 instead of folding it.
 const volatile u32 sRescueBgmState = 0;
+namespace { extern const f32 sAngleOrigin; }
 
 namespace NrvPetitPorter {
     NEW_NERVE(PetitPorterNrvAppear, PetitPorter, Appear);
@@ -42,14 +43,14 @@ PetitPorter::PetitPorter(const char* pName) : LiveActor(pName) {
     mAngle = 0.0f;
     mAngleSpeed = 0.0f;
     mBindTarget = nullptr;
-    mBaseMtx.identity();
-    mMtx108.identity();
-    mMtxD8.identity();
     mCameraInfo = nullptr;
     mCameraTargetMtx = nullptr;
     mJointController = nullptr;
     mBgmHandle1 = 0;
     mBgmHandle2 = -1;
+    mBaseMtx.identity();
+    mMtx108.identity();
+    mMtxD8.identity();
 }
 
 void PetitPorter::init(const JMapInfoIter& rIter) {
@@ -69,8 +70,7 @@ void PetitPorter::init(const JMapInfoIter& rIter) {
     MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203C\203\223");
     MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203A\203E\203g");
 
-    // NONMATCHING: the JointControlDelegator<PetitPorter> object (0x28 bytes, built from the ptmf at "")
-    // is not ported yet, so mJointController stays null here and setJointControllerParam is skipped.
+    mJointController = MR::createJointDelegatorWithNullChildFunc(this, &PetitPorter::calcJointMtx, "Gear");
 
     MR::initUseStageSwitchWriteA(this, rIter);
     MR::initUseStageSwitchWriteB(this, rIter);
@@ -84,6 +84,7 @@ void PetitPorter::init(const JMapInfoIter& rIter) {
 void PetitPorter::makeActorAppeared() {
     LiveActor::makeActorAppeared();
     MR::showModel(this);
+    MR::invalidateHitSensors(this);
     if (MR::isValidSwitchAppear(this)) {
         setNerve(GET_NERVE(PetitPorter, PetitPorterNrvAppear));
     } else {
@@ -96,54 +97,24 @@ void PetitPorter::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
 }
 
-void PetitPorter::updateHitSensor(HitSensor* pSensor) {
-    MR::setSensorPos(pSensor, *MR::getPlayerPos());
-}
 
-bool PetitPorter::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgAutoRushBegin(msg) && mBindTarget == nullptr) {
-        mBindTarget = MR::getSensorHost(pReceiver);
-        JMath::gekko_ps_copy12(&mMtxD8, MR::getPlayerBaseMtx());
-        JMath::gekko_ps_copy12(&mMtx108, &mMtxD8);
 
-        bool bEnter = false;
-        if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn)) || isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait))) {
-            bEnter = true;
-        }
-
-        if (bEnter) {
-            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnterDemo));
-        } else {
-            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveFinish));
-        }
-        return true;
-    }
-
-    if (MR::isMsgUpdateBaseMtx(msg)) {
-        MR::setPlayerBaseMtx(mMtxD8);
-        return true;
-    }
-
-    return false;
-}
-
-bool PetitPorter::calcJointMtx(MtxPtr pMtx) {
+bool PetitPorter::calcJointMtx(TPos3f* pMtx, const JointControllerInfo&) {
     TPos3f tmp;
     PSMTXIdentity(tmp);
     TVec3f rot(0.0f, mAngle, 0.0f);
     MR::makeMtxRotate(tmp, rot);
-    PSMTXConcat(pMtx, tmp, pMtx);
+    PSMTXConcat(*pMtx, tmp, *pMtx);
     return true;
 }
 
-// NONMATCHING: the exe* bodies below are written from the m2c draft and the asm call order; not diffed one by one
-// (float clamps in exeWait and the mtx copy loops may differ in scheduling). 
 void PetitPorter::exeAppear() {
     if (MR::isFirstStep(this)) {
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
         }
         MR::startAction(this, "Appear");
+        MR::invalidateHitSensors(this);
     }
 
     if (MR::isGreaterEqualStep(this, 0x5A)) {
@@ -151,17 +122,18 @@ void PetitPorter::exeAppear() {
     }
 }
 
+// NONMATCHING: the angle-speed addition loads its operands into reversed floating-point registers.
 void PetitPorter::exeWait() {
     if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
         f32 t = mAngleSpeed + 0.2f;
-        mAngleSpeed = (t >= 3.6f) ? t : 3.6f;
+        mAngleSpeed = (t >= 3.6f) ? 3.6f : t;
     } else {
         f32 t = mAngleSpeed - 0.2f;
-        mAngleSpeed = (t <= 1.2f) ? t : 1.2f;
+        mAngleSpeed = (t >= 1.2f) ? t : 1.2f;
     }
 
     f32 sum = mAngle + mAngleSpeed;
-    mAngle = 0.0f + (f32)fmod(360.0f + (sum - 0.0f), 360.0);
+    mAngle = sAngleOrigin + (f32)fmod(360.0f + (sum - sAngleOrigin), 360.0);
 
     if (MR::isFirstStep(this)) {
         if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
@@ -182,6 +154,7 @@ void PetitPorter::exeWait() {
                     MR::onSwitchB(this);
                 }
                 MR::startAction(this, "Spin");
+                MR::invalidateClipping(this);
                 MR::validateHitSensor(this, "Binder");
                 return;
             }
@@ -222,7 +195,7 @@ void PetitPorter::exeEnterDemo() {
     }
 
     f32 rate = MR::calcNerveRate(this, 0x14);
-    f32 blend = (1.0f >= rate) ? 1.0f : rate;
+    f32 blend = (1.0f >= rate) ? rate : 1.0f;
 
     TPos3f tmp;
     tmp = mBaseMtx;
@@ -274,6 +247,7 @@ void PetitPorter::exeLeaveDemo() {
 
 void PetitPorter::exeLeaveWait() {
     if (MR::isFirstStep(this)) {
+        MR::invalidateHitSensors(this);
         MR::emitEffectPlayer("\203v\203`\203|\201[\203^\201[");
     }
 
@@ -291,6 +265,24 @@ void PetitPorter::exeLeaveWait() {
         }
     }
 }
+
+void PetitPorter::exeLeaveFinish() {
+    if (MR::isFirstStep(this)) {
+        MR::changePlayerAnimationAndBva("PetitPorterStart");
+        JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
+        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203C\203\223", mCameraTargetMtx, -1);
+        MR::stopStageBGM(0);
+    }
+
+    if (MR::isStep(this, 0x1E)) {
+        MR::startActionSound(this, "MarioDisappear", -1, -1, -1);
+    }
+
+    if (MR::isBckStoppedPlayer()) {
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveCamera));
+    }
+}
+
 
 void PetitPorter::exeLeaveCamera() {
     if (MR::isFirstStep(this)) {
@@ -334,26 +326,45 @@ void PetitPorter::exeLeaveCameraEnd() {
         mBindTarget = nullptr;
         MR::endBindAndPlayerWait(this);
         MR::validateClipping(this);
+        MR::invalidateHitSensors(this);
         setNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnd));
     }
 }
 
-void PetitPorter::exeLeaveFinish() {
-    if (MR::isFirstStep(this)) {
-        MR::changePlayerAnimationAndBva("PetitPorterStart");
-        JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
-        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203C\203\223", mCameraTargetMtx, -1);
-        MR::stopStageBGM(0);
-    }
 
-    if (MR::isStep(this, 0x1E)) {
-        MR::startActionSound(this, "MarioDisappear", -1, -1, -1);
-    }
-
-    if (MR::isBckStoppedPlayer()) {
-        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveCamera));
-    }
+void PetitPorter::updateHitSensor(HitSensor* pSensor) {
+    MR::setSensorPos(pSensor, *MR::getPlayerPos());
 }
+
+
+bool PetitPorter::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgAutoRushBegin(msg) && mBindTarget == nullptr) {
+        mBindTarget = MR::getSensorHost(pSender);
+        JMath::gekko_ps_copy12(&mMtxD8, MR::getPlayerBaseMtx());
+        JMath::gekko_ps_copy12(&mMtx108, &mMtxD8);
+
+        MR::invalidateHitSensor(this, "Binder");
+        bool bEnter = false;
+        if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn)) || isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait))) {
+            bEnter = true;
+        }
+
+        if (bEnter) {
+            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnterDemo));
+        } else {
+            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveFinish));
+        }
+        return true;
+    }
+
+    if (MR::isMsgUpdateBaseMtx(msg)) {
+        MR::setPlayerBaseMtx(mMtxD8);
+        return true;
+    }
+
+    return false;
+}
+
 
 PetitPorterWarpPoint::PetitPorterWarpPoint(const char* pName) : LiveActor(pName) {
     mBaseMtx.identity();
@@ -473,3 +484,5 @@ PetitPorterMediator::~PetitPorterMediator() {}
 
 // The original translation unit emits this member callback delegator.
 template class JointControlDelegator<PetitPorter>;
+
+namespace { const f32 sAngleOrigin = 0.0f; }

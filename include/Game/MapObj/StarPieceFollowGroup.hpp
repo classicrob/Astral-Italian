@@ -20,16 +20,16 @@ public:
     void exeFollowToPlayer();
     void exeFollowEnd();
 
-    /* 0x8C */ StarPiece** mPieces;
-    TVec3f* _90;
-    /* 0x94 */ s32 mNumPiecesTotal;
-    /* 0x98 */ s32 mNumPiecesUse;
-    /* 0x9C */ f32 mRadius;
-    // appears to go unused
-    u32 _A0;
-    /* 0xA4 */ f32 mAngle;
-    /* 0xA8 */ s32 mTimeLimit;
-    /* 0xAC */ TVec3f mLocalXAxis;
-    /* 0xB8 */ TVec3f mLocalZAxis;
-    /* 0xC4 */ TVec3f mLocalYAxis;
+    /* 0x90 */ StarPiece** mPieces;
+    /* 0x94 */ TVec3f* _90;
+    /* 0x98 */ s32 mNumPiecesTotal;
+    /* 0x9C */ s32 mNumPiecesUse;
+    /* 0xA0 */ f32 mRadius;
+    /* 0xA4 */ f32 mUnused;
+    /* 0xA8 */ f32 mVelocityScale;
+    /* 0xAC */ f32 mAngle;
+    /* 0xB0 */ s32 mTimeLimit;
+    /* 0xB4 */ TVec3f mLocalXAxis;
+    /* 0xC0 */ TVec3f mLocalZAxis;
+    /* 0xCC */ TVec3f mLocalYAxis;
 };

@@ -47,6 +47,7 @@ void WoodLogBridgeParts::updateRandomKick() NO_INLINE {
 }
 
 // NONMATCHING: 96%; stack slot order of the kick/diff temporaries is swapped (stack offsets only)
+// NONMATCHING: target negates the 2.5 pool constant at runtime (fneg) and reloads it per use; named locals get hoisted into f31
 void WoodLogBridgeParts::control() {
     mVelocity.scale(0.95f);
     TVec3f diff = mRestPos - mPosition;
@@ -94,9 +95,10 @@ WoodLogBridge::WoodLogBridge(const char* pName) : LiveActor(pName) {
 }
 
 // NONMATCHING: 93%; the loop keeps &mGravity/&mPosition in r29/r28 and the loop guard is hoisted differently (regalloc/branch layout only)
+// NONMATCHING: loop register assignment (i/part/pos/gravity pointers shuffled) and missing count>0 loop guard
 void WoodLogBridge::init(const JMapInfoIter& rIter) {
     const char* pStrs = "\212\333\221\276\203v\203\214\201[\203g\225\224\225i";
-    const char* objName;
+    const char* objName = nullptr;
     MR::getObjectName(&objName, rIter);
     if (MR::isEqualString(objName, pStrs + 0x30)) {
         mIsShort = true;
@@ -117,26 +119,16 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
     mParts = new LiveActorGroup(pStrs + 0x54, count);
     mParts->initWithoutIter();
 
+    const TVec3f& rGrav = mGravity;
+    const TVec3f& rPos = mPosition;
     for (s32 i = 0; i < count; i++) {
         WoodLogBridgeParts* pPart = new WoodLogBridgeParts(this, objName);
 
         f32 t = (f32)i / (f32)(count - 1);
         f32 s = MR::sinDegree(180.0f * t);
 
-        TVec3f a(mGravity);
-        a.scale(100.0f);
-        TVec3f b(a);
-        b.scale(s);
-        TVec3f c(mDirZ);
-        c.scale(50.0f + 2.0f * ((f32)i * 50.0f));
-        TVec3f d(upVec);
-        d.scale(20.0f);
-        TVec3f e(mPosition);
-        e.add(d);
-        TVec3f f(e);
-        f.add(c);
-        TVec3f g(f);
-        g.add(b);
+        TVec3f g = rPos + upVec.scaleInline(20.0f) + mDirZ.scaleInline(50.0f + 2.0f * ((f32)i * 50.0f)) +
+                   rGrav.scaleInline(100.0f).scaleInline(s);
 
         MR::setPosition(pPart, g);
         MR::setRotation(pPart, mRotation);
@@ -145,12 +137,8 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
     }
 
     s32 half = count / 2;
-    f32 w = 50.0f + 2.0f * (50.0f * (f32)half);
-    TVec3f h(mDirZ);
-    h.scale(w);
-    TVec3f i2(mPosition);
-    i2.add(h);
-    mClipPos.set<f32>(i2);
+    f32 w = 50.0f + 2.0f * ((f32)half * 50.0f);
+    mClipPos.set<f32>(mPosition + mDirZ.scaleInline(w));
     MR::setClippingTypeSphere(this, w + 500.0f, &mClipPos);
     mTex = MR::loadTexFromArc(this, pStrs + 0x68, pStrs + 0x7C);
     makeActorAppeared();
@@ -294,23 +282,15 @@ void drawLogQuad(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVe
     writeLogVertex(&v15, pCol2, 1.0f, s5);
 }
 
-// fn_8032C230: draws one log section as four quad strips.
-// NONMATCHING: 71%; target loads the two color words once into r29/r30 and negates the 6.0 constants (fneg) instead of using -6.0 literals
+// fn_8032C230: draws one log section as three quad strips.
+// NONMATCHING: target loads two separate 6.0 pool constants per call and negates them at runtime (fneg); ours folds -6.0f or hoists the constant into f31
 void drawLogSection(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVec3f* pD, const TVec3f* pE) NO_INLINE {
-    u32 white = 0xFFFFFFFF;
-    u32 blue = 0x808080FF;
+    const GXColor white = {0xFF, 0xFF, 0xFF, 0xFF};
+    const GXColor blue = {0x80, 0x80, 0x80, 0xFF};
 
-    Color8 cWhite0(*reinterpret_cast<const GXColor*>(&white));
-    Color8 cBlue0(*reinterpret_cast<const GXColor*>(&blue));
-    drawLogQuad(pA, pB, pC, pD, &cBlue0, &cWhite0, 0.0f, 6.0f, 6.0f, -6.0f, 10.0f);
-
-    Color8 cWhite1(*reinterpret_cast<const GXColor*>(&white));
-    Color8 cBlue1(*reinterpret_cast<const GXColor*>(&blue));
-    drawLogQuad(pA, pB, pC, pD, &cBlue1, &cWhite1, -6.0f, -6.0f, 0.0f, 6.0f, 10.0f);
-
-    Color8 cWhite2(*reinterpret_cast<const GXColor*>(&white));
-    Color8 cBlue2(*reinterpret_cast<const GXColor*>(&blue));
-    drawLogQuad(pA, pB, pC, pD, &cBlue2, &cWhite2, 6.0f, -6.0f, -6.0f, -6.0f, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), 0.0f, 6.0f, 6.0f, -6.0f, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), -6.0f, -6.0f, 0.0f, 6.0f, 10.0f);
+    drawLogQuad(pA, pB, pC, pD, &Color8(blue), &Color8(white), 6.0f, -6.0f, -6.0f, -6.0f, 10.0f);
 }
 
 // fn_8032C750: sets up the TEV/vertex state for the bridge draw.

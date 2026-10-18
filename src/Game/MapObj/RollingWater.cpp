@@ -68,6 +68,7 @@ void RollingWater::kill() {
     LiveActor::kill();
 }
 
+// NONMATCHING: scalar clamp/threshold branch scheduling and trig temporary stack allocation differ.
 void RollingWater::control() {
     mTicoStop->updateNerve();
     if (mIsTouched) {
@@ -86,13 +87,7 @@ void RollingWater::control() {
         mAngVel *= 0.98f;
     }
 
-    if (mSpeedRate >= 0.0f) {
-        if (mSpeedRate > 1.0f) {
-            mSpeedRate = 1.0f;
-        }
-    } else {
-        mSpeedRate = 0.0f;
-    }
+    mSpeedRate = MR::clamp(mSpeedRate, 0.0f, 1.0f);
 
     MR::setBckFrameAndStop(this, MR::getBckFrameMax(this) * mSpeedRate);
 
@@ -129,22 +124,18 @@ void RollingWater::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-bool RollingWater::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isMsgSupportTicoSpin(msg)) {
-        return false;
+bool RollingWater::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*) {
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        if (isNerve(GET_NERVE(RollingWater, Wait)) || isNerve(GET_NERVE(RollingWater, Ride))) {
+            MR::tryHitReactionBreak(this);
+            kill();
+            return true;
+        }
+        if (isNerve(GET_NERVE(RollingWater, Rush)) && MR::isGreaterStep(this, 20)) {
+            setNerve(GET_NERVE(RollingWater, Fall));
+            return true;
+        }
     }
-
-    if (!isNerve(GET_NERVE(RollingWater, Wait)) && isNerve(GET_NERVE(RollingWater, Ride))) {
-        MR::tryHitReactionBreak(this);
-        kill();
-        return true;
-    }
-
-    if (isNerve(GET_NERVE(RollingWater, Rush)) && MR::isGreaterStep(this, 20)) {
-        setNerve(GET_NERVE(RollingWater, Fall));
-        return true;
-    }
-
     return false;
 }
 
@@ -162,8 +153,8 @@ bool RollingWater::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
             setNerve(GET_NERVE(RollingWater, Rush));
             if (mCreator != nullptr) {
                 MR::sendSimpleMsgToActor(70, mCreator);
-                return true;
             }
+            return true;
         }
     }
 
@@ -241,6 +232,7 @@ bool RollingWater::moveOnRail() {
     return MR::isRailReachedGoal(this);
 }
 
+// NONMATCHING: the two scaled-vector temporaries occupy reversed stack slots.
 void RollingWater::updateRollMoment() {
     TVec3f moment;
     TVec3f negGravity = -mGravity;
@@ -279,12 +271,12 @@ void RollingWater::appearFromCreator(LiveActor* pCreator, s32 timer) {
     mUpVec.set(negGravity);
 }
 
+// NONMATCHING: integer/float conversion scheduling and result register allocation differ.
 s32 RollingWater::calcRailStepCount() const {
-    s32 zero = 0;
-    s32 steps;
+    s32 steps = 0;
     if (MR::isExistRail(this)) {
         f32 total = MR::getRailTotalLength(this);
-        steps = static_cast< s32 >(static_cast< f32 >(zero) + (2.0f + total / mRailSpeed));
+        steps += 2.0f + total / mRailSpeed;
     } else {
         steps = 302;
     }
@@ -318,6 +310,7 @@ void RollingWater::exeRide() {
     }
 }
 
+// NONMATCHING: zero-vector argument uses a stack address instead of the constructor result register.
 void RollingWater::exeRush() {
     if (MR::isFirstStep(this)) {
         if (MR::isPlayerElementModeBee() || MR::isPlayerElementModeCloud()) {
@@ -345,6 +338,7 @@ void RollingWater::exeRush() {
     }
 }
 
+// NONMATCHING: vector temporary stack placement and gravity-pointer register lifetime differ.
 void RollingWater::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("Spin2nd", "GCaptureCancel");
@@ -391,10 +385,7 @@ bool RollingWater::tryAttachTicoTouch() {
 }
 
 bool RollingWater::checkPlayerAttack() {
-    if (isNerve(GET_NERVE(RollingWater, Wait))) {
-        return false;
-    }
-    if (isNerve(GET_NERVE(RollingWater, Ride))) {
+    if (isNerve(GET_NERVE(RollingWater, Wait)) || isNerve(GET_NERVE(RollingWater, Ride))) {
         MR::tryHitReactionBreak(this);
         kill();
         return true;

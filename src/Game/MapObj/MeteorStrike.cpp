@@ -66,8 +66,7 @@ void MeteorStrike::init(const JMapInfoIter& rIter) {
     initBinder(::cBinderRadius, 0.0f, 0);
     initEffectKeeper(0, nullptr, false);
 
-    MR::setEffectHostMtx(this, "LavaColumnAttrDefault", mLavaColumnPos);
-    MR::setEffectHostMtx(this, "LavaColumnAttrDamageFire", mLavaColumnPos);
+    MR::setEffectHostMtx(this, "LavaColumn", mLavaColumnPos);
 
     initRailRider(rIter);
 
@@ -197,23 +196,23 @@ void MeteorStrike::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (!MR::isSensorPlayerOrRide(pReceiver)) {
-        return;
-    }
-
-    if (MR::isSensorPlayer(pReceiver)) {
-        if (!MR::sendMsgEnemyAttackStrong(pReceiver, pSender) && !MR::sendMsgPush(pReceiver, pSender)) {
-            return;
+    if (MR::isSensorPlayerOrRide(pReceiver)) {
+        if (MR::isSensorPlayer(pReceiver)) {
+            if (!MR::sendMsgEnemyAttackStrong(pReceiver, pSender) && !MR::sendMsgPush(pReceiver, pSender)) {
+                return;
+            }
+        } else {
+            MR::sendMsgEnemyAttackExplosion(pReceiver, pSender);
         }
-    } else {
-        MR::sendMsgEnemyAttackExplosion(pReceiver, pSender);
+
+        TVec3f negGravity;
+        negGravity.negate(mGravity);
+        calcBreakPosture(negGravity, nullptr);
+
+        setNerve(GET_NERVE(MeteorStrike, MeteorStrikeNrvBreak));
+    } else if (MR::isSensorYoshi(pReceiver)) {
+        MR::sendMsgPush(pReceiver, pSender);
     }
-
-    TVec3f negGravity;
-    negGravity.negate(mGravity);
-    calcBreakPosture(negGravity, nullptr);
-
-    setNerve(GET_NERVE(MeteorStrike, MeteorStrikeNrvBreak));
 }
 
 bool MeteorStrike::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -245,7 +244,7 @@ void MeteorStrike::initModel() {
         mBrokenModel = MR::createModelObjMapObjStrongLight("メテオストライク壊れモデル", "MeteorStrikeBreak", nullptr);
     }
 
-    mBrokenModel->mPosition.set(mPosition);
+    MR::setPosition(mBrokenModel, mPosition);
     mBrokenModel->initWithoutIter();
     mBrokenModel->makeActorDead();
 }
@@ -265,14 +264,14 @@ void MeteorStrike::calcBreakPosture(const TVec3f& rVec, TPos3f* pDst) {
         return;
     }
 
-    mBrokenModel->mPosition.set(mPosition);
+    MR::setPosition(mBrokenModel, mPosition);
 
     TVec3f euler;
     pDst->getEuler(euler);
     mBrokenModel->mRotation.x = ::toDegree(euler.x);
     mBrokenModel->mRotation.y = ::toDegree(euler.y);
     mBrokenModel->mRotation.z = ::toDegree(euler.z);
-    mBrokenModel->mScale.set(mScale);
+    MR::setScale(mBrokenModel, mScale);
 }
 
 void MeteorStrike::emitEffectColumn(const TPos3f& rPos) {
@@ -286,10 +285,10 @@ void MeteorStrike::startRumble() {
     MR::startRumbleWithShakeCameraWeak(this, "強", "中", strongDistMax, mediumDistMax);
 }
 
+// NONMATCHING: compiler retains the scaled vector address in an extra saved register.
 bool MeteorStrike::isInScreen() const {
     TVec3f vec2;
-    TVec3f vec(mRailDir * mStepSize);
-    vec2.add(mPosition, vec);
+    vec2.add(mPosition, mRailDir * mStepSize);
 
     return MR::isJudgedToClipFrustum(vec2, 200.0f) == false;
 }

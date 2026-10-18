@@ -3,6 +3,7 @@
 #include "Game/MapObj/DiceBase.hpp"
 
 class BenefitItemObj;
+class Kuribo;
 
 // SMG2-only unit (no Petari source). Four dice classes share this TU: ItemDice (two benefit items),
 // MultipleChoiceDice (switch based, no items), PositiveDice (one star piece item), LuckyDice (five items).
@@ -23,7 +24,7 @@ public:
     void placeMainItem() NO_INLINE;
     void popSubItem() NO_INLINE;
 
-    /* 0x10C */ BenefitItemObj* mMainItem;
+    /* 0x10C */ Kuribo* mMainItem;
     /* 0x110 */ BenefitItemObj* mSubItem;
 };
 

@@ -13,7 +13,7 @@ class DiceBase : public LiveActor {
 public:
     DiceBase(const char*);
 
-    virtual ~DiceBase();
+    virtual ~DiceBase() NO_INLINE {}
     virtual void init(const JMapInfoIter&);
     virtual void appear();
     virtual void control();
@@ -51,7 +51,7 @@ public:
     /* 0x0B0 */ f32 mThrowScaleB;  // JMap arg2 / 10
     /* 0x0B4 */ s32 mStopTimer;
     /* 0x0B8 */ s32 mLandTimer;
-    /* 0x0BC */ s32 mBounceCount;
+    /* 0x0BC */ u32 mBounceCount;
     /* 0x0C0 */ u32 mHitCount;
     /* 0x0C4 */ TPos3f mMtxC4;
     /* 0x0F4 */ s32 mUnkF4;

@@ -50,9 +50,6 @@ DiceBase::DiceBase(const char* pName) : LiveActor(pName) {
     mIsGood = false;
 }
 
-DiceBase::~DiceBase() {
-}
-
 // NONMATCHING: 96%: stack slots of the two JMap temporaries differ (same calls and constants).
 void DiceBase::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
@@ -109,6 +106,7 @@ void DiceBase::appear() {
 }
 
 // NONMATCHING: same calls/constants/branches; the M1/M2 matrix float ops are scheduled and register-allocated differently (64%).
+// NONMATCHING: second rotation matrix element scheduling (fneg/fmuls order); first matrix is the inline TRotation3::setRotate
 void DiceBase::exeSpin() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
@@ -119,41 +117,30 @@ void DiceBase::exeSpin() {
         mSpinVel.z = 45.0f;
     }
 
-    const f32 kDeg2Rad = 0.01745329238474369f;
-    const f32 kRad2Deg = 57.2957763671875f;
+    f32 kDeg2Rad = 0.01745329238474369f;
+    f32 kRad2Deg = 57.2957763671875f;
 
     // M1 = Rz(z) * Ry(y) * Rx(x) from mBaseRot (degrees)
-    TMtx34f mtx1;
+    TRot3f mtx1;
     mtx1.identity();
     TVec3f ang1(mBaseRot);
     ang1.scale(kDeg2Rad);
-    f32 cz1 = (f32)cos(ang1.z);
-    f32 cy1 = (f32)cos(ang1.y);
-    f32 cx1 = (f32)cos(ang1.x);
-    f32 sz1 = (f32)sin(ang1.z);
-    f32 sy1 = (f32)sin(ang1.y);
-    f32 sx1 = (f32)sin(ang1.x);
-    mtx1.mMtx[0][0] = cy1 * cz1;
-    mtx1.mMtx[0][1] = (sx1 * sy1) * cz1 - cx1 * sz1;
-    mtx1.mMtx[0][2] = (cx1 * cz1) * sy1 + sx1 * sz1;
-    mtx1.mMtx[1][0] = cy1 * sz1;
-    mtx1.mMtx[1][1] = (cx1 * cz1) + (sx1 * sy1) * sz1;
-    mtx1.mMtx[1][2] = (cx1 * sz1) * sy1 - sx1 * cz1;
-    mtx1.mMtx[2][0] = -sy1;
-    mtx1.mMtx[2][1] = sx1 * cy1;
-    mtx1.mMtx[2][2] = cx1 * cy1;
+    mtx1.setRotate(ang1);
 
     // M2 from mSpinVel (degrees); element formulas transcribed from the target asm
-    TMtx34f mtx2;
+    TRot3f mtx2;
     mtx2.identity();
     TVec3f ang2(mSpinVel);
     ang2.scale(kDeg2Rad);
-    f32 cz2 = (f32)cos(ang2.z);
-    f32 cy2 = (f32)cos(ang2.y);
-    f32 cx2 = (f32)cos(ang2.x);
-    f32 sz2 = (f32)sin(ang2.z);
-    f32 sy2 = (f32)sin(ang2.y);
-    f32 sx2 = (f32)sin(ang2.x);
+    f32 z2 = ang2.z;
+    f32 y2 = ang2.y;
+    f32 x2 = ang2.x;
+    f32 cz2 = (f32)cos(z2);
+    f32 cy2 = (f32)cos(y2);
+    f32 cx2 = (f32)cos(x2);
+    f32 sz2 = (f32)sin(z2);
+    f32 sy2 = (f32)sin(y2);
+    f32 sx2 = (f32)sin(x2);
     mtx2.mMtx[1][0] = sz2;
     mtx2.mMtx[2][0] = (-sy2) * cz2;
     mtx2.mMtx[1][1] = cx2 * cz2;
@@ -169,8 +156,7 @@ void DiceBase::exeSpin() {
     mtx3.getEulerXYZ(mRotation);
     mRotation.scale(kRad2Deg);
 
-    TVec3f add(0.0f, 2.0f, 0.0f);
-    mSpinVel.add(add);
+    mSpinVel.add(TVec3f(0.0f, 2.0f, 0.0f));
     MR::attachSupportTicoToTarget(this);
 }
 
@@ -404,7 +390,7 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     JMAVECScaleAdd(&rUp, &dir, &proj, -dot);
 
     if (!MR::normalizeOrZero(&proj)) {
-        const f32 kAng = -0.7853981852531433f;
+        f32 kAng = -0.7853981852531433f;
         TQuat4f quat;
         TVec3f& quatAxis = *reinterpret_cast<TVec3f*>(&quat);
         quatAxis.scale(sin(kAng), rUp);
@@ -415,8 +401,9 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
         MR::normalizeOrZero(&axis);
         proj.scale(100.0f);
         proj.add(mPosition);
+        f32 scaleA = mThrowScaleA;
         TVec3f tmp(axis);
-        tmp.scale(mThrowScaleA);
+        tmp.scale(scaleA);
         mMover->collide(&proj, &tmp);
     }
 
@@ -425,13 +412,15 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     pos.scale(50.0f);
     pos.add(mPosition);
     TVec3f grav = -mGravity;
+    f32 scaleB = mThrowScaleB;
     TVec3f vel(grav);
-    vel.scale(mThrowScaleB);
+    vel.scale(scaleB);
     mMover->collide(&pos, &vel);
 }
 
-// NONMATCHING: GPR allocation and quaternion/axis temporary slots differ.
+// NONMATCHING: under dont_inline (needed for out-of-line scale/add/transform) the trivial TVec3/TQuat4 default ctors become calls; target has none
 #pragma dont_inline reset
+// NONMATCHING: final `>= 10` return compiles to a branch-free subfc form in ours; target branches (cmplwi/blt); also r30/r31 allocation
 bool DiceBase::isSettled() {
     if (MR::isFirstStep(this)) {
         MtxPtr pMtx = getBaseMtx();
@@ -450,12 +439,12 @@ bool DiceBase::isSettled() {
     mtx.invert(mtx);
     mtx.concat(mMtxC4);
 
+    TVec3f axis;
     TQuat4f quat;
     mtx.getQuat(quat);
     const TVec3f& qv = *reinterpret_cast<const TVec3f*>(&quat);
     f32 sq = qv.squared();
 
-    TVec3f axis;
     if (sq <= 0.000003814697265625f) {
         axis.x = axis.y = axis.z = 0.0f;
     } else {
@@ -476,7 +465,11 @@ bool DiceBase::isSettled() {
 
     MtxPtr pMtx2 = getBaseMtx();
     JMath::gekko_ps_copy12(&mMtxC4, pMtx2);
-    return static_cast<u32>(mBounceCount) >= 10;
+    bool settled = false;
+    if (mBounceCount >= 10) {
+        settled = true;
+    }
+    return settled;
 }
 
 // NONMATCHING: calls match; float expression scheduling differs.

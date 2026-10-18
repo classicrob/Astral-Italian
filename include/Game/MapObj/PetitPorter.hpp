@@ -7,6 +7,7 @@
 class ActorCameraInfo;
 class CameraTargetMtx;
 class JointController;
+struct JointControllerInfo;
 class PetitPorter;
 class PetitPorterExitPoint;
 class PetitPorterWarpPoint;
@@ -32,7 +33,7 @@ public:
     void exeLeaveCameraEnd();
     void exeLeaveFinish();
 
-    bool calcJointMtx(MtxPtr);
+    bool calcJointMtx(TPos3f*, const JointControllerInfo&);
     bool isDemo() const;
 
     /* 0x90 */ TPos3f mBaseMtx;

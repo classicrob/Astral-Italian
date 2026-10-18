@@ -41,6 +41,8 @@ namespace {
     extern const f32 sSideSpeedLimit;
     extern const f32 sControlFrontBlend;
     extern const f32 sReflectRate;
+    extern const f32 sCollisionHeadOnThreshold;
+    extern const f32 sCollisionPush;
     f32 sWaterPitchLift;
 }
 
@@ -263,20 +265,20 @@ void GliBird::control() {
     MR::startActionSound(this, "FlyRustle", volume, -1, -1);
 
     f32 speedRate = (speed - 10.0f) / (38.0f - 10.0f);
-    if (!(speedRate >= 0.0f)) {
+    if (speedRate < 0.0f) {
         speedRate = 0.0f;
     }
     f32 speedClamp = 1.0f;
-    if (!(speedRate >= speedClamp)) {
+    if (speedRate < speedClamp) {
         speedClamp = speedRate;
     }
 
     f32 turnRate = (MR::abs(mRollAngle) - 0.0f) / (25.0f - 0.0f);
-    if (!(turnRate >= 0.0f)) {
+    if (turnRate < 0.0f) {
         turnRate = 0.0f;
     }
     f32 turnClamp = 1.0f;
-    if (!(turnRate >= turnClamp)) {
+    if (turnRate < turnClamp) {
         turnClamp = turnRate;
     }
 
@@ -920,6 +922,7 @@ bool GliBird::updateCollision() {
     return false;
 }
 
+// NONMATCHING: vector temporary stack slots and scalar scheduling differ.
 void GliBird::reactionCollision(const TVec3f& rNormal, HitSensor* pSensor, bool isFire) {
     f32 frontDot = mGravity.dot(rNormal);
     f32 sideDot = mSide.dot(rNormal);
@@ -952,8 +955,8 @@ void GliBird::reactionCollision(const TVec3f& rNormal, HitSensor* pSensor, bool 
         if (mDamageTimer <= 0) {
             mSpeed *= 0.5f;
 
-            if (frontDot < -0.08f) {
-                TVec3f extra = rNormal * -30.0f;
+            if (frontDot < -sCollisionHeadOnThreshold) {
+                TVec3f extra = mGravity * -sCollisionPush;
                 mVelocity.add(extra);
             }
         }
@@ -1011,19 +1014,23 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
         mDirFront.set(mFront);
         mRollAngle = 0.0f;
         mPlayerDeadMtx.set(MR::getJointMtx(this, "MarioPos"));
-        mDeadBody->mPosition.set< f32 >(mPlayerDeadMtx[0][3], mPlayerDeadMtx[1][3], mPlayerDeadMtx[2][3]);
+        LiveActor* deadBody = mDeadBody;
+        f32 deadZ = mPlayerDeadMtx[2][3];
+        f32 deadY = mPlayerDeadMtx[1][3];
+        f32 deadX = mPlayerDeadMtx[0][3];
+        deadBody->mPosition.set< f32 >(deadX, deadY, deadZ);
         TVec3f front(mPlayerDeadMtx[0][2], mPlayerDeadMtx[1][2], mPlayerDeadMtx[2][2]);
-        TVec3f negVel = -mVelocity;
-        MR::makeMtxUpFront(&mPlayerDeadMtx, negVel, front);
+        TVec3f negGravity = -mGravity;
+        MR::makeMtxUpFront(&mPlayerDeadMtx, negGravity, front);
         MR::startAction(this, "GliBirdGlideDead");
         MR::startBckPlayer("GliBirdGlideDead", nullptr);
         MR::tryDeleteEffect(this, "NearWater");
         MR::fn_800126F0(this, &mFront, pBirdUpFront);
         TVec3f birdSide = mSide * *pBirdSide;
         MR::addVelocity(this, birdSide);
-        mDeadBody->mVelocity.set(mVelocity);
+        mDeadBody->mGravity.set(mGravity);
         MR::fn_800126F0(mDeadBody, &mFront, pPlayerUpFront);
-        TVec3f playerSide = mFront * *pPlayerSide;
+        TVec3f playerSide = mSide * *pPlayerSide;
         MR::addVelocity(mDeadBody, playerSide);
         mCameraTarget->setMtx(mPlayerDeadMtx);
         MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "死亡", mCameraTarget, -1);
@@ -1119,4 +1126,6 @@ namespace {
     const f32 sSideSpeedLimit = 50.0f;
     const f32 sControlFrontBlend = 0.55f;
     const f32 sReflectRate = 1.0f;
+    const f32 sCollisionHeadOnThreshold = 0.08f;
+    const f32 sCollisionPush = 30.0f;
 }

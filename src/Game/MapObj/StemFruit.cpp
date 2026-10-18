@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MI_NOINLINE
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
 #pragma auto_inline off
 #include "Game/MapObj/StemFruit.hpp"
@@ -51,8 +52,9 @@ void StemFruit::init(const JMapInfoIter& rIter) {
 
     TPos3f mtx;
     MR::makeMtxTR(mtx, this);
-    mtx.getYDir(mGravity);
-    JGeometry::negateInternal(&mGravity.x, &mGravity.x);
+    TVec3f* pGravity = &mGravity;
+    mtx.getYDir(*pGravity);
+    JGeometry::negateInternal(&pGravity->x, &pGravity->x);
     MR::connectToSceneItem(this);
     initNerve(GET_NERVE(StemFruit, StemFruitNrvWait), 0);
 
@@ -301,11 +303,10 @@ StemFruitChild::StemFruitChild(StemFruit* pParent, const JMapInfoIter& rIter) : 
     initEffectKeeper(0, nullptr, false);
     initHitSensor(1);
 
-    TVec3f zero(0.0f, 0.0f, 0.0f);
-    MR::addHitSensor(this, "Body", 0x4E, 0x20, pParent->getParam()->mHitSensorRadius, zero);
+    MR::addHitSensor(this, "Body", 0x4E, 0x20, pParent->getParam()->mHitSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
 
-    s32 starRadius = pParent->getParam()->mStarPointerRadiusS32;
-    MR::initStarPointerTarget(this, static_cast<f32>(starRadius), TVec3f(0.0f, pParent->getParam()->mStarPointerOffsetY, 0.0f));
+    f32 starRadius = static_cast<f32>(pParent->getParam()->mStarPointerRadiusS32);
+    MR::initStarPointerTarget(this, starRadius, TVec3f(0.0f, pParent->getParam()->mStarPointerOffsetY, 0.0f));
 
     TVec3f zeroLock;
     zeroLock.setAll<f32>(0.0f);
@@ -313,7 +314,7 @@ StemFruitChild::StemFruitChild(StemFruit* pParent, const JMapInfoIter& rIter) : 
     MR::offCalcGravity(this);
     mGravity.set(pParent->mGravity);
 
-    mFixedPos = new FixedPosition(pParent, "FruitPos", TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
+    mFixedPos = new FixedPosition(mParent, "FruitPos", TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
 
     mBaseScale.set(mScale);
     TVec3f zeroSound;
@@ -560,6 +561,7 @@ void StemFruitChild::updateSensorOffset() {
 }
 
 // Target outlines vector subtraction; quaternion arithmetic and temporary slots also differ.
+// NONMATCHING: TQuat4f slot (target 0x8 below the delta/offset temps, ours 0x20) and inline setQuat/concat fmul scheduling
 void StemFruitChild::exeHipDropCrash() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
@@ -583,7 +585,8 @@ void StemFruitChild::exeHipDropCrash() {
         mRotation.z *= 57.2957763671875f;
     }
     mGravity.set(*MR::getPlayerGravity());
-    TVec3f delta = *MR::getPlayerPos() - mPosition;
+    const TVec3f& playerPos = *MR::getPlayerPos();
+    TVec3f delta = playerPos - mPosition;
     f32 distance = mGravity.dot(delta);
     if (distance > 75.0f) {
         TVec3f offset(mGravity);

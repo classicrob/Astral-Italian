@@ -1,10 +1,12 @@
-#include "Game/MapObj/ItemDiceFunction.hpp"
 #pragma auto_inline off
+#include "Game/MapObj/ItemDiceFunction.hpp"
 
 #include "Game/MapObj/ItemDice.hpp"
 #include "Game/Enemy/Kuribo.hpp"
 #include "Game/MapObj/BenefitItemObj.hpp"
+#pragma dont_inline on
 #include "Game/MapObj/BenefitItemOneUp.hpp"
+#pragma dont_inline off
 #include "Game/Util.hpp"
 #include "JSystem/JGeometry/TMatrix.hpp"
 #include "JSystem/JGeometry/TVec.hpp"
@@ -14,8 +16,8 @@
 
 
 // Unnamed SMG2 helpers (DiceBase/BenefitItem unit, not ours to name here).
-// PLACEHOLDER(objects): unnamed target symbol fn_801B9BD0, declared extern "C" so the reloc name matches; resolve when fn_801B9BD0 gets its real name in symbols.txt
-extern "C" void fn_801B9BD0(BenefitItemObj*, const TVec3f*, TQuat4f*);
+// PLACEHOLDER(objects): Kuribo appear-from-box pose helper; awaiting the enemies owner declaration.
+extern "C" void fn_801B9BD0(Kuribo*, const TVec3f*, const TQuat4f*);
 
 namespace {
     inline const char* diceName(const char* pLabel) {
@@ -24,16 +26,6 @@ namespace {
 
     // The 0x154-byte BenefitItemOneUp is built by calling the BenefitItemObj ctor and then storing the
     // BenefitItemOneUp vtable (the inline 2-arg ctor of BenefitItemOneUp reproduces that shape).
-}  // namespace
-
-// unnamed fn_802B49F0 in the target (kept out of line). NONMATCHING: our placement new adds a null check
-// that the target only does in its callers.
-BenefitItemObj* createOneUpItem(void* pMem, const char* pName) NO_INLINE;
-BenefitItemObj* createOneUpItem(void* pMem, const char* pName) {
-    return new (pMem) BenefitItemOneUp(pName, diceName("KinokoOneUp"));
-}
-
-namespace {
 }  // namespace
 
 // ItemDice --------------------------------------------------------------
@@ -51,23 +43,12 @@ const char* ItemDice::getModelName() {
 }
 
 void ItemDice::initItems(const JMapInfoIter&) {
-    // main item: 0xD0-byte object built from the Kuribo-named ctor
-    void* pMem = ::operator new(0xD0);
-    BenefitItemObj* pMain = static_cast<BenefitItemObj*>(pMem);
-    if (pMem != nullptr) {
-        pMain = reinterpret_cast<BenefitItemObj*>(new (pMem) Kuribo(diceName("\203N\203\212\203{\201[")));
-    }
-    mMainItem = pMain;
+    mMainItem = new Kuribo("クリボー");
     MR::setPosition(mMainItem, mPosition);
     mMainItem->initWithoutIter();
     mMainItem->makeActorDead();
 
-    // sub item: 0x154-byte BenefitItemOneUp
-    void* pSubMem = ::operator new(0x154);
-    BenefitItemObj* pSub = static_cast<BenefitItemObj*>(pSubMem);
-    if (pSubMem != nullptr) {
-        pSub = createOneUpItem(pSubMem, diceName("\202P\202t\202o\203L\203m\203R"));
-    }
+    BenefitItemObj* pSub = new BenefitItemOneUp("１ＵＰキノコ");
     mSubItem = pSub;
     MR::setPosition(mSubItem, mPosition);
     mSubItem->initWithoutIter();
@@ -112,7 +93,7 @@ bool ItemDice::makeResult(u32 result) {
     case 4:
     case 5:
         placeMainItem();
-        return false;
+        break;
     }
     return false;
 }
@@ -178,7 +159,7 @@ bool MultipleChoiceDice::makeResult(u32 result) {
         if (MR::isValidSwitchB(this)) {
             MR::onSwitchB(this);
         }
-        return false;
+        break;
     case 2:
     case 3:
     case 4:
@@ -209,11 +190,7 @@ const char* PositiveDice::getModelName() {
 }
 
 void PositiveDice::initItems(const JMapInfoIter&) {
-    void* pMem = ::operator new(0x154);
-    BenefitItemObj* pItem = static_cast<BenefitItemObj*>(pMem);
-    if (pMem != nullptr) {
-        pItem = createOneUpItem(pMem, diceName("\202P\202t\202o\203L\203m\203R"));
-    }
+    BenefitItemObj* pItem = new BenefitItemOneUp("１ＵＰキノコ");
     mItem = pItem;
     MR::setPosition(mItem, mPosition);
     mItem->initWithoutIter();
@@ -228,33 +205,31 @@ void PositiveDice::setAnimFrame() {
 }
 
 void PositiveDice::setResultFrame(u32 result) {
-    switch (result) {
-    case 0:
-    case 1:
-    case 4:
-        MR::setBtpFrameAndStop(this, 1.0f);
-        break;
-    case 2:
-    case 3:
-    case 5:
-        MR::setBtpFrameAndStop(this, 2.0f);
-        break;
-    }
+    if (result <= 1) goto item;
+    if (result - 2 <= 1) goto piece;
+    if ((s32)result == 4) goto item;
+    if ((s32)result == 5) goto piece;
+    return;
+item:
+    MR::setBtpFrameAndStop(this, 1.0f);
+    return;
+piece:
+    MR::setBtpFrameAndStop(this, 2.0f);
 }
 
 bool PositiveDice::makeResult(u32 result) {
-    switch (result) {
-    case 0:
-    case 1:
-    case 4:
-        popItem();
-        return true;
-    case 2:
-    case 3:
-    case 5:
-        MR::appearStarPiece(this, mPosition, 1, 10.0f, 40.0f, false);
-        return true;
-    }
+    if (result <= 1) goto item;
+    if (result - 2 <= 1) goto piece;
+    if ((s32)result == 4) goto item;
+    if ((s32)result == 5) goto piece;
+    goto failed;
+item:
+    popItem();
+    return true;
+piece:
+    MR::appearStarPiece(this, mPosition, 1, 10.0f, 40.0f, false);
+    return true;
+failed:
     return false;
 }
 
@@ -280,11 +255,7 @@ const char* LuckyDice::getModelName() {
 
 void LuckyDice::initItems(const JMapInfoIter&) {
     for (u32 i = 0; i < 5; i++) {
-        void* pMem = ::operator new(0x154);
-        BenefitItemObj* pItem = static_cast<BenefitItemObj*>(pMem);
-        if (pMem != nullptr) {
-            pItem = createOneUpItem(pMem, diceName("\202P\202t\202o\203L\203m\203R"));
-        }
+        BenefitItemObj* pItem = new BenefitItemOneUp("１ＵＰキノコ");
         mItems[i] = pItem;
         MR::setPosition(mItems[i], mPosition);
         mItems[i]->initWithoutIter();
@@ -300,41 +271,43 @@ void LuckyDice::setAnimFrame() {
 }
 
 void LuckyDice::setResultFrame(u32 result) {
-    switch (result) {
-    case 0:
-    case 1:
-        MR::setBtpFrameAndStop(this, 1.0f);
-        break;
-    case 2:
-        MR::setBtpFrameAndStop(this, 3.0f);
-        break;
-    case 3:
-        MR::setBtpFrameAndStop(this, 2.0f);
-        break;
-    case 4:
-    case 5:
-        MR::setBtpFrameAndStop(this, 4.0f);
-        break;
-    }
+    if (result <= 1) goto one;
+    if (result - 4 <= 1) goto piece;
+    if ((s32)result == 2) goto five;
+    if ((s32)result == 3) goto three;
+    return;
+one:
+    MR::setBtpFrameAndStop(this, 1.0f);
+    return;
+five:
+    MR::setBtpFrameAndStop(this, 3.0f);
+    return;
+three:
+    MR::setBtpFrameAndStop(this, 2.0f);
+    return;
+piece:
+    MR::setBtpFrameAndStop(this, 4.0f);
 }
 
 bool LuckyDice::makeResult(u32 result) {
-    switch (result) {
-    case 0:
-    case 1:
-        shootItems(1);
-        return true;
-    case 2:
-        shootItems(5);
-        return true;
-    case 3:
-        shootItems(3);
-        return true;
-    case 4:
-    case 5:
-        MR::appearStarPiece(this, mPosition, 1, 10.0f, 40.0f, false);
-        return true;
-    }
+    if (result <= 1) goto one;
+    if (result - 4 <= 1) goto piece;
+    if ((s32)result == 2) goto five;
+    if ((s32)result == 3) goto three;
+    goto failed;
+one:
+    shootItems(1);
+    return true;
+five:
+    shootItems(5);
+    return true;
+three:
+    shootItems(3);
+    return true;
+piece:
+    MR::appearStarPiece(this, mPosition, 1, 10.0f, 40.0f, false);
+    return true;
+failed:
     return false;
 }
 
@@ -343,7 +316,8 @@ bool LuckyDice::isGoodResult(u32 result) const {
 }
 
 // unnamed fn_802B5240 (0x268 bytes): spread `count` benefit items around the dice toward the player.
-// NONMATCHING: TVec3f operator-, TQuat4f::transform and TRotation3 helpers are inline in our headers (target calls __mi/transform out of line); constants and call order match.
+// NONMATCHING: empty SDK default constructors remain outlined; vector temporary stack placement differs.
+#pragma dont_inline on
 void LuckyDice::shootItems(s32 count) {
     TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
     MR::vecKillElement(toPlayer, mGravity, &toPlayer);
@@ -395,8 +369,12 @@ void LuckyDice::shootItems(s32 count) {
 
         if (i != 4) {
             rot.concat(spin);
+        } else {
+            break;
         }
     }
 }
+
+#pragma dont_inline reset
 
 // Destructor helper for the ItemDice TU -----------------------------------

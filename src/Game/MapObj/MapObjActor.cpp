@@ -124,6 +124,7 @@ void MapObjActor::kill() {
     LiveActor::kill();
 }
 
+// NONMATCHING: sensor flag load and vector copy scheduling differ.
 void MapObjActor::initialize(const JMapInfoIter& rIter, const MapObjActorInitInfo& rInfo) {
     if (rInfo.mModelName != nullptr) {
         mObjectName = rInfo.mModelName;
@@ -858,6 +859,10 @@ void MapObjActorUtil::startRailMover(const MapObjActor* pActor) {
 
 void MapObjActorUtil::startRailMoverDirect(const MapObjActor* pActor) {
     pActor->mRailMover->doStart();
+}
+
+void MapObjActorUtil::endRotator(const MapObjActor* pActor) {
+    pActor->mRotator->end();
 }
 
 void MapObjActorUtil::pauseRotator(const MapObjActor* pActor) {

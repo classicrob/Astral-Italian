@@ -5,16 +5,16 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/SpringValue.hpp"
+#include "Game/LiveActor/DemoObj.hpp"
+#include "Game/Boss/KoopaJrCastle.hpp"
 #include "math_types.hpp"
 #include <revolution/types.h>
 
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
 void fn_80068E40(SpringValue*, f32);
-s32 fn_800D9830(const TVec3f*, TVec3f*, f32*);
 }
 
-class DemoObj : public LiveActor {};
 
 namespace NrvKoopaJrCastleCloudStep {
     NEW_NERVE(KoopaJrCastleCloudStepNrvWait, KoopaJrCastleCloudStep, Wait);
@@ -26,7 +26,9 @@ namespace NrvKoopaJrCastleCloudStep {
 KoopaJrCastleCloudStep::KoopaJrCastleCloudStep(const char* pName) : LiveActor(pName) {
     mDemoObj = nullptr;
     mSpring = nullptr;
-    mHomePos.zero();
+    mHomePos.x = 0.0f;
+    mHomePos.y = 0.0f;
+    mHomePos.z = 0.0f;
     mBounceTimer = 0;
     mElecTimer = 0;
     mBrkFrame = 0.0f;
@@ -34,6 +36,7 @@ KoopaJrCastleCloudStep::KoopaJrCastleCloudStep(const char* pName) : LiveActor(pN
     mSpring = new SpringValue(0.0f, 0.0f, 0.03f, 0.92f, 0.0f);
 }
 
+// NONMATCHING: compiler reuses the shadow argument register instead of reloading its stack byte.
 void KoopaJrCastleCloudStep::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     mHomePos = mPosition;
@@ -74,23 +77,15 @@ void KoopaJrCastleCloudStep::control() {
     fn_80068E40(mSpring, 60.0f);
 }
 
-// NONMATCHING: target copies getBaseMtx() with unrolled psq pairs, ours is a bdnz struct-copy loop (~81%).
 void KoopaJrCastleCloudStep::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     TPos3f mtx;
-    mtx = *reinterpret_cast< const TPos3f* >(getBaseMtx());
-    TVec3f offset = mGravity * mSpring->mSpringValue;
-    MR::addTransMtx(mtx.mMtx, offset);
+    mtx.set(*reinterpret_cast< const TPos3f* >(getBaseMtx()));
+    MR::addTransMtx(mtx.mMtx, mGravity * mSpring->mSpringValue);
     MR::setBaseTRMtx(this, mtx);
 
     f32 t = 1.0f - 0.25f * (mSpring->mSpringValue / 60.0f);
-    f32 s = 0.05f;
-    if (t >= 0.05f) {
-        s = 2.0f;
-        if (t <= 2.0f) {
-            s = t;
-        }
-    }
+    f32 s = MR::clamp(t, 0.05f, 2.0f);
 
     TVec3f scale = mScale;
     f32 r = MR::sqrt(1.0f / s);
@@ -119,6 +114,7 @@ bool KoopaJrCastleCloudStep::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, 
     return false;
 }
 
+// NONMATCHING: spring-add operand registers and common-return code placement differ.
 bool KoopaJrCastleCloudStep::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (msg == 0xF4) {
         bool isHome = false;
@@ -159,11 +155,12 @@ bool KoopaJrCastleCloudStep::tryDie() {
     return false;
 }
 
+// NONMATCHING: saved registers for the result flag and gravity pointer are reversed.
 bool KoopaJrCastleCloudStep::updateWind() {
     bool ret = false;
     TVec3f dir(0.0f);
     f32 power = -1.0f;
-    if (fn_800D9830(&mPosition, &dir, &power)) {
+    if (KoopaJrCastleWindFunction::calcWindInfo(&mPosition, &dir, &power)) {
         TVec3f* pGravity = &mGravity;
         JMAVECScaleAdd(pGravity, &dir, &dir, -pGravity->dot(dir));
         if (!MR::isNearZero(dir, 0.001f)) {
@@ -177,15 +174,14 @@ bool KoopaJrCastleCloudStep::updateWind() {
     return ret;
 }
 
+// NONMATCHING: camera-vector temporary stack slots and result-flag register allocation differ.
 void KoopaJrCastleCloudStep::updateBrkByCamera() {
     TVec3f camPos = MR::getCamPos();
-    TVec3f rel(mPosition);
-    rel -= camPos;
-    TVec3f camZdir = MR::getCamZdir();
-    f32 dot = camZdir.dot(rel);
+    TVec3f rel(mPosition - camPos);
+    f32 dot = MR::getCamZdir().dot(rel);
 
-    bool dec = false;
     bool inc = false;
+    bool dec = false;
     f32 maxBrk = MR::getBrkFrameMax(mDemoObj);
     if (mBrkFrame < maxBrk) {
         if (dot < 800.0f) {

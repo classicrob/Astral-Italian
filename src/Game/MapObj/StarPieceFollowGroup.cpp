@@ -27,7 +27,7 @@ namespace NrvStarPieceFollowGroup {
 };  // namespace NrvStarPieceFollowGroup
 
 StarPieceFollowGroup::StarPieceFollowGroup(const char* pName)
-    : LiveActor(pName), mPieces(nullptr), _90(nullptr), mNumPiecesTotal(6), mNumPiecesUse(0), mRadius(350.0f), mAngle(0.0f), mTimeLimit(1200) {
+    : LiveActor(pName), mPieces(nullptr), _90(nullptr), mNumPiecesTotal(6), mNumPiecesUse(0), mRadius(350.0f), mUnused(0.0f), mVelocityScale(10.0f), mAngle(0.0f), mTimeLimit(1200) {
 }
 
 void StarPieceFollowGroup::init(const JMapInfoIter& rIter) {
@@ -40,6 +40,7 @@ void StarPieceFollowGroup::init(const JMapInfoIter& rIter) {
 
     MR::getJMapInfoArg1NoInit(rIter, &mTimeLimit);
     MR::getJMapInfoArg2NoInit(rIter, &mRadius);
+    MR::getJMapInfoArg3NoInit(rIter, &mVelocityScale);
 
     initNerve(GET_NERVE(StarPieceFollowGroup, HostTypeNrvFollowEnd));
 
@@ -52,12 +53,12 @@ void StarPieceFollowGroup::init(const JMapInfoIter& rIter) {
     }
 
     MR::needStageSwitchWriteA(this, rIter);
-    MR::listenStageSwitchOnA(this, MR::Functor(this, &StarPieceFollowGroup::onSwitchA));
-    MR::useStageSwitchReadB(this, rIter);
+    MR::listenStageSwitchOnA(this, MR::FunctorV0M<StarPieceFollowGroup*, void (StarPieceFollowGroup::*)()>(this, &StarPieceFollowGroup::onSwitchA));
+    MR::initUseStageSwitchReadB(this, rIter);
 
     MR::connectToSceneMapObjMovement(this);
     MR::invalidateClipping(this);
-    kill();
+    makeActorDead();
 }
 
 bool StarPieceFollowGroup::beginFollowPieces() {
@@ -92,6 +93,7 @@ bool StarPieceFollowGroup::beginFollowPieces() {
     return true;
 }
 
+// NONMATCHING: compiler hoists the unsigned loop entry check ahead of the body.
 void StarPieceFollowGroup::placementPiece(s32 numPlace) {
     TPos3f mtxTRS;
     MR::makeMtxTRS(mtxTRS.toMtxPtr(), this);
@@ -105,7 +107,7 @@ void StarPieceFollowGroup::placementPiece(s32 numPlace) {
     TVec3f position(mPosition);
     f32 currentAngle = 0.0f;
     f32 angleBetweenPieces = TWO_PI / numPlace;
-    for (u32 i = 0; i < numPlace; i++) {
+    for (s32 i = 0; (u32)i < (u32)numPlace; i++) {
         f32 zMag = MR::cos(currentAngle) * mRadius;
         f32 xMag = MR::sin(currentAngle) * mRadius;
 
@@ -141,7 +143,7 @@ void StarPieceFollowGroup::followPieces() {
     TVec3f playerVelocity(*MR::getPlayerVelocity());
 
     playerPos.add(mLocalYAxis.multInLine(0.0f));
-    playerPos.add(playerVelocity * 10.0f);
+    playerPos.add(playerVelocity * mVelocityScale);
 
     s32 numPiecesNotFollowingAnymore = 0;
     f32 currentAngle = mAngle;

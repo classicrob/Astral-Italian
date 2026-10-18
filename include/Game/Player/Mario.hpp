@@ -82,7 +82,7 @@ public:
     // SMG2-only functions (original names unknown; named by address)
     void fn_803880D0();
     void fn_80388150();
-    s32 fn_803882A0();
+    void fn_803882A0();
     void fn_803885F0();
     void fn_803886B0();
     void fn_80388DB0();

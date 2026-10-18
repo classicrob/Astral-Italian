@@ -91,7 +91,7 @@ void Mario::fn_803897A0() {
         if (!((FLD<u32>(this, 0xC) >> 30) & 1)) {
         }
         if ((temp_r4 >> 27) & 1) {
-            if (!this->fn_803EF670(FLD<Triangle*>(this, 0x460))) {
+            if (!this->isSlipPolygon(FLD<Triangle*>(this, 0x460))) {
             }
             const TVec3f* nrm = FLD<Triangle*>(this, 0x460)->getNormal(0);
             f32 temp_f31 = MR::vecKillElement(FLD<TVec3f>(this, 0x160), *nrm, &FLD<TVec3f>(this, 0x160));
@@ -276,7 +276,7 @@ void Mario::fn_803A2420() {
 }
 
 void Mario::fn_803A1FC0() {
-    if (FLD<f32>(this, 0x278) >= 0.1f) {
+    if (!(FLD<f32>(this, 0x278) >= 0.1f)) {
         FLD<f32>(this, 0x278) = 0.0f;
         FLD<u16>(this, 0x3D2) = 0;
     }
@@ -477,7 +477,7 @@ void Mario::fn_803A24C0(TVec3f* arg) {
 
 void Mario::fn_803A2450(const TVec3f* arg) {
     f32 d = FLD<TVec3f>(this, 0x208).dot(*arg);
-    if (d >= 0.0f && !this->isAnimationRun("ブレーキ")) {
+    if (!(d >= 0.0f) && !this->isAnimationRun("ブレーキ")) {
         FLD<f32>(this, 0x744) = 3.1415927f;
         FLD<u32>(this, 0x748) = 10;
     }
@@ -515,15 +515,19 @@ void Mario::fn_803A2C40(const TVec3f* arg) {
     }
 }
 
-// NONMATCHING: final arithmetic not recovered from the m2c draft (rough body)
+// NONMATCHING: prologue scalar-load scheduling only; calls and arithmetic verified.
+#pragma dont_inline on
 f32 Mario::fn_803A1DB0() {
-    u16 v = FLD<u16>(this, 0x3D4);
-    u16 lim = FLD<u16>(marioCurTableEntry(this), 0x2E6);
-    if (v >= lim || FLD<u8>(this, 0x714) <= 4) {
-        return 1.0f;
+    u16 v = _3D4;
+    MarioConst* table = mActor->mConst;
+    f32 ratio = 1.0f;
+    u16 lim = table->mTable[table->mCurrentTable]->mWeakTurnTime;
+    if (v < lim && mTargetWalkSpeedIndex > 4) {
+        ratio = static_cast<f32>(v) / static_cast<f32>(lim);
     }
-    return 1.0f;
+    return MR::sqrt(ratio);
 }
+#pragma dont_inline reset
 
 void Mario::fn_803A11A0(TVec3f* arg) {
     f32 sp12 = FLD<f32>(this, 0x1C0);
@@ -1208,44 +1212,72 @@ void Mario::fn_8039A480() {
     }
 }
 
-// NONMATCHING: rough, follows the m2c call sequence (turn-by-normal bookkeeping)
-s32 Mario::fn_803882A0() {
-    s32 var_r31 = 0;
-    if (this->isRising()) {
-        var_r31 = 1;
+// NONMATCHING: saved registers and temporary allocation; recovered full collision response.
+void Mario::fn_803882A0() {
+    s32 rising = 0;
+    if (isRising()) {
+        rising = 1;
     }
-    if (FLD<s32>(this->mActor, 0x8C) != 0) {
-        FLD<s32>(this, 0x570) = 0;
+    if (mActor->_334 != 0) {
+        FLD<u32>(this, 0x570) = 0;
     }
     if (!((FLD<u32>(this, 0x10) >> 29) & 1)) {
-        u32 n = FLD<u32>(this, 0x570);
-        for (u32 i = 0; i < n; i++) {
+        for (u32 i = 0; i < FLD<u32>(this, 0x570); i++) {
             Triangle* tri = FLD<Triangle*>(this, 0x574 + i * 4);
-            TVec3f sp68;
-            if (MR::vecKillElement(FLD<TVec3f>(this, 0x160), *tri->getNormal(0), &sp68) < 0.9f) {
-                FLD<TVec3f>(this, 0x160) = sp68;
+            TVec3f clipped;
+            if (MR::vecKillElement(FLD<TVec3f>(this, 0x160), *tri->getNormal(0), &clipped) < 0.0f) {
+                FLD<TVec3f>(this, 0x160) = clipped;
                 if (!((FLD<u32>(this, 0x20) >> 18) & 1)) {
-                    TVec3f sp5C;
-                    f32 t = MR::vecKillElement(FLD<TVec3f>(this, 0x2D4), *tri->getNormal(0), &sp5C);
-                    if (t == 0.9f) {
-                        TVec3f sp20(*tri->getNormal(0));
-                        sp20 *= t;
-                        TVec3f sp2C(sp20);
-                        sp2C *= 0.5f;
-                        TVec3f sp38(sp5C);
-                        sp38 += sp2C;
-                        FLD<TVec3f>(this, 0x2D4) = sp38;
+                    TVec3f projected;
+                    f32 depth = MR::vecKillElement(FLD<TVec3f>(this, 0x2D4), *tri->getNormal(0), &projected);
+                    if (depth <= 0.0f) {
+                        TVec3f normal(*tri->getNormal(0));
+                        normal *= depth;
+                        TVec3f half(normal);
+                        half *= 0.5f;
+                        TVec3f result(projected);
+                        result += half;
+                        FLD<TVec3f>(this, 0x2D4) = result;
+                    }
+                } else if (MR::diffAngleAbs(*getGravityVec(), FLD<TVec3f>(this, 0x2D4)) < 0.10471976f) {
+                    TVec3f tangent;
+                    MR::vecKillElement(*tri->getNormal(0), *getGravityVec(), &tangent);
+                    f32 length = PSVECMag(&FLD<TVec3f>(this, 0x2D4));
+                    MR::normalizeOrZero(&tangent);
+                    FLD<TVec3f>(this, 0x2D4) += tangent;
+                    FLD<TVec3f>(this, 0x2D4).setLength(length);
+                }
+                if (rising) {
+                    if (tri->getNormal(0)->dot(*getGravityVec()) > 0.707f) {
+                        mActor->sendMsgUpperPunch(tri->mSensor);
                     }
                 }
-                if (var_r31 != 0) {
-                    if (tri->getNormal(0)->dot(*this->getGravityVec()) > 0.707f) {
-                        this->mActor->sendMsgUpperPunch(nullptr);
+                if (isPlayerModeBee() && FLD<u8>(mActor, 0xECD) == 0) {
+                    const char* code = MR::getWallCodeString(tri);
+                    if (code && strcmp(code, "Fur") == 0) {
+                        Triangle hitTriangle;
+                        TVec3f negativeNormal(-*tri->getNormal(0));
+                        TVec3f ray(negativeNormal);
+                        ray *= 300.0f;
+                        TVec3f hitPos;
+                        const TVec3f& origin = FLD<TVec3f>(mActor, 0x5F4);
+                        bool hit;
+                        if (fn_803B2950()) {
+                            hit = MR::fn_80037E80(&hitPos, &hitTriangle, origin, ray);
+                        } else {
+                            hit = MR::getFirstPolyOnLineToMap(&hitPos, &hitTriangle, origin, ray);
+                        }
+                        if (hit) {
+                            const char* hitCode = MR::getWallCodeString(&hitTriangle);
+                            if (hitCode && strcmp(hitCode, "Fur") == 0) {
+                                mActor->entryWallWalkMode(hitPos, *hitTriangle.getNormal(0));
+                            }
+                        }
                     }
                 }
             }
         }
     }
-    return var_r31;
 }
 
 // NONMATCHING: 0x274 bookkeeping approximated
@@ -1522,19 +1554,21 @@ void Mario::fn_8039A2A0() {
     }
 }
 
-// NONMATCHING: the two-branch jump-vector update is approximated
+// NONMATCHING: temporary allocation and load scheduling; verified virtual addVelocity calls.
 void Mario::fn_8039A600() {
     u32 t = FLD<u32>(this, 0xC);
     if ((t >> 8) & 1) {
-        void* e = marioCurTableEntry(this);
-        f32 v1 = (f32)FLD<u16>(this, 0x3BC) / FLD<f32>(e, 0xB8);
+        MarioConst* constants = mActor->mConst;
+        MarioConstTable* e = constants->mTable[constants->mCurrentTable];
+        f32 v1 = (f32)_3BC / (f32)e->mSlipUpSpdCtrlTimer;
         if (v1 > 1.0f) {
             v1 = 1.0f;
         }
         f32 f2 = 1.0f - v1;
-        f32 f1 = FLD<f32>(e, 0xBC);
+        constants = mActor->mConst;
+        f32 f1 = constants->mTable[constants->mCurrentTable]->mSlipUpSpdRatio;
         f32 f29 = f1 + f2 * (1.0f - f1);
-        // virtual slot 0x10 on the mover (NONMATCHING: not recovered)
+        this->addVelocity(FLD<TVec3f>(this, 0x2D4), f29);
         f32 f30 = this->fn_8039AA40();
         f32 f31 = this->fn_8039A810();
         TVec3f sp20(FLD<TVec3f>(this->mActor, 0x594));
@@ -1545,9 +1579,10 @@ void Mario::fn_8039A600() {
         sp38 *= f29;
         FLD<TVec3f>(this, 0x2D4) += sp38;
         this->moveWallSlide(1.0f);
+        return;
     }
     if (!((t >> 30) & 1)) {
-        // virtual slot 0x0C on the mover (NONMATCHING: not recovered)
+        this->addVelocity(FLD<TVec3f>(this, 0x2D4));
         f32 f31 = this->fn_8039AA40();
         f32 f30 = this->fn_8039A810();
         TVec3f sp8(FLD<TVec3f>(this->mActor, 0x594));
@@ -1558,33 +1593,51 @@ void Mario::fn_8039A600() {
     }
 }
 
-// NONMATCHING: sensor-follow branch approximated; the m2c draft's virtual calls are omitted
+// NONMATCHING: temporary/register allocation and discarded comparison bookkeeping.
 void Mario::fn_8038A600() {
-    void* var_r31 = FLD<void*>(this->mActor, 0x758);
-    if (this->isAnimationRun("投げ")) {
-        var_r31 = FLD<void*>(this->mActor, 0x75C);
+    HitSensor* sensor = mActor->_470;
+    if (isAnimationRun("投げ")) {
+        sensor = mActor->_474;
     }
-    if (this->mActor->isPunching()) {
-        var_r31 = FLD<void*>(this->mActor, 0xE14);
+    if (mActor->isPunching()) {
+        sensor = mActor->_924;
     }
-    if (var_r31 == nullptr) {
-        this->fn_8038A840(nullptr, 0.8f * FLD<f32>(this, 0x58), 0.0f, 0.8f * FLD<f32>(this, 0x68));
-        if (FLD<u32>(this, 0x12C) != 0) {
-            FLD<u32>(this, 0x12C) -= 1;
+    if (sensor == nullptr) {
+        fn_8038A840(nullptr, 0.8f * FLD<f32>(this, 0x60), 0.0f, 0.8f * FLD<f32>(this, 0x68));
+        if (FLD<s32>(this, 0x134) != 0) {
+            FLD<s32>(this, 0x134)--;
         }
     } else {
-        TVec3f sp20(FLD<TVec3f>(var_r31, 0));
-        sp20 -= this->mPosHolder->mPos;
-        MR::normalizeOrZero(&sp20);
-        TVec3f sp38(FLD<TVec3f>(this, 0x1FC));
-        if (!MR::isNearZero(sp20, 0.001f)) {
-            f32 ang = JMAAcosRadian(sp20.dot(FLD<TVec3f>(this, 0x208)));
-            if (ang < 0.0f) {
-                ang = -ang;
-            }
-            if (ang < 1.0471976f) {
-                this->fn_8038A840(nullptr, 0.0f, ang * 0.1f, 0.0f);
-                FLD<u32>(this, 0x12C) = 0x10;
+        TVec3f previous(FLD<TVec3f>(this, 0x310));
+        TVec3f up(FLD<TVec3f>(this, 0x1FC));
+        TVec3f front(FLD<TVec3f>(this, 0x208));
+        const TVec3f& origin = mPosHolder->mPos;
+        TVec3f direction(*MR::getSensorPos(sensor));
+        direction -= origin;
+        MR::normalizeOrZero(&direction);
+        if (!MR::isNearZero(direction, 0.001f)) {
+            TVec3f projected;
+            MR::vecKillElement(direction, up, &projected);
+            if (!MR::normalizeOrZero(&projected)) {
+                f32 angle = JMAAcosRadian(projected.dot(front));
+                TVec3f cross;
+                PSVECCrossProduct(&front, &projected, &cross);
+                if (cross.dot(up) < 0.0f) {
+                    angle = -angle;
+                }
+                JMAAcosRadian(projected.dot(direction));
+                bool positive = direction.dot(up) >= 0.0f;
+                bool narrow = MR::abs(angle) < 1.5707964f;
+                bool differs = positive != narrow;
+                (void)differs;
+                f32 zero = 0.0f;
+                f32 limit = 0.1f * FLD<u16>(this, 0x40E);
+                if (limit > 1.0471976f) {
+                    limit = 1.0471976f;
+                }
+                f32 clamped = MR::clamp(angle, -limit, limit);
+                fn_8038A840(nullptr, clamped, 0.0f, zero);
+                FLD<s32>(this, 0x134) = 0x10;
             }
         }
     }
@@ -1710,26 +1763,41 @@ void Mario::fn_803A0BE0() {
     }
 }
 
-// NONMATCHING: the three virtual slot-0x0C moves of the draft are omitted
+// NONMATCHING: temporary allocation and register scheduling; full velocity dispatch recovered.
 void Mario::fn_803A2A70() {
-    void* e = marioCurTableEntry(this);
-    f32 f30 = FLD<f32>(e, 0x224);
+    MarioConst* constants = mActor->mConst;
+    f32 speed = constants->mTable[constants->mCurrentTable]->mWalkSpeed;
     if ((FLD<u32>(this, 0x10) >> 11) & 1) {
-        TVec3f sp50(FLD<TVec3f>(this, 0x208));
-        f32 mag = this->mWalkSpeed;
-        (void)mag;
-        (void)sp50;
+        TVec3f front(FLD<TVec3f>(this, 0x208));
+        TVec3f direction(FLD<TVec3f>(this, 0x208));
+        if (!MR::isNearZero(FLD<TVec3f>(this, 0x16C), 0.001f)) {
+            direction = FLD<TVec3f>(this, 0x16C);
+        }
+        MR::normalize(&direction);
+        constants = mActor->mConst;
+        f32 rate = MR::clamp((1.1f - mWalkSpeed) * constants->mTable[constants->mCurrentTable]->mInertiaIceTurn, 0.0f, 1.0f);
+        TVec3f blended;
+        MR::vecBlendSphere(&blended, direction, front, rate);
+        MR::normalize(&blended);
+        blended *= speed * mWalkSpeed;
+        addVelocity(blended);
+        return;
     }
-    if ((FLD<u32>(this, 0x14) >> 26) & 1) {
-        TVec3f sp20(FLD<TVec3f>(this, 0x22C));
-        sp20 *= f30;
-        TVec3f sp2C(sp20);
-        sp2C *= this->mWalkSpeed;
+    if ((FLD<u32>(this, 0x1C) >> 26) & 1) {
+        f32 walkSpeed = mWalkSpeed;
+        TVec3f direction(FLD<TVec3f>(this, 0x22C));
+        direction *= speed;
+        TVec3f scaled(direction);
+        scaled *= walkSpeed;
+        addVelocity(scaled);
+        return;
     }
-    TVec3f sp8(FLD<TVec3f>(this, 0x208));
-    sp8 *= f30;
-    TVec3f sp14(sp8);
-    sp14 *= this->mWalkSpeed;
+    f32 walkSpeed = mWalkSpeed;
+    TVec3f direction(FLD<TVec3f>(this, 0x208));
+    direction *= speed;
+    TVec3f scaled(direction);
+    scaled *= walkSpeed;
+    addVelocity(scaled);
 }
 
 // NONMATCHING: the animation switch on the mode is approximated (fallthrough cases kept, sounds/effects follow the draft)

@@ -39,7 +39,6 @@ public:
     // SMG2-only (original names unknown; named by address)
     void fn_803EEC20(const char*, const char*);
     const TVec3f& fn_803EF5B0() const;
-    bool fn_803EF670(const Triangle*) const;
     Triangle* fn_803EFA20() const;
     bool isPlayerModeBee() const;
     bool isPlayerModeIce() const;

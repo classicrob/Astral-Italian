@@ -12,6 +12,7 @@ MarioSukekiyo::MarioSukekiyo(MarioActor* pActor) : MarioState(pActor, MarioStatu
     _38.zero();
     _48 = 0;
     _4A = 0;
+    mStartedSound = false;
 }
 
 MarioBury::MarioBury(MarioActor* pActor) : MarioSukekiyo(pActor) {
@@ -41,11 +42,11 @@ bool MarioSukekiyo::start() {
     _4A = 0;
     getPlayer()->stopJump();
     getPlayer()->stopWalk();
+    mStartedSound = false;
 
     if (mStatusId == MarioStatus_Sukekiyo) {
         changeAnimation("スケキヨ");
     } else {
-        playSound("声足埋まり開始");
         changeAnimation("埋まり");
     }
 
@@ -56,6 +57,11 @@ bool MarioSukekiyo::update() {
     if (!getPlayer()->isCurrentFloorSand()) {
         return false;
     }
+
+    if (!mStartedSound) {
+        playSound("声足埋まり開始");
+    }
+    mStartedSound = true;
 
     if (_4A) {
         return isAnimationRun(nullptr) != false;
@@ -85,6 +91,7 @@ bool MarioSukekiyo::update() {
 }
 
 bool MarioSukekiyo::close() {
+    mStartedSound = false;
     getPlayer()->stopWalk();
     mActor->_F44 = 1;
     stopAnimation(nullptr, "基本");

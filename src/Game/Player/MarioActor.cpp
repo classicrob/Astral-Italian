@@ -5,6 +5,8 @@
 #include <revolution/gd.h>
 #include "Game/Util.hpp"
 #include "Game/Animation/XanimeCore.hpp"
+#include "Game/Animation/BvaPlayer.hpp"
+#include "Game/Animation/BtpPlayer.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/Enemy/KarikariDirector.hpp"
 #include "Game/Gravity/GravityInfo.hpp"
@@ -348,7 +350,6 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName), _1B0(0xFFFFFFFF) {
 
     _A64 = 0xff;
 
-    _A68 = 1.0f;
 
     _A6C = 0;
     _B48 = nullptr;
@@ -985,54 +986,33 @@ void MarioActor::controlMain() {
 
 
 void MarioActor::updateBehavior() {
-    updateLife();
-    updatePlayerMode();
-    _37C++;
-    if (_EF6) {
-        _EF6--;
-    }
-
-    if (_3A8) {
-        _3A8--;
-    }
-
-    if (_3AC) {
-        _3AC--;
-    }
-
-    TVec3f vec = mPosition;
-    vec -= _270;
-    mLastMove = vec;
-    _270 = mPosition;
+    fn_803C34F0();
+    fn_803CBC50();
+    fn_803C2320();
+    fn_803C23B0();
     updateBindRatio();
     updateEffect();
-    if (_B94 && !--_B94) {
-        mMario->stopAnimationUpper("ハンマー投げ回転中");
-        mMario->stopAnimation("ハンマー投げ回転中");
-    }
-
-    updatePunching();
+    fn_803C2520();
+    fn_803C2590();
+    mMario->fn_803B2610();
     if (!doPressing() && !doStun() && !doRush()) {
         updateGravityVec(false, false);
-        if (!tryJumpRush()) {
-            checkPriorRushTarget();
-            if (!tryThrow() && !tryStandardRush()) {
-                if (getMovementStates()._1) {
-                    initForJump();
-                }
-
-                updateSwingTimer();
-                updateSwingAction();
-                updateThrowVector();
-                lockOnDPD();
-                if (!checkClapCatchStart()) {
-                    _7DC = 0;
-                    mMario->Mario::update();
-                    updateForCamera();
-                    updateTornado();
-                    tryCoinPull();
-                    mMario->mDrawStates._1A = true;
-                }
+        if (!tryJumpRush() && !tryThrow() && !tryStandardRush()) {
+            if (mMario->mMovementStates._1) {
+                _988 = 0;
+                _989 = 0;
+            }
+            updateSwingTimer();
+            updateSwingAction();
+            updateThrowVector();
+            if (!checkClapCatchStart()) {
+                _7DC = 0;
+                mMario->Mario::update();
+                mFlag1064 = 0;
+                updateForCamera();
+                updateTornado();
+                tryCoinPull();
+                mMario->mDrawStates._1A = true;
             }
         }
     }
@@ -1699,150 +1679,98 @@ void MarioActor::forceSetBaseMtx(MtxPtr pMtx) {
 }
 
 
+// NONMATCHING: equivalent visibility guards, register allocation, and pooled literal offsets.
 void MarioActor::calcAnim() {
     CollisionShadow* pShadow;
-    // FIXME: switch stuff
-    // https://decomp.me/scratch/Xf6TH
-    if (_482 != 0) {
+    if (mMario->isPlayerModeYoshi()) {
+        if ((_482 || _481) || (_482 || _483)) mYoshiHolder->mYoshi->fn_8040CBF0();
+        else mYoshiHolder->mYoshi->fn_8040CBD0();
+    }
+    if (_482 && !_EA5) {
         mBlendMtxTimer = 0;
         return;
     }
-
-    if (_3DF != 0) {
-        u16 val = (_3D8 & 7) < (_3D8 >> 3) ? _3D6 : mPlayerMode;
-        if (_3D8 != 0 && mPlayerMode == 0) {
-            if ((s32)val != (s32)mPlayerMode && _3D6 == 6) {
-                if (26 < _3D8) {
-                    _9A4->appear();
-                }
-
-                _483 = 1;
-                updateHand();
-                updateFace();
-                return;
-            }
-
-            if (_3D6 == 6) {
-                _9A4->kill();
-                _483 = 0;
-            }
-        }
-
-        switch (val) {
-        case 1:
-            mAllModel->fn_803E7880(4);
-            _9C8->calcAnim();
-
-            if (_3DE != 0) {
-                _A6E = 2;
-            }
-
-            break;
-        case 4:
-            mAllModel->fn_803E7880(2);
-            break;
-        case 5:
-            _3DF = 0;
-            mAllModel->fn_803E7880(5);
-            break;
-        case 3:
-            mAllModel->fn_803E7880(3);
-            break;
-
-        default:
-            mAllModel->fn_803E7880(0);
-            u32 frame = 0;
-            switch (val) {
-            case 7:
-                frame = 1;
-                break;
-            case 2:
-                frame = 2;
-            }
-
-            MR::startBtp(this, "ColorChange");
-            MR::setBtpFrameAndStop(this, frame);
-            break;
-        }
-
-        if (_3DF != 0) {
-            changeHandMaterial();
-        }
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Paralyze)) {
-        if (mCurrModel != 1) {
-            _A0B = mCurrModel;
-        }
-
-        if ((_37C & 3) != 0) {
-            mAllModel->fn_803E7880(1);
-        } else {
-            mAllModel->fn_803E7880(_A0B);
-        }
-    } else if (mCurrModel == 1 && mHealth != 0) {
-        mAllModel->fn_803E7880(_A0B);
-    }
-
-    _3DF = 0;
-    _3DE = 0;
-
+    calcAnimPlayerMode();
+    calcAnimHorrorBone();
     calcAndSetBaseMtx();
     mMarioAnim->switchMirrorMode();
+    if (mMario->isPlayerModeYoshi()) {
+        MR::setPosition(mYoshiHolder->mYoshi, mPosition);
+        mYoshiHolder->mYoshi->fn_8040C960();
+    }
+    MR::getBvaCtrl(this);
+    mModelManager->mBvaPlayer->calc();
+    mMarioAnim->resetAnimationUpdateFlags();
+    mModelManager->mBvaPlayer->clearUpdateSkipFlag();
+    mModelManager->mBtpPlayer->clearUpdateSkipFlag();
     mMarioAnim->calc();
-
     if (_3D8 == 0) {
         switch (mPlayerMode) {
         case 4:
-            _9E4->mPosition.set(mPosition);
-
+            MR::setPosition(_9E4, mPosition);
             MR::updateModelDiffDL(_9E4);
+            if (MR::isDead(_9E8)) { _9EC->onDraw(-1); _9E8->appear(); }
             break;
         case 3:
-            _9C0->mPosition.set(mPosition);
-
-            MR::updateModelDiffDL(_9C0);
-            MR::updateModelDiffDL(_A40);
-            MR::updateModelDiffDL(_A44);
+            MR::setPosition(mModelE9C, mPosition);
+            MR::updateModelDiffDL(mModelE9C);
+            MR::updateModelDiffDL(mModelF1C);
+            MR::updateModelDiffDL(_A10);
             break;
         case 1:
-            _9C8->mPosition.set(mPosition);
-
-            MR::updateModelDiffDL(_9C8);
-            MR::updateModelDiffDL(_A50);
-            MR::updateModelDiffDL(_A54);
+            MR::setPosition(_9C0, mPosition);
+            MR::updateModelDiffDL(_9C0);
+            MR::updateModelDiffDL(mHandModelL);
+            MR::updateModelDiffDL(mHandModelR);
             break;
-        case 5:
-            _A00->mPosition.set(mPosition);
-
-            MR::updateModelDiffDL(_A00);
-            break;
+        case 5: MR::setPosition(mModelEDC, mPosition); MR::updateModelDiffDL(mModelEDC); break;
+        case 12: MR::setPosition(mModelEEC, mPosition); MR::updateModelDiffDL(mModelEEC); break;
+        case 13: MR::setPosition(mModelEF4, mPosition); MR::updateModelDiffDL(mModelEF4); break;
         default:
-            if (mCurrModel != 1) {
-                MR::updateModelDiffDL(this);
-            }
-
+            if (mAllModel->mCurrentModel != 1 && mAllModel->mCurrentModel != 6) MR::updateModelDiffDL(this);
             break;
         }
-    } else if (mCurrModel == 0) {
-        MR::updateModelDiffDL(this);
-    }
-
-    if (MR::isHiddenModel(this) && _482 == 0) {
-        MR::showModel(this);
-    }
-
-    updateRealMtx();
-
-    if (!mMario->mMovementStates._F || mMario->_544 <= 1) {
-        if (mBeeWallWalk != 0) {
-            _214->setMode(0);
-        } else {
-            _214->setMode(2);
+    } else {
+        if (mAllModel->mCurrentModel == 0) MR::updateModelDiffDL(this);
+        if (mPlayerMode == 4) {
+            if (mAllModel->mCurrentModel == 2) {
+                if (MR::isDead(_9E8)) { _9E8->appear(); _9EC->onDraw(-1); }
+            } else if (!MR::isDead(_9E8)) { _9E8->kill(); _9EC->offDraw(-1); }
+        } else if (mAllModel->mCurrentModel == 2) {
+            if (MR::isDead(_9E8)) { _9E8->appear(); _9EC->onDraw(-1); }
+        } else if (_3D6 == 4) {
+            if (!MR::isDead(_9E8)) { _9E8->kill(); _9EC->offDraw(-1); }
         }
+        if (mPlayerMode == 12) {
+            if (mAllModel->mCurrentModel == 7) {
+                if (MR::isDead(mModelEF0)) mModelEF0->appear();
+            } else if (!MR::isDead(mModelEF0)) mModelEF0->kill();
+        } else if (mAllModel->mCurrentModel == 7) {
+            if (MR::isDead(mModelEF0)) mModelEF0->appear();
+        } else if (_3D6 == 12) {
+            if (!MR::isDead(mModelEF0)) mModelEF0->kill();
+        }
+    }
+    if (mAllModel->mCurrentModel == 7) {
+        if (mMario->isStatusActive(MarioStatus_FpView)) {
+            MR::showJoint(mAllModel->getJ3DModel(), "Cap0");
+            MR::hideModel(mModelEF0);
+        } else {
+            MR::hideJoint(mAllModel->getJ3DModel(), "Cap0");
+            MR::showModel(mModelEF0);
+        }
+    }
+    if (mAllModel->mCurrentModel == 7 && (mActorEffectState->mActive || _390)) {
+        MR::showJoint(mAllModel->getJ3DModel(), "Cap0");
+        MR::hideModel(mModelEF0);
+    }
+    if (MR::isHiddenModel(this) && !_482) MR::showModel(this);
+    updateRealMtx();
+    if (!mMario->mMovementStates._F || mMario->_544 <= 1) {
+        mCollisionShadow580->setMode(2);
 
-        _214->_20 = 40.0f + (mMario->mShadowPos - mPosition).dot(_240);
-        _214->_48 = mMario->mShadowPos;
+        mCollisionShadow580->_20 = 40.0f + (mMario->mShadowPos - mPosition).dot(mAppliedGravityVec);
+        mCollisionShadow580->_48 = mMario->mShadowPos;
 
         TVec3f leftVec;
         getRealPos("HandL", &leftVec);
@@ -1856,22 +1784,22 @@ void MarioActor::calcAnim() {
         MR::normalizeOrZero(&stack114);
 
         TVec3f cross;
-        cross.cross(stack114, _240);
+        cross.cross(stack114, mAppliedGravityVec);
         MR::normalizeOrZero(&cross);
 
-        stack114.cross(_240, cross);
+        stack114.cross(mAppliedGravityVec, cross);
 
         if (MR::normalizeOrZero(&stack114)) {
             stack114 = mMario->mSideVec;
         }
 
         if (mMario->isSwimming()) {
-            pShadow = _214;
+            pShadow = mCollisionShadow580;
             pShadow->_3C = stack114;
             pShadow->_18 = 10.0f + length;
             pShadow->_1C = 140.0f;
         } else {
-            pShadow = _214;
+            pShadow = mCollisionShadow580;
             pShadow->_3C = stack114;
             pShadow->_18 = 5.0f + length;
             pShadow->_1C = 70.0f;
@@ -1884,38 +1812,27 @@ void MarioActor::calcAnim() {
             getRealPos("All_Root", &vec);
         }
 
-        _214->create(vec, _240, mMario->mFrontVec);
+        mCollisionShadow580->create(vec, mAppliedGravityVec, mMario->mFrontVec);
     }
 
-    if (_1C1 == 0) {
-        mMario->updateLookOfs();
+    if (_A0C == 0) {
+        mMario->fn_8038B9F0();
     }
 
-    updateHand();
-    updateFace();
+    if (!mMario->isPlayerModeYoshi()) {
+        updateHand();
+        updateFace();
+    }
     calcScreenBoxRange();
 
-    if (_946 || _F20 || _F21 || mMario->mMovementStates._2B) {
-        _94A = 0;
+    if (_946 || mFlag100E || mFlag100F || mMario->mMovementStates._2B) {
+        _94E = 0;
     } else {
-        _94A++;
+        _94E++;
     }
 
-    if (mCurrModel != 0) {
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "HandL0"), MR::getJointMtx(mModels[0], "HandL0"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "HandR0"), MR::getJointMtx(mModels[0], "HandR0"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "FootL"), MR::getJointMtx(mModels[0], "FootL"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "FootR"), MR::getJointMtx(mModels[0], "FootR"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "Center"), MR::getJointMtx(mModels[0], "Center"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "All_Root"), MR::getJointMtx(mModels[0], "All_Root"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "Spine1"), MR::getJointMtx(mModels[0], "Spine1"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "Hip"), MR::getJointMtx(mModels[0], "Hip"));
-        PSMTXCopy(MR::getJointMtx(getJ3DModel(), "Face0"), MR::getJointMtx(mModels[0], "Face0"));
-
-        PSMTXCopy(getJ3DModel()->getBaseTRMtx(), mModels[0]->getBaseTRMtx());
-    }
-
-    updateRasterScroll();
+    mAllModel->fn_803E78F0();
+    mScreenStrip1084->fn_803DBA40();
 }
 #pragma push
 #pragma opt_propagation off
@@ -2409,7 +2326,7 @@ void MarioActor::forceGameOverSink() {
         return;
     }
 
-    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverSink));
+    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOverNoDemo));
 }
 
 
@@ -4461,7 +4378,7 @@ void MarioActor::updateBlink() {
 // ---- MarioActorGameOver.cpp ----
 
 void MarioActor::forceKill(u32 type) {
-    if (mMario->getMovementStates()._1F) {
+    if (mMario->getMovementStates()._1F && !MR::isGalaxyRainbowCometAppearInCurrentStage()) {
         return;
     }
 
@@ -4480,25 +4397,8 @@ void MarioActor::forceKill(u32 type) {
         mMario->closeStatus(nullptr);
     }
 
-    if (_934) {
-        if (_924 != nullptr && _924->isType(ACTMES_GROUP_SHOW)) {
-            _B91 = true;
-            _B90 = true;
-        }
-
-        if (_934) {
-            if (!_924->receiveMessage(ACTMES_RUSH_CANCEL, getSensor("body"))) {
-                _924->receiveMessage(ACTMES_RUSH_FORCE_CANCEL, getSensor("body"));
-            }
-
-            if (_934) {
-                RushEndInfo endInfo(nullptr, 4, TVec3f(0.0f, 0.0f, 0.0f), false, 0);
-                endRush(&endInfo);
-            }
-        }
-
-        _934 = false;
-    }
+    fn_803BE6F0();
+    MR::endGalaxyCometEvent();
 
     if (type == 0) {
         mMario->doAbyssDamage();
@@ -4517,19 +4417,9 @@ void MarioActor::forceKill(u32 type) {
         return;
     }
 
-    switch (type) {
-    case 1:
-    case 2:
-    case 5:
-        MR::deactivateDefaultGameLayout();
-
-    default:
-        _39D = type;
-        mHealth = 0;
-
-        setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOver));
-        break;
-    }
+    _39D = type;
+    mHealth = 0;
+    setNerve(GET_NERVE(MarioActor, MarioActorNrvGameOver));
 }
 
 
@@ -10105,7 +9995,7 @@ bool MarioActor::tryCoinPullOne(HitSensor* pSensor) NO_INLINE {
 
 
 void MarioActor::tryPullTrans(TVec3f* pVelocity, const TVec3f& rPosition) {
-    TVec3f center(_2A0);
+    TVec3f center(_240);
     TVec3f ground;
     getGroundPos(&ground);
     if (IsMarioSwimming()) {
@@ -10177,7 +10067,7 @@ bool MarioActor::releaseThrowMemoSensor() {
 
         s32 idx = _468 - 1;
         if (_470 != nullptr) {
-            TVec3f diff = _470->mPosition - _2A0;
+            TVec3f diff = _470->mPosition - _240;
 
             if (mMario->isSwimming()) {
                 TVec3f throwVec;
@@ -10763,10 +10653,11 @@ SmokeEffectEntry cSmokeTable[] = {{"共通着地普通", 0x08000000, 1.0f, 1.0f,
                                   {nullptr, 0, 0.0f, 0.0f, 0, 0, 0, 0, nullptr, 0, {0, 0, 0}}};
 
 
+// NONMATCHING: pooled literal offsets differ; instructions and material tables verified.
 void MarioActor::initCommonEffect() {
-    _B9C = 0;
-    _B9E = 0;
-    _BA0 = new SmokeEffectEntry*[8];
+    mCommonEffectCount = 0;
+    mTimedCommonEffectCount = 0;
+    mTimedCommonEffects = new SmokeEffectEntry*[8];
 
     SmokeEffectEntry* entry = cSmokeTable;
     while (entry->mName != nullptr) {
@@ -10778,6 +10669,7 @@ void MarioActor::initCommonEffect() {
         const char* smokeFollowEffects[] = {"SmokeSphereFollow", "SmokeSphereFollow1Time", "SmokeCircleFollow", "SmokeCircleLoopFollow"};
         const char* mudEffects[] = {"MudSphere", "MudSphereLoop", "MudCircle", "MudCircleLoop"};
         const char* honeyEffects[] = {"HoneySphere", "HoneySphereLoop", "HoneyCircle", "HoneyCircleLoop"};
+        const char* cloudEffects[] = {"SmokeSphere", "SmokeSphereLoop", "MarioCloudLand", "SmokeCircleLoop"};
 
         s32 variant = 0;
         s32 useFollow = 0;
@@ -10808,7 +10700,7 @@ void MarioActor::initCommonEffect() {
         }
 
         char name[0x80];
-        for (u32 materialIndex = 0; materialIndex < 7; materialIndex++) {
+        for (u32 materialIndex = 0; materialIndex < 8; materialIndex++) {
             sprintf(name, "%s", entry->mName);
 
             const u8 flag2 = entry->mFlags.mByte2;
@@ -10838,6 +10730,9 @@ void MarioActor::initCommonEffect() {
                 break;
             case 6:
                 effectList = honeyEffects;
+                break;
+            case 7:
+                effectList = cloudEffects;
                 break;
             }
 
@@ -10882,10 +10777,10 @@ void MarioActor::initCommonEffect() {
 
         entry->mTimer = 0;
         switch (entry->mType.mByte0) {
-        case 2:
-        case 5: {
-            _BA0[_B9E] = entry;
-            _B9E++;
+        case 5:
+        case 2: {
+            mTimedCommonEffects[mTimedCommonEffectCount] = entry;
+            mTimedCommonEffectCount++;
             break;
         }
 
@@ -10898,7 +10793,7 @@ void MarioActor::initCommonEffect() {
         entry->mEmitter = nullptr;
         entry->mMaterial = 0;
         entry++;
-        _B9C++;
+        mCommonEffectCount++;
     }
 }
 
@@ -10909,7 +10804,7 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
     }
 
     const u32 hash = MR::getHashCode(pName);
-    for (u32 i = 0; i < _B9C; i++) {
+    for (u32 i = 0; i < mCommonEffectCount; i++) {
         SmokeEffectEntry* entry = &cSmokeTable[i];
         if (entry->mHash == hash) {
             MultiEmitter* emitter = nullptr;
@@ -11093,8 +10988,9 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
 }
 
 
+// NONMATCHING: pooled literal offsets differ; all registration calls and strings verified.
 void MarioActor::initEffect() {
-    _B98 = 0;
+    mEffectFlagsWord = 0;
     initEffectKeeper(0xB8, "Mario", true);
     initCommonEffect();
     initMaterialEffect();
@@ -11110,6 +11006,7 @@ void MarioActor::initEffect() {
     MR::setEffectName(this, "WaterSplashLeft", "水はね左");
     MR::setEffectName(this, "WaterSplashSRight", "水はね右弱");
     MR::setEffectName(this, "WaterSplashSLeft", "水はね左弱");
+    MR::setEffectName(this, "RailMoveWaterAreaSplash", "水エリア飛び込み飛沫");
     MR::setEffectName(this, "SpinLightBurst", "スピンライト消去");
     MR::setEffectName(this, "ElectricDamage", "ビリビリ");
     MR::setEffectName(this, "FireDamageSmoke", "炎ダメージ煙");
@@ -11139,6 +11036,14 @@ void MarioActor::initEffect() {
     MR::setEffectName(this, "FooMarioBrakeLampR", "フーマリオブレーキ右");
     MR::setEffectName(this, "FooMarioEndL", "フーマリオ解除左");
     MR::setEffectName(this, "FooMarioEndR", "フーマリオ解除右");
+    MR::setEffectName(this, "SpinScattarGrass", "芝生スピン");
+    MR::setEffectName(this, "HorrorStart", "ホラーマリオ変身");
+    MR::setEffectName(this, "HorrorEnd", "ホラーマリオ解除");
+    MR::setEffectName(this, "YoshiDashJump", "ダッシュジャンプ煙");
+    MR::setEffectName(this, "CloudMarioSmoke", "雲マリオ頭煙");
+    MR::setEffectName(this, "SandSliderSmoke", "砂スライダー煙");
+    MR::setEffectName(this, "SandStreamSmoke", "流砂足元砂煙");
+    MR::setEffectName(this, "PetitPorterGlow", "プチポーター");
     MR::setEffectName(this, "WallHit", "壁ヒット");
     MR::setEffectName(this, "BarrierBound", "結界ヒット");
     MR::setEffectName(this, "WaterBound", "水壁ヒット");
@@ -11151,6 +11056,7 @@ void MarioActor::initEffect() {
     MR::setEffectName(this, "SwimWaitRipple", "水面ウエイト波紋");
     MR::setEffectHostSRT(this, "水面ウエイト波紋", &_BAC, &_BB8, nullptr);
     MR::setEffectName(this, "SwimSpinLight", "水泳スピン");
+    MR::setEffectName(this, "CloudMarioSpinLight", "雲スピン");
     MR::setEffectName(this, "DiveBubble", "水面Ｚ沈降");
     MR::addEffect(this, "WaterColumnS");
     MR::setEffectName(this, "WaterColumnS", "水面ジャンプ水柱");
@@ -11183,6 +11089,8 @@ void MarioActor::initEffect() {
         const char* groupName = "雪煙レベル";
         mEffectKeeper->registerEffect("CrestGetFlyC", mFootRMatrix.toMtxPtr(), groupName, nullptr);
     }
+
+    MR::setEffectName(this, "RunDust", "埃煙レベル");
 
     const TVec3f* scale = &mScale;
     const TVec3f* rot = &mRotation;
@@ -11235,6 +11143,8 @@ void MarioActor::initEffect() {
 
     MR::setEffectName(this, "LandRubber", "特殊着地");
     MR::setEffectName(this, "DieDarkMatter", "ダークマター死亡");
+    MR::setEffectName(this, "CloudMarioHipDropBlur", "雲尻落");
+    MR::setEffectName(this, "CloudLuigiHipDropBlur", "雲尻落ルイージ");
     MR::setEffectName(this, "HopperMarioHipDropBlur", "ホッパー尻落");
     MR::setEffectName(this, "HopperLuigiHipDropBlur", "ホッパー尻落ルイージ");
     MR::setEffectName(this, "HipDropBlur", "尻落");
@@ -11418,7 +11328,7 @@ void MarioActor::playEffectSRT(const char* pName, f32 scale, const TVec3f& rDir,
 
 void MarioActor::stopCommonEffect(const char* pName) {
     const u32 hash = MR::getHashCode(pName);
-    for (u32 i = 0; i < _B9C; i++) {
+    for (u32 i = 0; i < mCommonEffectCount; i++) {
         SmokeEffectEntry* entry = &cSmokeTable[i];
         if (entry->mHash == hash) {
             if (entry->mEmitter != nullptr) {
@@ -11460,6 +11370,7 @@ void MarioActor::stopEffectForce(const char* pName) {
 }
 
 
+// NONMATCHING: redundant Mario pointer reload before checkLvlA and pooled literal offsets.
 void MarioActor::updateEffect() {
     s32 effectA = 0;
     s32 effectB = 0;
@@ -11492,10 +11403,24 @@ void MarioActor::updateEffect() {
         }
     }
 
+    s32 specialSmoke = 0;
+    if (mMario->_960 == 42) {
+        if (mMario->mWalkSpeed > 0.1f) {
+            specialSmoke = 1;
+        }
+        if (effectB != 0) {
+            effectB = 0;
+        }
+        if (effectA != 0) {
+            effectA = 0;
+        }
+    }
+
     if (_3C0 || mPlayerMode == 1 || mMario->isStatusActive(MarioStatus_Swim) || mMario->isStatusActive(MarioStatus_FpView) || _934) {
         effectA = 0;
         effectB = 0;
         effectC = 0;
+        specialSmoke = 0;
     }
 
     if (effectA) {
@@ -11512,9 +11437,16 @@ void MarioActor::updateEffect() {
         stopEffect("雪煙レベル");
     }
 
+    if (specialSmoke && mEffectFlags.mSpecialSmoke == 0) {
+        playEffect("埃煙レベル");
+    } else if (!specialSmoke && mEffectFlags.mSpecialSmoke == 1) {
+        stopEffect("埃煙レベル");
+    }
+
     mEffectFlags.mSmoke = effectA;
     mEffectFlags.mSnow = effectB;
     mEffectFlags._2 = effectC;
+    mEffectFlags.mSpecialSmoke = specialSmoke;
 
     effectA = 0;
     if (getMovementStates()._23 && !getMovementStates()._18 && getMovementStates()._1) {
@@ -11531,13 +11463,8 @@ void MarioActor::updateEffect() {
 
     mEffectFlags.mSlopeSlip = effectA;
 
-    if ((mHealth <= 1 || mWaterLife <= 1) && !MR::isDemoActive() && !MR::isPowerStarGetDemoActive() && !MR::isGalaxyDarkCometAppearInCurrentStage() &&
-        MR::isPermitSE() && isEnableNerveChange()) {
-        playSound("ライフ警告", -1);
-    }
-
     s32 nearZero = 0;
-    if (MR::isNearZero(_240)) {
+    if (MR::isNearZero(mAppliedGravityVec)) {
         nearZero = 1;
     }
 
@@ -11580,8 +11507,8 @@ void MarioActor::updateEffect() {
     mEffectFlags.mBeeWind = effectC;
 
     u32 i = 0;
-    while (i < _B9E) {
-        SmokeEffectEntry* entry = _BA0[i];
+    while (i < mTimedCommonEffectCount) {
+        SmokeEffectEntry* entry = mTimedCommonEffects[i];
         if (entry->mTimer != 0) {
             entry->mTimer--;
             if (entry->mTimer == 0) {

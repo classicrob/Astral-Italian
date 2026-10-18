@@ -1383,6 +1383,7 @@ void Mario::draw() const {
 
 
 void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
+    mPosHolder->fn_80406010(rShift);
     TVec3f _148shift(_148);
     _148shift -= rShift;
     if (MR::abs(_148.x) <= MR::abs(_148shift.x)) {
@@ -1399,9 +1400,11 @@ void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
 }
 
 
+// NONMATCHING: saved-register allocation; verified holder write and arithmetic.
 void Mario::setTrans(const TVec3f& rShift, const char* pA2) {
     TVec3f reqShift(rShift);
     reqShift -= mPosHolder->mPos;
+    mPosHolder->fn_80405F90(rShift);
     TVec3f _148shift(_148);
     _148shift -= reqShift;
     if (MR::abs(_148.x) <= MR::abs(_148shift.x)) {
@@ -2910,7 +2913,7 @@ void Mario::doSwimmingHitCheck(const HitInfo* pHit, u32 type) {
     if (type == 0) {
         _97C->hitWall(*normal, triangle->mSensor);
     } else {
-        _97C->hitPoly(type, *normal, triangle->mSensor);
+        _97C->hitPoly(*normal, triangle->mSensor);
     }
 }
 

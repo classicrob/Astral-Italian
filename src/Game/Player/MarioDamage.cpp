@@ -84,7 +84,7 @@ bool MarioDamage::start() {
     getPlayer()->mMovementStates.jumping = true;
     getPlayer()->mMovementStates._B = false;
     getPlayer()->mMovementStates._3E = 0;
-    _1C += -mActor->_240 * mActor->getConst().getTable()->mJumpHeightDamage;
+    _1C += -mActor->mAppliedGravityVec * mActor->getConst().getTable()->mJumpHeightDamage;
     getPlayer()->mJumpVec = _1C;
     addVelocity(_1C);
 
@@ -654,7 +654,7 @@ bool MarioFireDance::update() {
 
     if (getPlayer()->mMovementStates._1 && !getPlayer()->isRising() && !_2C) {
         if (getPlayer()->_960 != 0x81 && getPlayer()->_960 != CollisionFloorCode_DamageFire && getPlayer()->_960 != CollisionFloorCode_Needle &&
-            !*((u8*)mActor + 0x1064)) {
+            !mActor->mFlag1064) {
             if (_28 == 1) {
                 if (MR::getPlayerLeft() == 0 && !mActor->mHealth) {
                     mActor->changeGameOverAnimation();
@@ -710,6 +710,9 @@ bool MarioFireDance::update() {
     }
 
     addVelocity(_14);
+    if (_2A > 360) {
+        mActor->forceGameOverAbyss();
+    }
     return true;
 }
 

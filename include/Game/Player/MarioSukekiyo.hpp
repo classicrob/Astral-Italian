@@ -21,6 +21,7 @@ public:
     Triangle* _44;
     u16 _48;
     u8 _4A;
+    bool mStartedSound;
 };
 
 class MarioBury : public MarioSukekiyo {

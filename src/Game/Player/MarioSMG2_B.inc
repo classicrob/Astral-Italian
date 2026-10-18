@@ -142,7 +142,7 @@ bool Mario::fn_803ACE10() {
 }
 
 void Mario::fn_803AD120(const Triangle* pTri) {
-    if (this->isSlipPolygon(pTri) == 0x20 && this->mTargetWalkSpeedIndex != 0) {
+    if (this->fn_803EF7C0() == 0x20 && this->mTargetWalkSpeedIndex != 0) {
         this->_3F4 = 0.2f;
     }
 }

@@ -795,7 +795,7 @@ void MarioActor::fn_803BF760(const JMapInfoIter& iter, s32* anim) {
     this->mRotation.x = MR::repeat(this->mRotation.x, 0.0f, 360.0f);
     this->mRotation.y = MR::repeat(this->mRotation.y, 0.0f, 360.0f);
     this->mRotation.z = MR::repeat(this->mRotation.z, 0.0f, 360.0f);
-    if (MR::isExistJMapArg(iter)) {
+    if (MR::isExistJMapInfoArg0(iter)) {
         MR::getJMapInfoArg0NoInit(iter, anim);
     }
 }
@@ -1324,7 +1324,7 @@ bool MarioActor::fn_803C33D0() {
     return r;
 }
 
-void MarioActor::fn_803C34F0(const char* name) {
+void MarioActor::fn_803C34F0() {
     if (F(s32, 0x6B4) != 0) {
         F(s32, 0x6B4) -= 1;
         if (F(s32, 0x6B4) == 0) {

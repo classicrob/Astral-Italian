@@ -130,7 +130,7 @@ bool MarioSlider::start() {
 bool MarioSlider::update() {
     if (!getPlayer()->checkSliderMode()) {
         if (getPlayer()->mMovementStates._1 != 0) {
-            if (fn_803EF670(getGroundPolygon())) {
+            if (isSlipPolygon(getGroundPolygon())) {
                 Mario* player = getPlayer();
                 player->_8F8 = _14;
                 player->_8F0 = 10.0f;

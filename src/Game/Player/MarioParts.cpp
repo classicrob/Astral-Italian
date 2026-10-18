@@ -34,7 +34,9 @@ MarioParts::MarioParts(LiveActor* pActor, const char* pName, const char* pModelN
 
 void MarioParts::init(const JMapInfoIter& rIter) {
     initEffectKeeper(8, _9C, false);
-    initSound(8, "MarioParts", nullptr, TVec3f(0.0f));
+    if (!MR::isStageFileSelect()) {
+        initSound(8, nullptr, nullptr, TVec3f(0.0f));
+    }
     MR::invalidateClipping(this);
     makeActorAppeared();
     makeActorAppeared();

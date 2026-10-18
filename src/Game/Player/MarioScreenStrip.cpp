@@ -1,8 +1,31 @@
 #include "Game/Player/MarioActorHelpers.hpp"
 #include "Game/Util/ScreenUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
 #include "Game/Util/DirectDraw.hpp"
 #include <revolution/gx.h>
 #include <JSystem/JKernel/JKRHeap.hpp>
+
+// NONMATCHING: equivalent commutative floating-point operand order.
+MarioScreenStripWave::MarioScreenStripWave(f32 amplitude, u32 phase, s32 period, f32 frequency)
+    : mAmplitude(amplitude), mPhase(6.2831855f * phase / period), mFrequency(6.2831855f / frequency) {
+}
+
+// NONMATCHING: equivalent commutative floating-point operand order.
+f32 MarioScreenStripWave::calcOffset(u32 row) {
+    return mAmplitude * MR::sin(MR::sin(mFrequency * row) * 3.1415927f + mPhase);
+}
+
+MarioScreenStripCurve::MarioScreenStripCurve(u32 position, u32 phase) {
+    mPosition = position;
+    mPhase = 89.0f * MR::sin(6.2831855f * phase / 120.0f);
+    if (mPhase > 0.0f) {
+        mPhase = 0.0f;
+    }
+}
+
+f32 MarioScreenStripCurve::calcOffset(u32 row) {
+    return 5.0f * MR::sin(2.0f * (3.1415927f * ((mPosition + row * mPhase) / MR::getScreenHeight())));
+}
 
 MarioScreenStrip::MarioScreenStrip() {
     mBuffers[0] = new (0x20) u8[MR::getFrameBufferWidth() * 8];

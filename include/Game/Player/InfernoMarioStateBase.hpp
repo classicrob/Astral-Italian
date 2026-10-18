@@ -5,7 +5,7 @@ class HitSensor;
 class InfernoMarioStateBase : public ActorStateBase<InfernoMario> {
 public:
     InfernoMarioStateBase(const char*, InfernoMario*);
-    virtual ~InfernoMarioStateBase();
+    virtual ~InfernoMarioStateBase() {}
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);

@@ -5992,9 +5992,12 @@ Game/Player/FireMarioBall.cpp:
 Game/Player/GhostPacket.cpp:
 	.text       start:0x8037EC50 end:0x8037EFF0
 
+Game/Player/GhostPacketWriter.cpp:
+	.text       start:0x8037EFF0 end:0x8037F4B0
+	.sbss       start:0x807D4DC0 end:0x807D4DC8
+
 Game/Player/GhostPlayer.cpp:
 	.text       start:0x8037F4B0 end:0x80380290
-	.rodata     start:0x8064BB00 end:0x8064BC68
 
 Game/Player/GhostPacketData.cpp:
 	.text       start:0x80380290 end:0x80380450
@@ -6018,10 +6021,15 @@ Game/Player/InfernoMarioManager.cpp:
 	.data       start:0x806C0998 end:0x806C0A18
 	.sbss       start:0x807D4DC8 end:0x807D4DD0
 
+Game/Player/GhostPlayerSound.cpp:
+	.text       start:0x80381140 end:0x80381270
+	.rodata     start:0x8064BB00 end:0x8064BC68
+	.data       start:0x806C0A18 end:0x806C0DA8
+
 Game/Player/InfernoMario.cpp:
 	.text       start:0x80381270 end:0x80382060
 	.ctors      start:0x806447B4 end:0x806447B8
-	.data       start:0x806C0A18 end:0x806C0E98
+	.data       start:0x806C0DA8 end:0x806C0E98
 	.sbss       start:0x807D4DD0 end:0x807D4DD8
 
 Game/Player/InfernoMarioGenerator.cpp:
@@ -6035,6 +6043,18 @@ Game/Player/InfernoMarioStateBase.cpp:
 	.ctors      start:0x806447BC end:0x806447C0
 	.data       start:0x806C1070 end:0x806C1180
 	.sbss       start:0x807D4DF0 end:0x807D4E00
+
+Game/Player/InfernoMarioManekuri.cpp:
+	.text       start:0x803830A0 end:0x803842D0
+	.ctors      start:0x806447C0 end:0x806447C4
+	.data       start:0x806C1180 end:0x806C1380
+	.sbss       start:0x807D4E00 end:0x807D4E20
+
+Game/Player/InfernoMarioAppearance.cpp:
+	.text       start:0x803842D0 end:0x803845B0
+	.ctors      start:0x806447C4 end:0x806447C8
+	.data       start:0x806C1380 end:0x806C13E0
+	.sbss       start:0x807D4E20 end:0x807D4E28
 
 Game/Player/J3DModelX.cpp:
 	.text       start:0x803845B0 end:0x803861E0
@@ -6065,6 +6085,7 @@ Game/Player/MarioActor.cpp:
 	.ctors      start:0x806447C8 end:0x806447CC
 	.rodata     start:0x8064BCB8 end:0x8064BD50
 	.data       start:0x806C7430 end:0x806C7588
+	.bss        start:0x80729C40 end:0x80729C68
 	.sdata      start:0x807CFFDC end:0x807CFFF0
 	.sbss       start:0x807D4E34 end:0x807D4E60
 	.sdata2     start:0x807DFBD8 end:0x807DFCD0
@@ -6105,11 +6126,25 @@ Game/Player/MarioDamage.cpp:
 	.data       start:0x806DC848 end:0x806DC9F8
 	.sdata2     start:0x807DFED0 end:0x807DFEE4
 
+Game/Player/MarioCrush.cpp:
+	.text       start:0x803E6610 end:0x803E68D0
+	.data       start:0x806DC9F8 end:0x806DCA70
+
+Game/Player/MarioFreeze.cpp:
+	.text       start:0x803E68D0 end:0x803E6E50
+
 Game/Player/HorrorDamageExecutor.cpp:
 	.text       start:0x803E6E50 end:0x803E7140
 	.ctors      start:0x806447D4 end:0x806447D8
 	.data       start:0x806DCB50 end:0x806DCBD8
 	.sbss       start:0x807D4E68 end:0x807D4E78
+
+Game/Player/MarioParalyze.cpp:
+	.text       start:0x803E7140 end:0x803E7510
+
+Game/Player/MarioStun.cpp:
+	.text       start:0x803E7510 end:0x803E7720
+	.data       start:0x806DCC90 end:0x806DCD08
 
 Game/Player/MarioAllModel.cpp:
 	.text       start:0x803E7720 end:0x803E7C80
@@ -6279,6 +6314,18 @@ Game/Player/TornadoMario.cpp:
 Game/Player/Yoshi.cpp:
 	.text       start:0x8040BF30 end:0x80413C40
 	.ctors      start:0x806447E8 end:0x806447EC
+	.data       start:0x806EA4C8 end:0x806EA718
+	.sbss       start:0x807D4EB8 end:0x807D4F30
+
+Game/Player/YoshiTongue.cpp:
+	.text       start:0x8041C550 end:0x8041DE20
+	.ctors      start:0x806447F0 end:0x806447F4
+	.data       start:0x806EB178 end:0x806EB2C8
+	.sbss       start:0x807D4F68 end:0x807D4F88
+
+Game/Player/YoshiTongueAction.cpp:
+	.text       start:0x8041DE20 end:0x80421D40
+	.ctors      start:0x806447F4 end:0x806447F8
 
 Game/RhythmLib/AudRhythmSeqParser.cpp:
 	.text       start:0x80422990 end:0x804238D0

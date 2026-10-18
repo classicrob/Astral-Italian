@@ -38,7 +38,7 @@ namespace MarioAccess {
     bool isFpViewChangingFailure();
     void stopFpView();
     void noticeDashChance();
-    void setWalkingResist(f32);
+    void fn_803B51B0();
     void forceFly(const TVec3f&, const TVec3f&, s32);
     void setJumpVec(const TVec3f&);
     void forceJump(const TVec3f&, u32);

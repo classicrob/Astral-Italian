@@ -10,7 +10,6 @@ namespace NrvInfernoMarioComet {
     NEW_NERVE(InfernoMarioCometNrvFollow, InfernoMarioComet, Follow);
 }
 InfernoMarioStateBase::InfernoMarioStateBase(const char* name,InfernoMario* host) : ActorStateBase<InfernoMario>(name,host) {}
-InfernoMarioStateBase::~InfernoMarioStateBase() {}
 void InfernoMarioStateBase::attackSensor(HitSensor*,HitSensor*) {}
 bool InfernoMarioStateBase::receiveMsgPlayerAttack(u32,HitSensor*,HitSensor*) { return false; }
 bool InfernoMarioStateBase::receiveMsgEnemyAttack(u32,HitSensor*,HitSensor*) { return false; }

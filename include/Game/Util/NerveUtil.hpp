@@ -9,6 +9,8 @@ class Nerve;
 class NerveExecutor;
 
 namespace MR {
+    f32 calcNerveParabolaValue(const NerveExecutor*, s32);
+    f32 fn_80048480(const NerveExecutor*, s32, f32, f32);
     /// @brief Determines if the working nerve action's frame of execution is greater than or equal to the given frame value.
     /// @param pExecutor The pointer to the nerve action executor.
     /// @param step The frame value to compare with.

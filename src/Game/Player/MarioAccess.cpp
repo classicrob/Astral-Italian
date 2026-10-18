@@ -187,8 +187,8 @@ namespace MarioAccess {
         getPlayerActor()->getMario()->_436 = 5;
     }
 
-    void setWalkingResist(f32 walkingResist) {
-        getPlayerActor()->getMario()->_2D0 = walkingResist;
+    void fn_803B51B0() {
+        getPlayerActor()->getMario()->fn_803B1710();
     }
 
     void forceFly(const TVec3f& rVec1, const TVec3f& rVec2, s32 a3) {

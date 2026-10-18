@@ -13635,3 +13635,9 @@ bool MarioActor::fn_803CB010() const {
 }
 
 
+
+namespace {
+    TVec3f sInitialVector0(0.0f);
+    TVec3f sInitialVector1(0.0f);
+    TVec3f sInitialVector2(100.0f);
+}

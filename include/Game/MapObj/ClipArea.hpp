@@ -16,7 +16,7 @@ public:
     virtual MtxPtr getBaseMtx() const {
         return (MtxPtr)&mBaseMtx;
     }
-    virtual bool isInArea(const TVec3f&, f32) const;
+    virtual bool isInArea(const TVec3f&) const;
 
     void initBaseMatrix(const JMapInfoIter&);
     void setShape(ClipAreaShape*);

@@ -45,8 +45,8 @@ void ClipArea::setShape(ClipAreaShape* pShape) {
     mShape = pShape;
 }
 
-bool ClipArea::isInArea(const TVec3f& rParam1, f32 param2) const {
-    return mShape->isInArea(rParam1, param2, mBaseMtx, mScale);
+bool ClipArea::isInArea(const TVec3f& rParam1) const {
+    return mShape->isInArea(rParam1, mBaseMtx, mScale);
 }
 
 namespace MR {

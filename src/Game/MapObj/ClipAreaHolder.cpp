@@ -24,7 +24,7 @@ ClipAreaHolder::ClipAreaHolder(const char* pName) : DeriveActorGroup< ClipArea >
 void ClipAreaHolder::init(const JMapInfoIter& rIter) {
 }
 
-bool ClipAreaHolder::isInArea(const TVec3f& rParam1, f32 param2) const {
+bool ClipAreaHolder::isInArea(const TVec3f& rParam1) const {
     if (!mIsActive) {
         return false;
     }
@@ -36,7 +36,7 @@ bool ClipAreaHolder::isInArea(const TVec3f& rParam1, f32 param2) const {
             continue;
         }
 
-        if (!getMember(i)->isInArea(rParam1, param2)) {
+        if (!getMember(i)->isInArea(rParam1)) {
             continue;
         }
 
@@ -58,8 +58,8 @@ namespace MR {
         ::getClipAreaHolder()->registerActor(pClipArea);
     }
 
-    bool isInClipArea(const TVec3f& rParam1, f32 param2) {
-        return ::getClipAreaHolder()->isInArea(rParam1, param2);
+    bool isInClipArea(const TVec3f& rParam1) {
+        return ::getClipAreaHolder()->isInArea(rParam1);
     }
 
     bool isActiveClipArea() {

@@ -35,7 +35,7 @@ bool KameckBeamCollisionFilter::isInvalidParts(const CollisionParts* pCollisionP
         return false;
     }
 
-    if (sensorType == 83 /* ATYPE_CLIP_FIELD_MAP_PARTS */ && !MR::isInClipArea(*_4, _8)) {
+    if (sensorType == 83 /* ATYPE_CLIP_FIELD_MAP_PARTS */ && !MR::isInClipArea(*_4)) {
         return true;
     }
 

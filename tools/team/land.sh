@@ -16,16 +16,7 @@ held_by_caller=""
 if [ -n "$LAND_LOCK_HELD" ] && [ "$(cat "$lock/pid" 2>/dev/null)" = "$LAND_LOCK_HELD" ]; then
   held_by_caller=1
 else
-  waited=0
-  until mkdir "$lock" 2>/dev/null; do
-    holder=$(cat "$lock/pid" 2>/dev/null)
-    if [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null; then rm -rf "$lock"; continue; fi
-    [ $waited -eq 0 ] && echo "waiting for landing lock (held by $(cat "$lock/who" 2>/dev/null))" >&2
-    waited=1
-    sleep 5
-  done
-  echo $$ > "$lock/pid"
-  echo "$branch" > "$lock/who"
+  python3 tools/team/landlock.py acquire "$branch" >/dev/null   # fair FIFO queue; holds the lock for this shell ($$)
 fi
 stamps=$(mktemp)
 if [ -n "$held_by_caller" ]; then trap 'rm -f "$stamps"' EXIT INT TERM HUP
@@ -44,6 +35,6 @@ git -C "$main" merge --ff-only -q "$branch"
 # (safe_land.py: skip the separate "build plain main" step when ~/MacioGalaxy2-team/main-report/<main sha>.json exists)
 mkdir -p "$HOME/MacioGalaxy2-team/main-report"
 cp build/SB4E01/report.json "$HOME/MacioGalaxy2-team/main-report/$(git rev-parse HEAD).json" 2>/dev/null || true
-ls -t "$HOME/MacioGalaxy2-team/main-report"/*.json 2>/dev/null | tail -n +31 | xargs rm -f 2>/dev/null || true
+ls -t "$HOME/MacioGalaxy2-team/main-report"/*.json 2>/dev/null | tail -n +9 | xargs rm -f 2>/dev/null || true
 git -C "$main" push -q origin main || echo "push failed (landed locally)" >&2
 echo "landed $branch at $(git rev-parse --short HEAD)"

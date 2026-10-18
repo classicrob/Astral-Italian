@@ -64,6 +64,7 @@ namespace NWC24MessengerSub {
 #if (VERSION == RMGK01)
         /* 0x03 */ bool mIsMsgLedPattern;
 #endif
+        /* 0x04 */ s32 _SMG2_4;  // SMG2: SendTask is 0x30 (SMG1 0x2C); offsets below are SMG1's
         /* 0x04 */ s32 mRetryNo;
         /* 0x08 */ NWC24Err mErr;
         /* 0x0C */ s32 mErrCode;

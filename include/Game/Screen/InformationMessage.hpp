@@ -12,6 +12,7 @@ public:
     virtual void appear();
 
     void appearWithButtonLayout();
+    void setAButtonPos();
     void disappear();
     void setMessage(const char* pMessageId);
     void setMessage(const wchar_t* pMessage);

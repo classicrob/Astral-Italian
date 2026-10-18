@@ -21,7 +21,7 @@ namespace {
 };  // namespace
 
 ParticleDrawExecutor::ParticleDrawExecutor(const EffectSystem* pSystem, bool createAdaptors)
-    : mHost(pSystem), _4(), _8(), _C(), _10(), _14(), _18(), _1C(), _20(true), _21() {
+    : mHost(pSystem), _4(), _8(), _C(), _10(), _14(), _18(), _1C(), _SMG2_20(), _20(true), _21() {
     if (createAdaptors) {
         initDrawAdaptor();
     }

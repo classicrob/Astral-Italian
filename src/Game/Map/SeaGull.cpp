@@ -16,7 +16,7 @@ namespace NrvSeaGull {
 };  // namespace NrvSeaGull
 
 SeaGull::SeaGull(SeaGullGroup* pGroup)
-    : LiveActor("カモメ"), mSeaGullGroup(pGroup), mPointIndex(), mIsReverse(), mTargetUpdateTimer(MR::getRandom(0L, 180L)), mTargetPosition(),
+    : LiveActor("カモメ"), _SMG2_90(), mSeaGullGroup(pGroup), mPointIndex(), mIsReverse(), mTargetUpdateTimer(MR::getRandom(0L, 180L)), mTargetPosition(),
       mUp(0.0f, 1.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), mBankedUp(0.0f, 1.0f, 0.0f), mSide(1.0f, 0.0f, 0.0f), mHoverTimer(), mBankAngle(),
       mGlideTimer(), mLiftTimer(), mChirpTimer() {
 }

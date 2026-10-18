@@ -109,4 +109,5 @@ namespace MR {
 namespace MR {
     s32 getZoneNum();
     const TPos3f* getZonePlacementMtx(s32);
+    s32 getCurrentOrSelectedScenarioNo();
 };  // namespace MR

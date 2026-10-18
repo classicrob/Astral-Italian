@@ -15,6 +15,7 @@ namespace GameSystemFunction {
     void deactivateScreenPreserver();
     bool isOccurredSystemWarning();
     bool isResetProcessing();
+    void setPermissionToCheckWiiRemoteConnect(bool);
     void setResetOperationApplicationReset();
     void setResetOperationReturnToMenu();
     void requestResetGameSystem(bool);

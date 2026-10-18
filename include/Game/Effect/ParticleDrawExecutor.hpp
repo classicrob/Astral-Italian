@@ -31,6 +31,7 @@ public:
     /* 0x14 */ NameObjAdaptor* _14;
     /* 0x18 */ NameObjAdaptor* _18;
     /* 0x1C */ NameObjAdaptor* _1C;
-    /* 0x20 */ bool _20;
-    /* 0x21 */ bool _21;
+    /* 0x20 */ NameObjAdaptor* _SMG2_20;  // SMG2 (world-map draw adaptor?)
+    /* 0x24 */ bool _20;
+    /* 0x25 */ bool _21;
 };

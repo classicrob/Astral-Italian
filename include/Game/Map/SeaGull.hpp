@@ -18,6 +18,7 @@ public:
     void exeHoverRight();
     void updateHover();
 
+    bool _SMG2_90;  // SMG2 (offsets below are SMG1 values)
     /* 0x8C */ SeaGullGroup* mSeaGullGroup;
     /* 0x90 */ s32 mPointIndex;
     /* 0x94 */ bool mIsReverse;

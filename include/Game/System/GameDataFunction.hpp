@@ -51,4 +51,6 @@ namespace GameDataFunction {
     bool isOnGameEventFlagCoinCounterStop();
     bool isOnGameEventFlagCometExplain();
     s32 calcCurrentGrandStarNum();
+    void incCumulativePlayTime();
+    void setCurrentWorldId(u8);
 };  // namespace GameDataFunction

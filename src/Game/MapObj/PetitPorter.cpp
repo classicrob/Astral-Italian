@@ -470,3 +470,6 @@ PetitPorter::~PetitPorter() {}
 PetitPorterWarpPoint::~PetitPorterWarpPoint() {}
 PetitPorterExitPoint::~PetitPorterExitPoint() {}
 PetitPorterMediator::~PetitPorterMediator() {}
+
+// The original translation unit emits this member callback delegator.
+template class JointControlDelegator<PetitPorter>;

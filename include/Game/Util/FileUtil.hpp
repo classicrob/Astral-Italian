@@ -67,6 +67,7 @@ namespace MR {
     void loadAsyncToMainRAM(const char* pFilePath, u8* pDst, JKRHeap* pHeap, JKRDvdRipper::EAllocDirection allocDir);
     JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap, bool);
     void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap);
+    void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap, bool, bool allocFromTail);   // SMG2 0x80025AF0 (3rd arg unused)
     void mountAsyncArchiveByObjectOrLayoutName(const char* pFilePrefix, JKRHeap* pHeap);
     void removeFileConsideringLanguage(const char* pFilePath);
     void removeResourceAndFileHolderIfIsEqualHeap(JKRHeap* pHeap);
@@ -87,3 +88,10 @@ namespace MR {
     void* receiveFile(const char* pFilePath);
     void receiveAllRequestedFile();
 };  // namespace MR
+
+namespace MR {
+    // SMG2 fn_80025C60 (core4 name): resource `pResName` of the mounted archive `pArchivePath`.
+    void* getResourceFromMountedArchive(const char* pArchivePath, const char* pResName);
+    // SMG2 fn_80025CE0 (core4 name)
+    bool isExistResourceInMountedArchive(const char* pArchivePath, const char* pResName);
+}

@@ -33,11 +33,11 @@ public:
     const char* getStageName() const;
     void setClearedPowerStarNum(s32);
     s32 getClearedPowerStarNum() const;
-    void addStarPieceNum(s32);
+    bool addStarPieceNum(s32);
     s32 getClearedStarPieceNum() const;
     void addCoinNum(s32);
     s32 getClearedCoinNum() const;
-    void incPurpleCoinNum();
+    bool incPurpleCoinNum();
     s32 getPurpleCoinNum() const;
     void setCollectTicoCoinSaved();
     void setRestartMarioNo(const JMapIdInfo&);

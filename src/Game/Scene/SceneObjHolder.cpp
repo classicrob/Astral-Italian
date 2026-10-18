@@ -5,6 +5,32 @@ namespace MR {
     NO_INLINE SceneObjHolder* getSceneObjHolder();
 }
 #include "Game/Util.hpp"
+#include "Game/System/MarioFaceShipEventDataHolder.hpp"
+#include "Game/System/MarioFaceShipAttentionConversationDirector.hpp"
+#include "Game/System/MarioFacePlanetSwitch.hpp"
+#include "Game/Screen/TimeStopScreenEffect.hpp"
+#include "Game/Screen/TimeStopScreenCaptureTexture.hpp"
+#include "Game/Screen/SwitchingScreenEffect.hpp"
+#include "Game/Screen/ScoreResult.hpp"
+#include "Game/Screen/PostOutline.hpp"
+#include "Game/Screen/PostFog.hpp"
+#include "Game/Ride/GliBird.hpp"
+#include "Game/NWC24/WiiMessageBoardMailSenderState.hpp"
+#include "Game/NPC/SupportTico.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
+#include "Game/NPC/PostmanEvent.hpp"
+#include "Game/MapObj/SupportPlayDirector.hpp"
+#include "Game/MapObj/SpinCloudBlock.hpp"
+#include "Game/MapObj/SnowStep.hpp"
+#include "Game/MapObj/PetitPorter.hpp"
+#include "Game/MapObj/IceMeteorParts.hpp"
+#include "Game/MapObj/DrillHole.hpp"
+#include "Game/Map/ShadowColorSetter.hpp"
+#include "Game/Map/PauseBlur.hpp"
+#include "Game/LiveActor/ChangeObjHolder.hpp"
+#include "Game/Enemy/Popo.hpp"
+#include "Game/Boss/KoopaJrCastle.hpp"
+#include "Game/Boss/KoopaBattleAccessor.hpp"
 #include "Game/AreaObj/AreaObjContainer.hpp"
 #include "Game/Boss/BossAccessor.hpp"
 #include "Game/Boss/SkeletalFishBabyRailHolder.hpp"
@@ -223,12 +249,14 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new ScreenBlurEffect("画面ブラー");
     case SceneObj_DepthOfFieldBlur:
         return new DepthOfFieldBlur("被写界深度ブラー");
+    case SceneObj_PostFog:
+        return new PostFog("あとづけフォグ");
+    case SceneObj_PostOutline:
+        return new PostOutline("輪郭抽出");
     case SceneObj_SceneWipeHolder:
         return new SceneWipeHolder();
     case SceneObj_PlayerActionGuidance:
         return new PlayerActionGuidance();
-    // TODO: SMG2 id unknown: SceneObj_ScenePlayingResult
-    // return new ScenePlayingResult();
     case SceneObj_LensFlareDirector:
         return new LensFlareDirector();
     case SceneObj_FurDrawManager:
@@ -241,16 +269,24 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new NPCDirector();
     case SceneObj_ResourceShare:
         return new ResourceShare();
-    // TODO: SMG2 id unknown: SceneObj_MoviePlayerSimple
-    // return new MoviePlayerSimple();
     case SceneObj_InformationObserver:
         return new InformationObserver();
     case SceneObj_CenterScreenBlur:
         return new CenterScreenBlur();
-    // TODO: SMG2 id unknown: SceneObj_OdhConverter
-    // return new OdhConverter();
-    // TODO: SMG2 id unknown: SceneObj_CometRetryButton
-    // return new CometRetryButton("コメットリトライボタン");
+    case SceneObj_SwitchingScreenEffect:
+        return new SwitchingScreenEffect("スイッチ切り替えエフェクト");
+    case SceneObj_TimeStopScreenCaptureTexture:
+        return new TimeStopScreenCaptureTexture("時間停止画面取り込みテクスチャ");
+    case SceneObj_TimeStopScreenEffect:
+        return new TimeStopScreenEffect("時間停止画面エフェクト");
+    case SceneObj_ScoreAttackAccessor:
+        return new ScoreAttackAccessor();
+    case SceneObj_ScoreResultKeeper:
+        return new ScoreResultKeeper();
+    case SceneObj_Unk37:
+        return new PostmanEventSystem();
+    case SceneObj_SupportPlayDirector:
+        return new SupportPlayDirector();
     case SceneObj_AllLiveActorGroup:
         return new AllLiveActorGroup();
     case SceneObj_CameraDirector:
@@ -261,14 +297,6 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new BaseMatrixFollowTargetHolder("行列追随先リスト", 256, 256);
     case SceneObj_GameSceneLayoutHolder:
         return new GameSceneLayoutHolder();
-    // TODO: SMG2 id unknown: SceneObj_TripodBossAccesser
-    // return new TripodBossAccesser("三脚ボスアクセサ");
-    // TODO: SMG2 id unknown: SceneObj_KameckBeamHolder
-    // return new KameckBeamHolder();
-    // TODO: SMG2 id unknown: SceneObj_KameckFireBallHolder
-    // return new KameckFireBallHolder();
-    // TODO: SMG2 id unknown: SceneObj_KameckBeamTurtleHolder
-    // return new KameckBeamTurtleHolder();
     case SceneObj_KabokuriFireHolder:
         return new KabokuriFireHolder();
     case SceneObj_TakoHeiInkHolder:
@@ -293,6 +321,8 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new KarikariDirector("カリカリディレクター");
     case SceneObj_ShadowControllerHolder:
         return new ShadowControllerHolder();
+    case SceneObj_ShadowColorSetter:
+        return new ShadowColorSetter("影色セット");
     case SceneObj_ShadowVolumeDrawInit:
         return new ShadowVolumeDrawInit();
     case SceneObj_ShadowSurfaceDrawInit:
@@ -303,16 +333,14 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new PlantLeafDrawInit("描画初期化[植物の葉]");
     case SceneObj_TrapezeRopeDrawInit:
         return new TrapezeRopeDrawInit("空中ブランコロープ描画");
-    // TODO: SMG2 id unknown: SceneObj_VolumeModelDrawInit
-    // return new VolumeModelDrawInit();
     case SceneObj_SpinDriverPathDrawInit:
         return new SpinDriverPathDrawInit();
     case SceneObj_NoteGroup:
         return new NoteGroup();
     case SceneObj_ClipAreaHolder:
         return new ClipAreaHolder("クリップエリアホルダー");
-    // TODO: SMG2 id unknown: SceneObj_ArrowSwitchMultiHolder
-    // return new ArrowSwitchMultiHolder();
+    case SceneObj_SnowStepHolder:
+        return new SnowStepHolder();
     case SceneObj_ClipAreaDropHolder:
         return new ClipAreaDropHolder();
     case SceneObj_FallOutFieldDraw:
@@ -325,6 +353,8 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new MapPartsRailGuideHolder();
     case SceneObj_GCapture:
         return new GCapture("Gキャプチャー");
+    case SceneObj_SupportTico:
+        return new SupportTico("サポートチコ");
     case SceneObj_NameObjExecuteHolder:
         return new NameObjExecuteHolder(4096);
     case SceneObj_ElectricRailHolder:
@@ -333,30 +363,26 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new SpiderThread("クモの巣");
     case SceneObj_QuakeEffectGenerator:
         return new QuakeEffectGenerator();
+    case SceneObj_KoopaBattleAccessor:
+        return new KoopaBattleAccessor();
     case SceneObj_HeatHazeDirector:
         return new HeatHazeDirector("陽炎制御");
-    // TODO: SMG2 id unknown: SceneObj_BlueChipHolder
-    // return new ChipHolder("ブルーチップホルダー", 0);
-    // TODO: SMG2 id unknown: SceneObj_YellowChipHolder
-    // return new ChipHolder("イエローーチップホルダー", 1);
-    // TODO: SMG2 id unknown: SceneObj_BigBubbleHolder
-    // return new BigBubbleHolder("オオアワホルダー");
+    case SceneObj_ChipHolder:
+        return new ChipHolder("イエローーチップホルダー", 1);
+    case SceneObj_SpinCloudBlockGroup:
+        return new SpinCloudBlockGroup();
     case SceneObj_EarthenPipeMediator:
         return new EarthenPipeMediator();
+    case SceneObj_PetitPorterMediator:
+        return new PetitPorterMediator();
     case SceneObj_WaterAreaHolder:
         return new WaterAreaHolder();
     case SceneObj_WaterPlantDrawInit:
         return new WaterPlantDrawInit();
-    // TODO: SMG2 id unknown: SceneObj_OceanHomeMapCtrl
-    // return new OceanHomeMapCtrl();
     case SceneObj_RaceManager:
         return new RaceManager();
     case SceneObj_GroupCheckManager:
         return new GroupCheckManager("属性グループマネージャー");
-    // TODO: SMG2 id unknown: SceneObj_SkeletalFishBabyRailHolder
-    // return new SkeletalFishBabyRailHolder("スカルシャークベビーレール管理");
-    // TODO: SMG2 id unknown: SceneObj_SkeletalFishBossRailHolder
-    // return new SkeletalFishBossRailHolder("スカルシャークボスレール管理");
     case SceneObj_WaterPressureBulletHolder:
         return new WaterPressureBulletHolder("ウォータープレッシャー玉ホルダ−");
     case SceneObj_FirePressureBulletHolder:
@@ -373,24 +399,40 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new GalaxyNamePlateDrawer();
     case SceneObj_CinemaFrame:
         return new CinemaFrame(true);
-    // TODO: SMG2 id unknown: SceneObj_BossAccessor
-    // return new BossAccessor();
-    // TODO: SMG2 id unknown: SceneObj_MiniatureGalaxyHolder
-    // return new MiniatureGalaxyHolder();
     case SceneObj_PlanetMapCreator:
         return new PlanetMapCreator("惑星クリエイタ");
     case SceneObj_WarpPodMgr:
         return new WarpPodMgr("ワープポッド管理局");
     case SceneObj_PriorDrawAirHolder:
         return new PriorDrawAirHolder();
-    // TODO: SMG2 id unknown: SceneObj_GalaxyMapController
-    // return new GalaxyMapController();
-    // TODO: SMG2 id unknown: SceneObj_MoviePlayingSequenceHolder
-    // return new MoviePlayingSequenceHolder("ムービー管理保持");
-    // TODO: SMG2 id unknown: SceneObj_PrologueHolder
-    // return new PrologueHolder("プロローグ保持");
     case SceneObj_StaffRoll:
         return new StaffRoll();
+    case SceneObj_LiveActorGroup:
+        return new LiveActorGroup("マップパーツ", 0x200);
+    case SceneObj_ChangeObjHolder:
+        return new ChangeObjHolder("切り替えオブジェホルダー");
+    case SceneObj_DrillHoleHolder:
+        return new DrillHoleHolder("ドリルの穴保持");
+    case SceneObj_IceMeteorHolder:
+        return new IceMeteorHolder("アイスメテオホルダー");
+    case SceneObj_PopoStickingManager:
+        return new PopoStickingManager("ポポくっつき管理");
+    case SceneObj_KoopaJrCastleAccessor:
+        return new KoopaJrCastleAccessor();
+    case SceneObj_KoopaJrCastleWindHolder:
+        return new KoopaJrCastleWindHolder();
+    case SceneObj_GliBirdTutorial:
+        return new GliBirdTutorial();
+    case SceneObj_PauseBlur:
+        return new PauseBlur("PauseBlur");
+    case SceneObj_MarioFacePlanetSwitch:
+        return new MarioFacePlanetSwitch("マリオ顔惑星スイッチ");
+    case SceneObj_MarioFaceShipAttentionConversationDirector:
+        return new MarioFaceShipAttentionConversationDirector("注目会話デモ指示者");
+    case SceneObj_MarioFaceShipEventDataHolder:
+        return new MarioFaceShipEventDataHolder("マリオ顔惑星イベントデータ所持者");
+    case SceneObj_WiiMessageBoardMailSender:
+        return new WiiMessageBoardMailSender();
     default:
         return nullptr;
     }

@@ -156,6 +156,11 @@ bool MR::isExistPaneCtrl(LayoutActor* pActor, const char* pPaneName) {
     return pActor->getLayoutManager()->isExistPaneCtrl(pPaneName);
 }
 
+// NONMATCHING: target calls the nw4r pane-search helper fn_8002E080 directly; FindPaneByName does the same walk
+bool MR::isExistPane(const LayoutActor* pActor, const char* pPaneName) {
+    return pActor->getLayoutManager()->getPane(nullptr)->FindPaneByName(pPaneName, true) != nullptr;
+}
+
 
 void MR::setInfluencedAlphaToChild(const LayoutActor* pActor) {
     ::setInfluencedAlphaToChild(getRootPane(pActor));
@@ -333,6 +338,12 @@ void MR::copyPaneScale(TVec2f* pScale, const LayoutActor* pActor, const char* pP
 }
 
 
+// NONMATCHING: target calls the out-of-line VEC2 operator= (bl __as__), ours copies inline
+void MR::setPaneScale(const LayoutActor* pActor, const char* pPaneName, f32 x, f32 y) {
+    nw4r::math::VEC2 scale(x, y);
+    pActor->getLayoutManager()->getPane(pPaneName)->mScale = scale;
+}
+
 void MR::setLayoutScaleAtPaneScale(LayoutActor* pActor, const LayoutActor* pFollowActor, const char* pPaneName) {
     TVec2f scale;
     copyPaneScale(&scale, pFollowActor, pPaneName);
@@ -421,6 +432,11 @@ void MR::startPaneAnimAtFirstStep(LayoutActor* pActor, const char* pPaneName, co
 void MR::startAnimAndSetFrameAndStop(LayoutActor* pActor, const char* pAnimName, f32 animFrame, u32 animLayer) {
     startAnim(pActor, pAnimName, animLayer);
     setAnimFrameAndStop(pActor, animFrame, animLayer);
+}
+
+void MR::startPaneAnimAndSetFrameAndStop(LayoutActor* pActor, const char* pPaneName, const char* pAnimName, f32 animFrame, u32 animLayer) {
+    pActor->getLayoutManager()->getPaneCtrl(pPaneName)->start(pAnimName, animLayer);
+    MR::setPaneAnimFrameAndStop(pActor, pPaneName, animFrame, animLayer);
 }
 
 void MR::setAnimFrameAndStop(LayoutActor* pActor, f32 animFrame, u32 animLayer) {
@@ -620,6 +636,15 @@ f32 MR::calcNerveEaseInRate(const LayoutActor* pActor, s32 stepMax) {
 
 f32 MR::calcNerveEaseInValue(const LayoutActor* pActor, s32 stepMin, s32 stepMax, f32 valueMin, f32 valueMax) {
     return getEaseInValue(calcNerveRate(pActor, stepMin, stepMax), valueMin, valueMax, 1.0f);
+}
+
+f32 MR::calcNerveEaseOutValue(const LayoutActor* pActor, s32 stepMax, f32 valueStart, f32 valueEnd) {
+    f32 rate = 1.0f;
+    if (stepMax > 0) {
+        rate = clamp(static_cast< f32 >(pActor->getNerveStep()) / stepMax, 0.0f, 1.0f);
+    }
+
+    return getEaseOutValue(rate, valueStart, valueEnd, 1.0f);
 }
 
 void MR::setNerveAtStep(LayoutActor* pActor, const Nerve* pNerve, s32 step) {

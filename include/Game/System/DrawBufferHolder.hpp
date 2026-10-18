@@ -47,6 +47,6 @@ public:
     void dummy(s32);
 
     /* 0x00 */ MR::AssignableArray< DrawBufferGroup > mBufferGroups;
-    /* 0x08 */ ExecutorList mExecuteLists[3];
-    /* 0x2C */ bool mTableInitialized;
+    /* 0x08 */ ExecutorList mExecuteLists[5];
+    /* 0x44 */ bool mTableInitialized;
 };

@@ -39,6 +39,75 @@ namespace {
 };  // namespace
 
 namespace MR {
+    bool isDestroySceneKeepAllSound() {
+        return AudWrap::getSystem()->mIsDestroySceneKeepAllSound;
+    }
+
+    void onDestroySceneKeepAllSound() {
+        AudSystem* pSystem = AudWrap::getSystem();
+
+        pSystem->mIsDestroySceneKeepAllSound = true;
+    }
+
+    void offDestroySceneKeepAllSound() {
+        AudSystem* pSystem = AudWrap::getSystem();
+
+        pSystem->mIsDestroySceneKeepAllSound = false;
+    }
+
+    void actorSoundMovement(LiveActor* pActor) {
+        ActorSoundHolder* pSoundHolder = pActor->mSoundHolder;
+        if (pSoundHolder == nullptr) {
+            return;
+        }
+
+        AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
+        getMapSoundCodeFoot(pActor);
+        pSoundHolder->update();
+
+        if (pActor->mModelManager != nullptr) {
+            ResourceHolder* pResourceHolder = getResourceHolder(pActor);
+
+            if (pResourceHolder->mMotionResTable->mCount != 0) {
+                f32 frame = getBckCtrl(pActor)->mFrame;
+
+                pSoundObject->update(frame);
+            }
+        }
+
+        pSoundObject->process();
+    }
+
+    void fn_8005A6E0(LiveActor* pActor, const char* pName, bool param3, bool param4, f32 param5, f32 param6) {
+        startBas(pActor, pName, param3, param5, param6);
+    }
+
+    // NONMATCHING: target also reads r6 (2nd bool) and conditionally calls getMapSoundCodeFoot (pure, result unused); callers pass 5 args
+    bool startBas(const LiveActor* pActor, const char* pName, bool param3, f32 param4, f32 param5) {
+        if (pActor->mSoundHolder == nullptr) {
+            return false;
+        }
+
+        ResourceHolder* pResourceHolder = getResourceHolder(pActor);
+        JAUSoundAnimation* pSoundAnimation = nullptr;
+
+        if (pName != nullptr && pResourceHolder->mBasResTable->isExistRes(pName)) {
+            pSoundAnimation = static_cast< JAUSoundAnimation* >(pResourceHolder->mBasResTable->getRes(pName));
+        }
+
+        if (pSoundAnimation != nullptr) {
+            getActorSoundObject(pActor)->startAnimation(pSoundAnimation, param3, param4, param5);
+            return true;
+        }
+
+        getActorSoundObject(pActor)->removeAnimation();
+        return false;
+    }
+
+    void fn_8005A7F0(LiveActor* pActor, f32 param2) {
+        fn_80080130(getActorSoundObject(pActor), param2);
+    }
+
     JAISoundHandle* startSystemSE(JAISoundID id, s32 param2, s32 param3) {
         return AudWrap::getSystemSeObject()->startSoundParam(id, param2, param3);
     }
@@ -49,6 +118,10 @@ namespace MR {
 
     JAISoundHandle* startSystemLevelSE(JAISoundID id, s32 param2, s32 param3) {
         return AudWrap::getSystemSeObject()->startLevelSoundParam(id, param2, param3);
+    }
+
+    JAISoundHandle* fn_8005AF70(JAISoundID id, s32 param2, s32 param3, s32 param4) {
+        return startSoundObjectLevelParam(AudWrap::getSystemSeObject(), id, param2, param3, param4);
     }
 
     void stopSystemSE(const char* pName, u32 param2) {
@@ -69,6 +142,10 @@ namespace MR {
 
     JAISoundHandle* startAtmosphereLevelSE(const char* pName, s32 param2, s32 param3) {
         return AudWrap::getAtmosphereSeObject()->startLevelSoundParam(pName, param2, param3);
+    }
+
+    JAISoundHandle* startAtmosphereSE(JAISoundID id, s32 param2, s32 param3) {
+        return AudWrap::getAtmosphereSeObject()->startSoundParam(id, param2, param3);
     }
 
     JAISoundHandle* startSoundObject(AudSoundObject* pSoundObject, const char* pName) {
@@ -95,6 +172,128 @@ namespace MR {
         }
 
         return pSoundHandle;
+    }
+
+    JAISoundHandle* startSoundObjectParam(AudSoundObject* pSoundObject, JAISoundID id, s32 param3, s32 param4) {
+        return pSoundObject->startSoundParam(id, param3, param4);
+    }
+
+    JAISoundHandle* startSoundObjectLevelParam(AudSoundObject* pSoundObject, const char* pName, s32 param3, s32 param4, s32 param5) {
+        JAISoundHandle* pSoundHandle = pSoundObject->startLevelSoundParam(pName, param3, param4);
+
+        if (param5 > 0 && pSoundHandle != nullptr) {
+            (*pSoundHandle)->updateLifeTime(param5);
+        }
+
+        return pSoundHandle;
+    }
+
+    JAISoundHandle* startSoundObjectLevelParam(AudSoundObject* pSoundObject, JAISoundID id, s32 param3, s32 param4, s32 param5) {
+        JAISoundHandle* pSoundHandle = pSoundObject->startLevelSoundParam(id, param3, param4);
+
+        if (param5 > 0 && pSoundHandle != nullptr) {
+            (*pSoundHandle)->updateLifeTime(param5);
+        }
+
+        return pSoundHandle;
+    }
+
+    // NONMATCHING: target calls non-const getSoundID__21AudSoundNameConverterFPiPCc, ours CFPCc (const decl); 1-2% residual
+    JAISoundHandle* startSound(const LiveActor* pActor, const char* pName, s32 param3, s32 param4) {
+        getMapSoundCodeFoot(pActor);
+
+        if (param3 != -1) {
+            AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
+            JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+
+            return pSoundObject->startSoundParam(id, param3, param4);
+        } else {
+            AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
+            JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+
+            return pSoundObject->startSound(id);
+        }
+    }
+
+    // NONMATCHING: regalloc (id temp stored after the object call in target)
+    JAISoundHandle* startSound(const LiveActor* pActor, JAISoundID id, s32 param3, s32 param4) {
+        getMapSoundCodeFoot(pActor);
+
+        if (param3 != -1) {
+            return getActorSoundObject(pActor)->startSoundParam(id, param3, param4);
+        } else {
+            return getActorSoundObject(pActor)->startSound(id);
+        }
+    }
+
+    JAISoundHandle* startLevelSound(const LiveActor* pActor, const char* pName, s32 param3, s32 param4, s32 param5) {
+        getMapSoundCodeFoot(pActor);
+
+        if (param3 != -1) {
+            return startSoundObjectLevelParam(getActorSoundObject(pActor), pName, param3, param4, param5);
+        } else {
+            return startSoundObjectLevel(getActorSoundObject(pActor), pName, param5);
+        }
+    }
+
+    JAISoundHandle* startLevelSound(const LiveActor* pActor, JAISoundID id, s32 param3, s32 param4, s32 param5) {
+        getMapSoundCodeFoot(pActor);
+
+        if (param3 != -1) {
+            return startSoundObjectLevelParam(getActorSoundObject(pActor), id, param3, param4, param5);
+        } else {
+            return startSoundObjectLevel(getActorSoundObject(pActor), id, param5);
+        }
+    }
+
+    // NONMATCHING: same non-const getSoundID symbol as startSound(char)
+    void stopSound(const LiveActor* pActor, const char* pName, u32 param3) {
+        AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+
+        pSoundObject->stopSound(id, param3);
+
+        s32 count = getActorSoundObjectCount(pActor);
+        for (s32 i = 0; i < count; i++) {
+            AudSoundObject* pChild = getActorSoundObjectAt(pActor, i);
+            JAISoundID childId = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+
+            pChild->stopSound(childId, param3);
+        }
+    }
+
+    void stopSound(const LiveActor* pActor, JAISoundID id, u32 param3) {
+        getActorSoundObject(pActor)->stopSound(id, param3);
+
+        s32 count = getActorSoundObjectCount(pActor);
+        for (s32 i = 0; i < count; i++) {
+            getActorSoundObjectAt(pActor, i)->stopSound(id, param3);
+        }
+    }
+
+    void setSeVersion(const LiveActor* pActor, u32 version) {
+        getActorSoundObject(pActor)->mSeVersion = version;
+
+        s32 count = getActorSoundObjectCount(pActor);
+        for (s32 i = 0; i < count; i++) {
+            getActorSoundObjectAt(pActor, i)->mSeVersion = version;
+        }
+    }
+
+    // NONMATCHING: same non-const getSoundID symbol as startSound(char)
+    void releaseSoundHandle(const LiveActor* pActor, const char* pName) {
+        JAISoundID id = AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+
+        getActorSoundObject(pActor)->releaseHandle(id);
+
+        s32 count = getActorSoundObjectCount(pActor);
+        for (s32 i = 0; i < count; i++) {
+            getActorSoundObjectAt(pActor, i)->releaseHandle(id);
+        }
+    }
+
+    bool fn_8005B860(const LiveActor* pActor, const TVec3f*) {
+        return fn_8022CDC0(pActor->mSoundHolder);
     }
 
 
@@ -160,6 +359,19 @@ namespace MR {
         }
 
         return -1;
+    }
+
+    void setMapSondCodeGravity(const LiveActor* pActor, s32 code) {
+        if (pActor->mSoundHolder == nullptr) {
+            return;
+        }
+
+        getActorSoundObject(pActor)->setMapCodeExtra(code);
+
+        s32 count = getActorSoundObjectCount(pActor);
+        for (s32 i = 0; i < count; i++) {
+            getActorSoundObjectAt(pActor, i)->setMapCodeExtra(code);
+        }
     }
 
 
@@ -245,6 +457,30 @@ namespace MR {
         AudWrap::getSystem()->recoverSeVolumeSet(param1);
     }
 
+    void setSoundField9A4(bool param1) {
+        AudWrap::getSystem()->setField9A4(param1);
+    }
+
+    void setAudioSystemField9A0(s32 param1) {
+        AudWrap::getSystem()->setField9A0(param1);
+    }
+
+    void setAudioEffectType(s32 param1, s32 param2, s32 param3) {
+        MR::getSceneObj< AudEffectDirector >(0x12)->setEffectType(param1, param2, param3);
+    }
+
+    void fn_8005ADA0() {
+        fn_80221920(MR::getSceneObj< AudEffectDirector >(0x12));
+    }
+
+    JAISoundID fn_8005ADD0(const char* pName) {
+        return AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+    }
+
+    void fn_8005AE10(LiveActor* pActor) {
+        fn_8007CC40(getActorSoundObject(pActor));
+    }
+
 
     void startCSSound(const char* pCSName, const char* pSEName, s32 param3) {
         if (AudSpeakerWrap::isPlayable(-1)) {
@@ -321,6 +557,18 @@ namespace MR {
 
     void limitedStarPieceHitSound() {
         limitedSound("SE_OJ_STAR_PIECE_HIT_ENEMY", 1);
+    }
+
+    void startStarGetJingle() {
+        startSystemSE("SE_SY_STAR_GET_JINGLE", -1, -1);
+    }
+
+    void startGrandStarGetJingle() {
+        startSystemSE("SE_SY_GRAND_STAR_GET_JINGLE", -1, -1);
+    }
+
+    void fn_8005BAD0() {
+        AudWrap::getSystem()->registerLimitedSound(JAISoundID(0xF5), 0x258);
     }
 
 

@@ -13,7 +13,7 @@ BossBussunStateRecover::BossBussunStateRecover(BossBussun* pHost) : ActorStateBa
 void BossBussunStateRecover::appear() {
     mIsDead = false;
     setNerve(GET_NERVE(BossBussunStateRecover, BossBussunStateRecoverNrvRecover));
-    fn_80098D20(mHost);
+    mHost->resetAnimScale();
 }
 
 void BossBussunStateRecover::exeRecover() {

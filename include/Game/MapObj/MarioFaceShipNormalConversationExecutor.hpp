@@ -7,10 +7,20 @@ class ActorCameraInfo;
 class MarioFaceShipNormalConversationExecutor : public LiveActor {
 public:
     struct Param {
-        s32 mTalkIndex;
-        u8 _4[0x1C];
-        TalkMessageCtrl* mTalkCtrl;
-        LiveActorGroup* mActorGroup;
+        Param()
+            : mTalkIndex(-1), mFlagType(0), mStageName(0), mOrStageName(0), mScenarioNo(-1), mOrScenarioNo(-1), mPowerStarNum(-1),
+              mWatchedEventNo(-1), mTalkCtrl(0), mActorGroup(0) {}
+
+        /* 0x00 */ s32 mTalkIndex;
+        /* 0x04 */ const char* mFlagType;
+        /* 0x08 */ const char* mStageName;
+        /* 0x0C */ const char* mOrStageName;
+        /* 0x10 */ s32 mScenarioNo;
+        /* 0x14 */ s32 mOrScenarioNo;
+        /* 0x18 */ s32 mPowerStarNum;
+        /* 0x1C */ s32 mWatchedEventNo;
+        /* 0x20 */ TalkMessageCtrl* mTalkCtrl;
+        /* 0x24 */ LiveActorGroup* mActorGroup;
     };
     MarioFaceShipNormalConversationExecutor(const char*);
     virtual ~MarioFaceShipNormalConversationExecutor();

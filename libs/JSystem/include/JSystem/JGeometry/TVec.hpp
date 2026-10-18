@@ -436,7 +436,11 @@ namespace JGeometry {
         }
 
         template < typename T >
+#ifdef JGEOMETRY_VEC3_SET_NOINLINE
+        void set(const TVec3< T >& rVec) NO_INLINE {
+#else
         void set(const TVec3< T >& rVec) {
+#endif
             x = rVec.x;
             y = rVec.y;
             z = rVec.z;
@@ -502,7 +506,11 @@ namespace JGeometry {
             return ret;
         }
 
+#ifdef JGEOMETRY_VEC3_ASSIGN_SUB_NOINLINE
+        void operator-=(const TVec3& op) NO_INLINE {
+#else
         void operator-=(const TVec3& op) {
+#endif
             sub(op);
         }
 

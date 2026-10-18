@@ -3,6 +3,7 @@
 #include "Game/LiveActor/LodCtrl.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/Map/OceanHomeMapCtrl.hpp"
+#include "Game/Map/PlanetMapFunction.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -32,7 +33,35 @@ namespace {
 };  // namespace
 
 PlanetMap::PlanetMap(const char* pName, const char* pModelName)
-    : LiveActor(pName), mModelName(pModelName), _90(0.0f, 0.0f, 0.0f), mLODCtrl(), mBloomModel(), mWaterModel(), mIndirectModel(), _B0() {
+    : LiveActor(pName), mModelName(pModelName), _90(0.0f, 0.0f, 0.0f), mLODCtrl(), mBloomModel(), mWaterModel(), mIndirectModel(), mEffectNum() {
+}
+
+void PlanetMap::connectToScene() {
+    MR::connectToScenePlanet(this);
+}
+
+void PlanetMap::initDemoActionAppear(const JMapInfoIter& rIter) {
+    if (MR::tryRegisterDemoCast(this, rIter) && MR::isRegisteredDemoActionAppear(this)) {
+        makeActorDead();
+    }
+}
+
+void PlanetMap::initSwitchBListener(const JMapInfoIter& rIter) {
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
+        MR::listenStageSwitchOnOffB(this, MR::Functor(this, &PlanetMap::hide), MR::Functor(this, &PlanetMap::show));
+    }
+}
+
+void PlanetMap::hide() {
+    MR::hideModel(this);
+}
+
+void PlanetMap::show() {
+    MR::showModel(this);
+}
+
+void PlanetMap::initMyEffect() {
+    PlanetMapFunction::verifyEffects(this, &mEffectNum, mModelName, 16);
 }
 
 void PlanetMap::init(const JMapInfoIter& rIter) {
@@ -47,8 +76,9 @@ void PlanetMap::init(const JMapInfoIter& rIter) {
 
     MR::initDefaultPos(this, rIter);
     initModel(mModelName, rIter);
-    MR::connectToScenePlanet(this);
+    connectToScene();
     initEffectKeeper(0, nullptr, false);
+    initMyEffect();
     initHitSensor(1);
     MR::addBodyMessageSensorMapObj(this);
 
@@ -63,28 +93,21 @@ void PlanetMap::init(const JMapInfoIter& rIter) {
 
     MR::tryCreateCollisionMoveLimit(this, getSensor("body"));
     MR::tryCreateCollisionWaterSurface(this, getSensor("body"));
-    initSound(4, "PlanetMap", nullptr, TVec3f(0.0f));
+    initSound(4, mModelName, nullptr, TVec3f(0.0f));
 
     if (MR::isExistAnim(this, mModelName)) {
-        MR::startAllAnim(this, mModelName);
-    } else if (!MR::isExistEffectTexMtx(MR::getJ3DModelData(this))) {
+        MR::startAction(this, mModelName);
+    } else if (!MR::isExistEffectTexMtx(this)) {
         calcAnim();
         MR::offCalcAnim(this);
     }
 
     initClipping(rIter);
-    OceanHomeMapFunction::tryEntryOceanHomeMap(this);
-    makeActorAppeared();
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    }
-
-    if (MR::tryRegisterDemoCast(this, rIter) && MR::isRegisteredDemoActionAppear(this)) {
-        makeActorDead();
-    }
-
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchSyncAppear(this, rIter);
+    initDemoActionAppear(rIter);
+    MR::initFurPlanet(this);
+    MR::useStageSwitchAwake(this, rIter);
+    initSwitchBListener(rIter);
 }
 
 void PlanetMap::makeActorAppeared() {
@@ -172,21 +195,11 @@ void PlanetMap::endClipped() {
 }
 
 bool PlanetMap::tryEmitMyEffect() {
-    if (!MR::isRegisteredEffect(this, mModelName)) {
-        return false;
-    }
-
-    MR::emitEffect(this, mModelName);
-    return true;
+    return PlanetMapFunction::tryEmitEffects(this, mModelName, mEffectNum);
 }
 
 bool PlanetMap::tryDeleteMyEffect() {
-    if (!MR::isRegisteredEffect(this, mModelName)) {
-        return false;
-    }
-
-    MR::deleteEffect(this, mModelName);
-    return true;
+    return PlanetMapFunction::tryForceDeleteEffects(this, mModelName, mEffectNum);
 }
 
 FurPlanetMap::FurPlanetMap(const char* pName) : PlanetMap(pName, nullptr) {
@@ -217,4 +230,12 @@ PlanetMapAnimLow::~PlanetMapAnimLow() {
 
 f32 PlanetMap::getFarClipDistance() const {
     return -1.0f;
+}
+
+PlanetMapFarClippable::PlanetMapFarClippable(const char* pName) : PlanetMap(pName, nullptr), mFarClipDistance(50.0f) {
+}
+
+void PlanetMapFarClippable::init(const JMapInfoIter& rIter) {
+    MR::getJMapInfoArg3NoInit(rIter, &mFarClipDistance);
+    PlanetMap::init(rIter);
 }

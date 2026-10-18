@@ -12,6 +12,15 @@
 #include "Game/System/GameEventFlag.hpp"
 #include "Game/System/GameEventFlagTable.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/GameSequence.hpp"
+#include "Game/System/PlayResultInStageHolder.hpp"
+#include "Game/System/ScenarioDataParser.hpp"
+#include "Game/NPC/PostmanEvent.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
+#include "Game/Util/AreaObjUtil.hpp"
+#include "Game/Util/ObjUtil.hpp"
+#include "Game/Util/ScreenUtil.hpp"
+#include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/EventUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
@@ -43,6 +52,14 @@ namespace MR {
 
 
 
+    bool isOnGameEventFlagNormalEnding() {
+        return GameDataFunction::isOnGameEventFlag("ノーマルエンディング実行");
+    }
+
+    bool isOnGameEventFlag120PowerStarsEnding() {
+        return GameDataFunction::isOnGameEventFlag("スター120個エンディング実行");
+    }
+
     bool isPreventDisplayInformationMessage() {
         if (isStageStaffRoll()) {
             return true;
@@ -51,8 +68,129 @@ namespace MR {
         return GameSequenceFunction::isPadMode2();
     }
 
+    void incPlayerAndTryScenarioMissNum(bool isGameOver) {
+        GameDataFunction::incPlayerMissNum();
+
+        if (!isGameOver && isProductGameScene() && !isStageMarioFaceShip()) {
+            if (isInAreaObj("DreamerDeadCountArea", *getPlayerPos())) {
+                s32 scenarioNo = getCurrentScenarioNo();
+                GameDataFunction::incScenarioMissNum(getCurrentStageName(), scenarioNo);
+            }
+        }
+
+        if (!GameSequenceFunction::isResultMiss()) {
+            GameDataFunction::updateLuigiIntrusionCounter();
+        }
+    }
+
     s32 getPlayerLeft() {
         return GameDataFunction::getPlayerLeft();
+    }
+
+    void addPlayerLeft(int lives) {
+        requestOneUpBoard(lives);
+
+        if (!GameSequenceFunction::isPadModeDreamer()) {
+            GameDataFunction::addPlayerLeft(lives);
+        }
+    }
+
+    void decPlayerLeft() {
+        if (!GameSequenceFunction::isPadModeDreamer() && !isStageMarioFaceShip()) {
+            GameDataFunction::addPlayerLeft(-1);
+            incPlayerAndTryScenarioMissNum(false);
+        }
+    }
+
+    void incPlayerGameOverNum() {
+        GameDataFunction::incPlayerGameOverNum();
+        incPlayerAndTryScenarioMissNum(true);
+    }
+
+    bool isPlayerLuigi() {
+        return GameDataFunction::isLuigiPlayer();
+    }
+
+    s32 getStarPieceNum() {
+        bool isStockedPlace = isStageMarioFaceShipOrWorldMap() || isStageNoPauseMenuStars();
+        if (isStockedPlace) {
+            return GameDataFunction::getStockedStarPieceNum();
+        }
+
+        return GameSequenceFunction::getPlayResultInStageHolder()->getClearedStarPieceNum();
+    }
+
+    void addStarPiece(int num) {
+        if (num > 0) {
+            ScoreAttackFunction::score10PointsMultiply(num);
+        }
+
+        if (!GameSequenceFunction::isPadModeDreamer()) {
+            bool isStockedPlace = isStageMarioFaceShipOrWorldMap() || isStageNoPauseMenuStars();
+            if (isStockedPlace) {
+                GameDataFunction::tryOnGameEventFlagStarPieceCounterStop(num);
+            } else if (GameSequenceFunction::getPlayResultInStageHolder()->addStarPieceNum(num)) {
+                requestOneUpBoard(1);
+
+                if (!GameSequenceFunction::isPadModeDreamer()) {
+                    GameDataFunction::addPlayerLeft(1);
+                }
+            }
+        }
+    }
+
+    void incCoin(int num, LiveActor* pHost) {
+        ScoreAttackFunction::score100PointsMultiply(pHost, num);
+
+        if (!GameSequenceFunction::isPadModeDreamer()) {
+            bool isStockedPlace = isStageMarioFaceShipOrWorldMap() || isStageNoPauseMenuStars();
+            if (isStockedPlace) {
+                GameDataFunction::tryOnGameEventFlagCoinCounterStop(num);
+            } else {
+                GameSequenceFunction::getPlayResultInStageHolder()->addCoinNum(num);
+            }
+
+            incPlayerLife(num);
+        }
+    }
+
+    void decCoin(int num) {
+        bool isStockedPlace = isStageMarioFaceShipOrWorldMap() || isStageNoPauseMenuStars();
+        if (isStockedPlace) {
+            GameDataFunction::tryOnGameEventFlagCoinCounterStop(-num);
+        } else {
+            GameSequenceFunction::getPlayResultInStageHolder()->addCoinNum(-num);
+        }
+    }
+
+    s32 getCoinNum() {
+        bool isStockedPlace = isStageMarioFaceShipOrWorldMap() || isStageNoPauseMenuStars();
+        if (isStockedPlace) {
+            return GameDataFunction::getStockedCoinNum();
+        }
+
+        return GameSequenceFunction::getPlayResultInStageHolder()->getClearedCoinNum();
+    }
+
+    void incPurpleCoin() {
+        bool isReached = GameSequenceFunction::getPlayResultInStageHolder()->incPurpleCoinNum();
+        if (isReached) {
+            EventFunction::stopCometEvent();
+        }
+
+        if (!isStagePurpleCoinsMoreThan100(getCurrentStageName())) {
+            if (isReached) {
+                requestAppearPowerStarCoin100();
+            }
+        }
+    }
+
+    s32 getPurpleCoinNum() {
+        return GameSequenceFunction::getPlayResultInStageHolder()->getPurpleCoinNum();
+    }
+
+    bool isPurpleCoinNum100() {
+        return GameSequenceFunction::getPlayResultInStageHolder()->getPurpleCoinNum() >= 100;
     }
 
 
@@ -167,6 +305,54 @@ namespace MR {
         return GameDataFunction::isOnGameEventFlag("フライングマリオ初変身");
     }
 
+    bool isOnGameEventFlagInvincibleMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("無敵マリオ初変身");
+    }
+
+
+    bool isOnGameEventFlagRockMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("ゴロ岩マリオ初変身");
+    }
+
+    bool isOnGameEventFlagCloudMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("雲マリオ初変身");
+    }
+
+    bool isOnGameEventFlagDrillAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("ドリル初ゲット");
+    }
+
+    bool isOnGameEventFlagLifeUpAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("ライフアップキノコ解説");
+    }
+
+    bool isOnGameEventFlagOneUpAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("１ＵＰキノコ解説");
+    }
 
     bool isOnGameEventFlagTamakoroTutorialAtFirst() {
         if (isPreventDisplayInformationMessage()) {
@@ -174,6 +360,46 @@ namespace MR {
         }
 
         return GameDataFunction::isOnGameEventFlag("タマコロチュートリアル");
+    }
+
+    bool isOnGameEventFlagGliBirdTutorialAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("グライバードチュートリアル");
+    }
+
+    bool isOnGameEventFlagYoshiFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("ヨッシー出会い");
+    }
+
+    bool isOnGameEventFlagCometMedalAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("コメットメダル解説");
+    }
+
+    bool isOnGameEventFlagSupportTicoAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("２Ｐサポート解説");
+    }
+
+    bool isOnGameEventFlagKinopioBankAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
+        return GameDataFunction::isOnGameEventFlag("銀行屋キノピオ初回");
     }
 
 
@@ -215,6 +441,22 @@ namespace MR {
 
 
 
+
+    bool setupAlreadyDoneFlag(int* pOutIndex, const char* pName, const JMapInfoIter& rIter, s32 useless) {
+        return GameSequenceFunction::getGameSequenceNameEntryTable()->setupAlreadyDoneEntry(pOutIndex, pName, rIter);
+    }
+
+    void onAlreadyDoneFlag(const char* pName) {
+        GameSequenceFunction::getGameSequenceNameEntryTable()->onAlreadyDoneEntry(pName);
+    }
+
+    void updateAlreadyDoneFlag(int index) {
+        GameSequenceFunction::getGameSequenceNameEntryTable()->updateAlreadyDoneEntry(index);
+    }
+
+    bool isOnAlreadyDoneFlag(const char* pName) {
+        return GameSequenceFunction::getGameSequenceNameEntryTable()->isOnAlreadyDoneEntry(pName);
+    }
 
     bool isAlreadyVisitedCurrentStageAndScenario() {
         return GameDataFunction::isOnGalaxyScenarioFlagAlreadyVisited(MR::getCurrentStageName(), MR::getCurrentScenarioNo());
@@ -433,22 +675,58 @@ namespace MR {
         }
     }
 
+    void explainRockMarioIfAtFirst() {
+        if (!isOnGameEventFlagRockMarioAtFirst()) {
+            InformationObserverFunction::explainRock();
+        }
+    }
+
+    void explainCloudMarioIfAtFirst() {
+        if (!isOnGameEventFlagCloudMarioAtFirst()) {
+            InformationObserverFunction::explainCloud();
+        }
+    }
+
+    void explainDrillIfAtFirst() {
+        if (!isOnGameEventFlagDrillAtFirst()) {
+            InformationObserverFunction::explainDrill();
+        }
+    }
+
     void explainInvincibleMarioIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("無敵マリオ初変身")) {
+        if (!isOnGameEventFlagInvincibleMarioAtFirst()) {
             InformationObserverFunction::explainInvincible();
         }
     }
 
     void explainLifeUpIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("ライフアップキノコ解説")) {
+        if (!isOnGameEventFlagLifeUpAtFirst()) {
             InformationObserverFunction::explainLifeUp();
         }
     }
 
     void explainOneUpIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("１ＵＰキノコ解説")) {
+        if (!isOnGameEventFlagOneUpAtFirst()) {
             InformationObserverFunction::explainOneUp();
         }
+    }
+
+    bool explainYoshiIfAtFirst(LiveActor* pHost) {
+        if (isOnGameEventFlagYoshiFirst()) {
+            return false;
+        }
+
+        InformationObserverFunction::explainYoshi(pHost);
+        return true;
+    }
+
+    bool explainCometMedalIfAtFirst(LiveActor* pHost) {
+        if (isOnGameEventFlagCometMedalAtFirst()) {
+            return false;
+        }
+
+        InformationObserverFunction::explainCometMedal(pHost);
+        return true;
     }
 
 
@@ -459,9 +737,57 @@ namespace MR {
 
 
 
+    void onGameEventFlagRockMarioAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("ゴロ岩マリオ初変身");
+        }
+    }
+
+    void onGameEventFlagCloudMarioAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("雲マリオ初変身");
+        }
+    }
+
+    void onGameEventFlagDrillAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("ドリル初ゲット");
+        }
+    }
+
     void onGameEventFlagTamakoroTutorialAtFirst() {
         if (!isPreventDisplayInformationMessage()) {
             GameDataFunction::onGameEventFlag("タマコロチュートリアル");
+        }
+    }
+
+    void onGameEventFlagGliBirdTutorialAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("グライバードチュートリアル");
+        }
+    }
+
+    void onGameEventFlagYoshiAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("ヨッシー出会い");
+        }
+    }
+
+    void onGameEventFlagCometMedalAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("コメットメダル解説");
+        }
+    }
+
+    void onGameEventFlagSupportTicoAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("２Ｐサポート解説");
+        }
+    }
+
+    void onGameEventFlagKinopioBankAtFirst() {
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("銀行屋キノピオ初回");
         }
     }
 
@@ -511,6 +837,21 @@ namespace MR {
         return accessor.isOwnBronzeStar(starId);
     }
 
+    s32 getPowerStarNum() {
+        return GameDataFunction::calcCurrentPowerStarNum();
+    }
+
+    bool hasAllNormalPowerStarWithoutComet(const char* pGalaxyName) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pGalaxyName);
+        for (s32 i = 1; i <= accessor.getNormalPowerStarNumWithoutComet(); i++) {
+            if (!GameDataFunction::hasPowerStar(pGalaxyName, i)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     bool hasPowerStarInCurrentStage(s32 starId) {
         return makeCurrentGalaxyStatusAccessor().hasPowerStar(starId);
     }
@@ -553,6 +894,80 @@ namespace MR {
         return accessor.isCompletedWithGreen();
     }
 
+    const JMapIdInfo* getRestartMarioNo() {
+        return GameSequenceFunction::getPlayResultInStageHolder()->mRestartMarioNo;
+    }
+
+    void setRestartMarioNo(const JMapIdInfo& rIdInfo) {
+        GameSequenceFunction::getPlayResultInStageHolder()->setRestartMarioNo(rIdInfo);
+    }
+
+    bool isGhostLuigiOpenInCurrentStage() {
+        s32 scenarioNo = getCurrentOrSelectedScenarioNo();
+        return GameSequenceFunction::checkAppearGhostLuigi(getCurrentStageName(), scenarioNo);
+    }
+
+    // PLACEHOLDER(core): fn_80025260 family, names from WorldMapModel callers (postman task ids 6/7, 8/9, 10/11/12)
+    bool isPostmanTaskInProgressAtStage(const char* pStageName, s32 taskId) {
+        if (isEqualString(pStageName, PostmanEvent::getTaskStage(taskId))) {
+            return PostmanEvent::isTaskInProgress(taskId);
+        }
+
+        return false;
+    }
+
+    bool isPostmanTaskInProgressAtStageGroup6To7(const char* pStageName) {
+        if (isPostmanTaskInProgressAtStage(pStageName, 6)) {
+            return true;
+        }
+
+        if (isPostmanTaskInProgressAtStage(pStageName, 7)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isPostmanTaskInProgressAtStageGroup8To9(const char* pStageName) {
+        if (isPostmanTaskInProgressAtStage(pStageName, 8)) {
+            return true;
+        }
+
+        if (isPostmanTaskInProgressAtStage(pStageName, 9)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isPostmanTaskInProgressAtStageGroup10To12(const char* pStageName) {
+        if (isPostmanTaskInProgressAtStage(pStageName, 10)) {
+            return true;
+        }
+
+        if (isPostmanTaskInProgressAtStage(pStageName, 11)) {
+            return true;
+        }
+
+        if (isPostmanTaskInProgressAtStage(pStageName, 12)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isIslandFleetGalaxy1FirstTime() {
+        if (!isEqualStageName("IslandFleetGalaxy")) {
+            return false;
+        }
+
+        if (getCurrentScenarioNo() != 1) {
+            return false;
+        }
+
+        return GameDataFunction::calcCurrentPowerStarNum() == 0;
+    }
+
     bool isGalaxyPurpleCometAppearInCurrentStage() {
         return EventFunction::isStartCometEvent("Purple");
     }
@@ -567,6 +982,71 @@ namespace MR {
 
     bool isGalaxyCometEvent() {
         return EventFunction::isCometEvent();
+    }
+
+    void stopGalaxyCometEvent() {
+        EventFunction::stopCometEvent();
+    }
+
+    s32 getGalaxyStarTotalNum(const char* pGalaxyName) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pGalaxyName);
+        if (accessor.getPowerStarNum() == 0) {
+            return 0;
+        }
+
+        return GameDataFunction::isOnGalaxyFlagComet(pGalaxyName);
+    }
+
+    bool isAnyGalaxyAvailableWithStars() {
+        if (GameDataFunction::isOnGameEventFlagCometExplain()) {
+            return false;
+        }
+
+        ScenarioDataIter iter = makeBeginScenarioDataIter();
+        while (!iter.isEnd()) {
+            GalaxyStatusAccessor accessor = iter.makeAccessor();
+            if (getGalaxyStarTotalNum(accessor.getName())) {
+                return true;
+            }
+
+            iter.goNext();
+        }
+
+        return false;
+    }
+
+    bool isPowerStarNumWorld3Enough() {
+        if (GameDataFunction::isOnLuigiIntrusivelyStart()) {
+            return false;
+        }
+
+        if (GameSequenceFunction::isClearedGrandStarVsKoopaLv3GalaxyAtResult()) {
+            return false;
+        }
+
+        return GameDataFunction::calcNormalPowerStarNumFromWorld(3) >= 3;
+    }
+
+    bool isPendingNormalEndingDemo() {
+        bool isPending = false;
+        if (GameDataFunction::isOnGameEventFlag("ノーマルエンディング実行")) {
+            if (!GameDataFunction::isOnGameEventFlag("ノーマルエンディング後デモ")) {
+                isPending = true;
+            }
+        }
+
+        return isPending;
+    }
+
+    bool isPending120StarEndingDemo() {
+        bool isPending = false;
+        if (GameDataFunction::isOnGameEventFlag("スター120個エンディング実行")) {
+            if (!GameDataFunction::isOnGameEventFlag("スター120個エンディング後デモ")) {
+                isPending = true;
+            }
+        }
+
+        return isPending;
     }
 
     s32 registerStorageSpinDriverPathDrawRange(const NameObj* pParam1, const JMapInfoIter& rIter, int param3, f32* pParam4) {

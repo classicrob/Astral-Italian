@@ -2,6 +2,8 @@
 
 #include "Game/Demo/DemoExecutor.hpp"
 
+class ActionSoundKeeper;
+
 class DemoSoundInfo {
 public:
     /// @brief Creates a new `DemoSoundInfo`.
@@ -10,8 +12,10 @@ public:
     /* 0x00 */ const char* mPartName;
     /* 0x04 */ const char* mBgm;
     /* 0x08 */ const char* mSystemSe;
-    /* 0x0C */ bool mReturnBgm;
-    /* 0x10 */ s32 mBgmWipeoutFrame;
+    /* 0x0C */ const char* mActionSe;
+    /* 0x10 */ bool mReturnBgm;
+    /* 0x14 */ s32 mBgmWipeoutFrame;
+    /* 0x18 */ s32 mAllSoundStopFrame;
 };
 
 class DemoSoundKeeper : public DemoSheetKeeperBase, public DemoSheetKeeperInfoHolder< DemoSoundInfo > {
@@ -28,4 +32,6 @@ public:
 
     void addInfo(const char* pPartName);
     bool isPermitBgmChange();
+
+    /* 0x18 */ ActionSoundKeeper* mActionSoundKeeper;
 };

@@ -11,7 +11,11 @@ public:
     GameSequenceMarioFaceShip(GameSequenceInGame* pHost);
     virtual ~GameSequenceMarioFaceShip();
 
+    virtual void init();
+    virtual void appear();
+
     PlayResultMarioFaceShipHolder* getPlayResultHolder() const;
+    void exeStart();  // fn_804B4810
 
     /* 0x10 */ GameSequenceMarioFaceShipEvent* mEvent;
     /* 0x14 */ PlayResultMarioFaceShipHolder* mPlayResultHolder;

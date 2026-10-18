@@ -21,7 +21,7 @@ namespace MR {
     void setExterminationWoodBoxFlag();
     void clearExterminationWoodBoxFlag();
     bool isPostmanSpecialLetter(s32);
-    void incPlayerAndTryScenarioMissNum();
+    void incPlayerAndTryScenarioMissNum(bool isGameOver);
     s32 getPlayerLeft();
     void addPlayerLeft(int lives);
     void decPlayerLeft();
@@ -50,8 +50,8 @@ namespace MR {
     void explainDrillIfAtFirst();
     void explainLifeUpIfAtFirst();
     void explainOneUpIfAtFirst();
-    void explainYoshiIfAtFirst(LiveActor* pHost);
-    void explainCometMedalIfAtFirst(LiveActor* pHost);
+    bool explainYoshiIfAtFirst(LiveActor* pHost);
+    bool explainCometMedalIfAtFirst(LiveActor* pHost);
     bool explainMarioFacePlanetAtFirst(LiveActor* pHost);
 
     void onGameEventFlagBeeMarioAtFirst();
@@ -87,7 +87,7 @@ namespace MR {
     bool isOnGameEventFlagOneUpAtFirst();
     bool isOnGameEventFlagTamakoroTutorialAtFirst();
     bool isOnGameEventFlagGliBirdTutorialAtFirst();
-    bool isOnGameEventFlagYoshiAtFirst();
+    bool isOnGameEventFlagYoshiFirst();
     bool isOnGameEventFlagCometMedalAtFirst();
     bool isOnGameEventFlagSupportTicoAtFirst();
     bool isOnGameEventFlagKinopioBankAtFirst();
@@ -139,6 +139,7 @@ namespace MR {
     void startGalaxyCometEvent();
     void endGalaxyCometEvent();
     bool isGalaxyCometEvent();
+    void stopGalaxyCometEvent();  // PLACEHOLDER(core): name inferred from symbol order (0x80024F50 between isGalaxyCometEvent and getGalaxyStarTotalNum); confirm
 
     // various unknown functions
 
@@ -148,7 +149,7 @@ namespace MR {
     const JMapIdInfo* getRestartMarioNo();
     void setRestartMarioNo(const JMapIdInfo& rIdInfo);
 
-    bool isGhostLuigiOpenInStage();
+    bool isGhostLuigiOpenInCurrentStage();
 
     // various PostmanEvent functions
 
@@ -305,8 +306,24 @@ namespace MR {
 namespace MR { bool isPendingNormalEndingDemo(); bool isPending120StarEndingDemo(); }
 
 namespace MR {
+    // PLACEHOLDER(core): unnamed fn_80024FB0 / fn_80025030 / fn_80025260 / fn_800252C0 / fn_80025320 / fn_80025380; names are guesses from callers, resolve when the owners are named
+    bool isAnyGalaxyAvailableWithStars();
+    bool isPowerStarNumWorld3Enough();
+    bool isPostmanTaskInProgressAtStage(const char* pStageName, s32 taskId);
+    bool isPostmanTaskInProgressAtStageGroup6To7(const char* pStageName);
+    bool isPostmanTaskInProgressAtStageGroup8To9(const char* pStageName);
+    bool isPostmanTaskInProgressAtStageGroup10To12(const char* pStageName);
+};  // namespace MR
+
+namespace MR {
+    // SMG2 fn_80024FB0 (core4 name): comet-explain flag is off and some galaxy of the scenario data holds stars.
+    bool isCometExplainPendingWithStarGalaxy();
+    // SMG2 fn_80025030 (core4 name): not Luigi-intrusive start, Koopa Lv3 not cleared at result and 3 normal stars of World 3.
+    bool isWorld3NormalStarsGatheredForFaceShip();
+}
+
+namespace MR {
     // PLACEHOLDER(m1): event predicate name unknown; resolve when MarioFaceShip event semantics are recovered.
-    bool fn_804C24E0();
 }
 
 namespace MR {

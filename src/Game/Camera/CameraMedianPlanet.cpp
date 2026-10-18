@@ -26,7 +26,7 @@ CameraMedianPlanet::~CameraMedianPlanet() {
 
 CameraMedianPlanet::CameraMedianPlanet(const char* pName)
     : Camera(pName), mString(), mDistMin(1200.0f), mDistMax(3000.0f), mAngleMin(MR::pi() / 4.0f), mPeepAngle(), mDist(2000.0f),
-      mAngleConstrainRate(::sAngleConstrainRate), mPartialRate(::sPartialRate) {
+      mAngleConstrainRate(::sAngleConstrainRate), mPartialRate(::sPartialRate), _74(0.0f), _78(0.0f) {
 }
 
 void CameraMedianPlanet::reset() {

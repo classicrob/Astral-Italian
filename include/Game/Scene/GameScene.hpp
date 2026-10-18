@@ -65,4 +65,6 @@ public:
     /* 0x24 */ GameStageClearSequence* mStageClearSeq;
     /* 0x28 */ bool mDraw3D;
     /* 0x29 */ u8 _29;
+    /* 0x2A */ u8 _2A;
+    /* 0x2B */ u8 _2B[0x5];
 };

@@ -12,8 +12,15 @@ namespace {
 };  // namespace
 
 CameraParallel::CameraParallel(const char* pName)
-    : Camera(pName), mAngleX(), mAngleY(), mDist(::sDistance), mIsEnableValid(), mIsRounding(), mRoundTarget(), mRoundAngle(), mRoundAddition() {
+    : Camera(pName), mAngleX(), mAngleY(), mDist(::sDistance), mIsEnableValid(), mIsRounding(), mRoundTarget(), mRoundAngle(), mRoundAddition(),
+      _CC() {
     createVPanObj();
+    for (s32 i = 0; i < 7; i++) {
+        _62[i] = false;
+        _70[i] = 0.0f;
+        _90[i] = 0.0f;
+        _B0[i] = 0.0f;
+    }
 }
 
 void CameraParallel::reset() {

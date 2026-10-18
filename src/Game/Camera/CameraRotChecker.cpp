@@ -8,6 +8,7 @@ namespace {
 
 CameraRotChecker::CameraRotChecker() {
     mMtx.identity();
+    mThreshold = ::sThreshold;
 }
 
 void CameraRotChecker::update() {
@@ -15,7 +16,7 @@ void CameraRotChecker::update() {
     mtx.concat(MR::getCameraViewMtx(), mMtx);
 
     TVec3f axis;
-    mIsRotatingHard = MR::abs(mtx.getRotate(axis)) > ::sThreshold;
+    mIsRotatingHard = MR::abs(mtx.getRotate(axis)) > mThreshold;
 
     mMtx.set(MR::getCameraInvViewMtx());
 }

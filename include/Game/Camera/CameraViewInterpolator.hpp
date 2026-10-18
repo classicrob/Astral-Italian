@@ -48,6 +48,7 @@ public:
     /* 0x88 */ bool mIsInterpolatingNearlyEnd;
     /* 0x89 */ bool mIsInterpolating;
     /* 0x8A */ bool mIsCorrectErpPositionOn;
+    /* 0x8B */ bool mIsTargetOffsetOn;
     /* 0x8C */ u32 mCalcState;
     /* 0x90 */ const CameraTargetObj* mTargetObj;
     /* 0x94 */ Binder* mBinder;
@@ -55,4 +56,5 @@ public:
     /* 0xA4 */ TVec3f mGravity;
     /* 0xB0 */ bool mIsCollided;
     /* 0xB4 */ TVec3f mLErpOffset;  // TODO: is this name correct?
+    /* 0xC0 */ bool _C0;
 };

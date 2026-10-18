@@ -56,8 +56,6 @@ void NANDErrorSequence::startRemoveFile() {
     appear();
     resetParam();
 
-    _15 = false;
-
     setNerve(GET_NERVE_ANON(NANDErrorSequenceRemoveConfirm));
 }
 
@@ -70,13 +68,11 @@ void NANDErrorSequence::startCheckEnableToCreate() {
 bool NANDErrorSequence::tryLessBlockOrInode(u32 answer) {
     const char* pSystemMessageId = nullptr;
 
-    mAnswer = answer;
-
-    if ((mAnswer & (NAND_CHECK_HOME_INSINODE | NAND_CHECK_SYS_INSINODE)) != 0) {
+    if ((answer & (NAND_CHECK_HOME_INSINODE | NAND_CHECK_SYS_INSINODE)) != 0) {
         pSystemMessageId = "NAND_03";
     }
 
-    if ((mAnswer & (NAND_CHECK_HOME_INSSPACE | NAND_CHECK_SYS_INSSPACE)) != 0) {
+    if ((answer & (NAND_CHECK_HOME_INSSPACE | NAND_CHECK_SYS_INSSPACE)) != 0) {
         pSystemMessageId = "NAND_02";
     }
 

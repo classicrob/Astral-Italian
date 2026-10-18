@@ -288,3 +288,10 @@ public:
     static void requestMovementOn(MR::MovementType);
     static void requestMovementOff(MR::MovementType);
 };
+
+namespace MR {
+    void movementWorldMapMini();
+    void calcAnimWorldMapMini();
+    void entryWorldMapMini();
+    void drawWorldMapMini();
+}

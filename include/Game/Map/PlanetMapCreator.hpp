@@ -46,16 +46,6 @@ public:
     /* 0x10 */ s32 mTableCount;
 };
 
-class PlanetMapFarClippable : public PlanetMap {
-public:
-    PlanetMapFarClippable(const char* pName) : PlanetMap(pName) {
-    }
-
-    f32 getFarClipDistance() const {
-        return 50.0f;
-    }
-};
-
 class PlanetMapCreatorFunction {
 public:
     static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&, const char*);

@@ -15,6 +15,8 @@ public:
     f32 getVolume() const;
     void volDown(bool);
     void interruptedByOther();
+    void volDownWithLevel(s32, bool);
+    void resetInterrupted();
     void moveAuxVolume(f32, s32);
     void moveNoteFairyVolume(f32, s32);
 

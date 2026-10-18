@@ -46,3 +46,5 @@ public:
     /* 0xD8 */ s32 mTimer;
     /* 0xDC */ s32 mDamageTimer;
 };
+
+void appearPattanByJump(LiveActor*, const TVec3f*);

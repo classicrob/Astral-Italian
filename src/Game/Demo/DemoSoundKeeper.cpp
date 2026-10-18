@@ -3,13 +3,15 @@
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/EventUtil.hpp"
 #include "Game/Util/JMapInfo.hpp"
+#include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
+#include "Game/Util/SystemUtil.hpp"
 
-DemoSoundInfo::DemoSoundInfo() : mPartName(), mBgm(""), mSystemSe(""), mReturnBgm(), mBgmWipeoutFrame(-1) {
+DemoSoundInfo::DemoSoundInfo() : mPartName(), mBgm(""), mSystemSe(""), mActionSe(""), mReturnBgm(), mBgmWipeoutFrame(-1), mAllSoundStopFrame(-1) {
 }
 
-DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(pExecutor) {
+DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(pExecutor), mActionSoundKeeper() {
     JMapInfo* pMap = nullptr;
     const DemoExecutor* pSheetExecutor = mExecutor;
     const s32& count = DemoFunction::createSheetParser(pSheetExecutor, getTypeString(), &pMap);
@@ -20,8 +22,12 @@ DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(
         pMap->getValue(i, "PartName", &info.mPartName);
         pMap->getValue(i, "Bgm", &info.mBgm);
         pMap->getValue(i, "SystemSe", &info.mSystemSe);
+        pMap->getValue(i, "ActionSe", &info.mActionSe);
         pMap->getValue(i, "ReturnBgm", reinterpret_cast< s32* >(&info.mReturnBgm));
         pMap->getValue(i, "BgmWipeoutFrame", &info.mBgmWipeoutFrame);
+        if (MR::hasCsvItem(pMap, "AllSoundStopFrame")) {
+            pMap->getValue(i, "AllSoundStopFrame", &info.mAllSoundStopFrame);
+        }
         mInfo.push_back(info);
     }
 }
@@ -38,6 +44,10 @@ void DemoSoundKeeper::addInfo(const char* pPartName) {
 
 void DemoSoundKeeper::executeType(const DemoSoundInfo* pInfo) {
     if (MR::isDemoPartFirstStep(pInfo->mPartName)) {
+        if (pInfo->mAllSoundStopFrame >= 0 && isPermitBgmChange()) {
+            MR::stopAllSound(pInfo->mAllSoundStopFrame);
+        }
+
         if (pInfo->mBgmWipeoutFrame >= 0 && isPermitBgmChange()) {
             MR::stopStageBGM(pInfo->mBgmWipeoutFrame);
         }

@@ -36,10 +36,12 @@ public:
 
     void updateController();
 
-    /* 0x0C */ MR::Vector< MR::AssignableArray< ShadowController* > > _C;
-    /* 0x18 */ MR::Vector< MR::AssignableArray< ShadowController* > > _18;
-    /* 0x24 */ bool _24;
-    /* 0x28 */ f32 mFarClip;
+    /* 0x14 */ MR::Vector< MR::AssignableArray< ShadowController* > > _C;
+    /* 0x20 */ MR::Vector< MR::AssignableArray< ShadowController* > > _18;
+    /* 0x2C */ f32 mFarClip;
+    /* 0x30 */ f32 mDefaultFarClip;
+    /* 0x34 */ bool mIsFarClipEnabled;
+    /* 0x35 */ bool mIsDefaultFarClipEnabled;
 };
 
 class ShadowController {

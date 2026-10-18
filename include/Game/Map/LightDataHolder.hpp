@@ -50,5 +50,4 @@ public:
 
     /* 0x00 */ s32 mLightCount;
     /* 0x04 */ AreaLightInfo* mLights;
-    /* 0x08 */ LightInfoCoin _8;
 };

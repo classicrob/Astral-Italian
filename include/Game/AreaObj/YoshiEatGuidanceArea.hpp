@@ -1,10 +1,7 @@
 #pragma once
 
 #include "Game/AreaObj/AreaObj.hpp"
-
-namespace MR {
-    void requestYoshiEatGuidance(bool);
-};  // namespace MR
+#include "Game/Util/StarPointerUtil.hpp"
 
 class YoshiEatGuidanceArea : public AreaObj {
 public:

@@ -128,7 +128,7 @@ namespace MR {
 
     void calcSensorDirection(TVec3f* pDirection, const HitSensor* pFromSensor, const HitSensor* pToSensor);
     void calcSensorDirectionNormalize(TVec3f* pDirection, const HitSensor* pFromSensor, const HitSensor* pToSensor);
-    void calcSensorDistanceGravity(f32* pDistance, f32* pDot, const HitSensor* pSensorA, const HitSensor* pSensorB, const TVec3f& rGravity);
+    void calcSensorDistanceGravity(f32* pDistance, f32* pDot, const HitSensor* pSensorA, const HitSensor* pSensorB, TVec3f& rGravity);
     f32 calcSensorDistance(const HitSensor* pSensorA, const HitSensor* pSensorB);
     void calcSensorHorizonNormalize(TVec3f* pHorizon, const TVec3f& rGravity, const HitSensor* pFromSensor, const HitSensor* pToSensor);
 

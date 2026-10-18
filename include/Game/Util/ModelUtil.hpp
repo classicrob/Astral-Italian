@@ -52,6 +52,11 @@ namespace MR {
     bool isNormalTexMtx(J3DMaterial*);
     bool isUseTexMtx(J3DMaterial*, u32);
     bool isExistEffectTexMtx(J3DModelData*);
+    bool isExistEffectTexMtx(LiveActor*);
+    bool isExistProjMapTexMtx(J3DModelData*);
+    bool isExistProjMapTexMtx(LiveActor*);
+    u16 getTextureNum(const LiveActor*);
+    u16 getMaterialNum(const LiveActor*);
     bool isUseTexMtxEnvMap(J3DMaterial*);
     bool isUseTexMtxProjMap(J3DMaterial*);
     void setShapeVcdVatCmdSelf(J3DShape*);

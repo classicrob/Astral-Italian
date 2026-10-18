@@ -3,6 +3,7 @@
 #include "Game/Util/Array.hpp"
 #include <revolution/types.h>
 
+class J3DFrameCtrl;
 class ResourceHolder;
 class XanimePlayer;
 
@@ -26,6 +27,8 @@ public:
 class BckCtrlFunction {
 public:
     static void reflectBckCtrlData(const BckCtrlData&, XanimePlayer*);
+    // PLACEHOLDER(core): asm fn_80069CD0 (auto_03_80069CD0_text.s): copies BckCtrlData fields into a J3DFrameCtrl; rename fn_80069CD0 -> this when owner unit is ported
+    static void reflectBckCtrlDataToFrameCtrl(const BckCtrlData&, J3DFrameCtrl*);
 };
 
 class BckCtrl {

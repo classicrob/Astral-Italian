@@ -61,7 +61,7 @@ namespace NrvGameScene {
 };  // namespace NrvGameScene
 
 GameScene::GameScene()
-    : Scene("GameScene"), _14(0), mScenarioCamera(nullptr), mPauseCtrl(nullptr), mPauseSeq(nullptr), mStageClearSeq(nullptr), mDraw3D(true), _29(1) {
+    : Scene("GameScene"), _14(0), mScenarioCamera(nullptr), mPauseCtrl(nullptr), mPauseSeq(nullptr), mStageClearSeq(nullptr), mDraw3D(true), _29(0), _2A(0) {
 }
 
 GameScene::~GameScene() {
@@ -306,15 +306,10 @@ void GameScene::startStagePlayRetry() {
 
 
 bool GameScene::isDrawMirror() const {
-    if (!MR::isExistMirrorCamera()) {
-        return false;
+    if (MR::isExistMirrorCamera()) {
+        return MR::isPlayerInAreaObj("MirrorArea");
     }
-
-    if (isPlayMovie()) {
-        return false;
-    }
-
-    return MR::isPlayerInAreaObj("MirrorArea");
+    return false;
 }
 
 void GameScene::stageClear() {

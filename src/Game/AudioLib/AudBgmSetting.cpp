@@ -288,6 +288,15 @@ namespace AudBgmSetting {
         return &cMuteState[cBgmSettingInfo[soundID.getWaveID()].mMuteStateIndex][track];
     }
 
+    // NONMATCHING: the target looks up the info through fn_80083890 and reads the mute state index directly
+    bool hasMuteState(JAISoundID soundID) {
+        if (soundID.getSectionID() != 1) {
+            return false;
+        }
+
+        return getMuteState(soundID, 0) != nullptr;
+    }
+
     u16 getExtraChordNum(JAISoundID soundID, s32 track) {
         if (cBgmSettingInfo[soundID.getWaveID()].mExtraChordIndex < 0) {
             return -1;

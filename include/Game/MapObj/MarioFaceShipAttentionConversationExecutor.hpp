@@ -5,21 +5,34 @@
 class ActorCameraInfo;
 class LiveActorGroup;
 class Meister;
+struct MarioFaceShipEventCast;
 class TalkMessageCtrl;
 
 class MarioFaceShipAttentionConversationExecutor : public LiveActor {
 public:
     /// Parameter block passed to initConversation (layout from the target asm).
     struct Param {
+        Param()
+            : mTalkIndex(-1), mIsArg4(false), mIsArg5(false), mKind(0), mStageName(0), mOrStageName(0), mScenarioNo(-1), mOrScenarioNo(-1),
+              mPowerStarNum(-1), mWatchedEventNo(-1), mTargetActor(0), mCameraInfo(0), mTalkCtrl(0), mDemoIndex(0), mActorGroup(0), mCast(0) {}
+
         /* 0x00 */ s32 mTalkIndex;
         /* 0x04 */ bool mIsArg4;
         /* 0x05 */ bool mIsArg5;
-        /* 0x06 */ u8 _06[0x1E];
+        /* 0x06 */ u8 _06[2];
+        /* 0x08 */ const char* mKind;
+        /* 0x0C */ const char* mStageName;
+        /* 0x10 */ const char* mOrStageName;
+        /* 0x14 */ s32 mScenarioNo;
+        /* 0x18 */ s32 mOrScenarioNo;
+        /* 0x1C */ s32 mPowerStarNum;
+        /* 0x20 */ s32 mWatchedEventNo;
         /* 0x24 */ LiveActor* mTargetActor;
         /* 0x28 */ ActorCameraInfo* mCameraInfo;
         /* 0x2C */ TalkMessageCtrl* mTalkCtrl;
         /* 0x30 */ s32 mDemoIndex;
         /* 0x34 */ LiveActorGroup* mActorGroup;
+        /* 0x38 */ MarioFaceShipEventCast* mCast;
     };
 
     MarioFaceShipAttentionConversationExecutor(const char*);

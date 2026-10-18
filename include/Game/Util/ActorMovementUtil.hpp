@@ -128,8 +128,7 @@ namespace MR {
     bool reboundVelocityFromEachCollision(LiveActor*, f32, f32, f32, f32);
     bool reboundVelocityFromCollision(LiveActor*, f32 = 0.0f, f32 = 0.0f, f32 = 1.0f);
     void zeroVelocity(LiveActor*);
-    // PLACEHOLDER(core): provisional name of fn_8000F500 (|velocity| >= limit); resolve when the ActorMovementUtil unit names it
-    s32 isVelocityGreaterEqual(const LiveActor*, f32);
+    bool isVelocityGreaterEqual(const LiveActor*, f32);
     void setVelocity(LiveActor*, const TVec3f&);
     void addVelocity(LiveActor*, const TVec3f&);
     void scaleVelocity(LiveActor*, f32);
@@ -157,7 +156,7 @@ namespace MR {
     void turnDirectionToPlayerDegree(const LiveActor*, TVec3f*, f32);
     bool turnDirectionToPlayerDegreeHorizon(const LiveActor*, TVec3f*, f32);
     void turnDirectionFromTargetDegree(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
-    void turnDirectionFromTargetDegreeHorizon(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
+    bool turnDirectionFromTargetDegreeHorizon(const LiveActor*, TVec3f*, const TVec3f&, f32) NO_INLINE;
     void turnDirectionFromPlayerDegree(const LiveActor*, TVec3f*, f32);
     void turnDirectionFromPlayerDegreeHorizon(const LiveActor*, TVec3f*, f32);
     f32 turnDirectionAndGravityH(TQuat4f*, const LiveActor*, const TVec3f&, f32, f32);
@@ -190,11 +189,23 @@ namespace MR {
     void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
     void fn_80012B80(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
     void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f*);
+    void fn_8000E5E0(TVec3f*, const LiveActor*, const TVec3f*);
+    void fn_8000E760(TVec3f*, const LiveActor*, const TVec3f&, f32, f32);
+    void fn_8000F5D0(TVec3f*, TVec3f*, const TPos3f*);
+    void fn_8000F650(TVec3f*, TVec3f*, const TPos3f*);
+    void fn_8000FA30(LiveActor*, const TVec3f*);
     void fn_80010CB0(LiveActor*, const TVec3f&, f32);
     void fn_8000F880(LiveActor*, TVec3f*);
     void fn_80010600(ActorPoseTQ*, LiveActor*, f32, f32);
-    void fn_800137F0(LiveActor*, TVec3f*, const TVec3f*, f32, f32, f32, f32, f32);
+    void fn_800137F0(LiveActor*, TVec3f*, bool*, f32, f32, f32, f32, f32);
+    void fn_80013880(LiveActor*, TVec3f*, const f32*);
     void fn_80013220(const LiveActor*, TVec3f*, f32);
+    void fn_80010DB0(LiveActor*, const TVec3f&, f32);
+    void fn_80010E30(LiveActor*, const TVec3f&, f32, f32, f32, f32);
+    void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
+    void fn_800127A0(LiveActor*, const TVec3f*, const f32*);
+    bool fn_80012BA0(LiveActor*, HitSensor*, HitSensor*, f32);
+    void fn_80012EB0(LiveActor*, TVec3f*, f32);
     f32 fn_80012450(const LiveActor*);
     void fn_80011F80(LiveActor*, f32, f32);
     void fn_80011180(LiveActor*, const TVec3f&, f32);
@@ -222,6 +233,9 @@ namespace MR {
     void calcRotate(LiveActor*, const TVec3f&, f32);
     // SMG2 unnamed helpers used by the MameMuimui family (named by address; lead renames the symbols).
     void fn_80010180(TQuat4f*, LiveActor*, HitSensor*, HitSensor*);
+    void fn_80010130(ActorPoseTQ*, const LiveActor*);
+    void fn_80010AD0(TVec3f*, LiveActor*, const TVec3f&, f32);
+    void fn_80010D10(LiveActor*, const TVec3f&, f32);
     void fn_80010270(TQuat4f*, TVec3f*, LiveActor*);
     void fn_800104F0(TQuat4f*, LiveActor*, TVec3f*, f32, f32);
     void fn_80010910(TVec3f* pDst, const TVec3f& rDir, f32 scale);  // pDst = normalizeOrZero(rDir) * scale

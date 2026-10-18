@@ -16,7 +16,10 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void calcAnim();
     virtual void control();
-    virtual void initModel(const char*);
+    virtual void getModelName(const char**, const JMapInfoIter&);  // 0x70
+    virtual void initModel(const char*);                           // 0x74
+    virtual void updateWait() {                                    // 0x78
+    }
 
     void appearSpaceInner();
     void disappearSpaceInner();
@@ -24,8 +27,7 @@ public:
     void exeWait();
     void exeChange();
 
-    // PLACEHOLDER(core): SMG2 Sky 0x90 field, zeroed in ctor, not touched by any Sky fn; resolve when identified
-    /* 0x90 */ void* _90;
+    /* 0x90 */ const char* mModelName;  ///< Optional model name override; if null the object name from the JMap is used.
     /* 0x94 */ SpaceInner* mSpaceInner;
     /* 0x98 */ MirrorReflectionModel* mReflectionModel;
 };

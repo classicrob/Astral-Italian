@@ -126,6 +126,8 @@ namespace MR {
                                         const MR::FunctorBase& rFunctorOff);
 
     ResourceHolder* createAndAddResourceHolder(const char* pObjName);
+    ResourceHolder* createAndAddResourceHolderStationed(const char* pResource);
+    ResTIMG* loadTexFromArcHelper(const char* pArchive, const char* pFile, void* pHolderOut);
     const ResTIMG* getTextureResource(const ResourceHolder*, const char*);
     // more ResourceHolder stuff...
     bool isExistFileInArc(const ResourceHolder* pResArc, const char* pPathFormat, ...);

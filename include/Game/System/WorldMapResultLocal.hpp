@@ -430,3 +430,5 @@ s32 getResultEndStep() NO_INLINE;
 // TU02 helpers (take the nerve rate in f1)
 bool updateTicoRoad(WorldMapResultCommand*, f32);
 bool updateRouteExtend(WorldMapResultCommand*, s32, WorldMapResultRoute*, s32, f32);
+
+void calcRoutePos(TVec3f*, const TVec3f&, const TVec3f&, s32, s32);

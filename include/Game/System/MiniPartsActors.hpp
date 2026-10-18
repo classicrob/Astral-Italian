@@ -20,8 +20,6 @@ public:
 
     bool isUsable() const;
     bool isUsableStrict() const;
-
-    /* 0x90 */ u8 _90[4];
 };
 
 /// Warp point between worlds (vtable __vt__18MiniWorldWarpPoint, 0x9C bytes).
@@ -82,6 +80,8 @@ public:
 /// Star piece mine (vtable __vt__17MiniStarPieceMine, 0x9C bytes).
 class MiniStarPieceMine : public LiveActor {
 public:
+    void setGalaxyFlag();
+    bool isGalaxyFlag() const;
     MiniStarPieceMine(s32 worldId, s32 pointIndex);
 
     virtual ~MiniStarPieceMine();

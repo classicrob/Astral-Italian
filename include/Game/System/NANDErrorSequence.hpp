@@ -49,8 +49,4 @@ private:
     /* 0x10 */ const char* mSystemMessageId;
     /* 0x14 */ u32 mResult;
     /* 0x18 */ SysInfoWindow* mSysInfoWindow;
-    // SMG1 only (not in SMG2's layout; kept so the old code compiles)
-    bool _14;
-    bool _15;
-    u32 mAnswer;
 };

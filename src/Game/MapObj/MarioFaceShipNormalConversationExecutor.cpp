@@ -6,6 +6,7 @@
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/NPC/Meister.hpp"
 #include "Game/Util.hpp"
+#include "Game/System/MarioFaceShipEventDataHolder.hpp"
 #include "Game/Util/EventUtil.hpp"
 
 namespace {
@@ -91,7 +92,7 @@ void MarioFaceShipNormalConversationExecutor::initConversation(Param* param, Mei
     mActorGroup = param->mActorGroup;
     mMeister = meister;
     mTalkCtrl = param->mTalkCtrl;
-    mIsNpcIntro = MR::fn_804C24E0();
+    mIsNpcIntro = MarioFaceShipEventDataHolder::hasEventAtResultStatic();
     mIsItemPlanet = MR::hasMarioFaceShipItemEventAtResult();
 }
 bool MarioFaceShipNormalConversationExecutor::tryStartDemo() {

@@ -18,6 +18,7 @@ public:
     void setMuteState(u8, s32, bool);
     void update();
     void muteIfVolumeZero();
+    void moveVolume(f32, s32);
 
     /* 0x00 */ s32 mTrackNo;
     /* 0x04 */ JAISoundHandle* mHandle;

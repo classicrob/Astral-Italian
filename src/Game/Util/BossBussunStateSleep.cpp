@@ -13,16 +13,16 @@ BossBussunStateSleep::BossBussunStateSleep(BossBussun* pHost) : ActorStateBase< 
 
 void BossBussunStateSleep::appear() {
     mIsDead = false;
-    fn_80098D10(mHost);
+    mHost->resetBodyOffset();
     setNerve(GET_NERVE(BossBussunStateSleep, BossBussunStateSleepNrvSleep));
 }
 
 bool BossBussunStateSleep::tryWake() {
-    if (isNerve(GET_NERVE(BossBussunStateSleep, BossBussunStateSleepNrvSleepReaction))) {
-        return false;
+    if (!isNerve(GET_NERVE(BossBussunStateSleep, BossBussunStateSleepNrvSleepReaction))) {
+        setNerve(GET_NERVE(BossBussunStateSleep, BossBussunStateSleepNrvSleepReaction));
+        return true;
     }
-    setNerve(GET_NERVE(BossBussunStateSleep, BossBussunStateSleepNrvSleepReaction));
-    return true;
+    return false;
 }
 
 bool BossBussunStateSleep::receiveOtherMsg(u32 msg) {

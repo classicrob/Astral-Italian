@@ -93,6 +93,7 @@ namespace MR {
     void startStarPointerModeSphereSelectorOnReaction(void*);
     void startStarPointerModeEnding(void*);
     void startStarPointerModeCommandStream(void*);
+    void startStarPointerModePictureBook(void*);
     void startStarPointerMode1PInvalid2PValid(void*);
     void endStarPointerMode(void*);
     void requestStarPointerModeErrorWindow(void*);
@@ -100,6 +101,7 @@ namespace MR {
     void requestStarPointerModePictureBook(void*);
     void requestStarPointerModePauseMenu(void*);
     void requestStarPointerModeBlueStarReady(void*);
+    void requestStarPointerModeCommandStream(void*);
     void requestStarPointerModeBigBubble(void*, const TVec3f&);
     bool isStarPointerModeBlueStarReady();
     bool isStarPointerModeStarPieceTarget();
@@ -117,6 +119,11 @@ namespace MR {
     bool requestBigBubbleGuidance();
     bool requestMarioLauncherGuidance();
     bool requestFileSelectGuidance();
+    bool requestTicoFatGuidance();
+    bool requestYoshiEatGuidance(bool);
+    bool requestYoshiCaptureGuidance();
+    // PLACEHOLDER(core): target fn_80422710 (unnamed, auto_03_804219F4) = getMarioHolder()->getMarioActor()->fn_803B9810()->fn_8041FA40(); owner YoshiTongueAction; resolve when that unit is named
+    bool isYoshiTongueReadyToEat();
     bool requestFileSelectCopyGuidance();
     bool requestStarPieceLectureGuidance();
 };  // namespace MR
@@ -142,6 +149,7 @@ namespace StarPointerUtil {
     void setConnectionMovePositionRight2Way(const char*, const char*);
     void setFirstMovePosition(const char*);
     void setLastMovePosition(const char*);
+    void setFirstAndLastMovePosition(const char*, const char*);
 }
 
 namespace MR {

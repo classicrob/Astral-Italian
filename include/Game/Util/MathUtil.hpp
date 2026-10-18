@@ -118,6 +118,7 @@ namespace MR {
     f32 getEaseInOutValue(f32 x, f32 start, f32 end, f32 max);
 
     f32 getParabolaValue(f32, f32);
+    f32 getTwoStageEaseOutValue(f32 x, f32 start, f32 length, f32 end);
     f32 getScaleWithReactionValueZeroToOne(f32 x, f32 rate, f32 amplitude);
     f32 getConvergeVibrationValue(f32 x, f32 start, f32 end, f32 dampScale, f32 rate);
     f32 getReduceVibrationValue(f32 x, f32 time, f32 base, f32 amplitude, f32 freq);

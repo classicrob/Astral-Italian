@@ -15,6 +15,7 @@ public:
 class MiniMeister : public LiveActor {
 public:
     MiniMeister();
+    MiniMeister(MiniMeisterOwner*);
     virtual ~MiniMeister();
     virtual void init(const JMapInfoIter&);
     virtual void appear();

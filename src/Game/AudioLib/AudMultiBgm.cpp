@@ -52,8 +52,10 @@ bool AudMultiBgm::isPreparedPlay() {
     return isPrepared();
 }
 
-void AudMultiBgm::playAfterPrepared() {
+s32 AudMultiBgm::playAfterPrepared() {
+    bool wasLocked = mIsLocked;
     mIsLocked = false;
+    return wasLocked;
 }
 
 void AudMultiBgm::sendToSyncStream() {
@@ -151,6 +153,37 @@ bool AudMultiBgm::moveVolumeForNoteFairy(f32 volume, u32 time) {
     return false;
 }
 
+bool AudMultiBgm::moveTempo(f32, s32) {
+    return false;
+}
+
+void AudMultiBgm::initTrackMuteState(JAISoundID soundID) {
+    AudSoundInfo* info = AudWrap::getSoundInfo();
+    bool isRhythm = info->isRhythmBgm(soundID);
+
+    for (s32 i = 0; i < mNumTracks; i++) {
+        if (i != 0 || !isRhythm) {
+            mTrackController[i].setMuteState(AudFader::FadeState_FadeIn, 0, false);
+        }
+    }
+
+    mMuteStateIndex = 0;
+}
+
+void AudMultiBgm::tryChangeTrackMuteState(s32 track, s32 time) {
+    if (AudBgmSetting::getMuteState(mRhythmHandle->getID(), track) != nullptr) {
+        changeTrackMuteState(track, time);
+    }
+}
+
+s32 AudMultiBgm::getMuteStateIndex() const {
+    if (AudBgmSetting::hasMuteState(mRhythmHandle->getID())) {
+        return mMuteStateIndex;
+    }
+
+    return -1;
+}
+
 void AudMultiBgm::changeTrackMuteState(s32 track, s32 time) {
     if (!mRhythmHandle.isSoundAttached()) {
         return;
@@ -215,6 +248,10 @@ void AudMultiBgm::changeTrackMuteState(s32 track, s32 time) {
             AudWrap::getSystem()->getChordInfo()->loadChordInfo(extraChordNum, true);
         }
     }
+}
+
+void AudMultiBgm::moveTrackVolume(f32 volume, s32 track, s32 time) {
+    mTrackController[track].moveVolume(volume, time);
 }
 
 JAISoundHandle* AudMultiBgm::getHandle() {

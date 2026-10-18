@@ -60,12 +60,7 @@ JAISoundHandle* AudBgmMgr::start(s32 bgmIndex, u32 soundID, bool lock, s32) {
 
     mBgm[bgmIndex]->setVolumeController(&mVolumeController[bgmIndex]);
 
-    JAISoundHandle* handle;
-    if ((soundID & 0x10000) == 0) {
-        handle = mBgm[bgmIndex]->start(soundID, lock);
-    } else {
-        handle = mBgm[bgmIndex]->start(soundID & 0xFEFEFFFF, lock);
-    }
+    JAISoundHandle* handle = mBgm[bgmIndex]->start(soundID, lock);
 
     if (handle != nullptr) {
         mLastBGM[bgmIndex] = mCurrentBGM[bgmIndex];

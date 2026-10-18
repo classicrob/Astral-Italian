@@ -38,6 +38,7 @@ namespace MR {
     bool isExistMapCollisionExceptActor(const TVec3f&, const TVec3f&, const LiveActor*);
     bool isExistMapCollisionExceptSensor(const TVec3f&, const TVec3f&, const LiveActor*);
     bool checkStrikePointToMap(const TVec3f&, HitInfo*);
+    bool checkStrikePointToMapExceptSensor(const TVec3f&, const HitSensor*, HitInfo*);
     bool checkStrikeBallToMap(const TVec3f&, f32);
     bool calcMapGround(const TVec3f&, TVec3f*, f32);
     bool calcMapGroundUpper(TVec3f*, const LiveActor*);
@@ -72,6 +73,7 @@ namespace MR {
     s32 getFloorCodeIndex(const Triangle*);
     s32 getWallCodeIndex(const Triangle*);
     bool isGroundCodeWaterIter(const JMapInfoIter&);
+    bool isGroundCodeIceIter(const JMapInfoIter&);
     bool isGroundCodeDeath(const Triangle*);
     bool isGroundCodeDamage(const Triangle*);
     bool isGroundCodeNoDig(const Triangle*);
@@ -101,6 +103,14 @@ namespace MR {
     // SMG2 DashYoshi-step variants of the map queries (unnamed in the target; named by address)
     bool fn_80037E80(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
     bool fn_80038060(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
+    // PLACEHOLDER(core): unnamed sensor-type line hit (wrapper of getFirstPolyOnLineCategoryWithSensorType); resolve when its owner names it
+    bool fn_80038020(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, u32);
+    // PLACEHOLDER(core): unnamed ball-hit helper shared with Ride/GliBird.cpp; resolve when its owner names it
+    s32 fn_80038770(TVec3f*, TVec3f*, HitSensor**, const TVec3f&, bool*, bool*, f32);
+    // PLACEHOLDER(core): unnamed ray-cast helper (same decl as BellyDragonTU02.cpp); resolve when its owner names it
+    s32 fn_80038870(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
+    // PLACEHOLDER(core): unnamed gravity-probe helper (takes LiveActor, pos out); resolve when its owner names it
+    bool fn_800389C0(TVec3f*, LiveActor*);
     bool fn_800382E0(const TVec3f&, const TVec3f&);
     bool fn_800384C0(const TVec3f&, const TVec3f&, const LiveActor*);
     bool fn_800386E0(const TVec3f&, HitInfo*);
@@ -126,5 +136,10 @@ namespace Collision {
     s32 checkStrikeBallToDashYoshiStepAndMap(const TVec3f&, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeBallToDashYoshiStepAndMapWithThickness(const TVec3f&, f32, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     const HitInfo* fn_8003B110(u32);  // SMG2 DashYoshi-step variant of getStrikeInfoMap (unnamed; by address)
+    s32 checkStrikePointToDashYoshiStepAndMap(const TVec3f&, HitInfo*);
     u32 getStrikeInfoNumMap();
 };  // namespace Collision
+
+namespace MR {
+    s32 calcMapHitAlongDirection(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
+}

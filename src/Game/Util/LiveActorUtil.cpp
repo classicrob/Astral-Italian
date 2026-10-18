@@ -2,17 +2,28 @@
 #include "Game/Animation/BckCtrl.hpp"
 #include "Game/Animation/XanimeCore.hpp"
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
+#include "Game/LiveActor/ActorActionKeeper.hpp"
 #include "Game/LiveActor/ActorAnimKeeper.hpp"
+#include "Game/LiveActor/ActorHitReactionCtrl.hpp"
+#include "Game/LiveActor/ActorPoseTQ.hpp"
 #include "Game/LiveActor/ActorLightCtrl.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/ClippingActorHolder.hpp"
 #include "Game/LiveActor/ClippingDirector.hpp"
+#include "Game/LiveActor/AllLiveActorGroup.hpp"
+#include "Game/LiveActor/CollisionObj.hpp"
+#include "Game/LiveActor/BreakModel.hpp"
+#include "Game/LiveActor/DemoObj.hpp"
+#include "Game/LiveActor/RailObj.hpp"
+#include "Game/Util/FootPrint.hpp"
+#include "Game/Util/JMapLinkInfo.hpp"
 #include "Game/LiveActor/DisplayListMaker.hpp"
 #include "Game/LiveActor/EffectKeeper.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
 #include "Game/LiveActor/LiveActorGroupArray.hpp"
+#include "Game/LiveActor/MaterialCtrl.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
 #include "Game/LiveActor/MirrorActor.hpp"
 #include "Game/LiveActor/MirrorCamera.hpp"
@@ -356,6 +367,50 @@ namespace MR {
         return ::createSubModel(pActor, "Water", pMtx, 9);
     }
 
+    CollisionObj* createCollisionObj(LiveActor* pHost, const char* pCollisionName, HitSensor* pSensor, MtxPtr pMtx) {
+        CollisionObj* pCollisionObj = new CollisionObj(pHost, "コリジョンオブジェ", pCollisionName, pSensor, pMtx, -2);
+        pCollisionObj->initWithoutIter();
+        return pCollisionObj;
+    }
+
+    BreakModel* createBreakModel(LiveActor* pHost, MtxPtr pMtx) {
+        const char* pObjName = createSubModelObjName(pHost, "Break");
+        char modelName[0x100];
+        snprintf(modelName, sizeof(modelName), "%sBreak", getModelResourceHolder(pHost)->mName);
+
+        BreakModel* pBreakModel = new BreakModel(pHost, pObjName, modelName, pMtx, "Break");
+        pBreakModel->initWithoutIter();
+        return pBreakModel;
+    }
+
+    BreakModel* tryCreateBreakModel(LiveActor* pHost, MtxPtr pMtx) {
+        const char* pObjName = nullptr;
+        char modelName[0x100];
+
+        if (!tryMakeSubModelName(&pObjName, modelName, sizeof(modelName), pHost, "Break")) {
+            return nullptr;
+        }
+
+        BreakModel* pBreakModel = new BreakModel(pHost, pObjName, modelName, pMtx, "Break");
+        pBreakModel->initWithoutIter();
+        return pBreakModel;
+    }
+
+    DemoObj* tryCreateBreakDustDemoObj(LiveActor* pHost, MtxPtr pMtx) {
+        const char* pObjName = nullptr;
+        char modelName[0x100];
+
+        if (!tryMakeSubModelName(&pObjName, modelName, sizeof(modelName), pHost, "BreakDust")) {
+            return nullptr;
+        }
+
+        DemoObj* pDemoObj = new DemoObj(pObjName, pMtx);
+        initActor(pDemoObj, modelName, false);
+        pDemoObj->initWithoutIter();
+        pDemoObj->makeActorDead();
+        return pDemoObj;
+    }
+
     ModelObj* createBloomModel2(LiveActor* pActor, MtxPtr pMtx) {
         return (ModelObj*)createBloomModel(pActor, pMtx);  // SMG2 header types this as ModelObj*
     }
@@ -539,6 +594,50 @@ namespace MR {
     }
 
 
+    bool isPressedBetweenWalls(const LiveActor* pActor) {
+        if (!isBindedWall(pActor)) {
+            return false;
+        }
+
+        s32 planeNum = pActor->mBinder->mPlaneNum;
+
+        for (s32 i = 0; i < planeNum - 1; i++) {
+            const HitInfo* pPlane = pActor->mBinder->getPlane(i);
+            if (!MR::isWallPolygon(*pPlane->mParentTriangle.getFaceNormal(), pActor->mGravity)) {
+                continue;
+            }
+
+            TVec3f forcePower;
+            pPlane->mParentTriangle.calcForceMovePower(&forcePower, pPlane->_64);
+
+            for (s32 j = i + 1; j < planeNum; j++) {
+                const HitInfo* pOther = pActor->mBinder->getPlane(j);
+                if (!MR::isWallPolygon(*pOther->mParentTriangle.getFaceNormal(), pActor->mGravity)) {
+                    continue;
+                }
+
+                if (0.0f <= pPlane->mParentTriangle.getFaceNormal()->dot(*pOther->mParentTriangle.getFaceNormal())) {
+                    continue;
+                }
+
+                TVec3f otherPower;
+                pOther->mParentTriangle.calcForceMovePower(&otherPower, pOther->_64);
+
+                TVec3f posDiff(pPlane->_64);
+                posDiff.sub(pOther->_64);
+
+                TVec3f powerDiff(otherPower);
+                powerDiff.sub(forcePower);
+
+                if (0.0f < powerDiff.dot(posDiff)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     void copyTransRotate(const LiveActor* pToActor, LiveActor* pFromActor) {
         pFromActor->mPosition.set(pToActor->mPosition);
         pFromActor->mRotation.set(pToActor->mRotation);
@@ -720,6 +819,10 @@ namespace MR {
         PSMTXCopy((MtxPtr)mtx.mMtx, (MtxPtr)&getJ3DModel(pActor)->mBaseTransformMtx);
     }
 
+    void setBaseTRMtx(LiveActor* pActor, ActorPoseTQ* pPose) {
+        setBaseTRMtx(pActor, *pPose);
+    }
+
     void setBaseScale(LiveActor* pActor, const TVec3f& rScale) {
         J3DModel* pModel = getJ3DModel(pActor);
         pModel->mBaseScale.x = rScale.x;
@@ -825,6 +928,26 @@ namespace MR {
 
 
 
+    void setFogColor(LiveActor* pActor, const GXColor& rColor) {
+        pActor->mModelManager->mDisplayListMaker->mFogCtrl->mFogInfo.mColor = rColor;
+    }
+
+    void setFogType(LiveActor* pActor, u8 type) {
+        pActor->mModelManager->mDisplayListMaker->mFogCtrl->mFogInfo.mType = type;
+    }
+
+    void setFogStartEndZ(LiveActor* pActor, f32 startZ, f32 endZ) {
+        J3DFogInfo& rFogInfo = pActor->mModelManager->mDisplayListMaker->mFogCtrl->mFogInfo;
+        rFogInfo.mStartZ = startZ;
+        rFogInfo.mEndZ = endZ;
+    }
+
+    void setFogNearFarZ(LiveActor* pActor, f32 nearZ, f32 farZ) {
+        J3DFogInfo& rFogInfo = pActor->mModelManager->mDisplayListMaker->mFogCtrl->mFogInfo;
+        rFogInfo.mNearZ = nearZ;
+        rFogInfo.mFarZ = farZ;
+    }
+
     const char* getPlayingBckName(const LiveActor* pActor) {
         return pActor->mModelManager->getPlayingBckName();
     }
@@ -834,6 +957,91 @@ namespace MR {
         s32 flags = *pFlags;
         flags &= 0xFFFFFF7F;
         *pFlags = flags;
+    }
+
+    ActorHitReactionCtrl* getHitReactionCtrl(const LiveActor* pActor) {
+        if (pActor->mActionKeeper == nullptr) {
+            return nullptr;
+        }
+
+        return pActor->mActionKeeper->mHitReactionCtrl;
+    }
+
+    void tryHitReaction(const LiveActor* pActor, const char* pName) {
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, nullptr, nullptr);
+        }
+    }
+
+    void tryHitReactionBetweenSensors(const LiveActor* pActor, const char* pName, HitSensor* pSender, HitSensor* pReceiver) {
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, pSender, pReceiver);
+        }
+    }
+
+    void tryHitReactionAtPos(const LiveActor* pActor, const char* pName, const TVec3f* pPos) {
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, pPos, nullptr, nullptr);
+        }
+    }
+
+    void tryHitReactionAtMtx(const LiveActor* pActor, const char* pName, const TPos3f* pMtx) {
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            TVec3f pos(pMtx->mMtx[0][3], pMtx->mMtx[1][3], pMtx->mMtx[2][3]);
+            pCtrl->reactToHit(pName, &pos, nullptr, nullptr);
+        }
+    }
+
+    void tryHitReactionBlowBetweenSensors(LiveActor* pActor, HitSensor* pSender, HitSensor* pReceiver) {
+        const char* pName = "吹き飛びヒット";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, pSender, pReceiver);
+        }
+    }
+
+    void tryHitReactionBlow(const LiveActor* pActor, const TVec3f* pPos) {
+        const char* pName = "吹き飛びヒット";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, pPos, nullptr, nullptr);
+        }
+    }
+
+    void tryHitReactionBlow(LiveActor* pActor) {
+        const char* pName = "吹き飛びヒット";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, nullptr, nullptr);
+        }
+    }
+
+    void tryHitReactionAppear(const LiveActor* pActor) {
+        const char* pName = "出現";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, nullptr, nullptr);
+        }
+    }
+
+    void tryHitReactionBreak(const LiveActor* pActor) {
+        const char* pName = "破壊";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, nullptr, nullptr);
+        }
+    }
+
+    void tryHitReactionDead(const LiveActor* pActor) {
+        const char* pName = "死亡";
+        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
+        if (pCtrl != nullptr) {
+            pCtrl->reactToHit(pName, nullptr, nullptr, nullptr);
+        }
     }
 
     LiveActorGroup* joinToGroup(LiveActor* pActor, const char* pGroupName) {
@@ -1081,23 +1289,40 @@ namespace MR {
         return getBrkCtrl(pActor)->getEnd();
     }
 
-#if 0  // TODO: needs ActorSoundHolder::getSoundObj (audio lane header)
     void reflectBckCtrlData(LiveActor* pActor, const BckCtrlData& rBck) {
         BckCtrlFunction::reflectBckCtrlData(rBck, pActor->mModelManager->mXanimePlayer);
 
-        AudAnmSoundObject* pSoundObj = pActor->mSoundObject;
+        if (pActor->mSoundHolder != nullptr) {
+            AudAnmSoundObject* pSoundObj = pActor->mSoundHolder->getSoundObj();
 
-        if (pSoundObj != nullptr && pSoundObj->hasAnim()) {
-            if (rBck.mRepeatFrame < 0) {
-                pSoundObj->setLoopFrame((f32)rBck.mStartFrame, (f32)rBck.mEndFrame);
-            } else {
-                pSoundObj->setLoopFrame((f32)rBck.mRepeatFrame, (f32)rBck.mEndFrame);
+            if (pSoundObj->hasAnim()) {
+                if (rBck.mRepeatFrame < 0) {
+                    pSoundObj->setLoopFrame((f32)rBck.mStartFrame, (f32)rBck.mEndFrame);
+                } else {
+                    pSoundObj->setLoopFrame((f32)rBck.mRepeatFrame, (f32)rBck.mEndFrame);
+                }
+
+                pSoundObj->setStartPos((f32)rBck.mStartFrame);
             }
-
-            pSoundObj->setStartPos((f32)rBck.mStartFrame);
         }
     }
-#endif
+
+    void reflectBckCtrlDataAllAnim(LiveActor* pActor, const char* pName, const BckCtrlData& rBck) {
+        reflectBckCtrlData(pActor, rBck);
+
+        J3DFrameCtrl* pFrameCtrls[5];
+        pFrameCtrls[0] = isExistBtk(pActor, pName) ? getBtkCtrl(pActor) : nullptr;
+        pFrameCtrls[1] = isExistBpk(pActor, pName) ? getBpkCtrl(pActor) : nullptr;
+        pFrameCtrls[2] = isExistBtp(pActor, pName) ? getBtpCtrl(pActor) : nullptr;
+        pFrameCtrls[3] = isExistBrk(pActor, pName) ? getBrkCtrl(pActor) : nullptr;
+        pFrameCtrls[4] = isExistBva(pActor, pName) ? getBvaCtrl(pActor) : nullptr;
+
+        for (s32 i = 0; i < 5; i++) {
+            if (pFrameCtrls[i] != nullptr) {
+                BckCtrlFunction::reflectBckCtrlDataToFrameCtrl(rBck, pFrameCtrls[i]);
+            }
+        }
+    }
 
     void initLightCtrl(LiveActor* pActor) {
         pActor->initActorLightCtrl();
@@ -1627,6 +1852,16 @@ namespace MR {
         return ::createCollisionParts(pResHolder, pName, pSensor, rMtx, scaleType, 0);
     }
 
+    CollisionParts* createDashYoshiStepCollisionPartsFromResourceHolder(ResourceHolder* pResourceHolder, const char* pCollisionName,
+                                                                        HitSensor* pBodySensor, MtxPtr pMtx, CollisionScaleType collisionScaleType) {
+        TPos3f mtx;
+        mtx.set(pMtx);
+
+        CollisionParts* parts = createCollisionParts(pResourceHolder, pCollisionName, pBodySensor, mtx, collisionScaleType, 4);
+        parts->_0 = (TPos3f*)pMtx;
+        return parts;
+    }
+
     CollisionParts* tryCreateCollisionMoveLimit(LiveActor* pActor, MtxPtr pMtx, HitSensor* pSensor) {
         char kcl[0x80];
         {
@@ -1762,6 +1997,10 @@ namespace MR {
         pActor->mCollisionParts->_CD = false;
     }
 
+    void resetCollisionPartsBelongZone(LiveActor* pActor) {
+        pActor->mCollisionParts->resetBelongZone();
+    }
+
     void resetAllCollisionMtx(LiveActor* pActor) {
         CollisionParts* pParts = pActor->mCollisionParts;
 
@@ -1777,6 +2016,34 @@ namespace MR {
 
     u32 getCollisionSensorType(const CollisionParts* pParts) {
         return pParts->mHitSensor->mType;
+    }
+
+    DemoObj* createDemoObj(const char* pName, const char* pModelName, MtxPtr pMtx) {
+        DemoObj* pDemoObj = new DemoObj(pName, pMtx);
+        initActor(pDemoObj, pModelName, false);
+        pDemoObj->initWithoutIter();
+        return pDemoObj;
+    }
+
+    DemoObj* createDemoObjWithAnimArc(const char* pName, const char* pModelName, const char* pAnimArcName, MtxPtr pMtx) {
+        DemoObj* pDemoObj = new DemoObj(pName, pMtx);
+        initActorNoIter(pDemoObj, pModelName, pAnimArcName, false);
+        pDemoObj->initWithoutIter();
+        return pDemoObj;
+    }
+
+    DemoObj* createDemoObj(const char* pName, const char* pModelName, const char* pFuncName, MtxPtr pMtx) {
+        DemoObj* pDemoObj = new DemoObj(pName, pMtx);
+        initActor(pDemoObj, pModelName, pFuncName, false);
+        pDemoObj->initWithoutIter();
+        return pDemoObj;
+    }
+
+    DemoObj* createDemoObjWithAnimArc(const char* pName, const char* pModelName, const char* pAnimArcName, const char* pFuncName, MtxPtr pMtx) {
+        DemoObj* pDemoObj = new DemoObj(pName, pMtx);
+        initActorNoIter(pDemoObj, pModelName, pAnimArcName, pFuncName, false);
+        pDemoObj->initWithoutIter();
+        return pDemoObj;
     }
 
     ModelObj* createModelObjMapObjDecoration(const char* pName, const char* pModelName, MtxPtr pMtx) {
@@ -1912,6 +2179,12 @@ namespace MR {
         return pModel;
     }
 
+    RailObj* createRailObj(const char* pName, LiveActor* pHost, const JMapInfoIter& rIter, int railIndex) {
+        RailObj* pRailObj = new RailObj(pName);
+        initChildObj(pRailObj, rIter, railIndex);
+        return pRailObj;
+    }
+
     LodCtrl* createLodCtrlNPC(LiveActor* pActor, const JMapInfoIter& rIter) {
         LodCtrl* ctrl = new LodCtrl(pActor, rIter);
         ctrl->createLodModel(0x11, 0x27, -1);
@@ -1973,6 +2246,26 @@ namespace MR {
             tryRumblePadVeryWeak(pActor, WPAD_CHAN0);
             shakeCameraVeryWeak();
         }
+    }
+
+    void forceClearFootPrint(LiveActor* pActor) {
+        pActor->mActionKeeper->mFootPrintHolder->mFootPrint->clearForce();
+    }
+
+    LiveActor* getLinkedActor(const LiveActor* pActor) {
+        AllLiveActorGroup* pGroup = getAllLiveActorGroup();
+
+        for (s32 i = 0; i < pGroup->getObjNum(); i++) {
+            LiveActor* pLinked = pGroup->getActor(i);
+
+            // asm passes pActor itself (no +0xC) to the JMapLinkInfo comparison
+            const JMapLinkInfo* pInfo = &pLinked->mLinkInfo;
+            if (*pInfo == *reinterpret_cast< const JMapLinkInfo* >(pActor)) {
+                return pLinked;
+            }
+        }
+
+        return nullptr;
     }
 
     bool isCalcGravity(const LiveActor* pActor) {

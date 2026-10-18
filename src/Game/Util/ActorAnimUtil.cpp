@@ -2,6 +2,7 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Animation/BckCtrl.hpp"
 #include "Game/Animation/XanimeCore.hpp"
+#include "Game/Animation/XanimePlayer.hpp"
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
 #include "Game/LiveActor/ActorAnimKeeper.hpp"
 #include "Game/LiveActor/ActorLightCtrl.hpp"
@@ -119,6 +120,37 @@ namespace MR {
         return getResourceHolder(pActor)->mBvaResTable->isExistRes(pName);
     }
 
+
+    // PLACEHOLDER(core4): SMG2 fn_80008740; name guessed from the startXxxIfExist calls
+    bool startAnimIfExistAll(const LiveActor* pActor, const char* pName) {
+        bool isStarted = false;
+
+        if (startBckIfExist(pActor, pName)) {
+            isStarted = true;
+        }
+
+        if (startBtkIfExist(pActor, pName)) {
+            isStarted = true;
+        }
+
+        if (startBrkIfExist(pActor, pName)) {
+            isStarted = true;
+        }
+
+        if (startBpkIfExist(pActor, pName)) {
+            isStarted = true;
+        }
+
+        if (startBtpIfExist(pActor, pName)) {
+            isStarted = true;
+        }
+
+        if (startBvaIfExist(pActor, pName)) {
+            isStarted = true;
+        }
+
+        return isStarted;
+    }
 
     bool isActionEnd(const LiveActor* pActor) {
         return pActor->mModelManager->isBckStopped();
@@ -283,6 +315,55 @@ namespace MR {
         }
     }
 
+    bool isAnyAnimPlaying(const LiveActor* pActor, const char* pName) {
+        ActorAnimKeeper* pAnimKeeper = nullptr;
+        if (pActor->mActionKeeper != nullptr) {
+            pAnimKeeper = *reinterpret_cast< ActorAnimKeeper** >(reinterpret_cast< u8* >(pActor->mActionKeeper) + 0x4);
+        }
+
+        if (pAnimKeeper == nullptr) {
+            if (isExistBck(pActor, nullptr)) {
+                return isBckPlaying(pActor->mModelManager->mXanimePlayer, pName);
+            }
+
+            if (isExistBtk(pActor, nullptr)) {
+                return pActor->mModelManager->isBtkPlaying(pName);
+            }
+
+            if (isExistBrk(pActor, nullptr)) {
+                return pActor->mModelManager->isBrkPlaying(pName);
+            }
+
+            if (isExistBpk(pActor, nullptr)) {
+                return pActor->mModelManager->isBpkPlaying(pName);
+            }
+
+            if (isExistBtp(pActor, nullptr)) {
+                return pActor->mModelManager->isBtpPlaying(pName);
+            }
+
+            if (isExistBva(pActor, nullptr)) {
+                return pActor->mModelManager->isBvaPlaying(pName);
+            }
+
+            return false;
+        }
+
+        return pAnimKeeper->isAnyAnimPlaying(pName);
+    }
+
+    // PLACEHOLDER(core4): SMG2 fn_80008F00; reads the ActorAnimKeeper at ActorActionKeeper+0x4 (layout not mapped yet)
+    bool isExistAnimInKeeper(const LiveActor* pActor, const char* pName) {
+        if (pActor->mActionKeeper != nullptr) {
+            ActorAnimKeeper* pAnimKeeper = *reinterpret_cast< ActorAnimKeeper** >(reinterpret_cast< u8* >(pActor->mActionKeeper) + 0x4);
+            if (pAnimKeeper != nullptr) {
+                return pAnimKeeper->isExistAnim(pName);
+            }
+        }
+
+        return isExistAnim(pActor, pName);
+    }
+
     bool isAnyAnimStopped(const LiveActor* pActor, const char* pName) {
         if (isExistBck(pActor, pName) && isBckStopped(pActor)) {
             return true;
@@ -381,6 +462,35 @@ namespace MR {
 
     bool checkPassBckFrame(const LiveActor* pActor, f32 f) {
         return pActor->mModelManager->getBckCtrl()->checkPass(f) == 1;
+    }
+
+    // PLACEHOLDER(core4): SMG2 fn_8000A320 (stops every non-Bck anim track and zeroes the Bck frame rate); name guessed
+    void stopAllAnim(LiveActor* pActor) {
+        if (pActor->mModelManager != nullptr) {
+            if (getPlayingBckName(pActor) != nullptr) {
+                pActor->mModelManager->getBckCtrl()->setRate(0.0f);
+            }
+
+            if (isExistBva(pActor, nullptr)) {
+                pActor->mModelManager->stopBva();
+            }
+
+            if (isExistBpk(pActor, nullptr)) {
+                pActor->mModelManager->stopBpk();
+            }
+
+            if (isExistBtp(pActor, nullptr)) {
+                pActor->mModelManager->stopBtp();
+            }
+
+            if (isExistBrk(pActor, nullptr)) {
+                pActor->mModelManager->stopBrk();
+            }
+
+            if (isExistBtk(pActor, nullptr)) {
+                pActor->mModelManager->stopBtk();
+            }
+        }
     }
 
     void setBckFrameAtRandom(const LiveActor* pActor) {
@@ -711,6 +821,33 @@ namespace MR {
         }
 
         return isBvaPlayingIfExist(pActor, pName);
+    }
+
+    // PLACEHOLDER(core4): SMG2 fn_80009570; loops changeTrackWeight over the 4 track weights
+    void changeTrackWeights(const LiveActor* pActor, const f32* pWeights) {
+        XanimePlayer* pPlayer = pActor->mModelManager->mXanimePlayer;
+        for (u32 i = 0; i < 4; i++) {
+            pPlayer->changeTrackWeight(i, pWeights[i]);
+        }
+    }
+
+    // PLACEHOLDER(core4): SMG2 fn_800095D0; packs three weights (fourth is 0) and forwards to changeTrackWeights
+    void setTrackWeights(const LiveActor* pActor, f32 w0, f32 w1, f32 w2) {
+        f32 weights[4] = {};
+        weights[0] = w0;
+        weights[1] = w1;
+        weights[2] = w2;
+        changeTrackWeights(pActor, weights);
+    }
+
+    void copyBckBlendWeights(f32* pDst, u32 count, const LiveActor* pActor) {
+        for (u32 i = 0; i < count; i++) {
+            pDst[i] = pActor->mModelManager->mXanimePlayer->mWeights[i];
+        }
+    }
+
+    bool setBckTrackWeight(const LiveActor* pActor, u32 index, f32 weight) {
+        return pActor->mModelManager->mXanimePlayer->changeTrackWeight(index, weight);
     }
 
     J3DFrameCtrl* getBckCtrl(const LiveActor* pActor) {

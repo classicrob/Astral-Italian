@@ -9,7 +9,7 @@ namespace MR {
     bool fn_80422890(u32);
     void createLightFruitClipArea();
     void startYoshiLightFruit();
-    void requestYoshiCaptureGuidance();
+    bool requestYoshiCaptureGuidance();  // returns bool (StarPointerUtil.cpp, asm)
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*,const char*,const TVec3f&);
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*,MtxPtr,const TVec3f&);
 }

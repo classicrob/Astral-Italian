@@ -20,7 +20,7 @@ CameraTargetObj::CameraTargetObj(const char* pName) : NameObj(pName), mCameraWal
 }
 
 CameraTargetActor::CameraTargetActor(const char* pName)
-    : CameraTargetObj(pName), mActor(), mUp(0.0f, 1.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), mSide(0.0f, 0.0f, 1.0f), mCameraArea() {
+    : CameraTargetObj(pName), mActor(), mUp(0.0f, 1.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), mSide(0.0f, 0.0f, 1.0f) {
 }
 
 void CameraTargetActor::movement() {

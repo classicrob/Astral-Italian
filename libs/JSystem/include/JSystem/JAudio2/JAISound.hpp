@@ -500,8 +500,8 @@ public:
     bool isPrepared() const {
         return mStatus.isPrepared();
     }
-    void unlockIfLocked() {
-        mStatus.unlockIfLocked();
+    s32 unlockIfLocked() {
+        return mStatus.unlockIfLocked();
     }
     void lockWhenPrepared() {
         mStatus.lockWhenPrepared();

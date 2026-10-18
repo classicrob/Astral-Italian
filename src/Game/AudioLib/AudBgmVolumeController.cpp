@@ -6,6 +6,7 @@
 #define FADER_INTERRUPTED 2
 #define FADER_AUX 3
 #define FADER_NOTEFAIRY 4
+#define FADER_LEVEL 5
 
 AudBgmVolumeController::AudBgmVolumeController() : mIsMuted() {
     for (s32 i = 0; i < NUM_FADERS; i++) {
@@ -69,11 +70,27 @@ void AudBgmVolumeController::volDown(bool immediate) {
     mTimers[FADER_VOLDOWN] = 2;
 }
 
+void AudBgmVolumeController::volDownWithLevel(s32 level, bool keepIfActive) {
+    static const FaderCtrl cLevel[3] = {{0.65f, 90, 60}, {0.0f, 8, 45}, {0.0f, 5, 30}};
+
+    if (mTimers[FADER_LEVEL] < 0 || !keepIfActive) {
+        mFaderCtrl[FADER_LEVEL] = cLevel[level];
+        mFaders[FADER_LEVEL].set(mFaderCtrl[FADER_LEVEL].mVolume, mFaderCtrl[FADER_LEVEL].mTime);
+    }
+
+    mTimers[FADER_LEVEL] = 2;
+}
+
 void AudBgmVolumeController::interruptedByOther() {
     if (mTimers[FADER_INTERRUPTED] < 0) {
         mFaders[FADER_INTERRUPTED].set(mFaderCtrl[FADER_INTERRUPTED].mVolume, mFaderCtrl[FADER_INTERRUPTED].mTime);
     }
     mTimers[FADER_INTERRUPTED] = 2;
+}
+
+void AudBgmVolumeController::resetInterrupted() {
+    mFaders[FADER_INTERRUPTED].set(1.0f, 0);
+    mTimers[FADER_INTERRUPTED] = -1;
 }
 
 void AudBgmVolumeController::moveAuxVolume(f32 volume, s32 time) {

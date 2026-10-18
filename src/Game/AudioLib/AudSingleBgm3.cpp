@@ -90,10 +90,12 @@ bool AudSingleBgm::isPreparedPlay() {
     return false;
 }
 
-void AudSingleBgm::playAfterPrepared() {
+s32 AudSingleBgm::playAfterPrepared() {
     if (mHandle.isSoundAttached()) {
-        mHandle->unlockIfLocked();
+        return mHandle->unlockIfLocked();
     }
+
+    return 0;
 }
 
 JAISoundHandle* AudSingleBgm::getRhythmHandle() {
@@ -132,6 +134,52 @@ bool AudSingleBgm::moveVolumeForNoteFairy(f32 volume, u32 time) {
     return false;
 }
 
+bool AudSingleBgm::moveTempo(f32 tempo, s32 time) {
+    if (!mHandle.isSoundAttached()) {
+        return false;
+    }
+
+    JAITempoMgr* pTempoMgr = mHandle->getTempoMgr();
+    if (pTempoMgr != nullptr) {
+        if (time == 0) {
+            pTempoMgr->setTempo(tempo);
+        } else {
+            pTempoMgr->mTransition.set(tempo, pTempoMgr->mTempo, time);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+void AudSingleBgm::initTrackMuteState(JAISoundID soundID) {
+    AudSoundInfo* info = AudWrap::getSoundInfo();
+    bool isRhythm = info->isRhythmBgm(soundID);
+
+    for (s32 i = 0; i < mNumTracks; i++) {
+        if (i != 0 || !isRhythm) {
+            mTrackController[i].setMuteState(AudFader::FadeState_FadeIn, 0, false);
+        }
+    }
+
+    mMuteStateIndex = 0;
+}
+
+void AudSingleBgm::tryChangeTrackMuteState(s32 track, s32 time) {
+    if (AudBgmSetting::getMuteState(mSoundID, track) != nullptr) {
+        changeTrackMuteState(track, time);
+    }
+}
+
+s32 AudSingleBgm::getMuteStateIndex() const {
+    if (AudBgmSetting::hasMuteState(mSoundID)) {
+        return mMuteStateIndex;
+    }
+
+    return -1;
+}
+
 void AudSingleBgm::changeTrackMuteState(s32 track, s32 time) {
     if (mSoundID.getSectionID() == 0x2) {  // STM
         return;
@@ -166,6 +214,10 @@ void AudSingleBgm::changeTrackMuteState(s32 track, s32 time) {
     }
 }
 
+void AudSingleBgm::moveTrackVolume(f32 volume, s32 track, s32 time) {
+    mTrackController[track].moveVolume(volume, time);
+}
+
 void AudSingleBgm::initTrackController() {
     for (s32 i = 0; i < mNumTracks; i++) {
         mTrackController[i].mTrackNo = i;
@@ -192,4 +244,12 @@ void AudSingleBgm::updateTrackControl() {
     for (s32 i = 0; i < mNumTracks; i++) {
         mTrackController[i].update();
     }
+}
+
+JAISoundID AudSingleBgm::getRhythmSoundID() const {
+    return getSoundID();
+}
+
+bool AudSingleBgm::isAttached() const {
+    return mHandle.isSoundAttached();
 }

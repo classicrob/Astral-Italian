@@ -153,13 +153,15 @@ s32 PlayResultInStageHolder::getClearedPowerStarNum() const {
     return mClearedPowerStarNum;
 }
 
-void PlayResultInStageHolder::addStarPieceNum(s32 num) {
+bool PlayResultInStageHolder::addStarPieceNum(s32 num) {
     mClearedStarPieceNum = MR::clamp(mClearedStarPieceNum + num, 0, 999);
     if (mStarPieceAdded + 100 > mClearedStarPieceNum) {
         mIsPowerStarAppeared = true;
-    } else {
-        mStarPieceAdded += 100;
+        return false;
     }
+
+    mStarPieceAdded += 100;
+    return true;
 }
 
 s32 PlayResultInStageHolder::getClearedStarPieceNum() const {
@@ -174,8 +176,9 @@ s32 PlayResultInStageHolder::getClearedCoinNum() const {
     return MR::clamp(mClearedCoinNum, 0, 999);
 }
 
-void PlayResultInStageHolder::incPurpleCoinNum() {
+bool PlayResultInStageHolder::incPurpleCoinNum() {
     mPurpleCoinNum++;
+    return mPurpleCoinNum == 100;
 }
 
 s32 PlayResultInStageHolder::getPurpleCoinNum() const {

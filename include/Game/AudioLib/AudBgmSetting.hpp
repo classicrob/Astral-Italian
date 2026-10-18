@@ -26,6 +26,7 @@ namespace AudBgmSetting {
 
     const MuteState* getMuteState(JAISoundID, s32);
     u16 getExtraChordNum(JAISoundID, s32);
+    bool hasMuteState(JAISoundID);
     u32 getSeqIdForMultiBgm(u32);
     u32 getStreamIdForMultiBgm(u32);
     f32 getBeatMulForMultiBgm(u32);

@@ -22,9 +22,11 @@ public:
     virtual void requestMovementOnRace();
     virtual void exitRacer();
 
-    /* 0xB0 */ u32 _B0;
     /* 0xB4 */ u32 _B4;
-    /* 0xB8 */ ActorCameraInfo* mCameraInfo;
+    /* 0xB8 */ u32 _B8;
+    /* 0xBC */ ActorCameraInfo* mCameraInfo;
+    /* 0xC0 */ f32 _C0;
+    /* 0xC4 */ bool _C4;
 };
 
 class RaceRail : public NameObj {

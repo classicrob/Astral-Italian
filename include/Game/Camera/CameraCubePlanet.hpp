@@ -16,8 +16,10 @@ public:
         mAngleY = angleY;
     }
 
-    /* 0x4C */ f32 mDist;
-    /* 0x50 */ f32 mAngleX;
-    /* 0x54 */ f32 mAngleY;
-    /* 0x58 */ TVec3f mUp;
+    /* 0x54 */ f32 mDist;
+    /* 0x58 */ f32 mAngleX;
+    /* 0x5C */ f32 mAngleY;
+    /* 0x60 */ bool _60;
+    /* 0x64 */ TVec3f mUp;
+    /* 0x70 */ void* _70;  // PLACEHOLDER(core): 0xC object {bool; f32} allocated in ctor via fn_80129070; resolve when its class is named
 };

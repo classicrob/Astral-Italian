@@ -56,6 +56,8 @@ namespace MR {
     JKRHeap* getAproposHeapForSceneArchive(f32 maxFreeSizeRate);
     JKRSolidHeap* getSceneHeapNapa();
     JKRSolidHeap* getSceneHeapGDDR3();
+    JKRHeap* getWorldMapHeap();
+    JKRHeap* getFileCacheHeap();
     void fillMemory(void* pDst, u8 ch, u32 size);
     u32 calcCheckSum(const void* pPtr, u32 size);
     void* allocFromWPadHeap(u32 size);

@@ -18,6 +18,8 @@ public:
 
     virtual void movement();
 
+    void movementOnAllCasts();
+    void movementOffAllCasts();
     void startDemoProgrammable(NameObj*, const char*, bool, s32);
     void startDemoTimeKeep(NameObj*, const char*, s32, bool, const char*);
     void startDemoExecutor(NameObj*, const char*, s32, const char*);

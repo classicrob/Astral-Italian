@@ -21,6 +21,8 @@ namespace MR {
     bool isScreen16Per9();
     void onUseVFilter();
     void offUseVFilter();
+    void onUseVFilterDirect();  // SMG2 fn_80060750; PLACEHOLDER(core4)
+    void offUseVFilterDirect();  // SMG2 fn_80060760; PLACEHOLDER(core4)
 }  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here
@@ -45,7 +47,8 @@ namespace MR {
     void waitForEndFunctionAsyncExecute(const char*);
     bool isEndFunctionAsyncExecute(const char*);
     bool tryEndFunctionAsyncExecute(const char*);
-    void suspendAsyncExecuteThread(const char*);
+    bool suspendAsyncExecuteThread(const char*);
+    bool trySuspendAsyncExecuteThread(const char*);  // SMG2 fn_80060620
     void resumeAsyncExecuteThread(const char*);
     bool isSuspendedAsyncExecuteThread(const char*);
     void initSceneMessage();
@@ -53,6 +56,9 @@ namespace MR {
     void resetSystemAndGameStatus();
     void stopAllSound(u32);
     void setLayoutDefaultAllocator();
+    u32 getGameSystemObjHolder3C();  // PLACEHOLDER(core4): SMG2 fn_800601F0; rename when the owner is named
+    bool isEndStationedArchiveLoader();  // SMG2 fn_800602A0
+    bool isScenarioSelecting();  // SMG2 fn_80060320; PLACEHOLDER(core4): name guessed
     bool isDisplayEncouragePal60Window();
     JMapIdInfo* getPlayerRestartIdInfo();
     void setPlayerRestartIdInfo(const JMapIdInfo&);

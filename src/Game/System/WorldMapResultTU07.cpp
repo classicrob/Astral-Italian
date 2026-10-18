@@ -18,14 +18,7 @@
 #include "Game/System/WorldMapResultStateGrandGalaxyEnd.hpp"
 #include "Game/System/WorldMapResultStateGreenStarDemo.hpp"
 
-// Callees living in other WorldMapResult translation units (unnamed in the target).
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" {
-    u64 fn_80088630();
-    bool fn_804FD820(WorldMapResultStateWorldNews*);
-
-}
-
+#include "Game/AudioLib/AudWrap.hpp"
 
 static f32 sCameraAngle = 37.86f;
 
@@ -335,14 +328,20 @@ s32 WorldMapResultWorld::callU14_310(s32 index) {
     return mUnit14->getPipeOtherEnd(index);
 }
 
+
+#pragma dont_inline on
 void WorldMapResultWorld::setLinkProgress(s32 a, s32 b, f32 t) {
     mLinks->setLineAlpha(a, b, t);
 
     if (t >= 1.0f) {
+        mLinks->deleteLineEffect(a, b);
     } else if (t > 0.0f) {
+        mLinks->emitLineEffect(a, b);
     }
 }
 
+
+#pragma dont_inline reset
 void WorldMapResultWorld::setLinkProgressFull(s32 a, s32 b) {
     mLinks->setLineHidden(a, b);
     mLinks->setLineEffectTico(a, b);
@@ -368,7 +367,9 @@ void WorldMapResultRoute::collect(WorldMapResultWorld* pWorld) {
         for (s32 j = i + 1; j < num; j++) {
             if (pLinks->isLinked(i, j, 1)) {
                 if (pLinks->isDirected(i, j)) {
+                    addEdge(j, i);
                 } else {
+                    addEdge(i, j);
                 }
             }
         }
@@ -385,6 +386,7 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
         s32 to = pEdge->mTo;
 
         if (from == node || to == node) {
+            mLinks->setLineAlpha(from, to, 0.0f);
             pEdge->mStep = 0;
 
             if (from == node) {
@@ -428,6 +430,7 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
                         adjacent = adjacent | isLinked14(to, otherFrom);
 
                         if (adjacent | isLinked14(to, otherTo)) {
+                            mLinks->setLineAlpha(from, to, 0.0f);
                             pEdge->mStep = step;
                             found = true;
 
@@ -490,7 +493,9 @@ void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 no
         for (s32 j = i + 1; j < num; j++) {
             if (pLinks->isLinked(i, j, 1) && !pLinks->hasLineFlag(i, j)) {
                 if (pLinks->isDirected(i, j)) {
+                    route.addEdge(j, i);
                 } else {
+                    route.addEdge(i, j);
                 }
             }
         }
@@ -794,7 +799,7 @@ public:
 
 class WorldMapSequence : public NerveExecutor {
 public:
-    WorldMapSequence(WorldMapOwner*);
+    WorldMapSequence(void*);
 
     virtual ~WorldMapSequence();
 
@@ -819,8 +824,8 @@ public:
     /* 0x24 */ bool mFlag;
 };
 
-WorldMapSequence::WorldMapSequence(WorldMapOwner* pOwner) : NerveExecutor("シーケンス管理") {
-    mOwner = pOwner;
+WorldMapSequence::WorldMapSequence(void* pOwner) : NerveExecutor("シーケンス管理") {
+    mOwner = static_cast<WorldMapOwner*>(pOwner);
     mStateWait = nullptr;
     mStatePointEvent = nullptr;
     mStateTicoRoute = nullptr;
@@ -945,7 +950,7 @@ void WorldMapSequence::exePointWarp() {
 
 void WorldMapSequence::exeGreenStarDemo() {
     if (MR::isFirstStep(this)) {
-        fn_80088630();
+        AudWrap::startGreenStarDemo();
     }
 
     if (MR::updateActorState(this)) {
@@ -1050,7 +1055,7 @@ bool WorldMapSequence::updatePoint(bool canAct) {
 }
 
 bool WorldMapSequence::checkWorldNews() {
-    if (fn_804FD820(mStateWorldNews)) {
+    if (mStateWorldNews->checkStep()) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceWorldNews::sInstance);
         return true;
     }

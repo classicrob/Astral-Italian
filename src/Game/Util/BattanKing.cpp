@@ -1,5 +1,7 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Enemy/BattanKing.hpp"
 #include "Game/Util.hpp"
+
 #include "Game/Enemy/Pattan.hpp"
 #include "Game/LiveActor/VolumeDrawer.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
@@ -17,29 +19,19 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/TalkUtil.hpp"
-#include "Game/Map/HitInfo.hpp"
+#include "Game/Map/CollisionParts.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 
-// Helpers of the BattanKing unit. Names are provisional (descriptive of the behaviour); the lead renames them.
+#include "Game/Util/BattanKingCollisionPress.hpp"
+#include <JSystem/JMath/JMath.hpp>
+
 namespace {
-    void resetVolumes(BattanKing* pBattan);
-    void hideAllCollisionParts(BattanKing* pBattan);
-    void showCollisionPartsNormal(BattanKing* pBattan);
-    void showCollisionPartsSwapped(BattanKing* pBattan);
-    void updateCollisionPartsMtx(BattanKing* pBattan);
-    void updateCollisionPartsFootState(BattanKing* pBattan);
-    void hideCollisionPartsAll(BattanKing* pBattan);
-    bool isAnyCollisionOnActor(BattanKing* pBattan);
-    void setPositionAndFront(BattanKing* pBattan, const TVec3f& rPos);
-    void updatePlayerBaseMtx(BattanKing* pBattan);
-    bool tryAdvanceAttack(BattanKing* pBattan);
-    void updateAttackAnim(BattanKing* pBattan, s32 phase);
-    bool isAttackPhaseStart(const BattanKing* pBattan);
-    void updateVolumeRange(BattanKing* pBattan);
-    void updateJointVisibility(BattanKing* pBattan);
-    void updateDropVector(BattanKing* pBattan, TVec3f* pVec);
-    void hideAllVolumes(BattanKing* pBattan);
-    void updateShockPos(BattanKing* pBattan);
+    inline bool isInsidePushBox(const TVec3f& pos, const TVec3f& range, const f32& depth) {
+        if (!(0.5f * -range.x <= pos.x && pos.x < 0.5f * range.x)) return false;
+        if (!(0.0f <= pos.y && pos.y < range.y)) return false;
+        if (!(0.5f * -depth <= pos.z && pos.z < 0.5f * depth)) return false;
+        return true;
+    }
 }
 
 void BattanKing::calcAndSetBaseMtx() {
@@ -49,33 +41,36 @@ void BattanKing::calcAndSetBaseMtx() {
     MR::calcFrontVec(&mFront, this);
 }
 
+// NONMATCHING: regalloc
 void BattanKing::calcAnim() {
-    if (MR::isDead(this) || MR::isNoCalcAnim(this)) {
-        return;
-    }
     LiveActor::calcAnim();
-    if (MR::isClipped(this)) {
-        return;
-    }
-    for (s32 i = 0; i < 5; i++) {
-        mCollisions[i]->calcViewAndEntry();
-        mCollisionPresses[i]->calcViewAndEntry();
+    if (!MR::isDead(this) && !MR::isNoCalcAnim(this)) {
+        if (MR::isClipped(this)) {
+            return;
+        } else {
+            for (s32 i = 0; i < 5; i++) {
+                mCollisions[i]->calcAnim();
+                mCollisionPresses[i]->calcAnim();
+            }
+        }
     }
 }
 
+// NONMATCHING: regalloc
 void BattanKing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isEqualSensor(pSender, this, "Body")) {
+    const char* strings = BattanKingData::sStringTable;
+    if (MR::isEqualSensor(pSender, this, strings + 0x370)) {
         if (isNerve(&NrvBattanKing::NrvE94::sInstance) && MR::isGreaterEqualStep(this, 0x28) &&
             MR::isLessStep(this, 0x3F)) {
-            TVec3f push(0.0f, 0.0f, 0.0f);
-            if (isValidCollisionState(0)) {
-                MR::pushPlayer(push * 600.0f);
+            TVec3f push(0.0f);
+            if (calcPlayerPush(&push)) {
+                MR::pushPlayer(push * 1.0f);
             }
-        } else if (isNerve(&NrvBattanKing::NrvEA0::sInstance) && MR::isGreaterEqualStep(this, 0x28) &&
+        } else if (isNerve(&NrvBattanKing::NrvEA0::sInstance) && MR::isGreaterEqualStep(this, BattanKingParam::sPushStartStep) &&
                    MR::isLessStep(this, 0x6E)) {
-            TVec3f push(0.0f, 0.0f, 0.0f);
-            if (isValidCollisionState(0)) {
-                MR::pushPlayer(push * 600.0f);
+            TVec3f push(0.0f);
+            if (calcPlayerPush(&push)) {
+                MR::pushPlayer(push * 1.0f);
             }
         } else {
             mFlagB = 0;
@@ -83,210 +78,230 @@ void BattanKing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
     } else if (MR::isSensorPlayer(pReceiver)) {
         if (isNerve(&NrvBattanKing::NrvE94::sInstance)) {
-            if (MR::isEqualSensor(pSender, this, "ArmL") || MR::isEqualSensor(pSender, this, "ArmR")) {
+            if (MR::isEqualSensor(pSender, this, strings + 0x164) || MR::isEqualSensor(pSender, this, strings + 0x17C)) {
                 MR::sendMsgPush(pReceiver, pSender);
+                return;
             }
-        } else if (isNerve(&NrvBattanKing::NrvE74::sInstance) || isNerve(&NrvBattanKing::NrvE7C::sInstance)) {
-            if (MR::isEqualSensor(pSender, this, "FootL") || MR::isEqualSensor(pSender, this, "FootR") ||
-                MR::isEqualSensor(pSender, this, "AttackSign") || MR::isEqualSensor(pSender, this, "QuakeSign")) {
-                MR::sendMsgPush(pReceiver, pSender);
+        } else {
+            bool isWalking = false;
+            if (isNerve(&NrvBattanKing::NrvE74::sInstance) || isNerve(&NrvBattanKing::NrvE7C::sInstance)) isWalking = true;
+            if (isWalking) {
+                if (MR::isEqualSensor(pSender, this, strings + 0x184) || MR::isEqualSensor(pSender, this, strings + 0x18C) ||
+                    MR::isEqualSensor(pSender, this, strings + 0x378) || MR::isEqualSensor(pSender, this, strings + 0x380)) {
+                    MR::sendMsgPush(pReceiver, pSender);
+                    return;
+                }
             }
         }
     } else {
-        if (isNerve(&NrvBattanKing::NrvE74::sInstance) || isNerve(&NrvBattanKing::NrvE7C::sInstance)) {
-            if (MR::isSensorEnemy(pReceiver)) {
-                MR::sendArbitraryMsg(0xF4, pReceiver, pSender);
-            }
+        bool isWalking = false;
+        if (isNerve(&NrvBattanKing::NrvE74::sInstance) || isNerve(&NrvBattanKing::NrvE7C::sInstance)) isWalking = true;
+        if (isWalking && MR::isSensorEnemy(pReceiver)) {
+            if (MR::sendArbitraryMsg(0xF4, pReceiver, pSender)) return;
         }
     }
 }
 
-bool BattanKing::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isMsgPlayerHipDropFloor(msg)) {
+bool BattanKing::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*) {
+    if (MR::isMsgPlayerHipDropFloor(msg)) {
+        if (MR::isPlayerInCollisionCylinder(MR::getJointMtx(this, "Root"), &BattanKingVec::sDropPoint938, 450.0f, 300.0f)) {
+            mAttackType = 0;
+            return tryAdvanceAttack();
+        }
         return false;
     }
-    MR::getJointMtx(this, "Root");
-    if (!isNearDropPoint(BattanKingVec::sDropPoint938, 450.0f, 300.0f)) {
-        return false;
-    }
-    mAttackType = 0;
-    return tryAdvanceAttack(this);
+    return false;
 }
 
-bool BattanKing::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+// NONMATCHING: regalloc
+bool BattanKing::receiveMsgEnemyAttack(u32, HitSensor*, HitSensor* pReceiver) {
     if (!MR::isSensorAutoRush(pReceiver)) {
         return false;
+    } else {
+        return MR::isPlayerElementModeInvincible();
     }
-    return MR::isPlayerElementModeInvincible();
 }
 
 bool BattanKing::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     return false;
 }
 
-namespace {
-    // fn_8008C4A0: reset the attack state, drawers and talk states.
-    void resetVolumes(BattanKing* pBattan) {
-        pBattan->mPhase = 0;
-        for (s32 i = 0; i < 7; i++) {
-            VolumeDrawer* pDrawer = pBattan->mVolumeDrawers[i];
-            pDrawer->kill();
-            pDrawer->setScaleDownRate(0);
-        }
-        pBattan->mEarthquakeDrawer->kill();
-        pBattan->mEarthquakeDrawer->setScaleDownRate(0);
-        pBattan->mAttackType = 0;
-        pBattan->mTalkStateA->update();
-        pBattan->mTalkStateB->update();
-        hideAllCollisionParts(pBattan);
+void BattanKing::resetVolumes() {
+    mPhase = 0;
+    for (s32 i = 0; i < 7; i++) {
+        mVolumeDrawers[i]->makeActorAppeared();
+        mVolumeDrawers[i]->setScaleDownRate(0);
     }
+    mEarthquakeDrawer->makeActorAppeared();
+    mEarthquakeDrawer->setScaleDownRate(0);
+    mAttackType = 0;
+    mTalkStateA->kill();
+    mTalkStateB->kill();
+    hideCollisionPartsAll();
+}
 
-    // fn_8008C570: true while a counter-attack window is open.
-    bool isAttackPhaseStart(const BattanKing* pBattan) {
-        if (pBattan->mFlagA != 0) {
-            return false;
-        }
-        if (pBattan->isNerve(&NrvBattanKing::NrvE98::sInstance) || pBattan->isNerve(&NrvBattanKing::NrvE9C::sInstance)) {
+bool BattanKing::isAttackPhaseStart() const {
+    bool result = false;
+    if (mFlagA == 0 && (isNerve(&NrvBattanKing::NrvE98::sInstance) || isNerve(&NrvBattanKing::NrvE9C::sInstance) ||
+        (isNerve(&NrvBattanKing::NrvEA0::sInstance) && MR::isLessStep(this, 0x28)))) {
+        result = true;
+    }
+    return result;
+}
+
+bool BattanKing::tryAdvanceAttack() {
+    const char* strings = BattanKingData::sStringTable;
+    if (isAttackPhaseStart()) {
+        s32 phase = mPhase;
+        mFlagA = 1;
+        mPhase = phase + 1;
+        updateJointVisibility();
+        if (mPhase < 3) {
+            setNerve(&NrvBattanKing::NrvEA4::sInstance);
+            MR::tryHitReaction(this, strings + 0x388);
             return true;
         }
-        return pBattan->isNerve(&NrvBattanKing::NrvEA0::sInstance) && MR::isLessStep(pBattan, 0x28);
-    }
-
-    // fn_8008C610: advance the attack sequence; returns true when a new phase was started.
-    bool tryAdvanceAttack(BattanKing* pBattan) {
-        if (!isAttackPhaseStart(pBattan)) {
-            return false;
-        }
-        s32 phase = pBattan->mPhase;
-        pBattan->mFlagA = 1;
-        pBattan->mPhase = phase + 1;
-        updateJointVisibility(pBattan);
-        if (pBattan->mPhase < 3) {
-            pBattan->setNerve(&NrvBattanKing::NrvEA4::sInstance);
-            MR::startAction(pBattan, "AttackJump");
-            return true;
-        }
-        MR::tryDeleteEffect(pBattan, "AttackSign");
-        pBattan->setNerve(&NrvBattanKing::NrvEA8::sInstance);
-        MR::startAction(pBattan, "QuakeSign");
+        MR::tryDeleteEffect(this, strings + 0x2CC);
+        setNerve(&NrvBattanKing::NrvEA8::sInstance);
+        MR::tryHitReaction(this, strings + 0x398);
         return true;
     }
+    return false;
 }
 
-namespace {
-    void hideAllCollisionParts(BattanKing* pBattan) {
-        for (s32 i = 0; i < 5; i++) {
-            pBattan->mCollisions[i]->kill();
-            pBattan->mCollisionPresses[i]->kill();
-        }
-    }
-
-    // fn_8008CA00: collision parts appear, press parts go away.
-    void showCollisionPartsNormal(BattanKing* pBattan) {
-        for (s32 i = 0; i < 5; i++) {
-            pBattan->mCollisions[i]->appear();
-            pBattan->mCollisionPresses[i]->kill();
-        }
-    }
-
-    // fn_8008CA80: swapped visibility of showCollisionPartsNormal.
-    void showCollisionPartsSwapped(BattanKing* pBattan) {
-        for (s32 i = 0; i < 5; i++) {
-            pBattan->mCollisions[i]->kill();
-            pBattan->mCollisionPresses[i]->appear();
-        }
-    }
-
-    // fn_8008CB00: normal visibility, then the arm/leg slots 3 and 4 are swapped.
-    void updateCollisionPartsFootState(BattanKing* pBattan) {
-        showCollisionPartsNormal(pBattan);
-        pBattan->mCollisions[3]->kill();
-        pBattan->mCollisions[4]->kill();
-        pBattan->mCollisionPresses[3]->appear();
-        pBattan->mCollisionPresses[4]->appear();
-    }
-
-    // fn_8008CB90: every collision part calls kill().
-    void hideCollisionPartsAll(BattanKing* pBattan) {
-        hideAllCollisionParts(pBattan);
-    }
-
-    // fn_8008CC10: true when any collision part (or the body) is standing on the player.
-    bool isAnyCollisionOnActor(BattanKing* pBattan) {
-        for (s32 i = 0; i < 5; i++) {
-            if (MR::isOnPlayer(pBattan->mCollisions[i])) {
-                return true;
-            }
-            if (MR::isOnPlayer(pBattan->mCollisionPresses[i])) {
-                return true;
-            }
-        }
-        return MR::isOnPlayer(pBattan);
-    }
-
-    // fn_8008CCA0: set the body position, copy the front vector and recompute the base matrix.
-    void setPositionAndFront(BattanKing* pBattan, const TVec3f& rPos) {
-        MR::setPosition(pBattan, rPos);
-        pBattan->mFront = pBattan->mUnk18C;
-        pBattan->calcAndSetBaseMtx();
-    }
-
-    // fn_8008CCF0: copy the base matrix and apply the player base matrix.
-    void updatePlayerBaseMtx(BattanKing* pBattan) {
+// NONMATCHING: regalloc
+void BattanKing::spawnPattans() {
+    s32 count = 0;
+    if (mPhase == 0) count = BattanKingParam::sInitialPattanCount;
+    if (mPhase == 1) count = 3;
+    if (mPhase == 2) count = 5;
+    const TVec3f* gravity = &mGravity;
+    for (s32 i = 0; i < count; i++) {
+        PattanHolder* holder = mPattanHolder;
+        LiveActor* actor = holder->getDeadActor() ? holder->getDeadActor() : nullptr;
+        if (actor == nullptr) break;
+        f32 angle = (360.0f * (f32)i) / (f32)count;
+        TVec3f offset(BattanKingVec::sOrigin944);
+        MR::rotateVecDegree(&offset, offset, *gravity, angle);
         TMtx34f mtx;
-        PSMTXCopy(pBattan->mMtxFx, mtx);
-        MR::addTransMtxLocal(mtx, BattanKingVec::sOffset914);
-        MR::rotateMtxLocalYDegree(mtx, 40.0f);
-        MR::setPlayerBaseMtx(mtx);
-    }
-
-    // fn_8008C870: show exactly the joint for the current phase, hide the rest.
-    void updateJointVisibility(BattanKing* pBattan) {
-        MR::hideJoint(pBattan, "Back1");
-        MR::hideJoint(pBattan, "Back2");
-        MR::hideJoint(pBattan, "Back3");
-        if (pBattan->mPhase == 0) {
-            MR::showJoint(pBattan, "Back1");
-        }
-        if (pBattan->mPhase == 1) {
-            MR::showJoint(pBattan, "Back2");
-        }
-        if (pBattan->mPhase == 2) {
-            MR::showJoint(pBattan, "Back3");
-        }
-        if (pBattan->mPhase == 3) {
-            MR::showJoint(pBattan, "Back3");
-        }
-    }
-
-    // fn_8008CF70: set the attack type and start the matching animation.
-    void updateAttackAnim(BattanKing* pBattan, s32 phase) {
-        pBattan->mAttackType = phase;
-        if (MR::isOnGroundPlayer() && !isAnyCollisionOnActor(pBattan)) {
-            MR::startAction(pBattan, "攻撃・プレイヤー地上");
-        } else {
-            MR::startAction(pBattan, "攻撃・プレイヤー空中");
-        }
+        PSMTXCopy(getBaseMtx(), mtx);
+        MR::addTransMtxLocal(mtx, offset);
+        MR::extractMtxTrans(mtx, &actor->mPosition);
+        actor->mGravity = *gravity;
+        TVec3f front(mFront);
+        MR::calcVecToPlayerH(&front, actor, nullptr);
+        appearPattanByJump(actor, &front);
     }
 }
 
-// fn_8008CD40: per-id validity of the collision parts (used by the follow-matrix validater).
+void BattanKing::updateJointVisibility() {
+    const char* strings = BattanKingData::sStringTable;
+    MR::hideJoint(this, strings + 0x3B0);
+    MR::hideJoint(this, strings + 0x3B8);
+    MR::hideJoint(this, strings + 0x3C0);
+    if (mPhase == 0) {
+        MR::showJoint(this, strings + 0x3B0);
+    }
+    if (mPhase == 1) {
+        MR::showJoint(this, strings + 0x3B8);
+    }
+    if (mPhase == 2) {
+        MR::showJoint(this, strings + 0x3C0);
+    }
+    if (mPhase == 3) {
+        MR::showJoint(this, strings + 0x3C0);
+    }
+}
+
+void BattanKing::updateShockPos() {
+    TVec3f pos(0.0f);
+    TVec3f origin;
+    origin = mPosition;
+    TVec3f dir;
+    MR::calcVecToPlayerH(&dir, this, nullptr);
+    pos.set<f32>(origin);
+    JMAVECScaleAdd(mGravity, pos, pos, -1000.0f);
+    JMAVECScaleAdd(dir, pos, pos, -100.0f);
+    mUnk1B0 = pos;
+    TMtx34f mtx;
+    PSMTXCopy(getBaseMtx(), mtx);
+    MR::addTransMtxLocal(mtx, BattanKingVec::sOffset92C);
+    f32 z = mtx[2][3];
+    f32 y = mtx[1][3];
+    f32 x = mtx[0][3];
+    mUnk1BC.set<f32>(x, y, z);
+}
+
+void BattanKing::showCollisionPartsNormal() {
+    for (s32 i = 0; i < 5; i++) {
+        mCollisions[i]->appear();
+        mCollisionPresses[i]->kill();
+    }
+}
+
+void BattanKing::showCollisionPartsSwapped() {
+    for (s32 i = 0; i < 5; i++) {
+        mCollisions[i]->kill();
+        mCollisionPresses[i]->appear();
+    }
+}
+
+void BattanKing::updateCollisionPartsFootState() {
+    showCollisionPartsNormal();
+    mCollisions[3]->kill();
+    mCollisions[4]->kill();
+    mCollisionPresses[3]->appear();
+    mCollisionPresses[4]->appear();
+}
+
+void BattanKing::hideCollisionPartsAll() {
+    for (s32 i = 0; i < 5; i++) {
+        mCollisions[i]->kill();
+        mCollisionPresses[i]->kill();
+    }
+}
+
+bool BattanKing::isAnyCollisionOnActor() {
+    for (s32 i = 0; i < 5; i++) {
+        if (MR::isOnPlayer(mCollisions[i])) {
+            return true;
+        }
+        if (MR::isOnPlayer(mCollisionPresses[i])) {
+            return true;
+        }
+    }
+    return MR::isOnPlayer(this);
+}
+
+void BattanKing::restoreDemoPose() {
+    MR::setPosition(this, mUnk180);
+    mFront = mUnk18C;
+    calcAndSetBaseMtx();
+}
+
+void BattanKing::updateDemoPlayerBaseMtx() {
+    TMtx34f mtx;
+    PSMTXCopy(mMtxFx, mtx);
+    MR::addTransMtxLocal(mtx, BattanKingVec::sOffset914);
+    MR::rotateMtxLocalYDegree(mtx, 40.0f);
+    MR::setPlayerBaseMtx(mtx);
+}
+
 bool BattanKing::isValidCollisionState(s32 id) const {
-    switch (id) {
-    case 0:
+    if (id == 0) {
         if ((isNerve(&NrvBattanKing::NrvE94::sInstance) && MR::isGreaterEqualStep(this, 0x3D)) ||
             isNerve(&NrvBattanKing::NrvE98::sInstance) || isNerve(&NrvBattanKing::NrvE9C::sInstance) ||
             isNerve(&NrvBattanKing::NrvEA4::sInstance)) {
             return true;
         }
         return false;
-    case 1:
+    } else if (id == 1) {
         if (!isNerve(&NrvBattanKing::NrvE68::sInstance) && !isNerve(&NrvBattanKing::NrvE6C::sInstance) &&
             !isNerve(&NrvBattanKing::NrvEA8::sInstance) && !isNerve(&NrvBattanKing::NrvEAC::sInstance)) {
             return true;
         }
         return false;
-    case 2:
+    } else if (id == 2) {
         if ((!isNerve(&NrvBattanKing::NrvE94::sInstance) || !MR::isGreaterEqualStep(this, 0x3D)) &&
             !isNerve(&NrvBattanKing::NrvE98::sInstance) && !isNerve(&NrvBattanKing::NrvE9C::sInstance) &&
             !isNerve(&NrvBattanKing::NrvEA4::sInstance) && !isNerve(&NrvBattanKing::NrvE68::sInstance) &&
@@ -295,19 +310,55 @@ bool BattanKing::isValidCollisionState(s32 id) const {
             return true;
         }
         return false;
-    default:
-        return false;
+
+    }
+    return false;
+}
+
+bool BattanKing::isInvalidCollisionParts(const CollisionParts* pParts) {
+    LiveActor* pHost = pParts->mHitSensor->mHost;
+    for (s32 i = 0; i < 5; i++) {
+        if (mCollisions[i] == pHost) return true;
+        if (mCollisionPresses[i] == pHost) return true;
+    }
+    return false;
+}
+
+void BattanKing::updateAttackAnim(s32 phase) {
+    mAttackType = phase;
+    if (MR::isOnGroundPlayer() && !isAnyCollisionOnActor()) {
+        MR::tryHitReaction(this, "攻撃・プレイヤー地上");
+    } else {
+        MR::tryHitReaction(this, "攻撃・プレイヤー空中");
     }
 }
 
-// fn_8008CF10: a triangle is invalid when its sensor's host is one of this boss's collision parts.
-// NONMATCHING: the target reads the sensor at Triangle+0xC8; our Triangle::getSensor() is at 0x8.
-bool BattanKing::isInvalidTriangle(const Triangle* pTriangle) {
-    LiveActor* pHost = pTriangle->getSensor()->mHost;
-    for (s32 i = 0; i < 5; i++) {
-        if (static_cast<LiveActor*>(mCollisions[i]) == pHost) {
-            return true;
-        }
+// NONMATCHING: regalloc
+bool BattanKing::calcPlayerPush(TVec3f* pPush) {
+    u8 wasFront = mFlagB;
+    u8 wasInside = mFlagC;
+    TMtx34f inverse;
+    TMtx34f mtx;
+    PSMTXCopy(MR::getJointMtx(this, "BattanKingBody"), mtx);
+    MR::addTransMtxLocal(mtx, BattanKingVec::sPushOffset);
+    PSMTXInverse(mtx, inverse);
+    TVec3f local(0.0f);
+    PSMTXMultVec(inverse, MR::getPlayerCenterPos(), local);
+    f32 z = local.z;
+    bool inside = isInsidePushBox(local, BattanKingVec::sRange95C, 600.0f);
+    u8 isFront = z >= 0.0f;
+    mFlagB = isFront;
+    if (!inside) return false;
+    mFlagC = 1;
+    MR::extractMtxZDir(MR::getJointMtx(this, "BattanKingBody"), pPush);
+    f32 edge;
+    if (wasFront) edge = 0.5f * BattanKingVec::sRange95C.z;
+    else edge = 0.5f * -BattanKingVec::sRange95C.z;
+    *pPush *= edge - z;
+    if (wasInside && isFront != wasFront) {
+        mFlagB = wasFront;
+        return true;
     }
+    if (z < 0.5f * BattanKingVec::sRange95C.z) return true;
     return false;
 }

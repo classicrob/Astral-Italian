@@ -18,6 +18,10 @@ void AudTrackController::stop() {
     mAutoMute = false;
 }
 
+void AudTrackController::moveVolume(f32 volume, s32 time) {
+    mFader.set(volume, time);
+}
+
 void AudTrackController::mute() {
     if (mHandle == nullptr) {
         return;

@@ -504,12 +504,41 @@ namespace MR {
         return nullptr;
     }
 
+    void setSensorRadius(HitSensor* pSensor, f32 radius) {
+        pSensor->mRadius = radius;
+    }
+
     void setSensorRadius(LiveActor* pActor, const char* pName, f32 radius) {
         pActor->mSensorKeeper->getSensorInfo(pName)->mSensor->mRadius = radius;
     }
 
     bool isSensorPlayerOrRide(const HitSensor* pSensor) {
         return isSensorPlayer(pSensor) || isSensorRide(pSensor);
+    }
+
+    // NONMATCHING: regalloc (target keeps the test value in r30, ours in r31)
+    bool isSensorPlayerOrYoshi(const HitSensor* pSensor) {
+        bool result = true;
+        if (!pSensor->isType(1)) {
+            if (!pSensor->isType(5)) {
+                result = false;
+            }
+        }
+
+        return result;
+    }
+
+    bool isSensorPlayerOrYoshiOrRide(const HitSensor* pSensor) {
+        bool result = pSensor->isType(1);
+        if (!result) {
+            result = pSensor->isType(5);
+        }
+
+        if (!result) {
+            result = isSensorRide(pSensor);
+        }
+
+        return result;
     }
 
     bool isSensorEnemy(const HitSensor* pSensor) {
@@ -560,6 +589,14 @@ namespace MR {
         return false;
     }
 
+    TVec3f* getSensorPos2(const HitSensor* pSensor) {
+        return const_cast< TVec3f* >(&pSensor->mPosition);
+    }
+
+    TVec3f* getSensorPos2(const LiveActor* pActor, const char* pSensorName) {
+        return const_cast< TVec3f* >(&pActor->getSensor(pSensorName)->mPosition);
+    }
+
     void calcSensorDirection(TVec3f* pDir, const HitSensor* pSensor1, const HitSensor* pSensor2) {
         TVec3f dir = pSensor2->mPosition - pSensor1->mPosition;
         pDir->set(dir);
@@ -568,6 +605,14 @@ namespace MR {
     void calcSensorDirectionNormalize(TVec3f* pDir, const HitSensor* pSensor1, const HitSensor* pSensor2) {
         calcSensorDirection(pDir, pSensor1, pSensor2);
         normalizeOrZero(pDir);
+    }
+
+    void calcSensorDistanceGravity(f32* pDistance, f32* pDot, const HitSensor* pSensorA, const HitSensor* pSensorB, TVec3f& rGravity) {
+        func_8003DEF0(pDistance, pDot, &pSensorA->mPosition, &pSensorB->mPosition, &rGravity);
+    }
+
+    f32 calcSensorDistance(const HitSensor* pSensorA, const HitSensor* pSensorB) {
+        return pSensorA->mPosition.distance(pSensorB->mPosition);
     }
 
     void calcSensorHorizonNormalize(TVec3f* pHorizon, const TVec3f& rGravity, const HitSensor* pSensor1, const HitSensor* pSensor2) {
@@ -622,8 +667,26 @@ namespace MR {
         return sendArbitraryMsg(0x61 /* ACTMES_ENEMY_ATTACK */, pReceiver, pSender);
     }
 
+    bool sendMsgEnemyAttackOrPush(HitSensor* pReceiver, HitSensor* pSender) {
+        if (pReceiver->receiveMessage(0x61 /* ACTMES_ENEMY_ATTACK */, pSender)) {
+            return true;
+        }
+
+        pReceiver->receiveMessage(0x33, pSender);
+        return false;
+    }
+
     bool sendMsgEnemyAttackStrong(HitSensor* pReceiver, HitSensor* pSender) {
         return sendArbitraryMsg(0x62 /* ACTMES_ENEMY_ATTACK_STRONG */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackStrongOrPush(HitSensor* pReceiver, HitSensor* pSender) {
+        if (pReceiver->receiveMessage(0x62 /* ACTMES_ENEMY_ATTACK_STRONG */, pSender)) {
+            return true;
+        }
+
+        pReceiver->receiveMessage(0x33, pSender);
+        return false;
     }
 
     bool sendMsgEnemyAttackStrongToDir(HitSensor* pReceiver, HitSensor* pSender, const TVec3f& rDir) {
@@ -708,6 +771,17 @@ namespace MR {
 
         return getWallSensor(getSensorHost(pSender))->receiveMessage(msg, pSender);
     }
+
+#pragma dont_inline on
+    bool sendMsgToRoofSensor(u32 msg, HitSensor* pSender) {
+        if (isBindedRoof(pSender->mHost)) {
+            HitSensor* pRoof = getRoofSensor(pSender->mHost);
+            return pRoof->receiveMessage(msg, pSender);
+        }
+
+        return false;
+    }
+#pragma dont_inline reset
 
     bool sendMsgStartDemo(LiveActor* pActor) {
         return sendSimpleMsgToActor(0x9 /* ACTMES_START_DEMO */, pActor);
@@ -819,13 +893,38 @@ namespace MR {
         return pActor->mBinder->mWallInfo.mParentTriangle.mSensor;
     }
 
+    LiveActor* getGroundActor(const LiveActor* pActor) {
+        return pActor->mBinder->mGroundInfo.mParentTriangle.getSensor()->mHost;
+    }
+
     bool isMsgPlayerHitAll(u32 msg) {
         return msg == 0x1 /* ACTMES_PLAYER_PUNCH */ || msg == 0x5 /* ACTMES_PLAYER_UPPER_PUNCH */ || msg == 0x7 /* ACTMES_JET_TURTLE_ATTACK */ || msg == 0xb /* ACTMES_FIREBALL_ATTACK */ ||
                msg == 0xd /* ACTMES_FREEZE_ATTACK */ || msg == 0xe /* ACTMES_INVINCIBLE_ATTACK */;
     }
 
+    bool isMsgPlayerHitProjectiles(u32 msg) {
+        bool result = false;
+        u32 idx = msg - 7;
+        if (idx <= 10) {
+            if (((1 << idx) & 0x697) != 0) {
+                result = true;
+            }
+        }
+
+        return result;
+    }
+
     bool isMsgPlayerSpinAttack(u32 msg) {
         return msg == 0x1 /* ACTMES_PLAYER_PUNCH */;
+    }
+
+    bool isMsgPlayerSpinAttackOrSupportTico(u32 msg) {
+        bool result = false;
+        if (msg == 0x1 || msg == 0x13) {
+            result = true;
+        }
+
+        return result;
     }
 
     bool isMsgPlayerTrample(u32 msg) {
@@ -920,6 +1019,10 @@ namespace MR {
         return msg == 0x8b /* ACTMES_ITEM_START_MOVE */;
     }
 
+    bool isMsgItemEndMoveOrDrop(u32 msg) {
+        return (msg - 0x8c) <= 2;
+    }
+
     bool isMsgItemEndMove(u32 msg) {
         return msg == 0x8c /* ACTMES_ITEM_END_MOVE */;
     }
@@ -1012,6 +1115,10 @@ namespace MR {
         return msg >= 0x16 /* ACTMES_STAR_PIECE_GIFT */ && msg <= 0x25 /* ACTMES_STAR_PIECE_GIFT_MAX */;
     }
 
+    s32 getStarPieceGiftCount(u32 msg) {
+        return msg - 0x15;
+    }
+
     void calcPosBetweenSensors(TVec3f* pPos, const HitSensor* pSensor1, const HitSensor* pSensor2, f32 offset) {
         TVec3f dir = pSensor2->mPosition - pSensor1->mPosition;
         normalizeOrZero(&dir);
@@ -1084,6 +1191,18 @@ namespace MR {
         return sendMsgToBindedSensor(0x71, pActor, pSender);
     }
 
+    bool sendMsgEnemyAttackTrampleDeathToGroundSensor(HitSensor* pSender) {
+        return sendMsgToGroundSensor(0x73, pSender);
+    }
+
+    HitSensor* getDefaultMessageOrActorSensor(LiveActor* pActor) {
+        if (pActor->mSensorKeeper == nullptr) {
+            return static_cast< LiveActor* >(getSceneObjHolder()->getObj(9))->getSensor(nullptr);
+        }
+
+        return pActor->mSensorKeeper->getNthSensorInfo(0)->mSensor;
+    }
+
     bool sendMsgToEnemyAttackRoll(HitSensor* pReceiver, HitSensor* pSender) {
         return pReceiver->receiveMessage(0x71, pSender);
     }
@@ -1124,6 +1243,10 @@ namespace MR {
         return msg == 0x2b;
     }
 
+    bool isMsgDamageOrRushDrop(u32 msg) {
+        return (msg - 0x2c) <= 2;
+    }
+
     bool isMsgWaterDrop(u32 msg) {
         return msg == 0x2f;
     }
@@ -1134,6 +1257,18 @@ namespace MR {
 
     bool isMsgYoshiEat(u32 msg) {
         return msg == 0x9;
+    }
+
+    // NONMATCHING: MWCC folds the two compares of the || into a range check; target keeps both cmplwi
+    bool isMsgYoshiProjectileOrEat(u32 msg) {
+        bool result = false;
+        if (msg == 0x8) {
+            result = true;
+        } else if (msg == 0x9) {
+            result = true;
+        }
+
+        return result;
     }
 
     bool isMsgDrillAttack(u32 msg) {

@@ -6,6 +6,9 @@
 #include "Game/Screen/YesNoController.hpp"
 #include "Game/Screen/YesNoLayout.hpp"
 #include "Game/Util/DemoUtil.hpp"
+#include "Game/Util/AreaObjUtil.hpp"
+#include "Game/Util/JMapUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 
 namespace MR {
@@ -47,11 +50,30 @@ namespace MR {
         return pCtrl;
     }
 
+    TalkMessageCtrl* createTalkCtrlDirect(LiveActor* pActor, const char* pMessageID, const TVec3f& rOffset, MtxPtr pMtx) {
+        JMapInfoIter iter(nullptr, -1);
+        TalkMessageCtrl* pCtrl = new TalkMessageCtrl(pActor, rOffset, pMtx);
+        pCtrl->createMessageDirect(iter, pMessageID);
+        return pCtrl;
+    }
+
     TalkMessageCtrl* createTalkCtrlDirectOnRootNodeAutomatic(LiveActor* pActor, const JMapInfoIter& rIter, const char* pMessageID,
                                                              const TVec3f& rOffset, MtxPtr pMtx) {
         TalkMessageCtrl* pCtrl = createTalkCtrlDirect(pActor, rIter, pMessageID, rOffset, pMtx);
         onRootNodeAutomatic(pCtrl);
         return pCtrl;
+    }
+
+    TalkMessageCtrl* tryCreateTalkCtrlDirectOnRootNodeAutomatic(LiveActor* pActor, const JMapInfoIter& rIter, const char* pMessageID,
+                                                                const TVec3f& rOffset, MtxPtr pMtx) {
+        if (isExistMessageId(rIter)) {
+            TalkMessageCtrl* pCtrl = new TalkMessageCtrl(pActor, rOffset, pMtx);
+            pCtrl->createMessage(rIter, pMessageID);
+            pCtrl->mIsOnRootNodeAuto = true;
+            return pCtrl;
+        }
+
+        return nullptr;
     }
 
     bool tryTalkNearPlayer(TalkMessageCtrl* pCtrl) {
@@ -101,6 +123,22 @@ namespace MR {
         return ret;
     }
 
+    bool tryTalkForceMarioPuppetable(TalkMessageCtrl* pCtrl) {
+        if (MR::isTimeKeepDemoActive()) {
+            return false;
+        }
+
+        bool ret = false;
+
+        if (pCtrl->requestTalkForce()) {
+            if (pCtrl->startTalkForcePuppetable()) {
+                ret = true;
+            }
+        }
+
+        return ret;
+    }
+
     bool tryTalkForceAtEnd(TalkMessageCtrl* pCtrl) {
         if (MR::isTimeKeepDemoActive()) {
             return false;
@@ -112,6 +150,22 @@ namespace MR {
 
         if (pCtrl->requestTalkForce()) {
             pCtrl->startTalkForce();
+        }
+
+        return false;
+    }
+
+    bool tryTalkForceMarioPuppetableAtEnd(TalkMessageCtrl* pCtrl) {
+        if (MR::isTimeKeepDemoActive()) {
+            return false;
+        }
+
+        if (pCtrl->endTalk()) {
+            return true;
+        }
+
+        if (pCtrl->requestTalkForce()) {
+            pCtrl->startTalkForcePuppetable();
         }
 
         return false;
@@ -196,6 +250,18 @@ namespace MR {
 
         if (pCtrl->requestTalkForce()) {
             if (pCtrl->startTalkForcePuppetable()) {
+                ret = true;
+            }
+        }
+
+        return ret;
+    }
+
+    bool tryTalkTimeKeepDemoForceWithoutDemo(TalkMessageCtrl* pCtrl) {
+        bool ret = false;
+
+        if (pCtrl->requestTalkForce()) {
+            if (pCtrl->startTalkForceWithoutDemo()) {
                 ret = true;
             }
         }
@@ -292,6 +358,10 @@ namespace MR {
         pCtrl->readMessage();
     }
 
+    bool isMessageRead(const TalkMessageCtrl* pCtrl) {
+        return pCtrl->_3C;
+    }
+
     void forwardNode(TalkMessageCtrl* pCtrl) {
         TalkFunction::onTalkStateNone(pCtrl);
         pCtrl->mNodeCtrl->forwardFlowNode();
@@ -351,6 +421,35 @@ namespace MR {
         return pCtrl->mNodeCtrl->isExistNextNode();
     }
 
+    bool tryForwardNodeForMessageArea(TalkMessageCtrl* pCtrl) {
+        TVec3f* pPlayerPos = getPlayerCenterPos();
+        if (getAreaObj("MessageArea", *pPlayerPos) == nullptr) {
+            return false;
+        }
+
+        s32 messageID = static_cast< s32 >(pCtrl->getMessageID());
+        while (true) {
+            if (pCtrl->inMessageArea()) {
+                break;
+            }
+
+            if (!tryForwardNode(pCtrl)) {
+                TalkFunction::onTalkStateNone(pCtrl);
+                pCtrl->mNodeCtrl->resetFlowNode();
+            }
+
+            if (messageID == static_cast< s32 >(pCtrl->getMessageID())) {
+                break;
+            }
+        }
+
+        if (messageID == static_cast< s32 >(pCtrl->getMessageID())) {
+            return false;
+        }
+
+        return true;
+    }
+
     bool isShortTalk(const TalkMessageCtrl* pCtrl) {
         return TalkFunction::isShortTalk(pCtrl);
     }
@@ -377,6 +476,39 @@ namespace MR {
 
     void onStartOnlyFront(TalkMessageCtrl* pCtrl) {
         pCtrl->mIsStartOnlyFront = true;
+    }
+
+    void offTalkCinemaFrame(TalkMessageCtrl* pCtrl) {
+        if (pCtrl != nullptr) {
+            pCtrl->_SMG2_50 = false;
+        }
+    }
+
+    void hideBubbleBeak(TalkMessageCtrl* pCtrl) {
+        if (pCtrl != nullptr) {
+            pCtrl->_SMG2_51 = true;
+        }
+    }
+
+    void showBubbleBeak(TalkMessageCtrl* pCtrl) {
+        if (pCtrl != nullptr) {
+            pCtrl->_SMG2_51 = false;
+        }
+    }
+
+    // PLACEHOLDER(core4): SMG2 fn_80061520 sets TalkMessageCtrl byte 0x52 (_SMG2_52); name guessed, rename when the flag is named
+    void onTalkSmg2Flag52(TalkMessageCtrl* pCtrl) {
+        if (pCtrl != nullptr) {
+            pCtrl->_SMG2_52 = true;
+        }
+    }
+
+    void initTalkCamera(TalkMessageCtrl* pCtrl, const JMapInfoIter& rIter) {
+        pCtrl->initCamera(rIter);
+    }
+
+    void disableTalkCamera(TalkMessageCtrl* pCtrl) {
+        pCtrl->disableCamera();
     }
 
     bool isTalkStart(const TalkMessageCtrl* pCtrl) {

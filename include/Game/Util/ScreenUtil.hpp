@@ -153,8 +153,11 @@ namespace MR {
 
 
 namespace MR {
+    void requestOneUpBoard(s32);  // owner: ScreenUtil unit (requestOneUpBoard__2MRFl)
     s32 getFrameBufferWidth() NO_INLINE;
     s32 getFrameBufferHeight() NO_INLINE;
+    u32 getViWidth() NO_INLINE;
+    f32 getSafetyVIScreenWidthRatio() NO_INLINE;
     void appearInformationMessage(const wchar_t*, bool);
     bool isYesNoSelected() NO_INLINE;
     bool isYesNoSelectedYes() NO_INLINE;
@@ -167,3 +170,44 @@ namespace MR {
 }
 
 namespace MR { bool isExistCaptureScreenTexture(); }
+
+namespace MR {
+    void openSystemWipeCircleAtPlayer(s32);  // SMG2 fn_80058C70 (core4 name): openSystemWipeCircle + SystemWipeHolder::setWipeRingCenterOnPlayer
+    bool isSystemWipeBlank();                // SMG2 fn_80059100 (core4 name): SystemWipeHolder vfunc 0x40
+    bool isSystemWipeOpen();                 // SMG2 fn_80059120 (core4 name): SystemWipeHolder vfunc 0x3C
+    void requestEndModelWipeScene();         // SMG2 fn_80059300 (core4 name)
+}
+
+// core4 (ScreenUtil missing functions): declarations for symbols defined in ScreenUtil.cpp
+class NameObj;
+namespace MR {
+    void openSystemWipeCircle(s32 frame = -1);
+    void openSystemWipeCircleOnPlayer(s32 frame);  // PLACEHOLDER(core): name guessed (fn_80058C70 = openSystemWipeCircle + setWipeRingCenterOnPlayer)
+    bool isSystemWipeBlank();                      // PLACEHOLDER(core): name guessed (fn_80059100 = SystemWipeHolder vtable isClose)
+    bool isSystemWipeOpen();                       // PLACEHOLDER(core): name guessed (fn_80059120 = SystemWipeHolder vtable isOpen)
+    void killCenterScreenBlur();
+    void createPostFog();
+    void createPostOutline();
+    void createDestroyCounter(s32 maximum);
+    void activateDestroyCounter();
+    void setDestroyCounterCount(s32 count);        // PLACEHOLDER(core): name guessed (stores DestroyCounter+0x34 = mCount)
+    void appearDestroyCounter();
+    void killDestroyCounter();
+    void showScoreAttackResults();                 // PLACEHOLDER(core): name guessed (fn_8005A3E0 tail-calls showScoreAttackLayouts)
+    void hideScoreAttackLayouts();
+    void showScoreAttackLayouts();
+    void killAllScoreResults();
+    void killWorldMapLayoutCounters(NameObj*);     // PLACEHOLDER(core): fn_804E8A40 (obj->+0x14->+0x18 then tail-calls WorldMapLayouts::killCounters); owner is auto_03 unit
+    // ModelWipeScene wrappers. PLACEHOLDER(core): MR names guessed from the ModelWipeScene methods they forward to.
+    void startCloudWipeForward();
+    void startCloudWipeBackward();
+    void startGalaxyWipeForward();
+    void startGalaxyWipeBackward();
+    void startSpaceWipeForward();
+    void startSpaceWipeBackward();
+    void requestEndModelWipe();
+    bool tryEndModelWipe();
+    void forceHideModelWipe();
+    bool isHideOrEndModelWipe();
+    bool isHiddenModelWipe();
+};  // namespace MR

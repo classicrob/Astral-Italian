@@ -250,7 +250,7 @@ Game/Util/RailUtil.cpp:
 	.sdata2     start:0x807D7118 end:0x807D7128
 
 Game/Util/DiceMover.cpp:
-	.text       start:0x800547F0 end:0x80056470
+	.text       start:0x80054650 end:0x80056470
 
 Game/Util/SceneUtil.cpp:
 	.text       start:0x80056470 end:0x800583F0
@@ -2340,7 +2340,8 @@ Game/Demo/StarReturnDemoStarter.cpp:
 	.sdata2     start:0x807D98C0 end:0x807D98E0
 
 Game/Demo/StoryBookDemo.cpp:
-	.text       start:0x80146190 end:0x801479D0
+	.text       start:0x80146190 end:0x80147EB0
+	.ctors      start:0x80644054 end:0x80644058
 
 Game/Demo/TransformFaceTicoBabyDemoObj.cpp:
 	.text       start:0x80147EB0 end:0x80148160
@@ -6677,7 +6678,7 @@ Game/Scene/StageDataHolder.cpp:
 	.sdata      start:0x807D0168 end:0x807D0170
 
 Game/Scene/StageFileLoader.cpp:
-	.text       start:0x8045CCE0 end:0x8045CF40
+	.text       start:0x8045CCE0 end:0x8045CFF0
 	.data       start:0x806F1368 end:0x806F1398
 	.sdata      start:0x807D0170 end:0x807D0178
 
@@ -7543,9 +7544,13 @@ Game/System/GameSequenceInStage.cpp:
 	.ctors      start:0x80644A00 end:0x80644A04
 	.data       start:0x806FA5D8 end:0x806FA630
 
+Game/System/GameSequenceMarioFaceShip.cpp:
+	.text       start:0x804B46F0 end:0x804B4A30
+	.ctors      start:0x80644A04 end:0x80644A08
+
 Game/System/GameSequenceMarioFaceShipEvent.cpp:
-	.text       start:0x804B46F0 end:0x804B5E30
-	.ctors      start:0x80644A04 end:0x80644A0C
+	.text       start:0x804B4A30 end:0x804B5E30
+	.ctors      start:0x80644A08 end:0x80644A0C
 
 Game/System/GameSequenceSystemStart.cpp:
 	.text       start:0x804B5E30 end:0x804B5F70

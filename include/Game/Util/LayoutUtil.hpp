@@ -259,6 +259,7 @@ namespace MR {
     void createAndAddPaneCtrl(LayoutActor*, const char*, u32);
     void createAndAddGroupCtrl(LayoutActor*, const char*, u32);
     bool isExistPaneCtrl(LayoutActor*, const char*);
+    bool isExistPane(const LayoutActor*, const char*);
     nw4r::lyt::TexMap* createLytTexMap(ResTIMG*);
     s16 getAnimFrameMax(const LayoutActor*, const char*);
     void emitEffect(LayoutActor*, const char*);

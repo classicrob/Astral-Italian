@@ -3,9 +3,20 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class GalaxyStatusIcon;
+class JMapInfo;
+class PartsModel;
 
 /// Helpers of the world-map model unit (0x804E7AC0 ..) shared by the map actors.
 namespace WorldMapFunction {
+    void movementMini();
+    void calcAnimMini();
+    void entryMini();
+    void drawMini();
+    void initMiniCamera();
+    void initRocketOffsets();
+    JMapInfo* createWorldParser(s32, const char*);
+    PartsModel* createPartsModel(LiveActor*, const char*, const char*, const char*);
+    bool mountWorldMapResources();
     s32 getGrandStarNum();
     bool hasIncompleteGreenStar(const char* pGalaxyName);
     void setStatusIconKind(GalaxyStatusIcon*, const char* pGalaxyName);
@@ -24,3 +35,5 @@ namespace WorldMapFunction {
     void approachScale(LiveActor*, f32 speed, f32 max);
     void returnScale(LiveActor*, f32 speed, f32 min);
 };
+
+namespace MR { s32 getProgressWorldNo(); }

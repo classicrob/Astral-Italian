@@ -16,6 +16,7 @@ class VolumeDrawer;
 class PattanHolder;
 class TalkMessageCtrl;
 class Triangle;
+class CollisionParts;
 
 // SMG2-only unit (BattanKing boss: 5 collision parts + 5 press parts + a break model, Pattan holder).
 // LiveActor = 0x90 bytes in SMG2; members start at 0x90. Vtable is the LiveActor table (no new virtuals).
@@ -35,7 +36,24 @@ public:
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
+    void resetVolumes();
+    bool isAttackPhaseStart() const NO_INLINE;
+    bool tryAdvanceAttack();
+    void spawnPattans();
+    void updateJointVisibility();
+    void updateShockPos();
+    void showCollisionPartsNormal();
+    void showCollisionPartsSwapped();
+    void updateCollisionPartsFootState();
+    void hideCollisionPartsAll();
+    bool isAnyCollisionOnActor();
+    void updateAttackAnim(s32);
+    bool calcPlayerPush(TVec3f*);
+    void restoreDemoPose();
+    void updateDemoPlayerBaseMtx();
+    // PLACEHOLDER(core): earlier BattanKing TU still installs a triangle filter; migrate it to the collision-parts callback below.
     bool isInvalidTriangle(const Triangle*);
+    bool isInvalidCollisionParts(const CollisionParts*);
     bool isValidCollisionState(s32) const;
     bool isNearDropPoint(const TVec3f& rPoint, f32 radius, f32 height);
 
@@ -64,9 +82,9 @@ public:
     /* 0x1B0 */ TVec3f mUnk1B0;
     /* 0x1BC */ TVec3f mUnk1BC;
     /* 0x1C8 */ s32 mArg7;
-    /* 0x1CC */ s8 mFlagA;
-    /* 0x1CD */ s8 mFlagB;
-    /* 0x1CE */ s8 mFlagC;
+    /* 0x1CC */ u8 mFlagA;
+    /* 0x1CD */ u8 mFlagB;
+    /* 0x1CE */ u8 mFlagC;
 };
 
 // Collision part of BattanKing (body/arms/legs). 0x98 bytes.
@@ -115,6 +133,7 @@ namespace BattanKingVec {
     extern TVec3f sOrigin944;
     extern TVec3f sRange95C;
     extern TMtx34f sMtx968[7];
+    extern TVec3f sPushOffset; // lbl_80728968, overlaps the first stored matrix.
 }
 
 // Nerves of BattanKing. Executes are defined in the BattanKing translation unit that owns the sInstance objects.
@@ -146,9 +165,14 @@ public:
     BattanKingTalkState(BattanKing* pHost, const JMapInfoIter& rIter, const char* pName, const char* pDemoName,
                         const char* pAnimName);
 
+    virtual ~BattanKingTalkState();
+    virtual void appear();
+    void exeTryStart();
+    void exeTalk();
+
     /* 0x10 */ TalkMessageCtrl* mTalkCtrl;
-    /* 0x14 */ const JMapInfoIter* mIter;
-    /* 0x18 */ s8 mFlag18;
+    /* 0x14 */ union { const JMapInfoIter* mIter; const char* mDemoName; };
+    /* 0x18 */ u8 mFlag18;
 };
 
 // Group of Pattan (small jump-flower) enemies spawned by BattanKing. Vtable __vt__12PattanHolder.
@@ -157,3 +181,12 @@ public:
     inline PattanHolder(const char* pName, s32 capacity) : LiveActorGroup(pName, capacity) {
     }
 };
+
+namespace BattanKingData {
+    extern const char sStringTable[];
+}
+
+namespace BattanKingParam {
+    extern const s32 sInitialPattanCount;
+    extern const s32 sPushStartStep;
+}

@@ -336,6 +336,46 @@ namespace MR {
         return calcDifferenceRailCoord(pActor, getRailCoord(pActor), coord);
     }
 
+    void fn_80052450(LiveActor* pActor, f32 speed, f32 minSpeed, f32 range) {
+        f32 easedSpeed = calcRailSpeedEaseAtEnds(pActor, speed, minSpeed, range);
+        moveCoordAndFollowTrans(pActor, easedSpeed);
+        if (!pActor->mRailRider->isLoop() && pActor->mRailRider->isReachedGoal()) {
+            pActor->mRailRider->reverse();
+        }
+    }
+
+    bool isRailCoordNotBehind(const LiveActor* pActor, f32 coord) {
+        f32 currentCoord = pActor->mRailRider->mCoord;
+        return calcDifferenceRailCoord(pActor, currentCoord, coord) >= 0.0f;
+    }
+
+    f32 calcDistanceToNearestRailEnd(const LiveActor* pActor) {
+        f32 coord = pActor->mRailRider->mCoord;
+        return MR::min(coord, pActor->mRailRider->getTotalLength() - coord);
+    }
+
+    // Takes MR::repeat's address so this TU emits its own out-of-line copy (MathUtil.hpp defines it inline)
+    void RailUtil_FORCE_REPEAT() {
+        f32 (*pRepeat)(f32, f32, f32) = repeat;
+        (void)pRepeat;
+    }
+
+    void calcRandomRailPointPos(TVec3f* pOut, const LiveActor* pActor) {
+        s32 index = getRandom(0, pActor->mRailRider->getPointNum());
+        pActor->mRailRider->copyPointPos(pOut, index);
+    }
+
+    f32 calcRailSpeedEaseAtEnds(const LiveActor* pActor, f32 speed, f32 minSpeed, f32 range) {
+        f32 result = speed;
+        // NONMATCHING: branch layout (target: beq to the ease block, b to the epilogue)
+        if (!pActor->mRailRider->isLoop()) {
+            f32 distance = calcDistanceToNearestRailEnd(pActor);
+            result = getInterpolateValue(normalize(distance, 0.0f, range), minSpeed, speed);
+        }
+
+        return result;
+    }
+
     f32 calcDistanceHorizonToCurrentPos(const LiveActor* pActor) {
         TVec3f horizontal;
         horizontal.killElement(getRailPos(pActor) - pActor->mPosition, pActor->mGravity);

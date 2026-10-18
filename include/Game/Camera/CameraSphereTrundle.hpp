@@ -24,7 +24,6 @@ public:
     virtual CameraTargetObj* calc();
     virtual CamTranslatorBase* createTranslator();
 
-    /* 0x24 */ TMtx34f mMtx;
     /* 0x54 */ TVec3f mOffset;
     /* 0x60 */ TVec3f mLocalPos;
     /* 0x6C */ f32 mDist;

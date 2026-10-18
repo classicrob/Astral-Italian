@@ -92,8 +92,8 @@ namespace DemoExecutorFunction {
         DemoTalkAnimCtrl* pTalkAnimCtrl = new DemoTalkAnimCtrl(pActor, pExecutor->mName, a5);
 
         pTalkAnimCtrl->initForScene(a4, a4, rIter);
-        pTalkAnimCtrl->_40 = a6;
-        pTalkAnimCtrl->_44 = a7;
+        pTalkAnimCtrl->_38 = a6;
+        pTalkAnimCtrl->_3C = a7;
         pExecutor->addTalkAnimCtrl(pTalkAnimCtrl);
 
         return true;

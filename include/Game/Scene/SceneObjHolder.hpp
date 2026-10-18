@@ -153,6 +153,7 @@ enum SceneObj {
     SceneObj_MarioFaceShipNpcHolder = 0x94,
     SceneObj_MarioFaceShipAttentionConversationDirector = 0x95,
     SceneObj_Unk96 = 0x96,
+    SceneObj_MarioFaceShipNormalConversationDirector = 0x96,  // alias of Unk96 (core4)
     SceneObj_MarioFaceShipEventDataHolder = 0x97,
     SceneObj_WiiMessageBoardMailSender = 0x98,
     SceneObj_SleepControllerHolder = 0x0C,  // Petari name for AwakeControllerHolder

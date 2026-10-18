@@ -9,6 +9,7 @@ class JMapLinkInfo;
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution.h>
 
+class ActorHitReactionCtrl;
 class ActorLightCtrl;
 class ActorPoseTQ;
 class AnimScaleController;
@@ -43,6 +44,10 @@ namespace MR {
     void tryHitReactionAtPos(const LiveActor*, const char*, const TVec3f*);
     void tryHitReactionBetweenSensors(const LiveActor*, const char*, HitSensor*, HitSensor*);
     void tryHitReaction(const LiveActor*, const char*);
+    void tryHitReactionAtMtx(const LiveActor*, const char*, const TPos3f*);
+    void tryHitReactionBlowBetweenSensors(LiveActor*, HitSensor*, HitSensor*);
+    void tryHitReactionBlow(LiveActor*);
+    ActorHitReactionCtrl* getHitReactionCtrl(const LiveActor*);
     enum CollisionScaleType { CollisionScaleType_AutoEqualScale, CollisionScaleType_NotUsingScale, CollisionScaleType_Default, CollisionScaleType_Unk2 = CollisionScaleType_Default };
     void initSensors(LiveActor*, const char*, const char*);
     void initSwitches(LiveActor*, const JMapInfoIter&, const char*, const char*);
@@ -108,6 +113,10 @@ namespace MR {
     void initDLMakerChangeTex(LiveActor* pActor, const char* pTexName);
     void initDLMakerTexMtx(LiveActor* pActor, const char* pTexName);
     ProjmapEffectMtxSetter* initDLMakerProjmapEffectMtxSetter(LiveActor* pActor);
+    void setFogColor(LiveActor* pActor, const GXColor& rColor);
+    void setFogType(LiveActor* pActor, u8 type);
+    void setFogStartEndZ(LiveActor* pActor, f32 startZ, f32 endZ);
+    void setFogNearFarZ(LiveActor* pActor, f32 nearZ, f32 farZ);
     // four unknown model-related functions
 
     void initMirrorReflection(LiveActor* pActor);
@@ -137,6 +146,7 @@ namespace MR {
     f32 getBvaFrameMax(const LiveActor* pActor);
     const char* getPlayingBckName(const LiveActor* pActor);
     void reflectBckCtrlData(LiveActor* pActor, const BckCtrlData& rData);
+    void reflectBckCtrlDataAllAnim(LiveActor* pActor, const char* pName, const BckCtrlData& rBck);
     // one unknown function
 
     s32 getLightNumMax(const LiveActor* pActor);
@@ -297,6 +307,7 @@ namespace MR {
     void offUpdateCollisionParts(LiveActor* pActor);
     // one collision-related function
 
+    void resetCollisionPartsBelongZone(LiveActor* pActor);
     void resetAllCollisionMtx(LiveActor* pActor);
     void setCollisionMtx(LiveActor* pActor);
     void setCollisionMtx(LiveActor* pActor, CollisionParts* pCollisionParts);
@@ -345,7 +356,7 @@ namespace MR {
     PartsModel* createPartsModelEnemyAndFix(LiveActor* pHost, const char* pName, const char* pModelName, MtxPtr pMtx);
     PartsModel* createPartsModelNpcAndFix(LiveActor* pHost, const char* pName, const char* pModelName, MtxPtr pMtx);
 
-    RailObj* createRailObj(const char* pName, LiveActor* pHost, const JMapInfoIter& rIter);
+    RailObj* createRailObj(const char* pName, LiveActor* pHost, const JMapInfoIter& rIter, int railIndex);
 
     const char* createLowModelObjName(const LiveActor* pActor);
     const char* createMiddleModelObjName(const LiveActor* pActor);
@@ -449,6 +460,7 @@ namespace MR {
 namespace MR {
 }
 
+namespace MR { void setFogColorWithAlpha(LiveActor*, const GXColor&, bool); }
 namespace MR {
     RailObj* createRailObj(const char*, LiveActor*, const JMapInfoIter&, int);
 }

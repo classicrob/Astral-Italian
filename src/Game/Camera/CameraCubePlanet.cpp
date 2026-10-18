@@ -13,7 +13,7 @@ void CameraCubePlanet_FORCE_MATCH_SDATA2() {
 }
 
 CameraCubePlanet::CameraCubePlanet(const char* pName)
-    : Camera(pName), mDist(3000.0f), mAngleX(MR::pi() / 6.0f), mAngleY(0.35f), mUp(0.0f, 1.0f, 0.0f) {
+    : Camera(pName), mDist(3000.0f), mAngleX(MR::pi() / 6.0f), mAngleY(0.35f), mUp(0.0f, 1.0f, 0.0f), _70(nullptr) {
 }
 
 void CameraCubePlanet::reset() {

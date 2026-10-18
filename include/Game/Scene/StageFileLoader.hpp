@@ -8,10 +8,11 @@ public:
 
     void startLoadingStageFile();
     void waitLoadedStageFile();
-    void makeStageArchiveNameList();
-    static void makeStageArchiveName(char*, u32, const char*);
-    void mountFilesInStageMapFile(const char*);
+    void makeStageArchiveNameList(const char*);
+    void makeStageArchiveName(const char*);
+    bool addStageArchiveName(const char*, const char*);
+    static void makeStageArchivePath(char*, u32, const char*, const char*);   // SMG2 0x8045B050 (in the StageDataHolder gap)
 
-    /* 0x00 */ char* mStageFiles[0x18];
-    /* 0x60 */ s32 mZoneCount;
+    /* 0x000 */ char* mStageFiles[0x40];
+    /* 0x100 */ s32 mStageFileNum;
 };

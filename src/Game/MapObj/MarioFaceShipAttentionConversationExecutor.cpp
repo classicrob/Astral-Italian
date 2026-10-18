@@ -7,6 +7,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NPC/Meister.hpp"
 #include "Game/Util.hpp"
+#include "Game/System/MarioFaceShipEventDataHolder.hpp"
 #include "Game/Util/EventUtil.hpp"
 
 // PLACEHOLDER(objects): unnamed core helpers (only used by this unit); resolve when core names fn_804C01A0 fn_804C2510
@@ -290,7 +291,7 @@ void MarioFaceShipAttentionConversationExecutor::initConversation(Param* pParam,
     mDemoIndex = pParam->mDemoIndex;
     mTalkCtrl = pParam->mTalkCtrl;
     mIsDefaultCamera = false;
-    mIsNpcIntro = MR::fn_804C24E0();
+    mIsNpcIntro = MarioFaceShipEventDataHolder::hasEventAtResultStatic();
     mIsItemPlanet = fn_804C2510();
     mIsArg4 = pParam->mIsArg4;
     mIsArg5 = pParam->mIsArg5;

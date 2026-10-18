@@ -4,6 +4,9 @@
 #include "Game/Util/BgmUtil.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
+class AudAnmSoundObject;
+class AudEffectDirector;
+class ActorSoundHolder;
 class AudSeKeeper;
 class AudSoundObject;
 class JAISoundHandle;
@@ -65,6 +68,7 @@ namespace MR {
     void stopSystemSE(JAISoundID id, u32 param2 = 0);
     JAISoundHandle* startAtmosphereSE(const char* pName, s32 param2 = -1, s32 param3 = -1);
     JAISoundHandle* startAtmosphereLevelSE(const char* pName, s32 param2 = -1, s32 param3 = -1);
+    JAISoundHandle* startAtmosphereSE(JAISoundID, s32, s32);
     JAISoundHandle* startSoundObject(AudSoundObject* pSoundObject, const char* pName);
     JAISoundHandle* startSoundObjectLevel(AudSoundObject* pSoundObject, const char* pName, s32 param3 = -1);
     JAISoundHandle* startSoundObjectLevel(AudSoundObject* pSoundObject, JAISoundID id, s32 param3 = -1);
@@ -81,7 +85,7 @@ namespace MR {
     void stopSound(const LiveActor* pActor, JAISoundID id, u32 param3 = 0);
     void setSeVersion(const LiveActor*, u32);
     void releaseSoundHandle(const LiveActor*, const char*);
-    void startBas(const LiveActor*, const char*, bool, f32, f32);
+    bool startBas(const LiveActor*, const char*, bool, f32, f32);
     void actorSoundMovement(LiveActor*);
     void addJointToSeKeeper(AudSeKeeper*, const char*, const char*);
     void startLevelSoundSeKeeper(AudSeKeeper*, const char*, const char*);
@@ -94,7 +98,7 @@ namespace MR {
     s32 getRemixMelodyNoteNum(s32);
     void limitedSound(const char*, s32) NO_INLINE;
     void stopStageBGM(u32);
-    void unlockStageBGM();
+    s32 unlockStageBGM();
     void setNextStageBGM(const char*);
     void moveVolumeStageBGM(f32, u32);
     void moveVolumeStageBGMForNoteFairy(f32, u32);
@@ -173,6 +177,28 @@ namespace MR {
     void startStarGetJingle();
     void startGrandStarGetJingle();
 }
+
+namespace MR {
+    // SoundUtil helpers, callees named by address (lead renames symbols)
+    bool isDestroySceneKeepAllSound();
+    void offDestroySceneKeepAllSound();
+    // PLACEHOLDER(core): fn_8022CE70 = actor->mSoundHolder->mainSoundObj (0 if no holder); resolve when renamed
+    AudAnmSoundObject* getActorSoundObject(const LiveActor*);
+    // PLACEHOLDER(core): fn_8022CE90 = count of child sound objects; resolve when renamed
+    s32 getActorSoundObjectCount(const LiveActor*);
+    // PLACEHOLDER(core): fn_8022CEC0 = i-th child sound object; resolve when renamed
+    AudSoundObject* getActorSoundObjectAt(const LiveActor*, s32);
+    // PLACEHOLDER(core): fn_8005B1B0 (wrapper over AudSoundObject::startSoundParam); name is a guess
+    JAISoundHandle* startSoundObjectParam(AudSoundObject*, JAISoundID, s32, s32);
+};  // namespace MR
+
+namespace MR {
+    // PLACEHOLDER(core): unnamed callees of SoundUtil; resolve when renamed
+    void fn_80080130(AudAnmSoundObject*, f32);     // AudAnmSoundObject method (0x254 bytes)
+    void fn_80221920(AudEffectDirector*);          // AudEffectDirector method: setEffectType(field 0x20, 0, 0)
+    void fn_8007CC40(AudSoundObject*);             // AudSoundObjHolder::add wrapper
+    bool fn_8022CDC0(ActorSoundHolder*);           // ActorSoundHolder method (0x3C bytes)
+};  // namespace MR
 
 namespace MR {
     bool fn_8005B860(const LiveActor*, const TVec3f*);

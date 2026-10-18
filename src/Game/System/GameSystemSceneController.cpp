@@ -73,7 +73,7 @@ void SceneControlInfo::setStartIdInfo(const JMapIdInfo& rInfo) {
 
 GameSystemSceneController::GameSystemSceneController()
     : mSpine(), mNextNerve(), mIsResetProcessing(), mScenarioParser(), mObjHolder(), mScene(), mSceneInitializeState(), mIntermissionScene(),
-      mPlayTimerScene(), mScenarioSelectScene() {
+      mPlayTimerScene(), mScenarioSelectScene(), mIsFileCacheHeapMissing() {
     mObjHolder = new NameObjHolder(0x1300);
     mSpine = new Spine(this, GET_NERVE(GameSystemSceneController, GameSystemSceneControllerNotInitialized));
     mIntermissionScene = static_cast< IntermissionScene* >(MR::createScene("Intermission"));

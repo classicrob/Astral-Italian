@@ -3,7 +3,7 @@
 #include "Game/NameObj/NameObj.hpp"
 
 struct MarioFacePlanetSwitchElement {
-    /* 0x00 */ s32 mKind;
+    /* 0x00 */ const char* mKind;
     /* 0x04 */ const char* mName1;
     /* 0x08 */ const char* mName2;
     /* 0x0C */ s32 mObjId;

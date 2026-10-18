@@ -21,6 +21,9 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
+#include "Game/Util/LayoutUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
+#include "Game/Screen/StarPointerMovePositionHolder.hpp"
 #include "Game/Util/SingletonHolder.hpp"
 #include <JSystem/JUtility/JUTVideo.hpp>
 #include <revolution/wpad.h>
@@ -160,6 +163,10 @@ namespace MR {
         ::getStarPointerDirector()->setGameSceneCameraMtx();
     }
 
+    bool isValidStarPointerTarget(const LiveActor* pActor) {
+        return pActor->mStarPointerTarget != nullptr;
+    }
+
     void initStarPointerTarget(LiveActor* pActor, f32 radius, const TVec3f& rOffset) {
         pActor->initActorStarPointerTarget(radius, &pActor->mPosition, pActor->getBaseMtx(), TVec3f(rOffset));
     }
@@ -180,6 +187,17 @@ namespace MR {
 
     bool isStarPointerValid(s32 channel) {
         return ::getStarPointerLayout(channel)->mIsPointerValid && MR::isConnectedWPad(channel);
+    }
+
+    bool isStarPointerTargetClipped(const LiveActor* pActor) {
+        StarPointerTarget* pTarget = pActor->mStarPointerTarget;
+        if (pTarget == nullptr) {
+            return true;
+        }
+
+        TVec3f pos(0.0f);
+        pTarget->calcPosition(&pos);
+        return MR::isJudgedToClipFrustum(pos, pTarget->mRadius3d);
     }
 
     bool isStarPointerPointing(const LiveActor* pActor, s32 channel, bool enableTouch, const char* pStrength) {
@@ -334,6 +352,10 @@ namespace MR {
         return false;
     }
 
+    bool isStarPointerPointing2PAttachTarget(const LiveActor* pActor) {
+        return MR::attachSupportTicoToTarget(pActor);
+    }
+
     bool isStarPointerPointingFileSelect(const LiveActor* pActor) {
         StarPointerTargetInfo info(pActor->mStarPointerTarget, nullptr, nullptr);
         return ::isStarPointerPointingCore(&info, pActor, WPAD_CHAN0, ::checkPointingWithoutCheckZ, ::always, true, false, false);
@@ -368,6 +390,14 @@ namespace MR {
 
 
 
+    bool requestTicoFatGuidance() {
+        if (MR::isDemoActive()) {
+            return false;
+        }
+
+        return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_TicoFat", true);
+    }
+
     bool requestMarioLauncherGuidance() {
         return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_MarioLauncher", true);
     }
@@ -378,6 +408,45 @@ namespace MR {
 
 
 
+
+    bool requestYoshiEatGuidance(bool isShot) {
+        if (!MR::isPlayerElementModeYoshi()) {
+            return false;
+        }
+
+        if (!MR::isInAreaObj("YoshiEatGuidanceArea", *MR::getPlayerPos())) {
+            return false;
+        }
+
+        if (MR::isSubjectiveCameraOnForObjClipping()) {
+            return false;
+        }
+
+        if (isShot) {
+            if (!MR::isYoshiTongueReadyToEat()) {
+                return false;
+            }
+            return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_YoshiShot", true);
+        }
+
+        return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_YoshiEat", true);
+    }
+
+    bool requestYoshiCaptureGuidance() {
+        if (!MR::isPlayerElementModeYoshi()) {
+            return false;
+        }
+
+        if (!MR::isInAreaObj("YoshiCaptureGuidanceArea", *MR::getPlayerPos())) {
+            return false;
+        }
+
+        if (MR::isSubjectiveCameraOnForObjClipping()) {
+            return false;
+        }
+
+        return ::getStarPointerDirector()->mGuidance->request1PGuidance("PointerGuidance_YoshiCapture", true);
+    }
 
     bool isExistStarPointerGuidance() {
         return ::getStarPointerDirector()->mGuidance->isExistGuidanceOrFrame();
@@ -485,6 +554,14 @@ namespace MR {
 
     s32* getStarPointerLastPointedPort(const LiveActor* pActor) {
         return &pActor->mStarPointerTarget->mLastPointedChannel;
+    }
+
+    const TVec3f& getStarPointerTargetOffset(const LiveActor* pActor) {
+        return pActor->mStarPointerTarget->mOffset;
+    }
+
+    MtxPtr getStarPointerTargetMtx(const LiveActor* pActor) {
+        return pActor->mStarPointerTarget->mMtx;
     }
 
     const TVec2f* getStarPointerScreenVelocity(s32 channel) {
@@ -736,11 +813,23 @@ namespace MR {
     }
 
 
+    void startStarPointerModeSphereSelectorOnReaction(void* pRequester) {
+        ::getStarPointerOnOffController()->incModeCounter(pRequester, StarPointerMode_SphereSelectorFinger);
+    }
+
     void startStarPointerModeEnding(void* pRequester) {
         ::getStarPointerOnOffController()->incModeCounter(pRequester, StarPointerMode_Base);
     }
 
 
+
+    void fn_8005E430(LiveActor* pActor) {
+        ::getStarPointerOnOffController()->incModeCounter(pActor, StarPointerMode_CommandStream);
+    }
+
+    void startStarPointerModePictureBook(void* pRequester) {
+        ::getStarPointerOnOffController()->incModeCounter(pRequester, StarPointerMode_PictureBook);
+    }
 
     void endStarPointerMode(void* pRequester) {
         ::getStarPointerOnOffController()->popState(pRequester);
@@ -760,6 +849,10 @@ namespace MR {
         ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_BlueStarReady);
     }
 
+
+    void requestStarPointerModeCommandStream(void* pRequester) {
+        ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_CommandStream);
+    }
 
     bool isStarPointerModeBlueStarReady() {
         return ::getStarPointerOnOffController()->compareMode(StarPointerMode_BlueStarReady);
@@ -781,6 +874,110 @@ namespace MR {
         return ::getStarPointerOnOffController()->isMode(StarPointerMode_ErrorWindow);
     }
 
+};  // namespace MR
+
+namespace StarPointerUtil {
+    bool beginMovePositionRegistration(const void* pOwner, bool useSubPad) {
+        if (::getStarPointerDirector()->mMovePositionHolders->mOwner == pOwner) {
+            return false;
+        }
+
+        ::getStarPointerDirector()->mMovePositionHolders->beginRegistration(pOwner, useSubPad);
+        return true;
+    }
+
+    void endMovePositionRegistration(const void*) {
+        ::getStarPointerDirector()->mMovePositionHolders->requestMovement();
+    }
+
+    void enableMovePositionInput() {
+        ::getStarPointerDirector()->mMovePositionHolders->mRegistered = true;
+    }
+
+    void disableMovePositionInput() {
+        ::getStarPointerDirector()->mMovePositionHolders->mRegistered = false;
+    }
+
+    namespace {
+        TVec2f sDefaultButtonOffset;
+    }
+
+    TVec2f* getDefaultButtonOffsetVec2() {
+        return &sDefaultButtonOffset;
+    }
+
+    void addStarPointerMovePosition(const char* pName, TVec2f* pPosition, const TVec2f& rOffset) {
+        ::getStarPointerDirector()->mMovePositionHolders->addMovePosition(pName, pPosition, rOffset);
+    }
+
+    // NONMATCHING: stack layout (copy temp offsets swapped vs target)
+    void addStarPointerMovePositionFromPane(LayoutActor* pActor, const char* pName, TVec2f* pOffset) {
+        TVec2f trans;
+        MR::copyPaneTrans(&trans, pActor, pName);
+        TVec2f pos(trans);
+        ::getStarPointerDirector()->mMovePositionHolders->addMovePosition(pName, &pos, *pOffset);
+    }
+
+    void setStarPointerMovePosition(const char* pName, TVec2f* pPosition) {
+        ::getStarPointerDirector()->mMovePositionHolders->setPosition(pName, pPosition);
+    }
+
+    // NONMATCHING: stack layout (copy temp offsets swapped vs target)
+    void refreshMovePositionsFromLayout(LayoutActor* pActor) {
+        StarPointerMovePositionHolder* pHolder = ::getStarPointerDirector()->mMovePositionHolders;
+        for (s32 i = 0; i < pHolder->mPositionCount; i++) {
+            const char* pName = pHolder->getPositionName(i);
+            if (MR::isExistPane(pActor, pName)) {
+                TVec2f trans;
+                MR::copyPaneTrans(&trans, pActor, pName);
+                TVec2f pos(trans);
+                pHolder->setPosition(pName, &pos);
+            }
+        }
+    }
+
+    void setDefaultAllMovePosition(const char* pName) {
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultLeft(pName);
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultRight(pName);
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultUp(pName);
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultDown(pName);
+    }
+
+    void setFirstMovePosition(const char* pName) {
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultLeft(pName);
+    }
+
+    void setLastMovePosition(const char* pName) {
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultRight(pName);
+    }
+
+    void setFirstAndLastMovePosition(const char* pFirstName, const char* pLastName) {
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultLeft(pFirstName);
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultRight(pLastName);
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultUp(pLastName);
+        ::getStarPointerDirector()->mMovePositionHolders->setDefaultDown(pLastName);
+    }
+
+    void setConnectionMovePositionRight2Way(const char* pName0, const char* pName1) {
+        ::getStarPointerDirector()->mMovePositionHolders->connectRight(pName0, pName1);
+    }
+
+    void setConnectionMovePositionDown2Way(const char* pName0, const char* pName1) {
+        ::getStarPointerDirector()->mMovePositionHolders->connectDown(pName0, pName1);
+    }
+
+    void setConnectionMovePositionRight(const char* pName0, const char* pName1) {
+        ::getStarPointerDirector()->mMovePositionHolders->connectRight(pName0, pName1);
+        ::getStarPointerDirector()->mMovePositionHolders->connectRight(pName1, pName0);
+    }
+
+    void setConnectionMovePositionDown(const char* pName0, const char* pName1) {
+        ::getStarPointerDirector()->mMovePositionHolders->connectDown(pName0, pName1);
+        ::getStarPointerDirector()->mMovePositionHolders->connectDown(pName1, pName0);
+    }
+};  // namespace StarPointerUtil
+
+namespace MR {
     void enableStarPointerShootStarPiece() {
         StarPointerDirector* director = ::getStarPointerDirector();
         director->mIsAllowP1StarPieceShot = true;

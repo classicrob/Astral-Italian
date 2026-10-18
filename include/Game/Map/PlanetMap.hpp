@@ -18,14 +18,25 @@ public:
     virtual void startClipped();
     virtual void endClipped();
     virtual void control();
-    virtual f32 getFarClipDistance() const;
-    virtual s32 getLowMovementType() const;
+    virtual void connectToScene();                                 // 0x70
+    virtual f32 getFarClipDistance() const;                        // 0x74
+    virtual s32 getLowMovementType() const;                        // 0x78
+    virtual void initDemoActionAppear(const JMapInfoIter&);        // 0x7C
+    virtual bool useProjmapMtx() const {                           // 0x80
+        return false;
+    }
+    virtual void initProjmapMtx() {                                // 0x84
+    }
+    virtual void initSwitchBListener(const JMapInfoIter&);         // 0x88
+    virtual void hide();                                           // 0x8C
+    virtual void show();                                           // 0x90
+    virtual void initMyEffect();                                   // 0x94
+    virtual bool tryEmitMyEffect();                                // 0x98
+    virtual bool tryDeleteMyEffect();                              // 0x9C
 
     void initClipping(const JMapInfoIter&);
     void initModel(const char*, const JMapInfoIter&);
     void initBloomModel(const char*);
-    bool tryEmitMyEffect();
-    bool tryDeleteMyEffect();
 
     /* 0x8C */ const char* mModelName;
     /* 0x90 */ TVec3f _90;
@@ -33,8 +44,7 @@ public:
     /* 0xA0 */ ModelObj* mBloomModel;
     /* 0xA4 */ PartsModel* mWaterModel;
     /* 0xA8 */ PartsModel* mIndirectModel;
-    // PLACEHOLDER(core): SMG2 PlanetMap 0xB0 field, zeroed in ctor, not identified; resolve when its users are found
-    /* 0xB0 */ void* _B0;
+    /* 0xB0 */ s32 mEffectNum;  ///< number of registered "<model>%d" effects, see PlanetMapFunction::verifyEffects
 };
 
 class FurPlanetMap : public PlanetMap {
@@ -60,6 +70,18 @@ public:
 
     virtual ~PlanetMapAnimLow();
     virtual s32 getLowMovementType() const;
+};
+
+class PlanetMapFarClippable : public PlanetMap {
+public:
+    PlanetMapFarClippable(const char*);
+
+    virtual void init(const JMapInfoIter&);
+    virtual f32 getFarClipDistance() const {
+        return mFarClipDistance;
+    }
+
+    /* 0xB4 */ f32 mFarClipDistance;
 };
 
 struct PlanetMapClippingInfo {

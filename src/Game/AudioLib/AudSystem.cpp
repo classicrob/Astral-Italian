@@ -1052,7 +1052,6 @@ void AudSystem::setMeResource(JKRArchive* pArchive, u16 a1, u16 a2) {
 }
 
 // PLACEHOLDER(core): SMG2 BGM sound-id enum is not recovered (AudSoundId.hpp is the SMG1 table); resolve when the SMG2 ids are named
-// NONMATCHING: AudBgm::getSoundID is vtable slot 0x4c in SMG2 (0x44 in our AudBgm: two virtuals missing before it)
 void AudSystem::seFanfareProcess() {
     if (_9A0 > 0) {
         _9A0--;

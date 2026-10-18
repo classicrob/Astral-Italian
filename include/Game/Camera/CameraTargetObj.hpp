@@ -113,7 +113,7 @@ public:
     virtual void resetStatus() {
     }
 
-    /* 0xC */ bool mCameraWall;
+    /* 0x12 */ bool mCameraWall;
 };
 
 class CameraTargetActor : public CameraTargetObj {
@@ -137,11 +137,10 @@ public:
     virtual Triangle* getGroundTriangle() const;
     CubeCameraArea* getCubeCameraArea() const;
 
-    /* 0x10 */ const LiveActor* mActor;
-    /* 0x14 */ TVec3f mUp;
-    /* 0x20 */ TVec3f mFront;
-    /* 0x2C */ TVec3f mSide;
-    /* 0x38 */ CubeCameraArea* mCameraArea;
+    /* 0x14 */ const LiveActor* mActor;
+    /* 0x18 */ TVec3f mUp;
+    /* 0x24 */ TVec3f mFront;
+    /* 0x30 */ TVec3f mSide;
 };
 
 class CameraTargetPlayer : public CameraTargetObj {

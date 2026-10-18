@@ -24,9 +24,12 @@ class WorldMapResultStateTicoRouteCreate;
 class TalkMessageCtrl;
 class MiniTicoMaster;
 class GalaxyWorldMapInfo;
+class WorldMapSequence;
 
 /// What WorldMapOwner::mContext points to (the per-world parts the owner hands out).
 struct WorldMapOwnerContext {
+    WorldMapOwnerContext();
+    void init(s32 world, s32 node);
     /* 0x00 */ s32 mWorldId;
     /* 0x04 */ WorldMapResultWorld* mWorld;
     /* 0x08 */ WorldMapCameraHolder* mCamera;
@@ -40,11 +43,19 @@ struct WorldMapOwnerContext {
 // PLACEHOLDER(core): `WorldMapOwner` is a descriptive name. It is the 0x20-byte NameObj "ワールドマップ" (ctor 0x804E7BC0, created by 0x804E7C20 together with the
 // WorldMapModel scenery) that owns WorldMapSequence and is the host of all WorldMapSequence states; NOT WorldMapResultCommand (a different NameObj, 0x804EE9C0).
 // Resolve when its real class name is known
-class WorldMapOwner {
+class WorldMapOwner : public NameObj {
 public:
+    WorldMapOwner();
+    virtual ~WorldMapOwner();
+    virtual void movement();
+    virtual void init(const JMapInfoIter&);
+    bool isGalaxyMap() const;
+    void killCounters();
+    static void registerModel(WorldMapModel*);
+    const TVec3f* getNodeOffset(s32);
     // ---- WorldMapModel unit (0x804E8300..) ----
     WorldMapCameraHolder* getCamera() const;
-    MiniPlayerRocket* getRocket() const;
+    MiniPlayerRocket* getRocket() const NO_INLINE;
     static void getNodePosition(TVec3f* pOut, WorldMapOwner* pOwner, s32 node);
     void warpRocketToNode(s32 node);
     bool isGalaxyInfoAppeared() const;
@@ -153,8 +164,7 @@ public:
     bool isRouteNotHeld(WorldMapResultRoute* pRoute) NO_INLINE;
     void collectInfos(GalaxyWorldMapInfo** pOut) NO_INLINE;
 
-    /* 0x00 */ u8 _0[0x14];
     /* 0x14 */ WorldMapOwnerContext* mContext;
-    /* 0x18 */ u8 _18[4];
+    /* 0x18 */ WorldMapSequence* mSequence;
     /* 0x1C */ void* mMainLayout;
 };

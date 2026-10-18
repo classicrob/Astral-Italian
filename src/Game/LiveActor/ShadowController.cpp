@@ -17,14 +17,21 @@ namespace {
     const s32 sGravityCountLimit = 1;
 };  // namespace
 
-ShadowControllerHolder::ShadowControllerHolder() : NameObj("影管理"), _C(), _18(), _24() {
-    mFarClip = 4000.0f;
+ShadowControllerHolder::ShadowControllerHolder() : NameObj("影管理"), _C(), _18(), mIsFarClipEnabled(false), mIsDefaultFarClipEnabled(false) {
+    mFarClip = 7000.0f;
+    mDefaultFarClip = 7000.0f;
     _C.init(0x500);
     _18.init(0x400);
     MR::connectToScene(this, MR::MovementType_ShadowControllerHolder, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);
 
-    if (MR::isEqualStageName("AstroGalaxy") || MR::isEqualStageName("PeachCastleGardenGalaxy") || MR::isEqualStageName("PeachCastleFinalGalaxy")) {
-        _24 = true;
+    const JMapInfo* pCsv = MR::tryCreateStageZoneInfoCsvParser("ShadowControllerParam");
+    if (pCsv) {
+        bool isFarClipEnabled = false;
+        MR::getCsvDataBool(&isFarClipEnabled, pCsv, "FarClip", 0);
+        mIsFarClipEnabled = isFarClipEnabled;
+        MR::getCsvDataF32(&mFarClip, pCsv, "FarClipDistance", 0);
+        mDefaultFarClip = mFarClip;
+        mIsDefaultFarClipEnabled = mIsFarClipEnabled;
     }
 }
 
@@ -60,8 +67,10 @@ void ShadowControllerHolder::updateController() {
     int size = _18.size();
 
     for (u32 i = 0; i < size; i++) {
-        if (_24) {
+        if (mIsFarClipEnabled) {
             _18[i]->updateFarClipping(mFarClip);
+        } else {
+            _18[i]->_67 = 0;
         }
 
         _18[i]->update();

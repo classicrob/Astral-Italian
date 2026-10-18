@@ -20,6 +20,7 @@ public:
 
     JAISoundID getSoundID(const char*) const;
     JAISoundID getSoundID(const char*, u32) const;
+    s32 getSoundNameID(const JAISoundID&) const;  // PLACEHOLDER(core): fn_80086160 (name lookup via JAUSoundNameTable), name unknown
     void init() NO_INLINE;
     void initDataTable(const JAUSoundNameTable*);
     void addGroupInfo(const JAUSoundNameTable*, u8, u8);

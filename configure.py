@@ -1878,6 +1878,7 @@ config.libs = [
             Object(NonMatching, "Game/System/GameSequence.cpp"),
             Object(NonMatching, "Game/System/GameSequenceEnding.cpp"),
             Object(NonMatching, "Game/System/GameSequenceInStage.cpp"),
+            Object(NonMatching, "Game/System/GameSequenceMarioFaceShip.cpp"),
             Object(NonMatching, "Game/System/GameSequenceMarioFaceShipEvent.cpp"),
             Object(NonMatching, "Game/System/GameSequenceSystemStart.cpp"),
             Object(NonMatching, "Game/System/GameSequenceTitle.cpp"),

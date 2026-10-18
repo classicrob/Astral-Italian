@@ -8,6 +8,7 @@ public:
 
     void update();
 
-    /* 0x00 */ TPos3f mMtx;
-    /* 0x30 */ bool mIsRotatingHard;
+    /* 0x00 */ f32 mThreshold;
+    /* 0x04 */ TPos3f mMtx;
+    /* 0x34 */ bool mIsRotatingHard;
 };

@@ -9,19 +9,14 @@ namespace JMath {
     void gekko_ps_copy12(void*, const void*);
 }
 
-namespace MR {
-    // PLACEHOLDER(core): unnamed ray-cast helper (same decl as GliBird.cpp); resolve when its owner names it
-    s32 fn_80038870(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
-}
-
-// PLACEHOLDER(core): fn_80093590 lives in BellyDragonTU04 as an extern "C" definition; resolve when that TU names it
-extern "C" void fn_80093590(TPos3f*, NameObj*, const f32 (*)[4], f32);
-
 namespace {
     // PLACEHOLDER(core): the target interpolates literal pairs at run time (distinct .sdata2 slots, no folding); resolve when the real helper is identified
     static inline f32 interpolate(const f32& rStart, const f32& rEnd, f32 t) {
         return rStart + t * (rEnd - rStart);
     }
+
+    static inline f32 scaledValue(const f32& value, const f32& factor) { return value * factor; }
+    static inline f32 offsetValue(const f32& value, const f32& offset) { return offset + value; }
 
     // Addresses of these constants are stored in the part (mpTurnSpeed / mpBindStep).
     static const f32 sTurnSpeedA = 1.5f;
@@ -73,14 +68,13 @@ MtxPtr BellyDragonBodyPart::getBaseMtx() const {
     return const_cast< MtxPtr >(mMtx.mMtx);
 }
 
-// NONMATCHING: scheduling only (operand load order of mRadius * 0.9f)
 void BellyDragonBodyPart::init(const JMapInfoIter& rIter) {
     if (mPrev == nullptr) {
         MR::initSensors(this, "BellyDragonSensor", "Head");
     } else {
         MR::initSensors(this, "BellyDragonSensor", "Body");
         MR::setSensorRadius(this, "Body", mRadius);
-        MR::setSensorRadius(this, "EnemyAttack", mRadius * 0.9f);
+        MR::setSensorRadius(this, "EnemyAttack", scaledValue(mRadius, 0.9f));
         initBinder(mRadius, 0.0f, 0);
     }
     MR::onCalcGravity(this);
@@ -148,7 +142,7 @@ void BellyDragonBodyPart::exeWait() {
     }
 }
 
-// NONMATCHING: FPR temp allocation/scheduling in the interpolation branch
+// NONMATCHING: regalloc
 void BellyDragonBodyPart::exeFollow() {
     mVelocity.scale(0.75f);
     MR::addVelocityToGravity(this, -1.0f);
@@ -176,7 +170,7 @@ void BellyDragonBodyPart::exeFollow() {
     }
 }
 
-// NONMATCHING: epilogue scheduling (lwz r0 position) after the discarded tryBindA() result
+// NONMATCHING: regalloc
 void BellyDragonBodyPart::exeBindA() {
     mVelocity.scale(0.75f);
     if (isHead()) {
@@ -236,7 +230,7 @@ void BellyDragonBodyPart::exeExitA() {
     }
 }
 
-// NONMATCHING: load-order scheduling of constants/operands and epilogue; same calls and branches
+// NONMATCHING: regalloc
 void BellyDragonBodyPart::exeBindB() {
     TVec3f oldVelocity(mVelocity);
     mVelocity.scale(0.75f);
@@ -244,7 +238,7 @@ void BellyDragonBodyPart::exeBindB() {
     f32 dist = PSVECDistance(mPosition, mPrev->mPosition);
     TVec3f target(mBindMtxB.mMtx[0][3], mBindMtxB.mMtx[1][3], mBindMtxB.mMtx[2][3]);
     TVec3f up(mBindMtxB.mMtx[0][1], mBindMtxB.mMtx[1][1], mBindMtxB.mMtx[2][1]);
-    f32 offsetDist = 200.0f + (100.0f + mRadius);
+    f32 offsetDist = offsetValue(mRadius, 100.0f) + 200.0f;
     TVec3f offset(up);
     offset.scale(offsetDist);
     target.add(offset);
@@ -257,14 +251,15 @@ void BellyDragonBodyPart::exeBindB() {
     } else if (isTailSide()) {
         target.scale(dist * 0.03f);
     } else {
+        s32 lastIndex = 0x1F;
+        f32 ratio = (f32)mIndex / (f32)lastIndex;
         f32 base;
         if (mIsAttackable) {
             base = 0.012f;
         } else {
             base = 0.008f;
         }
-        s32 lastIndex = 0x1F;
-        target.scale(dist * (base + ((f32)mIndex / (f32)lastIndex) * (0.015f - base)));
+        target.scale(dist * (base + ratio * (0.015f - base)));
     }
     mVelocity.add(target);
     if (mNext != nullptr) {
@@ -273,7 +268,7 @@ void BellyDragonBodyPart::exeBindB() {
     tryBindB();
 }
 
-// NONMATCHING: temp FPR allocation and fmuls operand order
+// NONMATCHING: regalloc
 void BellyDragonBodyPart::exeExitB() {
     TVec3f dir(mVelocity);
     mVelocity.scale(0.75f);
@@ -354,15 +349,10 @@ void BellyDragonBodyPart::updateDirection() {
     MR::makeMtxFrontUpPos(&mMtx, toPrev, up, mPosition);
 }
 
-// NONMATCHING: stack slot order of the two TVec3f copies
 void BellyDragonBodyPart::pullTailToMtx(MtxPtr pMtx, f32 rate) {
     TVec3f dir(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
     dir.sub(mPosition);
-    TVec3f scaled(dir);
-    scaled.scale(0.015f);
-    TVec3f result(scaled);
-    result.scale(rate);
-    mVelocity.add(result);
+    mVelocity.add((dir * 0.015f) * rate);
 }
 
 void BellyDragonBodyPart::startBindA(const TPos3f& rMtx) {
@@ -384,10 +374,10 @@ void BellyDragonBodyPart::startBindB(const TPos3f& rMtx) {
     setNerve(&NrvBellyDragonBodyPart::BellyDragonBodyPartNrvBindB::sInstance);
 }
 
-// NONMATCHING: load order of mRadius vs 100.0f
+// NONMATCHING: regalloc
 bool BellyDragonBodyPart::tryBindA() {
     TVec3f bindPos(mBindMtxA.mMtx[0][3], mBindMtxA.mMtx[1][3], mBindMtxA.mMtx[2][3]);
-    if (!MR::isBinded(this) || !MR::isNear(this, bindPos, mRadius + 100.0f)) {
+    if (!MR::isBinded(this) || !MR::isNear(this, bindPos, offsetValue(mRadius, 100.0f))) {
         return false;
     }
     BellyDragonBodyHill* pHill = mPrev->mHillA;
@@ -410,7 +400,7 @@ bool BellyDragonBodyPart::tryBindA() {
     TVec3f side;
     mMtx.getXDir(side);
     TVec3f pos(mPosition);
-    MR::fn_80038870(mPosition, &pos, mGravity, nullptr, nullptr, nullptr, nullptr, 500.0f);
+    MR::calcMapHitAlongDirection(mPosition, &pos, mGravity, nullptr, nullptr, nullptr, nullptr, 500.0f);
     MR::makeMtxUpSidePos(&mHillMtxA, up, side, pos);
     MR::rotateMtxLocalYDegree(mHillMtxA.mMtx, 15.0f * (f32)mIndex);
     if (mBreakA != nullptr) {
@@ -422,20 +412,20 @@ bool BellyDragonBodyPart::tryBindA() {
     return true;
 }
 
-// NONMATCHING: stack slot order of the offset TVec3f copy and load order of mRadius vs 100.0f
+// NONMATCHING: regalloc
 bool BellyDragonBodyPart::tryBindB() {
     if (mNext != nullptr && mNext->isNerve(&NrvBellyDragonBodyPart::BellyDragonBodyPartNrvBindA::sInstance)) {
         return false;
     }
     TVec3f target(mBindMtxB.mMtx[0][3], mBindMtxB.mMtx[1][3], mBindMtxB.mMtx[2][3]);
     TVec3f up(mBindMtxB.mMtx[0][1], mBindMtxB.mMtx[1][1], mBindMtxB.mMtx[2][1]);
-    f32 offsetDist = 100.0f + (200.0f + mRadius);
+    f32 offsetDist = offsetValue(mRadius, 200.0f) + 100.0f;
     {
         TVec3f offset(up);
         offset.scale(offsetDist);
         target.add(offset);
     }
-    if (!MR::isNear(this, target, 100.0f + mRadius)) {
+    if (!MR::isNear(this, target, offsetValue(mRadius, 100.0f))) {
         return false;
     }
     bool wasNoBind = MR::isNoBind(this);
@@ -452,7 +442,7 @@ bool BellyDragonBodyPart::tryBindB() {
     TVec3f side;
     mMtx.getXDir(side);
     TVec3f pos(mPosition);
-    MR::fn_80038870(mPosition, &pos, mGravity, nullptr, nullptr, nullptr, nullptr, 500.0f);
+    MR::calcMapHitAlongDirection(mPosition, &pos, mGravity, nullptr, nullptr, nullptr, nullptr, 500.0f);
     MR::makeMtxUpSidePos(&mHillMtxB, hillUp, side, pos);
     MR::rotateMtxLocalYDegree(mHillMtxB.mMtx, 15.0f * (f32)mIndex);
     if (mBreakB != nullptr) {
@@ -535,7 +525,7 @@ void BellyDragonBodyPart::resume() {
     setNerve(&NrvBellyDragonBodyPart::BellyDragonBodyPartNrvFollow::sInstance);
 }
 
-// NONMATCHING: TVec3f stack slot order and operand load order in the scale computation
+// NONMATCHING: regalloc
 bool BellyDragonBodyPart::calcJoint(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     if (mIsFrozen) {
         JMath::gekko_ps_copy12(&mMtx, pMtx);
@@ -688,7 +678,7 @@ void BellyDragonBodyPart::attackSensor(HitSensor* pSender, HitSensor* pReceiver)
     }
 }
 
-// NONMATCHING: FPR allocation of hoisted constants and argument-setup scheduling
+// NONMATCHING: regalloc
 BellyDragonBody::BellyDragonBody(BellyDragon* pHost, TPos3f* pBaseMtx, bool isLv2) {
     mIsLv2 = isLv2;
     mBaseMtx = pBaseMtx;
@@ -872,8 +862,8 @@ void BellyDragonBody::registerJointCallBacks() {
 }
 
 void BellyDragonBody::appearJawHill() {
-    fn_80093590(&mMtxD, mHead, mBaseMtx->mMtx, 1000.0f);
-    fn_80093590(&mMtxA, mHead, mBaseMtx->mMtx, 700.0f);
+    BellyDragonUtil::calcGroundHillMtx(&mMtxD, mHead, mBaseMtx->mMtx, 1000.0f);
+    BellyDragonUtil::calcGroundHillMtx(&mMtxA, mHead, mBaseMtx->mMtx, 700.0f);
     mBreakJawHill->appear();
     mBreakJawAppear->appear();
     MR::requestMovementOn(mBreakJawHill);
@@ -881,8 +871,8 @@ void BellyDragonBody::appearJawHill() {
 }
 
 void BellyDragonBody::startHeadAttackHill() {
-    fn_80093590(&mMtxA, mHead, mBaseMtx->mMtx, 300.0f);
-    fn_80093590(&mMtxC, mHead, mBaseMtx->mMtx, 300.0f);
+    BellyDragonUtil::calcGroundHillMtx(&mMtxA, mHead, mBaseMtx->mMtx, 300.0f);
+    BellyDragonUtil::calcGroundHillMtx(&mMtxC, mHead, mBaseMtx->mMtx, 300.0f);
     mHillA->appear();
     MR::startActionSound(mHillA, "HeadAttack", -1, -1, -1);
     BellyDragonBodyHill* pHill = mHillA;
@@ -895,7 +885,7 @@ void BellyDragonBody::startHeadAttackHill() {
 }
 
 void BellyDragonBody::appearHeadHill() {
-    fn_80093590(&mMtxB, mHead, mBaseMtx->mMtx, 1000.0f);
+    BellyDragonUtil::calcGroundHillMtx(&mMtxB, mHead, mBaseMtx->mMtx, 1000.0f);
     mBreakHeadHillAppear->appear();
     mHeadHill->appear();
     MR::startAction(mHeadHill, "Appear");

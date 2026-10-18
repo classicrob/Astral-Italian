@@ -21,14 +21,17 @@ namespace NrvSky {
     NEW_NERVE(HostTypeChange, Sky, Change);
 };  // namespace NrvSky
 
-Sky::Sky(const char* pName) : LiveActor(pName), _90(), mSpaceInner(), mReflectionModel() {
+Sky::Sky(const char* pName) : LiveActor(pName), mModelName(), mSpaceInner(), mReflectionModel() {
+}
+
+Sky::Sky(const char* pName, const char* pModelName) : LiveActor(pName), mModelName(pModelName), mSpaceInner(), mReflectionModel() {
 }
 
 void Sky::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
     const char* objName = nullptr;
-    MR::getObjectName(&objName, rIter);
+    getModelName(&objName, rIter);
 
     initModel(objName);
     MR::connectToSceneSky(this);
@@ -76,6 +79,15 @@ void Sky::calcAnim() {
     LiveActor::calcAnim();
 }
 
+void Sky::getModelName(const char** pOut, const JMapInfoIter& rIter) {
+    if (mModelName != nullptr) {
+        *pOut = mModelName;
+        return;
+    }
+
+    MR::getObjectName(pOut, rIter);
+}
+
 void Sky::initModel(const char* pModelName) {
     MR::initActor(this, pModelName, false);
 }
@@ -105,6 +117,7 @@ void Sky::disappearSpaceInner() {
 }
 
 void Sky::exeWait() {
+    updateWait();
     if (MR::isValidSwitchA(this) && MR::isOnSwitchA(this)) {
         setNerve(GET_NERVE(Sky, HostTypeChange));
     }

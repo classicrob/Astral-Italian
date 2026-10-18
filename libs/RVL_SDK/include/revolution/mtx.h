@@ -39,6 +39,7 @@ typedef f32 (*Mtx3P)[3];
 #define MTXRowCol(m, r, c) ((m)[(r)][(c)])
 
 /* C Matrix */
+void C_MTXLookAt(Mtx, const Vec*, const Vec*, const Vec*);
 void C_MTXIdentity(Mtx);
 void C_MTXCopy(const Mtx, Mtx);
 void C_MTXOrtho(Mtx44, f32, f32, f32, f32, f32, f32);

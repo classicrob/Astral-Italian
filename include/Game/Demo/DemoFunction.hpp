@@ -66,6 +66,10 @@ namespace DemoFunction {
     void pauseTimeKeepDemo(LiveActor*);
     void resumeTimeKeepDemo(LiveActor*);
     bool isPauseTimeKeepDemo(LiveActor*);
+    // PLACEHOLDER(core4): unnamed SMG2 callees used by the DemoUtil tail wrappers; resolve when DemoFunction.cpp names fn_80138B20/fn_80138B90/fn_80139140
+    bool isDemoSubPartActiveFunction(const char*);  // fn_80138B20
+    void resetDemoSubPartFunction();  // fn_80138B90
+    bool isTalkWaitUserInputFunction();  // fn_80139140
 
     void pauseTimeKeepDemo(const char*);
     void resumeTimeKeepDemo(const char*);
@@ -82,3 +86,9 @@ namespace DemoFunction {
 
     bool isDemoPartTalk(const char*);
 };  // namespace DemoFunction
+
+namespace DemoFunction {
+    bool isDemoActionAnimRegistered(const LiveActor*);
+    bool isDemoPlayerAnimRegistered();
+    bool isStoryBookActionActive();
+}

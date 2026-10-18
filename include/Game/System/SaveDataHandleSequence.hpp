@@ -102,7 +102,4 @@ public:
     /* 0x38 */ const Nerve* mNerveForError;
     /* 0x3C */ u8* mTempBuffer;
     /* 0x40 */ SaveIcon* mSaveIcon;
-    // SMG1 only (no longer in SMG2's layout; kept so old call sites compile)
-    MR::FunctorBase* mOnSaveSuccessFunc;
-    MR::FunctorBase* mJustBeforeSaveFunc;
 };

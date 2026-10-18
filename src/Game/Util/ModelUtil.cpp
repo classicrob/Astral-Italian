@@ -11,15 +11,27 @@
 #include <cstdio>
 
 namespace {
-    inline bool isUseLightChanNo(J3DMaterial* pMaterial, int channel, int index) {
+#pragma dont_inline on
+    // NONMATCHING: bool conversion (target: extrwi + subic/subfe; ours folds the 1-bit test)
+    bool isLightChanEnabled(J3DMaterial* pMaterial, int channel) {
         u16 channelID = pMaterial->mColorBlock->getColorChan(channel)->mColorChanID;
-        if (((channelID >> 1) & 0x1) == 0) {
-            return false;
-        }
+        return ((channelID >> 1) & 0x1) != 0;
+    }
 
+    bool isUseLightChanMask(J3DMaterial* pMaterial, int channel, int index) {
+        u16 channelID = pMaterial->mColorBlock->getColorChan(channel)->mColorChanID;
         u8 useLightChan = (channelID >> 2 & 0xF | channelID >> 7 & 0xF0);
         return useLightChan & (1 << index);
     }
+
+    bool isUseLightChanNo(J3DMaterial* pMaterial, int channel, int index) {
+        if (!isLightChanEnabled(pMaterial, channel)) {
+            return false;
+        }
+
+        return isUseLightChanMask(pMaterial, channel, index);
+    }
+#pragma dont_inline reset
 };  // namespace
 
 namespace MR {
@@ -28,6 +40,14 @@ namespace MR {
 
 
 
+
+    void updateModelManager(LiveActor* pActor) {
+        pActor->mModelManager->update();
+    }
+
+    void calcAnimModelManager(LiveActor* pActor) {
+        pActor->mModelManager->calcAnim();
+    }
 
     void updateModelAnimPlayer(LiveActor* pActor) {
         XanimePlayer* pAnimePlayer = pActor->mModelManager->mXanimePlayer;
@@ -89,6 +109,17 @@ namespace MR {
     }
 
 
+    bool findBckNameStringInResource(const char** pOut, const ResourceHolder* pHolder, const char* pNameString) {
+        for (int i = 0; i < pHolder->mMotionResTable->mCount; i++) {
+            if (isEqualStringCase(pNameString, pHolder->getMotionName(i))) {
+                *pOut = pHolder->getMotionName(i);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     u16 getMaterialNo(J3DModelData* pModelData, const char* pMaterialName) {
         return pModelData->getMaterialName()->getIndex(pMaterialName);
     }
@@ -114,6 +145,10 @@ namespace MR {
         return getJ3DModelData(pActor)->getMaterialNodePointer(idx);
     }
 
+    u16 getMaterialNum(const LiveActor* pActor) {
+        return getJ3DModelData(pActor)->getMaterialNum();
+    }
+
     s32 getMaterialNum(J3DModel* pModel) {
         return pModel->mModelData->getMaterialNum();
     }
@@ -124,6 +159,12 @@ namespace MR {
 
     void updateModelDiffDL(LiveActor* pActor) {
         pActor->mModelManager->updateDL(true);
+    }
+
+    void ModelUtil_FORCE_MATCH_TEVCOLOR() {
+        J3DTevBlock* block;
+        block->getTevColor(1);
+        block->getTevKColor(1);
     }
 
     bool isEnvelope(J3DMaterial* pMaterial) {
@@ -148,6 +189,28 @@ namespace MR {
         showMaterial(getJ3DModel(pActor), pMaterialName);
     }
 
+
+    void calcFogStartEnd(TVec3f vec, f32 f1, f32* pFogStart, f32* pFogEnd) {
+        Vec multVec;
+        PSMTXMultVec(j3dSys.mViewMtx, vec, &multVec);
+
+        f32 flt = -multVec.z;
+        if (f1 == 0.0f) {
+            *pFogStart = flt;
+            *pFogEnd = 100000.0f;
+            return;
+        }
+
+        f32 fogStart = 100.0f;
+        f32 fogEnd = 100.0f + ((flt - 100.0f) / f1);
+        if (fogEnd > 100000.0f) {
+            fogEnd = 100000.0f;
+            fogStart = flt - (100000.0f - flt) * (f1 / (1.0f - f1));
+        }
+
+        *pFogStart = fogStart;
+        *pFogEnd = fogEnd;
+    }
 
     bool isUseTex(J3DMaterial* pMaterial, u16 a2) {
         for (u32 idx = 0; idx < 8; idx++) {
@@ -180,6 +243,40 @@ namespace MR {
 
 
 
+    bool isUseTexMtx(J3DMaterial* pMaterial, u32 idx) {
+        J3DTexMtx* texMtx = pMaterial->mTexGenBlock->getTexMtx(idx);
+
+        if (texMtx != nullptr) {
+            for (u32 stage = 0; stage < pMaterial->getTevStageNum(); stage++) {
+                if (pMaterial->getTevBlock()->getTevOrder(stage)->mTexCoord == idx) {
+                    return true;
+                }
+            }
+
+            for (u32 stage = 0; stage < pMaterial->getIndBlock()->getIndTexStageNum(); stage++) {
+                if (pMaterial->getIndBlock()->getIndTexOrder(stage)->mCoord == idx) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    bool isExistEffectTexMtx(J3DModelData* pModelData) {
+        for (u16 i = 0; i < pModelData->getMaterialNum(); i++) {
+            if (!isNormalTexMtx(pModelData->getMaterialNodePointer(i))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool isExistEffectTexMtx(LiveActor* pActor) {
+        return isExistEffectTexMtx(getJ3DModelData(pActor));
+    }
+
     bool isUseTexMtxEnvMap(J3DMaterial* pMaterial) {
         for (u32 idx = 0; idx < 8; idx++) {
             J3DTexMtx* texMtx = pMaterial->mTexGenBlock->getTexMtx(idx);
@@ -193,6 +290,20 @@ namespace MR {
                     return false;
                 }
 
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool isExistProjMapTexMtx(LiveActor* pActor) {
+        return isExistProjMapTexMtx(pActor->mModelManager->getJ3DModelData());
+    }
+
+    bool isExistProjMapTexMtx(J3DModelData* pModelData) {
+        for (u16 i = 0; i < pModelData->getMaterialNum(); i++) {
+            if (isUseTexMtxProjMap(pModelData->getMaterialNodePointer(i))) {
                 return true;
             }
         }
@@ -218,6 +329,67 @@ namespace MR {
 
 
 
+    bool isUseFur(const J3DModelData* pModelData) {
+        for (u16 i = 0; i < pModelData->getMaterialNum(); i++) {
+            if (strstr(pModelData->getMaterialName()->getName(i), "Fur")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    inline void setShapeVcdVatCmdSelf(J3DShape* pShape) {
+        void* vcdVatCmd = pShape->getVcdVatCmd();
+        u8* arr = new (0x20) u8[J3DShape::kVcdVatDLSize];
+        copyMemory(arr, vcdVatCmd, J3DShape::kVcdVatDLSize);
+        pShape->setVcdVatCmd(arr);
+    }
+
+    void initEnvelopeAndEnvMapOrProjMapModelData(J3DModelData* pModelData) {
+        bool doSort = false;
+
+        for (int i = 0; i < pModelData->getMaterialNum(); i++) {
+            J3DMaterial* material = pModelData->getMaterialNodePointer(i);
+            if (!isEnvelope(material)) {
+                continue;
+            }
+
+            bool isUseEnvMap = isUseTexMtxEnvMap(material);
+            bool isUseProjMap = isUseTexMtxProjMap(material);
+            if (!isUseEnvMap && !isUseProjMap) {
+                continue;
+            }
+
+            J3DShape* shape = material->getShape();
+            setShapeVcdVatCmdSelf(shape);
+            doSort = true;
+            if (isUseEnvMap) {
+                shape->setTexMtxLoadType(0x2000);
+            }
+
+            for (u32 idx = 0; idx < 8; idx++) {
+                J3DTexCoord* texCoord = material->getTexCoord(idx);
+                GXAttr attr = static_cast< GXAttr >(idx + 1);
+                if (texCoord->getTexGenSrc() == 1) {
+                    shape->addTexMtxIndexInDL(attr, 30);
+                    shape->addTexMtxIndexInVcd(attr);
+                } else if (texCoord->getTexGenSrc() == 0) {
+                    shape->addTexMtxIndexInDL(attr, 0);
+                    shape->addTexMtxIndexInVcd(attr);
+                }
+            }
+        }
+
+        if (doSort) {
+            pModelData->mShapeTable.sortVcdVatCmd();
+        }
+    }
+
+    u16 getTextureNum(const LiveActor* pActor) {
+        return getJ3DModelData(pActor)->getTexture()->getNum();
+    }
+
     ResTIMG* getResTIMG(const LiveActor* pActor, int idx) {
         return getResTIMG(getJ3DModelData(pActor), idx);
     }
@@ -232,6 +404,50 @@ namespace MR {
 
 
 
+
+    s32 fn_80043AB0(const LiveActor* pActor, const char* pName) {
+        for (u16 i = 0; i < getTextureNum(pActor); i++) {
+            if (isEqualString(getJ3DModelData(pActor)->getTextureName()->getName(i), pName)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    int findPosNrmMtxIndexFromModel(J3DModelData* pModelData, u16 a2) {
+        u16 jointNum = pModelData->getJointNum();
+
+        for (u16 i = 0; i < jointNum; i++) {
+            J3DMaterial* mesh = pModelData->getJointNodePointer(i)->getMesh();
+            while (mesh != nullptr) {
+                int idx = findPosNrmMtxIndexFromShape(mesh->getShape(), a2);
+                if (idx != -1) {
+                    return idx;
+                }
+
+                mesh = mesh->mNext;
+            }
+        }
+
+        return -1;
+    }
+
+    int findPosNrmMtxIndexFromShape(J3DShape* pShape, u16 a2) {
+        u16 mtxGroupNum = pShape->getMtxGroupNum();
+        for (u16 i = 0; i < mtxGroupNum; i++) {
+            J3DShapeMtx* shapeMtx = pShape->getShapeMtx(i);
+            u16 useMtxnum = shapeMtx->getUseMtxNum();
+
+            for (u16 j = 0; j < useMtxnum; j++) {
+                if (shapeMtx->getUseMtxIndex(j) == a2) {
+                    return j * 3;
+                }
+            }
+        }
+
+        return -1;
+    }
 
     void copyJointAnimation(J3DModel* pCopyTo, J3DModel* pCopyFrom) {
         u16 jointNum = pCopyTo->getModelData()->getJointNum();
@@ -323,6 +539,61 @@ namespace MR {
 
     s32 getLightNumMax(const LiveActor* pActor) {
         return getLightNumMax(getJ3DModelData(pActor));
+    }
+
+    void downFracVtx(J3DModelData* pModelData) {
+        u32 vtxNum = pModelData->getVtxNum();
+        GXVtxAttrFmtList* vtxAttrFmtList = pModelData->getVertexData().getVtxAttrFmtList();
+        while (vtxAttrFmtList->attr != GX_VA_NULL) {
+            if (vtxAttrFmtList->attr == GX_VA_POS) {
+                if (vtxAttrFmtList->frac == 0) {
+                    return;
+                }
+
+                vtxAttrFmtList->frac--;
+                break;
+            }
+
+            vtxAttrFmtList++;
+        }
+
+        s16* vertexPosArray = static_cast< s16* >(pModelData->getVertexData().getVtxPosArray());
+        for (u32 i = 0; i < vtxNum * 3; i++) {
+            vertexPosArray[i] >>= 1;
+        }
+
+        DCStoreRange(vertexPosArray, vtxNum * 6);
+
+        for (u32 i = 0; i < pModelData->getShapeTable()->getShapeNum(); i++) {
+            pModelData->getShapeTable()->getShapeNodePointer(i)->makeVcdVatCmd();
+        }
+    }
+
+    void calcModelBoundingBox(TBox3f* pOut, const LiveActor* pActor) {
+        s32 jointNum = getJointNum(pActor);
+        for (u16 i = 0; i < jointNum; i++) {
+            TPos3f jointMtx;
+            TBox3f bounds;
+            J3DJoint* pJoint = getJoint(pActor, i);
+            TVec3f jointMin(*pJoint->getMin());
+            TVec3f jointMax(*pJoint->getMax());
+            jointMtx.setInline(getJointMtx(pActor, i));
+            TVec3f translation;
+            jointMtx.getTrans(translation);
+            TVec3f scale;
+            jointMtx.getScale(scale);
+            jointMin.mul(scale);
+            jointMax.mul(scale);
+            bounds.set(translation + jointMin, translation + jointMax);
+            if (i == 0) {
+                pOut->set(bounds.i, bounds.f);
+                continue;
+            }
+
+            pOut->extend(bounds.i, bounds.f);
+        }
+
+        pOut->add(-pActor->mPosition);
     }
 
     void calcModelBoundingRadius(f32* pOut, const LiveActor* pActor) {

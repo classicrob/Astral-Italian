@@ -319,6 +319,9 @@ namespace MR {
     void preparePlayerForPositionReset();
 }
 
+namespace MR { void requestPlayerMovementOnDuringDemo(); }
+
+namespace MR { void setPlayerPosAndWait(const char*, bool); }
 namespace MR {
     // PLACEHOLDER(m1): clears Mario movement flag 0x20000000; resolve when Player owner recovers its meaning.
     void fn_8004F310();
@@ -330,4 +333,8 @@ namespace MR { void enablePlayerResourceCloud(); }
 namespace MR {
     // PLACEHOLDER(m1): semantic name unknown; resolve after Mario flags 0x00300000 are identified.
     void fn_8004FA20();
+}
+
+namespace MR {
+    void startDemoBckPlayer(const char*, const BckCtrlData&);
 }

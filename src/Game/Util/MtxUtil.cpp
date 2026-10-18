@@ -880,6 +880,12 @@ namespace MR {
         MR::multMtx(pDst, pDst, third);
     }
 
+    void inverseConcatMtx(MtxPtr pMtxA, MtxPtr pMtxB, TMtx34f* pDst) {
+        Mtx inv;
+        PSMTXInverse(pMtxA, inv);
+        PSMTXConcat(inv, pMtxB, pDst->mMtx);
+    }
+
     void rotAxisVecRad(const TVec3f& rAxis, const TVec3f& rVec, TVec3f* pOut, f32 rad) {
         Mtx rot;
         PSMTXRotAxisRad(rot, &rVec, rad);

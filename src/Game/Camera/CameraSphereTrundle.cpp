@@ -17,15 +17,15 @@ CameraSphereTrundle::CameraSphereTrundle(const char* pName) : Camera(pName) {
 
 void CameraSphereTrundle::reset() {
     TVec3f sp20(mOffset);
-    mMtx.mult(sp20, sp20);
+    mZoneMatrix.mult(sp20, sp20);
 
     TVec3f sp14(mLocalPos);
     f32 x = sp14.x;
     f32 y = sp14.y;
     f32 z = sp14.z;
-    sp14.set(mMtx.mMtx[0][0] * x + mMtx.mMtx[0][1] * y + mMtx.mMtx[0][2] * z,
-             mMtx.mMtx[1][0] * x + mMtx.mMtx[1][1] * y + mMtx.mMtx[1][2] * z,
-             mMtx.mMtx[2][0] * x + mMtx.mMtx[2][1] * y + mMtx.mMtx[2][2] * z);
+    sp14.set(mZoneMatrix.mMtx[0][0] * x + mZoneMatrix.mMtx[0][1] * y + mZoneMatrix.mMtx[0][2] * z,
+             mZoneMatrix.mMtx[1][0] * x + mZoneMatrix.mMtx[1][1] * y + mZoneMatrix.mMtx[1][2] * z,
+             mZoneMatrix.mMtx[2][0] * x + mZoneMatrix.mMtx[2][1] * y + mZoneMatrix.mMtx[2][2] * z);
 
     TVec3f sp8 = CameraLocalUtil::getTarget(this)->getPosition() - sp20;
     mFront = sp8;
@@ -49,7 +49,7 @@ CameraTargetObj* CameraSphereTrundle::calc() {
     CameraLocalUtil::makeWatchPoint(&sp58, this, CameraLocalUtil::getTarget(this), 0.0066666668f);
 
     TVec3f sp4C(mOffset);
-    mMtx.mult(sp4C, sp4C);
+    mZoneMatrix.mult(sp4C, sp4C);
 
     TVec3f sp40 = CameraLocalUtil::getTarget(this)->getPosition() - sp4C;
     if (MR::normalizeOrZero(&sp40)) {

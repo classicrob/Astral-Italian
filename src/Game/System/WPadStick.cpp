@@ -13,7 +13,7 @@ namespace {
 };  // namespace
 
 WPadStick::WPadStick(const WPad* pPad)
-    : mPad(pPad), mStick(0.0f, 0.0f), mSpeed(), mHold(), mTrigger(), mRelease(), mIsTriggerUp(), mIsTriggerDown(), mIsHoldUp(), mIsHoldDown() {
+    : mPad(pPad), mStick(0.0f, 0.0f), mSpeed(), mHold(), mTrigger(), mRelease(), mIsTriggerUp(), mIsTriggerDown(), mUpRepeatFrame(), mDownRepeatFrame(), mIsHoldUp(), mIsHoldDown() {
 }
 
 void WPadStick::update() {

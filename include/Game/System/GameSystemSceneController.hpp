@@ -44,6 +44,7 @@ class GameSystemSceneController {
 public:
     /// @brief Creates a new `GameSystemSceneController`.
     GameSystemSceneController();
+    bool isScenarioSelecting() const;  // SMG2 fn_80060320 callee (symbol isScenarioSelecting__25GameSystemSceneControllerCFv)
 
     void initAfterStationedResourceLoaded();
     void requestChangeScene();
@@ -109,4 +110,5 @@ public:
     /* 0x134 */ IntermissionScene* mIntermissionScene;
     /* 0x138 */ PlayTimerScene* mPlayTimerScene;
     /* 0x13C */ ScenarioSelectScene* mScenarioSelectScene;
+    /* 0x140 */ bool mIsFileCacheHeapMissing;  // stored by createSceneHeaps() from the tryCreateFileCacheHeap() result (inverted)
 };

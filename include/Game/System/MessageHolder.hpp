@@ -32,12 +32,18 @@ struct MessageFLI1Block {
     /* 0x4 */ u32 mBlockSize;
 };
 
+// SMG2: a MessageData wraps two LMS handles (message table + flowchart), see MarioFaceShipEventDataHolder.cpp
 class MessageData {
 public:
-    MessageData(const char*);
+    MessageData(const char* pArchivePath, const char* pFileName);  // SMG2 fn_804C2860
 
-    bool getMessageDirect(TalkMessageInfo*, const char*) const;
+    bool getMessageDirect(TalkMessageInfo*, const char*) const;     // SMG2 fn_804C2920
     bool getMessage(TalkMessageInfo*, u16, u16) const;
+    bool getMessageByIndex(TalkMessageInfo*, s32) const;            // SMG2 fn_804C29E0
+    s32 findEntryNodeIndex(const char*) const;                      // SMG2 fn_804C2A80
+    void* getNodeBranchPtr(u32) const;                              // SMG2 fn_804C2AA0
+    void* getNodeDataPtr(u32) const;                                // SMG2 fn_804C2AC0
+    u16 getFlowNodeIndex() const;                                   // SMG2 fn_804C2AE0
     TalkNode* findNode(const char*) const;
     TalkNode* getNode(u32) const;
     TalkNode* getBranchNode(u32) const;
@@ -45,19 +51,13 @@ public:
     u8* getMessageInfoTool(int) const;
     s32 findMessageIndex(const char*) const;
 
-    /* 0x00 */ JMapInfo* mIDTable;
-    /* 0x04 */ MessageInfoBlock* mInfoBlock;
-    /* 0x08 */ MessageDataBlock* mDataBlock;
-    /* 0x0C */ u32 _C;
-    /* 0x10 */ MessageFlowBlock* mFlowBlock;
-    /* 0x14 */ u16* _14;
-    /* 0x18 */ u8* _18;
-    /* 0x1C */ MessageFLI1Block* mFLI1Block;
+    /* 0x00 */ void* mMessageHandle;
+    /* 0x04 */ void* mFlowHandle;
 };
 
 class MessageHolder {
 public:
-    MessageHolder();
+    MessageHolder();  // SMG2 fn_804C2B20
 
     void initSceneData();
     void destroySceneData();
@@ -65,8 +65,11 @@ public:
     void initGameData();
 
     /* 0x00 */ MessageData* mSystemMessageData;
-    /* 0x04 */ MessageData* mGameMessageData;
-    /* 0x08 */ MessageData* mSceneMessageData;
+    /* 0x04 */ MessageData** mGameMessageDatas;
+    /* 0x08 */ MessageData** mSceneCommonMessageDatas;
+    /* 0x0C */ MessageData** mZoneMessageDatas;
+    /* 0x10 */ s32 mGameMessageNum;
+    /* 0x14 */ s32 mSceneCommonMessageNum;
 };
 
 class MessageSystem {

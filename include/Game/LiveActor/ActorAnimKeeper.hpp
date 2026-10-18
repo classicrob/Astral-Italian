@@ -27,6 +27,8 @@ public:
     bool start(const char*);
     void update();
     bool isPlaying(const char*) const;
+    bool isExistAnim(const char*);  // SMG2 callee of fn_80008F00 (symbol isExistAnim__15ActorAnimKeeperFPCc)
+    bool isAnyAnimPlaying(const char*);  // SMG2 callee of isAnyAnimPlaying (symbol isAnyAnimPlaying__15ActorAnimKeeperFPCc)
     bool initAnimData();
     ActorAnimKeeperInfo* findAnimInfo(const char*) const;
     static ActorAnimKeeper* tryCreate(LiveActor*);

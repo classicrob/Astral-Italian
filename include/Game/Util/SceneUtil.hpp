@@ -144,3 +144,8 @@ namespace MR {
 }
 
 namespace MR { bool isStageWorldMap(); }
+
+namespace MR {
+    // SMG2 fn_80056EF0 (core4 name): paired-star check of the Big Tree / Cloud Garden Galaxy events (stage, scenario).
+    bool isBigTreeCloudGardenPairedStarUncollected(const char* pStageName, s32 scenarioNo);
+}

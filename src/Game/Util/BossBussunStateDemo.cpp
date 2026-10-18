@@ -28,13 +28,13 @@ void BossBussunStateDemo::appear() {
     mIsDead = false;
     MR::showModel(mHost);
     fn_8001FEF0(this, mHost, mDemoName, GET_NERVE(BossBussunStateDemo, BossBussunStateDemoNrvDemo), &NrvBossBussunStateDemo::BossBussunStateDemoNrvWait::sInstance);
-    fn_80098D20(mHost);
+    mHost->resetAnimScale();
 }
 
 void BossBussunStateDemo::exeDemo() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(mHost);
-        fn_80098FB0(mHost);
+        mHost->resetToHomePos();
         MR::startAction(mHost, mDemoName);
         MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, mDemoName, 0, false, 1.0f);
         MR::overlayWithPreviousScreen(2);
@@ -54,7 +54,7 @@ void BossBussunStateDemo::exeDemo() {
         if (MR::tryEndDemo(mHost, mDemoName, MR::isActionEnd(mHost))) {
             MR::endAnimCamera(mHost, mHost->mCameraInfo, mDemoName, 0, true);
             MR::showPlayer();
-            fn_80099CD0(mHost->mSequencer);
+            mHost->mSequencer->startCamera();
             kill();
         }
     }
@@ -65,8 +65,8 @@ void BossBussunStateDemo::exeWaitEnd() {
         MR::hideModel(mHost);
     }
     if (MR::isEndPowerStarAppearDemo(mHost)) {
-        MR::showPlayer();
         MR::endAnimCamera(mHost, mHost->mCameraInfo, mDemoName, 0, true);
+        MR::showPlayer();
         kill();
     }
 }

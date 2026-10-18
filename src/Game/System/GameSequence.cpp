@@ -57,11 +57,6 @@ namespace {
     NEW_NERVE(GameSequenceNrvMain, GameSequence, Main);
 };  // namespace
 
-GameSequenceNameEntryTable::GameSequenceNameEntryTable(s32 count) : mEntries(nullptr), mCount(0), _8(0) {
-    mEntries = new GameSequenceNameEntry[count];
-    mCount = count;
-}
-
 GameSequence::GameSequence() : NerveExecutor("\x83Q\x81[\x83\x80\x83V\x81[\x83P\x83\x93\x83X") {
     mSystemStart = nullptr;
     mTitle = nullptr;

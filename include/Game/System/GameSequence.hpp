@@ -12,23 +12,43 @@ class GameSequenceInGame;
 class NameObj;
 class InformationMessage;
 
-// SMG2 hash-keyed 0xC entry table (fn_804AD740 / fn_804AD660 / fn_804AD680 / fn_804AD6D0)
-struct GameSequenceNameEntry {
-    /* 0x0 */ u16 mHash;
-    /* 0x4 */ s32 mValue0;
-    /* 0x8 */ s32 mValue1;
+// SMG2 entry of the "already done" flag table: 15-bit name hash + done bit, zone id, link id (0xC).
+class GameSequenceNameEntry {
+public:
+    GameSequenceNameEntry();
+
+    void set(const char* pName, s32 zoneId, s32 linkId);
+    bool operator==(const GameSequenceNameEntry& rOther) const;
+    void onDone();
+
+    bool isDone() const {
+        return mValue >> 15 & 1;
+    }
+
+    /* 0x0 */ u16 mValue;
+    /* 0x4 */ s32 mZoneId;
+    /* 0x8 */ s32 mLinkId;
 };
+
+class JMapInfoIter;
 
 class GameSequenceNameEntryTable {
 public:
     GameSequenceNameEntryTable(s32 count);
 
-    void clear();               // fn_804AD7C0
-    void registerZoneNames();   // fn_804AD8E0
+    void clear();
+    bool setupAlreadyDoneEntry(int* pOutIndex, const char* pName, const JMapInfoIter& rIter);
+    void onAlreadyDoneEntry(const char* pName);
+    void updateAlreadyDoneEntry(s32 index);
+    bool isOnAlreadyDoneEntry(const char* pName);
+    void registerZoneNames();
+    bool registerEntry(int* pOutIndex, const char* pName, s32 zoneId, s32 linkId);
+    GameSequenceNameEntry* find(const char* pName);
+    GameSequenceNameEntry* getEntry(s32 index);
 
     /* 0x0 */ GameSequenceNameEntry* mEntries;
-    /* 0x4 */ s32 mCount;
-    /* 0x8 */ s32 _8;
+    /* 0x4 */ s32 mCapacity;
+    /* 0x8 */ s32 mCount;
 };
 
 namespace NrvGameSequence {

@@ -289,3 +289,7 @@ public:
     /* 0xE4 */ LiveActor* mDemoB;
     /* 0xE8 */ LiveActor* mDemoA;
 };
+
+namespace BellyDragonUtil {
+    void calcGroundHillMtx(TPos3f*, NameObj*, const f32 (*)[4], f32);
+}

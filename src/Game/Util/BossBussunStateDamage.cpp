@@ -16,14 +16,14 @@ BossBussunStateDamage::BossBussunStateDamage(BossBussun* pHost) : ActorStateBase
 void BossBussunStateDamage::appear() {
     mIsDead = false;
     setNerve(GET_NERVE(BossBussunStateDamage, BossBussunStateDamageNrvDamage));
-    fn_80098D20(mHost);
+    mHost->resetAnimScale();
 }
 
 void BossBussunStateDamage::exeDamage() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "Damage");
         MR::zeroVelocity(mHost);
-        fn_80099D10(mHost->mSequencer);
+        mHost->mSequencer->endCamera();
         MR::startMultiActorCameraTargetSelf(mHost, mHost->mCameraInfo, "Damage", 0);
         MR::stopScene(10);
         updateDamagePos();
@@ -34,62 +34,51 @@ void BossBussunStateDamage::exeDamage() {
     MR::vecBlend(&mHost->mPosition, mPosA, mPosB, MR::calcNerveRate(this, 0x28));
     if (MR::isGreaterEqualStep(this, 1) && MR::isLessStep(this, 0x28)) {
         TVec3f axis(0.0f, 1.0f, 0.0f);
-        MR::turnVecToVecDegree(&mHost->_D0, mHost->_D0, mPosC, 180.0f, axis);
+        MR::turnVecToVecDegree(&mHost->mFrontDir, mHost->mFrontDir, mPosC, 180.0f, axis);
     }
     if (MR::isStep(this, 0x32)) {
         MR::endMultiActorCamera(mHost, mHost->mCameraInfo, "Damage", false, -1);
-        fn_80099CD0(mHost->mSequencer);
+        mHost->mSequencer->startCamera();
     }
     if (MR::isGreaterStep(this, 0x78)) {
         kill();
     }
 }
 
-// Translation of fn_8009BE10 (asm-faithful call order and constants).
 void BossBussunStateDamage::updateDamagePos() {
-    TVec3f sp50;
-    TVec3f sp44;
-    TVec3f sp38;
-    TVec3f sp20;
-    TVec3f sp14;
-    TVec3f sp8;
-    TVec3f sp2C;
-
-    MR::calcVecToTargetPosH(&sp50, mHost, mHost->_DC, &mHost->_E8);
-    if (MR::isNearZero(sp50, 0.001f)) {
-        sp50.set(mHost->_D0);
+    TVec3f dirFromHome;
+    MR::calcVecToTargetPosH(&dirFromHome, mHost, mHost->mHomePos, &mHost->mUpVec);
+    if (MR::isNearZero(dirFromHome, 0.001f)) {
+        dirFromHome.set(mHost->mFrontDir);
     }
-    sp50.x = -sp50.x;
-    sp50.y = -sp50.y;
-    sp50.z = -sp50.z;
-    sp50.scale(800.0f);
+    dirFromHome.negate();
+    dirFromHome.scale(800.0f);
 
-    sp44.set(mHost->_DC);
-    sp44.add(sp50);
+    TVec3f target(mHost->mHomePos);
+    target.add(dirFromHome);
 
-    MR::calcUpVec(&sp38, mHost);
-    sp20.set(sp38);
-    sp20.scale(400.0f);
-    sp44.add(sp20);
+    TVec3f up;
+    MR::calcUpVec(&up, mHost);
+    TVec3f upOffset(up);
+    upOffset.scale(400.0f);
+    target.add(upOffset);
 
     mPosA.set(mHost->mPosition);
 
-    sp14.set(sp38);
-    sp14.scale(-800.0f);
-    MR::getFirstPolyOnLineToMap(&mPosB, nullptr, sp44, sp14);
+    TVec3f down(up);
+    down.scale(-800.0f);
+    MR::getFirstPolyOnLineToMap(&mPosB, nullptr, target, down);
 
-    sp8.set(mPosA);
-    sp8.x -= mPosB.x;
-    sp8.y -= mPosB.y;
-    sp8.z -= mPosB.z;
+    TVec3f diff(mPosA);
+    diff -= mPosB;
 
-    f32 d = sp38.dot(sp8);
-    JMAVECScaleAdd((Vec*)&sp38, (Vec*)&sp8, (Vec*)&sp2C, -d);
-    if (MR::normalizeOrZero(&sp2C)) {
-        mPosC.set(mHost->_D0);
-    } else {
-        mPosC.set(sp2C);
+    TVec3f killed;
+    JMAVECScaleAdd(&up, &diff, &killed, -up.dot(diff));
+    if (!MR::normalizeOrZero(&killed)) {
+        mPosC.set(killed);
+        return;
     }
+    mPosC.set(mHost->mFrontDir);
 }
 
 BossBussunStateDamage::~BossBussunStateDamage() {

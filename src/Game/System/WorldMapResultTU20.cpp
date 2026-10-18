@@ -6,11 +6,6 @@
 #include "Game/Util/TalkUtil.hpp"
 #include "Game/System/WorldMapResultStateLeaveHome.hpp"
 
-extern "C" {
-    void fn_804F33F0(TVec3f*, const TVec3f*, const TVec3f*, s32, s32);
-    bool fn_80059330();
-}
-
 extern TVec3f sCameraTable[4];
 
 static const char* sWorldNewsCameraName = "ワールドニュースカメラ(ワールド1初プレイ)";
@@ -31,16 +26,18 @@ s32 getHomeLeaveType(WorldMapOwner* pHost) {
     if (GameSequenceFunction::isWorldMapEnterType3() != 0) {
         return 4;
     }
+    bool type4 = GameSequenceFunction::isWorldMapEnterType4();
     s32 type = 6;
-    if (GameSequenceFunction::isWorldMapEnterType4() != 0) {
+    if (type4 != 0) {
         type = 5;
     }
     return type;
 }
 
 const char* getHomeLeaveEndName() {
+    s32 world = GameDataFunction::getCurrentWorldId();
     const char* name = "離脱終了（ホーム）";
-    if (GameDataFunction::getCurrentWorldId() == 7) {
+    if (world == 7) {
         name = "離脱終了Ｓ（ホーム）";
     }
     return name;
@@ -109,7 +106,7 @@ void WorldMapResultStateLeaveHome::exeStart() {
     if (MR::isFirstStep(this)) {
         mPos = *mHost->getRocketPosition();
     }
-    if (fn_80059330()) {
+    if (MR::tryEndModelWipe()) {
         LiveActor* pActor = mHost->getRocket();
         MR::tryForceDeleteEffectAll(pActor);
         s32 type = getHomeLeaveType(mHost);
@@ -154,13 +151,13 @@ void WorldMapResultStateLeaveHome::exeStart() {
 void WorldMapResultStateLeaveHome::calcCenter() {
     WorldMapResultBox box;
     box.extendByWorld(mHost->getWorld());
-    mCenter.set(box.mMax.x, mPos.y, mPos.z);
+    mCenter.set<f32>(box.mMax.x, mPos.y, mPos.z);
     mCenter.add(sCameraTable[3]);
 }
 
 void WorldMapResultStateLeaveHome::moveCamera(s32 step) {
     TVec3f pos;
-    fn_804F33F0(&pos, &mCenter, &mPos, step, 0x12C);
+    calcRoutePos(&pos, mCenter, mPos, step, 0x12C);
     MR::setPosition(mHost->getCamera()->mCameraTarget, pos);
 }
 
@@ -175,8 +172,8 @@ void WorldMapResultStateLeaveHome::exeMove() {
     }
     moveCamera(getNerveStep());
     if (MR::isGreaterEqualStep(this, 0x14A)) {
-        TVec3f dir(1.0f, 0.0f, 0.0f);
-        mHost->faceRocketInstant(&dir);
+        WorldMapOwner* host = mHost;
+        host->faceRocketInstant(&TVec3f(1.0f, 0.0f, 0.0f));
         mHost->showRocket();
         setNerve(GET_NERVE(WorldMapResultStateLeaveHome, WorldMapResultStateLeaveHomeZoomOut));
     }
@@ -185,18 +182,19 @@ void WorldMapResultStateLeaveHome::exeMove() {
 void WorldMapResultStateLeaveHome::exeZoomIn() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
-        TVec3f dir(1.0f, 0.0f, 0.0f);
-        mHost->faceRocketInstant(&dir);
+        WorldMapOwner* host = mHost;
+        host->faceRocketInstant(&TVec3f(1.0f, 0.0f, 0.0f));
         MR::tryForceDeleteEffectAll(mHost->getRocket());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x5A);
+    WorldMapOwner* host = mHost;
     TVec3f sp8(mPos);
     sp8.add(sCameraTable[0]);
     TVec3f sp14 = sp8 * (1.0f - rate);
     TVec3f sp20 = mPos * rate;
     TVec3f sp2C(sp20);
     sp2C.add(sp14);
-    mHost->setRocketPosFromPrev(sp2C);
+    host->setRocketPosFromPrev(sp2C);
     if (MR::isGreaterEqualStep(this, 0x5A)) {
         kill();
     }
@@ -205,18 +203,19 @@ void WorldMapResultStateLeaveHome::exeZoomIn() {
 void WorldMapResultStateLeaveHome::exeZoomOut() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
-        TVec3f dir(1.0f, 0.0f, 0.0f);
-        mHost->faceRocketInstant(&dir);
+        WorldMapOwner* host = mHost;
+        host->faceRocketInstant(&TVec3f(1.0f, 0.0f, 0.0f));
         MR::tryForceDeleteEffectAll(mHost->getRocket());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x1E);
+    WorldMapOwner* host = mHost;
     TVec3f sp8(mPos);
     sp8.add(sCameraTable[1]);
     TVec3f sp14 = sp8 * (1.0f - rate);
     TVec3f sp20 = mPos * rate;
     TVec3f sp2C(sp20);
     sp2C.add(sp14);
-    mHost->setRocketPosFromPrev(sp2C);
+    host->setRocketPosFromPrev(sp2C);
     if (MR::isGreaterEqualStep(this, 0x1E)) {
         kill();
     }
@@ -225,18 +224,19 @@ void WorldMapResultStateLeaveHome::exeZoomOut() {
 void WorldMapResultStateLeaveHome::exeZoomOutSub() {
     if (MR::isFirstStep(this)) {
         playEnterSound();
-        TVec3f dir(-1.0f, 0.0f, 0.0f);
-        mHost->faceRocketInstant(&dir);
+        WorldMapOwner* host = mHost;
+        host->faceRocketInstant(&TVec3f(-1.0f, 0.0f, 0.0f));
         MR::tryForceDeleteEffectAll(mHost->getRocket());
     }
     f32 rate = MR::calcNerveEaseInOutRate(this, 0x1E);
+    WorldMapOwner* host = mHost;
     TVec3f sp8(mPos);
     sp8.add(sCameraTable[2]);
     TVec3f sp14 = sp8 * (1.0f - rate);
     TVec3f sp20 = mPos * rate;
     TVec3f sp2C(sp20);
     sp2C.add(sp14);
-    mHost->setRocketPosFromPrev(sp2C);
+    host->setRocketPosFromPrev(sp2C);
     if (MR::isGreaterEqualStep(this, 0x1E)) {
         kill();
     }
@@ -244,11 +244,12 @@ void WorldMapResultStateLeaveHome::exeZoomOutSub() {
 
 void WorldMapResultStateLeaveHome::exeMessage() {
     if (MR::isFirstStep(this)) {
-        mHost->startCamera(getHomeLeaveEndName(), 0x78);
+        WorldMapOwner* host = mHost;
+        host->startCamera(getHomeLeaveEndName(), 0x78);
     }
     if (MR::isLessStep(this, 0x32)) {
-        TVec3f dir(0.0f, 0.0f, -1.0f);
-        mHost->faceRocketInstant(&dir);
+        WorldMapOwner* host = mHost;
+        host->faceRocketInstant(&TVec3f(0.0f, 0.0f, -1.0f));
     } else {
         mHost->setRocketSpeed(0.08f);
     }
@@ -264,7 +265,7 @@ void WorldMapResultStateLeaveHome::exeFovOut() {
     if (MR::isFirstStep(this)) {
         mFovy = MR::getFovy();
     }
-    f32 fovy = MR::getEaseOutValue((f32)getNerveStep() / (f32)0x1E, 179.0f, mFovy, 1.0f);
+    f32 fovy = MR::getEaseOutValue((f32)getNerveStep() / (f32)(s32)30, 179.0f, mFovy, 1.0f);
     MR::setFovy(fovy);
     if (MR::isGreaterEqualStep(this, 0x1E)) {
         kill();
@@ -273,7 +274,8 @@ void WorldMapResultStateLeaveHome::exeFovOut() {
 
 void WorldMapResultStateLeaveHome::exeMessageEnd() {
     if (MR::isFirstStep(this)) {
-        mHost->startCamera(getHomeLeaveEndName(), 0x78);
+        WorldMapOwner* host = mHost;
+        host->startCamera(getHomeLeaveEndName(), 0x78);
     }
     if (MR::isStep(this, 0x3C)) {
         mHost->startNodeCamera(-1, -1);

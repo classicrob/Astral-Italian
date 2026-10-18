@@ -1,5 +1,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
+#include "Game/Util/FileUtil.hpp"
+#include "Game/Util/SceneUtil.hpp"
 #include "Game/Camera/CameraDirector.hpp"
 #include "Game/Camera/CameraShaker.hpp"
 #include "Game/Effect/EffectSystemUtil.hpp"
@@ -530,6 +532,36 @@ ResourceHolder* MR::createAndAddResourceHolder(const char* pResource) {
 
 
 
+ResourceHolder* MR::createAndAddResourceHolderStationed(const char* pResource) {
+    return SingletonHolder< ResourceHolderManager >::get()->createAndAddStationed(pResource);
+}
+
+ResTIMG* MR::loadTexFromArcHelper(const char* pArchive, const char* pFile, void* pHolderOut) {
+    ResourceHolder* pHolder = MR::createAndAddResourceHolder(pArchive);
+    if (pHolderOut != nullptr) {
+        *static_cast< ResourceHolder** >(pHolderOut) = pHolder;
+    }
+
+    return static_cast< ResTIMG* >(pHolder->mFileInfoTable->getRes(pFile));
+}
+
+const ResTIMG* MR::loadTexFromArc(const char* pArchive, const char* pFile, ResTIMG* pHolderOut) {
+    return MR::loadTexFromArcHelper(pArchive, pFile, pHolderOut);
+}
+
+const ResTIMG* MR::loadTexFromArc(const char* pName, const ResourceHolder* pHolder) {
+    char archive[0x100];
+    char file[0x100];
+    snprintf(archive, 0x100, "%s.arc", pName);
+    snprintf(file, 0x100, "%s.bti", pName);
+
+    return MR::loadTexFromArcHelper(archive, file, const_cast< ResourceHolder* >(pHolder));
+}
+
+const ResTIMG* MR::getTextureResource(const ResourceHolder* pHolder, const char* pName) {
+    return static_cast< const ResTIMG* >(pHolder->mFileInfoTable->getRes(pName));
+}
+
 namespace {
     bool isExistFileInArcLocal(const ResourceHolder* pHolder, const char* pArchive, va_list pFormat) NO_INLINE {
         char buf[0x100];
@@ -589,6 +621,63 @@ JMapInfo* MR::tryCreateCsvParser(const ResourceHolder* pHolder, const char* pFor
     return ::tryCreateCsvParserLocal(pHolder, pFormat, list);
 }
 
+JMapInfo* MR::createCsvParserFromFile(const char* pArchive, const char* pFormat, ...) {
+    va_list list;
+    va_start(list, pFormat);
+
+    ResourceHolder* pResourceHolder = MR::createAndAddResourceHolder(pArchive);
+    return ::tryCreateCsvParserLocal(pResourceHolder, pFormat, list);
+}
+
+namespace {
+    const JMapInfo* tryCreateStageCsvParserLocal(const char* pStage, const char* pSuffix, const char* pFormat, va_list list) NO_INLINE {
+        char fileName[0x100];
+        char archive[0x100];
+        vsnprintf(fileName, 0x100, pFormat, list);
+        if (!MR::isEqualSubString(fileName, ".bcsv")) {
+            snprintf(fileName, 0x100, "%s.bcsv", fileName);
+        }
+
+        snprintf(archive, 0x100, "/StageData/%s/%s%s.arc", pStage, pStage, pSuffix);
+        if (!MR::isFileExist(archive, false)) {
+            return nullptr;
+        }
+
+        JKRArchive* pArchive = MR::mountArchive(archive, nullptr, true);
+        void* pEntry = pArchive->getResource(QUESTIONMARK_MAGIC, fileName);
+        if (pEntry == nullptr) {
+            return nullptr;
+        }
+
+        JMapInfo* pInfo = new JMapInfo();
+        pInfo->attach(pEntry);
+        return pInfo;
+    }
+};  // namespace
+
+// NONMATCHING: target passes a va_list through the variadic slot and has no reg-save prologue; this routes through the local helper
+const JMapInfo* MR::tryCreateStageCsvParser(const char* pStage, const char* pSuffix, const char* pFormat, ...) {
+    va_list list;
+    va_start(list, pFormat);
+
+    return ::tryCreateStageCsvParserLocal(pStage, pSuffix, pFormat, list);
+}
+
+// NONMATCHING: routes through the local helper (target bl's the global tryCreateStageCsvParser with a va_list)
+const JMapInfo* MR::tryCreateStageZoneInfoCsvParser(const char* pFormat, ...) {
+    va_list list;
+    va_start(list, pFormat);
+
+    return ::tryCreateStageCsvParserLocal(MR::getCurrentStageName(), "ZoneInfo", pFormat, list);
+}
+
+const JMapInfo* MR::tryCreateStageUseResourceCsvParser(const char* pStage, const char* pFormat, ...) {
+    va_list list;
+    va_start(list, pFormat);
+
+    return ::tryCreateStageCsvParserLocal(pStage, "UseResource", pFormat, list);
+}
+
 s32 MR::getCsvDataElementNum(const JMapInfo* pMapInfo) {
     if (pMapInfo->mData != nullptr) {
         return pMapInfo->mData->mNumEntries;
@@ -608,6 +697,17 @@ void MR::getCsvDataStrOrNULL(const char** pOut, const JMapInfo* pMapInfo, const 
 
 void MR::getCsvDataS32(s32* pOut, const JMapInfo* pMapInfo, const char* pKey, s32 idx) {
     pMapInfo->getValue< s32 >(idx, pKey, pOut);
+}
+
+// NONMATCHING: target body reads arg1 as the JMapInfo `this` (searchItemInfo/getValueFast on r3); signature kept from symbols.txt
+void MR::getCsvDataU32(s32* pOut, const JMapInfo* pMapInfo, const char* pKey, s32 idx) {
+    pMapInfo->getValue< u32 >(idx, pKey, reinterpret_cast< u32* >(pOut));
+}
+
+void MR::getCsvDataS16(s16* pOut, const JMapInfo* pMapInfo, const char* pKey, s32 idx) {
+    s32 value = 0;
+    pMapInfo->getValue< s32 >(idx, pKey, &value);
+    *pOut = static_cast< s16 >(value);
 }
 
 void MR::getCsvDataU8(u8* pOut, const JMapInfo* pMapInfo, const char* pKey, s32 idx) NO_INLINE {
@@ -648,6 +748,12 @@ void MR::getCsvDataColor(GXColor* pOut, const JMapInfo* pMapInfo, const char* pK
 
 bool MR::hasCsvItem(const JMapInfo* pMapInfo, const char* pItemName) {
     return pMapInfo->searchItemInfo(pItemName) >= 0;
+}
+
+// NONMATCHING: findElement<const char*> is inlined here (strcmp), target calls the out-of-line template instance
+bool MR::isExistElement(const JMapInfo* pMapInfo, const char* pKey, const char* pValue) {
+    JMapInfoIter iter = pMapInfo->findElement< const char* >(pKey, pValue, 0);
+    return !(iter == pMapInfo->end());
 }
 
 bool MR::isStageStateScenarioOpeningCamera() {
@@ -958,6 +1064,14 @@ bool MR::isSame(const NameObj* pObj1, const NameObj* pObj2) {
     return pObj1 == pObj2;
 }
 
+
+bool MR::registerNamePosLinkObj(const NameObj* pLinkedObj, const JMapInfoIter& rIter, const char* pPosName) {
+    return MR::getNamePosHolder()->tryRegisterLinkObj(pLinkedObj, rIter, pPosName);
+}
+
+bool MR::tryRegisterNamePosLinkObj(const NameObj* pLinkedObj, const JMapInfoIter& rIter, const char* pPosName) {
+    return MR::getNamePosHolder()->tryRegisterLinkObj(pLinkedObj, rIter, pPosName);
+}
 
 bool MR::findNamePos(const char* pName, MtxPtr pMtx) {
     return MR::tryFindLinkNamePos(nullptr, pName, pMtx);

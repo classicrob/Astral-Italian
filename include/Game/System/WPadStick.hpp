@@ -20,6 +20,8 @@ public:
     /* 0x18 */ u32 mRelease;
     /* 0x1C */ bool mIsTriggerUp;
     /* 0x1D */ bool mIsTriggerDown;
-    /* 0x1E */ bool mIsHoldUp;
-    /* 0x1F */ bool mIsHoldDown;
+    /* 0x20 */ s32 mUpRepeatFrame;
+    /* 0x24 */ s32 mDownRepeatFrame;
+    /* 0x28 */ bool mIsHoldUp;
+    /* 0x29 */ bool mIsHoldDown;
 };

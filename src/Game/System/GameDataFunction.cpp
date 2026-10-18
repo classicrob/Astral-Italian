@@ -240,3 +240,52 @@ namespace GameDataFunction {
         return greenStarNum;
     }
 };  // namespace GameDataFunction
+#pragma dont_inline reset
+
+#pragma dont_inline on
+extern char lbl_806FF36C[];  // SMG2 event flag name (Shift-JIS "IsOpenScenario..." style), kept as data reference
+extern char lbl_806FF388[];
+extern char lbl_806FF3A0[];
+extern char lbl_806FF3C0[];
+extern char lbl_806FF3DC[];
+
+namespace GameDataFunction {
+    bool isOnGameEventFlagEnding120Stars() {
+        const char* pFlagName = lbl_806FF36C;
+        return GameDataFunction::getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(pFlagName);
+    }
+
+    bool isOnGameEventFlagFinalGalaxyAppearance() {
+        const char* pFlagName = lbl_806FF388;
+        return GameDataFunction::getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(pFlagName);
+    }
+
+    bool isOnGameEventFlagStarPieceCounterStop() {
+        const char* pFlagName = lbl_806FF3A0;
+        return GameDataFunction::getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(pFlagName);
+    }
+
+    bool isOnGameEventFlagCoinCounterStop() {
+        const char* pFlagName = lbl_806FF3C0;
+        return GameDataFunction::getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(pFlagName);
+    }
+
+    bool isOnGameEventFlagCometExplain() {
+        const char* pFlagName = lbl_806FF3DC;
+        return GameDataFunction::getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(pFlagName);
+    }
+
+    s32 calcCurrentGrandStarNum() {
+        s32 grandStarNum = 0;
+
+        for (s32 i = 1; i <= 6; i++) {
+            if (GameDataFunction::getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->hasGrandStar(i)) {
+                grandStarNum++;
+            }
+        }
+
+        return grandStarNum;
+    }
+};  // namespace GameDataFunction
+#pragma dont_inline reset
+#pragma dont_inline reset

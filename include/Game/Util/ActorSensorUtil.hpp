@@ -200,13 +200,13 @@ namespace MR {
     bool sendMsgToEnemyAttackBlowOrTrample(HitSensor* pReceiver, HitSensor* pSender, f32 trampleThreshold);
     bool sendMsgToEnemyAttackShockWave(HitSensor* pReceiver, HitSensor* pSender);
 
-    bool sendMsgToAllLiveActor(u32 msg, LiveActor* pSenderActor);
-    bool sendMsgToGroupMember(u32 msg, LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
-    bool sendMsgGroupMoveStartToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
-    bool sendMsgGroupMoveStopToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
-    bool sendMsgGroupShowToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
-    bool sendMsgGroupHideToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
-    bool sendMsgExplosionToNearActor(HitSensor* pSender, f32 range);
+    void sendMsgToAllLiveActor(u32 msg, LiveActor* pSenderActor);
+    void sendMsgToGroupMember(u32 msg, LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
+    void sendMsgGroupMoveStartToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
+    void sendMsgGroupMoveStopToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
+    void sendMsgGroupShowToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
+    void sendMsgGroupHideToMember(LiveActor* pGroupActor, HitSensor* pSender, const char* pSensorName);
+    void sendMsgExplosionToNearActor(HitSensor* pSender, f32 range);
 
     bool isInSpinStormRange(u32 msg, HitSensor* pSender, HitSensor* pReceiver, f32 range);
     bool receiveItemShowMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);

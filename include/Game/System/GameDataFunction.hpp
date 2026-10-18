@@ -43,3 +43,12 @@ namespace GameDataFunction {
     void setSysConfigFileSentBytes(u32);
     s32 getCurrentWorldId();
 };  // namespace GameDataFunction
+
+// SMG2-only (core lane): declared for the GameDataFunction unit
+namespace GameDataFunction {
+    bool isOnGameEventFlagEnding120Stars();
+    bool isOnGameEventFlagFinalGalaxyAppearance();
+    bool isOnGameEventFlagCoinCounterStop();
+    bool isOnGameEventFlagCometExplain();
+    s32 calcCurrentGrandStarNum();
+};  // namespace GameDataFunction

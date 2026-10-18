@@ -5,6 +5,13 @@
 #include "Game/LiveActor/HitSensorKeeper.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/JointUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
+#include "Game/Scene/SceneObjHolder.hpp"
+#include "Game/LiveActor/MessageSensorHolder.hpp"
+#include "Game/Util.hpp"
+#include "Game/LiveActor/AllLiveActorGroup.hpp"
+#include "Game/LiveActor/LiveActorGroupArray.hpp"
+#include "Game/LiveActor/Binder.hpp"
 
 namespace MR {
     void setSensorFollowPos(LiveActor* pActor, const char* pSensorName, const TVec3f* pPos) {
@@ -172,6 +179,7 @@ namespace MR {
         return MR::addHitSensorCallback(pActor, pName, 0x7A, a4, radius);
     }
 
+#pragma dont_inline on
     HitSensor* addBodyMessageSensorReceiver(LiveActor* pActor) {
         return MR::addBodyMessageSensor(pActor, 0x7F);
     }
@@ -192,6 +200,8 @@ namespace MR {
         TVec3f offs(0.0f, 0.0f, 0.0f);
         return pActor->mSensorKeeper->add("Body", type, 0, 0.0f, pActor, offs)->mSensor;
     }
+
+#pragma dont_inline reset
 
     HitSensor* addMessageSensorReceiver(LiveActor* pActor, const char* pName) {
         TVec3f offs(0.0f, 0.0f, 0.0f);
@@ -493,4 +503,738 @@ namespace MR {
     bool sendMsgIsRushEnable(HitSensor* a1, HitSensor* a2) {
         return a1->receiveMessage(0x99, a2);
     }
+
+    HitSensor* getTaken(const LiveActor* pActor) {
+        if (pActor->mSensorKeeper != nullptr) {
+            return reinterpret_cast< HitSensor* >(pActor->mSensorKeeper->_10);
+        }
+
+        return nullptr;
+    }
+
+    void setSensorRadius(LiveActor* pActor, const char* pName, f32 radius) {
+        pActor->mSensorKeeper->getSensorInfo(pName)->mSensor->mRadius = radius;
+    }
+
+    bool isSensorPlayerOrRide(const HitSensor* pSensor) {
+        return isSensorPlayer(pSensor) || isSensorRide(pSensor);
+    }
+
+    bool isSensorEnemy(const HitSensor* pSensor) {
+        if (pSensor->mType <= 0x17 /* ATYPE_ENEMY_START */) {
+            return false;
+        }
+
+        if (pSensor->mType < 0x3e /* ATYPE_ENEMY_END */) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isSensorMapObj(const HitSensor* pSensor) {
+        if (pSensor->mType <= 0x3f /* ATYPE_MAPOBJ_START */) {
+            return false;
+        }
+
+        if (pSensor->mType < 0x59 /* ATYPE_MAPOBJ_END */) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isSensorAutoRush(const HitSensor* pSensor) {
+        if (pSensor->mType <= 0x5a /* ATYPE_AUTO_RUSH_OBJ_START */) {
+            return false;
+        }
+
+        if (pSensor->mType < 0x69 /* ATYPE_AUTO_RUSH_OBJ_END */) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isSensorRush(const HitSensor* pSensor) {
+        if (pSensor->mType <= 0x6a /* ATYPE_RUSH_OBJ_START */) {
+            return false;
+        }
+
+        if (pSensor->mType < 0x6f /* ATYPE_RUSH_OBJ_END */) {
+            return true;
+        }
+
+        return false;
+    }
+
+    void calcSensorDirection(TVec3f* pDir, const HitSensor* pSensor1, const HitSensor* pSensor2) {
+        TVec3f dir = pSensor2->mPosition - pSensor1->mPosition;
+        pDir->set(dir);
+    }
+
+    void calcSensorDirectionNormalize(TVec3f* pDir, const HitSensor* pSensor1, const HitSensor* pSensor2) {
+        calcSensorDirection(pDir, pSensor1, pSensor2);
+        normalizeOrZero(pDir);
+    }
+
+    void calcSensorHorizonNormalize(TVec3f* pHorizon, const TVec3f& rGravity, const HitSensor* pSensor1, const HitSensor* pSensor2) {
+        TVec3f horizon = pSensor2->mPosition - pSensor1->mPosition;
+        pHorizon->killElement(horizon, rGravity);
+        normalizeOrZero(pHorizon);
+    }
+
+    HitSensor* getMessageSensor() {
+        return getSceneObj< MessageSensorHolder >(SceneObj_MessageSensorHolder)->getSensor(nullptr);
+    }
+
+    bool sendMsgEnemyAttackMsgToDir(u32 msg, HitSensor* pReceiver, HitSensor* pSender, const TVec3f& rDir) {
+        TVec3f senderPos = pSender->mPosition;
+        pSender->mPosition.sub(pReceiver->mPosition, rDir);
+
+        bool isSent = pReceiver->receiveMessage(msg, pSender);
+        setSensorPos(pSender, senderPos);
+
+        return isSent;
+    }
+
+    bool sendMsgEnemyAttackFlipWeak(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x5b /* ACTMES_ENEMY_ATTACK_FLIP_WEAK */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackFlipWeakJump(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x5c /* ACTMES_ENEMY_ATTACK_FLIP_WEAK_JUMP */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackFlip(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x5e /* ACTMES_ENEMY_ATTACK_FLIP */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackFlipToDir(HitSensor* pReceiver, HitSensor* pSender, const TVec3f& rDir) {
+        return sendMsgEnemyAttackMsgToDir(0x5e /* ACTMES_ENEMY_ATTACK_FLIP */, pReceiver, pSender, rDir);
+    }
+
+    bool sendMsgEnemyAttackFlipJump(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x5d /* ACTMES_ENEMY_ATTACK_FLIP_JUMP */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackFlipRot(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x5f /* ACTMES_ENEMY_ATTACK_FLIP_ROT */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackFlipMaximumToDir(HitSensor* pReceiver, HitSensor* pSender, const TVec3f& rDir) {
+        return sendMsgEnemyAttackMsgToDir(0x60 /* ACTMES_ENEMY_ATTACK_FLIP_MAXIMUM */, pReceiver, pSender, rDir);
+    }
+
+    bool sendMsgEnemyAttack(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x61 /* ACTMES_ENEMY_ATTACK */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackStrong(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x62 /* ACTMES_ENEMY_ATTACK_STRONG */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackStrongToDir(HitSensor* pReceiver, HitSensor* pSender, const TVec3f& rDir) {
+        return sendMsgEnemyAttackMsgToDir(0x62 /* ACTMES_ENEMY_ATTACK_STRONG */, pReceiver, pSender, rDir);
+    }
+
+    bool sendMsgEnemyAttackFire(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x66 /* ACTMES_ENEMY_ATTACK_FIRERUN */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackFireStrong(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x67 /* ACTMES_ENEMY_ATTACK_FIRERUN_STRONG */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackElectric(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x68 /* ACTMES_ENEMY_ATTACK_ELECTRIC */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackFreeze(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x6b /* ACTMES_ENEMY_ATTACK_FREEZE */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackExplosion(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x64 /* ACTMES_ENEMY_ATTACK_EXPLOSION */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackCounterSpin(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x6e /* ACTMES_ENEMY_ATTACK_COUNTER_SPIN */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackCounterHipDrop(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x6f /* ACTMES_ENEMY_ATTACK_COUNTER_HIPDROP */, pReceiver, pSender);
+    }
+
+    bool sendMsgLockOnStarPieceShoot(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x15 /* ACTMES_IS_LOCKON_STAR_PIECE_SHOOT */, pReceiver, pSender);
+    }
+
+    bool sendMsgStarPieceAttack(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0xf /* ACTMES_STAR_PIECE_ATTACK */, pReceiver, pSender);
+    }
+
+    bool sendMsgStarPieceGift(HitSensor* pReceiver, HitSensor* pSender, u32 num) {
+        return sendArbitraryMsg((num + 0x16 /* ACTMES_STAR_PIECE_GIFT */) - 1, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackMaximum(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x63 /* ACTMES_ENEMY_ATTACK_MAXIMUM */, pReceiver, pSender);
+    }
+
+    bool sendMsgEnemyAttackMaximumToDir(HitSensor* pReceiver, HitSensor* pSender, const TVec3f& rDir) {
+        return sendMsgEnemyAttackMsgToDir(0x63 /* ACTMES_ENEMY_ATTACK_MAXIMUM */, pReceiver, pSender, rDir);
+    }
+
+    bool sendMsgEnemyAttackToBindedSensor(LiveActor* pActor, HitSensor* pSender) {
+        return sendMsgToBindedSensor(0x61 /* ACTMES_ENEMY_ATTACK */, pActor, pSender);
+    }
+
+    bool sendMsgEnemyAttackExplosionToBindedSensor(LiveActor* pActor, HitSensor* pSender) {
+        return sendMsgToBindedSensor(0x64 /* ACTMES_ENEMY_ATTACK_EXPLOSION */, pActor, pSender);
+    }
+
+    bool sendSimpleMsgToActor(u32 msg, LiveActor* pActor) {
+        HitSensor* pReceiver = getMessageSensor();
+        HitSensor* pSender = getMessageSensor();
+
+        return pActor->receiveMessage(msg, pSender, pReceiver);
+    }
+
+    bool sendMsgToGroundSensor(u32 msg, HitSensor* pSender) {
+        if (!isBindedGround(getSensorHost(pSender))) {
+            return false;
+        }
+
+        return getGroundSensor(getSensorHost(pSender))->receiveMessage(msg, pSender);
+    }
+
+    bool sendMsgToWallSensor(u32 msg, HitSensor* pSender) {
+        if (!isBindedWall(getSensorHost(pSender))) {
+            return false;
+        }
+
+        return getWallSensor(getSensorHost(pSender))->receiveMessage(msg, pSender);
+    }
+
+    bool sendMsgStartDemo(LiveActor* pActor) {
+        return sendSimpleMsgToActor(0x9 /* ACTMES_START_DEMO */, pActor);
+    }
+
+    bool sendMsgToEnemyAttackBlow(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x70 /* ACTMES_TO_ENEMY_ATTACK_BLOW */, pReceiver, pSender);
+    }
+
+    bool sendMsgToEnemyAttackTrample(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x72 /* ACTMES_TO_ENEMY_ATTACK_TRAMPLE */, pReceiver, pSender);
+    }
+
+    bool sendMsgToEnemyAttackBlowOrTrample(HitSensor* pReceiver, HitSensor* pSender, f32 ratio) {
+        TVec3f dir = pReceiver->mPosition - pSender->mPosition;
+        normalizeOrZero(&dir);
+
+        if (ratio < getSensorHost(pSender)->mGravity.dot(dir)) {
+            return sendMsgToEnemyAttackTrample(pReceiver, pSender);
+        } else {
+            return sendMsgToEnemyAttackBlow(pReceiver, pSender);
+        }
+    }
+
+    bool sendMsgToEnemyAttackShockWave(HitSensor* pReceiver, HitSensor* pSender) {
+        return sendArbitraryMsg(0x74 /* ACTMES_TO_ENEMY_ATTACK_SHOCK_WAVE */, pReceiver, pSender);
+    }
+
+    void sendMsgToAllLiveActor(u32 msg, LiveActor* pActor) {
+        AllLiveActorGroup* pGroup = getAllLiveActorGroup();
+
+        for (int i = 0; i < pGroup->getObjNum(); i++) {
+            LiveActor* pGroupActor = pGroup->getActor(i);
+
+            if (isDead(pGroupActor)) {
+                continue;
+            }
+
+            if (pGroupActor == pActor) {
+                continue;
+            }
+
+            pGroupActor->receiveMessage(msg, getMessageSensor(), getMessageSensor());
+        }
+    }
+
+    void sendMsgToGroupMember(u32 msg, LiveActor* pActor, HitSensor* pSender, const char* pName) {
+        MsgSharedGroup* pGroup = static_cast< MsgSharedGroup* >(getGroupFromArray(pActor));
+
+        if (pGroup != nullptr) {
+            pGroup->sendMsgToGroupMember(msg, pSender, pName);
+        } else {
+            pActor->receiveMessage(msg, pSender, pActor->getSensor(pName));
+        }
+    }
+
+    void sendMsgExplosionToNearActor(HitSensor* pSender, f32 distance) {
+        HitSensor* pReceiver;
+
+        for (u16 i = 0; i < pSender->mSensorCount; i++) {
+            pReceiver = pSender->mSensors[i];
+
+            if (distance < 0.0f || isNear(pSender, pReceiver, distance)) {
+                sendArbitraryMsg(0x64 /* ACTMES_ENEMY_ATTACK_EXPLOSION */, pReceiver, pSender);
+            }
+        }
+    }
+
+    bool isInSpinStormRange(u32 msg, HitSensor* pSender, HitSensor* pReceiver, f32 range) {
+        if (msg != 0x3c /* ACTMES_SPIN_STORM_RANGE */) {
+            return false;
+        }
+
+        // NOTE: Double negative?
+        bool isFar = !isNear(pSender, pReceiver, range);
+
+        return !isFar;
+    }
+
+    bool receiveItemShowMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+        if (msg == 0x86 /* ACTMES_ITEM_SHOW */ && isDead(getSensorHost(pReceiver))) {
+            getSensorHost(pReceiver)->makeActorAppeared();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool receiveItemHideMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+        if (msg == 0x87 /* ACTMES_ITEM_HIDE */ && !isDead(getSensorHost(pReceiver))) {
+            getSensorHost(pReceiver)->makeActorDead();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    HitSensor* getGroundSensor(const LiveActor* pActor) {
+        return pActor->mBinder->mGroundInfo.mParentTriangle.mSensor;
+    }
+
+    HitSensor* getRoofSensor(const LiveActor* pActor) {
+        return pActor->mBinder->mRoofInfo.mParentTriangle.mSensor;
+    }
+
+    HitSensor* getWallSensor(const LiveActor* pActor) {
+        return pActor->mBinder->mWallInfo.mParentTriangle.mSensor;
+    }
+
+    bool isMsgPlayerHitAll(u32 msg) {
+        return msg == 0x1 /* ACTMES_PLAYER_PUNCH */ || msg == 0x5 /* ACTMES_PLAYER_UPPER_PUNCH */ || msg == 0x7 /* ACTMES_JET_TURTLE_ATTACK */ || msg == 0xb /* ACTMES_FIREBALL_ATTACK */ ||
+               msg == 0xd /* ACTMES_FREEZE_ATTACK */ || msg == 0xe /* ACTMES_INVINCIBLE_ATTACK */;
+    }
+
+    bool isMsgPlayerSpinAttack(u32 msg) {
+        return msg == 0x1 /* ACTMES_PLAYER_PUNCH */;
+    }
+
+    bool isMsgPlayerTrample(u32 msg) {
+        return msg == 0x2 /* ACTMES_PLAYER_TRAMPLE */;
+    }
+
+    bool isMsgPlayerHipDrop(u32 msg) {
+        return msg == 0x3 /* ACTMES_PLAYER_HIP_DROP */;
+    }
+
+    bool isMsgPlayerHipDropFloor(u32 msg) {
+        return msg == 0x4 /* ACTMES_PLAYER_HIP_DROP_FLOOR */;
+    }
+
+    bool isMsgPlayerUpperPunch(u32 msg) {
+        return msg == 0x5 /* ACTMES_PLAYER_UPPER_PUNCH */;
+    }
+
+    bool isMsgPlayerKick(u32 msg) {
+        return msg == 0x35 /* ACTMES_KICK */;
+    }
+
+    bool isMsgJetTurtleAttack(u32 msg) {
+        return msg == 0x7 /* ACTMES_JET_TURTLE_ATTACK */;
+    }
+
+    bool isMsgFireBallAttack(u32 msg) {
+        return msg == 0xb /* ACTMES_FIREBALL_ATTACK */;
+    }
+
+    bool isMsgSearchlightAttack(u32 msg) {
+        return msg == 0xc /* ACTMES_SEARCHLIGHT_ATTACK */;
+    }
+
+    bool isMsgFreezeAttack(u32 msg) {
+        return msg == 0xd /* ACTMES_FREEZE_ATTACK */;
+    }
+
+    bool isMsgInvincibleAttack(u32 msg) {
+        return msg == 0xe /* ACTMES_INVINCIBLE_ATTACK */;
+    }
+
+    bool isMsgAutoRushBegin(u32 msg) {
+        return msg == 0x93 /* ACTMES_AUTORUSH_BEGIN */;
+    }
+
+    bool isMsgRushBegin(u32 msg) {
+        return msg == 0x92 /* ACTMES_RUSH_BEGIN */;
+    }
+
+    bool isMsgUpdateBaseMtx(u32 msg) {
+        return msg == 0xa1 /* ACTMES_UPDATE_BASEMTX */;
+    }
+
+    bool isMsgRushCancel(u32 msg) {
+        return msg == 0x95 /* ACTMES_RUSH_CANCEL */;
+    }
+
+    bool isMsgIsRushTakeOver(u32 msg) {
+        return msg == 0x9a /* ACTMES_IS_RUSH_TAKEOVER */;
+    }
+
+    bool isMsgFloorTouch(u32 msg) {
+        return msg == 0xac /* ACTMES_FLOOR_TOUCH */;
+    }
+
+    bool isMsgWallTouch(u32 msg) {
+        return msg == 0xad /* ACTMES_WALL_TOUCH */;
+    }
+
+    bool isMsgCeilTouch(u32 msg) {
+        return msg == 0xb0 /* ACTMES_CEIL_TOUCH */;
+    }
+
+    bool isMsgItemGet(u32 msg) {
+        return msg == 0x83 /* ACTMES_ITEM_GET */;
+    }
+
+    bool isMsgItemPull(u32 msg) {
+        return msg == 0x85 /* ACTMES_ITEM_PULL */;
+    }
+
+    bool isMsgItemShow(u32 msg) {
+        return msg == 0x86 /* ACTMES_ITEM_SHOW */;
+    }
+
+    bool isMsgItemHide(u32 msg) {
+        return msg == 0x87 /* ACTMES_ITEM_HIDE */;
+    }
+
+    bool isMsgItemStartMove(u32 msg) {
+        return msg == 0x8b /* ACTMES_ITEM_START_MOVE */;
+    }
+
+    bool isMsgItemEndMove(u32 msg) {
+        return msg == 0x8c /* ACTMES_ITEM_END_MOVE */;
+    }
+
+    bool isMsgInhaleBlackHole(u32 msg) {
+        return msg == 0x81 /* ACTMES_INHALE_BLACK_HOLE */;
+    }
+
+    bool isMsgEnemyAttack(u32 msg) {
+        return msg == 0x61 /* ACTMES_ENEMY_ATTACK */;
+    }
+
+    bool isMsgEnemyAttackFire(u32 msg) {
+        return msg == 0x66 /* ACTMES_ENEMY_ATTACK_FIRERUN */;
+    }
+
+    bool isMsgEnemyAttackFireStrong(u32 msg) {
+        return msg == 0x67 /* ACTMES_ENEMY_ATTACK_FIRERUN_STRONG */;
+    }
+
+    bool isMsgEnemyAttackElectric(u32 msg) {
+        return msg == 0x68 /* ACTMES_ENEMY_ATTACK_ELECTRIC */;
+    }
+
+    bool isMsgExplosionAttack(u32 msg) {
+        return msg == 0x64 /* ACTMES_ENEMY_ATTACK_EXPLOSION */;
+    }
+
+    bool isMsgToEnemyAttackBlow(u32 msg) {
+        return msg == 0x70 /* ACTMES_TO_ENEMY_ATTACK_BLOW */;
+    }
+
+    bool isMsgToEnemyAttackTrample(u32 msg) {
+        return msg == 0x72 /* ACTMES_TO_ENEMY_ATTACK_TRAMPLE */;
+    }
+
+    bool isMsgToEnemyAttackShockWave(u32 msg) {
+        return msg == 0x74 /* ACTMES_TO_ENEMY_ATTACK_SHOCK_WAVE */;
+    }
+
+    bool isMsgSpinStormRange(u32 msg) {
+        return msg == 0x3c /* ACTMES_SPIN_STORM_RANGE */;
+    }
+
+    bool isMsgRaceReady(u32 msg) {
+        return msg == 0xee /* ACTMES_RACE_READY */;
+    }
+
+    bool isMsgRaceStart(u32 msg) {
+        return msg == 0xef /* ACTMES_RACE_START */;
+    }
+
+    bool isMsgRaceReset(u32 msg) {
+        return msg == 0xf1 /* ACTMES_RACE_RESET */;
+    }
+
+    bool isMsgLockOnStarPieceShoot(u32 msg) {
+        return msg == 0x15 /* ACTMES_IS_LOCKON_STAR_PIECE_SHOOT */;
+    }
+
+    bool isMsgBallDashWall(u32 msg) {
+        return msg == 0x41 /* ACTMES_BALL_DASH_WALL */;
+    }
+
+    bool isMsgBallDashGround(u32 msg) {
+        return msg == 0x42 /* ACTMES_BALL_DASH_GROUND */;
+    }
+
+    bool isMsgStartPowerStarGet(u32 msg) {
+        return msg == 0x82 /* ACTMES_START_POWER_STAR_GET */;
+    }
+
+    bool isMsgTouchPlantItem(u32 msg) {
+        return msg == 0xf5 /* ACTMES_PLANT_GROUP_EMIT_ITEM */;
+    }
+
+    bool isMsgHitmarkEmit(u32 msg) {
+        return msg == 0x27 /* ACTMES_HITMARK_EMIT */;
+    }
+
+    bool isMsgStarPieceAttack(u32 msg) {
+        return msg == 0xf /* ACTMES_STAR_PIECE_ATTACK */;
+    }
+
+    bool isMsgStarPieceReflect(u32 msg) {
+        return msg == 0x14 /* ACTMES_IS_STAR_PIECE_REFLECT */;
+    }
+
+    bool isMsgStarPieceGift(u32 msg) {
+        return msg >= 0x16 /* ACTMES_STAR_PIECE_GIFT */ && msg <= 0x25 /* ACTMES_STAR_PIECE_GIFT_MAX */;
+    }
+
+    void calcPosBetweenSensors(TVec3f* pPos, const HitSensor* pSensor1, const HitSensor* pSensor2, f32 offset) {
+        TVec3f dir = pSensor2->mPosition - pSensor1->mPosition;
+        normalizeOrZero(&dir);
+
+        f32 dist = pSensor1->mPosition.distance(pSensor2->mPosition);
+        f32 radius2 = pSensor2->mRadius;
+        f32 radius1 = pSensor1->mRadius;
+        f32 value = (radius1 + radius2 - dist) / 2.0f;
+
+        pPos->set(dir);
+        *pPos *= value + pSensor1->mRadius + offset;
+        pPos->add(pSensor1->mPosition);
+    }
+
+    bool tryForceKillIfMsgStartPowerStarGet(LiveActor* pActor, u32 msg) {
+        if (msg == 0x82 /* ACTMES_START_POWER_STAR_GET */) {
+            if (isExistEffectKeeper(pActor)) {
+                forceDeleteEffectAll(pActor);
+            }
+
+            pActor->makeActorDead();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool sendMsgToBindedSensor(u32 msg, LiveActor* pActor, HitSensor* pSender) {
+        HitInfo* info[32];
+        u32 size = pActor->mBinder->copyPlaneArrayAndSortingSensor(info, ARRAY_SIZE(info));
+
+        if (size == 0) {
+            return false;
+        }
+
+        bool isSent = false;
+        HitSensor* pReceiver = info[0]->mParentTriangle.mSensor;
+        isSent |= pReceiver->receiveMessage(msg, pSender);
+
+        for (int i = 1; i < size; i++) {
+            if (info[i]->mParentTriangle.mSensor == pReceiver) {
+                continue;
+            }
+
+            pReceiver = info[i]->mParentTriangle.mSensor;
+            isSent |= pReceiver->receiveMessage(msg, pSender);
+        }
+
+        return isSent;
+    }
+
+    bool sendMsgToBindedSensor(u32 msg, HitSensor* pSender) {
+        return sendMsgToBindedSensor(msg, getSensorHost(pSender), pSender);
+    }
+#pragma dont_inline on
+    bool sendMsgGorogoroReflect(HitSensor* pReceiver, HitSensor* pSender) {
+        return pReceiver->receiveMessage(0x58, pSender);
+    }
+
+    bool sendMsgFireDance(HitSensor* pReceiver, HitSensor* pSender) {
+        return pReceiver->receiveMessage(0x57, pSender);
+    }
+
+    bool sendMsgEnemyAttackFlipVeryWeak(HitSensor* pReceiver, HitSensor* pSender) {
+        return pReceiver->receiveMessage(0x5a, pSender);
+    }
+
+    bool sendMsgEnemyAttackRollToBindedSensor(LiveActor* pActor, HitSensor* pSender) {
+        return sendMsgToBindedSensor(0x71, pActor, pSender);
+    }
+
+    bool sendMsgToEnemyAttackRoll(HitSensor* pReceiver, HitSensor* pSender) {
+        return pReceiver->receiveMessage(0x71, pSender);
+    }
+
+    bool sendMsgToEnemyAttackBlowToDir(HitSensor* pReceiver, HitSensor* pSender, const TVec3f& rDir) {
+        return sendMsgEnemyAttackMsgToDir(0x70, pReceiver, pSender, rDir);
+    }
+
+    bool sendMsgToEnemyAttackTrampleDeath(HitSensor* pReceiver, HitSensor* pSender) {
+        return pReceiver->receiveMessage(0x73, pSender);
+    }
+
+    void sendMsgGroupMoveStartToMember(LiveActor* pActor, HitSensor* pSender, const char* pName) {
+        sendMsgToGroupMember(0x7a, pActor, pSender, pName);
+    }
+
+    void sendMsgGroupMoveStopToMember(LiveActor* pActor, HitSensor* pSender, const char* pName) {
+        sendMsgToGroupMember(0x7b, pActor, pSender, pName);
+    }
+
+    void sendMsgGroupShowToMember(LiveActor* pActor, HitSensor* pSender, const char* pName) {
+        sendMsgToGroupMember(0x7d, pActor, pSender, pName);
+    }
+
+    void sendMsgGroupHideToMember(LiveActor* pActor, HitSensor* pSender, const char* pName) {
+        sendMsgToGroupMember(0x7e, pActor, pSender, pName);
+    }
+
+    bool isMsgPlayerJump(u32 msg) {
+        return msg == 0x6;
+    }
+
+    bool isMsgTaken(u32 msg) {
+        return msg == 0x2a;
+    }
+
+    bool isMsgThrow(u32 msg) {
+        return msg == 0x2b;
+    }
+
+    bool isMsgWaterDrop(u32 msg) {
+        return msg == 0x2f;
+    }
+
+    bool isMsgYoshiProjectile(u32 msg) {
+        return msg == 0x8;
+    }
+
+    bool isMsgYoshiEat(u32 msg) {
+        return msg == 0x9;
+    }
+
+    bool isMsgDrillAttack(u32 msg) {
+        return msg == 0x10;
+    }
+
+    bool isMsgRockAttack(u32 msg) {
+        return msg == 0x11;
+    }
+
+    bool isMsgSnowBallAttack(u32 msg) {
+        return msg == 0x12;
+    }
+
+    bool isMsgSupportTicoSpin(u32 msg) {
+        return msg == 0x13;
+    }
+
+    bool isMsgItemRushBegin(u32 msg) {
+        return msg == 0x94;
+    }
+
+    bool isMsgRushForceCancel(u32 msg) {
+        return msg == 0x96;
+    }
+
+    bool isMsgRushEnd(u32 msg) {
+        return msg == 0x98;
+    }
+
+    bool isMsgIsRushEnable(u32 msg) {
+        return msg == 0x99;
+    }
+
+    bool isMsgItemNigeroTake(u32 msg) {
+        return msg == 0x8a;
+    }
+
+    bool isMsgItemNigeroDrop(u32 msg) {
+        return msg == 0x8d;
+    }
+
+    bool isMsgItemSupportTicoDrop(u32 msg) {
+        return msg == 0x8e;
+    }
+
+    bool isMsgStartDemo(u32 msg) {
+        return msg == 0x7f;
+    }
+
+    bool isMsgToEnemyAttackRoll(u32 msg) {
+        return msg == 0x71;
+    }
+
+    bool isMsgToEnemyAttackTrampleDeath(u32 msg) {
+        return msg == 0x73;
+    }
+
+    bool isMsgSuccess(u32 msg) {
+        return msg == 0x76;
+    }
+
+    bool isMsgStarLightGrow(u32 msg) {
+        return msg == 0xcd;
+    }
+
+    bool isMsgStarLightShrink(u32 msg) {
+        return msg == 0xce;
+    }
+
+    bool isMsgReflect(u32 msg) {
+        return msg == 0x48;
+    }
+
+    bool isMsgReflectV(u32 msg) {
+        return msg == 0x49;
+    }
+
+    bool isMsgGroupMoveStart(u32 msg) {
+        return msg == 0x7a;
+    }
+
+    bool isMsgGroupMoveStop(u32 msg) {
+        return msg == 0x7b;
+    }
+
+    bool isMsgGroupShow(u32 msg) {
+        return msg == 0x7d;
+    }
+
+    bool isMsgGroupHide(u32 msg) {
+        return msg == 0x7e;
+    }
+
+#pragma dont_inline reset
 };  // namespace MR

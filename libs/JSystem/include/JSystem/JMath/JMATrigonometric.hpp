@@ -3,6 +3,7 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
+#ifdef __MWERKS__
 namespace std {
     template < typename A1, typename B1 >
     struct pair {
@@ -14,8 +15,18 @@ namespace std {
         }
     };
 }  // namespace std
+#endif
 
 namespace JMath {
+#ifndef __MWERKS__
+    template <typename T>
+    struct TSinCosTableEntry {
+        T a1;
+        T b1;
+        TSinCosTableEntry() : a1(), b1() {}
+    };
+#endif
+
 
     template < typename T >
     struct TAngleConstant_;
@@ -45,7 +56,11 @@ namespace JMath {
         TSinCosTable();
 
         static const u32 LEN = 1 << Bits;
+#ifdef __MWERKS__
         std::pair< T, T > table[LEN];
+#else
+        TSinCosTableEntry<T> table[LEN];
+#endif
 
         T sinShort(s16 v) const {
             return table[static_cast< u16 >(v) >> (16U - Bits)].a1;

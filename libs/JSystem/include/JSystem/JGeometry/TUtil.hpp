@@ -2,6 +2,9 @@
 
 #include "JSystem/JMath/JMATrigonometric.hpp"
 #include <cmath>
+#ifndef __MWERKS__
+#include <cfloat>
+#endif
 #include <revolution/types.h>
 
 namespace JGeometry {

@@ -3,6 +3,11 @@
 #include <revolution/mtx.h>
 #include <revolution/types.h>
 
+#ifndef __MWERKS__
+#include <cmath>
+#include <cstring>
+#endif
+
 void JMAMTXApplyScale(const Mtx, Mtx, f32, f32, f32);
 void JMAVECLerp(const Vec*, const Vec*, Vec*, f32);
 void JMAVECScaleAdd(const Vec*, const Vec*, Vec*, f32);
@@ -20,6 +25,13 @@ inline f32 JMAFastSqrt(__REGISTER const f32 input) {
     } else {
         return input;
     }
+#else
+    // The PPC path leaves nonpositive values (including signed zero) unchanged.
+    if (input > 0.0f) {
+        // frsqrte(+infinity) is zero; the subsequent multiply produces NaN.
+        return std::isinf(input) ? 0.0f * input : std::sqrt(input);
+    }
+    return input;
 #endif
 }
 
@@ -52,6 +64,20 @@ inline f32 JMAHermiteInterpolation(__REGISTER f32 p1, __REGISTER f32 p2, __REGIS
     }
     // clang-format on
     return ff25;
+#else
+    const f32 offset = p1 - p2;
+    const f32 interval = p5 - p2;
+    const f32 t = offset / interval;
+    const f32 tSquared = t * t;
+    const f32 twiceT = t + t;
+    const f32 tSquaredMinusT = tSquared - t;
+    const f32 valueDifference = p3 - p6;
+    f32 value = std::fma(twiceT, tSquaredMinusT, -tSquared);
+    f32 tangent = std::fma(p4, tSquaredMinusT, p4);
+    value = std::fma(value, valueDifference, p3);
+    tangent = std::fma(p7, tSquaredMinusT, tangent);
+    tangent = std::fma(t, p4, -tangent);
+    return std::fma(-offset, tangent, value);
 #endif
 }
 
@@ -81,6 +107,8 @@ namespace JMath {
             psq_st x, 0(dest), 0, 0
             stfs y, 8(dest)
         }
+#else
+        std::memmove(dest, src, 3 * sizeof(f32));
 #endif
     }
 
@@ -95,6 +123,8 @@ namespace JMath {
             psq_st y, 8(dest), 0, 0
             psq_st z, 16(dest), 0, 0
         }
+#else
+        std::memmove(dest, src, 6 * sizeof(f32));
 #endif
     }
 
@@ -117,6 +147,8 @@ namespace JMath {
                 psq_st    f_5, 0x28(pDest), 0, 0
         }
         ;
+#else
+        std::memmove(pDest, pSrc, 12 * sizeof(f32));
 #endif
     }
 
@@ -143,6 +175,8 @@ namespace JMath {
                 psq_st    f_7, 0x38(pDest), 0, 0
         }
         ;
+#else
+        std::memmove(pDest, pSrc, 16 * sizeof(f32));
 #endif
     }
 };  // namespace JMath
@@ -264,14 +298,51 @@ namespace JMathInlineVEC {
         return sqdist;
     }
 #else
-    void PSVECCopy(const Vec*, Vec*);
-    void PSVECAdd(const Vec*, const Vec*, Vec*);
-    void PSVECSubtract(const Vec*, const Vec*, Vec*);
-    f32 PSVECDotProduct(const Vec*, const Vec*);
-    f32 PSVECSquareMag(const Vec*);
-    void PSVECNegate(const Vec*, Vec*);
-    f32 PSVECSquareDistance(const Vec*, const Vec*);
-    void PSVECMultiply(const Vec*, const Vec*, Vec*);
+    inline void PSVECCopy(const Vec* src, Vec* dest) {
+        const Vec value = *src;
+        *dest = value;
+    }
+
+    inline void PSVECAdd(const Vec* a, const Vec* b, Vec* dest) {
+        const Vec value = {a->x + b->x, a->y + b->y, a->z + b->z};
+        *dest = value;
+    }
+
+    inline void PSVECSubtract(const Vec* a, const Vec* b, Vec* dest) {
+        const Vec value = {a->x - b->x, a->y - b->y, a->z - b->z};
+        *dest = value;
+    }
+
+    inline f32 PSVECDotProduct(const Vec* a, const Vec* b) {
+        const f32 yy = a->y * b->y;
+        const f32 zz = a->z * b->z;
+        return std::fma(a->x, b->x, yy) + zz;
+    }
+
+    inline f32 PSVECSquareMag(const Vec* src) {
+        const f32 xx = src->x * src->x;
+        const f32 yy = src->y * src->y;
+        return std::fma(src->z, src->z, xx) + yy;
+    }
+
+    inline void PSVECNegate(const Vec* src, Vec* dest) {
+        const Vec value = {-src->x, -src->y, -src->z};
+        *dest = value;
+    }
+
+    inline f32 PSVECSquareDistance(const Vec* a, const Vec* b) {
+        const f32 x = a->x - b->x;
+        const f32 y = a->y - b->y;
+        const f32 z = a->z - b->z;
+        const f32 yy = y * y;
+        const f32 zz = z * z;
+        return std::fma(x, x, yy) + zz;
+    }
+
+    inline void PSVECMultiply(const Vec* a, const Vec* b, Vec* dest) {
+        const Vec value = {a->x * b->x, a->y * b->y, a->z * b->z};
+        *dest = value;
+    }
 #endif
 };  // namespace JMathInlineVEC
 

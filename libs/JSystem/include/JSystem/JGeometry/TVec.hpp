@@ -26,7 +26,12 @@ namespace JGeometry {
     }
 
 #else
-    inline void negateInternal(const f32* rSrc, f32* rDest);
+    inline void negateInternal(const f32* rSrc, f32* rDest) {
+        const f32 x = -rSrc[0], y = -rSrc[1], z = -rSrc[2];
+        rDest[0] = x;
+        rDest[1] = y;
+        rDest[2] = z;
+    }
 #endif
 
 #ifdef __MWERKS__
@@ -45,7 +50,14 @@ namespace JGeometry {
     }
 
 #else
-    static void subInternal(const f32* vec1, const f32* vec2, f32* dst);
+    inline static void subInternal(const f32* vec1, const f32* vec2, f32* dst) {
+        // Preserve the paired-single helper's historical reversed Z subtraction.
+        // Normal TVec3::sub uses PSVECSubtract instead.
+        const f32 x = vec1[0] - vec2[0], y = vec1[1] - vec2[1], z = vec2[2] - vec1[2];
+        dst[0] = x;
+        dst[1] = y;
+        dst[2] = z;
+    }
 #endif
 
 #ifdef __MWERKS__
@@ -62,7 +74,12 @@ namespace JGeometry {
     }
 
 #else
-    void mulInternal(const f32* vec1, const f32* vec2, f32* dst);
+    inline void mulInternal(const f32* vec1, const f32* vec2, f32* dst) {
+        const f32 x = vec1[0] * vec2[0], y = vec1[1] * vec2[1], z = vec1[2] * vec2[2];
+        dst[0] = x;
+        dst[1] = y;
+        dst[2] = z;
+    }
 #endif
 
     template < typename T >
@@ -83,13 +100,21 @@ namespace JGeometry {
             y += other.y;
         }
 
+#ifdef __MWERKS__
         inline TVec2& addInline(const TVec2< T >& other) const {
+#else
+        inline TVec2 addInline(const TVec2< T >& other) const {
+#endif
             TVec2 ret(*this);
             ret.add(other);
             return ret;
         }
 
+#ifdef __MWERKS__
         inline const TVec2& addOperatorInline(const TVec2& rOther) const {
+#else
+        inline TVec2 addOperatorInline(const TVec2& rOther) const {
+#endif
             TVec2 ret(*this);
             ret.x += rOther.x;
             ret.y += rOther.y;
@@ -151,13 +176,21 @@ namespace JGeometry {
             y = rA.y - rB.y;
         }
 
+#ifdef __MWERKS__
         inline TVec2& subInline(const TVec2< T >& other) const {
+#else
+        inline TVec2 subInline(const TVec2< T >& other) const {
+#endif
             TVec2 ret = *this;
             ret.sub(other);
             return ret;
         }
 
+#ifdef __MWERKS__
         inline const TVec2& subOperatorInline(const TVec2& rOther) const {
+#else
+        inline TVec2 subOperatorInline(const TVec2& rOther) const {
+#endif
             TVec2 ret(*this);
             ret.x -= rOther.x;
             ret.y -= rOther.y;
@@ -172,7 +205,13 @@ namespace JGeometry {
             return dot(*this);
         };
 
+#ifdef __MWERKS__
         T squared(const TVec2< T >& rOther) const;  //{ return (x - rOther.x) * (x - rOther.x) + (y - rOther.y) * (y - rOther.y); };
+#else
+        T squared(const TVec2< T >& rOther) const {
+            return squareDist(rOther);
+        }
+#endif
 
         T dot(const TVec2< T >& rOther) const {
             return x * rOther.x + y * rOther.y;
@@ -195,7 +234,11 @@ namespace JGeometry {
             y *= scalar;
         }
 
+#ifdef __MWERKS__
         inline TVec2& scaleInline(f32 scalar) {
+#else
+        inline TVec2 scaleInline(f32 scalar) {
+#endif
             TVec2 ret(*this);
             ret.scale(scalar);
             return ret;
@@ -261,6 +304,9 @@ namespace JGeometry {
     };
 
     template <>
+#ifndef __MWERKS__
+    inline
+#endif
     TVec2< f32 >::TVec2() {
     }
 
@@ -279,7 +325,13 @@ namespace JGeometry {
             z = _z;
         }
 
+#ifdef __MWERKS__
         TVec3< T >(int x, int y, int Z);
+#else
+        TVec3< T >(int x_, int y_, int z_) {
+            set(static_cast< T >(x_), static_cast< T >(y_), static_cast< T >(z_));
+        }
+#endif
 
         inline TVec3(T val) {
             x = val;
@@ -315,9 +367,15 @@ namespace JGeometry {
         }
 
         TVec3& operator=(const TVec3& b) {
+#ifdef __MWERKS__
             // Force copies to use lwz/lha
             *((s32*)this) = *((s32*)&b);
             z = b.z;
+#else
+            x = b.x;
+            y = b.y;
+            z = b.z;
+#endif
             return *this;
         }
 
@@ -354,7 +412,11 @@ namespace JGeometry {
         }
 
 #else
-        TVec3(const Vec& vec);
+        TVec3(const Vec& vec) {
+            x = vec.x;
+            y = vec.y;
+            z = vec.z;
+        }
 #endif
 #ifdef __MWERKS__
         // Used inlined and non-inlined?
@@ -375,7 +437,11 @@ namespace JGeometry {
         }
 
 #else
-        TVec3(const TVec3< f32 >& vec);
+        TVec3(const TVec3< f32 >& vec) {
+            x = vec.x;
+            y = vec.y;
+            z = vec.z;
+        }
 #endif
 
         TVec3(f32 _x, f32 _y, f32 _z) JGEOMETRY_WMR_NOINLINE {
@@ -438,6 +504,10 @@ namespace JGeometry {
             stfs b_x, 8(v_b)
             }
             ;
+#else
+            x = vec.x;
+            y = vec.y;
+            z = vec.z;
 #endif
         }
 
@@ -485,7 +555,11 @@ namespace JGeometry {
         }
 
         void setTrans(MtxPtr mtx) {
+#ifdef __MWERKS__
             set< f32 >((*mtx)[3], (*mtx)[7], (*mtx)[11]);
+#else
+            set< f32 >(mtx[0][3], mtx[1][3], mtx[2][3]);
+#endif
         }
 
         TVec3 operator+(const TVec3& op) const JGEOMETRY_WMR_NOINLINE {
@@ -672,7 +746,11 @@ namespace JGeometry {
         }
 
 #else
-        void setPSZeroVec();
+        void setPSZeroVec() {
+            x = gZeroVec.x;
+            y = gZeroVec.y;
+            z = gZeroVec.z;
+        }
 #endif
         f32 dot(const TVec3& rOther) const NO_INLINE {
             // TODO: this is *never* uninlined except in the specific
@@ -698,6 +776,8 @@ namespace JGeometry {
             }
 
             return _fp1;
+#else
+            return std::fma(x, rOther.x, y * rOther.y) + z * rOther.z;
 #endif
         }
 
@@ -840,7 +920,10 @@ namespace JGeometry {
             return sqdist;
         };
 #else
-        f32 squared(const TVec3& rB) const;
+        f32 squared(const TVec3& rB) const {
+            const f32 dx = x - rB.x, dy = y - rB.y, dz = z - rB.z;
+            return std::fma(dx, dx, dy * dy) + dz * dz;
+        }
 #endif
 
         bool isZero() const {
@@ -1159,7 +1242,11 @@ namespace JGeometry {
             f32 crossPart = dir.length();
 
             if (crossPart <= JGeometry::TUtil< f32 >::epsilon()) {
+#ifdef __MWERKS__
                 set< f32 >(0.0f, 0.0f, 0.0f, 1.0f);
+#else
+                this->template set< f32 >(0.0f, 0.0f, 0.0f, 1.0f);
+#endif
             } else {
                 f32 dotPart = rA.dot(rB);
                 f32 halfAngle = ratio * (JMAATan2(crossPart, dotPart) * 0.5f);

@@ -1227,52 +1227,8 @@ Game/Boss/PoltaWaitStart.cpp:
 	.data       start:0x8067A020 end:0x8067A050
 
 Game/Boss/Sandy.cpp:
-	.text       start:0x800FAC80 end:0x800FBA60
-	.ctors      start:0x80643F9C end:0x80643FA0
-
-Game/Boss/SandyTU01.cpp:
-	.text       start:0x800FBA60 end:0x800FD1F0
-	.ctors      start:0x80643FA0 end:0x80643FA4
-
-Game/Boss/SandyTU02.cpp:
-	.text       start:0x800FD1F0 end:0x800FF0C0
-	.ctors      start:0x80643FA4 end:0x80643FA8
-
-Game/Boss/SandyTU03.cpp:
-	.text       start:0x800FF0C0 end:0x800FFDA0
-	.ctors      start:0x80643FA8 end:0x80643FAC
-
-Game/Boss/SandyTU04.cpp:
-	.text       start:0x800FFDA0 end:0x800FFF70
-	.ctors      start:0x80643FAC end:0x80643FB0
-
-Game/Boss/SandyTU05.cpp:
-	.text       start:0x800FFF70 end:0x80100B90
-	.ctors      start:0x80643FB0 end:0x80643FB4
-
-Game/Boss/SandyTU06.cpp:
-	.text       start:0x80100B90 end:0x80100EA0
-	.ctors      start:0x80643FB4 end:0x80643FB8
-
-Game/Boss/SandyTU07.cpp:
-	.text       start:0x80100EA0 end:0x801012B0
-	.ctors      start:0x80643FB8 end:0x80643FBC
-
-Game/Boss/SandyTU08.cpp:
-	.text       start:0x801012B0 end:0x80101750
-	.ctors      start:0x80643FBC end:0x80643FC0
-
-Game/Boss/SandyTU09.cpp:
-	.text       start:0x80101750 end:0x80101D50
-	.ctors      start:0x80643FC0 end:0x80643FC4
-
-Game/Boss/SandyTU10.cpp:
-	.text       start:0x80101D50 end:0x80102320
-	.ctors      start:0x80643FC4 end:0x80643FC8
-
-Game/Boss/SandyTU11.cpp:
-	.text       start:0x80102320 end:0x80102CA0
-	.ctors      start:0x80643FC8 end:0x80643FCC
+	.text       start:0x800FAC80 end:0x80102CA0
+	.ctors      start:0x80643F9C end:0x80643FCC
 
 Game/Boss/TwoLegsBullet.cpp:
 	.text       start:0x80102CA0 end:0x801042E0

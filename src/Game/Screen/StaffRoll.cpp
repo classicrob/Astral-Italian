@@ -21,17 +21,6 @@
 #include "Game/Util/StringUtil.hpp"
 #include <cstdio>
 
-// SMG2 symbols not declared in the shared headers (declared locally to keep shared headers untouched)
-namespace GameSequenceFunction {
-    void startGameDataSaveSequence(bool, bool, bool);
-    const char* getClearedStageName();
-    void resetPlayResultInStage();
-};  // namespace GameSequenceFunction
-namespace GameDataFunction {
-    bool isOnGameEventFlagEnding120Stars();
-};  // namespace GameDataFunction
-
-
 #define PICTURE_TEXTURE_NUM 20
 #define LINE_NUM 64
 
@@ -725,8 +714,8 @@ namespace MR {
     }
 };  // namespace MR
 
-void StaffRoll_FORCE_MATCH(StaffRollLine* pLine, StaffRollPicture* pPicture, StaffRoll* pRoll) {
-    pLine->StaffRollLine::~StaffRollLine();
-    pPicture->StaffRollPicture::~StaffRollPicture();
-    pRoll->StaffRoll::~StaffRoll();
+StaffRoll::~StaffRoll() {}
+
+bool StaffRoll::isEnd() const {
+    return isNerve(GET_NERVE(StaffRoll, StaffRollNrvEnd));
 }

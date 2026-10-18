@@ -28,7 +28,7 @@ KinopioBank::KinopioBank(const char* pName) : NPCActor(pName) {
 void KinopioBank::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("KinopioBank");
     caps.setDefault();
-    initialize(rIter, caps, "KinopioBank", "KinopioBank", false);
+    initialize(rIter, caps, "KinopioBank", "KinopioBank", nullptr);
 }
 
 void KinopioBank::control() {

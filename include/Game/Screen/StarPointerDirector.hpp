@@ -82,10 +82,9 @@ public:
 };
 
 namespace StarPointerFunction {
-#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     bool forceOutsideScreenEdge(TVec2f*, const TVec2f&, const TVec2f&, f32, f32);
     bool isInScreen(const TVec2f&, f32, f32);
-#endif
+
     bool isOnScreenEdge(const TVec2f&, f32, f32);
     bool isOnScreenEdge(s32);
     bool forceInsideScreenEdge(TVec2f*);

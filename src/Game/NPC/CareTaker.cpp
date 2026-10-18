@@ -73,7 +73,7 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     caps.mUseShadow = 1;
     caps.mWaitNerve = GET_NERVE(Caretaker, CaretakerNrvTalk);
     caps.mSensorSize = 100.0f;
-    initialize(rIter, caps, "Caretaker", nullptr, false);
+    initialize(rIter, caps, "Caretaker", nullptr, nullptr);
     s32 arg3 = 0;
     MR::getJMapInfoArg3NoInit(rIter, &arg3);
     mBodyColorFrame = arg3;

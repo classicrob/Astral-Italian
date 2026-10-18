@@ -120,7 +120,7 @@ KinopioPostman::KinopioPostman(const char* pName) : NPCActor(pName) {
 void KinopioPostman::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps(KP_STR(0x128));
     caps.setDefault();
-    initialize(rIter, caps, KP_STR(0x128), nullptr, false);
+    initialize(rIter, caps, KP_STR(0x128), nullptr, nullptr);
     MR::invalidateHitSensor(this, KP_STR(0x130));
     setNerve(KP_NERVE(lbl_807D498C));
 

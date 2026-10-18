@@ -13,6 +13,7 @@ public:
     virtual void startReactionSound();
 
     void initStarPiece(s32);
+    void resetStarPiece();
     bool tryEat();
     bool hasEnoughStarPiece() const;
     bool eventFunc(u32);

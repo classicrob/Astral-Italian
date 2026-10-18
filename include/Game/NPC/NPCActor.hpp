@@ -11,6 +11,7 @@ class LodCtrl;
 class NameObjArchiveListCollector;
 class NPCActorItem;
 class PartsModel;
+class Triangle;
 class TalkMessageCtrl;
 
 static const char* ReactionDefault = "Reaction";
@@ -109,7 +110,8 @@ public:
     const Nerve* popNerve();
     bool tryPullNullNerve();
     bool isEmptyNerve() const;
-    bool isReactionNerve() const;
+    virtual bool isReactionNerve() const;
+    virtual bool isSensorSpinCloudBlock(const Triangle*) const;
     bool isScaleAnim() const;
     bool isPointingSe() const;
     void updateReaction();
@@ -140,7 +142,7 @@ public:
 
     void setInitPose();
 
-    void initialize(const JMapInfoIter&, const NPCActorCaps&, const char*, const char*, bool);
+    void initialize(const JMapInfoIter&, const NPCActorCaps&, const char*, const char*, const char*);
 
     void equipment(const NPCActorItem&, bool);
 

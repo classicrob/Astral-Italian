@@ -15,17 +15,6 @@
 #include "Game/Util/SequenceUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-// SMG2 symbols not declared in the shared headers (declared locally to keep shared headers untouched)
-namespace GameSequenceFunction {
-    void startGameDataSaveSequence(bool, bool, bool);
-    const char* getClearedStageName();
-    void resetPlayResultInStage();
-};  // namespace GameSequenceFunction
-namespace GameDataFunction {
-    bool isOnGameEventFlagEnding120Stars();
-};  // namespace GameDataFunction
-
-
 namespace {
     const s32 cBackSequenceFadeFrame = 90;
 
@@ -48,8 +37,8 @@ namespace NrvPauseMenu {
 };  // namespace NrvPauseMenu
 
 PauseMenu::PauseMenu()
-    : LayoutActor("ポーズメニュー", true), _20(), _24(), _28(0.0f, 50.0f), _30(), mLuigiLetter(), _38(), mStageTitleOffset(0.0f, 39.0f),
-      mCoinNumPos(0.0f, 0.0f), mStarPieceNumPos(0.0f, 0.0f), _54(true) {
+    : LayoutActor("ポーズメニュー", true), _20(), _24(), _38(), mLuigiLetter(), mStageTitleOffset(0.0f, 0.0f),
+      mCoinNumPos(0.0f, 0.0f), mStarPieceNumPos(0.0f, 0.0f), _30(), _54(true), mIsWorldMap(false), mSelectedResult() {
 }
 
 void PauseMenu::init(const JMapInfoIter& rIter) {
@@ -190,20 +179,12 @@ void PauseMenu::kill() {
 }
 
 void PauseMenu::control() {
+    MR::copyPaneTrans(&mStageTitleOffset, this, "UpButtonPos");
+    MR::copyPaneTrans(&mCoinNumPos, this, "DownButtonPos");
+    MR::copyPaneTrans(&mStarPieceNumPos, this, "ListButtonPos");
     _20->update();
-
-    if (_24 != nullptr) {
-        _24->update();
-    } else {
-        _28.x = 0.0f;
-        _28.y = 50.0f;
-    }
-
-    if (_38 != nullptr) {
-        _38->update();
-    }
-
-    mStageTitleOffset.y = 39.0f;
+    if (_24 != nullptr) _24->update();
+    if (_38 != nullptr) _38->update();
 }
 
 void PauseMenu::updateStarPane() {
@@ -268,9 +249,7 @@ void PauseMenu::forceToWaitAllButton() {
         _24->forceToWait();
     }
 
-    bool b = _38 == nullptr || _38->isHidden();
-
-    if (!b) {
+    if (_38 != nullptr) {
         _38->forceToWait();
     }
 }

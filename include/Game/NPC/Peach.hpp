@@ -9,5 +9,5 @@ public:
     virtual ~Peach();
     virtual void init(const JMapInfoIter&);
 
-    void exeWait();
+    virtual void control();
 };

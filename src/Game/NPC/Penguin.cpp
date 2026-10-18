@@ -113,7 +113,7 @@ void Penguin::init(const JMapInfoIter& rIter) {
     caps.mNerve = false;
     caps.mPointer = true;
     caps._70 = "CenterJoint";
-    initialize(rIter, caps, "Penguin", nullptr, false);
+    initialize(rIter, caps, "Penguin", nullptr, nullptr);
 
     initNerve(GET_NERVE(Penguin, PenguinNrvWait));
 

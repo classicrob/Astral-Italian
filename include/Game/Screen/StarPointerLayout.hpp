@@ -73,6 +73,7 @@ public:
     void resetSameNerve();
     void changeToStarPointer();
     void changeToHandPointer();
+    void updatePlayerPane() NO_INLINE;
     void startAnimStarPointer(const char*);
     void startAnimHandPaa();
     void startAnimHandGuu();

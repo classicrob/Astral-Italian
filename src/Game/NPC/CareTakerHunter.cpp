@@ -64,7 +64,7 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
 
     NPCActorCaps caps(LBL(0x18));
     caps.setDefault();
-    initialize(rIter, caps, LBL(0x18), NULL, false);
+    initialize(rIter, caps, LBL(0x18), NULL, nullptr);
 
     s32 arg3 = 0;
     MR::getJMapInfoArg3NoInit(rIter, &arg3);

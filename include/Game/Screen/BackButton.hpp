@@ -18,10 +18,12 @@ public:
     bool isAppearing() const;
     bool isDisappearing() const;
     bool isPointing() const;
+    bool isSelected() const NO_INLINE;
 
     /* 0x20 */ ButtonPaneController* mPaneCtrl;
     /* 0x24 */ bool _24;
     /* 0x24 */ bool _25;
+    bool mWaitForSelection;
 };
 
 class BackButtonCancelB : public BackButton {

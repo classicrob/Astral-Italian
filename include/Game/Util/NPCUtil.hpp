@@ -6,12 +6,16 @@
 class JMapInfoIter;
 class LiveActor;
 class ModelObj;
+class Meister;
 class NPCActor;
 class NPCActorItem;
 class PartsModel;
 class TalkMessageCtrl;
 
 namespace MR {
+    void updateNPCGoodsAnimation(NPCActor*);
+    void registerMeisterToAttentionConversation(Meister*, const JMapInfoIter&);
+    void registerMeisterToNormalConversation(Meister*, const JMapInfoIter&);
     void registerMarioFaceShipNpc(LiveActor*, const JMapInfoIter&);
     bool getNPCItemData(NPCActorItem*, s32);
     bool isNPCItemFileExist(const char*);

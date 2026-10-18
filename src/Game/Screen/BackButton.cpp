@@ -5,9 +5,9 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-BackButton::BackButton(const char* pName, bool param2) : LayoutActor(pName, true), mPaneCtrl(), _24(), _25(true) {
+BackButton::BackButton(const char* pName, bool param2) : LayoutActor(pName, true), mPaneCtrl(), _24(), _25(true), mWaitForSelection(false) {
     if (param2) {
-        MR::connectToSceneLayoutDecoration(this);
+        MR::connectToSceneLayoutFileSelect(this);
     }
 }
 
@@ -62,4 +62,15 @@ void BackButton::control() {
     }
 
     mPaneCtrl->update();
+}
+
+bool BackButton::isSelected() const {
+    if (mWaitForSelection) {
+        bool selected = false;
+        if (_24 && mPaneCtrl->isDecidedWait()) {
+            selected = true;
+        }
+        return selected;
+    }
+    return _24;
 }

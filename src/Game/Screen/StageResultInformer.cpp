@@ -1,184 +1,31 @@
 #include "Game/Screen/StageResultInformer.hpp"
-#include "Game/Util.hpp"
-#include "Game/LiveActor/Nerve.hpp"
-#include "Game/Screen/GalaxyMapController.hpp"
 #include "Game/Screen/IconAButton.hpp"
-#include "Game/System/GalaxyStatusAccessor.hpp"
 #include "Game/System/GameDataFunction.hpp"
-#include "Game/System/GameDataGalaxyStorage.hpp"
-#include "Game/System/GameSequenceFunction.hpp"
-#include "Game/System/StageResultSequenceChecker.hpp"
-#include "Game/Util/EventUtil.hpp"
-#include "Game/Util/GamePadUtil.hpp"
-#include "Game/Util/LayoutUtil.hpp"
-#include "Game/Util/MessageUtil.hpp"
-#include "Game/Util/NerveUtil.hpp"
-#include "Game/Util/ObjUtil.hpp"
-#include "Game/Util/ScreenUtil.hpp"
-#include "Game/Util/SoundUtil.hpp"
-#include "Game/Util/StringUtil.hpp"
-
-// SMG2 symbols not declared in the shared headers (declared locally to keep shared headers untouched)
-namespace GameSequenceFunction {
-    void startGameDataSaveSequence(bool, bool, bool);
-    const char* getClearedStageName();
-    void resetPlayResultInStage();
-};  // namespace GameSequenceFunction
-namespace GameDataFunction {
-    bool isOnGameEventFlagEnding120Stars();
-};  // namespace GameDataFunction
-
+#include "Game/Util.hpp"
 
 namespace {
-    const char cMessageIdGetNormalStar[] = "System_Result000";
-    const char cMessageIdGetHiddenStar[] = "System_Result003";
-    const char cMessageIdGalaxyComplete[] = "System_Result009";
-    const char cMessageIdGetStarPiece[] = "System_Result004";
-    const char cMessageIdNewGalaxyDiscover[] = "System_Result001";
-    const char cMessageIdOpenLibraryRoom[] = "System_Result008";
-    const char cMessageIdGetPictureBook[] = "System_Result005";
-    const char cMessageIdUpdateBestScore[] = "System_Result006";
-    const char cMessageIdTicoGalaxyAppear[] = "System_Result007";
     const char cNamePowerStarNum[] = "ShaStarNum";
-    const char cNameGalaxyStarPieceNum[] = "ShaTPieceLNum";
-    const char cNameTotalStarPieceNum[] = "ShaTPieceRNum";
-    const char cNameBestCoinNum[] = "ShaCoinNum";
-    const char cNameBestCoinRoot[] = "Coin";
-    static const s32 sWaitBeforeCountUpPowerStar = 85;
-    static const s32 sWaitAppearInformationWindow = 15;
-    static const s32 sWaitDisplayStarPieceCount = 45;
-};  // namespace
-
-namespace {
-    NEW_NERVE(StageResultInformerAppearGetPowerStar, StageResultInformer, AppearGetPowerStar);
-    NEW_NERVE(StageResultInformerWaitBeforeCountUpPowerStar, StageResultInformer, WaitBeforeCountUpPowerStar);
-    NEW_NERVE(StageResultInformerCountUpPowerStar, StageResultInformer, CountUpPowerStar);
-    NEW_NERVE(StageResultInformerDisplayGetPowerStar, StageResultInformer, DisplayGetPowerStar);
-    NEW_NERVE(StageResultInformerDisappearGetPowerStar, StageResultInformer, DisappearGetPowerStar);
-    NEW_NERVE(StageResultInformerShowGalaxyComplete, StageResultInformer, ShowGalaxyComplete);
-    NEW_NERVE(StageResultInformerAppearUpdateBestScore, StageResultInformer, AppearUpdateBestScore);
-    NEW_NERVE(StageResultInformerDisplayUpdateBestScore, StageResultInformer, DisplayUpdateBestScore);
-    NEW_NERVE(StageResultInformerDisappearUpdateBestScore, StageResultInformer, DisappearUpdateBestScore);
-    NEW_NERVE(StageResultInformerAppearGetStarPiece, StageResultInformer, AppearGetStarPiece);
-    NEW_NERVE(StageResultInformerDisplayGetStarPiece, StageResultInformer, DisplayGetStarPiece);
-    NEW_NERVE(StageResultInformerWaitBeforeDisappearGetStarPiece, StageResultInformer, WaitBeforeDisappearGetStarPiece);
-    NEW_NERVE(StageResultInformerDisappearGetStarPiece, StageResultInformer, DisappearGetStarPiece);
-    NEW_NERVE(StageResultInformerShowNewGalaxyDiscover, StageResultInformer, ShowNewGalaxyDiscover);
-    NEW_NERVE(StageResultInformerShowGalaxyMap, StageResultInformer, ShowGalaxyMap);
-    NEW_NERVE(StageResultInformerShowGetPictureBook, StageResultInformer, ShowGetPictureBook);
-    NEW_NERVE(StageResultInformerShowTicoGalaxyAppear, StageResultInformer, ShowTicoGalaxyAppear);
-    NEW_NERVE(StageResultInformerShowAstroMapForTico, StageResultInformer, ShowAstroMapForTico);
-    NEW_NERVE(DisplayInformationForResultAppear, DisplayInformationForResult, Appear);
-    NEW_NERVE(DisplayInformationForResultDisplay, DisplayInformationForResult, Display);
-    NEW_NERVE(DisplayInformationForResultDisappear, DisplayInformationForResult, Disappear);
-    NEW_NERVE(DisplayInformationForResultIdle, DisplayInformationForResult, Idle);
-};  // namespace
-
-DisplayInformationForResult::DisplayInformationForResult(StageResultInformer* pHost) : NerveExecutor("DisplayInformationForResult"), mHost(pHost) {
-    initNerve(GET_NERVE_ANON(DisplayInformationForResultIdle));
 }
 
-void DisplayInformationForResult::exeAppear() {
-    if (MR::isFirstStep(this)) {
-        if (MR::isEqualString(mMessageId, ::cMessageIdGalaxyComplete)) {
-            MR::startSubBGM("BGM_GALAXY_COMPLETE", false);
-        } else {
-            MR::startSubBGM("BGM_NEW_GALAXY", false);
-        }
-
-        MR::appearInformationMessageCenter(mMessageId, true);
-    }
-
-    MR::setNerveAtStep(this, GET_NERVE_ANON(DisplayInformationForResultDisplay), ::sWaitAppearInformationWindow);
-}
-
-void DisplayInformationForResult::exeDisplay() {
-    if (MR::testSystemPadTriggerDecide()) {
-        MR::startSystemSE("SE_SY_TALK_OK");
-        MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0);
-        setNerve(GET_NERVE_ANON(DisplayInformationForResultDisappear));
-    }
-}
-
-void DisplayInformationForResult::exeDisappear() {
-    if (MR::isFirstStep(this)) {
-        MR::disappearInformationMessage();
-    }
-
-    if (MR::isDeadInformationMessage()) {
-        setNerve(GET_NERVE_ANON(DisplayInformationForResultIdle));
-    }
-}
-
-void DisplayInformationForResult::exeIdle() {
+DisplayInformationForResult::DisplayInformationForResult(StageResultInformer* host)
+    : NerveExecutor("DisplayInformationForResult"), mHost(host), mMessageId(0), mBgmName(0) {
+    initNerve(&NrvDisplayInformationForResult::DisplayInformationForResultNrvIdle::sInstance);
 }
 
 StageResultInformer::StageResultInformer()
-    : LayoutActor("リザルト通知", true), mInformationDisplayer(), mSequenceChecker(), mIconAButton(), _30(), _31() {
+    : LayoutActor("リザルト通知", true), mInformationDisplayer(0), mIconAButton(0), mClearedStarPieceNum(0),
+      _30(false), mPreviousPowerStarNum(0), mPreviousCometMedalNum(0), mResultPaneVisible(false) {
     mInformationDisplayer = new DisplayInformationForResult(this);
-    mSequenceChecker = new StageResultSequenceChecker();
-}
-
-void StageResultInformer::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneLayout(this);
-    initLayoutManager("ResultWindow", 2);
-    mIconAButton = MR::createAndSetupIconAButton(this, true, false);
-    initNerve(GET_NERVE_ANON(StageResultInformerAppearGetPowerStar));
-    initEffectKeeper(0, nullptr, nullptr);
-}
-
-void StageResultInformer::appear() {
-    LayoutActor::appear();
-    mIconAButton->kill();
-    MR::requestMovementOn(mIconAButton);
-    MR::hideLayout(this);
-    setNerve(GET_NERVE_ANON(StageResultInformerAppearGetPowerStar));
 }
 
 void StageResultInformer::kill() {
-    GameSequenceFunction::resetPlayResultInStage();
     LayoutActor::kill();
     mIconAButton->kill();
 }
 
-void StageResultInformer::exeAppearGetPowerStar() {
-    if (MR::isFirstStep(this)) {
-        MR::showLayout(this);
-        mSequenceChecker->check();
-        mSequenceChecker->checkIfComplete(GameSequenceFunction::getClearedStageName());
-        setCounterPaneShowHide(true, false, false);
-        MR::startAnim(this, "Appear", 0);
-
-        GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
-
-        bool isHiddenStar = accessor.isHiddenStar(GameSequenceFunction::getClearedPowerStarId());
-        const char* pMessageId = isHiddenStar ? ::cMessageIdGetHiddenStar : ::cMessageIdGetNormalStar;
-
-        MR::setTextBoxGameMessageRecursive(this, "Result", pMessageId);
-        MR::setTextBoxArgStringRecursive(this, "Result", MR::getGalaxyNameOnCurrentLanguage(GameSequenceFunction::getClearedStageName()), 0);
-        MR::setTextBoxArgStringRecursive(
-            this, "Result",
-            MR::getScenarioNameOnCurrentLanguage(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()), 1);
-        MR::startAnim(this, "Line", 1);
-        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
-        MR::setTextBoxNumberRecursive(this, ::cNamePowerStarNum, mSequenceChecker->getPrevPowerStarNum());
-        MR::startSubBGM("BGM_ASTRO_RETURN", false);
-    }
-
-    MR::setNerveAtAnimStopped(this, GET_NERVE_ANON(StageResultInformerWaitBeforeCountUpPowerStar), 0);
-}
-
-void StageResultInformer::exeWaitBeforeCountUpPowerStar() {
-    StageResultSequenceChecker* pChecker = mSequenceChecker;
-    bool hasNewStar = pChecker->getPrevPowerStarNum() != pChecker->getAfterPowerStarNum();
-    tryWaitIntervalBeforeKeyWait(hasNewStar ? static_cast< const Nerve* >(GET_NERVE_ANON(StageResultInformerCountUpPowerStar)) :
-                                              GET_NERVE_ANON(StageResultInformerDisplayGetPowerStar),
-                                 ::sWaitBeforeCountUpPowerStar);
-}
-
 void StageResultInformer::exeCountUpPowerStar() {
     if (MR::isFirstStep(this)) {
-        MR::setTextBoxNumberRecursive(this, ::cNamePowerStarNum, mSequenceChecker->getAfterPowerStarNum());
+        MR::setTextBoxNumberRecursive(this, cNamePowerStarNum, GameDataFunction::calcCurrentPowerStarNum());
         MR::startAnim(this, "Flash", 0);
         MR::startSystemSE("SE_SY_RESULT_POW_STAR_INC");
         MR::emitEffect(this, "ResultStarCounter");
@@ -188,7 +35,7 @@ void StageResultInformer::exeCountUpPowerStar() {
         _30 = true;
     }
 
-    MR::setNerveAtAnimStopped(this, GET_NERVE_ANON(StageResultInformerDisplayGetPowerStar), 0);
+    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetPowerStar::sInstance, 0);
 }
 
 void StageResultInformer::exeDisplayGetPowerStar() {
@@ -196,218 +43,8 @@ void StageResultInformer::exeDisplayGetPowerStar() {
         mIconAButton->openWithoutMessage();
     }
 
-    if (tryWaitSystemPadTriggerDecide(GET_NERVE_ANON(StageResultInformerDisappearGetPowerStar))) {
+    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearGetPowerStar::sInstance)) {
         return;
-    }
-}
-
-void StageResultInformer::exeDisappearGetPowerStar() {
-    if (MR::isFirstStep(this)) {
-        MR::startAnim(this, "End", 0);
-        mIconAButton->term();
-    }
-
-    if (MR::isAnimStopped(this, 0)) {
-        decideNextNerve();
-    }
-}
-
-void StageResultInformer::exeShowGalaxyComplete() {
-    tryShowAndKeyWaitInformationWindow(::cMessageIdGalaxyComplete, nullptr);
-}
-
-void StageResultInformer::exeAppearUpdateBestScore() {
-    if (MR::isFirstStep(this)) {
-        setCounterPaneShowHide(false, true, false);
-        MR::startSubBGM("BGM_HIGH_SCORE", false);
-        MR::startAnim(this, "Appear", 0);
-        MR::setTextBoxGameMessageRecursive(this, "Result", ::cMessageIdUpdateBestScore);
-        MR::startAnim(this, "Line", 1);
-        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
-    }
-
-    MR::setNerveAtAnimStopped(this, GET_NERVE_ANON(StageResultInformerDisplayUpdateBestScore), 0);
-}
-
-void StageResultInformer::exeDisplayUpdateBestScore() {
-    if (MR::isFirstStep(this)) {
-        mIconAButton->openWithoutMessage();
-    }
-
-    if (tryWaitSystemPadTriggerDecide(GET_NERVE_ANON(StageResultInformerDisappearUpdateBestScore))) {
-        return;
-    }
-}
-
-void StageResultInformer::exeDisappearUpdateBestScore() {
-    if (MR::isFirstStep(this)) {
-        MR::startAnim(this, "End", 0);
-        mIconAButton->term();
-    }
-
-    if (MR::isAnimStopped(this, 0)) {
-        decideNextNerve();
-    }
-}
-
-void StageResultInformer::exeAppearGetStarPiece() {
-    if (MR::isFirstStep(this)) {
-        setCounterPaneShowHide(false, false, true);
-        MR::startAnim(this, "Appear", 0);
-        MR::setTextBoxGameMessageRecursive(this, "Result", ::cMessageIdGetStarPiece);
-        MR::startAnim(this, "Line", 1);
-        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
-        mClearedStarPieceNum = GameSequenceFunction::getClearedStarPieceNum();
-        MR::setTextBoxNumberRecursive(this, ::cNameGalaxyStarPieceNum, mClearedStarPieceNum);
-        MR::setTextBoxNumberRecursive(this, ::cNameTotalStarPieceNum, MR::getStockedStarPieceNum());
-    }
-
-    MR::setNerveAtAnimStopped(this, GET_NERVE_ANON(StageResultInformerDisplayGetStarPiece), 0);
-}
-
-void StageResultInformer::exeDisplayGetStarPiece() {
-    if (MR::isFirstStep(this)) {
-        mIconAButton->openWithoutMessage();
-        MR::emitEffect(this, "ResultPieceCounter");
-    }
-
-    bool hasStarPiece = false;
-
-    if (mClearedStarPieceNum > 0) {
-        mClearedStarPieceNum--;
-
-        MR::addStockedStarPiece(1);
-
-        if (mClearedStarPieceNum > 0) {
-            if (mClearedStarPieceNum % 2 == 0) {
-                MR::startSystemSE("SE_SY_STAR_PIECE_SUM_UP");
-            }
-        } else {
-            MR::startSystemSE("SE_SY_STAR_PIECE_SUM_UP_END");
-        }
-    }
-
-    if (mClearedStarPieceNum == 0) {
-        hasStarPiece = true;
-        MR::deleteEffect(this, "ResultPieceCounter");
-    }
-
-    MR::setTextBoxNumberRecursive(this, ::cNameGalaxyStarPieceNum, mClearedStarPieceNum);
-    MR::setTextBoxNumberRecursive(this, ::cNameTotalStarPieceNum, MR::getStockedStarPieceNum());
-
-    if (MR::isAnimStopped(this, 0) && !hasStarPiece) {
-        MR::startAnim(this, "Flash", 0);
-    }
-
-    if (MR::testSystemPadTriggerDecide()) {
-        MR::startSystemSE("SE_SY_TALK_OK");
-
-        if (hasStarPiece) {
-            setNerve(GET_NERVE_ANON(StageResultInformerDisappearGetStarPiece));
-        } else {
-            setNerve(GET_NERVE_ANON(StageResultInformerWaitBeforeDisappearGetStarPiece));
-        }
-    }
-}
-
-void StageResultInformer::exeWaitBeforeDisappearGetStarPiece() {
-    if (MR::isFirstStep(this)) {
-        mIconAButton->term();
-        MR::addStockedStarPiece(mClearedStarPieceNum);
-        MR::startSystemSE("SE_SY_STAR_PIECE_SUM_UP_END");
-        mClearedStarPieceNum = 0;
-        MR::setTextBoxNumberRecursive(this, ::cNameGalaxyStarPieceNum, 0);
-        MR::setTextBoxNumberRecursive(this, ::cNameTotalStarPieceNum, MR::getStockedStarPieceNum());
-        MR::deleteEffect(this, "ResultPieceCounter");
-    }
-
-    MR::setNerveAtStep(this, GET_NERVE_ANON(StageResultInformerDisappearGetStarPiece), ::sWaitDisplayStarPieceCount);
-}
-
-void StageResultInformer::exeDisappearGetStarPiece() {
-    if (MR::isFirstStep(this)) {
-        MR::startAnim(this, "End", 0);
-
-        if (mIconAButton->isOpen()) {
-            mIconAButton->term();
-        }
-
-        MR::forceSyncStarPieceCounter();
-    }
-
-    if (MR::isAnimStopped(this, 0)) {
-        decideNextNerve();
-    }
-}
-
-void StageResultInformer::exeShowNewGalaxyDiscover() {
-    tryShowAndKeyWaitInformationWindow(::cMessageIdNewGalaxyDiscover, GET_NERVE_ANON(StageResultInformerShowGalaxyMap));
-}
-
-void StageResultInformer::exeShowGalaxyMap() {
-    if (MR::isFirstStep(this)) {
-        MR::startAstroMapLayoutForNewGalaxyDiscover();
-    } else {
-        decideNextNerve();
-    }
-}
-
-void StageResultInformer::exeShowGetPictureBook() {
-    if (MR::isFirstStep(this)) {
-        const char* pMessageId = ::cMessageIdGetPictureBook;
-
-        if (mSequenceChecker->isJustOpenLibraryRoom()) {
-            pMessageId = ::cMessageIdOpenLibraryRoom;
-        }
-
-        DisplayInformationForResult* pDisplayer = mInformationDisplayer;
-        pDisplayer->mMessageId = pMessageId;
-        pDisplayer->setNerve(GET_NERVE_ANON(DisplayInformationForResultAppear));
-    }
-
-    mInformationDisplayer->updateNerve();
-
-    bool isNotIdle = !mInformationDisplayer->isNerve(GET_NERVE_ANON(DisplayInformationForResultIdle));
-
-    if (!isNotIdle) {
-        decideNextNerve();
-    }
-}
-
-void StageResultInformer::exeShowTicoGalaxyAppear() {
-    tryShowAndKeyWaitInformationWindow(::cMessageIdTicoGalaxyAppear, GET_NERVE_ANON(StageResultInformerShowAstroMapForTico));
-}
-
-void StageResultInformer::exeShowAstroMapForTico() {
-    if (MR::isFirstStep(this)) {
-        MR::startAstroMapLayoutForNewTicoGalaxyDiscover();
-    } else {
-        decideNextNerve();
-    }
-}
-
-void StageResultInformer::decideNextNerve() {
-    bool afterStar = isNerve(GET_NERVE_ANON(StageResultInformerDisappearGetPowerStar));
-    bool afterComplete = afterStar || isNerve(GET_NERVE_ANON(StageResultInformerShowGalaxyComplete));
-    bool afterScore = afterComplete || isNerve(GET_NERVE_ANON(StageResultInformerDisappearUpdateBestScore));
-    bool afterPiece = afterScore || isNerve(GET_NERVE_ANON(StageResultInformerDisappearGetStarPiece));
-    bool afterMap = afterPiece || isNerve(GET_NERVE_ANON(StageResultInformerShowGalaxyMap));
-    bool afterBook = afterMap || isNerve(GET_NERVE_ANON(StageResultInformerShowGetPictureBook));
-
-    if (afterStar && mSequenceChecker->isJustCompleteGalaxy()) {
-        setNerve(GET_NERVE_ANON(StageResultInformerShowGalaxyComplete));
-    } else if (afterComplete && _31) {
-        setNerve(GET_NERVE_ANON(StageResultInformerAppearUpdateBestScore));
-    } else if (afterScore && (GameSequenceFunction::getClearedStarPieceNum() > 0)) {
-        setNerve(GET_NERVE_ANON(StageResultInformerAppearGetStarPiece));
-    } else if (afterPiece && mSequenceChecker->isJustOpenGalaxyWithoutChallengeGalaxy()) {
-        setNerve(GET_NERVE_ANON(StageResultInformerShowNewGalaxyDiscover));
-    } else if (afterMap && mSequenceChecker->isAddPictureBook()) {
-        setNerve(GET_NERVE_ANON(StageResultInformerShowGetPictureBook));
-    } else if (afterBook && mSequenceChecker->isJustAppearTicoGalaxy()) {
-        setNerve(GET_NERVE_ANON(StageResultInformerShowTicoGalaxyAppear));
-    } else {
-        kill();
     }
 }
 
@@ -438,52 +75,51 @@ bool StageResultInformer::tryWaitIntervalBeforeKeyWait(const Nerve* pNerve, int 
     return false;
 }
 
-bool StageResultInformer::tryShowAndKeyWaitInformationWindow(const char* pMessageId, const Nerve* pNerve) {
+void StageResultInformer::updateStarPieceCount() {
+    s32 count = mClearedStarPieceNum;
+    MR::setTextBoxNumberRecursive(this, "ShaTPieceLNum", count);
+    MR::setTextBoxNumberRecursive(this, "ShaTPieceRNum", GameDataFunction::getStockedStarPieceNum() - mClearedStarPieceNum);
+}
+
+void StageResultInformer::updateCoinCount() {
+    s32 count = mClearedStarPieceNum;
+    MR::setTextBoxNumberRecursive(this, "ShaTCoinLNum", count);
+    MR::setTextBoxNumberRecursive(this, "ShaTCoinRNum", GameDataFunction::getStockedCoinNum() - mClearedStarPieceNum);
+}
+
+void StageResultInformer::hideCounterPanes() {
+    MR::hidePane(this, "TotalStar");
+    MR::hidePane(this, "TotalMedal");
+    MR::hidePane(this, "TotalPiece");
+    MR::hidePane(this, "TotalCoin");
+    MR::hidePane(this, "BClearTime");
+}
+
+void StageResultInformer::exeCountUpGetCometMedal() {
+    MR::isFirstStep(this);
+    if (MR::testSystemPadTriggerDecide()) {
+        _30 = true;
+    }
+    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetCometMedal::sInstance, 0);
+}
+
+void StageResultInformer::exeDisplayGetCometMedal() {
     if (MR::isFirstStep(this)) {
-        DisplayInformationForResult* pInformationDisplayer = mInformationDisplayer;
-        pInformationDisplayer->mMessageId = pMessageId;
-        pInformationDisplayer->setNerve(GET_NERVE_ANON(DisplayInformationForResultAppear));
+        mIconAButton->openWithoutMessage();
     }
-
-    mInformationDisplayer->updateNerve();
-
-    bool isNotIdle = !mInformationDisplayer->isNerve(GET_NERVE_ANON(DisplayInformationForResultIdle));
-
-    if (!isNotIdle) {
-        if (pNerve != nullptr) {
-            setNerve(pNerve);
-        } else {
-            decideNextNerve();
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-void StageResultInformer::setCounterPaneShowHide(bool isShowTotalStarPane, bool isShowBestScorePane, bool isShowTotalPiecePane) {
-    const char* pPaneName = "TotalStar";
-
-    if (isShowTotalStarPane) {
-        MR::showPane(this, pPaneName);
-    } else {
-        MR::hidePane(this, pPaneName);
-    }
-
-    pPaneName = "BestScore";
-
-    if (isShowBestScorePane) {
-        MR::showPane(this, pPaneName);
-    } else {
-        MR::hidePane(this, pPaneName);
-    }
-
-    pPaneName = "TotalPiece";
-
-    if (isShowTotalPiecePane) {
-        MR::showPane(this, pPaneName);
-    } else {
-        MR::hidePane(this, pPaneName);
+    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCometMedal::sInstance)) {
+        return;
     }
 }
+
+void StageResultInformer::exeDisplayBestTime() {
+    if (MR::isFirstStep(this)) {
+        mIconAButton->openWithoutMessage();
+    }
+    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearBestTime::sInstance)) {
+        return;
+    }
+}
+
+
+StageResultInformer::~StageResultInformer() {}

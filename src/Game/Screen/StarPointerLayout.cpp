@@ -589,9 +589,7 @@ void StarPointerLayout::control() {
     }
 
     updateDecoration();
-#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     rotateTest();
-#endif
     updateTouch();
 
     mShootDisabled = mStartDisableShoot;
@@ -632,28 +630,17 @@ void StarPointerLayout::control() {
                 }
                 setNerve(GET_NERVE(StarPointerLayout, HostTypeNrvOutScreen));
 
-#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
                 MR::tryRumblePadWeak(this, mPadChannel);
-#else
-                rotateTest();
-                return;
-#endif
             }
             
-#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
             return;
-#endif
         } else {
-#if 1 // was RMGK01 check
             rotateTest();
-#endif
             return;
         }
     }
 
-#if 1 // was RMGK01 check
     rotateTest();
-#endif
 
     if (mPadChannel == WPAD_CHAN1) {
         MR::startAnim(this, "Transparency", 1);
@@ -678,21 +665,9 @@ void StarPointerLayout::setPosition() {
 }
 
 void StarPointerLayout::rotateTest() {
-#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     TVec2f horiz;
     MR::getWPad(mPadChannel)->mPointer->getHorizonVec(&horiz);
     f32 angle = MR::normalizeAbs(MR::toDegree(MR::atan2(horiz.y, horiz.x)), ::sDegreeMin, 180.0f);
-#else
-    f32 angle = mRotateAngle;
-    if (MR::isStarPointerInScreen(mPadChannel)) {
-        TVec2f horiz;
-        MR::getWPad(mPadChannel)->mPointer->getHorizonVec(&horiz);
-        angle = MR::normalizeAbs(MR::toDegree(MR::atan2(horiz.y, horiz.x)), ::sDegreeMin, 180.0f);
-        if (angle != 0.0f) {
-            mRotateAngle = angle;
-        }
-    }
-#endif
 
     if (mPointerKind == StarPointerKind_StarPointer) {
         angle *= ::sRotateMult;
@@ -844,12 +819,14 @@ void StarPointerLayout::changeToStarPointer() {
 
     MR::hidePaneRecursive(this, "HandPointer");
     MR::showPaneRecursive(this, "StarPointer");
+    updatePlayerPane();
 }
 
 void StarPointerLayout::changeToHandPointer() {
     hideBlur();
     MR::hidePaneRecursive(this, "StarPointer");
     MR::showPaneRecursive(this, "HandPointer");
+    updatePlayerPane();
 
     if (mPadChannel == WPAD_CHAN0) {
         MR::showPaneRecursive(this, "PicPlayer1");
@@ -857,6 +834,14 @@ void StarPointerLayout::changeToHandPointer() {
     } else {
         MR::showPaneRecursive(this, "PicPlayer2");
         MR::hidePaneRecursive(this, "PicPlayer1");
+    }
+}
+
+// NONMATCHING: data-base setup and pointer arithmetic instruction scheduling differ.
+void StarPointerLayout::updatePlayerPane() {
+    if (mPadChannel == WPAD_CHAN0) {
+        MR::hidePaneRecursive(this, "HandArrow");
+        mBlur->setPortAndColor(mPadChannel, &sColorA[mPadChannel], &sColorB[mPadChannel]);
     }
 }
 

@@ -35,7 +35,7 @@ public:
     ScenarioSelectStar* getSelectedStar() const;
     void calcWorldPositionFromScreenPos(TVec3f*, const TVec2f&, f32) const;
     void calcDisplayScenarioNum(s32*, s32*) const;
-    void appearAllStar(s32, s32, bool);
+    void appearAllStar(s32, s32);
     void appearStar(s32, s32, int);
     bool isAppearStarEndAll() const;
     bool tryCancel();
@@ -65,9 +65,12 @@ public:
     /* 0x68 */ const CameraContext* mCameraContext;
     /* 0x6C */ TVec2f mNewTextFollowPos;
     /* 0x74 */ TVec2f mNewGreenTextFollowPos;
-    /* 0x7C */ TVec2f mQuestionPane[2];
+    /* 0x7C */ TVec2f mNewCometFollowPos;
+    TVec2f mQuestionPane[3];
     /* 0x8C */ TVec2f mStarTopFollowPos;
-    /* 0x94 */ BackButton* mBackButton;
+    /* 0x94 */ TVec2f mStarDownFollowPos;
+    BackButton* mBackButton;
+    bool mCanCancel;
     /* 0x98 */ TVec2f mMarioPaneFollowPos;
     /* 0xA0 */ const char* mMarioPaneName;
     /* 0xA4 */ s32 _A4;

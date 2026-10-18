@@ -18,7 +18,7 @@ void PenguinMaster::init(const JMapInfoIter& rIter) {
     caps.setDefault();
     caps.mMessageOffset = TVec3f(0.0f, 430.0f, 0.0f);
     caps.mReactionNerve = GET_NERVE(PenguinMaster, PenguinMasterNrvReaction);
-    initialize(rIter, caps, "PenguinMaster", nullptr, false);
+    initialize(rIter, caps, "PenguinMaster", nullptr, nullptr);
 
     mParam._14 = "Wait";
     mParam._1C = "Talk";

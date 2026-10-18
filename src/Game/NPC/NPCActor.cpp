@@ -1,3 +1,4 @@
+#include "Game/Map/HitInfo.hpp"
 #pragma auto_inline off
 
 #include "Game/NPC/NPCActor.hpp"
@@ -284,12 +285,11 @@ void NPCActor::initAfterPlacement() {
     }
 }
 
-// NONMATCHING: SMG2 version has Yoshi lock-on target (createYoshiLockOnTarget), binder triangle filter and
-// registerMarioFaceShipNpc which are not ported; the 3rd/4th/5th parameters' exact meaning is unverified.
-void NPCActor::initialize(const JMapInfoIter& rIter, const NPCActorCaps& rCaps, const char* pArcName, const char* pAnimName, bool a5) {
+// NONMATCHING: SMG2 Yoshi lock-on target and binder triangle filter are not fully ported.
+void NPCActor::initialize(const JMapInfoIter& rIter, const NPCActorCaps& rCaps, const char* pArcName, const char* pAnimName, const char* pAnimArcName) {
     if (pArcName != nullptr) {
-        if (a5) {
-            MR::initActor(this, rIter, pArcName, pAnimName, nullptr, false);
+        if (pAnimArcName != nullptr) {
+            MR::initActor(this, rIter, pArcName, pAnimArcName, pAnimName, false);
         } else if (pAnimName != nullptr) {
             MR::initActor(this, rIter, pArcName, pAnimName, false);
         } else {
@@ -880,4 +880,8 @@ void NPCActor::exeNull() {
 
 void NPCActor_FORCE_MATCH(TQuat4f* pDest, const TQuat4f& rSrc) {
     *pDest = rSrc;
+}
+
+bool NPCActor::isSensorSpinCloudBlock(const Triangle* triangle) const {
+    return MR::isSensorType(triangle->getSensor(), 0x56);
 }

@@ -94,7 +94,7 @@ void Tico::initBase(const JMapInfoIter& rIter, s32 color) {
     _110 = 0.2f;
     mParam._C = 0.5f;
     mParam._10 = 12.0f;
-    initialize(rIter, caps, "Tico", nullptr, false);
+    initialize(rIter, caps, "Tico", nullptr, nullptr);
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, color);
     _17C = ::hPointLight[color];

@@ -36,6 +36,7 @@ namespace GameDataFunction {
     s32 getPlayerLeft();
     void addPlayerLeft(int);
     s32 getStockedStarPieceNum();
+    s32 getStockedCoinNum();
     const wchar_t* getUserName();
     void resetAllGameData();
     OSTime getSysConfigFileTimeSent();

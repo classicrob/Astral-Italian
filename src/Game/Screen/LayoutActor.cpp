@@ -1,4 +1,5 @@
 #include "Game/Screen/LayoutActor.hpp"
+#include "Game/GameAudio/ActionSoundKeeper.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/Screen/LayoutCoreUtil.hpp"
@@ -21,11 +22,9 @@ void LayoutActor::movement() {
         return;
     }
 
-    /*
     if (_28 != nullptr) {
-        _28->fn_80222960();
+        _28->update();
     }
-    */
 
     control();
 
@@ -142,7 +141,7 @@ void LayoutActor::initActionSound(int numHandles, const char* pName, TVec3f* pPo
         pName = mLayoutManager->mLayoutName;
     }
 
-    // _28 = new fn_80222860(numHandles, pName, pPos);
+    _28 = new ActionSoundKeeper(numHandles, pName, pPos);
 }
 
 void LayoutActor::updateSpine() {

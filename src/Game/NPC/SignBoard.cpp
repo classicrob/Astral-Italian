@@ -36,7 +36,7 @@ void SignBoard::init(const JMapInfoIter& rIter) {
         MR::isExistStageSwitchAppear(rIter);
     }
 
-    initialize(rIter, caps, name, nullptr, false);
+    initialize(rIter, caps, name, nullptr, nullptr);
 
     TVec3f up;
     f32 ux = 1.0f - 2.0f * (_A0.y * _A0.y) - 2.0f * (_A0.w * _A0.w);

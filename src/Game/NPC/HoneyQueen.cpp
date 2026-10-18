@@ -44,7 +44,7 @@ void HoneyQueen::init(const JMapInfoIter& rIter) {
     caps.mMakeActor = 0;
     caps.mSensorMax = 2;
     MR::initUseStageSwitchWriteA(this, rIter);
-    initialize(rIter, caps, nullptr, nullptr, false);
+    initialize(rIter, caps, nullptr, nullptr, nullptr);
 
     mCollisionParts[0] =
         MR::createCollisionPartsFromLiveActor(this, "Center", getSensor("Body"), MR::getJointMtx(this, "Center"), MR::CollisionScaleType_Unk2);

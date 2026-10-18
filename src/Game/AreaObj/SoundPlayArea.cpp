@@ -1,14 +1,13 @@
 #include "Game/AreaObj/SoundPlayArea.hpp"
+#include "Game/GameAudio/ActionSoundKeeper.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include <cstdio>
 #include <new>
 
-extern "C" void* fn_80222860(void*, s32, const char*, TVec3f*);
 extern "C" void* fn_80222AC0(void*, const char*);
 extern "C" bool fn_80220830(void*);
-extern "C" void fn_80222960(void*);
 extern "C" void fn_80222A60(void*, const char*, s32, s32);
 extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
 
@@ -34,10 +33,7 @@ void SoundPlayArea::init(const JMapInfoIter& rIter) {
     char name[0x100];
     snprintf(name, 0x100, "SoundPlayArea%d", mObjArg0);
 
-    void* sound = operator new(0x10);
-    if (sound) {
-        sound = fn_80222860(sound, 4, name, &mCenter);
-    }
+    void* sound = new ActionSoundKeeper(4, name, &mCenter);
     mSoundObj = sound;
 
     sound = fn_80222AC0(sound, sSoundName);
@@ -52,7 +48,7 @@ void SoundPlayArea::init(const JMapInfoIter& rIter) {
 void SoundPlayArea::movement() {
     if (isInVolume(*MR::getPlayerPos())) {
         MR::getAreaCenterPos(&mCenter, this);
-        fn_80222960(mSoundObj);
+        static_cast<ActionSoundKeeper*>(mSoundObj)->update();
 
         if (!_55) {
             if (!_54) {

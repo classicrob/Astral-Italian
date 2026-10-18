@@ -51,7 +51,7 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     caps.mSensorMax = 2;
     caps.mSensorJoint = "Center";
     caps._6C = "Center";
-    initialize(rIter, caps, "TicoShop", nullptr, false);
+    initialize(rIter, caps, "TicoShop", nullptr, nullptr);
     MR::addHitSensorAtJointEye(this, "Mouth", "Mouth", 8, ::sMouthSize, TVec3f(0.0f, 0.0f, 0.0f));
     MR::getNPCItemData(&item, 0);
     equipment(item, false);

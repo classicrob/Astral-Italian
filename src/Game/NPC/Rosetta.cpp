@@ -22,7 +22,7 @@ Rosetta::Rosetta(const char* pName) : NPCActor(pName) {
 void Rosetta::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("Rosetta");
     caps.setDefault();
-    NPCActor::initialize(rIter, caps, nullptr, nullptr, false);
+    NPCActor::initialize(rIter, caps, nullptr, nullptr, nullptr);
 
     MR::startBrk(this, "Normal");
 

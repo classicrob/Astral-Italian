@@ -5,6 +5,7 @@
 #include <JSystem/JGeometry/TVec.hpp>
 
 class EffectSystem;
+class ActionSoundKeeper;
 class LayoutManager;
 class Nerve;
 class PaneEffectKeeper;
@@ -49,5 +50,5 @@ public:
     /* 0x1C */ PaneEffectKeeper* mEffectKeeper;
     /* 0x20 */ StarPointerLayoutTargetKeeper* mPointingTarget;
     /* 0x24 */ LayoutActorFlag mFlag;
-    /* 0x28 */ s32 _28;  // unknown type
+    /* 0x28 */ ActionSoundKeeper* _28;
 };

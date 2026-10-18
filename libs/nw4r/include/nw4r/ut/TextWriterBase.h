@@ -52,6 +52,8 @@ namespace nw4r {
                 mWidthLimit = limit;
             }
 
+            f32 GetCharSpaceValidated() const;
+
             f32 GetCharSpace() const {
                 NW4R_POINTER_ASSERT_AT(108, this);
                 return mCharSpace;

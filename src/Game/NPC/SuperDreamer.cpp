@@ -309,7 +309,7 @@ void SuperDreamer::init(const JMapInfoIter& rIter) {
     SUPERDREAMER_FIELD(const char*, 0x138) = "Trampled";
     SUPERDREAMER_FIELD(const char*, 0x13C) = "Pointing";
     SUPERDREAMER_FIELD(const char*, 0x140) = "Reaction";
-    initialize(rIter, caps, "HelperWitch", nullptr, false);
+    initialize(rIter, caps, "HelperWitch", nullptr, nullptr);
     MR::getJMapInfoArg0NoInit(rIter, &mStartId);
 
     if (MR::isPlayerLuigi() || (GameSequenceFunction::isPadMode() && !DreamerFunction::isPadModeSuperDreamerAndStartId(mStartId))) {

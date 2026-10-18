@@ -114,7 +114,7 @@ void HoneyBee::init(const JMapInfoIter& rIter) {
         break;
     }
 
-    initialize(rIter, caps, "HoneyBee", nullptr, false);
+    initialize(rIter, caps, "HoneyBee", nullptr, nullptr);
     NPCActorItem item = ("HoneyBee");
 
     switch (mArg0) {

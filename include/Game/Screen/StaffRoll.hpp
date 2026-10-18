@@ -58,8 +58,7 @@ public:
     /// @param pName A pointer to the null-terminated name of the object.
     StaffRoll(const char* pName);
 
-    virtual ~StaffRoll() {
-    }
+    virtual ~StaffRoll();
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void appear();
@@ -68,6 +67,7 @@ public:
     virtual void calcAnim();
     virtual void kill();
 
+    bool isEnd() const;
     void startInfo();
     bool isPauseOrEnd() const;
     bool isNextLineEmpty() const;

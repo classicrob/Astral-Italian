@@ -6,6 +6,10 @@ class GalaxyMoveArgument;
 class UserFile;
 
 namespace GameSequenceFunction {
+    const char* getClearedStageName();
+    void resetPlayResultInStage();
+    const char* getClearedStageName();
+    void resetPlayResultInStage();
     void collectTicoCoinInStage();
     bool isCollectTicoCoinInStage();
     bool isCollectTicoCoinSaved();

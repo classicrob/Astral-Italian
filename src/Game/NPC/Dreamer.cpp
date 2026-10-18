@@ -185,7 +185,7 @@ void Dreamer::initForLuigi(const JMapInfoIter& rIter, const NPCActorCaps& rCaps)
     NPCActorCaps& caps = const_cast< NPCActorCaps& >(rCaps);
     caps._F = true;
     caps._10 = lbl_807CFEA4;
-    initialize(rIter, caps, nullptr, nullptr, false);
+    initialize(rIter, caps, nullptr, nullptr, nullptr);
     makeActorDead();
     mIsLuigi = true;
 }
@@ -199,7 +199,7 @@ void Dreamer::initForPlaying(const JMapInfoIter& rIter, const NPCActorCaps& rCap
     } else {
         caps.mMessage = false;
     }
-    initialize(rIter, caps, nullptr, nullptr, false);
+    initialize(rIter, caps, nullptr, nullptr, nullptr);
     if (DREAMER_FIELD(TalkMessageCtrl*, 0x94)) {
         fn_800614C0(DREAMER_FIELD(TalkMessageCtrl*, 0x94));
         MR::hideBubbleBeak(DREAMER_FIELD(TalkMessageCtrl*, 0x94));
@@ -222,7 +222,7 @@ void Dreamer::initForNpc(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
     } else {
         caps._10 = lbl_807CFEA0;
     }
-    initialize(rIter, caps, nullptr, nullptr, false);
+    initialize(rIter, caps, nullptr, nullptr, nullptr);
     MR::registerEventFunc(DREAMER_FIELD(TalkMessageCtrl*, 0x94),
                           TalkMessageFuncM< Dreamer*, bool (Dreamer::*)(u32) >(this, &Dreamer::eventFunc));
     MR::getJMapInfoArg1NoInit(rIter, &mMissNum);

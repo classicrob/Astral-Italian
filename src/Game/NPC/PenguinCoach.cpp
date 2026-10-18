@@ -54,7 +54,7 @@ void PenguinCoach::init(const JMapInfoIter& rIter) {
 
     MR::getJMapInfoArg0NoInit(rIter, &mBehavior);
 
-    initialize(rIter, caps, "PenguinCoach", nullptr, false);
+    initialize(rIter, caps, "PenguinCoach", nullptr, nullptr);
 
     if (mBehavior == Behavior_Star) {
         MR::useStageSwitchWriteA(this, rIter);

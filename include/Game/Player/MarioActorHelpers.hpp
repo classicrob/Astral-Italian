@@ -19,6 +19,8 @@ public:
 class MarioScreenStrip {
 public:
     MarioScreenStrip();
+    void fn_803DB9D0(s32, s16, s32);
+    void fn_803DBA40();
     u8* mBuffers[2];
     bool mEnabled;
     f32 mProgress;

@@ -6090,8 +6090,14 @@ Game/Player/MarioActor.cpp:
 Game/Player/CloudMarioHat.cpp:
 	.text       start:0x803D9A80 end:0x803DAA10
 
+Game/Player/MarioActorConditionGroup.cpp:
+	.text       start:0x803DAF60 end:0x803DB270
+
 Game/Player/MarioActionTable.cpp:
 	.text       start:0x803DB270 end:0x803DB650
+
+Game/Player/MarioScreenStrip.cpp:
+	.text       start:0x803DB960 end:0x803DBDE0
 
 Game/Player/MarioModelDL.cpp:
 	.text       start:0x803DBDE0 end:0x803DC0F0
@@ -6179,13 +6185,17 @@ Game/Player/MarioFrontStep.cpp:
 	.text       start:0x803EC110 end:0x803EC500
 	.data       start:0x806DD348 end:0x806DD390
 
+Game/Player/MarioHairAndHatModel.cpp:
+	.text       start:0x803EC500 end:0x803ECB50
+	.ctors      start:0x806447DC end:0x806447E0
+
 Game/Player/MarioHang.cpp:
 	.text       start:0x803ECB50 end:0x803ED7E0
 	.data       start:0x806DD5E8 end:0x806DD630
 
 Game/Player/MarioHolder.cpp:
 	.text       start:0x803EDED0 end:0x803EE520
-	.data       start:0x806DD63C end:0x806DD668
+	.data       start:0x806DD630 end:0x806DD668
 
 Game/Player/FloorCode.cpp:
 	.text       start:0x803EE520 end:0x803EE590
@@ -6297,6 +6307,9 @@ Game/Player/MarioWarp.cpp:
 	.data       start:0x806DEEA0 end:0x806DF038
 	.sdata2     start:0x807E0508 end:0x807E0538
 
+Game/Player/MarioYoshiPull.cpp:
+	.text       start:0x80408F20 end:0x804092C0
+
 Game/Player/MatrixValueGetter.cpp:
 	.text       start:0x804092C0 end:0x80409470
 
@@ -6341,6 +6354,9 @@ Game/Player/EventRaceDown.cpp:
 	.text       start:0x8040AEE0 end:0x8040B250
 	.data       start:0x806DF768 end:0x806DF8A0
 
+Game/Player/YoshiAnimationModelCtrl.cpp:
+	.text       start:0x8040B440 end:0x8040B760
+
 Game/Player/TornadoMario.cpp:
 	.text       start:0x8040B8C0 end:0x8040BD00
 	.data       start:0x806DF968 end:0x806DF9D8
@@ -6350,6 +6366,30 @@ Game/Player/Yoshi.cpp:
 	.ctors      start:0x806447E8 end:0x806447EC
 	.data       start:0x806EA4A4 end:0x806EA718
 	.sbss       start:0x807D4EB8 end:0x807D4F30
+
+Game/Player/YoshiArrow.cpp:
+	.text       start:0x80413C40 end:0x80414290
+
+Game/Player/MarioYoshiBalloon.cpp:
+	.text       start:0x80414290 end:0x804155D0
+	.data       start:0x806EA7C8 end:0x806EA908
+	.sdata2     start:0x807E0688 end:0x807E06F8
+
+Game/Player/YoshiFruitCtrl.cpp:
+	.text       start:0x804155D0 end:0x80415A10
+
+Game/Player/YoshiDashStep.cpp:
+	.text       start:0x80415A10 end:0x80415E10
+
+Game/Player/MarioYoshiDash.cpp:
+	.text       start:0x80415E10 end:0x80415FA0
+
+Game/Player/YoshiEgg.cpp:
+	.text       start:0x80415FA0 end:0x804178C0
+	.ctors      start:0x806447EC end:0x806447F0
+	.data       start:0x806EAB10 end:0x806EAE30
+	.sbss       start:0x807D4F38 end:0x807D4F68
+	.sdata2     start:0x807E0700 end:0x807E0720
 
 Game/Player/YoshiFruitCounter.cpp:
 	.text       start:0x804178C0 end:0x804179E0
@@ -6366,6 +6406,21 @@ Game/Player/YoshiLockOnTarget.cpp:
 	.sdata      start:0x807D00E0 end:0x807D00F4
 	.sdata2     start:0x807E0750 end:0x807E0758
 
+Game/Player/YoshiLockOnManager.cpp:
+	.text       start:0x80419BD0 end:0x8041A8B0
+
+Game/Player/YoshiHeadCtrl.cpp:
+	.text       start:0x8041A9A0 end:0x8041AD80
+
+Game/Player/MarioYoshiShot.cpp:
+	.text       start:0x8041AD80 end:0x8041B120
+
+Game/Player/YoshiSilhouette.cpp:
+	.text       start:0x8041B120 end:0x8041B570
+
+Game/Player/YoshiHolder.cpp:
+	.text       start:0x8041B570 end:0x8041C550
+
 Game/Player/YoshiTongue.cpp:
 	.text       start:0x8041C550 end:0x8041DE20
 	.ctors      start:0x806447F0 end:0x806447F4
@@ -6379,6 +6434,10 @@ Game/Player/YoshiTongueAction.cpp:
 	.data       start:0x806EB2C8 end:0x806EB620
 	.sbss       start:0x807D4F88 end:0x807D4FD8
 	.sdata2     start:0x807E07E0 end:0x807E0860
+
+Game/Player/YoshiFunction.cpp:
+	.text       start:0x80421D40 end:0x80422990
+	.sdata      start:0x807D0108 end:0x807D0110
 
 Game/RhythmLib/AudRhythmSeqParser.cpp:
 	.text       start:0x80422990 end:0x804238D0

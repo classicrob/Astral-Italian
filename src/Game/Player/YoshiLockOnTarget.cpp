@@ -14,21 +14,21 @@ f32 getYoshiLockOnDistance(s32 type) {
     if(static_cast<u32>(type-2)<=1) return sDistance2;
     switch(type) {case 0:return sDistance0;case 1:return sDistance1;case 4:return sDistance4;case 5:return sDistance5;default:return 0.0f;}
 }
-bool YoshiLockOnTarget::isInvalid() const {
+bool YoshiLockOnTargetControl::isInvalid() const {
     if(!mTarget || !mTarget->mActor || MR::isDead(mTarget->mActor) || !mTarget->mValid) return true;
     return mTimer==0;
 }
-bool YoshiLockOnTarget::isMarkDead() const { if(!mMark) return true;return MR::isDead(mMark); }
-void YoshiLockOnTarget::copyTargetInfo(YoshiLockOnTargetDesc* out) const {
+bool YoshiLockOnTargetControl::isMarkDead() const { if(!mMark) return true;return MR::isDead(mMark); }
+void YoshiLockOnTargetControl::copyTargetInfo(YoshiLockOnTargetDesc* out) const {
     out->mActor=mTarget->mActor;out->mMtx=mTarget->mMtx;out->mOffset=mTarget->mOffset;out->mType=mType;
 }
-void YoshiLockOnTarget::appearMark() { if(mMark) mMark->appear(); }
-void YoshiLockOnTarget::disappearMark() { if(mMark) mMark->disappear(); }
-void YoshiLockOnTarget::update(const TVec3f& pos,f32 distance) {
+void YoshiLockOnTargetControl::appearMark() { if(mMark) mMark->appear(); }
+void YoshiLockOnTargetControl::disappearMark() { if(mMark) mMark->disappear(); }
+void YoshiLockOnTargetControl::update(const TVec3f& pos,f32 distance) {
     updateMarkPosition();if(mTimer) --mTimer;
     if(PSVECDistance(&mTarget->mActor->mPosition,&pos)>distance) mTimer=0;
 }
-void YoshiLockOnTarget::calcScreenPosition() {
+void YoshiLockOnTargetControl::calcScreenPosition() {
     if(mMark) return;
     TVec3f pos,x,y,z;
     if(!mTarget->mMtx) {pos.x=mTarget->mActor->mPosition.x;pos.y=mTarget->mActor->mPosition.y;pos.z=mTarget->mActor->mPosition.z;}
@@ -45,7 +45,7 @@ void YoshiLockOnTarget::calcScreenPosition() {
     x.scale(mTarget->mOffset.x);y.scale(mTarget->mOffset.y);z.scale(mTarget->mOffset.z);
     pos.add(x+y+z);MR::calcScreenPosition(&pos,pos);pos.z=0.0f;
 }
-void YoshiLockOnTarget::updateMarkPosition() {
+void YoshiLockOnTargetControl::updateMarkPosition() {
     if(mMark) {TVec3f pos;mTarget->mActor->mStarPointerTarget->calcPosition(&pos);mMark->mTargetPosition=pos;}
 }
-void YoshiLockOnTarget::invalidate() { if(mTarget) mTarget->mValid=false; }
+void YoshiLockOnTargetControl::invalidate() { if(mTarget) mTarget->mValid=false; }

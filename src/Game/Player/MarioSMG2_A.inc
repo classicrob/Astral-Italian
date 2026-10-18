@@ -1333,7 +1333,7 @@ void Mario::fn_80388DB0() {
         if (!((FLD<u32>(this, 0x1C) >> 27) & 1)) {
             FLD<u16>(this, 0x3FE) = 0;
         }
-        FLD<u32>(this, 0x5F4) = FLD<u32>(this, 0x5F8);
+        mPreviousCometRestrictions = mCometRestrictions;
         this->callExtraTasks(0);
         this->beeMarioOnGround();
         this->checkSpecialWaitAnimation();

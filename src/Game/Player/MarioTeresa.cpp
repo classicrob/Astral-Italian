@@ -130,10 +130,7 @@ MarioTeresa::MarioTeresa(MarioActor* pActor) : MarioState(pActor, MarioStatus_Te
 
 bool MarioTeresa::close() {
     if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
-        // SB4E01 clears bit 0 of the u32 at Mario+0x5F8. Our Mario::_57C[0x20] array covers that address,
-        // so it is written through the raw offset until Mario's layout is fixed (see report).
-        u32* flags = reinterpret_cast< u32* >(reinterpret_cast< u8* >(getPlayer()) + 0x5F8);
-        *flags &= ~1u;
+        getPlayer()->mCometRestrictions &= ~1u;
     }
 
     return true;

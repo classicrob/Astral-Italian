@@ -346,13 +346,8 @@ Mario::Mario(MarioActor* pActor) : MarioModule(pActor) {
     _8CC[1] = new Triangle();
 
     _564 = -1;
-    _568 = 0;
     _56C = 0;
     _570 = 0;
-
-    for (u32 i = 0; i < ARRAY_SIZE(_A8C); i++) {
-        _A8C[i].zero();
-    }
 
     _4A4.zero();
     _4B0.zero();
@@ -384,6 +379,8 @@ Mario::Mario(MarioActor* pActor) : MarioModule(pActor) {
     _A68 = 0;
 
     _5FC = 0;
+    mPreviousCometRestrictions = 0;
+    mCometRestrictions = 0;
 
     mWorldPadDir.zero();
 
@@ -1817,7 +1814,6 @@ void Mario::update() {
 
     checkEnforceMove();
 
-    _A8C[0] = mVelocity;
 
     if (!isStatusActive(MarioStatus_Stick) && !isStatusActive(MarioStatus_Hang)) {
         checkBaseTransPoint();
@@ -1927,11 +1923,9 @@ void Mario::update() {
     inputStick();
     checkLockOnHoming();
 
-    _A8C[1] = mVelocity;
 
     actionMain();
 
-    _A8C[3] = mVelocity;
 
     calcFrontFloor();
 
@@ -1941,21 +1935,17 @@ void Mario::update() {
         mVelocity += minus * MR::abs(dot);
     }
 
-    _A8C[4] = mVelocity;
 
     tryPushToVelocity();
     powerAreaMove();
     powerRailMove();
 
-    _A8C[5] = mVelocity;
 
     addVelocity(mVelocityAfter);
 
-    _A8C[6] = mVelocity;
 
     checkForceGrounding();
 
-    _A8C[7] = mVelocity;
 
     checkStep();
     checkBump();
@@ -1967,7 +1957,6 @@ void Mario::update() {
 
     doSpinPunchAroundPolygons();
 
-    _A8C[8] = mVelocity;
 
     writeBackPhyisicalVector();
     updateTimers();
@@ -2010,7 +1999,6 @@ void Mario::actionMain() {
             _3C4--;
         }
 
-        _A8C[2] = mVelocity;
         if (mMovementStates._1 && !mMovementStates.jumping) {
             if (isEnableSlopeMove()) {
                 slopeMove();
@@ -3800,6 +3788,40 @@ const Triangle* Mario::getGroundPolygon() const {
 }
 
 
+void Mario::updateCometCode() {
+    if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
+        if (MR::getAreaObj("GlaringLightArea", mPosHolder->mPos)) {
+            mCometRestrictions |= 2;
+        } else {
+            mCometRestrictions &= ~2u;
+        }
+        if (MR::getAreaObj("SunLightArea", mPosHolder->mPos)) {
+            mCometRestrictions |= 4;
+        } else {
+            mCometRestrictions &= ~4u;
+        }
+    }
+    if (mCometHopperArea) {
+        if (!isPlayerModeHopper()) {
+            mActor->setPlayerMode(PlayerMode_Hopper, false, false);
+            mCometHopperApplied = true;
+        }
+    } else if (mCometHopperApplied && isPlayerModeHopper()) {
+        mActor->setPlayerMode(PlayerMode_Normal, false, false);
+        mCometHopperApplied = false;
+    }
+    if (mCometRainbowArea) {
+        if (!isPlayerModeInvincible()) {
+            mActor->setPlayerMode(PlayerMode_Invincible, false, false);
+            mActor->_3DC = 0;
+            mCometRainbowApplied = true;
+        }
+    } else if (mCometRainbowApplied && isPlayerModeInvincible()) {
+        mActor->setPlayerMode(PlayerMode_Normal, false, false);
+        mCometRainbowApplied = false;
+    }
+}
+
 void Mario::updateFloorCode() {
     s32 code = _95C->getCode(mGroundPolygon);
 
@@ -5011,7 +5033,6 @@ void Mario::updateCubeCode() {
         camera = static_cast< CubeCameraArea* >(MR::getAreaObj("CubeCamera", mPosHolder->mPos));
     }
 
-    _568 = camera;
     _570 = 0;
 
     if (camera != nullptr) {

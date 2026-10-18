@@ -1,4 +1,5 @@
 #pragma once
+#include "Game/Player/YoshiHolder.hpp"
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Player/YoshiTongue.hpp"
@@ -268,6 +269,18 @@ public:
     void fn_8040EE70(const char*);
     void fn_8040ED90(const char*);
     void fn_8040EDE0(const char*);
+    void fn_8040F030();
+    void fn_8040F050();
+    void fn_8040F080();
+    void fn_8040F0A0();
+    void fn_8040F0B0();
+    void fn_8040F0D0();
+    void fn_8040F110();
+    void fn_8040F310();
+    void fn_8040F230(const JMapInfoIter&);
+    MtxPtr fn_8040F300();
+    void fn_8040EF40();
+    void fn_8040EFB0();
     void fn_8040EE00(const char*);
     bool fn_8040F450(const char*);
     bool fn_8040F490(const char*);
@@ -343,31 +356,7 @@ public:
 };
 
 /// @brief The object owned by MarioActor that bundles the Yoshi actor, tongue action and tongue (size 0x50).
-class YoshiHolder {
-public:
-    YoshiHolder(Mario*);
 
-    void* fn_8041B6F0();
-    void fn_8041B700(LiveActor*);
-    void fn_8041BAE0();
-    void fn_8041BAF0();
-    void fn_8041BB00();
-    bool fn_8041BB30() const;
-    f32 fn_8041BB50() const;
-    void fn_8041BB90();
-    void fn_8041BBA0();
-    void fn_8041BBB0();
-    void fn_8041BBF0(const TVec3f&, const TVec3f&, const TVec3f&);
-
-    /* 0x00 */ Yoshi* mYoshi;
-    /* 0x04 */ u8 _4[4];
-    /* 0x08 */ YoshiTongueAction* mTongueAction;
-    /* 0x0C */ void* _C;
-    /* 0x10 */ void* _10;
-    /* 0x14 */ u8 _14[4];
-    /* 0x18 */ LiveActor* mRideModelActor;
-    /* 0x1C */ u8 _1C[0x34];
-};
 
 /// @brief Static queries of Yoshi's tuning values (they ignore their object).
 namespace YoshiParam {

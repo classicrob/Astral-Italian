@@ -5,7 +5,7 @@
 class YoshiLockOnTarget;
 
 namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
+    bool tryYoshiEat(YoshiLockOnTarget*);
     bool tryYoshiLick(YoshiLockOnTarget*);
 };  // namespace YoshiFunction
 

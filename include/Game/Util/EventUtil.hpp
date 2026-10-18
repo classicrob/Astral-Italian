@@ -9,6 +9,7 @@ class LiveActor;
 class NameObj;
 
 namespace MR {
+    bool isOnGameEventFlagYoshiFirst();
     bool isUseScenarioSelectMusicZeroStars();
     bool isUseScenarioSelectMusicOneStar();
     bool branchFuncGameProgress(u32);

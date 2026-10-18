@@ -2,19 +2,20 @@
 #include <JSystem/JGeometry/TVec.hpp>
 class LiveActor;
 class YoshiTargetMark;
-struct YoshiLockOnTargetInfo {
+struct YoshiLockOnTarget {
     LiveActor* mActor;
     MtxPtr mMtx;
     TVec3f mOffset;
     bool mValid;
 };
+typedef YoshiLockOnTarget YoshiLockOnTargetInfo;
 struct YoshiLockOnTargetDesc {
     LiveActor* mActor;
     MtxPtr mMtx;
     TVec3f mOffset;
     u32 mType;
 };
-class YoshiLockOnTarget {
+class YoshiLockOnTargetControl {
 public:
     bool isInvalid() const;
     bool isMarkDead() const;

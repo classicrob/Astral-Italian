@@ -239,7 +239,7 @@ namespace MR {
     void fn_80010270(TQuat4f*, TVec3f*, LiveActor*);
     void fn_800104F0(TQuat4f*, LiveActor*, TVec3f*, f32, f32);
     void fn_80010910(TVec3f* pDst, const TVec3f& rDir, f32 scale);  // pDst = normalizeOrZero(rDir) * scale
-    void fn_80422290();
+    bool fn_80422290();
 };  // namespace MR
 
 class ActorPoseTQ;

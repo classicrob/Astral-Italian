@@ -1225,10 +1225,8 @@ void MarioEffect::playSwingEffect() {
         }
     }
 
-    // SB4E01: skip unless movementStates._21 is set or the f32 at Mario+0x484 is negative.
-    // Our Mario.hpp declares 0x484 as Triangle* (Petari too), so the float is read through a cast.
-    if (!getPlayer()->mMovementStates._21) {
-        if (*reinterpret_cast< const f32* >(&getPlayer()->_484) >= 0.0f) {
+    if (!getPlayer()->mMovementStates._1) {
+        if (!(getPlayer()->mVerticalSpeed < 0.0f)) {
             return;
         }
     }

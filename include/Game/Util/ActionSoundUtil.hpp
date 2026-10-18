@@ -8,6 +8,7 @@ class LayoutActor;
 class ActionSoundSystem;
 
 namespace MR {
+    void fn_80008560(const LiveActor*, const char*);
     ActionSoundSystem* getActionSoundData(const char* pName);
     void startActionSoundAuto(const LayoutActor*, const char*, s32 = -1, s32 = -1);
     void startActionSoundOneShot(const LayoutActor*, const char*, s32 = -1, s32 = -1);

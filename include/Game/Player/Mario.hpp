@@ -387,6 +387,7 @@ public:
     const TVec3f& getWallPos() const;
     const Triangle* getWallPolygon() const;
     const Triangle* getGroundPolygon() const;
+    void updateCometCode();
     void updateFloorCode();
     void updateWallFloorCode();
     void saveLastSafetyTrans();
@@ -921,7 +922,7 @@ public:
     /* 0x190 */ TVec3f _190;
     /* 0x19C */ TVec3f _19C;
     /* 0x1A8 */ TVec3f _1A8;
-    /* 0x1B4 */ u8 _pad1B4[0xC];
+    /* 0x1B4 */ TVec3f _1B4;
     /* 0x1C0 */ TVec3f mStickPos;
     /* 0x1CC */ TVec3f mWorldPadDir;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x1D8 */ TVec3f mAirGravityVec;  // SMG2 offset inh  // SMG2 offset inh
@@ -1030,7 +1031,9 @@ public:
     /* 0x468 */ Triangle* _46C;
     /* 0x46C */ Triangle* _470;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x470 */ Triangle* _474;
-    /* 0x474 */ TVec3f _1B4;  // SMG2 offset guess-gap  // SMG2 offset guess
+    /* 0x474 */ Triangle* mTmpPolygon;
+    /* 0x478 */ Triangle* _47C;
+    /* 0x47C */ Triangle* _480;
     /* 0x480 */ Triangle* _484;  // SMG2 offset vote-gap  // SMG2 offset vote-gap
     /* 0x484 */ f32 mVerticalSpeed;
     /* 0x488 */ TVec3f mGroundPos;  // SMG2 offset inh  // SMG2 offset inh
@@ -1065,20 +1068,16 @@ public:
     /* 0x544 */ f32 _548;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x548 */ TVec3f _54C;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x554 */ u32 _558;
-    /* 0x558 */ Triangle* mTmpPolygon;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x55C */ Triangle* _47C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x560 */ Triangle* _480;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x564 */ u32 _55C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x568 */ u32 _560;  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x558 */ u8 _pad558[8];
+    /* 0x560 */ s32 _564;
+    /* 0x564 */ AreaObj* _56C;
+    /* 0x568 */ u8 _570;
+    /* 0x569 */ u8 _pad569[3];
     /* 0x56C */ void* _574;
-    /* 0x570 */ s32 _564;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x574 */ CubeCameraArea* _568;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x578 */ AreaObj* _56C;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x57C */ u8 _570;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x57D */ u8 _pad57D[0x3];
-    /* 0x580 */ u32 _578;  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x584 */ TVec3f _A8C[9];  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x5F0 */ TVec3f _6A0;  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x570 */ u32 _578;
+    /* 0x574 */ Triangle* _57C[0x20];
+    /* 0x5F4 */ u32 mPreviousCometRestrictions;
+    /* 0x5F8 */ u32 mCometRestrictions;
     /* 0x5FC */ const HitSensor* _5FC;
     /* 0x600 */ TVec3f _600;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x60C */ u8 _60C;
@@ -1109,6 +1108,7 @@ public:
     /* 0x688 */ TVec3f _694;
     union {
         /* 0x694 */ TVec3f mSwimSideVec694;
+        /* 0x694 */ TVec3f _6A0;
         struct {
     /* 0x694 */ u8 _6AC;
     /* 0x695 */ u8 _6AD;
@@ -1254,10 +1254,9 @@ public:
     /* 0xA5C */ TVec3f _A58;  // SMG2 offset inh  // SMG2 offset inh
     /* 0xA68 */ f32 _A64;
     /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
-    /* 0xA70 */ union { u8 _A6C[0x20]; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
+    /* 0xA70 */ union { u8 _A6C[0x20]; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; bool mCometHopperApplied; bool mCometRainbowApplied; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93[9];
-    /* 0xA9C */ Triangle* _57C[0x20];  // SMG2 offset guess-TAIL  // SMG2 offset guess-TAIL
 };
 
 // SMG2-only free helpers of the Mario unit (set one axis column of a 3x4 matrix; original names unknown)

@@ -28,6 +28,11 @@
 #include "Game/Util/VectorUtil.hpp"
 #include <revolution/mtx.h>
 
+extern "C" void fn_8022BAA0(LiveActor*);
+extern "C" void fn_80376C30(LiveActor*, HitSensor*, s32);
+extern "C" u32 lbl_807D29E0;
+extern "C" u32 lbl_807D2A18;
+
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
 };  // namespace MR
@@ -344,6 +349,7 @@ bool Kuribo::requestFlatDown(HitSensor* pSender, HitSensor* pReceiver) {
     _CE = isUpsideDown();
     setNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown));
     MR::offBind(this);
+    fn_80376C30(this, pSender, 0);
     return true;
 }
 
@@ -359,6 +365,7 @@ bool Kuribo::requestHipDropDown(HitSensor* pSender, HitSensor* pReceiver) {
     _CE = isUpsideDown();
     setNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown));
     MR::offBind(this);
+    fn_80376C30(this, pSender, 0);
     return true;
 }
 
@@ -649,11 +656,17 @@ void Kuribo::exeFlatDown() {
 
 void Kuribo::exePressDown() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "EmCrashS");
+        if (_CE) {
+            MR::startAction(this, "HipDropDownReverse");
+        } else {
+            MR::startAction(this, "HipDropDown");
+        }
+        MR::startActionSound(this, "EmCrashS", -1, -1, -1);
         MR::zeroVelocity(this);
     }
 
-    if (MR::isGreaterStep(this, 180)) {
+    if (MR::isGreaterStep(this, 60)) {
+        fn_8022BAA0(this);
         kill();
     }
 }
@@ -696,6 +709,10 @@ bool Kuribo::isEnableKick() const {
         return mStateStagger->isEnableKick();
     }
 
+    if (isNerve(GET_NERVE(Kuribo, KuriboNrvBindStarPointer))) {
+        return _CE;
+    }
+
     return false;
 }
 
@@ -704,11 +721,16 @@ bool Kuribo::isUpsideDown() const {
         return mStateStagger->isUpsideDown();
     }
 
+    if (isNerve(GET_NERVE(Kuribo, KuriboNrvBindStarPointer))) {
+        return _CE;
+    }
+
     return false;
 }
 
 bool Kuribo::isEnableDead() const {
-    if (isNerve(GET_NERVE(Kuribo, KuriboNrvWander)) || isNerve(GET_NERVE(Kuribo, KuriboNrvFindPlayer)) ||
+    if (isNerve(GET_NERVE(Kuribo, KuriboNrvAppearFromBox)) || isNerve(reinterpret_cast< const Nerve* >(&lbl_807D29E0)) ||
+        isNerve(GET_NERVE(Kuribo, KuriboNrvWander)) || isNerve(GET_NERVE(Kuribo, KuriboNrvFindPlayer)) ||
         isNerve(GET_NERVE(Kuribo, KuriboNrvChase)) || isNerve(GET_NERVE(Kuribo, KuriboNrvStagger)) ||
         isNerve(GET_NERVE(Kuribo, KuriboNrvBindStarPointer)) || isNerve(GET_NERVE(Kuribo, KuriboNrvNonActive)) ||
         isNerve(GET_NERVE(Kuribo, KuriboNrvAttackSuccess))) {
@@ -724,6 +746,10 @@ bool Kuribo::isEnablePointBind() const {
         return true;
     }
 
+    if (isNerve(GET_NERVE(Kuribo, KuriboNrvStagger))) {
+        return mStateStagger->isEnableKick();
+    }
+
     return false;
 }
 
@@ -737,7 +763,8 @@ bool Kuribo::isEnableAttack() const {
 }
 
 bool Kuribo::isEnableStamp() const {
-    if (isNerve(GET_NERVE(Kuribo, KuriboNrvNonActive)) || isNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown)) ||
+    if (isNerve(GET_NERVE(Kuribo, KuriboNrvNonActive)) || isNerve(GET_NERVE(Kuribo, KuriboNrvAppearFromBox)) ||
+        isNerve(reinterpret_cast< const Nerve* >(&lbl_807D29E0)) || isNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown)) ||
         isNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvPressDown)) ||
         isNerve(GET_NERVE(Kuribo, KuriboNrvBlowDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvBlow))) {
         return false;
@@ -747,7 +774,8 @@ bool Kuribo::isEnableStamp() const {
 }
 
 bool Kuribo::isEnablePanch() const {
-    if (isNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown)) ||
+    if (isNerve(GET_NERVE(Kuribo, KuriboNrvAppearFromBox)) || isNerve(reinterpret_cast< const Nerve* >(&lbl_807D29E0)) ||
+        isNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown)) ||
         isNerve(GET_NERVE(Kuribo, KuriboNrvPressDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvBlowDown)) ||
         isNerve(GET_NERVE(Kuribo, KuriboNrvBlow))) {
         return false;
@@ -757,8 +785,10 @@ bool Kuribo::isEnablePanch() const {
 }
 
 bool Kuribo::isEnablePushMove() const {
-    if (isNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown)) ||
-        isNerve(GET_NERVE(Kuribo, KuriboNrvPressDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvBlowDown))) {
+    if (isNerve(GET_NERVE(Kuribo, KuriboNrvAppearFromBox)) || isNerve(reinterpret_cast< const Nerve* >(&lbl_807D29E0)) ||
+        isNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown)) || isNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown)) ||
+        isNerve(GET_NERVE(Kuribo, KuriboNrvPressDown)) ||
+        isNerve(GET_NERVE(Kuribo, KuriboNrvBlowDown)) || isNerve(reinterpret_cast< const Nerve* >(&lbl_807D2A18))) {
         return false;
     }
 

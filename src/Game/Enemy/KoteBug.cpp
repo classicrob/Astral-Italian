@@ -131,9 +131,6 @@ void KoteBug::appear() {
 void KoteBug::kill() {
     LiveActor::kill();
     MR::emitEffect(this, "Death");
-    if (MR::isValidSwitchDead(this)) {
-        MR::onSwitchDead(this);
-    }
 }
 
 void KoteBug::control() {

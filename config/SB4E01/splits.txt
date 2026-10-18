@@ -2108,8 +2108,24 @@ Game/Enemy/AnimStampController.cpp:
 	.sbss       start:0x807D1F48 end:0x807D1F50
 
 Game/Enemy/AttackRock.cpp:
-	.text       start:0x80150C20 end:0x801556B0
-	.ctors      start:0x80644070 end:0x80644084
+	.text       start:0x80150C20 end:0x80151AA0
+	.ctors      start:0x80644070 end:0x80644074
+
+Game/Enemy/AttackRockFinal.cpp:
+	.text       start:0x80151AA0 end:0x801528E0
+	.ctors      start:0x80644074 end:0x80644078
+
+Game/Enemy/AttackRockStateHold.cpp:
+	.text       start:0x801528E0 end:0x80153A00
+	.ctors      start:0x80644078 end:0x8064407C
+
+Game/Enemy/AttackRockStateFall.cpp:
+	.text       start:0x80153A00 end:0x801545D0
+	.ctors      start:0x8064407C end:0x80644080
+
+Game/Enemy/AttackRockTutorial.cpp:
+	.text       start:0x801545D0 end:0x801556B0
+	.ctors      start:0x80644080 end:0x80644084
 
 Game/Enemy/BakuBaku.cpp:
 	.text       start:0x801556B0 end:0x801560F0
@@ -2304,8 +2320,16 @@ Game/Enemy/BrosBase.cpp:
 	.text       start:0x80186430 end:0x80186BC0
 
 Game/Enemy/HammerBros.cpp:
-	.text       start:0x80186BC0 end:0x8018B620
-	.ctors      start:0x8064411C end:0x80644128
+	.text       start:0x80186BC0 end:0x80188930
+	.ctors      start:0x8064411C end:0x80644120
+
+Game/Enemy/HammerBrosHammer.cpp:
+	.text       start:0x80188930 end:0x80189850
+	.ctors      start:0x80644120 end:0x80644124
+
+Game/Enemy/HammerBrosTU02.cpp:
+	.text       start:0x80189850 end:0x8018B620
+	.ctors      start:0x80644124 end:0x80644128
 
 Game/Enemy/BrosProjectileBase.cpp:
 	.text       start:0x8018B620 end:0x8018BE10
@@ -2467,8 +2491,12 @@ Game/Enemy/LavaBubble.cpp:
 	.ctors      start:0x80644194 end:0x80644198
 
 Game/Enemy/MameMuimui.cpp:
-	.text       start:0x801BF480 end:0x801C19D0
-	.ctors      start:0x80644198 end:0x806441A0
+	.text       start:0x801BF480 end:0x801C0580
+	.ctors      start:0x80644198 end:0x8064419C
+
+Game/Enemy/MameMuimuiTU01.cpp:
+	.text       start:0x801C0580 end:0x801C19D0
+	.ctors      start:0x8064419C end:0x806441A0
 
 Game/Enemy/MechanicKoopaMini.cpp:
 	.text       start:0x801C19D0 end:0x801C3A50
@@ -2561,8 +2589,12 @@ Game/Enemy/PackunPetit.cpp:
 	.sbss       start:0x807D2E00 end:0x807D2E44
 
 Game/Enemy/PatakuriBig.cpp:
-	.text       start:0x801E4960 end:0x801E6D20
-	.ctors      start:0x806441E4 end:0x806441EC
+	.text       start:0x801E4960 end:0x801E5C00
+	.ctors      start:0x806441E4 end:0x806441E8
+
+Game/Enemy/PatakuriBigTU01.cpp:
+	.text       start:0x801E5C00 end:0x801E6D20
+	.ctors      start:0x806441E8 end:0x806441EC
 
 Game/Enemy/Pattan.cpp:
 	.text       start:0x801E6D20 end:0x801E8080
@@ -2764,8 +2796,16 @@ Game/Enemy/WalkerStateWander.cpp:
 	.sbss       start:0x807D3450 end:0x807D3458
 
 Game/Enemy/Wanwan.cpp:
-	.text       start:0x8021ACB0 end:0x802205A0
-	.ctors      start:0x80644274 end:0x80644280
+	.text       start:0x8021ACB0 end:0x8021DB20
+	.ctors      start:0x80644274 end:0x80644278
+
+Game/Enemy/WanwanCreator.cpp:
+	.text       start:0x8021DB20 end:0x8021E2C0
+	.ctors      start:0x80644278 end:0x8064427C
+
+Game/Enemy/WanwanSearch.cpp:
+	.text       start:0x8021E2C0 end:0x802205A0
+	.ctors      start:0x8064427C end:0x80644280
 
 Game/GameAudio/ActionSoundInfo.cpp:
 	.text       start:0x802205A0 end:0x802208F0
@@ -6519,8 +6559,24 @@ Game/Screen/WipeRing.cpp:
 	.data       start:0x806F9A94 end:0x806F9AF0
 
 Game/Screen/NrvWipeRing.cpp:
-	.text       start:0x804A8820 end:0x804AA740
-	.ctors      start:0x806449CC end:0x806449E0
+	.text       start:0x804A8820 end:0x804A8D40
+	.ctors      start:0x806449CC end:0x806449D0
+
+Game/Screen/NrvWipeRingTU01.cpp:
+	.text       start:0x804A8D40 end:0x804A9440
+	.ctors      start:0x806449D0 end:0x806449D4
+
+Game/Screen/NrvWipeRingTU02.cpp:
+	.text       start:0x804A9440 end:0x804A9AE0
+	.ctors      start:0x806449D4 end:0x806449D8
+
+Game/Screen/NrvWipeRingTU03.cpp:
+	.text       start:0x804A9AE0 end:0x804A9E30
+	.ctors      start:0x806449D8 end:0x806449DC
+
+Game/Screen/NrvWipeRingTU04.cpp:
+	.text       start:0x804A9E30 end:0x804AA740
+	.ctors      start:0x806449DC end:0x806449E0
 
 Game/Screen/YesNoController.cpp:
 	.text       start:0x804AA740 end:0x804AAFE0

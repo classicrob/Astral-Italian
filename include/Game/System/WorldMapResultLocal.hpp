@@ -378,6 +378,10 @@ WMR_STATE_DECL(WorldMapResultStateCreateTico,
                } void exeClose(); void exeOpen(); void exeExtend(); void exeWhiteClose(); void exeWhiteOpen(); void exeMessage(); void exeCloseEnd();
                void exeEnd(););
 
+/// Wait step of the result map ("State[ウェイト]").
+WMR_OWNER_STATE_DECL(WorldMapResultStateWait, virtual void control(); void exeMain(); bool isXXX() const; bool isYYY() const; bool isZZZ() const; void setTarget(s32); void clearTarget();
+               /* 0x10 */ u8 mFlagA; /* 0x11 */ u8 _11; /* 0x12 */ u8 mFlagB; /* 0x14 */ s32 mTarget; /* 0x18 */ s32 mTargetSet; /* 0x1C */ s32 mTimer;);
+
 class WorldMapResultController : public NerveExecutor {
 public:
     WorldMapResultController(WorldMapResultCommand*);

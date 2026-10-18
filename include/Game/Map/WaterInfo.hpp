@@ -6,6 +6,7 @@ class WaterArea;
 class OceanBowl;
 class OceanRing;
 class OceanSphere;
+class WaterStream;
 
 class WaterInfo {
 public:
@@ -30,4 +31,6 @@ public:
     /* 0x44 */ const OceanBowl* mOceanBowl;
     /* 0x48 */ const OceanRing* mOceanRing;
     /* 0x4C */ const OceanSphere* mOceanSphere;
+    // PLACEHOLDER(core): name inferred from WaterAreaHolder::tryInOceanArea (stores WaterStream hit at 0x50); resolve when WaterStream fields are confirmed
+    /* 0x50 */ const WaterStream* mWaterStream;
 };

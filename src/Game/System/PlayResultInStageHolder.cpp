@@ -11,10 +11,6 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-extern "C" {
-    s32 fn_80024F60(const char*);
-};
-
 PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("\x83v\x83\x8c\x83""C\x8c\x8b\x89\xca\x95\xdb\x8e\x9d[\x83X\x83""e\x81[\x83W\x92\x86]") {
     mIsStageResult = false;
     mHasPowerStar = false;
@@ -93,7 +89,7 @@ void PlayResultInStageHolder::reset() {
         const char* pName = accessor.getName();
         PlayResultStageEntry entry;
         entry.mValue = reinterpret_cast< u32 >(pName);
-        entry.mFlag = fn_80024F60(pName) != 0;
+        entry.mFlag = MR::getGalaxyStarTotalNum(pName) != 0;
         mNewStageList.add(entry);
         iter.goNext();
     }
@@ -199,7 +195,7 @@ void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
             continue;
         }
         const char* pName = reinterpret_cast< const char* >(pEntry->mValue);
-        if (fn_80024F60(pName) != 0) {
+        if (MR::getGalaxyStarTotalNum(pName) != 0) {
             PlayResultStageEntry added;
             added.mValue = pEntry->mValue;
             added.mFlag = true;

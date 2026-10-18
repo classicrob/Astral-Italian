@@ -113,7 +113,7 @@ void OpeningDemoObj::exeMain() {
         updateActionSound(getNerveStep());
     }
     if (!MR::isLessStep(this, lbl_807CF758) && MR::testCorePadTriggerA(0)) {
-        UnnamedDemoCallee::fn_800085C0(mLayoutB, lbl_806805EC, -1, -1);
+        MR::startActionSound(mLayoutB, lbl_806805EC, -1, -1);
         UnnamedDemoCallee::fn_80147800();
         if (isNerve(GET_NERVE(OpeningDemoObj, OpeningDemoObjNrvMain1))) {
             setNerve(GET_NERVE(OpeningDemoObj, OpeningDemoObjNrvTalk));
@@ -167,7 +167,7 @@ void OpeningDemoObj::exeFall() {
         MR::startAnim(mLayoutB, lbl_80680628, 0);
     }
     if (MR::isStep(this, 0x64)) {
-        UnnamedDemoCallee::fn_800085C0(mLayoutB, lbl_80680628, -1, -1);
+        MR::startActionSound(mLayoutB, lbl_80680628, -1, -1);
     }
     MR::setSeVolumeSetLevel(3, 0x1E);
     if (MR::isAnimStopped(mLayoutB, 0)) {

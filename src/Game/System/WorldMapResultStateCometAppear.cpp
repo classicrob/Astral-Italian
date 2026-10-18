@@ -1,3 +1,4 @@
+#include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 WorldMapResultStateCometAppear::WorldMapResultStateCometAppear(WorldMapResultCommand* pHost)
@@ -62,7 +63,7 @@ void WorldMapResultStateCometAppear::appear() {
 
     if (mHost->isResultActive()) {
         WorldMapResultCommand* pHost = mHost;
-        s32 world = fn_804E8960(getCurrentComet());
+        s32 world = WorldMapFunction::getGalaxyWorldNo(getCurrentComet());
 
         s32 id = pHost->getResultWorldId();
 
@@ -96,7 +97,7 @@ void WorldMapResultStateCometAppear::setupComet() {
     WorldMapResultCommand* pHost = mHost;
     fn_804F0D00(pHost, getCurrentComet());
     WorldMapResultCommand* pHost2 = mHost;
-    pHost2->startResult(fn_804E8960(getCurrentComet()));
+    pHost2->startResult(WorldMapFunction::getGalaxyWorldNo(getCurrentComet()));
     WorldMapResultCommand* pHost3 = mHost;
     fn_804F0D90(pHost3, getCurrentComet(), &mFrom, &mTo, 1.0f);
 }
@@ -175,7 +176,7 @@ void WorldMapResultStateCometAppear::exeMove() {
         if (next < mNum) {
             mCurrent = next;
             WorldMapResultCommand* pHost = mHost;
-            s32 world = fn_804E8960(getCurrentComet());
+            s32 world = WorldMapFunction::getGalaxyWorldNo(getCurrentComet());
             s32 id = pHost->getResultWorldId();
 
             if (id == world) {

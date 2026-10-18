@@ -7,34 +7,18 @@
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util/TalkUtil.hpp"
+#include "Game/System/WorldMapResultStateWorldNews.hpp"
 
 class TalkMessageCtrl;
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     void* fn_804A88E0();
-    s32 fn_804E8950(WorldMapOwner*);
-    bool fn_804E8CA0(WorldMapOwner*);
-    bool fn_804F6A80(WorldMapOwner*);
-    void fn_804E8780(WorldMapOwner*);
-    void fn_804E8850(WorldMapOwner*);
 }
 
 extern const char* lbl_807039D8[12];
 extern TVec2f lbl_8072BB30;
 extern char lbl_807038E0[];
-
-/// World-news state ("State[ワールドニュース]"): talk controls for the stage news, one per entry.
-WMR_OWNER_STATE_DECL(WorldMapResultStateWorldNews, virtual void control(); bool eventFunc(u32); bool checkStep(); void setIndexFlag(); bool isIndexInRange() const; void nextTalkNerve(); void exeStart(); void exeTalk(); void exeEnd(); void exeSave(); void startNextTalk();
-               /* 0x10 */ s32 mIndex; /* 0x14 */ TalkMessageCtrl** mTalkCtrls; /* 0x18 */ u8 _18[0xC]; /* 0x24 */ void* mPanel;);
-
-namespace NrvWorldMapResultStateWorldNews {
-    WMR_NERVE_DECL(WorldMapResultStateWorldNewsWait);
-    WMR_NERVE_DECL(WorldMapResultStateWorldNewsStart);
-    WMR_NERVE_DECL(WorldMapResultStateWorldNewsTalk);
-    WMR_NERVE_DECL(WorldMapResultStateWorldNewsEnd);
-    WMR_NERVE_DECL(WorldMapResultStateWorldNewsSave);
-};  // namespace NrvWorldMapResultStateWorldNews
 
 /// Talk-callback object of the world-news state: the state's member function, as registered with the talk ctrls.
 typedef TalkMessageFuncM< WorldMapResultStateWorldNews*, bool (WorldMapResultStateWorldNews::*)(u32) > WorldMapResultNewsTalkFunc;
@@ -61,12 +45,12 @@ void WorldMapResultStateWorldNews::appear() {
     mIsDead = false;
     void** pVtable = *reinterpret_cast< void*** >(mPanel);
     reinterpret_cast< void (*)(void*) >(pVtable[0x30 / 4])(mPanel);
-    fn_804E8780(mHost);
+    mHost->startDemo();
     setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsWait));
 }
 
 void WorldMapResultStateWorldNews::kill() {
-    fn_804E8850(mHost);
+    mHost->endDemo();
     reinterpret_cast< WorldMapArrow* >(mPanel)->disappear();
     mIsDead = true;
 }
@@ -87,8 +71,8 @@ bool WorldMapResultStateWorldNews::eventFunc(u32) {
 }
 
 bool WorldMapResultStateWorldNews::checkStep() {
-    s32 stage = fn_804E8950(mHost);
-    if (fn_804E8CA0(mHost) != 0) {
+    s32 stage = mHost->getWorldId();
+    if (mHost->isWorldEventFlagOff() != 0) {
         switch (stage) {
         case 1:
             mIndex = 0;
@@ -114,7 +98,7 @@ bool WorldMapResultStateWorldNews::checkStep() {
         }
         return false;
     }
-    if (fn_804F6A80(mHost) != 0) {
+    if (mHost->isAllNeededForGrandGalaxy() != 0) {
         switch (stage) {
         case 2:
             if (!GameDataFunction::isOnGameEventFlag(lbl_807038E0 + 0x134)) {

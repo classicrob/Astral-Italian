@@ -21,9 +21,7 @@ namespace NrvSky {
     NEW_NERVE(HostTypeChange, Sky, Change);
 };  // namespace NrvSky
 
-Sky::Sky(const char* pName) : LiveActor(pName), mSpaceInner(), mReflectionModel() {
-    _94 = nullptr;
-    _98 = 0;
+Sky::Sky(const char* pName) : LiveActor(pName), _90(), mSpaceInner(), mReflectionModel() {
 }
 
 void Sky::init(const JMapInfoIter& rIter) {
@@ -114,7 +112,7 @@ void Sky::exeWait() {
 
 void Sky::exeChange() {
     if (MR::isFirstStep(this)) {
-        MR::startAllAnim(this, ::cChangeAnimName);
+        MR::startAction(this, ::cChangeAnimName);
     }
 }
 

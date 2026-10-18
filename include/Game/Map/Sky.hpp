@@ -24,10 +24,10 @@ public:
     void exeWait();
     void exeChange();
 
-    /* 0x8C */ SpaceInner* mSpaceInner;
-    /* 0x90 */ MirrorReflectionModel* mReflectionModel;
-    /* 0x94 */ void* _94;
-    /* 0x98 */ u32 _98;
+    // PLACEHOLDER(core): SMG2 Sky 0x90 field, zeroed in ctor, not touched by any Sky fn; resolve when identified
+    /* 0x90 */ void* _90;
+    /* 0x94 */ SpaceInner* mSpaceInner;
+    /* 0x98 */ MirrorReflectionModel* mReflectionModel;
 };
 
 class ProjectionMapSky : public Sky {

@@ -1,12 +1,11 @@
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 // Result-map helpers of WorldMapResultCommand that drive the worlds of TU07 (route opening, comet and Tico road effects).
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
-    const Vec* fn_804E8530();
-    const Vec* fn_804E8540();
     void fn_804E71F0(LiveActor*, f32);
 }
 
@@ -66,9 +65,9 @@ extern "C" void fn_804F0630(WorldMapResultCommand* pCommand, s32 worldId, s32 no
     Vec offset;
 
     if (fn_804F0560(pCommand)->mWorldData->getGalaxyName(nodeIndex) != nullptr) {
-        offset = *fn_804E8530();
+        offset = *WorldMapFunction::getRocketOffsetGalaxy();
     } else {
-        offset = *fn_804E8540();
+        offset = *WorldMapFunction::getRocketOffsetPoint();
     }
 
     fn_804F05B0(pCommand, TVec3f(pNode->mPos.x + offset.x, pNode->mPos.y + offset.y, pNode->mPos.z + offset.z));
@@ -168,21 +167,21 @@ extern "C" bool fn_804F0B20(WorldMapResultCommand* pCommand, s32 worldId, WorldM
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" TVec3f* fn_804F0B40(WorldMapResultCommand* pCommand, const char* pName) {
-    s32 worldId = fn_804E8960(pName);
+    s32 worldId = WorldMapFunction::getGalaxyWorldNo(pName);
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
     return &pWorld->mWorldData->findByName(pName)->mPosition;
 }
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0BA0(WorldMapResultCommand* pCommand, const char* pName, s32) {
-    s32 worldId = fn_804E8960(pName);
+    s32 worldId = WorldMapFunction::getGalaxyWorldNo(pName);
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
     pWorld->mWorldData->findByName(pName)->endPointingAnim();
 }
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0C00(WorldMapResultCommand* pCommand, const char* pName) {
-    s32 worldId = fn_804E8960(pName);
+    s32 worldId = WorldMapFunction::getGalaxyWorldNo(pName);
     WorldMapResultWorld* pWorld = pCommand->mWorlds[worldId - 1];
     pWorld->mWorldData->findByName(pName)->setComet(false);
 }
@@ -198,7 +197,7 @@ extern "C" void fn_804F0C60(WorldMapResultCommand* pCommand, const char* pName, 
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804F0D00(WorldMapResultCommand* pCommand, const char* pName) {
-    s32 worldId = fn_804E8960(pName);
+    s32 worldId = WorldMapFunction::getGalaxyWorldNo(pName);
     pCommand->mWorlds[worldId - 1]->setupNode(0, -1);
 
     if (worldId == GameDataFunction::getCurrentWorldId()) {

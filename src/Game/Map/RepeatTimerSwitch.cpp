@@ -4,9 +4,6 @@
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-// Object name, then the sound event names at offsets 0x18 (TimeOut), 0x20 (Timer1), 0x28 (Timer2).
-char sRepeatTimerSwitchNames[0x30] = "RepeatTimerSwitch\0\0\0\0\0\0TimeOut\0\0Timer1\0\0Timer2";
-
 RepeatTimerSwitch::~RepeatTimerSwitch() {
 }
 
@@ -19,11 +16,10 @@ void RepeatTimerSwitch::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mTimeLimit);
     MR::getJMapInfoArg1NoInit(rIter, &mTimeOffset);
     mStageSwitchCtrl = MR::createStageSwitchCtrl(this, rIter);
-    mSound = new ActionSoundKeeper(4, sRepeatTimerSwitchNames, NULL);
+    mSound = new ActionSoundKeeper(4, "RepeatTimerSwitch", NULL);
 }
 
 void RepeatTimerSwitch::movement() {
-    const char* pNames = sRepeatTimerSwitchNames;
     if (mStageSwitchCtrl->isValidSwitchAppear() && !mStageSwitchCtrl->isOnSwitchAppear()) {
         return;
     }
@@ -54,15 +50,15 @@ void RepeatTimerSwitch::movement() {
     }
 
     if (wrapped) {
-        mSound->startSound(pNames + 0x18, -1, -1);
+        mSound->startSound("TimeOut", -1, -1);
         return;
     }
 
     s32 divisor = period / (period / 60);
     s32 rem = mTimer % divisor;
     if (rem == 0) {
-        mSound->startSound(pNames + 0x20, -1, -1);
+        mSound->startSound("Timer1", -1, -1);
     } else if (rem == 30) {
-        mSound->startSound(pNames + 0x28, -1, -1);
+        mSound->startSound("Timer2", -1, -1);
     }
 }

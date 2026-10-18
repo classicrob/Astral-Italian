@@ -3,30 +3,20 @@
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/Effect/EffectSystem.hpp"
 #include "Game/Effect/ParticleCalcExecutor.hpp"
+#include "Game/System/WorldMapResultStateGalaxyMap.hpp"
 
 extern "C" {
     void fn_804E17D0(void*);
     void fn_804E17E0(void*);
     void fn_804E1930(void*, s32);
-    void fn_804F6DF0(WorldMapOwner*);
-    void fn_804F6E40(WorldMapOwner*);
-    void* fn_804E8950(WorldMapOwner*);
     void* fn_804DFD30(void*);
-    s32 fn_804DFD50(void*, void*);
+    s32 fn_804DFD50(void*, s32);
     s32 fn_804DFE70(void*);
     s32 fn_804DFE80(void*);
     void fn_804DFCC0(void*);
     bool fn_80059330();
 }
 
-WMR_OWNER_STATE_DECL(WorldMapResultStateGalaxyMap, virtual void control(); void exeStart(); void exeWait(); void exeEnd();
-               /* 0x10 */ s32 mInt10; /* 0x14 */ s32 mInt14;);
-
-namespace NrvWorldMapResultStateGalaxyMap {
-    WMR_NERVE_DECL(WorldMapResultStateGalaxyMapStart);
-    WMR_NERVE_DECL(WorldMapResultStateGalaxyMapWait);
-    WMR_NERVE_DECL(WorldMapResultStateGalaxyMapEnd);
-};  
 static ParticleCalcExecutor* getGalaxyMapCalc() {
     return *reinterpret_cast< ParticleCalcExecutor** >(reinterpret_cast< u8* >(MR::getEffectSystem()) + 0x20);
 }
@@ -40,7 +30,7 @@ void WorldMapResultStateGalaxyMap::init() {
     initNerve(GET_NERVE(WorldMapResultStateGalaxyMap, WorldMapResultStateGalaxyMapStart), 0);
     void* pController = fn_804DFD30(mHost->mMainLayout);
     mInt10 = mHost->getCamera()->mCurrent;
-    mInt14 = fn_804DFD50(pController, fn_804E8950(mHost));
+    mInt14 = fn_804DFD50(pController, mHost->getWorldId());
     mIsDead = true;
 }
 
@@ -50,7 +40,7 @@ void WorldMapResultStateGalaxyMap::appear() {
     fn_804E1930(mHost->getMainLayout(), mInt14);
     MR::tryForceDeleteEffectAll(mHost->getRocket());
     fn_804E17D0(mHost->getMainLayout());
-    fn_804F6E40(mHost);
+    mHost->finishWorld();
     setNerve(GET_NERVE(WorldMapResultStateGalaxyMap, WorldMapResultStateGalaxyMapStart));
 }
 
@@ -75,7 +65,7 @@ void WorldMapResultStateGalaxyMap::exeStart() {
 void WorldMapResultStateGalaxyMap::exeWait() {
     if (fn_804DFE80(mHost->getMainLayout()) != 0) {
         fn_804E17E0(mHost->getMainLayout());
-        fn_804F6DF0(mHost);
+        mHost->prepareWorld();
         mInt14 = mHost->getCamera()->mCurrent;
         mHost->warpRocketToNode(mInt10);
         setNerve(GET_NERVE(WorldMapResultStateGalaxyMap, WorldMapResultStateGalaxyMapEnd));

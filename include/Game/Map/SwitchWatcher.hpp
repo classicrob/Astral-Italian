@@ -1,18 +1,9 @@
 #pragma once
 
+#include "Game/Map/SwitchEventListener.hpp"
 #include "Game/NameObj/NameObj.hpp"
 
 class StageSwitchCtrl;
-
-class SwitchEventListener {
-public:
-    inline SwitchEventListener() {
-    }
-
-    virtual void refresh(bool isOnEvent);
-    virtual void listenSwitchOnEvent() = 0;
-    virtual void listenSwitchOffEvent() = 0;
-};
 
 class SwitchWatcher : public NameObj {
 public:

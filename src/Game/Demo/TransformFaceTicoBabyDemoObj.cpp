@@ -9,10 +9,6 @@ extern "C" const char* lbl_807CF780;
 // Function name for the demo cast (DemoMeetMeister); initialized in this TU's sdata.
 const char* sDemoFuncName = "DemoMeetMeister";
 
-// PLACEHOLDER(core): fn_800209B0 (DemoUtil, 0x80 bytes): registerDemoCast + fn_801391E0 with the function name;
-// resolve when the DemoUtil lane names it (then replace this with MR::<name>).
-extern "C" void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*);
-
 namespace NrvTransformFaceTicoBabyDemoObj {
     class TransformFaceTicoBabyDemoObjNrvWait : public Nerve {
     public:
@@ -42,7 +38,7 @@ void TransformFaceTicoBabyDemoObj::init(const JMapInfoIter& rIter) {
 
     MR::tryRegisterDemoCast(this, lbl_807CF780, rIter);
     mDemoObj = MR::createDemoObjWithAnimArc("ベビチコ[顔惑星変化用]", "TicoBaby", "TicoBabyAnim", MR::getPlayerBaseMtx());
-    fn_800209B0(mDemoObj, rIter, lbl_807CF780, sDemoFuncName);
+    MR::tryInitDemoSheetAnim(mDemoObj, rIter, lbl_807CF780, sDemoFuncName);
     MR::invalidateClipping(mDemoObj);
     mDemoObj->makeActorDead();
     makeActorDead();

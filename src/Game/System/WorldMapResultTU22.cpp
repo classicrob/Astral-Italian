@@ -1,18 +1,7 @@
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapOwner.hpp"
-
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" {
-    bool fn_804E8E00(bool);
-    s32 fn_804E8A10(WorldMapOwner*);
-    bool fn_804F7520(WorldMapOwner*);
-    void fn_804F6B10(WorldMapOwner*);
-}
-
-/// Wait step of the result map ("State[ウェイト]").
-WMR_OWNER_STATE_DECL(WorldMapResultStateWait, virtual void control(); void exeMain(); bool isXXX() const; bool isYYY() const; bool isZZZ() const; void setTarget(s32); void clearTarget();
-               /* 0x10 */ u8 mFlagA; /* 0x11 */ u8 _11; /* 0x12 */ u8 mFlagB; /* 0x14 */ s32 mTarget; /* 0x18 */ s32 mTargetSet; /* 0x1C */ s32 mTimer;);
 
 namespace NrvWorldMapResultStateWait {
     WMR_NERVE_DECL(WorldMapResultStateWaitMain);
@@ -41,7 +30,7 @@ void WorldMapResultStateWait::appear() {
     mTimer = 10;
     bool flag = mHost->isCurrentGalaxyInfoShown();
     mFlagA = flag;
-    mFlagB = fn_804E8E00(flag);
+    mFlagB = WorldMapFunction::isMapEventFlagOff();
 }
 
 void WorldMapResultStateWait::kill() {
@@ -50,7 +39,7 @@ void WorldMapResultStateWait::kill() {
 
 // NONMATCHING: timer/count update scheduled in a different order (10 insns differ)
 void WorldMapResultStateWait::control() {
-    fn_804F6B10(mHost);
+    mHost->updateParts();
 
     s32 count = mTargetSet - 1;
     s32 sign = static_cast< u32 >(count) >> 31;
@@ -121,7 +110,7 @@ void WorldMapResultStateWait::exeMain() {
 }
 
 bool WorldMapResultStateWait::isYYY() const {
-    if (MR::testCorePadTriggerA(0) && fn_804F7520(mHost)) {
+    if (MR::testCorePadTriggerA(0) && mHost->tryDecideZoomButton()) {
         return true;
     }
 

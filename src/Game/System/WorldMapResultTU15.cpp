@@ -3,6 +3,7 @@
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/Util/TalkUtil.hpp"
+#include "Game/System/WorldMapResultStateGreenStarDemo.hpp"
 
 namespace MR {
     void forceOpenSystemWipeWhiteFade(s32);
@@ -13,28 +14,11 @@ extern "C" {
     void fn_804E17D0(void*);
     void fn_804E17E0(void*);
     void fn_804E1930(void*, s32);
-    void fn_804F6DF0(WorldMapOwner*);
-    void fn_804F6E40(WorldMapOwner*);
     void fn_804E17F0(void*);
-    void fn_804E8780(WorldMapOwner*);
-    void fn_804E8850(WorldMapOwner*);
     void fn_804F33F0(TVec3f*, const TVec3f*, const TVec3f*, s32, s32);
 }
 
 extern s32 lbl_807E3148;
-
-/// Green-star demo state ("State[グリーンスター出現デモ]"): two comet actors, a counter array and a talk ctrl.
-WMR_OWNER_STATE_DECL(WorldMapResultStateGreenStarDemo, virtual void control(); void showComets(); void exeStart(); void exeShower(); void exeTalkStart(); void exeTalk(); void exeEnd();
-               /* 0x10 */ MiniGreenComet* mComet; /* 0x14 */ MiniGreenCometShower* mShower; /* 0x18 */ GalaxyWorldMapInfo** mCounts; /* 0x1C */ TalkMessageCtrl* mTalkCtrl;);
-
-namespace NrvWorldMapResultStateGreenStarDemo {
-    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoStart);
-    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoShower);
-    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoWait);
-    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoTalkStart);
-    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoTalk);
-    WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoEnd);
-};  // namespace NrvWorldMapResultStateGreenStarDemo
 
 /// Camera vectors of the demo (8 entries, constructed in declaration order).
 static TVec3f sCameraTable[8] = {
@@ -81,17 +65,17 @@ void WorldMapResultStateGreenStarDemo::appear() {
     setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart));
     fn_804E17D0(mHost->getMainLayout());
     fn_804E17F0(mHost->getMainLayout());
-    fn_804F6E40(mHost);
+    mHost->finishWorld();
     fn_804E1930(mHost->getMainLayout(), 0);
     mHost->changeRocketActionBck("Wait");
     mHost->hideRocket();
     MR::startGlobalEventCameraNoTarget(sCameraName, 0);
-    fn_804E8780(mHost);
+    mHost->startDemo();
 }
 
 void WorldMapResultStateGreenStarDemo::kill() {
     mShower->kill();
-    fn_804E8850(mHost);
+    mHost->endDemo();
     mIsDead = true;
 }
 
@@ -131,7 +115,7 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
     }
     if (MR::isWipeBlank()) {
         fn_804E17E0(mHost->getMainLayout());
-        fn_804F6DF0(mHost);
+        mHost->prepareWorld();
         mHost->warpRocketToNode(0);
         mHost->showRocket();
         MR::endGlobalEventCamera(sCameraName, -1, true);

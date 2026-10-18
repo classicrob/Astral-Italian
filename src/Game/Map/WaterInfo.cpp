@@ -5,7 +5,7 @@ WaterInfo::WaterInfo() {
 }
 
 bool WaterInfo::isInWater() const {
-    if (mWaterArea || mOceanBowl || mOceanRing || mOceanSphere) {
+    if (mWaterArea || mOceanBowl || mOceanRing || mOceanSphere || mWaterStream) {
         return true;
     }
 
@@ -27,4 +27,5 @@ void WaterInfo::clear() {
     mOceanBowl = nullptr;
     mOceanRing = nullptr;
     mOceanSphere = nullptr;
+    mWaterStream = nullptr;
 }

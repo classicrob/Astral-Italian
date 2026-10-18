@@ -1,3 +1,4 @@
+#include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -5,17 +6,12 @@
 #include "Game/Util/ActorCameraUtil.hpp"
 
 #include "Game/Screen/GalaxyConfirmLayout.hpp"
+#include "Game/System/WorldMapResultStateEnterHome.hpp"
 
 extern "C" {
-    void fn_804F6B10(WorldMapOwner*);
-    void fn_804F6FE0(WorldMapOwner*);
-    void fn_804E8780(WorldMapOwner*);
-    void* fn_804E8950(WorldMapOwner*);
-    bool fn_804E8E90(void*);
     void fn_800592A0();
     void fn_800591E0();
     void fn_8001C030(s32);
-    void fn_804F4CB0(s32);
 }
 
 namespace MR {
@@ -32,15 +28,6 @@ namespace MR {
 extern const char* lbl_807D0570;
 extern f32 lbl_807E3140;
 
-WMR_OWNER_STATE_DECL(WorldMapResultStateEnterHome, virtual void control(); void exeApproach(); void exeWait(); void exeEnter(); void exeExit();
-               /* 0x10 */ GalaxyConfirmLayout* mLayout; /* 0x14 */ ActorCameraInfo* mCamInfo;);
-
-namespace NrvWorldMapResultStateEnterHome {
-    WMR_NERVE_DECL(WorldMapResultStateEnterHomeApproach);
-    WMR_NERVE_DECL(WorldMapResultStateEnterHomeWait);
-    WMR_NERVE_DECL(WorldMapResultStateEnterHomeEnter);
-    WMR_NERVE_DECL(WorldMapResultStateEnterHomeExit);
-};  
 static void setEnterHomeCamera(WorldMapOwner* pHost) {
     pHost->setRocketSpeed(0.1f);
     TVec3f pos;
@@ -81,7 +68,7 @@ void WorldMapResultStateEnterHome::kill() {
 }
 
 void WorldMapResultStateEnterHome::control() {
-    fn_804F6B10(mHost);
+    mHost->updateParts();
     MR::setDepthOfFieldBlurIntensity(1.0f);
     MR::setDepthOfFieldBlurDistance(0x22C4, 0x23F0);
 }
@@ -125,7 +112,7 @@ void WorldMapResultStateEnterHome::exeEnter() {
         LiveActor* pActor = mHost->getCamera()->mCameraTarget;
         MR::startAnimCameraTargetSelf(pActor, mCamInfo, lbl_807D0570, -1, false, 1.0f);
         fn_8001C030(30);
-        fn_804E8780(mHost);
+        mHost->startDemo();
     }
 
     if (MR::isStep(this, 15)) {
@@ -136,7 +123,7 @@ void WorldMapResultStateEnterHome::exeEnter() {
     setEnterHomeCamera(mHost);
 
     if (MR::isStep(this, 38)) {
-        if (fn_804E8E90(fn_804E8950(mHost))) {
+        if (WorldMapFunction::isWorldNoMid(mHost->getWorldId())) {
             fn_800592A0();
         } else {
             fn_800591E0();
@@ -145,7 +132,7 @@ void WorldMapResultStateEnterHome::exeEnter() {
 
     LiveActor* pActor = mHost->getCamera()->mCameraTarget;
     if (MR::isAnimCameraEnd(pActor, mCamInfo, lbl_807D0570)) {
-        fn_804F6FE0(mHost);
+        mHost->enterCurrentGalaxy();
     }
 }
 

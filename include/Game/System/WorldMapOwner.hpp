@@ -20,6 +20,7 @@ class MiniPlayerRocket;
 class WorldMapResultMapData;
 class WorldMapResultRoute;
 class WorldMapResultStatePointEvent;
+class WorldMapResultStateTicoRouteCreate;
 class TalkMessageCtrl;
 class MiniTicoMaster;
 class GalaxyWorldMapInfo;
@@ -35,12 +36,6 @@ struct WorldMapOwnerContext {
     /* 0x18 */ WorldMapLayouts* mLayouts;
 };
 
-/// State that lets the player create a Tico route (WorldMapSequence::mStateTicoRoute); only its creator slot is used here.
-// PLACEHOLDER(core): partial layout of the Tico-route state; resolve when that state class (fn_804FC9B0 ctor, 0x24 bytes) is written
-struct WorldMapStateTicoRoute {
-    /* 0x00 */ u8 _0[0x20];
-    /* 0x20 */ MiniTicoMaster* mTicoCreator;
-};
 
 // PLACEHOLDER(core): `WorldMapOwner` is a descriptive name (WorldMapSequence::mOwner); resolve when the real class of the world-map owner is known
 class WorldMapOwner {
@@ -53,6 +48,15 @@ public:
     bool isGalaxyInfoAppeared() const;
     const char* getGalaxyInfoName() const;
     void showGalaxyInfo(const char* pName);
+    void setRocketPosWithTarget(const TVec3f* pPos);  // fn_804E8480: rocket position, then the camera target follows the rocket
+    void setRocketScale(const TVec3f* pScale);        // fn_804E84D0
+    const TVec3f* getRocketPosition() const;          // fn_804E8510: position of the camera holder's rocket
+    void startDemo();                                 // fn_804E8780
+    void startDemoNoCinemaCheck();                    // fn_804E87F0
+    void endDemo();                                   // fn_804E8850
+    void setRocketFrontUpPos(const TVec3f& rFront, const TVec3f& rUp, const TVec3f& rPos);  // fn_804E88A0
+    s32 getWorldId() const;                           // fn_804E8950
+    bool isWorldEventFlagOff() const;                 // fn_804E8CA0: the event flag of the current world (1..7) is not set
 
     // ---- WorldMapResultTU11 (0x804F5F90..) ----
     WorldMapResultMapData* getMapData() const NO_INLINE;
@@ -80,7 +84,7 @@ public:
     bool tryWarpByA(s32 node) NO_INLINE;
     bool tryStickWarp() NO_INLINE;
     bool tryApplyNextNode() NO_INLINE;
-    bool tryStartTicoRoute(WorldMapStateTicoRoute* pState, s32 node) NO_INLINE;
+    bool tryStartTicoRoute(WorldMapResultStateTicoRouteCreate* pState, s32 node) NO_INLINE;
     bool tryWorldWarpFromStick(PartsWarpInfo* pInfo) NO_INLINE;
     bool tryWorldWarpFromNext(PartsWarpInfo* pInfo) NO_INLINE;
     bool isAllNeededForGrandGalaxy() NO_INLINE;
@@ -107,7 +111,7 @@ public:
     void requestAppearZoomButton() NO_INLINE;
     bool isZoomButtonAppeared() NO_INLINE;
     void requestAppearCoinsAndLives() NO_INLINE;
-    void tryDecideZoomButton() NO_INLINE;
+    bool tryDecideZoomButton() NO_INLINE;
     bool isZoomButtonPointing() NO_INLINE;
     void changeRocketAction(const char* pName) NO_INLINE;
     void changeRocketActionBck(const char* pName) NO_INLINE;

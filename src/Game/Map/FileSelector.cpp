@@ -52,8 +52,6 @@ namespace StarPointerUtil {
     void setConnectionMovePositionDown(const char*, const char*);
 }
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_8005EA60(const char*);
-extern "C" void fn_8005EAA0(const char*);
 extern "C" void fn_8005EAE0(const char*, const char*);
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -145,16 +143,11 @@ void FileSelector_FORCE_MATCH_SDATA2() {
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_803B6830(int);
-extern "C" void fn_8045E970(BackButton*);
-extern "C" bool fn_8045E9D0(BackButton*);
-extern "C" void fn_80486AA0();
-extern "C" bool fn_804A2BB0(SysInfoWindow*);
 extern "C" void fn_80060290();
 extern "C" bool fn_800602A0();
 extern "C" void fn_8024CFE0(FileSelectItem*);
 extern "C" void fn_8024D010(FileSelectItem*);
 extern "C" void fn_804D4700();
-extern "C" void fn_804D3DF0();
 
 FileSelector::FileSelector(const char* pName)
     : LiveActor(pName), mCameraController(), mSky(), mItems(), mOperationButton(), mBackButton(), mSysInfoWindow(), _B0(), _B4(), _B8(), _BC(),
@@ -909,8 +902,8 @@ void FileSelector::updatePointingGuidance() {
         LiveActor* pFirst = mItems->getActor(0);
         LiveActor* pLast = mItems->getActor(mItems->getObjNum() - 1);
         StarPointerUtil::setConnectionMovePositionRight2Way(pLast->mName, pFirst->mName);
-        fn_8005EA60(pFirst->mName);
-        fn_8005EAA0(pLast->mName);
+        StarPointerUtil::setFirstMovePosition(pFirst->mName);
+        StarPointerUtil::setLastMovePosition(pLast->mName);
     }
 
     for (int i = 0; i < mItems->getObjNum(); i++) {
@@ -1171,7 +1164,7 @@ void FileSelector::exeDemo() {
     }
 
     GameDataFunction::setUserName(name);
-    fn_804D3DF0();
+    GameDataFunction::resetPlayerLeftAndTryOnDimensionBigCastleGalaxyComet();
     GameSequenceFunction::requestChangeStageAfterFileSelect();
     MR::startSystemWipeCircleWithCaptureScreen(90);
 }
@@ -1366,7 +1359,7 @@ void FileSelector::exeMiiConfirm() {
     }
 
     if (mSysInfoWindow->isDisappear()) {
-        if (fn_804A2BB0(mSysInfoWindow)) {
+        if (mSysInfoWindow->isYesButtonSelected()) {
             restartMovementForLayout();
         }
     }

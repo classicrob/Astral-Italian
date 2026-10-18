@@ -1,36 +1,28 @@
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapOwner.hpp"
+#include "Game/System/WorldMapResultStatePointEvent.hpp"
+#include "Game/System/WorldMapResultStateTicoRouteCreate.hpp"
+#include "Game/System/WorldMapResultStateWorldNews.hpp"
+#include "Game/System/WorldMapResultStateWorldWarp.hpp"
+#include "Game/System/WorldMapResultStateGalaxyMap.hpp"
+#include "Game/System/WorldMapResultStateLeaveHome.hpp"
+#include "Game/System/WorldMapResultStateMove.hpp"
+#include "Game/System/WorldMapResultStatePointWarp.hpp"
+#include "Game/System/WorldMapResultStateOpenGalaxy.hpp"
+#include "Game/System/WorldMapResultStateEnterGalaxy.hpp"
+#include "Game/System/WorldMapResultStateEnterHome.hpp"
+#include "Game/System/WorldMapResultStateKoopaCastle.hpp"
+#include "Game/System/WorldMapResultStateGrandGalaxyOpen.hpp"
+#include "Game/System/WorldMapResultStateGrandGalaxyEnd.hpp"
+#include "Game/System/WorldMapResultStateGreenStarDemo.hpp"
 
 // Callees living in other WorldMapResult translation units (unnamed in the target).
 // PLACEHOLDER(core): unnamed SMG2 callees, and WorldMapResultState* members/ctors whose classes have no header yet; resolve when their owners name them or the WorldMapResultState* headers exist
 extern "C" {
-    void* fn_804F9330(void*, void*);
-    void* fn_804FD0D0(void*, void*);
-    void* fn_804FA6E0(void*, void*);
-    void* fn_804FC9B0(void*, void*);
-    void* fn_804FD620(void*, void*);
-    void* fn_804FE0C0(void*, void*);
-    void* fn_804FBC30(void*, void*);
-    void* fn_804FB4D0(void*, void*);
-    void* fn_804FB770(void*, void*);
-    void* fn_804FA3D0(void*, void*);
-    void* fn_804F4C20(void*, void*);
-    void* fn_804F56C0(void*, void*);
-    void* fn_804F5DC0(void*, void*);
-    void* fn_804F90A0(void*, void*);
-    void* fn_804F9740(void*, void*);
-    void* fn_804F99E0(void*, void*);
-    void fn_804E87F0(void*);
-    void* fn_804E8850(void*);
-    bool fn_804E8DC0();
-    bool fn_804E8E30();
     u64 fn_80088630();
-    void fn_804FD4E0(void*, s32);
-    void fn_804FD540(void*);
-    bool fn_804FD820(void*);
-    bool fn_804FD2D0(void*);
-    bool fn_804FD350(void*);
+    bool fn_804FD820(WorldMapResultStateWorldNews*);
 
 }
 
@@ -818,12 +810,12 @@ public:
     bool checkWorldNews() NO_INLINE;
 
     /* 0x08 */ WorldMapOwner* mOwner;
-    /* 0x0C */ void* mStateWait;
-    /* 0x10 */ void* mStatePointEvent;
-    /* 0x14 */ void* mStateTicoRoute;
-    /* 0x18 */ void* mStateWorldNews;
-    /* 0x1C */ void* mStateWorldWarp;
-    /* 0x20 */ void* mStateGalaxyMap;
+    /* 0x0C */ WorldMapResultStateWait* mStateWait;
+    /* 0x10 */ WorldMapResultStatePointEvent* mStatePointEvent;
+    /* 0x14 */ WorldMapResultStateTicoRouteCreate* mStateTicoRoute;
+    /* 0x18 */ WorldMapResultStateWorldNews* mStateWorldNews;
+    /* 0x1C */ WorldMapResultStateWorldWarp* mStateWorldWarp;
+    /* 0x20 */ WorldMapResultStateGalaxyMap* mStateGalaxyMap;
     /* 0x24 */ bool mFlag;
 };
 
@@ -839,124 +831,28 @@ WorldMapSequence::WorldMapSequence(WorldMapOwner* pOwner) : NerveExecutor("ã‚·ãƒ
 void WorldMapSequence::init(bool startAtMap) {
     mOwner->initCameraNodeNames();
     initNerve(&NrvWorldMapSequence::WorldMapSequenceStart::sInstance, 0x14);
-    void* p = ::operator new(0x20);
-
-    if (p != nullptr) {
-        p = fn_804FD0D0(p, mOwner);
-    }
-
-    mStateWait = p;
-    p = ::operator new(0x3C);
-
-    if (p != nullptr) {
-        p = fn_804FA6E0(p, mOwner);
-    }
-
-    mStatePointEvent = p;
-    p = ::operator new(0x24);
-
-    if (p != nullptr) {
-        p = fn_804FC9B0(p, mOwner);
-    }
-
-    mStateTicoRoute = p;
-    p = ::operator new(0x30);
-
-    if (p != nullptr) {
-        p = fn_804FD620(p, mOwner);
-    }
-
-    mStateWorldNews = p;
-    p = ::operator new(0x40);
-
-    if (p != nullptr) {
-        p = fn_804FE0C0(p, mOwner);
-    }
-
-    mStateWorldWarp = p;
-    p = ::operator new(0x18);
-
-    if (p != nullptr) {
-        p = fn_804F9330(p, mOwner);
-    }
-
-    mStateGalaxyMap = p;
-    p = ::operator new(0x2C);
-
-    if (p != nullptr) {
-        p = fn_804FBC30(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceStart::sInstance, "Start");
+    mStateWait = new WorldMapResultStateWait(mOwner);
+    mStatePointEvent = new WorldMapResultStatePointEvent(mOwner);
+    mStateTicoRoute = new WorldMapResultStateTicoRouteCreate(mOwner);
+    mStateWorldNews = new WorldMapResultStateWorldNews(mOwner);
+    mStateWorldWarp = new WorldMapResultStateWorldWarp(mOwner);
+    mStateGalaxyMap = new WorldMapResultStateGalaxyMap(mOwner);
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateLeaveHome(mOwner)), &NrvWorldMapSequence::WorldMapSequenceStart::sInstance, "Start");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(mStateWait), &NrvWorldMapSequence::WorldMapSequenceWait::sInstance, "Wait");
-    p = ::operator new(0x18);
-
-    if (p != nullptr) {
-        p = fn_804FB4D0(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequencePointMove::sInstance, "PointMove");
-    p = ::operator new(0x10);
-
-    if (p != nullptr) {
-        p = fn_804FB770(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequencePointWarp::sInstance, "PointWarp");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateMove(mOwner)), &NrvWorldMapSequence::WorldMapSequencePointMove::sInstance, "PointMove");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStatePointWarp(mOwner)), &NrvWorldMapSequence::WorldMapSequencePointWarp::sInstance, "PointWarp");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(mStatePointEvent), &NrvWorldMapSequence::WorldMapSequencePointEvent::sInstance, "PointEvent");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(mStateTicoRoute), &NrvWorldMapSequence::WorldMapSequenceTicoRouteCreator::sInstance, "TicoRouteCreator");
-    p = ::operator new(0x1C);
-
-    if (p != nullptr) {
-        p = fn_804FA3D0(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceOpenGalaxy::sInstance, "OpenGalaxy");
-    p = ::operator new(0x40);
-
-    if (p != nullptr) {
-        p = fn_804F4C20(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceEnterGalaxy::sInstance, "EnterGalaxy");
-    p = ::operator new(0x18);
-
-    if (p != nullptr) {
-        p = fn_804F56C0(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceEnterHome::sInstance, "EnterHome");
-    p = ::operator new(0x10);
-
-    if (p != nullptr) {
-        p = fn_804F5DC0(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceEnterKoopaCastle::sInstance, "EnterKoopaCastle");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateOpenGalaxy(mOwner)), &NrvWorldMapSequence::WorldMapSequenceOpenGalaxy::sInstance, "OpenGalaxy");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateEnterGalaxy(mOwner)), &NrvWorldMapSequence::WorldMapSequenceEnterGalaxy::sInstance, "EnterGalaxy");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateEnterHome(mOwner)), &NrvWorldMapSequence::WorldMapSequenceEnterHome::sInstance, "EnterHome");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateKoopaCastle(mOwner)), &NrvWorldMapSequence::WorldMapSequenceEnterKoopaCastle::sInstance, "EnterKoopaCastle");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(mStateWorldNews), &NrvWorldMapSequence::WorldMapSequenceWorldNews::sInstance, "WorldNews");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(mStateWorldWarp), &NrvWorldMapSequence::WorldMapSequenceWorldWarp::sInstance, "WorldWarp");
-    p = ::operator new(0x14);
-
-    if (p != nullptr) {
-        p = fn_804F90A0(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceGalaxyMapEnter::sInstance, "GalaxyMapEnter");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateGrandGalaxyOpen(mOwner)), &NrvWorldMapSequence::WorldMapSequenceGalaxyMapEnter::sInstance, "GalaxyMapEnter");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(mStateGalaxyMap), &NrvWorldMapSequence::WorldMapSequenceGalaxyMap::sInstance, "GalaxyMap");
-    p = ::operator new(0x14);
-
-    if (p != nullptr) {
-        p = fn_804F9740(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceGalaxyMapExit::sInstance, "GalaxyMapExit");
-    p = ::operator new(0x20);
-
-    if (p != nullptr) {
-        p = fn_804F99E0(p, mOwner);
-    }
-
-    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(p), &NrvWorldMapSequence::WorldMapSequenceGreenStarDemo::sInstance, "GreenStarDemo");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateGrandGalaxyEnd(mOwner)), &NrvWorldMapSequence::WorldMapSequenceGalaxyMapExit::sInstance, "GalaxyMapExit");
+    MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateGreenStarDemo(mOwner)), &NrvWorldMapSequence::WorldMapSequenceGreenStarDemo::sInstance, "GreenStarDemo");
     u8* pBase = reinterpret_cast< u8* >(mOwner->getCamera());
     mOwner->warpRocketToNode(*reinterpret_cast< s32* >(pBase + 0x3C));
     reinterpret_cast< SlotActor* >(*reinterpret_cast< void** >(pBase + 0x50))->slot10();
@@ -967,15 +863,15 @@ void WorldMapSequence::init(bool startAtMap) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceGalaxyMap::sInstance);
     }
 
-    if (fn_804E8DC0()) {
+    if (WorldMapFunction::tryOnGreenStarEventFlag()) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceGreenStarDemo::sInstance);
     }
 }
 
 void WorldMapSequence::exeStart() {
     if (MR::updateActorState(this)) {
-        if (fn_804E8E30()) {
-            fn_804E87F0(mOwner);
+        if (WorldMapFunction::isGreenStarDemoReady()) {
+            mOwner->startDemoNoCinemaCheck();
             setNerve(&NrvWorldMapSequence::WorldMapSequenceNoMove::sInstance);
             return;
         }
@@ -993,20 +889,20 @@ void WorldMapSequence::exeWait() {
 
     MR::updateActorState(this);
 
-    if (!updatePoint(fn_804FD350(mStateWait)) && fn_804FD2D0(mStateWait)) {
+    if (!updatePoint(mStateWait->isZZZ()) && mStateWait->isXXX()) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceGalaxyMapEnter::sInstance);
     }
 }
 
 void WorldMapSequence::exePointMove() {
     if (MR::updateActorState(this)) {
-        if (mOwner->tryStartPointEvent2(static_cast< WorldMapResultStatePointEvent* >(mStatePointEvent))) {
+        if (mOwner->tryStartPointEvent2(mStatePointEvent)) {
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointEvent::sInstance);
             return;
         }
 
         // PLACEHOLDER(core): the world-warp state is handed to the owner as PartsWarpInfo* (the target's ABI); resolve when the WorldWarp state class and its PartsWarpInfo view are written
-        if (mOwner->tryWorldWarpFromNext(static_cast< PartsWarpInfo* >(mStateWorldWarp))) {
+        if (mOwner->tryWorldWarpFromNext(reinterpret_cast< PartsWarpInfo* >(mStateWorldWarp))) {
             setNerve(&NrvWorldMapSequence::WorldMapSequenceWorldWarp::sInstance);
             return;
         }
@@ -1033,7 +929,7 @@ void WorldMapSequence::exePointMove() {
 
 void WorldMapSequence::exePointWarp() {
     if (MR::updateActorState(this)) {
-        if (mOwner->tryStartPointEvent2(static_cast< WorldMapResultStatePointEvent* >(mStatePointEvent))) {
+        if (mOwner->tryStartPointEvent2(mStatePointEvent)) {
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointEvent::sInstance);
             return;
         }
@@ -1059,7 +955,7 @@ void WorldMapSequence::exeGreenStarDemo() {
 
 void WorldMapSequence::exeNoMove() {
     if (MR::isGreaterEqualStep(this, 0x3C)) {
-        fn_804E8850(mOwner);
+        mOwner->endDemo();
         MR::deactivateDefaultGameLayout();
         setNerve(&NrvWorldMapSequence::WorldMapSequenceGalaxyMapEnter::sInstance);
     }
@@ -1074,7 +970,7 @@ bool WorldMapSequence::updatePoint(bool canAct) {
     LiveActor* pActor = *reinterpret_cast< LiveActor** >(pBase + 0x50);
 
     // PLACEHOLDER(core): the world-warp state is handed to the owner as PartsWarpInfo* (the target's ABI); resolve when the WorldWarp state class and its PartsWarpInfo view are written
-    if (mOwner->tryWorldWarpFromStick(static_cast< PartsWarpInfo* >(mStateWorldWarp))) {
+    if (mOwner->tryWorldWarpFromStick(reinterpret_cast< PartsWarpInfo* >(mStateWorldWarp))) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceWorldWarp::sInstance);
         return true;
     }
@@ -1086,9 +982,9 @@ bool WorldMapSequence::updatePoint(bool canAct) {
     }
 
     if (point > -1) {
-        fn_804FD4E0(mStateWait, point);
+        mStateWait->setTarget(point);
     } else {
-        fn_804FD540(mStateWait);
+        mStateWait->clearTarget();
     }
 
     bool moved = mOwner->tryWarpToNode(point);
@@ -1108,7 +1004,7 @@ bool WorldMapSequence::updatePoint(bool canAct) {
     }
 
     if (canAct) {
-        if (mOwner->tryStartStarCheckEvent(static_cast< WorldMapResultStatePointEvent* >(mStatePointEvent), point)) {
+        if (mOwner->tryStartStarCheckEvent(mStatePointEvent, point)) {
             MR::startActionSound(pActor, "PushAButton", -1, -1, -1);
             setNerve(&NrvWorldMapSequence::WorldMapSequencePointEvent::sInstance);
             return true;
@@ -1126,7 +1022,7 @@ bool WorldMapSequence::updatePoint(bool canAct) {
             return true;
         }
 
-        if (mOwner->tryStartTicoRoute(static_cast< WorldMapStateTicoRoute* >(mStateTicoRoute), point)) {
+        if (mOwner->tryStartTicoRoute(mStateTicoRoute, point)) {
             MR::startActionSound(pActor, "PushAButton", -1, -1, -1);
             setNerve(&NrvWorldMapSequence::WorldMapSequenceTicoRouteCreator::sInstance);
             return true;

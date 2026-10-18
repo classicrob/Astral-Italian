@@ -4,14 +4,11 @@
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/Util/TalkUtil.hpp"
+#include "Game/System/WorldMapResultStateLeaveHome.hpp"
 
 extern "C" {
-    void fn_804E87F0(WorldMapOwner*);
     void fn_804F33F0(TVec3f*, const TVec3f*, const TVec3f*, s32, s32);
-    void fn_804E8850(WorldMapOwner*);
-    TVec3f* fn_804E8510(WorldMapOwner*);
     bool fn_80059330();
-    s32 fn_804E8CA0(WorldMapOwner*);
 }
 
 extern TVec3f sCameraTable[4];
@@ -22,7 +19,7 @@ s32 getHomeLeaveType(WorldMapOwner* pHost) {
     if (GameSequenceFunction::isWorldMapEnterType0() != 0) {
         return 0;
     }
-    if (fn_804E8CA0(pHost) != 0) {
+    if (pHost->isWorldEventFlagOff() != 0) {
         return 1;
     }
     if (GameSequenceFunction::isWorldMapEnterType1() != 0) {
@@ -49,20 +46,6 @@ const char* getHomeLeaveEndName() {
     return name;
 }
 
-WMR_OWNER_STATE_DECL(WorldMapResultStateLeaveHome, void exeStart(); void exeMove(); void exeZoomIn(); void exeZoomOut(); void exeZoomOutSub();
-               void exeMessage(); void exeFovOut(); void exeMessageEnd(); void moveCamera(s32); void calcCenter(); void playEnterSound();
-               /* 0x10 */ f32 mFovy; /* 0x14 */ TVec3f mPos; /* 0x20 */ TVec3f mCenter;);
-
-namespace NrvWorldMapResultStateLeaveHome {
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeStart);
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeMove);
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeZoomIn);
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeZoomOut);
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeZoomOutSub);
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeMessage);
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeFovOut);
-    WMR_NERVE_DECL(WorldMapResultStateLeaveHomeMessageEnd);
-};  
 WorldMapResultStateLeaveHome::WorldMapResultStateLeaveHome(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[開始]", pHost) {
     mFovy = 0.0f;
     mPos.x = 0.0f;
@@ -80,7 +63,7 @@ void WorldMapResultStateLeaveHome::init() {
 }
 
 void WorldMapResultStateLeaveHome::appear() {
-    fn_804E87F0(mHost);
+    mHost->startDemoNoCinemaCheck();
     mIsDead = false;
     mHost->changeRocketActionBck("Wait");
     mHost->startNodeCamera(-1, 0);
@@ -118,13 +101,13 @@ void WorldMapResultStateLeaveHome::appear() {
 void WorldMapResultStateLeaveHome::kill() {
     GameSequenceFunction::setWorldMapEnterType5();
     MR::showPlayer();
-    fn_804E8850(mHost);
+    mHost->endDemo();
     mIsDead = true;
 }
 
 void WorldMapResultStateLeaveHome::exeStart() {
     if (MR::isFirstStep(this)) {
-        mPos = *fn_804E8510(mHost);
+        mPos = *mHost->getRocketPosition();
     }
     if (fn_80059330()) {
         LiveActor* pActor = mHost->getRocket();

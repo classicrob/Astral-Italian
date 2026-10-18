@@ -44,7 +44,7 @@ void NormalEndingDemoObj::init(const JMapInfoIter& rIter) {
     MR::registerDemoCast(this, lbl_807CF734, rIter);
     MR::registerDemoCast(this, lbl_807CF738, rIter);
     MR::registerDemoCast(this, lbl_807CF73C, rIter);
-    UnnamedDemoCallee::fn_8001F5B0(this, lbl_807D1E0C, lbl_807CF730, 0);
+    MR::registerDemoActionNerveDirect(this, reinterpret_cast< const Nerve* >(lbl_807D1E0C), lbl_807CF730, nullptr);
     mActorI = UnnamedDemoCallee::fn_8013FE00(this, lbl_80680070 + 0xCC, lbl_80680070 + 0xE8);
     MR::tryRegisterDemoCast(mActorI, lbl_807CF730, rIter);
     MR::tryRegisterDemoCast(mActorI, lbl_807CF734, rIter);
@@ -144,7 +144,7 @@ void NormalEndingDemoObj::exeA() {
             UnnamedDemoCallee::fn_8013FE60(2);
         }
         if (MR::isDemoPartStep(lbl_80680070 + 0x310, 0x104)) {
-            *reinterpret_cast< s32* >(reinterpret_cast< char* >(mPlanet) + 0xA0) = 1;
+            mPlanet->mIsRotating = true;
             UnnamedDemoCallee::fn_8013FE60(1);
         }
     }
@@ -175,8 +175,8 @@ void NormalEndingDemoObj::exeB() {
 // NONMATCHING: planet field offsets written as raw casts (DemoAstroPlanet not fully declared)
 void NormalEndingDemoObj::exeC() {
     if (MR::isFirstStep(this)) {
-        *reinterpret_cast< f32* >(reinterpret_cast< char* >(mPlanet) + 0x9C) = lbl_807D97FC;
-        *reinterpret_cast< s32* >(reinterpret_cast< char* >(mPlanet) + 0xA0) = 0;
+        mPlanet->mRotationY = lbl_807D97FC;
+        mPlanet->mIsRotating = false;
         MR::startBtk(mActorB, lbl_806803A4);
         MR::startBtk(mPlanet, lbl_806803A4);
         MR::startBrk(mPlanet, lbl_806803A4);

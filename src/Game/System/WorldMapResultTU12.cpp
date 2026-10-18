@@ -1,4 +1,6 @@
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/WorldMapResultStateGrandGalaxyOpen.hpp"
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
@@ -13,31 +15,8 @@ namespace MR {
     void setStageBGMStateBit(u32);
 }
 
-/// Result-map step that zooms the map in for the Grand Galaxy start ("State[グランドギャラクシーマップ開始]").
-class WorldMapResultStateGrandGalaxyOpen : public NerveExecutor {
-public:
-    WorldMapResultStateGrandGalaxyOpen(s32);
-    virtual ~WorldMapResultStateGrandGalaxyOpen();
-
-    void init();
-    void appear();
-    void exeWait();
-
-    // vtable slots 0x10 and 0x14 (the second is called from exeWait); both defined by the owning TU.
-    virtual void onStepUpdate();
-    virtual void onFovyEnd();
-
-    /* 0x08 */ bool mIsDead;
-    /* 0x0C */ s32 mWorldId;
-    /* 0x10 */ f32 mFovy;
-};
-
-namespace NrvWorldMapResultStateGrandGalaxyOpen {
-    WMR_NERVE_DECL(WorldMapResultStateGrandGalaxyOpenWait);
-};  // namespace NrvWorldMapResultStateGrandGalaxyOpen
-
-WorldMapResultStateGrandGalaxyOpen::WorldMapResultStateGrandGalaxyOpen(s32 pWorldId)
-    : NerveExecutor("State[グランドギャラクシーマップ開始]"), mIsDead(true), mWorldId(pWorldId), mFovy(0.0f) {
+WorldMapResultStateGrandGalaxyOpen::WorldMapResultStateGrandGalaxyOpen(WorldMapOwner* pHost)
+    : ActorStateBaseInterface("State[グランドギャラクシーマップ開始]"), mHost(pHost), mFovy(0.0f) {
 }
 
 void WorldMapResultStateGrandGalaxyOpen::init() {
@@ -72,7 +51,7 @@ void WorldMapResultStateGrandGalaxyOpen::exeWait() {
     if (MR::isGreaterEqualStep(this, 0x1E)) {
         if (fn_80059330() != NULL) {
             MR::setFovy(mFovy);
-            onFovyEnd();
+            kill();
         }
     }
 }

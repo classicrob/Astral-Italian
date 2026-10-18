@@ -2,23 +2,10 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
+#include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapResultStatePointEvent.hpp"
 #include "Game/Util/TalkUtil.hpp"
-
-extern "C" {
-    // PLACEHOLDER(core): mapped callee signature (symbols.txt name) does not match this call's arguments; resolve when the callee's real signature is confirmed
-    s32 fn_804F8700(WorldMapOwner*, WorldMapResultRoute*, s32);
-    // PLACEHOLDER(core): the symbol at 0x804F8650 is named startRouteCamera(WorldMapResultRoute*, const char*) but this call passes (owner, name); resolve when the callee's real signature is confirmed
-    void fn_804F8650(WorldMapOwner*, const char*);
-    void fn_804E8780(WorldMapOwner*);
-    void fn_804E8850(WorldMapOwner*);
-    TVec3f* fn_804E8510(WorldMapOwner*);
-    void fn_804F6B10(WorldMapOwner*);
-    void fn_804E8480(WorldMapOwner*, const TVec3f*);
-    TVec3f* fn_804E8530();
-    TVec3f* fn_804E8540();
-}
 
 extern s32 lbl_807E3158;
 
@@ -82,8 +69,8 @@ void WorldMapResultStatePointEvent::appear() {
     mIsDead = false;
     mCount = 0;
     mHost->changeRocketAction("Wait");
-    mPos = *fn_804E8510(mHost);
-    fn_804E8780(mHost);
+    mPos = *mHost->getRocketPosition();
+    mHost->startDemo();
     MR::hidePlayer();
     if ((u32)mIndex <= 1U) {
         mHost->startCamera("イベント（スターチェックポイント：スター足りない）", -1);
@@ -91,9 +78,9 @@ void WorldMapResultStatePointEvent::appear() {
     } else if (mIndex == 2) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEaseIn));
         TVec3f sp8(mPos);
-        sp8 = sp8 - *fn_804E8530();
+        sp8 = sp8 - *WorldMapFunction::getRocketOffsetGalaxy();
         TVec3f sp14;
-        sp14 = sp8 + *fn_804E8540();
+        sp14 = sp8 + *WorldMapFunction::getRocketOffsetPoint();
         mOffset = sp14;
     }
     GameSequenceFunction::setWorldMapCurrentNode(mHost->getCurrentNode());
@@ -102,12 +89,12 @@ void WorldMapResultStatePointEvent::appear() {
 void WorldMapResultStatePointEvent::kill() {
     mIsDead = true;
     MR::showPlayer();
-    fn_804E8850(mHost);
+    mHost->endDemo();
     mIndex = -1;
 }
 
 void WorldMapResultStatePointEvent::control() {
-    fn_804F6B10(mHost);
+    mHost->updateParts();
     if (isNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEaseIn)) || isNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEvent)) ||
         isNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventExtend)) ||
         isNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventWaitExtend)) ||
@@ -194,14 +181,13 @@ void WorldMapResultStatePointEvent::exeEvent() {
             setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEnd));
             return;
         }
-        fn_804F8650(mHost, sCameraName);
+        mHost->startRouteCamera(mRoute, sCameraName);
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventExtend));
     }
 }
 
 void WorldMapResultStatePointEvent::exeExtend() {
-    MR::calcNerveRate(this, 30);
-    s32 result = fn_804F8700(mHost, mRoute, mCount);
+    bool result = mHost->updateRoute(mRoute, mCount, MR::calcNerveRate(this, 30));
     MR::startActionSound(mHost->getRocket(), "RoadExtend", -1, -1, -1);
     if (MR::isGreaterEqualStep(this, 30)) {
         if (result != 0) {
@@ -241,7 +227,7 @@ void WorldMapResultStatePointEvent::exeEnd() {
     TVec3f sp14 = sp8 * (1.0f - rate);
     TVec3f sp20 = mOffset * rate;
     TVec3f sp2C = sp20 + sp14;
-    fn_804E8480(mHost, &sp2C);
+    mHost->setRocketPosWithTarget(&sp2C);
     if (MR::isGreaterEqualStep(this, 30)) {
         kill();
     }
@@ -253,7 +239,7 @@ void WorldMapResultStatePointEvent::moveCamera(f32 rate) {
     TVec3f sp14 = sp8 * rate;
     TVec3f sp20 = mPos * (1.0f - rate);
     TVec3f sp2C = sp20 + sp14;
-    fn_804E8480(mHost, &sp2C);
+    mHost->setRocketPosWithTarget(&sp2C);
 }
 
 WorldMapResultStatePointEvent::~WorldMapResultStatePointEvent() {

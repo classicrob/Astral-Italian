@@ -1,4 +1,6 @@
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/WorldMapResultStateGrandGalaxyEnd.hpp"
 
 namespace MR {
     f32 getEaseOutValue(f32, f32, f32, f32);
@@ -6,36 +8,7 @@ namespace MR {
     void setFovy(f32);
 }
 
-namespace NrvWorldMapResultStateGrandGalaxyEnd {
-    WMR_NERVE_DECL(WorldMapResultStateGrandGalaxyEndZoomOut);
-    WMR_NERVE_DECL(WorldMapResultStateGrandGalaxyEndWait);
-};  // namespace NrvWorldMapResultStateGrandGalaxyEnd
-
-/// Result-map step that zooms the map back out at the end of the Grand Galaxy map ("State[グランドギャラクシーマップ終了]").
-class WorldMapResultStateGrandGalaxyEnd : public NerveExecutor {
-public:
-    WorldMapResultStateGrandGalaxyEnd(s32);
-    virtual ~WorldMapResultStateGrandGalaxyEnd();
-
-    void init();
-    void appear();
-    void exeZoomOut();
-
-    void exeWait() {
-        setNerve(GET_NERVE(WorldMapResultStateGrandGalaxyEnd, WorldMapResultStateGrandGalaxyEndWait));
-    }
-
-    // vtable slots 0x10 and 0x14 (the second is called from exeZoomOut); both defined by the owning TU.
-    virtual void onStepUpdate();
-    virtual void onFovyEnd();
-
-    /* 0x08 */ bool mIsDead;
-    /* 0x09 */ u8 _9[7];
-    /* 0x10 */ f32 mFovy;
-};
-
-
-WorldMapResultStateGrandGalaxyEnd::WorldMapResultStateGrandGalaxyEnd(s32) : NerveExecutor("State[グランドギャラクシーマップ終了]") {
+WorldMapResultStateGrandGalaxyEnd::WorldMapResultStateGrandGalaxyEnd(WorldMapOwner*) : ActorStateBaseInterface("State[グランドギャラクシーマップ終了]") {
 }
 
 void WorldMapResultStateGrandGalaxyEnd::init() {
@@ -57,7 +30,7 @@ void WorldMapResultStateGrandGalaxyEnd::exeZoomOut() {
     MR::setFovy(r);
 
     if (MR::isStep(this, 0x14)) {
-        onFovyEnd();
+        kill();
     }
 }
 

@@ -2,6 +2,7 @@
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/WorldMapResultStateWorldWarp.hpp"
 
 namespace MR {
     void onDestroySceneKeepAllSound();
@@ -9,20 +10,7 @@ namespace MR {
     f32 calcNerveEaseInOutRate(const NerveExecutor*, s32);
 }
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" {
-        TVec3f* fn_804F2550(s32);
-        void fn_804E8780(WorldMapOwner*);
-}
 
-
-WMR_OWNER_STATE_DECL(WorldMapResultStateWorldWarp, void exeMove();
-               /* 0x10 */ s32 mInt10; /* 0x14 */ s32 mInt14; /* 0x18 */ s32 mInt18;
-               /* 0x1C */ TVec3f mPosA; /* 0x28 */ TVec3f mPosB; /* 0x34 */ TVec3f mDir;);
-
-namespace NrvWorldMapResultStateWorldWarp {
-    WMR_NERVE_DECL(WorldMapResultStateWorldWarpMove);
-};  
 WorldMapResultStateWorldWarp::WorldMapResultStateWorldWarp(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ワールドワープ]", pHost) {
     mInt10 = -1;
     mInt14 = -1;
@@ -44,7 +32,7 @@ void WorldMapResultStateWorldWarp::init() {
 }
 
 void WorldMapResultStateWorldWarp::appear() {
-    fn_804E8780(mHost);
+    mHost->startDemo();
     mIsDead = false;
     setNerve(GET_NERVE(WorldMapResultStateWorldWarp, WorldMapResultStateWorldWarpMove));
 }
@@ -59,8 +47,7 @@ void WorldMapResultStateWorldWarp::exeMove() {
         MR::startActionSound(pActor, "SyWMapBtwWorld", -1, -1, -1);
         MR::onDestroySceneKeepAllSound();
         mPosA.set(pActor->mPosition);
-        mHost->getWorld();
-        mPosB.set(*fn_804F2550(mInt18));
+        mPosB.set(mHost->getWorld()->getNode(mInt18)->mPos);
 
         TVec3f diff(mPosB);
         diff -= mPosA;

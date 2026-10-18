@@ -11,9 +11,6 @@ class JUTTexture;
 
 // Unnamed SMG2 helpers / ImageEffectResource::createTexture (static in the target: f1 = scale, r3 = GXTexFmt, r4/r5 = flags).
 
-extern "C" void fn_80476C60(s32);
-extern "C" void fn_80477230(JUTTexture*, s32, s32, s32, f32, s32);
-
 namespace MR {
     void incrementPauseBlurDelay();
     void decrementPauseBlurDelay();
@@ -41,16 +38,16 @@ void drawBlurTexture(const PauseBlur* pBlur) {
     s32 offsetRow = n / pBlur->mHalfResolution;
     s32 offset = (n - offsetRow * pBlur->mHalfResolution) + pBlur->mHalfResolution * pBlur->mResolution * offsetRow;
 
-    fn_80476C60(1);
+    ImageEffectLocalUtil::setTextureMap(GX_TEXMAP1);
     ImageEffectLocalUtil::drawTexture(pBlur->mTexture2, pBlur->mHalfResolution * pBlur->mResolution, offset, 255,
                                       ImageEffectLocalUtil::TexDrawType_0);
 
     ImageEffectLocalUtil::capture(pBlur->mTexture2, pBlur->mResolution, 0, GX_TF_RGB565, false, 0);
 
     if (pBlur->mTimer == pBlur->mSquareResolution) {
-        fn_80477230(pBlur->mTexture2, pBlur->mResolution, 0, 2, 0.005f, 0);
+        ImageEffectLocalUtil::drawFourSampleTexture(pBlur->mTexture2, pBlur->mResolution, 0, GX_TEXMAP2, false, 0.005f);
         ImageEffectLocalUtil::capture(pBlur->mTexture2, pBlur->mResolution, 0, GX_TF_RGB565, false, 0);
-        fn_80477230(pBlur->mTexture2, pBlur->mResolution, 0, 3, 0.01f, 0);
+        ImageEffectLocalUtil::drawFourSampleTexture(pBlur->mTexture2, pBlur->mResolution, 0, GX_TEXMAP3, false, 0.01f);
         ImageEffectLocalUtil::capture(pBlur->mTexture2, pBlur->mResolution, 0, GX_TF_RGB565, false, 0);
     }
 

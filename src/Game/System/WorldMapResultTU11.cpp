@@ -1,6 +1,7 @@
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapResultStatePointEvent.hpp"
+#include "Game/System/WorldMapResultStateTicoRouteCreate.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/MiniMeister.hpp"
@@ -281,7 +282,7 @@ bool WorldMapOwner::tryApplyNextNode() {
     return false;
 }
 
-bool WorldMapOwner::tryStartTicoRoute(WorldMapStateTicoRoute* pState, s32 node) {
+bool WorldMapOwner::tryStartTicoRoute(WorldMapResultStateTicoRouteCreate* pState, s32 node) {
     if (!isDecideTrigger()) {
         return false;
     }
@@ -567,8 +568,8 @@ void WorldMapOwner::requestAppearCoinsAndLives() {
     getCounters()->requestAppearCoinsAndLives();
 }
 
-void WorldMapOwner::tryDecideZoomButton() {
-    getZoomButton()->tryDecide();
+bool WorldMapOwner::tryDecideZoomButton() {
+    return getZoomButton()->tryDecide();
 }
 
 bool WorldMapOwner::isZoomButtonPointing() {

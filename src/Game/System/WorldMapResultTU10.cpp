@@ -2,6 +2,7 @@
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/WorldMapResultStateKoopaCastle.hpp"
 
 // PLACEHOLDER(core): unnamed SMG2 callee (no symbol name yet); resolve when its owner names it
 extern "C" {
@@ -12,25 +13,7 @@ namespace MR {
     void startSystemWipeCircleWithCaptureScreen(s32);
 }
 
-/// Result-map step that leaves for Koopa's castle (name "State[クッパ城へ]").
-class WorldMapResultStateKoopaCastle : public NerveExecutor {
-public:
-    WorldMapResultStateKoopaCastle(WorldMapOwner*);
-    virtual ~WorldMapResultStateKoopaCastle();
-
-    void init();
-    void appear();
-    void exeWait();
-
-    /* 0x08 */ bool mIsDead;
-    /* 0x0C */ WorldMapOwner* mHost;
-};
-
-namespace NrvWorldMapResultStateKoopaCastle {
-    WMR_NERVE_DECL(WorldMapResultStateKoopaCastleWait);
-};  // namespace NrvWorldMapResultStateKoopaCastle
-
-WorldMapResultStateKoopaCastle::WorldMapResultStateKoopaCastle(WorldMapOwner* pHost) : NerveExecutor("State[クッパ城へ]"), mIsDead(true), mHost(pHost) {
+WorldMapResultStateKoopaCastle::WorldMapResultStateKoopaCastle(WorldMapOwner* pHost) : ActorStateBaseInterface("State[クッパ城へ]"), mHost(pHost) {
 }
 
 void WorldMapResultStateKoopaCastle::init() {

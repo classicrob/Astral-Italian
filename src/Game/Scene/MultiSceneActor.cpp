@@ -8,11 +8,11 @@
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
 #include <JSystem/J3DGraphAnimator/J3DModel.hpp>
 
-MultiSceneActor::MultiSceneActor(const char* pName, const char* pModelName, bool param3)
+MultiSceneActor::MultiSceneActor(const char* pName, const char* pModelName, s32 pArr, bool param4)
     : NameObj(pName), mTranslation(0.0f, 0.0f, 0.0f), mRotation(0.0f, 0.0f, 0.0f), mScale(1.0f, 1.0f, 1.0f), _30(true), mModelManager(nullptr),
       mEffectSystem(nullptr), mEffectKeeper(nullptr), mSpine(nullptr) {
-    mModelManager = new ModelManager();
-    mModelManager->init(pModelName, nullptr, param3);
+    mModelManager = new ModelManager(reinterpret_cast<const f32 (*)[4]>(pArr));
+    mModelManager->init(pModelName, nullptr, param4);
 }
 
 void MultiSceneActor::init(const JMapInfoIter& rIter) {

@@ -2,39 +2,8 @@
 
 // Callees living in other WorldMapResult translation units (unnamed in the target).
 extern "C" {
-    bool fn_804EC410(void*, s32, s32, s32);
-    bool fn_804EC4A0(void*, s32, s32);
-    bool fn_804EC500(void*, s32);
-    void fn_804EC250(void*);
-    void fn_804EA560(void*);
-    void fn_804ECD80(void*);
-    void fn_804EE380(void*);
-    void* fn_804EE150(void*, void*);
-    void* fn_804EC230(void*, void*);
-    void* fn_804EA540(void*, void*);
-    void* fn_804ECD60(void*, void*);
-    void* fn_804EE360(void*, void*);
-    void fn_804EADC0(void*);
-    void fn_804EC3A0(void*, s32);
-    void fn_804EE000(void*, s32);
-    void fn_804EABA0(void*);
-    void fn_804ED9C0(void*);
-    void fn_804EE660(void*);
-    void fn_804EC2A0(void*);
-    void fn_804EAC20(void*);
-    void fn_804EDA30(void*);
-    void fn_804EE6E0(void*);
-    void fn_804EC320(void*);
-    bool fn_804EC790(void*, s32, s32);
-    bool fn_804EA910(void*, s32);
-    void fn_804EDB80(void*);
-    void fn_804EE620(void*);
-    void fn_804E5780();
-    void fn_804E57C0();
     s32 fn_804D72E0();
     void fn_804D7580();
-    void fn_804ECBD0(WorldMapResultRoute*, s32, s32);
-    void fn_804ECC30(WorldMapResultRoute*, WorldMapResultRoute*);
     f32 fn_8003DBB0(f32, f32, f32);
     void* fn_804F9330(void*, void*);
     void* fn_804FD0D0(void*, void*);
@@ -87,31 +56,6 @@ extern "C" {
     bool fn_804FD2D0(void*);
     bool fn_804FD350(void*);
 
-    void fn_804EC600(void*);
-    void fn_804EC6E0(void*);
-    void fn_804EC7D0(void*, s32, s32, f32);
-    void fn_804EC840(void*, s32, s32);
-    void fn_804EC870(void*, s32, s32);
-    void fn_804EC8A0(void*, s32, s32);
-    void fn_804EC8E0(void*);
-    void fn_804ED2B0(void*, s32);
-    s32 fn_804ED310(void*, s32);
-    void fn_804ED450(void*, s32);
-    bool fn_804ED4F0(void*, s32, s32);
-    bool fn_804ED530(void*, s32);
-    void fn_804ED620(void*, s32);
-    bool fn_804ED6D0(void*, s32);
-    bool fn_804ED7E0(void*, s32);
-    void fn_804ED860(void*, s32);
-    void fn_804ED8A0(void*, s32);
-    void fn_804EDBC0(void*);
-    void fn_804EA810(void*);
-    void fn_804EA870(void*);
-    const char* fn_804EA950(void*, s32);
-    void* fn_804EAA50(void*);
-    bool fn_804E9C40();
-    void fn_804EE7F0(void*);
-    void fn_804EE750(void*);
 }
 
 
@@ -277,45 +221,45 @@ bool WorldMapResultWorld::isNodeFlag11(s32 index) const {
 }
 
 bool WorldMapResultWorld::isLinked(s32 a, s32 b) const {
-    if (fn_804EC410(mLinks, a, b, 1)) {
+    if (mLinks->isLinked(a, b, 1)) {
         return true;
     }
 
-    return fn_804ED4F0(mUnit14, a, b);
+    return mUnit14->isPipeTarget(a, b);
 }
 
 bool WorldMapResultWorld::isLinked14(s32 a, s32 b) const {
-    return fn_804ED4F0(mUnit14, a, b);
+    return mUnit14->isPipeTarget(a, b);
 }
 
 bool WorldMapResultWorld::isLinkedDirect(s32 a, s32 b) const {
-    return fn_804EC410(mLinks, a, b, 1);
+    return mLinks->isLinked(a, b, 1);
 }
 
 bool WorldMapResultWorld::isPathReachable(s32 index) const {
     return mPathFinder->isReachable(index);
 }
 
-void WorldMapResultWorld::resetLinks() {
-    fn_804EC600(mLinks);
+bool WorldMapResultWorld::hasOpenLine(s32 node) {
+    return mLinks->hasOpenLine(node);
 }
 
-void WorldMapResultWorld::resetLinks2() {
-    fn_804EC6E0(mLinks);
+bool WorldMapResultWorld::hasOpenLineNoAlpha(s32 node) {
+    return mLinks->hasOpenLineNoAlpha(node);
 }
 
 bool WorldMapResultWorld::isNodeOpened(s32 index) const {
-    const char* pName = fn_804EA950(mWorldData, index);
+    const char* pName = mWorldData->getGalaxyName(index);
 
     if (pName != nullptr) {
         return GameDataFunction::getPowerStarNumOwned(pName) > 0;
     }
 
-    if (fn_804ED6D0(mUnit14, index)) {
+    if (mUnit14->isStarCheckPointPending(index)) {
         return false;
     }
 
-    return !fn_804ED7E0(mUnit14, index);
+    return !mUnit14->isWarpOpen(index);
 }
 
 void WorldMapResultWorld::updatePaths(s32 start) {
@@ -337,26 +281,26 @@ bool WorldMapResultWorld::setupNode(s32 index, s32 start) {
         target = index;
     }
 
-    if (fn_804EC500(mLinks, index)) {
+    if (mLinks->openFrom(index)) {
         refreshNode(target);
         return true;
     }
 
-    fn_804EE7F0(mUnit18);
+    mUnit18->updateAll();
     return false;
 }
 
 void WorldMapResultWorld::refreshNode(s32 start) {
     mPathFinder->update(start);
-    fn_804EE7F0(mUnit18);
-    fn_804EA810(mWorldData);
+    mUnit18->updateAll();
+    mWorldData->tryNewBossAll();
 }
 
 void WorldMapResultWorld::refreshNodeFull(s32 start) {
     mPathFinder->update(start);
-    fn_804EE750(mUnit18);
-    fn_804EE7F0(mUnit18);
-    fn_804EA870(mWorldData);
+    mUnit18->updateReachable();
+    mUnit18->updateAll();
+    mWorldData->tryNewAll();
 }
 
 bool WorldMapResultWorld::isNodeNotReady(s32 index) const {
@@ -364,24 +308,25 @@ bool WorldMapResultWorld::isNodeNotReady(s32 index) const {
         return hasWorldDataAndComet(index);
     }
 
-    return !fn_804ED530(mUnit14, index);
+    return !mUnit14->isNotStarPieceMine(index);
 }
 
 bool WorldMapResultWorld::hasWorldData(s32 index) const {
-    return fn_804EA950(mWorldData, index) != nullptr;
+    return mWorldData->getGalaxyName(index) != nullptr;
 }
 
-bool WorldMapResultWorld::hasWorldDataAndComet(s32) const {
-    if (fn_804EAA50(mWorldData) != nullptr && fn_804E9C40()) {
+bool WorldMapResultWorld::hasWorldDataAndComet(s32 index) const {
+    GalaxyWorldMapInfo* pInfo = mWorldData->find(index);
+    if (pInfo != nullptr && pInfo->isNerveHide()) {
         return true;
     }
 
     return false;
 }
 
-bool WorldMapResultWorld::isWorldDataType(s32, s32 type) const {
-    void* pData = fn_804EAA50(mWorldData);
-    if (pData != nullptr && type == *(s32*)((u8*)pData + 0xA4)) {
+bool WorldMapResultWorld::isWorldDataType(s32 index, s32 type) const {
+    GalaxyWorldMapInfo* pInfo = mWorldData->find(index);
+    if (pInfo != nullptr && type == pInfo->mKind) {
         return true;
     }
 
@@ -401,47 +346,45 @@ bool WorldMapResultWorld::isWorldDataType5(s32 index) const {
 }
 
 bool WorldMapResultWorld::callU14_6D0(s32 index) const {
-    return fn_804ED6D0(mUnit14, index);
+    return mUnit14->isStarCheckPointPending(index);
 }
 
 void WorldMapResultWorld::callU14_450(s32 index) {
-    fn_804ED450(mUnit14, index);
+    mUnit14->isTicoCreatorNotFull(index);
 }
 
 void WorldMapResultWorld::callU14_860(s32 index) {
-    fn_804ED860(mUnit14, index);
+    mUnit14->isEarthenPipe(index);
 }
 
 void WorldMapResultWorld::callU14_8A0(s32 index) {
-    fn_804ED8A0(mUnit14, index);
+    mUnit14->isWorldWarp(index);
 }
 
 void WorldMapResultWorld::callU14_620(s32 index) {
-    fn_804ED620(mUnit14, index);
+    mUnit14->isStarCheckPointReady(index);
 }
 
 void WorldMapResultWorld::callU14_2B0(s32 index) {
-    fn_804ED2B0(mUnit14, index);
+    mUnit14->getPipeTarget(index);
 }
 
 s32 WorldMapResultWorld::callU14_310(s32 index) {
-    return fn_804ED310(mUnit14, index);
+    return mUnit14->getPipeOtherEnd(index);
 }
 
 void WorldMapResultWorld::setLinkProgress(s32 a, s32 b, f32 t) {
-    fn_804EC7D0(mLinks, a, b, t);
+    mLinks->setLineAlpha(a, b, t);
 
     if (t >= 1.0f) {
-        fn_804EC870(mLinks, a, b);
     } else if (t > 0.0f) {
-        fn_804EC840(mLinks, a, b);
     }
 }
 
 void WorldMapResultWorld::setLinkProgressFull(s32 a, s32 b) {
-    fn_804EC8E0(mLinks);
-    fn_804EC8A0(mLinks, a, b);
-    fn_804EC7D0(mLinks, a, b, 0.0f);
+    mLinks->setLineHidden(a, b);
+    mLinks->setLineEffectTico(a, b);
+    mLinks->setLineAlpha(a, b, 0.0f);
 }
 
 s32 WorldMapResultWorld::getWorldId() const {
@@ -449,23 +392,21 @@ s32 WorldMapResultWorld::getWorldId() const {
 }
 
 void WorldMapResultWorld::disappear() {
-    fn_804EDBC0(mUnit14);
+    mUnit14->resetStarCheckPoints();
 }
 
 // NONMATCHING: scheduling of the first loads (r5 vs r3)
 void WorldMapResultRoute::collect(WorldMapResultWorld* pWorld) {
     mCount = 0;
     WorldMapResultMapData* pMap = pWorld->mMapData;
-    void* pLinks = pWorld->mLinks;
+    MiniRouteLineList* pLinks = pWorld->mLinks;
     s32 num = pMap->mNum;
 
     for (s32 i = 0; i < num; i++) {
         for (s32 j = i + 1; j < num; j++) {
-            if (fn_804EC410(pLinks, i, j, 1)) {
-                if (fn_804EC4A0(pLinks, i, j)) {
-                    fn_804ECBD0(this, j, i);
+            if (pLinks->isLinked(i, j, 1)) {
+                if (pLinks->isDirected(i, j)) {
                 } else {
-                    fn_804ECBD0(this, i, j);
                 }
             }
         }
@@ -482,7 +423,6 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
         s32 to = pEdge->mTo;
 
         if (from == node || to == node) {
-            fn_804EC7D0(mLinks, from, to, 0.0f);
             pEdge->mStep = 0;
 
             if (from == node) {
@@ -526,7 +466,6 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
                         adjacent = adjacent | isLinked14(to, otherFrom);
 
                         if (adjacent | isLinked14(to, otherTo)) {
-                            fn_804EC7D0(mLinks, from, to, 0.0f);
                             pEdge->mStep = step;
                             found = true;
 
@@ -555,57 +494,53 @@ void WorldMapResultWorld::refreshRouteComet() {
     GameSequenceFunction::getGalaxyCometState(reinterpret_cast< const char* >(&route));
 }
 
-void WorldMapResultWorld::fn2ED0() {
-    fn_804EE620(mUnit18);
-    fn_804E5780();
+void WorldMapResultWorld::startRoutePointOpenSound(s32 pointIndex) {
+    mUnit18->find(pointIndex)->startOpenSound();
 }
 
-void WorldMapResultWorld::fn2F00() {
-    fn_804EE620(mUnit18);
-    fn_804E57C0();
+void WorldMapResultWorld::startRoutePointCloseSound(s32 pointIndex) {
+    mUnit18->find(pointIndex)->startCloseSound();
 }
 
 void WorldMapResultWorld::setupRoute(WorldMapResultRoute* pRoute) {
     s32 node = fn_804D72E0();
-    fn_804EC500(mLinks, 0);
+    mLinks->openFrom(0);
     WorldMapResultRoute route;
     GameSequenceFunction::reserveUserName(reinterpret_cast< const wchar_t* >(&route));
     pRoute->collect(this);
-    fn_804ECC30(pRoute, &route);
+    pRoute->subtract(&route);
     fn_804D7580();
     mPathFinder->update(node);
     setupRouteSteps(pRoute, node);
     refreshNode(node);
-    fn_804EDB80(mUnit14);
+    mUnit14->resetAll();
 }
 
 // NONMATCHING: scheduling of li/stw before the first loads
 void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 node) {
-    fn_804EC500(mLinks, 0);
+    mLinks->openFrom(0);
     WorldMapResultRoute route;
     route.mCount = 0;
-    void* pLinks = mLinks;
+    MiniRouteLineList* pLinks = mLinks;
     s32 num = mMapData->mNum;
 
     for (s32 i = 0; i < num; i++) {
         for (s32 j = i + 1; j < num; j++) {
-            if (fn_804EC410(pLinks, i, j, 1) && !fn_804EC790(pLinks, i, j)) {
-                if (fn_804EC4A0(pLinks, i, j)) {
-                    fn_804ECBD0(&route, j, i);
+            if (pLinks->isLinked(i, j, 1) && !pLinks->hasLineFlag(i, j)) {
+                if (pLinks->isDirected(i, j)) {
                 } else {
-                    fn_804ECBD0(&route, i, j);
                 }
             }
         }
     }
 
     pRoute->collect(this);
-    fn_804ECC30(pRoute, &route);
+    pRoute->subtract(&route);
     fn_804D7580();
     mPathFinder->update(node);
     setupRouteSteps(pRoute, node);
     refreshNode(node);
-    fn_804EDB80(mUnit14);
+    mUnit14->resetAll();
 }
 
 // NONMATCHING: callee-saved register assignment (loop counter r28 vs r30)
@@ -657,12 +592,12 @@ bool WorldMapResultWorld::updateRouteStep(WorldMapResultRoute* pRoute, s32 step,
 
 // NONMATCHING: callee-saved register assignment
 bool WorldMapResultWorld::isRouteNotHeld(WorldMapResultRoute* pRoute) const {
-    void* pData = mWorldData;
+    GalaxyWorldMapInfoHolder* pData = mWorldData;
 
     for (s32 i = 0; i < pRoute->mCount; i++) {
         s32 to = pRoute->mEdges[i].mTo;
 
-        if (fn_804EA910(pData, pRoute->mEdges[i].mFrom) || fn_804EA910(pData, to)) {
+        if (pData->isNewOpen(pRoute->mEdges[i].mFrom) || pData->isNewOpen(to)) {
             return false;
         }
     }
@@ -696,9 +631,9 @@ void calcRoutePos(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, s32 step
 }
 
 void WorldMapResultWorld::setNum(s32 num) {
-    fn_804EADC0(mWorldData);
-    fn_804EC3A0(mLinks, num);
-    fn_804EE000(mUnit14, num);
+    mWorldData->setAllEffectDrawOrder(num);
+    mLinks->setEffectDrawOrder(num);
+    mUnit14->setEffectDrawOrder(num);
 }
 
 WorldMapResultPathFinder::Entry::Entry() : mDistance(0), mPath(nullptr) {
@@ -814,45 +749,15 @@ WorldMapResultWorld::WorldMapResultWorld(s32 worldId) {
 }
 
 void WorldMapResultWorld::initWorld(s32 flag) {
-    void* p = ::operator new(0xC);
-
-    if (p != nullptr) {
-        p = fn_804EE150(p, this);
-    }
-
-    mMapData = static_cast< WorldMapResultMapData* >(p);
-    p = ::operator new(0xC);
-
-    if (p != nullptr) {
-        p = fn_804EC230(p, this);
-    }
-
-    mLinks = p;
-    fn_804EC250(p);
-    p = ::operator new(0xC);
-
-    if (p != nullptr) {
-        p = fn_804EA540(p, this);
-    }
-
-    mWorldData = p;
-    fn_804EA560(p);
-    p = ::operator new(0x10);
-
-    if (p != nullptr) {
-        p = fn_804ECD60(p, this);
-    }
-
-    mUnit14 = p;
-    fn_804ECD80(p);
-    p = ::operator new(0xC);
-
-    if (p != nullptr) {
-        p = fn_804EE360(p, this);
-    }
-
-    mUnit18 = p;
-    fn_804EE380(p);
+    mMapData = new WorldMapResultMapData(this);
+    mLinks = new MiniRouteLineList(this);
+    mLinks->init();
+    mWorldData = new GalaxyWorldMapInfoHolder(this);
+    mWorldData->init();
+    mUnit14 = new PointPartsHolder(this);
+    mUnit14->init();
+    mUnit18 = new WorldMapPointMarks(this);
+    mUnit18->init();
     mPathFinder = new WorldMapResultPathFinder(this);
 
     if (flag != 0) {
@@ -863,17 +768,17 @@ void WorldMapResultWorld::initWorld(s32 flag) {
 }
 
 void WorldMapResultWorld::prepare() {
-    fn_804EABA0(mWorldData);
-    fn_804ED9C0(mUnit14);
-    fn_804EE660(mUnit18);
-    fn_804EC2A0(mLinks);
+    mWorldData->appearAll();
+    mUnit14->appearAll();
+    mUnit18->appearOpened();
+    mLinks->appearAll();
 }
 
 void WorldMapResultWorld::finish() {
-    fn_804EAC20(mWorldData);
-    fn_804EDA30(mUnit14);
-    fn_804EE6E0(mUnit18);
-    fn_804EC320(mLinks);
+    mWorldData->killAll();
+    mUnit14->killAll();
+    mUnit18->killAll();
+    mLinks->killAll();
 }
 
 // ---------------------------------------------------------------------------------------------------------------

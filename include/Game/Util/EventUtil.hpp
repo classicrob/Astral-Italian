@@ -283,4 +283,5 @@ namespace MR {
 
 namespace MR {
     void setRaceBestTime(int, u32);
+    s32 getGalaxyStarTotalNum(const char* pGalaxyName);
 };  // namespace MR

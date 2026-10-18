@@ -4,6 +4,10 @@
 // WorldMapResultCommand into ~25 TUs, see splits.txt).
 
 #include "Game/System/WorldMapResultCommand.hpp"
+#include "Game/System/GalaxyWorldMapInfo.hpp"
+#include "Game/System/MiniRouteLine.hpp"
+#include "Game/System/WorldMapPointParts.hpp"
+#include "Game/System/WorldMapPointMarks.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ActorStateBase.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
@@ -47,7 +51,6 @@ extern "C" {
     bool fn_804F0D90(WorldMapResultCommand*, const char*, TVec3f*, TVec3f*, f32);
     s32 fn_804E8960(const char*);
     bool fn_804D8320();
-    void fn_804EAB40(void*);
     void fn_80458060(NameObj*);
     void fn_804581E0(NameObj*);
     void fn_80457F80();
@@ -96,6 +99,8 @@ public:
     WorldMapResultRoute();
 
     void collect(WorldMapResultWorld*);
+    void addEdge(s32, s32);
+    void subtract(WorldMapResultRoute*);
 
     WorldMapResultEdge mEdges[64];
     s32 mCount;
@@ -115,8 +120,13 @@ extern "C" {
 
 /// One node (island/point) of the result map (0x14 bytes).
 struct WorldMapResultNode {
+    WorldMapResultNode();
+
     TVec3f mPos;
-    u8 _C[4];
+    union {
+        u8 _C[4];
+        s32 mLayer;
+    };
     u8 mIsHidden;
     u8 mFlag11;
     u8 mIsValid;
@@ -126,10 +136,14 @@ struct WorldMapResultNode {
 /// Node table of a world: count at 4, nodes at 8.
 class WorldMapResultMapData {
 public:
+    WorldMapResultMapData(WorldMapResultWorld* pWorld);
+
+    void load();
+    void getLayerRange(s32*, s32*) const;
     bool isNodeValid(s32) const NO_INLINE;
     bool isNodeHidden(s32) const NO_INLINE;
 
-    /* 0x00 */ void* _0;
+    /* 0x00 */ WorldMapResultWorld* mWorld;
     /* 0x04 */ s32 mNum;
     /* 0x08 */ WorldMapResultNode* mNodes;
 };
@@ -170,7 +184,7 @@ public:
     void finish();
     void disappear();
     void fn_EF190() NO_INLINE {
-        fn_804EAB40(mWorldData);
+        mWorldData->startAllPointingAnim();
     }
 
     JMapInfo* createParser(const char*) const;
@@ -183,8 +197,8 @@ public:
     bool isLinked14(s32, s32) const NO_INLINE;
     bool isLinkedDirect(s32, s32) const;
     bool isPathReachable(s32) const;
-    void resetLinks();
-    void resetLinks2();
+    bool hasOpenLine(s32);
+    bool hasOpenLineNoAlpha(s32);
     bool isNodeOpened(s32) const;
     void updatePaths(s32);
     s32 getPathDistance(s32) const;
@@ -211,8 +225,8 @@ public:
     s32 getWorldId() const;
     void setupRouteSteps(WorldMapResultRoute*, s32);
     void refreshRouteComet();
-    void fn2ED0();
-    void fn2F00();
+    void startRoutePointOpenSound(s32);
+    void startRoutePointCloseSound(s32);
     void setupRoute(WorldMapResultRoute*);
     void setupRouteFromNode(WorldMapResultRoute*, s32);
     bool updateRouteStep(WorldMapResultRoute*, s32, f32);
@@ -220,11 +234,11 @@ public:
 
     /* 0x00 */ s32 mWorldId;
     /* 0x04 */ WorldMapResultMapData* mMapData;
-    /* 0x08 */ void* mLinks;
-    /* 0x0C */ void* mWorldData;
+    /* 0x08 */ MiniRouteLineList* mLinks;
+    /* 0x0C */ GalaxyWorldMapInfoHolder* mWorldData;
     /* 0x10 */ s32 _10;
-    /* 0x14 */ void* mUnit14;
-    /* 0x18 */ void* mUnit18;
+    /* 0x14 */ PointPartsHolder* mUnit14;
+    /* 0x18 */ WorldMapPointMarks* mUnit18;
     /* 0x1C */ WorldMapResultPathFinder* mPathFinder;
 };
 

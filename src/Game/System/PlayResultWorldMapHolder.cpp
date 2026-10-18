@@ -1,8 +1,9 @@
 #include "Game/System/PlayResultWorldMapHolder.hpp"
+#include "Game/System/WorldMapResultLocal.hpp"
 
 PlayResultWorldMapHolder::PlayResultWorldMapHolder() : NameObj("\x83v\x83\x8c\x83""C\x8c\x8b\x89\xca\x95\xdb\x8e\x9d[\x83\x8f\x81[\x83\x8b\x83h\x83}\x83""b\x83v]") {
     mTable = nullptr;
-    mTable = static_cast< u8* >(fn_804ECBC0(new u8[0x404]));
+    mTable = reinterpret_cast< u8* >(new WorldMapResultRoute());
     reset();
 }
 

@@ -26,6 +26,11 @@ namespace GameDataFunction {
     void onGalaxyScenarioFlagAlreadyVisited(const char*, s32);
     s32 calcCurrentPowerStarNum();
     s32 getPowerStarNumOwned(const char*);
+    const char* getWorldFinalGalaxyName(s32 worldId);
+    bool isGalaxyStateNew(const char*);
+    bool isGalaxyStateOpened(const char*);
+    void setGalaxyStateNew(const char*);
+    void setGalaxyStateOpened(const char*);
     s32 getPowerStarNumMax();
     void onGameEventFlag(const char*);
     bool isOnGameEventFlag(const char*);

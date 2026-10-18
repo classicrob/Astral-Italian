@@ -6,8 +6,7 @@ class GalaxyMoveArgument;
 class UserFile;
 
 namespace GameSequenceFunction {
-    const char* getClearedStageName();
-    void resetPlayResultInStage();
+    bool isGreenStarEventOnly();
     const char* getClearedStageName();
     void resetPlayResultInStage();
     void collectTicoCoinInStage();

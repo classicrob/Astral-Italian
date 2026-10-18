@@ -128,7 +128,7 @@ void ScenarioSelectLayout::init(const JMapInfoIter& rIter) {
         MR::addStarPointerTargetCircle(this, ::cStarPaneName[i], ::cPointingTargetRadius, TVec2f(0.0f, 0.0f), nullptr);
     }
 
-    mScenarioSky = new MultiSceneActor("シナリオ選択の空", "ScenarioSelectSky", false);
+    mScenarioSky = new MultiSceneActor("シナリオ選択の空", "ScenarioSelectSky", 0, false);
     mScenarioSky->initWithoutIter();
 
     mBackButton = new BackButton("戻るボタン", false);

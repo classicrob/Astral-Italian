@@ -3,15 +3,22 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class TalkMessageCtrl;
+class WorldMapResultWorld;
 
 class MiniTicoMaster : public LiveActor {
 public:
-    MiniTicoMaster(const char* pName) : LiveActor(pName) {}
+    MiniTicoMaster(WorldMapResultWorld* pWorld, s32 partsIndex, s32* pParam, s32 pointIndex, s32 param1);
     virtual ~MiniTicoMaster();
     virtual void init(const JMapInfoIter&);
     virtual void makeActorAppeared();
     virtual void makeActorDead();
     virtual void control();
+
+    bool isFull() const;
+    bool tryTalk();
+    bool isPointing();
+    bool tryPointTalk();
+    void setEffectDrawOrder(s32 order);
 
     s32 mUnk90;                  // 0x90
     s32* mUnk94;                 // 0x94 (*mUnk94 is the count)

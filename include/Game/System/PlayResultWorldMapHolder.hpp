@@ -2,7 +2,7 @@
 
 #include "Game/NameObj/NameObj.hpp"
 
-// Opaque 0x404-byte table allocated by fn_804ECBC0 (flags at +0x20, 8 x 0x40, counter at +0x400)
+// Opaque 0x404-byte table allocated as a WorldMapResultRoute (flags at +0x20, 8 x 0x40, counter at +0x400)
 class PlayResultWorldMapHolder : public NameObj {
 public:
     PlayResultWorldMapHolder();
@@ -22,7 +22,6 @@ public:
 };
 
 extern "C" {
-    void* fn_804ECBC0(void*);
     void fn_804C96B0(PlayResultWorldMapHolder*, s32);
     void fn_804C96C0(PlayResultWorldMapHolder*, s32);
     void fn_804C96D0(u8*, s32, s32);

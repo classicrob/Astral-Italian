@@ -1,5 +1,6 @@
 #include "Game/System/MiniTicoMaster.hpp"
 #include "Game/System/MiniWorldMapMark.hpp"
+#include "Game/System/GalaxyWorldMapInfo.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
@@ -8,7 +9,6 @@ class TalkMessageCtrl;
 
 extern "C" TVec3f* fn_804F2550(s32, s32);
 extern "C" LiveActor* fn_804E83B0(LiveActor*, const char*, const char*, const char*);
-extern "C" LiveActor* fn_804EB180(LiveActor*, MiniTicoMaster*, const char*, const char*);
 extern "C" void fn_804E8C40(LiveActor*);
 extern "C" void fn_804E8C50(LiveActor*, f32, f32);
 extern "C" void fn_804E8C80(LiveActor*, f32, f32);
@@ -76,11 +76,7 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
         MR::initStarPointerTarget(this, 800.0f, pointerOffset);
     }
 
-    LiveActor* pShadow = static_cast<LiveActor*>(operator new(0x94));
-    if (pShadow != nullptr) {
-        pShadow = fn_804EB180(pShadow, this, "MiniGalaxyShadow", "影");
-    }
-    mShadow = pShadow;
+    mShadow = new MiniGalaxyShadow(this, "MiniGalaxyShadow", "影");
 
     mTalkCtrl = MR::createTalkCtrlDirect(this, "WorldMapEventTicoRequestStarPiece", TVec3f(0.0f, 0.0f, 0.0f), nullptr);
     MR::setMessageArg(mTalkCtrl, mUnk98);

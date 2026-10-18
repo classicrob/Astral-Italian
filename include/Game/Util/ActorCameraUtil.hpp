@@ -20,6 +20,7 @@ namespace {
 };  // namespace
 
 namespace MR {
+    s32 getCameraParamId(const char* pCameraName, const char* pParamName);
     ActorCameraInfo* createActorCameraInfo(const JMapInfoIter& rIter);
     bool createActorCameraInfoIfExist(const JMapInfoIter& rIter, ActorCameraInfo** pInfoDest);
     bool initActorCamera(const LiveActor* pActor, const JMapInfoIter& rIter, ActorCameraInfo** pInfoDest);

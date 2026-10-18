@@ -57,6 +57,7 @@ public:
     /// @brief Creates a new `StaffRoll`.
     /// @param pName A pointer to the null-terminated name of the object.
     StaffRoll(const char* pName);
+    StaffRoll();
 
     virtual ~StaffRoll();
 

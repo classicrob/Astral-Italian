@@ -25,8 +25,6 @@ extern "C" {
     void fn_804E17F0(void*);
     void fn_804E8780(WorldMapResultCommand*);
     void fn_804E8850(WorldMapResultCommand*);
-    void fn_804E9E00(s32);
-    void fn_804E9E10(s32, s32);
     void fn_804F33F0(TVec3f*, const TVec3f*, const TVec3f*, s32, s32);
     void fn_804F72A0(WorldMapResultCommand*);
     void fn_804F75C0(WorldMapResultCommand*, const char*);
@@ -38,7 +36,7 @@ extern "C" {
     void fn_804F7FC0(WorldMapResultCommand*);
     void fn_804F7FD0(WorldMapResultCommand*);
     bool fn_804F7FF0(WorldMapResultCommand*);
-    void fn_804F8740(WorldMapResultCommand*, s32*);
+    void fn_804F8740(WorldMapResultCommand*, GalaxyWorldMapInfo**);
     void* fn_804F60D0(WorldMapResultCommand*);
 }
 
@@ -46,7 +44,7 @@ extern s32 lbl_807E3148;
 
 /// Green-star demo state ("State[グリーンスター出現デモ]"): two comet actors, a counter array and a talk ctrl.
 WMR_STATE_DECL(WorldMapResultStateGreenStarDemo, virtual void control(); void showComets(); void exeStart(); void exeShower(); void exeTalkStart(); void exeTalk(); void exeEnd();
-               /* 0x10 */ MiniGreenComet* mComet; /* 0x14 */ MiniGreenCometShower* mShower; /* 0x18 */ s32* mCounts; /* 0x1C */ TalkMessageCtrl* mTalkCtrl;);
+               /* 0x10 */ MiniGreenComet* mComet; /* 0x14 */ MiniGreenCometShower* mShower; /* 0x18 */ GalaxyWorldMapInfo** mCounts; /* 0x1C */ TalkMessageCtrl* mTalkCtrl;);
 
 namespace NrvWorldMapResultStateGreenStarDemo {
     WMR_NERVE_DECL(WorldMapResultStateGreenStarDemoStart);
@@ -90,9 +88,9 @@ void WorldMapResultStateGreenStarDemo::init() {
     mShower = new MiniGreenCometShower();
     mShower->initWithoutIter();
     mShower->makeActorDead();
-    mCounts = new s32[7];
+    mCounts = new GalaxyWorldMapInfo*[7];
     for (s32 i = 0; i < 7; i++) {
-        mCounts[i] = 0;
+        mCounts[i] = nullptr;
     }
     mIsDead = true;
 }
@@ -126,7 +124,7 @@ void WorldMapResultStateGreenStarDemo::showComets() {
     mShower->appear();
     fn_804F8740(mHost, mCounts);
     for (s32 i = 0; i < 7; i++) {
-        fn_804E9E00(mCounts[i]);
+        mCounts[i]->endPointingAnim();
     }
 }
 
@@ -169,7 +167,7 @@ void WorldMapResultStateGreenStarDemo::exeShower() {
     s32 steps[7] = {lbl_807E3148, 40, 70, 150, 210, 290, 360};
     for (s32 i = 0; i < 7; i++) {
         if (MR::isStep(this, steps[i])) {
-            fn_804E9E10(mCounts[i], 1);
+            mCounts[i]->setComet(true);
         }
     }
     TVec3f vec20;

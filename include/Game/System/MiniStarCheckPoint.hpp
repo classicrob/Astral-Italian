@@ -6,7 +6,7 @@ class TalkMessageCtrl;
 
 class MiniStarCheckPoint : public LiveActor {
 public:
-    MiniStarCheckPoint(const char* pName) : LiveActor(pName) {}
+    MiniStarCheckPoint(const char* pKind, s32 starNum, s32 partsIndex, s32 param1, s32 worldId);
     virtual ~MiniStarCheckPoint();
     virtual void init(const JMapInfoIter&);
     virtual void makeActorAppeared();
@@ -14,6 +14,16 @@ public:
     virtual void kill();
     virtual void control();
     virtual void calcAndSetBaseMtx();
+
+    void startOpen();
+    void resetOpen();
+    bool isDone() const;
+    bool isStandby() const;
+    void talk();
+    bool isOpening() const;
+    bool isReadyToOpen() const;
+    bool update(s32 distance);
+    void setEffectDrawOrder(s32 order);
 
     const char* mKind;       // 0x90 (name string, compared by fn_804E5A10)
     s32 mStarNum;             // 0x94

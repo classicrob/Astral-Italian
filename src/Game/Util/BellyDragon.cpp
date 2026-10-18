@@ -4,8 +4,6 @@
 
 extern "C" void* __nw__FUl(u32);
 extern "C" void* fn_800919E0(void*, BellyDragon*, TPos3f*, bool);
-extern "C" void* fn_800942E0(void*, BellyDragon*, const JMapInfoIter*);
-extern "C" void* fn_80094D90(void*, BellyDragon*, s32);
 extern "C" void* fn_80095530(void*, BellyDragon*, const char*, const f32*);
 extern "C" void fn_800955B0(void*);
 extern "C" void fn_800955C0(void*);
@@ -20,7 +18,7 @@ extern "C" void fn_80092230(BellyDragonBody*);
 extern "C" void fn_80092540(BellyDragonBody*);
 extern "C" void fn_80092670(BellyDragonBody*);
 extern "C" void fn_80093810(BellyDragon*);
-extern "C" void fn_80093B10(void);
+extern "C" void fn_80093B10(BellyDragon*);
 extern "C" void fn_80093B20(BellyDragon*);
 extern "C" void fn_800938E0(BellyDragon*, s32);
 extern "C" void fn_800951D0(BellyDragonArm*, HitSensor*, HitSensor*);
@@ -41,7 +39,7 @@ namespace NrvBellyDragon {
     BellyDragonNrvEnd BellyDragonNrvEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBellyDragon
 
-bool fn_8008EDA0(LiveActor* pActor) {
+extern "C" bool fn_8008EDA0(LiveActor* pActor) {
     return pActor->isNerve(&NrvBellyDragon::BellyDragonNrvAttack::sInstance);
 }
 
@@ -56,14 +54,11 @@ void BellyDragon::init(const JMapInfoIter& rIter) {
 
     void* pMem = __nw__FUl(0x100);
     mBody = pMem ? (BellyDragonBody*)fn_800919E0(pMem, this, &mBaseMtx, mIsLv2) : NULL;
-    pMem = __nw__FUl(0x80);
-    mPod = pMem ? (BellyDragonPod*)fn_800942E0(pMem, this, &rIter) : NULL;
+    mPod = new BellyDragonPod(this, &rIter);
     initNerve(&NrvBellyDragon::BellyDragonNrvStart::sInstance, 0x10);
 
-    pMem = __nw__FUl(0x24);
-    mArmA = pMem ? (BellyDragonArm*)fn_80094D90(pMem, this, 1) : NULL;
-    pMem = __nw__FUl(0x24);
-    mArmB = pMem ? (BellyDragonArm*)fn_80094D90(pMem, this, 0) : NULL;
+    mArmA = new BellyDragonArm(this, 1);
+    mArmB = new BellyDragonArm(this, 0);
 
     pMem = __nw__FUl(0x1C);
     void* pStateA = pMem ? fn_80095530(pMem, this, lbl_8066C858 + 0x10, &lbl_807D76F4) : NULL;
@@ -202,7 +197,7 @@ void NrvBellyDragon::BellyDragonNrvEnd::execute(Spine* pSpine) const {
 }
 
 void BellyDragon::control() {
-    fn_80093B10();
+    fn_80093B10(this);
     mJointCtrl->update();
 }
 

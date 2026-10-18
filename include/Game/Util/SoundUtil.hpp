@@ -45,6 +45,7 @@ namespace MR {
 
     JAISoundHandle* startSystemSE(const char* pName, s32 param2 = -1, s32 param3 = -1);
     JAISoundHandle* startSystemSE(JAISoundID id, s32 param2 = -1, s32 param3 = -1);
+    void onDestroySceneKeepAllSound();
     JAISoundHandle* startSystemLevelSE(const char*, s32 param2 = -1, s32 param3 = -1);
     JAISoundHandle* startSystemLevelSE(JAISoundID, s32 param2 = -1, s32 param3 = -1);
     void stopSystemSE(const char* pName, u32 param2 = 0);

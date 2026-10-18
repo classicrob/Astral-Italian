@@ -16,14 +16,6 @@ extern "C" void fn_80318760(TVec3f*);
 extern "C" void fn_8004DB60(LiveActor*, TVec3f*, TVec3f*, f32, s32, s32, s32, s32);
 extern "C" void fn_800345E0(LiveActor*, const char*);
 
-extern "C" const char lbl_806AF130[];
-extern "C" const char lbl_806AF140[];
-extern "C" const char lbl_806AF14C[];
-extern "C" const char lbl_806AF154[];
-extern "C" const char lbl_806AF164[];
-extern "C" const char lbl_806AF178[];
-extern "C" const char lbl_806AF180[];
-extern "C" const char lbl_806AF188[];
 
 namespace NrvStarPieceFlower {
     NEW_NERVE(StarPieceFlowerNrvCloseWait, StarPieceFlower, CloseWait);
@@ -46,13 +38,13 @@ StarPieceFlower::StarPieceFlower(const char* pName)
 StarPieceFlower::~StarPieceFlower() {}
 
 void StarPieceFlower::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, lbl_806AF130, false);
+    MR::initActor(this, rIter, "StarPieceFlower", false);
     initNerve(&NrvStarPieceFlower::StarPieceFlowerNrvCloseWait::sInstance, 0);
     MR::declareStarPiece(this, 1);
 
     if (mTargetPos != nullptr) {
-        MR::startAction(this, lbl_806AF140);
-        MR::setAllAnimFrameAndStop(this, lbl_806AF140, 0.0f);
+        MR::startAction(this, "CloseWait");
+        MR::setAllAnimFrameAndStop(this, "CloseWait", 0.0f);
     }
 
     MR::createSceneObj(SceneObj_StarPieceFlowerController);
@@ -133,8 +125,8 @@ void StarPieceFlower::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     push -= back;
 
     fn_8004DB60(this, &mPosition, &push, 0.0f, 1, 0, 0, 1);
-    fn_800345E0(this, lbl_806AF164);
-    MR::invalidateHitSensor(this, lbl_806AF178);
+    fn_800345E0(this, "\203X\203^\201[\203s\201[\203X\225\372\217o");
+    MR::invalidateHitSensor(this, "Body");
     setNerve(&NrvStarPieceFlower::StarPieceFlowerNrvOpen::sInstance);
 }
 
@@ -144,7 +136,7 @@ bool StarPieceFlower::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
         return true;
     }
 
-    if (!MR::isEqualSensor(pReceiver, this, lbl_806AF180)) {
+    if (!MR::isEqualSensor(pReceiver, this, "Spin")) {
         return false;
     }
 
@@ -153,7 +145,7 @@ bool StarPieceFlower::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
     }
 
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        fn_800345E0(this, lbl_806AF188);
+        fn_800345E0(this, "\203X\203s\203\223\224\275\211\236");
         setNerve(&NrvStarPieceFlower::StarPieceFlowerNrvSpinReaction::sInstance);
         return false;
     }
@@ -167,14 +159,14 @@ void StarPieceFlower::exeCloseWait() {
     }
 
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_806AF140);
-        MR::setAllAnimFrameAndStop(this, lbl_806AF140, 0.0f);
+        MR::startAction(this, "CloseWait");
+        MR::setAllAnimFrameAndStop(this, "CloseWait", 0.0f);
     }
 }
 
 void StarPieceFlower::exeOpen() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_806AF14C);
+        MR::startAction(this, "Open");
     }
 
     if (MR::isActionEnd(this)) {
@@ -184,7 +176,7 @@ void StarPieceFlower::exeOpen() {
 
 void StarPieceFlower::exeSpinReaction() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_806AF154);
+        MR::startAction(this, "SpinReaction");
     }
 
     if (MR::isActionEnd(this)) {

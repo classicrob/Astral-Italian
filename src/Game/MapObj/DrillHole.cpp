@@ -10,9 +10,6 @@ namespace MR {
     void createSceneObj(s32);
 };  // namespace MR
 
-extern "C" const char lbl_8069F310[];
-extern "C" const char lbl_8069F3A8[];
-extern "C" const char lbl_8069F3D0[];
 
 namespace NrvDrillHole {
     class DrillHoleNrvWait : public Nerve {
@@ -27,7 +24,7 @@ namespace NrvDrillHole {
         virtual void execute(Spine* pSpine) const {
             DrillHole* actor = reinterpret_cast< DrillHole* >(pSpine->mExecutor);
             if (MR::isFirstStep(actor)) {
-                MR::startAction(actor, lbl_8069F310);
+                MR::startAction(actor, "Appear");
             }
             MR::setNerveAtBckStopped(actor, &DrillHoleNrvWait::sInstance);
         };
@@ -73,7 +70,7 @@ DrillHoleHolder::DrillHoleHolder(const char* pName) : NameObj(pName) {
 }
 
 void DrillHoleHolder::init(const JMapInfoIter&) {
-    const char* pBase = lbl_8069F3A8;
+    const char* pBase = "DrillHoleIn";
     mHoles1 = new DrillHole*[8];
     mHoles2 = new DrillHole*[8];
     for (s32 i = 0; i < 8; i++) {
@@ -117,7 +114,7 @@ void createDrillHoleHolderSceneObj() {
 void appearDrillHoleFromArea1(const TPos3f* pMtx) {
     TVec3f trans;
     pMtx->getTrans(trans);
-    if (!MR::isInAreaObj(lbl_8069F3D0, trans)) {
+    if (!MR::isInAreaObj("DrillHoleHiddenArea", trans)) {
         DrillHoleHolder* pHolder = static_cast< DrillHoleHolder* >(MR::getSceneObjHolder()->getObj(0x86));
         appearDrillHole(pHolder, pHolder->mHoles1, pMtx);
     }
@@ -126,7 +123,7 @@ void appearDrillHoleFromArea1(const TPos3f* pMtx) {
 void appearDrillHoleFromArea2(const TPos3f* pMtx) {
     TVec3f trans;
     pMtx->getTrans(trans);
-    if (!MR::isInAreaObj(lbl_8069F3D0, trans)) {
+    if (!MR::isInAreaObj("DrillHoleHiddenArea", trans)) {
         DrillHoleHolder* pHolder = static_cast< DrillHoleHolder* >(MR::getSceneObjHolder()->getObj(0x86));
         appearDrillHole(pHolder, pHolder->mHoles2, pMtx);
     }

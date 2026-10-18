@@ -18,8 +18,6 @@ namespace MR {
 extern "C" void emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
 extern "C" void fn_8000FFD0(f32);
 
-extern "C" const char lbl_8069D1B0[];
-extern "C" const char lbl_8069D1C0[];
 
 namespace NrvCaveInParts {
     NEW_NERVE(CaveInPartsNrvFall, CaveInParts, Fall);
@@ -40,7 +38,7 @@ namespace NrvCaveInParts {
         virtual void execute(Spine* pSpine) const {
             CaveInParts* actor = reinterpret_cast< CaveInParts* >(pSpine->mExecutor);
             if (MR::isFirstStep(actor)) {
-                MR::emitEffect(actor, lbl_8069D1C0);
+                MR::emitEffect(actor, "Explosion");
                 actor->kill();
             }
         };
@@ -91,7 +89,7 @@ void CaveInParts::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (MR::isEqualSensor(pSender, this, lbl_8069D1B0)) {
+    if (MR::isEqualSensor(pSender, this, "Attack")) {
         if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
             setNerve(&NrvCaveInParts::CaveInPartsNrvExplode::sInstance);
         }
@@ -119,7 +117,7 @@ void CaveInParts::setLifeAndSpeed(s32 life, f32 maxFallSpeed, f32 gravityAccel, 
 }
 
 void CaveInParts::exeFall() {
-    const char* pBase = lbl_8069D1B0;
+    const char* pBase = "Attack";
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
         emitEffect__2MRFP9LiveActorPCc_0(this, pBase + 0x8);

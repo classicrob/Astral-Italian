@@ -7,20 +7,6 @@
 #include <JSystem/JMath/JMATrigonometric.hpp>
 
 // Float constants (.sdata2) used by BalloonFruit.
-extern "C" f32 lbl_807DCBE8;  // 1.0
-extern "C" f32 lbl_807DCBEC;  // 0.0
-extern "C" f32 lbl_807DCBF0;
-extern "C" f32 lbl_807DCBF4;
-extern "C" f32 lbl_807DCBF8;  // pi
-extern "C" f32 lbl_807DCBFC;  // pi / 2
-extern "C" f32 lbl_807DCC00;  // -pi / 2
-extern "C" f32 lbl_807DCC04;  // 1.0
-extern "C" f32 lbl_807DCC08;  // 75.0
-extern "C" f32 lbl_807DCC0C;  // 80.0
-extern "C" f32 lbl_807DCC10;  // 100.0
-extern "C" f32 lbl_807DCC14;  // 180 / pi
-extern "C" f32 lbl_807DCC18;  // 180.0
-extern "C" f32 lbl_807DCC1C;  // 2 pi
 
 class YoshiLockOnTarget;
 
@@ -98,7 +84,7 @@ namespace NrvBalloonFruit {
 }
 
 BalloonFruit::BalloonFruit(const char* pName) : LiveActor(pName) {
-    f32 zero = lbl_807DCBEC;
+    f32 zero = 0.0f;
     mHomePos.x = zero;
     mHomePos.y = zero;
     mHomePos.z = zero;
@@ -121,21 +107,21 @@ void BalloonFruit::init(const JMapInfoIter& rIter) {
     MR::initLightCtrl(this);
 
     TVec3f sp2C;
-    sp2C.setAll<f32>(lbl_807DCBEC);
+    sp2C.setAll<f32>(0.0f);
     initSound(4, nullptr, nullptr, sp2C);
     initHitSensor(1);
-    MR::addHitSensor(this, "Body", 0x4E, 0x20, lbl_807DCC0C, TVec3f(lbl_807DCBEC, lbl_807DCC0C, lbl_807DCBEC));
+    MR::addHitSensor(this, "Body", 0x4E, 0x20, 80.0f, TVec3f(0.0f, 80.0f, 0.0f));
     initEffectKeeper(0, nullptr, false);
     MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     MR::onCalcGravity(this);
-    MR::initStarPointerTarget(this, lbl_807DCC10, TVec3f(lbl_807DCBEC, lbl_807DCC10, lbl_807DCBEC));
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 100.0f, 0.0f));
 
     mHomePos.set(mPosition);
     mHomeRot.set(mRotation);
     mBaseScale = mScale.x;
     mMtxAC.identity();
     TVec3f sp8;
-    sp8.setAll<f32>(lbl_807DCBEC);
+    sp8.setAll<f32>(0.0f);
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, mMtxAC, sp8);
     initNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvWait), 0);
     MR::useStageSwitchAwake(this, rIter);
@@ -216,7 +202,7 @@ void BalloonFruit::exeHipDropCrash() {
     TVec3f toPlayer(*MR::getPlayerPos());
     toPlayer.sub(mPosition);
     f32 d = toPlayer.dot(*MR::getPlayerGravity());
-    if (d > lbl_807DCC08) {
+    if (d > 75.0f) {
         TVec3f sp8(*MR::getPlayerGravity());
         sp8.scale(d);
         toPlayer.add(sp8);
@@ -242,7 +228,7 @@ void BalloonFruit::reset() {
     mPosition.set(mHomePos);
     mRotation.set(mHomeRot);
     mScale.setAll<f32>(mBaseScale);
-    mAngleE4 = lbl_807DCBEC;
+    mAngleE4 = 0.0f;
     setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvAppear));
 }
 
@@ -254,12 +240,12 @@ void BalloonFruit::control() {
     if (isNerveSpinOrStill()) {
         // NONMATCHING: rotation math is a Rodrigues matrix about the gravity axis, decomposed back
         // into yaw/pitch/roll; target uses the same formulas but the matrix/concat order is not verified.
-        TVec3f axis(lbl_807DCBEC, lbl_807DCBE8, lbl_807DCBEC);
+        TVec3f axis(0.0f, 1.0f, 0.0f);
         TVec3f n = axis;
         PSVECNormalize(&n, &n);
         f32 s = (f32)sin(mAngleE4);
         f32 c = (f32)cos(mAngleE4);
-        f32 t = lbl_807DCBE8 - c;
+        f32 t = 1.0f - c;
         f32 nx = n.x;
         f32 ny = n.y;
         f32 nz = n.z;
@@ -274,18 +260,18 @@ void BalloonFruit::control() {
         rot[2][1] = t * ny * nz + s * nx;
         rot[2][2] = c + t * (nz * nz);
         TPos3f mtx;
-        TVec3f zero(lbl_807DCBEC, lbl_807DCBEC, lbl_807DCBEC);
+        TVec3f zero(0.0f, 0.0f, 0.0f);
         MR::makeMtxTR(mtx, zero, mHomeRot);
         mtx.concat(rot);
 
-        if ((rot[2][0] - lbl_807DCBE8) == lbl_807DCBF4) {
+        if ((rot[2][0] - 1.0f) == -3.81469727e-06f) {
             mRotation.x = JMath::sAtanTable.atan2_(-mtx[1][2], mtx[1][1]);
-            mRotation.y = lbl_807DCC00;
-            mRotation.z = lbl_807DCBEC;
-        } else if ((rot[2][0] + lbl_807DCBE8) == lbl_807DCBF0) {
+            mRotation.y = -1.5707964f;
+            mRotation.z = 0.0f;
+        } else if ((rot[2][0] + 1.0f) == 3.81469727e-06f) {
             mRotation.x = JMath::sAtanTable.atan2_(mtx[1][2], mtx[1][1]);
-            mRotation.y = lbl_807DCBFC;
-            mRotation.z = lbl_807DCBEC;
+            mRotation.y = 1.5707964f;
+            mRotation.z = 0.0f;
         } else {
             mRotation.x = JMath::sAtanTable.atan2_(mRotation.x, mtx[0][0]);
             f32 yaw = JMath::sAtanTable.atan2_(mtx[2][1], mtx[2][2]);
@@ -293,15 +279,15 @@ void BalloonFruit::control() {
             mRotation.y = JGeometry::TUtil< f32 >::asin(-rot[2][0]);
         }
 
-        f32 rx = mRotation.x * lbl_807DCC14;
-        f32 ry = mRotation.y * lbl_807DCC14;
-        f32 rz = mRotation.z * lbl_807DCC14;
-        mAngleE4 = mAngleE4 + (lbl_807DCBF8 * lbl_807DCC04) / lbl_807DCC18;
+        f32 rx = mRotation.x * 57.295776f;
+        f32 ry = mRotation.y * 57.295776f;
+        f32 rz = mRotation.z * 57.295776f;
+        mAngleE4 = mAngleE4 + (3.1415927f * 1.0f) / 180.0f;
         mRotation.x = rx;
         mRotation.y = ry;
         mRotation.z = rz;
-        if (mAngleE4 >= lbl_807DCC1C) {
-            mAngleE4 -= lbl_807DCC1C;
+        if (mAngleE4 >= 6.2831855f) {
+            mAngleE4 -= 6.2831855f;
         }
     }
     if (isNerveNoYoshiEat()) {

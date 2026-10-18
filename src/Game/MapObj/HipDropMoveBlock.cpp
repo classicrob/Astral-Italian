@@ -4,9 +4,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 
-extern "C" char lbl_806A2280[];
-extern "C" const char* lbl_807CFC60;
-extern "C" char lbl_806A229C[];
 
 // MoveBlockFunction helpers (owned by the MoveBlockFunction unit, not ported yet)
 extern "C" void fn_802D4A30(MoveBlockFunction*, TVec3f*, f32);
@@ -90,14 +87,14 @@ void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
     mFlag97 = tryInitSwitch();
     makeActorAppeared();
 
-    if (MR::isEqualString(sObjName, lbl_806A229C)) {
+    if (MR::isEqualString(sObjName, "HipDropMoveBlockHShape")) {
         mFlag96 = true;
     }
 }
 
 bool HipDropMoveBlock::tryInitSwitch() {
-    const char* pNames = lbl_806A2280;
-    JMapInfo* pCsv = MR::tryCreateCsvParser(this, lbl_807CFC60);
+    const char* pNames = "InitHipDropMoveBlockSwitch";
+    JMapInfo* pCsv = MR::tryCreateCsvParser(this, "\200j\"\200");
     if (pCsv != nullptr) {
         mSwitchCount = MR::getCsvDataElementNum(pCsv);
         mSwitches = new HipDropMoveBlockSwitch*[mSwitchCount];
@@ -218,7 +215,7 @@ void HipDropMoveBlock::exeWaitSwitch() {
 }
 
 void HipDropMoveBlock::exeMove() {
-    const char* pNames = lbl_806A2280;
+    const char* pNames = "InitHipDropMoveBlockSwitch";
     if (MR::isFirstStep(this)) {
         MR::tryStartAllAnim(this, pNames + 0x60);
         fn_800083F0(this, pNames + 0x60, -1, -1, -1);

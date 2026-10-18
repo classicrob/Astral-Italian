@@ -5,10 +5,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Map/CollisionParts.hpp"
 
-extern "C" char lbl_806A23D0[];
-extern "C" char lbl_806A23E8[];
-extern "C" char lbl_806A23F0[];
-extern "C" char lbl_806A23F8[];
 extern "C" u32 lbl_807CFC68;
 extern "C" u32 lbl_807CFC6C;
 extern "C" u32 lbl_807CFC70;
@@ -39,7 +35,7 @@ HipDropMoveBlockSwitch::HipDropMoveBlockSwitch(const char* pName, HipDropMoveBlo
 }
 
 void HipDropMoveBlockSwitch::init(const JMapInfoIter& rIter) {
-    const char* pNames = lbl_806A23D0;
+    const char* pNames = "HipDropMoveBlockSwitch";
     MR::initActor(this, rIter, pNames + 0x0, false);
     initHitSensor(2);
     MR::addHitSensorMapObj(this, pNames + 0x18, 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
@@ -56,7 +52,7 @@ void HipDropMoveBlockSwitch::init(const JMapInfoIter& rIter) {
 void HipDropMoveBlockSwitch::calcAnim() {
     LiveActor::calcAnim();
     TPos3f mtx;
-    MtxPtr jointMtx = MR::getJointMtx(this, lbl_806A23F0);
+    MtxPtr jointMtx = MR::getJointMtx(this, "Move");
     mtx.set(jointMtx);
     mCollisionParts->setMtx(mtx);
 }
@@ -87,8 +83,8 @@ void HipDropMoveBlockSwitch::calcAndSetBaseMtx() {
 bool HipDropMoveBlockSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDropFloor(msg) && isNerve(&NrvHipDropMoveBlockSwitch::HipDropMoveBlockSwitchNrvOff::sInstance)) {
         setNerve(&NrvHipDropMoveBlockSwitch::HipDropMoveBlockSwitchNrvSwitchDown::sInstance);
-        HitSensor* pThisSensor = getSensor(lbl_806A23E8);
-        HitSensor* pBlockSensor = mMoveBlock->getSensor(lbl_806A23E8);
+        HitSensor* pThisSensor = getSensor("Body");
+        HitSensor* pBlockSensor = mMoveBlock->getSensor("Body");
         MR::sendArbitraryMsg(msg, pBlockSensor, pThisSensor);
         return false;
     }
@@ -99,7 +95,7 @@ bool HipDropMoveBlockSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender,
 void HipDropMoveBlockSwitch::exeOff() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
-        MR::startAction(this, lbl_806A23F8);
+        MR::startAction(this, "Wait");
         MR::startBrk(this, reinterpret_cast<const char*>(&lbl_807CFC6C));
     }
 }

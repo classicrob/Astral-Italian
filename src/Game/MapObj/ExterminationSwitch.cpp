@@ -10,10 +10,6 @@ namespace NameObjFactory {
     LiveActor* initChildObj(const JMapInfoIter&, int);
 };  // namespace NameObjFactory
 
-extern "C" const char lbl_806A0480[];
-extern "C" const char lbl_806A04A4[];
-extern "C" const char lbl_806A04B4[];
-extern "C" const char lbl_806A04D0[];
 
 extern "C" void fn_8005A2A0(s32);
 extern "C" void fn_8005A2E0();
@@ -31,7 +27,7 @@ ExterminationSwitch::ExterminationSwitch(const char* pName) : LiveActor(pName) {
     mCheckerType = 0;
     mStep = 0;
     mIsShowCount = false;
-    if (MR::isEqualString(pName, lbl_806A0480)) {
+    if (MR::isEqualString(pName, "\221S\226\305\212\304\216\213\203`\203F\203b\203J\201[[\203p\203\217\201[\203X\203^\201[]")) {
         mCheckerType = 1;
     }
 }
@@ -41,7 +37,7 @@ ExterminationSwitch::~ExterminationSwitch() {}
 void ExterminationSwitch::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     s32 childNum = MR::getChildObjNum(rIter);
-    mGroup = new LiveActorGroup(lbl_806A04A4, childNum);
+    mGroup = new LiveActorGroup("\221S\226\305\203A\203N\203^\201[", childNum);
     for (s32 i = 0; i < childNum; i++) {
         LiveActor* pChild = NameObjFactory::initChildObj(rIter, i);
         mGroup->registerActor(pChild);
@@ -72,7 +68,7 @@ void ExterminationSwitch::init(const JMapInfoIter& rIter) {
         fn_8005A2E0();
     }
 
-    initSound(2, lbl_806A04B4, nullptr, TVec3f(0.0f));
+    initSound(2, "ExterminationGeneralChecker", nullptr, TVec3f(0.0f));
     initNerve(&NrvExterminationSwitch::ExterminationSwitchNrvWait::sInstance, 0);
     MR::useStageSwitchSyncAppear(this, rIter);
 }
@@ -110,7 +106,7 @@ void ExterminationSwitch::exeCheck() {
 
     if (mCheckerType == 1) {
         if (!MR::isPlayerDead()) {
-            MR::startActionSound(this, lbl_806A04D0, -1, -1, -1);
+            MR::startActionSound(this, "CompleteInstant", -1, -1, -1);
         }
         fn_80024F50();
         setNerve(&NrvExterminationSwitch::ExterminationSwitchNrvAppear::sInstance);

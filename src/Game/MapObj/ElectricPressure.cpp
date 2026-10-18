@@ -9,12 +9,6 @@
 #include <JSystem/JMath.hpp>
 #include <revolution/types.h>
 
-extern "C" const char lbl_8069FB90[];
-extern "C" const char lbl_8069FBA4[];
-extern "C" const char lbl_8069FBC0[];
-extern "C" const char lbl_8069FBCC[];
-extern "C" const char lbl_8069FBD8[];
-extern "C" const f32 lbl_807DD324;
 
 namespace NrvElectricPressure {
     // ShotStart and Shot are declared first so the inline executes of WaitFirst and Wait can reference them.
@@ -76,13 +70,13 @@ ElectricPressure::ElectricPressure(const char* pName) : LiveActor(pName) {
 }
 
 void ElectricPressure::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, lbl_8069FB90, false);
+    MR::initActor(this, rIter, "ElectricPressure", false);
     MR::getJMapInfoArg1NoInit(rIter, &mWaitFrames);
     MR::getJMapInfoArg7NoInit(rIter, &mIsBulletFlag);
 
     mBullets = new ElectricPressureBullet*[5];
     for (s32 i = 0; i < 5; i++) {
-        mBullets[i] = new ElectricPressureBullet(lbl_8069FBA4);
+        mBullets[i] = new ElectricPressureBullet("\203G\203\214\203N\203g\203\212\203b\203N\203o\203Y\201[\203J\202\314\222e");
         mBullets[i]->initWithoutIter();
     }
 
@@ -96,7 +90,7 @@ void ElectricPressure::init(const JMapInfoIter& rIter) {
 
 void ElectricPressure::exeShotStart() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_8069FBC0);
+        MR::startAction(this, "ShotStart");
     }
 
     if (MR::isActionEnd(this)) {
@@ -106,7 +100,7 @@ void ElectricPressure::exeShotStart() {
 
 void ElectricPressure::exeShot() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_8069FBCC);
+        MR::startAction(this, "Shot");
         shoot();
     }
 
@@ -144,7 +138,7 @@ void ElectricPressure::shoot() {
     }
 
     if (pBullet != nullptr) {
-        TPos3f mtx(MR::getJointMtx(this, lbl_8069FBD8));
+        TPos3f mtx(MR::getJointMtx(this, "Cannon1"));
 
         TVec3f axisX(0.0f, 0.0f, 0.0f);
         axisX.set<f32>(mtx.mMtx[0][0], mtx.mMtx[1][0], mtx.mMtx[2][0]);
@@ -158,7 +152,7 @@ void ElectricPressure::shoot() {
         axisZ.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
 
         MR::makeMtxFrontUpPos(&mtx, axisX, axisY, pos);
-        pBullet->shotElectricBullet(this, mtx, lbl_807DD324, mIsBulletFlag);
+        pBullet->shotElectricBullet(this, mtx, 12.0f, mIsBulletFlag);
     }
 }
 

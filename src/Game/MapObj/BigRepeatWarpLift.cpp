@@ -4,12 +4,6 @@
 #include "Game/MapObj/MapPartsRailMover.hpp"
 #include "Game/Util.hpp"
 
-extern "C" const char lbl_8069C478[];
-extern "C" const char lbl_8069C488[];
-extern "C" const char lbl_8069C490[];
-extern "C" const char lbl_8069C498[];
-extern "C" const char lbl_8069C4A0[];
-extern "C" const char lbl_8069C4A8[];
 extern "C" void fn_802CB810(LiveActor*);
 
 namespace NrvBigRepeatWarpLift {
@@ -48,7 +42,7 @@ void BigRepeatWarpLift::init(const JMapInfoIter& rIter) {
     MapObjActor::init(rIter);
 
     MapObjActorInitInfo info;
-    info.setupHioNode(lbl_8069C478);
+    info.setupHioNode("\222n\214`\203I\203u\203W\203F");
     info.setupDefaultPos();
     info.setupConnectToScene();
     info.setupEffect(nullptr, 0);
@@ -76,7 +70,7 @@ void BigRepeatWarpLift::exeAppear() {
         MR::showModelIfHidden(this);
         MR::resetPosition(this);
         MR::validateCollisionParts(this);
-        MR::startAction(this, lbl_8069C488);
+        MR::startAction(this, "Appear");
     }
 
     if (MR::isActionEnd(this)) {
@@ -89,10 +83,10 @@ void BigRepeatWarpLift::exeMove() {
         fn_802CB810(this);
     }
 
-    MR::startActionSound(this, lbl_8069C490, -1, -1, -1);
+    MR::startActionSound(this, "Move", -1, -1, -1);
 
     if (mRailMover->isReachedEnd()) {
-        MR::startActionSound(this, lbl_8069C498, -1, -1, -1);
+        MR::startActionSound(this, "Stop", -1, -1, -1);
         mRailMover->control();
         setNerve(&NrvBigRepeatWarpLift::BigRepeatWarpLiftNrvSign::sInstance);
     }
@@ -100,11 +94,11 @@ void BigRepeatWarpLift::exeMove() {
 
 void BigRepeatWarpLift::exeSign() {
     if (MR::isFirstStep(this)) {
-        MR::startBrk(this, lbl_8069C4A0);
+        MR::startBrk(this, "Sign");
     }
 
     if (MR::isStep(this, 0x37) || MR::isStep(this, 0x5F)) {
-        MR::startActionSound(this, lbl_8069C4A0, -1, -1, -1);
+        MR::startActionSound(this, "Sign", -1, -1, -1);
     }
 
     if (MR::isBrkStopped(this) && MR::isGreaterEqualStep(this, 0x78)) {
@@ -114,7 +108,7 @@ void BigRepeatWarpLift::exeSign() {
 
 void BigRepeatWarpLift::exeDisappear() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_8069C4A8);
+        MR::startAction(this, "Disappear");
     }
 
     if (MR::isActionEnd(this)) {

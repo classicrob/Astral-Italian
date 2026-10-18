@@ -6,9 +6,7 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
-extern "C" const char lbl_8069D0C8[];
 extern "C" const s32 lbl_806491B8[];
-extern "C" const char lbl_806491D0[];
 
 namespace NrvCaveInCube {
     NEW_NERVE(CaveInCubeNrvGenerate, CaveInCube, Generate);
@@ -63,7 +61,7 @@ void CaveInCube::calcDebrisMtx(CaveInParts* pParts) {
 }
 
 void CaveInCube::initDebris() {
-    const char* pBase = lbl_8069D0C8;
+    const char* pBase = "\227\216\224\325\203p\201[\203c[\221\345]";
     mDebris0 = new CaveInParts*[20];
     mDebris1 = new CaveInParts*[20];
     mDebris2 = new CaveInParts*[20];

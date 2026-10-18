@@ -6,33 +6,6 @@
 #include "Game/Util.hpp"
 
 // Float constants (.sdata2) used by LeafBoard.
-extern "C" f32 lbl_807DDAA8;
-extern "C" f32 lbl_807DDAAC;
-extern "C" f32 lbl_807DDAB0;
-extern "C" f32 lbl_807DDAB8;
-extern "C" f32 lbl_807DDABC;
-extern "C" f32 lbl_807DDAC0;
-extern "C" f32 lbl_807DDAC4;
-extern "C" f32 lbl_807DDAC8;
-extern "C" f32 lbl_807DDACC;
-extern "C" f32 lbl_807DDAD0;
-extern "C" f32 lbl_807DDAD4;
-extern "C" f32 lbl_807DDAD8;
-extern "C" f32 lbl_807DDADC;
-extern "C" f32 lbl_807DDAE0;
-extern "C" f32 lbl_807DDAE4;
-extern "C" f32 lbl_807DDAE8;
-extern "C" f32 lbl_807DDAEC;
-extern "C" f32 lbl_807DDAF0;
-extern "C" f32 lbl_807DDAF4;
-extern "C" f32 lbl_807DDAF8;
-extern "C" f32 lbl_807DDAFC;
-extern "C" f32 lbl_807DDB00;
-extern "C" f32 lbl_807DDB04;
-extern "C" f32 lbl_807DDB08;
-extern "C" f32 lbl_807DDB0C;
-extern "C" f32 lbl_807DDB10;
-extern "C" f32 lbl_807DDB14;
 
 namespace MR {
     // NONMATCHING: SMG2 target calls scaleVelocity__2MRFP9LiveActorf with a TVec3f ref and reads f1 (symbol name looks wrong).
@@ -51,8 +24,8 @@ namespace NrvLeafBoard {
 }
 
 LeafBoard::LeafBoard(const char* pName) : LiveActor(pName) {
-    f32 zero = lbl_807DDAAC;
-    f32 one = lbl_807DDAA8;
+    f32 zero = 0.0f;
+    f32 one = 1.0f;
     mRot.x = zero;
     mRot.y = zero;
     mRot.z = zero;
@@ -102,7 +75,7 @@ void LeafBoard::control() {
     if (timer > 0) {
         mTimer104 = timer - 1;
     }
-    MR::turnQuatYDirRate(&mRot, mRot, mDir, lbl_807DDAB8);
+    MR::turnQuatYDirRate(&mRot, mRot, mDir, 0.03f);
     updateWaterShadow();
     MR::makeMtxUpNoSupportPos(&mMtx90, mShadowNormal, mShadowPos);
     updateMoveSound();
@@ -110,17 +83,17 @@ void LeafBoard::control() {
 
 // NONMATCHING: target calls out-of-line TVec3 operator+ (__pl) for mPosition + sp8; ours inlines it (shared header inline).
 void LeafBoard::updateWaterShadow() {
-    TVec3f sp8 = mGravity * lbl_807DDABC;
+    TVec3f sp8 = mGravity * 500.0f;
     TVec3f sp14 = mPosition + sp8;
     TVec3f sp20;
     sp20.set(sp14);
-    mShadowAlpha = lbl_807DDAAC;
+    mShadowAlpha = 0.0f;
     WaterInfo info;
     if (MR::getWaterAreaObj(&info, sp20)) {
         if (MR::getWaterAreaInfo(&info, sp20, mGravity, false)) {
             mShadowPos.set(info.mSurfacePos);
             mShadowNormal.set(info.mSurfaceNormal);
-            mShadowAlpha = lbl_807DDAC0;
+            mShadowAlpha = 64.0f;
             MR::validateShadow(this, "Water");
         }
     } else {
@@ -135,29 +108,29 @@ void LeafBoard::calcAndSetBaseMtx() {
 void LeafBoard::updateMoveSound() {
     f32 speed = MR::calcVelocityLength(this);
 
-    if (speed <= lbl_807DDAC4) {
+    if (speed <= 8.0f) {
         MR::startActionSound(this, "Waiting", -1, -1, -1);
     }
-    if (speed > lbl_807DDAA8 && speed < lbl_807DDAC8) {
+    if (speed > 1.0f && speed < 16.0f) {
         f32 vol;
-        if (speed < lbl_807DDAD0) {
-            vol = MR::getLinerValueFromMinMax(speed, lbl_807DDAA8, lbl_807DDAC4, lbl_807DDACC, lbl_807DDAA8);
+        if (speed < 13.0f) {
+            vol = MR::getLinerValueFromMinMax(speed, 1.0f, 8.0f, 0.1f, 1.0f);
         } else {
-            vol = MR::getLinerValueFromMinMax(speed, lbl_807DDAD0, lbl_807DDAC8, lbl_807DDAA8, lbl_807DDAAC);
+            vol = MR::getLinerValueFromMinMax(speed, 13.0f, 16.0f, 1.0f, 0.0f);
         }
-        MR::startActionSound(this, "MoveSlow", (s32)(lbl_807DDAD4 * vol), -1, -1);
+        MR::startActionSound(this, "MoveSlow", (s32)(1000.0f * vol), -1, -1);
     }
-    if (speed > lbl_807DDAC4) {
-        MR::startActionSound(this, "MoveMiddle", (s32)(lbl_807DDAD4 * MR::getLinerValueFromMinMax(speed, lbl_807DDAC4, lbl_807DDAC8, lbl_807DDACC, lbl_807DDAA8)), -1, -1);
+    if (speed > 8.0f) {
+        MR::startActionSound(this, "MoveMiddle", (s32)(1000.0f * MR::getLinerValueFromMinMax(speed, 8.0f, 16.0f, 0.1f, 1.0f)), -1, -1);
     }
-    if (speed > lbl_807DDAD0) {
-        MR::startActionSound(this, "MoveMidHigh", (s32)(lbl_807DDAD4 * MR::getLinerValueFromMinMax(speed, lbl_807DDAD0, lbl_807DDAC8, lbl_807DDACC, lbl_807DDAA8)), -1, -1);
+    if (speed > 13.0f) {
+        MR::startActionSound(this, "MoveMidHigh", (s32)(1000.0f * MR::getLinerValueFromMinMax(speed, 13.0f, 16.0f, 0.1f, 1.0f)), -1, -1);
     }
-    if (speed > lbl_807DDAC8) {
-        MR::startActionSound(this, "MoveFast", (s32)(lbl_807DDAD4 * MR::getLinerValueFromMinMax(speed, lbl_807DDAC8, lbl_807DDAD8, lbl_807DDACC, lbl_807DDAA8)), -1, -1);
+    if (speed > 16.0f) {
+        MR::startActionSound(this, "MoveFast", (s32)(1000.0f * MR::getLinerValueFromMinMax(speed, 16.0f, 27.0f, 0.1f, 1.0f)), -1, -1);
     }
-    if (speed > lbl_807DDADC) {
-        MR::startActionSound(this, "MoveWind", (s32)(lbl_807DDAD4 * MR::getLinerValueFromMinMax(speed, lbl_807DDADC, lbl_807DDAE0, lbl_807DDACC, lbl_807DDAA8)), -1, -1);
+    if (speed > 22.0f) {
+        MR::startActionSound(this, "MoveWind", (s32)(1000.0f * MR::getLinerValueFromMinMax(speed, 22.0f, 50.0f, 0.1f, 1.0f)), -1, -1);
     }
 }
 
@@ -165,13 +138,13 @@ void LeafBoard::reboundFromWall() {
     if (MR::isBindedWall(this)) {
         TVec3f normal = -MR::getWallNormal(this);
         f32 speed = MR::scaleVelocity(this, normal);
-        if (speed > lbl_807DDAE4) {
+        if (speed > 5.0f) {
             MR::startAction(this, "Reaction");
             fn_800345E0(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");
-            MR::startActionSound(this, "HitWall", (s32)(lbl_807DDAE8 * speed), -1, -1);
+            MR::startActionSound(this, "HitWall", (s32)(100.0f * speed), -1, -1);
         }
     }
-    MR::reboundVelocityFromEachCollision(this, lbl_807DDAAC, lbl_807DDAEC, lbl_807DDAAC, lbl_807DDAB0);
+    MR::reboundVelocityFromEachCollision(this, 0.0f, 0.3f, 0.0f, 2.0f);
 }
 
 void LeafBoard::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -182,9 +155,9 @@ void LeafBoard::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool LeafBoard::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemy(pSender) || MR::isSensorNpc(pSender) || MR::isSensorMapObj(pSender) || MR::isSensorRide(pSender)) {
-        f32 threshold = lbl_807DDAF4;
+        f32 threshold = 6.0f;
         if (MR::isSensorType(pSender, 0x34)) {
-            threshold = lbl_807DDAF8;
+            threshold = 4.0f;
         }
         TVec3f horizon;
         MR::calcSensorHorizonNormalize(&horizon, mGravity, pSender, pReceiver);
@@ -217,8 +190,8 @@ void LeafBoard::exeWait() {
     }
     TVec3f up = -mGravity;
     mDir.set(up);
-    fn_802C2AA0(this, 0, lbl_807DDAFC, lbl_807DDB00, lbl_807DDAE0);
-    MR::attenuateVelocity(this, lbl_807DDB04);
+    fn_802C2AA0(this, 0, 40.0f, 0.2f, 50.0f);
+    MR::attenuateVelocity(this, 0.96f);
     if (mTimer104 > 0) {
         setNerve(GET_NERVE(LeafBoard, LeafBoardNrvFloat));
     }
@@ -227,8 +200,8 @@ void LeafBoard::exeWait() {
 void LeafBoard::exeFloat() {
     TVec3f up = -mGravity;
     mDir.set(up);
-    fn_802C2AA0(this, 0, lbl_807DDAE8, lbl_807DDB08, lbl_807DDAFC);
-    MR::attenuateVelocity(this, lbl_807DDB0C);
+    fn_802C2AA0(this, 0, 100.0f, 0.4f, 40.0f);
+    MR::attenuateVelocity(this, 0.992f);
     reboundFromWall();
     if (MR::isGreaterStep(this, 30)) {
         setNerve(GET_NERVE(LeafBoard, LeafBoardNrvWind));
@@ -240,26 +213,26 @@ void LeafBoard::exeWind() {
     TVec3f up = -mGravity;
     TVec3f dir(up);
     TVec3f sp20;
-    sp20.set(lbl_807DDAAC, lbl_807DDAAC, lbl_807DDAAC);
-    f32 var_f31 = lbl_807DDB10;
-    f32 var_f30 = lbl_807DDAAC;
+    sp20.set(0.0f, 0.0f, 0.0f);
+    f32 var_f31 = 0.97f;
+    f32 var_f30 = 0.0f;
     if (mFlag108) {
         fn_8000E670(&sp20, this, &mPlayerPos, 0);
         f32 len = PSVECMag(&sp20);
-        var_f30 = MR::normalize(len, lbl_807DDAE8, lbl_807DDAF0);
-        var_f31 = MR::getLinerValue(var_f30, lbl_807DDAA8, lbl_807DDB10, lbl_807DDAA8);
+        var_f30 = MR::normalize(len, 100.0f, 150.0f);
+        var_f31 = MR::getLinerValue(var_f30, 1.0f, 0.97f, 1.0f);
         if (MR::normalizeOrZero(&sp20)) {
             dir.set(up);
         } else {
             dir.set(sp20);
         }
     }
-    MR::turnVecToVecCos(&mDir, up, dir, var_f31, mGravity, lbl_807DDB14);
-    TVec3f sp8 = sp20 * lbl_807DDB00;
+    MR::turnVecToVecCos(&mDir, up, dir, var_f31, mGravity, 0.02f);
+    TVec3f sp8 = sp20 * 0.2f;
     TVec3f sp14 = sp8 * var_f30;
     MR::addVelocity(this, sp14);
-    fn_802C2AA0(this, 0, lbl_807DDAE8, lbl_807DDB08, lbl_807DDAFC);
-    MR::attenuateVelocity(this, lbl_807DDB0C);
+    fn_802C2AA0(this, 0, 100.0f, 0.4f, 40.0f);
+    MR::attenuateVelocity(this, 0.992f);
     reboundFromWall();
     if (mTimer104 <= 0) {
         MR::zeroVelocity(this);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <JSystem/JGeometry/TBox.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution.h>
 
@@ -44,8 +45,7 @@ namespace MR {
     float calcNearestRailDirection(TVec3f*, const LiveActor*, const TVec3f&);
     f32 calcNearestRailPosAndDirection(TVec3f*, TVec3f*, const LiveActor*, const TVec3f&);
 
-    // Need TBox
-    // void calcBoundingBox(const LiveActor*, TBox3f*, f32);
+    void calcBoundingBox(const LiveActor*, TBox3f*, f32);
 
     f32 calcDifferenceRailCoord(const LiveActor*, f32, f32);
     f32 calcDifferenceRailCoord(const LiveActor*, f32);

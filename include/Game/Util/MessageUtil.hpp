@@ -21,6 +21,10 @@ namespace MR {
     s32 countMessageChar(const wchar_t*);
     s32 countMessageFigure(s32);
     const wchar_t* getNextMessagePage(const wchar_t*);
+    const wchar_t* getSceneMessageDirect(const char*, s32);
+    bool isStoryBookPageKindA(const char*, s32);
+    bool isStoryBookPageKindB(const char*, s32);
+    bool isStoryBookPageKindC(const char*, s32);
     const wchar_t* getGalaxyNameOnCurrentLanguage(const char*);
     const wchar_t* getGalaxyNameShortOnCurrentLanguage(const char*);
     const wchar_t* getScenarioNameOnCurrentLanguage(const char*, s32);

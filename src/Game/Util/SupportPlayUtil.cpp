@@ -1,32 +1,9 @@
 #include "Game/Util/SupportPlayUtil.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/MapObj/SupportPlayDirector.hpp"
+#include "Game/NPC/SupportTico.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
-
-// SMG2-only classes (Game/NPC); only what this unit needs.
-class SupportTico : public LiveActor {
-public:
-    void setAttachRange(f32);
-    bool tryAttachToTarget(const LiveActor*);
-    void offControl();
-    void onControl();
-    void setFollowPlayerYDir();
-    void resetFollowPlayerYDir();
-    void requestHide();
-    void requestShow();
-
-    /* 0x90 */ u8 _90[0x2C];
-    /* 0xBC */ bool mIsShow;
-};
-
-class SupportPlayDirector;
-
-extern "C" bool fn_80321900(SupportPlayDirector*);  // SupportPlayDirector::isActive?
-
-class SupportPlayDirector : public NameObj {
-public:
-    void registerActor(LiveActor*);
-};
 
 namespace {
     SupportTico* getSupportTico() {
@@ -110,7 +87,7 @@ namespace MR {
             return false;
         }
 
-        return getSupportTico()->mIsShow;
+        return getSupportTico()->mShow;
     }
 
     bool attachSupportTicoToTarget(const LiveActor* pTarget) {
@@ -123,7 +100,7 @@ namespace MR {
     }
 
     bool isSupportPlayActive() {
-        return fn_80321900(MR::getSceneObj< SupportPlayDirector* >(SceneObj_SupportPlayDirector));
+        return MR::getSceneObj< SupportPlayDirector* >(SceneObj_SupportPlayDirector)->isActive();
     }
 
     bool isNeedExplainSupportTico() {

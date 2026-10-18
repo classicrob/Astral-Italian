@@ -6,6 +6,7 @@ class NameObj;
 class LiveActor;
 
 namespace MR {
+    const char* getCurrentDemoPartName();
     void registerDemoSimpleCastAll(NameObj*);
     void registerDemoSimpleCastAll(LiveActor*);
     bool tryStartDemo(LiveActor*, const char*);

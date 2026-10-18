@@ -22,6 +22,8 @@ namespace GameSequenceFunction {
 
 namespace GameSequenceFunction {
     void requestChangeStageWorldMap();
+    void requestChangeStageStaffRoll();
+    void requestChangeStageChildRoom();
     void startGameDataSaveSequence(bool, bool, bool);
     bool isActiveSaveDataHandleSequence();
 };

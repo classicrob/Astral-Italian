@@ -422,4 +422,6 @@ namespace MR {
     CollisionParts* createCollisionPartsFromResourceHolder(ResourceHolder*, const char*, HitSensor*, const TPos3f&, MR::CollisionScaleType);
     PartsModel* createPartsModelEnemyAndFix(LiveActor*, const char*, const char*, MtxPtr, const TVec3f&, const TVec3f&, const char*);
     PartsModel* createPartsModelNpcAndFix(LiveActor*, const char*, const char*, const char*);
+    // Provisional name for the unnamed SMG2 function fn_804E4FB0 (used by MiniMeister::exeTalkEnd).
+    void stopTalkEffect(LiveActor* pActor);
 };  // namespace MR

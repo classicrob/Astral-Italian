@@ -10,6 +10,7 @@ class OceanSphere;
 class WaterCameraFilter;
 class WhirlPool;
 class WhirlPoolAccelerator;
+class WaterStream;
 
 class WaterAreaHolder : public NameObj {
 public:
@@ -45,6 +46,7 @@ namespace WaterAreaFunction {
     void entryOceanSphere(OceanSphere*);
     void entryWhirlPool(WhirlPool*);
     void entryWhirlPoolAccelerator(WhirlPoolAccelerator*);
+    void entryWaterStream(WaterStream*);
     void createWaterAreaHolder();
     bool tryInOceanArea(const TVec3f&, WaterInfo*);
     bool tryInWhirlPoolAccelerator(const TVec3f&, TVec3f*);

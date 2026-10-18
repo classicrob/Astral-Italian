@@ -220,6 +220,9 @@ namespace MR {
     bool tryRumblePad(const void* pHost, const char* pPatternName, s32 wiimote);
     bool tryRumblePadVeryStrong(const void* pHost, s32 wiimote);
     bool tryRumblePadStrong(const void* pHost, s32 wiimote);
+    // Provisional names for unnamed SMG2 functions fn_8004DB60 and fn_8004F2F0 (used by ActorItemGenerator).
+    void appearStarPieceToVelocity(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rVelocity, s32 numItems, s32, s32, s32, f32);
+    void getPlayerVelocity(TVec3f* pDest);
     bool tryRumblePadMiddle(const void* pHost, s32 wiimote);
     bool tryRumblePadWeak(const void* pHost, s32 wiimote);
     bool tryRumblePadVeryWeak(const void* pHost, s32 wiimote);

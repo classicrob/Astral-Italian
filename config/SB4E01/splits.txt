@@ -5130,14 +5130,11 @@ Game/MapObj/PressureBase.cpp:
 	.ctors      start:0x8064451C end:0x80644520
 
 Game/MapObj/PullTargetBridge.cpp:
-	.text       start:0x802E31D0 end:0x802E4B10
+	.text       start:0x802E31D0 end:0x802E3BE0
 	.ctors      start:0x80644520 end:0x80644524
 
-Game/MapObj/JointControlDelegator5.cpp:
-	.text       start:0x802E4B10 end:0x802E4C30
-
 Game/MapObj/PullTargetDrawer.cpp:
-	.text       start:0x802E4C30 end:0x802E4D80
+	.text       start:0x802E3BE0 end:0x802E4D80
 	.ctors      start:0x80644524 end:0x80644528
 
 Game/MapObj/PunchBox.cpp:

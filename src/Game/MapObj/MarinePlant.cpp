@@ -1,5 +1,6 @@
 #include "Game/MapObj/MarinePlant.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
+#include "Game/Map/HitInfo.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
@@ -70,23 +71,25 @@ void MarinePlant::makeActorDead() {
 
 void MarinePlant::initAfterPlacement() {
     TVec3f gravity(0.0f);
-    TVec3f side(1.0f, 0.0f, 0.0f);
-    TVec3f up(0.0f, 1.0f, 0.0f);
+    TVec3f side;
+    side.set<int>(1, 0, 0);
+    TVec3f up;
+    up.set<int>(0, 1, 0);
 
     TVec3f rotated(0.0f);
     MR::getRotatedAxisY(&rotated, mRotation);
-    TVec3f negRot(-rotated);
-    mGravity = negRot;
+    mGravity = -rotated;
     gravity = mGravity;
     MR::makeAxisCrossPlane(&side, &up, gravity);
 
-    TVec3f center(0.0f);
+    TVec3f center;
     calcMemberSpread(&center, gravity, side, up);
     f32 extent = calcMemberBounds(center);
 
-    f32 radius = extent * mScale.y + mRadius;
+    f32 scale = mScale.y;
+    f32 radius = extent * scale + mRadius;
     MR::setSensorRadius(this, "境界球", radius);
-    MR::setClippingTypeSphere(this, extent * mScale.y + mRadius);
+    MR::setClippingTypeSphere(this, extent * scale + mRadius);
 }
 
 void MarinePlant::control() {
@@ -98,7 +101,7 @@ void MarinePlant::control() {
 bool MarinePlant::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgSpinStormRange(msg)) {
         for (s32 i = 0; i < mNumMembers; i++) {
-            mMembers[i]->tryReactToSensor(pReceiver);
+            mMembers[i]->tryReactToSensor(pSender);
         }
     }
     return false;
@@ -109,49 +112,75 @@ void MarinePlant::initMember(const JMapInfoIter& rIter) {
 
     char name[0x40];
     makeMemberName(name, 0x40, rIter);
+    const char* memberName = "海草";
     for (s32 i = 0; i < mNumMembers; i++) {
-        MarinePlantMember* pMember = new MarinePlantMember("海草", name);
+        MarinePlantMember* pMember = new MarinePlantMember(memberName, name);
         mMembers[i] = pMember;
-        pMember->initWithoutIter();
-        MR::invalidateClipping(pMember);
+        mMembers[i]->initWithoutIter();
+        MR::invalidateClipping(mMembers[i]);
     }
 }
 
-// NONMATCHING: spreads the members around the plant on a circle; the asm uses a sin/cos table and per-member collision probes, approximated here
-s32 MarinePlant::calcMemberSpread(TVec3f* pOut, const TVec3f& pGravity, const TVec3f& pSide, const TVec3f& pUp) {
+// NONMATCHING: loop branch order, anonymous vector temporaries, and saved register allocation differ.
+s32 MarinePlant::calcMemberSpread(TVec3f* pOut, const TVec3f& gravity, const TVec3f& side, const TVec3f& up) {
     pOut->set<int>(0, 0, 0);
-
+    s32 ring = 0;
+    s32 ringCount = 0;
     s32 count = 0;
-    for (s32 i = 0; i < mNumMembers; i++) {
-        f32 angle = ((f32)i / (f32)mNumMembers) * 6.2831855f;
-        TVec3f dir(pSide);
-        dir.scale(MR::sin(angle));
-        TVec3f offset(pUp);
-        offset.scale(MR::cos(angle));
-        dir.add(offset);
-
-        MarinePlantMember* pMember = mMembers[i];
-        TVec3f pos(*pOut);
-        pos.add(dir);
-        pos.scale(mRadius);
-        MR::setPosition(pMember, pos);
-        pMember->mGravity = pGravity;
+    f32 angle = 0.0f;
+    f32 angleStep = 6.2831855f;
+    f32 spacing = mRadius;
+    f32 radius = spacing * (f32)ring;
+    for (s32 i = 0; i < mNumMembers; ++i) {
+        TVec3f dir(side);
+        dir.scale(JMath::sSinCosTable.cosRadian(angle));
+        f32 sine = JMath::sSinCosTable.sinRadian(angle);
+        TVec3f across(up);
+        across.scale(sine);
+        dir += across;
+        dir.scale(radius);
+        TVec3f pos(mPosition);
+        pos += dir;
+        pos += -gravity * 100.0f;
+        Triangle triangle;
+        if (!MR::getFirstPolyOnLineToMap(&mMembers[i]->mPosition, &triangle, pos, gravity * 1000.0f)) {
+            mMembers[i]->kill();
+            pos += gravity * 1000.0f;
+            continue;
+        }
+        *pOut += mMembers[i]->mPosition;
         count++;
+        mGravity = gravity;
+        TVec3f* memberGravity = &mMembers[i]->mGravity;
+        *memberGravity = -*triangle.getNormal(0);
+        mMembers[i]->initAxisAndScale();
+        f32 scale = mScale.x;
+        scale *= 1.0f + 0.5f * (MR::getRandom() - 0.5f);
+        MR::setScale(mMembers[i], scale);
+        MR::setBckFrameAtRandom(mMembers[i]);
+        angle += angleStep;
+        if (angle >= 6.2831855f) {
+            ringCount += 6;
+            ring++;
+            angle = 0.0f;
+            angleStep = 6.2831855f / (f32)ringCount;
+            radius = (f32)ring * spacing;
+        }
     }
+    pOut->scale(1.0f / (f32)count);
     return count;
 }
 
-// bounding box over the live members (fn_802CD0D0): sets this->position to the box centre, returns half the largest extent
+// NONMATCHING: vector temporary stack placement and multiply operand allocation differ.
 f32 MarinePlant::calcMemberBounds(const TVec3f& rCenter) {
     TVec3f min(rCenter);
     TVec3f max(rCenter);
 
     for (s32 i = 0; i < mNumMembers; i++) {
-        MarinePlantMember* pMember = mMembers[i];
-        if (MR::isDead(pMember)) {
+        if (MR::isDead(mMembers[i])) {
             continue;
         }
-
+        MarinePlantMember* pMember = mMembers[i];
         if (pMember->mPosition.x < min.x) {
             min.x = pMember->mPosition.x;
         } else if (max.x < pMember->mPosition.x) {
@@ -169,24 +198,22 @@ f32 MarinePlant::calcMemberBounds(const TVec3f& rCenter) {
         }
     }
 
-    TVec3f center(max);
-    center += min;
-    TVec3f half(center);
-    half.scale(0.5f);
+    TVec3f half((max + min) * 0.5f);
     MR::setPosition(this, half);
-
     TVec3f extent(max);
     extent -= min;
-    f32 largest;
     if (extent.x < extent.y) {
-        largest = (extent.y >= extent.z) ? extent.y : extent.z;
-    } else {
-        largest = (extent.x >= extent.z) ? extent.x : extent.z;
+        if (extent.y < extent.z) {
+            return extent.z * 0.5f;
+        }
+        return extent.y * 0.5f;
     }
-    return largest * 0.5f;
+    if (extent.x < extent.z) {
+        return extent.z * 0.5f;
+    }
+    return extent.x * 0.5f;
 }
 
-// NONMATCHING: name builder ("%s%02d" from the object name and shape id); arguments follow the asm, the wide-char path is not verified
 void MarinePlant::makeMemberName(char* pBuf, s32 size, const JMapInfoIter& rIter) {
     const char* objName = nullptr;
     MR::getObjectName(&objName, rIter);
@@ -225,28 +252,27 @@ void MarinePlantMember::init(const JMapInfoIter&) {
     appear();
 }
 
-// NONMATCHING: spin-axis setup from gravity; the asm builds an orientation matrix and converts angles, approximated here
+// NONMATCHING: final radians-to-degrees multiply/store register scheduling differs.
 void MarinePlantMember::initAxisAndScale() {
-    TVec3f ref(1.0f, 0.0f, 0.0f);
-    if (MR::isSameDirection(mGravity, ref, 0.001f)) {
+    TVec3f ref;
+    ref.set<int>(1, 0, 0);
+    if (MR::isSameDirection(mGravity, ref, 0.01f)) {
         ref.set<int>(0, 1, 0);
     }
-
     TPos3f mtx;
     MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, ref);
-
-    f32 r = MR::getRandom(0.0f, 1.0f);
     f32 angle = MR::getRandom(-3.1415927f, 3.1415927f);
-    mSpinAxis = mGravity;
-    MR::normalize(&mSpinAxis);
-    mRotation.x = sin(angle) * r * 57.29578f;
-    mRotation.y = 0.0f;
-    mRotation.z = cos(angle) * r * 57.29578f;
-
+    TPos3f rotation;
+    rotation.makeRotate(mGravity, angle);
+    mtx.concat(rotation, mtx);
+    TVec3f angles;
+    mtx.getEuler(angles);
+    mRotation.x = angles.x * 57.29578f;
+    mRotation.y = angles.y * 57.29578f;
+    mRotation.z = angles.z * 57.29578f;
     calcAnim();
 }
 
-// NONMATCHING: reaction distance test against the sensor host; the asm computes the vector from the host to the member minus the gravity component
 bool MarinePlantMember::tryReactToSensor(HitSensor* pSensor) {
     if (MR::isDead(this)) {
         return false;

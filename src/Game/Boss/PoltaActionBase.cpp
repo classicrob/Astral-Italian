@@ -25,9 +25,6 @@ void PoltaActionBase::updateScreamSensor() {
     }
 }
 
-PoltaActionBase::~PoltaActionBase() {
-}
-
 bool PoltaActionBase::updateWait() {
     if (MR::isFirstStep(this)) {
         PoltaFunction::startAction(getHost(), "Wait", true);

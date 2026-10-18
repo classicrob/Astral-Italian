@@ -1487,7 +1487,6 @@ config.libs = [
             Object(NonMatching, "Game/MapObj/ItemCollectionPlanetWall.cpp"),
             Object(NonMatching, "Game/MapObj/ItemDrill.cpp"),
             Object(NonMatching, "Game/MapObj/ItemRoomDoor.cpp"),
-            Object(NonMatching, "Game/MapObj/JointControlDelegator5.cpp"),
             Object(NonMatching, "Game/MapObj/PullTargetDrawer.cpp"),
             Object(NonMatching, "Game/MapObj/JumpStandAuto.cpp"),
             Object(NonMatching, "Game/MapObj/KoopaJrCastleCloudStep.cpp"),

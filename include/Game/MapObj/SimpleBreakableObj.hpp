@@ -34,28 +34,29 @@ public:
     virtual void initCaseNoUseSwitchB(const MapObjActorInitInfo&) override {
     }
 
+    virtual void controlBreak();
+
     void setStateBreak();
     void startBreak();
     void endBreak();
     bool isStateBreaking() const;
     void appearItem();
-    void exeWait() {
-    }
+    void exeWait();
 
     void exeTryStartDemo();
     void exeDemo();
 
-    /* 0xC4 */ ActorCameraInfo* mCameraInfo;
-    /* 0xC8 */ s32 mBreakOffsetFrame;
-    s32 _CC;
-    /* 0xD0 */ s32 mSwitchDeadDelay;
-    /* 0xD4 */ u16 mBreakFlags;
-    /* 0xD8 */ s32 mItemType;
-    /* 0xDC */ s32 mItemNum;
-    /* 0xE0 */ BenefitItemObj* mKinokoOneUp;
-    /* 0xE4 */ bool mPlayRiddleSound;
-    /* 0xE5 */ bool mBreakEnded;
-    bool _E6;
+    /* 0xD0 */ ActorCameraInfo* mCameraInfo;
+    /* 0xD4 */ s32 mBreakOffsetFrame;
+    /* 0xD8 */ s32 _CC;
+    /* 0xDC */ s32 mSwitchDeadDelay;
+    /* 0xE0 */ u16 mBreakFlags;
+    /* 0xE4 */ s32 mItemType;
+    /* 0xE8 */ s32 mItemNum;
+    /* 0xEC */ BenefitItemObj* mKinokoOneUp;
+    /* 0xF0 */ bool mPlayRiddleSound;
+    /* 0xF1 */ bool mBreakEnded;
+    /* 0xF2 */ bool _E6;
 };
 
 class SimpleBreakableIndirectObj : public SimpleBreakableObj {
@@ -67,4 +68,29 @@ public:
     }
 
     virtual void connectToScene(const MapObjActorInitInfo&) override;
+};
+
+class CollisionParts;
+
+class SimpleBreakableStrongLightObj : public SimpleBreakableObj {
+public:
+    SimpleBreakableStrongLightObj(const char* pName) : SimpleBreakableObj(pName) {}
+    virtual ~SimpleBreakableStrongLightObj();
+    virtual void connectToScene(const MapObjActorInitInfo&);
+};
+
+class SimpleBreakableCollisionObj : public SimpleBreakableObj {
+public:
+    SimpleBreakableCollisionObj(const char* pName) : SimpleBreakableObj(pName), mBreakCollision(nullptr) {}
+    virtual ~SimpleBreakableCollisionObj();
+    virtual void init(const JMapInfoIter&);
+    virtual void controlBreak();
+    /* 0xF4 */ CollisionParts* mBreakCollision;
+};
+
+class SimpleBreakableDeleteShadowObj : public SimpleBreakableObj {
+public:
+    SimpleBreakableDeleteShadowObj(const char* pName) : SimpleBreakableObj(pName) {}
+    virtual ~SimpleBreakableDeleteShadowObj();
+    virtual void controlBreak();
 };

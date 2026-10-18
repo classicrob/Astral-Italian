@@ -36,8 +36,6 @@
 
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
-bool fn_804D7EE0();
-void fn_80024F50();
 void fn_8005BBE0(bool);
 void fn_802654A0();
 }
@@ -196,7 +194,7 @@ void PowerStar::appear() {
     LiveActor::appear();
     MR::invalidateClipping(this);
     requestAppearOrWait();
-    fn_80024F50();
+    MR::stopGalaxyCometEvent();
 }
 
 void PowerStar::makeActorAppeared() {
@@ -207,7 +205,7 @@ void PowerStar::makeActorAppeared() {
 }
 
 void PowerStar::requestAppear() {
-    fn_80024F50();
+    MR::stopGalaxyCometEvent();
     makeActorAppeared();
     MR::invalidateClipping(this);
     MR::hideModel(this);
@@ -244,9 +242,9 @@ void PowerStar::offAppearDemo() {
 
 void PowerStar::setAppearFromBelow() {
     _12D = true;
+    TVec3f pos;
     TVec3f offs(mGravity);
     offs.scale(-350.0f);
-    TVec3f pos;
     pos.sub(mAppearPosition, offs);
     setDemoAppearPos(pos);
 }
@@ -409,7 +407,7 @@ void PowerStar::initMapToolInfo(const JMapInfoIter& rIter) {
 
     if (mPowerStarId > 0 && MR::isProductGameScene()) {
         if (!MR::hasPowerStarInCurrentStage(mPowerStarId)) {
-            if (fn_804D7EE0()) {
+            if (GameSequenceFunction::isSuperDreamer()) {
                 mColor = 1;
             } else {
                 s32 color = 0;
@@ -420,7 +418,7 @@ void PowerStar::initMapToolInfo(const JMapInfoIter& rIter) {
 
                 mColor = color;
             }
-        } else if (MR::isPowerStarBronzeInCurrentStage(mPowerStarId) && !fn_804D7EE0()) {
+        } else if (MR::isPowerStarBronzeInCurrentStage(mPowerStarId) && !GameSequenceFunction::isSuperDreamer()) {
             mColor = 0;
         } else {
             mColor = 4;
@@ -528,6 +526,7 @@ void PowerStar::initPosture() {
     mRotation.y = 0.0f;
 }
 
+// NONMATCHING: literal-pool load order for mColor_v vs "Light" pool base (lwz/lis scheduling); same class of diff in exeWait and exeStageClearDemo
 void PowerStar::startAppearDemoCommon() {
     MR::showModelIfHidden(this);
 
@@ -630,8 +629,8 @@ void PowerStar::calcAppearDemoRiseTrans(TVec3f* pOutTrans, f32 a2) const {
         pOutTrans->scale(-a2);
     } else {
         TVec3f vec;
-        vec.y = a2;
         vec.x = 0.0f;
+        vec.y = a2;
         vec.z = 0.0f;
         _B8.mult(vec, *pOutTrans);
     }
@@ -794,6 +793,7 @@ void PowerStar::exeAppearDemoBossLatter() {
     }
 }
 
+// NONMATCHING: lwz of mColor_v scheduled after the "Light" pool lis in target; ours loads it first (scheduling, tried hoisting)
 void PowerStar::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);

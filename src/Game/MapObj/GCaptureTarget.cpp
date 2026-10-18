@@ -7,6 +7,7 @@
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
@@ -35,7 +36,7 @@ GCaptureTarget::GCaptureTarget(const char* pName)
 
 void GCaptureTarget::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("GCaptureTarget", nullptr, false);
+    MR::initActor(this, rIter, "GCaptureTarget", false);
     MR::connectToSceneNoSilhouettedMapObjStrongLight(this);
     MR::getJMapInfoArg0WithInit(rIter, &mReleaseDistance);
     MR::getJMapInfoArg1NoInit(rIter, &mPointableRange);
@@ -57,20 +58,17 @@ void GCaptureTarget::init(const JMapInfoIter& rIter) {
     }
 
     MR::initStarPointerTarget(this, 200.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::setGroupClipping(this, rIter, 32);
 
     if (MR::tryRegisterDemoCast(this, rIter)) {
         makeActorDead();
-    } else if (MR::useStageSwitchReadAppear(this, rIter)) {
+    } else if (MR::useStageSwitchSyncAppear(this, rIter)) {
         MR::joinToGroupArray(this, rIter, "ブルースター出現グループ", 32);
-        MR::syncStageSwitchAppear(this);
         MR::initActorCamera(this, rIter, &mCameraInfo);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
     }
 
-    if (MR::useStageSwitchReadB(this, rIter)) {
-        MR::listenStageSwitchOnB(this, MR::Functor< LiveActor >(this, &LiveActor::kill));
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
+        MR::listenStageSwitchOnB(this, MR::FunctorV0M<LiveActor*, void (LiveActor::*)()>(this, &LiveActor::kill));
     }
 
     s32 arg;
@@ -79,6 +77,7 @@ void GCaptureTarget::init(const JMapInfoIter& rIter) {
     MR::startAction(this, "Wait");
     MR::startBrk(this, "Switch");
     MR::setBrkFrameAndStop(this, 1.0f);
+    MR::useStageSwitchAwake(this, rIter);
 }
 
 void GCaptureTarget::initAfterPlacement() {
@@ -89,7 +88,7 @@ void GCaptureTarget::appear() {
     MR::invalidateClipping(this);
     MR::deleteEffectAll(this);
     MR::hideModel(this);
-    MR::startSystemSE("SE_SY_GCAPTURE_APPEAR");
+    MR::startActionSound(this, "SyGcaptureAppear", -1, -1, -1);
     setNerve(GET_NERVE(GCaptureTarget, GCaptureTargetNrvAppear));
 
     if (MR::isExistActorCamera(mCameraInfo)) {
@@ -151,10 +150,10 @@ void GCaptureTarget::exeAppear() {
         emitNerveEffect();
         MR::showModel(this);
         MR::startAction(this, "Appear");
-        MR::startSound(this, "SE_OJ_GCAPTURE_APPEAR");
+        MR::startActionSound(this, "SE_OJ_GCAPTURE_APPEAR", -1, -1, -1);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::startAction(this, "Wait");
     }
 
@@ -231,11 +230,11 @@ void GCaptureTarget::exeHitPointer() {
         }
 
         if (MR::isStep(this, 3)) {
-            MR::startCSSound("CS_STAR_POWER", nullptr, 0);
+            MR::startCSSound("CS_STAR_POWER", nullptr, 0, 0, 1.0f);
         }
 
         MR::noticeInTouchableRange();
-        MR::startLevelSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT");
+        MR::startActionSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT", -1, -1, -1);
 
         mStarAnimSpeed += 0.2f;
         if (mStarAnimSpeed > 1.0f) {
@@ -258,13 +257,13 @@ void GCaptureTarget::exeActive() {
     if (MR::isFirstStep(this)) {
         emitNerveEffect();
         MR::startAction(this, "React");
-        MR::startSound(this, "SE_OJ_MAGIC_PNT_G_ON");
+        MR::startActionSound(this, "SE_OJ_MAGIC_PNT_G_ON", -1, -1, -1);
         MR::setBrkFrameAndStop(this, 1.0f);
     }
 
     MR::noticeInTouchableRange();
-    MR::startLevelSound(this, "SE_OJ_LV_MAGIC_PNT_G_PULL", MR::calcDistanceToPlayer(this));
-    MR::startLevelSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT");
+    MR::startActionSound(this, "SE_OJ_LV_MAGIC_PNT_G_PULL", MR::calcDistanceToPlayer(this), -1, -1);
+    MR::startActionSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT", -1, -1, -1);
 }
 
 void GCaptureTarget::decidedTarget() {

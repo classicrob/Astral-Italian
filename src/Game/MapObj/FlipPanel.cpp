@@ -152,13 +152,13 @@ void FlipPanel::exeEndPrepare() {
 
 void FlipPanel::exeEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startSystemSE("SE_OJ_FLIP_PANEL_COMPLETE");
+        MR::startActionSound(this, "OjFlipPanelComplete", -1, -1, -1);
         MR::startAction(this, "PanelEnd");
         MapObjActorUtil::killBloomModel(this);
         _CC = 0;
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (!MR::isEffectValid(this, "FlipPanelGold")) {
             MR::validateClipping(this);
         }
@@ -200,7 +200,7 @@ bool FlipPanel::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     }
 
     if (msg == 0x76 /* ACTMES_SUCCESS */ || msg == 0x77 /* ACTMES_FAILURE */) {
-        _CC = this == pSender->mHost;
+        _CC = this == MR::getSensorHost(pSender);
 
         return true;
     }
@@ -276,8 +276,8 @@ void FlipPanelObserver::init(const JMapInfoIter& rIter) {
     initHitSensor(1);
     MR::addBodyMessageSensorMapObj(this);
     MR::invalidateClipping(this);
-    _8C = MR::joinToGroupArray(this, rIter, 0, 0x80);
-    MR::useStageSwitchWriteA(this, rIter);
+    _8C = MR::joinToGroupArray(this, rIter, "フリップパネル", 0x80);
+    MR::initUseStageSwitchWriteA(this, rIter);
     initSound(2, "FlipPanel", nullptr, TVec3f(0.0f));
     MR::getJMapInfoArg7NoInit(rIter, &mPowerStarId);
 
@@ -292,21 +292,10 @@ void FlipPanelObserver::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mDemoDelay);
     mDemoDelay += 0x28;
 
-    if (MR::isEqualStageName("HeavensDoorGalaxy")) {
-        _9C = 1;
-    } else {
-        _9C = 0;
-    }
+    _9C = 0;
 
     initNerve(GET_NERVE(FlipPanelObserver, FlipPanelObserverNrvWait));
-    bool ret = MR::useStageSwitchReadAppear(this, rIter);
-
-    if (ret) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void FlipPanelObserver::exeWait() {

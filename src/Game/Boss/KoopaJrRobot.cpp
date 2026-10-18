@@ -4,6 +4,8 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
+#include <algorithm>
+#include <functional.hpp>
 
 namespace NrvKoopaJrRobot {
     // the six phases chain through updateActorStateAndNextNerve (see execute bodies)
@@ -69,15 +71,8 @@ namespace NrvKoopaJrRobot { KoopaJrRobotNrvIntro KoopaJrRobotNrvIntro::sInstance
 namespace NrvKoopaJrRobot { KoopaJrRobotNrvDemo KoopaJrRobotNrvDemo::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrRobot { KoopaJrRobotNrvDead KoopaJrRobotNrvDead::sInstance ATTRIBUTE_WEAK; }
 
-template < typename It, typename Pmf >
-static inline void forEachCall(It it, It end, Pmf pmf) {
-    for (; it != end; ++it) {
-        ((*it)->*pmf)();
-    }
-}
-
 KoopaJrRobot::KoopaJrRobot(const char* pName)
-    : LiveActor(pName), mCollisionA(nullptr), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
+    : LiveActor(pName), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
       mHeadModel(nullptr), mBody(nullptr), mZAxis(0.0f, 0.0f, 1.0f), mZAxis2(0.0f, 0.0f, 1.0f), _10C(0.0f) {
 }
 
@@ -112,8 +107,8 @@ void KoopaJrRobot::init(const JMapInfoIter& rIter) {
     MR::initActorState(this, mStateC, &NrvKoopaJrRobot::KoopaJrRobotNrvPhase3::sInstance, nullptr);
     MR::initActorState(this, new KoopaJrRobotStateIntro(this, rIter), &NrvKoopaJrRobot::KoopaJrRobotNrvIntro::sInstance, nullptr);
     MR::initActorState(this, new KoopaJrRobotStateTU08(this), &NrvKoopaJrRobot::KoopaJrRobotNrvDemo::sInstance, nullptr);
-    mCameraInfo = MR::createActorCameraInfo(rIter);
     MR::initActorState(this, new KoopaJrRobotStateTU07(this), &NrvKoopaJrRobot::KoopaJrRobotNrvDead::sInstance, nullptr);
+    mCameraInfo = MR::createActorCameraInfo(rIter);
     MR::initAnimCamera(this, mCameraInfo, KoopaJrRobotStateIntro::getCameraName());
     MR::initAnimCamera(this, mCameraInfo, KoopaJrRobotStateTU08::getCameraName());
     MR::initAnimCamera(this, mCameraInfo, KoopaJrRobotStateTU07::getCameraName());
@@ -134,7 +129,7 @@ void KoopaJrRobot::appear() {
     MR::hideModel(mBody);
 }
 
-// NONMATCHING: std::for_each(mem_fun) ptmf loops: target keeps two stack copies of the 12-byte PTMF per loop (stack layout only)
+// NONMATCHING: iterator/end pointer register allocation differs in the member-function loops.
 void KoopaJrRobot::kill() {
     if (!MR::isDead(mBody)) {
         mBody->kill();
@@ -142,14 +137,15 @@ void KoopaJrRobot::kill() {
     if (!MR::isDead(mHeadModel)) {
         mHeadModel->kill();
     }
-    forEachCall(&mHandL, &mHandL + 2, &LiveActor::kill);
-    forEachCall(mFollowers, mFollowers + 5, &LiveActor::kill);
+    std::for_each(&mHandL, &mHandL + 2, std::mem_fun(&LiveActor::kill));
+    std::for_each(mFollowers, mFollowers + 5, std::mem_fun(&LiveActor::kill));
     LiveActor::kill();
 }
 
+// NONMATCHING: iterator/end pointer register allocation differs.
 void KoopaJrRobot::killParts() {
     MR::deleteEffectAll(this);
-    forEachCall(mParts, mParts + 4, &KoopaJrRobotPart::kill);
+    std::for_each(mParts, mParts + 4, std::mem_fun(&KoopaJrRobotPart::kill));
 }
 
 bool KoopaJrRobot::isStateNerve() const {
@@ -162,14 +158,14 @@ bool KoopaJrRobot::isStateNerve() const {
     return isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvDead::sInstance);
 }
 
-// NONMATCHING: same ptmf-loop stack layout issue as kill()
+// NONMATCHING: bool-negation lowering and iterator/end pointer register allocation differ.
 void KoopaJrRobot::control() {
     mSeq->fn_800DC850();
     if (!isStateNerve()) {
         mSeq->updateNerve();
         mSeq->fn_800DC7C0();
     }
-    forEachCall(mParts, mParts + 4, &NerveExecutor::updateNerve);
+    std::for_each(mParts, mParts + 4, std::mem_fun(&NerveExecutor::updateNerve));
 }
 
 void KoopaJrRobot::movement() {
@@ -232,6 +228,7 @@ bool KoopaJrRobot::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor*
     return false;
 }
 
+// NONMATCHING: child-array/count load register allocation differs.
 void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
     s32 num = MR::getChildObjNum(rIter);
     mChildren.mArray = new NameObj*[num - 1];
@@ -247,4 +244,11 @@ void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
     }
 }
 
+KoopaJrRobotChildren::~KoopaJrRobotChildren() {
+    if (mArray != nullptr) {
+        delete[] mArray;
+    }
+}
+
+// NONMATCHING: compiler omits the redundant null guard for the embedded child-array object.
 KoopaJrRobot::~KoopaJrRobot() {}

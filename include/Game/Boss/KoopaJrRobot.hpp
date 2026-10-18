@@ -28,11 +28,7 @@ class KoopaJrRobotStateTU08;
 class KoopaJrRobotChildren {
 public:
     inline KoopaJrRobotChildren() : mArray(nullptr), mCapacity(0), mCount(0) {}
-    inline ~KoopaJrRobotChildren() {
-        if (mArray != nullptr) {
-            delete[] mArray;
-        }
-    }
+    ~KoopaJrRobotChildren();
     /* 0x0 */ NameObj** mArray;
     /* 0x4 */ s32 mCapacity;
     /* 0x8 */ s32 mCount;

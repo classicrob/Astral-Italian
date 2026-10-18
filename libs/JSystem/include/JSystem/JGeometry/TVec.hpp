@@ -580,7 +580,11 @@ namespace JGeometry {
             JMathInlineVEC::PSVECAdd(&a, &b, this);
         }
 
+#ifdef JGEOMETRY_VEC3_MI_NOINLINE
+        TVec3 operator-(const TVec3& op) const NO_INLINE {
+#else
         TVec3 operator-(const TVec3& op) const {
+#endif
             TVec3 ret(*this);
             ret -= op;
             return ret;

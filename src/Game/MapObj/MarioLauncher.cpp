@@ -225,12 +225,12 @@ void MarioLauncher::exePrep() {
     }
 }
 
+// NONMATCHING: target folds the %60 multiply to mulli with immediate; ours keeps 60 in a register (mullw), tried cast form
 void MarioLauncher::exeAim() {
     if (MR::isFirstStep(this)) {
         MR::hideModel(this);
     }
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
     if (MR::isStarPointerInScreen(WPAD_CHAN0)) {
         mLayout->appearAt(MR::getStarPointerScreenPositionOrEdge(WPAD_CHAN0));
         MR::requestMarioLauncherGuidance();
@@ -238,10 +238,6 @@ void MarioLauncher::exeAim() {
         mLayout->mLayout->kill();
         MR::requestMarioLauncherGuidance();
     }
-#elif (VERSION == RMGK01)
-    mLayout->appearAt(MR::getStarPointerScreenPositionOrEdge(WPAD_CHAN0));
-    MR::requestMarioLauncherGuidance();
-#endif
     MR::startSystemLevelSE("SE_SY_LV_MARIO_LAUNCHER_AIM");
 
     if (MR::testSystemTriggerA() || MR::testCorePadTriggerA(WPAD_CHAN0)) {
@@ -537,11 +533,9 @@ void MarioLauncherLayout::kill() {
 }
 
 bool MarioLauncher::doEject() {
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
     if (!MR::isStarPointerInScreen(WPAD_CHAN0)) {
         return false;
     }
-#endif
 
     TVec3f back;
     MR::calcUpVec(&back, this);
@@ -551,19 +545,16 @@ bool MarioLauncher::doEject() {
     }
 
     TVec3f shootDir;
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
     MR::calcWorldRayDirectionFromScreen(&shootDir, *MR::getStarPointerScreenPosition(WPAD_CHAN0));
-#elif (VERSION == RMGK01)
-    MR::calcWorldRayDirectionFromScreen(&shootDir, MR::getStarPointerScreenPositionOrEdge(WPAD_CHAN0));
-#endif
     MR::normalize(&shootDir);
 
     MR::setPosition(mShell, mCameraTargetMtx.getPosition());
     mShell->mGravity.zero();
     TVec3f velocity(shootDir * ::sEjectSpeed);
-    mShell->mVelocity.x = velocity.x;
-    mShell->mVelocity.y = velocity.y;
-    mShell->mVelocity.z = velocity.z;
+    TVec3f& shellVel = mShell->mVelocity;
+    shellVel.x = velocity.x;
+    shellVel.y = velocity.y;
+    shellVel.z = velocity.z;
     MR::makeMtxUpFront(&mShell->mBaseMtx, shootDir, -back);
 
     mShell->mBaseMtx.getQuat(mShell->mRotQuat);

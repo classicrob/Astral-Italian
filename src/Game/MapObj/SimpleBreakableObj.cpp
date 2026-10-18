@@ -10,6 +10,7 @@ namespace {
     const s32 sDefaultBreakOffsetFrame = 60;
     const s32 sDefaultItemNumCoin = 1;
     const s32 sDefaultItemNumStarPiece = 5;
+    const char* const cBckNameWait = "Wait";
     const char* const cBckNameBreak = "Break";
     const char* const cDemoName = "注目カメラ";
 };  // namespace
@@ -25,6 +26,7 @@ SimpleBreakableObj::SimpleBreakableObj(const char* pName)
       mItemType(-1), mItemNum(-1), mKinokoOneUp(), mPlayRiddleSound(), mBreakEnded(), _E6() {
 }
 
+// NONMATCHING: the final animation-name pointer uses a different saved register.
 void SimpleBreakableObj::init(const JMapInfoIter& rIter) {
     MapObjActor::init(rIter);
     MapObjActorInitInfo info;
@@ -38,9 +40,13 @@ void SimpleBreakableObj::init(const JMapInfoIter& rIter) {
 
     const char* pObjectName = mObjectName;
 
-    if (MR::isEqualString(pObjectName, "TeresaMansionHoleCover")) {
+    if (MR::isEqualString(pObjectName, "GoroRockBreakFance")) {
+        mBreakFlags |= 0x400;
+    } else if (MR::isEqualString(pObjectName, "TeresaMansionHoleCover")) {
         mBreakFlags |= 4;
     } else if (MR::isEqualString(pObjectName, "KoopaStatue")) {
+        mBreakFlags |= 0x48;
+    } else if (MR::isEqualString(pObjectName, "KoopaJrStatue")) {
         mBreakFlags |= 0x48;
     } else if (MR::isEqualString(pObjectName, "IcicleRock")) {
         mBreakFlags |= 0x12;
@@ -48,10 +54,18 @@ void SimpleBreakableObj::init(const JMapInfoIter& rIter) {
         mBreakFlags |= 2;
     } else if (MR::isEqualString(pObjectName, "SandUpDownTowerBreakableWallB")) {
         mBreakFlags |= 2;
+    } else if (MR::isEqualString(pObjectName, "ConcreteBlockDrillBreak")) {
+        mBreakFlags |= 0x380;
     } else if (MR::isEqualString(pObjectName, "ConcreteBlock")) {
-        mBreakFlags |= 0x180;
+        mBreakFlags |= 0x380;
     } else if (MR::isEqualString(pObjectName, "SnowBlockA")) {
         mBreakFlags |= 0x20;
+    } else if (MR::isEqualString(pObjectName, "YukkinaTree")) {
+        mBreakFlags |= 0x40;
+    } else if (MR::isEqualString(pObjectName, "CrystalCageOpa")) {
+        mBreakFlags |= 2;
+    } else if (MR::isEqualString(pObjectName, "CrystalCageOpaLarge")) {
+        mBreakFlags |= 2;
     }
 
     MR::getJMapInfoArg3NoInit(rIter, &mItemType);
@@ -107,7 +121,8 @@ bool SimpleBreakableObj::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*)
 
     if ((((mBreakFlags & 2U) == 2U && MR::isMsgPlayerSpinAttackOrSupportTico(msg)) || ((mBreakFlags & 4U) == 4U && MR::isMsgPlayerHipDropFloor(msg)) ||
          ((mBreakFlags & 8U) == 8U && MR::isMsgExplosionAttack(msg)) || ((mBreakFlags & 0x20U) == 0x20U && MR::isMsgFireBallAttack(msg)) ||
-         ((mBreakFlags & 0x10U) == 0x10U && MR::isMsgJetTurtleAttack(msg))) &&
+         ((mBreakFlags & 0x10U) == 0x10U && MR::isMsgJetTurtleAttack(msg)) ||
+         ((mBreakFlags & 0x200U) == 0x200U && MR::isMsgDrillAttack(msg)) || ((mBreakFlags & 0x400U) == 0x400U && MR::isMsgRockAttack(msg))) &&
         !isStateBreaking()) {
         setStateBreak();
         return true;
@@ -190,10 +205,6 @@ void SimpleBreakableObj::setStateBreak() {
 }
 
 void SimpleBreakableObj::startBreak() {
-    if (mPlayRiddleSound && MR::StageEffect::isRiddleSeTypeStop(mObjectName)) {
-        MR::startSystemSE("SE_SY_READ_RIDDLE_S");
-    }
-
     appearItem();
     bool isBreakStarted = MapObjActorUtil::tryStartBreak(this);
 
@@ -204,11 +215,14 @@ void SimpleBreakableObj::startBreak() {
     if (!isBreakStarted) {
         if (mCameraInfo != nullptr) {
             MR::hideModel(this);
-            return;
+        } else {
+            kill();
         }
-
-        kill();
     }
+    controlBreak();
+}
+
+void SimpleBreakableObj::controlBreak() {
 }
 
 void SimpleBreakableObj::endBreak() {
@@ -250,7 +264,6 @@ void SimpleBreakableObj::appearItem() {
         return;
     case 3:
         MR::appearStarPiece(this, mPosition, mItemNum, 10.0f, 40.0f, false);
-        MR::startActionSound(this, "OjStarPieceBurst");
         return;
     }
 }
@@ -277,9 +290,37 @@ void SimpleBreakableObj::exeDemo() {
     }
 }
 
+inline void SimpleBreakableObj::exeWait() {
+    if (MR::isFirstStep(this)) {
+        MR::tryStartAllAnim(this, cBckNameWait);
+    }
+}
+
+void SimpleBreakableStrongLightObj::connectToScene(const MapObjActorInitInfo&) {
+    MR::connectToSceneMapObjStrongLight(this);
+}
+
 void SimpleBreakableIndirectObj::connectToScene(const MapObjActorInitInfo&) {
     MR::connectToSceneIndirectMapObj(this);
 }
+
+void SimpleBreakableCollisionObj::init(const JMapInfoIter& iter) {
+    SimpleBreakableObj::init(iter);
+    mBreakCollision = MR::createCollisionPartsFromLiveActor(this, "Break", getSensor("Body"), MR::CollisionScaleType_Default);
+    MR::invalidateCollisionParts(mBreakCollision);
+}
+
+void SimpleBreakableCollisionObj::controlBreak() {
+    MR::validateCollisionParts(mBreakCollision);
+}
+
+void SimpleBreakableDeleteShadowObj::controlBreak() {
+    MR::invalidateShadowAll(this);
+}
+
+SimpleBreakableStrongLightObj::~SimpleBreakableStrongLightObj() {}
+SimpleBreakableCollisionObj::~SimpleBreakableCollisionObj() {}
+SimpleBreakableDeleteShadowObj::~SimpleBreakableDeleteShadowObj() {}
 
 SimpleBreakableObj::~SimpleBreakableObj() {
 }

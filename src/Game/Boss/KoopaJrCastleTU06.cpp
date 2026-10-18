@@ -16,6 +16,13 @@
 #include <cstdio>
 #include "Game/LiveActor/DemoObj.hpp"
 
+namespace {
+    extern const f32 sFireBarSpacing;
+    extern const f32 sFireBarScale;
+    extern const f32 sFireBarHalf;
+    extern const f32 sFireBarShadowWidth;
+}
+
 namespace NrvKoopaJrCastleFireBar { KoopaJrCastleFireBarNrvA KoopaJrCastleFireBarNrvA::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleFireBar { KoopaJrCastleFireBarNrvB KoopaJrCastleFireBarNrvB::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleFireBar { KoopaJrCastleFireBarNrvC KoopaJrCastleFireBarNrvC::sInstance ATTRIBUTE_WEAK; }
@@ -36,14 +43,14 @@ KoopaJrCastleFireBar::KoopaJrCastleFireBar(const char* pName) : LiveActor(pName)
     _CC = true;
 }
 
-// NONMATCHING: the target calls TVec3f(f32,f32,f32) out of line and keeps 100.0f * 1.5f as a runtime fmuls; ours inlines/folds.
+// NONMATCHING: vector constructor inlining and floating-point register allocation differ.
 void KoopaJrCastleFireBar::init(const JMapInfoIter& rIter) {
     MR::connectToScene(this, 0x21, -1, -1, -1);
     initHitSensor(1);
     MR::addHitSensorCallbackEnemyAttack(this, "fire", 8, 30.0f);
     updateHitSensor(getSensor("fire"));
     initSound(3, "FireBar", NULL, TVec3f(0.0f));
-    TVec3f boxSize(100.0f * 1.5f, 600.0f, _C8);
+    TVec3f boxSize(sFireBarSpacing * sFireBarScale, 600.0f, _C8);
     MR::initShadowControllerList(this, _B8);
     mMtxs = new TPos3f[_B8];
     mNames = new char*[_B8];
@@ -54,7 +61,7 @@ void KoopaJrCastleFireBar::init(const JMapInfoIter& rIter) {
         MR::addShadowVolumeBox(this, mNames[i], boxSize, mMtxs[i]);
     }
     MR::calcGravity(this);
-    f32 span = (_C8 - _C0) / (100.0f * 1.5f);
+    f32 span = (_C8 - _C0) / (sFireBarSpacing * sFireBarScale);
     mChildCount = _B8 * (s32)(1.0f + span);
     createChildren();
     MR::invalidateClipping(this);
@@ -82,7 +89,7 @@ void KoopaJrCastleFireBar::makeActorDead() {
     LiveActor::makeActorDead();
 }
 
-// NONMATCHING: same constant-folding / TVec3f ctor inlining difference as init.
+// NONMATCHING: vector constructor/set inlining and temporary/register allocation differ.
 void KoopaJrCastleFireBar::control() {
     mFixedPos->calc();
     TVec3f trans(0.0f);
@@ -103,9 +110,9 @@ void KoopaJrCastleFireBar::control() {
         TPos3f tmp;
         PSMTXCopy(mFixedPos->mMtx, tmp);
         MR::rotateMtxLocalYDegree(tmp, -(_B0 + 360.0f * i / _B8));
-        MR::addTransMtxLocalY(tmp, 0.5f * (100.0f * 1.5f));
+        MR::addTransMtxLocalY(tmp, sFireBarHalf * (sFireBarSpacing * sFireBarScale));
     }
-    TVec3f boxSize(60.0f * 1.5f, 600.0f, _C4);
+    TVec3f boxSize(sFireBarShadowWidth * sFireBarScale, 600.0f, _C4);
     for (s32 i = 0; i < _B8; i++) {
         PSMTXCopy(mFixedPos->mMtx, mMtxs[i]);
         MR::rotateMtxLocalYDegree(mMtxs[i], -(_B0 + 360.0f * i / _B8));
@@ -127,31 +134,23 @@ void KoopaJrCastleFireBar::control() {
     }
 }
 
-// NONMATCHING: clamp branch layout: target uses cror/fcmpu for the >=/== compares, ours uses bge/fcmpo
 void KoopaJrCastleFireBar::exe800D2B50() {
-    f32 temp = _C4 + 25.0f;
-    f32 v = 0.0f;
-    f32 max = _C8;
-    _C4 = temp;
-    if (temp >= v) {
-        if (temp > max) {
-            v = max;
-        } else {
-            v = temp;
-        }
-    }
-    _C4 = v;
+    _C4 += 25.0f;
+    _C4 = MR::clamp(_C4, 0.0f, _C8);
     MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);
-    if (_C4 == _C8) {
+    if (_C4 >= _C8) {
         setNerve(&NrvKoopaJrCastleFireBar::KoopaJrCastleFireBarNrvB::sInstance);
     }
 }
 
+#pragma dont_inline on
 void KoopaJrCastleFireBar::exe800D2BF0() {
     MR::isFirstStep(this);
     _BC = MR::calcNerveEaseInRate(this, 60);
     MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);
 }
+
+#pragma dont_inline off
 
 void KoopaJrCastleFireBar::setCurrentToMax() {
     _C4 = _C8;
@@ -194,7 +193,7 @@ void KoopaJrCastleFireBar::attackSensor(HitSensor* pSender, HitSensor* pReceiver
     }
 }
 
-// NONMATCHING: same constant-folding difference as init.
+// NONMATCHING: vector assignment inlining and loop/register allocation differ.
 void KoopaJrCastleFireBar::updateHitSensor(HitSensor* pSensor) {
     TVec3f closest(mPosition);
     f32 minDist = 3.4028235e38f;
@@ -202,10 +201,10 @@ void KoopaJrCastleFireBar::updateHitSensor(HitSensor* pSensor) {
     TVec3f up = -mGravity;
     TVec3f start;
     start.scale(_C0, _A4);
-    JMAVECScaleAdd(&up, &start, &start, 0.5f * 100.0f * 1.5f);
+    JMAVECScaleAdd(&up, &start, &start, 0.5f * sFireBarSpacing * sFireBarScale);
     TVec3f end;
-    end.scale(_C0 + 1.5f * ((f32)(perArm - 1) * 100.0f), _A4);
-    JMAVECScaleAdd(&up, &end, &end, 0.5f * 100.0f * 1.5f);
+    end.scale(_C0 + sFireBarScale * ((f32)(perArm - 1) * sFireBarSpacing), _A4);
+    JMAVECScaleAdd(&up, &end, &end, 0.5f * sFireBarSpacing * sFireBarScale);
     for (s32 i = 0; i < _B8; i++) {
         TVec3f a;
         a.add(start, mPosition);
@@ -254,10 +253,10 @@ void KoopaJrCastleFireBar::createChildren() {
     updateChildPositions();
 }
 
-// NONMATCHING: the target keeps 100.0f * 1.5f, 0.5f * 100.0f * 1.5f etc. as runtime fmuls of separate pool constants (ours folds them).
+// NONMATCHING: one vector-scale multiply uses reversed floating-point operand registers.
 void KoopaJrCastleFireBar::updateChildPositions() {
     TVec3f dir;
-    dir.scale(100.0f * 1.5f, _A4);
+    dir.scale(sFireBarSpacing * sFireBarScale, _A4);
     TVec3f cur;
     cur.zero();
     s32 perArm = mChildCount / _B8;
@@ -269,14 +268,21 @@ void KoopaJrCastleFireBar::updateChildPositions() {
             TVec3f unit;
             MR::normalize(&unit, dir);
             JMAVECScaleAdd(&unit, &mPosition, &cur, _C0);
-            JMAVECScaleAdd(&up, &cur, &cur, 100.0f * 0.5f * 1.5f);
+            JMAVECScaleAdd(&up, &cur, &cur, sFireBarSpacing * sFireBarHalf * sFireBarScale);
         } else {
             cur.add(dir);
         }
-        f32 t = MR::normalize(_C4, _C0 + 1.5f * (100.0f * (f32)(m - 1)), _C0 + 1.5f * (100.0f * (f32)m));
+        f32 t = MR::normalize(_C4, _C0 + sFireBarScale * (sFireBarSpacing * (f32)(m - 1)), _C0 + sFireBarScale * (sFireBarSpacing * (f32)m));
         MR::setPosition(mChildren[i], cur);
-        MR::setScale(mChildren[i], 1.5f * (_BC * t));
+        MR::setScale(mChildren[i], (_BC * t) * sFireBarScale);
     }
 }
 
 KoopaJrCastleFireBar::~KoopaJrCastleFireBar() {}
+
+namespace {
+    const f32 sFireBarSpacing = 100.0f;
+    const f32 sFireBarScale = 1.5f;
+    const f32 sFireBarHalf = 0.5f;
+    const f32 sFireBarShadowWidth = 60.0f;
+}

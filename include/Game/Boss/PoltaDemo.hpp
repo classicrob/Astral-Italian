@@ -16,12 +16,14 @@ public:
     void startOpeningDemo();
     void startPowerUpDemo();
     void startDownDemo();
+    void startCameraEndDemo(const char*);
     void startTryDemo(const char*, const Nerve*);
 
     void exeTryStartDemo();
     void exeOpeningDemo();
     void exePowerUpDemo();
     void exeDownDemo();
+    void exeCameraEndDemo();
 
     /* 0x14 */ const Nerve* mCurDemoNerve;
     /* 0x18 */ const char* mCurDemoName;

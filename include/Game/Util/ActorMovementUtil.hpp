@@ -174,10 +174,6 @@ namespace MR {
         return velH;
     }
 
-    inline void killVelocityVertical(LiveActor* pActor) {
-        pActor->mVelocity.scaleAdd(-pActor->mGravity.dot(pActor->mVelocity), pActor->mGravity, pActor->mVelocity);
-    }
-
     inline TVec3f killGravity(LiveActor* pActor, const TVec3f& rVec) {
         TVec3f velH;
         velH.scaleAdd(-pActor->mGravity.dot(rVec), pActor->mGravity, rVec);

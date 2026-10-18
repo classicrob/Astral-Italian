@@ -29,3 +29,12 @@ public:
     /* 0x0 */ s32 mEntryNum;
     /* 0x4 */ ActorParamEntry* mEntries;
 };
+
+// Additive (objects lane): per-actor ActorParam csv accessors (symbols exist in the target, defined elsewhere).
+namespace MR {
+    const f32* getActorParamF32(const LiveActor*, const char*);
+    const s32* getActorParamS32(const LiveActor*, const char*);
+    const f32* getActorParamMove(const LiveActor*, const char*);
+    const f32* getActorParamSight(const LiveActor*, const char*);
+    const f32* getActorParamJump(const LiveActor*, const char*);
+};  // namespace MR

@@ -958,8 +958,15 @@ Game/Boss/DodoryuUtil.cpp:
 	.text       start:0x800C4C70 end:0x800C53D0
 
 Game/Boss/KingTossin.cpp:
-	.text       start:0x800C55B0 end:0x800C8980
+	.text       start:0x800C53D0 end:0x800C8980
 	.ctors      start:0x80643E68 end:0x80643E6C
+	.rodata     start:0x80647118 end:0x806471D0
+	.data       start:0x806736D0 end:0x80673B70
+	.bss        start:0x80728C38 end:0x80728C48
+	.sdata      start:0x807CF5B8 end:0x807CF5C0
+	.sbss       start:0x807D14A8 end:0x807D1520
+	.sdata2     start:0x807D8160 end:0x807D81F0
+	.sbss2      start:0x807E2FF8 end:0x807E3000
 
 Game/Boss/KoopaBattle.cpp:
 	.text       start:0x800C8980 end:0x800C9370

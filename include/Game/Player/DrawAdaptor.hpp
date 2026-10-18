@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/NameObj/NameObj.hpp"
+#include "Game/Util/Functor.hpp"
 
 class DrawAdaptor : public NameObj {
 public:
@@ -9,5 +10,5 @@ public:
     virtual void draw() const;
 
 private:
-    /* 0x0C */ const MR::FunctorBase* mFunc;
+    /* 0x14 */ const MR::FunctorBase* mFunc;
 };

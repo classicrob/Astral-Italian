@@ -13,6 +13,11 @@ public:
     s32 receivePacket();
     void init(const XanimeResourceTable*);
     void startActionName(const char*);
+    void startActionHash(u32);
+    void setBckFrame(f32);
+    void setTrackWeight(u32, f32);
+    void setBckRate(f32);
+    void setMtxTR();
 
     LiveActor* mHost;
     GhostPacketReader* mPacketReader;

@@ -274,7 +274,7 @@ public:
     bool fn_803B2B50(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
     bool fn_803B2E10(const Triangle*);
     bool isStateHanging() const;
-    s32 fn_803B2BD0(TVec3f* arg1);
+    s32 fn_803B2BD0();
     f32 fn_803B2CC0(TVec3f* arg1);
     s32 fn_803B2E80(TVec3f* arg1);
     void fn_803B2F20(Triangle* arg1);
@@ -289,7 +289,7 @@ public:
     void fn_803B3CE0();
     bool fn_803B3E90();
     void fn_803B3EE0(TVec3f* pPos, f32* pHeight);
-    s32 fn_803B41F0(u32 arg1);
+    s32 fn_803B41F0();
     void fn_803B4280();
     s32 fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3f& rPos, f32 radius);
     void fn_803B44F0(TVec3f* arg1);

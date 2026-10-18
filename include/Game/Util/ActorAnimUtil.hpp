@@ -116,4 +116,5 @@ namespace MR {
 
 namespace MR {
     void copyBckBlendWeights(f32*, u32, const LiveActor*);
+    bool setBckTrackWeight(const LiveActor*, u32, f32);
 }

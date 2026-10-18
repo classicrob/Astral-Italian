@@ -76,3 +76,32 @@ public:
     /* 0x12C */ RaceManagerLayout* mRaceManagerLayout;
     /* 0x130 */ CameraTargetMtx* mCameraTargetMtx;
 };
+
+namespace MR {
+    bool fn_8037F5B0(const TVec3f&, s8, TVec3s*);
+    bool fn_8037F680(f32, s8, s16*);
+    bool fn_8037F6F0(const TVec3f&, s8, TVec3Sc*);
+    bool fn_8037F7D0(f32, s8, s8*);
+    void convToFloatRotation(f32*, s8);
+    void convToFloatBckRate(f32*, s8);
+    void convToFloatTrackWeight(f32*, s8);
+}
+
+class XanimeResourceTable;
+namespace MR {
+    void fn_8037F4B0(f32*);
+    bool fn_8037FA30(TVec3s*, MtxPtr);
+    void fn_8037FA80(TVec3Sc*, const TVec3f&);
+    void fn_8037FAF0(TVec3Sc*, MtxPtr);
+    void fn_8037FC30(TVec3Sc*, const TVec3f&);
+    void fn_8037FC40(TVec3Sc*, const TVec3f&);
+    void fn_8037FC50(s16*, f32);
+    void fn_8037FC60(s8*, f32);
+    void fn_8037FC70(s8*, f32);
+    u32 fn_8037FE20(u32);
+    bool fn_8037FEE0(const char*);
+    XanimePlayer* fn_8037FF80(LiveActor*, XanimeResourceTable*);
+    XanimePlayer* fn_80380030(LiveActor*, XanimePlayer*, XanimeResourceTable*);
+    void fn_803800C0(XanimePlayer*, const char*);
+    void fn_80380130(XanimePlayer*, XanimePlayer*, LiveActor*, u32, bool*);
+}

@@ -18,6 +18,7 @@ namespace MR {
     GameSystemSceneController* getCurrentGameSystemSceneController();
 
     const char* getCurrentStageName();
+    void getGhostData(const void**, u32*, const char*, int);
     bool isEqualSceneName(const char*);
     bool isEqualStageName(const char*);
     bool isValidZoneName(const char*);

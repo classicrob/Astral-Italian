@@ -5938,7 +5938,7 @@ Game/Player/GhostPacket.cpp:
 	.text       start:0x8037EC50 end:0x8037EFF0
 
 Game/Player/GhostPlayer.cpp:
-	.text       start:0x8037F530 end:0x8037FA30
+	.text       start:0x8037F4B0 end:0x80380290
 	.rodata     start:0x8064BB00 end:0x8064BC68
 
 Game/Player/GhostPacketData.cpp:
@@ -6016,7 +6016,10 @@ Game/Player/MarioDamage.cpp:
 	.sdata2     start:0x807DFED0 end:0x807DFEE4
 
 Game/Player/HorrorDamageExecutor.cpp:
-	.text       start:0x803E6E50 end:0x803E70A0
+	.text       start:0x803E6E50 end:0x803E7140
+	.ctors      start:0x806447D4 end:0x806447D8
+	.data       start:0x806DCB50 end:0x806DCBD8
+	.sbss       start:0x807D4E68 end:0x807D4E78
 
 Game/Player/MarioAllModel.cpp:
 	.text       start:0x803E7720 end:0x803E7C80

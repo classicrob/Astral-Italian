@@ -15,4 +15,8 @@ public:
     void exeBoneBreakStart();
     void exeBoneBreakWait();
     void exeBoneBreakEnd();
+
+    MarioDamage* mDamage;
+    s32 mBreakDuration;
+    bool mBreakEnded;
 };

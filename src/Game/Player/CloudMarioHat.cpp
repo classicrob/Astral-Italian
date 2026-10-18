@@ -1,0 +1,173 @@
+#include "Game/Player/CloudMarioHat.hpp"
+#include "Game/Player/MarioMtxPos.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
+#include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/System/GameDataFunction.hpp"
+#include "Game/Util/JointUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
+#include "Game/Util/SoundUtil.hpp"
+
+namespace {
+    struct HatPointInfo { const char* joint; TVec3f offset; };
+    HatPointInfo sPoints[] = {
+        {"AllRoot", TVec3f(0.0f, 0.0f, 0.0f)},
+        {"Cap1", TVec3f(0.0f, 0.0f, 0.0f)},
+        {"Cap2", TVec3f(0.0f, 0.0f, 0.0f)},
+        {"Cap3", TVec3f(0.0f, 0.0f, 0.0f)},
+        {"Cap3", TVec3f(0.0f, 0.0f, 0.0f)}
+    };
+    const s32 sSpringPairs[][2] = {{0,1}, {1,2}, {2,3}, {3,4}};
+    struct HatJointInfo { const char* name; s32 spring; };
+    const HatJointInfo sJoints[] = {{"Cap1",1}, {"Cap2",2}, {"Cap3",3}};
+}
+
+CloudMarioHat::CloudMarioHat(const char* name) : LiveActor(name), _90(0), _91(0) {}
+CloudMarioHat::~CloudMarioHat() {}
+
+void CloudMarioHat::init(const JMapInfoIter& iter) {
+    if (GameDataFunction::isLuigiPlayer()) MR::initActor(this, iter, "CloudLuigiCap", false);
+    else MR::initActor(this, iter, "CloudMarioCap", false);
+    MR::invalidateClipping(this);
+    initDynamics();
+}
+
+void CloudMarioHat::initAfterPlacement() {
+    MR::calcPlayerJointMtx(&mHatMatrix, "CapPosition");
+    mHatMatrix.getTrans(mPosition);
+    mHatMatrix.getEuler(mRotation);
+    mRotation.x *= 57.295776f;
+    mRotation.y *= 57.295776f;
+    mRotation.z *= 57.295776f;
+    MR::calcAnimDirect(this);
+    resetDynamics();
+    _90 = 1;
+    makeActorDead();
+}
+
+void CloudMarioHat::calcAnim() { LiveActor::calcAnim(); }
+
+void CloudMarioHat::appear() {
+    LiveActor::appear();
+    if (_90) {
+        MR::calcPlayerJointMtx(&mHatMatrix, "CapPosition");
+        mHatMatrix.getTrans(mPosition);
+        mHatMatrix.getEuler(mRotation);
+        mRotation.x *= 57.295776f;
+        mRotation.y *= 57.295776f;
+        mRotation.z *= 57.295776f;
+        updateDynamics();
+    }
+}
+
+bool CloudMarioHat::calcJoint(TPos3f* matrix, const JointControllerInfo& info) {
+    s32 index = findJoint(info);
+    if (index == -1) return false;
+    updateJoint(matrix, index);
+    return true;
+}
+
+void CloudMarioHat::control() {
+    _91 = 1;
+    MR::startActionSound(this, "MokuMoku", -1, -1, -1);
+}
+
+void CloudMarioHat::calcAndSetBaseMtx() {
+    if (_90) {
+        MR::concatWithPlayerJointMtx(&mHatMatrix, "CapPosition");
+        TVec3f y, z, x;
+        mHatMatrix.getYDir(y);
+        mHatMatrix.getZDir(z);
+        PSVECCrossProduct(&y, &z, &x);
+        mHatMatrix.setXDir(x);
+        mHatMatrix.getTrans(mPosition);
+        mHatMatrix.getEuler(mRotation);
+        mRotation.x *= 57.295776f;
+        mRotation.y *= 57.295776f;
+        mRotation.z *= 57.295776f;
+        if (_91) {
+            updateDynamics();
+            _91 = 0;
+        }
+        for (u32 i = 0; i < 3; ++i) mControllers[i]->registerCallBack();
+    }
+    LiveActor::calcAndSetBaseMtx();
+}
+
+void CloudMarioHat::initDynamics() {
+    mHatMatrix.identity();
+    mPoints = new CloudHatPoint*[5];
+    for (u32 i = 0; i < 5; ++i) mPoints[i] = new CloudHatPoint();
+    mSprings = new CloudHatSpring*[4];
+    for (u32 i = 0; i < 4; ++i) mSprings[i] = new CloudHatSpring(&mHatMatrix, mPoints[sSpringPairs[i][0]], mPoints[sSpringPairs[i][1]]);
+    mControllers = new JointController*[3];
+    mJoints = new J3DJoint*[3];
+    for (u32 i = 0; i < 3; ++i) {
+        JointController* controller = new JointControlDelegator<CloudMarioHat>(this, &CloudMarioHat::calcJoint, nullptr);
+        MR::setJointControllerParam(controller, this, sJoints[i].name);
+        mControllers[i] = controller;
+        mJoints[i] = MR::getJoint(this, sJoints[i].name);
+    }
+}
+
+void CloudMarioHat::resetDynamics() {
+    MarioMtxPos matrix(mHatMatrix);
+    for (u32 i = 0; i < 5; ++i) {
+        TVec3f position;
+        MR::copyJointPos(this, sPoints[i].joint, &position);
+        TVec3f offset(sPoints[i].offset);
+        matrix.fn_804096E0(&offset);
+        position.add(offset);
+        mPoints[i]->mPosition.set<f32>(position);
+    }
+    for (u32 i = 0; i < 4; ++i) mSprings[i]->reset();
+}
+
+void CloudMarioHat::updateDynamics() {
+    mHatMatrix.getTrans(mPoints[0]->mPosition);
+    TVec3f offset(sPoints[0].offset);
+    mHatMatrix.mult33(offset, offset);
+    mPoints[0]->mPosition.add(offset);
+    TVec3f y, z;
+    mHatMatrix.getYDir(y);
+    mHatMatrix.getZDir(z);
+    TVec3f direction(y);
+    direction.sub(z);
+    MR::normalizeOrZero(&direction);
+    for (u32 i = 0; i < 4; ++i) {
+        mSprings[i]->mAnchor = mPoints[0]->mPosition;
+        mSprings[i]->mDirection = direction;
+    }
+    for (u32 i = 0; i < 4; ++i) {
+        TVec3f gravity(mGravity);
+        gravity.scale(0.05f);
+        mSprings[i]->update(gravity);
+    }
+}
+
+s32 CloudMarioHat::findJoint(const JointControllerInfo& info) {
+    for (s32 i = 0; i < 3; ++i) if (mJoints[i] == info.mJoint) return i;
+    return -1;
+}
+
+void CloudMarioHat::updateJoint(TPos3f* matrix, s32 index) {
+    CloudHatSpring* spring = mSprings[sJoints[index].spring];
+    TVec3f start(spring->mStart->mPosition);
+    TVec3f end(spring->mEnd->mPosition);
+    TVec3f direction(end);
+    direction.sub(start);
+    if (!MR::normalizeOrZero(&direction)) {
+        TVec3f x;
+        matrix->getXDir(x);
+        MarioMtxPos original(*matrix);
+        MarioMtxPos rotation;
+        rotation.fn_80409710(x, direction);
+        rotation.fn_80409650(original);
+        matrix->set(*rotation.fn_vf0());
+    }
+    matrix->setTrans(start);
+}
+
+TMtx34f* MarioMtxPos::fn_vf0() { return &mMtx; }

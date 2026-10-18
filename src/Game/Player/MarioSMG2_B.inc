@@ -921,11 +921,11 @@ void Mario::fn_803B3CE0() {
 
 void Mario::fn_803B4280() {
     if (FLD<u8>(this, 0xA7E) != 0) {
-        if (this->fn_803B41F0(0) == 0) {
+        if (this->fn_803B41F0() == 0) {
             this->stopEffect("流砂足元砂煙");
             FLD<u8>(this, 0xA7E) = 0;
         }
-    } else if (this->fn_803B41F0(0) != 0) {
+    } else if (this->fn_803B41F0() != 0) {
         this->playEffect("流砂足元砂煙");
         FLD<u8>(this, 0xA7E) = 1;
     }
@@ -1013,38 +1013,38 @@ void Mario::fn_803B23E0(const TVec3f* direction, const TVec3f* axis, f32 rate) {
     MR::normalize(&mHeadVec);
 }
 
-// NONMATCHING: the air-gravity frame update approximated
-s32 Mario::fn_803B2BD0(TVec3f* arg1) {
-    TVec3f sp2C(FLD<TVec3f>(this, 0x1D8));
-    MR::normalizeOrZero(&sp2C);
-    TVec3f sp8(sp2C);
-    sp8 = -sp8;
-    sp2C = sp8;
-    TVec3f sp20;
-    PSVECCrossProduct(&FLD<TVec3f>(this, 0x290), &sp2C, &sp20);
-    MR::normalizeOrZero(&sp20);
-    TVec3f sp14;
-    PSVECCrossProduct(&sp2C, &sp20, &sp14);
-    MR::normalizeOrZero(&sp14);
-    FLD<TVec3f>(this, 0x290) = sp14;
-    MR::normalize(&this->mSideVec);
+// NONMATCHING: argument setup instruction order.
+s32 Mario::fn_803B2BD0() {
+    MR::isNearZero(mAirGravityVec, 0.001f);
+    TVec3f up(mAirGravityVec);
+    if (MR::normalizeOrZero(&up)) return 1;
+    up = -up;
+    TVec3f front;
+    PSVECCrossProduct(&_290, &up, &front);
+    if (MR::normalizeOrZero(&front)) return 1;
+    TVec3f side;
+    PSVECCrossProduct(&up, &front, &side);
+    if (MR::normalizeOrZero(&side)) return 1;
+    _290 = side;
+    mSideVec = _290;
+    MR::normalize(&mSideVec);
     return 0;
 }
 
-// NONMATCHING: sand-sound check approximated
-s32 Mario::fn_803B41F0(u32 arg1) {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    s32 var_r30 = 0;
-    s32 var_r31 = 0;
-    if (FLD<u16>(m, 0x436) != 0) {
-        if (((FLD<u32>(this->getPlayer(), 0xC)) >> 30) & 1) {
-            var_r31 = 1;
+s32 Mario::fn_803B41F0() {
+    s32 result = 0;
+    s32 active = 0;
+    if (mSinkTimer != 0) {
+        if ((getPlayer()->mMovementStates_LOW_WORD >> 30) & 1) {
+            active = 1;
         }
     }
-    if (var_r31 != 0) {
-        var_r30 = (arg1 != 0);
+    if (active != 0) {
+        if (fn_803B2730()) {
+            result = 1;
+        }
     }
-    return var_r30;
+    return result;
 }
 
 // NONMATCHING: front-wall capture and slip-floor flags approximated from the draft

@@ -231,6 +231,7 @@ namespace MR {
     LiveActor* getPlayerDemoActor();
 
     void calcPlayerJointMtx(MtxPtr, const char*);
+    void concatWithPlayerJointMtx(TPos3f*, const char*);
     void concatWithPlayerJointMtx(MtxPtr, const char*);
 
     void pushPlayer(const TVec3f&);

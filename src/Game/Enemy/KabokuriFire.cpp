@@ -35,7 +35,7 @@ void KabokuriFire::init(const JMapInfoIter& rIter) {
 }
 
 void KabokuriFire::start(const TVec3f& rPosition, bool gravitySet) {
-    MR::setPosition(this, rPosition);
+    mPosition.set(rPosition);
 
     if (!gravitySet) {
         MR::calcGravity(this);

@@ -105,6 +105,7 @@ namespace MR {
     void setStageBGMState(s32, u32);
     void setStageBGMStateBit(u32);
     void stopSubBGM(u32);
+    void fn_8005BAD0();
     void moveVolumeSubBGM(f32, u32);
     bool isPlayingSubBgmID(u32);
     void playLevelMarioPinchBGM(bool);

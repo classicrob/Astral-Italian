@@ -1,0 +1,106 @@
+#pragma once
+
+#include "Game/System/NerveExecutor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
+
+class Yoshi;
+class YoshiTongue;
+class Mario;
+class YoshiTongueTarget;
+class YoshiArrow;
+class LiveActor;
+
+class YoshiTongueAction : public NerveExecutor {
+public:
+    YoshiTongueAction(Yoshi*, YoshiTongue*, Mario*, YoshiTongueTarget*, YoshiArrow*);
+    virtual ~YoshiTongueAction();
+    void fn_8041DF40();
+    void fn_8041DFD0();
+    void fn_8041E150();
+    void fn_8041E210();
+    void fn_8041E470();
+    void fn_8041E680();
+    void fn_8041E8F0();
+    void fn_8041E9E0();
+    void fn_8041EAA0();
+    void fn_8041EBE0();
+    void fn_8041EDE0();
+    void fn_8041EE00();
+    void fn_8041EEB0();
+    void fn_8041F000();
+    void fn_8041F0E0();
+    void fn_8041F3D0();
+    void fn_8041F520();
+    void fn_8041F590();
+    void fn_8041F6F0();
+    bool fn_8041F8A0() const;
+    bool fn_8041F8B0() const;
+    bool fn_8041F8C0() const;
+    bool fn_8041F910() const;
+    bool fn_8041F970() const;
+    bool fn_8041F9E0() const;
+    bool fn_8041FA30() const;
+    bool fn_8041FA40() const;
+    bool fn_8041FAA0() const;
+    f32 fn_8041FB30() const;
+    void fn_8041FB40(TVec3f*) const;
+    f32 fn_8041FB50() const;
+    bool fn_8041FB60();
+    bool fn_8041FBD0();
+    bool fn_8041FC60();
+    bool fn_8041FCD0();
+    bool fn_8041FD00();
+    bool fn_8041FD80();
+    bool fn_8041FE00();
+    bool fn_8041FE80();
+    void fn_8041FEB0();
+    bool fn_8041FF60() const;
+    void fn_8041FF70();
+    void fn_8041FF80();
+    void fn_80420000();
+    void fn_80420050();
+    void fn_804200C0();
+    void fn_80420130();
+    bool fn_804201A0() const;
+    void fn_80420230(LiveActor*);
+    LiveActor* fn_804202B0(const TVec3f&);
+    bool fn_804206E0();
+    void fn_80420780();
+    void fn_804207D0();
+    void fn_80420890();
+    s32 fn_80420980() const;
+    f32 fn_80420A20() const;
+    void fn_80420AC0(TVec3f*, const TVec3f&, const TVec3f&, f32) const;
+    void fn_80420C30(TVec3f*, const TVec3f&, const TVec3f&, f32) const;
+    void fn_80420D20(const TVec3f&, const TVec3f&, const TVec3f&, f32);
+    bool fn_80421410();
+    void fn_804214C0();
+    void fn_80421790();
+    void fn_804217B0();
+    void fn_80421830(TVec3f*) const;
+    bool fn_80421880() const;
+
+    Yoshi* mYoshi;
+    YoshiTongue* mTongue;
+    Mario* mPlayer;
+    YoshiTongueTarget* mTarget;
+    bool _18;
+    TVec3f mTargetPosition;
+    YoshiArrow* mArrow;
+    bool _2C;
+    bool _2D;
+    bool _2E;
+    TPos3f mTargetMtx;
+    bool _60;
+    TVec3f mStartPosition;
+    TVec3f mDirection;
+    TVec3f _7C;
+    f32 _88;
+    bool _8C;
+    bool _8D;
+    TVec3f _90;
+    bool _9C;
+    LiveActor* _A0;
+    f32 _A4;
+    bool _A8;
+};

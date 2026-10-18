@@ -11,6 +11,9 @@ public:
     MarioMtxPos(const TMtx34f&);
     MarioMtxPos(TPos3f*);
     bool invert();
+    void preConcat(const MarioMtxPos&);
+    void setTranslation(const TVec3f&);
+    void identity();
     void fn_80409650(const MarioMtxPos&);
     void fn_804096E0(TVec3f*) const;
     void fn_80409710(const TVec3f&, const TVec3f&);
@@ -21,5 +24,5 @@ public:
 
     virtual TMtx34f* fn_vf0() NO_INLINE;
 
-    /* 0x04 */ TMtx34f mMtx;
+    /* 0x04 */ TPos3f mMtx;
 };

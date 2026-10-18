@@ -630,8 +630,8 @@ namespace MarioAccess {
         getPlayerActor()->getMario()->calcWorldPadDir(pOut, f1, f2, false);
     }
 
-    void preventRush() {
-        getPlayerActor()->setNerve(GET_NERVE(MarioActor, MarioActorNrvNoRush));
+    bool fn_803B72E0() {
+        return getPlayerActor()->fn_803BEBE0();
     }
 
     MarioActor* getPlayerActor() {

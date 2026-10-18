@@ -90,7 +90,7 @@ namespace MarioAccess {
     void addVelocityFromArea(const TVec3f&);
     bool isOnWaterSurface();
     void calcWorldPadDir(TVec3f*, f32, f32);
-    void preventRush();
+    bool fn_803B72E0();
     MarioActor* getPlayerActor();
     void validateSensor();
     void incOxygen(u32);

@@ -50,6 +50,7 @@ namespace MR {
     u32 createAreaPolygonListArray(Triangle*, u32, TVec3f*, u32);
     bool trySetMoveLimitCollision(LiveActor*);
     bool isBindedGroundIce(const LiveActor*);
+    bool isBindedGroundSlip(const LiveActor*);
     bool isBindedGroundSand(const LiveActor*);
     bool isBindedGroundSnow(const LiveActor*);
     bool isBindedGroundDamageFire(const LiveActor*);

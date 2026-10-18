@@ -16,6 +16,7 @@ public:
 
     void update();
     void reflectFrame();
+    void clearUpdateSkipFlag();
     void start(const char*);
     void stop();
     bool isPlaying(const char*) const;

@@ -60,7 +60,7 @@ public:
 
     bool isMissLayoutClosed(u16 sequenceFrame);
     void decLeft(u16 eventFrame, u16 sequenceFrame);
-    void closeDefaultLayout(u16 eventFrame, u16 sequenceFrame);
+    void endCometEvent(u16 eventFrame, u16 sequenceFrame);
     void doCloseWipe(u16 eventFrame, u16 sequenceFrame);
     void doWaitAfterWipe(u16 eventFrame, u16 sequenceFrame);
 

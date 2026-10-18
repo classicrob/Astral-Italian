@@ -532,7 +532,11 @@ namespace JGeometry {
             }
         }
 
-        void setQuat(const TQuat4f& q) {
+        void setQuat(const TQuat4f& q)
+#ifdef JGEOMETRY_OUTLINE_MATRIX_ROTATION
+            NO_INLINE
+#endif
+        {
             f32 yy = 2.0f * q.y * q.y;
             f32 zz = 2.0f * q.z * q.z;
             f32 xx = 2.0f * q.x * q.x;
@@ -716,7 +720,11 @@ namespace JGeometry {
             mult33(rVec, rVec);
         }
 
-        void mult33(const TVec3f& rSrc, TVec3f& rDst) const {
+        void mult33(const TVec3f& rSrc, TVec3f& rDst) const
+#ifdef JGEOMETRY_OUTLINE_MATRIX_ROTATION
+            NO_INLINE
+#endif
+        {
             rDst.set< f32 >(rSrc.x * get(0, 0) + rSrc.y * get(0, 1) + rSrc.z * get(0, 2),
 
                             rSrc.x * get(1, 0) + rSrc.y * get(1, 1) + rSrc.z * get(1, 2),
@@ -839,8 +847,18 @@ namespace JGeometry {
             makeQuat(q);
         }
 
-        void makeQuat(const TQuat4f& rSrcQuat) {
+        void makeQuat(const TQuat4f& rSrcQuat)
+#ifdef JGEOMETRY_OUTLINE_MATRIX_QUAT
+            NO_INLINE
+#endif
+        {
+#ifdef JGEOMETRY_OUTLINE_MATRIX_QUAT
+            this->mMtx[0][3] = 0.0f;
+            this->mMtx[1][3] = 0.0f;
+            this->mMtx[2][3] = 0.0f;
+#else
             zeroTrans();
+#endif
             TRotation3< T >::setQuat(rSrcQuat);
         }
 

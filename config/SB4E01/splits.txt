@@ -6307,6 +6307,43 @@ Game/Player/ModelHolder.cpp:
 	.text       start:0x80409470 end:0x804095C0
 	.data       start:0x806DF0E8 end:0x806DF158
 
+Game/Player/MarioMtxPos.cpp:
+	.text       start:0x804095C0 end:0x80409770
+	.data       start:0x806DF158 end:0x806DF168
+
+Game/Player/EventSequence.cpp:
+	.text       start:0x80409770 end:0x8040A030
+	.data       start:0x806DF168 end:0x806DF228
+
+Game/Player/EventAbyss.cpp:
+	.text       start:0x8040A030 end:0x8040A290
+	.data       start:0x806DF228 end:0x806DF300
+
+Game/Player/EventDown.cpp:
+	.text       start:0x8040A290 end:0x8040A530
+	.data       start:0x806DF300 end:0x806DF3F0
+
+Game/Player/EventFireDown.cpp:
+	.text       start:0x8040A530 end:0x8040A7D0
+	.data       start:0x806DF3F0 end:0x806DF4E8
+	.sdata2     start:0x807E0540 end:0x807E0548
+
+Game/Player/EventGameOver.cpp:
+	.text       start:0x8040A7D0 end:0x8040AA10
+	.data       start:0x806DF4E8 end:0x806DF5A0
+
+Game/Player/EventGhostRaceDown.cpp:
+	.text       start:0x8040AA10 end:0x8040ACB0
+	.data       start:0x806DF5A0 end:0x806DF6B0
+
+Game/Player/EventKillNoDirector.cpp:
+	.text       start:0x8040ACB0 end:0x8040AEE0
+	.data       start:0x806DF6B0 end:0x806DF768
+
+Game/Player/EventRaceDown.cpp:
+	.text       start:0x8040AEE0 end:0x8040B250
+	.data       start:0x806DF768 end:0x806DF8A0
+
 Game/Player/TornadoMario.cpp:
 	.text       start:0x8040B8C0 end:0x8040BD00
 	.data       start:0x806DF968 end:0x806DF9D8
@@ -6314,8 +6351,23 @@ Game/Player/TornadoMario.cpp:
 Game/Player/Yoshi.cpp:
 	.text       start:0x8040BF30 end:0x80413C40
 	.ctors      start:0x806447E8 end:0x806447EC
-	.data       start:0x806EA4C8 end:0x806EA718
+	.data       start:0x806EA4A4 end:0x806EA718
 	.sbss       start:0x807D4EB8 end:0x807D4F30
+
+Game/Player/YoshiFruitCounter.cpp:
+	.text       start:0x804178C0 end:0x804179E0
+	.data       start:0x806EAE30 end:0x806EAE70
+
+Game/Player/YoshiModelCtrl.cpp:
+	.text       start:0x804179E0 end:0x80419720
+	.data       start:0x806EAE70 end:0x806EAF38
+	.sdata      start:0x807D00D0 end:0x807D00D8
+	.sdata2     start:0x807E0720 end:0x807E0750
+
+Game/Player/YoshiLockOnTarget.cpp:
+	.text       start:0x80419720 end:0x80419BD0
+	.sdata      start:0x807D00E0 end:0x807D00F4
+	.sdata2     start:0x807E0750 end:0x807E0758
 
 Game/Player/YoshiTongue.cpp:
 	.text       start:0x8041C550 end:0x8041DE20
@@ -6326,6 +6378,10 @@ Game/Player/YoshiTongue.cpp:
 Game/Player/YoshiTongueAction.cpp:
 	.text       start:0x8041DE20 end:0x80421D40
 	.ctors      start:0x806447F4 end:0x806447F8
+	.rodata     start:0x8064BF38 end:0x8064BF40
+	.data       start:0x806EB2C8 end:0x806EB620
+	.sbss       start:0x807D4F88 end:0x807D4FD8
+	.sdata2     start:0x807E07E0 end:0x807E0860
 
 Game/RhythmLib/AudRhythmSeqParser.cpp:
 	.text       start:0x80422990 end:0x804238D0

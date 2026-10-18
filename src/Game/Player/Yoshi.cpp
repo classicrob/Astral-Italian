@@ -1,4 +1,13 @@
 #include "Game/Player/Yoshi.hpp"
+#include "Game/Map/WaterInfo.hpp"
+#include "Game/LiveActor/Binder.hpp"
+#include "Game/LiveActor/ModelManager.hpp"
+#include "Game/Animation/BvaPlayer.hpp"
+#include "Game/Animation/BtkPlayer.hpp"
+#include "Game/Animation/BrkPlayer.hpp"
+#include "Game/Util/MapUtil.hpp"
+#include "Game/Util/DemoUtil.hpp"
+#include "Game/Util/AreaObjUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/BgmUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -8,6 +17,12 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Animation/XanimeCore.hpp"
 #include "Game/Animation/XanimePlayer.hpp"
+#include "Game/Animation/XanimeResource.hpp"
+#include "Game/LiveActor/BreakModel.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
+#include "Game/Util/ActorShadowUtil.hpp"
+#include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/ObjUtil.hpp"
 #include "Game/LiveActor/EffectKeeper.hpp"
 #include "Game/Util/JointUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
@@ -15,10 +30,18 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 #include <JSystem/J3DGraphAnimator/J3DModel.hpp>
 #include <cstring>
+
+extern XanimeGroupInfo yoshiAnimationGroups[];
+extern XanimeAuxInfo yoshiAnimationAux[];
+extern XanimeOfsInfo yoshiAnimationOffsets[];
+extern XanimeBckTable yoshiAnimationBckTable[];
+extern XanimeBckTable2 yoshiAnimationBckTable2[];
+extern XanimeBckTable3 yoshiAnimationBckTable3[];
 
 namespace NrvYoshi {
     class YoshiNrv80413840 : public Nerve {
@@ -878,4 +901,397 @@ void YoshiAnimationSync::update() {
     else {
         fn_804135A0(animation);
     }
+}
+
+YoshiGroundChecker::YoshiGroundChecker(Yoshi* actor) : mActor(actor), mAirborneFrames(0), mUpdated(false), mSlipping(false) {
+}
+
+YoshiAutoDisappearTask::YoshiAutoDisappearTask(Yoshi* actor) : mActor(actor), mTimer(0) {
+}
+
+YoshiRandomTurn::YoshiRandomTurn() : mTimer(0), mTurnTimer(0), mTurnAngle(0.0f) {
+}
+
+YoshiEscapeDirection::YoshiEscapeDirection(TPos3f* matrix) : mBaseMtx(matrix), mStep(0), mHitCount(0), mDirection(0.0f, 0.0f, 0.0f) {
+}
+
+YoshiPlayerFacingCtrl::YoshiPlayerFacingCtrl(TPos3f* matrix) : mBaseMtx(matrix), mTimer(0), mTurnTimer(0) {
+}
+
+Yoshi::Yoshi(const char* name) : LiveActor(name), mAnimationResources(NULL), mXanimePlayer(NULL), mXanimePlayerUpper(NULL), _A0(NULL),
+    mUpperDefaultAnimationEnabled(false), mUpperAnimationActive(false), mBinderOffset(0.0f, 0.0f, 0.0f), mTongue(NULL), mYoshiModelCtrl(NULL),
+    mHeadCtrl(NULL), mAnimationModelCtrl(NULL), mFruitCtrl(NULL), mUpdateTasks(NULL), mGroundChecker(NULL), mAutoDisappearTask(NULL),
+    mRandomTurn(NULL), mJumpRequested(NULL), _130(false), mDashTimer(0), mDashEffectActive(false), mDashTopWaterEffectActive(false),
+    _13C(0), mSupportSpinTimer(0), _144(false), _145(false), mWaterInfo(new WaterInfo()), _14C(0.0f, 0.0f, 0.0f), _158(0), _15C(0.0f), _160(0),
+    mMovementVelocity(0.0f, 0.0f, 0.0f), mPreviousVelocity(0.0f, 0.0f, 0.0f), _188(0), _18C(0.0f, 0.0f, 0.0f), _198(false), mRideModel(NULL), mRideModelVisible(false),
+    _1A1(false), _1A2(false), mBreakModel(NULL) {
+    mBaseMtx.identity();
+    mUpdateTasks = new YoshiUpdateTaskList(16);
+    mGroundChecker = new YoshiGroundChecker(this);
+    mUpdateTasks->add(mGroundChecker);
+    mAutoDisappearTask = new YoshiAutoDisappearTask(this);
+    mUpdateTasks->add(mAutoDisappearTask);
+    mRandomTurn = new YoshiRandomTurn();
+    mJumpRequested = new bool(false);
+    mEscapeDirection = new YoshiEscapeDirection(&mBaseMtx);
+    mVelocityAdjustment = new YoshiVelocityAdjustment();
+    mPlayerFacingCtrl = new YoshiPlayerFacingCtrl(&mBaseMtx);
+    mModelVisibility = NULL;
+    mAnimationSync = new YoshiAnimationSync(this);
+    mBreakModelMtx.identity();
+}
+
+Yoshi::~Yoshi() {
+}
+
+// NONMATCHING: HitInfo assignment and trigonometric helpers are inlined differently.
+void YoshiGroundChecker::update() {
+    if (MR::isOnGround(mActor)) {
+        mAirborneFrames = 0;
+        mGroundHit = mActor->mBinder->mGroundInfo;
+        if (MR::isBindedGroundSlip(mActor)) {
+            mSlipping = true;
+        }
+        else {
+            TVec3f up(-mActor->mGravity);
+            f32 slope = MR::getGroundNormal(mActor).dot(up);
+            if (slope <= MR::cos(0.753982246f)) {
+                mSlipping = true;
+            }
+            else if (slope >= MR::cos(2.98451304f)) {
+                mSlipping = false;
+            }
+        }
+    }
+    else {
+        mAirborneFrames++;
+    }
+    if (mUpdated && mAirborneFrames > 4) {
+        mSlipping = false;
+    }
+    mUpdated = true;
+}
+
+bool YoshiGroundChecker::isAirborne() const {
+    bool result = false;
+    if (mUpdated == true && mAirborneFrames > 4) result = true;
+    return result;
+}
+
+bool YoshiGroundChecker::isGrounded() const {
+    bool result = false;
+    if (mUpdated == true) {
+        bool airborne = false;
+        if (mUpdated == true && mAirborneFrames > 4) airborne = true;
+        if (!airborne) result = true;
+    }
+    return result;
+}
+
+void YoshiAutoDisappearTask::update() {
+    if (!MR::isDemoActive()) {
+        if (mTimer > 0) mTimer--;
+        if (MR::isInAreaObj("DeathArea", mActor->mPosition)) mTimer = 0;
+    }
+}
+
+void YoshiRandomTurn::reset() {
+    mTimer = MR::getRandom((s32)120, (s32)180);
+    mTurnTimer = MR::getRandom((s32)5, (s32)90);
+    f32 angle;
+    if (MR::getRandom() < 0.5f) angle = -0.0349065848f;
+    else angle = 0.0349065848f;
+    mTurnAngle = angle;
+}
+
+void YoshiRandomTurn::update(const TPos3f& matrix, TVec3f* direction) {
+    if (mTimer > 0) {
+        mTimer--;
+        if (mTurnTimer > 0) {
+            mTurnTimer--;
+            TVec3f up;
+            matrix.getYDir(up);
+            TQuat4f rotation;
+            rotation.setRotate(up, mTurnAngle);
+            rotation.transform(*direction);
+        }
+    }
+}
+
+void YoshiEscapeDirection::reset() {
+    mStep = 0;
+    mHitCount = 0;
+    mDirection.zero();
+}
+
+void YoshiEscapeDirection::finish() {
+    if (mHitCount > 0) mDirection.scale(1.0f / mHitCount);
+    if (MR::normalizeOrZero(&mDirection)) {
+        mBaseMtx->getZDir(mDirection);
+        mDirection.negate();
+    }
+    else {
+        mBaseMtx->mult33(mDirection);
+    }
+}
+
+// NONMATCHING: vector temporary inlining, stack slots and argument scheduling differ.
+void YoshiEscapeDirection::update() {
+    if (mStep < 16) {
+        mStep++;
+        TVec3f direction(0.0f, 0.0f, 150.0f);
+        TVec3f axis(0.0f, 1.0f, 0.0f);
+        TQuat4f rotation;
+        rotation.setRotate(axis, 6.28318548f * mStep * 0.0625f);
+        rotation.transform(direction);
+        TVec3f start(0.0f, 100.0f, 0.0f);
+        TVec3f ray(direction);
+        mBaseMtx->mult(start, start);
+        mBaseMtx->mult33(ray);
+        if (Collision::checkStrikeLineToMap(start, ray, 0, NULL, NULL)) {
+            mHitCount++;
+            mDirection.add(direction);
+        }
+        else {
+            TVec3f end(TVec3f(0.0f, 100.0f, 0.0f) + direction);
+            TVec3f down(0.0f, -300.0f, 0.0f);
+            mBaseMtx->mult(end, end);
+            mBaseMtx->mult33(down);
+            if (Collision::checkStrikeLineToMap(end, down, 0, NULL, NULL)) {
+                mHitCount++;
+                mDirection.add(direction);
+            }
+        }
+        if (mStep == 16) finish();
+    }
+}
+
+YoshiModelVisibility::YoshiModelVisibility(Yoshi* actor, YoshiAnimationModelCtrl* model) : mActor(actor), mModelCtrl(model), mEnabled(true), mAppeared(false) {
+}
+
+// NONMATCHING: string pool base, local stack layout and register allocation differ.
+void Yoshi::init(const JMapInfoIter& iter) {
+    MR::initActor(this, iter, "Yoshi", false);
+    MR::connectToScene(this, 37, 6, 22, -1);
+    initHitSensor(6);
+    MR::addHitSensorEye(this, "AutoEat", 32, 200.0f, TVec3f(0.0f, 60.0f, 0.0f));
+    MR::addHitSensorRide(this, "Ride", 32, 80.0f, TVec3f(0.0f, 10.0f, 0.0f));
+    MR::addHitSensorRide(this, "SpinRide", 32, 80.0f, TVec3f(0.0f, 50.0f, 0.0f));
+    MR::addHitSensorEye(this, "NpcBodyAttack", 32, 60.0f, TVec3f(0.0f, 60.0f, 0.0f));
+    MR::addHitSensor(this, "NpcBodyReceive", 5, 32, 120.0f, TVec3f(0.0f, 60.0f, 0.0f));
+    MR::addHitSensorNpc(this, "NpcBodyReceive2", 32, 60.0f, TVec3f(0.0f, 60.0f, 0.0f));
+    initBinder(50.0f, 50.0f, 256);
+    MR::setBinderOffsetVec(this, &mBinderOffset, false);
+    MR::offBind(this);
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
+    MR::invalidateClipping(this);
+    MR::initLightCtrl(this);
+    mDashEffectActive = false;
+    initNerve(&NrvYoshi::YoshiNrv80413860::sInstance, 0);
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 100.0f, 0.0f));
+    makeActorDead();
+    mAnimationResources = new XanimeResourceTable(MR::getResourceHolder(this), yoshiAnimationGroups, yoshiAnimationAux, yoshiAnimationOffsets,
+        yoshiAnimationBckTable, yoshiAnimationBckTable2, yoshiAnimationBckTable3, NULL);
+    fn_8040FCD0();
+    fn_8040FD80();
+    fn_8040FE30();
+    mTongue = new YoshiTongue(this, "ヨッシーの舌");
+    mTongue->initWithoutIter();
+    mYoshiModelCtrl = new YoshiModelCtrl(this);
+    mHeadCtrl = new YoshiHeadCtrl(mYoshiModelCtrl);
+    mAnimationModelCtrl = new YoshiAnimationModelCtrl(this, mXanimePlayer, "YoshiHand");
+    mRideModel = new YoshiSilhouette(this);
+    mRideModel->initWithoutIter();
+    mBreakModel = new BreakModel(this, "水柱", "WaterColumn", mBreakModelMtx.fn_vf0()->toMtxPtr(), "Splash");
+    mBreakModel->initWithoutIter();
+    mFruitCtrl = new YoshiFruitCtrl(this);
+    mModelVisibility = new YoshiModelVisibility(this, mAnimationModelCtrl);
+    initSound(10, NULL, NULL, TVec3f(0.0f));
+    MR::createCenterScreenBlur();
+}
+
+void Yoshi::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    YoshiModelVisibility* visibility = mModelVisibility;
+    if (visibility != NULL) {
+        visibility->mAppeared = true;
+        visibility->mModelCtrl->appear();
+    }
+    mFruitCtrl->fn_804157E0();
+    fn_8040EE70(NULL);
+    mHeadCtrl->fn_8041A9F0();
+    mYoshiModelCtrl->fn_80418120();
+    MR::onBind(this);
+    MR::onCalcGravity(this);
+    mTongue->makeActorAppeared();
+    mVelocity.zero();
+    mMovementVelocity.zero();
+    mPreviousVelocity.zero();
+    mAutoDisappearTask->mTimer = 600;
+    YoshiGroundChecker* ground = mGroundChecker;
+    ground->mAirborneFrames = 4;
+    ground->mUpdated = false;
+    _144 = false;
+    _145 = false;
+    setNerve(&NrvYoshi::YoshiNrv80413860::sInstance);
+}
+
+void Yoshi::makeActorDead() {
+    LiveActor::makeActorDead();
+    if (mTongue != NULL) mTongue->makeActorDead();
+    YoshiModelVisibility* visibility = mModelVisibility;
+    if (visibility != NULL) {
+        visibility->mAppeared = false;
+        visibility->mModelCtrl->kill();
+    }
+}
+
+void Yoshi::fn_8040C960() {
+    if (mModelManager != NULL) {
+        mFruitCtrl->fn_80415630();
+        calcAndSetBaseMtx();
+        if (mModelManager->mBvaPlayer != NULL) {
+            mModelManager->mBvaPlayer->calc();
+            mModelManager->mBvaPlayer->clearUpdateSkipFlag();
+        }
+        mModelManager->updateDL(true);
+        mModelManager->mBrkPlayer->clearUpdateSkipFlag();
+        mModelManager->mBtkPlayer->clearUpdateSkipFlag();
+        mAnimationModelCtrl->calcAnim();
+    }
+}
+
+void YoshiModelVisibility::fn_804132C0() {
+    mEnabled = true;
+    MR::showModel(mActor);
+    MR::showModel(mActor->mTongue);
+    if (mAppeared) mModelCtrl->appear();
+}
+
+void YoshiModelVisibility::fn_80413330() {
+    mEnabled = false;
+    MR::hideModel(mActor);
+    MR::hideModel(mActor->mTongue);
+    mModelCtrl->kill();
+}
+
+void Yoshi::fn_8040CBD0() {
+    _1A1 = false;
+    if (!_1A2) mModelVisibility->fn_804132C0();
+}
+
+void Yoshi::fn_8040CBF0() {
+    _1A1 = true;
+    mModelVisibility->fn_80413330();
+}
+
+void Yoshi::fn_8040CC00() {
+    _1A2 = false;
+    if (!_1A1) mModelVisibility->fn_804132C0();
+}
+
+void Yoshi::fn_8040CC20() {
+    _1A2 = true;
+    mModelVisibility->fn_80413330();
+}
+
+void Yoshi::fn_8040CC30() {
+    mAnimationModelCtrl->fn_8040B6D0();
+}
+
+void Yoshi::fn_8040FCD0() {
+    mXanimePlayer = new XanimePlayer(MR::getJ3DModel(this), mAnimationResources);
+    mXanimePlayer->setDefaultAnimation("基本");
+    fn_8040EDA0("基本");
+    XanimeCore* core = mXanimePlayer->getCore();
+    core->enableJointTransform(MR::getJ3DModelData(this));
+    mModelManager->mXanimePlayer = mXanimePlayer;
+}
+
+void Yoshi::fn_8040FD80() {
+    mXanimePlayerUpper = new XanimePlayer(MR::getJ3DModel(this), mAnimationResources, mXanimePlayer);
+    fn_8040EE00("基本");
+    mXanimePlayerUpper->changeAnimationBck("基本");
+    mXanimePlayerUpper->getCore()->shareJointTransform(mXanimePlayer->getCore());
+    mXanimePlayerUpper->_7E = false;
+}
+
+// NONMATCHING: string pool base and register allocation differ.
+void Yoshi::fn_8040FE30() {
+    initEffectKeeper(0, NULL, false);
+    MR::setEffectName(this, "WaterSplashDash", "水はね");
+    MR::setEffectName(this, "WaterSplashWalk", "水はね弱");
+    MR::setEffectName(this, "WaterRipple", "水波紋");
+    MR::setEffectName(this, "MudMove", "ヨッシー泥移動");
+    MR::setEffectHostSRT(this, "水波紋", NULL, NULL, NULL);
+}
+
+// NONMATCHING: getTrans is inlined and return branches are ordered differently.
+bool YoshiPlayerFacingCtrl::fn_80413040() {
+    TVec3f position;
+    mBaseMtx->getTrans(position);
+    TVec3f front;
+    mBaseMtx->getZDir(front);
+    TVec3f toPlayer(*MR::getPlayerPos());
+    toPlayer.sub(position);
+    if (MR::normalizeOrZero(&toPlayer)) {
+        mTimer = 0;
+        return false;
+    }
+    if (front.angle(toPlayer) > 0.785398185f) {
+        mTimer++;
+        return mTimer > 15;
+    }
+    mTimer = 0;
+    return false;
+}
+
+bool YoshiPlayerFacingCtrl::fn_804131C0(const TVec3f& direction) {
+    TVec3f up;
+    mBaseMtx->getYDir(up);
+    TVec3f front;
+    mBaseMtx->getZDir(front);
+    JMAVECScaleAdd(&up, &front, &front, -up.dot(front));
+    if (MR::normalizeOrZero(&front)) return true;
+    TVec3f projected;
+    JMAVECScaleAdd(&up, &direction, &projected, -up.dot(direction));
+    if (MR::normalizeOrZero(&projected)) return true;
+    return projected.angle(front) < 0.0349065848f;
+}
+
+void Yoshi::fn_80410280() {
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isGrounded()) {
+        YoshiGroundChecker* ground = mGroundChecker;
+        s32 slipping = 0;
+        if (ground->isGrounded() && ground->mSlipping) slipping = 1;
+        if (slipping) {
+            setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+            return;
+        }
+        if (*mJumpRequested) {
+            setNerve(&NrvYoshi::YoshiNrv804138A0::sInstance);
+            return;
+        }
+        setNerve(&NrvYoshi::YoshiNrv80413880::sInstance);
+    }
+}
+
+void Yoshi::fn_8040CF50() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("出現（Ｎｐｃ）");
+        *mJumpRequested = false;
+    }
+    if (fn_8040F590(NULL)) fn_80410280();
+}
+
+void Yoshi::fn_8040EF20() {
+    mYoshiModelCtrl->fn_80418130();
+}
+
+void Yoshi::fn_8040EF30() {
+    mYoshiModelCtrl->fn_80418120();
 }

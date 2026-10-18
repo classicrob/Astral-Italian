@@ -45,7 +45,7 @@ public:
     void exeState7();
     void fn_8041CB30(bool);
     bool fn_8041CB50() const;
-    void fn_8041CB70();
+    void fn_8041CB70(bool);
     bool fn_8041CB80() const;
     bool fn_8041CB90() const;
     void fn_8041CBA0();

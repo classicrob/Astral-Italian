@@ -2188,7 +2188,6 @@ config.libs = [
             Object(NonMatching, "Game/Boss/PoltaStatePunch.cpp"),
             Object(NonMatching, "Game/Boss/PoltaStateStagger.cpp"),
             Object(NonMatching, "Game/Boss/PoltaWaitStart.cpp"),
-            Object(NonMatching, "Game/Boss/TripodBossKinokoOneUp.cpp"),
             Object(NonMatching, "Game/Boss/DinoPackunBaby.cpp"),
             Object(NonMatching, "Game/Boss/DinoPackunBabyTU01.cpp"),
             Object(NonMatching, "Game/Boss/DinoPackunBabyTU02.cpp"),

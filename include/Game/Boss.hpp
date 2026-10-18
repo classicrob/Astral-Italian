@@ -160,7 +160,6 @@
 #include "Game/Boss/TripodBossGuardWallPart.hpp"
 #include "Game/Boss/TripodBossKillerGenerater.hpp"
 #include "Game/Boss/TripodBossKillerGeneraterCircle.hpp"
-#include "Game/Boss/TripodBossKinokoOneUp.hpp"
 #include "Game/Boss/TripodBossLeg.hpp"
 #include "Game/Boss/TripodBossMovableArea.hpp"
 #include "Game/Boss/TripodBossRailMoveParts.hpp"

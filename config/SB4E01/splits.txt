@@ -3559,13 +3559,10 @@ Game/MapObj/BenefitItemLifeUp.cpp:
 	.data       start:0x8069BF68 end:0x8069C008
 
 Game/MapObj/BenefitItemObj.cpp:
-	.text       start:0x80276420 end:0x80278810
+	.text       start:0x80276420 end:0x80278970
 	.ctors      start:0x80644314 end:0x80644318
 	.data       start:0x8069C0C0 end:0x8069C180
-
-Game/Boss/TripodBossKinokoOneUp.cpp:
-	.text       start:0x80278810 end:0x80278970
-	.sbss       start:0x807D37D0 end:0x807D37E8
+	.sbss       start:0x807D37D0 end:0x807D37F0
 
 Game/MapObj/BigFan.cpp:
 	.text       start:0x80278970 end:0x802791D0

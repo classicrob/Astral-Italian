@@ -46,8 +46,6 @@ public:
     void exeTicoHold();
     void exeTicoPull();
     bool canGet() const;
-    // Petari-only API, kept so src/Game/Boss/TripodBossKinokoOneUp.cpp (not present in SMG2) still compiles.
-    inline void setFollowMtx(MtxPtr) {}
     void calcBaseMtxWait();
     void calcBaseMtxTico();
     void calcBaseMtxMove(const TVec3f&);

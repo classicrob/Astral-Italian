@@ -30,7 +30,7 @@ typedef struct RFLAdditionalInfo {
 } RFLAdditionalInfo;
 
 RFLErrcode RFLGetAdditionalInfo(RFLAdditionalInfo* info, RFLDataSource source,
-                                struct RFLMiddleDB* db, u16 index);
+                                struct RFLMiddleDB* db, u16 index, BOOL sanitizeNames);
 
 RFLErrcode RFLGetAdditionalInfoWithSanitizedNames(RFLAdditionalInfo* info, RFLDataSource source,
                                                 struct RFLMiddleDB* db, u16 index);

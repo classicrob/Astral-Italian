@@ -37,6 +37,7 @@ GXTlutRegionCallback GXSetTlutRegionCallback(GXTlutRegionCallback);
 void GXSetTexCoordBias(GXTexCoordID coord, GXBool sBias, GXBool tBias);
 
 void GXSetTexCoordScaleManually(GXTexCoordID coord, GXBool enable, u16 ss, u16 ts);
+void GXSetTexCoordCylWrap(GXTexCoordID coord, GXBool wrapS, GXBool wrapT);
 
 #ifdef __cplusplus
 }

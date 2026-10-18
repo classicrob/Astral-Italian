@@ -3,9 +3,9 @@
 #include <revolution/mem.h>
 #include <revolution/types.h>
 
-#define RFL_SYSTEM_HEAP_SIZE 0x24800
-#define RFL_WORK_SIZE 0x4B000
-#define RFL_DELUXE_WORK_SIZE 0x64000
+#define RFL_SYSTEM_HEAP_SIZE 0x24C00
+#define RFL_WORK_SIZE 0x4B400
+#define RFL_DELUXE_WORK_SIZE 0x64400
 
 /**
  * These functions are inlined, but with their conditions inverted(?) from the
@@ -38,7 +38,10 @@ RFLErrcode RFLInitResAsync(void* workBuffer, void* resBuffer, u32 resSize, BOOL 
     u32 wholesize;
 
     if (resBuffer == NULL) {
-        return RFLErrcode_Fatal;
+        return RFLErrcode_WrongParam;
+    }
+    if (workBuffer == NULL) {
+        return RFLErrcode_WrongParam;
     }
 
     if (RFLiGetManager() == NULL) {
@@ -136,9 +139,9 @@ static void bootloadDB2Res_(void) {
     RFLiLoadResourceHeaderAsync();
 
     switch (RFLWaitAsync()) {
-    case RFLErrcode_Loadfail:
     case RFLErrcode_Success:
     case RFLErrcode_Busy:
+    case RFLErrcode_Loadfail:
         break;
     default:
         RFLExit();

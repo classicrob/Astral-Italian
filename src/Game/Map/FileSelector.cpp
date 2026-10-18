@@ -766,7 +766,7 @@ void FileSelector::getMiiId(RFLCreateID* pCreateId, const FileSelectIconID& rIco
     RFLAdditionalInfo additionalInfo;
     u16 index = rIconId.getMiiIndex();
 
-    if (RFLGetAdditionalInfo(&additionalInfo, RFLDataSource_Official, nullptr, index) == RFLErrcode_Success) {
+    if (RFLGetAdditionalInfoWithSanitizedNames(&additionalInfo, RFLDataSource_Official, nullptr, index) == RFLErrcode_Success) {
         *pCreateId = additionalInfo.createID;
     }
 }

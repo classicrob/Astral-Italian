@@ -67,7 +67,7 @@ namespace nw4r {
             virtual void SetAnimationEnable(const AnimResource&, bool, bool);
             virtual u8 GetMaterialNum() const;
             virtual Material* GetMaterial() const;
-            virtual Material* GetMaterial(u8) const;
+            virtual Material* GetMaterial(u32) const;
             virtual void LoadMtx(const DrawInfo&);
 
             void Init();

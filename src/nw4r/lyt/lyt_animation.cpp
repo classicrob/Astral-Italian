@@ -244,7 +244,7 @@ namespace nw4r {
             mpFileResAry = nullptr;
 
             if (pBlock->fileNum > 0) {
-                mpFileResAry = static_cast< void** >(Layout::AllocMemory(sizeof(void*) * pBlock->fileNum));
+                mpFileResAry = Layout::NewArray<void*>(pBlock->fileNum);
                 if (mpFileResAry != nullptr) {
                     const u32* fileNameOffs = detail::ConvertOffsToPtr< u32 >(mpRes, sizeof(*mpRes));
                     for (int i = 0; i < mpRes->fileNum; i++) {
@@ -254,14 +254,9 @@ namespace nw4r {
                 }
             }
 
-            mAnimLinkAry = static_cast< AnimationLink* >(Layout::AllocMemory(sizeof(AnimationLink) * animNum));
+            mAnimLinkAry = Layout::NewArray<AnimationLink>(animNum);
             if (mAnimLinkAry != nullptr) {
                 mAnimLinkNum = animNum;
-                memset(mAnimLinkAry, 0, animNum * sizeof(AnimationLink));
-
-                for (u16 i = 0; i < animNum; i++) {
-                    new (&mAnimLinkAry[i]) AnimationLink();
-                }
             }
         }
 
@@ -320,12 +315,13 @@ namespace nw4r {
             }
 
             pAnimLink->Set(this, idx);
-            pAnimLink->SetEnable(enable);
+            pAnimLink->SetEnable(!enable);
             pTarget->AddAnimationLink(pAnimLink);
 
             return ++pAnimLink;
         }
 
+        // NONMATCHING: local converted-color temporary uses a different stack slot.
         void AnimTransformBasic::Animate(u32 idx, Pane* pPane) {
             u32 animContOffsets = detail::ConvertOffsToPtr< u32 >(mpRes, mpRes->animContOffsetsOffset)[idx];
             const res::AnimationContent* pAnimCont = detail::ConvertOffsToPtr< res::AnimationContent >(mpRes, animContOffsets);
@@ -349,6 +345,7 @@ namespace nw4r {
             }
         }
 
+        // NONMATCHING: local converted-color temporary uses a different stack slot.
         void AnimTransformBasic::Animate(u32 idx, Material* pMaterial) {
             u32 animContOffsets = detail::ConvertOffsToPtr< u32 >(mpRes, mpRes->animContOffsetsOffset)[idx];
             const res::AnimationContent* pAnimCont = detail::ConvertOffsToPtr< res::AnimationContent >(mpRes, animContOffsets);
@@ -419,6 +416,10 @@ namespace nw4r {
                     mpTagBlock = reinterpret_cast< const res::AnimationTagBlock* >(pDataBlockHead);
                     break;
 
+                case res::DATABLOCKKIND_PANEANIMSHARE:
+                    mpShareBlock = reinterpret_cast<const res::AnimationShareBlock*>(pDataBlockHead);
+                    break;
+
                 case res::DATABLOCKKIND_PANEANIMINFO:
                     mpResBlock = reinterpret_cast< const res::AnimationBlock* >(pDataBlockHead);
                     break;
@@ -432,6 +433,7 @@ namespace nw4r {
             mpFileHeader = 0;
             mpResBlock = 0;
             mpTagBlock = 0;
+            mpShareBlock = 0;
         }
 
         namespace detail {

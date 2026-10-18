@@ -77,7 +77,19 @@ namespace nw4r {
             bool TestFileHeader(const res::BinaryFileHeader&, u32);
 
             inline bool TestFileVersion(const res::BinaryFileHeader& fileHeader) {
-                return (ut::BitExtract(fileHeader.version, 8, 8) == 0 && ut::BitExtract(fileHeader.version, 0, 8) >= 9);
+                const u32 major = ut::BitExtract(fileHeader.version, 8, 8);
+                const u32 minor = ut::BitExtract(fileHeader.version, 0, 8);
+                bool valid = false;
+                if (major == 0) {
+                    bool supported = false;
+                    if (minor >= 8 && minor <= 10) {
+                        supported = true;
+                    }
+                    if (supported) {
+                        valid = true;
+                    }
+                }
+                return valid;
             }
 
             inline s32 GetSignatureInt(const char sig[4]) {

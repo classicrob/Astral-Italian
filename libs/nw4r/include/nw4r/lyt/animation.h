@@ -92,6 +92,7 @@ namespace nw4r {
             const res::BinaryFileHeader* mpFileHeader;
             const res::AnimationBlock* mpResBlock;
             const res::AnimationTagBlock* mpTagBlock;
+            const res::AnimationShareBlock* mpShareBlock;
         };
 
         namespace detail {

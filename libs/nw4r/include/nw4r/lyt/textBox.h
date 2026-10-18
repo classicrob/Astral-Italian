@@ -31,6 +31,7 @@ namespace nw4r {
             virtual void SetVtxColor(u32, ut::Color);
             virtual u8 GetVtxColorElement(u32) const;
             virtual void SetVtxColorElement(u32, u8);
+            virtual void LoadMtx(const DrawInfo&);
             virtual void AllocStringBuffer(u16);
             virtual void FreeStringBuffer();
             virtual u16 SetString(const wchar_t*, u16 dstIdx = 0);

@@ -27,8 +27,8 @@ void RFLiMakeIcon(void* buf, RFLiCharInfo* info, RFLExpression expression, const
     u32 scissorOffsetY;                // sp+78
     u32 scissorWidth;                  // sp+74
     u32 scissorHeight;                 // sp+70
-    RFLiCoordinateData iconCoordData;  // sp+118
-    RFLiCoordinateData coordData;      // sp+128
+    RFLiCoordinateData coordData;
+    RFLiCoordinateData iconCoordData;
     u32 bufSize;                       // sp+6C
     RFLResolution resolution;          // sp+68
     RFLExpFlag expFlag;                // sp+64
@@ -84,9 +84,9 @@ void RFLiMakeIcon(void* buf, RFLiCharInfo* info, RFLExpression expression, const
 
     aspect = (f32)setting->width / (f32)setting->height;
     if (setting->width < setting->height) {
-        fovy = 2 * ((180 / 3.141592653589793f) * atan2f(43.2f / aspect, 500.0f));
+        fovy = 2 * (57.29578f * atan2f(43.2f / aspect, 500.0f));
     } else {
-        fovy = 2 * ((180 / 3.141592653589793f) * atan2f(43.2f, 500.0f));
+        fovy = 2 * (57.29578f * atan2f(43.2f, 500.0f));
     }
 
     C_MTXPerspective(projMtx, fovy, aspect, 500.0f, 700.0f);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nw4r/db/assert.h"
+#include <cstdarg>
 
 #include "nw4r/math/constant.h"
 #include "nw4r/ut/CharWriter.h"
@@ -94,6 +95,7 @@ namespace nw4r {
             }
 
             f32 GetLineHeight() const;
+            void SetLineHeight(f32 height);
 
             TagProcessor& GetTagProcessor() const {
                 NW4R_POINTER_ASSERT_AT(164, this);
@@ -107,6 +109,17 @@ namespace nw4r {
                 mTagProcessor = tagProcessor;
             }
 
+            f32 CalcFormatStringWidth(StreamType format, ...) const;
+            f32 CalcFormatStringHeight(StreamType format, ...) const;
+            void CalcFormatStringRect(Rect* rect, StreamType format, ...) const;
+            void CalcVStringRect(Rect* rect, StreamType format, va_list args) const;
+            f32 CalcStringHeight(StreamType str, int length) const;
+            f32 Printf(StreamType format, ...);
+            f32 VPrintf(StreamType format, va_list args);
+            f32 PrintfMutable(StreamType format, ...);
+            f32 VPrintfMutable(StreamType format, va_list args);
+            f32 PrintMutable(StreamType str, int length);
+            static int VSNPrintf(CharType* buffer, u32 size, StreamType format, va_list args);
             f32 CalcStringWidth(StreamType str, int length) const;
             void CalcStringRect(Rect* pRect, const CharT* pStr, int len) const;
             f32 Print(StreamType str, int length);
@@ -121,6 +134,8 @@ namespace nw4r {
             }
 
             static TagProcessor mDefaultTagProcessor;
+            static CharType* mFormatBuffer;
+            static int mFormatBufferSize;
 
             f32 mWidthLimit;
             f32 mCharSpace;
@@ -129,5 +144,7 @@ namespace nw4r {
             u32 mDrawFlag;
             TagProcessor* mTagProcessor;
         };
+        // Game text adds CustomTagProcessor alpha handling to the wide-character implementation.
+        template <> f32 TextWriterBase<wchar_t>::PrintImpl(StreamType, int, bool);
     };  // namespace ut
 };  // namespace nw4r

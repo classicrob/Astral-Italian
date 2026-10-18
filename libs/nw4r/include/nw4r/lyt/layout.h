@@ -141,6 +141,9 @@ namespace nw4r {
         template < typename T >
         T* Layout::NewArray(u32 num) {
             void* pMem = AllocMemory(sizeof(T) * num);
+            if (pMem == NULL) {
+                return NULL;
+            }
             T* const objAry = static_cast< T* >(pMem);
 
             for (u32 i = 0; i < num; ++i) {

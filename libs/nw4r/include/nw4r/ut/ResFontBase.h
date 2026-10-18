@@ -47,8 +47,8 @@ namespace nw4r {
 
                 void* mResource;
                 FontInformation* mFontInfo;
-                u16 _18;
-                u16 _1A;
+                mutable u16 mLastChar;
+                mutable u16 mLastGlyphIndex;
             };
         };  // namespace detail
 

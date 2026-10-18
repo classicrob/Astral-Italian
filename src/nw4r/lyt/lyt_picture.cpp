@@ -36,18 +36,9 @@ namespace nw4r {
                 mTexCoordAry.Copy(reinterpret_cast< const u8* >(pRes) + sizeof(res::Picture), num);
             }
 
-            void* pMaterialBuf = Layout::AllocMemory(sizeof(Material));
-
-            if (pMaterialBuf != NULL) {
-                const u32* const pMatOffsetTbl = detail::ConvertOffsToPtr< u32 >(rBlockSet.pMaterialList, sizeof(res::MaterialList));
-
-                const res::Material* const pResMaterial =
-                    detail::ConvertOffsToPtr< res::Material >(rBlockSet.pMaterialList, pMatOffsetTbl[pRes->materialIdx]);
-
-                Material* pMaterial = new (pMaterialBuf) Material(pResMaterial, rBlockSet);
-
-                mpMaterial = pMaterial;
-            }
+            const u32* const pMatOffsetTbl = detail::ConvertOffsToPtr<u32>(rBlockSet.pMaterialList, sizeof(res::MaterialList));
+            const res::Material* const pResMaterial = detail::ConvertOffsToPtr<res::Material>(rBlockSet.pMaterialList, pMatOffsetTbl[pRes->materialIdx]);
+            mpMaterial = Layout::NewObj<Material>(pResMaterial, rBlockSet);
         }
 
         void Picture::Init(u8 num) {
@@ -62,8 +53,7 @@ namespace nw4r {
 
         Picture::~Picture() {
             if (mpMaterial != NULL && !mpMaterial->IsUserAllocated()) {
-                mpMaterial->~Material();
-                Layout::FreeMemory(mpMaterial);
+                Layout::DeleteObj(mpMaterial);
                 mpMaterial = NULL;
             }
 

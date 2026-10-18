@@ -18,29 +18,6 @@ namespace nw4r {
             va_end(vlist);
         }
 
-        static bool ShowMapInfoSubroutine_(u32 address, bool preCRFlag) {
-            if (address < 0x80000000 || 0x82ffffff < address) {
-                return false;
-            }
-
-            {
-                enum { STR_LEN = 260 };
-                u8 strBuf[STR_LEN];
-                bool result;
-
-                result = MapFile_QuerySymbol(address, strBuf, STR_LEN);
-                if (result) {
-                    if (preCRFlag) {
-                        Assertion_Printf_("\n");
-                    }
-                    Assertion_Printf_("%s\n", strBuf);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }
-
         static void ShowStack_(u32 sp) {
             Assertion_Printf_("-------------------------------- TRACE\n");
             u32 i;
@@ -54,9 +31,7 @@ namespace nw4r {
                     break;
                 }
                 Assertion_Printf_("%08X:  %08X    %08X ", p, p[0], p[1]);
-                if (!ShowMapInfoSubroutine_(p[1], false)) {
-                    Assertion_Printf_("\n");
-                }
+                Assertion_Printf_("\n");
 
                 p = (u32*)*p;
             }
@@ -73,12 +48,8 @@ namespace nw4r {
             (void)OSDisableInterrupts();
             (void)OSDisableScheduler();
 
-            (void)VISetPreRetraceCallback(NULL);
             (void)VISetPostRetraceCallback(NULL);
-
-            if (sAssertionConsole) {
-                (void)detail::DirectPrint_SetupFB(NULL);
-            }
+            (void)VISetPreRetraceCallback(NULL);
 
             ShowStack_(stackPointer);
 
@@ -88,7 +59,6 @@ namespace nw4r {
 
                 (void)Console_ShowLatestLine(sAssertionConsole);
                 (void)Console_SetVisible(sAssertionConsole, true);
-                Console_DrawDirect(sAssertionConsole);
             } else {
                 OSReport("%s:%d Panic:", file, line);
                 OSVReport(fmt, vlist);

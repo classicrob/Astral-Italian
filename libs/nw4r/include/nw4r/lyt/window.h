@@ -18,6 +18,8 @@ namespace nw4r {
                 Frame() : textureFlip(0), pMaterial(nullptr) {
                 }
 
+                ~Frame();
+
                 u8 textureFlip;
                 Material* pMaterial;
             };
@@ -35,7 +37,9 @@ namespace nw4r {
             virtual void SetVtxColorElement(u32, u8);
             virtual Material* FindMaterialByName(const char*, bool);
             virtual void UnbindAnimationSelf(AnimTransform*);
-            virtual void SetAnimationEnable(AnimTransform*, bool, bool);
+            virtual u8 GetMaterialNum() const;
+            virtual Material* GetMaterial(u32) const;
+            using Pane::GetMaterial;
             virtual Material* GetContentMaterial() const;
             virtual Material* GetFrameMaterial(u32) const;
             virtual void DrawContent(const math::VEC2&, const WindowFrameSize&, u8);
@@ -43,7 +47,7 @@ namespace nw4r {
             virtual void DrawFrame4(const math::VEC2&, const Frame*, const WindowFrameSize&, u8);
             virtual void DrawFrame8(const math::VEC2&, const Frame*, const WindowFrameSize&, u8);
 
-            const WindowFrameSize GetFrameSize(u8 frameNum, const Frame* pFrames);
+            inline const WindowFrameSize GetFrameSize(u8 frameNum, const Frame* pFrames);
 
             InflationLRTB mContentInflation;
             Content mContent;

@@ -133,15 +133,8 @@ typedef struct RFLiCharModel {
     GXTexObj* maskTexObj[RFLExp_Max]; // at 0x6C
 } RFLiCharModel;
 
-extern RFLiCoordinateData coordinateData;
-
-inline void RFLiSetCoordinateData(const RFLiCoordinateData* data) {
-    coordinateData = *data;
-}
-
-inline RFLiCoordinateData* RFLiGetCoordinateData(void) {
-    return &coordinateData;
-}
+void RFLiSetCoordinateData(const RFLiCoordinateData* data);
+RFLiCoordinateData* RFLiGetCoordinateData(void);
 
 u32 RFLiGetExpressionNum(u32 exprFlags);
 void RFLiInitCharModel(RFLCharModel* model, RFLiCharInfo* info, void* work,

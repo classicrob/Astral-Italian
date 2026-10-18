@@ -265,18 +265,29 @@ static void copyChar2Additional_(RFLAdditionalInfo* dst,
     dst->skinColor = RFLiGetFacelineColor(src);
 }
 
+// NONMATCHING: equivalent conditional branches skip redundant jumps in the target.
 RFLErrcode RFLGetAdditionalInfo(RFLAdditionalInfo* addi, RFLDataSource source,
-                                RFLMiddleDB* db, u16 index) {
+                                RFLMiddleDB* db, u16 index, BOOL sanitizeNames) {
     RFLiCharInfo info;
-    RFLErrcode err;
-
-    err = RFLiPickupCharInfo(&info, source, db, index);
+    RFLErrcode err = RFLiPickupCharInfo(&info, source, db, index);
     if (err == RFLErrcode_Success) {
         copyChar2Additional_(addi, &info);
+        if (sanitizeNames) {
+            u32 i;
+            for (i = 0; i < RFL_NAME_LEN; i++) {
+                if (addi->name[i] != 0 && (addi->name[i] < 0x20 || addi->name[i] == 0x7F)) addi->name[i] = '?';
+                if (addi->creator[i] != 0 && (addi->creator[i] < 0x20 || addi->creator[i] == 0x7F)) addi->creator[i] = '?';
+            }
+        }
     }
-
     return err;
 }
+#pragma dont_inline on
+RFLErrcode RFLGetAdditionalInfoWithSanitizedNames(RFLAdditionalInfo* addi, RFLDataSource source,
+                                                RFLMiddleDB* db, u16 index) {
+    return RFLGetAdditionalInfo(addi, source, db, index, TRUE);
+}
+#pragma dont_inline reset
 
 static BOOL RFLiCheckBirthday(u8 month, u8 day) {
     // (One-indexed)

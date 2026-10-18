@@ -411,7 +411,7 @@ namespace nw4r {
             return mpMaterial;
         }
 
-        Material* Pane::GetMaterial(u8 idx) const {
+        Material* Pane::GetMaterial(u32 idx) const {
             if (idx == 0) {
                 return GetMaterial();
             }

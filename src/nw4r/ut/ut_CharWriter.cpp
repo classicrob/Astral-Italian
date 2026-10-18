@@ -131,6 +131,10 @@ namespace nw4r {
             SetScale(width / mFont->GetWidth(), height / mFont->GetHeight());
         }
 
+        void CharWriter::SetFontSize(f32 height) {
+            SetScale(height / mFont->GetHeight());
+        }
+
         f32 CharWriter::GetFontWidth() const {
             return mFont->GetWidth() * mScale.x;
         }

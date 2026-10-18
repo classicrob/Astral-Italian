@@ -114,8 +114,8 @@ void RFLiEndWorkingReason(RFLErrcode err, s32 reason) {
     BOOL enabled;
 
     switch (RFLiGetManager()->lastErrCode) {
-    case RFLErrcode_Busy:
     case RFLErrcode_Success:
+    case RFLErrcode_Busy:
         enabled = OSDisableInterrupts();
 
         RFLiSetWorking(FALSE);

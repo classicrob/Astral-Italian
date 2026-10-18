@@ -40,5 +40,8 @@ namespace MR {
 namespace MR {
     void initActorState(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState, const Nerve* pNerve, const char* pStateName);
     bool updateActorState(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState);
+    bool updateActorState(NerveExecutor* pExecutor);
+    bool isActorStateDead(const NerveExecutor* pExecutor);
+    void endActorState(NerveExecutor* pExecutor);
     bool updateActorStateAndNextNerve(NerveExecutor* pExecutor, ActorStateBaseInterface* pActorState, const Nerve* pNextNerve);
 };  // namespace MR

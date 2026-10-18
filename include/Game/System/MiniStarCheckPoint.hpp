@@ -15,7 +15,7 @@ public:
     virtual void control();
     virtual void calcAndSetBaseMtx();
 
-    s32 mKind;                // 0x90
+    const char* mKind;       // 0x90 (name string, compared by fn_804E5A10)
     s32 mStarNum;             // 0x94
     s32 mUnk98;               // 0x98
     s32 mUnk9C;               // 0x9C

@@ -1,16 +1,13 @@
 #include "Game/System/MiniTicoMaster.hpp"
+#include "Game/System/MiniWorldMapMark.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
 class TalkMessageCtrl;
 
-namespace MR {
-    TalkMessageCtrl* createTalkCtrlDirect(LiveActor*, const char*, const TVec3f&, MtxPtr);
-};  // namespace MR
 
 extern "C" TVec3f* fn_804F2550(s32, s32);
 extern "C" LiveActor* fn_804E83B0(LiveActor*, const char*, const char*, const char*);
-extern "C" LiveActor* fn_804E58D0(LiveActor*, MiniTicoMaster*, const char*);
 extern "C" LiveActor* fn_804EB180(LiveActor*, MiniTicoMaster*, const char*, const char*);
 extern "C" void fn_804E8C40(LiveActor*);
 extern "C" void fn_804E8C50(LiveActor*, f32, f32);
@@ -90,11 +87,7 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     MR::setMessageBalloonFollowOffset(mTalkCtrl, sTalkOffset);
     MR::onRootNodeAutomatic(mTalkCtrl);
 
-    LiveActor* pChild = static_cast<LiveActor*>(operator new(0x98));
-    if (pChild != nullptr) {
-        pChild = fn_804E58D0(pChild, this, "MiniTicoMasterChild");
-    }
-    mChild = pChild;
+    mChild = new MiniWorldMapMark(this, "MiniTicoMasterChild");
 
     initWithoutIter();
     MR::setPosition(mChild, pos);

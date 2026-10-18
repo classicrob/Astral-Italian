@@ -41,4 +41,5 @@ namespace GameDataFunction {
     OSTime getSysConfigFileTimeSent();
     u32 getSysConfigFileSentBytes();
     void setSysConfigFileSentBytes(u32);
+    s32 getCurrentWorldId();
 };  // namespace GameDataFunction

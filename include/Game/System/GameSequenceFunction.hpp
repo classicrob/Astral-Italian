@@ -37,4 +37,6 @@ namespace GameSequenceFunction {
     void requestPrepareResetNWC24();
     bool isEnableToResetNWC24();
     void resetNWC24();
+    bool hasStageResultSequence();
+    bool isGalaxyCometLand(const char*);
 };  // namespace GameSequenceFunction

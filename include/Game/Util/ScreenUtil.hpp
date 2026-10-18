@@ -35,10 +35,15 @@ namespace MR {
     void closeWipeFade(s32 frame = -1);
     void forceOpenWipeFade();
     void forceCloseWipeFade();
+    void closeSystemWipeMario(s32 frame = -1);
+    void openSystemWipeMario(s32 frame = -1);
+    void forceOpenSystemWipeMario();
     void closeWipeWhiteFade(s32 frame = -1);
     void forceOpenWipeWhiteFade();
     void forceCloseWipeWhiteFade();
     bool isWipeActive();
+    bool isWipeBlank();
+    bool isWipeOpen();
     bool isWipeBlank();
     bool isWipeOpen();
     void closeSystemWipeCircle(s32 frame = -1);
@@ -98,6 +103,7 @@ namespace MR {
     void appearInformationMessage(const char*, bool);
     void appearInformationMessageCenter(const char*, bool);
     void appearInformationMessageUp(const char*, bool);
+    void appearInformationMessageDown(const char*, bool);
     void setInformationMessageReplaceString(const wchar_t*, s32);
     void disappearInformationMessage();
     void disableCloseInformationMessage();

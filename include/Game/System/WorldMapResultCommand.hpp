@@ -17,13 +17,13 @@ public:
     virtual void init(const JMapInfoIter&);
 
     void startResult(s32 worldId);
-    bool isResultActive() const;
-    s32 getResultWorldId() const;
+    bool isResultActive() const NO_INLINE;
+    s32 getResultWorldId() const NO_INLINE;
     void endResult();
     void setCameraEye(const TVec3f&);
     void setCameraTarget(const TVec3f&);
-    const TVec3f& getCameraEye() const;
-    const TVec3f& getCameraTarget() const;
+    const TVec3f& getCameraEye() const NO_INLINE;
+    const TVec3f& getCameraTarget() const NO_INLINE;
     void movementDraw();
     void calcAnimDraw();
     void calcViewAndEntryDraw();

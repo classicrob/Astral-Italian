@@ -5,6 +5,8 @@
 
 class PartsModel;
 
+class ModelObj;
+
 class AssemblyBlock : public LiveActor {
 public:
     /// @brief Creates a new `AssemblyBlock`.
@@ -30,6 +32,6 @@ public:
     /* 0x124 */ TVec3f _124;
     /* 0x130 */ f32 mFloatRotateSpeed;
     /* 0x134 */ s32 mTimer;
-    /* 0x138 */ PartsModel* mBloomModel;
+    /* 0x138 */ ModelObj* mBloomModel;
     /* 0x13C */ bool _13C;
 };

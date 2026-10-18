@@ -43,6 +43,7 @@ public:
     /* 0x20 */ f32 _20;
     /* 0x24 */ f32 mRotateAngle;
     /* 0x28 */ f32 mRotateSpeed;
+    /* 0x3C */ f32 _3C;  // SMG2 (field comments below are Petari offsets; SMG2 = +0x14 or +0x18)
     /* 0x2C */ s32 mRotateAccelType;
     /* 0x30 */ TVec3f _30;
     /* 0x3C */ TVec3f mUpDirection;

@@ -4,6 +4,7 @@
 
 class ActorCameraInfo;
 class BombTimerLayout;
+class LiveActorGroup;
 class MsgSharedGroup;
 class TakeOutStar;
 
@@ -18,6 +19,7 @@ public:
     virtual void kill();
     virtual void control();
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
 
@@ -45,14 +47,19 @@ public:
     void exePstWait();
     void exePstTalk();
     void exeAppearedStar();
+    void exeTimeUp();
+
+    void hide();
+    void show();
 
 private:
     /* 0x15C */ TakeOutStar* mTakeOutStar;
     /* 0x160 */ ActorCameraInfo* mCameraInfo;
     /* 0x164 */ BombTimerLayout* mBombTimerLayout;
-    /* 0x168 */ MsgSharedGroup* _168;
+    /* 0x168 */ LiveActorGroup* _168;
     /* 0x16C */ s32 mObjArg0;
     /* 0x170 */ s32 mObjArg4;
     /* 0x174 */ s32 mBodyColorFrame;
     /* 0x178 */ s32 mTidyTimeLimit;
+    /* 0x17C */ s32 _17C;
 };

@@ -42,7 +42,7 @@ namespace NrvLavaProminence {
 };  // namespace NrvLavaProminence
 
 LavaProminence::LavaProminence(const char* pName)
-    : LiveActor(pName), mWaitTime(::sDefaultTimeWait), mMoveSpeed(::sDefaultMoveSpeed), mMoveRailCoord(), mMoveRailEndOffset(),
+    : LiveActor(pName), _90(0), mWaitTime(::sDefaultTimeWait), mMoveSpeed(::sDefaultMoveSpeed), mMoveRailCoord(), mMoveRailEndOffset(),
       mRailStartDir(0, 0, 0), mRailEndDir(0, 0, 0), mRailStartPos(0.0f), mRailEndPos(0.0f), _12C(0, 0, 0), mBloomModel(),
       _16C(0.0f, 0.0f, 0.0f, 1.0f), mRailDir(0, 0, 1), mEmitDropEffect(true) {
     mEffectStartMtx.identity();

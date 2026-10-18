@@ -3,6 +3,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class LodCtrl;
+class TalkMessageCtrl;
 
 class TicoRail : public LiveActor {
 public:
@@ -16,6 +17,7 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void exeWait();
     void exeLookAround();
@@ -32,4 +34,6 @@ public:
     /* 0x8C */ TVec3f _8C;
     /* 0x98 */ LiveActor* _98;
     /* 0x9C */ LodCtrl* mLodCtrl;
+    /* 0xA4 */ TalkMessageCtrl* mMsgCtrl;
+    /* 0xA8 */ bool mIsTalkForceAtEnd;
 };

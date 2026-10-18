@@ -3,14 +3,20 @@
 #include "Game/LiveActor/PartsModel.hpp"
 
 class LodCtrl;
+class NameObjArchiveListCollector;
+
+#define ITEM_TYPE_COIN 0
+#define ITEM_TYPE_KINOPIO 1
+#define ITEM_TYPE_STARPIECE 4
+#define ITEM_TYPE_POWER_STAR 7
+#define ITEM_TYPE_GRAND_STAR 13
 
 struct DummyDisplayModelInfo {
-    const char* mModelName;  // _0
-    const char* mInitName;   // _4
-    Vec mOffset;             // _8
-    s32 _14;
-    const char* mAnimName;  // _18
-    bool mHasColorChange;   // _1C
+    /* 0x00 */ const char* mName;
+    /* 0x04 */ Vec _4;
+    /* 0x10 */ u32 _10;
+    /* 0x14 */ const char* mAnim;
+    /* 0x18 */ bool mHasColorChange;
 };
 
 class DummyDisplayModel : public PartsModel {
@@ -24,11 +30,11 @@ public:
     virtual void control();
     virtual void calcAndSetBaseMtx();
 
-    DummyDisplayModelInfo* mModelInfo;  // _A0
-    s32 mModelId;                       // _A4
-    s32 mColorFrame;                    // _A8
-    LodCtrl* mLodCtrl;                  // _AC
-    bool mIsCrystalItem;                // _B0
+    /* 0xA0 */ const DummyDisplayModelInfo* mModelInfo;
+    /* 0xA4 */ s32 mItemType;
+    /* 0xA8 */ s32 _A4;
+    /* 0xAC */ LodCtrl* _A8;
+    /* 0xB0 */ bool _AC;
 };
 
 namespace MR {

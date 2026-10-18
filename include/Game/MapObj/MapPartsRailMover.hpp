@@ -53,15 +53,21 @@ public:
     void setSignMotionTypeShake();
     bool isStarting() const;
 
-    /* 0x18 */ MapPartsRailPointPassChecker* mRailPointPassChecker;
-    /* 0x1C */ s32 mMoveConditionType;
-    /* 0x20 */ s32 mMoveStopType;
-    /* 0x24 */ s32 mSignMotionType;
-    /* 0x28 */ TVec3f _28;
-    /* 0x34 */ f32 _34;
-    /* 0x38 */ s32 mStopTime;
-    /* 0x3C */ f32 mSpeed;
-    /* 0x40 */ s32 mAccelTime;
-    /* 0x44 */ f32 mAcceleration;
-    /* 0x48 */ f32 _48;
+    /* 0x28 */ MapPartsRailPointPassChecker* mRailPointPassChecker;
+    /* 0x2C */ s32 mMoveConditionType;
+    /* 0x30 */ s32 mMoveStopType;
+    /* 0x34 */ s32 mSignMotionType;
+    /* 0x38 */ TVec3f _28;  // Petari _28 (current position)
+    /* 0x44 */ TVec3f _44;  // SMG2
+    /* 0x50 */ f32 _34;
+    /* 0x54 */ s32 mStopTime;
+    /* 0x58 */ f32 mSpeed;
+    /* 0x5C */ s32 mAccelTime;
+    /* 0x60 */ f32 mAcceleration;
+    /* 0x64 */ f32 _48;
+    /* 0x68 */ s32 _68;  // SMG2
+    /* 0x6C */ s32 _6C;  // SMG2
+    /* 0x70 */ bool _70;  // SMG2
+    /* 0x74 */ s32 _74;  // SMG2, init -1
+    /* 0x78 */ bool _78;  // SMG2
 };

@@ -36,6 +36,7 @@ public:
 
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
+    virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
@@ -64,7 +65,7 @@ public:
 
     virtual void init(const JMapInfoIter& rIter) {
         initEffectKeeper(8, "koura", false);
-        initSound(8, false);
+        initSound(8, "Penguin", nullptr, TVec3f(0.0f));
         MR::invalidateClipping(this);
         makeActorAppeared();
     }

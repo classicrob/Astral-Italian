@@ -26,21 +26,24 @@ public:
     virtual bool isKilledAtMoveDone() const {
         return false;
     }
+    virtual bool isInvalidateCollision() const;
     virtual bool isRepeat() const {
         return false;
     }
-    virtual void startInner() {
+    virtual void onStartMove() {
     }
-    virtual void moveInner() {
+    virtual void onLoopMove() {
     }
-    virtual void stopInner() {
+    virtual void onStopMove() {
+    }
+    virtual void onDone() {
     }
 
     void exeWait();
     void exeMove();
     void exeDone();
 
-    /* 0xC4 */ TVec3f mJointPos;
+    /* 0xC8 */ TVec3f mJointPos;
 };
 
 class AnmModelSwitchMove : public AnmModelObj {
@@ -53,6 +56,15 @@ public:
     virtual bool isOnStartAnmTrigger() const;
 };
 
+class AnmModelSwitchMoveValidateCollision : public AnmModelSwitchMove {
+public:
+    AnmModelSwitchMoveValidateCollision(const char* pName) : AnmModelSwitchMove(pName) {
+    }
+
+    virtual void init(const JMapInfoIter&);
+    virtual void onStopMove();
+};
+
 class AnmModelSwitchMoveEndKill : public AnmModelSwitchMove {
 public:
     /// @brief Creates a new `AnmModelSwitchMoveEndKill`.
@@ -60,51 +72,36 @@ public:
     AnmModelSwitchMoveEndKill(const char* pName) : AnmModelSwitchMove(pName) {
     }
 
+    virtual void kill();
     virtual bool isKilledAtMoveDone() const;
 };
 
-class AnmModelGroundOnMove : public AnmModelObj {
+class AnmModelSwitchMoveEndKillAnyAnim : public AnmModelSwitchMoveEndKill {
 public:
-    /// @brief Creates a new `AnmModelGroundOnMove`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    AnmModelGroundOnMove(const char* pName);
-
-    virtual void init(const JMapInfoIter&);
-    virtual void control();
-    virtual bool isOnStartAnmTrigger() const;
-    virtual bool isKilledAtMoveDone() const {
-        return true;
+    AnmModelSwitchMoveEndKillAnyAnim(const char* pName) : AnmModelSwitchMoveEndKill(pName) {
     }
-};
-
-class AnmModelBindMove : public AnmModelObj {
-public:
-    /// @brief Creates a new `AnmModelBindMove`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    AnmModelBindMove(const char* pName);
-
-    virtual void init(const JMapInfoIter&);
-    virtual void control();
-    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
-    virtual bool isOnStartAnmTrigger() const;
-    virtual bool isKilledAtMoveDone() const {
-        return false;
-    }
-    virtual bool isRepeat() const {
-        return true;
-    }
-};
-
-class AnmModelSwitchMoveEventCamera : public AnmModelSwitchMove {
-public:
-    /// @brief Creates a new `AnmModelSwitchMoveEventCamera`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    AnmModelSwitchMoveEventCamera(const char* pName);
 
     virtual void init(const JMapInfoIter&);
     virtual bool isDone() const;
-    virtual void startInner();
-    virtual void stopInner();
+};
 
-    /* 0xD0 */ ActorCameraInfo* mCameraInfo;
+class AnmModelSwitchSwapVisibility : public AnmModelObj {
+public:
+    AnmModelSwitchSwapVisibility(const char* pName);
+
+    virtual void init(const JMapInfoIter&);
+    virtual bool isOnStartAnmTrigger() const;
+    virtual bool isDone() const;
+};
+
+class AnmModelSwitchSyncBrk : public AnmModelObj {
+public:
+    AnmModelSwitchSyncBrk(const char* pName);
+
+    virtual void init(const JMapInfoIter&);
+    virtual bool isOnStartAnmTrigger() const;
+    virtual bool isDone() const;
+    virtual void onLoopMove();
+    virtual void onDone();
+    void checkForReverse();
 };

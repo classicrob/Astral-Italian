@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "JSystem/JGeometry.hpp"
 
 class BallRailPoint {
 public:
@@ -25,13 +26,15 @@ public:
     void exeWait();
     void exeSetUp();
     void exeRun();
+    bool trySetNerveRun();
     inline void exeNoBind();
 
-    /* 0x8C */ BallRailPoint* mRailPoints;
-    /* 0x90 */ HitSensor* _90;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ s32 mNumPoints;
-    /* 0xA4 */ f32 mAcceleration;
-    /* 0xA8 */ f32 mDeceleration;
-    /* 0xAC */ f32 _AC;
+    /* 0x90 */ BallRailPoint* mRailPoints;
+    /* 0x94 */ HitSensor* _90;
+    /* 0x98 */ TPos3f mBaseMtx;
+    /* 0xC8 */ TVec3f _C8;
+    /* 0xD4 */ s32 mNumPoints;
+    /* 0xD8 */ f32 mAcceleration;
+    /* 0xDC */ f32 mDeceleration;
+    /* 0xE0 */ f32 _AC;
 };

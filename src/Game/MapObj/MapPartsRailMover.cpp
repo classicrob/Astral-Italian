@@ -21,13 +21,18 @@ namespace NrvMapPartsRailMover {
 };  // namespace NrvMapPartsRailMover
 
 MapPartsRailMover::MapPartsRailMover(LiveActor* pActor)
-    : MapPartsFunction(pActor, "レイル移動"), mRailPointPassChecker(), mMoveConditionType(), mMoveStopType(1), mSignMotionType(), _28(gZeroVec) {
+    : MapPartsFunction(pActor, "レイル移動"), mRailPointPassChecker(), mMoveConditionType(), mMoveStopType(1), mSignMotionType(), _28(gZeroVec), _44(gZeroVec) {
     _34 = 0.0f;
     mStopTime = 0;
     mSpeed = 0.0f;
     mAccelTime = 0;
     mAcceleration = 0.0f;
     _48 = 0.0f;
+    _68 = 0;
+    _6C = 0;
+    _70 = false;
+    _74 = -1;
+    _78 = false;
 }
 
 void MapPartsRailMover::init(const JMapInfoIter& rIter) {

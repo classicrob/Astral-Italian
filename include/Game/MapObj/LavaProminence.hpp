@@ -35,7 +35,8 @@ public:
 
     bool isNrvMove();
 
-    /* 0x08C */ s32 mWaitTime;
+    /* 0x090 */ u32 _90;  // SMG2
+    /* 0x094 */ s32 mWaitTime;
     /* 0x090 */ f32 mMoveSpeed;
     /* 0x094 */ f32 mMoveRailCoord;
     /* 0x098 */ f32 mMoveRailEndOffset;

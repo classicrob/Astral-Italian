@@ -28,6 +28,7 @@ public:
     void setNerveMeta();
     void setNerveWait();
     bool killFunc(u32);
+    bool isReactionNerve() const;
 
     void exeReaction();
     void exeDelight();

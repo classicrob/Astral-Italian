@@ -34,7 +34,7 @@ void SpringStep::setSpringBaseValue(f32 val) {
 }
 
 MapPartsFloatingForce::MapPartsFloatingForce(LiveActor* pActor)
-    : MapPartsFunction(pActor, "浮力"), mSpringStep(), mObjectName(), _20(), mRotateAngle(), mRotateSpeed(), mRotateAccelType(), _30(gZeroVec),
+    : MapPartsFunction(pActor, "浮力"), mSpringStep(), mObjectName(), _20(), mRotateAngle(), mRotateSpeed(), _3C(10.0f), mRotateAccelType(), _30(gZeroVec),
       mUpDirection(0.0f, 1.0f, 0.0f), _48(), _4C() {
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JSystem/JGeometry/TVec.hpp>
+#include "Game/Screen/StarPointerInput.hpp"
 
 class DpdInfo {
 public:
@@ -13,11 +13,13 @@ public:
     /* 0x10 */ f32 mViewDistZ;
 };
 
-class StarPointerController {
+// Reconstructed empty base: its original name is unknown; the inheritance shape is verified against the target ABI.
+class StarPointerControllerBase {};
+
+class StarPointerController : public StarPointerControllerBase, public StarPointerInput {
 public:
     StarPointerController();
 
-    bool isOutScreenLong() const;
     void initAndSetPort(s32);
     void movement(const f32*, const f32*);
     void storeDataFromCallback(const f32*, const f32*);
@@ -26,45 +28,39 @@ public:
     void updateDpdInfo();
     void updateAdditionalInfo();
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
     void forcePointerOut();
-#endif
 
     f32 calcViewDistanceZ(const TVec3f&, MtxPtr);
 
-    void drawDebug3D() const;
+    virtual const TVec2f& getScreenPosition() const { return mPastInfo.mPos; }
+    virtual const TVec2f& getScreenVelocity() const { return mScreenVel; }
+    virtual const TVec3f& getWorldVelocity() const { return mWorldVel; }
+    virtual f32 getScreenSpeed() const { return mScreenSpeed; }
+    virtual f32 getViewDistanceZ() const { return mPastInfo.mViewDistZ; }
+    virtual s32 getPastPointCount() const { return mPastPointNum; }
+    virtual s32 getNextPastPointCount() const { return mNextPastPointNum; }
+    virtual const TVec2f& getPastPosition(s32 index) const { return mPastPosition[index]; }
+    virtual const TVec2f& getNextPastPosition(s32 index) const { return mNextPastPosition[index]; }
+    virtual const TVec3f& getWorldPosition() const { return mWorldPos; }
+    virtual bool isInScreen() const { return mPastInfo.mInScreen; }
+    virtual bool isOutScreenLong() const;
 
-    #if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
-    bool isInScreen() const {
-        return mPastInfo.mInScreen;
-    }
-    #else
-    bool isInScreen() const {
-        return !isOutScreenLong();
-    }
-    #endif
+    f32 getViewDistZ() const { return mPastInfo.mViewDistZ; }
+    const TVec2f& getPastPos() const { return mPastInfo.mPos; }
 
-    f32 getViewDistZ() const {
-        return mPastInfo.mViewDistZ;
-    }
-
-    const TVec2f& getPastPos() const {
-        return mPastInfo.mPos;
-    }
-
-    /* 0x00 */ s32 mPadChannel;
-    /* 0x04 */ DpdInfo mPastInfo;
-    /* 0x18 */ DpdInfo mInfo;
-    /* 0x2C */ TVec2f mScreenPos;
-    /* 0x34 */ s32 mOutScreenTime;
-    /* 0x38 */ TVec2f* mPastPosition;
-    /* 0x3C */ s32 mPastPointNum;
-    /* 0x40 */ TVec2f* mNextPastPosition;
-    /* 0x44 */ s32 mNextPastPointNum;
-    /* 0x48 */ f32 mScreenDist;
-    /* 0x4C */ f32 mScreenSpeed;
-    /* 0x50 */ TVec2f mScreenVel;
-    /* 0x58 */ TVec3f mWorldVel;
-    /* 0x64 */ TVec3f mWorldPos;
-    /* 0x70 */ bool mNotInScreen;
+    /* 0x08 */ s32 mPadChannel;
+    /* 0x0C */ DpdInfo mPastInfo;
+    /* 0x20 */ DpdInfo mInfo;
+    /* 0x34 */ TVec2f mScreenPos;
+    /* 0x3C */ s32 mOutScreenTime;
+    /* 0x40 */ TVec2f* mPastPosition;
+    /* 0x44 */ s32 mPastPointNum;
+    /* 0x48 */ TVec2f* mNextPastPosition;
+    /* 0x4C */ s32 mNextPastPointNum;
+    /* 0x50 */ f32 mScreenDist;
+    /* 0x54 */ f32 mScreenSpeed;
+    /* 0x58 */ TVec2f mScreenVel;
+    /* 0x60 */ TVec3f mWorldVel;
+    /* 0x6C */ TVec3f mWorldPos;
+    /* 0x78 */ bool mNotInScreen;
 };

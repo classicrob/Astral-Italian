@@ -89,7 +89,7 @@ bool TalkMessageCtrl::createMessage(const JMapInfoIter& rIter, const char* pName
         return false;
     }
 
-    if (mNodeCtrl->mFlowNode != nullptr) {
+    if (mNodeCtrl->mCurrentNode != nullptr) {
         _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
     } else {
         _3C = 1;
@@ -106,7 +106,7 @@ bool TalkMessageCtrl::createMessageDirect(const JMapInfoIter& rIter, const char*
         return false;
     }
 
-    if (MR::isValidInfo(rIter) && mNodeCtrl->mFlowNode != nullptr) {
+    if (MR::isValidInfo(rIter) && mNodeCtrl->mCurrentNode != nullptr) {
         _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
     } else {
         _3C = 1;

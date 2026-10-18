@@ -16,6 +16,22 @@
 #include "Game/Util/StringUtil.hpp"
 #include <cstdio>
 
+void MR::initTalkStageSwitch(LiveActor* actor, const JMapInfoIter& iter, s32 type, bool switchA) NO_INLINE {
+    if (switchA) {
+        if (type == 0) {
+            MR::needStageSwitchReadA(actor, iter);
+        } else if (type == 1) {
+            MR::needStageSwitchWriteA(actor, iter);
+        }
+    } else {
+        if (type == 0) {
+            MR::needStageSwitchReadB(actor, iter);
+        } else if (type == 1) {
+            MR::needStageSwitchWriteB(actor, iter);
+        }
+    }
+}
+
 void TalkMessageHistory::entry(u16 msgID) {
     mHistory[mCount++] = msgID;
 }

@@ -26,4 +26,5 @@ namespace MR {
     void captureScreenAlpha(s32);
     void loadScreenAlphaTexture(s32, GXTexMapID);
     JUTTexture* getScreenAlphaTexture(s32);
+    bool isExistScreenAlphaTexture(s32);
 };  // namespace MR

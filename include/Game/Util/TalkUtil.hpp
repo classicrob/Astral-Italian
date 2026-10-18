@@ -118,6 +118,7 @@ namespace MR {
     void forwardNodeCurrentBranchLeft(TalkMessageCtrl*);
     void forwardNodeCurrentBranchRight(TalkMessageCtrl*);
     bool tryForwardNode(TalkMessageCtrl*);
+    bool tryForwardNodeForMessageArea(TalkMessageCtrl*);
     bool isExistNextNode(const TalkMessageCtrl*);
     bool isShortTalk(const TalkMessageCtrl*);
     void setDistanceToTalk(TalkMessageCtrl*, f32);
@@ -133,3 +134,5 @@ namespace MR {
         MR::setMessageArg(pCtrl, MR::getGalaxyNameOnCurrentLanguage(pName));
     }
 };  // namespace MR
+
+namespace MR { bool tryTalkForceMarioPuppetable(TalkMessageCtrl*); }

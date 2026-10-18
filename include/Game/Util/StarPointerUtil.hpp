@@ -53,15 +53,15 @@ namespace MR {
     MtxPtr getStarPointerViewMtx();
     Mtx44Ptr getStarPointerProjMtx();
     f32 getStarPointerRadius(s32);
-    TVec2f* getStarPointerScreenPosition(s32);
+    const TVec2f* getStarPointerScreenPosition(s32);
     TVec2f getStarPointerScreenPositionOrEdge(s32);
     f32 getStarPointerScreenSpeed(s32);
     bool isStarPointerInScreen(s32);
     bool isStarPointerInScreenAnyPort(s32*);
     s32* getStarPointerLastPointedPort(const LiveActor*);
-    TVec2f* getStarPointerScreenVelocity(s32);
+    const TVec2f* getStarPointerScreenVelocity(s32);
     void getStarPointerWorldVelocityDirection(TVec3f*, s32);
-    TVec3f* getStarPointerWorldPosUsingDepth(s32);
+    const TVec3f* getStarPointerWorldPosUsingDepth(s32);
     void calcStarPointerWorldPointingPos(TVec3f*, const TVec3f&, s32);
     void calcStarPointerWorldPointingPosInsideEdge(TVec3f*, const TVec3f&, s32);
     bool calcStarPointerPosOnPlane(TVec3f*, const TVec3f&, const TVec3f&, s32, bool);
@@ -133,8 +133,8 @@ namespace StarPointerUtil {
     TVec2f* getDefaultButtonOffsetVec2();
     void setConnectionMovePositionRight(const char*, const char*);
     void refreshMovePositionsFromLayout(LayoutActor*);
-    bool beginMovePositionRegistration(LayoutActor*, bool);
-    void endMovePositionRegistration(LayoutActor*);
+    bool beginMovePositionRegistration(const void*, bool);
+    void endMovePositionRegistration(const void*);
     void addStarPointerMovePositionFromPane(LayoutActor*, const char*, TVec2f*);
     void setConnectionMovePositionRight2Way(const char*, const char*);
     void setFirstMovePosition(const char*);
@@ -150,4 +150,9 @@ namespace MR { const TVec3f& getStarPointerTargetOffset(const LiveActor*); }
 namespace MR {
     bool isValidStarPointerTarget(const LiveActor*);
     MtxPtr getStarPointerTargetMtx(const LiveActor*);
+}
+
+namespace StarPointerUtil {
+    void enableMovePositionInput();
+    void disableMovePositionInput();
 }

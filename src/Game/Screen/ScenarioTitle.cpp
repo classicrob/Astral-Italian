@@ -2,32 +2,34 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/LayoutUtil.hpp"
+#include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/MessageUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-namespace {
-    NEW_NERVE(ScenarioTitleAppear, ScenarioTitle, Appear);
-    NEW_NERVE(ScenarioTitleWait, ScenarioTitle, Wait);
-    NEW_NERVE(ScenarioTitleEnd, ScenarioTitle, End);
-};  // namespace
+namespace NrvScenarioTitle {
+    NEW_NERVE(ScenarioTitleNrvAppear, ScenarioTitle, Appear);
+    NEW_NERVE(ScenarioTitleNrvWait, ScenarioTitle, Wait);
+    NEW_NERVE(ScenarioTitleNrvEnd, ScenarioTitle, End);
+}
 
 ScenarioTitle::ScenarioTitle() : LayoutActor("シナリオ名表示", true) {
 }
 
 void ScenarioTitle::init(const JMapInfoIter& rInfo) {
-    initNerve(GET_NERVE_ANON(ScenarioTitleAppear));
+    initNerve(GET_NERVE_DIRECT(NrvScenarioTitle, ScenarioTitleNrvAppear));
     MR::connectToSceneLayout(this);
     initLayoutManager("StageTitle", 1);
+    MR::registerDemoSimpleCastAll(this);
     kill();
 }
 
 void ScenarioTitle::start() {
     appear();
-    setNerve(GET_NERVE_ANON(ScenarioTitleAppear));
+    setNerve(GET_NERVE_DIRECT(NrvScenarioTitle, ScenarioTitleNrvAppear));
 }
 
 void ScenarioTitle::end() {
-    setNerve(GET_NERVE_ANON(ScenarioTitleEnd));
+    setNerve(GET_NERVE_DIRECT(NrvScenarioTitle, ScenarioTitleNrvEnd));
 }
 
 void ScenarioTitle::exeAppear() {
@@ -37,7 +39,7 @@ void ScenarioTitle::exeAppear() {
         MR::startAnim(this, "Appear", 0);
     }
 
-    MR::setNerveAtAnimStopped(this, GET_NERVE_ANON(ScenarioTitleWait), 0);
+    MR::setNerveAtAnimStopped(this, GET_NERVE_DIRECT(NrvScenarioTitle, ScenarioTitleNrvWait), 0);
 }
 
 void ScenarioTitle::exeWait() {

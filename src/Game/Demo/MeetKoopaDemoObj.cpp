@@ -1,3 +1,5 @@
+#include "Game/Util/BgmUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Demo/MeetKoopaDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -11,7 +13,6 @@ extern "C" s32 lbl_807D1DF4[1];
 extern "C" s32 lbl_807D1DF8[1];
 
 // Target-side unnamed helpers.
-extern "C" void fn_8001AF50(s32, s32);
 extern "C" LiveActor* __ct__19KoopaAssaultFallObjFPCc(LiveActor*, const char*);
 extern "C" void tryTalkTimeKeepDemoForceWithoutDemo__2MRFP15TalkMessageCtrl(TalkMessageCtrl*);
 
@@ -200,5 +201,5 @@ void MeetKoopaDemoObj::exeDemo() {
         copyMtx34(mMtx, MR::getJointMtx(mPeach, "All_Root"));
         tryTalkTimeKeepDemoForceWithoutDemo__2MRFP15TalkMessageCtrl(mTalkCtrl);
     }
-    fn_8001AF50(0, 0);
+    MR::requestStageBGMVolumeDown(0, 0);
 }

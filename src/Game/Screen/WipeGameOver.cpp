@@ -2,6 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/LayoutUtil.hpp"
+#include "Game/Util/EventUtil.hpp"
 
 namespace NrvWipeGameOver {
     NEW_NERVE(WipeGameOverWait, WipeGameOver, Wait);
@@ -13,7 +14,7 @@ WipeGameOver::WipeGameOver() : WipeLayoutBase("ゲームオーバー") {
 
 void WipeGameOver::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(WipeGameOver, WipeGameOverWait));
-    initLayoutManager("GameOver", 1);
+    initLayoutManager("GameOver", 2);
 }
 
 void WipeGameOver::kill() {
@@ -27,16 +28,19 @@ void WipeGameOver::wipe(s32 frame) {
     }
 
     appear();
+    setColor();
     MR::hideLayout(this);
     setNerve(GET_NERVE(WipeGameOver, WipeGameOverActive));
 }
 
 void WipeGameOver::forceClose() {
     wipe(-1);
+    setColor();
 }
 
 void WipeGameOver::forceOpen() {
     MR::hideLayout(this);
+    setColor();
     kill();
 }
 
@@ -63,5 +67,14 @@ void WipeGameOver::exeActive() {
     if (MR::isFirstStep(this)) {
         MR::showLayout(this);
         MR::startAnim(this, "GameOver", 0);
+    }
+}
+
+void WipeGameOver::setColor() {
+    MR::startAnim(this, "Color", 1);
+    if (MR::isPowerStarGreenInCurrentStage()) {
+        MR::setAnimFrameAndStop(this, 1.0f, 1);
+    } else {
+        MR::setAnimFrameAndStop(this, 0.0f, 1);
     }
 }

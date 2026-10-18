@@ -218,7 +218,7 @@ bool StarPieceCounter::isValidAppearSituation() const {
     } else {
         result = false;
 
-        if (MR::isStarPointerInScreen(0) && (!MR::isPlayerElementModeYoshi() || MR::isStarPointerInScreen(1))) {
+        if ((MR::isStarPointerInScreen(0) && !MR::isPlayerElementModeYoshi()) || MR::isStarPointerInScreen(1)) {
             result = true;
         }
     }

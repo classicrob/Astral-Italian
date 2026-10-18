@@ -66,6 +66,7 @@ namespace MR {
     s32 convertPathToEntrynumConsideringLanguage(const char* pFilePath);
     void loadAsyncToMainRAM(const char* pFilePath, u8* pDst, JKRHeap* pHeap, JKRDvdRipper::EAllocDirection allocDir);
     JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap);
+    JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap, bool);
     void mountAsyncArchive(const char* pFilePath, JKRHeap* pHeap);
     void mountAsyncArchiveByObjectOrLayoutName(const char* pFilePrefix, JKRHeap* pHeap);
     void removeFileConsideringLanguage(const char* pFilePath);

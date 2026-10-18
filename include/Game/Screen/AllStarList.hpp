@@ -2,6 +2,9 @@
 
 #include "Game/Screen/LayoutActor.hpp"
 
+class ButtonPaneController;
+class BackButton;
+
 class AllStarList : public LayoutActor {
 public:
     AllStarList(const char*, bool);
@@ -11,11 +14,22 @@ public:
     virtual void control();
 
     void requestMovementOn();
+    void exeAppear();
+    void exeWait();
+    void exeSelected();
+    void exePreviousPage();
+    void exePreviousPageOver();
+    void exeNextPage();
+    void exeNextPageOver();
+    void exeDisappear();
+    void updatePageButtons(s32) NO_INLINE;
+    void updateContents(s32) NO_INLINE;
+    void startWaiting() NO_INLINE;
 
-    void* _2C;
-    void* _30;
-    void* _34;
-    s32 _38;
+    ButtonPaneController* mRightButton;
+    ButtonPaneController* mLeftButton;
+    BackButton* mBackButton;
+    s32 mWorldId;
     s32 mResult;
-    bool _40;
+    bool mOnPause;
 };

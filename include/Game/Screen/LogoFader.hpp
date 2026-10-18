@@ -23,3 +23,32 @@ public:
     /* 0x24 */ u32 mMaxStep;
     /* 0x28 */ f32 mRate;
 };
+
+#include "Game/LiveActor/Nerve.hpp"
+
+namespace NrvLogoFader {
+    class LogoFaderNrvBlank : public Nerve {
+    public:
+        LogoFaderNrvBlank();
+        virtual void execute(Spine*) const;
+        static LogoFaderNrvBlank sInstance;
+    };
+    class LogoFaderNrvDisplay : public Nerve {
+    public:
+        LogoFaderNrvDisplay();
+        virtual void execute(Spine*) const;
+        static LogoFaderNrvDisplay sInstance;
+    };
+    class LogoFaderNrvFadeIn : public Nerve {
+    public:
+        LogoFaderNrvFadeIn();
+        virtual void execute(Spine*) const;
+        static LogoFaderNrvFadeIn sInstance;
+    };
+    class LogoFaderNrvFadeOut : public Nerve {
+    public:
+        LogoFaderNrvFadeOut();
+        virtual void execute(Spine*) const;
+        static LogoFaderNrvFadeOut sInstance;
+    };
+}

@@ -24,6 +24,7 @@ public:
     void startWaitAnimAllLayout();
     void setAnimFrameAndStopAllLayout(f32);
     void hideAllLayout();
+    void showCurrentLayout();
     bool isInVolumePlayer(const char*, bool) const;
 
     /* 0x20 */ SimpleLayout* mSpinLayout;
@@ -39,4 +40,6 @@ public:
 
 namespace MR {
     PlayerActionGuidance* getPlayerActionGuidance();
+    void hidePlayerActionGuidance();
+    void showPlayerActionGuidance();
 };  // namespace MR

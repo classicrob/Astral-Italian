@@ -11,11 +11,11 @@ namespace {
     static const s32 DISPLAY_MIN_SECOND = 2;
 };  // namespace
 
-namespace {
-    NEW_NERVE(EncouragePal60WindowAppear, EncouragePal60Window, Appear);
-    NEW_NERVE(EncouragePal60WindowDisplay, EncouragePal60Window, Display);
-    NEW_NERVE(EncouragePal60WindowDisappear, EncouragePal60Window, Disappear);
-};  // namespace
+namespace NrvEncouragePal60Window {
+    NEW_NERVE(EncouragePal60WindowNrvAppear, EncouragePal60Window, Appear);
+    NEW_NERVE(EncouragePal60WindowNrvDisplay, EncouragePal60Window, Display);
+    NEW_NERVE(EncouragePal60WindowNrvDisappear, EncouragePal60Window, Disappear);
+}
 
 EncouragePal60Window::EncouragePal60Window() : LayoutActor("PAL60推奨画面", true) {
 }
@@ -26,22 +26,23 @@ void EncouragePal60Window::init(const JMapInfoIter& rIter) {
 
     mAButtonIcon = MR::createAndSetupIconAButton(this, true, false);
 
-    initNerve(GET_NERVE_ANON(EncouragePal60WindowAppear));
+    initNerve(GET_NERVE_DIRECT(NrvEncouragePal60Window, EncouragePal60WindowNrvAppear));
     kill();
 }
 
 void EncouragePal60Window::appear() {
     LayoutActor::appear();
-    setNerve(GET_NERVE_ANON(EncouragePal60WindowAppear));
+    setNerve(GET_NERVE_DIRECT(NrvEncouragePal60Window, EncouragePal60WindowNrvAppear));
 }
 
 void EncouragePal60Window::exeAppear() {
     if (MR::isFirstStep(this)) {
+        MR::openWipeFade(-1);
         MR::startAnim(this, "Appear", 0);
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(EncouragePal60WindowDisplay));
+        setNerve(GET_NERVE_DIRECT(NrvEncouragePal60Window, EncouragePal60WindowNrvDisplay));
     }
 }
 
@@ -56,12 +57,13 @@ void EncouragePal60Window::exeDisplay() {
 
     if (MR::isGreaterStep(this, ::DISPLAY_MIN_SECOND * 60) && MR::testCorePadTriggerAnyWithoutHome(WPAD_CHAN0)) {
         MR::startSystemSE("SE_SY_TALK_FOCUS_ITEM");
-        setNerve(GET_NERVE_ANON(EncouragePal60WindowDisappear));
+        setNerve(GET_NERVE_DIRECT(NrvEncouragePal60Window, EncouragePal60WindowNrvDisappear));
     }
 }
 
 void EncouragePal60Window::exeDisappear() {
     if (MR::isFirstStep(this)) {
+        MR::closeWipeFade(-1);
         MR::startAnim(this, "End", 0);
     }
 

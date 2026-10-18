@@ -22,7 +22,6 @@ SimpleEffectLayout::SimpleEffectLayout(const char* pName, const char* pLayoutNam
     initEffectKeeper(0, nullptr, nullptr);
 }
 
-SimpleLayout::~SimpleLayout() {}
 
 inline void SimpleTalkBalloon::exeWait() {
     mTextFormer->updateTalking();

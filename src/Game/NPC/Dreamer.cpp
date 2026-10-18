@@ -1,4 +1,5 @@
 #include "Game/Util/MessageUtil.hpp"
+#include "Game/Util/PadRecorder.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Screen/DreamerButtonGuidance.hpp"
 #include "Game/NPC/DreamerFunction.hpp"
@@ -11,25 +12,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/NPCUtil.hpp"
-
-// SMG2 NPCActor fields reached by offset (NPCActor.hpp is off by +4 from SMG2 in 0x12C..0x158).
-#define DREAMER_FIELD(T, ofs) (*reinterpret_cast< T* >(reinterpret_cast< u8* >(this) + (ofs)))
-
-namespace GameSequenceFunction {
-    bool isPadMode();
-    bool isAllowDreamerMissNum(s32);
-    void setPadModeDreamer(const NameObj*, s32);
-    void clearPadModeDreamer();
-}
-
-namespace MR {
-    void startSoundInPlayerDistance(LiveActor*, const char*, s32, s32, f32);
-    bool isPadRecorderStopped();
-    bool tryTalkForceMarioPuppetable(TalkMessageCtrl*);
-    void hideBubbleBeak(TalkMessageCtrl*);
-    void onDestroySceneKeepAllSound();
-}
-
 
 extern "C" const char* lbl_807CFEA0;
 extern "C" const char* lbl_807CFEA4;
@@ -65,15 +47,15 @@ void Dreamer::init(const JMapInfoIter& rIter) {
     caps.mSensorOffset.y = 110.0f;
     caps.mSensorOffset.z = 0.0f;
 
-    DREAMER_FIELD(const char*, 0x100) = "Wait";
-    DREAMER_FIELD(const char*, 0x104) = "Wait";
-    DREAMER_FIELD(const char*, 0x108) = "Wait";
-    DREAMER_FIELD(const char*, 0x10C) = "Wait";
-    DREAMER_FIELD(f32, 0xF4) = 2.5f;
-    DREAMER_FIELD(const char*, 0x134) = "Spin";
-    DREAMER_FIELD(const char*, 0x138) = "Trampled";
-    DREAMER_FIELD(const char*, 0x13C) = "Pointing";
-    DREAMER_FIELD(const char*, 0x140) = "Reaction";
+    mParam._14 = "Wait";
+    mParam._18 = "Wait";
+    mParam._1C = "Wait";
+    mParam._20 = "Wait";
+    mParam._8 = 2.5f;
+    _130 = "Spin";
+    _134 = "Trampled";
+    _138 = "Pointing";
+    _13C = "Reaction";
 
     if (MR::isPlayerLuigi() ||
         (GameSequenceFunction::isPadMode() && !DreamerFunction::isPadModeDreamerAndStartId(mStartId))) {
@@ -117,7 +99,7 @@ void Dreamer::exeAppear() {
         MR::startAction(this, "Appear");
     }
     if (MR::isActionEnd(this)) {
-        setNerve(DREAMER_FIELD(Nerve*, 0x154));
+        setNerve(mWaitNerve);
     }
 }
 
@@ -131,7 +113,7 @@ void Dreamer::exeStartHelp() {
         if (mStartId >= 0) {
             GameSequenceFunction::setPadModeDreamer(this, mStartId);
         } else {
-            setNerve(DREAMER_FIELD(Nerve*, 0x154));
+            setNerve(mWaitNerve);
         }
     }
 }
@@ -143,15 +125,15 @@ void Dreamer::exeInHelp() {
     }
     if (MR::isPadRecorderStopped()) {
         if (_170) {
-            if (MR::tryTalkForceMarioPuppetable(DREAMER_FIELD(TalkMessageCtrl*, 0x94))) {
-                setNerve(DREAMER_FIELD(Nerve*, 0x158));
+            if (MR::tryTalkForceMarioPuppetable(mMsgCtrl)) {
+                setNerve(mTalkNerve);
             }
         } else {
             MR::stopStageBGM(0xF);
             MR::onDestroySceneKeepAllSound();
             MR::startActionSound(this, "WipeOut");
             GameSequenceFunction::clearPadModeDreamer();
-            setNerve(DREAMER_FIELD(Nerve*, 0x154));
+            setNerve(mWaitNerve);
         }
     }
 }
@@ -162,7 +144,7 @@ void Dreamer::exeEndHelp() {
         MR::onDestroySceneKeepAllSound();
         MR::startActionSound(this, "WipeOut");
         GameSequenceFunction::clearPadModeDreamer();
-        setNerve(DREAMER_FIELD(Nerve*, 0x154));
+        setNerve(mWaitNerve);
     }
 }
 
@@ -185,9 +167,9 @@ void Dreamer::initForPlaying(const JMapInfoIter& rIter, const NPCActorCaps& rCap
         caps.mMessage = false;
     }
     initialize(rIter, caps, nullptr, nullptr, nullptr);
-    if (DREAMER_FIELD(TalkMessageCtrl*, 0x94)) {
-        MR::offTalkCinemaFrame(DREAMER_FIELD(TalkMessageCtrl*, 0x94));
-        MR::hideBubbleBeak(DREAMER_FIELD(TalkMessageCtrl*, 0x94));
+    if (mMsgCtrl) {
+        MR::offTalkCinemaFrame(mMsgCtrl);
+        MR::hideBubbleBeak(mMsgCtrl);
     }
     setNerve(GET_NERVE(Dreamer, DreamerNrvInHelp));
     MR::invalidateClipping(this);
@@ -208,7 +190,7 @@ void Dreamer::initForNpc(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
         caps._10 = lbl_807CFEA0;
     }
     initialize(rIter, caps, nullptr, nullptr, nullptr);
-    MR::registerEventFunc(DREAMER_FIELD(TalkMessageCtrl*, 0x94),
+    MR::registerEventFunc(mMsgCtrl,
                           TalkMessageFuncM< Dreamer*, bool (Dreamer::*)(u32) >(this, &Dreamer::eventFunc));
     MR::getJMapInfoArg1NoInit(rIter, &mMissNum);
     if (isMakeAppear()) {
@@ -255,7 +237,7 @@ bool Dreamer::isMakeAppear() const {
 bool Dreamer::eventFunc(u32 event) {
     switch (event) {
     case 0:
-        setNerve(DREAMER_FIELD(Nerve*, 0x154));
+        setNerve(mWaitNerve);
         break;
     case 1:
         setNerve(GET_NERVE(Dreamer, DreamerNrvStartHelp));

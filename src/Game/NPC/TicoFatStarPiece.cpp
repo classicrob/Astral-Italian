@@ -31,7 +31,7 @@ namespace NrvTicoFatStarPiece {
     public:
         virtual void execute(Spine* spine) const {
             TicoFatStarPiece* actor = static_cast<TicoFatStarPiece*>(spine->mExecutor);
-            if (MR::updateActorState(actor)) actor->makeActorAppeared();
+            if (MR::updateActorState(actor)) actor->kill();
         }
         static TicoFatStarPieceNrvTransform sInstance;
     };

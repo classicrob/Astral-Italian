@@ -83,9 +83,11 @@ void BringEnemy::exeWait() {
         }
     }
 
-    if (mBroughtNum < mBringLimit || MR::isPlayerDead()) {
-        s32 remain = mBroughtNum + aliveNum;
-        (void)remain;
+    if (mBroughtNum >= mBringLimit && !MR::isPlayerDead()) {
+        return;
+    }
+    if (mBroughtNum + aliveNum < mBringLimit) {
+        return;
     }
 }
 

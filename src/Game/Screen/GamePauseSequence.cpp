@@ -11,12 +11,17 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
+
+namespace NrvGamePauseSequence {
+    NEW_NERVE(GamePauseSequenceNrvDeactive, GamePauseSequence, Deactive);
+    NEW_NERVE(GamePauseSequenceNrvActivePauseMenu, GamePauseSequence, ActivePauseMenu);
+    NEW_NERVE(GamePauseSequenceNrvSceneInformation, GamePauseSequence, SceneInformation);
+}
+
 namespace {
-    NEW_NERVE(GamePauseSequenceDeactive, GamePauseSequence, Deactive);
-    NEW_NERVE(GamePauseSequenceActivePauseMenu, GamePauseSequence, ActivePauseMenu);
-    NEW_NERVE(GamePauseSequenceActivePowerStarList, GamePauseSequence, ActivePowerStarList);
-    NEW_NERVE(GamePauseSequenceSceneInformation, GamePauseSequence, SceneInformation);
-};  // namespace
+    const TVec2f sPauseMenuOffset(360.0f, 350.0f);
+}
+
 
 GamePauseSequence::GamePauseSequence() : LayoutActor("ポーズ画面管理", true), mMenuType(ActivePause), mPauseMenu(nullptr), mWindowMenuFunc(nullptr) {
 }
@@ -27,7 +32,7 @@ void GamePauseSequence::init(const JMapInfoIter& rIter) {
         mPauseMenu->initWithoutIter();
     }
 
-    initNerve(GET_NERVE_ANON(GamePauseSequenceDeactive));
+    initNerve(GET_NERVE_DIRECT(NrvGamePauseSequence, GamePauseSequenceNrvDeactive));
 }
 
 void GamePauseSequence::initWindowMenu(const MR::FunctorBase& rFunc) {
@@ -41,15 +46,15 @@ void GamePauseSequence::startPause(MenuType type) {
     MR::startStarPointerModePauseMenu(this);
     GameSystemFunction::onPauseBeginAllRumble();
     MR::startSystemSE("SE_SY_PAUSE_ON");
-    MR::startCSSound("CS_CLICK_OPEN", nullptr, 0);
+    MR::startCSSound("CS_CLICK_OPEN", nullptr, 0, 0, 1.0f);
 
     switch (mMenuType) {
     case ActivePause:
         mPauseMenu->appear();
-        setNerve(GET_NERVE_ANON(GamePauseSequenceActivePauseMenu));
+        setNerve(GET_NERVE_DIRECT(NrvGamePauseSequence, GamePauseSequenceNrvActivePauseMenu));
         break;
     case SceneInformation:
-        setNerve(GET_NERVE_ANON(GamePauseSequenceSceneInformation));
+        setNerve(GET_NERVE_DIRECT(NrvGamePauseSequence, GamePauseSequenceNrvSceneInformation));
         break;
     }
 }
@@ -58,7 +63,7 @@ void GamePauseSequence::deactivate() {
     MR::endStarPointerMode(this);
     kill();
     GameSystemFunction::onPauseEndAllRumble();
-    setNerve(GET_NERVE_ANON(GamePauseSequenceDeactive));
+    setNerve(GET_NERVE_DIRECT(NrvGamePauseSequence, GamePauseSequenceNrvDeactive));
 }
 
 void GamePauseSequence::exeDeactive() {
@@ -66,15 +71,6 @@ void GamePauseSequence::exeDeactive() {
 
 void GamePauseSequence::exeActivePauseMenu() {
     if (MR::isDead(mPauseMenu)) {
-        (*mWindowMenuFunc)();
-    }
-}
-
-void GamePauseSequence::exeActivePowerStarList() {
-    if (MR::isFirstStep(this)) {
-    }
-
-    if (!MR::isActiveGalaxyMapLayout()) {
         (*mWindowMenuFunc)();
     }
 }

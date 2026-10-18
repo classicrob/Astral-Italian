@@ -155,7 +155,6 @@ extern "C" void fn_80486AA0();
 extern "C" bool fn_804A2BB0(SysInfoWindow*);
 extern "C" void fn_80060290();
 extern "C" bool fn_800602A0();
-extern "C" bool fn_804A54D0(TitleSequenceProduct*);
 extern "C" void fn_8024CFE0(FileSelectItem*);
 extern "C" void fn_8024D010(FileSelectItem*);
 extern "C" void fn_804D4700();
@@ -954,7 +953,7 @@ void FileSelector::exeTitle() {
 
     mTitle->updateNerve();
 
-    if (fn_804A54D0(mTitle)) {
+    if (mTitle->isBgmStartStep()) {
         _F8 = true;
     }
 

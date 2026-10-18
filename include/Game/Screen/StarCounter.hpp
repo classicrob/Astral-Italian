@@ -12,6 +12,7 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void appear();
+    virtual void kill();
     virtual void control();
 
     void disappear();

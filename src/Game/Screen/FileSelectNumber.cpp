@@ -6,10 +6,13 @@
 #include "Game/Util/ObjUtil.hpp"
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
 
-namespace {
-    NEW_NERVE(FileSelectNumberNrvAppear, FileSelectNumber, Appear);
-    NEW_NERVE(FileSelectNumberNrvWait, FileSelectNumber, Wait);
-    NEW_NERVE(FileSelectNumberNrvEnd, FileSelectNumber, End);
+namespace NrvFileSelectNumber {
+    class FileSelectNumberNrvAppear : public Nerve { public: FileSelectNumberNrvAppear(); virtual void execute(Spine* spine) const { static_cast<FileSelectNumber*>(spine->mExecutor)->exeAppear(); } static FileSelectNumberNrvAppear sInstance; };
+    FileSelectNumberNrvAppear FileSelectNumberNrvAppear::sInstance ATTRIBUTE_WEAK;
+    class FileSelectNumberNrvWait : public Nerve { public: FileSelectNumberNrvWait(); virtual void execute(Spine* spine) const { static_cast<FileSelectNumber*>(spine->mExecutor)->exeWait(); } static FileSelectNumberNrvWait sInstance; };
+    FileSelectNumberNrvWait FileSelectNumberNrvWait::sInstance ATTRIBUTE_WEAK;
+    class FileSelectNumberNrvEnd : public Nerve { public: FileSelectNumberNrvEnd(); virtual void execute(Spine* spine) const { static_cast<FileSelectNumber*>(spine->mExecutor)->exeEnd(); } static FileSelectNumberNrvEnd sInstance; };
+    FileSelectNumberNrvEnd FileSelectNumberNrvEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace
 
 FileSelectNumber::FileSelectNumber(const char* pName) : LayoutActor(pName, true), mNumber(-1), mSelectAnimCtrl() {
@@ -18,7 +21,7 @@ FileSelectNumber::FileSelectNumber(const char* pName) : LayoutActor(pName, true)
 void FileSelectNumber::init(const JMapInfoIter& rIter) {
     initLayoutManager("FileNumber", 2);
     MR::connectToSceneLayout(this);
-    initNerve(GET_NERVE_ANON(FileSelectNumberNrvWait));
+    initNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvWait));
 
     mSelectAnimCtrl = new FileSelectNumberSub::SelectAnimController(this);
 }
@@ -29,29 +32,29 @@ void FileSelectNumber::appear() {
     if (MR::isDead(this)) {
         LayoutActor::appear();
         MR::startAnim(this, "Appear", 0);
-        setNerve(GET_NERVE_ANON(FileSelectNumberNrvAppear));
+        setNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvAppear));
         mSelectAnimCtrl->appear();
-    } else if (isNerve(GET_NERVE_ANON(FileSelectNumberNrvEnd))) {
+    } else if (isNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvEnd))) {
         animFrame = MR::getAnimFrame(this, 0);
 
         MR::startAnim(this, "Appear", 0);
         MR::setAnimFrame(this, MR::getAnimCtrl(this, 0)->getEnd() - animFrame, 0);
-        setNerve(GET_NERVE_ANON(FileSelectNumberNrvAppear));
+        setNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvAppear));
     }
 }
 
 void FileSelectNumber::disappear() {
     f32 animFrame;
 
-    if (isNerve(GET_NERVE_ANON(FileSelectNumberNrvAppear))) {
+    if (isNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvAppear))) {
         animFrame = MR::getAnimFrame(this, 0);
 
         MR::startAnim(this, "End", 0);
         MR::setAnimFrame(this, MR::getAnimCtrl(this, 0)->getEnd() - animFrame, 0);
-        setNerve(GET_NERVE_ANON(FileSelectNumberNrvEnd));
-    } else if (isNerve(GET_NERVE_ANON(FileSelectNumberNrvWait))) {
+        setNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvEnd));
+    } else if (isNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvWait))) {
         MR::startAnim(this, "End", 0);
-        setNerve(GET_NERVE_ANON(FileSelectNumberNrvEnd));
+        setNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvEnd));
     }
 }
 
@@ -78,7 +81,7 @@ void FileSelectNumber::exeAppear() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(FileSelectNumberNrvWait));
+        setNerve(GET_NERVE_DIRECT(NrvFileSelectNumber, FileSelectNumberNrvWait));
     }
 }
 
@@ -168,3 +171,9 @@ namespace FileSelectNumberSub {
     void SelectAnimController::exeSelectOut() {
     }
 };  // namespace FileSelectNumberSub
+
+namespace NrvFileSelectNumber {
+    FileSelectNumberNrvAppear::FileSelectNumberNrvAppear() {}
+    FileSelectNumberNrvWait::FileSelectNumberNrvWait() {}
+    FileSelectNumberNrvEnd::FileSelectNumberNrvEnd() {}
+}

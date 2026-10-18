@@ -17,6 +17,10 @@ namespace {
     static const f32 sDisappearAnimRate = 0.25f;
 };  // namespace
 
+inline void FileSelectInfo::exeDisplay() {
+    if (MR::isFirstStep(this)) MR::startAnim(this, "Wait", 0);
+}
+
 namespace NrvFileSelectInfo {
     NEW_NERVE(FileSelectInfoNrvAppear, FileSelectInfo, Appear);
     NEW_NERVE(FileSelectInfoNrvDisplay, FileSelectInfo, Display);
@@ -115,10 +119,7 @@ void FileSelectInfo::exeAppear() {
     }
 }
 
-void FileSelectInfo::exeDisplay() {
-    if (MR::isFirstStep(this)) {
-    }
-}
+
 
 void FileSelectInfo::exeDisappear() {
     if (MR::isFirstStep(this)) {

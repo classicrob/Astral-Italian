@@ -21,8 +21,8 @@ public:
 
 class StarPointerMovePositionHolder : public NerveExecutor, public StarPointerInput {
 public:
-    explicit StarPointerMovePositionHolder(s32);
-    virtual ~StarPointerMovePositionHolder();
+    explicit StarPointerMovePositionHolder(s32 = 0);
+    virtual ~StarPointerMovePositionHolder() {}
 
     virtual const TVec2f& getScreenPosition() const;
     virtual const TVec2f& getScreenVelocity() const;
@@ -37,7 +37,7 @@ public:
     virtual bool isInScreen() const;
     virtual bool isOutScreenLong() const;
 
-    void beginRegistration(LayoutActor*, bool);
+    void beginRegistration(const void*, bool);
     void resetSelection();
     void update(const TVec2f&, bool);
     void requestMovement();
@@ -60,7 +60,7 @@ public:
     void connectDown(const char*, const char*);
     const char* getPositionName(s32) const;
 
-    LayoutActor* mLayout;
+    const void* mOwner;
     s32 mPadChannel;
     bool mMovementRequested;
     bool mRegistered;

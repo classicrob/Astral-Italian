@@ -68,3 +68,7 @@ namespace MR {
         return ::getScreenAlphaCapture()->getTexture(index);
     }
 };  // namespace MR
+
+namespace MR {
+bool isExistScreenAlphaTexture(s32 index) { return ::getScreenAlphaCapture()->getTexture(index) != nullptr; }
+}

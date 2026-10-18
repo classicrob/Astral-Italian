@@ -19,6 +19,7 @@ public:
         return 2;
     }
 
+    void setColor();
     void exeWait();
     void exeWipeOut();
     void exeClose();

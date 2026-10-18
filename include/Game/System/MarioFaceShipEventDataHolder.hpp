@@ -34,3 +34,5 @@ public:
 };
 
 namespace MR { s32 getMarioFaceShipEventTalkCount(); bool isMarioFaceShipEventTalkValid(u32); void getMarioFaceShipEventTalkMessageId(u32,char*,u32); }
+
+namespace MR { bool isMarioFaceShipNpcTalkAllowed(); }

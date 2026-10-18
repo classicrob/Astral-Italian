@@ -14,10 +14,8 @@ public:
     virtual void kill();
     virtual void control();
 
-    void setInformationMessage(const char*);
     void setSelectMessage(const char*, const char*);
-    void exeSelecting();
+    void exeSelecting() NO_INLINE;
 
-    /* 0x20 */ YesNoController* mController;
-    /* 0x24 */ bool _24;
+    /* 0x2C */ YesNoController* mController;
 };

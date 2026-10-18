@@ -20,7 +20,7 @@ namespace {
     // static const f32 sTalkCameraScale = _;
     // static const s32 sDirtBtkFrame = _;
     static const s32 sPreRaceWait = 50;
-    static const s32 sPstRaceWait = 50;
+    static const s32 sPstRaceWait = 40;
     // static const s32 sNormalBtkFrame = _;
 };  // namespace
 
@@ -255,7 +255,7 @@ bool Caretaker::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         _E3 = 1;
 
-        return true;
+        return false;
     }
 
     return NPCActor::receiveMsgPlayerAttack(msg, pSender, pReceiver);

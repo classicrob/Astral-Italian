@@ -51,3 +51,5 @@ namespace MR {
 
     void clearBgmQueue();
 };  // namespace MR
+
+namespace MR { void requestStageBGMVolumeDown(s32, bool); }

@@ -141,3 +141,5 @@ namespace MR {
 namespace MR {
     bool isGhostLuigiOpenInCurrentStage();
 }
+
+namespace MR { bool isStageWorldMap(); }

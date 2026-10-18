@@ -21,5 +21,6 @@ public:
     }
 
     void exeActive();
+    void setColor();
     void exeWait();
 };

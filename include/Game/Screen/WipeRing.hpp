@@ -16,6 +16,9 @@ public:
     virtual bool isWipeIn() const;
     virtual bool isWipeOut() const;
 
+    void appearWithColor();
+    void setColor();
+    void setCenterOnPlayer() { mIsCenterOnPlayerOnce = true; }
     void setCenterPos(const TVec3f&);
     void startAnim(const char*);
     bool getMarioCenterPos(TVec3f*);
@@ -30,7 +33,8 @@ private:
     /* 0x28 */ s32 mAnimFrame;
     /* 0x2C */ f32 mWipeOutFrame;
     /* 0x30 */ f32 mWipeInFrame;
-    /* 0x34 */ bool mIsCenterOnPlayer;
+    /* 0x40 */ bool mIsCenterOnPlayer;
+    /* 0x41 */ bool mIsCenterOnPlayerOnce;
 };
 
 namespace NrvWipeRing {

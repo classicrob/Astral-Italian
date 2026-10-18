@@ -2,6 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/LayoutUtil.hpp"
+#include "Game/Util/EventUtil.hpp"
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
 
 namespace {
@@ -19,7 +20,7 @@ WipeKoopa::WipeKoopa() : WipeLayoutBase("クッパ"), mFrame(::sAnimFrame) {
 
 void WipeKoopa::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE_ANON(WipeKoopaNrvWait));
-    initLayoutManager("WipeKoopa", 1);
+    initLayoutManager("WipeKoopa", 2);
 }
 
 void WipeKoopa::exeWait() {
@@ -46,6 +47,7 @@ void WipeKoopa::exeClose() {
 
 void WipeKoopa::wipe(s32 frame) {
     setNerve(GET_NERVE_ANON(WipeKoopaNrvWipeOut));
+    setColor();
     MR::hideLayout(this);
 
     if (frame > 0) {
@@ -62,11 +64,13 @@ void WipeKoopa::forceClose() {
     
     MR::startAnim(this, "out", 0);
     MR::setAnimFrameAndStop(this, MR::getAnimCtrl(this, 0)->getEnd(), 0);
+    setColor();
 }
 
 void WipeKoopa::forceOpen() {
     setNerve(GET_NERVE_ANON(WipeKoopaNrvWait));
     MR::hideLayout(this);
+    setColor();
 }
 
 bool WipeKoopa::isOpen() const {
@@ -83,4 +87,13 @@ bool WipeKoopa::isWipeIn() const {
 
 bool WipeKoopa::isWipeOut() const {
     return isNerve(GET_NERVE_ANON(WipeKoopaNrvWipeOut));
+}
+
+void WipeKoopa::setColor() {
+    MR::startAnim(this, "Color", 1);
+    if (MR::isPowerStarGreenInCurrentStage()) {
+        MR::setAnimFrameAndStop(this, 1.0f, 1);
+    } else {
+        MR::setAnimFrameAndStop(this, 0.0f, 1);
+    }
 }

@@ -126,7 +126,7 @@ void TicoRail::exeMoveSign() {
     }
 
     f32 rate = MR::calcNerveRate(this, MR::getBckFrameMax(this));
-    MR::blendVec(&_8C, -MR::getRailDirection(this), MR::getRailDirection(this), rate);
+    MR::vecBlend(&_8C, -MR::getRailDirection(this), MR::getRailDirection(this), rate);
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(TicoRail, TicoRailNrvMove));
@@ -173,7 +173,7 @@ void TicoRail::exeTalkStart() {
     }
 
     MR::moveCoordAndFollowTrans(this, 2.0f);
-    MR::blendVec(&_8C, MR::getRailDirection(this), diff, MR::calcNerveRate(this, MR::getBckFrameMax(this)));
+    MR::vecBlend(&_8C, MR::getRailDirection(this), diff, MR::calcNerveRate(this, MR::getBckFrameMax(this)));
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(TicoRail, TicoRailNrvTalk));

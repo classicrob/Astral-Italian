@@ -17,6 +17,7 @@ public:
     void forceToFrame();
     void forceToBlank();
     bool isStop() const;
+    void setColor();
     void exeScreen();
     void exeFrame();
     void exeBlank();

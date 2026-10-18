@@ -21,6 +21,7 @@ public:
     virtual void updateWipe(const char*);
 
     void setWipeRingCenter(const TVec3f&);
+    void setWipeRingCenterOnPlayer();
     void startGameScreenCapture();
     void drawGameScreenCapture() const;
 

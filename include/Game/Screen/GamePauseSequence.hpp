@@ -21,7 +21,6 @@ public:
     void deactivate();
     void exeDeactive();
     void exeActivePauseMenu();
-    void exeActivePowerStarList();
     void exeSceneInformation();
 
     /* 0x20 */ MenuType mMenuType;

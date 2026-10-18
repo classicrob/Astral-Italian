@@ -75,6 +75,7 @@ namespace MR {
     bool isDemoExist(const char*);
     bool canStartDemo();
     bool isTimeKeepDemoActive();
+    bool isDemoPartWaitUserInputActive();
     bool isDemoActiveRegistered(const LiveActor*);
     bool isDemoPartExist(const LiveActor*, const char*);
     bool isDemoLastStep();

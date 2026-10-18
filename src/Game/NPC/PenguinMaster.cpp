@@ -37,7 +37,7 @@ void PenguinMaster::init(const JMapInfoIter& rIter) {
 }
 
 bool PenguinMaster::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerSpinAttack(msg) && !MR::isMsgSupportTicoSpin(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && !MR::isMsgSupportTicoSpin(msg)) {
         _E3 = true;
 
         return true;

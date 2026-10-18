@@ -46,3 +46,25 @@ public:
 namespace MR {
     PostmanEventSystem* getPostmanEventSystem();
 }
+
+class LiveActor;
+class TalkMessageCtrl;
+class PostManLetter;
+class JMapInfoIter;
+namespace PostmanEvent {
+    TalkMessageCtrl* createTalkCtrl(LiveActor*, s32);
+    PostManLetter* createLetter();
+    LiveActor* createPlayerDemo(const JMapInfoIter&);
+    s32 getTalkType(const PostManLetter*);
+    bool receiveLetter(LiveActor*, s32);
+    bool isAvailable();
+    bool isCurrentReplyEvent();
+}
+
+namespace PostmanEvent {
+    bool isCurrentTaskUnread();
+    bool isTaskInProgress(s32);
+    const char* getTaskStage(s32);
+    s32 getTaskScenario(s32);
+    bool isRosettaLetter(s32);
+}

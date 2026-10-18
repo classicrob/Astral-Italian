@@ -297,3 +297,8 @@ namespace MR {
 }
 
 namespace MR { bool isPlayerVisible(); }
+
+namespace MR {
+    LiveActor* getPlayerCarrySensorActor();
+    void preparePlayerForPositionReset();
+}

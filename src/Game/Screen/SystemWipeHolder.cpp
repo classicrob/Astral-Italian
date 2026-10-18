@@ -2,6 +2,7 @@
 #include "Game/Screen/WipeFade.hpp"
 #include "Game/Screen/WipeHolderBase.hpp"
 #include "Game/Screen/WipeRing.hpp"
+#include "Game/Screen/WipeMario.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/J2DGraph/J2DPicture.hpp>
 #include <JSystem/JUtility/JUTVideo.hpp>
@@ -13,6 +14,7 @@ void SystemWipeHolder::init(const JMapInfoIter& rIter) {
     addWipeLayout(new WipeFade("フェードワイプ", Color8(0, 0, 0, 255)));
     addWipeLayout(new WipeRing(false, "円ワイプ"));
     addWipeLayout(new WipeFade("白フェードワイプ", Color8(255, 255, 255, 255)));
+    addWipeLayout(new WipeMario());
 }
 
 bool SystemWipeHolder::isCurrentAlive() const {
@@ -87,3 +89,7 @@ namespace MR {
         return newHolder;
     }
 };  // namespace MR
+
+void SystemWipeHolder::setWipeRingCenterOnPlayer() {
+    static_cast<WipeRing*>(findWipe("円ワイプ"))->setCenterOnPlayer();
+}

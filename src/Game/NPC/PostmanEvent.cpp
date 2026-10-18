@@ -139,3 +139,143 @@ bool TaskEventInfo::isFinished() const {
     return false;
 }
 }
+
+#include "Game/Screen/PostManLetter.hpp"
+#include "Game/LiveActor/DemoObj.hpp"
+
+extern "C" const char lbl_806BC0A8[];
+
+namespace PostmanEvent {
+// NONMATCHING: empty vector constructor outlines and switch dispatch/stack allocation differ.
+TalkMessageCtrl* createTalkCtrl(LiveActor* actor, s32 type) {
+    TVec3f offset;
+    offset.x = 0.0f;
+    offset.y = 146.40000915527344f;
+    offset.z = 0.0f;
+    const char* message;
+    switch (type) {
+    case 0: message = lbl_806BC0A8; break;
+    case 1: message = lbl_806BC0A8 + 0x1C; break;
+    case 3: message = lbl_806BC0A8 + 0x30; break;
+    case 2: message = lbl_806BC0A8 + 0x4C; break;
+    case 4: message = lbl_806BC0A8 + 0x68; break;
+    case 5: message = lbl_806BC0A8 + 0x84; break;
+    case 6: message = lbl_806BC0A8 + 0xA0; break;
+    default: message = nullptr; break;
+    }
+    TalkMessageCtrl* ctrl = MR::createTalkCtrlDirect(actor, message, offset, nullptr);
+    MR::setDistanceToTalk(ctrl, type == 0 ? 1500.0f : 200.0f);
+    MR::onRootNodeAutomatic(ctrl);
+    if (type == 5) MR::setMessageArg(ctrl, GameDataFunction::getPendingSharedPlayerLeft());
+    return ctrl;
+}
+PostManLetter* createLetter() {
+    s32 id = 18;
+    MR::getPostmanEventSystem()->selectEvent(&id);
+    PostManLetter* letter = new PostManLetter(id);
+    letter->initWithoutIter();
+    return letter;
+}
+// NONMATCHING: argument setup and register allocation differ.
+LiveActor* createPlayerDemo(const JMapInfoIter& iter) {
+    LiveActor* actor = MR::createDemoObjWithAnimArc(lbl_806BC0A8 + 0xBC, lbl_806BC0A8 + 0xDC,
+                                                  lbl_806BC0A8 + 0xE8, MR::getPlayerBaseMtx());
+    MR::tryInitDemoSheetAnim(actor, iter, lbl_806BC0A8 + 0x10C, lbl_806BC0A8 + 0x12C);
+    MR::invalidateClipping(actor);
+    actor->makeActorDead();
+    return actor;
+}
+// NONMATCHING: equivalent return blocks are ordered differently.
+s32 getTalkType(const PostManLetter* letter) {
+    s32 id = letter->getCurrentLetterId();
+    if (!letter->mHasUnreadLetter) id = 18;
+    if (id != 3) {
+        if (id < 3) {
+            if (id != 1) {
+                if (id < 1) {
+                    if (id < 0) return 2;
+                    return 1;
+                }
+                return 4;
+            }
+            return 3;
+        }
+        if (id < 18) {
+            if (id < 13) return 3;
+            return 6;
+        }
+        return 2;
+    }
+    return 5;
+}
+// NONMATCHING: equivalent boolean control flow differs.
+bool receiveLetter(LiveActor*, s32 id) {
+    if (MR::isValidPostmanImportantEvent(id)) {
+        GameDataFunction::setOnPostmanImportantLetterRead(id);
+        if (isRosettaLetter(id)) {
+            MR::addStarPiece(getRosettaEventInfo(id)->getReward());
+        } else {
+            s32 reward = getRosettaEventInfo(id)->getReward();
+            if (reward > 0) MR::addPlayerLeft(reward);
+        }
+    }
+    if (isValidTaskEvent(id)) {
+        GameDataFunction::setOnPostmanTaskLetterRead(id);
+        const char* stage = getTaskEventInfo(id)->mEnd.mStage;
+        if (stage == nullptr) return false;
+        s32 scenario = getTaskScenario(id);
+        if (GameDataFunction::isOnGameEventFlagOpenScenario(stage, scenario)) return false;
+        GameDataFunction::onGameEventFlagOpenScenario(stage, scenario);
+        return true;
+    }
+    if (id == 2) {
+        GameDataFunction::updatePostmanPeachLetterDeath();
+        GameDataFunction::setOnPostmanImportantLetterRead(id);
+        MR::addPlayerLeft(5);
+        return true;
+    }
+    if (id == 3) {
+        GameDataFunction::setOnPostmanImportantLetterRead(id);
+        MR::addPlayerLeft(GameDataFunction::getPendingSharedPlayerLeft());
+        return true;
+    }
+    return false;
+}
+bool isAvailable() { return getRosettaEventInfo(0)->isAvailable(); }
+bool isCurrentTaskUnread() { return MR::getPostmanEventSystem()->isCurrentTaskUnread(); }
+// NONMATCHING: equivalent false-return branches are merged.
+bool isCurrentReplyEvent() {
+    s32 id = MR::getPostmanEventSystem()->mSelectedEvent;
+    if (!isRosettaLetter(id)) return false;
+    return !GameDataFunction::isOnPostmanTaskLetterRead(id);
+}
+// NONMATCHING: equivalent false-return branches are merged.
+bool isTaskInProgress(s32 id) {
+    if (!isValidTaskEvent(id)) return false;
+    if (!GameDataFunction::isOnPostmanTaskLetterRead(id)) return false;
+    return !getTaskEventInfo(id)->isFinished();
+}
+const char* getTaskStage(s32 id) { return getTaskEventInfo(id)->mEnd.mStage; }
+s32 getTaskScenario(s32 id) {
+    const TaskEventInfo* info = getTaskEventInfo(id);
+    if (info->mEnd.isValid()) return info->mEnd.mScenario;
+    return -1;
+}
+bool isRosettaLetter(s32 id) {
+    const RosettaEventInfo* info = getRosettaEventInfo(id);
+    if (!info) return false;
+    if (info->mId == 13) return true;
+    if (info->mId == 14) return true;
+    if (info->mId == 15) return true;
+    if (info->mId == 16) return true;
+    return info->mId == 17;
+}
+}
+namespace MR {
+bool isPostmanSpecialLetter(s32 id) { return id == 2 || id == 3; }
+bool isPostmanTaskEventAvailable(s32 id) { return PostmanEvent::getTaskEventInfo(id)->isAvailable(); }
+bool isPostmanTaskEventFinished(s32 id) { return PostmanEvent::getTaskEventInfo(id)->isFinished(); }
+bool isPostmanImportantEventAvailable(s32 id) { return PostmanEvent::getRosettaEventInfo(id)->isAvailable(); }
+s32 getPostmanImportantEventReward(s32 id) { return PostmanEvent::getRosettaEventInfo(id)->getReward(); }
+bool isValidPostmanImportantEvent(s32 id) { return PostmanEvent::getRosettaEventInfo(id) != nullptr; }
+}

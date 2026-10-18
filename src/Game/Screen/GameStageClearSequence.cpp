@@ -1,5 +1,7 @@
 #include "Game/Screen/GameStageClearSequence.hpp"
 #include "Game/Util.hpp"
+#include "Game/AudioLib/AudSystem.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/PowerStar.hpp"
 #include "Game/Screen/SimpleLayout.hpp"
@@ -13,13 +15,13 @@
 namespace {
     static const s32 sClearDemoStopFrame = 10;
     static const s32 sLayoutStartStepPowerStar = 247;
-    static const s32 sClearDemoWipeStepPowerStar = 325;
-    static const s32 sClearDemoWipeFramePowerStar = 80;
-    static const s32 sFanfareStartStepPowerStar = 15;
+    static const s32 sClearDemoWipeStepPowerStar = 340;
+    static const s32 sClearDemoWipeFramePowerStar = 110;
+    static const s32 sFanfareStartStepPowerStar = 49;
     static const f32 sLayoutOffsetYPowerStar = 80.0f;
     static const s32 sLayoutStartStepGrandStar = 510;
     static const s32 sClearDemoWipeStepGrandStar = 670;
-    static const s32 sFanfareStartStepGrandStar = 53;
+    static const s32 sFanfareStartStepGrandStar = 55;
     static const f32 sLayoutOffsetYGrandStar = 20.0f;
     static const s32 sClearDemoWipeStepKoopaVs3 = 840;
     static const s32 sClearDemoWipeFrameKoopaVs3 = 60;
@@ -49,14 +51,16 @@ void GameStageClearSequence::init(const JMapInfoIter& rIter) {
 void GameStageClearSequence::startPowerStarGetDemo() {
     LayoutActor::appear();
     mEffectFollowPos.set(TVec2f(0.0f, ::sLayoutOffsetYPowerStar));
-    MR::setTextBoxGameMessageRecursive(mEffectLayout, "GetStar", "GetStar_PowerStar");
+    MR::hidePane(mEffectLayout, "GetGrandStar");
+    MR::showPane(mEffectLayout, "GetStar");
     setNerve(GET_NERVE(GameStageClearSequence, GameStageClearSequencePowerStarGetDemo));
 }
 
 void GameStageClearSequence::startGrandStarGetDemo() {
     LayoutActor::appear();
     mEffectFollowPos.set(TVec2f(0.0f, ::sLayoutOffsetYGrandStar));
-    MR::setTextBoxGameMessageRecursive(mEffectLayout, "GetStar", "GetStar_GrandStar");
+    MR::hidePane(mEffectLayout, "GetStar");
+    MR::showPane(mEffectLayout, "GetGrandStar");
     setNerve(GET_NERVE(GameStageClearSequence, GameStageClearSequenceGrandStarGetDemo));
 }
 
@@ -67,17 +71,15 @@ void GameStageClearSequence::appearGetStarLayout() {
 }
 
 void GameStageClearSequence::exePowerStarGetDemo() {
+    AudSystem::setField834(2);
     if (MR::isFirstStep(this)) {
         MR::stopStageBGM(2);
-        MR::setSoundVolumeSetting(1, 20);
         MR::stopScene(::sClearDemoStopFrame);
-        MR::resetGlobalTimer();
         MR::deactivateDefaultGameLayout();
-        MR::endGalaxyCometEvent();
     }
 
     if (MR::isStep(this, ::sFanfareStartStepPowerStar)) {
-        MR::startSubBGM("BGM_CLEAR", false);
+        MR::startStarGetJingle();
     }
 
     if (MR::isStep(this, ::sLayoutStartStepPowerStar)) {
@@ -91,7 +93,7 @@ void GameStageClearSequence::exePowerStarGetDemo() {
     bool isWipeActive = MR::isWipeActive();
 
     if (MR::isGreaterStep(this, ::sClearDemoWipeStepPowerStar) && !isWipeActive) {
-        MR::requestChangeStageAfterStageClear();
+        GameSequenceFunction::requestChangeStageAfterStageClear();
         kill();
     }
 }
@@ -99,19 +101,14 @@ void GameStageClearSequence::exePowerStarGetDemo() {
 void GameStageClearSequence::exeGrandStarGetDemo() {
     if (MR::isFirstStep(this)) {
         MR::stopStageBGM(2);
-        MR::setSoundVolumeSetting(1, 20);
         MR::stopScene(::sClearDemoStopFrame);
-        MR::resetGlobalTimer();
         MR::deactivateDefaultGameLayout();
-        MR::endGalaxyCometEvent();
     }
 
+    AudSystem::setField834(2);
+
     if (MR::isStep(this, ::sFanfareStartStepGrandStar)) {
-        if (PowerStar::isCurrentStageKoopaVs3()) {
-            MR::startSubBGM("BGM_GRAND_STAR_GET_2", false);
-        } else {
-            MR::startSubBGM("BGM_GRAND_STAR_GET", false);
-        }
+        MR::startGrandStarGetJingle();
     }
 
     if (MR::isStep(this, ::sLayoutStartStepGrandStar)) {
@@ -126,7 +123,7 @@ void GameStageClearSequence::exeGrandStarGetDemo() {
         bool isWipeActive = MR::isSystemWipeActive();
 
         if (MR::isGreaterStep(this, ::sClearDemoWipeStepKoopaVs3) && !isWipeActive) {
-            MR::requestChangeStageAfterStageClear();
+            GameSequenceFunction::requestChangeStageAfterStageClear();
             kill();
         }
     } else {
@@ -137,7 +134,7 @@ void GameStageClearSequence::exeGrandStarGetDemo() {
         bool isWipeActive = MR::isWipeActive();
 
         if (MR::isGreaterStep(this, ::sClearDemoWipeStepGrandStar) && !isWipeActive) {
-            MR::requestChangeStageAfterStageClear();
+            GameSequenceFunction::requestChangeStageAfterStageClear();
             kill();
         }
     }

@@ -13,9 +13,25 @@ extern char lbl_806BE390[], lbl_806BE410[], lbl_806BE434[], lbl_806BE43C[], lbl_
 extern char lbl_806B7AEC[], lbl_806B7AE0[], lbl_806B7AD4[], lbl_806B7AC8[];
 extern const char lbl_807CFF48[4];
 extern const s32 lbl_807CFE90, lbl_807CFE94, lbl_807CFE98, lbl_807CFE9C;
-extern s32 lbl_807D4C20,lbl_807D4C24,lbl_807D4C28,lbl_807D4C2C,lbl_807D4C30,lbl_807D4C34,lbl_807D4C38,lbl_807D4C3C,lbl_807D4C40,lbl_807D4C48;
 }
-#define COIN_NERVE(label) reinterpret_cast<Nerve*>(&label)
+
+namespace NrvTicoFatCoin {
+    NEW_NERVE(TicoFatCoinNrvWait, TicoFatCoin, Wait);
+    class TicoFatCoinNrvEat : public Nerve { public: virtual void execute(Spine*) const; static TicoFatCoinNrvEat sInstance; };
+    TicoFatCoinNrvEat TicoFatCoinNrvEat::sInstance;
+    NEW_NERVE(TicoFatCoinNrvMetamorphosis, TicoFatCoin, Metamorphosis);
+    NEW_NERVE(TicoFatCoinNrvMove, TicoFatCoin, Move);
+    NEW_NERVE(TicoFatCoinNrvTransform, TicoFatCoin, Transform);
+    NEW_NERVE(TicoFatCoinNrvTransformEnd, TicoFatCoin, TransformEnd);
+    NEW_NERVE(TicoFatCoinNrvWipe, TicoFatCoin, Wipe);
+    NEW_NERVE(TicoFatCoinNrvInformation, TicoFatCoin, Information);
+    class TicoFatCoinNrvDelayEnd : public Nerve { public: virtual void execute(Spine*) const; static TicoFatCoinNrvDelayEnd sInstance; };
+    TicoFatCoinNrvDelayEnd TicoFatCoinNrvDelayEnd::sInstance;
+    NEW_NERVE(TicoFatCoinNrvEnd, TicoFatCoin, End);
+    class TicoFatCoinNrvDone : public Nerve { public: virtual void execute(Spine*) const; static TicoFatCoinNrvDone sInstance; };
+    TicoFatCoinNrvDone TicoFatCoinNrvDone::sInstance;
+}
+
 TicoFatCoin::TicoFatCoin(const char* name) : NPCActor(name), mRequiredCoins(5), mCameraInfo(0), mEatState(0) { mEffectMtx.identity(); mSmokeMtx.identity(); }
 TicoFatCoin::~TicoFatCoin() {}
 // NONMATCHING: register allocation and member-pointer table addressing differ.
@@ -36,10 +52,10 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     _138=lbl_806B7AD4;
     _13C=lbl_806B7AC8;
     _12C=1000.0f;
-    mTalkNerve=COIN_NERVE(lbl_807D4C20);
+    mTalkNerve=GET_NERVE(TicoFatCoin, TicoFatCoinNrvWait);
     MR::getJMapInfoArg1NoInit(iter,&mRequiredCoins);
     mEatState = new TicoStateEatCoin(this,mRequiredCoins);
-    MR::initActorState(this,mEatState,COIN_NERVE(lbl_807D4C24),strings+0x38);
+    MR::initActorState(this,mEatState,GET_NERVE(TicoFatCoin, TicoFatCoinNrvEat),strings+0x38);
     NPCActorItem item;
     item.mActor=strings+0x18;
     item.mGoods0=reinterpret_cast<const char*>(&lbl_807CFE9C);
@@ -71,8 +87,8 @@ void TicoFatCoin::exeMetamorphosis() {
     if(MR::isFirstStep(this)) MR::startAction(this,lbl_806BE434);
     if(MR::isStep(this,90)) { _94->kill(); _98->kill(); }
     if(MR::isActionEnd(this)) {
-        if(MR::isExistRail(this)) { setNerve(COIN_NERVE(lbl_807D4C2C)); return; }
-        setNerve(COIN_NERVE(lbl_807D4C30));
+        if(MR::isExistRail(this)) { setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvMove)); return; }
+        setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvTransform));
     }
 }
 void TicoFatCoin::exeMove() {
@@ -87,7 +103,7 @@ void TicoFatCoin::exeMove() {
     MR::startActionSound(this,lbl_806BE43C,-1,-1,-1);
     MR::setRailCoord(this,MR::calcNerveEaseOutValue(this,90,0.0f,MR::getRailTotalLength(this)));
     MR::moveTransToCurrentRailPos(this);
-    if(MR::isStep(this,90)) setNerve(COIN_NERVE(lbl_807D4C30));
+    if(MR::isStep(this,90)) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvTransform));
 }
 // NONMATCHING: temporary vector stack layout and register allocation differ.
 void TicoFatCoin::exeTransform() {
@@ -110,26 +126,26 @@ void TicoFatCoin::exeTransform() {
         MR::stopBck(this);
         MR::emitEffect(this,strings+0xF8)->setHostMtx(mEffectMtx.toMtxPtr());
         MR::deleteEffect(this,strings+0xD0);
-        setNerve(COIN_NERVE(lbl_807D4C34));
+        setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvTransformEnd));
     }
 }
 void TicoFatCoin::exeTransformEnd() {
     if(MR::isFirstStep(this)) MR::startActionSound(this,lbl_806BE498,-1,-1,-1);
     MR::startActionSound(this,lbl_806BE43C,-1,-1,-1);
-    if(MR::isStep(this,90)) setNerve(COIN_NERVE(lbl_807D4C38));
+    if(MR::isStep(this,90)) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvWipe));
 }
 void TicoFatCoin::exeWipe() {
     if(MR::isFirstStep(this)) { MR::onSwitchA(this); MR::openWipeWhiteFade(60); }
     if(MR::isLessStep(this,46)) MR::startActionSound(this,lbl_806BE43C,-1,-1,-1);
-    if(!MR::isWipeActive()) setNerve(COIN_NERVE(lbl_807D4C3C));
+    if(!MR::isWipeActive()) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvInformation));
 }
 void TicoFatCoin::exeInformation() {
     if(MR::isFirstStep(this)) { MR::startAppearPlanetJingle(); MR::appearInformationMessage(MR::getGameMessageDirect(lbl_806BE4B0),true); }
-    if(MR::isDeadInformationMessage()) setNerve(COIN_NERVE(lbl_807D4C40));
+    if(MR::isDeadInformationMessage()) setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvDelayEnd));
 }
 void TicoFatCoin::exeEnd() {
     if(MR::isFirstStep(this)) MR::endMultiActorCamera(this,mCameraInfo,lbl_806BE410,false,-1);
-    if(MR::isStep(this,60)) { appearPlanet(true); setNerve(COIN_NERVE(lbl_807D4C48)); }
+    if(MR::isStep(this,60)) { appearPlanet(true); setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvDone)); }
 }
 void TicoFatCoin::initAfterPlacement() {
     if(GameDataFunction::isTicoCoinFeed(MR::getCurrentStageName())) {
@@ -143,13 +159,13 @@ bool TicoFatCoin::eventFunc(u32 event) {
     if(event==0) { MR::forceAppearCoinCounterForTicoFat(); return true; }
     if(event==1) { MR::disappearCoinCounterForTicoFat(); return true; }
     if(event==2) {
-        if(isNerve(COIN_NERVE(lbl_807D4C20))) { setNerve(COIN_NERVE(lbl_807D4C24)); return false; }
-        if(isNerve(COIN_NERVE(lbl_807D4C24)) && mEatState->isComplete()) { MR::forceSyncCoinCounter(); MR::disappearCoinCounterForTicoFat(); return true; }
+        if(isNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvWait))) { setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvEat)); return false; }
+        if(isNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvEat)) && mEatState->isComplete()) { MR::forceSyncCoinCounter(); MR::disappearCoinCounterForTicoFat(); return true; }
         return false;
     }
     if(event==3) {
-        if(isNerve(COIN_NERVE(lbl_807D4C24))) { setNerve(COIN_NERVE(lbl_807D4C28)); return false; }
-        if(isNerve(COIN_NERVE(lbl_807D4C48))) { kill(); return true; }
+        if(isNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvEat))) { setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvMetamorphosis)); return false; }
+        if(isNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvDone))) { kill(); return true; }
         return false;
     }
     return true;
@@ -159,4 +175,13 @@ void TicoFatCoin::appearPlanet(bool animate) {
         if(MR::isProductGameScene()) GameDataFunction::onTicoCoinFeed(MR::getCurrentStageName());
         MR::callAppearAllGroupMember(this);
     } else { MR::callMakeActorAppearedAllGroupMember(this); MR::onSwitchA(this); }
+}
+
+void NrvTicoFatCoin::TicoFatCoinNrvEat::execute(Spine* spine) const {
+    MR::updateActorState(static_cast<TicoFatCoin*>(spine->mExecutor));
+}
+void NrvTicoFatCoin::TicoFatCoinNrvDone::execute(Spine*) const {}
+void NrvTicoFatCoin::TicoFatCoinNrvDelayEnd::execute(Spine* spine) const {
+    TicoFatCoin* actor = static_cast<TicoFatCoin*>(spine->mExecutor);
+    if (MR::isStep(actor, 20)) actor->setNerve(GET_NERVE(TicoFatCoin, TicoFatCoinNrvEnd));
 }

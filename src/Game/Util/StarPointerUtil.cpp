@@ -55,7 +55,7 @@ namespace {
         return SingletonHolder< GameSystem >::get()->mSequenceDirector->mStarPointerOnOffController;
     }
 
-    inline StarPointerController* getStarPointerController(s32 channel) {
+    inline StarPointerInput* getStarPointerController(s32 channel) {
         return getStarPointerDirector()->getStarPointerController(channel);
     }
 
@@ -100,7 +100,7 @@ namespace {
             return false;
         }
 
-        StarPointerController* controller = getStarPointerController(channel);
+        StarPointerInput* controller = getStarPointerController(channel);
         if (!controller->isInScreen()) {
             return false;
         }
@@ -118,7 +118,7 @@ namespace {
             return false;
         }
 
-        if (!targetPointCheckFunc(pTargetInfo, controller->mWorldPos, controller->mPastInfo.mPos, controller->getViewDistZ(), layout->getRadius())) {
+        if (!targetPointCheckFunc(pTargetInfo, controller->getWorldPosition(), controller->getScreenPosition(), controller->getViewDistanceZ(), layout->getRadius())) {
             return false;
         }
 
@@ -412,7 +412,7 @@ namespace MR {
         f32 r = getStarPointerRadius(channel);
         StarPointerTarget target(radius, &rPos, nullptr, TVec3f(0.0f, 0.0f, 0.0f));
 
-        StarPointerController* controller = ::getStarPointerController(channel);
+        StarPointerInput* controller = ::getStarPointerController(channel);
 
         if (!::getStarPointerLayout(channel)->mIsPointerValid) {
             return false;
@@ -427,7 +427,7 @@ namespace MR {
             return false;
         }
 
-        if (target.isPointing(controller->mPastInfo.mPos, controller->getViewDistZ(), layout->getRadius())) {
+        if (target.isPointing(controller->getScreenPosition(), controller->getViewDistanceZ(), layout->getRadius())) {
             ::onReaction(reinterpret_cast< u64 >(&rPos), channel, enableTouch, false, false);
             return true;
         }
@@ -450,18 +450,18 @@ namespace MR {
         return ::getStarPointerLayout(channel)->mRadius;
     }
 
-    TVec2f* getStarPointerScreenPosition(s32 channel) {
-        return &::getStarPointerController(channel)->mPastInfo.mPos;
+    const TVec2f* getStarPointerScreenPosition(s32 channel) {
+        return &::getStarPointerController(channel)->getScreenPosition();
     }
 
     TVec2f getStarPointerScreenPositionOrEdge(s32 channel) {
-        TVec2f pos(::getStarPointerController(channel)->mPastInfo.mPos);
+        TVec2f pos(::getStarPointerController(channel)->getScreenPosition());
         StarPointerFunction::forceInsideScreenEdge(&pos);
         return pos;
     }
 
     f32 getStarPointerScreenSpeed(s32 channel) {
-        return ::getStarPointerController(channel)->mScreenSpeed;
+        return ::getStarPointerController(channel)->getScreenSpeed();
     }
 
     bool isStarPointerInScreen(s32 channel) {
@@ -487,18 +487,18 @@ namespace MR {
         return &pActor->mStarPointerTarget->mLastPointedChannel;
     }
 
-    TVec2f* getStarPointerScreenVelocity(s32 channel) {
-        return &::getStarPointerController(channel)->mScreenVel;
+    const TVec2f* getStarPointerScreenVelocity(s32 channel) {
+        return &::getStarPointerController(channel)->getScreenVelocity();
     }
 
 
-    TVec3f* getStarPointerWorldPosUsingDepth(s32 channel) {
-        return &::getStarPointerController(channel)->mWorldPos;
+    const TVec3f* getStarPointerWorldPosUsingDepth(s32 channel) {
+        return &::getStarPointerController(channel)->getWorldPosition();
     }
 
     void calcStarPointerWorldPointingPos(TVec3f* pPos, const TVec3f& rPos, s32 channel) {
         f32 camZ = MR::calcCameraDistanceZ(rPos);
-        MR::calcWorldPositionFromScreen(pPos, ::getStarPointerController(channel)->mPastInfo.mPos, camZ);
+        MR::calcWorldPositionFromScreen(pPos, ::getStarPointerController(channel)->getScreenPosition(), camZ);
     }
 
 
@@ -542,10 +542,10 @@ namespace MR {
     }
 
     bool calcStarPointerWorldVelocityDirectionOnPlane(TVec3f* pDir, const TVec3f& rPlaneBasePos, const TVec3f& rPlaneNorm, s32 channel) {
-        StarPointerController* controller = ::getStarPointerController(channel);
+        StarPointerInput* controller = ::getStarPointerController(channel);
         TVec3f camPos = MR::getCamPos();
-        const TVec2f& posA = controller->mPastInfo.mPos;
-        const TVec2f& posB = posA.subInline(controller->mScreenVel);
+        const TVec2f& posA = controller->getScreenPosition();
+        const TVec2f& posB = posA.subInline(controller->getScreenVelocity());
         TVec3f toPointA, toPointB;
         MR::calcWorldPositionFromScreen(&toPointA, posA, -1.0f);
         MR::calcWorldPositionFromScreen(&toPointB, posB, -1.0f);
@@ -600,7 +600,7 @@ namespace MR {
             return false;
         }
 
-        TVec2f screenVel = ::getStarPointerController(channel)->mScreenVel;
+        TVec2f screenVel = ::getStarPointerController(channel)->getScreenVelocity();
 
         f32 rad2D = MR::calcPointRadius2D(rPosition, radius);
         screenVel.scale(1.0f / rad2D);
@@ -615,7 +615,7 @@ namespace MR {
         }
 
         TVec2f screenPos;
-        screenPos.set(::getStarPointerController(channel)->mPastInfo.mPos);
+        screenPos.set(::getStarPointerController(channel)->getScreenPosition());
 
         TVec2f pos2D;
         MR::calcScreenPosition(&pos2D, rPosition);
@@ -657,7 +657,7 @@ namespace MR {
             return false;
         }
 
-        StarPointerController* controller = ::getStarPointerController(channel);
+        StarPointerInput* controller = ::getStarPointerController(channel);
         if (!::getStarPointerLayout(channel)->mIsPointerValid) {
             return false;
         }
@@ -666,7 +666,7 @@ namespace MR {
             return false;
         }
 
-        TVec2f targetPos(controller->mPastInfo.mPos);
+        TVec2f targetPos(controller->getScreenPosition());
         screenPos -= targetPos;
         *pDistance = screenPos.length();
         return true;

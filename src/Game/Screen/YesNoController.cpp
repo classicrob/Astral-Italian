@@ -1,5 +1,6 @@
 #include "Game/Screen/YesNoController.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/StarPointerUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/ButtonPaneController.hpp"
 #include "Game/Util/EffectUtil.hpp"
@@ -103,6 +104,9 @@ void YesNoController::exeSelecting() {
         mButtonNoPaneCtrl->appear();
     }
 
+    registerPointer();
+    if (mButtonYesPaneCtrl->isWait()) StarPointerUtil::enableMovePositionInput();
+
     if (mButtonYesPaneCtrl->isPointingTrigger()) {
         if (mCursorSE != nullptr) {
             MR::startSystemSE(mCursorSE);
@@ -144,7 +148,7 @@ void YesNoController::exeDecided() {
     if (MR::isFirstStep(this)) {
         deleteEffectIfExist("LeftText");
         deleteEffectIfExist("RightText");
-        MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0);
+        MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
 
         if (isSelectedYes) {
             if (mYesSE != nullptr) {
@@ -187,4 +191,21 @@ void YesNoController::exeSelected() {
 
 void YesNoController::exeNotSelected() {
     _C = false;
+}
+
+bool YesNoController::isYesButtonSelected() const { return mButtonYesPaneCtrl->mIsSelected; }
+
+void YesNoController::registerPointer() {
+    if (StarPointerUtil::beginMovePositionRegistration(this, true)) {
+        TVec2f left(60.0f, 20.0f);
+        StarPointerUtil::addStarPointerMovePositionFromPane(mHost, "BoxLeft", &left);
+        TVec2f right(60.0f, 20.0f);
+        StarPointerUtil::addStarPointerMovePositionFromPane(mHost, "BoxRight", &right);
+        StarPointerUtil::setFirstMovePosition("BoxLeft");
+        StarPointerUtil::setLastMovePosition("BoxRight");
+        StarPointerUtil::setConnectionMovePositionRight("BoxLeft", "BoxRight");
+        StarPointerUtil::disableMovePositionInput();
+    }
+    StarPointerUtil::endMovePositionRegistration(mHost);
+    StarPointerUtil::refreshMovePositionsFromLayout(mHost);
 }

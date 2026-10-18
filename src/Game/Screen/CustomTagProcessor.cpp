@@ -589,9 +589,9 @@ CustomTagProcessor::Operation CustomTagProcessor::exeFontSizeGroup(nw4r::ut::Rec
 
 CustomTagProcessor::Operation CustomTagProcessor::exeSystemGroup(nw4r::ut::Rect* rect, const MessageEditorMessageTag& tag, ContextType* context) {
     switch (tag.getTag()) {
+    case 3:
+        return exeSystemGroupColor(rect, tag.getParam16(0), context);
     case 0:
-        return exeSystemGroupColor(rect, tag.getParam8(0), context);
-    case 2:
         return exeSystemGroupRuby(rect, tag, context);
     }
 
@@ -631,6 +631,41 @@ CustomTagProcessor::Operation CustomTagProcessor::exeStringGroup(nw4r::ut::Rect*
 
     writeString(rect, *reinterpret_cast< const wchar_t** >(tag.getParamPtr(0)), context);
     return OPERATION_DEFAULT;
+}
+
+// NONMATCHING: compiler folds the equivalent signed color-index range tests into one unsigned comparison.
+CustomTagProcessor::Operation CustomTagProcessor::exeSystemGroupColor(nw4r::ut::Rect* rect, int index, ContextType* context) {
+    if (mIsShadow) {
+        return OPERATION_NO_CHAR_SPACE;
+    }
+
+    if (index == 0xFFFF) {
+        index = 0;
+    }
+
+    if (mIsInfo) {
+        if (index >= 1) {
+            if (index < 8) {
+                index += 7;
+            }
+        }
+    }
+
+    if (!rect) {
+        mColorIndex = index;
+        if (index == 0) {
+            context->writer->SetColorMapping(mColorMappingMin, mColorMappingMax);
+        } else {
+            GXColor color = ::sTextColor[index];
+            color.a = mColorMappingMin.a;
+            context->writer->SetColorMapping(color, ::sTextColor[index]);
+        }
+
+        context->writer->SetupGX();
+        ::setTextColor(context->writer, index);
+    }
+
+    return OPERATION_NO_CHAR_SPACE;
 }
 
 CustomTagProcessor::Operation CustomTagProcessor::exeSystemGroupRuby(nw4r::ut::Rect* rect, const MessageEditorMessageTag& tag, ContextType* context) {

@@ -82,6 +82,7 @@ class YoshiLockOnTarget;
 class NPCActor : public LiveActor {
 public:
     NPCActor(const char*);
+    virtual ~NPCActor();
 
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();

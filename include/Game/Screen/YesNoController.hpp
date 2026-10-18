@@ -16,6 +16,8 @@ public:
     void update();
     bool isSelected() const;
     bool isSelectedYes() const;
+    bool isYesButtonSelected() const;
+    void registerPointer();
     bool isDisappearStart() const;
     void setSE(const char*, const char*, const char*);
     bool trySelect();

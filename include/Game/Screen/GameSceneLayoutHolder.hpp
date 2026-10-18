@@ -3,6 +3,7 @@
 #include "Game/NameObj/NameObj.hpp"
 
 class CameraInfo;
+class DestroyCounter;
 class CounterLayoutController;
 class InformationMessage;
 class MarioMeter;
@@ -19,8 +20,12 @@ public:
     GameSceneLayoutHolder();
 
     void createPurpleCoinCounter();
+    void createDestroyCounter(s32);
+    DestroyCounter* getDestroyCounter() const;
+    void appearDestroyCounter();
+    void killDestroyCounter();
     PurpleCoinCounter* getPurpleCoinCounter() const;
-    void initLifeCount(u32);
+    void initLifeCount(s32);
     void setLifeCount(u32);
     void setOxygenRatio(f32);
     void setBeePowerRatio(f32);
@@ -45,7 +50,7 @@ public:
     /* 0x30 */ NoteCounter* mNoteCounter;
     /* 0x34 */ CounterLayoutController* mCounterLayoutCtrl;
     /* 0x38 */ PurpleCoinCounter* mPurpleCoinCounter;
-    /* 0x3C */ void* _3C;
+    /* 0x3C */ DestroyCounter* mDestroyCounter;
     /* 0x40 */ bool mIsActiveDefaultGameLayout;
 };
 

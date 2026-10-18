@@ -24,7 +24,8 @@ namespace GameSceneFunction {
     bool isExecPauseMenu();
 };  // namespace GameSceneFunction
 
-namespace GameSceneFunction { bool isExecSuperDreamerTalk(); }
+namespace GameSceneFunction {
+    bool isPowerStarAppeared(); bool isExecSuperDreamerTalk(); }
 
 namespace GameSceneFunction {
     void requestStartSuperDreamerTalk();

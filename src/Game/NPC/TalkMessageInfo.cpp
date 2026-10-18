@@ -2,7 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-TalkMessageInfo::TalkMessageInfo() : _0(0), mCameraSetID(0), _6(0), mCameraType(2), mTalkType(0), _A(-1), _B(-1) {
+TalkMessageInfo::TalkMessageInfo() : _0(0), mCameraSetID(0), _6(0), mCameraType(2), mTalkType(0), mBalloonType(0), _A(-1), _B(-1) {
 }
 
 bool TalkMessageInfo::isNormalTalk() const {
@@ -14,7 +14,15 @@ bool TalkMessageInfo::isShortTalk() const {
 }
 
 bool TalkMessageInfo::isEventTalk() const {
+    return mTalkType == 2 || mTalkType == 3;
+}
+
+bool TalkMessageInfo::isAutoEventTalk() const {
     return mTalkType == 2;
+}
+
+bool TalkMessageInfo::isGlobalEventTalk() const {
+    return mTalkType == 3;
 }
 
 bool TalkMessageInfo::isComposeTalk() const {
@@ -38,7 +46,7 @@ bool TalkMessageInfo::isBalloonFix() const {
 }
 
 bool TalkMessageInfo::isBalloonSign() const {
-    return mBalloonType == 4;
+    return mBalloonType == 3;
 }
 
 bool TalkMessageInfo::isBalloonInfo() const {
@@ -46,7 +54,7 @@ bool TalkMessageInfo::isBalloonInfo() const {
 }
 
 bool TalkMessageInfo::isBalloonIcon() const {
-    return mBalloonType == 6;
+    return mBalloonType == 4;
 }
 
 bool TalkMessageInfo::isCameraNormal() const {

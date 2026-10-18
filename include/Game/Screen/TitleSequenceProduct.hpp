@@ -21,6 +21,10 @@ public:
     bool isActive() const;
     void updateButtonReaction(TriggerChecker* pButtonChecker, const char* pAnimName);
     void updatePressStartReaction();
+    void exePal60();
+    void exeBgmStop();
+    void exeDemoAnim();
+    bool isBgmStartStep() const;
     void exeLogoFadein();
     void exeLogoWait();
     void exeLogoDisplay();

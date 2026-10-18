@@ -15,12 +15,12 @@ namespace {
     static const s32 sChangeSoundFrame = 40;
 };  // namespace
 
-namespace {
-    NEW_NERVE(PlayerActionGuidanceWaitFocusIn, PlayerActionGuidance, WaitFocusIn);
-    NEW_NERVE(PlayerActionGuidanceFadein, PlayerActionGuidance, Fadein);
-    NEW_NERVE(PlayerActionGuidanceDisplay, PlayerActionGuidance, Display);
-    NEW_NERVE(PlayerActionGuidanceSuspend, PlayerActionGuidance, Suspend);
-    NEW_NERVE(PlayerActionGuidanceFadeout, PlayerActionGuidance, Fadeout);
+namespace NrvPlayerActionGuidance {
+    NEW_NERVE(PlayerActionGuidanceNrvWaitFocusIn, PlayerActionGuidance, WaitFocusIn);
+    NEW_NERVE(PlayerActionGuidanceNrvFadein, PlayerActionGuidance, Fadein);
+    NEW_NERVE(PlayerActionGuidanceNrvDisplay, PlayerActionGuidance, Display);
+    NEW_NERVE(PlayerActionGuidanceNrvSuspend, PlayerActionGuidance, Suspend);
+    NEW_NERVE(PlayerActionGuidanceNrvFadeout, PlayerActionGuidance, Fadeout);
 };  // namespace
 
 namespace MR {
@@ -58,7 +58,7 @@ void PlayerActionGuidance::control() {
 
 void PlayerActionGuidance::init(const JMapInfoIter& rIter) {
     MR::connectToSceneLayoutMovement(this);
-    initNerve(GET_NERVE_ANON(PlayerActionGuidanceWaitFocusIn));
+    initNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvWaitFocusIn));
     startAnimAllLayout("Appear");
     setAnimFrameAndStopAllLayout(0.0f);
     hideAllLayout();
@@ -99,13 +99,13 @@ void PlayerActionGuidance::exeWaitFocusIn() {
     }
 
     if (_35) {
-        setNerve(GET_NERVE_ANON(PlayerActionGuidanceSuspend));
+        setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvSuspend));
     }
 }
 
 void PlayerActionGuidance::exeFadein() {
     if (MR::isFirstStep(this)) {
-        hideAllLayout();
+        showCurrentLayout();
         startWaitAnimAllLayout();
         setAnimFrameAndStopAllLayout(0.0f);
         calcAnim();
@@ -113,7 +113,7 @@ void PlayerActionGuidance::exeFadein() {
     }
 
     if (MR::isAnimStopped(mCurrentLayout, 0)) {
-        setNerve(GET_NERVE_ANON(PlayerActionGuidanceDisplay));
+        setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvDisplay));
     }
 }
 
@@ -122,7 +122,7 @@ void PlayerActionGuidance::startWaitAnimTamakoro() {
         return;
     }
 
-    if (isNerve(GET_NERVE_ANON(PlayerActionGuidanceFadein))) {
+    if (isNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvFadein))) {
         MR::startAnim(mTamakoroLayout, "WaitRotation", 0);
     }
 
@@ -173,7 +173,7 @@ void PlayerActionGuidance::exeDisplay() {
     }
 
     if (MR::isAnimStopped(mCurrentLayout, 0) || !_35) {
-        setNerve(GET_NERVE_ANON(PlayerActionGuidanceFadeout));
+        setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvFadeout));
     }
 }
 
@@ -181,9 +181,9 @@ void PlayerActionGuidance::exeSuspend() {
     if (MR::isStep(this, ::sSuspendFrame)) {
         if (!_35) {
             hideAllLayout();
-            setNerve(GET_NERVE_ANON(PlayerActionGuidanceWaitFocusIn));
+            setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvWaitFocusIn));
         } else {
-            setNerve(GET_NERVE_ANON(PlayerActionGuidanceFadein));
+            setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvFadein));
         }
     }
 }
@@ -195,10 +195,10 @@ void PlayerActionGuidance::exeFadeout() {
 
     if (MR::isAnimStopped(mCurrentLayout, 0)) {
         if (_35) {
-            setNerve(GET_NERVE_ANON(PlayerActionGuidanceSuspend));
+            setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvSuspend));
         } else {
             hideAllLayout();
-            setNerve(GET_NERVE_ANON(PlayerActionGuidanceWaitFocusIn));
+            setNerve(GET_NERVE(PlayerActionGuidance, PlayerActionGuidanceNrvWaitFocusIn));
         }
     }
 }
@@ -279,4 +279,13 @@ bool PlayerActionGuidance::isInVolumePlayer(const char* pObjName, bool param2) c
     }
 
     return true;
+}
+
+void PlayerActionGuidance::showCurrentLayout() {
+    hideAllLayout();
+    if (_35) MR::showLayout(mCurrentLayout);
+}
+namespace MR {
+void hidePlayerActionGuidance() { getPlayerActionGuidance()->hideAllLayout(); }
+void showPlayerActionGuidance() { getPlayerActionGuidance()->showCurrentLayout(); }
 }

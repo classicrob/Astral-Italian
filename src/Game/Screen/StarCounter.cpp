@@ -29,7 +29,11 @@ void StarCounter::init(const JMapInfoIter& rIter) {
 }
 
 void StarCounter::appear() {
-    mLayoutAppearer->appear(TVec2f(0.0f, 0.0f));
+    if (MR::isStageMarioFaceShipOrWorldMap() && MR::getPowerStarNum() == 0) return;
+    if (MR::isStageWorldMap())
+        mLayoutAppearer->appear(TVec2f(0.0f, 60.0f));
+    else
+        mLayoutAppearer->appear(TVec2f(0.0f, 0.0f));
     mPaneRumbler->reset();
     MR::startAnim(this, "Wait", 1);
 
@@ -90,3 +94,5 @@ void StarCounter::exeDisappear() {
         kill();
     }
 }
+
+void StarCounter::kill() { LayoutActor::kill(); }

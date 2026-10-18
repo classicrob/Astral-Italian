@@ -1,5 +1,6 @@
 #include "Game/Screen/SwitchingScreenEffect.hpp"
 #include "Game/Util.hpp"
+#include "Game/Scene/SceneObjHolder.hpp"
 
 using namespace NrvSwitchingScreenEffect;
 
@@ -57,4 +58,33 @@ void SwitchingScreenEffect::updateScreenPlacement() {
     mPosition.y = -MR::getScreenHeight() / 2;
     mScale.x = MR::getScreenWidth() / 1000.0f;
     mScale.y = MR::getScreenHeight() / 1000.0f;
+}
+
+SwitchingScreenEffect::~SwitchingScreenEffect() {}
+namespace NrvSwitchingScreenEffect {
+    SwitchingScreenEffectNrvWait::SwitchingScreenEffectNrvWait() {}
+    SwitchingScreenEffectNrvWait SwitchingScreenEffectNrvWait::sInstance;
+    SwitchingScreenEffectNrvWaitCapture::SwitchingScreenEffectNrvWaitCapture() {}
+    SwitchingScreenEffectNrvWaitCapture SwitchingScreenEffectNrvWaitCapture::sInstance;
+    SwitchingScreenEffectNrvSwitch::SwitchingScreenEffectNrvSwitch() {}
+    SwitchingScreenEffectNrvSwitch SwitchingScreenEffectNrvSwitch::sInstance;
+    SwitchingScreenEffectNrvDisplay::SwitchingScreenEffectNrvDisplay() {}
+    SwitchingScreenEffectNrvDisplay SwitchingScreenEffectNrvDisplay::sInstance;
+    void SwitchingScreenEffectNrvDisplay::execute(Spine* spine) const { static_cast<SwitchingScreenEffect*>(spine->mExecutor)->exeDisplay(); }
+    void SwitchingScreenEffectNrvSwitch::execute(Spine* spine) const { static_cast<SwitchingScreenEffect*>(spine->mExecutor)->exeSwitch(); }
+    void SwitchingScreenEffectNrvWaitCapture::execute(Spine* spine) const { static_cast<SwitchingScreenEffect*>(spine->mExecutor)->exeWaitCapture(); }
+    void SwitchingScreenEffectNrvWait::execute(Spine* spine) const {  }
+}
+namespace MR {
+    void createSwitchingScreenEffect() { createSceneObj(0x2F); }
+    void onSwitchingScreenEffect() {
+        SwitchingScreenEffect* effect = getSceneObj<SwitchingScreenEffect>(0x2F);
+        effect->appear();
+        effect->setNerve(&NrvSwitchingScreenEffect::SwitchingScreenEffectNrvWaitCapture::sInstance);
+    }
+    void offSwitchingScreenEffect() {
+        SwitchingScreenEffect* effect = getSceneObj<SwitchingScreenEffect>(0x2F);
+        effect->appear();
+        effect->setNerve(&NrvSwitchingScreenEffect::SwitchingScreenEffectNrvWaitCapture::sInstance);
+    }
 }

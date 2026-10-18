@@ -1,12 +1,9 @@
 #include "Game/NPC/EventDirector.hpp"
 #include "Game/NPC/CometEventKeeper.hpp"
 #include "Game/NPC/PowerStarEventKeeper.hpp"
-#include "Game/NPC/PowerStarEventKeeper.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/PowerStarHolder.hpp"
-#include "Game/NPC/CometEventKeeper.hpp"
-#include "Game/NPC/PowerStarEventKeeper.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 
 EventDirector::EventDirector()
@@ -31,10 +28,6 @@ PowerStarEventKeeper* EventFunction::getPowerStarEventKeeper() {
     return getEventDirector()->mPowerStarEventKeeper;
 }
 
-StageStateKeeper* EventFunction::getStageStateKeeper() {
-    return getEventDirector()->mStageStateKeeper;
-}
-
 PowerStarHolder* EventFunction::getPowerStarHolder() {
     return getEventDirector()->mPowerStarHolder;
 }
@@ -51,12 +44,16 @@ void EventFunction::startCometEvent() {
     getCometEventKeeper()->startCometEventIfExist();
 }
 
+void EventFunction::stopCometEvent() {
+    getCometEventKeeper()->stopCometEvent();
+}
+
 void EventFunction::endCometEvent() {
     getCometEventKeeper()->endCometEvent();
 }
 
 bool EventFunction::isCometEvent() {
-    return *reinterpret_cast< const s32* >(getCometEventKeeper()) != 0;
+    return getCometEventKeeper()->mExecutor != nullptr;
 }
 
 namespace MR {
@@ -90,8 +87,8 @@ namespace MR {
         return EventFunction::getPowerStarEventKeeper()->isGrand(pParam1, param2);
     }
 
-    void appearEventPowerStar(const char* pParam1, s32 param2, const TVec3f* pParam3, bool param4, bool param5) {
-        EventFunction::getPowerStarEventKeeper()->requestAppearPowerStar(pParam1, param2, pParam3, param4, param5);
+    void appearEventPowerStar(const char* pParam1, s32 param2, const TVec3f* pParam3, bool param4, bool param5, bool fromBelow) {
+        EventFunction::getPowerStarEventKeeper()->requestAppearPowerStar(pParam1, param2, pParam3, param4, param5, fromBelow);
     }
 
     bool isEndEventPowerStarAppearDemo(const char* pParam1) {

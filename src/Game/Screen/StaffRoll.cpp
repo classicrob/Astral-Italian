@@ -304,3 +304,11 @@ namespace MR {
         return MR::getSceneObj<StaffRoll>(SceneObj_StaffRoll);
     }
 }
+
+bool StaffRoll::isDemoCameraStartFinished() const {
+    return GameSequenceFunction::getElapsedStageFrame() - mStartFrame >= 13050;
+}
+
+bool StaffRoll::isDemoCameraEndFinished() const {
+    return GameSequenceFunction::getElapsedStageFrame() - mStartFrame >= 13254;
+}

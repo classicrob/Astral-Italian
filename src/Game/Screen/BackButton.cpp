@@ -79,3 +79,5 @@ void BackButton::waitForSelection() {
     mPaneCtrl->_22 = false;
     mWaitForSelection = true;
 }
+
+BackButtonCancelB::BackButtonCancelB(const char* name, bool connect) : BackButton(name, connect) {}

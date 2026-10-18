@@ -4,11 +4,11 @@
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
-namespace {
+namespace NrvMissLayout {
     NEW_NERVE(MissLayoutNrvWait, MissLayout, Wait);
     NEW_NERVE(MissLayoutNrvActive, MissLayout, Active);
     NEW_NERVE(MissLayoutNrvEnd, MissLayout, End);
-};  // namespace
+}
 
 MissLayout::MissLayout() : LayoutActor("ミス!", true) {
 }
@@ -17,27 +17,27 @@ void MissLayout::init(const JMapInfoIter& rIter) {
     MR::connectToSceneLayout(this);
     initLayoutManager("TooBad", 1);
     initEffectKeeper(0, nullptr, nullptr);
-    initNerve(GET_NERVE_ANON(MissLayoutNrvWait));
+    initNerve(GET_NERVE_DIRECT(NrvMissLayout, MissLayoutNrvWait));
     kill();
 }
 
 void MissLayout::kill() {
     LayoutActor::kill();
-    setNerve(GET_NERVE_ANON(MissLayoutNrvWait));
+    setNerve(GET_NERVE_DIRECT(NrvMissLayout, MissLayoutNrvWait));
 }
 
 bool MissLayout::isActive() const {
-    return isNerve(GET_NERVE_ANON(MissLayoutNrvActive));
+    return isNerve(GET_NERVE_DIRECT(NrvMissLayout, MissLayoutNrvActive));
 }
 
 void MissLayout::start() {
-    if (isNerve(GET_NERVE_ANON(MissLayoutNrvActive))) {
+    if (isNerve(GET_NERVE_DIRECT(NrvMissLayout, MissLayoutNrvActive))) {
         return;
     }
 
     LayoutActor::appear();
     MR::hideLayout(this);
-    setNerve(GET_NERVE_ANON(MissLayoutNrvActive));
+    setNerve(GET_NERVE_DIRECT(NrvMissLayout, MissLayoutNrvActive));
 }
 
 void MissLayout::exeWait() {
@@ -54,7 +54,7 @@ void MissLayout::exeActive() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(MissLayoutNrvEnd));
+        setNerve(GET_NERVE_DIRECT(NrvMissLayout, MissLayoutNrvEnd));
     }
 }
 

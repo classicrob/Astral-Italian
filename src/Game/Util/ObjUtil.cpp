@@ -24,6 +24,7 @@
 #include "Game/NameObj/NameObjFinder.hpp"
 #include "Game/NameObj/NameObjListExecutor.hpp"
 #include "Game/Scene/GameSceneFunction.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Scene/StopSceneController.hpp"
@@ -664,7 +665,7 @@ bool MR::isStageStateScenarioOpeningCamera() {
 }
 
 bool MR::isStageStatePowerStarAppeared() {
-    return EventFunction::getStageStateKeeper()->mIsPowerStarAppeared;
+    return GameSequenceFunction::isResultPowerStarAppeared();
 }
 
 void MR::declarePowerStar(const NameObj* pObj) {
@@ -680,23 +681,23 @@ void MR::declarePowerStarCoin100() {
 }
 
 void MR::appearPowerStarContinueCurrentDemo(const NameObj* pObj, const TVec3f& rParam2) {
-    appearEventPowerStar(pObj->getName(), -1, &rParam2, true, false);
+    appearEventPowerStar(pObj->getName(), -1, &rParam2, true, false, false);
 }
 
 void MR::appearPowerStarWithoutDemo(const NameObj* pObj) {
-    appearEventPowerStar(pObj->getName(), -1, nullptr, false, true);
+    appearEventPowerStar(pObj->getName(), -1, nullptr, false, true, false);
 }
 
 void MR::requestAppearPowerStar(const NameObj* pObj) {
-    appearEventPowerStar(pObj->getName(), -1, nullptr, false, false);
+    appearEventPowerStar(pObj->getName(), -1, nullptr, false, false, false);
 }
 
 void MR::requestAppearPowerStar(const NameObj* pObj, const TVec3f& rParam2) {
-    appearEventPowerStar(pObj->getName(), -1, &rParam2, false, false);
+    appearEventPowerStar(pObj->getName(), -1, &rParam2, false, false, false);
 }
 
 void MR::requestAppearPowerStar(const NameObj* pObj, s32 param2, const TVec3f& rParam3) {
-    appearEventPowerStar(pObj->getName(), param2, &rParam3, false, false);
+    appearEventPowerStar(pObj->getName(), param2, &rParam3, false, false, false);
 }
 
 void MR::requestAppearPowerStar(const NameObj* pObj, const LiveActor* pActor, f32 flt) {
@@ -704,11 +705,11 @@ void MR::requestAppearPowerStar(const NameObj* pObj, const LiveActor* pActor, f3
     TVec3f baseMtxY(baseMtx[1][0], baseMtx[1][1], baseMtx[1][2]);
     baseMtxY.scale(flt);
     baseMtxY.add(pActor->mPosition);
-    appearEventPowerStar(pObj->getName(), -1, &baseMtxY, false, false);
+    appearEventPowerStar(pObj->getName(), -1, &baseMtxY, false, false, false);
 }
 
 void MR::requestAppearPowerStarCoin100() {
-    appearEventPowerStar("１００枚コイン", -1, nullptr, false, false);
+    appearEventPowerStar("１００枚コイン", -1, nullptr, false, false, false);
 }
 
 bool MR::isEndPowerStarAppearDemo(const NameObj* pObj) {

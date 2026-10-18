@@ -14,3 +14,7 @@ namespace GameDataConst {
     u32 getIncludedGrandGalaxyId(const char*);
     bool isPowerStarSpecial(const char*, s32, const char*);
 };  // namespace GameDataConst
+
+namespace GameDataConst {
+    s32 getWorldNo(const char*);
+}

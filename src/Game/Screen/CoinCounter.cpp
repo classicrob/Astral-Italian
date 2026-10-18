@@ -35,8 +35,11 @@ void CoinCounter::init(const JMapInfoIter& rIter) {
     mLayoutAppearer = new CounterLayoutAppearer(this, TVec2f(50.0f, 0.0f));
     mPaneRumbler = new CountUpPaneRumbler(this, "Counter", -1.0f);
 
+    forceSync();
     initNerve(GET_NERVE(CoinCounter, CoinCounterNrvHide));
     MR::connectToSceneLayout(this);
+    if (MR::isStageMarioFaceShipOrWorldMap()) MR::hidePane(this, "ShaCoin");
+    else MR::hidePane(this, "ShaTCoin");
     appear();
 }
 
@@ -94,38 +97,39 @@ void CoinCounter::control() {
 
 void CoinCounter::updateCounter() {
     mCoinNum = MR::getCoinNum();
-
-    if (mInvalidCountUpFrame > 0) {
-        mInvalidCountUpFrame--;
-    } else if (mCoinDisplayNum < mCoinNum) {
-        if (isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) {
-            mInvalidCountUpFrame = ::cInvalidCountUpInterval;
-            mCoinDisplayNum++;
-
-            MR::startAnim(this, "Flash", 0);
-            MR::emitEffect(this, "CoinCounterLight");
-            mPaneRumbler->start();
-        }
-
-        if (!isNerve(GET_NERVE(CoinCounter, CoinCounterNrvAppear))) {
-            if (!isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) {
-                setNerve(GET_NERVE(CoinCounter, CoinCounterNrvAppear));
-            } else {
-                setNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait));
-            }
-        }
+    if (mInvalidCountUpFrame > 0) mInvalidCountUpFrame--;
+    else if (mCoinDisplayNum < mCoinNum) changeDisplayCount(1);
+    else if (mCoinNum < mCoinDisplayNum) changeDisplayCount(-1);
+    const char* pane;
+    if (_4C) {
+        if (mCoinDisplayNum >= 1000) pane = "TPosition1000";
+        else if (mCoinDisplayNum >= 100) pane = "TPosition0100";
+        else if (mCoinDisplayNum >= 10) pane = "TPosition0010";
+        else pane = "TPosition0001";
+    } else {
+        if (mCoinDisplayNum >= 1000) pane = "Position1000";
+        else if (mCoinDisplayNum >= 100) pane = "Position0100";
+        else if (mCoinDisplayNum >= 10) pane = "Position0010";
+        else pane = "Position0001";
     }
-
-    char* pPaneName = "Position001";
-
-    if (mCoinDisplayNum >= 100) {
-        pPaneName = "Position100";
-    } else if (mCoinDisplayNum >= 10) {
-        pPaneName = "Position010";
-    }
-
-    MR::copyPaneTrans(&mFollowPos, this, pPaneName);
+    MR::copyPaneTrans(&mFollowPos, this, pane);
     MR::setTextBoxNumberRecursive(this, "Counter", mCoinDisplayNum);
+}
+
+// NONMATCHING: displayed count and delay temporary registers.
+void CoinCounter::changeDisplayCount(s32 delta) {
+    if (isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) {
+        mInvalidCountUpFrame = 3;
+        mCoinDisplayNum += delta;
+        MR::startAnim(this, "Flash", 0);
+        if (delta > 0) MR::emitEffect(this, "CoinCounterLight");
+        mPaneRumbler->start();
+        return;
+    }
+    if (!isNerve(GET_NERVE(CoinCounter, CoinCounterNrvAppear))) {
+        if (!isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) setNerve(GET_NERVE(CoinCounter, CoinCounterNrvAppear));
+        else setNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait));
+    }
 }
 
 void CoinCounter::exeHide() {

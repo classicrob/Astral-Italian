@@ -85,25 +85,25 @@ public:
     }
 
     void clearPage() {
-        *reinterpret_cast< u32* >(reinterpret_cast< u8* >(this) + 0x1F8) = 0;
+        _1EC = 0;
     }
 
 private:
-    /* 0x020 */ ButtonPaneController* _20[2];
-    /* 0x028 */ MR::BitArray* _28;
-    /* 0x02C */ u16 mFellowIconNum;
-    /* 0x02E */ u16 mFavoriteMiiNum;
-    /* 0x030 */ u32 mFavoriteMiiIndices[10];
-    /* 0x058 */ u16 mMiiNum;
-    /* 0x05C */ u32 mMiiIndices[10];
-    /* 0x084 */ u8 _84[360];
-    /* 0x1EC */ s32 _1EC;
-    /* 0x1F0 */ s32 _1F0;
-    /* 0x1F4 */ nw4r::lyt::TexMap* _1F4;
-    /* 0x1F8 */ MiiSelectSub::Page* _1F8;
-    /* 0x1FC */ MiiSelectSub::Page* _1FC;
-    /* 0x200 */ u8 _200;
-    /* 0x204 */ FileSelectIconID* _204;
+    /* 0x02C */ ButtonPaneController* _20[2];
+    /* 0x034 */ MR::BitArray* _28;
+    /* 0x038 */ u16 mFellowIconNum;
+    /* 0x03A */ u16 mFavoriteMiiNum;
+    /* 0x03C */ u32 mFavoriteMiiIndices[10];
+    /* 0x064 */ u16 mMiiNum;
+    /* 0x068 */ u32 mMiiIndices[10];
+    /* 0x090 */ u8 _84[360];
+    /* 0x1F8 */ s32 _1EC;
+    /* 0x1FC */ s32 _1F0;
+    /* 0x200 */ nw4r::lyt::TexMap* _1F4;
+    /* 0x204 */ MiiSelectSub::Page* _1F8;
+    /* 0x208 */ MiiSelectSub::Page* _1FC;
+    /* 0x20C */ u8 _200;
+    /* 0x210 */ FileSelectIconID* _204;
 };
 
 namespace MiiSelectSub {

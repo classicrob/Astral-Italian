@@ -1,4 +1,7 @@
 #include "Game/Screen/CinemaFrame.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
+#include "Game/Util/EventUtil.hpp"
+#include "Game/Util/SceneUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Scene/SceneFunction.hpp"
@@ -23,13 +26,14 @@ CinemaFrame::CinemaFrame(bool isConnectToScene) : LayoutActor("シネマフレ�
 }
 
 void CinemaFrame::init(const JMapInfoIter& rIter) {
-    initLayoutManager("CinemaFrame", 1);
+    initLayoutManager("CinemaFrame", 2);
     initNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvScreen));
     kill();
 }
 
 void CinemaFrame::appear() {
     LayoutActor::appear();
+    setColor();
     setNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvScreenToFrame));
 }
 
@@ -37,6 +41,7 @@ void CinemaFrame::tryScreenToFrame() {
     if (MR::isDead(this)) {
         appear();
     }
+    setColor();
 
     bool isInvalid = isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvFrame)) || isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvScreenToFrame)) ||
                      isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvBlankToFrame));
@@ -50,6 +55,7 @@ void CinemaFrame::tryFrameToBlank() {
     if (MR::isDead(this)) {
         appear();
     }
+    setColor();
 
     bool isInvalid = isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvBlank)) || isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvFrameToBlank));
 
@@ -62,6 +68,7 @@ void CinemaFrame::tryBlankToFrame() {
     if (MR::isDead(this)) {
         appear();
     }
+    setColor();
 
     bool isInvalid = isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvFrame)) || isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvScreenToFrame)) ||
                      isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvBlankToFrame));
@@ -75,6 +82,7 @@ void CinemaFrame::tryFrameToScreen() {
     if (MR::isDead(this)) {
         appear();
     }
+    setColor();
 
     bool isInvalid = isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvScreen)) || isNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvFrameToScreen));
 
@@ -87,6 +95,7 @@ void CinemaFrame::forceToScreen() {
     if (MR::isDead(this)) {
         appear();
     }
+    setColor();
 
     setNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvScreen));
 }
@@ -95,6 +104,7 @@ void CinemaFrame::forceToFrame() {
     if (MR::isDead(this)) {
         appear();
     }
+    setColor();
 
     setNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvFrame));
 }
@@ -103,6 +113,7 @@ void CinemaFrame::forceToBlank() {
     if (MR::isDead(this)) {
         appear();
     }
+    setColor();
 
     setNerve(GET_NERVE(CinemaFrame, CinemaFrameNrvBlank));
 }
@@ -149,4 +160,22 @@ void CinemaFrame::exeBlankToFrame() {
 void CinemaFrame::exeFrameToScreen() {
     MR::startAnimAtFirstStep(this, "End", 0);
     MR::setNerveAtAnimStopped(this, GET_NERVE(CinemaFrame, CinemaFrameNrvScreen), 0);
+}
+
+// NONMATCHING: compiler duplicates equivalent false-result blocks.
+void CinemaFrame::setColor() {
+    MR::startAnim(this, "Color", 1);
+    bool green;
+    if (MR::isInitializeStateEnd()) {
+        if (MR::isStageMarioFaceShip()) {
+            if (GameSequenceFunction::hasStageResultSequence() &&
+                MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()))
+                green = true;
+            else green = false;
+        } else if (MR::isPowerStarGreenInCurrentStage()) green = true;
+        else green = false;
+    } else if (MR::isScenarioDecided() && MR::isPowerStarGreenInCurrentStage()) green = true;
+    else green = false;
+    if (green) MR::setAnimFrameAndStop(this, 1.0f, 1);
+    else MR::setAnimFrameAndStop(this, 0.0f, 1);
 }

@@ -2,6 +2,9 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/EventUtil.hpp"
+#include "Game/Scene/SceneObjHolder.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
@@ -14,6 +17,7 @@ namespace {
     static const s32 sAnimFrame = 60;
     static const char* sOutAnimName = "Out";
     static const char* sInAnimName = "In";
+    static const char* sColorAnimName = "Color";
 };  // namespace
 
 namespace NrvWipeRing {
@@ -24,11 +28,11 @@ namespace NrvWipeRing {
 }
 
 WipeRing::WipeRing(bool isCenterOnPlayer, const char* pName)
-    : WipeLayoutBase(pName), mCenterPos(0.0f, 0.0f), mAnimFrame(::sAnimFrame), mWipeOutFrame(), mWipeInFrame(), mIsCenterOnPlayer(isCenterOnPlayer) {
+    : WipeLayoutBase(pName), mCenterPos(0.0f, 0.0f), mAnimFrame(::sAnimFrame), mWipeOutFrame(), mWipeInFrame(), mIsCenterOnPlayer(isCenterOnPlayer), mIsCenterOnPlayerOnce(false) {
 }
 
 void WipeRing::init(const JMapInfoIter& rIter) {
-    initLayoutManager("WipeRing", 1);
+    initLayoutManager("WipeRing", 2);
     MR::createAndAddPaneCtrl(this, "Ring", 1);
     MR::setFollowPos(&mCenterPos, this, "Ring");
     initNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvOpen));
@@ -85,26 +89,27 @@ void WipeRing::wipe(s32 frame) {
     if (isNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvClose))) {
         setNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvWipeIn));
         startAnim(::sInAnimName);
+        setColor();
     } else if (isNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvWipeIn))) {
         setNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvWipeOut));
         startAnim(::sOutAnimName);
+        setColor();
     } else if (isNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvOpen))) {
-        if (MR::isDead(this)) {
-            appear();
-        }
+        appearWithColor();
 
         setNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvWipeOut));
         startAnim(::sOutAnimName);
+        setColor();
     } else if (isNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvWipeOut))) {
         setNerve(GET_NERVE_DIRECT(NrvWipeRing, WipeRingNrvWipeIn));
         startAnim(::sInAnimName);
+        setColor();
     }
+    mIsCenterOnPlayerOnce = false;
 }
 
 void WipeRing::forceClose() {
-    if (MR::isDead(this)) {
-        appear();
-    }
+    appearWithColor();
 
     MR::startAnim(this, ::sInAnimName, 0);
     MR::setAnimFrameAndStop(this, 0.0f, 0);
@@ -184,11 +189,15 @@ f32 WipeRing::calcRadius() const {
 }
 
 f32 WipeRing::calcMaxRadius() const {
-    return MR::fastSqrtf(900160.0f);
+    return MR::fastSqrtf(659344 + MR::getScreenHeight() * MR::getScreenHeight());
 }
 
 void WipeRing::updatePlayerPos() {
-    if (!mIsCenterOnPlayer) {
+    if (!mIsCenterOnPlayer && !mIsCenterOnPlayerOnce) {
+        return;
+    }
+
+    if (!MR::isExistSceneObj(SceneObj_CameraContext)) {
         return;
     }
 
@@ -203,4 +212,34 @@ void WipeRing::updatePlayerPos() {
     }
 
     mCenterPos.set(MR::getScreenWidth() * 0.5f, MR::getScreenHeight() * 0.5f);
+}
+
+void WipeRing::appearWithColor() {
+    if (MR::isDead(this)) {
+        appear();
+        setColor();
+    }
+    mIsCenterOnPlayerOnce = false;
+}
+
+void WipeRing::setColor() {
+    MR::startAnim(this, ::sColorAnimName, 1);
+    bool green = false;
+    if (MR::isStageMarioFaceShip()) {
+        if (GameSequenceFunction::hasStageResultSequence()) {
+            s32 starId = GameSequenceFunction::getClearedPowerStarId();
+            if (MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), starId)) {
+                green = true;
+            }
+        }
+    } else {
+        if (MR::isPowerStarGreenInCurrentStage()) {
+            green = true;
+        }
+    }
+    if (green) {
+        MR::setAnimFrameAndStop(this, 1.0f, 1);
+    } else {
+        MR::setAnimFrameAndStop(this, 0.0f, 1);
+    }
 }

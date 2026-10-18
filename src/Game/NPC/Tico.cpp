@@ -60,8 +60,6 @@ namespace {
                                    Color8(0xFF, 0, 0, 0xFF),    Color8(0x78, 0, 0xFF, 0xFF), Color8(0xFF, 0x64, 0x64, 0xFF), Color8(0xFF, 0x80, 0, 0xFF)};
 };  // namespace
 
-extern "C" bool fn_800613B0(TalkMessageCtrl*); // PLACEHOLDER(astra): inherited fn_800613B0 ABI; resolve when its target signature and canonical owner are verified.
-
 namespace MR {
     bool branchFuncGameProgress(u32);
     bool isStageMarioFaceShip();
@@ -288,7 +286,7 @@ void Tico::control() {
     if (_178) {
         TVec3f trans;
         MR::extractMtxTrans(_178, &trans);
-        MR::requestPointLight(this, trans, _17C, 0.998646f, -1);
+        MR::requestPointLight(this, trans, _17C, 0.998646f, -1.0f, -1);
     }
 
     if (isNerve(_180)) {
@@ -620,7 +618,7 @@ void Tico::exeWaitAfterRail() {
 
     if (MR::isFirstStep(this)) {
         setInitPose();
-        fn_800613B0(mMsgCtrl);
+        MR::tryForwardNodeForMessageArea(mMsgCtrl);
     }
 
     if (MR::isNear(this, MR::getRailPointPosEnd(this), 10.0f)) {
@@ -648,7 +646,7 @@ void Tico::exeWaitBeforeRail() {
     }
 
     if (MR::isFirstStep(this)) {
-        fn_800613B0(mMsgCtrl);
+        MR::tryForwardNodeForMessageArea(mMsgCtrl);
     }
 
     f32 diff = MR::calcDifferenceRailCoord(this, MR::calcNearestRailCoord(this, *MR::getPlayerPos()));
@@ -656,7 +654,7 @@ void Tico::exeWaitBeforeRail() {
         setNerve(GET_NERVE(Tico, TicoNrvMoveRail));
     }
 
-    if (!fn_800613B0(mMsgCtrl)) {
+    if (!MR::tryForwardNodeForMessageArea(mMsgCtrl)) {
         if (mMsgCtrl != nullptr) {
             MR::tryTalkNearPlayerAndStartTalkAction(this);
         } else {

@@ -26,18 +26,16 @@ MiiFacePartsHolder::~MiiFacePartsHolder() {
     delete _34;
 }
 
-// NONMATCHING: SMG2 uses mountArchive(name, nullptr, true) and createDrawAdaptor(name, 0x5B, functor) (3-arg overloads missing from our tree)
 void MiiFacePartsHolder::init(const JMapInfoIter& rIter) {
     mRFLWorkBuffer = new (MR::getSceneHeapGDDR3(), 32) u8[RFLGetWorkSize(false)];
 
-    JKRMemArchive* pArchive = MR::receiveArchive("/ObjectData/MiiFaceDatabase.arc");
+    JKRMemArchive* pArchive = MR::mountArchive("/ObjectData/MiiFaceDatabase.arc", nullptr, true);
     void* pResBuffer = pArchive->getResource("/RFL_Res.dat");
     u32 resSize = pArchive->getResSize(pResBuffer);
     _38 = RFLInitResAsync(mRFLWorkBuffer, pResBuffer, resSize, false);
 
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_NPC, MR::DrawBufferType_None, MR::DrawType_MiiFacePartsHolder);
-    MR::connectToScene(MR::createDrawAdaptor("Miiモデル再作成", MR::FunctorV0M< MiiFacePartsHolder*, void (MiiFacePartsHolder::*)() >(this, &MiiFacePartsHolder::reinitCharModel)), MR::MovementType_None,
-                       MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_MiiFaceNew);
+    MR::createDrawAdaptor("Miiモデル再作成", 0x5B, MR::FunctorV0M< MiiFacePartsHolder*, void (MiiFacePartsHolder::*)() >(this, &MiiFacePartsHolder::reinitCharModel));
 }
 
 void MiiFacePartsHolder::calcAnim() {
@@ -135,7 +133,7 @@ MiiFaceParts* MiiFacePartsHolder::createPartsFromReceipe(const char* pName, cons
 
     MR::getSceneObj< MiiFacePartsHolder >(SceneObj_MiiFacePartsHolder)->registerActor(pParts);
 
-    if (MR::startFunctionAsyncExecuteOnMainThread(MR::Functor< NameObj >(pParts, &NameObj::initWithoutIter), "initNameObjOnMainThread")) {
+    if (MR::startFunctionAsyncExecuteOnMainThread(MR::FunctorV0M< NameObj*, void (NameObj::*)() >(pParts, &NameObj::initWithoutIter), "initNameObjOnMainThread")) {
         MR::waitForEndFunctionAsyncExecute("initNameObjOnMainThread");
     }
 
@@ -174,7 +172,7 @@ void MiiFacePartsHolder::drawExtra() const {
 
     RFLLoadVertexSetting(&setting);
     RFLLoadMaterialSetting(&setting);
-    MR::loadLight(1);
+    MR::loadLight(2);
     setTevOpa();
     GXSetZCompLoc(GX_TRUE);
     GXSetAlphaCompare(GX_NEQUAL, 255, GX_AOP_AND, GX_ALWAYS, GX_LO_CLEAR);

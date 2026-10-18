@@ -1,10 +1,10 @@
-// PLACEHOLDER(astra): inherited hardware-input ABI is incomplete; resolve when the two-vptr Controller layout and Director input interface are recovered.
 #include "Game/Screen/StarPointerDirector.hpp"
 #include "Game/Util.hpp"
 #include "Game/Screen/LayoutCoreUtil.hpp"
 #include "Game/Screen/StarPointerController.hpp"
 #include "Game/Screen/StarPointerGuidance.hpp"
 #include "Game/Screen/StarPointerLayout.hpp"
+#include "Game/Screen/StarPointerMovePositionHolder.hpp"
 #include "Game/System/DrawSyncManager.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"
@@ -27,8 +27,10 @@ StarPointerDirector::StarPointerDirector()
         mControllers[channel].initAndSetPort(channel);
         mPeekZ->mInfos[channel] = &mControllers[channel].mInfo;
     }
+    mMovePositionHolders = new StarPointerMovePositionHolder[StarPointerFunction::getNumStarPointer()];
 }
 
+// NONMATCHING: loop indices and input-state temporaries use different registers.
 void StarPointerDirector::update() {
     if (MR::isStarPointerModeHomeButton() || MR::isStarPointerModeErrorWindow()) {
         mIsOSPointerMode = true;
@@ -43,21 +45,23 @@ void StarPointerDirector::update() {
 
     mIsOSPointerMode = false;
 
-    if (_18 < 0) {
-        _18++;
+    if (mStarPieceShootDelay < 0) {
+        mStarPieceShootDelay++;
     }
 
     mTransHolder->movement();
 
     for (s32 channel = 0; channel < StarPointerFunction::getNumStarPointer(); channel++) {
         if (MR::isConnectedWPad(channel)) {
-            getStarPointerController(channel)->movement(mPeekZ->mProjectionParameters, mPeekZ->mViewportParameters);
+            mControllers[channel].movement(mPeekZ->mProjectionParameters, mPeekZ->mViewportParameters);
         }
 
         if (mStarPointerLayouts != nullptr) {
             getStarPointerLayout(channel)->movement();
             getStarPointerLayout(channel)->calcAnim();
         }
+        bool inScreen = mControllers[channel].isInScreen();
+        mMovePositionHolders[channel].update(mControllers[channel].getScreenPosition(), inScreen);
     }
 
     if (mGuidance != nullptr) {
@@ -124,7 +128,8 @@ void StarPointerDirector::setGameSceneCameraMtx() {
     }
 }
 
-StarPointerController* StarPointerDirector::getStarPointerController(s32 channel) const {
+StarPointerInput* StarPointerDirector::getStarPointerController(s32 channel) const {
+    if (mMovePositionHolders[channel].isActive()) return &mMovePositionHolders[channel];
     return &mControllers[channel];
 }
 
@@ -181,15 +186,20 @@ void StarPointerPeekZ::drawSyncCallback(u16 token) {
 }
 
 namespace StarPointerFunction {
+    // NONMATCHING: vector temporaries and floating-point register scheduling differ.
     bool forceOutsideScreenEdge(TVec2f* result, const TVec2f& position, const TVec2f& velocity, f32 marginX, f32 marginY) {
         if (!isInScreen(position, marginX, marginY)) return false;
         TVec2f direction(velocity);
         MR::normalizeOrZero(&direction);
         if (direction.x != 0.0f) {
-            f32 edge = direction.x > 0.0f ? MR::getScreenWidth() - marginX : marginX;
+            f32 edge = 0.0f < direction.x ? MR::getScreenWidth() - marginX : marginX;
             f32 distance = (edge - position.x) / direction.x;
-            TVec2f offset(direction.x * distance, direction.y * distance);
-            TVec2f candidate(position.x + offset.x, position.y + offset.y);
+            TVec2f offset;
+            offset.x = direction.x * distance;
+            offset.y = direction.y * distance;
+            TVec2f candidate;
+            candidate.x = offset.x + position.x;
+            candidate.y = offset.y + position.y;
             if (isInScreen(candidate, marginX, marginY)) {
                 result->x = candidate.x;
                 result->y = candidate.y;
@@ -197,10 +207,14 @@ namespace StarPointerFunction {
             }
         }
         if (direction.y != 0.0f) {
-            f32 edge = direction.y > 0.0f ? MR::getScreenHeight() - marginY : marginY;
+            f32 edge = 0.0f < direction.y ? MR::getScreenHeight() - marginY : marginY;
             f32 distance = (edge - position.y) / direction.y;
-            TVec2f offset(direction.x * distance, direction.y * distance);
-            TVec2f candidate(position.x + offset.x, position.y + offset.y);
+            TVec2f offset;
+            offset.x = direction.x * distance;
+            offset.y = direction.y * distance;
+            TVec2f candidate;
+            candidate.x = offset.x + position.x;
+            candidate.y = offset.y + position.y;
             if (isInScreen(candidate, marginX, marginY)) {
                 result->x = candidate.x;
                 result->y = candidate.y;
@@ -292,15 +306,15 @@ namespace StarPointerFunction {
     }
 
     s32 getPastPointNum(s32 channel) {
-        return getStarPointerDirector()->getStarPointerController(channel)->mPastPointNum;
+        return getStarPointerDirector()->getStarPointerController(channel)->getPastPointCount();
     }
 
     const TVec2f& getPastPosition(s32 channel, s32 index) {
-        return getStarPointerDirector()->getStarPointerController(channel)->mPastPosition[index];
+        return getStarPointerDirector()->getStarPointerController(channel)->getPastPosition(index);
     }
 
     s32 getNextPastPointNum(s32 channel) {
-        return getStarPointerDirector()->getStarPointerController(channel)->mNextPastPointNum;
+        return getStarPointerDirector()->getStarPointerController(channel)->getNextPastPointCount();
     }
 
     bool canShoot(s32 channel) {

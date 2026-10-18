@@ -50,7 +50,6 @@ public:
 
     void exeWait();
     void exeOnReaction();
-    void endOnReaction();
     void exeGrip();
     void exeHold();
     void endHold();
@@ -153,9 +152,9 @@ public:
     bool isOffState() const;
     void startAnimPosition(u32) NO_INLINE;
 
-    /* 0x20 */ StarPointerLayout* mParent;
-    /* 0x24 */ s32 mPadChannel;
-    /* 0x28 */ AnimType mAnimType;
-    /* 0x2C */ bool mIsAppear;
-    /* 0x30 */ s32 mAppearTime;
+    /* 0x2C */ StarPointerLayout* mParent;
+    /* 0x30 */ s32 mPadChannel;
+    /* 0x34 */ AnimType mAnimType;
+    /* 0x38 */ bool mIsAppear;
+    /* 0x3C */ s32 mAppearTime;
 };

@@ -6,11 +6,9 @@
 #include "Game/Util/ActorShadowUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/JMapUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/NPCUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
-
-extern "C" void fn_800345E0(LiveActor*, const void*); // PLACEHOLDER(astra): inherited fn_800345E0 ABI; resolve when its target signature and canonical owner are verified.
-extern "C" const u32 lbl_807CFF10;
 
 namespace NrvSignBoard {
     NEW_NERVE(SignBoardNrvWait, SignBoard, Wait);
@@ -64,21 +62,21 @@ void SignBoard::appear() {
             return;
         }
         if (MR::isDead(this)) {
-            fn_800345E0(this, &lbl_807CFF10);
+            MR::tryHitReaction(this, "煙");
         }
     }
     LiveActor::appear();
 }
 
 void SignBoard::kill() {
-    fn_800345E0(this, &lbl_807CFF10);
+    MR::tryHitReaction(this, "煙");
     NPCActor::kill();
 }
 
 void SignBoard::makeActorDead() {
     if (_164 == 0 && MR::isValidSwitchAppear(this)) {
         if (!MR::isDead(this) && _168 != 0) {
-            fn_800345E0(this, &lbl_807CFF10);
+            MR::tryHitReaction(this, "煙");
         }
     }
     NPCActor::makeActorDead();
@@ -96,7 +94,7 @@ bool SignBoard::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     if (MR::isMsgSupportPlayGroupStart(msg)) {
         _168 = 1;
         if (!MR::isValidSwitchAppear(this) || MR::isOnSwitchAppear(this)) {
-            kill();
+            appear();
         }
         return true;
     }
@@ -104,7 +102,7 @@ bool SignBoard::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     if (MR::isMsgSupportPlayGroupStop(msg)) {
         _168 = 0;
         if (!MR::isDead(this)) {
-            makeActorDead();
+            kill();
         }
         return true;
     }

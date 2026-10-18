@@ -12,7 +12,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-extern "C" bool fn_800210B0(); // PLACEHOLDER(astra): inherited fn_800210B0 ABI; resolve when its target signature and canonical owner are verified.
 
 struct InformationObserverAttribute {
     /* 0x00 */ const char* mMessageId;
@@ -71,7 +70,7 @@ void InformationObserver::entry(TYPE type, LiveActor* pParam2, bool isPauseable)
     mType = type;
     _90 = false;
 
-    if (::fn_800210B0()) {
+    if (MR::isDemoPartWaitUserInputActive()) {
         if (isPauseable) {
             _90 = true;
             MR::pauseTimeKeepDemo(_94);

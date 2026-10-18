@@ -156,3 +156,8 @@ namespace MR {
 namespace MR {
     void stopCSSound(s32, s32);
 }
+
+namespace MR {
+    void startStarGetJingle();
+    void startGrandStarGetJingle();
+}

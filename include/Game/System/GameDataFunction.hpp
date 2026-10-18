@@ -10,6 +10,8 @@ class GameEventValueChecker;
 class SaveDataHandleSequence;
 
 namespace GameDataFunction {
+    bool getSysConfigFileEncouragedPal16();
+    void setSysConfigFileEncouragedPal16();
     u32 getScenarioClearTime(const char*, s32);
     u32 getBestScoreAttackCurrentStage(const char* pStageName = nullptr);  // SMG2 symbol FPCc (core h10)
     bool isOnLuigiIntrusivelyStart();
@@ -87,6 +89,14 @@ namespace GameDataFunction {
 };  // namespace GameDataFunction
 
 namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u16 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }
+
+namespace GameDataFunction {
+    void setOnPostmanImportantLetterRead(s8);
+    void setOnPostmanTaskLetterRead(s8);
+    void updatePostmanPeachLetterDeath();
+    bool isOnGameEventFlagOpenScenario(const char*, s32);
+    void onGameEventFlagOpenScenario(const char*, s32);
+}
 // GameSequenceFunction lane (core): declarations needed by GameSequenceFunction; names given from the target code.
 namespace GameDataFunction {
     void forceMarioPlayer();

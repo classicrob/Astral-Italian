@@ -31,7 +31,7 @@ void StarPointerMovePosition::reset() {
 }
 
 StarPointerMovePositionHolder::StarPointerMovePositionHolder(s32 channel)
-    : NerveExecutor("スターポインタ移動位置保持"), mLayout(nullptr), mPadChannel(channel), mMovementRequested(false), mRegistered(false),
+    : NerveExecutor("スターポインタ移動位置保持"), mOwner(nullptr), mPadChannel(channel), mMovementRequested(false), mRegistered(false),
       mUseSubPad(true), mSelected(nullptr), mPositions(nullptr), mPositionCount(0), mSelectionPhysicalInScreen(false), mPhysicalInScreen(false),
       mStickUp(false), mStickDown(false), mStickLeft(false), mStickRight(false), mStickUpFrames(0), mStickDownFrames(0),
       mStickLeftFrames(0), mStickRightFrames(0) {
@@ -43,12 +43,9 @@ StarPointerMovePositionHolder::StarPointerMovePositionHolder(s32 channel)
     initNerve(&NrvStarPointerMovePositionHolder::StarPointerMovePositionHolderNrvWait::sInstance);
 }
 
-StarPointerMovePositionHolder::~StarPointerMovePositionHolder() {
-}
-
-void StarPointerMovePositionHolder::beginRegistration(LayoutActor* layout, bool useSubPad) {
+void StarPointerMovePositionHolder::beginRegistration(const void* owner, bool useSubPad) {
     mUseSubPad = useSubPad;
-    mLayout = layout;
+    mOwner = owner;
     mPositionCount = 0;
     mRoot.reset();
     mRegistered = true;
@@ -87,6 +84,7 @@ bool StarPointerMovePositionHolder::selectPosition(StarPointerMovePosition* posi
     return true;
 }
 
+// NONMATCHING: negative threshold constants fold instead of emitting fneg.
 void StarPointerMovePositionHolder::updateStickRepeat() {
 #define UPDATE_REPEAT(axis, test, threshold, frames, flag) \
     if (MR::axis(0) test threshold) { \
@@ -117,7 +115,7 @@ bool StarPointerMovePositionHolder::tryMove(StarPointerMovePosition* position) {
 }
 
 void StarPointerMovePositionHolder::exeWait() {
-    if (!mMovementRequested) mLayout = nullptr;
+    if (!mMovementRequested) mOwner = nullptr;
     else if (mRegistered) tryMove(&mRoot);
 }
 

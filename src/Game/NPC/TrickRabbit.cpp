@@ -39,12 +39,10 @@
 #include "Game/Util/TalkUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
-namespace {
-    class RunnawayNodeSelecter : public RailGraphNodeSelecter {
-    public:
-        virtual bool isSatisfy(RailGraphIter& rIter);
-    };
-};  // namespace
+class RunnawayNodeSelecter : public RailGraphNodeSelecter {
+public:
+    virtual bool isSatisfy(RailGraphIter& rIter);
+};
 
 namespace NrvTrickRabbit {
     NEW_NERVE(TrickRabbitNrvWaitStart, TrickRabbit, WaitStart);
@@ -676,7 +674,7 @@ void TrickRabbit::exeFallDown() {
 }
 
 void TrickRabbit::exeFallDownLand() {
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         MR::startAction(this, "FallDownLoop");
     }
 
@@ -1177,17 +1175,15 @@ void TrickRabbit::updateTime() {
     }
 }
 
-namespace {
-    bool RunnawayNodeSelecter::isSatisfy(RailGraphIter& rIter) {
-        rIter.watchStartEdge();
-        while (!rIter.isWatchEndEdge()) {
-            if (MR::getWatchEdgeArg7(&rIter) != -2) {
-                return true;
-            }
-
-            rIter.watchNextEdge();
+bool RunnawayNodeSelecter::isSatisfy(RailGraphIter& rIter) {
+    rIter.watchStartEdge();
+    while (!rIter.isWatchEndEdge()) {
+        if (MR::getWatchEdgeArg7(&rIter) != -2) {
+            return true;
         }
 
-        return false;
+        rIter.watchNextEdge();
     }
-};  // namespace
+
+    return false;
+}

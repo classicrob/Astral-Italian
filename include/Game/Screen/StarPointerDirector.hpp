@@ -5,6 +5,8 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class StarPointerController;
+class StarPointerInput;
+class StarPointerMovePositionHolder;
 class StarPointerLayout;
 class DpdInfo;
 
@@ -53,7 +55,7 @@ public:
     void startYoshiPointer();
     void startYoshiPointerNoBlur();
     void setGameSceneCameraMtx();
-    StarPointerController* getStarPointerController(s32 channel) const;
+    StarPointerInput* getStarPointerController(s32 channel) const;
     StarPointerLayout* getStarPointerLayout(s32 channel) const;
 
     void createLayout();
@@ -79,8 +81,9 @@ public:
     /* 0x0C */ StarPointerTransformHolder* mTransHolder;
     /* 0x10 */ StarPointerPeekZ* mPeekZ;
     /* 0x14 */ StarPointerGuidance* mGuidance;
-    /* 0x18 */ s32 _18;
-    /* 0x1C */ TVec3f mNozzleAimPos;
+    /* 0x18 */ StarPointerMovePositionHolder* mMovePositionHolders;
+    /* 0x1C */ s32 mStarPieceShootDelay;
+    /* 0x20 */ TVec3f mNozzleAimPos;
 };
 
 namespace StarPointerFunction {

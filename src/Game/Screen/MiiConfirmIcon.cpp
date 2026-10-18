@@ -3,10 +3,13 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 
-namespace {
-    NEW_NERVE(MiiConfirmIconNrvAppear, MiiConfirmIcon, Appear);
-    NEW_NERVE(MiiConfirmIconNrvWait, MiiConfirmIcon, Wait);
-    NEW_NERVE(MiiConfirmIconNrvDisappear, MiiConfirmIcon, Disappear);
+namespace NrvMiiConfirmIcon {
+    class MiiConfirmIconNrvAppear : public Nerve { public: MiiConfirmIconNrvAppear(); virtual void execute(Spine* spine) const { static_cast<MiiConfirmIcon*>(spine->mExecutor)->exeAppear(); } static MiiConfirmIconNrvAppear sInstance; };
+    MiiConfirmIconNrvAppear MiiConfirmIconNrvAppear::sInstance ATTRIBUTE_WEAK;
+    class MiiConfirmIconNrvWait : public Nerve { public: MiiConfirmIconNrvWait(); virtual void execute(Spine* spine) const { static_cast<MiiConfirmIcon*>(spine->mExecutor)->exeWait(); } static MiiConfirmIconNrvWait sInstance; };
+    MiiConfirmIconNrvWait MiiConfirmIconNrvWait::sInstance ATTRIBUTE_WEAK;
+    class MiiConfirmIconNrvDisappear : public Nerve { public: MiiConfirmIconNrvDisappear(); virtual void execute(Spine* spine) const { static_cast<MiiConfirmIcon*>(spine->mExecutor)->exeDisappear(); } static MiiConfirmIconNrvDisappear sInstance; };
+    MiiConfirmIconNrvDisappear MiiConfirmIconNrvDisappear::sInstance ATTRIBUTE_WEAK;
 };  // namespace
 
 MiiConfirmIcon::MiiConfirmIcon(const char* pName) : LayoutActor(pName, true) {
@@ -14,7 +17,7 @@ MiiConfirmIcon::MiiConfirmIcon(const char* pName) : LayoutActor(pName, true) {
 
 void MiiConfirmIcon::init(const JMapInfoIter& rIter) {
     initLayoutManager("MiiConfirmIcon", 1);
-    initNerve(GET_NERVE_ANON(MiiConfirmIconNrvAppear));
+    initNerve(GET_NERVE_DIRECT(NrvMiiConfirmIcon, MiiConfirmIconNrvAppear));
 }
 
 void MiiConfirmIcon::appear(nw4r::lyt::TexMap* pTexMap, const wchar_t* pName) {
@@ -22,11 +25,11 @@ void MiiConfirmIcon::appear(nw4r::lyt::TexMap* pTexMap, const wchar_t* pName) {
     MR::replacePaneTexture(this, "PicMiiDummy", pTexMap, 0);
     MR::setTextBoxMessageRecursive(this, "MiiName", pName);
     appear();
-    setNerve(GET_NERVE_ANON(MiiConfirmIconNrvAppear));
+    setNerve(GET_NERVE_DIRECT(NrvMiiConfirmIcon, MiiConfirmIconNrvAppear));
 }
 
 void MiiConfirmIcon::disappear() {
-    setNerve(GET_NERVE_ANON(MiiConfirmIconNrvDisappear));
+    setNerve(GET_NERVE_DIRECT(NrvMiiConfirmIcon, MiiConfirmIconNrvDisappear));
 }
 
 void MiiConfirmIcon::exeAppear() {
@@ -35,7 +38,7 @@ void MiiConfirmIcon::exeAppear() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(MiiConfirmIconNrvWait));
+        setNerve(GET_NERVE_DIRECT(NrvMiiConfirmIcon, MiiConfirmIconNrvWait));
     }
 }
 
@@ -56,9 +59,15 @@ void MiiConfirmIcon::exeDisappear() {
 }
 
 bool MiiConfirmIcon::isDisappear() const {
-    return isNerve(GET_NERVE_ANON(MiiConfirmIconNrvDisappear));
+    return isNerve(GET_NERVE_DIRECT(NrvMiiConfirmIcon, MiiConfirmIconNrvDisappear));
 }
 
 void MiiConfirmIcon::appear() {
     LayoutActor::appear();
+}
+
+namespace NrvMiiConfirmIcon {
+    MiiConfirmIconNrvAppear::MiiConfirmIconNrvAppear() {}
+    MiiConfirmIconNrvWait::MiiConfirmIconNrvWait() {}
+    MiiConfirmIconNrvDisappear::MiiConfirmIconNrvDisappear() {}
 }

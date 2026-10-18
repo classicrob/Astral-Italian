@@ -287,6 +287,7 @@ namespace MR {
     NameObjGroup* joinToMovementOnOffGroup(const char*, NameObj*, u32);
     void onMovementOnOffGroup(const char*);
     NameObjAdaptor* createDrawAdaptor(const char*, const MR::FunctorBase&);
+    NameObjAdaptor* createDrawAdaptor(const char*, int, const MR::FunctorBase&);
     void* loadResourceFromArc(const char*, const char*);
     bool isExistResourceInArc(const char*, const char*);
     const ResTIMG* loadTexFromArc(const char*, const char*);

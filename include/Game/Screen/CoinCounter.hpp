@@ -20,18 +20,19 @@ public:
     void forceSync();
     bool isWait() const;
     void updateCounter();
+    void changeDisplayCount(s32) NO_INLINE;
     void exeHide();
     void exeAppear();
     void exeWait();
     void exeDisappear();
 
 private:
-    /* 0x20 */ s32 mCoinNum;
-    /* 0x24 */ s32 mCoinDisplayNum;
-    /* 0x28 */ s32 mInvalidCountUpFrame;
-    /* 0x2C */ CounterLayoutAppearer* mLayoutAppearer;
-    /* 0x30 */ CountUpPaneRumbler* mPaneRumbler;
-    /* 0x34 */ bool mIsForceAppear;
-    /* 0x38 */ TVec2f mFollowPos;
-    /* 0x40 */ bool _4C;
+    /* 0x2C */ s32 mCoinNum;
+    /* 0x30 */ s32 mCoinDisplayNum;
+    /* 0x34 */ s32 mInvalidCountUpFrame;
+    /* 0x38 */ CounterLayoutAppearer* mLayoutAppearer;
+    /* 0x3C */ CountUpPaneRumbler* mPaneRumbler;
+    /* 0x40 */ bool mIsForceAppear;
+    /* 0x44 */ TVec2f mFollowPos;
+    /* 0x4C */ bool _4C;
 };

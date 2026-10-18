@@ -26,3 +26,15 @@ public:
 private:
     TalkTextFormer* mTextFormer;
 };
+
+class LiveActor;
+class SimpleFollowActorLayout : public SimpleLayout {
+public:
+    SimpleFollowActorLayout(const LiveActor*, const char*, const char*, const TVec3f&, u32, int);
+    virtual ~SimpleFollowActorLayout();
+    virtual void control();
+    bool isFollowActorHidden() const;
+
+    const LiveActor* mFollowActor;
+    TVec3f mFollowOffset;
+};

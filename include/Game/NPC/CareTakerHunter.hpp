@@ -7,16 +7,14 @@ class LiveActorGroup;
 class NameObj;
 class TakeOutStar;
 
-class BringEnemy : public LiveActor {
-public:
-    s32 getEnemyType() const;
-};
+class BringEnemy;
 
 class CareTakerHunter : public NPCActor {
 public:
     /// @brief Creates a new `CareTakerHunter`.
     /// @param pName A pointer to the null-terminated name of the object.
     CareTakerHunter(const char* pName);
+    virtual ~CareTakerHunter();
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void control();
@@ -25,7 +23,7 @@ public:
     bool branchFunc(u32);
     bool eventFunc(u32);
 
-    LiveActor* updateRotation();
+    void updateRotation();
     void setTalkStrings(s32);
 
     void exeReaction();
@@ -43,7 +41,7 @@ public:
     void exeLeave();
     void exeEnd();
 
-private:
+public:
     /* 0x164 */ TakeOutStar* mTakeOutStar;
     /* 0x168 */ s32 mObjArg0;
     /* 0x16C */ s32 mObjArg4;

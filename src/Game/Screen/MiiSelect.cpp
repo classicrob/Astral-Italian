@@ -14,18 +14,30 @@
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
 #include <RVLFaceLib.h>
 
-extern "C" RFLErrcode fn_8055AEF0(RFLAdditionalInfo*, RFLDataSource, RFLMiddleDB*, u16); // PLACEHOLDER(astra): inherited fn_8055AEF0 ABI; resolve when its target signature and canonical owner are verified.
+
+namespace NrvMissSelect {
+    class MissSelectNrvAppear : public Nerve { public: MissSelectNrvAppear(); virtual void execute(Spine* spine) const { static_cast<MiiSelect*>(spine->mExecutor)->exeAppear(); } static MissSelectNrvAppear sInstance; };
+    MissSelectNrvAppear MissSelectNrvAppear::sInstance ATTRIBUTE_WEAK;
+    class MissSelectNrvWait : public Nerve { public: MissSelectNrvWait(); virtual void execute(Spine* spine) const { static_cast<MiiSelect*>(spine->mExecutor)->exeWait(); } static MissSelectNrvWait sInstance; };
+    MissSelectNrvWait MissSelectNrvWait::sInstance ATTRIBUTE_WEAK;
+    class MissSelectNrvScrollRight : public Nerve { public: MissSelectNrvScrollRight(); virtual void execute(Spine* spine) const { static_cast<MiiSelect*>(spine->mExecutor)->exeScrollRight(); } static MissSelectNrvScrollRight sInstance; };
+    MissSelectNrvScrollRight MissSelectNrvScrollRight::sInstance ATTRIBUTE_WEAK;
+    class MissSelectNrvScrollLeft : public Nerve { public: MissSelectNrvScrollLeft(); virtual void execute(Spine* spine) const { static_cast<MiiSelect*>(spine->mExecutor)->exeScrollLeft(); } static MissSelectNrvScrollLeft sInstance; };
+    MissSelectNrvScrollLeft MissSelectNrvScrollLeft::sInstance ATTRIBUTE_WEAK;
+    class MissSelectNrvSelected : public Nerve { public: MissSelectNrvSelected(); virtual void execute(Spine* spine) const { static_cast<MiiSelect*>(spine->mExecutor)->exeSelected(); } static MissSelectNrvSelected sInstance; };
+    MissSelectNrvSelected MissSelectNrvSelected::sInstance ATTRIBUTE_WEAK;
+    class MissSelectNrvDisappear : public Nerve { public: MissSelectNrvDisappear(); virtual void execute(Spine* spine) const { static_cast<MiiSelect*>(spine->mExecutor)->exeDisappear(); } static MissSelectNrvDisappear sInstance; };
+    MissSelectNrvDisappear MissSelectNrvDisappear::sInstance ATTRIBUTE_WEAK;
+    class MissSelectNrvDummySelected : public Nerve { public: MissSelectNrvDummySelected(); virtual void execute(Spine* spine) const { static_cast<MiiSelect*>(spine->mExecutor)->exeDummySelected(); } static MissSelectNrvDummySelected sInstance; };
+    MissSelectNrvDummySelected MissSelectNrvDummySelected::sInstance ATTRIBUTE_WEAK;
+
+}
 
 namespace {
-    NEW_NERVE(MiiSelectNrvAppear, MiiSelect, Appear);
-    NEW_NERVE(MiiSelectNrvWait, MiiSelect, Wait);
-    NEW_NERVE(MiiSelectNrvScrollRight, MiiSelect, ScrollRight);
-    NEW_NERVE(MiiSelectNrvScrollLeft, MiiSelect, ScrollLeft);
-    NEW_NERVE(MiiSelectNrvSelected, MiiSelect, Selected);
-    NEW_NERVE(MiiSelectNrvDisappear, MiiSelect, Disappear);
-    NEW_NERVE(MiiSelectNrvDummySelected, MiiSelect, DummySelected);
-
     typedef void (MiiSelect::*CallbackFuncPtr)();
+
+    typedef bool (MiiSelect::*TriggerFuncPtr)();
+    static const TriggerFuncPtr trigger[2] = {&MiiSelect::isLeftTriggered, &MiiSelect::isRightTriggered};
 
     static const CallbackFuncPtr func[2] = {&MiiSelect::callbackLeft, &MiiSelect::callbackRight};
 };  // namespace
@@ -45,14 +57,14 @@ void MiiSelect::init(const JMapInfoIter& rIter) {
     MR::invalidateParentAnim(this);
     createButtons();
     MR::connectToSceneLayoutTemporarily(this);
-    initNerve(GET_NERVE_ANON(MiiSelectNrvAppear));
+    initNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvAppear));
     createPage();
     kill();
 }
 
 void MiiSelect::appear() {
     LayoutActor::appear();
-    setNerve(GET_NERVE_ANON(MiiSelectNrvAppear));
+    setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvAppear));
     refresh();
     setCurrentPageGroupA();
     appearButtons();
@@ -66,7 +78,7 @@ void MiiSelect::disappear() {
     _1F8->invalidateAllIcon();
     _1FC->invalidateAllIcon();
     disappearButtons();
-    setNerve(GET_NERVE_ANON(MiiSelectNrvDisappear));
+    setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvDisappear));
 }
 
 void MiiSelect::calcAnim() {
@@ -76,15 +88,15 @@ void MiiSelect::calcAnim() {
 }
 
 bool MiiSelect::isAppearing() const {
-    return isNerve(GET_NERVE_ANON(MiiSelectNrvAppear));
+    return isNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvAppear));
 }
 
 bool MiiSelect::isSelected() {
-    return isNerve(GET_NERVE_ANON(MiiSelectNrvSelected));
+    return isNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvSelected));
 }
 
 bool MiiSelect::isDummySelected() {
-    return isNerve(GET_NERVE_ANON(MiiSelectNrvDummySelected));
+    return isNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvDummySelected));
 }
 
 void MiiSelect::getSelectedID(FileSelectIconID* pSelectedID) {
@@ -129,7 +141,7 @@ void MiiSelect::exeAppear() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(MiiSelectNrvWait));
+        setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvWait));
     }
 }
 
@@ -152,16 +164,14 @@ void MiiSelect::exeWait() {
     }
 
     for (int i = 0; i < ARRAY_SIZE(_20); i++) {
-        if (_20[i]->trySelect()) {
+        _20[i]->trySelect();
+        if ((this->*::trigger[i])() == true) {
+            _20[i]->trySelectImmediately();
+        }
+        if (_20[i]->mIsSelected) {
             (this->*::func[i])();
             return;
         }
-    }
-
-    if (isLeftTriggered()) {
-        callbackLeft();
-    } else if (isRightTriggered()) {
-        callbackRight();
     }
 }
 
@@ -184,7 +194,7 @@ void MiiSelect::exeScrollLeft() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(MiiSelectNrvWait));
+        setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvWait));
     }
 }
 
@@ -207,7 +217,7 @@ void MiiSelect::exeScrollRight() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(MiiSelectNrvWait));
+        setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvWait));
     }
 }
 
@@ -269,12 +279,12 @@ void MiiSelect::createButtons() {
 
 void MiiSelect::callbackLeft() {
     MR::startSystemSE("SE_SY_FILE_SEL_MIISEL_SCRL");
-    setNerve(GET_NERVE_ANON(MiiSelectNrvScrollLeft));
+    setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvScrollLeft));
 }
 
 void MiiSelect::callbackRight() {
     MR::startSystemSE("SE_SY_FILE_SEL_MIISEL_SCRL");
-    setNerve(GET_NERVE_ANON(MiiSelectNrvScrollRight));
+    setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvScrollRight));
 }
 
 bool MiiSelect::isLeftTriggered() {
@@ -333,7 +343,7 @@ void MiiSelect::collectValidMiiIndex() {
 
         RFLAdditionalInfo additionalInfo;
 
-        if (fn_8055AEF0(&additionalInfo, RFLDataSource_Official, nullptr, i) != RFLErrcode_Success) {
+        if (RFLGetAdditionalInfoWithSanitizedNames(&additionalInfo, RFLDataSource_Official, nullptr, i) != RFLErrcode_Success) {
             continue;
         }
 
@@ -396,25 +406,22 @@ void MiiSelect::refresh() {
 }
 
 void MiiSelect::getIconID(FileSelectIconID* pIconID, s32 param2) const {
-    if (param2 < mFellowIconNum) {
-        s32 v = 0;
-
-        for (int i = 0; i < _28->size(); i++) {
-            if (!_28->isOn(i)) {
-                continue;
-            }
-
-            if (v == param2) {
-                pIconID->setFellowID(static_cast< FileSelectIconID::EFellowID >(i));
-                break;
-            }
-
-            v++;
-        }
-    } else if (param2 < mFavoriteMiiNum + mFellowIconNum) {
-        pIconID->setMiiIndex(mFavoriteMiiIndices[param2 - mFellowIconNum]);
+    if (param2 < mFavoriteMiiNum) {
+        pIconID->setMiiIndex(mFavoriteMiiIndices[param2]);
+    } else if (param2 < mFavoriteMiiNum + mMiiNum) {
+        pIconID->setMiiIndex(mMiiIndices[param2 - mFavoriteMiiNum]);
     } else {
-        pIconID->setMiiIndex(mMiiIndices[param2 - mFavoriteMiiNum - mFellowIconNum]);
+        s32 fellowIndex = param2 - mFavoriteMiiNum - mMiiNum;
+        s32 enabledIndex = 0;
+        for (int i = 0; i < _28->size(); i++) {
+            if (_28->isOn(i)) {
+                if (enabledIndex == fellowIndex) {
+                    pIconID->setFellowID(static_cast<FileSelectIconID::EFellowID>(i));
+                    break;
+                }
+                enabledIndex++;
+            }
+        }
     }
 }
 
@@ -425,14 +432,14 @@ void MiiSelect::onSelect(s32 param1, nw4r::lyt::TexMap* pTexMap) {
     _1F8->invalidateAllIcon();
     _1FC->invalidateAllIcon();
     disappearButtons();
-    setNerve(GET_NERVE_ANON(MiiSelectNrvSelected));
+    setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvSelected));
 }
 
 void MiiSelect::onSelectDummy() {
     _1F8->invalidateAllIcon();
     _1FC->invalidateAllIcon();
     disappearButtons();
-    setNerve(GET_NERVE_ANON(MiiSelectNrvDummySelected));
+    setNerve(GET_NERVE_DIRECT(NrvMissSelect, MissSelectNrvDummySelected));
 }
 
 namespace MiiSelectSub {
@@ -554,4 +561,14 @@ namespace MiiSelectSub {
 
 s32 MiiSelect::getIconNum() {
     return mMiiNum + mFavoriteMiiNum + mFellowIconNum;
+}
+
+namespace NrvMissSelect {
+    MissSelectNrvAppear::MissSelectNrvAppear() {}
+    MissSelectNrvWait::MissSelectNrvWait() {}
+    MissSelectNrvScrollRight::MissSelectNrvScrollRight() {}
+    MissSelectNrvScrollLeft::MissSelectNrvScrollLeft() {}
+    MissSelectNrvSelected::MissSelectNrvSelected() {}
+    MissSelectNrvDisappear::MissSelectNrvDisappear() {}
+    MissSelectNrvDummySelected::MissSelectNrvDummySelected() {}
 }

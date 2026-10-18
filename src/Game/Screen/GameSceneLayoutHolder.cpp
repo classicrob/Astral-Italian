@@ -3,6 +3,8 @@
 #include "Game/MapObj/ChipHolder.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/CameraInfo.hpp"
+#include "Game/Screen/DestroyCounter.hpp"
+#include "Game/Util/SceneUtil.hpp"
 #include "Game/Screen/CounterLayoutController.hpp"
 #include "Game/Screen/InformationMessage.hpp"
 #include "Game/Screen/MarioMeter.hpp"
@@ -16,41 +18,36 @@
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
+// NONMATCHING: constructor string-base and stage guard register allocation.
 GameSceneLayoutHolder::GameSceneLayoutHolder()
-    : NameObj("ゲームシーンのレイアウト保持"), mCameraInfo(nullptr), mInformationMessage(nullptr), mMarioMeter(nullptr), mMarioSubMeter(nullptr),
-      mMissLayout(nullptr), mNoteCounter(nullptr), mYesNoLayout(nullptr), mPurpleCoinCounter(nullptr),
-      mCounterLayoutCtrl(nullptr), mIsActiveDefaultGameLayout(true) {
+    : NameObj("ゲームシーンのレイアウト保持"), mInformationMessage(nullptr), mYesNoLayout(nullptr), mCameraInfo(nullptr),
+      mMarioMeter(nullptr), mMarioSubMeter(nullptr), mMissLayout(nullptr), mOneUpBoard(nullptr), mNoteCounter(nullptr),
+      mCounterLayoutCtrl(nullptr), mPurpleCoinCounter(nullptr), mDestroyCounter(nullptr), mIsActiveDefaultGameLayout(false) {
     MR::joinToNameObjGroup(this, "IgnorePauseNameObj");
-    MR::connectToSceneLayoutMovement(this);
-
+    mInformationMessage = new InformationMessage(true);
+    mInformationMessage->initWithoutIter();
+    mYesNoLayout = new YesNoLayout();
+    mYesNoLayout->initWithoutIter();
+    mMarioSubMeter = new MarioSubMeter("マリオサブメーター");
+    mMarioSubMeter->initWithoutIter();
+    mMissLayout = new MissLayout();
+    mMissLayout->initWithoutIter();
+    bool skip = false;
+    if (MR::isStageStoryBook() || GameSequenceFunction::isPadModeDreamer()) skip = true;
+    if (skip) return;
+    mIsActiveDefaultGameLayout = true;
+    mCameraInfo = new CameraInfo("カメラ情報表示");
+    mCameraInfo->initWithoutIter();
     mMarioMeter = new MarioMeter("マリオメーター");
     mMarioMeter->initWithoutIter();
-
+    mOneUpBoard = new OneUpBoard();
+    mOneUpBoard->initWithoutIter();
+    mNoteCounter = new NoteCounter("音符カウンタ");
+    mNoteCounter->initWithoutIter();
     mCounterLayoutCtrl = new CounterLayoutController();
     mCounterLayoutCtrl->initWithoutIter();
     mCounterLayoutCtrl->setHPMeter(mMarioMeter);
-
-    mCameraInfo = new CameraInfo("カメラ情報表示");
-    mCameraInfo->initWithoutIter();
-
-    mInformationMessage = new InformationMessage(true);
-    mInformationMessage->initWithoutIter();
-
-    mOneUpBoard = new OneUpBoard();
-    mOneUpBoard->initWithoutIter();
-
-    mMissLayout = new MissLayout();
-    mMissLayout->initWithoutIter();
-
-    mMarioSubMeter = new MarioSubMeter("マリオサブメーター");
-    mMarioSubMeter->initWithoutIter();
-
-    mNoteCounter = new NoteCounter("音符カウンタ");
-    mNoteCounter->initWithoutIter();
-    MR::hideLayout(mNoteCounter);
-
-    mYesNoLayout = new YesNoLayout();
-    mYesNoLayout->initWithoutIter();
+    if (GameSequenceFunction::isPadModeSuperDreamer()) deactivateDefaultGameLayout();
 }
 
 void GameSceneLayoutHolder::createPurpleCoinCounter() {
@@ -58,8 +55,8 @@ void GameSceneLayoutHolder::createPurpleCoinCounter() {
     mPurpleCoinCounter->initWithoutIter();
 }
 
-void GameSceneLayoutHolder::initLifeCount(u32 lifeCount) {
-    mMarioMeter->initLifeCount(lifeCount);
+void GameSceneLayoutHolder::initLifeCount(s32 lifeCount) {
+    if (mMarioMeter != nullptr) mMarioMeter->initLifeCount(lifeCount);
 }
 
 void GameSceneLayoutHolder::setLifeCount(u32 lifeCount) {
@@ -99,11 +96,8 @@ void GameSceneLayoutHolder::requestPowerUpHPMeter() {
 }
 
 void GameSceneLayoutHolder::requestForceAppearHPMeter() {
-    if (mMarioMeter == nullptr || GameSequenceFunction::isPadModeSuperDreamer()) {
-        return;
-    }
-
-    mMarioMeter->requestForceAppearHPMeter();
+    if (mMarioMeter != nullptr && !GameSequenceFunction::isPadModeSuperDreamer())
+        mMarioMeter->requestForceAppearHPMeter();
 }
 
 void GameSceneLayoutHolder::startMiss() {
@@ -119,36 +113,47 @@ bool GameSceneLayoutHolder::isMissAnimEnd() const {
 }
 
 void GameSceneLayoutHolder::activateDefaultGameLayout() {
-    mIsActiveDefaultGameLayout = true;
-
-    mCameraInfo->activate();
-    mMarioMeter->activate();
     mMarioSubMeter->activate();
-    mCounterLayoutCtrl->appear();
-
-    if (mPurpleCoinCounter != nullptr) {
-        mPurpleCoinCounter->appear();
-    }
-
+    bool skip = false;
+    if (MR::isStageStoryBook() || GameSequenceFunction::isPadModeDreamer()) skip = true;
+    if (skip) return;
+    if (GameSequenceFunction::isPadModeSuperDreamer()) return;
+    mIsActiveDefaultGameLayout = true;
+    mCameraInfo->activate();
+    if (mPurpleCoinCounter != nullptr) mPurpleCoinCounter->appear();
     MR::activateChipLayout();
+    mMarioMeter->activate();
+    mCounterLayoutCtrl->appear();
 }
 
 void GameSceneLayoutHolder::deactivateDefaultGameLayout() {
+    mMarioSubMeter->deactivate();
+    bool skip = false;
+    if (MR::isStageStoryBook() || GameSequenceFunction::isPadModeDreamer()) skip = true;
+    if (skip) return;
     mIsActiveDefaultGameLayout = false;
-
     mCameraInfo->deactivate();
     mMarioMeter->deactivate();
-    mMarioSubMeter->deactivate();
-
-    if (!MR::isDead(mCounterLayoutCtrl)) {
-        mCounterLayoutCtrl->kill();
-    }
-
-    if (mPurpleCoinCounter != nullptr && !MR::isDead(mPurpleCoinCounter)) {
-        mPurpleCoinCounter->kill();
-    }
-
+    if (!MR::isDead(mCounterLayoutCtrl)) mCounterLayoutCtrl->kill();
+    if (mPurpleCoinCounter != nullptr && !MR::isDead(mPurpleCoinCounter)) mPurpleCoinCounter->kill();
     MR::deactivateChipLayout();
+}
+
+void GameSceneLayoutHolder::createDestroyCounter(s32 maximum) {
+    mDestroyCounter = new DestroyCounter(maximum);
+    mDestroyCounter->initWithoutIter();
+}
+
+DestroyCounter* GameSceneLayoutHolder::getDestroyCounter() const {
+    return mDestroyCounter;
+}
+
+void GameSceneLayoutHolder::appearDestroyCounter() {
+    if (mDestroyCounter != nullptr) mDestroyCounter->appear();
+}
+
+void GameSceneLayoutHolder::killDestroyCounter() {
+    if (mDestroyCounter != nullptr && !MR::isDead(mDestroyCounter)) mDestroyCounter->kill();
 }
 
 PurpleCoinCounter* GameSceneLayoutHolder::getPurpleCoinCounter() const {

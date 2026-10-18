@@ -71,7 +71,7 @@ class PenguinMaster { public: PenguinMaster(const char*); u8 _[0x164]; };
 class PlayAttackMan { public: PlayAttackMan(const char*); u8 _[0x168]; };
 class Rabbit { public: Rabbit(const char*); u8 _[0x170]; };
 class Rosetta { public: Rosetta(const char*); u8 _[0x170]; };
-class ScoreAttackCounter { public: ScoreAttackCounter(const char*); u8 _[0xa4]; };
+#include "Game/NPC/ScoreAttackCounter.hpp"
 class ScoreAttackMan { public: ScoreAttackMan(const char*); u8 _[0x180]; };
 class SignBoard { public: SignBoard(const char*); u8 _[0x16c]; };
 class StarListBoard { public: StarListBoard(const char*); u8 _[0x168]; };

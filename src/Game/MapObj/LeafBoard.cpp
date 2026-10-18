@@ -13,6 +13,7 @@ namespace MR {
 }
 
 // Unnamed SMG2 helpers (C linkage so the target reloc names match).
+// PLACEHOLDER(objects): unnamed target symbol fn_802C2AA0, declared extern "C" so the reloc name matches; resolve when fn_802C2AA0 gets its real name in symbols.txt
 extern "C" void fn_802C2AA0(LiveActor* pActor, s32 flag, f32 a, f32 b, f32 c);
 
 namespace NrvLeafBoard {

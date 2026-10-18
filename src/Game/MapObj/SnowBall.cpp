@@ -6,6 +6,7 @@
 #include "Game/Util.hpp"
 
 // Unnamed SMG2 helpers used by this unit (owned by other units).
+// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
 void fn_80034820(LiveActor*);
 }

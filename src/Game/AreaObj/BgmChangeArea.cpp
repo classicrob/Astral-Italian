@@ -7,7 +7,9 @@
 #include "Game/Util/SoundUtil.hpp"
 
 // Stage BGM lookups by scenario/stage name (target symbols are unnamed fn_ helpers).
+// PLACEHOLDER(objects): unnamed target symbol fn_8008A150, declared extern "C" so the reloc name matches; resolve when fn_8008A150 gets its real name in symbols.txt
 extern "C" s32 fn_8008A150(const char*, s32, s32);
+// PLACEHOLDER(objects): unnamed target symbol fn_8008A1A0, declared extern "C" so the reloc name matches; resolve when fn_8008A1A0 gets its real name in symbols.txt
 extern "C" s32 fn_8008A1A0(const char*, s32);
 
 namespace MR {

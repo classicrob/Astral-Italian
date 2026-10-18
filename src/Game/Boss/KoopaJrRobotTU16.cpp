@@ -3,8 +3,11 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800CB1A0, declared extern "C" so the reloc name matches; resolve when fn_800CB1A0 gets its real name in symbols.txt
 extern "C" void fn_800CB1A0(TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CB140, declared extern "C" so the reloc name matches; resolve when fn_800CB140 gets its real name in symbols.txt
 extern "C" void fn_800CB140(TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CB0E0, declared extern "C" so the reloc name matches; resolve when fn_800CB0E0 gets its real name in symbols.txt
 extern "C" void fn_800CB0E0(TVec3f*);
 
 namespace NrvKoopaJrRobotRock {

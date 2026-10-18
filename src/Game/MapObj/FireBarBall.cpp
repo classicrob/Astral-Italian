@@ -78,9 +78,9 @@ void FireBarBall::controlEmitEffect() {
 FireBar::FireBar(const char* pName) : LiveActor(pName) {
     mFireBalls = nullptr;
     mFireBallCount = 5;
-    _94.x = 0.0f;
-    _94.y = 0.0f;
-    _94.z = 0.0f;
+    mFrontVec.x = 0.0f;
+    mFrontVec.y = 0.0f;
+    mFrontVec.z = 0.0f;
     mFireBarSpeed = -1.0f;
     mStickCount = 1;
     mStickDistance = 140.0f;
@@ -137,7 +137,7 @@ void FireBar::init(const JMapInfoIter& rIter) {
 
     mFireBarSpeed = 0.1f * fireBallSpeed;
     mFireBallCount = mStickCount * numFireBalls;
-    MR::calcFrontVec(&_94, this);
+    MR::calcFrontVec(&mFrontVec, this);
     initFireBarBall(rIter);
     MR::setGroupClipping(this, rIter, 0x20);
     MR::setClippingTypeSphere(this, (mFireBallCount + 1) * 100.0f);
@@ -149,7 +149,7 @@ void FireBar::init(const JMapInfoIter& rIter) {
 void FireBar::exeWait() {
     TVec3f up_vec;
     MR::calcUpVec(&up_vec, this);
-    MR::rotateVecDegree(&_94, up_vec, mFireBarSpeed);
+    MR::rotateVecDegree(&mFrontVec, up_vec, mFireBarSpeed);
     MR::startActionSound(this, "OjLvFireBarCenter");
     fixFireBarBall();
 }
@@ -187,11 +187,11 @@ void FireBar::updateHitSensor(HitSensor* pSensor) {
     MR::calcUpVec(&up, this);
 
     TVec3f start;
-    start.scale(mStickDistance, _94);
+    start.scale(mStickDistance, mFrontVec);
     start.scaleAdd(50.0f, up, start);
 
     TVec3f end;
-    end.scale(mStickDistance + 100.0f * (fireBallCount - 1), _94);
+    end.scale(mStickDistance + 100.0f * (fireBallCount - 1), mFrontVec);
     end.scaleAdd(50.0f, up, end);
 
     for (s32 i = 0; i < mStickCount; i++) {
@@ -244,7 +244,7 @@ void FireBar::initFireBarBall(const JMapInfoIter& rIter) {
 
 void FireBar::fixFireBarBall() {
     TVec3f scaled;
-    scaled.scale(100.0f, _94);
+    scaled.scale(100.0f, mFrontVec);
 
     TVec3f final_pos;
     final_pos.zero();

@@ -19,6 +19,8 @@ class VolumeDrawer;
 // 15 pointers to tuning values (built by the unnamed constructor fn_8042EC10 outside this unit).
 class GliBirdParam {
 public:
+    GliBirdParam(const LiveActor* pHost);
+
     /* 0x00 */ const f32* mOffsetFront;
     /* 0x04 */ const f32* mOffsetUp;
     /* 0x08 */ const f32* mRadius;

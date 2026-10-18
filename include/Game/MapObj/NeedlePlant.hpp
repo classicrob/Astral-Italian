@@ -1,23 +1,41 @@
 #pragma once
 
-#include "Game/MapObj/MapObjActor.hpp"
+#include "Game/LiveActor/HitSensor.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TVec.hpp>
 
-class NeedlePlant : public MapObjActor {
+class YoshiLockOnTarget;
+
+class NeedlePlant : public LiveActor {
 public:
-    /// @brief Creates a new `NeedlePlant`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    NeedlePlant(const char* pName);
+    NeedlePlant(const char*);
 
+    virtual ~NeedlePlant();
     virtual void init(const JMapInfoIter&);
-    virtual void kill();
+    virtual void initAfterPlacement();
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
-    virtual void connectToScene(const MapObjActorInitInfo&);
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void exeWait() NO_INLINE;  // NrvWait::execute tail-calls it in the target
+    void exeWait();
     void exeShake();
+    void exeSupportFreeze();
+    void exeEatStart();
+    void exeEatPull();
+    void exeEatPullEnd();
+    void exeBroken();
+    void breakNeedle();
+    bool tryAppearDemoObj();
+    bool isNotEating();
+    bool isAttackable();
+    void updateYoshiLockOn();
 
-    /* 0xC4 */ s32 mObjArg0;
+    /* 0x90 */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0x94 */ LiveActor* mDemoObj;
+    /* 0x98 */ TVec3f mTargetPos;
+    /* 0xA4 */ s32 mObjArg0;
+    /* 0xA8 */ f32 mUnkA8;
+    /* 0xAC */ bool mIsFly;
 };

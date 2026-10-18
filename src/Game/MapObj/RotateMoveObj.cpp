@@ -75,6 +75,7 @@ void RotateMoveObj::exeWaitForPlayerOn() {
 void RotateMoveObj::exeWait() {
 }
 
+// PLACEHOLDER(objects): unnamed target symbol fn_80310A40, declared extern "C" so the reloc name matches; resolve when fn_80310A40 gets its real name in symbols.txt
 extern "C" void fn_80310A40(LiveActor*, const char*, bool);
 
 void RotateMoveObj::exeMove() {

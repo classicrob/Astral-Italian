@@ -4,7 +4,6 @@
 
 class FlashingCtrl;
 class MapPartsRailMover;
-class NameObjArchiveListCollector;
 class PartsModel;
 
 class ChipBase : public LiveActor {
@@ -37,9 +36,13 @@ public:
     bool requestHide();
     bool requestStartControl();
     bool requestEndControl();
+    bool requestNigeroDrop();
+    void returnToWait();
+    void startFall();
     void exeDeactive();
     void exeWait();
     void exeControled();
+    void exeFall();
     void exeFlashing();
     void exeHide();
     bool hasAirBubble() const {
@@ -47,8 +50,8 @@ public:
     }
     void exeGot();
     bool isGettable() const;
+    bool isNigeroTakeable() const;
     static bool isNeedBubble(const JMapInfoIter&);
-    static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
 
     /* 0x90 */ FlashingCtrl* mFlashingCtrl;
     /* 0x94 */ MapPartsRailMover* mRailMover;
@@ -59,5 +62,6 @@ public:
     /* 0xB0 */ s32 mGroupID;
     /* 0xB4 */ s32 mChipType;
     /* 0xB8 */ s32 mCounter;
-    /* 0xB9 */ bool mIsCalcShadow;
+    /* 0xBC */ u8 mPad_BC;
+    /* 0xBD */ bool mIsCalcShadow;
 };

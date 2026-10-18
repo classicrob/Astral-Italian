@@ -90,6 +90,8 @@ namespace MR {
     bool tryTalkForceWithoutDemo(TalkMessageCtrl*);
     bool tryTalkForceWithoutDemoMarioPuppetable(TalkMessageCtrl*);
     bool tryTalkForceWithoutDemoAtEnd(TalkMessageCtrl*);
+    void showBubbleBeak(TalkMessageCtrl*);
+    void hideBubbleBeak(TalkMessageCtrl*);
     bool tryTalkForceWithoutDemoMarioPuppetableAtEnd(TalkMessageCtrl*);
     bool tryTalkTimeKeepDemo(TalkMessageCtrl*);
     bool tryTalkTimeKeepDemoMarioPuppetable(TalkMessageCtrl*);

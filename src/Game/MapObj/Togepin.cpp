@@ -3,6 +3,7 @@
 #include "Game/MapObj/MapObjConnector.hpp"
 #include "Game/Util.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_8022BA10, declared extern "C" so the reloc name matches; resolve when fn_8022BA10 gets its real name in symbols.txt
 extern "C" void fn_8022BA10(Togepin*);
 
 namespace NrvTogepin {

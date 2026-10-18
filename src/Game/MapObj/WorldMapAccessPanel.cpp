@@ -3,14 +3,23 @@
 #include "Game/Util.hpp"
 #include "JSystem/JGeometry/TVec.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_8001C030, declared extern "C" so the reloc name matches; resolve when fn_8001C030 gets its real name in symbols.txt
 extern "C" void fn_8001C030(s32);
+// PLACEHOLDER(objects): unnamed target symbol fn_80059390, declared extern "C" so the reloc name matches; resolve when fn_80059390 gets its real name in symbols.txt
 extern "C" s32 fn_80059390();
+// PLACEHOLDER(objects): unnamed target symbol fn_80059210, declared extern "C" so the reloc name matches; resolve when fn_80059210 gets its real name in symbols.txt
 extern "C" void fn_80059210();
+// PLACEHOLDER(objects): unnamed target symbol fn_800592D0, declared extern "C" so the reloc name matches; resolve when fn_800592D0 gets its real name in symbols.txt
 extern "C" void fn_800592D0();
+// PLACEHOLDER(objects): unnamed target symbol fn_80088630, declared extern "C" so the reloc name matches; resolve when fn_80088630 gets its real name in symbols.txt
 extern "C" void fn_80088630();
+// PLACEHOLDER(objects): unnamed target symbol fn_804D8290, declared extern "C" so the reloc name matches; resolve when fn_804D8290 gets its real name in symbols.txt
 extern "C" s32 fn_804D8290();
+// PLACEHOLDER(objects): unnamed target symbol fn_804E8E90, declared extern "C" so the reloc name matches; resolve when fn_804E8E90 gets its real name in symbols.txt
 extern "C" s32 fn_804E8E90();
+// PLACEHOLDER(objects): unnamed target symbol fn_804D72A0, declared extern "C" so the reloc name matches; resolve when fn_804D72A0 gets its real name in symbols.txt
 extern "C" u32 fn_804D72A0(s32);
+// PLACEHOLDER(objects): unnamed target symbol fn_804D6520, declared extern "C" so the reloc name matches; resolve when fn_804D6520 gets its real name in symbols.txt
 extern "C" void fn_804D6520();
 
 // file-static step values (sbss2 in the target)

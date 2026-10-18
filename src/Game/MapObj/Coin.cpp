@@ -13,7 +13,9 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800145C0, declared extern "C" so the reloc name matches; resolve when fn_800145C0 gets its real name in symbols.txt
 extern "C" void fn_800145C0(LiveActor*);
+// PLACEHOLDER(objects): unnamed target symbol fn_80014670, declared extern "C" so the reloc name matches; resolve when fn_80014670 gets its real name in symbols.txt
 extern "C" void fn_80014670(LiveActor*);
 
 namespace NrvCoin {

@@ -18,6 +18,7 @@ static const f32 sDiceSpheres[8][4] = {
     {0.0f, 0.0f, 0.0f, 20.0f},  {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f},
 };
 
+// PLACEHOLDER(objects): unnamed target symbol fn_802B2FB0, declared extern "C" so the reloc name matches; resolve when fn_802B2FB0 gets its real name in symbols.txt
 extern "C" s32 fn_802B2FB0(MtxPtr, const TVec3f*);
 
 namespace NrvItemDice {

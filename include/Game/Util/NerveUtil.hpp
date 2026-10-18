@@ -34,6 +34,7 @@ namespace MR {
     f32 calcNerveValue(const NerveExecutor* pExecutor, s32 stepMax, f32 valueStart, f32 valueEnd);
     f32 calcNerveEaseInOutValue(const NerveExecutor* pExecutor, s32 stepMax, f32 valueStart, f32 valueEnd);
     f32 calcNerveEaseInOutValue(const NerveExecutor* pExecutor, s32 stepMin, s32 stepMax, f32 valueStart, f32 valueEnd);
+    f32 calcNerveEaseOutValue(const NerveExecutor* pExecutor, s32 stepMax, f32 valueStart, f32 valueEnd);  // objects: SMG2 addition
     void setNerveAtStep(NerveExecutor* pExecutor, const Nerve* pNerve, s32 step);
 };  // namespace MR
 

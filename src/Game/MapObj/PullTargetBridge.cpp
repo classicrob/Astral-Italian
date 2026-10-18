@@ -14,6 +14,7 @@ namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
 };
 
+// PLACEHOLDER(objects): unnamed target symbol fn_804222D0, declared extern "C" so the reloc name matches; resolve when fn_804222D0 gets its real name in symbols.txt
 extern "C" void fn_804222D0(LiveActor*);
 
 PullTargetAnim::PullTargetAnim(LiveActor* pHost) {

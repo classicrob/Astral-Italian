@@ -16,68 +16,89 @@ void CrystalCage_FORCE_MATCH_SDATA2() {
 }
 
 namespace NrvCrystalCage {
+    NEW_NERVE(CrystalCageNrvFall, CrystalCage, Fall);
     NEW_NERVE(CrystalCageNrvWait, CrystalCage, Wait);
     NEW_NERVE(CrystalCageNrvBreak, CrystalCage, Break);
     NEW_NERVE(CrystalCageNrvBreakAfter, CrystalCage, BreakAfter);
 };  // namespace NrvCrystalCage
-
 CrystalCage::CrystalCage(const char* pName)
     : LiveActor(pName), mCrystalCageType(0), mBreakObj(nullptr), _C4(1), _C8(0), mRumbleCalc(nullptr), _D0(0.0f, 0.0f, 1.0f), _DC(gZeroVec),
       _E8(gZeroVec), mDisplayModel(nullptr), _F8(gZeroVec), _104(0), _108(-1), mIsBreakObjVisible(false), mPlayRiddleSFX(false), mHasBinding(false),
-      _110(gZeroVec) {
+      mPowerStarState(0), mHasBinder(false), mIsInPlaneModeCube(false), mIsFallType(false), _110(gZeroVec) {
     _94.identity();
 }
 
+namespace {
+    const Vec sCageOffsetA = {0.0f, 80.0f, -40.0f};
+    const Vec sCageOffsetB = {0.0f, -37.0f, 0.0f};
+}  // namespace
+
 void CrystalCage::init(const JMapInfoIter& rIter) {
+    if (MR::isEqualObjectName(rIter, "CrystalCageS")) {
+        mCrystalCageType = 0;
+    } else if (MR::isEqualObjectName(rIter, "CrystalCageM")) {
+        mCrystalCageType = 1;
+    } else {
+        mCrystalCageType = 2;
+    }
+
+    if (mCrystalCageType == 0) {
+        TVec3f trans;
+        MR::getJMapInfoTrans(rIter, &trans);
+        mIsInPlaneModeCube = MR::isInPlaneModeCube(trans);
+    }
+
+    MR::getJMapInfoArg4NoInit(rIter, &mIsFallType);
+
     const char* obj_name;
     MR::getObjectName(&obj_name, rIter);
-    initMapToolInfo(rIter);
-    MR::calcGravity(this);
-    initModel(obj_name);
-    MR::connectToSceneCrystal(this);
-    _E8.set(mPosition);
-    initHitSensor(1);
-    MR::addHitSensorPosMapObj(this, "body", 8, (130.0f * mScale.x), &_E8, TVec3f(0.0f, 0.0f, 0.0f));
+    if (mIsInPlaneModeCube) {
+        obj_name = "CrystalCage2D";
+    }
 
-    if (mCrystalCageType) {
+    if (mIsFallType) {
+        MR::initActor(this, rIter, obj_name, "FallType", false);
+    } else {
+        MR::initActor(this, rIter, obj_name, false);
+    }
+
+    initMapToolInfo(rIter);
+    initModel();
+    _E8.set< f32 >(mPosition);
+    MR::setSensorFollowPos(this, "Body", &_E8);
+
+    if (mIsInPlaneModeCube || mCrystalCageType == 2) {
         MR::invalidateHitSensors(this);
     }
 
-    if (mHasBinding) {
+    if (mHasBinder) {
         initBinder(50.0f, 0.0f, 0);
-        MR::setBinderOffsetVec(this, &_110, nullptr);
+        MR::setBinderOffsetVec(this, &_110, false);
         MR::setBinderExceptActor(this, this);
     }
 
-    if (mCrystalCageType != 2) {
-        initEffectKeeper(0, nullptr, false);
-    }
-
-    MR::initCollisionParts(this, obj_name, getSensor("body"), nullptr);
-
-    f32 range = !mCrystalCageType ? 300.0f : 600.0f;
-    MR::setClippingTypeSphere(this, range * mScale.x);
-
-    TVec3f v23;
     if (mCrystalCageType == 2) {
         f32 mult = mScale.x * 250.0f;
         _C4 = 2;
-
         mDisplayModel = MR::createDummyDisplayModelCrystalItem(this, 7, TVec3f(0.0f, mult, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
-
-        if (_108 == -1) {
-            MR::declarePowerStar(this);
-        } else {
-            MR::declarePowerStar(this, _108);
-        }
     } else {
-        if (!mCrystalCageType) {
-            v23.set< f32 >(-30.0f, 100.0f, -30.0f);
+        TVec3f size;
+        TVec3f offset(0.0f, 0.0f, 0.0f);
+        if (mCrystalCageType == 0) {
+            size.set< f32 >(-30.0f, 100.0f, -30.0f);
         } else {
-            v23.set< f32 >(0.0f, 200.0f, 0.0f);
+            size.set< f32 >(0.0f, 200.0f, 0.0f);
         }
 
-        mDisplayModel = MR::createDummyDisplayModelCrystalItem(this, rIter, v23, TVec3f(0.0f, 0.0f, 0.0f));
+        if (mIsInPlaneModeCube) {
+            if (MR::getDummyDisplayModelId(rIter, -1) == 4) {
+                size.set(sCageOffsetA);
+            }
+
+            offset.set(sCageOffsetB);
+        }
+
+        mDisplayModel = MR::createDummyDisplayModelCrystalItem(this, rIter, size, offset);
 
         if (mDisplayModel) {
             switch (MR::getDummyDisplayModelId(rIter, -1)) {
@@ -86,7 +107,17 @@ void CrystalCage::init(const JMapInfoIter& rIter) {
                 break;
             case 4:
                 MR::startBva(mDisplayModel, "Freeze");
+                MR::declareStarPiece(this, 5);
+                break;
             }
+        }
+    }
+
+    if (isDisplayModelId(7)) {
+        if (_108 == -1) {
+            MR::declarePowerStar(this);
+        } else {
+            MR::declarePowerStar(this, _108);
         }
     }
 
@@ -97,8 +128,16 @@ void CrystalCage::init(const JMapInfoIter& rIter) {
         mRumbleCalc = new RumbleCalculatorCosMultLinear(4.0f, HALF_PI, 50.0f, 0x14);
     }
 
-    MR::joinToGroupArray(this, rIter, nullptr, 0x20);
-    initNerve(GET_NERVE(CrystalCage, CrystalCageNrvWait));
+    MR::joinToGroupArray(this, rIter, mName, 0x20);
+
+    if (mIsFallType) {
+        TVec3f up(0.0f, 1.0f, 0.0f);
+        MR::calcUpVec(&up, this);
+        JMAVECScaleAdd(&up, &mPosition, &mPosition, 4000.0f);
+        initNerve(GET_NERVE(CrystalCage, CrystalCageNrvFall), 0);
+    } else {
+        initNerve(GET_NERVE(CrystalCage, CrystalCageNrvWait), 0);
+    }
 
     if (MR::tryRegisterDemoCast(this, rIter)) {
         if (mDisplayModel) {
@@ -108,20 +147,8 @@ void CrystalCage::init(const JMapInfoIter& rIter) {
 
     if (mCrystalCageType == 2) {
         makeActorAppeared();
-        return;
-    }
-
-    if (MR::isExistStageSwitchSleep(rIter)) {
-        MR::useStageSwitchSleep(this, rIter);
-        makeActorDead();
-        return;
-    }
-
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
     } else {
-        makeActorAppeared();
+        MR::useStageSwitchSyncAppear(this, rIter);
     }
 }
 
@@ -169,6 +196,13 @@ void CrystalCage::forceBreak() {
             kill();
         }
     }
+}
+
+void CrystalCage::appear() {
+    if (mIsFallType) {
+        MR::invalidateClipping(this);
+    }
+    LiveActor::appear();
 }
 
 void CrystalCage::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -270,8 +304,7 @@ void CrystalCage::initMapToolInfo(const JMapInfoIter& rIter) {
     }
 }
 
-void CrystalCage::initModel(const char* pName) {
-    initModelManagerWithAnm(pName, nullptr, false);
+void CrystalCage::initModel() {
     MR::makeMtxUpNoSupportPos(&_94, -mGravity, _DC);
 
     if (mCrystalCageType == 2) {
@@ -281,7 +314,7 @@ void CrystalCage::initModel(const char* pName) {
     }
 
     MR::invalidateClipping(mBreakObj);
-    mBreakObj->mScale.set(mScale);
+    MR::setScale(mBreakObj, mScale);
     MR::registerDemoSimpleCastAll(mBreakObj);
     mBreakObj->makeActorDead();
 }
@@ -299,6 +332,47 @@ void CrystalCage::tryOnSwitchDead() {
 
     if (MR::isStep(this, step)) {
         MR::onSwitchDead(this);
+    }
+}
+
+// NONMATCHING: display model id check; the asm compares the dummy display model id with the argument
+bool CrystalCage::isDisplayModelId(s32 id) {
+    if (!mDisplayModel) {
+        return false;
+    }
+    bool isSame = MR::getDummyDisplayModelId(mDisplayModel) == id;
+    return isSame;
+}
+
+bool CrystalCage::hasPowerStarId() {
+    if (mPowerStarState == -1) {
+        return false;
+    }
+    if (mPowerStarState == 0) {
+        return false;
+    }
+    return true;
+}
+
+// NONMATCHING: fall nerve body; effect and sound names come from the string table, the ease-in motion is approximated
+void CrystalCage::exeFall() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSound(this, "FallStart", -1, -1, -1);
+    }
+    MR::emitEffect(this, "Falling");
+
+    TVec3f up(0.0f, 1.0f, 0.0f);
+    MR::calcUpVec(&up, this);
+    TVec3f target(0.0f, 1.0f, 0.0f);
+    f32 rate = MR::calcNerveEaseInRate(this, 30);
+    TVec3f blend(0.0f);
+    MR::vecBlend(&blend, mPosition, target, rate);
+    mPosition.set(blend);
+
+    if (MR::isStep(this, 30)) {
+        MR::deleteEffect(this, "Falling");
+        MR::validateClipping(this);
+        setNerve(GET_NERVE(CrystalCage, CrystalCageNrvWait));
     }
 }
 

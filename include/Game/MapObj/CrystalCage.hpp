@@ -20,8 +20,12 @@ public:
 
     void forceBreak();
     void initMapToolInfo(const JMapInfoIter&);
-    void initModel(const char*);
+    void initModel();
     void tryOnSwitchDead();
+    void appear();
+    bool isDisplayModelId(s32);
+    bool hasPowerStarId();
+    void exeFall();
     void exeWait();
     void exeBreak();
     void exeBreakAfter();
@@ -38,13 +42,15 @@ public:
     /* 0xF8 */ DummyDisplayModel* mDisplayModel;
     /* 0xFC */ TVec3f _F8;
     /* 0x108 */ bool _104;
-    /* 0x109 */ u8 _105;
-    /* 0x10A */ u8 _106;
+    /* 0x109 */ bool mIsInPlaneModeCube;
+    /* 0x10A */ bool mIsFallType;
     /* 0x10B */ u8 _107;
     /* 0x10C */ s32 _108;
     /* 0x110 */ bool mIsBreakObjVisible;
     /* 0x111 */ bool mPlayRiddleSFX;
     /* 0x112 */ bool mHasBinding;
     /* 0x113 */ u8 _10F;
-    /* 0x114 */ TVec3f _110;
+    /* 0x114 */ s32 mPowerStarState;
+    /* 0x118 */ bool mHasBinder;
+    /* 0x11C */ TVec3f _110;
 };

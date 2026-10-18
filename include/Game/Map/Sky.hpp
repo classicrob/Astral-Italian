@@ -11,6 +11,7 @@ public:
     /// @brief Creates a new `Sky`.
     /// @param pName A pointer to the null-terminated name of the object.
     Sky(const char* pName);
+    Sky(const char* pName, const char* pModelName);
 
     virtual void init(const JMapInfoIter&);
     virtual void calcAnim();

@@ -1,3 +1,4 @@
+#include "Game/LiveActor/ActorParam.hpp"
 #include "Game/Demo/DemoTitleAnim.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -7,8 +8,6 @@
 extern "C" DemoTitleAnimParam* fn_8013CF30(DemoTitleAnimParam*);
 extern "C" DemoTitleAnimSub* fn_8013CA10(DemoTitleAnimSub*, DemoTitleAnim*, DemoTitleAnimParam*);
 extern "C" DemoTitleAnimSub* fn_8013CC80(DemoTitleAnimSub*, DemoTitleAnim*, DemoTitleAnimParam*);
-// Returns a pointer to the param value (or a default). The target symbol omits the name argument from its mangling.
-extern "C" const s32* getActorParamS32__2MRFPC9LiveActor(const LiveActor*, const char*);
 
 namespace {
     const char* sEntryActorList = "EntryActorList";
@@ -36,8 +35,8 @@ DemoTitleAnim::~DemoTitleAnim() {
 void DemoTitleAnim::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "DemoTitleAnim", false);
     createSubs();
-    mBgmStartStep = getActorParamS32__2MRFPC9LiveActor(this, "ＢＧＭ開始フレーム");
-    mTitleLogoStep = getActorParamS32__2MRFPC9LiveActor(this, "タイトルロゴ");
+    mBgmStartStep = MR::getActorParamS32(this, "ＢＧＭ開始フレーム");
+    mTitleLogoStep = MR::getActorParamS32(this, "タイトルロゴ");
     mCameraInfo = new ActorCameraInfo(-1, 0);
     MR::initAnimCamera(this, mCameraInfo, "Start");
     MR::initAnimCamera(this, mCameraInfo, "Loop");

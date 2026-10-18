@@ -15,7 +15,6 @@ namespace MR {
     bool isEqualSensor(const HitSensor*, LiveActor*, const char*);
 };  // namespace MR
 
-extern "C" void emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
 
 
 namespace NrvCaveInParts {
@@ -119,7 +118,7 @@ void CaveInParts::exeFall() {
     const char* pBase = "Attack";
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
-        emitEffect__2MRFP9LiveActorPCc_0(this, pBase + 0x8);
+        MR::tryEmitEffect(this, pBase + 0x8);
     }
 
     MR::addVelocityToGravity(this, mGravityAccel);

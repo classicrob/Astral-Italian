@@ -4,12 +4,19 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include <cmath>
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800CAED0, declared extern "C" so the reloc name matches; resolve when fn_800CAED0 gets its real name in symbols.txt
 extern "C" void fn_800CAED0(TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CB0E0, declared extern "C" so the reloc name matches; resolve when fn_800CB0E0 gets its real name in symbols.txt
 extern "C" void fn_800CB0E0(TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CB140, declared extern "C" so the reloc name matches; resolve when fn_800CB140 gets its real name in symbols.txt
 extern "C" void fn_800CB140(TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CC280, declared extern "C" so the reloc name matches; resolve when fn_800CC280 gets its real name in symbols.txt
 extern "C" bool fn_800CC280(u32);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CC290, declared extern "C" so the reloc name matches; resolve when fn_800CC290 gets its real name in symbols.txt
 extern "C" bool fn_800CC290(u32);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CB710, declared extern "C" so the reloc name matches; resolve when fn_800CB710 gets its real name in symbols.txt
 extern "C" void fn_800CB710();
+// PLACEHOLDER(objects): unnamed target symbol fn_8003D4A0, declared extern "C" so the reloc name matches; resolve when fn_8003D4A0 gets its real name in symbols.txt
 extern "C" void fn_8003D4A0(TQuat4f*, TQuat4f*, f32);
 
 namespace NrvKoopaJrRobotQuakeWave {

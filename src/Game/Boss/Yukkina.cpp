@@ -34,7 +34,9 @@ extern s32 lbl_807D1D48;
 #define NRV(sym) (reinterpret_cast< Nerve* >(&(sym)))
 #define RAW(T, this_, off) (*reinterpret_cast< T* >(reinterpret_cast< u8* >(this_) + (off)))
 
+// PLACEHOLDER(objects): unnamed target symbol fn_8001BA80, declared extern "C" so the reloc name matches; resolve when fn_8001BA80 gets its real name in symbols.txt
 extern "C" void fn_8001BA80();
+// PLACEHOLDER(objects): unnamed target symbol fn_8004FF90, declared extern "C" so the reloc name matches; resolve when fn_8004FF90 gets its real name in symbols.txt
 extern "C" void fn_8004FF90();
 
 Yukkina::Yukkina(const char* pName) : LiveActor(pName) {

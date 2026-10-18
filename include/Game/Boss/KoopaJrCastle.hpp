@@ -243,6 +243,7 @@ public:
     NO_INLINE void fn_800D05C0();
     KoopaJrCastleCannonBall* findDeadBall();
     void killAllBalls();
+    bool shoot();
     void updateGauge();
 
     /* 0x90 */ KoopaJrCastle* mHost;
@@ -261,12 +262,17 @@ public:
     void exe800D2BF0();
     virtual ~KoopaJrCastleFireBar();
     KoopaJrCastleFireBar(const char*);
+    virtual void makeActorAppeared();
+    virtual void makeActorDead();
+    virtual void attackSensor(HitSensor*, HitSensor*);
     void setup(LiveActor*, const TVec3f&, const TVec3f&, const char*);
     void fn_800D2C50();
     void fn_800D2CC0();
     /* 0x90 */ LiveActor* mBody;
-    /* 0x94 */ u8 _94[4];
-    /* 0x98 */ TVec3f _98;
+    /* 0x94 */ char** mNames;
+    /* 0x98 */ TPos3f* mMtxs;
+    /* 0x9C */ LiveActor** mChildren;
+    /* 0xA0 */ s32 mChildCount;
     /* 0xA4 */ f32 _A4;
     /* 0xA8 */ f32 _A8;
     /* 0xAC */ f32 _AC;
@@ -398,6 +404,7 @@ public:
     virtual void kill();
     virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
+    void shoot(MtxPtr, const f32&);
     void exe800D0FA0();
     void exe800D10A0();
     void exe800D1220();

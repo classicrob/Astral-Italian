@@ -65,6 +65,7 @@ namespace {
     static const f32 sSquareHeightOffset = 100.0f;
 };  // namespace
 
+// PLACEHOLDER(objects): unnamed target symbol fn_8004FF70, declared extern "C" so the reloc name matches; resolve when fn_8004FF70 gets its real name in symbols.txt
 extern "C" void fn_8004FF70();  // unnamed MarioAccess stub (b fn_803B6010), name unknown
 
 namespace NrvPole {

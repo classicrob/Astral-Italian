@@ -41,6 +41,7 @@
 #include <cstdio>
 
 // SMG2 2-arg tryFindNamePos (no symbol name in symbols.txt)
+// PLACEHOLDER(objects): unnamed target symbol fn_8004E770, declared extern "C" so the reloc name matches; resolve when fn_8004E770 gets its real name in symbols.txt
 extern "C" void fn_8004E770(const char*, MtxPtr);
 
 void Dodoryu_FORCE_MATCH(DodoryuStateBase* pState, TPos3f* pMtx, TVec3f* pVec) {

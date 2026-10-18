@@ -11,9 +11,13 @@ namespace NameObjFactory {
 };  // namespace NameObjFactory
 
 
+// PLACEHOLDER(objects): unnamed target symbol fn_8005A2A0, declared extern "C" so the reloc name matches; resolve when fn_8005A2A0 gets its real name in symbols.txt
 extern "C" void fn_8005A2A0(s32);
+// PLACEHOLDER(objects): unnamed target symbol fn_8005A2E0, declared extern "C" so the reloc name matches; resolve when fn_8005A2E0 gets its real name in symbols.txt
 extern "C" void fn_8005A2E0();
+// PLACEHOLDER(objects): unnamed target symbol fn_8005A310, declared extern "C" so the reloc name matches; resolve when fn_8005A310 gets its real name in symbols.txt
 extern "C" void fn_8005A310(s32);
+// PLACEHOLDER(objects): unnamed target symbol fn_80024F50, declared extern "C" so the reloc name matches; resolve when fn_80024F50 gets its real name in symbols.txt
 extern "C" void fn_80024F50();
 
 namespace NrvExterminationSwitch {

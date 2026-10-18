@@ -4,6 +4,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800DA9B0, declared extern "C" so the reloc name matches; resolve when fn_800DA9B0 gets its real name in symbols.txt
 extern "C" s32 fn_800DA9B0();
 
 static KoopaJrRobotPart::PartInfo sPartTable[4] = {

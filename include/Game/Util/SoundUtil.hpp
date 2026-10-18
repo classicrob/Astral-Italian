@@ -61,6 +61,7 @@ namespace MR {
     JAISoundHandle* startSoundObjectLevelParam(AudSoundObject* pSoundObject, const char* pName, s32 param3 = -1, s32 param4 = -1, s32 param5 = -1);
     JAISoundHandle* startSoundObjectLevelParam(AudSoundObject* pSoundObject, JAISoundID id, s32 param3 = -1, s32 param4 = -1, s32 param5 = -1);
     JAISoundHandle* startSound(const LiveActor*, const char*, s32 param3 = -1, s32 param4 = -1);
+    void startSoundInCameraDistance(LiveActor*, const char*, s32, s32, f32);  // objects: SMG2 addition
     JAISoundHandle* startSound(const LiveActor*, JAISoundID, s32 param3 = -1, s32 param4 = -1);
     JAISoundHandle* startSoundSeVer(const LiveActor* pActor, const char* pName, s32 param3 = -1, s32 param4 = -1);
     JAISoundHandle* startLevelSound(const LiveActor* pActor, const char* pName, s32 param3 = -1, s32 param4 = -1, s32 param5 = -1);

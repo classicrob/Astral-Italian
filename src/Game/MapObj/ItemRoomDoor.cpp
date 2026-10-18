@@ -12,6 +12,7 @@ namespace MR {
     void startSoundInPlayerDistance(LiveActor*, const char*, s32, s32, f32);
 };  // namespace MR
 
+// PLACEHOLDER(objects): unnamed target symbol fn_8001FDD0, declared extern "C" so the reloc name matches; resolve when fn_8001FDD0 gets its real name in symbols.txt
 extern "C" bool fn_8001FDD0(const LiveActor*, const char*);
 
 

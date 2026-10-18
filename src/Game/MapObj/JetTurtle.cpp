@@ -8,6 +8,7 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "revolution/types.h"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_80422350, declared extern "C" so the reloc name matches; resolve when fn_80422350 gets its real name in symbols.txt
 extern "C" void fn_80422350(TPos3f*);
 
 class YoshiLockOnTarget;

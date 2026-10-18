@@ -34,7 +34,9 @@
 #include <revolution/gx/GXStruct.h>
 #include <revolution/mtx.h>
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800145C0, declared extern "C" so the reloc name matches; resolve when fn_800145C0 gets its real name in symbols.txt
 extern "C" void fn_800145C0(LiveActor*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800145D0, declared extern "C" so the reloc name matches; resolve when fn_800145D0 gets its real name in symbols.txt
 extern "C" void fn_800145D0(TVec3f*, const TVec3f&);
 
 const GXColor effectColors[] = {{0x00, 0x55, 0xff, 0xFF}, {0xFF, 0xFF, 0x00, 0xFF}, {0x55, 0xFF, 0x00, 0xFF}, {0x7F, 0x7F, 0x00, 0xFF}};

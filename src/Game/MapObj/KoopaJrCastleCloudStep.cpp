@@ -8,6 +8,7 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
+// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
 void fn_80068E40(SpringValue*, f32);
 s32 fn_800D9830(const TVec3f*, TVec3f*, f32*);

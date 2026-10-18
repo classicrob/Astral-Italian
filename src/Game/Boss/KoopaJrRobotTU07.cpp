@@ -4,7 +4,9 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_80050FE0, declared extern "C" so the reloc name matches; resolve when fn_80050FE0 gets its real name in symbols.txt
 extern "C" void fn_80050FE0();
+// PLACEHOLDER(objects): unnamed target symbol fn_80051140, declared extern "C" so the reloc name matches; resolve when fn_80051140 gets its real name in symbols.txt
 extern "C" void fn_80051140();
 
 static const char* sDemoName = "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x83_\x83""E\x83\x93\x83""f\x83\x82";

@@ -23,9 +23,13 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers outside this unit.
+// PLACEHOLDER(objects): unnamed target symbol fn_8003D2D0, declared extern "C" so the reloc name matches; resolve when fn_8003D2D0 gets its real name in symbols.txt
 extern "C" void fn_8003D2D0(TQuat4f*, const TQuat4f*, const TVec3f&, f32);
+// PLACEHOLDER(objects): unnamed target symbol fn_8009A780, declared extern "C" so the reloc name matches; resolve when fn_8009A780 gets its real name in symbols.txt
 extern "C" void fn_8009A780(TPos3f*, const TQuat4f*, const TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800DB560, declared extern "C" so the reloc name matches; resolve when fn_800DB560 gets its real name in symbols.txt
 extern "C" void fn_800DB560(void*, s32);
+// PLACEHOLDER(objects): unnamed target symbol fn_8001BA80, declared extern "C" so the reloc name matches; resolve when fn_8001BA80 gets its real name in symbols.txt
 extern "C" void fn_8001BA80();
 
 namespace MR {

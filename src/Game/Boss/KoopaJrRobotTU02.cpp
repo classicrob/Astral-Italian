@@ -190,6 +190,7 @@ void KoopaJrRobotFunction::hideStarPieces(KoopaJrRobot* pHost) {
     }
 }
 
+// PLACEHOLDER(objects): extern "C" declaration of a target symbol with a non-C++ name (relocs must match); resolve when the symbol is renamed in symbols.txt
 extern "C" CollisionObj* __ct__12CollisionObjFP9LiveActorPCcPCcbPA4_fi(CollisionObj*, LiveActor*, const char*, const char*, HitSensor*, MtxPtr, s32);
 
 LiveActor* KoopaJrRobotFunction::createHand(KoopaJrRobot* pHost, const char* pName) {

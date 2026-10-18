@@ -6,7 +6,9 @@
 #include <cstdio>
 #include <new>
 
+// PLACEHOLDER(objects): unnamed target symbol fn_80222AC0, declared extern "C" so the reloc name matches; resolve when fn_80222AC0 gets its real name in symbols.txt
 extern "C" void* fn_80222AC0(void*, const char*);
+// PLACEHOLDER(objects): unnamed target symbol fn_80220830, declared extern "C" so the reloc name matches; resolve when fn_80220830 gets its real name in symbols.txt
 extern "C" bool fn_80220830(void*);
 extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
 

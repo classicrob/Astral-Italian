@@ -14,6 +14,7 @@
 #include <JSystem/JMath.hpp>
 #include <cmath>
 
+// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
 void fn_80010D10(LiveActor*, const TVec3f&, f32);
 bool fn_80012BA0(LiveActor*, HitSensor*, HitSensor*, f32);

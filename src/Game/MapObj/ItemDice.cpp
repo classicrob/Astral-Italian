@@ -13,7 +13,9 @@
 
 
 // Unnamed SMG2 helpers (DiceBase/BenefitItem unit, not ours to name here).
+// PLACEHOLDER(objects): unnamed target symbol fn_802B30F0, declared extern "C" so the reloc name matches; resolve when fn_802B30F0 gets its real name in symbols.txt
 extern "C" void fn_802B30F0(BenefitItemObj*, const TVec3f*, TRot3f*, f32);
+// PLACEHOLDER(objects): unnamed target symbol fn_801B9BD0, declared extern "C" so the reloc name matches; resolve when fn_801B9BD0 gets its real name in symbols.txt
 extern "C" void fn_801B9BD0(BenefitItemObj*, const TVec3f*, TQuat4f*);
 
 namespace {

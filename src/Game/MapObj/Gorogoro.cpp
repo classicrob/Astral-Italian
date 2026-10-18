@@ -9,8 +9,8 @@
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/Map/CollisionParts.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_8000E760, declared extern "C" so the reloc name matches; resolve when fn_8000E760 gets its real name in symbols.txt
 extern "C" void fn_8000E760(TVec3f*, LiveActor*, const TVec3f*, f32, f32);
-extern "C" void emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
 
 namespace NrvGorogoro {
     NEW_NERVE(GorogoroNrvWait, Gorogoro, Wait);
@@ -206,7 +206,7 @@ void Gorogoro::exeWait() {
 
 void Gorogoro::exeMove() {
     if (MR::isFirstStep(this)) {
-        emitEffect__2MRFP9LiveActorPCc_0(this, "GorogoroSand");
+        MR::tryEmitEffect(this, "GorogoroSand");
     }
 
     doRailMove();
@@ -382,7 +382,7 @@ void GorogoroCylinderRock::updateRoll() {
     if (mRailPointNo != oldPointNo) {
         tryUpdateNerve();
     }
-    emitEffect__2MRFP9LiveActorPCc_0(this, "Roll");
+    MR::tryEmitEffect(this, "Roll");
     MR::startActionSound(this, "Rotate", -1, -1, -1);
 }
 

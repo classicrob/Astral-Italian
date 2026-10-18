@@ -1,12 +1,20 @@
 #include "Game/MapObj/FireBar.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/PartsModel.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
+// PLACEHOLDER(objects): unnamed core helper (child-object name by index, sits right after getChildObjName 0x80057880); resolve when core names fn_800578F0
+extern "C" const char* fn_800578F0(const JMapInfoIter&, s32);
+
 namespace NrvFireBar {
+    // PLACEHOLDER(objects): nerves A (807D3AD8, exe fn_802A1620) and B (807D3ADC, exe fn_802A1610) call core helpers; resolve when their callees are named
+    NEW_NERVE(FireBarNrvA, FireBar, NerveA);
+    NEW_NERVE(FireBarNrvB, FireBar, NerveB);
     NEW_NERVE(FireBarNrvWait, FireBar, Wait);
+    NEW_NERVE(FireBarNrvC, FireBar, NerveC);
 };  // namespace NrvFireBar
 
 FireBarBall::~FireBarBall() {
@@ -78,25 +86,26 @@ void FireBarBall::controlEmitEffect() {
 FireBar::FireBar(const char* pName) : LiveActor(pName) {
     mFireBalls = nullptr;
     mFireBallCount = 5;
-    _94.x = 0.0f;
-    _94.y = 0.0f;
-    _94.z = 0.0f;
-    mFireBarSpeed = -1.0f;
+    mUnk98 = 0;
+    mFrontVec.x = 0.0f;
+    mFrontVec.y = 0.0f;
+    mFrontVec.z = 1.0f;
+    mFireBarSpeed = -5.0f;
     mStickCount = 1;
     mStickDistance = 140.0f;
+    mIsStopped = false;
+    mUnkB5 = false;
+    mUnkB8 = 150.0f;
 }
 
 void FireBar::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("FireBarCore", 0, false);
-    MR::connectToSceneMapObj(this);
-    initHitSensor(2);
-    MR::addBodyMessageSensorMapObj(this);
-    MR::addHitSensorCallbackEnemyAttack(this, "fire", 8, 30.0f);
-    MR::initCollisionParts(this, "FireBarCore", getSensor("body"), 0);
-    initEffectKeeper(0, 0, false);
-    initSound(3, "FireBar", nullptr, TVec3f(0.0f));
-    MR::calcGravity(this);
+    MR::initActor(this, rIter, "FireBarCore", false);
+
+    const char* pObjName = nullptr;
+    MR::getObjectName(&pObjName, rIter);
+    if (MR::isEqualString(pObjName, "FireBarSpherical")) {
+        mUnkB5 = true;
+    }
 
     f32 shadowDropDist = 100.0f;
     MR::getJMapInfoArg6NoInit(rIter, &shadowDropDist);
@@ -105,31 +114,28 @@ void FireBar::init(const JMapInfoIter& rIter) {
 
     if (shadowDropDist > 0.0f) {
         TVec3f up_vec;
-        TVec3f scaled_vec;
-        TVec3f drop_direction;
-        TVec3f shadow_box;
-        shadow_box.x = 100.0f;
-        shadow_box.y = 100.0f;
-        shadow_box.z = 100.0f;
-        MR::initShadowVolumeBox(this, shadow_box);
         MR::calcUpVec(&up_vec, this);
-        scaled_vec.scaleAdd(50.0f, up_vec, mPosition);
-        MR::setShadowDropPosition(this, 0, scaled_vec);
-        MR::setShadowVolumeStartDropOffset(this, 0, 100.0f);
-        MR::setShadowDropLength(this, 0, shadowDropDist);
+        TVec3f drop_pos;
+        drop_pos.scaleAdd(50.0f, up_vec, mPosition);
+        MR::setShadowDropPosition(this, nullptr, drop_pos);
+        MR::setShadowVolumeStartDropOffset(this, nullptr, 100.0f);
+        MR::setShadowDropLength(this, nullptr, shadowDropDist);
 
         s32 rotateShadow = -1;
         MR::getJMapInfoArg4NoInit(rIter, &rotateShadow);
 
         if (rotateShadow == 0) {
+            TVec3f drop_direction;
             MR::calcUpVec(&drop_direction, this);
             drop_direction.negate();
-            MR::setShadowDropDirection(this, 0, drop_direction);
+            MR::setShadowDropDirection(this, nullptr, drop_direction);
         }
+    } else {
+        MR::invalidateShadowAll(this);
     }
 
     s32 numFireBalls = 5;
-    f32 fireBallSpeed = -1.0f;
+    f32 fireBallSpeed = -5.0f;
     MR::getJMapInfoArg0NoInit(rIter, &numFireBalls);
     MR::getJMapInfoArg1NoInit(rIter, &fireBallSpeed);
     MR::getJMapInfoArg5NoInit(rIter, &mStickDistance);
@@ -137,21 +143,79 @@ void FireBar::init(const JMapInfoIter& rIter) {
 
     mFireBarSpeed = 0.1f * fireBallSpeed;
     mFireBallCount = mStickCount * numFireBalls;
-    MR::calcFrontVec(&_94, this);
+
+    MR::joinToGroupArray(this, rIter, mName, 0x10);
+    MR::calcFrontVec(&mFrontVec, this);
+
     initFireBarBall(rIter);
-    MR::setGroupClipping(this, rIter, 0x20);
+
+    s32 numChildObj = MR::getChildObjNum(rIter);
+    if (numChildObj > 0) {
+        mUnk98 = new TPos3f();
+        mUnk98->identity();
+    }
+
+    for (s32 i = 0; i < numChildObj; i++) {
+        const char* pChildName = nullptr;
+        MR::getChildObjName(&pChildName, rIter, i);
+
+        PartsModel* pParts = new PartsModel(this, fn_800578F0(rIter, i), pChildName, mUnk98->mMtx, -1, false);
+        pParts->initWithoutIter();
+    }
+
     MR::setClippingTypeSphere(this, (mFireBallCount + 1) * 100.0f);
-    MR::useStageSwitchSleep(this, rIter);
+    MR::addEffect(this, "PointerTouch");
     initNerve(GET_NERVE(FireBar, FireBarNrvWait));
-    makeActorAppeared();
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void FireBar::exeWait() {
-    TVec3f up_vec;
-    MR::calcUpVec(&up_vec, this);
-    MR::rotateVecDegree(&_94, up_vec, mFireBarSpeed);
-    MR::startActionSound(this, "OjLvFireBarCenter");
+    if (MR::isFirstStep(this)) {
+        MR::validateClipping(this);
+    }
+
+    MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);
+
+    if (!mIsStopped) {
+        TVec3f up_vec;
+        MR::calcUpVec(&up_vec, this);
+        MR::rotateVecDegree(&mFrontVec, up_vec, mFireBarSpeed);
+    }
+
     fixFireBarBall();
+
+    if (isAnyFireBallInNerveB()) {
+        MR::sendMsgToGroupMember(0x7B, this, getSensor("Body"), "Body");
+        setNerve(GET_NERVE(FireBar, FireBarNrvC));
+    }
+}
+
+void FireBar::exeNerveC() {
+    if (!isAnyFireBallInNerveB()) {
+        MR::sendMsgToGroupMember(0x7A, this, getSensor("Body"), "Body");
+        setNerve(GET_NERVE(FireBar, FireBarNrvWait));
+    }
+}
+
+bool FireBar::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (msg == 0x7B) {
+        mIsStopped = true;
+        return true;
+    }
+    if (msg == 0x7A) {
+        mIsStopped = false;
+        return true;
+    }
+    return false;
+}
+
+bool FireBar::isAnyFireBallInNerveB() const {
+    for (s32 i = 0; i < mFireBallCount; i++) {
+        if (mFireBalls[i]->isNerve(GET_NERVE_DIRECT(NrvFireBar, FireBarNrvB))) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void FireBar::makeActorAppeared() {
@@ -163,6 +227,8 @@ void FireBar::makeActorAppeared() {
 }
 
 void FireBar::makeActorDead() {
+    MR::tryDeleteEffect(this, "PointerTouch");
+
     for (s32 i = 0; i < mFireBallCount; i++) {
         mFireBalls[i]->makeActorDead();
     }
@@ -177,6 +243,11 @@ void FireBar::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 void FireBar::updateHitSensor(HitSensor* pSensor) {
+    if (mUnkB5) {
+        setSensorToNearestFireBall(pSensor);
+        return;
+    }
+
     f32 minDistance = FLOAT_MAX;
 
     TVec3f position = mPosition;
@@ -187,11 +258,11 @@ void FireBar::updateHitSensor(HitSensor* pSensor) {
     MR::calcUpVec(&up, this);
 
     TVec3f start;
-    start.scale(mStickDistance, _94);
+    start.scale(mStickDistance, mFrontVec);
     start.scaleAdd(50.0f, up, start);
 
     TVec3f end;
-    end.scale(mStickDistance + 100.0f * (fireBallCount - 1), _94);
+    end.scale(mStickDistance + 100.0f * (fireBallCount - 1), mFrontVec);
     end.scaleAdd(50.0f, up, end);
 
     for (s32 i = 0; i < mStickCount; i++) {
@@ -218,10 +289,30 @@ void FireBar::updateHitSensor(HitSensor* pSensor) {
         }
     }
 
-    pSensor->mPosition.set(position);
+    MR::setSensorPos(pSensor, position);
 }
 
-// meh
+void FireBar::setSensorToNearestFireBall(HitSensor* pSensor) {
+    if (mFireBalls == nullptr) {
+        MR::setSensorPos(pSensor, mPosition);
+        return;
+    }
+
+    f32 minDistance = 0.0f;
+    s32 nearest = 0;
+
+    for (s32 i = 0; i < mFireBallCount; i++) {
+        f32 distance = MR::calcDistanceToPlayer(mFireBalls[i]);
+
+        if (distance < minDistance || i == 0) {
+            minDistance = distance;
+            nearest = i;
+        }
+    }
+
+    MR::setSensorPos(pSensor, mFireBalls[nearest]->mPosition);
+}
+
 void FireBar::initFireBarBall(const JMapInfoIter& rIter) {
     mFireBalls = new FireBarBall*[mFireBallCount];
     s32 totalNum = mFireBallCount / mStickCount;
@@ -231,11 +322,9 @@ void FireBar::initFireBarBall(const JMapInfoIter& rIter) {
         mFireBalls[i] = new FireBarBall(this);
         mFireBalls[i]->init(rIter);
         MR::startBtk(mFireBalls[i], "FireBarBall");
-        s32 div = i / totalNum;
-        div *= totalNum;
 
-        startVal = !(i - div) ? 0.0f : 25.0f + startVal;
-        startVal = static_cast< s32 >(startVal) % static_cast< s32 >(MR::getBtkFrameMax(mFireBalls[i]));
+        f32 frame = (i % totalNum == 0) ? 0.0f : 25.0f + startVal;
+        startVal = static_cast< s32 >(frame) % static_cast< s32 >(MR::getBtkFrameMax(mFireBalls[i]));
         MR::setBtkFrame(mFireBalls[i], startVal);
     }
 
@@ -244,29 +333,43 @@ void FireBar::initFireBarBall(const JMapInfoIter& rIter) {
 
 void FireBar::fixFireBarBall() {
     TVec3f scaled;
-    scaled.scale(100.0f, _94);
+    scaled.scale(100.0f, mFrontVec);
 
     TVec3f final_pos;
-    final_pos.zero();
+    final_pos.z = 0.0f;
+    final_pos.y = 0.0f;
+    final_pos.x = 0.0f;
 
     s32 totalNum = mFireBallCount / mStickCount;
+    TVec3f prev = scaled;
 
     for (s32 i = 0; i < mFireBallCount; i++) {
-        s32 div = i / totalNum;
-        div *= totalNum;
-
-        if (i - div == 0) {
+        if (i % totalNum == 0) {
             TVec3f up_vec;
             MR::calcUpVec(&up_vec, this);
             MR::rotateVecDegree(&scaled, up_vec, 360.0f / mStickCount);
             TVec3f norm;
-            MR::normalize(scaled, &norm);
+            MR::normalize(&norm, scaled);
             final_pos.scaleAdd(mStickDistance, norm, mPosition);
             final_pos.scaleAdd(50.0f, up_vec, final_pos);
+            prev.set(scaled);
+        } else if (mUnkB5) {
+            TVec3f up_vec;
+            MR::calcUpVec(&up_vec, this);
+            TVec3f cross;
+            PSVECCrossProduct(&up_vec, &prev, &cross);
+            MR::rotateVecDegree(&prev, cross, mUnkB8 / 100.0f);
+            final_pos.add(prev);
         } else {
             final_pos.add(scaled);
         }
 
-        mFireBalls[i]->mPosition.set(final_pos);
+        MR::setPosition(mFireBalls[i], final_pos);
+    }
+
+    if (mUnk98 != nullptr) {
+        TVec3f up_vec(0.0f);
+        MR::calcUpVec(&up_vec, this);
+        MR::makeMtxFrontUpPos(mUnk98, mFrontVec, up_vec, mPosition);
     }
 }

@@ -5,10 +5,15 @@
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <JSystem/JMath/JMath.hpp>
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800CAED0, declared extern "C" so the reloc name matches; resolve when fn_800CAED0 gets its real name in symbols.txt
 extern "C" void fn_800CAED0(TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CAF20, declared extern "C" so the reloc name matches; resolve when fn_800CAF20 gets its real name in symbols.txt
 extern "C" f32 fn_800CAF20();
+// PLACEHOLDER(objects): unnamed target symbol fn_800CC280, declared extern "C" so the reloc name matches; resolve when fn_800CC280 gets its real name in symbols.txt
 extern "C" bool fn_800CC280(u32);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CC290, declared extern "C" so the reloc name matches; resolve when fn_800CC290 gets its real name in symbols.txt
 extern "C" bool fn_800CC290(u32);
+// PLACEHOLDER(objects): unnamed target symbol fn_800CB710, declared extern "C" so the reloc name matches; resolve when fn_800CB710 gets its real name in symbols.txt
 extern "C" void fn_800CB710();
 
 namespace NrvKoopaJrRobotShockWave {

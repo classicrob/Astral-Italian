@@ -9,6 +9,9 @@
 #include "Game/MapObj/CollectTicoHolder.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+// BGM state set after the rescue demo: a zero const the target loads from .sbss2 instead of folding it.
+const volatile u32 sRescueBgmState = 0;
+
 namespace NrvPetitPorter {
     NEW_NERVE(PetitPorterNrvAppear, PetitPorter, Appear);
     NEW_NERVE(PetitPorterNrvWaitOn, PetitPorter, Wait);
@@ -303,7 +306,7 @@ void PetitPorter::exeLeaveCamera() {
             MR::startStageBGM(mBgmHandle1, false);
         }
         if (mBgmHandle2 > 0) {
-            MR::setStageBGMState(mBgmHandle2, 0);
+            MR::setStageBGMState(mBgmHandle2, sRescueBgmState);
         }
         MR::hidePlayerTryDeleteEffect();
         MR::launchRescuedStrayTico(mMtxD8);

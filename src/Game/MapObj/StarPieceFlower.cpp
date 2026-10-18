@@ -12,7 +12,9 @@ namespace MR {
     bool getJMapInfoArg0NoInit(const JMapInfoIter&, bool*);
 };  // namespace MR
 
+// PLACEHOLDER(objects): unnamed target symbol fn_80318760, declared extern "C" so the reloc name matches; resolve when fn_80318760 gets its real name in symbols.txt
 extern "C" void fn_80318760(TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_8004DB60, declared extern "C" so the reloc name matches; resolve when fn_8004DB60 gets its real name in symbols.txt
 extern "C" void fn_8004DB60(LiveActor*, TVec3f*, TVec3f*, f32, s32, s32, s32, s32);
 
 

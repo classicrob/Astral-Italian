@@ -1,65 +1,115 @@
 #include "Game/MapObj/NeedlePlant.hpp"
-#include "Game/Util.hpp"
-#include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
-#include "Game/MapObj/MapObjActorInitInfo.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/ActorShadowUtil.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/JMapUtil.hpp"
+#include "Game/Util/JointUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
-#include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
+#include "Game/Enemy/SearchBeamer.hpp"
 
-void NeedlePlant_FORCE_MATCH_SDATA2() {
-    (void)150.0f;
-    (void)180.0f;
-    (void)10.0f;
-    (void)40.0f;
-    (void)70.0f;
-}
+namespace YoshiFunction {
+    void tryYoshiPull(YoshiLockOnTarget*);
+};
+
+// PLACEHOLDER(objects): unnamed target symbol fn_804222D0, declared extern "C" so the reloc name matches; resolve when fn_804222D0 gets its real name in symbols.txt
+extern "C" void fn_804222D0();
+// PLACEHOLDER(objects): unnamed target symbol fn_80422310, declared extern "C" so the reloc name matches; resolve when fn_80422310 gets its real name in symbols.txt
+extern "C" void fn_80422310();
 
 namespace {
-    // static const f32 sBreakSensorSize = _;
-    static const f32 sAttackSensorSize = 70.0f;
-};  // namespace
+    // Shared name pool: object name, fly object name, demo object name (Shift-JIS, +0x1C), model name and joint name.
+    char sNamePool[] = "NeedlePlant\0"
+                       "NeedlePlantFly\0\0"
+                       "\x83\x67\x83\x51\x90\x41\x95\xA8\x8E\x63\x8A\x5B"
+                       "\0\0\0\0\0\0\0\0"
+                       "NeedlePlantHill\0"
+                       "Needle1\0";
+}  // namespace
 
 namespace NrvNeedlePlant {
     NEW_NERVE(NeedlePlantNrvWait, NeedlePlant, Wait);
     NEW_NERVE(NeedlePlantNrvShake, NeedlePlant, Shake);
 };  // namespace NrvNeedlePlant
 
-NeedlePlant::NeedlePlant(const char* pName) : MapObjActor(pName), mObjArg0(-1) {
-}
+namespace {
+    NEW_NERVE(NeedlePlantNrvSupportFreeze, NeedlePlant, SupportFreeze);
+    NEW_NERVE(NeedlePlantNrvEatStart, NeedlePlant, EatStart);
+    NEW_NERVE(NeedlePlantNrvEatPull, NeedlePlant, EatPull);
+    NEW_NERVE(NeedlePlantNrvEatPullEnd, NeedlePlant, EatPullEnd);
+
+    // Eaten nerve: empty execute, no exe function of its own
+    class NeedlePlantNrvEaten : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static NeedlePlantNrvEaten sInstance;
+    };
+    NeedlePlantNrvEaten NeedlePlantNrvEaten::sInstance ATTRIBUTE_WEAK;
+
+    NEW_NERVE(NeedlePlantNrvBroken, NeedlePlant, Broken);
+};  // namespace
+
+NeedlePlant::NeedlePlant(const char* pName)
+    : LiveActor(pName), mYoshiLockOn(nullptr), mDemoObj(nullptr), mTargetPos(0.0f, 0.0f, 0.0f), mObjArg0(-1), mUnkA8(0.0f), mIsFly(false) {}
 
 void NeedlePlant::init(const JMapInfoIter& rIter) {
-    MapObjActor::init(rIter);
-    MapObjActorInitInfo info;
-    info.setupHioNode("地形オブジェ");
-    info.setupDefaultPos();
-    info.setupConnectToScene();
-    info.setupAffectedScale();
-    info.setupHitSensor();
-    info.setupHitSensorParam(4, 180.0f, TVec3f(0.0f, mScale.x * 150.0f, 0.0f));
-    info.setupShadow(nullptr);
-    info.setupNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait));
-    initialize(rIter, info);
-    initEffectKeeper(1, "NeedlePlant", false);
+    char* pNames = sNamePool;
+    MR::initActor(this, rIter, false);
+
+    bool isShadow = false;
+    if (MR::isObjectName(rIter, pNames)) {
+        isShadow = true;
+    } else if (MR::isObjectName(rIter, pNames + 12)) {
+        MR::getJMapInfoArg1NoInit(rIter, &isShadow);
+        mIsFly = true;
+    }
+
+    if (!isShadow) {
+        MR::invalidateShadow(this, nullptr);
+    }
+
+    if (MR::isObjectName(rIter, pNames)) {
+        mDemoObj = reinterpret_cast<LiveActor*>(MR::createDemoObj(pNames + 28, pNames + 48, nullptr));
+        MR::copyTransRotate(this, mDemoObj);
+        mDemoObj->makeActorDead();
+    }
+
     MR::addEffectHitNormal(this, nullptr);
-    MR::initStarPointerTarget(this, mScale.x * 150.0f, TVec3f(0.0f, mScale.x * 150.0f, 0.0f));
     MR::getJMapInfoArg0NoInit(rIter, &mObjArg0);
 
     if (mObjArg0 == -1) {
         MR::declareCoin(this, 1);
-    } else if (mObjArg0 == 0) {
-        MR::declareStarPiece(this, 3);
     }
+
+    TVec3f offset(0.0f);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, MR::getJointMtx(this, pNames + 64), offset);
+    initNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait), 0);
+    makeActorAppeared();
+}
+
+void NeedlePlant::initAfterPlacement() {
+    NameObj::initAfterPlacement();
+    MR::calcGravity(this);
 }
 
 void NeedlePlant::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartAllAnim(this, mObjectName);
+        MR::startAction(this, "Wait");
+        MR::validateClipping(this);
+    }
+
+    updateYoshiLockOn();
+
+    if (MR::attachSupportTicoToTarget(this)) {
+        MR::invalidateClipping(this);
+        setNerve(GET_NERVE_ANON(NeedlePlantNrvSupportFreeze));
     }
 }
 
@@ -71,40 +121,128 @@ void NeedlePlant::exeShake() {
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait));
-    }
-}
-
-void NeedlePlant::kill() {
-    MR::emitEffect(this, "Break");
-    MR::startActionSound(this, "OjNeedlePlantBreak");
-
-    if (mObjArg0 == 0) {
-        MR::startActionSound(this, "OjStarPieceBurst");
-        MR::appearStarPiece(this, mPosition, 3, 10.0f, 40.0f, false);
-    } else if (mObjArg0 == -1) {
-        MR::appearCoinPop(this, mPosition, 1);
-    }
-
-    MapObjActor::kill();
-}
-
-void NeedlePlant::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    f32 distance = MR::calcDistance(pSender, pReceiver, nullptr);
-    f32 size = mScale.x * ::sAttackSensorSize;
-    f32 radius = pReceiver->mRadius;
-
-    if (distance > size + radius) {
         return;
     }
 
-    if (MR::isSensorPlayerOrRide(pReceiver) && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
-        MR::emitEffectHitBetweenSensors(this, pSender, pReceiver, 0.0f, nullptr);
-        setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvShake));
-    } else if (MR::isSensorPlayerOrRide(pReceiver) || MR::isSensorEnemy(pReceiver)) {
+    updateYoshiLockOn();
+
+    if (MR::isGreaterStep(this, 30)) {
+        if (MR::attachSupportTicoToTarget(this)) {
+            MR::invalidateClipping(this);
+            setNerve(GET_NERVE_ANON(NeedlePlantNrvSupportFreeze));
+        }
+    }
+}
+
+void NeedlePlant::exeSupportFreeze() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "SupportFreeze");
+    }
+
+    updateYoshiLockOn();
+
+    if (!MR::attachSupportTicoToTarget(this)) {
+        setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait));
+    }
+}
+
+void NeedlePlant::exeEatStart() {
+    if (MR::isOnGroundPlayer() || MR::isPlayerSwimming()) {
+        TVec3f* pPos = MR::getPlayerPos();
+        mTargetPos.x = pPos->x;
+        mTargetPos.y = pPos->y;
+        mTargetPos.z = pPos->z;
+        MR::invalidateClipping(this);
+        setNerve(GET_NERVE_ANON(NeedlePlantNrvEatPull));
+    }
+}
+
+void NeedlePlant::exeEatPull() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Pull");
+    }
+
+    TVec3f dir(0.0f);
+    MR::calcVecToPlayerH(&dir, this, nullptr);
+
+    TPos3f mtx;
+    MR::calcMtxFromGravityAndZAxis(&mtx, this, dir);
+
+    f32 m20 = mtx.mMtx[2][0];
+    if (m20 - 1.0f >= -3.8147e-06f) {
+        mRotation.x = JMath::sAtanTable.atan2_(-mtx.mMtx[0][1], mtx.mMtx[1][1]);
+        mRotation.y = -1.5707964f;
+        mRotation.z = 0.0f;
+    } else if (m20 + 1.0f <= 3.8147e-06f) {
+        mRotation.x = JMath::sAtanTable.atan2_(mtx.mMtx[0][1], mtx.mMtx[1][1]);
+        mRotation.y = 1.5707964f;
+        mRotation.z = 0.0f;
+    } else {
+        mRotation.x = JMath::sAtanTable.atan2_(mtx.mMtx[2][1], mtx.mMtx[2][2]);
+        mRotation.z = JMath::sAtanTable.atan2_(mtx.mMtx[1][0], mtx.mMtx[0][0]);
+        mRotation.y = JGeometry::TUtil<f32>::asin(-mtx.mMtx[2][0]);
+    }
+
+    mRotation.x *= 57.29578f;
+    mRotation.y *= 57.29578f;
+    mRotation.z *= 57.29578f;
+
+    f32 distance = PSVECDistance(&mTargetPos, &mPosition);
+    mUnkA8 = distance;
+    bool far = !MR::isNearPlayer(this, 75.0f + distance);
+    if (far) {
+        tryAppearDemoObj();
+        MR::tryHitReaction(this, "ヨッシー舌引き抜き");
+        fn_80422310();
+        setNerve(GET_NERVE_ANON(NeedlePlantNrvEaten));
+    }
+}
+
+void NeedlePlant::exeEatPullEnd() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "PullEnd");
+    }
+
+    if (MR::isActionEnd(this)) {
+        setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait));
+    } else {
+        updateYoshiLockOn();
+    }
+}
+
+void NeedlePlant::exeBroken() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
+        tryAppearDemoObj();
+        MR::hideModel(this);
+        MR::invalidateHitSensors(this);
+    }
+}
+
+void NeedlePlant::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!isAttackable()) {
+        return;
+    }
+
+    f32 distance = MR::calcDistance(pSender, pReceiver, nullptr);
+    f32 radius = MR::getSensorRadius(pReceiver);
+    if (distance > 70.0f * mScale.x + radius) {
+        return;
+    }
+
+    if (MR::isSensorPlayerOrRide(pReceiver)) {
+        if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+            MR::emitEffectHitBetweenSensors(this, pSender, pReceiver, 0.0f, nullptr);
+            setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvShake));
+            return;
+        }
+    }
+
+    if (MR::isSensorPlayerOrRide(pReceiver) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         f32 radius = MR::getSensorRadius(getSensor(nullptr));
-        getSensor(nullptr)->mRadius = ::sAttackSensorSize * mScale.x;
+        MR::setSensorRadius(getSensor(nullptr), 70.0f * mScale.x);
         MR::sendMsgPush(pReceiver, pSender);
-        getSensor(nullptr)->mRadius = radius;
+        MR::setSensorRadius(getSensor(nullptr), radius);
     }
 }
 
@@ -117,21 +255,29 @@ bool NeedlePlant::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvShake));
+    if (!isNotEating()) {
+        return false;
+    }
 
+    setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvShake));
     return true;
 }
 
 bool NeedlePlant::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!isNotEating()) {
+        return false;
+    }
+
     if (MR::isMsgStarPieceReflect(msg)) {
-        setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvShake));
+        if (!isNerve(GET_NERVE_ANON(NeedlePlantNrvSupportFreeze))) {
+            setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvShake));
+        }
 
         return true;
     }
 
-    if (MR::isMsgInvincibleAttack(msg)) {
-        kill();
-
+    if (MR::isMsgInvincibleAttack(msg) || MR::isMsgFireBallAttack(msg) || MR::isMsgRockAttack(msg) || MR::isMsgYoshiProjectile(msg)) {
+        breakNeedle();
         return true;
     }
 
@@ -139,11 +285,108 @@ bool NeedlePlant::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
 }
 
 bool NeedlePlant::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    kill();
+    if (!isNotEating()) {
+        return false;
+    }
+
+    breakNeedle();
+    return true;
+}
+
+bool NeedlePlant::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        if (isNotEating()) {
+            if (mIsFly) {
+                setNerve(GET_NERVE_ANON(NeedlePlantNrvEaten));
+                return true;
+            }
+
+            MR::tryHitReaction(this, "ヨッシー舌アクセス");
+            MR::invalidateClipping(this);
+            setNerve(GET_NERVE_ANON(NeedlePlantNrvEatStart));
+            return true;
+        }
+    }
+
+    if (MR::isMsgYoshiLoopTongue(msg)) {
+        return true;
+    }
+
+    if (MR::isMsgYoshiReleaseEaten(msg) || MR::isMsgYoshiCancelEaten(msg)) {
+        if (isNerve(GET_NERVE_ANON(NeedlePlantNrvEatPull))) {
+            fn_804222D0();
+            setNerve(GET_NERVE_ANON(NeedlePlantNrvEatPullEnd));
+            return true;
+        }
+
+        if (isNerve(GET_NERVE_ANON(NeedlePlantNrvEaten))) {
+            MR::tryHitReaction(this, "ヨッシー捕食");
+            breakNeedle();
+            return true;
+        }
+
+        fn_804222D0();
+        setNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait));
+        return true;
+    }
+
+    return false;
+}
+
+bool NeedlePlant::tryAppearDemoObj() {
+    if (!MR::isDead(mDemoObj)) {
+        return false;
+    }
+
+    mDemoObj->appear();
+    MR::startAction(mDemoObj, "Appear");
+    return true;
+}
+
+bool NeedlePlant::isNotEating() {
+    if (isNerve(GET_NERVE_ANON(NeedlePlantNrvEaten)) || isNerve(GET_NERVE_ANON(NeedlePlantNrvEatPull)) ||
+        isNerve(GET_NERVE_ANON(NeedlePlantNrvEatStart))) {
+        return false;
+    }
 
     return true;
 }
 
-void NeedlePlant::connectToScene(const MapObjActorInitInfo&) {
-    MR::connectToSceneNoShadowedMapObj(this);
+bool NeedlePlant::isAttackable() {
+    if (isNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvWait)) || isNerve(GET_NERVE(NeedlePlant, NeedlePlantNrvShake)) ||
+        isNerve(GET_NERVE_ANON(NeedlePlantNrvEatStart)) || isNerve(GET_NERVE_ANON(NeedlePlantNrvEatPullEnd))) {
+        return true;
+    }
+
+    return false;
 }
+
+void NeedlePlant::updateYoshiLockOn() {
+    if (mIsFly) {
+        YoshiFunction::tryYoshiEat(mYoshiLockOn);
+    } else {
+        YoshiFunction::tryYoshiPull(mYoshiLockOn);
+    }
+}
+
+void NeedlePlant::breakNeedle() {
+    MR::emitEffect(this, "Break");
+    MR::startActionSound(this, "OjNeedlePlantBreak");
+
+    if (!isNerve(GET_NERVE_ANON(NeedlePlantNrvEaten))) {
+        if (mObjArg0 == 0) {
+            MR::appearStarPiece(this, mPosition, 3, 10.0f, 40.0f, false);
+        } else if (mObjArg0 == -1) {
+            MR::appearCoinPop(this, mPosition, 1);
+        }
+    }
+
+    if (mDemoObj != nullptr) {
+        setNerve(GET_NERVE_ANON(NeedlePlantNrvBroken));
+        return;
+    }
+
+    kill();
+}
+
+NeedlePlant::~NeedlePlant() {}

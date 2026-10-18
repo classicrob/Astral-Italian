@@ -33,6 +33,7 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
+// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
 s32 fn_802DEFF0(const NameObj*, s32, bool*);
 s32 fn_802DF0C0(bool*);

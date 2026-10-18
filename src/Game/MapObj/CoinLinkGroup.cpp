@@ -7,7 +7,9 @@
 #include "Game/Util.hpp"
 #include "Game/Util/Functor.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_802DAF40, declared extern "C" so the reloc name matches; resolve when fn_802DAF40 gets its real name in symbols.txt
 extern "C" s32 fn_802DAF40(NameObj*);
+// PLACEHOLDER(objects): unnamed target symbol fn_802DAF50, declared extern "C" so the reloc name matches; resolve when fn_802DAF50 gets its real name in symbols.txt
 extern "C" void fn_802DAF50(NameObj*, s32, TVec3f*);
 
 namespace MR {

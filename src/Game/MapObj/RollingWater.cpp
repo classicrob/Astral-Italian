@@ -6,7 +6,9 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "JSystem/JMath/JMATrigonometric.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800513C0, declared extern "C" so the reloc name matches; resolve when fn_800513C0 gets its real name in symbols.txt
 extern "C" void fn_800513C0(TQuat4f*, const TVec3f*);
+// PLACEHOLDER(objects): unnamed target symbol fn_800514B0, declared extern "C" so the reloc name matches; resolve when fn_800514B0 gets its real name in symbols.txt
 extern "C" void fn_800514B0(TQuat4f*, const TVec3f*);
 
 namespace NrvRollingWater {

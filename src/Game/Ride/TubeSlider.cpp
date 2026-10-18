@@ -21,8 +21,11 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_80051940, declared extern "C" so the reloc name matches; resolve when fn_80051940 gets its real name in symbols.txt
 extern "C" void fn_80051940();
+// PLACEHOLDER(objects): unnamed target symbol fn_80051910, declared extern "C" so the reloc name matches; resolve when fn_80051910 gets its real name in symbols.txt
 extern "C" void fn_80051910();
+// PLACEHOLDER(objects): unnamed target symbol fn_8004FE50, declared extern "C" so the reloc name matches; resolve when fn_8004FE50 gets its real name in symbols.txt
 extern "C" void fn_8004FE50();
 
 namespace {

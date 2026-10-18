@@ -1,4 +1,5 @@
 #pragma auto_inline off
+#include "Game/LiveActor/ActorParam.hpp"
 #include "Game/Ride/GliBird.hpp"
 #include "Game/Camera/CameraTargetMtx.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
@@ -17,6 +18,7 @@
 #include <revolution/wpad.h>
 
 // Unnamed SMG2 helpers (plain C symbols).
+// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
     s32 fn_804B8960();
     void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
@@ -27,8 +29,6 @@ extern "C" {
     void fn_80051940();
     s32 fn_80038770(TVec3f*, TVec3f*, HitSensor**, const TVec3f&, bool*, bool*, f32);
     s32 fn_80038870(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
-    bool emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
-    GliBirdParam* fn_8042EC10(GliBirdParam*);
     LiveActor* fn_80235370(void*, LiveActor*, const char*, f32, const f32*);
 }
 
@@ -50,6 +50,24 @@ namespace NrvGliBird {
     NEW_NERVE(GliBirdNrvDeadWater, GliBird, DeadWater);
     NEW_NERVE(GliBirdNrvDeadLava, GliBird, DeadLava);
 };  // namespace NrvGliBird
+
+GliBirdParam::GliBirdParam(const LiveActor* pHost) {
+    mOffsetFront = MR::getActorParamF32(pHost, "プレイヤー地形チェック[OffsetFront]");
+    mOffsetUp = MR::getActorParamF32(pHost, "プレイヤー地形チェック[OffsetUp]");
+    mRadius = MR::getActorParamF32(pHost, "プレイヤー地形チェック[Radius]");
+    mWaterFriction = MR::getActorParamF32(pHost, "水の摩擦");
+    mWaterLiftMin = MR::getActorParamF32(pHost, "水の押し上げ加速Min");
+    mWaterLiftRate = MR::getActorParamF32(pHost, "水の押し上げ加速率");
+    mDeadGravity = MR::getActorParamF32(pHost, "死亡重力");
+    mDamageDeadBirdUpFront = MR::getActorParamF32(pHost, "ダメージ死亡（グライバード）ジャンプ速度UpFront");
+    mDamageDeadBirdSide = MR::getActorParamF32(pHost, "ダメージ死亡（グライバード）ジャンプ速度Side");
+    mDamageDeadPlayerUpFront = MR::getActorParamF32(pHost, "ダメージ死亡（プレイヤー）ジャンプ速度UpFront");
+    mDamageDeadPlayerSide = MR::getActorParamF32(pHost, "ダメージ死亡（プレイヤー）ジャンプ速度Side");
+    mWallDeadBirdUpFront = MR::getActorParamF32(pHost, "壁ヒット死亡（グライバード）ジャンプ速度UpFront");
+    mWallDeadBirdSide = MR::getActorParamF32(pHost, "壁ヒット死亡（グライバード）ジャンプ速度Side");
+    mWallDeadPlayerUpFront = MR::getActorParamF32(pHost, "壁ヒット死亡（プレイヤー）ジャンプ速度UpFront");
+    mWallDeadPlayerSide = MR::getActorParamF32(pHost, "壁ヒット死亡（プレイヤー）ジャンプ速度Side");
+}
 
 GliBird::GliBird(const char* pName)
     : LiveActor(pName), mInitPos(0.0f, 0.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), mUp(0.0f, 1.0f, 0.0f), mSide(1.0f, 0.0f, 0.0f),
@@ -84,10 +102,7 @@ void GliBird::init(const JMapInfoIter& rIter) {
     mDirFront.set(mFront);
     mDirUp.set(mUp);
 
-    GliBirdParam* pParam = static_cast< GliBirdParam* >(operator new(sizeof(GliBirdParam)));
-    if (pParam != nullptr) {
-        pParam = fn_8042EC10(pParam);
-    }
+    GliBirdParam* pParam = new GliBirdParam(this);
     mParam = pParam;
 
     MR::setEffectHostMtx(this, "GroundApproach", mApproachMtx);
@@ -214,11 +229,11 @@ void GliBird::control() {
 
         // NOTE: symbols.txt names 0x800233C0 setEffectLocalScale(TVec3f&) but the target passes a u8 (alpha) in r5.
         if (isWater) {
-            emitEffect__2MRFP9LiveActorPCc_0(this, "WaterApproach");
+            MR::tryEmitEffect(this, "WaterApproach");
             MR::tryDeleteEffect(this, "GroundApproach");
             MR::setEffectLocalScale(this, "WaterApproach", *reinterpret_cast< const TVec3f* >(static_cast< u32 >(static_cast< u8 >(alpha))));
         } else {
-            emitEffect__2MRFP9LiveActorPCc_0(this, "GroundApproach");
+            MR::tryEmitEffect(this, "GroundApproach");
             MR::tryDeleteEffect(this, "WaterApproach");
             MR::setEffectLocalScale(this, "GroundApproach", *reinterpret_cast< const TVec3f* >(static_cast< u32 >(static_cast< u8 >(alpha))));
         }
@@ -348,7 +363,7 @@ void GliBird::exeGlide() {
             MR::startBckPlayerJ("グライバード滑空Wait");
         }
     } else {
-        if (50.0f == mSpeed) {
+        if (mSpeed == 50.0f) {
             if (MR::tryStartActionNotPlaying(this, "GlideDownFast")) {
                 MR::startBckPlayerJ("グライバード滑空Fast");
             }
@@ -968,7 +983,7 @@ void GliBird::touchWater(const TVec3f& rPos, f32 depth) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
     }
 
-    f32 lift = depth * 0.01f;
+    f32 lift = 0.01f * depth;
     mPitchAccel -= 0.02f + lift;
 
     MtxPtr baseMtx = getBaseMtx();
@@ -991,7 +1006,7 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
         MR::startBckPlayer("GliBirdGlideDead", nullptr);
         MR::tryDeleteEffect(this, "NearWater");
         fn_800126F0(this, &mFront, pBirdUpFront);
-        TVec3f birdSide = mFront * *pBirdSide;
+        TVec3f birdSide = mSide * *pBirdSide;
         MR::addVelocity(this, birdSide);
         mDeadBody->mVelocity.set(mVelocity);
         fn_800126F0(mDeadBody, &mFront, pPlayerUpFront);
@@ -1205,8 +1220,7 @@ void GliBirdTutorial::kill() {
 
 void GliBirdTutorial::registerPichan(LiveActor* pPichan) {
     mPichan = pPichan;
-    TVec3f talkOffset(0.0f, 0.0f, 0.0f);
-    mTalkCtrl = MR::createTalkCtrlDirect(mPichan, "GliBirdTutorial", talkOffset, nullptr);
+    mTalkCtrl = MR::createTalkCtrlDirect(mPichan, "GliBirdTutorial", TVec3f(0.0f, 0.0f, 0.0f), nullptr);
 }
 
 void GliBirdTutorial::exeEnd() {
@@ -1442,27 +1456,30 @@ void GliBirdTutorial::exeTurnRightSuccess() {
 }
 
 bool GliBirdTutorial::isOkStraight() const {
+    bool result = false;
     if (MR::abs(mPadAccel.x) < 0.25f && MR::abs(mPadAccel.y) < 0.45f) {
-        return true;
+        result = true;
     }
 
-    return false;
+    return result;
 }
 
 bool GliBirdTutorial::isOkTurnLeft() const {
+    bool result = false;
     if (mPadAccel.x < -0.65f && MR::abs(mPadAccel.y) < 0.5f) {
-        return true;
+        result = true;
     }
 
-    return false;
+    return result;
 }
 
 bool GliBirdTutorial::isOkTurnRight() const {
+    bool result = false;
     if (MR::abs(mPadAccel.x) < 0.6f && 0.05f < mPadAccel.y) {
-        return true;
+        result = true;
     }
 
-    return false;
+    return result;
 }
 
 void GliBirdTutorial::startTimerSound(s32 step, s32 count) {
@@ -1498,19 +1515,3 @@ namespace MR {
         return MR::isDead(MR::getSceneObj< GliBirdTutorial >(SceneObj_GliBirdTutorial));
     }
 };  // namespace MR
-
-f32 testA(TVec3f& a, TVec3f& b, f32 k) {
-    return a.dot(b) * k;
-}
-f32 testB(TVec3f& a, TVec3f& b, f32 k) {
-    f32 d = a.dot(b);
-    return d * k + 1.0f;
-}
-f32 testC(f32 x, f32 k) {
-    f32 d = MR::clamp(x, -1.0f, 1.0f);
-    return d * k;
-}
-f32 testD(f32 x, f32 k) {
-    f64 d = MR::clamp(x, -1.0f, 1.0f);
-    return d * k;
-}

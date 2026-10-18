@@ -13,7 +13,8 @@ static const f32 sLongBridgeLength = 358.0f;
 static const f32 sShortBridgeLength = 190.0f;
 static const s32 sLongBridgeStep = 3;
 static const s32 sShortBridgeStep = 4;
-extern "C" s32 lbl_807E30D8;
+// Minimum random kick interval: a zero const the target loads from .sbss2 instead of folding it.
+const volatile s32 sKickIntervalMin = 0;
 
 // NOTE: the target symbol is __ct__18WoodLogBridgePartsFPCc in config, but the code takes (host, name): 2 args (config name is wrong)
 WoodLogBridgeParts::WoodLogBridgeParts(WoodLogBridge* pHost, const char* pName) : LiveActor("\212\333\221\276\203v\203\214\201[\203g\225\224\225i") {
@@ -41,7 +42,7 @@ void WoodLogBridgeParts::updateRandomKick() NO_INLINE {
         TVec3f kick(mGravity);
         kick.scale(r);
         mVelocity.add(kick);
-        mKickTimer = MR::getRandom(lbl_807E30D8, 30);
+        mKickTimer = MR::getRandom(sKickIntervalMin, 30);
     }
 }
 
@@ -432,3 +433,4 @@ MtxPtr WoodLogBridge::getBaseMtx() const {
 
 WoodLogBridge::~WoodLogBridge() {
 }
+

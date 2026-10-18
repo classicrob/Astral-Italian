@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/ModelObj.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
 
 class FireBarBall : public ModelObj {
 public:
@@ -28,15 +29,25 @@ public:
     virtual void makeActorDead();
     virtual void updateHitSensor(HitSensor*);
     virtual void attackSensor(HitSensor*, HitSensor*);
+    virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void exeWait();
+    void exeNerveA();  // PLACEHOLDER(objects): nerve A exe, see FireBar.cpp
+    void exeNerveB();  // PLACEHOLDER(objects): nerve B exe, see FireBar.cpp
+    void exeNerveC();
     void initFireBarBall(const JMapInfoIter&);
     void fixFireBarBall();
+    void setSensorToNearestFireBall(HitSensor*);
+    bool isAnyFireBallInNerveB() const;
 
-    /* 0x8C */ FireBarBall** mFireBalls;
-    /* 0x90 */ s32 mFireBallCount;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ f32 mFireBarSpeed;
-    /* 0xA4 */ s32 mStickCount;
-    /* 0xA8 */ f32 mStickDistance;
+    /* 0x90 */ FireBarBall** mFireBalls;
+    /* 0x94 */ s32 mFireBallCount;
+    /* 0x98 */ TPos3f* mUnk98;
+    /* 0x9C */ TVec3f mFrontVec;
+    /* 0xA8 */ f32 mFireBarSpeed;
+    /* 0xAC */ s32 mStickCount;
+    /* 0xB0 */ f32 mStickDistance;
+    /* 0xB4 */ bool mIsStopped;
+    /* 0xB5 */ bool mUnkB5;
+    /* 0xB8 */ f32 mUnkB8;
 };

@@ -5782,7 +5782,7 @@ Game/Ride/FluffWind.cpp:
 	.sbss       start:0x807D5040 end:0x807D5048
 
 Game/Ride/GliBird.cpp:
-	.text       start:0x8042ED40 end:0x80433310
+	.text       start:0x8042EC10 end:0x80433310
 	.ctors      start:0x80644820 end:0x8064482C
 
 Game/Ride/JumpBranch.cpp:

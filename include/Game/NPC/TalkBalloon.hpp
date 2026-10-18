@@ -30,6 +30,7 @@ public:
     /* 0x24 */ TalkTextFormer* mTextFormer;
     bool _28;
     bool _29;
+    /* 0x36 */ u8 _36;
 };
 
 class TalkBalloonShort : public TalkBalloon {
@@ -42,7 +43,6 @@ public:
     virtual void updateBalloon();
 
     void initInterval();
-    void exeTalk();
     void exeClose();
     void exeOpen();
 

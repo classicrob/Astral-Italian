@@ -76,14 +76,9 @@ void StrayTico::initSensor() {
     MR::invalidateHitSensor(this, "Body");
 }
 
-inline void StrayTico::setShadowDrop(const char* const pos) {
-    const TVec3f offset(0.0f, 0.0f, 0.0f);
-    MR::setShadowDropPositionAtJoint(this, nullptr, pos, offset);
-}
-
 void StrayTico::initShadow() {
     MR::initShadowVolumeOval(this, TVec3f(40.0f, 40.0f, 20.0f));
-    setShadowDrop("PowerStarC");
+    MR::setShadowDropPositionAtJoint(this, nullptr, "PowerStarC", TVec3f(0.0f, 0.0f, 0.0f));
     MR::onCalcShadow(this, nullptr);
 }
 
@@ -201,6 +196,7 @@ bool StrayTico::requestCompleteDemo(const TVec3f& rParam1, const TVec3f& rParam2
 void StrayTico::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
+        MR::zeroVelocity(this);
     }
 
     if (MR::isNearPlayer(this, 1000.0f)) {

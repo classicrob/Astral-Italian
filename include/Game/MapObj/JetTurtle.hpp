@@ -5,6 +5,8 @@
 #define JETTURTLETYPE_RED 1
 #define JETTURTLETYPE_GOLD 2
 
+class YoshiLockOnTarget;
+
 class JetTurtle : public LiveActor {
 public:
     JetTurtle(const char*);
@@ -44,6 +46,10 @@ public:
     bool isRestart() const;
 
     inline bool isNerveWait();
+    void setDropRotate(const TVec3f&);
+    void startThrowing();
+    void throwByYoshi(const TVec3f&, const TVec3f&);
+    void dropByYoshi(const TVec3f&, const TVec3f&);
 
     /* 0x8C */ f32 _8C;
     /* 0x90 */ u16 mShellType;  // (0 = green, 1 = red, 2 = gold)
@@ -62,6 +68,8 @@ public:
     /* 0xE1 */ u8 _E1;
     /* 0xE2 */ u8 _E2;
     /* 0xE3 */ u8 _E3;
+    /* 0xE8 */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0xEC */ bool _EC;
 };
 
 class GoldenTurtle : public JetTurtle {

@@ -20,8 +20,18 @@
 
 namespace NrvTalkBalloonShort {
     NEW_NERVE(TalkBalloonShortNrvOpen, TalkBalloonShort, Open);
-    NEW_NERVE(TalkBalloonShortNrvTalk, TalkBalloonShort, Talk);
     NEW_NERVE(TalkBalloonShortNrvClose, TalkBalloonShort, Close);
+
+    // SMG2 Talk nerve: execute() is just a virtual updateTalking() call (no exeTalk symbol in the target).
+    class TalkBalloonShortNrvTalk : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            TalkBalloonShort* actor = reinterpret_cast< TalkBalloonShort* >(pSpine->mExecutor);
+            actor->updateTalking();
+        };
+        static TalkBalloonShortNrvTalk sInstance;
+    };
+    TalkBalloonShortNrvTalk TalkBalloonShortNrvTalk::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvTalkBalloonShort
 
 namespace NrvTalkBalloonEvent {
@@ -31,7 +41,7 @@ namespace NrvTalkBalloonEvent {
     NEW_NERVE(TalkBalloonEventNrvClose, TalkBalloonEvent, Close);
 };  // namespace NrvTalkBalloonEvent
 
-TalkBalloon::TalkBalloon(const char* pName) : LayoutActor(pName, true), mMessageCtrl(), mTextFormer(), _28(), _29() {
+TalkBalloon::TalkBalloon(const char* pName) : LayoutActor(pName, true), mMessageCtrl(), mTextFormer(), _28(), _29(), _36(0xFF) {
 }
 
 void TalkBalloon::create(const char* pLayoutName, bool arg2, bool isTalkLayout) {
@@ -67,6 +77,13 @@ void TalkBalloon::kill() {
 void TalkBalloon::open(TalkMessageCtrl* pCtrl) {
     mMessageCtrl = pCtrl;
     MR::startAnim(this, "Appear", 0);
+    // Host actor named "モック" (Shift-JIS bytes) clears the flag at 0x36, which enables the talk SE in updateTalking.
+    if (MR::isEqualString(mMessageCtrl->mHostActor->getName(), "\x83\x82\x83\x62\x83\x4E")) {
+        _36 = 0;
+    } else {
+        _36 = 0xFF;
+    }
+
     if (_28) {
         MR::startPaneAnim(this, "Balloon", "Beak", 0);
     }
@@ -133,6 +150,9 @@ void TalkBalloon::updateBalloon() {
 
 void TalkBalloon::updateTalking() {
     updateBalloon();
+    if (!isTextAppearedAll() && _36 == 0) {
+        MR::startSystemLevelSE("SE_SY_LV_TALK_MESSAGE", -1, -1);
+    }
     mTextFormer->updateTalking();
 }
 
@@ -217,17 +237,6 @@ void TalkBalloonShort::updateBalloon() {
 
 void TalkBalloonShort::initInterval() {
     _2C = 120;
-}
-
-void TalkBalloonShort::exeTalk() {
-    updateTalking();
-    if (_2C != 0) {
-        if (MR::isStep(this, _2C)) {
-            MR::startAnim(this, "End", 0);
-        } else if (MR::isGreaterStep(this, _2C + 30)) {
-            open(mMessageCtrl);
-        }
-    }
 }
 
 void TalkBalloonShort::exeClose() {
@@ -338,11 +347,6 @@ void TalkBalloonEvent::exeOpen() {
         TalkBalloon::open(mMessageCtrl);
         MR::startSystemSE("SE_SM_TALKBLN_OPEN");
         MR::setSoundVolumeSetting(3, 30);
-
-        if (!MR::isPlayingStageBgmName("STM_KINOPIO_TANKEN_B")) {
-            MR::moveVolumeStageBGM(0.5f, 30);
-            MR::moveVolumeSubBGM(0.5f, 30);
-        }
     }
 
     updateBalloon();

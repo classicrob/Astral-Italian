@@ -43,7 +43,7 @@ namespace NrvTicoRail {
     NEW_NERVE(TicoRailNrvGoodBye, TicoRail, GoodBye);
 };  // namespace NrvTicoRail
 
-TicoRail::TicoRail(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 1.0f), _98(), mLodCtrl() {
+TicoRail::TicoRail(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 1.0f), _98(), mLodCtrl(), mMsgCtrl(), mIsTalkForceAtEnd() {
 }
 
 void TicoRail::init(const JMapInfoIter& rIter) {
@@ -135,7 +135,7 @@ void TicoRail::exeMoveSign() {
 
 void TicoRail::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartBck(this, "Wait");
+        MR::tryStartActionNotPlaying(this, "Wait");
     }
 
     MR::moveCoordAndFollowTrans(this, MR::calcNerveValue(this, 0, 200.0f, 15.0f));
@@ -200,7 +200,7 @@ void TicoRail::exeTalk() {
 
 void TicoRail::exeTalkCancel() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartBck(this, "Spin");
+        MR::tryStartActionNotPlaying(this, "Spin");
     }
 
     MR::moveCoordAndFollowTrans(this, 15.0f);

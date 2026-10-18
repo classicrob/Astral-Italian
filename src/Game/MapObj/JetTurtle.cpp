@@ -8,16 +8,29 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "revolution/types.h"
 
+extern "C" void fn_80422350(TPos3f*);
+
+class YoshiLockOnTarget;
+
+namespace YoshiFunction {
+    void tryYoshiProjectile(YoshiLockOnTarget*);
+};
+
+namespace MR {
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
+};
+
 void JetTurtle_FORCE_MATCH_STRINGS() {
     MR::isEqualString("Koura", "Koura");
     MR::isEqualString("KouraShine", "KouraShine");
     MR::isEqualString("Body", "Body");
-    MR::isEqualString("SE_OJ_TURTLE_JET_LAUNCH_W", "SE_OJ_TURTLE_JET_LAUNCH_W");
-    MR::isEqualString("SE_OJ_TURTLE_JET_LAUNCH_L", "SE_OJ_TURTLE_JET_LAUNCH_L");
+    MR::isEqualString("Color", "Color");
+    MR::isEqualString("JetTurtle", "JetTurtle");
+    MR::isEqualString("BulletSearch", "BulletSearch");
+    MR::isEqualString("Drop", "Drop");
+    MR::isEqualString("YRotation", "YRotation");
+    MR::isEqualString("EmTurtleShellTrample", "EmTurtleShellTrample");
     MR::isEqualString("BrakeLamp", "BrakeLamp");
-    MR::isEqualString("Vanish", "Vanish");
-    MR::isEqualString("VanishRed", "VanishRed");
-    MR::isEqualString("VanishGold", "VanishGold");
     MR::isEqualString("SpinBlur", "SpinBlur");
     MR::isEqualString("SpinBlurRed", "SpinBlurRed");
     MR::isEqualString("SpinBlurGold", "SpinBlurGold");
@@ -29,31 +42,37 @@ void JetTurtle_FORCE_MATCH_STRINGS() {
     MR::isEqualString("SwimBubbleRed", "SwimBubbleRed");
     MR::isEqualString("OjLvJetTurtleGLight", "OjLvJetTurtleGLight");
     MR::isEqualString("CarryWait", "CarryWait");
+    MR::isEqualString("Ignition", "Ignition");
+    MR::isEqualString("OjTurtleJetLaunchW", "OjTurtleJetLaunchW");
+    MR::isEqualString("BulletWater", "BulletWater");
+    MR::isEqualString("WaterBlur", "WaterBlur");
+    MR::isEqualString("OjTurtleJetLaunchL", "OjTurtleJetLaunchL");
+    MR::isEqualString("ThrowV", "ThrowV");
+    MR::isEqualString("Bullet", "Bullet");
+    MR::isEqualString("Blur", "Blur");
+    MR::isEqualString("BlurRed", "BlurRed");
+    MR::isEqualString("BlurGold", "BlurGold");
+    MR::isEqualString("LandWater", "LandWater");
+    MR::isEqualString("SyGetTurtleJet", "SyGetTurtleJet");
+    MR::isEqualString("CatchV", "CatchV");
+    MR::isEqualString("AppearLight", "AppearLight");
+    MR::isEqualString("EmLvNokolandReviveEffect", "EmLvNokolandReviveEffect");
+    MR::isEqualString("KouraRevival", "KouraRevival");
+    MR::isEqualString("EmNokolandReviveAppear", "EmNokolandReviveAppear");
+    MR::isEqualString("SE_OJ_TURTLE_JET_LAUNCH_W", "SE_OJ_TURTLE_JET_LAUNCH_W");
+    MR::isEqualString("SE_OJ_TURTLE_JET_LAUNCH_L", "SE_OJ_TURTLE_JET_LAUNCH_L");
     MR::isEqualString("WaterExplosion", "WaterExplosion");
     MR::isEqualString("Star", "Star");
     MR::isEqualString("Explosion", "Explosion");
     MR::isEqualString("ExplosionRed", "ExplosionRed");
     MR::isEqualString("ExplosionGold", "ExplosionGold");
+    MR::isEqualString("OjTurtleJetBreakW", "OjTurtleJetBreakW");
     MR::isEqualString("SE_OJ_TURTLE_JET_BREAK_W", "SE_OJ_TURTLE_JET_BREAK_W");
+    MR::isEqualString("OjTurtleJetBreakL", "OjTurtleJetBreakL");
     MR::isEqualString("SE_OJ_TURTLE_JET_BREAK_L", "SE_OJ_TURTLE_JET_BREAK_L");
-    MR::isEqualString("Ignition", "Ignition");
-    MR::isEqualString("BulletWater", "BulletWater");
-    MR::isEqualString("WaterBlur", "WaterBlur");
-    MR::isEqualString("SE_PV_THROW", "SE_PV_THROW");
-    MR::isEqualString("Bullet", "Bullet");
-    MR::isEqualString("Blur", "Blur");
-    MR::isEqualString("BlurRed", "BlurRed");
-    MR::isEqualString("BlurGold", "BlurGold");
-    MR::isEqualString("SyGetTurtleJet", "SyGetTurtleJet");
-    MR::isEqualString("SE_PV_CATCH", "SE_PV_CATCH");
-    MR::isEqualString("AppearLight", "AppearLight");
-    MR::isEqualString("EmLvNokolandReviveEffect", "EmLvNokolandReviveEffect");
-    MR::isEqualString("KouraRevival", "KouraRevival");
-    MR::isEqualString("EmNokolandReviveAppear", "EmNokolandReviveAppear");
-    MR::isEqualString("BulletSearch", "BulletSearch");
-    MR::isEqualString("Drop", "Drop");
-    MR::isEqualString("YRotation", "YRotation");
-    MR::isEqualString("EmTurtleShellTrample", "EmTurtleShellTrample");
+    MR::isEqualString("Vanish", "Vanish");
+    MR::isEqualString("VanishRed", "VanishRed");
+    MR::isEqualString("VanishGold", "VanishGold");
 }
 
 namespace {
@@ -76,9 +95,25 @@ namespace NrvJetTurtle {
     NEW_NERVE(JetTurtleNrvTakenStart, JetTurtle, TakenStart);
     NEW_NERVE(JetTurtleNrvRestart, JetTurtle, Restart);
     NEW_NERVE(JetTurtleNrvDrop, JetTurtle, Drop);
+
+    class JetTurtleNrvTongue : public Nerve {
+    public:
+        virtual void execute(Spine*) const {
+        }
+        static JetTurtleNrvTongue sInstance;
+    };
+    JetTurtleNrvTongue JetTurtleNrvTongue::sInstance ATTRIBUTE_WEAK;
+
+    class JetTurtleNrvEaten : public Nerve {
+    public:
+        virtual void execute(Spine*) const {
+        }
+        static JetTurtleNrvEaten sInstance;
+    };
+    JetTurtleNrvEaten JetTurtleNrvEaten::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvJetTurtle
 
-JetTurtle::JetTurtle(const char* pName) : LiveActor(pName), _E3() {
+JetTurtle::JetTurtle(const char* pName) : LiveActor(pName), _E3(), _EC() {
 }
 
 void JetTurtle::init(const JMapInfoIter& rIter) {
@@ -138,10 +173,10 @@ void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
     switch (shellType) {
     case 0:
     case JETTURTLETYPE_RED:
-        initModelManagerWithAnm("Koura", nullptr, false);
+        MR::initActor(this, rIter, "Koura", false);
         break;
     case JETTURTLETYPE_GOLD:
-        initModelManagerWithAnm("KouraShine", nullptr, false);
+        MR::initActor(this, rIter, "KouraShine", false);
         break;
     }
 
@@ -152,7 +187,7 @@ void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
     MR::addHitSensorEye(this, "eye", 8, 1000.0f, TVec3f(0.0f, 0.0f, 0.0f));
 
     if (shellType < JETTURTLETYPE_GOLD) {
-        MR::startBrk(this, "Koura");
+        MR::startBrk(this, "Color");
         MR::setBrkFrameAndStop(this, 1.0f);
     }
 
@@ -180,17 +215,14 @@ void JetTurtle::init2(const JMapInfoIter& rIter, s32 param2) {
     MR::addEffectHitNormal(this, nullptr);
     MR::validateShadow(this, nullptr);
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-
+    if (MR::useStageSwitchSyncAppear(this, rIter)) {
         _E1 = false;
     } else {
         _E1 = true;
-
-        makeActorAppeared();
     }
 
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::offBind(this);
 }
 
@@ -201,14 +233,14 @@ void JetTurtle::initAfterPlacement() {
 
 void JetTurtle::becomeSlowType() {
     MR::setSensorType(this, "Body", 0x13);
-    MR::startBrk(this, "Koura");
+    MR::startBrk(this, "Color");
     MR::setBrkFrameAndStop(this, 0.0f);
     mShellType = 0;
 }
 
 void JetTurtle::becomeFastType() {
     MR::setSensorType(this, "Body", 0x12);
-    MR::startBrk(this, "Koura");
+    MR::startBrk(this, "Color");
     MR::setBrkFrameAndStop(this, 1.0f);
     mShellType = 1;
 }
@@ -293,7 +325,7 @@ void JetTurtle::exeWait() {
         MR::onCalcShadowOneTime(this, nullptr);
         MR::validateShadow(this, nullptr);
         MR::validateHitSensors(this);
-        getSensor("eye")->invalidate();
+        MR::invalidateHitSensor(this, "eye");
         MR::startAction(this, "Wait");
     }
 
@@ -303,6 +335,11 @@ void JetTurtle::exeWait() {
     }
 
     if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve))) {
+        if (MR::isPlayerBury()) {
+            reset(0);
+            return;
+        }
+
         if (getNerveStep() >= 120) {
             TVec3f direction = *MR::getPlayerCenterPos() - mPosition;
             f32 rate = MR::clamp((getNerveStep() - 120) / 120.0f, 0.0f, 1.0f);
@@ -314,6 +351,8 @@ void JetTurtle::exeWait() {
             reset(0);
         }
     }
+
+    YoshiFunction::tryYoshiProjectile(mYoshiLockOn);
 }
 
 void JetTurtle::exeThrowWait() {
@@ -371,8 +410,7 @@ void JetTurtle::appear() {
         }
 
         setNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait2));
-        HitSensor* pSensor = getSensor("Body");
-        pSensor->mRadius = 60.0f;
+        MR::setSensorRadius(this, "Body", 60.0f);
         initAfterPlacement();
         return;
     }
@@ -422,6 +460,7 @@ inline void JetTurtle::endWait() {
 
 void JetTurtle::reset(u32 reason) {
     _E3 = 0;
+    _EC = false;
     MR::invalidateHitSensors(this);
     MR::forceDeleteEffectAll(this);
     MR::stopSound(this, "SE_OJ_TURTLE_JET_LAUNCH_W");
@@ -496,6 +535,7 @@ void JetTurtle::boundDrop() {
 void JetTurtle::exeThrowing() {
     if (!_E3) {
         if (MR::isFirstStep(this)) {
+            _EC = false;
             MR::onBind(this);
             MR::onCalcShadow(this, nullptr);
             MR::validateHitSensors(this);
@@ -507,7 +547,7 @@ void JetTurtle::exeThrowing() {
                 MR::emitEffect(this, "WaterBlur");
             } else {
                 MR::startActionSound(this, "OjTurtleJetLaunchL");
-                MR::startSoundPlayer("ThrowV", -1, -1);
+                MR::startLevelSoundPlayer("ThrowV", -1, -1);
                 MR::startAction(this, "Bullet");
 
                 switch (mShellType) {
@@ -521,7 +561,16 @@ void JetTurtle::exeThrowing() {
                     MR::emitEffect(this, "BlurGold");
                     break;
                 }
+
+                _EC = true;
             }
+        }
+
+        if (_EC && MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+            MR::emitEffect(this, "LandWater");
+            MR::startActionSound(this, "LandWater");
+            MR::emitEffect(this, "WaterBlur");
+            _EC = false;
         }
 
         if (MR::isStep(this, ::sResetStep[_92])) {
@@ -537,10 +586,10 @@ void JetTurtle::exeThrowing() {
         TVec3f v22;
 
         if (_98 != nullptr) {
-            if (!_98->mValidByHost) {
+            if (!MR::isSensorValid(_98)) {
                 _98 = nullptr;
             } else {
-                TVec3f v21 = _98->mPosition - mPosition;
+                TVec3f v21 = *MR::getSensorPos(_98) - mPosition;
                 MR::normalizeOrZero(&v21);
                 MR::vecBlendSphere(&_9C, _9C, v21, 0.2f);
 
@@ -633,8 +682,7 @@ void JetTurtle::exeThrowing() {
 
 void JetTurtle::exeTakenReserve() {
     if (MR::isFirstStep(this)) {
-        HitSensor* bodySensor = getSensor("Body");
-        bodySensor->mRadius = 50.0f;
+        MR::setSensorRadius(this, "Body", 50.0f);
         mVelocity.zero();
 
         if (MR::isPlayerInWaterMode()) {
@@ -673,10 +721,10 @@ void JetTurtle::exeTakenReserve() {
 
 void JetTurtle::exeTakenStart() {
     if (MR::sendMsgTaken(_94, getSensor("Body"))) {
-        MR::startSystemSE("SyGetTurtleJet");
+        MR::startActionSound(this, "SyGetTurtleJet");
 
         if (!MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-            MR::startSoundPlayer("CatchV", -1, -1);
+            MR::startLevelSoundPlayer("CatchV", -1, -1);
         }
 
         MR::deleteEffect(this, "SpinBlur");
@@ -697,9 +745,6 @@ void JetTurtle::exeTakenStart() {
 
 // missing branch
 void JetTurtle::exeRestart() {
-    if (MR::isFirstStep(this)) {
-    }
-
     if (MR::isStep(this, 45)) {
         mPosition = _A8;
         mRotation = _B4;
@@ -735,7 +780,11 @@ void JetTurtle::exeRestart() {
         }
     }
 
-    if (MR::isStep(this, 105)) {
+    if (MR::isPlayerBury() && MR::isNearPlayer(this, 300.0f)) {
+        return;
+    }
+
+    if (MR::isGreaterEqualStep(this, 105)) {
         MR::showModel(this);
         setNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait));
         MR::emitEffect(this, "KouraRevival");
@@ -767,6 +816,16 @@ inline bool JetTurtle::isNerveWait() {
 }
 
 void JetTurtle::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    bool isYoshiHold = false;
+
+    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTongue)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
+        isYoshiHold = true;
+    }
+
+    if (isYoshiHold) {
+        return;
+    }
+
     if (MR::isSensorPlayer(pReceiver)) {
         if (isNerveWait()) {
             if (getNerveStep() >= 2 && !MR::isSensorEye(pSender)) {
@@ -802,80 +861,171 @@ void JetTurtle::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool JetTurtle::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgItemGet(msg)) {
-        if (MR::isDead(this)) {
-            return false;
-        } else {
-            bool v7 = false;
+    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait)) && MR::isMsgYoshiStartTongue(msg)) {
+        setNerve(GET_NERVE(JetTurtle, JetTurtleNrvTongue));
+        return true;
+    }
 
-            if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait2))) {
-                v7 = true;
-            }
-
-            if (v7 || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve))) {
-                _94 = pSender;
-                setNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserveD));
-                return true;
-            } else {
-                return false;
-            }
+    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTongue))) {
+        if (MR::isMsgYoshiLoopTongue(msg)) {
+            return true;
         }
-    } else {
-        if (msg == 0x2C) {
-            resetPositionAndVanish();
+
+        if (MR::isMsgYoshiStartEaten(msg)) {
+            MR::hideModel(this);
+            setNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten));
             return true;
-        } else if (msg == 0x2E) {
-            MR::shakeCameraWeak();
-            reset(0);
-            return true;
-        } else if (msg == 0x2D) {
+        }
+
+        if (MR::isMsgYoshiCancelEaten(msg)) {
+            MR::invalidateClipping(this);
+            MR::validateShadow(this, nullptr);
+            MR::setScale(this, 1.0f);
             setNerve(GET_NERVE(JetTurtle, JetTurtleNrvDrop));
-            MR::startAction(this, "Drop");
             return true;
-        } else if (MR::isMsgItemPull(msg)) {
-            bool v8 = false;
-
-            if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait2))) {
-                v8 = true;
-            }
-
-            if (v8) {
-                return true;
-            } else {
-                return isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve));
-            }
-        } else {
-            if (MR::isMsgItemPull(msg)) {
-                bool v9 = false;
-
-                if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait2))) {
-                    v9 = true;
-                }
-
-                if (v9) {
-                    bool v10 = false;
-
-                    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvWait2))) {
-                        v10 = true;
-                    }
-
-                    if (v10) {
-                        MR::startAction(this, "YRotation");
-                    }
-
-                    setNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve));
-                    MR::offBind(this);
-                }
-
-                return true;
-            }
-
-            return false;
         }
     }
+
+    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
+        if (MR::isMsgYoshiReleaseEaten(msg)) {
+            TPos3f mtx;
+            fn_80422350(&mtx);
+            mtx.getTrans(mPosition);
+            MR::getPlayerThrowVec(&_9C);
+            _C0.set(mPosition);
+            _8C = 0.0f;
+            _98 = nullptr;
+            MR::showModel(this);
+            MR::setScale(this, 1.0f);
+            MR::invalidateClipping(this);
+            MR::validateShadow(this, nullptr);
+            setNerve(GET_NERVE(JetTurtle, JetTurtleNrvThrowing));
+            return true;
+        }
+
+        if (MR::isMsgYoshiCancelEaten(msg)) {
+            TPos3f mtx(MR::getYoshiMouthMtx());
+            mtx.getTrans(mPosition);
+            MR::getPlayerThrowVec(&_9C);
+            setDropRotate(_9C);
+            MR::showModel(this);
+            MR::setScale(this, 1.0f);
+            MR::invalidateClipping(this);
+            MR::validateShadow(this, nullptr);
+            setNerve(GET_NERVE(JetTurtle, JetTurtleNrvDrop));
+            return true;
+        }
+    }
+
+    if (MR::isMsgThrow(msg)) {
+        return JetTurtle::receiveMsgThrow(pSender, pReceiver);
+    }
+
+    if (MR::isMsgItemGet(msg)) {
+        if (mFlags.mIsDead) {
+            return false;
+        }
+
+        if (isNerveWait() || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve))) {
+            _94 = pSender;
+            setNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserveD));
+            return true;
+        }
+
+        return false;
+    }
+
+    if (msg == 0x2C) {
+        resetPositionAndVanish();
+        return true;
+    }
+
+    if (msg == 0x2E) {
+        MR::shakeCameraWeak();
+        reset(0);
+        return true;
+    }
+
+    if (msg == 0x2D) {
+        setNerve(GET_NERVE(JetTurtle, JetTurtleNrvDrop));
+        MR::startAction(this, "Drop");
+        MR::invalidateClipping(this);
+        return true;
+    }
+
+    if (msg == 0x84) {
+        if (isNerveWait()) {
+            return true;
+        }
+
+        return isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve));
+    }
+
+    if (MR::isMsgItemPull(msg)) {
+        if (isNerveWait()) {
+            if (isNerveWait()) {
+                MR::startAction(this, "YRotation");
+            }
+
+            setNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve));
+            MR::offBind(this);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+void JetTurtle::setDropRotate(const TVec3f& rDir) {
+    TVec3f gravity;
+    MR::calcGravityVector(this, &gravity, nullptr, 0);
+    TPos3f mtx;
+    MR::makeMtxFrontUp(&mtx, rDir, -gravity);
+    mtx.getEuler(mRotation);
+    mRotation.x *= 57.295776f;
+    mRotation.y *= 57.295776f;
+    mRotation.z *= 57.295776f;
+}
+
+void JetTurtle::startThrowing() {
+    appear();
+    MR::validateHitSensors(this);
+    setNerve(GET_NERVE(JetTurtle, JetTurtleNrvThrowing));
+    _C0 = mPosition;
+    MR::invalidateClipping(this);
+    MR::validateShadow(this, nullptr);
+    MR::getPlayerThrowVec(&_9C);
+}
+
+void JetTurtle::throwByYoshi(const TVec3f& rPos, const TVec3f& rDir) {
+    mPosition = rPos;
+    _9C = rDir;
+    startThrowing();
+}
+
+void JetTurtle::dropByYoshi(const TVec3f& rPos, const TVec3f& rDir) {
+    mPosition = rPos;
+    _9C = rDir;
+    MR::invalidateClipping(this);
+    MR::validateShadow(this, nullptr);
+    setDropRotate(rDir);
+    appear();
+    MR::validateHitSensors(this);
+    setNerve(GET_NERVE(JetTurtle, JetTurtleNrvDrop));
 }
 
 bool JetTurtle::receiveMsgThrow(HitSensor* pSender, HitSensor* pReceiver) {
+    bool isYoshiHold = false;
+
+    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTongue)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
+        isYoshiHold = true;
+    }
+
+    if (isYoshiHold) {
+        return false;
+    }
+
     setNerve(GET_NERVE(JetTurtle, JetTurtleNrvThrowing));
     MR::deleteEffect(this, "BrakeLamp");
 
@@ -910,6 +1060,16 @@ bool JetTurtle::receiveMsgThrow(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool JetTurtle::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    bool isYoshiHold = false;
+
+    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTongue)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
+        isYoshiHold = true;
+    }
+
+    if (isYoshiHold) {
+        return false;
+    }
+
     if (MR::isMsgStarPieceReflect(msg)) {
         return true;
     }
@@ -924,17 +1084,27 @@ bool JetTurtle::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
     if (MR::isMsgPlayerTrample(msg)) {
         MR::startActionSound(this, "EmTurtleShellTrample");
         return true;
-    } else {
-        if (msg == 0x84) {
-            reset(0);
-            return true;
-        }
+    }
+
+    if (msg == 0xA) {
+        reset(0);
+        return true;
     }
 
     return false;
 }
 
 bool JetTurtle::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    bool isYoshiHold = false;
+
+    if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTongue)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
+        isYoshiHold = true;
+    }
+
+    if (isYoshiHold) {
+        return false;
+    }
+
     if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserve)) || isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenReserveD)) ||
         isNerve(GET_NERVE(JetTurtle, JetTurtleNrvTakenStart))) {
         return false;

@@ -454,7 +454,6 @@ void Kinopio::exeMount() {
 void Kinopio::exeStarWait() {
     exeWait();
     if (MR::isTalkTalking(mMsgCtrl) && !_185) {
-        MR::startStageBGM("MBGM_KINOPIO_TANKEN_B", false);
         _185 = true;
     }
 }
@@ -523,7 +522,7 @@ void Kinopio::calcAndSetBaseMtx() {
 }
 
 bool Kinopio::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensor(pReceiver, "Pickel")) {
+    if (MR::isEqualSensor(pReceiver, this, "Pickel")) {
         return false;
     }
 
@@ -665,13 +664,5 @@ bool Kinopio::tryCancelEvent() {
 }
 
 bool Kinopio::eventFunc(u32) {
-    if (mTakeOutStar->takeOut()) {
-        if (!MR::isEqualStageName("FishTunnelGalaxy")) {
-            MR::startLastStageBGM();
-        }
-
-        return true;
-    }
-
-    return false;
+    return mTakeOutStar->takeOut();
 }

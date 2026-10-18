@@ -26,6 +26,8 @@ public:
     bool isMoving() const;
     void exeWait();
     void exeMove();
+    void setNerveMove();
+    void setNerveWait();
 
     /* 0xD0 */ TVec3f _D0;
     /* 0xDC */ u8 _DC;
@@ -87,4 +89,22 @@ public:
 
     bool tryStartRotateAtPoint();
     bool tryStartRotateBetweenPoints();
+};
+
+class RailAndRotateMoveObj : public RailMoveObj {
+public:
+    RailAndRotateMoveObj(const char*);
+
+    virtual void init(const JMapInfoIter&);
+    virtual void setupInitInfo(const JMapInfoIter&, MapObjActorInitInfo*);
+};
+
+class RailMoveShadowDropYObj : public RailMoveObj {
+public:
+    RailMoveShadowDropYObj(const char*);
+
+    virtual void init(const JMapInfoIter&);
+    virtual void control();
+
+    /* 0xE0 */ TVec3f mShadowDropDir;
 };

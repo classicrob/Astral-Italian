@@ -34,6 +34,9 @@
 #include <revolution/gx/GXStruct.h>
 #include <revolution/mtx.h>
 
+extern "C" void fn_800145C0(LiveActor*);
+extern "C" void fn_800145D0(TVec3f*, const TVec3f&);
+
 const GXColor effectColors[] = {{0x00, 0x55, 0xff, 0xFF}, {0xFF, 0xFF, 0x00, 0xFF}, {0x55, 0xFF, 0x00, 0xFF}, {0x7F, 0x7F, 0x00, 0xFF}};
 const GXColor initColors[] = {{0x80, 0x00, 0x99, 0xFF}, {0xE6, 0xA0, 0x00, 0xFF}, {0x46, 0xA1, 0x08, 0xFF},
                               {0x37, 0x5A, 0xA0, 0xFF}, {0xBE, 0x33, 0x0B, 0xFF}, {0x80, 0x80, 0x80, 0xFF}};
@@ -948,9 +951,9 @@ void StarPiece::goToPlayer(TVec3f vec) {
     setNerve(GET_NERVE(StarPiece, HostTypeNrvToTarget));
 }
 
-// NONMATCHING: SMG2 launch() calls unnamed fn_800145C0/fn_800145D0 (area-gravity helpers) and uses setPosition; not reproduced
-void StarPiece::launch(const TVec3f& rVec, f32 f1, f32 f2, bool notCheckInWater, bool a2) {
-    mPosition.set(rVec);
+void StarPiece::launch(const TVec3f& rVec, f32 f1, f32 f2, bool notCheckInWater, bool a2, bool fastGet) {
+    MR::setPosition(this, rVec);
+    fn_800145C0(this);
     tryCalcGravity();
 
     if (MR::isNearZero(mGravity)) {
@@ -973,21 +976,29 @@ void StarPiece::launch(const TVec3f& rVec, f32 f1, f32 f2, bool notCheckInWater,
         }
     }
 
-    MR::resetPosition(this, rVec);
+    fn_800145D0(&mVelocity, rVec);
+    MR::resetPosition(this);
     appear();
     setNerve(GET_NERVE(StarPiece, HostTypeNrvFall));
     MR::invalidateClipping(this);
 
-    mGettableDelayCounter = 25;
+    if (fastGet) {
+        mGettableDelayCounter = 5;
+        _SMG2New = 5;
+    } else {
+        mGettableDelayCounter = 25;
+        _SMG2New = 25;
+    }
+
     mFlags._6 = a2;
     MR::getStarPieceDirector()->mNumStarPiecesLaunched++;
 
     mFlags.isLaunched = true;
 }
 
-// NONMATCHING: SMG2 launch() calls unnamed fn_800145C0/fn_800145D0 (area-gravity helpers) and uses setPosition; not reproduced
-void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, f32 f1, f32 f2, bool notCheckInWater, bool a2) {
-    mPosition.set(rVec1);
+void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, f32 f1, f32 f2, bool notCheckInWater, bool a2, bool fastGet) {
+    MR::setPosition(this, rVec1);
+    fn_800145C0(this);
     trySetGravityAndFront(-rVec2);
 
     TVec3f randVec(MR::getRandom(-f1, f1), MR::getRandom(-f1, f1), MR::getRandom(-f1, f1));
@@ -1004,22 +1015,30 @@ void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, f32 f1, f32 f2,
         }
     }
 
-    MR::resetPosition(this, rVec1);
+    fn_800145D0(&mVelocity, rVec1);
+    MR::resetPosition(this);
     appear();
     setNerve(GET_NERVE(StarPiece, HostTypeNrvFall));
     MR::invalidateClipping(this);
 
-    mGettableDelayCounter = 25;
+    if (fastGet) {
+        mGettableDelayCounter = 5;
+        _SMG2New = 5;
+    } else {
+        mGettableDelayCounter = 25;
+        _SMG2New = 25;
+    }
+
     mFlags._6 = a2;
     MR::getStarPieceDirector()->mNumStarPiecesLaunched++;
 
     mFlags.isLaunched = true;
 }
 
-// NONMATCHING: SMG2 launch() calls unnamed fn_800145C0/fn_800145D0 (area-gravity helpers) and uses setPosition; not reproduced
-void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, bool notCheckInWater, bool a2) {
-    mPosition.set(rVec1);
-    trySetGravityAndFront(rVec2);
+void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, bool notCheckInWater, bool a2, bool fastGet) {
+    MR::setPosition(this, rVec1);
+    fn_800145C0(this);
+    trySetGravityAndFront(-rVec2);
     mVelocity.set(rVec2);
 
     if (notCheckInWater) {
@@ -1032,12 +1051,20 @@ void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, bool notCheckIn
         }
     }
 
+    fn_800145D0(&mVelocity, rVec1);
     MR::resetPosition(this, rVec1);
     appear();
     setNerve(GET_NERVE(StarPiece, HostTypeNrvFall));
     MR::invalidateClipping(this);
 
-    mGettableDelayCounter = 25;
+    if (fastGet) {
+        mGettableDelayCounter = 5;
+        _SMG2New = 5;
+    } else {
+        mGettableDelayCounter = 25;
+        _SMG2New = 25;
+    }
+
     mFlags._6 = a2;
     MR::getStarPieceDirector()->mNumStarPiecesLaunched++;
 
@@ -1237,24 +1264,6 @@ bool StarPiece::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
 
             return true;
         }
-    }
-
-    if (MR::isMsgItemPull(msg) && mGettableDelayCounter < 0) {
-        if (isNerve(GET_NERVE(StarPiece, HostTypeNrvSpinDrained)) || isNerve(GET_NERVE(StarPiece, HostTypeNrvToPlayerEnd)) ||
-            isNerve(GET_NERVE(StarPiece, HostTypeNrvToTarget))) {
-            return false;
-        }
-
-        mTargetSensor = pSender;
-
-        if (MR::isSensorPlayer(mTargetSensor)) {
-            mFlags.isGoToPlayer = true;
-        } else {
-            mFlags.isGoToPlayer = false;
-        }
-
-        setNerve(GET_NERVE(StarPiece, HostTypeNrvSpinDrained));
-        return true;
     }
 
     if (MR::isMsgStartPowerStarGet(msg)) {

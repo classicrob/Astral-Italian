@@ -106,9 +106,6 @@ void TrickRabbit::init(const JMapInfoIter& rIter) {
     initState();
     initTimer();
 
-    mSpotMarkLight = new SpotMarkLight(this, 100.0f, 1500.0f, 0);
-    mSpotMarkLight->initWithoutIter();
-
     MR::declarePowerStar(this);
     MR::addToAttributeGroupSearchTurtle(this);
     MR::useStageSwitchWriteA(this, rIter);
@@ -131,6 +128,8 @@ void TrickRabbit::initModel() {
     mScale.y *= f;
     mScale.z *= f;
     MR::initActor(this, "TrickRabbit", false);
+    mSpotMarkLight = new SpotMarkLight(this, 100.0f, 1500.0f, nullptr);
+    mSpotMarkLight->initWithoutIter();
     MR::connectToSceneNpc(this);
     MR::initLightCtrl(this);
 }

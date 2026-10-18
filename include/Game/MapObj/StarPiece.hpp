@@ -82,9 +82,9 @@ public:
     bool throwToTargetCore(const TVec3f&, const TVec3f&, const TVec3f&, f32, bool);
     void giftToTarget(StarPieceReceiverInfo*, u32, HitSensor*, const TVec3f&);
     void goToPlayer(TVec3f);
-    void launch(const TVec3f&, f32, f32, bool, bool);
-    void launch(const TVec3f&, const TVec3f&, f32, f32, bool, bool);
-    void launch(const TVec3f&, const TVec3f&, bool, bool);
+    void launch(const TVec3f&, f32, f32, bool, bool, bool = false);
+    void launch(const TVec3f&, const TVec3f&, f32, f32, bool, bool, bool = false);
+    void launch(const TVec3f&, const TVec3f&, bool, bool, bool = false);
     f32 calcEffectScale(f32, f32, bool);
     f32 calcNearCameraScale();
     f32 calcDistToCamera();

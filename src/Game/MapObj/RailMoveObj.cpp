@@ -164,6 +164,14 @@ void RailMoveObj::exeWait() {
     }
 }
 
+void RailMoveObj::setNerveMove() {
+    setNerve(GET_NERVE(RailMoveObj, HostTypeMove));
+}
+
+void RailMoveObj::setNerveWait() {
+    setNerve(GET_NERVE(RailMoveObj, HostTypeWait));
+}
+
 bool RailMoveObj::tryStartMove() {
     setNerve(GET_NERVE(RailMoveObj, HostTypeMove));
     return true;
@@ -322,4 +330,36 @@ bool RailRotateMoveObj::tryStartRotateBetweenPoints() {
     s32 new_point = MR::getCurrentRailPointNo(this);
     uhm->rotateBetweenPoints(new_point, next_time);
     return true;
+}
+
+RailAndRotateMoveObj::RailAndRotateMoveObj(const char* pName) : RailMoveObj(pName) {
+}
+
+void RailAndRotateMoveObj::init(const JMapInfoIter& rIter) {
+    RailMoveObj::init(rIter);
+}
+
+void RailAndRotateMoveObj::setupInitInfo(const JMapInfoIter& rIter, MapObjActorInitInfo* pInfo) {
+    pInfo->setupRotator();
+}
+
+RailMoveShadowDropYObj::RailMoveShadowDropYObj(const char* pName) : RailMoveObj(pName) {
+    mShadowDropDir.x = 0.0f;
+    mShadowDropDir.y = 0.0f;
+    mShadowDropDir.z = 0.0f;
+}
+
+void RailMoveShadowDropYObj::init(const JMapInfoIter& rIter) {
+    RailMoveObj::init(rIter);
+    MR::calcUpVec(&mShadowDropDir, this);
+    TVec3f negated = -mShadowDropDir;
+    mShadowDropDir = negated;
+    MR::setShadowDropDirectionPtrAll(this, &mShadowDropDir);
+}
+
+void RailMoveShadowDropYObj::control() {
+    MapObjActor::control();
+    MR::calcUpVec(&mShadowDropDir, this);
+    TVec3f negated = -mShadowDropDir;
+    mShadowDropDir = negated;
 }

@@ -8,6 +8,8 @@
 #include "Game/MapObj/SpinDriverPathDrawer.hpp"
 #include "Game/MapObj/SpinDriverShootPath.hpp"
 
+class TalkMessageCtrl;
+
 class SuperSpinDriver : public LiveActor {
 public:
     SuperSpinDriver(const char*, s32);
@@ -16,6 +18,7 @@ public:
     virtual void initAfterPlacement();
     virtual void appear();
     virtual void makeActorAppeared();
+    virtual void makeActorDead();
     virtual void startClipped();
     virtual void endClipped();
     virtual void control();
@@ -31,7 +34,6 @@ public:
     void initShootPath(const JMapInfoIter&);
     void initShootPathDraw(const JMapInfoIter&);
     void initColor();
-    void initOperateRing();
     void initAppearState(const JMapInfoIter&);
     bool canBind(HitSensor*, HitSensor*) const;
     bool tryBind(HitSensor*, HitSensor*);
@@ -71,7 +73,7 @@ public:
     void startPathDraw();
     void endPathDraw();
     void updatePathDraw(f32);
-    void updateOperateRate();
+    void updateEaseRotate();
     void updateBindPosition(f32);
     void calcShootMotionTime();
     void addSwingSignRotateY();
@@ -82,13 +84,14 @@ public:
     bool isNerveEnableBind() const;
     bool isSwingOr2PTrigger() const;
     bool isFarPlayer() const;
+    bool isFollowValid(s32) const;
 
     /* 0x8C */ LiveActor* mBindActor;
     /* 0x90 */ SpinDriverShootPath* mShootPath;
     /* 0x94 */ SpinDriverCamera* mSpinDriverCamera;
-    /* 0x98 */ SpinDriverOperateRing* mOperateRing;
     /* 0x9C */ SpinDriverPathDrawer* mPathDrawer;
     /* 0xA0 */ ModelObj* mEmptyModel;
+    /* 0xA4 */ TalkMessageCtrl* mTalkCtrl;
     /* 0xA8 */ TPos3f _SMG2A8;  // SMG2 (offsets below are Petari; SMG2 = +0x34 then +0x38 after mColor)
     /* 0xA4 */ TQuat4f _A4;
     /* 0xB4 */ TQuat4f _B4;
@@ -126,12 +129,11 @@ public:
     /* 0x178 */ s32 _178;
     /* 0x17C */ bool _17C;
     /* 0x17E */ bool mIsPullPlayer;
-    /* 0x17D */ bool _17D;
-    /* 0x17F */ bool mIsDisableJingle;
+    /* 0x17D */ bool mIsDisableJingle;
+    bool mIsNoPauseMenuStars;
 };
 
 namespace MR {
     NameObj* createSuperSpinDriverYellow(const char*);
-    NameObj* createSuperSpinDriverGreen(const char*);
     NameObj* createSuperSpinDriverPink(const char*);
 };  // namespace MR

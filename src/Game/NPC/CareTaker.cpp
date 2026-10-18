@@ -16,7 +16,7 @@ namespace {
     // static const f32 sTalkRotateDegree = _;
     // static const f32 sTalkCameraScale = _;
     // static const s32 sDirtBtkFrame = _;
-    static const s32 sPreRaceWait = 100;
+    static const s32 sPreRaceWait = 50;
     static const s32 sPstRaceWait = 50;
     // static const s32 sNormalBtkFrame = _;
 };  // namespace
@@ -178,6 +178,7 @@ void Caretaker::kill() {
 
 extern "C" void fn_80050300();
 extern "C" void fn_80051580();
+extern "C" void fn_8005AD00(s32);
 
 void Caretaker::control() {
     NPCActor::control();
@@ -484,9 +485,11 @@ void Caretaker::exePreWipeIn() {
 
 void Caretaker::exePreWait() {
     if (MR::isFirstStep(this)) {
+        MR::startActionSound(this, "MorphTimeAttack", -1, -1, -1);
         MR::endDemo(this, "ゴミ掃除タイムアタック");
         MR::offPlayerControl();
         MR::onSwitchB(this);
+        fn_8005AD00(0x5A);
     }
 
     if (MR::isGreaterStep(this, ::sPreRaceWait)) {

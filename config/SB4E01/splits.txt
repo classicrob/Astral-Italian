@@ -927,16 +927,148 @@ Game/Boss/KoopaJrCastle.cpp:
 	.ctors      start:0x80643E7C end:0x80643EC4
 
 Game/Boss/KoopaJrRobot.cpp:
-	.text       start:0x800DA9D0 end:0x800E5C90
-	.ctors      start:0x80643EC4 end:0x80643F18
+	.text       start:0x800DA9D0 end:0x800DB790
+	.ctors      start:0x80643EC4 end:0x80643EC8
+
+Game/Boss/KoopaJrRobotTU01.cpp:
+	.text       start:0x800DB790 end:0x800DB990
+	.ctors      start:0x80643EC8 end:0x80643ECC
+
+Game/Boss/KoopaJrRobotTU02.cpp:
+	.text       start:0x800DB990 end:0x800DCDF0
+	.ctors      start:0x80643ECC end:0x80643ED0
+
+Game/Boss/KoopaJrRobotTU03.cpp:
+	.text       start:0x800DCDF0 end:0x800DDB50
+	.ctors      start:0x80643ED0 end:0x80643ED4
+
+Game/Boss/KoopaJrRobotTU04.cpp:
+	.text       start:0x800DDB50 end:0x800DF090
+	.ctors      start:0x80643ED4 end:0x80643ED8
+
+Game/Boss/KoopaJrRobotTU05.cpp:
+	.text       start:0x800DF090 end:0x800DF590
+	.ctors      start:0x80643ED8 end:0x80643EDC
+
+Game/Boss/KoopaJrRobotTU06.cpp:
+	.text       start:0x800DF590 end:0x800DF9E0
+	.ctors      start:0x80643EDC end:0x80643EE0
+
+Game/Boss/KoopaJrRobotTU07.cpp:
+	.text       start:0x800DF9E0 end:0x800DFE30
+	.ctors      start:0x80643EE0 end:0x80643EE4
+
+Game/Boss/KoopaJrRobotTU08.cpp:
+	.text       start:0x800DFE30 end:0x800E0220
+	.ctors      start:0x80643EE4 end:0x80643EE8
+
+Game/Boss/KoopaJrRobotTU09.cpp:
+	.text       start:0x800E0220 end:0x800E0B50
+	.ctors      start:0x80643EE8 end:0x80643EEC
+
+Game/Boss/KoopaJrRobotTU10.cpp:
+	.text       start:0x800E0B50 end:0x800E1400
+	.ctors      start:0x80643EEC end:0x80643EF0
+
+Game/Boss/KoopaJrRobotTU11.cpp:
+	.text       start:0x800E1400 end:0x800E1C60
+	.ctors      start:0x80643EF0 end:0x80643EF4
+
+Game/Boss/KoopaJrRobotTU12.cpp:
+	.text       start:0x800E1C60 end:0x800E20A0
+	.ctors      start:0x80643EF4 end:0x80643EF8
+
+Game/Boss/KoopaJrRobotTU13.cpp:
+	.text       start:0x800E20A0 end:0x800E28C0
+	.ctors      start:0x80643EF8 end:0x80643EFC
+
+Game/Boss/KoopaJrRobotTU14.cpp:
+	.text       start:0x800E28C0 end:0x800E3630
+	.ctors      start:0x80643EFC end:0x80643F00
+
+Game/Boss/KoopaJrRobotTU15.cpp:
+	.text       start:0x800E3630 end:0x800E3F90
+	.ctors      start:0x80643F00 end:0x80643F04
+
+Game/Boss/KoopaJrRobotTU16.cpp:
+	.text       start:0x800E3F90 end:0x800E4380
+	.ctors      start:0x80643F04 end:0x80643F08
+
+Game/Boss/KoopaJrRobotTU17.cpp:
+	.text       start:0x800E4380 end:0x800E4A00
+	.ctors      start:0x80643F08 end:0x80643F0C
+
+Game/Boss/KoopaJrRobotTU18.cpp:
+	.text       start:0x800E4A00 end:0x800E50A0
+	.ctors      start:0x80643F0C end:0x80643F10
+
+Game/Boss/KoopaJrRobotTU19.cpp:
+	.text       start:0x800E50A0 end:0x800E58D0
+	.ctors      start:0x80643F10 end:0x80643F14
+
+Game/Boss/KoopaJrRobotTU20.cpp:
+	.text       start:0x800E58D0 end:0x800E5C90
+	.ctors      start:0x80643F14 end:0x80643F18
 
 Game/Boss/KoopaSealField.cpp:
 	.text       start:0x800E5C90 end:0x800E6800
 	.ctors      start:0x80643F18 end:0x80643F1C
 
 Game/Boss/KoopaStateBase.cpp:
-	.text       start:0x800E6800 end:0x800EC1E0
-	.ctors      start:0x80643F1C end:0x80643F54
+	.text       start:0x800E6800 end:0x800E6CE0
+	.ctors      start:0x80643F1C end:0x80643F20
+
+Game/Boss/KoopaStateBaseTU01.cpp:
+	.text       start:0x800E6CE0 end:0x800E75B0
+	.ctors      start:0x80643F20 end:0x80643F24
+
+Game/Boss/KoopaStateBaseTU02.cpp:
+	.text       start:0x800E75B0 end:0x800E7950
+	.ctors      start:0x80643F24 end:0x80643F28
+
+Game/Boss/KoopaStateBaseTU03.cpp:
+	.text       start:0x800E7950 end:0x800E7DB0
+	.ctors      start:0x80643F28 end:0x80643F2C
+
+Game/Boss/KoopaStateBaseTU04.cpp:
+	.text       start:0x800E7DB0 end:0x800E8220
+	.ctors      start:0x80643F2C end:0x80643F30
+
+Game/Boss/KoopaStateBaseTU05.cpp:
+	.text       start:0x800E8220 end:0x800E85F0
+	.ctors      start:0x80643F30 end:0x80643F34
+
+Game/Boss/KoopaStateBaseTU06.cpp:
+	.text       start:0x800E85F0 end:0x800E8C90
+	.ctors      start:0x80643F34 end:0x80643F38
+
+Game/Boss/KoopaStateBaseTU07.cpp:
+	.text       start:0x800E8C90 end:0x800E90F0
+	.ctors      start:0x80643F38 end:0x80643F3C
+
+Game/Boss/KoopaStateBaseTU08.cpp:
+	.text       start:0x800E90F0 end:0x800E93A0
+	.ctors      start:0x80643F3C end:0x80643F40
+
+Game/Boss/KoopaStateBaseTU09.cpp:
+	.text       start:0x800E93A0 end:0x800E9B20
+	.ctors      start:0x80643F40 end:0x80643F44
+
+Game/Boss/KoopaStateBaseTU10.cpp:
+	.text       start:0x800E9B20 end:0x800EA7C0
+	.ctors      start:0x80643F44 end:0x80643F48
+
+Game/Boss/KoopaStateBaseTU11.cpp:
+	.text       start:0x800EA7C0 end:0x800EAFB0
+	.ctors      start:0x80643F48 end:0x80643F4C
+
+Game/Boss/KoopaStateBaseTU12.cpp:
+	.text       start:0x800EAFB0 end:0x800EBA70
+	.ctors      start:0x80643F4C end:0x80643F50
+
+Game/Boss/KoopaStateBaseTU13.cpp:
+	.text       start:0x800EBA70 end:0x800EC1E0
+	.ctors      start:0x80643F50 end:0x80643F54
 
 Game/Boss/KoopaStateLv1Sequence.cpp:
 	.text       start:0x800EC1E0 end:0x800EC8B0
@@ -1051,12 +1183,104 @@ Game/Boss/PoltaWaitStart.cpp:
 	.data       start:0x8067A020 end:0x8067A050
 
 Game/Boss/Sandy.cpp:
-	.text       start:0x800FAC80 end:0x80102CA0
-	.ctors      start:0x80643F9C end:0x80643FCC
+	.text       start:0x800FAC80 end:0x800FBA60
+	.ctors      start:0x80643F9C end:0x80643FA0
+
+Game/Boss/SandyTU01.cpp:
+	.text       start:0x800FBA60 end:0x800FD1F0
+	.ctors      start:0x80643FA0 end:0x80643FA4
+
+Game/Boss/SandyTU02.cpp:
+	.text       start:0x800FD1F0 end:0x800FF0C0
+	.ctors      start:0x80643FA4 end:0x80643FA8
+
+Game/Boss/SandyTU03.cpp:
+	.text       start:0x800FF0C0 end:0x800FFDA0
+	.ctors      start:0x80643FA8 end:0x80643FAC
+
+Game/Boss/SandyTU04.cpp:
+	.text       start:0x800FFDA0 end:0x800FFF70
+	.ctors      start:0x80643FAC end:0x80643FB0
+
+Game/Boss/SandyTU05.cpp:
+	.text       start:0x800FFF70 end:0x80100B90
+	.ctors      start:0x80643FB0 end:0x80643FB4
+
+Game/Boss/SandyTU06.cpp:
+	.text       start:0x80100B90 end:0x80100EA0
+	.ctors      start:0x80643FB4 end:0x80643FB8
+
+Game/Boss/SandyTU07.cpp:
+	.text       start:0x80100EA0 end:0x801012B0
+	.ctors      start:0x80643FB8 end:0x80643FBC
+
+Game/Boss/SandyTU08.cpp:
+	.text       start:0x801012B0 end:0x80101750
+	.ctors      start:0x80643FBC end:0x80643FC0
+
+Game/Boss/SandyTU09.cpp:
+	.text       start:0x80101750 end:0x80101D50
+	.ctors      start:0x80643FC0 end:0x80643FC4
+
+Game/Boss/SandyTU10.cpp:
+	.text       start:0x80101D50 end:0x80102320
+	.ctors      start:0x80643FC4 end:0x80643FC8
+
+Game/Boss/SandyTU11.cpp:
+	.text       start:0x80102320 end:0x80102CA0
+	.ctors      start:0x80643FC8 end:0x80643FCC
 
 Game/Boss/TwoLegsBullet.cpp:
-	.text       start:0x80102CA0 end:0x8010A3D0
-	.ctors      start:0x80643FCC end:0x80644000
+	.text       start:0x80102CA0 end:0x801042E0
+	.ctors      start:0x80643FCC end:0x80643FD0
+
+Game/Boss/TwoLegsBulletTU01.cpp:
+	.text       start:0x801042E0 end:0x80105520
+	.ctors      start:0x80643FD0 end:0x80643FD4
+
+Game/Boss/TwoLegsBulletTU02.cpp:
+	.text       start:0x80105520 end:0x80105C70
+	.ctors      start:0x80643FD4 end:0x80643FD8
+
+Game/Boss/TwoLegsBulletTU03.cpp:
+	.text       start:0x80105C70 end:0x80106D00
+	.ctors      start:0x80643FD8 end:0x80643FDC
+
+Game/Boss/TwoLegsBulletTU04.cpp:
+	.text       start:0x80106D00 end:0x801075A0
+	.ctors      start:0x80643FDC end:0x80643FE0
+
+Game/Boss/TwoLegsBulletTU05.cpp:
+	.text       start:0x801075A0 end:0x80107AE0
+	.ctors      start:0x80643FE0 end:0x80643FE4
+
+Game/Boss/TwoLegsBulletTU06.cpp:
+	.text       start:0x80107AE0 end:0x80107FD0
+	.ctors      start:0x80643FE4 end:0x80643FE8
+
+Game/Boss/TwoLegsBulletTU07.cpp:
+	.text       start:0x80107FD0 end:0x80108520
+	.ctors      start:0x80643FE8 end:0x80643FEC
+
+Game/Boss/TwoLegsBulletTU08.cpp:
+	.text       start:0x80108520 end:0x80108850
+	.ctors      start:0x80643FEC end:0x80643FF0
+
+Game/Boss/TwoLegsBulletTU09.cpp:
+	.text       start:0x80108850 end:0x80108D50
+	.ctors      start:0x80643FF0 end:0x80643FF4
+
+Game/Boss/TwoLegsBulletTU10.cpp:
+	.text       start:0x80108D50 end:0x80108F70
+	.ctors      start:0x80643FF4 end:0x80643FF8
+
+Game/Boss/TwoLegsBulletTU11.cpp:
+	.text       start:0x80108F70 end:0x801094D0
+	.ctors      start:0x80643FF8 end:0x80643FFC
+
+Game/Boss/TwoLegsBulletTU12.cpp:
+	.text       start:0x801094D0 end:0x8010A3D0
+	.ctors      start:0x80643FFC end:0x80644000
 
 Game/Boss/Yukkina.cpp:
 	.text       start:0x8010A3D0 end:0x8010B690
@@ -4688,8 +4912,28 @@ Game/NPC/TalkMessageFuncM6.cpp:
 	.text       start:0x80351FE0 end:0x80352170
 
 Game/NPC/Meister.cpp:
-	.text       start:0x80352200 end:0x80354580
-	.ctors      start:0x806446E4 end:0x806446FC
+	.text       start:0x80352200 end:0x80352C90
+	.ctors      start:0x806446E4 end:0x806446E8
+
+Game/NPC/MeisterTU01.cpp:
+	.text       start:0x80352C90 end:0x80352F40
+	.ctors      start:0x806446E8 end:0x806446EC
+
+Game/NPC/MeisterTU02.cpp:
+	.text       start:0x80352F40 end:0x80353250
+	.ctors      start:0x806446EC end:0x806446F0
+
+Game/NPC/MeisterTU03.cpp:
+	.text       start:0x80353250 end:0x803535B0
+	.ctors      start:0x806446F0 end:0x806446F4
+
+Game/NPC/MeisterTU04.cpp:
+	.text       start:0x803535B0 end:0x803538C0
+	.ctors      start:0x806446F4 end:0x806446F8
+
+Game/NPC/MeisterTU05.cpp:
+	.text       start:0x803538C0 end:0x80354580
+	.ctors      start:0x806446F8 end:0x806446FC
 
 Game/NPC/MiiDatabase.cpp:
 	.text       start:0x80354580 end:0x80354610

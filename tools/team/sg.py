@@ -113,7 +113,8 @@ def compile_unit(base):
     if not cmds:
         sys.exit(f"no build command for {base}")
     os.makedirs(os.path.dirname(f"{ROOT}/{base}"), exist_ok=True)
-    r = subprocess.run(cmds[-1], shell=True, cwd=ROOT, capture_output=True, text=True)
+    # MG2_INTERACTIVE: use the reserved interactive slots of the machine-wide compile gate (build/tools/wibo)
+    r = subprocess.run(cmds[-1], shell=True, cwd=ROOT, capture_output=True, text=True, env={**os.environ, "MG2_INTERACTIVE": "1"})
     if r.returncode != 0:
         sys.stdout.write((r.stdout + r.stderr)[-6000:])
         sys.exit("compile failed")

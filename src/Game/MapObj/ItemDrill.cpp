@@ -1,315 +1,668 @@
-#include "JSystem/JParticle/JPAParticle.hpp"
-#include "JSystem/JParticle/JPABaseShape.hpp"
-#include "JSystem/JParticle/JPAChildShape.hpp"
-#include "JSystem/JParticle/JPAEmitter.hpp"
-#include "JSystem/JParticle/JPAEmitterManager.hpp"
-#include "JSystem/JParticle/JPAExtraShape.hpp"
+#pragma auto_inline off
+#include "Game/MapObj/ItemDrill.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/Nerve.hpp"
+#include "Game/MapObj/ActorStateDemoAppearance.hpp"
+#include "Game/Map/HitInfo.hpp"
+#include "Game/Util.hpp"
+#include "JSystem/JGeometry/TVec.hpp"
+#include "JSystem/JMath/JMath.hpp"
 
-JPAParticleCallBack::~JPAParticleCallBack() {
+class CameraTargetMtx {
+public:
+    CameraTargetMtx(const char*);
+    u8 _[0x94];
+};
+
+namespace Collision {
+    void addToGlobal(CollisionParts*);
+    void removeToGlobal(CollisionParts*);
+};  // namespace Collision
+
+namespace MR {
+    void* createCollisionPartsFilterDelegator(bool (*)(const CollisionParts*));
+    f32 calcDistanceToPlayer(const TVec3f&);
+    bool isPlayerInRange(f32, const TVec3f&);
+};  // namespace MR
+
+void createDrillHoleHolderSceneObj();
+
+extern "C" void fn_800222A0(const LiveActor*);
+extern "C" CollisionParts* fn_80038FB0(const TVec3f*, const TVec3f*);
+extern "C" bool fn_80050380();
+extern "C" void fn_8004FF70();
+extern "C" void fn_802B5800(TMtx34f*, const TVec3f*, const TVec3f*, TVec3f*);
+
+namespace JGeometry {
+    void negateInternal(const f32*, f32*);
+};  // namespace JGeometry
+
+extern "C" bool fn_802B8500(const CollisionParts*);
+
+namespace NrvItemDrill {
+    NEW_NERVE(ItemDrillNrvDrillDiveStart, ItemDrill, DrillDiveStart);
+    NEW_NERVE(ItemDrillNrvDrillDiveLoop, ItemDrill, DrillDiveLoop);
+    NEW_NERVE(ItemDrillNrvDrilling, ItemDrill, Drillling);
+    NEW_NERVE(ItemDrillNrvReverseDrilling, ItemDrill, ReverseDrillling);
+    NEW_NERVE(ItemDrillNrvDrillDiveEnd, ItemDrill, DrillDiveEnd);
+    NEW_NERVE(ItemDrillNrvDrop, ItemDrill, Drop);
+    NEW_NERVE(ItemDrillNrvHide, ItemDrill, Hide);
+    NEW_NERVE(ItemDrillNrvReappear, ItemDrill, Reappear);
+    NEW_NERVE(ItemDrillNrvGroupHide, ItemDrill, GroupHide);
+    NEW_NERVE(ItemDrillNrvTake, ItemDrill, Take);
+    NEW_NERVE(ItemDrillNrvTaken, ItemDrill, Taken);
+
+    // Wait and Appear have their own bodies in SMG2 (no exeWait / exeAppear symbols).
+    class ItemDrillNrvWait : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static ItemDrillNrvWait sInstance ATTRIBUTE_WEAK;
+    };
+    ItemDrillNrvWait ItemDrillNrvWait::sInstance ATTRIBUTE_WEAK;
+
+    class ItemDrillNrvAppear : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static ItemDrillNrvAppear sInstance ATTRIBUTE_WEAK;
+    };
+    ItemDrillNrvAppear ItemDrillNrvAppear::sInstance ATTRIBUTE_WEAK;
+}  // namespace NrvItemDrill
+
+// NONMATCHING: member class types (TPos3f/TVec3f) get default-ctor calls here that the target does not make;
+// needs POD-typed members in the header.
+ItemDrill::ItemDrill(const char* pName) : LiveActor(pName) {
+    mVecF0.x = 0.0f;
+    mVecF0.y = 0.0f;
+    mVecF0.z = 0.0f;
+    mCameraInfo = nullptr;
+    mIsArg0 = false;
+    mIsArg2 = false;
+    mTriangle = nullptr;
+    mCameraTargetMtx = nullptr;
+    mEffectTrans.x = 0.0f;
+    mEffectTrans.y = 0.0f;
+    mEffectTrans.z = 0.0f;
+    mLimitPos = nullptr;
+    mUnk20C = 0;
+    mUnk210 = nullptr;
+    mDrillDepth = 300.0f;
+    mUnk218 = 0;
+    mDrillingTime = 0;
+    mUnk220 = false;
+    mDirs = nullptr;
+
+    mMtxC0.identity();
+    mMtxFC.identity();
+    mMtx12C.identity();
+    mMtx15C.identity();
+    mMtx1A8.identity();
+    mMtx1D8.identity();
+
+    mTriangle = new Triangle();
 }
 
-void JPABaseParticle::init_p(JPAEmitterWorkData* pWork) {
-    JPABaseEmitter* emtr = pWork->mpEmtr;
-    JPAExtraShape* esp = pWork->mpRes->mpExtraShape;
-    JPABaseShape* bsp = pWork->mpRes->mpBaseShape;
-    JPADynamicsBlock* dyn = pWork->mpRes->mpDynamicsBlock;
+ItemDrill::~ItemDrill() {
+}
 
-    mAge = -1;
-    mLifeTime = (1.0f - dyn->getLifetimeRndm() * emtr->get_r_f()) * emtr->mLifeTime;
-    mTime = 0.0f;
-
-    initStatus(0);
-    PSMTXMultVecSR(pWork->mGlobalSR, &pWork->mVolumeCalcData.mVolumePos, &mLocalPosition);
-
-    if (emtr->checkFlag(8)) {
-        setStatus(0x20);
+void ItemDrill::draw() const {
+    if (!MR::isDead(this) && !MR::isClipped(this) && isTakenByPlayer()) {
+        fn_800222A0(this);
     }
+}
 
-    mOffsetPosition.set(pWork->mGlobalPos);
-    mPosition.set< f32 >(mOffsetPosition.x + mLocalPosition.x * pWork->mPublicScale.x, mOffsetPosition.y + mLocalPosition.y * pWork->mPublicScale.y,
-                         mOffsetPosition.z + mLocalPosition.z * pWork->mPublicScale.z);
-
-    JGeometry::TVec3< f32 > velOmni;
-
-    if (emtr->mAwayFromCenterSpeed) {
-        velOmni.setLength(pWork->mVolumeCalcData.mVelOmni, emtr->mAwayFromCenterSpeed);
-    } else {
-        velOmni.zero();
+#pragma dont_inline on
+void ItemDrill::calcAndSetBaseMtx() {
+    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrop))) {
+        mBaseTRMtx.setTrans(mPosition);
     }
+    MR::setBaseTRMtx(this, mBaseTRMtx);
+}
+#pragma dont_inline off
 
-    JGeometry::TVec3< f32 > velAxis;
-
-    if (emtr->mAwayFromAxisSpeed) {
-        velAxis.setLength(pWork->mVolumeCalcData.mVelAxis, emtr->mAwayFromAxisSpeed);
-    } else {
-        velAxis.zero();
+bool ItemDrill::isTakenByPlayer() const {
+    bool result = false;
+    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrilling)) ||
+        isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReverseDrilling)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvTaken)) ||
+        isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveStart)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd))) {
+        result = true;
     }
+    return result;
+}
 
-    JGeometry::TVec3< f32 > velDir;
-
-    if (emtr->mDirSpeed) {
-        Mtx mtx;
-        JPAGetYZRotateMtx(emtr->get_r_zp() * 0x8000 * emtr->mSpread, emtr->mRndm.get_rndm_ss(), mtx);
-        PSMTXConcat(pWork->mDirectionMtx, mtx, mtx);
-        velDir.set< f32 >(emtr->mDirSpeed * mtx[0][2], emtr->mDirSpeed * mtx[1][2], emtr->mDirSpeed * mtx[2][2]);
-    } else {
-        velDir.zero();
+void ItemDrill::incDrillingTimeCheckKillPlayer() {
+    mDrillingTime++;
+    if (mDrillingTime > 600 || MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        MR::forceKillPlayerByAbyss();
     }
+}
 
-    JGeometry::TVec3< f32 > velRndm;
-
-    if (emtr->mRndmDirSpeed) {
-        f32 z = emtr->mRndm.get_rndm_zh();
-        f32 y = emtr->mRndm.get_rndm_zh();
-        f32 x = emtr->mRndm.get_rndm_zh();
-        velRndm.set< f32 >(emtr->mRndmDirSpeed * x, emtr->mRndmDirSpeed * y, emtr->mRndmDirSpeed * z);
-    } else {
-        velRndm.zero();
-    }
-
-    f32 ratio = emtr->get_r_zp() * dyn->getInitVelRatio() + 1.0f;
-    mVelType1.set< f32 >(ratio * (velOmni.x + velAxis.x + velDir.x + velRndm.x), ratio * (velOmni.y + velAxis.y + velDir.y + velRndm.y),
-                         ratio * (velOmni.z + velAxis.z + velDir.z + velRndm.z));
-
-    if (emtr->checkFlag(4)) {
-        mVelType1.mul(emtr->mLocalScl);
-    }
-
-    PSMTXMultVecSR(pWork->mGlobalRot, &mVelType1, &mVelType1);
-
-    mVelType0.zero();
-
-    mMoment = 1.0f - dyn->getMomentRndm() * emtr->get_r_f();
-    mDrag = 1.0f;
-    mUserWork = 0;
-
-    mBaseAxis.set< f32 >(pWork->mGlobalRot[0][1], pWork->mGlobalRot[1][1], pWork->mGlobalRot[2][1]);
-
-    mPrmClr = emtr->mPrmClr;
-    mEnvClr = emtr->mEnvClr;
-
-    mAnmRandom = emtr->get_r_f() * bsp->getLoopOfstValue();
-
-    if (esp != nullptr && esp->isEnableScaleAnm()) {
-        mParticleScaleX = mParticleScaleY = mScaleOut = emtr->mScaleOut * (emtr->get_r_zp() * esp->getScaleRndm() + 1.0f);
-    } else {
-        mParticleScaleX = mParticleScaleY = mScaleOut = emtr->mScaleOut;
-    }
-
-    mPrmColorAlphaAnm = 0xff;
-
-    if (esp != nullptr && esp->isEnableAlphaFlick()) {
-        mAlphaWaveRandom = emtr->get_r_zp() * esp->getAlphaFreqRndm() + 1.0f;
-    } else {
-        mAlphaWaveRandom = 1.0f;
-    }
-
-    if (esp != nullptr) {
-        if (esp->isEnableRotateAnm()) {
-            mRotateAngle = esp->getRotateInitAngle() + esp->getRotateRndmAngle() * emtr->mRndm.get_rndm_zh();
-            mRotateSpeed = esp->getRotateInitSpeed() * (esp->getRotateRndmSpeed() * emtr->get_r_zp() + 1.0f);
-            mRotateSpeed = emtr->get_r_zp() < esp->getRotateDirection() ? mRotateSpeed : (s16)-mRotateSpeed;
-        } else {
-            mRotateAngle = 0;
-            mRotateSpeed = 0;
+void ItemDrill::endCamera() {
+    if (mCameraInfo != nullptr) {
+        if (MR::isActiveActorCamera(this, mCameraInfo)) {
+            MR::endActorCamera(this, mCameraInfo, false, -1);
         }
-    } else {
-        mRotateAngle = 0;
-        mRotateSpeed = 0;
     }
 }
 
-void JPABaseParticle::init_c(JPAEmitterWorkData* pWork, JPABaseParticle* pParent) {
-    JPABaseEmitter* emtr = pWork->mpEmtr;
-    JPAChildShape* csp = pWork->mpRes->getCsp();
-
-    mAge = -1;
-    mLifeTime = csp->getLife();
-    mTime = 0.0f;
-    initStatus(4);
-    mLocalPosition.set(pParent->mLocalPosition);
-
-    f32 pos_rndm = csp->getPosRndm();
-
-    if (pos_rndm != 0.0f) {
-        JGeometry::TVec3< f32 > rnd(emtr->mRndm.get_rndm_zh(), emtr->mRndm.get_rndm_zh(), emtr->mRndm.get_rndm_zh());
-        rnd.setLength(pos_rndm * emtr->get_r_f());
-        mLocalPosition.add(rnd);
+void ItemDrill::endFireDamage() {
+    MR::endBindAndPlayerFireDamage(this);
+    endCamera();
+    if (!isNerve(GET_NERVE(ItemDrill, ItemDrillNrvHide))) {
+        setNerve(GET_NERVE(ItemDrill, ItemDrillNrvTaken));
     }
-
-    if (emtr->checkFlag(0x10)) {
-        setStatus(0x20);
-    }
-
-    mOffsetPosition.set(pParent->mOffsetPosition);
-
-    f32 base_speed = csp->getBaseVel() * (csp->getBaseVelRndm() * emtr->get_r_zp() + 1.0f);
-    JGeometry::TVec3< f32 > base_vel(emtr->get_r_zp(), emtr->get_r_zp(), emtr->get_r_zp());
-    base_vel.setLength(base_speed);
-    mVelType1.scaleAdd(csp->getVelInhRate(), pParent->mVelType1, base_vel);
-    mVelType0.scale(csp->getVelInhRate(), pParent->mVelType2);
-
-    mMoment = pParent->mMoment;
-
-    if (csp->isFieldAffected()) {
-        mDrag = pParent->mDrag;
-    } else {
-        setStatus(0x40);
-        mDrag = 1.0f;
-    }
-
-    mUserWork = pParent->mUserWork;
-
-    mVelType2.set(mVelType0);
-    f32 ratio = mMoment * mDrag;
-    mVelocity.set< f32 >(ratio * (mVelType1.x + mVelType2.x), ratio * (mVelType1.y + mVelType2.y), ratio * (mVelType1.z + mVelType2.z));
-
-    mBaseAxis.set(pParent->mBaseAxis);
-
-    if (csp->isScaleInherited()) {
-        mParticleScaleX = mScaleOut = pParent->mParticleScaleX * csp->getScaleInhRate();
-        mParticleScaleY = mAlphaWaveRandom = pParent->mParticleScaleY * csp->getScaleInhRate();
-    } else {
-        mParticleScaleX = mScaleOut = mParticleScaleY = mAlphaWaveRandom = 1.0f;
-    }
-
-    if (csp->isColorInherited()) {
-        mPrmClr.r = pParent->mPrmClr.r * csp->getColorInhRate();
-        mPrmClr.g = pParent->mPrmClr.g * csp->getColorInhRate();
-        mPrmClr.b = pParent->mPrmClr.b * csp->getColorInhRate();
-        mEnvClr.r = pParent->mEnvClr.r * csp->getColorInhRate();
-        mEnvClr.g = pParent->mEnvClr.g * csp->getColorInhRate();
-        mEnvClr.b = pParent->mEnvClr.b * csp->getColorInhRate();
-    } else {
-        csp->getPrmClr(&mPrmClr);
-        csp->getEnvClr(&mEnvClr);
-    }
-
-    mPrmColorAlphaAnm = 0xff;
-    if (csp->isAlphaInherited()) {
-        mPrmClr.a = COLOR_MULTI(pParent->mPrmClr.a, pParent->mPrmColorAlphaAnm) * csp->getAlphaInhRate();
-    } else {
-        mPrmClr.a = csp->getPrmAlpha();
-    }
-
-    mRotateAngle = pParent->getRotateAngle();
-    if (csp->isRotateOn()) {
-        mRotateSpeed = csp->getRotInitSpeed();
-    } else {
-        mRotateSpeed = 0;
-    }
-
-    mTexAnmIdx = 0;
 }
 
-bool JPABaseParticle::calc_p(JPAEmitterWorkData* pWork) {
-    if (++mAge >= mLifeTime) {
-        return true;
+void ItemDrill::emitInvalidEffect() {
+    MtxPtr pMtx = MR::getJointMtx(this, "DrillPod");
+    TMtx34f mtx;
+    JMath::gekko_ps_copy12(&mtx, pMtx);
+    TVec3f local;
+    local.x = 0.0f;
+    local.y = -100.0f;
+    local.z = 0.0f;
+    mtx.mult(local, mEffectTrans);
+    MR::emitEffect(this, "Invalid");
+}
+
+void ItemDrill::emitReflectEffect() {
+    MtxPtr pMtx = MR::getJointMtx(this, "DrillPod");
+    TMtx34f mtx;
+    JMath::gekko_ps_copy12(&mtx, pMtx);
+    TVec3f local;
+    local.x = 0.0f;
+    local.y = -100.0f;
+    local.z = 0.0f;
+    mtx.mult(local, mEffectTrans);
+    MR::emitEffect(this, "Reflect");
+}
+
+#pragma dont_inline on
+void ItemDrill::cancelDrill(bool isEffect) {
+    if (isEffect) {
+        emitInvalidEffect();
+        MR::startActionSound(this, "Cancel", -1, -1, -1);
+    }
+    MR::startLevelSoundPlayer("DrillCancel", -1, -1);
+    f32 up[3];
+    mBaseTRMtx.getYDir(*reinterpret_cast< TVec3f* >(up));
+    MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, *reinterpret_cast< TVec3f* >(up));
+    endCamera();
+    setNerve(GET_NERVE(ItemDrill, ItemDrillNrvTaken));
+}
+#pragma dont_inline off
+
+// NONMATCHING: getPlayerPos() / &mDirs[14] evaluation order differs (target computes the pointer before the call).
+void ItemDrill::exeTaken() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
     }
 
-    mTime = (f32)mAge / (f32)mLifeTime;
+    MR::makeMtxTR(mBaseTRMtx, mPosition, mRotation);
 
-    if (checkStatus(0x20)) {
-        mOffsetPosition.set(pWork->mGlobalPos);
+    if (mDirs != nullptr) {
+        for (s32 i = 0; i < 14; i++) {
+            mDirs[i].set(mDirs[i + 1]);
+        }
+        TVec3f* pLast = &mDirs[14];
+        if (!MR::calcGravityVectorOrZero(this, *MR::getPlayerPos(), pLast, nullptr, 0)) {
+            mDirs[14].set(*MR::getPlayerGravity());
+        }
+    }
+}
+
+bool ItemDrill::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgRockAttack(msg)) {
+        MR::sendMsgPush(pSender, pReceiver);
+        return false;
     }
 
-    mVelType2.zero();
-    if (!checkStatus(0x40)) {
-        pWork->mpRes->calcField(pWork, this);
-    }
-
-    mVelType2.add(mVelType0);
-    mVelType1.scale(pWork->mpEmtr->mAirResist);
-    f32 ratio = mMoment * mDrag;
-    mVelocity.set< f32 >(ratio * (mVelType1.x + mVelType2.x), ratio * (mVelType1.y + mVelType2.y), ratio * (mVelType1.z + mVelType2.z));
-
-    if (pWork->mpEmtr->mpPtclCallBack != nullptr) {
-        pWork->mpEmtr->mpPtclCallBack->execute(pWork->mpEmtr, this);
-    }
-
-    if (checkStatus(2)) {
-        return true;
-    }
-
-    pWork->mpRes->calc_p(pWork, this);
-    u16 angle = getRotateAngle();
-    mRotateAngle = angle + mRotateSpeed;
-
-    if (pWork->mpRes->getCsp() != nullptr && canCreateChild(pWork)) {
-        for (int i = pWork->mpRes->getCsp()->getRate(); i > 0; i--) {
-            pWork->mpEmtr->createChild(this);
+    if (MR::isMsgStarPieceReflect(msg)) {
+        if (MR::isEqualSensor(pReceiver, this, "Body")) {
+            return true;
         }
     }
 
-    mLocalPosition.add(mVelocity);
-    mPosition.set< f32 >(mOffsetPosition.x + mLocalPosition.x * pWork->mPublicScale.x, mOffsetPosition.y + mLocalPosition.y * pWork->mPublicScale.y,
-                         mOffsetPosition.z + mLocalPosition.z * pWork->mPublicScale.z);
+    if (!MR::isPlayerElementModeYoshi()) {
+        return false;
+    }
+
+    if (MR::isEqualSensor(pReceiver, this, "Body")) {
+        return MR::isMsgPlayerTrample(msg);
+    }
+    return false;
+}
+
+bool ItemDrill::receiveMsgItemGet(HitSensor* pReceiver, HitSensor* pSender) {
+    if (MR::isPlayerSwimming()) {
+        return false;
+    }
+    if (MR::isPlayerElementModeYoshi()) {
+        return false;
+    }
+    if (fn_80050380() || MR::isPlayerInRush() || MR::isPlayerRecovering()) {
+        return false;
+    }
+    if (!MR::isEqualSensor(pReceiver, this, "Body")) {
+        return false;
+    }
+    if (!MR::isSensorPlayer(pSender)) {
+        return false;
+    }
+    if (!isNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait)) && !isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReappear))) {
+        return false;
+    }
+    mUnk210 = pSender;
+    setNerve(GET_NERVE(ItemDrill, ItemDrillNrvTake));
+    MR::curePlayerElementMode();
+    return true;
+}
+
+#pragma dont_inline on
+bool ItemDrill::startDrill() {
+    if (!isNerve(GET_NERVE(ItemDrill, ItemDrillNrvTaken))) {
+        return false;
+    }
+
+    TVec3f playerPos(*MR::getPlayerPos());
+    mVecF0.set(playerPos);
+
+    TVec3f gravity;
+    if (mDirs == nullptr) {
+        if (!MR::calcGravityVectorOrZero(this, *MR::getPlayerPos(), &gravity, nullptr, 0)) {
+            gravity.set(*MR::getPlayerGravity());
+        }
+    } else {
+        gravity.set(*mDirs);
+    }
+    JGeometry::negateInternal(reinterpret_cast< const f32* >(&gravity), reinterpret_cast< f32* >(&gravity));
+
+    TVec3f front;
+    MR::getPlayerFrontVec(&front);
+    fn_802B5800(&mMtx12C, &gravity, &front, &playerPos);
+
+    mUnk20C = -1;
+    if (mLimitPos->adjustPositionByCollision(playerPos, nullptr)) {
+        TVec3f scaled(gravity);
+        scaled.scale(50.0f);
+        TVec3f limitPos(mLimitPos->mPosition);
+        PSVECAdd(&limitPos, &scaled, &limitPos);
+        TVec3f diff(limitPos);
+        PSVECSubtract(&playerPos, &diff, &diff);
+        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, playerPos, diff)) {
+            mMtx12C.setTrans(mLimitPos->mPosition);
+            mUnk20C = 0;
+        }
+    }
+
+    if (!checkDrillStart()) {
+        return false;
+    }
+
+    JMath::gekko_ps_copy12(&mMtxFC, MR::getPlayerBaseMtx());
+    fn_8004FF70();
+    mDrillingTime = 0;
+    mUnk220 = false;
+    setNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveStart));
+    return true;
+}
+#pragma dont_inline off
+
+bool ItemDrill::checkAimDirection(HitSensor* pFrom, HitSensor* pTo) {
+    TVec3f up;
+    mMtx12C.getYDir(up);
+    JGeometry::negateInternal(reinterpret_cast< const f32* >(&up), reinterpret_cast< f32* >(&up));
+
+    TVec3f dir;
+    const TVec3f* pFromPos = MR::getSensorPos(pFrom);
+    PSVECSubtract(MR::getSensorPos(pTo), pFromPos, &dir);
+    if (MR::normalizeOrZero(&dir)) {
+        return false;
+    }
+
+    f32 angle = 60.0f;
+    if (angle < 0.0f) {
+        angle = -angle;
+    }
+    s32 index = static_cast< s32 >(45.511112f * angle) & 0x3FFF;
+    f32 cosVal = *reinterpret_cast< const f32* >(reinterpret_cast< const u8* >(&JMath::sSinCosTable) + index * 8 + 4);
+    return cosVal < up.dot(dir);
+}
+
+bool ItemDrill::checkAttackFromEnemy(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isEqualSensor(pSender, this, "Attack")) {
+        return false;
+    }
+    if (!MR::isSensorEnemy(pReceiver)) {
+        return false;
+    }
+    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd))) {
+        return true;
+    }
+    bool isDrilling = false;
+    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrilling))) {
+        isDrilling = true;
+    }
+    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReverseDrilling))) {
+        isDrilling = true;
+    }
+    if (!isDrilling) {
+        return false;
+    }
+    return checkAimDirection(pSender, pReceiver);
+}
+
+bool ItemDrill::checkAttackFromDiver(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isEqualSensor(pSender, this, "Attack")) {
+        return false;
+    }
+    if (!isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop))) {
+        return false;
+    }
+    return checkAimDirection(pSender, pReceiver);
+}
+
+void ItemDrill::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (checkAttackFromEnemy(pSender, pReceiver)) {
+        if (MR::sendMsgDrillAttack(pReceiver, pSender)) {
+            MR::emitEffectHit(this, *MR::getSensorPos(pReceiver), nullptr);
+            return;
+        }
+    }
+
+    if (checkAttackFromDiver(pSender, pReceiver)) {
+        if (MR::sendMsgRushEnd(pReceiver, pSender)) {
+            cancelDrill(true);
+            return;
+        }
+    }
+
+    bool isDrilling = false;
+    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveLoop)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrilling)) ||
+        isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReverseDrilling))) {
+        isDrilling = true;
+    }
+
+    if (isDrilling || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd))) {
+        if (MR::isEqualSensor(pSender, this, "Attack") || MR::isEqualSensor(pSender, this, "Player")) {
+            MR::tryGetItem(pSender, pReceiver);
+            return;
+        }
+    }
+
+    bool isWaiting = false;
+    if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait)) || isNerve(GET_NERVE(ItemDrill, ItemDrillNrvReappear))) {
+        isWaiting = true;
+    }
+    if (!isWaiting) {
+        return;
+    }
+    if (!MR::isSensorPlayerOrRide(pReceiver)) {
+        return;
+    }
+
+    if (MR::isCurrentRushRockMario() || MR::isPlayerElementModeYoshi()) {
+        MR::sendMsgPush(pReceiver, pSender);
+    } else if (MR::isPlayerCarryAny() && MR::getPlayerBodySensor() == pReceiver) {
+        MR::startActionSound(this, "Disappear", -1, -1, -1);
+        setNerve(GET_NERVE(ItemDrill, ItemDrillNrvHide));
+    }
+}
+
+bool ItemDrill::isOtherTriangleOnLine(Triangle* pTri, const TVec3f& rDir) {
+    TVec3f end;
+    end.setLength(rDir, 60.0f);
+    if (MR::getFirstPolyOnLineToMap(nullptr, pTri, mPosition, end)) {
+        return mTriangle != pTri;
+    }
+    return false;
+}
+
+bool ItemDrill::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgItemGet(msg)) {
+        if (MR::isPlayerHanging()) {
+            return false;
+        }
+        return receiveMsgItemGet(pReceiver, pSender);
+    }
+
+    if (MR::isMsgDamageOrRushDrop(msg) || MR::isMsgWaterDrop(msg)) {
+        if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvTaken))) {
+            setNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrop));
+            return true;
+        }
+        return false;
+    }
+
+    if (MR::isMsgRushCancel(msg)) {
+        TVec3f up;
+        mBaseTRMtx.getYDir(up);
+        MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, up);
+        endCamera();
+        setNerve(GET_NERVE(ItemDrill, ItemDrillNrvTaken));
+        return true;
+    }
+
+    if (MR::isMsgItemRushBegin(msg)) {
+        return startDrill();
+    }
+
+    if (MR::isMsgReflectV(msg)) {
+        if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd))) {
+            emitInvalidEffect();
+            TMtx34f tmpL = mMtx15C;
+            TMtx34f m1;
+            JMath::gekko_ps_copy12(&m1, &tmpL);
+            MR::rotateMtxLocalZ(m1, PI);
+            MR::stopSceneForDefaultHit(4);
+            TMtx34f m2 = m1;
+            reflectDrillAt(&m2);
+            return true;
+        }
+    }
+
+    if (MR::isMsgGroupHide(msg)) {
+        if (!MR::isEqualSensor(pSender, this, "Body")) {
+            setNerve(GET_NERVE(ItemDrill, ItemDrillNrvGroupHide));
+        }
+    }
+
+    if (MR::isMsgGroupShow(msg)) {
+        if (!MR::isEqualSensor(pSender, this, "Body")) {
+            if (isNerve(GET_NERVE(ItemDrill, ItemDrillNrvGroupHide))) {
+                setNerve(GET_NERVE(ItemDrill, ItemDrillNrvHide));
+            }
+        }
+    }
+
+    if (MR::isMsgUpdateBaseMtx(msg)) {
+        MR::setPlayerBaseMtx(mMtxFC);
+        return true;
+    }
 
     return false;
 }
 
-bool JPABaseParticle::calc_c(JPAEmitterWorkData* pWork) {
-    if (++mAge >= mLifeTime) {
-        return true;
+void ItemDrill::exeHide() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Hide");
+        MR::hideModelIfShown(this);
+        MR::offBind(this);
+        mVelocity.zero();
     }
 
-    mTime = (f32)mAge / (f32)mLifeTime;
-
-    if (mAge != 0) {
-        if (checkStatus(0x20)) {
-            mOffsetPosition.set(pWork->mGlobalPos);
+    if (MR::isGreaterStep(this, 120)) {
+        if (!MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+            setNerve(GET_NERVE(ItemDrill, ItemDrillNrvReappear));
         }
+    }
+}
 
-        mVelType1.y -= pWork->mpRes->getCsp()->getGravity();
-        mVelType2.zero();
-        if (!checkStatus(0x40)) {
-            pWork->mpRes->calcField(pWork, this);
+void ItemDrill::exeGroupHide() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Hide");
+        if (!MR::isHiddenModel(this)) {
+            MR::emitEffect(this, "HideDrill");
         }
+        MR::hideModelIfShown(this);
+        mVelocity.zero();
+        MR::invalidateHitSensors(this);
+    }
+}
 
-        mVelType2.add(mVelType0);
-        mVelType1.scale(pWork->mpEmtr->mAirResist);
-        f32 ratio = mMoment * mDrag;
-        mVelocity.set< f32 >(ratio * (mVelType1.x + mVelType2.x), ratio * (mVelType1.y + mVelType2.y), ratio * (mVelType1.z + mVelType2.z));
+#pragma dont_inline on
+void ItemDrill::exeReappear() {
+    if (MR::isFirstStep(this)) {
+        MR::showModelIfHidden(this);
+        MR::startAction(this, "Appear");
+        MR::emitEffect(this, "Replace");
+        MR::startActionSound(this, "Replace", -1, -1, -1);
+
+        TMtx34f tmp = mMtxC0;
+        JMath::gekko_ps_copy12(&mBaseTRMtx, &tmp);
+        mBaseTRMtx.getTrans(mPosition);
     }
 
-    if (pWork->mpEmtr->mpPtclCallBack != nullptr) {
-        pWork->mpEmtr->mpPtclCallBack->execute(pWork->mpEmtr, this);
+    if (MR::isActionEnd(this)) {
+        MR::startAction(this, "ItemWait");
+        setNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait));
+    }
+}
+#pragma dont_inline off
+
+void ItemDrill::exeReverseDrillling() {
+    if (MR::isFirstStep(this)) {
+        JMath::gekko_ps_copy12(&mMtx1D8, &mMtx1A8);
+        mUnk20C = -1;
     }
 
-    if (checkStatus(2)) {
-        return true;
+    if (MR::isGreaterEqualStep(this, calcDiveStep())) {
+        setNerve(GET_NERVE(ItemDrill, ItemDrillNrvDrillDiveEnd));
     }
 
-    pWork->mpRes->calc_c(pWork, this);
-    u16 angle = getRotateAngle();
-    mRotateAngle = angle + mRotateSpeed;
-    mLocalPosition.add(mVelocity);
-    mPosition.set< f32 >(mOffsetPosition.x + mLocalPosition.x * pWork->mPublicScale.x, mOffsetPosition.y + mLocalPosition.y * pWork->mPublicScale.y,
-                         mOffsetPosition.z + mLocalPosition.z * pWork->mPublicScale.z);
-
-    return false;
+    MR::startActionSound(this, "Digging", -1, -1, -1);
 }
 
-bool JPABaseParticle::canCreateChild(JPAEmitterWorkData* pWork) {
-    JPAChildShape* csp = pWork->mpRes->getCsp();
-    bool ret = false;
-    int time = mAge - (int)((mLifeTime - 1) * csp->getTiming());
-    if (time >= 0 && time % (csp->getStep() + 1) == 0) {
-        ret = true;
+// NONMATCHING: string literals are separate pooled labels (target uses offsets from one lbl_806A3328 string block);
+// mDirs init loop differs only in register allocation.
+void ItemDrill::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, false);
+    MR::getJMapInfoArg0NoInit(rIter, &mIsArg0);
+    MR::getJMapInfoArg1NoInit(rIter, &mDrillDepth);
+    MR::getJMapInfoArg2NoInit(rIter, &mIsArg2);
+
+    JMath::gekko_ps_copy12(&mMtxC0, getBaseMtx());
+    JMath::gekko_ps_copy12(&mBaseTRMtx, &mMtxC0);
+
+    MR::addEffectHitNormal(this, nullptr);
+    MR::setEffectHostSRT(this, "Invalid", &mEffectTrans, nullptr, nullptr);
+    MR::setEffectHostSRT(this, "Reflect", &mEffectTrans, nullptr, nullptr);
+
+    MR::initActorCamera(this, rIter, &mCameraInfo);
+
+    mCameraTargetMtx = new CameraTargetMtx("カメラターゲットダミー");
+
+    createDrillHoleHolderSceneObj();
+
+    mLimitPos = new ItemDrillMovementLimitPos("アイテムドリル移動制限座標");
+    MR::copyTransRotate(this, mLimitPos);
+    mLimitPos->initWithoutIter();
+
+    MR::joinToGroupArray(this, rIter, "アイテムドリルグループ", 2);
+
+    bool isInitDirs = false;
+    MR::getJMapInfoArg3NoInit(rIter, &isInitDirs);
+    if (isInitDirs) {
+        mDirs = new TVec3f[15];
+        for (s32 i = 0; i < 15; i++) {
+            mDirs[i].x = 0.0f;
+            mDirs[i].y = -1.0f;
+            mDirs[i].z = 0.0f;
+        }
     }
 
-    return ret;
+    initNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait), 1);
+
+    ActorStateDemoAppearance* pAppear = new ActorStateDemoAppearance(this, rIter, "AppearFirst");
+    MR::initActorState(this, pAppear, GET_NERVE(ItemDrill, ItemDrillNrvAppear), "AppearFirst");
+    MR::startAction(this, "ItemWait");
+    setNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait));
+
+    if (MR::useStageSwitchAwake(this, rIter)) {
+        makeActorDead();
+    } else if (MR::useStageSwitchSyncAppear(this, rIter)) {
+        setNerve(GET_NERVE(ItemDrill, ItemDrillNrvAppear));
+    }
+
+    MR::registerMarioFaceShipNpc(this, rIter);
 }
 
-/* NEW IN SMG1 */
-f32 JPABaseParticle::getCalcCurrentPositionX(const JPABaseEmitter* pEmitter) const {
-    return (mOffsetPosition.x + (pEmitter->mpEmtrMgr->pWd->mPublicScale.x) * (mLocalPosition.x + mVelocity.x));
+// ItemDrillMovementLimitPos
+
+ItemDrillMovementLimitPos::ItemDrillMovementLimitPos(const char* pName) : LiveActor(pName) {
+    mCollisionParts = nullptr;
+    mCollisionPartsFilter = nullptr;
 }
 
-f32 JPABaseParticle::getCalcCurrentPositionY(const JPABaseEmitter* pEmitter) const {
-    return (mOffsetPosition.y + (pEmitter->mpEmtrMgr->pWd->mPublicScale.y) * (mLocalPosition.y + mVelocity.y));
+ItemDrillMovementLimitPos::~ItemDrillMovementLimitPos() {
 }
 
-f32 JPABaseParticle::getCalcCurrentPositionZ(const JPABaseEmitter* pEmitter) const {
-    return (mOffsetPosition.z + (pEmitter->mpEmtrMgr->pWd->mPublicScale.z) * (mLocalPosition.z + mVelocity.z));
+void ItemDrillMovementLimitPos::init(const JMapInfoIter&) {
+    mCollisionPartsFilter = MR::createCollisionPartsFilterDelegator(fn_802B8500);
+    makeActorDead();
 }
+
+void ItemDrillMovementLimitPos::initAfterPlacement() {
+    MR::calcGravity(this);
+    mCollisionParts = fn_80038FB0(&mPosition, &mGravity);
+}
+
+void ItemDrillMovementLimitPos::control() {
+}
+
+bool ItemDrillMovementLimitPos::adjustPositionByCollision(const TVec3f& rPos, const TVec3f* pDir) {
+    if (mCollisionParts == nullptr) {
+        return false;
+    }
+
+    bool isMoved = false;
+    MR::setPosition(this, rPos);
+    Collision::addToGlobal(mCollisionParts);
+
+    TVec3f pushed;
+    for (s32 i = 0; i < 4; i++) {
+        if (!checkMapStrikePushback(&pushed, mPosition, pDir)) {
+            break;
+        }
+        PSVECAdd(&mPosition, &pushed, &mPosition);
+        isMoved = true;
+    }
+
+    Collision::removeToGlobal(mCollisionParts);
+    return isMoved;
+}
+
+// CollisionParts has no full definition in the repo yet; field at 0xE0.
+extern "C" bool fn_802B8500(const CollisionParts* pParts) {
+    return *reinterpret_cast< const s32* >(reinterpret_cast< const u8* >(pParts) + 0xE0) != 3;
+}
+
+bool MR::isPlayerInRange(f32 dist, const TVec3f& rPos) {
+    return calcDistanceToPlayer(rPos) <= dist;
+}
+
+namespace NrvItemDrill {
+    void ItemDrillNrvWait::execute(Spine* pSpine) const {
+        ItemDrill* actor = reinterpret_cast< ItemDrill* >(pSpine->mExecutor);
+        if (MR::isInWater(actor, TVec3f(0.0f, 0.0f, 0.0f))) {
+            actor->setNerve(GET_NERVE(ItemDrill, ItemDrillNrvHide));
+        }
+    }
+
+    void ItemDrillNrvAppear::execute(Spine* pSpine) const {
+        ItemDrill* actor = reinterpret_cast< ItemDrill* >(pSpine->mExecutor);
+        if (MR::updateActorState(actor)) {
+            MR::startAction(actor, "ItemWait");
+            actor->setNerve(GET_NERVE(ItemDrill, ItemDrillNrvWait));
+        }
+    }
+}  // namespace NrvItemDrill

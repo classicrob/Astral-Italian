@@ -40,11 +40,11 @@ void PlayerActionGuidance::control() {
     if (mSpinLayout != nullptr && isInVolumePlayer("SpinGuidanceCube", false)) {
         mCurrentLayout = mSpinLayout;
         _35 = true;
-    } else if (mTamakoroLayout != nullptr && (_36 || isInVolumePlayer("TamakoroMoveGuidanceCube", true))) {
+    } else if (mTamakoroLayout != nullptr && (_36 || isInVolumePlayer("TamakoroMoveGuidanceArea", true))) {
         mCurrentLayout = mTamakoroLayout;
         mGuidanceState = 3;
         _35 = true;
-    } else if (mTamakoroLayout != nullptr && (_36 || isInVolumePlayer("TamakoroJumpGuidanceCube", true))) {
+    } else if (mTamakoroLayout != nullptr && (_36 || isInVolumePlayer("TamakoroJumpGuidanceArea", true))) {
         mCurrentLayout = mTamakoroLayout;
         mGuidanceState = 4;
         _35 = true;

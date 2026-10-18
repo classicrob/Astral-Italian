@@ -202,7 +202,7 @@ void Dreamer::initForNpc(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
 }
 
 void Dreamer::initButtonGuidance() {
-    DreamerButtonGuidance* pGuidance = new DreamerButtonGuidance("DreamerButtonGuidance");
+    DreamerButtonGuidance* pGuidance = new DreamerButtonGuidance("ドリーマー用レイアウト");
     mButtonGuidance = pGuidance;
     pGuidance->initWithoutIter();
     mButtonGuidance->showDreamer();

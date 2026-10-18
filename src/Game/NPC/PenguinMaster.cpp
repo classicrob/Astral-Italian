@@ -46,6 +46,7 @@ bool PenguinMaster::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
     return NPCActor::receiveMsgPlayerAttack(msg, pSender, pReceiver);
 }
 
+// NONMATCHING: saved-register and link-register restoration order differs.
 void PenguinMaster::exeReaction() {
     if (_D8) {
         MR::startActionSound(this, "SvPenguinOldTrampled");
@@ -65,11 +66,5 @@ void PenguinMaster::exeReaction() {
         MR::startActionSound(this, "SvPenguinOldStarPiece");
     }
 
-    if (MR::tryStartReactionAndPopNerve(this)) {
-        return;
-    }
-
-    if (MR::tryStartReactionAndPopNerve(this)) {
-        return;
-    }
+    MR::tryStartReactionAndPopNerve(this);
 }

@@ -42,7 +42,7 @@ bool TalkSupportPlayerWatcher::isEnableTalkPlayerStateNormal() const {
 }
 
 bool TalkSupportPlayerWatcher::isEnableTalkPlayerStateEvent() const {
-    if (MR::isPlayerInBind()) {
+    if (MR::isPlayerInRush() || MR::isPlayerRecovering()) {
         return false;
     }
 

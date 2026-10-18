@@ -11,8 +11,8 @@
 #include "Game/Util.hpp"
 
 namespace {
-    const char* sCallDemo="スコアアタック競技呼び止め";
-    const char* sResultDemo="スコアアタック競技結果発表";
+    const char* sCallDemo="スコアアタック協会呼び止め";
+    const char* sResultDemo="スコアアタック協会結果発表";
 }
 namespace NrvScoreAttackMan {
     NEW_NERVE(WaitCall,ScoreAttackMan,Wait);

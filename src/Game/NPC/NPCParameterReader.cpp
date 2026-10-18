@@ -122,7 +122,7 @@ void NPCCapsParameterReader::init() {
     push_back(new NPCParameterRange< s32 >("mSensorMax", &mActorCaps.mSensorMax, 0, 16));
     push_back(new NPCParameterBool("mShadow", &mActorCaps.mShadow));
     push_back(new NPCParameterRange< f32 >("mShadowSize", &mActorCaps.mShadowSize, 0.0f, 1000.0f));
-    push_back(new NPCParameterBool("mRailRider", &mActorCaps.mRailRider));
+    push_back(new NPCParameterBool("mRailKeeper", &mActorCaps.mRailRider));
     push_back(new NPCParameterBool("mSwitchDead", &mActorCaps.mSwitchDead));
     push_back(new NPCParameterBool("mSwitchAppear", &mActorCaps.mSwitchAppear));
     push_back(new NPCParameterBool("mPointer", &mActorCaps.mPointer));

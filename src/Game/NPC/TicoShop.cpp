@@ -61,7 +61,7 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     s32 starPieceNeed = ::sStarPieceNeed;
     MR::getJMapInfoArg0NoInit(rIter, &starPieceNeed);
     initStarPiece(starPieceNeed);
-    initMessage("Common_TicoShop000");
+    initMessage("TicoShop000");
     MR::setMessageArg(mMsgCtrl, _194);
     MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc(this, &TicoShop::branchFunc));
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc(this, &TicoShop::eventFunc));

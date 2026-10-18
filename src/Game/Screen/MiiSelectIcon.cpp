@@ -229,10 +229,10 @@ void MiiSelectIcon::control() {
 }
 
 void MiiSelectIcon::createButton() {
-    _24 = new ButtonPaneController(this, "MarioIcon", "PicMario", 0, true);
+    _24 = new ButtonPaneController(this, "MarioIcon", "BoxMario", 0, true);
     _24->_22 = false;
 
-    _28 = new ButtonPaneController(this, "MiiIcon", "PicMii", 0, true);
+    _28 = new ButtonPaneController(this, "MiiIcon", "BoxMii", 0, true);
     _28->_22 = false;
 }
 

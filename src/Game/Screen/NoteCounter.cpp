@@ -55,14 +55,14 @@ void NoteCounter::add() {
         }
 
         s32 pitchGroup = note / 4;
-        MR::startActionSound(mHost, "SE_SY_FLOWER_GET_COMBO", pitchGroup + (note - pitchGroup * 4));
+        MR::startActionSound(mHost, "SyFlowerGetCombo", pitchGroup + (note - pitchGroup * 4));
     } else if (mMelodyNo == -1) {
         s32 note = mNoteAddNum + 5;
         while (note > 36) {
             note -= 12;
         }
 
-        MR::startActionSound(mHost, "SE_SY_FLOWER_GET_COMBO", note);
+        MR::startActionSound(mHost, "SyFlowerGetCombo", note);
     } else if (mMelodyNo >= 0) {
         MR::startRemixSound(mMelodyNo, mNoteAddNum, mRailLength);
     }

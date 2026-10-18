@@ -30,7 +30,10 @@ namespace LayoutCoreUtil {
 
         const ExtUserData* userData = pPane->FindExtUserDataByName("AutoScale");
         if (userData != nullptr) {
-            NW4R_ASSERT_AT(1020, userData->GetType() == EXTUSERDATATYPE_FLOAT);
+#ifdef NW4R_DEBUG
+            if (userData->GetType() != EXTUSERDATATYPE_FLOAT)
+                nw4r::db::Panic("types.h", 1020, "NW4R:Failed assertion GetType() == EXTUSERDATATYPE_FLOAT");
+#endif
             return userData->GetValue< f32 >(0);
         }
 

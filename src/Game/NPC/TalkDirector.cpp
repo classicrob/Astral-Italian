@@ -357,7 +357,7 @@ void TalkDirector::appearYesNoSelector(const TalkMessageCtrl* pCtrl) const {
     if (pCtrl->isSelectYesNo()) {
         MR::resetYesNoSelectorSE();
     } else {
-        MR::setYesNoSelectorSE("SE_SY_TALK_FOCUS_ITEM", "SE_SY_TALK_SELECT_YES", "SE_SY_TALK_SELECT_YES");
+        MR::setYesNoSelectorSE("SE_SY_TALK_FOCUS_ITEM", "SE_SY_TALK_SELECT", "SE_SY_TALK_SELECT");
     }
 
     MR::requestMovementOn(MR::getGameSceneLayoutHolder()->mYesNoLayout);

@@ -49,7 +49,7 @@ DisplayInformationForResult::DisplayInformationForResult(StageResultInformer* ho
 }
 
 StageResultInformer::StageResultInformer()
-    : LayoutActor("リザルト通知", true), mInformationDisplayer(0), mIconAButton(0), mClearedStarPieceNum(0),
+    : LayoutActor("リザルト画面", true), mInformationDisplayer(0), mIconAButton(0), mClearedStarPieceNum(0),
       _30(false), mOneUpLayout(0), mCoinOneUps(0), mResultPaneVisible(false) {
     mInformationDisplayer = new DisplayInformationForResult(this);
 }

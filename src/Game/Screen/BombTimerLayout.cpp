@@ -23,6 +23,7 @@ BombTimerLayout::BombTimerLayout()
 void BombTimerLayout::init(const JMapInfoIter& rIter) {
     initLayoutManager("BombTimer", 2);
     initNerve(GET_NERVE(BombTimerLayout, BombTimerLayoutNrvAppear));
+    initActionSound(3, "BombTimerLayout", nullptr);
     kill();
 }
 
@@ -68,6 +69,17 @@ bool BombTimerLayout::update() {
     }
 
     addFrame();
+
+    u32 remaining = getRestTime();
+    if (remaining != 0) {
+        if (remaining <= 120) {
+            if (remaining % 60 == 0) MR::startActionSound(this, "TimerCount4", -1, -1);
+        } else if (remaining <= 360) {
+            if (remaining % 60 == 0) MR::startActionSound(this, "TimerCount2", -1, -1);
+        } else if (remaining <= mDangerTransFrame) {
+            if (remaining % 60 == 0) MR::startActionSound(this, "TimerCount1", -1, -1);
+        }
+    }
 
     if (isReadyToTimeUp()) {
         setNerve(GET_NERVE(BombTimerLayout, BombTimerLayoutNrvEnd));

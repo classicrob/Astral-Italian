@@ -48,12 +48,12 @@ void Manual2P::init(const JMapInfoIter& rIter) {
     MR::invalidateParentAnim(this);
     MR::createAndAddPaneCtrl(this, "LeftButton", 2);
 
-    mLeftPaneCtrl = new ButtonPaneController(this, "LeftButton", "PicLButton", 0, true);
+    mLeftPaneCtrl = new ButtonPaneController(this, "LeftButton", "BoxLButton", 0, true);
     mLeftPaneCtrl->_22 = 0;
 
     MR::createAndAddPaneCtrl(this, "RightButton", 2);
 
-    mRightPaneCtrl = new ButtonPaneController(this, "RightButton", "PicRButton", 0, true);
+    mRightPaneCtrl = new ButtonPaneController(this, "RightButton", "BoxRButton", 0, true);
     mRightPaneCtrl->_22 = 0;
 
     mBackButton = new BackButtonCancelB("マニュアルの戻るボタン", true);

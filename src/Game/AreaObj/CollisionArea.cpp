@@ -1,4 +1,5 @@
 #include "Game/AreaObj/CollisionArea.hpp"
+#include "Game/Util.hpp"
 #include "Game/AreaObj/AreaForm.hpp"
 #include "Game/MapObj/DynamicCollisionObj.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"

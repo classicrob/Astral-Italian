@@ -3,7 +3,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NameObj/NameObjArchiveListCollector.hpp"
 #include "Game/Util.hpp"
-#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 
 namespace {
@@ -202,7 +201,7 @@ void Sandstorm::exeStormAdjust() {
 
 void Sandstorm::exeStormFix() {
     if (MR::isFirstStep(this)) {
-        MR::startBckPlayer("StormWait", nullptr);
+        MR::startBckPlayer("StormWait");
 
         if (MR::isValidSwitchA(this)) {
             MR::offSwitchA(this);
@@ -212,9 +211,9 @@ void Sandstorm::exeStormFix() {
     MR::tryRumblePadVeryWeak(this, 0);
 
     if (isSunakazeKun()) {
-        MR::startActionSound(this, "OjLvSandstormSChance", -1, -1, -1);
+        MR::startActionSound(this, "OjLvSandstormSChance");
     } else {
-        MR::startActionSound(this, "OjLvSandstormChance", -1, -1, -1);
+        MR::startActionSound(this, "OjLvSandstormChance");
     }
 
     tryTornadoJumpPlayer();
@@ -231,9 +230,9 @@ void Sandstorm::exeStormEnd() {
         // BUG: Invokes `__ptmf_test` instead of calling the function.
 
         if (isSunakazeKun) {
-            MR::startActionSound(this, "OjSandstormSBindEnd", -1, -1, -1);
+            MR::startActionSound(this, "OjSandstormSBindEnd");
         } else {
-            MR::startActionSound(this, "OjSandstormBindEnd", -1, -1, -1);
+            MR::startActionSound(this, "OjSandstormBindEnd");
         }
     }
 
@@ -251,13 +250,13 @@ void Sandstorm::control() {
     }
 
     if (isSunakazeKun()) {
-        MR::startActionSound(this, "OjLvSandstormSWait", -1, -1, -1);
+        MR::startActionSound(this, "OjLvSandstormSWait");
 
         if (mTrapModel != nullptr) {
-            MR::startActionSound(this, "OjLvSandstormSHammer", -1, -1, -1);
+            MR::startActionSound(this, "OjLvSandstormSHammer");
         }
     } else {
-        MR::startActionSound(this, "OjLvSandstormWait", -1, -1, -1);
+        MR::startActionSound(this, "OjLvSandstormWait");
     }
 }
 
@@ -335,9 +334,9 @@ bool Sandstorm::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     if (MR::isMsgAutoRushBegin(msg) && MR::isSensorPlayer(pSender)) {
         if (tryStartBind(pSender)) {
             if (isSunakazeKun()) {
-                MR::startActionSound(this, "OjSandstormBindSIn", -1, -1, -1);
+                MR::startActionSound(this, "OjSandstormBindSIn");
             } else {
-                MR::startActionSound(this, "OjSandstormBindIn", -1, -1, -1);
+                MR::startActionSound(this, "OjSandstormBindIn");
             }
 
             setNerve(GET_NERVE(Sandstorm, SandstormNrvStorm));
@@ -379,7 +378,7 @@ void Sandstorm::initSandstormParam() {
         arcName = "TwisterSanSlim.arc";
     }
 
-    const JMapInfo* csvParser = MR::createCsvParser(arcName, ::sParamFileName);
+    JMapInfo* csvParser = MR::createCsvParser(arcName, ::sParamFileName);
 
     MR::getCsvDataF32(&mSensorHeight, csvParser, "SensorHeight", 0);
     MR::getCsvDataF32(&mSizeUpRate, csvParser, "SizeUpRate", 0);
@@ -465,16 +464,16 @@ void Sandstorm::endBind() {
 
     if (isSunakazeKun()) {
         MR::miniTornadoJumpPlayer();
-        MR::startActionSound(this, "OjSandstormSBlowUp", -1, -1, -1);
+        MR::startActionSound(this, "OjSandstormSBlowUp");
     } else {
         MR::tornadoJumpPlayer();
-        MR::startActionSound(this, "OjSandstormBlowUp", -1, -1, -1);
+        MR::startActionSound(this, "OjSandstormBlowUp");
     }
 
     mBindActor = nullptr;
 
     MR::validateClipping(this);
-    MR::endActorCamera(this, _8C, true, -1);
+    MR::endActorCamera(this, _8C, true);
 }
 
 void Sandstorm::updateSpiral() {
@@ -514,9 +513,9 @@ bool Sandstorm::tryStartBind(HitSensor* pSensor) {
 
     MR::tryRumblePadStrong(this, 0);
     MR::shakeCameraNormal();
-    MR::startActorCameraTargetSelf(this, _8C, -1);
-    MR::startBckPlayer("StormIn", nullptr);
-    MR::startSoundPlayer("SE_PV_UPSET", -1, -1);
+    MR::startActorCameraTargetSelf(this, _8C);
+    MR::startBckPlayer("StormIn");
+    MR::startActionSound(mBindActor, "PvUpset");
     MR::invalidateClipping(this);
 
     _B8 = 0.0f;

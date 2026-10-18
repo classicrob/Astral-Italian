@@ -18,7 +18,7 @@ LavaHomeVolcanoFlow::LavaHomeVolcanoFlow(const char* pName) : LiveActor(pName) {
 
 void LavaHomeVolcanoFlow::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("LavaHomeVolcanoFlow", nullptr, false);
+    MR::initActor(this, rIter, "LavaHomeVolcanoFlow", false);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "LavaHomeVolcanoFlow", nullptr, TVec3f(0.0f));
     MR::setClippingTypeSphereContainsModelBoundingBox(this, 100.0f);
@@ -55,7 +55,7 @@ void LavaHomeVolcanoFlow::exeWait() {
 
 void LavaHomeVolcanoFlow::exeMove() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "LavaHomeVolcanoFlow");
+        MR::startAction(this, "LavaHomeVolcanoFlow");
     }
     MR::startActionSound(this, "OjLvVolcanoExplSign");
     if (MR::isStep(this, 60)) {

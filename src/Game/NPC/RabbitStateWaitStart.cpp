@@ -147,7 +147,7 @@ bool RabbitStateWaitStart::tryPointing() {
         return false;
     }
 
-    if (MR::isStarPointerPointing2POnPressButton(mHost, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(mHost)) {
         setNerve(GET_NERVE(RabbitStateWaitStart, RabbitStateWaitStartNrvPointing));
 
         return true;

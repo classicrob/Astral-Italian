@@ -1,4 +1,5 @@
 #include "Game/MapObj/AirBubble.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -40,10 +41,20 @@ AirBubble::AirBubble(const char* pName) : LiveActor(pName), _A4(0.0f, 0.0f, 1.0f
 }
 
 void AirBubble::init(const JMapInfoIter& rIter) {
+    MR::initDefaultPos(this, rIter);
+    MR::useStageSwitchWriteDead(this, rIter);
     MR::initActor(this, rIter, "AirBubble", false);
-    initNerve(GET_NERVE(AirBubble, AirBubbleNrvWait), 0);
+    MR::connectToSceneItem(this);
+    initHitSensor(1);
+    MR::addHitSensorMapObj(this, "body", 8, mScale.x * ::cHitSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+    initEffectKeeper(0, nullptr, false);
+    initSound(2, "AirBubble", nullptr, TVec3f(0.0f));
+    initNerve(GET_NERVE(AirBubble, AirBubbleNrvWait));
+    mIsFollowRail = false;
+    makeActorAppeared();
     MR::setClippingFar100m(this);
     MR::startAction(this, "Move");
+    _C9 = false;
 }
 
 void AirBubble::initAfterPlacement() {
@@ -134,7 +145,7 @@ void AirBubble::exeMove() {
 
     if (MR::isGreaterStep(this, mLife)) {
         MR::hideModel(this);
-        MR::startSound(this, "SE_OJ_AIR_BUBBLE_BREAK");
+        MR::startActionSound(this, "OjAirBubbleBreak");
         MR::emitEffect(this, "RecoveryBubbleBreak");
         MR::offCalcGravity(this);
         setNerve(GET_NERVE(AirBubble, AirBubbleNrvKillWait));
@@ -143,7 +154,7 @@ void AirBubble::exeMove() {
 
 void AirBubble::exeBreak() {
     if (MR::isFirstStep(this)) {
-        MR::startSound(this, "SE_OJ_AIR_BUBBLE_BREAK");
+        MR::startActionSound(this, "OjAirBubbleBreak");
         MR::emitEffect(this, "RecoveryBubbleBreak");
         MR::incPlayerOxygen(8);
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);

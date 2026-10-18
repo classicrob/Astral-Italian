@@ -160,7 +160,7 @@ void BlackHole::initMapToolInfo(const JMapInfoIter& rIter) {
 }
 
 void BlackHole::initModel() {
-    initModelManagerWithAnm("BlackHoleRange", nullptr, false);
+    MR::initActor(this, "BlackHoleRange", false);
     mBlackHoleModel = MR::createModelObjMapObj("コアモデル", "BlackHole", getBaseMtx());
     mBlackHoleModel->makeActorDead();
     updateModelScale(_9C, _9C);
@@ -189,7 +189,7 @@ void BlackHole::updateModelScale(f32 a1, f32 a2) {
 
 void BlackHole::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "BlackHoleRange");
+        MR::startAction(this, "BlackHoleRange");
         MR::startBtk(this, "BlackHoleRange");
         MR::startBtk(mBlackHoleModel, "BlackHole");
     }

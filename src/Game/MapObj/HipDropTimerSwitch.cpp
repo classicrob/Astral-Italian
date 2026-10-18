@@ -1,4 +1,5 @@
 #include "Game/MapObj/HipDropTimerSwitch.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/CollisionParts.hpp"
 #include "Game/MapObj/MapObjConnector.hpp"
@@ -47,12 +48,13 @@ void HipDropTimerSwitch::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "HipDropTimerSwitch", false);
     MR::connectToSceneMapObjDecorationStrongLight(this);
     MR::initLightCtrl(this);
+    initSound(4, "HipDropTimerSwitch", nullptr, TVec3f(0.0f));
     initHitSensor(2);
     MR::addHitSensorMapObj(this, "body", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorMapObj(this, "hit", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initStarPointerTarget(this, 150.0f, TVec3f(0.0f));
     MR::initCollisionParts(this, "HipDropTimerSwitch", getSensor("body"), nullptr);
-    mCollisionParts = MR::createCollisionPartsFromLiveActor(this, "Move", getSensor("hit"), MR::CollisionScaleType_Default);
+    mCollisionParts = MR::createCollisionPartsFromLiveActor(this, "Move", getSensor("hit"), MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mCollisionParts);
     initNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvOff));
     MR::needStageSwitchWriteA(this, rIter);
@@ -184,13 +186,13 @@ void HipDropTimerSwitch::exeOff() {
     }
 
     // "Weak"
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         mIsLightPressed = true;
     }
 
     if (!mWasLightPressed && mIsLightPressed) {
         mSpring->mVelocity += -10.0f;
-        MR::startSound(this, "SE_OJ_PNC_KINOKO_BOUND");
+        MR::startActionSound(this, "OjPncKinokoBound");
     }
 
     mSpring->update();
@@ -202,7 +204,7 @@ void HipDropTimerSwitch::exeSwitchDown() {
         MR::startBrk(this, "On");
     }
 
-    if (MR::isGreaterStep(this, 0) && MR::isBckStopped(this)) {
+    if (MR::isGreaterStep(this, 0) && MR::isActionEnd(this)) {
         setNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvOn));
     }
 }
@@ -210,7 +212,7 @@ void HipDropTimerSwitch::exeSwitchDown() {
 void HipDropTimerSwitch::exeOn() {
     if (MR::isFirstStep(this)) {
         MR::onSwitchA(this);
-        MR::startSound(this, "SE_OJ_HIPDROP_SWITCH_ON");
+        MR::startActionSound(this, "OjHipdropSwitchOn");
         MR::shakeCameraNormal();
     }
 
@@ -227,7 +229,7 @@ void HipDropTimerSwitch::exeSwitchUp() {
         MR::startBrk(this, "Off");
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(HipDropSwitch, HipDropTimerSwitchNrvOff));
     }
 }

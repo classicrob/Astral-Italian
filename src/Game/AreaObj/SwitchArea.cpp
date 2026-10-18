@@ -1,4 +1,5 @@
 #include "Game/AreaObj/SwitchArea.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 

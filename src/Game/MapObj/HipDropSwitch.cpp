@@ -1,4 +1,5 @@
 #include "Game/MapObj/HipDropSwitch.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/CollisionParts.hpp"
@@ -51,7 +52,7 @@ void HipDropSwitch::init(const JMapInfoIter& rIter) {
     MR::addHitSensorMapObj(this, "hit", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initStarPointerTarget();
     MR::initCollisionParts(this, "HipDropSwitch", getSensor("body"), nullptr);
-    mSpringModel = MR::createCollisionPartsFromLiveActor(this, "Move", getSensor("hit"), MR::CollisionScaleType_Default);
+    mSpringModel = MR::createCollisionPartsFromLiveActor(this, "Move", getSensor("hit"), MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mSpringModel);
     initNerve(GET_NERVE(HipDropSwitch, HipDropSwitchNrvOff));
     MR::needStageSwitchWriteA(this, rIter);
@@ -129,7 +130,7 @@ bool HipDropSwitch::trySwitchDown() {
 }
 
 bool HipDropSwitch::tryOn() {
-    if (MR::isGreaterStep(this, ::sOnSomethingAcc) && MR::isBckStopped(this)) {
+    if (MR::isGreaterStep(this, ::sOnSomethingAcc) && MR::isActionEnd(this)) {
         setNerve(GET_NERVE(HipDropSwitch, HipDropSwitchNrvOn));
         return true;
     }
@@ -147,13 +148,13 @@ void HipDropSwitch::exeOff() {
         mSpringValue->reset();
     }
 
-    if (MR::isStarPointerPointing2POnPressButton(this, "弱", true, false)) {
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
         _CE = true;
     }
 
     if (!_CD && _CE) {
         mSpringValue->mVelocity += -10.0f;
-        MR::startSound(this, "SE_OJ_PNC_KINOKO_BOUND");
+        MR::startActionSound(this, "OjPncKinokoBound");
     }
 
     mSpringValue->update();
@@ -182,7 +183,7 @@ void HipDropSwitch::exeOn() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::onSwitchA(this);
-        MR::startSound(this, "SE_OJ_HIPDROP_SWITCH_ON");
+        MR::startActionSound(this, "OjHipdropSwitchOn");
         MR::shakeCameraNormal();
     }
 }

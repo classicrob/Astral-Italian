@@ -26,7 +26,7 @@ IceStep::~IceStep() {
 
 void IceStep::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("IceStep", nullptr, false);
+    MR::initActor(this, rIter, "IceStep", false);
 
     MR::connectToSceneMapObjStrongLight(this);
 
@@ -69,7 +69,7 @@ void IceStep::exeWait() {
 
         break;
     case 0:
-        if (MR::isBckStopped(this)) {
+        if (MR::isActionEnd(this)) {
             kill();
         }
 
@@ -108,7 +108,7 @@ void IceStep::setOn(u32 a1, const TVec3f& rPosition, const TVec3f& rRotation) {
     TVec3f offset = upVec * static_cast< f32 >(scale) * 0.2f;
     mPosition = rPosition + offset;
 
-    MR::startBck(this, "Start");
+    MR::startAction(this, "Start");
     MR::startBpk(this, "Start");
     MR::startActionSound(this, "OjIceFloorFreeze");
 
@@ -127,7 +127,7 @@ void IceStep::setOn(u32 a1, const TVec3f& rPosition, const TVec3f& rRotation) {
 }
 
 void IceStep::destroy() {
-    MR::startBck(this, "End");
+    MR::startAction(this, "End");
     MR::startBpk(this, "End");
     MR::startActionSound(this, "OjIceFloorMelt");
 
@@ -141,7 +141,7 @@ void IceStep::doHit() {
 
     MR::emitEffect(this, "Break");
     MR::startActionSound(this, "OjIceFloorBreak");
-    MR::startBck(this, "End");
+    MR::startAction(this, "End");
 
     mTimer = 0;
 }

@@ -37,7 +37,7 @@ StrayTico::StrayTico(const char* pName, CollectTico* pHost)
 
 void StrayTico::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("StrayTico", nullptr, false);
+    MR::initActor(this, rIter, "StrayTico", false);
     MR::connectToSceneNpc(this);
     MR::makeQuatAndFrontFromRotate(&mRotateQuat, &mFrontVec, this);
     _B0.set(mPosition);
@@ -200,7 +200,7 @@ bool StrayTico::requestCompleteDemo(const TVec3f& rParam1, const TVec3f& rParam2
 
 void StrayTico::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait");
+        MR::startAction(this, "Wait");
     }
 
     if (MR::isNearPlayer(this, 1000.0f)) {
@@ -210,7 +210,7 @@ void StrayTico::exeWait() {
 
 void StrayTico::exeGlad() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Glad");
+        MR::startAction(this, "Glad");
         s32 noRescuedCount = mHost->calcNoRescuedCount();
         const s32 rescuedCount = mHost->mTicoNum - noRescuedCount;
         MR::startActionSound(this, "SmStrayticoSpin");
@@ -222,7 +222,7 @@ void StrayTico::exeGlad() {
         }
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
         }

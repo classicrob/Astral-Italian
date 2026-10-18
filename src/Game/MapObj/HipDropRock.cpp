@@ -29,7 +29,7 @@ HipDropRock::HipDropRock(const char* pName) : LiveActor(pName), mBreakModel(), m
 
 void HipDropRock::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("HipDropRock", nullptr, false);
+    MR::initActor(this, rIter, "HipDropRock", false);
     initBreakModel();
     MR::connectToSceneMapObjStrongLight(this);
     initHitSensor(1);
@@ -70,7 +70,7 @@ void HipDropRock::exeBreak() {
 
         mBreakModel->makeActorAppeared();
         MR::invalidateClipping(mBreakModel);
-        MR::startBck(mBreakModel, "HipDropRockBreak");
+        MR::startAction(mBreakModel, "HipDropRockBreak");
 
         if (MR::isValidSwitchB(this)) {
             MR::onSwitchB(this);
@@ -83,7 +83,7 @@ void HipDropRock::exeBreak() {
         MR::onSwitchDead(this);
     }
 
-    if (MR::isBckStopped(mBreakModel) && MR::isGreaterStep(this, ::sStepToSwitchOn)) {
+    if (MR::isActionEnd(mBreakModel) && MR::isGreaterStep(this, ::sStepToSwitchOn)) {
         mBreakModel->kill();
 
         if (mObjArg7) {

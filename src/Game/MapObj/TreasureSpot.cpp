@@ -45,7 +45,7 @@ void TreasureSpot::exeSpout() {
         MR::appearCoinPopToDirection(this, mPosition, upVec, ::sNumCoin);
 
         if (mIsCoinFlower) {
-            MR::startBck(this, "Bloom");
+            MR::startAction(this, "Bloom");
             MR::startActionSound(this, "OjCoinFlowerBloom");
         } else {
             setNerve(GET_NERVE(TreasureSpot, TreasureSpotNrvEnd));
@@ -55,7 +55,7 @@ void TreasureSpot::exeSpout() {
     }
 
     if (mIsCoinFlower) {
-        if (MR::isBckStopped(this)) {
+        if (MR::isActionEnd(this)) {
             setNerve(GET_NERVE(TreasureSpot, TreasureSpotNrvEnd));
         }
     }

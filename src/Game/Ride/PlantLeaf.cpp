@@ -1,4 +1,5 @@
 #include "Game/Ride/PlantLeaf.hpp"
+#include "Game/Util.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
@@ -36,7 +37,7 @@ PlantLeaf::PlantLeaf(f32 leafCoord, const TVec3f& rPosition, const TVec3f& rGrow
 PlantLeafDrawInit::PlantLeafDrawInit(const char* pName) : LiveActor(pName), mMaterial(), mShape(), mShapeDraw() {
     MR::registerPreDrawFunction(MR::Functor(this, &PlantLeafDrawInit::initDraw), MR::DrawType_Plant);
 
-    initModelManagerWithAnm("PlantLeaf", 0, false);
+    MR::initActor(this, "PlantLeaf", false);
     J3DModelData* pModelData = MR::getJ3DModelData(this);
     mMaterial = MR::getMaterial(pModelData, 0);
     mShape = mMaterial->mShape;

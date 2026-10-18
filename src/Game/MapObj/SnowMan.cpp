@@ -1,4 +1,5 @@
 #include "Game/MapObj/SnowMan.hpp"
+#include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/CollisionParts.hpp"
@@ -29,7 +30,7 @@ SnowMan::SnowMan(const char* pName) : LiveActor(pName), mHeadCollisionParts(), m
 
 void SnowMan::init(const JMapInfoIter& rrIter) {
     MR::initDefaultPos(this, rrIter);
-    MR::initActor(this, rrIter, false);
+    MR::initActor(this, rrIter, "SnowMan", false);
     MR::connectToSceneMapObjStrongLight(this);
     initHitSensor(2);
     MR::addMessageSensorMapObj(this, "head");
@@ -47,6 +48,7 @@ void SnowMan::init(const JMapInfoIter& rrIter) {
     mAnimScaleParam->_28 = 0.8f;
     mAnimScaleCtrl = new AnimScaleController(mAnimScaleParam);
     initEffectKeeper(0, nullptr, false);
+    initSound(4, "SnowMan", nullptr, TVec3f(0.0f));
     MR::useStageSwitchWriteA(this, rrIter);
     MR::useStageSwitchWriteB(this, rrIter);
     MR::useStageSwitchWriteDead(this, rrIter);
@@ -83,7 +85,7 @@ bool SnowMan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (mAnimScaleCtrl->isHitReaction(-1)) {
             return false;
         } else {
@@ -130,7 +132,7 @@ void SnowMan::exeMeltHead() {
     if (MR::isFirstStep(this)) {
         MR::invalidateCollisionParts(mHeadCollisionParts);
         MR::startAction(this, "MeltHead");
-        MR::startSound(this, "SE_OJ_SNOW_MAN_MELT");
+        MR::startActionSound(this, "OjSnowManMelt");
         MR::shakeCameraWeak();
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
@@ -147,7 +149,7 @@ void SnowMan::exeMeltBody() {
     if (MR::isFirstStep(this)) {
         MR::invalidateCollisionParts(mBodyCollisionParts);
         MR::startAction(this, "MeltBody");
-        MR::startSound(this, "SE_OJ_SNOW_MAN_MELT");
+        MR::startActionSound(this, "OjSnowManMelt");
         MR::shakeCameraWeak();
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
@@ -168,11 +170,11 @@ void SnowMan::exeDownHead() {
         MR::invalidateCollisionParts(mHeadCollisionParts);
         MR::invalidateCollisionParts(mBodyCollisionParts);
         MR::startAction(this, "DownHead");
-        MR::startSound(this, "SE_OJ_SNOW_MAN_MELT");
+        MR::startActionSound(this, "OjSnowManMelt");
         MR::shakeCameraWeak();
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         kill();
     }
 }
@@ -182,14 +184,14 @@ void SnowMan::exeDownBody() {
         MR::invalidateCollisionParts(mHeadCollisionParts);
         MR::invalidateCollisionParts(mBodyCollisionParts);
         MR::startAction(this, "DownBody");
-        MR::startSound(this, "SE_OJ_SNOW_MAN_MELT");
+        MR::startActionSound(this, "OjSnowManMelt");
         MR::shakeCameraWeak();
         if (MR::isValidSwitchB(this)) {
             MR::onSwitchB(this);
         }
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         kill();
     }
 }

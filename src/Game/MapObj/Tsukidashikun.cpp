@@ -75,7 +75,7 @@ void Tsukidashikun::exeWait() {
 
 void Tsukidashikun::exeSign() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Sign");
+        MR::startAction(this, "Sign");
 
         if (isNerve(GET_NERVE(Tsukidashikun, TsukidashikunNrvSignForward))) {
             MR::startBva(this, "FSign");

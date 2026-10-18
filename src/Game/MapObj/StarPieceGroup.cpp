@@ -1,4 +1,3 @@
-#pragma auto_inline off
 #include "Game/MapObj/StarPieceGroup.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/StarPiece.hpp"
@@ -45,7 +44,7 @@ void StarPieceGroup::forceReplaceStarPieceAll() {
     }
 
     if (_95) {
-        MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+        MR::startActionSound(this, "OjStarPieceBurst");
     }
 }
 
@@ -63,7 +62,7 @@ void StarPieceGroup::forceKillStarPieceAll(bool withEffect) {
 
         if (withEffect) {
             MR::emitEffect(mPieces[i], "Appear");
-            MR::startSound(this, "SE_OJ_STAR_PIECE_BREAK");
+            MR::startActionSound(this, "OjStarPieceBreak");
         }
     }
 }
@@ -189,7 +188,7 @@ void StarPieceGroup::makeActorAppeared() {
 
 void StarPieceGroup::appear() {
     if (!_94) {
-        MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
+        MR::startActionSound(this, "OjStarPieceBurst");
     }
 
     LiveActor::appear();

@@ -150,13 +150,13 @@ void SpaceMine::exeAppear() {
     MR::startActionSound(this, "OjLvSpacemineAppear");
 
     if (MR::isStep(this, ::sAppearEffectTime)) {
-        MR::startBck(this, "Appear");
+        MR::startAction(this, "Appear");
         MR::showModel(this);
         MR::startActionSound(this, "OjSpacemineAppear");
     }
 
     if (MR::isGreaterStep(this, ::sAppearEffectTime)) {
-        if (MR::isBckStopped(this)) {
+        if (MR::isActionEnd(this)) {
             setNerve(GET_NERVE(SpaceMine, HostTypeWait));
         }
     }

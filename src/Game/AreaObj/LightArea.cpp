@@ -1,4 +1,5 @@
 #include "Game/AreaObj/LightArea.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
 LightArea::LightArea(int formType, const char* pName) : AreaObj(formType, pName), mPlacedZoneID(-1) {

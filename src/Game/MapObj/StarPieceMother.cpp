@@ -29,9 +29,7 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
 
         MR::initDefaultPos(this, rIter);
 
-        if (MR::useStageSwitchReadAppear(this, rIter)) {
-            MR::syncStageSwitchAppear(this);
-        }
+        MR::useStageSwitchSyncAppear(this, rIter);
     } else {
         initRailRider(rIter);
         MR::moveCoordAndTransToRailStartPoint(this);
@@ -45,7 +43,7 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &StarPieceMother::onSwitchA), MR::Functor(this, &StarPieceMother::offSwitchA));
     }
 
-    initModelManagerWithAnm("StarPieceMother", nullptr, false);
+    MR::initActor(this, rIter, "StarPieceMother", false);
     MR::connectToSceneNoSilhouettedMapObj(this);
     MR::onCalcGravity(this);
     MR::initShadowVolumeSphere(this, 60.0f);

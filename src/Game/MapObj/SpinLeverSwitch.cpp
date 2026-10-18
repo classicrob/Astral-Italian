@@ -28,6 +28,7 @@ void SpinLeverSwitch::init(const JMapInfoIter& rIter) {
     MR::addHitSensorAtJointMapObj(this, "spin", "Spin", 4, 50.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initCollisionParts(this, "SpinLeverSwitch", getSensor("body"), nullptr);
     initEffectKeeper(0, 0, false);
+    initSound(4, "SpinLeverSwitch", nullptr, TVec3f(0.0f));
     bool isWait = MR::useStageSwitchWriteA(this, rIter);
     MR::setGroupClipping(this, rIter, 16);
 
@@ -99,9 +100,9 @@ void SpinLeverSwitch::exeSwitchOn() {
         MR::startBrk(this, "On");
 
         if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-            MR::startSound(this, "SE_OJ_SPIN_LEVER_SW_HIT_W");
+            MR::startActionSound(this, "OjSpinLeverSwHitW");
         } else {
-            MR::startSound(this, "SE_OJ_SPIN_LEVER_SW_HIT");
+            MR::startActionSound(this, "OjSpinLeverSwHit");
         }
 
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
@@ -110,9 +111,9 @@ void SpinLeverSwitch::exeSwitchOn() {
 
     if (MR::isStep(this, ::sStepOnSE)) {
         if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-            MR::startSound(this, "SE_OJ_SPIN_LEVER_SW_ON_W");
+            MR::startActionSound(this, "OjSpinLeverSwOnW");
         } else {
-            MR::startSound(this, "SE_OJ_SPIN_LEVER_SW_ON");
+            MR::startActionSound(this, "OjSpinLeverSwOn");
         }
     }
 
@@ -120,7 +121,7 @@ void SpinLeverSwitch::exeSwitchOn() {
         MR::onSwitchA(this);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(SpinLeverSwitch, SpinLeverSwitchNrvEnd));
     }
 }

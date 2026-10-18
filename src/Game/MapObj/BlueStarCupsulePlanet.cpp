@@ -1,5 +1,5 @@
 #include "Game/MapObj/BlueStarCupsulePlanet.hpp"
-#include "Game/Util/ActionSoundUtil.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/MapPartsRailMover.hpp"
 #include "Game/MapObj/MapPartsRotator.hpp"
@@ -49,12 +49,11 @@ BlueStarCupsulePlanet::BlueStarCupsulePlanet(const char* pName) : LiveActor(pNam
     MR::createGCapture();
 }
 
-// NONMATCHING: TVec3f(0.0f) sound-offset temp is out of line (__ct__TVec3<f>Ff) in target, inlined in ours.
 void BlueStarCupsulePlanet::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::getObjectName(&mName, rIter);
-    MR::initActor(this, rIter, mName, false);
-    MR::connectToScene(this, 0x1C /* MovementType_Planet */, 1 /* CalcAnimType_Planet */, 5 /* DrawBufferType_Planet */, -1 /* DrawType_None */);
+    initModelManagerWithAnm(mName, nullptr, false);
+    MR::connectToScene(this, MR::MovementType_Planet, MR::CalcAnimType_Planet, MR::DrawBufferType_Planet, MR::DrawType_None);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "BlueStarCupsulePlanet", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(BlueStarCupsulePlanet, BlueStarCupsulePlanetNrvWait));
@@ -83,19 +82,24 @@ void BlueStarCupsulePlanet::init(const JMapInfoIter& rIter) {
     mRotator->start();
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
 
-    if (MR::initUseStageSwitchReadB(this, rIter)) {
+    if (MR::useStageSwitchReadB(this, rIter)) {
         MR::listenStageSwitchOnOffB(this, MR::Functor(this, &BlueStarCupsulePlanet::activateMapPartsFunction),
                                     MR::Functor(this, &BlueStarCupsulePlanet::deactivateMapPartsFunction));
     } else if (mRailMover || mRotator) {
         activateMapPartsFunction();
     }
 
-    MR::useStageSwitchSyncAppear(this, rIter);
+    makeActorAppeared();
+    if (MR::useStageSwitchReadAppear(this, rIter)) {
+        MR::syncStageSwitchAppear(this);
+        makeActorDead();
+    }
+
     if (MR::tryRegisterDemoCast(this, rIter) && MR::isRegisteredDemoActionAppear(this)) {
         makeActorDead();
     }
 
-    MR::startAction(this, "Wait");
+    MR::startAllAnim(this, "Wait");
 }
 
 void BlueStarCupsulePlanet::control() {
@@ -122,9 +126,9 @@ void BlueStarCupsulePlanet::updatePose() {
         mRailMover->movement();
         if (mRailMover->isWorking()) {
             if (MR::isEqualString(mName, "UFOBlueStarCupsule")) {
-                MR::startActionSound(this, "SE_OJ_LV_UFO_BLUE_STAR_MOVE", -1, -1, -1);
+                MR::startActionSound(this, "OjLvUfoBlueStarMove");
             }
-            MR::setPosition(this, mRailMover->_28);
+            mPosition.set(mRailMover->_28);
         }
     }
 
@@ -206,7 +210,7 @@ void BlueStarCupsulePlanet::exeHitPointer() {
 
     updatePose();
     MR::noticeInTouchableRange();
-    MR::startLevelSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT");
+    MR::startActionSound(this, "OjLvMagicPntGPoint");
 
     bool pointable = isPointable();
     if (MR::isStarPointerPointing(this, WPAD_CHAN0, true, "弱") && pointable) {
@@ -222,13 +226,13 @@ void BlueStarCupsulePlanet::exeActive() {
     if (MR::isFirstStep(this)) {
         emitNerveEffect();
         MR::startAllAnim(this, "React");
-        MR::startActionSound(this, "SE_OJ_MAGIC_PNT_G_ON", -1, -1, -1);
+        MR::startActionSound(this, "OjMagicPntGOn");
     }
 
     updatePose();
     MR::noticeInTouchableRange();
-    MR::startLevelSound(this, "SE_OJ_LV_MAGIC_PNT_G_PULL", MR::calcDistanceToPlayer(this));
-    MR::startLevelSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT");
+    MR::startActionSound(this, "OjLvMagicPntGPull", MR::calcDistanceToPlayer(this));
+    MR::startActionSound(this, "OjLvMagicPntGPoint");
 }
 
 void BlueStarCupsulePlanet::calcAndSetBaseMtx() {

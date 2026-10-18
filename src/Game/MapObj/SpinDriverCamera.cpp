@@ -1,6 +1,5 @@
-#pragma auto_inline off
-
 #include "Game/MapObj/SpinDriverCamera.hpp"
+#include "Game/Util.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/Camera/CameraTargetMtx.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
@@ -40,7 +39,7 @@ void SpinDriverCamera::endAppearCamera(LiveActor* pActor) {
         return;
     }
 
-    MR::endMultiActorCamera(pActor, mCameraInfo, "出現イベント用", false, -1);
+    MR::endMultiActorCamera(pActor, mCameraInfo, "出現イベント用", false);
 }
 
 s32 SpinDriverCamera::getAppearCameraFrames() const {

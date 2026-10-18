@@ -233,7 +233,7 @@ void MeteorStrike::initMapToolInfo(const JMapInfoIter& rIter) {
 }
 
 void MeteorStrike::initModel() {
-    initModelManagerWithAnm("MeteorStrike", nullptr, false);
+    MR::initActor(this, "MeteorStrike", false);
 
     if (mType == MeteorStrikeType_Environment) {
         return;
@@ -385,11 +385,11 @@ void MeteorStrike::exeBreak() {
 
         mBrokenModel->appear();
         MR::invalidateClipping(mBrokenModel);
-        MR::startBck(mBrokenModel, "Break");
+        MR::startAction(mBrokenModel, "Break");
         MR::startBrk(mBrokenModel, "Break");
     }
 
-    if (MR::isBckStopped(mBrokenModel)) {
+    if (MR::isActionEnd(mBrokenModel)) {
         kill();
     }
 }

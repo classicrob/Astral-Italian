@@ -1,4 +1,5 @@
 #include "Game/MapObj/ChipCounter.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/ChipBase.hpp"
 #include "Game/MapObj/ChipHolder.hpp"

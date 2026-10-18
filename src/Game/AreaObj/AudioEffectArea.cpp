@@ -1,4 +1,5 @@
 #include "Game/AreaObj/AudioEffectArea.hpp"
+#include "Game/Util.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"

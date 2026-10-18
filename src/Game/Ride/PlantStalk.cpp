@@ -1,4 +1,5 @@
 #include "Game/Ride/PlantStalk.hpp"
+#include "Game/Util.hpp"
 #include "Game/MapObj/PlantPoint.hpp"
 #include "Game/MapObj/PlantRailInfo.hpp"
 #include "Game/Scene/SceneFunction.hpp"

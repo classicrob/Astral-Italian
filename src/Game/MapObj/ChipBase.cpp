@@ -1,5 +1,5 @@
-#pragma auto_inline off
 #include "Game/MapObj/ChipBase.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/FlashingCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
@@ -50,12 +50,7 @@ void ChipBase::init(const JMapInfoIter& rIter) {
     initShadow(rIter);
     initEffectKeeper(0, nullptr, false);
     initSound(4, "ChipBase", nullptr, TVec3f(0.0f));
-    initNerve(GET_NERVE(ChipBase, ChipBaseNrvWait), 0);
-
-    if (mRailMover == nullptr) {
-        initBinder(0.0f, 0.0f, 0);
-        MR::offBind(this);
-    }
+    initNerve(GET_NERVE(ChipBase, ChipBaseNrvWait));
 
     if (MR::isValidInfo(rIter)) {
         MR::setGroupClipping(this, rIter, 0x20);
@@ -63,8 +58,12 @@ void ChipBase::init(const JMapInfoIter& rIter) {
 
     mFlashingCtrl = new FlashingCtrl(this, true);
 
-    MR::useStageSwitchAwake(this, rIter);
-    MR::useStageSwitchSyncAppear(this, rIter);
+    if (MR::useStageSwitchReadAppear(this, rIter)) {
+        MR::syncStageSwitchAppear(this);
+        makeActorDead();
+    } else {
+        makeActorAppeared();
+    }
 }
 
 void ChipBase::initModel(const JMapInfoIter& rIter) {
@@ -77,7 +76,7 @@ void ChipBase::initModel(const JMapInfoIter& rIter) {
     if (isNeedBubble(rIter)) {
         mAirBubble = MR::createPartsModelNoSilhouettedMapObj(this, "アワ", "AirBubble", 0);
         mAirBubble->initFixedPosition(TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f), 0);
-        MR::startBck(mAirBubble, "Move", nullptr);
+        MR::startAction(mAirBubble, "Move");
     }
 }
 
@@ -250,7 +249,7 @@ bool ChipBase::requestGet(HitSensor* pSender, HitSensor* pReceiver) {
         setNerve(GET_NERVE(ChipBase, ChipBaseNrvGot));
 
         if (mHost != nullptr) {
-            mHost->receiveMessage(0x83 /* ACTMES_ITEM_GET */, pSender, pReceiver);
+            mHost->receiveMessage(ACTMES_ITEM_GET, pSender, pReceiver);
         }
 
         return true;
@@ -261,7 +260,7 @@ bool ChipBase::requestGet(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool ChipBase::requestShow() {
     if (isNerve(GET_NERVE(ChipBase, ChipBaseNrvHide))) {
-        MR::startBck(this, "Wait", nullptr);
+        MR::startAction(this, "Wait");
         MR::showModel(this);
 
         setNerve(GET_NERVE(ChipBase, ChipBaseNrvWait));
@@ -312,7 +311,7 @@ void ChipBase::exeDeactive() {
 
 void ChipBase::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait", nullptr);
+        MR::startAction(this, "Wait");
         MR::validateHitSensors(this);
     }
 }
@@ -323,7 +322,7 @@ void ChipBase::exeControled() {
 
 void ChipBase::exeFlashing() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Wait", nullptr);
+        MR::startAction(this, "Wait");
         MR::validateHitSensors(this);
     }
 

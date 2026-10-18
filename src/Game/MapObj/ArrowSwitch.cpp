@@ -1,5 +1,5 @@
-#pragma auto_inline off
 #include "Game/MapObj/ArrowSwitch.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -34,7 +34,7 @@ ArrowSwitch::ArrowSwitch(const char* pName)
 void ArrowSwitch::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     mScale.set(::sTestScale);
-    initModelManagerWithAnm("ArrowSwitch", nullptr, false);
+    MR::initActor(this, rIter, "ArrowSwitch", false);
     MR::connectToSceneNoSilhouettedMapObjStrongLight(this);
 
     TVec3f up;
@@ -226,7 +226,7 @@ void ArrowSwitch_FORCE_MATCH_SDATA2_2() {
 
 void ArrowSwitch::exeRotate() {
     if (MR::isFirstStep(this)) {
-        MR::startSound(this, "SE_OJ_ARROW_SWITCH_ON");
+        MR::startActionSound(this, "OjArrowSwitchOn");
         MR::onCalcShadow(this, nullptr);
 
         if (mLockAfterRotate) {
@@ -238,7 +238,7 @@ void ArrowSwitch::exeRotate() {
         }
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_ARROW_SWITCH_MOVE");
+    MR::startActionSound(this, "OjLvArrowSwitchMove");
     mRotAngle += mRotSpeed;
     mRotAngle = MR::repeat(mRotAngle, -180.0f, 360.0f);
     f32 diff = MR::repeat(::sRotYTargetList[mRotYTargetIndex] - mRotAngle, -180.0f, 360.0f);
@@ -257,7 +257,7 @@ void ArrowSwitch::exeRotate() {
             MR::startSystemSE("SE_SY_GRAVITY_SWITCHED");
         }
 
-        MR::startSound(this, "SE_OJ_ARROW_SWITCH_STOP");
+        MR::startActionSound(this, "OjArrowSwitchStop");
 
         mIsPunch = false;
 

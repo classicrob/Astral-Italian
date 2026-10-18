@@ -17,20 +17,21 @@ FirePressureBullet::FirePressureBullet(const char* pName) : LiveActor(pName) {
 }
 
 void FirePressureBullet::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("FireBullet", nullptr, false);
+    MR::initActor(this, rIter, "FireBullet", false);
     MR::connectToSceneMapObj(this);
     initHitSensor(1);
     MR::addHitSensorEnemyAttack(this, "body", 8, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initBinder(100.0f, 0.0f, 0);
     MR::onCalcGravity(this);
     initEffectKeeper(0, nullptr, false);
+    initSound(4, "FirePressureBullet", nullptr, TVec3f(0.0f));
     MR::initShadowVolumeSphere(this, 75.0f);
     initNerve(GET_NERVE(FirePressureBullet, FirePressureBulletNrvFly));
     makeActorDead();
 }
 
 void FirePressureBullet::kill() {
-    MR::startSound(this, "SE_OJ_F_PRESSURE_FIRE_BURST");
+    MR::startActionSound(this, "OjFPressureFireBurst");
     LiveActor::kill();
 }
 
@@ -66,7 +67,7 @@ void FirePressureBullet::exeFly() {
         MR::startAction(this, "Move");
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_F_PRESSURE_BULLET");
+    MR::startActionSound(this, "OjLvFPressureBullet");
 
     if (_A0 && !(getNerveStep() % 5)) {
         MR::turnDirectionToTargetDegree(this, &_8C, *MR::getPlayerPos(), 3.0f);

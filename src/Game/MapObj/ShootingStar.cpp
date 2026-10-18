@@ -38,7 +38,7 @@ ShootingStar::ShootingStar(const char* pName)
 }
 
 void ShootingStar::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm("ShootingStar", nullptr, false);
+    MR::initActor(this, rIter, "ShootingStar", false);
     MR::connectToSceneMapObj(this);
     MR::initDefaultPos(this, rIter);
     mBasePos = mPosition;

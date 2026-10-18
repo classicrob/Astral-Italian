@@ -1,4 +1,5 @@
 #include "Game/AreaObj/WarpCube.hpp"
+#include "Game/Util.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
@@ -56,7 +57,7 @@ void WarpCubeMgr::endEventCamera() {
         return;
     }
 
-    MR::endEventCamera(mWarpCube->mCameraInfo, mWarpCube->mEventName, true, -1);
+    MR::endEventCamera(mWarpCube->mCameraInfo, mWarpCube->mEventName, true);
     mWarpCube = nullptr;
 }
 

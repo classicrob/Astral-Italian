@@ -44,12 +44,12 @@ void SpaceShipStep::exeWait() {
 
 void SpaceShipStep::exeMoveSign() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "OnMario");
+        MR::startAction(this, "OnMario");
         MR::startActionSound(this, "OjSpaceShipStepSt");
         MR::invalidateClipping(this);
     }
 
-    if (MR::isBckStopped(this)) {
+    if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(SpaceShipStep, SpaceShipStepNrvMove));
     }
 }
@@ -65,7 +65,7 @@ void SpaceShipStep::exeMove() {
 
 void SpaceShipStep::exeBreak() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(this, "Break");
+        MR::startAction(this, "Break");
         MR::startActionSound(this, "OjSpaceShipStepBreak");
         MR::startActionSound(this, "OjSpaceShipStepEd");
     }

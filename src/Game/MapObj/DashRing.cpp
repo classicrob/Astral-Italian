@@ -61,7 +61,7 @@ void DashRing::initCommon(const JMapInfoIter& rIter, const char* pName) {
     mBoostTime = 300;
     mMaxDuration = 120;
     mSpeedScale = 2.5f;
-    mDoTurn = true;
+    mDoTurn = false;
 
     if (MR::checkJMapDataEntries(rIter)) {
         s32 arg0 = -1;
@@ -87,7 +87,7 @@ void DashRing::initCommon(const JMapInfoIter& rIter, const char* pName) {
         MR::getJMapInfoArg3NoInit(rIter, &arg3);
 
         if (arg3 != -1) {
-            mDoTurn = false;
+            mDoTurn = true;
         }
     }
 
@@ -105,6 +105,10 @@ void DashRing::initCommon(const JMapInfoIter& rIter, const char* pName) {
     mInitialPosition = mPosition;
 }
 
+void DashRing::initAfterPlacement() {
+    MR::setClippingRangeIncludeShadow(this, &mClippingPos, 300.0f);
+}
+
 void DashRing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (mRevivalTime != 0) {
         return;
@@ -118,8 +122,8 @@ void DashRing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     TVec3f vec40;
     f32 val = MR::vecKillElement(dir, mAxis, &vec40);
 
-    if (MR::abs(val) < 20.0f && vec40.length() < 200.0f) {
-        MR::sendArbitraryMsg(0x4B /* ACTMES_PASS_RING */, pReceiver, getSensor("body"));
+    if (MR::abs(val) < 30.0f) {
+        MR::sendArbitraryMsg(0x4B /* ACTMES_PASS_RING */, pReceiver, pSender);
 
         if (mActiveTime != 0) {
             return;
@@ -133,17 +137,14 @@ void DashRing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
         MR::invalidateClipping(this);
 
-        MR::startSystemSE("SE_SY_GET_DASH_RING");
+        MR::startActionSound(this, "SyGetDashRing", -1, -1, -1);
 
-        if (mDoLoop) {
-            const char* pName = "Start";
-            MR::startAction(this, pName);
-            MR::startBrk(this, pName);
-        }
-
-        return;
+        const char* pName = "Start";
+        MR::startAction(this, pName);
     }
+}
 
+void DashRing::updateAxisTowardsPlayer() {
     if (mActiveTime != 0) {
         return;
     }
@@ -151,6 +152,13 @@ void DashRing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!mDoTurn) {
         return;
     }
+
+    TVec3f dir(0.0f);
+    MR::calcVecToPlayer(&dir, this);
+    dir = -dir;
+
+    TVec3f vec40;
+    f32 val = MR::vecKillElement(dir, mAxis, &vec40);
 
     if (!(MR::abs(val) > 300.0f || vec40.length() > 300.0f)) {
         return;
@@ -172,6 +180,8 @@ void DashRing::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 void DashRing::control() {
+    updateAxisTowardsPlayer();
+
     if (mActiveTime != 0) {
         mActiveTime--;
 
@@ -181,7 +191,6 @@ void DashRing::control() {
 
             const char* pName = "End";
             MR::startAction(this, pName);
-            MR::startBrk(this, pName);
 
             return;
         }
@@ -203,15 +212,10 @@ void DashRing::control() {
             return;
         }
 
-        if (!mDoLoop) {
-            return;
-        }
-
         mPosition = mInitialPosition;
 
         const char* pName = "Revival";
         MR::startAction(this, pName);
-        MR::startBrk(this, pName);
 
         MR::validateHitSensors(this);
 
@@ -221,18 +225,15 @@ void DashRing::control() {
     if (MR::isBckOneTimeAndStopped(this)) {
         const char* pName = "Loop";
         MR::startAction(this, pName);
-        MR::startBrk(this, pName);
 
         MR::validateClipping(this);
     }
 }
 
 void DashRing::calcAndSetBaseMtx() {
-    if (mDoLoop) {
-        TPos3f pos;
-        MR::makeMtxFrontSidePos(&pos, mAxis, mSubAxis, mPosition);
-        PSMTXCopy(pos, getBaseMtx());
-    }
+    TPos3f pos;
+    MR::makeMtxFrontSidePos(&pos, mAxis, mSubAxis, mPosition);
+    PSMTXCopy(pos, getBaseMtx());
 }
 
 void DashRing::calcAxis() {

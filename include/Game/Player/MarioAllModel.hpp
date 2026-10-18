@@ -1,11 +1,14 @@
 #pragma once
 
 #include <revolution.h>
+#include <JSystem/JGeometry/TVec.hpp>
 
 class J3DModel;
 class J3DModelX;
 class LiveActor;
 class MarioActor;
+class Mario;
+struct DLholder;
 
 class MarioModelDL {
 public:
@@ -14,7 +17,7 @@ public:
 
     J3DModelX* mModel;
     u16 mMaterialIndex;
-    void* mDisplayLists;
+    DLholder* mDisplayLists;
 };
 
 class MarioAllModel {
@@ -37,4 +40,28 @@ public:
     /* 0x0C */ J3DModelX* mModels[9];
     /* 0x30 */ MarioModelDL* mModelDLs[9];
     /* 0x54 */ u16 mEyeLidTextureIndex;
+};
+
+class MarioScreenBlur {
+public:
+    MarioScreenBlur();
+    void draw() const;
+
+    u16 mEnabled;
+    f32 mStrength;
+    f32 mScale;
+    u8 mAlpha;
+    u8 mMode;
+};
+
+class MarioFrontHistory {
+public:
+    MarioFrontHistory(Mario*);
+    void update();
+    void getFront(TVec3f*) const;
+
+    TVec3f* mValues;
+    u16 mIndex;
+    u16 mCount;
+    Mario* mMario;
 };

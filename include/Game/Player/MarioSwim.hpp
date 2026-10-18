@@ -8,6 +8,7 @@ class AreaInfo;
 class HitInfo;
 class MarioActor;
 class MarineSnow;
+class DashRing;
 
 class MarioSwim;
 
@@ -55,6 +56,7 @@ public:
     virtual ~MarioSwimRingDash() {}
     void reset();
     void updateBlur() NO_INLINE;
+    void setRing(const DashRing*) NO_INLINE;
     u16 mTimer;
     u16 mChargeTimer;
     u16 mMaxDuration;
@@ -99,6 +101,32 @@ public:
 
 class MarioSwim : public MarioState {
 public:
+    bool fn_803F7D90();
+    void fn_803F8DA0();
+    bool fn_803F8E10();
+    void fn_803F9AC0(TVec3f*, const TVec3f&, const TVec3f&);
+    void fn_803F9B90();
+    void fn_803F9DF0();
+    void fn_803F9E90();
+    void fn_803F9FC0();
+    void fn_803FA020();
+    bool fn_80401690();
+    void fn_80401710();
+    void fn_804017C0(bool);
+    void fn_803F8060();
+    bool fn_803F8490();
+    bool fn_803F88C0();
+    bool fn_803F8930();
+    f32 fn_803F8EF0();
+    void fn_803F8F60(f32);
+    void fn_803F9350();
+    void fn_803F95A0(f32);
+    void fn_803F9750(const TVec3f&, const TVec3f&, bool);
+    void fn_803FB570();
+    void fn_80402470(f32);
+    void fn_80401F00(f32);
+    void fn_80401F90();
+    void fn_804025C0();
     f32 fn_803FB250();
     void fn_80401160();
     void fn_80401270();
@@ -153,7 +181,7 @@ public:
     void fn_803F7C10();
     void fn_803F7C00();
     void fn_803F7C20(const TVec3f*);
-    void fn_803FD5E0(s32);
+    bool fn_803FD5E0(s32);
     bool fn_803FE9F0() const;
     bool fn_80400910() const;
     bool fn_80400930() const;
@@ -342,7 +370,7 @@ public:
     /* 0x0FC */ s32 mSwimState;
     /* 0x100 */ TVec3f _148;
     /* 0x10C */ TVec3f mAreaFollowMtxPos;
-    /* 0x118 */ const TVec3f* _118;
+    /* 0x118 */ const WaterArea* _118;
     /* 0x11C */ TVec3f mSurfacePos;
     /* 0x128 */ TVec3f mSurfaceNorm;
     /* 0x134 */ TVec3f _178;

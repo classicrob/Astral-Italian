@@ -1,6 +1,7 @@
 #pragma once
 
 #include <revolution.h>
+#include "Game/NameObj/NameObj.hpp"
 
 class HashSortTable;
 class LiveActor;
@@ -38,10 +39,21 @@ public:
     u8 _C[0x10];
 };
 
-class MarioNameMatrix {
+class MarioNameMatrix : public NameObj {
 public:
+    MarioNameMatrix(const char*, u32, const char* const*, u32, const char* const*, const char* const*);
+    void load(const char*, const char*);
     u8 getValue(const char*, const char*) const;
     bool getValueOrNone(const char*, const char*, u8*) const;
+
+    u32 mRowCount;
+    const char* const* mRows;
+    u32 mColumnCount;
+    const char* const* mColumns;
+    const char* const* mColumnKeys;
+    u8* mValues;
+    HashSortTable* mRowHash;
+    HashSortTable* mColumnHash;
 };
 
 class MarioActionTable {

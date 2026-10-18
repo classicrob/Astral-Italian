@@ -881,54 +881,81 @@ s32 Mario::fn_803B2E80(TVec3f* direction) {
     return result;
 }
 
-// NONMATCHING: the back-wall capture is approximated from the draft
-void Mario::fn_803B2F20(Triangle* arg1) {
-    if (!FLD<Triangle*>(this, 0x4D8)->isValid() || false) {
-        *FLD<Triangle*>(this, 0x4D8) = *arg1;
-        FLD<TVec3f>(this, 0x50C) = FLD<TVec3f>(arg1, 0x64);
+void Mario::fn_803B2F20(const HitInfo* hit) {
+    if (_4D8->isValid()) {
+        TVec3f previous(_50C - mPosHolder->mPos);
+        MR::vecKillElement(previous, *getGravityVec(), &previous);
+        TVec3f candidate(hit->_64 - mPosHolder->mPos);
+        MR::vecKillElement(candidate, *getGravityVec(), &candidate);
+        f32 previousDistance = previous.squared();
+        if (candidate.squared() > previousDistance) return;
     }
+    *_4D8 = hit->mParentTriangle;
+    _50C = hit->_64;
 }
 
-void Mario::fn_803B3AE0(Triangle* arg1, TVec3f* arg2) {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    if (!this->isPlayerModeTeresa()) {
-        TVec3f sp8(FLD<TVec3f>(arg1, 0x64));
-        sp8 -= *arg2;
-        if (true) {
-            FLD<u32>(m, 0x10) |= 0x1000;
+void Mario::fn_803B3AE0(const HitInfo* hit, const TVec3f* origin) {
+    if (isPlayerModeTeresa()) {
+        TVec3f offset(hit->_64);
+        offset -= *origin;
+        if (hit->mParentTriangle.getNormal(0)->dot(offset) >= 0.0f) return;
+    }
+    *mSideWallTriangle = hit->mParentTriangle;
+    _500 = hit->_64;
+    mMovementStates_LOW_WORD |= 0x20;
+    if (hit->isCollisionAtCorner() || hit->isCollisionAtEdge()) mMovementStates_HIGH_WORD |= 0x1000;
+}
+
+void Mario::fn_803B3BB0(const HitInfo* hit, const TVec3f* origin) {
+    if ((mMovementStates_LOW_WORD >> 23) & 1) {
+        TVec3f back(_4F4);
+        back -= *origin;
+        TVec3f front(_4E8);
+        front -= *origin;
+        if (back.dot(front) >= 0.0f) {
+            f32 frontLength = PSVECMag(&front);
+            if (PSVECMag(&back) >= frontLength) return;
         }
     }
-}
-
-// NONMATCHING: back-wall triangle capture approximated
-void Mario::fn_803B3BB0(Triangle* arg1, TVec3f* arg2) {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    if (!((FLD<u32>(m, 0xC) >> 23) & 1) || true) {
-        *m->mBackWallTriangle = *arg1;
-        FLD<TVec3f>(m, 0x4F4) = FLD<TVec3f>(arg1, 0x64);
-        FLD<u32>(m, 0xC) |= 0x40;
+    if (isPlayerModeTeresa()) {
+        TVec3f offset(hit->_64);
+        offset -= *origin;
+        if (hit->mParentTriangle.getNormal(0)->dot(offset) >= 0.0f) return;
     }
-    (void)arg2;
+    *mBackWallTriangle = hit->mParentTriangle;
+    _4F4 = hit->_64;
+    mMovementStates_LOW_WORD |= 0x40;
 }
 
-// NONMATCHING: the teresa-free flip and dash-hit-wall sound path approximated
 void Mario::fn_803B3CE0() {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    u32 t = FLD<u32>(m, 0xA74);
-    if (t != 0) {
-        FLD<u32>(m, 0xA74) = t - 1;
-    }
-    if (this->isPlayerModeYoshi() && FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0) {
-        if (((FLD<u32>(m, 0xC) >> 23) & 1) && !this->isAnimationRun("壁はじき")) {
-            FLD<u8>(m, 0x8) = 1;
+    if (mDashWallCooldown != 0) --mDashWallCooldown;
+    if (isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer > 0) {
+        if (((mMovementStates_LOW_WORD >> 23) & 1) && !isAnimationRun("壁はじき")) {
+            if (!mActor->sendMsgToSensor(mFrontWallTriangle->mSensor, 0xF7) && mDashWallCooldown == 0) {
+                MR::tryRumblePadStrong(mActor, 0);
+                MR::shakeCameraNormal();
+                mActor->mDashWallHit1053 = 1;
+                TVec3f velocity(*mFrontWallTriangle->getNormal(0));
+                velocity.scale(5.0f);
+                doFlipJump(velocity);
+                if (!mDashWallSoundPlayed) {
+                    MR::startActionSoundPlayer("DashHitWall", -1, -1);
+                    mDashWallSoundPlayed = true;
+                }
+                mDashWallCooldown = 30;
+            }
         } else {
-            FLD<u8>(m, 0x8) = 0;
+            mDashWallSoundPlayed = false;
         }
+        if (((mMovementStates_LOW_WORD >> 30) & 1) && mGroundPolygon->isValid() && fn_803B3E90()) {
+            mActor->fn_803B97F0()->fn_8040F320();
+            return;
+        }
+        mActor->fn_803B97F0()->fn_8040F370();
+        return;
     }
-    FLD<u8>(m, 0x8) = 0;
-    if (this->isPlayerModeYoshi()) {
-        this->mActor->fn_803B97F0()->fn_8040F370();
-    }
+    mDashWallSoundPlayed = false;
+    if (isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040F370();
 }
 
 void Mario::fn_803B4280() {

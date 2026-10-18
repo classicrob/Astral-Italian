@@ -278,15 +278,15 @@ public:
     s32 fn_803B2BD0();
     f32 fn_803B2CC0(TVec3f* arg1);
     s32 fn_803B2E80(TVec3f* arg1);
-    void fn_803B2F20(Triangle* arg1);
+    void fn_803B2F20(const HitInfo*);
     void fn_803B3010();
     bool fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri);
     void fn_803B3280(const TVec3f& rPos, Triangle* pTri);
     void fn_803B35D0(const TVec3f& rPos, u32 count);
     f32 fn_803B3870();
     void fn_803B38B0(Triangle* arg1, TVec3f* arg2);
-    void fn_803B3AE0(Triangle* arg1, TVec3f* arg2);
-    void fn_803B3BB0(Triangle* arg1, TVec3f* arg2);
+    void fn_803B3AE0(const HitInfo*, const TVec3f*);
+    void fn_803B3BB0(const HitInfo*, const TVec3f*);
     void fn_803B3CE0();
     bool fn_803B3E90();
     void fn_803B3EE0(TVec3f* pPos, f32* pHeight);
@@ -863,7 +863,7 @@ public:
         _41E = val;
     }
 
-    /* 0x008 */ u8 _pad8[0x4];
+    /* 0x008 */ union { u8 _pad8[0x4]; bool mDashWallSoundPlayed; };
     union {
         /* 0x00C */ MovementStates mMovementStates;
         struct {
@@ -1254,7 +1254,7 @@ public:
     /* 0xA5C */ TVec3f _A58;  // SMG2 offset inh  // SMG2 offset inh
     /* 0xA68 */ f32 _A64;
     /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
-    /* 0xA70 */ union { u8 _A6C[0x20]; struct { u8 _padA70[8]; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
+    /* 0xA70 */ union { u8 _A6C[0x20]; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93[9];
     /* 0xA9C */ Triangle* _57C[0x20];  // SMG2 offset guess-TAIL  // SMG2 offset guess-TAIL

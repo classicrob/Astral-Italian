@@ -10,6 +10,8 @@
 #include "Game/Player/MarioConst.hpp"
 #include "Game/Player/MarioState.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/CameraUtil.hpp"
+#include "Game/Player/MarioActorHelpers.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/JointUtil.hpp"
@@ -316,9 +318,11 @@ bool MarioAnimator::isAnimationStop() const {
     return mXanimePlayer->mCurrentAnimation == mXanimePlayer->mDefaultAnimation;
 }
 
+#pragma dont_inline on
 void MarioAnimator::targetWeight(f32* weight, f32 target, f32 rate) {
     *weight = *weight * (1.0f - rate) + target * rate;
 }
+#pragma dont_inline reset
 
 void MarioAnimator::setWalkWeight(const f32* pWeights) {
     f32 rate = mActor->mConst->getTable()->mWeightBlendRatio;
@@ -330,20 +334,29 @@ void MarioAnimator::setWalkWeight(const f32* pWeights) {
 }
 
 void MarioAnimator::setBlendWeight(const f32* pWeights, f32 rate) {
+    if (getPlayer()->isSwimming()) rate = mActor->mConst->getTable()->mWeightBlendRatioSwim;
+    else if (getPlayer()->_3FA != 0) rate = 0.5f;
     targetWeight(&_18, pWeights[0], rate);
     targetWeight(&_1C, pWeights[1], rate);
     targetWeight(&_20, pWeights[2], rate);
     targetWeight(&_24, pWeights[3], rate);
-
-    for (u32 i = 0; i < 4; i++) {
-        mXanimePlayer->changeTrackWeight(i, *(&_18 + i));
+    for (u32 index = 0; index < 4; ++index) {
+        mXanimePlayer->changeTrackWeight(index, (&_18)[index]);
+        if (getPlayer()->isPlayerModeYoshi()) {
+            getYoshiAnimationPlayer()->changeTrackWeight(index, (&_18)[index]);
+            mXanimePlayerExtra->changeTrackWeight(index, (&_18)[index]);
+        }
     }
 }
 
 void MarioAnimator::forceSetBlendWeight(const f32* pWeights) {
-    for (u32 i = 0; i < 4; i++) {
-        (&_18)[i] = pWeights[i];
-        mXanimePlayer->changeTrackWeight(i, (&_18)[i]);
+    for (u32 index = 0; index < 4; ++index) {
+        (&_18)[index] = pWeights[index];
+        mXanimePlayer->changeTrackWeight(index, (&_18)[index]);
+        if (getPlayer()->isPlayerModeYoshi()) {
+            getYoshiAnimationPlayer()->changeTrackWeight(index, (&_18)[index]);
+            mXanimePlayerExtra->changeTrackWeight(index, (&_18)[index]);
+        }
     }
 }
 
@@ -596,6 +609,9 @@ void MarioAnimator::resetTilt() {
     _60.zero();
 }
 
+static u8 sAnimatorHadLookTarget;
+
+// NONMATCHING: register allocation and joint-name string-pool materialization.
 void MarioAnimator::setHoming() {
     f32 angleH = 0.0f;
     s32 hasTarget = 0;
@@ -604,17 +620,30 @@ void MarioAnimator::setHoming() {
         HitSensor* lookTarget = mActor->getLookTargetSensor();
         targetPos = lookTarget->mPosition;
         hasTarget = 1;
+        if (sAnimatorHadLookTarget == 0) sAnimatorHadLookTarget = 1;
     } else if (MR::isNormalTalking()) {
+        if (sAnimatorHadLookTarget == 1) sAnimatorHadLookTarget = 0;
         LiveActor* talkActor = MR::getTalkingActor();
         if (talkActor != nullptr) {
             hasTarget = 1;
-            f32 height = mActor->getFaceLookHeight(talkActor->mName);
-            targetPos = talkActor->mPosition - getPlayer()->MarioModule::getGravityVec() * height;
+            f32 height = mActor->mActionTable1080->getFaceLookHeight(talkActor->mName);
+            targetPos = talkActor->mPosition - *getPlayer()->getGravityVec() * height;
         }
+    } else if (sAnimatorHadLookTarget == 1) sAnimatorHadLookTarget = 0;
+
+    if (getPlayer()->isPlayerModeYoshi()) {
+        if (MR::isNormalTalking()) {
+            mLookTarget.x = targetPos.x;
+            mLookTarget.y = targetPos.y;
+            mLookTarget.z = targetPos.z;
+            if (!mActor->fn_803B97F0()->mHeadCtrl->fn_8041AD70(0)) {
+                mActor->fn_803B97F0()->mHeadCtrl->fn_8041AA70(0, &mLookTarget);
+            }
+        } else mActor->fn_803B97F0()->mHeadCtrl->fn_8041AB50(0);
     }
 
     if (hasTarget) {
-        TVec3f toTarget = targetPos - mActor->_2AC;
+        TVec3f toTarget = targetPos - mActor->_24C;
 
         Mario* player = getPlayer();
         angleH = MR::vecKillElement(toTarget, player->_1FC, &toTarget);
@@ -646,14 +675,14 @@ void MarioAnimator::setHoming() {
             }
         }
 
-        angleH = MR::diffAngleAbs(toTarget, getPlayer()->MarioModule::getFrontVec());
+        angleH = MR::diffAngleAbs(toTarget, getPlayer()->mFrontVec);
 
         MarioConstTable* table = mActor->mConst->getTable();
         if (angleH > table->mLookMaxAngleH) {
             angleH = table->mLookMaxAngleH;
         }
 
-        TVec3f cross = toTarget.cross(getPlayer()->MarioModule::getFrontVec());
+        TVec3f cross = toTarget.cross(getPlayer()->mFrontVec);
         Mario* player2 = getPlayer();
         f32 gravDot = cross.dot(player2->_1FC);
         if (gravDot < 0.0f) {
@@ -740,9 +769,18 @@ void MarioAnimator::setHipSlidingTilt(f32 stickX, f32 stickY) {
 }
 
 void MarioAnimator::setHipSliderTilt() {
-    f32 stickX = getPlayer()->MarioModule::getStickX();
-    f32 stickY = getPlayer()->MarioModule::getStickY();
-    setHipSlidingTilt(stickX, stickY);
+    TVec3f cameraDirection = MR::getCamZdir();
+    if (cameraDirection.dot(getPlayer()->mFrontVec) >= 0.0f) {
+        Mario* player = getPlayer();
+        f32 stickY = player->getStickY();
+        f32 stickX = player->getStickX();
+        setHipSlidingTilt(stickX, stickY);
+    } else {
+        Mario* player = getPlayer();
+        f32 stickY = -player->getStickY();
+        f32 stickX = -player->getStickX();
+        setHipSlidingTilt(stickX, stickY);
+    }
 }
 
 void MarioAnimator::setHipSlipTilt() {
@@ -794,45 +832,12 @@ void MarioAnimator::setWalkMode() {
 
 void MarioAnimator::calc() {
     bool specialMode = false;
-    if (mActor->_482 || mActor->_483) {
-        specialMode = true;
-    }
-
-    if (specialMode) {
-        return;
-    }
-
-    Mario* player = getPlayer();
-    TVec3f playerPos(player->_13C);
-    XjointTransform* joint0 = mXanimePlayer->mCore->getJointTransform(0);
-    joint0->_38 = playerPos;
-    if (_6C) {
-        // Both players animation calculation
-        mXanimePlayer->calcAnm(0);
-        u16 spineIdx = MR::getJointIndex(mActor, "Spine1");
-        mXanimePlayerUpper->calcAnm((u16)spineIdx);
-        u16 partsIdx = MR::getJointIndex(mActor, "PartsControl");
-        mXanimePlayerUpper->overWriteMtxCalc((u16)partsIdx);
-    } else {
-        u16 spineIdx = MR::getJointIndex(mActor, "Spine1");
-        J3DModelData* modelData = mActor->getModelData();
-        J3DJoint* joint = modelData->mJointTree.mJointNodePointer[spineIdx];
-        joint->setMtxCalc(nullptr);
-        mXanimePlayer->calcAnm(0);
-    }
-
-    mXanimePlayer->mCore->_6 = 1;
-    MR::calcJ3DModel(mActor);
-
-    mXanimePlayer->mCore->_6 = 2;
-    MR::calcJ3DModel(mActor);
-    mXanimePlayer->clearAnm(0);
-
-    if (_6C) {
-        u16 spineIdx = MR::getJointIndex(mActor, "Spine1");
-        mXanimePlayer->clearAnm((u16)spineIdx);
-        u16 partsIdx = MR::getJointIndex(mActor, "PartsControl");
-        mXanimePlayerUpper->clearMtxCalc((u16)partsIdx);
+    if (mActor->_482 || mActor->_483) specialMode = true;
+    if (!specialMode || getPlayer()->isPlayerModeYoshi()) {
+        fn_803E1890();
+        fn_803E13D0();
+        fn_803E1620();
+        fn_803E17C0();
     }
 }
 
@@ -1606,4 +1611,98 @@ void MarioAnimator::fn_803E12B0() {
         }
     }
     getPlayer()->updateBrakeAnimation();
+}
+
+bool MarioAnimator::isAnimationRunSimple() const {
+    if (getPlayer()->isPlayerModeYoshi()) return mActor->fn_803B97F0()->fn_8040F530();
+    return mXanimePlayer->isAnimationRunSimple();
+}
+
+void MarioAnimator::fn_803E13D0() {
+    mXanimePlayer->calcAnm(0);
+    if (getPlayer()->isPlayerModeYoshi()) getYoshiAnimationPlayer()->calcAnm(0);
+    if (_6C) {
+        mXanimePlayerUpper->calcAnm(MR::getJointIndex(mActor, "Spine1"));
+        XanimePlayer* upper = mXanimePlayerUpper;
+        upper->overWriteMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
+        if (getPlayer()->isPlayerModeYoshi()) {
+            u16 index = mActor->fn_803B97F0()->fn_8040F440();
+            getYoshiUpperAnimationPlayer()->calcAnm(index);
+        }
+    } else {
+        fn_803E1570();
+        if (getPlayer()->isPlayerModeYoshi() && mActor->fn_803B97F0()->mUpperAnimationActive) {
+            u16 index = mActor->fn_803B97F0()->fn_8040F440();
+            getYoshiUpperAnimationPlayer()->calcAnm(index);
+        }
+    }
+    if (getPlayer()->isPlayerModeYoshi()) {
+        mXanimePlayer->clearAnm(MR::getJointIndex(mActor, "Spine1"));
+        XanimePlayer* upper = mXanimePlayerUpper;
+        upper->clearMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
+        mXanimePlayerExtra->calcAnm(0);
+    }
+}
+
+void MarioAnimator::fn_803E1570() {
+    mXanimePlayer->clearAnm(MR::getJointIndex(mActor, "Spine1"));
+    XanimePlayer* upper = mXanimePlayerUpper;
+    upper->clearMtxCalc(MR::getJointIndex(mActor, "PartsControl"));
+    if (getPlayer()->isPlayerModeYoshi()) {
+        u16 index = mActor->fn_803B97F0()->fn_8040F440();
+        getYoshiAnimationPlayer()->clearAnm(index);
+    }
+}
+
+void MarioAnimator::fn_803E1620() {
+    if (!getPlayer()->isPlayerModeYoshi()) {
+        mXanimePlayer->mCore->_6 = 1;
+        MR::calcJ3DModel(mActor);
+        mXanimePlayer->mCore->_6 = 2;
+        MR::calcJ3DModel(mActor);
+        return;
+    }
+    mActor->fn_803B97F0()->fn_8040CB30();
+    LiveActor* renderActor = mActor->fn_803B97F0();
+    if (mActor->fn_803B9AB0()) {
+        MtxPtr matrix = mActor->fn_803B97F0()->getBaseMtx();
+        PSMTXCopy(matrix, static_cast<J3DModel*>(mActor->fn_803BBA20())->getBaseTRMtx());
+        renderActor = mActor->fn_803B9830()->mRideModelActor;
+        MR::onCalcAnim(renderActor);
+        renderActor->calcAnim();
+        MR::offCalcAnim(renderActor);
+    }
+    if (MR::isPowerStarGetDemoActive()) {
+        MtxPtr matrix = mActor->getBaseMtx();
+        PSMTXCopy(matrix, static_cast<J3DModel*>(mActor->fn_803BBA20())->getBaseTRMtx());
+    } else {
+        MtxPtr matrix = MR::getJointMtx(renderActor, "MarioPos");
+        PSMTXCopy(matrix, static_cast<J3DModel*>(mActor->fn_803BBA20())->getBaseTRMtx());
+    }
+    mXanimePlayerExtra->mCore->_6 = 1;
+    MR::calcJ3DModel(mActor);
+    mXanimePlayerExtra->mCore->_6 = 2;
+    MR::calcJ3DModel(mActor);
+}
+
+void MarioAnimator::fn_803E17C0() {
+    mXanimePlayer->clearAnm(0);
+    if (getPlayer()->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->clearAnm(0);
+        mXanimePlayerExtra->clearAnm(0);
+    }
+    if (_6C) { fn_803E1570(); return; }
+    if (getPlayer()->isPlayerModeYoshi() && mActor->fn_803B97F0()->mUpperAnimationActive) {
+        u16 index = mActor->fn_803B97F0()->fn_8040F440();
+        getYoshiAnimationPlayer()->clearAnm(index);
+    }
+}
+
+void MarioAnimator::fn_803E1890() {
+    TVec3f position(getPlayer()->_13C);
+    mXanimePlayer->mCore->getJointTransform(0)->_38 = position;
+    if (getPlayer()->isPlayerModeYoshi()) {
+        TVec3f yoshiPosition(getPlayer()->_13C);
+        getYoshiAnimationPlayer()->mCore->getJointTransform(0)->_38 = yoshiPosition;
+    }
 }

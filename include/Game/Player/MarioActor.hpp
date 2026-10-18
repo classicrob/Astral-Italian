@@ -1282,7 +1282,7 @@ public:
     };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x1050 */ bool _FCC;
     /* 0x1051 */ bool _FCD;
-    /* 0x1052 */ u16 _B88;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
+    /* 0x1052 */ union { u16 _B88; struct { u8 _pad1052; u8 mDashWallHit1053; }; };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
     union {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
         struct {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
             /* 0x1054 */ Mtx* _A70[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess

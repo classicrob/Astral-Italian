@@ -10,12 +10,20 @@ class XanimePlayer;
 // SMG2 Yoshi riding system. Only the members the Player units call are declared; names are by address
 // (original names unknown), layouts are not recovered.
 
+class YoshiHeadCtrl {
+public:
+    bool fn_8041AD70(s32) const;
+    void fn_8041AA70(s32, const TVec3f*);
+    void fn_8041AB50(s32);
+};
+
 /// @brief The Yoshi actor (LiveActor subclass, units around 0x8040B000..0x80410000).
 class Yoshi : public LiveActor {
 public:
     void fn_8040CA10();
     void fn_8040CB30();
     u16 fn_8040F440();
+    bool fn_8040F530() const;
 
     void fn_8040CCD0(const TVec3f&);
     void fn_8040CD20(const TVec3f&);
@@ -37,12 +45,17 @@ public:
     bool fn_8040F590(const char*);
     bool fn_8040F0E0() const;
     void fn_8040F370();
+    void fn_8040F320();
 
     /* 0x90 */ u8 _90[8];
     /* 0x98 */ XanimePlayer* mXanimePlayer;
     /* 0x9C */ XanimePlayer* mXanimePlayerUpper;
     /* 0xA0 */ u8 _A0[5];
     /* 0xA5 */ bool mUpperAnimationActive;
+    /* 0xA6 */ u8 _A6[0x56];
+    /* 0xFC */ YoshiHeadCtrl* mHeadCtrl;
+    /* 0x100 */ u8 _100[0x34];
+    /* 0x134 */ s32 mDashTimer;
 };
 
 /// @brief The state machine that drives Yoshi's tongue (MarioActor holder + 0x8).
@@ -81,7 +94,9 @@ public:
     /* 0x08 */ YoshiTongueAction* mTongueAction;
     /* 0x0C */ void* _C;
     /* 0x10 */ void* _10;
-    /* 0x14 */ u8 _14[0x3C];
+    /* 0x14 */ u8 _14[4];
+    /* 0x18 */ LiveActor* mRideModelActor;
+    /* 0x1C */ u8 _1C[0x34];
 };
 
 /// @brief Static queries of Yoshi's tuning values (they ignore their object).

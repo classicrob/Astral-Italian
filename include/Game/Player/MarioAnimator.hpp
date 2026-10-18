@@ -69,9 +69,16 @@ public:
     bool fn_803E11D0() const;
 
     void calc();
+    void fn_803E13D0();
+    void fn_803E1570();
+    void fn_803E1620();
+    void fn_803E17C0();
+    void fn_803E1890();
+
 
     void setHoming();
     bool isAnimationStop() const;
+    bool isAnimationRunSimple() const;
     bool isDefaultAnimationRun(const char*) const;
     void setSpeed(f32);
     void forceSetBlendWeight(const f32*);
@@ -189,9 +196,7 @@ public:
     /* 0x114 */ const char* mCurrBck;
     /* 0x118 */ f32 _118;
 
-    u32 _11C;
-    u32 _120;
-    u32 _124;
+    /* 0x11C */ TVec3f mLookTarget;
     bool mExtraAnimationEnabled;
     u8 mAnimationFlags[32];
     /* 0x14C */ s32 mCallbackId;

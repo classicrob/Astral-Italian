@@ -110,3 +110,6 @@ public:
     /* 0x14 */ FixedPosition* mMouthPosition;
     /* 0x18 */ Popo* mStickPopo;
 };
+
+bool fn_801EFAB0();
+void fn_801EFB40();

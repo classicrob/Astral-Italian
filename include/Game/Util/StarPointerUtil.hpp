@@ -6,6 +6,7 @@ class HitSensor;
 class LiveActor;
 
 namespace MR {
+    void fn_8005E5B0(void*);
     void initStarPointerTarget(LiveActor*, f32, const TVec3f& = TVec3f(0.0f));
     void fn_8005E430(LiveActor*);  // SMG2-only (original name unknown; by address)
 

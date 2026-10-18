@@ -327,7 +327,6 @@ public:
     void clearNullAnimation(s8);
     bool isStopNullAnimation() const;
     void changeGameOverAnimation();
-    XjointTransform* getJointCtrl(const char*) const;
     void updateRotationInfo();
     void exeWait();
     // void exeGameOverBlackHole();
@@ -1040,7 +1039,7 @@ public:
     /* 0x76C */ TVec3f mCameraTrans;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x778 */ FixedPosition* _498;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x77C */ FixedPosition* _494;  // SMG2 offset guess-gap
-    /* 0x780 */ TVec3f _300;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
+    /* 0x780 */ union { TVec3f _300; struct { FixedPosition* mCarryFixedPosition780; FixedPosition* mTurnipFixedPosition784; FixedPosition* mDrillFixedPosition788; }; };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
     /* 0x78C */ FixedPosition* mSearchLightThrowPos;  // SMG2 offset guess-gap
     /* 0x790 */ HitSensor* _4A4;  // used in calcAnimInMovement()
     /* 0x794 */ u32 _3A0;
@@ -1094,7 +1093,7 @@ public:
     /* 0xE24 */ bool _934;
     /* 0xE25 */ u8 _7E2;
     /* 0xE26 */ u16 _F16;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
-    /* 0xE28 */ u8 _padE28[0x4];
+    /* 0xE28 */ s32 mAnimationDelayE28;
     /* 0xE2C */ bool _935;  // SMG2 offset guess
     /* 0xE2D */ u8 _padE2D[0x1];
     /* 0xE2E */ u16 _F14;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
@@ -1288,6 +1287,7 @@ public:
             /* 0x1054 */ Mtx* _A70[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
             /* 0x1074 */ Mtx* _A90[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
         };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
+        struct { u8 _padInput1054[0x12]; bool mInputDisabled1066; };
         struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; MarioActionTable* mActionTable1080; };
         /* 0x1054 */ Mtx* mBlurMatrices[2][8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
     };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess

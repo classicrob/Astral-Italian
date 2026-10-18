@@ -64,7 +64,7 @@ public:
     void fn_80420130();
     bool fn_804201A0() const;
     void fn_80420230(LiveActor*);
-    HitSensor* fn_804202B0(const TVec3f&);
+    bool fn_804202B0(const TVec3f&);
     void fn_80420480(bool);
     bool fn_804206E0();
     void fn_80420780();
@@ -76,9 +76,13 @@ public:
     void fn_80420C30(TVec3f*, const TVec3f&, const TVec3f&, f32) const;
     void fn_80420D20(const TVec3f&, const TVec3f&, const TVec3f&, f32);
     void fn_804210B0();
+    bool fn_80421210() const NO_INLINE;
+    bool fn_80421240();
     bool fn_80421410();
     void fn_804214C0();
-    void fn_80421730(u32, HitSensor*, HitSensor*);
+    bool fn_80421510() const;
+    bool fn_804216C0() const;
+    bool fn_80421730(u32, HitSensor*, HitSensor*);
     void fn_804217D0();
     void fn_80421790() NO_INLINE;
     void fn_804217B0() NO_INLINE;

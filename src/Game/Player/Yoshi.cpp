@@ -386,7 +386,7 @@ void Yoshi::fn_8040F370() {
     }
 }
 
-u16 Yoshi::fn_8040F190() const {
+s32 Yoshi::fn_8040F190() const {
     return getSensor("AutoEat")->mSensorCount;
 }
 

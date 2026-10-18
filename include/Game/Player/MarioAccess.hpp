@@ -2,6 +2,7 @@
 
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
+#include <JSystem/JGeometry/TMatrix.hpp>
 
 class BckCtrlData;
 class CubeCameraArea;
@@ -12,6 +13,24 @@ class RushEndInfo;
 class Triangle;
 
 namespace MarioAccess {
+    bool fn_803B4E40();
+    u32 fn_803B5970();
+    void fn_803B59A0();
+    void concatWithJointMtx(TPos3f*, const char*);
+    bool fn_803B5FE0();
+    void fn_803B6010();
+    void fn_803B6050(s32);
+    void fn_803B7170(TVec3f*);
+    void fn_803B71E0();
+    void fn_803B7210();
+    void fn_803B6090();
+    void fn_803B6830();
+    void fn_803B7070(s32);
+    void fn_803B70E0();
+    bool fn_803B71B0();
+    f32 fn_803B7240();
+    void fn_803B72A0();
+
     f32 fn_803B57A0();  // SMG2-only (original name unknown; by address)
     // PlayerUtil callees (unnamed in symbols.txt; names by behavior, PLACEHOLDER(core) where guessed)
     s32 getLife();                       // fn_803B5970: player actor mLife (0x6B0)

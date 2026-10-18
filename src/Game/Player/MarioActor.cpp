@@ -840,10 +840,6 @@ void MarioActor::changeGameOverAnimation() {
 }
 
 
-XjointTransform* MarioActor::getJointCtrl(const char* pName) const {
-    XanimeCore* pCore = mMarioAnim->mXanimePlayer->mCore;
-    return pCore->getJointTransform(MR::getJointIndex(this, pName));
-}
 
 
 void MarioActor::updateRotationInfo() {
@@ -7401,14 +7397,14 @@ void MarioActor::initParts() {
 
 void MarioActor::updateBeeWingAnimation() {
     if (mPlayerMode != 4) {
-        getJointCtrl("HandR")->setLocalScale(1.0f);
-        getJointCtrl("HandL")->setLocalScale(1.0f);
+        mMarioAnim->getJointCtrl("HandR")->setLocalScale(1.0f);
+        mMarioAnim->getJointCtrl("HandL")->setLocalScale(1.0f);
 
         return;
     }
 
-    getJointCtrl("HandR")->setLocalScale(0.9f);
-    getJointCtrl("HandL")->setLocalScale(0.9f);
+    mMarioAnim->getJointCtrl("HandR")->setLocalScale(0.9f);
+    mMarioAnim->getJointCtrl("HandL")->setLocalScale(0.9f);
 
     if (mMario->checkLvlA() && mMario->_402 && getMovementStates().jumping) {
         if (_9F0 != 1) {

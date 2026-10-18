@@ -39,6 +39,7 @@ public:
 class XjointInfo {
 public:
     XjointInfo();
+    XjointInfo& operator=(const XjointInfo&) NO_INLINE;
 
     /* 0x00 */ XtransformInfo _0;
     /* 0x28 */ XtransformInfo _28;

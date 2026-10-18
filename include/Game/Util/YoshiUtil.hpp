@@ -4,6 +4,7 @@ class LiveActor;
 class JMapInfoIter;
 class YoshiLockOnTarget;
 namespace MR {
+    bool fn_80421D10();
     bool fn_80422150();
     void fn_80422190();
     void fn_804221D0();

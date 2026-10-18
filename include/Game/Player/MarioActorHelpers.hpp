@@ -16,15 +16,40 @@ public:
     MarioActorCondition* mConditions[8];
 };
 
+class MarioScreenStripOffset {
+public:
+    virtual f32 calcOffset(u32) = 0;
+};
+
+class MarioScreenStripWave : public MarioScreenStripOffset {
+public:
+    MarioScreenStripWave(f32, u32, s32, f32);
+    virtual f32 calcOffset(u32);
+    f32 mAmplitude;
+    f32 mPhase;
+    f32 mFrequency;
+};
+
+class MarioScreenStripCurve : public MarioScreenStripOffset {
+public:
+    MarioScreenStripCurve(u32, u32);
+    virtual f32 calcOffset(u32);
+    u32 mPosition;
+    f32 mPhase;
+};
+
 class MarioScreenStrip {
 public:
     MarioScreenStrip();
     void fn_803DB9D0(s32, s16, s32);
     void fn_803DBA40();
+    void fn_803DBAA0(u32);
+    void fn_803DBB10(u32, u32);
+    void fn_803DBB50(MarioScreenStripOffset*);
     u8* mBuffers[2];
     bool mEnabled;
     f32 mProgress;
-    u16 mMode;
+    s16 mMode;
     f32 mBlend;
 };
 

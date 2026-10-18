@@ -274,6 +274,7 @@ public:
     bool fn_803B2B50(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
     bool fn_803B2E10(const Triangle*);
     bool isStateHanging() const;
+    bool isStateBury() const;
     s32 fn_803B2BD0();
     f32 fn_803B2CC0(TVec3f* arg1);
     s32 fn_803B2E80(TVec3f* arg1);

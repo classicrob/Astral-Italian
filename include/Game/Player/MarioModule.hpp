@@ -22,6 +22,7 @@ public:
     }
 
     Mario* getPlayer() const;
+    s32 fn_803EF000() const;
     const TVec3f& fn_803EF300() const;
     MarioAnimator* getAnimator() const;
     TVec3f& getShadowPos() const;

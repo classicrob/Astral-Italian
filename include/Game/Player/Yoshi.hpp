@@ -163,6 +163,7 @@ public:
     bool fn_8041AD70(s32) const;
     void fn_8041AA70(s32, const TVec3f*);
     void fn_8041AB50(s32);
+    void fn_8041AD20(s32);
     void fn_8041AC40(s32);
     YoshiModelCtrl* mModelCtrl;
     s32 _4;
@@ -272,6 +273,7 @@ public:
     void fn_8040F030();
     void fn_8040F050();
     void fn_8040F080();
+    void fn_8040F020();
     void fn_8040F0A0();
     void fn_8040F0B0();
     void fn_8040F0D0();
@@ -293,7 +295,7 @@ public:
     bool fn_8040F5B0(const char*);
     f32 fn_8040F620() const;
     void fn_8040F630(const TPos3f&);
-    u16 fn_8040F190() const;
+    s32 fn_8040F190() const;
     HitSensor* fn_8040F1C0(s32) const;
     const TVec3f& fn_8040F200() const;
 
@@ -360,6 +362,7 @@ public:
 
 /// @brief Static queries of Yoshi's tuning values (they ignore their object).
 namespace YoshiParam {
+    void fn_8041BE00(TVec3f*);
     s32 fn_8041BD40();
     s32 fn_8041BD60();
     f32 fn_8041BD80();

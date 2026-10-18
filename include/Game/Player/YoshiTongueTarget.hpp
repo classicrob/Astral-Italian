@@ -10,6 +10,11 @@ class YoshiTongueTarget {
 public:
     YoshiTongueTarget(YoshiLockOnManager*);
     void fn_8041BFD0();
+    bool fn_8041C020();
+    void fn_8041C040();
+    void fn_8041C060();
+    void fn_8041C080();
+    bool fn_8041C100() const;
     bool fn_8041C0E0() const;
     bool fn_8041C0C0() const;
     bool fn_8041C120() const;

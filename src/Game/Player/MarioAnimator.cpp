@@ -9,6 +9,7 @@
 #include "Game/Player/MarioActor.hpp"
 #include "Game/Player/MarioConst.hpp"
 #include "Game/Player/MarioState.hpp"
+#include "Game/Player/Yoshi.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Player/MarioActorHelpers.hpp"
@@ -49,6 +50,8 @@ MarioAnimationCallback marioCallbackTable[] = {
     {"ファイアスピン空中", 2, &MarioAnimator::spinEntry, nullptr, &MarioAnimator::spinClose, 0},
     {"ハチスピン", 3, &MarioAnimator::spinEntry, nullptr, &MarioAnimator::spinClose, 0},
     {"ハチスピン空中", 3, &MarioAnimator::spinEntry, nullptr, &MarioAnimator::spinClose, 0},
+    {"雲スピン空中", 0, &MarioAnimator::spinEntry, nullptr, &MarioAnimator::spinClose, 0},
+    {"雲スピン", 0, &MarioAnimator::spinEntry, nullptr, &MarioAnimator::spinClose, 0},
     {"ステージインA", 0, nullptr, &MarioAnimator::stageInCheck, nullptr, 0},
     {"投げ", 0, &MarioAnimator::throwEntry, &MarioAnimator::throwCheck, &MarioAnimator::throwClose, 0},
     {"ファイア投げ", 1, &MarioAnimator::throwEntry, nullptr, &MarioAnimator::throwClose, 0},
@@ -126,19 +129,20 @@ void MarioAnimator::closeCallback() {
 void MarioAnimator::spinEntry() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        getPlayer()->MarioModule::playEffect("スピンライト");
+        if (getPlayer()->isPlayerModeCloud()) mActor->playEffect("雲スピン");
+        else mActor->playEffect("スピンライト");
         break;
     case 1:
-        getPlayer()->MarioModule::playEffect("アイススピン");
+        mActor->playEffect("アイススピン");
         break;
     case 2:
-        getPlayer()->MarioModule::playEffect("ファイアスピン");
+        mActor->playEffect("ファイアスピン");
         break;
     case 3:
         if (gIsLuigi) {
-            getPlayer()->MarioModule::playEffect("ハチルイージスピン");
+            mActor->playEffect("ハチルイージスピン");
         } else {
-            getPlayer()->MarioModule::playEffect("ハチスピン");
+            mActor->playEffect("ハチスピン");
         }
 
         break;
@@ -154,19 +158,20 @@ void MarioAnimator::spinUpdate() {
 void MarioAnimator::spinClose() {
     switch (marioCallbackTable[mCallbackId].mType) {
     case 0:
-        getPlayer()->MarioModule::stopEffect("スピンライト");
+        if (getPlayer()->isPlayerModeCloud()) mActor->stopEffect("雲スピン");
+        else mActor->stopEffect("スピンライト");
         break;
     case 1:
-        getPlayer()->MarioModule::stopEffect("アイススピン");
+        mActor->stopEffect("アイススピン");
         break;
     case 2:
-        getPlayer()->MarioModule::stopEffect("ファイアスピン");
+        mActor->stopEffect("ファイアスピン");
         break;
     case 3:
         if (gIsLuigi) {
-            getPlayer()->MarioModule::stopEffect("ハチルイージスピン");
+            mActor->stopEffect("ハチルイージスピン");
         } else {
-            getPlayer()->MarioModule::stopEffect("ハチスピン");
+            mActor->stopEffect("ハチスピン");
         }
 
         break;
@@ -1704,5 +1709,144 @@ void MarioAnimator::fn_803E1890() {
     if (getPlayer()->isPlayerModeYoshi()) {
         TVec3f yoshiPosition(getPlayer()->_13C);
         getYoshiAnimationPlayer()->mCore->getJointTransform(0)->_38 = yoshiPosition;
+    }
+}
+
+void MarioAnimator::fn_803DEFD0(u32 joint,TVec3f* out) {
+    if (mActor->mMario->isPlayerModeYoshi()) {mXanimePlayerExtra->getMainAnimationTrans(joint,out);return;}
+    if (isUpperAnimationActive()) {mXanimePlayerUpper->getMainAnimationTrans(joint,out);return;}
+    mXanimePlayer->getMainAnimationTrans(joint,out);
+}
+void MarioAnimator::fn_803DEC10() {
+    if (mActor->mMario->isPlayerModeInvincible() && mActor->mMario->mWalkSpeed>=1.5f) return;
+    if (_78) {--_78;return;}
+    if (isAnimationRun("基本")) {
+        mXanimePlayer->changeTrackAnimation(2,"ラン");
+        if (mActor->mMario->isPlayerModeYoshi() && mActor->fn_803B97F0()->mDashTimer<=0) {
+            getYoshiAnimationPlayer()->changeTrackAnimation(2,"ラン");
+            mXanimePlayerExtra->changeTrackAnimation(2,"ラン");
+        }
+    }
+}
+void MarioAnimator::fn_803DF0F0() {
+    mXanimePlayer->changeTrackAnimation(0,"泥低速歩行");mXanimePlayer->changeTrackAnimation(1,"泥低速歩行");
+    if (mActor->mMario->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->changeTrackAnimation(0,"泥低速歩行");getYoshiAnimationPlayer()->changeTrackAnimation(1,"泥高速歩行");
+        mXanimePlayerExtra->changeTrackAnimation(0,"泥低速歩行");mXanimePlayerExtra->changeTrackAnimation(1,"泥高速歩行");
+    }
+}
+void MarioAnimator::fn_803DF1B0() {
+    mXanimePlayer->changeTrackAnimation(0,"ハチ匍匐前進");mXanimePlayer->changeTrackAnimation(1,"ハチ匍匐前進");mXanimePlayer->changeTrackAnimation(2,"ハチ匍匐前進");mXanimePlayer->changeTrackAnimation(3,"ハチ匍匐ウエイト");
+    if (mActor->mMario->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->changeTrackAnimation(0,"ハチ匍匐前進");getYoshiAnimationPlayer()->changeTrackAnimation(1,"ハチ匍匐前進");getYoshiAnimationPlayer()->changeTrackAnimation(2,"ハチ匍匐前進");getYoshiAnimationPlayer()->changeTrackAnimation(3,"ハチ匍匐ウエイト");
+        mXanimePlayerExtra->changeTrackAnimation(0,"ハチ匍匐前進");mXanimePlayerExtra->changeTrackAnimation(1,"ハチ匍匐前進");mXanimePlayerExtra->changeTrackAnimation(2,"ハチ匍匐前進");mXanimePlayerExtra->changeTrackAnimation(3,"ハチ匍匐ウエイト");
+    }
+}
+void MarioAnimator::fn_803DF2D0() {
+    mXanimePlayer->changeTrackAnimation(0,"鈍行");mXanimePlayer->changeTrackAnimation(1,"歩行");
+    if (mActor->mMario->isPlayerModeYoshi()) {
+        getYoshiAnimationPlayer()->changeTrackAnimation(0,"鈍行");getYoshiAnimationPlayer()->changeTrackAnimation(1,"歩行");
+        mXanimePlayerExtra->changeTrackAnimation(0,"鈍行");mXanimePlayerExtra->changeTrackAnimation(1,"歩行");
+    }
+}
+void MarioAnimator::fn_803DF8E0() {
+    for (s32 i=0;i<MR::getJointNum(mActor);++i) mXanimePlayerExtra->mCore->mJointList[i]=mXanimePlayer->mCore->mJointList[i];
+}
+void MarioAnimator::fn_803DF9D0() {
+    setYoshiJointMatrix("AllRoot",nullptr);setYoshiJointOffset("Center",TVec3f(0.0f,0.0f,0.0f));
+    getYoshiAnimationPlayer()->mCore->getJointTransform(0)->_38=TVec3f(0.0f,0.0f,0.0f);
+    for (s32 i=0;i<MR::getJointNum(mActor);++i) mXanimePlayer->mCore->mJointList[i]=mXanimePlayerExtra->mCore->mJointList[i];
+}
+void MarioAnimator::fn_803DFAC0() {
+    if (mActor->mMario->isPlayerModeYoshi() && !mExtraAnimationEnabled && !mActor->fn_803B97F0()->fn_8040F490(nullptr)) {
+        const char* name=mXanimePlayerExtra->getDefaultAnimationName();
+        if (!MR::isEqualString(mXanimePlayerExtra->getCurrentAnimationName(),name)) {
+            mXanimePlayerExtra->stopAnimation();mXanimePlayerExtra->setAnimationFrame(mActor->fn_803B97F0()->fn_8040F620());
+        }
+    }
+}
+void MarioAnimator::fn_803DFB70() {
+    if (mActor->mMario->isPlayerModeYoshi()) {
+        if (!MR::isStopAnimFrame(mActor)) {XanimePlayer* player=mXanimePlayerExtra;player->updateBeforeMovement();player->updateAfterMovement();}
+        MarioActor* actor=mActor;actor->updateHand();actor->updateFace();
+    }
+}
+void MarioAnimator::fn_803DE880() {
+    if (_78) {--_78;return;}
+    TVec3f side;PSVECCrossProduct(&mActor->mMario->mFrontVec,&mActor->mMario->_368,&side);MR::normalizeOrZero(&side);
+    if (MR::isNearZero(side,0.001f)) return;
+    TVec3f front;PSVECCrossProduct(&mActor->mMario->_368,&side,&front);MR::normalizeOrZero(&front);
+    f32 sideDot=side.dot(mActor->mMario->getAirGravityVec());f32 frontDot=front.dot(mActor->mMario->getAirGravityVec());
+    f32 weights[4]={0.0f,0.0f,0.0f,0.0f};f32 sideBias=0.0f,frontBias=0.0f;
+    if (_16==1) sideBias=0.1f;else if (_16==2) frontBias=0.1f;
+    f32 absFront=MR::abs(frontDot),absSide=MR::abs(sideDot);
+    if (sideBias+absSide>frontBias+absFront) {
+        f32 angle=1.5707964f-mActor->mMario->marioAcos(absSide);if (angle>=0.7853982f) angle=0.7853982f;
+        f32 ratio=angle/0.7853982f;weights[2]=ratio;weights[3]=1.0f-ratio;
+        if (sideDot<0.0f) {
+            mXanimePlayer->changeTrackAnimation(2,"坂右ウエイト");
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂右ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂右ウエイト");}
+        } else {
+            mXanimePlayer->changeTrackAnimation(2,"坂左ウエイト");
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂左ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂左ウエイト");}
+        }
+        _16=1;
+    } else {
+        f32 angle=1.5707964f-mActor->mMario->marioAcos(absFront);if (angle>=0.7853982f) angle=0.7853982f;
+        f32 ratio=angle/0.7853982f;weights[2]=ratio;weights[3]=1.0f-ratio;
+        if (frontDot<0.0f) {
+            mXanimePlayer->changeTrackAnimation(2,"坂前ウエイト");
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂前ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂前ウエイト");}
+        } else {
+            mXanimePlayer->changeTrackAnimation(2,"坂後ウエイト");
+            if (mActor->mMario->isPlayerModeYoshi()) {getYoshiAnimationPlayer()->changeTrackAnimation(2,"坂後ウエイト");mXanimePlayerExtra->changeTrackAnimation(2,"坂後ウエイト");}
+        }
+        _16=2;
+    }
+    if (mActor->mMario->_10._F) {forceSetBlendWeight(weights);mActor->mMario->_10._F=false;}
+    else setBlendWeight(weights,mActor->mConst->getTable()->mSlopeAnimBlendRatio);
+    _78=4;
+}
+
+XjointInfo& XjointInfo::operator=(const XjointInfo& other) {
+    _0=other._0;_28=other._28;_50=other._50;_5C=other._5C;_60=other._60;return *this;
+}
+XjointTransform* MarioAnimator::getJointCtrl(const char* name) const {
+    XanimeCore* core=mXanimePlayer->mCore;
+    return core->getJointTransform(MR::getJointIndex(mActor,name));
+}
+void MarioAnimator::fn_803DDF60() {
+    mActor->_494=mActor->mDrillFixedPosition788;
+    mActor->mMario->fn_803B4630("ドリルひろいクイック");mActor->mMario->stopWalk();
+}
+void MarioAnimator::fn_803DDD80(const HitSensor* sensor) {
+    LiveActor* host=MR::getSensorHost(sensor);
+    if (host && MR::isEqualString(MR::getSensorHost(sensor)->mName,"アイテムドリル")) {
+        mActor->_494=mActor->mDrillFixedPosition788;
+        Mario* player=mActor->mMario;
+        if (player->mMovementStates.jumping && !player->mMovementStates._B) {
+            player->fn_803B4630("ドリルひろいクイック");mActor->mMario->stopWalk();return;
+        }
+        player->fn_803B45E0("ドリルひろい","CarryDrillStart");mActor->mMario->stopWalk();return;
+    }
+    u32 type=sensor->mType;
+    if (static_cast<u32>(type-0x12)>1) {
+        if (type==0x1D) {
+        mActor->_494=mActor->mTurnipFixedPosition784;
+        mActor->mMario->fn_803B45E0("カブ抜き","PullOut");mActor->mMario->stopWalk();
+        }
+    } else {
+        mActor->_494=mActor->mCarryFixedPosition780;
+        if (!mActor->mMario->isSwimming()) {
+            if (mActor->_424==sensor) {
+                mActor->mMario->fn_803B4670("ひろいクイック");mActor->playEffect("ひろいクイック");mActor->mMario->startPadVib(2);return;
+            }
+            Mario* player=mActor->mMario;
+            if (player->mMovementStates.jumping && !player->mMovementStates._B) {
+                player->fn_803B4630("ひろい空中");mActor->mMario->stopWalk();return;
+            }
+            player->fn_803B45E0("ひろい","CarryStart");mActor->mMario->stopWalk();return;
+        }
+        mActor->clearNullAnimation(0);mActor->mMario->startPadVib(2);
     }
 }

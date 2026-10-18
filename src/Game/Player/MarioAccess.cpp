@@ -13,6 +13,7 @@
 #include "Game/Player/MarioParts.hpp"
 #include "Game/Player/MarioState.hpp"
 #include "Game/Player/MarioSwim.hpp"
+#include "Game/Player/Yoshi.hpp"
 #include "Game/Player/RushEndInfo.hpp"
 #include "Game/Util.hpp"
 
@@ -412,41 +413,13 @@ namespace MarioAccess {
     }
 
     void changeAnimationE(const char* pAnimName, const char* pChar2) {
-        // unused
-        getPlayerActor();
-        if (getPlayerActor()->_B91) {
-            return;
-        }
-
-        if (getPlayerActor()->_468 == 0) {
-            getPlayerActor()->getMario()->stopAnimationUpperForce();
-        }
-
-        MR::startBck(getPlayerActor(), pAnimName, pChar2);
-
-        getPlayerActor()->setBlink(pAnimName);
-        getPlayerActor()->mMarioAnim->closeCallback();
-        getPlayerActor()->mMarioAnim->entryCallback(pAnimName);
+        getPlayerActor()->fn_803BEA60(pAnimName, pChar2);
+        getPlayerActor()->fn_803BEA80(pAnimName);
     }
 
     void changeAnimationE(const char* pAnimName, const BckCtrlData& rBckCtrlData) {
-        // unused
-        getPlayerActor();
-        if (getPlayerActor()->_B91) {
-            return;
-        }
-
-        if (getPlayerActor()->_468 == 0) {
-            getPlayerActor()->getMario()->stopAnimationUpperForce();
-        }
-
-        MR::startBck(getPlayerActor(), pAnimName);
-
-        MR::reflectBckCtrlData(getPlayerActor(), rBckCtrlData);
-
-        getPlayerActor()->setBlink(pAnimName);
-        getPlayerActor()->mMarioAnim->closeCallback();
-        getPlayerActor()->mMarioAnim->entryCallback(pAnimName);
+        getPlayerActor()->fn_803BEA70(pAnimName, &rBckCtrlData);
+        getPlayerActor()->fn_803BEAA0(pAnimName, rBckCtrlData);
     }
 
     void keepCurrentAnimation() {
@@ -783,3 +756,123 @@ namespace MarioAccess {
         }
     }
 };  // namespace MarioAccess
+
+namespace MarioAccess {
+    bool isRecovering() { return getPlayerActor()->getMario()->isStatusActive(0x13); }
+    bool isHanging() { return getPlayerActor()->getMario()->isStateHanging(); }
+
+    bool fn_803B4E40() {
+        bool result = false;
+        if (getPlayerActor()->isJumping() && getPlayerActor()->getMario()->_430 == 5) result = true;
+        return result;
+    }
+
+    // NONMATCHING: jump vector address is hoisted differently.
+    f32 fn_803B57A0() {
+        if (getPlayerActor()->getMario()->isSwimming()) {
+            return getPlayerActor()->getMario()->mSwim->mForwardSpeed;
+        }
+        if (getPlayerActor()->isJumping()) {
+            const TVec3f& jump = getPlayerActor()->getMario()->mJumpVec;
+            f32 dot = getPlayerActor()->getMario()->mFrontVec.dot(jump);
+            return dot / getPlayerActor()->mConst->getTable()->mJumpFrontSpeed;
+        }
+        return getPlayerActor()->getMario()->mWalkSpeed;
+    }
+
+    u32 fn_803B5970() { return getPlayerActor()->mHealth; }
+
+    void fn_803B59A0() {
+        if (getPlayerActor()->getMario()->isSwimming()) {
+            getPlayerActor()->getMario()->mSwim->decLife();
+            return;
+        }
+        if (getPlayerActor()->mHealth && !getPlayerActor()->_92C) {
+            getPlayerActor()->_92C = 20;
+        }
+    }
+
+    void concatWithJointMtx(TPos3f* matrix, const char* joint) {
+        getPlayerActor()->fn_803BDA20(matrix->toMtxPtr(), joint);
+    }
+
+    void hide(bool force) {
+        getPlayerActor()->_482 = true;
+        if (force) MR::forceDeleteEffectAll(getPlayerActor());
+        else MR::deleteEffectAll(getPlayerActor());
+        getPlayerActor()->updateHand();
+        getPlayerActor()->updateFace();
+    }
+
+    bool fn_803B5FE0() { return !getPlayerActor()->_482; }
+    void fn_803B6090() { getPlayerActor()->fn_803BE6D0(); }
+
+    // NONMATCHING: equivalent bit test and sensor-selection branch order.
+    void fn_803B6830() {
+        if (getPlayerActor()->getMario()->isStatusActive(0x13)
+            || getPlayerActor()->getMario()->isStatusActive(0x22)
+            || (getPlayerActor()->getMario()->_10_HIGH_WORD & 0x80000000)
+            || !getPlayerActor()->_EA4) {
+            MR::onPlayerControl(false);
+            return;
+        }
+        getPlayerActor()->_B90 = false;
+        MR::onPlayerControl(true);
+        getPlayerActor()->_EA4 = false;
+        getPlayerActor()->stopAnimation(nullptr);
+        if (getPlayerActor()->_468) {
+            HitSensor* sensor;
+            MarioActor* actor = getPlayerActor();
+            if (!actor->_468) sensor = nullptr;
+            else sensor = actor->_428[0];
+            getPlayerActor()->mMarioAnim->updateTakingAnimation(sensor);
+        }
+        getPlayerActor()->fn_803BEAC0();
+        MR::validateHitSensors(getPlayerActor());
+        getPlayerActor()->getSensor("dummy")->invalidate();
+        getPlayerActor()->_EA6 = false;
+    }
+
+    void changePlayerModeYoshi() { getPlayerActor()->setPlayerMode(0xA, false, true); }
+    void changePlayerModeCloud() { getPlayerActor()->setPlayerMode(0xC, true, true); }
+    void changePlayerModeRock() { getPlayerActor()->setPlayerMode(0xD, true, true); }
+
+    void fn_803B7070(s32 frames) {
+        if (getPlayerActor()->mPlayerMode == 4) {
+            for (s32 i = 0; i < frames; i++) getPlayerActor()->getMario()->incAirWalkTimer();
+        }
+    }
+
+    void fn_803B70E0() { getPlayerActor()->killAllFireBall(); }
+
+    bool isPowerupTransforming() {
+        MarioActor* actor = getPlayerActor();
+        bool result = false;
+        if (actor->mSuperKinokoCollected || actor->mPowerupCollected || actor->mTransforming) result = true;
+        return result;
+    }
+
+    void prepareForPositionReset() { getPlayerActor()->fn_803BE6F0(); }
+    bool fn_803B71B0() { return getPlayerActor()->fn_803BE800(); }
+
+    f32 fn_803B7240() {
+        if (isConfrontDeath()) return 200.0f;
+        if (!getPlayerActor()->isEnableNerveChange()) return 200.0f;
+        return getPlayerActor()->getMario()->_72C;
+    }
+
+    void fn_803B72A0() { getPlayerActor()->getMario()->mMovementStates_HIGH_WORD &= ~0x20000000; }
+}
+
+namespace MarioAccess {
+    bool isBury() { return getPlayerActor()->getMario()->isStateBury(); }
+    void fn_803B6010() {
+        MarioActor* actor = getPlayerActor();
+        actor->_7E2 = 1;
+        actor->mAnimationDelayE28 = 0;
+    }
+    void fn_803B6050(s32 frames) { getPlayerActor()->mAnimationDelayE28 = frames; }
+    void fn_803B7170(TVec3f* velocity) { YoshiParam::fn_8041BE00(velocity); }
+    void fn_803B71E0() { getPlayerActor()->mInputDisabled1066 = true; }
+    void fn_803B7210() { getPlayerActor()->mInputDisabled1066 = false; }
+}

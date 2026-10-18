@@ -9,6 +9,7 @@ class MarioActor;
 class XanimeResourceTable;
 class XanimePlayer;
 class HitSensor;
+class XjointTransform;
 
 class MarioAnimator {
 public:
@@ -47,6 +48,7 @@ public:
     bool isAnimationTerminate(const char*) const;
     bool isUpperAnimationActive() const;
     bool isAnimationRun(const char*, u32);
+    XjointTransform* getJointCtrl(const char*) const;
     void init();
     void update();
     void fn_803E0A60();
@@ -141,13 +143,18 @@ public:
     f32 fn_803DD530();
     void fn_803DDD80(const HitSensor*);
     void fn_803DDF60();
+    void fn_803DE880();
+    void fn_803DEC10();
+    void fn_803DEFD0(u32,TVec3f*);
+    void fn_803DFAC0();
+    void fn_803DFB70();
     const char* fn_803DF0D0() const;
     f32 fn_803DF0E0() const;
     void fn_803DF0F0();
     void fn_803DF1B0();
     void fn_803DF2D0();
     void fn_803DF8E0();
-    s32 fn_803DF9D0();
+    void fn_803DF9D0();
     bool fn_803DCB80();
     XanimePlayer* fn_803DFBF0() const;
 

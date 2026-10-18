@@ -34,6 +34,7 @@ public:
     bool vibratePatternIfNotExist(const void*, const char*);
     bool setRumblePatternIfNotExist(const void*, const RumblePattern&, bool);
     bool findRubmlePattern(const void*, s32*, s32*, s32*, const RumblePattern&);
+    bool hasRumblePattern(const void*, const char*);
 
     /* 0x04 */ WPad* mPad;
     /* 0x08 */ bool _8;

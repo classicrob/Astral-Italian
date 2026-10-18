@@ -9,8 +9,11 @@ SpkSystem::SpkSystem(JKRHeap* pHeap) : JASGlobalInstance(true), mData() {
     mHeap = pHeap;
     mMixBuffer = new (pHeap, 0) SpkMixingBuffer(pHeap);
     mSoundHolder = new (pHeap, 0) SpkSoundHolder();
-    SpkSpeakerCtrl::setup();
     SpkSpeakerCtrl::setMixingBuffer(mMixBuffer);
+}
+
+void SpkSystem::setup() {
+    SpkSpeakerCtrl::setup();
 }
 
 void SpkSystem_DUMMY() {

@@ -2,6 +2,7 @@
 #include "Game/System/WPad.hpp"
 #include "Game/System/WPadRumbleData.hpp"
 #include "Game/Util/GamePadUtil.hpp"
+#include "Game/Util/HashUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
 WPadRumble** WPadRumble::sInstanceForCallback;
@@ -157,6 +158,20 @@ void WPadRumble::updateRumble() {
             _B4 = 1800;
         }
     }
+}
+
+bool WPadRumble::hasRumblePattern(const void* pParam1, const char* pPatternName) {
+    u32 hash = MR::getHashCode(pPatternName);
+
+    for (u8 i = 0; i < ARRAY_SIZE(mChannel); i++) {
+        const RumblePattern* pPattern = mChannel[i]._0;
+
+        if (pPattern != nullptr && hash == pPattern->mHash && mChannel[i]._10 == pParam1) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 WPadRumble* WPadRumble::getRumbleInstance() const {

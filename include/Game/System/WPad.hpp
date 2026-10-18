@@ -22,6 +22,7 @@ public:
 
     void setReadInfo(WPadReadDataInfo*);
     void update();
+    void updateRumbleAndInfoChecker();
     WPadRumble* getRumbleInstance() const;
     void startLeaveWatcher();
     void stopLeaveWatcher();

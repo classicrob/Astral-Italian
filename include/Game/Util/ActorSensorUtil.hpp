@@ -350,49 +350,115 @@ namespace MR {
     HitSensor* addHitSensorAtJointNpc(LiveActor* pActor, const char* pName, const char* pJointName, u16 groupSize, f32 radius, const TVec3f& rOffset);
 };  // namespace MR
 
-// SMG2 values (core lane), derived by pairing Petari's MR:: sensor/msg helpers with the SB4E01 asm.
-// PARTIAL: names not listed here are unknown in SMG2 (Petari's numbers are WRONG for SMG2). Read the immediate from the target asm.
+// SMG2 values (core lane), derived by pairing Petari's SMG1 uses of ATYPE_/ACTMES_ with the SB4E01 asm (call args, one-line
+// helpers, compare chains, range helpers). Only names with solid evidence are listed; names not listed are unknown in SMG2
+// (Petari's numbers are WRONG for SMG2). Read the immediate from the target asm for anything else.
+// "votes: 1" entries have a single aligned-call/compare vote (checked for order consistency only).
+// Raw votes: ~/MacioGalaxy2-team/scripts/smg2_actmes_atype.json (generator: scripts/smg2_actmes_atype.py).
 enum {
     ATYPE_PLAYER = 0x1,
-    ATYPE_RIDE = 0xc,
+    ATYPE_NPC = 0x8,  // votes: 1
+    ATYPE_RIDE_START = 0xb,  // votes: 1
+    ATYPE_RIDE = 0xc,  // votes: 1
+    ATYPE_JET_TURTLE = 0x12,
+    ATYPE_JET_TURTLE_SLOW = 0x13,  // votes: 1
+    ATYPE_RIDE_END = 0x16,  // votes: 1
+    ATYPE_ENEMY_START = 0x17,  // votes: 1
     ATYPE_ENEMY = 0x18,
+    ATYPE_ENEMY_SIMPLE = 0x19,  // votes: 1
     ATYPE_ENEMY_ATTACK = 0x1a,
+    ATYPE_COCO_NUT = 0x1b,
+    ATYPE_WATER_PRESSURE_BULLET = 0x1c,  // votes: 1
+    ATYPE_BOMBHEI = 0x1d,  // votes: 1
+    ATYPE_KURIBO = 0x1f,  // votes: 1
+    ATYPE_BEGOMAN = 0x21,
+    ATYPE_KILLER_TARGET_ENEMY = 0x22,
+    ATYPE_PLAYER_AUTO_JUMP = 0x23,
+    ATYPE_PUKUPUKU = 0x27,
+    ATYPE_SAMBO_BODY = 0x2a,  // votes: 1
+    ATYPE_ENEMY_END = 0x3e,  // votes: 1
+    ATYPE_MAPOBJ_START = 0x3f,  // votes: 1
     ATYPE_MAP_OBJ = 0x40,
+    ATYPE_MAP_OBJ_SIMPLE = 0x41,
+    ATYPE_MAP_OBJ_MOVE_COLLISION = 0x42,  // votes: 1
+    ATYPE_COIN = 0x44,
+    ATYPE_COIN_RED = 0x45,  // votes: 1
+    ATYPE_STAR_PIECE = 0x46,
+    ATYPE_KINOKO_ONEUP = 0x47,  // votes: 1
+    ATYPE_SWITCH = 0x49,  // votes: 1
+    ATYPE_MORPH_ITEM = 0x4a,  // votes: 1
+    ATYPE_BREAKABLE_CAGE = 0x4c,
+    ATYPE_WATER_BAZOOKA_CAPSULE = 0x50,  // votes: 1
+    ATYPE_KEY_SWITCH_AVOID = 0x54,  // votes: 1
+    ATYPE_MAPOBJ_END = 0x59,  // votes: 1
+    ATYPE_AUTO_RUSH_OBJ_START = 0x5a,  // votes: 1
     ATYPE_BINDER = 0x5b,
     ATYPE_PRIOR_BINDER = 0x5d,
+    ATYPE_SPIN_DRIVER_BIND = 0x5e,  // votes: 1
+    ATYPE_SPIN_CANNON_BIND = 0x5f,  // votes: 1
+    ATYPE_POWER_STAR_BIND = 0x61,
+    ATYPE_WATER_PRESSURE_BULLET_BIND = 0x64,  // votes: 1
+    ATYPE_MARIO_LAUNCHER_BIND = 0x65,  // votes: 1
+    ATYPE_QUESTION_COIN_BIND = 0x66,
+    ATYPE_SCENARIO_STARTER_BIND = 0x67,  // votes: 1
+    ATYPE_AUTO_RUSH_OBJ_END = 0x69,  // votes: 1
+    ATYPE_RUSH_OBJ_START = 0x6a,  // votes: 1
+    ATYPE_RUSH_OBJ_END = 0x6f,  // votes: 1
     ATYPE_MAP_OBJ_PRESS = 0x71,
+    ATYPE_JUMP_HOLE = 0x74,  // votes: 1
+    ATYPE_SPHERE_DASH = 0x75,  // votes: 1
+    ATYPE_BALL_RAIL = 0x76,  // votes: 1
     ATYPE_EYE = 0x7a,
     ATYPE_PUSH = 0x7b,
-    ATYPE_RECEIVER = 0x7f,
+    ATYPE_MESSAGE_SENSOR = 0x7e,  // votes: 1
+    ATYPE_RECEIVER = 0x7f,  // votes: 1
 };
 
 enum {
+    ACTMES_PLAYER_ATTACK_START = 0x0,  // votes: 1
     ACTMES_PLAYER_PUNCH = 0x1,
     ACTMES_PLAYER_TRAMPLE = 0x2,
-    ACTMES_PLAYER_HIP_DROP = 0x3,
+    ACTMES_PLAYER_HIP_DROP = 0x3,  // votes: 1
     ACTMES_PLAYER_HIP_DROP_FLOOR = 0x4,
-    ACTMES_PLAYER_UPPER_PUNCH = 0x5,
+    ACTMES_PLAYER_UPPER_PUNCH = 0x5,  // votes: 1
     ACTMES_JET_TURTLE_ATTACK = 0x7,
     ACTMES_FIREBALL_ATTACK = 0xb,
     ACTMES_SEARCHLIGHT_ATTACK = 0xc,
     ACTMES_FREEZE_ATTACK = 0xd,
-    ACTMES_INVINCIBLE_ATTACK = 0xe,
+    ACTMES_INVINCIBLE_ATTACK = 0xe,  // votes: 1
     ACTMES_STAR_PIECE_ATTACK = 0xf,
+    ACTMES_IS_STAR_PIECE_REFLECT = 0x14,
+    ACTMES_IS_LOCKON_STAR_PIECE_SHOOT = 0x15,
+    ACTMES_STAR_PIECE_GIFT = 0x16,  // votes: 1
+    ACTMES_STAR_PIECE_GIFT_MAX = 0x25,  // votes: 1
+    ACTMES_PLAYER_ATTACK_END = 0x26,  // votes: 1
     ACTMES_HITMARK_EMIT = 0x27,
-    ACTMES_TAKEN = 0x2a,
-    ACTMES_PUSH = 0x33,
-    ACTMES_KICK = 0x35,
-    ACTMES_JUMP = 0x36,
-    ACTMES_TOUCHJUMP = 0x37,
-    ACTMES_AWAYJUMP = 0x39,
+    ACTMES_INVALID_HIT = 0x28,  // votes: 1
+    ACTMES_TAKEN = 0x2a,  // votes: 1
+    ACTMES_THROW = 0x2b,
+    ACTMES_DAMAGEDROP = 0x2c,
+    ACTMES_RUSHDROP = 0x2d,
+    ACTMES_HANG_CANCEL = 0x30,  // votes: 1
+    ACTMES_PUSH = 0x33,  // votes: 1
+    ACTMES_KICK = 0x35,  // votes: 1
+    ACTMES_JUMP = 0x36,  // votes: 1
+    ACTMES_TOUCHJUMP = 0x37,  // votes: 1
+    ACTMES_AWAYJUMP = 0x39,  // votes: 1
+    ACTMES_TORNADO_ATTACK = 0x3a,  // votes: 1
     ACTMES_SPIN_STORM_RANGE = 0x3c,
     ACTMES_BALL_DASH_WALL = 0x41,
     ACTMES_BALL_DASH_GROUND = 0x42,
-    ACTMES_ENEMY_ATTACK_FLIP_WEAK = 0x5b,
-    ACTMES_ENEMY_ATTACK_FLIP_WEAK_JUMP = 0x5c,
-    ACTMES_ENEMY_ATTACK_FLIP_JUMP = 0x5d,
+    ACTMES_PASS_RING = 0x4b,  // votes: 1
+    ACTMES_FOUNTAINJUMP = 0x4c,
+    ACTMES_BOMB_TERESA_TONGUE_TOUCH = 0x4f,  // votes: 1
+    ACTMES_WARP = 0x51,  // votes: 1
+    ACTMES_ENEMY_ATTACK_START = 0x59,  // votes: 1
+    ACTMES_ENEMY_ATTACK_FLIP_WEAK = 0x5b,  // votes: 1
+    ACTMES_ENEMY_ATTACK_FLIP_WEAK_JUMP = 0x5c,  // votes: 1
+    ACTMES_ENEMY_ATTACK_FLIP_JUMP = 0x5d,  // votes: 1
     ACTMES_ENEMY_ATTACK_FLIP = 0x5e,
-    ACTMES_ENEMY_ATTACK_FLIP_ROT = 0x5f,
+    ACTMES_ENEMY_ATTACK_FLIP_ROT = 0x5f,  // votes: 1
+    ACTMES_ENEMY_ATTACK_FLIP_MAXIMUM = 0x60,  // votes: 1
     ACTMES_ENEMY_ATTACK = 0x61,
     ACTMES_ENEMY_ATTACK_STRONG = 0x62,
     ACTMES_ENEMY_ATTACK_MAXIMUM = 0x63,
@@ -400,12 +466,21 @@ enum {
     ACTMES_ENEMY_ATTACK_FIRERUN = 0x66,
     ACTMES_ENEMY_ATTACK_FIRERUN_STRONG = 0x67,
     ACTMES_ENEMY_ATTACK_ELECTRIC = 0x68,
-    ACTMES_ENEMY_ATTACK_FREEZE = 0x6b,
-    ACTMES_ENEMY_ATTACK_COUNTER_SPIN = 0x6e,
-    ACTMES_ENEMY_ATTACK_COUNTER_HIPDROP = 0x6f,
+    ACTMES_ENEMY_ATTACK_FREEZE = 0x6b,  // votes: 1
+    ACTMES_ENEMY_ATTACK_CRUSH = 0x6c,  // votes: 1
+    ACTMES_ENEMY_ATTACK_COUNTER_SPIN = 0x6e,  // votes: 1
+    ACTMES_ENEMY_ATTACK_COUNTER_HIPDROP = 0x6f,  // votes: 1
     ACTMES_TO_ENEMY_ATTACK_BLOW = 0x70,
     ACTMES_TO_ENEMY_ATTACK_TRAMPLE = 0x72,
     ACTMES_TO_ENEMY_ATTACK_SHOCK_WAVE = 0x74,
+    ACTMES_ENEMY_ATTACK_END = 0x75,  // votes: 1
+    ACTMES_SUCCESS = 0x76,
+    ACTMES_FAILURE = 0x77,
+    ACTMES_GROUP_MOVE_START = 0x7a,
+    ACTMES_GROUP_MOVE_STOP = 0x7b,
+    ACTMES_GROUP_ATTACK = 0x7c,
+    ACTMES_GROUP_HIDE = 0x7e,
+    ACTMES_END_DEMO = 0x80,
     ACTMES_INHALE_BLACK_HOLE = 0x81,
     ACTMES_START_POWER_STAR_GET = 0x82,
     ACTMES_ITEM_GET = 0x83,
@@ -414,74 +489,49 @@ enum {
     ACTMES_ITEM_HIDE = 0x87,
     ACTMES_ITEM_START_MOVE = 0x8b,
     ACTMES_ITEM_END_MOVE = 0x8c,
-    ACTMES_RUSH_BEGIN = 0x92,
+    ACTMES_RUSH_BEGIN = 0x92,  // votes: 1
     ACTMES_AUTORUSH_BEGIN = 0x93,
     ACTMES_RUSH_CANCEL = 0x95,
     ACTMES_IS_RUSH_TAKEOVER = 0x9a,
-    ACTMES_UPDATE_BASEMTX = 0xa1,
+    ACTMES_SLING_SHOOT_ACTOR_HANG_START = 0x9b,  // votes: 1
+    ACTMES_SLING_SHOOT_ACTOR_HANG_END = 0x9c,  // votes: 1
+    ACTMES_SLING_SHOOT_ACTOR_APART = 0x9d,  // votes: 1
+    ACTMES_UPDATE_BASEMTX = 0xa1,  // votes: 1
+    ACTMES_DISPERSE_BOMB_TERESA = 0xa2,  // votes: 1
+    ACTMES_BREAK_POLTA_GROUND_ROCK = 0xa3,
+    ACTMES_SPHERE_PLAYER_BINDED = 0xa4,
+    ACTMES_SET_UP_JUMP_HOLE = 0xa5,
+    ACTMES_SHOOT_JUMP_HOLE = 0xa6,  // votes: 1
+    ACTMES_END_JUMP_HOLE = 0xa7,  // votes: 1
+    ACTMES_END_RAIL_DASH = 0xa8,  // votes: 1
+    ACTMES_END_BALL_RAIL = 0xa9,  // votes: 1
+    ACTMES_END_BALL_BIND = 0xaa,  // votes: 1
     ACTMES_FLOOR_TOUCH = 0xac,
-    ACTMES_WALL_TOUCH = 0xad,
-    ACTMES_CEIL_TOUCH = 0xb0,
+    ACTMES_WALL_TOUCH = 0xad,  // votes: 1
+    ACTMES_CEIL_TOUCH = 0xb0,  // votes: 1
+    ACTMES_DINO_PACKUN_BALL_ATTACK = 0xb5,
+    ACTMES_DINO_PACKUN_PUNCHED_BALL = 0xb6,  // votes: 1
+    ACTMES_DINO_PACKUN_PULLED_TAIL = 0xb7,  // votes: 1
+    ACTMES_TICO_RAIL_TOUCH = 0xca,
+    ACTMES_MAPPARTS_START_ROTATE_AT_POINT = 0xd8,
+    ACTMES_MAPPARTS_END_ROTATE_AT_POINT = 0xd9,
+    ACTMES_MAPPARTS_START_ROTATE_BETWEEN_POINTS = 0xda,
+    ACTMES_MAPPARTS_DISAPPEAR_WITH_BLINK = 0xdc,  // votes: 1
+    ACTMES_NPC_EVENT_START = 0xdd,  // votes: 1
+    ACTMES_NPC_EVENT_END = 0xde,  // votes: 1
+    ACTMES_NPC_EVENT_TALK_ENABLE = 0xdf,  // votes: 1
+    ACTMES_NPC_EVENT_TALK_DISABLE = 0xe0,  // votes: 1
+    ACTMES_NPC_TALK_NEXT = 0xe1,  // votes: 1
     ACTMES_RACE_READY = 0xee,
     ACTMES_RACE_START = 0xef,
+    ACTMES_RACE_GOAL = 0xf0,  // votes: 1
     ACTMES_RACE_RESET = 0xf1,
+    ACTMES_LAUNCHER_BREAKABLE = 0xf4,  // votes: 1
     ACTMES_PLANT_GROUP_EMIT_ITEM = 0xf5,
-    ACTMES_ENEMY_ATTACK_CRUSH = 0x6c,
-    ACTMES_DISPERSE_BOMB_TERESA = 0xa2,
-    ACTMES_BREAK_POLTA_GROUND_ROCK = 0xa3,
-    ACTMES_DINO_PACKUN_BALL_ATTACK = 0xb5,
-    ACTMES_DINO_PACKUN_PUNCHED_BALL = 0xb6,
-    ACTMES_DINO_PACKUN_PULLED_TAIL = 0xb7,
 };
 
 // SMG2 values recovered by tools/team/enummap.py (Petari enum names voted against target immediates).
 enum {
-    ATYPE_BALL_RAIL = 0x76,  // votes=1
-    ATYPE_BEGOMAN = 0x21,  // votes=1
-    ATYPE_BOMBHEI = 0x1D,  // votes=1
-    ATYPE_BREAKABLE_CAGE = 0x4C,  // votes=3
-    ATYPE_COCO_NUT = 0x1B,  // votes=6
-    ATYPE_COIN = 0x44,  // votes=2
-    ATYPE_ENEMY_SIMPLE = 0x19,  // votes=1
-    ATYPE_JET_TURTLE = 0x12,  // votes=1
-    ATYPE_JUMP_HOLE = 0x74,  // votes=1
-    ATYPE_KEY_SWITCH_AVOID = 0x54,  // votes=1
-    ATYPE_KILLER_TARGET_ENEMY = 0x22,  // votes=2
-    ATYPE_KURIBO = 0x1F,  // votes=1
-    ATYPE_MAP_OBJ_SIMPLE = 0x41,  // votes=2
-    ATYPE_MARIO_LAUNCHER_BIND = 0x65,  // votes=1
-    ATYPE_MESSAGE_SENSOR = 0x7E,  // votes=1
-    ATYPE_MORPH_ITEM = 0x4A,  // votes=1
-    ATYPE_PLAYER_AUTO_JUMP = 0x23,  // votes=3
-    ATYPE_POWER_STAR_BIND = 0x61,  // votes=7
-    ATYPE_PUKUPUKU = 0x27,  // votes=2
-    ATYPE_SAMBO_BODY = 0x2A,  // votes=1
-    ATYPE_SPHERE_DASH = 0x75,  // votes=1
-    ATYPE_SPIN_CANNON_BIND = 0x5F,  // votes=1
-    ATYPE_SPIN_DRIVER_BIND = 0x5E,  // votes=1
-    ATYPE_STAR_PIECE = 0x46,  // votes=2
-    ATYPE_SWITCH = 0x49,  // votes=1
-    ATYPE_WATER_BAZOOKA_CAPSULE = 0x50,  // votes=1
-    ATYPE_WATER_PRESSURE_BULLET = 0x1C,  // votes=1
-};
-enum {
-    ACTMES_BOMB_TERESA_TONGUE_TOUCH = 0x4F,  // votes=1
-    ACTMES_END_DEMO = 0x80,  // votes=3
-    ACTMES_FAILURE = 0x77,  // votes=1
-    ACTMES_FOUNTAINJUMP = 0x4C,  // votes=3
-    ACTMES_GROUP_ATTACK = 0x7C,  // votes=2
-    ACTMES_GROUP_HIDE = 0x7E,  // votes=2
     ACTMES_GROUP_LOD_LOW = 0x67,  // votes=1
-    ACTMES_GROUP_MOVE_START = 0x7A,  // votes=2
-    ACTMES_GROUP_MOVE_STOP = 0x7B,  // votes=3
-    ACTMES_HANG_CANCEL = 0x30,  // votes=1
-    ACTMES_IS_STAR_PIECE_REFLECT = 0x14,  // votes=3
-    ACTMES_LAUNCHER_BREAKABLE = 0xF4,  // votes=1
-    ACTMES_PASS_RING = 0x4B,  // votes=1
-    ACTMES_RACE_GOAL = 0xF0,  // votes=1
-    ACTMES_RUSHDROP = 0x2D,  // votes=1
     ACTMES_RUSH_END = 0xCC,  // votes=1
-    ACTMES_SUCCESS = 0x76,  // votes=1
-    ACTMES_TICO_RAIL_TOUCH = 0xCA,  // votes=1
-    ACTMES_WARP = 0x51,  // votes=1
 };

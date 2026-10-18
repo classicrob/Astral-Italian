@@ -9,12 +9,13 @@ class HitSensor;
 class LiveActor;
 class MarioActor;
 class NameObj;
+class Triangle;
 class XanimeResourceTable;
 
 namespace MR {
     void enablePlayerResourceFreezeIce();
     bool isOnGroundPlayer();
-    const void* getPlayerGroundingPolygon();  // returns a pointer (cmpwi r3,0 in SMG2 callers)
+    Triangle* getPlayerGroundingPolygon();
     void forceKillPlayerByAbyss();
     void forceKillPlayerByWaterOrGroundRace();
     void forceKillPlayerByGroundRace();
@@ -26,7 +27,7 @@ namespace MR {
     bool isPlayerInAreaObj(const char*);
     TVec3f* getPlayerPos();
     TVec3f* getPlayerCenterPos();
-    TVec3f* getPlayerTakePos(TVec3f*);
+    void getPlayerTakePos(TVec3f*);
     void setPlayerPos(const TVec3f&);
     void setPlayerUpperRotateY(f32);
     TVec3f* getPlayerRotate();
@@ -37,7 +38,7 @@ namespace MR {
     void setPlayerJumpVec(const TVec3f&);
     f32 getPlayerHitRadius();
 
-    TVec3f* getPlayerGravity();
+    const JGeometry::TVec3<float>* getPlayerGravity();
     void calcPlayerSpinPullVelocity(TVec3f*, const TVec3f&);
     bool checkPlayerSwingTrigger();
     f32 calcDistanceToPlayer(const TVec3f&);
@@ -46,7 +47,7 @@ namespace MR {
     void getPlayerSideVec(TVec3f*);
     void getPlayerThrowVec(TVec3f*);
     void getPlayerGroundPos(TVec3f*);
-    TVec3f* getPlayerGroundNormal();
+    const JGeometry::TVec3<float>* getPlayerGroundNormal();
     void setPlayerFrontTargetVec(const TVec3f&, s32);
     void setPlayerFrontVec(const TVec3f&, s32);
     void setPlayerSwingInhibitTimer(u16);
@@ -214,7 +215,7 @@ namespace MR {
 
     MtxPtr getPlayerBaseMtx();
 
-    MarioActor* getPlayerDemoActor();
+    LiveActor* getPlayerDemoActor();
 
     void calcPlayerJointMtx(MtxPtr, const char*);
     void concatWithPlayerJointMtx(MtxPtr, const char*);

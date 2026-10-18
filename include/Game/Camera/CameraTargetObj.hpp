@@ -135,6 +135,7 @@ public:
     }
 
     virtual Triangle* getGroundTriangle() const;
+    CubeCameraArea* getCubeCameraArea() const;
 
     /* 0x10 */ const LiveActor* mActor;
     /* 0x14 */ TVec3f mUp;
@@ -165,12 +166,15 @@ public:
     virtual bool isWaterMode() const;
     virtual bool isOnWaterSurface() const;
     virtual bool isFooFighterMode() const;
+    virtual bool isYoshiMode() const;
+    virtual bool isYoshiLightMode() const;
     virtual u32 getSpecialMode() const;
     virtual bool isCameraStateOn(u32) const;
     virtual Triangle* getGroundTriangle() const;
     virtual GravityInfo* getGravityInfo() const;
     virtual bool isDebugMode() const;
     virtual TPos3f* getMapBaseMtx() const;
+    CubeCameraArea* getCubeCameraArea() const;
 
     /* 0x10 */ const MarioActor* mActor;
     /* 0x14 */ TVec3f mSide;

@@ -14,7 +14,10 @@ public:
         mZoneID = rInfo.mZoneID;
     }
 
+    JMapIdInfo(s32, s32);
     JMapIdInfo(s32, const JMapInfoIter&);
+
+    void initialize(s32, const JMapInfoIter&);
 
     void operator=(const JMapIdInfo& rhs) {
         _0 = rhs._0;
@@ -34,6 +37,6 @@ public:
 };
 
 namespace MR {
-    JMapIdInfo& createJMapIdInfoFromGroupId(const JMapInfoIter&);
-    JMapIdInfo& createJMapIdInfoFromClippingGroupId(const JMapInfoIter&);
+    JMapIdInfo createJMapIdInfoFromGroupId(const JMapInfoIter&);
+    JMapIdInfo createJMapIdInfoFromClippingGroupId(const JMapInfoIter&);
 };  // namespace MR

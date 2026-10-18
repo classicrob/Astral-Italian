@@ -76,9 +76,7 @@ void GameDataHolder::tryOnGameEventFlag(const char* pFlagName) {
 }
 
 s32 GameDataHolder::getGameEventValue(const char* pName) const {
-    u16 value = mEventValueChecker->getValue(pName);
-
-    return value;
+    return mEventValueChecker->getValue(pName);
 }
 
 void GameDataHolder::setGameEventValue(const char* pName, u16 value) {
@@ -167,7 +165,9 @@ bool GameDataHolder::isPointCollectForLetter() const {
 }
 
 void GameDataHolder::incPlayerMissNum() {
-    s32 newValue = MR::clamp(getGameEventValue("MissNum") + 1, 0, 9999);
+    u16 missNum = mEventValueChecker->getValue("MissNum");
+    s32 clamped = MR::clamp(static_cast< s32 >(missNum), 0, 9999);
+    s32 newValue = MR::clamp(clamped + 1, 0, 9999);
 
     setGameEventValue("MissNum", newValue);
 }
@@ -242,20 +242,24 @@ void GameDataHolder::addPlayerLeft(int num) {
     mPlayerStatus->addPlayerLeft(num);
 }
 
-bool GameDataHolder::isPlayerLeftSupply() const {
-    return mPlayerStatus->isPlayerLeftSupply();
-}
-
-void GameDataHolder::offPlayerLeftSupply() {
-    mPlayerStatus->offPlayerLeftSupply();
-}
-
 s32 GameDataHolder::getStockedStarPieceNum() const {
-    return mPlayerStatus->mStockedStarPiece;
+    return mPlayerStatus->getStockedStarPieceNum();
 }
 
-void GameDataHolder::addStockedStarPiece(int num) {
-    mPlayerStatus->addStockedStarPiece(num);
+void GameDataHolder::addStockedStarPieceNum(int num) {
+    mPlayerStatus->addStockedStarPieceNum(num);
+}
+
+s32 GameDataHolder::getCumulativePlayTime() const {
+    s32 maxPlayTime = 0x0CDFD7F0;
+    return MR::clamp(mEventValueChecker->getU32Value("累積プレイ時間"), 0, maxPlayTime);
+}
+
+void GameDataHolder::incCumulativePlayTime() {
+    s32 maxPlayTime = 0x0CDFD7F0;
+    s32 playTime = MR::clamp(mEventValueChecker->getU32Value("累積プレイ時間"), 0, maxPlayTime);
+    s32 newPlayTime = MR::clamp(playTime + 1, 0, maxPlayTime);
+    mEventValueChecker->setU32Value("累積プレイ時間", newPlayTime);
 }
 
 s32 GameDataHolder::setupSpinDriverPathStorage(const char* pGalaxyName, int scenarioNo, int zoneId, int spinDriverId, f32* pDrawRange) {
@@ -280,22 +284,6 @@ void GameDataHolder::addStarPieceGivingToTicoSeed(int index, int value) {
 
 bool GameDataHolder::isCompleteMarioAndLuigi() const {
     return mUserFile->isOnCompleteEndingMarioAndLuigi();
-}
-
-bool GameDataHolder::isPassedStoryEvent(const char* pEventName) const {
-    JMapInfoIter iter = mMapInfo->findElement("name", pEventName, 0);
-
-    u32 progress = 0;
-    iter.getValue("progress", &progress);
-    return progress <= mPlayerStatus->mStoryProgress;
-}
-
-void GameDataHolder::followStoryEventByName(const char* pEventName) {
-    JMapInfoIter iter = mMapInfo->findElement("name", pEventName, 0);
-
-    u32 progress = 0;
-    iter.getValue("progress", &progress);
-    mPlayerStatus->mStoryProgress = progress;
 }
 
 void GameDataHolder::resetAllData() {

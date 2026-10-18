@@ -91,8 +91,8 @@ bool ScenarioSelectStar::isAppearEnd() const {
 }
 
 void ScenarioSelectStar::setup(s32 scenarioNo, int starCollectedStatus, const TVec3f& rPos, s32 starId) {
-    mStarCollectedStatus = starCollectedStatus;
     mScenarioNo = scenarioNo;
+    mStarCollectedStatus = starCollectedStatus;
     mBasePos.set(rPos);
     mStarId = starId;
 

@@ -123,3 +123,15 @@ bool UserFile::isViewCompleteEnding() const {
 bool UserFile::isPowerStarGetFinalChallengeGalaxy() const {
     return mGameDataHolder->isOnGameEventFlag("SpecialStarFinalChallenge");
 }
+
+bool UserFile::isView120StarsEnding() const {
+    return mGameDataHolder->isOnGameEventFlag("スター120個エンディング実行");
+}
+
+bool UserFile::hasGrandStar(int pStageIndex) const {
+    return mGameDataHolder->hasGrandStar(pStageIndex);
+}
+
+s32 UserFile::getCumulativePlayTime() const {
+    return mGameDataHolder->getCumulativePlayTime();
+}

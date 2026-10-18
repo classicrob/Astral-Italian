@@ -12,4 +12,5 @@ public:
     void playAtmosphereSE();
 
     u8 _C;
+    f32 _14;
 };

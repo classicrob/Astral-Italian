@@ -86,11 +86,19 @@ f32 SpkSoundVolume::calc(bool& kill) {
 
 SpkSound::SpkSound()
     : JSULink(this), mSoundHandle(nullptr), mWaveID(-1), mWave(nullptr), mWavePtr(0), mPadChannel(WPAD_CHAN0), _24(100), mReleaseTime(0),
-      mWaveSize(0), mLoopStartPos(-1), mLoopEndPos(-1), mState(0), _3C(-1) {
+      mWaveSize(0), mLoopStartPos(-1), mLoopEndPos(-1), mState(0), _3C(-1), _40(0) {
 }
 
 SpkSound::~SpkSound() {
     releaseHandle();
+}
+
+bool SpkSound::decrement40() {
+    if (_40 >= 1) {
+        _40--;
+        return true;
+    }
+    return false;
 }
 
 void SpkSound::update(f32 baseVolume) {
@@ -313,19 +321,22 @@ void SpkSoundHolder::framework() {
             }
 
             if (sound->getObject()->mState == SpkSound::State_LOCK) {
-                sound->getObject()->unlock();
-                continue;
+                if (sound->getObject()->_40 == 0) {
+                    sound->getObject()->unlock();
+                }
+            } else {
+                if (sound->getObject()->_3C >= 0) {
+                    sound->getObject()->_3C--;
+
+                    if (sound->getObject()->_3C <= 0) {
+                        sound->getObject()->stop(0);
+                        sound->getObject()->_3C = -1;
+                    }
+                }
             }
 
-            if (sound->getObject()->_3C < 0) {
-                continue;
-            }
-
-            sound->getObject()->_3C--;
-
-            if (sound->getObject()->_3C <= 0) {
-                sound->getObject()->stop(0);
-                sound->getObject()->_3C = -1;
+            if (sound->getObject()->_40 >= 1) {
+                sound->getObject()->decrement40();
             }
         }
         freeDeadSound(i);

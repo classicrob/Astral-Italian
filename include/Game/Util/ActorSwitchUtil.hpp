@@ -40,12 +40,12 @@ namespace MR {
     bool isOnSwitchB(const LiveActor* pActor);
     bool isOnSwitchAppear(const LiveActor* pActor);
 
-    bool onSwitchA(LiveActor* pActor);
-    bool onSwitchB(LiveActor* pActor);
-    bool onSwitchDead(LiveActor* pActor);
-    bool offSwitchA(LiveActor* pActor);
-    bool offSwitchB(LiveActor* pActor);
-    bool offSwitchDead(LiveActor* pActor);
+    void onSwitchA(LiveActor* pActor);
+    void onSwitchB(LiveActor* pActor);
+    void onSwitchDead(LiveActor* pActor);
+    void offSwitchA(LiveActor* pActor);
+    void offSwitchB(LiveActor* pActor);
+    void offSwitchDead(LiveActor* pActor);
 
     void syncStageSwitchAppear(LiveActor* pActor);
     bool useStageSwitchSyncAppear(LiveActor* pActor, const JMapInfoIter& rIter);

@@ -31,8 +31,8 @@ struct SpeakerInfo {
     WENCInfo mWENCInfo;
     bool mIsUpdated;
     bool mIsMuted;
-    u32 mState;
-    u32 mReconnectState;
+    s32 mState;
+    s32 mReconnectState;
     s32 mReconnectTime;
     s32 mUsingTimeOut;
     s32 mRadioSensitivityTimer;

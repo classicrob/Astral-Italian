@@ -112,8 +112,8 @@ namespace MR {
     bool hasAllNormalPowerStarWithoutComet(const char* pStageName);
 
     void setRaceBestTime(int raceId, s32 bestTime);
-    s32 getRaceBestTime(int raceId);
-    s32 getRaceCurrentTime();
+    unsigned long getRaceBestTime(int raceId);
+    unsigned long getRaceCurrentTime();
 
     s32 registerStorageSpinDriverPathDrawRange(const NameObj*, const JMapInfoIter&, int, f32*);  // useless
     void updateStorageSpinDriverPathDrawRange(int, f32);                                         // useless

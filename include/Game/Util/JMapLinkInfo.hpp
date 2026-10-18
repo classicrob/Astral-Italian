@@ -9,6 +9,14 @@ public:
     JMapLinkInfo();
     JMapLinkInfo(const JMapInfoIter&, bool);
 
+    bool operator==(const JMapLinkInfo& rOther) const {
+        if (!isValid() || !rOther.isValid()) {
+            return false;
+        }
+
+        return mFollowID == rOther.mFollowID && mZoneID == rOther.mZoneID && mContext == rOther.mContext;
+    }
+
     void setLinkedInfo(const JMapInfoIter&);
     bool isValid() const;
     void invalidate();

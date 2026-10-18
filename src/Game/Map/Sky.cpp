@@ -3,6 +3,7 @@
 #include "Game/LiveActor/MirrorReflectionModel.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/SpaceInner.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -21,6 +22,8 @@ namespace NrvSky {
 };  // namespace NrvSky
 
 Sky::Sky(const char* pName) : LiveActor(pName), mSpaceInner(), mReflectionModel() {
+    _94 = nullptr;
+    _98 = 0;
 }
 
 void Sky::init(const JMapInfoIter& rIter) {
@@ -71,12 +74,12 @@ void Sky::init(const JMapInfoIter& rIter) {
 }
 
 void Sky::calcAnim() {
-    mPosition.set(MR::getCamPos());
+    MR::setPosition(this, MR::getCamPos());
     LiveActor::calcAnim();
 }
 
 void Sky::initModel(const char* pModelName) {
-    initModelManagerWithAnm(pModelName, nullptr, false);
+    MR::initActor(this, pModelName, false);
 }
 
 void Sky::control() {
@@ -127,7 +130,7 @@ void ProjectionMapSky::calcAndSetBaseMtx() {
 }
 
 void ProjectionMapSky::initModel(const char* pName) {
-    initModelManagerWithAnm(pName, 0, true);
+    MR::initActor(this, pName, true);
 
     mProjmapEffectMtxSetter = MR::initDLMakerProjmapEffectMtxSetter(this);
     MR::newDifferedDLBuffer(this);

@@ -22,14 +22,14 @@ namespace MR {
 
     void addEffect(LiveActor* pActor, const char* pEffectName);
     MultiEmitter* getEffect(const LiveActor* pActor, const char* pEffectName);
-    void* getEffect(const LayoutActor* pLayout, const char* pEffectName);
+    MultiEmitter* getEffect(const LayoutActor* pLayout, const char* pEffectName);
     bool isExistEffectKeeper(const LiveActor* pActor);
     bool isExistEffectKeeper(const LayoutActor* pLayout);
 
     MultiEmitter* emitEffect(LiveActor* pActor, const char* pEffectName);
-    void emitEffectWithScale(LiveActor* pActor, const char* pEffectName, f32 scale, s32 emitterIndex);
+    MultiEmitter* emitEffectWithScale(LiveActor* pActor, const char* pEffectName, f32 scale, s32 emitterIndex);
     MultiEmitter* emitEffectWithEmitterCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterCallBackBase* mEmitterCallBack);
-    void emitEffectWithParticleCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterParticleCallBack* mParticleCallBack);
+    MultiEmitter* emitEffectWithParticleCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterParticleCallBack* mParticleCallBack);
     bool tryEmitEffect(LiveActor* pActor, const char* pEffectName);
 
     bool tryDeleteEffect(LiveActor* pActor, const char* pEffectName);
@@ -78,7 +78,6 @@ namespace MR {
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here
-class MultiEmitter;
 
 namespace MR {
     void initEffectSyncBck(LiveActor*, const char*, const char* const*);

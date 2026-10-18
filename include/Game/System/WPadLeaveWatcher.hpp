@@ -9,7 +9,7 @@ public:
     WPadLeaveWatcher(WPad*);
 
     void update();
-    void start();
+    bool start();
     void stop();
     void restart();
 

@@ -31,8 +31,8 @@ void WPadLeaveWatcher::update() {
     }
 }
 
-void WPadLeaveWatcher::start() {
-    mIsSuspend = false;
+bool WPadLeaveWatcher::start() {
+    return mStep >= 0x708;
 }
 
 void WPadLeaveWatcher::stop() {

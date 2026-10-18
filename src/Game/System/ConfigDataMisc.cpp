@@ -6,7 +6,7 @@
 #define FLAG_COMPLETE_ENDING_MARIO 0x2
 #define FLAG_COMPLETE_ENDING_LUIGI 0x4
 
-ConfigDataMisc::ConfigDataMisc() : mFlag(FLAG_LAST_LOADED_MARIO), mLastModified() {
+ConfigDataMisc::ConfigDataMisc() : mLastModified() {
     initializeData();
 }
 
@@ -57,9 +57,6 @@ u32 ConfigDataMisc::getSignature() const {
 s32 ConfigDataMisc::serialize(u8* pBuffer, u32 size) const {
     JSUMemoryOutputStream stream = JSUMemoryOutputStream(pBuffer, size);
 
-    u8 flag = mFlag;
-    stream.write(&flag, sizeof(flag));
-
     OSTime lastModified = mLastModified;
     stream.write(&lastModified, sizeof(lastModified));
 
@@ -71,22 +68,13 @@ s32 ConfigDataMisc::deserialize(const u8* pBuffer, u32 size) {
 
     JSUMemoryInputStream stream = JSUMemoryInputStream(pBuffer, size);
 
-    u8 flag;
-    stream.read(&flag, sizeof(flag));
-    mFlag = flag;
-
-    if (stream.getAvailable() == 0) {
-        mLastModified = 0;
-    } else {
-        OSTime lastModified;
-        stream.read(&lastModified, sizeof(lastModified));
-        mLastModified = lastModified;
-    }
+    OSTime lastModified;
+    stream.read(&lastModified, sizeof(lastModified));
+    mLastModified = lastModified;
 
     return 0;
 }
 
 void ConfigDataMisc::initializeData() {
-    mFlag = FLAG_LAST_LOADED_MARIO;
     mLastModified = 0;
 }

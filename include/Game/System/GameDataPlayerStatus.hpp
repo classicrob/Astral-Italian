@@ -2,6 +2,8 @@
 
 #include "Game/System/BinaryDataChunkHolder.hpp"
 
+class BinaryDataContentHeaderSerializer;
+
 class GameDataPlayerStatus : public BinaryDataChunkBase {
 public:
     /// @brief Creates a new `GameDataPlayerStatus`.
@@ -24,41 +26,52 @@ public:
     /// @brief Reads the member variables of this object from the given data buffer.
     /// @param pBuffer The pointer to the data buffer.
     /// @param size The size of the data buffer, in bytes.
-    /// @return `0` or `1` if successful, unsuccessful otherwise.
+    /// @return `0` if successful, `3` if the buffer is too small.
     virtual s32 deserialize(const u8* pBuffer, u32 size);
 
     /// @brief Initializes the member variables of this object.
     virtual void initializeData();
 
     /// @brief Returns the number of extra lives.
-    /// @return The number of extra lives.
+    /// @return The number of extra lives, clamped to `0..99`.
     s32 getPlayerLeft() const;
 
     /// @brief Adds to the number of extra lives by the given term.
     /// @param num The number of extra lives to add.
     void addPlayerLeft(int num);
 
-    /// @brief Determines if enough extra lives were earned during the previous session.
-    /// @return `true` if enough extra lives were earned, `false` otherwise.
-    bool isPlayerLeftSupply() const;
-
-    /// @brief Reduces the number of extra lives from the previous session to zero.
-    void offPlayerLeftSupply();
+    /// @brief Returns the number of universally collected Star Bits.
+    /// @return The number of Star Bits, clamped to `0..9999`.
+    s32 getStockedStarPieceNum() const;
 
     /// @brief Adds to the number of universally collected Star Bits by the given term.
     /// @param num The number of Star Bits to add.
-    void addStockedStarPiece(int num);
+    void addStockedStarPieceNum(int num);
+
+    /// @brief Returns the number of universally collected coins.
+    /// @return The number of coins, clamped to `0..9999`.
+    s32 getStockedCoinNum() const;
+
+    /// @brief Adds to the number of universally collected coins, awarding an extra life per 100 coins.
+    /// @param num The number of coins to add.
+    /// @return The change in the number of extra lives.
+    s32 addStockedCoinNum(int num);
+
+    /* 0x04 */ BinaryDataContentHeaderSerializer* mHeaderSerializer;
 
     /// @brief The number of extra lives.
-    /* 0x04 */ u16 mPlayerLeft;
+    /* 0x08 */ u8 mPlayerLeft;
 
     /// @brief The number of universally collected Star Bits.
-    /* 0x08 */ u32 mStockedStarPiece;
+    /* 0x0A */ u16 mStockedStarPiece;
 
-    /// @brief TODO.
-    /* 0x0C */ u8 mStoryProgress;
+    /// @brief The number of universally collected coins.
+    /* 0x0C */ u16 mStockedCoin;
 
-private:
-    /// @brief The number of extra lives from the previous session.
-    /* 0x0E */ u16 mPlayerLeftSupply;
+    /// @brief The universally collected coin count at which the last extra life was awarded.
+    /* 0x0E */ u16 mLast1upCoinNum;
+
+    /* 0x10 */ u8 mFlag;
+
+    /* 0x14 */ u32 mUnknown14;
 };

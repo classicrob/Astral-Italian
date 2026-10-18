@@ -1,5 +1,6 @@
 #include "Game/LiveActor/LodCtrl.hpp"
 #include "Game/LiveActor/ActorLightCtrl.hpp"
+#include "Game/LiveActor/ClippingDirector.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
@@ -9,7 +10,31 @@
 #include "Game/Util/ModelUtil.hpp"
 #include <cstdio>
 
-// LodCtrl::LodCtrl
+namespace {
+    const bool def = false;
+}
+
+// 0x8/0xC are LiveActor* in the target (_8, mActor); header types them as ModelObj*, so the actor is cast on store
+LodCtrl::LodCtrl(LiveActor* pActor, const JMapInfoIter& rIter) {
+    mDistToMiddle = 2000.0f;
+    mDistToLow = 3000.0f;
+    mCurActiveModel = reinterpret_cast< ModelObj* >(pActor);
+    mHighModel = reinterpret_cast< ModelObj* >(pActor);
+    mMiddleModel = nullptr;
+    mLowModel = nullptr;
+    _18 = 0;
+    _19 = 0;
+    _1A = 1;
+    mDistCameraCalc = false;
+    mViewGroupID = -1;
+    mActorLightCtrl = nullptr;
+    _1C = &def;
+    _20 = &def;
+    _24 = &def;
+    _28 = &def;
+    MR::getClippingDirector()->entryLodCtrl(this, rIter);
+    mActorLightCtrl = mHighModel->mActorLightCtrl;
+}
 
 void LodCtrl::offSyncShadowHost() {
     MR::offShadowVisibleSyncHostAll(mHighModel);

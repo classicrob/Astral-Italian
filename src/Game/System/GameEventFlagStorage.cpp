@@ -3,10 +3,12 @@
 #include "Game/System/GameEventFlagTable.hpp"
 #include "Game/Util/BitArray.hpp"
 #include "Game/Util/HashUtil.hpp"
+#include "Game/Util/SingletonHolder.hpp"
 #include <JSystem/JSupport/JSUMemoryInputStream.hpp>
 #include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
 
-GameEventFlagStorage::GameEventFlagStorage() : mFlagBitArray(nullptr) {
+GameEventFlagStorage::GameEventFlagStorage() : mUnk04(nullptr), mFlagBitArray(nullptr) {
+    SingletonHolder< GameEventFlagTableInstance >::init();
     mFlagBitArray = new MR::BitArray(GameEventFlagTable::getTableSize());
 }
 

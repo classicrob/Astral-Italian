@@ -176,14 +176,11 @@ namespace MR {
     }
 
     bool isNearPlayerHorizontal(const LiveActor* pActor, f32 distance) {
-        TVec3f stack_14;
         if (isPlayerHidden()) {
             return false;
         }
 
-        TVec3f stack_8 = pActor->mPosition - *MR::getPlayerPos();
-        f32 f1 = vecKillElement(stack_8, pActor->mGravity, &stack_14);
-        return (stack_14.squared() < distance * distance);
+        return calcDistanceToPlayerH(pActor) < distance;
     }
 
     void calcFrontVec(TVec3f* pFrontVec, const LiveActor* pActor) {
@@ -1004,7 +1001,7 @@ namespace MR {
 
     bool sendMsgPushAndKillVelocityToTarget(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
         if (sendMsgPush(pSensor1, pSensor2)) {
-            TVec3f stack_8 = pSensor2->mPosition - pSensor1->mPosition;
+            TVec3f stack_8 = *MR::getSensorPos(pSensor2) - *MR::getSensorPos(pSensor1);
             normalizeOrZero(&stack_8);
             if (pActor->mVelocity.dot(stack_8) < 0.0f) {
                 TVec3f* pVelocity = &pActor->mVelocity;
@@ -1018,7 +1015,7 @@ namespace MR {
     }
 
     void addVelocityFromPush(LiveActor* pActor, f32 a2, HitSensor* pSensor1, HitSensor* pSensor2) {
-        TVec3f stack_14 = pSensor2->mPosition - pSensor1->mPosition;
+        TVec3f stack_14 = *MR::getSensorPos(pSensor2) - *MR::getSensorPos(pSensor1);
         if (a2 < (pActor->mVelocity).dot(-pActor->mGravity)) {
             vecKillElement(stack_14, pActor->mGravity, &stack_14);
         }
@@ -1028,7 +1025,7 @@ namespace MR {
     }
 
     void addVelocityFromPushHorizon(LiveActor* pActor, f32 speed, HitSensor* pSensor1, HitSensor* pSensor2) {
-        TVec3f stack_8 = pSensor2->mPosition - pSensor1->mPosition;
+        TVec3f stack_8 = *MR::getSensorPos(pSensor2) - *MR::getSensorPos(pSensor1);
         vecKillElement(stack_8, pActor->mGravity, &stack_8);
         stack_8.setLength(speed);
         (pActor->mVelocity).add(stack_8);

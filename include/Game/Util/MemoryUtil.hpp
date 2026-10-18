@@ -17,6 +17,15 @@ namespace MR {
         /* 0x00 */ JKRHeap* _0;
     };
 
+    class NewDeleteAllocator {
+    public:
+        static void* alloc(MEMAllocator* pAllocator, u32 size);
+        static void free(MEMAllocator* pAllocator, void* pPtr);
+
+        static MEMAllocatorFunc sAllocatorFunc;
+        static MEMAllocator sAllocator;
+    };
+
     JKRHeap* getCurrentHeap();
     JKRExpHeap* getStationedHeapNapa();
     JKRExpHeap* getStationedHeapGDDR3();

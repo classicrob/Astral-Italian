@@ -2,6 +2,7 @@
 #include "Game/System/FindingLuigiEventScheduler.hpp"
 #include "Game/Util/HashUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
+#include <cstdio>
 #include <JSystem/JSupport/JSUMemoryInputStream.hpp>
 #include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
 
@@ -49,6 +50,54 @@ u32 GameEventValueChecker::getValue(const char* pName) const {
 
 void GameEventValueChecker::setValue(const char* pName, u16 value) {
     mValues[findIndex(pName)] = value;
+}
+
+u32 GameEventValueChecker::getU32Value(const char* pName) const {
+    char hiName[128];
+    snprintf(hiName, sizeof(hiName), "%s/hi", pName);
+    u16 hi = getValue(hiName);
+
+    char loName[128];
+    snprintf(loName, sizeof(loName), "%s/lo", pName);
+    u16 lo = getValue(loName);
+
+    return hi << 16 | lo;
+}
+
+void GameEventValueChecker::setU32Value(const char* pName, u32 value) {
+    char hiName[128];
+    snprintf(hiName, sizeof(hiName), "%s/hi", pName);
+    setValue(hiName, value >> 16);
+
+    char loName[128];
+    snprintf(loName, sizeof(loName), "%s/lo", pName);
+    setValue(loName, value);
+}
+
+u16 GameEventValueChecker::getIndexedValue(const char* pName, s32 index) const {
+    char name[128];
+    snprintf(name, sizeof(name), "%s/%d", pName, index);
+    return mValues[findIndex(name)];
+}
+
+void GameEventValueChecker::setIndexedValue(const char* pName, s32 index, u16 value) {
+    char name[128];
+    snprintf(name, sizeof(name), "%s/%d", pName, index);
+    mValues[findIndex(name)] = value;
+}
+
+bool GameEventValueChecker::isOnIndexedBit(const char* pName, s32 bit) const {
+    char name[128];
+    snprintf(name, sizeof(name), "%s/%01d", pName, bit / 16);
+    u16 value = mValues[findIndex(name)];
+    return (value & 1 << (bit % 16)) != 0;
+}
+
+void GameEventValueChecker::onIndexedBit(const char* pName, s32 bit) {
+    char name[128];
+    snprintf(name, sizeof(name), "%s/%01d", pName, bit / 16);
+    s32 idx = findIndex(name);
+    mValues[idx] = mValues[idx] | 1 << (bit % 16);
 }
 
 u32 GameEventValueChecker::makeHeaderHashCode() const {

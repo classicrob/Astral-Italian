@@ -1,3 +1,4 @@
+#pragma auto_inline off
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/HitSensorInfo.hpp"
@@ -171,11 +172,6 @@ namespace MR {
         return MR::addHitSensorCallback(pActor, pName, 0x7A, a4, radius);
     }
 
-    HitSensor* addBodyMessageSensor(LiveActor* pActor, u32 type) __attribute__((never_inline)) {
-        TVec3f offs(0.0f, 0.0f, 0.0f);
-        return pActor->mSensorKeeper->add("Body", type, 0, 0.0f, pActor, offs)->mSensor;
-    }
-
     HitSensor* addBodyMessageSensorReceiver(LiveActor* pActor) {
         return MR::addBodyMessageSensor(pActor, 0x7F);
     }
@@ -190,6 +186,11 @@ namespace MR {
 
     HitSensor* addBodyMessageSensorEnemy(LiveActor* pActor) {
         return MR::addBodyMessageSensor(pActor, 0x18);
+    }
+
+    NO_INLINE HitSensor* addBodyMessageSensor(LiveActor* pActor, u32 type) {
+        TVec3f offs(0.0f, 0.0f, 0.0f);
+        return pActor->mSensorKeeper->add("Body", type, 0, 0.0f, pActor, offs)->mSensor;
     }
 
     HitSensor* addMessageSensorReceiver(LiveActor* pActor, const char* pName) {
@@ -237,7 +238,7 @@ namespace MR {
     }
 
     void setSensorPos(HitSensor* pSensor, const TVec3f& rPos) {
-        pSensor->mPosition.set< f32 >(rPos);
+        pSensor->mPosition.set(rPos);
     }
 
     void setSensorPos(LiveActor* pActor, const char* pName, const TVec3f& rPos) {
@@ -253,8 +254,7 @@ namespace MR {
     }
 
     f32 getSensorRadius(LiveActor* pActor, const char* pName) {
-        HitSensorInfo* info = pActor->mSensorKeeper->getSensorInfo(pName);
-        return getSensorRadius(info->mSensor);
+        return getSensorRadius(pActor->mSensorKeeper->getSensorInfo(pName)->mSensor);
     }
 
     void scaleAllSensorRadius(LiveActor* pActor, f32 radius) {
@@ -365,11 +365,13 @@ namespace MR {
     }
 
     bool isSensorRide(const HitSensor* pSensor) {
-        if (pSensor->mType < 0xB && pSensor->mType > 0x16) {
-            return true;
+        if (pSensor->mType <= 0xB) {
+            return false;
         }
-
-        return false;
+        if (pSensor->mType >= 0x16) {
+            return false;
+        }
+        return true;
     }
 
     /* ... */
@@ -425,7 +427,7 @@ namespace MR {
     /* ... */
 
     bool sendArbitraryMsg(u32 msg, HitSensor* a2, HitSensor* a3) {
-        return a3->receiveMessage(msg, a2);
+        return a2->receiveMessage(msg, a3);
     }
 
     bool sendMsgPush(HitSensor* a1, HitSensor* a2) {

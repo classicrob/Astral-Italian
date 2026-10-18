@@ -66,11 +66,11 @@ void EffectSystem::forceDeleteSingleEmitter(SingleEmitter* pSingleEmitter) const
     }
 }
 
-void EffectSystem::createSingleEmitter(SingleEmitter* pSingleEmitter, MultiEmitterCallBackBase* pCallBack,
+bool EffectSystem::createSingleEmitter(SingleEmitter* pSingleEmitter, MultiEmitterCallBackBase* pCallBack,
                                        MultiEmitterParticleCallBack* pParticleCallBack) {
     if (pSingleEmitter->isValid()) {
         if (!pSingleEmitter->isOneTime()) {
-            return;
+            return false;
         }
 
         pSingleEmitter->unlink();
@@ -89,6 +89,8 @@ void EffectSystem::createSingleEmitter(SingleEmitter* pSingleEmitter, MultiEmitt
             pEmitter->mEmitter->mpPtclCallBack = pParticleCallBack;
         }
     }
+
+    return true;
 }
 
 namespace MR {
@@ -101,7 +103,7 @@ EffectSystem::~EffectSystem() {
 }
 
 void EffectSystem::entry(ParticleResourceHolder* pResourceHolder, u32 particleCount, u32 emitterCount) {
-    mEmitterManager = new JPAEmitterManager(particleCount, emitterCount, MR::getCurrentHeap(), 9, 1);
+    mEmitterManager = new JPAEmitterManager(particleCount, emitterCount, MR::getCurrentHeap(), 10, 1);
     mEmitterManager->entryResourceManager(pResourceHolder->mResourceMgr, 0);
     mEmitterHolder = new ParticleEmitterHolder(this, emitterCount);
     pResourceHolder->swapTexture(MR::getScreenResTIMG(), "IndDummy");

@@ -25,6 +25,8 @@ public:
 
     /* 0x8C */ SpaceInner* mSpaceInner;
     /* 0x90 */ MirrorReflectionModel* mReflectionModel;
+    /* 0x94 */ void* _94;
+    /* 0x98 */ u32 _98;
 };
 
 class ProjectionMapSky : public Sky {
@@ -34,5 +36,5 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual void initModel(const char*);
 
-    /* 0x94 */ ProjmapEffectMtxSetter* mProjmapEffectMtxSetter;
+    /* 0x9C */ ProjmapEffectMtxSetter* mProjmapEffectMtxSetter;
 };

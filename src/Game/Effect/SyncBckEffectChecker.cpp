@@ -3,7 +3,8 @@
 #include "Game/Effect/SyncBckEffectInfo.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-SyncBckEffectChecker::SyncBckEffectChecker(XanimePlayer* pPlayer) : mPlayer(pPlayer), mPrevFrame(), mIsReset(), mCurrentBckName(), mPrevBckName() {
+SyncBckEffectChecker::SyncBckEffectChecker(XanimePlayer* pPlayer, s32 index)
+    : mPlayer(pPlayer), mIndex(index), mPrevFrame(), mIsReset(), mIsCreateEnabled(), mCurrentBckName(), mPrevBckName(), _18(), _1C() {
 }
 
 void SyncBckEffectChecker::updateBefore() {
@@ -20,13 +21,16 @@ void SyncBckEffectChecker::updateBefore() {
 
 void SyncBckEffectChecker::updateAfter() {
     mPrevBckName = mCurrentBckName;
+    _1C = _18;
     mIsReset = false;
+    mIsCreateEnabled = false;
     mPrevFrame = mPlayer->getFrameCtrl()->getFrame();
 }
 
 void SyncBckEffectChecker::reset() {
-    mIsReset = true;
     mPrevFrame = 0.0f;
+    mIsCreateEnabled = true;
+    mIsReset = true;
 }
 
 bool SyncBckEffectChecker::isCreate(const SyncBckEffectInfo* pInfo, bool checkFrame) const {

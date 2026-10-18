@@ -11,7 +11,7 @@ namespace MR {
     s32 getCorePadEnablePastCount(s32);
     bool isCorePadPointInScreen(s32);
     f32 getCorePadDistanceToDisplay(s32);
-    bool getCorePadAcceleration(TVec3f*, s32);
+    void getCorePadAcceleration(TVec3f*, s32);
 
     bool testCorePadButtonUp(s32);
     bool testCorePadButtonDown(s32);
@@ -48,7 +48,7 @@ namespace MR {
     f32 getSubPadStickY(s32);
     bool testSubPadStickTriggerLeft(s32);
     bool testSubPadStickTriggerRight(s32);
-    bool getSubPadAcceleration(TVec3f*, s32);
+    void getSubPadAcceleration(TVec3f*, s32);
     bool isSubPadSwing(s32);
     bool isPadSwing(s32);
     bool testSystemPadTriggerDecide();
@@ -76,8 +76,8 @@ namespace MR {
     void calcWorldStickDirectionXZ(TVec3f*, s32);
 
     u32 getWPadMaxCount();
-    s32 isConnectedWPad(s32);
-    s32 isOperatingWPad(s32);
+    bool isConnectedWPad(s32);
+    bool isOperatingWPad(s32);
 };  // namespace MR
 
 class WPadRumble;

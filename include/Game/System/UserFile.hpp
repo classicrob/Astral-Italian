@@ -35,6 +35,9 @@ public:
     bool isViewNormalEnding() const;
     bool isViewCompleteEnding() const;
     bool isPowerStarGetFinalChallengeGalaxy() const;
+    bool isView120StarsEnding() const;
+    bool hasGrandStar(int) const;
+    s32 getCumulativePlayTime() const;
 
     /* 0x00 */ GameDataHolder* mGameDataHolder;
     /* 0x04 */ ConfigDataHolder* mConfigDataHolder;

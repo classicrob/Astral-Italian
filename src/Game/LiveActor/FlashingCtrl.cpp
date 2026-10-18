@@ -1,5 +1,6 @@
 #include "Game/LiveActor/FlashingCtrl.hpp"
 #include "Game/Scene/SceneFunction.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
@@ -11,7 +12,9 @@ FlashingCtrl::FlashingCtrl(LiveActor* pActor, bool toggleDraw) : NameObj("点滅
     mOverrideInterval = 0;
     mTimer = 0;
     mFlashStartTime = 0;
-    MR::connectToScene(this, MR::MovementType_MapObj, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);
+    mIsOffPhase = false;
+    // target passes movement type 0x21 here (our enum names 0x21 Environment, MapObj is 0x22): check with enums
+    MR::connectToScene(this, static_cast< MR::MovementType >(0x21), MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);
 }
 
 void FlashingCtrl::movement() {
@@ -71,8 +74,14 @@ void FlashingCtrl::updateFlashing() {
     if (mToggleDraw) {
         if (isNowOn()) {
             MR::offEntryDrawBuffer(mActor);
+
+            if (mIsOffPhase) {
+                MR::startActionSound(mActor, "Blink");
+                mIsOffPhase = false;
+            }
         } else {
             MR::onEntryDrawBuffer(mActor);
+            mIsOffPhase = true;
         }
     }
 }

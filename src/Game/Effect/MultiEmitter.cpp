@@ -225,7 +225,9 @@ void MultiEmitter::stopEmitterOnClipped() {
 
 void MultiEmitter::playEmitterOffClipped() {
     if (isFlagOn(JPAEmtrStts_FirstEmit)) {
-        create(MR::getEffectSystem());
+        if (_24 == nullptr) {
+            create(MR::getEffectSystem());
+        }
     } else if (_24 != nullptr) {
         playCalcEmitter(-1);
         playDrawParticle(-1);

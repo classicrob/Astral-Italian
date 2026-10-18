@@ -32,10 +32,16 @@ CameraTargetObj* CameraTripodPlanet::calc() {
     MR::normalize(&rotUp);
 
     TVec3f rotFront = mAxis;
+    if (MR::isNearZero(rotFront)) {
+        return nullptr;
+    }
     MR::normalize(&rotFront);
     rotFront.negate();
 
     TVec3f rotSide = rotUp.cross(rotFront);
+    if (MR::isNearZero(rotSide)) {
+        return nullptr;
+    }
     MR::normalize(&rotSide);
 
     rotFront.cross(rotSide, rotUp);

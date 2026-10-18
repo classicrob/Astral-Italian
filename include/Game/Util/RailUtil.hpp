@@ -36,20 +36,20 @@ namespace MR {
     void setRailDirectionCloseToNearestPos(LiveActor*, const TVec3f&);
     void reverseRailDirection(LiveActor*);
     f32 calcMovingDirectionAlongRail(LiveActor*, TVec3f*, const TVec3f&, f32, bool, bool*);  // returns f32 in SMG2 (Hanachan)
-    void calcMovingDirectionAlongRailH(LiveActor*, TVec3f*, const TVec3f&, f32, bool*);
+    float calcMovingDirectionAlongRailH(LiveActor*, TVec3f*, const TVec3f&, f32, bool*);
     void calcRailClippingInfo(TVec3f*, f32*, const LiveActor*, f32, f32);
     void initAndSetRailClipping(TVec3f*, LiveActor*, f32, f32);
     f32 calcNearestRailCoord(const LiveActor*, const TVec3f&);
     f32 calcNearestRailPos(TVec3f*, const LiveActor*, const TVec3f&);
-    void calcNearestRailDirection(TVec3f*, const LiveActor*, const TVec3f&);
-    void calcNearestRailPosAndDirection(TVec3f*, TVec3f*, const LiveActor*, const TVec3f&);
+    float calcNearestRailDirection(TVec3f*, const LiveActor*, const TVec3f&);
+    f32 calcNearestRailPosAndDirection(TVec3f*, TVec3f*, const LiveActor*, const TVec3f&);
 
     // Need TBox
     // void calcBoundingBox(const LiveActor*, TBox3f*, f32);
 
     f32 calcDifferenceRailCoord(const LiveActor*, f32, f32);
     f32 calcDifferenceRailCoord(const LiveActor*, f32);
-    void calcDistanceHorizonToCurrentPos(const LiveActor*);
+    float calcDistanceHorizonToCurrentPos(const LiveActor*);
     void calcRailPosAtCoord(TVec3f*, const LiveActor*, f32);
     void calcRailPosFrontCoord(TVec3f*, const LiveActor*, f32);
     void calcRailDirection(TVec3f*, const LiveActor*);

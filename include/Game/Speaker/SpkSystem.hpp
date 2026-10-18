@@ -14,6 +14,7 @@ public:
     void framework();
     void startSound(s32, s32, SpkSoundHandle*);
     static void newSoundMemPool(s32);
+    static void setup();
     static void connect(s32);
     static void disconnect(s32);
     static void reconnect(s32);

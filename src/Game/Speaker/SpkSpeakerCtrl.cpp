@@ -134,7 +134,9 @@ void SpkSpeakerCtrl::retryConnection(s32 padChannel) {
 }
 
 void SpkSpeakerCtrl::reconnect(s32 padChannel) {
-    if (sSpeakerInfo[padChannel].mIsConnected) {
+    if (!sSpeakerInfo[padChannel].mIsConnected) {
+        sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_ON;
+    } else {
         sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_OFF;
     }
 }
@@ -148,28 +150,26 @@ void SpkSpeakerCtrl::framework() {
 }
 
 void SpkSpeakerCtrl::reconnectProcess(s32 padChannel) {
-    if (sSpeakerInfo[padChannel].mIsConnected) {
-        switch (sSpeakerInfo[padChannel].mReconnectState) {
-        case SpeakerInfo::Reconnect_NONE:
-            break;
-        case SpeakerInfo::Reconnect_OFF:
-            SpkSpeakerCtrl::setSpeakerOff(padChannel);
-            sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_WAIT;
-            sSpeakerInfo[padChannel].mReconnectTime = 20;
-            break;
-        case SpeakerInfo::Reconnect_WAIT:
-            sSpeakerInfo[padChannel].mReconnectTime--;
+    switch (sSpeakerInfo[padChannel].mReconnectState) {
+    case SpeakerInfo::Reconnect_NONE:
+        break;
+    case SpeakerInfo::Reconnect_OFF:
+        SpkSpeakerCtrl::setSpeakerOff(padChannel);
+        sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_WAIT;
+        sSpeakerInfo[padChannel].mReconnectTime = 20;
+        break;
+    case SpeakerInfo::Reconnect_WAIT:
+        sSpeakerInfo[padChannel].mReconnectTime--;
 
-            if (sSpeakerInfo[padChannel].mReconnectTime <= 0) {
-                sSpeakerInfo[padChannel].mReconnectTime = -1;
-                sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_ON;
-            }
-            break;
-        case SpeakerInfo::Reconnect_ON:
-            SpkSpeakerCtrl::setSpeakerOn(padChannel);
-            sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_NONE;
-            break;
+        if (sSpeakerInfo[padChannel].mReconnectTime <= 0) {
+            sSpeakerInfo[padChannel].mReconnectTime = -1;
+            sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_ON;
         }
+        break;
+    case SpeakerInfo::Reconnect_ON:
+        SpkSpeakerCtrl::setSpeakerOn(padChannel);
+        sSpeakerInfo[padChannel].mReconnectState = SpeakerInfo::Reconnect_NONE;
+        break;
     }
 }
 

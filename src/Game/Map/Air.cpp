@@ -2,6 +2,7 @@
 #include "Game/LiveActor/MaterialCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
@@ -11,6 +12,14 @@
 #include "Game/Util/ObjUtil.hpp"
 
 namespace NrvAir {
+    class HostTypeWait : public Nerve {
+    public:
+        virtual void execute(Spine*) const {
+        }
+
+        static HostTypeWait sInstance;
+    };
+    HostTypeWait HostTypeWait::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(HostTypeIn, Air, In);
     NEW_NERVE(HostTypeOut, Air, Out);
 };  // namespace NrvAir
@@ -26,8 +35,9 @@ void Air::init(const JMapInfoIter& rIter) {
     const char* object_name = 0;
     MR::getObjectName(&object_name, rIter);
     initModel(object_name);
-    MR::connectToSceneAir(this);
-    MR::useStageSwitchReadA(this, rIter);
+    connectToScene();
+    MR::initUseStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadB(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &mDistance);
     s32 arg_1 = -1;
     MR::getJMapInfoArg1NoInit(rIter, &arg_1);
@@ -64,6 +74,12 @@ void Air::init(const JMapInfoIter& rIter) {
 void Air::appear() {
     LiveActor::appear();
 
+    if (isNerve(GET_NERVE(Air, HostTypeWait))) {
+        MR::tryStartAllAnim(this, "Appear");
+        MR::setAllAnimFrameAtEnd(this, "Appear");
+        return;
+    }
+
     f32 val = 100.0f * mDistance;
     f32 dist = MR::calcDistanceToPlayer(this);
 
@@ -88,7 +104,7 @@ bool Air::isDrawing() const {
 }
 
 void Air::initModel(const char* pModelName) {
-    initModelManagerWithAnm(pModelName, 0, false);
+    MR::initActor(this, pModelName, false);
 }
 
 bool Air::tryChange() {
@@ -127,7 +143,7 @@ void Air::exeIn() {
     if (!isCameraNotEnd) {
         tryChange();
         f32 val = (100.0f * (20.0f + mDistance));
-        if (val < MR::calcDistanceToPlayer(this)) {
+        if (val < MR::calcDistanceToPlayer(this) || (MR::isValidSwitchB(this) && MR::isOnSwitchB(this))) {
             MR::tryStartAllAnim(this, "Disappear");
             setNerve(GET_NERVE(Air, HostTypeOut));
         }
@@ -147,9 +163,11 @@ void Air::exeOut() {
         f32 distMult = (100.0f * mDistance);
 
         if (MR::calcDistanceToPlayer(this) < distMult) {
-            MR::showModel(this);
-            MR::tryStartAllAnim(this, "Appear");
-            setNerve(GET_NERVE(Air, HostTypeIn));
+            if (!MR::isValidSwitchB(this) || !MR::isOnSwitchB(this)) {
+                MR::showModel(this);
+                MR::tryStartAllAnim(this, "Appear");
+                setNerve(GET_NERVE(Air, HostTypeIn));
+            }
         }
     }
 }
@@ -158,7 +176,7 @@ ProjectionMapAir::ProjectionMapAir(const char* pName) : Air(pName) {
 }
 
 void ProjectionMapAir::initModel(const char* pModelName) {
-    initModelManagerWithAnm(pModelName, nullptr, true);
+    MR::initActor(this, pModelName, true);
     ProjmapEffectMtxSetter* mtxSetter = MR::initDLMakerProjmapEffectMtxSetter(this);
     MR::newDifferedDLBuffer(this);
     mtxSetter->updateMtxUseBaseMtx();
@@ -168,11 +186,22 @@ void Air::setFarClipping() {
     MR::setClippingFarMax(this);
 }
 
+void Air::connectToScene() {
+    MR::connectToSceneAir(this);
+}
+
 AirFar100m::AirFar100m(const char* pName) : Air(pName) {
 }
 
 void AirFar100m::setFarClipping() {
     MR::setClippingFar100m(this);
+}
+
+AfterMapObjDrawAir::AfterMapObjDrawAir(const char* pName) : Air(pName) {
+}
+
+void AfterMapObjDrawAir::connectToScene() {
+    MR::connectToScene(this, 0x23, 5, 0x14, -1);
 }
 
 PriorDrawAir::PriorDrawAir(const char* pName) : Air(pName) {

@@ -5,9 +5,9 @@
 class GlobalGravityObj;
 class PlanetGravity;
 
-class GraviryFollower : public BaseMatrixFollower {
+class GravityFollower : public BaseMatrixFollower {
 public:
-    GraviryFollower(GlobalGravityObj* pGravityObj, const JMapInfoIter& rIter);
+    GravityFollower(GlobalGravityObj* pGravityObj, const JMapInfoIter& rIter);
 
     virtual void setGravityFollowHost(const NameObj* pHost);
     virtual void update();

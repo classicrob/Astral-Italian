@@ -13,7 +13,7 @@ public:
     virtual void calcViewAndEntry() override;
     virtual void calcAndSetBaseMtx() override;
 
-    const LiveActor* _8C;
-    MtxPtr _90;
-    u8 _94;
+    const LiveActor* _90;
+    MtxPtr _94;
+    u8 _98;
 };

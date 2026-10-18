@@ -10,6 +10,8 @@
 #include "Game/System/WPadRumble.hpp"
 #include "Game/System/WPadStick.hpp"
 
+extern "C" s32 KPADReadEx(s32, KPADStatus[], u32, s32*);
+
 WPad::WPad(s32 channel)
     : mChannel(channel), mReadInfo(), mButton(), mPointer(), mCorePadAccel(), mCorePadSwing(), _18(), _1C(), mStick(), mSubPadAccel(), mSubPadSwing(),
       mLeaveWatcher(), mInfoChecker(), _34(true), mIsConnected(), mIsSubPadConnected() {
@@ -52,6 +54,12 @@ void WPad::update() {
     mInfoChecker->update();
 
     _34 = true;
+}
+
+void WPad::updateRumbleAndInfoChecker() {
+    _18->update();
+    _1C->update();
+    mInfoChecker->update();
 }
 
 WPadRumble* WPad::getRumbleInstance() const {
@@ -145,10 +153,12 @@ bool MR::isDeviceFreeStyle(const KPADStatus* pStatus) {
     return pStatus != nullptr && pStatus->wpad_err == WPAD_ERR_NONE && pStatus->dev_type == WPAD_DEV_FREESTYLE;
 }
 
+// NONMATCHING: KPADReadEx error-check logic matches, but the status array and error local sit at different stack offsets (target frame 0x110, ours 0xA0).
 void MR::getPadDataForExceptionNoInit(u32 chan, u32* pHold, u32* pTrigger) {
     KPADStatus status[1];
 
-    if (KPADRead(chan, status, ARRAY_SIZE(status)) <= 0) {
+    s32 error = 0;
+    if (KPADReadEx(chan, status, ARRAY_SIZE(status), &error) <= 0 || error != 0) {
         return;
     }
 

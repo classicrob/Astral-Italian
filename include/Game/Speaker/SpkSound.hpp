@@ -63,6 +63,7 @@ public:
     bool start(s32, s32);
     void unlock();
     bool setWaveData(s32);
+    bool decrement40();
 
     bool isLoopValid() const {
         return mLoopStartPos >= 0 && mLoopEndPos > mLoopStartPos;
@@ -80,7 +81,8 @@ public:
     /* 0x34 */ s32 mLoopEndPos;
     /* 0x38 */ s32 mState;
     /* 0x3C */ s32 _3C;
-    /* 0x40 */ SpkSoundVolume mVolume;
+    /* 0x40 */ s32 _40;
+    /* 0x44 */ SpkSoundVolume mVolume;
 };
 
 class SpkSoundHolder : JASGlobalInstance< SpkSoundHolder > {

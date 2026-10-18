@@ -8,6 +8,7 @@ public:
 
     virtual void init(const JMapInfoIter&);
     virtual void appear();
+    virtual void connectToScene();
     virtual void initModel(const char*);
     virtual void setFarClipping();
 
@@ -35,6 +36,13 @@ public:
     ProjectionMapAir(const char*);
 
     virtual void initModel(const char*);
+};
+
+class AfterMapObjDrawAir : public Air {
+public:
+    AfterMapObjDrawAir(const char*);
+
+    virtual void connectToScene();
 };
 
 class PriorDrawAir : public Air {

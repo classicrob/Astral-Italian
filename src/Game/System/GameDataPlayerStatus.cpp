@@ -1,14 +1,23 @@
 #include "Game/System/GameDataPlayerStatus.hpp"
+#include "Game/System/BinaryDataContentAccessor.hpp"
 #include "Game/Util/MathUtil.hpp"
-#include <JSystem/JSupport/JSUMemoryInputStream.hpp>
-#include <JSystem/JSupport/JSUMemoryOutputStream.hpp>
+#include "Game/Util/MemoryUtil.hpp"
 
-GameDataPlayerStatus::GameDataPlayerStatus() {
+GameDataPlayerStatus::GameDataPlayerStatus() : mHeaderSerializer(), mFlag() {
+    mHeaderSerializer = new BinaryDataContentHeaderSerializer(new u8[0x40], 0x40);
+    mHeaderSerializer->addAttribute("mPlayerLeft", 1);
+    mHeaderSerializer->addAttribute("mStockedStarPieceNum", 2);
+    mHeaderSerializer->addAttribute("mStockedCoinNum", 2);
+    mHeaderSerializer->addAttribute("mLast1upCoinNum", 2);
+    mHeaderSerializer->addAttribute("mFlag", 1);
+    mHeaderSerializer->flush();
+
     initializeData();
 }
 
 u32 GameDataPlayerStatus::makeHeaderHashCode() const {
-    return 0x27C90F;
+    s32 dataSize = mHeaderSerializer->getDataSize();
+    return dataSize + mHeaderSerializer->getHeaderSize();
 }
 
 u32 GameDataPlayerStatus::getSignature() const {
@@ -16,66 +25,103 @@ u32 GameDataPlayerStatus::getSignature() const {
 }
 
 s32 GameDataPlayerStatus::serialize(u8* pBuffer, u32 size) const {
-    JSUMemoryOutputStream stream = JSUMemoryOutputStream(pBuffer, size);
+    MR::copyMemory(pBuffer, mHeaderSerializer->getBuffer(), mHeaderSerializer->getHeaderSize());
 
-    u8 storyProgress = mStoryProgress;
-    stream.write(&storyProgress, sizeof(mStoryProgress));
+    s32 headerSize = mHeaderSerializer->getHeaderSize();
+    BinaryDataContentAccessor accessor(static_cast< u8* >(mHeaderSerializer->getBuffer()));
+    u8* pData = pBuffer + headerSize;
 
-    u32 stockedStarPiece = mStockedStarPiece;
-    stream.write(&stockedStarPiece, sizeof(mStockedStarPiece));
+    u8 playerLeft = mPlayerLeft;
+    *static_cast< u8* >(accessor.getPointer("mPlayerLeft", pData)) = playerLeft;
 
-    u16 playerLeft = mPlayerLeft;
-    stream.write(&playerLeft, sizeof(mPlayerLeft));
+    u16 starPiece = mStockedStarPiece;
+    *static_cast< u16* >(accessor.getPointer("mStockedStarPieceNum", pData)) = starPiece;
 
-    return stream.mPosition;
+    u16 coin = mStockedCoin;
+    *static_cast< u16* >(accessor.getPointer("mStockedCoinNum", pData)) = coin;
+
+    u16 last1up = mLast1upCoinNum;
+    *static_cast< u16* >(accessor.getPointer("mLast1upCoinNum", pData)) = last1up;
+
+    u8 flag = mFlag;
+    *static_cast< u8* >(accessor.getPointer("mFlag", pData)) = flag;
+
+    return headerSize + mHeaderSerializer->getDataSize();
 }
 
 s32 GameDataPlayerStatus::deserialize(const u8* pBuffer, u32 size) {
-    initializeData();
+    BinaryDataContentAccessor accessor(const_cast< u8* >(pBuffer));
+    s32 headerSize = accessor.getHeaderSize();
 
-    JSUMemoryInputStream stream = JSUMemoryInputStream(pBuffer, size);
+    u8* pData = const_cast< u8* >(pBuffer) + headerSize;
 
-    stream.read(&mStoryProgress, sizeof(mStoryProgress));
-    stream.read(&mStockedStarPiece, sizeof(mStockedStarPiece));
+    void* pPlayerLeft = accessor.getPointer("mPlayerLeft", pData);
+    mPlayerLeft = pPlayerLeft != nullptr ? *static_cast< u8* >(pPlayerLeft) : 0;
 
-    if (stream.getAvailable() != 0) {
-        stream.read(&mPlayerLeftSupply, sizeof(mPlayerLeftSupply));
+    void* pStarPiece = accessor.getPointer("mStockedStarPieceNum", pData);
+    mStockedStarPiece = pStarPiece != nullptr ? *static_cast< u16* >(pStarPiece) : 0;
+
+    void* pCoin = accessor.getPointer("mStockedCoinNum", pData);
+    mStockedCoin = pCoin != nullptr ? *static_cast< u16* >(pCoin) : 0;
+
+    void* pLast1up = accessor.getPointer("mLast1upCoinNum", pData);
+    mLast1upCoinNum = pLast1up != nullptr ? *static_cast< u16* >(pLast1up) : 0;
+
+    void* pFlag = accessor.getPointer("mFlag", pData);
+    mFlag = pFlag != nullptr ? *static_cast< u8* >(pFlag) : 0;
+
+    if (headerSize + mHeaderSerializer->getDataSize() > size) {
+        return 3;
     }
-
-    mPlayerLeft = 4;
 
     return 0;
 }
 
 void GameDataPlayerStatus::initializeData() {
     mPlayerLeft = 4;
-    mPlayerLeftSupply = 4;
     mStockedStarPiece = 0;
-    mStoryProgress = 0;
+    mStockedCoin = 0;
+    mLast1upCoinNum = 0;
+    mFlag = 0;
+    mUnknown14 = 0;
 }
 
 s32 GameDataPlayerStatus::getPlayerLeft() const {
-    s32 playerLeft = mPlayerLeft;
-
-    return MR::clamp(playerLeft, 0, 99);
+    return MR::clamp(static_cast< s32 >(mPlayerLeft), 0, 99);
 }
 
 void GameDataPlayerStatus::addPlayerLeft(int num) {
-    s32 playerLeft = mPlayerLeft + num;
-
+    s32 playerLeft = static_cast< s32 >(mPlayerLeft) + num;
     mPlayerLeft = MR::clamp(playerLeft, 0, 99);
 }
 
-bool GameDataPlayerStatus::isPlayerLeftSupply() const {
-    return mPlayerLeftSupply >= 10;
+s32 GameDataPlayerStatus::getStockedStarPieceNum() const {
+    return MR::clamp(static_cast< s32 >(mStockedStarPiece), 0, 9999);
 }
 
-void GameDataPlayerStatus::offPlayerLeftSupply() {
-    mPlayerLeftSupply = 0;
+void GameDataPlayerStatus::addStockedStarPieceNum(int num) {
+    s32 starPiece = static_cast< s32 >(mStockedStarPiece) + num;
+    mStockedStarPiece = MR::clamp(starPiece, 0, 9999);
 }
 
-void GameDataPlayerStatus::addStockedStarPiece(int num) {
-    s32 stockedStarPiece = mStockedStarPiece + num;
+s32 GameDataPlayerStatus::getStockedCoinNum() const {
+    return MR::clamp(static_cast< s32 >(mStockedCoin), 0, 9999);
+}
 
-    mStockedStarPiece = MR::clamp(stockedStarPiece, 0, 9999);
+s32 GameDataPlayerStatus::addStockedCoinNum(int num) {
+    s32 coin = static_cast< s32 >(mStockedCoin) + num;
+    s32 newCoin = MR::clamp(coin, 0, 9999);
+    s32 nextThreshold = MR::clamp(static_cast< s32 >(mLast1upCoinNum), 0, 9999);
+    s32 oldPlayerLeft = MR::clamp(static_cast< s32 >(mPlayerLeft), 0, 99);
+
+    mStockedCoin = newCoin;
+    nextThreshold += 100;
+
+    while (nextThreshold <= newCoin) {
+        mLast1upCoinNum = static_cast< u16 >(mLast1upCoinNum + 100);
+        addPlayerLeft(1);
+        nextThreshold += 100;
+    }
+
+    return MR::clamp(static_cast< s32 >(mPlayerLeft), 0, 99) - oldPlayerLeft;
 }

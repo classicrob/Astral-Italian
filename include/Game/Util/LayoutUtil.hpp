@@ -85,12 +85,109 @@ namespace MR {
 // Merged from Petari (core lane): declarations missing here
 #include "Game/Screen/CustomTagProcessor.hpp"
 #include <JSystem/JGeometry/TBox.hpp>
+#include <nw4r/lyt/textBox.h>
 class IconAButton;
 class J3DFrameCtrl;
 class Nerve;
 class ResTIMG;
 class SimpleLayout;
-class TextBoxRecursiveOperation;
+class TextBoxRecursiveOperation {
+public:
+    /// @brief Destroys the `TextBoxRecursiveOperation`.
+    virtual ~TextBoxRecursiveOperation() {
+    }
+
+    virtual void execute(nw4r::lyt::TextBox* pTextBox) const = 0;
+};
+
+class TextBoxRecursiveSetMessage : public TextBoxRecursiveOperation {
+public:
+    /// @brief Creates a new `TextBoxRecursiveSetMessage`.
+    TextBoxRecursiveSetMessage(const wchar_t* pMessage) : mMessage(pMessage) {
+    }
+
+    virtual void execute(nw4r::lyt::TextBox* pTextBox) const {
+        LayoutCoreUtil::setTextBoxMessage(pTextBox, mMessage);
+    }
+
+private:
+    /* 0x4 */ const wchar_t* mMessage;
+};
+
+class TextBoxRecursiveSetArgNumber : public TextBoxRecursiveOperation {
+public:
+    /// @brief Creates a new `TextBoxRecursiveSetArgNumber`.
+    TextBoxRecursiveSetArgNumber(s32 arg, s32 argIndex) : mArg(arg), mArgIndex(argIndex) {
+    }
+
+    virtual void execute(nw4r::lyt::TextBox* pTextBox) const {
+        static_cast< CustomTagProcessor* >(pTextBox->mpTagProcessor)->setArgNumber(mArg, mArgIndex);
+    }
+
+private:
+    /* 0x4 */ s32 mArg;
+    /* 0x8 */ s32 mArgIndex;
+};
+
+class TextBoxRecursiveSetArgString : public TextBoxRecursiveOperation {
+public:
+    /// @brief Creates a new `TextBoxRecursiveSetArgString`.
+    TextBoxRecursiveSetArgString(const wchar_t* pArg, s32 argIndex) : mArg(pArg), mArgIndex(argIndex) {
+    }
+
+    virtual void execute(nw4r::lyt::TextBox* pTextBox) const {
+        static_cast< CustomTagProcessor* >(pTextBox->mpTagProcessor)->setArgString(mArg, mArgIndex);
+    }
+
+private:
+    /* 0x4 */ const wchar_t* mArg;
+    /* 0x8 */ s32 mArgIndex;
+};
+
+class TextBoxRecursiveSetVerticalPosition : public TextBoxRecursiveOperation {
+public:
+    /// @brief Creates a new `TextBoxRecursiveSetVerticalPosition`.
+    TextBoxRecursiveSetVerticalPosition(u8 position) : mPosition(position) {
+    }
+
+    virtual void execute(nw4r::lyt::TextBox* pTextBox) const {
+        pTextBox->SetTextPositionV(mPosition);
+    }
+
+private:
+    /* 0x4 */ u8 mPosition;
+};
+
+class TextBoxRecursiveSetHorizontalPosition : public TextBoxRecursiveOperation {
+public:
+    /// @brief Creates a new `TextBoxRecursiveSetHorizontalPosition`.
+    TextBoxRecursiveSetHorizontalPosition(u8 position) : mPosition(position) {
+    }
+
+    virtual void execute(nw4r::lyt::TextBox* pTextBox) const {
+        pTextBox->SetTextPositionH(mPosition);
+    }
+
+private:
+    /* 0x4 */ u8 mPosition;
+};
+
+class TextBoxRecursiveSetFont : public TextBoxRecursiveOperation {
+public:
+    /// @brief Creates a new `TextBoxRecursiveSetFont`.
+    TextBoxRecursiveSetFont(nw4r::ut::Font* pFont) : mFont(pFont) {
+    }
+
+    virtual void execute(nw4r::lyt::TextBox* pTextBox) const {
+        nw4r::lyt::Size size = pTextBox->mFontSize;
+        pTextBox->SetFont(mFont);
+        pTextBox->SetFontSize(size);
+    }
+
+private:
+    /* 0x4 */ nw4r::ut::Font* mFont;
+};
+
 
 namespace MR {
     u8 getPaneAlpha(const LayoutActor*, const char*);

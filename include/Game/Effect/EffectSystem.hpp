@@ -23,7 +23,7 @@ public:
     ParticleEmitter* createEmitter(u16, u8, u8);
     void forceDeleteEmitter(ParticleEmitter*) const;
     void forceDeleteSingleEmitter(SingleEmitter*) const;
-    void createSingleEmitter(SingleEmitter*, MultiEmitterCallBackBase*, MultiEmitterParticleCallBack*);
+    bool createSingleEmitter(SingleEmitter*, MultiEmitterCallBackBase*, MultiEmitterParticleCallBack*);
     void entry(ParticleResourceHolder*, u32, u32);
 
     /* 0x0C */ JPAEmitterManager* mEmitterManager;

@@ -14,7 +14,9 @@ public:
 
     void update();
     void requestCheckEnableToCreate();
-    void requestLoadSaveData();
+    void requestLoadBanner();
+    void requestLoadGameData();
+    void requestLoadSaveData(const char*);
     bool requestVerifyAfterLoadGameDataFile();
     void initializeUserFileMemory(int, const UserFile*);
     void copyUserFileMemory(int, int);

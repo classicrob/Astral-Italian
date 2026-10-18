@@ -6,6 +6,7 @@
 #include <cstdio>
 
 // nonmatching
+// NONMATCHING: JMapIdInfo has a user-declared copy ctor, so MR::createJMapIdInfoFromGroupId returns via memory (target returns in r3:r4); needs header fix
 MsgSharedGroup::MsgSharedGroup(const char* pName, s32 maxActor, const JMapInfoIter& rIter) : LiveActorGroup(pName, maxActor) {
     mIdInfo = nullptr;
     mMsg = -1;
@@ -14,7 +15,15 @@ MsgSharedGroup::MsgSharedGroup(const char* pName, s32 maxActor, const JMapInfoIt
     MR::copyString(mGroupName, pName, GROUP_NAME_LEN);
     setName(mGroupName);
 
-    mIdInfo = new JMapIdInfo(MR::createJMapIdInfoFromClippingGroupId(rIter));
+    JMapIdInfo* pIdInfo = new JMapIdInfo();
+
+    if (pIdInfo != nullptr) {
+        JMapIdInfo newInfo = MR::createJMapIdInfoFromGroupId(rIter);
+        pIdInfo->_0 = newInfo._0;
+        pIdInfo->mZoneID = newInfo.mZoneID;
+    }
+
+    mIdInfo = pIdInfo;
 }
 
 void MsgSharedGroup::init(const JMapInfoIter& rIter) {
@@ -80,8 +89,42 @@ MsgSharedGroup* LiveActorGroupArray::createGroup(const JMapInfoIter& rIter, cons
     return group;
 }
 
-// findGroup__19LiveActorGroupArrayCFRC12JMapInfoIter
-// findGroup__19LiveActorGroupArrayCFPC9LiveActor
+// NONMATCHING: JMapIdInfo user copy ctor forces sret return (target uses r3:r4); loop shape also differs (find_if-style bool flag)
+MsgSharedGroup* LiveActorGroupArray::findGroup(const JMapInfoIter& rIter) const {
+    JMapIdInfo idInfo = MR::createJMapIdInfoFromGroupId(rIter);
+    MsgSharedGroup* const* it = mGroups;
+    MsgSharedGroup* const* end = mGroups + mNumUsedGroups;
+
+    for (; it != end; ++it) {
+        if (*(*it)->mIdInfo == idInfo) {
+            break;
+        }
+    }
+
+    if (it != end) {
+        return *it;
+    }
+
+    return nullptr;
+}
+
+// NONMATCHING: outer loop shape differs (target nests a flagged inner getActor loop, ours breaks directly)
+MsgSharedGroup* LiveActorGroupArray::findGroup(const LiveActor* pActor) const {
+    MsgSharedGroup* const* it = mGroups;
+    MsgSharedGroup* const* end = mGroups + mNumUsedGroups;
+
+    for (; it != end; ++it) {
+        if ((*it)->hasActor(pActor)) {
+            break;
+        }
+    }
+
+    if (it != end) {
+        return *it;
+    }
+
+    return nullptr;
+}
 
 MsgSharedGroup::~MsgSharedGroup() {
 }

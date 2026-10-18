@@ -10,4 +10,5 @@ namespace GameSequenceFunction {
     bool isCollectTicoCoinInStage();
     bool isCollectTicoCoinSaved();
     bool isPadModeSuperDreamer();
+    bool tryNANDErrorSequence(s32);
 };

@@ -8,6 +8,32 @@
 class JMapInfoIter;
 
 namespace MR {
+
+    inline bool checkJMapDataEntries(const JMapInfoIter& rIter) {
+        bool flag = false;
+        bool ret = false;
+
+        if (rIter.mInfo != nullptr && rIter.mIndex >= 0) {
+            flag = true;
+        }
+
+        if (flag) {
+            s32 numEntries;
+
+            if (rIter.mInfo->mData != nullptr) {
+                numEntries = rIter.mInfo->mData->mNumEntries;
+            } else {
+                numEntries = 0;
+            }
+
+            if (rIter.mIndex < numEntries) {
+                ret = true;
+            }
+        }
+
+        return ret;
+    }
+
     bool isValidInfo(const JMapInfoIter&);
     bool getObjectName(const char**, const JMapInfoIter&);
     bool isObjectName(const JMapInfoIter&, const char*);

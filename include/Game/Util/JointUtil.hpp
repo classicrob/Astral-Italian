@@ -6,6 +6,7 @@ class LiveActor;
 
 namespace MR {
     MtxPtr getJointMtx(const LiveActor*, const char*);
+    MtxPtr getJointMtx(const LiveActor*, s32);
 };
 
 // Merged from Petari (core lane): declarations missing here

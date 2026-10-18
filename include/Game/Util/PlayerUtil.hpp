@@ -57,7 +57,7 @@ namespace MR {
     bool isBckStoppedPlayer();
     bool isBckOneTimeAndStoppedPlayer();
     f32 getBckFrameMaxPlayer();
-    f32 getBckFrameMaxPlayer(const char*);
+    s32 getBckFrameMaxPlayer(const char*);
     void startBckPlayerJ(const char*);
     void becomeContinuousBckPlayer();
     void progressPlayerBckOnPause();

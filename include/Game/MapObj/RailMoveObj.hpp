@@ -7,6 +7,7 @@ class DemoCtrlBase;
 class RailMoveObj : public MapObjActor {
 public:
     RailMoveObj(const char*);
+    RailMoveObj(const char*, const char*);
 
     virtual void init(const JMapInfoIter&);
     virtual void startClipped();
@@ -26,8 +27,8 @@ public:
     void exeWait();
     void exeMove();
 
-    /* 0xC4 */ TVec3f _C4;
-    /* 0xD0 */ u8 _D0;
+    /* 0xD0 */ TVec3f _D0;
+    /* 0xDC */ u8 _DC;
 };
 
 class RailMoveObjPress : public RailMoveObj {
@@ -73,7 +74,7 @@ public:
     virtual void move();
     virtual bool endMove();
 
-    /* 0xD4 */ DemoCtrlBase* mDemoControl;
+    /* 0xE0 */ DemoCtrlBase* mDemoControl;
 };
 
 class RailRotateMoveObj : public RailMoveObj {

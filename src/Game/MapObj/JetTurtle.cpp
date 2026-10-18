@@ -596,7 +596,7 @@ void JetTurtle::exeThrowing() {
             }
         }
 
-        MtxPtr jointMtx = MR::getJointMtx(this, 0);
+        MtxPtr jointMtx = MR::getJointMtx(this, static_cast< s32 >(0));
         TVec3f v20(jointMtx[0][1], jointMtx[1][1], jointMtx[2][1]);
         TVec3f grav;
         MR::calcGravityVector(this, &grav, nullptr, 0);

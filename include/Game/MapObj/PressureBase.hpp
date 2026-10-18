@@ -53,15 +53,16 @@ public:
     bool isShotTypeOnGravity() const;
     bool isShotTypeFollow() const;
 
-    /* 0x8C */ JointControlDelegator< PressureBase >* mJointController;
-    /* 0x90 */ TVec3f mFront;
-    /* 0x9C */ f32 mRelaxAngle;
-    /* 0xA0 */ f32 mBaseAngle;
-    /* 0xA4 */ s32 mWaitTime;
-    /* 0xA8 */ f32 mBallSpeed;
-    /* 0xAC */ s32 mShotType;
-    /* 0xB0 */ bool mIsShortShot;
-    /* 0xB4 */ PressureMessenger* mMessenger;
-    /* 0xB8 */ MsgSharedGroup* mGroup;
-    /* 0xBC */ bool _BC;
+    /* 0x90 */ u32 _90;
+    /* 0x94 */ JointControlDelegator< PressureBase >* mJointController;
+    /* 0x98 */ TVec3f mFront;
+    /* 0xA4 */ f32 mRelaxAngle;
+    /* 0xA8 */ f32 mBaseAngle;
+    /* 0xAC */ s32 mWaitTime;
+    /* 0xB0 */ f32 mBallSpeed;
+    /* 0xB4 */ s32 mShotType;
+    /* 0xB8 */ bool mIsShortShot;
+    /* 0xBC */ PressureMessenger* mMessenger;
+    /* 0xC0 */ LiveActorGroup* mGroup;
+    /* 0xC4 */ bool _BC;
 };

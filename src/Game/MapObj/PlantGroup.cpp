@@ -516,7 +516,7 @@ void PlantGroup::updateBloom() {
 
             for (s32 i = 0; i < mMemberCount; i++) {
                 if (MR::isDead(mMembers[i])) {
-                    mMembers[i]->makeActorAppeared();
+                    mMembers[i]->appear();
                     MR::emitEffectHit(this, mMembers[i]->getBaseMtx(), "Bloom");
                     found = true;
                     break;

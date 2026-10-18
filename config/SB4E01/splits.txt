@@ -3983,7 +3983,7 @@ Game/MapObj/PunchBox.cpp:
 	.ctors      start:0x80644528 end:0x8064452C
 
 Game/MapObj/PunchingKinoko.cpp:
-	.text       start:0x802E5750 end:0x802E7710
+	.text       start:0x802E5750 end:0x802E7740
 	.ctors      start:0x8064452C end:0x80644530
 
 Game/MapObj/PurpleCoinCompleteWatcher.cpp:

@@ -53,6 +53,8 @@ def funcs(obj):
             elif (w >> 26) in (16, 18):  # local branches: offsets differ with placement
                 w &= 0xFC000003
             seq.append(w)
+        while seq and seq[-1] == 0:  # alignment padding after the function
+            seq.pop()
         res[name] = tuple(seq)
     return res
 
@@ -61,6 +63,7 @@ def main():
     write = "--write" in sys.argv
     units = [a for a in sys.argv[1:] if not a.startswith("--")]
     lines = open(SYMS).read().split("\n")
+    known = {l.split(" = ")[0] for l in lines if " = " in l}  # never reuse a name that already exists (weak dupes)
     renames = {}
     for u in units:
         u = re.sub(r"\.(cpp|c)$", "", u.removeprefix("src/").removeprefix("main/"))
@@ -69,7 +72,7 @@ def main():
             print(f"{u}: missing object"); continue
         T = funcs(t); torder = funcs.order
         O = funcs(o); oorder = funcs.order
-        ours = {k: v for k, v in O.items() if k not in T and not k.startswith(("@", "lbl_", "gap_"))}
+        ours = {k: v for k, v in O.items() if k not in T and k not in known and not k.startswith(("@", "lbl_", "gap_"))}
         # group identical bodies; within a group pair target fn_ and ours in address (= source) order
         groups = {}
         for tn, tv in T.items():

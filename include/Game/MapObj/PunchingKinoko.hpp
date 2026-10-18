@@ -39,6 +39,9 @@ public:
     void exeHitted();
     void exeCrushed();
     void exeCrushedEnd();
+    void exeCrushedShrink();
+    void exeCrushedFlat();
+    void exeCrushedRecover();
 
     bool ballMtxCallBack(TPos3f*, const JointControllerInfo&);
 
@@ -52,6 +55,7 @@ public:
     bool isCrushed() const NO_INLINE;
 
     void addVelocityKeepHeight();
+    void addVelocityToUpPos(f32, f32, f32);
 
 private:
     /* 0x8C */ GroundChecker* mGroundChecker;

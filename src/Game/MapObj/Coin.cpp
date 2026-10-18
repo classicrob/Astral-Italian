@@ -12,6 +12,10 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
+extern "C" bool fn_802952F0(TVec3f*, LiveActor*, HitSensor*);
+extern "C" void fn_800145C0(LiveActor*);
+extern "C" void fn_80014670(LiveActor*);
+
 namespace NrvCoin {
     NEW_NERVE(CoinNrvNonActive, Coin, NonActive);
     NEW_NERVE(CoinNrvFix, Coin, Fix);
@@ -324,31 +328,60 @@ void Coin::exeMove() {
         MR::validateHitSensors(this);
     }
 
+    if (MR::isInWater(mPosition)) {
+        if (!mInWater) {
+            MR::emitEffect(this, "WaterFall");
+        }
+        mInWater = true;
+    } else {
+        mInWater = false;
+    }
+
     if (MR::isGreaterStep(this, mCannotTime) && MR::isBindedGroundDamageFire(this)) {
         MR::emitEffect(this, "LavaFall");
-        MR::startSound(this, "SE_OJ_FALL_IN_MAGMA_S");
+        MR::startActionSound(this, "OjFallInMagmaS", -1, -1, -1);
+        kill();
+        return;
+    }
+
+    if (MR::isBindedGroundSinkDeath(this)) {
+        MR::emitEffect(this, "SandFall");
+        kill();
+        return;
+    }
+
+    if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        kill();
+        return;
+    }
+
+    TVec3f sensorDir;
+    if (fn_802952F0(&sensorDir, this, getSensor(nullptr))) {
+        TVec3f kick = sensorDir * 40.0f;
+        MR::setVelocity(this, kick);
+    }
+
+    MR::calcGravityOrZero(this);
+
+    if (MR::isPressedRoofAndGround(this)) {
+        MR::offBind(this);
+        MR::zeroVelocity(this);
+    }
+
+    if (!MR::isNoBind(this)) {
+        calcRebouond();
+        f32 rate = mInWater ? 0.3f : 1.0f;
+        MR::addVelocityToGravity(this, rate);
+        attenuateVelocity();
+        MR::attenuateVelocity(this, rate);
+    }
+
+    if (mFlashingCtrl->mIsEnded) {
         kill();
     } else {
-        if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-            kill();
-        } else {
-            MR::calcGravityOrZero(this);
-
-            if (MR::isPressedRoofAndGround(this)) {
-                MR::offBind(this);
-                MR::zeroVelocity(this);
-            }
-
-            if (!MR::isNoBind(this)) {
-                calcRebouond();
-                mVelocity += mGravity * (mInWater ? 0.3f : 1.0f);
-                attenuateVelocity();
-            }
-
-            if (mFlashingCtrl->mIsEnded) {
-                kill();
-            }
-        }
+        fn_800145C0(this);
+        fn_80014670(this);
+        MR::attachSupportTicoToTarget(this);
     }
 }
 

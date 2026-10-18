@@ -50,7 +50,7 @@ public:
     void exeSwitchAppear();
     void exeWait2();
     void exeFly();
-    void exeFall();                      // fn_802D3FE0
+    void exeFall() NO_INLINE;            // fn_802D3FE0
     void endHide();                      // fn_802D4190
 
     /* 0x90 */ u16 mAppearMode;

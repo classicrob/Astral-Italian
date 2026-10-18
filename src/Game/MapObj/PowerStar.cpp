@@ -765,7 +765,9 @@ void PowerStar::exeAppearDemoBossFormer() {
 
     applyAppearDemoRiseTrans(mInitPosition, 700.0f, 0.5f * MR::calcNerveEaseOutRate(this, 150));
     f32 rotY = mRotation.y;
-    mRotation.y = MR::repeat(15.0f + rotY, 0.0f, 360.0f);
+    f32 rotAdd = rotY;
+    rotAdd += 15.0f;
+    mRotation.y = MR::repeat(rotAdd, 0.0f, 360.0f);
     MR::setNerveAtStep(this, GET_NERVE(PowerStar, PowerStarNrvAppearDemoBossLatter), 150);
 }
 

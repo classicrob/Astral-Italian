@@ -10,6 +10,9 @@ void PunchingKinoko_FORCE_EMIT_SCALE() {
 }
 
 namespace NrvPunchingKinoko {
+    NEW_NERVE(PunchingKinokoNrvCrushedShrink, PunchingKinoko, CrushedShrink);
+    NEW_NERVE(PunchingKinokoNrvCrushedFlat, PunchingKinoko, CrushedFlat);
+    NEW_NERVE(PunchingKinokoNrvCrushedRecover, PunchingKinoko, CrushedRecover);
     NEW_NERVE(PunchingKinokoNrvWait, PunchingKinoko, Wait);
     NEW_NERVE(PunchingKinokoNrvSwing, PunchingKinoko, Swing);
     NEW_NERVE(PunchingKinokoNrvPunched, PunchingKinoko, Punched);
@@ -499,6 +502,54 @@ void PunchingKinoko::exeCrushedEnd() {
     if (MR::isGreaterStep(this, 60)) {
         setNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvWait));
         MR::onBind(mGroundChecker);
+    }
+}
+
+void PunchingKinoko::addVelocityToUpPos(f32 height, f32 gain, f32 attenuate) {
+    TVec3f up;
+    MR::calcPositionUpOffset(&up, this, height);
+    TVec3f diff(up);
+    diff.sub(mGroundChecker->mPosition);
+    TVec3f vel(diff);
+    vel.scale(gain);
+    MR::addVelocity(mGroundChecker, vel);
+    MR::attenuateVelocity(mGroundChecker, attenuate);
+}
+
+// NONMATCHING: AnimScaleController::stop() (target 0x80150330) is not ported yet; the call is omitted.
+void PunchingKinoko::exeCrushedShrink() {
+    if (MR::isFirstStep(this)) {
+        MR::offBind(mGroundChecker);
+    }
+
+    f32 ease = MR::calcNerveEaseInOutValue(this, 40, 1.0f, 0.4f);
+    MR::setShadowVolumeSphereRadius(this, "頭", 70.0f * ease);
+    addVelocityToUpPos(40.0f, 0.005f, 0.9f);
+
+    if (MR::isGreaterStep(this, 40)) {
+        setNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvCrushedFlat));
+    }
+}
+
+// NONMATCHING: AnimScaleController::stop() (target 0x80150330) is not ported yet; the call is omitted.
+void PunchingKinoko::exeCrushedFlat() {
+    if (MR::isFirstStep(this)) {
+        MR::validateClipping(this);
+        MR::setShadowVolumeSphereRadius(this, "頭", 28.0f);
+    }
+
+    addVelocityToUpPos(40.0f, 0.005f, 0.9f);
+}
+
+// NONMATCHING: AnimScaleController::stop() (target 0x80150330) is not ported yet; the call is omitted.
+void PunchingKinoko::exeCrushedRecover() {
+    f32 ease = MR::calcNerveEaseOutValue(this, 20, 0.4f, 1.0f);
+    MR::setShadowVolumeSphereRadius(this, "頭", 70.0f * ease);
+    addVelocityToUpPos(130.0f, 0.008f, 0.94f);
+
+    if (MR::isGreaterStep(this, 20)) {
+        MR::onBind(mGroundChecker);
+        setNerve(GET_NERVE(PunchingKinoko, PunchingKinokoNrvWait));
     }
 }
 

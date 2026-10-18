@@ -11,9 +11,34 @@
 // The name does not match the C++ signature, so declare it extern "C" to get the same reloc name.
 extern "C" f32 scaleVelocity__2MRFP9LiveActorf(LiveActor*, const TVec3f*);
 
-// Unnamed SMG2 helpers (C linkage so the target reloc names match).
-// PLACEHOLDER(objects): unnamed target symbol fn_802C2AA0, declared extern "C" so the reloc name matches; resolve when fn_802C2AA0 gets its real name in symbols.txt
-extern "C" void fn_802C2AA0(LiveActor* pActor, s32 flag, f32 a, f32 b, f32 c);
+namespace MR {
+// NONMATCHING: the offset and copied probe occupy opposite stack slots from the target.
+bool addVelocityKeepHeightUseShadowAndWater(LiveActor* actor, const char* shadowName, f32 height, f32 accel, f32 maxCorrection) {
+    f32 distance = 100000.0f;
+    bool inWater = false;
+    TVec3f offset = actor->mGravity * height;
+    TVec3f probe = actor->mPosition + offset;
+    TVec3f position;
+    position.set(probe);
+    WaterInfo info;
+    if (getWaterAreaObj(&info, position) && getWaterAreaInfo(&info, position, actor->mGravity, false)) {
+        distance = height - info.mCamWaterDepth;
+        inWater = true;
+    }
+    if (shadowName) {
+        if (isShadowProjected(actor, shadowName)) {
+            f32 shadowDistance = getShadowProjectionLength(actor, shadowName);
+            if (!inWater || shadowDistance < distance) distance = shadowDistance;
+        }
+    } else if (isShadowProjectedAny(actor)) {
+        f32 shadowDistance = getShadowNearProjectionLength(actor);
+        if (!inWater || shadowDistance < distance) distance = shadowDistance;
+    }
+    distance -= height;
+    addVelocityToGravity(actor, accel * normalizeAbs(distance, -maxCorrection, maxCorrection));
+    return true;
+}
+}
 
 namespace NrvLeafBoard {
     NEW_NERVE(LeafBoardNrvWait, LeafBoard, Wait);
@@ -188,7 +213,7 @@ void LeafBoard::exeWait() {
     }
     TVec3f up = -mGravity;
     mDir.set(up);
-    fn_802C2AA0(this, 0, 40.0f, 0.2f, 50.0f);
+    MR::addVelocityKeepHeightUseShadowAndWater(this, 0, 40.0f, 0.2f, 50.0f);
     MR::attenuateVelocity(this, 0.96f);
     if (mTimer104 > 0) {
         setNerve(GET_NERVE(LeafBoard, LeafBoardNrvFloat));
@@ -198,7 +223,7 @@ void LeafBoard::exeWait() {
 void LeafBoard::exeFloat() {
     TVec3f up = -mGravity;
     mDir.set(up);
-    fn_802C2AA0(this, 0, 100.0f, 0.4f, 40.0f);
+    MR::addVelocityKeepHeightUseShadowAndWater(this, 0, 100.0f, 0.4f, 40.0f);
     MR::attenuateVelocity(this, 0.992f);
     reboundFromWall();
     if (MR::isGreaterStep(this, 30)) {
@@ -229,7 +254,7 @@ void LeafBoard::exeWind() {
     TVec3f sp8 = sp20 * 0.2f;
     TVec3f sp14 = sp8 * var_f30;
     MR::addVelocity(this, sp14);
-    fn_802C2AA0(this, 0, 100.0f, 0.4f, 40.0f);
+    MR::addVelocityKeepHeightUseShadowAndWater(this, 0, 100.0f, 0.4f, 40.0f);
     MR::attenuateVelocity(this, 0.992f);
     reboundFromWall();
     if (mTimer104 <= 0) {

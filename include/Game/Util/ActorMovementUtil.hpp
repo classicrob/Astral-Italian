@@ -114,6 +114,7 @@ namespace MR {
     void addVelocityKeepHeight(LiveActor*, const TVec3f&, f32, f32);
     void addVelocityKeepHeight(LiveActor*, const TVec3f&, f32, f32, f32);
     bool addVelocityKeepHeightUseShadow(LiveActor*, f32, f32, f32, const char*);
+    bool addVelocityKeepHeightUseShadowAndWater(LiveActor*, const char*, f32, f32, f32);
     bool addVelocityKeepHeightUseShadow(LiveActor*, f32, f32, f32, f32, const char*);
     void addVelocitySeparateHV(LiveActor*, const TVec3f&, f32, f32);
     void setVelocitySeparateHV(LiveActor*, const TVec3f&, f32, f32);

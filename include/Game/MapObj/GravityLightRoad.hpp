@@ -15,6 +15,8 @@ public:
     void startDisappear();
     bool tryStartBind(LiveActor*);
     bool isPlayerInCylinder() const;
+    bool isPlayerFall() const;
+    void endPlayerFall();
 
     void exeWait();
     void exeDraw();

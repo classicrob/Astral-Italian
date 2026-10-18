@@ -28,6 +28,7 @@ namespace MR {
     bool isIntervalStep(const NerveExecutor* pExecutor, s32 step);
     bool isNewNerve(const NerveExecutor* pExecutor);
     f32 calcNerveRate(const NerveExecutor* pExecutor, s32 stepMax);
+    f32 calcNerveEaseInOutRate(const NerveExecutor* pExecutor, s32 stepMax);
     f32 calcNerveEaseInRate(const NerveExecutor* pExecutor, s32 stepMax);
     f32 calcNerveEaseOutRate(const NerveExecutor* pExecutor, s32 stepMax);
     f32 calcNerveValue(const NerveExecutor* pExecutor, s32 stepMax, f32 valueStart, f32 valueEnd);

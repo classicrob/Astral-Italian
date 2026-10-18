@@ -205,7 +205,7 @@ public:
     void callU14_8A0(s32);
     void callU14_620(s32);
     void callU14_2B0(s32);
-    void callU14_310(s32);
+    s32 callU14_310(s32);
     void setLinkProgress(s32, s32, f32);
     void setLinkProgressFull(s32, s32);
     s32 getWorldId() const;

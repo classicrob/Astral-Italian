@@ -54,6 +54,7 @@ namespace MR {
     void openSystemWipeWhiteFade(s32 frame = -1);
     void closeSystemWipeWhiteFade(s32 frame = -1);
     void forceCloseSystemWipeWhiteFade();
+    void forceOpenSystemWipeWhiteFade(s32);
     void forceCloseSystemWipeFade();
     bool isSystemWipeActive();
     void closeSystemWipeCircleWithCaptureScreen(s32 frame = -1);
@@ -79,6 +80,7 @@ namespace MR {
     void createScreenBlur();
     void createDepthOfFieldBlur();
     void setDepthOfFieldBlurIntensity(f32);
+    void setDepthOfFieldBlurDistance(s32, s32);
     void createCenterScreenBlur();
     void startCenterScreenBlur(s32, f32, u8, s32, s32);
     void startGlobalTimer();

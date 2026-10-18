@@ -95,7 +95,7 @@ extern "C" {
     void fn_804EC8A0(void*, s32, s32);
     void fn_804EC8E0(void*);
     void fn_804ED2B0(void*, s32);
-    void fn_804ED310(void*, s32);
+    s32 fn_804ED310(void*, s32);
     void fn_804ED450(void*, s32);
     bool fn_804ED4F0(void*, s32, s32);
     bool fn_804ED530(void*, s32);
@@ -424,8 +424,8 @@ void WorldMapResultWorld::callU14_2B0(s32 index) {
     fn_804ED2B0(mUnit14, index);
 }
 
-void WorldMapResultWorld::callU14_310(s32 index) {
-    fn_804ED310(mUnit14, index);
+s32 WorldMapResultWorld::callU14_310(s32 index) {
+    return fn_804ED310(mUnit14, index);
 }
 
 void WorldMapResultWorld::setLinkProgress(s32 a, s32 b, f32 t) {

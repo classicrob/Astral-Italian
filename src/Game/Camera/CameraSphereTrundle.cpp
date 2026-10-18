@@ -1,0 +1,107 @@
+#include "Game/Camera/CameraSphereTrundle.hpp"
+#include "Game/Camera/CameraLocalUtil.hpp"
+#include "Game/Camera/CameraTargetObj.hpp"
+#include "Game/Util/MathUtil.hpp"
+#include "math_types.hpp"
+#include <JSystem/JGeometry/TQuat.hpp>
+
+CameraSphereTrundle::CameraSphereTrundle(const char* pName) : Camera(pName) {
+    mOffset.set(0.0f, 0.0f, 0.0f);
+    mLocalPos.set(1.0f, 0.0f, 0.0f);
+    mDist = 2000.0f;
+    mAngle = 0.0f;
+    mFront.set(0.0f, 0.0f, 0.0f);
+    mSide.set(0.0f, 0.0f, 0.0f);
+    mUp.set(0.0f, 0.0f, 0.0f);
+}
+
+void CameraSphereTrundle::reset() {
+    TVec3f sp20(mOffset);
+    mMtx.mult(sp20, sp20);
+
+    TVec3f sp14(mLocalPos);
+    f32 x = sp14.x;
+    f32 y = sp14.y;
+    f32 z = sp14.z;
+    sp14.set(mMtx.mMtx[0][0] * x + mMtx.mMtx[0][1] * y + mMtx.mMtx[0][2] * z,
+             mMtx.mMtx[1][0] * x + mMtx.mMtx[1][1] * y + mMtx.mMtx[1][2] * z,
+             mMtx.mMtx[2][0] * x + mMtx.mMtx[2][1] * y + mMtx.mMtx[2][2] * z);
+
+    TVec3f sp8 = CameraLocalUtil::getTarget(this)->getPosition() - sp20;
+    mFront = sp8;
+    if (MR::normalizeOrZero(&mFront)) {
+        mFront = CameraLocalUtil::getTarget(this)->getFrontVec();
+    }
+
+    PSVECCrossProduct(&sp14, &mFront, &mSide);
+    if (MR::normalizeOrZero(&mSide)) {
+        mSide = CameraLocalUtil::getTarget(this)->getSideVec();
+    }
+
+    PSVECCrossProduct(&mFront, &mSide, &mUp);
+    if (MR::normalizeOrZero(&mUp)) {
+        mUp = CameraLocalUtil::getTarget(this)->getUpVec();
+    }
+}
+
+CameraTargetObj* CameraSphereTrundle::calc() {
+    TVec3f sp58;
+    CameraLocalUtil::makeWatchPoint(&sp58, this, CameraLocalUtil::getTarget(this), 0.0066666668f);
+
+    TVec3f sp4C(mOffset);
+    mMtx.mult(sp4C, sp4C);
+
+    TVec3f sp40 = CameraLocalUtil::getTarget(this)->getPosition() - sp4C;
+    if (MR::normalizeOrZero(&sp40)) {
+        return NULL;
+    }
+
+    TQuat4f sp30;
+    sp30.setRotate(mFront, sp40);
+    sp30.transform(mSide);
+    sp30.transform(mUp);
+
+    mFront = sp40;
+    if (MR::normalizeOrZero(&mFront)) {
+        return NULL;
+    }
+
+    if (MR::normalizeOrZero(&mSide)) {
+        return NULL;
+    }
+
+    PSVECCrossProduct(&mFront, &mSide, &mUp);
+    if (MR::normalizeOrZero(&mUp)) {
+        return NULL;
+    }
+
+    PSVECCrossProduct(&mUp, &mFront, &mSide);
+
+    f32 angle = 0.5f * mAngle;
+    reinterpret_cast<TVec3f&>(sp30).scale((f32)sin(angle), mSide);
+    sp30.w = (f32)cos(angle);
+
+    TVec3f sp20(mFront);
+    sp30.transform(sp20);
+
+    CameraLocalUtil::setWatchPos(this, sp58);
+    CameraLocalUtil::setWatchUpVec(this, CameraLocalUtil::getTarget(this)->getUpVec());
+
+    TVec3f sp8(sp20);
+    sp8.scale(mDist);
+
+    TVec3f sp14(sp58);
+    sp14 += sp8;
+
+    CameraLocalUtil::setPos(this, sp14);
+    CameraLocalUtil::setUpVec(this, mUp);
+
+    return CameraLocalUtil::getTarget(this);
+}
+
+CamTranslatorBase* CameraSphereTrundle::createTranslator() {
+    return new CamTranslatorSphereTrundle(this);
+}
+
+CameraSphereTrundle::~CameraSphereTrundle() {
+}

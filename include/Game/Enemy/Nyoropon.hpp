@@ -39,18 +39,18 @@ public:
     bool isLightTargetNerve() const;    // fn_801D81E0
     bool isIdleNerve() const;           // fn_801D8260
     bool isStretchedNerve() const;      // fn_801D82D0
-    f32 calcStretchScale() const;       // fn_801D8350
+    f32 fn_801D8350() const;       // fn_801D8350
     void setFaceSleep();                // fn_801D8C80
     void setFaceNormal();               // fn_801D8CF0
     void setFaceAttack();               // fn_801D8D60
-    void initJointControllers();        // fn_801D8DD0
-    void initBody();                    // fn_801D8EE0
-    void updateTarget();                // fn_801D9070
-    void calcHeadTarget();              // fn_801D91A0
-    void updateBody(f32, f32, f32);     // fn_801D93A0
-    void calcBodyMatrices(f32);         // fn_801D9C60
+    void fn_801D8DD0();        // fn_801D8DD0
+    void fn_801D8EE0();                    // fn_801D8EE0
+    void fn_801D9070();                // fn_801D9070
+    void fn_801D91A0();              // fn_801D91A0
+    void fn_801D93A0(f32, f32, f32);     // fn_801D93A0
+    void fn_801D9C60(f32);         // fn_801D9C60
     bool calcJointMatrix(TPos3f*, const JointControllerInfo&);  // fn_801DA150
-    bool updateStretch(s32);            // fn_801DA300
+    bool fn_801DA300(s32);            // fn_801DA300
     void playIdleSound();               // fn_801DA370
 
     /* 0x90 */ JointController** mJointCtrls;

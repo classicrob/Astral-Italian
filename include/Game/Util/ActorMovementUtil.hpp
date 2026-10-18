@@ -187,7 +187,6 @@ namespace MR {
         return velH;
     }
     // ActorMovementUtil (enemies lane, callees named by address; lead renames symbols)
-    void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
     void fn_80012B80(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
     void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f*);
     void fn_8000E5E0(TVec3f*, const LiveActor*, const TVec3f*);
@@ -251,11 +250,6 @@ namespace MR {
 namespace MR {
     // SMG2 unnamed helper at 0x80014360 (owner split not assigned; used by the Buzz/SMG2-only lane), named by address.
     void fn_80014360(TVec3f* pOut, LiveActor* pActor, f32 scale);
-};  // namespace MR
-
-namespace MR {
-    // SMG2 unnamed helpers at 0x80010130 / 0x800102E0 (ActorMovementUtil.cpp), named by address; used by Garigari init.
-    void fn_80010130(ActorPoseTQ* pPose, LiveActor* pActor);
 };  // namespace MR
 
 namespace MR {

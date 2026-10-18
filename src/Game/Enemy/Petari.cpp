@@ -504,7 +504,7 @@ bool Petari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
 
     if (isSolidBody() && MR::isMsgToEnemyAttackBlow(msg)) {
-        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 10.0f, 0.0f, 4);
         setNerve(GET_NERVE(Petari, PetariNrvSpinOut));
         return true;
     }
@@ -527,7 +527,7 @@ bool Petari::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool Petari::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pReceiver, this, ::sBodySensorName) && isSwoonAny() && MR::isMsgPlayerKick(msg)) {
-        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 10.0f, 0.0f, 4);
         setNerve(GET_NERVE(Petari, PetariNrvKickOut));
         return true;
     }
@@ -656,7 +656,7 @@ bool Petari::receivePlayerAttackAtBody(u32 msg, HitSensor* pSender, HitSensor* p
     }
 
     if (isSolidBody() && (MR::isMsgJetTurtleAttack(msg) || MR::isMsgFireBallAttack(msg) || MR::isMsgInvincibleAttack(msg))) {
-        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 10.0f, 0.0f, 4);
         setNerve(GET_NERVE(Petari, PetariNrvKickOut));
         return true;
     }
@@ -677,7 +677,7 @@ bool Petari::receivePlayerAttackAtBody(u32 msg, HitSensor* pSender, HitSensor* p
         return true;
     }
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) || MR::isMsgFreezeAttack(msg)) {
-        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 10.0f, 0.0f, 4);
         setNerve(GET_NERVE(Petari, PetariNrvSpinOut));
         return true;
     }

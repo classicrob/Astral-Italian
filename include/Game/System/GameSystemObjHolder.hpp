@@ -13,6 +13,7 @@ class FunctionAsyncExecutor;
 class MessageHolder;
 class NameObjHolder;
 class PadRecorder;
+class ResourceCsvGroupHolder;
 class ParticleResourceHolder;
 class ScreenPreserver;
 class StarPointerDirector;
@@ -58,6 +59,6 @@ public:
     /* 0x30 */ StarPointerDirector* mStarPointerDirector;
     /* 0x34 */ JMath::TRandom_fast_ mRandom;
     /* 0x38 */ u32 mLanguage;
-    /* 0x3C */ u32 _3C;  // unknown type, ActionSound/AutoEffectList related
+    /* 0x3C */ ResourceCsvGroupHolder* _3C;
     /* 0x40 */ PadRecorder* mPadRecorder;
 };

@@ -10,15 +10,27 @@
 #include "Game/Util/JointController.hpp"
 #include <JSystem/J3DGraphAnimator/J3DJoint.hpp>
 #include <JSystem/JMath/JMATrigonometric.hpp>
-#include <algorithm>
+#include <JSystem/J2DGraph/J2DPicture.hpp>
 #include <revolution/mtx.h>
+
+extern const f32 cSegmentCount;
+extern const f32 cBodyHeight;
+extern const f32 cBodyCount;
+extern const f32 cOne;
+extern const f32 cHalf;
+extern const f32 cWanderWidth;
+extern const f32 cWanderHeightScale;
+extern const f32 cSegmentFraction;
+extern const f32 cStretchMin;
+__declspec(section ".sdata2") extern volatile s32 cWavePeriod;
 
 // Joint names of the 7 body joints, and the joint index -> body index table filled by init.
 static const char* sJointNames[7] = {"HeadPos", "Body5", "Body4", "Body3", "Body2", "Body1", "AllRoot"};
 static s32 sJointIndexTable[7] = {-1, -1, -1, -1, -1, -1, -1};
 
 // Scratch matrices/vectors shared by all instances.
-static TVec3f sTmpVec;
+static TVec3f sBodyRotation(0.0f, 0.0f, 90.0f);
+static TVec3f sTmpVec(0.0f, -20.0f, 0.0f);
 static TPos3f sRotateMtx;
 static TPos3f sJointInvMtx[7];
 
@@ -34,7 +46,7 @@ namespace NrvNyoropon {
     NEW_NERVE(NyoroponNrvDownSpin, Nyoropon, DownSpin);
 };  // namespace NrvNyoropon
 
-// Inlined into the SupportFreeze nerve.
+// SupportFreeze nerve executor.
 void Nyoropon::exeSupportFreeze() {
     if (MR::updateActorState(this)) {
         if (mStretchGoal > 0.0f) {
@@ -60,13 +72,14 @@ Nyoropon::Nyoropon(const char* pName)
     mDirs = new TVec3f[7];
     mLengths = new f32[7];
     for (s32 i = 0; i < 7; i++) {
-        mMtxs[i].identity();
+        PSMTXIdentity(mMtxs[i].toMtxPtr());
         mPoints[i] = TVec3f(0.0f, 0.0f, 0.0f);
         mDirs[i] = TVec3f(0.0f, 1.0f, 0.0f);
         mLengths[i] = 0.0f;
     }
 }
 
+// NONMATCHING: vector temporary stack order differs
 void Nyoropon::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "NyoroponBody", false);
     for (s32 i = 0; i < 7; i++) {
@@ -84,7 +97,7 @@ void Nyoropon::init(const JMapInfoIter& rIter) {
     mHead = new PartsModel(this, "ニョロポン頭", "NyoroponHead", MR::getJointMtx(this, "HeadPos"), 0x13, false);
     mHead->initWithoutIter();
     MR::getJMapInfoArg7NoInit(rIter, &mIsAsleep);
-    initJointControllers();
+    fn_801D8DD0();
     setFaceSleep();
     initNerve(NRV(Sleep), 1);
     MR::addToAttributeGroupSearchTurtle(this);
@@ -112,14 +125,14 @@ void Nyoropon::makeActorAppeared() {
     mStretchRate = 0.0f;
     mStretch = 0.0f;
     mStretchGoal = 0.0f;
-    initBody();
+    fn_801D8EE0();
     LiveActor::makeActorAppeared();
     mHead->makeActorAppeared();
     MR::startAction(mHead, "Wait");
     setFaceNormal();
 }
 
-// NONMATCHING: branch polarity of the Light/HeadReceive sensor checks
+// NONMATCHING: equivalent early return changes branch polarity and omits a redundant end branch
 void Nyoropon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isEqualSensor(pSender, this, "Light")) {
         if (MR::isEqualSensor(pSender, this, "HeadReceive")) {
@@ -246,13 +259,8 @@ bool Nyoropon::isStretchedNerve() const {
     return false;
 }
 
-static inline f32 lerpF(f32 a, f32 b, f32 t) {
-    return a + ((b - a) * t);
-}
-
-// NONMATCHING: register allocation only
-f32 Nyoropon::calcStretchScale() const {
-    return lerpF(0.05f, 1.0f, 1.0f - mStretch);
+f32 Nyoropon::fn_801D8350() const {
+    return cStretchMin + ((cOne - cStretchMin) * (cOne - mStretch));
 }
 
 void Nyoropon::exeSleep() {
@@ -263,8 +271,8 @@ void Nyoropon::exeSleep() {
     if (MR::isBckOneTimeAndStopped(mHead)) {
         MR::tryStartActionNotPlaying(mHead, "Wait");
     }
-    updateTarget();
-    updateBody(0.3f, 0.3f, 3.5f);
+    fn_801D9070();
+    fn_801D93A0(0.3f, 0.3f, 3.5f);
     f32 dist = MR::calcDistanceToPlayer(this);
     if (dist < 1100.0f) {
         setNerve(NRV(Find));
@@ -284,8 +292,8 @@ void Nyoropon::exeWait() {
     if (MR::isBckOneTimeAndStopped(mHead)) {
         MR::tryStartActionNotPlaying(mHead, "Wait");
     }
-    updateTarget();
-    updateBody(0.3f, 0.3f, 3.5f);
+    fn_801D9070();
+    fn_801D93A0(0.3f, 0.3f, 3.5f);
     if (MR::calcDistanceToPlayer(this) < 1100.0f) {
         setNerve(NRV(Find));
         return;
@@ -293,7 +301,7 @@ void Nyoropon::exeWait() {
     playIdleSound();
 }
 
-// NONMATCHING: target loads three separate 1.0f literal-pool entries (0x318/0x350/0x380) where we reuse one
+// NONMATCHING: target reloads duplicate 1.0f literals where the compiler reuses a float register
 void Nyoropon::exeFind() {
     if (MR::isFirstStep(this)) {
         setFaceAttack();
@@ -303,8 +311,8 @@ void Nyoropon::exeFind() {
     if (MR::isBckOneTimeAndStopped(mHead)) {
         MR::tryStartActionNotPlaying(mHead, "Wait");
     }
-    calcHeadTarget();
-    updateBody(1.0f, 1.0f, 1.0f);
+    fn_801D91A0();
+    fn_801D93A0(1.0f, 1.0f, 1.0f);
     if (MR::isGreaterStep(this, 30) && MR::calcDistanceToPlayer(this) > 1100.0f) {
         setNerve(NRV(Wait));
     }
@@ -331,8 +339,8 @@ void Nyoropon::exeRecover() {
         setNerve(NRV(Wait));
         return;
     }
-    updateTarget();
-    updateBody(1.0f, 1.0f, 3.5f);
+    fn_801D9070();
+    fn_801D93A0(1.0f, 1.0f, 3.5f);
 }
 
 void Nyoropon::exeStarPiece() {
@@ -349,13 +357,13 @@ void Nyoropon::exeStarPiece() {
     if (MR::isBckOneTimeAndStopped(mHead)) {
         MR::startAction(mHead, "Wait");
     }
-    updateStretch(15);
+    fn_801DA300(15);
     if (MR::isGreaterStep(this, 120)) {
         setNerve(NRV(Recover));
         return;
     }
-    updateTarget();
-    updateBody(10.0f, 0.0f, 3.5f);
+    fn_801D9070();
+    fn_801D93A0(10.0f, 0.0f, 3.5f);
 }
 
 void Nyoropon::exeDownStretch() {
@@ -365,9 +373,9 @@ void Nyoropon::exeDownStretch() {
         MR::startAction(this, "Down");
         MR::startAction(mHead, "Down");
     }
-    updateStretch(15);
-    updateTarget();
-    updateBody(10.0f, 0.0f, 3.5f);
+    fn_801DA300(15);
+    fn_801D9070();
+    fn_801D93A0(10.0f, 0.0f, 3.5f);
     if (MR::isActionEnd(this)) {
         ScoreAttackFunction::score100Points(mHead);
         MR::appearCoinPop(this, mHead->mPosition, 1);
@@ -384,9 +392,9 @@ void Nyoropon::exeSpin() {
         MR::startAction(this, "Spin");
         MR::startAction(mHead, "Spin");
     }
-    updateStretch(15);
-    updateTarget();
-    updateBody(10.0f, 0.0f, 3.5f);
+    fn_801DA300(15);
+    fn_801D9070();
+    fn_801D93A0(10.0f, 0.0f, 3.5f);
     if (MR::isActionEnd(this)) {
         ScoreAttackFunction::score100Points(mHead);
         MR::emitItemHitAtPos(this, &mHead->mPosition);
@@ -403,9 +411,9 @@ void Nyoropon::exeSearchLight() {
         MR::startAction(this, "SearchLight");
         MR::startAction(mHead, "SearchLight");
     }
-    updateStretch(15);
-    updateTarget();
-    updateBody(10.0f, 0.0f, 3.5f);
+    fn_801DA300(15);
+    fn_801D9070();
+    fn_801D93A0(10.0f, 0.0f, 3.5f);
     if (MR::isActionEnd(this)) {
         ScoreAttackFunction::score100Points(mHead);
         MR::emitItemHitAtPos(this, &mHead->mPosition);
@@ -422,9 +430,9 @@ void Nyoropon::exeDownSpin() {
         MR::startAction(this, "Down");
         MR::startAction(mHead, "Down");
     }
-    updateStretch(15);
-    updateTarget();
-    updateBody(10.0f, 0.0f, 3.5f);
+    fn_801DA300(15);
+    fn_801D9070();
+    fn_801D93A0(10.0f, 0.0f, 3.5f);
     if (MR::isActionEnd(this)) {
         ScoreAttackFunction::score100Points(mHead);
         MR::emitItemHitAtPos(this, &mHead->mPosition);
@@ -464,7 +472,8 @@ void Nyoropon::setFaceAttack() {
     }
 }
 
-void Nyoropon::initJointControllers() {
+// NONMATCHING: joint controller and loop registers differ
+void Nyoropon::fn_801D8DD0() {
     mJointCtrls = new JointController*[7];
     for (s32 i = 0; i < 7; i++) {
         JointControlDelegator< Nyoropon >::func calcFunc = &Nyoropon::calcJointMatrix;
@@ -475,36 +484,37 @@ void Nyoropon::initJointControllers() {
     }
 }
 
-// NONMATCHING: target keeps (500.0f / 7.0f) - 1.0f unfolded and different float register allocation
-void Nyoropon::initBody() {
+void Nyoropon::fn_801D8EE0() {
     TPos3f mtx;
     PSMTXIdentity(mtx.toMtxPtr());
     MR::makeMtxRotate(mtx.toMtxPtr(), 0.0f, 0.0f, 0.0f);
     TVec3f pos(0.0f);
     TVec3f dir(0.0f, 1.0f, 0.0f);
-    f32 len = (500.0f / 7.0f) - 1.0f;
+    f32 len = (cBodyHeight / cBodyCount) - cOne;
     for (s32 i = 6; i >= 0; i--) {
         mPoints[i] = pos;
         mDirs[i] = dir;
         mLengths[i] = len;
         mMtxs[i] = mtx;
         MR::setMtxTrans(mMtxs[i].toMtxPtr(), pos.x, pos.y, pos.z);
+        f32 segmentLength = mLengths[i];
         TVec3f step(dir);
-        step *= mLengths[i];
+        step *= segmentLength;
         pos += step;
     }
     mVel = TVec3f(0.0f);
     mPrevVel = TVec3f(0.0f);
 }
 
-// NONMATCHING: target keeps literal*literal products (0.5*300, 1.3*500, 0.5*500) unfolded
-void Nyoropon::updateTarget() {
-    f32 half = 0.5f * 300.0f;
+// NONMATCHING: float register allocation and product scheduling differ
+void Nyoropon::fn_801D9070() {
+    f32 half = cHalf * cWanderWidth;
     TVec3f goal;
     goal.x = 0.0f;
-    goal.y = 1.3f * 500.0f;
+    goal.y = cWanderHeightScale * cBodyHeight;
     goal.z = 0.0f;
-    f32 phase = 2.0f * (((f32)(((s32)(0.5f * 500.0f) + getNerveStep()) % 500) / 500.0f) - 0.5f);
+    s32 period = 500;
+    f32 phase = 2.0f * (((f32)(((s32)(cHalf * period) + getNerveStep()) % period) / period) - cHalf);
     f32 wave;
     if (phase < 0.0f) {
         wave = 1.0f + (2.0f * phase);
@@ -516,7 +526,7 @@ void Nyoropon::updateTarget() {
 }
 
 // NONMATCHING: stack slot order of the TVec3f temporaries only
-void Nyoropon::calcHeadTarget() {
+void Nyoropon::fn_801D91A0() {
     TVec3f playerPos(*MR::getPlayerPos());
     TVec3f local(0.0f, 0.0f, 0.0f);
     MR::calcLocalVec(&local, playerPos, getBaseMtx());
@@ -561,11 +571,11 @@ void Nyoropon::calcHeadTarget() {
     mTarget = res;
 }
 
-// NONMATCHING: large vector-math transcription from m2c, expression grouping/temporaries not verified
-void Nyoropon::updateBody(f32 pushA, f32 pushB, f32 ampScale) {
+// NONMATCHING: vector temporary stack slots, saved float registers, and arithmetic scheduling differ
+void Nyoropon::fn_801D93A0(f32 pushA, f32 pushB, f32 ampScale) {
     mPrevVel = mVel;
     TVec3f head(mTarget);
-    f32 scale = 0.16666667f * 500.0f * calcStretchScale();
+    f32 scale = cSegmentFraction * cBodyHeight * fn_801D8350();
     mVel *= 0.92f;
     TVec3f d = head - mPoints[0];
     f32 dist = PSVECMag(&d);
@@ -584,7 +594,8 @@ void Nyoropon::updateBody(f32 pushA, f32 pushB, f32 ampScale) {
     mPoints[0] += mVel;
     TVec3f seg = mPoints[0] - mPoints[6];
     f32 nn = MR::normalize(PSVECMag(&seg), 0.0f, 500.0f);
-    f32 shift = (1.0f - nn) * (5.0f * -MR::sign(mTarget.x));
+    f32 slack = 1.0f - nn;
+    f32 shift = slack * (5.0f * -MR::sign(mTarget.x));
     for (s32 i = 1; i < 7; i++) {
         mPoints[i].x += shift;
     }
@@ -601,20 +612,14 @@ void Nyoropon::updateBody(f32 pushA, f32 pushB, f32 ampScale) {
     for (s32 k2 = 6; k2 >= 2; k2--) {
         TVec3f d2 = mPoints[k2 - 2] - mPoints[k2];
         f32 m2 = PSVECMag(&d2);
-        f32 nb = MR::clamp(MR::normalize(m2, 0.0f, 2.0f * scale), 0.0f, 1.0f);
+        f32 nb = MR::normalize(m2, 0.0f, 2.0f * scale);
+        f32 bendRate = 1.0f - nb;
         MR::normalizeOrZero(&d2);
         TVec3f perp2(-d2.y, d2.x, 0.0f);
-        f32 bend = (1.0f - (0.16666667f * (f32)k2)) * (100.0f * (1.0f - nb));
+        f32 bend = (1.0f - (cSegmentFraction * (f32)k2)) * (100.0f * bendRate);
         f32 hh = (0.5f * m2) + (0.5f * bend);
         f32 sq = (scale * scale) - (hh * hh);
-        f32 s;
-        if (sq > 0.0f) {
-            f32 e = __frsqrte(sq);
-            f32 x = e * sq;
-            s = -((x * e) - 3.0f) * x * 0.5f;
-        } else {
-            s = sq;
-        }
+        f32 s = MR::fastSqrtf(sq);
         TVec3f mid = mPoints[k2] + d2 * hh;
         TVec3f toK = mid - mPoints[k2 - 1];
         mPoints[k2 - 2] += d2 * bend;
@@ -636,7 +641,7 @@ void Nyoropon::updateBody(f32 pushA, f32 pushB, f32 ampScale) {
     MR::normalizeOrZero(&dir5);
     TVec3f up(0.0f, 1.0f, 0.0f);
     MR::clampVecAngleDeg(&dir5, up, 30.0f);
-    TVec3f nv = mPoints[6] + dir5 * (500.0f / 6.0f);
+    TVec3f nv = mPoints[6] + dir5 * (cBodyHeight / cSegmentCount);
     TVec3f off = nv - mPoints[5];
     for (s32 i = 0; i < 6; i++) {
         mPoints[i] += off;
@@ -648,13 +653,14 @@ void Nyoropon::updateBody(f32 pushA, f32 pushB, f32 ampScale) {
     }
     mDirs[0] = mDirs[1];
     mPoints[0] = mPoints[1] + mDirs[1] * scale;
-    calcBodyMatrices(ampScale);
+    fn_801D9C60(ampScale);
 }
 
-// NONMATCHING: large vector-math transcription from m2c, expression grouping/temporaries not verified
-void Nyoropon::calcBodyMatrices(f32 ampScale) {
+// NONMATCHING: vector array stack order, register allocation, and arithmetic scheduling differ
+void Nyoropon::fn_801D9C60(f32 ampScale) {
     TVec3f up(0.0f, 0.0f, 1.0f);
-    f32 step = 500.0f * 0.16666667f;
+    f32 segmentFraction = cSegmentFraction;
+    f32 step = cBodyHeight * segmentFraction;
     TVec3f d = mTarget - mPoints[0];
     f32 n = MR::clamp(MR::normalize(PSVECMag(&d), 0.0f, 200.0f), 0.0f, 1.0f);
     f32 amp = ampScale * (1.0f - n);
@@ -662,28 +668,30 @@ void Nyoropon::calcBodyMatrices(f32 ampScale) {
     if (__fabsf(diff) <= 0.01f) {
         mAmp = amp;
     }
+    f32 ampStep = 0.01f * MR::sign(diff);
     s32 frame = mFrame;
+    s32 period = cWavePeriod;
     mFrame = frame + 1;
-    f32 phase = (360.0f * (f32)frame) / (f32)180;
-    mAmp += 0.01f * MR::sign(diff);
-    if (mFrame > 180) {
+    f32 phase = (360.0f * (f32)frame) / (f32)period;
+    mAmp += ampStep;
+    if (mFrame > period) {
         mFrame = 0;
     }
     TVec3f out[7];
     TVec3f outDir[7];
     for (s32 i = 0; i < 7; i++) {
-        TVec3f next(i == 6 ? mPoints[6] : mPoints[i + 1]);
-        TVec3f prev(i == 0 ? mPoints[0] : mPoints[i - 1]);
+        TVec3f next(i == 6 ? mPoints[i] : mPoints[i + 1]);
+        TVec3f prev(i == 0 ? mPoints[i] : mPoints[i - 1]);
         TVec3f dv(prev);
         dv -= next;
         MR::normalize(&dv);
-        std::swap(dv.x, dv.y);
+        J2DPicture::swap(dv.x, dv.y);
         dv.y = -dv.y;
-        f32 t1 = 1.0f - (0.16666667f * (f32)i);
+        f32 t1 = 1.0f - (segmentFraction * (f32)i);
         f32 ph = phase + (360.0f * (t1 * 0.8f));
         f32 w = MR::clamp(MR::normalize(t1, 0.0f, 0.75f), 0.0f, 1.0f);
         f32 s = JMASinDegree(ph);
-        f32 amount = mAmp * (w * (30.0f * s)) * calcStretchScale();
+        f32 amount = mAmp * (w * (30.0f * s)) * fn_801D8350();
         out[i] = mPoints[i];
         out[i] += dv * amount;
     }
@@ -694,7 +702,7 @@ void Nyoropon::calcBodyMatrices(f32 ampScale) {
     }
     outDir[0] = outDir[1];
     out[0] = out[1] + outDir[1] * step;
-    for (s32 i = 0; i < 7; i++) {
+    for (s32 i = 6; i >= 0; i--) {
         mLengths[i] = step;
     }
     for (s32 i = 0; i < 7; i++) {
@@ -730,9 +738,10 @@ bool Nyoropon::calcJointMatrix(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     return true;
 }
 
-bool Nyoropon::updateStretch(s32 step) {
+// NONMATCHING: float multiply operands use the opposite register order
+bool Nyoropon::fn_801DA300(s32 step) {
     f32 rate = MR::calcNerveEaseOutRate(this, step);
-    mStretch = mStretchStart + (rate * (mStretchGoal - mStretchStart));
+    mStretch = mStretchStart + ((mStretchGoal - mStretchStart) * rate);
     if (mStretch >= 1.0f) {
         mStretch = 1.0f;
         return true;
@@ -750,3 +759,15 @@ void Nyoropon::playIdleSound() {
 
 Nyoropon::~Nyoropon() {
 }
+
+const f32 cBodyHeight = 500.0f;
+const f32 cBodyCount = 7.0f;
+const f32 cOne = 1.0f;
+const f32 cHalf = 0.5f;
+const f32 cWanderWidth = 300.0f;
+const f32 cWanderHeightScale = 1.3f;
+const f32 cSegmentFraction = 0.16666667f;
+const f32 cStretchMin = 0.05f;
+__declspec(section ".sdata2") volatile s32 cWavePeriod = 180;
+
+const f32 cSegmentCount = 6.0f;

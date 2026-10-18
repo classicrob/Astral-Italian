@@ -110,7 +110,7 @@ void Kameck::initJMapParam(const JMapInfoIter& rIter) {
     mShootTiming = 30;
     MR::getJMapInfoArg1NoInit(rIter, &mShootTiming);
 
-    mBeamType = KameckBeam::BeamType_Turtle;
+    mBeamType = KameckBeam::BeamType_FireBall1;
     if (MR::isObjectName(rIter, "KameckKuriboMini")) {
         mBeamType = KameckBeam::BeamType_KuriboMini;
     }
@@ -295,7 +295,7 @@ bool Kameck::requestDown(HitSensor* pSender, HitSensor* pReceiver) {
         MR::onBind(this);
         MR::invalidateHitSensors(this);
         MR::invalidateClipping(this);
-        MR::fn_80012B90(this, ::sHitHorizontalPower, ::sHitVerticalPower, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, ::sHitHorizontalPower, ::sHitVerticalPower, 4);
         setNerve(GET_NERVE(Kameck, KameckNrvDown));
 
         return true;

@@ -1196,8 +1196,8 @@ namespace MR {
         addVelocitySeparateHV(pActor, pSensor1, pSensor2, a2, a3);
     }
 
-    void fn_80012B90(LiveActor* pActor, f32 a2, f32 a3, HitSensor* pSensor1, HitSensor* pSensor2, s32 a6) {
-        setVelocitySeparateHV(pActor, pSensor1, pSensor2, a2, a3);
+    void setVelocityBlowAttack(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2, f32 a4, f32 a5, s32 a6) {
+        setVelocitySeparateHV(pActor, pSensor1, pSensor2, a4, a5);
     }
 #pragma dont_inline reset
 
@@ -1207,14 +1207,6 @@ namespace MR {
 
     void setVelocitySeparateHV(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2, f32 a4, f32 a5) {
         setVelocitySeparateHV(pActor, pSensor2->mPosition - pSensor1->mPosition, a4, a5);
-    }
-
-    void setVelocityBlowAttack(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2, f32 a4, f32 a5, s32 a6) {
-        setVelocitySeparateHV(pActor, pSensor1, pSensor2, a4, a5);
-
-        if (isNearPlayerAnyTime(pActor, 1000.0f)) {
-            stopSceneForDefaultHit(a6);
-        }
     }
 
     bool fn_80012BA0(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2, f32 a4) {

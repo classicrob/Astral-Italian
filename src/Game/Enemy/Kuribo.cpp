@@ -416,7 +416,7 @@ bool Kuribo::requestBlowDown(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
     }
 
     MR::deleteEffectAll(this);
-    MR::fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
+    MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 30.0f, 4);
     setNerve(GET_NERVE(Kuribo, KuriboNrvBlowDown));
     ScoreAttackFunction::scoreByAttack(this, msg, pSender);
     return true;

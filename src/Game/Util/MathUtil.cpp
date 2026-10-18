@@ -254,7 +254,6 @@ namespace MR {
         return JGeometry::TUtil< f32 >::clamp(normalize(x, min, max), 0.0f, 1.0f);
     }
 
-    // PLACEHOLDER(core): SMG2 fn_8003E340 (unnamed); resolve when renamed in symbols.txt
     void turnVecRandomAroundAxis(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rAxis, f32 min, f32 max) {
         f32 degree = fmod(min + (max - min) * getRandom(), 360.0f);
         TPos3f mtx;

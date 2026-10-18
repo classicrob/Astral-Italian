@@ -27,7 +27,7 @@ Garigari::Garigari(const char* pName) : LiveActor(pName) {
     mType = 1;
 }
 
-// NONMATCHING: quaternion up-vector operand order and register allocation (90%)
+// NONMATCHING: pose quaternion products scheduled/allocated in a different register order (98.9%)
 void Garigari::init(const JMapInfoIter& rIter) {
     const char* pObjectName = nullptr;
     MR::getObjectName(&pObjectName, rIter);
@@ -47,12 +47,12 @@ void Garigari::init(const JMapInfoIter& rIter) {
         f32 z = mPose->z;
         f32 w = mPose->w;
         TVec3f sp1C;
-        sp1C.set(2.0f * (x * y) - 2.0f * (w * z), 1.0f - 2.0f * (x * x) - 2.0f * (z * z), 2.0f * (y * z) + 2.0f * (w * x));
+        sp1C.set<f32>(2.0f * (x * y) - 2.0f * (w * z), 1.0f - 2.0f * (x * x) - 2.0f * (z * z), 2.0f * (y * z) + 2.0f * (w * x));
         TVec3f sp10 = -sp1C;
-        mUnk44 = sp10;
+        mGravity.set<f32>(sp10);
     }
 
-    mUnk9C = mUnk14;
+    mUnk9C.set<f32>(mPosition);
     if (MR::isConnectedWithRail(rIter)) {
         mRailMover = new MapPartsRailMover(this);
         mRailMover->init(rIter);
@@ -92,7 +92,7 @@ void Garigari::fn_80182140() {
 
 void Garigari::fn_801821A0() {
     TVec3f sp14(MR::getRailDirection(this));
-    TVec3f sp8;
+    TVec3f sp8 = -mGravity;
     if (MR::isSameDirection(sp14, sp8, 0.01f)) {
         MR::calcUpVec(&sp8, this);
         if (MR::isSameDirection(sp14, sp8, 0.01f)) {
@@ -106,21 +106,23 @@ void Garigari::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mPose);
 }
 
-// NONMATCHING: register allocation in the sensor block (94%)
+// NONMATCHING: sendMsgEnemyAttackExplosion result branch emitted as beq+b instead of bne+b, and one extra b in the blow block (98.4%)
 void Garigari::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     TVec3f sp14;
     MR::calcSensorDirection(&sp14, pSender, pReceiver);
     TVec3f sp8;
     MR::calcSideVec(&sp8, this);
     f32 dot = sp8.dot(sp14);
-    if (!(MR::fabs(dot) > 40.0f)) {
+    if (!(MR::abs(dot) > 40.0f)) {
         if (MR::isSensorPlayer(pReceiver)) {
             MR::sendMsgEnemyAttackStrong(pReceiver, pSender);
             return;
         }
         if (MR::isSensorType(pReceiver, 0x1D)) {
             if (isNerve(&NrvGarigari::GarigariNrvRotate::sInstance)) {
-                MR::sendMsgEnemyAttackExplosion(pReceiver, pSender);
+                if (MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) {
+                    return;
+                }
             } else {
                 MR::sendMsgPush(pReceiver, pSender);
             }
@@ -139,6 +141,7 @@ void Garigari::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 // NONMATCHING: MapPartsRailMover vtable slot 0x30 approximated as start()
 void Garigari::exeRotateSign() {
     if (MR::isFirstStep(this)) {
+        MR::startAction(this, "RotateSign");
         if (mType == 0) {
             MR::startAction(this, "RotateSign");
         } else {
@@ -169,7 +172,7 @@ void Garigari::exeRotate() {
     if (mRailMover != nullptr) {
         TVec3f sp14(MR::getRailDirection(this));
         fn_801821A0();
-        mRailMover->isWorking();
+        mRailMover->movement();
         MR::setPosition(this, mRailMover->_28);
         if (MR::isRailReachedGoal(this)) {
             f32 speed = MR::getRailCoordSpeed(this);
@@ -202,7 +205,7 @@ void Garigari::exeSupportFreeze() {
     MR::updateActorStateAndNextNerve(this, &NrvGarigari::GarigariNrvRotate::sInstance);
 }
 
-void Garigari::exeWait() {
+inline void Garigari::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
     }

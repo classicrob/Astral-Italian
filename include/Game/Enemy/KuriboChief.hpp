@@ -14,7 +14,7 @@ class KeySwitch;
 class KuriboChief : public LiveActor {
 public:
     bool fn_801BC910() const;
-    void fn_801BC140();
+    bool fn_801BC140();
     KuriboChief(const char*);
 
     virtual void init(const JMapInfoIter&);
@@ -47,16 +47,16 @@ public:
     bool isEnableAttack() const;
     bool isEnableKick() const;
     bool isDown() const;
-    // PLACEHOLDER(enemies): fn_801BBFB0 and fn_801BC000 (unnamed KuriboChief members at 0x801BBFB0/0x801BC000, used by PatakuriBig); resolve when the KuriboChief unit names them.
+    void fn_801BBEC0(const TVec3f&, const TQuat4f&, const TVec3f&);
     void fn_801BBFB0(const TVec3f&, const TQuat4f&, const TVec3f&);
     void fn_801BC000(const TVec3f&, const TQuat4f&, const TVec3f&, HitSensor*, HitSensor*);
 
-    /* 0x8C */ AnimScaleController* mScaleController;
-    /* 0x90 */ WalkerStateWander* mStateWander;
-    /* 0x94 */ WalkerStateFindPlayer* mStateFindPlayer;
-    /* 0x98 */ WalkerStateChase* mStateChase;
-    /* 0x9C */ WalkerStateStagger* mStateStagger;
-    /* 0xA0 */ WalkerStateBindStarPointer* mStateBindStarPointer;
+    /* 0x90 */ AnimScaleController* mScaleController;
+    /* 0x94 */ WalkerStateWander* mStateWander;
+    /* 0x98 */ WalkerStateFindPlayer* mStateFindPlayer;
+    /* 0x9C */ WalkerStateChase* mStateChase;
+    /* 0xA0 */ WalkerStateStagger* mStateStagger;
+    /* 0xA4 */ WalkerStateBindStarPointer* mStateBindStarPointer;
     /* 0xA8 */ KeySwitch* mKeySwitch;
     /* 0xAC */ TQuat4f _AC;
     /* 0xBC */ TVec3f _BC;

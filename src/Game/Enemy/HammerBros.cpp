@@ -374,7 +374,7 @@ bool HammerBros::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
 
 bool HammerBros::tryExplosionDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isVulnerable()) {
-        MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 40.0f, 4);
         setNerve(NRV(BlowDown));
         killHeldProjectile();
         return true;
@@ -388,7 +388,7 @@ bool HammerBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
         vuln = true;
     }
     if (vuln) {
-        MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 40.0f, 4);
         MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(NRV(BlowDown));
         killHeldProjectile();
@@ -399,7 +399,7 @@ bool HammerBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool HammerBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
-        MR::fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 22.0f, 2.0f, 4);
         MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(NRV(Swoon));
         killHeldProjectile();
@@ -419,9 +419,9 @@ bool HammerBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
         }
     }
     if (isNormalNerve()) {
-        MR::fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 22.0f, 2.0f, 4);
     } else {
-        MR::fn_80012B90(this, 0.0f, 2.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 0.0f, 2.0f, 4);
     }
     MR::tryHitReaction(this, "\x83\x60\x83\x52\x90\x81\x82\xc1\x94\xf2\x82\xd1");
     setNerve(NRV(Swoon));

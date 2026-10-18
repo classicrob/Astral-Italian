@@ -8,17 +8,8 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-};  // namespace MR
-
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
-
-namespace NameObjFactory {
-    NameObj* initChildObj(const JMapInfoIter&, int);
-};  // namespace NameObjFactory
+#include "Game/Util/YoshiLockOnUtil.hpp"
+#include "Game/NameObj/NameObjFactory.hpp"
 
 namespace NrvJugem {
     NEW_NERVE(JugemNrvWait, Jugem, Wait);
@@ -56,14 +47,15 @@ namespace NrvJugem {
 
 #define JN(n) (&NrvJugem::JugemNrv##n::sInstance)
 
-const volatile s32 lbl_807E3038 = 0;
-
-namespace {
-    const f32 cHeight = 350.0f;
-    const f32 cRayLength = 1000.0f;
-};  // namespace
-
 // Constant data of this TU (.bss, filled by the sinit at the end).
+extern const f32 cHeight;
+extern const f32 cRayLength;
+extern const f32 cFallSpeed;
+extern const f32 cThrowAngle;
+extern const f32 cChildRange;
+extern const f32 cChildRangeScale;
+extern const f32 cReboundGravity;
+
 static TVec2f sCloudSway(49.8047, 28.7109);
 static TVec3f sCarryOffset(0.0f, 180.0f, 110.0f);
 static TVec3f sBinderOffsetWait(0.0f, 0.0f, 0.0f);
@@ -80,8 +72,9 @@ static void fn_8019ABD0(TVec3f* pFront, LiveActor* pActor, const TVec3f& rTarget
     }
 }
 
+// NONMATCHING: vector temporary stack slots and velocity pointer register reuse differ
 // fn_8019AC70 (static): fly toward pTarget keeping a height above the ground, with velocity clamping.
-static void fn_8019AC70(LiveActor* pActor, const TVec3f& rTarget, bool useShadow, f32 rate, f32 speed, f32 maxDist, f32 height, f32 shadowParam) {
+static void fn_8019AC70(LiveActor* pActor, const TVec3f& rTarget, bool useShadow, f32 rate, f32 height, f32 maxDist, f32 speed, f32 shadowParam) {
     MR::attenuateVelocity(pActor, 0.97f);
     TVec3f toTarget(rTarget);
     toTarget -= pActor->mPosition;
@@ -91,7 +84,7 @@ static void fn_8019AC70(LiveActor* pActor, const TVec3f& rTarget, bool useShadow
     f32 clamped = MR::normalize(mag, 50.0f, maxDist);
     MR::fn_80010CB0(pActor, toTarget, rate * clamped);
     if (MR::reboundVelocityFromCollision(pActor, 0.0f, 0.0f, 1.0f)) {
-        MR::addVelocityToGravity(pActor, -1.0f);
+        MR::addVelocityToGravity(pActor, -cReboundGravity);
     } else if (useShadow) {
         TVec3f diff(rTarget);
         diff -= pActor->mPosition;
@@ -104,19 +97,24 @@ static void fn_8019AC70(LiveActor* pActor, const TVec3f& rTarget, bool useShadow
         MR::addVelocityKeepHeight(pActor, rTarget, height, speed);
     }
     f32 vDot = pActor->mVelocity.dot(pActor->mGravity);
-    TVec3f vGrav(pActor->mGravity);
-    vGrav *= vDot;
-    TVec3f vH(pActor->mVelocity);
-    vH -= vGrav;
-    if (PSVECMag(&vGrav) > 20.0f) {
+    TVec3f vGrav;
+    TVec3f gravScaled(pActor->mGravity);
+    gravScaled *= vDot;
+    vGrav = gravScaled;
+    TVec3f vH;
+    TVec3f horizontal(pActor->mVelocity);
+    horizontal -= vGrav;
+    vH = horizontal;
+    if (PSVECMag(&vGrav) > 23.0f) {
         TVec3f tmp(pActor->mGravity);
-        tmp *= 20.0f;
+        tmp *= 23.0f;
         vGrav = tmp;
     }
-    if (PSVECMag(&vH) > 20.0f) {
+    if (PSVECMag(&vH) > 23.0f) {
+        PSVECMag(&vH);
         PSVECNormalize(&vH, &vH);
         TVec3f tmp(vH);
-        tmp *= 20.0f;
+        tmp *= 23.0f;
         vH = tmp;
     }
     TVec3f sum(vGrav);
@@ -126,8 +124,10 @@ static void fn_8019AC70(LiveActor* pActor, const TVec3f& rTarget, bool useShadow
 
 // fn_8019AF50 (static): returns the index of the rail point nearest to pPos and writes that point to pOut.
 static s32 fn_8019AF50(TVec3f* pOut, LiveActor* pActor, const TVec3f& rPos) {
-    pOut->set(0.0f, 0.0f, 0.0f);
-    f32 minDist = 100000000.0f;
+    pOut->z = 0.0f;
+    pOut->y = 0.0f;
+    pOut->x = 0.0f;
+    f32 minDist = 3.402823466e38f;
     s32 nearest;
     for (s32 i = 0; i < MR::getRailPointNum(pActor); i++) {
         TVec3f pt;
@@ -171,8 +171,10 @@ Jugem::Jugem(const char* pName) : LiveActor(pName) {
     mSubMtx.identity();
 }
 
-static JointController* createJointCtrl(Jugem* pHost, const char* pJointName, bool (Jugem::*calcFunc)(TPos3f*, const JointControllerInfo&)) {
-    return MR::createJointDelegator< Jugem >(pHost, pHost, calcFunc, nullptr, pJointName);
+JointController* Jugem::fn_8019B4A0(const char* pJointName, JointCalcFunc calcFunc) {
+    JointControlDelegator<Jugem>* controller = new JointControlDelegator<Jugem>(this, calcFunc, nullptr);
+    MR::setJointControllerParam(controller, this, pJointName);
+    return controller;
 }
 
 void Jugem::init(const JMapInfoIter& rIter) {
@@ -183,7 +185,7 @@ void Jugem::init(const JMapInfoIter& rIter) {
     mCloud->initWithoutIter();
     PSMTXCopy(getBaseMtx(), mBaseMtx.toMtxPtr());
     mYoshiLockOn = MR::createYoshiLockOnTarget(this, mBaseMtx.toMtxPtr(), TVec3f(0.0f));
-    mYoshiLockOn2 = MR::createYoshiLockOnTarget(mCloud, nullptr, TVec3f(0.0f));
+    mYoshiLockOn2 = MR::createYoshiLockOnTarget(mCloud, static_cast<MtxPtr>(nullptr), TVec3f(0.0f));
     MR::getJMapInfoArg0NoInit(rIter, &mWaitTime);
     mChildNum = MR::getChildObjNum(rIter);
     mChildNumPlusOne = mChildNum + 1;
@@ -199,7 +201,7 @@ void Jugem::init(const JMapInfoIter& rIter) {
         mChildObjs[i]->makeActorAppeared();
         mChildPoses[i] = mChildObjs[i]->mPosition;
     }
-    Togezo* pTogezo = new Togezo("\x83\x67\x83\x51\x83\x5B\x81\x5B");
+    Togezo* pTogezo = new Togezo("\x83\x67\x83\x51\x83\x5D\x81\x5B");
     mChildren[mChildNum] = pTogezo;
 #pragma dont_inline on
     mChildren[mChildNum]->mPosition.set(mPosition);
@@ -211,8 +213,8 @@ void Jugem::init(const JMapInfoIter& rIter) {
     MR::moveCoordAndTransToNearestRailPos(this);
     MR::calcFrontVec(&mFrontVec, this);
     initNerve(JN(Wait), 1);
-    mJointCtrlA = createJointCtrl(this, "AllRoot", &Jugem::calcRootJoint);
-    mJointCtrlB = createJointCtrl(this, "WristR", &Jugem::calcWristJoint);
+    mJointCtrlA = fn_8019B4A0("AllRoot", &Jugem::calcRootJoint);
+    mJointCtrlB = fn_8019B4A0("WristR", &Jugem::calcWristJoint);
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mAnimScaleCtrl->setParamTight();
     mBindStarPointer = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
@@ -247,6 +249,7 @@ void Jugem::control() {
     fn_8019E8D0();
     fn_8019EB90();
     mAnimScaleCtrl->updateNerve();
+    PSMTXCopy(getBaseMtx(), mBaseMtx.toMtxPtr());
     MR::addTransMtxLocalY(mBaseMtx.toMtxPtr(), 50.0f);
     if (fn_8019D280()) {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
@@ -296,7 +299,8 @@ void Jugem::exeFollow() {
     MR::isFirstStep(this);
     fn_8019E600();
     if (mStepCounter <= 60 || !fn_8019DDE0()) {
-        if (lbl_807E3038 > 0 && MR::isGreaterStep(this, lbl_807E3038)) {
+        s32 followTime = lbl_807E3038;
+        if (followTime > 0 && MR::isGreaterStep(this, followTime)) {
             setNerve(JN(Search));
         }
         TVec3f target(0.0f);
@@ -314,7 +318,7 @@ void Jugem::exeApproach() {
     }
     fn_8019E600();
     TVec3f target(0.0f);
-    fn_8019E250(&target, 150.0f);
+    fn_8019E250(&target, 350.0f);
     const TVec3f& rPlayer = *MR::getPlayerPos();
     TVec3f diff(target);
     diff -= rPlayer;
@@ -325,13 +329,13 @@ void Jugem::exeApproach() {
         a *= 900.0f;
         TVec3f b(*MR::getPlayerGravity());
         b *= d;
-        TVec3f c(rPlayer);
+        TVec3f c(*MR::getPlayerPos());
         c += b;
         TVec3f e(c);
         e += a;
         target = e;
     }
-    fn_8019AC70(this, target, true, 0.7f, 0.3f, 600.0f, 200.0f, 150.0f);
+    fn_8019AC70(this, target, true, 0.7f, 0.3f, 600.0f, 200.0f, 350.0f);
     fn_8019ABD0(&mFrontVec, this, *MR::getPlayerPos(), 0.06f);
     TVec3f toTarget(target);
     toTarget -= mPosition;
@@ -355,7 +359,7 @@ void Jugem::exePickTogezo() {
     fn_8019E600();
     TVec3f target(0.0f);
     fn_8019DFE0(&target, mChildIndex);
-    fn_8019AC70(this, target, true, 0.7f, 0.3f, 600.0f, 200.0f, 150.0f);
+    fn_8019AC70(this, target, true, 0.7f, 0.3f, 600.0f, 200.0f, 350.0f);
     fn_8019ABD0(&mFrontVec, this, mChildPoses[mChildIndex], 0.06f);
     TVec3f toTarget(target);
     toTarget -= mPosition;
@@ -380,7 +384,7 @@ void Jugem::exeMoveUp() {
     }
     TVec3f target(0.0f);
     fn_8019AF50(&target, this, mPosition);
-    fn_8019AC70(this, target, false, 0.7f, 0.3f, 600.0f, 200.0f, 150.0f);
+    fn_8019AC70(this, target, false, 0.7f, 0.3f, 600.0f, 200.0f, 350.0f);
     fn_8019ABD0(&mFrontVec, this, mChildPoses[mChildIndex], 0.06f);
     TVec3f toTarget(target);
     toTarget -= mPosition;
@@ -458,7 +462,7 @@ void Jugem::exeStarPieceReaction() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
         MR::startAction(this, "StarPieceReaction");
-        MR::tryHitReaction(this, "\x8B\x43\x90\xE1\x8A\x4A\x8E\x6E\x81\x69\x83\x58\x83\x5E\x81\x5B\x83\x70\x83\x43\x81\x5B\x83\x58\x81\x6A");
+        MR::tryHitReaction(this, "\x8B\x43\x90\xE2\x8A\x4A\x8E\x6E\x81\x69\x83\x58\x83\x5E\x81\x5B\x83\x73\x81\x5B\x83\x58\x81\x6A");
     }
     if (MR::isGreaterStep(this, 120)) {
         setNerve(JN(Wait));
@@ -474,7 +478,7 @@ void Jugem::exeBlowDown() {
     MR::attenuateVelocity(this, 0.97f);
     if (!MR::isBindedGround(this)) {
         MR::addVelocityToGravity(this, 1.5f);
-        TVec3f up(-mGravity);
+        TVec3f up(-mVelocity);
         MR::turnDirectionDegree(this, &mFrontVec, up, 15.0f);
     }
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) || MR::isGreaterStep(this, 120) || (MR::isGreaterStep(this, 10) && MR::isBindedGround(this))) {
@@ -559,9 +563,9 @@ void Jugem::exeReBirth() {
 void Jugem::exeFallDownEaten() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
-        MR::addVelocityToGravity(this, -27.0f);
+        MR::addVelocityToGravity(this, -cFallSpeed);
         MR::startAction(this, "FallDown");
-        MR::tryHitReaction(this, "\x92\x4C\x89\xBA\x8A\x4A\x8E\x6E\x81\x69\x89\x5F\x82\xBD\x82\xD7\x82\xE7\x82\xEA\x81\x6A");
+        MR::tryHitReaction(this, "\x92\xC4\x97\x8E\x8A\x4A\x8E\x6E\x81\x69\x89\x5F\x82\xBD\x82\xD7\x82\xE7\x82\xEA\x81\x6A");
         initBinderFall();
         mStepCounter = 0;
     }
@@ -629,7 +633,7 @@ void Jugem::exeFallRecovery() {
 void Jugem::exeFallDownTrample() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "FallDown");
-        MR::tryHitReaction(this, "\x92\x4C\x89\xBA\x8A\x4A\x8E\x6E\x81\x69\x93\x4D\x82\xDC\x82\xEA\x81\x6A");
+        MR::tryHitReaction(this, "\x92\xC4\x97\x8E\x8A\x4A\x8E\x6E\x81\x69\x93\xA5\x82\xDC\x82\xEA\x81\x6A");
         MR::zeroVelocity(this);
         initBinderFall();
         mStepCounter = 0;
@@ -655,7 +659,7 @@ void Jugem::exeFallDownTrample() {
 void Jugem::exeFallDownHipDrop() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "FallDown");
-        MR::tryHitReaction(this, "\x92\x4C\x89\xBA\x8A\x4A\x8E\x6E\x81\x69\x83\x71\x83\x62\x83\x76\x83\x68\x83\x8D\x83\x62\x83\x76\x81\x6A");
+        MR::tryHitReaction(this, "\x92\xC4\x97\x8E\x8A\x4A\x8E\x6E\x81\x69\x83\x71\x83\x62\x83\x76\x83\x68\x83\x8D\x83\x62\x83\x76\x81\x6A");
         MR::zeroVelocity(this);
         initBinderFall();
         mStepCounter = 0;
@@ -713,6 +717,7 @@ void Jugem::calcAndSetBaseMtx() {
     }
 }
 
+// NONMATCHING: equivalent fallthrough omits the target's redundant end branch
 void Jugem::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerve(JN(Dead))) {
         if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayerOrRide(pReceiver) && fn_8019D1D0()) {
@@ -750,17 +755,17 @@ bool Jugem::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
         }
         if (fn_8019D2F0()) {
             if (MR::isMsgPlayerTrample(msg)) {
-                return fn_8019D9E0();
+                return fn_8019D9E0(pSender, pReceiver);
             }
             if (MR::isMsgPlayerHipDrop(msg)) {
-                return fn_8019DA80();
+                return fn_8019DA80(pSender, pReceiver);
             }
         } else {
             if (MR::isMsgPlayerTrample(msg)) {
-                return fn_8019D940();
+                return fn_8019D940(pSender, pReceiver);
             }
             if (MR::isMsgPlayerHipDrop(msg)) {
-                return fn_8019D940();
+                return fn_8019D940(pSender, pReceiver);
             }
         }
         if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg) || MR::isMsgExplosionAttack(msg) || MR::isMsgYoshiEat(msg)) {
@@ -777,7 +782,7 @@ bool Jugem::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     }
     if (MR::isMsgYoshiStartTongue(msg)) {
         if (fn_8019D280()) {
-            fn_8019D8A0();
+            fn_8019D8A0(pSender, pReceiver);
             return false;
         }
         if (fn_8019D2F0()) {
@@ -919,15 +924,15 @@ bool Jugem::fn_8019D7E0(HitSensor* pSender, HitSensor* pReceiver) {
     if (!ret) {
         fn_8019DF90();
         MR::zeroVelocity(this);
-        MR::fn_80012B90(this, 36.0f, 32.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 32.0f, 4);
         setNerve(JN(BlowDown));
-        MR::tryHitReaction(this, "\x85\x68\x82\xC1\x94\xF2\x82\xD0");
+        MR::tryHitReaction(this, "\x90\x81\x82\xC1\x94\xF2\x82\xD1");
         return true;
     }
     return false;
 }
 
-bool Jugem::fn_8019D8A0() {
+bool Jugem::fn_8019D8A0(HitSensor*, HitSensor*) {
     bool ret = false;
     if (fn_8019D450() || isNerve(JN(FallDownEaten))) {
         ret = true;
@@ -943,7 +948,7 @@ bool Jugem::fn_8019D8A0() {
     return false;
 }
 
-bool Jugem::fn_8019D940() {
+bool Jugem::fn_8019D940(HitSensor*, HitSensor*) {
     bool ret = false;
     if (fn_8019D450() || isNerve(JN(FallDownEaten))) {
         ret = true;
@@ -952,13 +957,13 @@ bool Jugem::fn_8019D940() {
         fn_8019DF90();
         MR::zeroVelocity(this);
         setNerve(JN(PressDown));
-        MR::tryHitReaction(this, "\x93\x4D\x82\xDC\x82\xEA");
+        MR::tryHitReaction(this, "\x93\xA5\x82\xDC\x82\xEA");
         return true;
     }
     return false;
 }
 
-bool Jugem::fn_8019D9E0() {
+bool Jugem::fn_8019D9E0(HitSensor*, HitSensor*) {
     bool ret = false;
     if (fn_8019D450() || isNerve(JN(FallDownEaten))) {
         ret = true;
@@ -967,13 +972,13 @@ bool Jugem::fn_8019D9E0() {
         fn_8019DF90();
         MR::zeroVelocity(this);
         setNerve(JN(FallDownTrample));
-        MR::tryHitReaction(this, "\x93\x4D\x82\xDC\x82\xEA");
+        MR::tryHitReaction(this, "\x93\xA5\x82\xDC\x82\xEA");
         return true;
     }
     return false;
 }
 
-bool Jugem::fn_8019DA80() {
+bool Jugem::fn_8019DA80(HitSensor*, HitSensor*) {
     bool ret = false;
     if (fn_8019D450() || isNerve(JN(FallDownEaten))) {
         ret = true;
@@ -982,7 +987,7 @@ bool Jugem::fn_8019DA80() {
         fn_8019DF90();
         MR::zeroVelocity(this);
         setNerve(JN(FallDownHipDrop));
-        MR::tryHitReaction(this, "\x93\x4D\x82\xDC\x82\xEA");
+        MR::tryHitReaction(this, "\x93\xA5\x82\xDC\x82\xEA");
         return true;
     }
     return false;
@@ -992,9 +997,9 @@ bool Jugem::fn_8019DB20(HitSensor* pSender, HitSensor* pReceiver) {
     if (fn_8019D280() || (isNerve(JN(FallRecovery)) && MR::isLessEqualStep(this, 69))) {
         fn_8019DF90();
         MR::zeroVelocity(this);
-        MR::fn_80012B90(this, 36.0f, 32.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 32.0f, 4);
         setNerve(JN(BlowDown));
-        MR::tryHitReaction(this, "\x85\x68\x82\xC1\x94\xF2\x82\xD0");
+        MR::tryHitReaction(this, "\x90\x81\x82\xC1\x94\xF2\x82\xD1");
         return true;
     }
     return false;
@@ -1022,8 +1027,8 @@ void Jugem::fn_8019DC40(const TVec3f& rTarget) {
         TVec3f vel(0.0f);
         f32 dist = PSVECMag(&diff);
         MR::normalize(&diff);
-        f32 c = MR::cosDegree(30.0f);
-        f32 s = -MR::sinDegree(30.0f);
+        f32 c = MR::cosDegree(cThrowAngle);
+        f32 s = -MR::sinDegree(cThrowAngle);
         f32 t = c * c * (2.0f * ((h - dist * (s / c)) / (dist * dist)));
         f32 k = 0.8f / MR::fastSqrtf(t);
         f32 vUp = s * k;
@@ -1111,8 +1116,9 @@ void Jugem::fn_8019DFE0(TVec3f* pOut, s32 index) {
     TVec3f up4(up3);
     up4 *= 1500.0f;
     pos += up4;
+    const TVec3f& player = *MR::getPlayerPos();
     TVec3f diff(pos);
-    diff -= *MR::getPlayerPos();
+    diff -= player;
     f32 d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
     if (PSVECMag(&diff) < 900.0f) {
         MR::normalize(&diff);
@@ -1129,7 +1135,7 @@ void Jugem::fn_8019DFE0(TVec3f* pOut, s32 index) {
     *pOut = pos;
 }
 
-// NONMATCHING: temporary vector stack layout and the unfolded 100*30 const-f32 product differ
+// NONMATCHING: vector stack slots and loop register allocation differ
 void Jugem::fn_8019E250(TVec3f* pOut, f32 offset) {
     TVec3f nearest;
     s32 idx = fn_8019AF50(&nearest, this, *MR::getPlayerPos());
@@ -1146,9 +1152,10 @@ void Jugem::fn_8019E250(TVec3f* pOut, f32 offset) {
                     vel *= offset;
                     TVec3f pos(mChildObjs[i]->mPosition);
                     pos -= vel;
+                    const TVec3f& player = *MR::getPlayerPos();
                     TVec3f diff(pos);
-                    diff -= *MR::getPlayerPos();
-                    if (!(PSVECMag(&diff) > 100.0f * 30.0f)) {
+                    diff -= player;
+                    if (!(PSVECMag(&diff) > cChildRange * cChildRangeScale)) {
                         sum += pos;
                         count++;
                     }
@@ -1162,12 +1169,14 @@ void Jugem::fn_8019E250(TVec3f* pOut, f32 offset) {
             u *= 0.5f;
             *pOut = u;
         } else if (count > 0) {
+            f32 scale = 1.0f / count;
             TVec3f t(sum);
-            t *= 1.0f / count;
+            t *= scale;
             *pOut = t;
         }
+        const TVec3f& player = *MR::getPlayerPos();
         TVec3f diff(*pOut);
-        diff -= *MR::getPlayerPos();
+        diff -= player;
         f32 d = MR::vecKillElement(diff, *MR::getPlayerGravity(), &diff);
         if (PSVECMag(&diff) < 900.0f) {
             MR::normalize(&diff);
@@ -1208,7 +1217,7 @@ void Jugem::fn_8019E600() {
     TVec3f zero(0.0f);
     MR::setMtxTrans(mtx.toMtxPtr(), zero.x, zero.y, zero.z);
     MR::calcLocalVec(&vel, vel, mtx.toMtxPtr());
-    vel.z = 0.0f;
+    vel.y = 0.0f;
     const char* pName = nullptr;
     if (PSVECMag(&vel) < 8.0f) {
         if (MR::isBckPlaying(this, "MoveLeft")) {
@@ -1219,13 +1228,14 @@ void Jugem::fn_8019E600() {
             pName = "MoveEndFront";
         } else if (MR::isBckPlaying(this, "MoveBack")) {
             pName = "MoveEndBack";
-        } else if (!MR::isBckPlaying(this, "MoveEndLeft") && !MR::isBckPlaying(this, "MoveEndRight") && !MR::isBckPlaying(this, "MoveEndFront")) {
-            if (MR::isBckPlaying(this, "MoveEndBack")) {
+        } else {
+            if (MR::isBckPlaying(this, "MoveEndLeft") || MR::isBckPlaying(this, "MoveEndRight") ||
+                MR::isBckPlaying(this, "MoveEndFront") || MR::isBckPlaying(this, "MoveEndBack")) {
                 return;
             }
             pName = "Move";
         }
-        if (pName != nullptr) {
+        {
             MR::tryStartActionNotPlaying(this, pName);
             if (MR::fn_80008F00(mCloud, pName)) {
                 MR::tryStartActionNotPlaying(mCloud, pName);
@@ -1255,7 +1265,8 @@ void Jugem::fn_8019E600() {
     }
 }
 
-// NONMATCHING: target converts the int periods 180/90 to float at runtime (int args of an inlined helper); float temporaries differ
+#pragma push
+#pragma dont_inline on
 void Jugem::fn_8019E8D0() {
     if (++_170 >= 180) {
         _170 = 0;
@@ -1275,11 +1286,15 @@ void Jugem::fn_8019E8D0() {
             _178 = 0.0f;
         }
     }
-    f32 y = sCloudSway.y * MR::sinDegree(360.0f * _174 / 90);
-    _164 = TVec3f(sCloudSway.x * -MR::cosDegree(360.0f * _170 / 180), y, 0.0f);
+    s32 yPeriod = 90;
+    s32 xPeriod = 180;
+    f32 y = sCloudSway.y * MR::sinDegree(360.0f * _174 / yPeriod);
+    _164 = TVec3f(sCloudSway.x * -MR::cosDegree(360.0f * _170 / xPeriod), y, 0.0f);
     _164 *= _178;
 }
 
+
+#pragma pop
 bool Jugem::fn_8019EB20() {
     if (mGroundActor != nullptr) {
         if (!MR::isDead(mGroundActor) && MR::isValidCollisionParts(mGroundActor)) {
@@ -1329,7 +1344,7 @@ bool Jugem::calcRootJoint(TPos3f* pMtx, const JointControllerInfo& rInfo) {
 
 bool Jugem::calcWristJoint(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     TPos3f mtx;
-    mtx.identity();
+    PSMTXIdentity(mtx.toMtxPtr());
     MR::makeMtxTR(mtx.toMtxPtr(), sWristOffset, sWristRotate);
     PSMTXConcat(pMtx->toMtxPtr(), mtx.toMtxPtr(), mSubMtx.toMtxPtr());
     return false;
@@ -1383,3 +1398,14 @@ bool JugemCloud::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
 Jugem::~Jugem() {}
 
 JugemCloud::~JugemCloud() {}
+
+const f32 cChildRange = 100.0f;
+const f32 cChildRangeScale = 30.0f;
+const f32 cReboundGravity = 1.3f;
+
+const f32 cThrowAngle = 30.0f;
+
+const f32 cHeight = 350.0f;
+const f32 cRayLength = 1000.0f;
+
+const f32 cFallSpeed = 27.0f;

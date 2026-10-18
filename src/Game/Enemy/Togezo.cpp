@@ -746,7 +746,7 @@ bool Togezo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     if (MR::isMsgPlayerHitProjectiles(msg)) {
         if (isAttackable()) {
             MR::deleteEffectAll(this);
-            MR::fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
+            MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 30.0f, 4);
             setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
             MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
             return true;
@@ -761,7 +761,7 @@ bool Togezo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
     if (MR::isMsgExplosionAttack(msg)) {
         MR::deleteEffectAll(this);
-        MR::fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 30.0f, 4);
         setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
         MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
         return true;
@@ -774,7 +774,7 @@ bool Togezo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
     if (MR::isMsgToEnemyAttackBlow(msg)) {
         MR::deleteEffectAll(this);
-        MR::fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 30.0f, 4);
         setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
         MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
         return true;

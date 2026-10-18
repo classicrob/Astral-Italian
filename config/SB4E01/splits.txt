@@ -2502,21 +2502,26 @@ Game/Effect/WaterFortressRain.cpp:
 Game/Enemy/WalkerStateBindStarPointer.cpp:
 	.text       start:0x8014FD90 end:0x80150100
 	.ctors      start:0x80644064 end:0x80644068
-	.data       start:0x806821E8 end:0x80682238
+	.data       start:0x806821B0 end:0x80682238
 	.sbss       start:0x807D1F28 end:0x807D1F30
+	.sdata2     start:0x807D9990 end:0x807D9998
 
 Game/Enemy/AnimScaleController.cpp:
 	.text       start:0x80150100 end:0x801508C0
 	.ctors      start:0x80644068 end:0x8064406C
-	.data       start:0x80682254 end:0x806822B0
+	.rodata     start:0x80647F90 end:0x80647F98
+	.data       start:0x80682238 end:0x806822B0
 	.bss        start:0x80728E90 end:0x80728EF8
 	.sbss       start:0x807D1F30 end:0x807D1F48
+	.sdata2     start:0x807D99DC end:0x807D99E8
 
 Game/Enemy/AnimStampController.cpp:
 	.text       start:0x801508C0 end:0x80150C20
 	.ctors      start:0x8064406C end:0x80644070
-	.data       start:0x806822CC end:0x806822F8
+	.rodata     start:0x80647F98 end:0x80647FA0
+	.data       start:0x806822B0 end:0x806822F8
 	.sbss       start:0x807D1F48 end:0x807D1F50
+	.sdata2     start:0x807D99E8 end:0x807D9A00
 
 Game/Enemy/AttackRock.cpp:
 	.text       start:0x80150C20 end:0x80151AA0
@@ -2545,14 +2550,18 @@ Game/Enemy/BakuBaku.cpp:
 Game/Enemy/Balloonfish.cpp:
 	.text       start:0x801560F0 end:0x80156C00
 	.ctors      start:0x80644088 end:0x8064408C
-	.data       start:0x80682AF0 end:0x80682BA0
+	.rodata     start:0x80647FB0 end:0x80647FB8
+	.data       start:0x80682A40 end:0x80682BA0
 	.sbss       start:0x807D1FC8 end:0x807D1FD0
+	.sdata2     start:0x807D9B48 end:0x807D9B68
 
 Game/Enemy/BasaBasa.cpp:
 	.text       start:0x80156C00 end:0x801591F0
 	.ctors      start:0x8064408C end:0x80644090
-	.data       start:0x80682D00 end:0x80682E90
+	.data       start:0x80682BA0 end:0x80682E90
+	.sdata      start:0x807CF7C8 end:0x807CF7CC
 	.sbss       start:0x807D1FD0 end:0x807D2018
+	.sdata2     start:0x807D9B68 end:0x807D9C10
 
 Game/Enemy/Battan.cpp:
 	.text       start:0x801591F0 end:0x8015BBF0
@@ -2571,75 +2580,104 @@ Game/Enemy/BeeEater2.cpp:
 Game/Enemy/BegomanBaby.cpp:
 	.text       start:0x8015D270 end:0x8015F280
 	.ctors      start:0x80644098 end:0x8064409C
-	.data       start:0x80683648 end:0x80683838
+	.rodata     start:0x80647FC8 end:0x80648040
+	.data       start:0x80683450 end:0x80683838
+	.sdata      start:0x807CF7D8 end:0x807CF7DC
 	.sbss       start:0x807D2070 end:0x807D20C0
+	.sdata2     start:0x807D9D28 end:0x807D9D98
 
 Game/Enemy/BegomanBase.cpp:
 	.text       start:0x8015F290 end:0x80162700
 	.ctors      start:0x8064409C end:0x806440A0
-	.data       start:0x806839A0 end:0x80683AE0
+	.rodata     start:0x80648040 end:0x806480B8
+	.data       start:0x80683838 end:0x80683AE0
+	.sdata      start:0x807CF7E0 end:0x807CF7E4
 	.sbss       start:0x807D20C0 end:0x807D20D0
+	.sdata2     start:0x807D9D98 end:0x807D9E28
 
 Game/Enemy/BegomanLauncher.cpp:
 	.text       start:0x80162830 end:0x80163460
 	.ctors      start:0x806440A0 end:0x806440A4
-	.data       start:0x80683BD8 end:0x80683CC8
+	.data       start:0x80683AE0 end:0x80683CC8
 	.sbss       start:0x807D20D0 end:0x807D20E8
+	.sdata2     start:0x807D9E28 end:0x807D9E40
 
 Game/Enemy/BegomanSpike.cpp:
 	.text       start:0x80163460 end:0x80165510
 	.ctors      start:0x806440A4 end:0x806440A8
-	.data       start:0x80683F58 end:0x80684148
+	.rodata     start:0x806480B8 end:0x80648128
+	.data       start:0x80683CC8 end:0x80684148
+	.sdata      start:0x807CF7E8 end:0x807CF7EC
 	.sbss       start:0x807D20E8 end:0x807D2130
+	.sdata2     start:0x807D9E40 end:0x807D9E98
 
 Game/Enemy/BegomanSpring.cpp:
 	.text       start:0x80165510 end:0x80167AE0
 	.ctors      start:0x806440A8 end:0x806440AC
-	.data       start:0x80684420 end:0x80684620
+	.rodata     start:0x80648128 end:0x80648198
+	.data       start:0x80684148 end:0x80684620
+	.sdata      start:0x807CF7F0 end:0x807CF7F8
 	.sbss       start:0x807D2138 end:0x807D2188
+	.sdata2     start:0x807D9E98 end:0x807D9F08
 
 Game/Enemy/BegomanSpringHead.cpp:
 	.text       start:0x80167AF0 end:0x80168180
 	.ctors      start:0x806440AC end:0x806440B0
-	.data       start:0x806846B0 end:0x806847E0
+	.data       start:0x80684620 end:0x806847E0
 	.sbss       start:0x807D2188 end:0x807D21A0
+	.sdata2     start:0x807D9F08 end:0x807D9F10
 
 Game/Enemy/Birikyu.cpp:
 	.text       start:0x80168180 end:0x80169160
 	.ctors      start:0x806440B0 end:0x806440B4
+	.rodata     start:0x80648198 end:0x806481A0
+	.data       start:0x806847E0 end:0x80684958
+	.sdata      start:0x807CF7F8 end:0x807CF7FC
+	.sdata2     start:0x807D9F10 end:0x807D9F30
 
 Game/Enemy/BombBird.cpp:
 	.text       start:0x80169160 end:0x8016B0E0
 	.ctors      start:0x806440B4 end:0x806440B8
 	.rodata     start:0x806481B0 end:0x806481C0
+	.data       start:0x80684958 end:0x80684C28
 	.sbss       start:0x807D21C0 end:0x807D21F0
+	.sdata2     start:0x807D9F30 end:0x807D9F80
 
 Game/Enemy/BombBirdBomb.cpp:
 	.text       start:0x8016B0E0 end:0x8016BB10
 	.ctors      start:0x806440B8 end:0x806440BC
+	.data       start:0x80684C28 end:0x80684D80
 	.sbss       start:0x807D21F8 end:0x807D2208
+	.sdata2     start:0x807D9F80 end:0x807D9FB0
 
 Game/Enemy/BombHei.cpp:
 	.text       start:0x8016BB10 end:0x8016E560
 	.ctors      start:0x806440BC end:0x806440C0
-	.data       start:0x80684EE8 end:0x80685060
+	.rodata     start:0x806481C0 end:0x80648208
+	.data       start:0x80684D80 end:0x80685060
+	.sdata      start:0x807CF800 end:0x807CF808
 	.sbss       start:0x807D2208 end:0x807D2248
+	.sdata2     start:0x807D9FB0 end:0x807DA020
 
 Game/Enemy/BombHeiLauncher.cpp:
 	.text       start:0x8016E560 end:0x8016EDD0
 	.ctors      start:0x806440C0 end:0x806440C4
-	.data       start:0x806850D0 end:0x80685180
+	.data       start:0x80685060 end:0x80685180
 	.sbss       start:0x807D224C end:0x807D2250
+	.sdata2     start:0x807DA020 end:0x807DA030
 
 Game/Enemy/BombTeresa.cpp:
 	.text       start:0x8016EDD0 end:0x80171AC0
 	.ctors      start:0x806440C4 end:0x806440C8
-	.data       start:0x80685370 end:0x806854F8
+	.data       start:0x80685180 end:0x806854F8
 	.sbss       start:0x807D2250 end:0x807D2290
+	.sdata2     start:0x807DA030 end:0x807DA0B8
 
 Game/Enemy/BoomerangBros.cpp:
 	.text       start:0x80171B80 end:0x80173AC0
 	.ctors      start:0x806440C8 end:0x806440CC
+	.data       start:0x806854F8 end:0x80685600
+	.sdata2     start:0x807DA0BC end:0x807DA0F0
 
 Game/Enemy/BoomerangBrosBoomerang.cpp:
 	.text       start:0x80173B20 end:0x80174CC0
@@ -2664,6 +2702,10 @@ Game/Enemy/Chorobon.cpp:
 Game/Enemy/CocoNutBall.cpp:
 	.text       start:0x801772C0 end:0x80179D20
 	.ctors      start:0x806440E0 end:0x806440E4
+	.rodata     start:0x80648220 end:0x80648230
+	.data       start:0x80685D30 end:0x80685F10
+	.sdata      start:0x807CF810 end:0x807CF818
+	.sdata2     start:0x807DA188 end:0x807DA220
 
 Game/Enemy/DanceFlower.cpp:
 	.text       start:0x80179D20 end:0x8017B3C0
@@ -2672,8 +2714,11 @@ Game/Enemy/DanceFlower.cpp:
 Game/Enemy/Dossun.cpp:
 	.text       start:0x8017B3C0 end:0x8017C0A0
 	.ctors      start:0x806440E8 end:0x806440EC
-	.data       start:0x80686170 end:0x80686240
+	.rodata     start:0x80648230 end:0x80648238
+	.data       start:0x806860D0 end:0x80686240
+	.sdata      start:0x807CF820 end:0x807CF828
 	.sbss       start:0x807D2398 end:0x807D23B0
+	.sdata2     start:0x807DA248 end:0x807DA278
 
 Game/Enemy/DrillBullet.cpp:
 	.text       start:0x8017C0A0 end:0x8017D010
@@ -2682,19 +2727,24 @@ Game/Enemy/DrillBullet.cpp:
 Game/Enemy/ElectricPressureBullet.cpp:
 	.text       start:0x8017D010 end:0x8017D670
 	.ctors      start:0x806440F0 end:0x806440F4
-	.data       start:0x80686448 end:0x806864C8
+	.data       start:0x806863D8 end:0x806864C8
 	.sbss       start:0x807D23D0 end:0x807D23D8
+	.sdata2     start:0x807DA2A8 end:0x807DA2B8
 
 Game/Enemy/FireBall.cpp:
 	.text       start:0x8017D670 end:0x8017E260
 	.ctors      start:0x806440F4 end:0x806440F8
+	.data       start:0x806864C8 end:0x806865D0
+	.sdata      start:0x807CF828 end:0x807CF82C
+	.sdata2     start:0x807DA2B8 end:0x807DA2F0
 
 Game/Enemy/FireBubble.cpp:
 	.text       start:0x8017F800 end:0x80180980
 	.ctors      start:0x80644100 end:0x80644104
 	.rodata     start:0x80648240 end:0x8064824C
-	.data       start:0x806868C0 end:0x806869B0
+	.data       start:0x80686818 end:0x806869B0
 	.sbss       start:0x807D2408 end:0x807D2428
+	.sdata2     start:0x807DA348 end:0x807DA380
 
 Game/Enemy/FlowerMimic.cpp:
 	.text       start:0x80180980 end:0x80181770
@@ -2718,6 +2768,9 @@ Game/Enemy/Gesso.cpp:
 
 Game/Enemy/GliderShooterBullet.cpp:
 	.text       start:0x80184560 end:0x80184B30
+	.data       start:0x80686F78 end:0x80687080
+	.sdata      start:0x807CF848 end:0x807CF84C
+	.sdata2     start:0x807DA480 end:0x807DA488
 
 Game/Enemy/GliderShooterBulletHolder.cpp:
 	.text       start:0x80184B30 end:0x80184C00
@@ -2748,7 +2801,9 @@ Game/Enemy/BrosProjectileBase.cpp:
 Game/Enemy/HammerHeadPackun.cpp:
 	.text       start:0x8018BE10 end:0x8018DFE0
 	.ctors      start:0x80644128 end:0x8064412C
-	.data       start:0x80687B00 end:0x80687B70
+	.rodata     start:0x80648288 end:0x80648290
+	.data       start:0x806878E8 end:0x80687B70
+	.sdata2     start:0x807DA5C8 end:0x807DA620
 
 Game/Enemy/NrvHammerHeadPackun.cpp:
 	.text       start:0x8018DFE0 end:0x8018E1D0
@@ -2756,6 +2811,10 @@ Game/Enemy/NrvHammerHeadPackun.cpp:
 Game/Enemy/Hanachan.cpp:
 	.text       start:0x8018E1D0 end:0x80192690
 	.ctors      start:0x8064412C end:0x80644130
+	.rodata     start:0x80648290 end:0x80648298
+	.data       start:0x80687C40 end:0x806881B0
+	.sbss       start:0x807D2588 end:0x807D2608
+	.sdata2     start:0x807DA620 end:0x807DA6B0
 
 Game/Enemy/HanachanBig.cpp:
 	.text       start:0x80192690 end:0x80193910
@@ -2766,90 +2825,133 @@ Game/Enemy/HanachanRunaway.cpp:
 	.ctors      start:0x80644134 end:0x80644138
 
 Game/Enemy/HomingKiller.cpp:
-	.text       start:0x80194AC0 end:0x80198720
+	.text       start:0x80194AC0 end:0x80198350
 	.ctors      start:0x80644138 end:0x8064413C
-	.sbss       start:0x807D2628 end:0x807D2648
+	.rodata     start:0x806482A8 end:0x80648320
+	.data       start:0x80688590 end:0x80688950
+	.sdata      start:0x807CF850 end:0x807CF860
+	.sbss       start:0x807D2628 end:0x807D2658
+	.sdata2     start:0x807DA738 end:0x807DA810
+
+Game/Enemy/HomingKillerLauncher.cpp:
+	.text       start:0x80198350 end:0x80198790
+	.ctors      start:0x8064413C end:0x80644140
+	.data       start:0x80688950 end:0x80688A10
+	.sbss       start:0x807D2658 end:0x807D2660
 
 Game/Enemy/Jellyfish.cpp:
 	.text       start:0x80198790 end:0x80199B80
 	.ctors      start:0x80644140 end:0x80644144
-	.data       start:0x80688AD8 end:0x80688BF8
+	.rodata     start:0x80648320 end:0x80648328
+	.data       start:0x80688A10 end:0x80688BF8
 	.sbss       start:0x807D2660 end:0x807D2690
+	.sdata2     start:0x807DA810 end:0x807DA868
 
 Game/Enemy/JellyfishElectric.cpp:
 	.text       start:0x80199B80 end:0x8019ABD0
 	.ctors      start:0x80644144 end:0x80644148
-	.data       start:0x80688CB0 end:0x80688DA0
+	.rodata     start:0x80648328 end:0x80648330
+	.data       start:0x80688BF8 end:0x80688DA0
 	.sbss       start:0x807D2690 end:0x807D26B8
+	.sdata2     start:0x807DA868 end:0x807DA8B0
 
 Game/Enemy/Jugem.cpp:
 	.text       start:0x8019ABD0 end:0x8019F650
 	.ctors      start:0x80644148 end:0x8064414C
+	.rodata     start:0x80648330 end:0x80648338
+	.data       start:0x80688DA0 end:0x806890C0
 	.bss        start:0x80729008 end:0x80729050
 	.sbss       start:0x807D26B8 end:0x807D2718
+	.sdata2     start:0x807DA8B8 end:0x807DA96C
 
 Game/Enemy/JumpBeamer.cpp:
 	.text       start:0x8019F650 end:0x801A0D20
 	.ctors      start:0x8064414C end:0x80644150
+	.rodata     start:0x80648348 end:0x80648350
+	.data       start:0x80689230 end:0x80689530
+	.sdata      start:0x807CF860 end:0x807CF868
 	.sbss       start:0x807D2718 end:0x807D2748
+	.sdata2     start:0x807DA980 end:0x807DA9C0
 
 Game/Enemy/JumpEmitter.cpp:
 	.text       start:0x801A0D20 end:0x801A12B0
+	.rodata     start:0x80648350 end:0x80648358
+	.data       start:0x80689530 end:0x806895A0
+	.sdata2     start:0x807DA9C0 end:0x807DA9D8
 
 Game/Enemy/JumpSpider.cpp:
 	.text       start:0x801A12B0 end:0x801A2A80
 	.ctors      start:0x80644150 end:0x80644154
+	.data       start:0x806895A0 end:0x80689830
+	.sdata      start:0x807CF868 end:0x807CF870
 	.sbss       start:0x807D2750 end:0x807D2790
+	.sdata2     start:0x807DA9D8 end:0x807DAA10
 
 Game/Enemy/Kabokuri.cpp:
 	.text       start:0x801A2A80 end:0x801A42A0
 	.ctors      start:0x80644154 end:0x80644158
+	.data       start:0x80689830 end:0x80689A48
 	.sbss       start:0x807D2790 end:0x807D27B8
+	.sdata2     start:0x807DAA10 end:0x807DAA58
 
 Game/Enemy/KabokuriFire.cpp:
 	.text       start:0x801A42A0 end:0x801A4670
 	.ctors      start:0x80644158 end:0x8064415C
-	.data       start:0x80689A90 end:0x80689B10
+	.data       start:0x80689A48 end:0x80689B10
 	.sbss       start:0x807D27C0 end:0x807D27C8
+	.sdata2     start:0x807DAA58 end:0x807DAA68
 
 Game/Enemy/KabokuriFireHolder.cpp:
 	.text       start:0x801A4670 end:0x801A48B0
-	.data       start:0x80689B2C end:0x80689B58
+	.data       start:0x80689B10 end:0x80689B58
 
 Game/Enemy/Kameck.cpp:
 	.text       start:0x801A48B0 end:0x801A6A80
 	.ctors      start:0x8064415C end:0x80644160
+	.data       start:0x80689B58 end:0x80689EC0
+	.sdata      start:0x807CF870 end:0x807CF874
+	.sdata2     start:0x807DAA68 end:0x807DAAA0
 
 Game/Enemy/KameckBeam.cpp:
 	.text       start:0x801A6A80 end:0x801A7BE0
 	.ctors      start:0x80644160 end:0x80644164
+	.data       start:0x80689F44 end:0x8068A0C0
 	.sbss       start:0x807D2810 end:0x807D2820
+	.sdata2     start:0x807DAAA0 end:0x807DAAB0
 
 Game/Enemy/KameckBeamHolder.cpp:
 	.text       start:0x801A7BE0 end:0x801A7C90
-	.data       start:0x8068A0F4 end:0x8068A120
+	.data       start:0x8068A0D0 end:0x8068A120
 
 Game/Enemy/KameckFireBall.cpp:
 	.text       start:0x801A83A0 end:0x801A8BF0
 	.ctors      start:0x80644164 end:0x80644168
-	.data       start:0x8068A374 end:0x8068A428
+	.data       start:0x8068A2F8 end:0x8068A428
 	.sbss       start:0x807D2820 end:0x807D2824
+	.sdata2     start:0x807DAAB0 end:0x807DAAD0
 
 Game/Enemy/KameckTurtle.cpp:
 	.text       start:0x801A8C20 end:0x801A96F0
 	.ctors      start:0x80644168 end:0x8064416C
-	.data       start:0x8068A4D0 end:0x8068A588
+	.data       start:0x8068A428 end:0x8068A588
 	.sbss       start:0x807D2830 end:0x807D2838
+	.sdata2     start:0x807DAAD0 end:0x807DAB08
 
 Game/Enemy/Kanina.cpp:
 	.text       start:0x801A9730 end:0x801ACC90
 	.ctors      start:0x8064416C end:0x80644170
+	.data       start:0x8068A588 end:0x8068A890
+	.sdata      start:0x807CF878 end:0x807CF884
+	.sdata2     start:0x807DAB08 end:0x807DABB0
 
 Game/Enemy/Karikari.cpp:
 	.text       start:0x801ADF70 end:0x801B0960
 	.ctors      start:0x80644174 end:0x80644178
-	.data       start:0x8068AB10 end:0x8068ACA0
+	.rodata     start:0x80648378 end:0x80648380
+	.data       start:0x8068A990 end:0x8068ACA0
+	.sdata      start:0x807CF890 end:0x807CF894
 	.sbss       start:0x807D28B0 end:0x807D28F8
+	.sdata2     start:0x807DABF0 end:0x807DAC60
 
 Game/Enemy/KarikariDirector.cpp:
 	.text       start:0x801B0960 end:0x801B0F40
@@ -2858,40 +2960,64 @@ Game/Enemy/KarikariDirector.cpp:
 Game/Enemy/Karon.cpp:
 	.text       start:0x801B0F40 end:0x801B3420
 	.ctors      start:0x80644178 end:0x8064417C
+	.rodata     start:0x80648410 end:0x80648490
+	.data       start:0x8068ACF8 end:0x8068AFD0
+	.sdata2     start:0x807DAC60 end:0x807DACB8
 
 Game/Enemy/KickStone.cpp:
 	.text       start:0x801B3530 end:0x801B3F70
 	.ctors      start:0x8064417C end:0x80644180
+	.rodata     start:0x806484B8 end:0x806484C0
+	.data       start:0x8068AFD0 end:0x8068B070
+	.sdata2     start:0x807DACB8 end:0x807DACF0
 
 Game/Enemy/Kiraira.cpp:
 	.text       start:0x801B3F70 end:0x801B5230
 	.ctors      start:0x80644180 end:0x80644184
+	.data       start:0x8068B0C0 end:0x8068B2E8
+	.sdata      start:0x807CF8A0 end:0x807CF8AC
 	.sbss       start:0x807D2960 end:0x807D2980
+	.sdata2     start:0x807DACF0 end:0x807DAD40
 
 Game/Enemy/KirairaChain.cpp:
 	.text       start:0x801B5230 end:0x801B6190
-	.data       start:0x8068B350 end:0x8068B3C0
+	.rodata     start:0x806484C0 end:0x806484C8
+	.data       start:0x8068B2E8 end:0x8068B3C0
+	.sdata2     start:0x807DAD40 end:0x807DAD78
 
 Game/Enemy/KoteBug.cpp:
 	.text       start:0x801B6190 end:0x801B88D0
 	.ctors      start:0x80644184 end:0x80644188
+	.rodata     start:0x806484C8 end:0x806484D0
+	.data       start:0x8068B3C0 end:0x8068B6D0
+	.sdata      start:0x807CF8B0 end:0x807CF8BC
+	.sdata2     start:0x807DAD78 end:0x807DAE00
 
 Game/Enemy/Kuribo.cpp:
 	.text       start:0x801B88D0 end:0x801BB3E0
 	.ctors      start:0x80644188 end:0x8064418C
+	.data       start:0x8068B6D0 end:0x8068B948
 	.bss        start:0x80729078 end:0x807290F8
+	.sdata      start:0x807CF8C0 end:0x807CF8C4
+	.sdata2     start:0x807DAE3C end:0x807DAE58
 
 Game/Enemy/KuriboChief.cpp:
 	.text       start:0x801BB3E0 end:0x801BCB90
 	.ctors      start:0x8064418C end:0x80644190
+	.data       start:0x8068B948 end:0x8068BB98
 	.bss        start:0x807290F8 end:0x807291C8
+	.sdata      start:0x807CF8C8 end:0x807CF8CC
 	.sbss       start:0x807D2A20 end:0x807D2A48
+	.sdata2     start:0x807DAE9C end:0x807DAEB0
 
 Game/Enemy/KuriboMini.cpp:
 	.text       start:0x801BCB90 end:0x801BE920
 	.ctors      start:0x80644190 end:0x80644194
+	.data       start:0x8068BB98 end:0x8068BDE8
 	.bss        start:0x807291C8 end:0x80729248
+	.sdata      start:0x807CF8D0 end:0x807CF8D4
 	.sbss       start:0x807D2A48 end:0x807D2A70
+	.sdata2     start:0x807DAEE8 end:0x807DAF08
 
 Game/Enemy/LavaBubble.cpp:
 	.text       start:0x801BE920 end:0x801BF480
@@ -2908,37 +3034,58 @@ Game/Enemy/MameMuimuiTU01.cpp:
 Game/Enemy/MechanicKoopaMini.cpp:
 	.text       start:0x801C19D0 end:0x801C3A50
 	.ctors      start:0x806441A0 end:0x806441A4
+	.rodata     start:0x806484D8 end:0x806484E8
+	.data       start:0x8068C368 end:0x8068C660
 	.bss        start:0x80729248 end:0x80729258
+	.sdata2     start:0x807DAF68 end:0x807DAFB8
 
 Game/Enemy/Menbo.cpp:
 	.text       start:0x801C3A50 end:0x801C6330
 	.ctors      start:0x806441A4 end:0x806441A8
+	.rodata     start:0x806485A8 end:0x806485C0
+	.data       start:0x8068C660 end:0x8068C8F8
+	.sdata      start:0x807CF8D8 end:0x807CF8DC
+	.sdata2     start:0x807DAFB8 end:0x807DB038
 
 Game/Enemy/Meramera.cpp:
 	.text       start:0x801C6330 end:0x801C9BA0
 	.ctors      start:0x806441A8 end:0x806441AC
+	.rodata     start:0x806485C0 end:0x806485C8
+	.data       start:0x8068C938 end:0x8068CC50
+	.sdata      start:0x807CF8E0 end:0x807CF8E4
+	.sdata2     start:0x807DB038 end:0x807DB110
 
 Game/Enemy/Metbo.cpp:
 	.text       start:0x801C9EE0 end:0x801CC320
 	.ctors      start:0x806441AC end:0x806441B0
+	.rodata     start:0x806485D8 end:0x80648618
+	.data       start:0x8068CD80 end:0x8068D080
+	.sdata      start:0x807CF8E8 end:0x807CF8EC
 	.sbss       start:0x807D2B98 end:0x807D2BDC
+	.sdata2     start:0x807DB110 end:0x807DB168
 
 Game/Enemy/Mogucchi.cpp:
 	.text       start:0x801CC320 end:0x801CDBA0
 	.ctors      start:0x806441B0 end:0x806441B4
-	.data       start:0x8068D1C0 end:0x8068D230
+	.data       start:0x8068D080 end:0x8068D230
+	.sdata2     start:0x807DB168 end:0x807DB1C0
 
 Game/Enemy/NrvMogucchi.cpp:
 	.text       start:0x801CDBA0 end:0x801CDC80
 
 Game/Enemy/MogucchiShooter.cpp:
-	.text       start:0x801CDC80 end:0x801CF910
+	.text       start:0x801CDC80 end:0x801CFA80
 	.ctors      start:0x806441B4 end:0x806441B8
-	.data       start:0x8068D438 end:0x8068D4B8
+	.rodata     start:0x80648640 end:0x80648648
+	.data       start:0x8068D290 end:0x8068D580
+	.sdata2     start:0x807DB1C0 end:0x807DB218
 
 Game/Enemy/MogucchiHill.cpp:
 	.text       start:0x801CFA80 end:0x801D0D70
 	.ctors      start:0x806441B8 end:0x806441BC
+	.rodata     start:0x80648648 end:0x80648650
+	.data       start:0x8068D5B0 end:0x8068D728
+	.sdata2     start:0x807DB218 end:0x807DB238
 
 Game/Enemy/NrvMogucchiHillPiece.cpp:
 	.text       start:0x801D0D70 end:0x801D0E10
@@ -2950,49 +3097,76 @@ Game/Enemy/Nigero.cpp:
 Game/Enemy/NokonokoLand.cpp:
 	.text       start:0x801D3020 end:0x801D61F0
 	.ctors      start:0x806441C0 end:0x806441C4
+	.rodata     start:0x80648660 end:0x80648668
+	.data       start:0x8068D9A0 end:0x8068DE30
+	.sdata2     start:0x807DB298 end:0x807DB2E0
 
 Game/Enemy/NokonokoLandBig.cpp:
 	.text       start:0x801D6260 end:0x801D7750
 	.ctors      start:0x806441C4 end:0x806441C8
+	.rodata     start:0x80648668 end:0x80648670
+	.data       start:0x8068DE30 end:0x8068DFD0
+	.sdata2     start:0x807DB2E0 end:0x807DB318
 
 Game/Enemy/Nyoropon.cpp:
-	.text       start:0x801D7750 end:0x801DA420
-
-Game/Enemy/JointControlDelegator3.cpp:
-	.text       start:0x801DA420 end:0x801DA540
+	.text       start:0x801D7750 end:0x801DA7B0
+	.ctors      start:0x806441C8 end:0x806441CC
+	.rodata     start:0x80648670 end:0x80648678
+	.data       start:0x8068E070 end:0x8068E328
+	.bss        start:0x80729270 end:0x80729408
+	.sbss       start:0x807D2D10 end:0x807D2D38
+	.sdata2     start:0x807DB318 end:0x807DB3D0
 
 Game/Enemy/Onimasu.cpp:
 	.text       start:0x801DA7B0 end:0x801DBC30
 	.ctors      start:0x806441CC end:0x806441D0
-	.data       start:0x8068E370 end:0x8068E458
+	.rodata     start:0x80648678 end:0x80648680
+	.data       start:0x8068E328 end:0x8068E458
+	.sdata      start:0x807CF900 end:0x807CF908
 	.sbss       start:0x807D2D38 end:0x807D2D50
+	.sdata2     start:0x807DB3D0 end:0x807DB418
 
 Game/Enemy/OnimasuJump.cpp:
 	.text       start:0x801DBC30 end:0x801DC190
+	.rodata     start:0x80648680 end:0x80648688
 	.data       start:0x8068E458 end:0x8068E4F0
+	.sdata2     start:0x807DB418 end:0x807DB428
 
 Game/Enemy/OtaRock.cpp:
 	.text       start:0x801DC190 end:0x801DD430
 	.ctors      start:0x806441D0 end:0x806441D4
+	.data       start:0x8068E4F0 end:0x8068E6F0
 	.sbss       start:0x807D2D50 end:0x807D2D6C
+	.sdata2     start:0x807DB428 end:0x807DB450
 
 Game/Enemy/OtaRockChief.cpp:
 	.text       start:0x801DD430 end:0x801DD600
 	.ctors      start:0x806441D4 end:0x806441D8
 
 Game/Enemy/OtaRockTank.cpp:
-	.text       start:0x801DD600 end:0x801E1D20
+	.text       start:0x801DD600 end:0x801E1C60
 	.ctors      start:0x806441D8 end:0x806441DC
+	.rodata     start:0x80648698 end:0x806486A8
+	.data       start:0x8068E790 end:0x8068ED18
+	.bss        start:0x80729408 end:0x80729438
+	.sdata      start:0x807CF910 end:0x807CF93C
 	.sbss       start:0x807D2D78 end:0x807D2DE0
+	.sdata2     start:0x807DB450 end:0x807DB540
 
 Game/Enemy/PackunFlowerBig.cpp:
-	.text       start:0x801E1D20 end:0x801E2600
+	.text       start:0x801E1C60 end:0x801E2600
 	.ctors      start:0x806441DC end:0x806441E0
+	.data       start:0x8068ED18 end:0x8068EDF8
+	.sdata2     start:0x807DB544 end:0x807DB550
 
 Game/Enemy/PackunPetit.cpp:
 	.text       start:0x801E2600 end:0x801E4960
 	.ctors      start:0x806441E0 end:0x806441E4
+	.rodata     start:0x806486B8 end:0x806486C0
+	.data       start:0x8068EE68 end:0x8068F198
+	.sdata      start:0x807CF940 end:0x807CF944
 	.sbss       start:0x807D2E00 end:0x807D2E44
+	.sdata2     start:0x807DB550 end:0x807DB5A8
 
 Game/Enemy/PatakuriBig.cpp:
 	.text       start:0x801E4960 end:0x801E5C00
@@ -3009,7 +3183,8 @@ Game/Enemy/Pattan.cpp:
 Game/Enemy/Petari.cpp:
 	.text       start:0x801E8080 end:0x801EA900
 	.ctors      start:0x806441F0 end:0x806441F4
-	.data       start:0x8068F9D0 end:0x8068FA40
+	.data       start:0x8068F86C end:0x8068FA40
+	.sdata2     start:0x807DB67C end:0x807DB710
 
 Game/Enemy/NrvPetari.cpp:
 	.text       start:0x801EA900 end:0x801EABE0
@@ -3021,15 +3196,20 @@ Game/Enemy/Peto.cpp:
 Game/Enemy/Popo.cpp:
 	.text       start:0x801ECB60 end:0x801EFBE0
 	.ctors      start:0x806441F8 end:0x806441FC
+	.rodata     start:0x806486F8 end:0x80648718
+	.data       start:0x8068FD90 end:0x80690028
+	.bss        start:0x80729498 end:0x807294D0
+	.sbss       start:0x807D2F68 end:0x807D2FB8
 
 Game/Enemy/Pukupuku.cpp:
-	.text       start:0x801EFBE0 end:0x801F1BE0
+	.text       start:0x801EFBE0 end:0x801F1D60
 	.ctors      start:0x806441FC end:0x80644200
-	.rodata     start:0x80648718 end:0x80648738
-	.data       start:0x806901C0 end:0x80690270
+	.rodata     start:0x80648718 end:0x80648740
+	.data       start:0x80690028 end:0x80690270
+	.sdata2     start:0x807DB838 end:0x807DB888
 
 Game/Enemy/PukupukuWaterSurface.cpp:
-	.text       start:0x801F1BE0 end:0x801F35B0
+	.text       start:0x801F1D60 end:0x801F35B0
 	.ctors      start:0x80644200 end:0x80644204
 
 Game/Enemy/Pyudon.cpp:
@@ -3039,66 +3219,88 @@ Game/Enemy/Pyudon.cpp:
 Game/Enemy/RingBeam.cpp:
 	.text       start:0x801F5E90 end:0x801F7550
 	.ctors      start:0x80644208 end:0x8064420C
-	.data       start:0x80690878 end:0x80690930
+	.data       start:0x806907B8 end:0x80690930
 	.sbss       start:0x807D3058 end:0x807D3060
+	.sdata2     start:0x807DB968 end:0x807DB9A0
 
 Game/Enemy/RingBeamer.cpp:
 	.text       start:0x801F7550 end:0x801F7F30
 	.ctors      start:0x8064420C end:0x80644210
+	.data       start:0x80690930 end:0x80690A68
 	.sbss       start:0x807D3060 end:0x807D3070
+	.sdata2     start:0x807DB9A0 end:0x807DB9B8
 
 Game/Enemy/SamboHead.cpp:
 	.text       start:0x801F7F30 end:0x801F9980
 	.ctors      start:0x80644210 end:0x80644214
-	.data       start:0x80690B40 end:0x80690CB0
+	.data       start:0x80690A68 end:0x80690CB0
+	.sdata      start:0x807CF970 end:0x807CF978
 	.sbss       start:0x807D3070 end:0x807D30B0
+	.sdata2     start:0x807DB9B8 end:0x807DB9F8
 
 Game/Enemy/SearchBeamer.cpp:
 	.text       start:0x801F9980 end:0x801FB8E0
 	.ctors      start:0x80644214 end:0x80644218
+	.data       start:0x80690CB0 end:0x80690F20
 	.sbss       start:0x807D30B0 end:0x807D30E8
+	.sdata2     start:0x807DB9F8 end:0x807DBA50
 
 Game/Enemy/Snakehead.cpp:
 	.text       start:0x801FB8E0 end:0x801FCE00
 	.ctors      start:0x80644218 end:0x8064421C
 	.rodata     start:0x80648740 end:0x806487C0
-	.data       start:0x806910E8 end:0x806911C8
+	.data       start:0x80690F20 end:0x806911C8
 	.sbss       start:0x807D30F0 end:0x807D3110
+	.sdata2     start:0x807DBA50 end:0x807DBAD0
 
 Game/Enemy/SpinHitController.cpp:
 	.text       start:0x801FCE00 end:0x801FD0C0
+	.sdata2     start:0x807DBAD0 end:0x807DBAE0
 
 Game/Enemy/StinkBugBase.cpp:
 	.text       start:0x801FD0C0 end:0x801FD730
-	.data       start:0x806911D0 end:0x80691240
+	.data       start:0x806911C8 end:0x80691240
+	.sdata2     start:0x807DBAE0 end:0x807DBAF8
 
 Game/Enemy/StinkBugParent.cpp:
-	.text       start:0x801FD730 end:0x801FF410
+	.text       start:0x801FD730 end:0x801FF460
 	.ctors      start:0x8064421C end:0x80644220
 	.rodata     start:0x806487C0 end:0x806487D8
+	.data       start:0x80691240 end:0x80691650
+	.sbss       start:0x807D3110 end:0x807D3160
+	.sdata2     start:0x807DBAF8 end:0x807DBB40
 
 Game/Enemy/StinkBugSmall.cpp:
 	.text       start:0x801FF460 end:0x80200DE0
 	.ctors      start:0x80644220 end:0x80644224
-	.data       start:0x806917C0 end:0x80691930
+	.data       start:0x80691650 end:0x80691930
 	.sbss       start:0x807D3160 end:0x807D31A0
+	.sdata2     start:0x807DBB40 end:0x807DBB90
 
 Game/Enemy/StringSpider.cpp:
 	.text       start:0x80200DE0 end:0x802033C0
 	.ctors      start:0x80644224 end:0x80644228
+	.rodata     start:0x806487D8 end:0x806487E0
+	.data       start:0x80691930 end:0x80691C40
+	.sdata      start:0x807CF978 end:0x807CF984
+	.sdata2     start:0x807DBB90 end:0x807DBC18
 
 Game/Enemy/SupportTicoStop.cpp:
 	.text       start:0x802033C0 end:0x802038F0
 	.ctors      start:0x80644228 end:0x8064422C
 
 Game/Enemy/Takobo.cpp:
-	.text       start:0x802038F0 end:0x80205390
+	.text       start:0x802038F0 end:0x80205550
 	.ctors      start:0x8064422C end:0x80644230
-	.data       start:0x80691D60 end:0x80691DD0
+	.rodata     start:0x806487E0 end:0x806487E8
+	.data       start:0x80691CA8 end:0x80691DD0
+	.sdata2     start:0x807DBC20 end:0x807DBC68
 
 Game/Enemy/TakoboInk.cpp:
 	.text       start:0x80205550 end:0x80205A30
 	.ctors      start:0x80644230 end:0x80644234
+	.data       start:0x80691EB0 end:0x80691F50
+	.sdata2     start:0x807DBC68 end:0x807DBC70
 
 Game/Enemy/TakoboInkHolder.cpp:
 	.text       start:0x80205A90 end:0x80205B70
@@ -3106,22 +3308,29 @@ Game/Enemy/TakoboInkHolder.cpp:
 Game/Enemy/TakoHei.cpp:
 	.text       start:0x80205B70 end:0x80208400
 	.ctors      start:0x80644234 end:0x80644238
+	.data       start:0x80691FA8 end:0x806922C0
 	.bss        start:0x807294D0 end:0x807294E0
+	.sdata      start:0x807CF988 end:0x807CF990
 	.sbss       start:0x807D3220 end:0x807D3268
+	.sdata2     start:0x807DBC70 end:0x807DBCE8
 
 Game/Enemy/TakoHeiInk.cpp:
 	.text       start:0x80208400 end:0x80208770
 	.ctors      start:0x80644238 end:0x8064423C
-	.data       start:0x806922E0 end:0x80692360
+	.data       start:0x806922C0 end:0x80692360
 	.sbss       start:0x807D3268 end:0x807D3270
+	.sdata2     start:0x807DBCE8 end:0x807DBCF0
 
 Game/Enemy/TakoHeiInkHolder.cpp:
 	.text       start:0x80208770 end:0x80208970
-	.data       start:0x8069237C end:0x806923A8
+	.data       start:0x80692360 end:0x806923A8
 
 Game/Enemy/TakoSho.cpp:
 	.text       start:0x80208A20 end:0x8020A6F0
 	.ctors      start:0x8064423C end:0x80644240
+	.rodata     start:0x806487E8 end:0x806487F0
+	.data       start:0x806923A8 end:0x806924E8
+	.sdata2     start:0x807DBCF0 end:0x807DBD38
 
 Game/Enemy/Terebo.cpp:
 	.text       start:0x8020A6F0 end:0x8020BD90
@@ -3130,7 +3339,9 @@ Game/Enemy/Terebo.cpp:
 Game/Enemy/Teresa.cpp:
 	.text       start:0x8020BD90 end:0x8020F380
 	.ctors      start:0x80644244 end:0x80644248
+	.data       start:0x806927C0 end:0x80692B88
 	.sbss       start:0x807D32D0 end:0x807D3320
+	.sdata2     start:0x807DBD60 end:0x807DBE00
 
 Game/Enemy/TeresaAtomic.cpp:
 	.text       start:0x8020F380 end:0x80210620
@@ -3139,11 +3350,15 @@ Game/Enemy/TeresaAtomic.cpp:
 Game/Enemy/TeresaWater.cpp:
 	.text       start:0x80210620 end:0x80210F70
 	.ctors      start:0x8064424C end:0x80644250
-	.data       start:0x80692E10 end:0x80692EC0
+	.rodata     start:0x806487F8 end:0x80648808
+	.data       start:0x80692D80 end:0x80692EC0
+	.sdata      start:0x807CF990 end:0x807CF994
 	.sbss       start:0x807D3350 end:0x807D3360
+	.sdata2     start:0x807DBE30 end:0x807DBE58
 
 Game/Enemy/TerritoryMover.cpp:
 	.text       start:0x80210F70 end:0x80211100
+	.sdata2     start:0x807DBE58 end:0x807DBE60
 
 Game/Enemy/Togezo.cpp:
 	.text       start:0x80211100 end:0x80214730
@@ -3164,63 +3379,95 @@ Game/Enemy/UnbabaSlim.cpp:
 Game/Enemy/Unizo.cpp:
 	.text       start:0x80216CC0 end:0x802195D0
 	.ctors      start:0x80644260 end:0x80644264
-	.data       start:0x806937E8 end:0x806938F8
+	.rodata     start:0x806488A0 end:0x806488A8
+	.data       start:0x806935F0 end:0x806938F8
 	.sbss       start:0x807D3408 end:0x807D3430
+	.sdata2     start:0x807DBFA0 end:0x807DC048
 
 Game/Enemy/WalkerStateChase.cpp:
 	.text       start:0x802195D0 end:0x80219990
 	.ctors      start:0x80644264 end:0x80644268
-	.data       start:0x80693918 end:0x80693958
+	.data       start:0x80693910 end:0x80693958
 	.bss        start:0x80729538 end:0x80729550
+	.sdata      start:0x807CF9B0 end:0x807CF9B4
 	.sbss       start:0x807D3430 end:0x807D3438
+	.sdata2     start:0x807DC04C end:0x807DC050
 
 Game/Enemy/WalkerStateFindPlayer.cpp:
 	.text       start:0x80219990 end:0x80219E90
 	.ctors      start:0x80644268 end:0x8064426C
-	.data       start:0x80693998 end:0x806939F8
+	.data       start:0x80693974 end:0x806939F8
 	.bss        start:0x80729550 end:0x80729560
 	.sbss       start:0x807D3438 end:0x807D3448
 
 Game/Enemy/WalkerStateFunction.cpp:
 	.text       start:0x80219F10 end:0x80219FA0
+	.sdata2     start:0x807DC058 end:0x807DC060
 
 Game/Enemy/WalkerStateParam.cpp:
 	.text       start:0x80219FA0 end:0x80219FE0
+	.sdata2     start:0x807DC060 end:0x807DC080
 
 Game/Enemy/WalkerStateStagger.cpp:
 	.text       start:0x80219FE0 end:0x8021A8F0
 	.ctors      start:0x8064426C end:0x80644270
-	.data       start:0x80693A38 end:0x80693A78
+	.rodata     start:0x806488A8 end:0x806488B8
+	.data       start:0x80693A0C end:0x80693A78
 	.bss        start:0x80729560 end:0x80729590
 	.sbss       start:0x807D3448 end:0x807D3450
+	.sdata2     start:0x807DC09C end:0x807DC0B0
 
 Game/Enemy/WalkerStateWander.cpp:
 	.text       start:0x8021A8F0 end:0x8021ACB0
 	.ctors      start:0x80644270 end:0x80644274
-	.data       start:0x80693AA0 end:0x80693AE0
+	.data       start:0x80693A90 end:0x80693AE0
 	.bss        start:0x80729590 end:0x807295A8
 	.sbss       start:0x807D3450 end:0x807D3458
+	.sdata2     start:0x807DC0C0 end:0x807DC0C8
 
 Game/Enemy/Wanwan.cpp:
 	.text       start:0x8021ACB0 end:0x8021DB20
 	.ctors      start:0x80644274 end:0x80644278
+	.rodata     start:0x806488B8 end:0x806488C8
+	.data       start:0x80693AE0 end:0x80693E78
+	.sdata      start:0x807CF9B8 end:0x807CF9C0
+	.sbss       start:0x807D3458 end:0x807D3480
+	.sdata2     start:0x807DC0C8 end:0x807DC198
 
 Game/Enemy/WanwanCreator.cpp:
 	.text       start:0x8021DB20 end:0x8021E2C0
 	.ctors      start:0x80644278 end:0x8064427C
 
 Game/Enemy/WanwanSearch.cpp:
-	.text       start:0x8021E2C0 end:0x802205A0
+	.text       start:0x8021E2C0 end:0x8021F080
 	.ctors      start:0x8064427C end:0x80644280
+
+Game/Enemy/ActorActionSoundKeeper.cpp:
+	.text       start:0x8021F080 end:0x8021F6F0
+	.sdata2     start:0x807DC1E0 end:0x807DC1E8
+
+Game/Enemy/ActionSound.cpp:
+	.text       start:0x8021F6F0 end:0x80220250
+	.rodata     start:0x806488C8 end:0x806488D0
+	.data       start:0x80694058 end:0x80694068
+	.sdata2     start:0x807DC1E8 end:0x807DC200
+
+Game/Enemy/ActionSoundData.cpp:
+	.text       start:0x80220250 end:0x802205A0
+	.data       start:0x80694068 end:0x806940C0
+	.sdata      start:0x807CF9C0 end:0x807CF9C8
 
 Game/GameAudio/ActionSoundInfo.cpp:
 	.text       start:0x802205A0 end:0x802208F0
+	.data       start:0x806940C0 end:0x80694168
+	.sdata2     start:0x807DC200 end:0x807DC208
 
 Game/Enemy/ActionSoundSystem.cpp:
-	.text       start:0x802208F0 end:0x80220CA0
+	.text       start:0x802208F0 end:0x80220B80
+	.data       start:0x80694168 end:0x80694198
 
 Game/GameAudio/AudBgmConductor.cpp:
-	.text       start:0x80220CA0 end:0x80221440
+	.text       start:0x80220B80 end:0x80221440
 	.data       start:0x80694198 end:0x80694218
 	.sdata2     start:0x807DC208 end:0x807DC220
 
@@ -6492,20 +6739,26 @@ Game/Player/YoshiFunction.cpp:
 
 Game/RhythmLib/AudRhythmSeqParser.cpp:
 	.text       start:0x80422990 end:0x804238D0
+	.rodata     start:0x8064BF40 end:0x8064BF48
 	.data       start:0x806EB620 end:0x806EB640
 	.sbss       start:0x807D4FD8 end:0x807D4FE0
+	.sdata2     start:0x807E0860 end:0x807E0868
 
 Game/RhythmLib/AudBgmTempoAdjuster.cpp:
 	.text       start:0x804238D0 end:0x80423C60
+	.rodata     start:0x8064BF48 end:0x8064BF50
+	.sdata2     start:0x807E0868 end:0x807E0878
 
 Game/RhythmLib/AudMeTrack.cpp:
 	.text       start:0x80423C60 end:0x80425B00
 	.ctors      start:0x806447F8 end:0x806447FC
-	.rodata     start:0x8064BF68 end:0x8064BF98
+	.rodata     start:0x8064BF50 end:0x8064BFA0
 	.bss        start:0x8072B490 end:0x8072B4A0
+	.sdata2     start:0x807E0878 end:0x807E0888
 
 Game/RhythmLib/AudMeChannelMgr.cpp:
 	.text       start:0x80425B00 end:0x80425C60
+	.sdata2     start:0x807E0888 end:0x807E0898
 
 Game/RhythmLib/AudMeSeqCtrl.cpp:
 	.text       start:0x80425C60 end:0x80425EB0
@@ -6519,7 +6772,9 @@ Game/RhythmLib/AudMeSeqReader.cpp:
 Game/RhythmLib/AudMeSeqParser.cpp:
 	.text       start:0x80426030 end:0x80427110
 	.ctors      start:0x80644800 end:0x80644804
+	.rodata     start:0x8064BFA0 end:0x8064BFB0
 	.data       start:0x806EB650 end:0x806EC050
+	.sdata2     start:0x807E0898 end:0x807E08A0
 
 Game/RhythmLib/AudMeTrackCallback.cpp:
 	.text       start:0x80427110 end:0x804272A0
@@ -6547,10 +6802,14 @@ Game/RhythmLib/AudChordInfo.cpp:
 
 Game/RhythmLib/AudRhythmHolder.cpp:
 	.text       start:0x8042A100 end:0x8042A680
+	.rodata     start:0x8064BFB8 end:0x8064BFC0
+	.sdata2     start:0x807E08B0 end:0x807E08C0
 
 Game/RhythmLib/AudRhythmWrap.cpp:
 	.text       start:0x8042A6D0 end:0x8042A960
 	.ctors      start:0x80644810 end:0x80644814
+	.rodata     start:0x8064BFC8 end:0x8064BFD0
+	.sdata2     start:0x807E08C0 end:0x807E08C8
 
 Game/Ride/Creeper.cpp:
 	.text       start:0x8042A960 end:0x8042C690

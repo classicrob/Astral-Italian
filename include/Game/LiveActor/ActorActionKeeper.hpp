@@ -19,7 +19,9 @@ public:
     void updateAnimKeeper();
     void update();
 
-    /* 0x00 */ u8 mUnk00[0x10];  // layout before 0x10 not yet mapped
+    /* 0x00 */ u8 mUnk00[4];
+    /* 0x04 */ s32 mActionIndex;
+    /* 0x08 */ u8 mUnk08[8];
     /* 0x10 */ ActorHitReactionCtrl* mHitReactionCtrl;
     /* 0x14 */ ActorItemGenerator* mItemGenerator;
     /* 0x18 */ u8 mUnk18[0x8];

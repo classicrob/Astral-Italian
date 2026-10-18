@@ -9,6 +9,7 @@
 #include <revolution/types.h>
 
 namespace MR {
+    void turnVecRandomAroundAxis(TVec3f*, const TVec3f&, const TVec3f&, f32, f32);
     /// @brief Initializes the precomputed arccosine table.
     void initAcosTable();
 

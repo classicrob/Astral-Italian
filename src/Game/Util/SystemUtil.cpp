@@ -84,7 +84,7 @@ NameObjHolder* getSceneNameObjHolder() NO_INLINE {
 namespace MR {
     u32 getHashCode(const char*);
     const char* getCurrentStageName();
-u32 getGameSystemObjHolder3C() {  // PLACEHOLDER(core4): SMG2 fn_800601F0 returns GameSystemObjHolder::_3C (ActionSound/AutoEffectList); rename when the owner names it
+ResourceCsvGroupHolder* getGameSystemObjHolder3C() {
     return getGameSystemObjHolder()->_3C;
 }
 

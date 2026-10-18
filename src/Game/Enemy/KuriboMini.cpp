@@ -338,7 +338,7 @@ bool KuriboMini::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    MR::fn_80012B90(this, 22.0f, 25.0f, pSender, pReceiver, 4);
+    MR::setVelocityBlowAttack(this, pSender, pReceiver, 22.0f, 25.0f, 4);
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBlowDown));
     return true;
 }

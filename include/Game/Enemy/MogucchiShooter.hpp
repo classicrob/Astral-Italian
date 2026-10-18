@@ -7,6 +7,7 @@
 class AnimScaleController;
 class HomingKiller;
 class JointController;
+class JointControllerInfo;
 class ModelObj;
 class WalkerStateBindStarPointer;
 class MogucchiSpike;
@@ -28,36 +29,32 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
 
-    s32 fn_801CE3A0(TPos3f* pMtx);
-    void fn_801CE460(LiveActor* pActor);
-    void fn_801CE470(LiveActor* pActor);
-    void fn_801CE480(TVec3f* pPos, TVec3f* pVel);
-    void fn_801CE530(TVec3f* pFront, const TVec3f& rPos);
-    void fn_801CE710(LiveActor* pActor);
-    void fn_801CE7C0(LiveActor* pActor);
-    void fn_801CE820(LiveActor* pActor);
-    void fn_801CE8C0(LiveActor* pActor);
+    bool fn_801CE3A0(TPos3f* pMtx, const JointControllerInfo&);
+    void fn_801CE460();
+    void fn_801CE470();
+    static void fn_801CE480(TVec3f* pPos, TVec3f* pVel);
+    static void fn_801CE530(TVec3f* pFront, const TVec3f& rPos);
+    void fn_801CE710();
+    void fn_801CE7C0();
+    void fn_801CE820();
+    void fn_801CE8C0();
     void fn_801CE9F0();
-    void fn_801CEA90(LiveActor* pActor);
-    void fn_801CEB10(LiveActor* pActor);
-    void fn_801CEB60(LiveActor* pActor);
-    void fn_801CEBE0(const char* pJointName);
-    void fn_801CECD0(const char* pJointName);
-    s32 fn_801CED80(const TVec3f& rPos);
+    void fn_801CEA90();
+    void fn_801CEB10();
+    void fn_801CEB60();
+    void fn_801CEBE0();
+    void fn_801CECD0();
+    bool fn_801CED80(const TVec3f& rPos);
     s32 fn_801CEF20();
     s32 fn_801CEFC0();
-    s32 fn_801CF070(LiveActor* pActor);
+    s32 fn_801CF070();
     s32 fn_801CF0C0();
     s32 fn_801CF120();
     s32 fn_801CF1A0();
-    s32 fn_801CF220(LiveActor* pActor);
-    void onStageSwitchOn();
-    void onStageSwitchOff();
+    s32 fn_801CF220();
 
     /* 0x90 */ TVec3f mHomePos;
     /* 0x9C */ TVec3f mFront;
-    /* 0xA0 */ f32 _A0;
-    /* 0xA4 */ f32 _A4;
     /* 0xA8 */ TVec3f mUpVec;
     /* 0xB4 */ TVec3f mRot;
     /* 0xC0 */ s32 mTimer;
@@ -78,7 +75,7 @@ public:
 // Spike that hangs off the shooter's "Bazooka" joint (SMG2 vtable __vt__13MogucchiSpike).
 class MogucchiSpike : public PartsModel {
 public:
-    MogucchiSpike(LiveActor*, const char*, const char*, MtxPtr, s32, bool);
+    MogucchiSpike(LiveActor*, const char*, const char*, MtxPtr, int, bool);
 
     virtual void calcAndSetBaseMtx();
     virtual void control();

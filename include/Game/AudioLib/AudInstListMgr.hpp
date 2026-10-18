@@ -28,6 +28,8 @@ class AudInstListMgr {
 public:
     AudInstListMgr(JAUSectionHeap*, JKRArchive*);  // fn_80087490
     static void requestInstrumentRefresh();
+    void fn_80087940(const char*, bool);
+    void fn_802204A0(const char*, bool);
     void loadInstList();                           // fn_80087560
     void requestStageUseInstList(const char*);     // fn_80087740; PLACEHOLDER(core) name
 

@@ -14,19 +14,22 @@ namespace NrvHanachanBig {
 HanachanBig::HanachanBig(const char* pName)
     : LiveActor(pName), mScaleController(nullptr), mPartsCount(9), mHitCount(0), mIsAngry(false) {}
 
+// NONMATCHING: init loop float register assignment (f30/f31) and mPartsCount store/reload scheduling
 void HanachanBig::init(const JMapInfoIter& rIter) {
-    if (!MR::isValidInfo(rIter)) {
-        return;
+    if (MR::isValidInfo(rIter)) {
+        MR::isConnectedWithRail(rIter);
+        MR::initDefaultPos(this, rIter);
+        initRailRider(rIter);
     }
-    MR::isConnectedWithRail(rIter);
-    MR::initDefaultPos(this, rIter);
-    initRailRider(rIter);
     MR::connectToSceneEnemyMovement(this);
     initNerve(GET_NERVE(HanachanBig, HanachanBigNrvWait), 0);
     initHitSensor(1);
-    MR::addHitSensorEnemy(this, "Body", 8, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    TVec3f zero(0.0f);
-    initSound(6, "HanachanBig", nullptr, zero);
+    TVec3f sensorOffset;
+    sensorOffset.x = 0.0f;
+    sensorOffset.y = 0.0f;
+    sensorOffset.z = 0.0f;
+    MR::addHitSensorEnemy(this, "Body", 8, 0.0f, sensorOffset);
+    initSound(6, "HanachanBig", nullptr, TVec3f(0.0f));
     mScaleController = new AnimScaleController(nullptr);
     mScaleController->setParamTight();
     MR::validateClipping(this);
@@ -47,21 +50,16 @@ void HanachanBig::init(const JMapInfoIter& rIter) {
     }
     MR::getJMapInfoArg2NoInit(rIter, &mIsAngry);
     for (s32 i = 0; i < mPartsCount; i++) {
-        const char* pName = "\x91\xcc\x83p\x81[\x83c";
-        if (i == 0) {
-            pName = "\x93\xaa\x83p\x81[\x83c";
-        }
-        mParts[i] = new HanachanBigParts(this, reinterpret_cast<const char*>(i), const_cast<char*>(pName));
+        mParts[i] = new HanachanBigParts(this, i, i == 0 ? "\x93\xaa\x83p\x81[\x83" "c" : "\x91\xcc\x83p\x81[\x83" "c");
         MR::setScale(mParts[i], mScale);
         mParts[i]->initWithoutIter();
     }
     MR::moveCoordToNearestPos(this, mPosition);
     MR::moveTransToOtherActorRailPos(mParts[0], this);
     MR::reverseRailDirection(this);
-    f32 f30 = 0.5f;
     for (s32 i = 1; i < mPartsCount; i++) {
-        f32 a = MR::getSensorRadius(mParts[i], "BodySpace") * f30;
-        f32 b = MR::getSensorRadius(mParts[i - 1], "BodySpace") * f30;
+        f32 a = 0.5f * MR::getSensorRadius(mParts[i], "BodySpace");
+        f32 b = 0.5f * MR::getSensorRadius(mParts[i - 1], "BodySpace");
         MR::moveCoord(this, b + a);
         MR::moveTransToOtherActorRailPos(mParts[i], this);
     }
@@ -108,7 +106,7 @@ void HanachanBig::control() {
 }
 
 bool HanachanBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isEqualSensor(pReceiver, this, "Body")) {
+    if (MR::isEqualSensor(pSender, this, "Body")) {
         return false;
     }
     if (msg == 123) {
@@ -117,7 +115,8 @@ bool HanachanBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
             setNerve(GET_NERVE(HanachanBig, HanachanBigNrvStandby));
             return true;
         }
-    } else if (msg == 122) {
+    }
+    if (msg == 122) {
         if (isNerve(GET_NERVE(HanachanBig, HanachanBigNrvStandby))) {
             mScaleController->startAnim();
             f32 rate = 1.0f;
@@ -195,6 +194,7 @@ void HanachanBig::exeStandby() {
     }
 }
 
+// NONMATCHING: float register allocation (f28/f29 swap) in the body loop
 void HanachanBig::moveAlongRail(f32 speed) {
     MR::moveCoord(this, speed);
     f32 railCoord = MR::getRailCoord(this);
@@ -204,7 +204,7 @@ void HanachanBig::moveAlongRail(f32 speed) {
     const f32 headRatio = 0.9f;
     for (s32 i = 1; i < mPartsCount; i++) {
         f32 a = headRatio * MR::getSensorRadius(mParts[i], "BodySpace");
-        f32 b = MR::getSensorRadius(mParts[i - 1], "BodySpace") * 0.5f;
+        f32 b = 0.5f * MR::getSensorRadius(mParts[i - 1], "BodySpace");
         MR::moveCoord(this, b + a);
         MR::moveTransToOtherActorRailPos(mParts[i], this);
         MR::calcRailDirection(&mParts[i]->mRailDirection, this);
@@ -222,9 +222,9 @@ bool HanachanBig::isStarPointerPointing() {
     return false;
 }
 
-HanachanBigParts::HanachanBigParts(HanachanBig* pHost, const char* pIndex, char* pName)
+HanachanBigParts::HanachanBigParts(HanachanBig* pHost, s32 index, const char* pName)
     : LiveActor(pName), mHost(pHost), mScaleController(nullptr), mRailDirection(0.0f, 0.0f, 1.0f), mPartsType(1),
-      mPartsIndex(reinterpret_cast<s32>(pIndex)), mIsAngry(false) {}
+      mPartsIndex(index), mIsAngry(false) {}
 
 void HanachanBigParts::init(const JMapInfoIter& rIter) {
     const char* pName;
@@ -249,36 +249,28 @@ void HanachanBigParts::init(const JMapInfoIter& rIter) {
     }
 }
 
+// NONMATCHING: target has one extra dead `b` to the epilogue (block layout)
 void HanachanBigParts::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender)) {
-        if (!MR::isSensorPlayerOrRide(pReceiver)) {
-            return;
+        if (MR::isSensorPlayerOrRide(pReceiver)) {
+            HanachanBig* host = mHost;
+            bool flag = host->isNerve(GET_NERVE(HanachanBig, HanachanBigNrvHit)) || host->isNerve(GET_NERVE(HanachanBig, HanachanBigNrvStandby));
+            if (!flag) {
+                if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+                    return;
+                }
+                MR::sendMsgPush(pReceiver, pSender);
+            } else {
+                MR::sendMsgPush(pReceiver, pSender);
+            }
         }
-        bool flag = false;
-        if (mHost->isNerve(GET_NERVE(HanachanBig, HanachanBigNrvHit))) {
-            flag = true;
-        } else if (mHost->isNerve(GET_NERVE(HanachanBig, HanachanBigNrvStandby))) {
-            flag = true;
-        }
-        if (flag) {
+    } else if (MR::isSensorEnemy(pSender)) {
+        if (MR::isSensorPlayerOrRide(pReceiver)) {
             MR::sendMsgPush(pReceiver, pSender);
-            return;
+            if (!mScaleController->isHitReaction(-1)) {
+                mScaleController->startHitReaction();
+            }
         }
-        if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
-            return;
-        }
-        MR::sendMsgPush(pReceiver, pSender);
-        return;
-    }
-    if (!MR::isSensorEnemy(pSender)) {
-        return;
-    }
-    if (!MR::isSensorPlayerOrRide(pReceiver)) {
-        return;
-    }
-    MR::sendMsgPush(pReceiver, pSender);
-    if (!mScaleController->isHitReaction(-1)) {
-        mScaleController->startHitReaction();
     }
 }
 
@@ -288,16 +280,19 @@ bool HanachanBigParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
             mScaleController->startHitReaction();
             return true;
         }
-    } else if (MR::isMsgPlayerHipDrop(msg)) {
+    }
+    if (MR::isMsgPlayerHipDrop(msg)) {
         if (!mScaleController->isHitReaction(-1)) {
             mScaleController->startHitReaction();
-            MR::sendMsgAwayJump(pReceiver, pSender);
+            MR::sendMsgAwayJump(pSender, pReceiver);
             return true;
         }
-    } else if (MR::isMsgLockOnStarPieceShoot(msg)) {
+    }
+    if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return false;
-    } else if (MR::isMsgStarPieceReflect(msg)) {
-        if (mScaleController->isHitReaction(-1)) {
+    }
+    if (MR::isMsgStarPieceReflect(msg)) {
+        if (!mScaleController->isHitReaction(-1)) {
             mScaleController->startHitReaction();
             return true;
         }
@@ -309,7 +304,7 @@ void HanachanBigParts::control() {
     mScaleController->updateNerve();
 }
 
-#pragma dont_inline on
+#pragma auto_inline off
 void HanachanBigParts::calcAndSetBaseMtx() {
     MR::fn_8000F880(this, &mRailDirection);
     TVec3f scale;
@@ -317,8 +312,9 @@ void HanachanBigParts::calcAndSetBaseMtx() {
     scale.mul(scale, mScaleController->_C);
     MR::setBaseScale(this, scale);
 }
-#pragma dont_inline reset
+#pragma auto_inline on
 
+// NONMATCHING: instruction scheduling of rate multiply (mr r3 position) in first-step block
 void HanachanBigParts::exeWalk() {
     if (MR::isFirstStep(this)) {
         f32 frame;
@@ -334,7 +330,7 @@ void HanachanBigParts::exeWalk() {
             frame = static_cast<f32>((frameMax + mPartsIndex * 8) % frameMax);
         }
         MR::setBckFrame(this, frame);
-        MR::setBckRate(this, mIsAngry ? 3.0f : 1.0f);
+        f32 multiplier = 1.0f; f32 rate = mIsAngry ? 3.0f : 1.0f; MR::setBckRate(this, multiplier * rate);
     }
     if (mPartsType != PartsType_Head) {
         return;

@@ -37,7 +37,7 @@ public:
     void fn_801F2FF0();
     void fn_801F3040();
     void fn_801F30D0();
-    void fn_801F3150(TPos3f* pMtx, const TVec3f& up, const TVec3f& front);
+    void fn_801F3150(TPos3f* pMtx, LiveActor* pActor, const TVec3f& up, const TVec3f& front);
     void fn_801F32A0(f32 speed, f32 turn);
     f32 fn_801F33A0();
 

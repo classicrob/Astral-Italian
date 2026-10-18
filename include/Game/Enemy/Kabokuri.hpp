@@ -10,7 +10,7 @@ class WalkerStateBindStarPointer;
 class YoshiLockOnTarget;
 
 namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
+    bool tryYoshiEat(YoshiLockOnTarget*);
 };
 
 namespace MR {
@@ -45,8 +45,8 @@ public:
     bool requestHipDropped();
     bool requestHitAttacked(HitSensor*, HitSensor*);
     bool tryPointBind();
-    NO_INLINE void tryYoshiEat();
-    void requestEaten();
+    NO_INLINE bool tryYoshiEat();
+    bool requestEaten();
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
     void exeEaten();
     NO_INLINE bool isEatable() const;

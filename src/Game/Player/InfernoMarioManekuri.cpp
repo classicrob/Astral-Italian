@@ -56,7 +56,7 @@ bool InfernoMarioManekuri::trample(u32 msg,HitSensor* sensor) {
 bool InfernoMarioManekuri::blowDownPlayer(HitSensor* sender,HitSensor* receiver) {
     if(!canDamage()) return false;
     mCombo=1;ScoreAttackFunction::scoreCombo(mHost,0);mModel->appear();
-    MR::fn_80012B90(mHost,40.0f,0.0f,sender,receiver,4);
+    MR::setVelocityBlowAttack(mHost, sender, receiver, 40.0f, 0.0f, 4);
     MR::calcSensorHorizonNormalize(&mFront,mHost->mGravity,receiver,sender);
     MR::makeQuatUpFront(&mHost->mCurrentQuat,-mHost->mGravity,mFront);
     setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvBlowDownPlayer::sInstance);MR::onBind(mHost);MR::onCalcGravity(mHost);return true;

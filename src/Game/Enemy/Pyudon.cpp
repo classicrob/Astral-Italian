@@ -10,17 +10,17 @@
 
 #include "Game/Util/YoshiLockOnUtil.hpp"
 
-// PLACEHOLDER(enemies): unnamed sbss2 tuning values; resolve when their owning data is named.
-extern s32 lbl_807E3060;
-extern s32 lbl_807E3064;
-extern f32 lbl_807E3068;
-extern f32 lbl_807E306C;
+// Zero tuning consts the target loads from .sbss2 at runtime instead of folding them.
+const volatile s32 cLockOnEndStep = 0;
+const volatile s32 cJumpGravityStep = 0;
+const volatile f32 cLockOnEaseEnd = 0.0f;
+const volatile f32 cDamageHeightRate = 0.0f;
 
 namespace {
     static const f32 cNearPlayerDist = 1000.0f;
     static const f32 cStepUpSpeed = 0.75f;
-    static const f32 cBlowHorizontal = 30.0f;
-    static const f32 cBlowVertical = 30.0f;
+    extern const f32 cBlowHorizontal;
+    extern const f32 cBlowVertical;
 }  // namespace
 
 #define PYUDON_NERVE(Name, Method) \
@@ -102,7 +102,6 @@ void Pyudon::kill() {
 }
 
 // fn_801F3840
-// NONMATCHING: camera and distance temporaries occupy different stack slots.
 void Pyudon::fn_801F3840() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
@@ -117,8 +116,10 @@ void Pyudon::fn_801F3840() {
                 else setNerve(GET_NERVE(Pyudon, PyudonNrvTrack));
             }
         } else {
-            if ((*MR::getPlayerPos() - mPosition).length() < 1000.0f) {
-                bool far = (*MR::getPlayerPos() - mStartPos).length() > 2500.0f;
+            TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
+            if (toPlayer.length() < 1000.0f) {
+                TVec3f toStart = *MR::getPlayerPos() - mStartPos;
+                bool far = toStart.length() > 2500.0f;
                 if (!far) {
                     if (mIsSwitchActive) setNerve(GET_NERVE(Pyudon, PyudonNrvFind));
                     else setNerve(GET_NERVE(Pyudon, PyudonNrvTrack));
@@ -146,7 +147,7 @@ void Pyudon::exeFind() {
 }
 
 // fn_801F3A70
-// NONMATCHING: horizontal, camera and distance temporaries occupy different stack slots.
+// NONMATCHING: stack slot order of the gravity temporary and distance vector.
 void Pyudon::fn_801F3A70() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
@@ -155,9 +156,7 @@ void Pyudon::fn_801F3A70() {
     }
     TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
     f32 dot = toPlayer.dot(mGravity);
-    TVec3f down(mGravity);
-    down.scale(dot);
-    TVec3f horizontal = toPlayer - down;
+    TVec3f horizontal = toPlayer - mGravity * dot;
     f32 length = horizontal.length();
     if (length < 200.0f && dot > 100.0f) {
         mCounter++;
@@ -177,16 +176,16 @@ void Pyudon::fn_801F3A70() {
 }
 
 // fn_801F3C30
-// NONMATCHING: equal 1.1f arguments share a load; target loads two literal entries.
+// NONMATCHING: target loads two separate 1.1f literal entries (fmr f2,f1 here).
 void Pyudon::fn_801F3C30() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "LockOn");
         mSpeedRate = 0.0f;
-    } else if (MR::isActionEnd(this) && MR::isGreaterStep(this, lbl_807E3060)) {
+    } else if (MR::isActionEnd(this) && MR::isGreaterStep(this, cLockOnEndStep)) {
         setNerve(GET_NERVE(Pyudon, PyudonNrvAttack));
         MR::zeroVelocity(this);
     }
-    mSpeedRate = MR::calcNerveEaseOutValue(this, 0, 60, 0.0f, lbl_807E3068);
+    mSpeedRate = MR::calcNerveEaseOutValue(this, 0, 60, 0.0f, cLockOnEaseEnd);
     if (!MR::isGreaterStep(this, 80)) MR::getPlayerGroundPos(&mGroundPos);
     fn_801F5750();
     if (MR::isLessStep(this, 80)) {
@@ -213,7 +212,7 @@ void Pyudon::fn_801F3DE0() {
         MR::startAction(this, "HipDrop");
         mBasePos = mPosition;
     }
-    if (MR::isGreaterEqualStep(this, lbl_807E3064)) MR::addVelocityToGravity(this, 9.0f);
+    if (MR::isGreaterEqualStep(this, cJumpGravityStep)) MR::addVelocityToGravity(this, 9.0f);
     if (MR::isBindedGround(this)) {
         if (MR::sendMsgToGroundSensor(4, getSensor("Body"))) {
             MR::emitEffect(this, "LandSmokePyudon");
@@ -334,7 +333,7 @@ void Pyudon::fn_801F4310() {
     }
     MR::getPlayerGroundPos(&mGroundPos);
     fn_801F5750();
-    fn_801F5650(0.0f, lbl_807E306C);
+    fn_801F5650(0.0f, cDamageHeightRate);
     fn_801F5920(this, 0.97f, 0.98f);
 }
 
@@ -347,7 +346,7 @@ void Pyudon::fn_801F43B0() {
     }
     MR::getPlayerGroundPos(&mGroundPos);
     fn_801F5750();
-    fn_801F5650(0.0f, lbl_807E306C);
+    fn_801F5650(0.0f, cDamageHeightRate);
     fn_801F5920(this, 0.97f, 0.98f);
 }
 
@@ -384,17 +383,13 @@ void Pyudon::exeDamage() {
 }
 
 // fn_801F4610
-// NONMATCHING: ray start and gravity temporaries occupy different stack slots.
+// NONMATCHING: target builds both gravity temporaries before the start vector (instruction order only).
 void Pyudon::fn_801F4610() {
     if (MR::isFirstStep(this)) MR::validateHitSensor(this, "Damage");
     if (MR::updateActorState(this)) {
         MR::invalidateHitSensor(this, "Damage");
-        TVec3f offset(mGravity);
-        offset.scale(100.0f);
-        TVec3f line(mGravity);
-        line.scale(200.0f);
-        TVec3f start = mPosition - offset;
-        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, start, line)) {
+        TVec3f start = mPosition - mGravity * 100.0f;
+        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, start, mGravity * 200.0f)) {
             setNerve(GET_NERVE(Pyudon, PyudonNrvRecoveryAir));
             return;
         }
@@ -467,7 +462,6 @@ bool Pyudon::fn_801F5000(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // fn_5150
-// NONMATCHING: equal 30.0f arguments share a load; target loads two literal entries.
 bool Pyudon::fn_801F5150(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     bool blocked = false;
     if (isNerve(GET_NERVE(Pyudon, PyudonNrvStepDown)) || isNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown))) {
@@ -476,13 +470,13 @@ bool Pyudon::fn_801F5150(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (!blocked) {
         bool waiting = false;
         if (isNerve(GET_NERVE(Pyudon, PyudonNrvWait)) || isNerve(GET_NERVE(Pyudon, PyudonNrvFind)) ||
-        isNerve(GET_NERVE(Pyudon, PyudonNrvTrack))) {
+            isNerve(GET_NERVE(Pyudon, PyudonNrvTrack))) {
             waiting = true;
         }
         if (!waiting) {
             MR::tryHitReaction(this, "\x90\x81\x82\xab\x94\xf2\x82\xd1\x83q\x83b\x83g");  // lbl_806905E8
             MR::zeroVelocity(this);
-            MR::fn_80012B90(this, cBlowHorizontal, cBlowVertical, pSender, pReceiver, 4);
+            MR::setVelocityBlowAttack(this, pSender, pReceiver, cBlowHorizontal, cBlowVertical, 4);
             ScoreAttackFunction::scoreByAttack(this, msg, 0);
             setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));
             return true;
@@ -492,12 +486,11 @@ bool Pyudon::fn_801F5150(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 // fn_5270
-// NONMATCHING: equal 30.0f arguments share a load; target loads two literal entries.
 bool Pyudon::fn_801F5270(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isHipDropNerve() || isNerve(GET_NERVE(Pyudon, PyudonNrvStarPieceReactionAir))) {
         MR::tryHitReaction(this, "\x83L\x83b\x83N\x83q\x83b\x83g");  // lbl_806905F8
         MR::zeroVelocity(this);
-        MR::fn_80012B90(this, cBlowHorizontal, cBlowVertical, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, cBlowHorizontal, cBlowVertical, 4);
         ScoreAttackFunction::scoreByAttack(this, msg, 0);
         setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));
         return true;
@@ -562,13 +555,10 @@ bool Pyudon::fn_801F5540() {
 }
 
 // fn_5650: rebound the velocity away from the target direction.
-// NONMATCHING: vertical and horizontal temporaries occupy different stack slots.
 void Pyudon::fn_801F5650(f32 farg0, f32 farg1) {
     TVec3f toTarget = mTargetPos - mPosition;
     f32 dot = toTarget.dot(mGravity);
-    TVec3f vertical(mGravity);
-    vertical.scale(dot);
-    TVec3f horizontal = toTarget - vertical;
+    TVec3f horizontal = toTarget - mGravity * dot;
     f32 length = horizontal.length();
     MR::addVelocityKeepHeight(this, mTargetPos, farg1, 100.0f);
     f32 limit = 100.0f;
@@ -759,3 +749,9 @@ bool Pyudon::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 // fn_801F5AA0-ish: dtor
 Pyudon::~Pyudon() {}
+
+namespace {
+    const f32 cBlowHorizontal = 30.0f;
+    const f32 cBlowVertical = 30.0f;
+}  // namespace
+

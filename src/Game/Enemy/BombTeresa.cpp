@@ -31,15 +31,6 @@
 #include <revolution/mtx.h>
 #include <revolution/types.h>
 
-void BombTeresa_FORCE_MATCH_SDATA2() {
-    (void)70.0f;
-    (void)80.0f;
-    (void)20.0f;
-    (void)85.0f;
-    (void)0.1f;
-    (void)0.6f;
-}
-
 namespace NrvBombTeresa {
     NEW_NERVE(BombTeresaNrvAppear, BombTeresa, Appear);
     NEW_NERVE(BombTeresaNrvShadowAppear, BombTeresa, ShadowAppear);
@@ -386,7 +377,7 @@ bool BombTeresa::tryRevival() {
 
 void BombTeresa::exeAppear() {
     if (MR::isFirstStep(this)) {
-        MR::validateHitSensor(this, "body");
+        MR::validateHitSensor(this, "Body");
         MR::validateHitSensor(this, "tungue");
         MR::showModel(this);
         MR::startAction(this, "Appear");
@@ -432,7 +423,7 @@ void BombTeresa::exeShadowAppear() {
 
 void BombTeresa::exeBallAppear() {
     if (MR::isFirstStep(this)) {
-        MR::validateHitSensor(this, "body");
+        MR::validateHitSensor(this, "Body");
         MR::validateHitSensor(this, "tungue");
         MR::emitEffect(this, "Ball");
         MR::startAction(this, "BallAppear");

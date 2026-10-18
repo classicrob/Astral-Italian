@@ -210,7 +210,7 @@ void DanceFlower::fn_8017A5B0(HitSensor* pSender, HitSensor* pReceiver) {
     pose->mFront.x = dir.x;
     pose->mFront.y = dir.y;
     pose->mFront.z = dir.z;
-    MR::fn_80012B90(this, 30.0f, 30.0f, pSender, pReceiver, 4);
+    MR::setVelocityBlowAttack(this, pSender, pReceiver, 30.0f, 30.0f, 4);
     MR::fn_80034760(this, pSender, pReceiver);
     setNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvBlowDown));
     MR::invalidateHitSensors(this);

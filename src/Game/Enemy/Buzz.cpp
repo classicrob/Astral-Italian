@@ -61,7 +61,6 @@ void Buzz::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mAnimScaleController);
 }
 
-// NONMATCHING: early-return block laid out differently (99.6%, same size)
 void Buzz::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver) && fn_80176300() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         setNerve(&NrvBuzz::BuzzNrvAttackSuccess::sInstance);

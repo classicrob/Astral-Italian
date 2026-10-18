@@ -7,7 +7,6 @@ class MapObjConnector {
 public:
     MapObjConnector(LiveActor*);
 
-    void fn_802CC510();  // unnamed, by address
     void fn_802CC510(LiveActor*);
     void fn_802CC5D0();
     bool attachToUnder();

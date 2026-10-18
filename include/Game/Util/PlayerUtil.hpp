@@ -13,7 +13,10 @@ class NameObj;
 class Triangle;
 class XanimeResourceTable;
 
+class JAISoundHandle;
 namespace MR {
+    JAISoundHandle* fn_80050D10(s32, s32, s32);
+    JAISoundHandle* fn_80050E60(s32, s32);
     bool fn_8004FFF0();
     void enablePlayerResourceYoshi();
     bool fn_80050020();

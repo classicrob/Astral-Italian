@@ -515,14 +515,25 @@ bool HomingKiller::isBreakByEnemyAttack(u32 msg, HitSensor* pSender) {
 }
 
 // NONMATCHING: target loads sensor type 51 from sdata2 and retains a normalized boolean temporary.
+namespace {
+    inline bool isAppearAttackableSensor(HitSensor* pSensor) {
+        static const u32 sSensorTypes[] = {51};
+        for (s32 i = 0; i < 1; i++) {
+            if (MR::isSensorType(pSensor, sSensorTypes[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+}  // namespace
+
 bool HomingKiller::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvEaten))) {
         return false;
     }
 
     if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvAppear))) {
-        bool isTarget = MR::isSensorType(pSender, 51);
-        if (!isTarget) {
+        if (!isAppearAttackableSensor(pSender)) {
             return false;
         }
     }
@@ -956,8 +967,7 @@ void HomingKiller::startMoveLevelSound(bool playAlarm) {
         }
     } else if (mType == Type_MagnumKiller) {
         f32 pitch = MR::getLinerValueFromMinMax(MR::calcDistanceToPlayer(this), 500.0f, 1400.0f, 1.8f, 0.9f);
-        s32 volume = 100.0f * pitch;
-        MR::startSoundInPlayerDistance(this, "EmLvMagkillerFly", volume, -1, 2300.0f);
+        MR::startSoundInPlayerDistance(this, "EmLvMagkillerFly", 100.0f * pitch, -1, 2300.0f);
     } else {
         MR::startSoundInPlayerDistance(this, "EmLvKillerFly", -1, -1, 1500.0f);
     }
@@ -1300,79 +1310,5 @@ void HomingKiller::exeShot() {
         mVelocity.x *= 2.0f;
         mVelocity.y *= 2.0f;
         mVelocity.z *= 2.0f;
-    }
-}
-
-namespace NrvHomingKillerLauncher {
-    NEW_NERVE(HomingKillerLauncherNrvAppearKiller, HomingKillerLauncher, AppearKiller);
-    NEW_NERVE(HomingKillerLauncherNrvDeadKiller, HomingKillerLauncher, DeadKiller);
-};  // namespace NrvHomingKillerLauncher
-
-HomingKillerLauncher::HomingKillerLauncher(const char* pName) : LiveActor("ホーミングキラー発生源"), mKillers(nullptr), mKillerNum(1), mAppearInterval(180) {
-}
-
-void HomingKillerLauncher::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneEnemyMovement(this);
-    MR::initDefaultPos(this, rIter);
-    MR::invalidateClipping(this);
-    initNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvAppearKiller), 0);
-    MR::syncStageSwitchAppearAndSync(this, rIter);
-
-    MR::getJMapInfoArg4NoInit(rIter, &mKillerNum);
-    if (mKillerNum <= 0) {
-        mKillerNum = 1;
-    }
-
-    MR::getJMapInfoArg5NoInit(rIter, &mAppearInterval);
-    if (mAppearInterval < 180) {
-        mAppearInterval = 180;
-    }
-
-    mKillers = new HomingKiller[mKillerNum];
-
-    for (s32 i = 0; i < mKillerNum; i++) {
-        mKillers[i].init(rIter);
-    }
-
-    makeActorDead();
-}
-
-void HomingKillerLauncher::appear() {
-    LiveActor::appear();
-    setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvAppearKiller));
-}
-
-bool HomingKillerLauncher::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    return MR::tryForceKillIfMsgStartPowerStarGet(this, msg);
-}
-
-HomingKiller* HomingKillerLauncher::fn_80198540() {
-    for (s32 i = 0; i < this->mKillerNum; i++) {
-        HomingKiller* pKiller = &this->mKillers[i];
-        if (MR::isDead(pKiller)) {
-            return pKiller;
-        }
-    }
-
-    return nullptr;
-}
-
-void HomingKillerLauncher::exeAppearKiller() {
-    if (MR::isFirstStep(this) && this->fn_80198540()) {
-        this->fn_80198540()->appear();
-    }
-
-    if (mKillerNum == 1) {
-        if (this->fn_80198540()) {
-            setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvDeadKiller));
-        }
-    } else {
-        setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvDeadKiller));
-    }
-}
-
-void HomingKillerLauncher::exeDeadKiller() {
-    if (MR::isGreaterStep(this, mAppearInterval) && this->fn_80198540()) {
-        setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvAppearKiller));
     }
 }

@@ -9,22 +9,11 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
 
 // Takobo is the blue sibling of TakoSho: same layout and almost the same code (see TakoSho.cpp).
 // NOTE: the unit's split ends at 0x80205390 but the nerve ctors/executes (0x80205390..0x80205548) and the
 // leading strings/.data (0x80691CA8..) belong to it too.
-
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
-};  // namespace MR
-
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
-
-namespace MR {
-    void makeMtxUpFrontPos(TPos3f*, const TVec3f&, const TVec3f&, const TVec3f&);
-};  // namespace MR
 
 // PLACEHOLDER(enemies): unnamed .sbss2 int (lbl_807E3070, step of the ink spurt); resolve when its owner names it.
 const volatile s32 lbl_807E3070 = 0;
@@ -215,7 +204,7 @@ void Takobo::exeIdle() {
     }
 }
 
-// NONMATCHING: stack temp order, and the target's out-of-line TVec3f::operator= (__as__) for mTargetPos where ours inlines it.
+// NONMATCHING: vector temporaries occupy different stack slots; calls, constants and branches match.
 void Takobo::exeMove() {
     if (MR::isFirstStep(this)) {
         f32 dir;
@@ -231,7 +220,7 @@ void Takobo::exeMove() {
         mTargetPos = target;
         TVec3f diff(mTargetPos);
         diff -= mPosition;
-        mMoveStep = (s32)(1.3f * (f32)(s32)(PSVECMag(&diff) / mMoveRange));
+        mMoveStep = (s32)((f32)(s32)(PSVECMag(&diff) / mMoveRange) * 1.3f);
     }
     f32 fall = MR::calcGravitySpeedAbs(this);
     if (MR::isBindedGround(this)) {
@@ -482,7 +471,7 @@ void Takobo::updateFallVelocity() {
             MR::zeroVelocity(this);
             return;
         }
-        MR::addVelocityToGravity(this, 7.0f);
+        MR::addVelocityToGravity(this, 1.0f);
     }
 }
 

@@ -6,6 +6,8 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 
+extern const volatile s32 lbl_807E3038;
+
 class AnimScaleController;
 class WalkerStateBindStarPointer;
 class YoshiLockOnTarget;
@@ -27,6 +29,9 @@ public:
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
+
+    typedef bool (Jugem::*JointCalcFunc)(TPos3f*, const JointControllerInfo&);
+    JointController* fn_8019B4A0(const char*, JointCalcFunc);
 
     void initBinder();       // fn_8019EC60
     void initBinderFall();   // fn_8019ECC0
@@ -68,10 +73,10 @@ public:
     bool fn_8019D650();
     bool fn_8019D6C0();
     bool fn_8019D7E0(HitSensor*, HitSensor*);
-    bool fn_8019D8A0();
-    bool fn_8019D940();
-    bool fn_8019D9E0();
-    bool fn_8019DA80();
+    bool fn_8019D8A0(HitSensor*, HitSensor*);
+    bool fn_8019D940(HitSensor*, HitSensor*);
+    bool fn_8019D9E0(HitSensor*, HitSensor*);
+    bool fn_8019DA80(HitSensor*, HitSensor*);
     bool fn_8019DB20(HitSensor*, HitSensor*);
     bool fn_8019DBE0();
     void fn_8019DC40(const TVec3f&);
@@ -117,7 +122,7 @@ public:
     /* 0x178 */ f32 _178;
     /* 0x17C */ s32 mTimer;
     /* 0x180 */ u8 mIsActive;
-    /* 0x181 */ u8 mIsHitDone;
+    /* 0x181 */ bool mIsHitDone;
 };
 
 /// @brief Cloud model that the Jugem stands on.

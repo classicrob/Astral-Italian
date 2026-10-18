@@ -370,12 +370,12 @@ bool DinoPackunBabyBattle::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
             if (mHost->isShellsAllDead()) {
                 mHost->breakAllShells();
                 MR::tryHitReactionBetweenSensors(mHost, "全シェル破壊（スピン）", pSender, pReceiver);
-                MR::fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
+                MR::setVelocityBlowAttack(mHost, pSender, pReceiver, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], 4);
                 setNerve(GET_NRV(EscapeStart));
                 return true;
             }
             MR::tryHitReactionBetweenSensors(mHost, "シェル破壊（スピン）", pSender, pReceiver);
-            MR::fn_80012B90(mHost, mShellDamageSpeed[0], mShellDamageSpeed[1], pSender, pReceiver, 4);
+            MR::setVelocityBlowAttack(mHost, pSender, pReceiver, mShellDamageSpeed[0], mShellDamageSpeed[1], 4);
             endChaseCamera();
             setNerve(GET_NRV(DamageShell));
             return true;
@@ -386,14 +386,14 @@ bool DinoPackunBabyBattle::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
             !isNerve(GET_NRV(Escape)) && !isNerve(GET_NRV(EscapeLand)) && !isNerve(GET_NRV(EscapeTurnStart)) &&
             !isNerve(GET_NRV(EscapeTurn)) && !isNerve(GET_NRV(Down)) && !isNerve(GET_NRV(DownLand)) && !mHost->isShellsAllAlive()) {
             mHost->breakAllShells();
-            MR::fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
+            MR::setVelocityBlowAttack(mHost, pSender, pReceiver, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], 4);
             MR::tryHitReactionBetweenSensors(mHost, "素肌ダメージ（スピン）", pSender, pReceiver);
             setNerve(GET_NRV(EscapeStart));
             return true;
         }
     }
     if (MR::isMsgPlayerHipDrop(msg) && mHost->isShellSensor(pReceiver) && mHost->breakAllShells()) {
-        MR::fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(mHost, pSender, pReceiver, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], 4);
         MR::tryHitReactionBetweenSensors(mHost, "シェル破壊（ヒップドロップ）", pSender, pReceiver);
         endChaseCamera();
         setNerve(GET_NRV(EscapeStart));

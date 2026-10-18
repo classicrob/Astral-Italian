@@ -701,7 +701,7 @@ bool Karikari::tryBlowOut(const TVec3f& rPos, bool spawnMultipleStarPieces) {
 
     MR::emitEffect(this, "Hit");
 
-    ::getKarikariDirector()->fn_801B0DB0(this);
+    ::getKarikariDirector()->unregistCling(this);
 
     if (spawnMultipleStarPieces) {
         setNerve(GET_NERVE(Karikari, HostTypeNrvBlowOutStarPiece));
@@ -730,7 +730,7 @@ bool Karikari::tryHipDropRelease() {
     away.sub(mGravity * ::sAttackedVerticalVel);
     mVelocity.set(away);
     setNerve(GET_NERVE(Karikari, HostTypeNrvDPDAttacked));
-    ::getKarikariDirector()->fn_801B0DB0(this);
+    ::getKarikariDirector()->unregistCling(this);
     return true;
 }
 
@@ -785,7 +785,7 @@ void Karikari::setVelocityFromCursorMove(const TVec2f& rVel) {
 
 void Karikari::makeActorDead() {
     LiveActor::makeActorDead();
-    ::getKarikariDirector()->fn_801B0DB0(this);
+    ::getKarikariDirector()->unregistCling(this);
 }
 
 void Karikari::kill() {
@@ -924,7 +924,7 @@ bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgToEnemyAttackTrample(msg)) {
-        ::getKarikariDirector()->fn_801B0DB0(this);
+        ::getKarikariDirector()->unregistCling(this);
         setNerve(GET_NERVE(Karikari, HostTypeNrvInTornado));
         return true;
     }
@@ -935,7 +935,7 @@ bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             return true;
         }
 
-        ::getKarikariDirector()->fn_801B0DB0(this);
+        ::getKarikariDirector()->unregistCling(this);
         // blow away from explosion
         TVec3f vel(*MR::getSensorPos(pReceiver));
         vel.sub(*MR::getSensorPos(pSender));

@@ -534,7 +534,7 @@ void Pukupuku::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     } else if (isNerve(GET_NERVE(Pukupuku, PukupukuNrvBindStarPointer)) && MR::isSensorType(pReceiver, 0x27 /* ATYPE_PUKUPUKU */) &&
                MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         f32 rate = getBlownOffSpeedRate();
-        MR::fn_80012B90(this, 35.0f * rate, 20.0f * rate, pReceiver, pSender, 4);
+        MR::setVelocityBlowAttack(this, pReceiver, pSender, 35.0f * rate, 20.0f * rate, 4);
         setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
     } else if (MR::isSensorYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
@@ -584,7 +584,7 @@ bool Pukupuku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
         if (MR::isMsgPlayerHitAll(msg) || MR::isMsgYoshiProjectile(msg)) {
             f32 rate = getBlownOffSpeedRate();
-            MR::fn_80012B90(this, 35.0f * rate, 20.0f * rate, pSender, pReceiver, 4);
+            MR::setVelocityBlowAttack(this, pSender, pReceiver, 35.0f * rate, 20.0f * rate, 4);
             ScoreAttackFunction::scoreByAttack(this, msg, false);
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
             return true;
@@ -597,7 +597,7 @@ bool Pukupuku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 bool Pukupuku::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (!isDamaged() && MR::isSensorType(pSender, 0x27 /* ATYPE_PUKUPUKU */)) {
         f32 rate = getBlownOffSpeedRate();
-        MR::fn_80012B90(this, 35.0f * rate, 20.0f * rate, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 35.0f * rate, 20.0f * rate, 4);
         setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
         return true;
     }

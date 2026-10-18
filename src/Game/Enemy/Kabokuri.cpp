@@ -131,8 +131,8 @@ void Kabokuri::initSensor() {
 }
 
 void Kabokuri::initAfterPlacement() {
-    TVec3f dir = mGravity * 500.0f;
     TVec3f hitPos;
+    TVec3f dir = mGravity * 500.0f;
 
     if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, mPosition, dir)) {
         MR::resetPosition(this, hitPos);
@@ -167,50 +167,54 @@ void Kabokuri::exeEaten() {
     MR::setScale(mHeadModel, mScale);
 }
 
-void Kabokuri::requestEaten() {
+bool Kabokuri::requestEaten() {
     if (!isEatable()) {
-        return;
+        return false;
     }
 
+    mKuribo->fn_801B9BD0(mPosition, mRotationQuat);
+    mKuribo->mGravity.set(mGravity);
+    _9C.set(*reinterpret_cast< TMtx34f* >(MR::getJointMtx(this, "Head")));
+    MR::inverseConcatMtx(getBaseMtx(), MR::getJointMtx(this, "Head"), &_CC);
+    MR::copyTransRotateScale(this, mHeadModel);
+    mHeadModel->appear();
     MR::invalidateHitSensors(this);
     setNerve(GET_NERVE(Kabokuri, KabokuriNrvEaten));
+    return true;
 }
 
 bool Kabokuri::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiStartTongue(msg)) {
-        requestEaten();
-        return false;
+        return requestEaten();
     }
 
     if (MR::isMsgYoshiLoopTongue(msg)) {
         return true;
     }
 
-    if (!MR::isMsgYoshiReleaseEaten(msg)) {
-        if (MR::isMsgYoshiCancelEaten(msg)) {
-            kill();
-            mHeadModel->kill();
-            return true;
-        }
+    if (MR::isMsgYoshiReleaseEaten(msg) || MR::isMsgYoshiCancelEaten(msg)) {
+        kill();
+        mHeadModel->kill();
+        return true;
     }
 
     return false;
 }
 
-void Kabokuri::tryYoshiEat() {
+bool Kabokuri::tryYoshiEat() {
     if (isEatable()) {
-        YoshiFunction::tryYoshiEat(mYoshiLockOn);
+        return YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
+    return false;
 }
 
 bool Kabokuri::isEatable() const {
-    bool ret = false;
     if (!isNerve(GET_NERVE(Kabokuri, KabokuriNrvWait)) && !isNerve(GET_NERVE(Kabokuri, KabokuriNrvWalk)) &&
         !isNerve(GET_NERVE(Kabokuri, KabokuriNrvBindStarPointer)) && isNerve(GET_NERVE(Kabokuri, KabokuriNrvDropFire))) {
-        ret = true;
+        return true;
     }
 
-    return ret;
+    return false;
 }
 
 void Kabokuri::calcAndSetBaseMtx() {
@@ -232,12 +236,10 @@ void Kabokuri::updatePose() {
 }
 
 void Kabokuri::addVelocityBase() {
-    if (MR::isBindedGround(this)) {
-        MR::attenuateVelocity(this, ::sNormalFreq);
-    } else {
-        MR::addVelocityToGravity(this, ::sNormalGravity);
-        MR::attenuateVelocity(this, ::sNormalFreq);
+    if (!MR::isBindedGround(this)) {
+        MR::addVelocityToGravity(this, mCounter >= 5 ? 1.0f : ::sNormalGravity);
     }
+    MR::attenuateVelocity(this, mCounter >= 5 ? 0.995f : ::sNormalFreq);
 
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
 }
@@ -377,7 +379,7 @@ void Kabokuri::exeWait() {
         MR::zeroVelocity(this);
     }
 
-    if (MR::isGreaterStep(this, ::sWaitTime)) {
+    if (MR::isGreaterStep(this, ::sWaitTime) && MR::isExistRail(this)) {
         setNerve(GET_NERVE(Kabokuri, KabokuriNrvWalk));
     }
 }
@@ -389,7 +391,9 @@ void Kabokuri::exeWalk() {
     }
 
     MR::turnDirectionToTargetDegree(this, &mFrontVec, MR::getRailPos(this), ::sWalkTurnDegree);
-    addVelocityToRailPoint(::sWalkSpeed);
+    if (mCounter < 5) {
+        addVelocityToRailPoint(::sWalkSpeed);
+    }
     addVelocityBase();
 
     if (mIsValidDropFire && MR::isRailReachedHorizonCurrentPos(this, ::sWalkGoalRange)) {
@@ -446,7 +450,7 @@ void Kabokuri::exeStarPieceHitted() {
 void Kabokuri::exeHipDropped() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "EmStompedS");
-        mKuribo->appearHipDropped(mPosition, mRotationQuat);
+        mKuribo->fn_801B9C60(mPosition, mRotationQuat);
         mKuribo->mGravity.set(mGravity);
         MR::invalidateClipping(this);
         setNerve(GET_NERVE(Kabokuri, KabokuriNrvBreak));
@@ -477,6 +481,8 @@ void Kabokuri::exeHitAttacked() {
 void Kabokuri::exeBreak() {
     if (MR::isFirstStep(this)) {
         MR::hideModel(this);
+        MR::invalidateHitSensors(this);
+        MR::offBind(this);
         mBreakModel->appear();
         MR::startAction(mBreakModel, "Break");
         MR::startActionSound(this, "EmKabokuriBreakPump");
@@ -484,7 +490,7 @@ void Kabokuri::exeBreak() {
         MR::zeroVelocity(this);
     }
 
-    if (MR::isActionEnd(mBreakModel)) {
+    if (MR::isActionEnd(mBreakModel) && MR::isDead(mKuribo)) {
         kill();
         mBreakModel->kill();
     }
@@ -532,5 +538,5 @@ void Kabokuri::endBindStarPointer() const {
 }
 
 void Kabokuri::exeBindStarPointer() {
-    MR::updateActorStateAndNextNerve(this, mStateBindStartPointer, GET_NERVE(Kabokuri, KabokuriNrvWalk));
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(Kabokuri, KabokuriNrvWalk));
 }

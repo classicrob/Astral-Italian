@@ -1,6 +1,7 @@
 #pragma auto_inline off
 #include "Game/Enemy/Peto.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
+#include "Game/Enemy/PetoPopoParam.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -182,7 +183,7 @@ bool Peto::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
 bool Peto::fn_801EB4F0(HitSensor* pSender, HitSensor* pReceiver) {
     MR::onBind(this);
     MR::invalidateClipping(this);
-    MR::fn_80012B90(this, 40.0f, 40.0f, pSender, pReceiver, 4);
+    MR::setVelocityBlowAttack(this, pSender, pReceiver, 40.0f, 40.0f, 4);
     MR::calcSensorHorizonNormalize(&mFront, mGravity, pReceiver, pSender);
     TVec3f up = -mGravity;
     MR::makeQuatUpFront(&mQuat, up, mFront);
@@ -193,8 +194,8 @@ bool Peto::fn_801EB4F0(HitSensor* pSender, HitSensor* pReceiver) {
 // fn_801EB5A0
 bool Peto::fn_801EB5A0() {
     if (fn_801EC000()) {
-        MR::invalidateClipping(this);
         MR::onBind(this);
+        MR::invalidateClipping(this);
         setNerve(GET_NERVE(Peto, PetoNrvPress));
         return true;
     }
@@ -343,7 +344,6 @@ void Peto::fn_801EBA70() {
 }
 
 // fn_801EBB30
-// NONMATCHING: temporary stack slots differ for the blended position and endpoint.
 void Peto::fn_801EBB30() {
     if (mStateParam->isFirstStep()) MR::startAction(this, "Jump");
     TVec3f toJump = mWalkPos - mRailPos;
@@ -353,8 +353,8 @@ void Peto::fn_801EBB30() {
     f32 t = mStateParam->fn_8022D440(45);
     f32 u = mStateParam->fn_8022D3E0(45);
     f32 height = u * (b + a * u);
-    TVec3f pos = mWalkPos + mGravity * dot;
     TVec3f blend;
+    TVec3f pos = mWalkPos + mGravity * dot;
     MR::vecBlend(&blend, mRailPos, pos, t);
     blend.add(mGravity * -height);
     MR::setPosition(this, blend);
@@ -510,7 +510,6 @@ void Peto::fn_801EC460() {
     }
 }
 
-// NONMATCHING: the gravity reference register move is scheduled before the target load.
 void Peto::fn_801EC4F0() {
     TVec3f random;
     TVec3f hit;
@@ -518,7 +517,7 @@ void Peto::fn_801EC4F0() {
     TVec3f& gravity = mGravity;
     JMAVECScaleAdd(&gravity, &random, &random, -gravity.dot(random));
     random.add(mJumpStart);
-    TVec3f offset = (gravity * 100.0f) * 0.5f;
+    TVec3f offset = (mGravity * 100.0f) * 0.5f;
     if (MR::getFirstPolyOnLineToMap(&hit, nullptr, random - offset, offset * 2.0f)) {
         mWalkPos.set(hit);
         mIsOnceFlag = 1;
@@ -527,11 +526,10 @@ void Peto::fn_801EC4F0() {
     mWalkPos.set(random);
 }
 
-// NONMATCHING: temporary stack slots and gravity-reference register reuse differ.
+// NONMATCHING: instruction scheduling only (r3/r4 argument setup order around three TVec3 calls).
 bool Peto::fn_801EC5E0(TVec3f* out) {
     if (MR::isJudgedToClipFrustum50m(mPosition, mScale)) return false;
     TVec3f front;
-    TVec3f hit;
     MR::calcFrontVec(&front, this);
     TVec3f& gravity = mGravity;
     JMAVECScaleAdd(&gravity, &front, &front, -gravity.dot(front));
@@ -539,8 +537,9 @@ bool Peto::fn_801EC5E0(TVec3f* out) {
     MR::rotateVecDegree(&front, gravity, MR::getRandomDegree());
     f32 radius = mScale * MR::cosDegree(20.0f);
     f32 depth = 0.25f * radius * MR::sinDegree(20.0f);
-    TVec3f offset = front * radius + gravity * -depth;
-    if (MR::getFirstPolyOnLineToMap(&hit, nullptr, mPosition + offset, (gravity * depth) * 2.0f)) {
+    TVec3f offset = front * radius + mGravity * -depth;
+    TVec3f hit;
+    if (MR::getFirstPolyOnLineToMap(&hit, nullptr, mPosition + offset, (mGravity * depth) * 2.0f)) {
         out->set(hit);
         return true;
     }
@@ -549,11 +548,6 @@ bool Peto::fn_801EC5E0(TVec3f* out) {
 
 // Peto::~Peto
 Peto::~Peto() {}
-
-class PetoPopoParam : public AnimScaleParam {
-public:
-    PetoPopoParam();
-};
 
 PetoPopoParam::PetoPopoParam() : AnimScaleParam() {
     _20 = 0.2f;

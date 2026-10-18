@@ -710,7 +710,7 @@ bool Menbo::fn_801C5680(HitSensor* pSender, HitSensor* pReceiver) {
             setNerve(GET_MENBO_NERVE(MenboNrvBreak));
         } else {
             MR::tryHitReaction(this, "吹っ飛び");
-            MR::fn_80012B90(this, 28.0f, 20.0f, pSender, pReceiver, 4);
+            MR::setVelocityBlowAttack(this, pSender, pReceiver, 28.0f, 20.0f, 4);
             setNerve(GET_MENBO_NERVE(MenboNrvBlowDown));
             MR::invalidateExCollisionParts(this);
         }

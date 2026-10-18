@@ -1,3 +1,4 @@
+class ResourceCsvGroupHolder;
 #pragma once
 
 #include "Game/Util/ObjUtil.hpp"
@@ -56,7 +57,7 @@ namespace MR {
     void resetSystemAndGameStatus();
     void stopAllSound(u32);
     void setLayoutDefaultAllocator();
-    u32 getGameSystemObjHolder3C();  // PLACEHOLDER(core4): SMG2 fn_800601F0; rename when the owner is named
+    ResourceCsvGroupHolder* getGameSystemObjHolder3C();
     bool isEndStationedArchiveLoader();  // SMG2 fn_800602A0
     bool isScenarioSelecting();  // SMG2 fn_80060320; PLACEHOLDER(core4): name guessed
     bool isDisplayEncouragePal60Window();

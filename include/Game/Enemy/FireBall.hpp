@@ -3,6 +3,9 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
+class AnimScaleController;
+class WalkerStateBindStarPointer;
+
 class FireBall : public LiveActor {
 public:
     FireBall(const char* = "ファイアーボール");
@@ -25,13 +28,13 @@ public:
 
     void exeThrow();
     void exeReflect();
+    void exeFreeze();
+    void fn_8017DF50();
 
     /* 0x8C */ LiveActor* mHost;
-    /* 0x94 */ s32 _94;
-    s32 _98;
-    f32 _9C;
-    f32 _A0;
-    f32 _A4;
+    /* 0x94 */ AnimScaleController* _94;
+    /* 0x98 */ WalkerStateBindStarPointer* _98;
+    /* 0x9C */ TVec3f _9C;
     /* 0xA8 */ TVec3f mUp;
     f32 _B4;
 };

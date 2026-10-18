@@ -44,7 +44,7 @@ public:
     void fn_801E6930();
     void fn_801E6980();
     void fn_801E69E0();
-    static void fn_801E6280(TVec3f* pOut, PatakuriBig* pPatakuri);
+    static TVec3f fn_801E6280(PatakuriBig* pPatakuri);
 
     /* 0x90 */ KuriboChief* mBody;
     /* 0x94 */ TQuat4f mQuat;
@@ -54,6 +54,3 @@ public:
     /* 0xB8 */ AnimScaleController* mScaleCtrl;
     /* 0xBC */ WalkerStateBindStarPointer* mBindStarPointer;
 };
-
-// Static AnimScaleParam for the big Patakuri (lbl_80729438), filled by the TU's static init.
-AnimScaleParam* fn_801E5C00(AnimScaleParam*);

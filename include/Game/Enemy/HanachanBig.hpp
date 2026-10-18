@@ -13,7 +13,7 @@ public:
         PartsType_BodyS,
     };
 
-    HanachanBigParts(HanachanBig*, const char*, char*);
+    HanachanBigParts(HanachanBig*, s32, const char*);
 
     virtual ~HanachanBigParts();
     virtual void init(const JMapInfoIter&);

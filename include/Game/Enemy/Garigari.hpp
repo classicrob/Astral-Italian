@@ -24,10 +24,6 @@ public:
     void exeFall();
     void exeSupportFreeze();
 
-    /* 0x14 */ TVec3f mUnk14;
-    /* 0x20 */ u8 _20[0x24];
-    /* 0x44 */ TVec3f mUnk44;
-    /* 0x50 */ u8 _50[0x40];
     /* 0x90 */ ActorPoseTQ* mPose;
     /* 0x94 */ MapPartsRailMover* mRailMover;
     /* 0x98 */ WalkerStateBindStarPointer* mBindState;

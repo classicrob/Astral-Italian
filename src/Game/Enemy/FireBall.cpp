@@ -1,4 +1,7 @@
 #include "Game/Enemy/FireBall.hpp"
+#include "Game/Enemy/AnimScaleController.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
+#include "Game/Util/Color.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/FireBubble.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -33,10 +36,19 @@ namespace {
 
 namespace NrvFireBall {
     NEW_NERVE(FireBallNrvThrow, FireBall, Throw);
-    NEW_NERVE(FireBallNrvReflect, FireBall, Reflect);
 };  // namespace NrvFireBall
 
-FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), _94(0), _98(0), _9C(0.0f), _A0(1.0f), _A4(0.0f), mUp(0.0f, 1.0f, 0.0f), _B4(1.0f) {
+inline void FireBall::exeFreeze() {
+    if (MR::updateActorStateAndNextNerve(this, GET_NERVE(FireBall, FireBallNrvThrow))) {
+        mVelocity = _9C;
+    }
+}
+namespace NrvFireBall {
+    NEW_NERVE(FireBallNrvFreeze, FireBall, Freeze);
+    NEW_NERVE(FireBallNrvReflect, FireBall, Reflect);
+}
+
+FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), _94(0), _98(0), _9C(0.0f, 1.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), _B4(1.0f) {
 }
 
 inline void FireBall::initHitSensors(const char* const hitSensor) {
@@ -44,27 +56,13 @@ inline void FireBall::initHitSensors(const char* const hitSensor) {
     MR::addHitSensorEnemy(this, hitSensor, 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
 }
 
-void FireBall::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "FireBall", false);
-
-    MR::connectToSceneEnemyDecoration(this);
-
-    initHitSensors("body");
-
-    initBinder(::cBinderRadius, 0.0f, 0);
-
-    initEffectKeeper(4, "FireBall", false);
-
-    MR::initStarPointerTarget(this, ::cStarWandRadius3d, TVec3f(0.0f, 0.0f, 0.0f));
-
-    initSound(6, "FireBall", nullptr, TVec3f(0.0f));
-
-    MR::initShadowVolumeCylinder(this, ::cBinderRadius);
-
+void FireBall::init(const JMapInfoIter&) {
+    MR::initActor(this, "FireBall", false);
     MR::invalidateClipping(this);
-
-    initNerve(GET_NERVE(FireBall, FireBallNrvThrow));
-
+    initNerve(GET_NERVE(FireBall, FireBallNrvThrow), 1);
+    _94 = new AnimScaleController(nullptr);
+    _98 = new WalkerStateBindStarPointer(this, _94);
+    MR::initActorState(this, _98, GET_NERVE(FireBall, FireBallNrvFreeze), "SupportFreeze");
     makeActorDead();
 }
 
@@ -99,16 +97,22 @@ void FireBall::appearAndThrow(const TVec3f& rAppearPos, f32 speed, f32 angle) {
     appear();
 }
 
+// NONMATCHING: Color8 argument construction and temporary copies lower differently.
 void FireBall::control() {
-    MR::requestPointLight(this, mPosition, color, 1.0f, -1);
+    GXColor light = color;
+    MR::requestPointLight(this, mPosition, Color8(light.r, light.g, light.b, light.a), 1.0f, -1);
 }
 
 void FireBall::calcAndSetBaseMtx() {
     if (!MR::isNearZero(mVelocity)) {
         TVec3f frontVec;
         TPos3f baseMtx;
-        MR::normalize(mVelocity, &frontVec);
-        MR::makeMtxFrontUpPos(&baseMtx, frontVec, mUp, mPosition);
+        MR::normalize(&frontVec, mVelocity);
+        if (MR::isSameDirection(frontVec, mUp, 0.01f)) {
+            MR::makeMtxFrontNoSupportPos(&baseMtx, frontVec, mPosition);
+        } else {
+            MR::makeMtxFrontUpPos(&baseMtx, frontVec, mUp, mPosition);
+        }
         MR::setBaseTRMtx(this, baseMtx);
     }
 }
@@ -119,7 +123,7 @@ void FireBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (MR::isSensorEnemy(pReceiver) && pReceiver->mHost != mHost && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
+    if (MR::isSensorEnemy(pReceiver) && MR::getSensorHost(pReceiver) != mHost && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
         kill();
     }
 }
@@ -127,6 +131,15 @@ void FireBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 bool FireBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgJetTurtleAttack(msg)) {
         kill();
+        return false;
+    }
+
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        if (isNerve(GET_NERVE(FireBall, FireBallNrvThrow)) || isNerve(GET_NERVE(FireBall, FireBallNrvFreeze))) {
+            fn_8017DF50();
+            setNerve(GET_NERVE(FireBall, FireBallNrvReflect));
+            return true;
+        }
         return false;
     }
 
@@ -177,10 +190,11 @@ bool FireBall::tryToKill() {
     return false;
 }
 
+// NONMATCHING: PSVECAdd remains out of line instead of target paired-single addition.
 void FireBall::setVelocityToPlayer(f32 magnitude) {
     TVec3f target;
     target.scale(::cThrowOffsetY, mUp);
-    target.add(*MR::getPlayerPos());
+    JMathInlineVEC::PSVECAdd(&target, MR::getPlayerPos(), &target);
 
     TVec3f dir;
     dir.sub(target, mPosition);
@@ -221,15 +235,11 @@ void FireBall::exeThrow() {
         MR::deleteEffect(this, "FireBall");
     }
 
-    if (MR::isGreaterStep(this, ::cReflectFrame) && MR::isStarPointerPointing2PAttachTarget(this)) {
-        TVec2f screenVelocity(*MR::getStarPointerScreenVelocity(*MR::getStarPointerLastPointedPort(this)));
-        if (::cReflectCursorSpeed < screenVelocity.length()) {
-            calcReflectVelocity();
-
-            setNerve(GET_NERVE(FireBall, FireBallNrvReflect));
-
-            return;
-        }
+    MR::startActionSound(this, "Fly");
+    if (MR::isGreaterStep(this, ::cReflectFrame) && _98->tryStartPointBind()) {
+        _9C = mVelocity;
+        setNerve(GET_NERVE(FireBall, FireBallNrvFreeze));
+        return;
     }
 
     if (tryToKill()) {
@@ -248,4 +258,20 @@ void FireBall::exeReflect() {
     if (!tryToKill() && MR::isStep(this, ::cReflectInvalidFrame)) {
         kill();
     }
+}
+
+void FireBall::fn_8017DA20(const TVec3f& pos, const TVec3f& velocity) {
+    mPosition.set<f32>(pos);
+    MR::calcGravity(this);
+    mUp.negate(mGravity);
+    mVelocity.set<f32>(velocity);
+    appear();
+}
+
+void FireBall::fn_8017DF50() {
+    if (MR::isNearZero(_9C)) {
+        _9C.set<f32>(mUp);
+    }
+    MR::turnVecRandomAroundAxis(&mVelocity, mUp, _9C, -20.0f, 20.0f);
+    mVelocity *= 100.0f;
 }

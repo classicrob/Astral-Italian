@@ -519,7 +519,7 @@ bool Kanina::receiveFireBall(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 void Kanina::startDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
-    MR::fn_80012B90(this, ::sPunchDamageVelocity, ::sPunchUpperVec, pSender, pReceiver, 4);
+    MR::setVelocityBlowAttack(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
     MR::isNearZero(mVelocity);
     TVec3f vec;
     MR::vecKillElement(mVelocity, -mGravity, &vec);
@@ -530,7 +530,7 @@ void Kanina::startDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
 
 void Kanina::doDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
     MR::tryHitReaction(this, "ゴロ岩ヒット");
-    MR::fn_80012B90(this, ::sPunchDamageVelocity, ::sPunchUpperVec, pSender, pReceiver, 4);
+    MR::setVelocityBlowAttack(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
     MR::isNearZero(mVelocity);
     TVec3f vec;
     MR::vecKillElement(mVelocity, -mGravity, &vec);

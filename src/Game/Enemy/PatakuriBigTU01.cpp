@@ -5,8 +5,21 @@
 #include "Game/Util/YoshiLockOnUtil.hpp"
 
 namespace {
-    AnimScaleParam sBigScaleParam;
-    AnimScaleParam* sBigScaleParamInit = fn_801E5C00(&sBigScaleParam);
+    class PatakuriBigParam : public AnimScaleParam {
+    public:
+        PatakuriBigParam();
+    };
+
+    PatakuriBigParam::PatakuriBigParam() : AnimScaleParam() {
+        _0 = 0.1f;
+        _10 = 30.0f;
+        _14 = 0.6f;
+        _18 = 0.06f;
+        _1C = 3.0f;
+        _24 = 0.1f;
+    }
+
+    PatakuriBigParam sBigScaleParam;
 
     // Nerve objects of PatakuriBig (TU01). Declared in the sinit order of the target.
 #define PATAKURI_BIG_NERVE(name, cls, fn)                                                                                                         \
@@ -48,16 +61,6 @@ namespace {
     };
     PatakuriBigWingNrvKill PatakuriBigWingNrvKill::sInstance ATTRIBUTE_WEAK;
 }  // namespace
-
-AnimScaleParam* fn_801E5C00(AnimScaleParam* pParam) {
-    pParam->_0 = 0.1f;
-    pParam->_10 = 30.0f;
-    pParam->_14 = 0.6f;
-    pParam->_18 = 0.06f;
-    pParam->_1C = 3.0f;
-    pParam->_24 = 0.1f;
-    return pParam;
-}
 
 // ---------------------------------------------------------------------------------------------
 // PatakuriBigWing
@@ -197,8 +200,7 @@ bool PatakuriBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
         mWing->setNerve(&PatakuriBigWingNrvKill::sInstance);
         setNerve(&PatakuriBigNrvDead::sInstance);
 
-        TVec3f pos;
-        fn_801E6280(&pos, this);
+        TVec3f pos = fn_801E6280(this);
         mBody->fn_801BC000(pos, mQuat, mVelocity, pSender, pReceiver);
         return true;
     }
@@ -209,7 +211,8 @@ bool PatakuriBig::receiveOtherMsg(u32, HitSensor*, HitSensor*) {
     return false;
 }
 
-void PatakuriBig::fn_801E6280(TVec3f* pOut, PatakuriBig* pPatakuri) {
+// NONMATCHING: stack slot order of the TVec3f temporaries (only stack offsets differ)
+TVec3f PatakuriBig::fn_801E6280(PatakuriBig* pPatakuri) {
     TVec3f bodyRoot;
     TVec3f bodyBody;
     TVec3f actorRoot;
@@ -223,17 +226,20 @@ void PatakuriBig::fn_801E6280(TVec3f* pOut, PatakuriBig* pPatakuri) {
     TVec3f diffActor = actorBody - actorRoot;
     TVec3f diffBody = bodyBody - bodyRoot;
     TVec3f base = pPatakuri->mPosition - diffBody;
-    *pOut = base + diffActor;
+    TVec3f result(base);
+    result.add(diffActor);
+    return result;
 }
 
 void PatakuriBig::fn_801E6510() {
+    TVec3f toPlayer;
     if (MR::isBckOneTimeAndStopped(this)) {
         MR::startAction(mWing, "Wait");
         MR::startAction(this, "PatakuriWait");
     }
 
     f32 speed = 1.0f;
-    f32 coord = MR::getRailCoord(this) - 30.0f;
+    f32 coord = MR::fn_80052E20(this) - 30.0f;
     f32 railLen = MR::getRailTotalLength(this);
     if (railLen - coord < 200.0f) {
         coord = (MR::getRailTotalLength(this) - 30.0f) - coord;
@@ -244,19 +250,16 @@ void PatakuriBig::fn_801E6510() {
     }
 
     if (!MR::isSameDirection(MR::getRailDirection(this), mGravity, 0.1f)) {
-        if (MR::getRailCoord(this) - 30.0f < 100.0f) {
+        if (MR::fn_80052E20(this) - 30.0f < 100.0f) {
             TVec3f revDir = -MR::getRailDirection(this);
-            TVec3f axis(0.0f, 1.0f, 0.0f);
-            MR::turnVecToVecDegree(&mFront, mFront, revDir, 3.0f, axis);
+            MR::turnVecToVecDegree(&mFront, mFront, revDir, 3.0f, TVec3f(0, 1, 0));
         } else {
-            TVec3f axis(0.0f, 1.0f, 0.0f);
-            MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, axis);
+            MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));
         }
     } else {
-        TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
+        toPlayer = *MR::getPlayerPos() - mPosition;
         MR::normalize(&toPlayer);
-        TVec3f axis(0.0f, 1.0f, 0.0f);
-        MR::turnVecToVecDegree(&mFront, mFront, toPlayer, 2.0f, axis);
+        MR::turnVecToVecDegree(&mFront, mFront, toPlayer, 2.0f, TVec3f(0, 1, 0));
     }
 
     MR::moveCoordAndFollowTrans(this, 4.0f * speed);
@@ -291,17 +294,16 @@ void PatakuriBig::fn_801E6810() {
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriBigNrvDead::sInstance);
         TVec3f pos;
-        fn_801E6280(&pos, this);
-        TVec3f zero(0.0f);
-        mBody->fn_801BBFB0(pos, mQuat, zero);
+        TVec3f* zero = &(TVec3f(0.0f, 0.0f, 0.0f));
+        pos = fn_801E6280(this);
+        mBody->fn_801BBFB0(pos, mQuat, *zero);
     }
 }
 
 void PatakuriBig::fn_801E68B0() {
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriBigNrvDead::sInstance);
-        TVec3f pos;
-        fn_801E6280(&pos, this);
+        TVec3f pos = fn_801E6280(this);
         MR::setPosition(mBody, pos);
         mBody->calcAndSetBaseMtx();
         mBody->kill();

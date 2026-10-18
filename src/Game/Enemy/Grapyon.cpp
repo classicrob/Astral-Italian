@@ -495,7 +495,7 @@ bool Grapyon::tryElectric() {
 bool Grapyon::tryBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
         MR::zeroVelocity(this);
-        MR::fn_80012B90(this, 19.0f, 26.0f, pSender, pReceiver, 4);
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 19.0f, 26.0f, 4);
         setNerve(NRV(BlowDown));
         return true;
     }

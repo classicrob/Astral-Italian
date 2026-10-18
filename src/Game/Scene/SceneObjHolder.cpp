@@ -1,5 +1,5 @@
 #include "Game/Demo/StoryBookDemo.hpp"
-#include "Game/Enemy/GliderShooterBullet.hpp"
+#include "Game/Enemy/GliderShooterBulletHolder.hpp"
 #include "Game/GameAudio/ActionSoundSystem.hpp"
 #include "Game/Map/ProductMapCreator.hpp"
 #include "Game/MapObj/CollectTicoHolder.hpp"

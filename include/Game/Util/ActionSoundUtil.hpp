@@ -15,6 +15,7 @@ namespace MR {
     const char* getActionSoundName(const LiveActor*, const char*);
     void startActionSoundAuto(const LayoutActor*, const char*, s32 = -1, s32 = -1);
     void startActionSoundOneShot(const LayoutActor*, const char*, s32 = -1, s32 = -1);
+    void startActionSoundOneShot(const LiveActor*, const char*, s32 = -1, s32 = -1, s32 = -1);
     void startActionSound(const LayoutActor*, const char*, s32 = -1, s32 = -1);
     const ActorActionSoundKeeper* getActionSoundInfo(const LiveActor* pActor) NO_INLINE;
     const ActorActionSoundKeeper* fn_80008370(const LiveActor* pActor) NO_INLINE;

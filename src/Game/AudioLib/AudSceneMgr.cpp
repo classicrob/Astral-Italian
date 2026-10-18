@@ -1,3 +1,4 @@
+#include "Game/Enemy/ActionSoundData.hpp"
 #include "Game/AudioLib/AudSceneMgr.hpp"
 #include "Game/AudioLib/AudBgmMgr.hpp"
 #include "Game/AudioLib/AudEffector.hpp"
@@ -58,7 +59,7 @@ void AudSceneMgr::requestResource() {
     JKRHeap* heap = MR::getStationedHeapGDDR3();
     MR::mountArchive(AudBgmSetting::getBgmParamResourceName(), heap, true);
     MR::mountArchive(AudBgmSetting::getMultiBgmResourceName(), heap, true);
-    MR::mountArchive(ActionSoundSystem::getResourceName(), heap, true);
+    MR::mountArchive(fn_80220490(), heap, true);
     MR::mountArchive(AudBgmSetting::getStageBgmResourceName(), heap, true);
     MR::mountArchive(AudStageUseResourceList::getFileSelectResourceName(), heap, true);
     MR::mountArchive(AudStageUseResourceList::getFaceShipResourceName(), heap, true);
@@ -74,7 +75,7 @@ void AudSceneMgr::loadStaticResource() {
     AudBgmSetting::loadBgmParamResource();
     AudBgmSetting::loadMultiBgmResource();
     AudBgmSetting::loadStageBgmResource();
-    ActionSoundSystem::requestStageSoundInstruments(mgr, cStaticSound1st, true);
+    mgr->fn_802204A0(cStaticSound1st, true);
     mgr->loadRequestedWaves(false, true);
     mgr->_281C = true;
     AudWrap::getStageUseResourceList()->loadStaticSound();
@@ -99,7 +100,7 @@ void AudSceneMgr::loadStaticResource2nd() {
     mgr->requestWave(49, 8, true);
     mgr->requestWave(49, 10, true);
     for (s32 i = 0; i < 4; i++) {
-        ActionSoundSystem::requestStageSoundInstruments(mgr, cStaticSound2nd[i], true);
+        mgr->fn_802204A0(cStaticSound2nd[i], true);
     }
     mgr->loadRequestedWaves(false, true);
 }

@@ -6807,9 +6807,9 @@ Game/RhythmLib/AudRhythmHolder.cpp:
 	.sdata2     start:0x807E08B0 end:0x807E08C0
 
 Game/RhythmLib/AudRhythmWrap.cpp:
-	.text       start:0x8042A6D0 end:0x8042A960
+	.text       start:0x8042A680 end:0x8042A960
 	.ctors      start:0x80644810 end:0x80644814
-	.rodata     start:0x8064BFC8 end:0x8064BFD0
+	.rodata     start:0x8064BFC0 end:0x8064BFD0
 	.sdata2     start:0x807E08C0 end:0x807E08C8
 
 Game/Ride/Creeper.cpp:

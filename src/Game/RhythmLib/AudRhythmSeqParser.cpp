@@ -202,15 +202,18 @@ s32 AudRhythmSeqParser::getRhythmType(u32 key) {
 }
 
 u16 AudRhythmSeqParser::getTempoData(JASTrack* pTrack) {
-    return pTrack->getSeqCtrl()->get16(pTrack->getSeqCtrl()->getOffset());
+    JASSeqCtrl* ctrl = pTrack->getSeqCtrl();
+    return ctrl->get16(ctrl->getOffset());
 }
 
 u8 AudRhythmSeqParser::getChordNumberData(JASTrack* pTrack) {
-    return pTrack->getSeqCtrl()->getByte(pTrack->getSeqCtrl()->getOffset());
+    JASSeqCtrl* ctrl = pTrack->getSeqCtrl();
+    return ctrl->getByte(ctrl->getOffset());
 }
 
 u8 AudRhythmSeqParser::getScaleNumberData(JASTrack* pTrack) {
-    return pTrack->getSeqCtrl()->getByte(pTrack->getSeqCtrl()->getOffset());
+    JASSeqCtrl* ctrl = pTrack->getSeqCtrl();
+    return ctrl->getByte(ctrl->getOffset());
 }
 
 s32 AudRhythmSeqParser::getNextNoteOff(JASTrack* pTrack, u32 channel) {
@@ -270,6 +273,7 @@ u32 AudRhythmSeqParser::passRegCommand(JASTrack* pTrack, int numArgs) {
     return passCommand(pTrack, pTrack->getSeqCtrl()->readByte(), width);
 }
 
+// NONMATCHING: prologue copies of this/pTrack are emitted in swapped order (99.9%)
 u32 AudRhythmSeqParser::passCommand(JASTrack* pTrack, u8 cmdCode, u16 widths) {
     // TODO: this needs cleanup
     u32 ret = 0;
@@ -281,7 +285,7 @@ u32 AudRhythmSeqParser::passCommand(JASTrack* pTrack, u8 cmdCode, u16 widths) {
         cmd = &sExtCmdInfo[pTrack->getSeqCtrl()->readByte()];
     }
 
-    u32 readType = cmd->argWidths | widths;
+    s32 readType = cmd->argWidths | widths;
     u32 args[8];
 
     for (int i = 0; i < cmd->numArgs; i++) {
@@ -375,9 +379,9 @@ void AudRhythmSeqParser::init() {
     for (u32 i = 0; i < MAX_CHANNELS; i++) {
         initNoteInfo(i);
     }
-    mCallDepth = 0;
     mTempo = 120.0f;
     mModifiedTempo = 120.0f;
+    mCallDepth = 0;
 }
 
 void AudRhythmSeqParser::activate() {

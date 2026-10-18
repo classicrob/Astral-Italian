@@ -72,6 +72,7 @@ void AudMe::stop(s32 time) {
 
 void AudMe::release() {
     if (mTrack != nullptr) {
+        JASCriticalSection crit;
         if (mTrack->mStatus != AudMeTrack::STATUS_FREE) {
             stop(0);
         }

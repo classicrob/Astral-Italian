@@ -1,18 +1,11 @@
 #pragma once
-
-#include <revolution.h>
-
-class ActionSoundInfo;
-
-// Per-actor sound table returned by MR::getActionSoundData(name). Layout from the
-// ActionSoundKeeper ctor and fn_80220400: 0x00 vtable, 0x04 ActionSoundInfo** entries, 0x08 entry count.
-class ActionSoundSystem {
+#include "Game/NameObj/NameObj.hpp"
+class ActionSoundData;
+class ActionSoundSystem : public NameObj {
 public:
-    ActionSoundSystem(const char* pName);
+    ActionSoundSystem(const char*);
     virtual ~ActionSoundSystem();
-
-    ActionSoundInfo* getInfo(s32 index) const;
-
-    ActionSoundInfo** mInfos;
+    ActionSoundData* fn_80220970(const char*);
+    ActionSoundData** mData;
     s32 mCount;
 };

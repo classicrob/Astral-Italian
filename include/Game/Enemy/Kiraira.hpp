@@ -3,6 +3,8 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class KirairaChain;
+class AnimScaleController;
+class WalkerStateBindStarPointer;
 class MsgSharedGroup;
 
 class Kiraira : public LiveActor {
@@ -11,6 +13,7 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void calcAndSetBaseMtx();
+    virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
@@ -34,13 +37,15 @@ public:
     void exeRecover();
 
 private:
-    /* 0x8C */ f32 mRailCoordSpeed;
-    /* 0x90 */ TVec3f mRailVec;
-    /* 0x9C */ TVec3f mFront;
-    /* 0xA8 */ f32 _A8;
-    /* 0xAC */ bool mIsRail;
-    /* 0xAD */ bool mIsForceDetonated;
-    /* 0xAE */ bool mEyesOpen;
-    /* 0xB0 */ MsgSharedGroup* mSharedGroup;
-    /* 0xB4 */ KirairaChain* mChain;
+    /* 0x90 */ f32 mRailCoordSpeed;
+    /* 0x94 */ TVec3f mRailVec;
+    /* 0xA0 */ TVec3f mFront;
+    /* 0xAC */ f32 _A8;
+    /* 0xB0 */ bool mIsRail;
+    /* 0xB1 */ bool mIsForceDetonated;
+    /* 0xB2 */ bool mEyesOpen;
+    /* 0xB4 */ MsgSharedGroup* mSharedGroup;
+    /* 0xB8 */ KirairaChain* mChain;
+    /* 0xBC */ AnimScaleController* mScaleController;
+    /* 0xC0 */ WalkerStateBindStarPointer* mStateBindStarPointer;
 };

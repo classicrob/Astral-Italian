@@ -3,13 +3,11 @@
 #include "Game/AudioLib/AudSoundObject.hpp"
 #include "Game/GameAudio/ActionSound.hpp"
 #include "Game/GameAudio/ActionSoundInfo.hpp"
-#include "Game/GameAudio/ActionSoundSystem.hpp"
+#include "Game/Enemy/ActionSoundData.hpp"
+#include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-// PLACEHOLDER(core): fn_800885B0 (ActionSoundSystem*, bool) walks the table's rows, resolves each sound label
-// and calls fn_80088400; owner class not named yet. Resolve when its owner/name is known.
-extern "C" void fn_800885B0(ActionSoundSystem*, bool);
 
 ActionSoundKeeper::ActionSoundKeeper(s32 pId, const char* pName, TVec3f* pPos)
     : mSoundObject(nullptr), mInfo(nullptr), mSounds(nullptr), mSoundCount(0) {
@@ -21,7 +19,7 @@ ActionSoundKeeper::ActionSoundKeeper(s32 pId, const char* pName, TVec3f* pPos)
         for (s32 i = 0; i < mSoundCount; i++) {
             mSounds[i] = new ActionSound(mInfo->getInfo(i), mSoundObject);
         }
-        fn_800885B0(mInfo, false);
+        MR::fn_800885B0(mInfo, false);
     }
 }
 

@@ -17,6 +17,7 @@ public:
     };
 
     SyncBckEffectInfo(const XanimePlayer* pPlayer, const char* pName, s32 capacity, f32 startFrame, f32 endFrame, bool continueAnimEnd);
+    SyncBckEffectInfo(const char*, const XanimePlayer*, s32, const char*, s32, f32, f32, bool);
     void addBck(const XanimePlayer* pPlayer, const char* pName);
     bool isRegisteredBck(const char* pName) const;
     bool isBckLoop(const char* pName) const;

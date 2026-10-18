@@ -13,8 +13,15 @@ class JAISoundHandle;
 class JAISoundID;
 class AudLifeAlertCounter;
 class LiveActor;
+class ActionSoundData;
 
 namespace MR {
+    JAISoundHandle* fn_8005AF70(JAISoundID, s32, s32, s32);
+    JAISoundHandle* fn_8005B100(JAISoundID, s32, s32);
+    void startCSSound(s32, const char*, s32, s32, f32);
+    void startCSSoundAfterPlayed(s32, s32);
+    void fn_800422F0(u32);
+    void fn_800885B0(const ActionSoundData*, bool);
     bool isGravityBGMPlaying();
     void startCSSound1P(const char*, s32, f32);
     // SMG2-only (original names unknown; named by address)

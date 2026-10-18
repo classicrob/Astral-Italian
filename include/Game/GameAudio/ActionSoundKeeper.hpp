@@ -4,7 +4,7 @@
 
 class AudSoundObject;
 class ActionSound;
-class ActionSoundSystem;
+class ActionSoundData;
 
 class ActionSoundKeeper {
 public:
@@ -15,7 +15,7 @@ public:
     s32 playSounds(s32 mode, const char* pName, s32 pitch, s32 velocity, s32 volume);
 
     AudSoundObject* mSoundObject;
-    ActionSoundSystem* mInfo;
+    ActionSoundData* mInfo;
     ActionSound** mSounds;
     s32 mSoundCount;
 };

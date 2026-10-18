@@ -3,22 +3,36 @@
 #include <revolution.h>
 
 class ActionSoundInfo;
-class ActionSoundParam;
+class SyncBckEffectInfo;
+class XanimePlayer;
+class JAISoundHandle;
 class AudSoundObject;
 
-// One sound slot of an ActionSoundKeeper. Layout from ActionSound::ctor (fn_8021F950):
-// 0x00 info, 0x04 param block (created in fn_8021F970), 0x08 AudSoundObject, 0x0C f32, 0x10 bool. Size 0x14.
 class ActionSound {
 public:
     ActionSound(const ActionSoundInfo* pInfo, AudSoundObject* pSoundObject);
 
+    void fn_8021F970(XanimePlayer*, s32);
+    void fn_8021FA40();
+    void fn_8021FA80();
+    void fn_8021FAE0(u32);
+    void fn_8021FB80();
+    void fn_8021FC10(f32);
+    void fn_8021FD50(f32);
+    void fn_8021FF00(s32, s32);
+    f32 fn_8021F910(s32) const;
+    f32 fn_8021F930(s32) const;
     s32 getId() const;
     const char* getName() const;
     bool play(s32 mode, s32 pitch, s32 velocity, s32 volume);
 
     const ActionSoundInfo* mInfo;
-    ActionSoundParam* mParam;
+    SyncBckEffectInfo* mParam;
     AudSoundObject* mSoundObject;
-    f32 mUnkC;
+    JAISoundHandle* mHandle;
     bool mUnk10;
 };
+
+JAISoundHandle* fn_8021F6F0(AudSoundObject*, s32, u32, s32, s32);
+JAISoundHandle* fn_8021F7E0(AudSoundObject*, s32, u32, s32, s32, s32);
+void fn_8021F8C0(f32*, f32, f32);

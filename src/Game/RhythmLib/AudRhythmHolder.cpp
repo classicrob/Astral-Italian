@@ -14,7 +14,6 @@ void AudRhythmHolder::movement() {
     }
 }
 
-// NONMATCHING: Petari port differs in loop/field order (0x290 vs Petari 0x254, 88%)
 void AudRhythmHolder::copyInfoFromParser() {
     if (mSeqParser == nullptr) {
         return;
@@ -23,6 +22,11 @@ void AudRhythmHolder::copyInfoFromParser() {
     JASCriticalSection crit;
     mModifiedTempo = mSeqParser->getModifiedTempo();
     mTempo = mSeqParser->getTempo();
+    if (!mIsPaused) {
+        for (s32 i = 0; i < 6; i++) {
+            mInfos[i]._3C = mInfos[i]._38;
+        }
+    }
 
     u32 velocity, noteOff, channel;
     s64 time;
@@ -53,13 +57,13 @@ void AudRhythmHolder::copyInfoFromParser() {
         if (mIsPaused) {
             mInfos[i].mPausedTime = (currTime - mInfos[i].mLastMeasuredTime) + mInfos[i].mPausedTime;
         } else {
+            mInfos[i].mPrevPlayTime = mInfos[i].mPlayTime;
             mInfos[i].mPlayTime = (currTime - mInfos[i].mStartTime) - mInfos[i].mPausedTime;
         }
         mInfos[i].mLastMeasuredTime = currTime;
     }
 }
 
-// NONMATCHING: store order inside the init loop (90%)
 void AudRhythmHolder::init() {
     for (s32 i = 0; i < 6; i++) {
         mInfos[i].mIsActive = false;
@@ -68,7 +72,9 @@ void AudRhythmHolder::init() {
         mInfos[i]._C = 0.0f;
         mInfos[i].mStartTime = 0;
         mInfos[i].mPlayTime = 0;
-        mInfos[i]._30 = 0;
+        mInfos[i].mPrevPlayTime = 0;
+        mInfos[i]._3C = 0;
+        mInfos[i]._38 = 0;
         mInfos[i].mLastMeasuredTime = 0;
         mInfos[i].mPausedTime = 0;
     }
@@ -89,36 +95,36 @@ void AudRhythmHolder::copyInfoFromParserOne(u32 type, u32 velocity, u32 noteOff,
     }
     mInfos[type].mStartTime = time;
     mInfos[type]._C = noteOff / 120.0f * (60.0f / mModifiedTempo);
-    mInfos[type]._30++;
+    mInfos[type]._38++;
     mInfos[type].mPausedTime = 0;
 }
 
-f32 fn_8042A170(s32 pBase, s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(pBase) + (index << 6);
+// NONMATCHING: target divides the u64->double value with fdivs (no frsp); our f64/f32 expression emits fdiv + frsp
+f32 AudRhythmHolder::fn_8042A170(s32 index) {
+    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
     u64 time = ((u64)*(const u32*)(pRec + 0x28) << 32) | *(const u32*)(pRec + 0x2C);
     return (f64)time / (f32)(OS_BUS_CLOCK >> 2);
 }
 
-f32 fn_8042A1D0(s32 pBase, s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(pBase) + (index << 6);
+// NONMATCHING: same fdivs vs fdiv+frsp difference as fn_8042A170
+f32 AudRhythmHolder::fn_8042A1D0(s32 index) {
+    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
     u64 time = ((u64)*(const u32*)(pRec + 0x30) << 32) | *(const u32*)(pRec + 0x34);
     return (f64)time / (f32)(OS_BUS_CLOCK >> 2);
 }
 
-f32 fn_8042A230(s32 pBase, s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(pBase) + (index << 6);
-    f32 rate = *(const f32*)(pRec + 0x1C);
-    if (0.0f == rate) {
+f32 AudRhythmHolder::fn_8042A230(s32 index) {
+    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
+    if (0.0f == *(const f32*)(pRec + 0x1C)) {
         return 0.0f;
     }
-    return fn_8042A170(pBase, index) / rate;
+    return fn_8042A170(index) / *(const f32*)(pRec + 0x1C);
 }
 
-f32 fn_8042A280(s32 pBase, s32 index) {
-    const u8* pRec = reinterpret_cast< const u8* >(pBase) + (index << 6);
-    f32 rate = *(const f32*)(pRec + 0x1C);
-    if (0.0f == rate) {
+f32 AudRhythmHolder::fn_8042A280(s32 index) {
+    const u8* pRec = reinterpret_cast< const u8* >(this) + (index << 6);
+    if (0.0f == *(const f32*)(pRec + 0x1C)) {
         return 0.0f;
     }
-    return fn_8042A1D0(pBase, index) / rate;
+    return fn_8042A1D0(index) / *(const f32*)(pRec + 0x1C);
 }

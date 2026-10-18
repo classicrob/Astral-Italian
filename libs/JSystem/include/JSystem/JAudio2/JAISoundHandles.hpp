@@ -33,6 +33,7 @@ public:
     JAISoundHandle* getHandleUserData(u32);
 
     void setPos(const TVec3f&);
+    bool fn_80596A60() const;
 
     /* 0x00 */ JAISoundHandle* mHandles;
     /* 0x04 */ int mNumHandles;

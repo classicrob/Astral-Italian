@@ -12,6 +12,8 @@ public:
     void updateBefore();
     void updateAfter();
     void reset();
+    void fn_8006F1F0();
+    f32 fn_8006F510() const;
     bool isCreate(const SyncBckEffectInfo* pInfo, bool checkFrame) const;
     bool isDelete(const SyncBckEffectInfo* pInfo) const;
     bool checkPass(f32 frame) const;

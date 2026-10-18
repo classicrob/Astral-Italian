@@ -545,7 +545,7 @@ s32 AudMeSeqParser::parse(AudMeTrack* pTrack) {
     }
 
     Command* cmd = &sCmdInfo[pTrack->getSeqCtrl()->read8()];
-    u32 readType = cmd->argWidths;
+    s32 readType = cmd->argWidths;
     int numArgs = cmd->numArgs;
     u32 args[8];
 

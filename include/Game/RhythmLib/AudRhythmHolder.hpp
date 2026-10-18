@@ -16,18 +16,12 @@ struct RhythmInfo {
     /* 0x0C */ f32 _C;
     /* 0x10 */ s64 mStartTime;
     /* 0x18 */ s64 mPlayTime;
-    /* 0x20 */ s64 mLastMeasuredTime;
-    /* 0x28 */ s64 mPausedTime;
-    /* 0x30 */ u32 _30;
-    /* 0x34 */ u32 _34;
-    /* 0x38 */ u8 _38[0x8];
+    /* 0x20 */ s64 mPrevPlayTime;
+    /* 0x28 */ s64 mLastMeasuredTime;
+    /* 0x30 */ s64 mPausedTime;
+    /* 0x38 */ u32 _38;
+    /* 0x3C */ u32 _3C;
 };  // 0x40 bytes per record (the holder's mInfos stride)
-
-// SMG2 unnamed helpers in the AudRhythmHolder split: index a 0x40-byte track record table at pBase (named by address).
-f32 fn_8042A170(s32 pBase, s32 index);
-f32 fn_8042A1D0(s32 pBase, s32 index);
-f32 fn_8042A230(s32 pBase, s32 index);
-f32 fn_8042A280(s32 pBase, s32 index);
 
 class AudRhythmHolder {
 public:
@@ -39,6 +33,12 @@ public:
     void copyInfoFromParser();
     void init();
     void copyInfoFromParserOne(u32, u32, u32, s64);
+
+    // SMG2 unnamed helpers: index the 0x40-byte record table that starts at the holder (named by address).
+    f32 fn_8042A170(s32 index);
+    f32 fn_8042A1D0(s32 index);
+    f32 fn_8042A230(s32 index);
+    f32 fn_8042A280(s32 index);
 
     /* 0x000 */ f32 mModifiedTempo;
     /* 0x004 */ f32 mTempo;

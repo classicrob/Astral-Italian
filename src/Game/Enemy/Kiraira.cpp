@@ -1,4 +1,7 @@
 #include "Game/Enemy/Kiraira.hpp"
+#include "Game/Enemy/AnimScaleController.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
+#include "Game/Util/ActorStateUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/KirairaChain.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -47,38 +50,37 @@ namespace NrvKiraira {
     NEW_NERVE(KirairaNrvDead, Kiraira, Dead);
     NEW_NERVE(KirairaNrvRecoverSign, Kiraira, RecoverSign);
     NEW_NERVE(KirairaNrvRecover, Kiraira, Recover);
+    class KirairaNrvBindStarPointer : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const {
+            MR::updateActorStateAndNextNerve(reinterpret_cast<LiveActor*>(spine->mExecutor), &KirairaNrvWait::sInstance);
+        }
+        static KirairaNrvBindStarPointer sInstance;
+    };
+    KirairaNrvBindStarPointer KirairaNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvKiraira
 
 Kiraira::Kiraira(const char* pName)
     : LiveActor(pName), mRailCoordSpeed(5.0f), mRailVec(0.0f, 0.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), _A8(0.0f), mIsRail(false),
-      mIsForceDetonated(false), mEyesOpen(true), mSharedGroup(nullptr), mChain(nullptr) {
+      mIsForceDetonated(false), mEyesOpen(true), mSharedGroup(nullptr), mChain(nullptr), mScaleController(nullptr), mStateBindStarPointer(nullptr) {
 }
 
 void Kiraira::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "Kiraira", false);
-    MR::connectToSceneEnemy(this);
-    initHitSensor(3);
-    MR::addHitSensorEnemy(this, "body", 8, 120.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorEye(this, "eye", 16, ::sEyeHitSize, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorEye(this, "mind_eye", 8, ::sMindEyeHitSize, TVec3f(0.0f, 0.0f, 0.0f));
-    initEffectKeeper(0, nullptr, false);
-    initSound(6, "Kiraira", nullptr, TVec3f(0.0f));
-    MR::initShadowVolumeSphere(this, 90.0f);
-    MR::setShadowDropLength(this, nullptr, 4000.0f);
-    MR::onCalcShadowOneTime(this, nullptr);
-    MR::initLightCtrl(this);
     const char* objName;
     MR::getObjectName(&objName, rIter);
     mIsRail = MR::isEqualString(objName, "KirairaRail");
     if (mIsRail) {
-        initRailRider(rIter);
         MR::initAndSetRailClipping(&mRailVec, this, 100.0f, 500.0f);
         MR::getJMapInfoArg0NoInit(rIter, &mRailCoordSpeed);
         MR::setRailCoordSpeed(this, mRailCoordSpeed);
     }
-    initNerve(GET_NERVE(Kiraira, KirairaNrvWait));
-    MR::useStageSwitchWriteB(this, rIter);
+    initNerve(GET_NERVE(Kiraira, KirairaNrvWait), 1);
+    mScaleController = new AnimScaleController(nullptr);
+    mScaleController->setParamTight();
+    mStateBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActorState(this, mStateBindStarPointer, GET_NERVE(Kiraira, KirairaNrvBindStarPointer), "SupportFreeze");
+    MR::initUseStageSwitchWriteB(this, rIter);
     MR::setGroupClipping(this, rIter, 16);
     mSharedGroup = reinterpret_cast< MsgSharedGroup* >(MR::joinToGroupArray(this, rIter, "キライラ軍団", 16));
     MR::addToAttributeGroupSearchTurtle(this);
@@ -90,10 +92,20 @@ void Kiraira::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
+void Kiraira::control() {
+    mScaleController->updateNerve();
+    if ((isNerve(GET_NERVE(Kiraira, KirairaNrvWait)) ||
+         isNerve(GET_NERVE(Kiraira, KirairaNrvFaceToMario)) ||
+         isNerve(GET_NERVE(Kiraira, KirairaNrvFaceToMarioAndStare))) && mStateBindStarPointer->tryStartPointBind()) {
+        setNerve(GET_NERVE(Kiraira, KirairaNrvBindStarPointer));
+    }
+}
+
 void Kiraira::calcAndSetBaseMtx() {
     TPos3f mtx;
     MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
     MR::setBaseTRMtx(this, mtx);
+    MR::updateBaseScale(this, mScaleController);
 }
 
 void Kiraira::exeWait() {
@@ -166,7 +178,7 @@ void Kiraira::exeDead() {
         MR::setShadowVolumeSphereRadius(this, nullptr, 50.0f);
     }
     if (mSharedGroup != nullptr) {
-        mSharedGroup->sendMsgToGroupMember(0x7C, getSensor("body"), "body");
+        mSharedGroup->sendMsgToGroupMember(0x7C, getSensor("Body"), "Body");
     }
     if (MR::isStep(this, ::sStepToRecoverSign)) {
         setNerve(GET_NERVE(Kiraira, KirairaNrvRecoverSign));
@@ -235,7 +247,7 @@ bool Kiraira::isDown() const {
 }
 
 void Kiraira::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isDown() && (pSender == getSensor("mind_eye")) && pReceiver->mType == 0x12) {
+    if (!isDown() && (pSender == getSensor("mind_eye")) && MR::isSensorType(pReceiver, 0x12)) {
         MR::turnDirectionToTargetDegree(this, &mFront, (*MR::getSensorPos(pReceiver)), 20.0f);
         openEyes();
     }
@@ -245,7 +257,7 @@ void Kiraira::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             return;
         }
     }
-    if (isDown() && (pSender == getSensor("body")) && MR::isSensorPlayerOrRide(pReceiver)) {
+    if (isDown() && (pSender == getSensor("Body")) && MR::isSensorPlayerOrRide(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }

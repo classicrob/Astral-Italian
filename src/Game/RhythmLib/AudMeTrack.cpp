@@ -679,9 +679,9 @@ void AudMeTrack::modifyNote(s32 direction, s32 type, s32 steps) {
 
     case ModifyType_Steps: {
         if (direction == ModifyDir_Up) {
-            mBaseNote += steps;
+            mBaseNote += (u8)steps;
         } else {
-            mBaseNote -= steps;
+            mBaseNote -= (u8)steps;
         }
 
         break;
@@ -689,9 +689,9 @@ void AudMeTrack::modifyNote(s32 direction, s32 type, s32 steps) {
 
     case ModifyType_Octave: {
         if (direction == ModifyDir_Up) {
-            mBaseNote += steps * 12;
+            mBaseNote += (u8)(steps * 12);
         } else {
-            mBaseNote -= steps * 12;
+            mBaseNote -= (u8)(steps * 12);
         }
 
         break;
@@ -763,11 +763,12 @@ s32 AudMeTrack::getMyOrderInBrother() {
 }
 
 AudMeTrack* AudMeTrack::getBrother(s32 brotherNo) {
-    if (isMainTrack()) {
+    AudMeTrack* parent = getParent();
+    if (parent == nullptr) {
         return nullptr;
     }
 
-    return getParent()->getChild(brotherNo);
+    return parent->getChild(brotherNo);
 }
 
 void AudMeTrack::TTrackInfo::init() {

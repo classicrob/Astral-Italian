@@ -15,7 +15,7 @@ PaneEffectKeeper::PaneEffectKeeper(LayoutActor* pActor, const LayoutManager* pMa
         mName = pManager->mLayoutName;
     }
 
-    s32 effectNum = MR::getParticleResourceHolder()->getAutoEffectNum(mName);
+    s32 effectNum = MR::Effect::getAutoEffectNum(mName);
     mEmitters.init(myInt + effectNum);
 
     for (s32 idx = 0; idx < mEmitters.mCount; idx++) {

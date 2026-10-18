@@ -81,7 +81,7 @@ void CollectTico::exeCompleteDemo() {
             _94.scaleAdd(300.0f,-mGravity,_94);
             MR::setPosition(this,_94);
         } else {
-            MR::rotateAroundActor(mGravity,TVec3f(0.0f,1.0f,0.0f),this);
+            MR::rotateAroundActor(mGravity,TVec3f(0.0f,-1.0f,0.0f),this);
             _94.set(mPosition);
         }
 

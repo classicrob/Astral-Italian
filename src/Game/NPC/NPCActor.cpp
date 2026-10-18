@@ -33,8 +33,7 @@
 #include <JSystem/JGeometry/TUtil.hpp>
 #include <JSystem/JMath/JMATrigonometric.hpp>
 
-// PLACEHOLDER(astra): existing shared item emitter has unnamed ABI; resolve when enemies finishes its frozen caller conversion.
-extern "C" void fn_8022BA10(LiveActor*);
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace NrvNPCActor {
     NEW_NERVE(NPCActorNrvReaction, NPCActor, Reaction);
@@ -756,7 +755,7 @@ bool NPCActor::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
     if (MR::isMsgSupportTicoSpin(msg)) {
         if (_E7) {
-            fn_8022BA10(this);
+            MR::emitItemHit(this);
         }
         _E3 = true;
         return false;

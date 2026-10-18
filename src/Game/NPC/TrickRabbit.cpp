@@ -765,7 +765,6 @@ void TrickRabbit::exeWaitPowerStarDemo() {
     TVec3f stack_20;
     if (MR::isFirstStep(this)) {
         MR::endDemo(this, "捕まり");
-        MR::startAfterBossBGM();
         TVec3f stack_14(mPosition - (mGravity * 200.0f));
         MR::requestAppearPowerStar(this, stack_14);
         MR::startAction(this, "Wait");

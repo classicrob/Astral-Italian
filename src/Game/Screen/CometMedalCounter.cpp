@@ -29,7 +29,7 @@ void CometMedalCounter::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvHidden));
 
     if (!isAppearInCurrentScenario()) {
-        MR::startAnimAndSetFrameAndStop(this, "Icon", 2.0f, 2);
+        MR::startAnimAndSetFrameAndStop(this, "Icon", 0.0f, 2);
     }
     else if (GameSequenceFunction::isCollectTicoCoinSaved() || GameDataFunction::isOnGalaxyFlagTicoCoin(MR::getCurrentStageName())) {
         MR::startAnimAndSetFrameAndStop(this, "Icon", 1.0f, 2);
@@ -52,33 +52,6 @@ void CometMedalCounter::appear() {
     MR::requestMovementOn(this);
 }
 
-void CometMedalCounter::forceAppear(bool a1) {
-    bool isWait;
-
-    if (!a1) {
-        isWait = false;
-
-        if (isNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvWait)) || isNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvFlash))) {
-            isWait = true;
-        }
-    }
-    else {
-        isWait = true;
-    }
-
-    if (!isWait) {
-        appear();
-        setNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvAppear));
-    }
-
-    mIsHidden = true;
-}
-
-void CometMedalCounter::disappear() {
-    mIsHidden = false;
-    setNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvDisappear));
-}
-
 bool CometMedalCounter::isWait() const {
     bool isWait = false;
 
@@ -88,6 +61,25 @@ bool CometMedalCounter::isWait() const {
 
     return isWait;
 }
+
+void CometMedalCounter::forceAppear(bool force) {
+    if (!force) {
+        bool waiting = false;
+        if (isNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvWait)) ||
+            isNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvFlash))) waiting = true;
+        if (waiting) goto finish;
+    }
+    appear();
+    setNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvAppear));
+finish:
+    mIsHidden = true;
+}
+
+void CometMedalCounter::disappear() {
+    mIsHidden = false;
+    setNerve(GET_NERVE(CometMedalCounter, CometMedalCounterNrvDisappear));
+}
+
 
 void CometMedalCounter::control() {
     mAppearer->update();

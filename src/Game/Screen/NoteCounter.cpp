@@ -8,11 +8,6 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-void NoteCounter_FORCE_MATCH_SDATA2() {
-    (void)10.0f;
-    (void)-100.0f;
-}
-
 namespace {
     static const s32 sStepShowWait = 180;
     static const s32 sStepMove = 10;
@@ -60,21 +55,21 @@ void NoteCounter::add() {
         }
 
         s32 pitchGroup = note / 4;
-        MR::startSystemSE("SE_SY_FLOWER_GET_COMBO", pitchGroup + (note - pitchGroup * 4));
+        MR::startActionSound(mHost, "SE_SY_FLOWER_GET_COMBO", pitchGroup + (note - pitchGroup * 4));
     } else if (mMelodyNo == -1) {
         s32 note = mNoteAddNum + 5;
         while (note > 36) {
             note -= 12;
         }
 
-        MR::startSystemSE("SE_SY_FLOWER_GET_COMBO", note);
+        MR::startActionSound(mHost, "SE_SY_FLOWER_GET_COMBO", note);
     } else if (mMelodyNo >= 0) {
         MR::startRemixSound(mMelodyNo, mNoteAddNum, mRailLength);
     }
 
     mNoteAddNum++;
     if (mNoteAddNum >= mNoteNum) {
-        mHost->receiveMessage(0x66, MR::getMessageSensor(), MR::getMessageSensor());
+        mHost->receiveMessage(0x76, MR::getMessageSensor(), MR::getMessageSensor());
     }
 
     tryEndDisp();

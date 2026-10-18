@@ -438,16 +438,6 @@ NameObjAdaptor* MR::createDrawAdaptor(const char* pName, int drawType, const MR:
     return pAdaptor;
 }
 
-// PLACEHOLDER(core): 2-arg createDrawAdaptor is not an SMG2 symbol; NPC/MiiFace*.cpp still call it. Resolve when those callers move to the 3-arg form.
-NameObjAdaptor* MR::createDrawAdaptor(const char* pName, const MR::FunctorBase& rFunctor) {
-    NameObjAdaptor* pAdaptor;
-
-    pAdaptor = new NameObjAdaptor(pName);
-    pAdaptor->connectToDraw(rFunctor);
-
-    return pAdaptor;
-}
-
 NameObjAdaptor* MR::createAdaptorAndConnectToDrawBloomModel(const char* pName, const MR::FunctorBase& rFunctor) {
     NameObjAdaptor* pAdaptor;
 

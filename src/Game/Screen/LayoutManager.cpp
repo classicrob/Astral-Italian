@@ -193,7 +193,7 @@ void LayoutManager::movement() {
 void LayoutManager::calcAnim() {
     if (MR::isScreen16Per9()) {
         nw4r::math::VEC2 scale;
-        scale.x = 0.75f;
+        scale.x = 0.7487684488296509f;
         scale.y = 1.0f;
         mDrawInfo.SetLocationAdjustScale(scale);
     } else {

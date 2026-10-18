@@ -89,7 +89,7 @@ void TicoRail::exeWait() {
 
 void TicoRail::exeLookAround() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartBck(this, "Turn");
+        MR::tryStartActionNotPlaying(this, "Turn");
     }
 
     TVec3f up;

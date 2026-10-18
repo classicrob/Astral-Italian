@@ -10,9 +10,6 @@
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(astra): player-state predicate awaits the Player owner's identification of fields514/515/516; resolve when its canonical name is confirmed.
-extern "C" bool fn_8004FFE0();
-
 namespace {
     s32 sTrampleScore[] = {100, 200, 300, 300, 300, 300, 300};
     s32 sSpinScore[] = {100, 200, 300};
@@ -130,7 +127,7 @@ void ScoreAttackCounter::exeCounting() {
     }
 }
 bool ScoreAttackCounter::isReadyToFinish() const {
-    if (fn_8004FFE0()) return false;
+    if (MR::isPlayerPowerupTransforming()) return false;
     return mTimer->isReadyToTimeUp();
 }
 ScoreAttackAccessor::ScoreAttackAccessor() : NameObj("スコアアタックアクセサ"), mCounter(nullptr), mMan(nullptr) {}

@@ -175,9 +175,8 @@ bool CounterLayoutController::tryEndTicoEatStarPiece() {
             mCoinCounter->appear();
             mPlayerLeft->appear();
             mCometMedalCounter->appear();
+            return true;
         }
-
-        return true;
     }
 
     return false;

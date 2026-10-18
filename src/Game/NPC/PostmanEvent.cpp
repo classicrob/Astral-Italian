@@ -65,6 +65,7 @@ bool canReadImportantEvent(s32 id) {
 }
 }
 
+// NONMATCHING: equivalent event selection uses different registers and sentinel-store scheduling.
 bool PostmanEventSystem::selectEvent(s32* out) {
     using namespace PostmanEvent;
     s32 selected = 18;

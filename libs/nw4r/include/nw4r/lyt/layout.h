@@ -103,7 +103,6 @@ namespace nw4r {
             Pane* mpRootPane;
             GroupContainer* mpGroupContainer;
             Size mLayoutSize;
-            u8 _20;
         };
 
         template < typename T >

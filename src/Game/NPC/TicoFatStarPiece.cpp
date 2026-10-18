@@ -72,13 +72,13 @@ bool TicoFatStarPiece::tryEndEventCamera() {
 
 const char* TicoFatStarPiece::getActionName(const char* name) {
     f32 scale = calcScale();
-    if (scale > 1.6f) {
+    if (1.6f < scale) {
         if (MR::isEqualString(name, "Eat")) return "Eat2Normal";
         if (MR::isEqualString(name, "EatStart")) return "EatStart2";
         if (MR::isEqualString(name, "Wait")) return "Wait2";
         if (MR::isEqualString(name, "Excite")) return "Excite2";
         if (MR::isEqualString(name, "Joy")) return "Joy2";
-    } else if (scale > 1.3f) {
+    } else if (1.3f < scale) {
         if (MR::isEqualString(name, "Eat")) return "Eat1Normal";
         if (MR::isEqualString(name, "EatStart")) return "EatStart1";
         if (MR::isEqualString(name, "Wait")) return "Wait1";
@@ -100,9 +100,9 @@ void TicoFatStarPiece::selectEatMessage(s32 mode) {
     if (mode == 1) {
         f32 ratio = static_cast<f32>(mRemainingStarPieceCount) / static_cast<f32>(mStarPieceCount);
         if (ratio == 1.0f) count = 1;
-        else if (ratio >= 0.5f) count = 2;
-        else if (ratio >= 0.25f) count = 3;
-        else if (ratio >= 0.05f) count = 4;
+        else if (0.5f <= ratio) count = 2;
+        else if (0.25f <= ratio) count = 3;
+        else if (0.05f <= ratio) count = 4;
         else count = 5;
     } else if (mode == 2) count = 6;
     for (s32 i = 0; i < count; i++) MR::forwardNode(mEatTalkCtrl);

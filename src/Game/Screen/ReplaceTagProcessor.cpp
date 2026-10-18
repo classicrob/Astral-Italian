@@ -55,10 +55,11 @@ namespace ReplaceTagProcessor {
                 return pDst - pStart;
             }
 
-            if (*pSrc == 0x1A) {
+            if (*pSrc == 0x0E) {
                 MessageEditorMessageTag tag(pSrc + 1);
                 const Impl::GroupFunctionInfo* pInfo = Impl::findGroupFunctionInfo(tag.getGroup());
                 if (pInfo != nullptr) {
+                    pInfo->mFunction(pDst, tag);
                     pDst += pInfo->mFunction(pDst, tag);
                 } else {
                     MR::copyMemory(pDst, pSrc, (tag.getSkipLength() + 1) * sizeof(wchar_t));
@@ -85,7 +86,7 @@ namespace ReplaceTagProcessor {
                 return pDst - pStart;
             }
 
-            if (*pSrc == 0x1A) {
+            if (*pSrc == 0x0E) {
                 MessageEditorMessageTag tag(pSrc + 1);
                 const ImplArgs::GroupFunctionInfo* pInfo = ImplArgs::findGroupFunctionInfo(tag.getGroup());
                 if (pInfo != nullptr) {
@@ -109,24 +110,22 @@ namespace ReplaceTagProcessor {
 
     u32 exePictureGroup(wchar_t* pDst, const MessageEditorMessageTag& rTag) {
         struct PictureTag {
-            u8 mLength;
-            u8 mGroup;
+            u16 mGroup;
             u16 mTag;
+            u16 mParameterLength;
+            u16 mPicture;
         } tag;
-        tag.mLength = rTag.getTagLength() + 2;
-        tag.mGroup = rTag.getGroup();
-        tag.mTag = rTag.getTag();
-        if (static_cast< wchar_t >(rTag.getTag() + 0x30) == 0x5B) {
-            if (MR::isPlayerLuigi()) {
-                tag.mTag = 0x1C;
-            } else {
-                tag.mTag = 0x12;
-            }
+        tag.mGroup = rTag.mMessage[0];
+        tag.mTag = rTag.mMessage[1];
+        tag.mParameterLength = rTag.mMessage[2];
+        tag.mPicture = rTag.getParam16(0);
+        if (static_cast<wchar_t>(rTag.getParam16(0) + 0x30) == 0x5B) {
+            if (MR::isPlayerLuigi()) tag.mPicture = 0x1C;
+            else tag.mPicture = 0x12;
         }
-
-        *pDst++ = 0x1A;
-        MR::copyMemory(pDst, &tag, rTag.getTagLength());
-        return rTag.getTagLength() / 2 + 1;
+        *pDst++ = 0x0E;
+        MR::copyMemory(pDst, &tag, rTag.getSkipLength() * sizeof(wchar_t));
+        return rTag.getSkipLength() + 1;
     }
 
     u32 exeStringGroup(wchar_t* pDst, const MessageEditorMessageTag& rTag, va_list args) {

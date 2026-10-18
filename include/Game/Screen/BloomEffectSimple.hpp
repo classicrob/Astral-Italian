@@ -19,7 +19,7 @@ public:
     /* 0x24 */ JUTTexture* _24;
     /* 0x28 */ JUTTexture* _28;
     /* 0x2C */ JUTTexture* _2C;
-    /* 0x30 */ s32 mMaskFilter;
+    /* 0x30 */ u32 mMaskFilter;
     /* 0x34 */ u8 mThreshold;
     /* 0x38 */ f32 mIntensity;
 };

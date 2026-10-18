@@ -37,7 +37,7 @@ SysInfoWindow::SysInfoWindow(SysInfoWindowType windowType, SysInfoExecuteType ex
 }
 
 void SysInfoWindow::init(const JMapInfoIter& rIter) {
-    initLayoutManager(getLayoutName(), 1);
+    initLayoutManagerWithTextBoxBufferLength(getLayoutName(), 0x200, 1);
     MR::createAndAddPaneCtrl(this, mTextParentPaneName, 1);
     MR::createAndAddPaneCtrl(this, mWindowParentPaneName, 1);
 
@@ -103,6 +103,8 @@ void SysInfoWindow::appear(const char* pMessageId, SysInfoType type, SysInfoText
         MR::showPaneRecursive(this, "Right");
         break;
     }
+
+    MR::hidePaneRecursive(this, "BG");
 
     switch (textPos) {
     case TextPos_Center:
@@ -203,7 +205,7 @@ void SysInfoWindow::exeWait() {
     if (mType == Type_Key) {
         if (MR::testSystemPadTriggerDecide()) {
             MR::startSystemSE("SE_SY_TALK_OK");
-            MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0);
+            MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
             setNerve(GET_NERVE(SysInfoWindow, SysInfoWindowNrvDisappear));
         }
     } else if (mYesNoSelector != nullptr) {
@@ -277,3 +279,7 @@ namespace MR {
         return pWindow;
     }
 };  // namespace MR
+
+bool SysInfoWindow::isYesButtonSelected() const {
+    return mYesNoSelector->isYesButtonSelected();
+}

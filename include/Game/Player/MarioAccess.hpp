@@ -11,6 +11,7 @@ class RushEndInfo;
 class Triangle;
 
 namespace MarioAccess {
+    bool isPowerupTransforming();
     void prepareForPositionReset();
     void getTakePos(TVec3f*);
     bool isOnActor(const LiveActor*);

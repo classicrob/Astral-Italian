@@ -22,21 +22,21 @@ s32 MessageEditorMessageTag::getParamLength() const {
 
 u8 MessageEditorMessageTag::getParam8(int index) const {
     const u8* pParam = reinterpret_cast< const u8* >(mMessage) + index;
-    return pParam[4];
+    return pParam[6];
 }
 
 u16 MessageEditorMessageTag::getParam16(int index) const {
     const u16* pParam = reinterpret_cast< const u16* >(mMessage) + index;
-    return pParam[2];
+    return pParam[3];
 }
 
 u32 MessageEditorMessageTag::getParam32(int index) const {
-    const u32* pParam = reinterpret_cast< const u32* >(mMessage) + index;
-    return pParam[1];
+    const u8* pParam = reinterpret_cast< const u8* >(mMessage) + index * 4 + 6;
+    return *reinterpret_cast< const u32* >(pParam);
 }
 
 wchar_t* MessageEditorMessageTag::getParamPtr(int index) const {
-    const u8* pParam = reinterpret_cast< const u8* >(mMessage) + index + 4;
+    const u8* pParam = reinterpret_cast< const u8* >(mMessage) + index + 6;
     return const_cast< wchar_t* >(reinterpret_cast< const wchar_t* >(pParam));
 }
 
@@ -44,7 +44,7 @@ MessageTagSkipTagProcessor::MessageTagSkipTagProcessor() : nw4r::ut::TagProcesso
 }
 
 nw4r::ut::TagProcessorBase< wchar_t >::Operation MessageTagSkipTagProcessor::CalcRect(nw4r::ut::Rect* pRect, u16 code, ContextType* pPrintContext) {
-    if (code != 0x1A) {
+    if (code != 0xE) {
         return nw4r::ut::TagProcessorBase< wchar_t >::CalcRect(pRect, code, pPrintContext);
     } else {
         return skipTag(pRect, pPrintContext, false);
@@ -52,7 +52,7 @@ nw4r::ut::TagProcessorBase< wchar_t >::Operation MessageTagSkipTagProcessor::Cal
 }
 
 nw4r::ut::TagProcessorBase< wchar_t >::Operation MessageTagSkipTagProcessor::Process(u16 code, ContextType* pPrintContext) {
-    if (code != 0x1A) {
+    if (code != 0xE) {
         return nw4r::ut::TagProcessorBase< wchar_t >::Process(code, pPrintContext);
     } else {
         return skipTag(nullptr, pPrintContext, false);

@@ -206,7 +206,7 @@ void Tico::init(const JMapInfoIter& rIter) {
             MR::tryInitDemoSheetAnim(this, rIter, castName, "DemoRideSpinDriver");
         }
         mDemoObj = MR::createDemoObjWithAnimArc("デモ用ベビチコ", "TicoBaby", "TicoBabyAnim", nullptr);
-        MR::initTalkAnimDemoCast(this, rIter, castName, "DemoRideSpinDriver");
+        MR::initTalkAnimDemoCast(reinterpret_cast<LiveActor*>(mDemoObj), rIter, castName, "DemoRideSpinDriver");
         reinterpret_cast< LiveActor* >(mDemoObj)->makeActorDead();
     } else {
         MR::tryRegisterDemoCast(this, rIter);
@@ -268,7 +268,7 @@ void Tico::initAfterPlacement() {
     if (_15C == 1) {
         TVec3f pos(mPosition);
         TVec3f dir(mGravity);
-        dir.scale(500.0f);
+        dir.scale(1000.0f);
         MR::getFirstPolyOnLineToMap(&pos, nullptr, mPosition, dir);
         MR::resetPosition(this, pos);
     }

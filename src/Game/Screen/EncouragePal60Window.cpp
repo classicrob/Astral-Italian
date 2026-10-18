@@ -55,7 +55,7 @@ void EncouragePal60Window::exeDisplay() {
         mAButtonIcon->openWithoutMessage();
     }
 
-    if (MR::isGreaterStep(this, ::DISPLAY_MIN_SECOND * 60) && MR::testCorePadTriggerAnyWithoutHome(WPAD_CHAN0)) {
+    if (MR::isGreaterStep(this, ::DISPLAY_MIN_SECOND * 60) && MR::testSystemPadTriggerDecide()) {
         MR::startSystemSE("SE_SY_TALK_FOCUS_ITEM");
         setNerve(GET_NERVE_DIRECT(NrvEncouragePal60Window, EncouragePal60WindowNrvDisappear));
     }

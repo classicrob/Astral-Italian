@@ -54,6 +54,7 @@ public:
     void forceKill();
     bool isWait() const;
     bool isSelectedYes() const;
+    bool isYesButtonSelected() const;
     bool isDisappear() const;
     const char* getLayoutName() const;
     void exeAppear();

@@ -86,9 +86,9 @@ void MeterLayout::control() {
         mAlpha = 1.0f;
     } else if (MR::isStarPointerPointingPaneForMeterLayout(this, "PicBase", 0, false, nullptr) ||
                MR::isStarPointerPointingPaneForMeterLayout(this, "PicBase", 1, false, nullptr)) {
-        mAlpha -= 0.05f;
+        mAlpha -= 0.1f;
     } else {
-        mAlpha += 0.05f;
+        mAlpha += 0.1f;
     }
 
     mAlpha = MR::clamp(mAlpha, ::sMinAlpha, ::sMaxAlpha);
@@ -151,7 +151,7 @@ void MeterLayout::requestPlayerMoving() {
     }
 
     if (mCount == 3) {
-        _4C -= 0.05f;
+        _4C -= 0.1f;
 
         if (_4C < 0.0f) {
             _4C = 0.0f;
@@ -167,7 +167,7 @@ void MeterLayout::requestPlayerStopped() {
     }
 
     if (mCount == 3) {
-        _4C += 0.05f;
+        _4C += 0.1f;
 
         if (_4C > 1.0f) {
             _4C = 1.0f;

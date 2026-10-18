@@ -39,10 +39,7 @@ void WipeFade::draw() const {
     GXSetColorUpdate(GX_TRUE);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
 
-    GXColor fillColor;
-    fillColor.r = mFillColor.r;
-    fillColor.g = mFillColor.g;
-    fillColor.b = mFillColor.b;
+    GXColor fillColor = mFillColor;
     fillColor.a = 255.0f * alpha;
     MR::fillScreen(fillColor);
 }

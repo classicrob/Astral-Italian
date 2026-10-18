@@ -64,3 +64,9 @@ they are suspicious (a logic diff, not register allocation).
 ## Disk
 
 Never let free space on / drop below 33 GB (`df -h /`). A worktree with its build takes about 0.5 GB.
+
+## Correct fixes only
+
+No fallbacks or workarounds (local ABI re-declarations, extern "C" stubs, no-op shims, `#if 1` pins, temporary
+hacks). Fix the header / symbols.txt / splits at the source and update every caller in the same commit. Register-
+allocation-only NONMATCHING functions are fine; wrong logic, signatures or layouts are not.

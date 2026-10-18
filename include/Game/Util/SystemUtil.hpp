@@ -19,6 +19,8 @@ namespace MR {
     nw4r::ut::Font* getStaffFontNW4R();
     bool hasPictureFontNW4R();
     bool isScreen16Per9();
+    void onUseVFilter();
+    void offUseVFilter();
 }  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

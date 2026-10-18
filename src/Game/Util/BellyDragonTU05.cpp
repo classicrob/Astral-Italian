@@ -1,3 +1,4 @@
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/Util/BellyDragon.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
@@ -74,7 +75,6 @@ extern "C" void fn_80096B60(ActorStateBaseInterface*, HitSensor*, HitSensor*);
 extern "C" void fn_80097690(ActorStateBaseInterface*);
 extern "C" void fn_800976A0(ActorStateBaseInterface*);
 extern "C" bool fn_80097A50(ActorStateBaseInterface*);
-extern "C" void fn_8022BBC0(BellyDragon*, TVec3f*);
 extern "C" void fn_8008EDB0(void*, f32);
 
 
@@ -397,7 +397,7 @@ extern "C" s32 fn_80095260(BellyDragonArm* pArm, u32 msg, HitSensor* pSensorA, H
         sp8.scale(lbl_807D7880);
         TVec3f sp14(sp2C);
         sp14 -= sp8;
-        fn_8022BBC0(pArm->mHost, &sp14);
+        MR::emitItemBossDamageAtPos(pArm->mHost, &sp14);
         if (fn_80093980(pArm->mHost, 1) != 0 || fn_80093A30(pArm->mHost, 1) != 0) {
             pArm->setNerve(&NrvBellyDragonArm::BellyDragonArmNrvAttack::sInstance);
             return 1;

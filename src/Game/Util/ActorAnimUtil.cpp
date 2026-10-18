@@ -367,6 +367,10 @@ namespace MR {
         return pActor->mModelManager->isBckStopped();
     }
 
+    bool isBtkOneTimeAndStopped(const LiveActor* pActor) {
+        return pActor->mModelManager->isBtkStopped();
+    }
+
     bool isBrkOneTimeAndStopped(const LiveActor* pActor) {
         return pActor->mModelManager->isBrkStopped();
     }
@@ -421,6 +425,17 @@ namespace MR {
         pActor->mModelManager->getBvaCtrl()->setRate(0.0f);
     }
 
+    void startBckAndSetFrameAndStop(const LiveActor* pActor, const char* pBckName, f32 frame) {
+        startBck(pActor, pBckName, nullptr);
+        setBckFrame(pActor, frame);
+        pActor->mModelManager->getBckCtrl()->setRate(0.0f);
+    }
+
+    void setBckFrameEndAndStop(const LiveActor* pActor) {
+        setBckFrame(pActor, pActor->mModelManager->getBckCtrl()->getEnd());
+        pActor->mModelManager->getBckCtrl()->setRate(0.0f);
+    }
+
     void setBrkFrameEndAndStop(const LiveActor* pActor) {
         pActor->mModelManager->getBrkCtrl()->setFrame(pActor->mModelManager->getBrkCtrl()->getEnd());
         pActor->mModelManager->getBrkCtrl()->setRate(0.0f);
@@ -439,6 +454,11 @@ namespace MR {
     void startBtpAndSetFrameAndStop(const LiveActor* pActor, const char* pBtpName, f32 frame) {
         startBtp(pActor, pBtpName);
         setBtpFrameAndStop(pActor, frame);
+    }
+
+    void startBvaAndSetFrameAndStop(const LiveActor* pActor, const char* pBvaName, f32 frame) {
+        startBva(pActor, pBvaName);
+        setBvaFrameAndStop(pActor, frame);
     }
 
     void startBtk(const LiveActor* pActor, const char* pBtkName) {
@@ -575,6 +595,18 @@ namespace MR {
         pCtrl->setRate(rate * scale);
     }
 
+    void setBtpRate(const LiveActor* pActor, f32 rate) {
+        J3DFrameCtrl* pCtrl = pActor->mModelManager->getBtpCtrl();
+        f32 scale = 1.0f;
+        pCtrl->setRate(rate * scale);
+    }
+
+    void setBpkRate(const LiveActor* pActor, f32 rate) {
+        J3DFrameCtrl* pCtrl = pActor->mModelManager->getBpkCtrl();
+        f32 scale = 1.0f;
+        pCtrl->setRate(rate * scale);
+    }
+
     void setBvaRate(const LiveActor* pActor, f32 rate) {
         J3DFrameCtrl* pCtrl = pActor->mModelManager->getBvaCtrl();
         f32 scale = 1.0f;
@@ -607,6 +639,78 @@ namespace MR {
 
     bool isBckPlaying(const LiveActor* pActor, const char* pBckName) {
         return MR::isBckPlaying(pActor->mModelManager->mXanimePlayer, pBckName);
+    }
+
+    bool isBckPlayingIfExist(const LiveActor* pActor, const char* pBckName) {
+        if (isExistBck(pActor, pBckName) && MR::isBckPlaying(pActor->mModelManager->mXanimePlayer, pBckName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isBtkPlayingIfExist(const LiveActor* pActor, const char* pBtkName) {
+        if (isExistBtk(pActor, pBtkName) && pActor->mModelManager->isBtkPlaying(pBtkName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isBrkPlayingIfExist(const LiveActor* pActor, const char* pBrkName) {
+        if (isExistBrk(pActor, pBrkName) && pActor->mModelManager->isBrkPlaying(pBrkName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isBtpPlayingIfExist(const LiveActor* pActor, const char* pBtpName) {
+        if (isExistBtp(pActor, pBtpName) && pActor->mModelManager->isBtpPlaying(pBtpName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isBpkPlayingIfExist(const LiveActor* pActor, const char* pBpkName) {
+        if (isExistBpk(pActor, pBpkName) && pActor->mModelManager->isBpkPlaying(pBpkName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isBvaPlayingIfExist(const LiveActor* pActor, const char* pBvaName) {
+        if (isExistBva(pActor, pBvaName) && pActor->mModelManager->isBvaPlaying(pBvaName)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isPlayingAnim(const LiveActor* pActor, const char* pName) {
+        if (isBckPlayingIfExist(pActor, pName)) {
+            return true;
+        }
+
+        if (isBtkPlayingIfExist(pActor, pName)) {
+            return true;
+        }
+
+        if (isBrkPlayingIfExist(pActor, pName)) {
+            return true;
+        }
+
+        if (isBtpPlayingIfExist(pActor, pName)) {
+            return true;
+        }
+
+        if (isBpkPlayingIfExist(pActor, pName)) {
+            return true;
+        }
+
+        return isBvaPlayingIfExist(pActor, pName);
     }
 
     J3DFrameCtrl* getBckCtrl(const LiveActor* pActor) {

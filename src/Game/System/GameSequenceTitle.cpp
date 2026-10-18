@@ -1,3 +1,5 @@
+#include "Game/System/GameSequenceFunction.hpp"
+#include "Game/Util/SystemUtil.hpp"
 #include "Game/System/GameSequenceTitle.hpp"
 
 #include "Game/LiveActor/Nerve.hpp"
@@ -5,12 +7,6 @@
 #include "Game/Util/ActorStateUtil.hpp"
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
-
-extern "C" {
-    s32 fn_804D8620();
-    void fn_804D85D0();
-    void fn_80060740();
-};
 
 namespace {
     class GameSequenceTitleNrvWait : public Nerve {
@@ -38,14 +34,14 @@ namespace {
 namespace {
     void GameSequenceTitleNrvWait::execute(Spine* pSpine) const {
         GameSequenceTitle* pTitle = reinterpret_cast< GameSequenceTitle* >(pSpine->mExecutor);
-        if (fn_804D8620() != 0) {
+        if (GameSequenceFunction::isReadyToStartScene() != 0) {
             pTitle->setNerve(&GameSequenceTitleNrvOpen::sInstance);
         }
     }
     void GameSequenceTitleNrvOpen::execute(Spine* pSpine) const {
         GameSequenceTitle* pTitle = reinterpret_cast< GameSequenceTitle* >(pSpine->mExecutor);
         if (MR::isFirstStep(pTitle)) {
-            fn_804D85D0();
+            GameSequenceFunction::startScene();
             MR::openWipeFade(0x1E);
         }
     }
@@ -64,5 +60,5 @@ void GameSequenceTitle::init() {
 void GameSequenceTitle::appear() {
     mIsDead = false;
     setNerve(&GameSequenceTitleNrvWait::sInstance);
-    fn_80060740();
+    MR::offUseVFilter();
 }

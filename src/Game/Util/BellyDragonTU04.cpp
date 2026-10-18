@@ -52,9 +52,11 @@ extern "C" const f32 lbl_807D787C;
 
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
 extern "C" void __dl__FPv(void*);
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" s32 fn_80038870(TVec3f*, TVec3f*, TVec3f*, s32, s32, s32, s32, f32);
 
 // Pod helpers (TU05)
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_80094460(BellyDragonPod*, BellyDragon*);
 extern "C" void fn_80094520(BellyDragonPod*, s32, const TVec3f*);
 extern "C" void fn_80094600(BellyDragonPod*);
@@ -66,32 +68,26 @@ extern "C" void fn_80094BE0(BellyDragonPod*);
 extern "C" void fn_80094C80(BellyDragonPod*);
 
 // Body (TU02) helpers
-extern "C" void fn_80092480(BellyDragonBody*);
-extern "C" void fn_80092770(BellyDragonBody*);
-extern "C" void fn_80092850(BellyDragonBody*);
-extern "C" void fn_800928E0(BellyDragonBody*);
-extern "C" void fn_80092990(BellyDragonBody*);
-extern "C" void fn_800926E0(BellyDragonBody*);
-extern "C" void fn_800922B0(BellyDragonBody*);
-extern "C" void fn_800923E0(BellyDragonBody*);
-extern "C" void fn_800929A0(BellyDragonBody*);
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 
 // Misc helpers (other units)
-extern "C" bool fn_8008EDA0(LiveActor*);
+// PLACEHOLDER(core): fn_8008EDA0 is a C++ (non-extern "C") function in SMG2 (symbol fn_8008EDA0__FP9LiveActor); resolve when named
+bool fn_8008EDA0(LiveActor*);
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_8008EDB0(void*, f32);
 extern "C" void fn_80013880(LiveActor*, TVec3f*, s32);
-extern "C" s32 fn_800202E0(LiveActor*, ActorCameraInfo*, s32, s32);
 extern "C" s32 fn_80008F00(LiveActor*, const char*);
 extern "C" void fn_80097A50(LiveActor*);
 extern "C" bool fn_80097A60(LiveActor*);
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_80093450(void*, const f32 (*)[4]);
 extern "C" void fn_80093370(BellyDragon*, LiveActor*);
 extern "C" s32 fn_800938F0(BellyDragon*);
 
-// Body array layout (BellyDragonBody, TU02): count at 0x14, part array pointer at 0x18, owner part at +0x8.
-#define BODY_COUNT(b) (*(s32*)((u8*)(b) + 0x14))
-#define BODY_PART(b, i) (((LiveActor**)(*(void**)((u8*)(b) + 0x18)))[i])
+// BODY_PART indexes the weak points of BellyDragonBody (BellyDragon.hpp).
+#define BODY_COUNT(b) ((b)->mWeakPointNum)
+#define BODY_PART(b, i) ((b)->mWeakPoints[i])
 
 namespace NrvBellyDragonPodActor {
     NEW_NERVE(BellyDragonPodActorNrvWait, BellyDragonPodActor, Wait);
@@ -119,7 +115,7 @@ extern "C" s32 fn_80093320(NerveExecutor* pArm, BellyDragon* pHost) {
 
 extern "C" void fn_80093370(BellyDragon* pHost, LiveActor*) {
     MR::onBind(pHost);
-    LiveActor* pBody = *(LiveActor**)((u8*)pHost->mBody + 0x8);
+    LiveActor* pBody = pHost->mBody->mHead;
     MR::setPosition(pHost, pBody->mPosition);
     MR::calcGravity(pHost);
     TPos3f sp20;
@@ -130,7 +126,7 @@ extern "C" void fn_80093370(BellyDragon* pHost, LiveActor*) {
     pHost->mBaseMtx.set(sp20.mMtx);
     pHost->mFront.set(sp14);
     fn_80093450(pBody, sp20.mMtx);
-    fn_80092480(pHost->mBody);
+    pHost->mBody->unfreeze();
 }
 
 extern "C" void fn_80093450(void* pObj, const f32 (*mtx)[4]) {
@@ -155,7 +151,7 @@ extern "C" void fn_80093500(BellyDragon* pHost, f32 farg0, f32 farg1) {
 }
 
 extern "C" void fn_80093580(BellyDragon* pHost) {
-    fn_80092990(pHost->mBody);
+    pHost->mBody->startBindB();
 }
 
 extern "C" void fn_80093590(TPos3f* pOut, NameObj* pObj, const f32 (*mtx)[4], f32 farg0) {
@@ -186,19 +182,19 @@ extern "C" void fn_800936C0(TPos3f* pOut, NameObj* pObj, const TVec3f* pPos) {
 }
 
 extern "C" void fn_80093780(BellyDragon* pHost) {
-    fn_800926E0(pHost->mBody);
+    pHost->mBody->appearJawHill();
 }
 
 extern "C" void fn_80093790(BellyDragon* pHost) {
-    fn_80092770(pHost->mBody);
+    pHost->mBody->startHeadAttackHill();
 }
 
 extern "C" void fn_800937A0(BellyDragon* pHost) {
-    fn_80092850(pHost->mBody);
+    pHost->mBody->appearHeadHill();
 }
 
 extern "C" void fn_800937B0(BellyDragon* pHost) {
-    fn_800928E0(pHost->mBody);
+    pHost->mBody->breakHeadHill();
 }
 
 extern "C" void fn_800937C0(BellyDragon* pHost) {
@@ -326,7 +322,7 @@ extern "C" void fn_80093B50(BellyDragon* pHost, const char* pName) {
     TVec3f sp8(pPod->mHostMtx.mMtx[0][3], pPod->mHostMtx.mMtx[1][3], pPod->mHostMtx.mMtx[2][3]);
     MR::setPosition(pHost, sp8);
     MR::zeroVelocity(pHost);
-    fn_800923E0(pHost->mBody);
+    pHost->mBody->freeze();
     if (fn_80008F00(pHost, pName)) {
         MR::startAction(pHost, pName);
     }
@@ -352,8 +348,8 @@ extern "C" s32 fn_80093BF0(BellyDragon* pHost, const char* pName, bool) {
     TVec3f sp8(pPod->mHostMtx.mMtx[0][3], pPod->mHostMtx.mMtx[1][3], pPod->mHostMtx.mMtx[2][3]);
     MR::setPosition(pHost, sp8);
     MR::zeroVelocity(pHost);
-    fn_800922B0(pHost->mBody);
-    LiveActor* pBody = *(LiveActor**)((u8*)pHost->mBody + 0x8);
+    pHost->mBody->end();
+    LiveActor* pBody = pHost->mBody->mHead;
     fn_80093450(pBody, MR::getJointMtx(pPod->mDecoration, (s32)0));
     pHost->mBaseMtx.set(MR::getJointMtx(pPod->mDecoration, (s32)0));
     MR::setPosition(pHost, pBody->mPosition);
@@ -378,11 +374,11 @@ extern "C" s32 fn_80093DC0(BellyDragon* pHost, s32 idx, bool useFirst, f32 farg0
     if (useFirst) {
         found = MR::tryEndDemoAndAnimCamera(pHost, pPod->mCameraInfo, reinterpret_cast<const char*>(idx), 0);
     } else {
-        found = fn_800202E0(pHost, pPod->mCameraInfo, idx, 0);
+        found = MR::endDemoAndAnimCameraIfActionEnd(pHost, pPod->mCameraInfo, reinterpret_cast<const char*>(idx), 0);
     }
     if (found != 0) {
         if (MR::isDemoEndWaitCameraInterpolating()) {
-            fn_800929A0(pHost->mBody);
+            pHost->mBody->forceDeleteEffects();
         }
         char name[0x100];
         snprintf(name, 0x100, lbl_8066CF90 + 0x3C, idx);
@@ -405,7 +401,7 @@ extern "C" s32 fn_80093DC0(BellyDragon* pHost, s32 idx, bool useFirst, f32 farg0
         mm.mMtx[0][3] = sp8.x;
         mm.mMtx[1][3] = sp8.y;
         mm.mMtx[2][3] = sp8.z;
-        fn_80093450(*(void**)((u8*)pHost->mBody + 0x8), mm.mMtx);
+        fn_80093450(pHost->mBody->mHead, mm.mMtx);
         fn_80093370(pHost, NULL);
         MR::startAction(pHost, lbl_8066CF90 + 0x4C);
         return 1;

@@ -1,18 +1,14 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 extern "C" {
     void fn_8001C030(s32);
-    void fn_804D72A0();
     void fn_804F7650(s32, TVec3f*, f32);
-    void fn_804F7810(s32);
+    s32 fn_804F7810(s32);
 }
 
 namespace MR {
     void startSystemWipeCircleWithCaptureScreen(s32);
-}
-
-namespace GameSequenceFunction {
-    void requestChangeStageMarioFaceShipBeforeKoopaVs3();
 }
 
 /// Result-map step that leaves for Koopa's castle (name "State[クッパ城へ]").
@@ -52,8 +48,7 @@ void WorldMapResultStateKoopaCastle::exeWait() {
     }
 
     if (MR::isStep(this, 0x1E)) {
-        fn_804F7810(mWorldId);
-        fn_804D72A0();
+        GameSequenceFunction::setWorldMapCurrentNode(fn_804F7810(mWorldId));
         MR::startSystemWipeCircleWithCaptureScreen(0x5A);
         GameSequenceFunction::requestChangeStageMarioFaceShipBeforeKoopaVs3();
     }

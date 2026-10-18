@@ -1,4 +1,5 @@
 #pragma auto_inline off
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/Util/TalkUtil.hpp"
 
@@ -9,8 +10,7 @@ extern "C" {
     void fn_804F7580(WorldMapResultCommand*, const char*);
     TVec3f* fn_804E8510(WorldMapResultCommand*);
     void fn_804F83E0(WorldMapResultCommand*, const char*, s32);
-    void fn_804F7810(WorldMapResultCommand*);
-    void fn_804D72A0();
+    s32 fn_804F7810(WorldMapResultCommand*);
     void fn_804F6B10(WorldMapResultCommand*);
     void fn_804F7F90(WorldMapResultCommand*);
     bool fn_804F7FE0(WorldMapResultCommand*);
@@ -113,8 +113,7 @@ void WorldMapResultStatePointEvent::appear() {
         sp14 = sp8 + *fn_804E8540();
         mOffset = sp14;
     }
-    fn_804F7810(mHost);
-    fn_804D72A0();
+    GameSequenceFunction::setWorldMapCurrentNode(fn_804F7810(mHost));
 }
 
 void WorldMapResultStatePointEvent::kill() {

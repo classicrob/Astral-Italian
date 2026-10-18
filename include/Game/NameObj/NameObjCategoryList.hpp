@@ -47,7 +47,7 @@ public:
     void add(NameObj*, int);
     void remove(NameObj*, int);
     void registerExecuteBeforeFunction(const MR::FunctorBase&, int);
-    bool fn_80339F80(int);
+    bool isRegisteredExecuteFunction(int) const;
     void initTable(u32, const CategoryListInitialTable*);
 
     MR::AssignableArray< NameObjCategoryList::CategoryInfo > mInfoTable;  // 0x00

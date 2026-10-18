@@ -2,27 +2,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-// Hill-shaped body part of the BellyDragon (LiveActor). Owner is a matrix pointer (0x90), its translation is copied to the actor.
-class BellyDragonBodyHill : public LiveActor {
-public:
-    BellyDragonBodyHill(const char*, MtxPtr, bool, bool);
-
-    virtual ~BellyDragonBodyHill();
-    virtual void init(const JMapInfoIter&);
-    virtual void appear();
-    virtual void calcAndSetBaseMtx();
-
-    void exeAppear();
-    void exeDisappear();
-
-    /* 0x90 */ MtxPtr mParentMtx;
-    /* 0x94 */ bool mIsDiveIn;
-    /* 0x95 */ bool mIsCheckAppearEnd;
-    /* 0x96 */ bool mIsAutoDisappear;
-    /* 0x97 */ bool mIsLongDisappear;
-    /* 0x98 */ bool mIsDiveSound;
-};
-
 namespace NrvBellyDragonBodyHill {
     NEW_NERVE(BellyDragonBodyHillNrvAppear, BellyDragonBodyHill, Appear);
     NEW_NERVE(BellyDragonBodyHillNrvDisappear, BellyDragonBodyHill, Disappear);

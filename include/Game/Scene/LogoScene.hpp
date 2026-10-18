@@ -7,7 +7,13 @@ class LayoutActor;
 class LogoFader;
 class SimpleLayout;
 
+namespace NrvLogoScene {
+    class LogoSceneNrvStrapFadeout;
+};  // namespace NrvLogoScene
+
 class LogoScene : public Scene {
+    friend class NrvLogoScene::LogoSceneNrvStrapFadeout;
+
 public:
     /// @brief Creates a new `LogoScene`.
     LogoScene();

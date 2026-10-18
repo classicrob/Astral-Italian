@@ -10,10 +10,13 @@ namespace MR {
     const char* getCurrentDemoPartName();
     void registerDemoSimpleCastAll(NameObj*);
     void registerDemoSimpleCastAll(LiveActor*);
+    bool tryStartDemo(NameObj*, const char*);
     bool tryStartDemo(LiveActor*, const char*);
     bool isDemoEndWaitCameraInterpolating();
     bool tryEndDemoAndKillEffects(LiveActor*, const char*);
     bool tryEndDemoAndAnimCamera(LiveActor*, ActorCameraInfo*, const char*, s32);
+    bool tryStartDemoAndAnimCamera(LiveActor*, const ActorCameraInfo*, const char*, s32);  // fn_80020260
+    bool endDemoAndAnimCameraIfActionEnd(LiveActor*, const ActorCameraInfo*, const char*, s32);  // fn_800202E0
     bool tryEndDemo(LiveActor*, const char*, bool);
     void endDemo(NameObj*, const char*);
     bool isDemoActive();
@@ -43,10 +46,12 @@ namespace MR {
     bool isDemoCast(const LiveActor*, const char*);
     bool isRegisteredDemoActionAppear(const LiveActor*);
     bool isRegisteredDemoActionNerve(const LiveActor*);
+    bool tryStartDemoWithoutCinemaFrame(NameObj*, const char*);
     bool tryStartDemoWithoutCinemaFrame(LiveActor*, const char*);
     bool tryStartDemoWithoutCinemaFrameValidStarPointer(LiveActor*, const char*);
     bool tryStartDemoWithoutCinemaFrameValidHandPointerFinger(NameObj*, const char*);
     bool tryStartDemoMarioPuppetable(LiveActor*, const char*);
+    bool tryStartDemoMarioPuppetableWithoutCinemaFrame(NameObj*, const char*);
     bool tryStartDemoMarioPuppetableWithoutCinemaFrame(LiveActor*, const char*);
     bool tryStartTimeKeepDemo(NameObj*, const char*, const char*);
     bool tryStartTimeKeepDemoMarioPuppetable(NameObj*, const char*, const char*);
@@ -84,6 +89,7 @@ namespace MR {
     s32 getDemoPartStep(const char*);
     void pauseTimeKeepDemo(LiveActor*);
     void resumeTimeKeepDemo(LiveActor*);
+    bool isPauseTimeKeepDemo(LiveActor*);
     bool isPowerStarGetDemoActive();
     const char* getCurrentDemoPartNameMain(const char*);
     void startTalkingSequenceWithoutCinemaFrame(NameObj*);

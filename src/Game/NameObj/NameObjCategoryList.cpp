@@ -44,6 +44,10 @@ void NameObjCategoryList::add(NameObj* pObj, int idx) {
     s32 cnt = inf->_8++;
     inf->mList.mArr[cnt] = pObj;
 }
+bool NameObjCategoryList::isRegisteredExecuteFunction(int idx) const {
+    return mInfoTable.mArr[idx].mFunc != nullptr;
+}
+
 void NameObjCategoryList::initTable(u32 count, const CategoryListInitialTable* pTable) {
     mInfoTable.mArr = new CategoryInfo[count];
     mInfoTable.mMaxSize = count;

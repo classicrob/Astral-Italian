@@ -5,11 +5,11 @@ PlayResultMarioFaceShipHolder::PlayResultMarioFaceShipHolder() : NameObj("\x83v\
 }
 
 void PlayResultMarioFaceShipHolder::reset() {
-    mUnk12 = false;
-    mUnk13 = false;
-    mUnk14 = false;
-    mUnk18 = 0;
-    mUnk1C = false;
+    mIsAfterFileSelect = false;
+    mIsRespondGameOver = false;
+    mIsSkipBankInfo = false;
+    mClearedScenariosCount = 0;
+    mFlag1C = false;
 }
 
 PlayResultMarioFaceShipHolder::~PlayResultMarioFaceShipHolder() {

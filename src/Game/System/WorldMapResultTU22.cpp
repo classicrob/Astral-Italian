@@ -1,10 +1,11 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     void fn_804F82C0(WorldMapResultCommand*, s32, s32);
     void fn_804F73F0(WorldMapResultCommand*, s32);
-    void* fn_804F7810(WorldMapResultCommand*);
-    void fn_804D72A0(void*);
+    s32 fn_804F7810(WorldMapResultCommand*);
     bool fn_804F72D0(WorldMapResultCommand*);
     bool fn_804E8E00(bool);
     void fn_804F7250(WorldMapResultCommand*);
@@ -14,9 +15,7 @@ extern "C" {
     bool fn_804F7550(WorldMapResultCommand*);
     bool fn_804F7360(WorldMapResultCommand*);
     bool fn_804F7520(WorldMapResultCommand*);
-    void* fn_804F60C0(WorldMapResultCommand*);
-    void fn_804F2ED0(void*, s32);
-    void fn_804F2F00(void*, s32);
+    WorldMapResultWorld* fn_804F60C0(WorldMapResultCommand*);
     void fn_804F6B10(WorldMapResultCommand*);
     void fn_804F74F0(WorldMapResultCommand*);
     void fn_804F7480(WorldMapResultCommand*);
@@ -50,7 +49,7 @@ void WorldMapResultStateWait::appear() {
     setNerve(GET_NERVE(WorldMapResultStateWait, WorldMapResultStateWaitMain));
     MR::deactivateDefaultGameLayout();
     fn_804F73F0(mHost, -1);
-    fn_804D72A0(fn_804F7810(mHost));
+    GameSequenceFunction::setWorldMapCurrentNode(fn_804F7810(mHost));
     mTimer = 10;
     bool flag = fn_804F72D0(mHost);
     mFlagA = flag;
@@ -143,7 +142,7 @@ bool WorldMapResultStateWait::isYYY() const {
 
 void WorldMapResultStateWait::setTarget(s32 pTarget) {
     if (mTargetSet == 0) {
-        fn_804F2ED0(fn_804F60C0(mHost), pTarget);
+        fn_804F60C0(mHost)->startRoutePointOpenSound(pTarget);
     }
 
     mTarget = pTarget;
@@ -152,7 +151,7 @@ void WorldMapResultStateWait::setTarget(s32 pTarget) {
 
 void WorldMapResultStateWait::clearTarget() {
     if (mTargetSet != 0) {
-        fn_804F2F00(fn_804F60C0(mHost), mTarget);
+        fn_804F60C0(mHost)->startRoutePointCloseSound(mTarget);
     }
 
     mTarget = -1;

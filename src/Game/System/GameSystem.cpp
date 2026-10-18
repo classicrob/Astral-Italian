@@ -37,7 +37,6 @@
 #include <revolution.h>
 
 extern "C" s32 fn_804BB950(void*);
-extern "C" void fn_804D9230();
 
 #define GX_FIFO_SIZE 0x80000
 
@@ -89,7 +88,7 @@ void GameSystem::init() {
     mFontHolder->createFontFromEmbeddedData();
     mDataHolder = new GameSystemDataHolder();
     initNerve(GET_NERVE(GameSystem, GameSystemInitializeAudio));
-    mSequenceDirector = new GameSequenceDirector();
+    mSequenceDirector = new GameSequenceDirector(mDataHolder);
     initGX();
     DrawSyncManager::start(0x300, 15);
     mSceneController = new GameSystemSceneController();
@@ -226,7 +225,7 @@ void GameSystem::draw() {
         mSystemWipeHolder->draw();
     }
 
-    fn_804D9230();
+    GameSequenceFunction::drawPlayerMissLeft();
 
     if (mSceneController->mScenarioSelectScene != nullptr) {
         mSceneController->mScenarioSelectScene->draw();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/Nerve.hpp"
 
 class FileSelectModel : public LiveActor {
 public:
@@ -27,3 +28,26 @@ public:
 
     MtxPtr _8C;
 };
+
+namespace NrvFileSelectModel {
+    class FileSelectModelNrvOpen : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static FileSelectModelNrvOpen sInstance;
+    };
+    class FileSelectModelNrvBlinkOnce : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static FileSelectModelNrvBlinkOnce sInstance;
+    };
+    class FileSelectModelNrvClose : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static FileSelectModelNrvClose sInstance;
+    };
+    class FileSelectModelNrvBlink : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static FileSelectModelNrvBlink sInstance;
+    };
+};  // namespace NrvFileSelectModel

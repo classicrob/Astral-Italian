@@ -55,6 +55,7 @@ namespace StarPointerUtil {
     void setConnectionMovePositionRight(const char*, const char*);
     void setConnectionMovePositionDown(const char*, const char*);
 }
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_8005EA60(const char*);
 extern "C" void fn_8005EAA0(const char*);
 extern "C" void fn_8005EAE0(const char*, const char*);
@@ -146,19 +147,17 @@ void FileSelector_FORCE_MATCH_SDATA2() {
     (void)0.0f;
 }
 
-extern "C" void fn_8004B340(NameObj*);
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_803B6830(int);
+extern "C" void fn_8045E970(BackButton*);
 extern "C" bool fn_8045E9D0(BackButton*);
 extern "C" void fn_80486AA0();
 extern "C" bool fn_804A2BB0(SysInfoWindow*);
-extern "C" void fn_80486AF0();
 extern "C" void fn_80060290();
 extern "C" bool fn_800602A0();
 extern "C" bool fn_804A54D0(TitleSequenceProduct*);
 extern "C" void fn_8024CFE0(FileSelectItem*);
 extern "C" void fn_8024D010(FileSelectItem*);
-extern "C" void fn_804D5F60(s32, s32, s32*);
-extern "C" void fn_804D5E70(s32);
 extern "C" void fn_804D4700();
 extern "C" void fn_804D3DF0();
 
@@ -306,9 +305,9 @@ void FileSelector::createBackButton() {
 
 void FileSelector::createSysInfoWindow() {
     mSysInfoWindow = MR::createSysInfoWindow();
-    fn_8004B340(mSysInfoWindow);
+    MR::connectToSceneLayoutTemporarily(mSysInfoWindow);
     mSysInfoWindowMini = MR::createSysInfoWindowMiniExecuteWithChildren();
-    fn_8004B340(mSysInfoWindowMini);
+    MR::connectToSceneLayoutTemporarily(mSysInfoWindowMini);
 }
 
 void FileSelector::createFileInfo() {
@@ -550,7 +549,7 @@ bool FileSelector::checkSelectedBackButton() {
         return false;
     }
 
-    return fn_8045E9D0(mBackButton);
+    return mBackButton->isSelected();
 }
 
 void FileSelector::goToNearPoint() {
@@ -631,7 +630,7 @@ void FileSelector::validateRotateAllItems() {
 
 void FileSelector::stopMovementForLayout() {
     if (!_EC) {
-        fn_80486AA0();
+        MR::incrementPauseBlurDelay();
 
         if (mSky != nullptr) {
             MR::requestMovementOff(mSky);
@@ -647,7 +646,7 @@ void FileSelector::stopMovementForLayout() {
 
 void FileSelector::restartMovementForLayout() {
     if (_EC) {
-        fn_80486AF0();
+        MR::decrementPauseBlurDelay();
 
         if (mSky != nullptr) {
             MR::requestMovementOn(mSky);
@@ -1101,8 +1100,8 @@ void FileSelector::exeFileConfirmMiiDeleteWarning() {
 
 void FileSelector::exeFileConfirmMiiDeleteSave() {
     if (MR::isFirstStep(this)) {
-        s32 arg = 1;
-        fn_804D5F60(_B0->_140, 0, &arg);
+        u32 arg = 1;
+        GameSequenceFunction::storeMiiOrIconIdAndSaveAllUserFileSequence(_B0->_140, nullptr, &arg);
     }
 
     if (!GameSequenceFunction::isActiveSaveDataHandleSequence()) {
@@ -1157,7 +1156,7 @@ void FileSelector::exeDemoStartWait() {
 
 void FileSelector::exeDemo() {
     if (MR::isFirstStep(this)) {
-        fn_804D5E70(_B0->_140);
+        GameSequenceFunction::startLoadUserFileSequence(_B0->_140);
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM", 30);
         MR::stopSystemSE("SE_SY_LV_TITLE_BGM_RHYTHM", 30);
         _F8 = false;

@@ -111,7 +111,7 @@ namespace MR {
     void registerPreDrawFunction(const MR::FunctorBase& rFunctor, int drawType);
     void registerPreDrawFunctionIfNotExist(const MR::FunctorBase& rFunctor, int drawType);
 
-    NameObjAdaptor* createDrawAdapter(const char* pName, int drawType, const MR::FunctorBase& rFunctor);
+    NameObjAdaptor* createDrawAdaptor(const char* pName, int drawType, const MR::FunctorBase& rFunctor);
     NameObjAdaptor* createAdaptorAndConnectToDrawBloomModel(const char* pName, const MR::FunctorBase& rFunctor);
 
     void listenNameObjStageSwitchOnAppear(const NameObj* pObj, const StageSwitchCtrl* pStageSwitchCtrl, const MR::FunctorBase& rFunctor);
@@ -168,6 +168,9 @@ namespace MR {
     /// <param name="pElementName">The BCSV Column to get the data from using the index of the row found for pDataName</param>
     JMapInfoIter getCsvDataStrByElement(const char** pDest, const JMapInfo* pCsvData, const char* pItemName, const char* pDataName,
                                         const char* pElementName);
+    JMapInfoIter getCsvDataStrByElement(const char** pDest, const JMapInfo* pCsvData, const char* pItemName, s32 data, const char* pElementName);
+    JMapInfoIter getCsvDataS32ByElement(s32* pDest, const JMapInfo* pCsvData, const char* pItemName, const char* pDataName,
+                                        const char* pElementName);
     // more csv functions...
 
     void declarePowerStar(const NameObj* pHost);
@@ -208,9 +211,7 @@ namespace MR {
     void initStarPieceGetCSSound();
 
     BenefitItemOneUp* createKinokoOneUp();
-    void appearKinokoOneUp(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
-    void appearKinokoOneUpPop(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
-    void appearKinokoOneUpHop(BenefitItemOneUp* pKinoko, MtxPtr pMtx);
+    void appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx);
     void appearKinokoOneUpPop(BenefitItemObj* pKinoko, MtxPtr pMtx);
     void appearKinokoOneUpHop(BenefitItemObj* pKinoko, MtxPtr pMtx);
 
@@ -248,7 +249,6 @@ namespace MR {
     void suspendAllSceneNameObj();
     void resumeAllSceneNameObj();
 
-    void requestPointLight(const LiveActor*, TVec3f, Color8, f32, s32);
     bool registerNamePosLinkObj(const NameObj* pLinkedObj, const JMapInfoIter& rIter, const char* pPosName);
     bool tryRegisterNamePosLinkObj(const NameObj* pLinkedObj, const JMapInfoIter& rIter, const char* pPosName);
     bool findNamePos(const char* pPosName, MtxPtr pMtx);

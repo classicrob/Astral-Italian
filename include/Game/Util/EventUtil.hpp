@@ -52,7 +52,7 @@ namespace MR {
     void explainOneUpIfAtFirst();
     void explainYoshiIfAtFirst(LiveActor* pHost);
     void explainCometMedalIfAtFirst(LiveActor* pHost);
-    void explainMarioFacePlanetAtFirst(LiveActor* pHost);
+    bool explainMarioFacePlanetAtFirst(LiveActor* pHost);
 
     void onGameEventFlagBeeMarioAtFirst();
     void onGameEventFlagTeresaMarioAtFirst();
@@ -116,7 +116,7 @@ namespace MR {
     bool isOnGameEventFlagPowerStarSuccess(const char* pDeclarer, s32 powerStarId);
     bool hasGrandStar(int grandStarId);
     s32 getPowerStarNumOwnedInStage(const char* pStageName);
-    bool isPowerStarGreen(const char* pStageName, s32 powerStarId);
+    bool isPowerStarGreen(const char* pStageName, s32 powerStarId) NO_INLINE;
     bool isPowerStarGreenInCurrentStage();
     bool isPowerStarBronze(const char* pStageName, s32 powerStarId);
 

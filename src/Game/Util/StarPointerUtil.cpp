@@ -9,7 +9,6 @@
 #include "Game/Screen/StarPointerLayout.hpp"
 #include "Game/Screen/StarPointerTarget.hpp"
 #include "Game/System/GameSequenceDirector.hpp"
-#include "Game/System/GameSequenceProgress.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/StarPointerOnOffController.hpp"
@@ -53,7 +52,7 @@ namespace {
     }
 
     StarPointerOnOffController* getStarPointerOnOffController() NO_INLINE {
-        return SingletonHolder< GameSystem >::get()->mSequenceDirector->mGameSequenceProgress->mStarPointerOnOffController;
+        return SingletonHolder< GameSystem >::get()->mSequenceDirector->mStarPointerOnOffController;
     }
 
     inline StarPointerController* getStarPointerController(s32 channel) {

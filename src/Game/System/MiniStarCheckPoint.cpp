@@ -1,20 +1,18 @@
 #include "Game/System/MiniStarCheckPoint.hpp"
 #include "Game/System/MiniWorldMapMark.hpp"
+#include "Game/System/WorldMapFunction.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
 class TalkMessageCtrl;
 
 
+// PLACEHOLDER(core): unnamed SMG2 callees and helpers (no symbol name yet); resolve when their owners name them
 extern "C" bool fn_804E5A10(const char*);
 extern "C" bool fn_804D3E20(s32, s32);
 extern "C" void fn_804D3E70(s32, s32);
 extern "C" void fn_804D3EC0(s32, s32);
-extern "C" void fn_804E8C40(LiveActor*);
-extern "C" void fn_804E8C50(LiveActor*, f32, f32);
-extern "C" void fn_804E8C80(LiveActor*, f32, f32);
 extern "C" void fn_804E5CE0(MiniStarCheckPoint*);
-extern "C" bool fn_804E5E20(MiniStarCheckPoint*);
 extern "C" void fn_804E5EF0(MiniStarCheckPoint*);
 
 namespace NrvMiniStarCheckPoint {
@@ -127,7 +125,7 @@ extern "C" void fn_804E5CE0(MiniStarCheckPoint* pActor) {
 }
 
 void MiniStarCheckPoint::control() {
-    fn_804E8C80(this, 0.05f, 1.0f);
+    WorldMapFunction::returnScale(this, 0.05f, 1.0f);
 }
 
 void MiniStarCheckPoint::calcAndSetBaseMtx() {
@@ -137,99 +135,76 @@ void MiniStarCheckPoint::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mtx);
 }
 
-extern "C" void fn_804E5DC0(MiniStarCheckPoint* pActor) {
-    pActor->setNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvOpen::sInstance);
+void MiniStarCheckPoint::startOpen() {
+    setNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvOpen::sInstance);
 }
 
-extern "C" void fn_804E5DD0(MiniStarCheckPoint* pActor) {
-    if (fn_804E5E20(pActor)) {
-        fn_804D3E70(pActor->mUnkA0, pActor->mUnk98);
+void MiniStarCheckPoint::resetOpen() {
+    if (isDone()) {
+        fn_804D3E70(mUnkA0, mUnk98);
     } else {
-        fn_804D3EC0(pActor->mUnkA0, pActor->mUnk98);
+        fn_804D3EC0(mUnkA0, mUnk98);
     }
 }
 
-extern "C" bool fn_804E5E20(MiniStarCheckPoint* pActor) {
-    if (pActor->isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvOpen::sInstance)) {
+bool MiniStarCheckPoint::isDone() const {
+    if (isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvOpen::sInstance)) {
         return true;
     }
-    if (pActor->isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvDone::sInstance)) {
+    if (isNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvDone::sInstance)) {
         return true;
     }
     return false;
 }
 
-extern "C" bool fn_804E5E80(MiniStarCheckPoint* pActor) {
-    if (fn_804E5E20(pActor)) {
+bool MiniStarCheckPoint::isStandby() const {
+    if (isDone()) {
         return false;
     }
-    if (fn_804E5A10(pActor->mKind)) {
-        return MR::hasGrandStar(pActor->mStarNum);
+    if (fn_804E5A10(mKind)) {
+        return MR::hasGrandStar(mStarNum);
     }
-    return MR::getPowerStarNum() >= pActor->mStarNum;
+    return MR::getPowerStarNum() >= mStarNum;
 }
 
-extern "C" void fn_804E5EF0(MiniStarCheckPoint* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        if (pActor->mStarNum <= 3) {
-            MR::startAction(pActor, "OpenS");
-        } else if (pActor->mStarNum <= 8) {
-            MR::startAction(pActor, "OpenM");
-        } else {
-            MR::startAction(pActor, "OpenL");
-        }
-        MR::startActionSound(pActor, "Burst", -1, -1, -1);
-    }
-
-    if (MR::isLessStep(pActor, 0x8C)) {
-        MR::tryRumblePadVeryWeak(pActor, 0);
-    }
-
-    if (MR::isStep(pActor, 0x8C)) {
-        MR::tryRumblePadWeak(pActor, 0);
-        MR::shakeCameraNormal();
-        fn_804E5CE0(pActor);
-    }
+void MiniStarCheckPoint::talk() {
+    MR::tryTalkForce(mTalkCtrl);
 }
 
-extern "C" bool fn_804E5FE0(MiniStarCheckPoint* pActor) {
-    return MR::tryTalkForce(pActor->mTalkCtrl);
+bool MiniStarCheckPoint::isOpening() const {
+    return WorldMapFunction::isPointing(const_cast<MiniStarCheckPoint*>(this));
 }
 
-extern "C" void fn_804E5FF0(LiveActor* pActor) {
-    fn_804E8C40(pActor);
-}
-
-extern "C" bool fn_804E6000(MiniStarCheckPoint* pActor) {
-    fn_804E8C50(pActor, 0.1f, 1.4f);
-    MR::tryTalkForce(pActor->mTalkCtrl);
+bool MiniStarCheckPoint::isReadyToOpen() const {
+    WorldMapFunction::approachScale(const_cast<MiniStarCheckPoint*>(this), 0.1f, 1.4f);
+    MR::tryTalkForce(mTalkCtrl);
     return true;
 }
 
-extern "C" bool fn_804E6040(MiniStarCheckPoint* pActor, s32 arg) {
-    if (fn_804E5E20(pActor)) {
+bool MiniStarCheckPoint::update(s32 distance) {
+    if (isDone()) {
         return false;
     }
-    if (fn_804E5E80(pActor)) {
-        if (arg == 0) {
-            MR::startActionSound(pActor, "Shine", -1, -1, -1);
+    if (isStandby()) {
+        if (distance == 0) {
+            MR::startActionSound(this, "Shine", -1, -1, -1);
             return true;
         }
-        if (arg == 1) {
-            MR::startActionSound(pActor, "Shine", -1, -1, -1);
+        if (distance == 1) {
+            MR::startActionSound(this, "Shine", -1, -1, -1);
             return true;
         }
         return false;
     }
-    if (arg == 0) {
+    if (distance == 0) {
         return true;
     }
-    if (arg == 1) {
+    if (distance == 1) {
         return true;
     }
     return false;
 }
 
-extern "C" void fn_804E6120(LiveActor* pActor, s32 drawOrder) {
-    MR::setAllEffectDrawOrder(pActor, drawOrder);
+void MiniStarCheckPoint::setEffectDrawOrder(s32 drawOrder) {
+    MR::setAllEffectDrawOrder(this, drawOrder);
 }

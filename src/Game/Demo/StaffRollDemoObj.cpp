@@ -230,11 +230,11 @@ void StaffRollDemoObj::exeE() {
     if (MR::isFirstStep(this)) {
         mChildB->makeActorAppeared();
     }
-    s32 frame = UnnamedDemoCallee::fn_80492760(mStaffRollObj);
+    s32 frame = mStaffRollObj->getElapsedFrame();
     if (frame >= 0x32C8) {
         MR::offPlayerControl();
     }
-    if (UnnamedDemoCallee::fn_80492730(mStaffRollObj) != 0) {
+    if (mStaffRollObj->isEnd()) {
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvF));
     }
 }

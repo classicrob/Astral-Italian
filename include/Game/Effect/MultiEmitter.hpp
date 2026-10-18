@@ -83,6 +83,7 @@ public:
     void stopDrawParticle(s32);
     void playDrawParticle(s32);
     void setParticleCallBackPtr(JPAParticleCallBack*, s32);
+    void pauseOn(s32);
     void pauseOff(s32);
 
     // In MarioEffect

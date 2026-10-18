@@ -275,6 +275,7 @@ namespace MR {
     f32 normalize(f32 x, f32 min, f32 max);
 
     f32 normalizeAbs(f32 x, f32 min, f32 max);
+    f32 normalizeAndClamp01(f32 x, f32 min, f32 max);
 
     bool turnVecToVecCos(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, f32 cosAngle, const TVec3f& rAxis, f32 fallbackLength = 0.02f);
 

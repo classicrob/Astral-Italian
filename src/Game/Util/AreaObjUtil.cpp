@@ -20,6 +20,14 @@ void AreaObjUtil_FORCE_MATCH(TVec3f* pVec, const TVec3f& rOther) {
 }
 
 namespace MR {
+    bool isAreaFormCube(const AreaObj* pArea) {
+        return pArea->mFormType == AreaForm::Type_Cube1 || pArea->mFormType == AreaForm::Type_Cube2;
+    }
+
+    bool isAreaFormCylinder(const AreaObj* pArea) {
+        return pArea->mFormType == AreaForm::Type_Cylinder;
+    }
+
     inline AreaObj* getAreaIn(const char* pName, const TVec3f& rPos) {
         return getAreaObjContainer()->getAreaObj(pName, rPos);
     }
@@ -30,6 +38,10 @@ namespace MR {
 
     AreaObj* getAreaObj(const char* pAreaName, const TVec3f& rVec) {
         return MR::getAreaObjContainer()->getAreaObj(pAreaName, rVec);
+    }
+
+    AreaObj* getAreaObjAtPlayerPos(const char* pAreaName) {
+        return MR::getAreaObjContainer()->getAreaObj(pAreaName, *MR::getPlayerPos());
     }
 
     bool isInAreaObj(const char* pAreaName, const TVec3f& rVec) {
@@ -188,8 +200,31 @@ namespace MR {
     }
 #pragma pop
 
+    void requestMovementOnAreas(const char* pMgrName) {
+        AreaObjMgr* pMgr = MR::getAreaObjContainer()->getManager(pMgrName);
+
+        if (pMgr != nullptr) {
+            pMgr->requestMovementOnAll();
+        }
+    }
+
+    void requestMovementOnSoundAreas() {
+        MR::requestMovementOnAreas("SoundPlayArea");
+        MR::requestMovementOnAreas("SoundEmitterCube");
+        MR::requestMovementOnAreas("SoundEmitterSphere");
+        MR::requestMovementOnAreas("SoundEmitterPoint");
+    }
+
+    bool hasNoWaterAreaCube(const WaterInfo* pInfo) {
+        if (pInfo->mWaterArea == nullptr) {
+            return true;
+        }
+
+        return pInfo->mWaterArea->mFormType != AreaForm::Type_Cube1 && pInfo->mWaterArea->mFormType != AreaForm::Type_Cube2;
+    }
+
     bool calcWhirlPoolAccelInfo(const TVec3f& rVec, TVec3f* pVec) {
-        return WaterAreaFunction::tryInWhirlPoolAccelerator(rVec, pVec);
+        return false;
     }
 
     void calcCubePos(const AreaObj* pArea, TVec3f* pPos) {
@@ -228,8 +263,38 @@ namespace MR {
         return pArea->getForm< AreaFormSphere >()->mRadius;
     }
 
+    void calcSphereFrontVec(TVec3f* pVec, const AreaObj* pArea, const TVec3f& rPos) {
+        TVec3f center(0.0f);
+        pArea->getForm< AreaFormSphere >()->calcPos(&center);
+
+        TVec3f dir(center);
+        dir -= rPos;
+
+        if (MR::normalizeOrZero(pVec, dir)) {
+            pArea->getForm< AreaFormSphere >()->calcFrontVec(pVec);
+            pVec->negate();
+        }
+    }
+
     void calcCylinderPos(TVec3f* pVec, const AreaObj* pArea) {
         pArea->getForm< AreaFormCylinder >()->calcPos(pVec);
+    }
+
+    void calcCylinderFrontVec(TVec3f* pVec, const AreaObj* pArea, const TVec3f& rPos) {
+        AreaFormCylinder* pForm = pArea->getForm< AreaFormCylinder >();
+        TVec3f center(0.0f);
+        TVec3f up(0.0f);
+        pForm->calcCenterPos(&center);
+        pForm->calcUpVec(&up);
+
+        TVec3f dir(center);
+        dir -= rPos;
+
+        JMAVECScaleAdd(&up, &dir, pVec, -up.dot(dir));
+
+        if (MR::normalizeOrZero(pVec)) {
+            MR::makeAxisVerticalZX(pVec, up);
+        }
     }
 
     void calcCylinderCenterPos(TVec3f* pVec, const AreaObj* pArea) {
@@ -245,15 +310,15 @@ namespace MR {
     }
 
     void tryToUpdatePlayerRestartIdInfo(const TVec3f& rVec) {
-        RestartCube* pCube = MR::getAreaObj< RestartCube >("RestartCube", rVec);
-
-        if (pCube != nullptr) {
-            pCube->updatePlayerRestartIdInfo();
-        }
     }
 
     bool getWaterAreaObj(WaterInfo* pInfo, const TVec3f& rPos) {
         pInfo->clear();
+
+        if (WaterAreaFunction::tryInOceanArea(rPos, pInfo)) {
+            return true;
+        }
+
         WaterArea* pArea = getAreaObj< WaterArea >("Water", rPos);
 
         if (pArea != nullptr) {
@@ -261,7 +326,7 @@ namespace MR {
             return true;
         }
 
-        return WaterAreaFunction::tryInOceanArea(rPos, pInfo);
+        return false;
     }
 
     bool calcAreaMoveVelocity(TVec3f* pVelocity, const TVec3f& rPos) {

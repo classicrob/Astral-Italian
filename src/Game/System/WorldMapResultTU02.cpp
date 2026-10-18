@@ -1,9 +1,9 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 // Result-map helpers of WorldMapResultCommand that drive the worlds of TU07 (route opening, comet and Tico road effects).
 
 extern "C" {
-    s32 fn_804D72E0();
     const Vec* fn_804E8530();
     const Vec* fn_804E8540();
     void fn_804E71F0(LiveActor*, f32);
@@ -33,7 +33,7 @@ extern "C" {
 
 extern "C" WorldMapResultLinkItem* fn_804F0500(WorldMapResultCommand* pCommand) {
     s32 index = GameDataFunction::getCurrentWorldId() - 1;
-    return static_cast< WorldMapResultLinkItem* >(pCommand->mWorlds[index]->mUnit14->getTicoCreator(fn_804D72E0()));
+    return static_cast< WorldMapResultLinkItem* >(pCommand->mWorlds[index]->mUnit14->getTicoCreator(GameSequenceFunction::getWorldMapCurrentNode()));
 }
 
 extern "C" WorldMapResultWorld* fn_804F0560(WorldMapResultCommand* pCommand) {
@@ -140,7 +140,7 @@ extern "C" void fn_804F0A40(WorldMapResultCommand* pCommand, s32 worldId, WorldM
     pCommand->setCameraEye(eye);
 
     if (worldId == GameDataFunction::getCurrentWorldId()) {
-        s32 node = fn_804D72E0();
+        s32 node = GameSequenceFunction::getWorldMapCurrentNode();
         fn_804F0630(pCommand, GameDataFunction::getCurrentWorldId(), node);
     }
 }
@@ -184,7 +184,7 @@ extern "C" void fn_804F0D00(WorldMapResultCommand* pCommand, const char* pName) 
     pCommand->mWorlds[worldId - 1]->setupNode(0, -1);
 
     if (worldId == GameDataFunction::getCurrentWorldId()) {
-        fn_804F0630(pCommand, worldId, fn_804D72E0());
+        fn_804F0630(pCommand, worldId, GameSequenceFunction::getWorldMapCurrentNode());
     } else {
         pCommand->mRocket->makeActorDead();
     }

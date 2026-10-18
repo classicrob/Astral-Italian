@@ -11,12 +11,12 @@ class SaveDataHandleSequence;
 
 namespace GameDataFunction {
     u32 getScenarioClearTime(const char*, s32);
+    u32 getBestScoreAttackCurrentStage(const char* pStageName = nullptr);  // SMG2 symbol FPCc (core h10)
     bool isOnLuigiIntrusivelyStart();
     void onLuigiIntrusivelyAppear();
     s32 getPlayerStatusCounter14();
     s32 getPendingSharedPlayerLeft();
     s32 getPlayerMissNum();
-    u32 getBestScoreAttackCurrentStage(const char* stageName = nullptr);
     void setBestScoreAttackCurrentStage(u32);
     s32 getTicoFatStarPieceAlms(s32);
     void addTicoFatStarPieceAlms(s32, s32);
@@ -50,6 +50,8 @@ namespace GameDataFunction {
     s32 calcCurrentPowerStarNum();
     s32 getPowerStarNumOwned(const char*);
     const char* getWorldFinalGalaxyName(s32 worldId);
+    s32 getGrandStarNo(const char* pGalaxyName);
+    s32 getCometAppearMedalNum(const char* pGalaxyName);
     bool isGalaxyStateNew(const char*);
     bool isGalaxyStateOpened(const char*);
     void setGalaxyStateNew(const char*);
@@ -85,3 +87,70 @@ namespace GameDataFunction {
 };  // namespace GameDataFunction
 
 namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u16 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }
+// GameSequenceFunction lane (core): declarations needed by GameSequenceFunction; names given from the target code.
+namespace GameDataFunction {
+    void forceMarioPlayer();
+    void forceLuigiPlayer();
+    bool isLuigiPlayer();
+    s32 getScenarioMissNum(const char*, s32);
+    bool isOnGameEventFlagWorld1Entered();
+    void offGameEventFlag(const char*);
+    s32 tryOnGameEventFlagCoinCounterStop(int);
+    void setPowerStar(const char*, s32);
+    void setBronzeStar(const char*, s32);
+    s32 getNormalPowerStarNumOwned();
+    bool isGalaxyStateClosed(const char*);
+    bool isOnGalaxyFlagComet(const char*);
+    void onGalaxyFlagComet(const char*);
+    void offGalaxyFlagComet(const char*);
+    void onGalaxyFlagTicoCoin(const char*);
+    bool isOnGalaxyScenarioFlagGhostLuigi(const char*, s32);
+    void onGalaxyScenarioFlagGhostLuigi(const char*, s32);
+    void updateBankInterest();
+    s32 calcNormalPowerStarNumFromWorld(s32);       // fn_804D27F0
+    bool isOnLuigiIntrusivelyStart();    // fn_804D30E0
+    bool isOnCurrentScenarioFlagLuigiIntruded();    // fn_804D3190
+    void updateLuigiIntrusionCounter();             // fn_804D31E0
+    void setScenarioBestTime(const char*, s32, s32);  // fn_804D3CB0
+    u32 getScenarioClearTime(const char*, s32);      // fn_804D3D10
+    void setFaceShipEventGrandStarNo(s32);          // fn_804D41D0
+    void clearFaceShipEventValues();                // fn_804D4210
+    bool isSysConfigCounterMax();                   // fn_804D46C0
+    void copySysConfigData();                       // fn_804D4730
+};  // namespace GameDataFunction
+
+// core h10 (GameDataFunction unit): SMG2 declarations of functions defined in GameDataFunction.cpp
+namespace GameDataFunction {
+    void offGameEventFlag(const char*);
+    s32 getNormalPowerStarNumOwned(const char*);
+    void startLuigiIntrusion();
+    void setOnPostmanTaskLetterRead(s8);
+    void setOnPostmanImportantLetterRead(s8);
+    void updatePostmanPeachLetterDeath();
+    s32 getBankInterest();
+    void clearKinopioBankInterest();
+    s32 getPlayerMissNum();
+    void incScenarioMissNum(const char*, s32);
+    void incPlayerGameOverNum();
+    s32 getPlayerGameOverNum();
+    s32 getTicoFatStarPieceAlmsFromWorld(s32, s32);    // SMG2 fn_804D3980 (core h10)
+    s32 getPlayerStatusCounter14();                    // SMG2 fn_804D3B20
+    s32 getCumulativePlayTime();
+    void resetPlayerLeftAndTryOnDimensionBigCastleGalaxyComet();  // SMG2 fn_804D3DF0 (provisional name)
+    bool isOnWorldMapPointFlag(s32, s32);              // SMG2 fn_804D3E20 (provisional name)
+    void onWorldMapPointFlag(s32, s32);                // SMG2 fn_804D3E70 (provisional name)
+    void offWorldMapPointFlag(s32, s32);               // SMG2 fn_804D3EC0 (provisional name)
+    s32 calcLastEnteredWorldNo();                      // SMG2 fn_804D3F80 (provisional name)
+    s32 calcFaceShipEventNum();                        // SMG2 fn_804D4050 (provisional name)
+    s32 getFaceShipEventNo(s32);                       // SMG2 fn_804D40C0 (provisional name)
+    void tryAddFaceShipEventNo(s32);                   // SMG2 fn_804D4100 (provisional name)
+    s32 getFaceShipEventGrandStarNo();                 // SMG2 fn_804D4180
+    void setStageClearsAfterRepeatedMissCount(u16);    // SMG2 fn_804D42B0
+    u16 getStageClearsAfterRepeatedMissCount();        // SMG2 fn_804D4280
+    void incStageClearsAfterRepeatedMissCount();       // SMG2 fn_804D42F0
+    void setUserName(wchar_t* const);
+    bool hasCurrentUserMiiId();                        // SMG2 fn_804D43C0 (provisional name)
+    bool getSysConfigFileEncouragedPal16();
+    void setSysConfigFileEncouragedPal16();
+    void setSysConfigFileTimeSent(OSTime);
+};  // namespace GameDataFunction

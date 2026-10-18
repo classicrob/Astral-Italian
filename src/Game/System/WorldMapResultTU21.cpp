@@ -1,4 +1,5 @@
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 
 #include "Game/Screen/GalaxyConfirmLayout.hpp"
@@ -29,11 +30,6 @@ namespace MR {
     f32 calcNerveEaseInRate(const NerveExecutor*, s32);
     f32 calcNerveEaseInOutRate(const NerveExecutor*, s32);
     f32 getEaseInOutValue(f32, f32, f32, f32);
-}
-
-namespace GameSequenceFunction {
-    s32 getEncounterGalaxyCometPowerStarId(const char*);
-    void getEncounterGalaxyCometName(const char*);
 }
 
 namespace MR {
@@ -147,9 +143,8 @@ void WorldMapResultStateTicoRouteCreate::exeReturn() {
 
     if (MR::isGreaterStep(this, 100)) {
         u8* pInfo = static_cast< u8* >(mStarInfo);
-        GameSequenceFunction::getEncounterGalaxyCometPowerStarId(*reinterpret_cast< const char** >(pInfo + 0xA0));
-        const char* pName = *reinterpret_cast< const char** >(*reinterpret_cast< u8** >(pInfo + 0x94));
-        GameSequenceFunction::getEncounterGalaxyCometName(pName);
+        GameSequenceFunction::setTicoFatStarPieceId(*reinterpret_cast< s32* >(pInfo + 0xA0));
+        GameSequenceFunction::setTicoFatStarPieceRequirement(**reinterpret_cast< s32** >(pInfo + 0x94));
         fn_804F6FE0(mHost);
         MR::startStarPointerModeDemo(mHost);
         MR::startActionSound(fn_804E8470(mHost), "TicoReturnHomeWipeIn", -1, -1, -1);

@@ -1,3 +1,4 @@
+#include "Game/Util/SystemUtil.hpp"
 #include "Game/System/GameSequenceInGame.hpp"
 
 #include "Game/LiveActor/Nerve.hpp"
@@ -14,11 +15,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/NerveUtil.hpp"
-
-extern "C" {
-    s32 fn_804D8630();
-    void fn_80060730();
-};
 
 namespace NrvGameSequenceInGame {
     GameSequenceInGameNrvOpening GameSequenceInGameNrvOpening::sInstance ATTRIBUTE_WEAK;
@@ -50,7 +46,7 @@ void GameSequenceInGame::init() {
 
 void GameSequenceInGame::appear() {
     mIsDead = false;
-    fn_80060730();
+    MR::onUseVFilter();
 }
 
 void GameSequenceInGame::setOpening() {
@@ -91,7 +87,7 @@ PlayResultInStageHolder* GameSequenceInGame::getPlayResultInStageHolder() {
 }
 
 void GameSequenceInGame::exeOpening() {
-    if (fn_804D8630() != 0) {
+    if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
         MR::openWipeFade(-1);
         if (!GameDataFunction::isOnGameEventFlag("\x83I\x81[\x83v\x83j\x83\x93\x83O\x8e\xc0\x8ds")) {
             MR::setPlayerSwingPermission(false);

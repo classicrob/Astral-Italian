@@ -25,7 +25,7 @@ void WorldMapResultStateCometAppear::init() {
         while (!iter.isEnd()) {
             GalaxyStatusAccessor accessor = iter.makeAccessor();
 
-            if (GameSequenceFunction::isGalaxyCometLand(accessor.getName())) {
+            if (GameSequenceFunction::isNewlyOpenedGalaxyAtResult(accessor.getName())) {
                 count++;
             }
 
@@ -41,7 +41,7 @@ void WorldMapResultStateCometAppear::init() {
                 GalaxyStatusAccessor accessor = iter2.makeAccessor();
                 const char* pName = accessor.getName();
 
-                if (GameSequenceFunction::isGalaxyCometLand(pName)) {
+                if (GameSequenceFunction::isNewlyOpenedGalaxyAtResult(pName)) {
                     s32 idx = mNum;
                     mNum = idx + 1;
                     mNames[idx] = pName;

@@ -1,6 +1,9 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include <revolution.h>
+#include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSystemObjHolder.hpp"
+#include "Game/Util/SingletonHolder.hpp"
 
 namespace {
     f32* gAcosTable;
@@ -35,7 +38,12 @@ namespace MR {
         }
     }
 
-    // getRandom() (needs GameSystem)
+    f32 getRandom() {
+        u32 rand = SingletonHolder< GameSystem >::get()->mObjHolder->mRandom.rand();
+        u32 value = (rand >> 9) | 0x3F800000;
+
+        return reinterpret_cast< f32& >(value) - 1.0f;
+    }
 
     f32 getRandom(f32 min, f32 max) {
         return min + (max - min) * getRandom();
@@ -183,6 +191,102 @@ namespace MR {
         pFront->cross(rSide, rUp);
         normalize(pFront);
         pSide->cross(rUp, *pFront);
+    }
+
+    f32 getEaseInValueWithNormalize(f32 x, f32 min, f32 max, f32 start, f32 end) {
+        return getEaseInValue(normalize(x, min, max), start, end, 0.0f);
+    }
+
+    f32 getEaseInOutValue(f32 x, f32 min, f32 max, f32 start, f32 end) {
+        return getEaseInOutValue(normalize(x, min, max), start, end, 0.0f);
+    }
+
+    f32 getTwoStageEaseOutValue(f32 x, f32 start, f32 length, f32 end) {
+        if (x < start) {
+            f32 t = isNearZero(start, 0.001f) ? 0.0f : (x / start) - 1.0f;
+            return 1.0f - (t * t);
+        }
+
+        f32 mid = start + length;
+        if (x < mid) {
+            return 1.0f;
+        }
+
+        f32 t = isNearZero(end, 0.001f) ? 1.0f : (x - mid) / end;
+        return 1.0f - (t * t);
+    }
+
+    void rotateQuatAroundAxis(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rAxis, f32 rate) {
+        TQuat4f rot;
+        rot.setRotate(rAxis, rate);
+        pDst->mult(rot, rSrc);
+        pDst->normalize();
+    }
+
+    void rotateQuatXAxisDegree(TQuat4f* pDst, const TQuat4f& rSrc, f32 degree) {
+        TVec3f xDir;
+        rSrc.getXDir(xDir);
+        TQuat4f rot;
+        rot.setRotate(xDir, 0.017453292f * degree);
+        pDst->mult(rot, rSrc);
+        pDst->normalize();
+    }
+
+    void rotateQuatLocalYDegree(TQuat4f* pDst, const TQuat4f& rSrc, f32 degree) {
+        TVec3f yDir;
+        rSrc.getYDir(yDir);
+        TQuat4f rot;
+        rot.setRotate(yDir, 0.017453292f * degree);
+        pDst->mult(rot, rSrc);
+        pDst->normalize();
+    }
+
+    void rotateQuatZAxisDegree(TQuat4f* pDst, const TQuat4f& rSrc, f32 degree) {
+        TVec3f zDir;
+        rSrc.getZDir(zDir);
+        TQuat4f rot;
+        rot.setRotate(zDir, 0.017453292f * degree);
+        pDst->mult(rot, rSrc);
+        pDst->normalize();
+    }
+
+    f32 normalizeAndClamp01(f32 x, f32 min, f32 max) {
+        return JGeometry::TUtil< f32 >::clamp(normalize(x, min, max), 0.0f, 1.0f);
+    }
+
+    // PLACEHOLDER(core): SMG2 fn_8003E340 (unnamed); resolve when renamed in symbols.txt
+    void turnVecRandomAroundAxis(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rAxis, f32 min, f32 max) {
+        f32 degree = fmod(min + (max - min) * getRandom(), 360.0f);
+        TPos3f mtx;
+        mtx.identity();
+        mtx.setRotate(rAxis, 0.017453292f * degree);
+        mtx.mult(rSrc, *pDst);
+    }
+
+    // PLACEHOLDER(core): SMG2 fn_80040750 (unnamed); resolve when renamed in symbols.txt
+    f32 calcYawDegreeXZ(const TVec3f& rVec) {
+        if (rVec.z == 0.0f) {
+            if (rVec.x == 0.0f) {
+                return 90.0f;
+            }
+            return -90.0f;
+        }
+
+        if (rVec.z >= 0.0f) {
+            return JMath::sAtanTable.atan2_(rVec.x, rVec.z) * 57.295776f;
+        }
+
+        return 180.0f - (JMath::sAtanTable.atan2_(rVec.x, -rVec.z) * 57.295776f);
+    }
+
+    void calcDirectionVec(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo) {
+        PSVECSubtract(&rTo, &rFrom, pDst);
+        PSVECNormalize(pDst, pDst);
+    }
+
+    void makeAxisVerticalZXFront(TVec3f* pVec, const TVec3f& rAxis) {
+        makeAxisVerticalZX(pVec, rAxis);
+        turnVecRandomAroundAxis(pVec, *pVec, rAxis, 0.0f, 360.0f);
     }
 
     void makeAxisVerticalZX(TVec3f* pVec, const TVec3f& rAxis) {
@@ -363,6 +467,23 @@ namespace MR {
         *pVel = -2.0f * t * a;
     }
 
+};  // namespace MR
+
+f32 JMASqrt(__REGISTER f32 value) {
+    if (!(value > 0.0f)) {
+        return value;
+    }
+
+    __REGISTER f32 inverse;
+    __asm { frsqrte inverse, value }
+    f32 estimate = inverse * value;
+    inverse = -(estimate * inverse - 3.0f);
+    inverse *= estimate;
+    inverse *= 0.5f;
+    return inverse;
+}
+
+namespace MR {
     void makeQuatRotateRadian(TQuat4f* pQuat, const TVec3f& rRot) {
         pQuat->setEuler(rRot.x, rRot.y, rRot.z);
     }
@@ -549,25 +670,55 @@ namespace MR {
     void turnQuatXDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f xDir;
         rSrc.getXDir(xDir);
+
+        if (xDir.dot(rTo) >= 0.0f) {
+            return;
+        }
+
+        if (isSameDirection(xDir, rTo, 0.01f)) {
+            turnRandomVector(&xDir, xDir, 0.001f);
+        }
+
         TQuat4f rot;
         rot.setRotate(xDir, rTo, rate);
         pDst->mult(rot, rSrc);
+        pDst->normalize();
     }
 
     void turnQuatYDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f yDir;
         rSrc.getYDir(yDir);
+
+        if (yDir.dot(rTo) >= 0.0f) {
+            return;
+        }
+
+        if (isSameDirection(yDir, rTo, 0.01f)) {
+            turnRandomVector(&yDir, yDir, 0.001f);
+        }
+
         TQuat4f rot;
         rot.setRotate(yDir, rTo, rate);
         pDst->mult(rot, rSrc);
+        pDst->normalize();
     }
 
     void turnQuatZDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f zDir;
         rSrc.getZDir(zDir);
+
+        if (zDir.dot(rTo) >= 0.0f) {
+            return;
+        }
+
+        if (isSameDirection(zDir, rTo, 0.01f)) {
+            turnRandomVector(&zDir, zDir, 0.001f);
+        }
+
         TQuat4f rot;
         rot.setRotate(zDir, rTo, rate);
         pDst->mult(rot, rSrc);
+        pDst->normalize();
     }
 
     f32 sign(f32 x) {

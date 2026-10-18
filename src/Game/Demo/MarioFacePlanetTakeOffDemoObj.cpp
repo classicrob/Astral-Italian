@@ -1,3 +1,4 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Demo/MarioFacePlanetTakeOffDemoObj.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -63,7 +64,7 @@ void MarioFacePlanetTakeOffDemoObj::exeDemo() {
     }
     if (MR::isDemoLastStep()) {
         MR::closeSystemWipeFadeWithCaptureScreen(0);
-        UnnamedDemoCallee::fn_804D64F0();
+        GameSequenceFunction::requestChangeStageWorldMapEnterType0();
         kill();
     }
 }

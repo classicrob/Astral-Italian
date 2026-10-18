@@ -1,4 +1,5 @@
 #pragma auto_inline off
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/Util/TalkUtil.hpp"
 
@@ -27,14 +28,7 @@ extern "C" {
     WorldMapResultHomeActors* fn_804E8300(WorldMapResultCommand*);
     WorldMapResultWorld* fn_804F60C0(WorldMapResultCommand*);
     bool fn_80059330();
-    s32 fn_804D77C0();
     s32 fn_804E8CA0(WorldMapResultCommand*);
-    s32 fn_804D77F0();
-    s32 fn_804D7830();
-    s32 fn_804D7870();
-    s32 fn_804D78B0();
-    void fn_804D7790();
-    void fn_804D72A0();
 }
 
 extern TVec3f sCameraTable[4];
@@ -44,23 +38,23 @@ static const char* sWorldNewsCameraName = "ワールドニュースカメラ(ワ
 
 /// Result of the home leave: 0 = none, 1..6 = the variant used by the leave states.
 s32 getHomeLeaveType(WorldMapResultCommand* pHost) {
-    if (fn_804D77C0() != 0) {
+    if (GameSequenceFunction::isWorldMapEnterType0() != 0) {
         return 0;
     }
     if (fn_804E8CA0(pHost) != 0) {
         return 1;
     }
-    if (fn_804D77F0() != 0) {
+    if (GameSequenceFunction::isWorldMapEnterType1() != 0) {
         return 2;
     }
-    if (fn_804D7830() != 0) {
+    if (GameSequenceFunction::isWorldMapEnterType2() != 0) {
         return 3;
     }
-    if (fn_804D7870() != 0) {
+    if (GameSequenceFunction::isWorldMapEnterType3() != 0) {
         return 4;
     }
     s32 type = 6;
-    if (fn_804D78B0() != 0) {
+    if (GameSequenceFunction::isWorldMapEnterType4() != 0) {
         type = 5;
     }
     return type;
@@ -144,7 +138,7 @@ void WorldMapResultStateLeaveHome::appear() {
 }
 
 void WorldMapResultStateLeaveHome::kill() {
-    fn_804D7790();
+    GameSequenceFunction::setWorldMapEnterType5();
     MR::showPlayer();
     fn_804E8850(mHost);
     mIsDead = true;

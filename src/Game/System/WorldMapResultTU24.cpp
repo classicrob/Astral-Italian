@@ -1,3 +1,4 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 /// Holder returned by fn_804E8300; the actor sits at 0x50.
@@ -20,8 +21,6 @@ extern "C" {
     void fn_804F85B0(WorldMapResultCommand*);
     void fn_804F7740(WorldMapResultCommand*, TVec3f*, TVec3f*);
     TVec3f* fn_804F2550(s32);
-    void fn_804D6550(s32);
-    void fn_804D72A0(s32);
 }
 
 
@@ -98,8 +97,8 @@ void WorldMapResultStateWorldWarp::exeMove() {
 
     if (MR::isGreaterEqualStep(this, 30)) {
         fn_804F85B0(mHost);
-        fn_804D72A0(mInt14);
-        fn_804D6550(mInt10);
+        GameSequenceFunction::setWorldMapCurrentNode(mInt14);
+        GameSequenceFunction::requestChangeStageWorldMapMoveToWorld(mInt10);
     }
 }
 

@@ -40,3 +40,16 @@ public:
     /* 0x04 */ ActorItemGeneratorEntry* mEntries;
     /* 0x08 */ s32 mEntryNum;
 };
+
+// Item emission by ActorItemGenerator entry name: "ヒット" hit, "踏み" stomp, "ヨッシー食べる" Yoshi eat, "ボスダメージ" boss damage.
+namespace MR {
+    void emitItemHit(LiveActor* pActor);
+    void emitItemHitAtPos(LiveActor* pActor, const TVec3f* pPos);
+    void emitItemStomp(LiveActor* pActor);
+    void emitItemYoshiEat(LiveActor* pActor);
+    void appearItemYoshiEatToPlayer(LiveActor* pActor);
+    void emitItemBossDamage(LiveActor* pActor);
+    void emitItemBossDamageAtPos(LiveActor* pActor, const TVec3f* pPos);
+    void enableAllItemGenerator(LiveActor* pActor);
+    void disableAllItemGenerator(LiveActor* pActor);
+};  // namespace MR

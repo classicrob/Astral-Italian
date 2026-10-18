@@ -63,6 +63,7 @@ public:
     bool isExistSceneObjHolder() const;
     s32 getCurrentScenarioNo() const;
     s32 getCurrentSelectedScenarioNo() const;
+    const char* getNextStageName() const;  // core (h1): fn_804BA850 (`addi r3,r3,0xCC`), not yet defined in GameSystemSceneController.cpp
     void setSceneInitializeState(SceneInitializeState);
     bool isSceneInitializeState(SceneInitializeState) const;
     void startScenarioSelectScene();
@@ -100,6 +101,7 @@ public:
     /* 0x118 */ Spine* mSpine;
     /* 0x11C */ const Nerve* mNextNerve;
     /* 0x120 */ bool mIsResetProcessing;
+    /* 0x121 */ bool mHasWorldMapHeap;  // set by createSceneHeaps(): the world map heap exists
     /* 0x124 */ ScenarioDataParser* mScenarioParser;
     /* 0x128 */ NameObjHolder* mObjHolder;
     /* 0x12C */ Scene* mScene;

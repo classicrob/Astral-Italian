@@ -1,4 +1,5 @@
 #include "Game/System/GameDataHolder.hpp"
+#include "Game/System/GalaxyStatusAccessor.hpp"
 #include "Game/System/GameDataGalaxyStorage.hpp"
 #include "Game/System/GameDataPlayerStatus.hpp"
 #include "Game/System/GameEventFlagChecker.hpp"
@@ -177,7 +178,7 @@ s32 GameDataHolder::getPlayerMissNum() const {
 }
 
 bool GameDataHolder::hasPowerStar(const char* pGalaxyName, s32 scenarioNum) const {
-    return makeGalaxyScenarioAccessor(pGalaxyName, scenarioNum).hasPowerStar();
+    return mAllGalaxyStorage->makeAccessor(pGalaxyName)->getScenarioAccessor(scenarioNum)->testFlag(1);
 }
 
 bool GameDataHolder::hasGrandStar(int index) const {
@@ -188,7 +189,12 @@ bool GameDataHolder::hasGrandStar(int index) const {
 }
 
 void GameDataHolder::setPowerStar(const char* pGalaxyName, s32 scenarioNum, bool set) {
-    makeGalaxyScenarioAccessor(pGalaxyName, scenarioNum).setPowerStarFlag(set);
+    GameDataSomeScenarioAccessor* pScenario = mAllGalaxyStorage->makeAccessor(pGalaxyName)->getScenarioAccessor(scenarioNum);
+    if (set) {
+        pScenario->mFlag |= 1;
+    } else {
+        pScenario->mFlag &= ~1;
+    }
 }
 
 s32 GameDataHolder::getPowerStarNumOwned(const char* pGalaxyName) const {
@@ -199,27 +205,39 @@ s32 GameDataHolder::calcCurrentPowerStarNum() const {
     return mAllGalaxyStorage->calcCurrentPowerStarNum();
 }
 
+// Scenario accessors live inline in the galaxy storage (SMG2), so a copy does not write back; writers use the pointer.
 GameDataSomeScenarioAccessor GameDataHolder::makeGalaxyScenarioAccessor(const char* pGalaxyName, s32 scenarioNum) {
-    return mAllGalaxyStorage->makeAccessor(pGalaxyName, scenarioNum);
+    return *mAllGalaxyStorage->makeAccessor(pGalaxyName)->getScenarioAccessor(scenarioNum);
 }
 
 GameDataSomeScenarioAccessor GameDataHolder::makeGalaxyScenarioAccessor(const char* pGalaxyName, s32 scenarioNum) const {
-    return mAllGalaxyStorage->makeAccessor(pGalaxyName, scenarioNum);
+    return *mAllGalaxyStorage->makeAccessor(pGalaxyName)->getScenarioAccessor(scenarioNum);
 }
 
-bool GameDataHolder::isOnGalaxyScenarioFlagAlreadyVisited(const char* pGalaxyName, s32 scenarioNum) const {
-    if (!mAllGalaxyStorage->isExistAccessor(pGalaxyName, scenarioNum)) {
+static bool isExistGalaxyScenario(const GameDataAllGalaxyStorage* pAllStorage, const char* pGalaxyName, s32 scenarioNum) {
+    if (pAllStorage->findIndex(pGalaxyName) < 0) {
+        return false;
+    }
+
+    GalaxyStatusAccessor accessor = MR::makeGalaxyStatusAccessor(pGalaxyName);
+    if (scenarioNum >= 1 && scenarioNum <= accessor.getPowerStarNum()) {
         return true;
     }
 
-    GameDataSomeScenarioAccessor accessor = makeGalaxyScenarioAccessor(pGalaxyName, scenarioNum);
-    return accessor.isAlreadyVisited();
+    return false;
+}
+
+bool GameDataHolder::isOnGalaxyScenarioFlagAlreadyVisited(const char* pGalaxyName, s32 scenarioNum) const {
+    if (!isExistGalaxyScenario(mAllGalaxyStorage, pGalaxyName, scenarioNum)) {
+        return true;
+    }
+
+    return mAllGalaxyStorage->makeAccessor(pGalaxyName)->getScenarioAccessor(scenarioNum)->testFlag(4);
 }
 
 void GameDataHolder::onGalaxyScenarioFlagAlreadyVisited(const char* pGalaxyName, s32 scenarioNum) {
-    if (mAllGalaxyStorage->isExistAccessor(pGalaxyName, scenarioNum)) {
-        GameDataSomeScenarioAccessor accessor = makeGalaxyScenarioAccessor(pGalaxyName, scenarioNum);
-        accessor.setFlagAlreadyVisited(true);
+    if (isExistGalaxyScenario(mAllGalaxyStorage, pGalaxyName, scenarioNum)) {
+        mAllGalaxyStorage->makeAccessor(pGalaxyName)->getScenarioAccessor(scenarioNum)->mFlag |= 4;
     }
 }
 

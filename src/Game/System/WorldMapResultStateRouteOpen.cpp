@@ -1,3 +1,4 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 WorldMapResultStateRouteOpen::WorldMapResultStateRouteOpen(WorldMapResultCommand* pHost)
@@ -11,7 +12,7 @@ void WorldMapResultStateRouteOpen::init() {
     mRoute = new WorldMapResultRoute();
     initNerve(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenStart), 0);
 
-    if (GameSequenceFunction::hasStageResultSequence() && fn_804D6E10()) {
+    if (GameSequenceFunction::hasStageResultSequence() && GameSequenceFunction::isClearedAllPowerStarAtResult()) {
         mWorldId = 7;
         fn_804F09C0(mHost, 7, mRoute);
     } else {

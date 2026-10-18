@@ -1,54 +1,41 @@
 #include "Game/System/GameSequenceDirector.hpp"
-#include "Game/Util.hpp"
 #include "Game/NWC24/NWC24Messenger.hpp"
-#include "Game/System/FindingLuigiEventScheduler.hpp"
-#include "Game/System/GameDataTemporaryInGalaxy.hpp"
-#include "Game/System/GameSequenceProgress.hpp"
+#include "Game/System/GalaxyDataTableAccessor.hpp"
+#include "Game/System/GameSequence.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/SaveDataHandleSequence.hpp"
-#include <JSystem/JKernel/JKRHeap.hpp>
+#include "Game/System/StarPointerOnOffController.hpp"
 
-GameSequenceDirector::GameSequenceDirector()
-    : mGameDataTemporaryInGalaxy(nullptr), mGameSequenceProgress(nullptr), mSaveDataHandleSequence(nullptr), mStarPointerOnOffController(nullptr), mNWC24Messenger(nullptr) {
+GameSequenceDirector::GameSequenceDirector(GameSystemDataHolder* pDataHolder)
+    : mGameSequence(nullptr), mGalaxyDataTableAccessor(nullptr), mSaveDataHandleSequence(nullptr), mStarPointerOnOffController(nullptr),
+      mNWC24Messenger(nullptr) {
+    mGameSequence = new GameSequence();
+    mGalaxyDataTableAccessor = new GalaxyDataTableAccessor(pDataHolder);
     mSaveDataHandleSequence = new SaveDataHandleSequence();
-    mSaveDataHandleSequence->registerFunctorOnSaveSuccess(MR::Functor(this, &GameSequenceDirector::executeOnSaveSuccess));
-    mSaveDataHandleSequence->registerFunctorJustBeforeSave(MR::Functor(this, &GameSequenceDirector::executeJustBeforeSave));
-
-    mGameSequenceProgress = new GameSequenceProgress();
-    mGameDataTemporaryInGalaxy = new GameDataTemporaryInGalaxy();
+    mStarPointerOnOffController = new StarPointerOnOffController();
     mNWC24Messenger = new NWC24Messenger("NWC24Messenger");
 }
 
 void GameSequenceDirector::initAfterResourceLoaded() {
+    GameSequenceFunction::initAfterResourceLoaded();
     mSaveDataHandleSequence->initAfterResourceLoaded();
-    mGameSequenceProgress->initAfterResourceLoaded();
     mNWC24Messenger->initAfterResourceLoaded();
 }
 
 void GameSequenceDirector::update() {
+    mGameSequence->update();
     mSaveDataHandleSequence->update();
-    mGameSequenceProgress->update();
+    mStarPointerOnOffController->update();
     mNWC24Messenger->movement();
     mNWC24Messenger->calcAnim();
 }
 
 void GameSequenceDirector::draw() const {
     mSaveDataHandleSequence->draw();
-    mGameSequenceProgress->draw();
+    mGameSequence->draw();
     mNWC24Messenger->draw();
 }
 
 bool GameSequenceDirector::isInitializedGameDataHolder() const {
     return mSaveDataHandleSequence->isInitializedGameDataHolder();
-}
-
-GameDataHolder* GameSequenceDirector::getGameDataHolder() {
-    return mSaveDataHandleSequence->getHolder();
-}
-
-void GameSequenceDirector::executeOnSaveSuccess() {
-    mGameSequenceProgress->mFindingLuigiEventScheduler->sendMail();
-}
-
-void GameSequenceDirector::executeJustBeforeSave() {
-    mGameSequenceProgress->mFindingLuigiEventScheduler->writeSendSize();
 }

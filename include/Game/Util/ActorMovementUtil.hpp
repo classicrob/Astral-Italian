@@ -45,6 +45,8 @@ namespace MR {
     void calcSideVec(TVec3f*, const LiveActor*);
     void calcPositionUpOffset(TVec3f*, const LiveActor*, f32);
     void calcVecToPlayerH(TVec3f*, const LiveActor*, const TVec3f*);
+    void calcVecFromPlayerH(TVec3f*, const LiveActor*, const TVec3f*);
+    // PLACEHOLDER(core): SMG2 has only the 3-arg form; resolve when Kanina.cpp (enemies) passes nullptr as 3rd arg
     void calcVecFromPlayerH(TVec3f*, const LiveActor*);
     void calcVecToTargetPosH(TVec3f*, const LiveActor*, const TVec3f&, const TVec3f*);
     void calcVecFromTargetPosH(TVec3f*, const LiveActor*, const TVec3f&, const TVec3f*);

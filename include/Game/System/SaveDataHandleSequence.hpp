@@ -68,6 +68,11 @@ public:
     bool trySave(bool*, const Nerve*);
     void prepareSaveAll(bool);  // SMG2 fn_804DAC30
     void startLoadUserFile(int);  // SMG2 fn_804D9CE0
+    void startSaveGameData(bool, bool, bool);  // SMG2 fn_804D9C50
+    void startWaitSaveData();                  // SMG2 fn_804D9CD0
+    void startReloadUserFile();                // SMG2 fn_804D9D50
+    u8* clearTempBuffer(s32);                  // SMG2 fn_804DA210
+    void loadTempBufferAsGameData();           // SMG2 fn_804DA250
     bool trySaveWindowDisappear(bool*, const Nerve*);
     bool trySaveWithoutWindow(bool*, const Nerve*);
     bool tryConfirm(const char*, bool*);

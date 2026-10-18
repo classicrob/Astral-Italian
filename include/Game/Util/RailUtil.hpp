@@ -49,6 +49,9 @@ namespace MR {
 
     f32 calcDifferenceRailCoord(const LiveActor*, f32, f32);
     f32 calcDifferenceRailCoord(const LiveActor*, f32);
+    bool isRailCoordNotBehind(const LiveActor*, f32);
+    f32 calcDistanceToNearestRailEnd(const LiveActor*);  // fn_80052E70: min(coord, totalLength - coord)
+    f32 calcRailSpeedEaseAtEnds(const LiveActor*, f32 speed, f32 minSpeed, f32 range);  // fn_80053700: speed on loop rails, else interpolate(normalize(distToEnd, 0, range), minSpeed, speed)  // fn_80052C00: calcDifferenceRailCoord(actor, currentCoord, coord) >= 0
     float calcDistanceHorizonToCurrentPos(const LiveActor*);
     void calcRailPosAtCoord(TVec3f*, const LiveActor*, f32);
     void calcRailPosFrontCoord(TVec3f*, const LiveActor*, f32);

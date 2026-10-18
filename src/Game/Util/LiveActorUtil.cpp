@@ -1099,48 +1099,36 @@ namespace MR {
     }
 #endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'init' Too many errors printed, aborting program
     void initLightCtrl(LiveActor* pActor) {
         pActor->initActorLightCtrl();
         pActor->mActorLightCtrl->init(-1, false);
     }
-#endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'init' Too many errors printed, aborting program
     void initLightCtrlForPlayer(LiveActor* pActor) {
         pActor->initActorLightCtrl();
         pActor->mActorLightCtrl->init(-1, false);
         LightFunction::registerPlayerLightCtrl(pActor->mActorLightCtrl);
     }
-#endif
 
 
 
-#if 0  // TODO(port): (10140) undefined identifier 'update' Too many errors printed, aborting program
     void updateLightCtrl(LiveActor* pActor) {
         pActor->mActorLightCtrl->update(false);
     }
-#endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'update' Too many errors printed, aborting program
     void updateLightCtrlDirect(LiveActor* pActor) {
         pActor->mActorLightCtrl->update(true);
     }
-#endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'loadLight' Too many errors printed, aborting progr
     void loadActorLight(const LiveActor* pActor) {
         pActor->mActorLightCtrl->loadLight();
     }
-#endif
 
 
 
-#if 0  // TODO(port): (10140) undefined identifier 'getActorLight' Too many errors printed, aborting p
     const GXColor* getLightAmbientColor(const LiveActor* pActor) {
         return &pActor->mActorLightCtrl->getActorLight()->mColor;
     }
-#endif
 
     ActorLightCtrl* getLightCtrl(const LiveActor* pActor) {
         return pActor->mActorLightCtrl;

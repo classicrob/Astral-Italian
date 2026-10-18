@@ -3,10 +3,6 @@
 #include "Game/Util/MemoryUtil.hpp"
 #include <revolution/os.h>
 
-extern "C" {
-    void* fn_804D6120(s32);
-    void fn_804D6160();
-}
 
 namespace {
     const s32 cStatusSize = 0xF0;
@@ -180,6 +176,6 @@ void PadRecorder::readUserFile() {
         return;
     }
 
-    mReader->read(fn_804D6120(size), size);
-    fn_804D6160();
+    mReader->read(GameSequenceFunction::getClearedSaveTempBuffer(size), size);
+    GameSequenceFunction::loadSaveTempBufferAsGameData();
 }

@@ -38,3 +38,9 @@ namespace MR {
     void requestWiiMessageBoardMailSend(const char*, const char*, const char*);
     bool updateWiiMessageBoardMailSenderState();
 }
+
+namespace MR {
+    void requestWiiMessageBoardMailSend(const char* pMessageId, const char* pResName, const char* pGameEventFlag);
+    bool updateWiiMessageBoardMailSenderState();
+    LayoutActor* getWiiMessageBoardMailSenderWindow();
+};  // namespace MR

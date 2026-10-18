@@ -7,13 +7,9 @@
 #include "Game/Scene/GameSceneFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 
-extern "C" {
-    s32 fn_804D8630();
-};
-
 namespace NrvGameSequenceInGame {
     void GameSequenceInGameNrvBeforeKoopaVs3::execute(Spine*) const {
-        if (fn_804D8630() != 0) {
+        if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
             MR::openWipeFade(-1);
         }
     }

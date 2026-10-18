@@ -10,6 +10,7 @@ namespace GameSceneFunction {
     void requestGrandStarGetDemo();
     void requestShowGalaxyMap();
     void requestStaffRoll();
+    void startStarPointerModeGame();
     bool isExecScenarioOpeningCamera();
     bool isExecScenarioStarter();
     bool isExecStageClearDemo();

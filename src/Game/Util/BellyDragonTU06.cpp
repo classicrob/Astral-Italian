@@ -5,6 +5,7 @@
 #include "Game/Util.hpp"
 
 extern "C" void* __nwa__FUl(u32);
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_80093B40(BellyDragon*, const char*);
 extern "C" bool fn_80093310(BellyDragon*);
 extern "C" void fn_80093780(BellyDragon*);
@@ -16,7 +17,6 @@ extern "C" void fn_80093AF0(BellyDragon*);
 extern "C" void fn_80093B00(BellyDragon*);
 extern "C" bool fn_80093BF0(BellyDragon*, const char*, bool);
 extern "C" bool fn_80093DC0(BellyDragon*, const char*, bool, const f32*, f32);
-extern "C" void fn_80094E10(s32);
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
 
 namespace JMath {

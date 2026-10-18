@@ -36,6 +36,15 @@ namespace MR {
 
     bool calcWhirlPoolAccelInfo(const TVec3f&, TVec3f*);
 
+    bool isAreaFormCube(const AreaObj*);
+    bool isAreaFormCylinder(const AreaObj*);
+    AreaObj* getAreaObjAtPlayerPos(const char*);
+    void requestMovementOnAreas(const char*);
+    void requestMovementOnSoundAreas();
+    bool hasNoWaterAreaCube(const WaterInfo*);
+    void calcSphereFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
+    void calcCylinderFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
+
     TBox3f* getCubeLocalBox(const AreaObj*);
 
     AreaObj* getCurrentAstroOverlookAreaObj();

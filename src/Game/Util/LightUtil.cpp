@@ -10,11 +10,6 @@
 
 namespace MR {
     void loadLight(s32 type) {
-        if (type == MR::LightType_Coin) {
-            MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->loadLightCoin();
-            return;
-        }
-
         if (type == MR::LightType_Player) {
             MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->loadLightPlayer();
             return;
@@ -39,7 +34,8 @@ namespace MR {
 
 
 
-    void requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration) {
-        return MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mPointCtrl->requestPointLight(pActor, pos, color, intensity, duration);
+    void requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef) {
+        MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mPointCtrl->requestPointLight(pActor, pos, color, intensity, duration, distRef);
+        MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mPointCtrlSub->requestPointLight(pActor, pos, color, intensity, duration, distRef);
     }
 };  // namespace MR

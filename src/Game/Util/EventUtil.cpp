@@ -18,55 +18,6 @@
 #include "Game/Util/StringUtil.hpp"
 #include <cstdio>
 
-void EventUtil_FORCE_MATCH_STRINGS() {
-    MR::isEqualString("ハチマリオ初変身", "ハチマリオ初変身");
-    MR::isEqualString("テレサマリオ初変身", "テレサマリオ初変身");
-    MR::isEqualString("ホッパーマリオ初変身", "ホッパーマリオ初変身");
-    MR::isEqualString("ファイアマリオ初変身", "ファイアマリオ初変身");
-    MR::isEqualString("アイスマリオ初変身", "アイスマリオ初変身");
-    MR::isEqualString("フライングマリオ初変身", "フライングマリオ初変身");
-    MR::isEqualString("無敵マリオ初変身", "無敵マリオ初変身");
-    MR::isEqualString("ライフアップキノコ解説", "ライフアップキノコ解説");
-    MR::isEqualString("１ＵＰキノコ解説", "１ＵＰキノコ解説");
-    MR::isEqualString("クッパ襲来後", "クッパ襲来後");
-    MR::isEqualString("ピーチ城浮上後", "ピーチ城浮上後");
-    MR::isEqualString("チコガイドデモ終了", "チコガイドデモ終了");
-    MR::isEqualString("スピン権利", "スピン権利");
-    MR::isEqualString("天球儀レクチャー", "天球儀レクチャー");
-    MR::isEqualString("ギャラクシー移動レクチャー", "ギャラクシー移動レクチャー");
-    MR::isEqualString("スターピースレクチャー", "スターピースレクチャー");
-    MR::isEqualString("サーフィンチュートリアル", "サーフィンチュートリアル");
-    MR::isEqualString("タマコロチュートリアル", "タマコロチュートリアル");
-    MR::isEqualString("RosettaTalkAboutTico", "RosettaTalkAboutTico");
-    MR::isEqualString("SpecialStarGrand7", "SpecialStarGrand7");
-    MR::isEqualString("ViewCompleteEnding", "ViewCompleteEnding");
-    MR::isEqualString("バトラー情報Ａ", "バトラー情報Ａ");
-    MR::isEqualString("SpecialStarGreenAll", "SpecialStarGreenAll");
-    MR::isEqualString("SpecialStarRed1", "SpecialStarRed1");
-    MR::isEqualString("ViewNormalEnding", "ViewNormalEnding");
-    MR::isEqualString("KoopaBattleVs3Galaxy", "KoopaBattleVs3Galaxy");
-    MR::isEqualString("EventCometStarter", "EventCometStarter");
-    MR::isEqualString("SpecialStarFindingLuigi3", "SpecialStarFindingLuigi3");
-    MR::isEqualString("SpecialStarLuigiRescued", "SpecialStarLuigiRescued");
-    MR::isEqualString("EventKinopioExplorerOrganize", "EventKinopioExplorerOrganize");
-    MR::isEqualString("EventKinopioExplorerRescued", "EventKinopioExplorerRescued");
-    MR::isEqualString("SpecialStarGrand5", "SpecialStarGrand5");
-    MR::isEqualString("WarpPodSaveBits", "WarpPodSaveBits");
-    MR::isEqualString("TicoGalaxyAlreadyTalk", "TicoGalaxyAlreadyTalk");
-    MR::isEqualString("AstroDome", "AstroDome");
-    MR::isEqualString("SpecialStarGrand%1d", "SpecialStarGrand%1d");
-    MR::isEqualString("Dark", "Dark");
-    MR::isEqualString("Ghost", "Ghost");
-    MR::isEqualString("Quick", "Quick");
-    MR::isEqualString("Purple", "Purple");
-    MR::isEqualString("Black", "Black");
-    MR::isEqualString("PowerStarComplete", "PowerStarComplete");
-    MR::isEqualString("StarPieceCounterStop", "StarPieceCounterStop");
-    MR::isEqualString("LuigiTalkAfterRescued", "LuigiTalkAfterRescued");
-    MR::isEqualString("EggStarGalaxy", "EggStarGalaxy");
-    MR::isEqualString("MessageAlreadyRead", "MessageAlreadyRead");
-    MR::isEqualString("MsgLedPattern", "MsgLedPattern");
-}
 
 namespace GameDataFunction {
     bool isOnGameEventFlag(const char*);
@@ -104,46 +55,10 @@ namespace MR {
         return GameDataFunction::getPlayerLeft();
     }
 
-#if 0  // TODO(port): (10140) undefined identifier 'addMissPoint' Too many errors printed, aborting pr
-    void decPlayerLeft() {
-        GameDataFunction::addPlayerLeft(-1);
-        GameDataFunction::addMissPoint(1);
-        GameDataFunction::incPlayerMissNum();
-    }
-#endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'addMissPoint' Too many errors printed, aborting pr
-    void incPlayerGameOverNum() {
-        GameDataFunction::addMissPoint(3);
-        GameDataFunction::incPlayerMissNum();
-    }
-#endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'getScenePlayingResult' Too many errors printed, ab
-    s32 getStarPieceNum() {
-        if (MR::isStageAstroLocation()) {
-            return GameDataFunction::getStockedStarPieceNum();
-        }
 
-        return ::getScenePlayingResult()->getStarPieceNum();
-    }
-#endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'addStockedStarPiece' Too many errors printed, abor
-    void addStarPiece(int num) {
-        if (MR::isStageAstroLocation()) {
-            GameDataFunction::addStockedStarPiece(num);
-        } else {
-            ::getScenePlayingResult()->incStarPiece(num);
-        }
-    }
-#endif
-
-#if 0  // TODO(port): (10140) undefined identifier 'isDataMario' Too many errors printed, aborting pro
-    bool isPlayerLuigi() {
-        return !GameDataFunction::isDataMario();
-    }
-#endif
 
     void onGameEventFlagBeeMarioAtFirst() {
         if (!isPreventDisplayInformationMessage()) {
@@ -299,30 +214,17 @@ namespace MR {
     }
 
 
-#if 0  // TODO(port): (10140) undefined identifier 'setupAlreadyDoneFlag' Too many errors printed, abo
-    s32 setupAlreadyDoneFlag(const char* pParam1, const JMapInfoIter& rIter, u32* pParam3) {
-        return GameDataFunction::setupAlreadyDoneFlag(pParam1, rIter, pParam3);
-    }
-#endif
 
-#if 0  // TODO(port): (10140) undefined identifier 'updateAlreadyDoneFlag' Too many errors printed, ab
-    void updateAlreadyDoneFlag(int param1, u32 param2) {
-        GameDataFunction::updateAlreadyDoneFlag(param1, param2);
-    }
-#endif
 
     bool isAlreadyVisitedCurrentStageAndScenario() {
         return GameDataFunction::isOnGalaxyScenarioFlagAlreadyVisited(MR::getCurrentStageName(), MR::getCurrentScenarioNo());
     }
 
-#if 0  // TODO(port): (10140) undefined identifier 'hasPowerStar' Too many errors printed, aborting pr
-    bool hasPowerStarInCurrentStage(s32 starId) {
-        return MR::makeCurrentGalaxyStatusAccessor().hasPowerStar(starId);
-    }
-#endif
 
     bool isPowerStarGreenInCurrentStage(s32 starId) {
-        return GameDataConst::isPowerStarGreen(MR::getCurrentStageName(), starId);
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(getCurrentStageName());
+        return accessor.isGreenStar(starId);
+
     }
 
 
@@ -365,7 +267,9 @@ namespace MR {
     }
 
     bool isPowerStarGreen(const char* pGalaxyName, s32 starId) {
-        return GameDataConst::isPowerStarGreen(pGalaxyName, starId);
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pGalaxyName);
+        return accessor.isGreenStar(starId);
+
     }
 
 
@@ -399,19 +303,6 @@ namespace MR {
 
 
 
-#if 0  // TODO(port): (10140) undefined identifier 'registerStorageSpinDriverPathDrawRange' Too many e
-    s32 registerStorageSpinDriverPathDrawRange(const NameObj* pParam1, const JMapInfoIter& rIter, int param3, f32* pParam4) {
-        const char* pStageName = MR::getCurrentStageName();
-        int scenarioNo = MR::getCurrentScenarioNo();
-        int zoneId = MR::getPlacedZoneId(rIter);
-
-        if (param3 <= 0) {
-            return -1;
-        }
-
-        return GameDataFunction::registerStorageSpinDriverPathDrawRange(pStageName, scenarioNo, zoneId, param3, pParam4);
-    }
-#endif
 
     void updateStorageSpinDriverPathDrawRange(int param1, f32 param2) {
         const char* pStageName = MR::getCurrentStageName();
@@ -609,5 +500,82 @@ namespace MR {
 
 
 
+
+    bool isPowerStarBronzeInCurrentStage(s32 starId) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(getCurrentStageName());
+        return accessor.isOwnBronzeStar(starId);
+    }
+
+    bool isPowerStarBronze(const char* pStageName, s32 starId) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pStageName);
+        return accessor.isOwnBronzeStar(starId);
+    }
+
+    bool hasPowerStarInCurrentStage(s32 starId) {
+        return makeCurrentGalaxyStatusAccessor().hasPowerStar(starId);
+    }
+
+    bool isScenarioOpenInCurrentStageWithDeclarer(const char* pDeclarer) {
+        s32 powerStarId = getEventPowerStarID(pDeclarer);
+        return makeCurrentGalaxyStatusAccessor().isOpenScenario(powerStarId);
+    }
+
+    bool isPowerStarWithDeclarer(const char* pDeclarer, s32 powerStarId) {
+        s32 eventPowerStarId = getEventPowerStarID(pDeclarer);
+        return eventPowerStarId > 0 && eventPowerStarId == powerStarId;
+    }
+
+    bool isPowerStarBronzeInCurrentStageWithDeclarer(const char* pDeclarer, s32 powerStarId) {
+        return isBronzeEventPowerStar(pDeclarer, powerStarId);
+    }
+
+    s32 getPowerStarNumOwnedInStage(const char* pStageName) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pStageName);
+        return accessor.getPowerStarNumOwnedTotal();
+    }
+
+    bool isPowerStarGreenInCurrentStage() {
+        if (isProductGameScene()) {
+            s32 scenarioNo = getCurrentOrSelectedScenarioNo();
+            return isPowerStarGreen(getCurrentStageName(), scenarioNo);
+        }
+
+        return false;
+    }
+
+    bool isGalaxyCompletedNoGreen(const char* pStageName) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pStageName);
+        return accessor.isCompletedNoGreen();
+    }
+
+    bool isGalaxyCompletedWithGreen(const char* pStageName) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pStageName);
+        return accessor.isCompletedWithGreen();
+    }
+
+    bool isGalaxyPurpleCometAppearInCurrentStage() {
+        return EventFunction::isStartCometEvent("Purple");
+    }
+
+    bool isGalaxyHorrorCometAppearInCurrentStage() {
+        return false;
+    }
+
+    bool isGalaxyRainbowCometAppearInCurrentStage() {
+        return false;
+    }
+
+    bool isGalaxyCometEvent() {
+        return EventFunction::isCometEvent();
+    }
+
+    s32 registerStorageSpinDriverPathDrawRange(const NameObj* pParam1, const JMapInfoIter& rIter, int param3, f32* pParam4) {
+        return 0;
+    }
+
+    bool explainMarioFacePlanetAtFirst(LiveActor* pHost) {
+        InformationObserverFunction::explainMarioFacePlanet(pHost);
+        return true;
+    }
 
 };  // namespace MR

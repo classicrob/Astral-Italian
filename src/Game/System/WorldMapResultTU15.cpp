@@ -1,15 +1,6 @@
+#include "Game/System/MiniPartsActors.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/Util/TalkUtil.hpp"
-
-class MiniGreenComet : public LiveActor {
-public:
-    MiniGreenComet();
-};
-
-class MiniGreenCometShower : public LiveActor {
-public:
-    MiniGreenCometShower();
-};
 
 namespace MR {
     void forceOpenSystemWipeWhiteFade(s32);

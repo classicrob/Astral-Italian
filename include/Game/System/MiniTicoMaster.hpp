@@ -20,7 +20,7 @@ public:
     bool tryPointTalk();
     void setEffectDrawOrder(s32 order);
 
-    s32 mUnk90;                  // 0x90
+    WorldMapResultWorld* mUnk90; // 0x90
     s32* mUnk94;                 // 0x94 (*mUnk94 is the count)
     s32 mUnk98;                  // 0x98
     s32 mUnk9C;                  // 0x9C

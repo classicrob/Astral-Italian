@@ -24,7 +24,7 @@ public:
     void exeG();
     void exeH();
 
-    /* 0x90 */ NameObj* mStaffRollObj;
+    /* 0x90 */ StaffRoll* mStaffRollObj;
     /* 0x94 */ LiveActor* mChildA;
     /* 0x98 */ s32 mStep98;
     /* 0x9C */ s32 mStep9C;

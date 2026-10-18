@@ -45,7 +45,7 @@ namespace MR {
     void setBtpFrameAndStop(const LiveActor*, f32);
     void setBpkFrameAndStop(const LiveActor*, f32);
     void setBvaFrameAndStop(const LiveActor*, f32);
-    bool setBckFrameEndAndStop(const LiveActor*);
+    void setBckFrameEndAndStop(const LiveActor*);
     void setBrkFrameEndAndStop(const LiveActor*);
     void startBckAndSetFrameAndStop(const LiveActor*, const char*, f32);
     void startBtkAndSetFrameAndStop(const LiveActor*, const char*, f32);

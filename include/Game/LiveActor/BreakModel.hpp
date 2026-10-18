@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/Nerve.hpp"
 
 class BreakModel : public LiveActor {
 public:
@@ -17,3 +18,19 @@ public:
     const char* mAnimName;  // _94
     MtxPtr mMtx;            // _98
 };
+
+namespace NrvBreakModel {
+    class BreakModelNrvWait : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+
+        static BreakModelNrvWait sInstance;
+    };
+
+    class BreakModelNrvBreak : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+
+        static BreakModelNrvBreak sInstance;
+    };
+};  // namespace NrvBreakModel

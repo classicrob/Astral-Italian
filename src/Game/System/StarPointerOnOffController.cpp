@@ -1,12 +1,9 @@
 #include "Game/System/StarPointerOnOffController.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Screen/StarPointerDirector.hpp"
 #include "Game/Screen/StarPointerLayout.hpp"
 #include "Game/System/NerveExecutor.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
-
-namespace GameSequenceFunction {
-    bool isPadMode2();
-};
 
 namespace {
     // static const f32 hDebugPrintX =

@@ -51,6 +51,7 @@ public:
     /// @brief Creates a new `AnmModelSwitchMove`.
     /// @param pName A pointer to the null-terminated name of the object.
     AnmModelSwitchMove(const char* pName);
+    virtual ~AnmModelSwitchMove();
 
     virtual void init(const JMapInfoIter&);
     virtual bool isOnStartAnmTrigger() const;
@@ -69,8 +70,7 @@ class AnmModelSwitchMoveEndKill : public AnmModelSwitchMove {
 public:
     /// @brief Creates a new `AnmModelSwitchMoveEndKill`.
     /// @param pName A pointer to the null-terminated name of the object.
-    AnmModelSwitchMoveEndKill(const char* pName) : AnmModelSwitchMove(pName) {
-    }
+    AnmModelSwitchMoveEndKill(const char* pName);
 
     virtual void kill();
     virtual bool isKilledAtMoveDone() const;

@@ -3,6 +3,7 @@
 #include "Game/Camera/CameraDirector.hpp"
 #include "Game/Camera/CameraShaker.hpp"
 #include "Game/Effect/EffectSystemUtil.hpp"
+#include "Game/LiveActor/AllLiveActorGroup.hpp"
 #include "Game/LiveActor/ClippingJudge.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -64,6 +65,10 @@ bool MR::isJudgedToClipFrustum(const TVec3f& rParam1, f32 param2) {
 }
 
 
+bool MR::isJudgedToClipFrustum50m(const TVec3f& rParam1, f32 param2) {
+    return MR::getClippingJudge()->isJudgedToClipFrustum(rParam1, param2, 7);
+}
+
 bool MR::isJudgedToClipFrustum300m(const TVec3f& rParam1, f32 param2) {
     return MR::getClippingJudge()->isJudgedToClipFrustum(rParam1, param2, 4);
 }
@@ -72,6 +77,13 @@ bool MR::isJudgedToNearClip(const TVec3f& rPos, f32 distance) {
     TVec3f camPos = MR::getCamPos();
 
     return rPos.distance(camPos) < distance;
+}
+
+void MR::initialize(NameObj* pObj, const JMapInfoIter& rIter) {
+    pObj->setLinkedInfo(rIter);
+    MR::initLiveActorSystemInfo(rIter);
+    pObj->init(rIter);
+    MR::initLiveActorSystemInfo(rIter);
 }
 
 bool MR::isInWater(const TVec3f& rPos) {
@@ -258,6 +270,10 @@ void MR::connectToSceneLayout(NameObj* pObj) {
     MR::connectToScene(pObj, MR::MovementType_Layout, MR::CalcAnimType_Layout, MR::DrawBufferType_None, MR::DrawType_Layout);
 }
 
+void MR::connectToSceneLayoutTemporarily(NameObj* pObj) {
+    MR::connectToScene(pObj, 0xe, 0xd, -0x1, 0x50);
+}
+
 void MR::connectToSceneLayoutMovementCalcAnim(NameObj* pObj) {
     MR::connectToScene(pObj, MR::MovementType_Layout, MR::CalcAnimType_Layout, MR::DrawBufferType_None, MR::DrawType_None);
 }
@@ -265,6 +281,10 @@ void MR::connectToSceneLayoutMovementCalcAnim(NameObj* pObj) {
 void MR::connectToSceneLayoutDecoration(NameObj* pObj) {
     MR::connectToScene(pObj, MR::MovementType_LayoutDecoration, MR::CalcAnimType_LayoutDecoration, MR::DrawBufferType_None,
                        MR::DrawType_LayoutDecoration);
+}
+
+void MR::connectToSceneLayoutFileSelect(NameObj* pObj) {
+    MR::connectToScene(pObj, 0xe, 0xd, -0x1, 0x51);
 }
 
 void MR::connectToSceneTalkLayout(NameObj* pObj) {
@@ -316,6 +336,18 @@ void MR::connectToSceneNoSilhouettedMapObjStrongLight(LiveActor* pActor) {
 }
 
 
+void MR::connectToSceneNoSilhouettedMapObjStrongLightCalcAnim(LiveActor* pActor) {
+    MR::registerNameObjToExecuteHolder(pActor, -0x1, 0x5, 0x10, -0x1);
+}
+
+void MR::connectToSceneNoSilhouettedMapObjWeakLightCalcAnim(LiveActor* pActor) {
+    MR::registerNameObjToExecuteHolder(pActor, -0x1, 0x5, 0xf, -0x1);
+}
+
+void MR::connectToSceneSwitchingScreenEffect(LiveActor* pActor) {
+    MR::registerNameObjToExecuteHolder(pActor, 0x10, 0xd, 0x2b, 0x46);
+}
+
 void MR::connectToSceneSky(LiveActor* pActor) {
     MR::registerNameObjToExecuteHolder(pActor, 0x23, 0x5, 0x2, -0x1);
 }
@@ -329,6 +361,18 @@ void MR::connectToSceneSun(LiveActor* pActor) {
 }
 
 
+
+void MR::connectToSceneWorldMapMiniObj(LiveActor* pActor) {
+    MR::registerNameObjToExecuteHolder(pActor, 0x2f, 0x14, 0x27, -0x1);
+}
+
+void MR::connectToSceneWorldMapIcon(LiveActor* pActor) {
+    MR::registerNameObjToExecuteHolder(pActor, 0x30, 0x15, 0x28, -0x1);
+}
+
+void MR::connectToSceneSuperDreamer(LiveActor* pActor) {
+    MR::registerNameObjToExecuteHolder(pActor, 0x2d, 0x6, 0x11, -0x1);
+}
 
 void MR::requestMovementOn(NameObj* pObj) {
     NameObjFunction::requestMovementOn(pObj);
@@ -350,6 +394,18 @@ void MR::requestMovementOff(NameObj* pObj) {
     NameObjFunction::requestMovementOff(pObj);
 }
 
+void MR::requestMovementOff(LiveActor* pActor) {
+    NameObjFunction::requestMovementOff(pActor);
+
+    if (MR::isExistEffectKeeper(pActor)) {
+        MR::Effect::requestMovementOff(pActor->mEffectKeeper);
+    }
+}
+
+void MR::requestMovementOff(LayoutActor* pActor) {
+    NameObjFunction::requestMovementOff(pActor);
+}
+
 NameObjGroup* MR::joinToNameObjGroup(NameObj* pObj, const char* pGroupName) {
     NameObjGroup* pObjGroup;
 
@@ -365,6 +421,23 @@ void MR::registerPreDrawFunction(const MR::FunctorBase& rFunc, int drawType) {
     SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor()->registerPreDrawFunction(rFunc, drawType);
 }
 
+void MR::registerPreDrawFunctionIfNotExist(const MR::FunctorBase& rFunc, int drawType) {
+    if (!SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor()->isRegisteredDrawFunction(drawType)) {
+        SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor()->registerPreDrawFunction(rFunc, drawType);
+    }
+}
+
+NameObjAdaptor* MR::createDrawAdaptor(const char* pName, int drawType, const MR::FunctorBase& rFunctor) {
+    NameObjAdaptor* pAdaptor;
+
+    pAdaptor = new NameObjAdaptor(pName);
+    pAdaptor->connectToDraw(rFunctor);
+    MR::connectToScene(pAdaptor, -0x1, -0x1, -0x1, drawType);
+
+    return pAdaptor;
+}
+
+// PLACEHOLDER(core): 2-arg createDrawAdaptor is not an SMG2 symbol; NPC/MiiFace*.cpp still call it. Resolve when those callers move to the 3-arg form.
 NameObjAdaptor* MR::createDrawAdaptor(const char* pName, const MR::FunctorBase& rFunctor) {
     NameObjAdaptor* pAdaptor;
 
@@ -582,6 +655,10 @@ void MR::getCsvDataColor(GXColor* pOut, const JMapInfo* pMapInfo, const char* pK
     getCsvDataU8(&pOut->a, pMapInfo, key, idx);
 }
 
+bool MR::hasCsvItem(const JMapInfo* pMapInfo, const char* pItemName) {
+    return pMapInfo->searchItemInfo(pItemName) >= 0;
+}
+
 bool MR::isStageStateScenarioOpeningCamera() {
     return GameSceneFunction::isExecScenarioOpeningCamera();
 }
@@ -659,6 +736,10 @@ s32 MR::getDeclareRemnantCoinCount(const NameObj* pObj) {
     return MR::getCoinHolder()->getDeclareRemnantCoinCount(pObj);
 }
 
+s32 MR::getUncollectedCoinCount(const NameObj* pObj) {
+    return MR::getCoinHolder()->getUncollectedCoinCount(pObj);
+}
+
 void MR::hopCoin(const NameObj* pObj, const TVec3f& rParam2, const TVec3f& rParam3) {
     MR::getCoinHolder()->hopCoin(pObj, rParam2, rParam3);
 }
@@ -670,6 +751,10 @@ void MR::appearCoinPop(const NameObj* pObj, const TVec3f& rParam2, s32 param3) {
 
 void MR::appearCoinPopToDirection(const NameObj* pObj, const TVec3f& rParam2, const TVec3f& rParam3, s32 param4) {
     MR::getCoinHolder()->appearCoinPopToDirection(pObj, rParam2, rParam3, param4);
+}
+
+bool MR::appearCoinAgainstGravity(const NameObj* pObj, const TVec3f& rPosition, s32 count) {
+    return MR::getCoinHolder()->appearCoinAgainstGravity(pObj, rPosition, count);
 }
 
 void MR::appearCoinToVelocity(const NameObj* pObj, const TVec3f& rParam2, const TVec3f& rParam3, s32 param4) {
@@ -731,6 +816,44 @@ BenefitItemOneUp* MR::createKinokoOneUp() {
 }
 
 
+void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
+    TPos3f mtx(pMtx);
+    MtxPtr m = mtx.toMtxPtr();
+    TVec3f angle;
+
+    if (m[2][0] - 1.0f >= -3.814697265625e-6f) {
+        angle.x = JMath::sAtanTable.atan2_(-m[0][1], m[1][1]);
+        angle.y = -1.5707964f;
+        angle.z = 0.0f;
+    } else if (m[2][0] + 1.0f <= 3.814697265625e-6f) {
+        angle.x = JMath::sAtanTable.atan2_(m[0][1], m[1][1]);
+        angle.y = 1.5707964f;
+        angle.z = 0.0f;
+    } else {
+        angle.x = JMath::sAtanTable.atan2_(m[2][1], m[2][2]);
+        angle.y = JGeometry::TUtil< f32 >::asin(-m[2][0]);
+        angle.z = JMath::sAtanTable.atan2_(m[1][0], m[0][0]);
+    }
+
+    TVec3f rot(angle);
+    rot.scale(57.29578f);
+    setRotation(pKinoko, rot);
+
+    TVec3f pos;
+    mtx.getTrans(pos);
+    setPosition(pKinoko, pos);
+}
+
+void MR::appearKinokoOneUpPop(BenefitItemObj* pKinoko, MtxPtr pMtx) {
+    MR::appearKinokoOneUp(pKinoko, pMtx);
+    pKinoko->appearPop();
+}
+
+void MR::appearKinokoOneUpHop(BenefitItemObj* pKinoko, MtxPtr pMtx) {
+    MR::appearKinokoOneUp(pKinoko, pMtx);
+    pKinoko->appearHop();
+}
+
 BenefitItemLifeUp* MR::createKinokoSuper() {
     BenefitItemLifeUp* pKinokoSuper;
 
@@ -741,6 +864,11 @@ BenefitItemLifeUp* MR::createKinokoSuper() {
     return pKinokoSuper;
 }
 
+
+void MR::appearKinokoSuperPop(BenefitItemLifeUp* pKinoko, MtxPtr pMtx) {
+    MR::appearKinokoOneUp(pKinoko, pMtx);
+    pKinoko->appearPop();
+}
 
 void MR::stopScene(s32 frame) {
     MR::getSceneObj< StopSceneController >(SceneObj_StopSceneController)->requestStopScene(frame);
@@ -773,6 +901,22 @@ bool MR::tryRumblePadWeak(const void* pParam1, s32 channel) {
 
 bool MR::tryRumblePadVeryWeak(const void* pParam1, s32 channel) {
     return WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pParam1, "微弱");
+}
+
+bool MR::tryRumblePadWeakAndVeryWeak(const void* pHost, s32 channel) {
+    if (WPadFunction::getWPadRumble(channel)->hasRumblePattern(pHost, "微弱")) {
+        return false;
+    }
+
+    if (WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "弱")) {
+        return true;
+    }
+
+    if (WPadFunction::getWPadRumble(channel)->hasRumblePattern(pHost, "弱")) {
+        return true;
+    }
+
+    return WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "微弱");
 }
 
 bool MR::tryRumbleDefaultHit(const void* pParam1, s32 channel) {
@@ -877,6 +1021,17 @@ bool MR::tryFindLinkNamePos(const NameObj* pObj, const char* pName, MtxPtr pMtx)
 
 bool MR::tryFindLinkNamePos(const NameObj* pObj, const char* pName, TVec3f* pParam3, TVec3f* pParam4) {
     return getNamePosHolder()->find(pObj, pName, pParam3, pParam4);
+}
+
+bool LiveActor::receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*) {
+    return false;
+}
+
+bool LiveActor::receiveMsgPush(HitSensor*, HitSensor*) {
+    return false;
+}
+
+void LiveActor::updateHitSensor(HitSensor*) {
 }
 
 void ObjUtil_FORCE_MATCH(TVec3f* pOut, const TVec3f& rVec) {

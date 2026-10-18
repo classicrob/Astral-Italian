@@ -21,6 +21,9 @@ public:
 
     void initHeaderSerializer();
 
+    // core h10: SMG2 flag byte at chunk+4 (read/written inline by GameDataFunction)
+    /* 0x04 */ u8 mEncouragedPal16;
+
 private:
     /* 0x08 */ OSTime mTimeAnnounced;
     /* 0x10 */ OSTime mTimeSent;
@@ -42,7 +45,9 @@ public:
     void makeDataBinary(u8*, u32) const;
     void loadFromDataBinary(const u8*, u32);
 
-private:
+    // core h10: SMG2 GameDataFunction reads the chunk pointer directly (offset 0 of SysConfigFile)
     /* 0x00 */ SysConfigChunk* mChunk;
+
+private:
     /* 0x04 */ BinaryDataChunkHolder* mChunkHolder;
 };

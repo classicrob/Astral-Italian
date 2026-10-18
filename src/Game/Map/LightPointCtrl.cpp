@@ -39,13 +39,17 @@ void LightPointCtrl::update() {
     }
 }
 
-void LightPointCtrl::requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration) {
+void LightPointCtrl::requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef) {
     if (mStep == -1 && isUpdateCandidateActor(pActor)) {
         mCandidateActor = pActor;
         mTargetInfo->mPos = pos;
         mTargetInfo->mColor = color.mGXColor;
-        mTargetInfo->mRefBrightness = MR::clamp(intensity, 0.95f, 0.999999f);
-        mTargetInfo->mRefDistance = ::sDefaultDistRef;
+        mTargetInfo->mRefBrightness = MR::clamp(intensity, 0.0f, 1.0f);
+        if (distRef > 0.0f) {
+            mTargetInfo->mRefDistance = distRef;
+        } else {
+            mTargetInfo->mRefDistance = ::sDefaultDistRef;
+        }
         mTargetInfo->mDistAttnFn = GX_DA_STEEP;
         mBlendTime = duration >= 0 ? duration : ::sDefaultBlendTime;
     }

@@ -2,6 +2,10 @@
 // NameObjFactory::createNameObj<T> is `new T(pName)`. To keep this TU independent of ~480 class headers, each T
 // is declared here with only its constructor and its exact SMG2 size (from the target `li r3, size`).
 #include <revolution/types.h>
+#include "Game/Effect/CaveStream.hpp"
+#include "Game/Demo/KoopaAssaultFallObj.hpp"
+#include "Game/Demo/TransformFaceTicoBabyDemoObj.hpp"
+#include "Game/Map/HeadLight.hpp"
 #include "Game/NPC/Pichan.hpp"
 #include "Game/NPC/KoopaNpc.hpp"
 #include "Game/NPC/GhostAttackGhost.hpp"
@@ -263,7 +267,6 @@ class ItemDrill { public: ItemDrill(const char*); u8 _[0x228]; };
 class JumpHole { public: JumpHole(const char*); u8 _[0x120]; };
 class JumpStand { public: JumpStand(const char*); u8 _[0xc8]; };
 class JumpStandAuto { public: JumpStandAuto(const char*); u8 _[0x90]; };
-class KoopaAssaultFallObj { public: KoopaAssaultFallObj(const char*); u8 _[0xa0]; };
 class KoopaSealField { public: KoopaSealField(const char*); u8 _[0xa8]; };
 class KoopaStatueVomit { public: KoopaStatueVomit(const char*); u8 _[0xd4]; };
 class KoopaJrCastleCloudStep { public: KoopaJrCastleCloudStep(const char*); u8 _[0xb4]; };
@@ -427,9 +430,7 @@ class PurpleCoinCompleteWatcher { public: PurpleCoinCompleteWatcher(const char*)
 class SpinLeverSwitch { public: SpinLeverSwitch(const char*); u8 _[0x9c]; };
 class Fountain { public: Fountain(const char*); u8 _[0xa0]; };
 class FountainBig { public: FountainBig(const char*); u8 _[0xa0]; };
-class HeadLight { public: HeadLight(const char*); u8 _[0x98]; };
 class RandomEffectObj { public: RandomEffectObj(const char*); u8 _[0xb0]; };
-class CaveStream { public: CaveStream(const char*); u8 _[0xa0]; };
 class PhantomTorch { public: PhantomTorch(const char*); u8 _[0xa0]; };
 class WaterFortressRain { public: WaterFortressRain(const char*); u8 _[0xc0]; };
 class InvisiblePolygonObj { public: InvisiblePolygonObj(const char*); u8 _[0xc0]; };
@@ -462,7 +463,6 @@ class OpeningDemoObj { public: OpeningDemoObj(const char*); u8 _[0xa4]; };
 class PrepareKoopaFinalDemoObj { public: PrepareKoopaFinalDemoObj(const char*); u8 _[0x9c]; };
 class SimpleDemoExecutor { public: SimpleDemoExecutor(const char*); u8 _[0xa8]; };
 class StaffRollDemoObj { public: StaffRollDemoObj(const char*); u8 _[0xc0]; };
-class TransformFaceTicoBabyDemoObj { public: TransformFaceTicoBabyDemoObj(const char*); u8 _[0x94]; };
 class CollisionArea { public: CollisionArea(int, const char*); u8 _[0x78]; };
 class MercatorTransformCube { public: MercatorTransformCube(int, const char*); u8 _[0x78]; };
 class SoundEmitterCube { public: SoundEmitterCube(int, const char*); u8 _[0x58]; };

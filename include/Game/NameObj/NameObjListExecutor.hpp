@@ -20,6 +20,7 @@ public:
     s32 registerDrawBuffer(LiveActor* pActor, int drawBufferType);
     void allocateDrawBufferActorList();
     void registerPreDrawFunction(const MR::FunctorBase& rFunc, int drawType);
+    bool isRegisteredDrawFunction(int drawType) const;
     void findLightInfo(LiveActor* pActor, int drawBufferType, int executorIndex) const;
     void incrementCheckMovement(NameObj* pObj, int category);
     void incrementCheckCalcAnim(NameObj* pObj, int category);

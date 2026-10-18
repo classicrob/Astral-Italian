@@ -1,3 +1,4 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSequenceInStage.hpp"
 
 #include "Game/LiveActor/Nerve.hpp"
@@ -17,11 +18,7 @@
 #include "Game/Util/StarPointerUtil.hpp"
 
 extern "C" {
-    void fn_804D85D0();
-    s32 fn_804D8620();
-    void fn_804D71B0();
     void fn_80058C70(s32);
-    s32 fn_800583B0(const char*);
 };
 
 namespace NrvGameSequenceInStage {
@@ -66,7 +63,7 @@ void GameSequenceInStage::appear() {
     } else {
         setNerve(GET_NERVE_DIRECT(NrvGameSequenceInStage, GameSequenceInStageNrvWait));
     }
-    fn_804C8E90(mPlayResultHolder);
+    mPlayResultHolder->clearStageResult();
     mIsKillReady = false;
 }
 
@@ -91,7 +88,7 @@ void GameSequenceInStage::exeMissLeft() {
 }
 
 void GameSequenceInStage::exeWait() {
-    if (fn_804D8620() != 0) {
+    if (GameSequenceFunction::isReadyToStartScene() != 0) {
         if (mIsKillReady) {
             kill();
         } else {
@@ -102,8 +99,8 @@ void GameSequenceInStage::exeWait() {
 
 void GameSequenceInStage::exeStart() {
     if (MR::isFirstStep(this)) {
-        fn_804D85D0();
-        if (mPlayResultHolder->mIsFirstPlay) {
+        GameSequenceFunction::startScene();
+        if (mPlayResultHolder->mHasRetryGalaxy) {
             GameSceneFunction::startStagePlayFirst();
             MR::forceOpenWipeCircle();
             MR::openSystemWipeWhiteFade(0x5A);
@@ -122,16 +119,16 @@ void GameSequenceInStage::exeStart() {
 
 void GameSequenceInStage::exeEnd() {
     if (MR::isFirstStep(this)) {
-        if (fn_800583B0(MR::getCurrentStageName())) {
+        if (MR::isValidStageName(MR::getCurrentStageName())) {
             s32 scenarioNo = MR::getCurrentOrSelectedScenarioNo();
             GameDataFunction::onGalaxyScenarioFlagAlreadyVisited(MR::getCurrentStageName(), scenarioNo);
         }
-        if (mPlayResultHolder->mIsFirstPlay) {
-            mPlayResultHolder->mTicoCoinNum = 0;
+        if (mPlayResultHolder->mHasRetryGalaxy) {
+            mPlayResultHolder->mPlayTime = 0;
         }
     }
     if (!GameSceneFunction::isExecPauseMenu() && !MR::isPowerStarGetDemoActive()) {
-        fn_804D71B0();
+        GameSequenceFunction::incPlayTimeInStage();
     }
 }
 

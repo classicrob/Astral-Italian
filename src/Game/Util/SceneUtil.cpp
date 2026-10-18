@@ -21,6 +21,7 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <cstdio>
+#include <cstring>
 
 namespace {
     const JMapIdInfo cInitializeStartIdInfo(0, 0);
@@ -40,6 +41,14 @@ namespace MR {
         return SingletonHolder< GameSystem >::get()->mSceneController->getCurrentScenarioNo();
     }
 
+    s32 getCurrentOrSelectedScenarioNo() {
+        s32 selectedScenarioNo = SingletonHolder< GameSystem >::get()->mSceneController->getCurrentSelectedScenarioNo();
+        if (selectedScenarioNo == -1) {
+            return SingletonHolder< GameSystem >::get()->mSceneController->getCurrentScenarioNo();
+        }
+
+        return selectedScenarioNo;
+    }
 
     void setCurrentScenarioNo(s32 scenarioNo, s32 selectedScenarioNo) {
         return SingletonHolder< GameSystem >::get()->mSceneController->setCurrentScenarioNo(scenarioNo, selectedScenarioNo);
@@ -47,6 +56,10 @@ namespace MR {
 
     bool isScenarioDecided() {
         return SingletonHolder< GameSystem >::get()->mSceneController->isScenarioDecided();
+    }
+
+    GameSystemSceneController* getCurrentGameSystemSceneController() {
+        return SingletonHolder< GameSystem >::get()->mSceneController;
     }
 
     const char* getCurrentStageName() {
@@ -67,20 +80,63 @@ namespace MR {
         return isEqualStringCase(pStage, pStageName);
     }
 
-
-
-
-
-    bool isStageDisablePauseMenu() {
-        bool disabled = false;
-        if (isStageFileSelect() || isStageEpilogueDemo()) {
-            disabled = true;
+    bool isValidZoneName(const char* pName) {
+        const char* pMatch = strstr(pName, "Zone");
+        bool result = false;
+        if (pMatch != nullptr && *(pMatch + strlen("Zone")) == '\0') {
+            result = true;
         }
 
-        return disabled;
+        return result;
     }
 
+    bool isStageNoPauseMenuStars() {
+        if (isEqualStageName("PeachCastleGalaxy") && getCurrentScenarioNo() == 1) {
+            return true;
+        }
 
+        if (isEqualStageName("PeachCastleGalaxy") && getCurrentScenarioNo() == 3) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isStageMarioFaceShipAfterFinalKoopa() {
+        if (isEqualStageName("MarioFaceShipGalaxy") && getCurrentScenarioNo() == 3) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isStageMarioFaceShipAfterGrandStar() {
+        if (isEqualStageName("MarioFaceShipGalaxy") && getCurrentScenarioNo() == 4) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isStagePeachCastleScenario2() {
+        if (isEqualStageName("PeachCastleGalaxy") && getCurrentScenarioNo() == 2) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isStageEpilogueDemo() {
+        if (isStagePeachCastleScenario2()) {
+            return true;
+        }
+
+        return isEqualStageName("ChildRoomGalaxy");
+    }
+
+    bool isStageStaffRoll() {
+        return isEqualStageName("StaffRollGalaxy");
+    }
 
     bool isStageStarPieceFollowGroupLimit() {
         return isEqualStageName("EggStarGalaxy") && getCurrentScenarioNo() == 2;
@@ -89,15 +145,6 @@ namespace MR {
     bool isStageFileSelect() {
         return isEqualStageName("FileSelect");
     }
-
-
-
-
-
-    bool isStageKoopaVs3() {
-        return isEqualStageName("KoopaBattleVs3Galaxy");
-    }
-
 
     bool isBeginScenarioStarter() {
         if (hasRetryGalaxySequence()) {
@@ -109,6 +156,319 @@ namespace MR {
 
     bool isStageSuddenDeathDodoryu() {
         return isEqualStageName("CosmosGardenGalaxy") && getCurrentScenarioNo() == 4;
+    }
+
+    // NONMATCHING: register allocation of the flag locals only (structure matches the target)
+    bool isStageScoreAttack() {
+        bool match = false;
+        bool result = true;
+        bool isHoneyOrMokumoku = true;
+        bool isTwister = true;
+        if (isEqualStageName("HoneyBeeVillageGalaxy") && getCurrentScenarioNo() == 2) {
+            match = true;
+        }
+
+        if (!match) {
+            match = false;
+            if (isEqualStageName("MokumokuValleyGalaxy") && getCurrentScenarioNo() == 2) {
+                match = true;
+            }
+
+            if (!match) {
+                isHoneyOrMokumoku = false;
+            }
+        }
+
+        if (!isHoneyOrMokumoku) {
+            match = false;
+            if (isEqualStageName("TwisterTowerGalaxy") && getCurrentScenarioNo() == 3) {
+                match = true;
+            }
+
+            if (!match) {
+                isTwister = false;
+            }
+        }
+
+        if (!isTwister) {
+            match = false;
+            if (isEqualStageName("UnderGroundDangeonGalaxy") && getCurrentScenarioNo() == 2) {
+                match = true;
+            }
+
+            if (!match) {
+                result = false;
+            }
+        }
+
+        return result;
+    }
+
+    bool isStageMarioFaceShip() {
+        return isEqualStageName("MarioFaceShipGalaxy");
+    }
+
+    // NONMATCHING: string pool offsets differ (target pool has an unused OceanRingGalaxy literal at +0x50)
+    bool isStageWorldMap() {
+        return isEqualStageName("WorldMap01Galaxy") ||
+               isEqualStageName("WorldMap02Galaxy") ||
+               isEqualStageName("WorldMap03Galaxy") ||
+               isEqualStageName("WorldMap04Galaxy") ||
+               isEqualStageName("WorldMap05Galaxy") ||
+               isEqualStageName("WorldMap06Galaxy") ||
+               isEqualStageName("WorldMap07Galaxy") ||
+               isEqualStageName("WorldMap08Galaxy");
+    }
+
+    bool isStageMarioFaceShipOrWorldMap() {
+        return isEqualStageName("MarioFaceShipGalaxy") ||
+               isStageWorldMap();
+    }
+
+    // NONMATCHING: same literal-pool sharing difference as isStageStoryBook
+    bool isStageDisablePauseMenu() {
+        if (isStageFileSelect()) {
+            return true;
+        }
+
+        if (isStageEpilogueDemo()) {
+            return true;
+        }
+
+        if (isEqualStageName("MarioFaceShipGalaxy") && getCurrentScenarioNo() == 3) {
+            return true;
+        }
+
+        return isStageStaffRoll();
+    }
+
+    // NONMATCHING: target reloads each literal address (lis/addi per use); ours shares one pool base
+    bool isStageStoryBook() {
+        if (isEqualStageName("PeachCastleGalaxy") && getCurrentScenarioNo() == 1) {
+            return true;
+        }
+
+        if (isEqualStageName("PeachCastleGalaxy") && getCurrentScenarioNo() == 2) {
+            return true;
+        }
+
+        if (isEqualStageName("PeachCastleGalaxy") && getCurrentScenarioNo() == 3) {
+            return true;
+        }
+
+        if (isEqualStageName("MarioFaceShipGalaxy") && getCurrentScenarioNo() == 3) {
+            return true;
+        }
+
+        return isStageStaffRoll();
+    }
+
+    bool isStageMarioFaceShipNormal() {
+        return isEqualStageName("MarioFaceShipGalaxy") && getCurrentScenarioNo() == 2;
+    }
+
+    bool isStageBossParade() {
+        return isEqualStringCase(getCurrentStageName(), "KingOfKingsGalaxy");
+    }
+
+    bool isStageDimensionBigCastle(const char* pName) {
+        return isEqualStringCase(pName, "DimensionBigCastleGalaxy");
+    }
+
+    bool isStagePurpleCoinsMoreThan100(const char* pName) {
+        if (pName == nullptr) {
+            return false;
+        }
+
+        return isEqualString("BigTree2Galaxy", pName) ||
+               isEqualString("TamakoroSliderGalaxy", pName);
+    }
+
+    bool isStagePlayStarChance(s32 scenarioNo) {
+        if (isPowerStarWithDeclarer("パマタリアンハンター", scenarioNo)) {
+            return false;
+        }
+
+        if (isPowerStarWithDeclarer("花さか監視[パワースター]", scenarioNo)) {
+            return false;
+        }
+
+        if (isEqualStageName("MemoryRoadGalaxy")) {
+            return false;
+        }
+
+        if (isEqualStageName("OmoteuLandGalaxy")) {
+            if (scenarioNo == 2) {
+                return false;
+            }
+
+            if (scenarioNo == 3) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool isStageTimerSwitchingPlatformPowerStarAppeared() {
+        if (isStageStatePowerStarAppeared()) {
+            return isEqualStageName("TimerSwitchingPlatformGalaxy");
+        } else {
+            return false;
+        }
+    }
+
+    bool isStageScenarioEventOpen(const char* pStageName, s32 scenarioNo) {
+        if (isEqualString("BigTree2Galaxy", pStageName) && scenarioNo == 1) {
+            if (isOnGameEventFlagPowerStarSuccess("CloudGardenGalaxy", 1)) {
+                return false;
+            }
+
+            if (isOnGameEventFlagPowerStarSuccess("CloudGardenGalaxy", 3)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        if (isEqualString("CloudGardenGalaxy", pStageName) && scenarioNo == 1) {
+            if (isOnGameEventFlagPowerStarSuccess("BigTree2Galaxy", 1)) {
+                return false;
+            }
+
+            if (isOnGameEventFlagPowerStarSuccess("CloudGardenGalaxy", 3)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        if (isEqualString("CloudGardenGalaxy", pStageName) && scenarioNo == 3) {
+            if (isOnGameEventFlagPowerStarSuccess("BigTree2Galaxy", 1)) {
+                return false;
+            }
+
+            if (isOnGameEventFlagPowerStarSuccess("CloudGardenGalaxy", 1)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isBigTreeOrCloudGardenPowerStarSuccess() {
+        return isOnGameEventFlagPowerStarSuccess("BigTree2Galaxy", 1) ||
+               isOnGameEventFlagPowerStarSuccess("CloudGardenGalaxy", 1) ||
+               isOnGameEventFlagPowerStarSuccess("CloudGardenGalaxy", 3);
+    }
+
+    bool isStageGlider() {
+        return isEqualStageName("JungleGliderGalaxy") ||
+               isEqualStageName("ChallengeGliderGalaxy");
+    }
+
+    bool isStageJungleGliderGalaxyExplainDemo() {
+        return isEqualStageName("JungleGliderGalaxy") && getCurrentScenarioNo() == 1;
+    }
+
+    bool isStageSpecialSceneGalaxy() {
+        if (isStageWorldMap()) {
+            return true;
+        }
+
+        if (isEqualStageName("RedBlueExGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("JungleGliderGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("VsKoopaJrLv1Galaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("GoroRockGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("StarCreekGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("GhostConveyorGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("MysteryCandyGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("KoopaJrLv2Galaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("WanwanFactoryGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("ThunderFleetGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("VsKoopaJrLv3Galaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("KachikochiLavaGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("ChallengeGliderGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("MemoryRoadGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("TwisterTowerGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("MagicGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("MarioOnMarioGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("SwitchMoveBlockGalaxy")) {
+            return true;
+        }
+
+        if (isEqualStageName("DigMineGalaxy")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isStageKoopaVs3() {
+        return isEqualStageName("VsKoopaLv3Galaxy") && getCurrentScenarioNo() == 1;
+    }
+
+    bool isStageKoopaVs() {
+        return isEqualStageName("VsKoopaLv1Galaxy") ||
+               isEqualStageName("VsKoopaGravityGalaxy") ||
+               isEqualStageName("VsKoopaLv3Galaxy");
+    }
+
+    bool isNextStageFileSelect() {
+        return isEqualString(SingletonHolder< GameSystem >::get()->mSceneController->getNextStageName(), "FileSelect");
     }
 
     void setInitializeStatePlacementPlayer() {
@@ -136,10 +496,20 @@ namespace MR {
                ::isInitializeState(SceneInitializeState_Placement);
     }
 
+    void stopSceneForScenarioOpeningCamera() {
+        getSceneNameObjMovementController()->requestStopSceneFor(MovementControlType_4, nullptr);
+    }
 
+    void playSceneForScenarioOpeningCamera() {
+        getSceneNameObjMovementController()->requestPlaySceneFor(MovementControlType_4, nullptr);
+    }
 
     const JMapIdInfo& getCurrentMarioStartIdInfo() {
         return *SingletonHolder< GameSystem >::get()->mSceneController->mCurrSceneControlInfo.mStartIdInfo;
+    }
+
+    s32 getCurrentMarioStartId() {
+        return getCurrentMarioStartIdInfo()._0;
     }
 
     s32 getStartPosNum() {
@@ -154,7 +524,6 @@ namespace MR {
         return ::cInitializeStartIdInfo;
     }
 
-
     s32 getGeneralPosNum() {
         return getStageDataHolder()->getGeneralPosNum();
     }
@@ -167,6 +536,31 @@ namespace MR {
         *ppLinkInfo = new JMapLinkInfo(iter, false);
     }
 
+    bool getRestartPosData(TVec3f* pTrans, TVec3f* pRot, const JMapInfoIter& rIter) {
+        s32 childObjNum = getStageDataHolder()->findPlacedStageDataHolder(rIter)->getChildObjNum(rIter);
+        for (s32 i = 0; i < childObjNum; i++) {
+            JMapInfoIter childIter = getStageDataHolder()->findPlacedStageDataHolder(rIter)->getChildObjInfoFromDataIndex(rIter, i);
+            if (isObjectName(childIter, "GeneralRestartPos")) {
+                s32 arg0;
+                getJMapInfoArg0WithInit(childIter, &arg0);
+                JMapIdInfo restartInfo(arg0, childIter);
+                if (*getRestartMarioNo() == restartInfo) {
+                    if (pTrans != nullptr) {
+                        getJMapInfoTrans(childIter, pTrans);
+                    }
+
+                    if (pRot != nullptr) {
+                        getJMapInfoRotate(childIter, pRot);
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     s32 getChildObjNum(const JMapInfoIter& rIter) {
         return getStageDataHolder()->findPlacedStageDataHolder(rIter)->getChildObjNum(rIter);
     }
@@ -176,20 +570,75 @@ namespace MR {
         getObjectName(ppName, childIter);
     }
 
-    void initChildObj(NameObj* pObj, const JMapInfoIter& rIter, int index) {
-        JMapInfoIter childIter = getStageDataHolder()->findPlacedStageDataHolder(rIter)->getChildObjInfoFromDataIndex(rIter, index);
-        pObj->init(childIter);
+    const char* getChildObjJapaneseName(const JMapInfoIter& rIter, int index) {
+        const char* pName = nullptr;
+        getChildObjName(&pName, rIter, index);
+        const char* pJapaneseName = getStageDataHolder()->getJapaneseObjectName(pName);
+        if (pJapaneseName != nullptr) {
+            return pJapaneseName;
+        }
+
+        return pName;
     }
 
+    void getZoneStageArchiveResource(void** ppData, s32* pSize, const char* pName, s32 zoneId) {
+        StageDataHolder* pHolder;
+        if (zoneId == 0) {
+            pHolder = getSceneObj< StageDataHolder >(SceneObj_StageDataHolder);
+        } else {
+            pHolder = getStageDataHolder()->getStageDataHolderFromZoneId(zoneId);
+        }
 
+        *ppData = pHolder->getStageArchiveResource(pName);
+        if (pSize != nullptr) {
+            if (*ppData != nullptr) {
+                *pSize = pHolder->getStageArchiveResourceSize(*ppData);
+            } else {
+                *pSize = 0;
+            }
+        }
+    }
+
+    void initChildObj(NameObj* pObj, const JMapInfoIter& rIter, int index) {
+        JMapInfoIter childIter = getStageDataHolder()->findPlacedStageDataHolder(rIter)->getChildObjInfoFromDataIndex(rIter, index);
+        initialize(pObj, childIter);
+    }
+
+    const char* getAppearPowerStarObjName(s32 scenarioNo) {
+        return makeCurrentGalaxyStatusAccessor().getAppearPowerStarObjName(scenarioNo);
+    }
 
     s32 getCurrentStagePowerStarNum() {
         return makeCurrentGalaxyStatusAccessor().getPowerStarNum();
     }
 
+    s32 getZoneNum() {
+        return makeCurrentGalaxyStatusAccessor().getZoneNum();
+    }
 
+    const char* getZoneNameFromZoneId(s32 zoneId) {
+        return makeCurrentGalaxyStatusAccessor().getZoneName(zoneId);
+    }
 
+    s32 getZoneIdFromZoneName(const char* pName) {
+        return makeCurrentGalaxyStatusAccessor().getZoneId(pName);
+    }
 
+    s32 getPlacedHiddenStarScenarioNo(const char* pStageName, s32 starId) {
+        GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pStageName);
+        s32 scenarioCount = accessor.getNormalPowerStarNumWithoutComet();
+        if (accessor.isGreenStar(starId) && accessor.hasCometScenario()) {
+            scenarioCount++;
+        }
+
+        for (s32 i = 1; i <= scenarioCount; i++) {
+            if (accessor.isExistPowerStarAtScenario(i, starId)) {
+                return i;
+            }
+        }
+
+        return 1;
+    }
 
     void getRailInfo(JMapInfoIter* pRailIter, const JMapInfo** ppPointInfo, const JMapInfoIter& rIter) {
         s32 railId = -1;
@@ -238,30 +687,16 @@ namespace MR {
         if (!getStageDataHolder()->isPlacedZone(zoneId)) {
             *ppData = nullptr;
             *pSize = 0;
-            return;
+        } else {
+            getZoneStageArchiveResource(ppData, pSize, "CameraParam.bcam", zoneId);
         }
-
-        StageDataHolder* pHolder = getStageDataHolder()->getStageDataHolderFromZoneId(zoneId);
-        *ppData = pHolder->getStageArchiveResource("CameraParam.bcam");
-        *pSize = pHolder->getStageArchiveResourceSize(*ppData);
     }
 
     void getCurrentScenarioStartAnimCameraData(void** ppData, s32* pSize) {
-        StageDataHolder* pHolder = getStageDataHolder();
         char fileName[64];
         snprintf(fileName, sizeof(fileName), "StartScenario%d.canm", getCurrentScenarioNo());
-        *ppData = pHolder->getStageArchiveResource(fileName);
-        if (*ppData != nullptr) {
-            *pSize = pHolder->getStageArchiveResourceSize(*ppData);
-        } else {
-            *pSize = 0;
-        }
+        getZoneStageArchiveResource(ppData, pSize, fileName, 0);
     }
-
-
-
-
-
 
     bool isPlacementLocalStage() {
         return getStageDataHolder()->mStageDataHolderCount > 0;
@@ -271,9 +706,16 @@ namespace MR {
         return getStageDataHolder()->findPlacedStageDataHolder(rIter)->mZoneID;
     }
 
+    const TPos3f& getZonePlacementMtx(const JMapInfoIter& rIter) {
+        return getStageDataHolder()->findPlacedStageDataHolder(rIter)->mPlacementMtx;
+    }
 
     const TPos3f* getZonePlacementMtx(s32 zoneId) {
         return &getStageDataHolder()->getStageDataHolderFromZoneId(zoneId)->mPlacementMtx;
+    }
+
+    const char* getJapaneseObjectNameOrNull(const char* pName) {
+        return getStageDataHolder()->getJapaneseObjectName(pName);
     }
 
     const char* getJapaneseObjectName(const char* pName) {
@@ -297,4 +739,16 @@ namespace MR {
         return getPlacementStateChecker()->getCurrentPlacementZoneId();
     }
 
+    bool isValidStageName(const char* pName) {
+        return true;
+    }
+
+    bool isProductGameScene() {
+        return true;
+    }
 };  // namespace MR
+
+// PLACEHOLDER(core): GameSystemSceneController::getNextStageName is SMG2 fn_804BA850 (`addi r3,r3,0xCC`), whose owner unit has not defined it yet; resolve when GameSystemSceneController.cpp defines getNextStageName and delete this copy.
+const char* GameSystemSceneController::getNextStageName() const {
+    return mNextSceneControlInfo.mStage;
+}

@@ -1,10 +1,9 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 // Callees living in other WorldMapResult translation units (unnamed in the target).
+// PLACEHOLDER(core): unnamed SMG2 callees, and WorldMapResultState* members/ctors whose classes have no header yet; resolve when their owners name them or the WorldMapResultState* headers exist
 extern "C" {
-    s32 fn_804D72E0();
-    void fn_804D7580();
-    f32 fn_8003DBB0(f32, f32, f32);
     void* fn_804F9330(void*, void*);
     void* fn_804FD0D0(void*, void*);
     void* fn_804FA6E0(void*, void*);
@@ -58,12 +57,6 @@ extern "C" {
 
 }
 
-
-namespace GameSequenceFunction {
-    // The names in the symbol table are wrong guesses: both really take a route (r3 = route).
-    void getGalaxyCometState(const char*);
-    void reserveUserName(const wchar_t*);
-}
 
 static f32 sCameraAngle = 37.86f;
 
@@ -491,7 +484,7 @@ void WorldMapResultWorld::setupRouteSteps(WorldMapResultRoute* pRoute, s32 node)
 void WorldMapResultWorld::refreshRouteComet() {
     WorldMapResultRoute route;
     route.collect(this);
-    GameSequenceFunction::getGalaxyCometState(reinterpret_cast< const char* >(&route));
+    GameSequenceFunction::storeWorldMapRoute(&route);
 }
 
 void WorldMapResultWorld::startRoutePointOpenSound(s32 pointIndex) {
@@ -503,13 +496,13 @@ void WorldMapResultWorld::startRoutePointCloseSound(s32 pointIndex) {
 }
 
 void WorldMapResultWorld::setupRoute(WorldMapResultRoute* pRoute) {
-    s32 node = fn_804D72E0();
+    s32 node = GameSequenceFunction::getWorldMapCurrentNode();
     mLinks->openFrom(0);
     WorldMapResultRoute route;
-    GameSequenceFunction::reserveUserName(reinterpret_cast< const wchar_t* >(&route));
+    GameSequenceFunction::loadWorldMapRoute(&route);
     pRoute->collect(this);
     pRoute->subtract(&route);
-    fn_804D7580();
+    GameSequenceFunction::clearWorldMapRouteCount();
     mPathFinder->update(node);
     setupRouteSteps(pRoute, node);
     refreshNode(node);
@@ -536,7 +529,7 @@ void WorldMapResultWorld::setupRouteFromNode(WorldMapResultRoute* pRoute, s32 no
 
     pRoute->collect(this);
     pRoute->subtract(&route);
-    fn_804D7580();
+    GameSequenceFunction::clearWorldMapRouteCount();
     mPathFinder->update(node);
     setupRouteSteps(pRoute, node);
     refreshNode(node);
@@ -578,7 +571,7 @@ bool WorldMapResultWorld::updateRouteStep(WorldMapResultRoute* pRoute, s32 step,
     }
 
     if (t >= 1.0f) {
-        refreshNodeFull(fn_804D72E0());
+        refreshNodeFull(GameSequenceFunction::getWorldMapCurrentNode());
     }
 
     bool done = false;
@@ -620,8 +613,8 @@ void WorldMapResultBox::extendByWorld(WorldMapResultWorld* pWorld) {
 // NONMATCHING: stack slot order of the three temporaries and one fmuls operand order
 void calcRoutePos(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, s32 step, s32 maxStep) {
     s32 splitStep = (s32)(0.8f * (f32)maxStep);
-    f32 rate = MR::getLinerValue(fn_8003DBB0((f32)step, 0.0f, (f32)splitStep), 0.0f, 1.0f - 0.12f, 1.0f);
-    rate += MR::getEaseOutValue(fn_8003DBB0((f32)step, (f32)splitStep, (f32)maxStep), 0.0f, 0.12f, 1.0f);
+    f32 rate = MR::getLinerValue(MR::normalizeAndClamp01((f32)step, 0.0f, (f32)splitStep), 0.0f, 1.0f - 0.12f, 1.0f);
+    rate += MR::getEaseOutValue(MR::normalizeAndClamp01((f32)step, (f32)splitStep, (f32)maxStep), 0.0f, 0.12f, 1.0f);
     VecCopy to(rTo);
     vecScale(&to, rate);
     VecCopy from(rFrom);

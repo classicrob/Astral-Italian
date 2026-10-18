@@ -321,7 +321,9 @@ namespace MR {
         return maxNum;
     }
 
-
+    s32 getLightNumMax(const LiveActor* pActor) {
+        return getLightNumMax(getJ3DModelData(pActor));
+    }
 
     void calcModelBoundingRadius(f32* pOut, const LiveActor* pActor) {
         MR::getJointNum(pActor);

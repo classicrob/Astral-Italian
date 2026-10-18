@@ -3,86 +3,150 @@
 #include <revolution/types.h>
 #include <JSystem/JGeometry/TVec.hpp>
 
-class GalaxyMoveArgument;
+class GameSequenceEnding;
+class GameSequenceInGame;
+class GameSequenceNameEntryTable;
+class JMapIdInfo;
+class NWC24Messenger;
+class NameObj;
+class PlayResultInStageHolder;
+class SaveDataHandleSequence;
 class UserFile;
+class WorldMapResultRoute;
 
+// SMG2: accessors reach GameSystem->mSequenceDirector (GameSequenceDirector: 0x0 GameSequence, 0x8 SaveDataHandleSequence,
+// 0x10 NWC24Messenger). Functions are declared in target address order.
 namespace GameSequenceFunction {
-    bool isLuigiIntrusivelyAppear();
-    void prepareStageResetLuigiIntrusivelyLuigi(const TVec3f&);
-    void prepareStageResetLuigiIntrusivelyMario(const TVec3f&);
-    bool isResultMiss();
-    bool isGreenStarEventOnly();
-    bool isFaceShipSkipBankInfo();
-    void setFaceShipSkipBankInfo();
-    bool getPlayResultMarioFaceShipFlag12();
-    s32 getTicoFatStarPieceId();
-    s32 getTicoFatStarPieceRequirement();
-    bool isTicoFatStarPieceActive();
-    bool isNoSaveMode();
-    bool hasResultPowerStar();
-    bool isResultStarNotGreen();
-    bool isResultNotifyTicoCoin();
-    bool isResultNewBestTime();
-    bool isResultUnlockGhostLuigi();
-    s32 getResultCoinOneUpCount();
-    u32 getResultBestTime();
-    void restartCurrentStageAndClearAfterMiss();
-    const char* getClearedStageName();
-    void resetPlayResultInStage();
-    void collectTicoCoinInStage();
-    bool isCollectTicoCoinInStage();
-    bool isCollectTicoCoinSaved();
-    bool isPadMode();
-    bool isPadModeSuperDreamer();
-    bool tryNANDErrorSequence(s32);
-    void requestChangeScenarioSelect(const char*);
-    bool isAllowDreamerInStage();
-    bool isPadMode2();
-    void setClearedPowerStarNum(s32);
-};
-
-// Merged from Petari (core lane, symbols.txt-verified)
-
-namespace GameSequenceFunction {
-    void requestChangeStageWorldMap();
-    void requestChangeStageStaffRoll();
-    void requestChangeStageChildRoom();
-    void startGameDataSaveSequence(bool, bool, bool);
-    bool isActiveSaveDataHandleSequence();
-};
-
-
-namespace GameSequenceFunction {
-    void notifyToGameSequenceProgressToEndScene();
-    void requestChangeScene(const char*);
-    s32 getClearedPowerStarId();
-    int getClearedStarPieceNum();
-    int getClearedCoinNum();
-    bool hasRetryGalaxySequence();
+    GameSequenceInGame* getGameSequenceInGame() NO_INLINE;
+    GameSequenceEnding* getGameSequenceEnding() NO_INLINE;
+    SaveDataHandleSequence* getSaveDataHandleSequence() NO_INLINE;
+    NWC24Messenger* getNWC24Messenger() NO_INLINE;
+    void closeWipeCircleToPlayerHead() NO_INLINE;
+    void closeWipeCircleAndPrepareDreamer(const NameObj*, s32);
+    void prepareStageResetLuigiIntrusively(bool, const TVec3f&);
+    void prepareStageResetChangeRoom(s32, bool);
+    bool isClearedPowerStar(const char*, s32);
+    bool isClearedGrandStarVsKoopaLv3GalaxyFirstTime();
     void startPreLoadSaveDataSequence();
+    void startGameDataSaveSequence(bool, bool, bool);
+    void startGameDataSaveSequenceAtGameOverEnd();
+    void startWaitSaveDataSequence();
+    void startLoadUserFileSequence(int);
+    void startReloadUserFileSequence();
     void startCreateUserFileSequence(int);
     void startDeleteUserFileSequence(int);
+    void storeMiiOrIconIdAndSaveAllUserFileSequence(int, const void*, const u32*);
     void storeMiiOrIconIdUserFileSequence(int, const void*, const u32*);
     void startSaveAllUserFileSequence();
+    bool isNoSaveMode();
     bool isActiveSaveDataHandleSequence();
     bool isSuccessSaveDataHandleSequence();
     void restoreUserFile(UserFile*, int);
+    u8* getClearedSaveTempBuffer(s32);
+    void loadSaveTempBufferAsGameData();
+    bool tryNANDErrorSequence(s32);
     void requestPrepareResetNWC24();
     bool isEnableToResetNWC24();
     void resetNWC24();
+    void notifyToGameSequenceProgressToEndScene();
+    void requestChangeStageAfterFileSelect();
+    void requestChangeStageMarioFaceShip(s32, s32);
+    void requestChangeStageWorldMap();
+    void requestChangeStageWorldMapEnterType0();
+    void requestChangeStageWorldMapEnterType1();
+    void requestChangeStageWorldMapMoveToWorld(u8);
+    void requestChangeStageWorldMapEnterType4(u8);
+    void requestChangeStageInStage(const char*);
+    void requestChangeStageAfterStageClear();
+    void requestChangeStageAfterMiss();
+    void restartCurrentStageAndClearAfterMiss();
+    void requestChangeScenarioSelect(const char*);
+    void requestChangeStageMarioFaceShipBeforeKoopaVs3();
+    void requestChangeStageStaffRoll();
+    void requestChangeStageChildRoom();
+    void setInStageKillReady();
+    void reflectStageResult();
+    void setClearedPowerStarNum(s32);
     bool hasStageResultSequence();
-    bool isGalaxyCometLand(const char*);
-};  // namespace GameSequenceFunction
-
-namespace GameSequenceFunction {
+    bool hasResultPowerStar();
+    bool isResultStarNotGreen();
+    bool isResultNotifyTicoCoin();
+    bool isNewlyOpenedGalaxyAtResult(const char*);
+    const char* getClearedStageName();
+    s32 getClearedPowerStarId();
+    s32 getClearedStarPieceNum();
+    s32 getClearedCoinNum();
+    s32 getResultBestTime();
+    bool isResultNewBestTime();
+    bool isClearedIslandFleetGalaxyFirstTimeAtResult();
+    bool isClearedGrandStarVsKoopaLv3GalaxyAtResult();
+    bool isClearedAll120PowerStarAtResult();
+    bool isClearedAllPowerStarAtResult();
+    bool isResultUnlockGhostLuigi();
+    bool isClearedIslandFleetGalaxyFirstTime();
+    bool isClearedVsKoopaLv3GalaxyFirstTime();
+    bool isClearedVsKoopaLv3Galaxy1();
+    PlayResultInStageHolder* getPlayResultInStageHolder() NO_INLINE;
+    GameSequenceNameEntryTable* getGameSequenceNameEntryTable() NO_INLINE;
+    s32 getResultMissCount();
+    bool isResultMiss();
+    bool hasRetryGalaxySequence();
+    void setResultPowerStarAppeared();
+    bool isResultPowerStarAppeared();
+    s32 getResultPlayerHealth();
+    s32 getResultCoinOneUpCount();
+    void incPlayTimeInStage();
     s32 getElapsedStageFrame();
-}
-
-namespace GameSequenceFunction {
-    s32 getPlacedGreenStarScenarioNo(const char*, s32);
-}
-
-namespace GameSequenceFunction {
+    void resetPlayTimeInStage();
+    void resetPlayResultInStage();
+    void setWorldMapCurrentNode(s32);
+    s32 getWorldMapCurrentNode();
+    void setTicoFatStarPieceId(s32);
+    void setTicoFatStarPieceRequirement(s32);
+    s32 getTicoFatStarPieceId();
+    s32 getTicoFatStarPieceRequirement();
+    bool isTicoFatStarPieceActive();
+    void clearTicoFatStarPiece();
+    void setWorldMapGalaxyFlag(s32, s32);
+    bool isWorldMapGalaxyFlag(s32, s32);
+    void storeWorldMapRoute(const WorldMapResultRoute*);
+    void loadWorldMapRoute(WorldMapResultRoute*);
+    void clearWorldMapRouteCount();
+    void clearWorldMapAfterGameOver();
+    bool isWorldMapAfterGameOver();
+    bool isWorldMapAfterFileSelect();
+    void clearWorldMapAfterFileSelect();
+    void setWorldMapFlag22C();
+    void clearWorldMapFlag22C();
+    bool isWorldMapFlag22C();
+    void setWorldMapFlag22D();
+    void clearWorldMapFlag22D();
+    bool isWorldMapFlag22D();
+    void setWorldMapEnterType5();
+    bool isWorldMapEnterType0();
+    bool isWorldMapEnterType1();
+    bool isWorldMapEnterType2();
+    bool isWorldMapEnterType3();
+    bool isWorldMapEnterType4();
+    bool isWorldMapEnterType5();
+    bool isFaceShipAfterFileSelect();
+    void clearFaceShipAfterFileSelect();
+    bool isFaceShipRespondGameOver();
+    void setFaceShipRespondGameOver();
+    void clearFaceShipRespondGameOver();
+    bool isFaceShipSkipBankInfo();
+    void setFaceShipSkipBankInfo();
+    s32 getFaceShipClearedScenariosCount();
+    void incFaceShipClearedScenariosCount();
+    void clearFaceShipClearedScenariosCount();
+    bool isFaceShipFlag1C();
+    void setFaceShipFlag1C();
+    void clearFaceShipFlag1C();
+    void resetPlayResultHolders();
+    void setPadModeDreamer(const NameObj*, s32);
+    void setPadModeSuperDreamer(const NameObj*, s32);
+    void clearPadModeDreamer();
+    void clearPadModeSuperDreamer();
     bool isPadModeDreamer();
 }
 
@@ -96,3 +160,41 @@ namespace GameSequenceFunction {
     void clearPadModeSuperDreamer();
     bool isAllowDreamerMissNum(s32);
 }
+namespace GameSequenceFunction {
+    bool isPadModeSuperDreamer();
+    bool isPadMode();
+    bool isPadMode2();
+    bool isAllowDreamerMissNum(s32);
+    bool isAllowDreamerInStage();
+    bool isSuperDreamer();
+    bool isLuigiIntrusivelyAppear();
+    void prepareStageResetLuigiIntrusivelyLuigi(const TVec3f&);
+    void prepareStageResetLuigiIntrusivelyMario(const TVec3f&);
+    void prepareStageResetChangeRoomLuigi(s32);
+    void prepareStageResetChangeRoomMario(s32);
+    bool checkAppearGhostLuigi(const char*, s32);
+    s32 getPlacedGreenStarScenarioNo(const char*, s32);
+    void collectTicoCoinInStage();
+    bool isCollectTicoCoinInStage();
+    bool isCollectTicoCoinSaved();
+    void collectTicoCoinIfSaved();
+    bool hasGrandStarOfCurrentWorld();
+    bool isGreenStarEventOnly();
+    void setupNameEntryTableIfRetryGalaxy();
+    bool isMarioFaceShipEventEmpty();
+    bool hasWorldMapHeap();
+    void setupChangeStage(const char*, s32, s32, const JMapIdInfo*);
+    void requestChangeStage(const char*, s32, s32, const JMapIdInfo*);
+    void requestChangeStageNoReset(const char*, s32, s32, const JMapIdInfo*);
+    void requestChangeStageScenarioSelect(const char*);
+    void requestChangeStageForceWipeClose(const char*, s32, s32, const JMapIdInfo*);
+    void requestChangeScene(const char*);
+    void startScene();
+    bool isReadyToStartScene();
+    bool isGameSequenceWipeStarted();
+    s32 isCollectedAll120PowerStars() NO_INLINE;
+    void updateGameDataAtStageClear();
+    void updateGalaxyCometAppearance(const char*, s32);
+    void initAfterResourceLoaded();
+    void drawPlayerMissLeft();
+};  // namespace GameSequenceFunction

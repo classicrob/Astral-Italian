@@ -13,7 +13,6 @@
 
 extern "C" {
     s32 fn_80024F60(const char*);
-    s32 fn_804D3D10(const char*, s32);
 };
 
 PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("\x83v\x83\x8c\x83""C\x8c\x8b\x89\xca\x95\xdb\x8e\x9d[\x83X\x83""e\x81[\x83W\x92\x86]") {
@@ -29,16 +28,16 @@ PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("\x83v\x83\x8c\x83"
     mIsPurpleCoinFull = false;
     mIsCollectTicoCoinSaved = false;
     mIsTicoCoinSaved = false;
-    mTicoCoinNum = 0;
-    mIsTicoCoinFull = false;
+    mPlayTime = 0;
+    mIsNewBestTime = false;
     mRestartMarioNo = new JMapIdInfo();
     mMissCount = 0;
-    mIsFirstPlay = true;
-    mIsStageEnd = false;
-    mIsEventFlag = false;
+    mHasRetryGalaxy = true;
+    mIsPowerStarAppeared = false;
+    mIsLuigiIntruding = false;
     mPlayerHealth = 3;
-    mUnk7C = 0;
-    mUnk80 = false;
+    mCoinOneUpNum = 0;
+    mIsUnlockGhostLuigi = false;
     mPadMode = 0;
     mIsSuperDreamer = false;
     mNewStageList.mBase = nullptr;
@@ -57,8 +56,6 @@ PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("\x83v\x83\x8c\x83"
 }
 
 PlayResultInStageHolder::~PlayResultInStageHolder() {
-    fn_804C9410(&mResultStageList, -1);
-    fn_804C9410(&mNewStageList, -1);
 }
 
 void PlayResultInStageHolder::reset() {
@@ -75,16 +72,16 @@ void PlayResultInStageHolder::reset() {
     mIsPurpleCoinFull = false;
     mIsCollectTicoCoinSaved = false;
     mIsTicoCoinSaved = false;
-    mTicoCoinNum = 0;
-    mIsTicoCoinFull = false;
+    mPlayTime = 0;
+    mIsNewBestTime = false;
     *mRestartMarioNo = MR::getInitializeStartIdInfo();
     mMissCount = 0;
-    mIsFirstPlay = true;
-    mIsStageEnd = false;
-    mIsEventFlag = GameDataFunction::isOnGameEventFlag("\x82\xc5\x82\xb5\x82\xe1\x82\xce\x82\xe8\x83\x8b\x83""C\x81[\x83W\x8fo\x8c\xbb\x92\x86");
+    mHasRetryGalaxy = true;
+    mIsPowerStarAppeared = false;
+    mIsLuigiIntruding = GameDataFunction::isOnGameEventFlag("\x82\xc5\x82\xb5\x82\xe1\x82\xce\x82\xe8\x83\x8b\x83""C\x81[\x83W\x8fo\x8c\xbb\x92\x86");
     mPlayerHealth = 3;
-    mUnk7C = 0;
-    mUnk80 = false;
+    mCoinOneUpNum = 0;
+    mIsUnlockGhostLuigi = false;
     mPadMode = 0;
     mIsSuperDreamer = false;
     mNewStageList.mCount = 0;
@@ -97,16 +94,17 @@ void PlayResultInStageHolder::reset() {
         PlayResultStageEntry entry;
         entry.mValue = reinterpret_cast< u32 >(pName);
         entry.mFlag = fn_80024F60(pName) != 0;
-        fn_804C93E0(&mNewStageList, &entry);
+        mNewStageList.add(entry);
         iter.goNext();
     }
 }
 
-void fn_804C8E90(PlayResultInStageHolder* pHolder) {
+void PlayResultInStageHolder::clearStageResult() {
+    PlayResultInStageHolder* pHolder = this;
     pHolder->mIsStageResult = false;
     pHolder->mClearedPowerStarNum = -1;
     pHolder->mPurpleCoinNum = 0;
-    pHolder->mIsStageEnd = false;
+    pHolder->mIsPowerStarAppeared = false;
 }
 
 void PlayResultInStageHolder::setStageName(const char* pName) {
@@ -117,7 +115,8 @@ const char* PlayResultInStageHolder::getStageName() const {
     return mStageName;
 }
 
-void fn_804C8ED0(PlayResultInStageHolder* pHolder) {
+void PlayResultInStageHolder::setupStageResult() {
+    PlayResultInStageHolder* pHolder = this;
     s32 starNo = pHolder->mClearedPowerStarNum;
     pHolder->mIsStageResult = true;
     const char* pName = pHolder->mStageName;
@@ -138,15 +137,15 @@ void fn_804C8ED0(PlayResultInStageHolder* pHolder) {
         }
         pHolder->mIsNotGreenStar = isBronze;
     }
-    if (pHolder->mTicoCoinNum != 0 && pHolder->mTicoCoinNum < 0x34BC0 && pHolder->mIsSuperDreamer == false) {
-        s32 count = fn_804D3D10(pName, starNo);
-        if (count != 0 && pHolder->mTicoCoinNum < count) {
-            pHolder->mIsTicoCoinFull = true;
+    if (pHolder->mPlayTime != 0 && pHolder->mPlayTime < 0x34BC0 && pHolder->mIsSuperDreamer == false) {
+        s32 count = GameDataFunction::getScenarioClearTime(pName, starNo);
+        if (count != 0 && pHolder->mPlayTime < count) {
+            pHolder->mIsNewBestTime = true;
         } else {
-            pHolder->mIsTicoCoinFull = false;
+            pHolder->mIsNewBestTime = false;
         }
     } else {
-        pHolder->mTicoCoinNum = 0;
+        pHolder->mPlayTime = 0;
     }
 }
 
@@ -161,7 +160,7 @@ s32 PlayResultInStageHolder::getClearedPowerStarNum() const {
 void PlayResultInStageHolder::addStarPieceNum(s32 num) {
     mClearedStarPieceNum = MR::clamp(mClearedStarPieceNum + num, 0, 999);
     if (mStarPieceAdded + 100 > mClearedStarPieceNum) {
-        mIsStageEnd = true;
+        mIsPowerStarAppeared = true;
     } else {
         mStarPieceAdded += 100;
     }
@@ -192,7 +191,8 @@ void PlayResultInStageHolder::setCollectTicoCoinSaved() {
     mIsTicoCoinSaved = !GameDataFunction::isOnGalaxyFlagTicoCoin(mStageName);
 }
 
-void fn_804C9170(PlayResultInStageHolder* pHolder) {
+void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
+    PlayResultInStageHolder* pHolder = this;
     for (s32 i = 0; i < pHolder->mNewStageList.mCount; i++) {
         PlayResultStageEntry* pEntry = &pHolder->mNewStageList.mBase[i];
         if (pEntry->mFlag) {
@@ -203,12 +203,13 @@ void fn_804C9170(PlayResultInStageHolder* pHolder) {
             PlayResultStageEntry added;
             added.mValue = pEntry->mValue;
             added.mFlag = true;
-            fn_804C93E0(&pHolder->mResultStageList, &added);
+            pHolder->mResultStageList.add(added);
         }
     }
 }
 
-bool fn_804C9200(PlayResultInStageHolder* pHolder, const char* pName) {
+bool PlayResultInStageHolder::isNewlyOpenedGalaxy(const char* pName) const {
+    const PlayResultInStageHolder* pHolder = this;
     for (s32 i = 0; i < pHolder->mResultStageList.mCount; i++) {
         if (MR::isEqualString(reinterpret_cast< const char* >(pHolder->mResultStageList.mBase[i].mValue), pName)) {
             return true;
@@ -223,14 +224,15 @@ void PlayResultInStageHolder::setRestartMarioNo(const JMapIdInfo& rInfo) {
 
 void PlayResultInStageHolder::clearAfterMiss() {
     mMissCount++;
-    fn_804C92A0(this);
+    clearForRetry();
 }
 
-void fn_804C92A0(PlayResultInStageHolder* pHolder) {
+void PlayResultInStageHolder::clearForRetry() {
+    PlayResultInStageHolder* pHolder = this;
     s32 padMode = pHolder->mPadMode;
     pHolder->mStarPieceAdded = 0;
     pHolder->mCoinAdded = 0;
-    pHolder->mIsFirstPlay = false;
+    pHolder->mHasRetryGalaxy = false;
     pHolder->mPlayerHealth = 3;
     pHolder->mIsSuperDreamer = false;
     pHolder->mIsPurpleCoinFull = false;
@@ -246,20 +248,21 @@ s32 PlayResultInStageHolder::getPlayerHealth() const {
     return mPlayerHealth;
 }
 
-extern "C" void fn_804C9320(PlayResultInStageHolder* pHolder, s32 value) {
-    pHolder->mUnk7C = value;
+void PlayResultInStageHolder::setCoinOneUpNum(s32 value) {
+    PlayResultInStageHolder* pHolder = this;
+    pHolder->mCoinOneUpNum = value;
 }
 
 void PlayResultInStageHolder::setPadModeDreamer() {
     mPadMode = 1;
-    mIsFirstPlay = false;
+    mHasRetryGalaxy = false;
     mPlayerHealth = MR::getPlayerLife();
 }
 
 void PlayResultInStageHolder::setPadModeSuperDreamer() {
     mPadMode = 2;
     mIsSuperDreamer = true;
-    mIsFirstPlay = false;
+    mHasRetryGalaxy = false;
     mPlayerHealth = MR::getPlayerLife() > 3 ? 6 : 3;
 }
 
@@ -267,31 +270,26 @@ void PlayResultInStageHolder::clearPadMode() {
     mPadMode = 0;
 }
 
-extern "C" void fn_804C93E0(PlayResultStageList* pList, const PlayResultStageEntry* pEntry) {
-    PlayResultStageEntry* pDst = &pList->mBase[pList->mCount];
-    pList->mCount++;
-    pDst->mValue = pEntry->mValue;
-    pDst->mFlag = pEntry->mFlag;
+void PlayResultStageList::add(const PlayResultStageEntry& rEntry) {
+    PlayResultStageEntry* pDst = &mBase[mCount];
+    mCount++;
+    pDst->mValue = rEntry.mValue;
+    pDst->mFlag = rEntry.mFlag;
 }
 
-extern "C" void fn_804C9410(PlayResultStageList* pList, s32 flag) {
-    if (pList != nullptr) {
-        if (pList->mBase != nullptr) {
-            delete[] pList->mBase;
-        }
-        if (flag > 0) {
-            delete pList;
-        }
+PlayResultStageList::~PlayResultStageList() {
+    if (mBase != nullptr) {
+        delete[] mBase;
     }
 }
 
-extern "C" void fn_804C8D40(PlayResultStageEntry* pEntry) {
-    pEntry->mValue = 0;
-    pEntry->mFlag = false;
+PlayResultStageEntry::PlayResultStageEntry() {
+    mValue = 0;
+    mFlag = false;
 }
 
-extern "C" void fn_804C8D50(PlayResultStageList* pList) {
-    pList->mBase = nullptr;
-    pList->mCapacity = 0;
-    pList->mCount = 0;
+PlayResultStageList::PlayResultStageList() {
+    mBase = nullptr;
+    mCapacity = 0;
+    mCount = 0;
 }

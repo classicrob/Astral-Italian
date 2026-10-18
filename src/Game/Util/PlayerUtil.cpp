@@ -801,4 +801,154 @@ namespace MR {
         return MarioAccess::getPlayerActor()->_378;
     }
 
+    void forceKillPlayer() {
+        if (MarioAccess::isInWaterMode()) {
+            MarioAccess::forceKill(1, 0);
+        } else {
+            MarioAccess::forceKill(5, 0);
+        }
+    }
+
+    f32 getBckFrameMaxPlayer() {
+        return MarioAccess::getAnimationFrameMax();
+    }
+
+    bool isPlayerSkating() {
+        return MarioAccess::isSkating();
+    }
+
+    bool isPlayerRecovering() {
+        return MarioAccess::isRecovering();
+    }
+
+    bool isPlayerHanging() {
+        return MarioAccess::isHanging();
+    }
+
+    bool isPlayerBury() {
+        return MarioAccess::isBury();
+    }
+
+    void changePlayerModeBee() {
+        MarioAccess::changeItemStatus(2);
+    }
+
+    void changePlayerModeHopper() {
+        MarioAccess::changeItemStatus(1);
+    }
+
+    void changePlayerModeTeresa() {
+        MarioAccess::changeItemStatus(3);
+    }
+
+    void changePlayerModeIce() {
+        MarioAccess::changeItemStatus(4);
+    }
+
+    void changePlayerModeFire() {
+        MarioAccess::changeItemStatus(5);
+    }
+
+    void changePlayerModeYoshi() {
+        MarioAccess::changePlayerModeYoshi();
+    }
+
+    void changePlayerModeCloud() {
+        MarioAccess::changePlayerModeCloud();
+    }
+
+    void changePlayerModeRock() {
+        MarioAccess::changePlayerModeRock();
+    }
+
+    void changePlayerModeFoo() {
+        MarioAccess::changeItemStatus(6);
+    }
+
+    void changePlayerModeInvincible() {
+        MarioAccess::changeItemStatus(7);
+    }
+
+    void changePlayerItemLifeUp() {
+        MarioAccess::changeItemStatus(10);
+    }
+
+    void hidePlayerTryDeleteEffect() {
+        MarioAccess::hide(false);
+    }
+
+    void emitEffectPlayer(const char* pName) {
+        MarioAccess::getPlayerActor()->playEffect(pName);
+    }
+
+    void deleteEffectPlayer(const char* pName) {
+        MarioAccess::getPlayerActor()->stopEffect(pName);
+    }
+
+    bool isCurrentRushActor(const char* pName) {
+        LiveActor* pRushActor = getCurrentRushActor();
+        if (pRushActor != nullptr) {
+            return isEqualString(pRushActor->getName(), pName);
+        } else {
+            return false;
+        }
+    }
+
+    bool isCurrentRushRockMario() {
+        return isCurrentRushActor("岩マリオ");
+    }
+
+    bool isCurrentRushTamakoro() {
+        return isCurrentRushActor("たまころ");
+    }
+
+    // NONMATCHING: literal pool sharing (target lis/addi per literal, ours shares one base)
+    bool isCurrentRushSpinDriver() {
+        bool result = false;
+        if (isCurrentRushActor("スーパースピンドライバー") || isCurrentRushActor("スピンドライバ") || isCurrentRushActor("ピンクスーパースピンドライバー")) {
+            result = true;
+        }
+
+        return result;
+    }
+
+    bool isCurrentRushItemDrill() {
+        return isCurrentRushActor("アイテムドリル");
+    }
+
+    HitSensor* getPlayerBodySensor() {
+        return MarioAccess::getPlayerActor()->getSensor("Body");
+    }
+
+    void copyPlayerTR(LiveActor* pActor) {
+        setPosition(pActor, *getPlayerPos());
+        setRotation(pActor, MarioAccess::getPlayerActor()->mRotation);
+    }
+
+    void changePlayerAnimationAndBva(const char* pName) {
+        MarioAccess::changeAnimationE(pName, pName);
+        startBvaIfExist(MarioAccess::getPlayerActor(), pName);
+    }
+
+    void startLevelSoundPlayer(const char* pName, s32 pitch, s32 volume) {
+        startActionSound(MarioAccess::getPlayerActor(), pName, pitch, volume, -1);
+    }
+
+    // SMG2 mPlayerMode ids (Fire 2, Yoshi 0xA, Cloud 0xC, Rock 0xD); PlayerMode enum in MarioActor.hpp is SMG1-shaped
+    bool isPlayerElementModeFire() {
+        return MarioAccess::getPlayerActor()->mPlayerMode == 2;
+    }
+
+    bool isPlayerElementModeYoshi() {
+        return MarioAccess::getPlayerActor()->mPlayerMode == 10;
+    }
+
+    bool isPlayerElementModeCloud() {
+        return MarioAccess::getPlayerActor()->mPlayerMode == 12;
+    }
+
+    bool isPlayerElementModeRock() {
+        return MarioAccess::getPlayerActor()->mPlayerMode == 13;
+    }
+
 };  // namespace MR

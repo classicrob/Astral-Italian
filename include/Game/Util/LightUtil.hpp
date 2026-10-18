@@ -11,6 +11,6 @@ namespace MR {
     void loadLightPlayer();
     void initActorLightInfoLightType(LiveActor*, s32);
     void initActorLightInfoDrawBuffer(LiveActor*, DrawBuffer*);
-    void requestPointLight(const LiveActor*, TVec3f, Color8, f32, s32);
-    void requestPointLight(const LiveActor*, TVec3f, Color8, f32, f32, s32);
+    // SMG2: 2nd float = reference distance (<= 0 selects the default); Tico passes -1.0f
+    void requestPointLight(const LiveActor*, TVec3f, Color8, f32, s32, f32 = -1.0f);
 };  // namespace MR

@@ -49,3 +49,10 @@ public:
         return nullptr;
     }
 };
+
+class NameObj;
+class JMapInfoIter;
+
+namespace MR {
+    LiveActorGroup* initChildObjGroup(const NameObj*, const char*, const JMapInfoIter&);
+};  // namespace MR

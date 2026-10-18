@@ -289,73 +289,66 @@ void ActorItemGenerator::appearItemToVelocity(ActorItemGeneratorEntry* pEntry, c
     }
 }
 
-// fn_8022BB20
-void fn_8022BB20(LiveActor* pActor) {
-    TVec3f vel;
-    MR::getPlayerVelocity(&vel);
-    const TVec3f* pPos = MR::getPlayerCenterPos();
-    appearItemOfToVelocity(pActor, sNameC, pPos, &vel);
-}
-
-// fn_8022BBC0
-void fn_8022BBC0(LiveActor* pActor, const TVec3f* pPos) {
-    TVec3f dir(0.0f, -1.0f, 0.0f);
-    MR::calcGravityVector(pActor, *pPos, &dir, NULL, 0);
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->emitItemAtPosAndDir(sNameD, pPos, &dir);
+namespace MR {
+    void emitItemHit(LiveActor* pActor) {
+        emitItemOf(pActor, sNameA);
     }
-}
 
-// fn_8022BA10
-void fn_8022BA10(LiveActor* pActor) {
-    emitItemOf(pActor, sNameA);
-}
-
-// fn_8022BA50
-void fn_8022BA50(LiveActor* pActor, const TVec3f* pPos) {
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->emitItemAtPos(sNameA, pPos);
+    void emitItemHitAtPos(LiveActor* pActor, const TVec3f* pPos) {
+        ActorItemGenerator* pGen = getItemGenerator(pActor);
+        if (pGen != NULL) {
+            pGen->emitItemAtPos(sNameA, pPos);
+        }
     }
-}
 
-// fn_8022BAA0
-void fn_8022BAA0(LiveActor* pActor) {
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->emitItem(sNameB);
+    void emitItemStomp(LiveActor* pActor) {
+        ActorItemGenerator* pGen = getItemGenerator(pActor);
+        if (pGen != NULL) {
+            pGen->emitItem(sNameB);
+        }
     }
-}
 
-// fn_8022BAE0
-void fn_8022BAE0(LiveActor* pActor) {
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->emitItem(sNameC);
+    void emitItemYoshiEat(LiveActor* pActor) {
+        ActorItemGenerator* pGen = getItemGenerator(pActor);
+        if (pGen != NULL) {
+            pGen->emitItem(sNameC);
+        }
     }
-}
 
-// fn_8022BB70
-void fn_8022BB70(LiveActor* pActor) {
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->emitItemAtPosAndDir(sNameD, NULL, NULL);
+    void appearItemYoshiEatToPlayer(LiveActor* pActor) {
+        TVec3f vel;
+        MR::getPlayerVelocity(&vel);
+        const TVec3f* pPos = MR::getPlayerCenterPos();
+        appearItemOfToVelocity(pActor, sNameC, pPos, &vel);
     }
-}
 
-// fn_8022BC40
-void fn_8022BC40(LiveActor* pActor) {
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->enableAllEntries();
+    void emitItemBossDamage(LiveActor* pActor) {
+        ActorItemGenerator* pGen = getItemGenerator(pActor);
+        if (pGen != NULL) {
+            pGen->emitItemAtPosAndDir(sNameD, NULL, NULL);
+        }
     }
-}
 
-// fn_8022BC70
-void fn_8022BC70(LiveActor* pActor) {
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->disableAllEntries();
+    void emitItemBossDamageAtPos(LiveActor* pActor, const TVec3f* pPos) {
+        TVec3f dir(0.0f, -1.0f, 0.0f);
+        MR::calcGravityVector(pActor, *pPos, &dir, NULL, 0);
+        ActorItemGenerator* pGen = getItemGenerator(pActor);
+        if (pGen != NULL) {
+            pGen->emitItemAtPosAndDir(sNameD, pPos, &dir);
+        }
     }
-}
+
+    void enableAllItemGenerator(LiveActor* pActor) {
+        ActorItemGenerator* pGen = getItemGenerator(pActor);
+        if (pGen != NULL) {
+            pGen->enableAllEntries();
+        }
+    }
+
+    void disableAllItemGenerator(LiveActor* pActor) {
+        ActorItemGenerator* pGen = getItemGenerator(pActor);
+        if (pGen != NULL) {
+            pGen->disableAllEntries();
+        }
+    }
+};  // namespace MR

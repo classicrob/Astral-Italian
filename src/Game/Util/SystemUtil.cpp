@@ -1,3 +1,4 @@
+#include "Game/System/MainLoopFramework.hpp"
 #include "Game/Util/SystemUtil.hpp"
 #include "Game/System/GameSystem.hpp"
 #include "Game/System/GameSystemFontHolder.hpp"
@@ -40,6 +41,14 @@ bool MR::hasPictureFontNW4R() {
 
 bool MR::isScreen16Per9() {
     return MR::isAspectRatioFlag16Per9();
+}
+
+void MR::onUseVFilter() {
+    MainLoopFramework::sManager->mUseVFilter = true;
+}
+
+void MR::offUseVFilter() {
+    MainLoopFramework::sManager->mUseVFilter = false;
 }
 
 namespace {

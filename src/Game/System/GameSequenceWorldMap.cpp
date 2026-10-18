@@ -1,3 +1,4 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSequenceWorldMap.hpp"
 
 #include "Game/LiveActor/Nerve.hpp"
@@ -9,9 +10,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 
 extern "C" {
-    s32 fn_804D8630();
-    s32 fn_804D78F0();
-    void fn_804D8620();
     s32 fn_80059330();
     void fn_804B4220(void*, s32);
 };
@@ -54,8 +52,8 @@ PlayResultWorldMapHolder* GameSequenceWorldMap::getPlayResultHolder() const {
 }
 
 void GameSequenceWorldMap::exeClose() {
-    if (fn_804D8630() != 0) {
-        if (fn_804D78F0() != 0) {
+    if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
+        if (GameSequenceFunction::isWorldMapEnterType5() != 0) {
             MR::forceCloseSystemWipeFade();
         } else {
             MR::forceCloseSystemWipeWhiteFade();

@@ -223,6 +223,7 @@ namespace MR {
         return makeInitActorCsvParser(a1, pSubFile) != nullptr;
     }
 
+    // NONMATCHING: stack frame 0x80 larger than SMG2 (extra local region not identified); JMapInfoIter temporaries from getCsvDataStrByElement are not kept on the stack
     /* https://decomp.me/scratch/xGEnY */
     bool initActor(LiveActor* pActor, const JMapInfoIter& rIter, const char* pArchiveName, const char* a4, const char* a5, bool a6) {
         bool flag = false;
@@ -503,10 +504,14 @@ namespace MR {
             TPos3f mtx;
             mtx.identity();
             MR::makeMtxRotate(mtx, rotation);
-            pFront->set< f32 >(mtx[0][2], mtx[1][2], mtx[2][2]);
+            f32 z = mtx[2][2];
+            f32 y = mtx[1][2];
+            f32 x = mtx[0][2];
+            pFront->set< f32 >(x, y, z);
         }
     }
 
+    // NONMATCHING: string-pool offsets +8 from the early literals (TU literal order); base register choice
     void initSensors(LiveActor* pActor, const char* pArchive, const char* pSubFile) {
         JMapInfo* info = createCsvParserFromFile(pArchive, "InitSensor%s.bcsv", pSubFile);
         if (info != nullptr) {
@@ -550,6 +555,7 @@ namespace MR {
         }
     }
 
+    // NONMATCHING: string-pool offsets +8 from the early literals (TU literal order); register choice in the switch-name loop
     void initSwitches(LiveActor* pActor, const JMapInfoIter& rIter, const char* pArchive, const char* pSubFile) {
         JMapInfo* info = createCsvParserFromFile(pArchive, "InitSwitch%s.bcsv", pSubFile);
         if (info != nullptr) {

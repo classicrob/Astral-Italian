@@ -3,20 +3,15 @@
 #include "Game/Util.hpp"
 
 extern "C" void* __nw__FUl(u32);
-extern "C" void* fn_800919E0(void*, BellyDragon*, TPos3f*, bool);
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void* fn_80095530(void*, BellyDragon*, const char*, const f32*);
-extern "C" void fn_800955B0(void*);
 extern "C" void fn_800955C0(void*);
 extern "C" const char lbl_8066C858[];
 extern "C" const f32 lbl_807D76F4;
 extern "C" const f32 lbl_807D76F8;
 extern "C" const f32 lbl_807D76FC;
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
-extern "C" void fn_80092170(BellyDragonBody*);
-extern "C" void fn_80092500(BellyDragonBody*);
-extern "C" void fn_80092230(BellyDragonBody*);
-extern "C" void fn_80092540(BellyDragonBody*);
-extern "C" void fn_80092670(BellyDragonBody*);
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_80093810(BellyDragon*);
 extern "C" void fn_80093B10(BellyDragon*);
 extern "C" void fn_80093B20(BellyDragon*);
@@ -39,7 +34,8 @@ namespace NrvBellyDragon {
     BellyDragonNrvEnd BellyDragonNrvEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBellyDragon
 
-extern "C" bool fn_8008EDA0(LiveActor* pActor) {
+// PLACEHOLDER(core): fn_8008EDA0 is a C++ (non-extern "C") function in SMG2 (symbol fn_8008EDA0__FP9LiveActor); resolve when named
+bool fn_8008EDA0(LiveActor* pActor) {
     return pActor->isNerve(&NrvBellyDragon::BellyDragonNrvAttack::sInstance);
 }
 
@@ -52,17 +48,16 @@ void BellyDragon::init(const JMapInfoIter& rIter) {
 
     mJointCtrl = new ActorJointCtrl(this);
 
-    void* pMem = __nw__FUl(0x100);
-    mBody = pMem ? (BellyDragonBody*)fn_800919E0(pMem, this, &mBaseMtx, mIsLv2) : NULL;
+    mBody = new BellyDragonBody(this, &mBaseMtx, mIsLv2);
     mPod = new BellyDragonPod(this, &rIter);
     initNerve(&NrvBellyDragon::BellyDragonNrvStart::sInstance, 0x10);
 
     mArmA = new BellyDragonArm(this, 1);
     mArmB = new BellyDragonArm(this, 0);
 
-    pMem = __nw__FUl(0x1C);
+    void* pMem = __nw__FUl(0x1C);
     void* pStateA = pMem ? fn_80095530(pMem, this, lbl_8066C858 + 0x10, &lbl_807D76F4) : NULL;
-    fn_800955B0(pStateA);
+    static_cast<BellyDragonState*>(pStateA)->setOverlay();
     pMem = __nw__FUl(0x1C);
     void* pStateB = pMem ? fn_80095530(pMem, this, lbl_8066C858 + 0x20, &lbl_807D76F8) : NULL;
     pMem = __nw__FUl(0x1C);
@@ -117,14 +112,14 @@ void BellyDragon::emitFireBodyEffects() {
 
 void BellyDragon::appear() {
     LiveActor::appear();
-    fn_80092170(mBody);
+    mBody->appear();
     if (mIsLv2) {
         emitFireBodyEffects();
     }
 }
 
 void BellyDragon::kill() {
-    fn_80092230(mBody);
+    mBody->kill();
     fn_80093810(this);
     TVec3f pos(0.0f);
     if (MR::tryFindNamePos("グランドスター出現位置", &pos, NULL)) {
@@ -140,7 +135,7 @@ void BellyDragon::updateFrontVec(f32 speed) {
     if (speed < 0.0f) {
         turn = 3.0f;
     }
-    fn_80092540(mBody);
+    mBody->update();
     TVec3f up(mBaseMtx.mMtx[0][1], mBaseMtx.mMtx[1][1], mBaseMtx.mMtx[2][1]);
     MR::normalize(&up);
     TVec3f turned = -mGravity;
@@ -164,7 +159,7 @@ void BellyDragon::exeFire() {
         emitFireBodyEffects();
     }
     if (MR::updateActorState(this)) {
-        fn_80092500(mBody);
+        mBody->setAttackable();
         setNerve(&NrvBellyDragon::BellyDragonNrvShot::sInstance);
     }
 }
@@ -203,7 +198,7 @@ void BellyDragon::control() {
 
 void BellyDragon::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mBaseMtx);
-    fn_80092670(mBody);
+    mBody->registerJointCallBacks();
     mJointCtrl->setCallBackFunction();
     fn_80093B20(this);
 }

@@ -21,7 +21,7 @@ public:
 
     void loadPointLight();
     void update();
-    void requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration);
+    void requestPointLight(const LiveActor* pActor, TVec3f pos, Color8 color, f32 intensity, s32 duration, f32 distRef = -1.0f);
     void clearPointLight(PointLightInfo* pInfo);
     void blendPointLight(PointLightInfo* pDst, const PointLightInfo& rStart, const PointLightInfo& rEnd, f32 t);
 

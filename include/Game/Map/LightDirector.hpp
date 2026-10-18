@@ -20,13 +20,16 @@ public:
 
     void initData();
     void loadLightPlayer() const;
-    void loadLightCoin() const;
+    void loadPointLightSub() const;
+    ResourceHolder* getZoneLightResourceHolder(const char* pZoneName) const;
 
-    /* 0x0C */ LightAreaHolder* _C;
-    /* 0x10 */ LightDataHolder* mDataHolder;
-    /* 0x14 */ LightZoneDataHolder* mZoneDataHolder;
-    /* 0x18 */ AreaLightInfo* mDefaultAreaLight;
-    /* 0x1C */ const ActorLightCtrl* _1C;
-    /* 0x20 */ LightPointCtrl* mPointCtrl;
-    /* 0x24 */ ResourceHolder* mResourceHolder;
+    /* 0x14 */ LightAreaHolder* _C;
+    /* 0x18 */ LightDataHolder* mDataHolder;
+    /* 0x1C */ LightZoneDataHolder* mZoneDataHolder;
+    /* 0x20 */ AreaLightInfo* mDefaultAreaLight;
+    /* 0x24 */ const ActorLightCtrl* _1C;
+    /* 0x28 */ LightPointCtrl* mPointCtrl;
+    /* 0x2C */ LightPointCtrl* mPointCtrlSub;  // SMG2; MR::requestPointLight feeds both
+    /* 0x30 */ ResourceHolder* mResourceHolder;
+    /* 0x34 */ ResourceHolder** mZoneResourceHolders;  // SMG2; one per zone (LightFunction::loadZoneLightArchive)
 };

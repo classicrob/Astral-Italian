@@ -35,6 +35,10 @@ void NameObjListExecutor::registerPreDrawFunction(const MR::FunctorBase& rFunc, 
     mDrawList->registerExecuteBeforeFunction(rFunc, drawType);
 }
 
+bool NameObjListExecutor::isRegisteredDrawFunction(int drawType) const {
+    return mDrawList->isRegisteredExecuteFunction(drawType);
+}
+
 void NameObjListExecutor::findLightInfo(LiveActor* pActor, int drawBufferType, int executorIndex) const {
     mBufferHolder->findLightInfo(pActor, drawBufferType, executorIndex);
 }

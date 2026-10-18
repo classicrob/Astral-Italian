@@ -12,12 +12,14 @@ class LayoutActor;
 class ActorCameraInfo;
 
 namespace UnnamedDemoCallee {
+    // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
     void fn_8001BFE0();
     void fn_8001F5B0(LiveActor*, void*, const char*, s32);
     void fn_80011F80(f32, f32);
     void fn_800085C0(LayoutActor*, const char*, s32, s32);
     void fn_80020110(LiveActor*, const char*, s32);
-    void fn_804D64F0();
+    void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*);
+    s32 fn_80147640();
     s32 fn_801476E0();
     s32 fn_80147730();
     s32 fn_80147780();
@@ -36,8 +38,6 @@ namespace UnnamedDemoCallee {
     s32 fn_8004E770(const char*, const char*);
     s32 fn_80492640(NameObj*);
     s32 fn_804926A0(NameObj*);
-    s32 fn_80492730(NameObj*);
-    s32 fn_80492760(NameObj*);
     void fn_80422740();
     StaffRoll* fn_801440F0(LiveActor*, ActorCameraInfo*, s32);
     void fn_80144280(StaffRoll*);

@@ -23,6 +23,9 @@ class GameSequenceNameEntryTable {
 public:
     GameSequenceNameEntryTable(s32 count);
 
+    void clear();               // fn_804AD7C0
+    void registerZoneNames();   // fn_804AD8E0
+
     /* 0x0 */ GameSequenceNameEntry* mEntries;
     /* 0x4 */ s32 mCount;
     /* 0x8 */ s32 _8;
@@ -62,6 +65,9 @@ public:
     void setTitle();
     void setInGame();
     void setEnding();
+    void draw() const;
+    void drawPlayerMissLeft() const;
+    void updatePlayTime();
 
     /* 0x08 */ GameSequenceSystemStart* mSystemStart;
     /* 0x0C */ GameSequenceTitle* mTitle;
@@ -86,6 +92,14 @@ public:
     void exeMessageWait();
     void exeMessageNext();
     void exeSaveSequence();
+    void startInit();
+    void startWipeClose();
+    void startDemoMessage();
+    void requestSaveDemo();
+    void initAfterResourceLoaded();
+    void draw() const;
+    void killMessage();
+    bool updateMessage();
 
     /* 0x10 */ NameObj* mNameObj;
     /* 0x14 */ InformationMessage* mMessage;

@@ -15,7 +15,7 @@ namespace MR {
     s32 getCurrentSelectedScenarioNo();
     void setCurrentScenarioNo(s32, s32);
     bool isScenarioDecided();
-    GameSystemSceneController* getSceneController();
+    GameSystemSceneController* getCurrentGameSystemSceneController();
 
     const char* getCurrentStageName();
     bool isEqualSceneName(const char*);
@@ -25,7 +25,7 @@ namespace MR {
 
     bool isPlacementLocalStage();
 
-    TPos3f& getZonePlacementMtx(const JMapInfoIter&);
+    const TPos3f& getZonePlacementMtx(const JMapInfoIter&);
 
     void getCameraRailInfo(JMapInfoIter*, const JMapInfo**, s32, s32);
 
@@ -79,8 +79,7 @@ namespace MR {
     bool isInitializeStatePlacementSomething();
     void stopSceneForScenarioOpeningCamera();
     void playSceneForScenarioOpeningCamera();
-    const JMapIdInfo& getCurrentMarioStartIdInfo();
-    s32 getCurrentMarioStartId();
+    const JMapIdInfo& getCurrentMarioStartIdInfo() NO_INLINE;
     s32 getStartPosNum();
     s32 getCurrentStartZoneId();
     const JMapIdInfo& getInitializeStartIdInfo();
@@ -115,10 +114,30 @@ namespace MR {
     s32 getCurrentOrSelectedScenarioNo();
 };  // namespace MR
 
+// core (h1): SMG2 SceneUtil functions named from the target (fn_XXXX -> names pending namefn --write)
 namespace MR {
+    bool isStageMarioFaceShipAfterFinalKoopa();
+    bool isStageMarioFaceShipAfterGrandStar();
+    bool isStagePeachCastleScenario2();
+    bool isStageWorldMap();
+    bool isStageMarioFaceShipNormal();
+    bool isStageBossParade();
+    bool isStageDimensionBigCastle(const char*);
+    bool isStagePurpleCoinsMoreThan100(const char*);
+    bool isStageTimerSwitchingPlatformPowerStarAppeared();
+    bool isStageScenarioEventOpen(const char*, s32);
+    bool isBigTreeOrCloudGardenPowerStarSuccess();
     bool isStageGlider();
-}
-
+    bool isStageSpecialSceneGalaxy();
+    bool isNextStageFileSelect();
+    bool isValidStageName(const char*);
+    s32 getCurrentMarioStartId();
+    bool getRestartPosData(TVec3f*, TVec3f*, const JMapInfoIter&);
+    const char* getChildObjJapaneseName(const JMapInfoIter&, int);
+    void getZoneStageArchiveResource(void**, s32*, const char*, s32);
+    s32 getZoneIdFromZoneName(const char*);
+    const char* getJapaneseObjectNameOrNull(const char*);
+};  // namespace MR
 namespace MR {
     bool isGhostLuigiOpenInCurrentStage();
 }

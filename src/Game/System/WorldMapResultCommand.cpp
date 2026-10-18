@@ -1,3 +1,4 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 namespace NrvWorldMapResultController {
@@ -210,7 +211,7 @@ static const char* getCometLandName(s32 index) {
         GalaxyStatusAccessor accessor = iter.makeAccessor();
         const char* pName = accessor.getName();
 
-        if (GameSequenceFunction::isGalaxyCometLand(pName)) {
+        if (GameSequenceFunction::isNewlyOpenedGalaxyAtResult(pName)) {
             if (index <= 0) {
                 return pName;
             }
@@ -264,7 +265,7 @@ bool WorldMapResultCommand::isAnyResultReady() {
         return true;
     }
 
-    return fn_804D6E10();
+    return GameSequenceFunction::isClearedAllPowerStarAtResult();
 }
 
 bool WorldMapResultCommand::isWorldEnabled(s32 world) const {
@@ -276,7 +277,7 @@ bool WorldMapResultCommand::isWorldEnabled(s32 world) const {
         return false;
     }
 
-    if (world == 7 && fn_804D6E10()) {
+    if (world == 7 && GameSequenceFunction::isClearedAllPowerStarAtResult()) {
         return true;
     }
 
@@ -285,7 +286,7 @@ bool WorldMapResultCommand::isWorldEnabled(s32 world) const {
     while (!iter.isEnd()) {
         GalaxyStatusAccessor accessor = iter.makeAccessor();
 
-        if (GameSequenceFunction::isGalaxyCometLand(accessor.getName()) && world == accessor.getWorldNo()) {
+        if (GameSequenceFunction::isNewlyOpenedGalaxyAtResult(accessor.getName()) && world == accessor.getWorldNo()) {
             return true;
         }
 

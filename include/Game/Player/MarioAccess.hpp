@@ -57,6 +57,7 @@ namespace MarioAccess {
     TVec3f* getVelocity();
     TVec3f* getLastMove();
     void hide();
+    void hide(bool);
     void show();
     HitSensor* getTakingSensor();
     void dropTakingActor();
@@ -96,5 +97,11 @@ namespace MarioAccess {
     void readyDemo();
     void endRemoteDemo(const RushEndInfo*);
     bool isInWaterMode();
+    bool isRecovering();
+    bool isHanging();
+    bool isBury();
+    void changePlayerModeYoshi();
+    void changePlayerModeCloud();
+    void changePlayerModeRock();
     void changeItemStatus(s32);
 };  // namespace MarioAccess

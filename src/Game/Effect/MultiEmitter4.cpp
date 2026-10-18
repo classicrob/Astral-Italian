@@ -317,6 +317,24 @@ void MultiEmitter::setParticleCallBackPtr(JPAParticleCallBack* pCallBack, s32 id
     }
 }
 
+void MultiEmitter::pauseOn(s32 idx) {
+    if (idx == -1) {
+        for (s32 i = 0; i < mEmitters.size(); i++) {
+            SingleEmitter* pEmitter = getValidEmitter(i, false);
+            if (pEmitter != nullptr) {
+                pEmitter->mEmitter->pauseOn();
+            }
+        }
+
+        return;
+    }
+
+    SingleEmitter* pEmitter = getValidEmitter(idx, false);
+    if (pEmitter != nullptr) {
+        pEmitter->mEmitter->pauseOn();
+    }
+}
+
 void MultiEmitter::pauseOff(s32 idx) {
     if (idx == -1) {
         for (s32 i = 0; i < mEmitters.size(); i++) {

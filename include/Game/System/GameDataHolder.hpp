@@ -6,6 +6,7 @@ class BinaryDataChunkHolder;
 class GameDataAllGalaxyStorage;
 class GameDataPlayerStatus;
 class GameDataSomeScenarioAccessor;
+class GameDataWorldMapStorage;
 class GameEventFlagChecker;
 class GameEventValueChecker;
 class JMapInfo;
@@ -50,6 +51,12 @@ public:
     s32 getPlayerLeft() const;
     void addPlayerLeft(int);
     s32 getStockedStarPieceNum() const;
+    // SMG2 symbol spelling (core h10)
+    s32 getStocketStarPieceNum() const;
+    s32 calcNormalPowerStarNum() const;
+    s32 calcTicoCoinNum() const;
+    void onGameEventFlag(const char*);
+    void offGameEventFlag(const char*);
     void addStockedStarPieceNum(int);
     s32 getCumulativePlayTime() const;
     void incCumulativePlayTime();
@@ -67,8 +74,15 @@ public:
     /* 0x04 */ GameEventValueChecker* mEventValueChecker;
     /* 0x08 */ GameDataPlayerStatus* mPlayerStatus;
     /* 0x0C */ GameDataAllGalaxyStorage* mAllGalaxyStorage;
-    /* 0x10 */ SpinDriverPathStorage* mSpinDriverPathStorage;
-    /* 0x14 */ StarPieceAlmsStorage* mStarPieceAlmsStorage;
+    // SMG2 slots at 0x10 / 0x14 are the TicoFat alms storage and the world map storage (Petari names kept as aliases)
+    /* 0x10 */ union {
+        SpinDriverPathStorage* mSpinDriverPathStorage;
+        StarPieceAlmsStorage* mTicoFatStorage;
+    };
+    /* 0x14 */ union {
+        StarPieceAlmsStorage* mStarPieceAlmsStorage;
+        GameDataWorldMapStorage* mWorldMapStorage;
+    };
     /* 0x18 */ JMapInfo* mMapInfo;
     /* 0x1C */ ScenarioProgressTestRun* mScenarioProgressTestRun;
     /* 0x20 */ BinaryDataChunkHolder* mChunkHolder;

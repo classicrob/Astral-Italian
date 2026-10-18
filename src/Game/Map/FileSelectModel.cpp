@@ -8,20 +8,13 @@ namespace {
     static const f32 sScale = 30.0f;
 };  // namespace
 
-namespace {
-    NEW_NERVE(FileSelectModelNrvOpen, FileSelectModel, Open);
-    NEW_NERVE(FileSelectModelNrvBlinkOnce, FileSelectModel, BlinkOnce);
-    NEW_NERVE(FileSelectModelNrvClose, FileSelectModel, Close);
-    NEW_NERVE(FileSelectModelNrvBlink, FileSelectModel, Blink);
-};  // namespace
-
 FileSelectModel::FileSelectModel(const char* pModelName, MtxPtr pHostMtx, const char* pName) : LiveActor(pName), _8C(pHostMtx) {
     initModelManagerWithAnm(pModelName, nullptr, false);
     MR::connectToSceneNpc(this);
     initEffectKeeper(0, nullptr, false);
     MR::initLightCtrl(this);
     mScale.set(::sScale, ::sScale, ::sScale);
-    initNerve(GET_NERVE_ANON(FileSelectModelNrvOpen));
+    initNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvOpen));
     MR::invalidateClipping(this);
     makeActorDead();
 }
@@ -31,27 +24,27 @@ void FileSelectModel::calcAnim() {
 }
 
 void FileSelectModel::open() {
-    if (isNerve(GET_NERVE_ANON(FileSelectModelNrvOpen))) {
+    if (isNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvOpen))) {
         return;
     }
 
-    setNerve(GET_NERVE_ANON(FileSelectModelNrvOpen));
+    setNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvOpen));
 }
 
 void FileSelectModel::blinkOnce() {
-    setNerve(GET_NERVE_ANON(FileSelectModelNrvBlinkOnce));
+    setNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvBlinkOnce));
 }
 
 void FileSelectModel::close() {
-    setNerve(GET_NERVE_ANON(FileSelectModelNrvClose));
+    setNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvClose));
 }
 
 void FileSelectModel::blink() {
-    setNerve(GET_NERVE_ANON(FileSelectModelNrvBlink));
+    setNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvBlink));
 }
 
 bool FileSelectModel::isOpen() const {
-    return isNerve(GET_NERVE_ANON(FileSelectModelNrvOpen));
+    return isNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvOpen));
 }
 
 void FileSelectModel::emitOpen() {
@@ -86,7 +79,7 @@ void FileSelectModel::exeBlinkOnce() {
     }
 
     if (MR::isBtpStopped(this)) {
-        setNerve(GET_NERVE_ANON(FileSelectModelNrvOpen));
+        setNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvOpen));
     }
 }
 
@@ -102,7 +95,7 @@ void FileSelectModel::exeBlink() {
     }
 
     if (MR::isBtpStopped(this)) {
-        setNerve(GET_NERVE_ANON(FileSelectModelNrvOpen));
+        setNerve(GET_NERVE(FileSelectModel, FileSelectModelNrvOpen));
     }
 }
 

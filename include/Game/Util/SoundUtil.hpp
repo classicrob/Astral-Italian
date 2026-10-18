@@ -2,6 +2,7 @@
 
 #include <revolution.h>
 #include "Game/Util/BgmUtil.hpp"
+#include <JSystem/JGeometry/TVec.hpp>
 
 class AudSeKeeper;
 class AudSoundObject;
@@ -112,6 +113,8 @@ namespace MR {
     bool isCubeBgmChangeInvalid();
     void clearBgmQueue();
     void setMicMtx(MtxPtr, s32);
+    const TVec3f& getMicPos();
+    f32 getMicDistance(const LiveActor*);
     void setSoundVolumeSetting(s32, u32);
     void recoverSoundVolumeSetting(u32);
     void setAudioEffectType(s32, s32, s32);

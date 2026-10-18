@@ -210,8 +210,8 @@ namespace MR {
         calcVecToTargetPosH(pToPlayerHVec, pActor, *MR::getPlayerPos(), pA3);
     }
 
-    void calcVecFromPlayerH(TVec3f* pFromPlayerHVec, const LiveActor* pActor) {
-        calcVecToTargetPosH(pFromPlayerHVec, pActor, *MR::getPlayerPos(), nullptr);
+    void calcVecFromPlayerH(TVec3f* pFromPlayerHVec, const LiveActor* pActor, const TVec3f* pA3) {
+        calcVecToTargetPosH(pFromPlayerHVec, pActor, *MR::getPlayerPos(), pA3);
         pFromPlayerHVec->scale(-1.0f);
     }
 
@@ -1296,4 +1296,107 @@ namespace MR {
         moveAndTurnToDirection(pActor, &stack_14, stack_8, a3, a4, a5, a6);
         ::calcRotate(pActor, stack_14, a6);
     }
+    f32 calcDistance(const LiveActor* pActorA, const LiveActor* pActorB) {
+        return PSVECDistance(&pActorA->mPosition, &pActorB->mPosition);
+    }
+
+    f32 calcDistanceHorizontal(const LiveActor* pActor, const TVec3f& rPos) {
+        TVec3f diff(rPos);
+        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        vecKillElement(diff, pActor->mGravity, &diff);
+        return PSVECMag(&diff);
+    }
+
+    f32 calcDistanceToPlayerVGravity(const LiveActor* pActor) {
+        if (isExistSceneObj(SceneObj_MarioHolder) == nullptr) {
+            return 3.4028235e38f;
+        }
+
+        TVec3f diff(*getPlayerPos());
+        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        TVec3f vertical;
+        vertical.scale(pActor->mGravity.dot(diff), pActor->mGravity);
+        return PSVECMag(&vertical);
+    }
+
+    bool isNearPlayerVerticalGravity(const LiveActor* pActor, f32 distance) {
+        if (isPlayerHidden()) {
+            return false;
+        }
+
+        return calcDistanceToPlayerVGravity(pActor) < distance;
+    }
+
+    void calcPositionFrontOffset(TVec3f* pPos, const LiveActor* pActor, f32 offset) {
+        TVec3f front;
+        calcFrontVec(&front, pActor);
+        JMAVECScaleAdd(&front, &pActor->mPosition, pPos, offset);
+    }
+
+    void calcVecToPlayer(TVec3f* pVec, const LiveActor* pActor) {
+        PSVECSubtract(getPlayerPos(), &pActor->mPosition, pVec);
+    }
+
+    void calcVecToPlayerHorizon(TVec3f* pVec, const LiveActor* pActor, const TVec3f* pGravity) {
+        PSVECSubtract(getPlayerPos(), &pActor->mPosition, pVec);
+        vecKillElement(*pVec, pGravity ? *pGravity : pActor->mGravity, pVec);
+    }
+
+    void calcVecToTargetHorizon(TVec3f* pVec, const LiveActor* pActor, const TVec3f* pTarget, const TVec3f* pGravity) {
+        PSVECSubtract(pTarget, &pActor->mPosition, pVec);
+        vecKillElement(*pVec, pGravity ? *pGravity : pActor->mGravity, pVec);
+    }
+
+    void calcDirToPlayer(TVec3f* pDir, const LiveActor* pActor) {
+        pDir->set(*getPlayerPos());
+        PSVECSubtract(pDir, &pActor->mPosition, pDir);
+        normalizeOrZero(pDir);
+    }
+
+    void calcMtxFromGravityAndZAxis(TPos3f* pMtx, const LiveActor* pActor, const TVec3f& rZAxis) {
+        calcMtxFromGravityAndZAxis(pMtx, pActor, pActor->mGravity, rZAxis);
+    }
+
+    void calcAndSetBaseTRMtxFromGravityAndZAxis(LiveActor* pActor, const TVec3f& rZAxis) {
+        TPos3f mtx;
+        mtx.identity();
+        calcMtxFromGravityAndZAxis(&mtx, pActor, pActor->mGravity, rZAxis);
+        setBaseTRMtx(pActor, mtx);
+    }
+
+    f32 normalizeAngleDegree(f32 angle) {
+        return 0.0f + static_cast< f32 >(fmod(360.0f + (angle - 0.0f), 360.0));
+    }
+
+    void killVelocityVertical(LiveActor* pActor) {
+        TVec3f& rVelocity = pActor->mVelocity;
+        const TVec3f& rGravity = pActor->mGravity;
+        JMAVECScaleAdd(&rGravity, &rVelocity, &rVelocity, -rGravity.dot(rVelocity));
+    }
+
+    void killVelocityHorizon(LiveActor* pActor) {
+        const TVec3f& rGravity = pActor->mGravity;
+        pActor->mVelocity.scale(rGravity.dot(pActor->mVelocity), rGravity);
+    }
+
+    f32 calcGravitySpeedAbs(const LiveActor* pActor) {
+        return fabs(pActor->mGravity.dot(pActor->mVelocity));
+    }
+
+    void addVelocityMoveToTargetHorizon(LiveActor* pActor, const TVec3f& rTarget, f32 speed) {
+        TVec3f diff(rTarget);
+        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        TVec3f vel;
+        calcVelocityMoveToDirectionHorizon(&vel, pActor, diff, speed);
+        pActor->mVelocity.add(vel);
+    }
+
+    void addVelocityMoveToTargetHorizon(LiveActor* pActor, const TVec3f& rTarget, f32 speed, f32 f2, f32 f3, f32 f4) {
+        TVec3f diff(rTarget);
+        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        TVec3f vel;
+        calcVelocityMoveToDirectionHorizon(&vel, pActor, diff, speed, f2, f3, f4);
+        pActor->mVelocity.add(vel);
+    }
+
 };  // namespace MR

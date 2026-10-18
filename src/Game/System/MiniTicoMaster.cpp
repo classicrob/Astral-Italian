@@ -1,17 +1,16 @@
 #include "Game/System/MiniTicoMaster.hpp"
 #include "Game/System/MiniWorldMapMark.hpp"
 #include "Game/System/GalaxyWorldMapInfo.hpp"
+#include "Game/System/WorldMapFunction.hpp"
+#include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
 class TalkMessageCtrl;
 
 
-extern "C" TVec3f* fn_804F2550(s32, s32);
+// PLACEHOLDER(core): unnamed SMG2 callees and helpers (no symbol name yet); resolve when their owners name them
 extern "C" LiveActor* fn_804E83B0(LiveActor*, const char*, const char*, const char*);
-extern "C" void fn_804E8C40(LiveActor*);
-extern "C" void fn_804E8C50(LiveActor*, f32, f32);
-extern "C" void fn_804E8C80(LiveActor*, f32, f32);
 extern "C" void fn_804E7180(MiniTicoMaster*);
 extern "C" void fn_804E71F0(MiniTicoMaster*, f32);
 
@@ -54,7 +53,7 @@ namespace {
 MiniTicoMaster::~MiniTicoMaster() {}
 
 void MiniTicoMaster::init(const JMapInfoIter& rIter) {
-    TVec3f base(*fn_804F2550(mUnk90, mUnkA4));
+    TVec3f base(mUnk90->getNode(mUnkA4)->mPos);
     TVec3f pos = base + sPlanetOffset;
     mPosition = pos;
 
@@ -122,11 +121,11 @@ void MiniTicoMaster::makeActorDead() {
 // NONMATCHING: only the first call is reconstructed. The rest (joint matrix column lengths via
 // fn_80046D50, hand scaling and positioning, shadow placement) uses paired-single ops in the target.
 void MiniTicoMaster::control() {
-    fn_804E8C80(this, 0.05f, 1.0f);
+    WorldMapFunction::returnScale(this, 0.05f, 1.0f);
 }
 
-extern "C" bool fn_804E7150(MiniTicoMaster* pActor) {
-    return pActor->mUnk9C >= *pActor->mUnk94;
+bool MiniTicoMaster::isFull() const {
+    return mUnk9C >= *mUnk94;
 }
 
 extern "C" void fn_804E7170(MiniTicoMaster* pActor) {
@@ -143,30 +142,30 @@ extern "C" void fn_804E7180(MiniTicoMaster* pActor) {
 }
 
 extern "C" void fn_804E71F0(MiniTicoMaster* pActor, f32 t) {
-    TVec3f a = *fn_804F2550(pActor->mUnk90, pActor->mUnkA4);
-    TVec3f b = *fn_804F2550(pActor->mUnk90, pActor->mUnkA8);
+    TVec3f a = pActor->mUnk90->getNode(pActor->mUnkA4)->mPos;
+    TVec3f b = pActor->mUnk90->getNode(pActor->mUnkA8)->mPos;
     TVec3f c = b * t;
     TVec3f d = a * (1.0f - t);
     TVec3f e = d + c;
     MR::setPosition(pActor, e);
 }
 
-extern "C" bool fn_804E72A0(MiniTicoMaster* pActor) {
-    return MR::tryTalkForce(pActor->mTalkCtrl);
+bool MiniTicoMaster::tryTalk() {
+    return MR::tryTalkForce(mTalkCtrl);
 }
 
-extern "C" void fn_804E72B0(LiveActor* pActor) {
-    fn_804E8C40(pActor);
+bool MiniTicoMaster::isPointing() {
+    return WorldMapFunction::isPointing(this);
 }
 
-extern "C" bool fn_804E72C0(MiniTicoMaster* pActor) {
-    fn_804E8C50(pActor, 0.1f, 1.4f);
-    MR::tryTalkForce(pActor->mTalkCtrl);
+bool MiniTicoMaster::tryPointTalk() {
+    WorldMapFunction::approachScale(this, 0.1f, 1.4f);
+    MR::tryTalkForce(mTalkCtrl);
     return true;
 }
 
-extern "C" void fn_804E7300(MiniTicoMaster* pActor, s32 drawOrder) {
-    MR::setAllEffectDrawOrder(pActor, drawOrder);
-    MR::setAllEffectDrawOrder(pActor->mModelA, drawOrder);
-    MR::setAllEffectDrawOrder(pActor->mModelB, drawOrder);
+void MiniTicoMaster::setEffectDrawOrder(s32 drawOrder) {
+    MR::setAllEffectDrawOrder(this, drawOrder);
+    MR::setAllEffectDrawOrder(mModelA, drawOrder);
+    MR::setAllEffectDrawOrder(mModelB, drawOrder);
 }

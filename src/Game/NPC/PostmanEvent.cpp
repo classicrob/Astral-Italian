@@ -86,13 +86,13 @@ bool PostmanEventSystem::selectEvent(s32* out) {
     if (selected == 18) selected = important;
     bool gift;
     if (!hasReadAnyLetter()) gift = false;
-    else if (!GameSequenceFunction::getPlayResultMarioFaceShipFlag12()) gift = false;
+    else if (!GameSequenceFunction::isFaceShipAfterFileSelect()) gift = false;
     else if (GameDataFunction::getPlayerStatusCounter14() >= 10) gift = true;
     else if (GameDataFunction::getPlayerMissNum() != 0 && GameDataFunction::getPlayerMissNum() % 4 == 0) gift = true;
     else gift = false;
     if (gift && selected != 1) selected = 2;
     if (!hasReadAnyLetter()) gift = false;
-    else if (GameSequenceFunction::getPlayResultMarioFaceShipFlag12()) gift = GameDataFunction::getPendingSharedPlayerLeft() > 0;
+    else if (GameSequenceFunction::isFaceShipAfterFileSelect()) gift = GameDataFunction::getPendingSharedPlayerLeft() > 0;
     else gift = false;
     if (gift && selected != 1) selected = 3;
     if (selected != 18) {

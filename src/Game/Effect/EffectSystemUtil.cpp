@@ -180,6 +180,15 @@ namespace MR {
             registerAutoEffectInfos(getEffectSystem()->mGroupHolder, pKeeper, pActor, pName);
         }
 
+        void requestMovementOff(EffectKeeper* pKeeper) {
+            for (s32 i = 0; i < pKeeper->_C.size(); i++) {
+                MultiEmitter* pEmitter = pKeeper->getEmitter(i);
+                if (pEmitter != nullptr && pEmitter->isValid()) {
+                    pEmitter->pauseOn(-1);
+                }
+            }
+        }
+
         void requestMovementOn(EffectKeeper* pKeeper) {
             for (s32 i = 0; i < pKeeper->_C.size(); i++) {
                 MultiEmitter* pEmitter = pKeeper->getEmitter(i);

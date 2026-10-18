@@ -452,10 +452,6 @@ namespace MR {
         return a1->receiveMessage(0x49, a2);
     }
 
-    bool fn_80015E60(HitSensor* a1, HitSensor* a2) {
-        return a1->receiveMessage(0x58, a2);
-    }
-
     bool sendMsgPlayerTrample(HitSensor* a1, HitSensor* a2) {
         return a1->receiveMessage(2, a2);
     }
@@ -490,10 +486,6 @@ namespace MR {
 
     bool sendMsgAwayJump(HitSensor* a1, HitSensor* a2) {
         return a1->receiveMessage(0x39, a2);
-    }
-
-    bool fn_80015F00(HitSensor* a1, HitSensor* a2) {
-        return a1->receiveMessage(0x57, a2);
     }
 
     bool sendMsgRushEnd(HitSensor* a1, HitSensor* a2) {

@@ -1,3 +1,4 @@
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
@@ -18,7 +19,7 @@ void WorldMapResultStateEnd::appear() {
 void WorldMapResultStateEnd::kill() {
     mHost->endResult();
 
-    if (fn_804D8320()) {
+    if (GameSequenceFunction::isMarioFaceShipEventEmpty()) {
         MR::forceOpenSystemWipeMario();
         MR::forceCloseWipeFade();
     } else {

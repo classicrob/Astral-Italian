@@ -99,7 +99,12 @@ namespace MR {
     }
 
     bool isDemoCast(const LiveActor* pActor, const char* pName) {
-        DemoExecutor* executor = DemoFunction::findDemoExecutor(pActor);
+        DemoExecutor* executor;
+        if (pName != nullptr) {
+            executor = DemoFunction::findDemoExecutor(pName);
+        } else {
+            executor = DemoFunction::findDemoExecutor(pActor);
+        }
 
         if (executor == nullptr) {
             return false;
@@ -120,6 +125,17 @@ namespace MR {
         return DemoFunction::isRegisteredDemoActionNerve(pActor);
     }
 
+    bool tryStartDemo(NameObj* pObj, const char* pName) {
+        if (!canStartDemo()) {
+            return false;
+        }
+
+        DemoStartRequestUtil::startDemoSystem(pObj, pName, 1, DemoStartInfo::DemoType(0), DemoStartInfo::CinemaFrameType(0),
+                                              DemoStartInfo::StarPointerType(0), DemoStartInfo::DeleteEffectType(0), nullptr);
+
+        return true;
+    }
+
     bool tryStartDemo(LiveActor* pActor, const char* pName) {
         if (!canStartDemo()) {
             return false;
@@ -137,6 +153,17 @@ namespace MR {
         }
 
         DemoStartRequestUtil::startDemoSystem(pActor, pName, 1, DemoStartInfo::DemoType(0), DemoStartInfo::CinemaFrameType(0),
+                                              DemoStartInfo::StarPointerType(0), DemoStartInfo::DeleteEffectType(0), nullptr);
+
+        return true;
+    }
+
+    bool tryStartDemoWithoutCinemaFrame(NameObj* pObj, const char* pName) {
+        if (!canStartDemo()) {
+            return false;
+        }
+
+        DemoStartRequestUtil::startDemoSystem(pObj, pName, 1, DemoStartInfo::DemoType(0), DemoStartInfo::CinemaFrameType(1),
                                               DemoStartInfo::StarPointerType(0), DemoStartInfo::DeleteEffectType(0), nullptr);
 
         return true;
@@ -192,6 +219,17 @@ namespace MR {
         }
 
         DemoStartRequestUtil::startDemoSystem(pActor, pName, 2, DemoStartInfo::DemoType(0), DemoStartInfo::CinemaFrameType(0),
+                                              DemoStartInfo::StarPointerType(0), DemoStartInfo::DeleteEffectType(0), nullptr);
+
+        return true;
+    }
+
+    bool tryStartDemoMarioPuppetableWithoutCinemaFrame(NameObj* pObj, const char* pName) {
+        if (!canStartDemo()) {
+            return false;
+        }
+
+        DemoStartRequestUtil::startDemoSystem(pObj, pName, 2, DemoStartInfo::DemoType(0), DemoStartInfo::CinemaFrameType(1),
                                               DemoStartInfo::StarPointerType(0), DemoStartInfo::DeleteEffectType(0), nullptr);
 
         return true;
@@ -505,27 +543,41 @@ namespace MR {
     }
 
     bool isDemoPartStep(const char* pName, s32 step) {
-        if (isDemoPartActive(pName) == false) {
+        if (pName == nullptr) {
+            pName = DemoFunction::getCurrentDemoPartNameMain(nullptr);
+        }
+
+        if (!DemoFunction::isDemoPartActiveFunction(pName)) {
             return false;
         }
 
-        return getDemoPartStep(pName) == step;
+        return DemoFunction::getDemoPartStepFunction(pName) == step;
     }
 
     bool isDemoPartFirstStep(const char* pName) {
-        if (isDemoPartActive(pName) == false) {
+        if (pName == nullptr) {
+            pName = DemoFunction::getCurrentDemoPartNameMain(nullptr);
+        }
+
+        if (!DemoFunction::isDemoPartActiveFunction(pName)) {
             return false;
         }
 
-        return getDemoPartStep(pName) == 0;
+        return DemoFunction::getDemoPartStepFunction(pName) == 0;
     }
 
     bool isDemoPartLastStep(const char* pName) {
-        if (isDemoPartActive(pName) == false) {
+        if (pName == nullptr) {
+            pName = DemoFunction::getCurrentDemoPartNameMain(nullptr);
+        }
+
+        if (!DemoFunction::isDemoPartActiveFunction(pName)) {
             return false;
         }
 
-        return getDemoPartStep(pName) == getDemoPartTotalStep(pName) - 1;
+        s32 totalStep = DemoFunction::getDemoPartTotalStepFunction(pName);
+        s32 step = DemoFunction::getDemoPartStepFunction(pName);
+        return totalStep - 1 == step;
     }
 
     bool isDemoPartLessEqualStep(const char* pName, s32 step) {
@@ -537,11 +589,15 @@ namespace MR {
     }
 
     bool isDemoPartGreaterStep(const char* pName, s32 step) {
-        if (isDemoPartActive(pName) == false) {
+        if (pName == nullptr) {
+            pName = DemoFunction::getCurrentDemoPartNameMain(nullptr);
+        }
+
+        if (!DemoFunction::isDemoPartActiveFunction(pName)) {
             return false;
         }
 
-        return getDemoPartStep(pName) > step;
+        return step < DemoFunction::getDemoPartStepFunction(pName);
     }
 
     s32 getDemoPartTotalStep(const char* pName) {
@@ -562,6 +618,10 @@ namespace MR {
 
     void resumeTimeKeepDemo(LiveActor* pActor) {
         DemoFunction::resumeTimeKeepDemo(pActor);
+    }
+
+    bool isPauseTimeKeepDemo(LiveActor* pActor) {
+        return DemoFunction::isPauseTimeKeepDemo(pActor);
     }
 
     bool isPowerStarGetDemoActive() {

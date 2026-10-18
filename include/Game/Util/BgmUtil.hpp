@@ -12,6 +12,7 @@ namespace MR {
     JAISoundHandle* startStageBGMFromStageName(const char*, const char*, s32);
 
     void stopStageBGM(u32);
+    void stopStageBgmForDemo();  // fn_8001BA80: fades the stage BGM (10) and sets the SceneMgr flags 0xC/0xD (used by boss demos)
     void unlockStageBGM();
     void moveVolumeStageBGM(f32, u32);
     void moveVolumeStageBGMForNoteFairy(f32, u32);

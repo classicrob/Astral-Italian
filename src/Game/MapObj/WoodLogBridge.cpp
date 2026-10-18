@@ -9,21 +9,14 @@
 #include <cstdio>
 #include <JSystem/JUtility/JUTTexture.hpp>
 
-extern "C" const char lbl_806B1CC8[];
-extern "C" const char lbl_806B1CE0[];
-extern "C" const char lbl_806B1CE8[];
-extern "C" const char lbl_806B1CF0[];
-extern "C" const f32 lbl_807DED5C;
-extern "C" const f32 lbl_807DED60;
-extern "C" const s32 lbl_807DED64;
-extern "C" const s32 lbl_807DED68;
-extern "C" u32 lbl_807DED78;
-extern "C" u32 lbl_807DED7C;
-extern "C" u32 lbl_807DED90;
+static const f32 sLongBridgeLength = 358.0f;
+static const f32 sShortBridgeLength = 190.0f;
+static const s32 sLongBridgeStep = 3;
+static const s32 sShortBridgeStep = 4;
 extern "C" s32 lbl_807E30D8;
 
 // NOTE: the target symbol is __ct__18WoodLogBridgePartsFPCc in config, but the code takes (host, name): 2 args (config name is wrong)
-WoodLogBridgeParts::WoodLogBridgeParts(WoodLogBridge* pHost, const char* pName) : LiveActor(lbl_806B1CC8) {
+WoodLogBridgeParts::WoodLogBridgeParts(WoodLogBridge* pHost, const char* pName) : LiveActor("\212\333\221\276\203v\203\214\201[\203g\225\224\225i") {
     mHost = pHost;
     mName = pName;
     mRestPos.x = 0.0f;
@@ -34,7 +27,7 @@ WoodLogBridgeParts::WoodLogBridgeParts(WoodLogBridge* pHost, const char* pName) 
 
 void WoodLogBridgeParts::init(const JMapInfoIter& rIter) {
     char name[0x40];
-    snprintf(name, 0x40, lbl_806B1CE0, mName);
+    snprintf(name, 0x40, "%sParts", mName);
     MR::initActor(this, rIter, name, false);
     mRestPos.set<f32>(mPosition);
     makeActorAppeared();
@@ -72,10 +65,10 @@ void WoodLogBridgeParts::control() {
     }
 
     if (2.5f <= mVelocity.y) {
-        MR::startActionSound(this, lbl_806B1CE8, vol, -1, -1);
+        MR::startActionSound(this, "Sway1", vol, -1, -1);
     }
     if (mVelocity.y <= -2.5f) {
-        MR::startActionSound(this, lbl_806B1CF0, vol, -1, -1);
+        MR::startActionSound(this, "Sway2", vol, -1, -1);
     }
 }
 
@@ -93,21 +86,21 @@ WoodLogBridge::WoodLogBridge(const char* pName) : LiveActor(pName) {
     mDirX.y = 0.0f;
     mDirX.z = 0.0f;
     mCooldown = 0;
-    mPtrE4 = &lbl_807DED5C;
-    mPtrE8 = &lbl_807DED64;
+    mPtrE4 = &sLongBridgeLength;
+    mPtrE8 = &sLongBridgeStep;
     mTex = nullptr;
     mBaseMtx.identity();
 }
 
 // NONMATCHING: 89%; target negates the up vector with paired-single psq_l/ps_neg and keeps this-member addresses in regs across the loop (regalloc/stack only)
 void WoodLogBridge::init(const JMapInfoIter& rIter) {
-    const char* pStrs = lbl_806B1CC8;
+    const char* pStrs = "\212\333\221\276\203v\203\214\201[\203g\225\224\225i";
     const char* objName;
     MR::getObjectName(&objName, rIter);
     if (MR::isEqualString(objName, pStrs + 0x30)) {
         mIsShort = true;
-        mPtrE4 = &lbl_807DED60;
-        mPtrE8 = &lbl_807DED68;
+        mPtrE4 = &sShortBridgeLength;
+        mPtrE8 = &sShortBridgeStep;
     }
 
     MR::initActor(this, rIter, pStrs + 0x44, false);
@@ -303,8 +296,8 @@ void drawLogQuad(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVe
 // fn_8032C230: draws one log section as four quad strips.
 // NONMATCHING: 71%; target loads the two color words once into r29/r30 and negates the 6.0 constants (fneg) instead of using -6.0 literals
 void drawLogSection(const TVec3f* pA, const TVec3f* pB, const TVec3f* pC, const TVec3f* pD, const TVec3f* pE) NO_INLINE {
-    u32 white = lbl_807DED78;
-    u32 blue = lbl_807DED7C;
+    u32 white = 0xFFFFFFFF;
+    u32 blue = 0x808080FF;
 
     Color8 cWhite0(*reinterpret_cast<const GXColor*>(&white));
     Color8 cBlue0(*reinterpret_cast<const GXColor*>(&blue));
@@ -333,7 +326,7 @@ void setupLogDraw(const WoodLogBridge* pBridge) NO_INLINE {
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_VTX, GX_SRC_VTX, 0, GX_DF_NONE, GX_AF_NONE);
     GXSetChanCtrl(GX_ALPHA0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, 0, GX_DF_NONE, GX_AF_NONE);
-    GXColor col = *reinterpret_cast<const GXColor*>(&lbl_807DED90);
+    GXColor col = {0xFF, 0x00, 0x00, 0xFF};
     GXSetChanMatColor(GX_COLOR0A0, col);
     GXSetNumTexGens(1);
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, 0x3C, GX_FALSE, 0x7D);

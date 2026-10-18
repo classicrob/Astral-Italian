@@ -7,6 +7,7 @@ class DreamerButtonGuidance;
 class Dreamer : public NPCActor {
 public:
     Dreamer(const char*);
+    virtual ~Dreamer();
 
     virtual void init(const JMapInfoIter&);
     virtual void appear();

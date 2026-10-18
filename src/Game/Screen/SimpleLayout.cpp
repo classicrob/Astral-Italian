@@ -14,3 +14,5 @@ SimpleEffectLayout::SimpleEffectLayout(const char* pName, const char* pLayoutNam
     : SimpleLayout(pName, pLayoutName, a3, drawType) {
     initEffectKeeper(0, nullptr, nullptr);
 }
+
+SimpleLayout::~SimpleLayout() {}

@@ -17,10 +17,6 @@ namespace {
     static const s32 sFadeinoutFrame = 60;
 };  // namespace
 
-void TimeUpLayout::init(const JMapInfoIter& rIter) {
-    initLayoutManager("TimeUp", 1);
-}
-
 namespace NrvTimeLimitLayout {
     NEW_NERVE(TimeLimitLayoutAppear, TimeLimitLayout, Appear);
     NEW_NERVE(TimeLimitLayoutCountDown, TimeLimitLayout, CountDown);

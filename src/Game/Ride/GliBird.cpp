@@ -7,6 +7,7 @@
 #include "Game/LiveActor/VolumeDrawer.hpp"
 #include "Game/Map/RaceManager.hpp"
 #include "Game/NPC/GliBirdNpc.hpp"
+#include "Game/NPC/Pichan.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/GliBirdGuidance.hpp"
 #include "Game/Util.hpp"
@@ -29,9 +30,6 @@ extern "C" {
     bool emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
     GliBirdParam* fn_8042EC10(GliBirdParam*);
     LiveActor* fn_80235370(void*, LiveActor*, const char*, f32, const f32*);
-    void fn_80472670(GliBirdGuidance*, s32);
-    void fn_80472680(GliBirdGuidance*, s32);
-    void fn_80472690(GliBirdGuidance*, s32);
 }
 
 inline void GliBird::exeDeadLava() {
@@ -1263,7 +1261,7 @@ void GliBirdTutorial::exeTalkStraight() {
 
 void GliBirdTutorial::exeStraightStart() {
     if (MR::isFirstStep(this)) {
-        fn_80472670(mGuidance, 0);
+        mGuidance->start(0);
     }
 
     MR::tryTalkForceWithoutDemoMarioPuppetable(mTalkCtrl);
@@ -1276,7 +1274,7 @@ void GliBirdTutorial::exeStraightStart() {
 void GliBirdTutorial::exeStraightHold() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "OK", -1, -1, -1);
-        fn_80472680(mGuidance, 0);
+        mGuidance->hold(0);
     }
 
     startTimerSound(getNerveStep(), mTimerCount);
@@ -1298,7 +1296,7 @@ void GliBirdTutorial::exeStraightHold() {
 
 void GliBirdTutorial::exeStraightSuccess() {
     if (MR::isFirstStep(this)) {
-        fn_80472690(mGuidance, 0);
+        mGuidance->success(0);
         MR::startAction(mPichan, "TalkSmile");
     }
 
@@ -1328,7 +1326,7 @@ void GliBirdTutorial::exeTalkTurnLeft() {
 
 void GliBirdTutorial::exeTurnLeftStart() {
     if (MR::isFirstStep(this)) {
-        fn_80472670(mGuidance, 1);
+        mGuidance->start(1);
     }
 
     MR::tryTalkForceWithoutDemoMarioPuppetable(mTalkCtrl);
@@ -1341,7 +1339,7 @@ void GliBirdTutorial::exeTurnLeftStart() {
 void GliBirdTutorial::exeTurnLeftHold() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "OK", -1, -1, -1);
-        fn_80472680(mGuidance, 1);
+        mGuidance->hold(1);
     }
 
     startTimerSound(getNerveStep(), mTimerCount);
@@ -1363,7 +1361,7 @@ void GliBirdTutorial::exeTurnLeftHold() {
 
 void GliBirdTutorial::exeTurnLeftSuccess() {
     if (MR::isFirstStep(this)) {
-        fn_80472690(mGuidance, 1);
+        mGuidance->success(1);
         MR::startAction(mPichan, "TalkSmile");
     }
 
@@ -1393,7 +1391,7 @@ void GliBirdTutorial::exeTalkTurnRight() {
 
 void GliBirdTutorial::exeTurnRightStart() {
     if (MR::isFirstStep(this)) {
-        fn_80472670(mGuidance, 2);
+        mGuidance->start(2);
     }
 
     MR::tryTalkForceWithoutDemoMarioPuppetable(mTalkCtrl);
@@ -1406,7 +1404,7 @@ void GliBirdTutorial::exeTurnRightStart() {
 void GliBirdTutorial::exeTurnRightHold() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "OK", -1, -1, -1);
-        fn_80472680(mGuidance, 2);
+        mGuidance->hold(2);
     }
 
     startTimerSound(getNerveStep(), mTimerCount);
@@ -1428,7 +1426,7 @@ void GliBirdTutorial::exeTurnRightHold() {
 
 void GliBirdTutorial::exeTurnRightSuccess() {
     if (MR::isFirstStep(this)) {
-        fn_80472690(mGuidance, 2);
+        mGuidance->success(2);
         MR::startAction(mPichan, "TalkSmile");
     }
 
@@ -1489,7 +1487,7 @@ namespace MR {
 
     void registerPichanForTutorial(Pichan* pPichan) {
         MR::createSceneObj(SceneObj_GliBirdTutorial);
-        MR::getSceneObj< GliBirdTutorial >(SceneObj_GliBirdTutorial)->registerPichan(reinterpret_cast< LiveActor* >(pPichan));
+        MR::getSceneObj< GliBirdTutorial >(SceneObj_GliBirdTutorial)->registerPichan(pPichan);
     }
 
     void startGliBirdTutorialTalk() {

@@ -2,6 +2,11 @@
 // NameObjFactory::createNameObj<T> is `new T(pName)`. To keep this TU independent of ~480 class headers, each T
 // is declared here with only its constructor and its exact SMG2 size (from the target `li r3, size`).
 #include <revolution/types.h>
+#include "Game/NPC/Pichan.hpp"
+#include "Game/NPC/KoopaNpc.hpp"
+#include "Game/NPC/GhostAttackGhost.hpp"
+#include "Game/NPC/Penguin.hpp"
+#include "Game/NPC/PichanRacer.hpp"
 
 class NameObj;
 
@@ -45,25 +50,20 @@ class Caretaker { public: Caretaker(const char*); u8 _[0x18c]; };
 class CareTakerHunter { public: CareTakerHunter(const char*); u8 _[0x1a8]; };
 class CollectTico { public: CollectTico(const char*); u8 _[0xac]; };
 class Dreamer { public: Dreamer(const char*); u8 _[0x180]; };
-class GhostAttackGhost { public: GhostAttackGhost(const char*); u8 _[0xc4]; };
 class GliBirdNpc { public: GliBirdNpc(const char*); u8 _[0x164]; };
 class HoneyBee { public: HoneyBee(const char*); u8 _[0x1ac]; };
 class HoneyQueen { public: HoneyQueen(const char*); u8 _[0x190]; };
 class Kinopio { public: Kinopio(const char*); u8 _[0x190]; };
 class KinopioBank { public: KinopioBank(const char*); u8 _[0x17c]; };
 class KinopioPostman { public: KinopioPostman(const char*); u8 _[0x198]; };
-class KoopaNpc { public: KoopaNpc(const char*); u8 _[0x164]; };
 class LuigiTalkNpc { public: LuigiTalkNpc(const char*); u8 _[0x16c]; };
 class MameMuimuiAttackMan { public: MameMuimuiAttackMan(const char*); u8 _[0x16c]; };
 class Meister { public: Meister(const char*); u8 _[0x170]; };
 class Moc { public: Moc(const char*); u8 _[0x170]; };
 class Monte { public: Monte(const char*); u8 _[0x174]; };
 class Peach { public: Peach(const char*); u8 _[0x164]; };
-class Penguin { public: Penguin(const char*); u8 _[0x170]; };
 class PenguinCoach { public: PenguinCoach(const char*); u8 _[0x168]; };
 class PenguinMaster { public: PenguinMaster(const char*); u8 _[0x164]; };
-class Pichan { public: Pichan(const char*); u8 _[0x174]; };
-class PichanRacer { public: PichanRacer(const char*); u8 _[0x198]; };
 class PlayAttackMan { public: PlayAttackMan(const char*); u8 _[0x168]; };
 class Rabbit { public: Rabbit(const char*); u8 _[0x170]; };
 class Rosetta { public: Rosetta(const char*); u8 _[0x170]; };

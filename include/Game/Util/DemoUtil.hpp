@@ -109,3 +109,8 @@ namespace MR {
     bool requestStartTimeKeepDemoMarioPuppetable(NameObj*, const char*, const char*);
     bool isDemoActive(const char*);
 };  // namespace MR
+
+namespace MR {
+    bool tryInitDemoSheetAnim(LiveActor*, const JMapInfoIter&, const char*, const char*);
+    bool isStoryBookDemoActive();
+}

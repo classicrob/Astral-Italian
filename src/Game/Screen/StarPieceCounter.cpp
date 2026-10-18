@@ -321,3 +321,8 @@ void StarPieceCounter::exeDisappear() {
         setNerve(GET_NERVE(StarPieceCounter, StarPieceCounterNrvHide));
     }
 }
+
+void StarPieceCounter::forceDisappear() {
+    setNerve(&NrvStarPieceCounter::StarPieceCounterNrvDisappear::sInstance);
+    _3C = 0;
+}

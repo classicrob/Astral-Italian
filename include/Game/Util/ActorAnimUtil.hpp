@@ -109,3 +109,7 @@ namespace MR {
     J3DFrameCtrl* getBvaCtrl(const LiveActor*);
     void updateMaterial(LiveActor*);
 };  // namespace MR
+
+namespace MR {
+    void copyBckBlendWeights(f32*, u32, const LiveActor*);
+}

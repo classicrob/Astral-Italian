@@ -1,4 +1,5 @@
 #include "Game/NPC/Penguin.hpp"
+#include "Game/Demo/DemoFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -42,11 +43,13 @@ namespace NrvPenguin {
 RemovableTurtle::RemovableTurtle(LiveActor* pHost, bool isGolden) {
     if (isGolden) {
         mShellModel = new TurtlePartsModel(pHost, "ペンギン用ゴールデンコウラ", "KouraShine", nullptr,
-                                           MR::DrawBufferType_NoSilhouettedMapObjStrongLight, false);
+                                           MR::DrawBufferType_NPC, false);
         mJetTurtle = new GoldenTurtle("ゴールデン甲羅");
     } else {
-        mShellModel = new PartsModel(pHost, "ペンギン用コウラ", "Koura", nullptr, MR::DrawBufferType_NoSilhouettedMapObjStrongLight, false);
+        mShellModel = new PartsModel(pHost, "ペンギン用コウラ", "Koura", nullptr, MR::DrawBufferType_NPC, false);
         mJetTurtle = new JetTurtle("ジェット亀さん");
+        MR::startBrk(mShellModel, "Color");
+        MR::setBrkFrameAndStop(mShellModel, 0.0f);
     }
 
     mShellModel->mCheckHiddenHost = true;
@@ -66,7 +69,7 @@ bool RemovableTurtle::isPullRange() const {
 bool RemovableTurtle::tryRemove() {
     if (MR::isDead(mJetTurtle) && !MR::isPlayerCarryAny()) {
         mShellModel->makeActorDead();
-        mJetTurtle->mPosition.set(mShellModel->mPosition);
+        MR::setPosition(mJetTurtle, mShellModel->mPosition);
         mJetTurtle->appearAndTryTaken();
         return true;
     }
@@ -91,36 +94,23 @@ Penguin::Penguin(const char* pName) : NPCActor(pName), mBehavior(Behavior_Defaul
 }
 
 void Penguin::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPosAndQuat(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &mBehavior);
-    MR::initActor(this, rIter, "Penguin", false);
-    MR::connectToSceneNpc(this);
-    MR::initLightCtrl(this);
-
-    initHitSensor(1);
-    MR::addHitSensorMtxNpc(this, "push", 8, 80.0f, MR::getJointMtx(this, "CenterJoint"), TVec3f(0.0f, 0.0f, 0.0f));
-
-    initEffectKeeper(0, nullptr, false);
-    initSound(4, "Penguin", nullptr, TVec3f(0.0f));
-
-    MR::initShadowVolumeSphere(this, 50.0f);
-    MR::onCalcShadowOneTime(this, nullptr);
-
-    initTalkCtrl(rIter, "Penguin", TVec3f(0.0f, 150.0f, 0.0f), nullptr);
-
     NPCActorCaps caps("Penguin");
-    caps.mLodCtrl = true;
-    caps.mNerve = false;
-    caps.mPointer = true;
+    caps.setDefault();
+    caps.mMessageOffset = TVec3f(0.0f, 150.0f, 0.0f);
     caps._70 = "CenterJoint";
+    caps.mReactionNerve = GET_NERVE(Penguin, PenguinNrvReaction);
     initialize(rIter, caps, "Penguin", nullptr, nullptr);
-
-    initNerve(GET_NERVE(Penguin, PenguinNrvWait));
+    setNerve(GET_NERVE(Penguin, PenguinNrvWait));
 
     if (MR::isConnectedWithRail(rIter)) {
-        initRailRider(rIter);
         MR::moveCoordToNearestPos(this, mPosition);
         mPosition.set(MR::getRailPos(this));
+        MR::onCalcShadowAll(this);
+    }
+
+    if (MR::tryRegisterDemoCast(this, rIter)) {
+        DemoFunction::registerDemoTalkMessageCtrl(this, mMsgCtrl);
     }
 
     if (mBehavior == Behavior_SwimTurtle) {
@@ -140,9 +130,9 @@ void Penguin::init(const JMapInfoIter& rIter) {
     switch (mBehavior) {
     case Behavior_Default:
     case Behavior_Stand:
-        mParam.setMoveAction("Wait", "Turn");
-        mParam.setTalkAction("Talk", "TalkTurn");
-        setTalkAction("Walk");
+        mParam.setMoveAction("WaitNormal", "Turn");
+        mParam.setTalkAction("TalkNormal", "TalkTurn");
+        setTalkAction("WalkNormal");
         _10C = ::sSpeedWalk;
         _118 = 2.0f;  // talkBckRate?
         _124 = true;  // follow rail on ground
@@ -152,26 +142,27 @@ void Penguin::init(const JMapInfoIter& rIter) {
         mParam.setMoveTalkNoTurnAction("SitDown", "SitDownTalk");
         break;
     case Behavior_Swim:
-        mParam.setMoveAction("SwimWait", "SwimWaitTalk");
-        setTalkAction("Swim");
+        mParam.setMoveAction("SwimWaitNormal", "SwimWaitTalk");
+        setTalkAction("SwimNormal");
         _10C = ::sSpeedSwim;
         break;
     case Behavior_SwimSurface:
-        mParam.setMoveAction("SwimWaitSurface", "SwimSurfaceTalk");
-        setTalkAction("SwimSurface");
+        mParam.setMoveAction("SwimWaitSurfaceNormal", "SwimSurfaceTalk");
+        setTalkAction("SwimSurfaceNormal");
         _10C = ::sSpeedSwim;
         break;
     case Behavior_Dive:
-        mParam.setSingleAction("SwimWaitSurface");
+        mParam.setSingleAction("SwimWaitSurfaceNormal");
         break;
     case Behavior_SwimTurtle:
         mParam.setSingleAction("SwimTurtleTalk");
         setTalkAction("SwimTurtle");
         _10C = ::sSpeedSwimTurtle;
+        MR::onCalcGravity(this);
         break;
     case Behavior_Dash:
-        mParam.setMoveAction("Wait", "Turn");
-        mParam.setTalkAction("Talk", "TalkTurn");
+        mParam.setMoveAction("WaitNormal", "Turn");
+        mParam.setTalkAction("TalkNormal", "TalkTurn");
         setTalkAction("DashA");
         _10C = ::sSpeedDash;
         _114 = ::sBlendDash;
@@ -181,10 +172,9 @@ void Penguin::init(const JMapInfoIter& rIter) {
     default:
         break;
     }
-    setNerve(GET_NERVE(Penguin, PenguinNrvWait));
-    makeActorAppeared();
 }
 
+// NONMATCHING: vector temporary register allocation.
 void Penguin::initAfterPlacement() {
     NPCActor::initAfterPlacement();
 
@@ -192,7 +182,7 @@ void Penguin::initAfterPlacement() {
     case Behavior_SwimSurface:
     case Behavior_Dive: {
         MR::calcGravity(this);
-        MR::turnQuatYDirRad(&_A0, _A0, -mGravity, PI);
+        MR::turnQuatYDirRate(&_A0, _A0, -mGravity, 1.0f);
 
         TVec3f pos;
         TVec3f grav = mGravity;
@@ -235,9 +225,7 @@ void Penguin::exeReaction() {
 void Penguin::exeWait() {
     if (MR::isFirstStep(this)) {
         mStepToDive = MR::getRandom(::sStepToDiveMin, ::sStepToDiveMax);
-        if (MR::isExistRail(this)) {
-            MR::onCalcShadow(this, nullptr);
-        }
+        MR::onCalcShadowOneTimeAll(this);
     }
 
     if (MR::tryStartReactionAndPushNerve(this, GET_NERVE(Penguin, PenguinNrvReaction))) {
@@ -248,7 +236,7 @@ void Penguin::exeWait() {
     case Behavior_Default:
     case Behavior_Stand:
     case Behavior_Dash:
-        MR::tryChangeTalkActionRandom(this, "Talk", "TalkA", "TalkB");
+        MR::tryChangeTalkActionRandom(this, "TalkNormal", "TalkA", "TalkB");
     default:
         break;
     }
@@ -266,19 +254,21 @@ void Penguin::exeWait() {
 
 void Penguin::exeDive() {
     if (MR::isFirstStep(this)) {
+        MR::invalidateClipping(this);
         MR::startAction(this, "SwimDive");
         MR::startActionSound(this, "SvPenguinSDive");
     }
 
     if (MR::isActionEnd(this)) {
+        MR::validateClipping(this);
         setNerve(GET_NERVE(Penguin, PenguinNrvWait));
     }
 }
 
 void Penguin::exeFlow() {
     if (MR::isFirstStep(this)) {
-        _11C = "Swim";
-        _120 = "Swim";
+        _11C = "SwimNormal";
+        _120 = "SwimNormal";
         _10C = ::sSpeedSwim;
     }
 
@@ -308,7 +298,7 @@ bool Penguin::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
         }
     }
 
-    return false;
+    return NPCActor::receiveOtherMsg(msg, pSender, pReceiver);
 }
 
 bool Penguin::tryReleaseTurtle() {

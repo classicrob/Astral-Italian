@@ -1,3 +1,4 @@
+#include "Game/Util/DemoUtil.hpp"
 #include "Game/Demo/MeetKoopaDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
@@ -10,9 +11,7 @@ extern "C" s32 lbl_807D1DF4[1];
 extern "C" s32 lbl_807D1DF8[1];
 
 // Target-side unnamed helpers.
-extern "C" void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*);
 extern "C" void fn_8001AF50(s32, s32);
-extern "C" s32 fn_80147640();
 extern "C" LiveActor* __ct__19KoopaAssaultFallObjFPCc(LiveActor*, const char*);
 extern "C" void tryTalkTimeKeepDemoForceWithoutDemo__2MRFP15TalkMessageCtrl(TalkMessageCtrl*);
 
@@ -83,7 +82,7 @@ void MeetKoopaDemoObj::init(const JMapInfoIter& rIter) {
 
     mKoopa = reinterpret_cast<LiveActor*>(MR::createDemoObj("デモ用クッパ", "DemoKoopa", static_cast<MtxPtr>(nullptr)));
     copyVec3(&mKoopa->mPosition, &mPosition);
-    fn_800209B0(mKoopa, rIter, sPeachKidnapName, sDemoMeetKoopaName);
+    MR::tryInitDemoSheetAnim(mKoopa, rIter, sPeachKidnapName, sDemoMeetKoopaName);
     MR::invalidateClipping(mKoopa);
     mKoopa->makeActorDead();
 
@@ -197,7 +196,7 @@ void MeetKoopaDemoObj::exeDemo() {
         MR::resetPosition(mPeach, sPeachKidnapPosName);
         MR::resetPosition(mTicoBaby, sPeachKidnapPosName);
     }
-    if (MR::isDemoPartActive("ピーチ発見") && fn_80147640() == 0) {
+    if (MR::isDemoPartActive("ピーチ発見") && MR::isStoryBookDemoActive() == 0) {
         copyMtx34(mMtx, MR::getJointMtx(mPeach, "All_Root"));
         tryTalkTimeKeepDemoForceWithoutDemo__2MRFP15TalkMessageCtrl(mTalkCtrl);
     }

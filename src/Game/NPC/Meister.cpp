@@ -1,5 +1,9 @@
 #pragma auto_inline off
 #include "Game/NPC/Meister.hpp"
+#include "Game/NPC/MeisterDemoMarioFaceShipChange.hpp"
+#include "Game/NPC/MeisterDemoExitItemRoom.hpp"
+#include "Game/NPC/MeisterDemoGrandStarReturn.hpp"
+#include "Game/NPC/MeisterDemoSimple.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 extern "C" {
@@ -45,11 +49,7 @@ bool Meister::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* rece
     return NPCActor::receiveMsgPlayerAttack(msg, sender, receiver);
 }
 
-extern "C" { extern char lbl_806BA0C0[], lbl_806B7AEC[], lbl_806B7AE0[], lbl_806B7AD4[]; extern s32 lbl_807D49BC, lbl_807D49C0; extern TVec3f lbl_80729B10; }
-class MeisterDemoSimple { public: MeisterDemoSimple(Meister*, const JMapInfoIter&); u8 _0[0x10]; };
-class MeisterDemoMarioFaceShipChange { public: MeisterDemoMarioFaceShipChange(Meister*, const JMapInfoIter&); u8 _0[0x44]; };
-class MeisterDemoExitItemRoom { public: MeisterDemoExitItemRoom(Meister*, const JMapInfoIter&); u8 _0[0x10]; };
-class MeisterDemoGrandStarReturn { public: MeisterDemoGrandStarReturn(Meister*, const JMapInfoIter&); u8 _0[0xC]; };
+extern "C" { extern char lbl_806BA0C0[], lbl_806B7AEC[], lbl_806B7AE0[], lbl_806B7AD4[]; extern s32 lbl_807D49BC, lbl_807D49C0;  }
 // NONMATCHING: remaining register allocation and string-base instruction scheduling differ.
 void Meister::init(const JMapInfoIter& iter) {
     const char* strings = lbl_806BA0C0;
@@ -95,7 +95,7 @@ void Meister::init(const JMapInfoIter& iter) {
         MR::getJMapInfoArg0NoInit(iter, &useSwitch);
         if (useSwitch) { MR::registerMeisterToAttentionConversation(this, iter); MR::registerMeisterToNormalConversation(this, iter); }
     }
-    mTalkControl = new MeisterTalkHolder(this, iter, lbl_80729B10);
+    mTalkControl = new MeisterTalkHolder(this, iter, gMeisterTalkOffset);
     RAW(TalkMessageCtrl*, 0x94) = mTalkControl->getTalkCtrl();
 }
 
@@ -110,3 +110,6 @@ void Meister::updateTalkDistance() {
     PSVECCrossProduct(&front, &dir, &cross);
     RAW(f32, 0xF4) = MR::getInterpolateValue(MR::abs(cross.dot(up)), 0.7f, 2.0f);
 }
+
+const TVec3f& Meister::getTalkOffset() const { return gMeisterTalkOffset; }
+void Meister::refreshEventTalk() { mTalkControl->removeInvalidTalk(); }

@@ -1,3 +1,4 @@
+#include "Game/Util/PlayerUtil.hpp"
 // SMG2-only MarioActor functions (part A), written from the asm. Included at the end of MarioActor.cpp (unity TU).
 // Field access by raw offset (`F(T, off)`): the class header offsets are partly guesses.
 #define F(T, off) (*(T*)((u8*)self + (off)))
@@ -389,7 +390,6 @@ extern "C" void fn_803BEA70(MarioActor* self, s32 a, s32 b) {
 extern "C" void fn_803EC7F0(void*);
 extern "C" void fn_803EC8A0(void*);
 extern "C" void fn_803EC780(void*);
-extern "C" void fn_8004F6D0();
 
 extern "C" void fn_803BEA80(MarioActor* self) {
     if (F(void*, 0x1090) != nullptr) {
@@ -407,7 +407,7 @@ extern "C" void fn_803BEAC0(MarioActor* self) {
     if (F(void*, 0x1090) != nullptr) {
         fn_803EC780(F(void*, 0x1090));
     }
-    fn_8004F6D0();
+    MR::startPlayerNormalBva();
 }
 
 extern "C" void fn_803BEAF0(MarioActor* self) {

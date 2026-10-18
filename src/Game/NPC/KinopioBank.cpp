@@ -1,83 +1,213 @@
-#pragma auto_inline off
-
+// NONMATCHING: Remaining nonmatches are register allocation, stack layout, literal addressing, and equivalent comparison code generation.
 #include "Game/NPC/KinopioBank.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/Spine.hpp"
+#include "Game/LiveActor/PartsModel.hpp"
 #include "Game/NPC/NPCActorItem.hpp"
 #include "Game/NPC/TalkMessageFunc.hpp"
+#include "Game/Screen/StarPieceBank.hpp"
+#include "Game/System/MarioFacePlanetSwitch.hpp"
+#include "Game/System/GameDataFunction.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
+#include "Game/NameObj/NameObjFactory.hpp"
 #include "Game/Util.hpp"
 
 namespace NrvKinopioBank {
-    NEW_NERVE(KinopioBankNrvWait, KinopioBank, WaitBank);
-    NEW_NERVE(KinopioBankNrvAppear, KinopioBank, Event);
-    NEW_NERVE(KinopioBankNrvStarPieceWait, KinopioBank, StarPieceWait);
-    NEW_NERVE(KinopioBankNrvCountUp, KinopioBank, CountUp);
-    NEW_NERVE(KinopioBankNrvEnd, KinopioBank, End);
-    NEW_NERVE(KinopioBankNrvAction, KinopioBank, Event);
-};  // namespace NrvKinopioBank
-
-KinopioBank::KinopioBank(const char* pName) : NPCActor(pName) {
-    mStarPieceBank = NULL;
-    mBankIndex = 0;
-    mChildObj = NULL;
-    mGoodsA = NULL;
-    mGoodsB = NULL;
-    mIsFirstTime = false;
+    class WaitSelect : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const;
+        static WaitSelect sInstance;
+    };
+    WaitSelect WaitSelect::sInstance;
+    NEW_NERVE(StarPieceWait, KinopioBank, StarPieceWait);
+    class TradeEnd : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static TradeEnd sInstance;
+    };
+    TradeEnd TradeEnd::sInstance;
+    NEW_NERVE(CountUp, KinopioBank, CountUp);
+    NEW_NERVE(End, KinopioBank, End);
+    class Complete : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static Complete sInstance;
+    };
+    Complete Complete::sInstance;
+    void WaitSelect::execute(Spine* spine) const {
+        KinopioBank* actor = static_cast<KinopioBank*>(spine->mExecutor);
+        if (MR::isDeadYesNoLayout()) actor->setNerve(&StarPieceWait::sInstance);
+    }
 }
 
-/* NONMATCHING: init is only partially transcribed (scale/talk/branch wiring); NPCActor-side 0x100..0x140 writes not yet placed */
-void KinopioBank::init(const JMapInfoIter& rIter) {
-    NPCActorCaps caps("KinopioBank");
+namespace {
+    const s32 sLifeThresholds[] = {200,500,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000};
+    const s32 sGoodsThresholds[] = {0,1000,2000,4000,6000,8000};
+    struct BankActions { const char* wait; const char* turn; const char* talk; const char* spin; const char* reaction; };
+    const BankActions sActions[] = {
+        {"WaitStarPiece","TurnStarPiece","TalkStarPiece","SpinStarPiece","ReactionStarPiece"},
+        {"Wait","Turn","Talk","Spin","Reaction"},
+        {"WaitWeapon","TurnWeapon","TalkWeapon","SpinWeapon","ReactionWeapon"},
+        {"WaitPickel","TurnPickel","TalkPickel","SpinPickel","ReactionPickel"},
+        {"Wait","Turn","Talk","Spin","Reaction"},
+        {"Wait","Turn","Talk","Spin","Reaction"}
+    };
+}
+
+KinopioBank::KinopioBank(const char* name) : NPCActor(name), mStarPieceBank(nullptr), mBankIndex(0), mChildObj(nullptr), mGoodsA(nullptr), mGoodsB(nullptr), mIsFirstTime(false) {}
+
+void KinopioBank::init(const JMapInfoIter& iter) {
+    NPCActorCaps caps("Kinopio");
     caps.setDefault();
-    initialize(rIter, caps, "KinopioBank", "KinopioBank", nullptr);
+    caps.mMessage = false;
+    initialize(iter,caps,"Kinopio",nullptr,nullptr);
+    MR::setScale(this,1.2f);
+    MR::invalidateHitSensor(this,"Pickel");
+    MR::offBind(this);
+    mParam._14="Wait"; mParam._18="Turn"; mParam._1C="Talk"; mParam._20="Talk";
+    _11C="Walk"; _120="Walk";
+    _130="Spin"; _134="Trampled"; _138="Pointing"; _13C="Reaction";
+    _12C=450.0f;
+    initTalkCtrlDirect(iter,"KinopioBank",TVec3f(0.0f,150.0f,0.0f),nullptr);
+    MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&KinopioBank::branchFunc));
+    MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&KinopioBank::eventFunc));
+    mStarPieceBank=new StarPieceBank("銀行レイアウト");
+    s32 count=GameDataFunction::getMaxBankedStarPieceNum();
+    s32 bankIndex=0;
+    for(s32 i=0;i<11;i++) if(sLifeThresholds[i]<=count) bankIndex=i+1;
+    mBankIndex=bankIndex;
+    MR::startBrk(this,"ColorChange");
+    MR::setBrkFrameAndStop(this,1.0f);
+    createGoodsTables();
+    for(s32 i=0;i<MR::getChildObjNum(iter);i++) {
+        const char* name=nullptr;
+        MR::getChildObjName(&name,iter,i);
+        if(MR::isEqualString(name,"Kinopio")) { mChildObj=static_cast<LiveActor*>(NameObjFactory::initChildObj(iter,i)); break; }
+    }
+    if(!MarioFacePlanetSwitch::checkMarkerInScene()) {
+        mChildObj->makeActorAppeared();
+        makeActorDead();
+        return;
+    }
+    MR::tryRegisterDemoCast(this,"ファイルセレクトからの開始",iter);
+    mIsFirstTime=!MR::isOnGameEventFlagKinopioBankAtFirst();
+    mChildObj->makeActorDead();
+    updateBank(1);
+    makeActorAppeared();
 }
 
 void KinopioBank::control() {
     NPCActor::control();
-
-    if (mIsFirstTime) {
-        MR::startActionSound(this, "KinopioBank", -1, -1, -1);
-    }
-    if (isPointingSe()) {
-        MR::startDPDHitSound();
-        MR::startActionSound(this, "KinopioBank", -1, -1, -1);
-    }
+    if(_D8) { MR::startActionSound(this,"SmNpcTrampled",-1,-1,-1); MR::startActionSound(this,"SvKinopioTrampled",-1,-1,-1); }
+    if(isPointingSe()) { MR::startDPDHitSound(); MR::startActionSound(this,"SvKinopioPointing",-1,-1,-1); }
+    if(_DB) MR::startActionSound(this,"SvKinopioStarPieceHit",-1,-1,-1);
 }
 
-/* NONMATCHING: body not yet transcribed from m2c fn_8034E700 */
 void KinopioBank::exeStarPieceWait() {
+    if(MR::isFirstStep(this)) mStarPieceBank->appear();
+    if(MR::isDead(mStarPieceBank)) setNerve(&NrvKinopioBank::TradeEnd::sInstance);
 }
-
-/* NONMATCHING: body not yet transcribed from m2c fn_8034E770 */
 void KinopioBank::exeCountUp() {
+    if(MR::isFirstStep(this)) awardBankLives();
+    if(MR::isStep(this,90)) {
+        if(needsGoodsUpdate()) setNerve(&NrvKinopioBank::End::sInstance);
+        else setNerve(&NrvKinopioBank::Complete::sInstance);
+    }
 }
-
-/* NONMATCHING: body not yet transcribed from m2c fn_8034E7F0 */
 void KinopioBank::exeEnd() {
+    if(MR::isFirstStep(this)) updateBank(0);
+    if(MR::isStep(this,90)) setNerve(&NrvKinopioBank::Complete::sInstance);
 }
-
-/* NONMATCHING: body not yet transcribed from m2c fn_8034E850 (goods table creation) */
 void KinopioBank::createGoodsTables() {
+    mGoodsA=new PartsModel*[6]; mGoodsB=new PartsModel*[6];
+    for(s32 i=0;i<6;i++) {
+        NPCActorItem item("KinopioBank");
+        MR::getNPCItemData(&item,i);
+        mGoodsA[i]=MR::createNPCGoods(this,item.mGoods0,item.mGoodsJoint0);
+        mGoodsB[i]=MR::createNPCGoods(this,item.mGoods1,item.mGoodsJoint1);
+        PartsModel* goods=mGoodsA[i];
+        if(goods) { MR::registerDemoSimpleCastAll(goods); goods->makeActorDead(); }
+        goods=mGoodsB[i];
+        if(goods) { MR::registerDemoSimpleCastAll(goods); goods->makeActorDead(); }
+    }
 }
-
-/* NONMATCHING: body not yet transcribed from m2c fn_8034E970 */
-u32 KinopioBank::getBankData(LiveActor*** ppGoodsA, LiveActor*** ppGoodsB, s32* pIdx) {
-    return 0;
+u32 KinopioBank::getBankData(PartsModel** a,PartsModel** b) {
+    if(mIsFirstTime) { PartsModel** goodsA=mGoodsA; PartsModel** goodsB=mGoodsB; *a=goodsA[0]; *b=goodsB[0]; return 0; }
+    u32 index=0;
+    for(u32 i=0;i<6;i++) if(sGoodsThresholds[i]<=GameDataFunction::getBankedStarPieceNum()) { index=i; PartsModel** goodsA=mGoodsA; PartsModel** goodsB=mGoodsB; *a=goodsA[i]; *b=goodsB[i]; }
+    return index;
 }
-
-/* NONMATCHING: body not yet transcribed from m2c fn_8034EA30 */
-void KinopioBank::updateBank(s32) {
+void KinopioBank::updateBank(s32 immediate) {
+    PartsModel* a=nullptr; PartsModel* b=nullptr;
+    u32 index=getBankData(&a,&b);
+    if(_94==a && _98==b) return;
+    if(!immediate) { MR::emitEffect(this,"Smoke"); MR::startActionSound(this,"AppearGoodsSmoke",-1,-1,-1); }
+    if(_94) _94->makeActorDead();
+    if(_98) _98->makeActorDead();
+    _94=a; _98=b;
+    if(_94) _94->makeActorAppeared();
+    if(_98) _98->makeActorAppeared();
+    const BankActions& actions=sActions[index];
+    mParam._14=actions.wait; mParam._18=actions.turn; mParam._1C=actions.talk; mParam._20=actions.turn;
+    _130=actions.spin; _13C=actions.reaction; _134=actions.reaction; _138=actions.turn;
+    if(index==0) MR::emitEffect(_94,"KinopioGoodsStarPieceLight");
+    MR::startAction(this,mParam._1C);
 }
-
-/* NONMATCHING: body not yet transcribed from m2c KinopioBank::branchFunc */
-s32 KinopioBank::branchFunc(u32) {
-    return 0;
+bool KinopioBank::branchFunc(u32 id) {
+    if(id==0) return !MR::isOnGameEventFlagKinopioBankAtFirst();
+    if(id==1) return GameDataFunction::getBankInterest()>0;
+    if(id==2) return GameSequenceFunction::isFaceShipSkipBankInfo();
+    if(id==3) return sLifeThresholds[mBankIndex]<=GameDataFunction::getMaxBankedStarPieceNum();
+    if(id>=10000) {
+        if(mIsFirstTime) return true;
+        u32 index=id-9999;
+        s32 threshold;
+        if(index>=6) threshold=9999;
+        else threshold=sGoodsThresholds[index];
+        if(threshold>=9999) return GameDataFunction::getBankedStarPieceNum()<9999;
+        return GameDataFunction::getBankedStarPieceNum()<threshold;
+    }
+    return true;
 }
-
-/* NONMATCHING: body not yet transcribed from m2c KinopioBank::eventFunc */
-s32 KinopioBank::eventFunc(u32) {
-    return 0;
+bool KinopioBank::eventFunc(u32 id) {
+    if(id==0) {
+        s32 interest=MR::isOnGameEventFlagKinopioBankAtFirst()?GameDataFunction::getBankInterest():100;
+        GameDataFunction::setBankedStarPieceNum(GameDataFunction::getBankedStarPieceNum()+interest);
+        GameDataFunction::clearKinopioBankInterest();
+        MR::setMessageArg(mMsgCtrl,GameDataFunction::getBankedStarPieceNum());
+        if(!MR::isOnGameEventFlagKinopioBankAtFirst()) MR::onGameEventFlagKinopioBankAtFirst();
+        return true;
+    }
+    if(id==1) {
+        if(isNerve(&NrvKinopioBank::TradeEnd::sInstance)) { setNerve(mTalkNerve); return true; }
+        if(!isNerve(&NrvKinopioBank::StarPieceWait::sInstance) && !isNerve(&NrvKinopioBank::WaitSelect::sInstance)) setNerve(&NrvKinopioBank::WaitSelect::sInstance);
+        return false;
+    }
+    if(id==2) { MR::setMessageArg(mMsgCtrl,GameDataFunction::getBankInterest()); return true; }
+    if(id==3) { GameSequenceFunction::setFaceShipSkipBankInfo(); return true; }
+    if(id==4) {
+        if(!isNerve(&NrvKinopioBank::CountUp::sInstance) && !isNerve(&NrvKinopioBank::Complete::sInstance) && !isNerve(&NrvKinopioBank::End::sInstance)) {
+            if(GameDataFunction::getMaxBankedStarPieceNum()>=sLifeThresholds[mBankIndex]) setNerve(&NrvKinopioBank::CountUp::sInstance);
+            else if(needsGoodsUpdate()) setNerve(&NrvKinopioBank::End::sInstance);
+            else setNerve(&NrvKinopioBank::Complete::sInstance);
+            return false;
+        }
+        if(isNerve(&NrvKinopioBank::Complete::sInstance)) { setNerve(mTalkNerve); return true; }
+        return false;
+    }
+    return true;
 }
-
-/* NONMATCHING: body not yet transcribed from m2c fn_8034EF10 */
-void KinopioBank::exeEvent() {
+void KinopioBank::awardBankLives() {
+    s32 lives=0;
+    for(u32 i=mBankIndex;i<11;i++) {
+        if(GameDataFunction::getMaxBankedStarPieceNum()<sLifeThresholds[i]) break;
+        mBankIndex=i+1;
+        lives++;
+    }
+    MR::addPlayerLeft(lives);
+}
+bool KinopioBank::needsGoodsUpdate() {
+    PartsModel* a=nullptr; PartsModel* b=nullptr;
+    getBankData(&a,&b);
+    return _94!=a || _98!=b;
 }

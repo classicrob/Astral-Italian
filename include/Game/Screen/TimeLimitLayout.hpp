@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/Screen/LayoutActor.hpp"
+#include "Game/Screen/TimeUpLayout.hpp"
 
 class ValueControl;
 
@@ -10,15 +11,6 @@ struct Timing {
     /* 0x8 */ bool mIsScaleUp;
     /* 0x9 */ bool mIsScaleDown;
     /* 0xA */ bool _A;
-};
-
-class TimeUpLayout : public LayoutActor {
-public:
-    /// @brief Creates a new `TimeUpLayout`.
-    TimeUpLayout() : LayoutActor("タイムアップ画面", true) {
-    }
-
-    virtual void init(const JMapInfoIter& rIter);
 };
 
 class TimeLimitLayout : public LayoutActor {

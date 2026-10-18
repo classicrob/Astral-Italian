@@ -1,3 +1,5 @@
+#include "Game/Util/PlayerUtil.hpp"
+#include "Game/Demo/DemoFunction.hpp"
 #pragma auto_inline off
 
 #include "Game/NPC/KinopioPostman.hpp"
@@ -40,13 +42,9 @@ extern "C" s32 fn_8035ACB0(); // PLACEHOLDER(astra): inherited fn_8035ACB0 ABI; 
 extern "C" bool fn_8035AF00(); // PLACEHOLDER(astra): inherited fn_8035AF00 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" LiveActor* fn_8035AC20(const JMapInfoIter&); // PLACEHOLDER(astra): inherited fn_8035AC20 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" void fn_8035AD60(LiveActor*, s32); // PLACEHOLDER(astra): inherited fn_8035AD60 ABI; resolve when its target signature and canonical owner are verified.
-extern "C" s32 fn_8035B100(); // PLACEHOLDER(astra): inherited fn_8035B100 ABI; resolve when its target signature and canonical owner are verified.
-extern "C" bool fn_8035B130(); // PLACEHOLDER(astra): inherited fn_8035B130 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" bool fn_804C24B0(); // PLACEHOLDER(astra): inherited fn_804C24B0 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" s32 fn_8048AE10(LayoutActor*); // PLACEHOLDER(astra): inherited fn_8048AE10 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" bool fn_8048AE00(LayoutActor*); // PLACEHOLDER(astra): inherited fn_8048AE00 ABI; resolve when its target signature and canonical owner are verified.
-extern "C" void fn_801392A0(LiveActor*, TalkMessageCtrl*, const char*); // PLACEHOLDER(astra): inherited fn_801392A0 ABI; resolve when its target signature and canonical owner are verified.
-extern "C" void fn_8004F6D0(); // PLACEHOLDER(astra): inherited fn_8004F6D0 ABI; resolve when its target signature and canonical owner are verified.
 
 #define KP_STR(ofs) (reinterpret_cast< const char* >(lbl_806B97E0) + (ofs))
 #define KP_NERVE(sym) (reinterpret_cast< const Nerve* >(&sym))
@@ -217,10 +215,8 @@ bool fn_8034FB10(KinopioPostman* pThis, u32 step) {
 bool fn_8034FBB0(KinopioPostman* pThis, u32 step) {
     switch (step) {
     case 0:
-        fn_8048AE10(pThis->mLayout);
-        if (fn_8035B130()) {
-            fn_8048AE10(pThis->mLayout);
-            s32 count = fn_8035B100();
+        if (MR::isValidPostmanImportantEvent(fn_8048AE10(pThis->mLayout))) {
+            s32 count = MR::getPostmanImportantEventReward(fn_8048AE10(pThis->mLayout));
             if (count > 0) {
                 MR::setMessageArg(pThis->mTalkCtrls[3], count);
                 return true;
@@ -302,7 +298,7 @@ bool fn_8034F600(KinopioPostman* pThis) {
 bool fn_8034F900(KinopioPostman* pThis, const char* pName, const JMapInfoIter& rIter) {
     if (MR::tryRegisterDemoCast(pThis, pName, rIter)) {
         if (pThis->mLayout != nullptr) {
-            fn_801392A0(pThis, KP_RAW_OF(pThis, TalkMessageCtrl*, 0x94), pName);
+            DemoFunction::registerDemoTalkMessageCtrlDirect(pThis, KP_RAW_OF(pThis, TalkMessageCtrl*, 0x94), pName);
         }
         // NONMATCHING: the demo-action functor (fn_8034F5C0 with the 0x... data) is not registered here.
         return true;
@@ -517,7 +513,7 @@ void fn_803504C0(KinopioPostman* pThis, LiveActor* pActor) {
     if (!MR::isTimeKeepDemoActive()) {
         MR::startAction(pThis, reinterpret_cast< const char* >(lbl_806B9A18));
         if (pThis->mIsReplyFlag) {
-            fn_8004F6D0();
+            MR::startPlayerNormalBva();
         }
         pThis->setNerve(KP_NERVE(lbl_807D498C));
     }

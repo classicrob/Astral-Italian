@@ -10,6 +10,9 @@ class TalkMessageCtrl;
 class TalkMessageFuncBase;
 
 namespace MR {
+    void offTalkCinemaFrame(TalkMessageCtrl*);
+    bool tryTalkForceMarioPuppetableAtEnd(TalkMessageCtrl*);
+    bool isMessageRead(const TalkMessageCtrl*);
     void hideBubbleBeak(TalkMessageCtrl*);
     void showBubbleBeak(TalkMessageCtrl*);
     void initTalkCamera(TalkMessageCtrl*, const JMapInfoIter&);

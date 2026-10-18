@@ -1,3 +1,4 @@
+#include "Game/Util/DemoUtil.hpp"
 #include "Game/Demo/PrepareKoopaFinalDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
@@ -61,7 +62,7 @@ void PrepareKoopaFinalDemoObj::init(const JMapInfoIter& rIter) {
         MR::registerDemoActionFunctor(this, functor, nullptr);
     }
     mKoopaSign = MR::createDemoObjWithAnimArc(lbl_80680750 + 0x34, lbl_80680750 + 0x40, lbl_80680750 + 0x48, lbl_80680750 + 0x54, nullptr);
-    UnnamedDemoCallee::fn_800209B0(mKoopaSign, rIter, lbl_807CF768, lbl_807CF76C);
+    MR::tryInitDemoSheetAnim(mKoopaSign, rIter, lbl_807CF768, lbl_807CF76C);
     MR::invalidateClipping(mKoopaSign);
     mKoopaSign->makeActorAppeared();
     mTalkActor = MR::createDemoObjWithAnimArc(lbl_80680750 + 0x5C, lbl_80680750 + 0x68, lbl_80680750 + 0x74, nullptr);
@@ -130,7 +131,7 @@ void PrepareKoopaFinalDemoObj::control() {
             setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvEnd));
             return;
         }
-        if (UnnamedDemoCallee::fn_80147640() != 0 && UnnamedDemoCallee::fn_801476E0() == 0) {
+        if (MR::isStoryBookDemoActive() != 0 && UnnamedDemoCallee::fn_801476E0() == 0) {
             setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvStartPuppet));
         }
     }

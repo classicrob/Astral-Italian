@@ -10,7 +10,12 @@ class GameEventValueChecker;
 class SaveDataHandleSequence;
 
 namespace GameDataFunction {
-    u32 getBestScoreAttackCurrentStage();
+    bool isOnLuigiIntrusivelyStart();
+    void onLuigiIntrusivelyAppear();
+    s32 getPlayerStatusCounter14();
+    s32 getPendingSharedPlayerLeft();
+    s32 getPlayerMissNum();
+    u32 getBestScoreAttackCurrentStage(const char* stageName = nullptr);
     void setBestScoreAttackCurrentStage(u32);
     s32 getTicoFatStarPieceAlms(s32);
     void addTicoFatStarPieceAlms(s32, s32);
@@ -20,6 +25,9 @@ namespace GameDataFunction {
     void onTicoCoinFeed(const char*);
     bool isTicoCoinFeed(const char*);
     s32 getBankedStarPieceNum();
+    s32 getMaxBankedStarPieceNum();
+    s32 getBankInterest();
+    void clearKinopioBankInterest();
     void setBankedStarPieceNum(s32);
     void tryOnGameEventFlagStarPieceCounterStop(int);
     bool isOnPostmanImportantLetterRead(s32);

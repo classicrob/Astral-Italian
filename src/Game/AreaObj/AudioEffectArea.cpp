@@ -34,8 +34,8 @@ void AudioEffectArea::movement() {
     }
 
     if (val) {
-        MR::setAudioEffectType(_3C, _40);
+        MR::setAudioEffectType(_3C, _40, 0);
     } else {
-        MR::setAudioEffectType(0, 0);
+        MR::setAudioEffectType(0, 0, 0);
     }
 }

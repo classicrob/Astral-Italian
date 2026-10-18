@@ -7,6 +7,7 @@
 struct ResTIMG;
 
 namespace MR {
+    bool isDeadYesNoLayout();
     bool requestTicoFatGuidance();
     void hideWorldMapInfoLayout();
     void forceSyncCoinCounter();

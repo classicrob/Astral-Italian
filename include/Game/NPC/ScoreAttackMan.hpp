@@ -3,6 +3,8 @@
 #include "Game/NPC/NPCActor.hpp"
 
 class JMapIdInfo;
+class ActorStatePlayerPosReset;
+class ActorCameraInfo;
 class LiveActor;
 class TakeOutStar;
 class TalkMessageCtrl;
@@ -16,22 +18,21 @@ public:
     virtual void init(const JMapInfoIter& rIter);
     virtual void control();
 
-    s32 branchFunc(u32);
-    s32 eventFunc(u32);
-    s32 animeFunc(u32);
+    bool branchFunc(u32);
+    bool eventFunc(u32);
+    bool animeFunc(u32);
 
     void exeWait();
     void exeTalk();
-    void exeStart();
-    void exeReaction();
-    void exeEnd();
-    void exeEventWait();
+    void startResult();
+    bool hasDeclaredPowerStar();
+    void exeResetPlayer();
+    void exeTalkResult();
+    void exeStartCamera();
 
-    /* 0x15C */ s32 _15C;
-    /* 0x160 */ s32 _160;
-    /* 0x164 */ JMapIdInfo* mJMapIdInfo;
+    /* 0x164 */ ActorStatePlayerPosReset* mResetState;
     /* 0x168 */ TalkMessageCtrl* mTalkCtrl;
-    /* 0x16C */ LiveActor* mCameraTarget;
+    /* 0x16C */ ActorCameraInfo* mCameraInfo;
     /* 0x170 */ TakeOutStar* mTakeOutStar;
     /* 0x174 */ f32 mNearRadius;
     /* 0x178 */ JMapIdInfo* mRestartInfo;

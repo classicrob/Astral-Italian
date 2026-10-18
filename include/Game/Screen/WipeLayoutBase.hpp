@@ -7,6 +7,8 @@ public:
     WipeLayoutBase(const char* pName) : LayoutActor(pName, true) {
     }
 
+    virtual ~WipeLayoutBase();
+
     virtual void wipe(s32) = 0;
     virtual void forceClose() = 0;
     virtual void forceOpen() = 0;

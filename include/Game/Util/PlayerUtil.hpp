@@ -13,6 +13,7 @@ class Triangle;
 class XanimeResourceTable;
 
 namespace MR {
+    bool isPlayerInRushOrDemoOrTalk();
     void enablePlayerResourceFire();
     void killPlayerFireBalls();
     void forceCurePlayerElementMode();
@@ -281,4 +282,12 @@ namespace MR {
 
 namespace MR {
     void calcPlayerFollowPassPosition(TVec3f*, f32);
+}
+
+namespace MR {
+    XanimeResourceTable* createPlayerXanimeResource(bool);
+}
+
+namespace MR {
+    void startPlayerNormalBva();
 }

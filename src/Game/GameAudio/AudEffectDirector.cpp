@@ -36,7 +36,7 @@ void AudEffectDirector::movement() {
     _14 = 0;
 }
 
-void AudEffectDirector::setEffectType(s32 a1, s32 a2) {
+void AudEffectDirector::setEffectType(s32 a1, s32 a2, s32 saveType) {
     if (a2 < 0) {
         a2 = 0;
     }
@@ -48,6 +48,9 @@ void AudEffectDirector::setEffectType(s32 a1, s32 a2) {
     if (a2 >= _14) {
         _C = a1;
         _14 = a2;
+    }
+    if (saveType) {
+        _18 = a1;
     }
 }
 

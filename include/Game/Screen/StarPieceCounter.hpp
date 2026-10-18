@@ -16,6 +16,7 @@ public:
     virtual void control();
 
     void forceAppear(bool);
+    void forceDisappear();
     void disappear(bool);
     bool isWait() const;
     void forceSync();

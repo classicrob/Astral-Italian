@@ -80,6 +80,7 @@ namespace MR {
     void stopSceneForScenarioOpeningCamera();
     void playSceneForScenarioOpeningCamera();
     const JMapIdInfo& getCurrentMarioStartIdInfo();
+    s32 getCurrentMarioStartId();
     s32 getStartPosNum();
     s32 getCurrentStartZoneId();
     const JMapIdInfo& getInitializeStartIdInfo();
@@ -113,3 +114,11 @@ namespace MR {
     const TPos3f* getZonePlacementMtx(s32);
     s32 getCurrentOrSelectedScenarioNo();
 };  // namespace MR
+
+namespace MR {
+    bool isStageGlider();
+}
+
+namespace MR {
+    bool isGhostLuigiOpenInCurrentStage();
+}

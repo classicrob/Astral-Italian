@@ -178,7 +178,10 @@ namespace NrvRaceManager {
 
 RaceManager::RaceManager()
     : LiveActor("レース管理"), mLayout(nullptr), mRacerNum(0), mAudienceNum(0), mRank(0), mBestTime(0), mTime(0), mPlayerRacer(nullptr) {
-    _FC.identity();
+    mStartCountdown = nullptr;
+    mPlayerRide = nullptr;
+    mJudge = nullptr;
+
 }
 
 void RaceManager::init(const JMapInfoIter& rIter) {
@@ -478,11 +481,6 @@ void RaceManager::entry(PlayerRacer* pRacer) {
     MR::getRailArg0WithInit(pRacer, &mCurrentRace);
     mBestTime = MR::getRaceBestTime(mCurrentRace);
     mPlayerRacer = pRacer;
-    TVec3f endDir, endPos;
-    MR::calcRailEndPointPosAndDirection(&endPos, &endDir, pRacer);
-    MR::makeMtxFrontUp(&_FC, endDir, TVec3f(0.0f, 1.0f, 0.0f));
-    MR::setMtxTrans(_FC, endPos.x, endPos.y, endPos.z);
-    _FC.invert(_FC);
     entry(static_cast< AbstractRacer* >(pRacer));
 }
 
@@ -491,10 +489,10 @@ void RaceManager::entry(AbstractAudience* pAudience) {
 }
 
 bool RaceManager::isGoal(const AbstractRacer* pRacer) const {
-    TVec3f currInnProd, prevInnProd;
-    _FC.mult(pRacer->mCurrPosition, currInnProd);
-    _FC.mult(pRacer->mPrevPosition, prevInnProd);
-    return prevInnProd.z < 0.0f && currInnProd.z > 0.0f;
+    TVec3f endPos(0.0f, 0.0f, 0.0f);
+    MR::calcRailEndPointPos(&endPos, mPlayerRacer);
+    return pRacer->mCurrPosition.z < endPos.z && endPos.z <= pRacer->mPrevPosition.z;
+
 }
 
 u32 RaceManager::getRank(const AbstractRacer* pRacer) const {

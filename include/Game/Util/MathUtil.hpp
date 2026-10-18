@@ -705,3 +705,7 @@ namespace MR {
 namespace MR {
     f32 getEaseInOutValue(f32, f32, f32, f32, f32);
 }
+
+namespace MR {
+    void rotateQuatLocalYDegree(TQuat4f*, const TQuat4f&, f32);
+}

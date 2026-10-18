@@ -122,7 +122,6 @@ extern "C" const char* lbl_807CFF1C;
 extern "C" const char* lbl_807CFF20;
 extern "C" const char* lbl_807CFF24;
 
-extern "C" void fn_800614C0(TalkMessageCtrl*); // PLACEHOLDER(astra): inherited fn_800614C0 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" s32 fn_800589B0(); // PLACEHOLDER(astra): inherited fn_800589B0 ABI; resolve when its target signature and canonical owner are verified.
 
 void SuperDreamer::exeWait() {
@@ -192,7 +191,7 @@ void SuperDreamer::exeInHelp() {
         MR::forceOpenWipeCircle();
         SUPERDREAMER_FIELD(TalkMessageCtrl*, 0x94) = mTalkCtrl;
         if (mTalkCtrl != nullptr) {
-            fn_800614C0(mTalkCtrl);
+            MR::offTalkCinemaFrame(mTalkCtrl);
         }
         mButtonGuidance->appear();
         mHelperWitchEffect->makeActorAppeared();
@@ -329,7 +328,7 @@ void SuperDreamer::initForPlaying(const JMapInfoIter& rIter) {
     MR::registerDemoSimpleCastAll(this);
     mTalkCtrl = createTalkCtrl(rIter, lbl_807CFF20, lbl_807CFF24);
     if (mTalkCtrl != nullptr) {
-        fn_800614C0(mTalkCtrl);
+        MR::offTalkCinemaFrame(mTalkCtrl);
         MR::hideBubbleBeak(mTalkCtrl);
     }
     makeActorAppeared();

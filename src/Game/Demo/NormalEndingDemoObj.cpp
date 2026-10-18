@@ -1,3 +1,4 @@
+#include "Game/Util/DemoUtil.hpp"
 #include "Game/Demo/NormalEndingDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
@@ -56,10 +57,10 @@ void NormalEndingDemoObj::init(const JMapInfoIter& rIter) {
     MR::tryRegisterDemoCast(mActorJ, lbl_807CF73C, rIter);
     mActorA = UnnamedDemoCallee::fn_8013FD90(this, lbl_80680070 + 0x12C, lbl_80680070 + 0x13C, lbl_80680070 + 0x148, 0);
     MR::initLightCtrl(mActorA);
-    UnnamedDemoCallee::fn_800209B0(mActorA, rIter, lbl_807CF730, lbl_807CF740);
-    UnnamedDemoCallee::fn_800209B0(mActorA, rIter, lbl_807CF734, lbl_807CF744);
-    UnnamedDemoCallee::fn_800209B0(mActorA, rIter, lbl_807CF738, lbl_807CF748);
-    UnnamedDemoCallee::fn_800209B0(mActorA, rIter, lbl_807CF73C, lbl_807CF74C);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF730, lbl_807CF740);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF734, lbl_807CF744);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF738, lbl_807CF748);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF73C, lbl_807CF74C);
     mActorB = UnnamedDemoCallee::fn_8013FD90(this, lbl_80680070 + 0x158, lbl_80680070 + 0x168, lbl_80680070 + 0x170, 0);
     MR::initTalkAnimDemoCast(mActorB, rIter, lbl_807CF730, lbl_807CF740);
     MR::initTalkAnimDemoCast(mActorB, rIter, lbl_807CF734, lbl_807CF744);

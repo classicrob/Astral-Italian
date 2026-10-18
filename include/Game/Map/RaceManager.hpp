@@ -6,6 +6,7 @@
 
 class PlayerRacer;
 class RaceManager;
+class StartCountdownLayout;
 
 enum RaceID {
     /* 0x00 */ RaceID_Penguin,
@@ -15,6 +16,7 @@ enum RaceID {
     /* 0x04 */ RaceID_SurfingChallenge,
 };
 
+// PLACEHOLDER(astra): inherited SMG1 layout API; SMG2 RaceLayout is declared in Game/Screen/RaceLayout.hpp.
 class RaceManagerLayout : public LayoutActor {
 public:
     /// @brief Creates a new `RaceManagerLayout`.
@@ -62,6 +64,7 @@ public:
     virtual void loseRacer() = 0;
     virtual void resetRacer(const RaceManager* pRaceManager) = 0;
     virtual void exitRacer() = 0;
+    virtual void requestMovementOnRace() = 0;
 
     static bool compRacer(const AbstractRacer* pRacerA, const AbstractRacer* pRacerB) {
         return pRacerA->mRailCoord > pRacerB->mRailCoord;
@@ -80,7 +83,14 @@ public:
     }
 
     virtual void prepAudience() = 0;
+    virtual void startAudience() = 0;
     virtual void resetAudience() = 0;
+    virtual void exitAudience() = 0;
+};
+
+class AbstractRaceJudge {
+public:
+    virtual bool isJudgeReady() const = 0;
 };
 
 class RaceManager : public LiveActor {
@@ -120,6 +130,7 @@ public:
     void renewTime();
 
     /* 0x8C */ s32 mCurrentRace;
+    StartCountdownLayout* mStartCountdown;
     /* 0x90 */ RaceManagerLayout* mLayout;
     /* 0x94 */ AbstractRacer* mRacer[10];
     /* 0xBC */ AbstractAudience* mAudience[10];
@@ -129,7 +140,9 @@ public:
     /* 0xF0 */ u32 mBestTime;
     /* 0xF4 */ u32 mTime;
     /* 0xF8 */ PlayerRacer* mPlayerRacer;
-    /* 0xFC */ TPos3f _FC;
+    LiveActor* mPlayerRide;
+    AbstractRaceJudge* mJudge;
+
 };
 
 namespace RaceManagerFunction {
@@ -146,3 +159,8 @@ namespace RaceManagerFunction {
     s32 getRaceId(const char*, s32);
     bool hasPowerStarRaceScenario(int);
 };  // namespace RaceManagerFunction
+
+namespace RaceManagerFunction {
+    void updateRank();
+    void entryJudge(AbstractRaceJudge*);
+}

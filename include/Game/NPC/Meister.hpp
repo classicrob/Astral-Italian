@@ -11,6 +11,8 @@ public:
     virtual void makeActorDead();
     virtual void control();
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
+    const TVec3f& getTalkOffset() const;
+    void refreshEventTalk();
     void startDemoState(NerveExecutor*);
     void startWait();
     void resetPose();
@@ -52,3 +54,5 @@ public:
     s32 mStarCount;
     bool _38;
 };
+
+extern TVec3f gMeisterTalkOffset;

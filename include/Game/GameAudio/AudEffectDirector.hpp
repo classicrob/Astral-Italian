@@ -9,7 +9,7 @@ public:
     virtual void init(const JMapInfoIter& rIter);
     virtual void movement();
 
-    void setEffectType(s32, s32);
+    void setEffectType(s32, s32, s32);
     void setAudioEffectParam(s32);
     void playEffectSound(s32) NO_INLINE;
 

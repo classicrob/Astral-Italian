@@ -4999,21 +4999,16 @@ Game/NPC/DreamerFunction.cpp:
 	.ctors      start:0x806446B8 end:0x806446BC
 
 Game/NPC/GhostAttackGhost.cpp:
-	.text       start:0x803492B0 end:0x8034A4F0
-
-Game/NPC/JointControlDelegator.cpp:
-	.text       start:0x8034A4F0 end:0x8034A610
-
-Game/NPC/GhostAttackGhostFootprint.cpp:
-	.text       start:0x8034A610 end:0x8034A860
+	.text       start:0x803492B0 end:0x8034A860
 	.ctors      start:0x806446BC end:0x806446C0
 
-Game/NPC/GhostAttackGhostFootprintTU01.cpp:
+Game/NPC/GhostAttackGhostFootprint.cpp:
 	.text       start:0x8034A860 end:0x8034B2E0
 	.ctors      start:0x806446C0 end:0x806446C4
 
 Game/NPC/GhostAttackAccessor.cpp:
 	.text       start:0x8034B2E0 end:0x8034B3E0
+	.data       start:0x806B8BD8 end:0x806B8C18
 
 Game/NPC/GliBirdNpc.cpp:
 	.text       start:0x8034B3E0 end:0x8034B570
@@ -5038,10 +5033,11 @@ Game/NPC/Kinopio.cpp:
 	.sbss       start:0x807D4920 end:0x807D4960
 
 Game/NPC/KinopioBank.cpp:
-	.text       start:0x8034E280 end:0x8034F000
-
-Game/NPC/TalkMessageFuncM3.cpp:
-	.text       start:0x8034F000 end:0x8034F0F0
+	.text       start:0x8034E280 end:0x8034F290
+	.ctors      start:0x806446D0 end:0x806446D4
+	.rodata     start:0x8064B900 end:0x8064B9C0
+	.data       start:0x806B95C0 end:0x806B9730
+	.sdata2     start:0x807DF1E0 end:0x807DF1F8
 
 Game/NPC/KinopioPostman.cpp:
 	.text       start:0x8034F290 end:0x80350610
@@ -5052,22 +5048,19 @@ Game/NPC/TalkMessageFuncM4.cpp:
 Game/NPC/KoopaNpc.cpp:
 	.text       start:0x80350910 end:0x80351120
 	.ctors      start:0x806446D8 end:0x806446DC
+	.data       start:0x806B9B98 end:0x806B9CF0
+	.sdata2     start:0x807DF220 end:0x807DF228
 
 Game/NPC/LuigiTalkNpc.cpp:
-	.text       start:0x80351120 end:0x803518A0
-
-Game/NPC/TalkMessageFuncM5.cpp:
-	.text       start:0x803518A0 end:0x80351A30
-
-Game/NPC/LuigiTalkNpc2.cpp:
-	.text       start:0x80351A30 end:0x80351B00
+	.text       start:0x80351120 end:0x80351B00
 	.ctors      start:0x806446DC end:0x806446E0
+	.data       start:0x806B9DD4 end:0x806B9ED0
+	.sdata      start:0x807CFED0 end:0x807CFEE0
+	.sdata2     start:0x807DF228 end:0x807DF238
 
 Game/NPC/MameMuimuiAttackMan.cpp:
-	.text       start:0x80351B00 end:0x80351FE0
-
-Game/NPC/TalkMessageFuncM6.cpp:
-	.text       start:0x80351FE0 end:0x80352170
+	.text       start:0x80351B00 end:0x80352200
+	.ctors      start:0x806446E0 end:0x806446E4
 
 Game/NPC/Meister.cpp:
 	.text       start:0x80352200 end:0x80352C90
@@ -5119,10 +5112,8 @@ Game/NPC/MiiFaceRecipe.cpp:
 	.text       start:0x80355D20 end:0x80355E90
 
 Game/NPC/Moc.cpp:
-	.text       start:0x80355E90 end:0x80356250
-
-Game/NPC/TalkMessageFuncM7.cpp:
-	.text       start:0x80356250 end:0x80356340
+	.text       start:0x80355E90 end:0x803563D0
+	.ctors      start:0x806446FC end:0x80644700
 
 Game/NPC/Monte.cpp:
 	.text       start:0x803563D0 end:0x80356AA0
@@ -5161,30 +5152,22 @@ Game/NPC/PenguinMaster.cpp:
 	.sbss       start:0x807D4A28 end:0x807D4A30
 
 Game/NPC/Pichan.cpp:
-	.text       start:0x803590A0 end:0x803596A0
-
-Game/NPC/TalkMessageFuncM8.cpp:
-	.text       start:0x803596A0 end:0x80359790
+	.text       start:0x803590A0 end:0x803599F0
+	.ctors      start:0x80644714 end:0x80644718
+	.data       start:0x806BBA38 end:0x806BBC58
+	.sbss       start:0x807D4A30 end:0x807D4A48
 
 Game/NPC/PichanRacer.cpp:
-	.text       start:0x80359790 end:0x8035A320
-	.ctors      start:0x80644714 end:0x80644718
-
-Game/NPC/TalkMessageFuncM9.cpp:
-	.text       start:0x8035A320 end:0x8035A410
-
-Game/NPC/NrvPichanRacer.cpp:
-	.text       start:0x8035A410 end:0x8035A720
+	.text       start:0x803599F0 end:0x8035A720
 	.ctors      start:0x80644718 end:0x8064471C
 
 Game/NPC/PlayAttackMan.cpp:
-	.text       start:0x8035A720 end:0x8035A920
-
-Game/NPC/TalkMessageFuncM10.cpp:
-	.text       start:0x8035A920 end:0x8035AA10
+	.text       start:0x8035A720 end:0x8035AAA0
+	.ctors      start:0x8064471C end:0x80644720
 
 Game/NPC/PostmanEvent.cpp:
 	.text       start:0x8035B1E0 end:0x8035B9B0
+	.data       start:0x806BC310 end:0x806BC780
 
 Game/NPC/PowerStarEventKeeper.cpp:
 	.text       start:0x8035B9B0 end:0x8035BF10
@@ -5213,10 +5196,11 @@ Game/NPC/Rosetta.cpp:
 	.data       start:0x806BCCD8 end:0x806BCD50
 
 Game/NPC/ScoreAttackMan.cpp:
-	.text       start:0x8035DEA0 end:0x8035E930
-
-Game/NPC/TalkMessageFuncM11.cpp:
-	.text       start:0x8035E930 end:0x8035EA20
+	.text       start:0x8035DEA0 end:0x8035EC70
+	.ctors      start:0x80644730 end:0x80644734
+	.data       start:0x806BCE50 end:0x806BCF70
+	.sdata      start:0x807CFF08 end:0x807CFF0C
+	.sdata2     start:0x807DF3E0 end:0x807DF3F8
 
 Game/NPC/SignBoard.cpp:
 	.text       start:0x8035EC70 end:0x8035F110
@@ -5225,13 +5209,7 @@ Game/NPC/SignBoard.cpp:
 	.sbss       start:0x807D4AF0 end:0x807D4AF8
 
 Game/NPC/StarListBoard.cpp:
-	.text       start:0x8035F110 end:0x8035F460
-
-Game/NPC/TalkMessageFuncM12.cpp:
-	.text       start:0x8035F460 end:0x8035F550
-
-Game/NPC/StarListBoard2.cpp:
-	.text       start:0x8035F550 end:0x8035F620
+	.text       start:0x8035F110 end:0x8035F620
 	.ctors      start:0x80644738 end:0x8064473C
 
 Game/NPC/StrayTico.cpp:
@@ -5311,10 +5289,10 @@ Game/NPC/TicoBaby.cpp:
 	.ctors      start:0x80644768 end:0x8064476C
 
 Game/NPC/TicoBig.cpp:
-	.text       start:0x80367B20 end:0x80367E30
+	.text       start:0x80367B20 end:0x80367DE0
 
 Game/NPC/TicoEat.cpp:
-	.text       start:0x80367E30 end:0x80368590
+	.text       start:0x80367DE0 end:0x80368590
 
 Game/NPC/TicoComet.cpp:
 	.text       start:0x803685E0 end:0x80368680
@@ -5341,6 +5319,10 @@ Game/NPC/TicoFatStarPiece.cpp:
 Game/NPC/TicoFatStarPieceTransformation.cpp:
 	.text       start:0x8036B040 end:0x8036B8B0
 	.ctors      start:0x80644778 end:0x8064477C
+	.rodata     start:0x8064BA80 end:0x8064BA88
+	.data       start:0x806BE9A8 end:0x806BEAA8
+	.sdata      start:0x807CFF60 end:0x807CFF68
+	.sdata2     start:0x807DF638 end:0x807DF648
 
 Game/NPC/TicoRail.cpp:
 	.text       start:0x8036B8B0 end:0x8036C910
@@ -5355,10 +5337,10 @@ Game/NPC/TicoShop.cpp:
 	.sbss       start:0x807D4CB0 end:0x807D4CB8
 
 Game/NPC/TicoShopDice.cpp:
-	.text       start:0x8036D020 end:0x8036D820
-
-Game/NPC/TalkMessageFuncM15.cpp:
-	.text       start:0x8036D820 end:0x8036D910
+	.text       start:0x8036D020 end:0x8036DB00
+	.ctors      start:0x80644784 end:0x80644788
+	.data       start:0x806BEDE0 end:0x806BEF68
+	.sdata2     start:0x807DF688 end:0x807DF690
 
 Game/NPC/TicoStateEatCoin.cpp:
 	.text       start:0x8036DC30 end:0x8036DD10
@@ -5367,10 +5349,10 @@ Game/NPC/EatDemoCoin.cpp:
 	.text       start:0x8036E350 end:0x8036E590
 
 Game/NPC/TogepinAttackMan.cpp:
-	.text       start:0x8036E740 end:0x8036EC30
-
-Game/NPC/TalkMessageFuncM16.cpp:
-	.text       start:0x8036EC30 end:0x8036ED20
+	.text       start:0x8036E740 end:0x8036EDB0
+	.ctors      start:0x8064478C end:0x80644790
+	.data       start:0x806BF190 end:0x806BF2D0
+	.sdata2     start:0x807DF6B0 end:0x807DF6B8
 
 Game/NPC/TrickRabbit.cpp:
 	.text       start:0x8036EDB0 end:0x80371E80
@@ -6138,6 +6120,8 @@ Game/Screen/DestroyCounter.cpp:
 Game/Screen/DreamerButtonGuidance.cpp:
 	.text       start:0x8046C210 end:0x8046C670
 	.ctors      start:0x806448C0 end:0x806448C4
+	.data       start:0x806F2F78 end:0x806F3018
+	.sdata      start:0x807D01C0 end:0x807D01C4
 
 Game/Screen/EncouragePal60Window.cpp:
 	.text       start:0x8046C670 end:0x8046C9C0
@@ -6215,6 +6199,8 @@ Game/Screen/GameSceneLayoutHolder.cpp:
 Game/Screen/GameSetLayout.cpp:
 	.text       start:0x80471CD0 end:0x80472030
 	.ctors      start:0x806448E8 end:0x806448EC
+	.data       start:0x806F3D60 end:0x806F3DC8
+	.sdata      start:0x807D01F0 end:0x807D01F4
 
 Game/Screen/GameStageClearSequence.cpp:
 	.text       start:0x80472030 end:0x804725C0
@@ -6605,6 +6591,9 @@ Game/Screen/SuddenDeathMeter.cpp:
 Game/Screen/SupportPlayGuidance.cpp:
 	.text       start:0x804A1BA0 end:0x804A20C0
 	.ctors      start:0x8064499C end:0x806449A0
+	.data       start:0x806F8D38 end:0x806F8DF0
+	.sdata      start:0x807D0310 end:0x807D0314
+	.sdata2     start:0x807E1858 end:0x807E1860
 
 Game/Screen/SwitchingScreenEffect2.cpp:
 	.text       start:0x804A20C0 end:0x804A2460
@@ -6673,6 +6662,10 @@ Game/Screen/WipeKoopa.cpp:
 Game/Screen/WipeMario.cpp:
 	.text       start:0x804A7640 end:0x804A7B80
 	.ctors      start:0x806449C4 end:0x806449C8
+	.rodata     start:0x8064CE58 end:0x8064CE60
+	.data       start:0x806F99C0 end:0x806F9A38
+	.sdata      start:0x807D0350 end:0x807D0358
+	.sdata2     start:0x807E18E0 end:0x807E18E8
 
 Game/Screen/WipeRing.cpp:
 	.text       start:0x804A7B80 end:0x804A8820
@@ -6686,10 +6679,13 @@ Game/Screen/NrvWipeRing.cpp:
 Game/Screen/NrvWipeRingTU01.cpp:
 	.text       start:0x804A8D40 end:0x804A9440
 	.ctors      start:0x806449D0 end:0x806449D4
+	.data       start:0x806F9BF0 end:0x806F9CA0
 
 Game/Screen/NrvWipeRingTU02.cpp:
 	.text       start:0x804A9440 end:0x804A9AE0
 	.ctors      start:0x806449D4 end:0x806449D8
+	.data       start:0x806F9CA0 end:0x806F9D90
+	.sdata      start:0x807D0378 end:0x807D037C
 
 Game/Screen/NrvWipeRingTU03.cpp:
 	.text       start:0x804A9AE0 end:0x804A9E30
@@ -6698,6 +6694,8 @@ Game/Screen/NrvWipeRingTU03.cpp:
 Game/Screen/NrvWipeRingTU04.cpp:
 	.text       start:0x804A9E30 end:0x804AA740
 	.ctors      start:0x806449DC end:0x806449E0
+	.data       start:0x806F9E40 end:0x806F9F70
+	.sdata      start:0x807D0388 end:0x807D0398
 
 Game/Screen/YesNoController.cpp:
 	.text       start:0x804AA740 end:0x804AAFE0
@@ -6712,6 +6710,8 @@ Game/Screen/YesNoLayout.cpp:
 Game/Screen/YoshiTargetMark.cpp:
 	.text       start:0x804AB290 end:0x804AB6A0
 	.ctors      start:0x806449E8 end:0x806449EC
+	.data       start:0x806FA100 end:0x806FA190
+	.sdata      start:0x807D03A8 end:0x807D03AC
 
 Game/Speaker/SpkSpeakerCtrl.cpp:
 	.text       start:0x804AB6A0 end:0x804ABF80

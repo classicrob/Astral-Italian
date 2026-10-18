@@ -96,3 +96,5 @@ bool WipeFade::isWipeIn() const {
 bool WipeFade::isWipeOut() const {
     return !mIsWipeIn && mStep < mFrame;
 }
+
+WipeLayoutBase::~WipeLayoutBase() {}

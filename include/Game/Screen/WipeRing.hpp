@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/Screen/WipeLayoutBase.hpp"
+#include "Game/LiveActor/Nerve.hpp"
 
 class WipeRing : public WipeLayoutBase {
 public:
@@ -21,9 +22,7 @@ public:
     f32 calcRadius() const;
     f32 calcMaxRadius() const;
     void updatePlayerPos();
-    void exeClose();
     void exeWipeIn();
-    void exeOpen();
     void exeWipeOut();
 
 private:
@@ -33,3 +32,10 @@ private:
     /* 0x30 */ f32 mWipeInFrame;
     /* 0x34 */ bool mIsCenterOnPlayer;
 };
+
+namespace NrvWipeRing {
+    class WipeRingNrvClose : public Nerve { public: WipeRingNrvClose(); virtual void execute(Spine*) const; static WipeRingNrvClose sInstance; };
+    class WipeRingNrvWipeIn : public Nerve { public: WipeRingNrvWipeIn(); virtual void execute(Spine*) const; static WipeRingNrvWipeIn sInstance; };
+    class WipeRingNrvOpen : public Nerve { public: WipeRingNrvOpen(); virtual void execute(Spine*) const; static WipeRingNrvOpen sInstance; };
+    class WipeRingNrvWipeOut : public Nerve { public: WipeRingNrvWipeOut(); virtual void execute(Spine*) const; static WipeRingNrvWipeOut sInstance; };
+}

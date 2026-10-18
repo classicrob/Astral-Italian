@@ -9,7 +9,7 @@ class SurfRayTutorial;
 class TakeOutStar;
 class TurnJointCtrl;
 
-class PenguinCoach : public NPCActor, public AbstractAudience {
+class PenguinCoach : public NPCActor {
 public:
     enum Behavior { Behavior_Default = 0, Behavior_Star = 1, Behavior_Tutorial = 2, Behavior_Race = 3 };
     PenguinCoach(const char*);
@@ -19,8 +19,8 @@ public:
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    virtual void prepAudience();
-    virtual void resetAudience();
+    void prepAudience();
+    void resetAudience();
 
     bool branchFunc(u32);
     bool eventFunc(u32);

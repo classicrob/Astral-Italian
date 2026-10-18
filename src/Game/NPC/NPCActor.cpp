@@ -885,3 +885,9 @@ void NPCActor_FORCE_MATCH(TQuat4f* pDest, const TQuat4f& rSrc) {
 bool NPCActor::isSensorSpinCloudBlock(const Triangle* triangle) const {
     return MR::isSensorType(triangle->getSensor(), 0x56);
 }
+
+bool NPCActor::tryPullNullNerve() {
+    if (!isNerve(mReactionNerve)) return false;
+    popNerve();
+    return true;
+}

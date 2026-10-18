@@ -180,3 +180,6 @@ void PlayerRacer::resetRacer(const RaceManager* pRaceManager) {
     MR::resetPlayerStatus();
     MR::resetPlayerEffect();
 }
+
+void PlayerRacer::requestMovementOnRace() {
+}

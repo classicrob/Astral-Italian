@@ -1,3 +1,6 @@
+#include "Game/Screen/DreamerButtonGuidance.hpp"
+#include "Game/NPC/DreamerFunction.hpp"
+#include "Game/NPC/NrvDreamer.hpp"
 #include "Game/NPC/Dreamer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NPC/TalkMessageFunc.hpp"
@@ -9,19 +12,6 @@
 
 // SMG2 NPCActor fields reached by offset (NPCActor.hpp is off by +4 from SMG2 in 0x12C..0x158).
 #define DREAMER_FIELD(T, ofs) (*reinterpret_cast< T* >(reinterpret_cast< u8* >(this) + (ofs)))
-
-class DreamerButtonGuidance : public NameObj {
-public:
-    DreamerButtonGuidance(const char*);
-    void forceAppear();
-    void showDreamer();
-    u8 _10[0x1C];  // placeholder: real class lives in the Screen unit (size 0x2C)
-};
-
-namespace DreamerFunction {
-    bool isPadModeDreamerAndStartId(s32);
-    void initChildObj(const JMapInfoIter&);
-}
 
 namespace GameSequenceFunction {
     bool isPadMode();
@@ -38,7 +28,6 @@ namespace MR {
     void onDestroySceneKeepAllSound();
 }
 
-extern "C" void fn_800614C0(TalkMessageCtrl*); // PLACEHOLDER(astra): inherited fn_800614C0 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" bool fn_800416F0(const char*, const JMapInfoIter&, bool); // PLACEHOLDER(astra): inherited fn_800416F0 ABI; resolve when its target signature and canonical owner are verified.
 
 extern "C" const char* lbl_807CFEA0;
@@ -46,12 +35,7 @@ extern "C" const char* lbl_807CFEA4;
 extern "C" const char* lbl_807CFEA8;
 extern "C" s32 lbl_807E30F0;
 
-namespace NrvDreamer {
-    NEW_NERVE(DreamerNrvAppear, Dreamer, Appear);
-    NEW_NERVE(DreamerNrvStartHelp, Dreamer, StartHelp);
-    NEW_NERVE(DreamerNrvInHelp, Dreamer, InHelp);
-    NEW_NERVE(DreamerNrvEndHelp, Dreamer, EndHelp);
-};  // namespace NrvDreamer
+
 
 Dreamer::Dreamer(const char* pName) : NPCActor(pName) {
     mButtonGuidance = nullptr;
@@ -201,7 +185,7 @@ void Dreamer::initForPlaying(const JMapInfoIter& rIter, const NPCActorCaps& rCap
     }
     initialize(rIter, caps, nullptr, nullptr, nullptr);
     if (DREAMER_FIELD(TalkMessageCtrl*, 0x94)) {
-        fn_800614C0(DREAMER_FIELD(TalkMessageCtrl*, 0x94));
+        MR::offTalkCinemaFrame(DREAMER_FIELD(TalkMessageCtrl*, 0x94));
         MR::hideBubbleBeak(DREAMER_FIELD(TalkMessageCtrl*, 0x94));
     }
     setNerve(GET_NERVE(Dreamer, DreamerNrvInHelp));

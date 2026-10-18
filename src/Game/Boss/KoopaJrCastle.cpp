@@ -1,3 +1,5 @@
+#include "Game/Util/DemoUtil.hpp"
+#include "Game/Demo/DemoFunction.hpp"
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrCastleNerves.hpp"
 #include <cmath>
@@ -13,8 +15,6 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
-extern "C" void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*);
-extern "C" void fn_801392A0(LiveActor*, TalkMessageCtrl*, const char*);
 
 namespace NrvKoopaJrCastle { KoopaJrCastleNrvOpening KoopaJrCastleNrvOpening::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastle { KoopaJrCastleNrvBattle KoopaJrCastleNrvBattle::sInstance ATTRIBUTE_WEAK; }
@@ -95,9 +95,9 @@ void KoopaJrCastle::init(const JMapInfoIter& rIter) {
     MR::offBind(this);
     MR::declarePowerStar(this);
     MR::declareStarPiece(this, 30);
-    fn_800209B0(mBody, rIter, "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea", "DemoOpeningKoopaJrCastle");
+    MR::tryInitDemoSheetAnim(mBody, rIter, "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea", "DemoOpeningKoopaJrCastle");
     MtxPtr rootMtx = MR::getJointMtx(mKoopaJr, "Root");
-    fn_801392A0(mKoopaJr, MR::createTalkCtrlDirect(mKoopaJr, rIter, "DemoOpeningKoopaJrCastle000", TVec3f(0.0f), rootMtx), "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea");
+    DemoFunction::registerDemoTalkMessageCtrlDirect(mKoopaJr, MR::createTalkCtrlDirect(mKoopaJr, rIter, "DemoOpeningKoopaJrCastle000", TVec3f(0.0f), rootMtx), "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea");
     MR::initTalkAnimDemoCast(mKoopaJr, rIter, "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea", "DemoOpeningKoopaJrCastle");
     MR::initTalkAnimDemoCast(mHead, rIter, "\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x93o\x8f\xea", "DemoOpeningKoopaJrCastle");
     makeActorAppeared();

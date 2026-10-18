@@ -9,6 +9,12 @@ class LiveActor;
 class NameObj;
 
 namespace MR {
+    bool branchFuncGameProgress(u32);
+    bool isPostmanTaskEventAvailable(s32);
+    bool isPostmanTaskEventFinished(s32);
+    bool isPostmanImportantEventAvailable(s32);
+    s32 getPostmanImportantEventReward(s32);
+    bool isValidPostmanImportantEvent(s32);
     s32 getScoreAttackScore();
     void setExterminationWoodBoxFlag();
     void clearExterminationWoodBoxFlag();
@@ -289,3 +295,7 @@ namespace MR {
     void setRaceBestTime(int, u32);
     s32 getGalaxyStarTotalNum(const char* pGalaxyName);
 };  // namespace MR
+
+namespace MR {
+    bool hasMarioFaceShipItemEventAtResult();
+}

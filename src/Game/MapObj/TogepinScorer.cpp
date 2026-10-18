@@ -1,30 +1,14 @@
+#include "Game/MapObj/ActorStatePlayerPosReset.hpp"
 #include "Game/MapObj/Togepin.hpp"
+#include "Game/Screen/ScoreCounterLayout.hpp"
+#include "Game/Screen/GameSetLayout.hpp"
+#include "Game/System/GameDataFunction.hpp"
+#include "Game/Screen/ScoreResult.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-class GameDataFunction {
-public:
-    s32 getBestScoreAttackCurrentStage();
-    void setBestScoreAttackCurrentStage();
-};
 
-class GameSetLayout : public NameObj {
-public:
-    GameSetLayout();
-    virtual void unk2C();
-    /* 0x14 */ u8 _14[0x18];
-};
 
-class ScoreCounterLayout : public NameObj {
-public:
-    ScoreCounterLayout();
-    /* 0x14 */ u8 _14[0x18];
-    /* 0x2C */ s32 _2C;
-    /* 0x30 */ s32 _30;
-    /* 0x34 */ s32 _34;
-    /* 0x38 */ u8 _38;
-    /* 0x39 */ u8 _39[0xB];
-};
 
 class TogepinScorerSub {
 public:
@@ -33,21 +17,6 @@ public:
     virtual void slot2();
 };
 
-class TogepinStateObj {
-public:
-    /* 0x00 */ u8 _00[0x28];
-};
-
-extern "C" LiveActor* fn_8026DE50(TogepinStateObj*, TogepinScorer*, const char*, s32);
-extern "C" void fn_804904E0(ScoreCounterLayout*, s32);
-extern "C" void fn_80490540(ScoreCounterLayout*);
-extern "C" void fn_80490580(ScoreCounterLayout*);
-extern "C" void fn_80490550(ScoreCounterLayout*, s32, s32);
-extern "C" void fn_804905D0(ScoreCounterLayout*);
-extern "C" void fn_80490620(ScoreCounterLayout*);
-extern "C" void fn_80490D40(s32, s32);
-extern "C" void fn_80471DC0(GameSetLayout*);
-extern "C" void fn_80490CD0(void*);
 
 namespace {
     class TogepinScorerNrvIdle : public Nerve {
@@ -94,7 +63,7 @@ TogepinScorer::TogepinScorer(const char* pName) : LiveActor(pName) {
     _9C = 0;
     mCounter = 0;
     mIsClear = false;
-    fn_80490CD0(*(void**)this);
+    MR::createScoreResultKeeper();
 }
 
 // TogepinScorer::init (JMapInfoIter const &)
@@ -113,28 +82,24 @@ void TogepinScorer::init(const JMapInfoIter& rIter) {
     }
     initSound(3, "TogepinScorer", nullptr, TVec3f(0.0f));
     initNerve(&sNrvIdle, 1);
-    TogepinStateObj* pState = new TogepinStateObj;
-    LiveActor* pStateActor = (LiveActor*)pState;
-    if (pState != nullptr) {
-        pStateActor = fn_8026DE50(pState, this, "\x83\x7D\x83\x8A\x83\x49\x88\xCA\x92\x75", 1);
-    }
-    MR::initActorState(this, (ActorStateBaseInterface*)pStateActor, (Nerve*)&sNrvEnd, "ResetPlayer");
+    ActorStatePlayerPosReset* state = new ActorStatePlayerPosReset(this, "\x83\x7D\x83\x8A\x83\x49\x88\xCA\x92\x75", true);
+    MR::initActorState(this, state, &sNrvEnd, "ResetPlayer");
     MR::tryRegisterNamePosLinkObj(this, rIter, "\x83\x7D\x83\x8A\x83\x49\x88\xCA\x92\x75");
     mSetLayout = new GameSetLayout;
     mSetLayout->initWithoutIter();
     MR::registerDemoSimpleCastAll((LayoutActor*)mSetLayout);
     mScoreCounter = new ScoreCounterLayout;
     mScoreCounter->initWithoutIter();
-    fn_80490550(static_cast<ScoreCounterLayout*>(mScoreCounter), static_cast<GameDataFunction*>(nullptr)->getBestScoreAttackCurrentStage(), 0x1388);
+    static_cast<ScoreCounterLayout*>(mScoreCounter)->initScore(GameDataFunction::getBestScoreAttackCurrentStage(nullptr), 0x1388);
     MR::initUseStageSwitchWriteA(this, rIter);
     MR::initUseStageSwitchWriteB(this, rIter);
     makeActorAppeared();
 }
 
 void TogepinScorer::onTogepinDown(Togepin* pTogepin) {
-    fn_804904E0(static_cast<ScoreCounterLayout*>(mScoreCounter), 0x64);
+    static_cast<ScoreCounterLayout*>(mScoreCounter)->addScore(0x64);
     if (pTogepin != nullptr) {
-        fn_80490D40(0x64, (s32)pTogepin);
+        MR::appearScoreResult(100, pTogepin);
     }
 }
 
@@ -170,8 +135,8 @@ void TogepinScorer::appearAll() {
 
 void TogepinScorer::start() {
     if (isNerve(&sNrvIdle)) {
-        fn_80490540(static_cast<ScoreCounterLayout*>(mScoreCounter));
-        fn_80490580(static_cast<ScoreCounterLayout*>(mScoreCounter));
+        static_cast<ScoreCounterLayout*>(mScoreCounter)->resetScore();
+        static_cast<ScoreCounterLayout*>(mScoreCounter)->show();
         reappearAll();
         setNerve(&sNrvStart);
         mCounter = 0;
@@ -190,19 +155,19 @@ bool TogepinScorer::isClear() const {
 }
 
 bool TogepinScorer::isNewRecord() const {
-    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_38;
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->mIsNewRecord;
 }
 
 s32 TogepinScorer::getScore() const {
-    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_2C;
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->mScore;
 }
 
 s32 TogepinScorer::getBestScore() const {
-    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_30;
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->mHighScore;
 }
 
 s32 TogepinScorer::getTargetScore() const {
-    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_34;
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->mTargetScore;
 }
 
 void TogepinScorer::updateNgArea() {
@@ -244,7 +209,7 @@ void TogepinScorer::exeStart() {
     updateNgArea();
     if (isSwitchOff()) {
         ScoreCounterLayout* pCounter = static_cast<ScoreCounterLayout*>(mScoreCounter);
-        if (pCounter->_2C >= pCounter->_34) {
+        if (pCounter->mScore >= pCounter->mTargetScore) {
             mIsClear = true;
         }
         MR::curePlayerElementMode();
@@ -256,11 +221,11 @@ void TogepinScorer::exeStart() {
 
 void TogepinScorer::exePlay() {
     if (MR::isFirstStep(this)) {
-        fn_804905D0(static_cast<ScoreCounterLayout*>(mScoreCounter));
-        static_cast<GameSetLayout*>(mSetLayout)->unk2C();
+        static_cast<ScoreCounterLayout*>(mScoreCounter)->timeUp();
+        static_cast<GameSetLayout*>(mSetLayout)->appear();
         ScoreCounterLayout* pCounter = static_cast<ScoreCounterLayout*>(mScoreCounter);
-        if (pCounter->_38 != 0) {
-            reinterpret_cast<GameDataFunction*>(pCounter->_30)->setBestScoreAttackCurrentStage();
+        if (pCounter->mIsNewRecord != 0) {
+            GameDataFunction::setBestScoreAttackCurrentStage(pCounter->mHighScore);
         }
         MR::setAudioSystemField9A0(0x5A);
         if (mIsClear) {
@@ -270,8 +235,8 @@ void TogepinScorer::exePlay() {
         }
     }
     if (MR::isGreaterStep(this, 0xB4)) {
-        fn_80471DC0(static_cast<GameSetLayout*>(mSetLayout));
-        fn_80490620(static_cast<ScoreCounterLayout*>(mScoreCounter));
+        static_cast<GameSetLayout*>(mSetLayout)->disappear();
+        static_cast<ScoreCounterLayout*>(mScoreCounter)->disappear();
         setNerve(&sNrvEnd);
         MR::onPlayerControl(true);
     }

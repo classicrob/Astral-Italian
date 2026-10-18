@@ -1,3 +1,4 @@
+#include "Game/Util/DemoUtil.hpp"
 #include "Game/NPC/Tico.hpp"
 #include <cstdio>
 #include "Game/Util.hpp"
@@ -60,7 +61,6 @@ namespace {
 };  // namespace
 
 extern "C" bool fn_800613B0(TalkMessageCtrl*); // PLACEHOLDER(astra): inherited fn_800613B0 ABI; resolve when its target signature and canonical owner are verified.
-extern "C" void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*); // PLACEHOLDER(astra): inherited fn_800209B0 ABI; resolve when its target signature and canonical owner are verified.
 
 namespace MR {
     bool branchFuncGameProgress(u32);
@@ -205,7 +205,7 @@ void Tico::init(const JMapInfoIter& rIter) {
         if (MR::getJMapInfoDemoCastID(rIter)) {
             MR::initTalkAnimDemoCast(this, rIter, castName, "DemoRideSpinDriverBlue");
         } else {
-            fn_800209B0(this, rIter, castName, "DemoRideSpinDriver");
+            MR::tryInitDemoSheetAnim(this, rIter, castName, "DemoRideSpinDriver");
         }
         mDemoObj = MR::createDemoObjWithAnimArc("デモ用ベビチコ", "TicoBaby", "TicoBabyAnim", nullptr);
         MR::initTalkAnimDemoCast(this, rIter, castName, "DemoRideSpinDriver");

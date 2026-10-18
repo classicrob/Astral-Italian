@@ -1,12 +1,20 @@
 #pragma once
 
 #include <revolution/types.h>
+#include <JSystem/JGeometry/TVec.hpp>
 
 class GalaxyMoveArgument;
 class UserFile;
 
 namespace GameSequenceFunction {
+    bool isLuigiIntrusivelyAppear();
+    void prepareStageResetLuigiIntrusivelyLuigi(const TVec3f&);
+    void prepareStageResetLuigiIntrusivelyMario(const TVec3f&);
+    bool isResultMiss();
     bool isGreenStarEventOnly();
+    bool isFaceShipSkipBankInfo();
+    void setFaceShipSkipBankInfo();
+    bool getPlayResultMarioFaceShipFlag12();
     s32 getTicoFatStarPieceId();
     s32 getTicoFatStarPieceRequirement();
     bool isTicoFatStarPieceActive();
@@ -68,4 +76,12 @@ namespace GameSequenceFunction {
 
 namespace GameSequenceFunction {
     s32 getElapsedStageFrame();
+}
+
+namespace GameSequenceFunction {
+    s32 getPlacedGreenStarScenarioNo(const char*, s32);
+}
+
+namespace GameSequenceFunction {
+    bool isPadModeDreamer();
 }

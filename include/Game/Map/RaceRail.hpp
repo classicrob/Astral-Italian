@@ -19,6 +19,7 @@ public:
     virtual bool goalRacer();
     virtual void loseRacer();
     virtual void resetRacer(const RaceManager*);
+    virtual void requestMovementOnRace();
     virtual void exitRacer();
 
     /* 0xB0 */ u32 _B0;

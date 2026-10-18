@@ -13,6 +13,7 @@ class PartsModel;
 class TalkMessageCtrl;
 
 namespace MR {
+    bool isMarioFaceShipNpc(const LiveActor*, s32);
     void updateNPCGoodsAnimation(NPCActor*);
     void registerMeisterToAttentionConversation(Meister*, const JMapInfoIter&);
     void registerMeisterToNormalConversation(Meister*, const JMapInfoIter&);

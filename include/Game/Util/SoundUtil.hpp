@@ -113,7 +113,7 @@ namespace MR {
     void setMicMtx(MtxPtr, s32);
     void setSoundVolumeSetting(s32, u32);
     void recoverSoundVolumeSetting(u32);
-    void setAudioEffectType(s32, s32);
+    void setAudioEffectType(s32, s32, s32);
     void startCSSound(const char*, const char*, s32);
     void startCSSound(const char*, const char*, s32, s32, f32);
     void startCSSound2P(const char*, const char*);
@@ -143,4 +143,8 @@ namespace MR {
 
 namespace MR {
     void startCSSound2P(const char*, const char*, s32, f32);
+}
+
+namespace MR {
+    void startSoundInPlayerDistance(LiveActor*, const char*, s32, s32, f32);
 }

@@ -18,7 +18,7 @@ extern "C" void fn_804221D0();
 extern "C" void fn_80422250();
 
 namespace MR {
-    void startSoundInPlayerDistance(LiveActor*, const char*, s32, s32, f32);
+
     bool isMsgYoshiStartTongue(u32);
     bool isMsgYoshiLoopTongue(u32);
     bool isMsgYoshiStartEaten(u32);

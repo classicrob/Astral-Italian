@@ -1,10 +1,10 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrRobot.hpp"
 #include "Game/Util.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
 extern "C" const char* fn_800DA9C0();
-extern "C" bool fn_804D7060();
 
 static const char* sCameraName = "DemoOpeningKoopaJrRobot";
 static const char* sActionName = "DemoOpeningKoopaJrRobot";
@@ -43,7 +43,7 @@ void KoopaJrRobotStateIntro::kill() {
 
 void KoopaJrRobotStateIntro::exeWait() {
     if (MR::isFirstStep(this) && MR::isGalaxyDarkCometAppearInCurrentStage()) {
-        if (fn_804D7060()) {
+        if (GameSequenceFunction::isResultMiss()) {
             MR::forceOpenSystemWipeCircle();
         }
     }

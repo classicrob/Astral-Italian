@@ -10,6 +10,8 @@ public:
     virtual void appear();
     virtual void control();
 
+    void requestMovementOn();
+
     void* _2C;
     void* _30;
     void* _34;

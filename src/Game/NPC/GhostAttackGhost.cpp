@@ -1,256 +1,282 @@
-#pragma auto_inline off
-
 #include "Game/NPC/GhostAttackGhost.hpp"
+#include "Game/NPC/GhostAttackGhostFootprint.hpp"
 #include "Game/LiveActor/Nerve.hpp"
-#include "Game/Util.hpp"
 #include "Game/Animation/XanimePlayer.hpp"
-
-class GhostAttackGhostFootprint : public LiveActor {
-public:
-    GhostAttackGhostFootprint(LiveActor* pHost);
-    virtual void appear();
-    virtual void control();
-    virtual MtxPtr getBaseMtx() const;
-};
-
-namespace MR {
-    void registerGhostAttackGhost(GhostAttackGhost*);
-    bool isGhostLuigiOpenInCurrentStage();
-}  // namespace MR
-
-extern "C" XanimeResourceTable* fn_8004F900(s32); // PLACEHOLDER(astra): inherited fn_8004F900 ABI; resolve when its target signature and canonical owner are verified.
-extern "C" int snprintf(char*, unsigned long, const char*, ...);
-extern "C" void fn_800345E0(LiveActor*, const char*); // PLACEHOLDER(astra): inherited fn_800345E0 ABI; resolve when its target signature and canonical owner are verified.
+#include "Game/Animation/BckCtrl.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
+#include "Game/Util.hpp"
+#include <JSystem/J3DGraphAnimator/J3DModel.hpp>
+#include <cstdio>
 
 namespace NrvGhostAttackGhost {
     NEW_NERVE(GhostAttackGhostNrvStart, GhostAttackGhost, Start);
-    NEW_NERVE(GhostAttackGhostNrvWait, GhostAttackGhost, Wait);
     NEW_NERVE(GhostAttackGhostNrvAppear, GhostAttackGhost, Appear);
-    NEW_NERVE(GhostAttackGhostNrvNear, GhostAttackGhost, Near);
-    NEW_NERVE(GhostAttackGhostNrvAttack, GhostAttackGhost, Attack);
-    NEW_NERVE(GhostAttackGhostNrvHit, GhostAttackGhost, Hit);
-    NEW_NERVE(GhostAttackGhostNrvStop, GhostAttackGhost, Stop);
-    NEW_NERVE(GhostAttackGhostNrvDemo, GhostAttackGhost, Demo);
-    NEW_NERVE(GhostAttackGhostNrvTerminate, GhostAttackGhost, Terminate);
-};  // namespace NrvGhostAttackGhost
+    NEW_NERVE(GhostAttackGhostNrvRun, GhostAttackGhost, Run);
+    NEW_NERVE(GhostAttackGhostNrvWait, GhostAttackGhost, Wait);
+    NEW_NERVE(GhostAttackGhostNrvBind, GhostAttackGhost, Bind);
+    NEW_NERVE(GhostAttackGhostNrvStarWaitStart, GhostAttackGhost, StarWaitStart);
+    NEW_NERVE(GhostAttackGhostNrvStarWait, GhostAttackGhost, StarWait);
+    class GhostAttackGhostNrvStarWaitAir : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const {
+            GhostAttackGhost* actor = static_cast<GhostAttackGhost*>(spine->mExecutor);
+            if (MR::isFirstStep(actor)) actor->startSleep();
+        }
+        static GhostAttackGhostNrvStarWaitAir sInstance;
+    };
+    GhostAttackGhostNrvStarWaitAir GhostAttackGhostNrvStarWaitAir::sInstance ATTRIBUTE_WEAK;
+    class GhostAttackGhostNrvSleep : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const {
+            GhostAttackGhost* actor = static_cast<GhostAttackGhost*>(spine->mExecutor);
+            if (MR::isFirstStep(actor)) actor->startSleep();
+        }
+        static GhostAttackGhostNrvSleep sInstance;
+    };
+    GhostAttackGhostNrvSleep GhostAttackGhostNrvSleep::sInstance ATTRIBUTE_WEAK;
+}
+#define GHOST_NERVE(name) (&NrvGhostAttackGhost::GhostAttackGhostNrv##name::sInstance)
 
-GhostAttackGhost::GhostAttackGhost(const char* pName) : LiveActor(pName) {
-    mRaceDataReader = NULL;
-    mFootprint = NULL;
-    mHostSensor = NULL;
-    mXanimeResTable = fn_8004F900(1);
-    mObjArg0 = 0;
-    mPrevPos = TVec3f(0.0f);
-    mPrevPos2 = TVec3f(0.0f);
-    mHandJointCtrl = NULL;
-    mHeadJointCtrl = NULL;
+GhostAttackGhost::GhostAttackGhost(const char* name) : LiveActor(name), mRaceDataReader(nullptr), mFootprint(nullptr), mHostSensor(nullptr), mXanimeResTable(MR::createPlayerXanimeResource(true)), mObjArg0(0), mMovementDelta(TVec3f(0.0f)), mPreviousPosition(TVec3f(0.0f)), mHandJointCtrl(nullptr), mHeadJointCtrl(nullptr) {
     MR::registerGhostAttackGhost(this);
 }
 
-/* NONMATCHING: init stage-branch order and joint-controller wiring are unverified */
-void GhostAttackGhost::init(const JMapInfoIter& rIter) {
-    if (MR::isEqualStageName("StarCreekGalaxy") && MR::getCurrentScenarioNo() == 2) {
-        MR::initActor(this, rIter, "GhostAttackGhost", "2DWater", NULL, false);
+// NONMATCHING: temporary register assignment.
+void GhostAttackGhost::init(const JMapInfoIter& iter) {
+    bool irregular;
+    if (MR::isEqualStageName("StarCreekGalaxy") && MR::getCurrentScenarioNo() == 2) irregular = true;
+    else irregular = MR::isEqualStageName("MagicGalaxy");
+    if (irregular) {
+        MR::initActor(this, iter, "GhostAttackGhost", "2DWater", false);
         MR::startAction(this, "Irregular");
-    } else if (MR::isEqualStageName("MagicGalaxy")) {
-        MR::initActor(this, rIter, "GhostAttackGhost", "2DWater", NULL, false);
-        MR::startAction(this, "Irregular");
     } else {
-        MR::initActor(this, rIter, "GhostAttackGhost", "2DWater", NULL, false);
+        MR::initActor(this, iter, "GhostAttackGhost", "", false);
     }
-
-    mHandJointCtrl = MR::createJointController(this, this, "Hand", &GhostAttackGhost::calcHandJoint, &GhostAttackGhost::calcHandJoint);
-    mHeadJointCtrl = MR::createJointController(this, this, "Head", &GhostAttackGhost::calcHandJoint, &GhostAttackGhost::calcHandJoint);
-
-    MR::getJMapInfoArg0NoInit(rIter, &mObjArg0);
-    s32 scenarioNo = MR::getCurrentOrSelectedScenarioNo();
-    if (scenarioNo <= 0) {
-        scenarioNo = 0;
-    }
-    char nameBuf[0x100];
-    snprintf(nameBuf, 0x100, "GhostAttackGhostData%02d.gst", scenarioNo);
-
-    mRaceDataReader = new RaceDataReader(this, nameBuf, mXanimeResTable);
-    if (mRaceDataReader->mIsEnable != 0) {
-        mFootprint = new GhostAttackGhostFootprint(this);
-    }
-
-    if (mRaceDataReader->mIsEnable != 0) {
-        initNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvWait), 0);
-    } else {
-        initNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvStop), 0);
-    }
-
-    if (MR::isGhostLuigiOpenInCurrentStage()) {
-        makeActorAppeared();
-    } else {
-        makeActorDead();
-    }
+    mHandJointCtrl = MR::createJointController(this, "HandL0", &GhostAttackGhost::calcHandJoint);
+    mHeadJointCtrl = MR::createJointController(this, "HandR0", &GhostAttackGhost::calcHandJoint);
+    MR::getJMapInfoArg0NoInit(iter, &mObjArg0);
+    s32 scenario = MR::getCurrentOrSelectedScenarioNo();
+    scenario = GameSequenceFunction::getPlacedGreenStarScenarioNo(MR::getCurrentStageName(), scenario);
+    if (scenario <= 0) scenario = 0;
+    char filename[256];
+    snprintf(filename, sizeof(filename), "GhostAttackGhostData%02d.gst", scenario);
+    mRaceDataReader = new RaceDataReader(this, filename, mXanimeResTable);
+    if (mRaceDataReader->mPacketReader != nullptr) mFootprint = new GhostAttackGhostFootprint(this);
+    initNerve(mRaceDataReader->mPacketReader != nullptr ? GHOST_NERVE(Start) : static_cast<const Nerve*>(GHOST_NERVE(Sleep)), 0);
+    MR::useStageSwitchAwake(this, iter);
+    if (MR::isGhostLuigiOpenInCurrentStage()) makeActorAppeared();
+    else makeActorDead();
 }
-
 void GhostAttackGhost::makeActorAppeared() {
-    if (MR::isGhostLuigiOpenInCurrentStage()) {
-        LiveActor::makeActorAppeared();
+    if (MR::isGhostLuigiOpenInCurrentStage()) LiveActor::makeActorAppeared();
+}
+void GhostAttackGhost::attackSensor(HitSensor* sender, HitSensor* receiver) {
+    if (!tryAttachToHost(sender, receiver) && !tryStartRace(sender, receiver) && (isNerve(GHOST_NERVE(Wait)) || isNerve(GHOST_NERVE(StarWait)))) {
+        if (MR::isSensorType(receiver, 0x61)) {
+            mHostSensor = receiver;
+            TPos3f mtx(MR::getSensorHost(receiver)->getBaseMtx());
+            mtx.getTrans(mPosition);
+            TVec3f rotation;
+            mtx.getEuler(rotation);
+            mRotation.set(rotation * 57.29578f);
+            setNerve(GHOST_NERVE(Bind));
+        }
     }
 }
-
 MtxPtr GhostAttackGhost::getBaseMtx() const {
-    if (mHostSensor != NULL) {
-        return MR::getSensorHost(mHostSensor)->getBaseMtx();
-    }
+    if (mHostSensor != nullptr) return MR::getSensorHost(mHostSensor)->getBaseMtx();
     return LiveActor::getBaseMtx();
 }
-
-bool GhostAttackGhost::calcHandJoint(TPos3f* pMtx, const JointControllerInfo& rInfo) {
+const char* GhostAttackGhost::getRecordedAnimationName() const {
+    return mRaceDataReader->mXanimePlayer->getCurrentAnimationName();
+}
+const char* GhostAttackGhost::getCurrentAnimationName() const {
+    const char* name = mRaceDataReader->mXanimePlayer->getCurrentAnimationName();
+    if (MR::isEqualString(name, "dup-non-group")) name = MR::getPlayingBckName(this);
+    return name;
+}
+// NONMATCHING: scale component load scheduling.
+bool GhostAttackGhost::calcHandJoint(TPos3f* mtx, const JointControllerInfo&) {
     TVec3f scale(1.0f);
-    (*pMtx)[0][0] = scale.x;
-    (*pMtx)[0][1] = 0.0f;
-    (*pMtx)[0][2] = 0.0f;
-    (*pMtx)[1][0] = 0.0f;
-    (*pMtx)[1][1] = scale.y;
-    (*pMtx)[1][2] = 0.0f;
-    (*pMtx)[2][0] = 0.0f;
-    (*pMtx)[2][1] = 0.0f;
-    (*pMtx)[2][2] = scale.z;
+    (*mtx)[0][0] = scale.x; (*mtx)[0][1] = 0.0f; (*mtx)[0][2] = 0.0f;
+    (*mtx)[1][0] = 0.0f; (*mtx)[1][1] = scale.y; (*mtx)[1][2] = 0.0f;
+    (*mtx)[2][0] = 0.0f; (*mtx)[2][1] = 0.0f; (*mtx)[2][2] = scale.z;
     return true;
 }
-
-/* NONMATCHING: matrix blend and rotate sequence not yet verified */
+// NONMATCHING: matrix component load ordering and string placement.
 void GhostAttackGhost::calcAndSetBaseMtx() {
-    if (mHostSensor != NULL) {
-        TPos3f hostMtx;
-        hostMtx.set(MR::getSensorHost(mHostSensor)->getBaseMtx());
+    if (mHostSensor != nullptr) {
+        TPos3f hostMtx(MR::getSensorHost(mHostSensor)->getBaseMtx());
         MR::setBaseTRMtx(this, hostMtx);
         return;
     }
-    const char* pAnimName = MR::getPlayingBckName(this);
-    if (MR::isEqualSubString(pAnimName, "Hopper")) {
+    const char* name = getCurrentAnimationName();
+    bool hopper;
+    if (MR::isEqualSubString(name, "Hopper")) hopper = true;
+    else hopper = MR::isEqualSubString(name, "ホッパー");
+    if (hopper) {
         mHandJointCtrl->registerCallBack();
+        mHeadJointCtrl->registerCallBack();
     }
+    MtxPtr modelMtx = MR::getJ3DModel(this)->mBaseTransformMtx;
+    TPos3f mtx(&mRaceDataReader->mBaseMtx);
+    if (MR::isEqualSubString(getCurrentAnimationName(), "チューブスライダー")) {
+        TVec3f front(mMovementDelta);
+        TVec3f up(0.0f, 1.0f, 0.0f);
+        TVec3f position(0.0f);
+        up.set<f32>(mtx[0][1], mtx[1][1], mtx[2][1]);
+        mtx.getTrans(position);
+        MR::vecKillElement(front, up, &front);
+        if (!MR::isNearZero(front, 0.001f) && !MR::isNearZero(up, 0.001f)) {
+            MR::normalize(&front);
+            MR::normalize(&up);
+            if (!MR::isSameDirection(front, up, 0.01f) && !MR::isSameDirection(front, -up, 0.01f)) MR::makeMtxFrontUpPos(&mtx, front, up, position);
+        }
+    }
+    if (MR::isEqualSubString(getCurrentAnimationName(), "Trapeze") && !MR::isEqualStageName("FlowerHighlandGalaxy")) MR::rotateMtxLocalYDegree(mtx, 90.0f);
+    MR::blendMtxRotate(getBaseMtx(), mtx, 0.2f, modelMtx);
+    MR::setMtxTrans(modelMtx, mPosition.x, mPosition.y, mPosition.z);
+    MR::getJ3DModel(this)->mBaseScale = mScale;
 }
-
-/* NONMATCHING: control() sync of footprint and previous positions not verified */
+// NONMATCHING: temporary address register allocation.
 void GhostAttackGhost::control() {
-    if (mFootprint != NULL && !MR::isDead(mFootprint)) {
-        mFootprint->movement();
-    }
-    mPrevPos = mPosition;
-    mPrevPos2 = mPosition;
+    if (mFootprint != nullptr && !MR::isDead(mFootprint)) mFootprint->movement();
+    TVec3f delta(mPosition);
+    delta -= mPreviousPosition;
+    mMovementDelta.set(delta);
+    mPreviousPosition.set(mPosition);
 }
-
-/* NONMATCHING: sensor filters are a best reading of the attackSensor asm */
-void GhostAttackGhost::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvNear)) &&
-        !isNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvAttack))) {
-        return;
-    }
-    if (!MR::isSensorType(pReceiver, 0x61)) {
-        return;
-    }
-    mHostSensor = pReceiver;
-    MR::getSensorHost(pReceiver)->getBaseMtx();
-    setNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvHit));
+bool GhostAttackGhost::tryAttachToHost(HitSensor* sender, HitSensor* receiver) {
+    if (!MR::isEqualSensor(sender, this, "Body")) return false;
+    if (!MR::isSensorType(receiver, 0x61)) return false;
+    if (!isNerve(GHOST_NERVE(Appear))) return false;
+    if (!isNerve(GHOST_NERVE(Run))) return false;
+    mHostSensor = receiver;
+    TPos3f mtx(MR::getSensorHost(receiver)->getBaseMtx());
+    mtx.getTrans(mPosition);
+    TVec3f rotation;
+    mtx.getEuler(rotation);
+    mRotation.set(rotation * 57.29578f);
+    setNerve(GHOST_NERVE(Bind));
+    return true;
 }
-
-/* NONMATCHING: exe bodies below are transcribed from m2c drafts; nerve mapping unverified */
+bool GhostAttackGhost::tryStartRace(HitSensor*, HitSensor* receiver) {
+    if (MR::isStageStateScenarioOpeningCamera()) return false;
+    if (MR::isExecScenarioStarter()) return false;
+    if (!MR::isSensorPlayerOrRide(receiver)) return false;
+    if (!isNerve(GHOST_NERVE(Start))) return false;
+    setNerve(GHOST_NERVE(Appear));
+    return true;
+}
+// NONMATCHING: animation controller load and parameter store scheduling.
+void GhostAttackGhost::startSleep() {
+    mRaceDataReader->startActionName("SleepLie");
+    MR::startBtp(this, "Sleep");
+    BckCtrlData data;
+    data.mStartFrame = 0;
+    data.mLoopMode = 2;
+    data.mRepeatFrame = 134;
+    data.mEndFrame = 254;
+    data.mInterpole = 20;
+    BckCtrlFunction::reflectBckCtrlData(data, mRaceDataReader->mXanimePlayer);
+    MR::invalidateShadow(this, nullptr);
+}
 void GhostAttackGhost::exeStart() {
     if (MR::isFirstStep(this)) {
         mRaceDataReader->startActionName("GhostStartWait");
         MR::startBtp(this, "Blink");
     }
 }
-
 void GhostAttackGhost::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::invalidateHitSensors(this);
-        fn_800345E0(this, "Jn");
-        setNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvHit));
-        if (mFootprint != NULL) {
-            mFootprint->appear();
-        }
+        MR::tryHitReaction(this, "開始");
+        setNerve(GHOST_NERVE(Run));
+        if (mFootprint != nullptr) mFootprint->appear();
     }
 }
-
-void GhostAttackGhost::exeWait() {
+void GhostAttackGhost::exeRun() {
     if (MR::isFirstStep(this)) {
         MR::tryRumblePadMiddle(this, 0);
         mRaceDataReader->receivePacket();
     }
-    if (mFootprint != NULL && !MR::isDead(mFootprint)) {
-        mFootprint->movement();
-    }
+    if (mFootprint != nullptr && !MR::isDead(mFootprint)) mFootprint->updatePrint();
     if (mRaceDataReader->receivePacket()) {
-        setNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvNear));
+        mFootprint->stop();
+        setNerve(GHOST_NERVE(Wait));
     }
 }
-
-void GhostAttackGhost::exeNear() {
+namespace {
+    f32 getGhostSensorRadius() NO_INLINE {
+        if ((MR::isEqualStageName("MemoryRoadGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 3) || (MR::isEqualStageName("MemoryRoadGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 4)) return 200.0f;
+        return 800.0f;
+    }
+    bool isGhostSensorEnabled() NO_INLINE {
+        if (MR::isEqualStageName("HomeCenterGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 3) return false;
+        if (MR::isEqualStageName("BigWaterFallGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 3) return false;
+        if (MR::isEqualStageName("VsKoopaLv1Galaxy") && MR::getCurrentOrSelectedScenarioNo() == 1) return false;
+        if (MR::isEqualStageName("WanwanFactoryGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 3) return false;
+        if (MR::isEqualStageName("KachikochiLavaGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 3) return false;
+        if (MR::isEqualStageName("MagicGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 3) return false;
+        if (MR::isEqualStageName("VsKoopaGravityGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 3) return false;
+        if (MR::isEqualStageName("VsKoopaGravityGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 4) return false;
+        if (MR::isEqualStageName("YosshiHomeGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 4) return false;
+        if (MR::isEqualStageName("YosshiHomeGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 5) return false;
+        if (MR::isEqualStageName("YosshiHomeGalaxy") && MR::getCurrentOrSelectedScenarioNo() == 6) return false;
+        return true;
+    }
+}
+void GhostAttackGhost::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
-        if (MR::isExecScenarioStarter()) {
+        if (isGhostSensorEnabled()) {
             MR::validateHitSensors(this);
+            MR::setSensorRadius(this, "Body", getGhostSensorRadius());
         }
-    }
-    if (mRaceDataReader->mXanimePlayer->isTerminate()) {
-        setNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvAttack));
-        return;
-    }
-    if (MR::isPowerStarGetDemoActive()) {
-        kill();
+    } else {
+        if (mObjArg0 == 0) {
+            mRaceDataReader->startActionName("GhostStarWaitAir");
+            setNerve(GHOST_NERVE(StarWait));
+            return;
+        }
+        mRaceDataReader->startActionName("SleepLie");
+        setNerve(GHOST_NERVE(StarWaitAir));
     }
 }
-
-void GhostAttackGhost::exeAttack() {
+void GhostAttackGhost::exeBind() {
     if (MR::isFirstStep(this)) {
+        MR::invalidateHitSensors(this);
         MR::zeroVelocity(this);
         mRaceDataReader->startActionName("GhostStarWaitStart");
-        if (mFootprint != NULL) {
-            mFootprint->appear();
-        }
+        mFootprint->stop();
     }
-    if (MR::isPowerStarGetDemoActive()) {
-        kill();
-    }
-}
-
-void GhostAttackGhost::exeHit() {
-    if (MR::isFirstStep(this)) {
-        MR::zeroVelocity(this);
-    }
-    if (mRaceDataReader->mIsEnable == 0) {
-        mRaceDataReader->startActionName("SleepLie");
-        setNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvStop));
+    if (mRaceDataReader->mXanimePlayer->isTerminate()) {
+        setNerve(GHOST_NERVE(StarWaitStart));
         return;
     }
-    mRaceDataReader->startActionName("Sleep");
-    setNerve(GET_NERVE(GhostAttackGhost, GhostAttackGhostNrvHit));
+    if (MR::isPowerStarGetDemoActive()) kill();
 }
-
-void GhostAttackGhost::exeDemo() {
-    if (MR::isFirstStep(this)) {
-        mRaceDataReader->startActionName("GhostStarWait");
-    }
-    if (MR::isPowerStarGetDemoActive()) {
-        kill();
+void GhostAttackGhost::exeStarWaitStart() {
+    if (MR::isFirstStep(this)) mRaceDataReader->startActionName("GhostStarWait");
+    updateSensorRadius();
+    if (MR::isPowerStarGetDemoActive()) kill();
+}
+void GhostAttackGhost::updateSensorRadius() {
+    if (isGhostSensorEnabled() && getNerveStep() % 5 == 0) {
+        f32 radius = getGhostSensorRadius();
+        if (MR::getSensorRadius(this, "Body") < radius) {
+            MR::setSensorRadius(this, "Body", getGhostSensorRadius());
+            return;
+        }
+        MR::setSensorRadius(this, "Body", 100.0f);
     }
 }
-
-void GhostAttackGhost::exeStop() {
+void GhostAttackGhost::exeStarWait() {
     if (MR::isFirstStep(this)) {
         MR::validateHitSensors(this);
         mRaceDataReader->startActionName("GhostStarWaitAir");
     }
-    if (MR::isPowerStarGetDemoActive()) {
-        kill();
-    }
+    updateSensorRadius();
+    if (MR::isPowerStarGetDemoActive()) kill();
 }
-
-void GhostAttackGhost::exeTerminate() {
-    if (MR::isFirstStep(this)) {
-        MR::validateHitSensors(this);
-        mRaceDataReader->startActionName("GhostStarWaitStart");
-    }
-    if (MR::isPowerStarGetDemoActive()) {
-        kill();
-    }
-}
+GhostAttackGhost::~GhostAttackGhost() {}

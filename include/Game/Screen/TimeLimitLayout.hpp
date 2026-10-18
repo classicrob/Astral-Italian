@@ -15,7 +15,7 @@ struct Timing {
 
 class TimeLimitLayout : public LayoutActor {
 public:
-    TimeLimitLayout(u32 timeLimit);
+    TimeLimitLayout();
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void appear();
@@ -23,10 +23,12 @@ public:
     virtual void control();
 
     void setTimeLimit(u32);
+    void pause();
+    void resume();
+    void addTimeLimit(s32);
     void setDisplayModeOnNormal(bool);
     bool isReadyToTimeUp() const;
     void resetFrame();
-    void addFrame();
     void updateTextBox();
     void exeAppear();
     void exeCountDown();
@@ -39,11 +41,11 @@ public:
     bool updateNormal();
 
 private:
-    /* 0x20 */ u32 mTime;
-    /* 0x24 */ u32 mTimeLimit;
-    /* 0x28 */ ValueControl* mScaleControl;
-    /* 0x2C */ ValueControl* mFadeControl;
-    /* 0x30 */ const Timing* mCurrentTiming;
-    /* 0x34 */ bool mIsSuspend;
-    /* 0x35 */ bool _35;
+    /* 0x2C */ u32 mRemainingFrames;
+    /* 0x30 */ u32 mTimeLimit;
+    /* 0x34 */ ValueControl* mScaleControl;
+    /* 0x38 */ ValueControl* mFadeControl;
+    /* 0x3C */ const Timing* mCurrentTiming;
+    /* 0x40 */ bool mIsSuspend;
+    /* 0x41 */ bool mDisplayOnNormal;
 };

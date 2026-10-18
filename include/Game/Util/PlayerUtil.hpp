@@ -291,3 +291,9 @@ namespace MR {
 namespace MR {
     void startPlayerNormalBva();
 }
+
+namespace MR {
+    void forceKillPlayer();
+}
+
+namespace MR { bool isPlayerVisible(); }

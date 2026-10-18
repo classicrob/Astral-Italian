@@ -160,3 +160,9 @@ namespace MR {
 };  // namespace MR
 
 namespace MR { void appearYesNoSelector(const char*,const char*); }
+
+namespace MR {
+    void killDestroyCounter();
+}
+
+namespace MR { bool isExistCaptureScreenTexture(); }

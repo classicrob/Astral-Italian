@@ -19,8 +19,6 @@ extern "C" {
     void fn_804E8780(WorldMapResultCommand*);
     LiveActor* fn_804E8470(WorldMapResultCommand*);
     TVec3f* fn_804E8510(WorldMapResultCommand*);
-    s32 fn_8046F870(void*);
-    s32 fn_8046F8D0(void*);
     s32 fn_804F7620(WorldMapResultCommand*, f32);
     bool fn_804F6F20(WorldMapResultCommand*);
     bool fn_804F6F60(WorldMapResultCommand*);
@@ -112,7 +110,7 @@ void WorldMapResultStateEnterGalaxy::init() {
     fn_804F8380(mHost, lbl_807D0564);
     fn_804F8380(mHost, lbl_807D0568);
     fn_804F8380(mHost, lbl_807D056C);
-    mConfirmLayout = new GalaxyConfirmLayout();
+    mConfirmLayout = new GalaxyConfirmLayout(0);
     mConfirmLayout->initWithoutIter();
     initNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyZoomIn), 0);
     mCamInfo = new ActorCameraInfo(-1, 0);
@@ -204,11 +202,11 @@ void WorldMapResultStateEnterGalaxy::exeWait() {
         mConfirmLayout->appear();
     }
     fn_804E89F0(mHost, fn_804F6E90(mHost));
-    if (fn_8046F870(mConfirmLayout) != 0 && fn_8046F8D0(mConfirmLayout) != 0) {
+    if (mConfirmLayout->isSelectionComplete() != 0 && mConfirmLayout->isSelectedYes() != 0) {
         setNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyDemo));
         return;
     }
-    if (fn_8046F870(mConfirmLayout) != 0 && fn_8046F8D0(mConfirmLayout) == 0) {
+    if (mConfirmLayout->isSelectionComplete() != 0 && mConfirmLayout->isSelectedYes() == 0) {
         setNerve(GET_NERVE(WorldMapResultStateEnterGalaxy, WorldMapResultStateEnterGalaxyZoomOut));
     }
 }

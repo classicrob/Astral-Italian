@@ -2,13 +2,7 @@
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 
-/// Layout of the enter-home confirm screen (0x3C bytes).
-class GalaxyConfirmLayout : public LayoutActor {
-public:
-    GalaxyConfirmLayout(s32);
-
-    bool isSelected() const;
-};
+#include "Game/Screen/GalaxyConfirmLayout.hpp"
 
 /// Stage-info block returned by fn_804E8300: the camera actor sits at 0x54.
 struct WorldMapResultCameraInfo {
@@ -34,8 +28,6 @@ extern "C" {
     void fn_800592A0();
     void fn_800591E0();
     void fn_8001C030(s32);
-    bool fn_8046F870(GalaxyConfirmLayout*);
-    bool fn_8046F8D0(GalaxyConfirmLayout*);
     void fn_804F4CB0(s32);
 }
 
@@ -136,11 +128,11 @@ void WorldMapResultStateEnterHome::exeWait() {
         mLayout->endMovement();
     }
 
-    if (fn_8046F870(mLayout) && fn_8046F8D0(mLayout)) {
+    if (mLayout->isSelectionComplete() && mLayout->isSelectedYes()) {
         setNerve(GET_NERVE(WorldMapResultStateEnterHome, WorldMapResultStateEnterHomeEnter));
-    } else if (fn_8046F870(mLayout) && !fn_8046F8D0(mLayout)) {
+    } else if (mLayout->isSelectionComplete() && !mLayout->isSelectedYes()) {
         setNerve(GET_NERVE(WorldMapResultStateEnterHome, WorldMapResultStateEnterHomeExit));
-    } else if (mLayout->isSelected() && fn_8046F8D0(mLayout)) {
+    } else if (mLayout->isSelected() && mLayout->isSelectedYes()) {
         setEnterHomeCamera(mHost);
     }
 }

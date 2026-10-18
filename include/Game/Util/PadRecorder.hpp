@@ -69,3 +69,9 @@ public:
     /* 0x48 */ s16 _48;
     /* 0x4A */ s16 _4A;
 };
+
+namespace MR {
+    bool isPadRecorderStopped();
+    bool isRequestedStopReplayPad();
+    void stopReplayPad();
+}

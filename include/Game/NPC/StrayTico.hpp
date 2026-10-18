@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
 
 class CollectTico;
 class PartsModel;
@@ -19,6 +20,13 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
+    void launch(const TPos3f&);
+    bool tryStartBindMove();
+    bool tryEndBindMove();
+    bool tryNigeroDrop();
+    bool isNigeroTakeable() const;
+    void exeBindMove();
+    void exeBindEnd();
     void initSensor();
     void initShadow() NO_INLINE;
     void startGlad();

@@ -30,10 +30,7 @@ public:
     void exeWait();
     void exeReaction();
     void exeFly();
-    void exeDropLecture();
     void exeJumpLecture();
-    void exeFlyLectureA();
-    void exeFlyLectureB();
 
     /* 0x15C */ s32 _15C;
     /* 0x160 */ TMtx34f _160;

@@ -36,3 +36,6 @@ namespace MR {
     const wchar_t* getScenarioNameOnCurrentLanguage(const char*, s32);
     void makeCometMessageID(char*, u32, const char*);
 };  // namespace MR
+
+class JMapInfoIter;
+namespace MR { bool isExistSceneMessage(const char*, const JMapInfoIter&, bool); }

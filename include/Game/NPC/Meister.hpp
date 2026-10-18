@@ -38,6 +38,7 @@ public:
     TalkMessageCtrl* getGeneralTalk() NO_INLINE;
     TalkMessageCtrl* getReactionTalk() NO_INLINE;
     bool isGeneralTalkEnabled(s32) NO_INLINE;
+    bool isGeneralTalkInitiallyEnabled(s32);
     Meister* mHost;
     TalkMessageCtrl* mMainTalk;
     TalkMessageCtrl* mReactionTalk;

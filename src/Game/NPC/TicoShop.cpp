@@ -1,3 +1,4 @@
+// NONMATCHING: independent init stores and literal aliases.
 #include "Game/NPC/TicoShop.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -25,7 +26,7 @@ namespace NrvTicoShop {
     NEW_NERVE(TicoShopNrvDemo, TicoShop, Demo);
 };  // namespace NrvTicoShop
 
-TicoShop::TicoShop(const char* pName) : TicoComet(pName), mOneUp(), mLifeUp(), mChoseOneUp(), mChoseLifeUp() {
+TicoShop::TicoShop(const char* pName) : TicoEat(pName), mOneUp(), mLifeUp(), mChoseOneUp(), mChoseLifeUp() {
 }
 
 void TicoShop::kill() {
@@ -44,15 +45,8 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("TicoShop");
     NPCActorItem item("TicoShop");
     caps.setDefault();
-    caps.mSensorSize = ::sSensorSize;
-    caps.mSensorOffset.y = ::sSensorOffset;
-    caps.mUseShadow = true;
-    caps.mSoundSize = 6;
-    caps.mSensorMax = 2;
-    caps.mSensorJoint = "Center";
-    caps._6C = "Center";
+    caps.mMessage=false;
     initialize(rIter, caps, "TicoShop", nullptr, nullptr);
-    MR::addHitSensorAtJointEye(this, "Mouth", "Mouth", 8, ::sMouthSize, TVec3f(0.0f, 0.0f, 0.0f));
     MR::getNPCItemData(&item, 0);
     equipment(item, false);
 
@@ -76,11 +70,14 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     mOneUp = MR::createKinokoOneUp();
     mLifeUp = MR::createKinokoSuper();
     MR::setShadowDropLength(mOneUp, nullptr, ::sShadowLength);
-    MR::setShadowDropLength(mLifeUp, nullptr, ::sShadowLength);
+    if(MR::isExistShadow(mLifeUp,nullptr)) MR::setShadowDropLength(mLifeUp, nullptr, ::sShadowLength);
     MR::startBva(this, "Small0");
     MR::startBrk(this, "Metamorphosis");
     MR::setBrkFrameAndStop(this, 0.0f);
     MR::setClippingFar200m(this);
+    bool useTalkCamera=false;
+    MR::getJMapInfoArg7NoInit(rIter,&useTalkCamera);
+    if(useTalkCamera) MR::initTalkCamera(mMsgCtrl,rIter);
     TicoEat::init(rIter);
     _17C.set(0, 0xE6, 0xFF, 0xFF);
 }
@@ -91,7 +88,7 @@ bool TicoShop::branchFunc(u32) {
 
 bool TicoShop::eventFunc(u32 var) {
     if (var < 3) {
-        return TicoComet::eventFunc(var);
+        return TicoEat::eventFunc(var);
     }
 
     if (var == 3) {

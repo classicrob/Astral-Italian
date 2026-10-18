@@ -1,3 +1,4 @@
+// PLACEHOLDER(astra): inherited hardware-input ABI is incomplete; resolve when the two-vptr Controller layout and Director input interface are recovered.
 #include "Game/Screen/StarPointerLayout.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -22,41 +23,13 @@
 #include <JSystem/JUtility/JUTTexture.hpp>
 #include <revolution/wpad.h>
 
-extern "C" u32 lbl_807D59A4;
-
-// SMG2 nerve instances of this unit are unnamed .sbss objects (12 consecutive words in declaration order).
-extern "C" u32 lbl_807D5980;
-extern "C" u32 lbl_807D5984;
-extern "C" u32 lbl_807D5988;
-extern "C" u32 lbl_807D598C;
-extern "C" u32 lbl_807D5990;
-extern "C" u32 lbl_807D5994;
-extern "C" u32 lbl_807D5998;
-extern "C" u32 lbl_807D599C;
-extern "C" u32 lbl_807D59A0;
-extern "C" u32 lbl_807D59A4;
-extern "C" u32 lbl_807D59A8;
-extern "C" u32 lbl_807D59AC;
-#define SPL_NRV_HostTypeNrvWait lbl_807D5980
-#define SPL_NRV_HostTypeNrvOnReaction lbl_807D5984
-#define SPL_NRV_HostTypeNrvGrip lbl_807D5988
-#define SPL_NRV_HostTypeNrvHold lbl_807D598C
-#define SPL_NRV_HostTypeNrvHoldTouch lbl_807D5990
-#define SPL_NRV_HostTypeNrvRelease lbl_807D5994
-#define SPL_NRV_HostTypeNrvOutScreen lbl_807D5998
-#define SPL_NRV_HostTypeNrvNotConnected lbl_807D599C
-#define SPL_NRV_HostTypeNrvHide lbl_807D59A0
-#define SPL_NRV_HostTypeNrvHideImmediately lbl_807D59A4
-#define SPL_NRV_HostTypeNrvInvalidate lbl_807D59A8
-#define SPL_NRV_HostTypeNrvInvalidateWait lbl_807D59AC
-#undef GET_NERVE
-#define GET_NERVE(cls, nerve) reinterpret_cast<const Nerve*>(&SPL_NRV_##nerve)
 
 namespace {
+    const GXColor sYoshiPointerColor = {0xB4, 0x0A, 0x0A, 0xFF};
     // TODO: names
     static GXColor sColorA[] = {
         {0x00, 0x32, 0xFF, 0xFF},
-        {0xFF, 0xFF, 0x00, 0xFF},
+        {0x46, 0x46, 0x00, 0xFF},
         {0x55, 0xFF, 0x00, 0xFF},
         {0x7F, 0x7F, 0x00, 0xFF},
     };
@@ -186,6 +159,16 @@ void StarPointerLayout::exeWait() {
             startAnimHandFinger();
         } else if (mPointerKind == StarPointerKind_5) {
             startAnimStarPointer("Wait");
+        } else if (mPointerKind == StarPointerKind_YoshiPointer) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 0.0f, 1);
+            mBlur->show();
+        } else if (mPointerKind == StarPointerKind_YoshiPointerNoBlur) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 1.0f, 1);
+            mBlur->hideAll();
         }
 
         if (mPointerKind == StarPointerKind_StarPointerNozzle) {
@@ -229,6 +212,16 @@ void StarPointerLayout::exeGrip() {
             startAnimHandFinger();
         } else if (mPointerKind == StarPointerKind_5) {
             startAnimHandPaa();
+        } else if (mPointerKind == StarPointerKind_YoshiPointer) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 0.0f, 1);
+            mBlur->show();
+        } else if (mPointerKind == StarPointerKind_YoshiPointerNoBlur) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 1.0f, 1);
+            mBlur->hideAll();
         }
 
         if (mPointerKind == StarPointerKind_StarPointerNozzle) {
@@ -277,6 +270,16 @@ void StarPointerLayout::exeHold() {
             startAnimHandFinger();
         } else if (mPointerKind == StarPointerKind_5) {
             startAnimHandPaa();
+        } else if (mPointerKind == StarPointerKind_YoshiPointer) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 0.0f, 1);
+            mBlur->show();
+        } else if (mPointerKind == StarPointerKind_YoshiPointerNoBlur) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 1.0f, 1);
+            mBlur->hideAll();
         }
 
         if (mPointerKind == StarPointerKind_StarPointerNozzle) {
@@ -354,6 +357,16 @@ void StarPointerLayout::exeRelease() {
             startAnimHandFinger();
         } else if (mPointerKind == StarPointerKind_5) {
             startAnimStarPointer("Wait");
+        } else if (mPointerKind == StarPointerKind_YoshiPointer) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 0.0f, 1);
+            mBlur->show();
+        } else if (mPointerKind == StarPointerKind_YoshiPointerNoBlur) {
+            startAnimYoshiPointer("Wait", 0);
+            startAnimYoshiPointer("Transparency", 1);
+            MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 1.0f, 1);
+            mBlur->hideAll();
         }
 
         if (mPointerKind == StarPointerKind_StarPointerNozzle) {
@@ -390,6 +403,16 @@ void StarPointerLayout::exeOnReaction() {
                 startAnimHandFinger();
             } else if (mPointerKind == StarPointerKind_5) {
                 startAnimStarPointer("Touch");
+            } else if (mPointerKind == StarPointerKind_YoshiPointer) {
+                startAnimYoshiPointer("Touch", 0);
+                startAnimYoshiPointer("Transparency", 1);
+                MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 0.0f, 1);
+                mBlur->show();
+            } else if (mPointerKind == StarPointerKind_YoshiPointerNoBlur) {
+                startAnimYoshiPointer("Touch", 0);
+                startAnimYoshiPointer("Transparency", 1);
+                MR::setPaneAnimFrameAndStop(this, "YoshiPointer", 1.0f, 1);
+                mBlur->hideAll();
             }
         }
 
@@ -457,12 +480,7 @@ void StarPointerLayout::exeOutScreen() {
         return;
     }
 
-    if (MR::testCorePadButtonA(mPadChannel)) {
-        setNerve(GET_NERVE(StarPointerLayout, HostTypeNrvOutScreen));
-        return;
-    }
-
-    if (MR::isGreaterStep(this, ::sBeginHideTime)) {
+    if (MR::isGreaterStep(this, 0)) {
         setNerve(GET_NERVE(StarPointerLayout, HostTypeNrvHide));
     }
 }
@@ -472,6 +490,7 @@ void StarPointerLayout::hideAll() {
     if (mPadChannel == WPAD_CHAN0) {
         MR::hidePane(this, "PicNozzle");
         MR::hidePane(this, "HandArrow");
+        updatePlayerPane();
     }
     MR::hidePaneRecursive(this, "HandPointer");
     MR::hidePaneRecursive(this, "StarPointer");
@@ -486,19 +505,27 @@ void StarPointerLayout::exeHide() {
         if (isNerve(GET_NERVE(StarPointerLayout, HostTypeNrvHideImmediately))) {
             MR::hidePaneRecursive(this, "HandPointer");
             MR::hidePaneRecursive(this, "StarPointer");
+            updatePlayerPane();
         } else if (isNerve(GET_NERVE(StarPointerLayout, HostTypeNrvNotConnected)) || isNerve(GET_NERVE(StarPointerLayout, HostTypeNrvInvalidate)) ||
                    isNerve(GET_NERVE(StarPointerLayout, HostTypeNrvInvalidateWait))) {
             MR::hideLayout(this);
             MR::stopAnimFrame(this);
             MR::offCalcAnim(this);
         } else {
-            if (mPointerKind == StarPointerKind_StarPointer || mPointerKind == StarPointerKind_5 ||
-                mPointerKind == StarPointerKind_StarPointerNozzle) {
-                startAnimStarPointer("End");
-                MR::setAnimRate(this, ::hEndAnimRate, 0);
-            } else if (mPointerKind == StarPointerKind_HandPointer || mPointerKind == StarPointerKind_2 ||
-                       mPointerKind == StarPointerKind_HandPointerReactionWithCrossCursor || mPointerKind == StarPointerKind_FingerPointer) {
+            if (mPointerKind >= StarPointerKind_HandPointer && mPointerKind <= StarPointerKind_FingerPointer) {
                 MR::hidePane(this, "HandPointer");
+            } else if (mPointerKind == StarPointerKind_StarPointer || mPointerKind == StarPointerKind_5 ||
+                       mPointerKind == StarPointerKind_StarPointerNozzle) {
+                startAnimStarPointer("End");
+                MR::setAnimRate(this, hEndAnimRate, 0);
+            } else if (mPointerKind == StarPointerKind_YoshiPointer) {
+                startAnimYoshiPointer("End", 0);
+                MR::setAnimRate(this, hEndAnimRate, 0);
+                MR::stopPaneAnim(this, "YoshiPointer", 1);
+            } else if (mPointerKind == StarPointerKind_YoshiPointerNoBlur) {
+                startAnimYoshiPointer("End", 0);
+                MR::setAnimRate(this, hEndAnimRate, 0);
+                MR::stopPaneAnim(this, "YoshiPointer", 1);
             }
         }
 
@@ -550,7 +577,7 @@ void StarPointerLayout::draw() const {
 }
 
 void StarPointerLayout::drawDecoration() const {
-    if (mPointerKind == StarPointerKind_HandPointer || mPointerKind == StarPointerKind_2 || mPointerKind == StarPointerKind_FingerPointer ||
+    if (mPointerKind == StarPointerKind_HandPointer || mPointerKind == StarPointerKind_2 || mPointerKind == StarPointerKind_FingerPointer || mPointerKind == StarPointerKind_YoshiPointerNoBlur ||
         (mPointerKind == StarPointerKind_5 && MR::testCorePadButtonA(mPadChannel))) {
         mBlur->hideAll();
         return;
@@ -634,13 +661,9 @@ void StarPointerLayout::control() {
             }
             
             return;
-        } else {
-            rotateTest();
-            return;
         }
+        return;
     }
-
-    rotateTest();
 
     if (mPadChannel == WPAD_CHAN1) {
         MR::startAnim(this, "Transparency", 1);
@@ -728,6 +751,11 @@ void StarPointerLayout::changeLayout(StarPointerKind pointerKind) {
         break;
     case StarPointerKind_StarPointerNozzle:
         mRadius = ::sNormalRadius;
+        break;
+    case StarPointerKind_YoshiPointerNoBlur:
+        mBlur->hideAll();
+    case StarPointerKind_YoshiPointer:
+        mRadius = sNormalRadius;
         break;
     }
 
@@ -838,6 +866,21 @@ void StarPointerLayout::changeToHandPointer() {
 }
 
 // NONMATCHING: data-base setup and pointer arithmetic instruction scheduling differ.
+void StarPointerLayout::showYoshiPointer() {
+    if (mPadChannel == WPAD_CHAN0) {
+        MR::showPaneRecursive(this, "YoshiPointer");
+        mBlur->setPortAndColor(mPadChannel, &sYoshiPointerColor, &sYoshiPointerColor);
+    }
+}
+
+void StarPointerLayout::startAnimYoshiPointer(const char* animation, u32 index) {
+    MR::hidePaneRecursive(this, "HandPointer");
+    MR::hidePaneRecursive(this, "StarPointer");
+    showYoshiPointer();
+    MR::startPaneAnim(this, "YoshiPointer", animation, index);
+    mAnimType = AnimType_YoshiPointer;
+}
+
 void StarPointerLayout::updatePlayerPane() {
     if (mPadChannel == WPAD_CHAN0) {
         MR::hidePaneRecursive(this, "HandArrow");
@@ -900,7 +943,7 @@ void StarPointerNumber::control() {
     }
 
     if (mAppearTime == 40) {
-        MR::startCSSound("CS_CONT_CONNECT", "SE_SY_CS_CONT_CONNECT", mPadChannel);
+        MR::startCSSound("CS_CONT_CONNECT", "SE_SY_CS_CONT_CONNECT", mPadChannel, 0, 1.0f);
     }
 
     if (!mIsAppear || isOffState()) {
@@ -920,6 +963,7 @@ void StarPointerNumber::control() {
         startAnimPosition(3);
         break;
     case AnimType_StarPointer:
+    case AnimType_YoshiPointer:
         startAnimPosition(1);
         break;
     }

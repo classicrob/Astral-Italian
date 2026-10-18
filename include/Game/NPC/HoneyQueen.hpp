@@ -21,6 +21,5 @@ public:
     void exeReady();
 
     /* 0x15C */ ModelObj* mWing;
-    /* 0x164 */ s32 _164;
     /* 0x168 */ CollisionParts* mCollisionParts[10];
 };

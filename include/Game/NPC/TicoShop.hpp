@@ -3,9 +3,9 @@
 #include "Game/NPC/TicoComet.hpp"
 
 class BenefitItemLifeUp;
-class BenefitItemOneUp;
+class BenefitItemObj;
 
-class TicoShop : public TicoComet {
+class TicoShop : public TicoEat {
 public:
     /// @brief Creates a new `TicoShop`.
     /// @param pName A pointer to the null-terminated name of the object.
@@ -20,7 +20,7 @@ public:
 
     void exeDemo();
 
-    /* 0x19C */ BenefitItemOneUp* mOneUp;
+    /* 0x19C */ BenefitItemObj* mOneUp;
     /* 0x1A0 */ BenefitItemLifeUp* mLifeUp;
     /* 0x1A4 */ bool mChoseOneUp;
     /* 0x1A5 */ bool mChoseLifeUp;

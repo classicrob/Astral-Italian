@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
+class ActorCameraInfo;
 
 class StrayTico;
 
@@ -10,6 +12,7 @@ public:
 
     virtual void init(const JMapInfoIter&);
 
+    void launch(const TPos3f&);
     void exeWait();
     void exeCompleteDemo();
     void exeFlash();
@@ -18,8 +21,11 @@ public:
     s32 calcNoRescuedCount() const;
     void startAppearPowerStar();
 
-    /* 0x8C */ StrayTico** mStrayTicos;
+    ActorCameraInfo* mCameraInfo;
+    /* 0x94 */ StrayTico** mStrayTicos;
     /* 0x90 */ s32 mTicoNum;
     /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ u8 _A0;
+    /* 0xA8 */ u8 _A0;
+    bool mHasCamera;
+    bool mUsePlacedPosition;
 };

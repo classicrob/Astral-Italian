@@ -10,6 +10,7 @@ class GameEventValueChecker;
 class SaveDataHandleSequence;
 
 namespace GameDataFunction {
+    u32 getScenarioClearTime(const char*, s32);
     bool isOnLuigiIntrusivelyStart();
     void onLuigiIntrusivelyAppear();
     s32 getPlayerStatusCounter14();
@@ -82,3 +83,5 @@ namespace GameDataFunction {
     void incCumulativePlayTime();
     void setCurrentWorldId(u8);
 };  // namespace GameDataFunction
+
+namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u16 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }

@@ -9,9 +9,12 @@ public:
     InformationMessage(bool isCenter);
 
     virtual void init(const JMapInfoIter& rIter);
+    virtual void movement();
+    virtual void calcAnim();
+    virtual void draw() const;
     virtual void appear();
+    virtual void kill();
 
-    void appearWithButtonLayout();
     void setAButtonPos();
     void disappear();
     void setMessage(const char* pMessageId);

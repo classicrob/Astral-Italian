@@ -1,4 +1,5 @@
 #include "Game/Screen/TimeLimitLayout.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/LayoutUtil.hpp"
@@ -27,8 +28,8 @@ namespace NrvTimeLimitLayout {
     NEW_NERVE(TimeLimitLayoutTimeUpReady, TimeLimitLayout, TimeUpReady);
 };  // namespace NrvTimeLimitLayout
 
-TimeLimitLayout::TimeLimitLayout(u32 timeLimit)
-    : LayoutActor("タイムリミット", true), mTime(), mTimeLimit(timeLimit), mScaleControl(), mFadeControl(), mCurrentTiming(), mIsSuspend(), _35() {
+TimeLimitLayout::TimeLimitLayout()
+    : LayoutActor("タイムリミット", true), mRemainingFrames(), mTimeLimit(0), mScaleControl(), mFadeControl(), mCurrentTiming(), mIsSuspend(), mDisplayOnNormal() {
 }
 
 void TimeLimitLayout::init(const JMapInfoIter& rIter) {
@@ -41,6 +42,7 @@ void TimeLimitLayout::init(const JMapInfoIter& rIter) {
     mFadeControl->setOne();
 
     MR::setInfluencedAlphaToChild(this);
+    initActionSound(3, "TimeLimitLayout", nullptr);
     initNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutCountDown));
     kill();
 }
@@ -60,7 +62,7 @@ void TimeLimitLayout::setTimeLimit(u32 timeLimit) {
 }
 
 void TimeLimitLayout::setDisplayModeOnNormal(bool param1) {
-    _35 = param1;
+    mDisplayOnNormal = param1;
 }
 
 bool TimeLimitLayout::isReadyToTimeUp() const {
@@ -68,9 +70,8 @@ bool TimeLimitLayout::isReadyToTimeUp() const {
 }
 
 void TimeLimitLayout::resetFrame() {
-    mTime = 0;
-
-    updateTextBox();
+    mRemainingFrames = mTimeLimit;
+    MR::updateMinuteAndSecondTextBox(this, "Number", mRemainingFrames + 59);
 
     mIsSuspend = false;
 
@@ -80,33 +81,34 @@ void TimeLimitLayout::resetFrame() {
     mCurrentTiming = &::sTimingTable[0];
 }
 
-namespace {
-    inline bool equalTime(const u32& rTime, const u32& rLimit) {
-        return rTime == rLimit;
-    }
-};  // namespace
-
-void TimeLimitLayout::addFrame() {
-    if (equalTime(mTime, mTimeLimit)) {
+void TimeLimitLayout::pause() { mIsSuspend = true; }
+void TimeLimitLayout::resume() { mIsSuspend = false; }
+void TimeLimitLayout::addTimeLimit(s32 frames) {
+    mRemainingFrames += frames;
+    if (!isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutAppear))) MR::startAnim(this, "Wait", 0);
+    if (isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleUp)) || isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleKeep))) {
+        setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleDown));
         return;
     }
-
-    mTime++;
-
-    updateTextBox();
+    mScaleControl->setZero();
 }
-
+// NONMATCHING: the compiler reuses the remaining-frame load instead of reloading it for the decrement.
 void TimeLimitLayout::updateTextBox() {
-    MR::updateMinuteAndSecondTextBox(this, "Number", (mTimeLimit - mTime) + 59);
+    if (mRemainingFrames == 0) return;
+    MR::updateMinuteAndSecondTextBox(this, "Number", --mRemainingFrames + 59);
 }
 
 void TimeLimitLayout::exeAppear() {
     if (MR::isFirstStep(this)) {
-        MR::startSystemSE("SE_SY_E3_TIMER_SCALE_UP");
+        MR::startActionSound(this, "TimerScaleUp", -1, -1);
         MR::startAnim(this, "Appear", 0);
     }
-
-    MR::setNerveAtAnimStopped(this, GET_NERVE(TimeLimitLayout, TimeLimitLayoutCountDown), 0);
+    if (MR::isAnimStopped(this, 0)) {
+        MR::startAnim(this, "Wait", 0);
+        mScaleControl->setDirToZero();
+        mScaleControl->setZero();
+        setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutCountDown));
+    }
 }
 
 void TimeLimitLayout::exeCountDown() {
@@ -119,7 +121,7 @@ void TimeLimitLayout::exeCountDown() {
     if (pTiming != nullptr) {
         mCurrentTiming = pTiming;
 
-        MR::startSystemSE("SE_SY_E3_TIMER_SCALE_UP");
+        MR::startActionSound(this, "TimerScaleUp", -1, -1);
         setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleUp));
     }
 }
@@ -169,7 +171,7 @@ void TimeLimitLayout::exeScaleDown() {
     }
 
     if (mScaleControl->mFrame == mScaleControl->mMaxFrame) {
-        if (mCurrentTiming->_A && !_35) {
+        if (mCurrentTiming->_A && !mDisplayOnNormal) {
             setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutFadeout));
         } else {
             setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutCountDown));
@@ -200,10 +202,11 @@ void TimeLimitLayout::control() {
 
     f32 paneScale = 1.0f + MR::getEaseInOutValue(mScaleControl->getValue(), 0.0f, 1.0f, 1.0f) * ::sScaleMaxAdd;
 
-    MR::setPaneScale(this, paneScale, paneScale, "TimeLimit");
+    MR::setPaneScale(this, "TimeLimit", paneScale, paneScale);
     MR::setLayoutAlphaFloat(this, MR::getEaseInOutValue(mFadeControl->getValue(), 0.0f, 1.0f, 1.0f));
 }
 
+// NONMATCHING: the timing-window bound and remaining-frame count use swapped r0/r6 registers.
 const Timing* TimeLimitLayout::getCurrentTiming() const {
     for (s32 i = 0; i < ARRAY_SIZE(::sTimingTable); i++) {
         u32 scaleStartFrame = ::sTimingTable[i].mScaleStartFrame;
@@ -214,7 +217,7 @@ const Timing* TimeLimitLayout::getCurrentTiming() const {
             continue;
         }
 
-        u32 timeLeft = timeLimit - mTime;
+        u32 timeLeft = mRemainingFrames;
 
         if (frame > timeLeft || timeLeft >= scaleStartFrame) {
             continue;
@@ -231,29 +234,29 @@ bool TimeLimitLayout::updateNormal() {
         return false;
     }
 
-    addFrame();
+    updateTextBox();
 
-    u32 timeLeft = mTimeLimit - mTime;
+    u32 timeLeft = mRemainingFrames;
 
     if (timeLeft <= 120) {
         if (timeLeft % 60 == 0 && timeLeft != 0) {
-            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_4");
+            MR::startActionSound(this, "TimerCount4", -1, -1);
         }
     } else if (timeLeft <= 360) {
         if (timeLeft % 60 == 0) {
-            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_2");
+            MR::startActionSound(this, "TimerCount2", -1, -1);
         }
     } else if (timeLeft <= 600) {
         if (timeLeft % 60 == 0) {
-            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_1");
+            MR::startActionSound(this, "TimerCount1", -1, -1);
         }
     }
 
-    if (mTimeLimit - mTime == 600) {
+    if (mRemainingFrames == 600) {
         MR::startAnim(this, "TimeLimit", 0);
     }
 
-    if (mTime == mTimeLimit) {
+    if (mRemainingFrames == 0) {
         setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutTimeUpReady));
 
         return true;

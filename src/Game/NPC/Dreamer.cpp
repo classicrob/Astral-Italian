@@ -1,3 +1,5 @@
+#include "Game/Util/MessageUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Screen/DreamerButtonGuidance.hpp"
 #include "Game/NPC/DreamerFunction.hpp"
 #include "Game/NPC/NrvDreamer.hpp"
@@ -28,7 +30,6 @@ namespace MR {
     void onDestroySceneKeepAllSound();
 }
 
-extern "C" bool fn_800416F0(const char*, const JMapInfoIter&, bool); // PLACEHOLDER(astra): inherited fn_800416F0 ABI; resolve when its target signature and canonical owner are verified.
 
 extern "C" const char* lbl_807CFEA0;
 extern "C" const char* lbl_807CFEA4;
@@ -177,7 +178,7 @@ void Dreamer::initForLuigi(const JMapInfoIter& rIter, const NPCActorCaps& rCaps)
 void Dreamer::initForPlaying(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
     NPCActorCaps& caps = const_cast< NPCActorCaps& >(rCaps);
     caps.mWaitNerve = GET_NERVE(Dreamer, DreamerNrvEndHelp);
-    if (MR::isExistMessageId(rIter) && fn_800416F0(lbl_807CFEA8, rIter, true)) {
+    if (MR::isExistMessageId(rIter) && MR::isExistSceneMessage(lbl_807CFEA8, rIter, true)) {
         caps._10 = lbl_807CFEA8;
         _170 = true;
     } else {
@@ -200,7 +201,7 @@ void Dreamer::initForPlaying(const JMapInfoIter& rIter, const NPCActorCaps& rCap
 
 void Dreamer::initForNpc(const JMapInfoIter& rIter, const NPCActorCaps& rCaps) {
     NPCActorCaps& caps = const_cast< NPCActorCaps& >(rCaps);
-    if (!MR::isExistMessageId(rIter) || !fn_800416F0(lbl_807CFEA0, rIter, true)) {
+    if (!MR::isExistMessageId(rIter) || !MR::isExistSceneMessage(lbl_807CFEA0, rIter, true)) {
         caps._F = true;
         caps._10 = lbl_807CFEA4;
     } else {

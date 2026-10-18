@@ -3,10 +3,7 @@
 #include "Game/Screen/LayoutActor.hpp"
 #include "Game/System/NerveExecutor.hpp"
 
-namespace FileSelectInfoSub {
-    class SlideState;
-    class CharaState;
-};  // namespace FileSelectInfoSub
+namespace FileSelectInfoSub { class SlideState; }
 
 struct FileSelectFileInfo {
     /* 0x00 */ u16* mName;
@@ -38,29 +35,31 @@ public:
     void slide();
     void slideBack();
     void setInfo(const FileSelectFileInfo&);
-    void setInfo(u16*, s32, s32, s32, bool, bool, bool, const wchar_t*, const wchar_t*, s32);
-    void change();
-    void forceChange();
     void exeAppear();
     void exeDisplay();
     void exeDisappear();
     void reflectInfo();
+    void setMissCounter();
+    void setCompleteness();
+    void setMessage();
 
 private:
-    /* 0x20 */ s32 mNumber;
-    /* 0x24 */ s32 mStarNum;
-    /* 0x28 */ s32 mStarPieceNum;
-    /* 0x2C */ s32 mNameBufferSize;
-    /* 0x30 */ wchar_t* mName;
-    /* 0x34 */ wchar_t mDateMessage[32];
-    /* 0x74 */ wchar_t mTimeMessage[32];
-    /* 0xB4 */ s32 mMissNum;
-    /* 0xB8 */ bool mIsSelectedMarioPrev;
-    /* 0xB9 */ bool mIsSelectedMario;
-    /* 0xBA */ bool mIsViewNormalEnding;
-    /* 0xBB */ bool mIsViewCompleteEnding;
-    /* 0xBC */ FileSelectInfoSub::SlideState* mSlideState;
-    /* 0xC0 */ FileSelectInfoSub::CharaState* mCharaState;
+    /* 0x2C */ s32 mNumber;
+    /* 0x30 */ s32 mStarNum;
+    /* 0x34 */ s32 mNameBufferSize;
+    /* 0x38 */ wchar_t* mName;
+    /* 0x3C */ wchar_t mDateMessage[32];
+    /* 0x7C */ wchar_t mTimeMessage[32];
+    /* 0xBC */ s32 mMissNum;
+    /* 0xC0 */ s32 mGrandStarNum;
+    /* 0xC4 */ bool mHas120Stars;
+    /* 0xC5 */ bool mIsViewed120StarsEnding;
+    /* 0xC6 */ bool mIsComplete;
+    /* 0xC7 */ bool mHas240Stars;
+    /* 0xC8 */ bool mShowMissCounter;
+    /* 0xC9 */ bool mShow120StarsMessage;
+    /* 0xCA */ wchar_t mPlayTimeMessage[32];
+    /* 0x10C */ FileSelectInfoSub::SlideState* mSlideState;
 };
 
 namespace FileSelectInfoSub {
@@ -79,18 +78,4 @@ namespace FileSelectInfoSub {
         /* 0x8 */ FileSelectInfo* mHost;
     };
 
-    class CharaState : public NerveExecutor {
-    public:
-        /// @brief Creates a new `CharaState`.
-        /// @param pHost TODO.
-        CharaState(FileSelectInfo* pHost);
-
-        void exeMario();
-        void exeToLuigi();
-        void exeLuigi();
-        void exeToMario();
-
-    private:
-        /* 0x8 */ FileSelectInfo* mHost;
-    };
-};  // namespace FileSelectInfoSub
+}

@@ -32,3 +32,5 @@ public:
     static bool isKindObjectSet(s32);               // fn_804C2180
     static s32 getObjectValue(s32);                 // fn_804C2610
 };
+
+namespace MR { s32 getMarioFaceShipEventTalkCount(); bool isMarioFaceShipEventTalkValid(u32); void getMarioFaceShipEventTalkMessageId(u32,char*,u32); }

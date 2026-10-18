@@ -19,6 +19,8 @@ enum StarPointerKind {
     StarPointerKind_FingerPointer = 4,
     StarPointerKind_5 = 5,
     StarPointerKind_StarPointerNozzle = 6,
+    StarPointerKind_YoshiPointer = 7,
+    StarPointerKind_YoshiPointerNoBlur = 8,
 };
 
 enum AnimType {
@@ -27,6 +29,7 @@ enum AnimType {
     AnimType_HandGuu = 1,
     AnimType_HandPaa = 2,
     AnimType_StarPointer = 3,
+    AnimType_YoshiPointer = 4,
 };
 
 class StarPointerLayout : public LayoutActor {
@@ -74,6 +77,8 @@ public:
     void changeToStarPointer();
     void changeToHandPointer();
     void updatePlayerPane() NO_INLINE;
+    void showYoshiPointer();
+    void startAnimYoshiPointer(const char*, u32);
     void startAnimStarPointer(const char*);
     void startAnimHandPaa();
     void startAnimHandGuu();

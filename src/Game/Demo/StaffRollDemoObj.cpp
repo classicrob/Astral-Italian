@@ -1,3 +1,5 @@
+#include "Game/Util/MessageUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Demo/StaffRollDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -140,7 +142,7 @@ void StaffRollDemoObj::setAndShowPlayer() {
     }
     MR::setPlayerPos(name);
     MR::setPlayerStateWait();
-    if (UnnamedDemoCallee::fn_80051080() == nullptr) {
+    if (!MR::isPlayerVisible()) {
         MR::onPlayerControl(true);
         MR::showPlayer();
     }

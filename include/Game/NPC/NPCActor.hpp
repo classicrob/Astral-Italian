@@ -77,6 +77,8 @@ public:
     /* 0xA0 */ Nerve* mReactionNerve;
 };
 
+class YoshiLockOnTarget;
+
 class NPCActor : public LiveActor {
 public:
     NPCActor(const char*);
@@ -111,7 +113,7 @@ public:
     bool tryPullNullNerve();
     bool isEmptyNerve() const;
     virtual bool isReactionNerve() const;
-    virtual bool isSensorSpinCloudBlock(const Triangle*) const;
+    virtual bool isSensorSpinCloudBlock(const Triangle*);
     bool isScaleAnim() const;
     bool isPointingSe() const;
     void updateReaction();
@@ -259,7 +261,7 @@ public:
     const char* _13C;
     /* 0x140 */ AnimScaleController* mScaleController;
     /* 0x144 */ JointController* mDelegator;
-    void* mYoshiTarget;  // 0x14C, new in SMG2 (YoshiLockOnTarget*)
+    YoshiLockOnTarget* mYoshiTarget;  // 0x14C, new in SMG2 (YoshiLockOnTarget*)
     /* 0x150 */ const Nerve* mCurNerve;
     /* 0x14C */ Nerve* mWaitNerve;
     /* 0x150 */ Nerve* mTalkNerve;

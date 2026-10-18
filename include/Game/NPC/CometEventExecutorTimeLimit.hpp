@@ -1,26 +1,27 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/NPC/CometEventExecutor.hpp"
 
 class TimeLimitLayout;
-
-class CometEventExecutorTimeLimit : public LiveActor {
+class CometEventExecutorTimeLimit : public LiveActor, public CometEventExecutor {
 public:
-    /// @brief Creates a new `CometEventExecutorTimeLimit`.
-    /// @param timeLimit The number of seconds to initialize the timer with.
-    CometEventExecutorTimeLimit(u32 timeLimit);
-
+    CometEventExecutorTimeLimit();
+    virtual ~CometEventExecutorTimeLimit();
     virtual void init(const JMapInfoIter&);
-    virtual void appear();
-    virtual void kill();
-
+    virtual void init(s32);
+    virtual void start();
+    virtual void stop();
+    virtual void pauseCometTimer();
+    virtual void resumeCometTimer();
+    virtual void showCometTimer();
+    virtual void hideCometTimer();
+    virtual void addCometTimer(s32);
+    virtual void readdCometTimer();
+    virtual void decCometTimer(s32);
     void exeStartEvent();
     u32 getTimeLimit() const;
 
-private:
-    /// @brief The pointer to the actor instance for the timer.
-    /* 0x8C */ TimeLimitLayout* mTimeLimitLayout;
-
-    /// @brief The number of seconds to initialize the timer with.
-    /* 0x90 */ u32 mTimeLimit;
+    /* 0x94 */ TimeLimitLayout* mTimeLimitLayout;
+    /* 0x98 */ s32 mTimeLimit;
 };

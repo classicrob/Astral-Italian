@@ -1,3 +1,4 @@
+// PLACEHOLDER(astra): inherited hardware-input ABI is incomplete; resolve when the two-vptr Controller layout and Director input interface are recovered.
 #include "Game/Screen/StarPointerDirector.hpp"
 #include "Game/Util.hpp"
 #include "Game/Screen/LayoutCoreUtil.hpp"
@@ -107,6 +108,14 @@ void StarPointerDirector::startStarPointerNozzle() {
     }
 }
 
+void StarPointerDirector::startYoshiPointer() {
+    if (mStarPointerLayouts) mStarPointerLayouts[0].changeLayout(StarPointerKind_YoshiPointer);
+}
+
+void StarPointerDirector::startYoshiPointerNoBlur() {
+    if (mStarPointerLayouts) mStarPointerLayouts[0].changeLayout(StarPointerKind_YoshiPointerNoBlur);
+}
+
 void StarPointerDirector::setGameSceneCameraMtx() {
     if (mIsUpdateTransHolder) {
         mTransHolder->mViewMtx.setInline(MR::getCameraViewMtx());
@@ -172,6 +181,35 @@ void StarPointerPeekZ::drawSyncCallback(u16 token) {
 }
 
 namespace StarPointerFunction {
+    bool forceOutsideScreenEdge(TVec2f* result, const TVec2f& position, const TVec2f& velocity, f32 marginX, f32 marginY) {
+        if (!isInScreen(position, marginX, marginY)) return false;
+        TVec2f direction(velocity);
+        MR::normalizeOrZero(&direction);
+        if (direction.x != 0.0f) {
+            f32 edge = direction.x > 0.0f ? MR::getScreenWidth() - marginX : marginX;
+            f32 distance = (edge - position.x) / direction.x;
+            TVec2f offset(direction.x * distance, direction.y * distance);
+            TVec2f candidate(position.x + offset.x, position.y + offset.y);
+            if (isInScreen(candidate, marginX, marginY)) {
+                result->x = candidate.x;
+                result->y = candidate.y;
+                return true;
+            }
+        }
+        if (direction.y != 0.0f) {
+            f32 edge = direction.y > 0.0f ? MR::getScreenHeight() - marginY : marginY;
+            f32 distance = (edge - position.y) / direction.y;
+            TVec2f offset(direction.x * distance, direction.y * distance);
+            TVec2f candidate(position.x + offset.x, position.y + offset.y);
+            if (isInScreen(candidate, marginX, marginY)) {
+                result->x = candidate.x;
+                result->y = candidate.y;
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool isInScreen(const TVec2f& rPos, f32 marginX, f32 marginY) {
         if (rPos.x < marginX) {
             return false;

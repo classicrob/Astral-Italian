@@ -8,6 +8,7 @@ class ModelObj;
 class SuperDreamer : public NPCActor {
 public:
     SuperDreamer(const char*);
+    virtual ~SuperDreamer();
 
     virtual void init(const JMapInfoIter&);
     virtual void appear();
@@ -20,7 +21,6 @@ public:
     bool killFunc(u32);
 
     void exeAppear();
-    void exeStartTransform();
     void exeWait();
     void exeDemoTransform();
     void exeInHelp();
@@ -50,5 +50,5 @@ public:
     /* 0x17C */ TPos3f mPlayerJointMtx;
     /* 0x1AC */ ModelObj* mHelperWitchBall;
     /* 0x1B0 */ ModelObj* mHelperWitchEffect;
-    /* 0x1B4 */ TPos3f mHelperEffectMtx;
+    /* 0x1B4 */ mutable TPos3f mHelperEffectMtx;
 };

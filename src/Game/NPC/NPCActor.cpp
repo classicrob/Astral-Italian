@@ -1,4 +1,8 @@
 #include "Game/Map/HitInfo.hpp"
+#include "Game/Screen/StarPointerTarget.hpp"
+#include "Game/Util/TriangleFilter.hpp"
+#include "Game/Util/YoshiUtil.hpp"
+#include "Game/Util/EffectUtil.hpp"
 #pragma auto_inline off
 
 #include "Game/NPC/NPCActor.hpp"
@@ -29,9 +33,8 @@
 #include <JSystem/JGeometry/TUtil.hpp>
 #include <JSystem/JMath/JMATrigonometric.hpp>
 
-void NPCActor_DUMMY() {
-    (void)JGeometry::TUtil< f32 >::acos(1.0f);
-}
+// PLACEHOLDER(astra): existing shared item emitter has unnamed ABI; resolve when enemies finishes its frozen caller conversion.
+extern "C" void fn_8022BA10(LiveActor*);
 
 namespace NrvNPCActor {
     NEW_NERVE(NPCActorNrvReaction, NPCActor, Reaction);
@@ -43,15 +46,15 @@ namespace NrvNPCActor {
 namespace {
     class NPCParam : public AnimScaleParam {
     public:
-        NPCParam() : AnimScaleParam() {
-            _10 = 15.0f;
-            _14 = 1.4;
-            _20 = 0.3f;
+        NPCParam(f32 speed, f32 magnitude, f32 damping) : AnimScaleParam() {
+            _10 = speed;
+            _14 = magnitude;
+            _20 = damping;
         };
     };
 
-    static NPCParam sParam;
-    static NPCParam sParam2;  // second param block at 0x80729C0C (values unverified)
+    static NPCParam sParam(15.0f, 1.4f, 0.3f);
+    static NPCParam sParam2(10.0f, 1.1f, 0.05f);
 };  // namespace
 
 NPCActorCaps::NPCActorCaps(const char* pName) {
@@ -123,7 +126,6 @@ void NPCActorCaps::setDefault() {
     mLodCtrl = true;
     mNerve = true;
     mSensor = true;
-    mBinder = true;
     mShadow = true;
     mRailRider = true;
     mSwitchDead = true;
@@ -163,6 +165,7 @@ NPCActor::NPCActor(const char* pName) : LiveActor(pName) {
     _E4 = 0;
     _E5 = 0;
     _E6 = 0;
+    _E7 = 0;
     mParam._0 = 1;
     mParam._1 = 1;
     mParam._4 = 2000.0f;
@@ -285,7 +288,6 @@ void NPCActor::initAfterPlacement() {
     }
 }
 
-// NONMATCHING: SMG2 Yoshi lock-on target and binder triangle filter are not fully ported.
 void NPCActor::initialize(const JMapInfoIter& rIter, const NPCActorCaps& rCaps, const char* pArcName, const char* pAnimName, const char* pAnimArcName) {
     if (pArcName != nullptr) {
         if (pAnimArcName != nullptr) {
@@ -398,6 +400,23 @@ void NPCActor::initialize(const JMapInfoIter& rIter, const NPCActorCaps& rCaps, 
         }
     }
 
+    if (rCaps._95) {
+        if (MR::isValidStarPointerTarget(this)) {
+            TVec3f offset(rCaps.mStarPointerOffs);
+            MtxPtr targetMtx = getBaseMtx();
+            if (mStarPointerTarget != nullptr) {
+                offset = MR::getStarPointerTargetOffset(this);
+                targetMtx = MR::getStarPointerTargetMtx(this);
+            }
+            if (rCaps._6C != nullptr) {
+                mYoshiTarget = MR::createYoshiLockOnTarget(this, rCaps._6C, offset);
+            } else {
+                mYoshiTarget = MR::createYoshiLockOnTarget(this, targetMtx, offset);
+            }
+        }
+        MR::addEffect(this, "YoshiTongueHit");
+    }
+
     if (rCaps.mMessage) {
         MtxPtr talkMtx;
         if (rCaps.mTalkJointName != nullptr) {
@@ -423,7 +442,7 @@ void NPCActor::initialize(const JMapInfoIter& rIter, const NPCActorCaps& rCaps, 
     }
 
     if (rCaps._94) {
-        _DB = 1;
+        _E7 = 1;
     }
 
     if (rCaps._67) {
@@ -437,6 +456,9 @@ void NPCActor::initialize(const JMapInfoIter& rIter, const NPCActorCaps& rCaps, 
     }
 
     MR::registerMarioFaceShipNpc(this, rIter);
+    if (MR::isExistBinder(this)) {
+        MR::setBindTriangleFilter(this, MR::createTriangleFilterDelegator(this, &NPCActor::isSensorSpinCloudBlock));
+    }
 }
 
 void NPCActor::equipment(const NPCActorItem& rItem, bool indirect) {
@@ -459,11 +481,17 @@ void NPCActor::equipment(const NPCActorItem& rItem, bool indirect) {
 
 void NPCActor::calcAndSetBaseMtx() {
     _A0.normalize();
-    if (_CC == mRotation) {
+    bool sameRotation = false;
+    if (JGeometry::TUtil<f32>::epsilonEquals(_CC.x, mRotation.x, 3.8146973e-06f) &&
+        JGeometry::TUtil<f32>::epsilonEquals(_CC.y, mRotation.y, 3.8146973e-06f) &&
+        JGeometry::TUtil<f32>::epsilonEquals(_CC.z, mRotation.z, 3.8146973e-06f)) {
+        sameRotation = true;
+    }
+    if (!sameRotation) {
+        MR::makeQuatRotateDegree(&_A0, mRotation);
+    } else {
         _A0.getEuler(mRotation);
         mRotation = mRotation * 57.29578f;
-    } else {
-        MR::makeQuatRotateDegree(&_A0, mRotation);
     }
 
     _CC = mRotation;
@@ -512,7 +540,6 @@ void NPCActor::kill() {
     LiveActor::kill();
 }
 
-// NONMATCHING: SMG2 adds Yoshi eat (mYoshiTarget / YoshiFunction::tryYoshiEat) and a different star-pointer check; not ported
 void NPCActor::control() {
     if (isPointingSe()) {
         _158 = 0;
@@ -548,6 +575,9 @@ void NPCActor::control() {
     if (mScaleController != nullptr && mDelegator != nullptr) {
         updateScaleCtrl();
     }
+    if (mYoshiTarget != nullptr && isReactionNerve()) {
+        YoshiFunction::tryYoshiEat(mYoshiTarget);
+    }
 }
 
 bool NPCActor::receiveMsgEnemyAttack(u32 msg, HitSensor*, HitSensor*) {
@@ -559,13 +589,21 @@ bool NPCActor::receiveMsgEnemyAttack(u32 msg, HitSensor*, HitSensor*) {
     return false;
 }
 
-// NONMATCHING: SMG2 also handles isMsgYoshiStartTongue (rumble, stopSceneForDefaultHit, hit effect, sound); not ported
 bool NPCActor::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
     if (MR::isMsgRushEnd(msg)) {
-        _E5 = 1;
+        _E5 = true;
         return true;
     }
-
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        MR::tryRumblePadWeak(this, 0);
+        MR::stopSceneForDefaultHit(4);
+        TVec3f position;
+        mStarPointerTarget->calcPosition(&position);
+        MR::emitEffectHit(this, position, "YoshiTongueHit");
+        MR::startActionSoundPlayer("TongueHitNpc", -1, -1);
+        _E3 = true;
+        return false;
+    }
     return false;
 }
 
@@ -608,11 +646,21 @@ namespace {
     }
 };  // namespace
 
-// NONMATCHING: SMG2 adds an isTalkTalking / player joint matrix path (calcPlayerJointMtx)
+// NONMATCHING: player-joint vector temporaries use different stack slots.
 bool NPCActor::turnToPlayer(f32 f1) {
+    TPos3f playerJoint;
     TVec3f zDir;
     TVec3f toPlayer;
-    ::calcVecToPlayer(&toPlayer, this);
+    if (mMsgCtrl != nullptr && MR::isTalkTalking(mMsgCtrl)) {
+        TVec3f position;
+        TVec3f front;
+        MR::calcPlayerJointMtx(&playerJoint, "Face0");
+        MR::extractMtxTrans(playerJoint.toMtxPtr(), &position);
+        MR::extractMtxZDir(playerJoint.toMtxPtr(), &front);
+        MR::normalizeOrZero(&toPlayer, position - front * 10.0f - mPosition);
+    } else {
+        ::calcVecToPlayer(&toPlayer, this);
+    }
     _A0.getZDir(zDir);
 
     if (MR::isOppositeDirection(-zDir, toPlayer)) {
@@ -682,16 +730,13 @@ void NPCActor::setToDefault() {
 }
 
 void NPCActor::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayerOrRide(pReceiver)) {
+    if (MR::isSensorPlayerOrYoshiOrRide(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
-    }
-
-    if (MR::isSensorEnemy(pReceiver)) {
+    } else if (MR::isSensorEnemy(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
 
-// NONMATCHING: SMG2 adds Yoshi projectile/eat branches (isMsgYoshiProjectileOrEat, fn_8022BA10) and isMsgSupportTicoSpin; not ported
 bool NPCActor::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerTrample(msg)) {
         if (_9C == 0) {
@@ -709,7 +754,15 @@ bool NPCActor::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttack(msg) && MR::isNearZero(_12C)) {
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        if (_E7) {
+            fn_8022BA10(this);
+        }
+        _E3 = true;
+        return false;
+    }
+
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && MR::isNearZero(_12C)) {
         _E3 = true;
         return false;
     }
@@ -719,12 +772,24 @@ bool NPCActor::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
 
-    if (MR::isMsgStarPieceAttack(msg)) {
+    if (MR::isMsgFireBallAttack(msg)) {
+        _E5 = true;
+        return true;
+    }
+
+    if (MR::isMsgYoshiProjectileOrEat(msg)) {
+        _E5 = true;
+        return true;
     }
 
     if (MR::isMsgJetTurtleAttack(msg)) {
         _E5 = true;
         _E6 = true;
+        return true;
+    }
+
+    if (MR::isMsgRockAttack(msg)) {
+        _E5 = true;
         return true;
     }
 
@@ -882,7 +947,7 @@ void NPCActor_FORCE_MATCH(TQuat4f* pDest, const TQuat4f& rSrc) {
     *pDest = rSrc;
 }
 
-bool NPCActor::isSensorSpinCloudBlock(const Triangle* triangle) const {
+bool NPCActor::isSensorSpinCloudBlock(const Triangle* triangle) {
     return MR::isSensorType(triangle->getSensor(), 0x56);
 }
 

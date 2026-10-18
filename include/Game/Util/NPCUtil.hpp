@@ -108,3 +108,6 @@ public:
 
     /* 0x08 */ NPCActor* mActor;
 };
+
+class CollectTico;
+namespace MR { void registerCollectTico(CollectTico*); }

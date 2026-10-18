@@ -85,3 +85,14 @@ namespace GameSequenceFunction {
 namespace GameSequenceFunction {
     bool isPadModeDreamer();
 }
+
+namespace GameSequenceFunction { s32 getResultMissCount(); }
+
+namespace GameSequenceFunction { bool isFaceShipRespondGameOver(); void clearFaceShipClearedScenariosCount(); s32 getFaceShipClearedScenariosCount(); void incFaceShipClearedScenariosCount(); }
+
+class NameObj;
+namespace GameSequenceFunction {
+    void setPadModeSuperDreamer(const NameObj*, s32);
+    void clearPadModeSuperDreamer();
+    bool isAllowDreamerMissNum(s32);
+}

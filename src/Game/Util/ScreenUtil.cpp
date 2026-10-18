@@ -59,7 +59,7 @@ namespace {
         }
 
         if (hasButtonLayout) {
-            MR::getGameSceneLayoutHolder()->mInformationMessage->appearWithButtonLayout();
+            MR::getGameSceneLayoutHolder()->mInformationMessage->setAButtonPos();
         } else {
             MR::getGameSceneLayoutHolder()->mInformationMessage->appear();
         }

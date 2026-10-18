@@ -11,7 +11,7 @@ class Spine;
 
 class MultiSceneActor : public NameObj {
 public:
-    MultiSceneActor(const char*, const char*, s32, bool);
+    MultiSceneActor(const char*, const char*, const f32 (*)[4], bool);
 
     virtual void init(const JMapInfoIter&);
     virtual void movement();
@@ -43,6 +43,9 @@ public:
 namespace MultiScene {
     void startBck(MultiSceneActor*, const char*);
     void startBtk(MultiSceneActor*, const char*);
+    void startBrk(MultiSceneActor*, const char*);
+    void setBrkFrameAndStop(MultiSceneActor*, f32);
+    void setBckFrameAndStop(MultiSceneActor*, f32);
     void startBtp(MultiSceneActor*, const char*);
     void startBva(MultiSceneActor*, const char*);
     void startBckIfExist(MultiSceneActor*, const char*);

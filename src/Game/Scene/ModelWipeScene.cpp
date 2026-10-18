@@ -64,17 +64,17 @@ void ModelWipeScene::init() {
 
     mCamera->setViewMtx(viewMtx, false, false, lookAt);
 
-    mCloudActor = new MultiSceneActor("雲ワイプ", "WipeModelCloud", reinterpret_cast< s32 >(&mCamera->mProjection), false);
+    mCloudActor = new MultiSceneActor("雲ワイプ", "WipeModelCloud", mCamera->mProjection, false);
     mCloudActor->initWithoutIter();
     mGroup->registerObj(mCloudActor);
     mCloudActor->kill();
 
-    mGalaxyActor = new MultiSceneActor("銀河ワイプ", "WipeModelGalaxy", reinterpret_cast< s32 >(&mCamera->mProjection), false);
+    mGalaxyActor = new MultiSceneActor("銀河ワイプ", "WipeModelGalaxy", mCamera->mProjection, false);
     mGalaxyActor->initWithoutIter();
     mGroup->registerObj(mGalaxyActor);
     mGalaxyActor->kill();
 
-    mSpaceActor = new MultiSceneActor("宇宙ワイプ", "WipeModelSpace", reinterpret_cast< s32 >(&mCamera->mProjection), false);
+    mSpaceActor = new MultiSceneActor("宇宙ワイプ", "WipeModelSpace", mCamera->mProjection, false);
     mSpaceActor->initWithoutIter();
     mGroup->registerObj(mSpaceActor);
     mSpaceActor->kill();

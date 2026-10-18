@@ -23,7 +23,6 @@ public:
     void calcViewAndEntryStarModel();
     s32 getSelectedScenarioNo() const;
     bool isReadyToDisappear() const;
-    void disappear();
     bool isAppearStarEnd() const;
     bool isEndAnimStartStep() const;
     bool isCanceled() const;
@@ -43,12 +42,15 @@ public:
     void startAnimAllNewPane(const char*);
     void setAnimRateAllNewPane(f32);
 
+    static const char* getBackButtonMovePositionName(s32);
+    void connectStarPointerMovePosition(s32);
+    void updateStarPointerMovePositions();
+
     void exeAppearStar();
     void exeAppear();
     void exeWaitScenarioSelect();
     void exeDecide();
     void exeAfterScenarioSelected();
-    void exeDisappear();
     void exeCancel();
     void exeCancelFadeOut();
     void exeAppearCometWarning();
@@ -56,8 +58,8 @@ public:
     void exeDisappearCometWarning();
 
     /* 0x20 */ s32 mSelectedScenarioNo;
-    /* 0x24 */ s32 _24;
-    /* 0x28 */ bool _28;
+    /* 0x24 */ s32 mSelectionTimeout;
+    /* 0x28 */ bool mSelectionLocked;
     /* 0x2C */ TMtx34f mEffectHostMtx;
     /* 0x5C */ ScenarioSelectStar** mStar;
     /* 0x60 */ MultiSceneActor* mScenarioSky;
@@ -68,11 +70,11 @@ public:
     /* 0x7C */ TVec2f mNewCometFollowPos;
     TVec2f mQuestionPane[3];
     /* 0x8C */ TVec2f mStarTopFollowPos;
-    /* 0x94 */ TVec2f mStarDownFollowPos;
+    /* 0x94 */ TVec2f mRaceTimeFollowPos;
     BackButton* mBackButton;
     bool mCanCancel;
     /* 0x98 */ TVec2f mMarioPaneFollowPos;
     /* 0xA0 */ const char* mMarioPaneName;
-    /* 0xA4 */ s32 _A4;
-    /* 0xA8 */ s32 _A8;
+    /* 0xA4 */ s32 mScenarioTextFadingOut;
+    /* 0xA8 */ s32 mDisplayedScenarioNo;
 };

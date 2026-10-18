@@ -71,7 +71,7 @@ extern "C" {
 extern char lbl_806B7BD0[],lbl_806B7DF4[],lbl_806B7E14[],lbl_806B7E38[];
 extern const char* lbl_807CFE88;
 extern const char* lbl_807CFE8C;
-extern const s32 lbl_807CFE90, lbl_807CFE94, lbl_807CFE98, lbl_807CFE9C;
+extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 }
 // NONMATCHING: register allocation and member-pointer constant-table addressing differ.
 void Caretaker::init(const JMapInfoIter& rIter) {
@@ -82,10 +82,10 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps(strings+0x60);
     NPCActorItem item;
     item.mActor=strings+0x60;
-    item.mGoods0=reinterpret_cast<const char*>(&lbl_807CFE9C);
-    item.mGoodsJoint0=reinterpret_cast<const char*>(&lbl_807CFE98);
-    item.mGoods1=reinterpret_cast<const char*>(&lbl_807CFE94);
-    item.mGoodsJoint1=reinterpret_cast<const char*>(&lbl_807CFE90);
+    item.mGoods0=lbl_807CFE9C;
+    item.mGoodsJoint0=lbl_807CFE98;
+    item.mGoods1=lbl_807CFE94;
+    item.mGoodsJoint1=lbl_807CFE90;
     caps.setDefault();
     caps.mWaitNerve=GET_NERVE(Caretaker,CaretakerNrvTalk);
     caps.mReactionNerve=GET_NERVE(Caretaker,CaretakerNrvReaction);

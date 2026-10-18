@@ -4,20 +4,42 @@
 #include "Game/NPC/TalkMessageFunc.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
-#include "Game/Screen/LayoutActor.hpp"
+#include "Game/Screen/DreamerButtonGuidance.hpp"
+#include "Game/Util/MessageUtil.hpp"
+#include "Game/Util/ScreenUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
+#include "Game/NPC/DreamerFunction.hpp"
+#include "Game/Scene/GameSceneFunction.hpp"
+#include "Game/Util/PadRecorder.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/NPCUtil.hpp"
 
 
+extern "C" {
+    TVec3f lbl_80729B58(0.0f, 0.0f, 0.0f);
+    TVec3f lbl_80729B64(0.0f, 0.0f, 0.0f);
+    TVec3f lbl_80729B70(0.0f, 0.0f, 0.0f);
+}
+
 namespace NrvSuperDreamer {
     NEW_NERVE(SuperDreamerNrvAppear, SuperDreamer, Appear);
     NEW_NERVE(SuperDreamerNrvWait, SuperDreamer, Wait);
-    NEW_NERVE(SuperDreamerNrvStartTransform, SuperDreamer, StartTransform);
+    class SuperDreamerNrvTalk : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static SuperDreamerNrvTalk sInstance;
+    };
+    SuperDreamerNrvTalk SuperDreamerNrvTalk::sInstance;
+    class SuperDreamerNrvStartTransform : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static SuperDreamerNrvStartTransform sInstance;
+    };
+    SuperDreamerNrvStartTransform SuperDreamerNrvStartTransform::sInstance;
     NEW_NERVE(SuperDreamerNrvDemoTransform, SuperDreamer, DemoTransform);
     NEW_NERVE(SuperDreamerNrvInHelp, SuperDreamer, InHelp);
     NEW_NERVE(SuperDreamerNrvEndHelp, SuperDreamer, EndHelp);
-    NEW_NERVE(SuperDreamerNrvTalk, SuperDreamer, Talk);
     NEW_NERVE(SuperDreamerNrvEndTalk, SuperDreamer, EndTalk);
     NEW_NERVE(SuperDreamerNrvEnd, SuperDreamer, End);
     NEW_NERVE(SuperDreamerNrvKill, SuperDreamer, Kill);
@@ -86,47 +108,15 @@ bool SuperDreamer::killFunc(u32) {
     return true;
 }
 
-// SMG2 NPCActor fields reached by offset (NPCActor.hpp is off in this range).
-#define SUPERDREAMER_FIELD(T, ofs) (*reinterpret_cast< T* >(reinterpret_cast< u8* >(this) + (ofs)))
-
-class DreamerButtonGuidance : public LayoutActor {
-public:
-    DreamerButtonGuidance(const char*);
-    void showSuperDreamer();
-    void showExit();
-    void hideExit();
-    void disappear();
-};
-
-namespace GameSceneFunction {
-    void requestStartSuperDreamerTalk();
-    void requestEndSuperDreamerTalk();
-}
-
-namespace GameSequenceFunction {
-    void setPadModeSuperDreamer(const NameObj*, s32);
-    bool isPadMode();
-    void clearPadModeSuperDreamer();
-}
-
-namespace MR {
-    bool isPadRecorderStopped();
-    bool isRequestedStopReplayPad();
-    void stopReplayPad();
-    void onDestroySceneKeepAllSound();
-    void hideBubbleBeak(TalkMessageCtrl*);
-}
-
 extern "C" const char* lbl_807CFF18;
 extern "C" const char* lbl_807CFF1C;
 extern "C" const char* lbl_807CFF20;
 extern "C" const char* lbl_807CFF24;
 
-extern "C" s32 fn_800589B0(); // PLACEHOLDER(astra): inherited fn_800589B0 ABI; resolve when its target signature and canonical owner are verified.
 
 void SuperDreamer::exeWait() {
     if (MR::isFirstStep(this)) {
-        SUPERDREAMER_FIELD(TalkMessageCtrl*, 0x94) = mTalkCtrl;
+        mMsgCtrl = mTalkCtrl;
         if (MR::getRandom() < 0.5f) {
             MR::startAction(this, "WaitA");
         } else {
@@ -137,8 +127,8 @@ void SuperDreamer::exeWait() {
         kill();
         return;
     }
-    if (!MR::tryStartReactionAndPushNerve(this, SUPERDREAMER_FIELD(const Nerve*, 0x15C))) {
-        if (SUPERDREAMER_FIELD(TalkMessageCtrl*, 0x94) != nullptr) {
+    if (!MR::tryStartReactionAndPushNerve(this, mReactionNerve)) {
+        if (mMsgCtrl != nullptr) {
             if (MR::tryTalkNearPlayerAndStartTalkAction(this)) {
                 setNerve(GET_NERVE(SuperDreamer, SuperDreamerNrvTalk));
             }
@@ -180,7 +170,7 @@ void SuperDreamer::exeEndHelp() {
     if (MR::isFirstStep(this)) {
         MR::endToCaptureScreen("Camera");
     }
-    if (MR::tryTalkForceWithoutDemoAtEnd(SUPERDREAMER_FIELD(TalkMessageCtrl*, 0x94)) || MR::isPlayerDead()) {
+    if (MR::tryTalkForceWithoutDemoAtEnd(mMsgCtrl) || MR::isPlayerDead()) {
         setNerve(GET_NERVE(SuperDreamer, SuperDreamerNrvEndTalk));
     }
 }
@@ -189,7 +179,7 @@ void SuperDreamer::exeInHelp() {
     MR::calcPlayerJointMtx(&mPlayerJointMtx, "Hip");
     if (MR::isFirstStep(this)) {
         MR::forceOpenWipeCircle();
-        SUPERDREAMER_FIELD(TalkMessageCtrl*, 0x94) = mTalkCtrl;
+        mMsgCtrl = mTalkCtrl;
         if (mTalkCtrl != nullptr) {
             MR::offTalkCinemaFrame(mTalkCtrl);
         }
@@ -201,7 +191,7 @@ void SuperDreamer::exeInHelp() {
     attemptResetPadMode();
     updateHelperWitchEffectMtx();
     if (MR::isPadRecorderStopped()) {
-        if (SUPERDREAMER_FIELD(TalkMessageCtrl*, 0x94) != nullptr) {
+        if (mMsgCtrl != nullptr) {
             mButtonGuidance->disappear();
             GameSceneFunction::requestStartSuperDreamerTalk();
             setNerve(GET_NERVE(SuperDreamer, SuperDreamerNrvEndHelp));
@@ -274,7 +264,7 @@ void SuperDreamer::setupPadMode() {
 
 void SuperDreamer::attemptResetPadMode() const {
     if (MR::isDemoActive() || MR::isSystemTalking() || MR::isPlayerDead() ||
-        (!MR::isPlayerInRush() && !MR::isOnGroundPlayer()) || fn_800589B0()) {
+        (!MR::isPlayerInRush() && !MR::isOnGroundPlayer()) || MR::isExistCaptureScreenTexture()) {
         mButtonGuidance->hideExit();
         return;
     }
@@ -286,27 +276,14 @@ void SuperDreamer::attemptResetPadMode() const {
     }
 }
 
-namespace DreamerFunction {
-    bool isPadModeSuperDreamerAndStartId(s32);
-    void initChildObj(const JMapInfoIter&);
-}
-
-namespace GameSequenceFunction {
-    bool isAllowDreamerMissNum(s32);
-    bool isPadMode();
-}
-
-extern "C" bool fn_800416F0(const char*, const JMapInfoIter&, bool); // PLACEHOLDER(astra): inherited fn_800416F0 ABI; resolve when its target signature and canonical owner are verified.
-
-// NONMATCHING: string-literal stores hoisted/ordered differently (lis batch + different GPR for 0x13C/0x140); same calls and values.
 void SuperDreamer::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("HelperWitch");
     caps.setDefault();
     caps.mMessage = false;
-    SUPERDREAMER_FIELD(const char*, 0x134) = "Spin";
-    SUPERDREAMER_FIELD(const char*, 0x138) = "Trampled";
-    SUPERDREAMER_FIELD(const char*, 0x13C) = "Pointing";
-    SUPERDREAMER_FIELD(const char*, 0x140) = "Reaction";
+    _130 = "Spin";
+    _134 = "Trampled";
+    _138 = "Pointing";
+    _13C = "Reaction";
     initialize(rIter, caps, "HelperWitch", nullptr, nullptr);
     MR::getJMapInfoArg0NoInit(rIter, &mStartId);
 
@@ -395,7 +372,7 @@ bool SuperDreamer::isMakeAppear() const {
 TalkMessageCtrl* SuperDreamer::createTalkCtrl(const JMapInfoIter& rIter, const char* pName1, const char* pName2) {
     TalkMessageCtrl* pCtrl = nullptr;
     TVec3f offs;
-    if (pName1 != nullptr && MR::isExistMessageId(rIter) && fn_800416F0(pName1, rIter, true)) {
+    if (pName1 != nullptr && MR::isExistMessageId(rIter) && MR::isExistSceneMessage(pName1, rIter, true)) {
         offs.x = 0.0f;
         offs.y = 220.0f;
         offs.z = 0.0f;
@@ -415,8 +392,8 @@ TalkMessageCtrl* SuperDreamer::createTalkCtrl(const JMapInfoIter& rIter, const c
 extern "C" f64 cos(f64);
 extern "C" f64 sin(f64);
 
-extern "C" TVec3f lbl_80729B58;
-extern "C" TVec3f lbl_80729B64;
+
+
 
 // NONMATCHING: target calls TPosition3::setTrans out of line; the shared TMatrix.hpp setTrans is inlined here. Float op scheduling also differs.
 void SuperDreamer::updatePlayerBaseMtx() const {
@@ -440,7 +417,70 @@ void SuperDreamer::updatePlayerBaseMtx() const {
     mtx.setTrans(lbl_80729B58);
 
     TMtx34f base;
-    MR::makeMtxTR(reinterpret_cast< MtxPtr >(&base), this);
+    MR::makeMtxTR(base.toMtxPtr(), this);
     base.concat(mtx);
-    MR::setPlayerBaseMtx(reinterpret_cast< MtxPtr >(&base));
+    MR::setPlayerBaseMtx(base.toMtxPtr());
 }
+
+
+
+// NONMATCHING: quaternion direction accessors inline here; target calls them out of line.
+void SuperDreamer::updateHelperWitchEffectMtx() const {
+    TVec3f up(-*MR::getPlayerGravity());
+    MR::normalizeOrZero(&up);
+    TVec3f oldUp;
+    mHelperEffectMtx.getYDir(oldUp);
+    MR::normalizeOrZero(&oldUp);
+    TQuat4f oldRotation;
+    mHelperEffectMtx.getQuat(oldRotation);
+    TQuat4f rotation;
+    rotation.setRotate(oldUp, up);
+    PSQUATMultiply(&rotation, &oldRotation, &rotation);
+    TVec3f x, y, z;
+    rotation.getXDir(x);
+    MR::normalizeOrZero(&x);
+    rotation.getYDir(y);
+    MR::normalizeOrZero(&y);
+    PSVECCrossProduct(&x, &y, &z);
+    MR::normalizeOrZero(&z);
+    PSVECCrossProduct(&y, &z, &x);
+    mHelperEffectMtx.setXDir(x);
+    mHelperEffectMtx.setYDir(y);
+    mHelperEffectMtx.setZDir(z);
+    TPos3f joint;
+    MR::calcPlayerJointMtx(&joint, "Head");
+    TVec3f position;
+    joint.getTrans(position);
+    TPos3f base;
+    base.set(MR::getPlayerBaseMtx());
+    TVec3f baseX, baseY, baseZ;
+    base.getXDir(baseX);
+    base.getYDir(baseY);
+    base.getZDir(baseZ);
+    position.add(baseX * lbl_80729B70.x);
+    position.add(baseY * lbl_80729B70.y);
+    position.add(baseZ * lbl_80729B70.z);
+    mHelperEffectMtx.setTrans(position);
+    MR::setPosition(mHelperWitchEffect, position);
+    if (MR::isPlayerVisible()) {
+        if (MR::isDead(mHelperWitchEffect))
+            mHelperWitchEffect->appear();
+    } else if (!MR::isDead(mHelperWitchEffect)) {
+        MR::forceDeleteEffectAll(mHelperWitchEffect);
+        mHelperWitchEffect->kill();
+    }
+}
+
+void NrvSuperDreamer::SuperDreamerNrvStartTransform::execute(Spine* spine) const {
+    SuperDreamer* actor = static_cast<SuperDreamer*>(spine->mExecutor);
+    if (MR::tryStartDemoMarioPuppetable(actor, "お助けウィッチ開始"))
+        actor->setNerve(GET_NERVE(SuperDreamer, SuperDreamerNrvDemoTransform));
+}
+
+void NrvSuperDreamer::SuperDreamerNrvTalk::execute(Spine* spine) const {
+    SuperDreamer* actor = static_cast<SuperDreamer*>(spine->mExecutor);
+    if (!MR::tryStartReactionAndPushNerve(actor, actor->mReactionNerve))
+        MR::tryTalkNearPlayerAtEndAndStartMoveTalkAction(actor);
+}
+
+SuperDreamer::~SuperDreamer() {}

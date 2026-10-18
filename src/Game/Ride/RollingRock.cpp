@@ -1,3 +1,5 @@
+#include "Game/Util/MessageUtil.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #pragma auto_inline off
 #include "Game/Ride/RollingRock.hpp"
 #include "Game/Camera/CameraDirector.hpp"
@@ -21,7 +23,6 @@ bool fn_80012BA0(LiveActor*, HitSensor*, HitSensor*, f32);
 void fn_8004FFA0();
 void fn_8004FFB0();
 bool fn_80050350();
-bool fn_80051080();
 void fn_800513C0(const TQuat4f*, const TVec3f*);
 void fn_800514B0(const TQuat4f*, TVec3f*, LiveActor*);
 void* fn_80114940(void*);
@@ -111,7 +112,7 @@ void RollingRock::calcAnim() {
     LiveActor::calcAnim();
     TVec3f off(0.0f);
     TVec3f pos(mPosition);
-    if (MR::isPlayerInRush() && fn_80051080() && mState && !mState->mIsDead) {
+    if (MR::isPlayerInRush() && MR::isPlayerVisible() && mState && !mState->mIsDead) {
         pos.set(*MR::getPlayerPos());
     }
     TVec3f sum(pos);

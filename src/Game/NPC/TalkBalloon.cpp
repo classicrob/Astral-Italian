@@ -1,4 +1,5 @@
 #include "Game/NPC/TalkBalloon.hpp"
+#include "Game/Scene/GameSceneFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
@@ -20,7 +21,6 @@
 
 namespace NrvTalkBalloonShort {
     NEW_NERVE(TalkBalloonShortNrvOpen, TalkBalloonShort, Open);
-    NEW_NERVE(TalkBalloonShortNrvClose, TalkBalloonShort, Close);
 
     // SMG2 Talk nerve: execute() is just a virtual updateTalking() call (no exeTalk symbol in the target).
     class TalkBalloonShortNrvTalk : public Nerve {
@@ -32,6 +32,7 @@ namespace NrvTalkBalloonShort {
         static TalkBalloonShortNrvTalk sInstance;
     };
     TalkBalloonShortNrvTalk TalkBalloonShortNrvTalk::sInstance ATTRIBUTE_WEAK;
+    NEW_NERVE(TalkBalloonShortNrvClose, TalkBalloonShort, Close);
 };  // namespace NrvTalkBalloonShort
 
 namespace NrvTalkBalloonEvent {
@@ -40,6 +41,10 @@ namespace NrvTalkBalloonEvent {
     NEW_NERVE(TalkBalloonEventNrvTalk, TalkBalloonEvent, Talk);
     NEW_NERVE(TalkBalloonEventNrvClose, TalkBalloonEvent, Close);
 };  // namespace NrvTalkBalloonEvent
+
+namespace NrvTalkBalloonSign {
+    NEW_NERVE(TalkBalloonSignNrvNextPage, TalkBalloonSign, NextPage);
+}
 
 TalkBalloon::TalkBalloon(const char* pName) : LayoutActor(pName, true), mMessageCtrl(), mTextFormer(), _28(), _29(), _36(0xFF) {
 }
@@ -101,13 +106,19 @@ inline f32 fmax(f32 a, f32 b) {
     return b >= a ? b : a;
 }
 
+// NONMATCHING: equivalent multiplication operands are allocated in reverse order.
 void TalkBalloon::updateBalloon() {
     mMessageCtrl->updateBalloonPos();
     if (_28) {
         TVec2f paneTrans;
         MR::copyPaneTrans(&paneTrans, this, "PicBeak");
 
-        TVec2f v2(mMessageCtrl->_1C.x - paneTrans.x, mMessageCtrl->_1C.y - paneTrans.y);
+        TVec2f position(mMessageCtrl->_1C.x, mMessageCtrl->_1C.y);
+        if (mMessageCtrl->_SMG2_52) {
+            f32 halfHeight = 0.5f * MR::getScreenHeight();
+            position.set(0.5f * MR::getScreenWidth(), halfHeight);
+        }
+        TVec2f v2(position.x - paneTrans.x, position.y - paneTrans.y);
         TVec2f v3(0.0f, 1.0f);
 
         MR::normalizeOrZero(&v2);
@@ -175,7 +186,7 @@ void TalkBalloon::pauseOff() {
     MR::requestMovementOn(this);
 }
 
-TalkBalloonShort::TalkBalloonShort(const char* pName) : TalkBalloon(pName), _2C() {
+TalkBalloonShort::TalkBalloonShort(const char* pName) : TalkBalloon(pName) {
     initNerve(GET_NERVE(TalkBalloonShort, TalkBalloonShortNrvOpen));
 }
 
@@ -183,23 +194,19 @@ void TalkBalloonShort::init(const JMapInfoIter& rIter) {
     TalkBalloon::create("TalkBalloonStretch", true, false);
 }
 
+// NONMATCHING: message and formatter use swapped nonvolatile registers.
 void TalkBalloonShort::open(TalkMessageCtrl* pCtrl) {
     TalkBalloon::open(pCtrl);
     MR::showScreen(this);
     LayoutActor::appear();
     TalkTextFormer* tempFormer = mTextFormer;
 
-    const wchar_t* message;
-    if (TalkFunction::isComposeTalk(pCtrl)) {
-        message = TalkFunction::getSubMessage(pCtrl);
-    } else {
-        message = TalkFunction::getMessage(pCtrl);
-    }
+    const wchar_t* message = TalkFunction::getMessage(pCtrl);
 
     tempFormer->formMessage(message, 0);
     tempFormer->setArg(pCtrl->mTagArg, 0);
 
-    s32 numLine = MR::countMessageLine(message);
+    u32 numLine = MR::countMessageLine(message);
 
     switch (numLine) {
     case 1:
@@ -233,10 +240,6 @@ void TalkBalloonShort::updateBalloon() {
     }
 
     setTrans(TVec2f(mMessageCtrl->_1C.x, mMessageCtrl->_1C.y));
-}
-
-void TalkBalloonShort::initInterval() {
-    _2C = 120;
 }
 
 void TalkBalloonShort::exeClose() {
@@ -298,10 +301,15 @@ void TalkBalloonEvent::updateBeak() {
 
     mMessageCtrl->updateBalloonPos();
     TalkMessageCtrl* messageCtrl = mMessageCtrl;
+    if (messageCtrl->_SMG2_51) {
+        MR::hidePane(this, "ShaBeak");
+        MR::hidePane(this, "PicBeak");
+        return;
+    }
     TVec2f v1(messageCtrl->_1C.x, messageCtrl->_1C.y);
 
     if (0.0f <= v1.x && v1.x < MR::getScreenWidth() && 120.0f <= v1.y &&
-        v1.y < static_cast< s32 >(JUTVideo::getManager()->getRenderMode()->efbHeight)) {
+        v1.y < MR::getScreenHeight()) {
         MR::showPane(this, "ShaBeak");
         MR::showPane(this, "PicBeak");
     } else {
@@ -335,7 +343,7 @@ bool TalkBalloonEvent::isTextAppearedAll() {
 void TalkBalloonEvent::exeWait() {
     if (MR::isTimeKeepDemoActive()) {
         LayoutActor::setNerve(GET_NERVE(TalkBalloonEvent, TalkBalloonEventNrvOpen));
-    } else if (!MR::isFirstStep(this) && MR::isCameraInterpolatingNearlyEnd()) {
+    } else if (!MR::isFirstStep(this) && (MR::isCameraInterpolatingNearlyEnd() || GameSceneFunction::isExecSuperDreamerTalk())) {
         LayoutActor::setNerve(GET_NERVE(TalkBalloonEvent, TalkBalloonEventNrvOpen));
     }
 }
@@ -359,7 +367,7 @@ void TalkBalloonEvent::exeOpen() {
 
 void TalkBalloonEvent::exeTalk() {
     updateTalking();
-    if (mTextFormer->isTextAppearedAll() && MR::isDead(mAButton) && !TalkFunction::getMessageInfo(mMessageCtrl)->isBalloonFix()) {
+    if (mTextFormer->isTextAppearedAll() && MR::isDead(mAButton) && !TalkFunction::getMessageInfo(mMessageCtrl)->isBalloonCall()) {
         if (!TalkFunction::isSelectTalk(mMessageCtrl) || hasNextPage()) {
             mAButton->openWithoutMessage();
         }
@@ -379,6 +387,26 @@ TalkBalloonSign::TalkBalloonSign(const char* pName) : TalkBalloonEvent(pName) {
 void TalkBalloonSign::init(const JMapInfoIter& rIter) {
     TalkBalloon::create("SignBoardBalloon", false, true);
     MR::createAndAddPaneCtrl(this, "AButtonPosition", 1);
+}
+
+bool TalkBalloonSign::turnPage() {
+    setNerve(&NrvTalkBalloonSign::TalkBalloonSignNrvNextPage::sInstance);
+    return hasNextPage();
+}
+
+void TalkBalloonSign::exeNextPage() {
+    if (MR::isFirstStep(this)) {
+        MR::startAnim(this, "NextPage", 0);
+        if (hasNextPage()) {
+            MR::startSystemSE("SE_SY_TALK_FOCUS_ITEM");
+        }
+        mAButton->term();
+    }
+    if (MR::isStep(this, 20)) {
+        mTextFormer->nextPage();
+        mTextFormer->setArg(mMessageCtrl->mTagArg, 0);
+        setNerve(&NrvTalkBalloonEvent::TalkBalloonEventNrvTalk::sInstance);
+    }
 }
 
 TalkBalloonInfo::TalkBalloonInfo(const char* pName) : TalkBalloon(pName) {
@@ -414,7 +442,7 @@ void TalkBalloonIcon::open(TalkMessageCtrl* pCtrl) {
     LayoutActor::setNerve(GET_NERVE(TalkBalloonShort, TalkBalloonShortNrvOpen));
 }
 
-TalkBalloonHolder::TalkBalloonHolder() : _14() {
+TalkBalloonHolder::TalkBalloonHolder() : mShortBalloonIndex() {
     mBalloonShortArray = new TalkBalloonShort*[4];
 
     for (u32 i = 0; i < 4; i++) {
@@ -427,9 +455,6 @@ TalkBalloonHolder::TalkBalloonHolder() : _14() {
     mBalloonEvent = new TalkBalloonEvent("会話吹き出し[イベント]");
     mBalloonEvent->initWithoutIter();
     mBalloonEvent->kill();
-    mBalloonInfo = new TalkBalloonInfo("会話吹き出し[インフォメーション]");
-    mBalloonInfo->initWithoutIter();
-    mBalloonInfo->kill();
     mBalloonSign = new TalkBalloonSign("会話吹き出し[看板]");
     mBalloonSign->initWithoutIter();
     mBalloonSign->kill();
@@ -444,47 +469,33 @@ TalkBalloonHolder::TalkBalloonHolder() : _14() {
     mBalloonSign->mAButton = mAButton;
 }
 
-TalkBalloon* TalkBalloonHolder::getBalloon(const TalkMessageCtrl* pArg) {
+TalkBalloon* TalkBalloonHolder::getBalloon(const TalkMessageCtrl* ctrl) {
     TalkBalloon* balloon;
-    const TalkMessageInfo* info = TalkFunction::getMessageInfo(pArg);
-
+    const TalkMessageInfo* info = TalkFunction::getMessageInfo(ctrl);
     if (info->isNormalTalk()) {
         balloon = mBalloonEvent;
     } else if (info->isShortTalk()) {
-        mBalloonShortArray[_14]->_2C = 0;
-        balloon = mBalloonShortArray[_14];
+        balloon = mBalloonShortArray[mShortBalloonIndex];
     } else if (info->isEventTalk()) {
-        balloon = mBalloonEvent;
-    } else if (info->isComposeTalk()) {
-        mBalloonShortArray[_14]->_2C = 0;
         balloon = mBalloonEvent;
     } else {
         balloon = nullptr;
     }
-
-    if (info->isBalloonInfo()) {
-        balloon = mBalloonInfo;
-    } else if (info->isBalloonSign()) {
+    if (info->isBalloonSign()) {
         balloon = mBalloonSign;
-    } else if (info->isBalloonFix()) {
-        balloon = mBalloonEvent;
     } else if (info->isBalloonCall()) {
-        mBalloonShortArray[_14]->_2C = 120;
-        balloon = mBalloonShortArray[_14];
+        balloon = mBalloonEvent;
     } else if (info->isBalloonIcon()) {
         balloon = mBalloonIcon;
     }
-
-    if (balloon == mBalloonShortArray[_14]) {
-        _14 = (_14 + 1) % 4;
+    if (balloon == mBalloonShortArray[mShortBalloonIndex]) {
+        mShortBalloonIndex = (mShortBalloonIndex + 1) % 4;
     }
-
     return balloon;
 }
 
 void TalkBalloonHolder::pauseOff() {
     mBalloonEvent->pauseOff();
-    mBalloonInfo->pauseOff();
     mBalloonSign->pauseOff();
     mBalloonIcon->pauseOff();
 

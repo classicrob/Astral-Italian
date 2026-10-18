@@ -5218,13 +5218,7 @@ Game/NPC/StrayTico.cpp:
 	.sbss       start:0x807D4B00 end:0x807D4B14
 
 Game/NPC/SuperDreamer.cpp:
-	.text       start:0x80360C50 end:0x80361FB0
-
-Game/NPC/TalkMessageFuncM13.cpp:
-	.text       start:0x80361FB0 end:0x803620A0
-
-Game/NPC/NrvSuperDreamer.cpp:
-	.text       start:0x803620A0 end:0x80362380
+	.text       start:0x80360C50 end:0x80362380
 	.ctors      start:0x80644740 end:0x80644744
 
 Game/NPC/SupportTico.cpp:
@@ -5365,7 +5359,7 @@ Game/NPC/TrickRabbitUtil.cpp:
 	.text       start:0x80371E80 end:0x80371F20
 
 Game/NPC/CometEventExecutorTimeLimit.cpp:
-	.text       start:0x80371F20 end:0x803722E0
+	.text       start:0x80371F20 end:0x80372380
 	.ctors      start:0x80644794 end:0x80644798
 	.data       start:0x806BF6C0 end:0x806BF798
 	.sbss       start:0x807D4D48 end:0x807D4D50
@@ -6171,9 +6165,10 @@ Game/Screen/GalaxyCometScreenFilter.cpp:
 	.data       start:0x806F37B0 end:0x806F3820
 
 Game/Screen/GalaxyConfirmLayout.cpp:
-	.text       start:0x8046F5D0 end:0x8046FD90
+	.text       start:0x8046F5D0 end:0x8046FD98
 	.ctors      start:0x806448DC end:0x806448E0
-	.data       start:0x806F3940 end:0x806F39A8
+	.data       start:0x806F3820 end:0x806F39D4
+	.sbss       start:0x807D5558 end:0x807D5568
 
 Game/Screen/GalaxyMapGalaxyPlain.cpp:
 	.text       start:0x8046FDA0 end:0x80470240
@@ -6455,7 +6450,7 @@ Game/Screen/SaveIcon.cpp:
 	.data       start:0x806F6BF8 end:0x806F6C68
 
 Game/Screen/ScenarioSelectLayout.cpp:
-	.text       start:0x8048D240 end:0x8048F920
+	.text       start:0x8048D070 end:0x8048F920
 	.ctors      start:0x80644954 end:0x80644958
 	.rodata     start:0x8064CAF0 end:0x8064CB14
 	.data       start:0x806F7010 end:0x806F70E8
@@ -6496,8 +6491,12 @@ Game/Screen/ScreenPreserver.cpp:
 	.data       start:0x806F7454 end:0x806F7480
 
 Game/Screen/SimpleLayout.cpp:
-	.text       start:0x80491BB0 end:0x80491F50
-	.data       start:0x806F74D8 end:0x806F7548
+	.text       start:0x80491BB0 end:0x80492048
+	.ctors      start:0x80644964 end:0x80644968
+	.data       start:0x806F7480 end:0x806F7578
+	.sdata      start:0x807D02A0 end:0x807D02A8
+	.sbss       start:0x807D5808 end:0x807D5818
+	.sdata2     start:0x807E1708 end:0x807E1710
 
 Game/Screen/StaffRoll.cpp:
 	.text       start:0x804920F0 end:0x804930F0
@@ -6553,8 +6552,12 @@ Game/Screen/StarPointerDirector.cpp:
 	.data       start:0x806F8368 end:0x806F83A8
 
 Game/Screen/StarPointerMovePositionHolder.cpp:
-	.text       start:0x8049B9B0 end:0x8049BE70
+	.text       start:0x8049B080 end:0x8049BE70
 	.ctors      start:0x80644984 end:0x80644988
+	.data       start:0x806F83A8 end:0x806F8470
+	.bss        start:0x8072B6D8 end:0x8072B6E0
+	.sbss       start:0x807D5950 end:0x807D5960
+	.sdata2     start:0x807E17C8 end:0x807E17D8
 
 Game/Screen/StarPointerGuidance.cpp:
 	.text       start:0x8049BE70 end:0x8049C990

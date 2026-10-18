@@ -42,11 +42,9 @@ public:
     virtual void close();
     virtual void updateBalloon();
 
-    void initInterval();
     void exeClose();
     void exeOpen();
 
-    u32 _2C;
 };
 
 class TalkBalloonEvent : public TalkBalloon {
@@ -60,7 +58,6 @@ public:
     virtual void skipMessage();
     virtual bool isTextAppearedAll();
 
-    void initInterval();
     void exeTalk();
     void exeWait();
     void exeOpen();
@@ -76,6 +73,8 @@ public:
     TalkBalloonSign(const char*);
 
     virtual void init(const JMapInfoIter&);
+    virtual bool turnPage();
+    void exeNextPage();
 };
 
 class TalkBalloonInfo : public TalkBalloon {
@@ -114,11 +113,10 @@ public:
 
     /* 0x00 */ TalkBalloonShort** mBalloonShortArray;
     /* 0x04 */ TalkBalloonEvent* mBalloonEvent;
-    /* 0x08 */ TalkBalloonInfo* mBalloonInfo;
-    /* 0x0C */ TalkBalloonSign* mBalloonSign;
-    /* 0x10 */ TalkBalloonIcon* mBalloonIcon;
-    s32 _14;
-    /* 0x18 */ IconAButton* mAButton;
+    /* 0x08 */ TalkBalloonSign* mBalloonSign;
+    /* 0x0C */ TalkBalloonIcon* mBalloonIcon;
+    /* 0x10 */ s32 mShortBalloonIndex;
+    /* 0x14 */ IconAButton* mAButton;
 };
 
 namespace MR {

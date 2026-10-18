@@ -35,8 +35,8 @@ namespace NrvScenarioSelectStar {
     NEW_NERVE(ScenarioSelectStarNrvNotSelected, ScenarioSelectStar, NotSelected);
 };  // namespace NrvScenarioSelectStar
 
-ScenarioSelectStar::ScenarioSelectStar(EffectSystem* pSystem)
-    : MultiSceneActor("シナリオ選択のスター", "PowerStar", 0, false), mStarCollectedStatus(0), mScenarioNo(1), mStarId(0), mIsPointing(false),
+ScenarioSelectStar::ScenarioSelectStar(EffectSystem* pSystem, const f32 (*pProjection)[4])
+    : MultiSceneActor("シナリオ選択のスター", "PowerStar", pProjection, false), mStarCollectedStatus(0), mScenarioNo(1), mStarId(0), mIsPointing(false),
       mRotateSpeed(0.0f), mBasePos(gZeroVec), mTranslationOnSelect(gZeroVec), mAppearFrame(::cAppearFrame), mScaleOnSelect(1.0f) {
     initEffect(pSystem, 0, "ScenarioStar");
 }
@@ -56,9 +56,14 @@ void ScenarioSelectStar::appear() {
     mIsPointing = false;
     mRotateSpeed = 0.0f;
     updatePos();
+    s32 frame = PowerStar::getBtpFrameCurrentStage(mScenarioNo);
     MultiScene::startBtp(this, "PowerStar");
+    MultiScene::startBrk(this, "PowerStar");
+    MultiScene::startBtk(this, "PowerStar");
     MultiScene::startBva(this, "PowerStar");
-    MultiScene::setBtpFrameAndStop(this, PowerStar::getBtpFrameCurrentStage(mScenarioNo));
+    MultiScene::setBtpFrameAndStop(this, frame);
+    MultiScene::setBrkFrameAndStop(this, frame);
+    MultiScene::setBckFrameAndStop(this, frame);
     MultiScene::setBvaFrameAndStop(this, mStarCollectedStatus == 0 ? 1.0f : 0.0f);
     MultiSceneActor::appear();
     setNerve(GET_NERVE(ScenarioSelectStar, ScenarioSelectStarNrvAppear));

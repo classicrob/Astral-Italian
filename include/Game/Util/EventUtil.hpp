@@ -9,6 +9,8 @@ class LiveActor;
 class NameObj;
 
 namespace MR {
+    bool isUseScenarioSelectMusicZeroStars();
+    bool isUseScenarioSelectMusicOneStar();
     bool branchFuncGameProgress(u32);
     bool isPostmanTaskEventAvailable(s32);
     bool isPostmanTaskEventFinished(s32);
@@ -299,3 +301,5 @@ namespace MR {
 namespace MR {
     bool hasMarioFaceShipItemEventAtResult();
 }
+
+namespace MR { bool isPendingNormalEndingDemo(); bool isPending120StarEndingDemo(); }

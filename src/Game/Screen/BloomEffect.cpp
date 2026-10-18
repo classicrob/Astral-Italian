@@ -76,7 +76,7 @@ void BloomEffect::preDraw() const {
 
     {
         CopyFilterNegater copyFilterNegator;
-        ImageEffectLocalUtil::capture(_24, 1, 0, GX_TF_RGBA8, false, 0);
+        ImageEffectLocalUtil::capture(_24, 1, 0, static_cast<GXTexFmt>(_24->getFormat()), false, 0);
     }
 
     MR::fillScreen(Color8(0, 0, 0, 0xFF).mGXColor);
@@ -107,6 +107,7 @@ void BloomEffect::postDraw() const {
     GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_COMP_R8_GT, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
     GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
     GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+    GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_1);
     drawTexture(_40, 4, 2, _20, DrawType_2);
 
     GXSetBlendMode(GX_BM_NONE, GX_BL_ZERO, GX_BL_ZERO, GX_LO_CLEAR);
@@ -239,17 +240,21 @@ void BloomEffect::blurTexture(JUTTexture* pTexture, Mtx* pMtx, s32 param3, s32 p
     GXSetTevOp(GX_TEVSTAGE0, GX_MODULATE);
 }
 
+// NONMATCHING: floating register allocation and multiply operand scheduling.
+#pragma dont_inline on
 void BloomEffect::initBlurMtx(Mtx* pMtx, u32 count, f32 radius, f32 offset) const {
     f32 invAspect = 1.0f / MR::getAspect();
     radius = -radius;
 
     for (u32 i = 0; i < count; i++) {
-        PSMTXTrans(pMtx[i], invAspect * (radius * JMACosRadian(offset + i * JMath::TAngleConstant_< f32 >::RADIAN_DEG360() / count)),
-                   radius * JMASinRadian(offset + i * JMath::TAngleConstant_< f32 >::RADIAN_DEG360() / count), 0.0f);
+        PSMTXTrans(pMtx[i], invAspect * (radius * MR::cos(offset + i * 6.2831855f / count)),
+                   radius * MR::sin(offset + i * 6.2831855f / count), 0.0f);
     }
 
     DCStoreRangeNoSync(pMtx, sizeof(Mtx) * count);
 }
+
+#pragma dont_inline reset
 
 void BloomEffect::initBlur(JUTTexture* pTexture, u32 param2, f32 intensity) const {
     GXSetNumTexGens(param2);
@@ -266,6 +271,7 @@ void BloomEffect::initBlur(JUTTexture* pTexture, u32 param2, f32 intensity) cons
         GXSetTevColorOp(GXTevStageID(i), GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
         GXSetTevAlphaIn(GXTevStageID(i), GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
         GXSetTevAlphaOp(GXTevStageID(i), GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_FALSE, GX_TEVPREV);
+        GXSetTevKAlphaSel(GXTevStageID(i), GX_TEV_KASEL_1);
     }
 
     GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
@@ -321,3 +327,5 @@ void BloomEffect::drawBlur(s32 divisions, s32 tile, Mtx* pMtx, u32 stageCount, u
         }
     }
 }
+
+

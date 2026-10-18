@@ -33,7 +33,6 @@ namespace UnnamedDemoCallee {
     LiveActor* fn_8013FD90(LiveActor*, const char*, const char*, const char*, s32);
     LiveActor* fn_8013FE00(LiveActor*, const char*, const char*);
     void fn_8013FE60(s32);
-    void* fn_80051080();
     s32 fn_8004E770(const char*, const char*);
     s32 fn_80492640(NameObj*);
     s32 fn_804926A0(NameObj*);

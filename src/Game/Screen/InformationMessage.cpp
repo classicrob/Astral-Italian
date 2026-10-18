@@ -39,15 +39,31 @@ void InformationMessage::init(const JMapInfoIter& rIter) {
 }
 
 const char* InformationMessage::getInfConfirmName() const {
-    if (mWindowType == 0) {
-        return "InfConfirmU";
-    }
+    if (mWindowType == 0) return "InfConfirmU";
+    if (mWindowType == 1) return "InfConfirmC";
+    const char* pane = "InfConfirmC";
+    if (mWindowType == 2) pane = "InfConfirmD";
+    return pane;
+}
 
-    if (mWindowType == 2) {
-        return "InfConfirmD";
-    }
+void InformationMessage::movement() {
+    LayoutActor::movement();
+    if (!mIsCenter) mAButtonIcon->movement();
+}
 
-    return "InfConfirmC";
+void InformationMessage::calcAnim() {
+    LayoutActor::calcAnim();
+    if (!mIsCenter) mAButtonIcon->calcAnim();
+}
+
+void InformationMessage::draw() const {
+    LayoutActor::draw();
+    if (!mIsCenter) mAButtonIcon->draw();
+}
+
+void InformationMessage::kill() {
+    mAButtonIcon->kill();
+    LayoutActor::kill();
 }
 
 void InformationMessage::appear() {
@@ -73,10 +89,18 @@ void InformationMessage::appear() {
     LayoutActor::appear();
 }
 
-void InformationMessage::appearWithButtonLayout() {
+void InformationMessage::setAButtonPos() {
     appear();
-    mAButtonIcon->setFollowActorPane(this, mIsCenter ? "AButtonPosC" : "AButtonPosU");
+    const char* pane;
+    if (mWindowType == 0) pane = "AButtonPosU";
+    else if (mWindowType == 1) pane = "AButtonPosC";
+    else {
+        pane = "AButtonPosC";
+        if (mWindowType == 2) pane = "AButtonPosD";
+    }
+    mAButtonIcon->setFollowActorPane(this, pane);
     mAButtonIcon->openWithoutMessage();
+    _35 = true;
     MR::requestMovementOn(mAButtonIcon);
 }
 

@@ -5,32 +5,52 @@
 #include "Game/NPC/MeisterDemoGrandStarReturn.hpp"
 #include "Game/NPC/MeisterDemoSimple.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/Util/NerveUtil.hpp"
 #include "Game/Util.hpp"
 extern "C" {
 extern char lbl_806BA2A0[], lbl_806BA0D0[], lbl_806BA2AC[], lbl_806BA2BC[], lbl_806BA2B4[];
-extern s32 lbl_807D49B8, lbl_807D49C4, lbl_807D49C8;
 }
-#define RAW(T, o) (*(T*)((u8*)this + (o)))
+namespace NrvMeister {
+class MeisterNrvDemo : public Nerve {
+public:
+    virtual void execute(Spine* spine) const { static_cast<Meister*>(spine->mExecutor)->mDemoState->updateNerve(); }
+    static MeisterNrvDemo sInstance;
+};
+MeisterNrvDemo MeisterNrvDemo::sInstance;
+NEW_NERVE(MeisterNrvWait, Meister, Wait);
+NEW_NERVE(MeisterNrvTalk, Meister, Talk);
+class MeisterNrvTalkWait : public Nerve {
+public:
+    virtual void execute(Spine* spine) const {
+        Meister* host=static_cast<Meister*>(spine->mExecutor);
+        if(MR::isFirstStep(host)) MR::startAction(host,"Talk");
+    }
+    static MeisterNrvTalkWait sInstance;
+};
+MeisterNrvTalkWait MeisterNrvTalkWait::sInstance;
+NEW_NERVE(MeisterNrvReaction, Meister, Reaction);
+}
+TVec3f gMeisterTalkOffset(0.0f,250.0f,0.0f);
 Meister::Meister(const char* name) : NPCActor(name), _164(0), mDemoState(0) {}
 Meister::~Meister() {}
 void Meister::makeActorAppeared() { NPCActor::makeActorAppeared(); MR::emitEffect(this, lbl_806BA2A0); }
 void Meister::makeActorDead() { MR::forceDeleteEffect(this, lbl_806BA2A0); NPCActor::makeActorDead(); }
-void Meister::startDemoState(NerveExecutor* state) { mDemoState = state; pushNerve(reinterpret_cast<Nerve*>(&lbl_807D49B8)); }
-void Meister::startWait() { setNerve(reinterpret_cast<Nerve*>(&lbl_807D49C4)); }
-void Meister::resetPose() { setInitPose(); setNerve(RAW(Nerve*, 0x154)); }
+void Meister::startDemoState(NerveExecutor* state) { mDemoState = state; pushNerve(&NrvMeister::MeisterNrvDemo::sInstance); }
+void Meister::startWait() { setNerve(&NrvMeister::MeisterNrvTalkWait::sInstance); }
+void Meister::resetPose() { setInitPose(); setNerve(mWaitNerve); }
 void Meister::endDemoState() { mDemoState = 0; popNerve(); }
 void Meister::exeWait() {
     if (!tryReaction()) {
         updateTalkDistance();
-        RAW(TalkMessageCtrl*, 0x94) = mTalkControl->getTalkCtrl();
-        if (!MR::isDemoActive() && MR::tryTalkNearPlayerAndStartTalkAction(this)) setNerve(RAW(Nerve*, 0x158));
+        mMsgCtrl = mTalkControl->getTalkCtrl();
+        if (!MR::isDemoActive() && MR::tryTalkNearPlayerAndStartTalkAction(this)) setNerve(mTalkNerve);
     }
 }
 void Meister::exeTalk() {
     if (!tryReaction()) {
-        if (MR::tryChangeTalkActionRandom(this, lbl_806BA0D0, lbl_806BA2AC, 0)) MR::startAction(this, RAW(const char*, 0x108));
-        RAW(TalkMessageCtrl*, 0x94) = mTalkControl->getTalkCtrl();
-        if (MR::tryTalkNearPlayerAtEndAndStartMoveTalkAction(this)) { mTalkControl->nextTalk(); setNerve(RAW(Nerve*, 0x154)); }
+        if (MR::tryChangeTalkActionRandom(this, lbl_806BA0D0, lbl_806BA2AC, 0)) MR::startAction(this, mParam._1C);
+        mMsgCtrl = mTalkControl->getTalkCtrl();
+        if (MR::tryTalkNearPlayerAtEndAndStartMoveTalkAction(this)) { mTalkControl->nextTalk(); setNerve(mWaitNerve); }
     }
 }
 void Meister::exeReaction() {
@@ -40,8 +60,8 @@ void Meister::exeReaction() {
 }
 void Meister::control() { NPCActor::control(); _164 = 0; }
 bool Meister::tryReaction() {
-    if (_164) { pushNerve(reinterpret_cast<Nerve*>(&lbl_807D49C8)); return true; }
-    return MR::tryStartReactionAndPushNerve(this, RAW(Nerve*, 0x15C));
+    if (_164) { pushNerve(&NrvMeister::MeisterNrvReaction::sInstance); return true; }
+    return MR::tryStartReactionAndPushNerve(this, mReactionNerve);
 }
 bool Meister::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {
     if (MR::isMsgStarPieceReflect(msg)) return false;
@@ -49,7 +69,7 @@ bool Meister::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* rece
     return NPCActor::receiveMsgPlayerAttack(msg, sender, receiver);
 }
 
-extern "C" { extern char lbl_806BA0C0[], lbl_806B7AEC[], lbl_806B7AE0[], lbl_806B7AD4[]; extern s32 lbl_807D49BC, lbl_807D49C0;  }
+extern "C" { extern char lbl_806BA0C0[], lbl_806B7AEC[], lbl_806B7AE0[], lbl_806B7AD4[];  }
 // NONMATCHING: remaining register allocation and string-base instruction scheduling differ.
 void Meister::init(const JMapInfoIter& iter) {
     const char* strings = lbl_806BA0C0;
@@ -57,17 +77,17 @@ void Meister::init(const JMapInfoIter& iter) {
     caps.setDefault();
     if (MR::isExistMessageId(iter)) caps.mMessage = true;
     else caps.mMessage = false;
-    caps.mWaitNerve = reinterpret_cast<Nerve*>(&lbl_807D49BC);
-    caps.mTalkNerve = reinterpret_cast<Nerve*>(&lbl_807D49C0);
-    RAW(const char*, 0x100) = strings + 8;
-    RAW(const char*, 0x104) = strings + 8;
-    RAW(const char*, 0x108) = strings + 0x10;
-    RAW(const char*, 0x10C) = strings + 0x10;
-    RAW(f32, 0xF4) = 0.7f;
-    RAW(const char*, 0x134) = lbl_806B7AEC;
-    RAW(const char*, 0x138) = lbl_806B7AE0;
-    RAW(const char*, 0x13C) = lbl_806B7AD4;
-    RAW(const char*, 0x140) = strings + 0x18;
+    caps.mWaitNerve = &NrvMeister::MeisterNrvWait::sInstance;
+    caps.mTalkNerve = &NrvMeister::MeisterNrvTalk::sInstance;
+    mParam._14 = strings + 8;
+    mParam._18 = strings + 8;
+    mParam._1C = strings + 0x10;
+    mParam._20 = strings + 0x10;
+    mParam._8 = 0.7f;
+    _130 = lbl_806B7AEC;
+    _134 = lbl_806B7AE0;
+    _138 = lbl_806B7AD4;
+    _13C = strings + 0x18;
     initialize(iter, caps, caps._0, 0, strings + 0x20);
     MR::onCalcGravity(this);
     MR::tryRegisterDemoCast(this, strings + 0x2C, iter);
@@ -96,7 +116,7 @@ void Meister::init(const JMapInfoIter& iter) {
         if (useSwitch) { MR::registerMeisterToAttentionConversation(this, iter); MR::registerMeisterToNormalConversation(this, iter); }
     }
     mTalkControl = new MeisterTalkHolder(this, iter, gMeisterTalkOffset);
-    RAW(TalkMessageCtrl*, 0x94) = mTalkControl->getTalkCtrl();
+    mMsgCtrl = mTalkControl->getTalkCtrl();
 }
 
 void Meister::updateTalkDistance() {
@@ -108,7 +128,7 @@ void Meister::updateTalkDistance() {
     _A0.getYDir(up);
     MR::normalizeOrZero(&dir, *MR::getPlayerPos() - mPosition);
     PSVECCrossProduct(&front, &dir, &cross);
-    RAW(f32, 0xF4) = MR::getInterpolateValue(MR::abs(cross.dot(up)), 0.7f, 2.0f);
+    mParam._8 = MR::getInterpolateValue(MR::abs(cross.dot(up)), 0.7f, 2.0f);
 }
 
 const TVec3f& Meister::getTalkOffset() const { return gMeisterTalkOffset; }

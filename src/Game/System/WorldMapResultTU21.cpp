@@ -1,11 +1,7 @@
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 
-/// Layout of the tico-route confirm screen (0x3C bytes).
-class GalaxyConfirmLayout : public LayoutActor {
-public:
-    GalaxyConfirmLayout(s32);
-};
+#include "Game/Screen/GalaxyConfirmLayout.hpp"
 
 extern "C" {
     void fn_804F8380(WorldMapResultCommand*, const char*);
@@ -19,8 +15,6 @@ extern "C" {
     void fn_804E7170(void*);
     LiveActor* fn_804E8470(WorldMapResultCommand*);
     TVec3f* fn_804E8510(WorldMapResultCommand*);
-    bool fn_8046F870(GalaxyConfirmLayout*);
-    bool fn_8046F8D0(GalaxyConfirmLayout*);
     void fn_804F4CB0(s32);
 }
 
@@ -132,9 +126,9 @@ void WorldMapResultStateTicoRouteCreate::exeWait() {
         mLayout->endMovement();
     }
 
-    if (fn_8046F870(mLayout) && fn_8046F8D0(mLayout)) {
+    if (mLayout->isSelectionComplete() && mLayout->isSelectedYes()) {
         setNerve(GET_NERVE(WorldMapResultStateTicoRouteCreate, WorldMapResultStateTicoRouteCreateReturn));
-    } else if (fn_8046F870(mLayout) && !fn_8046F8D0(mLayout)) {
+    } else if (mLayout->isSelectionComplete() && !mLayout->isSelectedYes()) {
         setNerve(GET_NERVE(WorldMapResultStateTicoRouteCreate, WorldMapResultStateTicoRouteCreateZoomOut));
     }
 }

@@ -24,3 +24,8 @@ namespace GameSceneFunction {
 };  // namespace GameSceneFunction
 
 namespace GameSceneFunction { bool isExecSuperDreamerTalk(); }
+
+namespace GameSceneFunction {
+    void requestStartSuperDreamerTalk();
+    void requestEndSuperDreamerTalk();
+}

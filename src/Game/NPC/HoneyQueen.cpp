@@ -1,3 +1,4 @@
+// NONMATCHING: independent init stores and literal aliases.
 #include "Game/NPC/HoneyQueen.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
@@ -26,7 +27,7 @@ namespace NrvHoneyQueen {
 };  // namespace NrvHoneyQueen
 
 HoneyQueen::HoneyQueen(const char* pName) : NPCActor(pName) {
-    _164 = 0;
+    mWing = nullptr;
     for (s32 i = 0; i < 10; i++) {
         mCollisionParts[i] = nullptr;
     }
@@ -43,6 +44,7 @@ void HoneyQueen::init(const JMapInfoIter& rIter) {
     caps.mSensorJoint = "Center";
     caps.mMakeActor = 0;
     caps.mSensorMax = 2;
+    caps._95=false;
     MR::initUseStageSwitchWriteA(this, rIter);
     initialize(rIter, caps, nullptr, nullptr, nullptr);
 
@@ -70,6 +72,7 @@ void HoneyQueen::init(const JMapInfoIter& rIter) {
     MR::excludeCalcShadowToActorAll(this, this);
 
     mWing = MR::createModelObjNpc("羽", "HoneyQueenWing", MR::getJointMtx(this, "Center"));
+    mWing->makeActorAppeared();
     MR::startAction(mWing, "HoneyQueenWing");
 
     for (s32 i = 0; i < ARRAY_SIZE(mCollisionParts); i++) {
@@ -87,19 +90,18 @@ void HoneyQueen::init(const JMapInfoIter& rIter) {
     MR::initFur(mLodCtrl->mMiddleModel);
     MR::initFur(mLodCtrl->mLowModel);
 
-    makeActorAppeared();
 }
 
 void HoneyQueen::control() {
     NPCActor::control();
-    MR::startActionSound(this, "SmLvHoneyqueenFly");
+    MR::startActionSound(this, "Fly");
 }
 
 void HoneyQueen::calcAnim() {
     LiveActor::calcAnim();
 
     for (s32 i = 0; i < ARRAY_SIZE(mCollisionParts); i++) {
-        mCollisionParts[i]->setMtx();
+        if(mCollisionParts[i]) mCollisionParts[i]->setMtx();
     }
 }
 

@@ -1,3 +1,4 @@
+// NONMATCHING: NPCActorItem constructor outlining and literal aliases.
 #include "Game/NPC/HoneyBee.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LodCtrl.hpp"
@@ -27,10 +28,7 @@ namespace NrvHoneyBee {
     NEW_NERVE(HoneyBeeNrvWait, HoneyBee, Wait);
     NEW_NERVE(HoneyBeeNrvReaction, HoneyBee, Reaction);
     NEW_NERVE(HoneyBeeNrvFly, HoneyBee, Fly);
-    NEW_NERVE(HoneyBeeNrvDropLecture, HoneyBee, DropLecture);
     NEW_NERVE(HoneyBeeNrvJumpLecture, HoneyBee, JumpLecture);
-    NEW_NERVE(HoneyBeeNrvFlyLectureA, HoneyBee, FlyLectureA);
-    NEW_NERVE(HoneyBeeNrvFlyLectureB, HoneyBee, FlyLectureB);
 };  // namespace NrvHoneyBee
 
 HoneyBee::HoneyBee(const char* pName) : NPCActor(pName), _15C(-1), mArg0(), _1A0() {
@@ -52,87 +50,29 @@ void HoneyBee::makeArchiveList(NameObjArchiveListCollector* pCollector, const JM
 }
 
 void HoneyBee::init(const JMapInfoIter& rIter) {
-    f32 radius;
-    NPCActorCaps caps = "HoneyBee";
+    NPCActorCaps caps("HoneyBee");
     caps.setDefault();
-    caps.mBinder = false;
-    caps._6C = "Center";
-    caps.mSensorJoint = "Center";
-    caps.mSensorSize = 70.0f;
-    caps.mSensorOffset.x = 0.0f;
-    caps.mSensorOffset.y = -20.0f;
-    caps.mSensorOffset.z = 0.0f;
-    caps.mWaitNerve = GET_NERVE(HoneyBee, HoneyBeeNrvWait);
-    caps._70 = "Center";
-
-    s32 arg0 = 0;
-    MR::getJMapInfoArg0NoInit(rIter, &arg0);
-    mArg0 = arg0;
-
+    caps._70="Center";
+    caps.mWaitNerve=GET_NERVE(HoneyBee,HoneyBeeNrvWait);
+    caps.mReactionNerve=GET_NERVE(HoneyBee,HoneyBeeNrvReaction);
+    s32 action=0;
+    MR::getJMapInfoArg0NoInit(rIter,&action);
+    mArg0=action;
     setDefaultsParam();
-    _128 = 0;
-    _12C = 450.0f;
-
-    switch (mArg0) {
-    case InitAction_Wait:
-        _128 = 1;
-        break;
-    case InitAction_JumpLecture:
-        caps.mWaitNerve = GET_NERVE(HoneyBee, HoneyBeeNrvJumpLecture);
-        break;
-    case InitAction_Fly:
-        caps.mWaitNerve = GET_NERVE(HoneyBee, HoneyBeeNrvFly);
-        break;
-    case InitAction_Sleep:
-        mParam.setNoTurnAction("SleepWait");
-        break;
-    case InitAction_Stick:
-        mParam.setNoTurnAction("StickWait");
-        break;
-    case InitAction_Gatekeeper:
-        mParam.setSingleAction("GatekeeperWait");
-        _128 = 1;
-        break;
-    case InitAction_DropLecture:
-        caps.mWaitNerve = GET_NERVE(HoneyBee, HoneyBeeNrvDropLecture);
-        break;
-    case InitAction_Flustered:
-        mParam.setSingleAction("Flustered");
-        _128 = 1;
-        break;
-    case InitAction_FlyLectureA:
-        caps.mWaitNerve = GET_NERVE(HoneyBee, HoneyBeeNrvFlyLectureA);
-        caps.mTalkMtx = _160;
-        caps.mMessageOffset.zero();
-        break;
-    case InitAction_FlyLectureB:
-        caps.mWaitNerve = GET_NERVE(HoneyBee, HoneyBeeNrvFlyLectureB);
-        caps.mTalkMtx = _160;
-        caps.mMessageOffset.zero();
-        break;
-    default:
-        break;
+    _128=false;
+    _12C=450.0f;
+    switch(mArg0) {
+    case 0: case 6: case 7: case 8: case 9: _128=true; break;
+    case 1: caps.mWaitNerve=GET_NERVE(HoneyBee,HoneyBeeNrvJumpLecture); break;
+    case 2: caps.mWaitNerve=GET_NERVE(HoneyBee,HoneyBeeNrvFly); break;
+    case 3: mParam.setNoTurnAction("SleepWait"); break;
+    case 4: mParam.setNoTurnAction("StickWait"); break;
+    case 5: mParam.setSingleAction("GatekeeperWait"); _128=true; break;
     }
-
-    initialize(rIter, caps, "HoneyBee", nullptr, nullptr);
-    NPCActorItem item = ("HoneyBee");
-
-    switch (mArg0) {
-    case InitAction_FlyLectureA:
-    case InitAction_FlyLectureB:
-        radius = 0.0f;
-        _160.set(getBaseMtx());
-        MR::extractMtxTrans(_160, &_190);
-        MR::calcModelBoundingRadius(&radius, this);
-        MR::setShadowDropPositionAtJoint(this, nullptr, "Center", TVec3f(0.0f, 0.0f, 0.0f));
-        MR::onCalcShadow(this, nullptr);
-        MR::setClippingTypeSphere(this, radius, &_190);
-        mLodCtrl->invalidate();
-        break;
-    }
-
-    MR::getNPCItemData(&item, mArg0);
-    NPCActor::equipment(item, false);
+    initialize(rIter,caps,"HoneyBee",nullptr,nullptr);
+    NPCActorItem item("HoneyBee");
+    MR::getNPCItemData(&item,mArg0);
+    equipment(item,false);
     MR::initFur(this);
     MR::initFur(mLodCtrl->mMiddleModel);
     MR::initFur(mLodCtrl->mLowModel);
@@ -212,23 +152,7 @@ void HoneyBee::exeFly() {
     }
 }
 
-void HoneyBee::exeDropLecture() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Wait");
-    }
 
-    if (MR::isBckPlaying(this, "Wait")) {
-        if (mMsgCtrl && MR::tryTalkNearPlayer(mMsgCtrl)) {
-            NPCActor::turnToPlayer();
-        }
-
-        if (MR::isGreaterStep(this, ::sHipLectureWaitStep)) {
-            MR::startAction(this, "HipDropWait");
-        }
-    } else if (MR::isBckLooped(this)) {
-        setNerve(GET_NERVE(HoneyBee, HoneyBeeNrvDropLecture));
-    }
-}
 
 void HoneyBee::exeJumpLecture() {
     if (MR::isFirstStep(this)) {
@@ -241,29 +165,15 @@ void HoneyBee::exeJumpLecture() {
         }
 
         if (MR::isGreaterStep(this, ::sFlyLectureWaitStep)) {
+            MR::invalidateClipping(this);
             MR::startAction(this, "FlyLectureWait");
         }
     } else if (MR::isBckLooped(this)) {
+        MR::validateClipping(this);
         setNerve(GET_NERVE(HoneyBee, HoneyBeeNrvJumpLecture));
     }
 }
 
-void HoneyBee::exeFlyLectureA() {
-    if (MR::isFirstStep(this)) {
-        MR::onCalcShadow(this, nullptr);
-        MR::startAction(this, "FlyLectureA");
-    }
 
-    MR::startActionSound(this, "SmLvHoneybeeFlySoft");
-    MR::tryTalkNearPlayer(mMsgCtrl);
-}
 
-void HoneyBee::exeFlyLectureB() {
-    if (MR::isFirstStep(this)) {
-        MR::onCalcShadow(this, nullptr);
-        MR::startAction(this, "FlyLectureB");
-    }
 
-    MR::startActionSound(this, "SmLvHoneybeeFlySoft");
-    MR::tryTalkNearPlayer(mMsgCtrl);
-}

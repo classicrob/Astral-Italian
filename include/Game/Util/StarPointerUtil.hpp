@@ -126,6 +126,8 @@ namespace MR {
 };  // namespace MR
 
 namespace StarPointerUtil {
+    void addStarPointerMovePosition(const char*, TVec2f*, const TVec2f&);
+    void setStarPointerMovePosition(const char*, TVec2f*);
     void setConnectionMovePositionDown2Way(const char*, const char*);
     void setDefaultAllMovePosition(const char*);
     TVec2f* getDefaultButtonOffsetVec2();
@@ -144,3 +146,8 @@ namespace MR {
 }
 
 namespace MR { const TVec3f& getStarPointerTargetOffset(const LiveActor*); }
+
+namespace MR {
+    bool isValidStarPointerTarget(const LiveActor*);
+    MtxPtr getStarPointerTargetMtx(const LiveActor*);
+}

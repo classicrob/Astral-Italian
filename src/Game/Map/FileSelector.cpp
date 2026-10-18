@@ -49,7 +49,6 @@ namespace StarPointerUtil {
     void sub_8005E790(LayoutActor*);
     void sub_8005E940(LayoutActor*);
     TVec2f* getDefaultButtonOffsetVec2();
-    void addStarPointerMovePosition(const char*, TVec3f*, const TVec3f&);
     void addStarPointerMovePositionFromPane(LayoutActor*, const char*, TVec2f*);
     void setStarPointerMovePosition(const char*, TVec2f*);
     void setConnectionMovePositionRight2Way(const char*, const char*);
@@ -901,8 +900,7 @@ void FileSelector::updatePointingGuidance() {
             size.y = 0.0f;
             pos.x = 0.0f;
             pos.y = 0.0f;
-            StarPointerUtil::addStarPointerMovePosition(pActor->mName, reinterpret_cast< TVec3f* >(&pos),
-                                                        *reinterpret_cast< const TVec3f* >(&size));
+            StarPointerUtil::addStarPointerMovePosition(pActor->mName, &pos, size);
         }
 
         LiveActor* pActor;

@@ -50,6 +50,8 @@ public:
     void startFingerPointer();
     void startStarPointer();
     void startStarPointerNozzle();
+    void startYoshiPointer();
+    void startYoshiPointerNoBlur();
     void setGameSceneCameraMtx();
     StarPointerController* getStarPointerController(s32 channel) const;
     StarPointerLayout* getStarPointerLayout(s32 channel) const;

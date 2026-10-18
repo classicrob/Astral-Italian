@@ -3,6 +3,8 @@
 #include "Game/NPC/TalkMessageCtrl.hpp"
 #include "Game/NPC/TalkMessageInfo.hpp"
 
+class MessageData;
+
 class TalkMessageHistory {
 public:
     void entry(u16);
@@ -14,14 +16,15 @@ public:
 
 class TalkNode {
 public:
-    /* 0x0 */ u8 mNodeType;
-    /* 0x1 */ u8 mGroupID;
-    /* 0x2 */ u16 mIndex;
+    /* 0x0 */ u16 mNodeType;
+    /* 0x2 */ u16 mGroupID;
+    /* 0x4 */ u16 mEventType;
+    /* 0x6 */ u16 mIndex;
     union {
-        /* 0x4 */ u32 mUnknown;
+        /* 0x8 */ u32 mUnknown;
         struct {
-            /* 0x4 */ u16 mNextIdx;
-            /* 0x6 */ u16 mNextGroup;
+            /* 0x8 */ u16 mNextIdx;
+            /* 0xA */ u16 mNextGroup;
         };
     };
 };
@@ -50,6 +53,7 @@ public:
     bool isExistNextNode() const;
     bool isNextNodeMessage() const;
     bool isCurrentNodeEvent() const;
+    bool isForwardNode() const;
     TalkNode* getNextNode() const;
     TalkNode* getNextNodeBranch() const;
     TalkNode* getCurrentNodeBranch() const;
@@ -61,14 +65,15 @@ public:
     const wchar_t* getSubMessage() const;
     void forwardCurrentBranchNode(bool);
     bool createFlowNode(TalkMessageCtrl*, const JMapInfoIter&, const char*, ActorCameraInfo**);
-    void initNodeRecursive(TalkMessageCtrl*, const JMapInfoIter&, ActorCameraInfo*, RecursiveHelper*);
+    void initNodeRecursive(TalkMessageCtrl*, const JMapInfoIter&, ActorCameraInfo*, RecursiveHelper*, s32*, s32*);
 
-    /* 0x00 */ char* _0;
-    /* 0x04 */ s32 mCurrentNodeIdx;  // SMG2 passes this slot to setupAlreadyDoneFlag as a name (layout differs)
-    /* 0x08 */ TalkMessageInfo mMessageInfo;
-    /* 0x14 */ TalkMessageHistory mHistory;
-    /* 0x38 */ TalkNode* _38;
-    /* 0x3C */ TalkNode* mCurrentNode;
-    /* 0x40 */ TalkNode* mFlowNode;
-    /* 0x44 */ s16 mNodeData;
+    /* 0x00 */ MessageData* _0;
+    /* 0x04 */ char* mMessageName;
+    /* 0x08 */ s32 mCurrentNodeIdx;
+    /* 0x0C */ TalkMessageInfo mMessageInfo;
+    /* 0x18 */ TalkMessageHistory mHistory;
+    /* 0x3C */ TalkNode* _38;
+    /* 0x40 */ TalkNode* mCurrentNode;
+    /* 0x44 */ TalkNode* mFlowNode;
+    /* 0x48 */ s16 mNodeData;
 };

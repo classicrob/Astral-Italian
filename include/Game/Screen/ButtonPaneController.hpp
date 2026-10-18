@@ -4,6 +4,7 @@
 
 class LayoutActor;
 class Nerve;
+class J3DFrameCtrl;
 
 class ButtonPaneController : public NerveExecutor {
 public:
@@ -18,6 +19,7 @@ public:
     void appear();
     void disappear();
     bool trySelect();
+    bool trySelectImmediately();
     bool isHidden() const;
     bool isPointing() const;
     bool isPointingTrigger() const;
@@ -48,6 +50,8 @@ public:
     void exeNotPointing();
     void exeDecided();
     void exeDecidedWait();
+    void exeDecidedRepeat();
+    void exeDecidedRepeatWithPad();
     void exeDecidedToDisappear();
     void exeDisappear();
 
@@ -64,13 +68,13 @@ public:
     /* 0x27 */ bool _23;
     /* 0x28 */ bool _24;
     /* 0x29 */ bool _25;
-    /* 0x2C */ s32 _2C;
+    /* 0x2C */ bool (*mRepeatPadTest)();
     /* 0x30 */ const char* mAppearAnimName;
     /* 0x34 */ const char* mWaitAnimName;
     /* 0x38 */ const char* mDecideAnimName;
     /* 0x3C */ const char* mPointingAnimName;
     /* 0x40 */ const char* mNotPointingAnimName;
     /* 0x44 */ const char* mDisappearAnimName;
-    /* 0x48 */ void* _48;
-    /* 0x4C */ void* _4C;
+    /* 0x48 */ const char* mOffAnimName;
+    /* 0x4C */ J3DFrameCtrl* mFrameCtrl;
 };

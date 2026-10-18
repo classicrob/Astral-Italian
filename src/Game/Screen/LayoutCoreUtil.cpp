@@ -1,3 +1,5 @@
+#pragma pool_data off
+
 #include "Game/Screen/LayoutCoreUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Screen/CustomTagProcessor.hpp"
@@ -13,6 +15,7 @@
 #include <nw4r/lyt/pane.h>
 #include <nw4r/lyt/resources.h>
 #include <nw4r/lyt/textBox.h>
+#include <nw4r/ut/TextWriterBase.h>
 #include <revolution/mtx.h>
 
 static const wchar_t sDefaultMsg[] = L"XXXXXXXX";
@@ -50,10 +53,32 @@ namespace LayoutCoreUtil {
         return pUserData;
     }
 
-    u16 setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg) {
+    // NONMATCHING: register allocation and equivalent single/double load of the initial 1.0 scale.
+    void setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg) {
         wchar_t buffer[512];
         ReplaceTagProcessor::Replace(buffer, pMsg);
-        return pTextBox->SetString(buffer, 0, MR::getStringLengthWithMessageTag(buffer));
+        u16 length = MR::getStringLengthWithMessageTag(buffer);
+        pTextBox->SetString(buffer, 0, length);
+
+        CustomTagProcessor* processor = static_cast<CustomTagProcessor*>(pTextBox->mpTagProcessor);
+        processor->setFontScale(1.0f);
+
+        nw4r::ut::TextWriterBase<wchar_t> writer;
+        writer.SetCursor(0.0f, 0.0f);
+        writer.SetFont(*pTextBox->GetFont());
+        writer.SetFontSize(pTextBox->mFontSize.width, pTextBox->mFontSize.height);
+        writer.SetLineSpace(pTextBox->mLineSpace);
+        writer.SetCharSpace(pTextBox->mCharSpace);
+        writer.SetWidthLimit(nw4r::math::F_MAX);
+        writer.SetTagProcessor(pTextBox->mpTagProcessor);
+
+        f32 width = writer.CalcStringWidth(buffer, length);
+        nw4r::ut::Rect rect = pTextBox->GetTextDrawRect();
+        if (rect.GetWidth() < width) {
+            f32 minScale = getPaneAutoScale(pTextBox);
+            f32 scale = rect.GetWidth() / width;
+            processor->setFontScale(MR::max(scale, minScale));
+        }
     }
 
     void initTextBoxPane(nw4r::lyt::TextBox* pTextBox, const char* pMessageId, u32 allocSize) {
@@ -81,7 +106,7 @@ namespace LayoutCoreUtil {
 
         const wchar_t* message = nullptr;
         if (pMessageId != nullptr) {
-            message = MR::getLayoutMessageDirect(pMessageId);
+            message = MR::getGameMessageDirect(pMessageId);
         }
 
         if (message != nullptr) {
@@ -89,15 +114,7 @@ namespace LayoutCoreUtil {
             setTextBoxMessage(pTextBox, message);
         } else {
             reallocateTextBoxMessage(pTextBox, allocSize - 1);
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
             const wchar_t* message = ::sDefaultMsg;
-#else
-            s32 maxNumChars = pTextBox->mSize.width / pTextBox->mFontSize.width;
-            wchar_t message[] = L"XXXXXXXX";
-
-            s32 end = maxNumChars <= 9 ? maxNumChars : 9;
-            message[end] = L'\0';
-#endif
             setTextBoxMessage(pTextBox, message);
         }
     }
@@ -108,13 +125,15 @@ namespace LayoutCoreUtil {
 };  // namespace LayoutCoreUtil
 
 namespace MR {
+    // NONMATCHING: floating-point register allocation and load ordering.
     void convertScreenPosToLayoutPos(TVec2f* pLayoutPos, const TVec2f& rScreenPos) {
         pLayoutPos->x = rScreenPos.x * 608.0f / MR::getScreenWidth() - 304.0f;
         pLayoutPos->y = -(rScreenPos.y * MR::getScreenHeight() / MR::getScreenHeight() - (MR::getScreenHeight() * 0.5f));
     }
 
+    // NONMATCHING: floating-point register allocation and load ordering.
     void convertLayoutPosToScreenPos(TVec2f* pScreenPos, const TVec2f& rLayoutPos) {
-        pScreenPos->x = rLayoutPos.x * MR::getScreenWidth() / 608.0f + MR::getScreenWidth() * 0.5f;
+        pScreenPos->x = MR::getScreenWidth() * 0.5f + rLayoutPos.x * MR::getScreenWidth() / 608.0f;
         pScreenPos->y = MR::getScreenHeight() * 0.5f + -rLayoutPos.y * MR::getScreenHeight() / MR::getScreenHeight();
     }
 

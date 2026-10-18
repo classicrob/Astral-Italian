@@ -22,7 +22,7 @@ void StarCounter::init(const JMapInfoIter& rIter) {
     MR::createAndAddPaneCtrl(this, "Counter", 1);
 
     mLayoutAppearer = new CounterLayoutAppearer(this, TVec2f(-50.0f, 0.0f));
-    mPaneRumbler = new CountUpPaneRumbler(this, "Counter");
+    mPaneRumbler = new CountUpPaneRumbler(this, "Counter", -1.0f);
 
     MR::connectToSceneLayout(this);
     initNerve(GET_NERVE(StarCounter, StarCounterNrvAppear));

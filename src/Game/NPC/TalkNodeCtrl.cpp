@@ -1,10 +1,13 @@
 #include "Game/NPC/TalkNodeCtrl.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Util/MessageUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NPC/TalkMessageInfo.hpp"
 #include "Game/Screen/MessageTagSkipTagProcessor.hpp"
 #include "Game/System/MessageHolder.hpp"
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
 #include "Game/Util/EventUtil.hpp"
@@ -27,46 +30,38 @@ bool TalkMessageHistory::search(u16 msgID) const {
     return false;
 }
 
-TalkNodeCtrl::TalkNodeCtrl() : _0(), mCurrentNodeIdx(-1), mMessageInfo() {
+TalkNodeCtrl::TalkNodeCtrl() : _0(), mMessageName(), mCurrentNodeIdx(-1), mMessageInfo() {
     mHistory.mCount = 0;
     _38 = nullptr;
     mCurrentNode = nullptr;
+    mFlowNode = nullptr;
     mNodeData = -1;
 }
 
-// Inexplicable 0x130 bytes large stack
-bool TalkNodeCtrl::createFlowNodeDirect(TalkMessageCtrl* pMsgCtrl, const JMapInfoIter& rIter, const char* pName, ActorCameraInfo** pCameraInf) {
-    TalkNode* node = MessageSystem::getSceneMessageData()->findNode(pName);
+bool TalkNodeCtrl::createFlowNodeDirect(TalkMessageCtrl* ctrl, const JMapInfoIter& iter, const char* name, ActorCameraInfo** camera) {
+    if (!_0) {
+        _0 = MessageSystem::getSceneMessageData(name, ctrl->mHostActor->mLinkInfo.mZoneID);
+        if (!MessageSystem::isExistMessage(name, _0)) {
+            _0 = MessageSystem::getSceneMessageData(name, -1);
+        }
+    }
+    TalkNode* node = MessageSystem::findNode(name, _0);
     _38 = node;
     mCurrentNode = node;
     mFlowNode = node;
-    _0 = new char[strlen(pName) + 1];
-    MR::copyString(_0, pName, strlen(pName) + 1);
-
-    if (mCurrentNode == nullptr) {
-        char* name = _0;
-        MessageData* msgData = MessageSystem::getSceneMessageData();
-        msgData->getMessageDirect(&mMessageInfo, name);
-    } else {
-        updateMessage();
-    }
-
-    if (mMessageInfo.isFlowTalk()) {
-        forwardFlowNode();
-        _38 = mCurrentNode;
-        mFlowNode = mCurrentNode;
-    }
-
+    mMessageName = new char[strlen(name) + 1];
+    MR::copyString(mMessageName, name, strlen(name) + 1);
+    if (mCurrentNode) updateMessage();
+    else MessageSystem::getMessageDirect(&mMessageInfo, mMessageName, _0);
+    if (!MR::isValidInfo(iter)) *camera = new ActorCameraInfo(0, ctrl->mHostActor->mLinkInfo.mZoneID);
+    else *camera = new ActorCameraInfo(iter);
     RecursiveHelper helper;
     helper.mIndex = 0;
-
-    if (!MR::isValidInfo(rIter)) {
-        *pCameraInf = new ActorCameraInfo(0, 0);
-    } else {
-        *pCameraInf = new ActorCameraInfo(rIter);
-        initNodeRecursive(pMsgCtrl, rIter, *pCameraInf, &helper);
-    }
-
+    s32 switchA = -1;
+    s32 switchB = -1;
+    initNodeRecursive(ctrl, iter, *camera, &helper, &switchA, &switchB);
+    MR::initTalkStageSwitch(ctrl->mHostActor, iter, switchA, true);
+    MR::initTalkStageSwitch(ctrl->mHostActor, iter, switchB, false);
     resetFlowNode();
     return true;
 }
@@ -99,12 +94,10 @@ void TalkNodeCtrl::forwardFlowNode() {
 
     if (node->mNodeType == 1) {
         u16 idx = node->mNextIdx;
-        MessageData* msg = MessageSystem::getSceneMessageData();
-        mCurrentNode = msg->getNode(idx);
+        mCurrentNode = MessageSystem::getNode(idx, _0);
     } else if (node->mNodeType == 3) {
         u16 idx = node->mIndex;
-        MessageData* msg = MessageSystem::getSceneMessageData();
-        mCurrentNode = msg->getBranchNode(idx);
+        mCurrentNode = MessageSystem::getNode(idx, _0);
     }
 
     updateMessage();
@@ -130,28 +123,14 @@ bool TalkNodeCtrl::isCurrentNodeEvent() const {
 
 TalkNode* TalkNodeCtrl::getNextNode() const {
     TalkNode* node = mCurrentNode;
-    u16 idx;
-
-    if (node == nullptr) {
-        return nullptr;
-    }
-
+    if (!node) return nullptr;
     if (node->mNodeType == 1) {
-        idx = node->mNextIdx;
-        if (idx != 0xFFFF) {
-            return MessageSystem::getSceneMessageData()->getNode(idx);
-        }
+        if (node->mNextIdx != 0xFFFF) return MessageSystem::getNode(node->mNextIdx, _0);
     } else if (node->mNodeType == 3) {
-        idx = node->mIndex;
-        MessageData* msg = MessageSystem::getSceneMessageData();
-
-        if (msg->isValidBranchNode(idx)) {
-            idx = node->mIndex;
-            MessageData* msg = MessageSystem::getSceneMessageData();
-            return msg->getBranchNode(idx);
-        }
+        if (node->mIndex != 0xFFFF) return MessageSystem::getNode(node->mIndex, _0);
+    } else if (node->mNodeType == 4) {
+        if (node->mEventType != 0xFFFF) return MessageSystem::getNode(node->mEventType, _0);
     }
-
     return nullptr;
 }
 
@@ -200,47 +179,29 @@ TalkNode* TalkNodeCtrl::getNextNodeEvent() const {
 }
 
 void TalkNodeCtrl::updateMessage() {
-    u16 idx;
-    u8 groupID;
     TalkNode* cur = mCurrentNode;
-
-    if (cur != nullptr) {
-        if (cur->mNodeType != 1) {
-            mMessageInfo._0 = 0;
-        } else {
-            idx = cur->mIndex;
-            groupID = cur->mGroupID;
-            MessageData* msg = MessageSystem::getSceneMessageData();
-            msg->getMessage(&mMessageInfo, groupID, idx);
-            mCurrentNodeIdx = cur->mIndex;
-
-            TalkNode* nextBranchNode = getNextNodeBranch();
-
-            if (nextBranchNode != nullptr) {
-                mNodeData = nextBranchNode->mIndex;
-            } else {
-                mNodeData = -1;
-            }
-        }
+    if (cur && cur->mNodeType == 4) {
+        mCurrentNode = getNextNode();
+        updateMessage();
+        return;
     }
-
-    if (mMessageInfo.isEventTalk()) {
-        if (mHistory.search(mCurrentNodeIdx)) {
-            mMessageInfo.mTalkType = 0;
-        }
-
-        s8 msgId = mMessageInfo._B;
-
-        if (msgId != -1) {
-            if (MR::isOnMessageAlreadyRead(msgId)) {
-                mMessageInfo.mTalkType = 0;
-            }
-        }
+    if (cur) {
+        if (cur->mNodeType == 1) {
+            MessageSystem::getMessage(&mMessageInfo, cur, _0);
+            mCurrentNodeIdx = cur->mIndex;
+            TalkNode* branch = getNextNodeBranch();
+            if (branch) mNodeData = branch->mIndex;
+            else mNodeData = -1;
+        } else mMessageInfo._0 = nullptr;
+    } else MessageSystem::getMessageDirect(&mMessageInfo, mMessageName, _0);
+    if (mMessageInfo.isAutoEventTalk() && (mHistory.search(mCurrentNodeIdx) ||
+        (mMessageInfo._B != -1 && GameDataFunction::isOnMessageAlreadyRead(mMessageInfo._B)))) {
+        mMessageInfo.mTalkType = 0;
     }
 }
 
 void TalkNodeCtrl::readMessage() {
-    if (mMessageInfo.isEventTalk()) {
+    if (mMessageInfo.isAutoEventTalk()) {
         if (!mHistory.search(mCurrentNodeIdx)) {
             mHistory.entry(mCurrentNodeIdx);
         }
@@ -249,7 +210,7 @@ void TalkNodeCtrl::readMessage() {
     }
 
     if (mMessageInfo._B != -1) {
-        MR::onMessageAlreadyRead(mMessageInfo._B);
+        GameDataFunction::setOnMessageAlreadyRead(mMessageInfo._B);
     }
 }
 
@@ -279,15 +240,8 @@ const wchar_t* TalkNodeCtrl::getSubMessage() const {
 void TalkNodeCtrl::forwardCurrentBranchNode(bool storeCurrent) {
     TalkNode* cur = mCurrentNode;
 
-    if (storeCurrent) {
-        u16 group = cur->mNextGroup;
-        MessageData* msg = MessageSystem::getSceneMessageData();
-        mCurrentNode = msg->getBranchNode(group);
-    } else {
-        u16 group = cur->mNextGroup;
-        MessageData* msg = MessageSystem::getSceneMessageData();
-        mCurrentNode = msg->getBranchNode(group + 1);
-    }
+    if (storeCurrent) mCurrentNode = MessageSystem::getBranchTrueNode(cur, _0);
+    else mCurrentNode = MessageSystem::getBranchFalseNode(cur, _0);
 
     updateMessage();
 }
@@ -300,8 +254,8 @@ bool TalkNodeCtrl::createFlowNode(TalkMessageCtrl* pMsgCtrl, const JMapInfoIter&
     }
 
     char buf[0x100];
-    const char* zoneName = MR::getCurrentPlacementZoneName();
-    snprintf(buf, sizeof(buf), "%s_%s%03d", zoneName, pName, msgID);
+    MR::makeMessageID(buf, sizeof(buf), pName, msgID);
+    _0 = MessageSystem::getSceneMessageData(buf, pMsgCtrl->mHostActor->mLinkInfo.mZoneID);
     return createFlowNodeDirect(pMsgCtrl, rIter, buf, pCameraInf);
 }
 
@@ -315,57 +269,42 @@ bool RecursiveHelper::hasNode(const TalkNode* pNode) const {
     return false;
 }
 
-void TalkNodeCtrl::initNodeRecursive(TalkMessageCtrl* pMsgCtrl, const JMapInfoIter& rIter, ActorCameraInfo* pCameraInf, RecursiveHelper* pHelper) {
-    TalkNode* currentNode = mCurrentNode;
-
-    if (pHelper->hasNode(currentNode)) {
-        return;
-    }
-
-    pHelper->mStack[pHelper->mIndex++] = currentNode;
-
+void TalkNodeCtrl::initNodeRecursive(TalkMessageCtrl* ctrl, const JMapInfoIter& iter, ActorCameraInfo* camera, RecursiveHelper* helper, s32* switchA, s32* switchB) {
+    TalkNode* current = mCurrentNode;
+    if (helper->hasNode(current)) return;
+    helper->mStack[helper->mIndex++] = current;
     if (mMessageInfo.isCameraEvent()) {
-        pCameraInf->mCameraSetID = mMessageInfo.mCameraSetID;
-        MR::initMultiActorCamera(pMsgCtrl->mHostActor, rIter, &pCameraInf, "会話");
+        camera->mCameraSetID = mMessageInfo.mCameraSetID;
+        MR::initMultiActorCamera(ctrl->mHostActor, iter, &camera, "会話");
     }
-
-    TalkNode* nodeEvent = getCurrentNodeEvent();
-    if (nodeEvent != nullptr) {
-        if (nodeEvent->mGroupID == 5) {
-            MR::needStageSwitchWriteA(pMsgCtrl->mHostActor, rIter);
-        } else if (nodeEvent->mGroupID == 6) {
-            MR::needStageSwitchWriteB(pMsgCtrl->mHostActor, rIter);
+    if (getNextNodeBranch() || getCurrentNodeBranch()) {
+        if (getNextNodeBranch()) forwardFlowNode();
+        TalkNode* branch = getCurrentNodeBranch();
+        if (branch) {
+            if (branch->mIndex == 3) { if (*switchA < 0) *switchA = 0; }
+            else if (branch->mIndex == 4 && *switchB < 0) *switchB = 0;
         }
-    }
-
-    TalkNode* nodeBranch = getCurrentNodeBranch();
-    if (nodeBranch != nullptr) {
-        if (nodeBranch->mIndex == 3) {
-            MR::needStageSwitchReadA(pMsgCtrl->mHostActor, rIter);
-        } else if (nodeBranch->mIndex == 4) {
-            MR::needStageSwitchReadB(pMsgCtrl->mHostActor, rIter);
-        }
-    }
-
-    TalkNode* nextNodeBranch = getNextNodeBranch();
-    if (nextNodeBranch != nullptr || getCurrentNodeBranch() != nullptr) {
-        if (getNextNodeBranch() != nullptr) {
-            forwardFlowNode();
-        }
-        TalkNode* rememberNode = mCurrentNode;
         forwardCurrentBranchNode(true);
-        initNodeRecursive(pMsgCtrl, rIter, pCameraInf, pHelper);
-        mCurrentNode = rememberNode;
+        initNodeRecursive(ctrl, iter, camera, helper, switchA, switchB);
+        mCurrentNode = branch;
         forwardCurrentBranchNode(false);
-        initNodeRecursive(pMsgCtrl, rIter, pCameraInf, pHelper);
+        initNodeRecursive(ctrl, iter, camera, helper, switchA, switchB);
         return;
     }
-
-    TalkNode* nextNodeEvent = getNextNodeEvent();
-    if (nextNodeEvent == nullptr && !isNextNodeMessage()) {
-        return;
+    if (getNextNodeEvent() || isNextNodeMessage()) {
+        forwardFlowNode();
+        TalkNode* event = getCurrentNodeEvent();
+        if (event) {
+            if (event->mEventType == 5) *switchA = 1;
+            else if (event->mEventType == 6) *switchB = 1;
+            else if (event->mEventType == 8) *switchA = 1;
+            else if (event->mEventType == 9) *switchB = 1;
+        }
+        initNodeRecursive(ctrl, iter, camera, helper, switchA, switchB);
     }
+}
 
-    forwardFlowNode();
-    initNodeRecursive(pMsgCtrl, rIter, pCameraInf, pHelper);
+bool TalkNodeCtrl::isForwardNode() const {
+    TalkNode* event = getCurrentNodeEvent();
+    return event ? event->mEventType == 3 : false;
 }

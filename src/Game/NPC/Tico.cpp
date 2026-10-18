@@ -59,8 +59,8 @@ namespace {
                                    Color8(0xFF, 0, 0, 0xFF),    Color8(0x78, 0, 0xFF, 0xFF), Color8(0xFF, 0x64, 0x64, 0xFF), Color8(0xFF, 0x80, 0, 0xFF)};
 };  // namespace
 
-extern "C" bool fn_800613B0(TalkMessageCtrl*);
-extern "C" void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*);
+extern "C" bool fn_800613B0(TalkMessageCtrl*); // PLACEHOLDER(astra): inherited fn_800613B0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*); // PLACEHOLDER(astra): inherited fn_800209B0 ABI; resolve when its target signature and canonical owner are verified.
 
 namespace MR {
     bool branchFuncGameProgress(u32);

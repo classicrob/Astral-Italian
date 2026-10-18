@@ -1,3 +1,5 @@
+#include "Game/LiveActor/ActorPoseTQ.hpp"
+#include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Enemy/DanceFlower.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -24,8 +26,6 @@ namespace NrvDanceFlower {
 #define GET_DANCEFLOWER_NERVE(name) (&NrvDanceFlower::name::sInstance)
 
 // Helpers of this unit (unnamed in SMG2 symbols).
-extern "C" ActorPoseTQ* fn_8022CAE0();
-extern "C" LiveActor* fn_800102E0(ActorPoseTQ*, LiveActor*);
 extern "C" void fn_80010600(ActorPoseTQ*, LiveActor*, f32, f32);
 extern "C" void fn_8000A320(LiveActor*);
 extern "C" void fn_8022BA10(LiveActor*);
@@ -86,7 +86,7 @@ static bool isInMoveOrAttackNerves(const LiveActor* pActor) {
 }
 
 DanceFlower::DanceFlower(const char* pName) : LiveActor(pName) {
-    mPose = fn_8022CAE0();
+    mPose = new ActorPoseTQ();
     mRailClip.x = 0.0f;
     mRailClip.y = 0.0f;
     mRailClip.z = 0.0f;
@@ -106,7 +106,8 @@ void DanceFlower::init(const JMapInfoIter& rIter) {
         MR::initAndSetRailClipping(&mRailClip, this, 100.0f, 500.0f);
     }
 
-    MR::addToAttributeGroupSearchTurtle(fn_800102E0(mPose, this));
+    MR::initActorPoseTQ(mPose, this);
+    MR::addToAttributeGroupSearchTurtle(this);
     initNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvWait), 1);
 
     mAnimScaleCtrl = new AnimScaleController(nullptr);
@@ -277,7 +278,7 @@ extern "C" void fn_8017A5B0(LiveActor* pActor, HitSensor* pSender, HitSensor* pR
     TVec3f dir;
     MR::calcVecToTargetPosH(&dir, pActor, *MR::getSensorPos(pSender), nullptr);
     DanceFlower* pFlower = static_cast<DanceFlower*>(pActor);
-    TVec3f* pPoseVec = reinterpret_cast<TVec3f*>(reinterpret_cast<char*>(pFlower->mPose) + 0x10);
+    TVec3f* pPoseVec = &pFlower->mPose->mFront;
     *pPoseVec = dir;
     fn_80012B90(pActor, pSender, pReceiver, 4, pPoseVec, 0.0f, 0.0f);
     fn_80034760(pActor, pSender, pReceiver);
@@ -368,7 +369,7 @@ void DanceFlower::exeAttack() {
     }
     if (MR::isExistRail(this)) {
         bool moved = false;
-        TVec3f dir(*reinterpret_cast<const TVec3f*>(reinterpret_cast<const char*>(mPose) + 0x10));
+        TVec3f dir(mPose->mFront);
         MR::rotateDirectionGravityDegree(this, &dir, 0.0f);
         if (MR::moveCoordAndFollowTransAndCheckPassPointNo(this, 10.0f) >= 0) {
             moved = true;

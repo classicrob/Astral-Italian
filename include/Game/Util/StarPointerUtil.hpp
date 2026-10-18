@@ -126,6 +126,8 @@ namespace MR {
 };  // namespace MR
 
 namespace StarPointerUtil {
+    void setConnectionMovePositionDown2Way(const char*, const char*);
+    void setDefaultAllMovePosition(const char*);
     TVec2f* getDefaultButtonOffsetVec2();
     void setConnectionMovePositionRight(const char*, const char*);
     void refreshMovePositionsFromLayout(LayoutActor*);
@@ -135,4 +137,8 @@ namespace StarPointerUtil {
     void setConnectionMovePositionRight2Way(const char*, const char*);
     void setFirstMovePosition(const char*);
     void setLastMovePosition(const char*);
+}
+
+namespace MR {
+    bool isStarPointerTargetClipped(const LiveActor*);
 }

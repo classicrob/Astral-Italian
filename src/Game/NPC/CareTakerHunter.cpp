@@ -32,10 +32,10 @@ extern s32 lbl_807D48A8;
 #define NRV(sym) (reinterpret_cast< Nerve* >(&(sym)))
 #define RAW(T, this_, off) (*reinterpret_cast< T* >(reinterpret_cast< u8* >(this_) + (off)))
 
-extern "C" void fn_8001AF50(s32, s32);
-extern "C" void fn_80051140();
-extern "C" void** fn_80344770(void*);
-extern "C" f32 fn_80344620(void*, TVec3f*, void*);
+extern "C" void fn_8001AF50(s32, s32); // PLACEHOLDER(astra): inherited fn_8001AF50 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_80051140(); // PLACEHOLDER(astra): inherited fn_80051140 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void** fn_80344770(void*); // PLACEHOLDER(astra): inherited fn_80344770 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" f32 fn_80344620(void*, TVec3f*, void*); // PLACEHOLDER(astra): inherited fn_80344620 ABI; resolve when its target signature and canonical owner are verified.
 
 CareTakerHunter::CareTakerHunter(const char* pName) : NPCActor(pName) {
     mTakeOutStar = NULL;

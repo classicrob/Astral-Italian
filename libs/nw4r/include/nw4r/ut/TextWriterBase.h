@@ -49,6 +49,7 @@ namespace nw4r {
             }
 
             void SetWidthLimit(f32 limit) {
+                NW4R_POINTER_ASSERT_AT(123, this);
                 mWidthLimit = limit;
             }
 

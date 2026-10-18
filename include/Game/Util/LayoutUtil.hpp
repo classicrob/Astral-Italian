@@ -25,6 +25,8 @@ namespace nw4r {
 };  // namespace nw4r
 
 namespace MR {
+    f32 calcNerveEaseOutValue(const LayoutActor*, s32, f32, f32);
+    void startPaneAnimAndSetFrameAndStop(LayoutActor*, const char*, const char*, f32, u32);
     LayoutHolder* createAndAddLayoutHolder(const char*);
     LayoutHolder* createAndAddLayoutHolderRawData(const char*);
     void setTextBoxGameMessageRecursive(LayoutActor*, const char*, const char*);

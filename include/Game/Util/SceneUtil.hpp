@@ -10,6 +10,7 @@ class NameObj;
 class GameSystemSceneController;
 
 namespace MR {
+    bool isStageMarioFaceShipNormal();
     s32 getCurrentScenarioNo();
     s32 getCurrentSelectedScenarioNo();
     void setCurrentScenarioNo(s32, s32);

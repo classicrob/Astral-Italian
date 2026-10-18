@@ -201,3 +201,8 @@ namespace MR {
     f32 calcGravitySpeedAbs(const LiveActor*);
     void calcRotate(LiveActor*, const TVec3f&, f32);
 };  // namespace MR
+
+class ActorPoseTQ;
+namespace MR {
+    void initActorPoseTQ(ActorPoseTQ*, const LiveActor*);
+}

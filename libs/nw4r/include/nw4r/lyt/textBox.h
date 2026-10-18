@@ -39,6 +39,7 @@ namespace nw4r {
             const ut::Rect GetTextDrawRect(ut::TextWriterBase< wchar_t >*) const NO_INLINE;
             void SetTextColor(ut::Color, ut::Color);
             void SetFont(const ut::Font*);
+            const ut::Font* GetFont() const;
             u16 GetStringBufferLength() const;
             u32 MakeDrawFlag() const;
             f32 GetTextMagH() const;

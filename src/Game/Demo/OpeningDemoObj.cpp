@@ -1,3 +1,4 @@
+#include "Game/Util/SoundUtil.hpp"
 #include "Game/Demo/OpeningDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
@@ -168,7 +169,7 @@ void OpeningDemoObj::exeFall() {
     if (MR::isStep(this, 0x64)) {
         UnnamedDemoCallee::fn_800085C0(mLayoutB, lbl_80680628, -1, -1);
     }
-    UnnamedDemoCallee::fn_8005AC70(3, 0x1E);
+    MR::setSeVolumeSetLevel(3, 0x1E);
     if (MR::isAnimStopped(mLayoutB, 0)) {
         setNerve(GET_NERVE(OpeningDemoObj, OpeningDemoObjNrvMain3));
     }

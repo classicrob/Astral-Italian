@@ -15,7 +15,6 @@
 // Unnamed SMG2 helpers: the 2-string ReceiverTagMail ctor, the mail request step, and the
 // vtable-driven resource lookups in exeSend.
 extern "C" ReceiverTagMail* fn_80500820(ReceiverTagMail*, const char*, const char*);
-extern "C" void fn_80500880(ReceiverTagMail*, s32, void*, void*, s32);
 extern "C" void* getMailSourceRes(ResourceHolder*, const char*);
 extern "C" void* createMailData(ResourceHolder*, void*);
 extern "C" void* getResTableRes(ResourceHolder*, const char*);
@@ -32,7 +31,7 @@ WiiMessageBoardMailSenderState::WiiMessageBoardMailSenderState() : NerveExecutor
     mReceiverTagMail = NULL;
     mResourceHolder = NULL;
     mSysInfoWindow = NULL;
-    mMailType = 0;
+    mMessageId = 0;
     mResName = NULL;
     mGameEventFlag = NULL;
 
@@ -51,8 +50,8 @@ WiiMessageBoardMailSenderState::WiiMessageBoardMailSenderState() : NerveExecutor
     initNerve(&NrvWiiMessageBoardMailSenderState::WiiMessageBoardMailSenderStateNrvSend::sInstance, 0);
 }
 
-void WiiMessageBoardMailSenderState::setup(s32 mailType, const char* pResName, const char* pGameEventFlag) {
-    mMailType = mailType;
+void WiiMessageBoardMailSenderState::setup(const char* messageId, const char* pResName, const char* pGameEventFlag) {
+    mMessageId = messageId;
     mResName = pResName;
     mGameEventFlag = pGameEventFlag;
     setNerve(&NrvWiiMessageBoardMailSenderState::WiiMessageBoardMailSenderStateNrvSend::sInstance);
@@ -63,7 +62,7 @@ void WiiMessageBoardMailSenderState::exeSend() {
         void* pSource = getMailSourceRes(mResourceHolder, mResName);
         void* pData = createMailData(mResourceHolder, pSource);
         void* pRes = getResTableRes(mResourceHolder, mResName);
-        fn_80500880(mReceiverTagMail, mMailType, pRes, pData, 0);
+        mReceiverTagMail->send(mMessageId, static_cast<const u8*>(pRes), reinterpret_cast<u32>(pData), false);
     }
 
     mReceiverTagMail->update();
@@ -103,11 +102,11 @@ WiiMessageBoardMailSender::~WiiMessageBoardMailSender() {
 }
 
 namespace MR {
-    // Starts a mail send with the given mail type, resource name, and game event flag.
-    void requestWiiMessageBoardMailSend(s32 mailType, const char* pResName, const char* pGameEventFlag) {
+    // Starts a mail send with the given message ID, resource name, and game event flag.
+    void requestWiiMessageBoardMailSend(const char* messageId, const char* pResName, const char* pGameEventFlag) {
         WiiMessageBoardMailSender* pSender =
             (WiiMessageBoardMailSender*)MR::getSceneObjHolder()->getObj(SceneObj_WiiMessageBoardMailSender);
-        pSender->mState->setup(mailType, pResName, pGameEventFlag);
+        pSender->mState->setup(messageId, pResName, pGameEventFlag);
     }
 
     // Updates the sender state and returns true while it is showing the result.

@@ -129,3 +129,18 @@ namespace MR {
     JAISoundHandle* startEventBGM(s32);
     JAISoundHandle* startAfterBossBGM();
 };  // namespace MR
+
+namespace MR {
+    void setSeVolumeSetLevel(s32, s32);
+    void setSoundField9A4(bool);
+    void stopSeCategories(u32);
+}
+
+namespace MR {
+    void stopAndStartCSSound1P(const char*, s32, const char*, s32, f32);
+    void stopAndStartCSSound2P(const char*, s32, const char*, s32, f32);
+}
+
+namespace MR {
+    void startCSSound2P(const char*, const char*, s32, f32);
+}

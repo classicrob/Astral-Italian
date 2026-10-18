@@ -14,8 +14,8 @@
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
 #include <RVLFaceLib.h>
 
-extern "C" void fn_8004B340(NameObj*);
-extern "C" RFLErrcode fn_8055AEF0(RFLAdditionalInfo*, RFLDataSource, RFLMiddleDB*, u16);
+extern "C" void fn_8004B340(NameObj*); // PLACEHOLDER(astra): inherited fn_8004B340 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" RFLErrcode fn_8055AEF0(RFLAdditionalInfo*, RFLDataSource, RFLMiddleDB*, u16); // PLACEHOLDER(astra): inherited fn_8055AEF0 ABI; resolve when its target signature and canonical owner are verified.
 
 namespace {
     NEW_NERVE(MiiSelectNrvAppear, MiiSelect, Appear);

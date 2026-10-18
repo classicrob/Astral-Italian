@@ -5243,8 +5243,56 @@ Game/NPC/NrvSuperDreamer.cpp:
 	.ctors      start:0x80644740 end:0x80644744
 
 Game/NPC/SupportTico.cpp:
-	.text       start:0x80362380 end:0x803659C0
-	.ctors      start:0x80644744 end:0x80644764
+	.text       start:0x80362380 end:0x803630E0
+	.ctors      start:0x80644744 end:0x80644748
+	.data       start:0x806BD648 end:0x806BD728
+	.sdata      start:0x807CFF30 end:0x807CFF38
+	.sdata2     start:0x807DF4A0 end:0x807DF4C0
+
+Game/NPC/SupportTicoExecutor.cpp:
+	.text       start:0x803630E0 end:0x803637A0
+	.ctors      start:0x80644748 end:0x8064474C
+	.data       start:0x806BD728 end:0x806BD828
+
+Game/NPC/SupportTicoStateBack.cpp:
+	.text       start:0x803637A0 end:0x80363C20
+	.ctors      start:0x8064474C end:0x80644750
+	.data       start:0x806BD828 end:0x806BD898
+	.sdata2     start:0x807DF4C0 end:0x807DF4D0
+
+Game/NPC/SupportTicoStateChase.cpp:
+	.text       start:0x80363C20 end:0x803640A0
+	.ctors      start:0x80644750 end:0x80644754
+	.data       start:0x806BD898 end:0x806BD970
+	.sdata2     start:0x807DF4D0 end:0x807DF4D8
+
+Game/NPC/SupportTicoStateDemoHide.cpp:
+	.text       start:0x803640A0 end:0x803643F0
+	.ctors      start:0x80644754 end:0x80644758
+	.data       start:0x806BD970 end:0x806BD9D8
+
+Game/NPC/SupportTicoStateFollowPlayer.cpp:
+	.text       start:0x803643F0 end:0x80364C70
+	.ctors      start:0x80644758 end:0x8064475C
+	.data       start:0x806BD9D8 end:0x806BDAC8
+	.sdata2     start:0x807DF4D8 end:0x807DF4F0
+
+Game/NPC/SupportTicoStateJump.cpp:
+	.text       start:0x80364C70 end:0x80364F90
+	.ctors      start:0x8064475C end:0x80644760
+	.data       start:0x806BDAC8 end:0x806BDB28
+	.sdata2     start:0x807DF4F0 end:0x807DF508
+
+Game/NPC/SupportTicoStateSpin.cpp:
+	.text       start:0x80364F90 end:0x80365290
+	.ctors      start:0x80644760 end:0x80644764
+	.data       start:0x806BDB28 end:0x806BDBA8
+	.sdata2     start:0x807DF508 end:0x807DF510
+
+Game/NPC/SupportTicoStateFunction.cpp:
+	.text       start:0x80365290 end:0x803659C0
+	.data       start:0x806BDBA8 end:0x806BDC68
+	.sdata2     start:0x807DF510 end:0x807DF520
 
 Game/NPC/Tico.cpp:
 	.text       start:0x803659C0 end:0x803677E0
@@ -5278,6 +5326,10 @@ Game/NPC/TalkMessageFuncM14.cpp:
 Game/NPC/TicoFatStarPiece.cpp:
 	.text       start:0x803695B0 end:0x8036B040
 	.ctors      start:0x80644774 end:0x80644778
+	.rodata     start:0x8064BA78 end:0x8064BA80
+	.data       start:0x806BE6CC end:0x806BE9A8
+	.sdata      start:0x807CFF50 end:0x807CFF5C
+	.sdata2     start:0x807DF5D0 end:0x807DF638
 
 Game/NPC/TicoFatStarPieceTransformation.cpp:
 	.text       start:0x8036B040 end:0x8036B8B0
@@ -5387,13 +5439,15 @@ Game/NPC/TalkDirector.cpp:
 
 Game/NPC/TalkMessageCtrl.cpp:
 	.text       start:0x8037A660 end:0x8037B870
-	.data       start:0x806C051C end:0x806C0548
+	.data       start:0x806C04D4 end:0x806C0548
+	.sdata2     start:0x807DF7F8 end:0x807DF808
 
 Game/NPC/TalkMessageInfo.cpp:
 	.text       start:0x8037B870 end:0x8037B9C0
 
 Game/NPC/TalkNodeCtrl.cpp:
 	.text       start:0x8037BA00 end:0x8037C4B0
+	.data       start:0x806C0548 end:0x806C0550
 
 Game/NPC/TalkState.cpp:
 	.text       start:0x8037C500 end:0x8037D100
@@ -5996,6 +6050,10 @@ Game/Screen/BombTimerLayout.cpp:
 Game/Screen/ButtonPaneController.cpp:
 	.text       start:0x804614E0 end:0x80462600
 	.ctors      start:0x80644898 end:0x8064489C
+	.rodata     start:0x8064C928 end:0x8064C930
+	.data       start:0x806F1B18 end:0x806F1C40
+	.sdata      start:0x807D0190 end:0x807D0198
+	.sdata2     start:0x807E12B8 end:0x807E12C8
 
 Game/Screen/CameraInfo.cpp:
 	.text       start:0x80462600 end:0x80462FB0
@@ -6047,6 +6105,7 @@ Game/Screen/CounterLayoutController.cpp:
 
 Game/Screen/CountUpPaneRumbler.cpp:
 	.text       start:0x80466290 end:0x80466460
+	.sdata2     start:0x807E1308 end:0x807E1318
 
 Game/Screen/CustomTagProcessor.cpp:
 	.text       start:0x80466460 end:0x8046AB40
@@ -6065,6 +6124,9 @@ Game/Screen/DepthOfFieldBlur.cpp:
 Game/Screen/DestroyCounter.cpp:
 	.text       start:0x8046BC20 end:0x8046C210
 	.ctors      start:0x806448BC end:0x806448C0
+	.data       start:0x806F2EB0 end:0x806F2F78
+	.sdata      start:0x807D01B8 end:0x807D01BC
+	.sdata2     start:0x807E1370 end:0x807E1380
 
 Game/Screen/DreamerButtonGuidance.cpp:
 	.text       start:0x8046C210 end:0x8046C670
@@ -6084,9 +6146,10 @@ Game/Screen/NrvErrorMessageWindow.cpp:
 	.text       start:0x8046CE20 end:0x8046CFE0
 
 Game/Screen/FileSelectButton.cpp:
-	.text       start:0x8046CFE0 end:0x8046D7A0
+	.text       start:0x8046CFE0 end:0x8046D820
 	.ctors      start:0x806448CC end:0x806448D0
-	.data       start:0x806F32C0 end:0x806F32F8
+	.data       start:0x806F31B8 end:0x806F3338
+	.sbss       start:0x807D54F8 end:0x807D5508
 
 Game/Screen/FileSelectInfo.cpp:
 	.text       start:0x8046D820 end:0x8046E2C0
@@ -6333,8 +6396,11 @@ Game/Map/PauseBlur.cpp:
 	.text       start:0x80486640 end:0x80486BD0
 
 Game/Screen/PauseMenu.cpp:
-	.text       start:0x80486C40 end:0x80487F80
+	.text       start:0x80486BD0 end:0x80487F80
 	.ctors      start:0x80644934 end:0x80644938
+	.data       start:0x806F5D98 end:0x806F60B8
+	.sdata      start:0x807D0258 end:0x807D0260
+	.sdata2     start:0x807E15B8 end:0x807E15D8
 
 Game/Screen/PlayerActionGuidance.cpp:
 	.text       start:0x80487F80 end:0x80488B90
@@ -6361,6 +6427,9 @@ Game/Screen/PopUpAddTimeAttackTime.cpp:
 
 Game/Screen/PostFog.cpp:
 	.text       start:0x80489B20 end:0x8048A520
+	.rodata     start:0x8064CA98 end:0x8064CAA8
+	.data       start:0x806F64C8 end:0x806F6508
+	.sdata2     start:0x807E1610 end:0x807E1640
 
 Game/Screen/PostManLetter.cpp:
 	.text       start:0x8048A520 end:0x8048B210
@@ -6412,10 +6481,16 @@ Game/Screen/SceneWipeHolder.cpp:
 Game/Screen/ScoreCounterLayout.cpp:
 	.text       start:0x804900F0 end:0x80490890
 	.ctors      start:0x8064495C end:0x80644960
+	.rodata     start:0x8064CB58 end:0x8064CB60
+	.data       start:0x806F7240 end:0x806F7338
+	.sdata      start:0x807D0290 end:0x807D0294
+	.sdata2     start:0x807E16C0 end:0x807E16C8
 
 Game/Screen/ScoreResult.cpp:
 	.text       start:0x80490890 end:0x80490DE0
 	.ctors      start:0x80644960 end:0x80644964
+	.data       start:0x806F7338 end:0x806F73D8
+	.sdata2     start:0x807E16C8 end:0x807E16D8
 
 Game/Screen/ScreenAlphaCapture.cpp:
 	.text       start:0x80490DE0 end:0x804911F0
@@ -6434,17 +6509,24 @@ Game/Screen/SimpleLayout.cpp:
 	.data       start:0x806F74D8 end:0x806F7548
 
 Game/Screen/StaffRoll.cpp:
-	.text       start:0x804920F0 end:0x80492E90
+	.text       start:0x804920F0 end:0x804930F0
 	.ctors      start:0x80644968 end:0x8064496C
-	.data       start:0x806F7648 end:0x806F7680
+	.data       start:0x806F75A8 end:0x806F77B0
+	.sdata      start:0x807D02A8 end:0x807D02B4
+	.sbss       start:0x807D5818 end:0x807D5868
+	.sdata2     start:0x807E1710 end:0x807E1728
 
 Game/Screen/StageResultInformer.cpp:
-	.text       start:0x80494AF0 end:0x80496A40
+	.text       start:0x80494AA0 end:0x80496A40
 	.ctors      start:0x80644974 end:0x80644978
-	.data       start:0x806F7BB0 end:0x806F7BF8
+	.rodata     start:0x8064CBB0 end:0x8064CDA0
+	.data       start:0x806F7960 end:0x806F7BF8
+	.sdata      start:0x807D02D8 end:0x807D02DC
+	.sdata2     start:0x807E1748 end:0x807E1758
 
 Game/Screen/NrvStageResultInformer.cpp:
 	.text       start:0x80496A40 end:0x80496C40
+	.data       start:0x806F7C18 end:0x806F7E18
 
 Game/Screen/NrvStageResultInformer2.cpp:
 	.text       start:0x80496D60 end:0x80496F90

@@ -15,6 +15,7 @@ public:
 #elif (VERSION == RMGK01)
     void send(const u8* pImage, u32 imageSize, bool isLedOn);
 #endif
+    void send(const char* messageId, const u8* image, u32 imageSize, bool backgroundEnabled);
     void update();
     bool isDone() const;
     bool isError() const;

@@ -10,6 +10,8 @@ class TalkMessageCtrl;
 class TalkMessageFuncBase;
 
 namespace MR {
+    void hideBubbleBeak(TalkMessageCtrl*);
+    void showBubbleBeak(TalkMessageCtrl*);
     void initTalkCamera(TalkMessageCtrl*, const JMapInfoIter&);
     class ActorTalkParam {
     public:

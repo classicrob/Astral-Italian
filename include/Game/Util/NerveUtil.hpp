@@ -36,3 +36,12 @@ namespace MR {
     f32 calcNerveEaseInOutValue(const NerveExecutor* pExecutor, s32 stepMin, s32 stepMax, f32 valueStart, f32 valueEnd);
     void setNerveAtStep(NerveExecutor* pExecutor, const Nerve* pNerve, s32 step);
 };  // namespace MR
+
+namespace MR {
+    f32 calcNerveEaseInOutRate(const NerveExecutor*, s32, s32, s32);
+}
+
+namespace MR {
+    f32 calcNerveEaseInValue(const NerveExecutor*, s32, f32, f32);
+    f32 calcNerveRate(const NerveExecutor*, s32, s32);
+}

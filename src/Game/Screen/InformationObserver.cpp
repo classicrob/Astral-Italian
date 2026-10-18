@@ -12,7 +12,7 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-extern "C" bool fn_800210B0();
+extern "C" bool fn_800210B0(); // PLACEHOLDER(astra): inherited fn_800210B0 ABI; resolve when its target signature and canonical owner are verified.
 
 struct InformationObserverAttribute {
     /* 0x00 */ const char* mMessageId;

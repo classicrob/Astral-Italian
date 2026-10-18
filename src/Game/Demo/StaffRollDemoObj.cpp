@@ -1,3 +1,4 @@
+#include "Game/Util/SoundUtil.hpp"
 #include "Game/Demo/StaffRollDemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
@@ -247,7 +248,7 @@ void StaffRollDemoObj::exeF() {
         MR::tryStartDemo(this, lbl_807D98B8);
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvG));
     }
-    UnnamedDemoCallee::fn_8005AC70(0xD, 0);
+    MR::setSeVolumeSetLevel(0xD, 0);
 }
 
 // Nerve G: last step, request the next room.
@@ -256,7 +257,7 @@ void StaffRollDemoObj::exeG() {
         MR::endDemo(this, lbl_807D98B8);
         GameSequenceFunction::requestChangeStageChildRoom();
     }
-    UnnamedDemoCallee::fn_8005AC70(0xD, 0);
+    MR::setSeVolumeSetLevel(0xD, 0);
 }
 
 // Nerve H (custom execute body): when the wait flag clears, end the demo and return to C.

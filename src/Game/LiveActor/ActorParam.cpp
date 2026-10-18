@@ -1,4 +1,5 @@
 #include "Game/LiveActor/ActorParam.hpp"
+#include "Game/LiveActor/ActorPoseTQ.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/ModelManager.hpp"
 #include "Game/System/ResourceHolder.hpp"
@@ -76,15 +77,14 @@ void* getActorParamF32Ptr(const ActorParam* pParam, const char* pName) {
     return (void*)&sDefaultF32;
 }
 
-// Used to reset a 0x1C-byte default parameter block.
-void initActorParamDefault(f32* pParam) {
-    pParam[0] = 0.0f;
-    pParam[1] = 0.0f;
-    pParam[2] = 0.0f;
-    pParam[3] = 1.0f;
-    pParam[4] = 0.0f;
-    pParam[5] = 0.0f;
-    pParam[6] = 1.0f;
+ActorPoseTQ::ActorPoseTQ() {
+    x = 0.0f;
+    y = 0.0f;
+    z = 0.0f;
+    w = 1.0f;
+    mFront.x = 0.0f;
+    mFront.y = 0.0f;
+    mFront.z = 1.0f;
 }
 
 ActorParam::ActorParam(LiveActor* pActor) : mEntryNum(0), mEntries(NULL) {

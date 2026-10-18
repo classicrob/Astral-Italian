@@ -72,6 +72,7 @@ namespace nw4r {
             };
 
             void SetCursor(f32 x, f32 y) {
+                NW4R_POINTER_ASSERT_AT(249, this);
                 mCursorPos.x = x;
                 mCursorPos.y = y;
             }

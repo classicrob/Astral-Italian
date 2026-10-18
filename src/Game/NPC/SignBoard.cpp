@@ -9,7 +9,7 @@
 #include "Game/Util/NPCUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
-extern "C" void fn_800345E0(LiveActor*, const void*);
+extern "C" void fn_800345E0(LiveActor*, const void*); // PLACEHOLDER(astra): inherited fn_800345E0 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" const u32 lbl_807CFF10;
 
 namespace NrvSignBoard {

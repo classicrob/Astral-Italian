@@ -82,6 +82,14 @@ public:
         /* 0x04 */ u32 mArg;
     };
 
+    static MessageData* getSceneMessageData(const char*, s32);
+    static bool isExistMessage(const char*, const MessageData*);
+    static TalkNode* findNode(const char*, const MessageData*);
+    static TalkNode* getNode(u32, const MessageData*);
+    static bool getMessageDirect(TalkMessageInfo*, const char*, const MessageData*);
+    static bool getMessage(TalkMessageInfo*, const TalkNode*, const MessageData*);
+    static TalkNode* getBranchTrueNode(const TalkNode*, const MessageData*);
+    static TalkNode* getBranchFalseNode(const TalkNode*, const MessageData*);
     static bool getSystemMessageDirect(TalkMessageInfo*, const char*);
     static bool getGameMessageDirect(TalkMessageInfo*, const char*);
     static bool getLayoutMessageDirect(TalkMessageInfo*, const char*);

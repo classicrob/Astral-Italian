@@ -18,7 +18,6 @@ namespace UnnamedDemoCallee {
     void fn_800085C0(LayoutActor*, const char*, s32, s32);
     void fn_80020110(LiveActor*, const char*, s32);
     void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*);
-    void fn_8005AC70(s32, s32);
     void fn_804D64F0();
     s32 fn_80147640();
     s32 fn_801476E0();

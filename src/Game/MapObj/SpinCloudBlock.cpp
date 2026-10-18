@@ -10,10 +10,8 @@ extern "C" {
 void fn_80035690(LiveActor*);
 void fn_800145C0(LiveActor*);
 void fn_800145D0(TVec3f*, TVec3f*);
-void fn_802DEB90(TVec3f*, f32);
 void fn_802DEBE0();
 void fn_80068E40(SpringValue*, f32);
-f32 fn_8003B960(f32, f32, f32);
 f32 fn_8004F300();
 void* fn_8004FEF0();
 s32 fn_800D9830(const TVec3f*, TVec3f*, f32*);
@@ -433,7 +431,7 @@ void SpinCloudBlock::calcWind() {
     f32 windStrength = -1.0f;
     FluffFunction::calcFluffWindInfo(mPosition, &windDir, &windStrength);
     if (windStrength > 0.0f) {
-        f32 k = fn_8003B960(200.0f, 1300.0f, 0.45f);
+        f32 k = MR::getEaseInOutValue(windStrength, 200.0f, 1300.0f, 0.45f, 0.0f);
         TVec3f force(windDir);
         force *= k;
         mSwayVel.add(force);
@@ -498,7 +496,7 @@ void SpinCloudBlockGroup::movement() {
     if (mBlockNum > 0) {
         for (s32 i = 0; i < mBlockNum; i++) {
             TVec3f offset;
-            fn_802DEB90(&offset, 100.0f * (f32) (i + 1));
+            MR::calcPlayerFollowPassPosition(&offset, 100.0f * (f32) (i + 1));
             setAnchorPosOf(mBlocks[i], offset);
         }
         if (mRespawnStep == 0 && fn_8004FEF0() != nullptr) {
@@ -533,7 +531,7 @@ bool SpinCloudBlockGroup::spawnBlocks() {
             return false;
         }
         TVec3f pos;
-        fn_802DEB90(&pos, 60.0f * (f32) (i + 1));
+        MR::calcPlayerFollowPassPosition(&pos, 60.0f * (f32) (i + 1));
         mBlocks[mBlockNum] = pBlock;
         static_cast<SpinCloudBlock*>(pBlock)->spawnAt(pos);
         mBlockNum++;
@@ -580,8 +578,8 @@ namespace MR {
         return getBlockGroup()->mBlockNum == 0;
     }
 
-    f32 getSpinCloudBlockSpinSpeed(s32 sceneObjId) {
-        if (!isExistSceneObj(sceneObjId)) {
+    f32 getSpinCloudBlockSpinSpeed() {
+        if (!isExistSceneObj(SceneObj_SpinCloudBlockGroup)) {
             return 0.0f;
         }
         return getBlockGroup()->mSpinSpeed;

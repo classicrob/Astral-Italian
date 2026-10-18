@@ -33,20 +33,20 @@ extern "C" u32 lbl_807D498C;
 extern "C" s32 lbl_807E3100;
 
 // Helpers of other units (not yet named in this tree).
-extern "C" bool fn_8035AEA0();
-extern "C" NameObj* fn_8035AAA0(KinopioPostman*, s32);
-extern "C" LayoutActor* fn_8035ABB0();
-extern "C" s32 fn_8035ACB0();
-extern "C" bool fn_8035AF00();
-extern "C" LiveActor* fn_8035AC20(const JMapInfoIter&);
-extern "C" void fn_8035AD60(LiveActor*, s32);
-extern "C" s32 fn_8035B100();
-extern "C" bool fn_8035B130();
-extern "C" bool fn_804C24B0();
-extern "C" s32 fn_8048AE10(LayoutActor*);
-extern "C" bool fn_8048AE00(LayoutActor*);
-extern "C" void fn_801392A0(LiveActor*, TalkMessageCtrl*, const char*);
-extern "C" void fn_8004F6D0();
+extern "C" bool fn_8035AEA0(); // PLACEHOLDER(astra): inherited fn_8035AEA0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" NameObj* fn_8035AAA0(KinopioPostman*, s32); // PLACEHOLDER(astra): inherited fn_8035AAA0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" LayoutActor* fn_8035ABB0(); // PLACEHOLDER(astra): inherited fn_8035ABB0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" s32 fn_8035ACB0(); // PLACEHOLDER(astra): inherited fn_8035ACB0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" bool fn_8035AF00(); // PLACEHOLDER(astra): inherited fn_8035AF00 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" LiveActor* fn_8035AC20(const JMapInfoIter&); // PLACEHOLDER(astra): inherited fn_8035AC20 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_8035AD60(LiveActor*, s32); // PLACEHOLDER(astra): inherited fn_8035AD60 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" s32 fn_8035B100(); // PLACEHOLDER(astra): inherited fn_8035B100 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" bool fn_8035B130(); // PLACEHOLDER(astra): inherited fn_8035B130 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" bool fn_804C24B0(); // PLACEHOLDER(astra): inherited fn_804C24B0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" s32 fn_8048AE10(LayoutActor*); // PLACEHOLDER(astra): inherited fn_8048AE10 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" bool fn_8048AE00(LayoutActor*); // PLACEHOLDER(astra): inherited fn_8048AE00 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_801392A0(LiveActor*, TalkMessageCtrl*, const char*); // PLACEHOLDER(astra): inherited fn_801392A0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_8004F6D0(); // PLACEHOLDER(astra): inherited fn_8004F6D0 ABI; resolve when its target signature and canonical owner are verified.
 
 #define KP_STR(ofs) (reinterpret_cast< const char* >(lbl_806B97E0) + (ofs))
 #define KP_NERVE(sym) (reinterpret_cast< const Nerve* >(&sym))

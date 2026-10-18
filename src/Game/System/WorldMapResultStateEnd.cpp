@@ -1,4 +1,5 @@
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/Util/SoundUtil.hpp"
 
 WorldMapResultStateEnd::WorldMapResultStateEnd(WorldMapResultCommand* pHost) : ActorStateBase< WorldMapResultCommand >("State[リザルトマップ終了]", pHost) {
 }
@@ -35,7 +36,7 @@ inline void WorldMapResultStateEnd::exeWait() {
     if (fn_80059100()) {
         setNerve(GET_NERVE(WorldMapResultStateEnd, WorldMapResultStateEndEnd));
     } else {
-        fn_8005AC70(12, 30);
+        MR::setSeVolumeSetLevel(12, 30);
     }
 }
 
@@ -43,7 +44,7 @@ inline void WorldMapResultStateEnd::exeEnd() {
     if (MR::isStep(this, getResultEndStep())) {
         kill();
     } else {
-        fn_8005AC70(12, 30);
+        MR::setSeVolumeSetLevel(12, 30);
     }
 }
 

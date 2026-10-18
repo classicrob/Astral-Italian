@@ -13,9 +13,9 @@ echo $$ > "$lock/pid"
 trap 'rm -rf "$lock"' EXIT INT TERM
 python3 configure.py >/dev/null || exit 1
 out=$(ninja "$@" 2>&1); rc=$?
-if [ $rc -ne 0 ] && echo "$out" | grep -q "still dirty"; then
+if [ $rc -ne 0 ] && printf '%s\n' "$out" | grep -q "still dirty"; then
   rm -f .ninja_deps .ninja_log
   out=$(ninja "$@" 2>&1); rc=$?
 fi
-[ $rc -eq 0 ] || echo "$out" | tail -40
+[ $rc -eq 0 ] || printf '%s\n' "$out" | tail -40
 exit $rc

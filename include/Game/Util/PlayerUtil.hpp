@@ -278,3 +278,7 @@ namespace MR {
     JUTTexture* getFullScreenBlurTexture();
     void createPlayerFollowPass();
 };  // namespace MR
+
+namespace MR {
+    void calcPlayerFollowPassPosition(TVec3f*, f32);
+}

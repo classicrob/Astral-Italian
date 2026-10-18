@@ -122,8 +122,8 @@ extern "C" const char* lbl_807CFF1C;
 extern "C" const char* lbl_807CFF20;
 extern "C" const char* lbl_807CFF24;
 
-extern "C" void fn_800614C0(TalkMessageCtrl*);
-extern "C" s32 fn_800589B0();
+extern "C" void fn_800614C0(TalkMessageCtrl*); // PLACEHOLDER(astra): inherited fn_800614C0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" s32 fn_800589B0(); // PLACEHOLDER(astra): inherited fn_800589B0 ABI; resolve when its target signature and canonical owner are verified.
 
 void SuperDreamer::exeWait() {
     if (MR::isFirstStep(this)) {
@@ -297,7 +297,7 @@ namespace GameSequenceFunction {
     bool isPadMode();
 }
 
-extern "C" bool fn_800416F0(const char*, const JMapInfoIter&, bool);
+extern "C" bool fn_800416F0(const char*, const JMapInfoIter&, bool); // PLACEHOLDER(astra): inherited fn_800416F0 ABI; resolve when its target signature and canonical owner are verified.
 
 // NONMATCHING: string-literal stores hoisted/ordered differently (lis batch + different GPR for 0x13C/0x140); same calls and values.
 void SuperDreamer::init(const JMapInfoIter& rIter) {

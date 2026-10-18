@@ -10,6 +10,13 @@ class GameEventValueChecker;
 class SaveDataHandleSequence;
 
 namespace GameDataFunction {
+    u32 getBestScoreAttackCurrentStage();
+    void setBestScoreAttackCurrentStage(u32);
+    s32 getTicoFatStarPieceAlms(s32);
+    void addTicoFatStarPieceAlms(s32, s32);
+    bool isOnMessageAlreadyRead(s8);
+    void setOnMessageAlreadyRead(s8);
+    s32 calcTicoCoinNum();
     void onTicoCoinFeed(const char*);
     bool isTicoCoinFeed(const char*);
     s32 getBankedStarPieceNum();

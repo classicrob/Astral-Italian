@@ -60,5 +60,5 @@ namespace MR {
     void spawnSpinCloudBlocks();
     void resetSpinCloudBlocks();
     bool isSpinCloudBlockGroupEmpty();
-    f32 getSpinCloudBlockSpinSpeed(s32);
+    f32 getSpinCloudBlockSpinSpeed();
 };  // namespace MR

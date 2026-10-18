@@ -701,3 +701,7 @@ f32 JMASqrt(f32);
 namespace MR {
     void PSvecBlend(const TVec3f* pFrom, const TVec3f* pTo, TVec3f* pDst, f32 invRate, f32 rate);
 };  // namespace MR
+
+namespace MR {
+    f32 getEaseInOutValue(f32, f32, f32, f32, f32);
+}

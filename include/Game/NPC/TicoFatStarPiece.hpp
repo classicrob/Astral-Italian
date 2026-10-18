@@ -1,5 +1,8 @@
 #pragma once
 #include "Game/NPC/NPCActor.hpp"
+class FullnessMeter;
+class TicoFatStarPieceTransformation;
+
 class TicoFatStarPiece : public NPCActor {
 public:
     TicoFatStarPiece(const char*);
@@ -12,16 +15,30 @@ public:
     void startEatSound();
     void startEatCompleteSound();
     bool tryEndEventCamera();
-    void* _164;
-    s32 _168;
+    const char* getActionName(const char*);
+    void selectEatMessage(s32);
+    void exeReaction();
+    void exeWait();
+    void exePoint();
+    void exeEatWait();
+    void exeEat();
+    void exeChem();
+    void receiveStarPiece(s32);
+    void updateStarPieceGift();
+    void updatePointing();
+    void updateEventCamera();
+    f32 calcScale();
+    void updateScale(f32);
+    FullnessMeter* mFullnessMeter;
+    TalkMessageCtrl* mEatTalkCtrl;
     s32 mStarPieceCount;
-    s32 mEatenStarPieceCount;
-    void* _174;
-    void* _178;
-    void* _17C;
+    s32 mRemainingStarPieceCount;
+    s32 mPendingStarPieceCount;
+    s32 mNearPlayerTimer;
+    s32 mPointingTimer;
     bool mEventRequested;
-    s32 _184;
-    s32 _188;
+    s32 mTicoFatId;
+    s32 mEatEndSoundTimer;
     s32 mEatSoundTimer;
-    s32 _190;
+    TicoFatStarPieceTransformation* mTransformation;
 };

@@ -7,6 +7,8 @@
 struct ResTIMG;
 
 namespace MR {
+    bool requestTicoFatGuidance();
+    void hideWorldMapInfoLayout();
     void forceSyncCoinCounter();
     void forceAppearCoinCounterForTicoFat();
     void disappearCoinCounterForTicoFat();

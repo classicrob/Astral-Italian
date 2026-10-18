@@ -42,7 +42,7 @@ void StarPieceCounter::init(const JMapInfoIter& rIter) {
     MR::createAndAddPaneCtrl(this, "TSPieceCounter", 1);
     MR::setFollowPos(&mFollowPos, this, "TSPieceCounter");
 
-    mPaneRumbler = new CountUpPaneRumbler(this, "TCounter");
+    mPaneRumbler = new CountUpPaneRumbler(this, "TCounter", -1.0f);
     mLayoutAppearer = new CounterLayoutAppearer(this, TVec2f(0.0f, 30.0f));
 
     if (!MR::isStageAstroLocation()) {

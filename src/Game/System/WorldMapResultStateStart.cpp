@@ -1,4 +1,5 @@
 #include "Game/System/WorldMapResultLocal.hpp"
+#include "Game/Util/SoundUtil.hpp"
 
 WorldMapResultStateStart::WorldMapResultStateStart(WorldMapResultCommand* pHost)
     : ActorStateBase< WorldMapResultCommand >("State[リザルトマップ開始]", pHost) {
@@ -13,7 +14,7 @@ void WorldMapResultStateStart::appear() {
     MR::closeSystemWipeMario(-1);
     mIsDead = false;
     setNerve(GET_NERVE(WorldMapResultStateStart, WorldMapResultStateStartWait));
-    fn_8005BC20(0x32);
+    MR::stopSeCategories(0x32);
 }
 
 void WorldMapResultStateStart::kill() {
@@ -28,7 +29,7 @@ inline void WorldMapResultStateStart::exeWait() {
     if (fn_80059100()) {
         setNerve(GET_NERVE(WorldMapResultStateStart, WorldMapResultStateStartEnd));
     } else {
-        fn_8005AC70(12, 30);
+        MR::setSeVolumeSetLevel(12, 30);
     }
 }
 
@@ -36,7 +37,7 @@ inline void WorldMapResultStateStart::exeEnd() {
     if (MR::isStep(this, getResultEndStep())) {
         kill();
     } else {
-        fn_8005AC70(12, 30);
+        MR::setSeVolumeSetLevel(12, 30);
     }
 }
 

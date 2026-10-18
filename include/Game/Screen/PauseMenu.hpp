@@ -3,7 +3,7 @@
 #include "Game/Screen/LayoutActor.hpp"
 
 class ButtonPaneController;
-class LuigiLetter;
+class AllStarList;
 class SysInfoWindow;
 
 class PauseMenu : public LayoutActor {
@@ -14,9 +14,6 @@ public:
     /// @brief Intializes the `PauseMenu` while being placed into a scene.
     /// @param rIter The reference to an iterator over a `JMapInfo`.
     virtual void init(const JMapInfoIter& rIter);
-
-    /// @brief Draws the `PauseMenu` to the screen.
-    virtual void draw() const;
 
     virtual void appear();
     virtual void kill();
@@ -31,17 +28,19 @@ public:
     void exeDisappear();
     void exeConfirm();
     void exeGameDataSave();
-    void exeLuigiLetter();
+    void exeAllStarList();
+    void restartSelecting();
+    void registerPointer();
 
     ButtonPaneController* _20;
     ButtonPaneController* _24;
     ButtonPaneController* _38;
-    LuigiLetter* mLuigiLetter;
-    TVec2f mStageTitleOffset;
-    TVec2f mCoinNumPos;
-    TVec2f mStarPieceNumPos;
+    AllStarList* mAllStarList;
+    TVec2f mUpButtonPos;
+    TVec2f mDownButtonPos;
+    TVec2f mListButtonPos;
     SysInfoWindow* _30;
     bool _54;
-    bool mIsWorldMap;
+    bool mNoPowerStars;
     s32 mSelectedResult;
 };

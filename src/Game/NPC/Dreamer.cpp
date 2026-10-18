@@ -38,8 +38,8 @@ namespace MR {
     void onDestroySceneKeepAllSound();
 }
 
-extern "C" void fn_800614C0(TalkMessageCtrl*);
-extern "C" bool fn_800416F0(const char*, const JMapInfoIter&, bool);
+extern "C" void fn_800614C0(TalkMessageCtrl*); // PLACEHOLDER(astra): inherited fn_800614C0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" bool fn_800416F0(const char*, const JMapInfoIter&, bool); // PLACEHOLDER(astra): inherited fn_800416F0 ABI; resolve when its target signature and canonical owner are verified.
 
 extern "C" const char* lbl_807CFEA0;
 extern "C" const char* lbl_807CFEA4;

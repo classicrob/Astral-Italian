@@ -11,6 +11,7 @@
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/System/MessageHolder.hpp"
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/ActorSwitchUtil.hpp"
@@ -29,15 +30,18 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/mtx.h>
 
+extern "C" const char lbl_806C0338[];
+extern "C" const char lbl_806C0344[];
+
 TalkMessageCtrl::TalkMessageCtrl(LiveActor* pHost, const TVec3f& rArg2, MtxPtr pArg3)
     : NameObj("会話制御"), mHostActor(pHost), mNodeCtrl(), mZoneID(-1), _1C(0.0f, 0.0f, 0.0f), mMsgBalloonFollowOffs(rArg2), mTalkDistance(240.0f),
-      _3C(), mIsOnReadNodeAuto(true), mAlreadyDoneFlags(-1), mIsStartOnlyFront(), mCameraInfo(), mBranchFunc(), mEventFunc(), mAnimeFunc(), mKillFunc(),
+      _3C(), mIsOnReadNodeAuto(true), mAlreadyDoneFlags(-1), mIsStartOnlyFront(), _SMG2_4F(false), _SMG2_50(true), _SMG2_51(false), _SMG2_52(false), _SMG2_53(false), _SMG2_54(false), mCameraInfo(), mBranchFunc(), mEventFunc(), mAnimeFunc(), mKillFunc(),
       mMtx(pArg3), mIsOnRootNodeAuto(), _18(), mTagArg(nullptr, CustomTagArg::Type_Uninitialized) {
     mTagArg.mArgType = CustomTagArg::Type_Uninitialized;
     mTagArg.mIntArg = 0;
     MR::createSceneObj(SceneObj_TalkDirector);
     TalkFunction::registerTalkSystem(this);
-    mZoneID = MR::getCurrentPlacementZoneId();
+    mZoneID = mHostActor->mLinkInfo.mZoneID;
 }
 
 bool TalkMessageCtrl::inMessageArea() const {
@@ -60,12 +64,17 @@ bool TalkMessageCtrl::inMessageArea() const {
 
 void TalkMessageCtrl::startCamera(s32 a1) {
     TalkMessageInfo* inf = &mNodeCtrl->mMessageInfo;
-    if (inf->isCameraNormal()) {
+    if (_SMG2_54) {
+        return;
+    }
+    if (_SMG2_53) {
+        MR::startMultiActorCameraNoTarget(mHostActor, mCameraInfo, lbl_806C0338, a1);
+    } else if (inf->isCameraNormal()) {
         MR::startNPCTalkCamera(this, mHostActor->getBaseMtx(), 1.0f, a1);
     } else if (inf->isCameraEvent()) {
         if (inf->mCameraSetID) {
             mCameraInfo->mCameraSetID = inf->mCameraSetID;
-            MR::startMultiActorCameraNoTarget(mHostActor, mCameraInfo, "会話", a1);
+            MR::startMultiActorCameraNoTarget(mHostActor, mCameraInfo, lbl_806C0344, a1);
         }
     }
 }
@@ -81,7 +90,7 @@ bool TalkMessageCtrl::createMessage(const JMapInfoIter& rIter, const char* pName
     }
 
     if (mNodeCtrl->mFlowNode != nullptr) {
-        _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, (const char*)mNodeCtrl->mCurrentNodeIdx, rIter, 0);
+        _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
     } else {
         _3C = 1;
     }
@@ -89,12 +98,6 @@ bool TalkMessageCtrl::createMessage(const JMapInfoIter& rIter, const char* pName
     _SMG2_4F = 1;
     return true;
 }
-
-namespace {
-    bool isNodeEventContinue(const MessageSystem::FlowNodeEvent* pArg) NO_INLINE {
-        return pArg->mEventType <= 4 && (1 << pArg->mEventType & 0x15);
-    }
-};  // namespace
 
 bool TalkMessageCtrl::createMessageDirect(const JMapInfoIter& rIter, const char* pName) {
     mNodeCtrl = new TalkNodeCtrl();
@@ -104,7 +107,7 @@ bool TalkMessageCtrl::createMessageDirect(const JMapInfoIter& rIter, const char*
     }
 
     if (MR::isValidInfo(rIter) && mNodeCtrl->mFlowNode != nullptr) {
-        _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, (const char*)mNodeCtrl->mCurrentNodeIdx, rIter, 0);
+        _3C = MR::setupAlreadyDoneFlag(&mAlreadyDoneFlags, mNodeCtrl->mMessageName, rIter, 0);
     } else {
         _3C = 1;
     }
@@ -120,34 +123,28 @@ bool TalkMessageCtrl::rootNodeEve() {
         return true;
     }
 
-    u8 groupID = nodeEvent->mGroupID;
-    if (groupID <= 1) {
-        if (mEventFunc == nullptr) {
-            return true;
-        }
-
-        if (mEventFunc->operator()(nodeEvent->mUnknown) == nullptr) {
-            return false;
-        }
-    } else if (groupID == 4) {
-        if (mAnimeFunc == nullptr) {
-            return true;
-        }
-
-        if (mAnimeFunc->operator()(nodeEvent->mUnknown) == nullptr) {
-            return false;
-        }
-    } else if (groupID == 3) {
+    switch (nodeEvent->mEventType) {
+    case 0:
+    case 1:
+        if (!mEventFunc) return true;
+        if (!mEventFunc->operator()(nodeEvent->mUnknown)) return false;
+        break;
+    case 4:
+        if (!mAnimeFunc) return true;
+        if (!mAnimeFunc->operator()(nodeEvent->mUnknown)) return false;
+        break;
+    case 3:
         rootNodePst();
         return true;
-    } else if (groupID == 5) {
-        MR::onSwitchA(mHostActor);
-    } else if (groupID == 6) {
-        MR::onSwitchB(mHostActor);
-    } else if (groupID == 7) {
-        if (mKillFunc->operator()(nodeEvent->mUnknown) == nullptr) {
-            return false;
-        }
+    case 5: MR::onSwitchA(mHostActor); break;
+    case 6: MR::onSwitchB(mHostActor); break;
+    case 7:
+        if (!mKillFunc->operator()(nodeEvent->mUnknown)) return false;
+        break;
+    case 8: MR::offSwitchA(mHostActor); break;
+    case 9: MR::offSwitchB(mHostActor); break;
+    case 10: MR::hideBubbleBeak(this); break;
+    case 11: MR::showBubbleBeak(this); break;
     }
 
     bool cond = nodeCtrl->isExistNextNode();
@@ -213,26 +210,14 @@ void TalkMessageCtrl::rootNodePre(bool arg) {
         case TalkMessageCtrl_Type8:
             cond = MR::isStageStatePowerStarAppeared();
             break;
-        case TalkMessageCtrl_Type9:
-            cond = _3C != 0;
-            break;
-        case TalkMessageCtrl_TypeA:
-            cond = MR::isPlayerLuigi();
-            break;
-        case TalkMessageCtrl_TypeB:
-            cond = MR::isTimeKeepDemoActive();
-            break;
-        case TalkMessageCtrl_TypeC:
-            cond = MR::isOnMessageAlreadyRead(branch->mNextIdx);
-            break;
-#if (VERSION == RMGK01)
-        case TalkMessageCtrl_TypeD:
-            cond = MR::isMsgLedPattern();
-            break;
-#endif
-        case TalkMessageCtrl_TypeE:
-            cond = TalkFunction::getBranchAstroGalaxyResult(branch->mNextIdx);
-            break;
+        case 9: cond = !GameDataFunction::isOnGameEventFlagEnding120Stars(); break;
+        case 10: cond = _3C; break;
+        case 11: cond = MR::isPlayerLuigi(); break;
+        case 12: cond = MR::isTimeKeepDemoActive(); break;
+        case 13: cond = GameDataFunction::isOnMessageAlreadyRead(branch->mNextIdx); break;
+        case 14: cond = MR::isPlayerElementModeYoshi(); break;
+        case 15: cond = MR::isPlayerElementModeCloud(); break;
+        case 16: cond = MR::isPlayerElementModeRock(); break;
         }
 
         if (cond) {
@@ -246,10 +231,10 @@ void TalkMessageCtrl::rootNodePre(bool arg) {
 
 void TalkMessageCtrl::rootNodePst() {
     TalkNodeCtrl* ctrl = mNodeCtrl;
-    if (!ctrl->isExistNextNode()) {
-        ctrl->resetFlowNode();
-    } else {
+    if (ctrl->isExistNextNode()) {
         ctrl->forwardFlowNode();
+    } else {
+        ctrl->resetFlowNode();
     }
 
     ctrl->recordTempFlowNode();
@@ -262,7 +247,7 @@ bool TalkMessageCtrl::isCurrentNodeContinue() const {
         return false;
     }
 
-    return isNodeEventContinue((MessageSystem::FlowNodeEvent*)nodeEvent);
+    return nodeEvent->mEventType <= 4 && ((1 << nodeEvent->mEventType) & 0x15);
 }
 
 void TalkMessageCtrl::rootNodeSel(bool a1) {
@@ -300,7 +285,7 @@ void TalkMessageCtrl::readMessage() {
     }
 
     if (!_3C) {
-        MR::updateAlreadyDoneFlag(mAlreadyDoneFlags, 1);
+        MR::updateAlreadyDoneFlag(mAlreadyDoneFlags);
     }
 }
 
@@ -312,9 +297,13 @@ bool TalkMessageCtrl::isSelectYesNo() const {
     }
 
     switch (node->mNextIdx) {
-    case 16:
+    case 2:
         return false;
-    case 14:
+    case 11:
+        return false;
+    case 15:
+        return false;
+    case 17:
         return false;
     }
 
@@ -385,72 +374,26 @@ const char* TalkMessageCtrl::getBranchID() const {
     }
 
     const char* result = nullptr;
-
     switch (node->mNextIdx) {
-    case BranchNode_Type0:
-        result = "PenguinRace";
-        break;
-    case BranchNode_Type1:
-        result = "SwimmingSchool";
-        break;
-    case BranchNode_Type2:
-        result = "PenguinRace";
-        break;
-    case BranchNode_Type3:
-        result = "BombTimeAttackLv1";
-        break;
-    case BranchNode_Type4:
-        result = "PhantomTeresaRacer";
-        break;
-    case BranchNode_Type5:
-        result = "BombTimeAttackLv2";
-        break;
-    case BranchNode_Type6:
-        result = "TrialSurfingCoach";
-        break;
-    case BranchNode_Type7:
-        result = "TrialSurfingHowTo";
-        break;
-    case BranchNode_Type8:
-        result = "DeathPromenadeTeresaRacer";
-        break;
-    case BranchNode_Type9:
-        result = "RosettaFinalBattle";
-        break;
-    case BranchNode_TypeA:
-        result = "CometTico";
-        break;
-    case BranchNode_TypeB:
-        result = "TransformTico";
-        break;
-    case BranchNode_TypeC:
-        result = "ChallengeSurfingCoach";
-        break;
-    case BranchNode_TypeD:
-        result = "TicoShopExchange";
-        break;
-    case BranchNode_TypeE:
-        result = "TicoShopWhich";
-        break;
-    case BranchNode_TypeF:
-        result = "KinopioPurple";
-        break;
-    case BranchNode_Type10:
-        result = "CometTicoTell";
-        break;
-    case BranchNode_Type11:
-        result = "TrialTamakoroHowTo";
-        break;
-    case BranchNode_Type12:
-        result = "KnockOnTheDoor";
-        break;
-#if (VERSION == RMGK01)
-    case BranchNode_Type13:
-        result = "LedPattern";
-        break;
-#endif
+    case 0: result = "PichanRace"; break;
+    case 1: result = "TicoShopExchange"; break;
+    case 2: result = "TicoShopWhich"; break;
+    case 3: result = "Dreamer"; break;
+    case 4: result = "SuperDreamer"; break;
+    case 5: result = "MuimuiPlay"; break;
+    case 6: result = "ScoreAttackPlay"; break;
+    case 7: result = "ScoreAttackContinue"; break;
+    case 8: result = "GliBirdRide"; break;
+    case 9: result = "TicoFatCoinGive"; break;
+    case 10: result = "FireWoodBoxPlay"; break;
+    case 11: result = "GliBirdTutorial"; break;
+    case 12: result = "LuigiTalkNpc"; break;
+    case 13: result = "KinopioBank"; break;
+    case 14: result = "LuckeyRoom"; break;
+    case 15: result = "MeisterTrade"; break;
+    case 16: result = "TamakoroTutorial"; break;
+    case 17: result = "MeisterConfirm"; break;
     }
-
     return result;
 }
 
@@ -502,20 +445,16 @@ const wchar_t* TalkFunction::getSubMessage(const TalkMessageCtrl* pCtrl) {
     return (const wchar_t*)pCtrl->mNodeCtrl->getSubMessage();
 }
 
+// NONMATCHING: register allocation and equivalent floating addition operand order differ.
 bool TalkMessageCtrl::isNearPlayer(f32 distance) const {
-    if (mNodeCtrl->mMessageInfo.isNullTalk()) {
-        return false;
-    }
-
     if (mTalkDistance < 0.0f) {
         return true;
     }
 
     if (distance <= 0.0f) {
         distance = mTalkDistance;
-        if (mNodeCtrl->mMessageInfo.isComposeTalk()) {
-            f32 scale = 2.0f;
-            distance = distance * scale;
+        if (_18 == 2) {
+            distance = mTalkDistance + 50.0f;
         }
     }
 
@@ -571,4 +510,34 @@ void TalkMessageCtrl::updateBalloonPos() {
     v3.set< f32 >(pos[0][3], pos[1][3], pos[2][3]);
     v3.add(TVec3f(tPos[0][3], tPos[1][3], tPos[2][3]));
     MR::calcScreenPosition(&_1C, v3);
+}
+
+void TalkMessageCtrl::initCamera(const JMapInfoIter& iter) {
+    _SMG2_53 = true;
+    MR::initMultiActorCamera(mHostActor, iter, &mCameraInfo, lbl_806C0338);
+}
+
+void TalkMessageCtrl::disableCamera() {
+    _SMG2_54 = true;
+}
+
+void TalkMessageCtrl::endCamera(const TalkMessageInfo& info, s32 step) {
+    if (_SMG2_54) {
+        return;
+    }
+    if (_SMG2_53) {
+        MR::endMultiActorCamera(mHostActor, mCameraInfo, lbl_806C0338, false, step);
+    } else if (info.isCameraNormal()) {
+        MR::endNPCTalkCamera(false, step);
+    } else if (info.isCameraEvent()) {
+        MR::endMultiActorCamera(mHostActor, mCameraInfo, lbl_806C0344, false, step);
+    }
+}
+
+bool TalkFunction::isGlobalEventTalk(const TalkMessageCtrl* ctrl) {
+    return ctrl->mNodeCtrl->mMessageInfo.isGlobalEventTalk();
+}
+
+bool TalkFunction::isForwardNode(const TalkMessageCtrl* ctrl) {
+    return ctrl->mNodeCtrl->isForwardNode();
 }

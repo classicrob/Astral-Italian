@@ -1,3 +1,5 @@
+#include "Game/LiveActor/ActorPoseTQ.hpp"
+#include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Enemy/BakuBaku.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -6,8 +8,6 @@
 #include "Game/Util.hpp"
 
 // Unnamed SMG2 helpers used by this unit (declared here, defined in their own units).
-extern "C" ActorPoseTQ* fn_8022CAE0();
-extern "C" void fn_800102E0(ActorPoseTQ*, BakuBaku*);
 extern "C" void fn_80010600(ActorPoseTQ*, BakuBaku*, f32, f32);
 extern "C" void fn_80008890(LiveActor*, const char*);
 extern "C" s32 fn_802861E0(const TVec3f*, s32, s32, s32, f32);
@@ -48,11 +48,11 @@ BakuBaku::BakuBaku(const char* pName) : LiveActor(pName) {
     _9C.y = 0.0f;
     _9C.z = 0.0f;
     mMoveLimit = 5.0f;
-    mPose = fn_8022CAE0();
+    mPose = new ActorPoseTQ();
 }
 
 void BakuBaku::init(const JMapInfoIter& rIter) {
-    fn_800102E0(mPose, this);
+    MR::initActorPoseTQ(mPose, this);
     initNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove), 1);
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mStarPointBind = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);

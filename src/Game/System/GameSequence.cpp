@@ -1,4 +1,5 @@
 #include "Game/System/GameSequence.hpp"
+#include "Game/NWC24/WiiMessageBoardMailSenderState.hpp"
 
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NameObj/NameObj.hpp"
@@ -34,7 +35,6 @@ extern "C" {
     void fn_804D71B0();
     void fn_804D7240();
     void fn_804D85D0();
-    void fn_80500D20(const char*, const char*, const char*);
     void* fn_80500DD0();
     s32 fn_80500D80();
     void fn_804B4360(void*, void*);
@@ -327,7 +327,7 @@ void GameSequenceEnding::exeMessage() {
 
 void GameSequenceEnding::exeMessageWait() {
     if (MR::isFirstStep(this)) {
-        fn_80500D20("WiiMessage_NormalEnding", "NormalEndingImage.bin", lbl_807D03C8);
+        MR::requestWiiMessageBoardMailSend("WiiMessage_NormalEnding", "NormalEndingImage.bin", lbl_807D03C8);
     }
     void* pObj = fn_80500DD0();
     s32 isEnd = fn_80500D80();

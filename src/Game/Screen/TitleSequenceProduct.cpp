@@ -30,13 +30,13 @@ public:
     u8 _pad[168 - sizeof(LiveActor)];
 };
 
-extern "C" void fn_804A4EF0(TitleSequenceProduct*);
-extern "C" void fn_804A4F60(TitleSequenceProduct*);
-extern "C" void fn_804A4FB0(TitleSequenceProduct*);
-extern "C" void fn_8013D530(DemoTitleAnim*);
-extern "C" bool fn_8013D240(DemoTitleAnim*);
-extern "C" void fn_8013D540(DemoTitleAnim*);
-extern "C" bool fn_8013D220(DemoTitleAnim*);
+extern "C" void fn_804A4EF0(TitleSequenceProduct*); // PLACEHOLDER(astra): inherited fn_804A4EF0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_804A4F60(TitleSequenceProduct*); // PLACEHOLDER(astra): inherited fn_804A4F60 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_804A4FB0(TitleSequenceProduct*); // PLACEHOLDER(astra): inherited fn_804A4FB0 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_8013D530(DemoTitleAnim*); // PLACEHOLDER(astra): inherited fn_8013D530 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" bool fn_8013D240(DemoTitleAnim*); // PLACEHOLDER(astra): inherited fn_8013D240 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" void fn_8013D540(DemoTitleAnim*); // PLACEHOLDER(astra): inherited fn_8013D540 ABI; resolve when its target signature and canonical owner are verified.
+extern "C" bool fn_8013D220(DemoTitleAnim*); // PLACEHOLDER(astra): inherited fn_8013D220 ABI; resolve when its target signature and canonical owner are verified.
 
 namespace GameDataFunction {
     bool getSysConfigFileEncouragedPal16();
@@ -108,7 +108,7 @@ TitleSequenceProduct::TitleSequenceProduct()
     mDemoTitleAnim->initWithoutIter();
 }
 
-extern "C" void fn_804A4EF0(TitleSequenceProduct* pThis) {
+extern "C" void fn_804A4EF0(TitleSequenceProduct* pThis) { // PLACEHOLDER(astra): inherited fn_804A4EF0 ABI; resolve when its target signature and canonical owner are verified.
     if (MR::isFirstStep(pThis)) {
         pThis->mEncouragePal60Window->appear();
         GameDataFunction::setSysConfigFileEncouragedPal16();
@@ -119,7 +119,7 @@ extern "C" void fn_804A4EF0(TitleSequenceProduct* pThis) {
     }
 }
 
-extern "C" void fn_804A4F60(TitleSequenceProduct* pThis) {
+extern "C" void fn_804A4F60(TitleSequenceProduct* pThis) { // PLACEHOLDER(astra): inherited fn_804A4F60 ABI; resolve when its target signature and canonical owner are verified.
     if (MR::isFirstStep(pThis)) {
         MR::forceCloseWipeFade();
         MR::stopStageBGM(0);
@@ -127,7 +127,7 @@ extern "C" void fn_804A4F60(TitleSequenceProduct* pThis) {
     pThis->setNerve(&TitleSequenceProductNrvDemoAnim::sInstance);
 }
 
-extern "C" void fn_804A4FB0(TitleSequenceProduct* pThis) {
+extern "C" void fn_804A4FB0(TitleSequenceProduct* pThis) { // PLACEHOLDER(astra): inherited fn_804A4FB0 ABI; resolve when its target signature and canonical owner are verified.
     if (MR::isFirstStep(pThis)) {
         fn_8013D530(pThis->mDemoTitleAnim);
         MR::openWipeFade(-1);
@@ -262,7 +262,7 @@ void TitleSequenceProduct::updatePressStartReaction() {
     }
 }
 
-extern "C" bool fn_804A54D0(TitleSequenceProduct* pThis) {
+extern "C" bool fn_804A54D0(TitleSequenceProduct* pThis) { // PLACEHOLDER(astra): inherited fn_804A54D0 ABI; resolve when its target signature and canonical owner are verified.
     if (pThis->mDemoTitleAnim == nullptr) {
         return false;
     }

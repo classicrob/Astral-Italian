@@ -13,7 +13,7 @@ public:
     WiiMessageBoardMailSenderState();
     virtual ~WiiMessageBoardMailSenderState();
 
-    void setup(s32, const char*, const char*);
+    void setup(const char*, const char*, const char*);
     void exeSend();
     void exeShow();
     void exeEnd();
@@ -21,7 +21,7 @@ public:
     /* 0x08 */ ReceiverTagMail* mReceiverTagMail;
     /* 0x0C */ ResourceHolder* mResourceHolder;
     /* 0x10 */ LayoutActor* mSysInfoWindow;
-    /* 0x14 */ s32 mMailType;
+    /* 0x14 */ const char* mMessageId;
     /* 0x18 */ const char* mResName;
     /* 0x1C */ const char* mGameEventFlag;
 };
@@ -33,3 +33,8 @@ public:
 
     /* 0x14 */ WiiMessageBoardMailSenderState* mState;
 };
+
+namespace MR {
+    void requestWiiMessageBoardMailSend(const char*, const char*, const char*);
+    bool updateWiiMessageBoardMailSenderState();
+}

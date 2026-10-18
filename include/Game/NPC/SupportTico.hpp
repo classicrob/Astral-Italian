@@ -4,6 +4,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
+class ActorPoseTQ;
 class HitSensor;
 class JMapInfoIter;
 class LiveActorGroup;
@@ -14,9 +15,6 @@ class SupportTicoStateDemoHide;
 class SupportTicoStateFollowPlayer;
 class SupportTicoStateChase;
 class SupportTicoStateBack;
-
-// SMG2-only unit (SupportTico.cpp, SupportTicoExecutor.cpp, SupportTicoState*.cpp and
-// SupportTicoStateFunction.cpp are merged into one split in this decomp).
 
 class SupportTico : public LiveActor {
 public:
@@ -35,9 +33,9 @@ public:
     bool tryAttachToTarget(const LiveActor*);
     bool calcTargetPos(TVec3f*);
     LiveActor* findNearestTarget();
-    void clearTarget();
+    void clearTarget() NO_INLINE;
     void updateTarget();
-    bool isTargeting() const;
+    bool isTargeting() const NO_INLINE;
     void offControl();
     void onControl();
     void setFollowPlayerYDir();
@@ -46,12 +44,12 @@ public:
     void requestShow();
     void releaseHoldSensor();
     bool tryHold(HitSensor*, HitSensor*);
-    void resetTarget();
+    void resetTarget() NO_INLINE;
 
-    TVec3f* getFollowPos() const;
+    TVec3f* getFollowPos() const NO_INLINE;
     void setAttachRange(f32);
 
-    /* 0x90 */ void* mPose;  // 0x1C bytes: TQuat4f + TVec3f (position at +0x10)
+    /* 0x90 */ ActorPoseTQ* mPose;
     /* 0x94 */ LiveActorGroup* mAttachGroup;
     /* 0x98 */ const LiveActor* mTarget;
     /* 0x9C */ const LiveActor* mNearTarget;
@@ -68,16 +66,9 @@ public:
     /* 0xBC */ bool mShow;
 };
 
-// Every state is its own TU in the original build, so the base constructor has exactly one call site there and gets
-// inlined. In this merged unit it would have 8 call sites (not inlined with -O4,s); a per-state tag makes each call
-// site a separate instantiation.
-template < int N >
-struct SupportTicoStateTag {};
-
 class SupportTicoStateBase : public ActorStateBaseInterface {
 public:
-    template < int N >
-    SupportTicoStateBase(const char* pName, SupportTico* pHost, SupportTicoStateTag< N >) : ActorStateBaseInterface(pName), mHost(pHost) {
+    SupportTicoStateBase(const char* pName, SupportTico* pHost) : ActorStateBaseInterface(pName), mHost(pHost) {
     }
 
     virtual ~SupportTicoStateBase() {
@@ -166,7 +157,7 @@ public:
     void exeWait();
     void exeBackEnd();
     void exeJump();
-    void exeSpin();
+    void exeSpin() NO_INLINE;
     void exeItemDrop();
     bool tryJumpStart();
     bool tryItemDrop();
@@ -208,14 +199,14 @@ namespace SupportTicoStateFunction {
     f32 getFollowScale();
     bool isSwing();
     bool isReleaseA();
-    bool isPressA();
+    bool isPressA() NO_INLINE;
     bool isTriggerA();
     void startSupportTicoCSSound();
     bool isHideDemo();
-    bool isHolding(const SupportTico*);
+    bool isHolding(const SupportTico*) NO_INLINE;
     void hideHoldingObj(SupportTico*);
     void showHoldingObj(SupportTico*);
-    void calcFollowOffset(TVec3f*);
-    void calcFollowOffset(SupportTico*);
+    void calcFollowOffset(TVec3f*) NO_INLINE;
+    void calcFollowOffset(SupportTico*) NO_INLINE;
     bool trySpinAttack(SupportTico*);
 };  // namespace SupportTicoStateFunction

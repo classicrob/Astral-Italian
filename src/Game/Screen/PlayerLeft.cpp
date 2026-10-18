@@ -25,7 +25,7 @@ void PlayerLeft::init(const JMapInfoIter& rIter) {
     MR::hidePaneRecursive(this, "CenterPlayerLeft");
 
     mLayoutAppearer = new CounterLayoutAppearer(this, TVec2f(-50.0f, 0.0f));
-    mPaneRumbler = new CountUpPaneRumbler(this, "Counter");
+    mPaneRumbler = new CountUpPaneRumbler(this, "Counter", -1.0f);
     mPlayerLeft = MR::getPlayerLeft();
 
     if (MR::isPlayerLuigi()) {

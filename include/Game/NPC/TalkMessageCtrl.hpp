@@ -117,13 +117,16 @@ public:
     }
 
     bool inMessageArea() const;
+    void initCamera(const JMapInfoIter&);
+    void disableCamera();
     void startCamera(s32);
+    void endCamera(const TalkMessageInfo&, s32);
     const char* getBranchID() const;
 
     /* 0x14 */ LiveActor* mHostActor;
     /* 0x18 */ TalkNodeCtrl* mNodeCtrl;
     /* 0x1C */ s32 mZoneID;
-    /* 0x20 */ u32 _18;
+    /* 0x20 */ s32 _18;
     /* 0x24 */ TVec3f _1C;
     /* 0x30 */ MtxPtr mMtx;
     /* 0x34 */ TVec3f mMsgBalloonFollowOffs;
@@ -149,6 +152,8 @@ public:
 
 class TalkFunction {
 public:
+    static bool isGlobalEventTalk(const TalkMessageCtrl*);
+    static bool isForwardNode(const TalkMessageCtrl*);
     static bool isShortTalk(const TalkMessageCtrl*);
     static bool isComposeTalk(const TalkMessageCtrl*);
     static bool isSelectTalk(const TalkMessageCtrl*);

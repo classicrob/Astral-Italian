@@ -1,6 +1,12 @@
 #pragma once
 
+#include <revolution/types.h>
+
 namespace MR {
+    s32 makeGalaxyCompletionMark(wchar_t*, s32, const char*, bool);
+    s32 makeGalaxyStarList(wchar_t*, s32, const char*, bool, bool);
+    const wchar_t* getWorldNameOnCurrentLanguage(s32);
+    s32 makeMessageID(char*, u32, const char*, s32);
     const wchar_t* getGameMessageDirect(const char*);
     void getLayoutMessageID(char*, const char*, const char*);
 };

@@ -10,8 +10,8 @@ namespace {
     const s32 cRumbleFrame = 15;
 };  // namespace
 
-CountUpPaneRumbler::CountUpPaneRumbler(LayoutActor* pHost, const char* pPaneName) : mRumbleCalculator(), mPosition(0.0f, 0.0f) {
-    mRumbleCalculator = new RumbleCalculatorCosMultLinear(::cRumbleFreq, HALF_PI, ::cRumbleAmp, ::cRumbleFrame);
+CountUpPaneRumbler::CountUpPaneRumbler(LayoutActor* pHost, const char* pPaneName, f32 amplitude) : mRumbleCalculator(), mPosition(0.0f, 0.0f) {
+    mRumbleCalculator = new RumbleCalculatorCosMultLinear(::cRumbleFreq, HALF_PI, amplitude < 0.0f ? ::cRumbleAmp : amplitude, ::cRumbleFrame);
 
     connectPane(pHost, pPaneName);
 }

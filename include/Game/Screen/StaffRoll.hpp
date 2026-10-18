@@ -2,66 +2,14 @@
 
 #include "Game/Screen/LayoutActor.hpp"
 
-namespace nw4r {
-    namespace lyt {
-        class TexMap;
-    };  // namespace lyt
-};  // namespace nw4r
-
-class InformationMessage;
-
-class StaffRollLine : public LayoutActor {
-public:
-    /// @brief Creates a new `StaffRollLine`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    StaffRollLine(const char* pName);
-
-    virtual ~StaffRollLine() {
-    }
-
-    virtual void init(const JMapInfoIter& rIter);
-    virtual void appear();
-
-    void exeScroll();
-
-    void setPositionX(f32 x) {
-        mPosition.x = x;
-    }
-
-private:
-    /* 0x20 */ TVec2f mPosition;
-};
-
-class StaffRollPicture : public LayoutActor {
-public:
-    /// @brief Creates a new `StaffRollPicture`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    StaffRollPicture(const char* pName);
-
-    virtual ~StaffRollPicture() {
-    }
-
-    virtual void init(const JMapInfoIter& rIter);
-
-    void initReplaceTexture();
-    void startPictureAction(s32, const char*, const char*);
-    void disappearAllPane();
-    void exeWork();
-
-private:
-    /* 0x20 */ nw4r::lyt::TexMap** mReplaceTexture;
-};
+class StaffRollPart;
+class StaffRollDemoCamera;
 
 class StaffRoll : public LayoutActor {
 public:
-    /// @brief Creates a new `StaffRoll`.
-    /// @param pName A pointer to the null-terminated name of the object.
-    StaffRoll(const char* pName);
     StaffRoll();
-
     virtual ~StaffRoll();
-
-    virtual void init(const JMapInfoIter& rIter);
+    virtual void init(const JMapInfoIter&);
     virtual void appear();
     virtual void movement();
     virtual void draw() const;
@@ -69,42 +17,38 @@ public:
     virtual void kill();
 
     bool isEnd() const;
-    void startInfo();
-    bool isPauseOrEnd() const;
-    bool isNextLineEmpty() const;
-    void setNrvNextInfo();
-    bool tryGenerateLine();
-    void makeLine();
-    StaffRollLine* getDeadLineLayout() const;
-    void exePrepareDemo();
+    bool isCurrentPartEnd() const;
+    bool isLastPartEnd() const;
+    s32 getCurrentPartIndex() const NO_INLINE;
+    s32 getElapsedFrame() const;
+    bool isDemoCameraStartFinished() const;
+    bool isDemoCameraEndFinished() const;
     void exePrepareBgm();
-    void exeTitleLogoAppear();
-    void exeTitleLogoScroll();
-    void exeLineScroll();
-    void exeEndLogoScroll();
-    void exeAllRights();
-    void exePrepareInfo();
-    void exeInfoAppear();
-    void exeInfoDisappear();
-    void exePause();
-    void exeRestart();
-    void exePrepareSave();
-    void exeSave();
+    void exePart();
+    void exePaneAppear();
+    void exePaneWait();
+    void exePaneDisappear();
+    void exeWait();
+    void exeWaitDemo();
+    void exeDemoStart();
+    void exeDemoEnd();
     void exeEnd();
 
-private:
-    /* 0x20 */ InformationMessage* mInfo;
-    /* 0x24 */ StaffRollLine** mLine;
-    /* 0x28 */ StaffRollPicture* mPicture;
-    /* 0x2C */ const wchar_t* mMsg;
-    /* 0x30 */ u32 mMsgLineNum;
-    /* 0x34 */ u32 mMsgLine;
-    /* 0x38 */ TVec2f mTitleLogoPos;
-    /* 0x40 */ TVec2f mEndLogoPos;
-    /* 0x48 */ s32 _48;
-    /* 0x4C */ s32 _4C;
+    const wchar_t* mMessage;
+    u32 mMessageLineCount;
+    u32 mMessageLine;
+    TVec2f mTitleLogoPosition;
+    TVec2f mEndLogoPosition;
+    TVec2f mAllRightsPosition;
+    s32 mLastPartIndex;
+    StaffRollPart* mParts[32];
+    s32 mPartCount;
+    StaffRollPart** mCurrentPart;
+    s32 mPartDuration;
+    s32 mStartFrame;
+    StaffRollDemoCamera* mDemoCamera;
 };
 
 namespace MR {
     StaffRoll* getStaffRoll();
-};  // namespace MR
+}

@@ -9,6 +9,8 @@ public:
     bool isNormalTalk() const;
     bool isShortTalk() const;
     bool isEventTalk() const;
+    bool isGlobalEventTalk() const;
+    bool isAutoEventTalk() const;
     bool isComposeTalk() const;
     bool isFlowTalk() const;
     bool isNullTalk() const;

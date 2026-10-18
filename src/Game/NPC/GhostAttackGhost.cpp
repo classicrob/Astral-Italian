@@ -18,9 +18,9 @@ namespace MR {
     bool isGhostLuigiOpenInCurrentStage();
 }  // namespace MR
 
-extern "C" XanimeResourceTable* fn_8004F900(s32);
+extern "C" XanimeResourceTable* fn_8004F900(s32); // PLACEHOLDER(astra): inherited fn_8004F900 ABI; resolve when its target signature and canonical owner are verified.
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
-extern "C" void fn_800345E0(LiveActor*, const char*);
+extern "C" void fn_800345E0(LiveActor*, const char*); // PLACEHOLDER(astra): inherited fn_800345E0 ABI; resolve when its target signature and canonical owner are verified.
 
 namespace NrvGhostAttackGhost {
     NEW_NERVE(GhostAttackGhostNrvStart, GhostAttackGhost, Start);

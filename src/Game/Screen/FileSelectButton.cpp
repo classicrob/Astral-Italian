@@ -8,16 +8,19 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-namespace {
+namespace NrvFileSelectButton {
     NEW_NERVE(FileSelectButtonNrvSelect, FileSelectButton, Select);
+    NEW_NERVE(FileSelectButtonNrvDecided, FileSelectButton, Decided);
     NEW_NERVE(FileSelectButtonNrvWait, FileSelectButton, Wait);
     NEW_NERVE(FileSelectButtonNrvDisappear, FileSelectButton, Disappear);
-};  // namespace
+}
+using namespace NrvFileSelectButton;
 
-FileSelectButton::FileSelectButton(const char* pName) : LayoutActor(pName, true) {
+FileSelectButton::FileSelectButton(const char* pName) : LayoutActor(pName, true), mSelectedButton(0), mHelpText(nullptr) {
     for (int i = 0; i < ARRAY_SIZE(mButtonCtrl); i++) {
         mButtonCtrl[i] = nullptr;
         mCallbackFunctor[i] = nullptr;
+        mSelectCallback[i] = nullptr;
     }
 }
 
@@ -52,14 +55,12 @@ void FileSelectButton::disappear() {
     setNerve(GET_NERVE_ANON(FileSelectButtonNrvDisappear));
 }
 
-void FileSelectButton::setCallbackFunctor(const MR::FunctorBase& rStartFunctor, const MR::FunctorBase& rCopyFunctor,
-                                          const MR::FunctorBase& rMiiFunctor, const MR::FunctorBase& rDeleteFunctor,
-                                          const MR::FunctorBase& rManualFunctor) {
-    mCallbackFunctor[0] = rStartFunctor.clone(nullptr);
-    mCallbackFunctor[1] = rCopyFunctor.clone(nullptr);
-    mCallbackFunctor[2] = rMiiFunctor.clone(nullptr);
-    mCallbackFunctor[3] = rDeleteFunctor.clone(nullptr);
-    mCallbackFunctor[4] = rManualFunctor.clone(nullptr);
+void FileSelectButton::setCallbackFunctor(const MR::FunctorBase& start, const MR::FunctorBase& mii,
+                                          const MR::FunctorBase& remove, const MR::FunctorBase& manual) {
+    mCallbackFunctor[0] = start.clone(nullptr);
+    mCallbackFunctor[1] = mii.clone(nullptr);
+    mCallbackFunctor[2] = remove.clone(nullptr);
+    mCallbackFunctor[3] = manual.clone(nullptr);
 }
 
 void FileSelectButton::shiftSelect() {
@@ -71,15 +72,39 @@ void FileSelectButton::exeSelect() {
         if (mButtonCtrl[i]->isPointingTrigger()) {
             MR::startSystemSE("SE_SY_BUTTON_CURSOR_ON");
         }
-
-        if (mButtonCtrl[i]->trySelect()) {
-            if (mCallbackFunctor[i] != nullptr) {
-                (*mCallbackFunctor[i])();
+        mButtonCtrl[i]->trySelect();
+        if (mSelectCallback[i] && mSelectCallback[i]()) {
+            mButtonCtrl[i]->trySelectImmediately();
+        }
+        if (mButtonCtrl[i]->mIsSelected) {
+            mSelectedButton = i;
+            switch (i) {
+            case 0:
+                MR::startSystemSE("SE_SY_GALAXY_SELECTED");
+                MR::startSubBGM("BGM_SMG2_JG_DECIDE", false);
+                break;
+            case 1:
+                MR::startSystemSE("SE_SY_FILE_SEL_UPPER_DECIDE");
+                break;
+            case 2:
+                MR::startSystemSE("SE_SY_FILE_SEL_UPPER_DECIDE");
+                break;
+            case 3:
+                MR::startSystemSE("SE_SY_FILE_SEL_TIPS_OPEN");
+                break;
             }
-
-            setNerve(GET_NERVE_ANON(FileSelectButtonNrvWait));
+            setNerve(GET_NERVE_ANON(FileSelectButtonNrvDecided));
             break;
         }
+    }
+}
+
+void FileSelectButton::exeDecided() {
+    if (mButtonCtrl[mSelectedButton]->isDecidedWait()) {
+        if (mCallbackFunctor[mSelectedButton]) {
+            (*mCallbackFunctor[mSelectedButton])();
+        }
+        setNerve(GET_NERVE_ANON(FileSelectButtonNrvWait));
     }
 }
 
@@ -101,13 +126,12 @@ void FileSelectButton::control() {
         mButtonCtrl[i]->update();
     }
 
-    if (mButtonCtrl[4]->isPointing()) {
-        _48->show(MR::getGameMessageDirect("2PGuidanceIcon"), "P2Button");
+    if (mButtonCtrl[3]->isPointing()) {
+        mHelpText->show(MR::getGameMessageDirect("2PGuidanceIcon"), "P2Button");
     }
 }
 
 void FileSelectButton::createPaneControl() {
-    MR::createAndAddPaneCtrl(this, "CopyButton", 1);
     MR::createAndAddPaneCtrl(this, "MiiButton", 1);
     MR::createAndAddPaneCtrl(this, "DeleteButton", 1);
     MR::createAndAddPaneCtrl(this, "StartButton", 1);
@@ -115,11 +139,10 @@ void FileSelectButton::createPaneControl() {
 }
 
 void FileSelectButton::createButtonController() {
-    mButtonCtrl[1] = new ButtonPaneController(this, "CopyButton", "PicCopy", 0, true);
-    mButtonCtrl[2] = new ButtonPaneController(this, "MiiButton", "PicMii", 0, true);
-    mButtonCtrl[3] = new ButtonPaneController(this, "DeleteButton", "PicDelete", 0, true);
+    mButtonCtrl[1] = new ButtonPaneController(this, "MiiButton", "BoxMii", 0, true);
+    mButtonCtrl[2] = new ButtonPaneController(this, "DeleteButton", "BoxDelete", 0, true);
     mButtonCtrl[0] = new ButtonPaneController(this, "StartButton", "BoxStartButton", 0, true);
-    mButtonCtrl[4] = new ButtonPaneController(this, "P2ManualButton", "BoxP2", 0, true);
+    mButtonCtrl[3] = new ButtonPaneController(this, "P2ManualButton", "BoxP2", 0, true);
 
     for (int i = 0; i < ARRAY_SIZE(mButtonCtrl); i++) {
         mButtonCtrl[i]->_22 = false;
@@ -127,8 +150,8 @@ void FileSelectButton::createButtonController() {
 }
 
 void FileSelectButton::createOthers() {
-    _48 = new GalaxyMapGalaxyPlain(this);
-    _48->initWithoutIter();
+    mHelpText = new GalaxyMapGalaxyPlain(this);
+    mHelpText->initWithoutIter();
 
-    MR::connectToSceneLayoutDecoration(_48);
+    MR::connectToSceneLayoutDecoration(mHelpText);
 }

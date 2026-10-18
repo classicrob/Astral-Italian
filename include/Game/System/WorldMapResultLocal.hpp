@@ -36,7 +36,6 @@
 extern "C" {
     bool fn_804D6E10();
     bool fn_80059100();
-    void fn_8005BC20(s32);
 }
 
 class WorldMapResultCommand;
@@ -57,7 +56,6 @@ extern "C" {
     void fn_80458860();
     void fn_80458890();
     void fn_804588D0();
-    void fn_8005AC70(s32, s32);
 }
 
 class WorldMapResultCommand;

@@ -7,6 +7,7 @@ class JMapInfoIter;
 class LiveActor;
 
 namespace MR {
+    void initTalkStageSwitch(LiveActor*, const JMapInfoIter&, s32, bool);
     bool useStageSwitchReadA(LiveActor* pActor, const JMapInfoIter& rIter);
     bool useStageSwitchReadB(LiveActor* pActor, const JMapInfoIter& rIter);
     bool useStageSwitchReadAppear(LiveActor* pActor, const JMapInfoIter& rIter);

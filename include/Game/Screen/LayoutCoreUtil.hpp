@@ -15,7 +15,7 @@ namespace LayoutCoreUtil {
     f32 getPaneAutoScale(nw4r::lyt::Pane* pPane);
     nw4r::lyt::Layout* createLayout(const char* pLayoutName, LayoutHolder* pLayoutHolder);
     const char* getPaneUserData(const nw4r::lyt::Pane* pPane, char* pOut);
-    u16 setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg);
+    void setTextBoxMessage(nw4r::lyt::TextBox* pTextBox, const wchar_t* pMsg);
     void initTextBoxPane(nw4r::lyt::TextBox* pTextBox, const char* pStr, u32 allocSize);
     void reallocateTextBoxMessage(nw4r::lyt::TextBox* pTextBox, u32 allocSize);
 };  // namespace LayoutCoreUtil

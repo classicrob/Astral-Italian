@@ -390,7 +390,7 @@ NameObj* SceneObjHolder::newEachObj(int id) {
     // TODO: SMG2 id unknown: SceneObj_PrologueHolder
     // return new PrologueHolder("プロローグ保持");
     case SceneObj_StaffRoll:
-        return new StaffRoll("スタッフロール");
+        return new StaffRoll();
     default:
         return nullptr;
     }

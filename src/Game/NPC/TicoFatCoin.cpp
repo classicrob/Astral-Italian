@@ -7,6 +7,7 @@
 #include "Game/Effect/MultiEmitter.hpp"
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/PartsModel.hpp"
 extern "C" {
 extern char lbl_806BE390[], lbl_806BE410[], lbl_806BE434[], lbl_806BE43C[], lbl_806BE498[], lbl_806BE4B0[];
 extern char lbl_806B7AEC[], lbl_806B7AE0[], lbl_806B7AD4[], lbl_806B7AC8[];
@@ -14,7 +15,6 @@ extern const char lbl_807CFF48[4];
 extern const s32 lbl_807CFE90, lbl_807CFE94, lbl_807CFE98, lbl_807CFE9C;
 extern s32 lbl_807D4C20,lbl_807D4C24,lbl_807D4C28,lbl_807D4C2C,lbl_807D4C30,lbl_807D4C34,lbl_807D4C38,lbl_807D4C3C,lbl_807D4C40,lbl_807D4C48;
 }
-#define RAW(T, o) (*(T*)((u8*)this+(o)))
 #define COIN_NERVE(label) reinterpret_cast<Nerve*>(&label)
 TicoFatCoin::TicoFatCoin(const char* name) : NPCActor(name), mRequiredCoins(5), mCameraInfo(0), mEatState(0) { mEffectMtx.identity(); mSmokeMtx.identity(); }
 TicoFatCoin::~TicoFatCoin() {}
@@ -27,16 +27,16 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     caps.mNerveStep = 1;
     caps.mSwitchDead = false;
     initialize(iter, caps, strings+0x18, 0, 0);
-    RAW(const char*,0x100)=strings+0x24;
-    RAW(const char*,0x104)=strings+0x24;
-    RAW(const char*,0x108)=strings+0x2C;
-    RAW(const char*,0x10C)=strings+0x2C;
-    RAW(const char*,0x134)=lbl_806B7AEC;
-    RAW(const char*,0x138)=lbl_806B7AE0;
-    RAW(const char*,0x13C)=lbl_806B7AD4;
-    RAW(const char*,0x140)=lbl_806B7AC8;
-    RAW(f32,0x130)=1000.0f;
-    RAW(Nerve*,0x158)=COIN_NERVE(lbl_807D4C20);
+    mParam._14=strings+0x24;
+    mParam._18=strings+0x24;
+    mParam._1C=strings+0x2C;
+    mParam._20=strings+0x2C;
+    _130=lbl_806B7AEC;
+    _134=lbl_806B7AE0;
+    _138=lbl_806B7AD4;
+    _13C=lbl_806B7AC8;
+    _12C=1000.0f;
+    mTalkNerve=COIN_NERVE(lbl_807D4C20);
     MR::getJMapInfoArg1NoInit(iter,&mRequiredCoins);
     mEatState = new TicoStateEatCoin(this,mRequiredCoins);
     MR::initActorState(this,mEatState,COIN_NERVE(lbl_807D4C24),strings+0x38);
@@ -48,8 +48,8 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     item.mGoodsJoint1=reinterpret_cast<const char*>(&lbl_807CFE90);
     MR::getNPCItemData(&item,0);
     equipment(item,false);
-    MR::startAction(RAW(LiveActor*,0x98),strings+0x40);
-    MR::startAction(RAW(LiveActor*,0x9C),strings+0x54);
+    MR::startAction(_94,strings+0x40);
+    MR::startAction(_98,strings+0x54);
     initTalkCtrlDirect(iter,strings+0x68,TVec3f(0.0f,150.0f,0.0f),0);
     MR::registerBranchFunc(getMsgCtrl(),TalkMessageFunc(this,&TicoFatCoin::branchFunc));
     MR::registerEventFunc(getMsgCtrl(),TalkMessageFunc(this,&TicoFatCoin::eventFunc));
@@ -65,11 +65,11 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
 }
 void TicoFatCoin::control() { NPCActor::control(); }
 void TicoFatCoin::exeWait() {
-    if(!MR::tryStartReactionAndPushNerve(this,RAW(Nerve*,0x15C)) && MR::tryTalkNearPlayerAtEndAndStartTalkAction(this)) setNerve(RAW(Nerve*,0x154));
+    if(!MR::tryStartReactionAndPushNerve(this,mReactionNerve) && MR::tryTalkNearPlayerAtEndAndStartTalkAction(this)) setNerve(mWaitNerve);
 }
 void TicoFatCoin::exeMetamorphosis() {
     if(MR::isFirstStep(this)) MR::startAction(this,lbl_806BE434);
-    if(MR::isStep(this,90)) { RAW(LiveActor*,0x98)->kill(); RAW(LiveActor*,0x9C)->kill(); }
+    if(MR::isStep(this,90)) { _94->kill(); _98->kill(); }
     if(MR::isActionEnd(this)) {
         if(MR::isExistRail(this)) { setNerve(COIN_NERVE(lbl_807D4C2C)); return; }
         setNerve(COIN_NERVE(lbl_807D4C30));

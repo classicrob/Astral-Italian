@@ -432,3 +432,6 @@ namespace MR {
     // Provisional name for the unnamed SMG2 function fn_804E4FB0 (used by MiniMeister::exeTalkEnd).
     void stopTalkEffect(LiveActor* pActor);
 };  // namespace MR
+
+namespace MR {
+}

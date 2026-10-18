@@ -7,6 +7,17 @@ class UserFile;
 
 namespace GameSequenceFunction {
     bool isGreenStarEventOnly();
+    s32 getTicoFatStarPieceId();
+    s32 getTicoFatStarPieceRequirement();
+    bool isTicoFatStarPieceActive();
+    bool isNoSaveMode();
+    bool hasResultPowerStar();
+    bool isResultStarNotGreen();
+    bool isResultNotifyTicoCoin();
+    bool isResultNewBestTime();
+    bool isResultUnlockGhostLuigi();
+    s32 getResultCoinOneUpCount();
+    u32 getResultBestTime();
     void restartCurrentStageAndClearAfterMiss();
     const char* getClearedStageName();
     void resetPlayResultInStage();
@@ -54,3 +65,7 @@ namespace GameSequenceFunction {
     bool hasStageResultSequence();
     bool isGalaxyCometLand(const char*);
 };  // namespace GameSequenceFunction
+
+namespace GameSequenceFunction {
+    s32 getElapsedStageFrame();
+}

@@ -14,7 +14,6 @@ namespace MR {
 
 // Unnamed SMG2 helpers (C linkage so the target reloc names match).
 extern "C" void fn_802C2AA0(LiveActor* pActor, s32 flag, f32 a, f32 b, f32 c);
-extern "C" void fn_8000E670(TVec3f* pDst, const LiveActor* pActor, const TVec3f* pPos, s32 flag);
 
 namespace NrvLeafBoard {
     NEW_NERVE(LeafBoardNrvWait, LeafBoard, Wait);
@@ -216,7 +215,7 @@ void LeafBoard::exeWind() {
     f32 var_f31 = 0.97f;
     f32 var_f30 = 0.0f;
     if (mFlag108) {
-        fn_8000E670(&sp20, this, &mPlayerPos, 0);
+        MR::calcVecToTargetHorizon(&sp20, this, &mPlayerPos, 0);
         f32 len = PSVECMag(&sp20);
         var_f30 = MR::normalize(len, 100.0f, 150.0f);
         var_f31 = MR::getLinerValue(var_f30, 1.0f, 0.97f, 1.0f);

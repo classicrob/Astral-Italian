@@ -3,36 +3,16 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/ActorStateDemoAppearance.hpp"
+#include "Game/Camera/CameraTargetMtx.hpp"
+#include "Game/Map/CollisionParts.hpp"
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/CollisionPartsFilter.hpp"
+#include "Game/MapObj/CollectTicoHolder.hpp"
+#include "Game/MapObj/DrillHole.hpp"
 #include "JSystem/JGeometry/TVec.hpp"
 #include "JSystem/JMath/JMath.hpp"
 
-class CameraTargetMtx {
-public:
-    CameraTargetMtx(const char*);
-    u8 _[0x14];
-    TPos3f mMtx14;
-    u8 _2[0x94 - 0x14 - sizeof(TPos3f)];
-};
-
-namespace Collision {
-    void addToGlobal(CollisionParts*);
-    void removeToGlobal(CollisionParts*);
-};  // namespace Collision
-
-namespace MR {
-    bool isGroundCodeNoDig(const Triangle*);
-    bool isInPlaneModeCube(const TVec3f&);
-    void launchRescuedStrayTico(const TPos3f&);
-    void* createCollisionPartsFilterDelegator(bool (*)(const CollisionParts*));
-    f32 calcDistanceToPlayer(const TVec3f&);
-    bool isPlayerInRange(f32, const TVec3f&);
-};  // namespace MR
-
-void createDrillHoleHolderSceneObj();
-void appearDrillHoleFromArea1(const TPos3f*);
-void appearDrillHoleFromArea2(const TPos3f*);
 extern "C" HitSensor* fn_80038D20(const Triangle*);
 
 extern "C" void fn_800222A0(const LiveActor*);
@@ -41,12 +21,6 @@ extern "C" bool fn_80050380();
 extern "C" void fn_8004FF70();
 extern "C" void fn_802B5800(TMtx34f*, const TVec3f*, const TVec3f*, TVec3f*);
 
-namespace JGeometry {
-    void negateInternal(const f32*, f32*);
-};  // namespace JGeometry
-
-extern "C" bool fn_802B8500(const CollisionParts*);
-extern "C" const f32 lbl_806494C0[3];
 
 namespace NrvItemDrill {
     // Wait and Appear have their own bodies in SMG2 (no exeWait / exeAppear symbols).
@@ -77,8 +51,8 @@ namespace NrvItemDrill {
     NEW_NERVE(ItemDrillNrvGroupHide, ItemDrill, GroupHide);
 }  // namespace NrvItemDrill
 
-// Global direction vector (constructed in __sinit_ after the nerves).
-extern "C" TVec3f lbl_80729990(0.0f, 14.0f, 2.0f);
+// Local-space offset of the drill tip (constructed in __sinit_ after the nerves).
+static TVec3f sDrillTipOffset(0.0f, 14.0f, 2.0f);
 
 ItemDrill::ItemDrill(const char* pName) : LiveActor(pName) {
     mVecF0.x = 0.0f;
@@ -377,8 +351,8 @@ void ItemDrill::exeDrillDiveLoop() {
 
         if (mCameraInfo != nullptr) {
             MR::startActorCameraTargetMtx(this, mCameraInfo, mCameraTargetMtx, -1);
-            JMath::gekko_ps_copy12(&mCameraTargetMtx->mMtx14, &MR::getCameraInvViewMtx());
-            TPos3f* pCamPos = &mCameraTargetMtx->mMtx14;
+            JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &MR::getCameraInvViewMtx());
+            TPos3f* pCamPos = &mCameraTargetMtx->mMatrix;
             pCamPos->setTrans(*MR::getPlayerCenterPos());
         }
 
@@ -459,14 +433,14 @@ void ItemDrill::exeDrop() {
         } else {
             MR::makeMtxUpFront(&mBaseTRMtx, negGrav, negFront);
         }
-        mBaseTRMtx.mult(lbl_80729990, mVelocity);
+        mBaseTRMtx.mult(sDrillTipOffset, mVelocity);
     }
 
     TVec3f g(mGravity);
     g.scale(0.8f);
     PSVECAdd(&mVelocity, &g, &mVelocity);
 
-    MR::reboundVelocityFromCollision(this, lbl_806494C0[0], lbl_806494C0[1], lbl_806494C0[2]);
+    MR::reboundVelocityFromCollision(this, 0.5f, 0.0f, 0.5f);
     if (MR::isActionEnd(this)) {
         MR::sendMsgGroupShowToMember(this, getSensor("Body"), "Body");
         setNerve(GET_NERVE(ItemDrill, ItemDrillNrvHide));
@@ -854,7 +828,7 @@ bool ItemDrill::updateDrillMove(const TVec3f& rMove) {
     JMath::gekko_ps_copy12(&mMtxFC, MR::getJointMtx(this, "MarioPosition"));
 
     if (MR::isActiveActorCamera(this, mCameraInfo)) {
-        mCameraTargetMtx->mMtx14.getTrans(camPos);
+        mCameraTargetMtx->mMatrix.getTrans(camPos);
         center.set(*MR::getPlayerCenterPos());
         if (40.0f < PSVECDistance(&camPos, &center)) {
             diff.set(center);
@@ -862,7 +836,7 @@ bool ItemDrill::updateDrillMove(const TVec3f& rMove) {
             MR::normalize(&center, diff);
             JMAVECScaleAdd(&center, &camPos, &center, 40.0f);
         }
-        mCameraTargetMtx->mMtx14.setTrans(center);
+        mCameraTargetMtx->mMatrix.setTrans(center);
     }
     return result;
 }
@@ -1056,7 +1030,7 @@ ItemDrillMovementLimitPos::~ItemDrillMovementLimitPos() {
 }
 
 void ItemDrillMovementLimitPos::init(const JMapInfoIter&) {
-    mCollisionPartsFilter = MR::createCollisionPartsFilterDelegator(fn_802B8500);
+    mCollisionPartsFilter = MR::createCollisionPartsFilterDelegator(ItemDrill::isTargetCollisionParts);
     makeActorDead();
 }
 
@@ -1165,9 +1139,8 @@ bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3
     return false;
 }
 
-// CollisionParts has no full definition in the repo yet; field at 0xE0.
-extern "C" bool fn_802B8500(const CollisionParts* pParts) {
-    return *reinterpret_cast< const s32* >(reinterpret_cast< const u8* >(pParts) + 0xE0) != 3;
+bool ItemDrill::isTargetCollisionParts(const CollisionParts* pParts) {
+    return pParts->mKeeperIndex != 3;
 }
 
 bool MR::isPlayerInRange(f32 dist, const TVec3f& rPos) {
@@ -1190,3 +1163,4 @@ namespace NrvItemDrill {
         }
     }
 }  // namespace NrvItemDrill
+

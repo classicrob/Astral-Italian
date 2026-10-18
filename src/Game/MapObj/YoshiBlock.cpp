@@ -14,14 +14,6 @@ namespace MR {
     bool isMsgDashYoshiAttack(u32);
 }
 
-extern "C" DiceMover* fn_800547F0(DiceMover*, s32, s32);
-extern "C" void fn_80054870(DiceMover*, const TVec3f*);
-extern "C" void fn_800548E0(DiceMover*, const TPos3f*);
-extern "C" void fn_80054990(DiceMover*, const TVec3f*, const TVec3f*);
-extern "C" void fn_800549B0(DiceMover*);
-extern "C" void fn_80054A60(DiceMover*, TPos3f*);
-extern "C" void fn_80054AB0(DiceMover*);
-extern "C" void fn_80054B30(DiceMover*, const TVec3f*);
 
 // SMG2: LiveActor is 0x90 bytes, so YoshiBlock's own fields start at 0x90.
 namespace NrvYoshiBlock {
@@ -165,32 +157,29 @@ void YoshiBlock::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(YoshiBlock, YoshiBlockNrvWait), 0);
 
-    DiceMover* pMover = new DiceMover;
-    if (pMover) {
-        pMover = fn_800547F0(pMover, 8, 0);
-    }
+    DiceMover* pMover = new DiceMover(8, 0);
     mCollision = pMover;
 
     f32 hx = 0.5f * mSize.x;
     f32 hy = 0.5f * mSize.y;
     f32 hz = 0.5f * mSize.z;
     TVec3f sp5C(-hx, hy, hz);
-    fn_80054870(mCollision, &sp5C);
+    mCollision->addCollisionPoint(&sp5C);
     TVec3f sp50(hx, hy, hz);
-    fn_80054870(mCollision, &sp50);
+    mCollision->addCollisionPoint(&sp50);
     TVec3f sp44(hx, hy, -hz);
-    fn_80054870(mCollision, &sp44);
+    mCollision->addCollisionPoint(&sp44);
     TVec3f sp38(-hx, hy, -hz);
-    fn_80054870(mCollision, &sp38);
+    mCollision->addCollisionPoint(&sp38);
     TVec3f sp2C(-hx, -hy, hz);
-    fn_80054870(mCollision, &sp2C);
+    mCollision->addCollisionPoint(&sp2C);
     TVec3f sp20(hx, -hy, hz);
-    fn_80054870(mCollision, &sp20);
+    mCollision->addCollisionPoint(&sp20);
     TVec3f sp14(hx, -hy, -hz);
-    fn_80054870(mCollision, &sp14);
+    mCollision->addCollisionPoint(&sp14);
     TVec3f sp8(-hx, -hy, -hz);
-    fn_80054870(mCollision, &sp8);
-    fn_80054AB0(mCollision);
+    mCollision->addCollisionPoint(&sp8);
+    mCollision->calcRadius();
     mCollision->mSpeedLimit *= 1.5f;
     updateCollisionMtx();
 
@@ -301,10 +290,10 @@ void YoshiBlock::exeDashed() {
     sp20.x *= 0.4f;
     sp20.y *= 0.4f;
     sp20.z *= 0.4f;
-    fn_80054B30(mCollision, &sp20);
-    fn_800549B0(mCollision);
+    mCollision->setGravity(&sp20);
+    mCollision->update();
     TPos3f sp50;
-    fn_80054A60(mCollision, &sp50);
+    mCollision->calcMtx(&sp50);
     TVec3f sp38;
     sp50.getYDir(sp38);
     TVec3f sp2C;
@@ -367,11 +356,11 @@ void YoshiBlock::updateCollisionMtx() {
     TVec3f sp2C = mPosition + sp20;
     TVec3f sp38 = sp2C + sp8;
     sp50.setTrans(sp38);
-    fn_800548E0(mCollision, &sp50);
+    mCollision->setMtx(sp50.toMtxPtr());
 }
 
 void YoshiBlock::doYoshiDashed(const TVec3f& rPos, const TVec3f& rVel) {
-    fn_80054990(mCollision, &rPos, &rVel);
+    mCollision->collide(&rPos, &rVel);
     mCollisionActor->kill();
     MR::shakeCameraNormal();
     MR::tryRumblePadMiddle(this, 0);

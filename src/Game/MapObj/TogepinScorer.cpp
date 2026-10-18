@@ -74,21 +74,17 @@ namespace {
     TogepinScorerNrvEnd sNrvEnd;
 }  // namespace
 
-extern "C" void fn_803249A0(TogepinScorer*);
-extern "C" void fn_80324A40(TogepinScorer*);
-extern "C" void fn_80324B20(TogepinScorer*);
-extern "C" bool fn_80324BC0(TogepinScorer*);
 
 void TogepinScorerNrvStart::execute(Spine* pSpine) const {
-    fn_803249A0(reinterpret_cast<TogepinScorer*>(pSpine->mExecutor));
+    reinterpret_cast<TogepinScorer*>(pSpine->mExecutor)->exeStart();
 }
 
 void TogepinScorerNrvPlay::execute(Spine* pSpine) const {
-    fn_80324A40(reinterpret_cast<TogepinScorer*>(pSpine->mExecutor));
+    reinterpret_cast<TogepinScorer*>(pSpine->mExecutor)->exePlay();
 }
 
 void TogepinScorerNrvEnd::execute(Spine* pSpine) const {
-    fn_80324B20(reinterpret_cast<TogepinScorer*>(pSpine->mExecutor));
+    reinterpret_cast<TogepinScorer*>(pSpine->mExecutor)->exeEnd();
 }
 
 // TogepinScorer::TogepinScorer (char const *)
@@ -136,188 +132,172 @@ void TogepinScorer::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-// fn_803245E0
-extern "C" void fn_803245E0(LiveActor* pScorer, Togepin* pTogepin) {
-    fn_804904E0(static_cast<ScoreCounterLayout*>(static_cast<TogepinScorer*>(pScorer)->mScoreCounter), 0x64);
+void TogepinScorer::onTogepinDown(Togepin* pTogepin) {
+    fn_804904E0(static_cast<ScoreCounterLayout*>(mScoreCounter), 0x64);
     if (pTogepin != nullptr) {
         fn_80490D40(0x64, (s32)pTogepin);
     }
 }
 
-// fn_80324630
-extern "C" void fn_80324630(TogepinScorer* pScorer) {
-    LiveActorGroup* pGroup = pScorer->mTogepinGroup;
+void TogepinScorer::reappearAll() {
+    LiveActorGroup* pGroup = mTogepinGroup;
     if (pGroup != nullptr) {
         s32 num = pGroup->getObjectCount();
         for (s32 i = 0; i < num; i++) {
-            static_cast<Togepin*>(pScorer->mTogepinGroup->getActor(i))->reappear();
+            static_cast<Togepin*>(mTogepinGroup->getActor(i))->reappear();
         }
     }
 }
 
-// fn_803246A0
-extern "C" void fn_803246A0(TogepinScorer* pScorer) {
-    LiveActorGroup* pGroup = pScorer->mTogepinGroup;
+void TogepinScorer::hideAll() {
+    LiveActorGroup* pGroup = mTogepinGroup;
     if (pGroup != nullptr) {
         s32 num = pGroup->getObjectCount();
         for (s32 i = 0; i < num; i++) {
-            static_cast<Togepin*>(pScorer->mTogepinGroup->getActor(i))->tryHide();
+            static_cast<Togepin*>(mTogepinGroup->getActor(i))->tryHide();
         }
     }
 }
 
-// fn_80324710
-extern "C" void fn_80324710(TogepinScorer* pScorer) {
-    LiveActorGroup* pGroup = pScorer->mTogepinGroup;
+void TogepinScorer::appearAll() {
+    LiveActorGroup* pGroup = mTogepinGroup;
     if (pGroup != nullptr) {
         s32 num = pGroup->getObjectCount();
         for (s32 i = 0; i < num; i++) {
-            static_cast<Togepin*>(pScorer->mTogepinGroup->getActor(i))->tryAppear();
+            static_cast<Togepin*>(mTogepinGroup->getActor(i))->tryAppear();
         }
     }
 }
 
-// fn_80324780
-extern "C" void fn_80324780(TogepinScorer* pScorer) {
-    if (pScorer->isNerve(&sNrvIdle)) {
-        fn_80490540(static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter));
-        fn_80490580(static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter));
-        fn_80324630(pScorer);
-        pScorer->setNerve(&sNrvStart);
-        pScorer->mCounter = 0;
-        if (MR::isValidSwitchA(pScorer)) {
-            MR::onSwitchA(pScorer);
+void TogepinScorer::start() {
+    if (isNerve(&sNrvIdle)) {
+        fn_80490540(static_cast<ScoreCounterLayout*>(mScoreCounter));
+        fn_80490580(static_cast<ScoreCounterLayout*>(mScoreCounter));
+        reappearAll();
+        setNerve(&sNrvStart);
+        mCounter = 0;
+        if (MR::isValidSwitchA(this)) {
+            MR::onSwitchA(this);
         }
     }
 }
 
-// fn_80324800
-extern "C" bool fn_80324800(TogepinScorer* pScorer) {
-    return pScorer->isNerve(&sNrvIdle) == false;
+bool TogepinScorer::isPlaying() const {
+    return isNerve(&sNrvIdle) == false;
 }
 
-// fn_80324830
-extern "C" bool fn_80324830(TogepinScorer* pScorer) {
-    return pScorer->mIsClear;
+bool TogepinScorer::isClear() const {
+    return mIsClear;
 }
 
-// fn_80324840
-extern "C" u8 fn_80324840(TogepinScorer* pScorer) {
-    return static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter)->_38;
+bool TogepinScorer::isNewRecord() const {
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_38;
 }
 
-// fn_80324850
-extern "C" s32 fn_80324850(TogepinScorer* pScorer) {
-    return static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter)->_2C;
+s32 TogepinScorer::getScore() const {
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_2C;
 }
 
-// fn_80324860
-extern "C" s32 fn_80324860(TogepinScorer* pScorer) {
-    return static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter)->_30;
+s32 TogepinScorer::getBestScore() const {
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_30;
 }
 
-// fn_80324870
-extern "C" s32 fn_80324870(TogepinScorer* pScorer) {
-    return static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter)->_34;
+s32 TogepinScorer::getTargetScore() const {
+    return static_cast<ScoreCounterLayout*>(mScoreCounter)->_34;
 }
 
-// fn_80324880
-extern "C" void fn_80324880(TogepinScorer* pScorer) {
-    bool wasEnd = pScorer->mIsEnd;
+void TogepinScorer::updateNgArea() {
+    bool wasEnd = mIsEnd;
     bool isEnd = MR::isCurrentRushRockMario();
     if (!isEnd) {
         if (MR::isOnGroundPlayer()) {
             isEnd = MR::isInAreaObj("\x83\x67\x83\x51\x83\x73\x83\x93\x83\x8A\x83\x58\x83\x67", *MR::getPlayerPos());
-            pScorer->mIsEnd = isEnd;
+            mIsEnd = isEnd;
         }
     }
-    if (wasEnd != pScorer->mIsEnd) {
-        if (pScorer->mIsEnd) {
-            if (MR::isValidSwitchB(pScorer)) {
-                MR::onSwitchB(pScorer);
-                MR::startActionSound(pScorer, "NGTrig", -1, -1, -1);
+    if (wasEnd != mIsEnd) {
+        if (mIsEnd) {
+            if (MR::isValidSwitchB(this)) {
+                MR::onSwitchB(this);
+                MR::startActionSound(this, "NGTrig", -1, -1, -1);
             }
         } else {
-            if (MR::isValidSwitchB(pScorer)) {
-                MR::offSwitchB(pScorer);
+            if (MR::isValidSwitchB(this)) {
+                MR::offSwitchB(this);
             }
         }
     }
-    if (pScorer->mIsEnd) {
-        fn_803246A0(pScorer);
-        MR::startActionSound(pScorer, "NGLevel", -1, -1, -1);
-        pScorer->mCounter += 1;
+    if (mIsEnd) {
+        hideAll();
+        MR::startActionSound(this, "NGLevel", -1, -1, -1);
+        mCounter += 1;
         return;
     }
-    fn_80324710(pScorer);
-    pScorer->mCounter = 0;
+    appearAll();
+    mCounter = 0;
 }
 
-// fn_803249A0
-extern "C" void fn_803249A0(TogepinScorer* pScorer) {
-    if (MR::isFirstStep(pScorer)) {
+void TogepinScorer::exeStart() {
+    if (MR::isFirstStep(this)) {
         MR::startStageBGM("MBGM_MINI_GAME", false);
-        pScorer->mIsEnd = false;
+        mIsEnd = false;
     }
-    fn_80324880(pScorer);
-    if (fn_80324BC0(pScorer)) {
-        ScoreCounterLayout* pCounter = static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter);
+    updateNgArea();
+    if (isSwitchOff()) {
+        ScoreCounterLayout* pCounter = static_cast<ScoreCounterLayout*>(mScoreCounter);
         if (pCounter->_2C >= pCounter->_34) {
-            pScorer->mIsClear = true;
+            mIsClear = true;
         }
         MR::curePlayerElementMode();
         MR::offPlayerControl();
         MR::deactivateDefaultGameLayout();
-        pScorer->setNerve(&sNrvPlay);
+        setNerve(&sNrvPlay);
     }
 }
 
-// fn_80324A40
-extern "C" void fn_80324A40(TogepinScorer* pScorer) {
-    if (MR::isFirstStep(pScorer)) {
-        fn_804905D0(static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter));
-        static_cast<GameSetLayout*>(pScorer->mSetLayout)->unk2C();
-        ScoreCounterLayout* pCounter = static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter);
+void TogepinScorer::exePlay() {
+    if (MR::isFirstStep(this)) {
+        fn_804905D0(static_cast<ScoreCounterLayout*>(mScoreCounter));
+        static_cast<GameSetLayout*>(mSetLayout)->unk2C();
+        ScoreCounterLayout* pCounter = static_cast<ScoreCounterLayout*>(mScoreCounter);
         if (pCounter->_38 != 0) {
             reinterpret_cast<GameDataFunction*>(pCounter->_30)->setBestScoreAttackCurrentStage();
         }
         fn_8005AD00(0x5A);
-        if (pScorer->mIsClear) {
+        if (mIsClear) {
             MR::startSubBGM("BGM_RACE_WIN", false);
         } else {
             MR::startSubBGM("BGM_RACE_LOSE", false);
         }
     }
-    if (MR::isGreaterStep(pScorer, 0xB4)) {
-        fn_80471DC0(static_cast<GameSetLayout*>(pScorer->mSetLayout));
-        fn_80490620(static_cast<ScoreCounterLayout*>(pScorer->mScoreCounter));
-        pScorer->setNerve(&sNrvEnd);
+    if (MR::isGreaterStep(this, 0xB4)) {
+        fn_80471DC0(static_cast<GameSetLayout*>(mSetLayout));
+        fn_80490620(static_cast<ScoreCounterLayout*>(mScoreCounter));
+        setNerve(&sNrvEnd);
         MR::onPlayerControl(true);
     }
 }
 
-// fn_80324B20
-extern "C" void fn_80324B20(TogepinScorer* pScorer) {
-    if (MR::isFirstStep(pScorer)) {
-        pScorer->mTogepinGroup->makeAllDead();
+void TogepinScorer::exeEnd() {
+    if (MR::isFirstStep(this)) {
+        mTogepinGroup->makeAllDead();
         MR::startLastStageBGM();
     }
-    if (MR::updateActorState(pScorer)) {
-        if (pScorer->_9C != nullptr) {
-            pScorer->_9C->slot0();
+    if (MR::updateActorState(this)) {
+        if (_9C != nullptr) {
+            _9C->slot0();
         }
         MR::offPlayerControl();
         MR::deactivateDefaultGameLayout();
-        if (MR::isValidSwitchA(pScorer)) {
-            MR::offSwitchA(pScorer);
+        if (MR::isValidSwitchA(this)) {
+            MR::offSwitchA(this);
         }
-        pScorer->setNerve(&sNrvIdle);
+        setNerve(&sNrvIdle);
     }
 }
 
-// fn_80324BC0
-extern "C" bool fn_80324BC0(TogepinScorer* pScorer) {
-    if (MR::isValidSwitchA(pScorer) && !MR::isOnSwitchA(pScorer)) {
+bool TogepinScorer::isSwitchOff() const {
+    if (MR::isValidSwitchA(this) && !MR::isOnSwitchA(this)) {
         return true;
     }
     return false;

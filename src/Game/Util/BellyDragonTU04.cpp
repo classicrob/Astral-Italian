@@ -80,11 +80,7 @@ extern "C" void fn_800929A0(BellyDragonBody*);
 extern "C" bool fn_8008EDA0(LiveActor*);
 extern "C" void fn_8008EDB0(void*, f32);
 extern "C" void fn_80013880(LiveActor*, TVec3f*, s32);
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" void fn_800348C0(LiveActor*);
-extern "C" s32 fn_80020360(LiveActor*, ActorCameraInfo*, s32, s32);
 extern "C" s32 fn_800202E0(LiveActor*, ActorCameraInfo*, s32, s32);
-extern "C" s32 fn_800207D0(void);
 extern "C" s32 fn_80008F00(LiveActor*, const char*);
 extern "C" void fn_80097A50(LiveActor*);
 extern "C" bool fn_80097A60(LiveActor*);
@@ -380,12 +376,12 @@ extern "C" s32 fn_80093DC0(BellyDragon* pHost, s32 idx, bool useFirst, f32 farg0
     fn_8008EDB0(pHost, farg0);
     s32 found;
     if (useFirst) {
-        found = fn_80020360(pHost, pPod->mCameraInfo, idx, 0);
+        found = MR::tryEndDemoAndAnimCamera(pHost, pPod->mCameraInfo, reinterpret_cast<const char*>(idx), 0);
     } else {
         found = fn_800202E0(pHost, pPod->mCameraInfo, idx, 0);
     }
     if (found != 0) {
-        if (fn_800207D0()) {
+        if (MR::isDemoEndWaitCameraInterpolating()) {
             fn_800929A0(pHost->mBody);
         }
         char name[0x100];
@@ -434,7 +430,7 @@ void BellyDragonPodActor::exeWait() {
     MR::attenuateVelocity(this, lbl_807D783C);
     if (MR::isBinded(this)) {
         fn_800938C0(mHost, &mPosition);
-        fn_800345E0(this, lbl_8066D018);
+        MR::tryHitReaction(this, lbl_8066D018);
         MR::startActionSound(this, lbl_807CF4E8, -1, -1, -1);
         kill();
         return;
@@ -443,7 +439,7 @@ void BellyDragonPodActor::exeWait() {
         MR::startActionSound(this, lbl_8066D024, -1, -1, -1);
     }
     if (MR::isGreaterEqualStep(this, 0x384)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
     }
 }

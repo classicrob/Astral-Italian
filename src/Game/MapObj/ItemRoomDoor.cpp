@@ -14,15 +14,7 @@ namespace MR {
 
 extern "C" bool fn_8001FDD0(const LiveActor*, const char*);
 
-extern "C" const char* lbl_807CFCC0;
-extern "C" const char* lbl_807CFCC4;
-extern "C" const char* lbl_807CFCC8;
 
-extern "C" const char lbl_806A3668[];
-extern "C" const char lbl_806A36AC[];
-extern "C" const char lbl_806A36B4[];
-extern "C" const char lbl_806A36C8[];
-extern "C" const char lbl_806A36E4[];
 
 namespace NrvItemRoomDoor {
     NEW_NERVE(ItemRoomDoorNrvCloseWait, ItemRoomDoor, CloseWait);
@@ -48,19 +40,19 @@ void ItemRoomDoor::init(const JMapInfoIter& rIter) {
     mIsAutoOpen = !arg0;
 
     MR::useStageSwitchSyncAppear(this, rIter);
-    MR::tryRegisterDemoCast(this, lbl_807CFCC0, rIter);
-    if (MR::tryRegisterDemoCast(this, lbl_807CFCC4, rIter)) {
-        MR::tryRegisterDemoActionFunctorDirect(this, reinterpret_cast<const MR::FunctorBase&>(NrvItemRoomDoor::ItemRoomDoorNrvOpen::sInstance), lbl_807CFCC4, nullptr);
+    MR::tryRegisterDemoCast(this, "\200j6h\200j6\200\200j6\230", rIter);
+    if (MR::tryRegisterDemoCast(this, "\200j6\200\200j6\230", rIter)) {
+        MR::tryRegisterDemoActionFunctorDirect(this, reinterpret_cast<const MR::FunctorBase&>(NrvItemRoomDoor::ItemRoomDoorNrvOpen::sInstance), "\200j6\200\200j6\230", nullptr);
     }
-    if (MR::tryRegisterDemoCast(this, lbl_807CFCC8, rIter)) {
+    if (MR::tryRegisterDemoCast(this, "\200j6\230", rIter)) {
         makeActorDead();
     }
 }
 
 void ItemRoomDoor::exeCloseWait() {
     if (mIsAutoOpen) {
-        f32 radius = MR::getSensorRadius(this, lbl_806A36AC);
-        if (MR::isPlayerInRange(radius, *MR::getSensorPos(this, lbl_806A36AC))) {
+        f32 radius = MR::getSensorRadius(this, "Open");
+        if (MR::isPlayerInRange(radius, *MR::getSensorPos(this, "Open"))) {
             setNerve(&NrvItemRoomDoor::ItemRoomDoorNrvOpenWait::sInstance);
         }
     }
@@ -68,20 +60,20 @@ void ItemRoomDoor::exeCloseWait() {
 
 void ItemRoomDoor::exeOpen() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, lbl_806A36B4);
-        MR::setAllAnimFrameAtEnd(this, lbl_806A36B4);
+        MR::tryStartActionNotPlaying(this, "ItemRoomDoorOpen");
+        MR::setAllAnimFrameAtEnd(this, "ItemRoomDoorOpen");
         MR::invalidateCollisionParts(this);
     }
 
     if (MR::isDemoLastStep()) {
         setNerve(&NrvItemRoomDoor::ItemRoomDoorNrvClose::sInstance);
     } else {
-        MR::startSoundInPlayerDistance(this, lbl_806A36C8, -1, -1, 10000.0f);
+        MR::startSoundInPlayerDistance(this, "InnerSoundEmitting", -1, -1, 10000.0f);
     }
 }
 
 void ItemRoomDoor::exeOpenWait() {
-    const char* pBase = lbl_806A3668;
+    const char* pBase = "\203A\203C\203e\203\200\225\224\211\256\202\326\202\314\223\374\216\272";
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, pBase + 0x4c);
         MR::invalidateCollisionParts(this);
@@ -96,7 +88,7 @@ void ItemRoomDoor::exeOpenWait() {
 
     f32 radius = MR::getSensorRadius(this, pBase + 0x74);
     if (MR::isPlayerInRange(radius, *MR::getSensorPos(this, pBase + 0x74))) {
-        if (fn_8001FDD0(this, lbl_807CFCC0)) {
+        if (fn_8001FDD0(this, "\200j6h\200j6\200\200j6\230")) {
             setNerve(&NrvItemRoomDoor::ItemRoomDoorNrvDemoPlayerWaitOpen::sInstance);
         }
     } else {
@@ -106,7 +98,7 @@ void ItemRoomDoor::exeOpenWait() {
 
 void ItemRoomDoor::exeClose() {
     if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, lbl_806A36E4);
+        MR::tryStartActionNotPlaying(this, "ItemRoomDoorClose");
     }
 
     if (MR::isActionEnd(this)) {
@@ -121,7 +113,7 @@ void ItemRoomDoor::exeDemoPlayerWait() {
         return;
     }
 
-    if (!MR::isDemoActive(lbl_807CFCC0)) {
+    if (!MR::isDemoActive("\200j6h\200j6\200\200j6\230")) {
         MR::setPlayerStateWait();
         MR::validateClipping(this);
         setNerve(&NrvItemRoomDoor::ItemRoomDoorNrvOpenWait::sInstance);

@@ -11,7 +11,6 @@
 
 extern "C" void fn_8000E760(TVec3f*, LiveActor*, const TVec3f*, f32, f32);
 extern "C" void emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
-extern "C" f32 fn_8000FFD0(f32);
 
 namespace NrvGorogoro {
     NEW_NERVE(GorogoroNrvWait, Gorogoro, Wait);
@@ -379,7 +378,7 @@ void GorogoroCylinderRock::updateRoll() {
         mRotateSpeed = mRotateCoef;
     }
 
-    mRotation.z = fn_8000FFD0(mRotation.z + mRotateSpeed);
+    mRotation.z = MR::normalizeAngleDegree(mRotation.z + mRotateSpeed);
     if (mRailPointNo != oldPointNo) {
         tryUpdateNerve();
     }
@@ -424,7 +423,7 @@ void GorogoroCylinderRock::updateRotateOnRail() {
         }
     }
 
-    mRotation.z = fn_8000FFD0(mRotation.z + mRotateSpeed);
+    mRotation.z = MR::normalizeAngleDegree(mRotation.z + mRotateSpeed);
 }
 
 void GorogoroCylinderRock::updateRotateNoGravity() {
@@ -442,7 +441,7 @@ void GorogoroCylinderRock::updateRotateNoGravity() {
         tryUpdateNerve();
     }
 
-    mRotation.z = fn_8000FFD0(mRotation.z + mRotateSpeed);
+    mRotation.z = MR::normalizeAngleDegree(mRotation.z + mRotateSpeed);
     MR::startActionSound(this, "RotateNoGlavity", -1, -1, -1);
 }
 

@@ -42,6 +42,7 @@ namespace MR {
     void calcPlayerSpinPullVelocity(TVec3f*, const TVec3f&);
     bool checkPlayerSwingTrigger();
     f32 calcDistanceToPlayer(const TVec3f&);
+    bool isPlayerInRange(f32, const TVec3f&);
     void getPlayerUpVec(TVec3f*);
     void getPlayerFrontVec(TVec3f*);
     void getPlayerSideVec(TVec3f*);
@@ -175,6 +176,7 @@ namespace MR {
 
     void startSoundPlayer(const char*, s32, s32);
     void startLevelSoundPlayer(const char*, s32, s32);
+    void startActionSoundPlayer(const char*, s32, s32);
     void startLevelSoundPlayer(const char*, s32);  // SMG2 fn_80050E10 (unnamed in symbols.txt)
     void startLevelSoundPlayerOrYoshi(const char* pPlayerSoundName, const char* pYoshiSoundName, s32 unk);
 

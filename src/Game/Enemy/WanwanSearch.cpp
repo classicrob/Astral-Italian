@@ -9,7 +9,6 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
-extern "C" void fn_80010020(LiveActor*, const TVec3f&);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
 
@@ -250,7 +249,7 @@ void WanwanSearch::exeBreak() {
         if (mBreakModel != nullptr) {
             mBreakModel->appear();
             TVec3f up = -mGravity;
-            fn_80010020(mBreakModel, up);
+            MR::setQuatUpNoSupport(mBreakModel, up);
         }
         fn_8022BA10(this);
         kill();

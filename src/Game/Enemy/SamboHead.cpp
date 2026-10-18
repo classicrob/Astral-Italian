@@ -8,7 +8,6 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_80011E20(LiveActor*);
 extern "C" void fn_8022BAA0(LiveActor*);
 extern "C" void fn_801F9370(LiveActor*);
 
@@ -380,7 +379,7 @@ extern "C" void fn_801F9370(LiveActor* pActor) {
     if (!MR::isBindedGround(pActor)) {
         MR::addVelocityToGravity(pActor, 1.5f);
     } else {
-        fn_80011E20(pActor);
+        MR::killVelocityVertical(pActor);
     }
 
     TVec3f* pVelocity = &pActor->mVelocity;

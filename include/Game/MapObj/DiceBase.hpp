@@ -65,6 +65,16 @@ public:
 // Only the members DiceBase.cpp touches are named.
 class DiceMover {
 public:
+    DiceMover(s32, s32);
+    void addCollisionPoint(const TVec3f*);
+    void setMtx(MtxPtr);
+    void collide(const TVec3f*, const TVec3f*);
+    void update();
+    void calcMtx(TPos3f*);
+    void calcRadius();
+    void setGravity(const TVec3f*);
+    void setPointArray(void*, s32);
+
     /* 0x000 */ u8 _00[0x7C];
     /* 0x07C */ f32 mSpeedLimit;
     /* 0x080 */ u8 _80[0x0C];

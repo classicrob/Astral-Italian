@@ -51,7 +51,6 @@ void Kanina_FORCE_MATCH_SDATA2() {
     (void)1.7f;
 }
 
-extern "C" void fn_8005B750(LiveActor*, s32);
 extern "C" void fn_8022BA10(LiveActor*);
 class KaninaYoshiState : public ActorStateBaseInterface {
 public:
@@ -651,9 +650,9 @@ void Kanina::control() {
 
 void Kanina::updateSeVersion() {
     if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-        fn_8005B750(this, SeVersion_WATER);
+        MR::setSeVersion(this, SeVersion_WATER);
     } else {
-        fn_8005B750(this, SeVersion_NORMAL);
+        MR::setSeVersion(this, SeVersion_NORMAL);
     }
 }
 

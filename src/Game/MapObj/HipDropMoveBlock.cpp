@@ -5,17 +5,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 
 
-// MoveBlockFunction helpers (owned by the MoveBlockFunction unit, not ported yet)
-extern "C" void fn_802D4A30(MoveBlockFunction*, TVec3f*, f32);
-extern "C" void fn_802D4A50(MoveBlockFunction*, s32);
-extern "C" void fn_802D4A70(MoveBlockFunction*, s32);
-extern "C" void fn_802D4A90(MoveBlockFunction*, TVec3f*);
-extern "C" void fn_802D4AB0(MoveBlockFunction*, s32);
-extern "C" bool fn_802D4B00(MoveBlockFunction*);
-extern "C" bool fn_802D4CD0(MoveBlockFunction*);
-extern "C" bool fn_802D4CF0(MoveBlockFunction*);
-extern "C" bool fn_802D4D00(MoveBlockFunction*, s32);
-
 namespace NrvHipDropMoveBlock {
     class HipDropMoveBlockNrvWait : public Nerve {
     public:
@@ -60,15 +49,15 @@ void HipDropMoveBlock::init(const JMapInfoIter& rIter) {
     f32 dist = 100.0f;
     MR::getJMapInfoArg0NoInit(rIter, &dist);
     TVec3f dir(0.0f, dist, 0.0f);
-    fn_802D4A30(mMoveFunction, &dir, dist);
+    mMoveFunction->setMoveVec(dir);
 
     s32 val1 = 1;
     MR::getJMapInfoArg1NoInit(rIter, &val1);
-    fn_802D4A70(mMoveFunction, val1);
+    mMoveFunction->setReturnStep(val1);
 
     s32 val2 = 60;
     MR::getJMapInfoArg2NoInit(rIter, &val2);
-    fn_802D4A50(mMoveFunction, val2);
+    mMoveFunction->setMoveStep(val2);
 
     s32 val3 = -1;
     MR::getJMapInfoArg3NoInit(rIter, &val3);
@@ -172,7 +161,7 @@ bool HipDropMoveBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
         }
 
         TVec3f dir;
-        fn_802D4A90(mMoveFunction, &dir);
+        mMoveFunction->calcMoveVec(&dir);
         MR::normalizeOrZero(&dir);
 
         TVec3f up;
@@ -180,15 +169,15 @@ bool HipDropMoveBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
         f32 dot = dir.dot(up);
 
         if (mFlag94 && dot > 0.9f) {
-            if (!fn_802D4D00(mMoveFunction, 0)) {
+            if (!mMoveFunction->canMove(0)) {
                 return false;
             }
-            fn_802D4AB0(mMoveFunction, 0);
+            mMoveFunction->setForward(0);
         } else if (dot < -0.9f) {
-            if (!fn_802D4D00(mMoveFunction, 1)) {
+            if (!mMoveFunction->canMove(1)) {
                 return false;
             }
-            fn_802D4AB0(mMoveFunction, 1);
+            mMoveFunction->setForward(1);
         } else {
             return false;
         }
@@ -225,9 +214,9 @@ void HipDropMoveBlock::exeMove() {
     }
 
     fn_800083F0(this, pNames + 0x74, -1, -1, -1);
-    if (fn_802D4B00(mMoveFunction)) {
-        bool bMove = (fn_802D4CD0(mMoveFunction) && mMoveFunction->mFlag74) ||
-                     (fn_802D4CF0(mMoveFunction) && !mMoveFunction->mFlag74);
+    if (mMoveFunction->update()) {
+        bool bMove = (mMoveFunction->isEndStep() && mMoveFunction->mFlag74) ||
+                     (mMoveFunction->isStartStep() && !mMoveFunction->mFlag74);
         if (bMove) {
             if (MR::isValidSwitchA(this) && !mFlag96) {
                 MR::onSwitchA(this);

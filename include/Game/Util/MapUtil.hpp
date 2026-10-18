@@ -72,6 +72,8 @@ namespace MR {
     bool isGroundCodeWaterIter(const JMapInfoIter&);
     bool isGroundCodeDeath(const Triangle*);
     bool isGroundCodeDamage(const Triangle*);
+    bool isGroundCodeNoDig(const Triangle*);
+    bool isInPlaneModeCube(const TVec3f&);
     bool isGroundCodeIce(const Triangle*);
     bool isGroundCodeDamageFire(const Triangle*);
     bool isGroundCodeFireDance(const Triangle*);

@@ -3,8 +3,6 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" bool fn_800207D0();
-extern "C" bool fn_800203E0(LiveActor*, const char*, bool);
 
 static const char* sDemoName = "\x83N\x83""b\x83pJr\x83\x8d\x83{\x83""b\x83g\x8e\xe3\x93_\x8fo\x8c\xbb\x83""f\x83\x82";
 static const char* sCameraName = "DemoWeakPointHead";
@@ -25,7 +23,7 @@ KoopaJrRobotStateTU08::KoopaJrRobotStateTU08(KoopaJrRobot* pHost)
 }
 
 void KoopaJrRobotStateTU08::kill() {
-    if (fn_800207D0()) {
+    if (MR::isDemoEndWaitCameraInterpolating()) {
         MR::setAllAnimFrameAtEnd(mHost->mBody, sActionName);
     }
     mHost->mSeq->fn_800DC5B0();
@@ -72,7 +70,7 @@ void KoopaJrRobotStateTU08::exeDemo() {
         KoopaJrRobotFunction::hideStarPieces(mHost);
     }
     KoopaJrRobot* pHost = mHost;
-    if (fn_800203E0(pHost, sDemoName, MR::isActionEnd(pHost))) {
+    if (MR::tryEndDemo(pHost, sDemoName, MR::isActionEnd(pHost))) {
         MR::showPlayer();
         MR::endAnimCamera(mHost, mHost->mCameraInfo, sCameraName, 0, true);
         kill();

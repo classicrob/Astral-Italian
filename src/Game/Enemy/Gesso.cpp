@@ -41,7 +41,6 @@ namespace {
 
 // SMG2-only MR:: helper (unnamed in symbols.txt): *pDst = normalize(rPos - pActor->mPosition)
 // SMG2-only MR:: helper (unnamed): *pDst = normalize(*MR::getPlayerPos() - pActor->mPosition)
-extern "C" void fn_8000E850(TVec3f* pDst, const LiveActor* pActor);
 // SMG2-only helper (unnamed, LiveActor area), called before kill() on defeat
 extern "C" void fn_8022BA10(LiveActor* pActor);
 extern "C" void fn_8000E960(TVec3f* pDst, const LiveActor* pActor, const TVec3f& rPos);
@@ -149,7 +148,7 @@ void Gesso::control() {
     TVec3f playerDirection;
     TVec3f up;
     TVec3f offset;
-    fn_8000E850(&playerDirection, this);
+    MR::calcDirToPlayer(&playerDirection, this);
     MR::turnVecToVecCosOnPlane(&_AC, _B8, _A0, MR::cosDegree(0.5f));
     if (mVelocity.dot(_C8) < 0.0f) {
         const TVec3f& rVelocity = mVelocity;

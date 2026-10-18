@@ -40,3 +40,7 @@ public:
 
     /* 0x04 */ u32 mSensorType;
 };
+
+namespace MR {
+    void* createCollisionPartsFilterDelegator(bool (*)(const CollisionParts*));
+};  // namespace MR

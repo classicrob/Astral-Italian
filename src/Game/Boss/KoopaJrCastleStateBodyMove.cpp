@@ -13,7 +13,6 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
-extern "C" void fn_80011E20(LiveActor*);
 
 namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvSel KoopaJrCastleStateBodyMoveNrvSel::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleStateBodyMove { KoopaJrCastleStateBodyMoveNrvTurnA KoopaJrCastleStateBodyMoveNrvTurnA::sInstance ATTRIBUTE_WEAK; }
@@ -146,7 +145,7 @@ void KoopaJrCastleStateBodyMove::exe800CF5E0() {
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
     }
     if (MR::isGreaterStep(this, 180) || MR::isPlayerDamaging()) {
-        fn_80011E20(pCastle);
+        MR::killVelocityVertical(pCastle);
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
     }
     mHost->validateCollisionA();
@@ -175,7 +174,7 @@ void KoopaJrCastleStateBodyMove::exe800CF700() {
     mHost->validateCollisionA();
     if (mMode == 2) {
         if (++mMoveStep > 900 || MR::isPlayerDamaging()) {
-            fn_80011E20(pCastle);
+            MR::killVelocityVertical(pCastle);
             setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
         } else if (isTurnEnd(1.0f)) {
             MR::zeroVelocity(pCastle);
@@ -187,7 +186,7 @@ void KoopaJrCastleStateBodyMove::exe800CF700() {
             setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
         }
         if (MR::isGreaterStep(this, 540) || MR::isPlayerDamaging()) {
-            fn_80011E20(pCastle);
+            MR::killVelocityVertical(pCastle);
             setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
         }
         mHost->validateCollisionA();

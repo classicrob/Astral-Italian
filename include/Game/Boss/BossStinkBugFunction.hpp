@@ -4,6 +4,7 @@
 #include <revolution/types.h>
 
 class BossStinkBug;
+class DemoPositionController;
 class HitSensor;
 
 namespace BossStinkBugFunction {
@@ -20,4 +21,6 @@ namespace BossStinkBugFunction {
     bool isHipDropableSensor(const BossStinkBug*, const HitSensor*);
     bool isExistPlayerBack(const BossStinkBug*, f32);
     void validateAttack(BossStinkBug*);
+    void syncDemoPose(BossStinkBug*, DemoPositionController*);
+    bool tryEndDemoPose(BossStinkBug*, DemoPositionController*, const char*);
 };  // namespace BossStinkBugFunction

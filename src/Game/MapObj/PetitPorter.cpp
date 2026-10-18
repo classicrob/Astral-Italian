@@ -5,71 +5,39 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"
 #include "Game/Util/JointController.hpp"
+#include "Game/Camera/CameraTargetMtx.hpp"
+#include "Game/MapObj/CollectTicoHolder.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
-extern "C" char lbl_806A7900[];
-extern "C" char lbl_806A7944[];
-extern "C" char lbl_806A7974[];
-extern "C" char lbl_806A7990[];
-extern "C" char lbl_806A7A60[];
-extern "C" u32 lbl_807D4078;
-extern "C" u32 lbl_807D407C;
-extern "C" u32 lbl_807D4080;
-extern "C" u32 lbl_807D4084;
-extern "C" u32 lbl_807D4088;
-extern "C" u32 lbl_807D4090;
-extern "C" u32 lbl_807D408C;
-extern "C" u32 lbl_807D4094;
-extern "C" u32 lbl_807D4098;
-extern "C" u32 lbl_807D409C;
-extern "C" u32 lbl_807D40A0;
-extern "C" f32 lbl_807DDF00;
-extern "C" f32 lbl_807DDF04;
-extern "C" f32 lbl_807DDF08;
-extern "C" f32 lbl_807DDF0C;
-extern "C" f32 lbl_807DDF10;
-extern "C" f32 lbl_807DDF14;
-extern "C" f32 lbl_807DDF18;
-extern "C" f64 lbl_80649618;
-extern "C" s32 lbl_807E30B0;
+namespace NrvPetitPorter {
+    NEW_NERVE(PetitPorterNrvAppear, PetitPorter, Appear);
+    NEW_NERVE(PetitPorterNrvWaitOn, PetitPorter, Wait);
+    NEW_NERVE(PetitPorterNrvWait, PetitPorter, Wait);
+    NEW_NERVE(PetitPorterNrvEnterDemo, PetitPorter, EnterDemo);
+    NEW_NERVE(PetitPorterNrvEnterDemoEnd, PetitPorter, EnterDemoEnd);
+    NEW_NERVE(PetitPorterNrvLeaveDemo, PetitPorter, LeaveDemo);
+    NEW_NERVE(PetitPorterNrvLeaveWait, PetitPorter, LeaveWait);
+    NEW_NERVE(PetitPorterNrvLeaveFinish, PetitPorter, LeaveFinish);
+    NEW_NERVE(PetitPorterNrvLeaveCamera, PetitPorter, LeaveCamera);
+    NEW_NERVE(PetitPorterNrvLeaveCameraEnd, PetitPorter, LeaveCameraEnd);
 
-// Helpers not ported yet (unnamed SMG2 symbols)
-extern "C" void fn_8004F640(void*);
-extern "C" bool fn_8004FFD0();
-extern "C" s32 fn_8001B350();
-extern "C" s32 fn_8001B3A0();
-extern "C" void fn_802D9800(PetitPorterMediator*, PetitPorter*, PetitPorterExitPoint*, PetitPorterWarpPoint*, const JMapInfoIter&);
-extern "C" bool fn_802D9510(LiveActor*);
+    class PetitPorterNrvEnd : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static PetitPorterNrvEnd sInstance;
+    };
 
-#define PP_NERVE(n) reinterpret_cast<const Nerve*>(&n)
+    PetitPorterNrvEnd PetitPorterNrvEnd::sInstance ATTRIBUTE_WEAK;
+};  // namespace NrvPetitPorter
 
-// CameraTargetMtx is only forward-declared in the shared headers; its ctor and 0x94 size are used here.
-class CameraTargetMtx {
-public:
-    CameraTargetMtx(const char*);
 
-    u8 _0[0x94];
-};
-
-namespace JMath {
-    void gekko_ps_copy12(void*, const void*);
-};  // namespace JMath
-
-namespace MR {
-    void adjustPorterBGGM(s32);
-    void launchRescuedStrayTico(const TPos3f&);
-};  // namespace MR
-
-static void* camTargetPos(CameraTargetMtx* pTarget) {
-    return reinterpret_cast<u8*>(pTarget) + 0x14;
-}
 
 PetitPorter::PetitPorter(const char* pName) : LiveActor(pName) {
     mExitPoint = nullptr;
     mWarpPoint = nullptr;
     mStepLimit = 0x258;
-    mAngle = lbl_807DDF04;
-    mAngleSpeed = lbl_807DDF04;
+    mAngle = 0.0f;
+    mAngleSpeed = 0.0f;
     mBindTarget = nullptr;
     mBaseMtx.identity();
     mMtx108.identity();
@@ -82,23 +50,23 @@ PetitPorter::PetitPorter(const char* pName) : LiveActor(pName) {
 }
 
 void PetitPorter::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, lbl_806A7900 + 0xC, false);
+    MR::initActor(this, rIter, "PetitPorter", false);
     MR::getJMapInfoArg1NoInit(rIter, &mStepLimit);
     MR::makeMtxTR(mBaseMtx, this);
     JMath::gekko_ps_copy12(&mMtxD8, &mBaseMtx);
-    initNerve(PP_NERVE(lbl_807D4080), 0);
+    initNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait), 0);
 
     MR::createSceneObj(0x6D);
     PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D));
-    fn_802D9800(pMediator, this, nullptr, nullptr, rIter);
+    pMediator->registerPorter(this, nullptr, nullptr, rIter);
 
-    mCameraTargetMtx = new CameraTargetMtx(lbl_806A7900 + 0x18);
-    MR::initMultiActorCamera(this, rIter, &mCameraInfo, lbl_806A7900 + 0x30);
-    MR::initMultiActorCamera(this, rIter, &mCameraInfo, lbl_806A7900 + 0x44);
-    MR::initMultiActorCamera(this, rIter, &mCameraInfo, lbl_806A7900 + 0x5C);
-    MR::initMultiActorCamera(this, rIter, &mCameraInfo, lbl_806A7900 + 0x74);
+    mCameraTargetMtx = new CameraTargetMtx("\203J\203\201\203\211\203^\201[\203Q\203b\203g\203_\203~\201[");
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203C\203\223");
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203A\203E\203g");
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203C\203\223");
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203A\203E\203g");
 
-    // NONMATCHING: the JointControlDelegator<PetitPorter> object (0x28 bytes, built from the ptmf at lbl_806A7900)
+    // NONMATCHING: the JointControlDelegator<PetitPorter> object (0x28 bytes, built from the ptmf at "")
     // is not ported yet, so mJointController stays null here and setJointControllerParam is skipped.
 
     MR::initUseStageSwitchWriteA(this, rIter);
@@ -114,9 +82,9 @@ void PetitPorter::makeActorAppeared() {
     LiveActor::makeActorAppeared();
     MR::showModel(this);
     if (MR::isValidSwitchAppear(this)) {
-        setNerve(PP_NERVE(lbl_807D4078));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvAppear));
     } else {
-        setNerve(PP_NERVE(lbl_807D4080));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait));
     }
 }
 
@@ -136,14 +104,14 @@ bool PetitPorter::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
         JMath::gekko_ps_copy12(&mMtx108, &mMtxD8);
 
         bool bEnter = false;
-        if (isNerve(PP_NERVE(lbl_807D407C)) || isNerve(PP_NERVE(lbl_807D4080))) {
+        if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn)) || isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait))) {
             bEnter = true;
         }
 
         if (bEnter) {
-            setNerve(PP_NERVE(lbl_807D4084));
+            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnterDemo));
         } else {
-            setNerve(PP_NERVE(lbl_807D4094));
+            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveFinish));
         }
         return true;
     }
@@ -156,63 +124,62 @@ bool PetitPorter::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
     return false;
 }
 
-// Nerve Wait-like body of PetitPorter (fn_802D89D0 is the matrix helper used by the state loop)
-extern "C" s32 fn_802D89D0(PetitPorter* pPorter, MtxPtr pMtx) {
+bool PetitPorter::calcJointMtx(MtxPtr pMtx) {
     TPos3f tmp;
     PSMTXIdentity(tmp);
-    TVec3f rot(0.0f, pPorter->mAngle, 0.0f);
+    TVec3f rot(0.0f, mAngle, 0.0f);
     MR::makeMtxRotate(tmp, rot);
     PSMTXConcat(pMtx, tmp, pMtx);
-    return 1;
+    return true;
 }
 
 // NONMATCHING: the exe* bodies below are written from the m2c draft and the asm call order; not diffed one by one
-// (float clamps in exeWait and the mtx copy loops may differ in scheduling). fn_802D8E80 and fn_802D91E0 match by namefn.
+// (float clamps in exeWait and the mtx copy loops may differ in scheduling). 
 void PetitPorter::exeAppear() {
     if (MR::isFirstStep(this)) {
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
         }
-        MR::startAction(this, lbl_806A7990);
+        MR::startAction(this, "Appear");
     }
 
     if (MR::isGreaterEqualStep(this, 0x5A)) {
-        setNerve(PP_NERVE(lbl_807D4080));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait));
     }
 }
 
 void PetitPorter::exeWait() {
-    if (isNerve(PP_NERVE(lbl_807D407C))) {
-        f32 t = mAngleSpeed + lbl_807DDF14;
-        mAngleSpeed = (t >= lbl_807DDF0C) ? t : lbl_807DDF0C;
+    if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
+        f32 t = mAngleSpeed + 0.2f;
+        mAngleSpeed = (t >= 3.6f) ? t : 3.6f;
     } else {
-        f32 t = mAngleSpeed - lbl_807DDF14;
-        mAngleSpeed = (t <= lbl_807DDF10) ? t : lbl_807DDF10;
+        f32 t = mAngleSpeed - 0.2f;
+        mAngleSpeed = (t <= 1.2f) ? t : 1.2f;
     }
 
     f32 sum = mAngle + mAngleSpeed;
-    mAngle = lbl_807DDF04 + (f32)fmod(lbl_807DDF18 + (sum - lbl_807DDF04), lbl_80649618);
+    mAngle = 0.0f + (f32)fmod(360.0f + (sum - 0.0f), 360.0);
 
     if (MR::isFirstStep(this)) {
-        if (isNerve(PP_NERVE(lbl_807D407C))) {
-            MR::startAction(this, lbl_806A7900 + 0x98);
+        if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
+            MR::startAction(this, "WaitActive");
         } else {
-            MR::startAction(this, lbl_806A7900 + 0xA4);
+            MR::startAction(this, "Wait");
         }
-        MR::validateHitSensor(this, lbl_806A7900 + 0xAC);
-        MR::invalidateHitSensor(this, lbl_806A7900 + 0xB4);
+        MR::validateHitSensor(this, "Body");
+        MR::invalidateHitSensor(this, "Binder");
     }
 
-    MR::startActionSound(this, lbl_806A7900 + 0xBC, -1, -1, -1);
+    MR::startActionSound(this, "Rotate", -1, -1, -1);
 
-    if (isNerve(PP_NERVE(lbl_807D407C))) {
-        if (fn_8004FFD0()) {
+    if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
+        if (MR::isPlayerSkating()) {
             if (MR::isOnPlayer(this)) {
                 if (MR::isValidSwitchB(this)) {
                     MR::onSwitchB(this);
                 }
-                MR::startAction(this, lbl_806A7900 + 0xC4);
-                MR::validateHitSensor(this, lbl_806A7900 + 0xB4);
+                MR::startAction(this, "Spin");
+                MR::validateHitSensor(this, "Binder");
                 return;
             }
         }
@@ -227,97 +194,97 @@ void PetitPorter::exeWait() {
         }
     }
 
-    if (isNerve(PP_NERVE(lbl_807D407C))) {
+    if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn))) {
         if (!MR::isOnPlayer(this)) {
-            setNerve(PP_NERVE(lbl_807D4080));
+            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait));
         }
     } else {
         if (MR::isOnPlayer(this)) {
-            setNerve(PP_NERVE(lbl_807D407C));
+            setNerve(GET_NERVE(PetitPorter, PetitPorterNrvWaitOn));
         }
     }
 }
 
 void PetitPorter::exeEnterDemo() {
     if (MR::isFirstStep(this)) {
-        fn_8004F640(lbl_806A7900 + 0xCC);
-        JMath::gekko_ps_copy12(camTargetPos(mCameraTargetMtx), &mMtxD8);
-        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, lbl_806A7900 + 0x30, mCameraTargetMtx, -1);
-        MR::startActionSound(this, lbl_806A7900 + 0xE0, -1, -1, -1);
+        MR::changePlayerAnimationAndBva("PetitPorterStart");
+        JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
+        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203C\203\223", mCameraTargetMtx, -1);
+        MR::startActionSound(this, "WarpStart", -1, -1, -1);
         if (MR::isPlayingStageBgm()) {
-            mBgmHandle1 = fn_8001B350();
-            mBgmHandle2 = fn_8001B3A0();
+            mBgmHandle1 = MR::getPlayingStageBgmId();
+            mBgmHandle2 = MR::getStageBgmState();
         }
         MR::stopStageBGM(0);
     }
 
     f32 rate = MR::calcNerveRate(this, 0x14);
-    f32 blend = (lbl_807DDF00 >= rate) ? lbl_807DDF00 : rate;
+    f32 blend = (1.0f >= rate) ? 1.0f : rate;
 
     TPos3f tmp;
     tmp = mBaseMtx;
-    MR::addTransMtxLocalY(tmp, lbl_807DDF08);
+    MR::addTransMtxLocalY(tmp, 50.0f);
     MR::blendMtx(mMtx108, tmp, blend, mMtxD8);
 
     if (MR::isStep(this, 0x1E)) {
-        MR::startActionSound(this, lbl_806A7900 + 0xEC, -1, -1, -1);
+        MR::startActionSound(this, "MarioDisappear", -1, -1, -1);
     }
 
     if (MR::isBckStoppedPlayer()) {
-        setNerve(PP_NERVE(lbl_807D4088));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnterDemoEnd));
     }
 }
 
 void PetitPorter::exeEnterDemoEnd() {
     if (MR::isFirstStep(this)) {
         JMath::gekko_ps_copy12(&mMtxD8, mWarpPoint->getBaseMtx());
-        JMath::gekko_ps_copy12(camTargetPos(mCameraTargetMtx), &mMtxD8);
-        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, lbl_806A7944, mCameraTargetMtx, -1);
+        JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
+        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203A\203E\203g", mCameraTargetMtx, -1);
         MR::hidePlayerTryDeleteEffect();
     }
 
     if (MR::isCameraInterpolatingNearlyEnd()) {
-        setNerve(PP_NERVE(lbl_807D408C));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveDemo));
     }
 }
 
 void PetitPorter::exeLeaveDemo() {
     if (MR::isFirstStep(this)) {
         MR::showPlayer();
-        fn_8004F640(lbl_806A7900 + 0xFC);
-        MR::startStageBGM(lbl_806A7900 + 0x10C, false);
+        MR::changePlayerAnimationAndBva("PetitPorterEnd");
+        MR::startStageBGM("BGM_SMG2_EV_PORTER", false);
         MR::launchRescuedStrayTico(mMtxD8);
     }
 
     if (MR::isStep(this, 0x19)) {
-        MR::startActionSound(this, lbl_806A7900 + 0x120, -1, -1, -1);
+        MR::startActionSound(this, "TimerStart", -1, -1, -1);
     }
 
     if (MR::isBckStoppedPlayer()) {
-        MR::endMultiActorCamera(this, mCameraInfo, lbl_806A7900 + 0x30, true, -1);
-        MR::endMultiActorCamera(this, mCameraInfo, lbl_806A7900 + 0x44, true, -1);
+        MR::endMultiActorCamera(this, mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203C\203\223", true, -1);
+        MR::endMultiActorCamera(this, mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203A\203E\203g", true, -1);
         mBindTarget = nullptr;
         MR::endBindAndPlayerWait(this);
-        setNerve(PP_NERVE(lbl_807D4090));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveWait));
     }
 }
 
 void PetitPorter::exeLeaveWait() {
     if (MR::isFirstStep(this)) {
-        MR::emitEffectPlayer(lbl_806A7900 + 0x12C);
+        MR::emitEffectPlayer("\203v\203`\203|\201[\203^\201[");
     }
 
     if (!MR::isPlayerDead()) {
         MR::adjustPorterBGGM(getNerveStep());
         if (MR::isStep(this, mStepLimit - 0x33)) {
-            MR::startActionSound(this, lbl_806A7900 + 0x13C, -1, -1, -1);
+            MR::startActionSound(this, "TimerNearlyUp", -1, -1, -1);
         } else if (MR::isGreaterEqualStep(this, mStepLimit - 1)) {
             if (MR::isValidSwitchB(this)) {
                 MR::offSwitchB(this);
             }
-            MR::validateHitSensor(this, lbl_806A7900 + 0xB4);
-            MR::startActionSound(this, lbl_806A7900 + 0x14C, -1, -1, -1);
-            MR::deleteEffectPlayer(lbl_806A7900 + 0x12C);
+            MR::validateHitSensor(this, "Binder");
+            MR::startActionSound(this, "TimerEnd", -1, -1, -1);
+            MR::deleteEffectPlayer("\203v\203`\203|\201[\203^\201[");
         }
     }
 }
@@ -328,59 +295,59 @@ void PetitPorter::exeLeaveCamera() {
             JMath::gekko_ps_copy12(&mMtxD8, mExitPoint->getBaseMtx());
         } else {
             JMath::gekko_ps_copy12(&mMtxD8, &mBaseMtx);
-            MR::addTransMtxLocalY(mMtxD8, lbl_807DDF08);
+            MR::addTransMtxLocalY(mMtxD8, 50.0f);
         }
-        JMath::gekko_ps_copy12(camTargetPos(mCameraTargetMtx), &mMtxD8);
-        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, lbl_806A7974, mCameraTargetMtx, -1);
+        JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
+        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203A\203E\203g", mCameraTargetMtx, -1);
         if (mBgmHandle1 != 0) {
             MR::startStageBGM(mBgmHandle1, false);
         }
         if (mBgmHandle2 > 0) {
-            MR::setStageBGMState(mBgmHandle2, lbl_807E30B0);
+            MR::setStageBGMState(mBgmHandle2, 0);
         }
         MR::hidePlayerTryDeleteEffect();
         MR::launchRescuedStrayTico(mMtxD8);
     }
 
     if (MR::isCameraInterpolatingNearlyEnd()) {
-        setNerve(PP_NERVE(lbl_807D409C));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveCameraEnd));
     }
 }
 
 void PetitPorter::exeLeaveCameraEnd() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_806A7900 + 0x158);
+        MR::startAction(this, "Return");
         MR::showPlayer();
-        fn_8004F640(lbl_806A7900 + 0xFC);
+        MR::changePlayerAnimationAndBva("PetitPorterEnd");
     }
 
     if (MR::isBckStoppedPlayer()) {
         if (MR::isValidSwitchA(this)) {
             MR::offSwitchA(this);
         }
-        MR::endMultiActorCamera(this, mCameraInfo, lbl_806A7900 + 0x5C, true, -1);
-        MR::endMultiActorCamera(this, mCameraInfo, lbl_806A7900 + 0x74, true, -1);
+        MR::endMultiActorCamera(this, mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203C\203\223", true, -1);
+        MR::endMultiActorCamera(this, mCameraInfo, "\212\356\223_\202\305\203\217\201[\203v\203A\203E\203g", true, -1);
         mBindTarget = nullptr;
         MR::endBindAndPlayerWait(this);
         MR::validateClipping(this);
-        setNerve(PP_NERVE(lbl_807D40A0));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnd));
     }
 }
 
 void PetitPorter::exeLeaveFinish() {
     if (MR::isFirstStep(this)) {
-        fn_8004F640(lbl_806A7900 + 0xCC);
-        JMath::gekko_ps_copy12(camTargetPos(mCameraTargetMtx), &mMtxD8);
-        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, lbl_806A7900 + 0x5C, mCameraTargetMtx, -1);
+        MR::changePlayerAnimationAndBva("PetitPorterStart");
+        JMath::gekko_ps_copy12(&mCameraTargetMtx->mMatrix, &mMtxD8);
+        MR::startMultiActorCameraTargetMtx(this, mCameraInfo, "\203\217\201[\203v\223_\202\305\203\217\201[\203v\203C\203\223", mCameraTargetMtx, -1);
         MR::stopStageBGM(0);
     }
 
     if (MR::isStep(this, 0x1E)) {
-        MR::startActionSound(this, lbl_806A7900 + 0xEC, -1, -1, -1);
+        MR::startActionSound(this, "MarioDisappear", -1, -1, -1);
     }
 
     if (MR::isBckStoppedPlayer()) {
-        setNerve(PP_NERVE(lbl_807D4098));
+        setNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveCamera));
     }
 }
 
@@ -393,7 +360,7 @@ void PetitPorterWarpPoint::init(const JMapInfoIter& rIter) {
     MR::makeMtxTR(mBaseMtx, this);
     MR::createSceneObj(0x6D);
     PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D));
-    fn_802D9800(pMediator, nullptr, nullptr, this, rIter);
+    pMediator->registerPorter(nullptr, nullptr, this, rIter);
     makeActorDead();
 }
 
@@ -410,7 +377,7 @@ void PetitPorterExitPoint::init(const JMapInfoIter& rIter) {
     MR::makeMtxTR(mBaseMtx, this);
     MR::createSceneObj(0x6D);
     PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D));
-    fn_802D9800(pMediator, nullptr, this, nullptr, rIter);
+    pMediator->registerPorter(nullptr, this, nullptr, rIter);
     makeActorDead();
 }
 
@@ -418,7 +385,7 @@ MtxPtr PetitPorterExitPoint::getBaseMtx() const {
     return const_cast<TPos3f&>(mBaseMtx);
 }
 
-PetitPorterMediator::PetitPorterMediator() : NameObj(lbl_806A7A60) {
+PetitPorterMediator::PetitPorterMediator() : NameObj("\203v\203`\203|\201[\203^\201[\222\207\211\356\216\322") {
     mCount = 0;
     mLinks = nullptr;
     mLinks = new PetitPorterLink[0x20];
@@ -441,13 +408,12 @@ void PetitPorterMediator::initAfterPlacement() {
     }
 }
 
-extern "C" void fn_802D9800(PetitPorterMediator* pMediator, PetitPorter* pPorter, PetitPorterExitPoint* pExit,
-                            PetitPorterWarpPoint* pWarp, const JMapInfoIter& rIter) {
+void PetitPorterMediator::registerPorter(PetitPorter* pPorter, PetitPorterExitPoint* pExit, PetitPorterWarpPoint* pWarp, const JMapInfoIter& rIter) {
     s32 id = -1;
     MR::getJMapInfoArg0NoInit(rIter, &id);
 
-    for (s32 i = 0; i < pMediator->mCount; i++) {
-        PetitPorterLink* pLink = &pMediator->mLinks[i];
+    for (s32 i = 0; i < mCount; i++) {
+        PetitPorterLink* pLink = &mLinks[i];
         if (id == pLink->mId) {
             if (pPorter != nullptr) {
                 pLink->mPorter = pPorter;
@@ -462,36 +428,36 @@ extern "C" void fn_802D9800(PetitPorterMediator* pMediator, PetitPorter* pPorter
         }
     }
 
-    PetitPorterLink* pNew = &pMediator->mLinks[pMediator->mCount];
+    PetitPorterLink* pNew = &mLinks[mCount];
     pNew->mPorter = pPorter;
     pNew->mExitPoint = pExit;
     pNew->mWarpPoint = pWarp;
     pNew->mId = id;
-    pMediator->mCount++;
+    mCount++;
 }
 
-extern "C" bool fn_802D9510(LiveActor* pPorter) {
+bool PetitPorter::isDemo() const {
     bool bBusy = false;
-    if (pPorter->isNerve(PP_NERVE(lbl_807D4084)) || pPorter->isNerve(PP_NERVE(lbl_807D4088)) ||
-        pPorter->isNerve(PP_NERVE(lbl_807D408C)) || pPorter->isNerve(PP_NERVE(lbl_807D4094)) ||
-        pPorter->isNerve(PP_NERVE(lbl_807D409C))) {
+    if (isNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnterDemo)) || isNerve(GET_NERVE(PetitPorter, PetitPorterNrvEnterDemoEnd)) ||
+        isNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveDemo)) || isNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveFinish)) ||
+        isNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveCamera)) || isNerve(GET_NERVE(PetitPorter, PetitPorterNrvLeaveCameraEnd))) {
         bBusy = true;
     }
     return bBusy;
 }
 
-extern "C" bool fn_802D9940(PetitPorterMediator* pMediator) {
-    for (s32 i = 0; i < pMediator->mCount; i++) {
-        if (fn_802D9510(pMediator->mLinks[i].mPorter)) {
+bool PetitPorterMediator::isAnyPorterDemo() const {
+    for (s32 i = 0; i < mCount; i++) {
+        if (mLinks[i].mPorter->isDemo()) {
             return true;
         }
     }
     return false;
 }
 
-extern "C" bool fn_802D99B0() {
+bool PetitPorterFunction::isDemo() {
     if (MR::isExistSceneObj(0x6D)) {
-        return fn_802D9940(reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D)));
+        return reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D))->isAnyPorterDemo();
     }
     return false;
 }

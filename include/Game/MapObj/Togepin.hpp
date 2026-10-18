@@ -67,6 +67,23 @@ public:
     virtual ~TogepinScorer();
     virtual void init(const JMapInfoIter&);
 
+    void onTogepinDown(Togepin*);
+    void reappearAll();
+    void hideAll();
+    void appearAll();
+    void start();
+    bool isPlaying() const;
+    bool isClear() const;
+    bool isNewRecord() const;
+    s32 getScore() const;
+    s32 getBestScore() const;
+    s32 getTargetScore() const;
+    void updateNgArea();
+    void exeStart();
+    void exePlay();
+    void exeEnd();
+    bool isSwitchOff() const;
+
     /* 0x90 */ NameObj* mScoreCounter;
     /* 0x94 */ NameObj* mSetLayout;
     /* 0x98 */ LiveActorGroup* mTogepinGroup;

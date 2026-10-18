@@ -13,7 +13,6 @@ void fn_800145D0(TVec3f*, TVec3f*);
 void fn_802DEB90(TVec3f*, f32);
 void fn_802DEBE0();
 void fn_80068E40(SpringValue*, f32);
-void fn_8000E570(TVec3f*, LiveActor*, s32);
 f32 fn_8003B960(f32, f32, f32);
 f32 fn_8004F300();
 void* fn_8004FEF0();
@@ -321,7 +320,7 @@ bool SpinCloudBlock::exeTransform() {
     } else {
         if (!MR::isOnGroundPlayer()) {
             TVec3f fall;
-            fn_8000E570(&fall, this, 0);
+            MR::calcVecToPlayerHorizon(&fall, this, 0);
             MR::clampLength(&fall, fall, 10.0f);
             mPosition.add(fall);
             if (MR::isGreaterStep(this, 15)) {

@@ -3,7 +3,6 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" bool fn_80020360(LiveActor*, ActorCameraInfo*, const char*, s32);
 
 namespace NrvTwoLegsStateOpening {
     NEW_NERVE(TwoLegsStateOpeningNrvWaitDemo, TwoLegsStateOpening, WaitDemo);
@@ -54,7 +53,7 @@ void TwoLegsStateOpening::exeDemo() {
     if (MR::isStep(this, 470)) {
         MR::startCenterScreenBlur(100, 15.0f, 80, 5, 30);
     }
-    if (fn_80020360(mHost, mHost->mCameraInfo, "Eye", 0)) {
+    if (MR::tryEndDemoAndAnimCamera(mHost, mHost->mCameraInfo, "Eye", 0)) {
         kill();
     }
 }

@@ -1,5 +1,6 @@
 #include "Game/Boss/BossStinkBugAngryDemo.hpp"
 #include "Game/Util.hpp"
+#include "Game/Boss/BossStinkBugFunction.hpp"
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Demo/DemoPositionController.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -18,11 +19,6 @@ namespace {
     static const s32 sFlySoundStartStep2 = 200;
 };  // namespace
 
-extern "C" void fn_80139930(DemoPositionController*, const char*);
-extern "C" void fn_800AAAB0(BossStinkBug*, DemoPositionController*);
-extern "C" bool fn_800AAB30(BossStinkBug*, DemoPositionController*, const char*);
-extern "C" bool fn_800203E0(LiveActor*, const char*, bool);
-extern "C" bool fn_8001F950(LiveActor*, const char*);
 
 namespace NrvBossStinkBugAngryDemo {
     // Demo is declared before TryStart so that exeTryStart (inlined into TryStart::execute) can reference it;
@@ -45,7 +41,7 @@ BossStinkBugAngryDemo::BossStinkBugAngryDemo(BossStinkBug* pHost, const JMapInfo
 }
 
 void BossStinkBugAngryDemo::exeTryStart() {
-    if (fn_8001F950(getHost(), "ボスカメムシ怒りデモ")) {
+    if (MR::tryStartDemoMarioPuppetable(getHost(), "ボスカメムシ怒りデモ")) {
         setNerve(GET_NERVE(BossStinkBugAngryDemo, BossStinkBugAngryDemoNrvDemo));
     }
 }
@@ -65,7 +61,7 @@ void BossStinkBugAngryDemo::exeDemo() {
     if (MR::isFirstStep(this)) {
         MR::overlayWithPreviousScreen(2);
         MR::startBckPlayer("BattleWait", "BattleWaitNoInter");
-        fn_80139930(mDemoPositionController, "AngryDemo");
+        mDemoPositionController->startDemo("AngryDemo");
         getHost()->reuestMovementOnParts();
         MR::startAction(getHost(), "AngryDemo");
         MR::startBrk(getHost(), "Angry");
@@ -83,10 +79,10 @@ void BossStinkBugAngryDemo::exeDemo() {
         MR::startActionSound(getHost(), "BmLvBossBugFlyBase2", 550, 126);
     }
 
-    fn_800AAAB0(getHost(), mDemoPositionController);
+    BossStinkBugFunction::syncDemoPose(getHost(), mDemoPositionController);
 
-    if (fn_800203E0(getHost(), "ボスカメムシ怒りデモ", MR::isActionEnd(getHost()))) {
-        if (fn_800AAB30(getHost(), mDemoPositionController, "AngryDemo")) {
+    if (MR::tryEndDemo(getHost(), "ボスカメムシ怒りデモ", MR::isActionEnd(getHost()))) {
+        if (BossStinkBugFunction::tryEndDemoPose(getHost(), mDemoPositionController, "AngryDemo")) {
             kill();
         } else {
             setNerve(GET_NERVE(BossStinkBugAngryDemo, BossStinkBugAngryDemoNrvDemoEnd));

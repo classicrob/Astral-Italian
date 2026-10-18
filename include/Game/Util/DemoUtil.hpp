@@ -2,6 +2,7 @@
 
 #include "JSystem/JGeometry/TVec.hpp"
 
+class ActorCameraInfo;
 class NameObj;
 class LiveActor;
 
@@ -10,6 +11,10 @@ namespace MR {
     void registerDemoSimpleCastAll(NameObj*);
     void registerDemoSimpleCastAll(LiveActor*);
     bool tryStartDemo(LiveActor*, const char*);
+    bool isDemoEndWaitCameraInterpolating();
+    bool tryEndDemoAndKillEffects(LiveActor*, const char*);
+    bool tryEndDemoAndAnimCamera(LiveActor*, ActorCameraInfo*, const char*, s32);
+    bool tryEndDemo(LiveActor*, const char*, bool);
     void endDemo(NameObj*, const char*);
     bool isDemoActive();
 };  // namespace MR

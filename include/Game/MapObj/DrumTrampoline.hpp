@@ -12,5 +12,7 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*) override;
     void exeBound();
 
+    static bool tryGetGroundNormal(TVec3f*, LiveActor*, HitSensor*);
+
     /* 0xD0 */ bool mIsBounce;
 };

@@ -63,8 +63,6 @@ extern "C" LiveActor* fn_8008DB20(LiveActor*, LiveActor*, const char*, const cha
 extern "C" bool fn_8008DDC0(const TVec3f*, f32, f32);
 extern "C" bool fn_8008E060(const TPos3f*, const TVec3f*);
 extern "C" void fn_8000F880(const TVec3f*);
-extern "C" void fn_80011DD0(LiveActor*);
-extern "C" void fn_80011E20(LiveActor*);
 extern "C" void fn_800515E0();
 extern "C" s32 lbl_807E3020;
 extern "C" bool fn_800531B0(TVec3f*, LiveActor*, f32);
@@ -400,7 +398,7 @@ bool Battan::moveRailStep(f32 speed) {
         MR::normalize(&mFront, tmp);
     }
 
-    fn_80011DD0(this);
+    MR::killVelocityHorizon(this);
 
     TVec3f sp8 = MR::getRailPos(this) - mPosition;
     TVec3f sp14;
@@ -417,7 +415,7 @@ bool Battan::moveRailStep(f32 speed) {
     }
     MR::addVelocityToGravity(this, 0.5f);
     if (MR::isBindedGround(this)) {
-        fn_80011E20(this);
+        MR::killVelocityVertical(this);
     }
     return true;
 }

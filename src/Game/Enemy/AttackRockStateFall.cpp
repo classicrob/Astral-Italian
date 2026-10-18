@@ -48,10 +48,8 @@ extern "C" bool fn_800CC290(u32);
 extern "C" bool fn_800CC2B0(u32);
 extern "C" void fn_800E4420(void*);
 extern "C" void fn_800E4700(const TVec3f*);
-extern "C" void fn_80010020(LiveActor*, const TVec3f*, LiveActor*);
 extern "C" void fn_800513C0(TQuat4f*, TVec3f*);
 extern "C" TVec3f* fn_800514B0(TQuat4f*, TVec3f*);
-extern "C" void fn_8000E850(TVec3f*, const LiveActor*);
 
 // Unit-local helpers (unnamed in the target).
 extern "C" {
@@ -210,7 +208,7 @@ extern "C" void fn_80153EE0(AttackRockStateFall* pState) {
 extern "C" void fn_80153FE0(AttackRockStateFall* pState) {
     AttackRock* pHost = pState->mHost;
     LiveActor* pDemo = pHost->mDemoObj;
-    fn_80010020(pDemo, &pState->mLandNormal, pHost);
+    MR::setQuatUpNoSupport(pDemo, pState->mLandNormal);
     MR::resetPosition(pDemo, pState->mLandPos);
     MR::startAction(pDemo, "Appear");
     MR::invalidateCollisionParts(pDemo);

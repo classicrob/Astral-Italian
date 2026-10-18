@@ -3,7 +3,6 @@
 #include "Game/MapObj/MapObjConnector.hpp"
 #include "Game/Util.hpp"
 
-extern "C" void fn_803245E0(LiveActor*, Togepin*);
 extern "C" void fn_8022BA10(Togepin*);
 
 namespace NrvTogepin {
@@ -200,7 +199,7 @@ void Togepin::exeHide() {
 void Togepin::exeBlow() {
     if (MR::isFirstStep(this)) {
         if (mParent != nullptr) {
-            fn_803245E0(mParent, this);
+            static_cast<TogepinScorer*>(mParent)->onTogepinDown(this);
         }
         MR::tryHitReactionBlow(this, &mPosition);
         MR::startAction(this, "Blow");

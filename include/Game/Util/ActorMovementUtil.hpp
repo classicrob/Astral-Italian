@@ -10,6 +10,13 @@ class HitSensor;
 class LiveActor;
 
 namespace MR {
+    void killVelocityVertical(LiveActor*);
+    void killVelocityHorizon(LiveActor*);
+    void setQuatUpNoSupport(LiveActor*, const TVec3f&);
+    f32 normalizeAngleDegree(f32);
+    void calcDirToPlayer(TVec3f*, const LiveActor*);
+    void calcVecToTargetHorizon(TVec3f*, const LiveActor*, const TVec3f*, const TVec3f*);
+    void calcVecToPlayerHorizon(TVec3f*, const LiveActor*, const TVec3f*);
 
     struct ActorMoveParam {
         f32 _0;

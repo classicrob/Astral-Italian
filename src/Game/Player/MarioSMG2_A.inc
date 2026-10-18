@@ -1092,7 +1092,6 @@ extern "C" void fn_803EEA20(Mario* self, s32);
 extern "C" void* fn_8005BC60(s32);
 extern "C" void fn_80085D30(void*, s32);
 extern "C" void fn_80085D40();
-extern "C" void fn_80050DB0(const char*, s32, s32);
 extern "C" void fn_803B2950(Mario*);
 extern "C" f32 fn_803B57A0();
 extern "C" bool fn_804225C0();

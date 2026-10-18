@@ -37,9 +37,6 @@ namespace NrvOtaKing {
     NEW_NERVE(OtaKingNrvWaitStartDemo, OtaKing, WaitStartDemo);
 };  // namespace NrvOtaKing
 
-extern "C" bool fn_80020360(LiveActor*, ActorCameraInfo*, const char*, s32);
-extern "C" bool fn_800203E0(LiveActor*, const char*, bool);
-extern "C" bool fn_800207D0();
 
 namespace {
     const char* cAppearAnimCameraName = "Appear";
@@ -837,8 +834,8 @@ void OtaKing::exeAppearDemo() {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
     }
 
-    if (fn_80020360(this, mAnimCamera, cAppearAnimCameraName, 0)) {
-        if (fn_800207D0()) {
+    if (MR::tryEndDemoAndAnimCamera(this, mAnimCamera, cAppearAnimCameraName, 0)) {
+        if (MR::isDemoEndWaitCameraInterpolating()) {
             MR::startBckNoInterpole(this, "Wait");
             MR::tryForceDeleteEffectAll(this);
             PartsModel* pFootR = mFeet[0];
@@ -1178,8 +1175,8 @@ void OtaKing::exeDownDemo() {
         MR::startAfterBossRushBGM();
     }
 
-    if (fn_800203E0(this, cDownAnimCameraName, MR::isStep(this, ::cDownDemoFrame))) {
-        if (fn_800207D0()) {
+    if (MR::tryEndDemo(this, cDownAnimCameraName, MR::isStep(this, ::cDownDemoFrame))) {
+        if (MR::isDemoEndWaitCameraInterpolating()) {
             MR::startBckNoInterpole(this, "Wait");
             MR::tryForceDeleteEffectAll(this);
             mMagma->endWait();

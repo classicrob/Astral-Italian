@@ -51,11 +51,9 @@ namespace MR {
 
 // Unnamed SMG2 helpers, C linkage so the target reloc names match.
 extern "C" s32 fn_804225C0();
-extern "C" void fn_80050DB0(const char*, s32, s32);
 extern "C" void fn_802730E0_unused();
 extern "C" void fn_80422580();
 extern "C" s32 fn_80422880(u32 msg);
-extern "C" u8 lbl_807CFBC0;  // sdata string used by the Pop nerve (action name)
 
 namespace NrvBalloonFruit {
     NEW_NERVE(BalloonFruitNrvAppear, BalloonFruit, Appear);
@@ -70,7 +68,7 @@ namespace NrvBalloonFruit {
         virtual void execute(Spine* pSpine) const {
             LiveActor* actor = reinterpret_cast< LiveActor* >(pSpine->mExecutor);
             if (MR::isFirstStep(actor)) {
-                MR::startAction(actor, reinterpret_cast< const char* >(&lbl_807CFBC0));
+                MR::startAction(actor, "Get");
             }
         }
         static BalloonFruitNrvPop sInstance;
@@ -380,14 +378,14 @@ bool BalloonFruit::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
         }
         if (MR::isMsgYoshiReleaseEaten(msg)) {
             MR::hideModel(this);
-            fn_80050DB0("Swallow", -1, -1);
+            MR::startActionSoundPlayer("Swallow", -1, -1);
             fn_80422580();
             setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvHide));
             return true;
         }
         if (MR::isMsgYoshiAutoEatEnd(msg)) {
             MR::hideModel(this);
-            fn_80050DB0("Swallow", -1, -1);
+            MR::startActionSoundPlayer("Swallow", -1, -1);
             fn_80422580();
             setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvHide));
             return true;

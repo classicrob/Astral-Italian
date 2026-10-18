@@ -27,7 +27,7 @@ public:
     // unnamed fn_8029B490 in the target: keeps the two side vectors perpendicular to the rail direction
     void updateSideVectors(const TVec3f& rDir);
     // unnamed fn_8029B550 / fn_8029B5B0: debug line strip of the electric rail
-    void drawRailSide(f32 width) const;
+    void drawRailSide(f32 width) const NO_INLINE;
     void drawRailQuad(f32 w0, f32 w1, f32 h0, f32 h1) const;
 
     /* 0x90 */ LiveActorGroup* mRailGroup;

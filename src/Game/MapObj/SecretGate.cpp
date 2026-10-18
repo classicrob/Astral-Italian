@@ -6,7 +6,6 @@
 #include "Game/Util.hpp"
 #include "math_types.hpp"
 
-extern "C" void fn_8000E850(TVec3f*, LiveActor*);
 
 namespace NameObjFactory {
     LiveActor* initChildObj(const JMapInfoIter&, s32);
@@ -115,7 +114,7 @@ void SecretGate::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     TVec3f toPlayer(0.0f);
     TVec3f side(0.0f);
     MR::calcVecToPlayer(&toPlayer, this);
-    fn_8000E850(&side, this);
+    MR::calcDirToPlayer(&side, this);
     if (!(front.dot(side) < 0.001f) && !(front.dot(toPlayer) > 350.0f)) {
         setNerve(GET_NERVE(SecretGate, SecretGateNrvPass));
     }

@@ -23,14 +23,9 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers outside this unit.
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" void fn_80034870(LiveActor*);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_8003D2D0(TQuat4f*, const TQuat4f*, const TVec3f&, f32);
 extern "C" void fn_8009A780(TPos3f*, const TQuat4f*, const TVec3f*);
 extern "C" void fn_800DB560(void*, s32);
-extern "C" bool fn_800207D0();
-extern "C" bool fn_800203E0(LiveActor*, const char*, bool);
 extern "C" void fn_8001BA80();
 extern "C" void fn_80051580();
 
@@ -450,9 +445,9 @@ void SandyBall::appear() {
     LiveActor::appear();
     setBtpFrame();
     if (mType == 1) {
-        fn_800345E0(this, "\217o\214\273(\203S\201[\203\213\203h)");
+        MR::tryHitReaction(this, "\217o\214\273(\203S\201[\203\213\203h)");
     } else {
-        fn_80034870(this);
+        MR::tryHitReactionAppear(this);
     }
     MR::invalidateShadow(this, nullptr);
     setNerve(&NrvSandyBall::SandyBallNrvWait::sInstance);
@@ -615,7 +610,7 @@ bool SandyBall::tryLand() {
     if (!MR::isBinded(this)) {
         return false;
     }
-    fn_800345E0(this, "\222\205\222n");
+    MR::tryHitReaction(this, "\222\205\222n");
     if (mType == 3) {
         setNerve(&NrvSandyBall::SandyBallNrvExplosion::sInstance);
         return true;
@@ -828,9 +823,9 @@ void SandyBall::exeFly() {
 void SandyBall::exeBreak() {
     if (MR::isFirstStep(this)) {
         if (mType == 1) {
-            fn_800345E0(this, "\224j\211\363(\203S\201[\203\213\203h)");
+            MR::tryHitReaction(this, "\224j\211\363(\203S\201[\203\213\203h)");
         } else {
-            fn_800345E0(this, "\224j\211\363");
+            MR::tryHitReaction(this, "\224j\211\363");
         }
         MR::invalidateHitSensors(this);
         if (mType == 1 && MR::appearCoinPop(this, mPosition, 1)) {
@@ -872,7 +867,7 @@ void SandyBall::exeRoll() {
 // 800FCEB0
 void SandyBall::exeExplosion() {
     if (MR::isFirstStep(this)) {
-        fn_800345E0(this, "\224\232\224\255");
+        MR::tryHitReaction(this, "\224\232\224\255");
         MR::invalidateHitSensors(this);
         MR::validateHitSensor(this, "Explosion");
         MR::hideModel(this);
@@ -1675,7 +1670,7 @@ void SandyMini::exeDamage() {
         }
     }
     if (MR::isActionEnd(this)) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         setNerve(&NrvSandyMini::SandyMiniNrvDown::sInstance);
     }
 }
@@ -2028,7 +2023,7 @@ void SandyStateDemoStart::appear() {
 void SandyStateDemoStart::kill() {
     mHost->setWaitHands();
     mHost->appearAll();
-    if (fn_800207D0()) {
+    if (MR::isDemoEndWaitCameraInterpolating()) {
         MR::startAction(mHost, "WaitNoInterpole");
         mHost->getLeftHand()->startWaitAndSetNerve(true);
         mHost->getRightHand()->startWaitAndSetNerve(true);
@@ -2055,7 +2050,7 @@ void SandyStateDemoStart::exeDemo() {
         fn_8001BA80();
     }
     Sandy* pHost = mHost;
-    if (fn_800203E0(pHost, sDemoStartName, MR::isActionEnd(pHost))) {
+    if (MR::tryEndDemo(pHost, sDemoStartName, MR::isActionEnd(pHost))) {
         MR::endAnimCamera(mHost, mHost->mCameraInfo, sDemoStartCamera, 0, true);
         kill();
     }
@@ -2143,7 +2138,7 @@ SandyStateDemoPowerUp::SandyStateDemoPowerUp(Sandy* pSandy) : ActorStateBase< Sa
 
 // 80101320
 void SandyStateDemoPowerUp::kill() {
-    if (fn_800207D0()) {
+    if (MR::isDemoEndWaitCameraInterpolating()) {
         mHost->setWaitHands();
         MR::startAction(mHost, "WaitNoInterpole");
         mHost->getLeftHand()->startWaitAndSetNerve(false);
@@ -2189,7 +2184,7 @@ void SandyStateDemoPowerUp::exeDemo() {
     mHost->getLeftMini()->calcPosFromFixedPos();
     mHost->getRightMini()->calcPosFromFixedPos();
     Sandy* pHost = mHost;
-    if (fn_800203E0(pHost, sDemoPowerUpName, MR::isActionEnd(pHost))) {
+    if (MR::tryEndDemo(pHost, sDemoPowerUpName, MR::isActionEnd(pHost))) {
         MR::endAnimCamera(mHost, mHost->mCameraInfo, sDemoPowerUpCamera, 0, true);
         MR::showPlayer();
         kill();

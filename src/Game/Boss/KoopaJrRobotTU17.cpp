@@ -10,7 +10,6 @@ extern "C" f32 fn_800CAF20();
 extern "C" bool fn_800CC280(u32);
 extern "C" bool fn_800CC290(u32);
 extern "C" void fn_800CB710();
-extern "C" void fn_80010020(LiveActor*, const TVec3f*);
 
 namespace NrvKoopaJrRobotShockWave {
     NEW_NERVE(KoopaJrRobotShockWaveNrvHide, KoopaJrRobotShockWave, Hide);
@@ -69,7 +68,7 @@ void KoopaJrRobotShockWave::start(const TVec3f& rTarget) {
     TVec3f dir;
     TVec3f diff = rTarget - pos;
     MR::normalizeOrZero(&dir, diff);
-    fn_80010020(this, &dir);
+    MR::setQuatUpNoSupport(this, dir);
     MR::resetPosition(this, pos);
     _94 = 15.0f;
     appear();

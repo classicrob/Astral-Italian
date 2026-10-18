@@ -99,7 +99,7 @@ void SnowStep::exeShrink() {
     }
 }
 
-extern "C" s32 fn_80304510() {
+s32 SnowStep::getSensorType() {
     return 0x52;
 }
 

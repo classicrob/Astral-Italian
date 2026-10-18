@@ -6,7 +6,6 @@
 #include "Game/MapObj/MapObjConnector.hpp"
 
 extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_80011E20(LiveActor*);
 extern "C" void fn_8022BAE0(LiveActor*);
 extern "C" void fn_8018B720(BrosProjectileBase*);
 
@@ -97,7 +96,7 @@ void BrosBase::updateVelocity() {
     if (!MR::isOnGround(this)) {
         MR::addVelocityToGravity(this, 1.5f);
     } else {
-        fn_80011E20(this);
+        MR::killVelocityVertical(this);
     }
     MR::attenuateVelocity(this, MR::isBindedGround(this) ? 0.94f : 0.98f);
     if (MR::isBindedWall(this)) {

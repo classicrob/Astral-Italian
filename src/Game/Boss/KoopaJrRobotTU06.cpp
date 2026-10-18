@@ -4,8 +4,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 
 extern "C" const char* fn_800DA9C0();
-extern "C" bool fn_800207D0();
-extern "C" bool fn_80020600(LiveActor*, const char*);
 extern "C" bool fn_804D7060();
 
 static const char* sCameraName = "DemoOpeningKoopaJrRobot";
@@ -34,7 +32,7 @@ KoopaJrRobotStateIntro::KoopaJrRobotStateIntro(KoopaJrRobot* pHost, const JMapIn
 }
 
 void KoopaJrRobotStateIntro::kill() {
-    if (fn_800207D0()) {
+    if (MR::isDemoEndWaitCameraInterpolating()) {
         MR::startBckNoInterpole(mHost, "Wait");
     }
     KoopaJrRobotFunction::attachBodyToHead(mHost);
@@ -80,7 +78,7 @@ void KoopaJrRobotStateIntro::exeDemo() {
         KoopaJrRobotFunction::showAll(mHost);
     }
     KoopaJrRobot* pHost = mHost;
-    if (fn_80020600(pHost, fn_800DA9C0())) {
+    if (MR::tryEndDemoAndKillEffects(pHost, fn_800DA9C0())) {
         KoopaJrRobotFunction::showAll(mHost);
         kill();
     }

@@ -8,7 +8,6 @@
 // Unnamed SMG2 helpers used by this unit (owned by other units).
 extern "C" {
 void fn_80034820(LiveActor*);
-u32 fn_80304510();
 }
 
 namespace {
@@ -151,7 +150,7 @@ void SnowBall::init(const JMapInfoIter& rIter) {
     mPrevPos.set(mPosition);
     MR::setAllEffectHostMtx(this, mBaseMtx);
     MR::onCalcGravity(this);
-    MR::setBinderExceptSensorType(this, fn_80304510());
+    MR::setBinderExceptSensorType(this, SnowStep::getSensorType());
     initNerve(&SnowBallNrvThaw::sInstance, 0);
     makeActorAppeared();
 }

@@ -9,7 +9,6 @@
 #include <revolution/types.h>
 
 extern "C" {
-void fn_80011E20(LiveActor*);
 void fn_80068E40(SpringValue*, f32);
 s32 fn_800D9830(const TVec3f*, TVec3f*, f32*);
 }
@@ -173,7 +172,7 @@ bool KoopaJrCastleCloudStep::updateWind() {
         MR::addVelocity(this, vel);
     }
     MR::attenuateVelocity(this, 0.995f);
-    fn_80011E20(this);
+    MR::killVelocityVertical(this);
     return ret;
 }
 

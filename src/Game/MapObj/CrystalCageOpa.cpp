@@ -9,8 +9,6 @@
 extern "C" bool fn_80008F00(const LiveActor*, const char*);
 extern "C" void exeFall__11CrystalCageFv(LiveActor*);
 
-extern "C" const char lbl_8069EF88[];
-extern "C" const char lbl_8069EF90[];
 
 namespace NrvCrystalCageOpa {
     NEW_NERVE(CrystalCageOpaNrvWait, CrystalCageOpa, Wait);
@@ -33,7 +31,7 @@ CrystalCageOpa::CrystalCageOpa(const char* pName)
     : LiveActor(pName), mWaitTime(1000), mIsStartAnim(false), mIsHideModel(false), mObjName(nullptr), mItemType(-1), mStarPieceNum(5) {}
 
 void CrystalCageOpa::init(const JMapInfoIter& rIter) {
-    const char* pBase = lbl_8069EF88;
+    const char* pBase = "Break";
     MR::initActor(this, rIter, false);
     initNerve(&NrvCrystalCageOpa::CrystalCageOpaNrvWait::sInstance, 0);
     MR::getObjectName(&mObjName, rIter);
@@ -95,7 +93,7 @@ bool CrystalCageOpa::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSenso
 
 void CrystalCageOpa::exeWait() {
     if (MR::isFirstStep(this) && mIsStartAnim) {
-        MR::tryStartAllAnim(this, lbl_8069EF90);
+        MR::tryStartAllAnim(this, "Move");
     }
 
     MR::attachSupportTicoToTarget(this);
@@ -103,7 +101,7 @@ void CrystalCageOpa::exeWait() {
 
 // NONMATCHING: target keeps the "Break" string base in a separate addi (addi r4,r31,0 with reloc); we emit mr r4,r31 (one instruction, 98.2%)
 void CrystalCageOpa::exeBreak() {
-    const char* pBase = lbl_8069EF88;
+    const char* pBase = "Break";
     if (MR::isFirstStep(this)) {
         mBreakModel->appear();
 

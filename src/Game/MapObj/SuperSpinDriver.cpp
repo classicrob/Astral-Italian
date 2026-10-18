@@ -13,8 +13,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
-extern "C" void fn_80050E10(const char*, s32);
-extern "C" void fn_80050DB0(const char*, s32, s32);
 
 void SuperSpinDriver_FORCE_MATCH_SDATA2() {
     (void)1.0f;
@@ -791,7 +789,7 @@ void SuperSpinDriver::updateShootMotion() {
             MR::startSoundPlayer("SE_PM_SPINDRIVER_PANIC", -1, -1);
         }
 
-        fn_80050E10("SE_PM_LV_S_SPIN_DRV_FLY", -1);
+        MR::startLevelSoundPlayer("SE_PM_LV_S_SPIN_DRV_FLY", -1);
         return;
     }
 
@@ -807,7 +805,7 @@ void SuperSpinDriver::updateShootMotion() {
         MR::startActionSound(this, "OjSSpinDrvJump");
 
         if (MR::isPlayerElementModeYoshi()) {
-            fn_80050DB0("StarRingStart", -1, -1);
+            MR::startActionSoundPlayer("StarRingStart", -1, -1);
         } else if (mFlightTime < 180) {
             MR::startLevelSoundPlayer("JumpObj", -1, -1);
         } else {
@@ -828,7 +826,7 @@ void SuperSpinDriver::updateShootMotion() {
     }
 
     if (MR::isLessStep(this, _158)) {
-        fn_80050E10("SE_PM_LV_S_SPIN_DRV_FLY", -1);
+        MR::startLevelSoundPlayer("SE_PM_LV_S_SPIN_DRV_FLY", -1);
     }
 
     if (MR::isStep(this, _158)) {
@@ -837,7 +835,7 @@ void SuperSpinDriver::updateShootMotion() {
 
         if (mFlightTime >= 135) {
             if (MR::isPlayerElementModeYoshi()) {
-                fn_80050DB0("PreLandTurn", -1, -1);
+                MR::startActionSoundPlayer("PreLandTurn", -1, -1);
             } else {
                 MR::startLevelSoundPlayer("JumpSV", -1, -1);
             }

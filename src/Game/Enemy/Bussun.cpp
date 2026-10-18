@@ -21,7 +21,6 @@ namespace NrvBussun {
 #define GET_BUSSUN_NERVE(name) (&NrvBussun::name::sInstance)
 
 // Unnamed SMG2 helpers used by Bussun.
-extern "C" void fn_8005B750(LiveActor*, s32);
 extern "C" void fn_8000F910(LiveActor*, TVec3f*, TVec3f*);
 extern "C" bool fn_80175A70(const LiveActor*);
 extern "C" const Nerve* fn_80175850(const LiveActor*);
@@ -66,7 +65,7 @@ void Bussun::init(const JMapInfoIter& rIter) {
 
 void Bussun::control() {
     mAnimScaleCtrl->updateNerve();
-    fn_8005B750(this, fn_80175A70(this) ? 1 : 0);
+    MR::setSeVersion(this, fn_80175A70(this) ? 1 : 0);
     if (fn_80175970(this) && mStarPointBind->tryStartPointBind()) {
         fn_801759D0(this);
         setNerve(GET_BUSSUN_NERVE(BussunNrvFreeze));

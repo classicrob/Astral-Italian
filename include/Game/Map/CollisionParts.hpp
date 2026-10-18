@@ -68,3 +68,8 @@ public:
     /* 0xEC */ f32 _EC;
     /* 0xF0 */ f32 _F0;
 };
+
+namespace Collision {
+    void addToGlobal(CollisionParts*);
+    void removeToGlobal(CollisionParts*);
+};  // namespace Collision

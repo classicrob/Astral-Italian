@@ -12,38 +12,19 @@
 #include "JSystem/JMath/JMath.hpp"
 #include <cmath>
 
-// Nerve instances used by DiceBase (anonymous sbss objects; no NrvDiceBase class in SMG2).
-extern "C" u32 lbl_807D3CE8;  // Wait / appear
-extern "C" u32 lbl_807D3CEC;  // Spin (calcAndSetBaseMtx, receiveMsgPlayerAttack)
-extern "C" u32 lbl_807D3CF0;  // Land (exeThrow -> land)
+// Bounding spheres of the dice (x, y, z, radius).
+static const f32 sDiceSpheres[8][4] = {
+    {0.0f, 0.0f, 0.0f, 100.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f},
+    {0.0f, 0.0f, 0.0f, 20.0f},  {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f},
+};
 
-// String table (.data): "ItemDice" at +0x90, "Body" +0x9C, "Shadow" +0xA4, sound names +0xAC..+0x134.
-extern "C" u32 lbl_806A2E28;
-
-extern "C" DiceMover* fn_800547F0(DiceMover*, s32, s32);
-extern "C" void fn_800548E0(DiceMover*, const void*);
-extern "C" void fn_80054990(DiceMover*, const TVec3f*, const TVec3f*);
-extern "C" void fn_800549B0(DiceMover*);
-extern "C" void fn_80054A60(DiceMover*, TPos3f*);
-extern "C" void fn_80054B30(DiceMover*, const TVec3f*);
-extern "C" void fn_80054B40(DiceMover*, void*, s32);
 extern "C" s32 fn_802B2FB0(MtxPtr, const TVec3f*);
 
-namespace {
-    inline const char* diceStr(u32 off) {
-        return reinterpret_cast<const char*>(&lbl_806A2E28) + off;
-    }
-
-    inline const Nerve* nrvWait() {
-        return reinterpret_cast<const Nerve*>(&lbl_807D3CE8);
-    }
-    inline const Nerve* nrvSpin() {
-        return reinterpret_cast<const Nerve*>(&lbl_807D3CEC);
-    }
-    inline const Nerve* nrvLand() {
-        return reinterpret_cast<const Nerve*>(&lbl_807D3CF0);
-    }
-}  // namespace
+namespace NrvItemDice {
+    NEW_NERVE(ItemDiceNrvSpin, DiceBase, Spin);
+    NEW_NERVE(ItemDiceNrvThrow, DiceBase, Throw);
+    NEW_NERVE(ItemDiceNrvLand, DiceBase, Land);
+};  // namespace NrvItemDice
 
 DiceBase::DiceBase(const char* pName) : LiveActor(pName) {
     mMover = nullptr;
@@ -73,7 +54,6 @@ DiceBase::~DiceBase() {
 
 // NONMATCHING: 96%: stack slots of the two JMap temporaries differ (same calls and constants).
 void DiceBase::init(const JMapInfoIter& rIter) {
-    const char* pNames = reinterpret_cast<const char*>(&lbl_806A2E28);
     MR::initDefaultPos(this, rIter);
 
     s32 arg1;
@@ -88,14 +68,14 @@ void DiceBase::init(const JMapInfoIter& rIter) {
         mThrowScaleB = (f32)arg2 / 10.0f;
     }
 
-    initEffectKeeper(0, (pNames + 0x90), false);
+    initEffectKeeper(0, "ItemDice", false);
     MR::initActor(this, rIter, getModelName(), false);
     initHitSensor(1);
-    HitSensor* pSensor = MR::addHitSensorPush(this, (pNames + 0x9C), 0x20, 142.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    initSound(4, (pNames + 0x90), nullptr, TVec3f(0.0f));
-    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, (pNames + 0xA4));
+    HitSensor* pSensor = MR::addHitSensorPush(this, "Body", 0x20, 142.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    initSound(4, "ItemDice", nullptr, TVec3f(0.0f));
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     MR::connectToSceneNoShadowedMapObj(this);
-    initNerve(nrvWait(), 0);
+    initNerve(GET_NERVE(ItemDice, ItemDiceNrvSpin), 0);
     MR::invalidateClipping(this);
     mBasePos.set(mPosition);
     mBaseRot.set(mRotation);
@@ -116,7 +96,7 @@ void DiceBase::appear() {
     LiveActor::appear();
     resetToBaseTrans();
     LiveActor::calcAndSetBaseMtx();
-    setNerve(nrvWait());
+    setNerve(GET_NERVE(ItemDice, ItemDiceNrvSpin));
     MR::hideModel(this);
     MR::invalidateClipping(this);
     mStopTimer = 0;
@@ -197,19 +177,18 @@ void DiceBase::exeSpin() {
 
 // NONMATCHING: 94%: register choice for the `bound` local and -1 argument load order.
 void DiceBase::exeThrow() {
-    const char* pNames = reinterpret_cast<const char*>(&lbl_806A2E28);
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
-        MR::startActionSound(this, (pNames + 0xAC), -1, -1, -1);
+        MR::startActionSound(this, "Thrown", -1, -1, -1);
     }
 
     TVec3f vel(mGravity);
     vel.scale(0.3499999940395355f);
-    fn_80054B30(mMover, &vel);
-    fn_800549B0(mMover);
+    mMover->setGravity(&vel);
+    mMover->update();
 
     if (isSettled()) {
-        setNerve(nrvLand());
+        setNerve(GET_NERVE(ItemDice, ItemDiceNrvLand));
         return;
     }
 
@@ -217,11 +196,11 @@ void DiceBase::exeThrow() {
         mLandTimer--;
     }
     if (mLandTimer == 0) {
-        setNerve(nrvLand());
+        setNerve(GET_NERVE(ItemDice, ItemDiceNrvLand));
         return;
     }
     if (mHitCount >= 2) {
-        setNerve(nrvLand());
+        setNerve(GET_NERVE(ItemDice, ItemDiceNrvLand));
         return;
     }
 
@@ -234,28 +213,27 @@ void DiceBase::exeThrow() {
             bound = 0;
         }
         if (bound > 0x258) {
-            MR::startActionSound(this, (pNames + 0xB4), -1, -1, -1);
+            MR::startActionSound(this, "Bound", -1, -1, -1);
         } else if (bound > 0) {
-            MR::startActionSound(this, (pNames + 0xBC), -1, -1, -1);
+            MR::startActionSound(this, "BoundLittle", -1, -1, -1);
         }
     }
 
-    MR::startActionSound(this, (pNames + 0xC8), -1, -1, -1);
+    MR::startActionSound(this, "ThrownLv", -1, -1, -1);
     if (MR::isGreaterStep(this, 27)) {
-        MR::startActionSound(this, (pNames + 0xD8), -1, -1, -1);
+        MR::startActionSound(this, "Rolling", -1, -1, -1);
     }
 }
 
 // NONMATCHING: 96%: string-table base is hoisted into a register differently (same calls and constants).
 void DiceBase::exeLand() {
-    const char* pNames = reinterpret_cast<const char*>(&lbl_806A2E28);
     if (MR::isFirstStep(this)) {
         const TVec3f* pVel = &TVec3f(mGravity);
         s32 result = fn_802B2FB0(getBaseMtx(), pVel);
         if (isGoodResult(result)) {
-            MR::startActionSound(this, (pNames + 0xE0), -1, -1, -1);
+            MR::startActionSound(this, "FixedGood", -1, -1, -1);
         } else {
-            MR::startActionSound(this, (pNames + 0xEC), -1, -1, -1);
+            MR::startActionSound(this, "FixedBad", -1, -1, -1);
         }
     }
 
@@ -266,16 +244,16 @@ void DiceBase::exeLand() {
     }
 
     if (MR::isGreaterEqualStep(this, 40)) {
-        MR::emitEffect(this, (pNames + 0xF8));
+        MR::emitEffect(this, "Explosion");
         mIsLanded = true;
 
         const TVec3f* pVel = &TVec3f(mGravity);
         s32 result = fn_802B2FB0(getBaseMtx(), pVel);
         mIsGood = makeResult(result);
         if (mIsGood) {
-            MR::startActionSound(this, (pNames + 0x104), -1, -1, -1);
+            MR::startActionSound(this, "VanishGood", -1, -1, -1);
         } else {
-            MR::startActionSound(this, (pNames + 0x110), -1, -1, -1);
+            MR::startActionSound(this, "VanishBad", -1, -1, -1);
         }
         kill();
     }
@@ -288,9 +266,9 @@ void DiceBase::control() {
 }
 
 void DiceBase::calcAndSetBaseMtx() {
-    if (isNerve(nrvSpin())) {
+    if (isNerve(GET_NERVE(ItemDice, ItemDiceNrvThrow))) {
         TPos3f mtx;
-        fn_80054A60(mMover, &mtx);
+        mMover->calcMtx(&mtx);
         MR::setBaseTRMtx(this, mtx);
         mtx.getTrans(mPosition);
         mtx.getEulerXYZ(mRotation);
@@ -321,18 +299,17 @@ bool DiceBase::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 // NONMATCHING: 93%: TVec3f operator- is inline in our header (target calls __mi out of line) and TVec3 unary minus likewise.
 bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    const char* pNames = reinterpret_cast<const char*>(&lbl_806A2E28);
     if (MR::isMsgStarPieceReflect(msg) || MR::isMsgSnowBallAttack(msg) || MR::isMsgFireBallAttack(msg) ||
         MR::isMsgYoshiProjectileOrEat(msg) || MR::isMsgRockAttack(msg)) {
-        if (isNerve(nrvWait())) {
-            setNerve(nrvSpin());
+        if (isNerve(GET_NERVE(ItemDice, ItemDiceNrvSpin))) {
+            setNerve(GET_NERVE(ItemDice, ItemDiceNrvThrow));
             MtxPtr pMtx = getBaseMtx();
-            fn_800548E0(mMover, pMtx);
+            mMover->setMtx(pMtx);
             startHitStop();
             TVec3f up;
             MR::getPlayerUpVec(&up);
             calcPushVec(*MR::getSensorPos(pSender), up);
-            MR::tryHitReaction(this, (pNames + 0x11C));
+            MR::tryHitReaction(this, "\222e\203q\203b\203g");
         }
         return true;
     }
@@ -341,8 +318,8 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         if (tryThrow()) {
             return false;
         }
-        if (!isNerve(nrvSpin())) {
-            setNerve(nrvSpin());
+        if (!isNerve(GET_NERVE(ItemDice, ItemDiceNrvThrow))) {
+            setNerve(GET_NERVE(ItemDice, ItemDiceNrvThrow));
             MtxPtr pMtx = getBaseMtx();
             TPos3f mtx;
             JMath::gekko_ps_copy12(&mtx, pMtx);
@@ -350,11 +327,11 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
             vel.scale(10.0f);
             TVec3f pos = mPosition - vel;
             mtx.setTrans(pos);
-            fn_800548E0(mMover, &mtx);
+            mMover->setMtx(mtx.toMtxPtr());
             MR::stopSceneForDefaultHit(6);
             MR::tryRumblePadStrong(this, 0);
         }
-        MR::tryHitReaction(this, (pNames + 0x128));
+        MR::tryHitReaction(this, "\222\274\220\332\203q\203b\203g");
         startHitStop();
         TVec3f up;
         MR::getPlayerUpVec(&up);
@@ -363,7 +340,7 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     }
 
     if (MR::isMsgPlayerTrample(msg)) {
-        MR::startActionSound(this, (pNames + 0x134), -1, -1, -1);
+        MR::startActionSound(this, "Trampled", -1, -1, -1);
         return true;
     }
 
@@ -377,7 +354,7 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
 bool DiceBase::tryThrow() {
     bool blocked = false;
-    if (mStopTimer != 0 || isNerve(nrvLand()) || mHitCount >= 2) {
+    if (mStopTimer != 0 || isNerve(GET_NERVE(ItemDice, ItemDiceNrvLand)) || mHitCount >= 2) {
         blocked = true;
     }
     return blocked;
@@ -391,10 +368,7 @@ void DiceBase::resetToBaseTrans() {
 
 // NONMATCHING: calls match; field stores reload mMover in a different order than the target.
 void DiceBase::createMover(HitSensor* pSensor) {
-    DiceMover* pMover = new DiceMover;
-    if (pMover) {
-        pMover = fn_800547F0(pMover, 0, 0);
-    }
+    DiceMover* pMover = new DiceMover(0, 0);
     mMover = pMover;
     mMover->mSpeedLimit = 200.0f;
     mMover->mB4 = 20.0f;
@@ -403,7 +377,7 @@ void DiceBase::createMover(HitSensor* pSensor) {
     mMover->mE0 = true;
 
     MtxPtr pMtx = getBaseMtx();
-    fn_800548E0(mMover, pMtx);
+    mMover->setMtx(pMtx);
 
     struct NameBlock {
         s32 type;
@@ -412,9 +386,9 @@ void DiceBase::createMover(HitSensor* pSensor) {
     NameBlock* pBlock = new NameBlock;
     if (pBlock) {
         pBlock->type = 9;
-        pBlock->ptr = &lbl_806A2E28;
+        pBlock->ptr = sDiceSpheres;
     }
-    fn_80054B40(mMover, pBlock, 0);
+    mMover->setPointArray(pBlock, 0);
 }
 
 // NONMATCHING: calls match; TQuat4::transform and TVec3 unary minus are inlined by our headers (out of line in target).
@@ -442,7 +416,7 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
         proj.add(mPosition);
         TVec3f tmp(axis);
         tmp.scale(mThrowScaleA);
-        fn_80054990(mMover, &proj, &tmp);
+        mMover->collide(&proj, &tmp);
     }
 
     TVec3f pos = rPos - mPosition;
@@ -452,7 +426,7 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     TVec3f grav = -mGravity;
     TVec3f vel(grav);
     vel.scale(mThrowScaleB);
-    fn_80054990(mMover, &pos, &vel);
+    mMover->collide(&pos, &vel);
 }
 
 // NONMATCHING: calls match; float expression scheduling differs.
@@ -530,7 +504,7 @@ void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 
         dir.scale(JGeometry::TUtil<f32>::inv_sqrt(sq) * depth);
     }
 
-    fn_80054990(mMover, &pos, &dir);
+    mMover->collide(&pos, &dir);
 }
 
 void DiceBase::startHitStop() {
@@ -541,7 +515,7 @@ void DiceBase::startHitStop() {
 
 // NONMATCHING: branch shape of the target is a 3-way check that our codegen does not reproduce (29 vs 25 instructions).
 bool DiceBase::isPushableSensor(HitSensor* pSensor) {
-    if (MR::isSensorPlayerOrRide(pSensor) && MR::isCurrentRushRockMario() && !isNerve(nrvLand())) {
+    if (MR::isSensorPlayerOrRide(pSensor) && MR::isCurrentRushRockMario() && !isNerve(GET_NERVE(ItemDice, ItemDiceNrvLand))) {
         return false;
     }
     return true;

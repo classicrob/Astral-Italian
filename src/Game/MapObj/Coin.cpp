@@ -8,11 +8,11 @@
 #include "Game/MapObj/PurpleCoinHolder.hpp"
 #include "Game/NameObj/NameObjArchiveListCollector.hpp"
 #include "Game/Util.hpp"
+#include "Game/MapObj/DrumTrampoline.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
-extern "C" bool fn_802952F0(TVec3f*, LiveActor*, HitSensor*);
 extern "C" void fn_800145C0(LiveActor*);
 extern "C" void fn_80014670(LiveActor*);
 
@@ -356,7 +356,7 @@ void Coin::exeMove() {
     }
 
     TVec3f sensorDir;
-    if (fn_802952F0(&sensorDir, this, getSensor(nullptr))) {
+    if (DrumTrampoline::tryGetGroundNormal(&sensorDir, this, getSensor(nullptr))) {
         TVec3f kick = sensorDir * 40.0f;
         MR::setVelocity(this, kick);
     }

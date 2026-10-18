@@ -5,8 +5,8 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" s32 lbl_807CFDB0;
-extern "C" s32 lbl_807CFDB4;
+static s32 sDefaultInterval = 5;
+static s32 sDefaultDelay = 10;
 
 namespace NrvRollingWaterCreator {
     NEW_NERVE(Wait, RollingWaterCreator, Wait);
@@ -14,8 +14,8 @@ namespace NrvRollingWaterCreator {
 
 RollingWaterCreator::RollingWaterCreator(const char* pName) : LiveActor(pName) {
     mRollingWaterGroup = nullptr;
-    mInterval = lbl_807CFDB0;
-    mDelay = lbl_807CFDB4;
+    mInterval = sDefaultInterval;
+    mDelay = sDefaultDelay;
     mCounter = 0;
 }
 
@@ -23,12 +23,12 @@ void RollingWaterCreator::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     MR::getJMapInfoArg1NoInit(rIter, &mInterval);
     if (mInterval <= 0) {
-        mInterval = lbl_807CFDB0;
+        mInterval = sDefaultInterval;
     }
     mInterval *= 60;
     MR::getJMapInfoArg2NoInit(rIter, &mDelay);
     if (mDelay <= 0) {
-        mDelay = lbl_807CFDB4;
+        mDelay = sDefaultDelay;
     }
     mDelay *= 60;
 

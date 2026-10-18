@@ -16,6 +16,8 @@ class ItemDrill : public LiveActor {
 public:
     ItemDrill(const char*);
 
+    static bool isTargetCollisionParts(const CollisionParts*);
+
     virtual ~ItemDrill();
     virtual void init(const JMapInfoIter&);
     virtual void draw() const;

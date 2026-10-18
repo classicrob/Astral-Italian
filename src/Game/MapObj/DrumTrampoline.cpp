@@ -90,7 +90,7 @@ bool DrumTrampoline::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
     return false;
 }
 
-extern "C" bool fn_802952F0(TVec3f* pNormal, LiveActor* pActor, HitSensor* pSensor) {
+bool DrumTrampoline::tryGetGroundNormal(TVec3f* pNormal, LiveActor* pActor, HitSensor* pSensor) {
     if (MR::sendMsgToGroundSensor(0xD5, pSensor)) {
         *pNormal = MR::getGroundNormal(pActor);
         return true;

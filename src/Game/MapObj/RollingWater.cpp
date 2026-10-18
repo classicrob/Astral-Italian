@@ -8,8 +8,6 @@
 
 extern "C" void fn_800513C0(TQuat4f*, const TVec3f*);
 extern "C" void fn_800514B0(TQuat4f*, const TVec3f*);
-extern "C" void fn_8000E670(TVec3f*, LiveActor*, const TVec3f*, s32);
-extern "C" void fn_80011DD0(LiveActor*);
 
 namespace NrvRollingWater {
     NEW_NERVE(Wait, RollingWater, Wait);
@@ -231,10 +229,10 @@ bool RollingWater::updateTimerAndCheckArea() {
 
 bool RollingWater::moveOnRail() {
     updateVelocityAndRotation();
-    fn_80011DD0(this);
+    MR::killVelocityHorizon(this);
     MR::moveCoord(this, mRailSpeed);
     TVec3f railVec;
-    fn_8000E670(&railVec, this, &MR::getRailPos(this), 0);
+    MR::calcVecToTargetHorizon(&railVec, this, &MR::getRailPos(this), 0);
     MR::addVelocity(this, railVec);
     updateRollMoment();
     return MR::isRailReachedGoal(this);

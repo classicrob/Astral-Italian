@@ -48,10 +48,8 @@ extern "C" bool fn_800CC290(u32);
 extern "C" bool fn_800CC2B0(u32);
 extern "C" void fn_800E4420(void*);
 extern "C" void fn_800E4700(const TVec3f*);
-extern "C" void fn_80010020(LiveActor*, const TVec3f*, LiveActor*);
 extern "C" void fn_800513C0(TQuat4f*, TVec3f*);
 extern "C" TVec3f* fn_800514B0(TQuat4f*, TVec3f*);
-extern "C" void fn_8000E850(TVec3f*, const LiveActor*);
 
 // Unit-local helpers (unnamed in the target).
 extern "C" {

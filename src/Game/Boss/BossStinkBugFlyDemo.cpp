@@ -1,5 +1,6 @@
 #include "Game/Boss/BossStinkBugFlyDemo.hpp"
 #include "Game/Util.hpp"
+#include "Game/Boss/BossStinkBugFunction.hpp"
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Demo/DemoPositionController.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
@@ -14,11 +15,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
 
-extern "C" void fn_80139930(DemoPositionController*, const char*);
-extern "C" void fn_800AAAB0(BossStinkBug*, DemoPositionController*);
-extern "C" bool fn_800AAB30(BossStinkBug*, DemoPositionController*, const char*);
-extern "C" bool fn_800203E0(LiveActor*, const char*, bool);
-extern "C" bool fn_8001F950(LiveActor*, const char*);
 
 namespace {
     static const s32 sFlySoundStartStep1 = 113;
@@ -51,7 +47,7 @@ BossStinkBugFlyDemo::BossStinkBugFlyDemo(BossStinkBug* pStinkBug, const JMapInfo
 }
 
 void BossStinkBugFlyDemo::exeTryStart() {
-    if (fn_8001F950(getHost(), "ボスカメムシ飛行デモ")) {
+    if (MR::tryStartDemoMarioPuppetable(getHost(), "ボスカメムシ飛行デモ")) {
         setNerve(GET_NERVE(BossStinkBugFlyDemo, BossStinkBugFlyDemoNrvDemo));
     }
 }
@@ -74,7 +70,7 @@ void BossStinkBugFlyDemo::exeDemo() {
         getHost()->offBindLeg();
         getHost()->_98->endIKCtrlAll();
         MR::startBckPlayer("BattleWait", "BattleWaitNoInter");
-        fn_80139930(mDemoPositionController, "FlyDemo");
+        mDemoPositionController->startDemo("FlyDemo");
         getHost()->reuestMovementOnParts();
         MR::startAction(getHost(), "FlyDemo");
         MR::startAction(getHost()->getBombLauncher(), "FlyDemo");
@@ -102,10 +98,10 @@ void BossStinkBugFlyDemo::exeDemo() {
         MR::startActionSound(getHost(), "BmLvBossBugFlyStart");
     }
 
-    fn_800AAAB0(getHost(), mDemoPositionController);
+    BossStinkBugFunction::syncDemoPose(getHost(), mDemoPositionController);
 
-    if (fn_800203E0(getHost(), "ボスカメムシ飛行デモ", MR::isActionEnd(getHost()))) {
-        if (fn_800AAB30(getHost(), mDemoPositionController, "FlyDemo")) {
+    if (MR::tryEndDemo(getHost(), "ボスカメムシ飛行デモ", MR::isActionEnd(getHost()))) {
+        if (BossStinkBugFunction::tryEndDemoPose(getHost(), mDemoPositionController, "FlyDemo")) {
             kill();
         } else {
             setNerve(GET_NERVE(BossStinkBugFlyDemo, BossStinkBugFlyDemoNrvDemoEnd));

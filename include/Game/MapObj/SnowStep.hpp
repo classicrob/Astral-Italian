@@ -8,6 +8,8 @@ class SnowStep : public LiveActor {
 public:
     SnowStep(const char*);
 
+    static s32 getSensorType();
+
     virtual ~SnowStep();
     virtual void init(const JMapInfoIter&) override;
     virtual void control() override;

@@ -191,13 +191,13 @@ bool PullTargetBridge::tryPull() {
     return true;
 }
 
-// PullTargetDrawer: its nerve instances (sbss 807D4138..48) and sinit live in a neighbouring split.
-extern "C" s32 lbl_807D4138[1];
-extern "C" s32 lbl_807D413C[1];
-extern "C" s32 lbl_807D4140[1];
-extern "C" s32 lbl_807D4144[1];
-extern "C" s32 lbl_807D4148[1];
-#define DRAWER_NRV(x) (reinterpret_cast< const Nerve* >(x))
+namespace NrvPullTargetDrawer {
+    NEW_NERVE(PullTargetDrawerNrvWait, PullTargetDrawer, Wait);
+    NEW_NERVE(PullTargetDrawerNrvPull, PullTargetDrawer, Pull);
+    NEW_NERVE(PullTargetDrawerNrvExtend, PullTargetDrawer, Extend);
+    NEW_NERVE(PullTargetDrawerNrvExtendWait, PullTargetDrawer, ExtendWait);
+    NEW_NERVE(PullTargetDrawerNrvShrink, PullTargetDrawer, Shrink);
+};  // namespace NrvPullTargetDrawer
 
 PullTargetDrawer::PullTargetDrawer(const char* pName) : LiveActor(pName) {
     mClippingCenter.x = 0.0f;
@@ -228,7 +228,7 @@ void PullTargetDrawer::init(const JMapInfoIter& rIter) {
     MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     initEffectKeeper(0, nullptr, false);
     MR::connectToSceneMapObj(this);
-    initNerve(DRAWER_NRV(lbl_807D4138), 0);
+    initNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvWait), 0);
     updateClipping(mRotation);
     initSound(4, "PullTargetDrawer", nullptr, TVec3f(0.0f));
     mPullTarget = new PullTarget(this);
@@ -262,12 +262,12 @@ void PullTargetDrawer::exePull() {
         PullTarget* target = mPullTarget;
         target->mIsEnable = false;
         fn_804222D0(target);
-        setNerve(DRAWER_NRV(lbl_807D4140));
+        setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvExtend));
         return;
     }
     if (!mPullTarget->isFacingPlayer()) {
         fn_804222D0(mPullTarget);
-        setNerve(DRAWER_NRV(lbl_807D4138));
+        setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvWait));
     }
 }
 
@@ -296,7 +296,7 @@ void PullTargetDrawer::exeExtend() {
     }
     if (MR::isGreaterEqualStep(this, 30)) {
         mLength = mMaxLength;
-        setNerve(DRAWER_NRV(lbl_807D4144));
+        setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvExtendWait));
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);
         }
@@ -317,7 +317,7 @@ void PullTargetDrawer::exeExtendWait() {
             MR::startActionSound(this, "TimerCount1", -1, -1, -1);
         }
         if (MR::isGreaterEqualStep(this, mShrinkTime)) {
-            setNerve(DRAWER_NRV(lbl_807D4148));
+            setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvShrink));
             MR::startActionSound(this, "TimerZero", -1, -1, -1);
         }
     }
@@ -347,7 +347,7 @@ void PullTargetDrawer::exeShrink() {
     if (MR::isGreaterEqualStep(this, 120)) {
         mLength = 0.0f;
         MR::validateClipping(this);
-        setNerve(DRAWER_NRV(lbl_807D4138));
+        setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvWait));
     }
 }
 
@@ -363,15 +363,15 @@ bool PullTargetDrawer::calcJointBridge(TPos3f* pMtx, const JointControllerInfo&)
 bool PullTargetDrawer::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiStartTongue(msg)) {
         mPlayerPos.set< f32 >(*MR::getPlayerPos());
-        setNerve(DRAWER_NRV(lbl_807D413C));
+        setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvPull));
         return true;
     }
     if (MR::isMsgYoshiLoopTongue(msg)) {
         return tryPull();
     }
     if (MR::isMsgYoshiReleaseEaten(msg)) {
-        if (isNerve(DRAWER_NRV(lbl_807D413C))) {
-            setNerve(DRAWER_NRV(lbl_807D4138));
+        if (isNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvPull))) {
+            setNerve(GET_NERVE(PullTargetDrawer, PullTargetDrawerNrvWait));
         }
         return true;
     }

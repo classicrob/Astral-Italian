@@ -1,5 +1,6 @@
 #include "Game/Boss/BossStinkBugOpeningDemo.hpp"
 #include "Game/Util.hpp"
+#include "Game/Boss/BossStinkBugFunction.hpp"
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Boss/BossStinkBugActionBase.hpp"
 #include "Game/Demo/DemoPositionController.hpp"
@@ -15,11 +16,6 @@
 #include "Game/Util/ActorAnimUtil.hpp"
 #include <revolution/types.h>
 
-extern "C" void fn_80139930(DemoPositionController*, const char*);
-extern "C" void fn_800AAAB0(BossStinkBug*, DemoPositionController*);
-extern "C" bool fn_800AAB30(BossStinkBug*, DemoPositionController*, const char*);
-extern "C" bool fn_800203E0(LiveActor*, const char*, bool);
-extern "C" bool fn_8001F950(LiveActor*, const char*);
 
 namespace NrvBossStinkBugOpeningDemo {
     // Demo is declared before TryStart so that exeTryStart (inlined into TryStart::execute) can reference it;
@@ -42,7 +38,7 @@ BossStinkBugOpeningDemo::BossStinkBugOpeningDemo(BossStinkBug* pStinkBug, const 
 }
 
 void BossStinkBugOpeningDemo::exeTryStart() {
-    if (fn_8001F950(getHost(), "ボスカメムシオープニングデモ")) {
+    if (MR::tryStartDemoMarioPuppetable(getHost(), "ボスカメムシオープニングデモ")) {
         setNerve(GET_NERVE(BossStinkBugOpeningDemo, BossStinkBugOpeningDemoNrvDemo));
     }
 }
@@ -63,16 +59,16 @@ void BossStinkBugOpeningDemo::exeDemo() {
         MR::overlayWithPreviousScreen(2);
         MR::stopStageBGM(60);
         MR::startBckPlayer("BattleWait", nullptr);
-        fn_80139930(mDemoPositionController, "OpeningDemo");
+        mDemoPositionController->startDemo("OpeningDemo");
         getHost()->reuestMovementOnParts();
         MR::startAction(getHost(), "OpeningDemo");
         MR::tryStartAllAnim(getHost()->getWingModel(), "OpeningDemo");
     }
 
-    fn_800AAAB0(getHost(), mDemoPositionController);
+    BossStinkBugFunction::syncDemoPose(getHost(), mDemoPositionController);
 
-    if (fn_800203E0(getHost(), "ボスカメムシオープニングデモ", MR::isActionEnd(getHost()))) {
-        if (fn_800AAB30(getHost(), mDemoPositionController, "OpeningDemo")) {
+    if (MR::tryEndDemo(getHost(), "ボスカメムシオープニングデモ", MR::isActionEnd(getHost()))) {
+        if (BossStinkBugFunction::tryEndDemoPose(getHost(), mDemoPositionController, "OpeningDemo")) {
             kill();
         } else {
             setNerve(GET_NERVE(BossStinkBugOpeningDemo, BossStinkBugOpeningDemoNrvDemoEnd));

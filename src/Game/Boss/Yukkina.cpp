@@ -28,54 +28,38 @@ extern s32 lbl_807D1D40;
 extern s32 lbl_807D1D44;
 extern s32 lbl_807D1D48;
 
-extern f32 lbl_807D8C78;
-extern f32 lbl_807D8C7C;
-extern f32 lbl_807D8C80;
-extern f32 lbl_807D8C84;
-extern f32 lbl_807D8C88;
-extern f32 lbl_807D8C8C;
-extern f32 lbl_807D8C90;
-extern f32 lbl_807D8C94;
-extern f32 lbl_807D8C98;
-extern f32 lbl_807D8C9C;
-extern f32 lbl_807D8CA0;
-extern f32 lbl_807D8CA4;
-extern f32 lbl_807D8CA8;
 
 #define STR8A8(off) (reinterpret_cast< const char* >(lbl_8067B8A8 + (off)))
 #define STRAT(sym) (reinterpret_cast< const char* >(sym))
 #define NRV(sym) (reinterpret_cast< Nerve* >(&(sym)))
 #define RAW(T, this_, off) (*reinterpret_cast< T* >(reinterpret_cast< u8* >(this_) + (off)))
 
-extern "C" void fn_8000E570(TVec3f*, void*, s32);
 extern "C" void fn_8001BA80();
-extern "C" s32 fn_800203E0(void*, const char*, s32);
-extern "C" s32 fn_800207D0();
 extern "C" void fn_8004FF90();
 
 Yukkina::Yukkina(const char* pName) : LiveActor(pName) {
     mCameraInfo = NULL;
-    mQuatC4.set(lbl_807D8C7C, lbl_807D8C7C, lbl_807D8C7C, lbl_807D8C78);
-    mQuatD4.set(lbl_807D8C7C, lbl_807D8C7C, lbl_807D8C7C, lbl_807D8C78);
-    mVelE4.x = lbl_807D8C7C;
-    mVelE4.y = lbl_807D8C7C;
-    mVelE4.z = lbl_807D8C78;
-    mQuatF0.set(lbl_807D8C7C, lbl_807D8C7C, lbl_807D8C7C, lbl_807D8C78);
-    mPos100.x = lbl_807D8C7C;
-    mPos100.y = lbl_807D8C7C;
-    mPos100.z = lbl_807D8C7C;
-    mPos10C.x = lbl_807D8C7C;
-    mPos10C.y = lbl_807D8C7C;
-    mPos10C.z = lbl_807D8C7C;
+    mQuatC4.set(0.0f, 0.0f, 0.0f, 1.0f);
+    mQuatD4.set(0.0f, 0.0f, 0.0f, 1.0f);
+    mVelE4.x = 0.0f;
+    mVelE4.y = 0.0f;
+    mVelE4.z = 1.0f;
+    mQuatF0.set(0.0f, 0.0f, 0.0f, 1.0f);
+    mPos100.x = 0.0f;
+    mPos100.y = 0.0f;
+    mPos100.z = 0.0f;
+    mPos10C.x = 0.0f;
+    mPos10C.y = 0.0f;
+    mPos10C.z = 0.0f;
     mSwitch = (NameObj*)-1;
     mCounter = 0;
     mStep = 3;
-    _124 = lbl_807D8C7C;
-    _128 = lbl_807D8C7C;
-    _12C = lbl_807D8C7C;
-    mLowAngle = lbl_807D8C78;
-    mHighAngle = lbl_807D8C80;
-    mRollSpeed = lbl_807D8C8C;
+    _124 = 0.0f;
+    _128 = 0.0f;
+    _12C = 0.0f;
+    mLowAngle = 1.0f;
+    mHighAngle = 3.0f;
+    mRollSpeed = 1.5f;
     mIdx = 1;
     mHasPlayerLink = 0;
     mBaseMtx.identity();
@@ -97,7 +81,7 @@ void Yukkina::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg7WithInit(rIter, reinterpret_cast< s32* >(&mSwitch));
     if (mSwitch != (NameObj*)-1) {
         MR::declareCameraRegisterVec(this, reinterpret_cast< u32 >(mSwitch), &mPos10C);
-        MR::calcPositionUpOffset(&mPos10C, this, lbl_807D8C90);
+        MR::calcPositionUpOffset(&mPos10C, this, 250.0f);
     }
 
     TriangleFilterDelegator< Yukkina >* pFilter = new TriangleFilterDelegator< Yukkina >(this, &Yukkina::isInvalidTriangle);
@@ -109,7 +93,7 @@ void Yukkina::init(const JMapInfoIter& rIter) {
     MR::initUseStageSwitchWriteDead(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
     MR::startBva(this, STRAT(lbl_807CF678));
-    MR::setBvaFrameAndStop(this, lbl_807D8C7C);
+    MR::setBvaFrameAndStop(this, 0.0f);
 }
 
 void Yukkina::kill() {
@@ -120,7 +104,7 @@ void Yukkina::kill() {
 void Yukkina::control() {
     if (mSwitch != (NameObj*)-1) {
         RAW(TVec3f, this, 0x44).set(RAW(TVec3f, this, 0x14));
-        JMAVECScaleAdd(&RAW(Vec, this, 0x44), &mPos10C, &mPos10C, lbl_807D8C90);
+        JMAVECScaleAdd(&RAW(Vec, this, 0x44), &mPos10C, &mPos10C, 250.0f);
     }
     if (MR::isBindedGround(this)) {
         mCounter = 0;
@@ -138,7 +122,7 @@ void Yukkina::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         if (isNerve(NRV(lbl_807D1D24)) && MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
             setNerve(NRV(lbl_807D1D30));
             // NONMATCHING: target passes both sensors and two floats to setVelocitySeparateHV
-            MR::setVelocitySeparateHV(this, mVelE4, lbl_807D8C94, lbl_807D8C98);
+            MR::setVelocitySeparateHV(this, mVelE4, 5.0f, 15.0f);
             return;
         }
         MR::sendMsgPush(pReceiver, pSender);
@@ -168,7 +152,7 @@ bool Yukkina::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             MR::calcSensorHorizonNormalize(&sp8, RAW(TVec3f, this, 0x44), pSender, pReceiver);
             mVelE4.set(sp8);
             // NONMATCHING: setVelocitySeparateHV argument list
-            MR::setVelocitySeparateHV(this, mVelE4, lbl_807D8C9C, lbl_807D8CA0);
+            MR::setVelocitySeparateHV(this, mVelE4, 20.0f, 40.0f);
             setNerve(NRV(lbl_807D1D28));
             return true;
         }
@@ -204,10 +188,10 @@ void Yukkina::exeAppear() {
         MR::showModel(this);
         MR::startAction(this, STR8A8(0xC));
     }
-    if (fn_800203E0(this, STR8A8(0x5C), MR::isActionEnd(this))) {
+    if (MR::tryEndDemo(this, STR8A8(0x5C), MR::isActionEnd(this))) {
         MR::showPlayer();
         MR::endAnimCamera(this, mCameraInfo, STR8A8(0xC), -1, true);
-        if (fn_800207D0() != 0) {
+        if (MR::isDemoEndWaitCameraInterpolating() != 0) {
             MR::tryForceDeleteEffectAll(this);
             MR::startMultiActorCameraTargetSelf(this, mCameraInfo, STR8A8(0x24), -1);
             setNerve(NRV(lbl_807D1D20));
@@ -240,7 +224,7 @@ void Yukkina::exeBreak() {
         MR::stopScene(5);
         MR::startAction(this, STR8A8(0x78));
         setTurnParam(mIdx);
-        fn_8000E570(NULL, this, 0);
+        MR::calcVecToPlayerHorizon(NULL, this, 0);
     }
     if (MR::isGreaterStep(this, 0xA)) {
         setNerve(NRV(lbl_807D1D2C));
@@ -302,7 +286,7 @@ void Yukkina::exeDemoStart() {
     if (MR::tryStartDemoMarioPuppetable(this, STRAT(lbl_8067B97C))) {
         MR::showModel(this);
         MR::resetPosition(this);
-        MR::startAnimCameraTargetSelf(this, mCameraInfo, STRAT(lbl_8067B8C0), false, 0, lbl_807D8C78);
+        MR::startAnimCameraTargetSelf(this, mCameraInfo, STRAT(lbl_8067B8C0), false, 0, 1.0f);
         setNerve(NRV(lbl_807D1D44));
     }
 }
@@ -325,19 +309,19 @@ void Yukkina::exeDemoEnd() {
 void Yukkina::setTurnParam(s32 arg) {
     switch (arg) {
     case 1:
-        mHighAngle = lbl_807D8C80;
-        mLowAngle = lbl_807D8C78;
-        mRollSpeed = lbl_807D8C8C;
+        mHighAngle = 3.0f;
+        mLowAngle = 1.0f;
+        mRollSpeed = 1.5f;
         return;
     case 2:
-        mHighAngle = lbl_807D8C80;
-        mLowAngle = lbl_807D8C78;
-        mRollSpeed = lbl_807D8C88;
+        mHighAngle = 3.0f;
+        mLowAngle = 1.0f;
+        mRollSpeed = 2.0f;
         return;
     case 3:
-        mHighAngle = lbl_807D8C80;
-        mLowAngle = lbl_807D8C7C;
-        mRollSpeed = lbl_807D8C80;
+        mHighAngle = 3.0f;
+        mLowAngle = 0.0f;
+        mRollSpeed = 3.0f;
         return;
     }
 }
@@ -356,7 +340,7 @@ void Yukkina::startWaitAction() {
 // fn_8010B540
 void Yukkina::updateSound() {
     f32 speed = MR::calcVelocityLength(this);
-    MR::startActionSound(this, STRAT(lbl_8067B994), (s32)(lbl_807D8C80 * (speed * speed)), -1, -1);
+    MR::startActionSound(this, STRAT(lbl_8067B994), (s32)(3.0f * (speed * speed)), -1, -1);
     if (isBindedAndHigh()) {
         MR::startActionSound(this, STRAT(lbl_8067B99C), -1, -1, -1);
     }

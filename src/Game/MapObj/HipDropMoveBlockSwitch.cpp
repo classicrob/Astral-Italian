@@ -5,9 +5,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Map/CollisionParts.hpp"
 
-extern "C" u32 lbl_807CFC68;
-extern "C" u32 lbl_807CFC6C;
-extern "C" u32 lbl_807CFC70;
 
 namespace NrvHipDropMoveBlockSwitch {
     NEW_NERVE(HipDropMoveBlockSwitchNrvOff, HipDropMoveBlockSwitch, Off);
@@ -39,10 +36,10 @@ void HipDropMoveBlockSwitch::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, pNames + 0x0, false);
     initHitSensor(2);
     MR::addHitSensorMapObj(this, pNames + 0x18, 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::addHitSensorMapObj(this, reinterpret_cast<const char*>(&lbl_807CFC68), 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorMapObj(this, "Hit", 16, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initCollisionParts(this, pNames + 0x0, getSensor(pNames + 0x18), nullptr);
     mCollisionParts = MR::createCollisionPartsFromLiveActor(this, pNames + 0x20,
-                                                            getSensor(reinterpret_cast<const char*>(&lbl_807CFC68)),
+                                                            getSensor("Hit"),
                                                             MR::CollisionScaleType_Unk2);
     MR::validateCollisionParts(mCollisionParts);
     initNerve(&NrvHipDropMoveBlockSwitch::HipDropMoveBlockSwitchNrvOff::sInstance, 0);
@@ -96,15 +93,15 @@ void HipDropMoveBlockSwitch::exeOff() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::startAction(this, "Wait");
-        MR::startBrk(this, reinterpret_cast<const char*>(&lbl_807CFC6C));
+        MR::startBrk(this, "Off");
     }
 }
 
 void HipDropMoveBlockSwitch::exeSwitchDown() {
     if (MR::isFirstStep(this)) {
         MR::invalidateClipping(this);
-        MR::startAction(this, reinterpret_cast<const char*>(&lbl_807CFC70));
-        MR::startBrk(this, reinterpret_cast<const char*>(&lbl_807CFC70));
+        MR::startAction(this, "On");
+        MR::startBrk(this, "On");
     }
 
     if (MR::isActionEnd(this)) {

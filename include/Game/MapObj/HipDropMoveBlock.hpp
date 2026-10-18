@@ -14,6 +14,16 @@ public:
     virtual ~MoveBlockFunction();
     virtual void init(const JMapInfoIter&);
 
+    void setMoveVec(const TVec3f&);
+    void setReturnStep(s32);
+    void setMoveStep(s32);
+    void calcMoveVec(TVec3f*) const;
+    void setForward(bool);
+    bool update();
+    bool isEndStep() const;
+    bool isStartStep() const;
+    bool canMove(bool) const;
+
     /* 0x04 */ u8 _04[0x10];
     /* 0x14 */ TQuat4f mQuat;  // (x, y, z) is read as a TVec3f offset by HipDropMoveBlockSwitch::calcAndSetBaseMtx
     /* 0x24 */ u8 _24[0x10];

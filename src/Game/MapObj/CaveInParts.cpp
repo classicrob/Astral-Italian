@@ -16,7 +16,6 @@ namespace MR {
 };  // namespace MR
 
 extern "C" void emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
-extern "C" void fn_8000FFD0(f32);
 
 
 namespace NrvCaveInParts {
@@ -128,9 +127,9 @@ void CaveInParts::exeFall() {
 
     TVec3f rotVec = mRotAxis * mRotSpeed;
     mRotation += rotVec;
-    fn_8000FFD0(mRotation.x);
-    fn_8000FFD0(mRotation.y);
-    fn_8000FFD0(mRotation.z);
+    MR::normalizeAngleDegree(mRotation.x);
+    MR::normalizeAngleDegree(mRotation.y);
+    MR::normalizeAngleDegree(mRotation.z);
 
     f32 radius = MR::getSensorRadius(this, pBase);
     TVec3f checkVec = mGravity * radius;

@@ -3,8 +3,6 @@
 #include "Game/Util.hpp"
 
 extern "C" void fn_8001FEF0(BossBussunStateDemo*, BossBussun*, const char*, const Nerve*, const Nerve*);
-extern "C" bool fn_800203E0(BossBussun*, const char*, bool);
-extern "C" void fn_80034910(BossBussun*);
 
 namespace NrvBossBussunStateDemo {
     // Empty execute in the target (blr): hand-written, no exe call.
@@ -45,14 +43,14 @@ void BossBussunStateDemo::exeDemo() {
     if (mIsPowerStarDemo) {
         if (MR::isActionEnd(mHost)) {
             MR::endDemo(mHost, mDemoName);
-            fn_80034910(mHost);
+            MR::tryHitReactionDead(mHost);
             MR::requestAppearPowerStarFromBelow(mHost);
             MR::endAnimCamera(mHost, mHost->mCameraInfo, mDemoName, 0, true);
             MR::showPlayer();
             kill();
         }
     } else {
-        if (fn_800203E0(mHost, mDemoName, MR::isActionEnd(mHost))) {
+        if (MR::tryEndDemo(mHost, mDemoName, MR::isActionEnd(mHost))) {
             MR::endAnimCamera(mHost, mHost->mCameraInfo, mDemoName, 0, true);
             MR::showPlayer();
             fn_80099CD0(mHost->mSequencer);

@@ -20,7 +20,6 @@
 #include <revolution/mtx.h>
 #include <revolution/types.h>
 
-extern "C" void fn_8005B750(const LiveActor*, u32);
 
 BossStinkBugActionBase::BossStinkBugActionBase(const char* pName, BossStinkBug* pStinkBug)
     : ActorStateBase< BossStinkBug >(pName, pStinkBug), mSpringValue(), _14(0.0f, 0.0f, 0.0f), _20(0.0f, 0.0f, 1.0f), _38(15.0f), _3C(), _40(), _44(),
@@ -196,15 +195,15 @@ s32 BossStinkBugActionBase::calcIIRCutOff() const {
 void BossStinkBugActionBase::updateSound() {
     if (getHost()->isLegInWater()) {
         if (isAngry()) {
-            fn_8005B750(getHost(), BossStinkBug::SeVersion_ANGRY_WATER);
+            MR::setSeVersion(getHost(), BossStinkBug::SeVersion_ANGRY_WATER);
         } else {
-            fn_8005B750(getHost(), BossStinkBug::SeVersion_WATER);
+            MR::setSeVersion(getHost(), BossStinkBug::SeVersion_WATER);
         }
     } else {
         if (isAngry()) {
-            fn_8005B750(getHost(), BossStinkBug::SeVersion_ANGRY);
+            MR::setSeVersion(getHost(), BossStinkBug::SeVersion_ANGRY);
         } else {
-            fn_8005B750(getHost(), BossStinkBug::SeVersion_NORMAL);
+            MR::setSeVersion(getHost(), BossStinkBug::SeVersion_NORMAL);
         }
     }
 }

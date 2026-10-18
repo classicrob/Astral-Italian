@@ -1,5 +1,6 @@
 #include "Game/Boss/BossStinkBugFinishDemo.hpp"
 #include "Game/Util.hpp"
+#include "Game/Boss/BossStinkBugFunction.hpp"
 #include "Game/Boss/BossStinkBug.hpp"
 #include "Game/Demo/DemoPositionController.hpp"
 #include "Game/LiveActor/ActorStateBase.hpp"
@@ -16,8 +17,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
 
-extern "C" void fn_80139930(DemoPositionController*, const char*);
-extern "C" void fn_800AAAB0(BossStinkBug*, DemoPositionController*);
 
 namespace NrvBossStinkBugFinishDemo {
     NEW_NERVE(BossStinkBugFinishDemoNrvTryStart, BossStinkBugFinishDemo, TryStart);
@@ -45,12 +44,12 @@ void BossStinkBugFinishDemo::exeDemo() {
         MR::stopStageBGM(30);
         MR::startBckPlayer("BattleWait", "BattleWaitNoInter");
         getHost()->reuestMovementOnParts();
-        fn_80139930(mDemoPositionController, "FinishDemo");
+        mDemoPositionController->startDemo("FinishDemo");
         MR::startAction(getHost(), "FinishDemo");
         MR::tryStartAllAnim(getHost()->getWingModel(), "FinishDemo");
     }
 
-    fn_800AAAB0(getHost(), mDemoPositionController);
+    BossStinkBugFunction::syncDemoPose(getHost(), mDemoPositionController);
 
     if (MR::isActionEnd(getHost())) {
         setNerve(GET_NERVE(BossStinkBugFinishDemo, BossStinkBugFinishDemoNrvAppearPowerStar));

@@ -13,7 +13,6 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
-extern "C" void fn_8000E570(TVec3f*, LiveActor*, int);
 extern "C" void fn_800209B0(LiveActor*, const JMapInfoIter&, const char*, const char*);
 extern "C" void fn_801392A0(LiveActor*, TalkMessageCtrl*, const char*);
 
@@ -113,7 +112,7 @@ void KoopaJrCastle::makeActorAppeared() {
 void KoopaJrCastle::control() {
     mCameraPos = mCapsule->mPosition;
     TVec3f grav(0.0f);
-    fn_8000E570(&grav, mCapsule, 0);
+    MR::calcVecToPlayerHorizon(&grav, mCapsule, 0);
     if (!MR::isNearZero(grav, 0.001f)) {
         MR::normalize(&grav);
         TPos3f mtx;

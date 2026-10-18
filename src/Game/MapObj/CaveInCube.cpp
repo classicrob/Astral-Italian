@@ -6,7 +6,7 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
-extern "C" const s32 lbl_806491B8[];
+static const s32 sDebrisType[6] = {0, 1, 1, 2, 2, 0};
 
 namespace NrvCaveInCube {
     NEW_NERVE(CaveInCubeNrvGenerate, CaveInCube, Generate);
@@ -110,10 +110,10 @@ void CaveInCube::exeGenerate() {
     }
 
     CaveInParts* pParts = nullptr;
-    if (getUnusedDebris(lbl_806491B8[mTypeIdx], &pParts)) {
+    if (getUnusedDebris(sDebrisType[mTypeIdx], &pParts)) {
         calcDebrisMtx(pParts);
         f32 speed;
-        switch (lbl_806491B8[mTypeIdx]) {
+        switch (sDebrisType[mTypeIdx]) {
         case 2:
             speed = 3.0f;
             break;

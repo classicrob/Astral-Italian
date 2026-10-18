@@ -11,20 +11,6 @@
 #include "JSystem/JGeometry/TVec.hpp"
 
 // Labels (.data strings), GX write-gather pipe and float constants.
-extern "C" char lbl_8069FEF8[];  // sensor name (attackSensor)
-extern "C" char lbl_8069FF70[];  // shadow volume name A
-extern "C" char lbl_8069FF78[];  // shadow volume line name
-extern "C" char lbl_8069FF80[];  // effect name
-extern "C" char lbl_8069FF90[];  // sound name
-extern "C" char lbl_807CFC20[];  // shadow volume name B
-extern "C" f32 lbl_807D3A98;     // NrvMove instance (sbss)
-extern "C" f32 lbl_807DD370;
-extern "C" f32 lbl_807DD374;
-extern "C" f32 lbl_807DD37C;
-extern "C" f32 lbl_807DD380;
-extern "C" f32 lbl_807DD388;
-extern "C" f32 lbl_807DD38C;
-extern "C" f32 lbl_807DD390;
 
 namespace {
     inline volatile f32* gxFifoF32() {
@@ -36,7 +22,7 @@ ElectricRail2Point::~ElectricRail2Point() {
 }
 
 void ElectricRail2Point::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) && MR::isEqualSensor(pSender, this, lbl_8069FEF8)) {
+    if (MR::isSensorPlayer(pReceiver) && MR::isEqualSensor(pSender, this, "Attack")) {
         MR::sendMsgEnemyAttackElectric(pReceiver, pSender);
     }
 }
@@ -44,18 +30,18 @@ void ElectricRail2Point::attackSensor(HitSensor* pSender, HitSensor* pReceiver) 
 // NONMATCHING: the shadow-volume calls match; the helper-set order for the second actor differs slightly.
 bool ElectricRail2Point::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     MR::initShadowControllerList(this, 3);
-    MR::addShadowVolumeCylinder(this, lbl_8069FF70, lbl_807DD38C);
-    MR::addShadowVolumeCylinder(this, lbl_807CFC20, lbl_807DD38C);
-    f32 dropLength = lbl_807DD390;
-    MR::setShadowDropPositionPtr(this, lbl_8069FF70, &mElems->mPosition);
-    MR::setShadowDropPositionPtr(this, lbl_807CFC20, reinterpret_cast<const TVec3f*>(reinterpret_cast<u8*>(mElems) + 0xA8));
-    MR::setShadowDropLength(this, lbl_8069FF70, dropLength);
-    MR::setShadowDropLength(this, lbl_807CFC20, dropLength);
-    MR::onCalcShadowDropPrivateGravity(this, lbl_8069FF70);
-    MR::onCalcShadowDropPrivateGravity(this, lbl_807CFC20);
+    MR::addShadowVolumeCylinder(this, "start", 20.0f);
+    MR::addShadowVolumeCylinder(this, "end", 20.0f);
+    f32 dropLength = 50.0f;
+    MR::setShadowDropPositionPtr(this, "start", &mElems->mPosition);
+    MR::setShadowDropPositionPtr(this, "end", reinterpret_cast<const TVec3f*>(reinterpret_cast<u8*>(mElems) + 0xA8));
+    MR::setShadowDropLength(this, "start", dropLength);
+    MR::setShadowDropLength(this, "end", dropLength);
+    MR::onCalcShadowDropPrivateGravity(this, "start");
+    MR::onCalcShadowDropPrivateGravity(this, "end");
     // NONMATCHING: the 8-argument addShadowVolumeLine call (rail shadow line between this and the drop volumes) is not
     // fully resolved from the target's register setup.
-    MR::addShadowVolumeLine(this, lbl_8069FF78, this, lbl_8069FF70, lbl_807DD38C, this, lbl_807CFC20, lbl_807DD38C);
+    MR::addShadowVolumeLine(this, "line", this, "start", 20.0f, this, "end", 20.0f);
     (void)msg;
     (void)pSender;
     (void)pReceiver;
@@ -83,14 +69,14 @@ void ElectricRail2Point::exeMove() {
     bool anyAttached = false;
     for (s32 i = 0; i < mElemCount; i++) {
         if (MR::attachSupportTicoToTarget(&mElems[i])) {
-            MR::emitEffect(&mElems[i], lbl_8069FF80);
+            MR::emitEffect(&mElems[i], "PointerTouch");
             anyAttached = true;
         } else {
-            MR::tryDeleteEffect(&mElems[i], lbl_8069FF80);
+            MR::tryDeleteEffect(&mElems[i], "PointerTouch");
         }
     }
 
-    MR::startActionSound(this, lbl_8069FF90, -1, -1, -1);
+    MR::startActionSound(this, "OjLvElecRailHam", -1, -1, -1);
 
     s32 railCount = mRailGroup->getObjNum();
     TVec3f playerPos = *MR::getPlayerPos();
@@ -139,9 +125,9 @@ void ElectricRail2Point::exeMove() {
 
 // unnamed fn_8029B490: keeps the two side vectors perpendicular to the rail direction
 void ElectricRail2Point::updateSideVectors(const TVec3f& rDir) {
-    TVec3f tmp(lbl_807DD374);
+    TVec3f tmp(0.0f);
     PSVECCrossProduct(&mSideA, &rDir, &tmp);
-    if (MR::isNearZero(tmp, lbl_807DD388)) {
+    if (MR::isNearZero(tmp, 0.001f)) {
         PSVECCrossProduct(&rDir, &mSideB, &mSideA);
         PSVECCrossProduct(&rDir, &mSideA, &mSideB);
         return;
@@ -152,7 +138,7 @@ void ElectricRail2Point::updateSideVectors(const TVec3f& rDir) {
 
 // NONMATCHING: draw/drawRailSide only partially transcribed (the target passes an extra f32 per GX quad).
 void ElectricRail2Point::draw() const {
-    drawRailSide(lbl_807DD37C);
+    drawRailSide(30.0f);
 }
 
 // unnamed fn_8029B550: draws both sides of the rail

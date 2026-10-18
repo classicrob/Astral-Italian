@@ -29,3 +29,7 @@ public:
     /* 0x14 */ DrillHole** mHoles1;
     /* 0x18 */ DrillHole** mHoles2;
 };
+
+void createDrillHoleHolderSceneObj();
+void appearDrillHoleFromArea1(const TPos3f*);
+void appearDrillHoleFromArea2(const TPos3f*);

@@ -8,6 +8,7 @@
 #include "Game/Player/MarioConst.hpp"
 #include "Game/Player/MarioMapCode.hpp"
 #include "Game/Player/MarioState.hpp"
+#include "Game/Player/Yoshi.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "revolution/os.h"
@@ -326,7 +327,7 @@ void MarioModule::addTrans(const TVec3f& rShift, const char* pName) {
 
 f32 MarioModule::cutGravityElementFromJumpVec(bool useActorGravity) {
     if (useActorGravity) {
-        return MR::vecKillElement(mActor->getMario()->mJumpVec, mActor->_240, &mActor->getMario()->mJumpVec);
+        return MR::vecKillElement(mActor->getMario()->mJumpVec, mActor->mAppliedGravityVec, &mActor->getMario()->mJumpVec);
     } else {
         TVec3f* pJumpVec = &mActor->mMario->mJumpVec;
         return MR::vecKillElement(*pJumpVec, mActor->getGravityVec(), pJumpVec);
@@ -615,3 +616,43 @@ HitSensor* MarioModule::getSensor(const Triangle* pTri) const {
 f32 MarioModule::marioAcos(f32 a1) const {
     return MR::acosEx(a1);
 }
+
+
+bool MarioModule::isPlayerModeFire() const { return mActor->mPlayerMode == 2; }
+bool MarioModule::isPlayerModeYoshi() const { return mActor->mPlayerMode == 10; }
+bool MarioModule::isPlayerModeCloud() const { return mActor->mPlayerMode == 12; }
+void MarioModule::fn_803EE8F0(const char* name) {
+    if (mActor->mPlayerMode == 10) {
+        mActor->fn_803B97F0()->fn_8040EDA0(name);
+    }
+}
+bool MarioModule::isAnimationStop() const { return mActor->mMarioAnim->isAnimationStop(); }
+bool MarioModule::isMainAnimationRun(const char* name) const { return mActor->mMarioAnim->isMainAnimationRun(name); }
+bool MarioModule::fn_803EEA90(const char* name) const { return mActor->mMarioAnim->isUpperAnimationTerminated(name); }
+f32 MarioModule::getFrame() const { return mActor->mMarioAnim->getFrame(); }
+f32 MarioModule::getAnimationTrackWeight(u32 track) { return mActor->mMarioAnim->getAnimationTrackWeight(track); }
+void MarioModule::fn_803EEC20(const char* name, const char* defaultName) {
+    if (!mActor->mMarioAnim->isUpperAnimationActive()) {
+        if (!mActor->_B90) {
+            mActor->mMarioAnim->changeDefaultUpper(defaultName);
+            if (name) { mActor->mMarioAnim->changeUpper(name); }
+        }
+    }
+}
+s32 MarioModule::fn_803EF000() const { return mActor->checkButtonType(4, false); }
+const TVec3f& MarioModule::fn_803EF300() const { return mActor->mMario->_16C; }
+const TVec3f& MarioModule::fn_803EF5B0() const { return mActor->mMario->mShadowPos; }
+bool MarioModule::fn_803EF670(const Triangle* triangle) const {
+    if (!triangle->isValid()) { return false; }
+    switch (mActor->mMario->_95C->getCode(triangle)) {
+    case 2:
+        return !(calcAngleD(*triangle->getNormal(0)) <= 3.0f);
+    case 3: case 13: case 20: case 21: case 22: case 30: case 39: case 43:
+        return false;
+    default:
+        f32 angle = calcAngleD(*triangle->getNormal(0));
+        return angle >= mActor->getConst().getTable()->mFlatAngle - 0.5f;
+    }
+}
+
+TVec3f& MarioModule::fn_803EF570() const { return mActor->mCameraDirY1014; }

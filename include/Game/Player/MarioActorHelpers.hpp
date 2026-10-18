@@ -84,14 +84,23 @@ public:
     /* 0x80 */ s32 mCount;
 };
 
+class MarioParts;
+class XanimePlayer;
+class XanimeResourceTable;
+
 class MarioTeresaModel {
 public:
     static MarioTeresaModel* create(MarioActor*, bool);
+    MarioTeresaModel(const char*, MarioActor*);
+    void initAnimation();
 
-    LiveActor* mActor;
+    MarioParts* mActor;
     f32 _4;
     f32 _8;
-    u8 _C[0x10];
+    f32 _C;
+    u16 _10;
+    XanimePlayer* mPlayer;
+    XanimeResourceTable* mResource;
 };
 
 class MarioNameMatrix : public NameObj {

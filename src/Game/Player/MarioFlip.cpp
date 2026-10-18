@@ -215,7 +215,7 @@ MarioFlip::MarioFlip(MarioActor* pActor) : MarioState(pActor, MarioStatus_Flip),
 }
 
 void MarioFlip::setVec(const TVec3f& rVec) {
-    MR::vecKillElement(rVec, mActor->_240, &_18);
+    MR::vecKillElement(rVec, mActor->mAppliedGravityVec, &_18);
 
     if (mActor->_3E5) {
         _18.setLength(mActor->mConst->getTable()->mSlideDistFlipSpin);

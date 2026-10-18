@@ -13,14 +13,7 @@ struct DLholder {
 
 class DLchanger {
 public:
-    DLchanger(u8 count, u32 size) {
-        mBuffers = new DLholder[count];
-        mBufferCount = count;
-        mCurrentBuffer = 0;
-        for (u32 i = 0; i < mBufferCount; i++) {
-            mBuffers[i].mDL = new (32) u8[size];
-        }
-    }
+    DLchanger(u8 count, u32 size);
 
     void addDL(J3DModelX*);
 

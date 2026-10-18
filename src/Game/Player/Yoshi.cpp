@@ -1,5 +1,7 @@
 #include "Game/Player/Yoshi.hpp"
 #include "Game/Map/WaterInfo.hpp"
+#include "Game/Effect/MultiEmitter.hpp"
+#include "Game/Util/MtxUtil.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/ModelManager.hpp"
 #include "Game/Animation/BvaPlayer.hpp"
@@ -1294,4 +1296,554 @@ void Yoshi::fn_8040EF20() {
 
 void Yoshi::fn_8040EF30() {
     mYoshiModelCtrl->fn_80418120();
+}
+
+void Yoshi::fn_80410D90() {
+    if (mWaterInfo->isInWater()) {
+        f32 depth = mWaterInfo->mCamWaterDepth;
+        if (!(depth < 200.0f)) depth = 200.0f;
+        mMovementVelocity.x *= 0.98f;
+        mMovementVelocity.y *= 0.98f;
+        mMovementVelocity.z *= 0.98f;
+        TVec3f gravity(mGravity);
+        gravity.scale(0.3f);
+        mMovementVelocity.add(gravity);
+        TVec3f up;
+        JGeometry::negateInternal(&mGravity.x, &up.x);
+        TVec3f lift(up);
+        lift.scale(depth);
+        TVec3f buoyancy(lift);
+        buoyancy.scale(0.007f);
+        mMovementVelocity.add(buoyancy);
+        TVec3f opposite;
+        JGeometry::negateInternal(&mGravity.x, &opposite.x);
+        f32 speed = mMovementVelocity.dot(opposite);
+        f32 maximum = mWaterInfo->mCamWaterDepth - 60.0f;
+        if (maximum < speed) {
+            TVec3f correction(mGravity);
+            correction.scale(speed - maximum);
+            mMovementVelocity.add(correction);
+        }
+    } else {
+        if (mMovementVelocity.dot(mGravity) < 0.0f) mMovementVelocity.zero();
+        TVec3f gravity(mGravity);
+        gravity.scale(0.3f);
+        mMovementVelocity.add(gravity);
+    }
+    if (!mWaterInfo->isInWater() || (mWaterInfo->isInWater() && mWaterInfo->mCamWaterDepth < 200.0f)) {
+        _145 = true;
+        TVec3f up;
+        JGeometry::negateInternal(&mGravity.x, &up.x);
+        TVec3f worldUp(0.0f, 1.0f, 0.0f);
+        TQuat4f orientation;
+        orientation.setRotate(worldUp, up);
+        TVec3f side(1.0f, 0.0f, 0.0f);
+        orientation.transform(side);
+        TVec3f front(0.0f, 0.0f, 1.0f);
+        orientation.transform(front);
+        f32 strength;
+        if (_158 < 10) strength = static_cast<f32>(_158) / 10.0f;
+        else {
+            f32 progress = 1.0f - static_cast<f32>(180 - _158) / 120.0f;
+            strength = 1.0f - progress * progress;
+            if (strength > 1.0f) strength = 1.0f;
+            if (strength < 0.1f) strength = 0.1f;
+        }
+        f32 sway = MR::sin(0.1f + 0.09f * static_cast<f32>(getNerveStep()) + 0.01f * mPosition.x);
+        TVec3f sideGravity(mGravity);
+        sideGravity.scale(0.2f);
+        TVec3f sideSway(sideGravity);
+        sideSway.scale(sway);
+        TVec3f sideOffset(sideSway);
+        sideOffset.scale(strength);
+        side.add(sideOffset);
+        f32 bob = MR::sin(0.2f + 0.09f * (1.2f * static_cast<f32>(getNerveStep())) + 0.01f * mPosition.y);
+        TVec3f frontGravity(mGravity);
+        frontGravity.scale(0.36f);
+        TVec3f frontSway(frontGravity);
+        frontSway.scale(bob);
+        TVec3f frontOffset(frontSway);
+        frontOffset.scale(strength);
+        front.add(frontOffset);
+        TVec3f normal;
+        PSVECCrossProduct(&front, &side, &normal);
+        if (!MR::normalizeOrZero(&normal)) {
+            TVec3f oldSide;
+            mBaseMtx.getXDir(oldSide);
+            TVec3f oldUp;
+            mBaseMtx.getYDir(oldUp);
+            TQuat4f tilt;
+            tilt.setRotate(oldUp, normal);
+            tilt.transform(oldSide);
+            tilt.transform(oldUp);
+            MR::normalize(&oldUp);
+            TVec3f oldFront;
+            PSVECCrossProduct(&oldSide, &oldUp, &oldFront);
+            MR::normalize(&oldFront);
+            PSVECCrossProduct(&oldUp, &oldFront, &oldSide);
+            MR::normalize(&oldSide);
+            mBaseMtx.setXDir(oldSide);
+            mBaseMtx.setYDir(oldUp);
+            mBaseMtx.setZDir(oldFront);
+            mBaseMtx.getEulerXYZ(mRotation);
+            ++_158;
+        }
+    } else {
+        _158 = 0;
+        _145 = false;
+    }
+}
+
+void Yoshi::fn_80410570(f32 amount) {
+    TVec3f direction(mMovementVelocity);
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        const TVec3f* normal = mGroundChecker->mGroundHit.mParentTriangle.getNormal(0);
+        JMAVECScaleAdd(normal, &direction, &direction, -normal->dot(direction));
+    }
+    const TVec3f* gravity = &mGravity;
+    JMAVECScaleAdd(gravity, &direction, &direction, -gravity->dot(direction));
+    if (!MR::normalizeOrZero(&direction)) {
+        TVec3f front;
+        mBaseMtx.getZDir(front);
+        JMAVECScaleAdd(gravity, &front, &front, -gravity->dot(front));
+        if (!MR::normalizeOrZero(&front)) {
+            TVec3f position;
+            mBaseMtx.getTrans(position);
+            TVec3f cross;
+            PSVECCrossProduct(&front, &direction, &cross);
+            f32 angle = front.angle(direction);
+            if (cross.dot(*gravity) < 0.0f) angle = -angle;
+            TQuat4f rotation;
+            rotation.setRotate(mGravity, angle * amount);
+            TPos3f matrix;
+            matrix.zeroTrans();
+            matrix.setQuat(rotation);
+            mBaseMtx.concat(matrix, mBaseMtx);
+            mBaseMtx.setTrans(position);
+            mBaseMtx.getEulerXYZ(mRotation);
+        }
+    }
+}
+
+void Yoshi::fn_8040E350() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("ラン（Ｎｐｃ）");
+        _188 = MR::getRandom(120L, 180L);
+        TVec3f front;
+        mBaseMtx.getZDir(front);
+        TVec3f direction;
+        JMAVECScaleAdd(&_18C, &front, &direction, -_18C.dot(front));
+        const TVec3f* gravity = &mGravity;
+        JMAVECScaleAdd(gravity, &direction, &direction, -gravity->dot(direction));
+        if (MR::normalizeOrZero(&direction)) {
+            PSVECCrossProduct(gravity, &_18C, &direction);
+            MR::normalizeOrZero(&direction);
+        }
+        mMovementVelocity.set(direction);
+        mMovementVelocity.x *= 8.0f;
+        mMovementVelocity.y *= 8.0f;
+        mMovementVelocity.z *= 8.0f;
+    }
+    MR::startActionSound(this, "WanderRun", -1, -1, -1);
+    if (!_198) {
+        setNerve(&NrvYoshi::YoshiNrv804138A0::sInstance);
+        return;
+    }
+    if (MR::isBindedWall(this) && MR::getWallNormal(this).dot(mMovementVelocity) < 0.0f) fn_80411630();
+    const TVec3f* gravity = &mGravity;
+    JMAVECScaleAdd(gravity, &mMovementVelocity, &mMovementVelocity, -gravity->dot(mMovementVelocity));
+    JMAVECScaleAdd(&_18C, &mMovementVelocity, &mMovementVelocity, -_18C.dot(mMovementVelocity));
+    mMovementVelocity.setLength(8.0f);
+    fn_80410570(1.0f);
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804139B0::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        TVec3f slope;
+        fn_80410810(&slope);
+        if (mMovementVelocity.dot(slope) < 0.0f) {
+            mMovementVelocity.x *= 0.95f;
+            mMovementVelocity.y *= 0.95f;
+            mMovementVelocity.z *= 0.95f;
+        }
+    } else mMovementVelocity.setLength(8.0f);
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    ground = mGroundChecker;
+    bool stoppedOnSlope = false;
+    if (ground->isGrounded() && ground->mSlipping) stoppedOnSlope = true;
+    if (stoppedOnSlope && mMovementVelocity.squared() < 1.0f) {
+        setNerve(&NrvYoshi::YoshiNrv804139D0::sInstance);
+        return;
+    }
+    if (MR::isGreaterEqualStep(this, _188)) setNerve(&NrvYoshi::YoshiNrv804139A0::sInstance);
+}
+
+bool Yoshi::fn_80410810(TVec3f* slope) const {
+    const TVec3f* normal = mGroundChecker->mGroundHit.mParentTriangle.getNormal(0);
+    const TVec3f* gravity = &mGravity;
+    JMAVECScaleAdd(normal, gravity, slope, -normal->dot(*gravity));
+    return !MR::normalizeOrZero(slope);
+}
+
+void Yoshi::fn_80411630() {
+    TVec3f velocity;
+    JMAVECScaleAdd(&mGravity, &mMovementVelocity, &velocity, -mGravity.dot(mMovementVelocity));
+    JGeometry::negateInternal(&velocity.x, &velocity.x);
+    velocity.scale(2.0f);
+    mMovementVelocity.add(velocity);
+}
+
+void Yoshi::fn_8040E660() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("キョロキョロ（Ｎｐｃ）");
+    if (fn_8040F590(nullptr)) {
+        setNerve(&NrvYoshi::YoshiNrv80413990::sInstance);
+        return;
+    }
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+}
+void Yoshi::fn_8040E750() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("落下（Ｎｐｃ）");
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804139D0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isGrounded()) setNerve(&NrvYoshi::YoshiNrv804139C0::sInstance);
+}
+void Yoshi::fn_8040E820() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("着地（Ｎｐｃ）");
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804139B0::sInstance);
+        return;
+    }
+    if (fn_8040F590(nullptr)) {
+        YoshiGroundChecker* ground = mGroundChecker;
+        bool slipping = false;
+        if (ground->isGrounded() && ground->mSlipping) slipping = true;
+        if (slipping) {
+            setNerve(&NrvYoshi::YoshiNrv804139D0::sInstance);
+            return;
+        }
+        setNerve(&NrvYoshi::YoshiNrv80413990::sInstance);
+    }
+}
+void Yoshi::fn_8040E8F0() {
+    if (MR::isFirstStep(this)) fn_8040EDA0("坂すべり仰向け（Ｎｐｃ）");
+    fn_80410570(0.05f);
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804139B0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isGrounded()) {
+        YoshiGroundChecker* ground = mGroundChecker;
+        bool slipping = false;
+        if (ground->isGrounded() && ground->mSlipping) slipping = true;
+        if (!slipping) setNerve(&NrvYoshi::YoshiNrv804139E0::sInstance);
+    }
+}
+
+void Yoshi::fn_8040E9E0() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("坂すべり仰向け終了（Ｎｐｃ）");
+        mMovementVelocity.zero();
+    }
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804139B0::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804139D0::sInstance);
+        return;
+    }
+    if (fn_8040F590(nullptr)) setNerve(&NrvYoshi::YoshiNrv80413990::sInstance);
+}
+
+void Yoshi::fn_80411ED0() {
+    if (!isNerve(&NrvYoshi::YoshiNrv80413840::sInstance)) {
+        WaterInfo info;
+        if (MR::getWaterAreaObj(&info, mPosition)) MR::getWaterAreaInfo(&info, mPosition, mGravity, false);
+        if (isNerve(&NrvYoshi::YoshiNrv804138A0::sInstance) || isNerve(&NrvYoshi::YoshiNrv80413990::sInstance)) {
+            if (MR::isFirstStep(this)) _15C = 0.0f;
+            f32 frame = mXanimePlayer->getAnimationFrame();
+            if (info.isInWater()) {
+                if (fn_80412590(frame)) {
+                    MR::emitEffect(this, "WaterSplashWalkAlone");
+                    fn_804121A0(info.mSurfacePos, info.mSurfaceNormal);
+                }
+            } else {
+                bool waterBottom = false;
+                if (MR::isBindedGroundWaterBottomH(this) || MR::isBindedGroundWaterBottomM(this) || MR::isBindedGroundWaterBottomL(this)) waterBottom = true;
+                if (waterBottom && fn_80412590(frame)) {
+                    MR::emitEffect(this, "WaterSplashWalkAlone");
+                    TVec3f up(MR::getGroundNormal(this));
+                    up.scale(10.0f);
+                    TVec3f position(mPosition);
+                    position.add(up);
+                    fn_804121A0(position, MR::getGroundNormal(this));
+                }
+            }
+            _15C = frame;
+            return;
+        }
+        if (!isNerve(&NrvYoshi::YoshiNrv80413910::sInstance)) {
+            if (info.isInWater()) {
+                ++_160;
+                if (_160 == 60) {
+                    fn_804121A0(info.mSurfacePos, info.mSurfaceNormal);
+                    _160 = 0;
+                }
+            } else {
+                bool waterBottom = false;
+                if (MR::isBindedGroundWaterBottomH(this) || MR::isBindedGroundWaterBottomM(this) || MR::isBindedGroundWaterBottomL(this)) waterBottom = true;
+                if (waterBottom) {
+                    ++_160;
+                    if (_160 == 60) {
+                        TVec3f up(MR::getGroundNormal(this));
+                        up.scale(10.0f);
+                        TVec3f position(mPosition);
+                        position.add(up);
+                        fn_804121A0(position, MR::getGroundNormal(this));
+                        _160 = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+bool Yoshi::fn_80412590(f32 frame) const {
+    bool crossing = false;
+    if ((_15C < 3.0f && frame >= 3.0f) || (_15C < 12.0f && frame >= 12.0f) || (_15C < 20.0f && frame >= 20.0f) || (_15C < 29.0f && frame >= 29.0f)) crossing = true;
+    return crossing;
+}
+
+void Yoshi::fn_804121A0(const TVec3f& position, const TVec3f& normal) {
+    TPos3f matrix;
+    TVec3f zero(0.0f);
+    MR::makeMtxUpNoSupportPos(&matrix, normal, zero);
+    TVec3f rotation;
+    MR::makeRTFromMtxPtr(nullptr, &rotation, matrix.toMtxPtr(), true);
+    MultiEmitter* emitter = MR::tryEmitEffect(this, "水波紋");
+    if (emitter) {
+        TVec3f scale;
+        scale.x = 0.2f;
+        scale.y = 0.2f;
+        scale.z = 0.2f;
+        emitter->setGlobalScale(scale, -1);
+    }
+    if (emitter) emitter->setGlobalTranslation(position, -1);
+    if (emitter) emitter->setGlobalRotationDegree(rotation, -1);
+}
+
+void Yoshi::fn_80410BA0() {
+    TVec3f planar;
+    f32 fallSpeed = MR::vecKillElement(mMovementVelocity, mGravity, &planar);
+    if (isNerve(&NrvYoshi::YoshiNrv804138A0::sInstance) || isNerve(&NrvYoshi::YoshiNrv80413990::sInstance)) {
+        if (mMovementVelocity.dot(mGravity) >= 0.0f) {
+            Triangle triangle;
+            if (mGroundChecker->isGrounded() && fallSpeed < 20.0f) {
+                TVec3f up(mGravity);
+                up.scale(10.0f);
+                TVec3f ahead(mPosition);
+                ahead.add(planar);
+                TVec3f origin(ahead);
+                origin.sub(up);
+                TVec3f ray(mGravity);
+                ray.scale(30.0f);
+                TVec3f hit;
+                if (MR::getFirstPolyOnLineToMap(&hit, &triangle, origin, ray)) {
+                    TVec3f displacement(hit);
+                    displacement.sub(mPosition);
+                    f32 down = mGravity.dot(displacement);
+                    TVec3f adjustment(mGravity);
+                    adjustment.scale(down);
+                    mAdditionalVelocity = adjustment;
+                }
+            }
+        }
+    }
+    mMovementVelocity.add(mGravity);
+    if (mMovementVelocity.dot(mGravity) > 50.0f) {
+        const TVec3f* gravity = &mGravity;
+        JMAVECScaleAdd(gravity, &mMovementVelocity, &mMovementVelocity, -gravity->dot(mMovementVelocity));
+        TVec3f terminal(*gravity);
+        terminal.scale(50.0f);
+        mMovementVelocity.add(terminal);
+    }
+}
+
+void Yoshi::fn_8040D380() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("ラン（Ｎｐｃ）");
+        fn_804124D0(8.0f);
+        mRandomTurn->reset();
+    }
+    MR::startActionSound(this, "WanderRun", -1, -1, -1);
+    mRandomTurn->update(mBaseMtx, &mMovementVelocity);
+    fn_80410570(1.0f);
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        TVec3f slope;
+        fn_80410810(&slope);
+        if (mMovementVelocity.dot(slope) < 0.0f) {
+            mMovementVelocity.x *= 0.95f;
+            mMovementVelocity.y *= 0.95f;
+            mMovementVelocity.z *= 0.95f;
+        }
+    } else {
+        TVec3f planar;
+        MR::vecKillElement(mMovementVelocity, mGravity, &planar);
+        planar.setLength(8.0f);
+        mMovementVelocity = planar;
+    }
+    if (!mAutoDisappearTask->mTimer) {
+        setNerve(&NrvYoshi::YoshiNrv80413980::sInstance);
+        return;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    ground = mGroundChecker;
+    bool stoppedOnSlope = false;
+    if (ground->isGrounded() && ground->mSlipping) stoppedOnSlope = true;
+    if (stoppedOnSlope && mMovementVelocity.squared() < 1.0f) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    if (mRandomTurn->mTimer <= 0) {
+        setNerve(&NrvYoshi::YoshiNrv80413870::sInstance);
+        return;
+    }
+    if (fn_804112A0()) setNerve(&NrvYoshi::YoshiNrv804138B0::sInstance);
+}
+void Yoshi::fn_804124D0(f32 speed) {
+    TVec3f up;
+    mBaseMtx.getYDir(up);
+    TVec3f front;
+    mBaseMtx.getZDir(front);
+    TVec3f gravityUp;
+    JGeometry::negateInternal(&mGravity.x, &gravityUp.x);
+    TQuat4f rotation;
+    rotation.setRotate(up, gravityUp);
+    rotation.transform(front);
+    front.setLength(speed);
+    f32 vertical = mGravity.dot(mMovementVelocity);
+    TVec3f velocity(mGravity);
+    velocity.scale(vertical);
+    mMovementVelocity = velocity;
+    mMovementVelocity.add(front);
+}
+bool Yoshi::fn_804112A0() const {
+    TVec3f unusedPosition;
+    mBaseMtx.getTrans(unusedPosition);
+    TVec3f up;
+    mBaseMtx.getYDir(up);
+    TVec3f front;
+    mBaseMtx.getZDir(front);
+    TVec3f rise(up);
+    rise.scale(100.0f);
+    TVec3f origin(mPosition);
+    origin.add(rise);
+    TVec3f ray(front);
+    ray.scale(150.0f);
+    if (Collision::checkStrikeLineToMap(origin, ray, 0, nullptr, nullptr)) return false;
+    TVec3f end(origin);
+    end.add(ray);
+    TVec3f down;
+    JGeometry::negateInternal(&up.x, &down.x);
+    TVec3f drop(down);
+    drop.scale(300.0f);
+    return !Collision::checkStrikeLineToMap(end, drop, 0, nullptr, nullptr);
+}
+
+void Yoshi::fn_8040EAE0() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("フリーズ（Ｎｐｃ）");
+        mMovementVelocity.zero();
+    }
+    if (!MR::isStarPointerPointing2PAttachTarget(this)) {
+        mAutoDisappearTask->mTimer = 600;
+        *mJumpRequested = true;
+        fn_80410280();
+    }
+}
+void Yoshi::fn_8040EB60() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("スターピースヒット（Ｎｐｃ）");
+        mMovementVelocity.set(mGravity);
+    }
+    if (fn_8040F590(nullptr)) {
+        mAutoDisappearTask->mTimer = 600;
+        *mJumpRequested = true;
+        fn_80410280();
+    }
+}
+void Yoshi::fn_8040EBF0() {
+    if (MR::isFirstStep(this)) {
+        fn_8040EDA0("見送り（Ｎｐｃ）");
+        mPlayerFacingCtrl->mTurnTimer = 0;
+    }
+    if (_144) {
+        setNerve(&NrvYoshi::YoshiNrv80413910::sInstance);
+        return;
+    }
+    YoshiGroundChecker* ground = mGroundChecker;
+    bool slipping = false;
+    if (ground->isGrounded() && ground->mSlipping) slipping = true;
+    if (slipping) {
+        setNerve(&NrvYoshi::YoshiNrv804138F0::sInstance);
+        return;
+    }
+    if (mGroundChecker->isAirborne()) {
+        setNerve(&NrvYoshi::YoshiNrv804138D0::sInstance);
+        return;
+    }
+    if (MR::getBckFrame(this) == 5.0f || MR::getBckFrame(this) == 20.0f || MR::getBckFrame(this) == 36.0f || MR::getBckFrame(this) == 50.0f || MR::getBckFrame(this) == 65.0f || MR::getBckFrame(this) == 79.0f || MR::getBckFrame(this) == 95.0f || MR::getBckFrame(this) == 110.0f) {
+        MR::startSoundInPlayerDistance(this, "SendOffOnce", -1, -1, 1800.0f);
+    }
+    mPlayerFacingCtrl->fn_80413110();
 }

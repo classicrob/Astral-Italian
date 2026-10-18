@@ -848,8 +848,13 @@ public:
     /* 0x262 */ u8 _pad262[0x2];
     /* 0x264 */ TVec3f _BAC;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x270 */ TVec3f _BB8;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
+    union {
+        struct {
     /* 0x27C */ TMtx34f _BC8;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x2AC */ TMtx34f _BF8;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
+        };
+        struct { u8 _padJoint27C[0x18]; TMtx34f mJointTransform294; };
+    };
     /* 0x2DC */ Mtx* _C28;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x2E0 */ TMtx34f _C2C;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x310 */ TMtx34f _C5C;  // SMG2 offset guess  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1082,9 +1087,14 @@ public:
     /* 0xCD0 */ u16 _7E0;  // SMG2 offset guess  // SMG2 offset inh  // SMG2 offset inh
     /* 0xCD2 */ u8 _padCD2[0x2];
     /* 0xCD4 */ HitSensor* _7E4[64];  // SMG2 offset guess  // SMG2 offset inh  // SMG2 offset inh
+    union {
+        struct {
     /* 0xDD4 */ u8 _padDD4[0x4];
     /* 0xDD8 */ FireMarioBall* _B54[3];  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0xDE4 */ TMtx34f _AE0;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
+        };
+        bool mRushTouchingDD4[64];
+    };
     /* 0xE14 */ HitSensor* _924;
     /* 0xE18 */ HitSensor* _928;
     /* 0xE1C */ u16 _F1A;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
@@ -1253,6 +1263,8 @@ public:
     /* 0x100A */ u16 _F1C;
     /* 0x100C */ u16 _F1E;
     /* 0x100E */ u16 _B12;  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
+    union {
+        struct {
     union {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
         /* 0x1010 */ u8 mSwimSurfaceState1010;
         /* 0x1010 */ TVec2f mScreenBoxMin;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
@@ -1269,6 +1281,9 @@ public:
     /* 0x1024 */ JetTurtleShadow* _9A0;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x1028 */ u32 mSearchLightTimer;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x102C */ u32 _pad102C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+        };
+        struct { u8 _padCamera1010[4]; TVec3f mCameraDirY1014; TVec3f mCameraDirX1020; };
+    };
     /* 0x1030 */ u8 _pad1030[0x10];
     /* 0x1040 */ u32 _pad1040;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x1044 */ DLholder* _B6C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh

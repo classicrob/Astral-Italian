@@ -118,13 +118,13 @@ bool MarioDamage::start() {
 }
 
 void MarioDamage::setVec(const TVec3f& rDirection) {
-    MR::vecKillElement(rDirection, mActor->_240, &_1C);
+    MR::vecKillElement(rDirection, mActor->mAppliedGravityVec, &_1C);
     _1C.setLength(mActor->getConst().getTable()->mJumpDistDamage);
 }
 
 void MarioDamage::setVecSize(f32 horizontal, f32 vertical) {
     _1C.setLength(horizontal);
-    _1C += -mActor->_240 * vertical;
+    _1C += -mActor->mAppliedGravityVec * vertical;
 }
 
 void MarioDamage::stopHead(const TVec3f& rNormal) {

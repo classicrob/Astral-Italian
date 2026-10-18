@@ -1776,7 +1776,7 @@ void MarioActor::updateBaseScaleMtx() {
 
 
 void MarioActor::getRealMtx(MtxPtr pMtx, const char* pName) const {
-    MR::multMtx(pMtx, (MtxPtr)&_BF8, MR::getJointMtx(this, pName));
+    MR::multMtx(pMtx, (MtxPtr)&mJointTransform294, MR::getJointMtx(this, pName));
     TVec3f stack_8(mMario->_13C);
     MR::addTransMtx(pMtx, stack_8);
 }
@@ -8587,7 +8587,7 @@ void MarioActor::addRushSensor(HitSensor* pSensor, bool myBool) {
     }
 
     _7E4[_930] = pSensor;
-    _8E4[_930] = myBool;
+    mRushTouchingDD4[_930] = myBool;
     _930++;
 }
 

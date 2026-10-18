@@ -3758,7 +3758,7 @@ const TVec3f& Mario::getWallPos() const {
         return _500;
     }
 
-    return mActor->_2A0;
+    return mActor->_240;
 }
 
 

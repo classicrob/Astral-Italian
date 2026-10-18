@@ -30,7 +30,7 @@ namespace MR {
     MultiEmitter* emitEffectWithScale(LiveActor* pActor, const char* pEffectName, f32 scale, s32 emitterIndex);
     MultiEmitter* emitEffectWithEmitterCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterCallBackBase* mEmitterCallBack);
     MultiEmitter* emitEffectWithParticleCallBack(LiveActor* pActor, const char* pEffectName, MultiEmitterParticleCallBack* mParticleCallBack);
-    bool tryEmitEffect(LiveActor* pActor, const char* pEffectName);
+    MultiEmitter* tryEmitEffect(LiveActor* pActor, const char* pEffectName);
 
     bool tryDeleteEffect(LiveActor* pActor, const char* pEffectName);
     bool tryForceDeleteEffect(LiveActor* pActor, const char* pEffectName);

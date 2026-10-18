@@ -12,9 +12,7 @@ public:
     virtual bool close();
     virtual bool update();
 
-    f32 vecKillActor240(const TVec3f& rVec) {
-        return MR::vecKillElement(rVec, mActor->_240, &_18);
-    }
+    f32 vecKillActor240(const TVec3f&);
 
     /* 0x12 */ u16 mTimer;
     /* 0x14 */ u16 _14;

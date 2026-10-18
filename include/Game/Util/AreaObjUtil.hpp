@@ -4,6 +4,7 @@
 #include <JSystem/JGeometry/TBox.hpp>
 
 class AreaObj;
+class WaterArea;
 class AreaObjContainer;
 class AreaObjMgr;
 class AreaCubeBoundingBox;
@@ -42,6 +43,9 @@ namespace MR {
     void requestMovementOnAreas(const char*);
     void requestMovementOnSoundAreas();
     bool hasNoWaterAreaCube(const WaterInfo*);
+    bool intersectsWaterAreaInfo(const WaterInfo*, const WaterInfo*);
+    bool func_80062320(const WaterArea*, TVec3f*, TVec3f*);
+    bool func_80062480(const WaterArea*, TVec3f*, TVec3f*);
     bool func_80062020(const WaterInfo*, TVec3f*, TVec3f*);
     bool func_800621A0(const WaterInfo*, TVec3f*, TVec3f*);
     void calcSphereFrontVec(TVec3f*, const AreaObj*, const TVec3f&);

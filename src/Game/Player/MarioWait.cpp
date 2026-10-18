@@ -23,82 +23,46 @@ bool MarioWait::checkStart() {
         return false;
     }
 
-    bool cancel = false;
-    switch (getPlayer()->_960) {
-    case 27:
-    case 28:
-        cancel = true;
-        break;
-    }
-
-    if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestRush()) {
-        cancel = true;
-    } else if (getPlayer()->mMovementStates.jumping && getPlayerMode() != PlayerMode_Teresa) {
-        cancel = true;
-    } else if (getPlayer()->isStatusActive(MarioStatus_Swim)) {
-        cancel = true;
-    } else if (getPlayer()->isStatusActive(MarioStatus_Hang)) {
-        cancel = true;
-    } else if (getPlayer()->isStatusActive(MarioStatus_Sukekiyo)) {
-        cancel = true;
-    } else if (getPlayer()->isStatusActive(MarioStatus_Bury)) {
-        cancel = true;
-    } else if (getPlayerMode() == PlayerMode_Hopper || isStatusActiveID(MarioStatus_Foo)) {
-        cancel = true;
-    } else if (getPlayer()->isStatusActive(MarioStatus_FpView)) {
-        cancel = true;
-    } else if (getPlayer()->isStatusActive(MarioStatus_Magic)) {
-        cancel = true;
-    } else if (getPlayer()->isStatusActive(MarioStatus_Talk)) {
-        cancel = true;
-    }
-
-    if (mActor->mBeeWallWalk) {
-        cancel = true;
-    }
-
-    if (getPlayer()->_1C._5) {
-        cancel = true;
-    }
-
-    if (getPlayer()->mMovementStates._23) {
-        cancel = true;
-    }
-
-    if (getPlayer()->mMovementStates._A) {
-        cancel = true;
-    }
-
-    if (getPlayer()->mDrawStates.mIsUnderwater) {
-        cancel = true;
-    }
-
-    if (!MR::isNearZero(getPlayer()->_184)) {
-        cancel = true;
-    }
-
-    if (MR::isNearZero(getPlayer()->mWalkSpeed)) {
-        _16++;
-    } else {
-        cancel = true;
-    }
-
-    if (cancel) {
+    if (checkCancel()) {
         _16 = 0;
         return false;
     }
-
-    if (_16 == 1800) {
-        if (MR::getAreaObj("NonSleepCube", getTrans()) != nullptr) {
-            _12 = 1;
-            return true;
-        }
-
-        _12 = 0;
+    _16++;
+    if (_16 < 1800) return false;
+    if (MR::getAreaObj("NonSleepCube", getTrans()) != nullptr) {
+        _12 = 1;
         return true;
     }
+    _12 = 0;
+    return true;
+}
 
-    return false;
+bool MarioWait::checkCancel() {
+    switch (getPlayer()->_960) { case 27: case 28: return true; }
+    if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestRush()) return true;
+    if (getPlayer()->mMovementStates.jumping && getPlayerMode() != PlayerMode_Teresa) return true;
+    if (getPlayer()->isStatusActive(6)) return true;
+    if (getPlayer()->isStatusActive(5)) return true;
+    if (getPlayer()->isStatusActive(0x1A)) return true;
+    if (getPlayer()->isStatusActive(0x1B)) return true;
+    if (getPlayerMode() == PlayerMode_Hopper) return true;
+    if (isPlayerModeYoshi()) return true;
+    if (isStatusActiveID(0x18)) return true;
+    if (getPlayer()->isStatusActive(0x12)) return true;
+    if (getPlayer()->isStatusActive(0x11)) return true;
+    if (getPlayer()->isStatusActive(0x22)) return true;
+    if (mActor->mBeeWallWalk) return true;
+    if (getPlayer()->_1C._5) return true;
+    if (getPlayer()->mMovementStates._23) return true;
+    if (getPlayer()->mMovementStates._A) return true;
+    if (getPlayer()->mDrawStates.mIsUnderwater) return true;
+    if (!MR::isNearZero(getPlayer()->_184, 0.001f)) return true;
+    if (mActor->_480) return true;
+    HitSensor* sensor;
+    if (mActor->_468 == 0) sensor = nullptr;
+    else sensor = mActor->_428[0];
+    if (sensor) return true;
+    return !MR::isNearZero(getPlayer()->mWalkSpeed, 0.001f);
 }
 
 bool MarioWait::start() {

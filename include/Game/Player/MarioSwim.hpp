@@ -101,6 +101,40 @@ public:
 
 class MarioSwim : public MarioState {
 public:
+    bool fn_803F8750(u32) NO_INLINE;
+    bool fn_803FE7E0() NO_INLINE;
+    void fn_80400A40(TVec3f*) NO_INLINE;
+    void fn_80401850(u32) NO_INLINE;
+    void fn_80402720() NO_INLINE;
+    bool fn_803FB8E0() NO_INLINE;
+    bool fn_803FB9C0() NO_INLINE;
+    bool fn_803FBB90() NO_INLINE;
+    bool fn_803FBC70() NO_INLINE;
+    f32 fn_803FBDA0() NO_INLINE;
+    f32 fn_803FBE10() NO_INLINE;
+    void fn_803FBE80() NO_INLINE;
+    void fn_803FBF20() NO_INLINE;
+    bool fn_803FC020() NO_INLINE;
+    void fn_80401960() NO_INLINE;
+    void fn_804019D0() NO_INLINE;
+    void fn_80401AE0() NO_INLINE;
+    void fn_80401B70() NO_INLINE;
+    bool fn_80401BE0() NO_INLINE;
+    void fn_80401CD0() NO_INLINE;
+    void fn_80401D60() NO_INLINE;
+    void fn_80401E10() NO_INLINE;
+    f32 fn_80402120() NO_INLINE;
+    f32 fn_804021B0() NO_INLINE;
+    f32 fn_80402250() NO_INLINE;
+    f32 fn_804022D0() NO_INLINE;
+    f32 fn_80402370() NO_INLINE;
+    f32 fn_80402400() NO_INLINE;
+    void fn_80402070() NO_INLINE;
+    void fn_803F8D10() NO_INLINE;
+    f32 fn_803FA2C0() NO_INLINE;
+    void fn_803FD140() NO_INLINE;
+    void fn_803FE4A0(WaterInfo*, const TVec3f&, const TVec3f&, u32) NO_INLINE;
+    void fn_80400FC0(const TVec3f&) NO_INLINE;
     bool fn_803F7D90();
     void fn_803F8DA0();
     bool fn_803F8E10();
@@ -113,12 +147,12 @@ public:
     bool fn_80401690();
     void fn_80401710();
     void fn_804017C0(bool);
-    void fn_803F8060();
+    void fn_803F8060() NO_INLINE;
     bool fn_803F8490();
     bool fn_803F88C0();
-    bool fn_803F8930();
+    bool fn_803F8930() NO_INLINE;
     f32 fn_803F8EF0();
-    void fn_803F8F60(f32);
+    void fn_803F8F60(f32) NO_INLINE;
     void fn_803F9350();
     void fn_803F95A0(f32);
     void fn_803F9750(const TVec3f&, const TVec3f&, bool);
@@ -181,7 +215,7 @@ public:
     void fn_803F7C10();
     void fn_803F7C00();
     void fn_803F7C20(const TVec3f*);
-    bool fn_803FD5E0(s32);
+    bool fn_803FD5E0(s32) NO_INLINE;
     bool fn_803FE9F0() const;
     bool fn_80400910() const;
     bool fn_80400930() const;

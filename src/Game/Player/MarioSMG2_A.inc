@@ -133,7 +133,7 @@ void Mario::fn_8038A560(f32 (*arg1)[4], s32 arg2) {
     }
     if (!this->updatePosture(arg1)) {
         this->createDirectionMtx(arg1);
-        PSMTXConcat(FLD<TMtx34f>(this, 0xC4), arg1, arg1);
+        PSMTXConcat(_C4, arg1, arg1);
         this->fn_8038A600();
     }
 }
@@ -506,7 +506,7 @@ void Mario::fn_803A2720() {
 
 void Mario::fn_803A2C40(const TVec3f* arg) {
     FLD<TVec3f>(this, 0x328) = *arg;
-    if ((FLD<u32>(this, 0xC) >> 20) & 1) {
+    if ((FLD<u32>(this, 0xC) >> 21) & 1) {
         if (FLD<u8>(this, 0x714) != 0) {
             FLD<TVec3f>(this, 0x334) = *arg;
         }

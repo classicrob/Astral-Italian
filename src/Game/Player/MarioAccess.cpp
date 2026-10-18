@@ -244,7 +244,7 @@ namespace MarioAccess {
 
     void setFrontVecTarget(const TVec3f& rVec, u16 a2) {
         MarioActor* actor = getPlayerActor();
-        actor->_3C4 = rVec;
+        actor->_3B4 = rVec;
         actor->_3D0 = a2;
     }
 

@@ -13,6 +13,7 @@ public:
     virtual bool update();
 
     bool checkStart();
+    bool checkCancel();
 
     /* 0x12 */ u16 _12;
     /* 0x14 */ u16 _14;

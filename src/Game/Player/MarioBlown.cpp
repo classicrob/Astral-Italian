@@ -160,3 +160,5 @@ bool MarioBlown::close() {
 
     return true;
 }
+
+f32 MarioBlown::vecKillActor240(const TVec3f& v) { return MR::vecKillElement(v, mActor->mAppliedGravityVec, &_18); }

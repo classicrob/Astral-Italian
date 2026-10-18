@@ -225,10 +225,10 @@ void YoshiEgg::fn_80416720() {
         MR::hideModel(this);
         MR::startAction(this, "NoSound");
         mShell->makeActorAppeared();
-        MR::startAction(mShell, "YoshiAppear");
+        MR::startAction(mShell, "Break");
         MR::fn_80422790(getBaseMtx(), this);
         MR::fn_80422440(this);
-        if (MR::isOnGameEventFlagYoshiFirst() || !MR::isDemoCast(this, nullptr)) MR::startActionSound(mShell, "Break", -1, -1, -1);
+        if (MR::isOnGameEventFlagYoshiFirst() || !MR::isDemoCast(this, nullptr)) MR::startActionSound(mShell, "YoshiAppear", -1, -1, -1);
     }
     if (!MR::isOnGameEventFlagYoshiFirst() && MR::isDemoCast(this, nullptr) && MR::isStep(this, 5)) {
         MR::requestStartDemoRegisteredMarioPuppetable(this, &NrvYoshiEgg::State11::sInstance, &NrvYoshiEgg::State11::sInstance, nullptr);

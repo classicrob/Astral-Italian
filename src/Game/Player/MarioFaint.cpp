@@ -63,7 +63,7 @@ MarioFaint::MarioFaint(MarioActor* pActor) : MarioState(pActor, MarioStatus_Fain
 }
 
 void MarioFaint::setVec(const TVec3f& rVec) {
-    MR::vecKillElement(rVec, mActor->_240, &_18);
+    MR::vecKillElement(rVec, mActor->mAppliedGravityVec, &_18);
     _18.setLength(mActor->getConst().getTable()->mSlideDistFaint);
     mTimer = 0;
     _16 = 0;

@@ -35,6 +35,7 @@ public:
     void addTeresaVerticalVelocity(f32);
     void addTeresaHorizontalVelocity(const TVec3f&);
     void doTeresaReflection(const TVec3f&, bool);
+    void fn_80405B10(const TVec3f&);
 
     /* 0x14 */ TVec3f _14;
     /* 0x20 */ f32 _20;

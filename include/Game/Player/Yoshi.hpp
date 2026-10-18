@@ -295,6 +295,13 @@ public:
     bool fn_8040F5B0(const char*);
     f32 fn_8040F620() const;
     void fn_8040F630(const TPos3f&);
+    void fn_80410570(f32);
+    bool fn_80410810(TVec3f*) const;
+    void fn_80411630();
+    void fn_804121A0(const TVec3f&, const TVec3f&);
+    bool fn_80412590(f32) const;
+    void fn_804124D0(f32);
+    bool fn_804112A0() const;
     s32 fn_8040F190() const;
     HitSensor* fn_8040F1C0(s32) const;
     const TVec3f& fn_8040F200() const;

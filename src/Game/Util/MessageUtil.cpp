@@ -50,10 +50,6 @@ namespace MR {
         return getScenarioNameOnCurrentLanguage(getCurrentStageName(), scenarioNo);
     }
 
-    const wchar_t* getRaceNameOnCurrentLanguage(int raceId) {
-        return getGameMessageDirect(RaceManagerFunction::getRaceMessageId(raceId));
-    }
-
     bool isExistGameMessage(const char* pMessageId) {
         TalkMessageInfo messageInfo = TalkMessageInfo();
 

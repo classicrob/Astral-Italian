@@ -10,9 +10,7 @@ namespace MR {
 
 extern s32 sOpenGalaxyStep;
 
-WorldMapResultStateOpenGalaxy::WorldMapResultStateOpenGalaxy(WorldMapOwner* pHost) : ActorStateBaseInterface("State[ギャラクシーをオープンする]") {
-    mIsDead = true;
-    mHost = pHost;
+WorldMapResultStateOpenGalaxy::WorldMapResultStateOpenGalaxy(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ギャラクシーをオープンする]", pHost) {
     _10 = 0.0f;
     _14 = 0.0f;
     _18 = 0.0f;

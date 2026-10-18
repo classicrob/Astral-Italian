@@ -10,6 +10,7 @@
 #include "Game/NameObj/NameObjFactory.hpp"
 #include "Game/Map/StageSwitch.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 // Unnamed SMG2 helpers: child group access (group->child(index), group contains actor).
 extern "C" LiveActor* fn_80163200(LiveActor*, s32);
 extern "C" bool fn_801631C0(LiveActor*, const LiveActor*);

@@ -132,6 +132,7 @@ void GameSequenceInStage::exeEnd() {
     }
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804B4360(GameSequenceInStage* pInStage, void*) {
     pInStage->mIsRetry = false;
     if (pInStage->mPlayerMissLeft != nullptr) {

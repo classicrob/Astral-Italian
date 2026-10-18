@@ -36,6 +36,7 @@
 #include <nw4r/lyt/init.h>
 #include <revolution.h>
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" s32 fn_804BB950(void*);
 
 #define GX_FIFO_SIZE 0x80000

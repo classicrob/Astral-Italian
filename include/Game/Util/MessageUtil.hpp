@@ -20,7 +20,6 @@ namespace MR {
     const wchar_t* getCurrentGalaxyNameOnCurrentLanguage();
     const wchar_t* getCurrentGalaxyNameShortOnCurrentLanguage();
     const wchar_t* getCurrentScenarioNameOnCurrentLanguage();
-    const wchar_t* getRaceNameOnCurrentLanguage(int);
     bool isExistGameMessage(const char*);
     const wchar_t* getMessageLine(wchar_t*, u32, const wchar_t*, u32);
     s32 countMessageLine(const wchar_t*);

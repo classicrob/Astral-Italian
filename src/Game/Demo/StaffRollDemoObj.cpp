@@ -177,7 +177,7 @@ StaffRollDemoObj::~StaffRollDemoObj() {
 // NONMATCHING: unverified nerve/slot details
 void StaffRollDemoObj::exeB() {
     UnnamedDemoCallee::fn_801442A0(mRollA, 0);
-    if (UnnamedDemoCallee::fn_80492640(mStaffRollObj) != 0) {
+    if (mStaffRollObj->isCurrentPartEnd()) {
         MR::onSwitchA(this);
         UnnamedDemoCallee::fn_801442D0(mRollA);
         MR::tryStartDemo(this, lbl_807D98B0);
@@ -191,11 +191,11 @@ void StaffRollDemoObj::exeB() {
 // Nerve C: the roll is shown; loops back to B until the roll is done.
 // NONMATCHING: unverified call order
 void StaffRollDemoObj::exeC() {
-    if (UnnamedDemoCallee::fn_804926A0(mStaffRollObj) != 0) {
+    if (mStaffRollObj->isLastPartEnd()) {
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvE));
         return;
     }
-    if (UnnamedDemoCallee::fn_80492640(mStaffRollObj) != 0) {
+    if (mStaffRollObj->isCurrentPartEnd()) {
         UnnamedDemoCallee::fn_80422740();
         MR::tryStartDemo(this, lbl_807D98B0);
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvD));

@@ -19,7 +19,7 @@
 #include "Game/System/WorldMapResultStateGreenStarDemo.hpp"
 
 // Callees living in other WorldMapResult translation units (unnamed in the target).
-// PLACEHOLDER(core): unnamed SMG2 callees, and WorldMapResultState* members/ctors whose classes have no header yet; resolve when their owners name them or the WorldMapResultState* headers exist
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
     u64 fn_80088630();
     bool fn_804FD820(WorldMapResultStateWorldNews*);

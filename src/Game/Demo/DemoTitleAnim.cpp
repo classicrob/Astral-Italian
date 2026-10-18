@@ -4,6 +4,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 // Constructed in an unsplit area (fn_ names); called directly, not through `new`.
 extern "C" DemoTitleAnimParam* fn_8013CF30(DemoTitleAnimParam*);
 extern "C" DemoTitleAnimSub* fn_8013CA10(DemoTitleAnimSub*, DemoTitleAnim*, DemoTitleAnimParam*);

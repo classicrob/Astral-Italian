@@ -2,6 +2,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_8001FEF0(BossBussunStateDemo*, BossBussun*, const char*, const Nerve*, const Nerve*);
 
 namespace NrvBossBussunStateDemo {

@@ -8,9 +8,7 @@ namespace MR {
     bool testCorePadTriggerB(s32);
 }
 
-WorldMapResultStateMove::WorldMapResultStateMove(WorldMapOwner* pHost) : ActorStateBaseInterface("State[移動]") {
-    mIsDead = true;
-    mHost = pHost;
+WorldMapResultStateMove::WorldMapResultStateMove(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[移動]", pHost) {
     mFlagA = false;
     mFlagB = false;
     mTarget = NULL;

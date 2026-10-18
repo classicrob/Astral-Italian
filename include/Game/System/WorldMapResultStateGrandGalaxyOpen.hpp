@@ -7,7 +7,7 @@ namespace NrvWorldMapResultStateGrandGalaxyOpen {
 };  // namespace NrvWorldMapResultStateGrandGalaxyOpen
 
 /// Result-map step that zooms the map in for the Grand Galaxy start ("State[グランドギャラクシーマップ開始]").
-class WorldMapResultStateGrandGalaxyOpen : public ActorStateBaseInterface {
+class WorldMapResultStateGrandGalaxyOpen : public ActorStateBase< WorldMapOwner > {
 public:
     WorldMapResultStateGrandGalaxyOpen(WorldMapOwner*);
     virtual ~WorldMapResultStateGrandGalaxyOpen();
@@ -17,6 +17,5 @@ public:
     void exeWait();
 
 
-    /* 0x0C */ WorldMapOwner* mHost;
     /* 0x10 */ f32 mFovy;
 };

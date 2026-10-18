@@ -8,7 +8,7 @@ namespace NrvWorldMapResultStateGrandGalaxyEnd {
 };  // namespace NrvWorldMapResultStateGrandGalaxyEnd
 
 /// Result-map step that zooms the map back out at the end of the Grand Galaxy map ("State[グランドギャラクシーマップ終了]").
-class WorldMapResultStateGrandGalaxyEnd : public ActorStateBaseInterface {
+class WorldMapResultStateGrandGalaxyEnd : public ActorStateBase< WorldMapOwner > {
 public:
     WorldMapResultStateGrandGalaxyEnd(WorldMapOwner*);
     virtual ~WorldMapResultStateGrandGalaxyEnd();
@@ -22,6 +22,5 @@ public:
     }
 
 
-    /* 0x0C */ u8 _C[4];
-    /* 0x10 */ f32 mFovy;
+        /* 0x10 */ f32 mFovy;
 };

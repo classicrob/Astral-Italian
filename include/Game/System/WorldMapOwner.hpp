@@ -1,6 +1,6 @@
 #pragma once
 
-// The object the world-map sequence (WorldMapSequence) and its states operate on (SMG2-only).
+// The world-map NameObj "ワールドマップ": owns the WorldMapSequence and is the host (mHost) of its states (SMG2-only).
 // Its members are spread over the WorldMapModel unit (0x804E8300..) and WorldMapResultTU11 (0x804F5F90..);
 // the states call them with `mOwner`/`mHost`.
 
@@ -37,7 +37,9 @@ struct WorldMapOwnerContext {
 };
 
 
-// PLACEHOLDER(core): `WorldMapOwner` is a descriptive name (WorldMapSequence::mOwner); resolve when the real class of the world-map owner is known
+// PLACEHOLDER(core): `WorldMapOwner` is a descriptive name. It is the 0x20-byte NameObj "ワールドマップ" (ctor 0x804E7BC0, created by 0x804E7C20 together with the
+// WorldMapModel scenery) that owns WorldMapSequence and is the host of all WorldMapSequence states; NOT WorldMapResultCommand (a different NameObj, 0x804EE9C0).
+// Resolve when its real class name is known
 class WorldMapOwner {
 public:
     // ---- WorldMapModel unit (0x804E8300..) ----

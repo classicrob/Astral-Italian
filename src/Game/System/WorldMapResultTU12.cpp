@@ -16,7 +16,7 @@ namespace MR {
 }
 
 WorldMapResultStateGrandGalaxyOpen::WorldMapResultStateGrandGalaxyOpen(WorldMapOwner* pHost)
-    : ActorStateBaseInterface("State[グランドギャラクシーマップ開始]"), mHost(pHost), mFovy(0.0f) {
+    : ActorStateBase< WorldMapOwner >("State[グランドギャラクシーマップ開始]", pHost), mFovy(0.0f) {
 }
 
 void WorldMapResultStateGrandGalaxyOpen::init() {

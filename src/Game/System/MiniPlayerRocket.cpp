@@ -15,6 +15,7 @@ void MiniWorldMapMark::init(const JMapInfoIter&) {
     makeActorDead();
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" bool fn_804E5A10(const char* pName) {
     return MR::isEqualString(pName, "StarCheckPointGrand");
 }

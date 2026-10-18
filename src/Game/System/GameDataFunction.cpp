@@ -24,8 +24,6 @@ extern "C" {
     void fn_804DE190(GameDataPlayerStatus*);
     // PLACEHOLDER(core): fn_804DEA50 reads a counter from the SysConfig chunk (SysConfigFile unit); resolve when SysConfigFile is ported
     s32 fn_804DEA50(SysConfigChunk*);
-    // PLACEHOLDER(core): fn_804D88F0 is GameSequenceFunction-lane code (galaxy name, bool); resolve when GameSequenceFunction names it
-    void fn_804D88F0(const char*, bool);
 }
 
 namespace GameDataFunction {
@@ -218,7 +216,7 @@ namespace GameDataFunction {
             return;
         }
 
-        fn_804D88F0("DimensionBigCastleGalaxy", true);
+        GameSequenceFunction::updateGalaxyCometAppearance("DimensionBigCastleGalaxy", true);
     }
 
     void onGameEventFlag(const char* pName) {

@@ -9,7 +9,7 @@ namespace NrvWorldMapResultStateOpenGalaxy {
 };  // namespace NrvWorldMapResultStateOpenGalaxy
 
 /// Result-map step that opens the galaxy ("State[ギャラクシーをオープンする]").
-class WorldMapResultStateOpenGalaxy : public ActorStateBaseInterface {
+class WorldMapResultStateOpenGalaxy : public ActorStateBase< WorldMapOwner > {
 public:
     WorldMapResultStateOpenGalaxy(WorldMapOwner*);
     virtual ~WorldMapResultStateOpenGalaxy();
@@ -30,7 +30,6 @@ public:
     }
 
 
-    /* 0x0C */ WorldMapOwner* mHost;
     /* 0x10 */ f32 _10;
     /* 0x14 */ f32 _14;
     /* 0x18 */ f32 _18;

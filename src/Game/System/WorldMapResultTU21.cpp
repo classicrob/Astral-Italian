@@ -1,18 +1,15 @@
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
+#include "Game/System/MiniTicoMaster.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
 
 #include "Game/Screen/GalaxyConfirmLayout.hpp"
+#include "Game/System/WorldMapResultStateTicoRouteCreate.hpp"
 
 extern "C" {
-    void fn_804F6B10(WorldMapOwner*);
-    void fn_804F6FE0(WorldMapOwner*);
-    void fn_804E8780(WorldMapOwner*);
-    void fn_804E7170(void*);
-    TVec3f* fn_804E8510(WorldMapOwner*);
-    void fn_804F4CB0(s32);
+    void fn_804E7170(MiniTicoMaster*);
 }
 
 namespace MR {
@@ -34,19 +31,8 @@ namespace MR {
 
 extern TVec3f lbl_8072BB20;
 
-/// Step that creates the tico route ("State[チコのルート作り]").
-WMR_OWNER_STATE_DECL(WorldMapResultStateTicoRouteCreate, virtual void control(); void exeZoomIn(); void exeWait(); void exeReturn(); void exeZoomOut(); void updateRoutePosition(f32);
-               /* 0x10 */ TVec3f mPos; /* 0x1C */ GalaxyConfirmLayout* mLayout; /* 0x20 */ void* mStarInfo;);
-
-namespace NrvWorldMapResultStateTicoRouteCreate {
-    WMR_NERVE_DECL(WorldMapResultStateTicoRouteCreateZoomIn);
-    WMR_NERVE_DECL(WorldMapResultStateTicoRouteCreateWait);
-    WMR_NERVE_DECL(WorldMapResultStateTicoRouteCreateReturn);
-    WMR_NERVE_DECL(WorldMapResultStateTicoRouteCreateZoomOut);
-};  // namespace NrvWorldMapResultStateTicoRouteCreate
-
 WorldMapResultStateTicoRouteCreate::WorldMapResultStateTicoRouteCreate(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[チコのルート作り]", pHost) {
-    mStarInfo = nullptr;
+    mTicoCreator = nullptr;
 }
 
 void WorldMapResultStateTicoRouteCreate::init() {
@@ -61,7 +47,7 @@ void WorldMapResultStateTicoRouteCreate::appear() {
     mIsDead = false;
     mHost->changeRocketAction("Wait");
     mHost->startCameraAtCurrent("接近（ルートチコ）", -1);
-    TVec3f* pPos = fn_804E8510(mHost);
+    const TVec3f* pPos = mHost->getRocketPosition();
     mPos.x = pPos->x;
     mPos.y = pPos->y;
     mPos.z = pPos->z;
@@ -69,14 +55,14 @@ void WorldMapResultStateTicoRouteCreate::appear() {
 }
 
 void WorldMapResultStateTicoRouteCreate::kill() {
-    if (mStarInfo != nullptr) {
-        mStarInfo = nullptr;
+    if (mTicoCreator != nullptr) {
+        mTicoCreator = nullptr;
     }
     mIsDead = true;
 }
 
 void WorldMapResultStateTicoRouteCreate::control() {
-    fn_804F6B10(mHost);
+    mHost->updateParts();
     MR::setDepthOfFieldBlurIntensity(1.0f);
     MR::setDepthOfFieldBlurDistance(0x22C4, 0x23F0);
 }
@@ -128,8 +114,8 @@ void WorldMapResultStateTicoRouteCreate::exeWait() {
 // NONMATCHING: the comet-name pointer loads are scheduled differently (target keeps the 0x94 chain first)
 void WorldMapResultStateTicoRouteCreate::exeReturn() {
     if (MR::isFirstStep(this)) {
-        fn_804E8780(mHost);
-        fn_804E7170(mStarInfo);
+        mHost->startDemo();
+        fn_804E7170(mTicoCreator);
         MR::hidePlayer();
     }
 
@@ -138,10 +124,10 @@ void WorldMapResultStateTicoRouteCreate::exeReturn() {
     }
 
     if (MR::isGreaterStep(this, 100)) {
-        u8* pInfo = static_cast< u8* >(mStarInfo);
-        GameSequenceFunction::setTicoFatStarPieceId(*reinterpret_cast< s32* >(pInfo + 0xA0));
-        GameSequenceFunction::setTicoFatStarPieceRequirement(**reinterpret_cast< s32** >(pInfo + 0x94));
-        fn_804F6FE0(mHost);
+        MiniTicoMaster* pCreator = mTicoCreator;
+        GameSequenceFunction::setTicoFatStarPieceId(pCreator->mUnkA0);
+        GameSequenceFunction::setTicoFatStarPieceRequirement(*pCreator->mUnk94);
+        mHost->enterCurrentGalaxy();
         MR::startStarPointerModeDemo(mHost);
         MR::startActionSound(mHost->getRocket(), "TicoReturnHomeWipeIn", -1, -1, -1);
         MR::stopStageBGM(15);

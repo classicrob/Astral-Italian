@@ -1,5 +1,6 @@
 #include "Game/System/SaveDataHandleSequence.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804D45B0();
 extern "C" void fn_804DEA70(void*);
 #include "Game/Util.hpp"

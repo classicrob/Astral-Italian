@@ -1,3 +1,4 @@
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/System/MiniStarCheckPoint.hpp"
 #include "Game/System/MiniWorldMapMark.hpp"
 #include "Game/System/WorldMapFunction.hpp"
@@ -9,9 +10,6 @@ class TalkMessageCtrl;
 
 // PLACEHOLDER(core): unnamed SMG2 callees and helpers (no symbol name yet); resolve when their owners name them
 extern "C" bool fn_804E5A10(const char*);
-extern "C" bool fn_804D3E20(s32, s32);
-extern "C" void fn_804D3E70(s32, s32);
-extern "C" void fn_804D3EC0(s32, s32);
 extern "C" void fn_804E5CE0(MiniStarCheckPoint*);
 extern "C" void fn_804E5EF0(MiniStarCheckPoint*);
 
@@ -87,7 +85,7 @@ void MiniStarCheckPoint::init(const JMapInfoIter& rIter) {
     initNerve(&NrvMiniStarCheckPoint::MiniStarCheckPointNrvClose::sInstance, 0);
 
     if (mStarNum <= MR::getPowerStarNum()) {
-        mIsDone = fn_804D3E20(mUnkA0, mUnk98);
+        mIsDone = GameDataFunction::isOnWorldMapPointFlag(mUnkA0, mUnk98);
         if (mIsDone) {
             fn_804E5CE0(this);
         } else {
@@ -117,6 +115,7 @@ void MiniStarCheckPoint::kill() {
     LiveActor::kill();
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804E5CE0(MiniStarCheckPoint* pActor) {
     pActor->mIsDone = true;
     pActor->LiveActor::makeActorDead();
@@ -141,9 +140,9 @@ void MiniStarCheckPoint::startOpen() {
 
 void MiniStarCheckPoint::resetOpen() {
     if (isDone()) {
-        fn_804D3E70(mUnkA0, mUnk98);
+        GameDataFunction::onWorldMapPointFlag(mUnkA0, mUnk98);
     } else {
-        fn_804D3EC0(mUnkA0, mUnk98);
+        GameDataFunction::offWorldMapPointFlag(mUnkA0, mUnk98);
     }
 }
 

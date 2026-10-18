@@ -7,6 +7,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 // Unnamed SMG2 helpers (sound object and beat/timing checks).
 extern "C" bool fn_8042A6E0(s32, f32);
 extern "C" bool fn_80056EB0();

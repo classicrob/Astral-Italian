@@ -26,6 +26,8 @@ public:
     /* 0x4 */ J3DAnmBase* mAnmRes;
     /* 0x8 */ const ResTable* mResTable;
     /* 0xC */ J3DFrameCtrl mFrameCtrl;
+    // PLACEHOLDER(core): SMG2 AnmPlayerBase flag at 0x20 (0 in ctor, set to 1 by start(), update() skips frame advance when nonzero); semantics unconfirmed, resolve when its other writers are found
+    /* 0x20 */ bool _20;
 };
 
 class MaterialAnmPlayerBase : public AnmPlayerBase {
@@ -38,5 +40,5 @@ public:
     void beginDiff();
     void endDiff();
 
-    /* 0x20 */ J3DModelData* mModelData;
+    /* 0x24 */ J3DModelData* mModelData;
 };

@@ -8,7 +8,7 @@ namespace MR {
     void setFovy(f32);
 }
 
-WorldMapResultStateGrandGalaxyEnd::WorldMapResultStateGrandGalaxyEnd(WorldMapOwner*) : ActorStateBaseInterface("State[グランドギャラクシーマップ終了]") {
+WorldMapResultStateGrandGalaxyEnd::WorldMapResultStateGrandGalaxyEnd(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[グランドギャラクシーマップ終了]", pHost) {
 }
 
 void WorldMapResultStateGrandGalaxyEnd::init() {

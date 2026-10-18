@@ -128,10 +128,12 @@ bool MiniTicoMaster::isFull() const {
     return mUnk9C >= *mUnk94;
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804E7170(MiniTicoMaster* pActor) {
     pActor->setNerve(&NrvMiniTicoMaster::MiniTicoMasterNrvGoMarioPlanet::sInstance);
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804E7180(MiniTicoMaster* pActor) {
     if (MR::isFirstStep(pActor)) {
         MR::startAction(pActor, "GoMarioPlanet");
@@ -141,6 +143,7 @@ extern "C" void fn_804E7180(MiniTicoMaster* pActor) {
     }
 }
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" void fn_804E71F0(MiniTicoMaster* pActor, f32 t) {
     TVec3f a = pActor->mUnk90->getNode(pActor->mUnkA4)->mPos;
     TVec3f b = pActor->mUnk90->getNode(pActor->mUnkA8)->mPos;

@@ -12,6 +12,7 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
+// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 // Unnamed SMG2 helpers: the 2-string ReceiverTagMail ctor, the mail request step, and the
 // vtable-driven resource lookups in exeSend.
 extern "C" ReceiverTagMail* fn_80500820(ReceiverTagMail*, const char*, const char*);

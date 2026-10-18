@@ -7,7 +7,7 @@ namespace NrvWorldMapResultStateKoopaCastle {
 };  // namespace NrvWorldMapResultStateKoopaCastle
 
 /// Result-map step that leaves for Koopa's castle (name "State[クッパ城へ]").
-class WorldMapResultStateKoopaCastle : public ActorStateBaseInterface {
+class WorldMapResultStateKoopaCastle : public ActorStateBase< WorldMapOwner > {
 public:
     WorldMapResultStateKoopaCastle(WorldMapOwner*);
     virtual ~WorldMapResultStateKoopaCastle();
@@ -16,5 +16,4 @@ public:
     virtual void appear();
     void exeWait();
 
-    /* 0x0C */ WorldMapOwner* mHost;
 };

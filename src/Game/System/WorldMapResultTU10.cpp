@@ -13,7 +13,7 @@ namespace MR {
     void startSystemWipeCircleWithCaptureScreen(s32);
 }
 
-WorldMapResultStateKoopaCastle::WorldMapResultStateKoopaCastle(WorldMapOwner* pHost) : ActorStateBaseInterface("State[クッパ城へ]"), mHost(pHost) {
+WorldMapResultStateKoopaCastle::WorldMapResultStateKoopaCastle(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[クッパ城へ]", pHost) {
 }
 
 void WorldMapResultStateKoopaCastle::init() {

@@ -6,11 +6,11 @@
 #include <JSystem/J3DGraphAnimator/J3DModelData.hpp>
 #include <JSystem/JGeometry/TMatrix.hpp>
 
-AnmPlayerBase::AnmPlayerBase(const ResTable* pResTable) : mResTable(pResTable), mAnmRes(), mFrameCtrl() {
+AnmPlayerBase::AnmPlayerBase(const ResTable* pResTable) : mResTable(pResTable), mAnmRes(), mFrameCtrl(), _20() {
 }
 
 void AnmPlayerBase::update() {
-    if (mAnmRes != nullptr) {
+    if (mAnmRes != nullptr && !_20) {
         mFrameCtrl.update();
     }
 }
@@ -33,6 +33,7 @@ void AnmPlayerBase::start(const char* pResName) {
     mFrameCtrl.setAttribute(mAnmRes->mAttribute);
     mFrameCtrl.setFrame(0.0f);
     mFrameCtrl.setRate(1.0f);
+    _20 = true;
 }
 
 void AnmPlayerBase::stop() {

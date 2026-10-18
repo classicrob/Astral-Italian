@@ -799,7 +799,7 @@ TalkMessageCtrl* WorldMapOwner::createMeisterTalk(const char* pName) {
 void WorldMapOwner::initCameraSetup(const char* pSuffix) {
     char buffer[0x100];
     snprintf(buffer, 0x100, "World%02d%s", mContext->mWorldId, pSuffix);
-    // PLACEHOLDER(core): the util takes a LiveActor but the target passes the owner itself; resolve when the owner's real class (and the util's signature) is known
+    // PLACEHOLDER(core): the util is named for a LiveActor but the target passes the owner (a NameObj); resolve when the util's real parameter type is confirmed
     MR::initMultiActorCameraNoInit(reinterpret_cast< const LiveActor* >(this), getCamera()->mCameraInfo, buffer);
 }
 

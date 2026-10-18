@@ -99,6 +99,26 @@ public:
 
 class MarioSwim : public MarioState {
 public:
+    f32 fn_803FB250();
+    void fn_80401160();
+    void fn_80401270();
+    void fn_804013C0();
+    void fn_804013E0();
+    void fn_80401440();
+    void fn_804014A0();
+    void fn_80401510();
+    void fn_804015C0();
+    void fn_80401640();
+    void fn_80401010();
+    void fn_803FA820();
+    void fn_803FB300();
+    void fn_803FA450();
+    bool fn_803FA2E0() const;
+    bool fn_803FA350() const;
+    bool fn_803FA3C0() const;
+    bool fn_803FB3D0() const;
+    bool fn_804026A0() const;
+
     enum WaterExitAction {
         EXIT_ACTION_NONE = 0,
         EXIT_ACTION_JUMP = 1,        // Shallow water jump

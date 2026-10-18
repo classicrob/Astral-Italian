@@ -22,6 +22,7 @@ public:
     }
 
     Mario* getPlayer() const;
+    const TVec3f& fn_803EF300() const;
     MarioAnimator* getAnimator() const;
     TVec3f& getShadowPos() const;
     const TVec3f& getGravityVec() const;
@@ -59,6 +60,7 @@ public:
     void changeAnimationUpperWeak(const char*, const char* = nullptr);
     void stopAnimationUpper(const char*, const char* = nullptr);
     void stopAnimationUpperForce();
+    bool fn_803EEA90(const char*) const;
     f32 getAnimationFrame() const;
     void changeAnimation(const char*, u32);
     bool isAnimationRun(const char*, u32);
@@ -107,6 +109,7 @@ public:
     bool isOnSlipGround() const;
     bool isSlipFloorCode(s32) const;
     bool isSlipPolygon(const Triangle*) const;
+    u32 fn_803EF7C0() const;
     u32 getFloorCode() const;
     f32 calcPolygonAngleD(const Triangle*) const;
     f32 calcAngleD(const TVec3f&) const;

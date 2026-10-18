@@ -738,46 +738,61 @@ s32 Mario::fn_803B1540() {
     return r;
 }
 
-// NONMATCHING: status-chain change decision approximated from the draft
-void Mario::fn_803B18C0() {
-    MarioModule* pl = this->getPlayer();
-    (void)pl;
-    if (this->getStickP() != 0.0f || this->checkLvlA() || this->checkLvlZ()) {
-    }
-    if (this->isStatusActive(6) || this->isStatusActive(5)) {
-    }
-    this->changeStatus(FLD<MarioState*>(this, 0x7C0));
+// NONMATCHING: initial status comparison and temporary register allocation.
+bool Mario::fn_803B18C0() {
+    if (getCurrentStatus() == 0x29) return false;
+    if (mActor->_EA4) return false;
+    bool actorBusy = false;
+    if (mActor->_482 || mActor->_481) actorBusy = true;
+    if (actorBusy) return false;
+    if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestRush()) return false;
+    if (!(getPlayer()->mMovementStates_LOW_WORD >> 31) && !((getPlayer()->mMovementStates_LOW_WORD >> 30) & 1)) return false;
+    if (getPlayer()->isStatusActive(6)) return false;
+    if (getPlayer()->isStatusActive(5)) return false;
+    if (getPlayer()->isStatusActive(0x1A)) return false;
+    if (getPlayer()->isStatusActive(0x1B)) return false;
+    if (getPlayer()->isStatusActive(0x12)) return false;
+    if (getPlayer()->isStatusActive(0x11)) return false;
+    if (getPlayer()->isStatusActive(0x22)) return false;
+    if ((getPlayer()->_1C_WORD >> 26) & 1) return false;
+    if ((getPlayer()->mMovementStates_HIGH_WORD >> 28) & 1) return false;
+    if ((getPlayer()->mMovementStates_LOW_WORD >> 21) & 1) return false;
+    if (mTargetWalkSpeedIndex != 0) return false;
+    changeStatus(_7C0);
+    return true;
 }
 
 // ---- range B small wrappers: map-collision queries that switch to the DashYoshi-step variant while on Yoshi ----
 
 bool Mario::fn_803B2470() {
-    TVec3f sp14(this->mHeadVec);
-    sp14 -= FLD<TVec3f>(this, 0x290);
-    TVec3f sp8(this->mHeadVec);
-    sp8 += FLD<TVec3f>(this, 0x290);
-    return MR::isNearZero(sp8, 0.001f) == false;
+    if (!_60D && mActor->mAxisRotationDisabled6A0) return false;
+    if (!((mDrawStates_WORD >> 18) & 1)) return false;
+    TVec3f difference(mHeadVec);
+    difference -= _290;
+    if (MR::isNearZero(difference, 0.001f)) return false;
+    TVec3f sum(mHeadVec);
+    sum += _290;
+    return !MR::isNearZero(sum, 0.001f);
 }
 
-s32 Mario::fn_803B2530(Triangle* arg1) {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    if (arg1 != nullptr && m->mWalkSpeed > 0.3f && !((FLD<u32>(m, 0x10) >> 28) & 1)) {
-        m->trySquatJump();
+s32 Mario::fn_803B2530(Triangle* triangle) {
+    if (fn_803EF7C0() == 0x20 || static_cast<u16>(getPlayerMode()) == 4 || isPlayerModeYoshi() || _430 == 3) return 0;
+    if (triangle != nullptr && mWalkSpeed > 0.3f && !((mMovementStates_HIGH_WORD >> 28) & 1)) {
+        trySquatJump();
+        return 1;
     }
-    if (((FLD<u32>(m, 0xC) >> 21) & 1) && !((FLD<u32>(m, 0x10) >> 28) & 1)) {
-        m->tryBackJump();
+    if (((mMovementStates_LOW_WORD >> 21) & 1) && !((mMovementStates_HIGH_WORD >> 28) & 1)) {
+        tryBackJump();
+        return 1;
     }
     return 0;
 }
 
-// NONMATCHING: area flags approximated (the isInAreaObj names are only partly recovered)
 void Mario::fn_803B2610() {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    FLD<u8>(m, 0xA78) = MR::isInAreaObj("特殊ウエイト1A", this->getTrans());
-    FLD<u8>(m, 0xA79) = MR::isInAreaObj("水泳ジェット", this->getTrans());
-    bool var_r31 = MR::isInAreaObj("スピン移動", this->getTrans()) || MR::isGalaxyRainbowCometAppearInCurrentStage();
-    FLD<u8>(m, 0xA7A) = var_r31;
-    FLD<u8>(m, 0xA7B) = MR::isInAreaObj("ッシュ", this->getTrans());
+    mCometNoSpinArea = MR::isInAreaObj("CometNoSpinArea", getTrans());
+    mCometFireDanceArea = MR::isInAreaObj("CometFireDanceArea", getTrans());
+    mCometRainbowArea = MR::isInAreaObj("CometRainbowArea", getTrans()) || MR::isGalaxyRainbowCometAppearInCurrentStage();
+    mCometHopperArea = MR::isInAreaObj("CometHopperArea", getTrans());
 }
 
 bool Mario::fn_803B2770(TVec3f* pOut, Triangle* pTri, const TVec3f& rStart, const TVec3f& rDir) {
@@ -859,14 +874,11 @@ bool Mario::fn_803B2E10(const Triangle* pTri) {
     return ret;
 }
 
-s32 Mario::fn_803B2E80(TVec3f* arg1) {
-    s32 var_r31 = 0;
-    if (PSVECMag(arg1) != 80.0f) {
-        if (arg1->dot(*this->getGravityVec()) > 0.0f && arg1->dot(this->mFrontVec) > 0.707f) {
-            var_r31 = 1;
-        }
-    }
-    return var_r31;
+s32 Mario::fn_803B2E80(TVec3f* direction) {
+    if (PSVECMag(direction) >= 80.0f) return 0;
+    s32 result = 0;
+    if (direction->dot(*getGravityVec()) > 0.0f && direction->dot(mFrontVec) > 0.707f) result = 1;
+    return result;
 }
 
 // NONMATCHING: the back-wall capture is approximated from the draft

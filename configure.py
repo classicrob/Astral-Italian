@@ -2814,6 +2814,7 @@ config.libs = [
             Object(NonMatching, "Game/Player/Mario.cpp"),
             Object(NonMatching, "Game/Player/MarioAccess.cpp"),
             Object(NonMatching, "Game/Player/MarioActor.cpp"),
+            Object(NonMatching, "Game/Player/MarioActionTable.cpp"),
             Object(NonMatching, "Game/Player/MarioAllModel.cpp"),
             Object(NonMatching, "Game/Player/MarioAnimator.cpp"),
             Object(NonMatching, "Game/Player/MarioBlown.cpp"),

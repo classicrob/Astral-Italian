@@ -1247,7 +1247,7 @@ void MarioEffect::doCubeEffect() {
     _10 = unsetArg;
     _C = unsetArg;
 
-    AreaObj* area = MR::getAreaObj("EffectCylinder", mActor->mPosition);
+    AreaObj* area = MR::getAreaObj("Effect", mActor->mPosition);
     if (area != nullptr) {
         s32 arg0 = MR::getAreaObjArg(area, 0);
         _10 = MR::getAreaObjArg(area, 1);

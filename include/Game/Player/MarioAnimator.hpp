@@ -49,6 +49,25 @@ public:
     bool isAnimationRun(const char*, u32);
     void init();
     void update();
+    void fn_803E0A60();
+    void fn_803E0AF0();
+    void fn_803E0C20();
+    void fn_803E0C90();
+    void fn_803E0CE0();
+    void fn_803E0D30();
+    void fn_803E0DC0();
+    void fn_803E0E90();
+    void fn_803E0F40();
+    void fn_803E0F80();
+    void fn_803E1020();
+    void fn_803E1060();
+    void fn_803E1160();
+    void fn_803E11F0();
+    void fn_803E1230();
+    void fn_803E12B0();
+    bool fn_803E1110() const;
+    bool fn_803E11D0() const;
+
     void calc();
 
     void setHoming();

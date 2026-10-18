@@ -2404,10 +2404,8 @@ XjointTransform* (XanimeCore::*Mario_FORCE_MATCH_JOINT_TRANSFORM())(u32) {
 
 // ---- Mario2D.cpp ----
 
-void FORCE_ADD() {
-    TVec3f vec;
-    TVec3f vec2;
-    vec + vec2;
+void Mario::fn_8038CE40() {
+    if (fn_8038CCF0()) stopAnimation(nullptr, static_cast<const char*>(nullptr));
 }
 
 
@@ -6088,7 +6086,7 @@ void Mario::checkEnforceMoveInner() {
 void Mario::recordRelativePosition() {
     const Triangle* sameSensorFloor = nullptr;
     const TVec3f* pPosition;
-    TVec3f strikeCenter(mActor->_2A0);
+    TVec3f strikeCenter(mActor->_240);
     _8CC[0]->mIdx = -1;
     _8CC[1]->mIdx = -1;
 
@@ -6106,12 +6104,12 @@ void Mario::recordRelativePosition() {
         return;
     }
 
-    const u32 strikeNum = static_cast< u32 >(Collision::checkStrikeBallToMap(strikeCenter, strikeRadius, nullptr, nullptr));
+    const u32 strikeNum = static_cast< u32 >(fn_803B29B0(strikeCenter, strikeRadius));
     const f32 floorDotThreshold = 0.707f;
     const f32 wallNormalDotThreshold = 0.9f;
 
     for (u32 i = 0; i < strikeNum; i++) {
-        const HitInfo* hitInfo = Collision::getStrikeInfoMap(i);
+        const HitInfo* hitInfo = fn_803B2AA0(i);
         const Triangle* tri = &hitInfo->mParentTriangle;
 
         if (tri->mSensor == nullptr) {
@@ -6181,7 +6179,7 @@ void Mario::recordRelativePosition() {
     }
 
     if (_8C8->isValid()) {
-        if (mActor->selectInvalidMovingCollision(_8C8->mSensor->mHost->mName)) {
+        if (fn_803EFA30(_8C8->mSensor, "地形移動無視")) {
             invalidateRelativePosition();
         } else {
             pPosition = &mActor->mPosition;
@@ -6190,7 +6188,7 @@ void Mario::recordRelativePosition() {
     }
 
     if (_8CC[0]->isValid()) {
-        if (mActor->selectInvalidMovingCollision(_8CC[0]->mSensor->mHost->mName)) {
+        if (fn_803EFA30(_8CC[0]->mSensor, "地形移動無視")) {
             _8CC[0]->mIdx = -1;
         } else {
             pPosition = &mActor->mPosition;
@@ -6199,7 +6197,7 @@ void Mario::recordRelativePosition() {
     }
 
     if (_8CC[1]->isValid()) {
-        if (mActor->selectInvalidMovingCollision(_8CC[1]->mSensor->mHost->mName)) {
+        if (fn_803EFA30(_8CC[1]->mSensor, "地形移動無視")) {
             _8CC[1]->mIdx = -1;
         } else {
             pPosition = &mActor->mPosition;
@@ -16371,9 +16369,9 @@ void Mario::startHipDropBlur() {
 bool Mario::taskOnHipDropBlurHopper(u32) {
     if (!getPlayer()->mMovementStates._B || mMovementStates._1 || isStatusActive(MarioStatus_Swim)) {
         if (gIsLuigi) {
-            stopEffect("ホッパー尻落ルイージ");
+            stopEffect("雲尻落ルイージ");
         } else {
-            stopEffect("ホッパー尻落");
+            stopEffect("雲尻落");
         }
 
         return false;

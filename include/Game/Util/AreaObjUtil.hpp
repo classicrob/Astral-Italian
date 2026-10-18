@@ -42,6 +42,8 @@ namespace MR {
     void requestMovementOnAreas(const char*);
     void requestMovementOnSoundAreas();
     bool hasNoWaterAreaCube(const WaterInfo*);
+    bool func_80062020(const WaterInfo*, TVec3f*, TVec3f*);
+    bool func_800621A0(const WaterInfo*, TVec3f*, TVec3f*);
     void calcSphereFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
     void calcCylinderFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
 

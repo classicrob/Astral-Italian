@@ -534,6 +534,12 @@ bool MarioModule::isSlipFloorCode(s32 a1) const {
     return true;
 }
 
+u32 MarioModule::fn_803EF7C0() const {
+    u32 code = mActor->mMario->_95C->getCode(mActor->mMario->mGroundPolygon);
+    if (mActor->mPlayerMode == 10 && code == 0x20) code = 0;
+    return code;
+}
+
 bool MarioModule::isSlipPolygon(const Triangle* pTri) const {
     if (!pTri->isValid()) {
         return false;

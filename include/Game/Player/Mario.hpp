@@ -118,6 +118,7 @@ public:
     void fn_8038C540();
     void fn_8038C620(s32 arg3);
     bool fn_8038CCF0();
+    void fn_8038CE40();
     void fn_8038E1A0(Triangle* tri, s32 arg2);
     bool fn_80390210(HitSensor* arg);
     bool fn_803902B0(HitSensor* arg1);
@@ -246,7 +247,7 @@ public:
     void fn_803B1800();
     bool fn_803B1850() const;
     void fn_803B1880();
-    void fn_803B18C0();
+    bool fn_803B18C0();
     void fn_803B1B20();
     bool fn_803B1B70() const;
     f32 fn_803B1BA0();
@@ -1106,11 +1107,16 @@ public:
     /* 0x670 */ TVec3f _67C;
     /* 0x67C */ TVec3f _688;
     /* 0x688 */ TVec3f _694;
+    union {
+        /* 0x694 */ TVec3f mSwimSideVec694;
+        struct {
     /* 0x694 */ u8 _6AC;
     /* 0x695 */ u8 _6AD;
     /* 0x696 */ u8 _pad696[0x2];
     /* 0x698 */ TVec3f _628;  // SMG2: moved (guess); 0x630.. is the 2D block
     /* 0x6A4 */ f32 _634;  // SMG2: moved (guess)
+        };
+    };
     /* 0x6A8 */ TVec3f _6B0;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6B4 */ TVec3f _6BC;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6C0 */ TVec2f _6C8;
@@ -1248,7 +1254,7 @@ public:
     /* 0xA5C */ TVec3f _A58;  // SMG2 offset inh  // SMG2 offset inh
     /* 0xA68 */ f32 _A64;
     /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
-    /* 0xA70 */ u8 _A6C[0x20];  // animations  // SMG2 offset guess  // SMG2 offset guess
+    /* 0xA70 */ union { u8 _A6C[0x20]; struct { u8 _padA70[8]; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93[9];
     /* 0xA9C */ Triangle* _57C[0x20];  // SMG2 offset guess-TAIL  // SMG2 offset guess-TAIL

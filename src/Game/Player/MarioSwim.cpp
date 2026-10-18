@@ -8,6 +8,7 @@
 #include "Game/Player/MarioActor.hpp"
 #include "Game/Player/MarioAnimator.hpp"
 #include "Game/Player/MarioConst.hpp"
+#include "Game/Player/Yoshi.hpp"
 #include "Game/Screen/GameSceneLayoutHolder.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/AreaObjUtil.hpp"
@@ -100,6 +101,7 @@ static const f32 cAnimSpeeds[] = {1.0f, 1.0f, 1.0f, 1.0f};
 namespace {
     static u32 sWaterSearchCounter;
     static u32 sSpinCooldownTime = 45;
+    static u32 sDiveSideTimer = 20;
     static f32 cFrontAcc[] = {-0.2f, -0.2f, -0.2f, -0.1f, -0.1f, -0.1f, -0.1f, -0.1f, -0.0f, -0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                               0.0f,  0.0f,  0.0f,  0.2f,  0.2f,  0.2f,  0.3f,  0.3f,  0.4f,  0.5f,  0.5f, 0.5f, 0.5f, 0.5f,
                               0.4f,  0.4f,  0.3f,  0.3f,  0.2f,  0.2f,  0.1f,  0.1f,  0.1f,  0.1f,  0.1f, 0.0f};
@@ -267,241 +269,32 @@ void MarioSwim::init() {
 }
 
 bool MarioSwim::start() {
-    mSpin->mSpinDashTimer = 0;
-    mStickInputYInertia = 0.0f;
-    mStickInputXInertia = 0.0f;
-    mForwardSpeed = 0.0f;
-    mSpin->mSpinTimer = 0;
-    mDrownTimer = 0;
-    mOxygen = mActor->getConst().getTable()->mOxygenMax;
-    mOxygenDecreaseDelay = 0x78;
-    mColdWaterDamageInterval = 0;
-    mDamage->mDamageType = 0;
-    _44 = 0;
-
-    mFloorContactTimer = 0;
-    mNextAction = EXIT_ACTION_NONE;
-    mRingDash->mTimer = 0;
-    mRingDash->mChargeTimer = 0;
-    mRingDash->mBlurOffset = 0.0f;
-    mIdleWaitTimer = 0;
-
-    mEffectState = 0xFF;
-    mDamage->mTimer = 0;
-    mDamage->mVelocity.zero();
-    mSurfacePaddleHoldTimer = 0;
-    mTilt->mTiltX = 0.0f;
-    mTilt->mTiltY = 0.0f;
-    mWallStickTimer = 0;
-    mStateTimer = 0;
-    mSurfaceOffset = 0.0f;
-    mWaveFlowTimer = 0;
-    mWaterStreamVel.zero();
-    mWaterStreamDir.zero();
-    _1B2 = false;
+    fn_80401160();
+    fn_80401270();
+    fn_804013C0();
+    _1B2 = 0;
     mWaterDistanceTarget = 0.0f;
-    _1F = false;
-    _22 = false;
-    mBuoyancySpeed = 0.0f;
-
-    if (!getPlayer()->getMovementStates().jumping || getPlayer()->mVerticalSpeed <= 100.0f) {
-        mBuoyancySpeed = mActor->getConst().getTable()->mSwimUpMaxSpeed;
-    }
-
-    _9C = true;
-    if (checkLvlA()) {
-        _9C = false;
-    }
-
-    mVerticalAngle = DEG_TO_RAD(30);
-    onSurface();
-    if ((mWaterDepth < -200.0f || mActor->_F74) && mIsOnSurface) {
-        mIsOnSurface = false;
-    }
-
-    _1B = false;
-    u32 r1e = 0, r1d = 0;
-    _1D = false;
-    _1E = 0;
-    if (isAnimationRun("飛び込みジャンプ")) {
-        r1e = 1;
-    }
-
-    if (isAnimationRun("後方飛び込みジャンプ")) {
-        r1e = 1;
-        getPlayer()->setFrontVecKeepUp(-getFrontVec(), 1.0f);
-    }
-
-    if (!mActor->_468) {
-        mJet->mJetTimer = 0;
-    }
-
-    if (_9D == 4) {
-        r1d = 1;
-    }
-
-    if (mJet->mJetTimer != 0 && getPlayer()->getMovementStates().jumping) {
-        if (!getPlayer()->_10.digitalJump) {
-            r1e = 2;
-        } else {
-            getPlayer()->mMovementStates.jumping = false;
-        }
-    }
-
-    getPlayer()->_10.digitalJump = false;
-
-    if (isAnimationRun("リングダッシュ")) {
-        r1e = 2;
-    }
-
-    if (isAnimationRun("水泳スピン移動")) {
-        r1e = 3;
-    }
-
-    if (isAnimationRun("水泳スピンジャンプ")) {
-        r1e = 3;
-    }
-
-    mFrontVec = getFrontVec();
-    MR::normalize(&mFrontVec);
-    stopAnimationUpper(nullptr);
-    // Basic Swimming
+    fn_804013E0();
+    _9C = !checkLvlA();
+    fn_803FB300();
+    fn_80401440();
+    mUpVec = -getPlayer()->getAirGravityVec();
+    fn_803FA820();
+    stopAnimationUpper(nullptr, nullptr);
     changeAnimation(nullptr, "水泳基本");
     changeAnimationNonStop("水泳基本");
-    getPlayer()->mMovementStates._1 = false;
-    f32 fr1f = mDistToFloor;
-
-    mActionLockTimer = 0;
-    mZSinkTimer = 0;
-    mSinkTimer = 0;
-    mJumpDiveTimer = 0;
-    mDashTimer = 0;
-    _38 = 0;
-    mBuoyancyDelayTimer = 0;
-    _1C = false;
-
-    if (fr1f < -mWaterDepth) {
-        MarioActor* actor = mActor;
-        actor->emitEffectWaterColumn(-mSurfacePos, getTrans() - mSurfacePos * fr1f);
-    } else {
-        mActor->emitEffectWaterColumn(mSurfacePos, mSurfaceNorm);
-    }
-
-    if (getPlayer()->getMovementStates().jumping && getPlayer()->mVerticalSpeed > 100.0f || r1e) {
-        TVec3f stack_44;
-        mStateTimer = 0;
-        Mario* mario = getPlayer();
-        MR::vecKillElement(mario->mJumpVec, getGravityVec(), &stack_44);
-        fr1f = stack_44.length();
-
-        if (getFrontVec().dot(stack_44) < 0.0f) {
-            fr1f = 0.0f;
-        }
-
-        fr1f *= 0.1f;
-        fr1f = MR::clamp(fr1f, 0.0f, 1.0f);
-
-        if (mIsOnSurface) {
-            mIsOnSurface = false;
-        }
-
-        if (mSwimState == SWIM_STATE_SURFACE) {
-            f32 ftmp = mActor->getConst().getTable()->mSwimFrontMaxSpeed;
-            f32 ftmp2 = (0.2f + 0.1f * fr1f);
-            mJumpDiveTimer = 0x3C;
-            mForwardSpeed = ftmp2 * ftmp;
-        } else if (getPlayer()->getMovementStates()._B || r1e) {
-            mForwardSpeed = 10.0f;
-
-            if (mJet->mJetTimer != 0) {
-                changeAnimationNonStop("水泳ジェット");
-            } else {
-                changeAnimation("水泳ジャンプダイブ回転");
-            }
-
-            playEffect("水面Ｚ沈降");
-
-            switch (r1e) {
-            case 0:
-            case 1:
-                mActionLockTimer = mActor->getConst().getTable()->mSwimSpecStartTimerA[0];
-                mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[0];
-                break;
-            case 2:
-                mActionLockTimer = mActor->getConst().getTable()->mSwimSpecStartTimerA[1];
-                mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[1];
-                break;
-            case 3:
-                mActionLockTimer = mActor->getConst().getTable()->mSwimSpecStartTimerA[2];
-                mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[2];
-                break;
-            }
-
-            f32 ftmp2 = ::cLimitAngleSink * (1.0f - fr1f);
-            mVerticalAngle = fr1f * (JGeometry::TUtil< f32 >::PI() * 5.0f / 9.0f) + ftmp2;
-            TVec3f stack_38(mFrontVec);
-            stack_38.y = -10.0f;
-            MR::normalize(&stack_38);
-            getPlayer()->forceSetHeadVecKeepSide(stack_38);
-        } else if (r1d) {
-            changeAnimation("水上ダメージ着水");
-            mSinkTimer = mActor->getConst().getTable()->mJumpDamageSinkTimer;
-            mDamage->mTimer = 0x78;
-        } else {
-            mForwardSpeed = (0.2f + 0.1f * fr1f) * mActor->getConst().getTable()->mSwimFrontMaxSpeed;
-            changeAnimation("水泳ジャンプダイブ");
-
-            mActor->setBlendMtxTimer(8);
-            mActionLockTimer = 15;
-            mSinkTimer = mActor->getConst().getTable()->mJumpSinkTimer;
-
-            mIsSwimmingAtSurface = true;
-            mVerticalAngle = 1.49599659443f;
-            if (getPlayer()->mVerticalSpeed < 200.0f) {
-                f32 ftmp = (getPlayer()->mVerticalSpeed / 200.0f);
-                mActionLockTimer *= ftmp;
-                mSinkTimer *= ftmp;
-                mActor->setBlendMtxTimer(8.0f * ftmp);
-            }
-        }
-    } else if (mIsOnSurface) {
-        mDamage->mTimer = 0x5A;
-        MR::vecKillElement(mActor->getLastMove(), mUpVec, &mDamage->mVelocity);
-        mDamage->mVelocity.mult(0.5f);
-    }
-
-    if (mActor->_468) {
-        if (mJet->mJetTimer == 0) {
-            if (mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE) || mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE_SLOW)) {
-                startJet(mActor->getCarrySensor());
-
-                r1e = 2;
-                mIsSwimmingAtSurface = false;
-                mVerticalAngle = 2.09439516068f;
-
-                if (mIsOnSurface) {
-                    mIsOnSurface = false;
-                }
-            }
-        } else {
-            r1e = 2;
-        }
-    }
-
-    if (r1e == 2) {
-        if (!isAnimationRun("水泳ジェット")) {
-            changeAnimation("水泳ジェット開始", "水泳ジェット");
-        } else {
-            changeAnimation(nullptr, "水泳ジェット");
-        }
-    }
-
-    updateLifeByTime();
-    if (!getPlayer()->_1C._3) {
-        MR::getGameSceneLayoutHolder()->changeLifeMeterModeWater();
-    }
-
+    fn_80401510();
+    fn_804015C0();
+    fn_80401640();
+    fn_80401010();
     mNextAction = EXIT_ACTION_NONE;
+    getPlayer()->_10.digitalJump = false;
+    if (isPlayerModeYoshi()) {
+        getPlayer()->_10._2A = false;
+        mActor->fn_803B9A30();
+        mActor->fn_803B9830()->fn_8041BBA0();
+        getPlayer()->mMovementStates._13 = false;
+    }
     return true;
 }
 
@@ -3487,4 +3280,317 @@ void MarioSwimTilt::update() {
     MarioSwim* swim = mSwim;
     u16 joint = swim->getAnimator()->getUpperJointID();
     swim->setJointGlobalMtx(joint, mJointMtx.toMtxPtr());
+}
+
+bool MarioSwim::fn_803FA2E0() const {
+    bool result = true;
+    if (getPlayer()->mMovementStates.jumping) {
+        if (!(getPlayer()->mVerticalSpeed <= 100.0f))
+            result = false;
+    }
+    return result;
+}
+
+bool MarioSwim::fn_803FA350() const {
+    bool result = false;
+    if (mJet->mJetTimer && getPlayer()->mMovementStates.jumping && getPlayer()->_10.digitalJump)
+        result = true;
+    return result;
+}
+
+// NONMATCHING: equivalent early-return register assignment.
+bool MarioSwim::fn_803FA3C0() const {
+    if (_44 != 0)
+        return true;
+    if (fn_803FA350())
+        return false;
+    bool result = false;
+    if (getPlayer()->mMovementStates.jumping && getPlayer()->mVerticalSpeed > 100.0f)
+        result = true;
+    return result;
+}
+
+// NONMATCHING: boolean register allocation.
+bool MarioSwim::fn_803FB3D0() const {
+    bool result = false;
+    bool carried = false;
+    if (mActor->_468 && mJet->mJetTimer == 0)
+        carried = true;
+    if (carried) {
+        bool turtle = false;
+        if (mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE) || mActor->getCarrySensor()->isType(ATYPE_JET_TURTLE_SLOW))
+            turtle = true;
+        if (turtle)
+            result = true;
+    }
+    return result;
+}
+
+void MarioSwim::fn_80401270() {
+    mStickInputYInertia = 0.0f;
+    mStickInputXInertia = 0.0f;
+    mForwardSpeed = 0.0f;
+    mSpin->reset();
+    mDrownTimer = 0;
+    mOxygen = mActor->getConst().getTable()->mOxygenMax;
+    mOxygenDecreaseDelay = 0x78;
+    mColdWaterDamageInterval = 0;
+    mFloorContactTimer = 0;
+    _40 = 0;
+    mNextAction = EXIT_ACTION_NONE;
+    mRingDash->reset();
+    mIdleWaitTimer = 0;
+    mEffectState = 0xFF;
+    _9CFlag = 0;
+    mDamage->reset();
+    MarioSwimTilt* tilt = mTilt;
+    tilt->mTiltY = 0.0f;
+    tilt->mTiltX = 0.0f;
+    mSurfacePaddleHoldTimer = 0;
+    mWallStickTimer = 0;
+    mStateTimer = 0;
+    mSurfaceOffset = 0.0f;
+    mWaveFlowTimer = 0;
+    mWaterStreamVel.zero();
+    mWaterStreamDir.zero();
+    _118 = nullptr;
+    _1F = false;
+    _22 = false;
+    if (isPlayerModeYoshi())
+        mVerticalAngle = 0.785398185f;
+    else
+        mVerticalAngle = 0.52359879f;
+    _1B = false;
+    _1D = false;
+    _1E = false;
+    getPlayer()->mMovementStates._1 = false;
+    mActionLockTimer = 0;
+    mZSinkTimer = 0;
+    mSinkTimer = 0;
+    mJumpDiveTimer = 0;
+    mDashTimer = 0;
+    _38 = 0;
+    mBuoyancyDelayTimer = 0;
+    _1C = false;
+}
+
+void MarioSwim::fn_804013C0() {
+    if (!mActor->_468)
+        mJet->mJetTimer = 0;
+}
+
+void MarioSwim::fn_804013E0() {
+    if (fn_803FA2E0() || isPlayerModeYoshi()) {
+        mBuoyancySpeed = fn_803FABF0();
+        return;
+    }
+    mBuoyancySpeed = 0.0f;
+}
+
+void MarioSwim::fn_80401440() {
+    if (isAnimationRun("後方飛び込みジャンプ"))
+        getPlayer()->setFrontVecKeepUp(-getFrontVec(), 1.0f);
+}
+
+void MarioSwim::fn_804014A0() {
+    mDamage->mTimer = 0x5A;
+    TVec3f velocity;
+    MR::vecKillElement(mActor->getLastMove(), mUpVec, &velocity);
+    velocity.scale(0.5f);
+    mDamage->mVelocity.set(velocity);
+}
+
+void MarioSwim::fn_804015C0() {
+    if (fn_803FB3D0()) {
+        mIsSwimmingAtSurface = false;
+        mVerticalAngle = 2.09439516f;
+        startJet(mActor->getCarrySensor());
+        return;
+    }
+    if (_44 == 2 || mJet->mJetTimer)
+        updateJetAnimation();
+}
+
+void MarioSwim::fn_80401640() {
+    updateLifeByTime();
+    if (!getPlayer()->_1C._3)
+        MR::getGameSceneLayoutHolder()->changeLifeMeterModeWater();
+}
+
+bool MarioSwim::fn_804026A0() const {
+    bool result = false;
+    bool hemisphere = false;
+    if (mWaterInfo.mWaterArea != nullptr && mWaterInfo.mWaterArea->isNotHemisphere())
+        hemisphere = true;
+    if (hemisphere && mWaterInfo.mWaterArea->getFollowMtx())
+        result = true;
+    return result;
+}
+
+// NONMATCHING: pooled string offsets differ; all live arguments resolve equally.
+void MarioSwim::fn_80401160() {
+    _44 = 0;
+    if (isAnimationRun("飛び込みジャンプ"))
+        _44 = 1;
+    if (isAnimationRun("後方飛び込みジャンプ"))
+        _44 = 1;
+    if (mJet->mJetTimer && getPlayer()->mMovementStates.jumping && !getPlayer()->_10.digitalJump)
+        _44 = 2;
+    if (isAnimationRun("リングダッシュ"))
+        _44 = 2;
+    if (isAnimationRun("水泳スピン移動"))
+        _44 = 3;
+    if (isAnimationRun("水泳スピンジャンプ"))
+        _44 = 3;
+}
+
+void MarioSwim::fn_803FA820() {
+    if (getPlayer()->mMovementStates._37) {
+        Mario* mario = getPlayer();
+        TVec3f up(-getAirGravityVec());
+        PSVECCrossProduct(&up, &mario->mSwimSideVec694, &mFrontVec);
+        if (mFrontVec.dot(getFrontVec()) < 0.0f)
+            mFrontVec.negate();
+    } else {
+        mFrontVec = getFrontVec();
+        MR::normalize(&mFrontVec);
+    }
+}
+
+// NONMATCHING: equivalent final multiply register and omitted move.
+f32 MarioSwim::fn_803FB250() {
+    TVec3f velocity;
+    Mario* mario = getPlayer();
+    MR::vecKillElement(mario->mJumpVec, getGravityVec(), &velocity);
+    f32 speed = PSVECMag(&velocity);
+    if (getFrontVec().dot(velocity) < 0.0f)
+        speed = 0.0f;
+    return MR::clamp(speed * 0.1f, 0.0f, 1.0f);
+}
+
+// NONMATCHING: FP rounding schedule and register allocation; live strings resolve equally.
+void MarioSwim::fn_803FA450() {
+    mStateTimer = 0;
+    f32 factor = fn_803FB250();
+    if (mSwimState == SWIM_STATE_SURFACE) {
+        Mario* mario = getPlayer();
+        f32 projection = -getAirGravityVec().dot(mario->mJumpVec);
+        f32 speed = projection * 0.5f;
+        mForwardSpeed = speed;
+        if (speed < 0.1f)
+            mForwardSpeed = 0.1f;
+        else if (speed > 5.0f)
+            mForwardSpeed = 5.0f;
+        mVerticalAngle = 0.0f;
+        mJumpDiveTimer = 0x3C;
+        return;
+    }
+    if (getPlayer()->mMovementStates._B || _44 != 0) {
+        mForwardSpeed = 10.0f;
+        if (getPlayer()->mMovementStates._37)
+            _38 = sDiveSideTimer;
+        if (mJet->mJetTimer)
+            changeAnimationNonStop("水泳ジェット");
+        else if (!isPlayerModeYoshi())
+            changeAnimation("水泳ジャンプダイブ回転");
+        playEffect("水面Ｚ沈降");
+        switch (_44) {
+        case 0:
+        case 1:
+            mActionLockTimer = mActor->getConst().getTable()->mSwimSpecStartTimerA[0];
+            mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[0];
+            break;
+        case 2:
+            mActionLockTimer = mActor->getConst().getTable()->mSwimSpecStartTimerA[1];
+            mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[1];
+            break;
+        case 3:
+            mActionLockTimer = mActor->getConst().getTable()->mSwimSpecStartTimerA[2];
+            mSinkTimer = mActor->getConst().getTable()->mSwimSpecStartTimerB[2];
+            break;
+        }
+        mVerticalAngle = cLimitAngleSink * (1.0f - factor) + factor * 1.74532938f;
+        const TVec3f& gravity = getAirGravityVec();
+        getPlayer()->forceSetHeadVecKeepSide(gravity);
+        return;
+    }
+    if (_9D == 4) {
+        changeAnimation("水上ダメージ着水");
+        mSinkTimer = mActor->getConst().getTable()->mJumpDamageSinkTimer;
+        mDamage->mTimer = 0x78;
+        return;
+    }
+    if (!isPlayerModeYoshi()) {
+        mForwardSpeed = (0.2f + 0.1f * factor) * fn_803FA8E0();
+        changeAnimation("水泳ジャンプダイブ");
+        mActor->setBlendMtxTimer(8);
+        mActionLockTimer = 0xF;
+        mSinkTimer = mActor->getConst().getTable()->mJumpSinkTimer;
+        mIsSwimmingAtSurface = true;
+        mVerticalAngle = 1.49599659f;
+        if (getPlayer()->mVerticalSpeed < 200.0f) {
+            f32 ratio = getPlayer()->mVerticalSpeed / 200.0f;
+            mActionLockTimer = mActionLockTimer * ratio;
+            mSinkTimer = mSinkTimer * ratio;
+            mActor->setBlendMtxTimer(8.0f * ratio);
+        }
+    }
+}
+
+void MarioSwim::fn_80401510() {
+    if (fn_803FA350() || isPlayerModeYoshi())
+        getPlayer()->mMovementStates.jumping = false;
+    if (fn_803FA3C0() && !isPlayerModeYoshi()) {
+        fn_803FA450();
+        return;
+    }
+    if (mIsOnSurface)
+        fn_804014A0();
+}
+
+void MarioSwim::fn_803FB300() {
+    if (isPlayerModeYoshi()) {
+        onSurface();
+        return;
+    }
+    if (fn_803FB3D0()) {
+        if (mIsOnSurface)
+            mIsOnSurface = false;
+    } else if (fn_803FA3C0()) {
+        if (mIsOnSurface)
+            mIsOnSurface = false;
+    } else if (mWaterDepth < -200.0f || mActor->mSwimSurfaceState1010) {
+        if (mIsOnSurface)
+            mIsOnSurface = false;
+    } else {
+        onSurface();
+    }
+}
+
+// NONMATCHING: temporary vectors occupy exchanged stack slots.
+void MarioSwim::fn_80401010() {
+    if (fn_804026A0()) {
+        playEffect("水エリア飛び込み飛沫");
+        return;
+    }
+    TVec3f velocity(fn_803EF300());
+    velocity.scale(10.0f);
+    TVec3f previous(mPreviousPos);
+    previous.sub(velocity);
+    if (MR::func_80062020(&mWaterInfo, &mPreviousPos, &previous)) {
+        mActor->emitEffectWaterColumn(mSurfacePos, mSurfaceNorm);
+        return;
+    }
+    if (MR::func_800621A0(&mWaterInfo, &mPreviousPos, &previous)) {
+        MarioActor* actor = mActor;
+        TVec3f normal(-mSurfacePos);
+        f32 distance = mDistToFloor;
+        TVec3f offset(mSurfacePos);
+        offset.scale(distance);
+        TVec3f position(mPreviousPos);
+        position.sub(offset);
+        actor->emitEffectWaterColumn(normal, position);
+        return;
+    }
+    playEffect("水エリア飛び込み飛沫");
 }

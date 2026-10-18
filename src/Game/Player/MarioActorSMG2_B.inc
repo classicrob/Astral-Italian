@@ -636,7 +636,7 @@ bool MarioActor::fn_803CD000() {
     if (this->mMario->isDamaging()) {
         return false;
     }
-    if (FP(this, MarioActor*, 0x1080)->isActionOk("カメ持ち")) {
+    if (mActionTable1080->isActionOk("カメ持ち")) {
         return F(s32, 0x750) == 0;
     }
     return false;
@@ -655,7 +655,7 @@ bool MarioActor::fn_803CD0A0() {
     if (this->mMario->isDamaging()) {
         return false;
     }
-    if (!FP(this, MarioActor*, 0x1080)->isActionOk("カメ持ち")) {
+    if (!mActionTable1080->isActionOk("カメ持ち")) {
         return false;
     }
     if (F(s32, 0x750) != 0) {
@@ -696,7 +696,7 @@ bool MarioActor::fn_803CD2C0() {
     if (this->mMario->isDamaging()) {
         return false;
     }
-    if (!FP(this, MarioActor*, 0x1080)->isActionOk("カメ持ち")) {
+    if (!mActionTable1080->isActionOk("カメ持ち")) {
         return false;
     }
     if (F(s32, 0x750) != 0) {
@@ -1003,7 +1003,7 @@ void MarioActor::fn_803CF130(MtxPtr mtx) {
 
 void MarioActor::updateFireSpin() {
     if (!this->mMario->isAnimationRun("ファイア投げ") && !this->mMario->isAnimationRun("ファイアスピン空中") &&
-        (!this->mMario->isAnimationRun("ファイアスピン") || !this->selectJumpRushSensor("ファイアスピン"))) {
+        (!this->mMario->isAnimationRun("ファイアスピン") || !this->fn_803CB010())) {
         if (BITAT(this->mMario, 0xC, 0x17)) {
             const Triangle* tri = this->mMario->getWallPolygon();
             LiveActor* h = MR::getSensorHost(FP(tri, HitSensor*, 8));
@@ -1082,7 +1082,7 @@ s32 MarioActor::fn_803CFE30(HitSensor* s) {
     if (t - 0x62 <= 3 || t - 0x5E <= 1 || t == 0x5C) {
         return 1;
     }
-    return F(MarioActor*, 0x1080)->fn_803DB380(MR::getSensorHost(s)->mName, "乗換センサ");
+    return mActionTable1080->testEffect(MR::getSensorHost(s)->mName, "乗換センサ");
 }
 
 
@@ -1132,7 +1132,7 @@ HitSensor* MarioActor::fn_803D0E40(s32 a) {
             s32 off = 0;
             while (i < (u32)F(s32, 0xE20)) {
                 HitSensor* cur = FP(this, HitSensor*, 0xCD4 + off);
-                if (F(MarioActor*, 0x1080)->fn_803DB380(MR::getSensorHost(cur)->mName, "HD中ラッシュ")) {
+                if (mActionTable1080->testEffect(MR::getSensorHost(cur)->mName, "HD中ラッシュ")) {
                     return cur;
                 }
                 i++;

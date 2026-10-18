@@ -68,14 +68,14 @@ void MarioActor::fn_803B94E0() {
         if ((FP(m, u32, 0xC) >> 0x10) & 1) {
             m->forceStopTornado();
         }
-        if (FP(this, MarioActor*, 0x1080)->isActionOk("ダメージ解除")) {
+        if (mActionTable1080->isActionOk("ダメージ解除")) {
             this->setPlayerMode(0, true, true);
         }
     }
 }
 
 void MarioActor::fn_803B9560() {
-    if (FP(this, MarioActor*, 0x1080)->isActionOk("ノーダメージ解除")) {
+    if (mActionTable1080->isActionOk("ノーダメージ解除")) {
         this->setPlayerMode(0, true, true);
     }
 }
@@ -192,7 +192,7 @@ s32 MarioActor::fn_803B9A90() {
     return 0;
 }
 
-bool MarioActor::fn_803B9AB0(LiveActor* a) {
+bool MarioActor::fn_803B9AB0() {
     YoshiHolder* p = F(YoshiHolder*, 0xEE4);
     if (p == nullptr) {
         return false;
@@ -835,7 +835,7 @@ void MarioActor::fn_803C2590() {
 
 void MarioActor::fn_803C2610() {
     if ((F(s16, 0xE3E) != 0 || BITAT(this->mMario, 0x10, 0x14)) && !this->mMario->isSwimming() && F(u8, 0xE3C) == 0 &&
-        FP(this, MarioActor*, 0x1080)->selectAction("スピン回復エフェクト") == 1) {
+        mActionTable1080->selectAction("スピン回復エフェクト") == 1) {
         this->playEffect("スピンリング");
     }
 }
@@ -873,12 +873,12 @@ bool MarioActor::fn_803C2710() {
 extern u32 lbl_807D4E34;
 
 void MarioActor::fn_803C2900() {
-    if (F(MarioActor*, 0x1080)->fn_803DB380(MR::getSensorHost(F(HitSensor*, 0xE14))->mName, "水陸移動特殊処理")) {
+    if (mActionTable1080->testEffect(MR::getSensorHost(F(HitSensor*, 0xE14))->mName, "水陸移動特殊処理")) {
         WaterInfo info;
         if (!MR::getWaterAreaObj(&info, this->mPosition)) {
             this->mMario->forceExitSwim();
         }
-    } else if (!F(MarioActor*, 0x1080)->fn_803DB380(MR::getSensorHost(F(HitSensor*, 0xE14))->mName, "水柱エフェクト")) {
+    } else if (!mActionTable1080->testEffect(MR::getSensorHost(F(HitSensor*, 0xE14))->mName, "水柱エフェクト")) {
         MarioSwim* sw = this->mMario->mSwim;
         s32 before = FP(sw, s32, 0xFC);
         sw->fn_803FD5E0(0);
@@ -916,7 +916,7 @@ void MarioActor::fn_803C2AA0() {
 }
 
 void MarioActor::fn_803C2B50() {
-    if (F(u8, 0xE24) != 0 && F(MarioActor*, 0x1080)->fn_803DB380(MR::getSensorHost(F(HitSensor*, 0xE14))->mName, "ハチ回復")) {
+    if (F(u8, 0xE24) != 0 && mActionTable1080->testEffect(MR::getSensorHost(F(HitSensor*, 0xE14))->mName, "ハチ回復")) {
         u32 i = 0;
         do {
             this->mMario->incAirWalkTimer();

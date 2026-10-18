@@ -488,7 +488,7 @@ void MarioActor::init2(const TVec3f& rA, const TVec3f& rB, s32 initialAnimation)
     initNerve(GET_NERVE(MarioActor, MarioActorNrvWait));
     _FB4 = 0;
     _FB8 = 0;
-    initActionMatrix();
+    mActionTable1080 = new MarioActionTable(this);
     initBinder(60.0f, 0.0f, 8);
     _2C4.x = 0.0f;
     _2C4.y = 70.0f;
@@ -1218,7 +1218,7 @@ void MarioActor::updatePunching() {
             canSpinring = false;
         }
 
-        if (canSpinring && !mMario->isSwimming() && !_944 && selectAction("スピン回復エフェクト") == true) {
+        if (canSpinring && !mMario->isSwimming() && !_944 && mActionTable1080->selectAction("スピン回復エフェクト") == true) {
             playEffect("スピンリング");
         }
 
@@ -1291,7 +1291,7 @@ void MarioActor::updateSwingTimer() {
 
         if (_946) {
             if (--_946 == 0x18) {
-                selectAction("スピン回復エフェクト");
+                mActionTable1080->selectAction("スピン回復エフェクト");
                 stopEffectForce("スピンリング");
             }
 
@@ -1391,7 +1391,7 @@ void MarioActor::updateSwingAction() {
         return;
     }
 
-    u8 action = selectAction("スピンアタック");
+    u8 action = mActionTable1080->selectAction("スピンアタック");
     switch (action) {
     case 1:
         bool didSpinPunch = true;
@@ -3389,7 +3389,7 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
         MR::sendArbitraryMsg(ACTMES_INVALID_HIT, pSender, getSensor("body"));
     } else {
         u8 autoBind;
-        selectAutoBind(pSender->mHost->mName, &autoBind);
+        mActionTable1080->selectAutoBind(pSender->mHost->mName, &autoBind);
         if (autoBind == 2) {
             setPlayerMode(PlayerMode_Normal, true, true);
         }
@@ -6317,7 +6317,7 @@ void MarioActor::initMember() {
     _FA8.zero();
     _FB4 = 0;
     _FB8 = 0;
-    initActionMatrix();
+    mActionTable1080 = nullptr;
     _FBC = 0;
     _FC0 = 0;
     _FC4 = 0;
@@ -6484,36 +6484,29 @@ static MatrixValueTable talking_head_height[] = {
 
 
 void MarioActor::initActionMatrix() {
-    _FBC = new MatrixControl("変身中のマリオ行動表", morph_bitmap, select_list, -1);
-    _FC0 = new MatrixControl("マリオ状態とオートバインド対応表", auto_bind_bitmap, auto_bind_selecterlist, 1);
-    _FC4 = new MatrixControl("メッセージ送信応答時のエフェクト", auto_efx_bitmap, auto_efx_selecterlist, 1);
-
-    _FC8 = new MatrixValueGetter("キャラの身長", talking_head_height);
+    mActionTable1080 = new MarioActionTable(this);
 }
 
-
-bool MarioActor::isActionOk(const char* pName) const {
-    return _FBC->getValue(pName, mPlayerMode);
+bool MarioActor::isActionOk(const char* name) const {
+    return mActionTable1080->isActionOk(name);
 }
 
-
-u8 MarioActor::selectAction(const char* pName) const {
-    return _FBC->getValue(pName, mPlayerMode);
+u8 MarioActor::selectAction(const char* name) const {
+    return mActionTable1080->selectAction(name);
 }
 
-
-bool MarioActor::selectAutoBind(const char* pName, u8* pValue) const {
-    return _FC0->getValueOrNone(pName, mPlayerMode, pValue);
+bool MarioActor::selectAutoBind(const char* name, u8* value) const {
+    return mActionTable1080->selectAutoBind(name, value);
 }
 
 
 bool MarioActor::selectCustomEffectSpinHitSound(const char* pName) const {
-    return _FC4->getBitOrNone(pName, 0);
+    return mActionTable1080->testEffect(pName, "スピンヒット音");
 }
 
 
 bool MarioActor::selectSpinCatchInRush(const char* pName) const {
-    return _FC4->getBitOrNone(pName, 2);
+    return mActionTable1080->testEffect(pName, "スピンキャッチ許可");
 }
 
 
@@ -6521,116 +6514,115 @@ bool MarioActor::selectSpinCatchInRush(const char* pName) const {
 
 
 bool MarioActor::selectNotHomingSensor(const HitSensor* pSensor) const {
-    return !_FC4->isExist(pSensor->mHost->mName) ? false : !_FC4->getBit(pSensor->mHost->mName, 3);
+    return mActionTable1080->testEffectDisabled(MR::getSensorHost(pSensor)->mName, "SHDホーミング許可");
 }
 
 
 bool MarioActor::selectInvalidMovingCollision(const char* pName) const {
-    return !_FC4->isExist(pName) ? false : _FC4->getBit(pName, 4);
+    return mActionTable1080->testEffect(pName, "地形移動無視");
 }
 
 
 bool MarioActor::selectQuickResetBeeWallGravity(const char* pName) const {
-    return !_FC4->isExist(pName) ? false : _FC4->getBit(pName, 5);
+    return mActionTable1080->testEffect(pName, "ハチ出立");
 }
 
 
 bool MarioActor::selectJumpRushSensor(const char* pName) const {
-    return !_FC4->isExist(pName) ? false : _FC4->getBit(pName, 6);
+    return mActionTable1080->testEffect(pName, "乗換センサ");
 }
 
 
 bool MarioActor::selectDamageFireColor(const char* pName) const {
-    return _FC4->getBitOrNone(pName, 7);
+    return mActionTable1080->testEffect(pName, "青い炎エフェクト");
 }
 
 
 bool MarioActor::selectWaterInOutEffect(const char* pName) const {
-    return _FC4->getBitOrNone(pName, 8);
+    return mActionTable1080->testEffect(pName, "水柱エフェクト");
 }
 
 
 bool MarioActor::selectOnDamageRush(const char* pName) const {
-    return _FC4->getBitOrNone(pName, 9);
+    return mActionTable1080->testEffect(pName, "ダメージ中RUSH");
 }
 
 
 bool MarioActor::selectTiltPress(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 10);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "ナナメつぶし許可");
 }
 
 
 bool MarioActor::selectHandyRush(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 11);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "カメを捨てない");
 }
 
 
 bool MarioActor::selectRecoverFlyMeter(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 12);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "ハチ回復");
 }
 
 
 bool MarioActor::selectHideFlyMeter(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 13);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "ハチメータ消去");
 }
 
 
 bool MarioActor::selectTeresaThru(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 14);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "テレサ時は無視");
 }
 
 
 bool MarioActor::selectRebindTimer(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 15);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "リバインド制限");
 }
 
 
 bool MarioActor::selectHipDropRush(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 16);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "HD中ラッシュ");
 }
 
 
 bool MarioActor::selectPushOff(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 17);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "食い込み除外");
 }
 
 
 bool MarioActor::selectWaterInOutRush(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 18);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "水陸移動特殊処理");
 }
 
 
 bool MarioActor::selectLandEffect(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 19);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "着地エフェクト");
 }
 
 
 bool MarioActor::selectNoShadow(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 20);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "影を消す");
 }
 
 
 bool MarioActor::selectDamagePop(const HitSensor* pSensor) const {
-    return _FC4->getBitOrNone(pSensor->mHost->mName, 21);
+    return mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "ダメージ中跳ねる");
 }
 
 
 f32 MarioActor::getFaceLookHeight(const char* pName) const {
-    f32 value;
-    return _FC8->getValue(pName, &value) ? value : 150.0f;
+    return mActionTable1080->getFaceLookHeight(pName);
 }
 
 // ---- MarioActorMorph.cpp ----
 
 void MarioActor::resetPlayerModeOnDamage() {
-    if (isActionOk("ダメージ解除")) {
+    if (mActionTable1080->isActionOk("ダメージ解除")) {
         setPlayerMode(0, true, true);
     }
 }
 
 
 void MarioActor::resetPlayerModeOnNoDamage() {
-    if (isActionOk("ノーダメージ解除")) {
+    if (mActionTable1080->isActionOk("ノーダメージ解除")) {
         setPlayerMode(0, true, true);
     }
 }
@@ -6745,7 +6737,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
     } else {
         if (_3E5 && _945 < 15) {
             if (distance < radius + mSensorRadiusSpinStorm) {
-                if (selectAction("スピンアタック") < 4) {
+                if (mActionTable1080->selectAction("スピンアタック") < 4) {
                     pSensor->receiveMessage(ACTMES_SPIN_STORM_RANGE, getSensor("body"));
                 }
 
@@ -6986,7 +6978,7 @@ void MarioActor::tryAddClapCoin(HitSensor* pSensor) {
 
 
 bool MarioActor::tryTornadoAttack(HitSensor* pSensor) {
-    bool isMessageReceived = pSensor->receiveMessage(ACTMES_TORNADO_ATTACK, getSensor("body"));
+    bool isMessageReceived = pSensor->receiveMessage(ACTMES_TORNADO_ATTACK, getSensor("Body"));
     if (isMessageReceived) {
         mMario->startPadVib(1);
     }
@@ -7017,7 +7009,7 @@ bool MarioActor::tryHipDropAttack(HitSensor* pSensor) {
             return tryTrampleAttack(pSensor);
         }
 
-        return pSensor->receiveMessage(ACTMES_PLAYER_HIP_DROP, getSensor("body"));
+        return pSensor->receiveMessage(ACTMES_PLAYER_HIP_DROP, getSensor("Body"));
     }
 
     return false;
@@ -7145,7 +7137,7 @@ bool MarioActor::tryGetItem(HitSensor* pSensor) {
             return false;
         }
 
-        if (!isActionOk("カメ持ち")) {
+        if (!mActionTable1080->isActionOk("カメ持ち")) {
             return false;
         }
 
@@ -7171,7 +7163,7 @@ bool MarioActor::tryGetItem(HitSensor* pSensor) {
             return false;
         }
 
-        if (!isActionOk("カメ持ち")) {
+        if (!mActionTable1080->isActionOk("カメ持ち")) {
             return false;
         }
 
@@ -7373,7 +7365,7 @@ void MarioActor::attackOrPushPolygons() {
 
 
 bool MarioActor::sendMsgUpperPunch(HitSensor* pSensor) {
-    if (!isActionOk("アッパーパンチ")) {
+    if (!mActionTable1080->isActionOk("アッパーパンチ")) {
         return false;
     }
 
@@ -8135,7 +8127,7 @@ void MarioActor::updateFairyStar() {
     if (!isEnableNerveChange())
         return;
     bool enabled = true;
-    if (selectAction("スピン回復エフェクト") != 1)
+    if (mActionTable1080->selectAction("スピン回復エフェクト") != 1)
         enabled = false;
     if (_94C && enabled) {
         if (MR::isDead(_994)) {
@@ -9238,11 +9230,11 @@ HitSensor* MarioActor::getRescueTarget() const {
     }
 
     for (s32 idx = 0; idx < _930; idx++) {
-        if (_7E4[idx]->isType(ATYPE_G_CAPTURE_BIND)) {
+        if (_7E4[idx]->isType(0x62)) {
             return _7E4[idx];
         }
 
-        if (selectOnDamageRush(_7E4[idx]->mHost->mName)) {
+        if (mActionTable1080->testEffect(MR::getSensorHost(_7E4[idx])->mName, "ダメージ中RUSH")) {
             return _7E4[idx];
         }
     }
@@ -9268,7 +9260,7 @@ bool MarioActor::tryStartRush(bool automatic) {
     if (target != nullptr) {
         for (;;) {
             u8 autoBind;
-            if (automatic && selectAutoBind(target->mHost->mName, &autoBind)) {
+            if (automatic && mActionTable1080->selectAutoBind(target->mHost->mName, &autoBind)) {
                 if (autoBind == 0) {
                     return false;
                 }
@@ -9330,8 +9322,8 @@ bool MarioActor::tryJumpRush() {
     HitSensor* jumpTarget = getNearestJumpTarget();
     if (jumpTarget != nullptr) {
         unsigned char autoBind;
-        bool b = selectAutoBind(jumpTarget->mHost->mName, &autoBind);
-        if (!b && !isActionOk("ジャンプ系バインド")) {
+        bool b = mActionTable1080->selectAutoBind(jumpTarget->mHost->mName, &autoBind);
+        if (!b && !mActionTable1080->isActionOk("ジャンプ系バインド")) {
             return false;
         }
 
@@ -9768,7 +9760,7 @@ void MarioActor::attackSensor(HitSensor* pOwn, HitSensor* pOther) {
 
 
 bool MarioActor::sendMsgToSensor(HitSensor* pSensor, u32 msg) {
-    return pSensor->receiveMessage(msg, getSensor("body"));
+    return pSensor->receiveMessage(msg, getSensor("Body"));
 }
 
 
@@ -11160,7 +11152,7 @@ void MarioActor::calcSpinEffect() {
     _6D4 = 0.0f;
     _6D8 = 0.0f;
 
-    if (selectAction("スピン回復エフェクト") != 1) {
+    if (mActionTable1080->selectAction("スピン回復エフェクト") != 1) {
         return;
     }
 
@@ -11512,7 +11504,7 @@ void MarioActor::damageDropThrowMemoSensor() {
     tryReleaseBombTeresa();
 
     if (_424 != nullptr) {
-        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("body"));
+        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("Body"));
         _424 = nullptr;
     }
 }
@@ -11523,7 +11515,7 @@ void MarioActor::rushDropThrowMemoSensor() {
     updateSearchLight();
 
     if (_424 != nullptr) {
-        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("body"));
+        _424->receiveMessage(ACTMES_DAMAGEDROP, getSensor("Body"));
         _424 = nullptr;
     }
 }
@@ -11792,7 +11784,7 @@ void MarioActor::tryReleaseWithMsg(u32 msg) {
 
 
 void MarioActor::tryTornadoPull(HitSensor* pSensor) {
-    if (!isActionOk("コイン引っ張り")) {
+    if (!mActionTable1080->isActionOk("コイン引っ張り")) {
         return;
     }
 
@@ -11856,7 +11848,7 @@ void MarioActor::tryTornadoPull(HitSensor* pSensor) {
 
     case ATYPE_JET_TURTLE:
     case ATYPE_JET_TURTLE_SLOW:
-        if (isActionOk("カメ持ち") && pSensor->receiveMessage(ACTMES_IS_PULL_ENABLE, getSensor("body"))) {
+        if (mActionTable1080->isActionOk("カメ持ち") && pSensor->receiveMessage(ACTMES_IS_PULL_ENABLE, getSensor("body"))) {
             if ((pSensor->mPosition - mPosition).length() < 120.0f) {
                 tryGetItem(pSensor);
                 return;
@@ -11868,7 +11860,7 @@ void MarioActor::tryTornadoPull(HitSensor* pSensor) {
 
         break;
     case 5555:
-        if (isActionOk("カメ持ち") && pSensor->receiveMessage(ACTMES_IS_PULL_ENABLE, getSensor("body"))) {
+        if (mActionTable1080->isActionOk("カメ持ち") && pSensor->receiveMessage(ACTMES_IS_PULL_ENABLE, getSensor("body"))) {
             tryCoinPullOne(pSensor);
         }
 
@@ -13589,3 +13581,57 @@ void MarioActor::initTeresaMarioAnimation() {
 
 #include "../src/Game/Player/MarioActorSMG2_A.inc"
 #include "../src/Game/Player/MarioActorSMG2_B.inc"
+
+
+
+
+
+
+
+
+
+
+
+
+
+void MarioActor::applyGravityVec(const TVec3f& gravity, bool resetGround) {
+    mMario->setGravityVec(gravity);
+    mAppliedGravityVec = gravity;
+    if (resetGround) {
+        TVec3f ground;
+        JGeometry::negateInternal(&gravity.x, &ground.x);
+        mMario->setGroundNorm(ground);
+    }
+    calcCenterPos();
+}
+
+bool MarioActor::fn_803CAEE0() const {
+    if (!_924) return false;
+    if (_924->isType(0x65)) return true;
+    if (MR::isEqualString(MR::getSensorHost(_924)->mName, "グライバード")) return true;
+    return MR::isEqualString(MR::getSensorHost(_924)->mName, "わたげ");
+}
+
+bool MarioActor::fn_803CAF80() const {
+    const HitSensor* sensor = getCarrySensor();
+    bool result;
+    if (!sensor) {
+        result = false;
+    } else {
+        result = false;
+        if (sensor->isType(0x13) || sensor->isType(0x12) || sensor->isType(0x26)) result = true;
+    }
+    return result;
+}
+
+bool MarioActor::fn_803CB010() const {
+    if (!mMario->fn_803EEA90("ファイアスピン")) {
+        return mMarioAnim->getUpperFrame() < 25.0f;
+    }
+    if (mMario->isAnimationRun("ファイアスピン") && mMarioAnim->getFrame() < 25.0f) {
+        return true;
+    }
+    return false;
+}
+
+

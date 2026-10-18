@@ -13,6 +13,10 @@ class XanimePlayer;
 /// @brief The Yoshi actor (LiveActor subclass, units around 0x8040B000..0x80410000).
 class Yoshi : public LiveActor {
 public:
+    void fn_8040CA10();
+    void fn_8040CB30();
+    u16 fn_8040F440();
+
     void fn_8040CCD0(const TVec3f&);
     void fn_8040CD20(const TVec3f&);
     void fn_8040CDD0(const TVec3f&);
@@ -68,6 +72,7 @@ public:
     bool fn_8041BB30() const;
     f32 fn_8041BB50() const;
     void fn_8041BB90();
+    void fn_8041BBA0();
     void fn_8041BBB0();
     void fn_8041BBF0(const TVec3f&, const TVec3f&, const TVec3f&);
 

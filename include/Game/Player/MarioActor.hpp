@@ -49,6 +49,7 @@ class YoshiTongueAction;
 class MarioAllModel;
 class MarioActionHash;
 class MarioTeresaModel;
+class MarioActionTable;
 struct MarioInputConfig {
     s16 _0;
     s16 _2;
@@ -88,6 +89,11 @@ extern bool gIsLuigi;  // (cc68 - 10000)(r13)
 
 class MarioActor : public LiveActor {
 public:
+    void applyGravityVec(const TVec3f&, bool);
+    bool fn_803CAEE0() const;
+    bool fn_803CAF80() const;
+    bool fn_803CB010() const;
+
     // SMG2-only functions (original names unknown; named by address)
     void fn_803B83F0();
     const TVec3f& fn_803B8520();
@@ -117,7 +123,7 @@ public:
     void fn_803B9A50();
     s32 fn_803B9A70();
     s32 fn_803B9A90();
-    bool fn_803B9AB0(LiveActor* a);
+    bool fn_803B9AB0();
     void fn_803B9F10();
     void fn_803BA070();
     void fn_803BA220();
@@ -918,6 +924,9 @@ public:
     /* 0x588 */ MarioAnimator* mMarioAnim;
     /* 0x58C */ MarioEffect* mMarioEffect;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x590 */ MarioConst* mConst;
+    union {
+        /* 0x594 */ TVec3f mAppliedGravityVec;
+        struct {
     /* 0x594 */ f32 _1CC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x598 */ f32 _1D4;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     union {  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -927,6 +936,8 @@ public:
             /* 0x5A0 */ FBO* _1DC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
         };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+        };
+    };
     /* 0x5A4 */ f32 _1EC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5A8 */ f32 _208;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5AC */ TVec3f _258;  // SMG2 offset guess-gap
@@ -960,7 +971,7 @@ public:
     /* 0x684 */ TVec3f _354;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x690 */ TVec3f _360;  // SMG2 offset inh  // SMG2 offset inh  // SMG2 offset inh
     /* 0x69C */ GravityInfo* mGravityInfo;  // SMG2 offset inh
-    /* 0x6A0 */ u32 _420;  // SMG2 offset vote-gap  // SMG2 offset vote-gap  // SMG2 offset vote-gap
+    /* 0x6A0 */ union { u32 _420; u8 mAxisRotationDisabled6A0; };  // SMG2 offset vote-gap  // SMG2 offset vote-gap  // SMG2 offset vote-gap
     /* 0x6A4 */ f32 mGravityRatio;  // SMG2 offset inh-gap  // SMG2 offset vote-gap
     /* 0x6A8 */ u16 _378;
     /* 0x6AA */ bool _370;  // SMG2 offset inh  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1244,6 +1255,7 @@ public:
     /* 0x100C */ u16 _F1E;
     /* 0x100E */ u16 _B12;  // SMG2 offset guess  // SMG2 offset inh-gap  // SMG2 offset inh
     union {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
+        /* 0x1010 */ u8 mSwimSurfaceState1010;
         /* 0x1010 */ TVec2f mScreenBoxMin;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
         struct {  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
             /* 0x1010 */ f32 _B24;  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
@@ -1276,7 +1288,7 @@ public:
             /* 0x1054 */ Mtx* _A70[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
             /* 0x1074 */ Mtx* _A90[8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
         };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
-        struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; };
+        struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; MarioActionTable* mActionTable1080; };
         /* 0x1054 */ Mtx* mBlurMatrices[2][8];  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
     };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
     /* 0x1094 */ union { MarioActionHash* mActionHash; void* _B44; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset guess

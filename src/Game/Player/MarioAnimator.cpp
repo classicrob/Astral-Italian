@@ -97,13 +97,13 @@ void MarioAnimator::runningCallback() {
     }
 
     mCallbackEnded = true;
-    if (isAnimationStop() || getPlayer()->MarioModule::isAnimationTerminate(nullptr)) {
+    if (isAnimationStop() || isAnimationTerminate(nullptr)) {
         closeCallback();
         return;
     }
 
     mCallbackEnded = false;
-    if (!getPlayer()->MarioModule::isAnimationRun(marioCallbackTable[mCallbackId].mAnimation)) {
+    if (!isAnimationRun(marioCallbackTable[mCallbackId].mAnimation)) {
         closeCallback();
         return;
     }
@@ -316,14 +316,8 @@ bool MarioAnimator::isAnimationStop() const {
     return mXanimePlayer->mCurrentAnimation == mXanimePlayer->mDefaultAnimation;
 }
 
-void MarioAnimator::targetWeight(f32* pWeight, f32 target, f32 rate) {
-    if (getPlayer()->isSwimming()) {
-        *pWeight = *pWeight * (1.0f - mActor->mConst->getTable()->mWeightBlendRatioSwim) + target * mActor->mConst->getTable()->mWeightBlendRatioSwim;
-    } else if (getPlayer()->_3FA != 0) {
-        *pWeight = *pWeight * 0.5f + target * 0.5f;
-    } else {
-        *pWeight = *pWeight * (1.0f - rate) + target * rate;
-    }
+void MarioAnimator::targetWeight(f32* weight, f32 target, f32 rate) {
+    *weight = *weight * (1.0f - rate) + target * rate;
 }
 
 void MarioAnimator::setWalkWeight(const f32* pWeights) {
@@ -365,28 +359,28 @@ bool MarioAnimator::isLandingAnimationRun() const {
         return false;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("着地") || getPlayer()->MarioModule::isAnimationRun("着地B") || getPlayer()->MarioModule::isAnimationRun("着地C") || getPlayer()->MarioModule::isAnimationRun("着地ターン") ||
-        getPlayer()->MarioModule::isAnimationRun("着地幅とび")) {
+    if (isAnimationRun("着地") || isAnimationRun("着地B") || isAnimationRun("着地C") || isAnimationRun("着地ターン") ||
+        isAnimationRun("着地幅とび")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("すべり着地")) {
+    if (isAnimationRun("すべり着地")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun(getPlayer()->_728)) {
+    if (isAnimationRun(getPlayer()->_728)) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("ハード着地")) {
+    if (isAnimationRun("ハード着地")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("逆着地")) {
+    if (isAnimationRun("逆着地")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("ショート着地")) {
+    if (isAnimationRun("ショート着地")) {
         return true;
     }
 
@@ -398,12 +392,12 @@ bool MarioAnimator::isLandingAnimationRun() const {
 }
 
 bool MarioAnimator::isCancelableAnimationRun() const {
-    if (getPlayer()->MarioModule::isAnimationRun("着地") || getPlayer()->MarioModule::isAnimationRun("着地B") || getPlayer()->MarioModule::isAnimationRun("着地C") || getPlayer()->MarioModule::isAnimationRun("着地ターン") ||
-        getPlayer()->MarioModule::isAnimationRun("着地幅とび")) {
+    if (isAnimationRun("着地") || isAnimationRun("着地B") || isAnimationRun("着地C") || isAnimationRun("着地ターン") ||
+        isAnimationRun("着地幅とび")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("すべり着地")) {
+    if (isAnimationRun("すべり着地")) {
         return true;
     }
 
@@ -416,24 +410,24 @@ bool MarioAnimator::isCancelableAnimationRun() const {
 
 bool MarioAnimator::isWalkOrWaitingMotion() const {
     if (isAnimationStop()) {
-        if (getPlayer()->MarioModule::isAnimationRun("基本") || getPlayer()->MarioModule::isAnimationRun("テニス基本")) {
+        if (isAnimationRun("基本") || isAnimationRun("テニス基本")) {
             return true;
         }
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("坂前後ウエイト")) {
+    if (isAnimationRun("坂前後ウエイト")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("坂左右ウエイト")) {
+    if (isAnimationRun("坂左右ウエイト")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("カリカリ限界")) {
+    if (isAnimationRun("カリカリ限界")) {
         return true;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("飛び込み準備")) {
+    if (isAnimationRun("飛び込み準備")) {
         return true;
     }
 
@@ -441,252 +435,24 @@ bool MarioAnimator::isWalkOrWaitingMotion() const {
 }
 
 void MarioAnimator::update() {
-    if (mXanimePlayer->isAnimationRunSimple()) {
-        if (!mActor->_EA4 && !mActor->_3C0) {
-            Mario* player = getPlayer();
-            if (!player->mMovementStates._22) {
-                if (!mActor->_934) {
-                    player = getPlayer();
-                    if (player->mMovementStates._1) {
-                        stopAnimation(nullptr, nullptr);
-                    }
-                }
-            }
-        }
-    }
-
+    fn_803E0A60();
     runningCallback();
-
     bool specialMode = false;
-    if (mActor->_482 || mActor->_483) {
-        specialMode = true;
-    }
-
+    if (mActor->_482 || mActor->_483) specialMode = true;
     if (specialMode) {
-        mActor->updateSpecialModeAnimation();
+        mActor->fn_803BC5C0();
         return;
     }
-
-    u8 walkStateTable[] = {0, 1, 1, 2, 2, 2, 3, 3};
-
-    Mario* player = getPlayer();
-    u8 prevWalkState = player->mTargetWalkSpeedIndex;
-    player = getPlayer();
-    player->_71D = prevWalkState;
-
-    if (isWalkOrWaitingMotion() || getPlayer()->MarioModule::isAnimationRun("しゃがみ基本")) {
-        player = getPlayer();
-        _14 = walkStateTable[player->mTargetWalkSpeedIndex];
-    } else {
-        _15 = 0xFF;
-    }
-
-    player = getPlayer();
-    if (player->mDrawStates._A) {
-        bool normalMode = !getPlayer()->MarioModule::isPlayerModeHopper();
-        if (normalMode) {
-            player = getPlayer();
-            if (!player->isStatusActive(MarioStatus_Freeze)) {
-                if (isLandingAnimationRun()) {
-                    stopAnimation(nullptr, nullptr);
-                }
-
-                player = getPlayer();
-                if (player->mMovementStates._B) {
-                    getPlayer()->mMovementStates.jumping = false;
-                    getPlayer()->mMovementStates._B = false;
-                    stopAnimation(nullptr, "基本");
-                }
-
-                if (isAnimationStop()) {
-                    getPlayer()->MarioModule::changeAnimation("崖ふんばり");
-                }
-            }
-        }
-
-        goto afterBrake;
-    }
-
-    if (getPlayer()->MarioModule::isAnimationRun("崖ふんばり")) {
-        player = getPlayer();
-        if (!player->mMovementStates._1) {
-            stopAnimation("崖ふんばり", "落下");
-            player = getPlayer();
-            player->_414 = 15;
-        } else {
-            stopAnimation("崖ふんばり", nullptr);
-        }
-    }
-
-    if (isCancelableAnimationRun()) {
-        player = getPlayer();
-        player->decideWalkSpeed();
-
-        player = getPlayer();
-        if (player->mTargetWalkSpeedIndex != 0) {
-            stopAnimation(nullptr, nullptr);
-        }
-
-        player = getPlayer();
-        if (player->mMovementStates._A) {
-            stopAnimation(nullptr, nullptr);
-        }
-
-        goto afterBrake;
-    }
-
-    player = getPlayer();
-    if (player->mMovementStates._A) {
-        goto squatWalk;
-    }
-
-    player = getPlayer();
-    if (player->_20._A) {
-        player = getPlayer();
-        if (!player->mMovementStates.jumping) {
-            player = getPlayer();
-            if (player->mMovementStates._1 == 1) {
-                goto squatWalk;
-            }
-        }
-    }
-
-    goto notSquat;
-
-squatWalk:
-    player = getPlayer();
-    if (player->mMovementStates._23) {
-        goto afterBrake;
-    }
-
-    player = getPlayer();
-    player->decideSquatWalkAnimation();
-
-    if (_14 != _15) {
-        switch (_14) {
-        case 0:
-            player = getPlayer();
-            player->startBas(nullptr, false, 0.0f, 0.0f);
-            break;
-        default: {
-            if (!getPlayer()->MarioModule::isAnimationRun("幅とび")) {
-                player = getPlayer();
-                player->startBas("SquatWalk", false, 0.0f, 79.0f);
-            } else {
-                player = getPlayer();
-                player->startBas(nullptr, false, 0.0f, 0.0f);
-            }
-        }
-        }
-
-        f32 frame = getPlayer()->MarioModule::getAnimator()->mXanimePlayer->tellAnimationFrame();
-        player = getPlayer();
-        player->skipBas(frame);
-    }
-
-    _15 = _14;
-    goto afterBrake;
-
-notSquat:
-    player = getPlayer();
-    if (player->mMovementStates._34) {
-        player = getPlayer();
-        player->decideWalkSpeed();
-        player = getPlayer();
-        player->decideOnIceAnimation();
-        goto afterBrake;
-    }
-
-    if (isWalkOrWaitingMotion()) {
-        player = getPlayer();
-        player->decideWalkSpeed();
-        player = getPlayer();
-        player->decideWalkAnimation();
-
-        if (mActor->mBeeWallWalk != 0) {
-            updateWalkBas("BeeCreepWalk", 59.0f);
-        } else {
-            updateWalkBas("Walk", 59.0f);
-        }
-
-        goto afterBrake;
-    }
-
-    if (getPlayer()->MarioModule::isAnimationRun("氷上慣性走行")) {
-        stopAnimation(nullptr, nullptr);
-        goto doBrake;
-    }
-
-    if (getPlayer()->MarioModule::isAnimationRun("壁押し", 0)) {
-        player = getPlayer();
-        player->decideWalkSpeed();
-        player = getPlayer();
-        player->checkWallPush();
-        goto doBrake;
-    }
-
-    player = getPlayer();
-    if (player->mMovementStates.turning || getPlayer()->mMovementStates._4) {
-        player = getPlayer();
-        player->decideWalkSpeed();
-        goto doBrake;
-    }
-
-    if (!getPlayer()->MarioModule::isAnimationRun("ハード着地")) {
-        if (getPlayer()->MarioModule::isAnimationRun("がんばり走り")) {
-            player = getPlayer();
-            if (player->_8F0 < 1.0f) {
-                stopAnimation(nullptr, nullptr);
-            }
-        } else {
-            _15 = 0;
-        }
-    }
-
-doBrake:
-    player = getPlayer();
-    player->updateBrakeAnimation();
-
-afterBrake:
-    if (getPlayer()->MarioModule::isAnimationRun("基本") || getPlayer()->MarioModule::isAnimationRun("がんばり走り")) {
-        setTilt();
-    } else {
-        resetTilt();
-    }
-
-    if (getPlayer()->MarioModule::isAnimationRun("スライダー尻")) {
-        setHipSliderTilt();
-    }
-
-    if (getPlayer()->MarioModule::isAnimationRun("坂すべり下向きあおむけ", 3)) {
-        setHipSlipTilt();
-    }
-
-    setHoming();
-    setHand();
-
-    if (_6C) {
-        XanimePlayer* upperPlayer = mXanimePlayerUpper;
-        upperPlayer->updateBeforeMovement();
-        upperPlayer->updateAfterMovement();
-
-        u8 idx = mXanimePlayerUpper->_54;
-        XanimeFrameCtrl& track = mXanimePlayerUpper->_24[idx];
-        if (track.mState & 1) {
-            XanimeFrameCtrl* ctrl = mXanimePlayerUpper->_20;
-            if (ctrl->mAttribute != 1) {
-                if (!mUpperDefaultSet) {
-                    stopUpper(nullptr);
-                }
-            }
-        }
-    }
-
-    updateJointRumble();
-    mActor->updateSpecialModeAnimation();
-
-    if (isAnimationStop()) {
-        mCurrBck = mXanimePlayer->getCurrentBckName();
+    if (!mActor->fn_803B9AB0()) {
+        fn_803E0AF0();
+        fn_803E1060();
+        setHoming();
+        setHand();
+        if (getPlayer()->isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040CA10();
+        fn_803E0F80();
+        updateJointRumble();
+        mActor->fn_803BC5C0();
+        fn_803E1020();
     }
 }
 
@@ -711,7 +477,7 @@ void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
     // Check animation state transition
     if (_14 == _15) {
         if (_14 != 0) {
-            if (!getPlayer()->isRunningBas(pAnimName)) {
+            if (!getPlayer()->fn_803A9690(pAnimName)) {
                 goto startBas;
             }
         }
@@ -736,10 +502,8 @@ startBas:
         break;
     }
 
-    {
-        f32 frame = getPlayer()->MarioModule::getAnimator()->mXanimePlayer->tellAnimationFrame();
-        getPlayer()->skipBas(frame);
-    }
+    f32 frame = getFrame();
+    getPlayer()->fn_803A96D0(frame);
 
 updatePrevState:
     _15 = _14;
@@ -1016,7 +780,7 @@ void MarioAnimator::setWalkMode() {
                 change("ブレーキ");
             }
         }
-    } else if (getPlayer()->MarioModule::isAnimationRun("ブレーキ")) {
+    } else if (isAnimationRun("ブレーキ")) {
         getPlayer()->doBrakingAnimation();
         getPlayer()->mTargetWalkSpeedIndex = 0;
     } else {
@@ -1207,7 +971,7 @@ void MarioAnimator::updateJointRumble() {
     if (getPlayer()->mMovementStates._1 && !getPlayer()->mMovementStates._37 && getPlayer()->mTargetWalkSpeedIndex == 0 &&
         getPlayer()->calcAngleD(getPlayer()->_368) > 5.0f) {
         TVec3f dir;
-        const TVec3f* airGrav = &getPlayer()->MarioModule::getAirGravityVec();
+        const TVec3f* airGrav = &getPlayer()->getAirGravityVec();
         Mario* playerVec = getPlayer();
         MR::vecKillElement(playerVec->_368, *airGrav, &dir);
         MR::normalizeOrZero(&dir);
@@ -1317,7 +1081,7 @@ bool MarioAnimator::isMirrorAnimation() {
         camDir = -camDir;
     }
 
-    if (getPlayer()->MarioModule::isAnimationRun("壁すべり") || getPlayer()->MarioModule::isAnimationRun("壁くっつき")) {
+    if (isAnimationRun("壁すべり") || isAnimationRun("壁くっつき")) {
         if (!_10C) {
             const TVec3f& wallNorm = getPlayer()->getWallNorm();
             f32 wallDot = camDir.dot(wallNorm);
@@ -1335,7 +1099,7 @@ bool MarioAnimator::isMirrorAnimation() {
 
     // Check if walling (player mMovementStates._37 bit check)
     if (getPlayer()->mMovementStates._37) {
-        if (getPlayer()->MarioModule::isAnimationRun("ブレーキ") || getPlayer()->MarioModule::isAnimationRun("ターンブレーキ") || getPlayer()->MarioModule::isAnimationRun("ターンジャンプ")) {
+        if (isAnimationRun("ブレーキ") || isAnimationRun("ターンブレーキ") || isAnimationRun("ターンジャンプ")) {
             if (!_10C) {
                 f32 frontDot = camDir.dot(getPlayer()->mFrontVec);
                 if (frontDot > 0.0f) {
@@ -1353,7 +1117,7 @@ bool MarioAnimator::isMirrorAnimation() {
 
     // Clear cache flag
     _10C = false;
-    if (getPlayer()->MarioModule::isAnimationRun("左空パンチ")) {
+    if (isAnimationRun("左空パンチ")) {
         return true;
     }
 
@@ -1547,7 +1311,7 @@ void MarioAnimator::changeExtraAnimation(const char* name) {
 }
 XanimePlayer* MarioAnimator::fn_803DFBF0() const { return mXanimePlayerExtra; }
 const char* MarioAnimator::fn_803DF0D0() const { return mXanimePlayer->getCurrentBckName(); }
-f32 MarioAnimator::fn_803DF0E0() const { return mXanimePlayer->_20->getFrame(); }
+f32 MarioAnimator::fn_803DF0E0() const { return mXanimePlayer->_20->mRate; }
 const char* MarioAnimator::getUpperAnimationName() const { return mXanimePlayerUpper->getCurrentAnimationName(); }
 const char* MarioAnimator::getAnimationStringPointer(const char* name) const { return mXanimePlayer->getNameStringPointer(name); }
 bool MarioAnimator::isUpperAnimationTerminated(const char* name) const {
@@ -1705,4 +1469,141 @@ bool MarioAnimator::isAnimationRun(const char* name, u32 index) {
 f32 MarioAnimator::fn_803DD530() {
     if (getPlayer()->isPlayerModeYoshi()) return getYoshiAnimationPlayer()->_20->mEnd;
     return mXanimePlayer->_20->mEnd;
+}
+
+#pragma auto_inline off
+void MarioAnimator::fn_803E0A60() {
+    if (mXanimePlayer->isAnimationRunSimple()) {
+        if (!mActor->_EA4 && !mActor->_3C0) {
+            if (!getPlayer()->mMovementStates._22 && !mActor->_934 && getPlayer()->mMovementStates._1) {
+                getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+            }
+        }
+    }
+}
+
+void MarioAnimator::fn_803E0AF0() {
+    static const u8 walkStateTable[] = {0, 1, 1, 2, 2, 2, 3, 3};
+    getPlayer()->_71D = getPlayer()->mTargetWalkSpeedIndex;
+    if (isWalkOrWaitingMotion() || isAnimationRun("しゃがみ基本")) _14 = walkStateTable[getPlayer()->mTargetWalkSpeedIndex];
+    else _15 = 0xFF;
+    if (getPlayer()->mDrawStates._A) { fn_803E0C20(); return; }
+    fn_803E0D30();
+    if (isCancelableAnimationRun()) { fn_803E0DC0(); return; }
+    if (fn_803E1110()) { fn_803E1160(); return; }
+    if (fn_803E11D0()) { fn_803E11F0(); return; }
+    if (isWalkOrWaitingMotion()) { fn_803E1230(); return; }
+    fn_803E12B0();
+}
+
+void MarioAnimator::fn_803E0C20() {
+    if (!getPlayer()->isPlayerModeHopper() && !getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Freeze)) {
+        getPlayer()->fn_8038CE40();
+        fn_803E0C90();
+        fn_803E0CE0();
+    }
+}
+
+void MarioAnimator::fn_803E0C90() {
+    if (getPlayer()->mMovementStates._B) {
+        getPlayer()->mMovementStates.jumping = false;
+        getPlayer()->mMovementStates._B = false;
+        getPlayer()->MarioModule::stopAnimation(nullptr, "基本");
+    }
+}
+
+void MarioAnimator::fn_803E0CE0() {
+    if (isAnimationStop()) getPlayer()->MarioModule::changeAnimation("崖ふんばり", static_cast<const char*>(nullptr));
+}
+
+void MarioAnimator::fn_803E0D30() {
+    if (isAnimationRun("崖ふんばり")) {
+        if (!getPlayer()->mMovementStates._1) {
+            getPlayer()->MarioModule::stopAnimation("崖ふんばり", "落下");
+            getPlayer()->_414 = 15;
+        } else getPlayer()->MarioModule::stopAnimation("崖ふんばり", static_cast<const char*>(nullptr));
+    }
+}
+
+void MarioAnimator::fn_803E0DC0() {
+    getPlayer()->decideWalkSpeed();
+    if (getPlayer()->mTargetWalkSpeedIndex != 0) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+    if (getPlayer()->mMovementStates._A) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+}
+
+void MarioAnimator::fn_803E0E90() {
+    if (_14 == 0) getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
+    else if (!isAnimationRun("幅とび")) getPlayer()->startBas("SquatWalk", false, 0.0f, 79.0f);
+    else getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
+}
+
+#pragma dont_inline on
+void MarioAnimator::fn_803E0F40() {
+    f32 frame = getFrame();
+    mActor->mMario->fn_803A96D0(frame);
+}
+#pragma dont_inline reset
+
+void MarioAnimator::fn_803E0F80() {
+    if (_6C) {
+        XanimePlayer* upper = mXanimePlayerUpper;
+        upper->updateBeforeMovement();
+        upper->updateAfterMovement();
+        XanimePlayer* player = mXanimePlayerUpper;
+        if ((player->_24[player->_54].mState & 1) && player->_20->mAttribute != 1 && !mUpperDefaultSet) stopUpper(nullptr);
+    }
+}
+
+void MarioAnimator::fn_803E1020() { if (isAnimationStop()) mCurrBck = mXanimePlayer->getCurrentBckName(); }
+
+void MarioAnimator::fn_803E1060() {
+    if (isAnimationRun("基本") || isAnimationRun("がんばり走り")) setTilt();
+    else resetTilt();
+    if (isAnimationRun("スライダー尻")) setHipSliderTilt();
+    if (isAnimationRun("坂すべり下向きあおむけ", 3)) setHipSlipTilt();
+}
+
+// NONMATCHING: equivalent short-circuit branch layout.
+bool MarioAnimator::fn_803E1110() const {
+    if (!getPlayer()->mMovementStates._A) {
+        bool squat = false;
+        if (getPlayer()->_20._A && !getPlayer()->mMovementStates.jumping && getPlayer()->mMovementStates._1 == 1) squat = true;
+        if (!squat) return false;
+        return true;
+    }
+    return true;
+}
+
+void MarioAnimator::fn_803E1160() {
+    if (!getPlayer()->mMovementStates._23) {
+        getPlayer()->fn_803ACC40();
+        if (_14 != _15) { fn_803E0E90(); fn_803E0F40(); }
+        _15 = _14;
+    }
+}
+
+bool MarioAnimator::fn_803E11D0() const { return getPlayer()->mMovementStates._34; }
+void MarioAnimator::fn_803E11F0() { getPlayer()->decideWalkSpeed(); getPlayer()->decideOnIceAnimation(); }
+
+void MarioAnimator::fn_803E1230() {
+    getPlayer()->decideWalkSpeed();
+    getPlayer()->decideWalkAnimation();
+    if (mActor->mBeeWallWalk) updateWalkBas("BeeCreepWalk", 59.0f);
+    else updateWalkBas("Walk", 59.0f);
+}
+
+void MarioAnimator::fn_803E12B0() {
+    if (isAnimationRun("氷上慣性走行")) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+    else if (isAnimationRun("壁押し", 0)) {
+        getPlayer()->decideWalkSpeed();
+        getPlayer()->checkWallPush();
+    } else {
+        if (getPlayer()->mMovementStates.turning || getPlayer()->mMovementStates._4) getPlayer()->decideWalkSpeed();
+        else if (!isAnimationRun("ハード着地")) {
+            if (isAnimationRun("がんばり走り")) {
+                if (getPlayer()->_8F0 < 1.0f) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+            } else _15 = 0;
+        }
+    }
+    getPlayer()->updateBrakeAnimation();
 }

@@ -583,7 +583,7 @@ void StarPointerLayout::control() {
     }
 
     updateDecoration();
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     rotateTest();
 #endif
     updateTouch();
@@ -626,7 +626,7 @@ void StarPointerLayout::control() {
                 }
                 setNerve(GET_NERVE(StarPointerLayout, HostTypeNrvOutScreen));
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
                 MR::tryRumblePadWeak(this, mPadChannel);
 #else
                 rotateTest();
@@ -634,18 +634,18 @@ void StarPointerLayout::control() {
 #endif
             }
             
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
             return;
 #endif
         } else {
-#if (VERSION == RMGK01)
+#if 1 // was RMGK01 check
             rotateTest();
 #endif
             return;
         }
     }
 
-#if (VERSION == RMGK01)
+#if 1 // was RMGK01 check
     rotateTest();
 #endif
 
@@ -672,7 +672,7 @@ void StarPointerLayout::setPosition() {
 }
 
 void StarPointerLayout::rotateTest() {
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     TVec2f horiz;
     MR::getWPad(mPadChannel)->mPointer->getHorizonVec(&horiz);
     f32 angle = MR::normalizeAbs(MR::toDegree(MR::atan2(horiz.y, horiz.x)), ::sDegreeMin, 180.0f);

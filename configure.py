@@ -228,6 +228,11 @@ cflags_game = [
     "-i libs/nw4r/include",
     f"-i build/{config.version}/include",
     f"-DVERSION={version_num}",
+    # SMG1 version macros used by Petari-derived code: SMG2 follows the latest (RMGK01 / else) branch.
+    "-DRMGK01=0",
+    "-DRMGJ01=1",
+    "-DRMGE01=2",
+    "-DRMGP01=3",
 ]
 
 cflags_sdk = [

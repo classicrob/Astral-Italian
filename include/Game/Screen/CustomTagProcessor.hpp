@@ -70,7 +70,7 @@ public:
         static GroupFunctionInfo sGroupFunctionTable[];
     };
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
+#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     /* 0x04 */ bool mIsShadow;
     /* 0x05 */ bool mIsText;
     /* 0x06 */ bool mIsInfo;

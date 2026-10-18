@@ -172,7 +172,7 @@ void StarPointerPeekZ::drawSyncCallback(u16 token) {
 }
 
 namespace StarPointerFunction {
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     bool isInScreen(const TVec2f& rPos, f32 marginX, f32 marginY) {
         if (rPos.x < marginX) {
             return false;

@@ -113,7 +113,7 @@ void GalaxyNamePlate::show(const wchar_t* pName, s32 a2, bool a3, bool a4) {
     galaxyName = (a3) ? "GalaxyName" : "GalaxyNameU";
     MR::setTextBoxMessageRecursive(this, galaxyName, pName);
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
+#if 1 // pre-RMG-flag behavior (was JP/US/EU check)
     txtGaxyName = (a3) ? "TxtGalaxyName" : "TxtGalaxyNameU";
 #else
     txtGaxyName = (a3) ? "TxtGaxyName" : "TxtGaxyNameU";

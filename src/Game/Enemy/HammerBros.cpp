@@ -6,11 +6,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 
 extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" void fn_80034630(LiveActor*, const char*, HitSensor*, HitSensor*);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-extern "C" void fn_800348C0(LiveActor*);
 extern "C" void fn_8022BAE0(LiveActor*);
 extern "C" s32 lbl_807E3028;
 
@@ -155,7 +151,7 @@ void HammerBros::control() {
     killProjectiles();
     if (MR::isBindedGroundDamageFire(this) || MR::isInWater(mPosition) || MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f))) {
         appearStarPiece();
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
     } else {
         tryBindStarPointer();
@@ -231,7 +227,7 @@ void HammerBros::exeBlowDown() {
     MR::turnDirectionDegree(this, &mFront, dir, 30.0f);
     if (MR::isGreaterStep(this, 240) || (MR::isGreaterStep(this, 15) && MR::isBindedGround(this))) {
         appearStarPiece();
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
     }
 }
@@ -245,7 +241,7 @@ void HammerBros::exeSwoonPressDown() {
     }
     if (MR::isActionEnd(this)) {
         appearCoin();
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
     }
 }
@@ -268,7 +264,7 @@ void HammerBros::exeStandPressDown() {
     }
     if (MR::isActionEnd(this)) {
         appearCoin();
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
     }
 }
@@ -347,7 +343,7 @@ bool HammerBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
     }
     if (vuln) {
         fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
-        fn_800345E0(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
+        MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(NRV(BlowDown));
         killHeldProjectile();
         return true;
@@ -358,7 +354,7 @@ bool HammerBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
 bool HammerBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
         fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
-        fn_800345E0(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
+        MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(NRV(Swoon));
         killHeldProjectile();
         return true;
@@ -381,7 +377,7 @@ bool HammerBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
     } else {
         fn_80012B90(this, 0.0f, 2.0f, pSender, pReceiver, 4);
     }
-    fn_800345E0(this, "\x83\x60\x83\x52\x90\x81\x82\xc1\x94\xf2\x82\xd1");
+    MR::tryHitReaction(this, "\x83\x60\x83\x52\x90\x81\x82\xc1\x94\xf2\x82\xd1");
     setNerve(NRV(Swoon));
     killHeldProjectile();
     return true;
@@ -393,19 +389,19 @@ bool HammerBros::tryStomp() {
         vuln = true;
     }
     if (vuln) {
-        fn_800345E0(this, "\x82\xc2\x82\xd4\x82\xea");
+        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
         setNerve(NRV(SwoonPressDown));
         killHeldProjectile();
         return true;
     }
     if (MR::isPlayerHipDropFalling() && isVulnerable()) {
-        fn_800345E0(this, "\x82\xc2\x82\xd4\x82\xea");
+        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
         setNerve(NRV(StandPressDown));
         killHeldProjectile();
         return true;
     }
     if (isNormalNerve()) {
-        fn_800345E0(this, "\x82\xc2\x82\xd4\x82\xea");
+        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
         setNerve(NRV(Swoon));
         killHeldProjectile();
         return true;
@@ -427,14 +423,14 @@ bool HammerBros::tryYoshiTongue(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
         MR::addVelocityMoveToTargetHorizon(this, *MR::getPlayerPos(), 22.0f);
         MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -2.0f);
-        fn_800345E0(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
+        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
         setNerve(NRV(Swoon));
         killHeldProjectile();
         return false;
     }
     if (isAliveNerve()) {
         MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -2.0f);
-        fn_800345E0(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
+        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
         setNerve(NRV(Swoon));
         killHeldProjectile();
         return false;
@@ -503,7 +499,7 @@ bool HammerBros::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     }
     if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg) || MR::isMsgYoshiEat(msg) || MR::isMsgExplosionAttack(msg)) {
         if (tryExplosionDamage(pSender, pReceiver)) {
-            fn_80034630(this, "\x93\x8a\x82\xb0\x81\x45\x94\x9a\x94\xad\x95\xa8\x83\x5f\x83\x81\x81\x5b\x83\x57", pSender, pReceiver);
+            MR::tryHitReactionBetweenSensors(this, "\x93\x8a\x82\xb0\x81\x45\x94\x9a\x94\xad\x95\xa8\x83\x5f\x83\x81\x81\x5b\x83\x57", pSender, pReceiver);
             return true;
         }
         return false;
@@ -541,7 +537,7 @@ bool HammerBros::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
 
 bool HammerBros::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgExplosionAttack(msg) && tryExplosionDamage(pSender, pReceiver)) {
-        fn_80034630(this, "\x93\x8a\x82\xb0\x81\x45\x94\x9a\x94\xad\x95\xa8\x83\x5f\x83\x81\x81\x5b\x83\x57", pSender, pReceiver);
+        MR::tryHitReactionBetweenSensors(this, "\x93\x8a\x82\xb0\x81\x45\x94\x9a\x94\xad\x95\xa8\x83\x5f\x83\x81\x81\x5b\x83\x57", pSender, pReceiver);
     }
     return false;
 }

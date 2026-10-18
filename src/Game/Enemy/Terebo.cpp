@@ -13,7 +13,6 @@ namespace YoshiFunction {
 };  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers (not in this unit).
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_80052450(LiveActor*, f32, f32, f32);
 
 namespace NrvTerebo {
@@ -165,7 +164,7 @@ void Terebo::exeTongue() {
     if (MR::isFirstStep(this)) {
         MR::startBrk(this, "SpinReaction");
         MR::validateClipping(this);
-        fn_800345E0(this, "\x83\x88\x83\x62\x83\x56\x81\x5B\x90\xE3\x94\xBD\x89\x9E");
+        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5B\x90\xE3\x94\xBD\x89\x9E");
     }
     f32 rate = MR::calcNerveRate(this, (s32)MR::getBrkFrameMax(this));
     f32 t = 4.0f * rate * (rate - 1.0f);

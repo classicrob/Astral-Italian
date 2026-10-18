@@ -6,10 +6,8 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "JSystem/JMath/JMATrigonometric.hpp"
 
-extern "C" void fn_800348C0(LiveActor*);
 extern "C" void fn_800513C0(TQuat4f*, const TVec3f*);
 extern "C" void fn_800514B0(TQuat4f*, const TVec3f*);
-extern "C" void fn_80034690(LiveActor*, const char*, const TVec3f*);
 extern "C" void fn_8000E670(TVec3f*, LiveActor*, const TVec3f*, s32);
 extern "C" void fn_80011DD0(LiveActor*);
 
@@ -139,7 +137,7 @@ bool RollingWater::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
     }
 
     if (!isNerve(GET_NERVE(RollingWater, Wait)) && isNerve(GET_NERVE(RollingWater, Ride))) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
         return true;
     }
@@ -172,7 +170,7 @@ bool RollingWater::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
 
     if (MR::isMsgRushCancel(msg)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
         return true;
     }
@@ -200,7 +198,7 @@ void RollingWater::updateVelocityAndRotation() {
     if (MR::reboundVelocityFromEachCollision(this, 0.5f, 0.0f, 0.0f, 12.0f) && MR::isBindedGround(this)) {
         MR::turnQuatYDirRate(&mQuatBase, mQuatBase, mUpVec, 0.5f);
         mAngVel = 0.15f;
-        fn_80034690(this, "\x92\x85\x92\x6E", &MR::getBindedHitPos(this));
+        MR::tryHitReactionAtPos(this, "\x92\x85\x92\x6E", &MR::getBindedHitPos(this));
         s32 pitch = static_cast< s32 >(1000.0f * MR::calcGravitySpeedAbs(this));
         MR::startActionSound(this, "Bound", pitch, -1, -1);
     } else if (mStepCount <= 5) {
@@ -313,7 +311,7 @@ void RollingWater::exeRide() {
         return;
     }
     if (moveRoute()) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
     }
 }
@@ -326,7 +324,7 @@ void RollingWater::exeRush() {
         mAngVel = -0.15f;
         MR::startBckPlayer("SpaceWait", nullptr);
         MR::startLevelSoundPlayer("RollInWater", -1, -1);
-        fn_80034690(this, "\x8A\xAA\x82\xAB\x8D\x9E\x82\xDD", MR::getPlayerCenterPos());
+        MR::tryHitReactionAtPos(this, "\x8A\xAA\x82\xAB\x8D\x9E\x82\xDD", MR::getPlayerCenterPos());
     }
 
     f32 rate = MR::calcNerveEaseOutRate(this, 60);
@@ -349,7 +347,7 @@ void RollingWater::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::startBckPlayer("Spin2nd", "GCaptureCancel");
         MR::startLevelSoundPlayer("RollOutWater", -1, -1);
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
     }
 
     TVec3f prevCenter(mCenterVec);
@@ -395,7 +393,7 @@ bool RollingWater::checkPlayerAttack() {
         return false;
     }
     if (isNerve(GET_NERVE(RollingWater, Ride))) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
         return true;
     }

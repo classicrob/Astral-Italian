@@ -22,7 +22,6 @@ namespace NrvBussun {
 
 // Unnamed SMG2 helpers used by Bussun.
 extern "C" void fn_8005B750(LiveActor*, s32);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_8000F910(LiveActor*, TVec3f*, TVec3f*);
 extern "C" bool fn_80175A70(const LiveActor*);
 extern "C" const Nerve* fn_80175850(const LiveActor*);
@@ -75,7 +74,7 @@ void Bussun::control() {
 }
 
 void Bussun::kill() {
-    fn_80034910(this);
+    MR::tryHitReactionDead(this);
     LiveActor::kill();
 }
 

@@ -292,7 +292,6 @@ void PackunPetit::endDPDSwoon() {
     mStarPointerState->kill();
 }
 
-extern "C" void fn_80034910(LiveActor*);
 
 void PackunPetit::kill() {
     if (!MR::isDead(mBlownModel)) {
@@ -304,7 +303,7 @@ void PackunPetit::kill() {
         mBlownModel->kill();
     }
 
-    fn_80034910(this);
+    MR::tryHitReactionDead(this);
     LiveActor::kill();
 }
 

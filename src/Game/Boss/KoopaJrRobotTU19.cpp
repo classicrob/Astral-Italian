@@ -6,7 +6,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include <cstdio>
 
-extern "C" void fn_800348C0(LiveActor*);
 
 namespace NrvKoopaJrRobotSeal {
     class KoopaJrRobotSealNrvNormal : public Nerve {
@@ -104,7 +103,7 @@ void KoopaJrRobotSeal::exeBreak() {
         mBreakModel->appear();
         startDisappearAll();
         MR::startActionSound(this, "Break", -1, -1, -1);
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
     }
     if (MR::isDead(mBreakModel) && isDisappearEndAll()) {
         setNerve(&NrvKoopaJrRobotSeal::KoopaJrRobotSealNrvBroken::sInstance);

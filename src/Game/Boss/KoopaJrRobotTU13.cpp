@@ -5,8 +5,6 @@
 #include "Game/LiveActor/BreakModel.hpp"
 
 extern "C" s32 fn_800DA9B0();
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" void fn_800348C0(LiveActor*);
 
 static KoopaJrRobotPart::PartInfo sPartTable[4] = {
     {0, "\x8e\xe3\x93_:\x8d\xb6", "WeakPointFL", "WeakPointLeft", "JrRobotWeakPointL"},
@@ -148,7 +146,7 @@ void KoopaJrRobotPart::exeDamage1() {
     if (MR::isFirstStep(this)) {
         if (mModel != nullptr) {
             MR::startAction(mModel, "Damage1");
-            fn_800345E0(mModel, "\x83_\x83\x81\x81[\x83W");
+            MR::tryHitReaction(mModel, "\x83_\x83\x81\x81[\x83W");
         }
     }
 }
@@ -161,7 +159,7 @@ void KoopaJrRobotPart::exeDamage2() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mModel, "Damage2");
         mBreakModel->appear();
-        fn_800348C0(mModel);
+        MR::tryHitReactionBreak(mModel);
         appearStarPiece();
     }
     if (MR::isBvaStopped(mModel)) {

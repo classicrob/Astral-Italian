@@ -22,6 +22,9 @@ namespace MR {
     bool isPreparedStageBgm();
     void setStageBGMState(s32, u32);
     void setStageBGMStateBit(u32);
+    s32 getPlayingStageBgmId();
+    s32 getStageBgmState();
+    void adjustPorterBGGM(s32);
 
     JAISoundHandle* startSubBGM(const char*, bool);
     void stopSubBGM(u32);

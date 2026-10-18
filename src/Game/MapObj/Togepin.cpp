@@ -4,8 +4,6 @@
 #include "Game/Util.hpp"
 
 extern "C" void fn_803245E0(LiveActor*, Togepin*);
-extern "C" void fn_800347C0(Togepin*, TVec3f*);
-extern "C" void fn_80034910(Togepin*);
 extern "C" void fn_8022BA10(Togepin*);
 
 namespace NrvTogepin {
@@ -204,7 +202,7 @@ void Togepin::exeBlow() {
         if (mParent != nullptr) {
             fn_803245E0(mParent, this);
         }
-        fn_800347C0(this, &mPosition);
+        MR::tryHitReactionBlow(this, &mPosition);
         MR::startAction(this, "Blow");
         MR::invalidateClipping(this);
         MR::onBind(this);
@@ -213,7 +211,7 @@ void Togepin::exeBlow() {
     MR::attenuateVelocity(this, 0.985f);
     if (MR::isGreaterStep(this, 50) || (MR::isGreaterStep(this, 5) && MR::isBinded(this))) {
         MR::zeroVelocity(this);
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         MR::offBind(this);
         kill();
         if (mParent == nullptr) {

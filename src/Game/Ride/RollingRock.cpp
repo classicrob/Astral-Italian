@@ -17,7 +17,6 @@
 extern "C" {
 void fn_80010D10(LiveActor*, const TVec3f&, f32);
 bool fn_80012BA0(LiveActor*, HitSensor*, HitSensor*, f32);
-void fn_800345E0(const LiveActor*, const char*);
 void fn_8004FFA0();
 void fn_8004FFB0();
 bool fn_80050350();
@@ -648,7 +647,7 @@ bool RollingRockStateRoll::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiv
             isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAccel::sInstance) ||
             isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAccel::sInstance) ||
             isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvJump::sInstance)) {
-            fn_800345E0(mHost, sRumblePushReflect);
+            MR::tryHitReaction(mHost, sRumblePushReflect);
         }
         return true;
     }
@@ -798,7 +797,7 @@ bool RollingRockStateRoll::tryReflect() {
         LiveActor* pHost = mHost;
         HitSensor* pAttack = pHost->getSensor("Attack");
         if (MR::sendMsgReflect(MR::getWallSensor(pHost), pAttack)) {
-            fn_800345E0(mHost, sRumbleBoardReflect);
+            MR::tryHitReaction(mHost, sRumbleBoardReflect);
             mDashStep = 0;
             f32 speed;
             if (MR::isNearZero(mSpeed, 0.001f)) {
@@ -846,7 +845,7 @@ bool RollingRockStateRoll::tryLand() {
     if (!MR::isBindedGround(mHost)) {
         return false;
     }
-    fn_800345E0(mHost, sRumbleLand);
+    MR::tryHitReaction(mHost, sRumbleLand);
     setNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvMove::sInstance);
     return true;
 }
@@ -1053,26 +1052,26 @@ void RollingRockStateRoll::changeState(s32 type) {
     }
     switch (type) {
     case 2:
-        fn_800345E0(mHost, sRumbleRollEnd);
+        MR::tryHitReaction(mHost, sRumbleRollEnd);
         mHost->hideRock();
         break;
     case 3:
-        fn_800345E0(mHost, sRumbleRollEnd);
+        MR::tryHitReaction(mHost, sRumbleRollEnd);
         break;
     case 0:
     case 4:
-        fn_800345E0(mHost, sRumbleRollCancel);
+        MR::tryHitReaction(mHost, sRumbleRollCancel);
         MR::startBckPlayerJ(sBckRollJump);
         break;
     case 1:
     case 5:
-        fn_800345E0(mHost, sRumbleRollEnd);
+        MR::tryHitReaction(mHost, sRumbleRollEnd);
         MR::shakeCameraStrong();
         MR::tryRumblePadMiddle(mHost, 0);
         MR::startBckPlayerJ(sBckRollHitJump);
         break;
     default:
-        fn_800345E0(mHost, sRumbleRollEnd);
+        MR::tryHitReaction(mHost, sRumbleRollEnd);
         break;
     }
     kill();
@@ -1086,7 +1085,7 @@ void RollingRockStateRoll::exeStart() {
         MR::addVelocityJump(mHost, 20.0f);
         MR::startBckPlayer("RollingRockStart", nullptr);
         MR::startLevelSoundPlayer("RockRollStart", -1, -1);
-        fn_800345E0(mHost, sRumbleRollStart);
+        MR::tryHitReaction(mHost, sRumbleRollStart);
         CameraTargetArg arg(mCameraTarget);
         MR::setGameCameraTarget(arg);
         mIsFirstRoll = true;
@@ -1107,7 +1106,7 @@ void RollingRockStateRoll::exeStart() {
 void RollingRockStateRoll::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(mHost);
-        fn_800345E0(mHost, sRumbleLand);
+        MR::tryHitReaction(mHost, sRumbleLand);
         mHost->showRock();
         MR::startBrk(mHost, "Snow");
         MR::setBrkRate(mHost, 0.0f);
@@ -1152,7 +1151,7 @@ void RollingRockStateRoll::exeMove() {
 void RollingRockStateRoll::exeAccel() {
     if (MR::isFirstStep(this)) {
         MR::startLevelSoundPlayer("RockAccel", -1, -1);
-        fn_800345E0(mHost, sRumbleAccel);
+        MR::tryHitReaction(mHost, sRumbleAccel);
         TVec3f vel(mHost->mVelocity);
         fn_80010D10(mHost, vel, mTurnRate);
         mHost->appearBlur();
@@ -1175,7 +1174,7 @@ void RollingRockStateRoll::exeForceDash() {
     if (MR::isFirstStep(this)) {
         mHost->appearBlur();
         MR::startLevelSoundPlayer("RockAccel", -1, -1);
-        fn_800345E0(mHost, sRumbleForceDash);
+        MR::tryHitReaction(mHost, sRumbleForceDash);
         mDashStep = 0;
     }
     if (MR::testCorePadTriggerA(0)) {
@@ -1283,7 +1282,7 @@ bool RollingRockStateRoll::tryTimeOver() {
 
 void RollingRockStateRoll::exeJump() {
     if (MR::isFirstStep(this)) {
-        fn_800345E0(mHost, sRumbleJump);
+        MR::tryHitReaction(mHost, sRumbleJump);
         MR::addVelocityJump(mHost, 33.0f);
         mJumpBuffer = 0;
     }

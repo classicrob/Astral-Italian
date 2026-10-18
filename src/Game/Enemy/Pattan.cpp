@@ -32,10 +32,7 @@ extern "C" f32 lbl_807E305C;
 
 // Unnamed SMG2 helpers used by Pattan.
 extern "C" bool fn_8008E060(const TPos3f*, const TVec3f*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" void fn_800348C0(LiveActor*);
 extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_801E6F00(LiveActor*, const TVec3f*);
 extern "C" void fn_8000F880(const TVec3f*);
 extern "C" bool fn_801E7A80(LiveActor*);
@@ -207,7 +204,7 @@ extern "C" bool fn_801E7C70(LiveActor* pActor) {
         return true;
     }
     if (fn_801E7A80(pActor)) {
-        fn_800345E0(pActor, "ヒップドロップ");
+        MR::tryHitReaction(pActor, "ヒップドロップ");
         pActor->setNerve(GET_PATTAN_NERVE(PattanNrvDead));
         return true;
     }
@@ -217,7 +214,7 @@ extern "C" bool fn_801E7C70(LiveActor* pActor) {
 // Push-back on a horizontal hit (fn_801E7D10).
 extern "C" bool fn_801E7D10(LiveActor* pActor, HitSensor* pSender, HitSensor* pReceiver) {
     if (fn_801E7A80(pActor) && !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvGuard))) {
-        fn_800345E0(pActor, "ヒップドロップ");
+        MR::tryHitReaction(pActor, "ヒップドロップ");
         MR::addVelocityFromPushHorizon(pActor, 15.0f, pSender, pReceiver);
         pActor->setNerve(GET_PATTAN_NERVE(PattanNrvGuard));
         return true;
@@ -312,7 +309,7 @@ void Pattan::exeDown() {
         MR::startAction(this, "AttackEnd");
     }
     if (MR::isActionEnd(this)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         mBaseMtx = TPos3f(MR::getJointMtx(this, "Root"));
         mBreakModel->appear();
         kill();
@@ -345,14 +342,14 @@ void Pattan::exeGuard() {
 void Pattan::exeDead() {
     if (MR::isActionEnd(this)) {
         fn_8022BAA0(this);
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
     }
 }
 
 void Pattan::exePush() {
     if (MR::isFirstStep(this)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         mBaseMtx = TPos3f(MR::getJointMtx(this, "Root"));
         mBreakModel->appear();
         kill();
@@ -361,7 +358,7 @@ void Pattan::exePush() {
 
 void Pattan::exePop() {
     if (MR::isFirstStep(this)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         mBaseMtx = TPos3f(MR::getJointMtx(this, "Root"));
         mBreakModel->appear();
         kill();

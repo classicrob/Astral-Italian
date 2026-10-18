@@ -3,7 +3,6 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" void fn_800348C0(LiveActor*);
 
 namespace NrvKoopaJrRobotStateDamage {
     class KoopaJrRobotStateDamageNrvWait : public Nerve {
@@ -68,7 +67,7 @@ void KoopaJrRobotStateDamage::exeDamageHead() {
         MR::startActionSound(mHost, "DamageLastCrack", -1, -1, -1);
         MR::startAction(mHost->mBody, "Damage1");
         mHost->mBody->mCrack->appear();
-        fn_800348C0(mHost->mBody);
+        MR::tryHitReactionBreak(mHost->mBody);
         return;
     }
     if (MR::isActionEnd(mHost)) {
@@ -81,7 +80,7 @@ void KoopaJrRobotStateDamage::exeDamageLast() {
         MR::startAction(mHost, "DamageLast");
         MR::startActionSound(mHost, "DamageLastBreak", -1, -1, -1);
         MR::startAction(mHost->mBody, "Damage2");
-        fn_800348C0(mHost->mBody);
+        MR::tryHitReactionBreak(mHost->mBody);
         mHost->mBody->mCrack->kill();
         return;
     }

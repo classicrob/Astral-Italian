@@ -7,7 +7,6 @@
 
 // Unnamed SMG2 helpers used by this unit (owned by other units).
 extern "C" {
-void fn_800348C0(LiveActor*);
 void fn_80034820(LiveActor*);
 u32 fn_80304510();
 }
@@ -389,7 +388,7 @@ void SnowBall::exeHide() {
 
 void SnowBall::exeBreak() {
     if (MR::isFirstStep(this)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         MR::zeroVelocity(this);
         MR::startActionSound(this, cBreakSoundName, -1, -1, -1);
     }

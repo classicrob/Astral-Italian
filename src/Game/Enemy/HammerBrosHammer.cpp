@@ -6,11 +6,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 
 extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" void fn_80034630(LiveActor*, const char*, HitSensor*, HitSensor*);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-extern "C" void fn_800348C0(LiveActor*);
 extern "C" void fn_8022BAE0(LiveActor*);
 extern "C" s32 lbl_807E3028;
 
@@ -82,7 +78,7 @@ void HammerBrosHammer::appear() {
 void HammerBrosHammer::kill() {
     LiveActor::kill();
     if (!isNerve(HNRV(Tongue))) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
     }
 }
 
@@ -134,7 +130,7 @@ void HammerBrosHammer::exeTongue() {
 
 void HammerBrosHammer::exeThrown() {
     if (MR::isFirstStep(this)) {
-        fn_800345E0(this, "\x94\xad\x8e\xcb");
+        MR::tryHitReaction(this, "\x94\xad\x8e\xcb");
         exeEaten();
         _B4 = false;
         if (MR::tryStartActionNotPlaying(this, "Spin")) {

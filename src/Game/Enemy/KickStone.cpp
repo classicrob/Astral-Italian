@@ -11,7 +11,6 @@ namespace MR {
     void zeroVelocity(LiveActor*);
 };  // namespace MR
 extern "C" void fn_8000F9A0(TVec3f*, const TVec3f*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_801B3420(TVec3f*, KickStone*, s32);
 namespace YoshiFunction {
     void tryYoshiLick(YoshiLockOnTarget*);
@@ -195,7 +194,7 @@ bool KickStone::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
 
     if (MR::isMsgYoshiStartTongue(msg)) {
         MR::onBind(this);
-        fn_800345E0(this, "Tongue");
+        MR::tryHitReaction(this, "Tongue");
         setNerve(GET_KICKSTONE_NERVE(KickStoneNrvMoveRoll));
         return true;
     }
@@ -250,7 +249,7 @@ extern "C" void fn_801B38B0(KickStone* pActor) {
 
     if (MR::isActionEnd(pActor)) {
         MR::zeroVelocity(pActor);
-        fn_800345E0(pActor, "Land");
+        MR::tryHitReaction(pActor, "Land");
         pActor->setNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreak));
     }
 }

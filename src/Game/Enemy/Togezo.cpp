@@ -41,10 +41,8 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers outside this unit.
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-extern "C" void fn_80034630(LiveActor*, const char*, HitSensor*, HitSensor*);
 extern "C" void fn_800137F0(LiveActor*, TVec3f*, const TVec3f*, f32, f32, f32, f32, f32);
 extern "C" void fn_80422350(TPos3f*);
 extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
@@ -251,7 +249,7 @@ void Togezo::updateTimer() {
         if (!grounded) {
             NRV_GROUP_SHELL(shell);
             if (!shell) {
-                fn_80034910(this);
+                MR::tryHitReactionDead(this);
                 kill();
             }
         }
@@ -495,7 +493,7 @@ void Togezo::exeDown() {
     TVec3f negVel = -mVelocity;
     MR::turnDirectionDegree(this, &mFrontVec, negVel, 30.0f);
     if (MR::isGreaterStep(this, 30)) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         fn_8022BA10(this);
         kill();
     }
@@ -503,7 +501,7 @@ void Togezo::exeDown() {
 
 void Togezo::exeDeath() {
     if (MR::isFirstStep(this)) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         fn_8022BA10(this);
         kill();
     }
@@ -605,7 +603,7 @@ void Togezo::exeShot() {
         mHasAttacked = true;
     }
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
         return;
     }
@@ -659,7 +657,7 @@ void Togezo::control() {
             }
         }
         if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-            fn_80034910(this);
+            MR::tryHitReactionDead(this);
             kill();
             return;
         }
@@ -754,7 +752,7 @@ bool Togezo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
             MR::deleteEffectAll(this);
             fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
             setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
-            fn_80034630(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
+            MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
             return true;
         }
     }
@@ -769,25 +767,25 @@ bool Togezo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
         MR::deleteEffectAll(this);
         fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
         setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
-        fn_80034630(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
+        MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
         return true;
     }
     if (MR::isMsgEnemyAttackElectric(msg)) {
         MR::deleteEffectAll(this);
         setNerve(&NrvTogezo::TogezoNrvDeath::sInstance);
-        fn_80034630(this, "\x93\x64\x8c\x82", pSender, pReceiver);
+        MR::tryHitReactionBetweenSensors(this, "\x93\x64\x8c\x82", pSender, pReceiver);
         return true;
     }
     if (MR::isMsgToEnemyAttackBlow(msg)) {
         MR::deleteEffectAll(this);
         fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
         setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
-        fn_80034630(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
+        MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
         return true;
     }
     if (MR::isMsgToEnemyAttackTrampleDeath(msg)) {
         MR::stopSceneForDefaultHit(8);
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
         return true;
     }
@@ -802,7 +800,7 @@ bool Togezo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
         return false;
     }
     if (MR::isMsgInhaleBlackHole(msg)) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
         return true;
     }

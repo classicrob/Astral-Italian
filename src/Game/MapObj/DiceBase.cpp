@@ -20,7 +20,6 @@ extern "C" u32 lbl_807D3CF0;  // Land (exeThrow -> land)
 // String table (.data): "ItemDice" at +0x90, "Body" +0x9C, "Shadow" +0xA4, sound names +0xAC..+0x134.
 extern "C" u32 lbl_806A2E28;
 
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" DiceMover* fn_800547F0(DiceMover*, s32, s32);
 extern "C" void fn_800548E0(DiceMover*, const void*);
 extern "C" void fn_80054990(DiceMover*, const TVec3f*, const TVec3f*);
@@ -333,7 +332,7 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
             TVec3f up;
             MR::getPlayerUpVec(&up);
             calcPushVec(*MR::getSensorPos(pSender), up);
-            fn_800345E0(this, (pNames + 0x11C));
+            MR::tryHitReaction(this, (pNames + 0x11C));
         }
         return true;
     }
@@ -355,7 +354,7 @@ bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
             MR::stopSceneForDefaultHit(6);
             MR::tryRumblePadStrong(this, 0);
         }
-        fn_800345E0(this, (pNames + 0x128));
+        MR::tryHitReaction(this, (pNames + 0x128));
         startHitStop();
         TVec3f up;
         MR::getPlayerUpVec(&up);

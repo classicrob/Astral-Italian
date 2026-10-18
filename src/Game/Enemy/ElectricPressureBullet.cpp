@@ -12,7 +12,6 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
-extern "C" void fn_800348C0(LiveActor*);
 
 namespace NrvElectricPressureBullet {
     NEW_NERVE(ElectricPressureBulletNrvFly, ElectricPressureBullet, Fly);
@@ -28,7 +27,7 @@ void ElectricPressureBullet::init(const JMapInfoIter& rIter) {
 }
 
 void ElectricPressureBullet::kill() {
-    fn_800348C0(this);
+    MR::tryHitReactionBreak(this);
     MR::emitEffect(this, "Break");
     MR::startActionSound(this, "EmElecbublletBreak");
     LiveActor::kill();

@@ -250,6 +250,7 @@ namespace MR {
     f32 getPlayerShadowHeight();
     bool isPlayerElementMode(s32);
     bool isPlayerSkating();
+    void changePlayerAnimationAndBva(const char*);
     void changePlayerItemStatus(s32);
     void validatePlayerSensor();
     bool isPlayerTakingActor(const char*);

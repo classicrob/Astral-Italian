@@ -15,7 +15,6 @@ namespace MR {
 // Unnamed SMG2 helpers (C linkage so the target reloc names match).
 extern "C" void fn_802C2AA0(LiveActor* pActor, s32 flag, f32 a, f32 b, f32 c);
 extern "C" void fn_8000E670(TVec3f* pDst, const LiveActor* pActor, const TVec3f* pPos, s32 flag);
-extern "C" void fn_800345E0(LiveActor* pActor, const char* pName);
 
 namespace NrvLeafBoard {
     NEW_NERVE(LeafBoardNrvWait, LeafBoard, Wait);
@@ -140,7 +139,7 @@ void LeafBoard::reboundFromWall() {
         f32 speed = MR::scaleVelocity(this, normal);
         if (speed > 5.0f) {
             MR::startAction(this, "Reaction");
-            fn_800345E0(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");
+            MR::tryHitReaction(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");
             MR::startActionSound(this, "HitWall", (s32)(100.0f * speed), -1, -1);
         }
     }
@@ -166,7 +165,7 @@ bool LeafBoard::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
             MR::addVelocity(this, push);
         }
         MR::startAction(this, "Reaction");
-        fn_800345E0(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");
+        MR::tryHitReaction(this, "\x82\xd4\x82\xc2\x82\xa9\x82\xe8");
         MR::startActionSound(this, "HitWall", 0x320, -1, -1);
         return true;
     }

@@ -9,7 +9,6 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_80010020(LiveActor*, const TVec3f&);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);

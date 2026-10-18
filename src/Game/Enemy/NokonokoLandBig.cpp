@@ -17,9 +17,7 @@
 extern "C" char lbl_8068DE30[];
 
 // Unnamed SMG2 helpers that are not part of this unit.
-extern "C" void fn_80034910();
 extern "C" void fn_8000E650(TVec3f*, LiveActor*, const TVec3f*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" bool fn_801D7290(NokonokoLandBig*);
 extern "C" bool fn_801D73E0(NokonokoLandBig*, HitSensor*, HitSensor*);
 
@@ -81,7 +79,7 @@ void NokonokoLandBig::appear() {
 }
 
 void NokonokoLandBig::kill() {
-    fn_80034910();
+    MR::tryHitReactionDead(this);
     if (MR::isValidSwitchDead(this)) {
         MR::onSwitchDead(this);
     }
@@ -188,11 +186,11 @@ bool NokonokoLandBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
         return false;
     }
     if (MR::isEqualSensor(pReceiver, this, lbl_8068DE30 + 0x54)) {
-        fn_800345E0(this, lbl_8068DE30 + 0x5C);
+        MR::tryHitReaction(this, lbl_8068DE30 + 0x5C);
         return true;
     }
     if (MR::isEqualSensor(pReceiver, this, lbl_8068DE30 + 0x74)) {
-        fn_800345E0(this, lbl_8068DE30 + 0x80);
+        MR::tryHitReaction(this, lbl_8068DE30 + 0x80);
         return true;
     }
     return false;

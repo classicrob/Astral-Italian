@@ -10,8 +10,6 @@ extern "C" {
 void fn_80035690(LiveActor*);
 void fn_800145C0(LiveActor*);
 void fn_800145D0(TVec3f*, TVec3f*);
-void fn_800348C0(LiveActor*);
-void fn_80034910(LiveActor*);
 void fn_802DEB90(TVec3f*, f32);
 void fn_802DEBE0();
 void fn_80068E40(SpringValue*, f32);
@@ -222,7 +220,7 @@ bool SpinCloudBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSens
         return false;
     }
     if (MR::isMsgPlayerHipDropFloor(msg)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
         return true;
     }
@@ -234,7 +232,7 @@ bool SpinCloudBlock::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSenso
         return false;
     }
     if (MR::isMsgEnemyAttack(msg) || MR::isMsgExplosionAttack(msg)) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
         return true;
     }
@@ -252,7 +250,7 @@ bool SpinCloudBlock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
             return false;
         }
         MR::invalidateCollisionParts(this);
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
     }
 
@@ -271,7 +269,7 @@ bool SpinCloudBlock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
             }
             mHitTimer = 10;
         } else {
-            fn_800348C0(this);
+            MR::tryHitReactionBreak(this);
             kill();
         }
     }
@@ -375,7 +373,7 @@ void SpinCloudBlock::exeDisperse() {
     }
     if (updateScaleEase(0x3C)) {
         setNerve(&SpinCloudBlockNrvWait::sInstance);
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         kill();
     }
 }
@@ -386,7 +384,7 @@ void SpinCloudBlock::exeDisappear() {
     }
     if (updateScaleEase(0xF)) {
         setNerve(&SpinCloudBlockNrvWait::sInstance);
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
         kill();
     }
 }

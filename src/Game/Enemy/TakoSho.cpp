@@ -21,9 +21,7 @@ namespace MR {
 
 // Unnamed SMG2 helpers outside this unit.
 extern "C" void fn_80208970(TVec3f*, LiveActor*, f32);
-extern "C" void fn_80034910();
 extern "C" void fn_80034820(LiveActor*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_80376C30(LiveActor*, u32, s32);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_8022BAA0(LiveActor*);
@@ -148,7 +146,7 @@ void TakoSho::initAfterPlacement() {
 }
 
 void TakoSho::kill() {
-    fn_80034910();
+    MR::tryHitReactionDead(this);
     LiveActor::kill();
 }
 
@@ -383,7 +381,7 @@ bool TakoSho::tryStartPress(u32 msg) {
     if (!isDamaging()) {
         startBrkDamage();
         MR::zeroVelocity(this);
-        fn_800345E0(this, "\x93\xA5\x82\xDD");
+        MR::tryHitReaction(this, "\x93\xA5\x82\xDD");
         setNerve(&NrvTakoSho::TakoShoNrvPress::sInstance);
         fn_80376C30(this, msg, 0);
         return true;

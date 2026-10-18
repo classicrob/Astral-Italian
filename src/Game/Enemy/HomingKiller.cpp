@@ -91,7 +91,6 @@ extern "C" void fn_80422190();
 extern "C" void fn_80422210();
 extern "C" void fn_80422350(TPos3f*);
 extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
 
 namespace {
     bool isSensorType(const HitSensor* pSensor, const u32* pTypes, u32 numTypes) {
@@ -509,7 +508,7 @@ bool HomingKiller::isBreakByEnemyAttack(u32 msg, HitSensor* pSender) {
     }
 
     if (mType == Type_MagnumKiller && MR::isMsgToEnemyAttackBlow(msg)) {
-        fn_800345E0(this, "パンチングキノコヒット");
+        MR::tryHitReaction(this, "パンチングキノコヒット");
         return true;
     }
 

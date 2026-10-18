@@ -51,8 +51,6 @@ void Kanina_FORCE_MATCH_SDATA2() {
     (void)1.7f;
 }
 
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_8005B750(LiveActor*, s32);
 extern "C" void fn_8022BA10(LiveActor*);
 class KaninaYoshiState : public ActorStateBaseInterface {
@@ -225,7 +223,7 @@ void Kanina::kill() {
         MR::onSwitchA(this);
     }
 
-    fn_80034910(this);
+    MR::tryHitReactionDead(this);
     LiveActor::kill();
 }
 
@@ -536,7 +534,7 @@ void Kanina::startDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 void Kanina::doDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
-    fn_800345E0(this, "ゴロ岩ヒット");
+    MR::tryHitReaction(this, "ゴロ岩ヒット");
     fn_80012B90(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
     MR::isNearZero(mVelocity);
     TVec3f vec;
@@ -1133,7 +1131,7 @@ void Kanina::exeReboundEach() {
 void Kanina::exeGuard() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Guard");
-        fn_800345E0(this, "ガード");
+        MR::tryHitReaction(this, "ガード");
 
         if (!isNerve(GET_NERVE(Kanina, HostTypeGuardHipDrop))) {
             MR::calcVecToPlayerH(&_D0, this, nullptr);

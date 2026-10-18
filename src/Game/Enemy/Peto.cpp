@@ -18,12 +18,9 @@ namespace YoshiFunction {
 };  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers.
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, s32, f32, f32);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_800347C0(LiveActor*, TVec3f*);
 extern "C" f32 fn_8022D440(ActorStateParamScale*, s32);
 extern "C" f32 fn_8022D3E0(ActorStateParamScale*, s32);
 extern "C" f32 lbl_807E3030;
@@ -150,7 +147,7 @@ bool Peto::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
     if (MR::isMsgStarPieceAttack(msg)) {
         if (isPressNerve()) {
             setNerve(GET_NERVE(Peto, PetoNrvSwoon));
-            fn_800345E0(this, "\x83\x58\x83\x5e\x81\x5b\x83\x73\x81\x5b");
+            MR::tryHitReaction(this, "\x83\x58\x83\x5e\x81\x5b\x83\x73\x81\x5b");
         }
     }
     if (MR::isMsgPlayerHitProjectiles(msg)) {
@@ -250,7 +247,7 @@ void Peto::resetState(bool bShowSwitch) {
     MR::setPosition(this, mJumpStart);
     setNerve(GET_NERVE(Peto, PetoNrvHidden));
     if (bShowSwitch) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
     }
     if (MR::isValidSwitchDead(this)) {
         MR::onSwitchDead(this);
@@ -446,7 +443,7 @@ void Peto::exeYoshiEaten() {
 void Peto::exeDown() {
     if (mStateParam->isFirstStep()) {
         MR::startAction(this, "Down");
-        fn_800347C0(this, &mPosition);
+        MR::tryHitReactionBlow(this, &mPosition);
     }
     MR::addVelocityToGravity(this, 0.1f);
     MR::attenuateVelocity(this, 0.98f);

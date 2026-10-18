@@ -12,7 +12,6 @@
 extern "C" void fn_8000E760(TVec3f*, LiveActor*, const TVec3f*, f32, f32);
 extern "C" void emitEffect__2MRFP9LiveActorPCc_0(LiveActor*, const char*);
 extern "C" f32 fn_8000FFD0(f32);
-extern "C" void fn_800345E0(LiveActor*, const char*);
 
 namespace NrvGorogoro {
     NEW_NERVE(GorogoroNrvWait, Gorogoro, Wait);
@@ -396,7 +395,7 @@ void GorogoroCylinderRock::updateFallOnRail() {
         MR::moveRailToNextPoint(this);
         tryUpdateNerve();
         if (!(speed >= lbl_807E3090)) {
-            fn_800345E0(this, "\x92\x85\x92\x6e");
+            MR::tryHitReaction(this, "\x92\x85\x92\x6e");
         }
     } else {
         TVec3f offset = mGravity * 12.0f;

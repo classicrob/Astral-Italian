@@ -22,7 +22,6 @@ extern "C" char lbl_80692B88[];
 
 // Unnamed SMG2 helpers, defined elsewhere in the unit or in other TUs.
 extern "C" void fn_800531B0(TVec3f*, LiveActor*, f32);
-extern "C" void* fn_800345E0(LiveActor*, const char*);
 
 namespace NrvTeresaAtomic {
     NEW_NERVE(TeresaAtomicNrvAppear, TeresaAtomic, Appear);
@@ -362,7 +361,7 @@ void TeresaAtomic::exeDisappear() {
     }
     if (MR::isActionEnd(this)) {
         if (!MR::isHiddenModel(this)) {
-            fn_800345E0(this, "\x8f\xc1\x96\xc5");
+            MR::tryHitReaction(this, "\x8f\xc1\x96\xc5");
             MR::hideModel(this);
         }
     }

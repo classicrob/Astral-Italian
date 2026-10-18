@@ -30,7 +30,6 @@
 #include <revolution/mtx.h>
 #include <revolution/wpad.h>
 
-extern "C" void fn_80034630(LiveActor*, const char*, HitSensor*, HitSensor*);
 
 namespace {
     static const f32 mBaseRadius = 150.0f;
@@ -303,7 +302,7 @@ bool Tamakoro::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
         MR::calcSensorHorizonNormalize(&dir, mGravity, pSender, pReceiver);
         if (mVelocity.dot(dir) < ::sEnemyRollReactionSpeed) {
             if (_14C <= 0) {
-                fn_80034630(this, "衝突", pSender, pReceiver);
+                MR::tryHitReactionBetweenSensors(this, "衝突", pSender, pReceiver);
                 _14C = 6;
             }
             MR::addVelocity(this, dir * ::sEnemyRollReactionSpeed);

@@ -170,7 +170,6 @@ void Jugem::calcAndSetBaseMtx() {
     }
 }
 
-extern "C" void fn_800345E0(LiveActor*, const char*);
 
 JugemCloud::JugemCloud(Jugem* pHost, const char* pName) : PartsModel(pHost, pName, "JugemCloud", nullptr, 19, false) {
     mJugem = pHost;
@@ -187,7 +186,7 @@ void JugemCloud::appear() {
     mCalcOwnMatrix = true;
     MR::setScale(this, 1.0f);
     calcAnim();
-    fn_800345E0(this, "\x8F\x6F\x8C\xBB");
+    MR::tryHitReaction(this, "\x8F\x6F\x8C\xBB");
 }
 
 void JugemCloud::kill() {

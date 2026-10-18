@@ -34,6 +34,13 @@ class TriangleFilterBase;
 class ProjmapEffectMtxSetter;
 
 namespace MR {
+    void tryHitReactionDead(const LiveActor*);
+    void tryHitReactionBreak(const LiveActor*);
+    void tryHitReactionAppear(const LiveActor*);
+    void tryHitReactionBlow(const LiveActor*, const TVec3f*);
+    void tryHitReactionAtPos(const LiveActor*, const char*, const TVec3f*);
+    void tryHitReactionBetweenSensors(const LiveActor*, const char*, HitSensor*, HitSensor*);
+    void tryHitReaction(const LiveActor*, const char*);
     enum CollisionScaleType { CollisionScaleType_AutoEqualScale, CollisionScaleType_NotUsingScale, CollisionScaleType_Default, CollisionScaleType_Unk2 = CollisionScaleType_Default };
     void initSensors(LiveActor*, const char*, const char*);
     void initSwitches(LiveActor*, const JMapInfoIter&, const char*, const char*);

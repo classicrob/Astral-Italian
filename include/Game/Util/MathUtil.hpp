@@ -133,6 +133,7 @@ namespace MR {
      * normalized result is placed into the first argument.
      */
     void makeAxisVerticalZX(TVec3f* pVec, const TVec3f& rAxis);
+    void makeAxisVerticalZXFront(TVec3f* pVec, const TVec3f& rAxis);  // unnamed fn_8003C1D0 (SMG2): makeAxisVerticalZX + fn_8003E340; rename on land
 
     void makeAxisCrossPlane(TVec3f* pVec, TVec3f* pCross, const TVec3f& rNorm);
     bool makeAxisAndCosignVecToVec(TVec3f* pAxis, f32* pCos, const TVec3f& rFrom, const TVec3f& rTo);

@@ -8,7 +8,6 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
-extern "C" void fn_80034910(LiveActor*);
 
 namespace NrvSnowStep {
     NEW_NERVE(SnowStepNrvExtend, SnowStep, Extend);
@@ -94,7 +93,7 @@ void SnowStep::exeShrink() {
     MR::setScale(this, scale / 100.0f);
     mBaseScale = scale / 100.0f;
     if (MR::isGreaterStep(this, mShrinkStep)) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
         MR::startActionSound(this, "Shrink", -1, -1, -1);
         kill();
     }

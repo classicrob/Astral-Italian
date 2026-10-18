@@ -50,7 +50,6 @@ void BenefitItemObj_FORCE_MATCH_SDATA2() {
     (void)60.0f;
 }
 
-extern "C" void fn_800345E0(LiveActor*, const char*);
 
 class ScoreAttackFunction {
 public:
@@ -575,7 +574,7 @@ void BenefitItemObj::setNerveShoot() {
 
 void BenefitItemObj::exeCatchNerve() {
     if (MR::isFirstStep(this)) {
-        fn_800345E0(this, "ゲット");
+        MR::tryHitReaction(this, "ゲット");
         MR::hideModel(this);
         exeCatch();
         kill();

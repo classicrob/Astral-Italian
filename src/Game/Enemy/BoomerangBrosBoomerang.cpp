@@ -5,7 +5,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 
 extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_800348C0(LiveActor*);
 
 BoomerangBrosBoomerang::BoomerangBrosBoomerang(const char* pName) : BrosProjectileBase(pName), _BC(10.0f), mStep(0), mBind(nullptr) {
 }
@@ -53,7 +52,7 @@ void BoomerangBrosBoomerang::appear() {
 void BoomerangBrosBoomerang::kill() {
     LiveActor::kill();
     if (!isNerve(BBNRV(Tongue))) {
-        fn_800348C0(this);
+        MR::tryHitReactionBreak(this);
     }
 }
 

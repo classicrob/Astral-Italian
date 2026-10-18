@@ -9,7 +9,6 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_80010020(LiveActor*, const TVec3f&);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
@@ -325,7 +324,7 @@ bool Wanwan::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     if (isBody && mType != 2) {
         if (MR::isMsgExplosionAttack(msg) || MR::isMsgToEnemyAttackBlow(msg) || MR::isSensorType(pSender, 48)) {
             if (mType == 1 && MR::isSensorEnemy(pSender) && MR::isMsgToEnemyAttackBlow(msg)) {
-                fn_800345E0(this, "\x83\x70\x83\x93\x83\x60\x83\x93\x83\x4f\x83\x4c\x83\x6d\x83\x52\x83\x71\x83\x62\x83\x67");
+                MR::tryHitReaction(this, "\x83\x70\x83\x93\x83\x60\x83\x93\x83\x4f\x83\x4c\x83\x6d\x83\x52\x83\x71\x83\x62\x83\x67");
             }
             setNerveBreak(true);
             return true;

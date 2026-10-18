@@ -18,8 +18,6 @@
 // Unnamed SMG2 helpers (plain C symbols).
 extern "C" {
     s32 fn_804B8960();
-    void fn_800345E0(LiveActor*, const char*);
-    void fn_80034690(LiveActor*, const char*, const TVec3f*);
     void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
     void fn_800095D0(LiveActor*, f32, f32, f32);
     void fn_8004F030();
@@ -576,13 +574,13 @@ bool GliBird::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 void GliBird::damage(bool isFire) {
     if (isFire || MR::isBindedDamageFire(this)) {
         MR::emitEffect(this, "FireDamage");
-        fn_800345E0(this, "溶岩ダメージ");
+        MR::tryHitReaction(this, "溶岩ダメージ");
 
         if (!mNoRumble) {
             MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         }
     } else {
-        fn_800345E0(this, "ダメージ");
+        MR::tryHitReaction(this, "ダメージ");
 
         if (!mNoRumble) {
             MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -611,7 +609,7 @@ void GliBird::deadLava() {
     MR::hidePlayer();
     MR::zeroVelocity(this);
     MR::tryDeleteEffect(this, "GroundApproach");
-    fn_800345E0(this, "溶岩死亡");
+    MR::tryHitReaction(this, "溶岩死亡");
 
     if (!mNoRumble) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -813,7 +811,7 @@ bool GliBird::updateCollision() {
                 MR::zeroVelocity(this);
                 MR::deleteEffect(this, "NearWater");
                 MR::tryDeleteEffect(this, "GroundApproach");
-                fn_800345E0(this, "水面死亡");
+                MR::tryHitReaction(this, "水面死亡");
 
                 if (!mNoRumble) {
                     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -947,7 +945,7 @@ bool GliBird::tryDeadWall(const TVec3f& rNormal, HitSensor* pSensor, bool isFire
             return true;
         }
 
-        fn_80034690(this, "壁ヒット死亡", &mDeadBody->mPosition);
+        MR::tryHitReactionAtPos(this, "壁ヒット死亡", &mDeadBody->mPosition);
 
         if (!mNoRumble) {
             MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -966,7 +964,7 @@ void GliBird::touchWater(const TVec3f& rPos, f32 depth) {
         mIsWaterEffect = true;
     }
 
-    fn_800345E0(this, "水面接触");
+    MR::tryHitReaction(this, "水面接触");
 
     if (!mNoRumble) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -1010,7 +1008,7 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
 
         if (MR::isGreaterStep(this, 5) && MR::isBindedGround(this)) {
             if (MR::isBindedGroundWater(this)) {
-                fn_800345E0(this, "水面死亡");
+                MR::tryHitReaction(this, "水面死亡");
 
                 if (!mNoRumble) {
                     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -1022,7 +1020,7 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
             } else if (MR::isBindedGroundDamageFire(this)) {
                 mLavaSmallMtx.set(getBaseMtx());
                 MR::emitEffect(this, "GliBirdLavaInSmall");
-                fn_800345E0(this, "溶岩死亡");
+                MR::tryHitReaction(this, "溶岩死亡");
 
                 if (!mNoRumble) {
                     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -1044,7 +1042,7 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
 
         if (MR::isGreaterStep(this, 5) && MR::isBindedGround(mDeadBody)) {
             if (MR::isBindedGroundWater(mDeadBody)) {
-                fn_800345E0(this, "水面死亡");
+                MR::tryHitReaction(this, "水面死亡");
 
                 if (!mNoRumble) {
                     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -1055,7 +1053,7 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
             } else if (MR::isBindedGroundDamageFire(mDeadBody)) {
                 mLavaPlayerMtx.setTrans(mDeadBody->mPosition);
                 MR::emitEffect(this, "GliBirdLavaInPlayer");
-                fn_800345E0(this, "溶岩死亡");
+                MR::tryHitReaction(this, "溶岩死亡");
 
                 if (!mNoRumble) {
                     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -1066,7 +1064,7 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
                 MR::startBckPlayer("GliBirdGlideDeadLand", nullptr);
             }
 
-            fn_80034690(this, "プレイヤー死亡着地", &mDeadBody->mPosition);
+            MR::tryHitReactionAtPos(this, "プレイヤー死亡着地", &mDeadBody->mPosition);
 
             if (!mNoRumble) {
                 MR::tryRumblePadWeak(this, WPAD_CHAN0);

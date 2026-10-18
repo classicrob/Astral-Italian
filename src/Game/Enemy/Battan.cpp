@@ -65,8 +65,6 @@ extern "C" bool fn_8008E060(const TPos3f*, const TVec3f*);
 extern "C" void fn_8000F880(const TVec3f*);
 extern "C" void fn_80011DD0(LiveActor*);
 extern "C" void fn_80011E20(LiveActor*);
-extern "C" void fn_800345E0(LiveActor*, const char*);
-extern "C" s32 fn_80034910(LiveActor*);
 extern "C" void fn_800515E0();
 extern "C" s32 lbl_807E3020;
 extern "C" bool fn_800531B0(TVec3f*, LiveActor*, f32);
@@ -368,7 +366,7 @@ bool Battan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
 // Hip-drop / attack kill check (fn_8015ABD0). Returns true when the Battan was knocked down.
 bool Battan::tryAttackDown(LiveActor* pActor) {
     if (isAttackingNerve(pActor)) {
-        fn_800345E0(pActor, "ヒップドロップ");
+        MR::tryHitReaction(pActor, "ヒップドロップ");
         static_cast<Battan*>(pActor)->mTicoStop->tryTouch();
         pActor->setNerve(GET_BATTAN_NERVE(BattanNrvDown));
         return true;

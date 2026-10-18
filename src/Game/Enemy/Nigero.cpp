@@ -17,7 +17,6 @@ namespace YoshiFunction {
 };  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers.
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_80034820(LiveActor*);
 extern "C" void fn_8000EAB0(TVec3f*, LiveActor*);
 extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, s32, f32, f32);
@@ -441,7 +440,7 @@ void Nigero::exeAway() {
 void Nigero::exeSwoon() {
     if (MR::isFirstStep(this)) {
         mAnimScaleCtrl->startHitReaction();
-        fn_800345E0(this, "\x83\x58\x83\x5e\x81\x5b\x83\x73\x81\x5b\x83\x58\x83\x71\x83\x62");
+        MR::tryHitReaction(this, "\x83\x58\x83\x5e\x81\x5b\x83\x73\x81\x5b\x83\x58\x83\x71\x83\x62");
         recvLostTarget();
         MR::startAction(this, "Swoon");
     }

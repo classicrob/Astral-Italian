@@ -32,6 +32,9 @@ public:
     void exeLeaveCameraEnd();
     void exeLeaveFinish();
 
+    bool calcJointMtx(MtxPtr);
+    bool isDemo() const;
+
     /* 0x90 */ TPos3f mBaseMtx;
     /* 0xC0 */ LiveActor* mExitPoint;
     /* 0xC4 */ LiveActor* mWarpPoint;
@@ -82,6 +85,13 @@ public:
     virtual ~PetitPorterMediator();
     virtual void initAfterPlacement();
 
+    void registerPorter(PetitPorter*, PetitPorterExitPoint*, PetitPorterWarpPoint*, const JMapInfoIter&);
+    bool isAnyPorterDemo() const;
+
     /* 0x14 */ s32 mCount;
     /* 0x18 */ PetitPorterLink* mLinks;
 };
+
+namespace PetitPorterFunction {
+    bool isDemo();
+};  // namespace PetitPorterFunction

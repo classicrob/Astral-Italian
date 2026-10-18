@@ -17,6 +17,8 @@ class BreakModel;
 class WalkerStateBindStarPointer;
 class TwoLegs;
 class TwoLegsBullet;
+class HorinoHill;
+class HorinoHillPart;
 class TwoLegsBodyDir;
 class TwoLegsCamera;
 class TwoLegsJointCtrl;
@@ -273,7 +275,7 @@ public:
     /* 0x18 */ bool mAttacked;
 };
 
-// TU01/TU02: boss bullet ("二脚ボスの弾")
+// TU01/TU02: boss bullet ("二脚ボスの弾"), SMG2 name "Horino"
 class TwoLegsBullet : public LiveActor {
 public:
     TwoLegsBullet(TwoLegs*, const char*);                              // __ct__13TwoLegsBulletFP7TwoLegsPCc
@@ -290,21 +292,59 @@ public:
 
     void reverseMove();                                // fn_801045C0
     void calcSideVec();                                // fn_80104AC0
-    void calcPosAhead(TVec3f*, f32);                   // fn_80104BA0
+    void calcPosAhead(f32);                            // fn_80104BA0
     void turnToward(const TVec3f&, const TVec3f&, f32);  // fn_80104C00
-    bool isTramplable();                               // fn_80104C90
+    bool isTramplable() const;                         // fn_80104C90
     void killHill();                                   // fn_80104D20
     bool isReflectSource(HitSensor*, HitSensor*);      // fn_80104D90
+    bool tryStartPointBind();                          // fn_80104E50
+    void exeMove();                                    // fn_80104EA0 (nerve 1C58)
+    void exeStop();                                    // fn_80105200 (nerve 1C5C)
+    void exeWalk();                                    // fn_80105000 (nerve 1C60)
+    void exeReflect();                                 // fn_80105070 (nerve 1C64)
+    void exeRise();                                    // fn_80105140 (nerve 1C68)
+    void exeTrample();                                 // fn_801052B0 (nerve 1C6C)
 
     /* 0x90 */ TwoLegs* mHost;
     /* 0x94 */ TVec3f mFront;
     /* 0xA0 */ TVec3f mSide;
     /* 0xAC */ TVec3f mShadowDir;
     /* 0xB8 */ TPos3f mMtx;
-    /* 0xE8 */ LiveActor* mHill;
+    /* 0xE8 */ HorinoHill* mHill;
     /* 0xEC */ TVec3f mHillDir;
     /* 0xF8 */ AnimScaleController* mScaleCtrl;
     /* 0xFC */ WalkerStateBindStarPointer* mStateBind;
+};
+
+// TU02: "HorinoHill" actor (0xB0 bytes) created by TwoLegsBullet, owns mNum HorinoHillPart pieces
+class HorinoHill : public LiveActor {
+public:
+    HorinoHill(LiveActor*, s32, const char*, f32);      // fn_80105820
+    virtual ~HorinoHill();                              // fn_80105B20
+    virtual void init(const JMapInfoIter&);             // fn_801058B0
+    virtual void appear();                              // fn_80105970
+    void tryAppearPart(bool);                           // fn_801059B0
+
+    /* 0x90 */ LiveActor* mHost;
+    /* 0x94 */ HorinoHillPart** mParts;
+    /* 0x98 */ s32 mPartNum;
+    /* 0x9C */ f32 mRadius;
+    /* 0xA0 */ TVec3f mPos;
+    /* 0xAC */ TVec3f* mUpDir;
+};
+
+// TU02: one piece of the HorinoHill (0xC0 bytes)
+class HorinoHillPart : public LiveActor {
+public:
+    HorinoHillPart(const char*);                        // fn_80105520
+    virtual ~HorinoHillPart();                          // fn_80105AC0
+    virtual void init(const JMapInfoIter&);             // fn_80105570
+    virtual void appear();                              // fn_801055D0
+    virtual void calcAndSetBaseMtx();                   // fn_801057A0
+    bool tryPlace(const TVec3f&, const TVec3f&);        // fn_80105630
+    void exeShrink();                                   // fn_801057B0 (nerve 1C7C)
+
+    /* 0x90 */ TPos3f mMtx;
 };
 
 // ---------------------------------------------------------------------------------------------

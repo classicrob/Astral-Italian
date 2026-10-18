@@ -31,7 +31,6 @@ extern "C" void fn_8000A320(LiveActor*);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_8022BAA0(LiveActor*);
 extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, s32, void*, f32, f32);
-extern "C" void fn_80034630(LiveActor*, const void*, HitSensor*, HitSensor*);
 extern "C" void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
 
 
@@ -151,7 +150,7 @@ void DanceFlower::calcAndSetBaseMtx() {
 static void dfAttackBlock8(DanceFlower* pActor, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemy(pReceiver) && fn_8017A920(pActor) && MR::isEqualSensor(pSender, pActor, "Attack") &&
         MR::sendMsgToEnemyAttackBlow(pReceiver, pSender)) {
-        fn_80034630(pActor, nullptr, pSender, pReceiver);
+        MR::tryHitReactionBetweenSensors(pActor, nullptr, pSender, pReceiver);
     }
     if (MR::isEqualSensor(pSender, pActor, "Body")) {
         MR::sendMsgPush(pReceiver, pSender);

@@ -14,7 +14,6 @@ namespace MR {
 
 extern "C" void fn_80318760(TVec3f*);
 extern "C" void fn_8004DB60(LiveActor*, TVec3f*, TVec3f*, f32, s32, s32, s32, s32);
-extern "C" void fn_800345E0(LiveActor*, const char*);
 
 
 namespace NrvStarPieceFlower {
@@ -125,7 +124,7 @@ void StarPieceFlower::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     push -= back;
 
     fn_8004DB60(this, &mPosition, &push, 0.0f, 1, 0, 0, 1);
-    fn_800345E0(this, "\203X\203^\201[\203s\201[\203X\225\372\217o");
+    MR::tryHitReaction(this, "\203X\203^\201[\203s\201[\203X\225\372\217o");
     MR::invalidateHitSensor(this, "Body");
     setNerve(&NrvStarPieceFlower::StarPieceFlowerNrvOpen::sInstance);
 }
@@ -145,7 +144,7 @@ bool StarPieceFlower::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
     }
 
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        fn_800345E0(this, "\203X\203s\203\223\224\275\211\236");
+        MR::tryHitReaction(this, "\203X\203s\203\223\224\275\211\236");
         setNerve(&NrvStarPieceFlower::StarPieceFlowerNrvSpinReaction::sInstance);
         return false;
     }

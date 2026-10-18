@@ -15,7 +15,6 @@ extern "C" bool fn_802D4B00(MoveBlockFunction*);
 extern "C" bool fn_802D4CD0(MoveBlockFunction*);
 extern "C" bool fn_802D4CF0(MoveBlockFunction*);
 extern "C" bool fn_802D4D00(MoveBlockFunction*, s32);
-extern "C" void fn_800345E0(LiveActor*, const char*);
 
 namespace NrvHipDropMoveBlock {
     class HipDropMoveBlockNrvWait : public Nerve {
@@ -219,7 +218,7 @@ void HipDropMoveBlock::exeMove() {
     if (MR::isFirstStep(this)) {
         MR::tryStartAllAnim(this, pNames + 0x60);
         fn_800083F0(this, pNames + 0x60, -1, -1, -1);
-        fn_800345E0(this, pNames + 0x68);
+        MR::tryHitReaction(this, pNames + 0x68);
         if (MR::isValidSwitchA(this) && mFlag96) {
             MR::onSwitchA(this);
         }
@@ -235,7 +234,7 @@ void HipDropMoveBlock::exeMove() {
             }
             MR::tryStartAllAnim(this, pNames + 0x80);
             fn_800083F0(this, pNames + 0x80, -1, -1, -1);
-            fn_800345E0(this, pNames + 0x88);
+            MR::tryHitReaction(this, pNames + 0x88);
             setNerve(GET_NERVE(HipDropMoveBlock, HipDropMoveBlockNrvWait));
             return;
         }
@@ -245,7 +244,7 @@ void HipDropMoveBlock::exeMove() {
         }
         MR::tryStartAllAnim(this, pNames + 0x98);
         fn_800083F0(this, pNames + 0x98, -1, -1, -1);
-        fn_800345E0(this, pNames + 0xA0);
+        MR::tryHitReaction(this, pNames + 0xA0);
 
         if (mActiveSwitch != nullptr) {
             if (mActiveSwitch->tryOff()) {

@@ -3,7 +3,6 @@
 #include "Game/Util.hpp"
 #include "JSystem/JGeometry/TVec.hpp"
 
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_8001C030(s32);
 extern "C" s32 fn_80059390();
 extern "C" void fn_80059210();
@@ -102,7 +101,7 @@ void WorldMapAccessPanel::calcAndSetBaseMtx() {
 void WorldMapAccessPanel::exeWait() {
     if (isPlayerOnAccessSensor()) {
         MR::startActionSound(this, "RideOnTrg", -1, -1, -1);
-        fn_800345E0(this, "パネルオン");
+        MR::tryHitReaction(this, "パネルオン");
         setNerve(WMAP_NRV(Stand));
     }
 }
@@ -134,7 +133,7 @@ void WorldMapAccessPanel::exeStand() {
             mCounterB = 0;
             mCounterA = 0;
             MR::startBrkAndSetFrameAndStop(this, "Access", 0.0f);
-            fn_800345E0(this, "パネルオフ");
+            MR::tryHitReaction(this, "パネルオフ");
             MR::startActionSound(this, "RideOff", -1, -1, -1);
             setNerve(WMAP_NRV(Wait));
         }
@@ -146,7 +145,7 @@ void WorldMapAccessPanel::exeDemoStart() {
 
     if (MR::isGreaterEqualStep(this, sStepLimit)) {
         if (MR::isLessEqualStep(this, 1)) {
-            fn_800345E0(this, "移動開始");
+            MR::tryHitReaction(this, "移動開始");
         }
     }
 
@@ -204,7 +203,7 @@ void WorldMapAccessPanel::exeAccess() {
     if (isNerve(WMAP_NRV(AccessEnd))) {
         if (MR::isGreaterEqualStep(this, sStepCheck)) {
             if (MR::isLessEqualStep(this, 1)) {
-                fn_800345E0(this, "帰還開始");
+                MR::tryHitReaction(this, "帰還開始");
             }
         }
         if (!MR::isDemoActive()) {
@@ -231,7 +230,7 @@ void WorldMapAccessPanel::exeReturn() {
         if (!isPlayerOutOfRange()) {
             MR::startBrkAndSetFrameAndStop(this, "Access", 0.0f);
             MR::startActionSound(this, "RideOff", -1, -1, -1);
-            fn_800345E0(this, "パネルオフ");
+            MR::tryHitReaction(this, "パネルオフ");
             setNerve(WMAP_NRV(Wait));
         }
     }

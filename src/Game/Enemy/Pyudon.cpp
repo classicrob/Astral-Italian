@@ -19,14 +19,12 @@ namespace YoshiFunction {
 
 
 // Unnamed SMG2 helpers (other units or this unit's helpers, see wip/Pyudon.renames.txt).
-extern "C" void fn_800345E0(LiveActor*, const char*);
 extern "C" void fn_80376C30(LiveActor*, u32, s32);
 extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, s32, f32, f32);
 extern "C" void fn_8022BAA0(LiveActor*);
 extern "C" void fn_8022BA10(LiveActor*);
 extern "C" void fn_802CC510(MapObjConnector*);
 extern "C" void fn_802CC5D0(MapObjConnector*);
-extern "C" void fn_80034910(LiveActor*);
 extern "C" u32 lbl_807E3060;
 extern "C" u32 lbl_807E3064;
 extern "C" f32 lbl_807E3068;
@@ -107,7 +105,7 @@ void Pyudon::makeActorAppeared() {
 
 void Pyudon::kill() {
     if (!isNerve(GET_NERVE(Pyudon, PyudonNrvNone))) {
-        fn_80034910(this);
+        MR::tryHitReactionDead(this);
     }
     LiveActor::kill();
 }
@@ -472,7 +470,7 @@ void Pyudon::receiveMsgPlayerTrample(u32 msg, HitSensor* pSender) {
         return;
     }
     MR::zeroVelocity(this);
-    fn_800345E0(this, "\x93\xa5\x82\xdc\x82\xea\x83q\x83b\x83g");  // hit sound (string lbl_806905D8)
+    MR::tryHitReaction(this, "\x93\xa5\x82\xdc\x82\xea\x83q\x83b\x83g");  // hit sound (string lbl_806905D8)
     fn_80376C30(this, msg, 0);
     setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));
 }
@@ -487,7 +485,7 @@ bool Pyudon::receiveMsgSpinAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
         return false;
     }
     MR::zeroVelocity(this);
-    fn_800345E0(this, "\x90\x81\x82\xab\x94\xf2\x82\xd1\x83q\x83b\x83g");  // lbl_806905E8
+    MR::tryHitReaction(this, "\x90\x81\x82\xab\x94\xf2\x82\xd1\x83q\x83b\x83g");  // lbl_806905E8
     fn_80012B90(this, pSender, pReceiver, 4, 30.0f, 30.0f);
     fn_80376C30(this, msg, 0);
     setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));
@@ -498,7 +496,7 @@ bool Pyudon::receiveMsgSpinAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
 bool Pyudon::receiveMsgKick(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isHipDropNerve() || isNerve(GET_NERVE(Pyudon, PyudonNrvStarPieceReactionAir))) {
         MR::zeroVelocity(this);
-        fn_800345E0(this, "\x83L\x83b\x83N\x83q\x83b\x83g");  // lbl_806905F8
+        MR::tryHitReaction(this, "\x83L\x83b\x83N\x83q\x83b\x83g");  // lbl_806905F8
         fn_80012B90(this, pSender, pReceiver, 4, 30.0f, 30.0f);
         fn_80376C30(this, msg, 0);
         setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));

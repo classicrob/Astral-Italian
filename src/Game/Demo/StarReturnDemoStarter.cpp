@@ -24,6 +24,11 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
+namespace GameSequenceFunction {
+    bool hasStageResultSequence();
+    bool hasNextDemoForStorySequenceEvent();
+};  // namespace GameSequenceFunction
+
 namespace {
     const s32 cDemoAppearEffectStep = 30;
     const s32 cDemoAppearWaitFrame = 45;
@@ -37,8 +42,7 @@ namespace {
     const char* const cDemoWaitPartName = "ウェイト";
 };  // namespace
 
-namespace {
-};  // namespace
+// NONMATCHING (not restored): init/appear/exeMove need GameSequenceFunction::isGrandStarAtResultSequence (no def in src)
 
 namespace NrvStarReturnDemoStarter {
     NEW_NERVE(StarReturnDemoStarterNrvAppearWait, StarReturnDemoStarter, AppearWait);
@@ -237,5 +241,29 @@ void StarReturnDemoStarter::exeStageResultAfter() {
 
     if (!MR::isTimeKeepDemoActive()) {
         kill();
+    }
+}
+
+void StarReturnDemoStarter::tryStartStageResult() {
+    if (MR::isDemoPartLastStep(::cDemoWaitPartName)) {
+        if (GameSequenceFunction::hasStageResultSequence()) {
+            mStageResultInformer->appear();
+            MR::requestMovementOn(mStageResultInformer);
+        }
+
+        MR::pauseTimeKeepDemo(this);
+        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResult));
+    }
+}
+
+// NONMATCHING (not restored): exeFall needs MR::startSoundPlayer(const char*) (1-arg); PlayerUtil.hpp only declares (const char*, s32, s32)
+
+void StarReturnDemoStarter::exeStageResult() {
+    tryStartResultWait();
+
+    if (MR::isDead(mStageResultInformer) && MR::isEqualStringCase(MR::getPlayerCurrentBckName(), "ResultWait")) {
+        GameSequenceFunction::hasNextDemoForStorySequenceEvent() ?
+            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFadeOut)) :
+            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResultAfter));
     }
 }

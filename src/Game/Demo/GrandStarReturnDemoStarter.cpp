@@ -32,6 +32,11 @@ GrandStarReturnDemoStarter::GrandStarReturnDemoStarter(const char* pName)
     mTransform.identity();
 }
 
+// Local prototype: defined in src/Game/System/GameSequenceFunction.cpp, not declared in its header
+namespace GameSequenceFunction {
+    bool hasStageResultSequence();
+};  // namespace GameSequenceFunction
+
 namespace NrvGrandStarReturnDemoStarter {
     NEW_NERVE(GrandStarReturnDemoStarterNrvMove, GrandStarReturnDemoStarter, Move);
     NEW_NERVE(GrandStarReturnDemoStarterNrvFlyWait, GrandStarReturnDemoStarter, FlyWait);
@@ -184,3 +189,17 @@ void GrandStarReturnDemoStarter::exeWaitDemoEnd() {
 
 GrandStarReturnDemoStarter::~GrandStarReturnDemoStarter() {
 }
+
+void GrandStarReturnDemoStarter::tryStartStageResult(const char* pDemoName) {
+    if (MR::isDemoPartLastStep(pDemoName)) {
+        if (GameSequenceFunction::hasStageResultSequence()) {
+            mStageResultInformer->appear();
+            MR::requestMovementOn(mStageResultInformer);
+        }
+
+        MR::pauseTimeKeepDemo(this);
+        setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvStageResult));
+    }
+}
+
+// NONMATCHING (not restored): exeMove needs MR::startLevelSoundPlayer(const char*) (1-arg); PlayerUtil.hpp declares (const char*, s32, s32)

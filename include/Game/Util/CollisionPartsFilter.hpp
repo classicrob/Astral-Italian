@@ -30,3 +30,13 @@ public:
 
     /* 0x04 */ const LiveActor* mActor;
 };
+
+class CollisionPartsFilterSensorType : public CollisionPartsFilterBase {
+public:
+    inline CollisionPartsFilterSensorType(u32 type) : mSensorType(type) {
+    }
+
+    virtual bool isInvalidParts(const CollisionParts* pParts) const;
+
+    /* 0x04 */ u32 mSensorType;
+};

@@ -155,3 +155,14 @@ bool LogoScene::tryFadeoutLayout(LayoutActor* pActor) {
     return false;
 }
 
+void LogoScene::exeMountGameData() {
+    if (MR::isFirstStep(this)) {
+        GameSequenceFunction::startPreLoadSaveDataSequence();
+    }
+
+    if (GameSequenceFunction::isActiveSaveDataHandleSequence()) {
+        return;
+    }
+
+    setNerve(GET_NERVE_ANON(LogoSceneDeactive));
+}

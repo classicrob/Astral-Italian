@@ -312,3 +312,25 @@ void ScenarioSelectScene::exeWaitResumeInitializeThreadIfRequestedReset() {
     }
 }
 
+// NONMATCHING (not restored): trySetCurrentScenarioNo needs GalaxyStatusAccessor::isHiddenStar (not declared in shared header)
+
+// Local prototypes: defined in src/System, not declared in their headers
+namespace GameSequenceFunction {
+    void requestCancelScenarioSelect();
+};  // namespace GameSequenceFunction
+namespace GameSystemFunction {
+    void resetCurrentScenarioNo();
+};  // namespace GameSystemFunction
+
+void ScenarioSelectScene::exeWaitResumeInitializeThreadIfCanceledSelect() {
+    if (MR::isDead(mScenarioLayout)) {
+        if (::tryResumeInitializeThread()) {
+            GameSystemFunction::resetCurrentScenarioNo();
+            GameSequenceFunction::requestCancelScenarioSelect();
+            suspend();
+            _16 = 1;
+            MR::Effect::forceDeleteAllEmitters(mEffectSystem);
+            setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvDeactive));
+        }
+    }
+}

@@ -2,6 +2,7 @@
 
 #include "Game/Map/PlanetMap.hpp"
 
+class JMapInfo;
 class NameObjArchiveListCollector;
 
 struct PlanetMapData {

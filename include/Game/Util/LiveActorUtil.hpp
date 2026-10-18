@@ -140,7 +140,7 @@ namespace MR {
     // getLightAmbientColor
     ActorLightCtrl* getLightCtrl(const LiveActor* pActor);
 
-    bool isStep(const LiveActor* pActor, s32 step);
+    bool isStep(const LiveActor* pActor, s32 step) NO_INLINE;
     bool isFirstStep(const LiveActor* pActor);
     bool isLessStep(const LiveActor* pActor, s32 step);
     bool isLessEqualStep(const LiveActor* pActor, s32 step);
@@ -220,7 +220,7 @@ namespace MR {
     void showModelIfHidden(LiveActor* pActor);
     void hideModelIfShown(LiveActor* pActor);
     void hideModelAndOnCalcAnimIfShown(LiveActor* pActor);
-    bool isStopAnimFrame(LiveActor* pActor);
+    bool isStopAnimFrame(const LiveActor* pActor);
     void stopAnimFrame(LiveActor* pActor);
     void releaseAnimFrame(LiveActor* pActor);
     bool isNoCalcAnim(const LiveActor* pActor);
@@ -319,11 +319,11 @@ namespace MR {
 
     bool tryStartAllAnim(const LiveActor*, const char*);
     ModelObj* createBloomModel2(LiveActor* pHost, MtxPtr pMtx);  // directly jumps to function below
-    ModelObj* createBloomModel(LiveActor* pHost, MtxPtr pMtx);
-    ModelObj* createWaterModel(LiveActor* pHost, MtxPtr pMtx);
-    ModelObj* createIceModel(LiveActor* pHost, MtxPtr pMtx);
-    ModelObj* createIndirectPlanetModel(LiveActor* pHost, MtxPtr pMtx);
-    ModelObj* createIndirectModel(LiveActor* pHost, MtxPtr pMtx);
+    PartsModel* createBloomModel(LiveActor* pHost, MtxPtr pMtx);
+    PartsModel* createWaterModel(LiveActor* pHost, MtxPtr pMtx);
+    PartsModel* createIceModel(LiveActor* pHost, MtxPtr pMtx, bool);
+    PartsModel* createIndirectPlanetModel(LiveActor* pHost, MtxPtr pMtx);
+    PartsModel* createIndirectModel(LiveActor* pHost, MtxPtr pMtx);
 
     PartsModel* createPartsModelMapObj2(LiveActor* pHost, const char* pName, const char* pModelName, MtxPtr pMtx);  // effectively the same as below
     PartsModel* createPartsModelMapObj(LiveActor* pHost, const char* pName, const char* pModelName, MtxPtr pMtx);

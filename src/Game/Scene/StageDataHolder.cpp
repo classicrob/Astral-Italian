@@ -537,7 +537,6 @@ void StageDataHolder::updateDataAddress(const MR::AssignableArray< JMapInfo >* p
     }
 }
 
-
 void StageDataHolder::calcPlacementMtx(const JMapInfoIter& rIter) {
     TVec3f pos;
     rIter.getValue< f32 >("pos_x", &pos.x);

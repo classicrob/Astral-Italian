@@ -338,3 +338,145 @@ void GameScene::stageClear() {
 
 
 
+
+namespace GameSequenceFunction {
+    bool isNeedMoviePlayerForStorySequenceEvent();
+};  // namespace GameSequenceFunction
+
+// NONMATCHING: init body is Petari; SMG2 version is 0x364 bytes and has extra calls
+void GameScene::init() {
+    SceneFunction::createHioBasicNode(this);
+    SceneFunction::startStageFileLoad();
+    MR::requestChangeArchivePlayer(MR::isPlayerLuigi() == false);
+    initNerve(GET_NERVE(GameScene, GameSceneScenarioOpeningCamera));
+    SceneFunction::initForNameObj();
+    SceneFunction::initForLiveActor();
+    initEffect();
+    MR::createSceneObj(SceneObj_CameraContext);
+    MR::createSceneObj(SceneObj_NameObjGroup);
+    MR::createSceneObj(SceneObj_PlanetGravityManager);
+    MR::createSceneObj(SceneObj_MarioHolder);
+    MR::createSceneObj(SceneObj_AudCameraWatcher);
+    MR::createSceneObj(SceneObj_AudEffectDirector);
+    MR::createSceneObj(SceneObj_AudBgmConductor);
+    MR::createSceneObj(SceneObj_ResourceShare);
+    MR::createSceneObj(SceneObj_EventSequencer);
+    // NONMATCHING: SceneObj_ScenePlayingResult id not in SMG2 SceneObj enum (Petari-only name); call omitted
+    MR::createSceneObj(SceneObj_FurDrawManager);
+    MR::createSceneObj(SceneObj_PlacementStateChecker);
+    MR::createScreenAlphaSceneObj(0, 1.0f);
+    MR::createSceneObj(SceneObj_GroupCheckManager);
+    MR::createSceneObj(SceneObj_CinemaFrame);
+    MR::createSceneObj(SceneObj_PlanetMapCreator);
+
+    if (MR::isStageEpilogueDemo()) {
+        MR::createSceneObj(SceneObj_StaffRoll);
+    }
+
+    if (MR::isStageEpilogueDemo() || GameSequenceFunction::isNeedMoviePlayerForStorySequenceEvent()) {
+        MR::createMoviePlayingSequence();
+    }
+
+    SceneFunction::waitDoneStageFileLoad();
+    MR::waitEndChangeArchivePlayer();
+    SceneFunction::startActorFileLoadCommon();
+    MR::suspendAsyncExecuteThread("シーン初期化");
+
+    if (!MR::isScenarioDecided()) {
+        MR::receiveAllRequestedFile();
+    } else {
+        SceneFunction::initAfterScenarioSelected();
+        NPCFunction::createNPCData();
+        SceneFunction::startActorFileLoadScenario();
+        MR::createSceneObj(SceneObj_EventDirector);
+        MR::initSceneMessage();
+        MR::createSceneObj(SceneObj_CameraDirector);
+        MR::createSceneObj(SceneObj_GameSceneLayoutHolder);
+        MR::createSceneObj(SceneObj_StarPieceDirector);
+        MR::createSceneObj(SceneObj_SceneWipeHolder);
+        MR::createSceneObj(SceneObj_NamePosHolder);
+        MR::createSceneObj(SceneObj_InformationObserver);
+
+        if (MR::isGalaxyAnyCometAppearInCurrentStage()) {
+            // NONMATCHING: SceneObj_CometRetryButton id not in SMG2 SceneObj enum; call omitted
+        }
+
+        LightFunction::initLightData();
+        initSequences();
+        SceneFunction::startActorPlacement();
+        GameSceneFunction::loadScenarioWaveData();
+        MR::createStarPiece();
+        MR::completeCameraParameters();
+        MR::initStarPointerGameScene();
+        MR::initEventSystemAfterPlacement();
+        MR::endInitLiveActorSystemInfo();
+        MR::setInitializeStateAfterPlacement();
+        MR::callMethodAllSceneNameObj(&NameObj::initAfterPlacement);
+        SleepControlFunc::initSyncSleepController();
+
+        while (!GameSceneFunction::isLoadDoneScenarioWaveData()) {
+        }
+    }
+}
+
+// NONMATCHING (not restored): requestEndMissDemo needs SceneObj_CometRetryButton id (not in SMG2 SceneObj enum)
+
+void GameScene::draw3D() const {
+    if (!mDraw3D) {
+        return;
+    }
+
+    if (isPlayMovie()) {
+        return;
+    }
+
+    CategoryList::execute(MR::DrawType_AstroDomeSkyClear);
+    MR::loadViewMtx();
+    MR::loadProjectionMtx();
+    MR::setDefaultViewportAndScissor();
+    GXSetColorUpdate(GX_TRUE);
+    GXSetAlphaUpdate(GX_TRUE);
+    GXSetDstAlpha(GX_TRUE, 0);
+    CategoryList::drawOpa(MR::DrawBufferType_ClippedMapParts);
+    CategoryList::execute(MR::DrawType_ClipArea);
+    CategoryList::execute(MR::DrawType_FallOutFieldDraw);
+    SceneFunction::executeDrawBufferListNormalOpaBeforeVolumeShadow();
+    GXSetAlphaUpdate(GX_TRUE);
+    CategoryList::execute(MR::DrawType_ShadowVolume);
+    GXSetColorUpdate(GX_TRUE);
+    GXSetDstAlpha(GX_TRUE, 0);
+    SceneFunction::executeDrawBufferListNormalOpaBeforeSilhouette();
+    CategoryList::execute(MR::DrawType_MiiFacePartsHolder);
+    SceneFunction::executeDrawSilhouetteAndFillShadow();
+    SceneFunction::executeDrawAlphaShadow();
+    CategoryList::execute(MR::DrawType_BrightSun);
+    MR::setLensFlareDrawSyncToken();
+    GXSetAlphaUpdate(GX_FALSE);
+    GXSetDstAlpha(GX_FALSE, 0);
+    SceneFunction::executeDrawBufferListNormalOpa();
+    SceneFunction::executeDrawListOpa();
+    CategoryList::drawOpa(MR::DrawBufferType_UNK_0x18);
+    SceneFunction::executeDrawBufferListNormalXlu();
+    SceneFunction::executeDrawListXlu();
+    CategoryList::drawXlu(MR::DrawBufferType_UNK_0x18);
+    CategoryList::execute(MR::DrawType_ShadowSurface);
+    CategoryList::execute(MR::DrawType_EffectDraw3D);
+    CategoryList::execute(MR::DrawType_EffectDrawForBloomEffect);
+    CategoryList::execute(MR::DrawType_CenterScreenBlur);
+    CategoryList::execute(MR::DrawType_CaptureScreenIndirect);
+    SceneFunction::executeDrawAfterIndirect();
+    CategoryList::execute(MR::DrawType_0x33);
+    MR::setStarPointerDrawSyncToken();
+    MR::setTalkDirectorDrawSyncToken();
+    SceneFunction::executeDrawImageEffect();
+    GXSetDither(GX_TRUE);
+    MR::loadViewMtx();
+    MR::loadProjectionMtx();
+    CategoryList::execute(MR::DrawType_EffectDrawAfterImageEffect);
+    MR::loadViewMtx();
+    MR::loadProjectionMtx();
+    MR::loadLightPlayer();
+    CategoryList::execute(MR::DrawType_OceanBowlBloomDrawer);
+    CategoryList::execute(MR::DrawType_BloomModel);
+    MR::clearZBuffer();
+}

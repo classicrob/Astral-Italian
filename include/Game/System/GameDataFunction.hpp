@@ -5,6 +5,9 @@
 class GameDataHolder;
 class GameDataSomeScenarioAccessor;
 class JMapInfoIter;
+class GameDataPlayerStatus;
+class GameEventValueChecker;
+class SaveDataHandleSequence;
 
 namespace GameDataFunction {
     bool isOnGalaxyFlagTicoCoin(const char* pStageName);
@@ -14,6 +17,9 @@ namespace GameDataFunction {
 // Merged from Petari (core lane, symbols.txt-verified)
 
 namespace GameDataFunction {
+    SaveDataHandleSequence* getSaveDataHandleSequence();
+    GameDataPlayerStatus* getCurrentGameDataPlayerStatus();
+    GameEventValueChecker* getCurrentGameEventValueChecker();
     bool hasPowerStar(const char*, s32);
     bool hasGrandStar(int);
     bool isOnGalaxyScenarioFlagAlreadyVisited(const char*, s32);

@@ -433,3 +433,55 @@ enum {
     ACTMES_DINO_PACKUN_PUNCHED_BALL = 0xb6,
     ACTMES_DINO_PACKUN_PULLED_TAIL = 0xb7,
 };
+
+// SMG2 values recovered by tools/team/enummap.py (Petari enum names voted against target immediates).
+enum {
+    ATYPE_BALL_RAIL = 0x76,  // votes=1
+    ATYPE_BEGOMAN = 0x21,  // votes=1
+    ATYPE_BOMBHEI = 0x1D,  // votes=1
+    ATYPE_BREAKABLE_CAGE = 0x4C,  // votes=3
+    ATYPE_COCO_NUT = 0x1B,  // votes=6
+    ATYPE_COIN = 0x44,  // votes=2
+    ATYPE_ENEMY_SIMPLE = 0x19,  // votes=1
+    ATYPE_JET_TURTLE = 0x12,  // votes=1
+    ATYPE_JUMP_HOLE = 0x74,  // votes=1
+    ATYPE_KEY_SWITCH_AVOID = 0x54,  // votes=1
+    ATYPE_KILLER_TARGET_ENEMY = 0x22,  // votes=2
+    ATYPE_KURIBO = 0x1F,  // votes=1
+    ATYPE_MAP_OBJ_SIMPLE = 0x41,  // votes=2
+    ATYPE_MARIO_LAUNCHER_BIND = 0x65,  // votes=1
+    ATYPE_MESSAGE_SENSOR = 0x7E,  // votes=1
+    ATYPE_MORPH_ITEM = 0x4A,  // votes=1
+    ATYPE_PLAYER_AUTO_JUMP = 0x23,  // votes=3
+    ATYPE_POWER_STAR_BIND = 0x61,  // votes=7
+    ATYPE_PUKUPUKU = 0x27,  // votes=2
+    ATYPE_SAMBO_BODY = 0x2A,  // votes=1
+    ATYPE_SPHERE_DASH = 0x75,  // votes=1
+    ATYPE_SPIN_CANNON_BIND = 0x5F,  // votes=1
+    ATYPE_SPIN_DRIVER_BIND = 0x5E,  // votes=1
+    ATYPE_STAR_PIECE = 0x46,  // votes=2
+    ATYPE_SWITCH = 0x49,  // votes=1
+    ATYPE_WATER_BAZOOKA_CAPSULE = 0x50,  // votes=1
+    ATYPE_WATER_PRESSURE_BULLET = 0x1C,  // votes=1
+};
+enum {
+    ACTMES_BOMB_TERESA_TONGUE_TOUCH = 0x4F,  // votes=1
+    ACTMES_END_DEMO = 0x80,  // votes=3
+    ACTMES_FAILURE = 0x77,  // votes=1
+    ACTMES_FOUNTAINJUMP = 0x4C,  // votes=3
+    ACTMES_GROUP_ATTACK = 0x7C,  // votes=2
+    ACTMES_GROUP_HIDE = 0x7E,  // votes=2
+    ACTMES_GROUP_LOD_LOW = 0x67,  // votes=1
+    ACTMES_GROUP_MOVE_START = 0x7A,  // votes=2
+    ACTMES_GROUP_MOVE_STOP = 0x7B,  // votes=3
+    ACTMES_HANG_CANCEL = 0x30,  // votes=1
+    ACTMES_IS_STAR_PIECE_REFLECT = 0x14,  // votes=3
+    ACTMES_LAUNCHER_BREAKABLE = 0xF4,  // votes=1
+    ACTMES_PASS_RING = 0x4B,  // votes=1
+    ACTMES_RACE_GOAL = 0xF0,  // votes=1
+    ACTMES_RUSHDROP = 0x2D,  // votes=1
+    ACTMES_RUSH_END = 0xCC,  // votes=1
+    ACTMES_SUCCESS = 0x76,  // votes=1
+    ACTMES_TICO_RAIL_TOUCH = 0xCA,  // votes=1
+    ACTMES_WARP = 0x51,  // votes=1
+};

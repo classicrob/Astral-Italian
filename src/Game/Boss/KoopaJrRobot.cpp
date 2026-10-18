@@ -1,0 +1,250 @@
+#pragma auto_inline off
+#include "Game/Boss/KoopaJrRobot.hpp"
+#include "Game/Util.hpp"
+#include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/ActorCameraInfo.hpp"
+#include "Game/NameObj/NameObjFactory.hpp"
+
+namespace NrvKoopaJrRobot {
+    // the six phases chain through updateActorStateAndNextNerve (see execute bodies)
+    class KoopaJrRobotNrvIntro : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static KoopaJrRobotNrvIntro sInstance;
+    };
+    class KoopaJrRobotNrvPhase1 : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static KoopaJrRobotNrvPhase1 sInstance;
+    };
+    class KoopaJrRobotNrvPhase2 : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static KoopaJrRobotNrvPhase2 sInstance;
+    };
+    class KoopaJrRobotNrvPhase3 : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static KoopaJrRobotNrvPhase3 sInstance;
+    };
+    class KoopaJrRobotNrvDemo : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static KoopaJrRobotNrvDemo sInstance;
+    };
+    class KoopaJrRobotNrvDead : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static KoopaJrRobotNrvDead sInstance;
+    };
+
+    // 16C0 -> 16C4 -> 16D0 -> 16C8 -> 16D4 -> kill; 16CC (Intro) -> 16C0
+    inline void KoopaJrRobotNrvPhase1::execute(Spine* pSpine) const {
+        MR::updateActorStateAndNextNerve(reinterpret_cast< LiveActor* >(pSpine->mExecutor), &KoopaJrRobotNrvPhase2::sInstance);
+    }
+    inline void KoopaJrRobotNrvPhase2::execute(Spine* pSpine) const {
+        MR::updateActorStateAndNextNerve(reinterpret_cast< LiveActor* >(pSpine->mExecutor), &KoopaJrRobotNrvDemo::sInstance);
+    }
+    inline void KoopaJrRobotNrvPhase3::execute(Spine* pSpine) const {
+        MR::updateActorStateAndNextNerve(reinterpret_cast< LiveActor* >(pSpine->mExecutor), &KoopaJrRobotNrvDead::sInstance);
+    }
+    inline void KoopaJrRobotNrvIntro::execute(Spine* pSpine) const {
+        MR::updateActorStateAndNextNerve(reinterpret_cast< LiveActor* >(pSpine->mExecutor), &KoopaJrRobotNrvPhase1::sInstance);
+    }
+    inline void KoopaJrRobotNrvDemo::execute(Spine* pSpine) const {
+        MR::updateActorStateAndNextNerve(reinterpret_cast< LiveActor* >(pSpine->mExecutor), &KoopaJrRobotNrvPhase3::sInstance);
+    }
+    inline void KoopaJrRobotNrvDead::execute(Spine* pSpine) const {
+        LiveActor* actor = reinterpret_cast< LiveActor* >(pSpine->mExecutor);
+        if (MR::updateActorState(actor)) {
+            actor->kill();
+        }
+    }
+};  // namespace NrvKoopaJrRobot
+
+namespace NrvKoopaJrRobot { KoopaJrRobotNrvPhase1 KoopaJrRobotNrvPhase1::sInstance ATTRIBUTE_WEAK; }
+namespace NrvKoopaJrRobot { KoopaJrRobotNrvPhase2 KoopaJrRobotNrvPhase2::sInstance ATTRIBUTE_WEAK; }
+namespace NrvKoopaJrRobot { KoopaJrRobotNrvPhase3 KoopaJrRobotNrvPhase3::sInstance ATTRIBUTE_WEAK; }
+namespace NrvKoopaJrRobot { KoopaJrRobotNrvIntro KoopaJrRobotNrvIntro::sInstance ATTRIBUTE_WEAK; }
+namespace NrvKoopaJrRobot { KoopaJrRobotNrvDemo KoopaJrRobotNrvDemo::sInstance ATTRIBUTE_WEAK; }
+namespace NrvKoopaJrRobot { KoopaJrRobotNrvDead KoopaJrRobotNrvDead::sInstance ATTRIBUTE_WEAK; }
+
+template < typename It, typename Pmf >
+static inline void forEachCall(It it, It end, Pmf pmf) {
+    for (; it != end; ++it) {
+        ((*it)->*pmf)();
+    }
+}
+
+KoopaJrRobot::KoopaJrRobot(const char* pName)
+    : LiveActor(pName), mCollisionA(nullptr), mStateA(nullptr), mStateB(nullptr), mStateC(nullptr), mSeq(nullptr), mCameraInfo(nullptr),
+      mHeadModel(nullptr), mBody(nullptr), mZAxis(0.0f, 0.0f, 1.0f), mZAxis2(0.0f, 0.0f, 1.0f), _10C(0.0f) {
+}
+
+void KoopaJrRobot::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "KoopaJrRobot", false);
+    mSeq = new KoopaJrRobotSeq(this);
+    mSeq->fn_800DC380();
+    mSeq->fn_800DC6B0();
+    MR::declarePowerStar(this);
+    MR::declareStarPiece(this, 24);
+    mParts[0] = KoopaJrRobotFunction::createPart(this, 0);
+    mParts[1] = KoopaJrRobotFunction::createPart(this, 1);
+    mParts[2] = KoopaJrRobotFunction::createPart(this, 2);
+    mParts[3] = KoopaJrRobotFunction::createPart(this, 3);
+    for (s32 i = 0; i < 5; i++) {
+        mFollowers[i] = KoopaJrRobotFunction::createFollower(this, i);
+    }
+    mHandL = KoopaJrRobotFunction::createHand(this, "HandL");
+    mHandR = KoopaJrRobotFunction::createHand(this, "HandR");
+    mCollisionA = KoopaJrRobotFunction::createCollision(this, rIter, 0);
+    mCollisionB = KoopaJrRobotFunction::createCollision(this, rIter, 1);
+    mCollisionC = KoopaJrRobotFunction::createCollision(this, rIter, 2);
+    mBody = KoopaJrRobotFunction::createBody(this, MR::getJointMtx(this, "Head"));
+    mHeadModel = KoopaJrRobotFunction::createHeadModel(mBody);
+    initChildren(rIter);
+    initNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvIntro::sInstance, 6);
+    mStateA = new KoopaJrRobotStateA(this);
+    mStateB = new KoopaJrRobotStateB(this);
+    mStateC = new KoopaJrRobotStateC(this);
+    MR::initActorState(this, mStateA, &NrvKoopaJrRobot::KoopaJrRobotNrvPhase1::sInstance, nullptr);
+    MR::initActorState(this, mStateB, &NrvKoopaJrRobot::KoopaJrRobotNrvPhase2::sInstance, nullptr);
+    MR::initActorState(this, mStateC, &NrvKoopaJrRobot::KoopaJrRobotNrvPhase3::sInstance, nullptr);
+    MR::initActorState(this, new KoopaJrRobotStateIntro(this, rIter), &NrvKoopaJrRobot::KoopaJrRobotNrvIntro::sInstance, nullptr);
+    MR::initActorState(this, new KoopaJrRobotStateTU08(this), &NrvKoopaJrRobot::KoopaJrRobotNrvDemo::sInstance, nullptr);
+    mCameraInfo = MR::createActorCameraInfo(rIter);
+    MR::initActorState(this, new KoopaJrRobotStateTU07(this), &NrvKoopaJrRobot::KoopaJrRobotNrvDead::sInstance, nullptr);
+    MR::initAnimCamera(this, mCameraInfo, KoopaJrRobotStateIntro::getCameraName());
+    MR::initAnimCamera(this, mCameraInfo, KoopaJrRobotStateTU08::getCameraName());
+    MR::initAnimCamera(this, mCameraInfo, KoopaJrRobotStateTU07::getCameraName());
+    MR::useStageSwitchSyncAppear(this, rIter);
+}
+
+void KoopaJrRobot::appear() {
+    LiveActor::appear();
+    MR::invalidateClipping(this);
+    if (MR::isDead(mHeadModel)) {
+        mHeadModel->appear();
+    }
+    if (MR::isDead(mBody)) {
+        mBody->appear();
+    }
+    MR::hideModel(this);
+    MR::hideModel(mHeadModel);
+    MR::hideModel(mBody);
+}
+
+// NONMATCHING: std::for_each(mem_fun) ptmf loops: target keeps two stack copies of the 12-byte PTMF per loop (stack layout only)
+void KoopaJrRobot::kill() {
+    if (!MR::isDead(mBody)) {
+        mBody->kill();
+    }
+    if (!MR::isDead(mHeadModel)) {
+        mHeadModel->kill();
+    }
+    forEachCall(&mHandL, &mHandL + 2, &LiveActor::kill);
+    forEachCall(mFollowers, mFollowers + 5, &LiveActor::kill);
+    LiveActor::kill();
+}
+
+void KoopaJrRobot::killParts() {
+    MR::deleteEffectAll(this);
+    forEachCall(mParts, mParts + 4, &KoopaJrRobotPart::kill);
+}
+
+bool KoopaJrRobot::isStateNerve() const {
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvIntro::sInstance)) {
+        return true;
+    }
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvDemo::sInstance)) {
+        return true;
+    }
+    return isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvDead::sInstance);
+}
+
+// NONMATCHING: same ptmf-loop stack layout issue as kill()
+void KoopaJrRobot::control() {
+    mSeq->fn_800DC850();
+    if (!isStateNerve()) {
+        mSeq->updateNerve();
+        mSeq->fn_800DC7C0();
+    }
+    forEachCall(mParts, mParts + 4, &NerveExecutor::updateNerve);
+}
+
+void KoopaJrRobot::movement() {
+    LiveActor::movement();
+    mBody->movement();
+    calcAndSetBaseMtx();
+}
+
+void KoopaJrRobot::calcAnim() {
+    LiveActor::calcAnim();
+    if (MR::isValidCalcAnim(this)) {
+        mSeq->fn_800DC740();
+        mHandL->calcAnim();
+        mHandR->calcAnim();
+        mBody->calcAnim();
+    }
+}
+
+void KoopaJrRobot::calcAndSetBaseMtx() {
+    MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mZAxis);
+}
+
+void KoopaJrRobot::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase1::sInstance)) {
+        mStateA->attackSensor(pSender, pReceiver);
+        return;
+    }
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase2::sInstance)) {
+        mStateA->attackSensor(pSender, pReceiver);
+        return;
+    }
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase3::sInstance)) {
+        mStateA->attackSensor(pSender, pReceiver);
+    }
+}
+
+bool KoopaJrRobot::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase1::sInstance)) {
+        return mStateA->receiveMsgPlayerAttack(msg, pSender, pReceiver);
+    }
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase2::sInstance)) {
+        return mStateB->receiveMsgPlayerAttack(msg, pSender, pReceiver);
+    }
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase3::sInstance)) {
+        return mStateC->receiveMsgPlayerAttack(msg, pSender, pReceiver);
+    }
+    return false;
+}
+
+bool KoopaJrRobot::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase1::sInstance)) {
+        return mStateA->receiveMsgEnemyAttack(msg, pSender, pReceiver);
+    }
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase2::sInstance)) {
+        return mStateB->receiveMsgEnemyAttack(msg, pSender, pReceiver);
+    }
+    if (isNerve(&NrvKoopaJrRobot::KoopaJrRobotNrvPhase3::sInstance)) {
+        return mStateC->receiveMsgEnemyAttack(msg, pSender, pReceiver);
+    }
+    return false;
+}
+
+void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
+    s32 num = MR::getChildObjNum(rIter);
+    mChildren.mArray = new NameObj*[num - 1];
+    mChildren.mCapacity = num - 1;
+    for (s32 i = 0; i < num; i++) {
+        const char* pName = nullptr;
+        MR::getChildObjName(&pName, rIter, i);
+        if (MR::isEqualString(pName, "StarPieceGroup")) {
+            mStarPieceGroup = reinterpret_cast< KoopaJrRobotStarPieceGroup* >(NameObjFactory::initChildObj(rIter, i));
+        } else {
+            mChildren.mArray[mChildren.mCount++] = NameObjFactory::initChildObj(rIter, i);
+        }
+    }
+}
+
+KoopaJrRobot::~KoopaJrRobot() {}

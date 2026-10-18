@@ -9,6 +9,7 @@ class RingBeamShadowDrawer;
 class RingBeam : public LiveActor {
 public:
     RingBeam(const char*, LiveActor*, bool, bool);
+    RingBeam(const char*, LiveActor*, bool, bool, bool, bool, const char*);  // SMG2 (Koopa Jr. robot)
 
     virtual ~RingBeam() {};
     virtual void init(const JMapInfoIter& rIter);

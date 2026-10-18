@@ -1312,11 +1312,11 @@ Game/Boss/Sandy.cpp:
 	.text       start:0x800FAC80 end:0x80102CA0
 	.ctors      start:0x80643F9C end:0x80643FCC
 
-Game/Boss/TwoLegsBullet.cpp:
+Game/Boss/TwoLegs.cpp:
 	.text       start:0x80102CA0 end:0x801042E0
 	.ctors      start:0x80643FCC end:0x80643FD0
 
-Game/Boss/TwoLegsBulletTU01.cpp:
+Game/Boss/TwoLegsBullet.cpp:
 	.text       start:0x801042E0 end:0x80105520
 	.ctors      start:0x80643FD0 end:0x80643FD4
 
@@ -3904,7 +3904,7 @@ Game/MapObj/FireRing.cpp:
 	.text       start:0x802A2080 end:0x802A2D70
 	.ctors      start:0x806443D8 end:0x806443DC
 
-Game/MapObj/FireRingTU01.cpp:
+Game/MapObj/FireRingBall.cpp:
 	.text       start:0x802A2D70 end:0x802A3180
 	.ctors      start:0x806443DC end:0x806443E0
 
@@ -3995,7 +3995,7 @@ Game/MapObj/HipDropMoveBlock.cpp:
 	.text       start:0x802ADB00 end:0x802AE550
 	.ctors      start:0x80644428 end:0x8064442C
 
-Game/MapObj/HipDropMoveBlockTU01.cpp:
+Game/MapObj/HipDropMoveBlockSwitch.cpp:
 	.text       start:0x802AE550 end:0x802AEB00
 	.ctors      start:0x8064442C end:0x80644430
 
@@ -4021,7 +4021,7 @@ Game/MapObj/IceMeteor.cpp:
 	.text       start:0x802B0880 end:0x802B1220
 	.ctors      start:0x8064443C end:0x80644440
 
-Game/MapObj/IceMeteorTU01.cpp:
+Game/MapObj/IceMeteorParts.cpp:
 	.text       start:0x802B1220 end:0x802B1670
 	.ctors      start:0x80644440 end:0x80644444
 
@@ -4150,11 +4150,11 @@ Game/MapObj/MagmaBoatPlanetIce.cpp:
 	.text       start:0x802C5C50 end:0x802C5E80
 	.ctors      start:0x806444A4 end:0x806444A8
 
-Game/MapObj/MagmaMeteorParts.cpp:
+Game/MapObj/MagmaMeteor.cpp:
 	.text       start:0x802C5E80 end:0x802C6840
 	.ctors      start:0x806444A8 end:0x806444AC
 
-Game/MapObj/MagmaMeteorPartsTU01.cpp:
+Game/MapObj/MagmaMeteorParts.cpp:
 	.text       start:0x802C6840 end:0x802C6BD0
 	.ctors      start:0x806444AC end:0x806444B0
 
@@ -4438,7 +4438,7 @@ Game/MapObj/RollingWater.cpp:
 	.text       start:0x802F5CB0 end:0x802F6F60
 	.ctors      start:0x80644574 end:0x80644578
 
-Game/MapObj/RollingWaterTU01.cpp:
+Game/MapObj/RollingWaterCreator.cpp:
 	.text       start:0x802F6F60 end:0x802F73D0
 	.ctors      start:0x80644578 end:0x8064457C
 
@@ -4458,7 +4458,7 @@ Game/MapObj/SandBird.cpp:
 	.text       start:0x802F83D0 end:0x802F8F60
 	.ctors      start:0x80644588 end:0x8064458C
 
-Game/MapObj/SandBirdTU01.cpp:
+Game/MapObj/SandBirdParts.cpp:
 	.text       start:0x802F8F60 end:0x802F99F0
 	.ctors      start:0x8064458C end:0x80644590
 
@@ -4707,7 +4707,7 @@ Game/MapObj/Togepin.cpp:
 	.text       start:0x80323730 end:0x80324380
 	.ctors      start:0x80644630 end:0x80644634
 
-Game/MapObj/TogepinTU01.cpp:
+Game/MapObj/TogepinScorer.cpp:
 	.text       start:0x80324380 end:0x80324D90
 	.ctors      start:0x80644634 end:0x80644638
 
@@ -5069,19 +5069,19 @@ Game/NPC/Meister.cpp:
 	.text       start:0x80352200 end:0x80352C90
 	.ctors      start:0x806446E4 end:0x806446E8
 
-Game/NPC/MeisterTU01.cpp:
+Game/NPC/MeisterDemoExitItemRoom.cpp:
 	.text       start:0x80352C90 end:0x80352F40
 	.ctors      start:0x806446E8 end:0x806446EC
 
-Game/NPC/MeisterTU02.cpp:
+Game/NPC/MeisterDemoGrandStarReturn.cpp:
 	.text       start:0x80352F40 end:0x80353250
 	.ctors      start:0x806446EC end:0x806446F0
 
-Game/NPC/MeisterTU03.cpp:
+Game/NPC/MeisterDemoMarioFaceShipChange.cpp:
 	.text       start:0x80353250 end:0x803535B0
 	.ctors      start:0x806446F0 end:0x806446F4
 
-Game/NPC/MeisterTU04.cpp:
+Game/NPC/MeisterDemoSimple.cpp:
 	.text       start:0x803535B0 end:0x803538C0
 	.ctors      start:0x806446F4 end:0x806446F8
 
@@ -5120,11 +5120,11 @@ Game/NPC/Moc.cpp:
 Game/NPC/TalkMessageFuncM7.cpp:
 	.text       start:0x80356250 end:0x80356340
 
-Game/NPC/MonteThrow.cpp:
+Game/NPC/Monte.cpp:
 	.text       start:0x803563D0 end:0x80356AA0
 	.ctors      start:0x80644700 end:0x80644704
 
-Game/NPC/MonteThrowTU01.cpp:
+Game/NPC/MonteThrow.cpp:
 	.text       start:0x80356AA0 end:0x80357770
 	.ctors      start:0x80644704 end:0x80644708
 
@@ -5273,7 +5273,7 @@ Game/NPC/TicoFatStarPiece.cpp:
 	.text       start:0x803695B0 end:0x8036B040
 	.ctors      start:0x80644774 end:0x80644778
 
-Game/NPC/TicoFatStarPieceTU01.cpp:
+Game/NPC/TicoFatStarPieceTransformation.cpp:
 	.text       start:0x8036B040 end:0x8036B8B0
 	.ctors      start:0x80644778 end:0x8064477C
 

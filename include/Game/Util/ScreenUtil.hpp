@@ -47,6 +47,7 @@ namespace MR {
     bool isWipeBlank();
     bool isWipeOpen();
     void closeSystemWipeCircle(s32 frame = -1);
+    void forceOpenSystemWipeCircle();
     void openSystemWipeFade(s32 frame = -1);
     void closeSystemWipeFade(s32 frame = -1);
     void forceOpenSystemWipeFade();

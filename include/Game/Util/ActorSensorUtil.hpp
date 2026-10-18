@@ -247,6 +247,7 @@ namespace MR {
     bool isMsgInvincibleAttack(u32 msg);
     bool isMsgDrillAttack(u32 msg);
     bool isMsgRockAttack(u32 msg);
+    bool isMsgAttackRockReflect(u32 msg);
     bool isMsgSnowBallAttack(u32 msg);
     bool isMsgSupportTicoSpin(u32 msg);
     bool isMsgAutoRushBegin(u32 msg);

@@ -109,7 +109,7 @@ namespace nw4r {
             f32 CalcStringWidth(StreamType str, int length) const;
             void CalcStringRect(Rect* pRect, const CharT* pStr, int len) const;
             f32 Print(StreamType str, int length);
-            f32 PrintImpl(StreamType, int);
+            f32 PrintImpl(StreamType, int, bool adjustBaseline);
             f32 CalcLineWidth(StreamType, int);
             bool CalcLineRectImpl(Rect*, StreamType*, int);
             void CalcStringRectImpl(Rect*, StreamType, int);

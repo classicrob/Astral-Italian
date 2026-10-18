@@ -1,168 +1,222 @@
+#pragma auto_inline off
 #include "Game/Screen/DepthOfFieldBlur.hpp"
-#include "Game/Util.hpp"
 #include "Game/Screen/CopyFilterNegater.hpp"
 #include "Game/Screen/ImageEffectLocalUtil.hpp"
 #include "Game/Screen/ImageEffectResource.hpp"
 #include "Game/Screen/ImageEffectSystemHolder.hpp"
 #include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/Color.hpp"
 #include "Game/Util/DrawUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 #include <JSystem/JUtility/JUTTexture.hpp>
-#include <JSystem/JUtility/JUTVideo.hpp>
 
-namespace {
-    // static const s32 sFirstBlurCount = _;
-    // static const f32 sFirstBlurRadius = _;
-    // static const f32 sBlendRate = _;
-    static const f32 sViewDistance = 10000.0f;
-    static const s8 sScaleExp = 1;
-};  // namespace
-
-DepthOfFieldBlur::DepthOfFieldBlur(const char* pName)
-    : ImageEffectBase(pName), _14(), _18(), _1C(), _20(), _24(), _28(), mIntensity(1.0f), mBlurMaxDist(248), mBlurMinDist(242) {
+DepthOfFieldBlur::DepthOfFieldBlur(const char* name)
+    : ImageEffectBase(name), mScreenTexture(nullptr), mOriginalTexture(nullptr), mReducedTexture(nullptr), mBlurTexture(nullptr),
+      mIntensity(1.0f), mBlurMaxDist(10000), mBlurMinDist(8200), mDepthTexture(nullptr), mFogTextureIndex(-1) {
     MR::connectToSceneImageEffect(this);
     MR::createImageEffectSystemHolder();
     MR::getImageEffectResource()->createDOFTexture();
-    _14 = MR::getImageEffectResource()->_0;
-    _18 = MR::getImageEffectResource()->_10;
-    _1C = MR::getImageEffectResource()->_4;
-    _20 = MR::getImageEffectResource()->_8;
-    _24 = MR::getImageEffectResource()->_C;
-    _28 = new JUTTexture(128, 2, GX_TF_I8);
-    _28->mWrapS = GX_CLAMP;
-    _28->mWrapT = GX_CLAMP;
-    _28->mMinType = GX_LINEAR;
-    _28->mMagType = GX_LINEAR;
+    mScreenTexture = MR::getImageEffectResource()->_0;
+    mOriginalTexture = MR::getImageEffectResource()->_10;
+    mReducedTexture = MR::getImageEffectResource()->_4;
+    mBlurTexture = MR::getImageEffectResource()->_C;
+    mDepthTexture = MR::getImageEffectResource()->_24;
 }
 
 void DepthOfFieldBlur::draw() const {
-    if (!isSomething()) {
-        return;
-    }
-
+    if (!isSomething()) return;
     CopyFilterNegater negator;
-    ImageEffectLocalUtil::capture(_18, 4, 0, GX_TF_RGB565, false, 0);
-    ImageEffectLocalUtil::capture(_1C, 1, 0, GX_TF_RGB565, true, 0);
-    drawZAlphaTex();
-    ImageEffectLocalUtil::capture(_28, 1, 0, GX_CTF_R8, false, 0);
+    ImageEffectLocalUtil::capture(mOriginalTexture, 4, 0, GX_TF_RGB565, false, 0);
+    ImageEffectLocalUtil::capture(mReducedTexture, 1, 0, GX_TF_RGB565, true, 0);
     ImageEffectLocalUtil::setupDrawTexture();
     createBlurTexture();
-    ImageEffectLocalUtil::capture(_20, 1, 0, GX_TF_Z8, true, 0);
+    ImageEffectLocalUtil::capture(mDepthTexture, 1, 0, GX_TF_Z16, false, 0);
     drawFinal();
     MR::loadProjectionMtx();
     MR::loadViewMtx();
 }
 
-void DepthOfFieldBlur::drawZAlphaTex() const {
-    Mtx44 projectionMtx;
-    C_MTXOrtho(projectionMtx, 0.0f, static_cast< s32 >(JUTVideo::getManager()->getEfbHeight()), 0.0f,
-               static_cast< s32 >(JUTVideo::getManager()->getFbWidth()), -::sViewDistance, ::sViewDistance);
-    GXSetProjection(projectionMtx, GX_ORTHOGRAPHIC);
+void DepthOfFieldBlur::createBlurTexture() const {
+    ImageEffectLocalUtil::drawTexture(mReducedTexture, 4, 0, 255, ImageEffectLocalUtil::TexDrawType_0);
+    ImageEffectLocalUtil::capture(mBlurTexture, 4, 0, GX_TF_RGB565, false, 0);
+    blurTexture(mBlurTexture, 4, 0, 0.005f * (mIntensity * get_10()));
+    ImageEffectLocalUtil::capture(mBlurTexture, 4, 0, GX_TF_RGB565, false, 0);
+}
+
+// NONMATCHING: register allocation, stack layout, and arithmetic scheduling differ.
+void DepthOfFieldBlur::blurTexture(JUTTexture* texture, s32 divisions, s32 tile, f32 radius) const {
+    Mtx44 projection;
+    f32 width = MR::getFrameBufferWidth();
+    C_MTXOrtho(projection, 0.0f, static_cast<f32>(MR::getFrameBufferHeight()), 0.0f, static_cast<f32>(width), -10000.0f, 10000.0f);
+    GXSetProjection(projection, GX_ORTHOGRAPHIC);
     MR::loadViewMtxFor2DModel();
     GXClearVtxDesc();
-    GXSetVtxAttrFmt(GX_VTXFMT1, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
-    GXSetVtxAttrFmt(GX_VTXFMT1, GX_VA_CLR0, GX_POS_XY, GX_S8, 0);
-    GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
-    GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-
-    TMtx34f posMtx;
-    posMtx.identity();
-    GXLoadPosMtxImm(posMtx.toMtxPtr(), GX_PNMTX0);
-    GXSetCurrentMtx(GX_PNMTX0);
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetClipMode(GX_CLIP_ENABLE);
+    GXSetVtxAttrFmt(static_cast<GXVtxFmt>( 0 ), static_cast<GXAttr>( 9 ), static_cast<GXCompCnt>( 1 ), static_cast<GXCompType>( 4 ), 0);
+    GXSetVtxAttrFmt(static_cast<GXVtxFmt>( 0 ), static_cast<GXAttr>( 0xD ), static_cast<GXCompCnt>( 1 ), static_cast<GXCompType>( 4 ), 0);
+    GXSetVtxDesc(static_cast<GXAttr>( 9 ), static_cast<GXAttrType>( 1 ));
+    GXSetVtxDesc(static_cast<GXAttr>( 0xD ), static_cast<GXAttrType>( 1 ));
+    GXSetCullMode(static_cast<GXCullMode>( 0 ));
+    GXSetClipMode(static_cast<GXClipMode>( 0 ));
     GXSetNumChans(1);
-    GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
-    GXSetNumTexGens(0);
-    GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_TEXMTX0, GX_FALSE, GX_PTIDENTITY);
-    GXLoadTexMtxImm(posMtx.toMtxPtr(), GX_TEXMTX0, GX_MTX2x4);
-    GXSetNumTevStages(1);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-    GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
+    GXSetChanCtrl(static_cast<GXChannelID>( 4 ), static_cast<GXBool>( 0 ), static_cast<GXColorSrc>( 0 ), static_cast<GXColorSrc>( 0 ), 0, static_cast<GXDiffuseFn>( 0 ), static_cast<GXAttnFn>( 2 ));
+    GXSetNumTexGens(4);
+    GXSetTexCoordGen2(static_cast<GXTexCoordID>( 0 ), static_cast<GXTexGenType>( 1 ), static_cast<GXTexGenSrc>( 4 ), 0x1E, static_cast<GXBool>( 0 ), 0x7D);
+    GXSetTexCoordGen2(static_cast<GXTexCoordID>( 1 ), static_cast<GXTexGenType>( 1 ), static_cast<GXTexGenSrc>( 4 ), 0x21, static_cast<GXBool>( 0 ), 0x7D);
+    GXSetTexCoordGen2(static_cast<GXTexCoordID>( 2 ), static_cast<GXTexGenType>( 1 ), static_cast<GXTexGenSrc>( 4 ), 0x24, static_cast<GXBool>( 0 ), 0x7D);
+    GXSetTexCoordGen2(static_cast<GXTexCoordID>( 3 ), static_cast<GXTexGenType>( 1 ), static_cast<GXTexGenSrc>( 4 ), 0x27, static_cast<GXBool>( 0 ), 0x7D);
+    GXSetNumTevStages(4);
+    GXSetTevOrder(static_cast<GXTevStageID>( 0 ), static_cast<GXTexCoordID>( 0 ), static_cast<GXTexMapID>( 0 ), static_cast<GXChannelID>( 0xFF ));
+    GXSetTevKColorSel(static_cast<GXTevStageID>( 0 ), static_cast<GXTevKColorSel>( 6 ));
+    GXSetTevColorIn(static_cast<GXTevStageID>( 0 ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xE ), static_cast<GXTevColorArg>( 8 ), static_cast<GXTevColorArg>( 0xF ));
+    GXSetTevColorOp(static_cast<GXTevStageID>( 0 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 0 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevAlphaIn(static_cast<GXTevStageID>( 0 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ));
+    GXSetTevAlphaOp(static_cast<GXTevStageID>( 0 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 0 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevOrder(static_cast<GXTevStageID>( 1 ), static_cast<GXTexCoordID>( 1 ), static_cast<GXTexMapID>( 0 ), static_cast<GXChannelID>( 0xFF ));
+    GXSetTevKColorSel(static_cast<GXTevStageID>( 1 ), static_cast<GXTevKColorSel>( 6 ));
+    GXSetTevColorIn(static_cast<GXTevStageID>( 1 ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xE ), static_cast<GXTevColorArg>( 8 ), static_cast<GXTevColorArg>( 0 ));
+    GXSetTevColorOp(static_cast<GXTevStageID>( 1 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 0 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevAlphaIn(static_cast<GXTevStageID>( 1 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ));
+    GXSetTevAlphaOp(static_cast<GXTevStageID>( 1 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 0 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevOrder(static_cast<GXTevStageID>( 2 ), static_cast<GXTexCoordID>( 2 ), static_cast<GXTexMapID>( 0 ), static_cast<GXChannelID>( 0xFF ));
+    GXSetTevKColorSel(static_cast<GXTevStageID>( 2 ), static_cast<GXTevKColorSel>( 6 ));
+    GXSetTevColorIn(static_cast<GXTevStageID>( 2 ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xE ), static_cast<GXTevColorArg>( 8 ), static_cast<GXTevColorArg>( 0 ));
+    GXSetTevColorOp(static_cast<GXTevStageID>( 2 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 0 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevAlphaIn(static_cast<GXTevStageID>( 2 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ));
+    GXSetTevAlphaOp(static_cast<GXTevStageID>( 2 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 0 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevOrder(static_cast<GXTevStageID>( 3 ), static_cast<GXTexCoordID>( 3 ), static_cast<GXTexMapID>( 0 ), static_cast<GXChannelID>( 0xFF ));
+    GXSetTevKColorSel(static_cast<GXTevStageID>( 3 ), static_cast<GXTevKColorSel>( 6 ));
+    GXSetTevColorIn(static_cast<GXTevStageID>( 3 ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xE ), static_cast<GXTevColorArg>( 8 ), static_cast<GXTevColorArg>( 0 ));
+    GXSetTevColorOp(static_cast<GXTevStageID>( 3 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 1 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevAlphaIn(static_cast<GXTevStageID>( 3 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 6 ));
+    GXSetTevAlphaOp(static_cast<GXTevStageID>( 3 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 0 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevKAlphaSel(static_cast<GXTevStageID>( 3 ), static_cast<GXTevKAlphaSel>( 0 ));
+    GXSetZTexture(static_cast<GXZTexOp>( 0 ), static_cast<GXTexFmt>( 0x16 ), 0);
     GXSetNumIndStages(0);
-    GXSetTevDirect(GX_TEVSTAGE0);
-    GXSetFog(GX_FOG_NONE, 0.0f, 0.0f, 0.0f, 0.0f, GXColor());
+    GXSetTevDirect(static_cast<GXTevStageID>( 0 ));
+    GXSetTevDirect(static_cast<GXTevStageID>( 1 ));
+    GXSetTevDirect(static_cast<GXTevStageID>( 2 ));
+    GXSetTevDirect(static_cast<GXTevStageID>( 3 ));
+    GXSetTevDirect(static_cast<GXTevStageID>( 4 ));
+    GXSetTevDirect(static_cast<GXTevStageID>( 5 ));
+    GXSetTevDirect(static_cast<GXTevStageID>( 6 ));
+    GXSetTevDirect(static_cast<GXTevStageID>( 7 ));
+
+    GXSetFog(GX_FOG_NONE, 0.0f, 0.0f, 0.0f, 0.0f, Color8(0, 0, 0, 0));
     GXSetColorUpdate(GX_TRUE);
     GXSetAlphaUpdate(GX_FALSE);
     GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
     GXSetZCompLoc(GX_TRUE);
     GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_OR, GX_ALWAYS, 0);
     GXSetDither(GX_FALSE);
-    GXSetBlendMode(GX_BM_NONE, GX_BL_ZERO, GX_BL_ZERO, GX_LO_CLEAR);
-    GXSetLineWidth(12, GX_TO_ZERO);
-
-    GXBegin(GX_LINESTRIP, GX_VTXFMT1, 4);
-    {
-        u8 blurMinDist;
-        u8 blurMaxDist = 248;
-
-        if (mBlurMaxDist >= 0) {
-            blurMaxDist = mBlurMaxDist;
-        }
-
-        blurMinDist = 242;
-
-        if (mBlurMinDist >= 0) {
-            blurMinDist = mBlurMinDist;
-        }
-
-        if (blurMaxDist >= blurMinDist) {
-            GXPosition3f32(0.0f, 1.0f, 0.0f);
-            GXPosition3u8(0, 0, 0);
-            GXPosition3f32(blurMinDist * 0.5f, 1.0f, 0.0f);
-            GXPosition3u8(0, 0, 0);
-            GXPosition3f32(blurMaxDist * 0.5f, 1.0f, 0.0f);
-            GXPosition3u8(255, 255, 255);
-            GXPosition3f32(128.0f, 1.0f, 0.0f);
-            GXPosition3u8(255, 255, 255);
-        } else {
-            GXPosition3f32(128.0f, 1.0f, 0.0f);
-            GXPosition3u8(0, 0, 0);
-            GXPosition3f32(blurMinDist * 0.5f, 1.0f, 0.0f);
-            GXPosition3u8(0, 0, 0);
-            GXPosition3f32(blurMaxDist * 0.5f, 1.0f, 0.0f);
-            GXPosition3u8(255, 255, 255);
-            GXPosition3f32(0.0f, 1.0f, 0.0f);
-            GXPosition3u8(255, 255, 255);
-        }
-    }
-
+    TPos3f matrix;
+    matrix.identity();
+    GXLoadPosMtxImm(matrix.toMtxPtr(), GX_PNMTX0);
+    GXSetCurrentMtx(GX_PNMTX0);
+    f32 height = MR::getFrameBufferHeight();
+    f32 aspect = static_cast<f32>(MR::getFrameBufferWidth()) / static_cast<f32>(height);
+    matrix.makeTrans(radius, 0.0f, 0.0f);
+    GXLoadTexMtxImm(matrix.toMtxPtr(), GX_TEXMTX0, GX_MTX2x4);
+    matrix.makeTrans(0.0f, radius * aspect, 0.0f);
+    GXLoadTexMtxImm(matrix.toMtxPtr(), GX_TEXMTX1, GX_MTX2x4);
+    matrix.makeTrans(-radius, 0.0f, 0.0f);
+    GXLoadTexMtxImm(matrix.toMtxPtr(), GX_TEXMTX2, GX_MTX2x4);
+    matrix.makeTrans(0.0f, -radius * aspect, 0.0f);
+    GXLoadTexMtxImm(matrix.toMtxPtr(), GX_TEXMTX3, GX_MTX2x4);
+    texture->load(GX_TEXMAP0);
+    GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 4);
+    s32 row = tile / divisions;
+    s32 column = tile % divisions;
+    f32 cellWidth = static_cast<f32>(MR::getFrameBufferWidth()) / divisions;
+    f32 cellHeight = static_cast<f32>(MR::getFrameBufferHeight()) / divisions;
+    f32 left = column * cellWidth;
+    f32 bottom = (row + 1) * cellHeight;
+    f32 right = (column + 1) * cellWidth;
+    f32 top = row * cellHeight;
+    GXPosition3f32(left, bottom, 0.0f); GXTexCoord2f32(0.0f, 1.0f);
+    GXPosition3f32(left, top, 0.0f); GXTexCoord2f32(0.0f, 0.0f);
+    GXPosition3f32(right, bottom, 0.0f); GXTexCoord2f32(1.0f, 1.0f);
+    GXPosition3f32(right, top, 0.0f); GXTexCoord2f32(1.0f, 0.0f);
     GXEnd();
 }
 
-void DepthOfFieldBlur::createBlurTexture() const {
-    ImageEffectLocalUtil::drawTexture(_1C, 4, 0, 255, ImageEffectLocalUtil::TexDrawType_0);
-    ImageEffectLocalUtil::capture(_24, 4, 0, GX_TF_RGB565, false, 0);
-    ImageEffectLocalUtil::blurTexture(_24, 4, 0, 4, mIntensity * get_10() * 0.005f, 1.0f);
-    ImageEffectLocalUtil::capture(_24, 4, 0, GX_TF_RGB565, false, 0);
-}
-
+// NONMATCHING: register allocation and arithmetic scheduling differ.
 void DepthOfFieldBlur::drawFinal() const {
-    ImageEffectLocalUtil::drawTexture(_18, 4, 0, 255, ImageEffectLocalUtil::TexDrawType_0);
+    ImageEffectLocalUtil::drawTexture(mOriginalTexture, 4, 0, 255, ImageEffectLocalUtil::TexDrawType_0);
+    GXSetVtxAttrFmt(static_cast<GXVtxFmt>( 0 ), static_cast<GXAttr>( 0xE ), static_cast<GXCompCnt>( 1 ), static_cast<GXCompType>( 4 ), 0);
+    GXSetVtxDesc(static_cast<GXAttr>( 0xE ), static_cast<GXAttrType>( 1 ));
     GXSetNumTexGens(3);
-    GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
-    GXSetTexCoordGen2(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
-    GXSetTexCoordGen2(GX_TEXCOORD2, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY, GX_FALSE, GX_PTIDENTITY);
+    GXSetTexCoordGen2(static_cast<GXTexCoordID>( 0 ), static_cast<GXTexGenType>( 1 ), static_cast<GXTexGenSrc>( 4 ), 0x3C, static_cast<GXBool>( 0 ), 0x7D);
+    GXSetTexCoordGen2(static_cast<GXTexCoordID>( 1 ), static_cast<GXTexGenType>( 1 ), static_cast<GXTexGenSrc>( 5 ), 0x3C, static_cast<GXBool>( 0 ), 0x7D);
+    GXSetTexCoordGen2(static_cast<GXTexCoordID>( 2 ), static_cast<GXTexGenType>( 1 ), static_cast<GXTexGenSrc>( 4 ), 0x3C, static_cast<GXBool>( 0 ), 0x7D);
     GXSetNumTevStages(2);
     GXSetNumIndStages(1);
-    GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_TEXC);
-    GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_KONST);
-    GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevOrder(GX_TEVSTAGE1, GX_TEXCOORD1, GX_TEXMAP1, GX_COLOR0A0);
-    GXSetTevColorIn(GX_TEVSTAGE1, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_CPREV);
-    GXSetTevColorOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevAlphaIn(GX_TEVSTAGE1, GX_CA_ZERO, GX_CA_TEXA, GX_CA_RASA, GX_CA_ZERO);
-    GXSetTevAlphaOp(GX_TEVSTAGE1, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-    GXSetTevIndirect(GX_TEVSTAGE1, GX_INDTEXSTAGE0, GX_ITF_8, GX_ITB_ST, GX_ITM_0, GX_ITW_0, GX_ITW_0, GX_FALSE, GX_FALSE, GX_ITBA_OFF);
+    GXSetTevOrder(static_cast<GXTevStageID>( 0 ), static_cast<GXTexCoordID>( 0 ), static_cast<GXTexMapID>( 0 ), static_cast<GXChannelID>( 4 ));
+    GXSetTevColorIn(static_cast<GXTevStageID>( 0 ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 8 ));
+    GXSetTevColorOp(static_cast<GXTevStageID>( 0 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 1 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevAlphaIn(static_cast<GXTevStageID>( 0 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 6 ));
+    GXSetTevAlphaOp(static_cast<GXTevStageID>( 0 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 1 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevKAlphaSel(static_cast<GXTevStageID>( 0 ), static_cast<GXTevKAlphaSel>( 0 ));
+    GXSetTevOrder(static_cast<GXTevStageID>( 1 ), static_cast<GXTexCoordID>( 1 ), static_cast<GXTexMapID>( 1 ), static_cast<GXChannelID>( 4 ));
+    GXSetTevColorIn(static_cast<GXTevStageID>( 1 ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0xF ), static_cast<GXTevColorArg>( 0 ));
+    GXSetTevColorOp(static_cast<GXTevStageID>( 1 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 1 ), static_cast<GXTevRegID>( 0 ));
+    GXSetTevAlphaIn(static_cast<GXTevStageID>( 1 ), static_cast<GXTevAlphaArg>( 7 ), static_cast<GXTevAlphaArg>( 4 ), static_cast<GXTevAlphaArg>( 5 ), static_cast<GXTevAlphaArg>( 7 ));
+    GXSetTevAlphaOp(static_cast<GXTevStageID>( 1 ), static_cast<GXTevOp>( 0 ), static_cast<GXTevBias>( 0 ), static_cast<GXTevScale>( 0 ), static_cast<GXBool>( 1 ), static_cast<GXTevRegID>( 0 ));
+
+    GXSetTevIndirect(GX_TEVSTAGE1, GX_INDTEXSTAGE0, GX_ITF_8, GX_ITB_NONE, GX_ITM_0, GX_ITW_OFF, GX_ITW_OFF, GX_FALSE, GX_FALSE, GX_ITBA_OFF);
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD2, GX_TEXMAP2);
-    f32 offsetMtx[][3] = {{0.5f, 0.0f, 0.0f}, {0.0f, 0.5f, 0.0f}};
-    GXSetIndTexMtx(GX_ITM_0, offsetMtx, ::sScaleExp);
+    s32 maxDist = 10000;
+    if (mBlurMaxDist >= 0) maxDist = mBlurMaxDist;
+    s32 minDist = 8200;
+    if (mBlurMinDist >= 0) minDist = mBlurMinDist;
+    f32 nearDepth, farDepth;
+    if (maxDist > minDist) { nearDepth = minDist / 10000.0f; farDepth = maxDist / 10000.0f; }
+    else { nearDepth = maxDist / 10000.0f; farDepth = minDist / 10000.0f; }
+    f32 n = 1.0f - nearDepth;
+    f32 f = 1.0f - farDepth;
+    nearDepth = 1.0f - n * n;
+    farDepth = 1.0f - f * f;
+    if (100.0f != MR::getNearZ()) {
+        f32 farZ = MR::getFarZ();
+        nearDepth = MR::convertDepthForProjection(nearDepth, 100.0f, 800000.0f, MR::getNearZ(), farZ);
+        farZ = MR::getFarZ();
+        farDepth = MR::convertDepthForProjection(farDepth, 100.0f, 800000.0f, MR::getNearZ(), farZ);
+    }
+    f32 scale;
+    if (0.0f != farDepth - nearDepth) scale = 1.0f / (farDepth - nearDepth);
+    else scale = 1.0f;
+    f32 offset = -scale * nearDepth;
+    s8 exponent = 0;
+    while (scale > 0.9990234375f && exponent < 46) { scale *= 0.5f; exponent++; }
+    while (0.0f < scale && scale < 0.5f && exponent > -16) { scale *= 2.0f; exponent--; }
+    f32 matrix[2][3] = {};
+    f32 coefficient = scale;
+    coefficient *= 0.00390625f;
+    matrix[0][0] = coefficient;
+    matrix[0][1] = scale;
+    GXSetIndTexMtx(GX_ITM_0, matrix, exponent - 1);
     GXSetIndTexCoordScale(GX_INDTEXSTAGE0, GX_ITS_1, GX_ITS_1);
-    _28->load(GX_TEXMAP1);
-    _20->load(GX_TEXMAP2);
-    ImageEffectLocalUtil::drawTexture(_24, 1, 0, mIntensity * get_10() * 255.0f, ImageEffectLocalUtil::TexDrawType_2);
+    mBlurTexture->load(GX_TEXMAP0);
+    getFogTexture()->load(GX_TEXMAP1);
+    mDepthTexture->load(GX_TEXMAP2);
+    GXSetChanMatColor(GX_COLOR0A0, Color8(255, 255, 255, 255.0f * (mIntensity * get_10())));
+    GXSetChanAmbColor(GX_COLOR0A0, Color8(0, 0, 0, 255));
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT1, 4);
+    s32 divisions = 1;
+    s32 tile = 0;
+    s32 row = tile / divisions;
+    s32 column = tile % divisions;
+    f32 cellWidth = static_cast<f32>(MR::getFrameBufferWidth()) / divisions;
+    f32 cellHeight = static_cast<f32>(MR::getFrameBufferHeight()) / divisions;
+    f32 left = column * cellWidth;
+    f32 bottom = (row + 1) * cellHeight;
+    f32 right = (column + 1) * cellWidth;
+    f32 top = row * cellHeight;
+    GXPosition3f32(left, bottom, 0.0f); GXTexCoord2f32(0.0f, 1.0f); GXTexCoord2f32(offset, offset);
+    GXPosition3f32(left, top, 0.0f); GXTexCoord2f32(0.0f, 0.0f); GXTexCoord2f32(offset, offset);
+    GXPosition3f32(right, bottom, 0.0f); GXTexCoord2f32(1.0f, 1.0f); GXTexCoord2f32(offset, offset);
+    GXPosition3f32(right, top, 0.0f); GXTexCoord2f32(1.0f, 0.0f); GXTexCoord2f32(offset, offset);
+    GXEnd();
     GXSetNumTevStages(1);
     GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
     GXSetNumIndStages(0);
@@ -171,4 +225,10 @@ void DepthOfFieldBlur::drawFinal() const {
     GXSetTevDirect(GX_TEVSTAGE2);
     GXSetTevDirect(GX_TEVSTAGE3);
     ImageEffectLocalUtil::setupDrawTexture();
+}
+
+JUTTexture* DepthOfFieldBlur::getFogTexture() const {
+    s32 index = mFogTextureIndex;
+    if (index < 0) return MR::getImageEffectResource()->mFogTextures[0];
+    return MR::getImageEffectResource()->mFogTextures[index];
 }

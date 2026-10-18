@@ -15,11 +15,9 @@ namespace NrvBombTimerLayout {
     NEW_NERVE(BombTimerLayoutNrvEnd, BombTimerLayout, End);
 };  // namespace NrvBombTimerLayout
 
-BombTimerLayout::BombTimerLayout(bool isConnectToScene)
+BombTimerLayout::BombTimerLayout()
     : LayoutActor("ボムタイマーレイアウト", true), mDangerTransFrame(::sDangerTransFrame), mFrame(), mIsSuspend() {
-    if (isConnectToScene) {
-        MR::connectToSceneLayout(this);
-    }
+    MR::connectToSceneLayout(this);
 }
 
 void BombTimerLayout::init(const JMapInfoIter& rIter) {

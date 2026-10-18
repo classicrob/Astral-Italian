@@ -211,7 +211,7 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     }
 
     if (mIsSpawnPowerStarMode) {
-        mTakeOutStar = new TakeOutStar(this, "TakeOutStar", "TakeOutStar", GET_NERVE(Kinopio, KinopioNrvTakeOutStar));
+        mTakeOutStar = new TakeOutStar(this, "TakeOutStar", "TakeOutStar", GET_NERVE(Kinopio, KinopioNrvTakeOutStar), nullptr);
         MR::declarePowerStar(this);
         setNerve(GET_NERVE(Kinopio, KinopioNrvStarWait));
     }

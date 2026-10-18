@@ -4,7 +4,7 @@
 
 class BombTimerLayout : public LayoutActor {
 public:
-    BombTimerLayout(bool isConnectToScene);
+    BombTimerLayout();
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void appear();

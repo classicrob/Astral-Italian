@@ -41,6 +41,7 @@ public:
     void setArgString(const wchar_t*, s32);
     void initAlpha(f32, f32, s32, s32);
     void reset(const wchar_t*);
+    void setFontScale(f64);
     MessageEditorMessageTag getReplaceTag(const wchar_t*, s32, s32, s32) const;
     bool isIgnoreTag(u16, ContextType*) const;
     bool writeString(nw4r::ut::Rect*, const wchar_t*, ContextType*);

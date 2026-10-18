@@ -27,7 +27,6 @@ extern "C" void fn_8003D2D0(TQuat4f*, const TQuat4f*, const TVec3f&, f32);
 extern "C" void fn_8009A780(TPos3f*, const TQuat4f*, const TVec3f*);
 extern "C" void fn_800DB560(void*, s32);
 extern "C" void fn_8001BA80();
-extern "C" void fn_80051580();
 
 namespace MR {
     bool isGalaxyDarkCometAppearInCurrentStage();
@@ -2100,7 +2099,7 @@ void SandyStateDemoDown::exeDemo() {
         mHost->getLeftMini()->kill();
         mHost->getRightMini()->kill();
         mHost->mHolder->killAll();
-        fn_80051580();
+        MR::killPlayerFireBalls();
         mHost->killAll();
         MR::stopStageBGM(10);
         mHost->startActionAll("DemoSandyDown", nullptr);
@@ -2163,7 +2162,7 @@ void SandyStateDemoPowerUp::exeDemo() {
     if (MR::isFirstStep(this)) {
         turnToPlayer(&mHost->mTargetQuat, mHost, 180.0f);
         MR::hidePlayer();
-        fn_80051580();
+        MR::killPlayerFireBalls();
         mHost->startActionAll(sDemoPowerUpAction, nullptr);
         MR::overlayWithPreviousScreen(2);
         mHost->getLeftMini()->appear();

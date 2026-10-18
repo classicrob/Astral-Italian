@@ -59,10 +59,10 @@ void PenguinCoach::init(const JMapInfoIter& rIter) {
     if (mBehavior == Behavior_Star) {
         MR::useStageSwitchWriteA(this, rIter);
         MR::declarePowerStar(this);
-        mTakeOutStar = new TakeOutStar(this, "TakeOutStar", "TakeOutStarPenguinCoach", GET_NERVE(PenguinCoach, PenguinCoachNrvTakeOutStar));
+        mTakeOutStar = new TakeOutStar(this, "TakeOutStar", "TakeOutStarPenguinCoach", GET_NERVE(PenguinCoach, PenguinCoachNrvTakeOutStar), nullptr);
     } else if (mBehavior == Behavior_Tutorial || mBehavior == Behavior_Race) {
         MR::declarePowerStar(this);
-        mTakeOutStar = new TakeOutStar(this, "TakeOutStar", "TakeOutStarPenguinCoach", GET_NERVE(PenguinCoach, PenguinCoachNrvTakeOutStar));
+        mTakeOutStar = new TakeOutStar(this, "TakeOutStar", "TakeOutStarPenguinCoach", GET_NERVE(PenguinCoach, PenguinCoachNrvTakeOutStar), nullptr);
         RaceManagerFunction::entryAudience(this);
     }
 

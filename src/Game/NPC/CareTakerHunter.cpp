@@ -110,7 +110,7 @@ void CareTakerHunter::init(const JMapInfoIter& rIter) {
         MR::initMultiActorCamera(this, rIter, &mCameraInfo3, LBL(0xA8));
         MR::declarePowerStar(this);
 
-        TakeOutStar* pTakeOut = new TakeOutStar(this, LBL(0xB4), LBL(0xB4), NRV(lbl_807D4868));  // NONMATCHING: target calls the 5-arg ctor (extra s32 0)
+        TakeOutStar* pTakeOut = new TakeOutStar(this, LBL(0xB4), LBL(0xB4), NRV(lbl_807D4868), nullptr);
         mTakeOutStar = pTakeOut;
 
         mChildCount = MR::getChildObjNum(rIter) - 1;
@@ -373,7 +373,7 @@ void CareTakerHunter::exeAppear() {
         MR::openWipeFade(-1);
         MR::startSubBGM(LBL(0x220), false);
         MR::startMultiActorCameraTargetSelf(this, mCameraInfo1, LBL(0x88), -1);
-        MR::setPlayerPosOnGroundAndWait(LBL(0x234));
+        MR::setPlayerPosOnGroundAndWait(LBL(0x234),true);
         MR::startBckPlayer(LBL(0x250));
         MR::startAction(this, LBL(0x258));
         mRotAngle = 0.0f;

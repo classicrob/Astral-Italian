@@ -7,6 +7,7 @@ class UserFile;
 
 namespace GameSequenceFunction {
     bool isGreenStarEventOnly();
+    void restartCurrentStageAndClearAfterMiss();
     const char* getClearedStageName();
     void resetPlayResultInStage();
     void collectTicoCoinInStage();

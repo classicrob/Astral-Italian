@@ -10,6 +10,7 @@ class LiveActor;
 class LayoutActor;
 class ModelObj;
 class ResourceHolder;
+class ResTIMG;
 class NameObjAdaptor;
 class BenefitItemOneUp;
 class BenefitItemObj;
@@ -19,6 +20,7 @@ class Color8;
 typedef struct _GXColor GXColor;
 
 namespace MR {
+    void connectToSceneLayoutTemporarily(NameObj*);
     JMapInfo* createCsvParserFromFile(const char*, const char*, ...);
     bool isExistElement(const JMapInfo*, const char*, const char*);
 
@@ -124,6 +126,7 @@ namespace MR {
                                         const MR::FunctorBase& rFunctorOff);
 
     ResourceHolder* createAndAddResourceHolder(const char* pObjName);
+    const ResTIMG* getTextureResource(const ResourceHolder*, const char*);
     // more ResourceHolder stuff...
     bool isExistFileInArc(const ResourceHolder* pResArc, const char* pPathFormat, ...);
 

@@ -13,6 +13,9 @@ class Triangle;
 class XanimeResourceTable;
 
 namespace MR {
+    void enablePlayerResourceFire();
+    void killPlayerFireBalls();
+    void forceCurePlayerElementMode();
     void enablePlayerResourceFreezeIce();
     bool isOnGroundPlayer();
     Triangle* getPlayerGroundingPolygon();
@@ -86,7 +89,7 @@ namespace MR {
     void setPlayerPosAndWait(const char*);
     void setPlayerLinkPosAndWait(const NameObj*, const char*, bool);
     void setPlayerPosOnGround(const char*);
-    void setPlayerPosOnGroundAndWait(const char*);
+    void setPlayerPosOnGroundAndWait(const char*, bool);
     bool isPlayerHipDropFalling();
     bool isPlayerHipDropLand();
     s32 getPlayerLife();

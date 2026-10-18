@@ -7,6 +7,12 @@
 struct ResTIMG;
 
 namespace MR {
+    void forceSyncCoinCounter();
+    void forceAppearCoinCounterForTicoFat();
+    void disappearCoinCounterForTicoFat();
+    void requestPauseBlurMovementOn();
+    void incrementPauseBlurDelay();
+    void decrementPauseBlurDelay();
     s32 getScreenWidth();
     inline s32 getScreenHeight() NO_INLINE {
         return JUTVideo::getManager()->getEfbHeight();

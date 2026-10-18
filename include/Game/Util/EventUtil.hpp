@@ -9,6 +9,10 @@ class LiveActor;
 class NameObj;
 
 namespace MR {
+    s32 getScoreAttackScore();
+    void setExterminationWoodBoxFlag();
+    void clearExterminationWoodBoxFlag();
+    bool isPostmanSpecialLetter(s32);
     void incPlayerAndTryScenarioMissNum();
     s32 getPlayerLeft();
     void addPlayerLeft(int lives);

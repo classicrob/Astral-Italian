@@ -212,6 +212,7 @@ namespace MR {
     void setTextBoxFontRecursive(LayoutActor*, const char*, nw4r::ut::Font*);
     f32 getPaneTransX(const LayoutActor*, const char*);
     f32 getPaneTransY(const LayoutActor*, const char*);
+    void setActorPositionFromLayoutPane(LiveActor*, const LayoutActor*, const char*, const TVec2f&, f32);
     void setLayoutPosAtPaneTrans(LayoutActor*, const LayoutActor*, const char*);
     void copyPaneScale(TVec2f*, const LayoutActor*, const char*);
     void setPaneScale(const LayoutActor*, f32, f32, const char*);

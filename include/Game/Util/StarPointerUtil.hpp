@@ -124,3 +124,15 @@ namespace MR {
 namespace MR {
     bool isStarPointerPointing(const TVec3f&, f32, s32, bool);
 };  // namespace MR
+
+namespace StarPointerUtil {
+    TVec2f* getDefaultButtonOffsetVec2();
+    void setConnectionMovePositionRight(const char*, const char*);
+    void refreshMovePositionsFromLayout(LayoutActor*);
+    bool beginMovePositionRegistration(LayoutActor*, bool);
+    void endMovePositionRegistration(LayoutActor*);
+    void addStarPointerMovePositionFromPane(LayoutActor*, const char*, TVec2f*);
+    void setConnectionMovePositionRight2Way(const char*, const char*);
+    void setFirstMovePosition(const char*);
+    void setLastMovePosition(const char*);
+}

@@ -324,7 +324,8 @@ namespace MR {
         MarioAccess::setBaseMtx(mtx.toMtxPtr());
     }
 
-    void setPlayerPosOnGroundAndWait(const char* pParam1) {
+    void setPlayerPosOnGroundAndWait(const char* pParam1, bool resetBeforePosition) {
+        if (resetBeforePosition) MarioAccess::prepareForPositionReset();
         TPos3f mtx;
         mtx.identity();
 
@@ -332,6 +333,7 @@ namespace MR {
         MarioAccess::setBaseMtx(mtx.toMtxPtr());
         MarioAccess::getPlayerActor()->resetCondition();
         MarioAccess::setStateWait();
+        MR::startBckPlayer("Wait",static_cast<const char*>(nullptr));
     }
 
     bool isPlayerHipDropFalling() {

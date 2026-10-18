@@ -11,3 +11,13 @@ class SimpleEffectLayout : public SimpleLayout {
 public:
     SimpleEffectLayout(const char*, const char*, u32, int);
 };
+
+class TalkTextFormer;
+class SimpleTalkBalloon : public SimpleLayout {
+public:
+    SimpleTalkBalloon(const char*, const char*, u32);
+    void appearMessage(const char*);
+    void disappear();
+private:
+    TalkTextFormer* mTextFormer;
+};

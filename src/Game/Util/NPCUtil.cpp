@@ -617,8 +617,8 @@ namespace MR {
     }
 };  // namespace MR
 
-TakeOutStar::TakeOutStar(NPCActor* pActor, const char* pActionName, const char* pAnimName, const Nerve* pNerve)
-    : NerveExecutor("パワースター取り出しデモ実行者"), mActor(pActor), mNerve(pNerve), mActionName(pActionName), mAnimName(pAnimName) {
+TakeOutStar::TakeOutStar(NPCActor* pActor, const char* pActionName, const char* pAnimName, const Nerve* pNerve, const Nerve* pReturnNerve)
+    : NerveExecutor("パワースター取り出しデモ実行者"), mActor(pActor), mNerve(pNerve), mReturnNerve(pReturnNerve), mActionName(pActionName), mAnimName(pAnimName) {
     mStarModel = MR::createPowerStarDemoModel(mActor, "パワースターデモモデル", pActor->getBaseMtx());
     mStarModel->makeActorDead();
 
@@ -693,7 +693,8 @@ void TakeOutStar::exeDemo() {
 
     if (MR::isEndPowerStarAppearDemo(mActor)) {
         MR::validateClipping(mStarModel);
-        mActor->popNerve();
+        if (mReturnNerve != nullptr) mActor->setNerve(mReturnNerve);
+        else mActor->popNerve();
         setNerve(GET_NERVE(TakeOutStar, TakeOutStarNrvTerm));
     }
 }

@@ -35,7 +35,7 @@ namespace nw4r {
         template < typename CharType >
         f32 TextWriterBase< CharType >::Print(StreamType str, int length) {
             TextWriterBase< CharType > myCopy = *this;
-            f32 width = myCopy.PrintImpl(str, length);
+            f32 width = myCopy.PrintImpl(str, length, false);
             SetCursor(myCopy.GetCursorX(), myCopy.GetCursorY());
             return width;
         }

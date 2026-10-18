@@ -9,7 +9,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/NPCUtil.hpp"
 
-extern "C" void fn_80050300();
 
 namespace NrvSuperDreamer {
     NEW_NERVE(SuperDreamerNrvAppear, SuperDreamer, Appear);
@@ -82,7 +81,7 @@ bool SuperDreamer::eventFunc(u32 event) {
 }
 
 bool SuperDreamer::killFunc(u32) {
-    fn_80050300();
+    MR::forceCurePlayerElementMode();
     setNerve(GET_NERVE(SuperDreamer, SuperDreamerNrvStartTransform));
     return true;
 }

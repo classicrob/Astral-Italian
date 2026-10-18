@@ -10,6 +10,13 @@ class GameEventValueChecker;
 class SaveDataHandleSequence;
 
 namespace GameDataFunction {
+    void onTicoCoinFeed(const char*);
+    bool isTicoCoinFeed(const char*);
+    s32 getBankedStarPieceNum();
+    void setBankedStarPieceNum(s32);
+    void tryOnGameEventFlagStarPieceCounterStop(int);
+    bool isOnPostmanImportantLetterRead(s32);
+    bool isOnPostmanTaskLetterRead(s32);
     bool isOnGalaxyFlagTicoCoin(const char* pStageName);
     bool isOnGameEventFlagStarPieceCounterStop();
 }

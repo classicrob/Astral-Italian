@@ -136,10 +136,14 @@ namespace nw4r {
                 return mFont;
             }
 
-            void SetColorMapping(Color min, Color max) {
-                NW4R_POINTER_ASSERT_AT(87, this);
-                mColorMapping.min = min;
-                mColorMapping.max = max;
+            void SetColorMapping(Color min, Color max)
+#ifdef NW4R_DEBUG
+                NO_INLINE
+#endif
+            {
+                NW4R_POINTER_ASSERT_AT(88, this);
+                static_cast<GXColor&>(mColorMapping.min) = static_cast<const GXColor&>(min);
+                static_cast<GXColor&>(mColorMapping.max) = static_cast<const GXColor&>(max);
             }
 
             void ResetColorMapping() {

@@ -21,14 +21,14 @@ public:
     MessageEditorMessageTag(const nw4r::ut::PrintContext< wchar_t >*);
 
     s32 getGroup() const {
-        return reinterpret_cast< const u8* >(mMessage)[1];
+        return mMessage[0];
     }
     int getTag() const {
         return mMessage[1];
     }
 
     bool isGroupTagId(int group, int tag) const NO_INLINE {
-        return reinterpret_cast< const u8* >(mMessage)[1] == group && mMessage[1] == tag;
+        return mMessage[0] == group && mMessage[1] == tag;
     }
 
     u32 getTagLength() const;

@@ -1,3 +1,5 @@
+#define NW4R_DEBUG
+#pragma auto_inline off
 #include "Game/Screen/CustomTagProcessor.hpp"
 #include "Game/Util.hpp"
 #include "Game/Screen/ReplaceTagProcessor.hpp"
@@ -22,9 +24,23 @@ namespace {
     const f32 mPictureFontOffset = -2.0f;
     const f32 mOffsetOffset = 0.0f;
 
-    GXColor sTextColor[] = {{255, 255, 255, 255}, {220, 130, 130, 255}, {80, 170, 80, 255},   {80, 140, 210, 255},
-                            {235, 200, 0, 255},   {180, 110, 200, 255}, {255, 190, 190, 255}, {110, 243, 70, 255},
-                            {120, 255, 255, 255}, {255, 255, 80, 255},  {251, 188, 250, 255}, {190, 190, 200, 255}};
+    GXColor sTextColor[] = {
+        {255, 255, 255, 255},
+        {220, 130, 130, 255},
+        {80, 170, 80, 255},
+        {80, 140, 210, 255},
+        {235, 200, 0, 255},
+        {180, 110, 200, 255},
+        {255, 160, 100, 255},
+        {190, 190, 200, 255},
+        {220, 130, 130, 255},
+        {80, 170, 80, 255},
+        {80, 140, 210, 255},
+        {235, 200, 0, 255},
+        {180, 110, 200, 255},
+        {255, 160, 100, 255},
+        {190, 190, 200, 255},
+    };
 
 
     u8 clampU8(s32 value) NO_INLINE;
@@ -152,7 +168,7 @@ namespace nw4r {
 namespace nw4r {
     namespace ut {
         template <>
-        f32 TextWriterBase< wchar_t >::PrintImpl(StreamType str, int length) {
+        f32 TextWriterBase< wchar_t >::PrintImpl(StreamType str, int length, bool adjustBaseline) {
             NW4R_POINTER_ASSERT_AT(271, this);
             NW4R_POINTER_ASSERT_AT(272, str);
             NW4R_POINTER_ASSERT_AT(273, GetFont());
@@ -259,7 +275,7 @@ namespace nw4r {
 
                     if (bUseLimit && (prevStreamPos != prevNewLinePos)) {
                         f32 baseX = GetCursorX();
-                        f32 charSpace = bCharSpace ? GetCharSpace() : 0.0f;
+                        f32 charSpace = bCharSpace ? GetCharSpaceValidated() : 0.0f;
                         f32 charWidth = IsWidthFixed() ? GetFixedWidth() : GetFont()->GetCharWidth(code) * GetScaleH();
 
                         if (baseX - xOrigin + charSpace + charWidth > mWidthLimit) {
@@ -270,7 +286,7 @@ namespace nw4r {
                     }
 
                     if (bCharSpace) {
-                        MoveCursorX(GetCharSpace());
+                        MoveCursorX(GetCharSpaceValidated());
                     }
                     bCharSpace = true;
 
@@ -300,6 +316,11 @@ namespace nw4r {
 
             if (IsDrawFlagSet(VERTICAL_ORIGIN_MASK, VERTICAL_ORIGIN_MIDDLE) || IsDrawFlagSet(VERTICAL_ORIGIN_MASK, VERTICAL_ORIGIN_BOTTOM)) {
                 SetCursorY(orgCursorY);
+            } else if (adjustBaseline) {
+                if (IsDrawFlagSet(VERTICAL_ORIGIN_MASK, VERTICAL_ORIGIN_TOP)) {
+                    f32 ascent = GetFontAscent();
+                    SetCursorY(GetCursorY() - ascent);
+                }
             } else {
                 MoveCursorY(yCursorAdj);
             }
@@ -316,6 +337,7 @@ namespace nw4r {
 CustomTagProcessor::CustomTagProcessor(nw4r::lyt::TextBox* textBox)
     : mAlphaCtrl(), mPlayedSounds(), mColorMappingMin(::setGXColor(textBox->GetMaterial()->GetTevColor(0))),
       mColorMappingMax(::setGXColor(textBox->GetMaterial()->GetTevColor(1))) {
+    mFontScale = 1.0f;
     mRubyFontWidth = 0.5f * textBox->mFontSize.width;
     mRubyFontHeight = 0.5f * textBox->mFontSize.height;
     mFontWidth = textBox->mFontSize.width;
@@ -326,7 +348,7 @@ CustomTagProcessor::CustomTagProcessor(nw4r::lyt::TextBox* textBox)
     mIsText = false;
     mIsInfo = false;
 
-    mNoCharSpace = true;
+    mNoCharSpace = false;
 
     mTextBox = textBox;
 }
@@ -338,7 +360,7 @@ CustomTagProcessor::Operation CustomTagProcessor::CalcRect(nw4r::ut::Rect* rect,
     }
 
     if (!mNoCharSpace && !(context->flags & 1)) {
-        context->writer->mCursorPos.x += context->writer->GetCharSpaceValidated();
+        context->writer->MoveCursorX(context->writer->GetCharSpaceValidated());
     }
 
     MessageEditorMessageTag tag(context);
@@ -358,7 +380,7 @@ CustomTagProcessor::Operation CustomTagProcessor::Process(u16 code, ContextType*
     }
 
     if (!mNoCharSpace && !(context->flags & 1)) {
-        context->writer->mCursorPos.x += context->writer->GetCharSpaceValidated();
+        context->writer->MoveCursorX(context->writer->GetCharSpaceValidated());
     }
 
     MessageEditorMessageTag tag(context);
@@ -406,6 +428,8 @@ void CustomTagProcessor::reset(const wchar_t* string) {
         return;
     }
 
+    mColorMappingMin = ::setGXColor(mTextBox->GetMaterial()->GetTevColor(0));
+    mColorMappingMax = ::setGXColor(mTextBox->GetMaterial()->GetTevColor(1));
     mSoundIndex = 0;
     mColorIndex = 0;
     mAlphaCtrl.mWaitTime = 0;
@@ -415,7 +439,7 @@ void CustomTagProcessor::reset(const wchar_t* string) {
 
 MessageEditorMessageTag CustomTagProcessor::getReplaceTag(const wchar_t* string, s32 group, s32 index, s32 occurrence) const {
     while (*string) {
-        if (*string == 0x1A) {
+        if (*string == 0xE) {
             string++;
             MessageEditorMessageTag tag(string);
             string += tag.getSkipLength();
@@ -436,7 +460,7 @@ MessageEditorMessageTag CustomTagProcessor::getReplaceTag(const wchar_t* string,
 }
 
 bool CustomTagProcessor::isIgnoreTag(u16 code, ContextType* context) const {
-    if (code != 0x1A) {
+    if (code != 0xE) {
         return true;
     }
 
@@ -494,7 +518,7 @@ CustomTagProcessor::Operation CustomTagProcessor::exeSoundGroup(nw4r::ut::Rect* 
 
     if (mask != static_cast< u8 >(mPlayedSounds & mask)) {
         char name[256];
-        MR::convertUTF16ToASCII(name, tag.getParamPtr(0), static_cast< s32 >(tag.getParamLength()) / 2 + 1);
+        MR::convertUTF16ToASCII(name, tag.getParamPtr(2), (static_cast<s32>(tag.mMessage[2]) - 2) / 2 + 1);
         MR::startSystemSE(name);
         mPlayedSounds |= static_cast< u8 >(1 << mSoundIndex);
     }
@@ -506,8 +530,8 @@ CustomTagProcessor::Operation CustomTagProcessor::exeSoundGroup(nw4r::ut::Rect* 
 CustomTagProcessor::Operation CustomTagProcessor::exePictureGroup(nw4r::ut::Rect* rect, const MessageEditorMessageTag& tag, ContextType* context) {
     nw4r::ut::TextWriterBase< wchar_t > writer = *context->writer;
     writer.SetFont(*MR::getPictureFontNW4R());
-    wchar_t picture = tag.getTag() + L'0';
-    f32 width = writer.CalcStringWidth(&picture, 1) + writer.GetCharSpace();
+    wchar_t picture = tag.getParam16(0) + L'0';
+    f32 width = writer.CalcStringWidth(&picture, 1) + writer.GetCharSpaceValidated();
     context->writer->MoveCursorX(width);
 
     if (rect) {
@@ -609,49 +633,23 @@ CustomTagProcessor::Operation CustomTagProcessor::exeStringGroup(nw4r::ut::Rect*
     return OPERATION_DEFAULT;
 }
 
-CustomTagProcessor::Operation CustomTagProcessor::exeSystemGroupColor(nw4r::ut::Rect* rect, int index, ContextType* context) {
-    if (mIsShadow) {
-        return OPERATION_NO_CHAR_SPACE;
-    }
-
-    if (mIsInfo && index >= 1 && index < 6) {
-        index += 5;
-    }
-
-    if (!rect) {
-        mColorIndex = index;
-        if (index == 0) {
-            context->writer->SetColorMapping(mColorMappingMin, mColorMappingMax);
-        } else {
-            GXColor color = ::getTextColor(index);
-            color.a = mColorMappingMin.a;
-            context->writer->SetColorMapping(color, ::getTextColor(index));
-        }
-
-        context->writer->SetupGX();
-        ::setTextColor(context->writer, index);
-    }
-
-    return OPERATION_NO_CHAR_SPACE;
-}
-
 CustomTagProcessor::Operation CustomTagProcessor::exeSystemGroupRuby(nw4r::ut::Rect* rect, const MessageEditorMessageTag& tag, ContextType* context) {
     if (MR::getLanguage() != LANGUAGE_JPJAPANESE) {
         return OPERATION_NO_CHAR_SPACE;
     }
 
-    s32 baseLength = tag.getParam8(0);
-    const wchar_t* rubyText = tag.getParamPtr(1);
-    s32 rubyLength = (tag.getParamLength() - 2) / sizeof(wchar_t);
+    s32 baseLength = tag.getParam16(0) / 2;
+    const wchar_t* rubyText = tag.getParamPtr(4);
+    s32 rubyLength = tag.getParam16(1) / 2;
     wchar_t ruby[32];
     MR::copyMemory(ruby, rubyText, rubyLength * sizeof(wchar_t));
     ruby[rubyLength] = L'\0';
     wchar_t base[32];
-    MR::copyMemory(base, context->str + tag.getTagLength() / 2, baseLength * sizeof(wchar_t));
+    MR::copyMemory(base, context->str + tag.getSkipLength(), baseLength * sizeof(wchar_t));
     base[baseLength] = L'\0';
     nw4r::ut::TextWriterBase< wchar_t >* writer = context->writer;
     writer->GetDrawFlag();
-    writer->GetCharSpace();
+    writer->GetCharSpaceValidated();
     nw4r::ut::TextWriterBase< wchar_t > rubyWriter = *writer;
     rubyWriter.SetDrawFlag(nw4r::ut::TextWriterBase< wchar_t >::VERTICAL_ORIGIN_BASELINE);
     rubyWriter.SetLineSpace(0.0f);
@@ -719,9 +717,9 @@ CustomTagProcessor::Operation CustomTagProcessor::exeDisplayGroupCenter(nw4r::ut
 CustomTagProcessor::Operation CustomTagProcessor::exeFontGroup(nw4r::ut::Rect* rect, const MessageEditorMessageTag& tag, ContextType* context) {
     nw4r::ut::TextWriterBase< wchar_t > writer = *context->writer;
     writer.SetFont(*MR::getNumberFontNW4R());
-    const wchar_t* string = tag.getParamPtr(0);
-    s32 length = static_cast< s32 >(tag.getParamLength()) / 2;
-    f32 width = writer.CalcStringWidth(string, length) + writer.GetCharSpace();
+    const wchar_t* string = tag.getParamPtr(2);
+    s32 length = tag.getParam16(0) / 2;
+    f32 width = writer.CalcStringWidth(string, length) + writer.GetCharSpaceValidated();
     context->writer->MoveCursorX(width);
     if (rect) {
         rect->right = rect->left + width;
@@ -746,4 +744,10 @@ CustomTagProcessor::Operation CustomTagProcessor::exeFontGroup(nw4r::ut::Rect* r
 
 
 CustomTagProcessor::~CustomTagProcessor() {
+}
+
+// NONMATCHING: floating-point registers differ for the rounded scale and size stores.
+void CustomTagProcessor::setFontScale(f64 scale) {
+    mFontScale = scale;
+    mTextBox->SetFontSize(nw4r::lyt::Size(mFontWidth * static_cast<f32>(scale), mFontHeight));
 }

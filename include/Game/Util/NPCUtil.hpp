@@ -64,7 +64,7 @@ namespace MR {
 
 class TakeOutStar : public NerveExecutor {
 public:
-    TakeOutStar(NPCActor*, const char*, const char*, const Nerve*);
+    TakeOutStar(NPCActor*, const char*, const char*, const Nerve*, const Nerve*);
 
     bool takeOut();
     bool isFirstStep();
@@ -76,8 +76,9 @@ public:
     /* 0x08 */ ModelObj* mStarModel;
     /* 0x0C */ NPCActor* mActor;
     /* 0x10 */ const Nerve* mNerve;
-    /* 0x14 */ const char* mActionName;
-    /* 0x18 */ const char* mAnimName;
+    /* 0x14 */ const Nerve* mReturnNerve;
+    /* 0x18 */ const char* mActionName;
+    /* 0x1C */ const char* mAnimName;
 };
 
 class FadeStarter : public NerveExecutor {

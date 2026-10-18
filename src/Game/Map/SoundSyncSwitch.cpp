@@ -1,4 +1,5 @@
 #include "Game/Map/SoundSyncSwitch.hpp"
+#include "Game/GameAudio/ActionSoundKeeper.hpp"
 #include "Game/Map/StageSwitch.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -7,9 +8,6 @@
 #include "Game/Util/SoundUtil.hpp"
 
 // Unnamed SMG2 helpers (sound object and beat/timing checks).
-extern "C" SoundSyncSound* fn_80222860(SoundSyncSound*, s32, const char*, s32);
-extern "C" void fn_80222960(SoundSyncSound*);
-extern "C" void fn_80222A60(SoundSyncSound*, const char*, s32, s32);
 extern "C" bool fn_8042A6E0(s32, f32);
 extern "C" bool fn_80056EB0();
 
@@ -28,10 +26,7 @@ void SoundSyncSwitch::init(const JMapInfoIter& rIter) {
     mStageSwitchCtrl = MR::createStageSwitchCtrl(this, rIter);
     MR::isExistStageSwitchB(rIter);
 
-    mSound = (SoundSyncSound*)operator new(0x10);
-    if (mSound != NULL) {
-        mSound = fn_80222860(mSound, 4, "SoundSyncSwitch", 0);
-    }
+    mSound = new ActionSoundKeeper(4, "SoundSyncSwitch", nullptr);
 
     mIsSwitchOnAfterCamera = mStageSwitchCtrl->isOnSwitchA();
 }
@@ -54,7 +49,7 @@ void SoundSyncSwitch::movement() {
         }
     }
 
-    fn_80222960(mSound);
+    mSound->update();
 
     if (mStageSwitchCtrl->isValidSwitchAppear() && !mStageSwitchCtrl->isOnSwitchAppear()) {
         return;
@@ -121,9 +116,9 @@ void SoundSyncSwitch::emit() {
     }
 
     if (fn_8042A6E0(8, 0.0f)) {
-        fn_80222A60(mSound, "Change", -1, -1);
+        mSound->startSound("Change", -1, -1);
     } else if (fn_8042A6E0(8, 5.0f) || fn_8042A6E0(8, 6.0f) || fn_8042A6E0(8, 7.0f)) {
-        fn_80222A60(mSound, "ChangeSign", -1, -1);
+        mSound->startSound("ChangeSign", -1, -1);
     }
 }
 

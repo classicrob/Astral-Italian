@@ -10,6 +10,10 @@ public:
     /// @brief Creates a new `ButtonPaneController`.
     ButtonPaneController(LayoutActor* pHost, const char* pPaneName, const char* pBoundingPaneName, u32 animIndex, bool);
 
+    void setPointingAnimIndex(u32);
+    bool trySelectOnPointing();
+    bool trySelectWithPad(bool (*)());
+    bool isSelectedRepeat() const;
     void update();
     void appear();
     void disappear();

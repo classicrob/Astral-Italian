@@ -1,3 +1,4 @@
+#include "Game/Screen/ImageEffectResource.hpp"
 #include "Game/Map/PauseBlur.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/CopyFilterNegater.hpp"
@@ -9,7 +10,7 @@
 class JUTTexture;
 
 // Unnamed SMG2 helpers / ImageEffectResource::createTexture (static in the target: f1 = scale, r3 = GXTexFmt, r4/r5 = flags).
-extern "C" JUTTexture* createTexture__19ImageEffectResourceFf9_GXTexFmt(f32, GXTexFmt, s32, s32);
+
 extern "C" void fn_80476C60(s32);
 extern "C" void fn_80477230(JUTTexture*, s32, s32, s32, f32, s32);
 
@@ -66,8 +67,8 @@ PauseBlur::PauseBlur(const char* pName) : NameObj(pName) {
     mDelay = 0;
     mIsActive = false;
 
-    mTexture1 = createTexture__19ImageEffectResourceFf9_GXTexFmt(1.0f / mResolution, GX_TF_RGB565, 0, 1);
-    mTexture2 = createTexture__19ImageEffectResourceFf9_GXTexFmt(1.0f / mResolution, GX_TF_RGB565, 0, 1);
+    mTexture1 = ImageEffectResource::createTexture(1.0f / mResolution, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
+    mTexture2 = ImageEffectResource::createTexture(1.0f / mResolution, GX_TF_RGB565, GX_CLAMP, GX_LINEAR);
 
     MR::connectToScene(this, 0x1A, -1, -1, 0x42);
 }

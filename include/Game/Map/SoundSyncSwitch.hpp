@@ -4,7 +4,7 @@
 #include <revolution.h>
 
 class StageSwitchCtrl;
-class SoundSyncSound;
+class ActionSoundKeeper;
 
 // Sound-synced stage switch (SMG2 only). Layout is the target's: all fields in 0x14..0x34.
 class SoundSyncSwitch : public NameObj {
@@ -26,5 +26,5 @@ public:
     /* 0x2C */ bool mIsCameraWait;
     /* 0x2D */ bool mIsSwitchOnAfterCamera;
     /* 0x30 */ s32 mSoundType;
-    /* 0x34 */ SoundSyncSound* mSound;
+    /* 0x34 */ ActionSoundKeeper* mSound;
 };

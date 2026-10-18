@@ -7,6 +7,7 @@ class BombTimerLayout;
 class LiveActorGroup;
 class MsgSharedGroup;
 class TakeOutStar;
+class StartCountdownLayout;
 
 class Caretaker : public NPCActor {
 public:
@@ -53,13 +54,14 @@ public:
     void show();
 
 private:
-    /* 0x15C */ TakeOutStar* mTakeOutStar;
-    /* 0x160 */ ActorCameraInfo* mCameraInfo;
-    /* 0x164 */ BombTimerLayout* mBombTimerLayout;
-    /* 0x168 */ LiveActorGroup* _168;
-    /* 0x16C */ s32 mObjArg0;
-    /* 0x170 */ s32 mObjArg4;
-    /* 0x174 */ s32 mBodyColorFrame;
-    /* 0x178 */ s32 mTidyTimeLimit;
-    /* 0x17C */ s32 _17C;
+    StartCountdownLayout* mCountdown;
+    TakeOutStar* mTakeOutStar;
+    ActorCameraInfo* mCameraInfo;
+    BombTimerLayout* mBombTimerLayout;
+    LiveActorGroup* _168;
+    s32 mObjArg0;
+    s32 mObjArg4;
+    s32 mBodyColorFrame;
+    s32 mTidyTimeLimit;
+    u32 mResult;
 };

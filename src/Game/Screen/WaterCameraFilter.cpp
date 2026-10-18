@@ -40,27 +40,27 @@ namespace {
     }
 };  // namespace
 
-static GXColor sDefaultColor;
+static const char* sArchiveName = "WaterCameraFilter";
+static const char* sParameterName = "WaterCameraFilterParam";
 
 WaterCameraFilter::WaterCameraFilter()
-    : LiveActor("水中カメラフィルター"), mWaterAlpha(), mWavePhase(), mWaterColor(::sDefaultColor), mScreenTex(), mFilterTex() {
+    : LiveActor("水中カメラフィルター"), mWaterAlpha(), mWavePhase(), mWaterColor(0u), mHighColor(0u), mLowColor(0u), mDepthLow(), mIndirectScale(), mScreenTex(), mFilterTex() {
 }
 
 void WaterCameraFilter::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, MR::MovementType_MapObj, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_WaterCameraFilter);
+    MR::connectToScene(this, 33, -1, -1, 63);
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(WaterCameraFilter, WaterCameraFilterNrvAir));
+    const JMapInfo* parameters = MR::tryCreateStageZoneInfoCsvParser(sParameterName);
+    if (!parameters) parameters = MR::createCsvParser(sArchiveName, sParameterName);
+    MR::getCsvDataColor(&mHighColor.mGXColor, parameters, "High", 0);
+    MR::getCsvDataColor(&mLowColor.mGXColor, parameters, "Low", 0);
+    MR::getCsvDataF32(&mDepthLow, parameters, "DepthLow", 0);
+    MR::getCsvDataF32(&mIndirectScale, parameters, "IndirectScale", 0);
     initScreenTex();
-    JUTTexture* pFilterTex = new JUTTexture(MR::loadTexFromArc("WaterCameraFilter.arc", "WaterCameraFilter.bti"), 0);
-    mFilterTex = pFilterTex;
+    mFilterTex = MR::loadTexFromArc(this, sArchiveName, "WaterCameraFilter.bti");
     makeActorAppeared();
 }
-
-namespace {
-    s32 getScreenTexHeight() {
-        return MR::getScreenHeight();
-    }
-};  // namespace
 
 void WaterCameraFilter::initScreenTex() {
     MR::CurrentHeapRestorer restorer(MR::getSceneHeapGDDR3());
@@ -91,8 +91,8 @@ void WaterCameraFilter::exeWaterToAir() {
     }
 }
 
-static GXColor sWaterColor = {0x32, 0x32, 0, 0};
 
+// NONMATCHING: equivalent color-copy temporaries use different stack slots and scheduling.
 void WaterCameraFilter::control() {
     if (MR::isCameraInWater()) {
         mWavePhase += 0.5f;
@@ -101,9 +101,10 @@ void WaterCameraFilter::control() {
             mWavePhase -= 360.0f;
         }
 
-        f32 depth = MR::clamp(WaterAreaFunction::getCameraWaterDepth(), 0.0f, 3000.0f);
-        Color8 color(MR::lerp(::sDefaultColor, ::sWaterColor, depth / 3000.0f));
-        mWaterColor.mGXColor = color.mGXColor;
+        f32 depth = MR::clamp(WaterAreaFunction::getCameraWaterDepth(), 0.0f, mDepthLow);
+        GXColor color;
+        color = MR::lerp(mHighColor.mGXColor, mLowColor.mGXColor, depth / mDepthLow);
+        mWaterColor.mGXColor = color;
     }
 }
 
@@ -203,11 +204,11 @@ void WaterCameraFilter::loadMaterial() const {
     GXSetIndTexOrder(GX_INDTEXSTAGE0, GX_TEXCOORD0, GX_TEXMAP0);
     GXSetTevIndWarp(GX_TEVSTAGE0, GX_INDTEXSTAGE0, 1, 0, GX_ITM_0);
     f32 ind[2][3];
-    ind[0][0] = 0.05f;
+    ind[0][0] = mIndirectScale;
     ind[0][1] = 0.0f;
     ind[0][2] = 0.0f;
     ind[1][0] = 0.0f;
-    ind[1][1] = 0.05f;
+    ind[1][1] = mIndirectScale;
     ind[1][2] = 0.0f;
     GXSetIndTexMtx(GX_ITM_0, ind, 0);
     GXSetTevColor(GX_TEVREG0, Color8(mWaterColor.r, mWaterColor.g, mWaterColor.b, mWaterAlpha));

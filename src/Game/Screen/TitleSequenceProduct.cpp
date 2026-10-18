@@ -1,4 +1,5 @@
 #include "Game/Screen/TitleSequenceProduct.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util.hpp"
 #include "Game/Screen/EncouragePal60Window.hpp"
@@ -29,7 +30,6 @@ public:
     u8 _pad[168 - sizeof(LiveActor)];
 };
 
-extern "C" void fn_800085C0(LayoutActor*, const char*, s32, s32);
 extern "C" void fn_804A4EF0(TitleSequenceProduct*);
 extern "C" void fn_804A4F60(TitleSequenceProduct*);
 extern "C" void fn_804A4FB0(TitleSequenceProduct*);
@@ -182,16 +182,16 @@ void TitleSequenceProduct::exeLogoDisplay() {
     mBButtonChecker->update(MR::testCorePadButtonB(WPAD_CHAN0));
 
     if (mAButtonChecker->getLevel() && mBButtonChecker->getLevel()) {
-        fn_800085C0(mPressStartLayout, "PressAB", -1, -1);
+        MR::startActionSound(mPressStartLayout, "PressAB", -1, -1);
         MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         setNerve(GET_NERVE_ANON(TitleSequenceProductDecide));
     } else {
         if (mAButtonChecker->getOnTrigger()) {
-            fn_800085C0(mPressStartLayout, "PressA", -1, -1);
+            MR::startActionSound(mPressStartLayout, "PressA", -1, -1);
         }
         if (mBButtonChecker->getOnTrigger()) {
-            fn_800085C0(mPressStartLayout, "PressB", -1, -1);
+            MR::startActionSound(mPressStartLayout, "PressB", -1, -1);
         }
         updateButtonReaction(mAButtonChecker, "ReactionA");
         updateButtonReaction(mBButtonChecker, "ReactionB");

@@ -10,6 +10,7 @@ class TalkMessageCtrl;
 class TalkMessageFuncBase;
 
 namespace MR {
+    void initTalkCamera(TalkMessageCtrl*, const JMapInfoIter&);
     class ActorTalkParam {
     public:
         void setNoTurnAction(const char* pActionName) {

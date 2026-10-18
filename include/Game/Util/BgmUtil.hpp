@@ -5,6 +5,7 @@
 class JAISoundHandle;
 
 namespace MR {
+    u32 getCurrentStageBgmId();
     JAISoundHandle* startStageBGM(const char*, bool);
     JAISoundHandle* startStageBGM(u32, bool);
     bool startStageBGMIfNotPlaying(const char*, bool);

@@ -8,9 +8,10 @@ member function we wrote (`Teresa::foo`), and they count as unmatched even when 
 For each unit: take our functions that have no same-named target symbol, and the target's fn_ symbols; compare
 instruction words with relocated fields masked; if exactly one of ours equals a target fn_, rename the fn_ to our
 mangled name in symbols.txt (--write). Then run `ninja` (re-split) and the function counts as matched.
-Only exact (masked) matches are renamed, so this never claims a non-matching function.
+Matches ignore relocation targets. Review callee/data identity and source order before using --write;
+identical bodies alone cannot distinguish functions whose only differences are relocations.
 """
-import os, re, subprocess, sys
+import os, re, struct, sys
 
 ROOT = os.getcwd()
 OD = f"{ROOT}/build/binutils/powerpc-eabi-objdump"
@@ -18,45 +19,51 @@ SYMS = f"{ROOT}/config/SB4E01/symbols.txt"
 
 
 def funcs(obj):
-    out = subprocess.run([OD, "-dr", "--no-show-raw-insn", obj], capture_output=True, text=True).stdout
-    raw = subprocess.run([OD, "-d", obj], capture_output=True, text=True).stdout
-    words, d, fn = {}, {}, None
-    for l in raw.splitlines():
-        m = re.match(r"^([0-9a-f]+) <(.+)>:", l)
-        if m:
-            fn = m.group(2); d[fn] = []; continue
-        m = re.match(r"^\s+([0-9a-f]+):\s+((?:[0-9a-f]{2} ){4})", l)
-        if m and fn:
-            d[fn].append([int(m.group(1), 16), int(m.group(2).replace(" ", ""), 16), None])
-    # mark relocated instructions
-    fn = None
-    idx = {}
-    for name, ins in d.items():
-        for i in ins:
-            idx[i[0]] = i
-    for l in out.splitlines():
-        m = re.match(r"^\s+([0-9a-f]+): (R_PPC_\w+)\s+(\S+)", l)
-        if m:
-            a = int(m.group(1), 16) & ~3
-            if a in idx:
-                idx[a][2] = m.group(2)
-    res = {}
-    order = {name: (ins[0][0] if ins else 0) for name, ins in d.items()}
+    """Slice ELF function symbols using their section index and declared size."""
+    data = open(obj, "rb").read()
+    if data[:6] != b"\x7fELF\x01\x02":
+        raise ValueError(f"{obj}: expected a big-endian ELF32 object")
+    header = struct.unpack_from(">16sHHIIIIIHHHHHH", data)
+    sections = [struct.unpack_from(">IIIIIIIIII", data, header[6] + i * header[11])
+                for i in range(header[12])]
+    contents = [data[s[4]:s[4] + s[5]] for s in sections]
+    relocations = {}
+    for index, section in enumerate(sections):
+        if section[1] != 4:  # SHT_RELA
+            continue
+        for offset in range(0, section[5], section[9]):
+            address, info, addend = struct.unpack_from(">IIi", contents[index], offset)
+            relocations[(section[7], address & ~3)] = info & 255
+    result, order = {}, {}
+    for index, section in enumerate(sections):
+        if section[1] != 2:  # SHT_SYMTAB
+            continue
+        strings = contents[section[6]]
+        for offset in range(0, section[5], section[9]):
+            name_offset, start, size, info, other, section_index = struct.unpack_from(
+                ">IIIBBH", contents[index], offset)
+            if info & 15 != 2 or not size or not 0 < section_index < len(sections):
+                continue
+            name_end = strings.index(b"\0", name_offset)
+            name = strings[name_offset:name_end].decode("utf-8", errors="replace")
+            body = contents[section_index][start:start + size]
+            if len(body) != size or size % 4:
+                continue
+            sequence = []
+            for instruction_offset in range(0, size, 4):
+                word = struct.unpack_from(">I", body, instruction_offset)[0]
+                relocation = relocations.get((section_index, start + instruction_offset))
+                if relocation == 10:  # R_PPC_REL24
+                    word &= 0xFC000003
+                elif relocation:
+                    word &= 0xFFFF0000
+                sequence.append(word)
+            while sequence and sequence[-1] == 0:
+                sequence.pop()
+            result[name] = tuple(sequence)
+            order[name] = (section_index, start)
     funcs.order = order
-    for name, ins in d.items():
-        seq = []
-        for a, w, r in ins:
-            if r == "R_PPC_REL24":
-                w &= 0xFC000003
-            elif r:
-                w &= 0xFFFF0000
-            elif (w >> 26) in (16, 18):  # local branches: offsets differ with placement
-                w &= 0xFC000003
-            seq.append(w)
-        while seq and seq[-1] == 0:  # alignment padding after the function
-            seq.pop()
-        res[name] = tuple(seq)
-    return res
+    return result
 
 
 def main():
@@ -89,6 +96,8 @@ def main():
             for tn, ok in zip(sorted(tns, key=lambda n: torder[n]), sorted(oks, key=lambda n: oorder[n])):
                 renames[tn] = ok
                 print(f"{u}: {tn} -> {ok}")
+    if renames:
+        print("Review relocation targets and identical-body source order before applying these mappings.")
     if write and renames:
         for i, l in enumerate(lines):
             m = re.match(r"(fn_[0-9A-F]{8}) = ", l)

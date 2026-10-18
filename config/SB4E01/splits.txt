@@ -5120,10 +5120,16 @@ Game/NPC/TalkMessageFuncM7.cpp:
 Game/NPC/Monte.cpp:
 	.text       start:0x803563D0 end:0x80356AA0
 	.ctors      start:0x80644700 end:0x80644704
+	.rodata     start:0x8064BA38 end:0x8064BA40
+	.data       start:0x806BB090 end:0x806BB1A8
+	.sdata2     start:0x807DF290 end:0x807DF2A0
 
 Game/NPC/MonteThrow.cpp:
 	.text       start:0x80356AA0 end:0x80357770
 	.ctors      start:0x80644704 end:0x80644708
+	.rodata     start:0x8064BA40 end:0x8064BA48
+	.data       start:0x806BB1D0 end:0x806BB2C0
+	.sdata2     start:0x807DF2A0 end:0x807DF2D0
 
 Game/NPC/Peach.cpp:
 	.text       start:0x80357770 end:0x80357940
@@ -5262,6 +5268,9 @@ Game/NPC/TicoComet.cpp:
 
 Game/NPC/TicoFatCoin.cpp:
 	.text       start:0x80368680 end:0x80369240
+	.data       start:0x806BE390 end:0x806BE568
+	.sdata      start:0x807CFF48 end:0x807CFF4C
+	.sdata2     start:0x807DF5C0 end:0x807DF5D0
 
 Game/NPC/TalkMessageFuncM14.cpp:
 	.text       start:0x80369240 end:0x80369330
@@ -6042,11 +6051,16 @@ Game/Screen/CountUpPaneRumbler.cpp:
 Game/Screen/CustomTagProcessor.cpp:
 	.text       start:0x80466460 end:0x8046AB40
 	.ctors      start:0x806448B8 end:0x806448BC
-	.data       start:0x806F24F8 end:0x806F250C
+	.rodata     start:0x8064C9A8 end:0x8064C9B8
+	.data       start:0x806F22A0 end:0x806F250C
+	.sdata      start:0x807D01B0 end:0x807D01B8
+	.sdata2     start:0x807E1318 end:0x807E1340
 
 Game/Screen/DepthOfFieldBlur.cpp:
 	.text       start:0x8046AB40 end:0x8046BC20
+	.rodata     start:0x8064C9B8 end:0x8064C9C0
 	.data       start:0x806F2E70 end:0x806F2EB0
+	.sdata2     start:0x807E1340 end:0x807E1370
 
 Game/Screen/DestroyCounter.cpp:
 	.text       start:0x8046BC20 end:0x8046C210
@@ -6147,6 +6161,9 @@ Game/Screen/GalaxyStatusIcon.cpp:
 Game/Screen/GrandGalaxyMapInfo.cpp:
 	.text       start:0x80473210 end:0x80474690
 	.ctors      start:0x806448F4 end:0x806448F8
+	.data       start:0x806F40FC end:0x806F4258
+	.sdata      start:0x807D0200 end:0x807D0210
+	.sdata2     start:0x807E13F0 end:0x807E1400
 
 Game/Screen/HeatHazeEffect.cpp:
 	.text       start:0x80474690 end:0x80474B60
@@ -6173,11 +6190,15 @@ Game/Screen/ImageEffectDirector.cpp:
 	.data       start:0x806F4510 end:0x806F4558
 
 Game/Screen/ImageEffectLocalUtil.cpp:
-	.text       start:0x804767A0 end:0x80477230
-	.data       start:0x806F45A0 end:0x806F45C0
+	.text       start:0x804767A0 end:0x80477E40
+	.rodata     start:0x8064CA10 end:0x8064CA18
+	.data       start:0x806F4558 end:0x806F45C0
+	.sdata2     start:0x807E1470 end:0x807E1490
 
 Game/Screen/ImageEffectResource.cpp:
-	.text       start:0x80477C90 end:0x80478200
+	.text       start:0x80477E40 end:0x80478360
+	.sdata      start:0x807D0218 end:0x807D0220
+	.sdata2     start:0x807E1490 end:0x807E14A0
 
 Game/Screen/ImageEffectState.cpp:
 	.text       start:0x80478360 end:0x80478E60
@@ -6339,14 +6360,20 @@ Game/Screen/PopUpAddTimeAttackTime.cpp:
 	.sdata2     start:0x807E1608 end:0x807E1610
 
 Game/Screen/PostFog.cpp:
-	.text       start:0x80489B20 end:0x8048A630
+	.text       start:0x80489B20 end:0x8048A520
 
 Game/Screen/PostManLetter.cpp:
-	.text       start:0x8048A630 end:0x8048B210
+	.text       start:0x8048A520 end:0x8048B210
 	.ctors      start:0x80644948 end:0x8064494C
+	.data       start:0x806F66A8 end:0x806F6990
+	.sdata      start:0x807D026C end:0x807D0278
+	.sdata2     start:0x807E1640 end:0x807E1648
 
 Game/Screen/PostOutline.cpp:
 	.text       start:0x8048B210 end:0x8048BBE0
+	.rodata     start:0x8064CAA8 end:0x8064CAB0
+	.data       start:0x806F6990 end:0x806F69D0
+	.sdata2     start:0x807E1648 end:0x807E1668
 
 Game/Screen/PurpleCoinCounter.cpp:
 	.text       start:0x8048BBE0 end:0x8048C080
@@ -6429,8 +6456,11 @@ Game/Screen/StarCounter.cpp:
 	.sbss       start:0x807D5910 end:0x807D5920
 
 Game/Screen/StarPieceBank.cpp:
-	.text       start:0x80497590 end:0x804983C0
+	.text       start:0x804974D0 end:0x804983C0
 	.ctors      start:0x8064497C end:0x80644980
+	.data       start:0x806F7EC8 end:0x806F8138
+	.sdata      start:0x807D02E0 end:0x807D02E4
+	.sdata2     start:0x807E1768 end:0x807E1770
 
 Game/Screen/StarPieceCounter.cpp:
 	.text       start:0x804983C0 end:0x804990A0
@@ -6528,7 +6558,10 @@ Game/Screen/TitleSequenceProduct.cpp:
 Game/Screen/WaterCameraFilter.cpp:
 	.text       start:0x804A5850 end:0x804A6410
 	.ctors      start:0x806449B8 end:0x806449BC
-	.data       start:0x806F9708 end:0x806F97B8
+	.rodata     start:0x8064CE40 end:0x8064CE48
+	.data       start:0x806F96B4 end:0x806F97B8
+	.sdata      start:0x807D0338 end:0x807D0344
+	.sdata2     start:0x807E1898 end:0x807E18C0
 
 Game/Screen/WipeFade.cpp:
 	.text       start:0x804A6410 end:0x804A68A0

@@ -10,6 +10,9 @@ class JAISoundID;
 class LiveActor;
 
 namespace MR {
+    void setAudioSystemField9A0(s32);
+    void startAppearPlanetJingle();
+    void setSeVolumeSetLevelForMenu();
     enum BossBgmID {
         BossBgmID_01_A,
         BossBgmID_01_B,

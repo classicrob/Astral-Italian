@@ -8,7 +8,6 @@
 
 extern "C" void* fn_80222AC0(void*, const char*);
 extern "C" bool fn_80220830(void*);
-extern "C" void fn_80222A60(void*, const char*, s32, s32);
 extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
 
 static const char* sSoundName = "PlaySound";
@@ -33,8 +32,8 @@ void SoundPlayArea::init(const JMapInfoIter& rIter) {
     char name[0x100];
     snprintf(name, 0x100, "SoundPlayArea%d", mObjArg0);
 
-    void* sound = new ActionSoundKeeper(4, name, &mCenter);
-    mSoundObj = sound;
+    mSoundObj = new ActionSoundKeeper(4, name, &mCenter);
+    void* sound = mSoundObj;
 
     sound = fn_80222AC0(sound, sSoundName);
     if (sound) {
@@ -48,11 +47,11 @@ void SoundPlayArea::init(const JMapInfoIter& rIter) {
 void SoundPlayArea::movement() {
     if (isInVolume(*MR::getPlayerPos())) {
         MR::getAreaCenterPos(&mCenter, this);
-        static_cast<ActionSoundKeeper*>(mSoundObj)->update();
+        mSoundObj->update();
 
         if (!_55) {
             if (!_54) {
-                fn_80222A60(mSoundObj, sSoundName, -1, -1);
+                mSoundObj->startSound(sSoundName, -1, -1);
                 _54 = true;
             }
         } else {

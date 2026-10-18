@@ -47,7 +47,6 @@ extern "C" void fn_804905D0(ScoreCounterLayout*);
 extern "C" void fn_80490620(ScoreCounterLayout*);
 extern "C" void fn_80490D40(s32, s32);
 extern "C" void fn_80471DC0(GameSetLayout*);
-extern "C" void fn_8005AD00(s32);
 extern "C" void fn_80490CD0(void*);
 
 namespace {
@@ -263,7 +262,7 @@ void TogepinScorer::exePlay() {
         if (pCounter->_38 != 0) {
             reinterpret_cast<GameDataFunction*>(pCounter->_30)->setBestScoreAttackCurrentStage();
         }
-        fn_8005AD00(0x5A);
+        MR::setAudioSystemField9A0(0x5A);
         if (mIsClear) {
             MR::startSubBGM("BGM_RACE_WIN", false);
         } else {

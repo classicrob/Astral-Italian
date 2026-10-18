@@ -25,7 +25,11 @@ else trap 'rm -rf "$lock"; rm -f "$stamps"' EXIT INT TERM HUP; fi
 git diff --name-only main...HEAD | while read -r f; do
   [ -f "$f" ] && echo "$(git hash-object "$f") $(stat -f %m "$f") $f" >> "$stamps"
 done
-git rebase main
+if ! git rebase main; then
+  git rebase --abort
+  echo "REBASE CONFLICT against main: nothing landed. Rebase your branch onto main yourself (resolve), then land again." >&2
+  exit 1
+fi
 while read -r h m f; do
   [ -f "$f" ] && [ "$(git hash-object "$f")" = "$h" ] && touch -t "$(date -r "$m" +%Y%m%d%H%M.%S)" "$f"
 done < "$stamps"

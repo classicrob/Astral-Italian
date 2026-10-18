@@ -54,31 +54,6 @@ MarioDamage::MarioDamage(MarioActor* pActor)
     _44 = 0;
 }
 
-extern "C" void fn_803E4E00(MarioDamage* p) {
-    TVec3f velocity(p->_1C);
-    const TVec3f& gravity = p->getAirGravityVec();
-    TVec3f vertical;
-    JMAVECScaleAdd(&gravity, &velocity, &vertical, -gravity.dot(velocity));
-    velocity.sub(vertical);
-    TVec3f horizontal(vertical);
-    horizontal.scale(0.5f);
-    velocity.add(horizontal);
-    fn_803BE840(p->mActor, velocity);
-}
-
-bool MarioDamage::updateHorrorDamage() {
-    if (_14 == 1) {
-        mHorrorDamageExecutor->startBreak();
-    }
-
-    mHorrorDamageExecutor->updateNerve();
-    if (mHorrorDamageExecutor->isBreakEnd()) {
-        return false;
-    }
-
-    return true;
-}
-
 bool MarioDamage::start() {
     _14 = 0;
     _18 = 0;
@@ -280,6 +255,31 @@ extern "C" bool fn_803E4D00(MarioDamage* p) {
     return true;
 }
 
+bool MarioDamage::updateHorrorDamage() {
+    if (_14 == 1) {
+        mHorrorDamageExecutor->startBreak();
+    }
+
+    mHorrorDamageExecutor->updateNerve();
+    if (mHorrorDamageExecutor->isBreakEnd()) {
+        return false;
+    }
+
+    return true;
+}
+
+extern "C" void fn_803E4E00(MarioDamage* p) {
+    TVec3f velocity(p->_1C);
+    const TVec3f& gravity = p->getAirGravityVec();
+    TVec3f vertical;
+    JMAVECScaleAdd(&gravity, &velocity, &vertical, -gravity.dot(velocity));
+    velocity.sub(vertical);
+    TVec3f horizontal(vertical);
+    horizontal.scale(0.5f);
+    velocity.add(horizontal);
+    fn_803BE840(p->mActor, velocity);
+}
+
 bool MarioDamage::update() {
     _14++;
     _44++;
@@ -360,7 +360,8 @@ bool MarioAbyssDamage::start() {
 }
 
 bool MarioAbyssDamage::update() {
-    addTrans(_18, "Module");
+    Mario* player = getPlayer();
+    player->addTrans(_18, "Module");
     switch (_14) {
     case 0:
         _14++;

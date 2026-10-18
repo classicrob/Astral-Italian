@@ -12,7 +12,6 @@
 #include "Game/Player/MarioParts.hpp"
 
 // unnamed in symbols.txt: 1-arg Mario::setFrontVecKeepUp
-extern "C" void fn_8038B3D0(Mario*, const TVec3f&);
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/MapUtil.hpp"
@@ -20,6 +19,9 @@ extern "C" void fn_8038B3D0(Mario*, const TVec3f&);
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
+
+extern "C" s32 fn_803B2A20(Mario* pPlayer, const TVec3f& rPos, f32 radius, f32 thickness);
+extern "C" const HitInfo* fn_803B2AA0(Mario* pPlayer, u32 index);
 
 void MarioTeresa_FORCE_MATCH_SDATA2() {
     (void)100.0f;
@@ -192,12 +194,12 @@ f32 MarioTeresa::checkHeight() {
     f32 height = getPlayer()->mVerticalSpeed;
     MarioActor* actor;
     while (offset < 2.0f * (actor = mActor)->getConst().getTable()->mTeresaWaitHeight) {
-        const TVec3f& position = actor->_2A0;
+        const TVec3f& position = actor->_240;
         bool found = false;
         f32 radius = 120.0f;
-        s32 count = Collision::checkStrikeBallToMapWithThickness(position + getGravityVec() * offset, radius, radius, nullptr, nullptr);
+        s32 count = fn_803B2A20(getPlayer(), position + getGravityVec() * offset, radius, radius);
         for (u32 i = 0; i < count; i++) {
-            const HitInfo* hit = Collision::getStrikeInfoMap(i);
+            const HitInfo* hit = fn_803B2AA0(getPlayer(), i);
             TVec3f normal(*hit->mParentTriangle.getNormal(0));
             TVec3f direction(hit->_64);
             direction.sub(direction, position);
@@ -377,8 +379,8 @@ void MarioTeresa::addTeresaVerticalVelocity(f32 amount) {
     _34 += getAirGravityVec() * amount;
     TVec3f horizontal;
     f32 vertical = MR::vecKillElement(_34, getAirGravityVec(), &horizontal);
-    f32 minimum = -mActor->getConst().getTable()->mTeresaRiseSpeedMax;
     f32 maximum = mActor->getConst().getTable()->mTeresaDropSpeedMax;
+    f32 minimum = -mActor->getConst().getTable()->mTeresaRiseSpeedMax;
     minimum = 10.0f * minimum;
     maximum = 20.0f * maximum;
     if (_58) {
@@ -432,8 +434,7 @@ void Mario::startTeresaDisappear() {
 bool MarioTeresa::start() {
     if (getPlayer()->_430 == 4) {
         TVec3f direction(-getPlayer()->_220);
-        // SB4E01 calls the unnamed 1-arg setFrontVecKeepUp (fn_8038B3D0)
-        fn_8038B3D0(getPlayer(), direction);
+        getPlayer()->setFrontVecKeepUp(direction);
     }
 
     Mario* player = getPlayer();
@@ -446,8 +447,8 @@ bool MarioTeresa::start() {
         // raw Mario+0x5F8 flag, see close()
         u32* flags = reinterpret_cast< u32* >(reinterpret_cast< u8* >(getPlayer()) + 0x5F8);
         *flags |= 1;
-        _5C = 0;
     }
+    _5C = 0;
 
     return true;
 }
@@ -455,7 +456,7 @@ bool MarioTeresa::start() {
 void MarioTeresa::checkWind() {
     TVec3f wind;
     f32 strength;
-    BigFanFunction::calcWindInfo(&wind, mActor->_2A0, &strength);
+    BigFanFunction::calcWindInfo(&wind, mActor->_240, &strength);
     strength = MR::clamp(strength, 0.0f, 10.0f);
     if (strength > 0.0f) {
         playSound("テレサ風に乗る", 50.0f * strength);
@@ -768,6 +769,6 @@ void MarioActor::initTeresaMarioAnimation() {
     _9BC = new XanimeResourceTable(MR::getResourceHolder(_9A4), teresaAnimeTable, nullptr, nullptr, nullptr, teresaAnime2, nullptr, nullptr, nullptr);
     _9B8 = new XanimePlayer(MR::getJ3DModel(_9A4), _9BC);
     _9B8->setDefaultAnimation("基本");
-    _9B8->changeAnimation("基本");
+    _9B8->changeAnimationBck("基本");
     _9A4->mModelManager->mXanimePlayer = _9B8;
 }

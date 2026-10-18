@@ -5039,14 +5039,23 @@ Game/Player/MarineSnow.cpp:
 
 Game/Player/Mario.cpp:
 	.text       start:0x80386D60 end:0x803B48E0
-	.data       start:0x806C4B60 end:0x806C4B90
+	.rodata     start:0x8064BC78 end:0x8064BCA8
+	.data       start:0x806C20C0 end:0x806C4B90
+	.sdata      start:0x807CFFB0 end:0x807CFFD0
+	.sdata2     start:0x807DF988 end:0x807DFBA8
 
 Game/Player/MarioAccess.cpp:
 	.text       start:0x803B48E0 end:0x803B7340
+	.data       start:0x806C4B90 end:0x806C4C28
+	.sdata      start:0x807CFFD0 end:0x807CFFD4
+	.sdata2     start:0x807DFBB8 end:0x807DFBC8
 
 Game/Player/MarioActor.cpp:
 	.text       start:0x803B7470 end:0x803C4F70
+	.rodata     start:0x8064BCB8 end:0x8064BD50
 	.data       start:0x806C7430 end:0x806C74D8
+	.sdata      start:0x807CFFDC end:0x807CFFF0
+	.sdata2     start:0x807DFBD8 end:0x807DFCD0
 
 Game/Player/CloudMarioHat.cpp:
 	.text       start:0x803D9ED0 end:0x803DAA10
@@ -5054,6 +5063,10 @@ Game/Player/CloudMarioHat.cpp:
 Game/Player/MarioAnimator.cpp:
 	.text       start:0x803DC0F0 end:0x803E0030
 	.ctors      start:0x806447D0 end:0x806447D4
+	.rodata     start:0x8064BDB8 end:0x8064BDC0
+	.data       start:0x806DC164 end:0x806DC3F0
+	.sdata      start:0x807D0038 end:0x807D003C
+	.sdata2     start:0x807DFE08 end:0x807DFE4C
 
 Game/Player/MarioBlown.cpp:
 	.text       start:0x803E1940 end:0x803E1CE0
@@ -5069,7 +5082,9 @@ Game/Player/MarioClimb.cpp:
 
 Game/Player/MarioDamage.cpp:
 	.text       start:0x803E4290 end:0x803E6610
+	.rodata     start:0x8064BDE0 end:0x8064BE28
 	.data       start:0x806DC848 end:0x806DC9F8
+	.sdata2     start:0x807DFED0 end:0x807DFEE4
 
 Game/Player/HorrorDamageExecutor.cpp:
 	.text       start:0x803E6E50 end:0x803E70A0
@@ -5096,8 +5111,11 @@ Game/Player/MarioFlow.cpp:
 Game/Player/MarioFoo.cpp:
 	.text       start:0x803E9540 end:0x803EBD60
 	.ctors      start:0x806447D8 end:0x806447DC
-	.data       start:0x806DD244 end:0x806DD290
+	.rodata     start:0x8064BE38 end:0x8064BE48
+	.data       start:0x806DCFE0 end:0x806DD290
+	.sdata      start:0x807D0050 end:0x807D0058
 	.sbss       start:0x807D4E78 end:0x807D4E88
+	.sdata2     start:0x807DFF78 end:0x807E0010
 
 Game/Player/MarioFpView.cpp:
 	.text       start:0x803EBD60 end:0x803EC110
@@ -5138,7 +5156,9 @@ Game/Player/MarioParts.cpp:
 
 Game/Player/MarioRabbit.cpp:
 	.text       start:0x803F0090 end:0x803F0E40
-	.data       start:0x806DDAE8 end:0x806DDB30
+	.data       start:0x806DD9A0 end:0x806DDB30
+	.sdata      start:0x807D0058 end:0x807D005C
+	.sdata2     start:0x807E00D0 end:0x807E0100
 
 Game/Player/MarioRecovery.cpp:
 	.text       start:0x803F10E0 end:0x803F1B70
@@ -5182,6 +5202,10 @@ Game/Player/MarioSukekiyo.cpp:
 
 Game/Player/MarioSwim.cpp:
 	.text       start:0x803F7590 end:0x804036D0
+	.rodata     start:0x8064BE98 end:0x8064BEB8
+	.data       start:0x806DE2E8 end:0x806DEA98
+	.sdata      start:0x807D0070 end:0x807D0098
+	.sdata2     start:0x807E02B8 end:0x807E03F8
 
 Game/Player/MarioTalk.cpp:
 	.text       start:0x80403CF0 end:0x80403F90
@@ -5189,7 +5213,10 @@ Game/Player/MarioTalk.cpp:
 
 Game/Player/MarioTeresa.cpp:
 	.text       start:0x80403F90 end:0x80405E40
-	.data       start:0x806DEB88 end:0x806DEBD0
+	.rodata     start:0x8064BEB8 end:0x8064BEC0
+	.data       start:0x806DEB20 end:0x806DEBD0
+	.sdata      start:0x807D0098 end:0x807D009C
+	.sdata2     start:0x807E0400 end:0x807E0490
 
 Game/Player/MarioWait.cpp:
 	.text       start:0x80406390 end:0x804067C0
@@ -5197,11 +5224,15 @@ Game/Player/MarioWait.cpp:
 
 Game/Player/MarioWall.cpp:
 	.text       start:0x80406AC0 end:0x80407A90
-	.data       start:0x806DEE58 end:0x806DEEA0
+	.rodata     start:0x8064BEC0 end:0x8064BEC8
+	.data       start:0x806DED78 end:0x806DEEA0
+	.sdata2     start:0x807E04B0 end:0x807E04D8
 
 Game/Player/MarioWarp.cpp:
 	.text       start:0x80407F30 end:0x80408F20
-	.data       start:0x806DEFF0 end:0x806DF038
+	.rodata     start:0x8064BED0 end:0x8064BEE0
+	.data       start:0x806DEEA0 end:0x806DF038
+	.sdata2     start:0x807E0508 end:0x807E0538
 
 Game/Player/MatrixValueGetter.cpp:
 	.text       start:0x804092C0 end:0x80409470

@@ -16,6 +16,9 @@
 #include "Game/Player/RushEndInfo.hpp"
 #include "Game/Util.hpp"
 
+class MarioAnimator;
+extern "C" f32 fn_803DD530(MarioAnimator*);
+
 namespace MarioAccess {
     void getTakePos(TVec3f* pOut) {
         if (getPlayerActor()->_494 != nullptr) {
@@ -84,7 +87,7 @@ namespace MarioAccess {
     }
 
     bool isInRush() {
-        return getPlayerActor()->_934 || getPlayerActor()->getMario()->isStatusActive(MarioStatus_13);
+        return getPlayerActor()->_934;
     }
 
     bool isSquat() {
@@ -200,11 +203,13 @@ namespace MarioAccess {
 
     void forceJump(const TVec3f& rVec, u32) {
         getPlayerActor()->getMario()->mMovementStates._21 = true;
+        getPlayerActor()->getMario()->cancelSquatMode();
         getPlayerActor()->getMario()->tryForceJumpDelay(rVec);
     }
 
     void freeJump(const TVec3f& rVec, u32) {
         getPlayerActor()->getMario()->mMovementStates._21 = true;
+        getPlayerActor()->getMario()->cancelSquatMode();
         getPlayerActor()->getMario()->tryFreeJumpDelay(rVec);
     }
 
@@ -371,7 +376,7 @@ namespace MarioAccess {
     }
 
     f32 getAnimationFrameMax() {
-        return getPlayerActor()->mMarioAnim->getXanimePlayer()->_20->mEnd;
+        return fn_803DD530(getPlayerActor()->mMarioAnim);
     }
 
     void changeAnimationJ(const char* pAnimName) {

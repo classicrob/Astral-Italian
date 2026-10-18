@@ -399,7 +399,7 @@ bool MarioWall::start() {
     initTriangleJump();
     _1E = 0;
 
-    if (getPlayerMode() == PlayerMode_Ice && getPlayer()->getWallPolygon()->mSensor->isType(0x57)) {
+    if (getPlayerMode() == PlayerMode_Ice && getPlayer()->getWallPolygon()->mSensor->isType(0x51)) {
         MarioActor* actor = mActor;
         actor->createIceWall(getPlayer()->getWallPos() - getPlayer()->getWallNorm() * 30.0f, getPlayer()->getWallNorm());
         playEffectRT("氷壁ジャンプ", getPlayer()->getWallNorm(), getPlayer()->getWallPos() - getPlayer()->getWallNorm() * 15.0f);
@@ -615,7 +615,7 @@ bool MarioWall::startJump() {
         }
     }
 
-    velocity.scale(mActor->getConst().getTable()->mWallJumpPowerXZ);
+    velocity *= mActor->getConst().getTable()->mWallJumpPowerXZ;
     velocity += getGravityVec() * -mActor->getConst().getTable()->mWallJumpPowerY;
     getPlayer()->tryWallJump(velocity, true);
     playEffect("共通壁ジャンプ");
@@ -635,7 +635,7 @@ bool MarioWall::startBackJump(u32 type) {
     }
 
     _24 = velocity;
-    velocity.scale(mActor->getConst().getTable()->mWallBackJumpPowerXZ);
+    velocity *= mActor->getConst().getTable()->mWallBackJumpPowerXZ;
     velocity += getGravityVec() * -mActor->getConst().getTable()->mWallBackJumpPowerY;
     getPlayer()->tryWallJump(velocity, false);
     switch (type) {
@@ -739,7 +739,7 @@ void Mario::tryWallPunch() {
             stopWalk();
             TVec3f velocity(getWallNorm() * mActor->getConst().getTable()->mWallSpinFlipGround);
             if (mMovementStates.jumping) {
-                velocity.scale(mActor->getConst().getTable()->mWallSpinFlipAirRatio);
+                velocity *= mActor->getConst().getTable()->mWallSpinFlipAirRatio;
             }
 
             velocity -= *getGravityVec() * mActor->getConst().getTable()->mWallSpinHopGround;

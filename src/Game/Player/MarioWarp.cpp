@@ -112,7 +112,7 @@ void MarioWarp::updateJump() {
         position = position * remaining + _14 * (1.0f - remaining);
     }
 
-    addTrans((position - getTrans()) * followRate, "Module");
+    getPlayer()->addTrans((position - getTrans()) * followRate, "Module");
     if (_45 == 2) {
         getPlayer()->setFrontVecKeepUp(_38, 0.2f);
     }
@@ -170,8 +170,7 @@ bool MarioWarp::start() {
     }
 
     mActor->_F44 = 0;
-    const TVec3f& position = mActor->mPosition;
-    addTrans(position - getTrans(), "Module");
+    getPlayer()->addTrans(mActor->mPosition - getTrans(), "Module");
     update();
     if (_45 == 3 && getPlayerMode() != 1) {
         mActor->_A6E = 2;
@@ -207,7 +206,7 @@ bool MarioWarp::update() {
 
         _54--;
         TVec3f displacement = _20 - getTrans();
-        addTrans(displacement * (1.0f - static_cast< f32 >(_54) / _56), "Module");
+        getPlayer()->addTrans(displacement * (1.0f - static_cast< f32 >(_54) / _56), "Module");
         if (_54 == 0) {
             calcAxis();
             if (_45 == 1 && getPlayerMode() != 6) {
@@ -231,7 +230,7 @@ bool MarioWarp::update() {
         TVec3f direction = _14 - _20;
         MR::normalize(&direction);
         f32 distance = MR::vecKillElement(offset, direction, &offset);
-        addTrans((_20 + direction * distance) - getTrans(), "Module");
+        getPlayer()->addTrans((_20 + direction * distance) - getTrans(), "Module");
     }
 
     switch (_45) {

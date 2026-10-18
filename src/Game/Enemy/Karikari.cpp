@@ -163,8 +163,11 @@ void Karikari::killedInFrozenState() {
     MR::deleteEffect(this, "KarikariCrystalLight");
     MR::emitEffect(this, "KarikariCrystalBreak");
     MR::startActionSound(this, "EmKarikariBlow");
-    MR::startActionSound(this, "EmKarikariCrushCrystalL");
-    generateItem(3);
+    TVec3f up = -mGravity;
+    TVec3f pos(up);
+    pos.scale(80.0f);
+    pos += mPosition;
+    MR::appearStarPiece(this, pos, 3, 10.0f, 40.0f, false);
     makeActorDead();
     MR::stopScene(::sStopSceneTime);
 }
@@ -636,9 +639,17 @@ void Karikari::exeBlowOut() {
 
     if (MR::isBinded(this) || MR::isGreaterStep(this, ::sBlowOutTime)) {
         if (isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOut))) {
-            generateItem(1);
+            TVec3f up = -mGravity;
+            TVec3f pos(up);
+            pos.scale(80.0f);
+            pos += mPosition;
+            MR::appearStarPiece(this, pos, 1, 10.0f, 40.0f, false);
         } else {
-            generateItem(3);
+            TVec3f up = -mGravity;
+            TVec3f pos(up);
+            pos.scale(80.0f);
+            pos += mPosition;
+            MR::appearStarPiece(this, pos, 3, 10.0f, 40.0f, false);
         }
         kill();
     }
@@ -876,7 +887,11 @@ bool Karikari::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     }
 
     if (MR::isMsgStarPieceAttack(msg)) {
-        return tryBlowOut(pSender->mPosition, true);
+        return tryBlowOut(*MR::getSensorPos(pSender), true);
+    }
+
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        return tryBlowOut(*MR::getSensorPos(pSender), false);
     }
 
     if (inClingNerve()) {
@@ -884,26 +899,29 @@ bool Karikari::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
-        return tryBlowOut(pSender->mPosition, false);
+        return tryBlowOut(*MR::getSensorPos(pSender), false);
     }
 
     return false;
 }
 
 bool Karikari::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver->mType != 0x20 /* ATYPE_KARIKARI */) {
+    if (!MR::isSensorType(pReceiver, 0x20 /* ATYPE_KARIKARI */)) {
         return false;
     }
 
-    if (isNerve(GET_NERVE(Karikari, HostTypeNrvCling)) || isNerve(GET_NERVE(Karikari, HostTypeNrvPreCling)) ||
-        isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOut)) || isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOutStarPiece)) ||
+    if (inClingNerve()) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOut)) || isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOutStarPiece)) ||
         isNerve(GET_NERVE(Karikari, HostTypeNrvFrozen))) {
         return false;
     }
 
     if (MR::isSensorEnemy(pSender) || MR::isSensorMapObj(pSender)) {
         TVec3f diff(mPosition);
-        diff.sub(pSender->mHost->mPosition);
+        diff.sub(MR::getSensorHost(pSender)->mPosition);
         MR::normalizeOrZero(&diff);
         mVelocity += diff;
         return true;
@@ -915,7 +933,7 @@ bool Karikari::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(Karikari, HostTypeNrvRelease)) || isNerve(GET_NERVE(Karikari, HostTypeNrvSpinAttacked)) ||
         isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOut)) || isNerve(GET_NERVE(Karikari, HostTypeNrvBlowOutStarPiece)) ||
-        isNerve(GET_NERVE(Karikari, HostTypeNrvPress))) {
+        isNerve(GET_NERVE(Karikari, HostTypeNrvInTornado))) {
         return false;
     }
 
@@ -926,11 +944,11 @@ bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
 
     if (MR::isMsgToEnemyAttackBlow(msg)) {
         if (isNerve(GET_NERVE(Karikari, HostTypeNrvPreCling)) || isNerve(GET_NERVE(Karikari, HostTypeNrvCling))) {
-            ::getKarikariDirector()->unregistCling(this);
+            ::getKarikariDirector()->registCling(this);
         }
         // blow away from enemy
-        TVec3f vel(pReceiver->mPosition);
-        vel.sub(pSender->mPosition);
+        TVec3f vel(*MR::getSensorPos(pReceiver));
+        vel.sub(*MR::getSensorPos(pSender));
         MR::normalizeOrZero(&vel);
         vel.scale(::sEnemyAttackHitVel);
         mVelocity.set(vel);
@@ -939,11 +957,8 @@ bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgToEnemyAttackTrample(msg)) {
-        if (isNerve(GET_NERVE(Karikari, HostTypeNrvPreCling)) || isNerve(GET_NERVE(Karikari, HostTypeNrvCling))) {
-            ::getKarikariDirector()->unregistCling(this);
-        }
-
-        setNerve(GET_NERVE(Karikari, HostTypeNrvPress));
+        ::getKarikariDirector()->unregistCling(this);
+        setNerve(GET_NERVE(Karikari, HostTypeNrvInTornado));
         return true;
     }
 
@@ -953,12 +968,10 @@ bool Karikari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             return true;
         }
 
-        if (isNerve(GET_NERVE(Karikari, HostTypeNrvPreCling)) || isNerve(GET_NERVE(Karikari, HostTypeNrvCling))) {
-            ::getKarikariDirector()->unregistCling(this);
-        }
+        ::getKarikariDirector()->unregistCling(this);
         // blow away from explosion
-        TVec3f vel(pReceiver->mPosition);
-        vel.sub(pSender->mPosition);
+        TVec3f vel(*MR::getSensorPos(pReceiver));
+        vel.sub(*MR::getSensorPos(pSender));
         vel.setLength(::sExplosionBlowOutVel);
         mVelocity = vel;
         setNerve(GET_NERVE(Karikari, HostTypeNrvBlowOut));

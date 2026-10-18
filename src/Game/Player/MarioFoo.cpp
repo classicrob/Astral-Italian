@@ -66,7 +66,7 @@ namespace {
 };  // namespace
 
 void Mario::tryStartFoo() {
-    if (MR::getAreaObj("CelestrialSphere", getTrans()) || !mFoo->_48) {
+    if (MR::getAreaObj("CelestrialArea", getTrans()) || !mFoo->_48) {
         changeStatus(mFoo);
         mFoo->setStartSpeed(mActor->getConst().getTable()->mSwimFrontMaxSpeed);
     }
@@ -151,7 +151,7 @@ bool MarioFoo::start() {
 
     changeAnimation("フーファイター飛行開始", "フーファイター飛行");
     startPadVib(2);
-    _48 = MR::getAreaObj("CelestrialSphere", getTrans());
+    _48 = MR::getAreaObj("CelestrialArea", getTrans());
     _AC = 0;
     _AE = 0;
     return true;
@@ -612,7 +612,7 @@ void MarioFoo::spin() {
 }
 
 bool MarioFoo::passRing(const HitSensor* pSensor) {
-    const TVec3f& center = pSensor->mPosition;
+    const TVec3f& center = *MR::getSensorPos(pSensor);
     if (!_4E) {
         _50 = mActor->getConst().getTable()->mSwimRingDashChargeTime;
         changeAnimation("リングダッシュ準備");
@@ -622,7 +622,7 @@ bool MarioFoo::passRing(const HitSensor* pSensor) {
         getPlayer()->push((center - getTrans()) * 0.25f);
     }
 
-    const DashRing* ring = static_cast< const DashRing* >(pSensor->mHost);
+    const DashRing* ring = static_cast< const DashRing* >(MR::getSensorHost(pSensor));
     _5A = ring->mMaxDuration;
     _5C = ring->mSpeedScale;
     _4E = ring->mBoostTime;

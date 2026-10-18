@@ -21,13 +21,17 @@ void PowerStarHolder::registerPowerStar(PowerStar* pStar, int starNum) {
     mNumInfos++;
 }
 
-void PowerStarHolder::requestAppearPowerStar(int starNum, const TVec3f* pPos, bool forceAppear) {
+void PowerStarHolder::requestAppearPowerStar(int starNum, const TVec3f* pPos, bool forceAppear, bool fromBelow) {
     PowerStarRequestInfo* info = findPowerStarRequestInfo(starNum);
     info->mIsAppear = true;
     PowerStar* star = info->mStar;
 
     if (pPos != nullptr) {
         star->setDemoAppearPos(*pPos);
+    }
+
+    if (fromBelow) {
+        star->setAppearFromBelow();
     }
 
     if (forceAppear) {

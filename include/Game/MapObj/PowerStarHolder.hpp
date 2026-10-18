@@ -16,7 +16,7 @@ public:
     virtual void init(const JMapInfoIter&);
 
     void registerPowerStar(PowerStar*, int);
-    void requestAppearPowerStar(int, const TVec3f*, bool);
+    void requestAppearPowerStar(int, const TVec3f*, bool, bool);
     void appearPowerStarWithoutDemo(int);
     PowerStar* getAppearedPowerStar(int) const;
     PowerStarRequestInfo* findPowerStarRequestInfo(int) const;

@@ -93,7 +93,7 @@ WoodLogBridge::WoodLogBridge(const char* pName) : LiveActor(pName) {
     mBaseMtx.identity();
 }
 
-// NONMATCHING: 89%; target negates the up vector with paired-single psq_l/ps_neg and keeps this-member addresses in regs across the loop (regalloc/stack only)
+// NONMATCHING: 93%; the loop keeps &mGravity/&mPosition in r29/r28 and the loop guard is hoisted differently (regalloc/branch layout only)
 void WoodLogBridge::init(const JMapInfoIter& rIter) {
     const char* pStrs = "\212\333\221\276\203v\203\214\201[\203g\225\224\225i";
     const char* objName;
@@ -109,7 +109,7 @@ void WoodLogBridge::init(const JMapInfoIter& rIter) {
     mDirZ.set<f32>(mBaseMtx.mMtx[0][2], mBaseMtx.mMtx[1][2], mBaseMtx.mMtx[2][2]);
     TVec3f upVec(mBaseMtx.mMtx[0][1], mBaseMtx.mMtx[1][1], mBaseMtx.mMtx[2][1]);
     mDirX.set<f32>(mBaseMtx.mMtx[0][0], mBaseMtx.mMtx[1][0], mBaseMtx.mMtx[2][0]);
-    TVec3f down(-upVec.x, -upVec.y, -upVec.z);
+    TVec3f down(-upVec);
     mGravity.set<f32>(down);
 
     s32 count = 0x20;

@@ -69,21 +69,16 @@ void KoopaJrRobotKillerPool::killUnused() {
     }
 }
 
-// NONMATCHING: regalloc of the wrapped cursor increment (next in r3 vs r0, mNum in r0 vs r4)
 HomingKiller* KoopaJrRobotKillerPool::allocate(LiveActor* pOwner) {
     Entry* p = &mEntries[mCursor];
     if (MR::isDead(p->mKiller) && !isReserved(p->mKiller)) {
         p->mOwner = pOwner;
-        s32 next = mCursor + 1;
-        mCursor = next;
-        if (mNum <= next) {
+        if (mNum <= ++mCursor) {
             mCursor = 0;
         }
         return p->mKiller;
     }
-    s32 next = mCursor + 1;
-    mCursor = next;
-    if (mNum <= next) {
+    if (mNum <= ++mCursor) {
         mCursor = 0;
     }
     return allocate(pOwner);

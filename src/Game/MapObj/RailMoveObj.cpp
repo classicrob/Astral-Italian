@@ -390,14 +390,12 @@ void RailMoveShadowDropYObj::control() {
     mShadowDropDir = negated;
 }
 
-// PLACEHOLDER(objects): fn_80333F90 is an unnamed MapPartsRailMover helper (moveCoordToEndPos, fn_80333FF0, reverse, setNerve Wait); resolve when the MapPartsRailMover owner names it
-extern "C" void fn_80333F90(MapPartsRailMover*);
 // PLACEHOLDER(objects): fn_80310770 is an unnamed MapObjActor stage-effect helper (reads mStageEffectCamera at 0xC8); resolve when named
 extern "C" void fn_80310770(RailMoveObj*, const char*);
 
 bool RailMoveObjSwitchWarpEnd::tryStartMove() {
     if (MR::isValidSwitchA(this) && MR::isOnSwitchA(this)) {
-        fn_80333F90(mRailMover);
+        mRailMover->moveToEndPos();
         MR::setPosition(this, mRailMover->_28);
         MR::onSwitchDead(this);
         setNerve(GET_NERVE(RailMoveObj, HostTypeDone));

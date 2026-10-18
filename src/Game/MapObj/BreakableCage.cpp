@@ -21,23 +21,23 @@ namespace NrvBreakableCage {
 
 BreakableCage::BreakableCage(const char* pName)
     : LiveActor(pName), mBreakModel(), mCageType(CAGE_INVALID), mRotationSpeed(), mItemModel(), mIgnoreGravity(), mDelayDeadActivate(),
-      mCameraInfo() {
+      mCameraInfo(), mIsRiddle() {
     mMtx.identity();
 }
 
 void BreakableCage::init(const JMapInfoIter& rIter) {
     TVec3f sensorOffset(::cHitSensorOffsetCage);
     const char* pName;
-    f32 sensorRadius = 300.0f;
+    f32 sensorRadius = 350.0f;
 
     MR::getObjectName(&pName, rIter);
     const char* pModelName = pName;
 
-    if (MR::isEqualString(pModelName, "BreakableCageRotate")) {
+    if (MR::isEqualString(pName, "BreakableCageRotate")) {
         pModelName = "BreakableCage";
         mCageType = CAGE_NORMAL;
     } else if (MR::isEqualString(pName, "BreakableCageL")) {
-        sensorRadius = 600.0f;
+        sensorRadius = 650.0f;
         mCageType = CAGE_LARGE;
     } else if (MR::isEqualString(pName, "BreakableFixation")) {
         mCageType = CAGE_FIX;
@@ -46,17 +46,22 @@ void BreakableCage::init(const JMapInfoIter& rIter) {
     } else if (MR::isEqualString(pName, "BreakableTrash")) {
         mCageType = CAGE_TRASH;
         MR::joinToGroupArray(this, rIter, "ゴミ管理", 32);
+    } else if (MR::isEqualString(pName, "BreakableCapsuleCage")) {
+        pModelName = "BreakableCapsuleCage";
+        sensorRadius = 650.0f;
+        mCageType = CAGE_CAPSULE;
     }
+
+    initMapToolInfo(rIter);
 
     f32 scaledRadius = sensorRadius * mScale.x;
     sensorOffset.scale(mScale.x);
 
-    initMapToolInfo(rIter);
     initModel(pModelName, rIter);
     MR::connectToSceneMapObjStrongLight(this);
     initHitSensor(1);
-    MR::addHitSensor(this, "body", 0x4C /* ATYPE_BREAKABLE_CAGE */, 8, scaledRadius, sensorOffset);
-    MR::initCollisionParts(this, pModelName, getSensor("body"), nullptr);
+    MR::addHitSensor(this, "Body", 0x4C /* ATYPE_BREAKABLE_CAGE */, 20, scaledRadius, sensorOffset);
+    MR::initCollisionParts(this, pModelName, getSensor("Body"), nullptr);
 
     if (!isTypeCage()) {
         initEffectKeeper(0, pName, false);
@@ -64,7 +69,12 @@ void BreakableCage::init(const JMapInfoIter& rIter) {
 
     MR::setClippingTypeSphere(this, 100.0f + scaledRadius);
     MR::setGroupClipping(this, rIter, 0x20);
-    initSound(4, "BreakableCageL", nullptr, TVec3f(0.0f));
+
+    if (mCageType == CAGE_LARGE) {
+        initSound(4, "BreakableCageL", nullptr, TVec3f(0.0f));
+    } else {
+        initSound(4, "BreakableCage", nullptr, TVec3f(0.0f));
+    }
 
     if (!mIgnoreGravity) {
         initBaseMtxForCage();
@@ -94,21 +104,22 @@ void BreakableCage::init(const JMapInfoIter& rIter) {
 
     initNerve(GET_NERVE(BreakableCage, BreakableCageNrvWait));
 
-    if (MR::isExistStageSwitchSleep(rIter)) {
-        MR::useStageSwitchSleep(this, rIter);
-        makeActorDead();
-    } else if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
+    if (MR::isExistStageSwitchAwake(rIter)) {
+        MR::useStageSwitchAwake(this, rIter);
         makeActorDead();
     } else {
-        makeActorAppeared();
+        MR::useStageSwitchSyncAppear(this, rIter);
+    }
+
+    if (MR::isEqualString(pName, "BreakableCage") && mScale.y > 1.0f) {
+        MR::startBtk(this, "Scale");
     }
 }
 
 void BreakableCage::appear() {
     mRotation.zero();
     MR::showModel(this);
-    getSensor("body")->validate();
+    getSensor("Body")->validate();
     MR::validateClipping(this);
 
     if (isTypeCage()) {
@@ -173,10 +184,9 @@ bool BreakableCage::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor
 
 void BreakableCage::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchReadAppear(this, rIter);
-    MR::useStageSwitchWriteA(this, rIter);
-    MR::useStageSwitchWriteB(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteA(this, rIter);
+    MR::initUseStageSwitchWriteB(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
 
     if (mCageType == CAGE_NORMAL) {
         MR::getJMapInfoArg0WithInit(rIter, &mRotationSpeed);
@@ -190,33 +200,40 @@ void BreakableCage::initMapToolInfo(const JMapInfoIter& rIter) {
     }
 
     MR::getJMapInfoArg2NoInit(rIter, &mDelayDeadActivate);
+
+    s32 riddleArg = -1;
+    MR::getJMapInfoArg3NoInit(rIter, &riddleArg);
+    mIsRiddle = riddleArg != -1;
 }
 
 void BreakableCage::initModel(const char* pName, const JMapInfoIter& rIter) {
-    initModelManagerWithAnm(pName, nullptr, false);
+    MR::initActor(this, rIter, pName, false);
 
     if (isTypeCage()) {
         ModelObj* pBreakModel = MR::createModelObjMapObjStrongLight("壊れる籠壊れモデル", "BreakableCageBreak", mMtx.toMtxPtr());
         mBreakModel = pBreakModel;
         pBreakModel->initWithoutIter();
-        mBreakModel->mScale.set(mScale);
+        MR::setScale(mBreakModel, mScale);
+
+        if (mCageType == CAGE_LARGE) {
+            TVec3f largeScale(mScale);
+            largeScale.scale(1.4f);
+            MR::setScale(mBreakModel, largeScale);
+        }
+
         MR::invalidateClipping(mBreakModel);
         MR::registerDemoSimpleCastAll(mBreakModel);
         mBreakModel->makeActorDead();
         mItemModel = MR::createDummyDisplayModel(this, rIter, -1, TVec3f(0.0f, 150.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
 
         if (mItemModel != nullptr) {
-            s32 modelId = MR::getDummyDisplayModelId(rIter, -1);
-
-            switch (modelId) {
-            case 4:
+            if (MR::getDummyDisplayModelId(rIter, -1) == 4) {
                 MR::startAction(mItemModel, "Rotation");
-                break;
-            case 7:
-                break;
             }
         }
     }
+
+    MR::declareStarPiece(this, 5);
 }
 
 void BreakableCage::initBaseMtxForCage() {
@@ -230,21 +247,18 @@ void BreakableCage::initBaseMtxForCage() {
     MR::makeMtxUpFrontPos(&mMtx, -mGravity, front, mPosition);
 }
 
+// NONMATCHING: 80%; logic matches (fixed/standard/trash/capsule chain) but target keeps the isFixed/isStandard temporaries in r5/r4 and reorders the compares (regalloc/branch layout only)
 bool BreakableCage::isTypeCage() const {
     bool isCage = true;
     bool isStandardCage = true;
-    bool isFixedCage = true;
     CageType type = mCageType;
-
-    if (type != CAGE_INVALID && type != CAGE_LARGE) {
-        isFixedCage = false;
-    }
+    bool isFixedCage = type == CAGE_INVALID || type == CAGE_LARGE;
 
     if (!isFixedCage && type != CAGE_NORMAL) {
         isStandardCage = false;
     }
 
-    if (!isStandardCage && type != CAGE_TRASH) {
+    if (!isStandardCage && type != CAGE_TRASH && type != CAGE_CAPSULE) {
         isCage = false;
     }
 
@@ -263,6 +277,8 @@ bool BreakableCage::isAppearPowerStar() const {
 
 bool BreakableCage::tryBreak() {
     if (isNerve(GET_NERVE(BreakableCage, BreakableCageNrvWait))) {
+        MR::invalidateClipping(this);
+
         if (mCameraInfo != nullptr) {
             MR::requestStartDemoWithoutCinemaFrame(this, "破壊", GET_NERVE(BreakableCage, BreakableCageNrvBreak),
                                                    GET_NERVE(BreakableCage, BreakableCageNrvWaitStartDemoBreak));
@@ -299,23 +315,21 @@ void BreakableCage::exeBreak() {
     }
 
     if (MR::isFirstStep(this)) {
-        switch (mCageType) {
-        case CAGE_FIX:
-            MR::startSound(this, "SE_OJ_BREAK_FIXATION_BREAK");
-            break;
-        default:
-            MR::startSound(this, "SE_OJ_IRON_CAGE_BREAK");
-            break;
+        if (mCageType == CAGE_FIX) {
+            MR::startActionSound(this, "OjBreakFixationBreak", -1, -1, -1);
+        } else {
+            MR::startActionSound(this, "Break", -1, -1, -1);
+        }
+
+        if (mIsRiddle) {
+            MR::startActionSound(this, "Riddle", -1, -1, -1);
         }
 
         MR::hideModel(this);
-        getSensor("body")->invalidate();
+        MR::invalidateHitSensor(this, "Body");
         MR::invalidateCollisionParts(this);
-        MR::invalidateClipping(this);
 
-        const ActorCameraInfo* pCamera = mCameraInfo;
-
-        if (pCamera != nullptr) {
+        if (mCameraInfo != nullptr) {
             MR::startActorCameraTargetSelf(this, getCamInfo(), -1);
 
             if (mBreakModel != nullptr) {
@@ -328,6 +342,10 @@ void BreakableCage::exeBreak() {
             MR::startAction(mBreakModel, "Break");
         } else {
             MR::emitEffect(this, "Break");
+        }
+
+        if (mItemModel != nullptr && MR::getDummyDisplayModelId(mItemModel) == 4) {
+            MR::appearStarPiece(this, mItemModel->mPosition, 5, 10.0f, 40.0f, false);
         }
 
         if (isAppearPowerStar()) {
@@ -352,7 +370,7 @@ void BreakableCage::exeBreak() {
     if (isAppearPowerStar() || mCameraInfo != nullptr) {
         MR::stopSceneAtStep(this, 2, 16);
     } else if (MR::isNearPlayer(this, 1500.0f)) {
-        f32 radius = getSensor("body")->mRadius;
+        f32 radius = MR::getSensorRadius(this, "Body");
 
         if (!MR::isJudgedToClipFrustum(mPosition, radius)) {
             MR::stopSceneAtStep(this, 2, 6);
@@ -364,7 +382,7 @@ void BreakableCage::exeBreak() {
     if (mCameraInfo != nullptr) {
         canDoSwitch = MR::isStep(this, 120);
     } else if (isTypeCage()) {
-        canDoSwitch = MR::isBckStopped(mBreakModel);
+        canDoSwitch = MR::isActionEnd(mBreakModel);
     } else {
         canDoSwitch = MR::isEffectValid(this, "Break") == false;
     }

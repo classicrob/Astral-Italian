@@ -85,7 +85,9 @@ struct RepeatBlockCell {
 
 // mwcc refuses to inline a 3-statement helper that is used from several functions, so the cell difference is spelled out at each use.
 #define REPEAT_BLOCK_CELL_SUB(dst, a, b) \
-    RepeatBlockCell dst(a);        \
+    RepeatBlockCell dst;           \
+    *((s32*)&dst) = *((const s32*)&(a)); \
+    dst.mZ = (a).mZ;               \
     dst.mX -= (b).mX;              \
     dst.mY -= (b).mY;              \
     dst.mZ -= (b).mZ;
@@ -171,11 +173,11 @@ public:
     RepeatBlockHistoryNode* getNode(s32) const;
     s32 calcIndex(s32) const;
     void propagate();
-    void connect(RepeatBlockHistoryNode*);
+    void connect();
 
-    /* 0x0 */ u32 mCapacity;
-    /* 0x4 */ u32 mCount;
-    /* 0x8 */ u32 mHead;
+    /* 0x0 */ s32 mCapacity;
+    /* 0x4 */ s32 mCount;
+    /* 0x8 */ s32 mHead;
     /* 0xC */ RepeatBlockHistoryNode* mNodes;
 };
 

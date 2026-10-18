@@ -2,6 +2,7 @@
 #include "Game/MapObj/SpinCloudBlock.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/AreaObj/SpinSwitchArea.hpp"
+#include "Game/Boss/KoopaJrCastle.hpp"
 #include "Game/Ride/FluffWind.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
@@ -9,12 +10,10 @@
 // Unnamed SMG2 helpers used by this unit (owned by other units).
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
-void fn_80035690(LiveActor*);
 void fn_800145C0(LiveActor*);
 void fn_80068E40(SpringValue*, f32);
 f32 fn_8004F300();
 void* fn_8004FEF0();
-s32 fn_800D9830(const TVec3f*, TVec3f*, f32*);
 }
 
 namespace MR {
@@ -94,6 +93,7 @@ void SpinCloudBlockNrvMove::execute(Spine* pSpine) const {
 // ---- SpinCloudBlock ----
 
 SpinCloudBlock::SpinCloudBlock(const char* pName) : LiveActor(pName) {
+    mSpring = nullptr;
     mQuat.x = 0.0f;
     mQuat.y = 0.0f;
     mQuat.z = 0.0f;
@@ -116,9 +116,9 @@ SpinCloudBlock::~SpinCloudBlock() {
 void SpinCloudBlock::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "SpinCloudBlock", false);
     MR::invalidateShadow(this, "\x83\x75\x83\x8D\x83\x62\x83\x4E");
-    MR::validateShadow(this, nullptr);
+    MR::validateShadow(this, "雲");
     MR::invalidateClipping(this);
-    fn_80035690(this);
+    MR::resetCollisionPartsBelongZone(this);
     initNerve(&SpinCloudBlockNrvMove::sInstance, 0);
     makeActorDead();
 }
@@ -136,35 +136,38 @@ void SpinCloudBlock::control() {
     fn_800145C0(this);
 }
 
+// NONMATCHING: quaternion arithmetic scheduling, FPR allocation and temporary stack order.
 void SpinCloudBlock::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
 
-    f32 x = mQuat.x;
-    f32 y = mQuat.y;
-    f32 z = mQuat.z;
-    f32 w = mQuat.w;
-
-    // rotation matrix from the quaternion, translation from the actor position
     TPos3f mtx;
-    mtx[0][0] = 1.0f - 2.0f * y * y - 2.0f * z * z;
-    mtx[0][1] = 2.0f * x * y - 2.0f * w * z;
-    mtx[0][2] = 2.0f * x * z + 2.0f * w * y;
+    f32 twiceY = 2.0f * mQuat.y;
+    f32 twiceX = 2.0f * mQuat.x;
+    f32 twiceZ = 2.0f * mQuat.z;
+    f32 twiceW = 2.0f * mQuat.w;
+    f32 yy = twiceY * mQuat.y, xx = twiceX * mQuat.x, zz = twiceZ * mQuat.z;
+    f32 xy = twiceX * mQuat.y, xz = twiceX * mQuat.z, yz = twiceY * mQuat.z;
+    f32 wz = twiceW * mQuat.z, wy = twiceW * mQuat.y, wx = twiceW * mQuat.x;
+    mtx[0][0] = 1.0f - yy - zz;
+    mtx[1][1] = 1.0f - xx - zz;
+    mtx[0][1] = xy - wz;
+    mtx[1][0] = xy + wz;
+    mtx[2][2] = 1.0f - xx - yy;
+    mtx[0][2] = xz + wy;
+    mtx[2][0] = xz - wy;
+    mtx[1][2] = yz - wx;
+    mtx[2][1] = yz + wx;
     mtx[0][3] = mPosition.x;
-    mtx[1][0] = 2.0f * x * y + 2.0f * w * z;
-    mtx[1][1] = 1.0f - 2.0f * x * x - 2.0f * z * z;
-    mtx[1][2] = 2.0f * y * z - 2.0f * w * x;
     mtx[1][3] = mPosition.y;
-    mtx[2][0] = 2.0f * x * z - 2.0f * w * y;
-    mtx[2][1] = 2.0f * y * z + 2.0f * w * x;
-    mtx[2][2] = 1.0f - 2.0f * x * x - 2.0f * y * y;
     mtx[2][3] = mPosition.z;
 
-    f32 springRatio = mSpring->mSpringValue / 60.0f;
+    f32 springOffset = mSpring->mSpringValue;
     TVec3f offset(mGravity);
-    offset *= springRatio;
+    offset *= springOffset;
     MR::addTransMtx(mtx, offset);
     MR::setBaseTRMtx(this, mtx);
 
+    f32 springRatio = mSpring->mSpringValue / 60.0f;
     f32 scale = 1.0f - 0.25f * springRatio;
     if (scale < 0.05f) {
         scale = 0.05f;
@@ -172,9 +175,12 @@ void SpinCloudBlock::calcAndSetBaseMtx() {
         scale = 2.0f;
     }
 
+    TVec3f baseScale(mScale);
     f32 inv = 1.0f / scale;
     f32 root = MR::fastSqrtf(inv);
-    TVec3f baseScale(root, scale, root);
+    baseScale.x *= root;
+    baseScale.y *= scale;
+    baseScale.z *= root;
     MR::setBaseScale(this, baseScale);
 }
 
@@ -239,20 +245,21 @@ bool SpinCloudBlock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
     return false;
 }
 
+// NONMATCHING: vector temporary stack slots and load/store scheduling differ.
 bool SpinCloudBlock::exeTransform() {
     if (MR::isFirstStep(this)) {
         MR::validateShadow(this, "\x83\x75\x83\x8D\x83\x62\x83\x4E");
-        MR::invalidateShadow(this, nullptr);
-        MR::validateCollisionParts(this);
-        MR::zeroVelocity(this);
+        MR::invalidateShadow(this, "雲");
         MR::startAction(this, "Transform");
+        MR::zeroVelocity(this);
+        MR::validateCollisionParts(this);
         mSwayVel.set(0.0f);
         placeAt(mAnchorPos);
 
         TVec3f from(mGravity);
         from *= 50.0f;
         TVec3f origin(mPosition);
-        PSVECSubtract(&origin, &from, &origin);
+        origin -= from;
         TVec3f target(mGravity);
         target *= 210.0f;
         TVec3f hit;
@@ -300,7 +307,7 @@ bool SpinCloudBlock::exeTransform() {
 bool SpinCloudBlock::exeMove() {
     if (MR::isFirstStep(this)) {
         MR::validateShadow(this, "\x83\x75\x83\x8D\x83\x62\x83\x4E");
-        MR::invalidateShadow(this, nullptr);
+        MR::invalidateShadow(this, "雲");
         MR::startAction(this, "Wait");
         MR::setScale(this, 1.0f);
     }
@@ -337,7 +344,7 @@ void SpinCloudBlock::calcWind() {
         force.z *= k;
         mSwayVel.add(force);
     }
-    if (fn_800D9830(&mPosition, &windDir, &windStrength) != 0) {
+    if (KoopaJrCastleWindFunction::calcWindInfo(&mPosition, &windDir, &windStrength) != 0) {
         mSwayVel.add(windDir);
     }
     mSwayVel.x *= 0.95f;
@@ -348,7 +355,7 @@ void SpinCloudBlock::calcWind() {
 void SpinCloudBlock::adjustOnPlayer() {
     if (MR::isActorOnPlayer(this)) {
         f32 t = fn_8004F300();
-        if (t != 160.0f) {
+        if (!(t >= 160.0f)) {
             f32 dot = mSwayVel.dot(mGravity);
             if (dot < 0.0f) {
                 TVec3f cancel(mGravity);
@@ -366,13 +373,14 @@ void SpinCloudBlock::adjustOnPlayer() {
 void SpinCloudBlock::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::invalidateShadow(this, "\x83\x75\x83\x8D\x83\x62\x83\x4E");
-        MR::validateShadow(this, nullptr);
+        MR::validateShadow(this, "雲");
         MR::startAction(this, "MiniWait");
     }
     mGravity.set(*MR::getPlayerGravity());
-    MR::calcGravityOrZero(this, mGravity);
+    MR::calcGravityOrZero(this);
 
-    TVec3f up(-mGravity);
+    TVec3f up;
+    up = -mGravity;
     TVec3f front;
     MR::getPlayerFrontVec(&front);
     MR::blendQuatUpFront(&mQuat, up, front, 0.2f, 0.2f);
@@ -402,16 +410,14 @@ void SpinCloudBlock::exeDisappear() {
 }
 
 void SpinCloudBlock::placeAt(const TVec3f& rPos) {
+    TQuat4f identity;
+    identity.x = identity.y = identity.z = 0.0f;
+    identity.w = 1.0f;
     MR::setPosition(this, rPos);
     MR::calcGravity(this);
 
     AreaObj* pArea = MR::getAreaObj("SpinCloudFrontDefineArea", rPos);
     if (pArea == nullptr) {
-        TQuat4f identity;
-        identity.x = 0.0f;
-        identity.y = 0.0f;
-        identity.z = 0.0f;
-        identity.w = 1.0f;
         MR::turnQuatUpToGravity(&mQuat, identity, this);
     } else {
         TVec3f front;
@@ -425,25 +431,25 @@ void SpinCloudBlock::placeAt(const TVec3f& rPos) {
 
 void SpinCloudBlock::spawnAt(const TVec3f& rPos) {
     MR::invalidateShadow(this, "\x83\x75\x83\x8D\x83\x62\x83\x4E");
-    MR::validateShadow(this, nullptr);
+    MR::validateShadow(this, "雲");
     placeAt(rPos);
     setNerve(&SpinCloudBlockNrvWait::sInstance);
+    appear();
     MR::invalidateCollisionParts(this);
     mAnchorPos.set(rPos);
     MR::startAction(this, "MiniWait");
 }
 
-static void setAnchorPosOf(LiveActor* pActor, const TVec3f& rPos) {
-    static_cast<SpinCloudBlock*>(pActor)->mAnchorPos.set(rPos);
+void SpinCloudBlock::setAnchorPos(const TVec3f& rPos) {
+    mAnchorPos.set<f32>(rPos);
 }
 
-static bool tryStartTransform(LiveActor* pActor, const TVec3f& rPlayerPos) {
-    if (pActor->isNerve(&SpinCloudBlockNrvWait::sInstance)) {
-        SpinCloudBlock* pBlock = static_cast<SpinCloudBlock*>(pActor);
-        pBlock->mSavedPos.set(pBlock->mPosition);
-        MR::setScale(pBlock, 1.0f);
-        pBlock->setNerve(&SpinCloudBlockNrvTransform::sInstance);
-        pBlock->mAnchorPos.set(rPlayerPos);
+bool SpinCloudBlock::tryStartTransform(const TVec3f& rPlayerPos) {
+    if (isNerve(&SpinCloudBlockNrvWait::sInstance)) {
+        mSavedPos.set<f32>(mPosition);
+        MR::setScale(this, 1.0f);
+        setNerve(&SpinCloudBlockNrvTransform::sInstance);
+        mAnchorPos.set<f32>(rPlayerPos);
         return true;
     }
     return false;
@@ -479,9 +485,11 @@ SpinCloudBlockGroup::SpinCloudBlockGroup() : LiveActorGroup("\x83\x58\x83\x73\x8
     }
 }
 
+#pragma dont_inline on
 SpinCloudBlockGroup::~SpinCloudBlockGroup() {
 }
 
+#pragma dont_inline reset
 void SpinCloudBlockGroup::movement() {
     if (mRespawnStep > 0) {
         mRespawnStep--;
@@ -492,10 +500,10 @@ void SpinCloudBlockGroup::movement() {
         for (s32 i = 0; i < mBlockNum; i++) {
             TVec3f offset;
             MR::calcPlayerFollowPassPosition(&offset, 100.0f * (f32) (i + 1));
-            setAnchorPosOf(mBlocks[i], offset);
+            static_cast<SpinCloudBlock*>(mBlocks[i])->setAnchorPos(offset);
         }
         if (mRespawnStep == 0 && fn_8004FEF0() != nullptr) {
-            tryStartTransform(mBlocks[0], *MR::getPlayerPos());
+            static_cast<SpinCloudBlock*>(mBlocks[0])->tryStartTransform(*MR::getPlayerPos());
             for (s32 i = 0; i < mBlockNum - 1; i++) {
                 mBlocks[i] = mBlocks[i + 1];
             }

@@ -1229,9 +1229,22 @@ Game/Boss/KoopaJrRobotTU03.cpp:
 	.text       start:0x800DCDF0 end:0x800DDB50
 	.ctors      start:0x80643ED0 end:0x80643ED4
 
+Game/Boss/KoopaJrRobotPod.cpp:
+	.text       start:0x800DDB50 end:0x800DDE80
+	.data       start:0x80675E98 end:0x80675F58
+
+Game/Boss/KoopaJrRobotBeam.cpp:
+	.text       start:0x800DDE80 end:0x800DE1E0
+	.data       start:0x80675F58 end:0x80675FE0
+
+Game/Boss/KoopaJrRobotStateBase.cpp:
+	.text       start:0x800DE1E0 end:0x800DE6F0
+	.data       start:0x80675FE0 end:0x80676048
+
 Game/Boss/KoopaJrRobotTU04.cpp:
-	.text       start:0x800DDB50 end:0x800DF090
+	.text       start:0x800DE6F0 end:0x800DF090
 	.ctors      start:0x80643ED4 end:0x80643ED8
+	.data       start:0x80676048 end:0x80676110
 
 Game/Boss/KoopaJrRobotTU05.cpp:
 	.text       start:0x800DF090 end:0x800DF590
@@ -6520,8 +6533,16 @@ Game/Ride/FluffWind.cpp:
 	.sbss       start:0x807D5040 end:0x807D5048
 
 Game/Ride/GliBird.cpp:
-	.text       start:0x8042EC10 end:0x80433310
-	.ctors      start:0x80644820 end:0x8064482C
+	.text       start:0x8042EC10 end:0x80431C70
+	.ctors      start:0x80644820 end:0x80644824
+
+Game/Ride/GliBirdFootJointCtrl.cpp:
+	.text       start:0x80431C70 end:0x804320D0
+	.ctors      start:0x80644824 end:0x80644828
+
+Game/Ride/GliBirdTutorial.cpp:
+	.text       start:0x804320D0 end:0x80433310
+	.ctors      start:0x80644828 end:0x8064482C
 
 Game/Ride/JumpBranch.cpp:
 	.text       start:0x80433310 end:0x80433E40
@@ -6559,8 +6580,16 @@ Game/Ride/Pole.cpp:
 	.sbss       start:0x807D5120 end:0x807D5160
 
 Game/Ride/RollingRock.cpp:
-	.text       start:0x8043C5F0 end:0x804404D0
-	.ctors      start:0x80644840 end:0x8064484C
+	.text       start:0x8043C5F0 end:0x8043CCE0
+	.ctors      start:0x80644840 end:0x80644844
+
+Game/Ride/RollingRockStateParent.cpp:
+	.text       start:0x8043CCE0 end:0x8043DFD0
+	.ctors      start:0x80644844 end:0x80644848
+
+Game/Ride/RollingRockStateRoll.cpp:
+	.text       start:0x8043DFD0 end:0x804404D0
+	.ctors      start:0x80644848 end:0x8064484C
 
 Game/Ride/SledRopePoint.cpp:
 	.text       start:0x804404D0 end:0x80440620

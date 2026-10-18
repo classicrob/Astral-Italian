@@ -5,6 +5,9 @@
 #include "Game/MapObj/MapPartsRailPointPassChecker.hpp"
 #include "Game/Util.hpp"
 
+// PLACEHOLDER(objects): checks named action availability through ActorAnimKeeper or model animations; resolve when core names fn_80008F00
+extern "C" bool fn_80008F00(const LiveActor*, const char*);
+
 namespace NrvMapPartsRailMover {
     NEW_NERVE(HostTypeWait, MapPartsRailMover, WaitForRestart);
     NEW_NERVE(HostTypeMove, MapPartsRailMover, Move);
@@ -35,7 +38,10 @@ MapPartsRailMover::MapPartsRailMover(LiveActor* pActor)
     _78 = false;
 }
 
+// NONMATCHING: GPR allocation and paired-single subtraction scheduling in snap setup.
 void MapPartsRailMover::init(const JMapInfoIter& rIter) {
+    MapPartsFunction::init(rIter);
+    TVec3f originalPosition(mHost->mPosition);
     MR::getMapPartsArgMoveConditionType(&mMoveConditionType, rIter);
     MR::getMapPartsArgMoveStopType(&mMoveStopType, mHost);
     MR::getMapPartsArgSignMotionType(&mSignMotionType, rIter);
@@ -51,10 +57,23 @@ void MapPartsRailMover::init(const JMapInfoIter& rIter) {
         MR::moveCoordAndTransToRailStartPoint(mHost);
     }
 
-    _28.set(mHost->mPosition);
+    _68 = 0;
+    MR::getMapPartsArgMoveSnap(&_68, mHost);
+    if (_68 > 0) {
+        _6C = _68;
+        LiveActor* host = mHost;
+        TVec3f offset(originalPosition);
+        offset -= host->mPosition;
+        _44 = offset;
+        MR::setPosition(mHost, originalPosition);
+    }
+    updatePosition();
     _34 = MR::getRailCoord(mHost);
     mRailPointPassChecker = new MapPartsRailPointPassChecker(mHost);
     mRailPointPassChecker->init(rIter);
+    const char* objectName = nullptr;
+    MR::getObjectName(&objectName, rIter);
+    if (MR::isEqualString(objectName, "FallDownWall") || MR::isEqualString(objectName, "RailMoveDisappearStep")) _74 = 50;
     initNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
 }
 
@@ -73,15 +92,23 @@ void MapPartsRailMover::movement() {
 
     mRailPointPassChecker->movement();
     MapPartsFunction::movement();
+    isMove = false;
+    if (isNerve(GET_NERVE(MapPartsRailMover, HostTypeMove)) || isNerve(GET_NERVE(MapPartsRailMover, HostTypeMoveStart))) isMove = true;
+    if (isMove && isDone()) MR::startActionSoundAuto(mHost, "RailMoverStop", -1, -1, -1);
 }
 
 void MapPartsRailMover::start() {
     moveToInitPos();
-    mRailPointPassChecker->start();
+    doStart();
+}
 
+void MapPartsRailMover::doStart() {
+    mRailPointPassChecker->start();
     if (MR::hasMapPartsMoveStartSignMotion(mSignMotionType)) {
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeMoveStart));
+        MR::startActionSoundAuto(mHost, "RailMoverWaitStart", -1, -1, -1);
     } else {
+        MR::startActionSoundAuto(mHost, "RailMoverWaitStartMove", -1, -1, -1);
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
     }
 }
@@ -110,11 +137,10 @@ bool MapPartsRailMover::receiveMsg(u32 msg) {
     return false;
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (89%)
 void MapPartsRailMover::moveToInitPos() {
     if (!MR::isNearZero(_34 - MR::getRailCoord(mHost))) {
         MR::setRailCoord(mHost, _34);
-        _28.set(MR::getRailPos(mHost));
+        updatePosition();
         if (!MR::isRailGoingToEnd(mHost)) {
             MR::reverseRailDirection(mHost);
         }
@@ -125,10 +151,9 @@ void MapPartsRailMover::startWithSignalMotion() {
     setNerve(GET_NERVE(MapPartsRailMover, HostTypeMoveStart));
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (82%)
 void MapPartsRailMover::cancelSignalMotion() {
     MR::setRailCoord(mHost, _48);
-    _28.set(MR::getRailPos(mHost));
+    updatePosition();
     setNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
 }
 
@@ -324,8 +349,8 @@ void MapPartsRailMover::updateAccel() {
     }
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (85%)
 bool MapPartsRailMover::tryPassPoint() {
+    if (isNerve(GET_NERVE(MapPartsRailMover, HostTypeMoveStart))) return false;
     if (mRailPointPassChecker->isReachedEnd()) {
         if (mMoveStopType == 0) {
             setNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
@@ -369,8 +394,8 @@ bool MapPartsRailMover::tryRestartAtEnd() {
     return true;
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (74%)
 void MapPartsRailMover::restartAtEnd() {
+    MR::startActionSoundAuto(mHost, "RailMoverRestartAtEnd", -1, -1, -1);
     if (mMoveStopType == 0) {
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
     } else if (mMoveStopType == 1) {
@@ -380,40 +405,60 @@ void MapPartsRailMover::restartAtEnd() {
             setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
         }
     } else if (mMoveStopType == 2) {
+        _70 = true;
         MR::moveCoordToStartPos(mHost);
-        _28.set(MR::getRailPos(mHost));
+        updatePosition();
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
     } else if (mMoveStopType == 3) {
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeVanish));
     }
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (55%)
+void MapPartsRailMover::exeWaitForRestart() {
+    if (isFirstStep()) {
+        MR::startActionSoundAuto(mHost, "RailMoverWaitStart", -1, -1, -1);
+    }
+    MR::startActionSoundAuto(mHost, "RailMoverWaiting", -1, -1, -1);
+}
+
 void MapPartsRailMover::exeMove() {
     if (isFirstStep()) {
+        MR::startActionSoundAuto(mHost, "RailMoverMoveStart", -1, -1, -1);
         updateAccel();
         calcMoveSpeed(&mSpeed);
         sendMsgToHost(0xDA /* ACTMES_MAPPARTS_START_ROTATE_BETWEEN_POINTS */);
     }
 
+    MR::startActionSoundAuto(mHost, "RailMoverMoveLoop", -1, -1, -1);
     bool isNotNear = !MR::isNearZero(mAcceleration, 0.0001f);
 
     if (isNotNear && getStep() < mAccelTime) {
         mSpeed += mAcceleration;
     }
 
-    MR::moveCoord(mHost, mSpeed);
-    _28.set(MR::getRailPos(mHost));
+    if (_6C > 0) --_6C;
+    LiveActor* host = mHost;
+    f32 speed = getSpeed();
+    MR::moveCoord(host, mSpeed * speed);
+    updatePosition();
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (57%)
 void MapPartsRailMover::exeMoveStart() {
     if (isFirstStep()) {
+        MR::startActionSoundAuto(mHost, "RailMoverSignStart", -1, -1, -1);
         _48 = MR::getRailCoord(mHost);
-
-        if (MR::isExistCollisionParts(mHost)) {
-            MR::offUpdateCollisionParts(mHost);
+        if (MR::isExistCollisionParts(mHost)) MR::offUpdateCollisionParts(mHost);
+        if (!_78) MR::tryStartAllAnim(mHost, "RailMoveSign");
+    }
+    MR::startActionSoundAuto(mHost, "RailMoverSignLoop", -1, -1, -1);
+    if (!_78 && fn_80008F00(mHost, "RailMoveSign")) {
+        if (MR::isActionEnd(mHost)) {
+            MR::setRailCoord(mHost, _48);
+            if (MR::isExistCollisionParts(mHost)) MR::onUpdateCollisionParts(mHost);
+            updatePosition();
+            setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
         }
+        return;
     }
 
     f32 v3;
@@ -429,27 +474,28 @@ void MapPartsRailMover::exeMoveStart() {
     }
 
     MR::setRailCoord(mHost, _48 + (7.0f * (v3 * ((getStep() % 3)))));
-    _28.set(MR::getRailPos(mHost));
-    if (isStep(MapParts::getMoveStartSignalTimeForRail())) {
+    updatePosition();
+    s32 signalTime = MapParts::getMoveStartSignalTimeForRail();
+    if (_74 != -1) signalTime = _74;
+    if (isStep(signalTime)) {
         MR::setRailCoord(mHost, _48);
-
-        if (MR::isExistCollisionParts(mHost)) {
-            MR::onUpdateCollisionParts(mHost);
-        }
-
-        _28.set(MR::getRailPos(mHost));
+        if (MR::isExistCollisionParts(mHost)) MR::onUpdateCollisionParts(mHost);
+        updatePosition();
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
     }
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (55%)
 void MapPartsRailMover::exeStopAtPoint() {
     if (isFirstStep()) {
         mSpeed = 0.0f;
         mAcceleration = 0.0f;
         MR::setRailCoordSpeed(mHost, 0.0f);
+        MR::startActionSoundAuto(mHost, "RailMoverStopAtPoint", -1, -1, -1);
+        if (isNerve(GET_NERVE(MapPartsRailMover, HostTypeStopAtPointBeforeRotate)))
+            MR::startActionSoundAuto(mHost, "RailMoverStopAtPoint", -1, -1, -1);
+        else MR::startActionSoundAuto(mHost, "RailMoverStopAtPointAfter", -1, -1, -1);
     }
-
+    MR::startActionSoundAuto(mHost, "RailMoverStopAtPointLoop", -1, -1, -1);
     if (isStep(mStopTime)) {
         if (isNerve(GET_NERVE(MapPartsRailMover, HostTypeStopAtPointBeforeRotate))) {
             if (sendMsgToHost(0xD8 /* ACTMES_MAPPARTS_START_ROTATE_AT_POINT */)) {
@@ -463,9 +509,15 @@ void MapPartsRailMover::exeStopAtPoint() {
     }
 }
 
-// NONMATCHING: SMG2 body differs; not recovered yet (53%)
 void MapPartsRailMover::exeStopAtEnd() {
-    if (!tryRestartAtEnd() && isStep(mStopTime)) {
+    if (isFirstStep()) {
+        if (isNerve(GET_NERVE(MapPartsRailMover, HostTypeStopAtEndBeforeRotate)))
+            MR::startActionSoundAuto(mHost, "RailMoverStopAtEnd", -1, -1, -1);
+        else MR::startActionSoundAuto(mHost, "RailMoverStopAtEndAfter", -1, -1, -1);
+    }
+    if (tryRestartAtEnd()) return;
+    MR::startActionSoundAuto(mHost, "RailMoverStopAtEndLoop", -1, -1, -1);
+    if (isStep(mStopTime)) {
         if (isNerve(GET_NERVE(MapPartsRailMover, HostTypeStopAtEndBeforeRotate))) {
             if (sendMsgToHost(0xD8 /* ACTMES_MAPPARTS_START_ROTATE_AT_POINT */)) {
                 setNerve(GET_NERVE(MapPartsRailMover, HostTypeRotateAtEndPoint));
@@ -491,7 +543,7 @@ void MapPartsRailMover::exeVanish() {
 
 void MapPartsRailMover::exeStopAtEndWithPlayerOn() NO_INLINE {
     if (isFirstStep()) {
-        MR::startLevelSound(mHost, "RailMoverStopAtEndWithPlayerOn", -1, -1, -1);
+        MR::startActionSoundAuto(mHost, "RailMoverStopAtEndWithPlayerOn", -1, -1, -1);
     }
 
     if (!MR::isOnPlayer(MR::getBodySensor(mHost))) {
@@ -523,13 +575,33 @@ bool MapPartsRailMover::isStarting() const {
     return isNerve(GET_NERVE(MapPartsRailMover, HostTypeMoveStart));
 }
 
-void MapPartsRailMover::exeWaitForRestart() {
-    if (isFirstStep()) {
-        MR::startLevelSound(mHost, "RailMoverWaitStart", -1, -1, -1);
-        MR::startLevelSound(mHost, "RailMoverWaiting", -1, -1, -1);
-    }
-}
 
 void MapPartsRailMover::exeWait() {
     return;
 }
+
+void MapPartsRailMover::moveToEndPos() {
+    MR::moveCoordToEndPos(mHost);
+    updatePosition();
+    if (!MR::isRailGoingToEnd(mHost)) MR::reverseRailDirection(mHost);
+    setNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
+}
+
+#pragma auto_inline off
+// NONMATCHING: the two vector temporaries and their FPR values use reversed slots/registers.
+void MapPartsRailMover::updatePosition() {
+    const TVec3f& pos = MR::getRailPos(mHost);
+    _28.x = pos.x;
+    _28.y = pos.y;
+    _28.z = pos.z;
+    if (_6C > 0) {
+        f32 total = _68;
+        f32 remaining = _6C;
+        TVec3f offset(_44);
+        offset.scale(remaining);
+        TVec3f scaled(offset);
+        scaled.scale(1.0f / total);
+        _28 += scaled;
+    }
+}
+#pragma auto_inline reset

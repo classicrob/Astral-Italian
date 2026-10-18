@@ -7,14 +7,6 @@
 
 #include "JSystem/JGeometry/TVec.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8001C030, declared extern "C" so the reloc name matches; resolve when fn_8001C030 gets its real name in symbols.txt
-extern "C" void fn_8001C030(s32);
-// PLACEHOLDER(objects): unnamed target symbol fn_80059390, declared extern "C" so the reloc name matches; resolve when fn_80059390 gets its real name in symbols.txt
-extern "C" s32 fn_80059390();
-// PLACEHOLDER(objects): unnamed target symbol fn_80059210, declared extern "C" so the reloc name matches; resolve when fn_80059210 gets its real name in symbols.txt
-extern "C" void fn_80059210();
-// PLACEHOLDER(objects): unnamed target symbol fn_800592D0, declared extern "C" so the reloc name matches; resolve when fn_800592D0 gets its real name in symbols.txt
-extern "C" void fn_800592D0();
 // PLACEHOLDER(objects): unnamed target symbol fn_80088630, declared extern "C" so the reloc name matches; resolve when fn_80088630 gets its real name in symbols.txt
 extern "C" void fn_80088630();
 
@@ -159,7 +151,7 @@ void WorldMapAccessPanel::exeDemoStart() {
         TVec3f camPos = MR::getCamPos();
         mFloatB4 = camPos.z;
         MR::startAction(this, "Access");
-        fn_8001C030(0x1E);
+        MR::stopStageAndSubBGM(0x1E);
     }
 
     if (MR::isStep(this, sStepBase)) {
@@ -168,11 +160,11 @@ void WorldMapAccessPanel::exeDemoStart() {
     }
 
     if (MR::isStep(this, stepLimit - 0xA)) {
-        // NONMATCHING: world id query chain (WorldMapFunction::isWorldNoMid / fn_800592D0 / fn_80059210)
+        // NONMATCHING: world id query chain (WorldMapFunction::isWorldNoMid / startSpaceWipeBackward / startCloudWipeBackward)
         if (WorldMapFunction::isWorldNoMid(GameDataFunction::getCurrentWorldId()) != 0) {
-            fn_800592D0();
+            MR::startSpaceWipeBackward();
         } else {
-            fn_80059210();
+            MR::startCloudWipeBackward();
         }
     }
 
@@ -222,7 +214,7 @@ void WorldMapAccessPanel::exeAccess() {
             MR::pauseTimeKeepDemo(this);
             return;
         }
-        if (fn_80059390() != 0) {
+        if (MR::isHideOrEndModelWipe()) {
             MR::resumeTimeKeepDemo(this);
             MR::startCenterScreenBlur(0x2D, 15.0f, 0x50, 5, 0x1E);
             setNerve(WMAP_NRV(AccessEnd));

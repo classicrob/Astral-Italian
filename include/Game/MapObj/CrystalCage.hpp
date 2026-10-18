@@ -47,10 +47,10 @@ public:
     /* 0x10B */ u8 _107;
     /* 0x10C */ s32 _108;
     /* 0x110 */ bool mIsBreakObjVisible;
-    /* 0x111 */ bool mPlayRiddleSFX;
-    /* 0x112 */ bool mHasBinding;
-    /* 0x113 */ u8 _10F;
+    /* 0x111 */ u8 _111;
+    /* 0x112 */ u8 _112;
+    /* 0x113 */ u8 _113;
     /* 0x114 */ s32 mPowerStarState;
-    /* 0x118 */ bool mHasBinder;
+    /* 0x118 */ bool mHasBinding;
     /* 0x11C */ TVec3f _110;
 };

@@ -1,3 +1,4 @@
+#pragma auto_inline off
 #include "Game/MapObj/MapPartsSeesaw2AxisRotator.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
@@ -6,6 +7,8 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
+#include <cmath>
 #include "Game/Util/VectorUtil.hpp"
 
 namespace {
@@ -22,7 +25,7 @@ namespace NrvMapPartsSeesaw2AxisRotator {
 
 MapPartsSeesaw2AxisRotator::MapPartsSeesaw2AxisRotator(LiveActor* pHost, const char* pMoveSound, f32 moveSoundSpeed)
     : MapPartsRotatorBase(pHost, "シーソー(2軸)"), mRotateAngle(), mInertiaConst(::sInertiaConstDefault), mRestoreForce(::sRestoreForceDefault),
-      mUp(0.0f, 1.0f, 0.0f), mHipDrop(), mRotateSpeed(), mMoveSound(pMoveSound), mMoveSoundSpeed(moveSoundSpeed) {
+      mUp(0.0f, 1.0f, 0.0f), mHipDrop(), mRotateSpeed(), mMoveSound(pMoveSound), mMoveSoundSpeed(moveSoundSpeed), mSoundIntensity(0.0f) {
     mRotateMtx.identity();
     mBaseMtx.identity();
     mBaseMtxInv.identity();
@@ -43,7 +46,6 @@ void MapPartsSeesaw2AxisRotator::init(const JMapInfoIter& rIter) {
     mRestoreForce = restoreForce;
 }
 
-// NONMATCHING: target calls TRotation3::getYDir out of line, ours inlines it (92%)
 void MapPartsSeesaw2AxisRotator::start() {
     mBaseMtx.set(mHost->getBaseMtx());
     mBaseMtxInv.invert(mBaseMtx);
@@ -78,29 +80,55 @@ bool MapPartsSeesaw2AxisRotator::receiveMsg(u32 msg) {
     return false;
 }
 
-// NONMATCHING: SMG2 rewrite (isNearZero guard, tilt via sin/cos, sound pitch from fctiwz); flow not recovered, 0% match
+// NONMATCHING: inline Rodrigues arithmetic scheduling, FPR allocation and temporary stack order.
 void MapPartsSeesaw2AxisRotator::rotate() {
-    TVec3f position(*MR::getPlayerPos());
+    TVec3f position = *MR::getPlayerPos();
     mBaseMtxInv.mult(position, position);
     f32 distance = position.length();
     TVec3f axis;
-    axis.cross(mUp, position);
-    MR::normalize(&axis);
+    PSVECCrossProduct(&mUp, &position, &axis);
+    MR::normalizeOrZero(&axis);
+    if (MR::isNearZero(axis, 0.001f)) return;
+
     TPos3f tilt;
     tilt.identity();
-    tilt.setRotate(axis, MR::toRadian(mRotateAngle));
+    f32 angle = 0.017453292f * mRotateAngle;
+    TVec3f normalized;
+    normalized.x = axis.x;
+    normalized.y = axis.y;
+    normalized.z = axis.z;
+    normalized.length();
+    PSVECNormalize(&normalized, &normalized);
+    f32 sine = sin(angle);
+    f32 cosine = cos(angle);
+    f32 inverseCosine = 1.0f - cosine;
+    f32 x = normalized.x, y = normalized.y, z = normalized.z;
+    f32 xx = x * x, yy = y * y, zz = z * z;
+    tilt.mMtx[0][0] = cosine + inverseCosine * xx;
+    tilt.mMtx[1][1] = cosine + inverseCosine * yy;
+    tilt.mMtx[2][2] = cosine + inverseCosine * zz;
+    tilt.mMtx[0][1] = inverseCosine * x * y - sine * z;
+    tilt.mMtx[0][2] = inverseCosine * x * z + sine * y;
+    tilt.mMtx[2][0] = inverseCosine * x * z - sine * y;
+    tilt.mMtx[1][0] = inverseCosine * x * y + sine * z;
+    tilt.mMtx[1][2] = inverseCosine * y * z - sine * x;
+    tilt.mMtx[2][1] = inverseCosine * y * z + sine * x;
     TPos3f target;
     target.concat(mBaseMtx, tilt);
     target.zeroTrans();
-
     f32 previousSpeed = mRotateSpeed;
     f32 speed = MR::clamp((0.001f * distance) / getInertiaConst(), 0.0f, 1.0f);
     mRotateSpeed = speed - previousSpeed;
-
-    if (mMoveSound != nullptr && mMoveSoundSpeed < MR::abs(mRotateSpeed)) {
-        MR::startLevelSound(mHost, mMoveSound);
+    TVec3f targetUp(0.0f);
+    target.getYDir(targetUp);
+    TVec3f currentUp(0.0f);
+    mRotateMtx.getYDir(currentUp);
+    f32 intensity = 3000.0f * (speed * (1.0f - targetUp.dot(currentUp))) - 0.2f;
+    if (mSoundIntensity - intensity > 0.05f) intensity = mSoundIntensity - 0.05f;
+    if (0.0f < intensity) {
+        MR::startActionSoundAuto(mHost, "MapPartsRotateLoop", (s32)(1000.0f * intensity + (f32)(s32)150), -1, -1);
     }
-
+    mSoundIntensity = intensity;
     MR::blendMtxRotate(mRotateMtx.toMtxPtr(), target.toMtxPtr(), speed, mRotateMtx.toMtxPtr());
 }
 

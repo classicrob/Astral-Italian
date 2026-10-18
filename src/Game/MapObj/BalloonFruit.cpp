@@ -50,8 +50,6 @@ namespace MR {
 }
 
 // Unnamed SMG2 helpers, C linkage so the target reloc names match.
-// PLACEHOLDER(objects): unnamed target symbol fn_804225C0, declared extern "C" so the reloc name matches; resolve when fn_804225C0 gets its real name in symbols.txt
-extern "C" s32 fn_804225C0();
 // PLACEHOLDER(objects): extern "C" declaration of a target symbol with a non-C++ name (relocs must match); resolve when the symbol is renamed in symbols.txt
 extern "C" void fn_802730E0_unused();
 // PLACEHOLDER(objects): unnamed target symbol fn_80422580, declared extern "C" so the reloc name matches; resolve when fn_80422580 gets its real name in symbols.txt
@@ -182,7 +180,7 @@ void BalloonFruit::exeHide() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Hide");
     }
-    if (fn_804225C0() == 0 && MR::isGreaterEqualStep(this, 60)) {
+    if (MR::fn_804225C0() == 0 && MR::isGreaterEqualStep(this, 60)) {
         reset();
     }
 }

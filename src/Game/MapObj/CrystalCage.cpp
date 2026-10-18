@@ -4,16 +4,10 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/DummyDisplayModel.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 #include "math_types.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
 #include <JSystem/JMath.hpp>
-
-void CrystalCage_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)HALF_PI;
-    (void)2.0f;
-}
 
 namespace NrvCrystalCage {
     NEW_NERVE(CrystalCageNrvFall, CrystalCage, Fall);
@@ -23,8 +17,8 @@ namespace NrvCrystalCage {
 };  // namespace NrvCrystalCage
 CrystalCage::CrystalCage(const char* pName)
     : LiveActor(pName), mCrystalCageType(0), mBreakObj(nullptr), _C4(1), _C8(0), mRumbleCalc(nullptr), _D0(0.0f, 0.0f, 1.0f), _DC(gZeroVec),
-      _E8(gZeroVec), mDisplayModel(nullptr), _F8(gZeroVec), _104(0), _108(-1), mIsBreakObjVisible(false), mPlayRiddleSFX(false), mHasBinding(false),
-      mPowerStarState(0), mHasBinder(false), mIsInPlaneModeCube(false), mIsFallType(false), _110(gZeroVec) {
+      _E8(gZeroVec), mDisplayModel(nullptr), _F8(gZeroVec), _104(0), _108(-1), mIsBreakObjVisible(false),
+      mPowerStarState(0), mHasBinding(false), mIsInPlaneModeCube(false), mIsFallType(false), _110(gZeroVec) {
     _94.identity();
 }
 
@@ -71,7 +65,7 @@ void CrystalCage::init(const JMapInfoIter& rIter) {
         MR::invalidateHitSensors(this);
     }
 
-    if (mHasBinder) {
+    if (mHasBinding) {
         initBinder(50.0f, 0.0f, 0);
         MR::setBinderOffsetVec(this, &_110, false);
         MR::setBinderExceptActor(this, this);
@@ -277,10 +271,10 @@ bool CrystalCage::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* 
 }
 
 void CrystalCage::initMapToolInfo(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
+    MR::calcGravity(this);
     _DC.set(mPosition);
 
-    if (MR::isEqualObjectName(rIter, "CrystalCageS")) {
+    if (MR::isEqualObjectName(rIter, "CrystalCageS") || MR::isEqualObjectName(rIter, "CrystalCageForOpening")) {
         mCrystalCageType = 0;
     } else if (MR::isEqualObjectName(rIter, "CrystalCageM")) {
         mCrystalCageType = 1;
@@ -291,14 +285,12 @@ void CrystalCage::initMapToolInfo(const JMapInfoIter& rIter) {
     if (mCrystalCageType == 2) {
         MR::getJMapInfoArg0NoInit(rIter, &_108);
     } else {
-        MR::useStageSwitchWriteDead(this, rIter);
-
-        if (MR::useStageSwitchReadA(this, rIter)) {
-            MR::listenStageSwitchOnA(this, MR::Functor(this, &CrystalCage::forceBreak));
+        if (MR::isValidSwitchA(this)) {
+            MR::listenStageSwitchOnA(this, MR::Functor_Inline(this, &CrystalCage::forceBreak));
         }
 
         MR::getJMapInfoArg0NoInit(rIter, &mIsBreakObjVisible);
-        MR::getJMapInfoArg1NoInit(rIter, &mPlayRiddleSFX);
+        MR::getJMapInfoArg1NoInit(rIter, &mPowerStarState);
         MR::getJMapInfoArg2NoInit(rIter, &mHasBinding);
         MR::getJMapInfoArg3NoInit(rIter, &_104);
     }
@@ -320,13 +312,17 @@ void CrystalCage::initModel() {
 }
 
 void CrystalCage::tryOnSwitchDead() {
-    if (mCrystalCageType == 2 || !MR::isValidSwitchDead(this)) {
+    if (!MR::isValidSwitchDead(this)) {
         return;
     }
 
     s32 step = 0;
 
-    if (mDisplayModel && MR::getDummyDisplayModelId(mDisplayModel) == 3) {
+    if (mCrystalCageType == 2) {
+        step = 0;
+    }
+
+    if (isDisplayModelId(3)) {
         step = 10;
     }
 
@@ -335,7 +331,7 @@ void CrystalCage::tryOnSwitchDead() {
     }
 }
 
-// NONMATCHING: display model id check; the asm compares the dummy display model id with the argument
+// NONMATCHING: 68%; target saves LR/r31 after the null check (shrink-wrapped prologue), ours saves them up front (prologue placement only)
 bool CrystalCage::isDisplayModelId(s32 id) {
     if (!mDisplayModel) {
         return false;
@@ -354,23 +350,23 @@ bool CrystalCage::hasPowerStarId() {
     return true;
 }
 
-// NONMATCHING: fall nerve body; effect and sound names come from the string table, the ease-in motion is approximated
 void CrystalCage::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "FallStart", -1, -1, -1);
+        MR::emitEffect(this, "Blur");
     }
-    MR::emitEffect(this, "Falling");
 
     TVec3f up(0.0f, 1.0f, 0.0f);
     MR::calcUpVec(&up, this);
-    TVec3f target(0.0f, 1.0f, 0.0f);
+    TVec3f target(0.0f, 0.0f, 0.0f);
+    JMAVECScaleAdd(&up, &_DC, &target, 4000.0f);
     f32 rate = MR::calcNerveEaseInRate(this, 30);
-    TVec3f blend(0.0f);
-    MR::vecBlend(&blend, mPosition, target, rate);
-    mPosition.set(blend);
+    MR::vecBlend(&mPosition, target, _DC, rate);
+    MR::startActionSound(this, "Falling", -1, -1, -1);
 
     if (MR::isStep(this, 30)) {
-        MR::deleteEffect(this, "Falling");
+        MR::deleteEffect(this, "Blur");
+        MR::tryHitReaction(this, "\222\205\222n");
         MR::validateClipping(this);
         setNerve(GET_NERVE(CrystalCage, CrystalCageNrvWait));
     }
@@ -403,6 +399,10 @@ void CrystalCage::exeWait() {
         v5.add(mPosition);
         MR::calcPerpendicFootToLineInside(&_E8, *MR::getPlayerPos(), v6, v5);
     }
+
+    if (mCrystalCageType != 2) {
+        MR::attachSupportTicoToTarget(this);
+    }
 }
 
 void CrystalCage::exeBreak() {
@@ -420,34 +420,41 @@ void CrystalCage::exeBreak() {
         }
 
         mBreakObj->appear();
-        MR::startBva(mBreakObj, "Break");
+        MR::startAction(mBreakObj, "Break");
 
         if (mCrystalCageType == 2) {
-            MR::startSound(this, "SE_OJ_CRYSTAL_CAGE_L_BREAK");
+            MR::startActionSound(this, "OjCrystalCageLBreak", -1, -1, -1);
+        } else {
+            MR::emitEffect(this, "Break");
+            MR::startActionSound(this, "OjCrystalCageSBreak", -1, -1, -1);
+
+            if (hasPowerStarId()) {
+                MR::startActionSound(this, "SyReadRiddleS", -1, -1, -1);
+            }
+        }
+
+        if (isDisplayModelId(7)) {
             if (_108 == -1) {
                 MR::requestAppearPowerStar(this, mDisplayModel->mPosition);
             } else {
                 MR::requestAppearPowerStar(this, _108, mDisplayModel->mPosition);
             }
-        } else {
-            MR::emitEffect(this, "Break");
-            MR::startSound(this, "SE_OJ_CRYSTAL_CAGE_S_BREAK");
-
-            if (mPlayRiddleSFX) {
-                MR::startSystemSE("SE_SY_READ_RIDDLE_S");
-            }
         }
 
-        if (mDisplayModel && !MR::getDummyDisplayModelId(mDisplayModel)) {
+        if (isDisplayModelId(0)) {
             MR::appearCoinPop(this, mDisplayModel->mPosition, 1);
         }
 
-        if (mDisplayModel && MR::getDummyDisplayModelId(mDisplayModel) == 5) {
-            MR::startSound(this, "SE_OJ_CRY_CAGE_MV_TICO_APR");
+        if (isDisplayModelId(4)) {
+            MR::appearStarPiece(this, mDisplayModel->mPosition, 5, 10.0f, 40.0f, false);
         }
 
-        if (mDisplayModel && MR::getDummyDisplayModelId(mDisplayModel) == 1) {
-            MR::startSound(this, "SE_SV_KINOPIO_PUHA");
+        if (isDisplayModelId(5)) {
+            MR::startActionSound(this, "OjCryCageMvTicoApr", -1, -1, -1);
+        }
+
+        if (isDisplayModelId(1)) {
+            MR::startActionSound(this, "SvKinopioPuha", -1, -1, -1);
         }
 
         if (mDisplayModel) {
@@ -461,7 +468,7 @@ void CrystalCage::exeBreak() {
 
     tryOnSwitchDead();
 
-    if (MR::isBckStopped(mBreakObj)) {
+    if (MR::isActionEnd(mBreakObj)) {
         if (mIsBreakObjVisible) {
             kill();
         } else {

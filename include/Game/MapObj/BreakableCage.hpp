@@ -9,7 +9,7 @@ class ModelObj;
 
 class BreakableCage : public LiveActor {
 public:
-    enum CageType { CAGE_INVALID = 0, CAGE_NORMAL = 1, CAGE_LARGE = 2, CAGE_FIX = 3, CAGE_TRASH = 4 };
+    enum CageType { CAGE_INVALID = 0, CAGE_NORMAL = 1, CAGE_LARGE = 2, CAGE_CAPSULE = 3, CAGE_FIX = 4, CAGE_TRASH = 5 };
 
     BreakableCage(const char* pName);
 
@@ -44,4 +44,5 @@ public:
     /* 0xD0 */ bool mIgnoreGravity;
     /* 0xD1 */ bool mDelayDeadActivate;
     /* 0xD4 */ ActorCameraInfo* mCameraInfo;
+    /* 0xD8 */ bool mIsRiddle;
 };

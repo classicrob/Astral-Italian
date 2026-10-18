@@ -14,9 +14,10 @@
 #include <cmath>
 
 // Bounding spheres of the dice (x, y, z, radius).
-static const f32 sDiceSpheres[8][4] = {
+static f32 sDiceSpheres[9][4] = {
     {0.0f, 0.0f, 0.0f, 100.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f},
     {0.0f, 0.0f, 0.0f, 20.0f},  {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f},
+    {0.0f, 0.0f, 0.0f, 20.0f},
 };
 
 
@@ -166,9 +167,7 @@ void DiceBase::exeSpin() {
     TRot3f mtx3;
     mtx3.concat(mtx1, mtx2);
     mtx3.getEulerXYZ(mRotation);
-    mRotation.x *= kRad2Deg;
-    mRotation.y *= kRad2Deg;
-    mRotation.z *= kRad2Deg;
+    mRotation.scale(kRad2Deg);
 
     TVec3f add(0.0f, 2.0f, 0.0f);
     mSpinVel.add(add);
@@ -297,7 +296,7 @@ bool DiceBase::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     return true;
 }
 
-// NONMATCHING: 93%: TVec3f operator- is inline in our header (target calls __mi out of line) and TVec3 unary minus likewise.
+// Target outlines vector subtraction and matrix translation at different boundaries.
 bool DiceBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceReflect(msg) || MR::isMsgSnowBallAttack(msg) || MR::isMsgFireBallAttack(msg) ||
         MR::isMsgYoshiProjectileOrEat(msg) || MR::isMsgRockAttack(msg)) {
@@ -379,24 +378,25 @@ void DiceBase::createMover(HitSensor* pSensor) {
     MtxPtr pMtx = getBaseMtx();
     mMover->setMtx(pMtx);
 
-    struct NameBlock {
-        s32 type;
-        const void* ptr;
+    struct SphereArray {
+        s32 count;
+        f32 (*spheres)[4];
     };
-    NameBlock* pBlock = new NameBlock;
+    SphereArray* pBlock = new SphereArray;
     if (pBlock) {
-        pBlock->type = 9;
-        pBlock->ptr = sDiceSpheres;
+        pBlock->count = 9;
+        pBlock->spheres = sDiceSpheres;
     }
     mMover->setPointArray(pBlock, 0);
 }
 
-// NONMATCHING: calls match; TQuat4::transform and TVec3 unary minus are inlined by our headers (out of line in target).
+// Empty SDK constructors remain outlined here; target only retains the substantive vector/quaternion calls.
+#pragma dont_inline on
 void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     MtxPtr pMtx = getBaseMtx();
     TVec3f dir = rPos - mPosition;
     if (MR::normalizeOrZero(&dir)) {
-        dir.set(pMtx[0][0], pMtx[1][0], pMtx[2][0]);
+        dir.set<f32>(pMtx[0][0], pMtx[1][0], pMtx[2][0]);
     }
 
     f32 dot = rUp.dot(dir);
@@ -405,10 +405,11 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
 
     if (!MR::normalizeOrZero(&proj)) {
         const f32 kAng = -0.7853981852531433f;
+        TQuat4f quat;
+        TVec3f& quatAxis = *reinterpret_cast<TVec3f*>(&quat);
+        quatAxis.scale(sin(kAng), rUp);
+        quat.w = (f32)cos(kAng);
         TVec3f axis;
-        axis.scale(sin(kAng), rUp);
-        f32 w = (f32)cos(kAng);
-        TQuat4f quat(axis.x, axis.y, axis.z, w);
         quat.transform(proj);
         PSVECCrossProduct(&proj, &rUp, &axis);
         MR::normalizeOrZero(&axis);
@@ -429,7 +430,8 @@ void DiceBase::calcPushVec(const TVec3f& rPos, const TVec3f& rUp) {
     mMover->collide(&pos, &vel);
 }
 
-// NONMATCHING: calls match; float expression scheduling differs.
+// NONMATCHING: GPR allocation and quaternion/axis temporary slots differ.
+#pragma dont_inline reset
 bool DiceBase::isSettled() {
     if (MR::isFirstStep(this)) {
         MtxPtr pMtx = getBaseMtx();
@@ -450,21 +452,18 @@ bool DiceBase::isSettled() {
 
     TQuat4f quat;
     mtx.getQuat(quat);
-    TVec3f qv(quat.x, quat.y, quat.z);
+    const TVec3f& qv = *reinterpret_cast<const TVec3f*>(&quat);
     f32 sq = qv.squared();
 
-    f32 angle = 0.0f;
     TVec3f axis;
     if (sq <= 0.000003814697265625f) {
-        axis.scale(JGeometry::TUtil<f32>::inv_sqrt(sq), qv);
-        angle = 2.0f * JGeometry::TUtil<f32>::acos(quat.w);
+        axis.x = axis.y = axis.z = 0.0f;
     } else {
-        axis.x = 0.0f;
-        axis.y = 0.0f;
-        axis.z = 0.0f;
+        axis.scale(JGeometry::TUtil<f32>::inv_sqrt(sq), qv);
     }
+    f32 angle = 2.0f * JGeometry::TUtil<f32>::acos(quat.w);
 
-    if ((angle < 0.0f ? -angle : angle) < 0.0872664675116539f) {
+    if (__fabsf(angle) < 0.0872664675116539f) {
         f32 dist = PSVECDistance(&trans2, &trans1);
         if (dist < 10.0f) {
             mBounceCount++;
@@ -477,7 +476,7 @@ bool DiceBase::isSettled() {
 
     MtxPtr pMtx2 = getBaseMtx();
     JMath::gekko_ps_copy12(&mMtxC4, pMtx2);
-    return mBounceCount >= 10;
+    return static_cast<u32>(mBounceCount) >= 10;
 }
 
 // NONMATCHING: calls match; float expression scheduling differs.
@@ -488,7 +487,7 @@ void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 
         MtxPtr m1 = getBaseMtx();
         MtxPtr m2 = getBaseMtx();
         MtxPtr m3 = getBaseMtx();
-        dir.set(m3[0][1], m2[1][1], m1[2][1]);
+        dir.set<f32>(m3[0][1], m2[1][1], m1[2][1]);
     } else {
         dir.scale(1.0f / len);
     }
@@ -500,7 +499,7 @@ void DiceBase::receiveMsgPushImpl(HitSensor* pSender, HitSensor* pReceiver, f32 
     f32 depth = scale * (pReceiver->mRadius + pSender->mRadius - len);
 
     f32 sq = dir.squared();
-    if (sq <= 0.000003814697265625f) {
+    if (sq > 0.000003814697265625f) {
         dir.scale(JGeometry::TUtil<f32>::inv_sqrt(sq) * depth);
     }
 
@@ -513,7 +512,6 @@ void DiceBase::startHitStop() {
     mHitCount++;
 }
 
-// NONMATCHING: branch shape of the target is a 3-way check that our codegen does not reproduce (29 vs 25 instructions).
 bool DiceBase::isPushableSensor(HitSensor* pSensor) {
     if (MR::isSensorPlayerOrRide(pSensor) && MR::isCurrentRushRockMario() && !isNerve(GET_NERVE(ItemDice, ItemDiceNrvLand))) {
         return false;

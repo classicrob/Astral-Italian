@@ -8,8 +8,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "revolution/types.h"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80422350, declared extern "C" so the reloc name matches; resolve when fn_80422350 gets its real name in symbols.txt
-extern "C" void fn_80422350(TPos3f*);
 
 class YoshiLockOnTarget;
 
@@ -891,7 +889,7 @@ bool JetTurtle::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
         if (MR::isMsgYoshiReleaseEaten(msg)) {
             TPos3f mtx;
-            fn_80422350(&mtx);
+            MR::fn_80422350(&mtx);
             mtx.getTrans(mPosition);
             MR::getPlayerThrowVec(&_9C);
             _C0.set(mPosition);

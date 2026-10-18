@@ -5,8 +5,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 
-// PLACEHOLDER(objects): reads pipe BGM map arguments; resolve when core names fn_8001B3E0
-extern "C" void fn_8001B3E0(s32*, s32*, const JMapInfoIter&);
 // PLACEHOLDER(objects): fades or changes BGM on pipe entry; resolve when core names fn_8001B430
 extern "C" void fn_8001B430(s32, s32);
 // PLACEHOLDER(objects): restores BGM on pipe exit; resolve when core names fn_8001B510
@@ -74,7 +72,7 @@ void EarthenPipe::init(const JMapInfoIter& rIter) {
     }
     MR::getJMapInfoArg0NoInit(rIter, &mHorizExitForce);
     MR::getJMapInfoArg1NoInit(rIter, &mVertExitForce);
-    fn_8001B3E0(&mMusicChangeIdx, &mMusicState, rIter);
+    MR::getStageBgmJMapArgs(&mMusicChangeIdx, &mMusicState, rIter);
     MR::getJMapInfoArg6NoInit(rIter, &mIsIgnoreGravity);
     s32 arg7 = 0;
     MR::getJMapInfoArg7NoInit(rIter, &arg7);

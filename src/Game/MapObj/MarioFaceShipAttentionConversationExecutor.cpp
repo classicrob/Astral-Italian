@@ -8,13 +8,8 @@
 #include "Game/NPC/Meister.hpp"
 #include "Game/Util.hpp"
 #include "Game/System/MarioFaceShipEventDataHolder.hpp"
+#include "Game/System/MarioFaceShipAttentionConversationDirector.hpp"
 #include "Game/Util/EventUtil.hpp"
-
-// PLACEHOLDER(objects): unnamed core helpers (only used by this unit); resolve when core names fn_804C01A0 fn_804C2510
-extern "C" {
-void fn_804C01A0(char*, s32, s32);
-bool fn_804C2510();
-}
 
 const char* sDefaultCameraName = "デフォルト注目カメラ";
 const char* sTalkCameraName = "前振り会話カメラ";
@@ -292,7 +287,7 @@ void MarioFaceShipAttentionConversationExecutor::initConversation(Param* pParam,
     mTalkCtrl = pParam->mTalkCtrl;
     mIsDefaultCamera = false;
     mIsNpcIntro = MarioFaceShipEventDataHolder::hasEventAtResultStatic();
-    mIsItemPlanet = fn_804C2510();
+    mIsItemPlanet = MR::hasMarioFaceShipItemEventAtResult();
     mIsArg4 = pParam->mIsArg4;
     mIsArg5 = pParam->mIsArg5;
     if (pParam->mCameraInfo == nullptr) {
@@ -308,7 +303,7 @@ bool MarioFaceShipAttentionConversationExecutor::tryStartDemo() {
     }
     if (mIsArg5) {
         char name[0x80];
-        fn_804C01A0(name, 0x80, mTalkIndex);
+        MarioFaceShipAttentionConversationDirector::makeEventName(name, 0x80, mTalkIndex);
         setNerve(GET_EXE_NERVE(WaitTimeKeep));
         mMeister->startWait();
         if (mIsItemPlanet) {

@@ -4,8 +4,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/DummyDisplayModel.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8000F910, declared extern "C" so the reloc name matches; resolve when fn_8000F910 gets its real name in symbols.txt
-extern "C" void fn_8000F910(LiveActor*, const TVec3f&, const TVec3f&);
 
 #define UPDATE_NERVE(name)                                                      \
     class name : public Nerve {                                                 \
@@ -375,7 +373,7 @@ void TwoLegs::calcAndSetBaseMtx() {
             up.set(dir);
         }
     }
-    fn_8000F910(this, mBodyDir->mFront, up);
+    MR::fn_8000F910(this, &mBodyDir->mFront, &up);
 }
 
 void TwoLegs::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

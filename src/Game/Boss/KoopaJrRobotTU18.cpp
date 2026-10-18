@@ -1,23 +1,10 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrRobot.hpp"
+#include "Game/Boss/KoopaBattleFunction.hpp"
+
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include <cmath>
-
-// PLACEHOLDER(objects): unnamed target symbol fn_800CAED0, declared extern "C" so the reloc name matches; resolve when fn_800CAED0 gets its real name in symbols.txt
-extern "C" void fn_800CAED0(TVec3f*);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CB0E0, declared extern "C" so the reloc name matches; resolve when fn_800CB0E0 gets its real name in symbols.txt
-extern "C" void fn_800CB0E0(TVec3f*);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CB140, declared extern "C" so the reloc name matches; resolve when fn_800CB140 gets its real name in symbols.txt
-extern "C" void fn_800CB140(TVec3f*);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CC280, declared extern "C" so the reloc name matches; resolve when fn_800CC280 gets its real name in symbols.txt
-extern "C" bool fn_800CC280(u32);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CC290, declared extern "C" so the reloc name matches; resolve when fn_800CC290 gets its real name in symbols.txt
-extern "C" bool fn_800CC290(u32);
-// PLACEHOLDER(objects): unnamed target symbol fn_800CB710, declared extern "C" so the reloc name matches; resolve when fn_800CB710 gets its real name in symbols.txt
-extern "C" void fn_800CB710();
-// PLACEHOLDER(objects): unnamed target symbol fn_8003D4A0, declared extern "C" so the reloc name matches; resolve when fn_8003D4A0 gets its real name in symbols.txt
-extern "C" void fn_8003D4A0(TQuat4f*, TQuat4f*, f32);
 
 namespace NrvKoopaJrRobotQuakeWave {
     NEW_NERVE(KoopaJrRobotQuakeWaveNrvHide, KoopaJrRobotQuakeWave, Hide);
@@ -32,14 +19,13 @@ void KoopaJrRobotQuakeWave::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "KoopaQuakeWaveVertical", false);
     initNerve(&NrvKoopaJrRobotQuakeWave::KoopaJrRobotQuakeWaveNrvHide::sInstance, 0);
     MR::invalidateClipping(this);
-    getSensor(nullptr);
-    fn_800CB710();
+    MR::addKoopaBattleReceiverSensor(getSensor(nullptr));
     mShadow = new ShadowVolumeQuakeWave(this);
     makeActorDead();
 }
 
 void KoopaJrRobotQuakeWave::control() {
-    fn_8003D4A0(&mQuat, &mTargetQuat, _B4);
+    MR::rotateQuatZAxisDegree(&mQuat, mTargetQuat, _B4);
 }
 
 void KoopaJrRobotQuakeWave::calcAndSetBaseMtx() {
@@ -65,7 +51,7 @@ void KoopaJrRobotQuakeWave::attackSensor(HitSensor* pSender, HitSensor* pReceive
 }
 
 bool KoopaJrRobotQuakeWave::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
-    if (fn_800CC280(msg) || fn_800CC290(msg)) {
+    if (MR::isMsgKoopaBA(msg) || MR::isMsgKoopaBB(msg)) {
         makeActorDead();
         return true;
     }
@@ -77,14 +63,14 @@ void KoopaJrRobotQuakeWave::start(f32 param) {
     _BC = 0.0f;
     _B4 = param;
     TVec3f pos;
-    fn_800CAED0(&pos);
+    MR::getKoopaBattleBasePos(&pos);
     MR::resetPosition(this, pos);
     TVec3f front;
-    fn_800CB0E0(&front);
+    MR::getKoopaBattleUp(&front);
     TVec3f up;
-    fn_800CB140(&up);
+    MR::calcKoopaBattleDirToActor(&up);
     MR::makeQuatFrontUp(&mTargetQuat, -up, front);
-    fn_8003D4A0(&mQuat, &mTargetQuat, _B4);
+    MR::rotateQuatZAxisDegree(&mQuat, mTargetQuat, _B4);
     setNerve(&NrvKoopaJrRobotQuakeWave::KoopaJrRobotQuakeWaveNrvHide::sInstance);
     appear();
 }

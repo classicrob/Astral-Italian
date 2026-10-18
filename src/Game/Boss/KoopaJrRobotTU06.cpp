@@ -19,13 +19,13 @@ const char* KoopaJrRobotStateIntro::getCameraName() {
     return sCameraName;
 }
 
-// NONMATCHING: instruction scheduling of the Root joint mtx load (lwz r3,236 hoisted in target)
 KoopaJrRobotStateIntro::KoopaJrRobotStateIntro(KoopaJrRobot* pHost, const JMapInfoIter& rIter)
-    : KoopaJrRobotPhase("State:\x83""f\x83\x82[\x83o\x83g\x83\x8b\x8aJ\x8en]", pHost) {
+    : KoopaJrRobotStateBase("State:\x83""f\x83\x82[\x83o\x83g\x83\x8b\x8aJ\x8en]", pHost) {
     initNerve(&NrvKoopaJrRobotStateIntro::KoopaJrRobotStateIntroNrvWait::sInstance, 0);
     KoopaJrRobot* pRobot = mHost;
     const char* pAction = sActionName;
-    MR::initDemoSheetTalkAnim(pRobot, rIter, fn_800DA9C0(), pAction, nullptr, TVec3f(0.0f, 100.0f, 0.0f), MR::getJointMtx(pRobot->mHeadModel, "Root"));
+    LiveActor* head = pRobot->mHeadModel;
+    MR::initDemoSheetTalkAnim(pRobot, rIter, fn_800DA9C0(), pAction, nullptr, TVec3f(0.0f, 100.0f, 0.0f), MR::getJointMtx(head, "Root"));
     LiveActor* pBody = mHost->mBody;
     MR::initTalkAnimDemoCast(pBody, rIter, fn_800DA9C0(), pAction);
     LiveActor* pHead = mHost->mHeadModel;

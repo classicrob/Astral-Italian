@@ -42,7 +42,6 @@ public:
 class KoopaJrRobotStateBase : public ActorStateBase< KoopaJrRobot > {
 public:
     KoopaJrRobotStateBase(const char*, KoopaJrRobot*);  // fn_800DE1E0
-    virtual ~KoopaJrRobotStateBase();                    // fn_800DE690
     virtual void attackSensor(HitSensor*, HitSensor*);   // fn_800DE2B0
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);  // fn_800DE350
     virtual const char* getWaitActionName();             // fn_800DE680
@@ -59,19 +58,12 @@ public:
     /* 0x14 */ TVec3f _14;
 };
 
-// abstract intermediate class: SMG2 added a pure virtual receiveMsgEnemyAttack (vtable +0x2C)
-class KoopaJrRobotPhase : public KoopaJrRobotStateBase {
-public:
-    KoopaJrRobotPhase(const char* pName, KoopaJrRobot* pHost) : KoopaJrRobotStateBase(pName, pHost) {}
-    // NOTE: vtable slot is 0 in the target for Intro/Attack (pure virtual); CW rejects `new` of abstract classes, so this is declared but never defined.
-    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
-};
-
 // TU04 attack state
-class KoopaJrRobotStateAttack : public KoopaJrRobotPhase {
+class KoopaJrRobotStateAttack : public KoopaJrRobotStateBase {
 public:
     KoopaJrRobotStateAttack(KoopaJrRobot*, s32);  // fn_800DE6F0
     virtual ~KoopaJrRobotStateAttack();
+    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual void appear();                         // fn_800DE7C0
     virtual void kill();                           // fn_800DE840
 
@@ -88,7 +80,7 @@ public:
     /* 0x24 */ s32 mMode;
 };
 
-class KoopaJrRobotStateA : public KoopaJrRobotPhase {
+class KoopaJrRobotStateA : public KoopaJrRobotStateBase {
 public:
     KoopaJrRobotStateA(KoopaJrRobot*);  // TU09 fn_800E0220
     virtual ~KoopaJrRobotStateA();
@@ -108,7 +100,7 @@ public:
     void exeAttack();
 };
 
-class KoopaJrRobotStateB : public KoopaJrRobotPhase {
+class KoopaJrRobotStateB : public KoopaJrRobotStateBase {
 public:
     KoopaJrRobotStateB(KoopaJrRobot*);  // TU10 fn_800E0B50
     virtual ~KoopaJrRobotStateB();
@@ -127,7 +119,7 @@ public:
     void exeAttack();
 };
 
-class KoopaJrRobotStateC : public KoopaJrRobotPhase {
+class KoopaJrRobotStateC : public KoopaJrRobotStateBase {
 public:
     KoopaJrRobotStateC(KoopaJrRobot*);  // TU11 fn_800E1400
     virtual ~KoopaJrRobotStateC();
@@ -163,10 +155,11 @@ public:
     /* 0x10 */ s32 mMode;
 };
 
-class KoopaJrRobotStateIntro : public KoopaJrRobotPhase {
+class KoopaJrRobotStateIntro : public KoopaJrRobotStateBase {
 public:
     KoopaJrRobotStateIntro(KoopaJrRobot*, const JMapInfoIter&);  // TU06 fn_800DF5A0
     virtual ~KoopaJrRobotStateIntro();
+    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual void kill();
     static const char* getCameraName();  // fn_800DF590
     void exeWait();

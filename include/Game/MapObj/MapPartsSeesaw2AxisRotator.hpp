@@ -30,15 +30,16 @@ public:
     void restoreMove();
     f32 getInertiaConst() const;
 
-    /* 0x18 */ f32 mRotateAngle;
-    /* 0x1C */ f32 mInertiaConst;
-    /* 0x20 */ f32 mRestoreForce;
-    /* 0x24 */ TPos3f mBaseMtx;
-    /* 0x54 */ TPos3f mBaseMtxInv;
-    /* 0x84 */ TPos3f mRotateMtx;
-    /* 0xB4 */ TVec3f mUp;
-    /* 0xC0 */ bool mHipDrop;
-    /* 0xC4 */ f32 mRotateSpeed;
-    /* 0xC8 */ const char* mMoveSound;
-    /* 0xCC */ f32 mMoveSoundSpeed;
+    /* 0x28 */ f32 mRotateAngle;
+    /* 0x2C */ f32 mInertiaConst;
+    /* 0x30 */ f32 mRestoreForce;
+    /* 0x34 */ TPos3f mBaseMtx;
+    /* 0x64 */ TPos3f mBaseMtxInv;
+    /* 0x94 */ TPos3f mRotateMtx;
+    /* 0xC4 */ TVec3f mUp;
+    /* 0xD0 */ bool mHipDrop;
+    /* 0xD4 */ f32 mRotateSpeed;
+    /* 0xD8 */ const char* mMoveSound;
+    /* 0xDC */ f32 mMoveSoundSpeed;
+    /* 0xE0 */ f32 mSoundIntensity;
 };

@@ -75,8 +75,8 @@ public:
     void setCannotTime(s32 cannotTime);
 
     void calcRebouond();
-    void attenuateVelocity();
-    bool isNeedBubble(const JMapInfoIter& rIter);
+    f32 attenuateVelocity();
+    static bool isNeedBubble(const JMapInfoIter& rIter);
     bool canStartMove() const;
 
     CoinHostInfo* mCoinHostInfo;     // 0x90

@@ -11,15 +11,6 @@ namespace NameObjFactory {
 };  // namespace NameObjFactory
 
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8005A2A0, declared extern "C" so the reloc name matches; resolve when fn_8005A2A0 gets its real name in symbols.txt
-extern "C" void fn_8005A2A0(s32);
-// PLACEHOLDER(objects): unnamed target symbol fn_8005A2E0, declared extern "C" so the reloc name matches; resolve when fn_8005A2E0 gets its real name in symbols.txt
-extern "C" void fn_8005A2E0();
-// PLACEHOLDER(objects): unnamed target symbol fn_8005A310, declared extern "C" so the reloc name matches; resolve when fn_8005A310 gets its real name in symbols.txt
-extern "C" void fn_8005A310(s32);
-// PLACEHOLDER(objects): unnamed target symbol fn_80024F50, declared extern "C" so the reloc name matches; resolve when fn_80024F50 gets its real name in symbols.txt
-extern "C" void fn_80024F50();
-
 namespace NrvExterminationSwitch {
     NEW_NERVE(ExterminationSwitchNrvWait, ExterminationSwitch, Wait);
     NEW_NERVE(ExterminationSwitchNrvCheck, ExterminationSwitch, Check);
@@ -68,8 +59,8 @@ void ExterminationSwitch::init(const JMapInfoIter& rIter) {
     }
 
     if (mIsShowCount) {
-        fn_8005A2A0(mGroup->getObjNum());
-        fn_8005A2E0();
+        MR::createDestroyCounter(mGroup->getObjNum());
+        MR::activateDestroyCounter();
     }
 
     initSound(2, "ExterminationGeneralChecker", nullptr, TVec3f(0.0f));
@@ -101,7 +92,7 @@ void ExterminationSwitch::exeCheck() {
     }
 
     if (mIsShowCount) {
-        fn_8005A310(mGroup->getObjNum() - aliveNum);
+        MR::setDestroyCounterCount(mGroup->getObjNum() - aliveNum);
     }
 
     if (aliveNum > 0) {
@@ -112,7 +103,7 @@ void ExterminationSwitch::exeCheck() {
         if (!MR::isPlayerDead()) {
             MR::startActionSound(this, "CompleteInstant", -1, -1, -1);
         }
-        fn_80024F50();
+        MR::stopGalaxyCometEvent();
         setNerve(&NrvExterminationSwitch::ExterminationSwitchNrvAppear::sInstance);
     } else if (mCheckerType == 0) {
         setNerve(&NrvExterminationSwitch::ExterminationSwitchNrvOn::sInstance);

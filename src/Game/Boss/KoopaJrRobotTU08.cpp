@@ -35,8 +35,8 @@ void KoopaJrRobotStateTU08::kill() {
 
 // NONMATCHING: sDemoName load scheduled before the tryStartDemo arg setup in target
 void KoopaJrRobotStateTU08::exeWait() {
-    const char* pDemo = sDemoName;
-    if (MR::tryStartDemo(mHost, pDemo)) {
+    KoopaJrRobot* host = mHost;
+    if (MR::tryStartDemo(host, sDemoName)) {
         MR::startAnimCameraTargetSelf(mHost, mHost->mCameraInfo, sCameraName, 0, false, 1.0f);
         MR::overlayWithPreviousScreen(2);
         setNerve(&NrvKoopaJrRobotStateTU08::KoopaJrRobotStateTU08NrvDemo::sInstance);

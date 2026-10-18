@@ -5,8 +5,6 @@
 #include "Game/MapObj/SandBirdParts.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): fn_8009A780 builds the base TR matrix from (quat, pos); resolve when core names fn_8009A780 (Sandy.cpp also declares it)
-extern "C" void fn_8009A780(TPos3f*, const TQuat4f*, const TVec3f*);
 // PLACEHOLDER(objects): fn_800578F0(iter, index) returns the child object name (wraps MR::getChildObjName); resolve when core names fn_800578F0
 extern "C" const char* fn_800578F0(const JMapInfoIter&, s32);
 // PLACEHOLDER(objects): fn_8004FEE0 is a bare blr returning r3 (player check used in exeCruise); resolve when core names fn_8004FEE0
@@ -35,7 +33,7 @@ void SandBird::init(const JMapInfoIter& rIter) {
     MR::makeQuatFromRotate(&mQuat, this);
     mQuat.getZDir(mZDir);
     mQuat2.set(mQuat);
-    fn_8009A780(&mBaseMtx, &mQuat, &mPosition);
+    mBaseMtx.setQT(mQuat, mPosition);
 
     s32 childNum = MR::getChildObjNum(rIter);
     if (childNum > 0) {
@@ -75,7 +73,7 @@ void SandBird::control() {
     if (MR::isOnGroundPlayer()) {
         mIsPlayerOn = MR::isActorOnPlayer(this);
     }
-    fn_8009A780(&mBaseMtx, &mQuat, &mPosition);
+    mBaseMtx.setQT(mQuat, mPosition);
 }
 
 MtxPtr SandBird::getBaseMtx() const {

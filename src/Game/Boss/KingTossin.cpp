@@ -4,10 +4,6 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
-// PLACEHOLDER(objects): unnamed core helper (move along rail H, then moveAndTurnToDirection); resolve when core names fn_800137F0
-extern "C" void fn_800137F0(LiveActor*, TVec3f*, const TVec3f*, f32, f32, f32, f32, f32);
-// PLACEHOLDER(objects): unnamed core helper (dst = normalizeOrZero(pos - actor pos)); resolve when core names fn_8000E960
-extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
 
 namespace {
     struct MoveParam {
@@ -691,7 +687,7 @@ void KingTossin::exeDownRecover() {
             MR::startAction(this, "DownRecover");
         }
 
-        fn_8000E960(&mMoveDir, this, getTargetPos());
+        MR::fn_8000E960(&mMoveDir, this, &getTargetPos());
     }
 
     MR::moveAndTurnToDirection(this, &mFront, mMoveDir, sStopParam._0, sStopParam._4, sStopParam._8, sStopParam._C);
@@ -750,7 +746,7 @@ void KingTossin::exeRunRail() {
         MR::startAction(this, "Run");
     }
 
-    fn_800137F0(this, &mFront, nullptr, 1000.0f, sRunRailParam._0, sRunRailParam._4, sRunRailParam._8, sRunRailParam._C);
+    MR::fn_800137F0(this, &mFront, nullptr, 1000.0f, sRunRailParam._0, sRunRailParam._4, sRunRailParam._8, sRunRailParam._C);
 }
 
 void KingTossin::exeRollingStart() {

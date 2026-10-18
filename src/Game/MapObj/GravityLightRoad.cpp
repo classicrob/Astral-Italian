@@ -19,8 +19,6 @@ namespace NrvGravityLightRoad {
     NEW_NERVE(GravityLightRoadNrvDisappear, GravityLightRoad, Disappear);
 };  // namespace NrvGravityLightRoad
 
-// PLACEHOLDER(objects): fn_800513C0 (TQuat4f*, TVec3f*) is an unnamed MR quaternion helper called on the base-mtx update msg while falling; resolve when named
-extern "C" void fn_800513C0(TQuat4f*, TVec3f*);
 // PLACEHOLDER(objects): fn_800514B0 (TQuat4f*, TVec3f*) is an unnamed MR helper called when the fall begins; resolve when named
 extern "C" void fn_800514B0(TQuat4f*, TVec3f*);
 
@@ -141,7 +139,7 @@ bool GravityLightRoad::receiveOtherMsg(u32 msg, HitSensor* pReceiver, HitSensor*
     }
 
     if (MR::isMsgUpdateBaseMtx(msg) && isPlayerFall()) {
-        fn_800513C0(&mQuat, &mFallVec);
+        MR::fn_800513C0(&mQuat, &mFallVec);
         return true;
     }
 

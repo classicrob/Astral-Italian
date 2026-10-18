@@ -23,178 +23,8 @@ namespace NrvKoopaJrRobotStateAttack {
 static TVec3f sOffsetL(594.0f, 0.0f, -760.0f);
 static TVec3f sOffsetR(594.0f, 0.0f, 760.0f);
 
-// ---- Pod ("ポッド") ----
-// NONMATCHING: euler-angle copy/scale sequence differs (TVec3 temp handling)
-KoopaJrRobotPod::KoopaJrRobotPod(LiveActor* pHost, MtxPtr pMtx) : LiveActor("\x83|\x83""b\x83h"), mHost(pHost), mMtx(pMtx), mCrack(nullptr) {
-    TPos3f mtx;
-    mtx.set(pMtx);
-    mtx.getTrans(mPosition);
-    TVec3f euler;
-    mtx.getEuler(euler);
-    mRotation = euler * 57.295776f;
-}
-
-void KoopaJrRobotPod::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, "KoopaJrRobotPod", false);
-    MR::invalidateClipping(this);
-    mCrack = MR::createPartsModelEnemy(this, "\x82\xd0\x82\xd1\x8a\x84\x82\xea\x83\x82\x83""f\x83\x8b", "KoopaJrRobotPodCrack", MR::getJointMtx(this, "Base"));
-    mCrack->kill();
-    makeActorDead();
-}
-
-void KoopaJrRobotPod::appear() {
-    LiveActor::appear();
-    MR::startAction(this, "Damage0");
-}
-
-void KoopaJrRobotPod::setMtx(MtxPtr pMtx) {
-    mMtx = pMtx;
-}
-
-void KoopaJrRobotPod::calcAndSetBaseMtx() {
-    TPos3f mtx;
-    mtx.set(mMtx);
-    mtx.getTrans(mPosition);
-    MR::setBaseTRMtx(this, mMtx);
-}
-
-KoopaJrRobotPod::~KoopaJrRobotPod() {}
-
-// ---- Beam ("ビーム") ----
-// NONMATCHING: float param save order / RingBeam is 0xF0 in SMG2 (our RingBeam.hpp is smaller), init() allocs 0xDC
-KoopaJrRobotBeam::KoopaJrRobotBeam(const char* pName, LiveActor* pHost, MtxPtr pMtx, const TVec3f& rOffset, s32 life, f32 speed, f32 a, f32 b)
-    : LiveActor(pName), mHost(pHost), mRingBeam(nullptr), mMtx(pMtx), mSpeed(speed), mLife(life), _E0(a), _E4(b) {
-    mOffset = rOffset;
-    mBaseMtx.set(pMtx);
-}
-
-void KoopaJrRobotBeam::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneEnemyMovement(this);
-    mRingBeam = new RingBeam("\x83r\x81[\x83\x80", this, false, false, false, false, "JrRobotBeam");
-    mRingBeam->init(rIter);
-    mRingBeam->setSpeed(mSpeed);
-    mRingBeam->setLife(mLife);
-    mRingBeam->setColor(_E0);
-    mRingBeam->setRadius(_E4);
-    MR::invalidateClipping(this);
-    makeActorDead();
-}
-
-void KoopaJrRobotBeam::movement() {
-    LiveActor::movement();
-    updateMtx();
-}
-
-void KoopaJrRobotBeam::updateMtx() {
-    mBaseMtx.set(mMtx);
-    MR::addTransMtxLocal(mBaseMtx.toMtxPtr(), mOffset);
-    MR::extractMtxTrans(mBaseMtx.toMtxPtr(), &mPosition);
-}
-
-void KoopaJrRobotBeam::appear() {
-    LiveActor::appear();
-    updateMtx();
-    mRingBeam->appear();
-    mRingBeam->initPos(this);
-}
-
-void KoopaJrRobotBeam::kill() {
-    mRingBeam->kill();
-    LiveActor::kill();
-}
-
-MtxPtr KoopaJrRobotBeam::getBaseMtx() const {
-    return const_cast< TPos3f& >(mBaseMtx).toMtxPtr();
-}
-
-KoopaJrRobotBeam::~KoopaJrRobotBeam() {}
-
-// ---- phase state base ----
-KoopaJrRobotStateBase::KoopaJrRobotStateBase(const char* pName, KoopaJrRobot* pHost) : ActorStateBase< KoopaJrRobot >(pName, pHost), _10(0.0f), _14(0.0f, 0.0f, 1.0f) {}
-
-void KoopaJrRobotStateBase::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if ((!mHost->fn_800DB9D0(pSender) || !MR::isSensorType(pReceiver, 0x2D) || !MR::sendMsgEnemyAttackExplosion(pReceiver, pSender)) &&
-        MR::isSensorPlayerOrYoshiOrRide(pReceiver) && !MR::sendMsgEnemyAttackElectric(pReceiver, pSender)) {
-        MR::sendMsgPush(pReceiver, pSender);
-    }
-}
-
-bool KoopaJrRobotStateBase::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    for (s32 i = 0; i < 4; i++) {
-        if (mHost->mParts[i]->receiveMsgPlayerAttack(msg, pSender, pReceiver)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void KoopaJrRobotStateBase::turnToPlayerFast() {
-    MR::turnDirectionToPlayerDegreeHorizon(mHost, &mHost->mZAxis, 180.0f);
-}
-
-void KoopaJrRobotStateBase::turnToPlayerSlow() {
-    MR::turnDirectionToPlayerDegreeHorizon(mHost, &mHost->mZAxis, 2.0f);
-}
-
-s32 KoopaJrRobotStateBase::updateSearch() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(mHost, "Search");
-        mHost->mSeq->fn_800DC9D0();
-    }
-    if (MR::isStep(this, 110)) {
-        mHost->mCollisionC->appear();
-    }
-    if (MR::isActionEnd(mHost)) {
-        return calcTurnDir();
-    }
-    return 0;
-}
-
-// NONMATCHING: target inlines -gravity (ps_neg) and materializes the sign compare via mfcr; ours calls operator-
-s32 KoopaJrRobotStateBase::calcTurnDir() {
-    MR::calcVecToPlayerH(&_14, mHost, nullptr);
-    _10 = 57.295776f * MR::diffAngleSigned(_14, mHost->mZAxis, -mHost->mGravity);
-    bool neg = _10 < 0.0f;
-    return neg ? 1 : 2;
-}
-
-s32 KoopaJrRobotStateBase::updateTurn(s32 dir) {
-    if (dir != 1 && dir != 2) {
-        return 0;
-    }
-    if (MR::isFirstStep(this)) {
-        MR::startAction(mHost, dir == 1 ? "TurnL" : "TurnR");
-        return 0;
-    }
-    s32 r = 0;
-    if (MR::turnDirectionToPlayerDegreeHorizon(mHost, &mHost->mZAxis, 2.0f)) {
-        r = dir;
-    }
-    return r;
-}
-
-bool KoopaJrRobotStateBase::updateTurnEnd(s32 dir) {
-    if (dir != 1 && dir != 2) {
-        return false;
-    }
-    if (MR::isFirstStep(this)) {
-        MR::startAction(mHost, dir == 1 ? "TurnLEnd" : "TurnREnd");
-    }
-    return MR::isActionEnd(mHost);
-}
-
-bool KoopaJrRobotStateBase::isPlayerNearFront() {
-    return mHost->fn_800DBB30(45.0f);
-}
-
-const char* KoopaJrRobotStateBase::getWaitActionName() {
-    return "Wait";
-}
-
-KoopaJrRobotStateBase::~KoopaJrRobotStateBase() {}
-
 // ---- attack state ----
-KoopaJrRobotStateAttack::KoopaJrRobotStateAttack(KoopaJrRobot* pHost, s32 type) : KoopaJrRobotPhase("State:\x8dU\x8c\x82", pHost), mType(type), mMode(0) {
+KoopaJrRobotStateAttack::KoopaJrRobotStateAttack(KoopaJrRobot* pHost, s32 type) : KoopaJrRobotStateBase("State:\x8dU\x8c\x82", pHost), mType(type), mMode(0) {
     initNerve(&NrvKoopaJrRobotStateAttack::KoopaJrRobotStateAttackNrvWait::sInstance, 0);
 }
 
@@ -292,7 +122,7 @@ void KoopaJrRobotStateAttack::exeAttackSearch() {
     }
 }
 
-// NONMATCHING: -gravity / TVec3 temporaries (operator- inline vs call), stack layout
+// NONMATCHING: shared matrix-copy helper expansion and vector temporary stack/register allocation
 bool KoopaJrRobot::fn_800DEB50(const char* pJoint, const TVec3f& rOffset) {
     f32 range = 600.0f;
     MtxPtr pJointMtx = MR::getJointMtx(this, pJoint);
@@ -306,18 +136,23 @@ bool KoopaJrRobot::fn_800DEB50(const char* pJoint, const TVec3f& rOffset) {
     TVec3f origin;
     MR::extractMtxTrans(mtx.toMtxPtr(), &origin);
     TVec3f gravity = -negGravity;
-    for (s32 i = 0; i < 12; i++) {
+    s32 num = 12;
+    for (s32 i = 0; i < num; i++) {
         TVec3f v;
         MR::vecKillElement(xDir, negGravity, &v);
         MR::normalize(&v);
-        MR::rotateVecDegree(&v, negGravity, (360.0f / 12.0f) * i);
+        MR::rotateVecDegree(&v, negGravity, (360.0f / num) * i);
         TVec3f scaled = v * range;
         TVec3f start(origin);
         start += scaled;
+        TVec3f copyStart;
+        copyStart.x = start.x;
+        copyStart.y = start.y;
+        copyStart.z = start.z;
         TVec3f dir = gravity * range;
         Triangle tri;
         TVec3f hit;
-        HitSensor* pHit = MR::getFirstPolyOnLineToMapExceptSensor(&hit, &tri, start, dir, pBody) ? tri.getSensor() : nullptr;
+        HitSensor* pHit = MR::getFirstPolyOnLineToMapExceptSensor(&hit, &tri, copyStart, dir, pBody) ? tri.getSensor() : nullptr;
         if (pHit != nullptr && MR::sendMsgEnemyAttack(pHit, pBody)) {
             return true;
         }
@@ -325,7 +160,6 @@ bool KoopaJrRobot::fn_800DEB50(const char* pJoint, const TVec3f& rOffset) {
     return false;
 }
 
-// NONMATCHING: string literal pool base offsets only (target pools the file strings)
 void KoopaJrRobotStateAttack::exeAttackA() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, isNerve(&NrvKoopaJrRobotStateAttack::KoopaJrRobotStateAttackNrvAttackB::sInstance) ? "AttackB" : "AttackC");

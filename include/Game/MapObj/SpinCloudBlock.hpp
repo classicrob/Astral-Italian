@@ -23,6 +23,8 @@ public:
     void exeDisappear();
     void placeAt(const TVec3f&);
     void spawnAt(const TVec3f&);
+    bool tryStartTransform(const TVec3f&) NO_INLINE;
+    void setAnchorPos(const TVec3f&) NO_INLINE;
     void calcWind();
     void adjustOnPlayer();
     bool updateScaleEase(s32) NO_INLINE;

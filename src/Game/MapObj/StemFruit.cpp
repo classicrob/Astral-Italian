@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
 #pragma auto_inline off
 #include "Game/MapObj/StemFruit.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -88,7 +89,7 @@ void StemFruit::exeTrampled() {
 void StemFruit::exeSpin() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mChild, "Spin");
-        MR::startActionSound(this, "SpinRotate", -1, -1, -1);
+        MR::startActionSoundAuto(this, "SpinRotate", -1, -1, -1);
     }
     if (MR::isActionEnd(mChild)) {
         setNerve(GET_NERVE(StemFruit, StemFruitNrvWait));
@@ -121,6 +122,7 @@ void StemFruit::exeComeOff() {
     updateChildState();
 }
 
+#pragma dont_inline on
 void StemFruit::exePull() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Pull");
@@ -137,9 +139,12 @@ void StemFruit::exePull() {
     TPos3f mtx;
     MR::calcMtxFromGravityAndZAxis(&mtx, this, dir);
     mtx.getEuler(mRotation);
-    mRotation = mRotation * 57.2957763671875f;
+    mRotation.x *= 57.2957763671875f;
+    mRotation.y *= 57.2957763671875f;
+    mRotation.z *= 57.2957763671875f;
 }
 
+#pragma dont_inline reset
 void StemFruit::exePullEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "PullEnd");
@@ -232,11 +237,9 @@ bool StemFruit::tryStartPullEnd() {
 }
 
 bool StemFruit::tryStartComeOffAlt() {
-    if (isNerveActive()) {
-        setNerve(GET_NERVE(StemFruit, StemFruitNrvComeOffAlt));
-        return true;
-    }
-    return false;
+    if (!isNerveActive()) return false;
+    setNerve(GET_NERVE(StemFruit, StemFruitNrvComeOffAlt));
+    return true;
 }
 
 void StemFruit::setNerveWait() {
@@ -326,6 +329,7 @@ void StemFruitChild::appear() {
     mScale.x = 0.0f;
     mScale.y = 0.0f;
     mScale.z = 0.0f;
+    MR::invalidateClipping(this);
     setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvAppear));
     MR::hideModel(this);
 }
@@ -338,9 +342,11 @@ void StemFruitChild::exeAppear() {
 
     f32 step = static_cast<f32>(getNerveStep());
     TVec3f diff = mBaseScale - mScale;
-    diff.scale(step);
-    diff.scale(1.0f / 30.0f);
-    mScale.add(diff);
+    TVec3f stepScale(diff);
+    stepScale.scale(step);
+    TVec3f scaled(stepScale);
+    scaled.scale(1.0f / 30.0f);
+    mScale.add(scaled);
 
     if (MR::isGreaterEqualStep(this, 30)) {
         setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvWait));
@@ -367,28 +373,31 @@ void StemFruitChild::exeWait() {
 
 void StemFruitChild::exeNearPlayer() {
     if (MR::isFirstStep(this)) {
+        MR::invalidateClipping(this);
         mPullPos.set(*MR::getPlayerPos());
     }
 
     f32 dist = PSVECDistance(&mPullPos, &mPosition);
-    if (MR::isNearPlayer(this, dist + 75.0f)) {
+    if (!MR::isNearPlayer(this, dist + 75.0f)) {
         fn_80422310();
         setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvGravity));
         mParent->setNerveGet();
-        MR::startActionSound(mParent, "PulledOut", -1, -1, -1);
+        MR::startActionSoundAuto(mParent, "PulledOut", -1, -1, -1);
     }
 }
 
 void StemFruitChild::exeGravity() {
     if (MR::isFirstStep(this)) {
+        MR::invalidateClipping(this);
     }
     mGravity.set(*MR::getPlayerGravity());
 }
 
 void StemFruitChild::exeBreak() {
     if (MR::isFirstStep(this)) {
+        MR::invalidateClipping(this);
         MR::startAction(this, "Break");
-        MR::startActionSound(mParent, "Break", -1, -1, -1);
+        MR::startActionSoundAuto(mParent, "Break", -1, -1, -1);
     }
     if (MR::isActionEnd(this)) {
         kill();
@@ -480,7 +489,7 @@ bool StemFruitChild::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
             }
             setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvGravity));
             mParent->setNerveGet();
-            MR::startActionSound(mParent, "PulledOutInstant", -1, -1, -1);
+            MR::startActionSoundAuto(mParent, "PulledOutInstant", -1, -1, -1);
             return true;
         }
         if (mParent->getParam()->mFlag11 != 0) {
@@ -490,7 +499,7 @@ bool StemFruitChild::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
             if (MR::isMsgYoshiAutoEatStart(msg)) {
                 setNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvGravity));
                 mParent->setNerveGet();
-                MR::startActionSound(mParent, "AutoEatStart", -1, -1, -1);
+                MR::startActionSoundAuto(mParent, "AutoEatStart", -1, -1, -1);
                 return true;
             }
         }
@@ -543,10 +552,69 @@ bool StemFruitChild::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
 
 void StemFruitChild::updateSensorOffset() {
     mParent->onGetSwitch();
-    MR::startActionSound(mParent, "EatEnd", -1, -1, -1);
-    const StemFruitParam* pParam = mParent->getParam();
-    if (pParam->mEffectName == nullptr || MR::emitEffect(this, pParam->mEffectName) == 0) {
+    MR::startActionSoundAuto(mParent, "EatEnd", -1, -1, -1);
+    if (mParent->getParam()->mEffectName == nullptr || !MR::tryEmitEffect(this, mParent->getParam()->mEffectName)) {
         fn_804228B0();
     }
     kill();
+}
+
+// Target outlines vector subtraction; quaternion arithmetic and temporary slots also differ.
+void StemFruitChild::exeHipDropCrash() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateClipping(this);
+        MR::startAction(this, "HipDropCrash");
+        MR::startActionSoundAuto(mParent, "HipDropCrash", -1, -1, -1);
+        TPos3f base;
+        MR::makeMtxTR(base, this);
+        TVec3f up;
+        base.getYDir(up);
+        TPos3f rotate;
+        rotate.identity();
+        TVec3f playerUp;
+        JGeometry::negateInternal(&MR::getPlayerGravity()->x, &playerUp.x);
+        TQuat4f rotation;
+        rotation.setRotate(up, playerUp);
+        rotate.setQuat(rotation);
+        rotate.concat(base);
+        rotate.getEuler(mRotation);
+        mRotation.x *= 57.2957763671875f;
+        mRotation.y *= 57.2957763671875f;
+        mRotation.z *= 57.2957763671875f;
+    }
+    mGravity.set(*MR::getPlayerGravity());
+    TVec3f delta = *MR::getPlayerPos() - mPosition;
+    f32 distance = mGravity.dot(delta);
+    if (distance > 75.0f) {
+        TVec3f offset(mGravity);
+        offset.scale(distance);
+        mPosition.add(offset);
+    }
+    if (MR::isActionEnd(this)) {
+        kill();
+    }
+}
+
+// NONMATCHING: Rodrigues arithmetic scheduling and matrix/vector temporary slots differ.
+void StemFruitChild::calcAndSetBaseMtx() {
+    if (mFixedPos && (isNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvWait)) ||
+                     isNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvNearPlayer)) ||
+                     isNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvAppear)) ||
+                     isNerve(GET_NERVE(StemFruitChild, StemFruitChildNrvBreak)))) {
+        mFixedPos->calc();
+        TPos3f mtx;
+        mtx.set(mFixedPos->mMtx);
+        f32 angle = (PI * mCycleTimer) / 180.0f;
+        TVec3f axis(0.0f, 1.0f, 0.0f);
+        TPos3f rotate;
+        rotate.zeroTrans();
+        rotate.setRotate(axis, angle);
+        mtx.concat(rotate);
+        MR::setBaseTRMtx(this, mtx);
+        mFixedPos->mMtx.getTrans(mPosition);
+        mFixedPos->mMtx.getEuler(mRotation);
+        mRotation = mRotation * 57.29578f;
+    } else {
+        LiveActor::calcAndSetBaseMtx();
+    }
 }

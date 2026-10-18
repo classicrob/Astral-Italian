@@ -12,8 +12,6 @@ namespace MR {
     void startSoundInPlayerDistance(LiveActor*, const char*, s32, s32, f32);
 };  // namespace MR
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8001FDD0, declared extern "C" so the reloc name matches; resolve when fn_8001FDD0 gets its real name in symbols.txt
-extern "C" bool fn_8001FDD0(const LiveActor*, const char*);
 
 
 
@@ -89,7 +87,7 @@ void ItemRoomDoor::exeOpenWait() {
 
     f32 radius = MR::getSensorRadius(this, pBase + 0x74);
     if (MR::isPlayerInRange(radius, *MR::getSensorPos(this, pBase + 0x74))) {
-        if (fn_8001FDD0(this, "\200j6h\200j6\200\200j6\230")) {
+        if (MR::tryStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, "\200j6h\200j6\200\200j6\230")) {
             setNerve(&NrvItemRoomDoor::ItemRoomDoorNrvDemoPlayerWaitOpen::sInstance);
         }
     } else {

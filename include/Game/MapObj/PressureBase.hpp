@@ -35,6 +35,7 @@ public:
 
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
+    virtual void movement();
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
@@ -44,9 +45,10 @@ public:
     virtual bool shotBullet(f32);
 
     void exeBound();
-    void exeRelax();
+    void exeRelax() NO_INLINE;
     void exeSyncWait();
-    void exeFirstWait();
+    void exeFirstWait() NO_INLINE;
+    void exeSwitchWait();
     void exeWait();
     void exePrepareToShot();
     void exeShot();

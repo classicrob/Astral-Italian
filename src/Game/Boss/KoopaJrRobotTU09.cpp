@@ -16,7 +16,7 @@ namespace NrvKoopaJrRobotStateA {
     NEW_NERVE(KoopaJrRobotStateANrvDamage2, KoopaJrRobotStateA, Damage);
 };  // namespace NrvKoopaJrRobotStateA
 
-KoopaJrRobotStateA::KoopaJrRobotStateA(KoopaJrRobot* pHost) : KoopaJrRobotPhase("State:\x83t\x83""F\x81[\x83Y\x82P", pHost) {
+KoopaJrRobotStateA::KoopaJrRobotStateA(KoopaJrRobot* pHost) : KoopaJrRobotStateBase("State:\x83t\x83""F\x81[\x83Y\x82P", pHost) {
     initNerve(&NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvWait::sInstance, 3);
     MR::initActorState(this, new KoopaJrRobotStateAttack(mHost, 0), &NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvAttack::sInstance, nullptr);
     MR::initActorState(this, new KoopaJrRobotStateDamage(mHost, 0), &NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvDamage1::sInstance, nullptr);
@@ -137,11 +137,10 @@ void KoopaJrRobotStateA::exeSearch() {
 }
 
 void KoopaJrRobotStateA::exeTurn() {
-    s32 dir;
-    if (isNerve(&NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvTurnL::sInstance)) {
+    bool isLeft = isNerve(&NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvTurnL::sInstance);
+    s32 dir = 2;
+    if (isLeft) {
         dir = 1;
-    } else {
-        dir = 2;
     }
     s32 r = updateTurn(dir);
     if (r == 1) {
@@ -152,11 +151,10 @@ void KoopaJrRobotStateA::exeTurn() {
 }
 
 void KoopaJrRobotStateA::exeTurnEnd() {
-    s32 dir;
-    if (isNerve(&NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvTurnLEnd::sInstance)) {
+    bool isLeft = isNerve(&NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvTurnLEnd::sInstance);
+    s32 dir = 2;
+    if (isLeft) {
         dir = 1;
-    } else {
-        dir = 2;
     }
     if (updateTurnEnd(dir)) {
         setNerve(&NrvKoopaJrRobotStateA::KoopaJrRobotStateANrvWait::sInstance);

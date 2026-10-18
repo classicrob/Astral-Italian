@@ -14,10 +14,6 @@
 #include "Game/Util/FixedPosition.hpp"
 #include <cstdio>
 
-// Unnamed SMG2 helpers outside this unit.
-// PLACEHOLDER(objects): unnamed target symbol fn_8009A780, declared extern "C" so the reloc name matches; resolve when fn_8009A780 gets its real name in symbols.txt
-extern "C" void fn_8009A780(TPos3f*, const TQuat4f*, const TVec3f*);
-
 namespace NrvSandyStatePhase3 {
     class SandyStatePhase3NrvClose;
     class SandyStatePhase3NrvDamageClose;
@@ -74,12 +70,12 @@ void SandyStatePhase3::appear() {
 void SandyStatePhase3::control() {
     if (!isNerve(&NrvSandyStatePhase3::SandyStatePhase3NrvDamage::sInstance)) {
         mHost->updateTarget();
-        fn_8009A780(&mHost->mMtx, &mHost->mTargetQuat, &mHost->mPosition);
+        mHost->mMtx.setQT(mHost->mTargetQuat, mHost->mPosition);
     } else {
         TQuat4f quat;
         mHost->mMtx.getQuat(quat);
         turnToPlayer(&quat, mHost, 1.2f);
-        fn_8009A780(&mHost->mMtx, &quat, &mHost->mPosition);
+        mHost->mMtx.setQT(quat, mHost->mPosition);
     }
     updateMinis();
 }

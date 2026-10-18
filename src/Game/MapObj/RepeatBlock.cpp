@@ -248,7 +248,7 @@ void RepeatBlock::init(const JMapInfoIter& rIter) {
     }
 
     mSpeed = 200.0f;
-    mCellSize.set(mNumX, mNumY, mNumZ);
+    mCellSize.set<f32>(mNumX, mNumY, mNumZ);
     f32 scale = mCellLength / mMaxNum;
     mCellSize.x *= scale;
     mCellSize.y *= scale;
@@ -258,14 +258,16 @@ void RepeatBlock::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     initHitSensor(1);
     initSound(3, "RepeatBlock", nullptr, TVec3f(0.0f));
-    TVec3f sensorOffset(0.0f);
+    TVec3f sensorOffset;
+    sensorOffset.x = sensorOffset.y = sensorOffset.z = 0.0f;
     MR::addHitSensorMapObj(this, "Body", 32, 0.0f, sensorOffset);
     if (MR::isConnectedWithRail(rIter)) {
         initRailRider(rIter);
         MR::moveTransToCurrentRailPos(this);
     }
     initNerve(GET_NERVE(RepeatBlock, RepeatBlockNrvWait), 0);
-    MR::makeMtxTR(mMtx, this);
+    MR::makeMtxTR(mMtx, mPosition, mRotation);
+    mInvMtx.set(mMtx);
     mInvMtx.invert(mInvMtx);
     initHead();
     initTail();
@@ -408,10 +410,9 @@ void RepeatBlock::initShadow() {
 }
 
 void RepeatBlock::appearNextTail() {
-    RepeatBlockTail* pTail = mTails[mTailIdx];
-    MR::setPosition(pTail, mPosition);
-    pTail->updateAtomPositions();
-    pTail->appear();
+    MR::setPosition(mTails[mTailIdx], mPosition);
+    mTails[mTailIdx]->updateAtomPositions();
+    mTails[mTailIdx]->appear();
     mTailIdx++;
     if (mTailIdx >= mTailNum) {
         mTailIdx = 0;
@@ -437,9 +438,9 @@ void RepeatBlock::moveTails() {
     }
 }
 
-// NONMATCHING: target has a 0x50 frame with extra TVec3 temporaries (__as__ out of line, worldToCell not inlined); structure not recovered
+// Target retains more by-value cell temporaries and outlines the position-history assignment.
 bool RepeatBlock::stepForward() {
-    mGrid->worldToCell(&mRailCell, mPosition);
+    mGrid->worldToCell(&mCell, mPosition);
     if (mRailCell.isEqual(mCell)) {
         do {
             MR::moveCoord(this, mSpeed);
@@ -686,12 +687,12 @@ void RepeatBlock::exeStop() {
     }
 }
 
-// NONMATCHING: target copies rMtx into mInvMtx with psq_l/psq_st before invert; ours emits the lwz/stw loop (same calls, same order of stores)
+// The inverse-matrix copy is outlined here; target expands its paired-single copy.
 RepeatBlockGrid::RepeatBlockGrid(const TPos3f& rMtx, f32 x, f32 y, f32 z) : mMtx(rMtx) {
     mCellSize.x = x;
     mCellSize.y = y;
     mCellSize.z = z;
-    mInvMtx = rMtx;
+    mInvMtx.set(rMtx);
     mInvMtx.invert(mInvMtx);
 }
 
@@ -704,12 +705,14 @@ void RepeatBlockGrid::calcWorldCellPos(TVec3f* pDst, const RepeatBlockCell& rCel
     mMtx.mult(*pDst, *pDst);
 }
 
-// NONMATCHING: target inlines TVec3 += (psq ps_add) and *= (fmuls); header in-class members ignore the file pragma, so ours calls PSVECAdd/__amu out of line
+// Target expands the paired-single addition; this TU still outlines PSVECAdd.
 void RepeatBlockGrid::calcCell(RepeatBlockCell* pCell, const TVec3f& rPos) const {
     TVec3f pos(rPos);
     TVec3f half(mCellSize);
-    half *= 0.5f;
-    pos += half;
+    half.x *= 0.5f;
+    half.y *= 0.5f;
+    half.z *= 0.5f;
+    JMathInlineVEC::PSVECAdd(&pos, &half, &pos);
     pos.x /= mCellSize.x;
     pos.y /= mCellSize.y;
     pos.z /= mCellSize.z;
@@ -732,12 +735,14 @@ void RepeatBlockGrid::localToWorld(TVec3f* pDst, const TVec3f& rSrc) const {
     mMtx.mult(*pDst, *pDst);
 }
 
+#pragma dont_inline on
 void RepeatBlockGrid::worldToCell(RepeatBlockCell* pCell, const TVec3f& rPos) const {
     TVec3f local(rPos);
     mInvMtx.mult(local, local);
     calcCell(pCell, local);
 }
 
+#pragma dont_inline reset
 void RepeatBlockGrid::getAxisX(TVec3f* pDst) const {
     pDst->set(mMtx.mMtx[0][0], mMtx.mMtx[1][0], mMtx.mMtx[2][0]);
 }
@@ -762,7 +767,7 @@ void RepeatBlockHistory::push(const RepeatBlockCell& rCell) {
     pNode->mCell.mX = rCell.mX;
     pNode->mCell.mY = rCell.mY;
     pNode->mCell.mZ = rCell.mZ;
-    connect(pNode);
+    connect();
     mHead++;
     if (mHead >= mCapacity) {
         mHead = 0;
@@ -811,13 +816,14 @@ void RepeatBlockHistory::propagate() {
     }
 }
 
-// NONMATCHING: target inlines the RepeatBlockCell copy-ctor from sDirTable (lwz/stw/lhz); ours calls __ct__15RepeatBlockCellFRC out of line
-void RepeatBlockHistory::connect(RepeatBlockHistoryNode* pNode) {
+// NONMATCHING: packed cell temporary slots, GPR allocation and loop scheduling differ.
+void RepeatBlockHistory::connect() {
+    RepeatBlockHistoryNode* pNode = &mNodes[mHead];
     for (s32 i = 0; i < 6; i++) {
         pNode->mNeighbor[i] = -1;
         pNode->mDistance[i] = 10000;
     }
-    for (u32 i = 0; i < mCount; i++) {
+    for (s32 i = 0; i < mCount; i++) {
         if (i != mHead) {
             REPEAT_BLOCK_CELL_SUB(diff, mNodes[i].mCell, pNode->mCell);
             RepeatBlockCell sgn = RepeatBlockCell::sign(diff);
@@ -887,7 +893,7 @@ void RepeatBlockShadowDrawer::setDirection(s32 dir) {
     mDirection = dir;
 }
 
-// NONMATCHING: target calls getAxisX/Y/Z out of line and uses __ct/__amu TVec3 temporaries; ours inlines the getAxis bodies (NO_INLINE on them made it worse, 87.9%)
+// Target outlines axis/history helpers and expands vector operators at different boundaries.
 void RepeatBlockShadowDrawer::makeVertexBuffer() {
     mPointNum = 0;
     TVec3f axisX, axisY, axisZ;
@@ -1176,6 +1182,7 @@ void RepeatBlockVolume::setup(const RepeatBlockCell* pCell, s32 dir, f32 rate) {
     mIsValid = true;
 }
 
+#pragma dont_inline on
 bool RepeatBlockVolume::calcFace(TVec3f* pDst, s32 dir, const TVec3f& rOffset) {
     if (!mIsValid) {
         return false;
@@ -1229,5 +1236,6 @@ bool RepeatBlockVolume::calcFace(TVec3f* pDst, s32 dir, const TVec3f& rOffset) {
     return true;
 }
 
+#pragma dont_inline reset
 RepeatBlockShadowDrawer::~RepeatBlockShadowDrawer() {
 }

@@ -32,26 +32,43 @@ namespace NrvJumpHole {
 };  // namespace NrvJumpHole
 
 JumpHole::JumpHole(const char* pName)
-    : LiveActor(pName), mBoundSensor(), mLaunchStart(0, 0, 0), mBindVelocity(0, 0, 0), mHoleGravity(0, 0, 0), mSettledFrames() {
+    : LiveActor(pName), mBoundSensor(), mCameraInfo(), mLaunchStart(0, 0, 0), mBindVelocity(0, 0, 0), mHoleGravity(0, 0, 0), mSettledFrames() {
     mCone = new BindCone(mPosition, TVec3f(0.0f, 1.0f, 0.0f), ::sHoleDepth, ::sHoleRadius);
+    mBaseMtx.identity();
 }
 
-void JumpHole::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm("JumpHole", nullptr, false);
-    MR::connectToSceneMapObj(this);
-    initRailRider(rIter);
-    // NONMATCHING: SMG2 init differs (no body sensor / initSound; BindCone, multi-actor camera, follow target instead)
-    MR::initCollisionParts(this, "JumpHole", getSensor(nullptr), nullptr);
-    mCone->setPosition(mPosition);
-    initNerve(GET_NERVE(JumpHole, JumpHoleNrvWait));
+// SMG2 ActorCamera name for the hole (Shift-JIS bytes, read from the target data).
+static const char lbl_cameraName[] = "\x94\xAD\x8E\xCB\x83\x4A\x83\x81\x83\x89";
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+namespace {
+    // Follow validater whose PMF takes no argument; the isValid thunk forwards the id untouched.
+    class JumpHoleFollowValidater : public BaseMatrixFollowValidater {
+    public:
+        JumpHoleFollowValidater(JumpHole* pHost, bool (JumpHole::*pFunc)()) : mHost(pHost), mFunc(pFunc) {
+        }
+
+        virtual bool isValid(s32) const {
+            return (mHost->*mFunc)();
+        }
+
+        /* 0x4 */ JumpHole* mHost;
+        /* 0x8 */ bool (JumpHole::*mFunc)();
+    };
+}  // namespace
+
+void JumpHole::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, false);
+    mCone->setPosition(mPosition);
+    MR::initMultiActorCamera(this, rIter, &mCameraInfo, lbl_cameraName);
+    MR::makeMtxTR(reinterpret_cast< MtxPtr >(&mBaseMtx), this);
+    bool (JumpHole::*pFunc)() = &JumpHole::isNerveTypeNotWait;
+    MR::addBaseMatrixFollowTarget(this, rIter, &mBaseMtx, new JumpHoleFollowValidater(this, pFunc));
+    initNerve(GET_NERVE(JumpHole, JumpHoleNrvWait), 0);
+    MR::useStageSwitchSyncAppear(this, rIter);
+}
+
+bool JumpHole::isNerveTypeNotWait() {
+    return !isNerve(GET_NERVE(JumpHole, JumpHoleNrvWait));
 }
 
 void JumpHole::initAfterPlacement() {
@@ -65,15 +82,15 @@ void JumpHole::control() {
 
 bool JumpHole::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (msg == 0xA4 /* ACTMES_SPHERE_PLAYER_BINDED */) {
-        f32 radiusSquared = pReceiver->mRadius * pReceiver->mRadius;
-        TVec3f offset = pReceiver->mPosition - pSender->mPosition;
+        f32 radiusSquared = MR::getSensorRadius(pReceiver) * MR::getSensorRadius(pReceiver);
+        TVec3f offset = *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender);
         TVec3f lateral;
         lateral.killElement2(offset, mHoleGravity);
 
         if (lateral.squared() <= radiusSquared && offset.squared(lateral) <= ::sLaunchValidHeight * ::sLaunchValidHeight) {
             mBoundSensor = pSender;
-            mBindVelocity = pSender->mHost->mVelocity;
-            MR::zeroVelocity(mBoundSensor->mHost);
+            mBindVelocity = MR::getSensorHost(pSender)->mVelocity;
+            MR::zeroVelocity(MR::getSensorHost(mBoundSensor));
             return true;
         }
     }
@@ -92,6 +109,7 @@ void JumpHole::exeWait() {
 void JumpHole::exeSetCenter() {
     if (MR::isFirstStep(this)) {
         mSettledFrames = 0;
+        PSMTXCopy(getBaseMtx(), mBaseMtx.mMtx);
     }
 
     bindHole();
@@ -102,7 +120,7 @@ void JumpHole::exeSetCenter() {
         mSettledFrames = 0;
     }
 
-    MR::startLevelSound(this, "SE_OJ_LV_JUMP_HOLE_SETTING");
+    MR::startActionSound(this, "OjLvJumpHoleSetting", -1, -1, -1);
 
     if (mSettledFrames > ::sLaunchFixTime || MR::isGreaterStep(this, ::sForceSetCenterTime)) {
         setNerve(GET_NERVE(JumpHole, JumpHoleNrvSetUp));
@@ -112,7 +130,7 @@ void JumpHole::exeSetCenter() {
 
 void JumpHole::exeSetUp() {
     if (MR::isFirstStep(this)) {
-        mBoundSensor->receiveMessage(0xA5 /* ACTMES_SET_UP_JUMP_HOLE */, getSensor("body"));
+        MR::sendArbitraryMsg(0xA5 /* ACTMES_SET_UP_JUMP_HOLE */, mBoundSensor, getSensor("Body"));
     }
 
     if (MR::isGreaterStep(this, ::sSetUpTime)) {
@@ -123,33 +141,37 @@ void JumpHole::exeSetUp() {
 void JumpHole::exeRailMove() {
     if (MR::isFirstStep(this)) {
         mLaunchTime = 0.0f;
-        initParabola(mBoundSensor->mHost->mPosition);
+        initParabola(MR::getSensorHost(mBoundSensor)->mPosition);
         MR::shakeCameraNormal();
-        MR::startSound(this, "SE_OJ_JUMP_HOLE_FLIP");
-        MR::startLevelSoundPlayer("SE_PV_JUMP_JOY", -1, -1);
-        MR::startLevelSoundPlayer("SE_PM_JUMP_LONG", -1, -1);
-        mBoundSensor->receiveMessage(0xA6 /* ACTMES_SHOOT_JUMP_HOLE */, getSensor("body"));
+        MR::startActionSound(this, "OjJumpHoleFlip", -1, -1, -1);
+        MR::startLevelSoundPlayer("JumpObj", -1, -1);
+        MR::startLevelSoundPlayer("JumpLongV", -1, -1);
+        MR::sendArbitraryMsg(0xA6 /* ACTMES_SHOOT_JUMP_HOLE */, mBoundSensor, getSensor("Body"));
+        MR::startMultiActorCameraTargetPlayer(this, mCameraInfo, lbl_cameraName, -1);
     }
 
     f32 horizontal = mLaunchDistance * mLaunchTime;
     f32 vertical = mLaunchTime * (mLaunchLinear + mLaunchQuadratic * mLaunchTime);
     TVec3f position = mLaunchStart + mLaunchGravity * vertical + mLaunchDirection * horizontal;
-    TVec3f previous(mBoundSensor->mHost->mPosition);
-    mBoundSensor->mHost->mPosition.set(position);
+    TVec3f previous(MR::getSensorHost(mBoundSensor)->mPosition);
+    MR::setPosition(MR::getSensorHost(mBoundSensor), position);
     mLaunchTime += 1.0f / mLaunchDuration;
 
     if (mLaunchTime >= 1.0f) {
-        mBoundSensor->mHost->mVelocity.set(position - previous);
-        mBoundSensor->receiveMessage(0xA7 /* ACTMES_END_JUMP_HOLE */, getSensor("body"));
+        MR::getSensorHost(mBoundSensor)->mVelocity.set<f32>(position - previous);
+        MR::sendArbitraryMsg(0xA7 /* ACTMES_END_JUMP_HOLE */, mBoundSensor, getSensor("Body"));
         mBoundSensor = nullptr;
+        MR::endMultiActorCamera(this, mCameraInfo, lbl_cameraName, false, -1);
         setNerve(GET_NERVE(JumpHole, JumpHoleNrvWait));
         MR::validateClipping(this);
     }
+
+    MR::makeMtxFrontUpPos(&mBaseMtx, mLaunchDirection, mLaunchGravity, position);
 }
 
 void JumpHole::bindHole() {
-    f32 radius = mBoundSensor->mRadius;
-    TVec3f previous(mBoundSensor->mPosition);
+    f32 radius = MR::getSensorRadius(mBoundSensor);
+    TVec3f previous(*MR::getSensorPos(mBoundSensor));
     TVec3f position(previous);
     mBindVelocity += mHoleGravity * ::sGravityAcc;
 
@@ -180,7 +202,7 @@ void JumpHole::bindHole() {
     }
 
     mBindVelocity *= MR::calcNerveValue(this, ::sForceSetStartTime, ::sForceSetEndTime, ::sBallToCenterFreq, ::sBallToCenterEndFreq);
-    mBoundSensor->mHost->mVelocity.set(position - previous);
+    MR::getSensorHost(mBoundSensor)->mVelocity.set<f32>(position - previous);
 
     if (position.squared(previous) < 0.1f * 0.1f) {
         mBindVelocity.zero();

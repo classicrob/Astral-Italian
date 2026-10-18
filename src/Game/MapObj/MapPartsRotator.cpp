@@ -7,14 +7,6 @@
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-void MapPartsRotator_FORCE_MATCH_SDATA2() {
-    (void)0.0010000000474974513f;
-    (void)0.01745329238474369f;
-    (void)360.0f;
-    (void)0.009999999776482582f;
-    (void)9.999999747378752e-06f;
-}
-
 namespace NrvMapPartsRotator {
     NEW_NERVE(HostTypeNeverMove, MapPartsRotator, NeverMove);
     NEW_NERVE(HostTypeWait, MapPartsRotator, Wait);
@@ -43,7 +35,6 @@ MapPartsRotator::MapPartsRotator(LiveActor* pActor) : MapPartsRotatorBase(pActor
     mRotateMtx.set(mBaseHostMtx);
 }
 
-// NONMATCHING: arg setup/branch order differs slightly from target (98%)
 void MapPartsRotator::init(const JMapInfoIter& rIter) {
     MapPartsFunction::init(rIter);
     MR::getMapPartsArgRotateAngle(&mRotateAngle, rIter);
@@ -52,8 +43,8 @@ void MapPartsRotator::init(const JMapInfoIter& rIter) {
     MR::getMapPartsArgRotateSpeed(&_18, rIter);
     if (mRotateAccelType == 2) {
         MR::getMapPartsArgRotateTime(&mRotateTime, rIter);
-        initRotateSpeed(rIter);
     }
+    initRotateSpeed();
     MR::getMapPartsArgRotateStopTime(&mRotateStopTime, rIter);
     MR::getMapPartsArgRotateType(&mRotateType, rIter);
     MR::getMapPartsArgSignMotionType(&mSignMotionType, rIter);
@@ -105,6 +96,7 @@ void MapPartsRotator::cancelSignalMotion() {
     setNerve(GET_NERVE(MapPartsRotator, HostTypeWait));
 }
 
+// NONMATCHING: source/destination pointer registers differ in the inline rotation copy.
 void MapPartsRotator::updateBaseHostMtx() {
     mBaseHostMtx.setEuler(mHost->mRotation * (PI / 180.0f));
 }
@@ -113,11 +105,12 @@ bool MapPartsRotator::isMoving() const {
     return isNerve(GET_NERVE(MapPartsRotator, HostTypeRotate));
 }
 
-// NONMATCHING: SMG2 velocity logic differs (getSpeed scaling, sound); not recovered (77%)
+// NONMATCHING: equivalent multiplication operand order differs.
 void MapPartsRotator::updateVelocity() {
     if (MR::isNearZero(mRotateAngle) || isAccelTypeConstantSpeed()) {
+        if (mRotateAccelType != 2) mRotateSpeed = 0.01f * _18;
+        else mRotateSpeed = _18;
         mIsOnReverse = false;
-        mRotateSpeed = _18;
         return;
     }
 
@@ -125,7 +118,10 @@ void MapPartsRotator::updateVelocity() {
         return;
     }
 
-    f32 rotateAccel = (_18 * _18 * MR::sign(_18)) / mRotateAngle;
+    f32 speed = _18;
+    if (mRotateAccelType != 2) speed *= 0.01f;
+    f32 direction = MR::sign(speed);
+    f32 rotateAccel = (speed * speed * direction) / mRotateAngle;
     bool invert;
 
     if (isRotateClockwise()) {
@@ -184,7 +180,7 @@ void MapPartsRotator::restartAtEnd() {
     }
 }
 
-void MapPartsRotator::initRotateSpeed(const JMapInfoIter& rIter) {
+void MapPartsRotator::initRotateSpeed() {
     if (mRotateAccelType == 2) {
         _18 = mRotateAngle / mRotateTime;
     }
@@ -234,16 +230,19 @@ void MapPartsRotator::exeNeverMove() {
 void MapPartsRotator::exeWait() {
 }
 
-// NONMATCHING: SMG2 adds startLevelSound calls and a speed-threshold sound block (recovery pending, 64%)
 void MapPartsRotator::exeRotate() {
     updateVelocity();
     updateAngle();
+    if (isFirstStep()) MR::startActionSoundAuto(mHost, "RotatorRotateStart", -1, -1, -1);
+    f32 speed = __fabsf(mRotateSpeed);
+    s32 soundParam = 1000.0f * speed;
+    if (speed >= 0.05f) MR::startActionSoundAuto(mHost, "RotatorRotateLoop", soundParam, -1, -1);
 
     if (isAccelTypeConstantSpeed() && isReachedTargetAngle()) {
         mAngle = mTargetAngle;
         updateRotateMtx((AxisType)mRotateAxis, mAngle);
 
-        if (mRotateStopTime > 0) {
+        if (mRotateStopTime > 0 || mRotateType == 0) {
             setNerve(GET_NERVE(MapPartsRotator, HostTypeStopAtEnd));
         } else {
             restartAtEnd();
@@ -260,11 +259,12 @@ void MapPartsRotator::exeRotate() {
     updateRotateMtx((AxisType)mRotateAxis, mAngle);
 }
 
-// NONMATCHING: SMG2 adds two startLevelSound calls on isFirstStep, sound-name table in .data (77%)
 void MapPartsRotator::exeRotateStart() {
     if (isFirstStep()) {
         _A0 = mAngle;
+        MR::startActionSoundAuto(mHost, "RotatorRotateSignStart", -1, -1, -1);
     }
+    MR::startActionSoundAuto(mHost, "RotatorRotateSignLoop", -1, -1, -1);
 
     mAngle += 0.5f * (getStep() / 3 % 2 == 0 ? 1.0f : -1.0f);
     updateRotateMtx((AxisType)mRotateAxis, mAngle);
@@ -276,9 +276,13 @@ void MapPartsRotator::exeRotateStart() {
     }
 }
 
-// NONMATCHING: not in Petari; target tail-calls it from execute and its SMG2 body (sound block) is not recovered (41%)
+#pragma dont_inline on
 void MapPartsRotator::exeStopAtEnd() {
-    if (isStep(mRotateStopTime)) {
+    if (isFirstStep()) MR::startActionSoundAuto(mHost, "RotatorStopAtEnd", -1, -1, -1);
+    MR::startActionSoundAuto(mHost, "RotatorStopAtEndLoop", -1, -1, -1);
+    if (getStep() >= mRotateStopTime) {
         restartAtEnd();
     }
 }
+
+#pragma dont_inline reset

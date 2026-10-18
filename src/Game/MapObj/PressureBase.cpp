@@ -25,6 +25,7 @@ namespace NrvPressureBase {
     NEW_NERVE(PressureBaseNrvWaitStart, PressureBase, Bound);
     NEW_NERVE(PressureBaseNrvRelax, PressureBase, Relax);
     NEW_NERVE(PressureBaseNrvSyncWait, PressureBase, SyncWait);
+    NEW_NERVE(PressureBaseNrvSwitchWait, PressureBase, SwitchWait);
     NEW_NERVE(PressureBaseNrvFirstWait, PressureBase, FirstWait);
     NEW_NERVE(PressureBaseNrvWait, PressureBase, Wait);
     NEW_NERVE(PressureBaseNrvPrepareToShot, PressureBase, PrepareToShot);
@@ -85,6 +86,7 @@ void PressureBase::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg3NoInit(rIter, &mShotType);
     MR::calcGravity(this);
     mParamScale = new ActorStateParamScale(this);
+    mParamScale->init(rIter);
 
     MR::setGroupClipping(this, rIter, 32);
     mGroup = MR::joinToGroupArray(this, rIter, "プレッシャー軍団", 32);
@@ -98,21 +100,19 @@ void PressureBase::init(const JMapInfoIter& rIter) {
     }
 
     MR::tryRegisterDemoCast(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
+    MR::initUseStageSwitchReadB(this, rIter);
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &PressureBase::startWait), MR::Functor(this, &PressureBase::startRelax));
         initNerve(GET_NERVE(PressureBase, PressureBaseNrvRelax));
-    } else {
+    } else if (MR::isValidSwitchB(this)) {
         initNerve(GET_NERVE(PressureBase, PressureBaseNrvFirstWait));
+    } else {
+        initNerve(GET_NERVE(PressureBase, PressureBaseNrvSwitchWait));
     }
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void PressureBase::initAfterPlacement() {
@@ -131,19 +131,32 @@ void PressureBase::initAfterPlacement() {
     }
 }
 
+void PressureBase::movement() {
+    mParamScale->update();
+    LiveActor::movement();
+    mParamScale->resetHostVelocity();
+}
+
 void PressureBase::calcAndSetBaseMtx() {
-    LiveActor::calcAndSetBaseMtx();
+    if (mShotType == ShotType_AimTurn) {
+        TPos3f mtx;
+        MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFront);
+        MR::setBaseTRMtx(this, mtx);
+    } else {
+        LiveActor::calcAndSetBaseMtx();
+    }
     mJointController->registerCallBack();
 }
 
 void PressureBase::control() {
     if (mShotType == ShotType_AimTurn) {
         MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), ::sAimTurnRate);
+        mParamScale->calcHostVelocity();
     }
 }
 
 void PressureBase::exeBound() {
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         if (isNerve(GET_NERVE(PressureBase, PressureBaseNrvRelaxStart))) {
             MR::startAction(this, "SwitchOff");
         } else {
@@ -161,7 +174,7 @@ void PressureBase::exeBound() {
         mRelaxAngle = ::sRelaxAngleFix - scale;
     }
 
-    if (MR::isStep(this, ::sStepForBound)) {
+    if (mParamScale->isStep(::sStepForBound)) {
         if (isNerve(GET_NERVE(PressureBase, PressureBaseNrvRelaxStart))) {
             setNerve(GET_NERVE(PressureBase, PressureBaseNrvRelax));
         } else {
@@ -171,7 +184,7 @@ void PressureBase::exeBound() {
 }
 
 void PressureBase::exeRelax() {
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         mRelaxAngle = ::sRelaxAngleFix;
     }
 }
@@ -180,21 +193,35 @@ void PressureBase::exeSyncWait() {
 }
 
 void PressureBase::exeFirstWait() {
-    if (MR::isStep(this, mWaitTime)) {
+    if (mParamScale->isStep(mWaitTime)) {
         setNerve(GET_NERVE(PressureBase, PressureBaseNrvPrepareToShot));
     }
 }
 
+void PressureBase::exeSwitchWait() {
+    if (MR::isOnSwitchB(this)) {
+        setNerve(GET_NERVE(PressureBase, PressureBaseNrvShot));
+    }
+}
+
 void PressureBase::exeWait() {
-    if (mWaitTime == MR::getBckFrameMax(this, "ShotStart") + getNerveStep()) {
+    if (MR::isValidSwitchB(this) && !MR::isOnSwitchB(this)) {
+        setNerve(GET_NERVE(PressureBase, PressureBaseNrvFirstWait));
+        return;
+    }
+
+    if (mParamScale->isStep(mWaitTime - MR::getBckFrameMax(this, "ShotStart"))) {
         setNerve(GET_NERVE(PressureBase, PressureBaseNrvPrepareToShot));
-    } else if (MR::isStep(this, mWaitTime)) {
+        return;
+    }
+
+    if (mParamScale->isStep(mWaitTime)) {
         setNerve(GET_NERVE(PressureBase, PressureBaseNrvShot));
     }
 }
 
 void PressureBase::exePrepareToShot() {
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         MR::startAction(this, "ShotStart");
     }
 
@@ -204,7 +231,7 @@ void PressureBase::exePrepareToShot() {
 }
 
 void PressureBase::exeShot() {
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         if (mIsShortShot) {
             MR::startAction(this, "ShortShot");
         } else {
@@ -213,11 +240,11 @@ void PressureBase::exeShot() {
     }
 
     if (mIsShortShot) {
-        if (MR::isStep(this, ::sStepForChargeToShortShot)) {
+        if (mParamScale->isStep(::sStepForChargeToShortShot)) {
             shotBullet(mBallSpeed);
         }
     } else {
-        if (MR::isStep(this, ::sStepForChargeToShot)) {
+        if (mParamScale->isStep(::sStepForChargeToShot)) {
             shotBullet(mBallSpeed);
         }
     }
@@ -232,7 +259,7 @@ void PressureBase::exeShot() {
 }
 
 void PressureBase::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver)) {
+    if (MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }

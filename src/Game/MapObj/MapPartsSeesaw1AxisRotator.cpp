@@ -10,6 +10,7 @@ f32 JMAAcosRadian(f32) NO_INLINE;
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/VectorUtil.hpp"
 
 namespace {
@@ -147,7 +148,6 @@ void MapPartsSeesaw1AxisRotator::exeHipDrop() {
     mHipDrop = false;
 }
 
-// NONMATCHING: SMG2 rotate body differs in sound/speed block (80%)
 void MapPartsSeesaw1AxisRotator::rotate() {
     TPos3f baseMtx;
     baseMtx.identity();
@@ -164,6 +164,7 @@ void MapPartsSeesaw1AxisRotator::rotate() {
     mAngularAccel = 0.0f;
 
     if (isGoingToReachTargetAngle()) {
+        MR::startActionSoundAuto(mHost, "MapPartsSeesaw1AxisRotatorBound", (s32)(1000.0f * __fabsf(mAngularVelocity)), -1, -1);
         mAngularVelocity *= ::sCollisionEfficiency;
         return;
     }
@@ -175,8 +176,11 @@ void MapPartsSeesaw1AxisRotator::rotate() {
     mRotateMtx.set(rotation);
     TVec3f angles;
     mRotateMtx.getEuler(angles);
-    TVec3f& rotationAngles = mHost->mRotation;
-    rotationAngles.set(angles * _180_PI);
+    LiveActor* host = mHost;
+    MR::setRotation(host, angles * _180_PI);
+    if (__fabsf(mAngularVelocity) >= 0.1f) {
+        MR::startActionSoundAuto(mHost, "MapPartsSeesaw1AxisRotatorMove", (s32)(1000.0f * __fabsf(mAngularVelocity)), -1, -1);
+    }
 }
 
 void MapPartsSeesaw1AxisRotator::updateVelocity() {

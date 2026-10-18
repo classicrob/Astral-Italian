@@ -17,7 +17,11 @@ public:
     virtual void end();
     virtual bool receiveMsg(u32);
 
+    virtual void doStart();
+
     void moveToInitPos();
+    void moveToEndPos();
+    NO_INLINE void updatePosition();
     void startWithSignalMotion();
     void cancelSignalMotion();
     bool tryResetPositionRepeat();

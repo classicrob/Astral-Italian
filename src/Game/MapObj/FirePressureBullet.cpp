@@ -1,12 +1,17 @@
 #include "Game/MapObj/FirePressureBullet.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/Enemy/AnimScaleController.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 
 namespace NrvFirePressureBullet {
     NEW_NERVE(FirePressureBulletNrvFly, FirePressureBullet, Fly);
+    NEW_NERVE(FirePressureBulletNrvBindStarPointer, FirePressureBullet, BindStarPointer);
 };  // namespace NrvFirePressureBullet
 
 FirePressureBullet::FirePressureBullet(const char* pName) : LiveActor(pName) {
+    mAnimScaleCtrl = nullptr;
+    mBindStarPointer = nullptr;
     _8C.x = 0.0f;
     _8C.y = 0.0f;
     _8C.z = 0.0f;
@@ -17,16 +22,11 @@ FirePressureBullet::FirePressureBullet(const char* pName) : LiveActor(pName) {
 }
 
 void FirePressureBullet::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "FireBullet", false);
-    MR::connectToSceneMapObj(this);
-    initHitSensor(1);
-    MR::addHitSensorEnemyAttack(this, "body", 8, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
-    initBinder(100.0f, 0.0f, 0);
-    MR::onCalcGravity(this);
-    initEffectKeeper(0, nullptr, false);
-    initSound(4, "FirePressureBullet", nullptr, TVec3f(0.0f));
-    MR::initShadowVolumeSphere(this, 75.0f);
-    initNerve(GET_NERVE(FirePressureBullet, FirePressureBulletNrvFly));
+    MR::initActor(this, "FireBullet", false);
+    initNerve(&NrvFirePressureBullet::FirePressureBulletNrvFly::sInstance, 1);
+    mAnimScaleCtrl = new AnimScaleController(nullptr);
+    mBindStarPointer = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
+    MR::initActorState(this, mBindStarPointer, &NrvFirePressureBullet::FirePressureBulletNrvBindStarPointer::sInstance, nullptr);
     makeActorDead();
 }
 
@@ -35,10 +35,15 @@ void FirePressureBullet::kill() {
     LiveActor::kill();
 }
 
+void FirePressureBullet::control() {
+    mAnimScaleCtrl->updateNerve();
+}
+
 void FirePressureBullet::calcAndSetBaseMtx() {
     TPos3f mtx;
     MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, _8C);
     MR::setBaseTRMtx(this, mtx);
+    MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
 void FirePressureBullet::shotFireBullet(LiveActor* pActor, const TPos3f& rPos, const f32& a3, bool a4, bool a5) {
@@ -74,17 +79,27 @@ void FirePressureBullet::exeFly() {
         mVelocity.scale(_9C, _8C);
     }
 
-    if (isCrash()) {
+    if (mBindStarPointer->tryStartPointBind()) {
+        setNerve(&NrvFirePressureBullet::FirePressureBulletNrvBindStarPointer::sInstance);
+    } else if (isCrash()) {
         kill();
     } else if (MR::isStep(this, 300)) {
         kill();
     }
 }
 
+void FirePressureBullet::exeBindStarPointer() {
+    if (MR::updateActorStateAndNextNerve(this, &NrvFirePressureBullet::FirePressureBulletNrvFly::sInstance)) {
+        mVelocity.scale(_9C, _8C);
+    }
+}
+
 void FirePressureBullet::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemy(pReceiver) || MR::isSensorMapObj(pReceiver)) {
-        kill();
-    } else if (MR::isSensorPlayer(pReceiver) && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
+        if (MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
+            kill();
+        }
+    } else if (MR::isSensorPlayerOrRide(pReceiver) && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
         kill();
     }
 }

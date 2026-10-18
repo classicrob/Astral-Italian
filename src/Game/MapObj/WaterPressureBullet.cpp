@@ -4,6 +4,7 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorStateParamScale.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <JSystem/JMath/JMath.hpp>
@@ -43,6 +44,7 @@ void WaterPressureBullet::init(const JMapInfoIter& rIter) {
     MR::setShadowDropLength(this, nullptr, 1500.0f);
     MR::registerDemoSimpleCastAll(this);
     initNerve(GET_NERVE(WaterPressureBullet, WaterPressureBulletNrvFly));
+    mParamScale = new ActorStateParamScale(this);
     makeActorDead();
 }
 
@@ -61,6 +63,12 @@ void WaterPressureBullet::kill() {
 
 #pragma push
 #pragma opt_propagation off
+void WaterPressureBullet::movement() {
+    mParamScale->update();
+    LiveActor::movement();
+    mParamScale->resetHostVelocity();
+}
+
 void WaterPressureBullet::control() {
     if (isNotBound() && MR::isStarPointerPointing2POnTriggerButton(this, "弱", true, false)) {
         kill();
@@ -106,6 +114,11 @@ void WaterPressureBullet::shotWaterBullet(LiveActor* pActor, const TPos3f& rPos,
     }
 
     setNerve(GET_NERVE(WaterPressureBullet, WaterPressureBulletNrvFly));
+}
+
+void WaterPressureBullet::shotWaterBullet(LiveActor* pActor, const ActorStateParamScale* pScale, const TPos3f& rPos, f32 a3, bool a4, bool a5, bool a6, ActorCameraInfo** pInfo) {
+    shotWaterBullet(pActor, rPos, a3, a4, a5, a6, pInfo);
+    mParamScale->init(pScale);
 }
 
 void WaterPressureBullet::exeFly() {
@@ -178,7 +191,7 @@ void WaterPressureBullet::exeSpinKill() {
 }
 
 void WaterPressureBullet::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorMapObj(pReceiver)) {
+    if (MR::isSensorPlayerOrYoshiOrRide(pReceiver) && MR::isPlayerElementModeYoshi()) {
         kill();
     }
 }
@@ -248,15 +261,19 @@ bool WaterPressureBullet::endHostCamera() const {
 bool WaterPressureBullet::inviteMario(HitSensor* pSensor) {
     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
 
-    if (MR::isOnGroundPlayer() && MR::isNearAngleDegree(mVelocity, mGravity, 60.0f)) {
-        if (_B1) {
-            // NONMATCHING: SMG2 inviteMario differs (no killVelocityVertical in target)
-            MR::zeroVelocity(this);
-        } else {
-            kill();
-            MR::sendMsgEnemyAttackFlipVeryWeak(pSensor, getSensor("body"));
+    if (MR::isOnGroundPlayer()) {
+        if (!MR::isCalcGravity(this)) {
+            MR::calcGravity(this);
+        }
+        if (MR::isNearAngleDegree(mVelocity, mGravity, 60.0f)) {
+            if (_B1) {
+                mVelocity.killElement(mVelocity, mGravity);
+            } else {
+                kill();
+                MR::sendMsgEnemyAttackFlipVeryWeak(pSensor, getSensor("body"));
 
-            return false;
+                return false;
+            }
         }
     }
 

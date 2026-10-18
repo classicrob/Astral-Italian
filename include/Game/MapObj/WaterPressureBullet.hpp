@@ -4,6 +4,7 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class ActorCameraInfo;
+class ActorStateParamScale;
 
 class WaterPressureBullet : public LiveActor {
 public:
@@ -12,6 +13,7 @@ public:
     virtual ~WaterPressureBullet();
     virtual void init(const JMapInfoIter&);
     virtual void kill();
+    virtual void movement();
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
@@ -19,6 +21,7 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void shotWaterBullet(LiveActor*, const TPos3f&, f32, bool, bool, bool, ActorCameraInfo**);
+    void shotWaterBullet(LiveActor*, const ActorStateParamScale*, const TPos3f&, f32, bool, bool, bool, ActorCameraInfo**);
 
     bool isBound() const {
         return mHostActor != nullptr;
@@ -48,5 +51,6 @@ public:
     /* 0xB5 */ bool _B1;
     /* 0xB6 */ bool _B2;
     /* 0xB7 */ u8 _B3;
-    /* 0xB8 */ ActorCameraInfo** mCameraInfo;
+    /* 0xB8 */ ActorStateParamScale* mParamScale;
+    /* 0xBC */ ActorCameraInfo** mCameraInfo;
 };

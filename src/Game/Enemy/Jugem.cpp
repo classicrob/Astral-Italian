@@ -942,7 +942,7 @@ bool Jugem::fn_8019D8A0(HitSensor*, HitSensor*) {
         MR::zeroVelocity(this);
         setNerve(JN(FallDownEaten));
         mGroundActor = nullptr;
-        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5B\x90\xE0\x83\x41\x83\x4E\x83\x5A\x83\x58");
+        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5B\x90\xE3\x83\x41\x83\x4E\x83\x5A\x83\x58");
         return true;
     }
     return false;

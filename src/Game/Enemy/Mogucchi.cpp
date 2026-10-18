@@ -28,7 +28,17 @@
 namespace NrvMogucchi {
     NEW_NERVE_ONEND(MogucchiNrvStroll, Mogucchi, Stroll, Stroll);
     NEW_NERVE(MogucchiNrvAppearDown, Mogucchi, AppearDown);
-    NEW_NERVE(MogucchiNrvDown, Mogucchi, Down);
+    class MogucchiNrvDown : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const {
+            reinterpret_cast<Mogucchi*>(spine->mExecutor)->exeDown();
+        }
+        virtual void executeOnEnd(Spine* spine) const {
+            MR::deleteEffect(reinterpret_cast<LiveActor*>(spine->mExecutor), "PointerTouchManual");
+        }
+        static MogucchiNrvDown sInstance;
+    };
+    MogucchiNrvDown MogucchiNrvDown::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(MogucchiNrvDive, Mogucchi, Dive);
     NEW_NERVE(MogucchiNrvScatter, Mogucchi, Scatter);
     NEW_NERVE(MogucchiNrvDie, Mogucchi, Die);

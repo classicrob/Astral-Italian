@@ -14,6 +14,7 @@ public:
     virtual void fn_801A7180();
     virtual bool fn_801A78B0() const;
     void fn_801A7E30(KameckBeamEventListener*);
+    void fn_801A7E40();
     KameckBeamEventListener* mEventListener;
 };
 

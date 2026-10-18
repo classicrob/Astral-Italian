@@ -75,7 +75,7 @@ public:
 // Spike that hangs off the shooter's "Bazooka" joint (SMG2 vtable __vt__13MogucchiSpike).
 class MogucchiSpike : public PartsModel {
 public:
-    MogucchiSpike(LiveActor*, const char*, const char*, MtxPtr, int, bool);
+    MogucchiSpike(LiveActor*, MtxPtr);
 
     virtual void calcAndSetBaseMtx();
     virtual void control();

@@ -226,7 +226,7 @@ void BegomanSpring::control() {
     }
 
     updateCamera();
-    MR::invalidateHitSensor(this, "Check");
+    MR::invalidateHitSensor(this, "check");
     if (mType == 1) {
         f32 radius = MR::getSensorRadius(this, "Body");
         if (MR::isJudgedToClipFrustum(mPosition, radius)) {

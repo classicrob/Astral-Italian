@@ -1,4 +1,5 @@
 #include "Game/Enemy/Onimasu.hpp"
+#include "Game/LiveActor/ActorStateParamScale.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -58,6 +59,10 @@ Onimasu::Onimasu(const char* pName) : LiveActor(pName), _90(0), _94(90), _98(30)
 }
 
 void Onimasu::init(const JMapInfoIter& rIter) {
+    MR::getJMapInfoArg0NoInit(rIter, &_94);
+    MR::getJMapInfoArg1NoInit(rIter, &_98);
+    MR::getJMapInfoArg2NoInit(rIter, &_9C);
+    MR::getJMapInfoArg4NoInit(rIter, &_A0);
     MR::initDefaultPos(this, rIter);
     initRailRider(rIter);
     initFromRailPoint();
@@ -73,7 +78,7 @@ void Onimasu::init(const JMapInfoIter& rIter) {
     initSound(4, "Onimasu", nullptr, TVec3f(0.0f));
 
     initHitSensor(1);
-    MR::initCollisionParts(this, "Onimasu", MR::addHitSensor(this, "body", ATYPE_MAP_OBJ_PRESS, 8, ::sSensorRadius, TVec3f(0.0f, 0.0f, 0.0f)),
+    MR::initCollisionParts(this, "Onimasu", MR::addHitSensor(this, "Body", ATYPE_MAP_OBJ_PRESS, 8, ::sSensorRadius, TVec3f(0.0f, 0.0f, 0.0f)),
                            nullptr);
 
     MR::initAndSetRailClipping(&_110, this, 100.0f, 500.0f);
@@ -84,15 +89,28 @@ void Onimasu::init(const JMapInfoIter& rIter) {
 
     MR::onCalcGravity(this);
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
+    _90 = new ActorStateParamScale(this);
+    _90->init(rIter);
+
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
         initNerve(GET_NERVE(Onimasu, HostTypeWaitForSwitchOn));
     } else {
         initNerve(GET_NERVE(Onimasu, HostTypeWait));
     }
 
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
 
     makeActorAppeared();
+}
+
+void Onimasu::control() {
+    _90->calcHostVelocity();
+}
+
+void Onimasu::movement() {
+    _90->update();
+    LiveActor::movement();
+    _90->resetHostVelocity();
 }
 
 void Onimasu::initAfterPlacement() {
@@ -182,7 +200,7 @@ void Onimasu::calcTargetPose() {
 }
 
 void Onimasu::updatePose() {
-    f32 nerveRate = static_cast< f32 >(getNerveStep()) / getTimeToNextPoint();
+    f32 nerveRate = _90->getNerveStepRate() / getTimeToNextPoint();
     if (1.0f < nerveRate) {
         nerveRate = 1.0f;
     }
@@ -207,7 +225,7 @@ void Onimasu::land() {
     TVec3f railPointPos;
     MR::calcRailPointPos(&railPointPos, this, getNextPointNo());
 
-    mPosition.set(railPointPos);
+    MR::setPosition(this, railPointPos);
     mVelocity.zero();
 
     MR::moveCoordToRailPoint(this, getNextPointNo());
@@ -269,7 +287,8 @@ void Onimasu::emitEffectLand() {
     TVec3f railPointPos;
     MR::calcRailPointPos(&railPointPos, this, getNextPointNo());
 
-    railPointPos.add((-getNextPointNormal() * ::sSensorRadius) * 0.5f);
+    TVec3f offset = (-getNextPointNormal() * ::sSensorRadius) * 0.5f;
+    railPointPos.add(railPointPos, offset);
 
     if (MR::isSameDirection(_D4, getNextPointNormal())) {
         MR::makeMtxUpNoSupportPos(&_A4, getNextPointNormal(), railPointPos);
@@ -303,7 +322,7 @@ void Onimasu::exeWait() {
 }
 
 void Onimasu::exeMove() {
-    if (MR::isFirstStep(this)) {
+    if (_90->isFirstStep()) {
         MR::startActionSound(this, "OjOnimasuJump");
 
         incrementNextPoint();
@@ -318,7 +337,7 @@ void Onimasu::exeMove() {
     updatePose();
     updatePoseInner();
 
-    if (MR::isStep(this, getTimeToNextPoint())) {
+    if (_90->isStep(getTimeToNextPoint())) {
         land();
 
         f32 turnDirection = 0.0f;
@@ -331,7 +350,7 @@ void Onimasu::exeMove() {
 }
 
 void Onimasu::exeStamp() {
-    if (MR::isFirstStep(this)) {
+    if (_90->isFirstStep()) {
         MR::startActionSound(this, "OjOnimasuJump");
         updateStompVelocity();
     }
@@ -339,10 +358,9 @@ void Onimasu::exeStamp() {
     TVec3f gravityDir;
     calcGravityDir(&gravityDir);
 
-    TVec3f& rVelocity = mVelocity;
-    rVelocity.add(gravityDir * getGravityScalar());
+    _90->calcHostVelocity(gravityDir * getGravityScalar());
 
-    if (MR::isStep(this, getTimeToNextPoint())) {
+    if (_90->isStep(getTimeToNextPoint())) {
         land();
         setNerve(GET_NERVE(Onimasu, HostTypeWait));
     }

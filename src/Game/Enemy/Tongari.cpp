@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/Enemy/Tongari.hpp"
 #include "Game/Enemy/Togezo.hpp"
 #include "Game/Map/CollisionParts.hpp"
@@ -13,7 +14,6 @@ namespace NrvTongari {
     NEW_NERVE(TongariNrvFreeze, Tongari, Freeze);
 };  // namespace NrvTongari
 
-// NONMATCHING: 99.5% (ctor store order / register allocation)
 Tongari::Tongari(const char* pName) : LiveActor(pName) {
     mFront.set(0.0f, 0.0f, 1.0f);
     mUp.set(0.0f, 1.0f, 0.0f);
@@ -28,7 +28,6 @@ Tongari::Tongari(const char* pName) : LiveActor(pName) {
 
 Tongari::~Tongari() {}
 
-// NONMATCHING: 99.7% (register allocation / scheduling; see sg.py diff)
 void Tongari::init(const JMapInfoIter& rIter) {
     const char* pObjName = nullptr;
     MR::getObjectName(&pObjName, rIter);
@@ -71,20 +70,18 @@ void Tongari::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-// NONMATCHING: 91.2% (register allocation / scheduling; see sg.py diff)
 void Tongari::initAfterPlacement() {
     NameObj::initAfterPlacement();
-    TVec3f up(0.0f, 0.0f, 0.0f);
+    TVec3f up(0.0f);
     MR::calcUpVec(&up, this);
     TVec3f dropDir = -up;
     MR::setShadowDropDirection(this, "Body", dropDir);
 }
 
-// NONMATCHING: 94.9% (register allocation / scheduling; see sg.py diff)
 void Tongari::control() {
     mScaleCtrl->updateNerve();
 
-    TVec3f up(0.0f, 0.0f, 0.0f);
+    TVec3f up(0.0f);
     MR::calcUpVec(&up, this);
     TVec3f dropDir = -up;
     MR::setShadowDropDirection(this, "Body", dropDir);
@@ -95,20 +92,24 @@ void Tongari::control() {
     }
 }
 
-// NONMATCHING: 72.6% (register allocation / scheduling; see sg.py diff)
 void Tongari::calcAndSetBaseMtx() {
     MR::fn_8000F910(this, &mFront, &mUp);
     if (mCollisionParts != nullptr) {
-        mMtx = *reinterpret_cast< TPos3f* >(getBaseMtx());
+        mMtx.setInline(getBaseMtx());
         MR::preScaleMtx(mMtx, 0.95f);
         mCollisionParts->setMtx();
     }
     MR::updateBaseScale(this, mScaleCtrl);
 }
 
-// NONMATCHING: 90.9% (register allocation / scheduling; see sg.py diff)
 void Tongari::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!mIs2D || !MR::isPlayerDamaging() || mCollisionParts == nullptr || MR::isPlayerElementModeTeresa()) {
+    if (mIs2D) {
+        bool damaging = MR::isPlayerDamaging();
+        if (mCollisionParts != nullptr && !MR::isPlayerElementModeTeresa() && damaging) {
+            return;
+        }
+    }
+    {
         if (MR::isSensorPlayer(pReceiver) && !MR::isPlayerElementModeTeresa()) {
             bool attacked = MR::sendMsgEnemyAttackStrongOrPush(pReceiver, pSender);
             if (!isNerve(&NrvTongari::TongariNrvFreeze::sInstance) && attacked) {
@@ -122,7 +123,6 @@ bool Tongari::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*) {
     return MR::isMsgStarPieceReflect(msg);
 }
 
-// NONMATCHING: 99.9% (register allocation / scheduling; see sg.py diff)
 bool Tongari::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(&NrvTongari::TongariNrvGuard::sInstance) != false) {
         return false;
@@ -133,7 +133,7 @@ bool Tongari::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
     if (!MR::isPlayerElementModeTeresa()) {
         return false;
     }
-    if (!MR::isSensorPlayer(pReceiver)) {
+    if (!MR::isSensorPlayer(pSender)) {
         return false;
     }
     if (msg != 0x4D) {
@@ -143,7 +143,6 @@ bool Tongari::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
     return false;
 }
 
-// NONMATCHING: 98.0% (register allocation / scheduling; see sg.py diff)
 void Tongari::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
@@ -158,6 +157,7 @@ void Tongari::exeWait() {
     MR::moveCoordAndFollowTrans(this, mSpeed);
     if (!MR::isLoopRail(this) && MR::isRailReachedGoal(this)) {
         setNerve(&NrvTongari::TongariNrvTurn::sInstance);
+        return;
     }
 
     fn_80215090(0.5f);
@@ -166,7 +166,6 @@ void Tongari::exeWait() {
     }
 }
 
-// NONMATCHING: 99.4% (register allocation / scheduling; see sg.py diff)
 void Tongari::exeTurn() {
     if (MR::isFirstStep(this) && !mTurnFlag) {
         mTurnFlag = true;
@@ -195,7 +194,6 @@ void Tongari::exeTurn() {
     }
 }
 
-// NONMATCHING: 96.5% (register allocation / scheduling; see sg.py diff)
 void Tongari::exeGuard() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Guard");
@@ -203,6 +201,7 @@ void Tongari::exeGuard() {
     if (MR::isActionEnd(this)) {
         if (mTurnFlag) {
             setNerve(&NrvTongari::TongariNrvTurn::sInstance);
+            return;
         }
         setNerve(&NrvTongari::TongariNrvWait::sInstance);
     }
@@ -223,12 +222,13 @@ void Tongari::fn_80215090(f32 angle) {
         dir = -dir;
     }
 
+    TVec3f cross(0.0f);
     TVec3f side(1.0f, 0.0f, 0.0f);
     MR::calcSideVec(&side, this);
-    TVec3f cross;
     PSVECCrossProduct(&side, &dir, &cross);
     if (cross.dot(mUp) < 0.0f) {
         cross = -cross;
     }
+    MR::turnVecToVecCosOnPlane(&mUp, cross, side, MR::cosDegree(angle));
     MR::turnVecToVecCosOnPlane(&mFront, dir, mUp, MR::cosDegree(angle));
 }

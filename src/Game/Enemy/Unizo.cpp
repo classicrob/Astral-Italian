@@ -225,7 +225,7 @@ void Unizo::init(const JMapInfoIter& rIter) {
     mAnimScaleController->setParamTight();
     mBindStarPointerState = new WalkerStateBindStarPointer(this, mAnimScaleController);
     initNerve(GET_NERVE(Unizo, UnizoNrvWait), 1);
-    MR::initActorState(this, mBindStarPointerState, GET_NERVE(Unizo, UnizoNrvPointing), "SupportFreeze");
+    MR::initActorState(this, mBindStarPointerState, GET_NERVE(Unizo, UnizoNrvPointing), "Pointing");
     MR::setGroupClipping(this, rIter, 16);
     makeActorAppeared();
     MR::useStageSwitchAwake(this, rIter);
@@ -359,15 +359,6 @@ void Unizo::exeChase() {
     if (!MR::isNearPlayer(this, ::sChaseRadius)) {
         deleteEffect();
         setNerve(GET_NERVE(Unizo, UnizoNrvWait));
-    }
-}
-
-void Unizo::startNeedleSound() {
-    // sound names are guesses from the SMG2 string table (lbl_806937C4 / lbl_806937D8)
-    if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
-        MR::startActionSound(this, "EmUnizoNeedleWater", -1, -1, -1);
-    } else {
-        MR::startActionSound(this, "EmUnizoNeedle", -1, -1, -1);
     }
 }
 
@@ -835,6 +826,14 @@ void Unizo::startWallHitSound() {
         } else {
             MR::startActionSound(this, "EmLvUnizoCollision", 100.0f * speed, ::sUnizoCollisionSePlayTime);
         }
+    }
+}
+
+void Unizo::startNeedleSound() {
+    if (MR::isInWater(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        MR::startActionSound(this, "EmUnizoNeedleWater", -1, -1, -1);
+    } else {
+        MR::startActionSound(this, "EmUnizoNeedle", -1, -1, -1);
     }
 }
 

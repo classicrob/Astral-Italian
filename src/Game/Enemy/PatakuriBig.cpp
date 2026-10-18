@@ -65,8 +65,8 @@ namespace {
 // PatakuriWing
 // ---------------------------------------------------------------------------------------------
 
-PatakuriWing::PatakuriWing(const char* pHost)
-    : PartsModel(reinterpret_cast< LiveActor* >(const_cast< char* >(pHost)), "\x89\x48", "PatakuriWing", nullptr, -1, false) {
+PatakuriWing::PatakuriWing(LiveActor* pHost)
+    : PartsModel(pHost, "\x89\x48", "PatakuriWing", nullptr, -1, false) {
     initFixedPosition(TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 90.0f, 0.0f), "Head");
     initWithoutIter();
     initNerve(&PatakuriWingNrvWait::sInstance, 0);
@@ -96,7 +96,6 @@ Patakuri::Patakuri(const char* pName) : LiveActor(pName) {
 
 Patakuri::~Patakuri() {}
 
-// NONMATCHING: 99.4% (register allocation / scheduling; see sg.py diff)
 void Patakuri::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "Kuribo", "Patakuri", false);
     MR::moveCoordAndTransToNearestRailPos(this);
@@ -114,7 +113,7 @@ void Patakuri::init(const JMapInfoIter& rIter) {
         MR::setGroupClipping(mBody, rIter, 32);
     }
 
-    mWing = new PatakuriWing(reinterpret_cast< const char* >(this));
+    mWing = new PatakuriWing(this);
     MR::startAction(mWing, "Wait");
     MR::startAction(this, "PatakuriWait");
 
@@ -128,7 +127,6 @@ void Patakuri::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-// NONMATCHING: 99.2% (register allocation / scheduling; see sg.py diff)
 void Patakuri::control() {
     mScaleCtrl->updateNerve();
     MR::fn_800104F0(&mQuat, this, &mFront, 0.05f, 0.2f);
@@ -149,7 +147,6 @@ void Patakuri::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mScaleCtrl);
 }
 
-// NONMATCHING: 99.6% (register allocation / scheduling; see sg.py diff)
 void Patakuri::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver)) {
         if (MR::isSensorEnemyAttack(pSender)) {
@@ -182,8 +179,7 @@ bool Patakuri::fn_801E4E50() {
     mWing->fn_801E4A20();
     setNerve(&PatakuriNrvDead::sInstance);
 
-    TVec3f pos;
-    fn_801E4F40(&pos, this);
+    TVec3f pos = fn_801E4F40(this);
     mBody->appearHipDropped(pos, mQuat);
     ScoreAttackFunction::scoreTrample(this);
     return true;
@@ -202,7 +198,7 @@ bool Patakuri::fn_801E4ED0() {
     return true;
 }
 
-void Patakuri::fn_801E4F40(TVec3f* pOut, Patakuri* pPatakuri) {
+TVec3f Patakuri::fn_801E4F40(Patakuri* pPatakuri) {
     TVec3f bodyRoot;
     TVec3f bodyBody;
     TVec3f actorRoot;
@@ -213,13 +209,9 @@ void Patakuri::fn_801E4F40(TVec3f* pOut, Patakuri* pPatakuri) {
     MR::extractMtxTrans(MR::getJointMtx(pPatakuri, "Root"), &actorRoot);
     MR::extractMtxTrans(MR::getJointMtx(pPatakuri, "Body"), &actorBody);
 
-    TVec3f diffActor = actorBody - actorRoot;
-    TVec3f diffBody = bodyBody - bodyRoot;
-    TVec3f base = pPatakuri->mPosition - diffBody;
-    *pOut = base + diffActor;
+    return (pPatakuri->mPosition - (bodyBody - bodyRoot)) + (actorBody - actorRoot);
 }
 
-// NONMATCHING: 99.6% (register allocation / scheduling; see sg.py diff)
 bool Patakuri::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return true;
@@ -234,8 +226,7 @@ bool Patakuri::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         mWing->fn_801E4A20();
         setNerve(&PatakuriNrvDead::sInstance);
 
-        TVec3f pos;
-        fn_801E4F40(&pos, this);
+        TVec3f pos = fn_801E4F40(this);
         mBody->fn_801B9B10(pos, mQuat, mVelocity);
         mBody->receiveMsgPlayerAttack(msg, pSender, pReceiver);
         MR::invalidateClipping(mBody);
@@ -245,23 +236,15 @@ bool Patakuri::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
-// NONMATCHING: 99.5% (register allocation / scheduling; see sg.py diff)
 bool Patakuri::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiStartTongue(msg)) {
+        TQuat4f quat;
         TVec3f toPlayer;
         MR::calcVecToPlayerH(&toPlayer, this, nullptr);
         TVec3f up = -mGravity;
-        TQuat4f quat;
         MR::makeQuatUpFront(&quat, up, toPlayer);
 
-        TVec3f vel(mGravity);
-        vel.x *= -30.0f;
-        vel.y *= -30.0f;
-        vel.z *= -30.0f;
-
-        TVec3f pos;
-        fn_801E4F40(&pos, this);
-        mBody->fn_801B9B10(pos, quat, vel);
+        mBody->fn_801B9B10(fn_801E4F40(this), quat, mGravity * -30.0f);
         setNerve(&PatakuriNrvHitStep::sInstance);
         return true;
     }
@@ -285,7 +268,7 @@ void Patakuri::fn_801E52A0() {
     }
 
     f32 speed = 1.0f;
-    f32 coord = MR::getRailCoord(this) - 30.0f;
+    f32 coord = MR::fn_80052E20(this) - 30.0f;
     f32 railLen = MR::getRailTotalLength(this);
     if (railLen - coord < 200.0f) {
         coord = (MR::getRailTotalLength(this) - 30.0f) - coord;
@@ -296,18 +279,15 @@ void Patakuri::fn_801E52A0() {
     }
 
     if (!MR::isSameDirection(MR::getRailDirection(this), mGravity, 0.1f)) {
-        TVec3f axis(0.0f, 1.0f, 0.0f);
-        if (MR::getRailCoord(this) - 30.0f < 100.0f) {
-            TVec3f revDir = -MR::getRailDirection(this);
-            MR::turnVecToVecDegree(&mFront, mFront, revDir, 3.0f, axis);
+        if (MR::fn_80052E20(this) - 30.0f < 100.0f) {
+            MR::turnVecToVecDegree(&mFront, mFront, -MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));
         } else {
-            MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, axis);
+            MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));
         }
     } else {
         TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
         MR::normalize(&toPlayer);
-        TVec3f axis(0.0f, 1.0f, 0.0f);
-        MR::turnVecToVecDegree(&mFront, mFront, toPlayer, 2.0f, axis);
+        MR::turnVecToVecDegree(&mFront, mFront, toPlayer, 2.0f, TVec3f(0, 1, 0));
     }
 
     MR::moveCoordAndFollowTrans(this, 4.0f * speed);
@@ -341,10 +321,7 @@ void Patakuri::fn_801E55A0() {
     }
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriNrvDead::sInstance);
-        TVec3f pos;
-        fn_801E4F40(&pos, this);
-        TVec3f zero(0.0f);
-        mBody->fn_801B9B10(pos, mQuat, zero);
+        mBody->fn_801B9B10(fn_801E4F40(this), mQuat, TVec3f(0.0f, 0.0f, 0.0f));
     }
 }
 
@@ -355,8 +332,7 @@ void Patakuri::fn_801E5640() {
     MR::setPosition(this, *MR::getPlayerPos());
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriNrvDead::sInstance);
-        TVec3f pos;
-        fn_801E4F40(&pos, this);
+        TVec3f pos = fn_801E4F40(this);
         MR::setPosition(mBody, pos);
         MR::appearCoinPop(mBody, mBody->mPosition, 1);
         mBody->calcAndSetBaseMtx();
@@ -372,8 +348,7 @@ void Patakuri::fn_801E5640() {
 void Patakuri::fn_801E5730() {
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriNrvDead::sInstance);
-        TVec3f pos;
-        fn_801E4F40(&pos, this);
+        TVec3f pos = fn_801E4F40(this);
         MR::setPosition(mBody, pos);
         MR::appearCoinPop(mBody, mBody->mPosition, 1);
         mBody->calcAndSetBaseMtx();

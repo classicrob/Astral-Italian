@@ -128,11 +128,6 @@ MogucchiShooter::MogucchiShooter(const char* pName) : LiveActor(pName) {
 
 MogucchiShooter::~MogucchiShooter() {}
 
-inline MogucchiSpike::MogucchiSpike(LiveActor* pActor, const char* pModel, const char* pName, MtxPtr pMtx, int drawType, bool isBaseMtx)
-    : PartsModel(pActor, pModel, pName, pMtx, drawType, isBaseMtx) {
-    mScaleCtrl = new AnimScaleController(nullptr);
-}
-
 // NONMATCHING: callback stack placement and string-pool address-load scheduling; calls, literals and field offsets verified.
 void MogucchiShooter::init(const JMapInfoIter& rIter) {
     MR::initRotation(&mRot, rIter);
@@ -157,7 +152,7 @@ void MogucchiShooter::init(const JMapInfoIter& rIter) {
     JointControlDelegator< MogucchiShooter >* pJoint = new JointControlDelegator< MogucchiShooter >(this, callback, nullptr);
     MR::setJointControllerParam(pJoint, this, jointName);
     mJointCtrl = pJoint;
-    MogucchiSpike* spike = new MogucchiSpike(this, "狙撃手", "MogucchiSpike", MR::getJointMtx(this, "Cockpit"), 0x14, false);
+    MogucchiSpike* spike = new MogucchiSpike(this, MR::getJointMtx(this, "Cockpit"));
     spike->initWithoutIter();
     reinterpret_cast<u8*>(spike)[0x9D] = 1;
     mSpike = spike;
@@ -550,7 +545,8 @@ void MogucchiSpike::control() {
     mScaleCtrl->updateNerve();
 }
 
-void MogucchiSpike::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+#pragma pool_strings off
+inline void MogucchiSpike::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayerOrRide(pReceiver) && MR::isSensorEnemyAttack(pSender)) {
         MR::sendMsgEnemyAttackStrong(pReceiver, pSender);
         const char* name = MR::getPlayingBckName(this);
@@ -561,6 +557,8 @@ void MogucchiSpike::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
     MR::sendMsgPush(pReceiver, pSender);
 }
+
+#pragma pool_strings reset
 
 bool MogucchiSpike::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceReflect(msg)) {
@@ -573,3 +571,11 @@ namespace {
     const f32 sViewAngle = 90.0f;
     const f32 sViewHalf = 0.5f;
 }
+
+#pragma pool_strings off
+inline MogucchiSpike::MogucchiSpike(LiveActor* pActor, MtxPtr pMtx)
+    : PartsModel(pActor, "狙撃手", "MogucchiSpike", pMtx, 0x14, false) {
+    mScaleCtrl = new AnimScaleController(nullptr);
+}
+#pragma pool_strings reset
+

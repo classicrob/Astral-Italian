@@ -17,12 +17,6 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 
-// Shared string blob of the unit (names are read from its offsets, as the SMG2 code does).
-// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
-extern char lbl_80692B88[];
-
-// Unnamed SMG2 helpers, defined elsewhere in the unit or in other TUs.
-
 namespace NrvTeresaAtomic {
     NEW_NERVE(TeresaAtomicNrvAppear, TeresaAtomic, Appear);
     NEW_NERVE(TeresaAtomicNrvWait, TeresaAtomic, Wait);
@@ -35,13 +29,7 @@ namespace NrvTeresaAtomic {
 
     class TeresaAtomicNrvDeadPowerStarGet : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
-            TeresaAtomic* actor = reinterpret_cast< TeresaAtomic* >(pSpine->mExecutor);
-            if (MR::isFirstStep(actor)) {
-                MR::tryStartActionNotPlaying(actor, "Wait");
-            }
-            actor->kill();
-        }
+        virtual void execute(Spine* pSpine) const;
         static TeresaAtomicNrvDeadPowerStarGet sInstance;
     };
     TeresaAtomicNrvDeadPowerStarGet TeresaAtomicNrvDeadPowerStarGet::sInstance ATTRIBUTE_WEAK;
@@ -61,8 +49,11 @@ TeresaAtomic::TeresaAtomic(const char* pName) : LiveActor(pName) {
     mChildCount = 0;
 }
 
+namespace {
+    const char* sFollowerNames[] = {"Follower1", "Follower2", "Follower3", "Follower4"};
+}
+
 void TeresaAtomic::init(const JMapInfoIter& rIter) {
-    char* pBase = lbl_80692B88;
     MR::initActor(this, rIter, false);
     if (MR::isConnectedWithRail(rIter)) {
         MR::moveCoordAndTransToStartPos(this);
@@ -88,12 +79,12 @@ void TeresaAtomic::init(const JMapInfoIter& rIter) {
     MR::resetPosition(this, pos);
     mChildCount = 4;
     mChildParts = new PartsModel*[mChildCount];
-    mPartsHost = MR::createPartsModelMapObj2(this, pBase + 0x40, pBase + 0x54, getBaseMtx());
-    MR::startAction(mPartsHost, pBase + 0x6C);
-    const char* const* followerNames = reinterpret_cast<const char* const*>(pBase + 0x30);
+    mPartsHost = MR::createPartsModelMapObj2(this, "取り巻きテレサ位置", "TeresaAtomicPosition", getBaseMtx());
+    MR::startAction(mPartsHost, "Wait");
+    const char* const* followerNames = sFollowerNames;
     for (s32 i = 0; i < mChildCount; i++) {
-        mChildParts[i] = new PartsModel(mPartsHost, pBase + 0x74, nullptr, nullptr, -1, false);
-        MR::initActor(mChildParts[i], pBase + 0x84, pBase + 0x8C, false);
+        mChildParts[i] = new PartsModel(mPartsHost, "取り巻きテレサ", nullptr, nullptr, -1, false);
+        MR::initActor(mChildParts[i], "Teresa", "TeresaFollower", false);
         mChildParts[i]->initWithoutIter();
         mChildParts[i]->loadFixedPosition(followerNames[i], this);
         MR::setSensorFollowPos(this, followerNames[i], &mChildParts[i]->mPosition);
@@ -169,7 +160,7 @@ bool TeresaAtomic::fn_8020F940() {
     MR::getPlayerFrontVec(&front);
     TVec3f* pPlayerPos = MR::getPlayerPos();
     TVec3f diff = this->mPosition - *pPlayerPos;
-    return MR::diffAngleAbs(front, diff) < 0.8726646f;
+    return MR::diffAngleAbs(front, diff) < 0.87266463f;
 }
 
 bool TeresaAtomic::isEnableAttack() const {
@@ -378,3 +369,11 @@ void TeresaAtomic::exeDisappear() {
     }
 }
 
+
+void NrvTeresaAtomic::TeresaAtomicNrvDeadPowerStarGet::execute(Spine* pSpine) const {
+    TeresaAtomic* actor = static_cast<TeresaAtomic*>(pSpine->mExecutor);
+    if (MR::isFirstStep(actor)) {
+        MR::tryStartActionNotPlaying(actor, "Wait");
+    }
+    actor->kill();
+}

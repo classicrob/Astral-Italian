@@ -103,16 +103,17 @@ bool AttackRockStateFall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
     return false;
 }
 
-// NONMATCHING: Host reloads and floating-point scheduling differ.
+// NONMATCHING: Commutative FP multiply operand order and FP register allocation differ.
 void AttackRockStateFall::fn_80153DE0() {
+    f32 dist = PSVECDistance(&this->mLandPos, &this->mHost->mPosition);
     AttackRock* pHost = this->mHost;
-    f32 dist = PSVECDistance(&this->mLandPos, &pHost->mPosition);
-    f32 radius = 1.5f + pHost->fn_801510C0() * pHost->mScale.y;
+    f32 fnRadius = pHost->fn_801510C0();
+    f32 radius = 1.5f + fnRadius * pHost->mScale.y;
     if (dist < radius) {
-        f32 scale = pHost->mScale.y;
-        f32 base = pHost->fn_801510C0() * scale;
-        MR::setSensorRadius(this->mHost, "Land",
-                            MR::getLinerValueFromMinMax(dist, 0.0f, radius, pHost->fn_801510C0() * pHost->mScale.y, 0.5f * base));
+        f32 fnBase = pHost->fn_801510C0();
+        f32 base = fnBase * pHost->mScale.y;
+        f32 half = 0.5f * base;
+        MR::setSensorRadius(this->mHost, "Land", MR::getLinerValueFromMinMax(dist, 0.0f, radius, pHost->fn_801510C0() * pHost->mScale.y, half));
         this->mIsNear = true;
         return;
     }

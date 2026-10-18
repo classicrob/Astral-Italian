@@ -12,6 +12,7 @@ public:
     virtual void initAfterPlacement();
     virtual void appear();
     virtual void control();
+    virtual void movement();
     virtual void startClipped();
     virtual void endClipped();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
@@ -33,7 +34,6 @@ public:
     void exeAttackWait();
     void exeStopPointing();
     void endStopPointing();
-    void exeKill() {}
 
     ActorStateParamScale* mParamScale;
     const char* _8C;

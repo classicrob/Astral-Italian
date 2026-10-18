@@ -289,14 +289,12 @@ void fn_801552A0(LiveActor* pActor) {
 }
 
 #pragma auto_inline off
-// NONMATCHING: Negation helper remains out of line instead of paired-single expansion.
 f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat) {
     TVec3f dir;
     MR::normalizeOrZero(&dir, pActor->mVelocity);
     TVec3f zdir;
     pQuat->getZDir(zdir);
-    TVec3f negZ;
-    JMathInlineVEC::PSVECNegate(&zdir, &negZ);
+    TVec3f negZ = -zdir;
     return 57.29578f * MR::diffAngleAbs(dir, negZ);
 }
 #pragma auto_inline on

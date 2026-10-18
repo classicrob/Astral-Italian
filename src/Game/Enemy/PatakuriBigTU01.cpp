@@ -81,6 +81,12 @@ void PatakuriBigWing::calcAndSetBaseMtx() {
     PartsModel::calcAndSetBaseMtx();
 }
 
+void PatakuriBigWing::fn_801E6474() {
+    MR::startAction(this, "Damage");
+    mCheckHiddenHost = true;
+    setNerve(&PatakuriBigWingNrvKill::sInstance);
+}
+
 // ---------------------------------------------------------------------------------------------
 // PatakuriBig
 // ---------------------------------------------------------------------------------------------
@@ -94,7 +100,6 @@ PatakuriBig::PatakuriBig(const char* pName) : LiveActor(pName) {
 
 PatakuriBig::~PatakuriBig() {}
 
-// NONMATCHING: 96.5% (register allocation / scheduling; see sg.py diff)
 void PatakuriBig::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "KuriboChief", "PatakuriBig", false);
     MR::moveCoordAndTransToNearestRailPos(this);
@@ -113,12 +118,12 @@ void PatakuriBig::init(const JMapInfoIter& rIter) {
     }
 
     initHitSensor(8);
-    MR::addHitSensorAtJointEnemyAttack(this, "Body", "Body", 8, 150.0f, TVec3f(0.0f));
+    MR::addHitSensorAtJointEnemyAttack(this, "Body", "Body", 8, 150.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorAtJointEnemyAttack(this, "Head1", "Head", 8, 300.0f, TVec3f(120.0f, 0.0f, 0.0f));
     MR::addHitSensorAtJointEnemyAttack(this, "Head2", "Head", 8, 150.0f, TVec3f(360.0f, 0.0f, 0.0f));
     MR::addHitSensorAtJointEnemyAttack(this, "LegL", "LegL", 8, 130.0f, TVec3f(60.0f, -50.0f, 0.0f));
     MR::addHitSensorAtJointEnemyAttack(this, "LegR", "LegR", 8, 130.0f, TVec3f(60.0f, -50.0f, 0.0f));
-    MR::addHitSensorEnemy(this, "Punch", 8, 400.0f, TVec3f(0.0f));
+    MR::addHitSensorEnemy(this, "Punch", 8, 400.0f, TVec3f(0.0f, 0.0f, 0.0f));
 
     mWing = new PatakuriBigWing(reinterpret_cast< const char* >(this));
     mWing->initWithoutIter();
@@ -141,7 +146,7 @@ void PatakuriBig::makeActorAppeared() {
     MR::makeQuatAndFrontFromRotate(&mQuat, &mFront, this);
 }
 
-// NONMATCHING: 98.4% (register allocation / scheduling; see sg.py diff)
+// NONMATCHING: epilogue restore order (lwz r31 before lwz r0)
 void PatakuriBig::control() {
     mScaleCtrl->updateNerve();
     MR::fn_800104F0(&mQuat, this, &mFront, 0.05f, 0.2f);
@@ -153,18 +158,17 @@ void PatakuriBig::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mScaleCtrl);
 }
 
-// NONMATCHING: 96.5% (register allocation / scheduling; see sg.py diff)
 void PatakuriBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver) && MR::isSensorEnemyAttack(pSender)) {
         if (isNerve(&PatakuriBigNrvBind::sInstance)) {
             MR::sendMsgPush(pReceiver, pSender);
-        }
-        if (isNerve(&PatakuriBigNrvRail::sInstance)) {
+        } else if (isNerve(&PatakuriBigNrvRail::sInstance)) {
             if (!MR::isPlayerHipDropFalling() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
                 MR::startAction(mWing, "Hit");
                 MR::startAction(this, "PatakuriHit");
+            } else {
+                MR::sendMsgPush(pReceiver, pSender);
             }
-            MR::sendMsgPush(pReceiver, pSender);
         }
     } else if (!MR::isSensorEnemy(pSender)) {
         MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
@@ -179,7 +183,6 @@ bool PatakuriBig::fn_801E6370() {
     return false;
 }
 
-// NONMATCHING: 89.6% (register allocation / scheduling; see sg.py diff)
 bool PatakuriBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorEnemy(pReceiver)) {
         return false;
@@ -195,9 +198,8 @@ bool PatakuriBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
         return false;
     }
     if (MR::isMsgPlayerHitAll(msg)) {
-        MR::startAction(mWing, "Damage");
-        mWing->mCheckHiddenHost = true;
-        mWing->setNerve(&PatakuriBigWingNrvKill::sInstance);
+        PatakuriBigWing* pWing = mWing;
+        pWing->fn_801E6474();
         setNerve(&PatakuriBigNrvDead::sInstance);
 
         TVec3f pos = fn_801E6280(this);
@@ -231,6 +233,7 @@ TVec3f PatakuriBig::fn_801E6280(PatakuriBig* pPatakuri) {
     return result;
 }
 
+// NONMATCHING: stack offsets of revDir/toPlayer/axis temporaries only
 void PatakuriBig::fn_801E6510() {
     TVec3f toPlayer;
     if (MR::isBckOneTimeAndStopped(this)) {

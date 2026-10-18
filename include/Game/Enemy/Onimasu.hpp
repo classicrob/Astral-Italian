@@ -3,6 +3,8 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+class ActorStateParamScale;
+
 /// @brief Tox Box
 class Onimasu : public LiveActor {
 public:
@@ -15,6 +17,8 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
     virtual void initAfterPlacement();
+    virtual void control();
+    virtual void movement();
     virtual void calcAndSetBaseMtx();
 
     virtual void initFromRailPoint() = 0;
@@ -45,7 +49,7 @@ public:
     void exeMove();
     void exeStamp();
 
-    /* 0x90 */ s32 _90;
+    /* 0x90 */ ActorStateParamScale* _90;
     s32 _94;
     s32 _98;
     s32 _9C;

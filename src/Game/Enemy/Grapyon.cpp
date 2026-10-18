@@ -10,6 +10,8 @@
 #include <JSystem/JGeometry/TUtil.hpp>
 
 // Single Newton step on frsqrte (stays in f32, no frsp).
+extern const f32 cGrapyonFallAccel;
+
 static inline f32 sqrtNewton(__REGISTER f32 val) {
     if (val > 0.0f) {
         __REGISTER f32 e;
@@ -168,6 +170,8 @@ void Grapyon::exeJump() {
 }
 
 // NONMATCHING: target keeps 2.0f * 1.2f unfolded (two literal loads) and different float register allocation around the sqrt step
+#pragma push
+#pragma opt_common_subs off
 void Grapyon::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Fall");
@@ -184,11 +188,10 @@ void Grapyon::exeFall() {
         if (MR::isShadowProjected(this, nullptr)) {
             f32 len = MR::getShadowProjectionLength(this, nullptr);
             f32 g = MR::calcGravitySpeed(this);
-            f32 accel = 1.2f;
-            f32 d = g * g + 2.0f * accel * len;
+            f32 d = g * g + 2.0f * cGrapyonFallAccel * len;
             if (d > 0.0f) {
                 f32 s = sqrtNewton(d);
-                if (-g + s / accel <= 20.0f) {
+                if (-g + s / cGrapyonFallAccel <= 20.0f) {
                     setNerve(NRV(Land));
                     return;
                 }
@@ -203,6 +206,9 @@ void Grapyon::exeFall() {
         return;
     }
 }
+
+
+#pragma pop
 
 // NONMATCHING: target hoists the inlined TVec3 add operands into r30/r31 (stack slot / register allocation only)
 void Grapyon::exeLand() {
@@ -504,3 +510,5 @@ bool Grapyon::tryBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
 
 Grapyon::~Grapyon() {
 }
+
+const f32 cGrapyonFallAccel = 1.2f;

@@ -120,7 +120,6 @@ MameMuimuiScorer::MameMuimuiScorer(const char* pName) : LiveActor(pName) {
 
 // NONMATCHING: register allocation (resource holder / count / new actor swap r27-r28).
 void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
-    s32 num;
     MR::initDefaultPos(this, rIter);
     MR::connectToSceneEnemyMovement(this);
     MR::getJMapInfoMatrixFromRT(rIter, &mInitialMtx);
@@ -136,7 +135,7 @@ void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
         mLevel = 1;
         mTargetScore = 500;
     }
-    num = mPlacements->mNum;
+    const s32 num = mPlacements->mNum;
     mGroups[0] = new MameMuimuiGroup("\227\316\203}\203\201\203\200\203C\203\212\203X\203g", num);
     for (s32 i = 0; i < num; i++) {
         MameMuimui* pMuimui = new MameMuimui("\227\316\203}\203\201\203\200\203C");
@@ -194,7 +193,8 @@ void MameMuimuiScorer::init(const JMapInfoIter& rIter) {
 
 MameMuimuiGroup::MameMuimuiGroup(const char* pName, int num) : LiveActorGroup(pName, num) {}
 
-// NONMATCHING: the target keeps &pos in a register (r30) and has no loop guard; ours re-materialises it and adds a zero-count guard.
+#pragma push
+#pragma opt_loop_invariants off
 void MameMuimuiScorer::fn_801C0BD0(ResourceHolder* pHolder) {
     JMapInfo* pCsv = MR::createCsvParser(pHolder, "PositionList");
     s32 num = MR::getCsvDataElementNum(pCsv);
@@ -202,7 +202,7 @@ void MameMuimuiScorer::fn_801C0BD0(ResourceHolder* pHolder) {
     TVec3f axisX, axisY, axisZ;
     MR::calcActorAxis(&axisX, &axisY, &axisZ, this);
     TVec3f pos;
-    for (s32 i = 0; i < num; i++) {
+    for (s32 i = 0; i < num; ++i) {
         pos = mPosition;
         TVec3f offset(0.0f);
         MR::getCsvDataVec(&offset, pCsv, "Position", i);
@@ -215,6 +215,8 @@ void MameMuimuiScorer::fn_801C0BD0(ResourceHolder* pHolder) {
         MR::setQuatUpNoSupport(static_cast< LiveActor* >(pModel), axisY);
     }
 }
+
+#pragma pop
 
 void MameMuimuiScorer::registerEndCallback(const MR::FunctorBase& rFunctor) {
     mEndCallback = rFunctor.clone(nullptr);

@@ -44,7 +44,7 @@ void BegomanLauncher::init(const JMapInfoIter& rIter) {
         setName("トゲベーゴマンランチャー");
         for (s32 i = 0; i < mBegomanCount; i++) {
             mBegomanArray[i] = new BegomanSpike("トゲベーゴマン");
-            mBegomanArray[i]->mPosition.set(mPosition);
+            MR::setPosition(mBegomanArray[i], mPosition);
             mBegomanArray[i]->init(rIter);
             mBegomanArray[i]->makeActorDead();
         }
@@ -54,14 +54,14 @@ void BegomanLauncher::init(const JMapInfoIter& rIter) {
         MR::declareCoin(this, mBegomanCount);
         for (s32 i = 0; i < mBegomanCount; i++) {
             mBegomanArray[i] = new BegomanBaby(this, "ランチャーベビー");
-            mBegomanArray[i]->mPosition.set(mPosition);
+            MR::setPosition(mBegomanArray[i], mPosition);
             mBegomanArray[i]->init(rIter);
             mBegomanArray[i]->makeActorDead();
         }
     } else {
         for (s32 i = 0; i < mBegomanCount; i++) {
             mBegomanArray[i] = new BegomanSpring("バネベーゴマン");
-            mBegomanArray[i]->mPosition.set(mPosition);
+            MR::setPosition(mBegomanArray[i], mPosition);
             mBegomanArray[i]->init(rIter);
             mBegomanArray[i]->makeActorDead();
         }
@@ -73,14 +73,14 @@ void BegomanLauncher::init(const JMapInfoIter& rIter) {
     initEffectKeeper(0, "BegomanLauncher", false);
     initSound(8, "BegomanLauncher", nullptr, TVec3f(0.0f));
     MR::initShadowVolumeSphere(this, 100.0f);
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
+    if (MR::initUseStageSwitchReadAppear(this, rIter)) {
         MR::listenStageSwitchOnAppear(this, MR::Functor(this, &BegomanLauncher::onSwitchAppear));
         makeActorDead();
     } else {
         appear();
     }
 
-    if (MR::useStageSwitchReadB(this, rIter)) {
+    if (MR::initUseStageSwitchReadB(this, rIter)) {
         MR::listenStageSwitchOnB(this, MR::Functor(this, &BegomanLauncher::kill));
     }
 }
@@ -112,6 +112,7 @@ void BegomanLauncher::exeWaitAfterSwitchOn() {
         for (s32 i = 0; i < mBegomanCount; i++) {
             mBegomanArray[i]->makeActorDead();
         }
+        return;
     }
 
     if (MR::isGreaterStep(this, mAppearDelay)) {
@@ -148,6 +149,7 @@ void BegomanLauncher::exeWaitForLaunch() {
     }
 }
 
+// NONMATCHING: compiler reuses r31 for the child index instead of recomputing it into r0.
 void BegomanLauncher::exeLaunch() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
@@ -165,7 +167,11 @@ void BegomanLauncher::exeLaunch() {
                 if (MR::isDead(mBegomanArray[i])) {
                     MR::calcGravity(this);
                     MR::setPosition(mBegomanArray[i], mPosition);
-                    mBegomanArray[i]->mVelocity.set(mGravity * -30.0f);
+                    TVec3f& velocity = mBegomanArray[i]->mVelocity;
+                    TVec3f launchVelocity = mGravity * -30.0f;
+                    velocity.x = launchVelocity.x;
+                    velocity.y = launchVelocity.y;
+                    velocity.z = launchVelocity.z;
                     mBegomanArray[i]->appear();
                     setNerve(GET_NERVE(BegomanLauncher, HostTypeNrvDisappear));
                     return;
@@ -200,4 +206,17 @@ void BegomanLauncher::exeDisappear() {
     if (MR::isGreaterStep(this, 90)) {
         setNerve(GET_NERVE(BegomanLauncher, HostTypeNrvWait));
     }
+}
+
+bool BegomanLauncher::fn_801631C0(const LiveActor* actor) const {
+    for (s32 i = 0; i < mBegomanCount; ++i) {
+        if (mBegomanArray[i] == actor) {
+            return true;
+        }
+    }
+    return false;
+}
+
+LiveActor* BegomanLauncher::fn_80163200(s32 index) const {
+    return mBegomanArray[index];
 }

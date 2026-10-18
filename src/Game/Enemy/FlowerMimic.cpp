@@ -1,8 +1,8 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Enemy/FlowerMimic.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorStateUtil.hpp"
-#include <cmath>
 
 namespace {
     // Nerve objects of FlowerMimic, declared in the sinit order of the target.
@@ -35,9 +35,11 @@ namespace {
     FlowerMimicNrvBind FlowerMimicNrvBind::sInstance ATTRIBUTE_WEAK;
 }  // namespace
 
-// NONMATCHING: 72.4% (ctor store order / register allocation)
 FlowerMimic::FlowerMimic(const char* pName) : LiveActor(pName) {
-    mQuat.set(0.0f, 0.0f, 0.0f, 1.0f);
+    mQuat.x = 0.0f;
+    mQuat.y = 0.0f;
+    mQuat.z = 0.0f;
+    mQuat.w = 1.0f;
     mOffset.set(0.0f, 0.0f, 0.0f);
     mPrevOffset.set(0.0f, 0.0f, 0.0f);
     mInitPos.set(0.0f, 0.0f, 0.0f);
@@ -48,20 +50,18 @@ FlowerMimic::FlowerMimic(const char* pName) : LiveActor(pName) {
     mCollisionObj = nullptr;
     mTimer = 0;
     mAngle = 0.0f;
-    mFloorTouchFlag = 0;
+    mFloorTouchFlag = false;
 }
 
 FlowerMimic::~FlowerMimic() {}
 
-// NONMATCHING: 78.7% (register allocation / scheduling; see sg.py diff)
 void FlowerMimic::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "FlowerMimic", false);
-    mInitPos = mPosition;
+    mInitPos.set(mPosition);
 
     mScaleCtrl = new AnimScaleController(nullptr);
 
-    mJointCtrl = new JointControlDelegator< FlowerMimic >(this, &FlowerMimic::fn_80180DE0, nullptr);
-    MR::setJointControllerParam(mJointCtrl, this, "LeafCenter");
+    mJointCtrl = MR::createJointDelegatorWithNullChildFunc(this, &FlowerMimic::fn_80180DE0, "LeafCenter");
 
     mSpring = new SpringValue();
     mSpring->setParam(0.0f, 0.0f, 0.05f, 0.88f, 0.0f);
@@ -81,11 +81,11 @@ void FlowerMimic::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-// NONMATCHING: 57.5% (register allocation / scheduling; see sg.py diff)
+// NONMATCHING: register allocation only (target keeps the inlined operator+ operand addresses in callee-saved registers)
 void FlowerMimic::control() {
     mScaleCtrl->updateNerve();
 
-    if (mFloorTouchFlag != 0) {
+    if (mFloorTouchFlag) {
         if (mTimer == 0) {
             mSpring->mVelocity += -8.0f;
         }
@@ -96,20 +96,23 @@ void FlowerMimic::control() {
             mTimer = 0;
         }
     }
-    mFloorTouchFlag = 0;
+    mFloorTouchFlag = false;
 
     if (fn_80181060()) {
         if (mBindStarPointer->tryStartPointBind()) {
             MR::validateCollisionParts(this);
             setNerve(&FlowerMimicNrvBind::sInstance);
+            return;
         }
     }
 
-    f32 angle = mAngle + 12.0f;
-    mAngle = fmod(angle, 360.0f);
+    mAngle = MR::repeatDegree(mAngle + 12.0f);
 
     mSpring->update();
-    mPosition = mInitPos;
+    f32 offset = mSpring->mSpringValue;
+    TVec3f up;
+    MR::calcUpVec(&up, this);
+    mPosition.set(mInitPos + up * offset);
 }
 
 void FlowerMimic::calcAndSetBaseMtx() {
@@ -160,12 +163,12 @@ bool FlowerMimic::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
 // NONMATCHING: 98.3% (register allocation / scheduling; see sg.py diff)
 bool FlowerMimic::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
     if (MR::isMsgFloorTouch(msg)) {
-        mFloorTouchFlag = 1;
+        mFloorTouchFlag = true;
     }
     if (MR::isMsgAutoRushBegin(msg)) {
         if (isNerve(&FlowerMimicNrvAttack::sInstance)) {
             MR::fn_800514B0(&mQuat, &mOffset);
-            mPrevOffset = mOffset;
+            mPrevOffset.set(mOffset);
             MR::calcPositionUpOffset(&mOffset, this, -75.0f);
             setNerve(&FlowerMimicNrvEat::sInstance);
             return true;
@@ -239,24 +242,26 @@ void FlowerMimic::fn_801812C0() {
     }
 }
 
+// NONMATCHING: register allocation only (target keeps the inlined operator- operand addresses in callee-saved registers)
 void FlowerMimic::fn_80181320() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "EatEnd");
-        mPrevOffset = mOffset;
+        mPrevOffset.set(mOffset);
         MR::showPlayer();
     }
 
     TVec3f offset;
     MR::calcPositionUpOffset(&offset, this, 200.0f);
-    mOffset = offset;
+    mOffset.set(offset);
 
     if (MR::isStep(this, 1)) {
         TVec3f up;
         MR::calcUpVec(&up, this);
-        TVec3f sp2C(2.0f * (mQuat.x * mQuat.z) + 2.0f * (mQuat.w * mQuat.y),
-                    2.0f * (mQuat.y * mQuat.z) - 2.0f * (mQuat.w * mQuat.x),
-                    (1.0f - 2.0f * (mQuat.x * mQuat.x)) - 2.0f * (mQuat.y * mQuat.y));
-        TVec3f sp20 = sp2C * 80.0f;
+        TVec3f sp2C;
+        sp2C.set< f32 >(2.0f * (mQuat.x * mQuat.z) + 2.0f * (mQuat.w * mQuat.y),
+                       2.0f * (mQuat.y * mQuat.z) - 2.0f * (mQuat.w * mQuat.x),
+                       (1.0f - 2.0f * (mQuat.x * mQuat.x)) - 2.0f * (mQuat.y * mQuat.y));
+        TVec3f sp20 = (up - sp2C * 0.1f) * 80.0f;
         MR::restrictVelocityToPlaneModeArea(&sp20, mPosition);
         MR::endBindAndPlayerDamage(this, sp20);
         MR::validateCollisionParts(this);

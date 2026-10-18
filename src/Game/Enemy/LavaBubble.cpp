@@ -69,6 +69,7 @@ void LavaBubble::init(const JMapInfoIter& rIter) {
     if (-1.0f != arg2) {
         mUseFlippedGravity = 1;
     }
+    mEffectMtx.setInline(mBaseMtx);
     MR::setEffectHostMtx(this, "Sign", mEffectMtx);
     MR::setGroupClipping(this, rIter, 16);
     MR::useStageSwitchAwake(this, rIter);
@@ -85,28 +86,27 @@ void LavaBubble::calcAndSetBaseMtx() {
 }
 
 void LavaBubble::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) != 0) {
-        MR::sendMsgEnemyAttackFire(pReceiver, pSender);
+    if (MR::isSensorPlayer(pReceiver)) {
+        if (MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
+            return;
+        }
     }
 }
 
 void LavaBubble::control() {
     TVec3f toPlayer(*MR::getPlayerPos());
-    toPlayer -= mHomePos;
+    toPlayer.sub(toPlayer, mHomePos);
     if (toPlayer.length() < 2000.0f) {
         TVec3f dir(0.0f);
         if (mUseFlippedGravity != 0) {
-            TVec3f flipped = -mPrevGravity;
-            dir.set(flipped);
+            dir.set(-mPrevGravity);
         } else {
             dir.set(mUpVec);
         }
         dir *= 200.0f;
         TVec3f start(mHomePos);
         start += dir;
-        TVec3f end(dir);
-        end *= -1.0f;
-        dir.set(end);
+        dir = dir * -1.0f;
         Triangle tri;
         TVec3f hit;
         if (MR::getFirstPolyOnLineToMapExceptActor(&hit, &tri, start, dir, this)) {
@@ -140,6 +140,7 @@ void LavaBubble::exeWait() {
     }
 }
 
+// NONMATCHING: launch-duration and launch-count loads are scheduled in reverse order.
 void LavaBubble::exeLaunch() {
     if (MR::isFirstStep(this)) {
         MR::tryDeleteEffect(this, "Sign");
@@ -153,17 +154,15 @@ void LavaBubble::exeLaunch() {
     }
     mVelocity.set(mSavedVel);
     f32 speed = mSpeed;
-    TVec3f fall = getFallDir();
-    TVec3f step(fall);
-    step *= speed;
-    mVelocity.add(step);
+    mVelocity.add(getFallDir() * speed);
     mSavedVel.set(mVelocity);
     fn_801BF290();
     if (mLaunchCount == mLaunchDuration - 14) {
         MR::startActionSound(this, "BackInMagma", -1, -1, -1);
     }
+    s32 duration = mLaunchDuration;
     s32 count = mLaunchCount;
-    if (count > mLaunchDuration) {
+    if (duration < count) {
         setNerve(GET_LAVABUBBLE_NERVE(LavaBubbleNrvWait));
         MR::zeroVelocity(this);
         return;
@@ -213,17 +212,19 @@ void LavaBubble::fn_801BF0A0() {
 }
 
 void LavaBubble::fn_801BF1C0() {
-    f32 size = 40.0f;
+    s32 step = 40;
+    f32 size = step;
     mSpeed = 2.0f * (mRange / (size * size));
-    TVec3f dir(0.0f);
+    f32 launchSpeed = mSpeed * size;
+    TVec3f vel;
+    TVec3f dir;
     if (mUseFlippedGravity != 0) {
         TVec3f flipped = -mPrevGravity;
         dir.set(flipped);
     } else {
         dir.set(mUp);
     }
-    TVec3f vel(0.0f);
-    MR::fn_80010910(&vel, dir, mSpeed * size);
+    MR::fn_80010910(&vel, dir, launchSpeed);
     mVelocity.set(vel);
     MR::invalidateClipping(this);
 }
@@ -233,12 +234,13 @@ bool LavaBubble::fn_801BF290() {
     if (mBounceCooldown > 0) {
         return false;
     }
-    TVec3f up(0.0f);
+    TVec3f up;
     MR::calcUpVec(&up, this);
     up *= 50.0f;
+    TVec3f dir;
     TVec3f down(up);
     down *= -1.0f;
-    TVec3f dir(down);
+    dir = down;
     if (MR::isExistMapCollision(mPosition, up)) {
         MR::emitEffect(this, "Land");
         mBounceCooldown = 10;

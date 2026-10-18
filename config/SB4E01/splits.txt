@@ -3030,6 +3030,9 @@ Game/Enemy/MameMuimui.cpp:
 Game/Enemy/MameMuimuiTU01.cpp:
 	.text       start:0x801C0580 end:0x801C19D0
 	.ctors      start:0x8064419C end:0x806441A0
+	.data       start:0x8068C040 end:0x8068C368
+	.sbss       start:0x807D2AA0 end:0x807D2AC0
+	.sdata2     start:0x807DAF60 end:0x807DAF68
 
 Game/Enemy/MechanicKoopaMini.cpp:
 	.text       start:0x801C19D0 end:0x801C3A50
@@ -3346,6 +3349,9 @@ Game/Enemy/Teresa.cpp:
 Game/Enemy/TeresaAtomic.cpp:
 	.text       start:0x8020F380 end:0x80210620
 	.ctors      start:0x80644248 end:0x8064424C
+	.data       start:0x80692B88 end:0x80692D80
+	.sbss       start:0x807D3328 end:0x807D3350
+	.sdata2     start:0x807DBE00 end:0x807DBE30
 
 Game/Enemy/TeresaWater.cpp:
 	.text       start:0x80210620 end:0x80210F70
@@ -3369,7 +3375,7 @@ Game/Enemy/Tongari.cpp:
 	.ctors      start:0x80644254 end:0x80644258
 
 Game/Enemy/Unbaba.cpp:
-	.text       start:0x802152C0 end:0x80216990
+	.text       start:0x802152C0 end:0x80216A90
 	.ctors      start:0x80644258 end:0x8064425C
 
 Game/Enemy/UnbabaSlim.cpp:

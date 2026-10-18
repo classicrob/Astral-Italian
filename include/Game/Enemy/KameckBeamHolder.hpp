@@ -8,12 +8,15 @@ class KameckBeam;
 class KameckBeamEventListener;
 class KameckFireBall;
 class KameckTurtle;
+class KuriboMini;
+class Meramera;
 
 class KameckBeamHolder : public DeriveActorGroup< KameckBeam > {
 public:
     /// @brief Creates a new `KameckBeamHolder`.
     KameckBeamHolder();
     KameckBeamHolder(s32, s32, s32);
+    virtual ~KameckBeamHolder();
     KameckBeam* fn_801A7CF0(f32, MtxPtr, const TVec3f&, KameckBeamEventListener*);  // unnamed, by address
 };
 
@@ -42,12 +45,22 @@ namespace MR {
 class KameckBeamKuriboMini : public LiveActor, public KameckBeamProjectile {
 public:
     KameckBeamKuriboMini();
-    LiveActor* mEnemy;
+    virtual ~KameckBeamKuriboMini();
+    virtual void control();
+    virtual void appearDirection(const TVec3f&, const TVec3f&);
+    virtual void fn_801A7180();
+    virtual bool fn_801A78B0() const;
+    KuriboMini* mEnemy;
     s32 mStep;
 };
 class KameckBeamMeramera : public LiveActor, public KameckBeamProjectile {
 public:
     KameckBeamMeramera();
-    LiveActor* mEnemy;
+    virtual ~KameckBeamMeramera();
+    virtual void control();
+    virtual void appearDirection(const TVec3f&, const TVec3f&);
+    virtual void fn_801A7180();
+    virtual bool fn_801A78B0() const;
+    Meramera* mEnemy;
     s32 mStep;
 };

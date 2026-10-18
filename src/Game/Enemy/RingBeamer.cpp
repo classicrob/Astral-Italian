@@ -1,7 +1,10 @@
 #include "Game/Enemy/RingBeamer.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/JumpGuarder.hpp"
+#include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/RingBeam.hpp"
+#include "Game/Enemy/WalkerStateBindStarPointer.hpp"
+#include "Game/Util/ActorStateUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorShadowUtil.hpp"
@@ -17,29 +20,29 @@ namespace NrvRingBeamer {
     NEW_NERVE(RingBeamerNrvWait, RingBeamer, Wait);
     NEW_NERVE(RingBeamerNrvAttack, RingBeamer, Attack);
     NEW_NERVE(RingBeamerNrvInter, RingBeamer, Inter);
+
+    class RingBeamerNrvFreeze : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const;
+        static RingBeamerNrvFreeze sInstance;
+    };
+    RingBeamerNrvFreeze RingBeamerNrvFreeze::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvRingBeamer
 
-RingBeamer::RingBeamer(const char* pName) : LiveActor(pName), mBeams() {
+RingBeamer::RingBeamer(const char* pName) : LiveActor(pName), mBeams(), mScaleCtrl(), mBindStarPointer() {
 }
 
 void RingBeamer::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "RingBeamer", false);
-    MR::initDefaultPos(this, rIter);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    initHitSensor(2);
-    MR::addHitSensorPush(this, "Body", 8, 160.0f, TVec3f(0.0f, 80.0f, 0.0f));
-    MR::addHitSensorMtxEnemyAttack(this, "Head", 8, 130.0f, MR::getJointMtx(this, "Top"), TVec3f(0.0f, 110.0f, 0.0f));
-    MR::initShadowVolumeSphere(this, 120.0f);
-    initEffectKeeper(1, nullptr, false);
-    initSound(8, "RingBeamer", nullptr, TVec3f(0.0f));
-    initNerve(GET_NERVE(RingBeamer, RingBeamerNrvWait));
+    initNerve(GET_NERVE(RingBeamer, RingBeamerNrvWait), 1);
+    mScaleCtrl = new AnimScaleController(nullptr);
+    mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleCtrl);
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(RingBeamer, RingBeamerNrvFreeze), "SupportFreeze");
     makeActorAppeared();
-    MR::useStageSwitchReadA(this, rIter);
-    if (MR::useStageSwitchReadB(this, rIter)) {
-        MR::listenStageSwitchOffB(this, MR::Functor(this, &RingBeamer::syncSwitchOffB));
+    if (MR::isValidSwitchB(this)) {
+        MR::listenStageSwitchOffB(this, MR::FunctorV0M< RingBeamer*, void (RingBeamer::*)() >(this, &RingBeamer::syncSwitchOffB));
     }
-    MR::joinToGroupArray(this, rIter, nullptr, 32);
+    MR::joinToGroupArray(this, rIter, mName, 32);
     // initializes to 5 long, but only uses 3?
     mBeams = new RingBeam*[5];
     for (int i = 0; i < 5; i++) {
@@ -47,17 +50,34 @@ void RingBeamer::init(const JMapInfoIter& rIter) {
     }
     f32 arg0 = 20.0f;
     s32 arg1 = 100;
+    f32 arg2 = 0.0f;
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
     MR::getJMapInfoArg1NoInit(rIter, &arg1);
+    MR::getJMapInfoArg2NoInit(rIter, &arg2);
     for (int i = 0; i < 3; i++) {
-        mBeams[i] = new RingBeam("リングビーム", this, false, false, false, false, nullptr);
+        mBeams[i] = new RingBeam("リングビーム", this, false, false, true, true, nullptr);
         mBeams[i]->init(rIter);
         mBeams[i]->setSpeed(arg0);
         mBeams[i]->setLife(arg1);
+        mBeams[i]->setColor(arg2);
     }
     MR::startBckWithInterpole(this, "Open", 0);
     MR::setBckFrameAndStop(this, 0.0);
     MR::calcAnimDirect(this);
+}
+
+void RingBeamer::control() {
+    mScaleCtrl->updateNerve();
+    if (isNerveTypeActive() && mBindStarPointer->tryStartPointBind()) {
+        setNerve(GET_NERVE(RingBeamer, RingBeamerNrvFreeze));
+    }
+}
+
+bool RingBeamer::isNerveTypeActive() {
+    if (isNerve(GET_NERVE(RingBeamer, RingBeamerNrvWait)) || isNerve(GET_NERVE(RingBeamer, RingBeamerNrvAttack)) || isNerve(GET_NERVE(RingBeamer, RingBeamerNrvInter))) {
+        return true;
+    }
+    return false;
 }
 
 void RingBeamer::syncSwitchOffB() {
@@ -131,6 +151,10 @@ void RingBeamer::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool RingBeamer::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(GET_NERVE(RingBeamer, RingBeamerNrvFreeze))) {
+        return false;
+    }
+
     if (msg == 0x7C) {
         MR::invalidateClipping(this);
         setNerve(GET_NERVE(RingBeamer, RingBeamerNrvAttack));
@@ -153,4 +177,12 @@ bool RingBeamer::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     }
 
     return MR::isMsgStarPieceReflect(msg);
+}
+
+void NrvRingBeamer::RingBeamerNrvFreeze::execute(Spine* pSpine) const {
+    LiveActor* actor = static_cast<LiveActor*>(pSpine->mExecutor);
+    if (MR::isFirstStep(actor)) {
+        MR::tryDeleteEffect(actor, "Charge");
+    }
+    MR::updateActorStateAndNextNerve(actor, &RingBeamerNrvWait::sInstance);
 }

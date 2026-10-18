@@ -641,7 +641,7 @@ void Teresa::endAppear() {
     setTransparency(1.0f);
 }
 
-inline void Teresa::endDrift() {
+void Teresa::endDrift() {
     MR::forceDeleteEffect(this, "SpinBlur");
     setTransparency(1.0f);
     MR::setShadowVolumeSphereRadius(this, nullptr, 80.0f);

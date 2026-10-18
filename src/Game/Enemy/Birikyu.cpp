@@ -1,4 +1,5 @@
 #include "Game/Enemy/Birikyu.hpp"
+#include "Game/LiveActor/ActorStateParamScale.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -21,7 +22,18 @@ namespace NrvBirikyu {
     NEW_NERVE(HostTypeAttackWait, Birikyu, AttackWait);
     NEW_NERVE(HostTypeWaitAtEdge, Birikyu, WaitAtEdge);
     NEW_NERVE_ONEND(HostTypeStopPointing, Birikyu, StopPointing, StopPointing);
-    NEW_NERVE(HostTypeNrvKill, Birikyu, Kill);
+    class HostTypeKill : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const {
+            LiveActor* actor = reinterpret_cast<LiveActor*>(spine->mExecutor);
+            if (MR::isFirstStep(actor)) {
+                MR::tryHitReactionDead(actor);
+                actor->kill();
+            }
+        }
+        static HostTypeKill sInstance;
+    };
+    HostTypeKill HostTypeKill::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBirikyu
 
 void Birikyu_FORCE_MATCH(const TVec3f& rVec) {
@@ -34,19 +46,14 @@ Birikyu::Birikyu(const char* pName)
     : LiveActor(pName), mParamScale(), _8C(), _90(gZeroVec), _9C(gZeroVec), _A8(), _A9(), _AC(0.0f, 1.0f, 0.0f), _B8(0.0f, 0.0f, 1.0f), _C4(), _C8(10.0f) {
 }
 
-// SMG2 step state (48 bytes); its ctor and init are out of line in SB4E01.
-class ActorStateParamScale {
-public:
-    ActorStateParamScale(LiveActor*);
-    void init(const JMapInfoIter&);
-    void calcHostVelocity();
-    bool isFirstStep();
-
-    char mStateData[0x30];
-};
-
 void Birikyu::control() {
     mParamScale->calcHostVelocity();
+}
+
+void Birikyu::movement() {
+    mParamScale->update();
+    LiveActor::movement();
+    mParamScale->resetHostVelocity();
 }
 
 void Birikyu::init(const JMapInfoIter& rIter) {
@@ -103,9 +110,12 @@ char* Birikyu::getCenterJointName() const {
 }
 
 void Birikyu::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayerOrRide(pReceiver) || MR::isSensorEnemy(pReceiver)) {
+    if (MR::isSensorPlayerOrYoshiOrRide(pReceiver) || MR::isSensorEnemy(pReceiver)) {
         if (MR::sendMsgEnemyAttackElectric(pReceiver, pSender)) {
-            MR::sendMsgToGroupMember(123 /* ACTMES_GROUP_MOVE_STOP */, this, getSensor("body"), "body");
+            if (isNerve(GET_NERVE(Birikyu, HostTypeStopPointing))) {
+                return;
+            }
+            MR::sendMsgToGroupMember(123 /* ACTMES_GROUP_MOVE_STOP */, this, getSensor("Body"), "Body");
             setNerve(GET_NERVE(Birikyu, HostTypeAttack));
         } else {
             MR::sendMsgPush(pReceiver, pSender);
@@ -119,8 +129,8 @@ bool Birikyu::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgInvincibleAttack(msg)) {
-        if (!isNerve(GET_NERVE(Birikyu, HostTypeNrvKill))) {
-            setNerve(GET_NERVE(Birikyu, HostTypeNrvKill));
+        if (!isNerve(GET_NERVE(Birikyu, HostTypeKill))) {
+            setNerve(GET_NERVE(Birikyu, HostTypeKill));
             return true;
         }
     }
@@ -130,11 +140,10 @@ bool Birikyu::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
 
 bool Birikyu::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (msg == 123 /* ACTMES_GROUP_MOVE_STOP */) {
-        if (MR::getSensorHost(pSender) == this) {
+        if (MR::getSensorHost(pSender) != this) {
             bool isMoveCircle = false;
-
-            if (!isNerve(GET_NERVE(Birikyu, HostTypeMove))) {
-                isMoveCircle = isNerve(GET_NERVE(Birikyu, HostTypeMoveCircle));
+            if (isNerve(GET_NERVE(Birikyu, HostTypeMove)) || isNerve(GET_NERVE(Birikyu, HostTypeMoveCircle))) {
+                isMoveCircle = true;
             }
 
             if (isMoveCircle) {
@@ -145,8 +154,12 @@ bool Birikyu::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
     }
 
     if (msg == 122 /* ACTMES_GROUP_MOVE_START */) {
-        if (MR::getSensorHost(pSender) == this) {
-            if (!isNerve(GET_NERVE(Birikyu, HostTypeMove)) && !isNerve(GET_NERVE(Birikyu, HostTypeMoveCircle))) {
+        if (MR::getSensorHost(pSender) != this) {
+            bool isMoving = false;
+            if (isNerve(GET_NERVE(Birikyu, HostTypeMove)) || isNerve(GET_NERVE(Birikyu, HostTypeMoveCircle))) {
+                isMoving = true;
+            }
+            if (!isMoving) {
                 goMove();
                 return true;
             }
@@ -186,7 +199,7 @@ void Birikyu::initCollision() {
     TVec3f offset(0.0f, 0.0f, 0.0f);
     f32 radius = getHitRadius();
     radius *= mScale.x;
-    MR::addHitSensorAtJointEnemy(this, "body", getCenterJointName(), 16, radius, offset);
+    MR::addHitSensorAtJointEnemy(this, "Body", getCenterJointName(), 16, radius, offset);
 }
 
 void Birikyu::initShadow() {
@@ -196,7 +209,7 @@ void Birikyu::initShadow() {
         MR::onCalcShadowDropPrivateGravity(this, nullptr);
         MR::onCalcShadow(this, nullptr);
         MR::onCalcGravity(this);
-        MR::setShadowDropPositionPtr(this, nullptr, &(*MR::getSensorPos(this, "body")));
+        MR::setShadowDropPositionPtr(this, nullptr, &(*MR::getSensorPos(this, "Body")));
     }
 }
 
@@ -236,14 +249,14 @@ void Birikyu::exeMove() {
             }
         }
 
-        MR::moveCoordAndFollowTrans(this, _C8);
+        MR::moveCoordAndFollowTrans(this, _C8 * mParamScale->getSpeed());
     }
 }
 
 void Birikyu::exeMoveCircle() {
     MR::startActionSound(this, "OjLvBirikyuMove");
     if (!tryStopPointing()) {
-        _C4 = MR::repeat(_C4 + (_C8 / 400.0f), 0.0f, TWO_PI);
+        _C4 = MR::repeat(_C4 + ((_C8 / 400.0f) * mParamScale->getSpeed()), 0.0f, TWO_PI);
         TPos3f matrix;
         matrix.identity();
         matrix.makeRotate(_AC, _C4);
@@ -259,21 +272,21 @@ void Birikyu::exeWaitAtEdge() {
     s32 arg = 0;
     MR::getCurrentRailPointArg0NoInit(this, &arg);
 
-    if (MR::isStep(this, arg)) {
+    if (mParamScale->isStep(arg)) {
         setNerve(GET_NERVE(Birikyu, HostTypeMove));
     }
 }
 
 void Birikyu::exeAttack() {
-    if (MR::isFirstStep(this)) {
-        MR::zeroVelocity(this);
+    if (mParamScale->isFirstStep()) {
+        mVelocity.zero();
         MR::emitEffect(this, "Hit");
     }
 
     MR::startActionSound(this, "OjLvBirikyuMove");
 
-    if (MR::isStep(this, 90)) {
-        MR::sendMsgToGroupMember(122 /* ACTMES_GROUP_MOVE_START */, this, getSensor("body"), "body");
+    if (mParamScale->isStep(90)) {
+        MR::sendMsgToGroupMember(122 /* ACTMES_GROUP_MOVE_START */, this, getSensor("Body"), "Body");
         goMove();
     }
 }
@@ -306,6 +319,7 @@ void Birikyu::endStopPointing() {
 
 BirikyuWithFace::BirikyuWithFace(const char* pName) : Birikyu(pName) {
     _CC = false;
+    _D8 = -1;
 }
 
 void BirikyuWithFace::init(const JMapInfoIter& rIter) {
@@ -348,6 +362,9 @@ void BirikyuWithFace::calcAndSetBaseMtx() {
         }
 
         TVec3f vec2(_AC);
+        if (static_cast<u32>(_D8) <= 1) {
+            vec2.set(-mGravity);
+        }
         if (MR::isSameDirection(vec2, vec)) {
             MR::makeMtxSideFront(&vec3, vec, _B8);
         } else {

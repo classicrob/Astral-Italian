@@ -20,8 +20,11 @@ public:
     void exeAppear();
     void exeDisappear();
 
-    /* 0x8C */ s32 mBegomanCount;
-    /* 0x90 */ s32 mAppearDelay;
-    /* 0x94 */ BegomanBase** mBegomanArray;
-    /* 0x98 */ s32 mLaunchType;
+    bool fn_801631C0(const LiveActor*) const;
+    LiveActor* fn_80163200(s32) const;
+
+    /* 0x90 */ s32 mBegomanCount;
+    /* 0x94 */ s32 mAppearDelay;
+    /* 0x98 */ BegomanBase** mBegomanArray;
+    /* 0x9C */ s32 mLaunchType;
 };

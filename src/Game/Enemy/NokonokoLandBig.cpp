@@ -308,19 +308,6 @@ void NokonokoLandBig::exeTurnEnd() {
     }
 }
 
-void NokonokoLandBig::exeAttack() {
-    if (MR::isFirstStep(this)) {
-        startBckBtp(this, "Attack");
-    }
-    if (MR::isActionEnd(this)) {
-        if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvAttackTurn))) {
-            setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvTurnLoop));
-            return;
-        }
-        setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvWalk));
-    }
-}
-
 // NONMATCHING: Remaining vector temporary stack slots and load scheduling differ.
 void NokonokoLandBig::exeFall() {
     if (MR::isFirstStep(this)) {
@@ -350,6 +337,19 @@ void NokonokoLandBig::exeFall() {
         mVelocity.y = 0.0f;
         mVelocity.x = 0.0f;
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvDead));
+    }
+}
+
+void NokonokoLandBig::exeAttack() {
+    if (MR::isFirstStep(this)) {
+        startBckBtp(this, "Attack");
+    }
+    if (MR::isActionEnd(this)) {
+        if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvAttackTurn))) {
+            setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvTurnLoop));
+            return;
+        }
+        setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvWalk));
     }
 }
 

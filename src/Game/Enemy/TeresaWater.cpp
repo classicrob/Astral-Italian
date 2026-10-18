@@ -3,6 +3,7 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 
 namespace {
     static const MR::ActorMoveParam sMoveParam = {0.5f, 0.0f, 0.9f, 1.5f};
@@ -15,7 +16,14 @@ namespace NrvTeresaWater {
     NEW_NERVE(TeresaWaterNrvMove, TeresaWater, Move);
     NEW_NERVE(TeresaWaterNrvHit, TeresaWater, Hit);
     NEW_NERVE(TeresaWaterNrvStun, TeresaWater, Stun);
-    NEW_NERVE_ONEND(TeresaWaterNrvDPDSwoon, TeresaWater, DPDSwoon, DPDSwoon);
+    class TeresaWaterNrvDPDSwoon : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const {
+            MR::updateActorStateAndNextNerve(reinterpret_cast<LiveActor*>(spine->mExecutor), &TeresaWaterNrvMove::sInstance);
+        }
+        static TeresaWaterNrvDPDSwoon sInstance;
+    };
+    TeresaWaterNrvDPDSwoon TeresaWaterNrvDPDSwoon::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvTeresaWater
 
 TeresaWater::TeresaWater(const char* pName) : LiveActor(pName), _8C(), _90() {
@@ -23,24 +31,11 @@ TeresaWater::TeresaWater(const char* pName) : LiveActor(pName), _8C(), _90() {
     _A0.set(0.0f, 0.0f, 0.0f);
     _AC.set(0.0f, 0.0f, 0.0f);
     _B8 = nullptr;
+    _C0 = false;
 }
 
 void TeresaWater::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "TeresaWater", false);
-    MR::connectToSceneEnemy(this);
-    initHitSensor(1);
-    TVec3f sensorOffset;
-    sensorOffset.x = 0.0f;
-    sensorOffset.y = 0.0f;
-    sensorOffset.z = 0.0f;
-    MR::addHitSensorAtJointEnemy(this, "body", "SklRoot", 8, 60.0f, sensorOffset);
-    initEffectKeeper(1, nullptr, false);
-    initSound(4, "TeresaWater", nullptr, TVec3f(0.0f));
-    TVec3f ptrPos;
-    ptrPos.set(0.0f, 0.0f, 0.0f);
-    MR::initStarPointerTargetAtJoint(this, "SklRoot", 100.0f, ptrPos);
-
     _8C = new AnimScaleController(nullptr);
     _90 = new WalkerStateBindStarPointer(this, _8C);
     MR::declareCoin(this, 1);
@@ -50,17 +45,17 @@ void TeresaWater::init(const JMapInfoIter& rIter) {
     _AC.set(mPosition);
     _A0.scaleAdd(arg0, _94, _AC);
     _B8 = &_A0;
-    MR::initShadowVolumeCylinder(this, 100.0f);
-    initNerve(GET_NERVE(TeresaWater, TeresaWaterNrvMove));
-
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
+    bool noShadow = false;
+    MR::getJMapInfoArg1NoInit(rIter, &noShadow);
+    if (noShadow) {
+        MR::invalidateShadowAll(this);
     }
+    initNerve(GET_NERVE(TeresaWater, TeresaWaterNrvMove), 1);
+    MR::initActorState(this, _90, GET_NERVE(TeresaWater, TeresaWaterNrvDPDSwoon), "SupportFreeze");
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
+// NONMATCHING: temporary pointers use fewer GPRs; wall effect scheduling differs.
 void TeresaWater::exeMove() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
@@ -68,6 +63,25 @@ void TeresaWater::exeMove() {
 
     MR::moveAndTurnToTarget(this, &_94, *_B8, ::sMoveParam._0, ::sMoveParam._4, ::sMoveParam._8, ::sMoveParam._C);
     MR::attenuateVelocityExceptDirection(this, _94, ::sSideFriction);
+
+    if (_C0) {
+        TVec3f hit(0.0f);
+        TVec3f start = mPosition - _94 * 240.0f;
+        if (!MR::getFirstPolyOnLineToMap(&hit, nullptr, start, _94 * 360.0f)) {
+            MR::showModel(this);
+            _C0 = false;
+            const TVec3f& effectPos = start + _94 * 360.0f;
+            MR::emitEffectHit(this, effectPos, "HideWall");
+        }
+    } else {
+        TVec3f hit(0.0f);
+        TVec3f start = mPosition - _94 * 60.0f;
+        if (MR::getFirstPolyOnLineToMap(&hit, nullptr, start, _94 * 120.0f)) {
+            MR::hideModelAndOnCalcAnim(this);
+            _C0 = true;
+            MR::emitEffectHit(this, hit, "HideWall");
+        }
+    }
 
     if (MR::isNear(this, *_B8, ::sTargetRadius)) {
         if (_B8 == &_A0) {
@@ -110,6 +124,7 @@ void TeresaWater::kill() {
 
 void TeresaWater::control() {
     _8C->updateNerve();
+    MR::fn_800145C0(this);
 
     if (isNerve(GET_NERVE(TeresaWater, TeresaWaterNrvMove))) {
         MR::startActionSound(this, "EmLvTeresaMove");
@@ -129,7 +144,7 @@ void TeresaWater::calcAndSetBaseMtx() {
     MR::calcMtxFromGravityAndZAxis(&mtx, this, up, _94);
     MR::setBaseTRMtx(this, mtx);
 
-    MR::setBaseScale(this, _8C->_C * mScale);
+    MR::updateBaseScale(this, _8C);
 }
 
 void TeresaWater::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -159,7 +174,8 @@ bool TeresaWater::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
         return true;
     }
 
-    if (MR::isMsgSearchlightAttack(msg)) {
+    if (MR::isMsgSearchlightAttack(msg) || MR::isMsgInvincibleAttack(msg)) {
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         kill();
 
         return true;

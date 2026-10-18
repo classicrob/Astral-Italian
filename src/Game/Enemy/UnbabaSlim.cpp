@@ -36,6 +36,165 @@ void NrvUnbabaSlim::UnbabaSlimNrvEatEnd::execute(Spine* pSpine) const {
     static_cast< UnbabaSlim* >(pSpine->mExecutor)->exeEatEnd();
 }
 
+bool UnbabaSlim::fn_80216200(const TVec3f* pOffset) {
+    TVec3f hit(0.0f);
+    TPos3f mtx;
+    PSMTXCopy(getBaseMtx(), mtx);
+    MR::addTransMtxLocal(mtx, *pOffset);
+    TVec3f pos(0.0f);
+    TVec3f up(0.0f, 1.0f, 0.0f);
+    MR::extractMtxTrans(mtx, &pos);
+    MR::extractMtxYDir(mtx, &up);
+    return MR::getFirstPolyOnLineToMap(&hit, nullptr, pos, -up * 1300.0f);
+}
+
+UnbabaSlim::UnbabaSlim(const char* pName) : LiveActor(pName) {
+    mRotator = nullptr;
+    mRotateSpeed = 0.0f;
+    mVolumeDrawer = nullptr;
+    mEatCount = 0;
+    mMtx.identity();
+}
+
+void UnbabaSlim::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "UnbabaSlim", false);
+    initRotator(rIter);
+    mVolumeDrawer = MR::createVolumeDrawer("マグマ範囲描画", "VolumeSphere", mMtx);
+    mVolumeDrawer->setHost(this);
+    initNerve(&NrvUnbabaSlim::UnbabaSlimNrvWait::sInstance, 0);
+    s32 rotateAxis = 0;
+    MR::getMapPartsArgRotateAxis(&rotateAxis, rIter);
+    if (rotateAxis == 2) {
+        mRotateSpeed = 90.0f;
+    }
+    makeActorAppeared();
+    MR::fn_80008890(this, "UnbabaSlim");
+}
+
+// NONMATCHING: TVec3 sub/assign stay out-of-line in this TU while the target inlines them (paired-single code)
+void UnbabaSlim::control() {
+    if (!MR::isValidSwitchB(this) || MR::isOnSwitchB(this)) {
+        if (mRotator != nullptr) mRotator->movement();
+    }
+    bool scaleUp = false;
+    TVec3f diff(0.0f);
+    TVec3f pos(0.0f);
+    MR::extractMtxTrans(mMtx, &pos);
+    diff = *MR::getPlayerPos() - pos;
+    s32 distance = 3500;
+    if (diff.length() < f32(distance)) scaleUp = true;
+    if (scaleUp) mVolumeDrawer->setScaleUpRate(120);
+    else mVolumeDrawer->setScaleDownRate(120);
+    fn_802169A0();
+}
+
+void UnbabaSlim::calcAndSetBaseMtx() {
+    fn_802168F0();
+}
+
+void UnbabaSlim::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    startRotator();
+    mVolumeDrawer->makeActorAppeared();
+    mVolumeDrawer->setScaleDownRate(0);
+}
+
+void UnbabaSlim::makeActorDead() {
+    mVolumeDrawer->makeActorDead();
+    endRotator();
+    LiveActor::makeActorDead();
+}
+
+void UnbabaSlim::exeWait() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "UnbabaSlim");
+    }
+    if (fn_80216200(&sUnbabaVec[0])) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEatStart::sInstance);
+    }
+}
+
+void UnbabaSlim::exeEatStart() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "EatStart");
+    }
+    if (MR::isActionEnd(this)) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEat::sInstance);
+    }
+}
+
+void UnbabaSlim::exeEat() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Eat");
+        mEatCount = 1;
+    }
+    if (MR::isGreaterStep(this, 15)) {
+        TVec3f sp8(sUnbabaVec[0]);
+        sp8.z = -sp8.z;
+        if (!fn_80216200(&sp8)) {
+            if (mEatCount == 0) {
+                MR::tryHitReaction(this, "小惑星抜け");
+                MR::startActionSound(this, "EatEnd", -1, -1, -1);
+            }
+            mEatCount++;
+        } else {
+            if (mEatCount > 0) {
+                MR::tryHitReaction(this, "小惑星衝突");
+                MR::startActionSound(this, "Eat", -1, -1, -1);
+            }
+            mEatCount = 0;
+        }
+    }
+    if (mEatCount > 60) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEatEnd::sInstance);
+    }
+}
+
+void UnbabaSlim::exeEatEnd() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "EatEnd");
+    }
+    if (MR::isActionEnd(this)) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvWait::sInstance);
+    }
+}
+
+void UnbabaSlim::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayer(pReceiver)) {
+        if (MR::sendMsgEnemyAttackFireStrong(pReceiver, pSender)) return;
+    }
+}
+
+bool UnbabaSlim::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    return false;
+}
+
+// NONMATCHING: field/constant load order and multiply operand registers differ.
+void UnbabaSlim::fn_802168F0() {
+    TPos3f mtx;
+    mtx.identity();
+    if (mRotator != nullptr) mtx.concat(mRotator->getRotateMtx(), mtx);
+    MR::rotateMtxLocalY(mtx, mRotateSpeed * 0.017453292f);
+    mtx.setTrans(mPosition);
+    MR::setBaseTRMtx(this, mtx);
+}
+
+// NONMATCHING: matrix copy and Color8 init stay out-of-line in this TU while the target inlines them (paired-single copy)
+void UnbabaSlim::fn_802169A0() {
+    mMtx.setInline(MR::getJointMtx(this, "Head"));
+    MR::addTransMtxLocal(mMtx, sUnbabaVec[2]);
+    MR::preScaleMtx(mMtx, sUnbabaVec[1] * 5.0f);
+    const GXColor color = {0x8C, 0x28, 0x00, 0x87};
+    Color8 drawColor;
+    drawColor.r = color.r;
+    drawColor.g = color.g;
+    drawColor.b = color.b;
+    drawColor.a = color.a;
+    mVolumeDrawer->setColor(drawColor);
+    mVolumeDrawer->setDrawPasses(2);
+    mVolumeDrawer->setScale(sUnbabaVec[3]);
+}
+
 void UnbabaSlim::initRotator(const JMapInfoIter& rIter) {
     mRotator = new MapPartsRotator(this);
     mRotator->init(rIter);

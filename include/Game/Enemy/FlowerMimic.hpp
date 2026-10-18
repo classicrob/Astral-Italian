@@ -45,5 +45,5 @@ public:
     /* 0xD4 */ CollisionObj* mCollisionObj;
     /* 0xD8 */ s32 mTimer;
     /* 0xDC */ f32 mAngle;
-    /* 0xE0 */ s32 mFloorTouchFlag;
+    /* 0xE0 */ bool mFloorTouchFlag;
 };

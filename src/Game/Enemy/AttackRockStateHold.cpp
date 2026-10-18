@@ -1,3 +1,5 @@
+// SMG2 calls TVec3 operator+/operator*/add/scale out of line in this TU (appear); the define does that.
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/Enemy/AttackRock.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
@@ -181,8 +183,15 @@ namespace NrvAttackRockStateHold {
 
 // NONMATCHING: String-pool base, host reload and GPR allocation differ.
 AttackRockStateHold::AttackRockStateHold(AttackRock* pRock, s32 rockNum)
-    : ActorStateBase< AttackRock >("\215U\214\202\212\342\225\202\202\251\202\361\202\305\202\242\202\351\217\363\221\324", pRock), mRide(nullptr), mBreakModel(nullptr), mStartPos(0.0f, 0.0f, 0.0f), mUpVec(0.0f, 1.0f, 0.0f),
-      mRate(0.0f), mRockNum(rockNum) {
+    : ActorStateBase< AttackRock >("\215U\214\202\212\342\225\202\202\251\202\361\202\305\202\242\202\351\217\363\221\324", pRock), mRide(nullptr), mBreakModel(nullptr) {
+    mStartPos.x = 0.0f;
+    mStartPos.y = 0.0f;
+    mStartPos.z = 0.0f;
+    mUpVec.x = 0.0f;
+    mUpVec.y = 1.0f;
+    mUpVec.z = 0.0f;
+    mRate = 0.0f;
+    mRockNum = rockNum;
     initNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvFloat::sInstance, 0);
     mRide = new AttackRockRide(pRock);
     mBreakModel = new BreakModel(mHost, "\225\366\202\352\203\202\203f\203\213", "AttackRockFallBreak", mHost->getBaseMtx(), "Break");
@@ -193,7 +202,7 @@ AttackRockStateHold::~AttackRockStateHold() {
 }
 
 #pragma auto_inline off
-// NONMATCHING: Vector temporary placement and copy/inlining choices differ.
+// NONMATCHING: Vector temporary stack slots and GPR allocation differ; calls and operators match.
 void AttackRockStateHold::appear() {
     mIsDead = false;
     TVec3f up;

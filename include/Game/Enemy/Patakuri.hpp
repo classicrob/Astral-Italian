@@ -15,7 +15,7 @@ class YoshiLockOnTarget;
 /// Wing parts of a Patakuri (SMG2-only, TU00). Named by address where the original name is unknown.
 class PatakuriWing : public PartsModel {
 public:
-    PatakuriWing(const char*);
+    PatakuriWing(LiveActor*);
 
     virtual ~PatakuriWing();
 
@@ -38,7 +38,7 @@ public:
 
     bool fn_801E4E50();
     bool fn_801E4ED0();
-    static void fn_801E4F40(TVec3f* pOut, Patakuri* pPatakuri);
+    static TVec3f fn_801E4F40(Patakuri* pPatakuri);
     bool fn_801E58C0() const;
     void fn_801E52A0();
     void fn_801E54C0();

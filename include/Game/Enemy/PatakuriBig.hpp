@@ -16,6 +16,7 @@ class YoshiLockOnTarget;
 class PatakuriBigWing : public PartsModel {
 public:
     PatakuriBigWing(const char*);
+    void fn_801E6474();
 
     virtual ~PatakuriBigWing();
     virtual void calcAndSetBaseMtx();

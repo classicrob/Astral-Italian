@@ -8,6 +8,7 @@ class MogucchiHill;
 
 class Mogucchi : public LiveActor {
 public:
+    void fn_801CDAD0();
     Mogucchi(const char*);
     virtual ~Mogucchi();
 

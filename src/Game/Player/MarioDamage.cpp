@@ -24,14 +24,8 @@
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/SequenceUtil.hpp"
+#include "Game/Player/Yoshi.hpp"
 
-extern "C" LiveActor* fn_803B97F0(MarioActor*);
-extern "C" void fn_803B9560(MarioActor*);
-extern "C" void fn_803B94E0(MarioActor*);
-extern "C" void fn_803BE8D0(MarioActor*, TVec3f*);
-extern "C" void fn_803BE840(MarioActor*, const TVec3f&);
-extern "C" void fn_803E4E00(MarioDamage*);
-extern "C" void fn_803E5FA0(MarioFireDance*);
 
 
 void MarioDamage_FORCE_MATCH_SDATA2() {
@@ -96,26 +90,26 @@ bool MarioDamage::start() {
     _12 = !_11;
     if (_11) {
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(fn_803B97F0(mActor), "Thrown", -1, -1, -1);
+            MR::startActionSound(mActor->fn_803B97F0(), "Thrown", -1, -1, -1);
         } else {
             playSound("声投げられ");
         }
         _11 = 0;
-        fn_803B9560(mActor);
+        mActor->fn_803B9560();
     } else {
         playSound("ダメージ");
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(fn_803B97F0(mActor), "Damage", -1, -1, -1);
+            MR::startActionSound(mActor->fn_803B97F0(), "Damage", -1, -1, -1);
         } else {
             playSound("声小ダメージ");
         }
         mActor->decLifeMiddle();
         if (_30) {
-            fn_803BE8D0(mActor, &_34);
+            mActor->fn_803BE8D0(_34);
         } else {
-            fn_803E4E00(this);
+            this->fn_803E4E00();
         }
-        fn_803B94E0(mActor);
+        mActor->fn_803B94E0();
     }
 
     _44 = 0;
@@ -154,81 +148,77 @@ void MarioDamage::stopHead(const TVec3f& rNormal) {
     }
 }
 
-extern "C" bool fn_803E48F0(MarioDamage*);
-extern "C" bool fn_803DB380(void*, const char*, const char*);
-extern "C" bool fn_803E4BF0(MarioDamage*);
-extern "C" bool fn_803E4D00(MarioDamage*);
 
-extern "C" bool fn_803E48F0(MarioDamage* p) {
-    p->addVelocity(p->_1C);
-    p->_1C += p->mActor->_240 * p->mActor->getConst().getTable()->mGravityDamage;
-    if (p->_14 > 20) {
-        if (p->_28) {
-            p->changeAnimation(p->_28);
+bool MarioDamage::fn_803E48F0() {
+    this->addVelocity(this->_1C);
+    this->_1C += this->mActor->_240 * this->mActor->getConst().getTable()->mGravityDamage;
+    if (this->_14 > 20) {
+        if (this->_28) {
+            this->changeAnimation(this->_28);
         }
 
-        if (p->getPlayer()->_1C._0) {
-            f32 vertical = MR::vecKillElement(p->_1C, p->getAirGravityVec(), &p->_1C);
-            p->_1C.x *= 0.95f;
-            p->_1C.y *= 0.95f;
-            p->_1C.z *= 0.95f;
-            p->_1C += p->getAirGravityVec() * vertical;
+        if (this->getPlayer()->_1C._0) {
+            f32 vertical = MR::vecKillElement(this->_1C, this->getAirGravityVec(), &this->_1C);
+            this->_1C.x *= 0.95f;
+            this->_1C.y *= 0.95f;
+            this->_1C.z *= 0.95f;
+            this->_1C += this->getAirGravityVec() * vertical;
         }
     }
 
-    if (p->getPlayer()->mMovementStates._1) {
-        if (p->getPlayer()->mVerticalSpeed > 30.0f &&
-            fn_803DB380(*(void**)((u8*)p->mActor + 0x1080), MR::getSensorHost(p->getSensor(p->getGroundPolygon()))->mName, "ダメージ中跳ねる")) {
-            Mario* player = p->getPlayer();
-            p->_1C += player->_368 * 20.0f;
-            p->getPlayer()->mMovementStates._1 = false;
-            p->getPlayer()->mMovementStates.jumping = true;
+    if (this->getPlayer()->mMovementStates._1) {
+        if (this->getPlayer()->mVerticalSpeed > 30.0f &&
+            (*(MarioActor**)((u8*)this->mActor + 0x1080))->fn_803DB380(MR::getSensorHost(this->getSensor(this->getGroundPolygon()))->mName, "ダメージ中跳ねる")) {
+            Mario* player = this->getPlayer();
+            this->_1C += player->_368 * 20.0f;
+            this->getPlayer()->mMovementStates._1 = false;
+            this->getPlayer()->mMovementStates.jumping = true;
             return true;
         }
 
-        p->getPlayer()->mMovementStates.jumping = false;
-        p->playSound("吹っ飛び倒れ");
-        p->playEffect("共通ダメージ着地");
-        MR::vecKillElement(p->_1C, p->mActor->_240, &p->_1C);
-        p->_18 = 1;
-        p->_14 = 0;
-        if (!p->mActor->mHealth) {
-            p->_18 = 2;
-            p->changeAnimation(p->_2C);
-        } else if (MR::isGalaxyHorrorCometAppearInCurrentStage() && !p->isPlayerModeYoshi()) {
-            p->_18 = 3;
+        this->getPlayer()->mMovementStates.jumping = false;
+        this->playSound("吹っ飛び倒れ");
+        this->playEffect("共通ダメージ着地");
+        MR::vecKillElement(this->_1C, this->mActor->_240, &this->_1C);
+        this->_18 = 1;
+        this->_14 = 0;
+        if (!this->mActor->mHealth) {
+            this->_18 = 2;
+            this->changeAnimation(this->_2C);
+        } else if (MR::isGalaxyHorrorCometAppearInCurrentStage() && !this->isPlayerModeYoshi()) {
+            this->_18 = 3;
         } else {
-            p->changeAnimation(p->_2C);
+            this->changeAnimation(this->_2C);
         }
-    } else if (!p->mActor->mHealth) {
-        if (p->_14 > 240) {
-            p->mActor->forceGameOverAbyss();
+    } else if (!this->mActor->mHealth) {
+        if (this->_14 > 240) {
+            this->mActor->forceGameOverAbyss();
         }
-    } else if (p->_44 > 360) {
+    } else if (this->_44 > 360) {
         return false;
     }
 
     return true;
 }
 
-extern "C" bool fn_803E4BF0(MarioDamage* p) {
-    if (!p->getPlayer()->mMovementStates._1) {
-        p->getPlayer()->mMovementStates.jumping = true;
-        p->_18 = 0;
+bool MarioDamage::fn_803E4BF0() {
+    if (!this->getPlayer()->mMovementStates._1) {
+        this->getPlayer()->mMovementStates.jumping = true;
+        this->_18 = 0;
         return true;
     }
 
-    MR::vecKillElement(p->_1C, p->getAirGravityVec(), &p->_1C);
-    p->addVelocity(p->_1C);
-    p->_1C.x *= 0.95f;
-    p->_1C.y *= 0.95f;
-    p->_1C.z *= 0.95f;
-    if (!p->isAnimationRun(p->_2C)) {
+    MR::vecKillElement(this->_1C, this->getAirGravityVec(), &this->_1C);
+    this->addVelocity(this->_1C);
+    this->_1C.x *= 0.95f;
+    this->_1C.y *= 0.95f;
+    this->_1C.z *= 0.95f;
+    if (!this->isAnimationRun(this->_2C)) {
         return false;
     }
 
-    if (p->_14 > 15 && p->checkTrgA()) {
-        p->getPlayer()->tryJump();
+    if (this->_14 > 15 && this->checkTrgA()) {
+        this->getPlayer()->tryJump();
         return false;
     }
 
@@ -236,16 +226,16 @@ extern "C" bool fn_803E4BF0(MarioDamage* p) {
     return true;
 }
 
-extern "C" bool fn_803E4D00(MarioDamage* p) {
-    if (!p->getPlayer()->mMovementStates._1) {
-        p->getPlayer()->mMovementStates.jumping = true;
-        p->_18 = 0;
+bool MarioDamage::fn_803E4D00() {
+    if (!this->getPlayer()->mMovementStates._1) {
+        this->getPlayer()->mMovementStates.jumping = true;
+        this->_18 = 0;
         return true;
     }
 
-    if (p->_14 == 40) {
-        if (!p->mActor->mHealth) {
-            p->mActor->forceGameOver();
+    if (this->_14 == 40) {
+        if (!this->mActor->mHealth) {
+            this->mActor->forceGameOver();
         } else {
             return false;
         }
@@ -268,16 +258,16 @@ bool MarioDamage::updateHorrorDamage() {
     return true;
 }
 
-extern "C" void fn_803E4E00(MarioDamage* p) {
-    TVec3f velocity(p->_1C);
-    const TVec3f& gravity = p->getAirGravityVec();
+void MarioDamage::fn_803E4E00() {
+    TVec3f velocity(this->_1C);
+    const TVec3f& gravity = this->getAirGravityVec();
     TVec3f vertical;
     JMAVECScaleAdd(&gravity, &velocity, &vertical, -gravity.dot(velocity));
     velocity.sub(vertical);
     TVec3f horizontal(vertical);
     horizontal.scale(0.5f);
     velocity.add(horizontal);
-    fn_803BE840(p->mActor, velocity);
+    this->mActor->fn_803BE840(velocity);
 }
 
 bool MarioDamage::update() {
@@ -289,17 +279,17 @@ bool MarioDamage::update() {
 
     switch (_18) {
     case 0:
-        if (!fn_803E48F0(this)) {
+        if (!this->fn_803E48F0()) {
             return false;
         }
         break;
     case 1:
-        if (!fn_803E4BF0(this)) {
+        if (!this->fn_803E4BF0()) {
             return false;
         }
         break;
     case 2:
-        if (!fn_803E4D00(this)) {
+        if (!this->fn_803E4D00()) {
             return false;
         }
         break;
@@ -614,7 +604,7 @@ void MarioFireDance::impactEffect() {
     switch (_29) {
     case 0:
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(fn_803B97F0(mActor), "DamageFire", -1, -1, -1);
+            MR::startActionSound(mActor->fn_803B97F0(), "DamageFire", -1, -1, -1);
         } else {
             playSound("声炎ダメージ");
             playSound("炎ダメージ");
@@ -628,7 +618,7 @@ void MarioFireDance::impactEffect() {
         break;
     case 1:
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(fn_803B97F0(mActor), "DamageFire", -1, -1, -1);
+            MR::startActionSound(mActor->fn_803B97F0(), "DamageFire", -1, -1, -1);
         } else {
             playSound("声針ダメージ");
             playSound("針ダメージ");
@@ -637,22 +627,22 @@ void MarioFireDance::impactEffect() {
     }
 }
 
-extern "C" void fn_803E5FA0(MarioFireDance* p) {
-    if (!p->_29) {
-        p->mActor->decLifeLarge();
+void MarioFireDance::fn_803E5FA0() {
+    if (!this->_29) {
+        this->mActor->decLifeLarge();
     } else {
-        p->mActor->decLifeMiddle();
+        this->mActor->decLifeMiddle();
     }
 
-    if (!p->mActor->mHealth) {
-        p->mActor->forceGameOverNonStop();
+    if (!this->mActor->mHealth) {
+        this->mActor->forceGameOverNonStop();
     }
 
-    p->_20 = -p->mActor->getConst().getTable()->mFireDanceFirstJump;
-    p->impact();
-    p->impactEffect();
-    p->startPadVib(3);
-    p->_2A = 0;
+    this->_20 = -this->mActor->getConst().getTable()->mFireDanceFirstJump;
+    this->impact();
+    this->impactEffect();
+    this->startPadVib(3);
+    this->_2A = 0;
 }
 
 bool MarioFireDance::update() {
@@ -687,7 +677,7 @@ bool MarioFireDance::update() {
 
             changeAnimation("ファイアダンス");
         } else {
-            fn_803E5FA0(this);
+            this->fn_803E5FA0();
         }
     }
 

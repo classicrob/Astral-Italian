@@ -1,10 +1,19 @@
 #include "Game/Enemy/Pattan.hpp"
+void fn_801E6F00(LiveActor* pActor, const TVec3f* pFront);
+bool fn_801E7A80(LiveActor* pActor);
+bool fn_801E7B00(LiveActor* pActor);
+bool fn_801E7B90(LiveActor* pActor);
+bool fn_801E7C20(LiveActor* pActor);
+bool fn_801E7C70(LiveActor* pActor);
+bool fn_801E7D10(LiveActor* pActor, HitSensor* pSender, HitSensor* pReceiver);
+void fn_801E77A0(LiveActor* pActor);
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace NrvPattan {
     NEW_NERVE(PattanNrvAppear, Pattan, Appear);
@@ -25,22 +34,16 @@ namespace NrvPattan {
 #define GET_PATTAN_NERVE(name) (&NrvPattan::name::sInstance)
 
 // Constants from SMG2 .sbss2 / .sdata2 (values from the DOL).
-extern "C" s32 lbl_807E3050;
-extern "C" s32 lbl_807E3054;
-extern "C" f32 lbl_807E3058;
-extern "C" f32 lbl_807E305C;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern s32 lbl_807E3050;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern s32 lbl_807E3054;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern f32 lbl_807E3058;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern f32 lbl_807E305C;
 
 // Unnamed SMG2 helpers used by Pattan.
-extern "C" bool fn_8008E060(const TPos3f*, const TVec3f*);
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_801E6F00(LiveActor*, const TVec3f*);
-extern "C" void fn_8000F880(const TVec3f*);
-extern "C" bool fn_801E7A80(LiveActor*);
-extern "C" bool fn_801E7B00(LiveActor*);
-extern "C" bool fn_801E7B90(LiveActor*);
-extern "C" bool fn_801E7C20(LiveActor*);
-extern "C" bool fn_801E7C70(LiveActor*);
-extern "C" bool fn_801E7D10(LiveActor*, HitSensor*, HitSensor*);
 
 // Zero offsets for the ground probes (SMG2 lbl_80729470 / lbl_8072947C).
 static TVec3f sRayOffsetA(0.0f, 0.0f, 0.0f);
@@ -89,7 +92,7 @@ void Pattan::makeActorAppeared() {
 }
 
 // Appear-by-jump setup used by the spawner (fn_801E6F00).
-extern "C" void fn_801E6F00(LiveActor* pActor, const TVec3f* pFront) {
+void fn_801E6F00(LiveActor* pActor, const TVec3f* pFront) {
     MR::calcGravity(pActor);
     pActor->LiveActor::appear();
     static_cast<Pattan*>(pActor)->mFront.z = pFront->z;
@@ -116,7 +119,7 @@ void Pattan::control() {
 }
 
 void Pattan::calcAndSetBaseMtx() {
-    fn_8000F880(&mFront);
+    MR::fn_8000F880(this, &mFront);
 }
 
 // NONMATCHING: the SMG2 push/attack sensor flow is approximated from the draft.
@@ -171,25 +174,25 @@ bool Pattan::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
 }
 
 // True when the Pattan is not in Attack/Dead/Pop (fn_801E7A80).
-extern "C" bool fn_801E7A80(LiveActor* pActor) {
+bool fn_801E7A80(LiveActor* pActor) {
     return !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvDown)) && !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvDead)) &&
            !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvPop));
 }
 
 // True when the Pattan is not in Attack/Down/Pop/Dead (fn_801E7B00).
-extern "C" bool fn_801E7B00(LiveActor* pActor) {
+bool fn_801E7B00(LiveActor* pActor) {
     return !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvAttack)) && !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvDown)) &&
            !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvPop)) && !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvDead));
 }
 
 // True when the Pattan is not in Down/Dead/Pop/Freeze (fn_801E7B90).
-extern "C" bool fn_801E7B90(LiveActor* pActor) {
+bool fn_801E7B90(LiveActor* pActor) {
     return !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvDown)) && !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvDead)) &&
            !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvPop)) && !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvFreeze));
 }
 
 // Enters the Pop nerve when the hit is allowed (fn_801E7C20).
-extern "C" bool fn_801E7C20(LiveActor* pActor) {
+bool fn_801E7C20(LiveActor* pActor) {
     if (fn_801E7A80(pActor)) {
         pActor->setNerve(GET_PATTAN_NERVE(PattanNrvPop));
         return true;
@@ -198,7 +201,7 @@ extern "C" bool fn_801E7C20(LiveActor* pActor) {
 }
 
 // Attack/hit reaction chooser (fn_801E7C70).
-extern "C" bool fn_801E7C70(LiveActor* pActor) {
+bool fn_801E7C70(LiveActor* pActor) {
     if (isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvAttack)) && MR::isGreaterStep(pActor, 0xA)) {
         pActor->setNerve(GET_PATTAN_NERVE(PattanNrvPush));
         return true;
@@ -212,7 +215,7 @@ extern "C" bool fn_801E7C70(LiveActor* pActor) {
 }
 
 // Push-back on a horizontal hit (fn_801E7D10).
-extern "C" bool fn_801E7D10(LiveActor* pActor, HitSensor* pSender, HitSensor* pReceiver) {
+bool fn_801E7D10(LiveActor* pActor, HitSensor* pSender, HitSensor* pReceiver) {
     if (fn_801E7A80(pActor) && !isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvGuard))) {
         MR::tryHitReaction(pActor, "ヒップドロップ");
         MR::addVelocityFromPushHorizon(pActor, 15.0f, pSender, pReceiver);
@@ -223,7 +226,7 @@ extern "C" bool fn_801E7D10(LiveActor* pActor, HitSensor* pSender, HitSensor* pR
 }
 
 // Moves to Freeze when the nerve is in the attack group (fn_801E77A0).
-extern "C" void fn_801E77A0(LiveActor* pActor) {
+void fn_801E77A0(LiveActor* pActor) {
     if (isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvAppear)) || isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvWait)) ||
         isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvFind)) || isPattanNerve(pActor, GET_PATTAN_NERVE(PattanNrvChase))) {
         pActor->setNerve(GET_PATTAN_NERVE(PattanNrvJump));
@@ -269,7 +272,7 @@ void Pattan::exeChase() {
         MR::startAction(this, "Walk");
     }
     mBaseMtx = TPos3f(MR::getJointMtx(this, "Root"));
-    if (!fn_8008E060(&mBaseMtx, &sRayOffsetA) || mDamageTimer < 0) {
+    if (!MR::fn_8008E060(&mBaseMtx, &sRayOffsetA) || mDamageTimer < 0) {
         MR::zeroVelocity(this);
         MR::offBind(this);
         setNerve(GET_PATTAN_NERVE(PattanNrvAttackSign));
@@ -277,7 +280,7 @@ void Pattan::exeChase() {
     }
     if (MR::isGreaterStep(this, 0x258)) {
         mBaseMtx = TPos3f(MR::getJointMtx(this, "Root"));
-        if (!fn_8008E060(&mBaseMtx, &sRayOffsetB)) {
+        if (!MR::fn_8008E060(&mBaseMtx, &sRayOffsetB)) {
             MR::zeroVelocity(this);
             setNerve(GET_PATTAN_NERVE(PattanNrvWait));
         }
@@ -290,7 +293,7 @@ void Pattan::exeAttackSign() {
         MR::startAction(this, "AttackSign");
         MR::offBind(this);
     }
-    if (MR::isGreaterStep(this, lbl_807E3054)) {
+    if (MR::isGreaterEqualStep(this, lbl_807E3054)) {
         setNerve(GET_PATTAN_NERVE(PattanNrvAttack));
     }
 }
@@ -341,7 +344,7 @@ void Pattan::exeGuard() {
 
 void Pattan::exeDead() {
     if (MR::isActionEnd(this)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         MR::tryHitReactionDead(this);
         kill();
     }

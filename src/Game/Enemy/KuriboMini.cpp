@@ -26,6 +26,7 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace {
     class KuriboMiniParam {
@@ -69,16 +70,13 @@ namespace MR {
     bool isMsgYoshiCancelEaten(u32 msg);
 };  // namespace MR
 
-extern "C" u32 lbl_807D2A70;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2A70;
 
 namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
 };  // namespace YoshiFunction
 
-extern "C" bool fn_801BE5A0(KuriboMini*);
-extern "C" bool fn_801BDAA0(KuriboMini*);
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
 
 namespace NrvKuriboMini {
     NEW_NERVE(KuriboMiniNrvWander, KuriboMini, Wander);
@@ -309,7 +307,7 @@ bool KuriboMini::requestHipDropDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    _C8 = fn_801BE5A0(this);
+    _C8 = fn_801BE5A0();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvHipDropDown));
     MR::offBind(this);
     return true;
@@ -320,7 +318,7 @@ bool KuriboMini::requestFlatDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    _C8 = fn_801BE5A0(this);
+    _C8 = fn_801BE5A0();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvFlatDown));
     MR::offBind(this);
     return true;
@@ -331,7 +329,7 @@ bool KuriboMini::requestPressDown() {
         return false;
     }
 
-    _C8 = fn_801BE5A0(this);
+    _C8 = fn_801BE5A0();
     setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvPressDown));
     MR::offBind(this);
     return true;
@@ -391,7 +389,7 @@ bool KuriboMini::tryFind() {
 
 bool KuriboMini::tryPointBind() {
     if (mStateBindStarPointer->tryStartPointBind()) {
-        _C8 = fn_801BE5A0(this);
+        _C8 = fn_801BE5A0();
         setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvBindStarPointer));
         return true;
     }
@@ -411,7 +409,7 @@ bool KuriboMini::tryDeadMap() {
 void KuriboMini::exeWander() {
     MR::updateActorState(this, mStateWander);
     if (!tryFind() && !tryDeadMap() && !tryPointBind()) {
-        fn_801BDAA0(this);
+        fn_801BDAA0();
     }
 }
 
@@ -422,7 +420,7 @@ void KuriboMini::exeFindPlayer() {
         }
 
         if (!tryDeadMap() && !tryPointBind()) {
-            fn_801BDAA0(this);
+            fn_801BDAA0();
         }
     }
 }
@@ -437,7 +435,7 @@ void KuriboMini::exeChase() {
     }
 
     if (!tryDeadMap() && !tryPointBind()) {
-        fn_801BDAA0(this);
+        fn_801BDAA0();
     }
 }
 
@@ -487,7 +485,7 @@ void KuriboMini::exeAttackSuccess() {
     calcPassiveMovement();
 
     if (!tryDeadMap() && !tryPointBind()) {
-        fn_801BDAA0(this);
+        fn_801BDAA0();
     }
 
     if (MR::isGreaterStep(this, 60)) {
@@ -505,7 +503,7 @@ void KuriboMini::exeHipDropDown() {
     MR::zeroVelocity(this);
 
     if (MR::isGreaterStep(this, 40)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -520,7 +518,7 @@ void KuriboMini::exeFlatDown() {
     MR::zeroVelocity(this);
 
     if (MR::isGreaterStep(this, 20)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -535,7 +533,7 @@ void KuriboMini::exePressDown() {
     MR::zeroVelocity(this);
 
     if (MR::isGreaterStep(this, 180)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -551,7 +549,7 @@ void KuriboMini::exeBlowDown() {
     MR::turnDirectionDegree(this, &_B8, -mVelocity, 30.0f);
 
     if (MR::isGreaterStep(this, 30)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }

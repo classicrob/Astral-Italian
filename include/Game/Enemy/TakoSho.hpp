@@ -66,3 +66,6 @@ public:
     /* 0xE0 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0xE4 */ MapObjConnector* mConnector;
 };
+
+// unnamed by address (fn_80208970).
+void fn_80208970(TVec3f*, LiveActor*, f32);

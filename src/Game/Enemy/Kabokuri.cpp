@@ -349,12 +349,11 @@ bool Kabokuri::requestHipDropped() {
     return false;
 }
 
-extern "C" void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
 
 bool Kabokuri::requestHitAttacked(HitSensor* pSender, HitSensor* pReceived) {
     if (isEnableTrampled()) {
         MR::setVelocityBlowAttack(this, pSender, pReceived, ::sHitAttackedAccelH, ::sHitAttackedAccelV, 4);
-        fn_80034760(this, pSender, pReceived);
+        MR::fn_80034760(this, pSender, pReceived);
         setNerve(GET_NERVE(Kabokuri, KabokuriNrvHitAttacked));
         MR::invalidateHitSensors(this);
         return true;

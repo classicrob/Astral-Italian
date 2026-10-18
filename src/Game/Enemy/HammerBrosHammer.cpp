@@ -4,11 +4,10 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-extern "C" void fn_8022BAE0(LiveActor*);
-extern "C" s32 lbl_807E3028;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern s32 lbl_807E3028;
 
 // Per-state actor states (defined in the second half of the original unit, not ported yet).
 class HammerBrosStateJump : public ActorStateBase< HammerBros > {
@@ -64,7 +63,7 @@ void HammerBrosHammer::init(const JMapInfoIter& rIter) {
     initNerve(HNRV(Fly), 1);
     mBind = new WalkerStateBindStarPointer(this, mScaleCtrl);
     MR::initActorState(this, mBind, HNRV(Freeze), "SupportFreeze");
-    fn_8022BC70(this);
+    MR::disableAllItemGenerator(this);
     makeActorDead();
 }
 

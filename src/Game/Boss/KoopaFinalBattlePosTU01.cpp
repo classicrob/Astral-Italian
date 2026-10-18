@@ -173,7 +173,7 @@ namespace MR {
         MR::calcUpVec(&up, pBattle);
         JMAVECScaleAdd(&toActor, &up, &up, -toActor.dot(up));
         MR::normalizeOrZero(&up);
-        fn_80010CB0(pBattle, up, 5.5f * speed);
+        MR::fn_80010CB0(pBattle, up, 5.5f * speed);
         MR::turnVecToPlane(&pBattle->mVelocity, pBattle->mVelocity, toActor);
         MR::attenuateVelocity(pBattle, 0.95f);
         return angle < limit;

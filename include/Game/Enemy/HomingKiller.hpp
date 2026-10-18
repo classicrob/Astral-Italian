@@ -144,6 +144,8 @@ public:
 
 class HomingKillerLauncher : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    HomingKiller* fn_80198540();
     HomingKillerLauncher(const char*);
 
     virtual void init(const JMapInfoIter&);

@@ -9,8 +9,6 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
 
 WanwanCreator::WanwanCreator(const char* pName) : LiveActor(pName), mWanwans(nullptr), mType(0), mSpeed(10.0f), mBreakAtGoal(false), mInterval(-1), mCount(0), mTimer(0), mValid(true) {
 }

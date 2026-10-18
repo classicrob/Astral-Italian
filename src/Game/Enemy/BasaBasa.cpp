@@ -113,7 +113,7 @@ void BasaBasa::exeWait() {
 
 void BasaBasa::exeAirWait() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Fly");
+        MR::tryStartActionNotPlaying(this, "Fly");
         if (MR::isExistRail(this)) {
             _B4 = &MR::getRailPos(this);
         } else {

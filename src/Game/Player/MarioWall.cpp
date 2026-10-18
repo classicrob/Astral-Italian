@@ -672,12 +672,10 @@ bool Mario::fixWallingDist() {
     if (mMovementStates._19) {
         TVec3f position(_4F4 + *mBackWallTriangle->getNormal(0) * 79.0f);
         f32 distance = MR::vecKillElement(position - mPosHolder->mPos, *mBackWallTriangle->getNormal(0), &position);
-        fn_80406010(mPosHolder, *mBackWallTriangle->getNormal(0) * distance);
         if (!fixWallingTop()) {
             return false;
         }
 
-        fn_80405F90(mPosHolder, _4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
     } else if (mMovementStates._8) {
         if (!fixWallingTop()) {
             return false;

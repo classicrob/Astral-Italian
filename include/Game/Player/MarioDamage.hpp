@@ -20,6 +20,12 @@ public:
     void stopHead(const TVec3f&);
     bool updateHorrorDamage();
 
+    // SMG2-only (original names unknown; named by address)
+    bool fn_803E48F0();
+    bool fn_803E4BF0();
+    bool fn_803E4D00();
+    void fn_803E4E00();
+
     inline void setStrings(const char* pChar1, const char* pChar2) {
         _28 = pChar1;
         _2C = pChar2;

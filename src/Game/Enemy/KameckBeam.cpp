@@ -371,14 +371,12 @@ void KameckBeam::exeShoot() {
     MR::startActionSound(this, "BmLvKameckMagicComm");
 }
 
-extern "C" bool fn_801A7590(KameckBeam*);
-extern "C" void fn_801A79D0(KameckBeam*);
 
 void KameckBeam::exeExplosion() {
-    if (fn_801A7590(this)) {
+    if (fn_801A7590()) {
         MR::shakeCameraNormalWeak();
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
-        fn_801A79D0(this);
+        fn_801A79D0();
     }
 
     kill();

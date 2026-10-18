@@ -21,6 +21,7 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace {
     // hCommonGravity
@@ -253,7 +254,6 @@ void JumpSpider::endStampFall() {
     MR::validateClipping(this);
 }
 
-extern "C" void fn_8022BAA0(LiveActor*);
 
 void JumpSpider::exeStampDeath() {
     if (MR::isFirstStep(this)) {
@@ -266,7 +266,7 @@ void JumpSpider::exeStampDeath() {
 
     if (MR::isGreaterStep(this, ::hStampDeathTime)) {
         MR::startActionSound(this, "EmExplodeS");
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }

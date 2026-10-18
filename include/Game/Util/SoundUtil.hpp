@@ -8,9 +8,16 @@ class AudSeKeeper;
 class AudSoundObject;
 class JAISoundHandle;
 class JAISoundID;
+class AudLifeAlertCounter;
 class LiveActor;
 
 namespace MR {
+    // SMG2-only (original names unknown; named by address)
+    void startPlayFireMorphBGM();
+    void fn_8001C280();
+    void fn_8005A7F0(LiveActor*, f32);
+    AudLifeAlertCounter* fn_8005BC60(s32);
+
     void setAudioSystemField9A0(s32);
     void startAppearPlanetJingle();
     void setSeVolumeSetLevelForMenu();
@@ -132,6 +139,8 @@ namespace MR {
     void startCurrentStageBGM();
     JAISoundHandle* startEventBGM(s32);
     JAISoundHandle* startAfterBossBGM();
+    // SoundUtil (enemies lane, callees named by address; lead renames symbols)
+    void fn_8005A6E0(LiveActor*, const char*, bool, bool, f32, f32);
 };  // namespace MR
 
 namespace MR {

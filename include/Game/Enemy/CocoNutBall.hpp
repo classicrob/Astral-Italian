@@ -4,6 +4,8 @@
 
 class CocoNutBall : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    bool fn_80178940() const;
     CocoNutBall(const char* pName = "ヤシの実弾");
 
     virtual void init(const JMapInfoIter& rIter);

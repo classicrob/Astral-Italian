@@ -7,6 +7,12 @@ class SupportTicoStop;
 // SMG2-only unit (Foomin, rail-riding tico-carrier enemy). LiveActor = 0x90 bytes.
 class Foomin : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    void fn_80181940();
+    void fn_801819D0();
+    void fn_80181A80();
+    void fn_80181B00();
+    void fn_80181C80();
     Foomin(const char* pName);
 
     virtual ~Foomin();

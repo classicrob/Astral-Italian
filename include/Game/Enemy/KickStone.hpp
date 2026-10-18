@@ -9,6 +9,9 @@ class YoshiLockOnTarget;
 // SMG2-only unit (KickStone: kickable rock that breaks into star pieces or coins). LiveActor = 0x90 bytes.
 class KickStone : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    void fn_801B38B0();
+    void fn_801B3B60();
     KickStone(const char* pName);
 
     virtual ~KickStone();
@@ -36,3 +39,6 @@ public:
     /* 0xC8 */ TPos3f mMtx;
     /* 0xF8 */ TVec3f mOffset;
 };
+
+// unnamed by address (fn_801B3420), r3 is a TVec3f output.
+void fn_801B3420(TVec3f*, KickStone*, s32);

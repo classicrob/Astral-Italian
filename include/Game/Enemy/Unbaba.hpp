@@ -17,6 +17,9 @@ public:
 
 class Unbaba : public LiveActor {
 public:
+    bool fn_80215E50();
+    bool fn_80215EF0();
+    void fn_80215FB0();
     Unbaba(const char*);
     virtual ~Unbaba();
 
@@ -51,3 +54,6 @@ public:
     /* 0x130 */ bool mIsScaleUp;
     /* 0x131 */ bool mIsAttackBlocked;
 };
+
+// unnamed by address (fn_80215DA0): pure easing helper, no object argument.
+f32 fn_80215DA0(f32, f32, f32, f32, f32, f32, f32);

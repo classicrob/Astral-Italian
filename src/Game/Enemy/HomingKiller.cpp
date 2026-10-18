@@ -21,6 +21,7 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace {
     static const Vec cBodyHitSensorOffset = {0.0f, 0.0f, -10.0f};
@@ -86,11 +87,6 @@ namespace NrvHomingKiller {
 
 };  // namespace NrvHomingKiller
 
-extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f*);
-extern "C" void fn_80422190();
-extern "C" void fn_80422210();
-extern "C" void fn_80422350(TPos3f*);
-extern "C" void fn_8022BA10(LiveActor*);
 
 namespace {
     bool isSensorType(const HitSensor* pSensor, const u32* pTypes, u32 numTypes) {
@@ -216,7 +212,7 @@ void HomingKiller::init(const JMapInfoIter& rIter) {
 
     TVec3f lockOnOffset;
     lockOnOffset.setAll< f32 >(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, lockOnOffset);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), lockOnOffset);
 
     mScaleParam = new AnimScaleParam();
     mScaleController = new AnimScaleController(mScaleParam);
@@ -478,7 +474,7 @@ bool HomingKiller::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
     }
 
     if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectileOrEat(msg) || MR::isMsgInvincibleAttack(msg) || MR::isMsgDrillAttack(msg)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         setNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak));
         return true;
     }
@@ -534,7 +530,7 @@ bool HomingKiller::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor*
 
     if (isBreakByEnemyAttack(msg, pSender)) {
         if (mType == Type_MagnumKiller) {
-            fn_8022BA10(this);
+            MR::emitItemHit(this);
         }
 
         setNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak));
@@ -916,7 +912,7 @@ void HomingKiller::calcFrontVecToTarget(TVec3f* pFront) const {
     MR::normalize(&playerUp);
     playerUp.scale(mType == Type_Torpedo ? ::cChaseTargetHeightTorpedo : ::cChaseTargetHeight);
     targetPos.add(*MR::getPlayerPos(), playerUp);
-    fn_8000E960(pFront, this, &targetPos);
+    MR::fn_8000E960(pFront, this, &targetPos);
 }
 
 bool HomingKiller::isValidShowModel() const {
@@ -1241,11 +1237,11 @@ void HomingKiller::exeGoToTarget() {
 
 void HomingKiller::exeEaten() {
     if (MR::isFirstStep(this)) {
-        fn_80422190();
+        MR::fn_80422190();
     }
 
     TPos3f mtx;
-    fn_80422350(&mtx);
+    MR::fn_80422350(&mtx);
     mtx.getTrans(mPosition);
     mtx.getZDir(mFront);
     mFront.negate();
@@ -1256,7 +1252,7 @@ void HomingKiller::exeEaten() {
             MR::startActionSound(this, "AlartHigh");
         } else if (MR::isGreaterStep(this, 420)) {
             MR::startActionSound(this, "AlartMiddle");
-            fn_80422210();
+            MR::fn_80422210();
         } else {
             MR::startActionSound(this, "AlartNormal");
         }
@@ -1271,7 +1267,7 @@ void HomingKiller::exeShot() {
         mMoveTime = 0;
 
         TPos3f mtx;
-        fn_80422350(&mtx);
+        MR::fn_80422350(&mtx);
         mtx.getTrans(mPosition);
         MR::getPlayerThrowVec(&mFront);
         TVec3f negGravity;
@@ -1346,9 +1342,9 @@ bool HomingKillerLauncher::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSenso
     return MR::tryForceKillIfMsgStartPowerStarGet(this, msg);
 }
 
-extern "C" HomingKiller* fn_80198540(HomingKillerLauncher* pLauncher) {
-    for (s32 i = 0; i < pLauncher->mKillerNum; i++) {
-        HomingKiller* pKiller = &pLauncher->mKillers[i];
+HomingKiller* HomingKillerLauncher::fn_80198540() {
+    for (s32 i = 0; i < this->mKillerNum; i++) {
+        HomingKiller* pKiller = &this->mKillers[i];
         if (MR::isDead(pKiller)) {
             return pKiller;
         }
@@ -1358,12 +1354,12 @@ extern "C" HomingKiller* fn_80198540(HomingKillerLauncher* pLauncher) {
 }
 
 void HomingKillerLauncher::exeAppearKiller() {
-    if (MR::isFirstStep(this) && fn_80198540(this)) {
-        fn_80198540(this)->appear();
+    if (MR::isFirstStep(this) && this->fn_80198540()) {
+        this->fn_80198540()->appear();
     }
 
     if (mKillerNum == 1) {
-        if (fn_80198540(this)) {
+        if (this->fn_80198540()) {
             setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvDeadKiller));
         }
     } else {
@@ -1372,7 +1368,7 @@ void HomingKillerLauncher::exeAppearKiller() {
 }
 
 void HomingKillerLauncher::exeDeadKiller() {
-    if (MR::isGreaterStep(this, mAppearInterval) && fn_80198540(this)) {
+    if (MR::isGreaterStep(this, mAppearInterval) && this->fn_80198540()) {
         setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvAppearKiller));
     }
 }

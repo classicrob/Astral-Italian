@@ -4,7 +4,6 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" void fn_8022BC70(LiveActor*);
 
 BoomerangBrosBoomerang::BoomerangBrosBoomerang(const char* pName) : BrosProjectileBase(pName), _BC(10.0f), mStep(0), mBind(nullptr) {
 }

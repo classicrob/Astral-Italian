@@ -8,6 +8,8 @@ class KameckFireBall;
 
 class KameckBeam : public LiveActor {
 public:
+    bool fn_801A7590();  // enemies lane: unnamed by address
+    void fn_801A79D0();
     enum BeamType {
         /* 0x0 */ BeamType_None,
         /* 0x1 */ BeamType_Turtle,

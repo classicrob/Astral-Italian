@@ -6,6 +6,7 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
 
+class ActorPoseTQ;
 class HitSensor;
 class LiveActor;
 
@@ -31,6 +32,7 @@ namespace MR {
     f32 calcDistanceVertical(const LiveActor*, const TVec3f&, const TVec3f&);
     f32 calcDistanceVertical(const LiveActor*, const TVec3f&);
     f32 calcDistanceToPlayer(const LiveActor*);
+    f32 getMicDistance(const LiveActor*);
     f32 calcDistanceToPlayerH(const LiveActor*);
     bool isNear(const HitSensor*, const HitSensor*, f32);
     bool isNear(const LiveActor*, const LiveActor*, f32);
@@ -181,6 +183,23 @@ namespace MR {
         velH.scaleAdd(-pActor->mGravity.dot(rVec), pActor->mGravity, rVec);
         return velH;
     }
+    // ActorMovementUtil (enemies lane, callees named by address; lead renames symbols)
+    void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
+    void fn_80012B80(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
+    void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f*);
+    void fn_80010CB0(LiveActor*, const TVec3f&, f32);
+    void fn_8000F880(LiveActor*, TVec3f*);
+    void fn_80010600(ActorPoseTQ*, LiveActor*, f32, f32);
+    void fn_800137F0(LiveActor*, TVec3f*, const TVec3f*, f32, f32, f32, f32, f32);
+    void fn_80013220(const LiveActor*, TVec3f*, f32);
+    f32 fn_80012450(const LiveActor*);
+    void fn_80011F80(LiveActor*, f32, f32);
+    void fn_80011180(LiveActor*, const TVec3f&, f32);
+    void fn_80010200(TQuat4f*, TQuat4f*, LiveActor*, HitSensor*, HitSensor*);
+    void fn_8000F9A0(LiveActor*, TVec3f*, const TVec3f*);
+    void fn_8000F910(LiveActor*, TVec3f*, TVec3f*);
+    void fn_8000EAB0(TVec3f*, LiveActor*);
+    void fn_8000E650(TVec3f*, LiveActor*, const TVec3f*);
 };  // namespace MR
 
 
@@ -198,6 +217,12 @@ namespace MR {
     void addVelocityMoveToTargetHorizon(LiveActor*, const TVec3f&, f32, f32, f32, f32);
     f32 calcGravitySpeedAbs(const LiveActor*);
     void calcRotate(LiveActor*, const TVec3f&, f32);
+    // SMG2 unnamed helpers used by the MameMuimui family (named by address; lead renames the symbols).
+    void fn_80010180(TQuat4f*, LiveActor*, HitSensor*, HitSensor*);
+    void fn_80010270(TQuat4f*, TVec3f*, LiveActor*);
+    void fn_800104F0(TQuat4f*, LiveActor*, TVec3f*, f32, f32);
+    void fn_80010910(TVec3f* pDst, const TVec3f& rDir, f32 scale);  // pDst = normalizeOrZero(rDir) * scale
+    void fn_80422290();
 };  // namespace MR
 
 class ActorPoseTQ;

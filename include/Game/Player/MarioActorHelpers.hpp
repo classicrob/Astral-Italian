@@ -1,0 +1,26 @@
+#pragma once
+
+#include <revolution.h>
+
+class HashSortTable;
+class LiveActor;
+
+// Small helper classes owned by MarioActor in SMG2. Original names unknown; named by role/address.
+
+/// @brief Name-keyed action table (size 8). Constructed by MarioActor::fn_803BFAE0.
+class MarioActionHash {
+public:
+    MarioActionHash();  // fn_803DB5E0
+
+    /* 0x00 */ HashSortTable* mTable;
+    /* 0x04 */ s32 _4;
+};
+
+/// @brief Fixed array of 16 (value, actor) slots (MarioActor + 0x108C).
+class MarioSensorSlots {
+public:
+    void fn_803DAB10(LiveActor*);
+
+    /* 0x00 */ u8 _0[0x80];
+    /* 0x80 */ s32 mCount;
+};

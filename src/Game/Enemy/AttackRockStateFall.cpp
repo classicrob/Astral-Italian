@@ -1,4 +1,14 @@
 #include "Game/Enemy/AttackRock.hpp"
+f32 fn_801510C0();
+bool fn_801510D0(LiveActor* pActor);
+bool fn_801517C0(LiveActor* pActor, s32 arg);
+void fn_801552A0(LiveActor* pActor);
+f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat);
+void fn_80155360(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
+void fn_801553D0(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
+void fn_801554D0(TPos3f* pMtx, LiveActor* pActor);
+void fn_80155540(ProjmapEffectMtxSetter* pSetter, TQuat4f* pQuat, TVec3f* pPos);
+ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Util.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -8,6 +18,8 @@
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/LiveActor/VolumeDrawer.hpp"
 #include "Game/Util/FixedPosition.hpp"
+#include "Game/Boss/KoopaFinalBattlePos.hpp"
+#include "Game/Boss/KoopaJrRobot.hpp"
 
 class BaseMatrixFollowValidater;
 class KoopaBattleAccessor {
@@ -31,50 +43,8 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers outside this unit (Koopa battle functions).
-extern "C" void fn_800CB710(HitSensor*);
-extern "C" void fn_800CB090(TVec3f*);
-extern "C" void fn_800CB6D0(TVec3f*);
-extern "C" f32 fn_800CB410(const TVec3f*);
-extern "C" void fn_800CAF80(TVec3f*, const TVec3f*);
-extern "C" void fn_800CAFE0(TVec3f*, const TVec3f*);
-extern "C" void fn_800CB460(TVec3f*);
-extern "C" void fn_800CC210(HitSensor*, HitSensor*);
-extern "C" bool fn_800CC1F0(HitSensor*, HitSensor*);
-extern "C" void fn_800CC220(LiveActor*, HitSensor*);
-extern "C" bool fn_800CC230(LiveActor*, HitSensor*);
-extern "C" bool fn_800CC270(u32);
-extern "C" bool fn_800CC280(u32);
-extern "C" bool fn_800CC290(u32);
-extern "C" bool fn_800CC2B0(u32);
-extern "C" void fn_800E4420(void*);
-extern "C" void fn_800E4700(const TVec3f*);
-extern "C" void fn_800513C0(TQuat4f*, TVec3f*);
-extern "C" TVec3f* fn_800514B0(TQuat4f*, TVec3f*);
 
 // Unit-local helpers (unnamed in the target).
-extern "C" {
-f32 fn_801510C0() NO_INLINE;
-bool fn_801510D0(LiveActor*) NO_INLINE;
-void fn_80151160(AttackRock*) NO_INLINE;
-bool fn_801517C0(LiveActor*, s32) NO_INLINE;
-void fn_80151850(void*) NO_INLINE;
-void fn_801552A0(LiveActor*) NO_INLINE;
-void fn_80155360(TVec3f*, TQuat4f*, HitSensor*, HitSensor*, f32) NO_INLINE;
-void fn_801553D0(TVec3f*, TVec3f*, HitSensor*, HitSensor*, f32) NO_INLINE;
-void fn_801554D0(TPos3f*, LiveActor*) NO_INLINE;
-void fn_80155540(ProjmapEffectMtxSetter*, TQuat4f*, TVec3f*) NO_INLINE;
-ProjmapEffectMtxSetter* fn_80155660(LiveActor*) NO_INLINE;
-void fn_80152F10(AttackRockRide*) NO_INLINE;
-void fn_80152F20(AttackRockRide*) NO_INLINE;
-bool fn_80152E20(AttackRockRide*, u32, HitSensor*, HitSensor*) NO_INLINE;
-void fn_80152A00(AttackRockRide*) NO_INLINE;
-void fn_80152C00(AttackRockRide*) NO_INLINE;
-void fn_801529E0(AttackRockRide*, const TVec3f*) NO_INLINE;
-AttackRockRide* fn_801528E0(AttackRockRide*, LiveActor*) NO_INLINE;
-bool fn_80153400(AttackRockStateHold*) NO_INLINE;
-bool fn_80153460(AttackRockStateHold*) NO_INLINE;
-f32 fn_801552E0(LiveActor*, TQuat4f*) NO_INLINE;
-}
 
 namespace NrvAttackRockStateFall {
     class AttackRockStateFallNrvAppear : public Nerve {
@@ -97,14 +67,6 @@ namespace NrvAttackRockStateFall {
     AttackRockStateFallNrvFall AttackRockStateFallNrvFall::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvAttackRockStateFall
 
-extern "C" {
-void fn_80153DE0(AttackRockStateFall*) NO_INLINE;
-void fn_80153EE0(AttackRockStateFall*) NO_INLINE;
-void fn_80153FE0(AttackRockStateFall*) NO_INLINE;
-void fn_80154060(AttackRockStateFall*) NO_INLINE;
-void fn_80154280(AttackRockStateFall*) NO_INLINE;
-void fn_80154400(AttackRockStateFall*) NO_INLINE;
-}
 
 AttackRockStateFall::AttackRockStateFall(AttackRock* pRock, s32 rockNum)
     : ActorStateBase< AttackRock >("\215U\214\202\212\342\203N\203b\203p\215U\214\202", pRock), mBreakModel(nullptr), mVolumeDrawer(nullptr), mFallPos(0.0f, 0.0f, 0.0f),
@@ -142,7 +104,6 @@ void AttackRockStateFall::kill() {
 void AttackRockStateFall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pSender, mHost, "Body") && isNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvWait::sInstance)) {
         MR::sendMsgEnemyAttackStrongOrPush(pReceiver, pSender);
-        fn_800CC210(pReceiver, pSender);
         return;
     }
     if (MR::isEqualSensor(pSender, mHost, "Land") && mIsNear) {
@@ -158,7 +119,7 @@ void AttackRockStateFall::attackSensor(HitSensor* pSender, HitSensor* pReceiver)
 }
 
 bool AttackRockStateFall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (fn_800CC280(msg)) {
+    if (MR::isMsgKoopaBA(msg)) {
         if (mBreakModel != nullptr) {
             mBreakModel->makeActorDead();
         }
@@ -173,133 +134,131 @@ bool AttackRockStateFall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
 }
 
 // NONMATCHING: written from the m2c output; stack/temporaries not verified.
-extern "C" void fn_80153DE0(AttackRockStateFall* pState) {
-    AttackRock* pHost = pState->mHost;
-    f32 dist = PSVECDistance(&pState->mLandPos, &pHost->mPosition);
+void AttackRockStateFall::fn_80153DE0() {
+    AttackRock* pHost = this->mHost;
+    f32 dist = PSVECDistance(&this->mLandPos, &pHost->mPosition);
     f32 radius = 1.5f + fn_801510C0() * pHost->mScale.x;
     if (dist < radius) {
         f32 scale = pHost->mScale.x;
         f32 base = fn_801510C0() * scale;
-        MR::setSensorRadius(pState->mHost, "Land",
+        MR::setSensorRadius(this->mHost, "Land",
                             MR::getLinerValueFromMinMax(dist, 0.0f, radius, fn_801510C0() * pHost->mScale.x, 0.5f * base));
-        pState->mIsNear = true;
+        this->mIsNear = true;
         return;
     }
-    pState->mIsNear = false;
+    this->mIsNear = false;
 }
 
 // NONMATCHING: operator*/operator+ out-of-line vs inline decisions differ (target was a separate TU).
-extern "C" void fn_80153EE0(AttackRockStateFall* pState) {
-    TVec3f start(pState->mHost->mPosition);
-    f32 t = MR::calcNerveRate(pState, 110);
+void AttackRockStateFall::fn_80153EE0() {
+    TVec3f start(this->mHost->mPosition);
+    f32 t = MR::calcNerveRate(this, 110);
     f32 s = 1.0f - t;
     f32 b = s * s;
     f32 m = 2.0f * t * s;
     TVec3f p0 = start * (t * t);
-    TVec3f p1 = pState->mFallPos * m;
-    TVec3f p2 = pState->mLandPos * b;
+    TVec3f p1 = this->mFallPos * m;
+    TVec3f p2 = this->mLandPos * b;
     TVec3f sum = p0 + p2;
     sum = sum + p1;
     TVec3f pos(sum);
-    TVec3f vel = pos - pState->mHost->mPosition;
-    MR::setVelocity(pState->mHost, vel);
+    TVec3f vel = pos - this->mHost->mPosition;
+    MR::setVelocity(this->mHost, vel);
 }
 
-extern "C" void fn_80153FE0(AttackRockStateFall* pState) {
-    AttackRock* pHost = pState->mHost;
+void AttackRockStateFall::fn_80153FE0() {
+    AttackRock* pHost = this->mHost;
     LiveActor* pDemo = pHost->mDemoObj;
-    MR::setQuatUpNoSupport(pDemo, pState->mLandNormal);
-    MR::resetPosition(pDemo, pState->mLandPos);
+    MR::setQuatUpNoSupport(pDemo, this->mLandNormal);
+    MR::resetPosition(pDemo, this->mLandPos);
     MR::startAction(pDemo, "Appear");
     MR::invalidateCollisionParts(pDemo);
     pDemo->appear();
 }
 
 // NONMATCHING: written from the m2c output; stack/temporaries not verified.
-extern "C" void fn_80154060(AttackRockStateFall* pState) {
-    if (MR::isFirstStep(pState)) {
-        pState->mIsNear = false;
-        MR::startAction(pState->mHost, "Wait");
-        MR::invalidateCollisionParts(pState->mHost);
+void AttackRockStateFall::fn_80154060() {
+    if (MR::isFirstStep(this)) {
+        this->mIsNear = false;
+        MR::startAction(this->mHost, "Wait");
+        MR::invalidateCollisionParts(this->mHost);
     }
     TVec3f playerPos = *MR::getPlayerPos() + *MR::getPlayerLastMove() * 60.0f;
     TVec3f ground;
-    fn_800CAFE0(&pState->mLandPos, &playerPos);
-    fn_800CAF80(&pState->mLandNormal, &playerPos);
-    MR::makeQuatUpNoSupport(&pState->mHost->mQuatF0, pState->mLandNormal);
-    MR::setPosition(pState->mVolumeDrawer, pState->mLandPos);
-    MR::setShadowProjection(pState->mHost, nullptr, pState->mLandPos, pState->mLandNormal, true);
-    pState->mHost->mGravity.set(-pState->mLandNormal);
-    pState->mFallPos.set(pState->mLandPos + pState->mLandNormal * 4000.0f);
-    TVec3f toHost = pState->mHost->mPosition - ground;
-    pState->mStartPos.set(pState->mLandPos);
-    MR::resetPosition(pState->mHost, pState->mStartPos);
-    MR::showModel(pState->mHost);
-    MR::validateHitSensors(pState->mHost);
-    pState->setNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvWait::sInstance);
-    AttackRock* pHost = pState->mHost;
-    MR::setShadowVolumeSphereRadius(pState->mHost, nullptr, 0.05f * fn_801510C0() * pHost->mScale.x);
+    MR::makeQuatUpNoSupport(&this->mHost->mQuatF0, this->mLandNormal);
+    MR::setPosition(this->mVolumeDrawer, this->mLandPos);
+    MR::setShadowProjection(this->mHost, nullptr, this->mLandPos, this->mLandNormal, true);
+    this->mHost->mGravity.set(-this->mLandNormal);
+    this->mFallPos.set(this->mLandPos + this->mLandNormal * 4000.0f);
+    TVec3f toHost = this->mHost->mPosition - ground;
+    this->mStartPos.set(this->mLandPos);
+    MR::resetPosition(this->mHost, this->mStartPos);
+    MR::showModel(this->mHost);
+    MR::validateHitSensors(this->mHost);
+    this->setNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvWait::sInstance);
+    AttackRock* pHost = this->mHost;
+    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, 0.05f * fn_801510C0() * pHost->mScale.x);
 }
 
 // NONMATCHING: written from the m2c output; stack/temporaries not verified.
-extern "C" void fn_80154280(AttackRockStateFall* pState) {
-    if (MR::isFirstStep(pState)) {
+void AttackRockStateFall::fn_80154280() {
+    if (MR::isFirstStep(this)) {
         const char* pName = "Fall";
-        if (pState->mBreakModel != nullptr) {
+        if (this->mBreakModel != nullptr) {
             pName = "FallWave";
         }
-        MR::startAction(pState->mHost, pName);
-        MR::invalidateShadow(pState->mHost, nullptr);
-        pState->mIsNear = false;
-        pState->mVolumeDrawer->setScaleUpRate(60);
-        MR::setShadowProjection(pState->mHost, nullptr, pState->mLandPos, pState->mLandNormal, true);
+        MR::startAction(this->mHost, pName);
+        MR::invalidateShadow(this->mHost, nullptr);
+        this->mIsNear = false;
+        this->mVolumeDrawer->setScaleUpRate(60);
+        MR::setShadowProjection(this->mHost, nullptr, this->mLandPos, this->mLandNormal, true);
     }
-    AttackRock* pHost = pState->mHost;
+    AttackRock* pHost = this->mHost;
     f32 base = 0.05f * fn_801510C0() * pHost->mScale.x;
-    f32 radius = MR::calcNerveEaseInOutValue(pState->mHost, 88, base, 0.95f * fn_801510C0() * pHost->mScale.x);
-    MR::setShadowVolumeSphereRadius(pState->mHost, nullptr, radius);
-    MR::setScale(pState->mVolumeDrawer, TVec3f(1.2f * radius / 100.0f));
-    fn_80153EE0(pState);
-    fn_80153DE0(pState);
-    if (MR::isGreaterEqualStep(pState, 110)) {
-        MR::setPosition(pState->mHost, pState->mLandPos);
-        MR::zeroVelocity(pState->mHost);
-        pState->mVolumeDrawer->setScaleDownRate(50);
-        fn_80153FE0(pState);
-        pState->setNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvFall::sInstance);
+    f32 radius = MR::calcNerveEaseInOutValue(this->mHost, 88, base, 0.95f * fn_801510C0() * pHost->mScale.x);
+    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, radius);
+    MR::setScale(this->mVolumeDrawer, TVec3f(1.2f * radius / 100.0f));
+    this->fn_80153EE0();
+    this->fn_80153DE0();
+    if (MR::isGreaterEqualStep(this, 110)) {
+        MR::setPosition(this->mHost, this->mLandPos);
+        MR::zeroVelocity(this->mHost);
+        this->mVolumeDrawer->setScaleDownRate(50);
+        this->fn_80153FE0();
+        this->setNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvFall::sInstance);
     }
 }
 
-extern "C" void fn_80154400(AttackRockStateFall* pState) {
-    if (MR::isFirstStep(pState)) {
+void AttackRockStateFall::fn_80154400() {
+    if (MR::isFirstStep(this)) {
         const char* pName = "Land";
-        if (pState->mBreakModel != nullptr) {
+        if (this->mBreakModel != nullptr) {
             pName = "LandWave";
         }
-        MR::startAction(pState->mHost, pName);
-        MR::setPosition(pState->mHost, pState->mLandPos);
-        MR::zeroVelocity(pState->mHost);
-        MR::invalidateShadow(pState->mHost, nullptr);
-        MR::validateCollisionParts(pState->mHost);
-        MR::validateCollisionParts(pState->mHost->mDemoObj);
-        if (pState->mBreakModel != nullptr) {
-            fn_800E4700(&pState->mHost->mPosition);
+        MR::startAction(this->mHost, pName);
+        MR::setPosition(this->mHost, this->mLandPos);
+        MR::zeroVelocity(this->mHost);
+        MR::invalidateShadow(this->mHost, nullptr);
+        MR::validateCollisionParts(this->mHost);
+        MR::validateCollisionParts(this->mHost->mDemoObj);
+        if (this->mBreakModel != nullptr) {
+            reinterpret_cast< KoopaJrRobotShockWave* >(this->mBreakModel)->start(this->mHost->mPosition);
         }
     }
-    if (MR::isGreaterEqualStep(pState, 58)) {
-        pState->kill();
+    if (MR::isGreaterEqualStep(this, 58)) {
+        this->kill();
     }
 }
 
 namespace NrvAttackRockStateFall {
     inline void AttackRockStateFallNrvAppear::execute(Spine* pSpine) const {
-        fn_80154060(reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->fn_80154060();
     }
     inline void AttackRockStateFallNrvWait::execute(Spine* pSpine) const {
-        fn_80154280(reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->fn_80154280();
     }
     inline void AttackRockStateFallNrvFall::execute(Spine* pSpine) const {
-        fn_80154400(reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockStateFall* >(pSpine->mExecutor))->fn_80154400();
     }
 };  // namespace NrvAttackRockStateFall
 

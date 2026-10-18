@@ -7,6 +7,9 @@ class WalkerStateBindStarPointer;
 
 class NokonokoLandBig : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    bool fn_801D7290();
+    bool fn_801D73E0(HitSensor* pSender, HitSensor* pReceiver);
     NokonokoLandBig(const char*);
 
     virtual void init(const JMapInfoIter&);

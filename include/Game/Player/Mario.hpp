@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Game/Map/HitInfo.hpp"
+
 #include "Game/Player/MarioModule.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
@@ -41,6 +43,10 @@ class MarioSideStep;
 class MarioSkate;
 class MarioSlider;
 class MarioState;
+class MarioYoshiPull;
+class CollisionPartsFilterBase;
+class TriangleFilterBase;
+class HitInfo;
 class MarioStep;
 class MarioStick;
 class MarioStun;
@@ -63,12 +69,234 @@ public:
     /* 0x19 */ bool _19;  // enables that distance check
     /* 0x1A */ u8 _1A[0x12];
     /* 0x2C */ bool mLocked;
+
+    // SMG2-only (original names unknown; named by address)
+    void fn_80405F90(const TVec3f&);  // set(pos) unless locked
+    void fn_80406010(const TVec3f&);  // pos += v unless locked
+    void fn_80406040();               // push pos (pos copied to +0x20, depth++)
+    void fn_80406080();               // pop pos (pos restored from +0x20, depth--)
 };
-extern "C" void fn_80405F90(MarioPosHolder*, const TVec3f&);  // set(pos) unless locked
-extern "C" void fn_80406010(MarioPosHolder*, const TVec3f&);  // pos += v unless locked
+
+/// @brief One collected strike result of Mario::fn_803B4300 (size 0x70). Original name unknown.
+struct MarioStrikeEntry {
+    /* 0x00 */ Triangle mTriangle;
+    /* 0x60 */ TVec3f mHitPos;
+    /* 0x6C */ f32 mDepth;
+};
+
+/// @brief Three state flags embedded in Mario at +0xA90. Original name unknown.
+struct MarioFlags3 {
+    void fn_8038C890();  // clear all
+
+    /* 0x0 */ bool _0;
+    /* 0x1 */ bool _1;
+    /* 0x2 */ bool _2;
+};
 
 class Mario : public MarioModule {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    void fn_803880D0();
+    void fn_80388150();
+    s32 fn_803882A0();
+    void fn_803885F0();
+    void fn_803886B0();
+    void fn_80388DB0();
+    bool fn_803890B0();
+    void fn_803896E0();
+    void fn_803897A0();
+    void fn_80389D90(f32 (*m)[4], const TVec3f* col2, const TVec3f* col1, const TVec3f* col0);
+    void fn_8038A560(f32 (*arg1)[4], s32 arg2);
+    void fn_8038A600();
+    void fn_8038A840(void*, f32 x, f32 y, f32 z);
+    s32 fn_8038A8A0(f32 (*arg1)[4], TVec3f* arg2);
+    void fn_8038A9D0();
+    bool fn_8038AA30();
+    void fn_8038AB10();
+    void fn_8038AB70();
+    void fn_8038B9F0();
+    void fn_8038C540();
+    void fn_8038C620(s32 arg3);
+    bool fn_8038CCF0();
+    void fn_8038E1A0(Triangle* tri, s32 arg2);
+    bool fn_80390210(HitSensor* arg);
+    bool fn_803902B0(HitSensor* arg1);
+    bool fn_80391260(Triangle* arg1);
+    void fn_803912D0(Triangle* arg1);
+    bool fn_80391330(Triangle* tri);
+    void fn_803929A0();
+    bool fn_80393C40();
+    bool fn_80394550(const TVec3f* arg);
+    bool fn_803949E0();
+    bool fn_80395310();
+    void fn_80395400(u32 arg);
+    bool fn_803972D0(const TVec3f* arg1);
+    void fn_80399D30();
+    void fn_80399E60(TVec3f* arg1);
+    void fn_8039A020();
+    void fn_8039A090();
+    bool fn_8039A100();
+    void fn_8039A1C0();
+    void fn_8039A2A0();
+    bool fn_8039A3D0();
+    bool fn_8039A430();
+    void fn_8039A460();
+    void fn_8039A480();
+    void fn_8039A5B0();
+    void fn_8039A600();
+    f32 fn_8039A810();
+    f32 fn_8039AA40();
+    void fn_8039AB50();
+    f32 fn_8039AC10();
+    void fn_8039ACE0();
+    f32 fn_8039ADC0();
+    void fn_8039CFD0();
+    void fn_803A02F0(s32 arg1, s32 arg2, s32 arg3);
+    void fn_803A0490(s32 arg1, s32 arg2);
+    void fn_803A0BE0();
+    void fn_803A0D90(TVec3f* arg);
+    bool fn_803A0E10();
+    void fn_803A0ED0(TVec3f* arg1, s32 arg2);
+    bool fn_803A0FF0();
+    bool fn_803A1050();
+    void fn_803A10D0(s32 arg);
+    void fn_803A11A0(TVec3f* arg);
+    void fn_803A1240(f32* a, f32* b);
+    void fn_803A1330(s32* arg1);
+    void fn_803A1600(s32* arg1);
+    f32 fn_803A1800();
+    bool fn_803A1920();
+    bool fn_803A19C0();
+    void fn_803A1A20(f32* out);
+    void fn_803A1A60(TVec3f* arg);
+    void fn_803A1AC0();
+    void fn_803A1BB0();
+    void fn_803A1C90();
+    void fn_803A1D60();
+    f32 fn_803A1DB0();
+    void fn_803A1E40();
+    s32 fn_803A1E60(f32 f);
+    void fn_803A1F60();
+    void fn_803A1F80();
+    void fn_803A1FC0();
+    void fn_803A1FF0(f32 x, s32 arg);
+    void fn_803A20E0(s32 arg);
+    void fn_803A2180();
+    bool fn_803A2270();
+    void fn_803A22D0(f32 x, s32 arg);
+    void fn_803A23F0(TVec3f* out);
+    void fn_803A2420();
+    void fn_803A2450(const TVec3f* arg);
+    void fn_803A24C0(TVec3f* arg);
+    void fn_803A2530(TVec3f* out);
+    void fn_803A2570(f32 x, TVec3f* arg);
+    void fn_803A2690(f32* p);
+    f32 fn_803A26C0(f32 x);
+    void fn_803A2720();
+    void fn_803A27A0(TVec3f* arg);
+    void fn_803A2860();
+    void fn_803A28D0(TVec3f* arg);
+    void fn_803A2A70();
+    void fn_803A2C40(const TVec3f* arg);
+    void fn_803A2CC0();
+    void fn_803A2CF0();
+    s32 fn_803A2D10();
+    void fn_803A2D50();
+    s32 fn_803A2D80();
+    void fn_803A2EF0();
+    void fn_803A2FC0();
+    s32 fn_803A3030();
+    bool fn_803A3130();
+    f32 fn_803A3780(f32 fself);
+    bool fn_803A4210();
+    void fn_803A42B0();
+    void fn_803A56C0();
+    void fn_803A6BE0();
+    void fn_803A7540();
+    bool fn_803A9690(const char* pName);
+    void fn_803A96D0(f32);
+    bool fn_803AA2C0();
+    bool fn_803AA340(const TVec3f*, TVec3f*);
+    void fn_803ABD20();
+    void fn_803AC550();
+    void fn_803AC810();
+    void fn_803ACC40();
+    void fn_803ACCE0();
+    void fn_803ACD80();
+    bool fn_803ACE10();
+    void fn_803ACE60();
+    void fn_803ACF70();
+    void fn_803AD0B0();
+    void fn_803AD120(const Triangle* pTri);
+    void fn_803AD4F0();
+    void fn_803AD5B0();
+    void fn_803AD9C0();
+    void fn_803AF2F0(const f32* pSpeedTable);
+    void fn_803B0E60();
+    void fn_803B0EF0();
+    void fn_803B1100();
+    void fn_803B1180();
+    void fn_803B12B0();
+    void fn_803B14E0();
+    s32 fn_803B1540();
+    void fn_803B1710();
+    void fn_803B1720();
+    void fn_803B1780();
+    void fn_803B17C0();
+    void fn_803B1800();
+    bool fn_803B1850() const;
+    void fn_803B1880();
+    void fn_803B18C0();
+    void fn_803B1B20();
+    bool fn_803B1B70() const;
+    f32 fn_803B1BA0();
+    bool fn_803B1C10();
+    f32 fn_803B1CA0();
+    f32 fn_803B1D00();
+    bool fn_803B1D60();
+    void fn_803B1DE0(TVec3f* arg1);
+    void fn_803B1EF0(TVec3f* arg1, f32 fself);
+    void fn_803B23E0(const TVec3f* arg1, const TVec3f* arg2, const TVec3f* arg3, f32 fself);
+    bool fn_803B2470();
+    s32 fn_803B2530(Triangle* arg1);
+    void fn_803B2610();
+    bool fn_803B26C0();
+    bool fn_803B2730();
+    bool fn_803B2770(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
+    bool fn_803B27F0(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
+    bool fn_803B2880(const TVec3f&, const TVec3f&);
+    bool fn_803B28E0(const TVec3f&, const TVec3f&, const LiveActor*);
+    s32 fn_803B2950();
+    s32 fn_803B29B0(const TVec3f&, f32);
+    s32 fn_803B2A20(const TVec3f&, f32, f32);
+    const HitInfo* fn_803B2AA0(u32);
+    bool fn_803B2AF0(const TVec3f&, HitInfo*);
+    bool fn_803B2B50(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
+    bool fn_803B2E10(const Triangle*);
+    bool isStateHanging() const;
+    s32 fn_803B2BD0(TVec3f* arg1);
+    f32 fn_803B2CC0(TVec3f* arg1);
+    s32 fn_803B2E80(TVec3f* arg1);
+    void fn_803B2F20(Triangle* arg1);
+    void fn_803B3010();
+    bool fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri);
+    void fn_803B3280(const TVec3f& rPos, Triangle* pTri);
+    void fn_803B35D0(const TVec3f& rPos, u32 count);
+    f32 fn_803B3870();
+    void fn_803B38B0(Triangle* arg1, TVec3f* arg2);
+    void fn_803B3AE0(Triangle* arg1, TVec3f* arg2);
+    void fn_803B3BB0(Triangle* arg1, TVec3f* arg2);
+    void fn_803B3CE0();
+    bool fn_803B3E90();
+    void fn_803B3EE0(TVec3f* pPos, f32* pHeight);
+    s32 fn_803B41F0(u32 arg1);
+    void fn_803B4280();
+    s32 fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3f& rPos, f32 radius);
+    void fn_803B44F0(TVec3f* arg1);
+    void fn_803B45E0(const char* pName, const char* arg);
+    void fn_803B4630(const char* pName);
+    void fn_803B4670(const char* pName);
+    bool fn_803B4850(const HitSensor* pSensor) const;
     enum SeVersion {
         SeVersion_NORMAL = 0,
         SeVersion_DARK = 1,
@@ -935,7 +1163,7 @@ public:
     /* 0x7A8 */ MarioFrontStep* mFrontStep;
     /* 0x7AC */ MarioSkate* mSkate;
     /* 0x7B0 */ MarioTalk* mTalk;
-    /* 0x7B4 */ MarioState* _7B4;  // SMG2 states (status 0x26..0x29)
+    /* 0x7B4 */ MarioYoshiPull* _7B4;  // SMG2 states (status 0x26..0x29)
     /* 0x7B8 */ MarioState* _7B8;
     /* 0x7BC */ MarioState* _7BC;
     /* 0x7C0 */ MarioState* _7C0;
@@ -1024,3 +1252,8 @@ public:
     /* 0xA90 */ u8 _padA90[0xc];
     /* 0xA9C */ Triangle* _57C[0x20];  // SMG2 offset guess-TAIL  // SMG2 offset guess-TAIL
 };
+
+// SMG2-only free helpers of the Mario unit (set one axis column of a 3x4 matrix; original names unknown)
+void fn_803B2170(TMtx34f* pMtx, const TVec3f& rVec);
+void fn_803B2190(TMtx34f* pMtx, const TVec3f& rVec);
+void fn_803B21B0(TMtx34f* pMtx, const TVec3f& rVec);

@@ -6,7 +6,6 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution.h>
-#include "Game/Util/ActorInitUtil.hpp"
 
 class ActorLightCtrl;
 class ActorPoseTQ;
@@ -23,6 +22,7 @@ class LiveActor;
 class LiveActorGroup;
 class LodCtrl;
 class MirrorActor;
+class NameObj;
 class ModelObj;
 class Nerve;
 class HitSensor;
@@ -54,6 +54,7 @@ namespace MR {
     void setRotation(LiveActor* pActor, const TQuat4f& rQuat);
     void setScale(LiveActor* pActor, const TVec3f&);
     void setScale(LiveActor* pActor, f32, f32, f32);
+    void setScale(LiveActor* pActor, f32 xyz);
     void setScale(LiveActor* pActor, f32);
     void copyTransRotateScale(const LiveActor* pToActor, LiveActor* pFromActor);
     void copyTransRotate(const LiveActor* pToActor, LiveActor* pFromActor);
@@ -361,6 +362,16 @@ namespace MR {
 
     HitSensor* getBodySensor(LiveActor* pActor);
     void setBodySensorType(LiveActor* pActor, u32 sensorType);
+    // LiveActorUtil (enemies lane, callees named by address; lead renames symbols)
+    void fn_80034820(LiveActor*);
+    void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
+    // PLACEHOLDER(enemies): fn_800145D0, fn_800514B0, fn_800513C0 (unnamed core helpers used by FlowerMimic); resolve when their owner unit names them. Signatures inferred from the callers.
+    void fn_800145D0(TVec3f*, const TVec3f&);
+    void fn_800514B0(TQuat4f*, TVec3f*);
+    void fn_800513C0(TQuat4f*, TVec3f*);
+    bool isInPlaneModeCube(const TVec3f&);
+    // LiveActorUtil (creation) (enemies lane, callees named by address; lead renames symbols)
+    NameObj* fn_80105820(LiveActor*, s32, const char*, f32);
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

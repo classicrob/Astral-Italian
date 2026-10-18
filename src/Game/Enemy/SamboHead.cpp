@@ -1,4 +1,5 @@
 #include "Game/Enemy/SamboHead.hpp"
+void fn_801F9370(LiveActor* pActor);
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/SpinHitController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -6,10 +7,8 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_801F9370(LiveActor*);
 
 namespace NrvSamboHead {
     NEW_NERVE(HostTypeNrvWaitUnderGround, SamboHead, WaitUnderGround);
@@ -83,7 +82,7 @@ void SamboHead::control() {
     mScaleController->updateNerve();
 
     if (!isNerveTypeDead() && MR::isPressedBetweenWalls(this)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
         return;
     }
@@ -320,7 +319,7 @@ void SamboHead::exeStampDeath() {
     MR::killVelocityOnGroundH(this);
 
     if (MR::isGreaterStep(this, 35)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -333,7 +332,7 @@ void SamboHead::exeHitBlow() {
     }
 
     if (mSpinCtrl->execute(this)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         MR::startActionSound(this, "EmExplodeS");
         MR::validateHitSensor(this, "body");
     }
@@ -374,7 +373,7 @@ void SamboHead::exeBindStarPointerEnd() {
 }
 
 // SMG2 helper (unnamed in symbols): rebound, bind-ground gravity, damp the velocity.
-extern "C" void fn_801F9370(LiveActor* pActor) {
+void fn_801F9370(LiveActor* pActor) {
     MR::reboundVelocityFromCollision(pActor, 0.0f, 0.0f, 1.0f);
     if (!MR::isBindedGround(pActor)) {
         MR::addVelocityToGravity(pActor, 1.5f);

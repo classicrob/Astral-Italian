@@ -202,15 +202,15 @@ bool CocoNutBall::isNerveTrowToOrFreeze() const {
 }
 
 // SMG2 unnamed helper fn_80178940: Throw / HitBackToPlayer / Freeze / FreezeRelease / Rebound.
-extern "C" bool fn_80178940(const CocoNutBall* pBall) {
-    return pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvThrow)) || pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvHitBackToPlayer)) ||
-           pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreeze)) || pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreezeRelease)) ||
-           pBall->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvRebound));
+bool CocoNutBall::fn_80178940() const {
+    return this->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvThrow)) || this->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvHitBackToPlayer)) ||
+           this->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreeze)) || this->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvFreezeRelease)) ||
+           this->isNerve(GET_NERVE(CocoNutBall, CocoNutBallNrvRebound));
 }
 
 // NONMATCHING: SMG2 also accepts CocoNutBallNrvFreezeStart here (nerve not ported yet).
 bool CocoNutBall::isValidReceivePunch() const {
-    if (MR::isDead(this) || !fn_80178940(this)) {
+    if (MR::isDead(this) || !this->fn_80178940()) {
         return false;
     }
 

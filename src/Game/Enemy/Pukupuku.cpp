@@ -1,4 +1,5 @@
 #include "Game/Enemy/Pukupuku.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -556,7 +557,6 @@ void Pukupuku::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-extern "C" void fn_80376C30(LiveActor*, u32, bool);
 
 bool Pukupuku::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgYoshiStartTongue(msg)) {
@@ -594,14 +594,14 @@ bool Pukupuku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     if (!isDamaged()) {
         if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvTrampled));
-            fn_80376C30(this, msg, false);
+            ScoreAttackFunction::scoreByAttack(this, msg, false);
             return true;
         }
 
         if (MR::isMsgPlayerHitAll(msg) || MR::isMsgYoshiProjectile(msg)) {
             f32 rate = getBlownOffSpeedRate();
             MR::setVelocityBlowAttack(this, pSender, pReceiver, 35.0f * rate, 20.0f * rate, 4);
-            fn_80376C30(this, msg, false);
+            ScoreAttackFunction::scoreByAttack(this, msg, false);
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
             return true;
         }

@@ -1,4 +1,12 @@
 #include "Game/Enemy/Bussun.hpp"
+const Nerve* fn_80175850(const LiveActor* pActor);
+const Nerve* fn_801758B0(const LiveActor* pActor);
+bool fn_80175910(const LiveActor* pActor);
+bool fn_80175940(const LiveActor* pActor);
+bool fn_80175970(const LiveActor* pActor);
+void fn_801759D0(LiveActor* pActor);
+bool fn_80175A70(const LiveActor* pActor);
+TVec3f* fn_801757C0(TVec3f* pDir, TVec3f* pOut, LiveActor* pActor);
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -21,15 +29,6 @@ namespace NrvBussun {
 #define GET_BUSSUN_NERVE(name) (&NrvBussun::name::sInstance)
 
 // Unnamed SMG2 helpers used by Bussun.
-extern "C" void fn_8000F910(LiveActor*, TVec3f*, TVec3f*);
-extern "C" bool fn_80175A70(const LiveActor*);
-extern "C" const Nerve* fn_80175850(const LiveActor*);
-extern "C" const Nerve* fn_801758B0(const LiveActor*);
-extern "C" bool fn_80175910(const LiveActor*);
-extern "C" bool fn_80175940(const LiveActor*);
-extern "C" bool fn_80175970(const LiveActor*);
-extern "C" void fn_801759D0(LiveActor*);
-extern "C" TVec3f* fn_801757C0(TVec3f*, TVec3f*, LiveActor*);
 
 Bussun::Bussun(const char* pName) : LiveActor(pName) {
     mFront.x = 0.0f;
@@ -79,7 +78,7 @@ void Bussun::kill() {
 
 void Bussun::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
-    fn_8000F910(this, &mFront, &mUp);
+    MR::fn_8000F910(this, &mFront, &mUp);
     MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
@@ -247,7 +246,7 @@ void Bussun::exeFreeze() {
 }
 
 // Picks the hit-reaction nerve from the current state (fn_80175850).
-extern "C" const Nerve* fn_80175850(const LiveActor* pActor) {
+const Nerve* fn_80175850(const LiveActor* pActor) {
     if (pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn))) {
         return GET_BUSSUN_NERVE(BussunNrvHit);
     }
@@ -255,7 +254,7 @@ extern "C" const Nerve* fn_80175850(const LiveActor* pActor) {
 }
 
 // Picks the blow-away nerve from the current state (fn_801758B0).
-extern "C" const Nerve* fn_801758B0(const LiveActor* pActor) {
+const Nerve* fn_801758B0(const LiveActor* pActor) {
     if (pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn))) {
         return GET_BUSSUN_NERVE(BussunNrvBlow);
     }
@@ -263,21 +262,21 @@ extern "C" const Nerve* fn_801758B0(const LiveActor* pActor) {
 }
 
 // True unless dead (fn_80175910 / fn_80175940).
-extern "C" bool fn_80175910(const LiveActor* pActor) {
+bool fn_80175910(const LiveActor* pActor) {
     return !pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvDead));
 }
 
-extern "C" bool fn_80175940(const LiveActor* pActor) {
+bool fn_80175940(const LiveActor* pActor) {
     return !pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvDead));
 }
 
 // True unless dead or frozen (fn_80175970).
-extern "C" bool fn_80175970(const LiveActor* pActor) {
+bool fn_80175970(const LiveActor* pActor) {
     return !(pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvDead)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze)));
 }
 
 // Stores the nerve to resume after a freeze (fn_801759D0). NONMATCHING: stores into the Bussun's next-nerve slot.
-extern "C" void fn_801759D0(LiveActor* pActor) {
+void fn_801759D0(LiveActor* pActor) {
     Bussun* pBussun = static_cast<Bussun*>(pActor);
     if (pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) {
         return;
@@ -291,13 +290,13 @@ extern "C" void fn_801759D0(LiveActor* pActor) {
 }
 
 // Ground/rail check used by control (fn_80175A70). NONMATCHING: the SMG2 triangle probe is not reproduced.
-extern "C" bool fn_80175A70(const LiveActor* pActor) {
+bool fn_80175A70(const LiveActor* pActor) {
     (void)pActor;
     return false;
 }
 
 // Rail direction toward the goal, written to pOut (fn_801757C0). NONMATCHING: arguments approximated.
-extern "C" TVec3f* fn_801757C0(TVec3f* pDir, TVec3f* pOut, LiveActor* pActor) {
+TVec3f* fn_801757C0(TVec3f* pDir, TVec3f* pOut, LiveActor* pActor) {
     (void)pDir;
     MR::calcRailDirection(pOut, pActor);
     return pOut;

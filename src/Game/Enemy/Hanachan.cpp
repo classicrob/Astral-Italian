@@ -21,7 +21,8 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-extern "C" u32 lbl_807D25C0;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D25C0;
 
 void Hanachan_FORCE_MATCH_SDATA2() {
     (void)1.0f;
@@ -167,11 +168,11 @@ void HanachanParts::init(const JMapInfoIter& rIter) {
     }
 }
 
-extern "C" void fn_801905E0(Hanachan* pHost) {
-    pHost->kill();
+void Hanachan::fn_801905E0() {
+    this->kill();
 
-    HanachanParts** pEnd = &pHost->mBodyParts[5];
-    HanachanParts** pIter = &pHost->mBodyParts[0];
+    HanachanParts** pEnd = &this->mBodyParts[5];
+    HanachanParts** pIter = &this->mBodyParts[0];
     while (pIter < pEnd) {
         (*pIter)->kill();
         pIter++;
@@ -193,13 +194,13 @@ void HanachanParts::control() {
     }
 
     if (MR::isInWater(this, mPosition)) {
-        fn_801905E0(mHost);
+        mHost->fn_801905E0();
     }
 }
 
 bool HanachanParts::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgInhaleBlackHole(msg)) {
-        fn_801905E0(mHost);
+        mHost->fn_801905E0();
         return true;
     }
 
@@ -882,7 +883,7 @@ void Hanachan::initAfterPlacement() {
 void Hanachan::makeActorDead() {
     LiveActor::makeActorDead();
 
-    for (s32 i = 0; i < 5; i++) {
+    for (u32 i = 0; i < 5; i++) {
         mBodyParts[i]->makeActorDead();
     }
 }
@@ -891,7 +892,7 @@ void Hanachan::makeActorAppeared() {
     if (!isNerve(reinterpret_cast<const Nerve*>(&lbl_807D25C0))) {
         LiveActor::makeActorAppeared();
 
-        for (s32 i = 0; i < 5; i++) {
+        for (u32 i = 0; i < 5; i++) {
             mBodyParts[i]->makeActorAppeared();
         }
     }

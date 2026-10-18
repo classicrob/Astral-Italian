@@ -135,9 +135,7 @@ void Mario::startStep(const TVec3f& rVec) {
     }
 
     TVec3f oldPos(mPosHolder->mPos);
-    fn_80405F90(mPosHolder, rVec);
     const f32 ceilDist = calcDistToCeil(false);
-    fn_80405F90(mPosHolder, oldPos);
 
     if (ceilDist < 200.0f) {
         return;

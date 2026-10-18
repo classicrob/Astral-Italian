@@ -73,7 +73,7 @@ void JumpEmitter::updateEventCamera() {
         mMultEventCamera->nextForce();
     }
 
-    if (mStartPos.squared(*MR::getPlayerCenterPos()) > sCameraLimitLength || MR::isOnGroundPlayer() || MR::isPlayerInRush()) {
+    if (sCameraLimitLength < mStartPos.squared(*MR::getPlayerCenterPos()) || MR::isOnGroundPlayer() || MR::isPlayerInRush()) {
         endEventCamera();
     }
 }

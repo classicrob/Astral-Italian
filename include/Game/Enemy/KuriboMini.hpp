@@ -12,6 +12,8 @@ class WalkerStateBindStarPointer;
 
 class KuriboMini : public LiveActor {
 public:
+    bool fn_801BE5A0();
+    bool fn_801BDAA0();
     KuriboMini(const char*);
 
     virtual void init(const JMapInfoIter&);

@@ -1,19 +1,17 @@
 #include "Game/Enemy/TakoHei.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/TakoHeiInkHolder.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
 }
 
-extern "C" void fn_80011180(LiveActor*, const TVec3f&, f32);
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_80376C30(LiveActor*, u32, HitSensor*);
 
 namespace MR {
     bool isMsgYoshiStartTongue(u32);
@@ -242,7 +240,7 @@ bool TakoHei::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
 
     if (MR::isMsgPlayerHipDrop(msg)) {
         if (requestHipDropDown()) {
-            fn_80376C30(this, msg, nullptr);
+            ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
             return true;
         }
         return false;
@@ -250,7 +248,7 @@ bool TakoHei::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
 
     if (MR::isMsgPlayerTrample(msg)) {
         if (requestFlatDown()) {
-            fn_80376C30(this, msg, nullptr);
+            ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
             return true;
         }
         return false;
@@ -360,7 +358,7 @@ bool TakoHei::requestPunch(u32 msg, HitSensor* pReceiver, HitSensor* pSender) {
         MR::invalidateHitSensors(this);
         MR::addVelocitySeparateHV(this, pSender, pReceiver, ::sPunchHorizonPower, ::sPunchVerticalPower);
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvPunchDown));
-        fn_80376C30(this, msg, pSender);
+        ScoreAttackFunction::scoreByAttack(this, msg, pSender);
         return true;
     }
 
@@ -655,7 +653,7 @@ void TakoHei::exePursue() {
     bool isFarPlayer = false;
 
     if (MR::isNearPlayer(this, 700.0f)) {
-        fn_80011180(this, *MR::getPlayerPos(), ::sPursueAccel);
+        MR::fn_80011180(this, *MR::getPlayerPos(), ::sPursueAccel);
     } else {
         MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), ::sPursueAccel);
         isFarPlayer = true;
@@ -815,7 +813,7 @@ void TakoHei::exePressDown() {
     }
 
     if (MR::isGreaterStep(this, ::sPressDownTime)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -829,7 +827,7 @@ void TakoHei::exeHipDropDown() {
     }
 
     if (MR::isGreaterStep(this, ::sHipDropDownTime)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -843,7 +841,7 @@ void TakoHei::exeFlatDown() {
     }
 
     if (MR::isGreaterStep(this, ::sFlatDownTime)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -862,7 +860,7 @@ void TakoHei::exePunchDown() {
     updateNormalVelocity();
 
     if (MR::isGreaterStep(this, ::sPunchDownTime) || (MR::isBinded(this) && MR::isGreaterStep(this, 5))) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }

@@ -50,7 +50,7 @@ void RingBeamer::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
     MR::getJMapInfoArg1NoInit(rIter, &arg1);
     for (int i = 0; i < 3; i++) {
-        mBeams[i] = new RingBeam("リングビーム", this, false, false);
+        mBeams[i] = new RingBeam("リングビーム", this, false, false, false, false, nullptr);
         mBeams[i]->init(rIter);
         mBeams[i]->setSpeed(arg0);
         mBeams[i]->setLife(arg1);

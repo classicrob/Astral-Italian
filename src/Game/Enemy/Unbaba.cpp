@@ -8,11 +8,6 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers in this unit (spline / movement math, not yet ported).
-extern "C" f32 fn_80215DA0(f32 t, f32 a, f32 b, f32 c, f32 d, f32 e, f32 f);
-extern "C" bool fn_80215E50(Unbaba*);
-extern "C" bool fn_80215EF0(Unbaba*);
-extern "C" void fn_80215FB0(Unbaba*);
-extern "C" void fn_80216200(Unbaba*, const TVec3f&);
 
 namespace {
     // Static parameter vectors (sbss at 0x807294E0).
@@ -79,7 +74,7 @@ void Unbaba::makeActorAppeared() {
     mtx.identity();
     TVec3f scale(1.0f);
     MR::makeMtxTR(mtx.toMtxPtr(), scale, mRotate);
-    fn_80215FB0(this);
+    fn_80215FB0();
 }
 
 void Unbaba::makeActorDead() {
@@ -134,7 +129,7 @@ void Unbaba::exeAppearStep() {
     if (MR::isGreaterStep(this, mStepAttackSign)) {
         setNerve(UNBABA_NERVE(AttackSign));
     }
-    fn_80215E50(this);
+    fn_80215E50();
     MR::startActionSound(this, "MagmaAttack", -1, -1, -1);
 }
 
@@ -146,7 +141,7 @@ void Unbaba::exeAttackSign() {
     if (MR::isActionEnd(this)) {
         setNerve(UNBABA_NERVE(Attack));
     }
-    fn_80215E50(this);
+    fn_80215E50();
     MR::startActionSound(this, "MagmaAttack", -1, -1, -1);
 }
 
@@ -171,7 +166,7 @@ void Unbaba::exeLaunch() {
         mT0 = 0.0f;
         setNerve(UNBABA_NERVE(Restart));
     }
-    fn_80215EF0(this);
+    fn_80215EF0();
 }
 
 void Unbaba::exeRestart() {
@@ -234,18 +229,18 @@ void Unbaba::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 
 // Timer-driven height update used while the Unbaba is attacking (leaf helper).
-bool fn_80215E50(Unbaba* pUnbaba) {
-    pUnbaba->mTimer += 1.0f / 130.0f;
-    MR::clamp01(&pUnbaba->mTimer);
-    f32 t = fn_80215DA0(pUnbaba->mTimer, 0.0f, 0.6f, 1.1f, 0.6f, 0.85f, 0.3f);
-    pUnbaba->mHeight = pUnbaba->mDistance * t + -2500.0f * pUnbaba->mScale.x;
-    return 1.0f == pUnbaba->mTimer;
+bool Unbaba::fn_80215E50() {
+    this->mTimer += 1.0f / 130.0f;
+    MR::clamp01(&this->mTimer);
+    f32 t = fn_80215DA0(this->mTimer, 0.0f, 0.6f, 1.1f, 0.6f, 0.85f, 0.3f);
+    this->mHeight = this->mDistance * t + -2500.0f * this->mScale.x;
+    return 1.0f == this->mTimer;
 }
 
-bool fn_80215EF0(Unbaba* pUnbaba) {
-    pUnbaba->mTimer -= 1.0f / 20.0f;
-    MR::clamp01(&pUnbaba->mTimer);
-    f32 t = fn_80215DA0(pUnbaba->mTimer, 3.0f, 0.75f, 1.0f, -0.9f, 0.92f, 0.55f);
-    pUnbaba->mHeight = pUnbaba->mDistance * t + -2500.0f * pUnbaba->mScale.x;
-    return 0.0f == pUnbaba->mTimer;
+bool Unbaba::fn_80215EF0() {
+    this->mTimer -= 1.0f / 20.0f;
+    MR::clamp01(&this->mTimer);
+    f32 t = fn_80215DA0(this->mTimer, 3.0f, 0.75f, 1.0f, -0.9f, 0.92f, 0.55f);
+    this->mHeight = this->mDistance * t + -2500.0f * this->mScale.x;
+    return 0.0f == this->mTimer;
 }

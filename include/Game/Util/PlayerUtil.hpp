@@ -1,5 +1,6 @@
 #pragma once
 
+#include <JSystem/JGeometry/TMatrix.hpp>
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution.h>
 
@@ -145,6 +146,10 @@ namespace MR {
     void startDashYoshiMode();
     void startBalloonYoshiMode();
 
+    // SMG2-only (original names unknown; named by address)
+    void startPlayerNormalBva();
+    bool fn_804225C0();
+
     bool isPlayerParalyzing();
     bool isPlayerDamaging();
 
@@ -241,6 +246,13 @@ namespace MR {
     HitSensor* getPlayerBodySensor();
 
     bool changePlayerAnimAndStartBvaIfExist(const char*);
+    // PlayerUtil (enemies lane, callees named by address; lead renames symbols)
+    bool fn_800515E0();
+    // PlayerUtil (enemies lane, callees named by address; lead renames symbols)
+    void fn_80422350(TPos3f*);
+    void fn_80422190();
+    void fn_80422210();
+    bool fn_80421D10();
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

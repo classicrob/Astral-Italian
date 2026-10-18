@@ -1,4 +1,5 @@
 #include "Game/Enemy/TakoSho.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/MapObj/MapObjConnector.hpp"
@@ -6,6 +7,7 @@
 #include "Game/Enemy/TakoboInkHolder.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
@@ -20,12 +22,8 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers outside this unit.
-extern "C" void fn_80208970(TVec3f*, LiveActor*, f32);
-extern "C" void fn_80034820(LiveActor*);
-extern "C" void fn_80376C30(LiveActor*, u32, s32);
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" s32 lbl_807E3078;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern s32 lbl_807E3078;
 
 namespace NrvTakoSho {
     NEW_NERVE(TakoShoNrvWaitAfter, TakoSho, Wait);
@@ -310,7 +308,7 @@ void TakoSho::exeSpinHit() {
         MR::onBind(this);
     }
     if (mSpinHitController->execute(this)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -323,7 +321,7 @@ void TakoSho::exePress() {
         MR::invalidateHitSensors(this);
     }
     if (MR::isActionEnd(this)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -367,11 +365,11 @@ bool TakoSho::tryStartSpinHit(u32 msg, HitSensor* pSensor2, HitSensor* pSensor3)
     if (!isDamaging()) {
         startBrkDamage();
         MR::zeroVelocity(this);
-        fn_80034820(this);
+        MR::fn_80034820(this);
         setNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance);
         TVec3f pos3(*MR::getSensorPos(pSensor3));
         mSpinHitController->startWithoutStopScene(this, *MR::getSensorPos(pSensor2), pos3);
-        fn_80376C30(this, msg, 0);
+        ScoreAttackFunction::scoreByAttack(this, msg, 0);
         return true;
     }
     return false;
@@ -383,7 +381,7 @@ bool TakoSho::tryStartPress(u32 msg) {
         MR::zeroVelocity(this);
         MR::tryHitReaction(this, "\x93\xA5\x82\xDD");
         setNerve(&NrvTakoSho::TakoShoNrvPress::sInstance);
-        fn_80376C30(this, msg, 0);
+        ScoreAttackFunction::scoreByAttack(this, msg, 0);
         return true;
     }
     return false;

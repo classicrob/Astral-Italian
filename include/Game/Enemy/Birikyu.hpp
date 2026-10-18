@@ -58,6 +58,5 @@ public:
     virtual char* getCenterJointName() const;
 
     bool _CC;
-    s32 _D4;
     s32 _D8;
 };

@@ -136,6 +136,9 @@ namespace MR {
     bool getNextRailPointArg6NoInit(const LiveActor*, f32*);
     bool getNextRailPointArg7NoInit(const LiveActor*, f32*);
     bool getNextRailPointArg2WithInit(const LiveActor*, bool*);
+    // RailUtil (enemies lane, callees named by address; lead renames symbols)
+    void fn_800531B0(TVec3f*, LiveActor*, f32);
+    void fn_80052450(LiveActor*, f32, f32, f32);
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

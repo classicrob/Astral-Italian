@@ -45,4 +45,5 @@ public:
     /* 0x14 */ WalkerStateStaggerParam* mStaggerParam;
     /* 0x18 */ TVec3f mVelH;
     /* 0x24 */ TVec3f* mDirection;
+    /* 0x28 */ bool _28;
 };

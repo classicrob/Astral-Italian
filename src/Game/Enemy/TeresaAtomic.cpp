@@ -18,10 +18,10 @@
 #include "Game/Util/RailUtil.hpp"
 
 // Shared string blob of the unit (names are read from its offsets, as the SMG2 code does).
-extern "C" char lbl_80692B88[];
+// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
+extern char lbl_80692B88[];
 
 // Unnamed SMG2 helpers, defined elsewhere in the unit or in other TUs.
-extern "C" void fn_800531B0(TVec3f*, LiveActor*, f32);
 
 namespace NrvTeresaAtomic {
     NEW_NERVE(TeresaAtomicNrvAppear, TeresaAtomic, Appear);
@@ -66,7 +66,7 @@ void TeresaAtomic::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     if (MR::isConnectedWithRail(rIter)) {
         MR::moveCoordAndTransToStartPos(this);
-        fn_800531B0(&mFrontVec, this, 100.0f);
+        MR::fn_800531B0(&mFrontVec, this, 100.0f);
     } else {
         MR::calcFrontVec(&mFrontVec, this);
     }
@@ -164,11 +164,11 @@ void TeresaAtomic::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFrontVec);
 }
 
-extern "C" bool fn_8020F940(TeresaAtomic* pActor) {
+bool TeresaAtomic::fn_8020F940() {
     TVec3f front;
     MR::getPlayerFrontVec(&front);
     TVec3f* pPlayerPos = MR::getPlayerPos();
-    TVec3f diff = pActor->mPosition - *pPlayerPos;
+    TVec3f diff = this->mPosition - *pPlayerPos;
     return MR::diffAngleAbs(front, diff) < 0.8726646f;
 }
 
@@ -197,15 +197,15 @@ bool TeresaAtomic::isEnableStarPieceAttack() const {
     return false;
 }
 
-extern "C" bool fn_8020FB50(TeresaAtomic* pActor) {
+bool TeresaAtomic::fn_8020FB50() {
     bool isShay = false;
     if (!MR::isPlayerSquat()) {
-        if (fn_8020F940(pActor) && MR::isNearPlayer(pActor, 3500.0f)) {
+        if (this->fn_8020F940() && MR::isNearPlayer(this, 3500.0f)) {
             isShay = true;
         }
     }
     if (isShay) {
-        pActor->setNerve(NRV(Shay));
+        this->setNerve(NRV(Shay));
         return true;
     }
     return false;
@@ -256,7 +256,7 @@ void TeresaAtomic::exeWait() {
         setNerve(NRV(Chase));
         return;
     }
-    if (!fn_8020FB50(this) && !tryDead()) {
+    if (!this->fn_8020FB50() && !tryDead()) {
         tryDisappear();
     }
 }
@@ -271,7 +271,7 @@ void TeresaAtomic::exeChase() {
     }
     if (MR::isExistRail(this)) {
         TVec3f front;
-        fn_800531B0(&front, this, 100.0f);
+        MR::fn_800531B0(&front, this, 100.0f);
         MR::turnDirectionDegree(this, &mFrontVec, front, 4.0f);
         MR::moveCoordAndFollowTrans(this, mSpeed);
         TVec3f offset = mGravity * -900.0f;
@@ -281,7 +281,7 @@ void TeresaAtomic::exeChase() {
         TVec3f vel = mFrontVec * mSpeed;
         MR::setVelocity(this, vel);
     }
-    if (!fn_8020FB50(this) && !tryDead()) {
+    if (!this->fn_8020FB50() && !tryDead()) {
         tryDisappear();
     }
 }
@@ -297,7 +297,7 @@ void TeresaAtomic::exeShay() {
     }
     bool isShay = false;
     if (!MR::isPlayerSquat()) {
-        if (fn_8020F940(this) && MR::isNearPlayer(this, 3500.0f)) {
+        if (this->fn_8020F940() && MR::isNearPlayer(this, 3500.0f)) {
             isShay = true;
         }
     }
@@ -322,7 +322,7 @@ void TeresaAtomic::exeAggressive() {
         setNerve(NRV(Chase));
         return;
     }
-    if (!fn_8020FB50(this)) {
+    if (!this->fn_8020FB50()) {
         tryDead();
     }
 }

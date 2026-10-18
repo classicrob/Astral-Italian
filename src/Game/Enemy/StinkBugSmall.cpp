@@ -19,7 +19,6 @@
 #include "Game/Util/StarPointerUtil.hpp"
 
 // SMG2 unnamed helper (ActorMovementUtil area, fn_80011F80): settles velocity toward a target speed.
-extern "C" void fn_80011F80(LiveActor* pActor, f32 speed, f32 decel);
 
 namespace NrvStinkBugSmall {
     NEW_NERVE(StinkBugSmallNrvWait, StinkBugSmall, Wait);
@@ -201,7 +200,7 @@ void StinkBugSmall::exeHipDropDown() {
     }
 
     mVelocity.zero();
-    fn_80011F80(this, 500.0f, -1.0f);
+    MR::fn_80011F80(this, 500.0f, -1.0f);
     if (MR::isActionEnd(this)) {
         kill();
     }

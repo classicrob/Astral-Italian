@@ -8,22 +8,12 @@
     class name : public Nerve {                                                                               \
     public:                                                                                                    \
         virtual void execute(Spine* pSpine) const {                                                           \
-            exefn(reinterpret_cast<Nyoropon*>(pSpine->mExecutor));                                            \
+            reinterpret_cast<Nyoropon*>(pSpine->mExecutor)->exefn();                                            \
         }                                                                                                     \
         static name sInstance;                                                                                \
     };                                                                                                        \
     name name::sInstance ATTRIBUTE_WEAK;
 
-extern "C" void fn_801D8370(Nyoropon*);
-extern "C" void fn_801D8460(Nyoropon*);
-extern "C" void fn_801D8520(Nyoropon*);
-extern "C" void fn_801D8640(Nyoropon*);
-extern "C" void fn_801D8730(Nyoropon*);
-extern "C" void fn_801D8830(Nyoropon*);
-extern "C" void fn_801D8910(Nyoropon*);
-extern "C" void fn_801D89F0(Nyoropon*);
-extern "C" void fn_801D8AD0(Nyoropon*);
-extern "C" void fn_801D8BB0(Nyoropon*);
 
 namespace NrvNyoropon {
 NYORO_NERVE(NyoroponNrv00, fn_801D8370);
@@ -100,172 +90,172 @@ void Nyoropon::calcAndSetBaseMtx() {
 }
 
 // NONMATCHING: exe bodies below are approximations of the SMG2 state machine (MR-call summary).
-extern "C" void fn_801D8370(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::tryStartActionNotPlaying(pActor, "Wait");
+void Nyoropon::fn_801D8370() {
+    if (MR::isFirstStep(this)) {
+        MR::tryStartActionNotPlaying(this, "Wait");
     }
-    if (MR::calcDistanceToPlayer(pActor) < 1000.0f) {
-        pActor->setNerve(GET_NYORO_NERVE(01));
-    }
-}
-
-extern "C" void fn_801D8460(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::tryStartActionNotPlaying(pActor, "Wait");
-    }
-    if (MR::isBckOneTimeAndStopped(pActor)) {
-        pActor->setNerve(GET_NYORO_NERVE(02));
+    if (MR::calcDistanceToPlayer(this) < 1000.0f) {
+        this->setNerve(GET_NYORO_NERVE(01));
     }
 }
 
-extern "C" void fn_801D8520(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startActionSound(pActor, "Light", -1, -1, -1);
-        MR::tryStartActionNotPlaying(pActor, "Light");
+void Nyoropon::fn_801D8460() {
+    if (MR::isFirstStep(this)) {
+        MR::tryStartActionNotPlaying(this, "Wait");
     }
-    if (MR::isGreaterStep(pActor, 60)) {
-        pActor->setNerve(GET_NYORO_NERVE(03));
-    }
-}
-
-extern "C" void fn_801D8640(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Recover");
-    }
-    if (MR::isActionEnd(pActor)) {
-        pActor->setNerve(GET_NYORO_NERVE(04));
+    if (MR::isBckOneTimeAndStopped(this)) {
+        this->setNerve(GET_NYORO_NERVE(02));
     }
 }
 
-extern "C" void fn_801D8730(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Starpiece");
+void Nyoropon::fn_801D8520() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSound(this, "Light", -1, -1, -1);
+        MR::tryStartActionNotPlaying(this, "Light");
     }
-    if (MR::isActionEnd(pActor)) {
-        pActor->setNerve(GET_NYORO_NERVE(05));
-    }
-}
-
-extern "C" void fn_801D8830(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Down");
-    }
-    if (MR::isActionEnd(pActor)) {
-        MR::appearCoinPop(pActor, pActor->mPosition, 1);
-        pActor->setNerve(GET_NYORO_NERVE(06));
+    if (MR::isGreaterStep(this, 60)) {
+        this->setNerve(GET_NYORO_NERVE(03));
     }
 }
 
-extern "C" void fn_801D8910(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Spin");
+void Nyoropon::fn_801D8640() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Recover");
     }
-    if (MR::isActionEnd(pActor)) {
-        pActor->setNerve(GET_NYORO_NERVE(07));
-    }
-}
-
-extern "C" void fn_801D89F0(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "SearchLight");
-    }
-    if (MR::isActionEnd(pActor)) {
-        pActor->setNerve(GET_NYORO_NERVE(08));
+    if (MR::isActionEnd(this)) {
+        this->setNerve(GET_NYORO_NERVE(04));
     }
 }
 
-extern "C" void fn_801D8AD0(Nyoropon* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Down");
+void Nyoropon::fn_801D8730() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Starpiece");
     }
-    if (MR::isActionEnd(pActor)) {
-        pActor->setNerve(GET_NYORO_NERVE(09));
+    if (MR::isActionEnd(this)) {
+        this->setNerve(GET_NYORO_NERVE(05));
+    }
+}
+
+void Nyoropon::fn_801D8830() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Down");
+    }
+    if (MR::isActionEnd(this)) {
+        MR::appearCoinPop(this, this->mPosition, 1);
+        this->setNerve(GET_NYORO_NERVE(06));
+    }
+}
+
+void Nyoropon::fn_801D8910() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Spin");
+    }
+    if (MR::isActionEnd(this)) {
+        this->setNerve(GET_NYORO_NERVE(07));
+    }
+}
+
+void Nyoropon::fn_801D89F0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "SearchLight");
+    }
+    if (MR::isActionEnd(this)) {
+        this->setNerve(GET_NYORO_NERVE(08));
+    }
+}
+
+void Nyoropon::fn_801D8AD0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Down");
+    }
+    if (MR::isActionEnd(this)) {
+        this->setNerve(GET_NYORO_NERVE(09));
     }
 }
 
 // NONMATCHING: the SMG2 body calls updateActorState on a state object not recovered yet.
-extern "C" void fn_801D8BB0(Nyoropon* pActor) {
-    (void)pActor;
+void Nyoropon::fn_801D8BB0() {
+    (void)this;
 }
 
 // NONMATCHING: the helpers below are approximations; they keep the SMG2 call set and nerve flow.
-extern "C" bool fn_801D8130(Nyoropon* pActor) {
-    return pActor->isNerve(GET_NYORO_NERVE(00)) || pActor->isNerve(GET_NYORO_NERVE(01)) ||
-           pActor->isNerve(GET_NYORO_NERVE(02)) || pActor->isNerve(GET_NYORO_NERVE(03));
+bool Nyoropon::fn_801D8130() {
+    return this->isNerve(GET_NYORO_NERVE(00)) || this->isNerve(GET_NYORO_NERVE(01)) ||
+           this->isNerve(GET_NYORO_NERVE(02)) || this->isNerve(GET_NYORO_NERVE(03));
 }
 
-extern "C" bool fn_801D81E0(Nyoropon* pActor) {
-    return pActor->isNerve(GET_NYORO_NERVE(00)) || pActor->isNerve(GET_NYORO_NERVE(01)) ||
-           pActor->isNerve(GET_NYORO_NERVE(02)) || pActor->isNerve(GET_NYORO_NERVE(03));
+bool Nyoropon::fn_801D81E0() {
+    return this->isNerve(GET_NYORO_NERVE(00)) || this->isNerve(GET_NYORO_NERVE(01)) ||
+           this->isNerve(GET_NYORO_NERVE(02)) || this->isNerve(GET_NYORO_NERVE(03));
 }
 
-extern "C" bool fn_801D8260(Nyoropon* pActor) {
-    return pActor->isNerve(GET_NYORO_NERVE(00)) || pActor->isNerve(GET_NYORO_NERVE(01)) ||
-           pActor->isNerve(GET_NYORO_NERVE(02));
+bool Nyoropon::fn_801D8260() {
+    return this->isNerve(GET_NYORO_NERVE(00)) || this->isNerve(GET_NYORO_NERVE(01)) ||
+           this->isNerve(GET_NYORO_NERVE(02));
 }
 
-extern "C" bool fn_801D82D0(Nyoropon* pActor) {
-    return pActor->isNerve(GET_NYORO_NERVE(03)) || pActor->isNerve(GET_NYORO_NERVE(04)) ||
-           pActor->isNerve(GET_NYORO_NERVE(09));
+bool Nyoropon::fn_801D82D0() {
+    return this->isNerve(GET_NYORO_NERVE(03)) || this->isNerve(GET_NYORO_NERVE(04)) ||
+           this->isNerve(GET_NYORO_NERVE(09));
 }
 
-extern "C" f32 fn_801D8350(Nyoropon* pActor) {
-    return pActor->isNerve(GET_NYORO_NERVE(09)) ? 1.0f : 0.0f;
+f32 Nyoropon::fn_801D8350() {
+    return this->isNerve(GET_NYORO_NERVE(09)) ? 1.0f : 0.0f;
 }
 
-extern "C" void fn_801D8C80(Nyoropon* pActor) {
-    if (!MR::isBtpPlaying(pActor, "Sleep")) {
-        MR::startBtp(pActor, "Sleep");
+void Nyoropon::fn_801D8C80() {
+    if (!MR::isBtpPlaying(this, "Sleep")) {
+        MR::startBtp(this, "Sleep");
     }
 }
 
-extern "C" void fn_801D8CF0(Nyoropon* pActor) {
-    if (!MR::isBtpPlaying(pActor, "Normal")) {
-        MR::startBtp(pActor, "Normal");
+void Nyoropon::fn_801D8CF0() {
+    if (!MR::isBtpPlaying(this, "Normal")) {
+        MR::startBtp(this, "Normal");
     }
 }
 
-extern "C" void fn_801D8D60(Nyoropon* pActor) {
-    if (!MR::isBtpPlaying(pActor, "Search")) {
-        MR::startBtp(pActor, "Search");
+void Nyoropon::fn_801D8D60() {
+    if (!MR::isBtpPlaying(this, "Search")) {
+        MR::startBtp(this, "Search");
     }
 }
 
-extern "C" void fn_801D8DD0(Nyoropon* pActor) {
+void Nyoropon::fn_801D8DD0() {
     // NONMATCHING: joint controller setup (HeadPos / NyoroponBody) not recovered.
-    (void)pActor;
+    (void)this;
 }
 
-extern "C" void fn_801D8EE0(Nyoropon* pActor) {
-    MR::setMtxTrans(nullptr, pActor->_11C, pActor->_120, pActor->_124);
+void Nyoropon::fn_801D8EE0() {
+    MR::setMtxTrans(nullptr, this->_11C, this->_120, this->_124);
 }
 
-extern "C" void fn_801D9070(Nyoropon* pActor) {
-    pActor->_128 = MR::clamp(pActor->_128, 0.0f, 1.0f);
+void Nyoropon::fn_801D9070() {
+    this->_128 = MR::clamp(this->_128, 0.0f, 1.0f);
 }
 
-extern "C" void fn_801D91A0(Nyoropon* pActor) {
+void Nyoropon::fn_801D91A0() {
     TVec3f pos(*MR::getPlayerPos());
     MR::normalize(&pos);
-    pActor->_158 = pos.x;
+    this->_158 = pos.x;
 }
 
-extern "C" void fn_801D93A0(Nyoropon* pActor) {
-    pActor->_15C = MR::clamp(pActor->_15C, -1.0f, 1.0f) * MR::sign(pActor->_15C);
+void Nyoropon::fn_801D93A0() {
+    this->_15C = MR::clamp(this->_15C, -1.0f, 1.0f) * MR::sign(this->_15C);
 }
 
-extern "C" void fn_801D9C60(Nyoropon* pActor) {
-    pActor->_14C = MR::clamp(pActor->_14C, 0.0f, 1.0f);
+void Nyoropon::fn_801D9C60() {
+    this->_14C = MR::clamp(this->_14C, 0.0f, 1.0f);
 }
 
-extern "C" bool fn_801DA150(Nyoropon* pActor) {
-    return pActor->isNerve(GET_NYORO_NERVE(00));
+bool Nyoropon::fn_801DA150() {
+    return this->isNerve(GET_NYORO_NERVE(00));
 }
 
-extern "C" bool fn_801DA300(Nyoropon* pActor) {
-    return pActor->isNerve(GET_NYORO_NERVE(09));
+bool Nyoropon::fn_801DA300() {
+    return this->isNerve(GET_NYORO_NERVE(09));
 }
 
-extern "C" void fn_801DA370(Nyoropon* pActor) {
-    MR::startActionSound(pActor, "WaitA", -1, -1, -1);
+void Nyoropon::fn_801DA370() {
+    MR::startActionSound(this, "WaitA", -1, -1, -1);
 }

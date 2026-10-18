@@ -6,6 +6,7 @@ class LiveActor;
 
 namespace MR {
     void initStarPointerTarget(LiveActor*, f32, const TVec3f& = TVec3f(0.0f));
+    void fn_8005E430(LiveActor*);  // SMG2-only (original name unknown; by address)
 
     void initStarPointerTargetAtJoint(LiveActor*, const char*, f32, const TVec3f&);
     f32 calcPointRadius2D(const TVec3f&, f32);

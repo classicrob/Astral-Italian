@@ -141,7 +141,7 @@ void FireBubble::initMapToolInfo(const JMapInfoIter& rIter) {
     mIsValidInfo = true;
 
     MR::initDefaultPos(this, rIter);
-    MR::needStageSwitchReadAppear(this, rIter);
+    MR::syncStageSwitchAppearAndSync(this, rIter);
     _90.set(mPosition);
     MR::calcGravity(this);
 

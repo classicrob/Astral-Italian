@@ -1,22 +1,10 @@
+#include "Game/Util/YoshiLockOnUtil.hpp"
+#include "Game/MapObj/ClipAreaDropHolder.hpp"
 #include "Game/Enemy/Teresa.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 
-class ClipAreaDrop;
-class YoshiLockOnTarget;
-namespace YoshiFunction {
-    bool tryYoshiLick(YoshiLockOnTarget*);
-};
-extern "C" void fn_8020E640(Teresa* pTeresa) NO_INLINE;
-extern "C" void fn_8020E910(Teresa* pTeresa) NO_INLINE;
-namespace MR {
-    void createClipAreaDropHolder();
-    ClipAreaDrop* appearClipAreaDrop(const TVec3f&, f32);
-    bool isMsgYoshiStartTongue(u32);
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-    bool updateActorState(LiveActor*);
-};
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/HitInfo.hpp"
@@ -114,7 +102,7 @@ void Teresa::init(const JMapInfoIter& rIter) {
         MR::declareCoin(this, 1);
     }
 
-    mLockOnTarget = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mLockOnTarget = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), TVec3f(0.0f));
     MR::useStageSwitchAwake(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
     setStartNerve();
@@ -211,7 +199,7 @@ void Teresa::control() {
     }
 
     tryHideWater();
-    fn_8020E640(this);
+    this->fn_8020E640();
     _FE = 0;
 
     if (_F4 > 0.9f) {
@@ -879,7 +867,7 @@ void Teresa::exeShay() {
         MR::startActionSound(this, "OjLvPowStarExist");
     }
 
-    fn_8020E910(this);
+    this->fn_8020E910();
     updateNormalVelocity();
 
     if (!tryAscension() && !tryFreeze()) {
@@ -1020,10 +1008,10 @@ inline void Teresa::endAppearFromWall() {
     endAppear();
 }
 
-extern "C" void fn_8020E640(Teresa* pTeresa) {
+void Teresa::fn_8020E640() {
     TVec3f up;
-    up.negate(pTeresa->mGravity);
-    MR::blendQuatUpFront(&pTeresa->_94, up, pTeresa->mWallNormal, 0.1f, 0.2f);
+    up.negate(this->mGravity);
+    MR::blendQuatUpFront(&this->_94, up, this->mWallNormal, 0.1f, 0.2f);
 }
 
 void Teresa::updateNormalVelocity() {
@@ -1075,11 +1063,11 @@ void Teresa::updateNormalTransparency() {
     setTransparency(_F4);
 }
 
-extern "C" void fn_8020E910(Teresa* pTeresa) {
-    if (pTeresa->mDisplayModel != nullptr) {
-        pTeresa->setTransparency(MR::calcNerveEaseInOutValue(pTeresa, 60, pTeresa->_F4, 0.5f));
+void Teresa::fn_8020E910() {
+    if (this->mDisplayModel != nullptr) {
+        this->setTransparency(MR::calcNerveEaseInOutValue(this, 60, this->_F4, 0.5f));
     } else {
-        pTeresa->updateNormalTransparency();
+        this->updateNormalTransparency();
     }
 }
 

@@ -1,3 +1,4 @@
+#include "Game/MapObj/ClipAreaDropHolder.hpp"
 #include "Game/LiveActor/ActorPoseTQ.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Enemy/BakuBaku.hpp"
@@ -6,11 +7,9 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorParam.hpp"
 
 // Unnamed SMG2 helpers used by this unit (declared here, defined in their own units).
-extern "C" void fn_80010600(ActorPoseTQ*, BakuBaku*, f32, f32);
-extern "C" void fn_80008890(LiveActor*, const char*);
-extern "C" s32 fn_802861E0(const TVec3f*, s32, s32, s32, f32);
 
 namespace NrvBakuBaku {
     NEW_NERVE(BakuBakuNrvMove, BakuBaku, Move);
@@ -29,16 +28,11 @@ namespace NrvBakuBaku {
 
 #define GET_BAKUBAKU_NERVE(name) (&NrvBakuBaku::name::sInstance)
 
-namespace MR {
-    void createClipAreaDropHolder();
-};  // namespace MR
 
 // Static helpers of this unit (SMG2 fn_ names).
 static void fn_80155D10(BakuBaku* pActor);
 static void fn_80155DC0(BakuBaku* pActor);
 static void fn_80155E60(BakuBaku* pActor);
-extern "C" bool fn_80155F00(BakuBaku* pActor);
-extern "C" bool fn_80155F60(BakuBaku* pActor);
 
 BakuBaku::BakuBaku(const char* pName) : LiveActor(pName) {
     mPose = nullptr;
@@ -107,8 +101,8 @@ bool BakuBaku::isAttackable() const {
 
 void BakuBaku::control() {
     mAnimScaleCtrl->updateNerve();
-    fn_80010600(mPose, this, 0.05f, 140.0f);
-    if (fn_80155F60(this) && mStarPointBind->tryStartPointBind()) {
+    MR::fn_80010600(mPose, this, 0.05f, 140.0f);
+    if (this->fn_80155F60() && mStarPointBind->tryStartPointBind()) {
         setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvFreeze));
     }
 }
@@ -166,7 +160,7 @@ static void fn_80155D10(BakuBaku* pActor) {
 // NONMATCHING: rail-move helper approximated from the draft.
 static void fn_80155DC0(BakuBaku* pActor) {
     if (MR::isFirstStep(pActor)) {
-        fn_80008890(pActor, "Move");
+        MR::fn_80008890(pActor, "Move");
     }
     fn_80155D10(pActor);
     MR::moveCoordAndFollowTrans(pActor, pActor->mMoveLimit);
@@ -178,7 +172,7 @@ static void fn_80155DC0(BakuBaku* pActor) {
 // NONMATCHING: non-rail move helper approximated from the draft.
 static void fn_80155E60(BakuBaku* pActor) {
     if (MR::isFirstStep(pActor)) {
-        fn_80008890(pActor, "Move");
+        MR::fn_80008890(pActor, "Move");
     }
     fn_80155D10(pActor);
     {
@@ -191,12 +185,12 @@ static void fn_80155E60(BakuBaku* pActor) {
 }
 
 // NONMATCHING: Move/Turn check approximated from the draft.
-extern "C" bool fn_80155F00(BakuBaku* pActor) {
-    return pActor->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove)) || pActor->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn));
+bool BakuBaku::fn_80155F00() {
+    return this->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove)) || this->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn));
 }
 
-extern "C" bool fn_80155F60(BakuBaku* pActor) {
-    return fn_80155F00(pActor) || pActor->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvAttackSuccess));
+bool BakuBaku::fn_80155F60() {
+    return this->fn_80155F00() || this->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvAttackSuccess));
 }
 
 void NrvBakuBaku::BakuBakuNrvFreeze::execute(Spine* pSpine) const {

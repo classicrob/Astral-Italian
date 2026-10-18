@@ -1,10 +1,12 @@
 #include "Game/Enemy/Pyudon.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/MapObj/MapObjConnector.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 class MapObjConnector;
 class YoshiLockOnTarget;
@@ -19,17 +21,16 @@ namespace YoshiFunction {
 
 
 // Unnamed SMG2 helpers (other units or this unit's helpers, see wip/Pyudon.renames.txt).
-extern "C" void fn_80376C30(LiveActor*, u32, s32);
-extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, s32, f32, f32);
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_802CC510(MapObjConnector*);
-extern "C" void fn_802CC5D0(MapObjConnector*);
-extern "C" u32 lbl_807E3060;
-extern "C" u32 lbl_807E3064;
-extern "C" f32 lbl_807E3068;
-extern "C" f32 lbl_807E306C;
-extern "C" f32 lbl_807E3030;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern u32 lbl_807E3060;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern u32 lbl_807E3064;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern f32 lbl_807E3068;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern f32 lbl_807E306C;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern f32 lbl_807E3030;
 
 namespace {
     static const f32 cNearPlayerDist = 1000.0f;
@@ -375,7 +376,7 @@ void Pyudon::exeStepDown() {
         MR::startAction(this, "StepDown");
     }
     if (MR::isActionEnd(this) || MR::isGreaterStep(this, 45)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -388,7 +389,7 @@ void Pyudon::exeBlowDown() {
     TVec3f zero(0.0f, 0.0f, 0.0f);
     MR::turnDirectionDegree(this, &mFront, zero, 30.0f);
     if (MR::isBindedGround(this) && MR::isGreaterStep(this, 15)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -471,7 +472,7 @@ void Pyudon::receiveMsgPlayerTrample(u32 msg, HitSensor* pSender) {
     }
     MR::zeroVelocity(this);
     MR::tryHitReaction(this, "\x93\xa5\x82\xdc\x82\xea\x83q\x83b\x83g");  // hit sound (string lbl_806905D8)
-    fn_80376C30(this, msg, 0);
+    ScoreAttackFunction::scoreByAttack(this, msg, 0);
     setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));
 }
 
@@ -486,8 +487,8 @@ bool Pyudon::receiveMsgSpinAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
     }
     MR::zeroVelocity(this);
     MR::tryHitReaction(this, "\x90\x81\x82\xab\x94\xf2\x82\xd1\x83q\x83b\x83g");  // lbl_806905E8
-    fn_80012B90(this, pSender, pReceiver, 4, 30.0f, 30.0f);
-    fn_80376C30(this, msg, 0);
+    MR::fn_80012B90(this, 30.0f, 30.0f, pSender, pReceiver, 4);
+    ScoreAttackFunction::scoreByAttack(this, msg, 0);
     setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));
     return true;
 }
@@ -497,8 +498,8 @@ bool Pyudon::receiveMsgKick(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isHipDropNerve() || isNerve(GET_NERVE(Pyudon, PyudonNrvStarPieceReactionAir))) {
         MR::zeroVelocity(this);
         MR::tryHitReaction(this, "\x83L\x83b\x83N\x83q\x83b\x83g");  // lbl_806905F8
-        fn_80012B90(this, pSender, pReceiver, 4, 30.0f, 30.0f);
-        fn_80376C30(this, msg, 0);
+        MR::fn_80012B90(this, 30.0f, 30.0f, pSender, pReceiver, 4);
+        ScoreAttackFunction::scoreByAttack(this, msg, 0);
         setNerve(GET_NERVE(Pyudon, PyudonNrvBlowDown));
         return true;
     }
@@ -621,7 +622,7 @@ LiveActor* Pyudon::tryFindGroundActor() {
     LiveActor* pGround = MR::getGroundActor(this);
     mGroundActor = pGround;
     if (pGround != nullptr) {
-        fn_802CC510(mConnector);
+        mConnector->fn_802CC510();
     }
     return pGround;
 }
@@ -635,7 +636,7 @@ bool Pyudon::isGroundActorAlive() {
     if (!isDead && MR::isValidCollisionParts(mGroundActor)) {
         return true;
     }
-    fn_802CC5D0(mConnector);
+    mConnector->fn_802CC5D0();
     mGroundActor = nullptr;
     return false;
 }
@@ -645,7 +646,7 @@ void Pyudon::clearGroundActor() {
     if (mGroundActor == nullptr) {
         return;
     }
-    fn_802CC5D0(mConnector);
+    mConnector->fn_802CC5D0();
     mGroundActor = nullptr;
 }
 

@@ -5,8 +5,6 @@
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
 
 class BoomerangBrosStateJump : public ActorStateBase< BoomerangBros > {
 public:
@@ -348,7 +346,7 @@ bool BoomerangBros::isStarPointerBindable() const {
 
 bool BoomerangBros::tryExplosionDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isVulnerable()) {
-        fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
         setNerve(BNRV(BlowDown));
         killHeldProjectile();
         return true;
@@ -362,7 +360,7 @@ bool BoomerangBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
         vuln = true;
     }
     if (vuln) {
-        fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
         MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(BNRV(BlowDown));
         killHeldProjectile();
@@ -373,7 +371,7 @@ bool BoomerangBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool BoomerangBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
-        fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
         MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(BNRV(Swoon));
         killHeldProjectile();
@@ -393,9 +391,9 @@ bool BoomerangBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
         }
     }
     if (isNormalNerve()) {
-        fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
     } else {
-        fn_80012B90(this, 0.0f, 2.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 0.0f, 2.0f, pSender, pReceiver, 4);
     }
     MR::tryHitReaction(this, "\x83\x60\x83\x52\x90\x81\x82\xc1\x94\xf2\x82\xd1");
     setNerve(BNRV(Swoon));
@@ -583,7 +581,7 @@ bool BoomerangBros::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRec
     if (msg == 244) {
         if (tryExplosionDamage(pSender, pReceiver)) {
             MR::tryHitReactionBetweenSensors(this, "\x91\xe5\x96\x43", pSender, pReceiver);
-            fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
+            MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
             return true;
         }
         return false;

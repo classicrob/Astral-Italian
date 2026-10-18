@@ -55,20 +55,20 @@ public:
     void exeDpdGripped();
     void endDpdGripped();
 
-    /* 0x8C */ SpinHitController* mSpinHitController;
-    /* 0x90 */ AnimScaleController* mScaleController;
-    /* 0x94 */ AnimStampController* mStampController;
+    /* 0x90 */ SpinHitController* mSpinHitController;
+    /* 0x94 */ AnimScaleController* mScaleController;
     /* 0x98 */ StringSpiderString* mString;
-    /* 0x9C */ FixedPosition* mFixedPos;
-    /* 0xA0 */ void* _A4;
-    /* 0xA4 */ TQuat4f _A0;
-    /* 0xB4 */ TVec3f _B4v;
-    /* 0xC4 */ f32 _B0;
-    /* 0xC8 */ f32 _B4;
-    /* 0xCC */ bool _B8;
-    /* 0xD0 */ s32 _BC;
-    /* 0xD4 */ TVec3f* _C0;
-    /* 0xD8 */ TVec3f* _C4;
+    /* 0x9C */ AnimStampController* mStampController;
+    /* 0xA0 */ FixedPosition* mFixedPos;
+    /* 0xA4 */ void* _A4;
+    /* 0xA8 */ TQuat4f _A0;
+    /* 0xB8 */ TQuat4f _B4v;
+    /* 0xC8 */ f32 _B0;
+    /* 0xCC */ f32 _B4;
+    /* 0xD0 */ bool _B8;
+    /* 0xD4 */ s32 _BC;
+    /* 0xD8 */ TVec3f* _C0;
+    /* 0xDC */ TVec3f* _C4;
 };
 
 class StringSpiderString : public LiveActor {

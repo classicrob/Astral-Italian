@@ -1,4 +1,5 @@
 #include "Game/Enemy/Kuribo.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/ItemGenerator.hpp"
 #include "Game/Enemy/WalkerStateChase.hpp"
@@ -27,19 +28,21 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/VectorUtil.hpp"
 #include <revolution/mtx.h>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_80376C30(LiveActor*, HitSensor*, s32);
-extern "C" u32 lbl_807D29E0;
-extern "C" u32 lbl_807D2A18;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D29E0;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2A18;
 
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
 };  // namespace MR
 
-extern "C" void fn_8022BC70(LiveActor*);
-extern "C" u32 lbl_807D29E0;
-extern "C" u32 lbl_807D2A14;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D29E0;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2A14;
 
 namespace {
     class KuriboParam {
@@ -98,7 +101,7 @@ Kuribo::Kuribo(const char* pName)
 void Kuribo::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "Kuribo", false);
     if (!_C5) {
-        fn_8022BC70(this);
+        MR::disableAllItemGenerator(this);
     }
 
     MR::makeQuatAndFrontFromRotate(&_A8, &_B8, this);
@@ -184,8 +187,10 @@ void Kuribo::makeActorDead() {
     LiveActor::makeActorDead();
 }
 
-extern "C" u32 lbl_807D2A14;
-extern "C" u32 lbl_807D2A18;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2A14;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2A18;
 
 void Kuribo::kill() {
     if (MR::isValidSwitchDead(this)) {
@@ -349,7 +354,8 @@ bool Kuribo::requestFlatDown(HitSensor* pSender, HitSensor* pReceiver) {
     _CE = isUpsideDown();
     setNerve(GET_NERVE(Kuribo, KuriboNrvFlatDown));
     MR::offBind(this);
-    fn_80376C30(this, pSender, 0);
+    // PLACEHOLDER(enemies): target passes pSender as the u32 msg slot of fn_80376C30; resolve when requestFlatDown/HipDropDown msg is typed.
+    ScoreAttackFunction::scoreByAttack(this, reinterpret_cast< u32 >(pSender), nullptr);
     return true;
 }
 
@@ -365,7 +371,8 @@ bool Kuribo::requestHipDropDown(HitSensor* pSender, HitSensor* pReceiver) {
     _CE = isUpsideDown();
     setNerve(GET_NERVE(Kuribo, KuriboNrvHipDropDown));
     MR::offBind(this);
-    fn_80376C30(this, pSender, 0);
+    // PLACEHOLDER(enemies): target passes pSender as the u32 msg slot of fn_80376C30; resolve when requestFlatDown/HipDropDown msg is typed.
+    ScoreAttackFunction::scoreByAttack(this, reinterpret_cast< u32 >(pSender), nullptr);
     return true;
 }
 
@@ -478,7 +485,7 @@ bool Kuribo::tryEndBlow() {
 
 bool Kuribo::tryEndBlowLand() {
     if (MR::isGreaterStep(this, 15)) {
-        setNerve(GET_NERVE(Kuribo, KuriboNrvChase));
+        setNerve(GET_NERVE(Kuribo, KuriboNrvWander));
         return true;
     }
 
@@ -666,7 +673,7 @@ void Kuribo::exePressDown() {
     }
 
     if (MR::isGreaterStep(this, 60)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }

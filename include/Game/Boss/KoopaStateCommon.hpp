@@ -9,8 +9,7 @@ class Nerve;
 // PLACEHOLDER(objects): unnamed core helper = MR::requestStartDemo(NerveExecutor*, LiveActor*, const char*, const Nerve* pDemoNerve, const Nerve* pWaitNerve); resolve when core names fn_8001FEF0
 extern "C" void fn_8001FEF0(NerveExecutor*, LiveActor*, const char*, const Nerve*, const Nerve*);
 
-// PLACEHOLDER(objects): unnamed core helper (mVelocity += dir * f); resolve when core names fn_80010CB0
-extern "C" void fn_80010CB0(LiveActor*, const TVec3f&, f32);
+#include "Game/Util/ActorMovementUtil.hpp"  // MR::fn_80010CB0 (mVelocity += dir * f)
 
 // PLACEHOLDER(objects): unnamed core helper (dst = src * rotation about src's X direction by f degrees); resolve when core names fn_8003D330
 extern "C" void fn_8003D330(TQuat4f*, const TQuat4f&, f32);

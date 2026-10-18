@@ -36,12 +36,6 @@ namespace NrvFoomin {
 #define GET_FOOMIN_NERVE(name) (&NrvFoomin::name::sInstance)
 
 // Unnamed SMG2 helpers.
-extern "C" void fn_80052450(LiveActor*, s32, f32, f32, f32);
-extern "C" void fn_80181C80(Foomin*);
-extern "C" void fn_80181940(Foomin*);
-extern "C" void fn_801819D0(Foomin*);
-extern "C" void fn_80181A80(Foomin*);
-extern "C" void fn_80181B00(Foomin*);
 
 Foomin::Foomin(const char* pName) : LiveActor(pName) {
     mSupportTico = nullptr;
@@ -94,69 +88,73 @@ void Foomin::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFront);
 }
 
-extern "C" void fn_80181940(Foomin* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::validateClipping(pActor);
-        MR::startAction(pActor, "Wait");
+void Foomin::fn_80181940() {
+    if (MR::isFirstStep(this)) {
+        MR::validateClipping(this);
+        MR::startAction(this, "Wait");
     }
 
-    if ((!MR::isValidSwitchA(pActor) || MR::isOnSwitchA(pActor)) && MR::isGreaterStep(pActor, pActor->mArg0)) {
-        pActor->setNerve(GET_FOOMIN_NERVE(FoominNrvAttackSign));
-    }}
+    if ((!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) && MR::isGreaterStep(this, this->mArg0)) {
+        this->setNerve(GET_FOOMIN_NERVE(FoominNrvAttackSign));
+    }
+}
 
-extern "C" void fn_801819D0(Foomin* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::validateClipping(pActor);
-        MR::startAction(pActor, "Wait");
+void Foomin::fn_801819D0() {
+    if (MR::isFirstStep(this)) {
+        MR::validateClipping(this);
+        MR::startAction(this, "Wait");
     }
 
-    if (pActor->mSupportTico->tryAttachTouch() == 0) {
-        if ((!MR::isValidSwitchA(pActor) || MR::isOnSwitchA(pActor)) && MR::isGreaterStep(pActor, 120)) {
-            pActor->setNerve(GET_FOOMIN_NERVE(FoominNrvAttackSign));
+    if (this->mSupportTico->tryAttachTouch() == 0) {
+        if ((!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) && MR::isGreaterStep(this, 120)) {
+            this->setNerve(GET_FOOMIN_NERVE(FoominNrvAttackSign));
         }
-        fn_80181C80(pActor);
-    }}
+        this->fn_80181C80();
+    }
+}
 
-extern "C" void fn_80181A80(Foomin* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::invalidateClipping(pActor);
-        MR::startAction(pActor, "AttackSign");
+void Foomin::fn_80181A80() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateClipping(this);
+        MR::startAction(this, "AttackSign");
     }
 
-    if (pActor->mSupportTico->tryAttachTouch() == 0) {
-        fn_80181C80(pActor);
-        if (MR::isActionEnd(pActor)) {
-            pActor->setNerve(GET_FOOMIN_NERVE(FoominNrvAttack));
+    if (this->mSupportTico->tryAttachTouch() == 0) {
+        this->fn_80181C80();
+        if (MR::isActionEnd(this)) {
+            this->setNerve(GET_FOOMIN_NERVE(FoominNrvAttack));
         }
-    }}
+    }
+}
 
-extern "C" void fn_80181B00(Foomin* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Attack");
+void Foomin::fn_80181B00() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Attack");
     }
 
-    if (MR::isLessStep(pActor, 25) && MR::isActorOnPlayer(pActor)) {
+    if (MR::isLessStep(this, 25) && MR::isActorOnPlayer(this)) {
         TVec3f front(0.0f);
-        MR::calcFrontVec(&front, pActor);
+        MR::calcFrontVec(&front, this);
         TVec3f jump = front * -0.5f;
         jump.normalize();
         MR::forceJumpPlayer(jump * 35.0f);
         MR::startBckPlayer("Blow", nullptr);
         MR::startLevelSoundPlayer("Thrown", -1, -1);
-        MR::emitEffect(pActor, "Shrink");
+        MR::emitEffect(this, "Shrink");
     }
 
-    fn_80181C80(pActor);
-    if (MR::isActionEnd(pActor)) {
-        MR::validateClipping(pActor);
-        pActor->setNerve(GET_FOOMIN_NERVE(FoominNrvWaitTouch));
-    }}
+    this->fn_80181C80();
+    if (MR::isActionEnd(this)) {
+        MR::validateClipping(this);
+        this->setNerve(GET_FOOMIN_NERVE(FoominNrvWaitTouch));
+    }
+}
 
-extern "C" void fn_80181C80(Foomin* pActor) {
-    if (MR::isExistRail(pActor)) {
-        s32 speed = pActor->mArg1;
+void Foomin::fn_80181C80() {
+    if (MR::isExistRail(this)) {
+        s32 speed = this->mArg1;
         f32 rate = 0.009999999776482582f * (f32)speed;
-        fn_80052450(pActor, speed, rate, 0.20000000298023224f * rate, 100.0f);
+        MR::fn_80052450(this, rate, 0.20000000298023224f * rate, 100.0f);
     }
 }
 
@@ -164,17 +162,17 @@ Foomin::~Foomin() {
 }
 
 void NrvFoomin::FoominNrvWait::execute(Spine* pSpine) const {
-    fn_80181940(reinterpret_cast<Foomin*>(pSpine->mExecutor));
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_80181940();
 }
 
 void NrvFoomin::FoominNrvWaitTouch::execute(Spine* pSpine) const {
-    fn_801819D0(reinterpret_cast<Foomin*>(pSpine->mExecutor));
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_801819D0();
 }
 
 void NrvFoomin::FoominNrvAttackSign::execute(Spine* pSpine) const {
-    fn_80181A80(reinterpret_cast<Foomin*>(pSpine->mExecutor));
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_80181A80();
 }
 
 void NrvFoomin::FoominNrvAttack::execute(Spine* pSpine) const {
-    fn_80181B00(reinterpret_cast<Foomin*>(pSpine->mExecutor));
+    (reinterpret_cast<Foomin*>(pSpine->mExecutor))->fn_80181B00();
 }

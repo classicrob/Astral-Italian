@@ -21,6 +21,7 @@
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <cstring>
 #include "Game/Util/HashUtil.hpp"
+#include "Game/Player/Yoshi.hpp"
 
 // ---- enum names missing from the SMG2 ActorSensorUtil.hpp ----
 static const s32 ACTMES_STAR_PIECE_GIFT_1 = 0x10;  // Petari value, SMG2 unverified
@@ -253,10 +254,6 @@ void MarioAnimator_FORCE_MATCH_SDATA2() {
     (void)-0.5f;
 }
 
-extern "C" LiveActor* fn_803B97F0(MarioActor*);
-extern "C" void fn_8040EDE0(LiveActor*, const char*);
-extern "C" void fn_8006D340(XanimePlayer*);
-
 void MarioAnimator::stopAnimation(const char* pAnim1, const char* pAnim2) {
     if (pAnim2) {
         changeDefault(pAnim2);
@@ -265,17 +262,17 @@ void MarioAnimator::stopAnimation(const char* pAnim1, const char* pAnim2) {
     if (pAnim1) {
         mXanimePlayer->stopAnimation(pAnim1);
     } else {
-        fn_8006D340(mXanimePlayer);
+        mXanimePlayer->stopAnimation();
     }
 
     if (mActor->getMario()->isPlayerModeYoshi()) {
-        fn_8040EDE0(fn_803B97F0(mActor), pAnim1);
+        mActor->fn_803B97F0()->fn_8040EDE0(pAnim1);
     }
 
     if (pAnim1) {
         mXanimePlayerUpper->stopAnimation(pAnim1);
     } else {
-        fn_8006D340(mXanimePlayerUpper);
+        mXanimePlayerUpper->stopAnimation();
     }
 }
 

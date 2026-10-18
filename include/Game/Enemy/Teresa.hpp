@@ -14,6 +14,9 @@ class Triangle;
 
 class Teresa : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    void fn_8020E640();
+    void fn_8020E910();
     Teresa(const char*);
 
     virtual void init(const JMapInfoIter&);

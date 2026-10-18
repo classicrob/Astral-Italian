@@ -4,6 +4,7 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace NrvChorobon {
     NEW_NERVE(ChorobonNrvWait, Chorobon, Wait);
@@ -24,13 +25,8 @@ namespace NrvChorobon {
 
 #define GET_CHOROBON_NERVE(name) (&NrvChorobon::name::sInstance)
 
-extern "C" void fn_8022BA10(LiveActor*);
 
 // Helpers of this unit (unnamed in SMG2 symbols).
-extern "C" bool fn_80176D90(Chorobon*);
-extern "C" bool fn_80176E00(Chorobon*);
-extern "C" bool fn_80176E30(Chorobon*);
-extern "C" bool fn_80176E60(Chorobon*);
 
 Chorobon::Chorobon(const char* pName) : LiveActor(pName) {
     mRailClip.x = 0.0f;
@@ -58,7 +54,7 @@ void Chorobon::init(const JMapInfoIter& rIter) {
 
 void Chorobon::control() {
     mAnimScaleCtrl->updateNerve();
-    if (fn_80176E60(this) && mStarPointBind->tryStartPointBind()) {
+    if (this->fn_80176E60() && mStarPointBind->tryStartPointBind()) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvFreeze));
     }
 }
@@ -70,12 +66,12 @@ void Chorobon::calcAndSetBaseMtx() {
 
 // NONMATCHING: the SMG2 body inlines the fn_80176D90/E00 nerve checks and branches differently (~51%).
 void Chorobon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) && fn_80176D90(this) && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+    if (MR::isSensorPlayer(pReceiver) && this->fn_80176D90() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvAttack));
         return;
     }
 
-    if (fn_80176E00(this)) {
+    if (this->fn_80176E00()) {
         MR::sendMsgPush(pReceiver, pSender);
     }
 }
@@ -85,12 +81,12 @@ bool Chorobon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
 
-    if (MR::isMsgStarPieceAttack(msg) && fn_80176E30(this)) {
+    if (MR::isMsgStarPieceAttack(msg) && this->fn_80176E30()) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvReaction));
         return true;
     }
 
-    if (MR::isMsgPlayerHitProjectiles(msg) && fn_80176E30(this)) {
+    if (MR::isMsgPlayerHitProjectiles(msg) && this->fn_80176E30()) {
         setNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
         return true;
     }
@@ -98,30 +94,30 @@ bool Chorobon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
-extern "C" bool fn_80176D90(Chorobon* pActor) {
-    if (pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvWait)) || pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvMove)) ||
-        pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvFreeze))) {
+bool Chorobon::fn_80176D90() {
+    if (this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvWait)) || this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvMove)) ||
+        this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvFreeze))) {
         return true;
     }
     return false;
 }
 
-extern "C" bool fn_80176E00(Chorobon* pActor) {
-    return !pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
+bool Chorobon::fn_80176E00() {
+    return !this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
 }
 
-extern "C" bool fn_80176E30(Chorobon* pActor) {
-    return !pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
+bool Chorobon::fn_80176E30() {
+    return !this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvKill));
 }
 
-extern "C" bool fn_80176E60(Chorobon* pActor) {
-    if (pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvWait)) || pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvMove)) ||
-        pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvAttack))) {
+bool Chorobon::fn_80176E60() {
+    if (this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvWait)) || this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvMove)) ||
+        this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvAttack))) {
         return true;
     }
 
-    if (pActor->isNerve(GET_CHOROBON_NERVE(ChorobonNrvReaction))) {
-        return MR::isGreaterStep(pActor, 20);
+    if (this->isNerve(GET_CHOROBON_NERVE(ChorobonNrvReaction))) {
+        return MR::isGreaterStep(this, 20);
     }
 
     return false;
@@ -181,7 +177,7 @@ void Chorobon::exeKill() {
     }
 
     if (MR::isActionEnd(this)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }

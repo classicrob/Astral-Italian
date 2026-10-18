@@ -5,6 +5,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/EnemyUtilAll.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace {
     // static const f32 sReceivePushPower = ;
@@ -42,8 +43,6 @@ namespace {
 // SMG2-only MR:: helper (unnamed in symbols.txt): *pDst = normalize(rPos - pActor->mPosition)
 // SMG2-only MR:: helper (unnamed): *pDst = normalize(*MR::getPlayerPos() - pActor->mPosition)
 // SMG2-only helper (unnamed, LiveActor area), called before kill() on defeat
-extern "C" void fn_8022BA10(LiveActor* pActor);
-extern "C" void fn_8000E960(TVec3f* pDst, const LiveActor* pActor, const TVec3f& rPos);
 
 namespace NrvGesso {
     NEW_NERVE(GessoNrvComeFromBox, Gesso, ComeFromBox);
@@ -326,7 +325,7 @@ void Gesso::exePunchDown() {
     MR::turnDirectionToTargetDegree(this, &_A0, *MR::getPlayerPos(), 1.5f);
     if (MR::isStep(this, 20) || MR::isBinded(this)) {
         MR::startActionSound(this, "EmGessoDead");
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -348,7 +347,7 @@ void Gesso::exeComeBack() {
         } else {
             MR::turnDirectionToTargetDegree(this, &_A0, *MR::getPlayerPos(), 1.5f);
             TVec3f stack_14;
-            fn_8000E960(&stack_14, this, _94);
+            MR::fn_8000E960(&stack_14, this, &_94);
             mVelocity.scale(3.0f, stack_14);
             if (MR::isNear(this, _94, 100.0f)) {
                 setNerve(GET_NERVE(Gesso, GessoNrvWait));

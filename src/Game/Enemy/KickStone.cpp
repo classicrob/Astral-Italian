@@ -4,20 +4,9 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-// Helpers used by this unit that are not declared in the shared headers yet.
-namespace MR {
-    void attachSupportTicoToTarget(const LiveActor*);
-    void setMtxTrans(MtxPtr, f32, f32, f32);
-    void zeroVelocity(LiveActor*);
-};  // namespace MR
-extern "C" void fn_8000F9A0(TVec3f*, const TVec3f*);
-extern "C" void fn_801B3420(TVec3f*, KickStone*, s32);
-namespace YoshiFunction {
-    void tryYoshiLick(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
-};  // namespace MR
+#include "Game/Util/YoshiLockOnUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
+
 
 namespace NrvKickStone {
     // Nerve 0x2948: attach the support tico to the target (custom execute).
@@ -50,8 +39,6 @@ namespace NrvKickStone {
 
 #define GET_KICKSTONE_NERVE(name) (&NrvKickStone::name::sInstance)
 
-extern "C" void fn_801B38B0(KickStone*);
-extern "C" void fn_801B3B60(KickStone*);
 
 KickStone::KickStone(const char* pName) : LiveActor(pName) {
     mBreakModel = nullptr;
@@ -93,7 +80,7 @@ void KickStone::init(const JMapInfoIter& rIter) {
     MR::calcUpVec(&mUp, this);
 
     TVec3f lockOn(0.0f, 0.0f, 0.0f);
-    mLockOnTarget = MR::createYoshiLockOnTarget(this, nullptr, lockOn);
+    mLockOnTarget = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), lockOn);
     MR::useStageSwitchAwake(this, rIter);
     initNerve(GET_KICKSTONE_NERVE(KickStoneNrvAttachTico), 0);
     MR::offBind(this);
@@ -116,7 +103,7 @@ void KickStone::control() {
 }
 
 void KickStone::calcAndSetBaseMtx() {
-    fn_8000F9A0(&mUp, &mFront);
+    MR::fn_8000F9A0(this, &mUp, &mFront);
     mMtx.set(getBaseMtx());
     if (isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreak)) || isNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreakSub)) ||
         isNerve(GET_KICKSTONE_NERVE(KickStoneNrvDead))) {
@@ -219,49 +206,49 @@ void NrvKickStone::KickStoneNrvAttachTico::execute(Spine* pSpine) const {
 }
 
 void NrvKickStone::KickStoneNrvMoveRoll::execute(Spine* pSpine) const {
-    fn_801B38B0(reinterpret_cast<KickStone*>(pSpine->mExecutor));
+    (reinterpret_cast<KickStone*>(pSpine->mExecutor))->fn_801B38B0();
 }
 
 void NrvKickStone::KickStoneNrvDead::execute(Spine* pSpine) const {
-    fn_801B3B60(reinterpret_cast<KickStone*>(pSpine->mExecutor));
+    (reinterpret_cast<KickStone*>(pSpine->mExecutor))->fn_801B3B60();
 }
 
 // NONMATCHING: the SMG2 rolling-move body (fn_801B38B0) is only approximated from the draft.
-extern "C" void fn_801B38B0(KickStone* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::calcGravity(pActor);
+void KickStone::fn_801B38B0() {
+    if (MR::isFirstStep(this)) {
+        MR::calcGravity(this);
         TVec3f toPlayer(0.0f, 0.0f, 0.0f);
-        MR::calcVecToPlayerH(&toPlayer, pActor, nullptr);
+        MR::calcVecToPlayerH(&toPlayer, this, nullptr);
         TVec3f cross;
-        PSVECCrossProduct(&pActor->mUp, &toPlayer, &pActor->_BC);
-        if (MR::isNearZero(pActor->_BC, 0.001f)) {
-            pActor->_BC.set(pActor->mFront);
+        PSVECCrossProduct(&this->mUp, &toPlayer, &this->_BC);
+        if (MR::isNearZero(this->_BC, 0.001f)) {
+            this->_BC.set(this->mFront);
         }
-        TVec3f vel = pActor->_BC * 0.0f;
-        MR::setVelocity(pActor, vel);
+        TVec3f vel = this->_BC * 0.0f;
+        MR::setVelocity(this, vel);
     }
 
-    MR::addVelocityToGravity(pActor, 0.0f);
+    MR::addVelocityToGravity(this, 0.0f);
 
-    if (MR::isLessStep(pActor, 10)) {
+    if (MR::isLessStep(this, 10)) {
         return;
     }
 
-    if (MR::isActionEnd(pActor)) {
-        MR::zeroVelocity(pActor);
-        MR::tryHitReaction(pActor, "Land");
-        pActor->setNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreak));
+    if (MR::isActionEnd(this)) {
+        MR::zeroVelocity(this);
+        MR::tryHitReaction(this, "Land");
+        this->setNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreak));
     }
 }
 
 // NONMATCHING: the falling/bound helper (fn_801B3B60) is approximated from the draft.
-extern "C" void fn_801B3B60(KickStone* pActor) {
-    if (!MR::isNoBind(pActor)) {
-        if (MR::isBinded(pActor)) {
-            MR::zeroVelocity(pActor);
-            MR::offBind(pActor);
+void KickStone::fn_801B3B60() {
+    if (!MR::isNoBind(this)) {
+        if (MR::isBinded(this)) {
+            MR::zeroVelocity(this);
+            MR::offBind(this);
             return;
         }
-        MR::addVelocityToGravity(pActor, 0.0f);
+        MR::addVelocityToGravity(this, 0.0f);
     }
 }

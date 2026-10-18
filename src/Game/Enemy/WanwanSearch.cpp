@@ -9,8 +9,7 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 WanwanSearch::WanwanSearch(const char* pName) : LiveActor(pName), mBindState(nullptr), mBreakModel(nullptr), mInitPos(0.0f, 0.0f, 0.0f), mQuat(0.0f, 0.0f, 0.0f, 1.0f), mFront(0.0f, 0.0f, 1.0f), mGoalPos(0.0f, 0.0f, 0.0f), mGoalUp(0.0f, 1.0f, 0.0f), mGoalFront(0.0f, 0.0f, 0.0f), mAccel(1.0f), mRadius(250.0f), mAirCount(0), mBreakOnDeath(false), mVoiceTimer(0), mLastPos(0.0f, 0.0f, 0.0f) {
     mMtx.identity();
@@ -251,7 +250,7 @@ void WanwanSearch::exeBreak() {
             TVec3f up = -mGravity;
             MR::setQuatUpNoSupport(mBreakModel, up);
         }
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }

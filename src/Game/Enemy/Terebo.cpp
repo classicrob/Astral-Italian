@@ -13,7 +13,6 @@ namespace YoshiFunction {
 };  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers (not in this unit).
-extern "C" void fn_80052450(LiveActor*, f32, f32, f32);
 
 namespace NrvTerebo {
     NEW_NERVE(TereboNrvAppear, Terebo, Appear);
@@ -384,7 +383,7 @@ void Terebo::updateOnRail() {
 bool Terebo::moveOnRailAndCheckNextPoint() {
     f32 speed = mRailSpeed;
     s32 prevNo = MR::getNextRailPointNo(this);
-    fn_80052450(this, speed, 0.2f * speed, 100.0f);
+    MR::fn_80052450(this, speed, 0.2f * speed, 100.0f);
     s32 nextNo = MR::getNextRailPointNo(this);
     TVec3f dir(MR::getRailDirection(this));
     if (!MR::isSameDirection(dir, mGravity, 0.01f)) {

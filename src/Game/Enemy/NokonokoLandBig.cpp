@@ -14,12 +14,10 @@
 #include "Game/Util/RailUtil.hpp"
 
 // String blob of the unit: action, model and sensor names are read at fixed offsets from its base.
-extern "C" char lbl_8068DE30[];
+// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
+extern char lbl_8068DE30[];
 
 // Unnamed SMG2 helpers that are not part of this unit.
-extern "C" void fn_8000E650(TVec3f*, LiveActor*, const TVec3f*);
-extern "C" bool fn_801D7290(NokonokoLandBig*);
-extern "C" bool fn_801D73E0(NokonokoLandBig*, HitSensor*, HitSensor*);
 
 // NEW_NERVE declarations, in SMG2 sbss order (lbl_807D2CE8 .. lbl_807D2D08). Execute thunks name the exe functions.
 namespace NrvNokonokoLandBig {
@@ -120,7 +118,7 @@ void NokonokoLandBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
     if (doRest) {
         if (MR::isSensorEnemyAttack(pSender)) {
-            if (MR::isSensorPlayerOrRide(pReceiver) && !fn_801D73E0(this, pSender, pReceiver)) {
+            if (MR::isSensorPlayerOrRide(pReceiver) && !this->fn_801D73E0(pSender, pReceiver)) {
                 MR::sendMsgPush(pReceiver, pSender);
             }
         } else {
@@ -159,7 +157,7 @@ bool NokonokoLandBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
         TVec3f up(0.0f);
         MR::calcUpVec(&up, this);
         TVec3f dir(0.0f);
-        fn_8000E650(&dir, this, MR::getSensorPos(pSender));
+        MR::fn_8000E650(&dir, this, MR::getSensorPos(pSender));
         f32 d = up.dot(dir);
         if (d < -20.0f || d > 0.0f) {
             return false;
@@ -197,7 +195,7 @@ bool NokonokoLandBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
 }
 
 bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver == getSensor(lbl_8068DE30 + 0x48) && fn_801D7290(this)) {
+    if (pReceiver == getSensor(lbl_8068DE30 + 0x48) && this->fn_801D7290()) {
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvFall));
         return true;
     }
@@ -205,7 +203,7 @@ bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool NokonokoLandBig::tryBodyTouch(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pSender == getSensor(lbl_8068DE30 + 0x40) && fn_801D7290(this)) {
+    if (pSender == getSensor(lbl_8068DE30 + 0x40) && this->fn_801D7290()) {
         return true;
     }
     return false;
@@ -314,16 +312,16 @@ bool NokonokoLandBig::isAlignedToRail() const {
     return false;
 }
 
-extern "C" bool fn_801D7290(NokonokoLandBig* pActor) {
-    return pActor->isWalkOrBindNerve();
+bool NokonokoLandBig::fn_801D7290() {
+    return this->isWalkOrBindNerve();
 }
 
 // Sensor-driven helper: a hit from an enemy-attack sensor while walking is answered with an attack push.
-extern "C" bool fn_801D73E0(NokonokoLandBig* pActor, HitSensor* pSender, HitSensor* pReceiver) {
+bool NokonokoLandBig::fn_801D73E0(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorEnemyAttack(pSender)) {
         return false;
     }
-    if (!pActor->isWalkNerve()) {
+    if (!this->isWalkNerve()) {
         return false;
     }
     return MR::sendMsgEnemyAttackStrong(pReceiver, pSender);

@@ -8,6 +8,9 @@ class MarioSkate : public MarioState {
 public:
     MarioSkate(MarioActor*);
 
+    // SMG2-only (original names unknown; named by address)
+    void fn_803F4AF0();
+
     virtual bool start();
     virtual bool close();
     virtual bool update();

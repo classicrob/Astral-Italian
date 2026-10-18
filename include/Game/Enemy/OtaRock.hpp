@@ -11,6 +11,11 @@ class NameObjArchiveListCollector;
 
 class OtaRock : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    void fn_801DC550(const JMapInfoIter& rIter);
+    bool fn_801DCC00();
+    void fn_801DCC50();
+    void fn_801DD210();
     /// @brief Creates a new `OtaRock`.
     /// @param pName A pointer to the null-terminated name of the object.
     OtaRock(const char* pName);

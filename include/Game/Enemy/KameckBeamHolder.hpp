@@ -13,6 +13,7 @@ public:
     /// @brief Creates a new `KameckBeamHolder`.
     KameckBeamHolder();
     KameckBeamHolder(s32, s32, s32);
+    KameckBeam* fn_801A7CF0(f32, MtxPtr, const TVec3f&, KameckBeamEventListener*);  // unnamed, by address
 };
 
 class KameckFireBallHolder : public DeriveActorGroup< KameckFireBall > {

@@ -6,6 +6,18 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
+void fn_8015B640(void* pFunctor);
+struct BattanJointDelegate {
+    JointController* mController;  // 0x00
+    TVec3f mPos;                   // 0x04
+    TVec3f mDir;                   // 0x10 (default 0,1,0)
+    u32 _1C[3];                    // 0x1C..0x27 (callback data, zeroed)
+};
+
+BattanJointDelegate* fn_8015BA20(BattanJointDelegate* pDelegate, JointController* pJoint, LiveActor* pActor);
+void fn_8015BB30(BattanJointDelegate* pDelegate, const TVec3f* pDir);
+s32 fn_8015BB90(BattanJointDelegate* pDelegate, TPos3f* pMtx, TVec3f* pOut);
+
 namespace NrvBattan {
     NEW_NERVE(BattanNrvWait, Battan, Wait);
     NEW_NERVE(BattanNrvWalk, Battan, Walk);
@@ -58,22 +70,10 @@ static const BattanPartsDesc sPartsDesc[5] = {
 };
 
 // Unnamed SMG2 helpers used by Battan.
-extern "C" LiveActor* fn_8008D920(LiveActor*, LiveActor*, const char*, const char*, s32, MtxPtr, s32);
-extern "C" LiveActor* fn_8008DB20(LiveActor*, LiveActor*, const char*, const char*, s32, MtxPtr, s32);
-extern "C" bool fn_8008DDC0(const TVec3f*, f32, f32);
-extern "C" bool fn_8008E060(const TPos3f*, const TVec3f*);
-extern "C" void fn_8000F880(const TVec3f*);
-extern "C" void fn_800515E0();
-extern "C" s32 lbl_807E3020;
-extern "C" bool fn_800531B0(TVec3f*, LiveActor*, f32);
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern s32 lbl_807E3020;
 
 // Joint-controller delegate built in fn_8015BA20 (layout from the ctor stores).
-struct BattanJointDelegate {
-    JointController* mController;  // 0x00
-    TVec3f mPos;                   // 0x04
-    TVec3f mDir;                   // 0x10 (default 0,1,0)
-    u32 _1C[3];                    // 0x1C..0x27 (callback data, zeroed)
-};
 
 // Filter for the rail/ground probe: rejects Battan's own collision parts.
 BattanPartsFilter::BattanPartsFilter(Battan* pHost) : CollisionPartsFilterBase() {
@@ -122,7 +122,7 @@ void Battan::init(const JMapInfoIter& rIter) {
         if (i == 0 || i == 3 || i == 4) {
             LiveActor* pPress = static_cast<LiveActor*>(::operator new(0x98));
             if (pPress != nullptr) {
-                pPress = fn_8008D920(pPress, this, rDesc.mName, rDesc.mModelName, 0, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
+                pPress = MR::fn_8008D920(pPress, this, rDesc.mName, rDesc.mModelName, 0, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
             }
             mPressParts[i] = pPress;
             mPressParts[i]->initWithoutIter();
@@ -132,7 +132,7 @@ void Battan::init(const JMapInfoIter& rIter) {
 
         LiveActor* pCollision = static_cast<LiveActor*>(::operator new(0x98));
         if (pCollision != nullptr) {
-            pCollision = fn_8008DB20(pCollision, this, rDesc.mName, rDesc.mModelName, 0, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
+            pCollision = MR::fn_8008DB20(pCollision, this, rDesc.mName, rDesc.mModelName, 0, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
         }
         mCollisionParts[i] = pCollision;
         mCollisionParts[i]->initWithoutIter();
@@ -195,7 +195,7 @@ void Battan::control() {
 }
 
 void Battan::calcAndSetBaseMtx() {
-    fn_8000F880(&mFront);
+    MR::fn_8000F880(this, &mFront);
 }
 
 void Battan::calcAnim() {
@@ -330,7 +330,7 @@ void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             TVec3f dir(0.0f);
             if (calcPlayerHitSide(&dir, &sTable[6])) {
                 if (mIsPlayerFront && MR::isGreaterEqualStep(this, 0x32)) {
-                    fn_800515E0();
+                    MR::fn_800515E0();
                 }
                 TVec3f push(dir);
                 push.scale(1.0f);
@@ -353,7 +353,7 @@ void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 bool Battan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDropFloor(msg)) {
         MR::getJointMtx(this, "Root");
-        if (fn_8008DDC0(&sTable[4], 200.0f, 400.0f)) {
+        if (MR::fn_8008DDC0(&sTable[4], 200.0f, 400.0f)) {
             return tryAttackDown(this);
         }
         return false;
@@ -577,7 +577,7 @@ void Battan::exeWalk() {
         TVec3f up = TVec3f(0.0f) - mGravity;
         MR::makeMtxFrontUpPos(&mtx, mFront, up, mPosition);
         MR::addTransMtxLocal(mtx.toMtxPtr(), sTable[3]);
-        if (fn_8008E060(&mtx, &sTable[1])) {
+        if (MR::fn_8008E060(&mtx, &sTable[1])) {
             MR::zeroVelocity(this);
             setNerve(GET_BATTAN_NERVE(BattanNrvFind));
             return;
@@ -623,7 +623,7 @@ void Battan::exeHalfTurn() {
     }
     if (!mTicoStop->tryAttachTouch()) {
         TVec3f target(0.0f, 0.0f, 1.0f);
-        fn_800531B0(&target, this, 0.1f);
+        MR::fn_800531B0(&target, this, 0.1f);
         if (!MR::isRailGoingToEnd(this)) {
             target = -target;
         }
@@ -648,7 +648,7 @@ void Battan::exeFind() {
         TVec3f up = TVec3f(0.0f) - mGravity;
         MR::makeMtxFrontUpPos(&mtx, mFront, up, mPosition);
         MR::addTransMtxLocal(mtx.toMtxPtr(), sTable[3]);
-        if (fn_8008E060(&mtx, &sTable[2])) {
+        if (MR::fn_8008E060(&mtx, &sTable[2])) {
             setNerve(GET_BATTAN_NERVE(BattanNrvAttackSign));
             return;
         }
@@ -666,11 +666,11 @@ void Battan::exeRun() {
         TVec3f up = TVec3f(0.0f) - mGravity;
         MR::makeMtxFrontUpPos(&mtx, mFront, up, mPosition);
         MR::addTransMtxLocal(mtx.toMtxPtr(), sTable[3]);
-        if (fn_8008E060(&mtx, &sTable[0])) {
+        if (MR::fn_8008E060(&mtx, &sTable[0])) {
             TPos3f mtx2;
             MR::makeMtxFrontUpPos(&mtx2, mFront, up, mPosition);
             MR::addTransMtxLocal(mtx2.toMtxPtr(), sTable[3]);
-            if (fn_8008E060(&mtx2, &sTable[2])) {
+            if (MR::fn_8008E060(&mtx2, &sTable[2])) {
                 MR::zeroVelocity(this);
                 setNerve(GET_BATTAN_NERVE(BattanNrvAttackSign));
                 return;
@@ -799,7 +799,7 @@ void Battan::exeDown() {
 }
 
 // Functor thunk stored in the joint delegate (fn_8015B640). NONMATCHING: __ptmf_scall is not expressible here.
-extern "C" void fn_8015B640(void* pFunctor) {
+void fn_8015B640(void* pFunctor) {
     typedef void (*Thunk)(void*);
     Thunk pFn = *reinterpret_cast<Thunk*>(reinterpret_cast<char*>(pFunctor) + 4);
     if (pFn != nullptr) {
@@ -808,7 +808,7 @@ extern "C" void fn_8015B640(void* pFunctor) {
 }
 
 // Builds the joint-controller delegate for the body joint (fn_8015BA20). NONMATCHING: controller vtable is a shared template.
-extern "C" BattanJointDelegate* fn_8015BA20(BattanJointDelegate* pDelegate, JointController* pJoint, LiveActor* pActor) {
+BattanJointDelegate* fn_8015BA20(BattanJointDelegate* pDelegate, JointController* pJoint, LiveActor* pActor) {
     pDelegate->mPos.x = 0.0f;
     pDelegate->mPos.y = 0.0f;
     pDelegate->mPos.z = 0.0f;
@@ -827,7 +827,7 @@ extern "C" BattanJointDelegate* fn_8015BA20(BattanJointDelegate* pDelegate, Join
 }
 
 // Sets the delegate direction from a normalized vector, keeping the old one if the input is zero (fn_8015BB30).
-extern "C" void fn_8015BB30(BattanJointDelegate* pDelegate, const TVec3f* pDir) {
+void fn_8015BB30(BattanJointDelegate* pDelegate, const TVec3f* pDir) {
     TVec3f old(pDelegate->mDir);
     if (MR::normalizeOrZero(&pDelegate->mDir, *pDir)) {
         pDelegate->mDir = old;
@@ -835,7 +835,7 @@ extern "C" void fn_8015BB30(BattanJointDelegate* pDelegate, const TVec3f* pDir) 
 }
 
 // Turns the joint matrix toward the delegate direction and places its translation (fn_8015BB90).
-extern "C" s32 fn_8015BB90(BattanJointDelegate* pDelegate, TPos3f* pMtx, TVec3f* pOut) {
+s32 fn_8015BB90(BattanJointDelegate* pDelegate, TPos3f* pMtx, TVec3f* pOut) {
     (void)pOut;
     MR::turnMtxToXDirRate(pMtx, pDelegate->mDir, 1.0f);
     pMtx->setTrans(pDelegate->mPos);

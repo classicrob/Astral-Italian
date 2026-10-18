@@ -64,6 +64,9 @@ class Hanachan : public LiveActor {
 public:
     Hanachan(const char*);
 
+    // SMG2-only functions (original names unknown; named by address)
+    void fn_801905E0();
+
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void kill();

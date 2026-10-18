@@ -12,7 +12,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 
-extern "C" void fn_80012B80(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
 
 namespace {
     static const f32 sGroundFric = 1.0f;
@@ -125,7 +124,7 @@ bool BombBirdBomb::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
     }
 
     if (MR::isMsgSupportTicoSpin(msg) && _B4 == 0 && !isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion))) {
-        fn_80012B80(this, pSender, pReceiver, 18.0f, 18.0f, 4);
+        MR::fn_80012B80(this, 18.0f, 18.0f, pSender, pReceiver, 4);
         _B4 = 30;
         setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait));
         return true;

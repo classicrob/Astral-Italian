@@ -7,6 +7,34 @@ class HitSensor;
 // SMG2-only unit (Nyoropon: searchlight-wielding enemy). LiveActor = 0x90 bytes. Layout from the ctor stores.
 class Nyoropon : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    bool fn_801D8130();
+    bool fn_801D81E0();
+    bool fn_801D8260();
+    bool fn_801D82D0();
+    f32 fn_801D8350();
+    void fn_801D8370();
+    void fn_801D8460();
+    void fn_801D8520();
+    void fn_801D8640();
+    void fn_801D8730();
+    void fn_801D8830();
+    void fn_801D8910();
+    void fn_801D89F0();
+    void fn_801D8AD0();
+    void fn_801D8BB0();
+    void fn_801D8C80();
+    void fn_801D8CF0();
+    void fn_801D8D60();
+    void fn_801D8DD0();
+    void fn_801D8EE0();
+    void fn_801D9070();
+    void fn_801D91A0();
+    void fn_801D93A0();
+    void fn_801D9C60();
+    bool fn_801DA150();
+    bool fn_801DA300();
+    void fn_801DA370();
     Nyoropon(const char* pName);
 
     virtual ~Nyoropon();

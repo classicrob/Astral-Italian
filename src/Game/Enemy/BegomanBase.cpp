@@ -209,7 +209,7 @@ void BegomanBase::initSensor(s32 extraSensorNum, f32 radius, f32 pushedRailRadiu
 }
 
 void BegomanBase::initUseSwitchB(const JMapInfoIter& rIter, const MR::FunctorBase& rFunctor) {
-    if (MR::isValidInfo(rIter) && MR::useStageSwitchReadB(this, rIter)) {
+    if (MR::isValidInfo(rIter) && MR::initUseStageSwitchReadB(this, rIter)) {
         MR::listenStageSwitchOnB(this, rFunctor);
     }
 }

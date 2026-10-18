@@ -1,6 +1,7 @@
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
 #include "Game/Player/MarioActor.hpp"
+#include <revolution/gd.h>
 #include "Game/Util.hpp"
 #include "Game/Animation/XanimeCore.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
@@ -121,6 +122,16 @@
 #include <revolution/mtx.h>
 #include "Game/Player/MarioTeresa.hpp"
 #include "Game/MapObj/BigFanHolder.hpp"
+#include "Game/Player/Yoshi.hpp"
+#include "Game/Player/MarioAllModel.hpp"
+#include "Game/Player/MarioHairAndHatModel.hpp"
+#include "Game/Player/CloudMarioHat.hpp"
+#include "Game/Player/MarioActorHelpers.hpp"
+#include "Game/Player/MarioSkate.hpp"
+#include "Game/Player/MarioFireDance.hpp"
+#include "Game/MapObj/SpinCloudBlock.hpp"
+#include "Game/Animation/BckCtrl.hpp"
+#include "JSystem/J3DGraphBase/J3DPacket.hpp"
 
 // ---- enum names missing from the SMG2 ActorSensorUtil.hpp ----
 static const s32 ACTMES_ATTACKDROP = 0x25;  // Petari value, SMG2 unverified
@@ -959,7 +970,7 @@ void MarioActor::movement() {
                     if (MR::vecKillElement(stack_E0 - (mPosition), getGravityVec(), &stack_D4) < -5.0f && pTmp->mParts && !pTmp->mParts->_D4 &&
                         getMovementStates()._3E != 1) {
                         mPosition = stack_E0;
-                        fn_80405F90(mMario->mPosHolder, mPosition);
+                        mMario->mPosHolder->fn_80405F90(mPosition);
                         mMario->stopJump();
                         mMario->changeAnimation("基本", "落下");
                         mMario->updateGroundInfo();
@@ -1103,7 +1114,7 @@ void MarioActor::control2() {
         mLastMove.zero();
         _270 = mPosition;
         if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
-            fn_80405F90(mMario->mPosHolder, mPosition);
+            mMario->mPosHolder->fn_80405F90(mPosition);
             mMario->checkEnforceMove();
             mPosition = mMario->mPosHolder->mPos;
         }
@@ -1297,7 +1308,7 @@ bool MarioActor::doRush() {
 
         _7DC = 0;
         _7E2 = false;
-        fn_80405F90(mMario->mPosHolder, mPosition);
+        mMario->mPosHolder->fn_80405F90(mPosition);
         mMario->updateGroundInfo();
         mMario->updateCubeCode();
         mMario->decDamageAfterTimer();
@@ -1821,12 +1832,12 @@ void MarioActor::careMovingObject() {
     }
 
     if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
-        fn_80405F90(mMario->mPosHolder, mPosition);
+        mMario->mPosHolder->fn_80405F90(mPosition);
         mMario->checkEnforceMove();
         mPosition = mMario->mPosHolder->mPos;
     }
 
-    fn_80405F90(mMario->mPosHolder, mPosition);
+    mMario->mPosHolder->fn_80405F90(mPosition);
     mMario->mVelocity.zero();
     mMario->powerAreaMove();
     mMario->powerRailMove();
@@ -1843,7 +1854,7 @@ bool MarioActor::doStun() {
         mMario->mDrawStates._1A = true;
         resetSensorCount();
         if (getMovementStates()._1 && !MR::isSameMtx(mMario->_45C->getBaseMtx()->toMtxPtr(), mMario->_45C->getPrevBaseMtx()->toMtxPtr())) {
-            fn_80405F90(mMario->mPosHolder, mPosition);
+            mMario->mPosHolder->fn_80405F90(mPosition);
             mMario->checkEnforceMove();
             mPosition = mMario->mPosHolder->mPos;
         }
@@ -3422,7 +3433,7 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
     bool carrying = getCarrySensor() != nullptr;
     if (mPlayerMode == PlayerMode_Teresa) {
         if (msg == ACTMES_ENEMY_ATTACK_HEATBEAM) {
-            setPlayerMode(PlayerMode_Normal, true);
+            setPlayerMode(PlayerMode_Normal, true, true);
             return true;
         }
 
@@ -3516,7 +3527,7 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
         u8 autoBind;
         selectAutoBind(pSender->mHost->mName, &autoBind);
         if (autoBind == 2) {
-            setPlayerMode(PlayerMode_Normal, true);
+            setPlayerMode(PlayerMode_Normal, true, true);
         }
 
         if (carrying) {
@@ -4035,10 +4046,6 @@ namespace MR {
     void showMaterial(J3DModel*, const char*);
 };
   // namespace MR
-
-extern "C" {
-void GDSetTexImgPtr(GXTexMapID, void*);
-}
 
 
 namespace {
@@ -6795,312 +6802,16 @@ f32 MarioActor::getFaceLookHeight(const char* pName) const {
 
 // ---- MarioActorMorph.cpp ----
 
-void MarioActor::setPlayerMode(u16 playerMode, bool myBool) {
-    if (mPlayerMode == playerMode) {
-        if (playerMode == 1) {
-            _3DC = mConst->getTable()->mMetalHoldTime;
-            MR::startSubBGM("BGM_MUTEKI_A", false);
-        }
-
-        if (playerMode == 9) {
-            _3DC = mConst->getTable()->mTornadoHoldTime;
-        }
-
-        if (playerMode == 3) {
-            _3DC = mConst->getTable()->mIceModeTime;
-            MR::startSubBGM("BGM_ICE_A", false);
-        }
-
-        if (playerMode == 2) {
-            _3DC = mConst->getTable()->mFireModeTime;
-            MR::startSubBGM("BGM_FIRE_A", false);
-        }
-
-        if (playerMode == 7) {
-            _3DC = 3600;
-            MR::startStageBGM("BGM_FLYING_A", false);
-        }
-
-        if (playerMode != 0) {
-            playEffect("アイテム再ゲット");
-        }
-
-        return;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Foo)) {
-        mMario->closeStatus(nullptr);
-    }
-
-    _3DC = 0;
-    _A6E = 0;
-
-    switch (mPlayerMode) {
-    case 5:
-        mMario->endRabbitMode();
-
-        MR::startBtp(this, "ColorChange");
-        MR::setBtpFrameAndStop(this, 0.0f);
-        break;
-
-    case 6:
-        MR::deleteEffect(_9A4, "Glow");
-
-        if (playerMode == 0) {
-            MR::offCalcAnim(_9A4);
-        } else {
-            _9A4->kill();
-        }
-
-        _483 = false;
-
-        mMario->resetTeresaMode();
-        break;
-
-    case 2:
-        MR::startBtp(this, "ColorChange");
-        MR::setBtpFrameAndStop(this, 0.0f);
-
-        MR::stopSubBGM(30);
-        break;
-
-    case 4:
-        stopAnimation("ハチ飛行中");
-
-        if (!mMario->isSwimming()) {
-            MR::getGameSceneLayoutHolder()->changeLifeMeterModeGround();
-        }
-
-        _9E4->kill();
-        _9E8->kill();
-        break;
-
-    case 3:
-        stopEffect("アイス中");
-
-        changeHandMaterial();
-
-        if (mMario->isStatusActive(MarioStatus_Skate)) {
-            mMario->closeStatus(nullptr);
-        }
-
-        MR::stopSubBGM(30);
-        break;
-
-    case 1:
-        stopEffect("無敵中");
-
-        _A6E = 0;
-
-        MR::stopSubBGM(30);
-
-        changeHandMaterial();
-        break;
-
-    case 7:
-        MR::startCurrentStageBGM();
-        break;
-    }
-
-    _3D6 = mPlayerMode;
-    mPlayerMode = playerMode;
-
-    switch (playerMode) {
-    case 9:
-        _3DC = mConst->getTable()->mTornadoHoldTime;
-
-        MR::startBtp(this, "TornadoElement");
-
-        if (isJumping()) {
-            changeAnimation("エレメントゲット");
-        } else {
-            changeAnimation("エレメントゲット接地中");
-        }
-        break;
-
-    case 1:
-        _3DC = mConst->getTable()->mMetalHoldTime;
-
-        playEffect("無敵中");
-
-        MR::startSubBGM("BGM_MUTEKI_A", false);
-
-        changeHandMaterial();
-
-        MR::stopBrk(_9C8);
-        MR::stopBrk(_A50);
-        MR::stopBrk(_A54);
-
-        MR::startBrk(_9C8, "InvincibleMario");
-        MR::startBrk(_A50, "InvincibleMarioHandL");
-        MR::startBrk(_A54, "InvincibleMarioHandR");
-
-        MR::removeAllClingingKarikari();
-        break;
-
-    case 0:
-        MR::startBtp(this, "ElementEnd");
-
-        if (myBool) {
-            switch (_3D6) {
-            case 4:
-            case 5:
-            case 6:
-                playSound("呪い解除", -1);
-                break;
-
-            default:
-                playSound("変身解除", -1);
-                break;
-            }
-        }
-
-        _3DC = 0;
-        mMario->_76C = 0;
-
-        if (mMario->isSwimming()) {
-            if (_468 == 0) {
-                changeAnimation(nullptr, "水泳基本");
-            }
-        } else if (isJumping()) {
-            changeAnimation(nullptr, "落下");
-        } else {
-            changeAnimation(nullptr, "基本");
-        }
-
-        if (_4A4 != nullptr) {
-            _4A4->mHost->kill();
-            _4A4 = nullptr;
-        }
-        break;
-
-    case 5:
-        mMario->startRabbitMode();
-        rushDropThrowMemoSensor();
-        break;
-
-    case 6:
-        _9A4->appear();
-
-        MR::onCalcAnim(_9A4);
-
-        runTeresaBaseAnimation();
-
-        MR::startBrk(_9A4, "Erase");
-        MR::setBrkFrameAndStop(_9A4, 0.0f);
-
-        _483 = true;
-
-        _9A8 = 0.0f;
-        _9AC = 0.0f;
-
-        rushDropThrowMemoSensor();
-
-        mMario->startTeresaMode();
-
-        _9A4->calcAnim();
-
-        MR::emitEffect(_9A4, "Glow");
-        MR::emitEffect(_9A4, "Appear");
-        break;
-
-    case 2:
-        MR::startSubBGM("BGM_FIRE_A", false);
-
-        _3DC = mConst->getTable()->mFireModeTime;
-        break;
-
-    case 3:
-        playEffect("アイス中");
-
-        MR::startSubBGM("BGM_ICE_A", false);
-
-        changeHandMaterial();
-
-        _3DC = mConst->getTable()->mIceModeTime;
-        break;
-
-    case 4:
-        MR::getGameSceneLayoutHolder()->changeLifeMeterModeBee();
-
-        rushDropThrowMemoSensor();
-
-        _9E4->appear();
-        MR::showModel(_9E4);
-
-        mMario->_402 = mConst->getTable()->mAirWalkTime;
-        mMario->_42A = 0;
-
-        _9E8->appear();
-        _9F0 = 0;
-
-        MR::startAction(_9E8, "Wait");
-        MR::startBva(_9E8, "Wait");
-
-        MR::stopBtk(_9E8);
-        break;
-
-    case 7:
-        MR::startStageBGM("BGM_FLYING_A", false);
-        _3DC = 3600;
-        break;
-    }
-
-    if (mPlayerMode == 0) {
-        if (mTransforming) {
-            MR::endDemo(this, "マリオ変身");
-            mTransforming = false;
-        }
-
-        if (myBool) {
-            _3D8 = 30;
-            mMario->startPadVib("マリオ[変身解除]");
-        } else {
-            _3D8 = 2;
-        }
-
-        playEffect("変身解除");
-    } else {
-        if (_3D8 == 0 || _3D6 == 0) {
-            mPowerupCollected = true;
-        } else {
-            _3D8 = 64;
-
-            MR::stopAnimFrame(this);
-
-            playEffect("変身");
-
-            mMario->startPadVib("マリオ[変身]");
-
-            mPowerupCollected = false;
-        }
-
-        _945 = 0;
-        _946 = 0;
-
-        _6D4 = 0.0f;
-        _6D8 = 0.0f;
-
-        _94C = 0;
-        _94E = 0;
-
-        updateFairyStar();
-    }
-
-    updateHandAtMorph();
-}
-
-
 void MarioActor::resetPlayerModeOnDamage() {
     if (isActionOk("ダメージ解除")) {
-        setPlayerMode(0, true);
+        setPlayerMode(0, true, true);
     }
 }
 
 
 void MarioActor::resetPlayerModeOnNoDamage() {
     if (isActionOk("ノーダメージ解除")) {
-        setPlayerMode(0, true);
+        setPlayerMode(0, true, true);
     }
 }
 
@@ -7116,7 +6827,7 @@ void MarioActor::updatePlayerMode() {
         return;
     }
 
-    setPlayerMode(0, true);
+    setPlayerMode(0, true, true);
 }
 
 
@@ -7292,7 +7003,7 @@ void MarioActor::attackOrPushSensor(HitSensor* pSensor, f32 distance) {
                 }
 
                 if (MR::isSensorEnemy(pSensor)) {
-                    setPlayerMode(PlayerMode_Normal, true);
+                    setPlayerMode(PlayerMode_Normal, true, true);
                 }
             }
         } else {
@@ -7815,15 +7526,15 @@ void MarioActor::attackOrPushPolygons() {
     }
 
     if (mMario->getMovementStates()._8) {
-        sendWallTouch(mMario->mFrontWallTriangle->mSensor, bodySensor);
+        sendWallTouch(173, mMario->mFrontWallTriangle->mSensor, bodySensor);
     }
 
     if (mMario->getMovementStates()._19) {
-        sendWallTouch(mMario->mBackWallTriangle->mSensor, bodySensor);
+        sendWallTouch(175, mMario->mBackWallTriangle->mSensor, bodySensor);
     }
 
     if (mMario->getMovementStates()._1A) {
-        sendWallTouch(mMario->mSideWallTriangle->mSensor, bodySensor);
+        sendWallTouch(174, mMario->mSideWallTriangle->mSensor, bodySensor);
     }
 
     if (mMario->getMovementStates().jumping && !mMario->getMovementStates()._1 && mMario->getMovementStates()._B) {
@@ -7852,25 +7563,6 @@ void MarioActor::attackOrPushPolygons() {
     }
 
     _FCC = false;
-}
-
-
-void MarioActor::sendWallTouch(HitSensor* pReceiver, HitSensor* pSender) {
-    if (pReceiver == nullptr) {
-        return;
-    }
-
-    if (MR::isDead(pReceiver->mHost)) {
-        return;
-    }
-
-    pReceiver->receiveMessage(ACTMES_WALL_TOUCH, pSender);
-
-    if (!mMario->getMovementStates()._F) {
-        return;
-    }
-
-    pReceiver->receiveMessage(ACTMES_TORNADO_ATTACK, pSender);
 }
 
 
@@ -9120,7 +8812,7 @@ void MarioActor::resetCondition() {
 
     if (_EA5) {
         MR::extractMtxTrans(_EA8.mMtx, &mPosition);
-        fn_80405F90(mMario->mPosHolder, mPosition);
+        mMario->mPosHolder->fn_80405F90(mPosition);
     }
 
     if (mMario->mSwim->checkWaterCube(true)) {
@@ -9241,7 +8933,7 @@ void MarioActor::beginRush() {
 
     switch (_924->mType) {
     case ATYPE_POWER_STAR_BIND:
-        setPlayerMode(PlayerMode_Normal, false);
+        setPlayerMode(PlayerMode_Normal, false, false);
         resetFog();
         break;
     }
@@ -9781,7 +9473,7 @@ bool MarioActor::tryStartRush(bool automatic) {
                 }
 
                 if (autoBind == 2) {
-                    setPlayerMode(PlayerMode_Normal, true);
+                    setPlayerMode(PlayerMode_Normal, true, true);
                 }
             }
 
@@ -9860,7 +9552,7 @@ bool MarioActor::tryJumpRush() {
             beginRush();
 
             if (b && autoBind == 2) {
-                setPlayerMode(0, true);
+                setPlayerMode(0, true, true);
             }
         }
 

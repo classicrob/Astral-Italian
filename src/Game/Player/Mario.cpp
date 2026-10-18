@@ -109,6 +109,11 @@
 #include "Game/AreaObj/WarpCube.hpp"
 #include "Game/MapObj/WarpPod.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
+#include "Game/Player/Yoshi.hpp"
+#include "Game/Player/MarioMtxPos.hpp"
+#include "Game/Player/MarioYoshiPull.hpp"
+#include "Game/Player/MarioAllModel.hpp"
+#include "Game/AudioLib/AudLifeAlertCounter.hpp"
 
 // ---- Mario.cpp ----
 
@@ -464,7 +469,6 @@ Mario::Mario(MarioActor* pActor) : MarioModule(pActor) {
 void Mario::updateAndClearStrideParameter() {
     _43C = mFrontVec;
     _16C = mVelocity;
-    fn_80405F90(mPosHolder, mActor->mPosition);
     mVelocityAfter.zero();
     mVelocity.zero();
     _20_LOW_WORD = mMovementStates_LOW_WORD;
@@ -585,7 +589,7 @@ void Mario::updateMorphResetTimer() {
         return;
     }
 
-    mActor->setPlayerMode(0, true);
+    mActor->setPlayerMode(0, true, true);
     return;
 }
 
@@ -1382,7 +1386,6 @@ void Mario::draw() const {
 
 
 void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
-    fn_80406010(mPosHolder, rShift);
     TVec3f _148shift(_148);
     _148shift -= rShift;
     if (MR::abs(_148.x) <= MR::abs(_148shift.x)) {
@@ -1402,7 +1405,6 @@ void Mario::addTrans(const TVec3f& rShift, const char* pA2) {
 void Mario::setTrans(const TVec3f& rShift, const char* pA2) {
     TVec3f reqShift(rShift);
     reqShift -= mPosHolder->mPos;
-    fn_80405F90(mPosHolder, rShift);
     TVec3f _148shift(_148);
     _148shift -= reqShift;
     if (MR::abs(_148.x) <= MR::abs(_148shift.x)) {
@@ -1638,7 +1640,6 @@ const TVec3f Mario::getAirFrontVec() const {
 void Mario::initAfterConst() {
     MarioConst* pConst = mActor->mConst;
     _402 = pConst->getTable()->mAirWalkTime;
-    fn_80405F90(mPosHolder, mActor->mPosition);
     mShadowPos = mPosHolder->mPos;
     mGroundPos = mPosHolder->mPos;
     mMove->initAfter();
@@ -1666,13 +1667,11 @@ void Mario::writeBackPhyisicalVector() {
             stopWalk();
         }
 
-        fn_80405F90(mPosHolder, stack_104);
     }
 
     if (mMovementStates._37 || _10._15) {
         TVec3f stack_f8(mPosHolder->mPos - _688);
         MR::vecKillElement(stack_f8, _6A0, &stack_f8);
-        fn_80405F90(mPosHolder, _688 + stack_f8);
         MR::vecKillElement(mVelocity, _6A0, &mVelocity);
         TVec3f stack_ec;
         f32 f29 = MR::vecKillElement(_694 - _688, _6A0, &stack_ec);
@@ -3188,10 +3187,8 @@ f32 Mario::calcDistToCeilOnPress() {
 
     if (_480->getNormal(0)->dot(mAirGravityVec) < 0.0f) {
         f32 distance = MR::vecKillElement(*_480->calcAndGetPos(0) - mPosHolder->mPos, *_480->calcAndGetNormal(0), &horizontal);
-        fn_80406010(mPosHolder, *_480->getNormal(0) * distance);
     } else {
         f32 distance = MR::vecKillElement(*_484->calcAndGetPos(0) - mPosHolder->mPos, *_484->calcAndGetNormal(0), &horizontal);
-        fn_80406010(mPosHolder, *_484->getNormal(0) * distance);
     }
 
     mActor->mPosition.set(mPosHolder->mPos);
@@ -5079,11 +5076,11 @@ void Mario::updateCubeCode() {
 
     if (getPlayerMode() == PlayerMode_Teresa) {
         if (MR::getAreaObj("GlaringLightArea", mPosHolder->mPos) != nullptr) {
-            mActor->setPlayerMode(PlayerMode_Normal, true);
+            mActor->setPlayerMode(PlayerMode_Normal, true, true);
         }
 
         if (!MR::isInShadeFromTheSun(mPosHolder->mPos, 2000.0f)) {
-            mActor->setPlayerMode(PlayerMode_Normal, true);
+            mActor->setPlayerMode(PlayerMode_Normal, true, true);
         }
     }
 
@@ -6074,7 +6071,6 @@ void Mario::checkEnforceMoveInner() {
 
             if (v11) {
                 if (calcDistToCeil(false) < 200.0f) {
-                    fn_80405F90(mPosHolder, v14);
                     _1C._10 = 1;
                 }
             }
@@ -11547,7 +11543,6 @@ void Mario::fixPositionInTower() {
         f32 height = MR::vecKillElement(offset, _700, &offset);
         offset.setLength(_718 - 200.0f);
         offset += _700 * height;
-        fn_80405F90(mPosHolder, _6F4 + offset);
     }
 }
 
@@ -15054,26 +15049,6 @@ void Mario::stopSoundJ(const char* pSoundName, u32 delay) {
 
 
 #if 0  // SMG2: uses LiveActor::mSoundObject (AudAnmSoundObject), gone in SMG2
-void Mario::startBas(const char* pAnimName, bool arg2, f32 startFrame, f32 speed) {
-    if (mActor->mSoundObject != nullptr) {
-        ResourceHolder* pHolder = MR::getResourceHolder(mActor);
-        const JAUSoundAnimation* pRes = nullptr;
-
-        if (pAnimName != nullptr && pHolder->mBasResTable->isExistRes(pAnimName)) {
-            pRes = static_cast< JAUSoundAnimation* >(pHolder->mBasResTable->getRes(pAnimName));
-        }
-
-        if (pRes != nullptr) {
-            mActor->mSoundObject->startAnimation(pRes, arg2, startFrame, speed);
-        } else {
-            mActor->mSoundObject->removeAnimation();
-        }
-
-        _970 = pAnimName;
-    }
-}
-
-
 bool Mario::isRunningBas(const char* pAnimName) const {
     if (_970 == nullptr) {
         return false;
@@ -15091,6 +15066,8 @@ void Mario::skipBas(f32 frame) {
     mActor->mSoundObject->skip(frame);
 }
 #endif
+
+
 
 
 void Mario::playSoundTeresaFlying() {
@@ -15858,9 +15835,7 @@ void Mario::startStep(const TVec3f& rVec) {
     }
 
     TVec3f oldPos(mPosHolder->mPos);
-    fn_80405F90(mPosHolder, rVec);
     const f32 ceilDist = calcDistToCeil(false);
-    fn_80405F90(mPosHolder, oldPos);
 
     if (ceilDist < 200.0f) {
         return;
@@ -17884,12 +17859,10 @@ bool Mario::fixWallingDist() {
     if (mMovementStates._19) {
         TVec3f position(_4F4 + *mBackWallTriangle->getNormal(0) * 79.0f);
         f32 distance = MR::vecKillElement(position - mPosHolder->mPos, *mBackWallTriangle->getNormal(0), &position);
-        fn_80406010(mPosHolder, *mBackWallTriangle->getNormal(0) * distance);
         if (!fixWallingTop()) {
             return false;
         }
 
-        fn_80405F90(mPosHolder, _4F4 + *mBackWallTriangle->getNormal(0) * 60.0f - _75C * 80.0f);
     } else if (mMovementStates._8) {
         if (!fixWallingTop()) {
             return false;

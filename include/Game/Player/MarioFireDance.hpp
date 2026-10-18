@@ -15,6 +15,9 @@ public:
     void impact();
     void impactEffect();
 
+    // SMG2-only (original names unknown; named by address)
+    void fn_803E5FA0();
+
     /* 0x14 */ TVec3f _14;
     /* 0x20 */ f32 _20;
     /* 0x24 */ u8 _24;

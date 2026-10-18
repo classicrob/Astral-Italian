@@ -21,7 +21,6 @@
 #include "Game/Util/SoundUtil.hpp"
 
 // SB4E01 calls the unnamed MarioModule::getShadowPos (no symbol name in symbols.txt)
-extern "C" TVec3f& fn_803EF5B0(const MarioModule*);
 #include <JSystem/JParticle/JPAEmitter.hpp>
 #include <JSystem/JParticle/JPAMath.hpp>
 #include <cstdio>
@@ -1221,7 +1220,7 @@ void MarioEffect::playSwingEffect() {
         default:
             break;
         case 0:
-            playEffectTrans("FlowerSpin", fn_803EF5B0(this));
+            playEffectTrans("FlowerSpin", this->fn_803EF5B0());
             break;
         }
     }
@@ -1312,7 +1311,4 @@ void MarioActor::stopSpinTicoEffect(bool force) {
 MarioEffect::~MarioEffect() {
 }
 
-void MultiEmitter::setGlobalScale(f32 scale, s32 a2) {
-    TVec3f scaleVec(scale, scale, scale);
-    setGlobalScale(scaleVec, a2);
-}
+// MultiEmitter::setGlobalScale(f32, s32) lives in the MarioActor unit in SMG2 (0x803BD100).

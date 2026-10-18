@@ -4,11 +4,10 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-extern "C" void fn_8022BAE0(LiveActor*);
-extern "C" s32 lbl_807E3028;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern s32 lbl_807E3028;
 
 // Per-state actor states (defined in the second half of the original unit, not ported yet).
 class HammerBrosStateJump : public ActorStateBase< HammerBros > {
@@ -125,7 +124,7 @@ void HammerBros::makeActorAppeared() {
 }
 
 void HammerBros::kill() {
-    killProjectiles();
+    killHeldProjectile();
     LiveActor::kill();
 }
 
@@ -328,7 +327,7 @@ bool HammerBros::isStarPointerBindable() const {
 
 bool HammerBros::tryExplosionDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isVulnerable()) {
-        fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
         setNerve(NRV(BlowDown));
         killHeldProjectile();
         return true;
@@ -342,7 +341,7 @@ bool HammerBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
         vuln = true;
     }
     if (vuln) {
-        fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
         MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(NRV(BlowDown));
         killHeldProjectile();
@@ -353,7 +352,7 @@ bool HammerBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool HammerBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
-        fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
         MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
         setNerve(NRV(Swoon));
         killHeldProjectile();
@@ -373,9 +372,9 @@ bool HammerBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
         }
     }
     if (isNormalNerve()) {
-        fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 22.0f, 2.0f, pSender, pReceiver, 4);
     } else {
-        fn_80012B90(this, 0.0f, 2.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 0.0f, 2.0f, pSender, pReceiver, 4);
     }
     MR::tryHitReaction(this, "\x83\x60\x83\x52\x90\x81\x82\xc1\x94\xf2\x82\xd1");
     setNerve(NRV(Swoon));
@@ -550,7 +549,7 @@ bool HammerBros::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
         return true;
     }
     if (MR::isMsgYoshiReleaseOrCancelEaten(msg)) {
-        fn_8022BAE0(this);
+        MR::emitItemYoshiEat(this);
         kill();
         return true;
     }

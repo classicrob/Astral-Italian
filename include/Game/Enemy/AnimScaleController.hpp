@@ -36,6 +36,7 @@ public:
 
     void setParamTight();
     void startHitReaction();
+    void startScaleVelocityY(f32);
     void startDpdHitVibration();
     bool isHitReaction(s32) const;
 

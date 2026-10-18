@@ -4,10 +4,8 @@
 #include "Game/Enemy/BrosProjectileBase.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/MapObj/MapObjConnector.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_8022BAE0(LiveActor*);
-extern "C" void fn_8018B720(BrosProjectileBase*);
 
 BrosBase::BrosBase(const char* pName)
     : LiveActor(pName), mHeld(nullptr), mProjectileIdx(0), mFront(0.0f, 0.0f, 1.0f), _B8(true), _B9(false), mItemType(1), mJointCtrl(nullptr), _CC(0), mConnector(nullptr), mConnected(false) {
@@ -19,7 +17,7 @@ void BrosBase::init(const JMapInfoIter& rIter) {
     mJointCtrl->endFaceCtrl(0);
     mScaleCtrl = new AnimScaleController(nullptr);
     mScaleCtrl->setParamTight();
-    fn_8022BC70(this);
+    MR::disableAllItemGenerator(this);
     bool connect = false;
     MR::getJMapInfoArg3WithInit(rIter, &connect);
     if (connect) {
@@ -116,7 +114,7 @@ void BrosBase::calcAndSetBaseMtx() {
 void BrosBase::initByArg(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg1NoInit(rIter, &mItemType);
     if (mItemType == 0) {
-        fn_8022BC70(this);
+        MR::disableAllItemGenerator(this);
     }
     MR::declareStarPiece(this, 9);
     MR::declareCoin(this, 3);
@@ -135,7 +133,7 @@ void BrosBase::appearCoin() {
 }
 
 void BrosBase::fn_80186AD0() {
-    fn_8022BAE0(this);
+    MR::emitItemYoshiEat(this);
 }
 
 void BrosBase::killProjectiles() {
@@ -143,18 +141,18 @@ void BrosBase::killProjectiles() {
         BrosProjectileBase* p = mProjectiles[i];
         switch (p->mState) {
         case 1:
-            fn_8018B720(p);
+            p->clearState();
             break;
         case 2: {
             const TVec3f& pos = p->mPosition;
             if (MR::getDeclareRemnantStarPieceCount(this) > 3) {
                 MR::appearStarPiece(this, pos, 1, 10.0f, 40.0f, false);
             }
-            fn_8018B720(mProjectiles[i]);
+            mProjectiles[i]->clearState();
             break;
         }
         case 3:
-            fn_8018B720(p);
+            p->clearState();
             break;
         }
     }

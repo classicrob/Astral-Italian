@@ -39,8 +39,10 @@ namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
 };  // namespace MR
 
-extern "C" u32 lbl_807D2BDC;
-extern "C" u32 lbl_807D2BE4;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2BDC;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2BE4;
 
 namespace {
     // sSpeedMax

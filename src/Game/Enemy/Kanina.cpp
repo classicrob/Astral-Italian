@@ -7,6 +7,7 @@
 #include "Game/Util/ActorStateUtil.hpp"
 #include "Game/LiveActor/ActorStateBase.hpp"
 #include <revolution/wpad.h>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 void Kanina_FORCE_MATCH_SDATA2() {
     (void)1.0f;
@@ -51,7 +52,6 @@ void Kanina_FORCE_MATCH_SDATA2() {
     (void)1.7f;
 }
 
-extern "C" void fn_8022BA10(LiveActor*);
 class KaninaYoshiState : public ActorStateBaseInterface {
 public:
     KaninaYoshiState(const char* pName) : ActorStateBaseInterface(pName) {}
@@ -59,10 +59,6 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
 };
 
-extern "C" KaninaYoshiState* fn_801ACD60(void*, Kanina*, bool);
-extern "C" bool fn_801AD370(KaninaYoshiState*, u32, HitSensor*, HitSensor*);
-extern "C" bool fn_801AD4B0(KaninaYoshiState*);
-extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
 
 void* operator new(unsigned long);
 
@@ -232,7 +228,7 @@ void Kanina::makeActorDead() {
 
 void Kanina::appearItemTrample() {
     if (mType == KaninaType_Red) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
     } else if (mType == KaninaType_Blue) {
         MR::appearKinokoOneUpPop(mKinokoOneUp, getBaseMtx());
     }
@@ -523,7 +519,7 @@ bool Kanina::receiveFireBall(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 void Kanina::startDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
-    fn_80012B90(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
+    MR::fn_80012B90(this, ::sPunchDamageVelocity, ::sPunchUpperVec, pSender, pReceiver, 4);
     MR::isNearZero(mVelocity);
     TVec3f vec;
     MR::vecKillElement(mVelocity, -mGravity, &vec);
@@ -534,7 +530,7 @@ void Kanina::startDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
 
 void Kanina::doDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
     MR::tryHitReaction(this, "ゴロ岩ヒット");
-    fn_80012B90(this, pSender, pReceiver, ::sPunchDamageVelocity, ::sPunchUpperVec, 4);
+    MR::fn_80012B90(this, ::sPunchDamageVelocity, ::sPunchUpperVec, pSender, pReceiver, 4);
     MR::isNearZero(mVelocity);
     TVec3f vec;
     MR::vecKillElement(mVelocity, -mGravity, &vec);
@@ -1163,10 +1159,10 @@ void Kanina::exeDamageFireBall() {
         MR::invalidateHitSensors(this);
     }
 
-    if (MR::isStep(this, ::sPunchDamageTime)) {
+    if (MR::isGreaterEqualStep(this, ::sPunchDamageTime)) {
         MR::validateClipping(this);
         MR::validateHitSensors(this);
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }

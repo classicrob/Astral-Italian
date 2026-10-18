@@ -17,6 +17,8 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
+#include "Game/MapObj/PetitPorter.hpp"
 
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
@@ -32,13 +34,6 @@ namespace YoshiFunction {
 };  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers outside this unit.
-extern "C" void fn_8022BC70(LiveActor*);
-extern "C" void fn_8022BC40(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" bool fn_802D99B0();
-extern "C" void fn_80010CB0(LiveActor*, TVec3f*, f32);
-extern "C" bool fn_80421D10();
 
 // Shared (with Peto) AnimScaleParam subclass; its inline ctor lives in another unit (fn_801ECB20).
 class PetoPopoParam : public AnimScaleParam {
@@ -54,7 +49,7 @@ struct SightParam {
 
 static const SightParam sSightParam = {5000.0f, 90.0f, 45.0f};
 
-extern "C" f32 fn_801ED1F0(f32) NO_INLINE;
+f32 fn_801ED1F0(f32) NO_INLINE;
 
 // Nerve helpers whose bodies are inlined into the nerve (defined before NEW_NERVE).
 void Popo::exeStickWait() {
@@ -157,7 +152,7 @@ void Popo::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
         MR::validateClipping(this);
-        fn_8022BC70(this);
+        MR::disableAllItemGenerator(this);
     }
     calcFloatVelocity();
     calcTurnVelocity(0.95f);
@@ -212,7 +207,7 @@ void Popo::exeWalk() {
     if (MR::normalizeOrZero(&toMouth)) {
         toMouth = mFrontVec;
     }
-    fn_80010CB0(this, &toMouth, 0.8f);
+    MR::fn_80010CB0(this, toMouth, 0.8f);
     if (MR::isShadowProjected(this, nullptr)) {
         TVec3f shadowPos;
         MR::getShadowProjectionPos(this, nullptr, &shadowPos);
@@ -231,7 +226,7 @@ void Popo::exeWalk() {
     YoshiFunction::tryYoshiLick(mYoshiLockOn);
 }
 
-extern "C" f32 fn_801ED1F0(f32 x) {
+f32 fn_801ED1F0(f32 x) {
     return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x);
 }
 
@@ -250,7 +245,7 @@ void Popo::exeEscape() {
     }
     calcFloatVelocity();
     MR::turnDirectionFromPlayerDegreeHorizon(this, &mFrontVec, 5.0f);
-    fn_80010CB0(this, &mFrontVec, 0.8f);
+    MR::fn_80010CB0(this, mFrontVec, 0.8f);
     calcTurnVelocity(0.95f);
     YoshiFunction::tryYoshiLick(mYoshiLockOn);
 }
@@ -338,8 +333,8 @@ void Popo::exeBlowDown() {
     MR::turnDirectionDegree(this, &mFrontVec, negVel, 30.0f);
     calcBlowDownVelocity();
     if ((MR::isBindedGround(this) && MR::isGreaterStep(this, 15)) || MR::isGreaterStep(this, 20)) {
-        fn_8022BC40(this);
-        fn_8022BA10(this);
+        MR::enableAllItemGenerator(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -347,12 +342,12 @@ void Popo::exeBlowDown() {
 void Popo::exeRecover() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
-        fn_8022BC40(this);
+        MR::enableAllItemGenerator(this);
     }
     calcFloatVelocity();
     calcTurnVelocity(0.95f);
     if (MR::isGreaterEqualStep(this, 60)) {
-        fn_8022BC70(this);
+        MR::disableAllItemGenerator(this);
         setNerve(&NrvPopo::PopoNrvRest::sInstance);
     }
 }
@@ -424,8 +419,8 @@ void Popo::exeStickStart() {
 
 void Popo::exePressDownWait() {
     if (MR::isActionEnd(this)) {
-        fn_8022BC40(this);
-        fn_8022BAA0(this);
+        MR::enableAllItemGenerator(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -444,11 +439,11 @@ void Popo::exeKicked() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "BlowDown");
         MR::startBrk(this, "Normal");
-        fn_8022BC40(this);
+        MR::enableAllItemGenerator(this);
     }
     calcBlowVelocity(30, getNerveStep());
     if (MR::isGreaterEqualStep(this, 5)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -734,7 +729,7 @@ bool Popo::isAttackable() const {
 }
 
 void Popo::tryReleaseYoshi() {
-    if (!MR::isPlayerElementModeYoshi() || fn_802D99B0()) {
+    if (!MR::isPlayerElementModeYoshi() || PetitPorterFunction::isDemo()) {
         PopoStickingManager* pManager = MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager);
         pManager->releaseStickPopo(this);
         setNerve(&NrvPopo::PopoNrvStickCancel::sInstance);
@@ -874,7 +869,7 @@ void PopoStickingManager::init(const JMapInfoIter& rIter) {
 }
 
 void PopoStickingManager::initAfterPlacement() {
-    if (fn_80421D10()) {
+    if (MR::fn_80421D10()) {
         mMouthPosition = new FixedPosition(MR::getYoshiMouthMtx(), TVec3f(0.0f, 85.0f, -65.0f), TVec3f(90.0f, -280.0f, 0.0f));
     }
 }
@@ -922,20 +917,20 @@ void PopoStickingManager::tryReaction() {
 PopoStickingManager::~PopoStickingManager() {
 }
 
-extern "C" bool fn_801EFAB0() {
+bool fn_801EFAB0() {
     if (!MR::isExistSceneObj(SceneObj_PopoStickingManager)) {
         return false;
     }
     return MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager)->mStickPopo != nullptr;
 }
 
-extern "C" void fn_801EFB00() {
+void fn_801EFB00() {
     if (MR::isExistSceneObj(SceneObj_PopoStickingManager)) {
         MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager)->tryShootOut();
     }
 }
 
-extern "C" void fn_801EFB40() {
+void fn_801EFB40() {
     if (MR::isExistSceneObj(SceneObj_PopoStickingManager)) {
         MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager)->tryReaction();
     }

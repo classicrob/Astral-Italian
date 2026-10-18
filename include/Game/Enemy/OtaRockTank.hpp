@@ -12,6 +12,13 @@ class FixedPosition;
 
 class OtaRockTank : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    f32 fn_801DFBB0();
+    f32 fn_801DFC60();
+    f32 fn_801DFD10();
+    bool fn_801E1010(TPos3f* pMtx);
+    bool fn_801E1020(TPos3f* pMtx);
+    bool fn_801E1030(TPos3f* pMtx);
     OtaRockTank(const char* pName);
 
     virtual ~OtaRockTank();

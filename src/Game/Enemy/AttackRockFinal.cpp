@@ -1,4 +1,15 @@
 #include "Game/Enemy/AttackRock.hpp"
+f32 fn_801510C0();
+bool fn_801510D0(LiveActor* pActor);
+bool fn_801517C0(LiveActor* pActor, s32 arg);
+bool fn_80152700(LiveActor* pActor);
+void fn_801552A0(LiveActor* pActor);
+f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat);
+void fn_80155360(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
+void fn_801553D0(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
+void fn_801554D0(TPos3f* pMtx, LiveActor* pActor);
+void fn_80155540(ProjmapEffectMtxSetter* pSetter, TQuat4f* pQuat, TVec3f* pPos);
+ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Util.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -8,6 +19,7 @@
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/LiveActor/VolumeDrawer.hpp"
 #include "Game/Util/FixedPosition.hpp"
+#include "Game/Boss/KoopaFinalBattlePos.hpp"
 
 class BaseMatrixFollowValidater;
 class KoopaBattleAccessor {
@@ -31,50 +43,8 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers outside this unit (Koopa battle functions).
-extern "C" void fn_800CB710(HitSensor*);
-extern "C" void fn_800CB090(TVec3f*);
-extern "C" void fn_800CB6D0(TVec3f*);
-extern "C" f32 fn_800CB410(const TVec3f*);
-extern "C" void fn_800CAF80(TVec3f*, const TVec3f*);
-extern "C" void fn_800CAFE0(TVec3f*, const TVec3f*);
-extern "C" void fn_800CB460(TVec3f*);
-extern "C" void fn_800CC210(HitSensor*, HitSensor*);
-extern "C" bool fn_800CC1F0(HitSensor*, HitSensor*);
-extern "C" void fn_800CC220(LiveActor*, HitSensor*);
-extern "C" bool fn_800CC230(LiveActor*, HitSensor*);
-extern "C" bool fn_800CC270(u32);
-extern "C" bool fn_800CC280(u32);
-extern "C" bool fn_800CC290(u32);
-extern "C" bool fn_800CC2B0(u32);
-extern "C" void fn_800E4420(void*);
-extern "C" void fn_800E4700(const TVec3f*);
-extern "C" void fn_800513C0(TQuat4f*, TVec3f*);
-extern "C" TVec3f* fn_800514B0(TQuat4f*, TVec3f*);
 
 // Unit-local helpers (unnamed in the target).
-extern "C" {
-f32 fn_801510C0() NO_INLINE;
-bool fn_801510D0(LiveActor*) NO_INLINE;
-void fn_80151160(AttackRock*) NO_INLINE;
-bool fn_801517C0(LiveActor*, s32) NO_INLINE;
-void fn_80151850(void*) NO_INLINE;
-void fn_801552A0(LiveActor*) NO_INLINE;
-void fn_80155360(TVec3f*, TQuat4f*, HitSensor*, HitSensor*, f32) NO_INLINE;
-void fn_801553D0(TVec3f*, TVec3f*, HitSensor*, HitSensor*, f32) NO_INLINE;
-void fn_801554D0(TPos3f*, LiveActor*) NO_INLINE;
-void fn_80155540(ProjmapEffectMtxSetter*, TQuat4f*, TVec3f*) NO_INLINE;
-ProjmapEffectMtxSetter* fn_80155660(LiveActor*) NO_INLINE;
-void fn_80152F10(AttackRockRide*) NO_INLINE;
-void fn_80152F20(AttackRockRide*) NO_INLINE;
-bool fn_80152E20(AttackRockRide*, u32, HitSensor*, HitSensor*) NO_INLINE;
-void fn_80152A00(AttackRockRide*) NO_INLINE;
-void fn_80152C00(AttackRockRide*) NO_INLINE;
-void fn_801529E0(AttackRockRide*, const TVec3f*) NO_INLINE;
-AttackRockRide* fn_801528E0(AttackRockRide*, LiveActor*) NO_INLINE;
-bool fn_80153400(AttackRockStateHold*) NO_INLINE;
-bool fn_80153460(AttackRockStateHold*) NO_INLINE;
-f32 fn_801552E0(LiveActor*, TQuat4f*) NO_INLINE;
-}
 
 namespace NrvAttackRockFinal {
     class AttackRockFinalNrvWait : public Nerve {
@@ -109,14 +79,6 @@ namespace NrvAttackRockFinal {
     AttackRockFinalNrvBreak AttackRockFinalNrvBreak::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvAttackRockFinal
 
-extern "C" {
-void fn_801521F0(AttackRockFinal*, f32, f32) NO_INLINE;
-void fn_80152280(AttackRockFinal*) NO_INLINE;
-void fn_801522F0(AttackRockFinal*) NO_INLINE;
-void fn_80152400(AttackRockFinal*) NO_INLINE;
-void fn_801524F0(AttackRockFinal*) NO_INLINE;
-void fn_80152620(AttackRockFinal*) NO_INLINE;
-}
 
 AttackRockFinal::AttackRockFinal(const char* pName)
     : LiveActor(pName), mProjmapEffectMtxSetter(nullptr), mBreakModel(nullptr), mRide(nullptr), mStartPos(0.0f, 0.0f, 0.0f),
@@ -148,31 +110,29 @@ void AttackRockFinal::init(const JMapInfoIter& rIter) {
     MR::declareCoin(this, 16);
     MR::getJMapInfoArg0NoInit(rIter, &mWaitStep);
     mRide = new AttackRockRide;
-    fn_801528E0(mRide, this);
+    mRide->fn_801528E0(this);
     BaseMatrixFollowValidater* pValidater = nullptr;
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, pValidater);
-    fn_800CB710(getSensor("Body"));
     initNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance, 0);
     makeActorDead();
 }
 
 void AttackRockFinal::makeActorDead() {
     LiveActor::makeActorDead();
-    fn_80152F20(mRide);
+    mRide->fn_80152F20();
     mIsOnPlayer = false;
 }
 
 // NONMATCHING: vector ops: target expands ps_sub inline, operator-/operator* inline decisions differ (separate TU).
 void AttackRockFinal::control() {
     TVec3f dir;
-    fn_800CB460(&dir);
     TVec3f toPlayer = dir - mPosition;
     MR::normalizeOrZero(&dir, toPlayer);
     MR::turnQuatZDirRate(&mQuatCC, mQuatCC, dir, 0.3f);
     TVec3f zdir;
     mQuatCC.getZDir(zdir);
-    fn_801529E0(mRide, &zdir);
-    fn_80152C00(mRide);
+    mRide->fn_801529E0(&zdir);
+    mRide->fn_80152C00();
 }
 
 void AttackRockFinal::calcAndSetBaseMtx() {
@@ -182,7 +142,7 @@ void AttackRockFinal::calcAndSetBaseMtx() {
 
 void AttackRockFinal::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemy(pReceiver) && MR::isEqualSensor(pSender, this, "Body") &&
-        isNerve(&NrvAttackRockFinal::AttackRockFinalNrvBound::sInstance) && fn_800CC1F0(pReceiver, pSender)) {
+        isNerve(&NrvAttackRockFinal::AttackRockFinalNrvBound::sInstance) && MR::sendMsgAttackRockReflect(pReceiver, pSender)) {
         setNerve(&NrvAttackRockFinal::AttackRockFinalNrvBreak::sInstance);
         MR::startBrk(mBreakModel, "Inner");
     }
@@ -204,11 +164,11 @@ bool AttackRockFinal::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
         MR::hideModelAndOnCalcAnim(this);
         return true;
     }
-    if (fn_800CC2B0(msg)) {
+    if (MR::isMsgKoopaC6(msg)) {
         makeActorDead();
         return true;
     }
-    if (fn_80152E20(mRide, msg, pSender, pReceiver)) {
+    if (mRide->fn_80152E20(msg, pSender, pReceiver)) {
         return true;
     }
     if (MR::isMsgKoopaPunchAttack(msg) && MR::isEqualSensor(pReceiver, this, "Body") &&
@@ -222,102 +182,101 @@ bool AttackRockFinal::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
 }
 
 // NONMATCHING: operator*/add inline decisions differ (target was a separate TU).
-extern "C" void fn_801521F0(AttackRockFinal* pActor, f32 a, f32 b) {
-    pActor->mPosition.set(pActor->mStartPos);
-    TVec3f va = pActor->mAxisF8 * a;
-    pActor->mPosition.add(va);
-    TVec3f vb = pActor->mAxis104 * b;
-    pActor->mPosition.add(vb);
+void AttackRockFinal::fn_801521F0(f32 a, f32 b) {
+    this->mPosition.set(this->mStartPos);
+    TVec3f va = this->mAxisF8 * a;
+    this->mPosition.add(va);
+    TVec3f vb = this->mAxis104 * b;
+    this->mPosition.add(vb);
 }
 
-extern "C" void fn_80152280(AttackRockFinal* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        fn_801521F0(pActor, 800.0f, 2000.0f);
+void AttackRockFinal::fn_80152280() {
+    if (MR::isFirstStep(this)) {
+        this->fn_801521F0(800.0f, 2000.0f);
     }
-    pActor->mIsOnPlayer = false;
-    if (MR::isGreaterStep(pActor, pActor->mWaitStep)) {
-        pActor->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance);
+    this->mIsOnPlayer = false;
+    if (MR::isGreaterStep(this, this->mWaitStep)) {
+        this->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance);
     }
 }
 
-extern "C" void fn_801522F0(AttackRockFinal* pActor) {
-    f32 y = MR::calcNerveEaseOutValue(pActor, 100, 2000.0f, -1000.0f);
-    f32 x = MR::calcNerveEaseInValue(pActor, 100, 800.0f, 400.0f);
-    fn_801521F0(pActor, x, y);
-    if (MR::isFirstStep(pActor)) {
-        MR::offBind(pActor);
-        MR::startAction(pActor, "FinalWait");
-        MR::showModel(pActor);
-        MR::validateCollisionParts(pActor);
-        MR::validateHitSensors(pActor);
-        MR::resetPosition(pActor);
+void AttackRockFinal::fn_801522F0() {
+    f32 y = MR::calcNerveEaseOutValue(this, 100, 2000.0f, -1000.0f);
+    f32 x = MR::calcNerveEaseInValue(this, 100, 800.0f, 400.0f);
+    this->fn_801521F0(x, y);
+    if (MR::isFirstStep(this)) {
+        MR::offBind(this);
+        MR::startAction(this, "FinalWait");
+        MR::showModel(this);
+        MR::validateCollisionParts(this);
+        MR::validateHitSensors(this);
+        MR::resetPosition(this);
     }
     if (MR::isOnGroundPlayer()) {
-        pActor->mIsOnPlayer = MR::isActorOnPlayer(pActor);
+        this->mIsOnPlayer = MR::isActorOnPlayer(this);
     }
-    MR::startActionSound(pActor, "FinalFall", -1, -1, -1);
-    if (MR::isGreaterEqualStep(pActor, 99)) {
-        pActor->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvFloat::sInstance);
+    MR::startActionSound(this, "FinalFall", -1, -1, -1);
+    if (MR::isGreaterEqualStep(this, 99)) {
+        this->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvFloat::sInstance);
     }
 }
 
-extern "C" void fn_80152400(AttackRockFinal* pActor) {
-    f32 y = MR::calcNerveEaseInOutValue(pActor, 150, -1000.0f, 0.0f);
-    f32 x = MR::calcNerveEaseOutValue(pActor, 150, 400.0f, 0.0f);
-    fn_801521F0(pActor, x, y);
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "FinalFloat");
-        fn_80152F10(pActor->mRide);
+void AttackRockFinal::fn_80152400() {
+    f32 y = MR::calcNerveEaseInOutValue(this, 150, -1000.0f, 0.0f);
+    f32 x = MR::calcNerveEaseOutValue(this, 150, 400.0f, 0.0f);
+    this->fn_801521F0(x, y);
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "FinalFloat");
+        this->mRide->fn_80152F10();
     }
     if (MR::isOnGroundPlayer()) {
-        pActor->mIsOnPlayer = MR::isActorOnPlayer(pActor);
+        this->mIsOnPlayer = MR::isActorOnPlayer(this);
     }
-    MR::startActionSound(pActor, "FinalPower", -1, -1, 18);
-    if (MR::isOnGroundPlayer() && !MR::isActorOnPlayer(pActor)) {
-        fn_80152F10(pActor->mRide);
-    }
-}
-
-extern "C" void fn_801524F0(AttackRockFinal* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Attack");
-        MR::onBind(pActor);
-        fn_80152F20(pActor->mRide);
-        pActor->mIsOnPlayer = false;
-    }
-    fn_801554D0(&pActor->mMtx9C, pActor);
-    if (MR::isBinded(pActor)) {
-        fn_800CC220(pActor, pActor->getSensor("Body"));
-    }
-    if (MR::reboundVelocityFromCollision(pActor, 0.8f, 0.0f, 1.0f)) {
-        MR::emitEffectHit(pActor, MR::getBindedHitPos(pActor), MR::getBindedFixReactionVector(pActor), "GroundHit");
-        MR::startActionSound(pActor, "Bound", -1, -1, -1);
-        MR::attenuateVelocity(pActor, 0.7f);
-    }
-    if (MR::isGreaterStep(pActor, 90)) {
-        pActor->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvBreak::sInstance);
+    MR::startActionSound(this, "FinalPower", -1, -1, 18);
+    if (MR::isOnGroundPlayer() && !MR::isActorOnPlayer(this)) {
+        this->mRide->fn_80152F10();
     }
 }
 
-extern "C" void fn_80152620(AttackRockFinal* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "Break");
-        MR::startActionSound(pActor, "FinalBreak", -1, -1, -1);
-        MR::startBrk(pActor->mBreakModel, "Inner");
-        MR::hideModelAndOnCalcAnim(pActor);
-        MR::invalidateCollisionParts(pActor);
-        MR::invalidateHitSensors(pActor);
-        MR::zeroVelocity(pActor);
-        MR::offBind(pActor);
-        pActor->mBreakModel->appear();
-        fn_80152F20(pActor->mRide);
+void AttackRockFinal::fn_801524F0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Attack");
+        MR::onBind(this);
+        this->mRide->fn_80152F20();
+        this->mIsOnPlayer = false;
     }
-    if (MR::isDead(pActor->mBreakModel)) {
-        pActor->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance);
+    fn_801554D0(&this->mMtx9C, this);
+    if (MR::isBinded(this)) {
+    }
+    if (MR::reboundVelocityFromCollision(this, 0.8f, 0.0f, 1.0f)) {
+        MR::emitEffectHit(this, MR::getBindedHitPos(this), MR::getBindedFixReactionVector(this), "GroundHit");
+        MR::startActionSound(this, "Bound", -1, -1, -1);
+        MR::attenuateVelocity(this, 0.7f);
+    }
+    if (MR::isGreaterStep(this, 90)) {
+        this->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvBreak::sInstance);
     }
 }
 
-extern "C" bool fn_80152700(LiveActor* pActor) {
+void AttackRockFinal::fn_80152620() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Break");
+        MR::startActionSound(this, "FinalBreak", -1, -1, -1);
+        MR::startBrk(this->mBreakModel, "Inner");
+        MR::hideModelAndOnCalcAnim(this);
+        MR::invalidateCollisionParts(this);
+        MR::invalidateHitSensors(this);
+        MR::zeroVelocity(this);
+        MR::offBind(this);
+        this->mBreakModel->appear();
+        this->mRide->fn_80152F20();
+    }
+    if (MR::isDead(this->mBreakModel)) {
+        this->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance);
+    }
+}
+
+bool fn_80152700(LiveActor* pActor) {
     if (pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance) ||
         pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance)) {
         return true;
@@ -330,19 +289,19 @@ AttackRockFinal::~AttackRockFinal() {
 
 namespace NrvAttackRockFinal {
     inline void AttackRockFinalNrvWait::execute(Spine* pSpine) const {
-        fn_80152280(reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_80152280();
     }
     inline void AttackRockFinalNrvFall::execute(Spine* pSpine) const {
-        fn_801522F0(reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_801522F0();
     }
     inline void AttackRockFinalNrvFloat::execute(Spine* pSpine) const {
-        fn_80152400(reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_80152400();
     }
     inline void AttackRockFinalNrvBound::execute(Spine* pSpine) const {
-        fn_801524F0(reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_801524F0();
     }
     inline void AttackRockFinalNrvBreak::execute(Spine* pSpine) const {
-        fn_80152620(reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor));
+        (reinterpret_cast< AttackRockFinal* >(pSpine->mExecutor))->fn_80152620();
     }
 };  // namespace NrvAttackRockFinal
 

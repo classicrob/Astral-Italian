@@ -1,21 +1,29 @@
 #include "Game/Enemy/OtaRockTank.hpp"
+void fn_801DDD70(void* pThis);
 #include "Game/Util.hpp"
 #include "Game/Enemy/CocoNutBall.hpp"
 #include "Game/Enemy/FireBall.hpp"
 #include "Game/Util/FixedPosition.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" TVec3f lbl_8072942C;
-extern "C" u8 lbl_8068E95C[];
-extern "C" u32 lbl_807D2D8C;
+// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
+extern TVec3f lbl_8072942C;
+// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
+extern u8 lbl_8068E95C[];
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2D8C;
 
-extern "C" void fn_8017E260(void* pThis, const void* pData);
-extern "C" bool fn_801E1030(OtaRockTank* pHost, TPos3f* pMtx);
+// PLACEHOLDER(enemies): fn_8017E260 is a placement ctor (r3 = raw object, r4 = name data, sets a vtable); the class is not yet named; resolve when the class that owns vtable lbl_80686668 is ported.
+void fn_8017E260(void* pThis, const void* pData);
 
-extern "C" u32 lbl_807D2D78;
-extern "C" u32 lbl_807D2D7C;
-extern "C" u32 lbl_807D2D80;
-extern "C" u32 lbl_807D2D84;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2D78;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2D7C;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2D80;
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2D84;
 
 OtaRockTank::OtaRockTank(const char* pName) : LiveActor(pName) {
     mBreakModel = nullptr;
@@ -59,7 +67,7 @@ OtaRockTank::OtaRockTank(const char* pName) : LiveActor(pName) {
     mUnk130 = 0.0f;
 }
 
-extern "C" void fn_801DDD70(void* pThis) {
+void fn_801DDD70(void* pThis) {
     fn_8017E260(pThis, lbl_8068E95C);
 }
 
@@ -105,69 +113,69 @@ void OtaRockTank::calcAndSetBaseMtx() {
     mJointCtrl2->registerCallBack();
 }
 
-extern "C" f32 fn_801DFBB0(OtaRockTank* pActor) {
+f32 OtaRockTank::fn_801DFBB0() {
     bool flag = false;
-    if (pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
+    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
         flag = true;
     }
     if (flag) {
         return 25.0f;
     }
-    if (pActor->mUnkB0 == 1) {
+    if (this->mUnkB0 == 1) {
         return 21.0f;
     }
     return 16.0f;
 }
 
-extern "C" f32 fn_801DFC60(OtaRockTank* pActor) {
+f32 OtaRockTank::fn_801DFC60() {
     bool flag = false;
-    if (pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
+    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
         flag = true;
     }
     if (flag) {
         return 35.0f;
     }
-    if (pActor->mUnkB0 == 1) {
+    if (this->mUnkB0 == 1) {
         return 25.0f;
     }
     return 25.0f;
 }
 
-extern "C" f32 fn_801DFD10(OtaRockTank* pActor) {
+f32 OtaRockTank::fn_801DFD10() {
     bool flag = false;
-    if (pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
-        pActor->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
+    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
+        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
         flag = true;
     }
     if (flag) {
         return 1000.0f;
     }
-    if (pActor->mUnkB0 == 1) {
+    if (this->mUnkB0 == 1) {
         return 900.0f;
     }
     return 800.0f;
 }
 
-extern "C" bool fn_801E1010(OtaRockTank* pHost, TPos3f* pMtx) {
-    return fn_801E1030(pHost, pMtx);
+bool OtaRockTank::fn_801E1010(TPos3f* pMtx) {
+    return this->fn_801E1030(pMtx);
 }
 
-extern "C" bool fn_801E1020(OtaRockTank* pHost, TPos3f* pMtx) {
-    return fn_801E1030(pHost, pMtx);
+bool OtaRockTank::fn_801E1020(TPos3f* pMtx) {
+    return this->fn_801E1030(pMtx);
 }
 
-extern "C" bool fn_801E1030(OtaRockTank* pHost, TPos3f* pMtx) {
-    if (pHost->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D8C))) {
+bool OtaRockTank::fn_801E1030(TPos3f* pMtx) {
+    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D8C))) {
         return false;
     }
-    MR::rotateMtxLocalXDegree(reinterpret_cast<MtxPtr>(pMtx), pHost->mUnkC4);
+    MR::rotateMtxLocalXDegree(reinterpret_cast<MtxPtr>(pMtx), this->mUnkC4);
     return true;
 }

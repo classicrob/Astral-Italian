@@ -9,8 +9,6 @@
 #include "Game/Util/MathUtil.hpp"
 #include <revolution/types.h>
 
-// unnamed in symbols.txt: 1-arg Mario::setFrontVecKeepUp
-extern "C" void fn_8038B3D0(Mario*, const TVec3f&);
 
 bool Mario::doFlipWeak(const TVec3f& rVec) {
     if (mMovementStates._1B) {
@@ -117,10 +115,10 @@ bool MarioFaint::start() {
     getPlayer()->mMovementStates.jumping = false;
 
     if (_18.dot(getPlayer()->mFrontVec) > 0.0f) {
-        fn_8038B3D0(getPlayer(), _18);
+        getPlayer()->setFrontVecKeepUp(_18);
         changeAnimation("後方小ダメージ");
     } else {
-        fn_8038B3D0(getPlayer(), -_18);
+        getPlayer()->setFrontVecKeepUp(-_18);
         changeAnimation("前方小ダメージ");
     }
 

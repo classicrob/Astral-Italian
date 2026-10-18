@@ -11,6 +11,7 @@ class RushEndInfo;
 class Triangle;
 
 namespace MarioAccess {
+    f32 fn_803B57A0();  // SMG2-only (original name unknown; by address)
     bool isPowerupTransforming();
     void prepareForPositionReset();
     void getTakePos(TVec3f*);

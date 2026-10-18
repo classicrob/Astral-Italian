@@ -20,8 +20,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-extern "C" s32 fn_803B2A20(Mario* pPlayer, const TVec3f& rPos, f32 radius, f32 thickness);
-extern "C" const HitInfo* fn_803B2AA0(Mario* pPlayer, u32 index);
 
 void MarioTeresa_FORCE_MATCH_SDATA2() {
     (void)100.0f;
@@ -197,9 +195,9 @@ f32 MarioTeresa::checkHeight() {
         const TVec3f& position = actor->_240;
         bool found = false;
         f32 radius = 120.0f;
-        s32 count = fn_803B2A20(getPlayer(), position + getGravityVec() * offset, radius, radius);
+        s32 count = getPlayer()->fn_803B2A20(position + getGravityVec() * offset, radius, radius);
         for (u32 i = 0; i < count; i++) {
-            const HitInfo* hit = fn_803B2AA0(getPlayer(), i);
+            const HitInfo* hit = getPlayer()->fn_803B2AA0(i);
             TVec3f normal(*hit->mParentTriangle.getNormal(0));
             TVec3f direction(hit->_64);
             direction.sub(direction, position);

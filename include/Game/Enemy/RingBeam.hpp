@@ -8,8 +8,7 @@ class RingBeamShadowDrawer;
 
 class RingBeam : public LiveActor {
 public:
-    RingBeam(const char*, LiveActor*, bool, bool);
-    RingBeam(const char*, LiveActor*, bool, bool, bool, bool, const char*);  // SMG2 (Koopa Jr. robot)
+    RingBeam(const char*, LiveActor*, bool, bool, bool, bool, const char*);
 
     virtual ~RingBeam() {};
     virtual void init(const JMapInfoIter& rIter);
@@ -26,18 +25,23 @@ public:
     void startBrk(const char*);
     void exeSpread();
 
-    LiveActor* _8c;
-    ModelObj* mBloomModel;
-    f32 mSpeed;
-    s32 mLife;
-    bool _9c;
-    bool _9d;
-    RingBeamShadowDrawer* _a0;
-    ModelObj* _a4;
-    TVec3f _a8;
-    TVec3f _b4;
-    TVec3f _c0;
-    TVec3f _cc;
+    /* 0x90 */ LiveActor* _8c;
+    /* 0x94 */ ModelObj* mBloomModel;
+    /* 0x98 */ const char* mBeamName;
+    /* 0x9C */ f32 mSpeed;
+    /* 0xA0 */ s32 mLife;
+    /* 0xA4 */ bool _9c;
+    /* 0xA5 */ bool _9d;
+    /* 0xA6 */ bool _9e;
+    /* 0xA7 */ bool _9f;
+    /* 0xA8 */ RingBeamShadowDrawer* _a0;
+    /* 0xAC */ ModelObj* _a4;
+    /* 0xB0 */ TVec3f _a8;
+    /* 0xBC */ TVec3f _b4;
+    /* 0xC8 */ TVec3f _c0;
+    /* 0xD4 */ TVec3f _cc;
+    /* 0xE0 */ s32 _e0;
+    /* 0xE4 */ TVec3f _e4;
 };
 
 class RingBeamShadowDrawer : public ShadowVolumeDrawer {

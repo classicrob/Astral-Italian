@@ -239,6 +239,7 @@ namespace MR {
     bool isMsgYoshiStartEaten(u32);
     bool isMsgYoshiCancelEaten(u32);
     bool isMsgYoshiReleaseEaten(u32);
+    bool isMsgYoshiReleaseOrCancelEaten(u32);
     MtxPtr getYoshiMouthMtx();
     bool isMsgYoshiProjectileOrEat(u32 msg);
     bool isMsgFireBallAttack(u32 msg);
@@ -312,6 +313,7 @@ namespace MR {
 
     void calcPosBetweenSensors(TVec3f* pPosition, const HitSensor* pSensorA, const HitSensor* pSensorB, f32 offset);
     bool tryForceKillIfMsgStartPowerStarGet(LiveActor* pActor, u32 msg);
+    // ActorSensorUtil (enemies lane, callees named by address; lead renames symbols)
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

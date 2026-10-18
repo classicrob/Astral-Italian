@@ -1,0 +1,337 @@
+#include "Game/Enemy/PatakuriBig.hpp"
+#include "Game/Util.hpp"
+#include "Game/LiveActor/Nerve.hpp"
+#include "Game/Util/ActorStateUtil.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
+
+namespace {
+    AnimScaleParam sBigScaleParam;
+    AnimScaleParam* sBigScaleParamInit = fn_801E5C00(&sBigScaleParam);
+
+    // Nerve objects of PatakuriBig (TU01). Declared in the sinit order of the target.
+#define PATAKURI_BIG_NERVE(name, cls, fn)                                                                                                         \
+    class name : public Nerve {                                                                                                                  \
+    public:                                                                                                                                      \
+        virtual void execute(Spine* pSpine) const {                                                                                              \
+            cls* actor = reinterpret_cast< cls* >(pSpine->mExecutor);                                                                            \
+            actor->fn();                                                                                                                         \
+        };                                                                                                                                       \
+        static name sInstance;                                                                                                                   \
+    };                                                                                                                                           \
+    name name::sInstance ATTRIBUTE_WEAK;
+
+    PATAKURI_BIG_NERVE(PatakuriBigNrvRail, PatakuriBig, fn_801E6510);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvBlow, PatakuriBig, fn_801E6730);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvSwoonLand, PatakuriBig, fn_801E67B0);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvStaggerEnd, PatakuriBig, fn_801E6810);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvHipDropDown, PatakuriBig, fn_801E68B0);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvWingHide, PatakuriBig, fn_801E6930);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvBind, PatakuriBig, fn_801E6980);
+    PATAKURI_BIG_NERVE(PatakuriBigNrvDead, PatakuriBig, fn_801E69E0);
+
+    class PatakuriBigWingNrvWait : public Nerve {
+    public:
+        virtual void execute(Spine*) const {};
+        static PatakuriBigWingNrvWait sInstance;
+    };
+    PatakuriBigWingNrvWait PatakuriBigWingNrvWait::sInstance ATTRIBUTE_WEAK;
+
+    class PatakuriBigWingNrvKill : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            LiveActor* actor = reinterpret_cast< LiveActor* >(pSpine->mExecutor);
+            if (MR::isActionEnd(actor)) {
+                actor->kill();
+            }
+        };
+        static PatakuriBigWingNrvKill sInstance;
+    };
+    PatakuriBigWingNrvKill PatakuriBigWingNrvKill::sInstance ATTRIBUTE_WEAK;
+}  // namespace
+
+AnimScaleParam* fn_801E5C00(AnimScaleParam* pParam) {
+    pParam->_0 = 0.1f;
+    pParam->_10 = 30.0f;
+    pParam->_14 = 0.6f;
+    pParam->_18 = 0.06f;
+    pParam->_1C = 3.0f;
+    pParam->_24 = 0.1f;
+    return pParam;
+}
+
+// ---------------------------------------------------------------------------------------------
+// PatakuriBigWing
+// ---------------------------------------------------------------------------------------------
+
+// NONMATCHING: 99.1% (ctor store order / register allocation)
+PatakuriBigWing::PatakuriBigWing(const char* pHost)
+    : PartsModel(reinterpret_cast< LiveActor* >(const_cast< char* >(pHost)), "\x89\x48", "PatakuriWingBig", nullptr, -1, false) {
+    initFixedPosition(TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f), "Head");
+    initWithoutIter();
+    initNerve(&PatakuriBigWingNrvWait::sInstance, 0);
+}
+
+PatakuriBigWing::~PatakuriBigWing() {}
+
+void PatakuriBigWing::calcAndSetBaseMtx() {
+    MR::updateBaseScale(this, reinterpret_cast< PatakuriBig* >(mHost)->mScaleCtrl);
+    PartsModel::calcAndSetBaseMtx();
+}
+
+// ---------------------------------------------------------------------------------------------
+// PatakuriBig
+// ---------------------------------------------------------------------------------------------
+
+PatakuriBig::PatakuriBig(const char* pName) : LiveActor(pName) {
+    mBody = nullptr;
+    mLockOnTarget = nullptr;
+    mScaleCtrl = nullptr;
+    mBindStarPointer = nullptr;
+}
+
+PatakuriBig::~PatakuriBig() {}
+
+// NONMATCHING: 96.5% (register allocation / scheduling; see sg.py diff)
+void PatakuriBig::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "KuriboChief", "PatakuriBig", false);
+    MR::moveCoordAndTransToNearestRailPos(this);
+    MR::makeQuatAndFrontFromRotate(&mQuat, &mFront, this);
+
+    mScaleCtrl = new AnimScaleController(&sBigScaleParam);
+
+    mBody = new KuriboChief("\x83\x4e\x83\x8a\x83\x7b\x81\x5b\x83\x60\x81\x5b\x83\x74");
+    MR::setPosition(mBody, mPosition);
+    mBody->initWithoutIter();
+    mBody->makeActorDead();
+
+    if (MR::isValidInfo(rIter)) {
+        MR::setGroupClipping(this, rIter, 32);
+        MR::setGroupClipping(mBody, rIter, 32);
+    }
+
+    initHitSensor(8);
+    MR::addHitSensorAtJointEnemyAttack(this, "Body", "Body", 8, 150.0f, TVec3f(0.0f));
+    MR::addHitSensorAtJointEnemyAttack(this, "Head1", "Head", 8, 300.0f, TVec3f(120.0f, 0.0f, 0.0f));
+    MR::addHitSensorAtJointEnemyAttack(this, "Head2", "Head", 8, 150.0f, TVec3f(360.0f, 0.0f, 0.0f));
+    MR::addHitSensorAtJointEnemyAttack(this, "LegL", "LegL", 8, 130.0f, TVec3f(60.0f, -50.0f, 0.0f));
+    MR::addHitSensorAtJointEnemyAttack(this, "LegR", "LegR", 8, 130.0f, TVec3f(60.0f, -50.0f, 0.0f));
+    MR::addHitSensorEnemy(this, "Punch", 8, 400.0f, TVec3f(0.0f));
+
+    mWing = new PatakuriBigWing(reinterpret_cast< const char* >(this));
+    mWing->initWithoutIter();
+    mWing->offFixedPosNormalizeScale();
+    MR::startAction(mWing, "Wait");
+    MR::startAction(this, "PatakuriWait");
+
+    initNerve(&PatakuriBigNrvRail::sInstance, 1);
+
+    mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleCtrl);
+    MR::initActorState(this, mBindStarPointer, &PatakuriBigNrvBind::sInstance, "SupportFreeze");
+
+    mLockOnTarget = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(nullptr), TVec3f(0.0f));
+    makeActorAppeared();
+}
+
+void PatakuriBig::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    MR::calcGravityVector(this, mPosition, &mGravity, nullptr, 0);
+    MR::makeQuatAndFrontFromRotate(&mQuat, &mFront, this);
+}
+
+// NONMATCHING: 98.4% (register allocation / scheduling; see sg.py diff)
+void PatakuriBig::control() {
+    mScaleCtrl->updateNerve();
+    MR::fn_800104F0(&mQuat, this, &mFront, 0.05f, 0.2f);
+    fn_801E6370();
+}
+
+void PatakuriBig::calcAndSetBaseMtx() {
+    MR::setBaseTRMtx(this, mQuat);
+    MR::updateBaseScale(this, mScaleCtrl);
+}
+
+// NONMATCHING: 96.5% (register allocation / scheduling; see sg.py diff)
+void PatakuriBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isSensorPlayer(pReceiver) && MR::isSensorEnemyAttack(pSender)) {
+        if (isNerve(&PatakuriBigNrvBind::sInstance)) {
+            MR::sendMsgPush(pReceiver, pSender);
+        }
+        if (isNerve(&PatakuriBigNrvRail::sInstance)) {
+            if (!MR::isPlayerHipDropFalling() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+                MR::startAction(mWing, "Hit");
+                MR::startAction(this, "PatakuriHit");
+            }
+            MR::sendMsgPush(pReceiver, pSender);
+        }
+    } else if (!MR::isSensorEnemy(pSender)) {
+        MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
+    }
+}
+
+bool PatakuriBig::fn_801E6370() {
+    if (isNerve(&PatakuriBigNrvRail::sInstance) && mBindStarPointer->tryStartPointBind()) {
+        setNerve(&PatakuriBigNrvBind::sInstance);
+        return true;
+    }
+    return false;
+}
+
+// NONMATCHING: 89.6% (register allocation / scheduling; see sg.py diff)
+bool PatakuriBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isSensorEnemy(pReceiver)) {
+        return false;
+    }
+    if (MR::isMsgLockOnStarPieceShoot(msg)) {
+        return false;
+    }
+    if (MR::isMsgStarPieceReflect(msg)) {
+        if (pReceiver != getSensor("Punch")) {
+            mScaleCtrl->startHitReaction();
+            return true;
+        }
+        return false;
+    }
+    if (MR::isMsgPlayerHitAll(msg)) {
+        MR::startAction(mWing, "Damage");
+        mWing->mCheckHiddenHost = true;
+        mWing->setNerve(&PatakuriBigWingNrvKill::sInstance);
+        setNerve(&PatakuriBigNrvDead::sInstance);
+
+        TVec3f pos;
+        fn_801E6280(&pos, this);
+        mBody->fn_801BC000(pos, mQuat, mVelocity, pSender, pReceiver);
+        return true;
+    }
+    return false;
+}
+
+bool PatakuriBig::receiveOtherMsg(u32, HitSensor*, HitSensor*) {
+    return false;
+}
+
+void PatakuriBig::fn_801E6280(TVec3f* pOut, PatakuriBig* pPatakuri) {
+    TVec3f bodyRoot;
+    TVec3f bodyBody;
+    TVec3f actorRoot;
+    TVec3f actorBody;
+
+    MR::extractMtxTrans(MR::getJointMtx(pPatakuri->mBody, "Root"), &bodyRoot);
+    MR::extractMtxTrans(MR::getJointMtx(pPatakuri->mBody, "Body"), &bodyBody);
+    MR::extractMtxTrans(MR::getJointMtx(pPatakuri, "Root"), &actorRoot);
+    MR::extractMtxTrans(MR::getJointMtx(pPatakuri, "Body"), &actorBody);
+
+    TVec3f diffActor = actorBody - actorRoot;
+    TVec3f diffBody = bodyBody - bodyRoot;
+    TVec3f base = pPatakuri->mPosition - diffBody;
+    *pOut = base + diffActor;
+}
+
+void PatakuriBig::fn_801E6510() {
+    if (MR::isBckOneTimeAndStopped(this)) {
+        MR::startAction(mWing, "Wait");
+        MR::startAction(this, "PatakuriWait");
+    }
+
+    f32 speed = 1.0f;
+    f32 coord = MR::getRailCoord(this) - 30.0f;
+    f32 railLen = MR::getRailTotalLength(this);
+    if (railLen - coord < 200.0f) {
+        coord = (MR::getRailTotalLength(this) - 30.0f) - coord;
+    }
+    if (coord < 200.0f) {
+        f32 t = MR::normalize(coord, 0.0f, 200.0f);
+        speed = MR::getInterpolateValue(t, 0.2f, 1.0f);
+    }
+
+    if (!MR::isSameDirection(MR::getRailDirection(this), mGravity, 0.1f)) {
+        if (MR::getRailCoord(this) - 30.0f < 100.0f) {
+            TVec3f revDir = -MR::getRailDirection(this);
+            TVec3f axis(0.0f, 1.0f, 0.0f);
+            MR::turnVecToVecDegree(&mFront, mFront, revDir, 3.0f, axis);
+        } else {
+            TVec3f axis(0.0f, 1.0f, 0.0f);
+            MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, axis);
+        }
+    } else {
+        TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
+        MR::normalize(&toPlayer);
+        TVec3f axis(0.0f, 1.0f, 0.0f);
+        MR::turnVecToVecDegree(&mFront, mFront, toPlayer, 2.0f, axis);
+    }
+
+    MR::moveCoordAndFollowTrans(this, 4.0f * speed);
+    if (MR::isRailReachedNearGoal(this, 30.0f)) {
+        MR::reverseRailDirection(this);
+    }
+}
+
+void PatakuriBig::fn_801E6730() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Blow");
+    }
+    MR::applyVelocityDampAndGravity(this, 0.3f, 0.8f, 0.96f, 0.93f, 1.0f);
+    if (MR::isOnGround(this)) {
+        setNerve(&PatakuriBigNrvSwoonLand::sInstance);
+    }
+}
+
+void PatakuriBig::fn_801E67B0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "SwoonLand");
+    }
+    if (MR::isActionEnd(this)) {
+        setNerve(&PatakuriBigNrvStaggerEnd::sInstance);
+    }
+}
+
+void PatakuriBig::fn_801E6810() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "StaggerEnd");
+    }
+    if (MR::isActionEnd(this)) {
+        setNerve(&PatakuriBigNrvDead::sInstance);
+        TVec3f pos;
+        fn_801E6280(&pos, this);
+        TVec3f zero(0.0f);
+        mBody->fn_801BBFB0(pos, mQuat, zero);
+    }
+}
+
+void PatakuriBig::fn_801E68B0() {
+    if (MR::isActionEnd(this)) {
+        setNerve(&PatakuriBigNrvDead::sInstance);
+        TVec3f pos;
+        fn_801E6280(&pos, this);
+        MR::setPosition(mBody, pos);
+        mBody->calcAndSetBaseMtx();
+        mBody->kill();
+    }
+}
+
+void PatakuriBig::fn_801E6930() {
+    if (MR::isStep(this, 1)) {
+        mWing->mCheckHiddenHost = true;
+        MR::hideModelAndOnCalcAnim(this);
+    }
+}
+
+void PatakuriBig::fn_801E6980() {
+    if (MR::isFirstStep(this)) {
+        MR::setBckRate(mWing, 0.0f);
+    }
+    if (MR::updateActorStateAndNextNerve(this, &PatakuriBigNrvRail::sInstance)) {
+        MR::setBckRate(mWing, 1.0f);
+    }
+}
+
+void PatakuriBig::fn_801E69E0() {
+    if (MR::isFirstStep(this)) {
+        MR::invalidateHitSensors(this);
+    }
+    if (MR::isStep(this, 1)) {
+        MR::hideModel(this);
+    }
+    if (MR::isDead(mWing)) {
+        kill();
+    }
+}

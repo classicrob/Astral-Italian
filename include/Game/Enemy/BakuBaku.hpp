@@ -10,6 +10,9 @@ class HitSensor;
 // SMG2-only unit (BakuBaku: rail-riding biting plant enemy). LiveActor = 0x90 bytes.
 class BakuBaku : public LiveActor {
 public:
+    // SMG2-only functions (original names unknown; named by address)
+    bool fn_80155F00();
+    bool fn_80155F60();
     BakuBaku(const char* pName);
 
     virtual ~BakuBaku();

@@ -52,29 +52,52 @@ extern TVec3f gJugemVecE;
 
 // Nerve instances (sbss, defined in Jugem2.cpp). Referenced by their SB4E01 symbols so that
 // `li rN, lbl_807D26xx@sda21` matches the target directly.
-extern "C" u32 lbl_807D26B8;  // Wait
-extern "C" u32 lbl_807D26BC;  // Ready
-extern "C" u32 lbl_807D26C0;  // Aim
-extern "C" u32 lbl_807D26C4;  // Approach
-extern "C" u32 lbl_807D26C8;  // Move
-extern "C" u32 lbl_807D26CC;  // MoveUp
-extern "C" u32 lbl_807D26D0;  // ThrowSign
-extern "C" u32 lbl_807D26D4;  // Throw
-extern "C" u32 lbl_807D26D8;  // Chase
-extern "C" u32 lbl_807D26DC;  // HitReaction
-extern "C" u32 lbl_807D26E0;  // Fall
-extern "C" u32 lbl_807D26E4;  // Drop
-extern "C" u32 lbl_807D26E8;  // Land
-extern "C" u32 lbl_807D26EC;  // Hide
-extern "C" u32 lbl_807D26F0;  // Reset
-extern "C" u32 lbl_807D26F4;  // None
-extern "C" u32 lbl_807D26F8;  // BlowDown
-extern "C" u32 lbl_807D26FC;  // FallDown
-extern "C" u32 lbl_807D2700;  // Emerge
-extern "C" u32 lbl_807D2704;  // Die
-extern "C" u32 lbl_807D2708;  // FallLand
-extern "C" u32 lbl_807D270C;  // FallRecovery
-extern "C" u32 lbl_807D2710;  // SupportFreeze
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26B8;  // Wait
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26BC;  // Ready
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26C0;  // Aim
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26C4;  // Approach
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26C8;  // Move
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26CC;  // MoveUp
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26D0;  // ThrowSign
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26D4;  // Throw
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26D8;  // Chase
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26DC;  // HitReaction
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26E0;  // Fall
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26E4;  // Drop
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26E8;  // Land
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26EC;  // Hide
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26F0;  // Reset
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26F4;  // None
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26F8;  // BlowDown
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D26FC;  // FallDown
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2700;  // Emerge
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2704;  // Die
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2708;  // FallLand
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D270C;  // FallRecovery
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2710;  // SupportFreeze
 
 #define JUGEM_NERVE(sym) reinterpret_cast< const Nerve* >(&sym)
 

@@ -17,12 +17,6 @@ namespace YoshiFunction {
 };  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers.
-extern "C" void fn_80034820(LiveActor*);
-extern "C" void fn_8000EAB0(TVec3f*, LiveActor*);
-extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, s32, f32, f32);
-extern "C" void fn_802114D0(TMtx34f*);
-extern "C" void fn_80376C30(LiveActor*, u32, s32);
-extern "C" void fn_80010200(TQuat4f*, TQuat4f*, LiveActor*, HitSensor*, HitSensor*);
 
 // Nerve instances (sbss, defined by NEW_NERVE below). Names are provisional.
 namespace NrvNigero {
@@ -117,7 +111,7 @@ bool Nigero::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
         }
     }
     if (MR::isMsgPlayerHitAll(msg)) {
-        fn_80010200(&mRotate, &mRotateTarget, this, pSender, pReceiver);
+        MR::fn_80010200(&mRotate, &mRotateTarget, this, pSender, pReceiver);
         MR::setVelocitySeparateHV(this, pSender, pReceiver, 25.0f, 25.0f);
         MR::startAction(this, "SupportFreeze");
         setNerve(GET_NERVE(Nigero, NigeroNrvSwoon));
@@ -277,7 +271,7 @@ void Nigero::recvStarPieceEnd() {
         LiveActor* pHost = MR::getSensorHost(mTargetSensor);
         MR::zeroVelocity(pHost);
         TVec3f up;
-        fn_8000EAB0(&up, this);
+        MR::fn_8000EAB0(&up, this);
         f32 d = mFront.dot(up);
         if (d > 0.0f) {
             up.negate();
@@ -456,7 +450,7 @@ void Nigero::exeSwoon() {
 void Nigero::exeDead() {
     if (MR::isFirstStep(this)) {
         MR::stopScene(5);
-        fn_80034820(this);
+        MR::fn_80034820(this);
     }
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
     MR::attenuateVelocity(this, 0.9f);

@@ -24,6 +24,14 @@ public:
 
     MarioSwim(MarioActor*);
 
+    // SMG2-only (original names unknown; named by address)
+    void fn_803F7C00();
+    void fn_803F7C20(const TVec3f*);
+    void fn_803FD5E0(s32);
+    bool fn_803FE9F0() const;
+    bool fn_80400910() const;
+    bool fn_80400930() const;
+
     virtual void init();
     virtual bool start();
     virtual bool close();

@@ -64,11 +64,6 @@ namespace YoshiFunction {
     void tryYoshiProjectile(YoshiLockOnTarget*);
 }
 
-extern "C" void fn_801D5A90(NokonokoLand*);
-extern "C" void fn_801D5B80(NokonokoLand*);
-extern "C" void fn_80422350(TPos3f*);
-extern "C" void fn_802BA0E0(JetTurtle*, const TVec3f&, const TVec3f&);
-extern "C" void fn_802BA130(JetTurtle*, const TVec3f&, const TVec3f&);
 
 namespace MR {
     void setRotation(LiveActor*, const TPos3f&);
@@ -111,7 +106,7 @@ namespace NrvNokonokoLand {
     class HostTypeYoshiRelease : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            fn_801D5A90(reinterpret_cast< NokonokoLand* >(pSpine->mExecutor));
+            (reinterpret_cast< NokonokoLand* >(pSpine->mExecutor))->fn_801D5A90();
         }
         static HostTypeYoshiRelease sInstance;
     };
@@ -120,63 +115,63 @@ namespace NrvNokonokoLand {
     class HostTypeYoshiCancel : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            fn_801D5B80(reinterpret_cast< NokonokoLand* >(pSpine->mExecutor));
+            (reinterpret_cast< NokonokoLand* >(pSpine->mExecutor))->fn_801D5B80();
         }
         static HostTypeYoshiCancel sInstance;
     };
     HostTypeYoshiCancel HostTypeYoshiCancel::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvNokonokoLand
 
-extern "C" void fn_801D5A90(NokonokoLand* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::hideModel(pActor);
-        MR::deleteEffectAll(pActor);
+void NokonokoLand::fn_801D5A90() {
+    if (MR::isFirstStep(this)) {
+        MR::hideModel(this);
+        MR::deleteEffectAll(this);
         TPos3f mouthMtx;
-        fn_80422350(&mouthMtx);
+        MR::fn_80422350(&mouthMtx);
         TVec3f pos;
         mouthMtx.getTrans(pos);
         TVec3f throwVec;
         MR::getPlayerThrowVec(&throwVec);
-        MR::setPosition(pActor, pos);
-        fn_802BA0E0(pActor->mJetTurtle, pos, throwVec);
-        MR::invalidateHitSensors(pActor);
-        MR::invalidateClipping(pActor);
+        MR::setPosition(this, pos);
+        this->mJetTurtle->throwByYoshi(pos, throwVec);
+        MR::invalidateHitSensors(this);
+        MR::invalidateClipping(this);
     }
 
-    if (pActor->mJetTurtle->isRestart()) {
-        MR::validateClipping(pActor);
-        pActor->mJetTurtle->kill();
-        if (pActor->mFlagArg3) {
-            pActor->kill();
+    if (this->mJetTurtle->isRestart()) {
+        MR::validateClipping(this);
+        this->mJetTurtle->kill();
+        if (this->mFlagArg3) {
+            this->kill();
         } else {
-            pActor->setNerve(GET_NERVE(NokonokoLand, HostTypeAppearReady));
+            this->setNerve(GET_NERVE(NokonokoLand, HostTypeAppearReady));
         }
     }
 }
 
-extern "C" void fn_801D5B80(NokonokoLand* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::hideModel(pActor);
-        MR::deleteEffectAll(pActor);
+void NokonokoLand::fn_801D5B80() {
+    if (MR::isFirstStep(this)) {
+        MR::hideModel(this);
+        MR::deleteEffectAll(this);
         TPos3f mouthMtx;
-        fn_80422350(&mouthMtx);
+        MR::fn_80422350(&mouthMtx);
         TVec3f pos;
         mouthMtx.getTrans(pos);
         TVec3f throwVec;
         MR::getPlayerThrowVec(&throwVec);
-        MR::setPosition(pActor, pos);
-        fn_802BA130(pActor->mJetTurtle, pos, throwVec);
-        MR::invalidateHitSensors(pActor);
-        MR::invalidateClipping(pActor);
+        MR::setPosition(this, pos);
+        this->mJetTurtle->dropByYoshi(pos, throwVec);
+        MR::invalidateHitSensors(this);
+        MR::invalidateClipping(this);
     }
 
-    if (pActor->mJetTurtle->isRestart()) {
-        MR::validateClipping(pActor);
-        pActor->mJetTurtle->kill();
-        if (pActor->mFlagArg3) {
-            pActor->kill();
+    if (this->mJetTurtle->isRestart()) {
+        MR::validateClipping(this);
+        this->mJetTurtle->kill();
+        if (this->mFlagArg3) {
+            this->kill();
         } else {
-            pActor->setNerve(GET_NERVE(NokonokoLand, HostTypeAppearReady));
+            this->setNerve(GET_NERVE(NokonokoLand, HostTypeAppearReady));
         }
     }
 }
@@ -219,7 +214,7 @@ void NokonokoLand::init(const JMapInfoIter& rIter) {
     MR::initShadowVolumeSphere(this, ::sShadowRadius);
     MR::onCalcShadow(this, nullptr);
     MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 50.0f, 0.0f));
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), TVec3f(0.0f));
     initNerve(GET_NERVE(NokonokoLand, HostTypeWalk), 2);
     mAnimScaleController = new AnimScaleController(nullptr);
     mAnimScaleController->setParamTight();

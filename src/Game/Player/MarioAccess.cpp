@@ -16,8 +16,6 @@
 #include "Game/Player/RushEndInfo.hpp"
 #include "Game/Util.hpp"
 
-class MarioAnimator;
-extern "C" f32 fn_803DD530(MarioAnimator*);
 
 namespace MarioAccess {
     void getTakePos(TVec3f* pOut) {
@@ -265,7 +263,7 @@ namespace MarioAccess {
 
     void setTrans(const TVec3f& rTrans, u16) {
         getPlayerActor()->mPosition.set(rTrans);
-        fn_80405F90(getPlayerActor()->getMario()->mPosHolder, rTrans);
+        getPlayerActor()->getMario()->mPosHolder->fn_80405F90(rTrans);
 
         if (getPlayerActor()->getMovementStates()._37) {
             getPlayerActor()->getMario()->_688 = rTrans;
@@ -376,7 +374,7 @@ namespace MarioAccess {
     }
 
     f32 getAnimationFrameMax() {
-        return fn_803DD530(getPlayerActor()->mMarioAnim);
+        return getPlayerActor()->mMarioAnim->fn_803DD530();
     }
 
     void changeAnimationJ(const char* pAnimName) {
@@ -743,28 +741,28 @@ namespace MarioAccess {
         switch (a1) {
         case 0:
         case 8:
-            getPlayerActor()->setPlayerMode(PlayerMode_Normal, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_Normal, true, true);
             break;
         case 1:
-            getPlayerActor()->setPlayerMode(PlayerMode_Hopper, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_Hopper, true, true);
             break;
         case 2:
-            getPlayerActor()->setPlayerMode(PlayerMode_Bee, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_Bee, true, true);
             break;
         case 3:
-            getPlayerActor()->setPlayerMode(PlayerMode_Teresa, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_Teresa, true, true);
             break;
         case 4:
-            getPlayerActor()->setPlayerMode(PlayerMode_Ice, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_Ice, true, true);
             break;
         case 5:
-            getPlayerActor()->setPlayerMode(PlayerMode_2, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_2, true, true);
             break;
         case 6:
-            getPlayerActor()->setPlayerMode(PlayerMode_Foo, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_Foo, true, true);
             break;
         case 7:
-            getPlayerActor()->setPlayerMode(PlayerMode_Invincible, true);
+            getPlayerActor()->setPlayerMode(PlayerMode_Invincible, true, true);
             break;
         case 9:
             getPlayerActor()->getMario()->mMovementStates._F = true;

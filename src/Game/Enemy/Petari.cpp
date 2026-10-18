@@ -25,7 +25,6 @@ namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
 }
 
-extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
 
 namespace MR {
     bool isMsgYoshiStartTongue(u32);
@@ -109,7 +108,7 @@ void Petari::initAfterPlacement() {
 }
 
 void Petari::makeActorAppeared() {
-    MR::hideModel(this);
+    MR::hideModelAndOnCalcAnim(this);
     setNerve(GET_NERVE(Petari, PetariNrvLurk));
     LiveActor::makeActorAppeared();
     mMeanderStep = 0;
@@ -174,7 +173,7 @@ void Petari::exeWait() {
 void Petari::exeApproach() {
     if (MR::isFirstStep(this)) {
         if (!MR::isHiddenModel(this)) {
-            MR::hideModel(this);
+            MR::hideModelAndOnCalcAnim(this);
             MR::emitEffect(this, "StartSmoke");
         }
         tryEmitFirstFootPrintEffect();
@@ -206,7 +205,7 @@ void Petari::exeApproach() {
 void Petari::exeEscape() {
     if (MR::isFirstStep(this)) {
         if (!MR::isHiddenModel(this)) {
-            MR::hideModel(this);
+            MR::hideModelAndOnCalcAnim(this);
             MR::emitEffect(this, "StartSmoke");
         }
 
@@ -294,7 +293,7 @@ void Petari::exeSwoonEnd() {
 
     if (MR::isBckOneTimeAndStopped(this)) {
         MR::startActionSound(this, "EmChangeSmoke");
-        MR::hideModel(this);
+        MR::hideModelAndOnCalcAnim(this);
         setNerve(GET_NERVE(Petari, PetariNrvLand));
     }
 }
@@ -505,7 +504,7 @@ bool Petari::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
 
     if (isSolidBody() && MR::isMsgToEnemyAttackBlow(msg)) {
-        fn_80012B90(this, pSender, pReceiver, 10.0f, 0.0f, 4);
+        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
         setNerve(GET_NERVE(Petari, PetariNrvSpinOut));
         return true;
     }
@@ -528,7 +527,7 @@ bool Petari::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool Petari::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pReceiver, this, ::sBodySensorName) && isSwoonAny() && MR::isMsgPlayerKick(msg)) {
-        fn_80012B90(this, pSender, pReceiver, 10.0f, 0.0f, 4);
+        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
         setNerve(GET_NERVE(Petari, PetariNrvKickOut));
         return true;
     }
@@ -657,7 +656,7 @@ bool Petari::receivePlayerAttackAtBody(u32 msg, HitSensor* pSender, HitSensor* p
     }
 
     if (isSolidBody() && (MR::isMsgJetTurtleAttack(msg) || MR::isMsgFireBallAttack(msg) || MR::isMsgInvincibleAttack(msg))) {
-        fn_80012B90(this, pSender, pReceiver, 10.0f, 0.0f, 4);
+        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
         setNerve(GET_NERVE(Petari, PetariNrvKickOut));
         return true;
     }
@@ -678,7 +677,7 @@ bool Petari::receivePlayerAttackAtBody(u32 msg, HitSensor* pSender, HitSensor* p
         return true;
     }
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) || MR::isMsgFreezeAttack(msg)) {
-        fn_80012B90(this, pSender, pReceiver, 10.0f, 0.0f, 4);
+        MR::fn_80012B90(this, 10.0f, 0.0f, pSender, pReceiver, 4);
         setNerve(GET_NERVE(Petari, PetariNrvSpinOut));
         return true;
     }

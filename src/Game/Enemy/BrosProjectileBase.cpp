@@ -3,7 +3,6 @@
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/BrosBase.hpp"
 
-extern "C" void fn_80422350(Mtx);
 
 BrosProjectileBase::BrosProjectileBase(const char* pName)
     : LiveActor(pName), mOwner(nullptr), mScaleCtrl(nullptr), mFront(0.0f, 0.0f, 1.0f), mLocalVel(0.0f, 0.0f, 0.0f), mState(0), _B4(false) {
@@ -158,8 +157,8 @@ bool BrosProjectileBase::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor*
 }
 
 void BrosProjectileBase::exeEaten() {
-    Mtx mtx;
-    fn_80422350(mtx);
+    TPos3f mtx;
+    MR::fn_80422350(&mtx);
     mPosition.set(mtx[0][2], mtx[1][2], mtx[2][2]);
     mFront.set(mtx[0][1], mtx[1][1], mtx[2][1]);
 }

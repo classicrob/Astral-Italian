@@ -6,6 +6,7 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/VolumeDrawer.hpp"
 #include "Game/LiveActor/ActorStateParamScale.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 class YoshiLockOnTarget;
 
@@ -18,14 +19,12 @@ namespace YoshiFunction {
 };  // namespace YoshiFunction
 
 // Unnamed SMG2 helpers.
-extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, s32, f32, f32);
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
-extern "C" f32 fn_8022D440(ActorStateParamScale*, s32);
-extern "C" f32 fn_8022D3E0(ActorStateParamScale*, s32);
-extern "C" f32 lbl_807E3030;
-extern "C" u32 lbl_807E3060;
-extern "C" f32 lbl_807E3068;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern f32 lbl_807E3030;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern u32 lbl_807E3060;
+// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+extern f32 lbl_807E3068;
 
 // Nerve instances (sbss 0x807D2F28..0x807D2F64). Names are provisional.
 namespace NrvPeto {
@@ -213,7 +212,7 @@ bool Peto::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
 bool Peto::recvDamage(HitSensor* pSender, HitSensor* pReceiver) {
     MR::invalidateClipping(this);
     MR::onBind(this);
-    fn_80012B90(this, pSender, pReceiver, 4, 30.0f, 30.0f);
+    MR::fn_80012B90(this, 30.0f, 30.0f, pSender, pReceiver, 4);
     TVec3f normal;
     MR::calcSensorHorizonNormalize(&mFront, mGravity, pReceiver, pSender);
     TVec3f up(mGravity);
@@ -386,8 +385,8 @@ void Peto::exeJump() {
     f32 a = 0.0f;
     f32 b = 0.0f;
     MR::calcParabolicFunctionParam(&a, &b, 0.0f, dot);
-    f32 t = fn_8022D440(mStateParam, 45);
-    f32 s = fn_8022D3E0(mStateParam, 45);
+    f32 t = mStateParam->fn_8022D440(45);
+    f32 s = mStateParam->fn_8022D3E0(45);
     f32 h = s * (b + a * s);
     TVec3f pos(mJumpPos);
     pos.add(toJump);
@@ -448,7 +447,7 @@ void Peto::exeDown() {
     MR::addVelocityToGravity(this, 0.1f);
     MR::attenuateVelocity(this, 0.98f);
     if (mStateParam->isGreaterStep(40) || MR::isBinded(this)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         resetState(true);
     }
 }
@@ -460,7 +459,7 @@ void Peto::exePress() {
         MR::startAction(this, "Press");
     }
     if (mStateParam->isGreaterStep(40)) {
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         resetState(true);
     }
 }

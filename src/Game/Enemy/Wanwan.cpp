@@ -9,8 +9,6 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
 
 Wanwan::Wanwan(f32 speed, const char* pName) : LiveActor(pName), _90(nullptr), mType(0), mModel(nullptr), mSpeed(speed), mBreakAtGoal(false), mInitPos(gZeroVec), mRadius(225.0f), mRotSpeed(0.0f), mFallVel(gZeroVec), _F4(1.5f), mRailPointNo(-1), mLastFront(gZeroVec), mFront(0.0f, 0.0f, 1.0f), mLandCount(0), _118(false), mZeroGravity(false), mVoiceTimer(0), mFreezeReturnNerve(nullptr), _124(0), mAppearStep(8), mMoveStep(45), mRotateOffs(0.0f), mRollSoundTimer(0), mGoalPos(gZeroVec), _144(false), mRequestedPowerStar(false), mHideAtStart(false), mScaleParam(nullptr), mScaleCtrl(nullptr), _150(false), mKeySwitch(nullptr) {
     mBaseMtx.identity();
@@ -600,7 +598,7 @@ bool Wanwan::tryBreakReachedGoal() {
         if (mBreakAtGoal) {
             setNerve(&NrvWanwan::WanwanNrvBreak::sInstance);
         } else {
-            kill();
+            makeActorDead();
         }
         return true;
     }
@@ -802,7 +800,7 @@ void Wanwan::exeMoveToGoal() {
     }
     MR::startActionSound(this, "MoveToGoal", -1, -1, -1);
     TVec3f dir;
-    fn_8000E960(&dir, this, mGoalPos);
+    MR::fn_8000E960(&dir, this, &mGoalPos);
     TVec3f v(dir);
     v.scale(2.8f);
     JMathInlineVEC::PSVECAdd(&mVelocity, &v, &mVelocity);

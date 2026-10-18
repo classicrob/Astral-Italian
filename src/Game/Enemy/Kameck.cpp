@@ -15,9 +15,8 @@ namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
 };  // namespace YoshiFunction
 
-extern "C" u32 lbl_807D27E0;  // unnamed nerve (AttackWait-like, Yoshi-side)
-extern "C" void fn_80012B90(LiveActor*, HitSensor*, HitSensor*, f32, f32, s32);
-extern "C" KameckBeam* fn_801A7CF0(KameckBeamHolder*, f32, MtxPtr, const TVec3f&, KameckBeamEventListener*);
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D27E0;  // unnamed nerve (AttackWait-like, Yoshi-side)
 
 namespace {
     static const f32 sDefaultActiveDistance = 3000.0f;
@@ -244,7 +243,8 @@ namespace MR {
     bool isMsgYoshiCancelEaten(u32 msg);
 };  // namespace MR
 
-extern "C" u32 lbl_807D2808; // unnamed 8-byte nerve (Yoshi tongue start)
+// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
+extern u32 lbl_807D2808; // unnamed 8-byte nerve (Yoshi tongue start)
 
 bool Kameck::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStartPowerStarGet(msg)) {
@@ -295,7 +295,7 @@ bool Kameck::requestDown(HitSensor* pSender, HitSensor* pReceiver) {
         MR::onBind(this);
         MR::invalidateHitSensors(this);
         MR::invalidateClipping(this);
-        fn_80012B90(this, pSender, pReceiver, ::sHitHorizontalPower, ::sHitVerticalPower, 4);
+        MR::fn_80012B90(this, ::sHitHorizontalPower, ::sHitVerticalPower, pSender, pReceiver, 4);
         setNerve(GET_NERVE(Kameck, KameckNrvDown));
 
         return true;
@@ -430,7 +430,7 @@ bool Kameck::tryAttackWait() {
             return true;
         }
 
-        mBeam = fn_801A7CF0(mActiveActorList, 0.6f, MR::getJointMtx(this, "Wand"), TVec3f(0.0f, 110.0f, 0.0f), mBeamEventListener);
+        mBeam = mActiveActorList->fn_801A7CF0(0.6f, MR::getJointMtx(this, "Wand"), TVec3f(0.0f, 110.0f, 0.0f), mBeamEventListener);
         if (mBeam != nullptr) {
             setNerve(GET_NERVE(Kameck, KameckNrvAttackWait));
             return true;

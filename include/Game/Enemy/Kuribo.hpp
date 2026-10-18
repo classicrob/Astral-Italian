@@ -47,6 +47,8 @@ public:
     void setUp(const TVec3f&, const TQuat4f&, const TVec3f&);
     void appearBlowed(const TVec3f&, const TQuat4f&, const TVec3f&);
     void appearHipDropped(const TVec3f&, const TQuat4f&);
+    // PLACEHOLDER(enemies): fn_801B9B10 (0x801B9B10, 0x4C, unnamed Kuribo member used by Patakuri); resolve when the Kuribo unit names it.
+    void fn_801B9B10(const TVec3f&, const TQuat4f&, const TVec3f&);
     bool tryNonActive();
     bool tryActive();
     bool tryEndBlow();

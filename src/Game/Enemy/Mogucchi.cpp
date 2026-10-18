@@ -24,7 +24,6 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "math_types.hpp"
 
-extern "C" void fn_801CDAD0(Mogucchi*);
 
 namespace NrvMogucchi {
     NEW_NERVE_ONEND(MogucchiNrvStroll, Mogucchi, Stroll, Stroll);
@@ -150,7 +149,7 @@ void Mogucchi::exeStroll() {
     MR::startActionSound(this, "EmLvMoghillMove", -1, -1, -1);
     updateStrollSpeed();
     reflectStarPointer2P();
-    fn_801CDAD0(this);
+    fn_801CDAD0();
     MR::moveCoord(this, mStrollSpeed);
     MR::calcGravityVector(this, MR::getRailPos(this), &mRailGravity, nullptr, 0);
     updatePosition();
@@ -363,7 +362,7 @@ void Mogucchi::updatePosition() {
 
 void Mogucchi::createHole() {
     // "Mogucchi hole"
-    mHole = new ModelObj("モグッチ穴", "MogucchiHole", mNewHolePos, MR::DrawBufferType_MapObjStrongLight, -2, -2, false);
+    mHole = new ModelObj("モグッチ穴", "MogucchiHole", mNewHolePos, static_cast<MR::DrawBufferType>(0xB) /* SMG2 draw buffer id for map-obj strong light */, -2, -2, false);
     mHole->initWithoutIter();
 }
 

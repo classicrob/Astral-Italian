@@ -8,15 +8,12 @@
 #include "Game/Util/AreaObjUtil.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include "Game/Player/Yoshi.hpp"
 
 // ---- MarioWarp.cpp ----
 
 
 
-extern "C" LiveActor* fn_803B97F0(MarioActor*);
-extern "C" void* fn_803B9810(MarioActor*);
-extern "C" void fn_8041FF80(void*);
-extern "C" void fn_80420000(void*);
 
 MarioWarp::MarioWarp(MarioActor* pActor) : MarioState(pActor, MarioStatus_Warp), _52(), _58(-1) {
     _4C = nullptr;
@@ -147,7 +144,7 @@ bool MarioWarp::start() {
 
     if (_45 == 2) {
         if (isPlayerModeYoshi()) {
-            MR::startActionSound(fn_803B97F0(mActor), "JumpS", -1, -1, -1);
+            MR::startActionSound(mActor->fn_803B97F0(), "JumpS", -1, -1, -1);
         } else {
             playSound("声小ジャンプ");
         }
@@ -181,7 +178,7 @@ bool MarioWarp::start() {
     }
 
     if (isPlayerModeYoshi()) {
-        fn_8041FF80(fn_803B9810(mActor));
+        mActor->fn_803B9810()->fn_8041FF80();
     }
 
     return true;
@@ -398,7 +395,7 @@ bool MarioWarp::close() {
 
     _4C = nullptr;
     if (isPlayerModeYoshi()) {
-        fn_80420000(fn_803B9810(mActor));
+        mActor->fn_803B9810()->fn_80420000();
     }
 
     return true;

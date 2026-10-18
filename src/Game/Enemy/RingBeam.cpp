@@ -60,7 +60,7 @@ void RingBeamShadowDrawer::drawShape() const {
     f32 f2 = 0.0f;
     for (int i = 0; i < 32; i++) {
         temp.add(Trans, XDirScaled);
-        MR::calcGravityVector(_1c, temp, &temp2, nullptr, 0);
+        MR::calcGravityVectorOrZero(_1c, temp, &temp2, nullptr, 0);
         if (MR::normalizeOrZero(XDirScaled, &temp3)) {
             MtxList[i].setInline(baseMtxCopy);
         } else if (MR::isSameDirection(-temp2, temp3)) {
@@ -154,14 +154,19 @@ bool RingBeamShadowDrawer::isDraw() const {
     return MR::isValidDraw(_1c);
 }
 
-RingBeam::RingBeam(const char* pName, LiveActor* arg1, bool arg2, bool arg3) : LiveActor(pName) {
+RingBeam::RingBeam(const char* pName, LiveActor* arg1, bool arg2, bool arg3, bool arg4, bool arg5, const char* arg6) : LiveActor(pName) {
     _8c = arg1;
+    mBloomModel = nullptr;
+    mBeamName = arg6 ? arg6 : "JumpBeamerBeam";
     mSpeed = 20.0f;
     mLife = 100;
     _9c = arg2;
     _9d = arg3;
+    _9e = arg4;
+    _9f = arg5;
     _a0 = nullptr;
     _a4 = nullptr;
+    _e4.set(0.0f, 0.0f, 2000.0f);
 }
 
 void RingBeam::setSpeed(f32 speed) {
@@ -210,12 +215,11 @@ void RingBeam::appear() {
     mBloomModel->appear();
 }
 
-extern "C" void fn_801F6B00(RingBeam*, f32);
 
 void RingBeam::kill() {
     setNerve(GET_NERVE(RingBeam, RingBeamNrvSpread));
     initPos(_8c);
-    fn_801F6B00(this, 0.0f);
+    setRadius(0.0f);
     LiveActor::kill();
 }
 

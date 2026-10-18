@@ -108,6 +108,10 @@ namespace MR {
     J3DFrameCtrl* getBpkCtrl(const LiveActor*);
     J3DFrameCtrl* getBvaCtrl(const LiveActor*);
     void updateMaterial(LiveActor*);
+    // ActorAnimUtil (enemies lane, callees named by address; lead renames symbols)
+    void fn_8000A320(LiveActor*);
+    void fn_8000A400(LiveActor*);
+    void fn_80008890(LiveActor*, const char*);
 };  // namespace MR
 
 namespace MR {

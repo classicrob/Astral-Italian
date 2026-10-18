@@ -33,10 +33,8 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/os.h>
 #include <revolution/types.h>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-extern "C" bool fn_801BC910(const KuriboChief*);
-extern "C" void fn_801BC140(KuriboChief*);
-extern "C" void fn_8022BA10(LiveActor*);
 
 namespace {
     static const f32 sBinderSize = 300.0f;
@@ -213,7 +211,7 @@ void KuriboChief::control() {
 
     MR::blendQuatFromGroundAndFront(&_AC, this, _BC, ::sUpVecBlendRate, ::sFrontVecBlendRate);
     MR::changeShowModelFlagSyncNearClipping(this, 900.0f);
-    fn_801BC140(this);
+    fn_801BC140();
 }
 
 void KuriboChief::calcAndSetBaseMtx() {
@@ -316,7 +314,7 @@ bool KuriboChief::requestStagger(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool KuriboChief::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
-    bool isDwn = fn_801BC910(this) == false;
+    bool isDwn = fn_801BC910() == false;
     if (!isDwn) {
         return false;
     }
@@ -468,7 +466,7 @@ void KuriboChief::exeBlowDownLand() {
 
     if (MR::isActionEnd(this)) {
         if (mKeySwitch == nullptr) {
-            fn_8022BA10(this);
+            MR::emitItemHit(this);
         }
 
         kill();

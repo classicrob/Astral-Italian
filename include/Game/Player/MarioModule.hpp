@@ -32,6 +32,12 @@ public:
     u16 getPlayerMode() const;
     bool isPlayerModeYoshi() const;
     bool isPlayerModeCloud() const;
+
+    // SMG2-only (original names unknown; named by address)
+    void fn_803EEC20(const char*, u32);
+    const TVec3f& fn_803EF5B0() const;
+    bool fn_803EF670(const Triangle*) const;
+    Triangle* fn_803EFA20() const;
     bool isPlayerModeBee() const;
     bool isPlayerModeIce() const;
     bool isPlayerModeTeresa() const;

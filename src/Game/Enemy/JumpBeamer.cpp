@@ -35,9 +35,6 @@ static ActorStateParamScale* getParamScale(const JumpBeamer* pBeamer) {
 }
 
 // Unnamed SMG2 bind-star-pointer exe (called from the nerve execute).
-extern "C" void fn_801A0860(JumpBeamer*);
-extern "C" void fn_8000A320(void*);
-extern "C" void fn_8000A400(void*);
 
 namespace NrvJumpBeamer {
     NEW_NERVE(JumpBeamerNrvHide, JumpBeamer, Hide);
@@ -57,7 +54,7 @@ namespace NrvJumpBeamer {
     class JumpBeamerNrvBindStarPointer : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            fn_801A0860(reinterpret_cast< JumpBeamer* >(pSpine->mExecutor));
+            reinterpret_cast< JumpBeamer* >(pSpine->mExecutor)->fn_801A0860();
         };
         static JumpBeamerNrvBindStarPointer sInstance;
     };
@@ -174,7 +171,7 @@ void JumpBeamer::init(const JMapInfoIter& rIter) {
     }
 
     for (s32 i = 0; i < 3; i++) {
-        mBeams[i] = new RingBeam("リングビーム", this, false, false);
+        mBeams[i] = new RingBeam("リングビーム", this, false, false, false, false, nullptr);
         mBeams[i]->init(rIter);
         mBeams[i]->setSpeed(arg1);
         mBeams[i]->setLife(arg0);
@@ -428,15 +425,15 @@ void JumpBeamer::exeInter() {
 }
 
 // SMG2 unnamed bind-star-pointer exe (fn_801A0860).
-void fn_801A0860(JumpBeamer* pBeamer) {
-    if (getParamScale(pBeamer)->isFirstStep()) {
-        fn_8000A320(pBeamer->mHeadModel);
-        fn_8000A320(pBeamer);
+void JumpBeamer::fn_801A0860() {
+    if (getParamScale(this)->isFirstStep()) {
+        MR::fn_8000A320(this->mHeadModel);
+        MR::fn_8000A320(this);
     }
 
-    if (MR::updateActorState(pBeamer)) {
-        fn_8000A400(pBeamer->mHeadModel);
-        fn_8000A400(pBeamer);
-        pBeamer->setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait));
+    if (MR::updateActorState(this)) {
+        MR::fn_8000A400(this->mHeadModel);
+        MR::fn_8000A400(this);
+        this->setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait));
     }
 }

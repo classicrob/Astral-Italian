@@ -7,6 +7,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/FixedPosition.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace {
     const BombBirdParam hFallParam = {0.0f, 1.2f, 0.98f, 0.0f};
@@ -290,8 +291,6 @@ void BombBird::exeFlyWithAttack() {
     }
 }
 
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
 
 void BombBird::exeBlow() {
     if (MR::isFirstStep(this)) {
@@ -302,7 +301,7 @@ void BombBird::exeBlow() {
     }
 
     if (mSpinHitController->execute(this)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         MR::startActionSound(this, "EmExplodeS");
         MR::emitEffect(this, "Death");
     }
@@ -455,7 +454,7 @@ void BombBird::exeTrample() {
 
     if (MR::isStep(this, 36)) {
         TVec3f pos(mPosition - mGravity * MR::getSensorRadius(this, "body"));
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         MR::startActionSound(this, "EmExplodeS");
         MR::emitEffect(this, "Death");
         kill();

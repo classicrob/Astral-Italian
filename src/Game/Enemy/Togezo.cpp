@@ -17,6 +17,7 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
@@ -41,11 +42,6 @@ namespace MR {
 };  // namespace MR
 
 // Unnamed SMG2 helpers outside this unit.
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-extern "C" void fn_800137F0(LiveActor*, TVec3f*, const TVec3f*, f32, f32, f32, f32, f32);
-extern "C" void fn_80422350(TPos3f*);
-extern "C" void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f&);
 
 namespace {
     static const MR::ActorMoveParam hBoundParam = {0.65f, 20.0f, 0.3f, 0.0f};
@@ -337,7 +333,7 @@ void Togezo::exeWalkOnRail() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Walk");
     }
-    fn_800137F0(this, &mFrontVec, nullptr, 600.0f, hRunParam._0, hRunParam._4, hRunParam._8, hRunParam._C);
+    MR::fn_800137F0(this, &mFrontVec, nullptr, 600.0f, hRunParam._0, hRunParam._4, hRunParam._8, hRunParam._C);
     tryAttack();
 }
 
@@ -494,7 +490,7 @@ void Togezo::exeDown() {
     MR::turnDirectionDegree(this, &mFrontVec, negVel, 30.0f);
     if (MR::isGreaterStep(this, 30)) {
         MR::tryHitReactionDead(this);
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -502,7 +498,7 @@ void Togezo::exeDown() {
 void Togezo::exeDeath() {
     if (MR::isFirstStep(this)) {
         MR::tryHitReactionDead(this);
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -750,7 +746,7 @@ bool Togezo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     if (MR::isMsgPlayerHitProjectiles(msg)) {
         if (isAttackable()) {
             MR::deleteEffectAll(this);
-            fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
+            MR::fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
             setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
             MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
             return true;
@@ -765,7 +761,7 @@ bool Togezo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
     if (MR::isMsgExplosionAttack(msg)) {
         MR::deleteEffectAll(this);
-        fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
         setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
         MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
         return true;
@@ -778,7 +774,7 @@ bool Togezo::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
     if (MR::isMsgToEnemyAttackBlow(msg)) {
         MR::deleteEffectAll(this);
-        fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
+        MR::fn_80012B90(this, 36.0f, 30.0f, pSender, pReceiver, 4);
         setNerve(&NrvTogezo::TogezoNrvDown::sInstance);
         MR::tryHitReactionBetweenSensors(this, "\x90\x81\x82\xab\x94\xf2\x82\xce\x82\xb3\x82\xea", pSender, pReceiver);
         return true;
@@ -892,7 +888,7 @@ void Togezo::moveAndTurn(const MR::ActorMoveParam& rParam, const TVec3f& rDir) {
 
 void Togezo::calcYoshiDirection() {
     TPos3f mtx;
-    fn_80422350(&mtx);
+    MR::fn_80422350(&mtx);
     f32 tz = mtx.mMtx[2][3];
     f32 ty = mtx.mMtx[1][3];
     f32 tx = mtx.mMtx[0][3];
@@ -1088,13 +1084,12 @@ s32 TogezoMgr::getActiveNum() const {
 TogezoMgr::~TogezoMgr() {
 }
 
-// fn_80214610: direction helper for rail-following Togezo (called from outside this unit).
-extern "C" void fn_80214610(TVec3f* pDst, const LiveActor* pActor) {
+void fn_80214610(TVec3f* pDst, const LiveActor* pActor) {
     TVec3f camPos = MR::getCamPos();
     TVec3f toCam(0.0f);
     TVec3f railDir(0.0f);
     TVec3f up(0.0f, 1.0f, 0.0f);
-    fn_8000E960(&toCam, pActor, camPos);
+    MR::fn_8000E960(&toCam, pActor, &camPos);
     MR::calcRailDirection(&railDir, pActor);
     if (!MR::isRailGoingToEnd(pActor)) {
         TVec3f neg = -railDir;

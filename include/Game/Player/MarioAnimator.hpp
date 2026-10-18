@@ -73,6 +73,24 @@ public:
     void squatSpinCheck();
     void walkinClose();
 
+    // SMG2-only (original names unknown; named by address)
+    void fn_803DC1B0(const char*);
+    void fn_803DC330();
+    f32 fn_803DD170(const char*, f32);
+    f32 fn_803DD460();
+    f32 fn_803DD530();
+    void fn_803DDD80(const HitSensor*);
+    void fn_803DDF60();
+    const char* fn_803DF0D0() const;
+    f32 fn_803DF0E0() const;
+    void fn_803DF0F0();
+    void fn_803DF1B0();
+    void fn_803DF2D0();
+    void fn_803DF8E0();
+    s32 fn_803DF9D0();
+    bool fn_803DCB80();
+    XanimePlayer* fn_803DFBF0() const;
+
     inline void f1(const char* name) {
         getPlayer()->startBas(nullptr, false, 0.0f, 0.0f);
 

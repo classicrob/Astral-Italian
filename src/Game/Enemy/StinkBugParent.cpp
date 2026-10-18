@@ -401,24 +401,24 @@ void StinkBugParent::calcAndSetBaseMtx() {
 }
 
 // SMG2 unnamed helper: the Petari isShakeChance body (used by attackSensor).
-extern "C" bool fn_801FEDA0(const StinkBugParent* pParent) {
-    if (pParent->isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvHipDropDown))) {
+bool StinkBugParent::fn_801FEDA0() const {
+    if (this->isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvHipDropDown))) {
         return false;
     }
 
-    if (pParent->isNrvDemo()) {
+    if (this->isNrvDemo()) {
         return false;
     }
 
-    if (!pParent->isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvShake))) {
+    if (!this->isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvShake))) {
         return false;
     }
 
-    if (MR::isGreaterStep(pParent, 25)) {
+    if (MR::isGreaterStep(this, 25)) {
         return false;
     }
 
-    return MR::isOnPlayer(pParent->getSensor("Body"));
+    return MR::isOnPlayer(this->getSensor("Body"));
 }
 
 void StinkBugParent::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -439,7 +439,7 @@ void StinkBugParent::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             }
         }
 
-        if (MR::isSensorEye(pSender) && fn_801FEDA0(this) && !MR::isPlayerHipDropFalling()) {
+        if (MR::isSensorEye(pSender) && this->fn_801FEDA0() && !MR::isPlayerHipDropFalling()) {
             MR::sendMsgEnemyAttackFlipToDir(pReceiver, pSender, _8C);
             return;
         }

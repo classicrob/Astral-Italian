@@ -15,8 +15,8 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
-extern "C" void fn_8022BA10(LiveActor*);
 
 namespace {
     static const s32 hWaitTime = 120;
@@ -184,7 +184,7 @@ bool Balloonfish::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
     }
 
     if (MR::isMsgJetTurtleAttack(msg)) {
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
         return true;
     }

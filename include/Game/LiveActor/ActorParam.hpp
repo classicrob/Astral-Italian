@@ -30,6 +30,8 @@ public:
     /* 0x4 */ ActorParamEntry* mEntries;
 };
 
+// SMG2 default-block reset (named in ActorParam.cpp; 0x1C bytes: pos(0,0,0), quat(0,0,0,1)).
+void initActorParamDefault(f32* pParam);
 // Additive (objects lane): per-actor ActorParam csv accessors (symbols exist in the target, defined elsewhere).
 namespace MR {
     const f32* getActorParamF32(const LiveActor*, const char*);

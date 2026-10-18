@@ -3,7 +3,6 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-extern "C" void fn_8000F880(LiveActor*, TVec3f*);
 
 namespace NrvHanachanBig {
     NEW_NERVE(HanachanBigPartsNrvWalk, HanachanBigParts, Walk);
@@ -312,7 +311,7 @@ void HanachanBigParts::control() {
 
 #pragma dont_inline on
 void HanachanBigParts::calcAndSetBaseMtx() {
-    fn_8000F880(this, &mRailDirection);
+    MR::fn_8000F880(this, &mRailDirection);
     TVec3f scale;
     scale.mul(mHost->mScaleController->_C, mScale);
     scale.mul(scale, mScaleController->_C);

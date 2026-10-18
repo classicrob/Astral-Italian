@@ -25,17 +25,17 @@ namespace MR {
         return MR::getSceneObj< ClipAreaDropHolder >(SceneObj_ClipAreaDropHolder)->getDeadMember();
     }
 
-    bool appearClipAreaDrop(const TVec3f& rPos, f32 baseSize) {
+    ClipAreaDrop* appearClipAreaDrop(const TVec3f& rPos, f32 baseSize) {
         ClipAreaDrop* pClipAreaDrop = getDeadClipAreaDrop();
 
         if (pClipAreaDrop == nullptr) {
-            return false;
+            return nullptr;
         }
 
         pClipAreaDrop->mPosition.set(rPos);
         pClipAreaDrop->setBaseSize(baseSize);
         pClipAreaDrop->appear();
 
-        return true;
+        return pClipAreaDrop;
     }
 };  // namespace MR

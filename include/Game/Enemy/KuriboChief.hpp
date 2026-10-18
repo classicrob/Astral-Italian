@@ -13,6 +13,8 @@ class KeySwitch;
 
 class KuriboChief : public LiveActor {
 public:
+    bool fn_801BC910() const;
+    void fn_801BC140();
     KuriboChief(const char*);
 
     virtual void init(const JMapInfoIter&);
@@ -45,6 +47,9 @@ public:
     bool isEnableAttack() const;
     bool isEnableKick() const;
     bool isDown() const;
+    // PLACEHOLDER(enemies): fn_801BBFB0 and fn_801BC000 (unnamed KuriboChief members at 0x801BBFB0/0x801BC000, used by PatakuriBig); resolve when the KuriboChief unit names them.
+    void fn_801BBFB0(const TVec3f&, const TQuat4f&, const TVec3f&);
+    void fn_801BC000(const TVec3f&, const TQuat4f&, const TVec3f&, HitSensor*, HitSensor*);
 
     /* 0x8C */ AnimScaleController* mScaleController;
     /* 0x90 */ WalkerStateWander* mStateWander;

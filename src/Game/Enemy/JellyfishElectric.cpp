@@ -20,7 +20,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
-extern "C" void fn_8005A6E0(LiveActor*, const char*, bool, bool, f32, f32);
 
 namespace NrvJellyfishElectric {
     NEW_NERVE(JellyfishElectricNrvWait, JellyfishElectric, Wait);
@@ -142,7 +141,7 @@ void JellyfishElectric::exeWait() {
         } else {
             if (_A4 && !MR::isBckPlaying(this, "DangerWait")) {
                 MR::startAction(this, "DangerWait");
-                fn_8005A6E0(this, "DangerBrk", false, true, 0.0f, 0.0f);
+                MR::fn_8005A6E0(this, "DangerBrk", false, true, 0.0f, 0.0f);
             }
         }
     }
@@ -158,7 +157,7 @@ void JellyfishElectric::exeDamage() {
 
     if (MR::isActionEnd(this)) {
         MR::startAction(this, "DangerWait");
-        fn_8005A6E0(this, "DangerBrk", false, true, 0.0f, 0.0f);
+        MR::fn_8005A6E0(this, "DangerBrk", false, true, 0.0f, 0.0f);
         setNerve(GET_NERVE(JellyfishElectric, JellyfishElectricNrvWait));
     }
 }

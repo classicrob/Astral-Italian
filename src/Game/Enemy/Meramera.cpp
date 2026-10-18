@@ -21,6 +21,7 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 
 void Meramera_FORCE_MATCH_SDATA2() {
     (void)1.0f;
@@ -77,11 +78,6 @@ void Meramera_FORCE_MATCH_SDATA2() {
     (void)600.0f;
 }
 
-extern "C" void fn_80013220(const LiveActor*, TVec3f*, f32);  // turn dst toward player on gravity plane
-extern "C" f32 fn_80012450(const LiveActor*);
-extern "C" void fn_80010CB0(LiveActor*, const TVec3f&, f32);  // mVelocity += dir * f
-extern "C" void fn_8022BA10(LiveActor*);
-extern "C" void fn_8022BAA0(LiveActor*);
 
 enum { ElementType_Fire, ElementType_Ice };
 enum { EffectType_Null, EffectType_Wait, EffectType_Chase, EffectType_Escape };
@@ -863,7 +859,7 @@ void Meramera::exeChaseTurn() {
 
 void Meramera::exeDamage() {
     if (MR::isFirstStep(this)) {
-        fn_80013220(this, &_138, -1.0f);
+        MR::fn_80013220(this, &_138, -1.0f);
 
         if (mElementType == ElementType_Ice) {
             MR::startActionSound(this, "EmIcemeraBlowCold");
@@ -921,7 +917,7 @@ void Meramera::exeRunaway() {
 
     if (MR::isGreaterStep(this, 70)) {
         if (MR::isBindedGround(this)) {
-            f32 scalar = fn_80012450(this);
+            f32 scalar = MR::fn_80012450(this);
 
             if (scalar < 3.0f) {
                 mRunawayTimer--;
@@ -1006,7 +1002,7 @@ void Meramera::exeSink() {
         MR::makeMtxUpNoSupportPos(&_F8, -mGravity, mPosition);
     }
 
-    fn_80013220(this, &_138, -1.0f);
+    MR::fn_80013220(this, &_138, -1.0f);
 
     if (MR::isGreaterStep(this, 50)) {
         setNerve(GET_NERVE(Meramera, MerameraNrvFloat));
@@ -1024,7 +1020,7 @@ void Meramera::exeFloat() {
     MR::attenuateVelocity(this, 0.94f);
     MR::reboundVelocityFromCollision(this);
 
-    fn_80013220(this, &_138, -1.0f);
+    MR::fn_80013220(this, &_138, -1.0f);
 
     if (MR::isGreaterStep(this, 30)) {
         setNerve(GET_NERVE(Meramera, MerameraNrvIgnition));
@@ -1097,7 +1093,7 @@ void Meramera::exeDown() {
         MR::stopScene(::sDownStopFrame);
         MR::startActionSound(this, "EmMerameraStomped");
         MR::zeroVelocity(this);
-        fn_80010CB0(this, _138, -0.0f);
+        MR::fn_80010CB0(this, _138, -0.0f);
         MR::addVelocityToGravity(this, -25.0f);
     }
 
@@ -1110,7 +1106,7 @@ void Meramera::exeDown() {
 
     if (MR::isBinded(this) || MR::isGreaterStep(this, 0)) {
         MR::startActionSound(this, "EmMerameraExplode");
-        fn_8022BA10(this);
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -1125,7 +1121,7 @@ void Meramera::exeFlatDown() {
 
     if (MR::isGreaterStep(this, 0)) {
         MR::startActionSound(this, "EmExplodeS");
-        fn_8022BAA0(this);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -1187,7 +1183,7 @@ void Meramera::addMovingAccel(const TVec3f& rVec, f32 velocityAccel, f32 gravity
         }
     }
 
-    fn_80010CB0(this, _138, velocityAccel);
+    MR::fn_80010CB0(this, _138, velocityAccel);
 }
 
 void Meramera::addRunawayJumpPower() {

@@ -92,40 +92,111 @@ namespace MR {
 
 
 
+    bool isPreventDisplayInformationMessage() {
+        if (isStageStaffRoll()) {
+            return true;
+        }
+
+        return GameSequenceFunction::isPadMode2();
+    }
+
+    s32 getPlayerLeft() {
+        return GameDataFunction::getPlayerLeft();
+    }
+
+#if 0  // TODO(port): (10140) undefined identifier 'addMissPoint' Too many errors printed, aborting pr
+    void decPlayerLeft() {
+        GameDataFunction::addPlayerLeft(-1);
+        GameDataFunction::addMissPoint(1);
+        GameDataFunction::incPlayerMissNum();
+    }
+#endif
+
+#if 0  // TODO(port): (10140) undefined identifier 'addMissPoint' Too many errors printed, aborting pr
+    void incPlayerGameOverNum() {
+        GameDataFunction::addMissPoint(3);
+        GameDataFunction::incPlayerMissNum();
+    }
+#endif
+
+#if 0  // TODO(port): (10140) undefined identifier 'getScenePlayingResult' Too many errors printed, ab
+    s32 getStarPieceNum() {
+        if (MR::isStageAstroLocation()) {
+            return GameDataFunction::getStockedStarPieceNum();
+        }
+
+        return ::getScenePlayingResult()->getStarPieceNum();
+    }
+#endif
+
+#if 0  // TODO(port): (10140) undefined identifier 'addStockedStarPiece' Too many errors printed, abor
+    void addStarPiece(int num) {
+        if (MR::isStageAstroLocation()) {
+            GameDataFunction::addStockedStarPiece(num);
+        } else {
+            ::getScenePlayingResult()->incStarPiece(num);
+        }
+    }
+#endif
+
+#if 0  // TODO(port): (10140) undefined identifier 'isDataMario' Too many errors printed, aborting pro
+    bool isPlayerLuigi() {
+        return !GameDataFunction::isDataMario();
+    }
+#endif
+
     void onGameEventFlagBeeMarioAtFirst() {
-        GameDataFunction::onGameEventFlag("ハチマリオ初変身");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("ハチマリオ初変身");
+        }
     }
 
     void onGameEventFlagTeresaMarioAtFirst() {
-        GameDataFunction::onGameEventFlag("テレサマリオ初変身");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("テレサマリオ初変身");
+        }
     }
 
     void onGameEventFlagHopperMarioAtFirst() {
-        GameDataFunction::onGameEventFlag("ホッパーマリオ初変身");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("ホッパーマリオ初変身");
+        }
     }
 
     void onGameEventFlagFireMarioAtFirst() {
-        GameDataFunction::onGameEventFlag("ファイアマリオ初変身");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("ファイアマリオ初変身");
+        }
     }
 
     void onGameEventFlagIceMarioAtFirst() {
-        GameDataFunction::onGameEventFlag("アイスマリオ初変身");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("アイスマリオ初変身");
+        }
     }
 
     void onGameEventFlagFlyingMarioAtFirst() {
-        GameDataFunction::onGameEventFlag("フライングマリオ初変身");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("フライングマリオ初変身");
+        }
     }
 
     void onGameEventFlagInvincibleMarioAtFirst() {
-        GameDataFunction::onGameEventFlag("無敵マリオ初変身");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("無敵マリオ初変身");
+        }
     }
 
     void onGameEventFlagLifeUpAtFirst() {
-        GameDataFunction::onGameEventFlag("ライフアップキノコ解説");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("ライフアップキノコ解説");
+        }
     }
 
     void onGameEventFlagOneUpAtFirst() {
-        GameDataFunction::onGameEventFlag("１ＵＰキノコ解説");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("１ＵＰキノコ解説");
+        }
     }
 
 
@@ -134,31 +205,59 @@ namespace MR {
 
 
     bool isOnGameEventFlagBeeMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
         return GameDataFunction::isOnGameEventFlag("ハチマリオ初変身");
     }
 
     bool isOnGameEventFlagTeresaMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
         return GameDataFunction::isOnGameEventFlag("テレサマリオ初変身");
     }
 
     bool isOnGameEventFlagHopperMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
         return GameDataFunction::isOnGameEventFlag("ホッパーマリオ初変身");
     }
 
     bool isOnGameEventFlagFireMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
         return GameDataFunction::isOnGameEventFlag("ファイアマリオ初変身");
     }
 
     bool isOnGameEventFlagIceMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
         return GameDataFunction::isOnGameEventFlag("アイスマリオ初変身");
     }
 
     bool isOnGameEventFlagFlyingMarioAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
         return GameDataFunction::isOnGameEventFlag("フライングマリオ初変身");
     }
 
 
     bool isOnGameEventFlagTamakoroTutorialAtFirst() {
+        if (isPreventDisplayInformationMessage()) {
+            return true;
+        }
+
         return GameDataFunction::isOnGameEventFlag("タマコロチュートリアル");
     }
 
@@ -200,6 +299,28 @@ namespace MR {
     }
 
 
+#if 0  // TODO(port): (10140) undefined identifier 'setupAlreadyDoneFlag' Too many errors printed, abo
+    s32 setupAlreadyDoneFlag(const char* pParam1, const JMapInfoIter& rIter, u32* pParam3) {
+        return GameDataFunction::setupAlreadyDoneFlag(pParam1, rIter, pParam3);
+    }
+#endif
+
+#if 0  // TODO(port): (10140) undefined identifier 'updateAlreadyDoneFlag' Too many errors printed, ab
+    void updateAlreadyDoneFlag(int param1, u32 param2) {
+        GameDataFunction::updateAlreadyDoneFlag(param1, param2);
+    }
+#endif
+
+    bool isAlreadyVisitedCurrentStageAndScenario() {
+        return GameDataFunction::isOnGalaxyScenarioFlagAlreadyVisited(MR::getCurrentStageName(), MR::getCurrentScenarioNo());
+    }
+
+#if 0  // TODO(port): (10140) undefined identifier 'hasPowerStar' Too many errors printed, aborting pr
+    bool hasPowerStarInCurrentStage(s32 starId) {
+        return MR::makeCurrentGalaxyStatusAccessor().hasPowerStar(starId);
+    }
+#endif
+
     bool isPowerStarGreenInCurrentStage(s32 starId) {
         return GameDataConst::isPowerStarGreen(MR::getCurrentStageName(), starId);
     }
@@ -235,6 +356,14 @@ namespace MR {
     }
 
 
+    bool isOnGameEventFlagPowerStarSuccess(const char* pGalaxyName, s32 starId) {
+        return GameDataFunction::hasPowerStar(pGalaxyName, starId);
+    }
+
+    bool hasGrandStar(int grandStarId) {
+        return GameDataFunction::hasGrandStar(grandStarId);
+    }
+
     bool isPowerStarGreen(const char* pGalaxyName, s32 starId) {
         return GameDataConst::isPowerStarGreen(pGalaxyName, starId);
     }
@@ -243,6 +372,18 @@ namespace MR {
 
 
 
+
+    void setRaceBestTime(int id, u32 bestTime) {
+        const char* pRaceName = RaceManagerFunction::getRaceName(id);
+
+        GameDataFunction::setRaceBestTime(pRaceName, bestTime);
+    }
+
+    u32 getRaceBestTime(int id) {
+        const char* pRaceName = RaceManagerFunction::getRaceName(id);
+
+        return GameDataFunction::getRaceBestTime(pRaceName);
+    }
 
     u32 getRaceCurrentTime() {
         return RaceManagerFunction::getRaceTime();
@@ -257,6 +398,27 @@ namespace MR {
 
 
 
+
+#if 0  // TODO(port): (10140) undefined identifier 'registerStorageSpinDriverPathDrawRange' Too many e
+    s32 registerStorageSpinDriverPathDrawRange(const NameObj* pParam1, const JMapInfoIter& rIter, int param3, f32* pParam4) {
+        const char* pStageName = MR::getCurrentStageName();
+        int scenarioNo = MR::getCurrentScenarioNo();
+        int zoneId = MR::getPlacedZoneId(rIter);
+
+        if (param3 <= 0) {
+            return -1;
+        }
+
+        return GameDataFunction::registerStorageSpinDriverPathDrawRange(pStageName, scenarioNo, zoneId, param3, pParam4);
+    }
+#endif
+
+    void updateStorageSpinDriverPathDrawRange(int param1, f32 param2) {
+        const char* pStageName = MR::getCurrentStageName();
+        s32 scenarioNo = MR::getCurrentScenarioNo();
+
+        GameDataFunction::updateStorageSpinDriverPathDrawRange(pStageName, scenarioNo, param1, param2);
+    }
 
     void startGalaxyCometEvent() {
         EventFunction::startCometEvent();
@@ -345,37 +507,37 @@ namespace MR {
 
 
     void explainBeeMarioIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("ハチマリオ初変身")) {
+        if (!isOnGameEventFlagBeeMarioAtFirst()) {
             InformationObserverFunction::explainBee();
         }
     }
 
     void explainTeresaMarioIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("テレサマリオ初変身")) {
+        if (!isOnGameEventFlagTeresaMarioAtFirst()) {
             InformationObserverFunction::explainTeresa();
         }
     }
 
     void explainHopperMarioIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("ホッパーマリオ初変身")) {
+        if (!isOnGameEventFlagHopperMarioAtFirst()) {
             InformationObserverFunction::explainHopper();
         }
     }
 
     void explainFireMarioIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("ファイアマリオ初変身")) {
+        if (!isOnGameEventFlagFireMarioAtFirst()) {
             InformationObserverFunction::explainFire();
         }
     }
 
     void explainIceMarioIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("アイスマリオ初変身")) {
+        if (!isOnGameEventFlagIceMarioAtFirst()) {
             InformationObserverFunction::explainIce();
         }
     }
 
     void explainFlyingMarioIfAtFirst() {
-        if (!GameDataFunction::isOnGameEventFlag("フライングマリオ初変身")) {
+        if (!isOnGameEventFlagFlyingMarioAtFirst()) {
             InformationObserverFunction::explainFlying();
         }
     }
@@ -407,7 +569,9 @@ namespace MR {
 
 
     void onGameEventFlagTamakoroTutorialAtFirst() {
-        GameDataFunction::onGameEventFlag("タマコロチュートリアル");
+        if (!isPreventDisplayInformationMessage()) {
+            GameDataFunction::onGameEventFlag("タマコロチュートリアル");
+        }
     }
 
 

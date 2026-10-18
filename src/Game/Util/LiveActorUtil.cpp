@@ -82,7 +82,7 @@ namespace {
     }
 
     bool tryMakeSubModelName(const char** pObjName, char* pBuf, u32 bufSize, const LiveActor* pActor, const char* pSubModelName) NO_INLINE {
-        const char* modelResName = MR::getModelResourceHolder(pActor)->mModelResTable->getResName(0UL);
+        const char* modelResName = MR::getModelResourceHolder(pActor)->mName;
 
         if (!MR::isExistSubModel(modelResName, pSubModelName)) {
             return false;
@@ -114,7 +114,7 @@ namespace {
         }
     }
 
-    void calcCollisionMtx(TPos3f* pMtx, const LiveActor* pActor) NO_INLINE {
+    void calcCollisionMtx(TPos3f* pMtx, const LiveActor* pActor, const CollisionParts* pParts) NO_INLINE {
         pMtx->set(pActor->getBaseMtx());
 
         f32 scale = pActor->mScale.x;
@@ -131,25 +131,6 @@ namespace {
 
     bool isShowModel(LiveActor* pActor) NO_INLINE {
         return !pActor->mFlags.mIsNoEntryDrawBuffer;
-    }
-
-    void callFuncAllGroupMember(const NameObj* pActor, void (*pFunc)(NameObj*)) NO_INLINE {
-        LiveActorGroupArray* pGroupArray = MR::getSceneObj< LiveActorGroupArray >(SceneObj_LiveActorGroupArray);
-        LiveActorGroup* pGroup = pGroupArray->getLiveActorGroup(static_cast<const LiveActor*>(pActor));
-
-        if (pGroup == nullptr) {
-            return;
-        }
-
-        for (s32 i = 0; i < pGroup->getObjNum(); i++) {
-            LiveActor* pMember = pGroup->getActor(i);
-
-            if (pMember == pActor) {
-                continue;
-            }
-
-            pFunc(pMember);
-        }
     }
 
     void callFuncAllGroupMember(const LiveActor* pActor, void (*pFunc)(LiveActor*)) NO_INLINE {
@@ -271,6 +252,18 @@ namespace MR {
         pActor->mRotation.z = xyz;
     }
 
+    void setRotation(LiveActor* pActor, const TPos3f& rMtx) {
+        TPos3f mtx;
+        mtx.set(rMtx);
+        mtx.getEuler(pActor->mRotation);
+        pActor->mRotation.mult(57.29578f);
+    }
+
+    void setRotation(LiveActor* pActor, const TQuat4f& rQuat) {
+        rQuat.getEuler(pActor->mRotation);
+        pActor->mRotation.mult(57.29578f);
+    }
+
     void setScale(LiveActor* pActor, const TVec3f& rScale) {
         pActor->mScale.set(rScale);
     }
@@ -285,11 +278,6 @@ namespace MR {
         pActor->mScale.x = xyz;
         pActor->mScale.y = xyz;
         pActor->mScale.z = xyz;
-    }
-
-    bool isExistIndirectTexture(const LiveActor* pActor) {
-        const char* name = "IndDummy";
-        return MR::getJ3DModelData(pActor)->mMaterialTable.mTextureName->getIndex(name) != -1;
     }
 
     void initMirrorReflection(LiveActor* pActor) {
@@ -355,7 +343,7 @@ namespace MR {
     }
 
     PartsModel* createBloomModel(LiveActor* pActor, MtxPtr pMtx) {
-        PartsModel* parts = ::createSubModel(pActor, "Bloom", pMtx, 30);
+        PartsModel* parts = ::createSubModel(pActor, "Bloom", pMtx, 31);
 
         if (parts != nullptr) {
             MR::registerDemoSimpleCastAll(parts);
@@ -365,7 +353,7 @@ namespace MR {
     }
 
     PartsModel* createWaterModel(LiveActor* pActor, MtxPtr pMtx) {
-        return ::createSubModel(pActor, "Water", pMtx, 8);
+        return ::createSubModel(pActor, "Water", pMtx, 9);
     }
 
     ModelObj* createBloomModel2(LiveActor* pActor, MtxPtr pMtx) {
@@ -373,7 +361,7 @@ namespace MR {
     }
 
     PartsModel* createIndirectPlanetModel(LiveActor* pActor, MtxPtr pMtx) {
-        return ::createSubModel(pActor, "Indirect", pMtx, 0x1D);
+        return ::createSubModel(pActor, "Indirect", pMtx, 0x1E);
     }
 
     PartsModel* createIceModel(LiveActor* pActor, MtxPtr pMtx, bool isIce) {
@@ -539,7 +527,10 @@ namespace MR {
             pRoofInfo->mParentTriangle.calcForceMovePower(&roofPower, pRoofInfo->_64);
             pGroundInfo->mParentTriangle.calcForceMovePower(&groundPower, pGroundInfo->_64);
 
-            if (0.0f < (roofPower - groundPower).dot(pActor->mGravity)) {
+            TVec3f diff(roofPower);
+            diff.sub(groundPower);
+
+            if (0.0f < diff.dot(pActor->mGravity)) {
                 return true;
             }
         }
@@ -551,6 +542,12 @@ namespace MR {
     void copyTransRotate(const LiveActor* pToActor, LiveActor* pFromActor) {
         pFromActor->mPosition.set(pToActor->mPosition);
         pFromActor->mRotation.set(pToActor->mRotation);
+    }
+
+    void rotateAroundActor(TVec3f& rDst, const TVec3f& rSrc, const LiveActor* pActor) {
+        TPos3f mtx;
+        makeMtxRotate(mtx, pActor->mRotation);
+        mtx.mult(rSrc, rDst);
     }
 
     void copyTransRotateScale(const LiveActor* pSrc, LiveActor* pDst) {
@@ -756,7 +753,7 @@ namespace MR {
     }
 
     const char* getModelResName(const LiveActor* pActor) {
-        return getModelResourceHolder(pActor)->mModelResTable->getResName(0UL);
+        return getModelResourceHolder(pActor)->mName;
     }
 
 
@@ -768,6 +765,10 @@ namespace MR {
 
     bool isExistTexture(const LiveActor* pActor, const char* pName) {
         return getJ3DModelData(pActor)->mMaterialTable.getTextureName()->getIndex(pName) != -1;
+    }
+
+    bool isExistIndirectTexture(const LiveActor* pActor) {
+        return isExistTexture(pActor, "IndDummy") || isExistTexture(pActor, "ScreenDummy");
     }
 
     void newDifferedDLBuffer(LiveActor* pActor) {
@@ -879,7 +880,7 @@ namespace MR {
     }
 
     void callRequestMovementOnAllGroupMember(const LiveActor* pActor) {
-        ::callFuncAllGroupMember(static_cast<const NameObj*>(pActor), requestMovementOn);
+        ::callFuncAllGroupMember(pActor, requestMovementOn);
     }
 
     void callInvalidateClippingAllGroupMember(const LiveActor* pActor) {
@@ -1248,7 +1249,7 @@ namespace MR {
     }
 
     void setNerveAtBckStopped(LiveActor* pActor, const Nerve* pNerve) {
-        if (pActor->mModelManager->isBckStopped()) {
+        if (isBckStopped(pActor)) {
             pActor->setNerve(pNerve);
         }
     }
@@ -1301,7 +1302,7 @@ namespace MR {
         }
 
         if (isBindedRoof(pActor)) {
-            return getRoofHitPos(pActor);
+            return pActor->mBinder->mRoofInfo._64;
         }
 
         return getGroundHitPos(pActor);
@@ -1372,7 +1373,7 @@ namespace MR {
     }
 
     void scaleBinderRadius(LiveActor* pActor, f32 scale) {
-        pActor->mBinder->mRadius *= scale;
+        pActor->mBinder->mRadius = scale * pActor->mBinder->mRadius;
     }
 
     f32 getBinderRadius(const LiveActor* pActor) {
@@ -1717,6 +1718,7 @@ namespace MR {
         }
 
         pParts->_CC = true;
+        pParts->_CD = true;
     }
 
     void invalidateCollisionParts(LiveActor* pActor) {
@@ -1750,6 +1752,18 @@ namespace MR {
     }
 
 
+    void onUpdateCollisionPartsOneTimeImmediately(LiveActor* pActor) {
+        if (!pActor->mCollisionParts->_CC) {
+            validateCollisionParts(pActor);
+        }
+
+        CollisionParts* pParts = pActor->mCollisionParts;
+        pParts->_CF = true;
+        makeMtxTR(const_cast< MtxPtr >(pActor->getBaseMtx()), pActor);
+        setCollisionMtx(pActor, pActor->mCollisionParts);
+        pParts->updateMtx();
+    }
+
     void offUpdateCollisionParts(LiveActor* pActor) {
         CollisionParts* pParts = pActor->mCollisionParts;
 
@@ -1769,7 +1783,7 @@ namespace MR {
         }
 
         TPos3f mtx;
-        ::calcCollisionMtx(&mtx, pActor);
+        ::calcCollisionMtx(&mtx, pActor, nullptr);
         pParts->resetAllMtx(mtx);
     }
 
@@ -1932,6 +1946,14 @@ namespace MR {
 
 
 
+    bool tryKillAndForceDeleteEffectAll(LiveActor* pActor) {
+        if (!isDead(pActor)) {
+            pActor->makeActorDead();
+        }
+
+        return tryForceDeleteEffectAll(pActor);
+    }
+
     void stopSceneAtStep(const LiveActor* pActor, s32 step, s32 sceneStep) {
         if (isStep(pActor, step)) {
             stopScene(sceneStep);
@@ -2000,7 +2022,7 @@ namespace MR {
         }
 
         TPos3f mtx;
-        ::calcCollisionMtx(&mtx, pActor);
+        ::calcCollisionMtx(&mtx, pActor, pParts);
         pParts->setMtx(mtx);
     }
 

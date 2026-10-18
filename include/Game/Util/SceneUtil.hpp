@@ -66,6 +66,7 @@ namespace MR {
     bool isStageScoreAttack();
     bool isStagePlayStarChance(s32);
     bool isStageEpilogueDemo();
+    bool isStageStaffRoll();
     bool isBeginScenarioStarter();
     bool isStageSuddenDeathDodoryu();
     void setInitializeStatePlacementPlayer();

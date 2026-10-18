@@ -6,6 +6,9 @@ class ScenarioData;
 
 class GalaxyStatusAccessor {
 public:
+    s32 getZoneNum() const;
+    s32 getZoneId(const char*) const;
+    bool isHiddenStar(s32) const;
     GalaxyStatusAccessor(const ScenarioData*);
 
     const char* getName() const;

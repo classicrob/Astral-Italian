@@ -43,9 +43,8 @@ namespace MR {
     void setRotation(LiveActor* pActor, const TVec3f& rRotation);
     void setRotation(LiveActor* pActor, f32 x, f32 y, f32 z);
     void setRotation(LiveActor* pActor, f32 xyz);
-    void setRotation(LiveActor* pActor, const TMtx34f& rMtx);
-    // TODO: Need Quaternion
-    // void setRotation(LiveActor* pActor, const TQuat4f& rQuat);
+    void setRotation(LiveActor* pActor, const TPos3f& rMtx);
+    void setRotation(LiveActor* pActor, const TQuat4f& rQuat);
     void setScale(LiveActor* pActor, const TVec3f&);
     void setScale(LiveActor* pActor, f32, f32, f32);
     void setScale(LiveActor* pActor, f32);
@@ -217,7 +216,7 @@ namespace MR {
     void hideModel(LiveActor* pActor);
     void hideModelAndEffects(LiveActor* pActor);
     void hideModelAndOnCalcAnim(LiveActor* pActor);
-    void showModelIfHidden(LiveActor* pActor);
+    void showModelIfHidden(LiveActor* pActor) NO_INLINE;
     void hideModelIfShown(LiveActor* pActor);
     void hideModelAndOnCalcAnimIfShown(LiveActor* pActor);
     bool isStopAnimFrame(const LiveActor* pActor);

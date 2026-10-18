@@ -44,13 +44,15 @@ namespace GameDataFunction {
         return ::getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder;
     }
 
-    GameDataPlayerStatus* getCurrentGameDataPlayerStatus() NO_INLINE {
+#pragma dont_inline on
+    GameDataPlayerStatus* getCurrentGameDataPlayerStatus() {
         return getCurrentGameDataHolder()->mPlayerStatus;
     }
 
-    GameEventValueChecker* getCurrentGameEventValueChecker() NO_INLINE {
+    GameEventValueChecker* getCurrentGameEventValueChecker() {
         return getCurrentGameDataHolder()->mEventValueChecker;
     }
+#pragma dont_inline reset
 
     bool hasPowerStar(const char* pGalaxyName, s32 scenarioNo) {
         return getCurrentGameDataHolder()->hasPowerStar(pGalaxyName, scenarioNo);

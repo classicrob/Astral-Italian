@@ -14,10 +14,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-void DodoryuDemo_FORCE_MATCH_SDATA2() {
-    (void)10.0f;
-}
-
 namespace {
     static const s32 sOpeningHideFrame = 60;
     // static const s32 sOpeningAppearFrame = _;
@@ -60,6 +56,13 @@ namespace {
     }
 };  // namespace
 
+namespace {
+    const char* sOpeningDemoName = "OpeningDemo";
+    const char* sAppearDemoName = "AppearDemo";
+    const char* sAngryDemoName = "AngryDemo";
+    const char* sDownDemoName = "DownDemo";
+}
+
 DodoryuDemoOpening::DodoryuDemoOpening(Dodoryu* pHost, const char* pName)
     : DodoryuStateBase(pHost, pName), mActorCameraInfo(), _9C(false) {
     initWithoutIter();
@@ -68,7 +71,7 @@ DodoryuDemoOpening::DodoryuDemoOpening(Dodoryu* pHost, const char* pName)
 void DodoryuDemoOpening::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(this);
     initNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningUnderground));
-    MR::initAnimCamera(mHost, &mActorCameraInfo, "OpeningDemo");
+    MR::initAnimCamera(mHost, &mActorCameraInfo, sOpeningDemoName);
     makeActorAppeared();
 }
 
@@ -80,11 +83,14 @@ void DodoryuDemoOpening::control() {
 
 void DodoryuDemoOpening::start() {
     setNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningDemoWait));
+    _9C = false;
 }
 
 void DodoryuDemoOpening::end() {
-    MR::endAnimCamera(mHost, &mActorCameraInfo, "OpeningDemo", -1, true);
-    MR::endDemo(mHost, "ドドリュウ開始デモ");
+    MR::endAnimCamera(mHost, &mActorCameraInfo, sOpeningDemoName, -1, true);
+    if (!MR::isDemoEndWaitCameraInterpolating()) {
+        MR::endDemo(mHost, sOpeningDemoName);
+    }
 
     TPos3f playerResetMtx;
     mHost->getPlayerResetMtx(&playerResetMtx, 0);
@@ -96,26 +102,23 @@ void DodoryuDemoOpening::end() {
 }
 
 void DodoryuDemoOpening::exeDemoWait() {
-    if (!MR::tryStartDemo(mHost, "ドドリュウ開始デモ")) {
+    if (!MR::tryStartDemo(mHost, sOpeningDemoName)) {
         return;
     }
 
     MR::invalidateShadowAll(mHost);
-    MR::startSystemSE("SE_DM_MEET_BOSS");
-    MR::startStageBGM("BGM_PINCH_3", false);
-    MR::startAnimCameraTargetOther(mHost, &mActorCameraInfo, "OpeningDemo", CameraTargetArg(mHost->_148), 0, false, 1.0f);
+    MR::startActionSound(mHost, "DmMeetBoss");
+    MR::startAnimCameraTargetOther(mHost, &mActorCameraInfo, sOpeningDemoName, CameraTargetArg(mHost->_148), 0, false, 1.0f);
     mHost->pauseOff();
     MR::hidePlayer();
     MR::startAction(mHost, "EffectWalk");
     mHost->startLeadHillBck("EffectWalk");
     MR::startBva(mHost, "Normal");
     MR::requestMovementOnImageEffect();
-    MR::setImageEffectControlAuto();
     mHost->shiftMoveStateRail(10.0f);
     mHost->killAllHillPieces();
     mHost->stopHillForce();
     MR::moveCoordToStartPos(mHost);
-    mHost->resetRabbit();
     setNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningUnderground));
 }
 
@@ -128,8 +131,13 @@ void DodoryuDemoOpening::exeUnderground() {
         pHost->_154 = 0;
     }
 
+    if (MR::tryEndDemo(mHost, sOpeningDemoName, false)) {
+        mHost->nextState();
+        _9C = true;
+        return;
+    }
+
     MR::startActionSound(mHost, "BmLvDodoryuMoveUShallow");
-    turnToRabbit();
 
     if (MR::isGreaterEqualStep(this, ::sOpeningHideFrame)) {
         setNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningUndergroundHide));
@@ -142,7 +150,11 @@ void DodoryuDemoOpening::exeUndergroundHide() {
         mHost->startLeadHillBck("EffectWalkHide");
     }
 
-    turnToRabbit();
+    if (MR::tryEndDemo(mHost, sOpeningDemoName, false)) {
+        mHost->nextState();
+        _9C = true;
+        return;
+    }
 
     if (MR::isActionEnd(mHost)) {
         setNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningAppear));
@@ -158,13 +170,18 @@ void DodoryuDemoOpening::exeAppear() {
         MR::startActionSound(mHost, "BmDodoryuAppearHead");
     }
 
+    if (MR::tryEndDemo(mHost, sOpeningDemoName, false)) {
+        mHost->nextState();
+        _9C = true;
+        return;
+    }
+
     MR::startActionSound(mHost, "BmLvDodoryuMoveGround");
 
     if (MR::isStep(this, ::sOpeningAppearSmileSoundStep)) {
         MR::startActionSound(mHost, "BvDodoryuFaintSmile");
     }
 
-    turnToRabbit();
 
     if (MR::isActionEnd(mHost)) {
         setNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningWalk));
@@ -178,8 +195,13 @@ void DodoryuDemoOpening::exeWalk() {
         mHost->startLeadHillBck("Walk");
     }
 
+    if (MR::tryEndDemo(mHost, sOpeningDemoName, false)) {
+        mHost->nextState();
+        _9C = true;
+        return;
+    }
+
     MR::startActionSound(mHost, "BmLvDodoryuMoveGround");
-    turnToRabbit();
 
     if (MR::isGreaterEqualStep(this, 60)) {
         mHost->_150 = false;
@@ -194,8 +216,13 @@ void DodoryuDemoOpening::exeHideReady() {
         mHost->startLeadHillBck("Hide");
     }
 
+    if (MR::tryEndDemo(mHost, sOpeningDemoName, false)) {
+        mHost->nextState();
+        _9C = true;
+        return;
+    }
+
     MR::startActionSound(mHost, "BmLvDodoryuMoveGround");
-    turnToRabbit();
 
     if (MR::isActionEnd(mHost)) {
         MR::startAction(mHost, "EffectWalkAppear");
@@ -204,7 +231,11 @@ void DodoryuDemoOpening::exeHideReady() {
 }
 
 void DodoryuDemoOpening::exeHide() {
-    turnToRabbit();
+    if (MR::tryEndDemo(mHost, sOpeningDemoName, false)) {
+        mHost->nextState();
+        _9C = true;
+        return;
+    }
 
     if (MR::isBckOneTimeAndStopped(mHost)) {
         MR::startAction(mHost, "EffectWalk");
@@ -217,29 +248,17 @@ void DodoryuDemoOpening::exeHide() {
 }
 
 bool DodoryuDemoOpening::tryFinish() {
-    if (!isNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningDemoWait)) && MR::isAnimCameraEnd(mHost, &mActorCameraInfo, "OpeningDemo")) {
-        mHost->displayRabbitMessage();
-        mHost->nextState();
-
+    if (_9C) {
         return true;
     }
-
+    if (MR::isDemoEndWaitCameraInterpolating() && !MR::isDemoEndWaitCinemaFrameStopped()) {
+        return false;
+    }
+    if (!isNerve(GET_NERVE_ANON(DodoryuDemoOpeningNrvOpeningDemoWait)) && MR::isAnimCameraEnd(mHost, &mActorCameraInfo, "OpeningDemo")) {
+        mHost->nextState();
+        return true;
+    }
     return false;
-}
-
-void DodoryuDemoOpening::turnToRabbit() {
-    TVec3f rabbitDir;
-    mHost->calcRabbitDir(&rabbitDir);
-    TPos3f mtx(mHost->mBaseMtx);
-    TVec3f up;
-    mtx.getZDir(up);
-    TVec3f front;
-    mtx.getTrans(front);
-    TPos3f rotation;
-    rotation.setRotate(up, rabbitDir);
-    mtx.concat(rotation, mtx);
-    mtx.setTrans(front);
-    mHost->setMtx(mtx);
 }
 
 DodoryuDemoAppear::DodoryuDemoAppear(Dodoryu* pHost, const char* pName) : DodoryuStateBase(pHost, pName), mActorCameraInfo() {
@@ -249,7 +268,7 @@ DodoryuDemoAppear::DodoryuDemoAppear(Dodoryu* pHost, const char* pName) : Dodory
 void DodoryuDemoAppear::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(this);
     initNerve(GET_NERVE_ANON(DodoryuDemoAppearNrvAppearPlay));
-    MR::initAnimCamera(mHost, &mActorCameraInfo, "AppearDemo");
+    MR::initAnimCamera(mHost, &mActorCameraInfo, sAppearDemoName);
     makeActorAppeared();
 }
 
@@ -258,22 +277,19 @@ void DodoryuDemoAppear::start() {
 }
 
 void DodoryuDemoAppear::end() {
-    MR::endAnimCamera(mHost, &mActorCameraInfo, "AppearDemo", -1, true);
-    MR::endDemo(mHost, "ドドリュウ出現デモ");
     MR::showPlayer();
 }
 
 void DodoryuDemoAppear::exeDemoWait() {
-    if (!MR::tryStartDemo(mHost, "ドドリュウ出現デモ")) {
+    if (!MR::tryStartDemo(mHost, sAppearDemoName)) {
         return;
     }
 
-    MR::startAnimCameraTargetSelf(mHost, &mActorCameraInfo, "AppearDemo", 0, false, 1.0f);
+    MR::startAnimCameraTargetSelf(mHost, &mActorCameraInfo, sAppearDemoName, 0, false, 1.0f);
+    MR::stopStageBGMImmediately();
     MR::stopStageBGM(60);
     MR::invalidateShadowAll(mHost);
-    mHost->leaveRabbit();
     MR::requestMovementOnImageEffect();
-    MR::setImageEffectControlAuto();
     ::resetCastDisposition(mHost);
     setNerve(GET_NERVE_ANON(DodoryuDemoAppearNrvAppearPlay));
 }
@@ -288,10 +304,10 @@ void DodoryuDemoAppear::exePlay() {
         MR::hidePlayer();
     }
 
-    if (MR::isActionEnd(mHost)) {
+    if (MR::tryEndDemoAndAnimCamera(mHost, &mActorCameraInfo, sAppearDemoName, 0)) {
         MR::startBtp(mHost, "Normal");
         mHost->nextState();
-        MR::startBossBGM(MR::BossBgmID_DodoryuA);
+        MR::startBossBGM(5);
 
         Dodoryu* pHost = mHost;
         TVec3f jointPos;
@@ -309,7 +325,7 @@ DodoryuDemoAngry::DodoryuDemoAngry(Dodoryu* pHost, const char* pName) : DodoryuS
 void DodoryuDemoAngry::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(this);
     initNerve(GET_NERVE_ANON(DodoryuDemoAngryNrvAngryPlay));
-    MR::initAnimCamera(mHost, &mActorCameraInfo, "AngryDemo");
+    MR::initAnimCamera(mHost, &mActorCameraInfo, sAngryDemoName);
     makeActorAppeared();
 }
 
@@ -318,21 +334,18 @@ void DodoryuDemoAngry::start() {
 }
 
 void DodoryuDemoAngry::end() {
-    MR::endAnimCamera(mHost, &mActorCameraInfo, "AngryDemo", -1, true);
-    MR::endDemo(mHost, "ドドリュウ怒りデモ");
     MR::showPlayer();
 }
 
 void DodoryuDemoAngry::exeDemoWait() {
-    if (!MR::tryStartDemo(mHost, "ドドリュウ怒りデモ")) {
+    if (!MR::tryStartDemo(mHost, sAngryDemoName)) {
         return;
     }
 
     MR::invalidateShadowAll(mHost);
     ::resetCastDisposition(mHost);
     MR::requestMovementOnImageEffect();
-    MR::setImageEffectControlAuto();
-    MR::startAnimCameraTargetSelf(mHost, &mActorCameraInfo, "AngryDemo", 0, false, 1.0f);
+    MR::startAnimCameraTargetSelf(mHost, &mActorCameraInfo, sAngryDemoName, 0, false, 1.0f);
     setNerve(GET_NERVE_ANON(DodoryuDemoAngryNrvAngryPlay));
 }
 
@@ -349,9 +362,9 @@ void DodoryuDemoAngry::exePlay() {
         MR::startCenterScreenBlur(60, 15.0f, 80, 5, 30);
     }
 
-    if (MR::isActionEnd(mHost)) {
+    if (MR::tryEndDemoAndAnimCamera(mHost, &mActorCameraInfo, sAngryDemoName, 0)) {
         mHost->nextState();
-        MR::startBossBGM(MR::BossBgmID_DodoryuB);
+        MR::startBossBGM(6);
 
         Dodoryu* pHost = mHost;
         TVec3f jointPos;
@@ -378,27 +391,24 @@ void DodoryuDemoDown::start() {
 }
 
 void DodoryuDemoDown::end() {
-    MR::endAnimCamera(mHost, &mActorCameraInfo, "DownDemo", -1, true);
-    MR::endDemo(mHost, "ドドリュウ死亡デモ");
     MR::showPlayer();
 }
 
 void DodoryuDemoDown::exeDemoWait() {
-    if (!MR::tryStartDemo(mHost, "ドドリュウ死亡デモ")) {
+    if (!MR::tryStartDemo(mHost, sDownDemoName)) {
         return;
     }
 
     MR::startAnimCameraTargetSelf(mHost, &mActorCameraInfo, "DownDemo", 0, false, 1.0f);
     MR::invalidateShadowAll(mHost);
     MR::requestMovementOnImageEffect();
-    MR::setImageEffectControlAuto();
     ::resetCastDisposition(mHost);
     setNerve(GET_NERVE_ANON(DodoryuDemoDownNrvDownPlay));
 }
 
 void DodoryuDemoDown::exePlay() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(mHost, "DownDemo");
+        MR::startAction(mHost, sDownDemoName);
         MR::startBrk(mHost, "Normal");
         MR::startBva(mHost, "Cry");
         MR::stopStageBGM(30);
@@ -413,7 +423,8 @@ void DodoryuDemoDown::exePlay() {
         MR::hideModel(mHost);
     }
 
-    if (MR::isAnimCameraEnd(mHost, &mActorCameraInfo, "DownDemo")) {
+    Dodoryu* host = mHost;
+    if (MR::tryEndDemo(host, sDownDemoName, MR::isAnimCameraEnd(host, &mActorCameraInfo, sDownDemoName))) {
         mHost->nextState();
     }
 }

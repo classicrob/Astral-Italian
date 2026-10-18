@@ -56,9 +56,6 @@ void SmallStone_FORCE_MATCH_STRINGS(const char** pStrings) {
     pStrings[9] = "SmallStoneMember";
     pStrings[10] = "WindLoop";
     pStrings[11] = "WindEnd";
-    pStrings[12] = "SE_OJ_STRAWBERRY_BREAK";
-    pStrings[13] = "SE_OJ_SMALL_STONE_BREAK";
-    pStrings[14] = "SE_OJ_STAR_PIECE_BURST";
 }
 
 SmallStone::SmallStone(const char* pName) : LiveActor(pName), mMembers(), mMemberCount(), mPlacementOffset(), mStoneType(), mUseGravity(true) {
@@ -89,8 +86,7 @@ void SmallStone::initAfterPlacement() {
     TVec3f axisY;
     axisY.set(0, 1, 0);
     MR::makeAxisCrossPlane(&axisX, &axisY, gravity);
-    HitSensor* pSensor = getSensor("Range");
-    pSensor->mRadius = 0.0f;
+    MR::setSensorRadius(this, "Range", 0.0f);
     f32 angleStep = TWO_PI / mMemberCount;
     TVec3f min;
     min.set(0, 0, 0);
@@ -136,7 +132,9 @@ void SmallStone::initAfterPlacement() {
 
         TVec3f euler;
         posture.getEuler(euler);
-        pMember->mRotation.set(euler.x * _180_PI, euler.y * _180_PI, euler.z * _180_PI);
+        pMember->mRotation.x = euler.x * _180_PI;
+        pMember->mRotation.y = euler.y * _180_PI;
+        pMember->mRotation.z = euler.z * _180_PI;
         pMember->calcAnim();
 
         TVec3f memberMin(*pMember->getPosition());
@@ -177,7 +175,7 @@ void SmallStone::initAfterPlacement() {
     }
 
     TVec3f center((max + min) / 2.0f);
-    mPosition.set(center);
+    MR::setPosition(this, center);
     f32 radius = 0.0f;
 
     for (i = 0; i < mMemberCount; i++) {
@@ -193,7 +191,7 @@ void SmallStone::initAfterPlacement() {
         }
     }
 
-    getSensor("Range")->mRadius = radius;
+    MR::setSensorRadius(this, "Range", radius);
     MR::setClippingTypeSphere(this, 2.0f * radius);
 }
 #pragma pop
@@ -258,7 +256,7 @@ bool SmallStone::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
 }
 
 void SmallStone::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver)) {
+    if (MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         for (s32 i = 0; i < mMemberCount; i++) {
             mMembers[i]->tryPush(pSender, pReceiver);
         }
@@ -309,21 +307,21 @@ bool SmallStoneMember::tryShake() {
 }
 
 bool SmallStoneMember::tryPush(HitSensor* pSender, HitSensor* pReceiver) {
-    TVec3f distance(pReceiver->mPosition);
+    TVec3f distance(*MR::getSensorPos(pReceiver));
     distance.sub(mPosition);
+    const f32 otherRadius = MR::getSensorRadius(pReceiver);
     const f32 collisionRadius = ::hCollisionRadius * mScale.y;
-    const f32 otherRadius = pReceiver->mRadius;
     f32 radius = collisionRadius + otherRadius;
     radius *= radius;
 
     if (distance.squared() < radius) {
-        f32 oldRadius = pSender->mRadius;
-        pSender->mRadius = ::hCollisionRadius * mScale.y;
-        TVec3f oldPosition(pSender->mPosition);
-        pSender->mPosition.set(mPosition);
-        pReceiver->receiveMessage(ACTMES_PUSH, pSender);
-        pSender->mPosition.set(oldPosition);
-        pSender->mRadius = oldRadius;
+        f32 oldRadius = MR::getSensorRadius(pSender);
+        MR::setSensorRadius(pSender, ::hCollisionRadius * mScale.y);
+        TVec3f oldPosition(*MR::getSensorPos(pSender));
+        MR::setSensorPos(pSender, mPosition);
+        MR::sendMsgPush(pReceiver, pSender);
+        MR::setSensorPos(pSender, oldPosition);
+        MR::setSensorRadius(pSender, oldRadius);
         return true;
     }
 
@@ -425,11 +423,9 @@ void SmallStone::initMember(const char* pModelName, bool useGravity) {
 
         if (mStoneType == 1) {
             f32 angle = MR::getRandom(-::hRandomRotateAngle, ::hRandomRotateAngle);
-            pMember->mRotation.x = 0.0f;
-            pMember->mRotation.y = angle;
-            pMember->mRotation.z = 0.0f;
+            MR::setRotation(pMember, 0.0f, angle, 0.0f);
             f32 scale = MR::getRandom(::hRandomScaleMin, ::hRandomScaleMax);
-            pMember->mScale.set(scale);
+            MR::setScale(pMember, scale);
             MR::startBva(pMember, "Kind");
             MR::stopBva(pMember);
             s32 max = MR::getBvaFrameMax(pMember, "Kind");
@@ -500,7 +496,7 @@ void SmallStoneMember::animControl() {
             MR::onCalcAnim(this);
             MR::startAction(this, "WindEnd");
             MR::setBckRate(this, mAnimRate);
-        } else if (!mAnimStopped && MR::isBckStopped(this)) {
+        } else if (!mAnimStopped && MR::isActionEnd(this)) {
             mAnimStopped = true;
             MR::offCalcAnim(this);
         }
@@ -509,12 +505,7 @@ void SmallStoneMember::animControl() {
 
 void SmallStoneMember::doBreak(SmallStone* pHost) {
     MR::emitEffect(this, mBreakEffectName);
-
-    if (pHost->mStoneType == 2) {
-        MR::startSound(this, "SE_OJ_STRAWBERRY_BREAK");
-    } else {
-        MR::startSound(this, "SE_OJ_SMALL_STONE_BREAK");
-    }
+    MR::startActionSound(this, "Break", -1, -1, -1);
 
     if (mUseGravity) {
         MR::appearStarPiece(pHost, mPosition, 1, 0.0f, 40.0f, pHost->mIsStarPiece);
@@ -523,7 +514,6 @@ void SmallStoneMember::doBreak(SmallStone* pHost) {
         MR::appearStarPiece(pHost, position, 1, 0.0f, 40.0f, pHost->mIsStarPiece);
     }
 
-    MR::startSound(this, "SE_OJ_STAR_PIECE_BURST");
     MR::offCalcAnim(this);
     MR::hideModel(this);
 }

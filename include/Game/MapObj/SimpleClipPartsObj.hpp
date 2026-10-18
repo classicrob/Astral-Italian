@@ -15,4 +15,6 @@ public:
     virtual void initCaseNoUseSwitchB(const MapObjActorInitInfo&);
 
     void exeWait();
+
+    /* 0xD0 */ u8 _D0;
 };

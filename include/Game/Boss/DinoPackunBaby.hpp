@@ -43,6 +43,14 @@ public:
     virtual ~DinoPackunBabyState();
     virtual void init();
     virtual void appear();
+
+    /* 0x10 */ const char* mStateName;
+    /* 0x14 */ const char* mActionName;
+    /* 0x18 */ s32 mDuration;
+    /* 0x1C */ const MR::ActorMoveParam* mChaseMoveParam;
+    /* 0x20 */ const MR::ActorMoveParam* mEscapeMoveParam;
+    /* 0x24 */ bool mIsAttack;
+
 };
 
 // TU02: demo state (size 0x20).

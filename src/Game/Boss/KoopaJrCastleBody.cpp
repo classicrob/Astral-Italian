@@ -44,15 +44,6 @@ namespace {
 
     typedef bool (KoopaJrCastleBody::*GearCalcFunc)(TPos3f*, const JointControllerInfo&);
 
-    // 0..10: body gear / propeller / windmill callbacks, 11: GearL, 12: GearR (target .data table)
-    static GearCalcFunc sGearFuncs[13] = {
-        &KoopaJrCastleBody::calcBodyGear1, &KoopaJrCastleBody::calcBodyGear2, &KoopaJrCastleBody::calcBodyGear3,
-        &KoopaJrCastleBody::calcPropeller, &KoopaJrCastleBody::calcPropeller, &KoopaJrCastleBody::calcPropeller,
-        &KoopaJrCastleBody::calcPropeller, &KoopaJrCastleBody::calcWindmill, &KoopaJrCastleBody::calcWindmill,
-        &KoopaJrCastleBody::calcWindmill, &KoopaJrCastleBody::calcWindmill, &KoopaJrCastleBody::calcGearL,
-        &KoopaJrCastleBody::calcGearR,
-    };
-
     typedef JointControlDelegator< KoopaJrCastleBody > BodyDelegator;
 
     static JointController* createBodyJoint(KoopaJrCastleBody* pHost, const char* pName, GearCalcFunc pFunc) {
@@ -71,29 +62,45 @@ KoopaJrCastleBody::KoopaJrCastleBody(LiveActor* pHost, const char* pName)
 
 KoopaJrCastleBody::~KoopaJrCastleBody() {}
 
+namespace {
+    static GearCalcFunc sGearFunc0 = &KoopaJrCastleBody::calcBodyGear1;
+    static GearCalcFunc sGearFunc1 = &KoopaJrCastleBody::calcBodyGear2;
+    static GearCalcFunc sGearFunc2 = &KoopaJrCastleBody::calcBodyGear3;
+    static GearCalcFunc sGearFunc3 = &KoopaJrCastleBody::calcPropeller;
+    static GearCalcFunc sGearFunc4 = &KoopaJrCastleBody::calcPropeller;
+    static GearCalcFunc sGearFunc5 = &KoopaJrCastleBody::calcPropeller;
+    static GearCalcFunc sGearFunc6 = &KoopaJrCastleBody::calcPropeller;
+    static GearCalcFunc sGearFunc7 = &KoopaJrCastleBody::calcWindmill;
+    static GearCalcFunc sGearFunc8 = &KoopaJrCastleBody::calcWindmill;
+    static GearCalcFunc sGearFunc9 = &KoopaJrCastleBody::calcWindmill;
+    static GearCalcFunc sGearFunc10 = &KoopaJrCastleBody::calcWindmill;
+    static GearCalcFunc sGearFunc11 = &KoopaJrCastleBody::calcGearL;
+    static GearCalcFunc sGearFunc12 = &KoopaJrCastleBody::calcGearR;
+}
+
 void KoopaJrCastleBody::init(const JMapInfoIter& rInfo) {
     mGearCtrl = new JointController*[11];
     for (s32 i = 0; i < 11; i++) {
         mGearCtrl[i] = nullptr;
     }
-    mGearCtrl[0] = createBodyJoint(this, sGearNames[0], sGearFuncs[0]);
-    mGearCtrl[1] = createBodyJoint(this, sGearNames[1], sGearFuncs[1]);
-    mGearCtrl[2] = createBodyJoint(this, sGearNames[2], sGearFuncs[2]);
-    mGearCtrl[3] = createBodyJoint(this, sGearNames[3], sGearFuncs[3]);
-    mGearCtrl[4] = createBodyJoint(this, sGearNames[4], sGearFuncs[4]);
-    mGearCtrl[5] = createBodyJoint(this, sGearNames[5], sGearFuncs[5]);
-    mGearCtrl[6] = createBodyJoint(this, sGearNames[6], sGearFuncs[6]);
-    mGearCtrl[7] = createBodyJoint(this, sGearNames[7], sGearFuncs[7]);
-    mGearCtrl[8] = createBodyJoint(this, sGearNames[8], sGearFuncs[8]);
-    mGearCtrl[9] = createBodyJoint(this, sGearNames[9], sGearFuncs[9]);
-    mGearCtrl[10] = createBodyJoint(this, sGearNames[10], sGearFuncs[10]);
+    mGearCtrl[0] = createBodyJoint(this, sGearNames[0], sGearFunc0);
+    mGearCtrl[1] = createBodyJoint(this, sGearNames[1], sGearFunc1);
+    mGearCtrl[2] = createBodyJoint(this, sGearNames[2], sGearFunc2);
+    mGearCtrl[3] = createBodyJoint(this, sGearNames[3], sGearFunc3);
+    mGearCtrl[4] = createBodyJoint(this, sGearNames[4], sGearFunc4);
+    mGearCtrl[5] = createBodyJoint(this, sGearNames[5], sGearFunc5);
+    mGearCtrl[6] = createBodyJoint(this, sGearNames[6], sGearFunc6);
+    mGearCtrl[7] = createBodyJoint(this, sGearNames[7], sGearFunc7);
+    mGearCtrl[8] = createBodyJoint(this, sGearNames[8], sGearFunc8);
+    mGearCtrl[9] = createBodyJoint(this, sGearNames[9], sGearFunc9);
+    mGearCtrl[10] = createBodyJoint(this, sGearNames[10], sGearFunc10);
 
     mGearCtrlLR = new JointController*[28];
     for (s32 i = 0; i < 14; i++) {
-        mGearCtrlLR[i] = createBodyJoint(this, sGearTable[i].mName, sGearFuncs[11]);
+        mGearCtrlLR[i] = createBodyJoint(this, sGearTable[i].mName, sGearFunc11);
     }
     for (s32 i = 14; i < 28; i++) {
-        mGearCtrlLR[i] = createBodyJoint(this, sGearTable[i].mName, sGearFuncs[12]);
+        mGearCtrlLR[i] = createBodyJoint(this, sGearTable[i].mName, sGearFunc12);
     }
 
     MR::initJointTransform(this);
@@ -143,6 +150,7 @@ void KoopaJrCastleBody::makeActorAppeared() {
     mRate = 0.0f;
 }
 
+// NONMATCHING: early-return branch layout
 void KoopaJrCastleBody::calcAnim() {
     PartsModel::calcAnim();
     if (!MR::isDead(this) && !MR::isNoCalcAnim(this)) {
@@ -156,7 +164,9 @@ void KoopaJrCastleBody::calcAnim() {
     }
 }
 
+// NONMATCHING: literal pool offsets and callee-saved register assignment
 void KoopaJrCastleBody::control() {
+    const char* pBck;
     if (_F4) {
         if (!MR::isDead(mLowModel)) {
             mLowModel->kill();
@@ -176,7 +186,7 @@ void KoopaJrCastleBody::control() {
         HitSensor* pSensor = getSensor("Collision");
         MR::sendArbitraryMsg(0xF4, MR::getWallSensor(this), pSensor);
     }
-    const char* pBck = MR::getPlayingBckName(this);
+    pBck = MR::getPlayingBckName(this);
     if (MR::isEqualString(pBck, "MoveR")) {
         _F8 -= mRate;
         _FC += mRate;
@@ -233,10 +243,12 @@ void KoopaJrCastleBody::exeWait() {
     }
 }
 
+#pragma dont_inline on
 void KoopaJrCastleBody::exeFall() {
     MR::offBind(mHost);
     _F0 = MR::calcNerveValue(this, 120, -1600.0f, 0.0f);
 }
+#pragma dont_inline off
 
 void KoopaJrCastleBody::exeDead() {
     if (MR::isFirstStep(this)) {
@@ -367,10 +379,11 @@ bool KoopaJrCastleBody::isMoveState() const {
     return ret;
 }
 
-u8 KoopaJrCastleBody::getStateFlag() const {
+bool KoopaJrCastleBody::getStateFlag() const {
     return mState->getFlag();
 }
 
+// NONMATCHING: vector temporary stack slots
 bool KoopaJrCastleBody::calcBodyGear1(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
     f32 step = (f32)mGearStep;
@@ -388,6 +401,7 @@ bool KoopaJrCastleBody::calcBodyGear1(TPos3f* pMtx, const JointControllerInfo&) 
     return true;
 }
 
+// NONMATCHING: vector temporary stack slots and load scheduling
 bool KoopaJrCastleBody::calcBodyGear2(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
     TVec3f sp8 = -sAxisY;
@@ -418,6 +432,7 @@ bool KoopaJrCastleBody::calcBodyGear3(TPos3f* pMtx, const JointControllerInfo&) 
     return true;
 }
 
+// NONMATCHING: vector temporary stack slots
 bool KoopaJrCastleBody::calcPropeller(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
     f32 step = (f32)mPropStep;
@@ -435,6 +450,7 @@ bool KoopaJrCastleBody::calcPropeller(TPos3f* pMtx, const JointControllerInfo&) 
     return true;
 }
 
+// NONMATCHING: vector temporary stack slots
 bool KoopaJrCastleBody::calcWindmill(TPos3f* pMtx, const JointControllerInfo&) {
     MtxPtr pDst = reinterpret_cast< MtxPtr >(pMtx);
     f32 step = (f32)mWindStep;

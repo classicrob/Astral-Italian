@@ -1,7 +1,6 @@
 #include "Game/MapObj/PurpleCoinHolder.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/Coin.hpp"
-#include "Game/MapObj/PurpleCoinStarter.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
 
@@ -10,24 +9,15 @@ namespace {
     // static const s32 sGetIncrementCount = _;
 };  // namespace
 
-PurpleCoinHolder::PurpleCoinHolder() : DeriveActorGroup< Coin >("パープルコイン管理", ::sMaxPurpleCoin), mStarter() {
-    MR::declarePowerStarCoin100();
+PurpleCoinHolder::PurpleCoinHolder() : DeriveActorGroup< Coin >("パープルコイン管理", ::sMaxPurpleCoin) {
     MR::createPurpleCoinCounter();
-}
-
-void PurpleCoinHolder::initAfterPlacement() {
-    if (mStarter == nullptr) {
-        MR::validatePurpleCoinCounter();
+    if (!MR::isStagePurpleCoinsMoreThan100(MR::getCurrentStageName())) {
+        MR::declarePowerStarCoin100();
     }
 }
 
-void PurpleCoinHolder::start() {
+void PurpleCoinHolder::initAfterPlacement() {
     MR::validatePurpleCoinCounter();
-}
-
-void PurpleCoinHolder::registStarter(PurpleCoinStarter* pStarter) {
-    mStarter = pStarter;
-    mStarter->setHost(this);
 }
 
 namespace {
@@ -43,9 +33,5 @@ namespace MR {
 
     void addToPurpleCoinHolder(const NameObj* pObj, Coin* pCoin) {
         ::getPurpleCoinHolder()->registerActor(pCoin);
-    }
-
-    void registPurpleCoinStarter(PurpleCoinStarter* pStarter) {
-        ::getPurpleCoinHolder()->registStarter(pStarter);
     }
 };  // namespace MR

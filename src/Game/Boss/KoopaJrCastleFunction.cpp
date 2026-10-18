@@ -1,7 +1,4 @@
 #pragma auto_inline off
-// PLACEHOLDER(objects): unnamed core helper (demo end wait check); resolve when core names fn_80020800
-extern "C" bool fn_80020800();
-
 #include "Game/Boss/KoopaJrCastleNerves.hpp"
 #include <cmath>
 #include "Game/LiveActor/ActorCameraInfo.hpp"
@@ -68,7 +65,7 @@ namespace KoopaJrCastleFunction {
     }
 
     // fn_800D35F0: ends the demo started by tryStartDemo and restores the castle parts.
-    // NONMATCHING: regalloc (name/camera in r28/r29 in target), li r4,0 before setPlayerPosAndWait, and an uninitialized r4 before setLodCtrl
+    // Shared-header blocker: PartsModelLodCtrl getter is still declared as setLodCtrl(LodCtrl*)
     bool tryEndDemo(const char* pName, const char* pCameraName, bool bForce) {
         KoopaJrCastle* pCastle = CASTLE();
         bool ended;
@@ -88,8 +85,8 @@ namespace KoopaJrCastleFunction {
         }
 
         if (MR::isDemoEndWaitCameraInterpolating()) {
-            if (fn_80020800()) {
-                MR::setPlayerPosAndWait("\x83}\x83\x8a\x83I\x88\xca\x92u[\x83f\x83\x82\x8c\xe3]");
+            if (MR::isDemoEndWaitCinemaFrameStopped()) {
+                MR::setPlayerPosAndWait("\x83}\x83\x8a\x83I\x88\xca\x92u[\x83""f\x83\x82\x8c\xe3]", false);
             }
         }
 
@@ -108,7 +105,7 @@ namespace KoopaJrCastleFunction {
             pCastle->mKoopaJr->setLodCtrl(pCastle->mKoopaJr->mLodCtrl)->validate();
             pCastle->mBody->offFlagF5();
             pCastle->mHead->setNerveD();
-            MR::setPlayerPosAndWait("\x83}\x83\x8a\x83I\x88\xca\x92u[\x83f\x83\x82\x8c\xe3]");
+            MR::setPlayerPosAndWait("\x83}\x83\x8a\x83I\x88\xca\x92u[\x83""f\x83\x82\x8c\xe3]", false);
             MR::showPlayer();
             return true;
         }
@@ -116,7 +113,7 @@ namespace KoopaJrCastleFunction {
     }
 
     // fn_800D3770: intro setup for the castle parts: movement on, demo anims, player placement.
-    // NONMATCHING: target passes an unset register as the LodCtrl argument of setLodCtrl (uninitialized read)
+    // Shared-header blocker: PartsModelLodCtrl getter is still declared as setLodCtrl(LodCtrl*)
     void fn_800D3770(const char* pName) {
         KoopaJrCastle* pCastle = CASTLE();
         MR::requestMovementOn(pCastle->mHead);
@@ -127,7 +124,7 @@ namespace KoopaJrCastleFunction {
         MR::requestMovementOn(pCastle->mBreakModel);
         if (MR::isEqualString(pName, "DemoOpeningKoopaJrCastle")) {
             MR::startBckPlayer(pName, nullptr);
-            MR::setPlayerPos("\x83}\x83\x8a\x83I\x88\xca\x92u[\x83f\x83\x82\x92\x86]");
+            MR::setPlayerPos("\x83}\x83\x8a\x83I\x88\xca\x92u[\x83""f\x83\x82\x92\x86]");
         } else {
             MR::hidePlayer();
         }
@@ -206,9 +203,11 @@ namespace KoopaJrCastleFunction {
         return CASTLE()->mStateBattle->mPhase;
     }
 
+    #pragma dont_inline on
     const TVec3f& getStartPos() {
-        return CASTLE()->mStartPos;
+        return static_cast<KoopaJrCastleAccessor*>(MR::getSceneObjHolder()->getObj(0x8B))->mCastle->mStartPos;
     }
+    #pragma dont_inline off
 
     bool isCapsuleSensorHost(const KoopaJrCastle* pCastle, const HitSensor* pSensor) {
         LiveActor* pCapsule = pCastle->mCapsule;
@@ -227,6 +226,19 @@ namespace KoopaJrCastleFunction {
         return MR::isOnPlayer(CASTLE()->mHead);
     }
 
+
+    bool fn_800D3C60() {
+        const TVec3f* player;
+        KoopaJrCastle* castle = CASTLE();
+        player = MR::getPlayerPos();
+        TVec3f delta = (castle->mHead->mPosition - castle->mGravity * 1000.0f) - *player;
+        TVec3f planar(0.0f);
+        f32 height = MR::vecKillElement(delta, -castle->mGravity, &planar);
+        if (-700.0f < height && height < 1500.0f && PSVECMag(&planar) < 3500.0f) {
+            return true;
+        }
+        return false;
+    }
 
     bool isElectricActive() {
         KoopaJrCastle* pCastle = CASTLE();
@@ -274,30 +286,21 @@ namespace KoopaJrCastleFunction {
     }
 
     // fn_800D3F10: player position projected onto the castle surface (plane of gravity) relative to the castle.
-    // NONMATCHING: target keeps more separate temporaries (144-byte frame, _savegpr_29); stack/regalloc only
-    void fn_800D3F10(TVec3f* pOut, LiveActor* pCastle) {
+        void fn_800D3F10(TVec3f* pOut, LiveActor* pCastle) {
         TVec3f v;
         JMathInlineVEC::PSVECSubtract(MR::getPlayerPos(), &pCastle->mPosition, &v);
-        JMAVECScaleAdd(&pCastle->mGravity, &v, &v, -pCastle->mGravity.dot(v));
+        TVec3f* gravity = &pCastle->mGravity;
+        JMAVECScaleAdd(gravity, &v, &v, -gravity->dot(v));
         MR::normalizeOrZero(&v);
         if (MR::isNearZero(v, 0.001f)) {
             MR::getPlayerFrontVec(&v);
             JGeometry::negateInternal(&v.x, &v.x);
         }
-        TVec3f a = pCastle->mGravity * -10.0f;
-        TVec3f b = v * 3200.0f;
-        TVec3f c = pCastle->mPosition + b;
-        JMathInlineVEC::PSVECSubtract(&c, &a, &c);
-        *pOut = c;
+        *pOut = (pCastle->mPosition + v * 3200.0f) - pCastle->mGravity * -10.0f;
         if (fn_800D41C0(pOut)) {
             return;
         }
-        TVec3f e = pCastle->mGravity * -10.0f;
-        TVec3f f = v * 3200.0f;
-        TVec3f g(pCastle->mPosition);
-        JMathInlineVEC::PSVECSubtract(&g, &f, &g);
-        JMathInlineVEC::PSVECSubtract(&g, &e, &g);
-        *pOut = g;
+        *pOut = (pCastle->mPosition - v * 3200.0f) - pCastle->mGravity * -10.0f;
     }
 
     // fn_800D4080: spawns the dominate/cannon sequence and plays the PlayerBlow action sound.
@@ -316,22 +319,18 @@ namespace KoopaJrCastleFunction {
     }
 
     // fn_800D4150: moves the player to the castle start point (offset 1000 along +Z), snapped to the named position.
-    // NONMATCHING: stack/temporary layout differs (dir kept at a different slot)
-    void fn_800D4150() {
-        TVec3f dir(0.0f, 0.0f, 1.0f);
-        TVec3f offset = dir * 1000.0f;
-        TVec3f pos = CASTLE()->mStartPos + offset;
-        MR::tryFindNamePos("\x83v\x83\x8c\x83C\x83\x84\x81[\x88\xca\x92u", &pos, nullptr);
+        void fn_800D4150() {
+        TVec3f pos = getStartPos() + TVec3f(0.0f, 0.0f, 1.0f) * 1000.0f;
+        MR::tryFindNamePos("\x83v\x83\x8c\x83""C\x83\x84\x81[\x88\xca\x92u", &pos, nullptr);
         MR::setPlayerPos(pos);
     }
 
     // fn_800D41C0: true when pPos is within 5000 units of the castle's start position.
-    // NONMATCHING: callee-saved register assignment (r30/r31) and the castle temporary order differ
-    bool fn_800D41C0(TVec3f* pPos) {
-        KoopaJrCastle* pCastle = CASTLE();
+        bool fn_800D41C0(TVec3f* pPos) {
+        const TVec3f& start = CASTLE()->mStartPos;
         TVec3f d(*pPos);
-        d -= pCastle->mStartPos;
-        return PSVECMag(&d) < 5000.0f;
+        d -= start;
+        return __fabsf(PSVECMag(&d)) < 5000.0f;
     }
 
     // fn_800D4240: resets the body's F0 flag and binds the castle to its fire bar shadows.
@@ -551,9 +550,7 @@ namespace KoopaJrCastleFunction {
         TVec3f pos(0.0f);
         MR::extractMtxTrans(headMtx, &pos);
 
-        TVec3f offset = *MR::getPlayerGravity() * 100.0f;
-        TVec3f playerPos(*MR::getPlayerPos());
-        JMathInlineVEC::PSVECSubtract(&playerPos, &offset, &playerPos);
+        TVec3f playerPos = *MR::getPlayerPos() - *MR::getPlayerGravity() * 100.0f;
         TVec3f local(playerPos);
         PSMTXMultVec(mtx, playerPos, local);
         TVec3f dir(local);
@@ -573,8 +570,9 @@ namespace KoopaJrCastleFunction {
             dir = front;
         }
 
+        f32 sideAngle;
         f32 cosRate = MR::cosDegree(rate);
-        f32 sideAngle = 57.295780181884766f * side.angle(dir);
+        sideAngle = 57.295780181884766f * side.angle(dir);
         TVec3f cross;
         PSVECCrossProduct(&side, &dir, &cross);
         if (MR::normalizeOrZero(&cross)) {
@@ -591,9 +589,7 @@ namespace KoopaJrCastleFunction {
             if (MR::normalizeOrZero(&side)) {
                 side = front;
             }
-            TVec3f negUp;
-            JGeometry::negateInternal(&up.x, &negUp.x);
-            MR::rotateVecDegree(&side, side, negUp, cosRate);
+            MR::rotateVecDegree(&side, side, -up, cosRate);
         } else {
             MR::turnVecToVecCos(&side, side, dir, cosRate, cross, 0.02f);
         }
@@ -605,12 +601,12 @@ namespace KoopaJrCastleFunction {
         TVec3f xDir;
         MR::extractMtxXDir(headMtx, &xDir);
         f32 tolerance = 1.0f;
-        return xDir.angle(dir) <= 0.017453292f * tolerance;
+        sideAngle = 0.017453292f * tolerance;
+        return xDir.angle(dir) <= sideAngle;
     }
 
     // fn_800D5040: turns the castle head's matrix toward the player at the given rate (side/up re-orthonormalized).
-    // NONMATCHING: register/stack allocation of the turn rate (f30 vs f31, 256-byte frame)
-    bool fn_800D5040(f32 farg0) {
+        bool fn_800D5040(f32 farg0) {
         f32 turnRate = MR::isNearZero(farg0, 0.001f) ? 0.1f : farg0;
         MtxPtr headMtx = CASTLE()->mHead->_A4;
         MtxPtr jointMtx = MR::getJointMtx(CASTLE()->mHead, "JointRoot");
@@ -627,30 +623,21 @@ namespace KoopaJrCastleFunction {
         TVec3f pos(0.0f);
         MR::extractMtxTrans(headMtx, &pos);
 
-        TVec3f offset = *MR::getPlayerGravity() * 100.0f;
-        TVec3f playerPos(*MR::getPlayerPos());
-        JMathInlineVEC::PSVECSubtract(&playerPos, &offset, &playerPos);
+        TVec3f playerPos = *MR::getPlayerPos() - *MR::getPlayerGravity() * 100.0f;
         TVec3f local(playerPos);
         PSMTXMultVec(mtx, playerPos, local);
-        TVec3f dir(local);
-        JMathInlineVEC::PSVECSubtract(&dir, &pos, &dir);
+        TVec3f dir(side);
+        MR::vecKillElement(dir, TVec3f(0.0f, 1.0f, 0.0f), &dir);
         if (MR::normalizeOrZero(&dir)) {
             dir = front;
         }
-        TVec3f planeDir;
-        MR::turnVecToPlane(&planeDir, dir, up);
-        MR::clampVecAngleDeg(&dir, planeDir, 10.0f);
-        if (MR::normalizeOrZero(&dir)) {
-            dir = front;
-        }
-
-        f32 cosRate = MR::cosDegree(turnRate);
         f32 sideAngle = 57.295780181884766f * side.angle(dir);
         TVec3f cross;
         PSVECCrossProduct(&side, &dir, &cross);
         if (MR::normalizeOrZero(&cross)) {
             cross = up;
         }
+        f32 cosRate = MR::cosDegree(turnRate);
         if (sideAngle > 90.0f) {
             TVec3f sideXZ(side);
             sideXZ.y = 0.0f;
@@ -661,17 +648,16 @@ namespace KoopaJrCastleFunction {
             if (MR::normalizeOrZero(&side)) {
                 side = front;
             }
-            TVec3f negUp;
-            JGeometry::negateInternal(&up.x, &negUp.x);
-            MR::rotateVecDegree(&side, side, negUp, cosRate);
+            MR::rotateVecDegree(&side, side, -up, cosRate);
         } else {
             MR::turnVecToVecCos(&side, side, dir, cosRate, cross, 0.02f);
         }
-        if (MR::normalizeOrZero(&side)) {
-            side = front;
-        }
         MR::makeMtxSideUpPos(reinterpret_cast<TPos3f*>(headMtx), side, up, pos);
-        return true;
+        TVec3f xDir;
+        MR::extractMtxXDir(headMtx, &xDir);
+        f32 tolerance = 1.0f;
+        f32 maxAngle = 0.017453292f * tolerance;
+        return xDir.angle(dir) <= maxAngle;
     }
 
     // fn_800D5340: star piece burst from the capsule, opposite its gravity, with the burst sound on the body.

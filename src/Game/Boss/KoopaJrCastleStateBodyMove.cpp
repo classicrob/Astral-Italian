@@ -36,6 +36,7 @@ KoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMove(KoopaJrCastleBody* pHost)
 
 KoopaJrCastleStateBodyMove::~KoopaJrCastleStateBodyMove() {}
 
+
 void KoopaJrCastleStateBodyMove::init() {
     initNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvSel::sInstance, 0);
     kill();
@@ -82,7 +83,7 @@ bool KoopaJrCastleStateBodyMove::isMoving() const {
     return ret;
 }
 
-u8 KoopaJrCastleStateBodyMove::getFlag() const {
+bool KoopaJrCastleStateBodyMove::getFlag() const {
     return _2C;
 }
 
@@ -111,6 +112,7 @@ void KoopaJrCastleStateBodyMove::exe800CF2A0() {
     }
 }
 
+// NONMATCHING: clamp floating-point register/order differences; literal pool ordering reported
 void KoopaJrCastleStateBodyMove::exe800CF3B0() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     if (MR::isFirstStep(this)) {
@@ -127,14 +129,15 @@ void KoopaJrCastleStateBodyMove::exe800CF3B0() {
         }
     }
     MR::startActionSound(mHost, "MoveRotate", -1, -1, -1);
-    f32 rate = 0.0f;
-    f32 temp = _1C + 0.025f;
-    _1C = temp;
-    if (temp >= rate) {
+    _1C += 0.025f;
+    f32 temp = _1C;
+    f32 rate;
+    if (temp < 0.0f) {
+        rate = 0.0f;
+    } else if (temp > 0.5f) {
         rate = 0.5f;
-        if (temp <= rate) {
-            rate = temp;
-        }
+    } else {
+        rate = temp;
     }
     _1C = rate;
     if (MR::turnDirectionToPlayerDegreeHorizon(pCastle, &pCastle->mFrontVec, rate)) {
@@ -231,6 +234,7 @@ void KoopaJrCastleStateBodyMove::exe800CF700() {
     }
 }
 
+// NONMATCHING: vector-copy argument load order; literal pool ordering reported
 void KoopaJrCastleStateBodyMove::exe800CF8D0() {
     KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
     TVec3f target(0.0f);
@@ -253,8 +257,10 @@ void KoopaJrCastleStateBodyMove::exe800CF8D0() {
     if (angle < 4.0f) {
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvRotB::sInstance);
     } else if (mMoveStep > 900 || MR::isPlayerDamaging()) {
+        ++mMoveStep;
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
     } else {
+        ++mMoveStep;
         mHost->validateCollisionA();
     }
 }
@@ -283,7 +289,7 @@ void KoopaJrCastleStateBodyMove::exe800CFA70() {
         }
     }
     MR::attenuateVelocity(pCastle, 0.93f);
-    if (mMoveStep + 1 > 900 || MR::isPlayerDamaging()) {
+    if (++mMoveStep > 900 || MR::isPlayerDamaging()) {
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
     }
     if (MR::calcDistanceToPlayerH(mHost) < 4000.0f && MR::isFaceToPlayerDegree(mHost, pCastle->mFrontVec, 60.0f)) {
@@ -318,7 +324,7 @@ void KoopaJrCastleStateBodyMove::exe800CFC40() {
         }
     }
     MR::attenuateVelocity(pCastle, 0.93f);
-    if (mMoveStep + 1 > 900 || MR::isPlayerDamaging()) {
+    if (++mMoveStep > 900 || MR::isPlayerDamaging()) {
         setNerve(&NrvKoopaJrCastleStateBodyMove::KoopaJrCastleStateBodyMoveNrvStop::sInstance);
     }
     mHost->validateCollisionA();
@@ -382,12 +388,14 @@ bool KoopaJrCastleStateBodyMove::isTurnEnd(f32 dir) {
     return false;
 }
 
+// NONMATCHING: floating-point register assignment and constant-load order
 bool KoopaJrCastleStateBodyMove::isOutsideCenter() {
     f32 dist;
     TVec3f dir;
     MR::separateScalarAndDirection(&dist, &dir, mDirection - KoopaJrCastleFunction::getCastle()->mPosition);
+    f32 centerRadius = 3200.0f;
     f32 margin = 50.0f;
-    return dist > 3200.0f - margin;
+    return dist > centerRadius - margin;
 }
 
 void KoopaJrCastleStateBodyMove::setMoveRate(f32 rate) {

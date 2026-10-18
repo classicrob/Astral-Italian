@@ -111,7 +111,10 @@ void Gorogoro::init(const JMapInfoIter& rIter) {
     TVec3f up = -mGravity;
     MR::makeMtxUpFrontPos(&mBaseTRMtx, up, front, mPosition);
 
-    TVec3f shadowOffset(0.0f, 0.0f, -10.0f);
+    TVec3f shadowOffset;
+    shadowOffset.x = 0.0f;
+    shadowOffset.y = 0.0f;
+    shadowOffset.z = -10.0f;
     MR::setShadowDropPositionMtxPtr(this, "Body", mBaseTRMtx.mMtx, shadowOffset);
 
     char nameBuf[0x80];
@@ -143,6 +146,7 @@ void Gorogoro::control() {
     MR::fn_8000E760(&mSensorFollowPos, this, &mPosition, -mRollSpeed, mRollSpeed);
 }
 
+// NONMATCHING: target inlines TVec3f::add on the reflect position as paired-single ops; ours calls the out-of-line add
 void Gorogoro::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayerOrRide(pReceiver)) {
         bool isHit = false;
@@ -167,14 +171,14 @@ void Gorogoro::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                     MR::sendMsgEnemyAttackFlip(pReceiver, pSender);
                 }
             } else {
-                if (dot < 0.0f && dot < 30.0f) {
+                if (dot >= 0.0f && dot < 30.0f) {
                     TVec3f reflectBase(*MR::getSensorPos(this, "ReflectSensorBase"));
                     TVec3f scaledSide(side);
                     scaledSide.x *= 10.0f;
                     scaledSide.y *= 10.0f;
                     scaledSide.z *= 10.0f;
                     TVec3f newPos(*MR::getSensorPos(pReceiver));
-                    newPos += scaledSide;
+                    newPos.add(scaledSide);
                     MR::setSensorPos(this, "ReflectSensorBase", newPos);
                     MR::sendMsgGorogoroReflect(pReceiver, getSensor("ReflectSensorBase"));
                     MR::setSensorPos(this, "ReflectSensorBase", reflectBase);
@@ -307,6 +311,7 @@ void GorogoroCylinderRock::init(const JMapInfoIter& rIter) {
     MR::setShadowDropPositionMtxPtr(this, "Under", mShadowMtx.mMtx, sCylinderRockUnderShadowOffset);
 }
 
+// NONMATCHING: target inlines the TPos3f paired-single copy of mBaseTRMtx into mtx (gekko_ps_copy12 stays out of line under auto_inline off)
 void GorogoroCylinderRock::calcAndSetBaseMtx() {
     TPos3f mtx;
     mtx.identity();
@@ -466,6 +471,7 @@ bool GorogoroCylinderRock::tryUpdateNerve() {
     bool railArg1 = false;
     MR::getCurrentRailPointArg1NoInit(this, &railArg1);
     if (railArg1) {
+        MR::invalidateShadow(this, "Body");
     } else {
         MR::validateShadow(this, "Body");
     }

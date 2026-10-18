@@ -88,7 +88,7 @@ public:
     NO_INLINE void setMode1();
     NO_INLINE void setMode2();
     NO_INLINE bool isMoving() const;
-    NO_INLINE u8 getFlag() const;
+    NO_INLINE bool getFlag() const;
     void exe800CF2A0();
     void exe800CF3B0();
     void exe800CF530();
@@ -109,7 +109,7 @@ public:
     /* 0x20 */ s32 mMode;
     /* 0x24 */ f32 _24;
     /* 0x28 */ s32 mMoveStep;
-    /* 0x2C */ u8 _2C;
+    /* 0x2C */ bool _2C;
 };
 
 class KoopaJrCastleBody : public PartsModel {
@@ -150,7 +150,7 @@ public:
     NO_INLINE bool isMove() const;
     NO_INLINE bool isMoveState() const;
     void clearStateMoveCount();
-    u8 getStateFlag() const;
+    bool getStateFlag() const;
     bool calcBodyGear1(TPos3f*, const JointControllerInfo&);
     bool calcBodyGear2(TPos3f*, const JointControllerInfo&);
     bool calcBodyGear3(TPos3f*, const JointControllerInfo&);

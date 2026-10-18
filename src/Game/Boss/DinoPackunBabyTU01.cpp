@@ -10,270 +10,6 @@
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 
-// PLACEHOLDER(objects): unnamed core helper (jump toward the player along the front vector with a jump param); resolve when core names fn_800126F0
-extern "C" void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
-// PLACEHOLDER(objects): unnamed core helper (jump with a jump param, same as fn_800126F0 but chase flavour); resolve when core names fn_800127A0
-extern "C" void fn_800127A0(LiveActor*, const TVec3f*, const f32*);
-// PLACEHOLDER(objects): unnamed core helper (= MR::setVelocityBlowAttack(actor, sender, receiver, f32, f32, stopFrames)); resolve when core names fn_80012B90
-extern "C" void fn_80012B90(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-
-void DinoPackunBaby::chasePlayer(const MR::ActorMoveParam* pParam, bool bAttack) {
-    MR::moveAndTurnToPlayer(this, &mFront, pParam->_0, pParam->_4, pParam->_8, pParam->_C);
-    if (bAttack) {
-        MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Message"));
-    }
-}
-
-void DinoPackunBaby::escapeFromPlayer(const MR::ActorMoveParam* pParam, bool bAttack) {
-    MR::escapeFromPlayer(this, &mFront, pParam->_0, pParam->_4, pParam->_8, pParam->_C);
-    if (bAttack) {
-        MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Message"));
-    }
-}
-
-bool DinoPackunBaby::updateJumpState(ActorStateBaseInterface* pState) {
-    bool isHit = false;
-    if (MR::isBinded(this) && MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"))) {
-        isHit = true;
-    }
-    MR::updateActorState(pState);
-    if (isHit) {
-        return false;
-    }
-    return MR::isOnGround(this);
-}
-
-bool DinoPackunBaby::isInSight(const f32* pSight) {
-    return MR::isInSightFanPlayer(this, mFront, pSight[0], pSight[1], pSight[2]);
-}
-
-bool DinoPackunBaby::isPlayerInFront() {
-    TVec3f dir(*MR::getPlayerPos());
-    dir.sub(mPosition);
-    MR::normalizeOrZero(&dir);
-    return dir.dot(mFront) > 0.0f;
-}
-
-void DinoPackunBaby::requestMovementOnParts() {
-    MR::requestMovementOn(mShellLeft);
-    MR::requestMovementOn(mShellRight);
-    MR::requestMovementOn(mShellHip);
-    MR::requestMovementOn(mShellCenter);
-    mShellLeft->requestMovementOnModel();
-    mShellRight->requestMovementOnModel();
-    mShellHip->requestMovementOnModel();
-    mShellCenter->requestMovementOnModel();
-    if (!MR::isDead(mPetal)) {
-        MR::requestMovementOn(mPetal);
-    }
-    if (!MR::isDead(mTail)) {
-        MR::requestMovementOn(mTail);
-    }
-}
-
-void DinoPackunBaby::startActionShells(const char* pName) {
-    MR::startAction(mShellLeft, pName);
-    MR::startAction(mShellRight, pName);
-    MR::startAction(mShellHip, pName);
-    MR::startAction(mShellCenter, pName);
-}
-
-bool DinoPackunBaby::breakShellLeft(HitSensor* pSensor) {
-    if (MR::isDead(mShellLeft)) {
-        return false;
-    }
-    if (pSensor == nullptr || MR::isEqualSensor(pSensor, this, "ShellLeft")) {
-        mShellLeft->kill();
-        MR::invalidateHitSensor(this, "ShellLeft");
-        return true;
-    }
-    return false;
-}
-
-bool DinoPackunBaby::breakShellRight(HitSensor* pSensor) {
-    if (MR::isDead(mShellRight)) {
-        return false;
-    }
-    if (pSensor == nullptr || MR::isEqualSensor(pSensor, this, "ShellRight")) {
-        mShellRight->kill();
-        MR::invalidateHitSensor(this, "ShellRight");
-        return true;
-    }
-    return false;
-}
-
-bool DinoPackunBaby::breakShellHip(HitSensor* pSensor) {
-    if (MR::isDead(mShellHip)) {
-        return false;
-    }
-    if (pSensor == nullptr || MR::isEqualSensor(pSensor, this, "ShellHip")) {
-        mShellHip->kill();
-        mTail->appear();
-        MR::invalidateHitSensor(this, "ShellHip");
-        return true;
-    }
-    return false;
-}
-
-bool DinoPackunBaby::breakAllShells() {
-    bool isLeft = breakShellLeft(nullptr);
-    bool isRight = breakShellRight(nullptr);
-    bool isHip = breakShellHip(nullptr);
-    mTail->kill();
-    if (!MR::isDead(mShellCenter)) {
-        mShellCenter->kill();
-    }
-    if (isLeft || isRight || isHip) {
-        return true;
-    }
-    return false;
-}
-
-void DinoPackunBaby::startBreakShells(const char* pName) {
-    mShellLeft->startBreak(pName);
-    mShellRight->startBreak(pName);
-    mShellHip->startBreak(pName);
-    mShellCenter->startBreak(pName);
-}
-
-void DinoPackunBaby::updateShellsMtx() {
-    mShellLeft->updateModelMtx();
-    mShellRight->updateModelMtx();
-    mShellHip->updateModelMtx();
-    mShellCenter->updateModelMtx();
-}
-
-void DinoPackunBaby::restoreShells() {
-    mShellLeft->appear();
-    mShellRight->appear();
-    mShellHip->appear();
-    mShellCenter->appear();
-    mTail->kill();
-    MR::validateHitSensor(this, "ShellLeft");
-    MR::validateHitSensor(this, "ShellRight");
-    MR::validateHitSensor(this, "ShellHip");
-}
-
-bool DinoPackunBaby::isShellsAllAlive() {
-    if (!MR::isDead(mShellLeft) && !MR::isDead(mShellRight) && !MR::isDead(mShellHip)) {
-        return true;
-    }
-    return false;
-}
-
-bool DinoPackunBaby::isShellLeftDead() {
-    return MR::isDead(mShellLeft);
-}
-
-bool DinoPackunBaby::isShellRightDead() {
-    return MR::isDead(mShellRight);
-}
-
-bool DinoPackunBaby::isShellHipDead() {
-    return MR::isDead(mShellHip);
-}
-
-bool DinoPackunBaby::isShellsAllDead() {
-    if (MR::isDead(mShellLeft) && MR::isDead(mShellRight) && MR::isDead(mShellHip)) {
-        return true;
-    }
-    return false;
-}
-
-bool DinoPackunBaby::isShellSensor(HitSensor* pSensor) {
-    if (MR::isEqualSensor(pSensor, this, "ShellLeft") || MR::isEqualSensor(pSensor, this, "ShellRight") ||
-        MR::isEqualSensor(pSensor, this, "ShellHip") || MR::isEqualSensor(pSensor, this, "ShellCenter")) {
-        return true;
-    }
-    return false;
-}
-
-void DinoPackunBaby::appearPetalDownLand() {
-    mPetal->makeActorAppeared();
-    MR::startAction(mPetal, "DownLand");
-    MR::hideMaterial(this, "DinoPackunBabyPetalMat1_v");
-}
-
-void DinoPackunBaby::appearPetalDeath() {
-    mPetal->makeActorAppeared();
-    MR::startAction(mPetal, "DemoDeath");
-    MR::hideMaterial(this, "DinoPackunBabyPetalMat2_v");
-}
-
-void DinoPackunBaby::killPetal() {
-    mPetal->makeActorDead();
-}
-
-void DinoPackunBaby::hitReaction() {
-    MR::zeroVelocity(this);
-    mScaleController->startHitReaction();
-}
-
-void DinoPackunBaby::initDemoCamera(const char* pName) {
-    MR::initAnimCamera(this, mCameraInfo, pName);
-}
-
-bool DinoPackunBaby::tryStartDemoWithCamera(const char* pName, const char* pPlayerBck, s32 frame) {
-    bool isStart;
-    if (pPlayerBck != nullptr) {
-        isStart = MR::tryStartDemoMarioPuppetable(this, pName);
-    } else {
-        isStart = MR::tryStartDemo(this, pName);
-    }
-    if (isStart) {
-        MR::zeroVelocity(this);
-        TPos3f pos;
-        MR::findNamePos("ベビーディノパックンデモ位置", pos);
-        mFront.set(pos.mMtx[0][2], pos.mMtx[1][2], pos.mMtx[2][2]);
-        MR::setPosition(this, pos.mMtx[0][3], pos.mMtx[1][3], pos.mMtx[2][3]);
-        if (pPlayerBck != nullptr) {
-            MR::setPlayerPos("ベビーディノパックンデモ位置");
-        } else {
-            MR::setPlayerPos("プレイヤーデモ位置（ベビーディノパックン戦）");
-        }
-        MR::startAnimCameraTargetSelf(this, mCameraInfo, pName, frame, false, 1.0f);
-        return true;
-    }
-    return false;
-}
-
-bool DinoPackunBaby::tryEndDemoWithCamera(const char* pName, bool isPuppetEnd) {
-    bool isEnd;
-    if (isPuppetEnd) {
-        isEnd = MR::tryEndDemoAndAnimCamera(this, mCameraInfo, pName, 0);
-    } else {
-        isEnd = MR::endDemoAndAnimCameraIfActionEnd(this, mCameraInfo, pName, 0);
-    }
-    if (isEnd) {
-        if (MR::isDemoEndWaitCameraInterpolating()) {
-            MR::tryForceDeleteEffectAll(mShellLeft);
-            MR::tryForceDeleteEffectAll(mShellRight);
-            MR::tryForceDeleteEffectAll(mShellHip);
-            MR::tryForceDeleteEffectAll(mShellCenter);
-            MR::tryForceDeleteEffectAll(mPetal);
-            MR::tryForceDeleteEffectAll(mTail);
-            mShellLeft->killModel();
-            mShellRight->killModel();
-            mShellHip->killModel();
-            mShellCenter->killModel();
-        }
-        return true;
-    }
-    return false;
-}
-
-void DinoPackunBaby::initMultiCamera(const char* pName) {
-    MR::initMultiActorCameraNoInit(this, mCameraInfo, pName);
-}
-
-void DinoPackunBaby::startMultiCamera(const char* pName) {
-    MR::startMultiActorCameraTargetPlayer(this, mCameraInfo, pName, -1);
-}
-
-void DinoPackunBaby::endMultiCamera(const char* pName) {
-    MR::endMultiActorCamera(this, mCameraInfo, pName, false, -1);
-}
-
 #define DECL_NRV(name)                                                                                                                               \
     class name : public Nerve {                                                                                                                      \
     public:                                                                                                                                          \
@@ -459,7 +195,7 @@ void DinoPackunBabyBattle::exeAttackJumpSign() {
 
 void DinoPackunBabyBattle::exeAttackJump() {
     if (MR::isFirstStep(this)) {
-        fn_800127A0(mHost, &mHost->mFront, mChaseJumpSpeed);
+        MR::fn_800127A0(mHost, &mHost->mFront, mChaseJumpSpeed);
     }
     if (mHost->updateJumpState(this)) {
         MR::tryHitReaction(mHost, "追いかけジャンプ着地");
@@ -549,7 +285,7 @@ void DinoPackunBabyBattle::exeEscapeTurnStart() {
 
 void DinoPackunBabyBattle::exeDown() {
     if (MR::isFirstStep(this)) {
-        fn_800126F0(mHost, &mHost->mFront, mDownSpeed);
+        MR::fn_800126F0(mHost, &mHost->mFront, mDownSpeed);
     }
     MR::updateActorState(this);
     if (!mIsFirstHalf) {
@@ -562,8 +298,13 @@ void DinoPackunBabyBattle::exeDown() {
             return;
         }
     }
-    if ((!MR::isBinded(mHost) || !MR::sendMsgEnemyAttackToBindedSensor(mHost, mHost->getSensor("Body"))) &&
-        MR::reboundVelocityFromCollision(mHost, 0.0f, 3.0f, 1.0f)) {
+    if (MR::isBinded(mHost)) {
+        DinoPackunBaby* host = mHost;
+        if (MR::sendMsgEnemyAttackToBindedSensor(host, host->getSensor("Body"))) {
+            return;
+        }
+    }
+    if (MR::reboundVelocityFromCollision(mHost, 0.0f, 3.0f, 1.0f)) {
         MR::tryHitReactionAtPos(mHost, "ダウン着地", &mHost->mPosition);
         MR::zeroVelocity(mHost);
         setNerve(GET_NRV(DownLand));
@@ -629,12 +370,12 @@ bool DinoPackunBabyBattle::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
             if (mHost->isShellsAllDead()) {
                 mHost->breakAllShells();
                 MR::tryHitReactionBetweenSensors(mHost, "全シェル破壊（スピン）", pSender, pReceiver);
-                fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
+                MR::fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
                 setNerve(GET_NRV(EscapeStart));
                 return true;
             }
             MR::tryHitReactionBetweenSensors(mHost, "シェル破壊（スピン）", pSender, pReceiver);
-            fn_80012B90(mHost, mShellDamageSpeed[0], mShellDamageSpeed[1], pSender, pReceiver, 4);
+            MR::fn_80012B90(mHost, mShellDamageSpeed[0], mShellDamageSpeed[1], pSender, pReceiver, 4);
             endChaseCamera();
             setNerve(GET_NRV(DamageShell));
             return true;
@@ -645,14 +386,14 @@ bool DinoPackunBabyBattle::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
             !isNerve(GET_NRV(Escape)) && !isNerve(GET_NRV(EscapeLand)) && !isNerve(GET_NRV(EscapeTurnStart)) &&
             !isNerve(GET_NRV(EscapeTurn)) && !isNerve(GET_NRV(Down)) && !isNerve(GET_NRV(DownLand)) && !mHost->isShellsAllAlive()) {
             mHost->breakAllShells();
-            fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
+            MR::fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
             MR::tryHitReactionBetweenSensors(mHost, "素肌ダメージ（スピン）", pSender, pReceiver);
             setNerve(GET_NRV(EscapeStart));
             return true;
         }
     }
     if (MR::isMsgPlayerHipDrop(msg) && mHost->isShellSensor(pReceiver) && mHost->breakAllShells()) {
-        fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
+        MR::fn_80012B90(mHost, mEscapeJumpSpeed[0], mEscapeJumpSpeed[1], pSender, pReceiver, 4);
         MR::tryHitReactionBetweenSensors(mHost, "シェル破壊（ヒップドロップ）", pSender, pReceiver);
         endChaseCamera();
         setNerve(GET_NRV(EscapeStart));

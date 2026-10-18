@@ -36,7 +36,7 @@ namespace {
     static Color8 sEdgeColor = Color8(0, 46, 200, 128);
 };  // namespace
 
-FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj(pName), _C() {
+FallOutFieldDraw::FallOutFieldDraw(const char* pName) : NameObj(pName), _14(0), _C(false), _1C(0), _20(false) {
     MR::createClipAreaHolder();
     MR::connectToScene(this, MR::MovementType_None, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_FallOutFieldDraw);
     MR::createScreenAlphaSceneObj(2, 0.5f);

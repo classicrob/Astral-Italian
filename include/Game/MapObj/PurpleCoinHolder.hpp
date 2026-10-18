@@ -4,7 +4,6 @@
 
 class Coin;
 class NameObj;
-class PurpleCoinStarter;
 
 class PurpleCoinHolder : public DeriveActorGroup< Coin > {
 public:
@@ -12,15 +11,9 @@ public:
     PurpleCoinHolder();
 
     virtual void initAfterPlacement();
-
-    void start();
-    void registStarter(PurpleCoinStarter*);
-
-    /* 0x20 */ PurpleCoinStarter* mStarter;
 };
 
 namespace MR {
     void createPurpleCoinHolder();
     void addToPurpleCoinHolder(const NameObj*, Coin*);
-    void registPurpleCoinStarter(PurpleCoinStarter*);
 };  // namespace MR

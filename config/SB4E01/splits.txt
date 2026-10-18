@@ -1056,9 +1056,14 @@ Game/Boss/DinoPackunBaby.cpp:
 	.text       start:0x800B78F0 end:0x800B81E0
 	.ctors      start:0x80643E44 end:0x80643E48
 
+Game/Boss/DinoPackunBabyHelpers.cpp:
+	.text       start:0x800B81E0 end:0x800B8E20
+	.data       start:0x80671268 end:0x80671348
+
 Game/Boss/DinoPackunBabyTU01.cpp:
-	.text       start:0x800B81E0 end:0x800BAB10
+	.text       start:0x800B8E20 end:0x800BAB10
 	.ctors      start:0x80643E48 end:0x80643E4C
+	.data       start:0x80671348 end:0x80671970
 
 Game/Boss/DinoPackunBabyTU02.cpp:
 	.text       start:0x800BAB10 end:0x800BAFC0

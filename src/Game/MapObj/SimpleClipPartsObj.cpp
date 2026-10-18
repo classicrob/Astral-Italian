@@ -12,7 +12,7 @@ namespace NrvSimpleClipPartsObj {
     NEW_NERVE(HostTypeWait, SimpleClipPartsObj, Wait);
 };  // namespace NrvSimpleClipPartsObj
 
-SimpleClipPartsObj::SimpleClipPartsObj(const char* pName) : MapObjActor(pName) {
+SimpleClipPartsObj::SimpleClipPartsObj(const char* pName) : MapObjActor(pName), _D0(0) {
 }
 
 void SimpleClipPartsObj::init(const JMapInfoIter& rrIter) {

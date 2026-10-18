@@ -66,8 +66,7 @@ void MarioFaceShipAttentionConversationDirector::initAfterPlacement() {
         Param* pParam;
         for (s32 i = 0; i < mParamNum; i++) {
             pParam = mParams[i];
-            // PLACEHOLDER(core): MarioFaceShipEventCast (core) == MarioFaceShipNpcGroupInfo (m1), same 0x10 struct; resolve when one name is chosen
-            MR::registerMarioFaceShipNpcGroup(pParam->mActorGroup, reinterpret_cast< const MarioFaceShipNpcGroupInfo* >(pParam->mCast));  // same layout as MarioFaceShipEventCast
+            MR::registerMarioFaceShipNpcGroup(pParam->mActorGroup, pParam->mCast);
             bool found = false;
             for (s32 j = 0; j < pParam->mActorGroup->mObjectCount; j++) {
                 if (pParam->mActorGroup->getActor(j) == pParam->mTargetActor) {

@@ -41,3 +41,9 @@ public:
 
     /* 0x9C */ ProjmapEffectMtxSetter* mProjmapEffectMtxSetter;
 };
+
+class SoundSyncSky : public Sky {
+public:
+    SoundSyncSky(const char*);
+    virtual ~SoundSyncSky();
+};

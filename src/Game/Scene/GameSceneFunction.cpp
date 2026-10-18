@@ -60,8 +60,8 @@ namespace GameSceneFunction {
         return ::getGameScene()->isExecStageClearDemo();
     }
 
-    void loadScenarioWaveData() {
-        SingletonHolder< GameSystem >::get()->mSceneController->loadScenarioWaveData();
+    void loadScenarioWaveData(bool loadPlayer) {
+        SingletonHolder< GameSystem >::get()->mSceneController->loadScenarioWaveData(loadPlayer);
     }
 
     bool isLoadDoneScenarioWaveData() {

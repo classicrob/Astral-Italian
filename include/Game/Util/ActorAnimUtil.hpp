@@ -121,9 +121,9 @@ namespace MR {
     bool setBckTrackWeight(const LiveActor*, u32, f32);
     bool isAnyAnimPlaying(const LiveActor*, const char*);
     bool isExistAnimInKeeper(const LiveActor*, const char*);  // SMG2 fn_80008F00; PLACEHOLDER(core4)
-    bool startAnimIfExistAll(const LiveActor*, const char*);  // SMG2 fn_80008740; PLACEHOLDER(core4)
-    void changeTrackWeights(const LiveActor*, const f32*);  // SMG2 fn_80009570; PLACEHOLDER(core4)
-    void setTrackWeights(const LiveActor*, f32, f32, f32);  // SMG2 fn_800095D0; PLACEHOLDER(core4)
+    bool startAnimIfExistAll(const LiveActor*, const char*);  // SMG2 fn_80008740
+    void changeTrackWeights(const LiveActor*, const f32*);  // SMG2 fn_80009570
+    void setTrackWeights(const LiveActor*, f32, f32, f32);  // SMG2 fn_800095D0
 }
 
 namespace MR {

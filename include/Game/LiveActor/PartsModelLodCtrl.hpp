@@ -14,7 +14,7 @@ public:
     virtual void control();
     virtual void calcAndSetBaseMtx();
 
-    LodCtrl* setLodCtrl(LodCtrl*);
+    LodCtrl* getLodCtrl();
     void initLightCtrl();
 
     /* 0xA0 */ LodCtrl* mLodCtrl;

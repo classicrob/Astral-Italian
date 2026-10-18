@@ -32,7 +32,6 @@ namespace UnnamedDemoCallee {
     LiveActor* fn_8013FE00(LiveActor*, const char*, const char*);
     void fn_8013FE60(s32);
     s32 fn_8004E770(const char*, const char*);
-    void fn_80422740();
     StaffRoll* fn_801440F0(LiveActor*, ActorCameraInfo*, s32);
     void fn_80144280(StaffRoll*);
     void fn_801442A0(StaffRoll*, s32);

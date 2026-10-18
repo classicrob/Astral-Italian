@@ -18,6 +18,16 @@ public:
     virtual void draw() const;
     virtual void calcAnim();
 
+    void requestStartSuperDreamerTalk();
+    void requestEndSuperDreamerTalk();
+    bool isExecAction() const;
+    bool isExecSuperDreamerTalk() const;
+    bool permitsStartPauseMenu() const;
+    bool isExecPauseMenu() const;
+    void exeAction() NO_INLINE;
+    void calcViewAndEntry() NO_INLINE;
+    void drawNormalObjects() const NO_INLINE;
+    void startWorldMapBgm() const NO_INLINE;
     void notifyEndScenarioStarter();
     void requestPlayMovieDemo();
     void requestStartGameOverDemo();
@@ -64,7 +74,7 @@ public:
     /* 0x20 */ GamePauseSequence* mPauseSeq;
     /* 0x24 */ GameStageClearSequence* mStageClearSeq;
     /* 0x28 */ bool mDraw3D;
-    /* 0x29 */ u8 _29;
+    /* 0x29 */ mutable u8 _29;
     /* 0x2A */ u8 _2A;
     /* 0x2B */ u8 _2B[0x5];
 };

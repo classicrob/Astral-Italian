@@ -7,6 +7,8 @@ class LiveActor;
 class WorldMapResultController;
 class WorldMapResultDraw;
 class WorldMapResultWorld;
+class WorldMapResultRoute;
+class MiniTicoMaster;
 
 /// @brief SMG2-only. Drives the "result" cutscenes on the world map (route opening, comet appear, Tico creation...).
 class WorldMapResultCommand : public NameObj {
@@ -39,6 +41,24 @@ public:
     bool isWorldEnabled(s32) const NO_INLINE;
     bool tryCometAppear();
     void endCurrent();
+    MiniTicoMaster* getCurrentTicoItem() NO_INLINE;  // was fn_804F0500
+    WorldMapResultWorld* getCurrentWorld() NO_INLINE;  // was fn_804F0560
+    void appearRocketAt(const TVec3f&) NO_INLINE;  // was fn_804F05B0
+    void appearRocketAtNode(s32, s32) NO_INLINE;  // was fn_804F0630
+    void setupTicoRouteCreate();  // was fn_804F0700
+    void refreshTicoStartNode();  // was fn_804F08C0
+    void updateCurrentWorldUnits();  // was fn_804F0920
+    void setupRouteOpen(s32, WorldMapResultRoute*);  // was fn_804F0970
+    void setupRouteOpenFromSwitchMoveBlock(s32, WorldMapResultRoute*);  // was fn_804F09C0
+    void setRouteCamera(s32, WorldMapResultRoute*);  // was fn_804F0A40
+    bool isRouteNotHeld(s32, WorldMapResultRoute*);  // was fn_804F0B20
+    TVec3f* getGalaxyPosition(const char*) NO_INLINE;  // was fn_804F0B40
+    void endGalaxyPointingAnim(const char*, s32);  // was fn_804F0BA0
+    void clearGalaxyComet(const char*);  // was fn_804F0C00
+    void appearCometAtGalaxy(const char*, LiveActor*);  // was fn_804F0C60
+    void setupCometGalaxy(const char*);  // was fn_804F0D00
+    bool updateCometCamera(const char*, TVec3f*, TVec3f*, f32);  // was fn_804F0D90
+    bool updateRouteOpenSound(s32);  // was fn_804F0EE0
 
     /* 0x14 */ s32 mWorldNum;
     /* 0x18 */ WorldMapResultWorld** mWorlds;

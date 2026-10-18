@@ -466,10 +466,10 @@ bool GalaxyWorldMapInfo::hasFlag() const {
 
 void GalaxyWorldMapInfo::updateStatusIcon() {
     MR::makeGalaxyStatusAccessor(mGalaxyName);
-    s32 a = MR::getGalaxyStarTotalNum(mGalaxyName);
-    s32 b = WorldMapFunction::hasIncompleteGreenStar(mGalaxyName);
-    s32 c = MR::isGalaxyCompletedWithGreen(mGalaxyName);
-    s32 d = MR::isGalaxyCompletedNoGreen(mGalaxyName);
+    bool a = MR::getGalaxyStarTotalNum(mGalaxyName);
+    bool b = WorldMapFunction::hasIncompleteGreenStar(mGalaxyName);
+    bool c = MR::isGalaxyCompletedWithGreen(mGalaxyName);
+    bool d = MR::isGalaxyCompletedNoGreen(mGalaxyName);
     mStatusIcon->setCometPanes(0, a, b, c, d);
     WorldMapFunction::setStatusIconKind(mStatusIcon, mGalaxyName);
 }

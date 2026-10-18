@@ -33,7 +33,7 @@ void WorldMapResultStateCreateTico::exeOpen() {
     if (!MR::isLessStep(this, getResultEndStep())) {
         if (MR::isStep(this, getResultEndStep())) {
             mHost->startResult(-1);
-            fn_804F0700(mHost);
+            mHost->setupTicoRouteCreate();
             MR::openSystemWipeMario(-1);
             return;
         }
@@ -51,7 +51,7 @@ void WorldMapResultStateCreateTico::exeExtend() {
     MR::startActionSound(mHost->mRocket, "RoadExtend", -1, -1, -1);
 
     if (MR::isStep(this, 90)) {
-        fn_804F08C0(mHost);
+        mHost->refreshTicoStartNode();
     }
 
     if (MR::isGreaterEqualStep(this, 135)) {
@@ -65,7 +65,7 @@ void WorldMapResultStateCreateTico::exeWhiteClose() {
     }
 
     if (!MR::isWipeActive()) {
-        fn_804F0920(mHost);
+        mHost->updateCurrentWorldUnits();
         setNerve(GET_NERVE(WorldMapResultStateCreateTico, WorldMapResultStateCreateTicoWhiteWait));
     }
 }

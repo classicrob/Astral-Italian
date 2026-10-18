@@ -2,6 +2,7 @@
 
 #include <revolution/types.h>
 
+class AudStageUseResourceList;
 class AudBgm;
 class AudBgmMgr;
 class AudInstListMgr;
@@ -18,6 +19,7 @@ class AudSystem;
 class JAISoundHandle;
 
 namespace AudWrap {
+    AudStageUseResourceList* getStageUseResourceList();
     AudSystem* getSystem();
     bool hasSystem();
     AudSoundInfo* getSoundInfo();

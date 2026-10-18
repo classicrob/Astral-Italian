@@ -2,6 +2,9 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/RaceRail.hpp"
+#include "Game/Map/StartCountdownLayout.hpp"
+#include "Game/Screen/RaceLayout.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -46,109 +49,8 @@ namespace {
     }
 };  // namespace
 
-RaceManagerLayout::RaceManagerLayout(const char* pName) : LayoutActor(pName, true) {
-}
-
-void RaceManagerLayout::init(const JMapInfoIter& rIter) {
-    MR::connectToSceneLayout(this);
-    initLayoutManager("Race", 1);
-    MR::createAndAddPaneCtrl(this, "Go", 1);
-    MR::createAndAddPaneCtrl(this, "Goal", 1);
-    MR::createAndAddPaneCtrl(this, "Lose", 1);
-    MR::createAndAddPaneCtrl(this, "TimeUp", 1);
-    MR::createAndAddPaneCtrl(this, "Rank", 1);
-    MR::createAndAddPaneCtrl(this, "ScoreTime", 1);
-    initEffectKeeper(2, "Race", nullptr);
-    hideAllPane();
-}
-
-void RaceManagerLayout::playCountAndGo() {
-    MR::showPane(this, "Go");
-    MR::showPane(this, "BestRecord");
-    MR::startPaneAnim(this, "Go", "Count", 0);
-}
-
-void RaceManagerLayout::playGo() {
-    MR::showPane(this, "Go");
-    MR::startPaneAnim(this, "Go", "Count", 0);
-    MR::setPaneAnimFrame(this, "Go", 180.0f, 0);
-    MR::emitEffect(this, "RaceStart");
-}
-
-// NOTE: This function is an approximation of behavior based on
-// string placement in .data section. Function does not exist in build.
-void RaceManagerLayout::playRecord() {
-    MR::showPane(this, "Record");
-    MR::startPaneAnim(this, "Record", "Record", 0);
-    MR::startPaneAnim(this, "ScoreTime", "Record", 0);
-    MR::emitEffect(this, "RaceGoal");
-}
-
-void RaceManagerLayout::playGoal() {
-    MR::showPane(this, "Goal");
-    MR::startPaneAnim(this, "Goal", "Goal", 0);
-    MR::startPaneAnim(this, "ScoreTime", "Goal", 0);
-    MR::emitEffect(this, "RaceGoal");
-}
-
-void RaceManagerLayout::playLose() {
-    MR::showPane(this, "Lose");
-    MR::startPaneAnim(this, "Lose", "Lose", 0);
-    MR::startPaneAnim(this, "ScoreTime", "Lose", 0);
-}
-
-void RaceManagerLayout::playTimeUp() {
-    MR::showPane(this, "TimeUp");
-    MR::startPaneAnim(this, "TimeUp", "TimeUp", 0);
-    MR::startPaneAnim(this, "ScoreTime", "TimeUp", 0);
-}
-
-void RaceManagerLayout::playRank(u32 rank) {
-    MR::showPane(this, "Rank");
-    MR::startPaneAnim(this, "Rank", "Rank", 0);
-    MR::setPaneAnimFrameAndStop(this, "Rank", rank, 0);
-}
-
-bool RaceManagerLayout::isAllAnimStopped() {
-    return MR::isPaneAnimStopped(this, "Go", 0) && MR::isPaneAnimStopped(this, "Goal", 0) && MR::isPaneAnimStopped(this, "Lose", 0) &&
-           MR::isPaneAnimStopped(this, "TimeUp", 0) && MR::isPaneAnimStopped(this, "ScoreTime", 0) && MR::isPaneAnimStopped(this, "Rank", 0);
-}
-
-void RaceManagerLayout::hideRecordPane() {
-    MR::hidePane(this, "Record");
-}
-
-void RaceManagerLayout::hideBestRecordPane() {
-    MR::hidePane(this, "BestRecord");
-}
-
-void RaceManagerLayout::hideAllPane() {
-    MR::hidePane(this, "Go");
-    MR::hidePane(this, "Goal");
-    MR::hidePane(this, "Lose");
-    MR::hidePane(this, "TimeUp");
-    MR::hidePane(this, "Record");
-    MR::hidePane(this, "BestRecord");
-    MR::hidePane(this, "Rank");
-}
-
-bool RaceManagerLayout::isPlayCountAnim() const {
-    return MR::getPaneAnimFrame(this, "Go", 0) < 180.0f;
-}
-
-bool RaceManagerLayout::isPlayCountAndGoAnim() const {
-    return !MR::isPaneAnimStopped(this, "Go", 0);
-}
-
-void RaceManagerLayout::setTime(u32 time) {
-    MR::updateClearTimeTextBox(this, "TimeCounter", time);
-}
-
-void RaceManagerLayout::setBestTime(u32 bestTime) {
-    MR::updateClearTimeTextBox(this, "BestTimeCounter", bestTime);
-}
-
 namespace NrvRaceManager {
+    NEW_NERVE(RaceManagerNrvWaitFirst, RaceManager, Wait);
     NEW_NERVE(RaceManagerNrvWait, RaceManager, Wait);
     NEW_NERVE(RaceManagerNrvPrepWipe, RaceManager, Prep);
     NEW_NERVE(RaceManagerNrvPrepImme, RaceManager, Prep);
@@ -177,11 +79,13 @@ RaceManager::RaceManager()
 void RaceManager::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
 
-    mLayout = new RaceManagerLayout("レース管理用レイアウト");
+    mLayout = new RaceLayout("レース管理用レイアウト");
     mLayout->init(rIter);
+    mStartCountdown = new StartCountdownLayout();
+    mStartCountdown->init(rIter);
 
     MR::invalidateClipping(this);
-    initNerve(GET_NERVE(RaceManager, RaceManagerNrvWait));
+    initNerve(GET_NERVE(RaceManager, RaceManagerNrvWaitFirst));
     makeActorAppeared();
 }
 
@@ -190,6 +94,12 @@ void RaceManager::movement() {
 }
 
 void RaceManager::exeWait() {
+    if (!isNerve(GET_NERVE(RaceManager, RaceManagerNrvWait)) && GameSequenceFunction::isResultMiss()) {
+        prepareStart();
+        MR::requestStartDemoMarioPuppetableWithoutCinemaFrame(this, "レース", GET_NERVE(RaceManager, RaceManagerNrvPrepImme), nullptr);
+        MR::stopStageBGM(90);
+        MR::startSubBGM("BGM_MINIGAME_START", false);
+    }
 }
 
 void RaceManager::exePrep() {
@@ -209,7 +119,9 @@ void RaceManager::exeWipeOut() {
             MR::stopStageBGM(90);
         }
 
-        MR::closeWipeFade();
+        if (!MR::isWipeBlank()) {
+            MR::closeWipeFade();
+        }
     }
 
     if (MR::isWipeActive()) {
@@ -240,9 +152,14 @@ void RaceManager::exeWipeWait() {
 void RaceManager::exeWipeIn() {
     if (MR::isFirstStep(this)) {
         if (isNerve(GET_NERVE(RaceManager, RaceManagerNrvPreWipeIn))) {
-            MR::startSubBGM("BGM_MINIGAME_START", false);
-        } else if (!MR::isPlayerDead()) {
-            MR::startCurrentStageBGM();
+            if (mJudge == nullptr) {
+                MR::startSubBGM("BGM_MINIGAME_START", false);
+            }
+        } else {
+            MR::startCameraInterpolation(0);
+            if (!MR::isPlayerDead()) {
+                MR::startCurrentStageBGM(false);
+            }
         }
 
         MR::openWipeFade();
@@ -253,12 +170,18 @@ void RaceManager::exeWipeIn() {
     }
 
     if (isNerve(GET_NERVE(RaceManager, RaceManagerNrvPreWipeIn))) {
+        if (mJudge != nullptr) {
+            if (!mJudge->isJudgeReady()) {
+                return;
+            }
+            MR::startSubBGM("BGM_MINIGAME_START", false);
+        }
         setNerve(GET_NERVE(RaceManager, RaceManagerNrvIntro));
     } else {
         MR::onPlayerControl(true);
         MR::endDemo(this, "レース");
-        std::for_each(&mRacer[0], &mRacer[mRacerNum], std::mem_func(&AbstractRacer::exitRacer));
         setNerve(GET_NERVE(RaceManager, RaceManagerNrvWait));
+        std::for_each(&mRacer[0], &mRacer[mRacerNum], std::mem_func(&AbstractRacer::exitRacer));
     }
 }
 
@@ -281,31 +204,17 @@ void RaceManager::exeCount() {
         mLayout->setTime(0);
         mLayout->setBestTime(mBestTime);
         mLayout->appear();
-        mLayout->playCountAndGo();
-        MR::showPane(mLayout, "Record");
+        mStartCountdown->appear();
     }
-
     mLayout->movement();
-
-    if (getNerveStep() % 60 == 0) {
-        MR::startSystemSE("SE_SY_RACE_COUNT_DOWN");
+    if (mStartCountdown->isStart()) {
+        startRace();
+        setNerve(GET_NERVE(RaceManager, RaceManagerNrvRace));
     }
-
-    if (mLayout->isPlayCountAnim()) {
-        return;
-    }
-
-    mLayout->playGo();
-    startRace();
-    setNerve(GET_NERVE(RaceManager, RaceManagerNrvRace));
 }
 
 void RaceManager::exeRace() {
-    if (MR::isFirstStep(this)) {
-        MR::startSystemSE("SE_SY_RACE_START");
-    }
-
-    MR::updateClearTimeTextBox(mLayout, "TimeCounter", getNerveStep());
+    mLayout->setTime(getNerveStep());
 
     if (mRacerNum > 1) {
         mLayout->playRank(getRank(mPlayerRacer));
@@ -342,10 +251,13 @@ void RaceManager::exeGoal() {
 
         if (mRank == 0) {
             MR::startSubBGM("BGM_RACE_LOSE", false);
-            mLayout->playTimeUp();
         } else if (mRank == 1) {
             MR::startSubBGM("BGM_RACE_WIN", false);
-            mLayout->playGoal();
+            if (mTime < mBestTime) {
+                mLayout->playGoalWithTime(mTime);
+            } else {
+                mLayout->playGoal();
+            }
         } else {
             MR::startSubBGM("BGM_RACE_LOSE", false);
             mLayout->playLose();
@@ -370,27 +282,6 @@ void RaceManager::exeRank() {
     setNerve(GET_NERVE(RaceManager, RaceManagerNrvPstWipeOut));
 }
 
-bool RaceManager::startWithWipe() {
-    mRank = 0;
-
-    mLayout->hideAllPane();
-    MR::requestStartDemoMarioPuppetableWithoutCinemaFrame(this, "レース", GET_NERVE(RaceManager, RaceManagerNrvPrepWipe), nullptr);
-
-    return true;
-}
-
-bool RaceManager::startImmediately() {
-    mRank = 0;
-
-    mLayout->hideAllPane();
-    MR::requestStartDemoWithoutCinemaFrame(this, "レース", GET_NERVE(RaceManager, RaceManagerNrvPrepImme), nullptr);
-    MR::requestMovementOnPlayer();
-    MR::stopStageBGM(90);
-    MR::startSubBGM("BGM_MINIGAME_START", false);
-
-    return true;
-}
-
 void RaceManager::prepRace() {
     mPlayerRacer->prepRacer(this);
     prepBind();
@@ -407,27 +298,28 @@ void RaceManager::prepRace() {
 }
 
 void RaceManager::startRace() {
-    if (MR::isPlayerInBind()) {
-        MR::sendSimpleMsgToActor(ACTMES_RACE_START, MR::getCurrentRushActor());
+    if (mPlayerRide != nullptr) {
+        MR::sendSimpleMsgToActor(0xEF, mPlayerRide);
     }
 
     std::for_each(&mRacer[0], &mRacer[mRacerNum], std::mem_func(&AbstractRacer::startRacer));
+    std::for_each(&mAudience[0], &mAudience[mAudienceNum], std::mem_func(&AbstractAudience::startAudience));
     MR::endStarPointerMode(this);
     MR::endDemo(this, "レース");
     MR::onPlayerControl(true);
 }
 
 void RaceManager::goalRace() {
-    if (MR::isPlayerInBind()) {
-        MR::sendSimpleMsgToActor(ACTMES_RACE_GOAL, MR::getCurrentRushActor());
+    if (mPlayerRide != nullptr) {
+        MR::sendSimpleMsgToActor(0xF0, mPlayerRide);
     }
 
     std::for_each(&mRacer[mRank], &mRacer[mRacerNum], std::mem_func(&AbstractRacer::loseRacer));
 }
 
 void RaceManager::resetRace() {
-    if (MR::isPlayerInBind()) {
-        MR::sendSimpleMsgToActor(ACTMES_RACE_RESET, MR::getCurrentRushActor());
+    if (mPlayerRide != nullptr && MR::isPlayerInRush()) {
+        MR::sendSimpleMsgToActor(0xF1, mPlayerRide);
     }
 
     mPlayerRacer->resetRacer(this);
@@ -445,12 +337,15 @@ void RaceManager::resetRace() {
 }
 
 void RaceManager::prepBind() {
-    if (!MR::isPlayerInBind()) {
-        return;
+    if (mPlayerRide != nullptr) {
+        MR::requestMovementOn(mPlayerRide);
+        MR::sendSimpleMsgToActor(0xEE, mPlayerRide);
     }
+}
 
-    MR::requestMovementOn(MR::getCurrentRushActor());
-    MR::sendSimpleMsgToActor(ACTMES_RACE_READY, MR::getCurrentRushActor());
+void RaceManager::updateRank() {
+    std::for_each(&mAudience[0], &mAudience[mAudienceNum], std::mem_func(&AbstractAudience::exitAudience));
+    std::for_each(&mRacer[mRank], &mRacer[mRacerNum], std::mem_func(&AbstractRacer::requestMovementOnRace));
 }
 
 void RaceManager::entry(AbstractRacer* pRacer) {
@@ -495,6 +390,12 @@ void RaceManager::renewTime() {
     }
 }
 
+void RaceManager::prepareStart() {
+    MR::validateHitSensors(mPlayerRide);
+    mRank = 0;
+    mLayout->hideAllPane();
+}
+
 namespace RaceManagerFunction {
     void entryRacerOthers(AbstractRacer* pRacer) {
         MR::createSceneObj(SceneObj_RaceManager);
@@ -511,12 +412,28 @@ namespace RaceManagerFunction {
         ::getRaceManager()->entry(pRacer);
     }
 
+    void entryPlayerRide(LiveActor* pRide) {
+        MR::createSceneObj(SceneObj_RaceManager);
+        ::getRaceManager()->mPlayerRide = pRide;
+    }
+
+    void entryJudge(AbstractRaceJudge* pJudge) {
+        MR::createSceneObj(SceneObj_RaceManager);
+        ::getRaceManager()->mJudge = pJudge;
+    }
+
     void startRaceWithWipe() {
-        ::getRaceManager()->startWithWipe();
+        RaceManager* pManager = ::getRaceManager();
+        pManager->prepareStart();
+        MR::requestStartDemoMarioPuppetableWithoutCinemaFrame(pManager, "レース", GET_NERVE(RaceManager, RaceManagerNrvPrepWipe), nullptr);
     }
 
     void startRaceImmediately() {
-        ::getRaceManager()->startImmediately();
+        RaceManager* pManager = ::getRaceManager();
+        pManager->prepareStart();
+        MR::requestStartDemoMarioPuppetableWithoutCinemaFrame(pManager, "レース", GET_NERVE(RaceManager, RaceManagerNrvPrepImme), nullptr);
+        MR::stopStageBGM(90);
+        MR::startSubBGM("BGM_MINIGAME_START", false);
     }
 
     u32 getRaceRank() {
@@ -525,6 +442,18 @@ namespace RaceManagerFunction {
 
     u32 getRaceTime() {
         return ::getRaceManager()->mTime;
+    }
+
+    void updateRank() {
+        ::getRaceManager()->updateRank();
+    }
+
+    void killRace() {
+        if (MR::isExistSceneObj(SceneObj_RaceManager)) {
+            RaceManager* pManager = ::getRaceManager();
+            pManager->mLayout->kill();
+            pManager->kill();
+        }
     }
 
     const char* getRaceName(int index) {
@@ -542,7 +471,3 @@ namespace RaceManagerFunction {
     }
 };  // namespace RaceManagerFunction
 
-void RaceManager_FORCE_MATCH(AbstractRacer* pRacer) {
-    pRacer->AbstractRacer::initRacer();
-    pRacer->AbstractRacer::initRacer();
-}

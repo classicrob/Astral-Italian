@@ -1,3 +1,4 @@
+#include "Game/System/MarioFaceShipEventDataHolder.hpp"
 #pragma auto_inline off
 #include "Game/MapObj/MarioFaceShipNpcHolder.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
@@ -34,11 +35,11 @@ bool MarioFaceShipNpcHolder::isRegistered(const LiveActor* actor, s32 index) con
 void MarioFaceShipNpcHolder::requestMovement() {
     for (s32 i = 0; i < mCount; ++i) MR::requestMovementOn(mNpcs[i].mActor);
 }
-void MarioFaceShipNpcHolder::registerGroup(LiveActorGroup* group, const MarioFaceShipNpcGroupInfo* info) const {
+void MarioFaceShipNpcHolder::registerGroup(LiveActorGroup* group, const MarioFaceShipEventCast* info) const {
     if (info) {
-        for (s32 i = 0; i < info->mCount; ++i) {
-            const char* name = info->mNames[i];
-            s32 cast = info->mDemoCastIds[i];
+        for (s32 i = 0; i < info->mCastNum; ++i) {
+            const char* name = info->mCastNames[i];
+            s32 cast = info->mCastIds[i];
             for (s32 j = 0; j < mCount; ++j) {
                 if (MR::isEqualString(mNpcs[j].mActor->mName, name) && (cast == -1 || cast == mNpcs[j].mDemoCastId)) group->registerActor(mNpcs[j].mActor);
             }
@@ -49,7 +50,7 @@ void MR::createMarioFaceShipNpcHolder() { MR::createSceneObj(SceneObj_MarioFaceS
 void MR::registerMarioFaceShipNpcActor(LiveActor* actor, s32 index, const JMapInfoIter& iter) {
     MR::getSceneObj<MarioFaceShipNpcHolder*>(SceneObj_MarioFaceShipNpcHolder)->registerActor(actor, index, iter);
 }
-void MR::registerMarioFaceShipNpcGroup(LiveActorGroup* group, const MarioFaceShipNpcGroupInfo* info) {
+void MR::registerMarioFaceShipNpcGroup(LiveActorGroup* group, const MarioFaceShipEventCast* info) {
     MR::getSceneObj<MarioFaceShipNpcHolder*>(SceneObj_MarioFaceShipNpcHolder)->registerGroup(group, info);
 }
 bool MR::isMarioFaceShipNpc(const LiveActor* actor, s32 index) {

@@ -38,6 +38,8 @@ public:
     void entryDrawBuffer2D();
     void entryDrawBuffer3D();
     void entryDrawBufferMirror();
+    void entryDrawBufferWorldMapBig();
+    void entryDrawBufferWorldMapSmall();
     void drawOpa(int drawBufferType);
     void drawXlu(int drawBufferType);
     void executeDraw(int category);

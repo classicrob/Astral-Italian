@@ -24,13 +24,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees; resolve when GameSequenceFunction/DemoUtil/SystemUtil/WiiMessageBoardMailSenderState name them
-extern "C" {
-    void* fn_8001FD30(void*, const char*);
-    void fn_8001FEB0(void*, void*, const char*, const Nerve*, s32);
-    void fn_804B4360(void*, void*);
-};
-
 extern const char* lbl_807D03C0;
 extern const char* lbl_807D03C4;
 extern const char* lbl_807D03C8;
@@ -106,7 +99,7 @@ void GameSequenceEnding::requestSaveDemo() {
     if (mIsNormalEnding) {
         pNerve = GET_NERVE_ANON(GameSequenceEndingNrvMessage);
     }
-    fn_8001FEB0(this, mNameObj, "\x83Z\x81[\x83u", pNerve, 0);
+    MR::requestStartDemo(this, mNameObj, "\x83Z\x81[\x83u", pNerve, nullptr);
 }
 
 void GameSequenceEnding::initAfterResourceLoaded() {
@@ -138,7 +131,7 @@ bool GameSequenceEnding::updateMessage() {
 
 void GameSequenceEnding::exeInit() {
     if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
-        fn_8001FD30(mNameObj, "\x83m\x81[\x83}\x83\x8b\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O\x82P");
+        MR::tryStartDemoMarioPuppetableSystemFlags(mNameObj, "\x83m\x81[\x83}\x83\x8b\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O\x82P");
         MR::forceCloseSystemWipeWhiteFade();
     }
 }
@@ -161,7 +154,7 @@ void GameSequenceEnding::exeDemoMessage() {
         if (mIs120PowerStarsEnding) {
             pNerve = GET_NERVE_ANON(GameSequenceEndingNrvMessageNext);
         }
-        fn_8001FEB0(this, mNameObj, "\x83Z\x81[\x83u", pNerve, 0);
+        MR::requestStartDemo(this, mNameObj, "\x83Z\x81[\x83u", pNerve, nullptr);
     }
 }
 

@@ -10,6 +10,10 @@ class GameEventValueChecker;
 class SaveDataHandleSequence;
 
 namespace GameDataFunction {
+    void storeSharedPlayerLeft();
+    void resetSysConfigCounters();
+    bool hasBronzeStar(const char*, s32);
+    bool existsGameEventFlagOpenScenario(const char*, s32);
     bool getSysConfigFileEncouragedPal16();
     void setSysConfigFileEncouragedPal16();
     u32 getScenarioClearTime(const char*, s32);
@@ -42,7 +46,7 @@ namespace GameDataFunction {
 // Merged from Petari (core lane, symbols.txt-verified)
 
 namespace GameDataFunction {
-    SaveDataHandleSequence* getSaveDataHandleSequence();
+    SaveDataHandleSequence* getSaveDataHandleSequence() NO_INLINE;
     GameDataPlayerStatus* getCurrentGameDataPlayerStatus();
     GameEventValueChecker* getCurrentGameEventValueChecker();
     bool hasPowerStar(const char*, s32);
@@ -50,12 +54,13 @@ namespace GameDataFunction {
     bool isOnGalaxyScenarioFlagAlreadyVisited(const char*, s32);
     void onGalaxyScenarioFlagAlreadyVisited(const char*, s32);
     s32 calcCurrentPowerStarNum();
-    s32 getPowerStarNumOwned(const char*);
+    s32 getPowerStarNumOwned(const char*) NO_INLINE;
     const char* getWorldFinalGalaxyName(s32 worldId);
     s32 getGrandStarNo(const char* pGalaxyName);
     s32 getCometAppearMedalNum(const char* pGalaxyName);
     bool isGalaxyStateNew(const char*);
     bool isGalaxyStateOpened(const char*);
+    bool existsGameEventFlagOpenScenario(const char*, s32);
     void setGalaxyStateNew(const char*);
     void setGalaxyStateOpened(const char*);
     s32 getPowerStarNumMax();
@@ -80,7 +85,7 @@ namespace GameDataFunction {
 // SMG2-only (core lane): declared for the GameDataFunction unit
 namespace GameDataFunction {
     bool isOnGameEventFlagEnding120Stars();
-    bool isOnGameEventFlagFinalGalaxyAppearance();
+    bool isOnGameEventFlagFinalGalaxyAppearance() NO_INLINE;
     bool isOnGameEventFlagCoinCounterStop();
     bool isOnGameEventFlagCometExplain();
     s32 calcCurrentGrandStarNum();
@@ -88,11 +93,11 @@ namespace GameDataFunction {
     void setCurrentWorldId(u8);
 };  // namespace GameDataFunction
 
-namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u16 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }
+namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u32 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }
 
 namespace GameDataFunction {
-    void setOnPostmanImportantLetterRead(s8);
-    void setOnPostmanTaskLetterRead(s8);
+    void setOnPostmanImportantLetterRead(s32);
+    void setOnPostmanTaskLetterRead(s32);
     void updatePostmanPeachLetterDeath();
     bool isOnGameEventFlagOpenScenario(const char*, s32);
     void onGameEventFlagOpenScenario(const char*, s32);
@@ -132,10 +137,9 @@ namespace GameDataFunction {
 // core h10 (GameDataFunction unit): SMG2 declarations of functions defined in GameDataFunction.cpp
 namespace GameDataFunction {
     void offGameEventFlag(const char*);
-    s32 getNormalPowerStarNumOwned(const char*);
     void startLuigiIntrusion();
-    void setOnPostmanTaskLetterRead(s8);
-    void setOnPostmanImportantLetterRead(s8);
+    void setOnPostmanTaskLetterRead(s32);
+    void setOnPostmanImportantLetterRead(s32);
     void updatePostmanPeachLetterDeath();
     s32 getBankInterest();
     void clearKinopioBankInterest();
@@ -156,9 +160,9 @@ namespace GameDataFunction {
     void tryAddFaceShipEventNo(s32);                   // SMG2 fn_804D4100 (provisional name)
     s32 getFaceShipEventGrandStarNo();                 // SMG2 fn_804D4180
     void setStageClearsAfterRepeatedMissCount(u16);    // SMG2 fn_804D42B0
-    u16 getStageClearsAfterRepeatedMissCount();        // SMG2 fn_804D4280
+    u32 getStageClearsAfterRepeatedMissCount();        // SMG2 fn_804D4280
     void incStageClearsAfterRepeatedMissCount();       // SMG2 fn_804D42F0
-    void setUserName(wchar_t* const);
+    void setUserName(const wchar_t*);
     bool hasCurrentUserMiiId();                        // SMG2 fn_804D43C0 (provisional name)
     bool getSysConfigFileEncouragedPal16();
     void setSysConfigFileEncouragedPal16();

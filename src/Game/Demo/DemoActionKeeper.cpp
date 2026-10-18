@@ -1,3 +1,4 @@
+#include "Game/Demo/StoryBookDemo.hpp"
 #include "Game/Demo/DemoActionKeeper.hpp"
 #include "Game/Demo/DemoExecutor.hpp"
 #include "Game/Demo/DemoFunction.hpp"
@@ -86,34 +87,36 @@ void DemoActionInfo::executeActionFirst() const {
     LiveActor* actor;
     for (s32 i = 0; i < mCastCount; i++) {
         actor = mCastList[i];
-        if (mActionType == 2) {
-            mFunctors[i]->operator()();
-        } else if (mActionType == 3) {
-            actor->setNerve(mNerves[i]);
-        } else if (mActionType == 0) {
-            actor->appear();
-        } else if (mActionType == 1) {
-            actor->kill();
-        } else if (mActionType == 4) {
-            MR::onSwitchA(actor);
-        } else if (mActionType == 5) {
-            MR::onSwitchB(actor);
-        } else if (mActionType == 6) {
-            MR::showModel(actor);
-        } else if (mActionType == 7) {
-            MR::hideModel(actor);
-        } else if (mActionType == 8) {
-            MR::tryTalkTimeKeepDemoMarioPuppetable(::findTalkMessageCtrl(actor));
-        } else if (mActionType == 9) {
-            MR::tryTalkTimeKeepDemoWithoutPauseMarioPuppetable(::findTalkMessageCtrl(actor));
-        } else if (mActionType == 10) {
-            MR::tryTalkTimeKeepDemoWithoutPauseMarioPuppetable(::findTalkMessageCtrl(actor));
-        } else if (mActionType == 11) {
-            // noop
-        } else if (mActionType == 12) {
-            MR::offSwitchA(actor);
-        } else if (mActionType == 13) {
-            MR::offSwitchB(actor);
+        switch (mActionType) {
+        case 3: mFunctors[i]->operator()(); break;
+        case 4: actor->setNerve(mNerves[i]); break;
+        case 1: actor->appear(); break;
+        case 2: actor->kill(); break;
+        case 5: MR::onSwitchA(actor); break;
+        case 6: MR::onSwitchB(actor); break;
+        case 7: MR::showModel(actor); break;
+        case 8: MR::hideModel(actor); break;
+        case 9: MR::tryTalkTimeKeepDemoMarioPuppetable(::findTalkMessageCtrl(actor)); break;
+        case 10: MR::tryTalkTimeKeepDemoWithoutPauseMarioPuppetable(::findTalkMessageCtrl(actor)); break;
+        case 11: MR::tryTalkTimeKeepDemoWithoutPauseMarioPuppetable(::findTalkMessageCtrl(actor)); break;
+        case 12: MR::offSwitchA(actor); break;
+        case 13: MR::offSwitchB(actor); break;
+        case 14: MR::requestMovementOff(actor); break;
+        case 15: MR::requestMovementOn(actor); break;
+        case 16: MR::startStoryBookText(true); break;
+        case 17: MR::startStoryBookText(false); break;
+        case 18: {
+            const char* part = DemoFunction::getCurrentDemoPartNameSub(nullptr);
+            s32 duration;
+            if (MR::isNullOrEmptyString(part)) {
+                duration = -1;
+            } else {
+                duration = MR::getDemoPartTotalStep(part);
+            }
+            MR::startStoryBookTimedText(duration);
+            break;
+        }
+        case 19: MR::waitStoryBookDemo(); break;
         }
 
         if (!MR::isNullOrEmptyString(mAnimName)) {
@@ -180,30 +183,48 @@ void DemoActionKeeper::registerNerve(const LiveActor* pActor, const Nerve* pNerv
     }
 }
 
-void DemoActionKeeper::update() {
-    DemoActionInfo* info;
+void DemoActionKeeper::start() {
     if (mNumInfos > 0) {
         for (s32 i = 0; i < mNumInfos; i++) {
-            info = mInfoArray[i];
-            if (MR::isDemoPartFirstStep(info->mPartName)) {
+            DemoActionInfo* info = mInfoArray[i];
+            if (info->mActionType != 16 && info->mActionType != 17 && info->mActionType != 19 && MR::isDemoSubPartActive(info->mPartName)) {
                 mInfoArray[i]->executeActionFirst();
-            } else if (MR::isDemoPartLastStep(info->mPartName)) {
-                mInfoArray[i]->executeActionLast();
             }
+        }
+        _C = 1;
+    }
+}
+
+void DemoActionKeeper::update() {
+    if (mNumInfos > 0) {
+        if (_C) {
+            for (s32 i = 0; i < mNumInfos; i++) {
+                DemoActionInfo* info = mInfoArray[i];
+                if (MR::isDemoSubPartActive(info->mPartName)) {
+                    mInfoArray[i]->executeStoryBookStart();
+                }
+            }
+            _C = 0;
+        } else {
+            updatePartActions(false);
         }
     }
 }
 
+void DemoActionKeeper::skip() {
+    updatePartActions(true);
+}
+
 bool DemoActionKeeper::isRegisteredDemoActionAppear(const LiveActor* pActor) const {
-    return isRegisteredDemoAction(pActor, 0);
+    return isRegisteredDemoAction(pActor, 1);
 }
 
 bool DemoActionKeeper::isRegisteredDemoActionFunctor(const LiveActor* pActor) const {
-    return isRegisteredDemoAction(pActor, 2);
+    return isRegisteredDemoAction(pActor, 3);
 }
 
 bool DemoActionKeeper::isRegisteredDemoActionNerve(const LiveActor* pActor) const {
-    return isRegisteredDemoAction(pActor, 3);
+    return isRegisteredDemoAction(pActor, 4);
 }
 
 bool DemoActionKeeper::isRegisteredDemoAction(const LiveActor* pActor, s32 actionType) const {
@@ -239,5 +260,65 @@ DemoActionKeeper::DemoActionKeeper(const DemoExecutor* pExector) {
         jmap->getValue< s32 >(i, "ActionType", &info->mActionType);
         jmap->getValue< const char* >(i, "PosName", &info->mPosName);
         jmap->getValue< const char* >(i, "AnimName", &info->mAnimName);
+    }
+}
+
+void DemoActionInfo::executeStoryBookStart() const {
+    if (mActionType == 16) {
+        MR::startStoryBookText(true);
+    } else if (mActionType == 17) {
+        MR::startStoryBookText(false);
+    } else if (mActionType == 19) {
+        MR::waitStoryBookDemo();
+    }
+}
+
+bool DemoActionKeeper::isStoryBookPart(const char* part) const {
+    for (s32 i = 0; i < mNumInfos; i++) {
+        DemoActionInfo* info = mInfoArray[i];
+        if (MR::isEqualString(info->mPartName, part)) {
+            if (info->mActionType == 16) return true;
+            if (info->mActionType == 17) return true;
+            if (info->mActionType == 19) return true;
+        }
+    }
+    return false;
+}
+
+DemoActionInfo* DemoActionKeeper::findInfo(const LiveActor* actor, const char* part) const {
+    for (s32 i = 0; i < mNumInfos; i++) {
+        DemoActionInfo* info = mInfoArray[i];
+        if (MR::isEqualString(info->mPartName, part)) {
+            for (s32 j = 0; j < info->mCastCount; j++) {
+                if (MR::isSame(info->mCastList[j], actor)) {
+                    return info;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+void DemoActionKeeper::updatePartActions(bool skip) {
+    for (s32 i = 0; i < mNumInfos; i++) {
+        DemoActionInfo* info = mInfoArray[i];
+        if (skip) {
+            for (s32 j = 0; j < info->mCastCount; j++) {
+                TalkMessageCtrl* talk = ::findTalkMessageCtrl(info->mCastList[j]);
+                if (talk) {
+                    MR::isTalkTalking(talk);
+                }
+            }
+        }
+        if (skip || MR::isDemoEndWaitCameraInterpolating()) {
+            if (info->mActionType >= 9 && info->mActionType <= 11) {
+                continue;
+            }
+        }
+        if (MR::isDemoPartFirstStep(info->mPartName)) {
+            mInfoArray[i]->executeActionFirst();
+        } else if (MR::isDemoPartLastStep(info->mPartName)) {
+            mInfoArray[i]->executeActionLast();
+        }
     }
 }

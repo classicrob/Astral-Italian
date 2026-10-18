@@ -44,6 +44,7 @@ public:
     void exeWait();
     void exeStart();
     void exeEnd();
+    void killPlayerMissLeft();  // was fn_804B4360
 
     /* 0x10 */ PlayResultInStageHolder* mPlayResultHolder;
     /* 0x14 */ PlayerMissLeft* mPlayerMissLeft;

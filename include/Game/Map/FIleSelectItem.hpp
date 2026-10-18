@@ -42,7 +42,9 @@ public:
     void onPointing();
     void offPointing();
     void validateRotate();
+    void invalidateRotate();       // was fn_8024CFE0
     void turnToFront(s32);
+    void requestRotateRefresh();   // was fn_8024D010
     void exeFormat();
     void exeChangeFellow();
     void exeChangeMii();

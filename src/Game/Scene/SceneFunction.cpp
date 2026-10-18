@@ -23,6 +23,8 @@
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DrawUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
+#include "Game/Util/LightUtil.hpp"
+#include "Game/Util/StarPointerUtil.hpp"
 #include <JSystem/J3DGraphBase/J3DSys.hpp>
 
 namespace {
@@ -35,23 +37,157 @@ void SceneFunction::movementStopSceneController() {
     MR::getSceneObj< StopSceneController >(SceneObj_StopSceneController)->movement();
 }
 
+void SceneFunction::executeMovementList() {
+    if (!(MR::getSceneObj< StopSceneController >(SceneObj_StopSceneController)->isSceneStopped())) {
+        MR::getSceneNameObjMovementController()->movement();
+        MR::executeRequirementDisconnectDrawDelay();
+        CategoryList::execute(static_cast< MR::MovementType >(0x1));
+        CategoryList::execute(static_cast< MR::MovementType >(0x2));
+        CategoryList::execute(static_cast< MR::MovementType >(0x14));
+        MR::setStarPointerCameraMtxAtGameScene();
+        MR::loadViewMtx();
+        CategoryList::execute(static_cast< MR::MovementType >(0x4));
+        MR::executeRequirementConnectMovement();
+        MR::executeRequirementConnectDraw();
+        MR::executeRequirementDisconnectMovement();
+        MR::executeRequirementDisconnectDraw();
+        CategoryList::execute(static_cast< MR::MovementType >(0x3));
+        CategoryList::execute(static_cast< MR::MovementType >(0x5));
+        CategoryList::execute(static_cast< MR::MovementType >(0x6));
+        CategoryList::execute(static_cast< MR::MovementType >(0x7));
+        CategoryList::execute(static_cast< MR::MovementType >(0x12));
+        CategoryList::execute(static_cast< MR::MovementType >(0xa));
+        CategoryList::execute(static_cast< MR::MovementType >(0xb));
+        CategoryList::execute(static_cast< MR::MovementType >(0xc));
+        CategoryList::execute(static_cast< MR::MovementType >(0x1b));
+        CategoryList::execute(static_cast< MR::MovementType >(0x1c));
+        CategoryList::execute(static_cast< MR::MovementType >(0x1d));
+        CategoryList::execute(static_cast< MR::MovementType >(0x1e));
+        CategoryList::execute(static_cast< MR::CalcAnimType >(0x0));
+        CategoryList::execute(static_cast< MR::CalcAnimType >(0x1));
+        CategoryList::execute(static_cast< MR::CalcAnimType >(0x2));
+        CategoryList::execute(static_cast< MR::CalcAnimType >(0x3));
+        CategoryList::execute(static_cast< MR::MovementType >(0x1f));
+        CategoryList::execute(static_cast< MR::MovementType >(0x20));
+        CategoryList::execute(static_cast< MR::MovementType >(0x21));
+        CategoryList::execute(static_cast< MR::MovementType >(0x22));
+        CategoryList::execute(static_cast< MR::MovementType >(0x13));
+        CategoryList::execute(static_cast< MR::MovementType >(0x27));
+        CategoryList::execute(static_cast< MR::MovementType >(0x28));
+        CategoryList::execute(static_cast< MR::MovementType >(0x2d));
+        CategoryList::execute(static_cast< MR::MovementType >(0x24));
+        CategoryList::execute(static_cast< MR::MovementType >(0x25));
+        CategoryList::execute(static_cast< MR::MovementType >(0x29));
+        CategoryList::execute(static_cast< MR::MovementType >(0x2a));
+        CategoryList::execute(static_cast< MR::MovementType >(0x2b));
+        CategoryList::execute(static_cast< MR::MovementType >(0x26));
+        CategoryList::execute(static_cast< MR::MovementType >(0xd));
+        CategoryList::execute(static_cast< MR::MovementType >(0xe));
+        CategoryList::execute(static_cast< MR::MovementType >(0xf));
+        CategoryList::execute(static_cast< MR::MovementType >(0x10));
+        CategoryList::execute(static_cast< MR::MovementType >(0x23));
+        CategoryList::execute(static_cast< MR::MovementType >(0x15));
+        CategoryList::execute(static_cast< MR::MovementType >(0x16));
+        CategoryList::execute(static_cast< MR::MovementType >(0x17));
+        CategoryList::execute(static_cast< MR::MovementType >(0x9));
+        CategoryList::execute(static_cast< MR::MovementType >(0x18));
+        CategoryList::execute(static_cast< MR::MovementType >(0x19));
+        MR::executeRequirementDisconnectMovement();
+        MR::executeRequirementDisconnectDraw();
+    }
+}
+
+void MR::movementWorldMapBig() {
+    CategoryList::execute(static_cast< MR::MovementType >(0x2f));
+}
+
+void MR::movementWorldMapMini() {
+    CategoryList::execute(static_cast< MR::MovementType >(0x2e));
+    CategoryList::execute(static_cast< MR::MovementType >(0x30));
+}
+
 void SceneFunction::executeCalcAnimList() {
     MR::loadViewMtx();
-    CategoryList::execute(MR::CalcAnimType_Environment);
-    CategoryList::execute(MR::CalcAnimType_MapObj);
-    CategoryList::execute(MR::CalcAnimType_NPC);
-    CategoryList::execute(MR::CalcAnimType_Ride);
-    CategoryList::execute(MR::CalcAnimType_Enemy);
-    CategoryList::execute(MR::CalcAnimType_Player);
-    CategoryList::execute(MR::CalcAnimType_PlayerDecoration);
-    CategoryList::execute(MR::CalcAnimType_MapObjDecoration);
-    CategoryList::execute(MR::CalcAnimType_Item);
-    CategoryList::execute(MR::CalcAnimType_Layout);
-    CategoryList::execute(MR::CalcAnimType_LayoutDecoration);
-    CategoryList::execute(MR::CalcAnimType_UNK_0x12);
-    CategoryList::execute(MR::CalcAnimType_MirrorMapObj);
-    CategoryList::execute(MR::MovementType_ShadowControllerHolder);
-    CategoryList::execute(MR::CalcAnimType_AnimParticle);
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x4));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x5));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x6));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x7));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x8));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x9));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xa));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xb));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xf));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xd));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xe));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x11));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xc));
+    CategoryList::execute(static_cast< MR::MovementType >(0x2c));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x12));
+}
+
+void MR::calcAnimWorldMapBig() {
+    MR::loadViewMtx();
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x14));
+}
+
+void MR::calcAnimWorldMapMini() {
+    MR::loadViewMtx();
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x15));
+}
+
+void SceneFunction::executeCalcAnimListWithWorldMap() {
+    MR::loadViewMtx();
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x4));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x5));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x6));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x7));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x8));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x9));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xa));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xb));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xf));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x14));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xd));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xe));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x11));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0xc));
+    CategoryList::execute(static_cast< MR::CalcAnimType >(0x12));
+}
+
+void MR::entryWorldMapBig() {
+    MR::loadViewMtx();
+    CategoryList::entryDrawBufferWorldMapBig();
+}
+
+void MR::entryWorldMapMini() {
+    MR::loadViewMtx();
+    CategoryList::entryDrawBufferWorldMapSmall();
+}
+
+void SceneFunction::executeDrawAfterImageEffect() {
+    MR::clearZBuffer();
+    CategoryList::execute(static_cast< MR::DrawType >(0x45));
+}
+
+void MR::drawWorldMapBig() {
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x27));
+    MR::reinitGX();
+    CategoryList::execute(static_cast< MR::DrawType >(0x44));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x27));
+}
+
+void MR::drawWorldMapMiniEffects() {
+    CategoryList::execute(static_cast< MR::DrawType >(0x55));
+}
+
+void MR::drawWorldMapMini() {
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x28));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x28));
+    CategoryList::execute(static_cast< MR::DrawType >(0x55));
+}
+
+void MR::drawWorldMapInfo() {
+    CategoryList::execute(static_cast< MR::DrawType >(0x4f));
 }
 
 void SceneFunction::executeCalcViewAndEntryList() {
@@ -71,127 +207,132 @@ void SceneFunction::executeCalcViewAndEntryList2D() {
 }
 
 void SceneFunction::executeDrawBufferListNormalOpaBeforeVolumeShadow() {
-    CategoryList::drawOpa(MR::DrawBufferType_CrystalItem);
-    CategoryList::drawXlu(MR::DrawBufferType_CrystalItem);
-    CategoryList::drawOpa(MR::DrawBufferType_Crystal);
-    CategoryList::drawXlu(MR::DrawBufferType_Crystal);
-    CategoryList::drawOpa(MR::DrawBufferType_AstroDomeSky);
-    CategoryList::drawXlu(MR::DrawBufferType_AstroDomeSky);
-
-    if (MR::isExistPriorDrawAir()) {
-        CategoryList::drawOpa(MR::DrawBufferType_Sky);
-        CategoryList::drawOpa(MR::DrawBufferType_Air);
-        CategoryList::drawOpa(MR::DrawBufferType_Sun);
-        CategoryList::drawXlu(MR::DrawBufferType_Sky);
-        CategoryList::drawXlu(MR::DrawBufferType_Air);
-        CategoryList::drawXlu(MR::DrawBufferType_Sun);
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x22));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x22));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x21));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x21));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x24));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x24));
+    if (!(MR::isExistSceneObj(0x27))) {
+        CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x2));
+        CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x3));
+        CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x4));
+        CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x2));
+        CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x3));
+        CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x4));
     }
-
-    if (MR::isDrawSpinDriverPathAtOpa()) {
+    if (!(!MR::isDrawSpinDriverPathAtOpa())) {
         MR::reinitGX();
-        CategoryList::execute(MR::DrawType_SpinDriverPathDrawer);
+        CategoryList::execute(static_cast< MR::DrawType >(0x12));
     }
-
-    CategoryList::drawOpa(MR::DrawBufferType_Planet);
-    CategoryList::drawOpa(MR::DrawBufferType_PlanetLow);
-    CategoryList::execute(MR::DrawType_FlexibleSphere);
-    CategoryList::drawOpa(MR::DrawBufferType_Environment);
-    CategoryList::drawOpa(MR::DrawBufferType_MapObj);
-    CategoryList::drawOpa(MR::DrawBufferType_MapObjWeakLight);
-    CategoryList::drawOpa(MR::DrawBufferType_MapObjStrongLight);
-    CategoryList::drawOpa(MR::DrawBufferType_TripodBoss);
+    MR::loadPointLightSub();
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x5));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x6));
+    CategoryList::execute(static_cast< MR::DrawType >(0x19));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x7));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x9));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0xa));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0xb));
+    CategoryList::execute(static_cast< MR::DrawType >(0x23));
+    MR::reinitGX();
+    CategoryList::execute(static_cast< MR::DrawType >(0x3));
 }
 
 void SceneFunction::executeDrawBufferListNormalOpaBeforeSilhouette() {
-    CategoryList::drawOpa(MR::DrawBufferType_NoShadowedMapObj);
-    CategoryList::drawOpa(MR::DrawBufferType_NoShadowedMapObjStrongLight);
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0xc));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0xd));
 }
 
 void SceneFunction::executeDrawBufferListNormalOpa() {
-    CategoryList::drawOpa(MR::DrawBufferType_NoSilhouettedMapObj);
-    CategoryList::drawOpa(MR::DrawBufferType_NoSilhouettedMapObjWeakLight);
-    CategoryList::drawOpa(MR::DrawBufferType_NoSilhouettedMapObjStrongLight);
-    CategoryList::drawOpa(MR::DrawBufferType_NPC);
-    CategoryList::drawOpa(MR::DrawBufferType_Ride);
-    CategoryList::drawOpa(MR::DrawBufferType_Enemy);
-    CategoryList::drawOpa(MR::DrawBufferType_EnemyDecoration);
-    CategoryList::drawOpa(MR::DrawBufferType_PlayerDecoration);
-
-    if (!MR::isExistPriorDrawAir()) {
-        CategoryList::drawOpa(MR::DrawBufferType_Sky);
-        CategoryList::drawOpa(MR::DrawBufferType_Air);
-        CategoryList::drawOpa(MR::DrawBufferType_Sun);
-        CategoryList::drawXlu(MR::DrawBufferType_Sky);
-        CategoryList::drawXlu(MR::DrawBufferType_Air);
-        CategoryList::drawXlu(MR::DrawBufferType_Sun);
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0xe));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0xf));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x10));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x1));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x11));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x12));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x13));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x14));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x16));
+    if (!(!MR::isExistSceneObj(0x27))) {
+        CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x2));
+        CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x3));
+        CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x4));
+        CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x2));
+        CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x3));
+        CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x4));
     }
 }
 
 void SceneFunction::executeDrawBufferListNormalXlu() {
-    CategoryList::drawXlu(MR::DrawBufferType_Planet);
-    CategoryList::drawXlu(MR::DrawBufferType_PlanetLow);
-    CategoryList::drawXlu(MR::DrawBufferType_Environment);
-    CategoryList::drawXlu(MR::DrawBufferType_EnvironmentStrongLight);
-    CategoryList::drawXlu(MR::DrawBufferType_MapObj);
-    CategoryList::drawXlu(MR::DrawBufferType_MapObjWeakLight);
-    CategoryList::drawXlu(MR::DrawBufferType_MapObjStrongLight);
-    CategoryList::drawXlu(MR::DrawBufferType_TripodBoss);
-    CategoryList::drawXlu(MR::DrawBufferType_NoShadowedMapObj);
-    CategoryList::drawXlu(MR::DrawBufferType_NoShadowedMapObjStrongLight);
-    CategoryList::drawXlu(MR::DrawBufferType_NoSilhouettedMapObj);
-    CategoryList::drawXlu(MR::DrawBufferType_NoSilhouettedMapObjWeakLight);
-    CategoryList::drawXlu(MR::DrawBufferType_NoSilhouettedMapObjStrongLight);
-    CategoryList::drawXlu(MR::DrawBufferType_NPC);
-    CategoryList::drawXlu(MR::DrawBufferType_Ride);
-    CategoryList::drawXlu(MR::DrawBufferType_Enemy);
-    CategoryList::drawXlu(MR::DrawBufferType_EnemyDecoration);
-    CategoryList::drawXlu(MR::DrawBufferType_PlayerDecoration);
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x5));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x6));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x7));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x8));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x9));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0xa));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0xb));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0xc));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0xd));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0xe));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0xf));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x10));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x11));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x12));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x13));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x14));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x16));
 }
 
 void SceneFunction::executeDrawListOpa() {
-    CategoryList::execute(MR::DrawType_0x3);
     MR::reinitGX();
-    CategoryList::execute(MR::DrawType_EffectDraw3D);
-    CategoryList::execute(MR::DrawType_WhirlPoolAccelerator);
-    CategoryList::execute(MR::DrawType_OceanRingPipeOutside);
-    CategoryList::execute(MR::DrawType_CaptureScreenCamera);
-    CategoryList::execute(MR::DrawType_SwingRope);
-    CategoryList::execute(MR::DrawType_0x1);
-    CategoryList::execute(MR::DrawType_PlantStalk);
-    CategoryList::execute(MR::DrawType_Plant);
-    CategoryList::execute(MR::DrawType_Creeper);
-    CategoryList::execute(MR::DrawType_Trapeze);
-    CategoryList::execute(MR::DrawType_SpaceCocoon);
-    CategoryList::execute(MR::DrawType_0x17);
-    CategoryList::execute(MR::DrawType_WarpPodPath);
-    GXSetTevDirect(GX_TEVSTAGE0);
-    GXSetTevDirect(GX_TEVSTAGE1);
-    GXSetTevDirect(GX_TEVSTAGE2);
-    GXSetTevDirect(GX_TEVSTAGE3);
-    CategoryList::execute(MR::DrawType_KirairaChain);
-    CategoryList::execute(MR::DrawType_WaterPlant);
-    CategoryList::execute(MR::DrawType_BigBubbleGoal);
-    CategoryList::execute(MR::DrawType_MiiFacePartsHolder);
-    CategoryList::execute(MR::DrawType_AstroDomeOrbit);
+    CategoryList::execute(static_cast< MR::DrawType >(0xd));
+    CategoryList::execute(static_cast< MR::DrawType >(0xa));
+    CategoryList::execute(static_cast< MR::DrawType >(0x37));
+    CategoryList::execute(static_cast< MR::DrawType >(0x0));
+    CategoryList::execute(static_cast< MR::DrawType >(0x1));
+    CategoryList::execute(static_cast< MR::DrawType >(0x4));
+    CategoryList::execute(static_cast< MR::DrawType >(0x5));
+    CategoryList::execute(static_cast< MR::DrawType >(0x2));
+    CategoryList::execute(static_cast< MR::DrawType >(0x6));
+    CategoryList::execute(static_cast< MR::DrawType >(0x16));
+    CategoryList::execute(static_cast< MR::DrawType >(0x17));
+    CategoryList::execute(static_cast< MR::DrawType >(0x18));
+    GXSetTevDirect(static_cast< GXTevStageID >(0x0));
+    GXSetTevDirect(static_cast< GXTevStageID >(0x1));
+    GXSetTevDirect(static_cast< GXTevStageID >(0x2));
+    GXSetTevDirect(static_cast< GXTevStageID >(0x3));
+    CategoryList::execute(static_cast< MR::DrawType >(0x1a));
+    CategoryList::execute(static_cast< MR::DrawType >(0x1b));
+    CategoryList::execute(static_cast< MR::DrawType >(0x10));
+    CategoryList::execute(static_cast< MR::DrawType >(0x28));
+    CategoryList::execute(static_cast< MR::DrawType >(0x20));
+    CategoryList::execute(static_cast< MR::DrawType >(0x43));
+    CategoryList::execute(static_cast< MR::DrawType >(0x41));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x25));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x20));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x20));
+    MR::reinitGX();
     MR::loadLightPlayer();
-    CategoryList::execute(MR::DrawType_Player);
-    CategoryList::execute(MR::DrawType_DynamicMapObj);
-    CategoryList::execute(MR::DrawType_Fur);
-    CategoryList::execute(MR::DrawType_OceanSphere);
-    CategoryList::execute(MR::DrawType_Flag);
-    MR::resetTextureCacheSize();
+    CategoryList::execute(static_cast< MR::DrawType >(0x25));
+    CategoryList::execute(static_cast< MR::DrawType >(0x26));
+    CategoryList::execute(static_cast< MR::DrawType >(0x36));
+    CategoryList::execute(static_cast< MR::DrawType >(0xb));
+    CategoryList::execute(static_cast< MR::DrawType >(0x1e));
+    CategoryList::execute(static_cast< MR::DrawType >(0x29));
+    MR::reinitGX();
+    CategoryList::execute(static_cast< MR::DrawType >(0x1d));
 }
 
 void SceneFunction::executeDrawListXlu() {
     MR::reinitGX();
-    CategoryList::execute(MR::DrawType_VolumeModel);
-    CategoryList::execute(MR::DrawType_ClipFieldFillDraw);
-    if (!MR::isDrawSpinDriverPathAtOpa()) {
-        CategoryList::execute(MR::DrawType_SpinDriverPathDrawer);
+    CategoryList::execute(static_cast< MR::DrawType >(0x35));
+    if (!(MR::isDrawSpinDriverPathAtOpa())) {
+        CategoryList::execute(static_cast< MR::DrawType >(0x12));
     }
-    CategoryList::execute(MR::DrawType_ClipAreaDropLaser);
-    CategoryList::execute(MR::DrawType_SpiderThread);
-    CategoryList::execute(MR::DrawType_DashRing);
+    CategoryList::execute(static_cast< MR::DrawType >(0x22));
+    CategoryList::execute(static_cast< MR::DrawType >(0x14));
+    CategoryList::execute(static_cast< MR::DrawType >(0x15));
+    CategoryList::execute(static_cast< MR::DrawType >(0x3d));
     MR::resetTextureCacheSize();
 }
 
@@ -202,79 +343,76 @@ void SceneFunction::executeDrawSilhouetteAndFillShadow() {
 }
 
 void SceneFunction::executeDrawAlphaShadow() {
-    CategoryList::execute(MR::DrawType_AlphaShadow);
+    CategoryList::execute(static_cast< MR::DrawType >(0x2d));
     MR::loadViewMtx();
 }
 
 void SceneFunction::executeDrawAfterIndirect() {
-    CategoryList::drawOpa(MR::DrawBufferType_IndirectPlanet);
-    CategoryList::drawOpa(MR::DrawBufferType_IndirectMapObj);
-    CategoryList::drawOpa(MR::DrawBufferType_IndirectMapObjStrongLight);
-    CategoryList::drawOpa(MR::DrawBufferType_IndirectNpc);
-    CategoryList::drawOpa(MR::DrawBufferType_IndirectEnemy);
-    CategoryList::drawOpa(MR::DrawBufferType_GlaringLight);
-    CategoryList::drawOpa(MR::DrawBufferType_UNK_0x17);
-    CategoryList::drawOpa(MR::DrawBufferType_CrystalBox);
-    CategoryList::drawXlu(MR::DrawBufferType_IndirectPlanet);
-    CategoryList::drawXlu(MR::DrawBufferType_IndirectMapObj);
-    CategoryList::drawXlu(MR::DrawBufferType_IndirectMapObjStrongLight);
-    CategoryList::drawXlu(MR::DrawBufferType_IndirectNpc);
-    CategoryList::drawXlu(MR::DrawBufferType_IndirectEnemy);
-    CategoryList::drawXlu(MR::DrawBufferType_GlaringLight);
-    CategoryList::drawXlu(MR::DrawBufferType_UNK_0x17);
-    CategoryList::drawXlu(MR::DrawBufferType_CrystalBox);
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x1e));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x1a));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x1b));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x1c));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x1d));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x23));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x18));
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x17));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x1e));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x1a));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x1b));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x1c));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x1d));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x23));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x18));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x17));
     MR::reinitGX();
-    CategoryList::execute(MR::DrawType_0x11);
-    CategoryList::execute(MR::DrawType_GCapture);
-    CategoryList::execute(MR::DrawType_WaterRoad);
-    CategoryList::execute(MR::DrawType_BigBubble);
-    CategoryList::execute(MR::DrawType_ElectricRailHolder);
-    CategoryList::execute(MR::DrawType_OceanRing);
-    CategoryList::execute(MR::DrawType_OceanBowl);
-    CategoryList::execute(MR::DrawType_0x20);
-    CategoryList::execute(MR::DrawType_EffectDrawIndirect);
-    CategoryList::execute(MR::DrawType_EffectDrawAfterIndirect);
-    CategoryList::execute(MR::DrawType_OceanRingPipeInside);
-    CategoryList::execute(MR::DrawType_WaterCameraFilter);
+    CategoryList::execute(static_cast< MR::DrawType >(0x11));
+    CategoryList::execute(static_cast< MR::DrawType >(0x13));
+    CategoryList::execute(static_cast< MR::DrawType >(0xc));
+    CategoryList::execute(static_cast< MR::DrawType >(0xf));
+    CategoryList::execute(static_cast< MR::DrawType >(0xe));
+    CategoryList::execute(static_cast< MR::DrawType >(0x8));
+    CategoryList::execute(static_cast< MR::DrawType >(0x7));
+    CategoryList::execute(static_cast< MR::DrawType >(0x21));
+    CategoryList::execute(static_cast< MR::DrawType >(0x53));
+    CategoryList::execute(static_cast< MR::DrawType >(0x54));
+    CategoryList::execute(static_cast< MR::DrawType >(0x9));
+    CategoryList::execute(static_cast< MR::DrawType >(0x3f));
     MR::resetTextureCacheSize();
 }
 
 void SceneFunction::executeDrawImageEffect() {
-    if (MR::isNormalBloomOn()) {
+    if (!(!MR::isNormalBloomOn())) {
         MR::reinitGX();
-        CategoryList::execute(MR::DrawType_BloomEffectPreDraw);
-
-        if (MR::isNormalBloomForEachModel()) {
-            CategoryList::drawOpa(MR::DrawBufferType_BloomModel);
-            CategoryList::drawXlu(MR::DrawBufferType_BloomModel);
-            CategoryList::execute(MR::DrawType_BloomModel);
-            CategoryList::execute(MR::DrawType_EffectDrawForBloomEffect);
+        CategoryList::execute(static_cast< MR::DrawType >(0x39));
+        if (!(!MR::isNormalBloomForEachModel())) {
+            CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x1f));
+            CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x1f));
+            CategoryList::execute(static_cast< MR::DrawType >(0x3b));
+            CategoryList::execute(static_cast< MR::DrawType >(0x58));
             MR::drawSpiderThreadBloom();
-            CategoryList::execute(MR::DrawType_OceanBowlBloomDrawer);
+            CategoryList::execute(static_cast< MR::DrawType >(0x24));
         }
-
-        CategoryList::execute(MR::DrawType_BloomEffectPostDraw);
+        CategoryList::execute(static_cast< MR::DrawType >(0x3a));
     }
-
-    CategoryList::execute(MR::DrawType_ImageEffect);
+    CategoryList::execute(static_cast< MR::DrawType >(0x3c));
 }
 
 void SceneFunction::executeDrawList2DNormal() {
     MR::drawInitFor2DModel();
-    CategoryList::drawOpa(MR::DrawBufferType_Model3DFor2D);
-    CategoryList::drawXlu(MR::DrawBufferType_Model3DFor2D);
-    CategoryList::execute(MR::DrawType_CometScreenFilter);
-    CategoryList::execute(MR::DrawType_GalaxyNamePlate);
-    CategoryList::execute(MR::DrawType_Layout);
-    CategoryList::execute(MR::DrawType_LayoutDecoration);
-    CategoryList::execute(MR::DrawType_CinemaFrame);
-    CategoryList::execute(MR::DrawType_TalkLayout);
-    CategoryList::execute(MR::DrawType_0x44);
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x29));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x29));
+    CategoryList::execute(static_cast< MR::DrawType >(0x49));
+    CategoryList::execute(static_cast< MR::DrawType >(0x46));
+    CategoryList::execute(static_cast< MR::DrawType >(0x4e));
+    CategoryList::execute(static_cast< MR::DrawType >(0x47));
+    CategoryList::execute(static_cast< MR::DrawType >(0x4d));
+    CategoryList::execute(static_cast< MR::DrawType >(0x4b));
+    CategoryList::execute(static_cast< MR::DrawType >(0x4c));
     MR::drawInitFor2DModel();
-    CategoryList::drawOpa(MR::DrawBufferType_0x25);
-    CategoryList::drawXlu(MR::DrawBufferType_0x25);
-    CategoryList::execute(MR::DrawType_EffectDraw2D);
-    CategoryList::execute(MR::DrawType_EffectDrawFor2DModel);
+    CategoryList::drawOpa(static_cast< MR::DrawBufferType >(0x2a));
+    CategoryList::drawXlu(static_cast< MR::DrawBufferType >(0x2a));
+    CategoryList::execute(static_cast< MR::DrawType >(0x56));
+    CategoryList::execute(static_cast< MR::DrawType >(0x57));
 }
 
 namespace {
@@ -328,12 +466,15 @@ void SceneFunction::startActorFileLoadScenario() {
     ::getSceneDataInitializer()->startActorFileLoadScenario();
 }
 
+void SceneFunction::startActorFileLoadPostCreation() {
+    ::getSceneDataInitializer()->startActorFileLoadPostCreation();
+}
+
 void SceneFunction::startActorPlacement() {
     ::getSceneDataInitializer()->startActorPlacement();
 }
 
 void SceneFunction::initAfterScenarioSelected() {
-    ::getSceneDataInitializer()->startStageFileLoadAfterScenarioSelected();
     ::getSceneDataInitializer()->initAfterScenarioSelected();
 }
 
@@ -344,22 +485,21 @@ void SceneFunction::initForNameObj() {
 }
 
 void SceneFunction::initForLiveActor() {
-    MR::createSceneObj(SceneObj_AllLiveActorGroup);
-    MR::createSceneObj(SceneObj_ClippingDirector);
-    MR::createSceneObj(SceneObj_DemoDirector);
-    MR::createSceneObj(SceneObj_SensorHitChecker);
-    MR::createSceneObj(SceneObj_CollisionDirector);
-    MR::createSceneObj(SceneObj_MessageSensorHolder);
-    MR::createSceneObj(SceneObj_LiveActorGroupArray);
-    MR::createSceneObj(SceneObj_MovementOnOffGroupHolder);
-    MR::createSceneObj(SceneObj_LightDirector);
-    MR::createSceneObj(SceneObj_AreaObjContainer);
-    MR::createSceneObj(SceneObj_CaptureScreenActor);
-    MR::createSceneObj(SceneObj_StageSwitchContainer);
-    MR::createSceneObj(SceneObj_SwitchWatcherHolder);
-    MR::createSceneObj(SceneObj_SleepControllerHolder);
-    MR::createSceneObj(SceneObj_TalkDirector);
-    MR::createSceneObj(SceneObj_NPCDirector);
+    MR::createSceneObj(0x39);
+    MR::createSceneObj(0x2);
+    MR::createSceneObj(0x0);
+    MR::createSceneObj(0x1);
+    MR::createSceneObj(0x9);
+    MR::createSceneObj(0xe);
+    MR::createSceneObj(0xf);
+    MR::createSceneObj(0x6);
+    MR::createSceneObj(0xd);
+    MR::createSceneObj(0x10);
+    MR::createSceneObj(0xa);
+    MR::createSceneObj(0xb);
+    MR::createSceneObj(0xc);
+    MR::createSceneObj(0x1a);
+    MR::createSceneObj(0x2b);
 }
 
 void SceneFunction::initEffectSystem(u32 a1, u32 a2) {
@@ -369,7 +509,7 @@ void SceneFunction::initEffectSystem(u32 a1, u32 a2) {
 
 void SceneFunction::allocateDrawBufferActorList() {
     NameObjListExecutor* pListExecutor = SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor();
-
+    
     pListExecutor->allocateDrawBufferActorList();
     MR::initConnectting();
 }
@@ -408,6 +548,14 @@ void CategoryList::entryDrawBufferMirror() {
     NameObjListExecutor* pListExecutor = SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor();
 
     pListExecutor->entryDrawBufferMirror();
+}
+
+void CategoryList::entryDrawBufferWorldMapBig() {
+    SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor()->entryDrawBufferWorldMapBig();
+}
+
+void CategoryList::entryDrawBufferWorldMapSmall() {
+    SingletonHolder< GameSystem >::get()->mSceneController->getNameObjListExecutor()->entryDrawBufferWorldMapSmall();
 }
 
 void CategoryList::drawOpa(MR::DrawBufferType type) {

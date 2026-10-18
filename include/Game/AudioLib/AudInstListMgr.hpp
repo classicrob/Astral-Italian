@@ -30,6 +30,10 @@ public:
     static void requestInstrumentRefresh();
     void fn_80087940(const char*, bool);
     void fn_802204A0(const char*, bool);
+    void requestWave(s32, s32, bool);
+    void requestWaveForSystem(s32, s32, bool);
+    void loadRequestedWaves(bool, bool);
+    bool isLoadDone();
     void loadInstList();                           // fn_80087560
     void requestStageUseInstList(const char*);     // fn_80087740; PLACEHOLDER(core) name
 

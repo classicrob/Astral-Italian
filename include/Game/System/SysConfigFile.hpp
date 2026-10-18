@@ -6,6 +6,13 @@
 class BinaryDataChunkHolder;
 class BinaryDataContentHeaderSerializer;
 
+struct SysConfigCounters {
+    u16 mBankedStarPiece;
+    u16 mMaxBankedStarPiece;
+    u8 mSharedPlayerLeft;
+    u16 mPlayerLeftHash;
+};
+
 class SysConfigChunk : public BinaryDataChunkBase {
     friend class SysConfigFile;
 
@@ -21,13 +28,23 @@ public:
 
     void initHeaderSerializer();
 
-    // core h10: SMG2 flag byte at chunk+4 (read/written inline by GameDataFunction)
-    /* 0x04 */ u8 mEncouragedPal16;
+    s32 getSharedPlayerLeft() const;
+    void setSharedPlayerLeft(s32, u16);
+    s32 getBankedStarPieceNum() const;
+    void setBankedStarPieceNum(s32);
+    s32 getMaxBankedStarPieceNum() const;
+    void backupCounters();
+    void restoreCounters();
+    void resetCounters();
 
-private:
-    /* 0x08 */ OSTime mTimeAnnounced;
-    /* 0x10 */ OSTime mTimeSent;
-    /* 0x18 */ u32 mSentBytes;
+    /* 0x04 */ bool mEncouragedPal16;
+    union {
+        /* 0x08 */ OSTime mTimeSent;
+        /* 0x08 */ OSTime mTimeAnnounced; // old source alias; SMG2 stores only one time
+    };
+    /* 0x10 */ u32 mSentBytes;
+    /* 0x14 */ SysConfigCounters* mBackupCounters;
+    /* 0x18 */ SysConfigCounters* mCurrentCounters;
     /* 0x1C */ BinaryDataContentHeaderSerializer* mHeaderSerializer;
 };
 

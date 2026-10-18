@@ -62,6 +62,7 @@ public:
     static void resetIfAborted();
 
     void clearFifo();
+    void clearSceneCallbacks();
     static void end();
 
     void drawSyncCallbackSub(u16 token);

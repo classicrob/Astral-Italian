@@ -1,5 +1,6 @@
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/MiniRoutePoint.hpp"
+#include "Game/System/MiniStarCheckPoint.hpp"
 #include "Game/System/MiniWorldMapMark.hpp"
 #include "Game/System/WorldMapFunction.hpp"
 #include "Game/Effect/PlayerRocketSmokeMoveParticleCallBack.hpp"
@@ -13,11 +14,6 @@
 extern "C" void* fn_8031B1F0(void* pMem, const char* pName);
 // PLACEHOLDER(core): scatter helper in unit auto_03_8031B1F0 (fn_8031B370); resolve when that unit is named
 extern "C" void fn_8031B370(LiveActor* pStar, const TVec3f* pPos, const TVec3f* pUp, f32 speed, f32 range);
-// PLACEHOLDER(core): sound starter with actor check (fn_80008370) in unit auto_03_800083F0, not startLevelSound (0x8005B4F0); resolve when that unit is named
-extern "C" void fn_80008450(LiveActor* pActor, const char* pName, s32 param3, s32 param4, s32 param5);
-// PLACEHOLDER(core): callers in WorldMapModel are unnamed; resolve when they are named
-extern "C" void fn_804E4F80(LiveActor* pActor);
-extern "C" void fn_804E4F90(LiveActor* pActor);
 
 namespace {
     class ScatteredStarPieceGroup : public LiveActorGroup {
@@ -254,12 +250,12 @@ void MiniPlayerRocket::setMoveDirectionInstant(const TVec3f& rDir) {
     }
 }
 
-extern "C" void fn_804E4F80(LiveActor* pActor) {
-    pActor->setNerve(&NrvMiniPlayerRocket::NrvNone::sInstance);
+void MiniPlayerRocket::disablePlayerBind() {
+    setNerve(&NrvMiniPlayerRocket::NrvNone::sInstance);
 }
 
-extern "C" void fn_804E4F90(LiveActor* pActor) {
-    pActor->setNerve(&NrvMiniPlayerRocket::NrvBind::sInstance);
+void MiniPlayerRocket::enablePlayerBind() {
+    setNerve(&NrvMiniPlayerRocket::NrvBind::sInstance);
 }
 
 void MiniPlayerRocket::setPlayerMtx(const f32 (*pMtx)[4]) {
@@ -433,17 +429,17 @@ bool MiniRoutePoint::isStarting() const {
 }
 
 bool MiniRoutePoint::start() {
-    fn_80008450(this, "RoadExtend", -1, -1, -1);
+    MR::startActionSoundOneShot(this, "RoadExtend", -1, -1, -1);
     return true;
 }
 
 bool MiniRoutePoint::startOpenSound() {
-    fn_80008450(this, "PointOn", -1, -1, -1);
+    MR::startActionSoundOneShot(this, "PointOn", -1, -1, -1);
     return true;
 }
 
 bool MiniRoutePoint::startCloseSound() {
-    fn_80008450(this, "PointOff", -1, -1, -1);
+    MR::startActionSoundOneShot(this, "PointOff", -1, -1, -1);
     return true;
 }
 
@@ -470,7 +466,6 @@ void MiniWorldMapMark::init(const JMapInfoIter&) {
 
 MiniWorldMapMark::~MiniWorldMapMark() {}
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" bool fn_804E5A10(const char* pName) {
+bool isStarCheckPointGrand(const char* pName) {
     return MR::isEqualString(pName, "StarCheckPointGrand");
 }

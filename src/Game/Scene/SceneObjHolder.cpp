@@ -1,3 +1,19 @@
+#include "Game/Demo/StoryBookDemo.hpp"
+#include "Game/Enemy/GliderShooterBullet.hpp"
+#include "Game/GameAudio/ActionSoundSystem.hpp"
+#include "Game/Map/ProductMapCreator.hpp"
+#include "Game/MapObj/CollectTicoHolder.hpp"
+#include "Game/MapObj/ExterminationWoodBoxFlagHolder.hpp"
+#include "Game/MapObj/LightFruitClipArea.hpp"
+#include "Game/MapObj/MarioFaceShipNpcHolder.hpp"
+#include "Game/MapObj/PlayerFollowPass.hpp"
+#include "Game/MapObj/StarLightAreaHolder.hpp"
+#include "Game/MapObj/StarPieceFlowerController.hpp"
+#include "Game/MapObj/SwingActionWatcher.hpp"
+#include "Game/NPC/GhostAttackAccessor.hpp"
+#include "Game/Player/InfernoMarioManager.hpp"
+#include "Game/System/WorldMapOwner.hpp"
+#include "Game/System/WorldMapResultCommand.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Inline.hpp"
 
@@ -68,6 +84,7 @@ namespace MR {
 #include "Game/Map/PlanetMapCreator.hpp"
 #include "Game/Map/QuakeEffectGenerator.hpp"
 #include "Game/Map/RaceManager.hpp"
+#include "Game/Map/AwakeControllerHolder.hpp"
 #include "Game/Map/SleepControllerHolder.hpp"
 #include "Game/Map/StageSwitch.hpp"
 #include "Game/Map/SunshadeMapHolder.hpp"
@@ -207,8 +224,8 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new StageSwitchContainer();
     case SceneObj_SwitchWatcherHolder:
         return new SwitchWatcherHolder();
-    case SceneObj_SleepControllerHolder:
-        return new SleepControllerHolder();
+    case SceneObj_AwakeControllerHolder:
+        return new AwakeControllerHolder();
     case SceneObj_AreaObjContainer:
         return new AreaObjContainer("エリアオブジェクトコンテナ管理");
     case SceneObj_LiveActorGroupArray:
@@ -223,6 +240,8 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new AudEffectDirector();
     case SceneObj_AudBgmConductor:
         return new AudBgmConductor();
+    case SceneObj_ActionSoundSystem:
+        return new ActionSoundSystem("アクションサウンドシステム");
     case SceneObj_MarioHolder:
         return new MarioHolder();
     case SceneObj_MirrorCamera:
@@ -279,6 +298,12 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new TimeStopScreenCaptureTexture("時間停止画面取り込みテクスチャ");
     case SceneObj_TimeStopScreenEffect:
         return new TimeStopScreenEffect("時間停止画面エフェクト");
+    case SceneObj_SwingActionWatcher:
+        return new SwingActionWatcher("スイングアクション監視者");
+    case SceneObj_WorldMapOwner:
+        return new WorldMapOwner();
+    case SceneObj_WorldMapResultCommand:
+        return new WorldMapResultCommand();
     case SceneObj_ScoreAttackAccessor:
         return new ScoreAttackAccessor();
     case SceneObj_ScoreResultKeeper:
@@ -347,6 +372,8 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new FallOutFieldDraw("クリップエリア描画[抜き]");
     case SceneObj_ClipFieldFillDraw:
         return new ClipFieldFillDraw("クリップエリア描画[塗りつぶし]");
+    case SceneObj_LightFruitClipArea:
+        return new LightFruitClipArea();
     case SceneObj_ScreenAlphaCapture:
         return new ScreenAlphaCapture("アルファテクスチャ取り込み");
     case SceneObj_MapPartsRailGuideHolder:
@@ -399,8 +426,14 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new GalaxyNamePlateDrawer();
     case SceneObj_CinemaFrame:
         return new CinemaFrame(true);
+    case SceneObj_PlayerFollowPass:
+        return new PlayerFollowPass();
+    case SceneObj_InfernoMarioManager:
+        return new InfernoMarioManager("インフェルノマリオ管理");
     case SceneObj_PlanetMapCreator:
         return new PlanetMapCreator("惑星クリエイタ");
+    case SceneObj_ProductMapCreator:
+        return new ProductMapCreator("惑星クリエイタ");
     case SceneObj_WarpPodMgr:
         return new WarpPodMgr("ワープポッド管理局");
     case SceneObj_PriorDrawAirHolder:
@@ -409,26 +442,44 @@ NameObj* SceneObjHolder::newEachObj(int id) {
         return new StaffRoll();
     case SceneObj_LiveActorGroup:
         return new LiveActorGroup("マップパーツ", 0x200);
+    case SceneObj_StarLightAreaHolder:
+        return new StarLightAreaHolder("スターライトエリアホルダー");
     case SceneObj_ChangeObjHolder:
         return new ChangeObjHolder("切り替えオブジェホルダー");
     case SceneObj_DrillHoleHolder:
         return new DrillHoleHolder("ドリルの穴保持");
+    case SceneObj_CollectTicoHolder:
+        return new CollectTicoHolder();
     case SceneObj_IceMeteorHolder:
         return new IceMeteorHolder("アイスメテオホルダー");
+    case SceneObj_StoryBookDemo:
+        return new StoryBookDemo();
     case SceneObj_PopoStickingManager:
         return new PopoStickingManager("ポポくっつき管理");
     case SceneObj_KoopaJrCastleAccessor:
         return new KoopaJrCastleAccessor();
     case SceneObj_KoopaJrCastleWindHolder:
         return new KoopaJrCastleWindHolder();
+    case SceneObj_GliderShooterBulletHolder:
+        return new GliderShooterBulletHolder();
+    case SceneObj_GhostAttackAccessor:
+        return new GhostAttackAccessor();
     case SceneObj_GliBirdTutorial:
         return new GliBirdTutorial();
     case SceneObj_PauseBlur:
         return new PauseBlur("PauseBlur");
+    case SceneObj_StarPieceFlowerController:
+        return new StarPieceFlowerController("スターピース花コントローラー");
+    case SceneObj_ExterminationWoodBoxFlagHolder:
+        return new ExterminationWoodBoxFlagHolder("木箱全滅フラグホルダー");
     case SceneObj_MarioFacePlanetSwitch:
         return new MarioFacePlanetSwitch("マリオ顔惑星スイッチ");
     case SceneObj_MarioFaceShipAttentionConversationDirector:
         return new MarioFaceShipAttentionConversationDirector("注目会話デモ指示者");
+    case SceneObj_MarioFaceShipNpcHolder:
+        return new MarioFaceShipNpcHolder("Npc紹介デモ参加者ホルダー");
+    case SceneObj_MarioFaceShipNormalConversationDirector:
+        return new MarioFaceShipNormalConversationDirector("会話デモ指示者");
     case SceneObj_MarioFaceShipEventDataHolder:
         return new MarioFaceShipEventDataHolder("マリオ顔惑星イベントデータ所持者");
     case SceneObj_WiiMessageBoardMailSender:

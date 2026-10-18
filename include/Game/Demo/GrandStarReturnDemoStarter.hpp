@@ -4,7 +4,7 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class ActorCameraInfo;
-class PowerStar;
+class DemoObj;
 class ReturnDemoRailMove;
 class StageResultInformer;
 
@@ -25,6 +25,7 @@ public:
     void exeMove();
     void exeFlyWait();
     void exeRushToCore();
+    void exeWaitInformation();
     void exeRevival();
     void exeStageResult();
     void exeFadeOut();
@@ -34,7 +35,7 @@ public:
     /* 0x90 */ StageResultInformer* mStageResultInformer;
     /* 0x94 */ TPos3f mPrevTransform;
     /* 0xC4 */ TPos3f mTransform;
-    /* 0xF4 */ PowerStar* mPowerStar;
+    /* 0xF4 */ DemoObj* mPowerStar;
     /* 0xF8 */ TVec3f mDistanceToCore;
     /* 0x104 */ TVec3f mPowerStarPosition;
     /* 0x110 */ ActorCameraInfo* mActorCameraInfo;

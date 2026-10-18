@@ -2,9 +2,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_8001FEF0(BossBussunStateDemo*, BossBussun*, const char*, const Nerve*, const Nerve*);
-
 namespace NrvBossBussunStateDemo {
     // Empty execute in the target (blr): hand-written, no exe call.
     class BossBussunStateDemoNrvWait : public Nerve {
@@ -27,7 +24,7 @@ BossBussunStateDemo::BossBussunStateDemo(BossBussun* pHost, const char* pDemoNam
 void BossBussunStateDemo::appear() {
     mIsDead = false;
     MR::showModel(mHost);
-    fn_8001FEF0(this, mHost, mDemoName, GET_NERVE(BossBussunStateDemo, BossBussunStateDemoNrvDemo), &NrvBossBussunStateDemo::BossBussunStateDemoNrvWait::sInstance);
+    MR::requestStartDemo(this, mHost, mDemoName, GET_NERVE(BossBussunStateDemo, BossBussunStateDemoNrvDemo), &NrvBossBussunStateDemo::BossBussunStateDemoNrvWait::sInstance);
     mHost->resetAnimScale();
 }
 

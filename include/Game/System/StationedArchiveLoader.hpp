@@ -1,5 +1,7 @@
 #pragma once
 
+#include <revolution/types.h>
+
 class JKRHeap;
 
 namespace MR {
@@ -18,5 +20,6 @@ public:
     static JKRHeap* getProperHeap(const MR::StationedFileInfo*);
     static void loadResourcesFromTable(const StationedArchiveLoader::Condition&);
     static void createAndAddResourcesFromTable(const StationedArchiveLoader::Condition&);
+    static bool createAndAddResourcesFromTable(const StationedArchiveLoader::Condition&, s32, s32);
     static void loadScenarioData(JKRHeap*);
 };

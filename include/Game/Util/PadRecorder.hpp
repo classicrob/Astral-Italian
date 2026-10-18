@@ -73,6 +73,8 @@ public:
 };
 
 namespace MR {
+    void prepareReplay(const char*, u32);
+    bool startReplayPad();
     void readPadData(int, WPadReadDataInfo*);
     bool isPadRecorderStopped();
     bool isPadRecorderReading();

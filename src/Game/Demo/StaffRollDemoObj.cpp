@@ -1,3 +1,7 @@
+#include "Game/Demo/StaffRollDemoCamera.hpp"
+#include "Game/Demo/StoryBookDemo.hpp"
+#include "Game/Util/ObjUtil.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 #include "Game/Util/MessageUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
@@ -8,7 +12,6 @@
 #include "Game/Screen/LayoutActor.hpp"
 #include "Game/Util.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
-#include "Game/Demo/UnnamedDemoCallee.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
 
 extern "C" int snprintf(char*, u32, const char*, ...);
@@ -37,59 +40,60 @@ namespace NrvStaffRollDemoObj {
         virtual void execute(Spine*) const;
         static StaffRollDemoObjNrvH sInstance;
     };
+    StaffRollDemoObjNrvH StaffRollDemoObjNrvH::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(StaffRollDemoObjNrvE, StaffRollDemoObj, E);
     NEW_NERVE(StaffRollDemoObjNrvF, StaffRollDemoObj, F);
     NEW_NERVE(StaffRollDemoObjNrvG, StaffRollDemoObj, G);
 };  // namespace NrvStaffRollDemoObj
 
-StaffRollDemoObj::StaffRollDemoObj(const char* pName) : LiveActor(pName), mStaffRollObj(nullptr), mChildA(nullptr), mStep98(0), mStep9C(0), mCameraInfo(nullptr), mActors(nullptr), mActorCount(0), mActorFill(0), mChildB(nullptr), mChildC(nullptr), mRollA(nullptr), mRollB(nullptr) {
+StaffRollDemoObj::StaffRollDemoObj(const char* pName) : LiveActor(pName), mStaffRollObj(nullptr), mChildA(nullptr), mStep98(0), mStep9C(0), mCameraInfo(nullptr), mActorArray(), mActorFill(0), mChildB(nullptr), mChildC(nullptr), mRollA(nullptr), mRollB(nullptr) {
 }
 
-// NONMATCHING: roll allocation via fn_801440F0 and StaffRoll+0xE4 store not reproduced
 void StaffRollDemoObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::connectToSceneMapObjMovement(this);
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvStart), 0);
     mCameraInfo = MR::createActorCameraInfo(rIter);
-    mRollA = UnnamedDemoCallee::fn_801440F0(this, mCameraInfo, 0);
-    mRollB = UnnamedDemoCallee::fn_801440F0(this, mCameraInfo, 1);
-    UnnamedDemoCallee::fn_80144280(mRollA);
+    mRollA = new StaffRollDemoCamera(this, mCameraInfo, 0);
+    mRollB = new StaffRollDemoCamera(this, mCameraInfo, 1);
+    mRollA->start();
     mStaffRollObj = new StaffRoll();
     mStaffRollObj->initWithoutIter();
-    // NONMATCHING: target also stores mRollB at StaffRoll+0xE4 (no named field in StaffRoll.hpp yet).
-    initObjects(rIter);
+    mStaffRollObj->mDemoCamera = mRollB;
+        initObjects(rIter);
     MR::initUseStageSwitchWriteA(this, rIter);
     makeActorAppeared();
 }
 
-// NONMATCHING: bck/btp frame setter nesting differs
+// NONMATCHING: regalloc and stack scheduling
 void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
+    LiveActor* sky = nullptr;
     s32 childNum = MR::getChildObjNum(rIter);
     for (s32 i = 0; i < childNum; i++) {
         const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
         if (MR::isEqualString(pName, lbl_80680B80 + 0x4C)) {
-            mChildA = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
+            sky = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             break;
         }
     }
-    mActorCount = 3;
-    mActors = new LiveActor*[mActorCount];
-    mActorFill = 0;
+    mChildA = sky;
+    mActorArray.mArr = new LiveActor*[3];
+    mActorArray.mMaxSize = 3;
     s32 actorNum = MR::getChildObjNum(rIter);
     for (s32 i = 0; i < actorNum; i++) {
         const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
         if (MR::isEqualString(pName, lbl_80680B80 + 0x5C)) {
             LiveActor* pActor = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
+            pActor->makeActorDead();
             f32 frame = static_cast< f32 >(mActorFill);
-            // NONMATCHING: target nests the bck/btp setters; order of the two calls differs.
-            MR::setBckFrameAndStop(pActor, frame);
+                        MR::setBckFrameAndStop(pActor, frame);
             MR::setBtpFrameAndStop(pActor, frame);
             s32 idx = mActorFill;
             mActorFill = idx + 1;
-            mActors[idx] = pActor;
+            mActorArray.mArr[idx] = pActor;
         } else if (MR::isEqualString(pName, lbl_80680B80 + 0x78)) {
             mChildB = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             const char* pAnim = lbl_80680B80 + 0x9C;
@@ -97,7 +101,7 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
                 pAnim = lbl_80680B80 + 0x90;
             }
             MR::startAction(mChildB, pAnim);
-            mChildB->makeActorAppeared();
+            mChildB->makeActorDead();
         } else if (MR::isEqualString(pName, lbl_80680B80 + 0xA8)) {
             mChildC = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             mChildC->makeActorDead();
@@ -105,53 +109,61 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
     }
 }
 
-// NONMATCHING: LayoutActor vt slot 0x2C used for the roll (inferred appear)
 void StaffRollDemoObj::exeStart() {
     if (MR::isFirstStep(this)) {
         MR::openWipeFade(0xB4);
+        MR::tryStartDemo(this, lbl_807D98B4);
+        MR::endStartPosCamera();
+        MR::hidePlayer();
+        MR::offPlayerControl();
         MR::startStarPointerModeEnding(this);
         setAndShowPlayer();
     }
-    UnnamedDemoCallee::fn_801442A0(mRollA, 0);
+    mRollA->update(false);
     if (MR::isGreaterEqualStep(this, 0xB4)) {
-        MR::offPlayerControl();
-        MR::hidePlayer();
         MR::endDemo(this, lbl_807D98B4);
+        MR::hidePlayer();
+        MR::offPlayerControl();
         // Target calls the LayoutActor vtable slot 0x2C here (appear); see NOTES.
         static_cast< LayoutActor* >(mStaffRollObj)->appear();
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvB));
     }
 }
 
-// NONMATCHING: loop and string formatting simplified
+// NONMATCHING: equivalent search-result branch folding and regalloc
 void StaffRollDemoObj::setAndShowPlayer() {
     char name[0x100];
+    s32 page = mStep98;
     s32 frameMax = static_cast< s32 >(MR::getBvaFrameMax(mChildA));
     s32 found = 0;
+    TPos3f position;
     for (s32 i = 0; i < frameMax; i++) {
-        snprintf(name, 0x100, lbl_80680C40, mStep98, i);
-        if (UnnamedDemoCallee::fn_8004E770(name, nullptr) != 0) {
+        snprintf(name, 0x100, lbl_80680C40, page, i);
+        if (MR::tryFindNamePos(name, position) != 0) {
             mStep9C = i;
             found = 1;
             break;
         }
     }
     if (!found) {
+        snprintf(name, 0x100, lbl_80680C40, 0, 0);
+        mStep9C = 0;
         mStep98 = 0;
         mStep9C = 0;
     }
     MR::setPlayerPos(name);
     MR::setPlayerStateWait();
     if (!MR::isPlayerVisible()) {
-        MR::onPlayerControl(true);
         MR::showPlayer();
+        MR::onPlayerControl(true);
     }
-    s32 frame = mStep9C % static_cast< s32 >(MR::getBvaFrameMax(mChildA));
-    MR::setBvaFrameAndStop(mChildA, static_cast< f32 >(frame));
+    LiveActor* sky = mChildA;
+    s32 index = mStep9C;
+    s32 frame = index % static_cast< s32 >(MR::getBvaFrameMax(sky));
+    MR::setBvaFrameAndStop(sky, static_cast< f32 >(frame));
 }
 
 // Shows the actors belonging to the current step; the others are hidden.
-// NONMATCHING: unverified branch layout
 void StaffRollDemoObj::updateActorVisibility() {
     s32 targetIdx;
     if (mStep98 == 2) {
@@ -159,59 +171,57 @@ void StaffRollDemoObj::updateActorVisibility() {
     } else if (mStep98 == 6) {
         targetIdx = 1;
     } else {
-        targetIdx = 0;
+        targetIdx = mStep98 == 8 ? 0 : -1;
     }
-    for (s32 i = 0; i < mActorCount; i++) {
-        if (i == targetIdx) {
-            mActors[i]->makeActorAppeared();
+    for (LiveActor** actor = mActorArray.mArr; actor != mActorArray.mArr + mActorFill; actor++) {
+        if (actor - mActorArray.mArr == targetIdx) {
+            (*actor)->makeActorAppeared();
         } else {
-            mActors[i]->makeActorDead();
+            (*actor)->makeActorDead();
         }
     }
 }
 
+// NONMATCHING: equivalent redundant member null check omitted
 StaffRollDemoObj::~StaffRollDemoObj() {
 }
 
 // Nerve B: wait for the roll, then hand off to C.
-// NONMATCHING: unverified nerve/slot details
 void StaffRollDemoObj::exeB() {
-    UnnamedDemoCallee::fn_801442A0(mRollA, 0);
+    mRollA->update(false);
     if (mStaffRollObj->isCurrentPartEnd()) {
         MR::onSwitchA(this);
-        UnnamedDemoCallee::fn_801442D0(mRollA);
+        mRollA->end();
         MR::tryStartDemo(this, lbl_807D98B0);
-        for (s32 i = 0; i < mActorCount; i++) {
-            MR::requestMovementOn(mActors[i]);
+        for (LiveActor** actor = mActorArray.mArr; actor != mActorArray.mArr + mActorFill; actor++) {
+            MR::requestMovementOn(*actor);
         }
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvD));
     }
 }
 
 // Nerve C: the roll is shown; loops back to B until the roll is done.
-// NONMATCHING: unverified call order
 void StaffRollDemoObj::exeC() {
     if (mStaffRollObj->isLastPartEnd()) {
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvE));
         return;
     }
     if (mStaffRollObj->isCurrentPartEnd()) {
-        UnnamedDemoCallee::fn_80422740();
+        MR::resetYoshiTongueForDemo();
         MR::tryStartDemo(this, lbl_807D98B0);
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvD));
     }
 }
 
 // Nerve D: the roll is running; advance the step counter on each entry.
-// NONMATCHING: unverified call order
 void StaffRollDemoObj::exeD() {
     if (MR::isFirstStep(this)) {
         MR::startCameraInterpolation(0);
-        UnnamedDemoCallee::fn_80147830();
+        MR::startStoryBookTurnPage();
         mStep98 += 1;
         return;
     }
-    if (UnnamedDemoCallee::fn_80147780() != 0) {
+    if (MR::isStoryBookTurnPageStart() != 0) {
         setAndShowPlayer();
         updateActorVisibility();
         if (mStep98 == 1) {
@@ -225,13 +235,12 @@ void StaffRollDemoObj::exeD() {
 }
 
 // Nerve E: wait on the roll's end-of-part flag.
-// NONMATCHING: unverified frame compare
 void StaffRollDemoObj::exeE() {
     if (MR::isFirstStep(this)) {
         mChildB->makeActorAppeared();
     }
     s32 frame = mStaffRollObj->getElapsedFrame();
-    if (frame >= 0x32C8) {
+    if (static_cast< u32 >(frame) >= 0x32C8) {
         MR::offPlayerControl();
     }
     if (mStaffRollObj->isEnd()) {
@@ -246,7 +255,7 @@ void StaffRollDemoObj::exeF() {
     }
     if (MR::isWipeBlank()) {
         MR::offSwitchA(this);
-        mChildC->kill();
+        mChildC->makeActorDead();
         MR::tryStartDemo(this, lbl_807D98B8);
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvG));
     }
@@ -265,10 +274,9 @@ void StaffRollDemoObj::exeG() {
 // Nerve H (custom execute body): when the wait flag clears, end the demo and return to C.
 void NrvStaffRollDemoObj::StaffRollDemoObjNrvH::execute(Spine* pSpine) const {
     StaffRollDemoObj* pActor = reinterpret_cast< StaffRollDemoObj* >(pSpine->mExecutor);
-    if (UnnamedDemoCallee::fn_801476E0() != 0) {
+    if (MR::isStoryBookTurnPageEnd() != 0) {
         MR::endDemo(pActor, lbl_807D98B4);
         pActor->setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvC));
     }
 }
 
-NrvStaffRollDemoObj::StaffRollDemoObjNrvH NrvStaffRollDemoObj::StaffRollDemoObjNrvH::sInstance ATTRIBUTE_WEAK;

@@ -112,7 +112,7 @@ namespace MR {
     bool fn_80422710() {
         return getMarioHolder()->getMarioActor()->fn_803B9810()->fn_8041FA40();
     }
-    void fn_80422740() {
+    void resetYoshiTongueForDemo() {
         if (!getMarioHolder()->getMarioActor()->fn_803B9840()) return;
         if (!isPlayerElementModeYoshi()) return;
         getMarioHolder()->getMarioActor()->fn_803B9810()->fn_8041FEB0();

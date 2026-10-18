@@ -18,7 +18,16 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Animation/BckCtrl.hpp"
+#include "Game/Util/ActorAnimUtil.hpp"
+#include "Game/Util/ActorSensorUtil.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
+#include "Game/MapObj/SwingActionWatcher.hpp"
+#include "Game/Player/Yoshi.hpp"
+#include "JSystem/JAudio2/JAISound.hpp"
+#include "JSystem/JGeometry/TUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
+#include "Game/Util/SupportPlayUtil.hpp"
 
 namespace MR {
     bool isOnGroundPlayer() {
@@ -36,6 +45,10 @@ namespace MR {
 
     void forceKillPlayerByGroundRace() {
         return MarioAccess::forceKill(5, 0);
+    }
+
+    f32 getPlayerShadowHeight() {
+        return MarioAccess::getShadowHeight();
     }
 
 
@@ -56,6 +69,10 @@ namespace MR {
     }
 
     TVec3f* getPlayerPos() {
+        if (!MarioAccess::isVisible() && isCurrentRushActor("岩マリオ")) {
+            return &getCurrentRushActor()->mPosition;
+        }
+
         return &MarioAccess::getPlayerActor()->mPosition;
     }
 
@@ -97,6 +114,20 @@ namespace MR {
 
     f32 getPlayerHitRadius() {
         return MarioAccess::getPlayerActor()->mPlayerMode == (s16)6 ? 100.0f : 60.0f;
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7170 (gravity scale)
+    void resetPlayerGravityScale() {
+        MarioAccess::fn_803B7170();
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7240 (confront-death ? const : actor 0x724)
+    f32 getPlayerConfrontDeathParam() {
+        return MarioAccess::fn_803B7240();
+    }
+
+    void fn_8004F310() {
+        MarioAccess::fn_803B72A0();
     }
 
 
@@ -177,6 +208,16 @@ namespace MR {
         MarioAccess::changeAnimationE(pName, param2);
     }
 
+    // PLACEHOLDER(core): name by behavior; BVA start with BckCtrlData reflection
+    bool startPlayerBvaWithCtrl(const char* pName, const BckCtrlData& rCtrlData) {
+        if (!startBvaIfExist(MarioAccess::getPlayerActor(), pName)) {
+            return false;
+        }
+
+        BckCtrlFunction::reflectBckCtrlDataToFrameCtrl(rCtrlData, getBvaCtrl(MarioAccess::getPlayerActor()));
+        return true;
+    }
+
     bool isBckStoppedPlayer() {
         return MR::isActionEnd(MarioAccess::getPlayerActor());
     }
@@ -186,7 +227,7 @@ namespace MR {
     }
 
 
-    s32 getBckFrameMaxPlayer(const char* pName) {
+    s16 getBckFrameMaxPlayer(const char* pName) {
         return MR::getBckFrameMax(MarioAccess::getPlayerActor(), pName);
     }
 
@@ -207,13 +248,13 @@ namespace MR {
     }
 
     void setBckBlendWeight(f32 param1, f32 param2) {
-        const f32 blendWeight[] = {param1, param2};
+        const f32 blendWeight[4] = {param1, param2, 0.0f, 0.0f};
 
         MarioAccess::setAnimationBlendWeight(blendWeight);
     }
 
     void setBckBlendWeight(f32 param1, f32 param2, f32 param3) {
-        const f32 blendWeight[] = {param1, param2, param3};
+        const f32 blendWeight[4] = {param1, param2, param3, 0.0f};
 
         MarioAccess::setAnimationBlendWeight(blendWeight);
     }
@@ -252,13 +293,24 @@ namespace MR {
         MarioAccess::tornadoJumpMini();
     }
 
+    void fn_8004FA20() {
+        MarioAccess::fn_803B51B0();
+    }
+
     void becomePlayerNormalJumpStatus() {
         MarioAccess::becomeNormalJumpStatus();
     }
 
     bool isOnPlayer(const HitSensor* pSensor) {
-        Triangle* polygon = getPlayerGroundingPolygon();
+        if (MarioAccess::isInRush()) {
+            if (isBindedGround(getCurrentRushActor())) {
+                return getGroundSensor(getCurrentRushActor()) == pSensor;
+            }
 
+            return false;
+        }
+
+        Triangle* polygon = MarioAccess::getGroundingPolygon(0);
         if (polygon != nullptr) {
             return polygon->mSensor == pSensor;
         }
@@ -267,6 +319,14 @@ namespace MR {
     }
 
     bool isActorOnPlayer(const LiveActor* pActor) {
+        if (MarioAccess::isInRush()) {
+            if (isBindedGround(getCurrentRushActor())) {
+                return getGroundActor(getCurrentRushActor()) == pActor;
+            }
+
+            return false;
+        }
+
         return MarioAccess::isOnActor(pActor);
     }
 
@@ -294,19 +354,24 @@ namespace MR {
         setPlayerPos(trans);
     }
 
-    void setPlayerPosAndWait(const TVec3f& rPos) {
-        setPlayerPos(rPos);
+    void setPlayerPosAndWait(const TVec3f& rPos, bool resetBeforePosition) {
+        if (resetBeforePosition) MarioAccess::prepareForPositionReset();
+        MarioAccess::setTrans(rPos, 0);
         MarioAccess::getPlayerActor()->resetCondition();
         MarioAccess::setStateWait();
+        startBckPlayer("Wait", static_cast<const char*>(nullptr));
     }
 
-    void setPlayerPosAndWait(const char* pParam1) {
-        setPlayerPos(pParam1);
+    void setPlayerPosAndWait(const char* pName, bool resetBeforePosition) {
+        if (resetBeforePosition) MarioAccess::prepareForPositionReset();
+        setPlayerPos(pName);
         MarioAccess::getPlayerActor()->resetCondition();
         MarioAccess::setStateWait();
+        startBckPlayer("Wait", static_cast<const char*>(nullptr));
     }
 
-    void setPlayerLinkPosAndWait(const NameObj* pParam1, const char* pParam2) {
+    void setPlayerLinkPosAndWait(const NameObj* pParam1, const char* pParam2, bool resetBeforePosition) {
+        if (resetBeforePosition) MarioAccess::prepareForPositionReset();
         TPos3f mtx;
         mtx.identity();
 
@@ -314,6 +379,7 @@ namespace MR {
         MarioAccess::setBaseMtx(mtx.toMtxPtr());
         MarioAccess::getPlayerActor()->resetCondition();
         MarioAccess::setStateWait();
+        startBckPlayer("Wait", static_cast<const char*>(nullptr));
     }
 
     void setPlayerPosOnGround(const char* pParam1) {
@@ -344,6 +410,19 @@ namespace MR {
         return MarioAccess::isHipDropLand();
     }
 
+    s32 getPlayerLife() {
+        return MarioAccess::getLife();
+    }
+
+    bool isPlayerLifeOne() {
+        return MarioAccess::getLife() == 1;
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B59A0 (swim/life decrement)
+    void decrementPlayerSwimLife() {
+        MarioAccess::fn_803B59A0();
+    }
+
     void incPlayerLife(u32 add) {
         MarioAccess::incLife(add);
     }
@@ -368,8 +447,22 @@ namespace MR {
         MarioAccess::scatterStarPiece(num);
     }
 
+    void extendPlayerBeeAirWalk(s32 param1) {
+        MarioAccess::fn_803B7070(param1);
+    }
+
     bool isPlayerSwingAction() {
         return MarioAccess::isSwingAction();
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B4E40 (jumping && state 0x42C == 5)
+    bool isPlayerInJumpAction() {
+        return MarioAccess::fn_803B4E40();
+    }
+
+    // PLACEHOLDER(core): alias of MR::isPlayerSwingActionStart (tail call); resolve when owner decides
+    bool isPlayerSwingActionStartNow() {
+        return isPlayerSwingActionStart();
     }
 
     bool isPlayerPointedBy2POnTriggerButton() {
@@ -388,37 +481,62 @@ namespace MR {
         return MarioAccess::isNeedBrakingCamera();
     }
 
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B6010 (actor 0xE25 = 1, 0xE28 = 0)
+    void resetPlayerFootState() {
+        MarioAccess::fn_803B6010();
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B6050 (actor 0xE28 = arg)
+    void setPlayerFootState(void* pParam1) {
+        MarioAccess::fn_803B6050(pParam1);
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B6090 (footprint clear)
+    void clearPlayerFootprints() {
+        MarioAccess::fn_803B6090();
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B71E0 (actor 0x1066 = 1)
+    void setPlayerRollingOn() {
+        MarioAccess::fn_803B71E0();
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7210 (actor 0x1066 = 0)
+    void setPlayerRollingOff() {
+        MarioAccess::fn_803B7210();
+    }
+
     bool isPlayerFlying() {
         return MarioAccess::isFlying();
     }
 
 
     bool isPlayerElementModeTornado() {
-        return isPlayerElementMode(PlayerMode_Tornado);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 9;
     }
 
     bool isPlayerElementModeInvincible() {
-        return isPlayerElementMode(PlayerMode_Invincible);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 1;
     }
 
     bool isPlayerElementModeBee() {
-        return isPlayerElementMode(PlayerMode_Bee);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 4;
     }
 
     bool isPlayerElementModeHopper() {
-        return isPlayerElementMode(PlayerMode_Hopper);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 5;
     }
 
     bool isPlayerElementModeTeresa() {
-        return isPlayerElementMode(PlayerMode_Teresa);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 6;
     }
 
     bool isPlayerElementModeIce() {
-        return isPlayerElementMode(PlayerMode_Ice);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 3;
     }
 
     bool isPlayerElementModeNormal() {
-        return isPlayerElementMode(PlayerMode_Normal);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 0;
     }
 
 
@@ -427,12 +545,21 @@ namespace MR {
         MarioAccess::changeItemStatus(8);
     }
 
+    void forceCurePlayerElementMode() {
+        MarioAccess::changeItemStatus(11);
+    }
+
     bool isPlayerParalyzing() {
         return MarioAccess::isParalyzing();
     }
 
     bool isPlayerDamaging() {
         return MarioAccess::getPlayerActor()->isDamaging();
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioActor::fn_803B8A80 (returns bool)
+    bool isPlayerDamageCooldown() {
+        return MarioAccess::getPlayerActor()->fn_803B8A80();
     }
 
     bool isPlayerStaggering() {
@@ -634,13 +761,38 @@ namespace MR {
         MarioAccess::killTakingActor();
     }
 
+    bool isPlayerCarrySensorType(u32 param1) {
+        if (MarioAccess::getTakingSensor() != nullptr) {
+            if (param1 == 0) {
+                return true;
+            }
+
+            return MarioAccess::getTakingSensor()->isType(param1);
+        }
+
+        return false;
+    }
+
 
     bool isPlayerCarryAny() {
         return MarioAccess::getPlayerActor()->_468 != 0;
     }
 
-    void startSoundPlayer(const char* pName, s32 param1) {
-        MR::startSound(MarioAccess::getPlayerActor(), pName, param1);
+    LiveActor* getPlayerCarrySensorActor() {
+        HitSensor* pSensor = MarioAccess::getTakingSensor();
+        if (pSensor == nullptr) {
+            return nullptr;
+        }
+
+        return getSensorHost(pSensor);
+    }
+
+    void startSoundPlayer(const char* pName, s32 param1, s32 param2) {
+        MR::startSound(MarioAccess::getPlayerActor(), pName, param1, param2);
+    }
+
+    void startSoundPlayer(JAISoundID id, s32 param2, s32 param3) {
+        MR::startSound(MarioAccess::getPlayerActor(), id, param2, param3);
     }
 
     void startLevelSoundPlayer(const char* pName, s32 param1) {
@@ -660,7 +812,12 @@ namespace MR {
     }
 
     void hidePlayer() {
-        MarioAccess::hide();
+        MarioAccess::hide(true);
+    }
+
+    // PLACEHOLDER(core): name by behavior; MarioAccess::hide(true)
+    void hidePlayerDeleteEffect() {
+        MarioAccess::hide(true);
     }
 
     void showPlayerJoint(const char* pName) {
@@ -669,6 +826,10 @@ namespace MR {
 
     void hidePlayerJoint(const char* pName) {
         MR::hideJoint(MarioAccess::getPlayerActor(), pName);
+    }
+
+    bool isPlayerVisible() {
+        return MarioAccess::isVisible();
     }
 
     void setPlayerSpot(f32 param1, u32 param2) {
@@ -708,6 +869,10 @@ namespace MR {
         MarioAccess::endTalk();
     }
 
+    void preparePlayerForPositionReset() {
+        MarioAccess::prepareForPositionReset();
+    }
+
 
     bool isExistMario() {
         return MR::isExistSceneObj(SceneObj_MarioHolder);
@@ -725,10 +890,12 @@ namespace MR {
 
     void offPlayerControl() {
         MarioAccess::offControl();
+        offSupportTicoControl();
     }
 
     void onPlayerControl(bool param1) {
         MarioAccess::onControl(param1);
+        onSupportTicoControl();
     }
 
     bool isOffPlayerControl() {
@@ -752,12 +919,39 @@ namespace MR {
         MarioAccess::setBaseMtx(pMtx);
     }
 
+    // PLACEHOLDER(core): name by behavior; builds base mtx from quat + pos
+    void setPlayerQuatAndPos(TQuat4f* pQuat, TVec3f* pPos) {
+        TPos3f mtx;
+        mtx.setQT(*pQuat, *pPos);
+        MarioAccess::setBaseMtx(mtx.toMtxPtr());
+    }
+
     MtxPtr getPlayerBaseMtx() {
         return MarioAccess::getBaseMtx();
     }
 
+    // PLACEHOLDER(core): name by behavior; reads base mtx quat and player pos
+    void getPlayerQuatAndPos(TQuat4f* pQuat, TVec3f* pPos) {
+        TPos3f mtx;
+        mtx.set(MarioAccess::getBaseMtx());
+        mtx.getQuat(*pQuat);
+        pPos->set(*getPlayerPos());
+    }
+
     LiveActor* getPlayerDemoActor() {
         return MarioAccess::getPlayerActor();
+    }
+
+    void requestMovementOnPlayer() {
+        MarioAccess::getPlayerActor()->fn_803BE670();
+    }
+
+    void requestPlayerMovementOnDuringDemo() {
+        MarioAccess::getPlayerActor()->fn_803BEAF0();
+    }
+
+    void killPlayerFireBalls() {
+        MarioAccess::killFireBalls();
     }
 
 
@@ -766,6 +960,10 @@ namespace MR {
 
     void calcPlayerJointMtx(TPos3f* pMtx, const char* pName) {
         pMtx->set(MarioAccess::getJointMtx(pName));
+    }
+
+    void concatWithPlayerJointMtx(TPos3f* pMtx, const char* pName) {
+        MarioAccess::concatWithJointMtx(pMtx, pName);
     }
 
 
@@ -777,6 +975,10 @@ namespace MR {
         MarioAccess::addVelocityFromArea(rAccel);
     }
 
+    void noticePlayerDashChance() {
+        MarioAccess::noticeDashChance();
+    }
+
     bool isPlayerInWaterMode() {
         return MarioAccess::isInWaterMode();
     }
@@ -786,15 +988,55 @@ namespace MR {
     }
 
     bool isPlayerHidden() {
-        return isPlayerElementMode(6);
+        return MarioAccess::getPlayerActor()->mPlayerMode == 6;
     }
 
     void calcPlayerWorldPadDir(TVec3f* pDir, f32 param2, f32 param3) {
         MarioAccess::calcWorldPadDir(pDir, param2, param3);
     }
 
+    // PLACEHOLDER(core): name by behavior; dst = (a - b) with rUp killed, normalized
+    void calcPlayerKillDiffVec(TVec3f* pDst, const TVec3f& rA, const TVec3f& rB, const TVec3f& rUp) {
+        pDst->set(rA - rB);
+        vecKillElement(*pDst, rUp, pDst);
+        normalizeOrZero(pDst);
+    }
+
+    // PLACEHOLDER(core): name by behavior; dst = killElement(vec, normalize(killElement(a - b, normal)))
+    void calcPlayerKillVecOnPlane(TVec3f* pDst, const TVec3f& rVec, const TVec3f& rA, const TVec3f& rB, const TVec3f& rNormal) {
+        TVec3f tmp;
+        tmp.set(rA - rB);
+        vecKillElement(tmp, rNormal, &tmp);
+        normalizeOrZero(&tmp);
+        vecKillElement(rVec, tmp, pDst);
+    }
+
+    // PLACEHOLDER(core): name by behavior; dst = B + (A - B killed by C normalized, scaled by 'scale' + C * scale)
+    void calcPlayerScaledVec(TVec3f* pDst, const TVec3f& rA, const TVec3f& rB, const TVec3f& rC, f32 scale) {
+        TVec3f tmp = rA - rB;
+        vecKillElement(tmp, rC, &tmp);
+
+        f32 len2 = tmp.x * tmp.x + tmp.y * tmp.y + tmp.z * tmp.z;
+        if (len2 > 3.8146973e-06f) {
+            tmp.scale(JGeometry::TUtil<f32>::inv_sqrt(len2) * (scale - 200.0f));
+        }
+
+        TVec3f add(rC);
+        add.scale(scale);
+        tmp += add;
+
+        TVec3f result(rB);
+        result += tmp;
+        pDst->set(result);
+    }
+
     JUTTexture* getFullScreenBlurTexture() {
         return MarioAccess::getPlayerActor()->_B7C;
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7370 (unit auto_03_803B7340)
+    void resetPlayerEndState() {
+        MarioAccess::fn_803B7370();
     }
 
     u16 getPlayerMovementTimer() {
@@ -817,6 +1059,15 @@ namespace MR {
         return MarioAccess::isSkating();
     }
 
+    bool isPlayerPowerupTransforming() {
+        return MarioAccess::isPowerupTransforming();
+    }
+
+    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B71B0 (actor->fn_803BE800())
+    bool isPlayerFootprintBlocked() {
+        return MarioAccess::fn_803B71B0();
+    }
+
     bool isPlayerRecovering() {
         return MarioAccess::isRecovering();
     }
@@ -827,6 +1078,10 @@ namespace MR {
 
     bool isPlayerBury() {
         return MarioAccess::isBury();
+    }
+
+    bool fn_80050020() {
+        return MarioAccess::fn_803B72E0();
     }
 
     void changePlayerModeBee() {
@@ -930,8 +1185,25 @@ namespace MR {
         startBvaIfExist(MarioAccess::getPlayerActor(), pName);
     }
 
+    void startDemoBckPlayer(const char* pName, const BckCtrlData& rCtrlData) {
+        MarioAccess::changeAnimationE(pName, rCtrlData);
+        startPlayerBvaWithCtrl(pName, rCtrlData);
+    }
+
+    void startPlayerNormalBva() {
+        startBva(MarioAccess::getPlayerActor(), "Normal");
+    }
+
     void startLevelSoundPlayer(const char* pName, s32 pitch, s32 volume) {
         startActionSound(MarioAccess::getPlayerActor(), pName, pitch, volume, -1);
+    }
+
+    void startLevelSoundPlayer(JAISoundID id, s32 param2) {
+        MR::startLevelSound(MarioAccess::getPlayerActor(), id, param2, -1, -1);
+    }
+
+    void startActionSoundPlayer(const char* pName, s32 param2, s32 param3) {
+        startActionSound(MarioAccess::getPlayerActor()->fn_803B97F0(), pName, param2, param3, -1);
     }
 
     // SMG2 mPlayerMode ids (Fire 2, Yoshi 0xA, Cloud 0xC, Rock 0xD); PlayerMode enum in MarioActor.hpp is SMG1-shaped

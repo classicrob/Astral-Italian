@@ -27,8 +27,8 @@ u32 MarioActor::fn_803B89E0() {
     return (FP(this->mMario, u32, 0xC) >> 0x14) & 1;
 }
 
-void MarioActor::fn_803B8A80() {
-    this->mMario->fn_80393C40();
+bool MarioActor::fn_803B8A80() {
+    return this->mMario->fn_80393C40();
 }
 
 s32 MarioActor::fn_803B8DE0() {

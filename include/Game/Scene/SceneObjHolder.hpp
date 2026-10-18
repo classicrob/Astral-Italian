@@ -53,7 +53,7 @@ enum SceneObj {
     SceneObj_TimeStopScreenCaptureTexture = 0x30,
     SceneObj_TimeStopScreenEffect = 0x31,
     SceneObj_SwingActionWatcher = 0x32,
-    SceneObj_Unk33 = 0x33,
+    SceneObj_WorldMapOwner = 0x33,
     SceneObj_WorldMapResultCommand = 0x34,
     SceneObj_ScoreAttackAccessor = 0x35,
     SceneObj_ScoreResultKeeper = 0x36,

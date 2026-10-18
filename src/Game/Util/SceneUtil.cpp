@@ -358,6 +358,10 @@ namespace MR {
         return false;
     }
 
+    bool isTimerSwitchingPlatformGalaxyPowerStarAppeared() {  // was fn_80056EB0
+        return isStageStatePowerStarAppeared() && isEqualStageName("TimerSwitchingPlatformGalaxy");
+    }
+
     bool isBigTreeOrCloudGardenPowerStarSuccess() {
         return isOnGameEventFlagPowerStarSuccess("BigTree2Galaxy", 1) ||
                isOnGameEventFlagPowerStarSuccess("CloudGardenGalaxy", 1) ||

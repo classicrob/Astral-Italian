@@ -92,7 +92,7 @@ void KoopaStateEndDemo::exeWait() {
 
 void KoopaStateEndDemo::exeDemo() {
     if (MR::isDemoLastStep()) {
-        MR::setPlayerPosAndWait("マリオ最終デモ終了後位置");
+        MR::setPlayerPosAndWait("マリオ最終デモ終了後位置", false);
         MR::appearPowerStarWithoutDemo(mHost);
         kill();
     }

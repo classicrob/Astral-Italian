@@ -6,17 +6,6 @@
 
 extern "C" void* __nwa__FUl(u32);
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_80093B40(BellyDragon*, const char*);
-extern "C" bool fn_80093310(BellyDragon*);
-extern "C" void fn_80093780(BellyDragon*);
-extern "C" void fn_80093800(BellyDragon*);
-extern "C" void fn_800938A0(BellyDragon*);
-extern "C" void fn_800938D0(BellyDragon*);
-extern "C" void fn_80093A80(BellyDragon*);
-extern "C" void fn_80093AF0(BellyDragon*);
-extern "C" void fn_80093B00(BellyDragon*);
-extern "C" bool fn_80093BF0(BellyDragon*, const char*, bool);
-extern "C" bool fn_80093DC0(BellyDragon*, const char*, bool, const f32*, f32);
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
 
 namespace JMath {
@@ -27,19 +16,6 @@ namespace NrvBellyDragonState {
     NEW_NERVE(BellyDragonStateNrvWait, BellyDragonState, Wait);
     NEW_NERVE(BellyDragonStateNrvPlay, BellyDragonState, Play);
 };  // namespace NrvBellyDragonState
-
-// Decoration drawer (vtable D280): owns a map-object decoration model and an s32 id table.
-class BellyDragonFire : public ShadowVolumeDrawer {
-public:
-    BellyDragonFire(const char*, const char*, MtxPtr, s32);
-
-    virtual ~BellyDragonFire();
-
-    /* 0x24 */ ModelObj* mModelObj;
-    /* 0x28 */ s32 mCount;
-    /* 0x2C */ s32 mCurrent;
-    /* 0x30 */ s32* mIds;
-};
 
 void BellyDragonState::setOverlay() {
     mIsOverlay = true;
@@ -55,7 +31,7 @@ BellyDragonState::BellyDragonState(BellyDragon* pHost, const char* pName, const 
 }
 
 void BellyDragonState::init() {
-    fn_80093B40(mHost, mStateName);
+    BellyDragonUtil::initPodAnimCamera(mHost, mStateName);
     initNerve(&NrvBellyDragonState::BellyDragonStateNrvWait::sInstance, 0);
     kill();
 }
@@ -69,14 +45,14 @@ BellyDragonState::~BellyDragonState() {
 }
 
 void BellyDragonState::exeWait() {
-    bool isReady = fn_80093BF0(mHost, mStateName, false);
+    bool isReady = BellyDragonUtil::tryStartDemo(mHost, mStateName, false);
     if (isReady) {
         MR::overlayWithPreviousScreen(2);
-        if (mIsDeleteEffect && fn_80093310(mHost)) {
-            fn_80093A80(mHost);
+        if (mIsDeleteEffect && (u8)BellyDragonUtil::isLv2(mHost)) {
+            BellyDragonUtil::setWeakPointsWaitC(mHost);
         }
-        if (fn_80093310(mHost)) {
-            fn_80093800(mHost);
+        if ((u8)BellyDragonUtil::isLv2(mHost)) {
+            BellyDragonUtil::killPodObjects(mHost);
         }
         setNerve(&NrvBellyDragonState::BellyDragonStateNrvPlay::sInstance);
     }
@@ -84,25 +60,25 @@ void BellyDragonState::exeWait() {
 
 void BellyDragonState::exePlay() {
     if (mIsOverlay && MR::isStep(this, 0xCD)) {
-        fn_80093780(mHost);
-        fn_80093AF0(mHost);
+        BellyDragonUtil::appearJawHill(mHost);
+        BellyDragonUtil::startPodFlame(mHost);
     }
-    if (fn_80093310(mHost) && mIsOverlay && MR::isStep(this, 0xD7)) {
-        fn_800938A0(mHost);
+    if ((u8)BellyDragonUtil::isLv2(mHost) && mIsOverlay && MR::isStep(this, 0xD7)) {
+        BellyDragonUtil::appearFireGround(mHost);
     }
     if (mIsDeleteEffect && MR::isStep(this, 0x21C)) {
-        if (fn_80093310(mHost)) {
+        if ((u8)BellyDragonUtil::isLv2(mHost)) {
             for (s32 i = 0; i < 0x20; i++) {
                 char name[0x40];
                 snprintf(name, 0x40, "FireBody%02d", i);
                 MR::tryDeleteEffect(mHost, name);
             }
         }
-        fn_80093B00(mHost);
+        BellyDragonUtil::stopPodFlame(mHost);
     }
-    if (fn_80093DC0(mHost, mStateName, mIsActive, mpTime, *mpTime)) {
-        fn_80093AF0(mHost);
-        fn_800938D0(mHost);
+    if (BellyDragonUtil::updateDemo(mHost, mStateName, mIsActive, mpTime, *mpTime)) {
+        BellyDragonUtil::startPodFlame(mHost);
+        BellyDragonUtil::killFireGrounds(mHost);
         kill();
     }
 }
@@ -129,19 +105,23 @@ BellyDragonFire::~BellyDragonFire() {
 // Small POD-like block (0x38 bytes): type id at 0x0, TMtx34 at 0x4, trailing s32 at 0x34.
 class BellyDragonMtxBlock {
 public:
+    BellyDragonMtxBlock(s32 type);
+    s32 copyMtx(void* pDst);
+
     /* 0x00 */ s32 mType;
     /* 0x04 */ TPos3f mMtx;
     /* 0x34 */ s32 mFlag;
 };
 
-BellyDragonMtxBlock* fn_80095900(BellyDragonMtxBlock* pBlock, s32 type) {
-    pBlock->mType = type;
-    pBlock->mFlag = 0;
-    pBlock->mMtx.identity();
-    return pBlock;
+BellyDragonMtxBlock::BellyDragonMtxBlock(s32 type) {  // was fn_80095900
+    mType = type;
+    mFlag = 0;
+    mMtx.identity();
 }
 
-s32 fn_80095940(BellyDragonMtxBlock* pBlock, void* pDst) {
-    JMath::gekko_ps_copy12(pDst, &pBlock->mMtx);
+#pragma dont_inline on
+s32 BellyDragonMtxBlock::copyMtx(void* pDst) {  // was fn_80095940
+    JMath::gekko_ps_copy12(pDst, &mMtx);
     return 1;
 }
+#pragma dont_inline reset

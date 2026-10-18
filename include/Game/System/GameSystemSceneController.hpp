@@ -7,7 +7,7 @@ class JMapIdInfo;
 class NameObjHolder;
 class NameObjListExecutor;
 class Nerve;
-class PlayTimerScene;
+class ModelWipeScene;
 class ScenarioDataParser;
 class ScenarioSelectScene;
 class Scene;
@@ -72,7 +72,7 @@ public:
     void setCurrentScenarioNo(s32, s32);
     void resetCurrentScenarioNo();
     bool isScenarioDecided() const;
-    void loadScenarioWaveData();
+    void loadScenarioWaveData(bool);
     bool isLoadDoneScenarioWaveData() const;
     void exeNotInitialized();
     void exeNormal();
@@ -91,6 +91,14 @@ public:
     void updateSceneControlInfo();
     Scene* getCurrentSceneForExecute() const;
     const Nerve* getNextNerveOnResetProcessing() const;
+    void createSceneHeaps();
+    bool tryCreateWorldMapHeap(const char*, const char*, s32);
+    bool tryCreateFileCacheHeap(const char*, const char*, s32);
+    void destroyHeaps();
+    bool tryDestroyFileCacheHeapIfNotSameScene();
+    bool tryDestroySceneHeap();
+    bool tryDestroyWorldMapHeap();
+    bool tryDestroyFileCacheHeap();
     bool tryDestroyFileCacheHeap(bool) NO_INLINE;
     void requestChangeNerve(const Nerve*);
 
@@ -108,7 +116,7 @@ public:
     /* 0x12C */ Scene* mScene;
     /* 0x130 */ SceneInitializeState mSceneInitializeState;
     /* 0x134 */ IntermissionScene* mIntermissionScene;
-    /* 0x138 */ PlayTimerScene* mPlayTimerScene;
-    /* 0x13C */ ScenarioSelectScene* mScenarioSelectScene;
+    /* 0x138 */ ScenarioSelectScene* mScenarioSelectScene;
+    /* 0x13C */ ModelWipeScene* mModelWipeScene;
     /* 0x140 */ bool mIsFileCacheHeapMissing;  // stored by createSceneHeaps() from the tryCreateFileCacheHeap() result (inverted)
 };

@@ -12,6 +12,8 @@ namespace nw4r {
 };  // namespace nw4r
 
 namespace MR {
+    void tryDestroyUseResourceHeap();
+    bool isHomeButtonMenuActiveOrPreparing();
     nw4r::ut::Font* getFontOnCurrentLanguage();
     nw4r::ut::Font* getPictureFontNW4R();
     nw4r::ut::Font* getMenuFontNW4R();
@@ -37,7 +39,7 @@ namespace MR {
     GameSystemObjHolder* getGameSystemObjHolder();
     nw4r::ut::Font* getCinemaFontNW4R();
     ParticleResourceHolder* getParticleResourceHolder();
-    void requestChangeArchivePlayer(bool);
+    bool requestChangeArchivePlayer(bool);
     void waitEndChangeArchivePlayer();
     void callMethodAllSceneNameObj(void (NameObj::*)());
     void syncWithFlagsAllSceneNameObj();
@@ -58,8 +60,9 @@ namespace MR {
     void stopAllSound(u32);
     void setLayoutDefaultAllocator();
     ResourceCsvGroupHolder* getGameSystemObjHolder3C();
-    bool isEndStationedArchiveLoader();  // SMG2 fn_800602A0
-    bool isScenarioSelecting();  // SMG2 fn_80060320; PLACEHOLDER(core4): name guessed
+    bool requestLoadStationedArchiveOthers();  // was fn_80060290
+    bool isEndStationedArchiveLoader();  // was fn_800602A0
+    bool isScenarioSelecting();  // SMG2 fn_80060320
     bool isDisplayEncouragePal60Window();
     JMapIdInfo* getPlayerRestartIdInfo();
     void setPlayerRestartIdInfo(const JMapIdInfo&);

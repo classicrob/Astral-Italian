@@ -70,7 +70,6 @@ public:
 class LiveActor;
 
 namespace MR {
-    // PLACEHOLDER(core): SMG2-only FootPrint TU helpers, unnamed in the target (fn_80026620, fn_800268B0, fn_80026940); names/types from the ActionFootPrintCtrl callers; resolve when the TU's helpers get real names
     s32 createFootPrintHandle(LiveActor* pActor);                                                        // fn_80026620
     void addFootPrintToPos(s32 handle, LiveActor* pActor, const TVec3f* pPos, bool isRight, f32 scale);   // fn_800268B0
     void addFootPrintToJoint(s32 handle, LiveActor* pActor, const char* pJointName, bool isRight, f32 scale);  // fn_80026940

@@ -102,7 +102,7 @@ namespace KoopaJrCastleFunction {
             MR::endAnimCamera(pCastle->mBody, pCastle->mCameraInfo, pCameraName, 1, true);
             MR::onBind(pCastle);
             pCastle->mKoopaJr->mCalcOwnMatrix = true;
-            pCastle->mKoopaJr->setLodCtrl(pCastle->mKoopaJr->mLodCtrl)->validate();
+            pCastle->mKoopaJr->getLodCtrl()->validate();
             pCastle->mBody->offFlagF5();
             pCastle->mHead->setNerveD();
             MR::setPlayerPosAndWait("\x83}\x83\x8a\x83I\x88\xca\x92u[\x83""f\x83\x82\x8c\xe3]", false);
@@ -132,7 +132,7 @@ namespace KoopaJrCastleFunction {
         MR::tryStartAllAnim(pCastle->mHead, pName);
         MR::tryStartAllAnim(pCastle->mBody, pName);
         MR::tryStartAllAnim(pCastle->mKoopaJr, pName);
-        pCastle->mKoopaJr->setLodCtrl(pCastle->mKoopaJr->mLodCtrl)->invalidate();
+        pCastle->mKoopaJr->getLodCtrl()->invalidate();
         if (MR::isEqualString(pName, "DemoOpeningKoopaJrCastle")) {
             pCastle->mKoopaJr->mCalcOwnMatrix = false;
             MR::copyTransRotate(pCastle, pCastle->mKoopaJr);

@@ -150,7 +150,7 @@ namespace MR {
     void start2PJumpAssistJustSound();
     void start2PAttackAssistSound();
     void limitedStarPieceHitSound();
-    void startCurrentStageBGM();
+    void startCurrentStageBGM(bool);
     JAISoundHandle* startEventBGM(s32);
     JAISoundHandle* startAfterBossBGM();
     // SoundUtil (enemies lane, callees named by address; lead renames symbols)
@@ -195,7 +195,6 @@ namespace MR {
     s32 getActorSoundObjectCount(const LiveActor*);
     // PLACEHOLDER(core): fn_8022CEC0 = i-th child sound object; resolve when renamed
     AudSoundObject* getActorSoundObjectAt(const LiveActor*, s32);
-    // PLACEHOLDER(core): fn_8005B1B0 (wrapper over AudSoundObject::startSoundParam); name is a guess
     JAISoundHandle* startSoundObjectParam(AudSoundObject*, JAISoundID, s32, s32);
 };  // namespace MR
 

@@ -139,6 +139,7 @@ namespace MR {
 namespace StarPointerUtil {
     void addStarPointerMovePosition(const char*, TVec2f*, const TVec2f&);
     void setStarPointerMovePosition(const char*, TVec2f*);
+    void setConnectionMovePositionDown(const char*, const char*);
     void setConnectionMovePositionDown2Way(const char*, const char*);
     void setDefaultAllMovePosition(const char*);
     TVec2f* getDefaultButtonOffsetVec2();

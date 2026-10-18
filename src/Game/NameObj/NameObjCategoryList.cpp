@@ -1,6 +1,30 @@
 #include "Game/NameObj/NameObjCategoryList.hpp"
 #include "Game/NameObj/NameObj.hpp"
 
+NameObjCategoryList::NameObjCategoryList(u32 count, const CategoryListInitialTable* pTable, NameObjMethod pMethod, bool allocateByCheck,
+                                         const char*) {
+    NameObjMethod method;
+    method = pMethod;
+    mDelegator = new NameObjRealDelegator< NameObjMethod >(method);
+    _D = allocateByCheck;
+    _C = 0;
+    initTable(count, pTable);
+}
+
+NameObjCategoryList::NameObjCategoryList(u32 count, const CategoryListInitialTable* pTable, NameObjMethodConst pMethod, bool allocateByCheck,
+                                         const char*) {
+    NameObjMethodConst method;
+    method = pMethod;
+    mDelegatorConst = new NameObjRealDelegator< NameObjMethodConst >(method);
+    _D = allocateByCheck;
+    _C = 0;
+    initTable(count, pTable);
+}
+
+NameObjCategoryList::~NameObjCategoryList() {
+    delete mDelegator;
+}
+
 void NameObjCategoryList::execute(int idx) {
     NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[idx];
 
@@ -44,6 +68,26 @@ void NameObjCategoryList::add(NameObj* pObj, int idx) {
     s32 cnt = inf->_8++;
     inf->mList.mArr[cnt] = pObj;
 }
+void NameObjCategoryList::remove(NameObj* pObj, int idx) {
+    NameObjCategoryList::CategoryInfo* inf = &mInfoTable.mArr[idx];
+    NameObj** pBegin = inf->mList.mArr;
+    s32 size = inf->_8;
+    NameObj** pEnd = pBegin + size;
+    NameObj** pFound = pBegin;
+
+    while (pFound != pEnd && *pFound != pObj) {
+        pFound++;
+    }
+
+    pBegin[pFound - pBegin] = pBegin[size - 1];
+    inf->_8--;
+}
+
+void NameObjCategoryList::registerExecuteBeforeFunction(const MR::FunctorBase& rFunc, int idx) {
+    NameObjCategoryList::CategoryInfo* pCategoryInfo = &mInfoTable.mArr[idx];
+    pCategoryInfo->mFunc = rFunc.clone(nullptr);
+}
+
 bool NameObjCategoryList::isRegisteredExecuteFunction(int idx) const {
     return mInfoTable.mArr[idx].mFunc != nullptr;
 }

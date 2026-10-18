@@ -921,9 +921,7 @@ namespace MR {
         bool result = false;
 
         if (isTimeKeepDemoActive()) {
-            DemoFunction::getCurrentDemoPartNameMain(nullptr);
-
-            if (DemoFunction::isTalkWaitUserInputFunction()) {
+            if (DemoFunction::isTalkWaitUserInputFunction(DemoFunction::getCurrentDemoPartNameMain(nullptr))) {
                 result = true;
             }
         }
@@ -935,8 +933,8 @@ namespace MR {
         return DemoFunction::isDemoSubPartActiveFunction(pName);
     }
 
-    void resetDemoSubPart() {
-        DemoFunction::resetDemoSubPartFunction();
+    bool isDemoSubPartLastStep() {
+        return DemoFunction::isDemoSubPartLastStep();
     }
 
     bool isPauseTimeKeepDemo(const char* pName) {

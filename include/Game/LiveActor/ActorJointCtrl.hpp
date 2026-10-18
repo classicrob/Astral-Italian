@@ -4,7 +4,7 @@
 #include <revolution.h>
 
 class DynamicJointCtrlKeeper;
-class FaceJointCtrl;
+class FaceJointCtrlKeeper;
 class IKJointCtrlHolder;
 class LiveActor;
 
@@ -27,7 +27,7 @@ public:
 
     /* 0x00 */ LiveActor* mActor;
     /* 0x04 */ DynamicJointCtrlKeeper* mJointCtrlKeeper;
-    /* 0x08 */ FaceJointCtrl* mFaceJointCtrl;
+    /* 0x08 */ FaceJointCtrlKeeper* mFaceJointCtrl;
     /* 0x0C */ IKJointCtrlHolder* mJointCtrlHolder;
     /* 0x10 */ u8 _10;
     /* 0x11 */ u8 _11;

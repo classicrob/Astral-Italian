@@ -182,9 +182,9 @@ namespace MR {
 class NameObj;
 namespace MR {
     void openSystemWipeCircle(s32 frame = -1);
-    void openSystemWipeCircleOnPlayer(s32 frame);  // PLACEHOLDER(core): name guessed (fn_80058C70 = openSystemWipeCircle + setWipeRingCenterOnPlayer)
-    bool isSystemWipeBlank();                      // PLACEHOLDER(core): name guessed (fn_80059100 = SystemWipeHolder vtable isClose)
-    bool isSystemWipeOpen();                       // PLACEHOLDER(core): name guessed (fn_80059120 = SystemWipeHolder vtable isOpen)
+    void openSystemWipeCircleOnPlayer(s32 frame);  //
+    bool isSystemWipeBlank();                      //
+    bool isSystemWipeOpen();                       //
     void killCenterScreenBlur();
     void createPostFog();
     void createPostOutline();
@@ -193,11 +193,10 @@ namespace MR {
     void setDestroyCounterCount(s32 count);        // PLACEHOLDER(core): name guessed (stores DestroyCounter+0x34 = mCount)
     void appearDestroyCounter();
     void killDestroyCounter();
-    void showScoreAttackResults();                 // PLACEHOLDER(core): name guessed (fn_8005A3E0 tail-calls showScoreAttackLayouts)
+    void showScoreAttackResults();                 //
     void hideScoreAttackLayouts();
     void showScoreAttackLayouts();
     void killAllScoreResults();
-    void killWorldMapLayoutCounters(NameObj*);     // PLACEHOLDER(core): fn_804E8A40 (obj->+0x14->+0x18 then tail-calls WorldMapLayouts::killCounters); owner is auto_03 unit
     // ModelWipeScene wrappers. PLACEHOLDER(core): MR names guessed from the ModelWipeScene methods they forward to.
     void startCloudWipeForward();
     void startCloudWipeBackward();

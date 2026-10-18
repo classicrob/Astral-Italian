@@ -17,6 +17,9 @@ public:
     void createAudioSystem();
     void createSoundNameConverter();
     void updateRhythm();
+    void setStageResourceLoading(bool);
+    void finishStageResourceLoading();
+    void resetStageResources();
     void movement();
     void stopAllSound(u32);
     bool isLoadDoneWaveDataAtSystemInit() const;
@@ -25,6 +28,7 @@ public:
     void loadStageWaveData(const char*, const char*, bool);
     bool isLoadDoneStageWaveData() const;
     void loadScenarioWaveData(const char*, const char*, s32);
+    void loadScenarioWaveData(const char*, const char*, s32, bool);
     bool isLoadDoneScenarioWaveData() const;
     bool isPermitToReset() const;
     void prepareReset();

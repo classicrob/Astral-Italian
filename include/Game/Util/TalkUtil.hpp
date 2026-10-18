@@ -138,7 +138,6 @@ namespace MR {
 namespace MR { bool tryTalkForceMarioPuppetable(TalkMessageCtrl*); }
 namespace MR {
     bool tryTalkTimeKeepDemoForceWithoutDemo(TalkMessageCtrl*);  // SMG2
-    // PLACEHOLDER(core4): SMG2 fn_80061520 sets the TalkMessageCtrl byte 0x52; name guessed
     void onTalkSmg2Flag52(TalkMessageCtrl*);
 }
 

@@ -7,6 +7,7 @@
 class BckCtrlData;
 class CameraTargetArg;
 class HitSensor;
+class JAISoundID;
 class LiveActor;
 class MarioActor;
 class NameObj;
@@ -73,7 +74,7 @@ namespace MR {
     bool isBckStoppedPlayer();
     bool isBckOneTimeAndStoppedPlayer();
     f32 getBckFrameMaxPlayer();
-    s32 getBckFrameMaxPlayer(const char*);
+    s16 getBckFrameMaxPlayer(const char*);
     void startBckPlayerJ(const char*);
     void becomeContinuousBckPlayer();
     void progressPlayerBckOnPause();
@@ -94,9 +95,8 @@ namespace MR {
     bool isOnPlayer(const HitSensor*);
     bool isActorOnPlayer(const LiveActor*);
     bool isOnPlayerShadow(const LiveActor*);
-    void setPlayerPos(const char*);
+    void setPlayerPos(const char*) NO_INLINE;
     void setPlayerPosAndWait(const TVec3f&, bool);
-    void setPlayerPosAndWait(const char*);
     void setPlayerLinkPosAndWait(const NameObj*, const char*, bool);
     void setPlayerPosOnGround(const char*);
     void setPlayerPosOnGroundAndWait(const char*, bool);
@@ -343,6 +343,29 @@ namespace MR {
 
 namespace MR {
     void startDemoBckPlayer(const char*, const BckCtrlData&);
+    // PLACEHOLDER(core) names below are by behavior (see src/Game/Util/PlayerUtil.cpp); resolve when the owner is named
+    bool startPlayerBvaWithCtrl(const char*, const BckCtrlData&);
+    f32 getPlayerConfrontDeathParam();
+    void resetPlayerGravityScale();
+    void decrementPlayerSwimLife();
+    bool isPlayerInJumpAction();
+    bool isPlayerSwingActionStartNow();
+    void resetPlayerFootState();
+    void setPlayerFootState(void*);
+    void clearPlayerFootprints();
+    void setPlayerRollingOn();
+    void setPlayerRollingOff();
+    bool isPlayerFootprintBlocked();
+    bool isPlayerDamageCooldown();
+    void hidePlayerDeleteEffect();
+    void setPlayerQuatAndPos(TQuat4f*, TVec3f*);
+    void getPlayerQuatAndPos(TQuat4f*, TVec3f*);
+    void calcPlayerKillDiffVec(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&);
+    void calcPlayerKillVecOnPlane(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&, const TVec3f&);
+    void calcPlayerScaledVec(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&, f32);
+    void resetPlayerEndState();
+    void startSoundPlayer(JAISoundID, s32, s32);
+    void startLevelSoundPlayer(JAISoundID, s32);
 }
 
 namespace MR {

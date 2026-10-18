@@ -19,7 +19,7 @@ void PartsModelLodCtrl::control() {
     mLodCtrl->update();
 }
 
-LodCtrl* PartsModelLodCtrl::setLodCtrl(LodCtrl*) {
+LodCtrl* PartsModelLodCtrl::getLodCtrl() {
     return mLodCtrl;
 }
 

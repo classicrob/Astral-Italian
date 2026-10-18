@@ -1,3 +1,5 @@
+#include "Game/LiveActor/DemoObj.hpp"
+#include "Game/Util/BgmUtil.hpp"
 #include "Game/Demo/GrandStarReturnDemoStarter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Demo/AstroDemoFunction.hpp"
@@ -20,9 +22,13 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <cstdio>
 
+// Runtime-tunable zero-initialized timing from target .sbss2.
+extern s32 gGrandStarReturnBgmStartStep;
+
 namespace {
     const char* const cDemoMovePartName = "移動";
-    const char* const cDemoWaitPartName = "ウェイト→コア突入";
+    const char* const cDemoWaitPartName = "ゲートオープン";
+    const char* const cGateOpenMessage = "System_ResultGrandStarGateOpen";
 };  // namespace
 
 GrandStarReturnDemoStarter::GrandStarReturnDemoStarter(const char* pName)
@@ -41,6 +47,7 @@ namespace NrvGrandStarReturnDemoStarter {
     NEW_NERVE(GrandStarReturnDemoStarterNrvMove, GrandStarReturnDemoStarter, Move);
     NEW_NERVE(GrandStarReturnDemoStarterNrvFlyWait, GrandStarReturnDemoStarter, FlyWait);
     NEW_NERVE(GrandStarReturnDemoStarterNrvRushToCore, GrandStarReturnDemoStarter, RushToCore);
+    NEW_NERVE(GrandStarReturnDemoStarterNrvWaitInformation, GrandStarReturnDemoStarter, WaitInformation);
     NEW_NERVE(GrandStarReturnDemoStarterNrvRevival, GrandStarReturnDemoStarter, Revival);
     NEW_NERVE(GrandStarReturnDemoStarterNrvStageResult, GrandStarReturnDemoStarter, StageResult);
     NEW_NERVE(GrandStarReturnDemoStarterNrvFadeOut, GrandStarReturnDemoStarter, FadeOut);
@@ -63,14 +70,13 @@ void GrandStarReturnDemoStarter::appear() {
 }
 
 void GrandStarReturnDemoStarter::control() {
-    if (isNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvMove)) ||
-        isNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvFlyWait))) {
+    if (isNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvMove))) {
         MR::setPlayerBaseMtx(mPrevTransform);
 
         mTransform.setInline(mPrevTransform);
     }
 
-    if (!MR::isDead(mPowerStar)) {
+    if (!MR::isDead(mPowerStar) && !MR::isHiddenModel(mPowerStar)) {
         PowerStar::requestPointLightAtResultSequence(mPowerStar);
     }
 }
@@ -79,7 +85,7 @@ void GrandStarReturnDemoStarter::calcOffsetStarToCore(TVec3f* pOffset) const {
     TVec3f namePos;
     TVec3f jointPos;
 
-    MR::findNamePos("コア中心", &namePos, nullptr);
+    MR::findNamePos("ゲート中心", &namePos, nullptr);
     MR::copyJointPos(mPowerStar, "PowerStar", &jointPos);
 
     pOffset->sub(namePos, jointPos);
@@ -112,7 +118,10 @@ inline bool isActiveGrandStarReturnDemoIndex(s32 index) {
 
 void GrandStarReturnDemoStarter::exeFlyWait() {
     if (MR::isFirstStep(this)) {
-        updateRailMoveEndDir();
+        TVec3f direction;
+        calcOffsetStarToCore(&direction);
+        MR::normalize(&direction);
+        mReturnDemoRailMove->mForward.set(direction);
         mReturnDemoRailMove->posToEnd();
     }
 
@@ -129,12 +138,13 @@ void GrandStarReturnDemoStarter::exeFlyWait() {
     }
 }
 
+// NONMATCHING: vector operation scheduling
 void GrandStarReturnDemoStarter::exeRushToCore() {
     TVec3f position;
-    mPrevTransform.getTrans(position);
+    position.set< f32 >(mPrevTransform.mMtx[0][3], mPrevTransform.mMtx[1][3], mPrevTransform.mMtx[2][3]);
 
     if (MR::isFirstStep(this)) {
-        MR::startBckPlayer("ResultFlyGrandStarRush");
+        MR::startBckPlayer("ResultFlyGrandStarRush", nullptr);
         MR::startAction(mPowerStar, "ResultFlyGrandStarRush");
         MR::startActionSound(mPowerStar, "OjGndStarRush");
 
@@ -148,7 +158,12 @@ void GrandStarReturnDemoStarter::exeRushToCore() {
     MR::startActionSound(mPowerStar, "OjLvGndStarRush");
 
     if (MR::isDemoPartLastStep(::cDemoWaitPartName)) {
-        setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvRevival));
+        MR::hideModelAndOnCalcAnim(mPowerStar);
+        MR::pauseTimeKeepDemo(this);
+        MR::appearInformationMessageUp(cGateOpenMessage, true);
+        MR::startSubBGM("BGM_JG_APPEAR_PLANET", false);
+        MR::setBgmMgr954(90);
+        setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvWaitInformation));
     }
 }
 
@@ -159,30 +174,21 @@ void GrandStarReturnDemoStarter::exeFadeOut() {
         MR::closeWipeFade(60);
     }
 
+    MR::setSeVolumeSetLevel(10, 30);
     if (!MR::isWipeActive()) {
-        MR::endMultiActorCamera(this, mActorCameraInfo, "リザルト", false);
+        MR::endMultiActorCamera(this, mActorCameraInfo, "リザルト", false, -1);
         setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvWaitDemoEnd));
     }
 }
 
 void GrandStarReturnDemoStarter::exeWaitDemoEnd() {
     if (MR::isFirstStep(this)) {
-        if (isActiveGrandStarReturnDemoIndex(0)) {
-            MR::startStageBGM("MBGM_GALAXY_24", false);
-        } else if (isActiveGrandStarReturnDemoIndex(1)) {
-            MR::startStageBGM("STM_ASTRO_OUT", false);
-        } else if (isActiveGrandStarReturnDemoIndex(2)) {
-            MR::startStageBGM("STM_ASTRO_OUT_2", false);
-        } else if (isActiveGrandStarReturnDemoIndex(3)) {
-            MR::startStageBGM("STM_ASTRO_OUT_2", false);
-        } else {
-            MR::startStageBGM("STM_ASTRO_OUT_3", false);
-        }
-
         MR::resumeTimeKeepDemo(this);
     }
-
+    MR::setSeVolumeSetLevel(10, 30);
     if (!MR::isTimeKeepDemoActive()) {
+        MR::endStartPosCamera();
+        mPowerStar->makeActorDead();
         kill();
     }
 }
@@ -192,14 +198,86 @@ GrandStarReturnDemoStarter::~GrandStarReturnDemoStarter() {
 
 void GrandStarReturnDemoStarter::tryStartStageResult(const char* pDemoName) {
     if (MR::isDemoPartLastStep(pDemoName)) {
-        if (GameSequenceFunction::hasStageResultSequence()) {
-            mStageResultInformer->appear();
-            MR::requestMovementOn(mStageResultInformer);
-        }
-
+        mStageResultInformer->appear();
+        MR::requestMovementOn(mStageResultInformer);
         MR::pauseTimeKeepDemo(this);
         setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvStageResult));
     }
 }
 
-// NONMATCHING (not restored): exeMove needs MR::startLevelSoundPlayer(const char*) (1-arg); PlayerUtil.hpp declares (const char*, s32, s32)
+
+void GrandStarReturnDemoStarter::init(const JMapInfoIter& rIter) {
+    MR::initDefaultPos(this, rIter);
+    MR::connectToSceneMapObjMovement(this);
+    MR::invalidateClipping(this);
+    mStageResultInformer = new StageResultInformer();
+    mStageResultInformer->initWithoutIter();
+    mPowerStar = MR::createDemoObj("グランドスターデモモデル", "GrandStar", "Demo", mTransform);
+    MR::invalidateClipping(mPowerStar);
+    mPowerStar->kill();
+    mReturnDemoRailMove = new ReturnDemoRailMove(this, mPowerStar, rIter, true, &mPrevTransform);
+    mReturnDemoRailMove->setupPathDrawForGraneStarReturnDemo();
+    TVec3f gravity(0.0f, -1.0f, 0.0f);
+    mReturnDemoRailMove->mGravity.set(gravity);
+    if (MR::tryRegisterDemoCast(this, rIter)) {
+        MR::tryRegisterDemoCast(mPowerStar, rIter);
+    }
+    MR::initMultiActorCamera(this, rIter, &mActorCameraInfo, "移動");
+    MR::initMultiActorCamera(this, rIter, &mActorCameraInfo, "ウェイト");
+    MR::initMultiActorCamera(this, rIter, &mActorCameraInfo, "リザルト");
+    initNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvMove), 0);
+    makeActorDead();
+}
+
+// NONMATCHING: regalloc
+void GrandStarReturnDemoStarter::exeMove() {
+    if (MR::isFirstStep(this)) {
+        MR::startMultiActorCameraTargetPlayer(this, mActorCameraInfo, "移動", -1);
+    }
+    if (MR::isFirstGrandStarReturnBGMStage()) {
+        if (MR::isStep(this, gGrandStarReturnBgmStartStep)) {
+            MR::startGrandStarReturnBGMIfNotUnlocked();
+        }
+    } else if (MR::isStep(this, 17)) {
+        MR::startGrandStarReturnBGMIfNotUnlocked();
+    }
+    const char* part = cDemoMovePartName;
+    s32 total = MR::getDemoPartTotalStep(part);
+    s32 step = MR::getDemoPartStep(part);
+    mReturnDemoRailMove->update(step + 1, total);
+    MR::startLevelSoundPlayer("SE_PM_LV_SPIN_DRV_FLY", -1);
+    TVec3f direction;
+    calcOffsetStarToCore(&direction);
+    MR::normalize(&direction);
+    mReturnDemoRailMove->mForward.set(direction);
+    if (MR::isDemoPartLastStep(part)) {
+        setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvFlyWait));
+    }
+}
+
+void GrandStarReturnDemoStarter::exeWaitInformation() {
+    if (MR::isDeadInformationMessage()) {
+        MR::resumeTimeKeepDemo(this);
+        setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvRevival));
+    }
+}
+
+void GrandStarReturnDemoStarter::exeRevival() {
+    MR::setSeVolumeSetLevel(10, 30);
+    if (MR::isDemoPartFirstStep("リザルト画面")) {
+        MR::startMultiActorCameraTargetPlayer(this, mActorCameraInfo, "リザルト", -1);
+    }
+    tryStartStageResult("リザルト画面");
+}
+
+void GrandStarReturnDemoStarter::exeStageResult() {
+    MR::setSeVolumeSetLevel(10, 30);
+    if (MR::isDead(mStageResultInformer)) {
+        if (MR::isWipeBlank()) {
+            MR::endMultiActorCamera(this, mActorCameraInfo, "リザルト", false, -1);
+            setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvWaitDemoEnd));
+        } else {
+            setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvFadeOut));
+        }
+    }
+}

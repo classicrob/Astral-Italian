@@ -32,4 +32,5 @@ public:
     /* 0x10 */ SpinDriverShootPath* mShootPath;
     /* 0x14 */ SpinDriverPathDrawer* mPathDrawer;
     /* 0x18 */ TVec3f mForward;
+    /* 0x24 */ TVec3f mGravity;
 };

@@ -92,8 +92,8 @@ ParticleResourceHolder* getParticleResourceHolder() {
     return getGameSystemObjHolder()->mParticleResHolder;
 }
 
-void requestChangeArchivePlayer(bool isPlayerMario) {
-    GameSystemFunction::requestChangeArchivePlayer(isPlayerMario);
+bool requestChangeArchivePlayer(bool isPlayerMario) {
+    return GameSystemFunction::requestChangeArchivePlayer(isPlayerMario);
 }
 
 void waitEndChangeArchivePlayer() {
@@ -101,12 +101,15 @@ void waitEndChangeArchivePlayer() {
     }
 }
 
-// NONMATCHING: SMG2 fn_800602A0 is a bare tail jump to GameSystemFunction's unnamed fn_804B8680 (lwz 0x28 + b isDone); callee not named yet.
-bool isEndStationedArchiveLoader() {  // SMG2 fn_800602A0
-    return SingletonHolder< GameSystem >::get()->mStationedArchiveLoader->isDone();
+bool requestLoadStationedArchiveOthers() {  // was fn_80060290
+    return GameSystemFunction::requestLoadStationedArchiveOthers();
 }
 
-bool isScenarioSelecting() {  // SMG2 fn_80060320; PLACEHOLDER(core4): name guessed from the GameSystemSceneController call
+bool isEndStationedArchiveLoader() {  // was fn_800602A0
+    return GameSystemFunction::isEndStationedArchiveLoader();
+}
+
+bool isScenarioSelecting() {  // SMG2 fn_80060320 (name from the GameSystemSceneController call)
     return SingletonHolder< GameSystem >::get()->mSceneController->isScenarioSelecting();
 }
 

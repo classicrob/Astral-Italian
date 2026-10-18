@@ -11,26 +11,6 @@ extern "C" const char lbl_8066CEE4[];
 extern "C" const f32 lbl_807D7820;
 extern "C" const f32 lbl_807D7824;
 
-// Ground fire of the BellyDragon (地面炎). Owns a bloom child (DemoObj) at 0xC0 and a base matrix at 0x90.
-class BellyDragonFireGround : public LiveActor {
-public:
-    BellyDragonFireGround();
-
-    virtual ~BellyDragonFireGround();
-    virtual void init(const JMapInfoIter&);
-    virtual void appear();
-    virtual void kill();
-    virtual void calcAndSetBaseMtx();
-    virtual void attackSensor(HitSensor*, HitSensor*);
-
-    void exeAppear();
-    void exeBurn();
-    void exeDisappear();
-
-    /* 0x90 */ TPos3f mBaseMtx;
-    /* 0xC0 */ LiveActor* mBloom;
-};
-
 namespace NrvBellyDragonFireGround {
     NEW_NERVE(BellyDragonFireGroundNrvAppear, BellyDragonFireGround, Appear);
     NEW_NERVE(BellyDragonFireGroundNrvBurn, BellyDragonFireGround, Burn);

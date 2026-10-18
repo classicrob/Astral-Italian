@@ -1,5 +1,6 @@
 #include "Game/AudioLib/AudSoundObject.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 #include "Game/AudioLib/AudEffector.hpp"
 #include "Game/AudioLib/AudSoundId.hpp"
 #include "Game/AudioLib/AudSoundInfo.hpp"
@@ -8,10 +9,6 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include <JSystem/JAudio2/JAISound.hpp>
 #include <JSystem/JGadget/hashcode.hpp>
-
-void AudSoundObject_FORCE_MATCH_SDATA2() {
-    f32 f1 = 1.0f;
-}
 
 AudSoundObject::AudSoundObject(TVec3f* pPos, u8 numHandles, JKRHeap* pHeap)
     : JAUSoundObject(pPos, numHandles, pHeap), JKRDisposer(), mSeVersion(0), mMapCode(0), mMapCodeExtra(0), mHashDatas(nullptr), mNumSounds(0) {
@@ -28,6 +25,15 @@ AudSoundObject::AudSoundObject(TVec3f* pPos, u8 numHandles, JKRHeap* pHeap)
 AudSoundObject::~AudSoundObject() {
     AudWrap::getSoundObjHolder()->remove(this);
 }
+
+void AudSoundObject::addToSoundObjHolder() {
+    AudWrap::getSoundObjHolder()->add(this);
+}
+
+void AudSoundObject::setTrans(TVec3f* pos) {
+    mPos = pos;
+}
+
 
 
 
@@ -52,7 +58,7 @@ bool AudSoundObject::writePort(JAISoundHandle* pHandle, u32 port, u16 value) {
     return false;
 }
 
-bool AudSoundObject::isLimitedSound(JAISoundID soundID) {
+bool AudSoundObject::isLimitedSound(JAISoundID soundID, bool isLevel) {
     if (soundID == -1) {
         return true;
     }
@@ -65,23 +71,16 @@ bool AudSoundObject::isLimitedSound(JAISoundID soundID) {
         return true;
     }
 
-    if (!isPlayingID(soundID)) {
-        AudSoundInfo* info = AudWrap::getSoundInfo();
-        if (info != nullptr) {
-            if (info->isLimitCountPlaying(soundID)) {
-                return true;
-            }
-
-            if (info->isLimitNumPlaying(soundID)) {
-                return true;
-            }
-        }
+    AudSoundInfo* info = AudWrap::getSoundInfo();
+    if (info != nullptr && !isLevel && info->isLimitCountPlaying(soundID)) {
+        return true;
     }
 
     return false;
 }
 
 JAISoundHandle* AudSoundObject::startSound(JAISoundID soundID) {
+    soundID = convertSoundIdFromSeVersion(soundID);
     if (!isEnableStartSound(soundID)) {
         return nullptr;
     }
@@ -94,7 +93,7 @@ JAISoundHandle* AudSoundObject::startSound(JAISoundID soundID) {
         return nullptr;
     }
 
-    if (isLimitedSound(soundID)) {
+    if (isLimitedSound(soundID, false)) {
         return nullptr;
     }
 
@@ -106,6 +105,7 @@ JAISoundHandle* AudSoundObject::startSound(JAISoundID soundID) {
 }
 
 JAISoundHandle* AudSoundObject::startLevelSound(JAISoundID soundID) {
+    soundID = convertSoundIdFromSeVersion(soundID);
     if (!isEnableStartSound(soundID)) {
         return nullptr;
     }
@@ -118,7 +118,7 @@ JAISoundHandle* AudSoundObject::startLevelSound(JAISoundID soundID) {
         return nullptr;
     }
 
-    if (isLimitedSound(soundID)) {
+    if (isLimitedSound(soundID, true)) {
         return nullptr;
     }
 
@@ -133,31 +133,36 @@ JAISoundHandle* AudSoundObject::startLevelSound(const char* pName) {
     return startLevelSound(id);
 }
 
-JAISoundHandle* AudSoundObject::startSoundParam(JAISoundID soundID, s32 volume, s32 a2) {
+JAISoundHandle* AudSoundObject::startSoundParam(JAISoundID soundID, s32 volume, s32 param) {
     JAISoundHandle* handle = startSound(soundID);
-    if (handle != nullptr && handle->isSoundAttached()) {
-        modifySe_Kawamura(handle, volume);
-        modifySe_Takezawa(handle, volume, a2);
-        modifySe_Gohara(handle, volume, a2);
-    }
-
+    modifySoundParams(handle, volume, param);
     return handle;
 }
 
-JAISoundHandle* AudSoundObject::startLevelSoundParam(JAISoundID soundID, s32 volume, s32 a2) {
+JAISoundHandle* AudSoundObject::startLevelSoundParam(JAISoundID soundID, s32 volume, s32 param) {
     JAISoundHandle* handle = startLevelSound(soundID);
-    if (handle != nullptr && handle->isSoundAttached()) {
-        modifySe_Kawamura(handle, volume);
-        modifySe_Takezawa(handle, volume, a2);
-        modifySe_Gohara(handle, volume, a2);
-    }
-
+    modifySoundParams(handle, volume, param);
     return handle;
 }
 
-JAISoundHandle* AudSoundObject::startLevelSoundParam(const char* pName, s32 volume, s32 a2) {
-    JAISoundID id = convertNameToLevelSEID(pName);
-    return startLevelSoundParam(id, volume, a2);
+JAISoundHandle* AudSoundObject::startLevelSoundParam(const char* name, s32 volume, s32 param) {
+    JAISoundID id = convertNameToLevelSEID(name);
+    return startLevelSoundParam(id, volume, param);
+}
+
+void AudSoundObject::modifySoundParams(JAISoundHandle* handle, s32 volume, s32 param) {
+    if (handle != nullptr && handle->isSoundAttached()) {
+        f32 finalVolume = 1.0f;
+        f32 pitch = 1.0f;
+        u32 volumeTime = 0;
+        u32 pitchTime = 0;
+        modifySe_Kawamura(handle, &finalVolume, &volumeTime, &pitch, &pitchTime, volume);
+        modifySe_Takezawa(handle, &finalVolume, &volumeTime, &pitch, &pitchTime, volume, param);
+        modifySe_Gohara(handle, &finalVolume, &volumeTime, &pitch, &pitchTime, volume, param);
+        AudWrap::getSystem()->mAudEffector->modifySoundPitch(handle, &pitch, &volumeTime);
+        handle->getSound()->mParams.mMove.moveVolume(finalVolume, volumeTime);
+        handle->getSound()->mParams.mMove.movePitch(pitch, pitchTime);
+    }
 }
 
 bool AudSoundObject::modifyLimitedSound(JAISoundID soundID) {
@@ -170,6 +175,18 @@ bool AudSoundObject::modifyLimitedSound(JAISoundID soundID) {
     }
 
     return false;
+}
+
+
+bool AudSoundObject::isPlayingID(JAISoundID soundID) {
+    return getHandleSoundID(soundID) != nullptr;
+}
+
+void AudSoundObject::releaseHandle(JAISoundID soundID) {
+    JAISoundHandle* handle = getHandleSoundID(soundID);
+    if (handle != nullptr) {
+        handle->getSound()->releaseHandle();
+    }
 }
 
 
@@ -273,6 +290,17 @@ void AudSoundObject::limitVoiceOne(JAISoundID soundID) {
 }
 
 
+// NONMATCHING: regalloc; equality comparison operands are reversed.
+void AudSoundObject::stopCategorySound(u32 category, u32 time) {
+    for (s32 i = 0; i < JAISoundHandles::mNumHandles; i++) {
+        JAISound* sound = getSound(i);
+        if (sound != nullptr && sound->getID().getGroupID() == category) {
+            stopSound(sound->getID(), time);
+        }
+    }
+}
+
+// NONMATCHING: regalloc; floating-point temporaries use different registers.
 void AudSoundObject::setMapCodeToPort(JAISoundHandle* pHandle, JAISoundID soundID) {
     if (pHandle == nullptr) {
         return;
@@ -286,22 +314,110 @@ void AudSoundObject::setMapCodeToPort(JAISoundHandle* pHandle, JAISoundID soundI
     if (mapCode <= 0) {
         return;
     }
-
-    // only specific soundIDs can modify based on mapcode
+    if (mapCode == 17) {
+        if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiLight()) {
+            mapCode = 8;
+        } else {
+            mapCode = 4;
+        }
+    }
+    if (mapCode == 18) {
+        if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiLight()) {
+            mapCode = 1;
+        } else {
+            mapCode = 4;
+        }
+    }
+    if (mapCode == 19) {
+        if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiLight()) {
+            mapCode = 1;
+        } else {
+            mapCode = 7;
+        }
+    }
+    if (mapCode == 21) {
+        if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiLight()) {
+            mapCode = 12;
+        } else {
+            mapCode = 4;
+        }
+    }
+    if (mapCode == 22) {
+        if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiLight()) {
+            mapCode = 11;
+        } else {
+            mapCode = 4;
+        }
+    }
+    s32 portMapCode = mapCode;
+    if (mapCode >= 20) {
+        portMapCode = mapCode - 3;
+    }
     switch (soundID) {
-    case SE_PM_HIPDROP:
-    case SE_PM_FALLDOWN_S:
-    case SE_PM_FALLDOWN_M:
-    case SE_PM_FOOTNOTE_L:
-    case SE_PM_FOOTNOTE_R:
-    case SE_PM_FOOTNOTE_SUB_L:
-    case SE_PM_FOOTNOTE_SUB_R:
-    case SE_PM_JUMP:
-    case SE_PM_LAND:
-    case SE_PM_HAND:
-    case SE_PM_LAND_HEAVY:
-        writePort(pHandle, 12, (mapCode - 1) / 7);
-        writePort(pHandle, 11, ((mapCode - 1) % 7) * 12);
+    case 0x20006:
+    case 0x20013:
+    case 0x20017:
+    case 0x20025:
+    case 0x20026:
+    case 0x20027:
+    case 0x20028:
+    case 0x20029:
+    case 0x2002a:
+    case 0x2002b:
+    case 0x20038:
+    case 0x902c8:
+    case 0x902c9:
+    case 0x902ca:
+    case 0x902cb:
+        s32 divisor = 7;
+        writePort(pHandle, 12, (portMapCode - 1) / divisor);
+        writePort(pHandle, 11, ((portMapCode - 1) % divisor) * 12);
+        break;
+    }
+    switch (soundID) {
+    case 0x20025:
+        if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiDash()) {
+            MR::startActionSoundPlayer("DashFootNoteAddL", -1, -1);
+        } else if (MR::isPlayerElementModeYoshi() && MR::fn_80422710()) {
+            MR::startActionSoundPlayer("HoldFootNoteAddL", -1, -1);
+        } else if (MR::isPlayerElementModeRock()) {
+            PSVECMag(reinterpret_cast<const Vec*>(MR::getPlayerVelocity()));
+            f32 x = MR::getPlayerStickX() * MR::getPlayerStickX();
+            f32 y = MR::getPlayerStickY() * MR::getPlayerStickY();
+            f32 stick = y + x;
+            MR::startSoundPlayer("SE_PM_ROCK_MR_FOOT_ADD_L", 300.0f + 700.0f * stick, 700.0f + 300.0f * stick);
+        }
+        break;
+    case 0x20026:
+        if (MR::isPlayerElementModeYoshi() && MR::isPlayerElementModeYoshiDash()) {
+            MR::startActionSoundPlayer("DashFootNoteAddR", -1, -1);
+        } else if (MR::isPlayerElementModeYoshi() && MR::fn_80422710()) {
+            MR::startActionSoundPlayer("HoldFootNoteAddR", -1, -1);
+        } else if (MR::isPlayerElementModeRock()) {
+            PSVECMag(reinterpret_cast<const Vec*>(MR::getPlayerVelocity()));
+            f32 x = MR::getPlayerStickX() * MR::getPlayerStickX();
+            f32 y = MR::getPlayerStickY() * MR::getPlayerStickY();
+            f32 stick = y + x;
+            MR::startSoundPlayer("SE_PM_ROCK_MR_FOOT_ADD_R", 300.0f + 700.0f * stick, 700.0f + 300.0f * stick);
+        }
+        break;
+    case 0x20029:
+        if (MR::isPlayerElementModeRock()) {
+            MR::startSoundPlayer("SE_PM_ROCK_MR_FOOT_ADD_R", -1, -1);
+        }
+        break;
+    case 0x2002a:
+        if (mapCode == 20) {
+            MR::startSoundPlayer("SE_PM_CLOUD_STEP_RIDE_ON", -1, -1);
+        }
+        if (MR::isPlayerElementModeRock()) {
+            MR::startSoundPlayer("SE_PM_ROCK_MR_FOOT_ADD_LAND", -1, -1);
+        }
+        break;
+    case 0x20038:
+        if (MR::isPlayerElementModeRock()) {
+            MR::startSoundPlayer("SE_PM_ROCK_MR_FOOT_ADD_LAND", -1, -1);
+        }
         break;
     }
 }
@@ -319,43 +435,14 @@ void AudSoundObject::setCutoffToPort(JAISoundHandle* pHandle, JAISoundID soundID
     if (info == nullptr) {
         return;
     }
-
     if (info->isUseLpf(soundID)) {
-        AudEffector* effector = AudWrap::getSystem()->mAudEffector;
-        s32 value = effector->mCutoff;
-        if (value < 0 || value > 0x7F) {
-            value = 0x7F;
+        s32 value = AudWrap::getSystem()->mAudEffector->mCutoff;
+        if (value < 0 || value > 127) {
+            value = 127;
         }
-
-        switch (soundID) {
-        case SE_AT_LV_WATERFALL_S:
-        case SE_AT_LV_WATERFALL_L:
-        case SE_AT_LV_WATERFALL_UPPER_S:
-        case SE_AT_LV_WATERFALL_UPPER_L:
-        case SE_OJ_SEAGULL_CHIRP:
-            if (effector->mSpecialFx == 2) {
-                // TODO: magic value
-                value = 10;
-                pHandle->getSound()->mParams.mMove.moveVolume(0.5f, 0);
-            }
-            break;
-        case SE_OJ_LV_FOUNTAIN:
-        case SE_AT_LV_WIND_RABBIT_MAZE:
-            if (effector->mSpecialFx == 1) {
-                // TODO: magic value
-                value = 20;
-                pHandle->getSound()->mParams.mMove.moveVolume(0.5f, 5);
-            } else {
-                value = 0x7F;
-                pHandle->getSound()->mParams.mMove.moveVolume(1.0f, 5);
-            }
-            break;
-        }
-        // TODO: port magic value
         writePort(pHandle, 10, value);
     } else {
-        writePort(pHandle, 10, 0x7F);
-        return;
+        writePort(pHandle, 10, 127);
     }
 }
 

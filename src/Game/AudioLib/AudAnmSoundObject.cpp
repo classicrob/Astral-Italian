@@ -112,8 +112,8 @@ void AudAnmSoundObject::skip(f32 time) {
                     mLoopSoundIndex++;
                 }
             }
-            mLifeTime = time;
             mLoopSoundIndex = mLoopStartSoundIndex;
+            mLifeTime = time;
             if (mTime < 0xFFFF) {
                 mTime++;
             }
@@ -191,8 +191,8 @@ void AudAnmSoundObject::updateAnimSound(f32 time, const TVec3f& rPos, JAISoundSt
             while (mLoopSoundIndex < mLoopEndSoundIndex) {
                 startAnimSound(rPos, speed, pStarter);
             }
-            mLifeTime = time;
             mLoopSoundIndex = mLoopStartSoundIndex;
+            mLifeTime = time;
             if (mTime < 0xFFFF) {
                 mTime++;
             }

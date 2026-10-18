@@ -89,7 +89,7 @@ namespace {
         initJAI.mMaxNumChildren = AudParams::numFreeSoundChild;
         initJAI.initJAInterface();
 
-        AudDopplerAudible< 4 >::newMemPool(initJAI.mMaxNumSe);
+        AudDopplerAudible< 2 >::newMemPool(initJAI.mMaxNumSe);
         AudSeStrategy::newMemPool(initJAI.mMaxNumSe);
         SpkSystem::newSoundMemPool(64);
         AudMe::newMemPool(32);
@@ -116,7 +116,7 @@ AudSystem* AudNewAudSystem(JKRHeap* pHeap, JKRSolidHeap* pSolidHeap, AudArchiveS
         newHeap->getHeap()->freeTail();
     }
 
-    u32 maxSeqDataSize;
+    u32 maxSeqDataSize = 0;
     if (pArchives->mSeqArchive == nullptr) {
         if (DVDConvertPathToEntrynum(sJaiSeqArc) >= 0) {
             JKRArchive* seqArc = JKRArchive::mount(sJaiSeqArc, JKRArchive::MOUNT_MODE_DVD, newHeap->getHeap(), JKRArchive::MOUNT_DIRECTION_1);
@@ -162,6 +162,7 @@ static JAUStdSoundInfo* newSoundInfo(JAUSection* pSection) {
 
 namespace {
     // position of the sound's audible (if it has one)
+// NONMATCHING: instruction scheduling
     bool getSoundPos(JAISound& rSound, TVec3f* pPos) NO_INLINE {
         JAIAudible* audible = rSound.mAudible;
         if (audible != nullptr) {
@@ -356,6 +357,7 @@ void AudSystem::setSpeakerResource(JKRArchive* pArchive) {
     mSpkSystem->setResource(pArchive, 0, 1);
 }
 
+// NONMATCHING: equivalent boolean normalization
 void AudSystem::frameWork() {
     screenSaverProcess();
     updateHomeButtonMenu();
@@ -532,19 +534,9 @@ bool AudSystem::isSubmitSeByVolumeSetting(JAISoundID soundID) {
         return false;
     }
 
-    if (mVolumeController->mCurrVolumeSet >= 3 || mVolumeController->mCurrVolumeSet < 1) {
-        f32 f1 = 0.0f;  // FIXME: DUMMY
-    } else {
-        switch (soundID) {
-        case SE_SY_TIMER_A_2:
-        case SE_SY_TIMER_A_1:
-        case SE_SY_TIMER_A_0:
-            return true;
-        }
-
-        return false;
+    if (mVolumeController->mCurrVolumeSet >= 1 && mVolumeController->mCurrVolumeSet < 3) {
+        return u32(soundID) - 2 <= 2;
     }
-
     return false;
 }
 
@@ -845,9 +837,8 @@ bool AudSystem::isMenuOrErrorActive() const {
     return mIsDvdError;
 }
 
-// NONMATCHING: target calls VIGetDVDStopMotorCount (we still name it VIGetDimmingCount) and AudSystemVolumeController::setSeVolumeSetLevel takes (level, -1, 2) in SMG2
 void AudSystem::screenSaverProcess() {
-    if (VIGetDimmingCount() > 0) {
+    if (VIGetDVDStopMotorCount() > 0) {
         return;
     }
 
@@ -1002,9 +993,9 @@ void AudSystem::recoverSeVolumeSet(u32 maxSteps) {
     }
 }
 
-void AudSystem::setSeVolumeSetLevel(s32 volumeSet) {
+void AudSystem::setSeVolumeSetLevel(s32 volumeSet, s32 fadeTime, s32 holdFrames) {
     if (mVolumeController != nullptr) {
-        mVolumeController->setSeVolumeSetLevel(volumeSet);
+        mVolumeController->setSeVolumeSetLevel(volumeSet, fadeTime, holdFrames);
     }
 }
 
@@ -1018,24 +1009,38 @@ void AudSystem::initVolumeSetting() {
     }
 }
 
-// NONMATCHING: SMG2 copies the 28 bytes with hoisted lbz from per-byte sda21 symbols and byte stores; we emit lhz/sth struct copies
+// NONMATCHING: byte loads use struct-relative relocations; allocation and instruction order
 void AudSystem::initCategoryArrangement() {
     JAISeCategoryArrangement arrangement;
 
-    arrangement.mItems[0] = AudParams::arrangeSE_SY;
-    arrangement.mItems[1] = AudParams::arrangeSE_PV;
-    arrangement.mItems[2] = AudParams::arrangeSE_PM;
-    arrangement.mItems[3] = AudParams::arrangeSE_BV;
-    arrangement.mItems[4] = AudParams::arrangeSE_BM;
-    arrangement.mItems[5] = AudParams::arrangeSE_OJ;
-    arrangement.mItems[6] = AudParams::arrangeSE_AT;
-    arrangement.mItems[7] = AudParams::arrangeSE_DM;
-    arrangement.mItems[8] = AudParams::arrangeSE_EV;
-    arrangement.mItems[9] = AudParams::arrangeSE_EM;
-    arrangement.mItems[10] = AudParams::arrangeSE_SV;
-    arrangement.mItems[11] = AudParams::arrangeSE_SM;
-    arrangement.mItems[12] = AudParams::arrangeSE_RS;
-    arrangement.mItems[13] = AudParams::arrangeHOMESE;
+    arrangement.mItems[0].mMaxActiveSe = AudParams::arrangeSE_SY.mMaxActiveSe;
+    arrangement.mItems[0].mMaxInactiveSe = AudParams::arrangeSE_SY.mMaxInactiveSe;
+    arrangement.mItems[1].mMaxActiveSe = AudParams::arrangeSE_PV.mMaxActiveSe;
+    arrangement.mItems[1].mMaxInactiveSe = AudParams::arrangeSE_PV.mMaxInactiveSe;
+    arrangement.mItems[2].mMaxActiveSe = AudParams::arrangeSE_PM.mMaxActiveSe;
+    arrangement.mItems[2].mMaxInactiveSe = AudParams::arrangeSE_PM.mMaxInactiveSe;
+    arrangement.mItems[3].mMaxActiveSe = AudParams::arrangeSE_BV.mMaxActiveSe;
+    arrangement.mItems[3].mMaxInactiveSe = AudParams::arrangeSE_BV.mMaxInactiveSe;
+    arrangement.mItems[4].mMaxActiveSe = AudParams::arrangeSE_BM.mMaxActiveSe;
+    arrangement.mItems[4].mMaxInactiveSe = AudParams::arrangeSE_BM.mMaxInactiveSe;
+    arrangement.mItems[5].mMaxActiveSe = AudParams::arrangeSE_OJ.mMaxActiveSe;
+    arrangement.mItems[5].mMaxInactiveSe = AudParams::arrangeSE_OJ.mMaxInactiveSe;
+    arrangement.mItems[6].mMaxActiveSe = AudParams::arrangeSE_AT.mMaxActiveSe;
+    arrangement.mItems[6].mMaxInactiveSe = AudParams::arrangeSE_AT.mMaxInactiveSe;
+    arrangement.mItems[7].mMaxActiveSe = AudParams::arrangeSE_DM.mMaxActiveSe;
+    arrangement.mItems[7].mMaxInactiveSe = AudParams::arrangeSE_DM.mMaxInactiveSe;
+    arrangement.mItems[8].mMaxActiveSe = AudParams::arrangeSE_EV.mMaxActiveSe;
+    arrangement.mItems[8].mMaxInactiveSe = AudParams::arrangeSE_EV.mMaxInactiveSe;
+    arrangement.mItems[9].mMaxActiveSe = AudParams::arrangeSE_EM.mMaxActiveSe;
+    arrangement.mItems[9].mMaxInactiveSe = AudParams::arrangeSE_EM.mMaxInactiveSe;
+    arrangement.mItems[10].mMaxActiveSe = AudParams::arrangeSE_SV.mMaxActiveSe;
+    arrangement.mItems[10].mMaxInactiveSe = AudParams::arrangeSE_SV.mMaxInactiveSe;
+    arrangement.mItems[11].mMaxActiveSe = AudParams::arrangeSE_SM.mMaxActiveSe;
+    arrangement.mItems[11].mMaxInactiveSe = AudParams::arrangeSE_SM.mMaxInactiveSe;
+    arrangement.mItems[12].mMaxActiveSe = AudParams::arrangeSE_RS.mMaxActiveSe;
+    arrangement.mItems[12].mMaxInactiveSe = AudParams::arrangeSE_RS.mMaxInactiveSe;
+    arrangement.mItems[13].mMaxActiveSe = AudParams::arrangeHOMESE.mMaxActiveSe;
+    arrangement.mItems[13].mMaxInactiveSe = AudParams::arrangeHOMESE.mMaxInactiveSe;
 
     mSeMgr.setCategoryArrangement(arrangement);
 }
@@ -1176,4 +1181,10 @@ void AudSystem::setVolumeZeroForce(s32 menuType) {
 
         mSeMgr.getCategory(category)->stop(18);
     }
+}
+
+JAIStreamAramMgr::~JAIStreamAramMgr() {}
+
+f32 AudAudience_withSetting::getCameraRate() const {
+    return mCameraRate;
 }

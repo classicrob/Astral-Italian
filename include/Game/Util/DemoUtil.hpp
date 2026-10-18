@@ -132,13 +132,12 @@ namespace MR {
     bool requestStartDemoMarioPuppetableWithoutCinemaFrame(NerveExecutor*, LiveActor*, const char*, const Nerve*, const Nerve*);  // SMG2 fn_80020090
     bool requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(NameObj*, const char*, const char*);  // SMG2 fn_80020110
     bool endDemoAndSetAlreadyDone(LiveActor*, const char*);  // SMG2 fn_800204E0; PLACEHOLDER(core4): name guessed from behaviour
-    bool tryEndDemoAndSetAlreadyDone(LiveActor*, const char*);  // SMG2 fn_800205B0; PLACEHOLDER(core4): name guessed, called from DemoExecutor movement
+    bool tryEndDemoAndSetAlreadyDone(LiveActor*, const char*);  // SMG2 fn_800205B0
     bool tryStartDemoEndWaitCameraInterpolating(LiveActor*, const char*);  // SMG2 fn_80020690; PLACEHOLDER(core4): name guessed (sets the director byte 0x13)
-    bool isDemoEndWaitCinemaFrameStopped();  // SMG2 fn_80020800; PLACEHOLDER(core4): name guessed
-    void initDemoSheetAnim(LiveActor*, const JMapInfoIter&, const char*, const char*);  // SMG2 fn_80020860; PLACEHOLDER(core4): name guessed
+    bool isDemoEndWaitCinemaFrameStopped();  // SMG2 fn_80020800
+    void initDemoSheetAnim(LiveActor*, const JMapInfoIter&, const char*, const char*);  // SMG2 fn_80020860
     bool isPauseTimeKeepDemo(const char*);  // SMG2 fn_80021120
-    bool isDemoSubPartActive(const char*);  // SMG2 fn_80021100; PLACEHOLDER(core4): name guessed
-    void resetDemoSubPart();  // SMG2 fn_80021110; PLACEHOLDER(core4): name guessed
+    bool isDemoSubPartActive(const char*);  // SMG2 fn_80021100
     bool tryStartDemoSystemFlags111(NameObj*, const char*);              // SMG2 fn_8001FB40
     bool tryStartDemoMarioPuppetableSystemFlags(NameObj*, const char*);  // SMG2 fn_8001FD30
     bool requestStartDemoMarioPuppetableWithoutCinemaFrame(NameObj*, const char*);  // SMG2 fn_80020030

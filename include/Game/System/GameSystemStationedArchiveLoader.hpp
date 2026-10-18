@@ -17,23 +17,33 @@ public:
     GameSystemStationedArchiveLoader();
 
     void update();
+    bool isInitialized() const;
     bool isDone() const;
+    bool isDataMario() const;
     bool isPreparedReset() const;
     void prepareReset();
-    void requestChangeArchivePlayer(bool);
+    bool requestChangeArchivePlayer(bool);
+    bool requestLoadStationedArchiveOthers();
+    void exeLoadAudioResource();
     void exeLoadAudio1stWaveData();
     void exeLoadStationedArchivePlayer();
     void exeLoadStationedArchiveOthers();
     void exeInitializeGameData();
+    void exeLoadAudio2ndWaveData();
+    void exeLoadStationedArchiveOthers2nd();
+    void exeInitializeStationedArchives();
     void exeEnd();
     void exeSuspended();
     void exeChangeArchivePlayer();
     bool trySuspend();
-    bool tryAsyncExecuteIfNotSuspend(const MR::FunctorBase&, const char*);
-    void startToLoadStationedArchivePlayer(bool);
+    bool tryAsyncExecuteIfNotSuspend(const MR::FunctorBase&, const char*, s32 = -1);
+    void startToLoadAudioResource();
+    void startToLoadStationedArchivePlayer();
     void startToLoadStationedArchiveOthers();
     void createAndAddPlayerArchives(bool);
+    void startToLoadStationedArchiveOthers2nd();
     void createAndAddOtherArchives();
+    bool tryCreateAndAddOtherArchives();
 
     /* 0x8 */ PlayerHeapHolder* mHeapHolder;
     /* 0xc */ bool _C;
@@ -56,9 +66,19 @@ public:
     /* 0x4 */ MR::StationedFileInfo::LoadType mLoadType;
 };
 
+class ConditionIfIsNotPlayer1st : public StationedArchiveLoader::Condition {
+public:
+    ConditionIfIsNotPlayer1st() NO_INLINE;
+    virtual ~ConditionIfIsNotPlayer1st();
+    virtual bool isExecute(const MR::StationedFileInfo*) const;
+    virtual JKRHeap* getProperHeap(const MR::StationedFileInfo*) const;
+};
+
 class ConditionIfIsNotPlayer : public StationedArchiveLoader::Condition {
 public:
+    ConditionIfIsNotPlayer() NO_INLINE;
     virtual bool isExecute(const MR::StationedFileInfo*) const;
+    virtual JKRHeap* getProperHeap(const MR::StationedFileInfo*) const;
 };
 
 class ConditionUsePlayerHeap : public StationedArchiveLoader::Condition {
@@ -77,6 +97,7 @@ class PlayerHeapHolder {
 public:
     PlayerHeapHolder();
 
+    ConditionUsePlayerHeap* getCondition() const;
     void adjust();
     void dispose();
     void setIsDataMario(bool isDataMario) NO_INLINE;

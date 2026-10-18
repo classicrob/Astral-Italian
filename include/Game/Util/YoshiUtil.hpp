@@ -25,7 +25,7 @@ namespace MR {
     bool isPlayerElementModeYoshiDash();
     bool isPlayerElementModeYoshiLight();
     bool fn_80422710();
-    void fn_80422740();
+    void resetYoshiTongueForDemo();
     bool fn_80422880(u32);
     bool isMsgDashYoshiAttack(u32);
     void fn_804228B0();

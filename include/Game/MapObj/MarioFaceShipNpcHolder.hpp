@@ -2,12 +2,7 @@
 #include "Game/NameObj/NameObj.hpp"
 class LiveActor;
 class LiveActorGroup;
-struct MarioFaceShipNpcGroupInfo {
-    s32 _0;
-    s32 mCount;
-    const char** mNames;
-    s32* mDemoCastIds;
-};
+struct MarioFaceShipEventCast;
 struct MarioFaceShipNpcInfo {
     MarioFaceShipNpcInfo();
     s32 mIndex;
@@ -24,13 +19,13 @@ public:
     void registerActor(LiveActor*, s32, const JMapInfoIter&);
     bool isRegistered(const LiveActor*, s32) const;
     void requestMovement();
-    void registerGroup(LiveActorGroup*, const MarioFaceShipNpcGroupInfo*) const;
+    void registerGroup(LiveActorGroup*, const MarioFaceShipEventCast*) const;
     MarioFaceShipNpcInfo* mNpcs;
     s32 mCount;
 };
 namespace MR {
     void createMarioFaceShipNpcHolder();
     void registerMarioFaceShipNpcActor(LiveActor*, s32, const JMapInfoIter&);
-    void registerMarioFaceShipNpcGroup(LiveActorGroup*, const MarioFaceShipNpcGroupInfo*);
+    void registerMarioFaceShipNpcGroup(LiveActorGroup*, const MarioFaceShipEventCast*);
     void requestMarioFaceShipNpcMovement();
 }

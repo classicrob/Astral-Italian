@@ -131,7 +131,7 @@ public:
     void setFarCamera(bool);
     void setSeVolumeSet(s32, u32);
     void recoverSeVolumeSet(u32);
-    void setSeVolumeSetLevel(s32);
+    void setSeVolumeSetLevel(s32, s32 = -1, s32 = 2);
     void initVolumeSetting();
     void initCategoryArrangement();
     void setMeResource(JKRArchive*, u16, u16);
@@ -189,7 +189,7 @@ public:
     /* 0x083C */ JKRHeap* mHeap;  // SMG2; heap the system-lifetime objects are created in (ctor arg)
     /* 0x0840 */ JAUSectionHeap* mSectionHeap;
     /* 0x0844 */ JAUStreamStaticAramMgr* mStreamAramMgr;
-    /* 0x0848 */ AudAudience< 4 > mAudience;
+    /* 0x0848 */ AudAudience< 2 > mAudience;
     /* 0x094C */ s32 mSoundMode;  // SCGetSoundMode()
     /* 0x0950 */ AudSoundObject* mSystemSeObject;
     /* 0x0954 */ AudSoundObject* mAtmosphereSeObject;

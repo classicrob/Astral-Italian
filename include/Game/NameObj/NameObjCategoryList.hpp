@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/NameObj/NameObj.hpp"
+#include "Game/NameObj/NameObjHolder.hpp"
 #include "Game/Util/Array.hpp"
 #include "Game/Util/Functor.hpp"
 
@@ -30,6 +31,10 @@ struct CategoryListInitialTable {
 
 class NameObjCategoryList {
 public:
+    NameObjCategoryList(u32, const CategoryListInitialTable*, NameObjMethod, bool, const char*);
+    NameObjCategoryList(u32, const CategoryListInitialTable*, NameObjMethodConst, bool, const char*);
+    ~NameObjCategoryList();
+
     class CategoryInfo {
     public:
         CategoryInfo();

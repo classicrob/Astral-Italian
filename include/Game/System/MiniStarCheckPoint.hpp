@@ -24,8 +24,10 @@ public:
     bool isReadyToOpen() const;
     bool update(s32 distance);
     void setEffectDrawOrder(s32 order);
+    void setDone();    // was fn_804E5CE0
+    void exeOpen();    // was fn_804E5EF0
 
-    const char* mKind;       // 0x90 (name string, compared by fn_804E5A10)
+    const char* mKind;       // 0x90 (name string, compared by isStarCheckPointGrand)
     s32 mStarNum;             // 0x94
     s32 mUnk98;               // 0x98
     s32 mUnk9C;               // 0x9C
@@ -34,3 +36,5 @@ public:
     TalkMessageCtrl* mTalkCtrl;  // 0xA8
     bool mIsDone;             // 0xAC
 };
+
+bool isStarCheckPointGrand(const char* pKind);  // was fn_804E5A10 (defined in MiniPlayerRocket.cpp)

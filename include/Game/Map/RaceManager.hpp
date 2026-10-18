@@ -7,6 +7,7 @@
 class PlayerRacer;
 class RaceManager;
 class StartCountdownLayout;
+class RaceLayout;
 
 enum RaceID {
     /* 0x00 */ RaceID_Penguin,
@@ -115,8 +116,8 @@ public:
     void exeDemo();
     void exeGoal();
     void exeRank();
-    bool startWithWipe();
-    bool startImmediately();
+    void updateRank() NO_INLINE;
+    void prepareStart() NO_INLINE;
     void prepRace();
     void startRace();
     void goalRace();
@@ -129,19 +130,19 @@ public:
     u32 getRank(const AbstractRacer*) const;
     void renewTime();
 
-    /* 0x8C */ s32 mCurrentRace;
-    StartCountdownLayout* mStartCountdown;
-    /* 0x90 */ RaceManagerLayout* mLayout;
-    /* 0x94 */ AbstractRacer* mRacer[10];
-    /* 0xBC */ AbstractAudience* mAudience[10];
-    /* 0xE4 */ u32 mRacerNum;
-    /* 0xE8 */ u32 mAudienceNum;
-    /* 0xEC */ u32 mRank;
-    /* 0xF0 */ u32 mBestTime;
-    /* 0xF4 */ u32 mTime;
-    /* 0xF8 */ PlayerRacer* mPlayerRacer;
-    LiveActor* mPlayerRide;
-    AbstractRaceJudge* mJudge;
+    /* 0x90 */ s32 mCurrentRace;
+    /* 0x94 */ StartCountdownLayout* mStartCountdown;
+    /* 0x98 */ RaceLayout* mLayout;
+    /* 0x9C */ AbstractRacer* mRacer[10];
+    /* 0xC4 */ AbstractAudience* mAudience[10];
+    /* 0xEC */ u32 mRacerNum;
+    /* 0xF0 */ u32 mAudienceNum;
+    /* 0xF4 */ u32 mRank;
+    /* 0xF8 */ u32 mBestTime;
+    /* 0xFC */ u32 mTime;
+    /* 0x100 */ PlayerRacer* mPlayerRacer;
+    /* 0x104 */ LiveActor* mPlayerRide;
+    /* 0x108 */ AbstractRaceJudge* mJudge;
 
 };
 
@@ -160,5 +161,6 @@ namespace RaceManagerFunction {
 
 namespace RaceManagerFunction {
     void updateRank();
+    void killRace();
     void entryJudge(AbstractRaceJudge*);
 }

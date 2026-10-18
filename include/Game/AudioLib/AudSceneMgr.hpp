@@ -5,6 +5,8 @@
 class JAUSectionHeap;
 
 struct AudSceneSoundInfo {
+    bool hasScenarioResource() const NO_INLINE;
+
     /* 0x00 */ const char* mSceneName;
     /* 0x04 */ const char* mStageName;
     /* 0x08 */ s8 mStageId;
@@ -21,6 +23,10 @@ public:
     AudSceneMgr(JAUSectionHeap*);
 
     bool isLoadDoneSystemInit();
+    void loadSystemResource();
+    void requestResource();
+    void loadStaticResource2nd();
+    bool isLoadDoneStaticResource2nd();
     void loadStaticResource();
     bool isLoadDoneStaticResource();
     void loadStageResource(const char*, const char*);
@@ -30,6 +36,8 @@ public:
     void loadScenarioResource(const AudSceneSoundInfo*, s32);
     bool isLoadDoneScenarioResource();
     void startScene();
+    void resetForScene();
+    void initSceneAudioEffect();
     const AudSceneSoundInfo* findSceneSoundInfo(const char*, const char*);
     void eraseLastBgmWaveSet();
     void eraseLastSeWaveSet();
@@ -37,7 +45,7 @@ public:
     void loadWaveSet(const s8*, s32);
     void setPlayerModeMario();
     void setPlayerModeLuigi();
-    bool loadPlayerResource();
+    void loadPlayerResource();
     bool isPlayerResourceLoaded();
 
     bool isPlayerModeMario() {
@@ -50,11 +58,7 @@ public:
 
     /* 0x00 */ JAUSectionHeap* mSectionHeap;
     /* 0x04 */ u32 _4;
-    /* 0x08 */ s32 mSeWaveSetId;
-    /* 0x0C */ s32 mSeScenarioWaveSetId;
-    /* 0x10 */ s32 mBgmWaveSetId;
-    /* 0x14 */ s32 mPlayerMode;
-    /* 0x18 */ s32 mPrevPlayerMode;
-    /* 0x1C */ bool mIsNewPlayerMode;
-    /* 0x1D */ bool _1D;
+    /* 0x08 */ s32 mPlayerMode;
+    /* 0x0C */ bool mIsNewPlayerMode;
+    /* 0x0D */ bool _1D;
 };

@@ -3,6 +3,7 @@
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/LiveActor/ActorStateBase.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/ShadowVolumeDrawer.hpp"
 #include "Game/Util/MtxUtil.hpp"
 
 // SMG2-only boss "BellyDragon" (ベリードラゴン, Koopa Jr. castle boss family). No Petari counterpart.
@@ -22,15 +23,94 @@ class LiveActorGroup;
 class ModelObj;
 class JointController;
 struct JointControllerInfo;
+class ModelObj;
+
+// Decoration drawer (vtable D280): owns a map-object decoration model and a table of joint controllers (BellyDragonMtxBlock).
+class BellyDragonFire : public ShadowVolumeDrawer {
+public:
+    BellyDragonFire(const char*, const char*, MtxPtr, s32);
+
+    virtual ~BellyDragonFire();
+
+    void addJointMtx(const char* pJointName);              // was fn_80095B00
+    void appearModel();                                    // was fn_80095C30
+    void killModel();                                      // was fn_80095C80
+    void setJointMtx(const char* pJointName, const TPos3f* pMtx);  // was fn_80095CD0
+    void registerCallBacks();                              // was fn_80095D60
+
+    /* 0x24 */ ModelObj* mModelObj;
+    /* 0x28 */ s32 mCount;
+    /* 0x2C */ s32 mCurrent;
+    /* 0x30 */ s32* mIds;
+};
+
+// Ground fire of the BellyDragon (地面炎). Owns a bloom child (DemoObj) at 0xC0 and a base matrix at 0x90.
+class BellyDragonFireGround : public LiveActor {
+public:
+    BellyDragonFireGround();
+
+    virtual ~BellyDragonFireGround();
+    virtual void init(const JMapInfoIter&);
+    virtual void appear();
+    virtual void kill();
+    virtual void calcAndSetBaseMtx();
+    virtual void attackSensor(HitSensor*, HitSensor*);
+
+    void exeAppear();
+    void exeBurn();
+    void exeDisappear();
+
+    /* 0x90 */ TPos3f mBaseMtx;
+    /* 0xC0 */ LiveActor* mBloom;
+};
+
+// Wait / Fire / Shot sub-states of BellyDragonArm (constructors live in units without source yet).
+class BellyDragonArmWait : public ActorStateBaseInterface {
+public:
+    BellyDragonArmWait(BellyDragon*, u8);
+    void startAttack();   // was fn_80097690
+    void startDamage();   // was fn_800976A0
+
+    u8 _0C[0x1C];
+};
+
+class BellyDragonArmFire : public ActorStateBaseInterface {
+public:
+    BellyDragonArmFire(BellyDragon*, u8);
+    void attackSensor(HitSensor*, HitSensor*);  // was fn_80096220
+
+    u8 _0C[0x18];
+    /* 0x24 */ bool mIsEnd;
+    u8 _25[0x23];
+};
+
+class BellyDragonArmShot : public ActorStateBaseInterface {
+public:
+    BellyDragonArmShot(BellyDragon*, u8);
+    void attackSensor(HitSensor*, HitSensor*);  // was fn_80096B60
+
+    u8 _0C[0x4C];
+};
 
 // TU05: pod (camera + effect groups + decoration model). Plain class, no vtable; mHost is its first word.
 class BellyDragonPod {
 public:
     BellyDragonPod(BellyDragon*, const JMapInfoIter*);
 
+    void updateFireEffect(BellyDragon*);                 // was fn_80094460
+    void appearFireGround(s32 isShort, const TVec3f*);   // was fn_80094520
+    void killFireGrounds();                              // was fn_80094600
+    void appearSparks(s32 count);                        // was fn_80094670
+    void killAll();                                      // was fn_80094930
+    void startFlame();                                   // was fn_800949D0
+    void stopFlame();                                    // was fn_800949E0
+    void updateFlameMtx();                               // was fn_80094BE0
+    void resetFlame();                                   // was fn_80094C80
+    void createGroups();                                 // was fn_80094C90
+
     /* 0x00 */ BellyDragon* mHost;
     /* 0x04 */ ActorCameraInfo* mCameraInfo;
-    /* 0x08 */ void* mFlameCtrl;
+    /* 0x08 */ BellyDragonFire* mFlameCtrl;
     /* 0x0C */ TPos3f mBaseMtx;
     /* 0x3C */ TPos3f mHostMtx;
     /* 0x6C */ ModelObj* mDecoration;
@@ -49,6 +129,8 @@ public:
     virtual void init();
     virtual void appear();
 
+    void attackSensor(HitSensor*, HitSensor*);                        // was fn_800951D0
+    bool receiveMessage(u32 msg, HitSensor*, HitSensor*);             // was fn_80095260
     void exeWait();
     void exeFire();
     void exeShot();
@@ -56,9 +138,9 @@ public:
 
     /* 0x0C */ BellyDragon* mHost;
     /* 0x10 */ u8 mSide;
-    /* 0x14 */ ActorStateBaseInterface* mStateA;   // 0x28 bytes, ctor fn_80097520
-    /* 0x18 */ ActorStateBaseInterface* mStateB;   // 0x48 bytes, ctor fn_80096060
-    /* 0x1C */ ActorStateBaseInterface* mStateC;   // 0x58 bytes, ctor fn_80096960
+    /* 0x14 */ BellyDragonArmWait* mStateA;   // 0x28 bytes
+    /* 0x18 */ BellyDragonArmFire* mStateB;   // 0x48 bytes
+    /* 0x1C */ BellyDragonArmShot* mStateC;   // 0x58 bytes
     /* 0x20 */ s32 mCounter;
 };
 // TU04: group-B actor (pod child, ctor fn_80094020). LiveActor with the owning host at 0x90 and a base matrix at 0x94.
@@ -67,6 +149,10 @@ public:
     BellyDragonPodActor(BellyDragon*);
 
     virtual ~BellyDragonPodActor();
+    virtual void init(const JMapInfoIter&);        // was fn_80094080
+    virtual void appear();                          // was fn_800940E0
+    virtual void calcAndSetBaseMtx();               // was fn_80094220
+    virtual void attackSensor(HitSensor*, HitSensor*);  // was fn_80094240
 
     void exeWait();
 
@@ -290,6 +376,44 @@ public:
     /* 0xE8 */ LiveActor* mDemoA;
 };
 
+bool isAttackNerve(LiveActor*);  // was fn_8008EDA0
+
 namespace BellyDragonUtil {
+    s32 isLv2(BellyDragon*);                                     // was fn_80093310
+    s32 updateArmState(NerveExecutor*, BellyDragon*);            // was fn_80093320
+    void syncToHead(BellyDragon*, LiveActor*);                   // was fn_80093370
+    void setBodyPartMtx(BellyDragonBodyPart*, const f32 (*)[4]); // was fn_80093450
+    void updateFront(BellyDragon*, f32);                         // was fn_800934A0
+    void pullBindedByFront(BellyDragon*, const f32*);            // was fn_800934B0
+    void pushBindedByFront(BellyDragon*, f32, f32);              // was fn_80093500
+    void startBodyBindB(BellyDragon*);                           // was fn_80093580
     void calcGroundHillMtx(TPos3f*, NameObj*, const f32 (*)[4], f32);
+    void calcGroundUpMtx(TPos3f*, NameObj*, const TVec3f*);      // was fn_800936C0
+    void appearJawHill(BellyDragon*);                            // was fn_80093780
+    void startHeadAttackHill(BellyDragon*);                      // was fn_80093790
+    void appearHeadHill(BellyDragon*);                           // was fn_800937A0
+    void breakHeadHill(BellyDragon*);                            // was fn_800937B0
+    void updatePodFireEffect(BellyDragon*);                      // was fn_800937C0
+    void killPodObjects(BellyDragon*);                           // was fn_80093800
+    void killWeakPoints(BellyDragon*);                           // was fn_80093810
+    void appearFireGround(BellyDragon*);                         // was fn_800938A0
+    void appearFireGroundShort(BellyDragon*);                    // was fn_800938B0
+    void appearFireGroundAt(BellyDragon*, const TVec3f*);        // was fn_800938C0
+    void killFireGrounds(BellyDragon*);                          // was fn_800938D0
+    void appearPodSparks(BellyDragon*, s32);                     // was fn_800938E0
+    s32 getAttackableWeakPointNum(BellyDragon*);                 // was fn_800938F0
+    bool isSensorWeakPoint(HitSensor*);                          // was fn_80093970
+    s32 isEnoughWeakPointsBroken(BellyDragon*, s32);             // was fn_80093980
+    s32 isNoAttackableWeakPoint(BellyDragon*, s32);              // was fn_80093A30
+    void setWeakPointsWaitC(BellyDragon*);                       // was fn_80093A80
+    void startPodFlame(BellyDragon*);                            // was fn_80093AF0
+    void stopPodFlame(BellyDragon*);                             // was fn_80093B00
+    void updatePodFlameMtx(BellyDragon*);                        // was fn_80093B10
+    void resetPodFlame(BellyDragon*);                            // was fn_80093B20
+    HitSensor* getBodySensor(LiveActor*);                        // was fn_80093B30
+    void initPodAnimCamera(BellyDragon*, const char*);           // was fn_80093B40
+    void setupDemoPose(BellyDragon*, const char*);               // was fn_80093B50
+    s32 tryStartDemo(BellyDragon*, const char*, bool);           // was fn_80093BF0
+    s32 updateDemo(BellyDragon*, const char*, bool, const f32*, f32);  // was fn_80093DC0
+    void calcJointGroundMtx(BellyDragon*, TPos3f*, const char*, s32);  // was fn_800949F0
 }

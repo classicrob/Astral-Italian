@@ -9,10 +9,6 @@
 class TalkMessageCtrl;
 
 
-// PLACEHOLDER(core): unnamed SMG2 callees and helpers (no symbol name yet); resolve when their owners name them
-extern "C" LiveActor* fn_804E83B0(LiveActor*, const char*, const char*, const char*);
-extern "C" void fn_804E7180(MiniTicoMaster*);
-extern "C" void fn_804E71F0(MiniTicoMaster*, f32);
 
 namespace NrvMiniTicoMaster {
     class MiniTicoMasterNrvWait : public Nerve {
@@ -30,7 +26,7 @@ namespace NrvMiniTicoMaster {
     class MiniTicoMasterNrvGoMarioPlanet : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            fn_804E7180(reinterpret_cast<MiniTicoMaster*>(pSpine->mExecutor));
+            reinterpret_cast<MiniTicoMaster*>(pSpine->mExecutor)->exeGoMarioPlanet();
         };
         static MiniTicoMasterNrvGoMarioPlanet sInstance;
     };
@@ -59,8 +55,8 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
 
     MR::initActor(this, rIter, "MiniTicoMaster", false);
 
-    mModelA = fn_804E83B0(this, "左手", "MiniTicoMaster", "StarPieceL");
-    mModelB = fn_804E83B0(this, "右手", "MiniTicoMaster", "StarPieceR");
+    mModelA = WorldMapFunction::createPartsModel(this, "左手", "MiniTicoMaster", "StarPieceL");
+    mModelB = WorldMapFunction::createPartsModel(this, "右手", "MiniTicoMaster", "StarPieceR");
     MR::setScale(mModelA, 11.0f);
     MR::setScale(mModelB, 11.0f);
     MR::setBpkFrame(mModelA, 0.0f);
@@ -128,29 +124,26 @@ bool MiniTicoMaster::isFull() const {
     return mUnk9C >= *mUnk94;
 }
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_804E7170(MiniTicoMaster* pActor) {
-    pActor->setNerve(&NrvMiniTicoMaster::MiniTicoMasterNrvGoMarioPlanet::sInstance);
+void MiniTicoMaster::startGoMarioPlanet() {
+    setNerve(&NrvMiniTicoMaster::MiniTicoMasterNrvGoMarioPlanet::sInstance);
 }
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_804E7180(MiniTicoMaster* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::startAction(pActor, "GoMarioPlanet");
+void MiniTicoMaster::exeGoMarioPlanet() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "GoMarioPlanet");
     }
-    if (MR::isActionEnd(pActor)) {
-        pActor->kill();
+    if (MR::isActionEnd(this)) {
+        kill();
     }
 }
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_804E71F0(MiniTicoMaster* pActor, f32 t) {
-    TVec3f a = pActor->mUnk90->getNode(pActor->mUnkA4)->mPos;
-    TVec3f b = pActor->mUnk90->getNode(pActor->mUnkA8)->mPos;
+void MiniTicoMaster::setPosOnRoute(f32 t) {
+    TVec3f a = mUnk90->getNode(mUnkA4)->mPos;
+    TVec3f b = mUnk90->getNode(mUnkA8)->mPos;
     TVec3f c = b * t;
     TVec3f d = a * (1.0f - t);
     TVec3f e = d + c;
-    MR::setPosition(pActor, e);
+    MR::setPosition(this, e);
 }
 
 bool MiniTicoMaster::tryTalk() {

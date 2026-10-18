@@ -19,8 +19,7 @@ public:
     /* 0x0A */ s16 mRepeatFrame;
     /* 0x0C */ s16 mInterpole;
     /* 0x0E */ u8 mLoopMode;
-    /* 0x0F */ u8 _F;
-    /* 0x10 */ u8 _10;
+    /* 0x0F */ u16 _F;
     /* 0x11 */ u8 _11;
 };
 

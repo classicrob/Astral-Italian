@@ -8,23 +8,37 @@
 #include "Game/Util/MessageUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-ReceiverTagMail::ReceiverTagMail(const char* pTaskName, const char* pMessageID, const char* pSenderID)
-    : mMessage(nullptr), mMessageLength(0), mIsError(false), _18(1) {
+ReceiverTagMail::ReceiverTagMail(const char* pTaskName, const char* pSenderID) : mMessage(nullptr), mIsError(false), _18(1) {
     mTaskName = pTaskName;
-    mMessageID = pMessageID;
     mSenderID = pSenderID;
-    mMessageLength = MR::getStringLengthWithMessageTag(MR::getGameMessageDirect(mMessageID)) + FileSelectFunc::getMiiNameBufferSize();
-    mMessage = new wchar_t[mMessageLength];
+    mMessage = new wchar_t[0x200];
 
-    MR::zeroMemory(mMessage, mMessageLength * sizeof(wchar_t));
+    MR::zeroMemory(mMessage, 0x400);
 }
+void ReceiverTagMail::send(const char* pMessageId, const u8* pImage, u32 imageSize, bool backgroundEnabled) {
+    wchar_t timeStr[28];
+    MR::makeHoursMinuteSecondString(timeStr, GameDataFunction::getCumulativePlayTime());
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
+    const wchar_t* pUserName;
+    if (GameDataFunction::hasCurrentUserMiiId()) {
+        pUserName = GameDataFunction::getUserName();
+    } else {
+        pUserName = MR::getGameMessageDirect("WiiMessage_UserNameDefault");
+    }
 
+    ReplaceTagFunction::ReplaceArgs(mMessage, 0x200, MR::getGameMessageDirect(pMessageId), pUserName, timeStr);
 
-#elif (VERSION == RMGK01)
-
-#endif
+    MR::SendMailObj mail(mTaskName);
+    mail.setMessageDirect(mMessage);
+    mail.setSenderID(mSenderID);
+    mail.setImage(pImage, imageSize);
+    mail.setBGEnable();
+    if (!backgroundEnabled) {
+        mail.setBGDisable();
+    }
+    mail.send();
+    _18 = 0;
+}
 
 void ReceiverTagMail::update() {
     if (_18 != 0) {

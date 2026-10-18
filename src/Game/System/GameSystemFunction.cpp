@@ -80,11 +80,19 @@ namespace GameSystemFunction {
         return !isExecuteLoadSystemArchive;
     }
 
-    void requestChangeArchivePlayer(bool isPlayerMario) {
-        SingletonHolder< GameSystem >::get()->mStationedArchiveLoader->requestChangeArchivePlayer(isPlayerMario);
+    bool requestChangeArchivePlayer(bool isPlayerMario) {
+        return SingletonHolder< GameSystem >::get()->mStationedArchiveLoader->requestChangeArchivePlayer(isPlayerMario);
     }
 
     bool isEndChangeArchivePlayer() {
+        return SingletonHolder< GameSystem >::get()->mStationedArchiveLoader->isDone();
+    }
+
+    bool requestLoadStationedArchiveOthers() {  // was fn_804B8670
+        return SingletonHolder< GameSystem >::get()->mStationedArchiveLoader->requestLoadStationedArchiveOthers();
+    }
+
+    bool isEndStationedArchiveLoader() {  // was fn_804B8680
         return SingletonHolder< GameSystem >::get()->mStationedArchiveLoader->isDone();
     }
 

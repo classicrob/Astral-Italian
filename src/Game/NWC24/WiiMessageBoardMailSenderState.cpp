@@ -15,7 +15,6 @@
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 // Unnamed SMG2 helpers: the 2-string ReceiverTagMail ctor, the mail request step, and the
 // vtable-driven resource lookups in exeSend.
-extern "C" ReceiverTagMail* fn_80500820(ReceiverTagMail*, const char*, const char*);
 extern "C" void* getMailSourceRes(ResourceHolder*, const char*);
 extern "C" void* createMailData(ResourceHolder*, void*);
 extern "C" void* getResTableRes(ResourceHolder*, const char*);
@@ -36,10 +35,7 @@ WiiMessageBoardMailSenderState::WiiMessageBoardMailSenderState() : NerveExecutor
     mResName = NULL;
     mGameEventFlag = NULL;
 
-    ReceiverTagMail* pMail = (ReceiverTagMail*)operator new(0x14);
-    if (pMail != NULL) {
-        mReceiverTagMail = fn_80500820(pMail, "WiiMessage_Title", "WiiMessageImage.arc");
-    }
+    mReceiverTagMail = new ReceiverTagMail("WiiMessage_Title", "WiiMessageImage.arc");
 
     mResourceHolder = MR::createAndAddResourceHolder("WiiMessageImage.arc");
     mSysInfoWindow = MR::createSysInfoWindowMiniExecuteWithChildren();

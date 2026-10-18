@@ -13,6 +13,7 @@ typedef const char* ArchiveName;
 
 class ResourceHolder {
 public:
+    static const char* getEffectResourceName();
     ResourceHolder(JKRArchive&, const char*);
 
     const char* getMotionName(u32) const;

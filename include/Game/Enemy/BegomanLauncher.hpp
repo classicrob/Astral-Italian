@@ -19,6 +19,8 @@ public:
     void exeLaunch();
     void exeAppear();
     void exeDisappear();
+    bool hasBegoman(const LiveActor*) const;  // was fn_801631C0 (array at 0x98, count at 0x90)
+    BegomanBase* getBegoman(s32) const;       // was fn_80163200
 
     bool fn_801631C0(const LiveActor*) const;
     LiveActor* fn_80163200(s32) const;

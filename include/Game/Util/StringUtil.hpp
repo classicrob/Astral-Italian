@@ -74,6 +74,7 @@ namespace MR {
     void makePlayTimeString(wchar_t* pDst, s32 size, u32 time);
     void makeClearTimeString(wchar_t* pDst, u32 frame);
     void makeMinuteAndSecondString(wchar_t* pDst, u32 frame);
+    void makeHoursMinuteSecondString(wchar_t* pDst, u32 frame);
     wchar_t* addNumberFontTag(wchar_t* pDst, int tag);
     void makeRaceBestTimeString(wchar_t* pDst, int raceId);
     void makeRaceCurrentTimeString(wchar_t* pDst);

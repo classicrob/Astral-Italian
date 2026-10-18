@@ -1,3 +1,7 @@
+#include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
+#include "Game/GameAudio/AudStageBgmTable.hpp"
+#include "Game/MapObj/PlayerFollowPass.hpp"
+#include "Game/Util/BgmUtil.hpp"
 #include "Game/Demo/ScenarioStarter.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -25,13 +29,16 @@
 #include "Game/Util/SequenceUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-void ScenarioStarter_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.000003814697265625f;
-    (void)0.5f;
-    (void)PI;
-    (void)2.0f;
+
+namespace {
+    class ScenarioStarterFollowValidater : public BaseMatrixFollowValidater {
+    public:
+        typedef bool (ScenarioStarter::*Func)() const;
+        ScenarioStarterFollowValidater(ScenarioStarter* host, Func func) : mHost(host), mFunc(func) {}
+        virtual bool isValid(s32) const { return (mHost->*mFunc)(); }
+        ScenarioStarter* mHost;
+        Func mFunc;
+    };
 }
 
 namespace NrvScenarioStarter {
@@ -48,6 +55,7 @@ ScenarioStarter::ScenarioStarter(const char* pName)
       _D8(1.0f, 0.0f, 0.0f), _E4(), _E8(), _EC(), mFlightTime(300), mFlyMotionStartStep(), _F8(), mFallMotionStartStep(), mInitalPlayerRotation(),
       mWelcomeLayout(), mTitle(), _10C(0.0f, 0.0f, 0.0f), _118(0.0f, 0.0f, 0.0f), _124() {
     _A8.set(0.0f, 0.0f, 0.0f, 1.0f);
+    mFollowMtx.identity();
 }
 
 void ScenarioStarter::init(const JMapInfoIter& rIter) {
@@ -60,7 +68,7 @@ void ScenarioStarter::init(const JMapInfoIter& rIter) {
     mSpinDriverCamera->init(rIter, this);
 
     initHitSensor(1);
-    MR::addHitSensor(this, "body", ACTMES_GROUP_LOD_LOW, 8, 200.0f, TVec3f(0.0f));
+    MR::addHitSensor(this, "Body", 0x67, 8, 200.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::invalidateClipping(this);
     mWelcomeLayout = MR::createSimpleLayout("Welcome表示", "Welcome", 1);
     mWelcomeLayout->kill();
@@ -70,13 +78,18 @@ void ScenarioStarter::init(const JMapInfoIter& rIter) {
     mTitle->kill();
     _10C.set(*MR::getPlayerPos());
     _118.set(*MR::getPlayerRotate());
-    mPosition.set(_10C);
+    MR::setPosition(this, *MR::getPlayerPos());
     initNerve(GET_NERVE(ScenarioStarter, ScenarioStarterWaitScenarioCameraEnd));
+    MR::makeMtxTR(mFollowMtx, this);
+    ScenarioStarterFollowValidater::Func valid = &ScenarioStarter::isFollowValid;
+    BaseMatrixFollowValidater* validater = new ScenarioStarterFollowValidater(this, valid);
+    MR::addBaseMatrixFollowTarget(this, rIter, &mFollowMtx, validater);
     if (MR::isBeginScenarioStarter()) {
         appear();
     } else {
         kill();
     }
+    mFirstIslandFleetVisit = MR::isIslandFleetGalaxy1FirstTime();
 }
 
 void ScenarioStarter::exeWaitToStart() {
@@ -84,33 +97,56 @@ void ScenarioStarter::exeWaitToStart() {
         _124 = false;
         MR::forceToBlankCinemaFrame();
     }
+    MR::setPosition(this, *MR::getPlayerPos());
 }
 
 void ScenarioStarter::exeCinemaFrameBlank() {
-    if (MR::isFirstStep(this) && !isStartBgmOnWelcome()) {
-        MR::stopStageBGM(0);
-        MR::startStageBGMFromStageName("Game", MR::getCurrentStageName(), MR::getCurrentScenarioNo());
+    if (MR::isFirstStep(this)) {
+        if (!AudStageBgmTable::isStartOnWelcome(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
+            isStartBgmOnWelcome();
+        } else if (mFirstIslandFleetVisit && AudStageBgmTable::isFirstVisitStart(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
+            s32 scenario = MR::getCurrentScenarioNo();
+            const char* stage = MR::getCurrentStageName();
+            // The target passes the controller pointer in the unused scene-name slot.
+            MR::startStageBGMFromStageName(reinterpret_cast< const char* >(MR::getCurrentGameSystemSceneController()), stage, scenario, false, true);
+        }
+        MR::deactivateDefaultGameLayout();
+        MR::killDestroyCounter();
     }
-
     MR::setNerveAtStep(this, GET_NERVE(ScenarioStarter, ScenarioStarterRailMove), 0);
 }
 
+// NONMATCHING: equivalent integer clamp lowering
 void ScenarioStarter::exeRailMove() {
+    bool forceFrame = true;
+    if (!mFirstIslandFleetVisit && !MR::isStageNoPauseMenuStars()) {
+        forceFrame = false;
+    }
     if (MR::isFirstStep(this)) {
         calcShootMotionTime();
-        MR::startAction(_8C, "SpaceFlyStart");
+        if (mFirstIslandFleetVisit) {
+            MR::startAction(_8C, "CannonFlyStart");
+        } else {
+            MR::startAction(_8C, "SpaceFlyStart");
+        }
         _90 = _C0;
         turnBindHead(_90, 1.0f);
-        mPosition.set(MR::getRailPointPosStart(this));
+        MR::setPosition(this, MR::getRailPointPosStart(this));
         MR::endStartPosCamera();
         mSpinDriverCamera->start(_C0, _CC, mPosition);
         TPos3f rotMtx;
         _EC = 0.0f;
         MR::makeMtxUpFront(&rotMtx, _C0, _CC);
         rotMtx.getQuat(_A8);
+        if (forceFrame) {
+            MR::forceToFrameCinemaFrame();
+        }
     }
 
-    if (MR::isStep(this, 10)) {
+    if (mFirstIslandFleetVisit && MR::isStep(this, 15)) {
+        MR::startSoundPlayer("SE_PM_SPINDRIVER_PANIC_2ND", -1, -1);
+    }
+    if (MR::isStep(this, 10) && !forceFrame) {
         MR::tryBlankToFrameCinemaFrame();
         mTitle->start();
     }
@@ -127,28 +163,28 @@ void ScenarioStarter::exeRailMove() {
     }
 
     _EC = MR::pi() * MR::normalize(getNerveStep(), _F8, mFallMotionStartStep);
+    if (MR::isStageNoPauseMenuStars() && MR::isStep(this, 250)) {
+        MR::startStageBGM("MBGM_SMG2_GALAXY_25", false);
+    }
     if (trySkipTrigger()) {
+        MR::stopSeCategories(30);
         MR::tryFrameToBlankCinemaFrame();
         _124 = true;
     }
 
     if (_124 && MR::isStopCinemaFrame()) {
+        if (MR::isStageNoPauseMenuStars() && MR::isLessStep(this, 250)) {
+            MR::startStageBGM("MBGM_SMG2_GALAXY_25", false);
+        }
         setNerve(GET_NERVE(ScenarioStarter, ScenarioStarterRailMoveCanceled));
         return;
     }
 
-    s32 bgmStartTime = 0;
-    if (MR::isEqualStageName("EggStarGalaxy")) {
-        bgmStartTime = 20;
-    } else if (MR::isEqualStageName("HoneyBeeKingdomGalaxy")) {
-        bgmStartTime = 7;
-    } else if (MR::isEqualStageName("FactoryGalaxy")) {
-        bgmStartTime = 11;
-    }
-
-    if (MR::isStep(this, mFlightTime - bgmStartTime) && isStartBgmOnWelcome()) {
-        MR::stopStageBGM(0);
-        MR::startStageBGMFromStageName("Game", MR::getCurrentStageName(), MR::getCurrentScenarioNo());
+    s32 timing = AudStageBgmTable::getWelcomeStartOffset(MR::getCurrentStageName(), MR::getCurrentScenarioNo());
+    timing = MR::clamp(timing, -mFlightTime, 0);
+    if (MR::isStep(this, mFlightTime + timing)
+        && AudStageBgmTable::isStartOnWelcome(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
+        isStartBgmOnWelcome();
     }
 
     if (MR::isGreaterEqualStep(this, mFlightTime)) {
@@ -165,35 +201,51 @@ void ScenarioStarter::exeRailMoveCanceled() {
         _8C = nullptr;
         mSpinDriverCamera->cancel();
         mTitle->kill();
-        if (isStartBgmOnWelcome()) {
-            MR::stopStageBGM(0);
-            MR::startStageBGMFromStageName("Game", MR::getCurrentStageName(), MR::getCurrentScenarioNo());
+        if (AudStageBgmTable::isStartOnWelcome(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
+            isStartBgmOnWelcome();
         }
-
         setNerve(GET_NERVE(ScenarioStarter, ScenarioStarterShowWelcomeLayout));
     }
 }
 
+// NONMATCHING: regalloc
 void ScenarioStarter::exeShowWelcomeLayout() {
     if (MR::isFirstStep(this)) {
-        GameSceneFunction::notifyEndScenarioStarter();
         MR::tryFrameToScreenCinemaFrame();
-        MR::startStartPosCamera(!_124);
-        mWelcomeLayout->appear();
+        GameSceneFunction::notifyEndScenarioStarter();
+        struct CameraException { const char* stage; s32 scenario; };
+        static const CameraException exceptions[] = {
+            {"DigMineGalaxy", 3}, {"VsKoopaJrLv1Galaxy", 2}, {"KoopaJrLv2Galaxy", 2},
+        };
+        const char* stage = MR::getCurrentStageName();
+        s32 scenario = MR::getCurrentScenarioNo();
+        bool startCamera = true;
+        for (u32 i = 0; i < 3; i++) {
+            if (scenario == exceptions[i].scenario && MR::isEqualString(stage, exceptions[i].stage)) {
+                startCamera = false;
+                break;
+            }
+        }
+        if (startCamera) {
+            MR::startStartPosCamera(!_124);
+        }
         if (!MR::isDead(mTitle)) {
             mTitle->end();
         }
-
+        if (MR::isStageNoPauseMenuStars()) {
+            kill();
+            return;
+        }
+        mWelcomeLayout->appear();
         MR::startAnim(mWelcomeLayout, "Appear", 0);
         MR::executeOnWelcomeAndRetry();
+        MR::resetPlayerFollowPass();
     }
-
     if (MR::isStep(this, 90)) {
         MR::forceAppearDefaultGameLayout();
+        MR::appearDestroyCounter();
     }
-
     if (MR::isAnimStopped(mWelcomeLayout, 0)) {
-        mWelcomeLayout->kill();
         kill();
     }
 }
@@ -219,7 +271,7 @@ void ScenarioStarter::updateBindPosition() {
 
     _9C.set(pathPos);
     _9C -= mPosition;
-    mPosition.set(pathPos);
+    MR::setPosition(this, pathPos);
 }
 
 void ScenarioStarter::updateBindActorMtx() {
@@ -236,28 +288,36 @@ void ScenarioStarter::updateBindActorMtx() {
         TPos3f mtx;
         mtx.setQT(_A8, mPosition);
         mtx.concat(mtx, rotateX);
-        mtx.concat(mtx, rotateY);
+        if (!mFirstIslandFleetVisit) {
+            mtx.concat(mtx, rotateY);
+        }
         MR::setBaseTRMtx(_8C, mtx);
+        PSMTXCopy(mtx, mFollowMtx);
     } else {
         TPos3f mtx;
         MR::makeMtxTR(mtx, _10C, _118);
         MR::setBaseTRMtx(_8C, mtx);
+        PSMTXCopy(mtx, mFollowMtx);
     }
 }
 
 void ScenarioStarter::updateShootMotion() {
     if (MR::isStep(this, mFlyMotionStartStep)) {
-        MR::startBckWithInterpole(_8C, "SpaceFlyLoop", 5);
+        if (mFirstIslandFleetVisit) {
+            MR::tryStartActionNotPlaying(_8C, "CannonFlyStart");
+        } else {
+            MR::startBckWithInterpole(_8C, "SpaceFlyLoop", 5);
+        }
     }
 
     if (MR::isLessStep(this, _F8)) {
-        MR::startActionSound(_8C, "PmLvSSpinDrvFly");
+        MR::startLevelSoundPlayer("SE_PM_LV_S_SPIN_DRV_FLY", -1);
     }
 
     if (MR::isStep(this, _F8)) {
         MR::startBckWithInterpole(_8C, "SpaceFlyEnd", 0);
-        MR::startActionSound(_8C, "PmSSpinDrvCoolDown");
-        MR::startActionSound(_8C, "PvJumpS");
+        MR::startSoundPlayer("SE_PM_S_SPIN_DRV_COOL_DOWN", -1, -1);
+        MR::startSoundPlayer("SE_PV_JUMP_S", -1, -1);
     }
 
     if (MR::isStep(this, mFallMotionStartStep)) {
@@ -323,10 +383,35 @@ bool ScenarioStarter::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
         return true;
     }
 
+    if (_8C && (MR::isMsgRushForceCancel(msg) || MR::isMsgRushCancel(msg))
+        && (isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterRailMove)) || isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterRailMoveCanceled)))) {
+        MR::endBindAndPlayerWait(this);
+        _8C = nullptr;
+        GameSceneFunction::notifyEndScenarioStarter();
+        MR::executeOnWelcomeAndRetry();
+        MR::resetPlayerFollowPass();
+        kill();
+        return true;
+    }
+    if (MR::isMsgStartDemo(msg) && isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterShowWelcomeLayout))) {
+        if (MR::isLessStep(this, 1)) {
+            GameSceneFunction::notifyEndScenarioStarter();
+            MR::executeOnWelcomeAndRetry();
+            MR::resetPlayerFollowPass();
+        }
+        kill();
+        return true;
+    }
     return false;
 }
 
 bool ScenarioStarter::trySkipTrigger() const {
+    if (MR::isStageNoPauseMenuStars()) {
+        return false;
+    }
+    if (mFirstIslandFleetVisit) {
+        return false;
+    }
     bool result;
     if (!MR::isAlreadyVisitedCurrentStageAndScenario()) {
         result = false;
@@ -340,26 +425,38 @@ bool ScenarioStarter::trySkipTrigger() const {
     return result;
 }
 
-bool ScenarioStarter::isStartBgmOnWelcome() {
-    if (MR::isGalaxyRedCometAppearInCurrentStage() || MR::isGalaxyBlackCometAppearInCurrentStage()) {
-        return false;
+void ScenarioStarter::isStartBgmOnWelcome() {
+    MR::resetStageBGMInterrupted();
+    if (MR::unlockStageBGM() == 0) {
+        MR::startStageBGMFromStageName("Game", MR::getCurrentStageName(), MR::getCurrentScenarioNo(), false, false);
     }
-
-    if (MR::isEqualStageName("EggStarGalaxy") && MR::getCurrentScenarioNo() == 1) {
-        return true;
-    }
-
-    if (MR::isEqualStageName("HoneyBeeKingdomGalaxy") && MR::getCurrentScenarioNo() == 1) {
-        return true;
-    }
-
-    if (MR::isEqualStageName("FactoryGalaxy") && MR::getCurrentScenarioNo() <= 3) {
-        return true;
-    }
-
-    return false;
 }
 
 
 ScenarioStarter::~ScenarioStarter() {
+}
+
+void ScenarioStarter::kill() {
+    mWelcomeLayout->kill();
+    mTitle->kill();
+    LiveActor::kill();
+}
+
+void ScenarioStarter::getStartPos(TVec3f* pos) {
+    pos->set(MR::getRailPointPosStart(this));
+}
+
+bool ScenarioStarter::isFollowValid() const {
+    bool valid = false;
+    if (!MR::isDead(this) && !isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterWaitScenarioCameraEnd))
+        && !isNerve(GET_NERVE(ScenarioStarter, ScenarioStarterShowWelcomeLayout))) {
+        valid = true;
+    }
+    return valid;
+}
+
+void ScenarioStarter::exeWaitScenarioCameraEnd() {
+    if (!MR::isStageStateScenarioOpeningCamera()) {
+        setNerve(GET_NERVE(ScenarioStarter, ScenarioStarterWaitToStart));
+    }
 }

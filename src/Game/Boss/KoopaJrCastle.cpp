@@ -64,9 +64,9 @@ void KoopaJrCastle::init(const JMapInfoIter& rIter) {
     mKoopaJr->initWithoutIter();
     mKoopaJr->initLightCtrl();
     mKoopaJr->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
-    mKoopaJr->setLodCtrl(nullptr)->setDistanceToMiddle(0.0f);
-    MR::startBva(mKoopaJr->setLodCtrl(nullptr)->mMiddleModel, "Wait");
-    MR::startBva(mKoopaJr->setLodCtrl(nullptr)->mLowModel, "Wait");
+    mKoopaJr->getLodCtrl()->setDistanceToMiddle(0.0f);
+    MR::startBva(mKoopaJr->getLodCtrl()->mMiddleModel, "Wait");
+    MR::startBva(mKoopaJr->getLodCtrl()->mLowModel, "Wait");
     MR::startAction(mKoopaJr, "Wait");
     mBreakModel = new BreakModel(this, "\x83L\x83\x83\x83""b\x83X\x83\x8b\x89\xf3\x82\xea\x83\x82\x83""f\x83\x8b", "KoopaJrCastleBreak", 0, "Break");
     mBreakModel->initWithoutIter();

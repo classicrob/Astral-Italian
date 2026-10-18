@@ -18,44 +18,35 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include <cstdio>
 
-// Callees that live in gap files of the SMG2 binary, not yet owned by a ported unit.
-extern "C" {
-    // PLACEHOLDER(core): fn_804DE190 is a GameDataPlayerStatus member in an unowned gap (stores mPlayerLeft into mUnknown14, sets mPlayerLeft to 4); resolve when its owner is ported
-    void fn_804DE190(GameDataPlayerStatus*);
-    // PLACEHOLDER(core): fn_804DEA50 reads a counter from the SysConfig chunk (SysConfigFile unit); resolve when SysConfigFile is ported
-    s32 fn_804DEA50(SysConfigChunk*);
-}
-
 namespace GameDataFunction {
     SaveDataHandleSequence* getSaveDataHandleSequence() NO_INLINE {
         return SingletonHolder< GameSystem >::get()->mSequenceDirector->mSaveDataHandleSequence;
     }
 
-    GameDataHolder* getCurrentGameDataHolder() {
-        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder;
-    }
 
     s32 getPlayerGameOverNum();
 
+
+
 #pragma dont_inline on
     GameEventValueChecker* getCurrentGameEventValueChecker() {
-        return getCurrentGameDataHolder()->mEventValueChecker;
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mEventValueChecker;
     }
 
     GameDataPlayerStatus* getCurrentGameDataPlayerStatus() {
-        return getCurrentGameDataHolder()->mPlayerStatus;
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mPlayerStatus;
     }
 
     GameDataSomeGalaxyStorage* makeSomeGalaxyStorage(const char* pGalaxyName) {
-        return getCurrentGameDataHolder()->mAllGalaxyStorage->makeAccessor(pGalaxyName);
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mAllGalaxyStorage->makeAccessor(pGalaxyName);
     }
 
     GameDataTicoFatStorage* getCurrentGameDataTicoFatStorage() {
-        return getCurrentGameDataHolder()->mTicoFatStorage;
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mTicoFatStorage;
     }
 
     GameDataWorldMapStorage* getCurrentGameDataWorldMapStorage() {
-        return getCurrentGameDataHolder()->mWorldMapStorage;
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mWorldMapStorage;
     }
 
     void setPowerStar(const char* pGalaxyName, s32 scenarioNo) {
@@ -69,6 +60,7 @@ namespace GameDataFunction {
 
 };  // namespace GameDataFunction
 
+// NONMATCHING: regalloc; AND operands are reversed.
 bool GameDataSomeScenarioAccessor::testFlag(u32 flag) const {
     u8 mask = flag;
     return (mFlag & mask) == mask;
@@ -76,7 +68,7 @@ bool GameDataSomeScenarioAccessor::testFlag(u32 flag) const {
 
 namespace GameDataFunction {
     bool hasGrandStar(int id) {
-        return getCurrentGameDataHolder()->hasGrandStar(id);
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->hasGrandStar(id);
     }
 
     void setBronzeStar(const char* pGalaxyName, s32 scenarioNo) {
@@ -89,14 +81,14 @@ namespace GameDataFunction {
     }
 
     s32 calcCurrentPowerStarNum() {
-        return getCurrentGameDataHolder()->calcCurrentPowerStarNum();
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->calcCurrentPowerStarNum();
     }
 
     s32 calcCurrentGrandStarNum() {
         s32 grandStarNum = 0;
 
         for (s32 i = 1; i <= 6; i++) {
-            if (getCurrentGameDataHolder()->hasGrandStar(i)) {
+            if (getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->hasGrandStar(i)) {
                 grandStarNum++;
             }
         }
@@ -104,14 +96,15 @@ namespace GameDataFunction {
         return grandStarNum;
     }
 
-    s32 getNormalPowerStarNumOwned(const char*) {
-        return getCurrentGameDataHolder()->calcNormalPowerStarNum();
+    s32 getNormalPowerStarNumOwned() {
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->calcNormalPowerStarNum();
     }
 
     s32 getPowerStarNumOwned(const char* pGalaxyName) {
-        return getCurrentGameDataHolder()->mAllGalaxyStorage->getPowerStarNumOwned(pGalaxyName);
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mAllGalaxyStorage->getPowerStarNumOwned(pGalaxyName);
     }
 
+#pragma dont_inline off
     s32 calcNormalPowerStarNumFromWorld(s32 worldNo) {
         s32 powerStarNum = 0;
 
@@ -126,6 +119,7 @@ namespace GameDataFunction {
         return powerStarNum;
     }
 
+#pragma dont_inline on
     s32 getPowerStarNumMax() {
         s32 powerStarNumMax = 0;
 
@@ -178,12 +172,13 @@ namespace GameDataFunction {
         makeSomeGalaxyStorage(pGalaxyName)->mFlag |= 0x1;
     }
 
+    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate.
     bool isOnGalaxyFlagTicoCoin(const char* pGalaxyName) {
         return (makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x1) == 1;
     }
 
     s32 calcTicoCoinNum() {
-        return getCurrentGameDataHolder()->calcTicoCoinNum();
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->calcTicoCoinNum();
     }
 
     void onGalaxyFlagComet(const char* pGalaxyName) {
@@ -194,16 +189,19 @@ namespace GameDataFunction {
         makeSomeGalaxyStorage(pGalaxyName)->mFlag &= 0xFD;
     }
 
+    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate.
     bool isOnGalaxyFlagComet(const char* pGalaxyName) {
         return (makeSomeGalaxyStorage(pGalaxyName)->mFlag & 0x2) == 2;
     }
 
+#pragma dont_inline off
+    // NONMATCHING: regalloc; string address materialization order.
     void tryOnDimensionBigCastleGalaxyComet() {
         if (!isOnGameEventFlagFinalGalaxyAppearance()) {
             return;
         }
 
-        if (fn_804DEA50(getSaveDataHandleSequence()->getSysConfigFile()->mChunk) < 9999) {
+        if (getSaveDataHandleSequence()->getSysConfigFile()->mChunk->getMaxBankedStarPieceNum() < 9999) {
             return;
         }
 
@@ -219,48 +217,54 @@ namespace GameDataFunction {
         GameSequenceFunction::updateGalaxyCometAppearance("DimensionBigCastleGalaxy", true);
     }
 
+#pragma dont_inline on
     void onGameEventFlag(const char* pName) {
-        getCurrentGameDataHolder()->onGameEventFlag(pName);
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(pName);
     }
 
     void offGameEventFlag(const char* pName) {
-        getCurrentGameDataHolder()->offGameEventFlag(pName);
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->offGameEventFlag(pName);
     }
 
     bool isOnGameEventFlag(const char* pName) {
-        return getCurrentGameDataHolder()->isOnGameEventFlag(pName);
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(pName);
     }
 
     bool isOnGameEventFlagEnding120Stars() {
-        return getCurrentGameDataHolder()->isOnGameEventFlag("\203X\203^\201[120\214\302\203G\203\223\203f\203B\203\223\203O\216\300\215s");
+        const char* eventName1 = "\203X\203^\201[120\214\302\203G\203\223\203f\203B\203\223\203O\216\300\215s";
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName1);
     }
 
     bool isOnGameEventFlagFinalGalaxyAppearance() {
-        return getCurrentGameDataHolder()->isOnGameEventFlag("\215\305\217I\203M\203\203\203\211\203N\203V\201[\217o\214\273");
+        const char* eventName2 = "\215\305\217I\203M\203\203\203\211\203N\203V\201[\217o\214\273";
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName2);
     }
 
     bool isOnGameEventFlagStarPieceCounterStop() {
-        return getCurrentGameDataHolder()->isOnGameEventFlag("\203X\203^\201[\203s\201[\203X\203J\203E\203\223\203^\201[\203X\203g\203b\203v");
+        const char* eventName3 = "\203X\203^\201[\203s\201[\203X\203J\203E\203\223\203^\201[\203X\203g\203b\203v";
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName3);
     }
 
     bool isOnGameEventFlagCoinCounterStop() {
-        return getCurrentGameDataHolder()->isOnGameEventFlag("\203R\203C\203\223\203J\203E\203\223\203^\201[\203X\203g\203b\203v");
+        const char* eventName4 = "\203R\203C\203\223\203J\203E\203\223\203^\201[\203X\203g\203b\203v";
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName4);
     }
 
     bool isOnGameEventFlagCometExplain() {
-        return getCurrentGameDataHolder()->isOnGameEventFlag("\203R\203\201\203b\203g\211\360\220\340");
+        const char* eventName5 = "\203R\203\201\203b\203g\211\360\220\340";
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName5);
     }
 
     void onGameEventFlagOpenScenario(const char* pGalaxyName, s32 scenarioNo) {
         char eventFlagName[0x80];
         snprintf(eventFlagName, sizeof(eventFlagName), "IsOpenScenario%s%01d", pGalaxyName, scenarioNo);
-        getCurrentGameDataHolder()->onGameEventFlag(eventFlagName);
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventFlagName);
     }
 
     bool isOnGameEventFlagOpenScenario(const char* pGalaxyName, s32 scenarioNo) {
         char eventFlagName[0x80];
         snprintf(eventFlagName, sizeof(eventFlagName), "IsOpenScenario%s%01d", pGalaxyName, scenarioNo);
-        return getCurrentGameDataHolder()->isOnGameEventFlag(eventFlagName);
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventFlagName);
     }
 
     bool existsGameEventFlagOpenScenario(const char* pGalaxyName, s32 scenarioNo) {
@@ -271,31 +275,37 @@ namespace GameDataFunction {
 
     void forceLuigiPlayer() {
         getCurrentGameDataPlayerStatus()->mFlag |= 0x1;
-        getCurrentGameDataHolder()->onGameEventFlag("\203\213\203C\201[\203W\203v\203\214\203C\215\317");
+        const char* eventName6 = "\203\213\203C\201[\203W\203v\203\214\203C\215\317";
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventName6);
     }
 
     void forceMarioPlayer() {
         getCurrentGameDataPlayerStatus()->mFlag &= 0xFE;
     }
 
+    // NONMATCHING: regalloc; equivalent bit test is optimized to a rotate.
     bool isLuigiPlayer() {
         return (getCurrentGameDataPlayerStatus()->mFlag & 0x1) == 1;
     }
 
     void startLuigiIntrusion() {
-        getCurrentGameDataHolder()->onGameEventFlag("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\212J\216n");
-        getCurrentGameDataHolder()->onGameEventFlag("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206");
+        const char* eventName7 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\212J\216n";
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventName7);
+        const char* eventName8 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206";
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventName8);
     }
 
     bool isOnLuigiIntrusivelyStart() {
-        return getCurrentGameDataHolder()->isOnGameEventFlag("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\212J\216n");
+        const char* eventName9 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\212J\216n";
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName9);
     }
 
     void onLuigiIntrusivelyAppear() {
         if (!isOnCurrentScenarioFlagLuigiIntruded()) {
             s32 scenarioNo = MR::getCurrentScenarioNo();
             makeSomeGalaxyStorage(MR::getCurrentStageName())->getScenarioAccessor(scenarioNo)->mFlag |= 0x10;
-            getCurrentGameDataHolder()->offGameEventFlag("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206");
+            const char* eventName10 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206";
+            getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->offGameEventFlag(eventName10);
         }
     }
 
@@ -304,17 +314,22 @@ namespace GameDataFunction {
         return makeSomeGalaxyStorage(MR::getCurrentStageName())->getScenarioAccessor(scenarioNo)->testFlag(0x10);
     }
 
+    // NONMATCHING: regalloc; preserved registers and stack layout.
     void updateLuigiIntrusionCounter() {
         if (isOnLuigiIntrusivelyStart()) {
-            if (!getCurrentGameDataHolder()->isOnGameEventFlag("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206")) {
-                s32 counter = MR::clamp(static_cast< s32 >(static_cast< u16 >(getCurrentGameDataHolder()->getGameEventValue("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\203J\203E\203\223\203^")) + 1), 0L, 0xFFFFL);
+            const char* eventName11 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206";
+            if (!getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName11)) {
+                const char* eventName12 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\203J\203E\203\223\203^";
+                s32 counter = MR::clamp(static_cast< s32 >(static_cast< u16 >(getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getGameEventValue(eventName12)) + 1), 0L, 0xFFFFL);
 
                 if (counter % 6 == 0) {
-                    getCurrentGameDataHolder()->onGameEventFlag("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206");
+                    const char* eventName13 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\222\206";
+                    getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventName13);
                     counter = 0;
                 }
 
-                getCurrentGameDataHolder()->setGameEventValue("\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\203J\203E\203\223\203^", static_cast< u16 >(counter));
+                const char* eventName14 = "\202\305\202\265\202\341\202\316\202\350\203\213\203C\201[\203W\217o\214\273\203J\203E\203\223\203^";
+                getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->setGameEventValue(eventName14, static_cast< u16 >(counter));
             }
         }
     }
@@ -331,7 +346,7 @@ namespace GameDataFunction {
         return getCurrentGameEventValueChecker()->isOnIndexedBit("\227X\225\326\211\256[\203^\203X\203N\216\350\216\206\212\371\223\307\203t\203\211\203O]", letterNo);
     }
 
-    void setOnPostmanTaskLetterRead(s8 letterNo) {
+    void setOnPostmanTaskLetterRead(s32 letterNo) {
         getCurrentGameEventValueChecker()->onIndexedBit("\227X\225\326\211\256[\203^\203X\203N\216\350\216\206\212\371\223\307\203t\203\211\203O]", letterNo);
         getCurrentGameEventValueChecker()->setValue("\227X\225\326\211\256[\215\305\214\343\202\311\223\307\202\361\202\276\203^\203X\203N\216\350\216\206\203C\203\223\203f\203b\203N\203X]", static_cast< u16 >(letterNo));
     }
@@ -340,26 +355,29 @@ namespace GameDataFunction {
         return getCurrentGameEventValueChecker()->isOnIndexedBit("\227X\225\326\211\256[\217d\227v\216\350\216\206\212\371\223\307\203t\203\211\203O]", letterNo);
     }
 
-    void setOnPostmanImportantLetterRead(s8 letterNo) {
+    void setOnPostmanImportantLetterRead(s32 letterNo) {
         getCurrentGameEventValueChecker()->onIndexedBit("\227X\225\326\211\256[\217d\227v\216\350\216\206\212\371\223\307\203t\203\211\203O]", letterNo);
     }
 
     void updatePostmanPeachLetterDeath() {
-        s32 playerMissNum = getCurrentGameDataHolder()->getPlayerMissNum();
+        s32 playerMissNum = getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getPlayerMissNum();
         getCurrentGameEventValueChecker()->setValue("\227X\225\326\211\256[\203s\201[\203`\216\350\216\206\202\360\223\307\202\361\202\276\216\236\202\314\227\335\220\317\216\200\226S\211\361\220\224]", static_cast< u16 >(playerMissNum));
     }
 
     s32 getBankInterest() {
-        return MR::clamp(static_cast< s32 >(static_cast< u16 >(getCurrentGameDataHolder()->getGameEventValue("\213\342\215s\211\256\203L\203m\203s\203I[\227\230\216q]"))), 0L, 0x270FL);
+        const char* eventName15 = "\213\342\215s\211\256\203L\203m\203s\203I[\227\230\216q]";
+        return MR::clamp(static_cast< s32 >(static_cast< u16 >(getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getGameEventValue(eventName15))), 0L, 0x270FL);
     }
 
     void updateBankInterest() {
         s32 interest = MR::clamp(static_cast< s32 >(GameSequenceFunction::getClearedStarPieceNum() % 10), 0L, 0x270FL);
-        getCurrentGameDataHolder()->setGameEventValue("\213\342\215s\211\256\203L\203m\203s\203I[\227\230\216q]", static_cast< u16 >(interest));
+        const char* eventName16 = "\213\342\215s\211\256\203L\203m\203s\203I[\227\230\216q]";
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->setGameEventValue(eventName16, static_cast< u16 >(interest));
     }
 
     void clearKinopioBankInterest() {
-        getCurrentGameDataHolder()->setGameEventValue("\213\342\215s\211\256\203L\203m\203s\203I[\227\230\216q]", 0);
+        const char* eventName17 = "\213\342\215s\211\256\203L\203m\203s\203I[\227\230\216q]";
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->setGameEventValue(eventName17, 0);
     }
 
     void setRaceBestTime(const char* pRaceName, u32 bestTime) {
@@ -381,6 +399,7 @@ namespace GameDataFunction {
         getCurrentGameEventValueChecker()->setU32Value(eventFlagName, score);
     }
 
+    // NONMATCHING: regalloc; equivalent null-argument branch arrangement.
     u32 getBestScoreAttackCurrentStage(const char* pStageName) {
         if (pStageName == nullptr) {
             pStageName = MR::getCurrentStageName();
@@ -398,13 +417,14 @@ namespace GameDataFunction {
     }
 
     void incPlayerMissNum() {
-        getCurrentGameDataHolder()->incPlayerMissNum();
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->incPlayerMissNum();
     }
 
     s32 getPlayerMissNum() {
-        return getCurrentGameDataHolder()->getPlayerMissNum();
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getPlayerMissNum();
     }
 
+    // NONMATCHING: regalloc; redundant byte narrowing before the store.
     void incScenarioMissNum(const char* pGalaxyName, s32 scenarioNo) {
         s32 missNum = MR::clamp(static_cast< s32 >(makeSomeGalaxyStorage(pGalaxyName)->getScenarioAccessor(scenarioNo)->mMissNum), 0L, 0x63L);
         missNum = MR::clamp(missNum + 1, 0L, 0x63L);
@@ -417,11 +437,13 @@ namespace GameDataFunction {
 
     void incPlayerGameOverNum() {
         s32 gameOverNum = MR::clamp(getPlayerGameOverNum() + 1, 0L, 0xFFFFL);
-        getCurrentGameDataHolder()->setGameEventValue("\227\335\220\317\203Q\201[\203\200\203I\201[\203o\201[\211\361\220\224", static_cast< u16 >(gameOverNum));
+        const char* eventName18 = "\227\335\220\317\203Q\201[\203\200\203I\201[\203o\201[\211\361\220\224";
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->setGameEventValue(eventName18, static_cast< u16 >(gameOverNum));
     }
 
     s32 getPlayerGameOverNum() {
-        return MR::clamp(static_cast< s32 >(static_cast< u16 >(getCurrentGameDataHolder()->getGameEventValue("\227\335\220\317\203Q\201[\203\200\203I\201[\203o\201[\211\361\220\224"))), 0L, 0xFFFFL);
+        const char* eventName19 = "\227\335\220\317\203Q\201[\203\200\203I\201[\203o\201[\211\361\220\224";
+        return MR::clamp(static_cast< s32 >(static_cast< u16 >(getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getGameEventValue(eventName19))), 0L, 0xFFFFL);
     }
 
     // SMG2 body is empty (blr).
@@ -466,15 +488,16 @@ namespace GameDataFunction {
     }
 
     s32 getStockedStarPieceNum() {
-        return getCurrentGameDataHolder()->getStocketStarPieceNum();
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getStocketStarPieceNum();
     }
 
     void tryOnGameEventFlagStarPieceCounterStop(int num) {
-        getCurrentGameDataHolder()->addStockedStarPieceNum(num);
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->addStockedStarPieceNum(num);
 
-        if (getCurrentGameDataHolder()->getStocketStarPieceNum() >= 9999) {
+        if (getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getStocketStarPieceNum() >= 9999) {
             if (!isOnGameEventFlagStarPieceCounterStop()) {
-                getCurrentGameDataHolder()->onGameEventFlag("\203X\203^\201[\203s\201[\203X\203J\203E\203\223\203^\201[\203X\203g\203b\203v");
+                const char* eventName20 = "\203X\203^\201[\203s\201[\203X\203J\203E\203\223\203^\201[\203X\203g\203b\203v";
+                getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventName20);
             }
         }
     }
@@ -483,12 +506,14 @@ namespace GameDataFunction {
         return getCurrentGameDataPlayerStatus()->getStockedCoinNum();
     }
 
+    // NONMATCHING: regalloc; preserved registers.
     s32 tryOnGameEventFlagCoinCounterStop(int num) {
         s32 stockedCoinNum = getCurrentGameDataPlayerStatus()->addStockedCoinNum(num);
 
         if (getCurrentGameDataPlayerStatus()->getStockedCoinNum() >= 9999) {
             if (!isOnGameEventFlagCoinCounterStop()) {
-                getCurrentGameDataHolder()->onGameEventFlag("\203R\203C\203\223\203J\203E\203\223\203^\201[\203X\203g\203b\203v");
+                const char* eventName21 = "\203R\203C\203\223\203J\203E\203\223\203^\201[\203X\203g\203b\203v";
+                getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->onGameEventFlag(eventName21);
             }
         }
 
@@ -496,9 +521,9 @@ namespace GameDataFunction {
     }
 
     void setScenarioBestTime(const char* pGalaxyName, s32 scenarioNo, s32 bestTime) {
-        s32 clampedTime = bestTime;
-        if (bestTime >= 216000) {
-            clampedTime = 216000;
+        s32 clampedTime = 216000;
+        if (bestTime < clampedTime) {
+            clampedTime = bestTime;
         }
 
         makeSomeGalaxyStorage(pGalaxyName)->getScenarioAccessor(scenarioNo)->mBestTime = clampedTime;
@@ -514,19 +539,19 @@ namespace GameDataFunction {
     }
 
     void incCumulativePlayTime() {
-        getCurrentGameDataHolder()->incCumulativePlayTime();
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->incCumulativePlayTime();
     }
 
     s32 getCumulativePlayTime() {
-        return getCurrentGameDataHolder()->getCumulativePlayTime();
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->getCumulativePlayTime();
     }
 
     void resetAllGameData() {
-        getCurrentGameDataHolder()->resetAllData();
+        getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->resetAllData();
     }
 
     void resetPlayerLeftAndTryOnDimensionBigCastleGalaxyComet() {
-        fn_804DE190(getCurrentGameDataPlayerStatus());
+        getCurrentGameDataPlayerStatus()->resetPlayerLeft();
         tryOnDimensionBigCastleGalaxyComet();
     }
 
@@ -557,7 +582,7 @@ namespace GameDataFunction {
             char eventFlagName[0x40];
             snprintf(eventFlagName, sizeof(eventFlagName), "\203\217\201[\203\213\203h%d\217\211\203v\203\214\203C", worldNo);
 
-            if (getCurrentGameDataHolder()->isOnGameEventFlag(eventFlagName)) {
+            if (getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventFlagName)) {
                 break;
             }
 
@@ -575,7 +600,8 @@ namespace GameDataFunction {
     }
 
     bool isOnGameEventFlagWorld1Entered() {
-        return getCurrentGameDataHolder()->isOnGameEventFlag("\203\217\201[\203\213\203h1\217\211\203v\203\214\203C");
+        const char* eventName22 = "\203\217\201[\203\213\203h1\217\211\203v\203\214\203C";
+        return getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->isOnGameEventFlag(eventName22);
     }
 
     s32 calcFaceShipEventNum() {
@@ -606,11 +632,10 @@ namespace GameDataFunction {
     s32 getFaceShipEventGrandStarNo() {
         u16 grandStarNo = getCurrentGameEventValueChecker()->getValue("\212\347\230f\220\257\203C\203x\203\223\203g\203O\203\211\203\223\203h\203X\203^\201[\224\324\215\206");
 
-        if (grandStarNo != 0) {
-            return MR::clamp(grandStarNo, 1L, 5L);
+        if (grandStarNo == 0) {
+            return -1;
         }
-
-        return -1;
+        return MR::clamp(grandStarNo, 1L, 5L);
     }
 
     void setFaceShipEventGrandStarNo(s32 grandStarNo) {
@@ -625,7 +650,7 @@ namespace GameDataFunction {
         getCurrentGameEventValueChecker()->setValue("\212\347\230f\220\257\203C\203x\203\223\203g\203O\203\211\203\223\203h\203X\203^\201[\224\324\215\206", 0);
     }
 
-    u16 getStageClearsAfterRepeatedMissCount() {
+    u32 getStageClearsAfterRepeatedMissCount() {
         return getCurrentGameEventValueChecker()->getValue("\210\352\222\350\220\224\216\200\226S\214\343\202\314\203X\203e\201[\203W\203N\203\212\203A\211\361\220\224");
     }
 
@@ -642,7 +667,7 @@ namespace GameDataFunction {
         return getSaveDataHandleSequence()->getCurrentUserFile()->mUserName;
     }
 
-    void setUserName(wchar_t* const pUserName) {
+    void setUserName(const wchar_t* pUserName) {
         getSaveDataHandleSequence()->getCurrentUserFile()->setUserName(pUserName);
     }
 
@@ -656,23 +681,66 @@ namespace GameDataFunction {
     }
 
     void setSysConfigFileEncouragedPal16() {
-        getSaveDataHandleSequence()->getSysConfigFile()->mChunk->mEncouragedPal16 = 1;
+        SysConfigChunk* chunk = getSaveDataHandleSequence()->getSysConfigFile()->mChunk;
+        chunk->mEncouragedPal16 = true;
     }
 
     OSTime getSysConfigFileTimeSent() {
-        return getSaveDataHandleSequence()->getSysConfigFile()->getTimeSent();
+        return getSaveDataHandleSequence()->getSysConfigFile()->mChunk->mTimeSent;
     }
 
     void setSysConfigFileTimeSent(OSTime timeSent) {
-        getSaveDataHandleSequence()->getSysConfigFile()->setTimeSent(timeSent);
+        getSaveDataHandleSequence()->getSysConfigFile()->mChunk->mTimeSent = timeSent;
     }
 
     u32 getSysConfigFileSentBytes() {
-        return getSaveDataHandleSequence()->getSysConfigFile()->getSentBytes();
+        return getSaveDataHandleSequence()->getSysConfigFile()->mChunk->mSentBytes;
     }
 
     void setSysConfigFileSentBytes(u32 sentBytes) {
-        getSaveDataHandleSequence()->getSysConfigFile()->setSentBytes(sentBytes);
+        getSaveDataHandleSequence()->getSysConfigFile()->mChunk->mSentBytes = sentBytes;
     }
-#pragma dont_inline reset
+
+
+    s32 getPendingSharedPlayerLeft() {
+        u16 hash = MR::getHashCode(getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mName);
+        if (hash == getSaveDataHandleSequence()->getSysConfigFile()->mChunk->mCurrentCounters->mPlayerLeftHash) {
+            return 0;
+        }
+        return getSaveDataHandleSequence()->getSysConfigFile()->mChunk->getSharedPlayerLeft();
+    }
+
+    void storeSharedPlayerLeft() {
+        u16 hash = MR::getHashCode(getSaveDataHandleSequence()->getCurrentUserFile()->mGameDataHolder->mName);
+        s32 left = getCurrentGameDataPlayerStatus()->getPlayerLeft();
+        getSaveDataHandleSequence()->getSysConfigFile()->mChunk->setSharedPlayerLeft(left, hash);
+    }
+
+    s32 getBankedStarPieceNum() {
+        return getSaveDataHandleSequence()->getSysConfigFile()->mChunk->getBankedStarPieceNum();
+    }
+
+    void setBankedStarPieceNum(s32 count) {
+        getSaveDataHandleSequence()->getSysConfigFile()->mChunk->setBankedStarPieceNum(count);
+        tryOnDimensionBigCastleGalaxyComet();
+    }
+
+    s32 getMaxBankedStarPieceNum() {
+        return getSaveDataHandleSequence()->getSysConfigFile()->mChunk->getMaxBankedStarPieceNum();
+    }
+
+    bool isSysConfigCounterMax() {
+        return getSaveDataHandleSequence()->getSysConfigFile()->mChunk->getMaxBankedStarPieceNum() >= 9999;
+    }
+
+    void resetSysConfigCounters() {
+        getSaveDataHandleSequence()->getSysConfigFile()->mChunk->resetCounters();
+    }
+
+    void copySysConfigData() {
+        getSaveDataHandleSequence()->getSysConfigFile()->mChunk->restoreCounters();
+    }
+
 };  // namespace GameDataFunction
+
+#pragma dont_inline reset

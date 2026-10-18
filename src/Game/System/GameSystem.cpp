@@ -19,7 +19,7 @@
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/GameSystemResetAndPowerProcess.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
-#include "Game/Scene/ScenarioSelectScene.hpp"
+#include "Game/Scene/ModelWipeScene.hpp"
 #include "Game/System/GameSystemStationedArchiveLoader.hpp"
 #include "Game/System/HeapMemoryWatcher.hpp"
 #include "Game/System/HomeButtonStateNotifier.hpp"
@@ -35,9 +35,6 @@
 #include <JSystem/JKernel/JKRExpHeap.hpp>
 #include <nw4r/lyt/init.h>
 #include <revolution.h>
-
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" s32 fn_804BB950(void*);
 
 #define GX_FIFO_SIZE 0x80000
 
@@ -151,7 +148,7 @@ void GameSystem::exeLoadStationedArchive() {
     mStationedArchiveLoader->update();
     updateSceneController();
 
-    if (fn_804BB950(mStationedArchiveLoader) || mStationedArchiveLoader->isDone()) {
+    if (mStationedArchiveLoader->isInitialized() || mStationedArchiveLoader->isDone()) {
         setNerve(GET_NERVE(GameSystem, GameSystemNormal));
     }
 }
@@ -228,8 +225,8 @@ void GameSystem::draw() {
 
     GameSequenceFunction::drawPlayerMissLeft();
 
-    if (mSceneController->mScenarioSelectScene != nullptr) {
-        mSceneController->mScenarioSelectScene->draw();
+    if (mSceneController->mModelWipeScene != nullptr) {
+        mSceneController->mModelWipeScene->draw();
     }
 
     mErrorWatcher->draw();

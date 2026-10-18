@@ -46,7 +46,7 @@ void WorldMapResultStateCometAppear::init() {
                     s32 idx = mNum;
                     mNum = idx + 1;
                     mNames[idx] = pName;
-                    fn_804F0BA0(mHost, pName, idx);
+                    mHost->endGalaxyPointingAnim(pName, idx);
                 }
 
                 iter2.goNext();
@@ -95,11 +95,11 @@ const char* WorldMapResultStateCometAppear::getCurrentComet() const {
 
 void WorldMapResultStateCometAppear::setupComet() {
     WorldMapResultCommand* pHost = mHost;
-    fn_804F0D00(pHost, getCurrentComet());
+    pHost->setupCometGalaxy(getCurrentComet());
     WorldMapResultCommand* pHost2 = mHost;
     pHost2->startResult(WorldMapFunction::getGalaxyWorldNo(getCurrentComet()));
     WorldMapResultCommand* pHost3 = mHost;
-    fn_804F0D90(pHost3, getCurrentComet(), &mFrom, &mTo, 1.0f);
+    pHost3->updateCometCamera(getCurrentComet(), &mFrom, &mTo, 1.0f);
 }
 
 void WorldMapResultStateCometAppear::exeClose() {
@@ -134,7 +134,7 @@ void WorldMapResultStateCometAppear::exeZoom() {
     WorldMapResultCommand* pHost = mHost;
     f32 rate = MR::calcNerveRate(this, 20);
 
-    if (fn_804F0D90(pHost, getCurrentComet(), &mFrom, &mTo, rate)) {
+    if (pHost->updateCometCamera(getCurrentComet(), &mFrom, &mTo, rate)) {
         if (mDone) {
             setNerve(GET_NERVE(WorldMapResultStateCometAppear, WorldMapResultStateCometAppearMove));
             return;
@@ -147,7 +147,7 @@ void WorldMapResultStateCometAppear::exeZoom() {
 void WorldMapResultStateCometAppear::exeAppearComet() {
     if (MR::isFirstStep(this)) {
         WorldMapResultCommand* pHost = mHost;
-        fn_804F0C60(pHost, getCurrentComet(), mComet);
+        pHost->appearCometAtGalaxy(getCurrentComet(), mComet);
     }
 
     if (MR::isStep(this, 19)) {
@@ -163,7 +163,7 @@ void WorldMapResultStateCometAppear::exeAppearComet() {
 void WorldMapResultStateCometAppear::exeMove() {
     if (MR::isFirstStep(this)) {
         WorldMapResultCommand* pHost = mHost;
-        fn_804F0C00(pHost, getCurrentComet());
+        pHost->clearGalaxyComet(getCurrentComet());
     }
 
     if (MR::isGreaterEqualStep(this, 90)) {

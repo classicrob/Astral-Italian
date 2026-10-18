@@ -39,42 +39,14 @@ extern "C" const f32 lbl_807D787C;
 extern "C" const f32 lbl_807D7880;
 extern "C" const f32 lbl_807E2FE0;
 
-extern "C" s32 fn_80038870(TVec3f*, TVec3f*, TVec3f*, s32, s32, s32, s32, f32);
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
 extern "C" void* __nw__FUl(u32);
 
 // Pod helpers (TU05). Pod group members are BellyDragonFireGround (0xC4, TPos3f at 0x90) and group B actors.
-extern "C" NameObj* fn_80092E70(void*);
-extern "C" void* fn_80095970(void*, const char*, const char*, TPos3f*, s32);
-extern "C" void fn_80095B00(void*, const char*);
-extern "C" void fn_80095C30(void*);
-extern "C" void fn_80095C80(void*);
-extern "C" void fn_80095D60(void*);
-extern "C" void fn_80095CD0(void*, const char*, TPos3f*);
-extern "C" void fn_80094C90(BellyDragonPod*);
 
 // Host helpers (TU04)
-extern "C" s32 fn_80093310(BellyDragon*);  // SMG2 callers test the full word (cmpwi), not clrlwi.
-extern "C" s32 fn_80093320(NerveExecutor*, BellyDragon*);
-extern "C" void fn_80093370(BellyDragon*, LiveActor*);
-extern "C" void fn_80093590(TPos3f*, NameObj*, const f32 (*)[4], f32);
-extern "C" void fn_800936C0(TPos3f*, NameObj*, const TVec3f*);
-extern "C" void fn_800937C0(BellyDragon*);
-extern "C" void fn_80093450(void*, const f32 (*)[4]);
-extern "C" s32 fn_80093970(HitSensor*);
-extern "C" s32 fn_80093980(BellyDragon*, s32);
-extern "C" s32 fn_80093A30(BellyDragon*, s32);
-extern "C" void fn_800934A0(BellyDragon*, f32);
 
 // Arm states (other TUs)
-extern "C" ActorStateBaseInterface* fn_80097520(void*, BellyDragon*, u8);
-extern "C" ActorStateBaseInterface* fn_80096060(void*, BellyDragon*, u8);
-extern "C" ActorStateBaseInterface* fn_80096960(void*, BellyDragon*, u8);
-extern "C" void fn_80096220(ActorStateBaseInterface*, HitSensor*, HitSensor*);
-extern "C" void fn_80096B60(ActorStateBaseInterface*, HitSensor*, HitSensor*);
-extern "C" void fn_80097690(ActorStateBaseInterface*);
-extern "C" void fn_800976A0(ActorStateBaseInterface*);
-extern "C" void fn_8008EDB0(void*, f32);
 
 
 namespace NrvBellyDragonArm {
@@ -97,80 +69,76 @@ BellyDragonPod::BellyDragonPod(BellyDragon* pHost, const JMapInfoIter* pIter) {
     mBaseMtx.identity();
     mHostMtx.set(pHost->getBaseMtx());
     mCameraInfo = new ActorCameraInfo(*pIter);
-    MR::declareCameraRegisterVec(pHost, 0, &pHost->mPosition);
+    MR::declareCameraRegisterVec(mHost, 0, &mHost->mPosition);
     mCameraTargetMtx = new CameraTargetMtx(lbl_8066D0B0);
-    void* pMem = __nw__FUl(0x34);
-    if (pMem != NULL) {
-        pMem = fn_80095970(pMem, lbl_8066D0B0 + 0x1C, lbl_8066D0B0 + 0x30, &mBaseMtx, 0x20);
-    }
-    mFlameCtrl = pMem;
+    mFlameCtrl = new BellyDragonFire(lbl_8066D0B0 + 0x1C, lbl_8066D0B0 + 0x30, mBaseMtx.mMtx, 0x20);
     for (s32 i = 0; i < 0x20; i++) {
         char name[0x20];
         snprintf(name, 0x20, lbl_8066D0B0 + 0x44, i);
-        fn_80095B00(mFlameCtrl, name);
+        mFlameCtrl->addJointMtx(name);
     }
     mDecoration = MR::createModelObjMapObjDecoration(lbl_8066D0B0 + 0x50, lbl_8066D0B0 + 0x5C, NULL);
     mDecoration->makeActorDead();
-    if (fn_80093310(mHost)) {
-        fn_80094C90(this);
+    if (BellyDragonUtil::isLv2(mHost)) {
+        this->createGroups();
     }
 }
 
-extern "C" void fn_80094460(BellyDragonPod* pPod, BellyDragon* pHost) {
-    pPod->mEffectCount += 1;
-    if (pPod->mEffectCount == 0x14) {
+void BellyDragonPod::updateFireEffect(BellyDragon* pHost) {
+    mEffectCount += 1;
+    if (mEffectCount == 0x14) {
         MR::emitEffect(pHost, lbl_8066D120);
         MR::startActionSound(pHost, lbl_8066D120, -1, -1, -1);
     }
-    if (pPod->mEffectCount == 0x28) {
+    if (mEffectCount == 0x28) {
         MR::emitEffect(pHost, lbl_8066D128);
         MR::startActionSound(pHost, lbl_8066D128, -1, -1, -1);
     }
-    if (pPod->mEffectCount >= 0x28) {
-        pPod->mEffectCount = 0;
+    if (mEffectCount >= 0x28) {
+        mEffectCount = 0;
     }
 }
 
-extern "C" void fn_80094520(BellyDragonPod* pPod, s32 isShort, const TVec3f* pVec) {
-    if (fn_80093310(pPod->mHost)) {
-        LiveActor* pActor = pPod->mGroupA->getDeadActor();
+void BellyDragonPod::appearFireGround(s32 isShort, const TVec3f* pVec) {
+    if (BellyDragonUtil::isLv2(mHost)) {
+        LiveActor* pActor = mGroupA->getDeadActor();
         if (pActor != NULL) {
             if (pVec != NULL) {
-                fn_800936C0((TPos3f*)((u8*)pActor + 0x90), pPod->mHost, pVec);
+                BellyDragonUtil::calcGroundUpMtx((TPos3f*)((u8*)pActor + 0x90), mHost, pVec);
             } else {
                 f32 scale = lbl_807D784C;
                 if (isShort != 0) {
                     scale = lbl_807D7850;
                 }
-                fn_80093590((TPos3f*)((u8*)pActor + 0x90), pPod->mHost, pPod->mHost->getBaseMtx(), scale);
+                BellyDragonUtil::calcGroundHillMtx((TPos3f*)((u8*)pActor + 0x90), mHost, mHost->getBaseMtx(), scale);
             }
             pActor->appear();
         }
     }
 }
 
-extern "C" void fn_80094600(BellyDragonPod* pPod) {
-    if (fn_80093310(pPod->mHost)) {
-        pPod->mGroupA->makeAllDead();
-        for (s32 i = 0; i < pPod->mGroupA->getObjNum(); i++) {
-            MR::tryForceDeleteEffectAll(pPod->mGroupA->getActor(i));
+void BellyDragonPod::killFireGrounds() {
+    if (BellyDragonUtil::isLv2(mHost)) {
+        mGroupA->makeAllDead();
+        for (s32 i = 0; i < mGroupA->getObjNum(); i++) {
+            MR::tryForceDeleteEffectAll(mGroupA->getActor(i));
         }
     }
 }
 
-extern "C" void fn_80094670(BellyDragonPod* pPod, s32 count) {
-    if (fn_80093310(pPod->mHost) == 0) {
+void BellyDragonPod::appearSparks(s32 count) {
+    if (BellyDragonUtil::isLv2(mHost) == 0) {
         return;
     }
     f32 step = lbl_807D7870 / (f32)count;
     f32 baseDeg = MR::getRandomDegree();
     for (s32 i = 0; i < count; i++) {
-        LiveActor* pActor = pPod->mGroupB->getDeadActor();
+        LiveActor* pActor = mGroupB->getDeadActor();
         if (pActor == NULL) {
             continue;
         }
-        const f32 (*pMtxA)[4] = MR::getJointMtx(pPod->mHost, lbl_8066D130);
-        const f32 (*pMtxB)[4] = MR::getJointMtx(pPod->mHost, lbl_8066D138);
+        const f32 (*pMtxA)[4] = MR::getJointMtx(mHost, lbl_8066D130);
+        const f32 (*pMtxB)[4] = MR::getJointMtx(mHost, lbl_8066D138);
         TVec3f pos(pMtxA[0][3], pMtxA[1][3], pMtxA[2][3]);
         TVec3f front(pMtxA[0][0], pMtxA[1][0], pMtxA[2][0]);
         TVec3f up(pMtxA[0][1], pMtxA[1][1], pMtxA[2][1]);
@@ -204,28 +172,28 @@ extern "C" void fn_80094670(BellyDragonPod* pPod, s32 count) {
     }
 }
 
-extern "C" void fn_80094930(BellyDragonPod* pPod) {
-    if (fn_80093310(pPod->mHost)) {
-        pPod->mGroupB->makeAllDead();
-        pPod->mGroupA->makeAllDead();
-        for (s32 i = 0; i < pPod->mGroupB->getObjNum(); i++) {
-            MR::tryForceDeleteEffectAll(pPod->mGroupB->getActor(i));
+void BellyDragonPod::killAll() {
+    if (BellyDragonUtil::isLv2(mHost)) {
+        mGroupB->makeAllDead();
+        mGroupA->makeAllDead();
+        for (s32 i = 0; i < mGroupB->getObjNum(); i++) {
+            MR::tryForceDeleteEffectAll(mGroupB->getActor(i));
         }
-        for (s32 i = 0; i < pPod->mGroupA->getObjNum(); i++) {
-            MR::tryForceDeleteEffectAll(pPod->mGroupA->getActor(i));
+        for (s32 i = 0; i < mGroupA->getObjNum(); i++) {
+            MR::tryForceDeleteEffectAll(mGroupA->getActor(i));
         }
     }
 }
 
-extern "C" void fn_800949D0(BellyDragonPod* pPod) {
-    fn_80095C30(pPod->mFlameCtrl);
+void BellyDragonPod::startFlame() {
+    mFlameCtrl->appearModel();
 }
 
-extern "C" void fn_800949E0(BellyDragonPod* pPod) {
-    fn_80095C80(pPod->mFlameCtrl);
+void BellyDragonPod::stopFlame() {
+    mFlameCtrl->killModel();
 }
 
-extern "C" void fn_800949F0(BellyDragon* pHost, TPos3f* pOut, const char* pJoint, s32 flag) {
+void BellyDragonUtil::calcJointGroundMtx(BellyDragon* pHost, TPos3f* pOut, const char* pJoint, s32 flag) {
     TPos3f sp78;
     sp78.set(MR::getJointMtx(pHost, pJoint));
     TVec3f sp68(lbl_807D7844, lbl_807D7844, lbl_807D7840);
@@ -246,7 +214,7 @@ extern "C" void fn_800949F0(BellyDragon* pHost, TPos3f* pOut, const char* pJoint
     TVec3f sp38(lbl_807D7844, lbl_807D7848, lbl_807D7844);
     MR::calcGravityVector(pHost, sp44, &sp38, NULL, 0);
     TVec3f sp2C(lbl_807D7844);
-    if (fn_80038870(&sp44, &sp2C, &sp38, 0, 0, 0, 0, lbl_807D7868) != 0 && MR::isSameDirection(sp68, sp38, lbl_807D7874) == 0) {
+    if (MR::calcMapHitAlongDirection(sp44, &sp2C, sp38, NULL, NULL, NULL, NULL, lbl_807D7868) != 0 && MR::isSameDirection(sp68, sp38, lbl_807D7874) == 0) {
         TVec3f sp20 = -sp38;
         if (MR::isSameDirection(sp68, sp20, lbl_807D7874) == 0) {
             TVec3f sp14(sp38);
@@ -259,38 +227,34 @@ extern "C" void fn_800949F0(BellyDragon* pHost, TPos3f* pOut, const char* pJoint
     }
 }
 
-extern "C" void fn_80094BE0(BellyDragonPod* pPod) {
+void BellyDragonPod::updateFlameMtx() {
     TPos3f sp28;
     char name[0x20];
-    fn_800949F0(pPod->mHost, &pPod->mBaseMtx, lbl_8066D138, 0);
+    BellyDragonUtil::calcJointGroundMtx(mHost, &mBaseMtx, lbl_8066D138, 0);
     sp28.identity();
     for (s32 i = 0; i < 0x20; i++) {
         snprintf(name, 0x20, lbl_8066D0F4, i);
-        fn_800949F0(pPod->mHost, &sp28, name, 1);
-        fn_80095CD0(pPod->mFlameCtrl, name, &sp28);
+        BellyDragonUtil::calcJointGroundMtx(mHost, &sp28, name, 1);
+        mFlameCtrl->setJointMtx(name, &sp28);
     }
 }
 
-extern "C" void fn_80094C80(BellyDragonPod* pPod) {
-    fn_80095D60(pPod->mFlameCtrl);
+void BellyDragonPod::resetFlame() {
+    mFlameCtrl->registerCallBacks();
 }
 
-extern "C" void fn_80094C90(BellyDragonPod* pPod) {
-    pPod->mGroupA = new LiveActorGroup(lbl_8066D140, 0x20);
+void BellyDragonPod::createGroups() {
+    mGroupA = new LiveActorGroup(lbl_8066D140, 0x20);
     for (s32 i = 0; i < 0x20; i++) {
-        void* pActorMem = __nw__FUl(0xC4);
-        NameObj* pActor = (NameObj*)pActorMem;
-        if (pActorMem != NULL) {
-            pActor = fn_80092E70(pActorMem);
-        }
+        NameObj* pActor = new BellyDragonFireGround();
         pActor->initWithoutIter();
-        pPod->mGroupA->registerActor((LiveActor*)pActor);
+        mGroupA->registerActor((LiveActor*)pActor);
     }
-    pPod->mGroupB = new LiveActorGroup(lbl_8066D14C, 8);
+    mGroupB = new LiveActorGroup(lbl_8066D14C, 8);
     for (s32 i = 0; i < 8; i++) {
-        NameObj* pActor = new BellyDragonPodActor(pPod->mHost);
+        NameObj* pActor = new BellyDragonPodActor(mHost);
         pActor->initWithoutIter();
-        pPod->mGroupB->registerActor((LiveActor*)pActor);
+        mGroupB->registerActor((LiveActor*)pActor);
     }
 }
 
@@ -299,21 +263,9 @@ BellyDragonArm::BellyDragonArm(BellyDragon* pHost, s32 side) : ActorStateBaseInt
 
 void BellyDragonArm::init() {
     initNerve(&NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance, 0x10);
-    void* pMem = __nw__FUl(0x28);
-    if (pMem != NULL) {
-        pMem = fn_80097520(pMem, mHost, mSide);
-    }
-    mStateA = (ActorStateBaseInterface*)pMem;
-    pMem = __nw__FUl(0x48);
-    if (pMem != NULL) {
-        pMem = fn_80096060(pMem, mHost, mSide);
-    }
-    mStateB = (ActorStateBaseInterface*)pMem;
-    pMem = __nw__FUl(0x58);
-    if (pMem != NULL) {
-        pMem = fn_80096960(pMem, mHost, mSide);
-    }
-    mStateC = (ActorStateBaseInterface*)pMem;
+    mStateA = new BellyDragonArmWait(mHost, mSide);
+    mStateB = new BellyDragonArmFire(mHost, mSide);
+    mStateC = new BellyDragonArmShot(mHost, mSide);
     MR::initActorState(this, mStateA, &NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance, lbl_8066D158 + 0xC);
     MR::initActorState(this, mStateB, &NrvBellyDragonArm::BellyDragonArmNrvFire::sInstance, lbl_8066D158 + 0x14);
     MR::initActorState(this, mStateC, &NrvBellyDragonArm::BellyDragonArmNrvShot::sInstance, lbl_8066D158 + 0x20);
@@ -328,18 +280,18 @@ void BellyDragonArm::appear() {
 
 void BellyDragonArm::exeWait() {
     if (MR::isFirstStep(this) && mCounter >= 3) {
-        fn_80097690(mStateA);
+        mStateA->startAttack();
         mCounter = 0;
     }
-    fn_800937C0(mHost);
-    if (fn_80093320(this, mHost) != 0) {
+    BellyDragonUtil::updatePodFireEffect(mHost);
+    if (BellyDragonUtil::updateArmState(this, mHost) != 0) {
         setNerve(&NrvBellyDragonArm::BellyDragonArmNrvFire::sInstance);
     }
 }
 
 void BellyDragonArm::exeFire() {
-    if (fn_80093320(this, mHost) != 0) {
-        if (*(u8*)((u8*)mStateB + 0x24) != 0) {
+    if (BellyDragonUtil::updateArmState(this, mHost) != 0) {
+        if (mStateB->mIsEnd) {
             mCounter = 0;
             setNerve(&NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance);
             return;
@@ -352,57 +304,57 @@ void BellyDragonArm::exeShot() {
     if (MR::isFirstStep(this) && mSide != 0) {
         mCounter += 1;
     }
-    if (fn_80093320(this, mHost) != 0) {
+    if (BellyDragonUtil::updateArmState(this, mHost) != 0) {
         setNerve(&NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance);
     }
 }
 
 void BellyDragonArm::exeAttack() {
     if (MR::isFirstStep(this)) {
-        if (fn_80093A30(mHost, 0) != 0) {
+        if (BellyDragonUtil::isNoAttackableWeakPoint(mHost, 0) != 0) {
             MR::stopStageBGM(5);
         }
     }
-    fn_800934A0(mHost, lbl_807D787C);
-    if (MR::isGreaterStep(this, 0x14) && fn_80093980(mHost, 0) != 0) {
+    BellyDragonUtil::updateFront(mHost, lbl_807D787C);
+    if (MR::isGreaterStep(this, 0x14) && BellyDragonUtil::isEnoughWeakPointsBroken(mHost, 0) != 0) {
         kill();
         return;
     }
-    if (MR::isGreaterStep(this, 0x14) && fn_80093A30(mHost, 0) != 0) {
+    if (MR::isGreaterStep(this, 0x14) && BellyDragonUtil::isNoAttackableWeakPoint(mHost, 0) != 0) {
         kill();
     }
 }
 
-extern "C" void fn_800951D0(BellyDragonArm* pArm, HitSensor* pSensorA, HitSensor* pSensorB) {
-    if (pArm->isNerve(&NrvBellyDragonArm::BellyDragonArmNrvFire::sInstance)) {
-        fn_80096220(pArm->mStateB, pSensorA, pSensorB);
+void BellyDragonArm::attackSensor(HitSensor* pSensorA, HitSensor* pSensorB) {
+    if (isNerve(&NrvBellyDragonArm::BellyDragonArmNrvFire::sInstance)) {
+        mStateB->attackSensor(pSensorA, pSensorB);
     }
-    if (pArm->isNerve(&NrvBellyDragonArm::BellyDragonArmNrvShot::sInstance)) {
-        fn_80096B60(pArm->mStateC, pSensorA, pSensorB);
+    if (isNerve(&NrvBellyDragonArm::BellyDragonArmNrvShot::sInstance)) {
+        mStateC->attackSensor(pSensorA, pSensorB);
     }
     MR::sendMsgPush(pSensorB, pSensorA);
 }
 
-extern "C" s32 fn_80095260(BellyDragonArm* pArm, u32 msg, HitSensor* pSensorA, HitSensor* pSensorB) {
+bool BellyDragonArm::receiveMessage(u32 msg, HitSensor* pSensorA, HitSensor* pSensorB) {
     if (MR::isMsgStarPieceReflect(msg)) {
         return 1;
     }
-    if (!pArm->isNerve(&NrvBellyDragonArm::BellyDragonArmNrvAttack::sInstance) && MR::isMsgPlayerSpinAttackOrSupportTico(msg) && fn_80093970(pSensorA)) {
-        MR::startAction(pArm->mHost, lbl_8066D184);
+    if (!isNerve(&NrvBellyDragonArm::BellyDragonArmNrvAttack::sInstance) && MR::isMsgPlayerSpinAttackOrSupportTico(msg) && BellyDragonUtil::isSensorWeakPoint(pSensorA)) {
+        MR::startAction(mHost, lbl_8066D184);
         TVec3f sp2C(MR::getSensorHost(pSensorA)->mPosition);
         TVec3f sp20(lbl_807D7878, lbl_807D787C, lbl_807D7878);
-        MR::calcGravityVector(pArm->mHost, sp2C, &sp20, NULL, 0);
+        MR::calcGravityVector(mHost, sp2C, &sp20, NULL, 0);
         TVec3f sp8(sp20);
         sp8.scale(lbl_807D7880);
         TVec3f sp14(sp2C);
         sp14 -= sp8;
-        MR::emitItemBossDamageAtPos(pArm->mHost, &sp14);
-        if (fn_80093980(pArm->mHost, 1) != 0 || fn_80093A30(pArm->mHost, 1) != 0) {
-            pArm->setNerve(&NrvBellyDragonArm::BellyDragonArmNrvAttack::sInstance);
+        MR::emitItemBossDamageAtPos(mHost, &sp14);
+        if (BellyDragonUtil::isEnoughWeakPointsBroken(mHost, 1) != 0 || BellyDragonUtil::isNoAttackableWeakPoint(mHost, 1) != 0) {
+            setNerve(&NrvBellyDragonArm::BellyDragonArmNrvAttack::sInstance);
             return 1;
         }
-        if (pArm->isNerve(&NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance)) {
-            fn_800976A0(pArm->mStateA);
+        if (isNerve(&NrvBellyDragonArm::BellyDragonArmNrvWait::sInstance)) {
+            mStateA->startDamage();
         }
         return 1;
     }

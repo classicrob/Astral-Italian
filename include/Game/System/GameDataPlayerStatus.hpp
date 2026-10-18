@@ -35,6 +35,7 @@ public:
     /// @brief Returns the number of extra lives.
     /// @return The number of extra lives, clamped to `0..99`.
     s32 getPlayerLeft() const;
+    void resetPlayerLeft();
 
     /// @brief Adds to the number of extra lives by the given term.
     /// @param num The number of extra lives to add.

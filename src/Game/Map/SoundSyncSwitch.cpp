@@ -8,10 +8,6 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-// Unnamed SMG2 helpers (sound object and beat/timing checks).
-extern "C" bool fn_80056EB0();
-
 SoundSyncSwitch::SoundSyncSwitch(const char* pName)
     : NameObj(pName), mStageSwitchCtrl(NULL), mBeatNum(8), mTimeOffset(0), mInterval(0), mSwitchOnTime(-1), mCounter(0), mSoundType(0), mSound(NULL) {
 }
@@ -93,7 +89,7 @@ void SoundSyncSwitch::emit() {
         return;
     }
 
-    if (fn_80056EB0()) {
+    if (MR::isTimerSwitchingPlatformGalaxyPowerStarAppeared()) {
         return;
     }
 

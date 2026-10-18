@@ -14,10 +14,10 @@ void WorldMapResultStateRouteOpen::init() {
 
     if (GameSequenceFunction::hasStageResultSequence() && GameSequenceFunction::isClearedAllPowerStarAtResult()) {
         mWorldId = 7;
-        fn_804F09C0(mHost, 7, mRoute);
+        mHost->setupRouteOpenFromSwitchMoveBlock(7, mRoute);
     } else {
         mWorldId = GameDataFunction::getCurrentWorldId();
-        fn_804F0970(mHost, mWorldId, mRoute);
+        mHost->setupRouteOpen(mWorldId, mRoute);
     }
 
     kill();
@@ -27,12 +27,12 @@ void WorldMapResultStateRouteOpen::appear() {
     mCount = 0;
     mIsDead = false;
     mHost->startResult(mWorldId);
-    fn_804F0A40(mHost, mWorldId, mRoute);
+    mHost->setRouteCamera(mWorldId, mRoute);
     setNerve(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenStart));
 }
 
 void WorldMapResultStateRouteOpen::control() {
-    fn_804F0EE0(mHost, mWorldId);
+    mHost->updateRouteOpenSound(mWorldId);
 }
 
 bool WorldMapResultStateRouteOpen::isXXX() const {
@@ -56,7 +56,7 @@ void WorldMapResultStateRouteOpen::exeExtend() {
 }
 
 void WorldMapResultStateRouteOpen::exeWaitNext() {
-    if (fn_804F0B20(mHost, mWorldId, mRoute)) {
+    if (mHost->isRouteNotHeld(mWorldId, mRoute)) {
         setNerve(GET_NERVE(WorldMapResultStateRouteOpen, WorldMapResultStateRouteOpenMessage));
     }
 }

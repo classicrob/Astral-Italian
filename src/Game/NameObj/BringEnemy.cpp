@@ -8,12 +8,10 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
+#include "Game/Enemy/BegomanBase.hpp"
+#include "Game/Enemy/BegomanLauncher.hpp"
 #include "Game/Map/StageSwitch.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-// Unnamed SMG2 helpers: child group access (group->child(index), group contains actor).
-extern "C" LiveActor* fn_80163200(LiveActor*, s32);
-extern "C" bool fn_801631C0(LiveActor*, const LiveActor*);
 
 // Child type names (strings at lbl_806B7AF8), in the order the target compares them.
 namespace {
@@ -111,7 +109,7 @@ f32 BringEnemy::calcNearestEnemy(TVec3f* pVec, const LiveActor* pActor) {
         if (pGroup != NULL) {
             s32 groupNum = *(s32*)((u8*)pGroup + 0x90);
             for (s32 j = 0; j < groupNum; j++) {
-                LiveActor* pChild = fn_80163200(pGroup, j);
+                LiveActor* pChild = static_cast< BegomanLauncher* >(pGroup)->getBegoman(j);
                 if (pChild != NULL && !MR::isDead(pChild)) {
                     f32 dist = MR::calcDistance(pActor, pChild);
                     if (dist < minDist) {
@@ -152,7 +150,7 @@ bool BringEnemy::receiveMessage(u32 msg, HitSensor* pSender, HitSensor* pReceive
     for (s32 i = 0; i < mChildNum; i++) {
         LiveActor* pGroup = mChildGroups[i];
         if (pGroup != NULL) {
-            if (fn_801631C0(pGroup, MR::getSensorHost(pReceiver))) {
+            if (static_cast< BegomanLauncher* >(pGroup)->hasBegoman(MR::getSensorHost(pReceiver))) {
                 mTargetEnemy = MR::getSensorHost(pReceiver);
                 mBroughtNum++;
             }

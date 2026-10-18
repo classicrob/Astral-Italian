@@ -21,6 +21,7 @@ public:
 
     void executeActionFirst() const;
     void executeActionLast() const;
+    void executeStoryBookStart() const NO_INLINE;
 
     /* 0x00 */ const char* mPartName;
     /* 0x04 */ const char* mCastName;
@@ -45,6 +46,8 @@ public:
     void start();
     void update();
     void skip();
+    void updatePartActions(bool) NO_INLINE;
+    DemoActionInfo* findInfo(const LiveActor*, const char*) const;
     bool isStoryBookPart(const char*) const;
     bool isRegisteredDemoActionAppear(const LiveActor*) const;
     bool isRegisteredDemoActionFunctor(const LiveActor*) const;

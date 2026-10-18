@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/LiveActorGroup.hpp"
 
 class AnimScaleController;
 class WalkerStateBindStarPointer;
@@ -26,4 +27,10 @@ public:
     /* 0x9C */ TVec3f mUnk9C;
     /* 0xA8 */ AnimScaleController* mAnimScaleController;
     /* 0xAC */ WalkerStateBindStarPointer* mBindState;
+};
+
+// SceneObj 0x8D (ctor 0x80184A10: LiveActorGroup(name, 0x40)).
+class GliderShooterBulletHolder : public LiveActorGroup {
+public:
+    GliderShooterBulletHolder();
 };

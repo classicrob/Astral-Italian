@@ -1,6 +1,13 @@
 #pragma once
 
 namespace GameSystemFunction {
+    void loadAudioResource();
+    void loadAudio2ndWaveData();
+    bool isLoadedAudio2ndWaveData();
+    void initAudioSystem();
+    void initAudioRhythm();
+    void loadAudioStageUseResource();
+    void createStationedGameSystemObjects();
     void loadAudioStaticWaveData();
     bool isLoadedAudioStaticWaveData();
     void initAfterStationedResourceLoaded();
@@ -9,8 +16,10 @@ namespace GameSystemFunction {
     bool isCreatedSystemWipe();
     bool isDoneLoadSystemArchive();
     bool tryToLoadSystemArchive();
-    void requestChangeArchivePlayer(bool);
+    bool requestChangeArchivePlayer(bool);
     bool isEndChangeArchivePlayer();
+    bool requestLoadStationedArchiveOthers();
+    bool isEndStationedArchiveLoader();
     void activateScreenPreserver();
     void deactivateScreenPreserver();
     bool isOccurredSystemWarning();

@@ -907,7 +907,6 @@ namespace MR {
         return GameSequenceFunction::checkAppearGhostLuigi(getCurrentStageName(), scenarioNo);
     }
 
-    // PLACEHOLDER(core): fn_80025260 family, names from WorldMapModel callers (postman task ids 6/7, 8/9, 10/11/12)
     bool isPostmanTaskInProgressAtStage(const char* pStageName, s32 taskId) {
         if (isEqualString(pStageName, PostmanEvent::getTaskStage(taskId))) {
             return PostmanEvent::isTaskInProgress(taskId);
@@ -988,7 +987,7 @@ namespace MR {
         EventFunction::stopCometEvent();
     }
 
-    s32 getGalaxyStarTotalNum(const char* pGalaxyName) {
+    bool getGalaxyStarTotalNum(const char* pGalaxyName) {
         GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(pGalaxyName);
         if (accessor.getPowerStarNum() == 0) {
             return 0;

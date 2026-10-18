@@ -3,6 +3,7 @@
 #include <JSystem/JAudio2/JASDSPInterface.hpp>
 
 class JKRHeap;
+class JAISoundHandle;
 
 class AudEffector {
 public:
@@ -14,6 +15,8 @@ public:
     void setCutoff(s32);
     void setSpecialFx(s32);
     void initParams();
+    void setFxLineType(s32);
+    void modifySoundPitch(JAISoundHandle*, f32*, u32*);
     void update();  // fn_80084400, empty
 
     static JASDsp::FxlineConfig_ mFxLine[];

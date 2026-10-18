@@ -3,6 +3,12 @@
 #include <JSystem/JAudio2/JAISound.hpp>
 
 namespace AudBgmSetting {
+    const char* getBgmParamResourceName();
+    void loadBgmParamResource();
+    const char* getMultiBgmResourceName();
+    void loadMultiBgmResource();
+    const char* getStageBgmResourceName();
+    void loadStageBgmResource();
     struct BgmSettingInfo {
         /* 0x0 */ s32 mMuteStateIndex;
         /* 0x4 */ s32 mExtraChordIndex;

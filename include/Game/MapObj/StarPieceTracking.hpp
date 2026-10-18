@@ -7,6 +7,7 @@ class StarPieceTrackingPiece : public LiveActor {
 public:
     StarPieceTrackingPiece(const char*);
     void appearFromActor(const LiveActor*, const TVec3f&, const TVec3f&, f32, f32, f32);
+    void appearScattered(const TVec3f& rPos, const TVec3f& rUp, f32 randomRadius, f32 distance);  // was fn_80319C80
     s32 _90;
     TVec3f mDirection; // 0x94
     TVec3f mUp; // 0xA0

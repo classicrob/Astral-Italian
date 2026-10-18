@@ -9,12 +9,6 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 
-// PLACEHOLDER(core): fn_80319C80 is the per-child attack (piece, position, up vector, 10.0f, 100.0f); owner unnamed. Resolve when named.
-extern "C" void fn_80319C80(NameObj*, const TVec3f*, const TVec3f*, f32, f32);
-// PLACEHOLDER(core): fn_804E8AF0 / fn_804E8B00 are unnamed helpers in the WorldMapModel unit (0x804E8AF0 / 0x804E8B00). Resolve when named there.
-extern "C" void fn_804E8AF0(MiniStarPieceMine*);
-extern "C" s32 fn_804E8B00(MiniStarPieceMine*);
-
 MiniStarPieceMine::MiniStarPieceMine(s32 worldId, s32 pointIndex) : LiveActor("スターピース鉱山") {
     mWorldId = worldId;
     mPointIndex = pointIndex;
@@ -37,7 +31,7 @@ void MiniStarPieceMine::init(const JMapInfoIter& rIter) {
         mPieces[idx]->initWithoutIter();
     }
 
-    if (fn_804E8B00(this) != 0) {
+    if (isGalaxyFlag()) {
         setNerve(&NrvMiniStarPieceMine::MiniStarPieceMineNrvBreak::sInstance);
         makeActorDead();
         return;
@@ -69,10 +63,10 @@ void MiniStarPieceMine::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     f32 one = 1.0f;
     for (s32 idx = 0; idx < 8; idx++) {
         TVec3f up(zero, one, zero);
-        fn_80319C80(mPieces[idx], &mPosition, &up, 10.0f, 100.0f);
+        static_cast<StarPieceTrackingPiece*>(mPieces[idx])->appearScattered(mPosition, up, 10.0f, 100.0f);
     }
 
-    fn_804E8AF0(this);
+    setGalaxyFlag();
     setNerve(&NrvMiniStarPieceMine::MiniStarPieceMineNrvBreak::sInstance);
     MR::startActionSound(this, "StarPieceBreak", -1, -1, -1);
     MR::emitEffectHit(this, mPosition, "Hit");

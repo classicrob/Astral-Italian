@@ -13,6 +13,7 @@ public:
 
     virtual ~ScenarioStarter();
     virtual void init(const JMapInfoIter& rIter);
+    virtual void kill();
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void initShootPath(const JMapInfoIter&);
@@ -22,7 +23,9 @@ public:
     void exeRailMove();
     void exeRailMoveCanceled();
     void exeShowWelcomeLayout();
-    bool isStartBgmOnWelcome();
+    void isStartBgmOnWelcome();
+    void getStartPos(TVec3f*);
+    bool isFollowValid() const;
     void calcShootMotionTime();
     void turnBindHead(const TVec3f&, f32);
     void updateBindPosition();
@@ -34,7 +37,8 @@ public:
     /* 0x090 */ TVec3f _90;
     /* 0x09C */ TVec3f _9C;
     /* 0x0A8 */ TQuat4f _A8;
-    /* 0x0B8 */ SpinDriverShootPath* _B8;
+    /* 0x0BC */ TPos3f mFollowMtx;
+    /* 0x0EC */ SpinDriverShootPath* _B8;
     /* 0x0BC */ SpinDriverCamera* mSpinDriverCamera;
     /* 0x0C0 */ TVec3f _C0;
     /* 0x0CC */ TVec3f _CC;
@@ -51,5 +55,6 @@ public:
     /* 0x108 */ ScenarioTitle* mTitle;
     /* 0x10C */ TVec3f _10C;
     /* 0x118 */ TVec3f _118;
-    /* 0x124 */ bool _124;
+    /* 0x158 */ bool _124;
+    /* 0x159 */ bool mFirstIslandFleetVisit;
 };

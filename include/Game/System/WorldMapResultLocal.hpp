@@ -40,14 +40,6 @@ extern "C" {
 class WorldMapResultCommand;
 class WorldMapOwner;
 extern "C" {
-    void fn_804F0700(WorldMapResultCommand*);
-    void fn_804F08C0(WorldMapResultCommand*);
-    void fn_804F0920(WorldMapResultCommand*);
-    void fn_804F0BA0(WorldMapResultCommand*, const char*, s32);
-    void fn_804F0C00(WorldMapResultCommand*, const char*);
-    void fn_804F0C60(WorldMapResultCommand*, const char*, LiveActor*);
-    void fn_804F0D00(WorldMapResultCommand*, const char*);
-    bool fn_804F0D90(WorldMapResultCommand*, const char*, TVec3f*, TVec3f*, f32);
     void fn_80458060(NameObj*);
     void fn_804581E0(NameObj*);
     void fn_80457F80();
@@ -106,13 +98,6 @@ public:
     s32 mCount;
 };
 
-extern "C" {
-    void fn_804F0970(WorldMapResultCommand*, s32, WorldMapResultRoute*);
-    void fn_804F09C0(WorldMapResultCommand*, s32, WorldMapResultRoute*);
-    void fn_804F0A40(WorldMapResultCommand*, s32, WorldMapResultRoute*);
-    bool fn_804F0B20(WorldMapResultCommand*, s32, WorldMapResultRoute*);
-    bool fn_804F0EE0(WorldMapResultCommand*, s32);
-}
 
 // ---------------------------------------------------------------------------------------------------------------
 // Classes of this translation unit

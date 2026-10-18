@@ -1,3 +1,4 @@
+#include "Game/System/WorldMapOwner.hpp"
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Scene/GameSceneFunction.hpp"
@@ -56,10 +57,6 @@ namespace {
         return SingletonHolder< GameSystem >::get()->mObjHolder->mCaptureScreenDirector;
     }
 
-    PlayTimerScene* getPlayTimerScene() NO_INLINE {
-        return SingletonHolder< GameSystem >::get()->mSceneController->mPlayTimerScene;
-    }
-
     void appearInformationMessage(bool hasButtonLayout) NO_INLINE {
         if (hasButtonLayout) {
             MR::getGameSceneLayoutHolder()->mInformationMessage->setAButtonPos();
@@ -81,8 +78,7 @@ namespace {
     }
 
     ModelWipeScene* getModelWipeScene() NO_INLINE {
-        // PLACEHOLDER(core): GameSystemSceneController header types 0x13C as ScenarioSelectScene, but the ctor asm stores a ModelWipeScene there
-        return reinterpret_cast< ModelWipeScene* >(SingletonHolder< GameSystem >::get()->mSceneController->mScenarioSelectScene);
+        return SingletonHolder< GameSystem >::get()->mSceneController->mModelWipeScene;
     }
 
     SystemWipeHolder* getSystemWipeHolder() {
@@ -528,8 +524,8 @@ namespace MR {
     }
 
     void hideWorldMapInfoLayout() {
-        if (isExistSceneObj(SceneObj_Unk33)) {
-            killWorldMapLayoutCounters(getSceneObjHolder()->getObj(SceneObj_Unk33));
+        if (isExistSceneObj(SceneObj_WorldMapOwner)) {
+            static_cast< WorldMapOwner* >(getSceneObjHolder()->getObj(SceneObj_WorldMapOwner))->killCounters();
         }
     }
 

@@ -1,3 +1,7 @@
+#include "Game/LiveActor/DemoObj.hpp"
+#include "Game/System/GameDataConst.hpp"
+#include "Game/Util/GravityUtil.hpp"
+#include "Game/Util/BgmUtil.hpp"
 #include "Game/Demo/StarReturnDemoStarter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Demo/ReturnDemoRailMove.hpp"
@@ -42,7 +46,6 @@ namespace {
     const char* const cDemoWaitPartName = "ウェイト";
 };  // namespace
 
-// NONMATCHING (not restored): init/appear/exeMove need GameSequenceFunction::isGrandStarAtResultSequence (no def in src)
 
 namespace NrvStarReturnDemoStarter {
     NEW_NERVE(StarReturnDemoStarterNrvAppearWait, StarReturnDemoStarter, AppearWait);
@@ -58,7 +61,7 @@ namespace NrvStarReturnDemoStarter {
 };  // namespace NrvStarReturnDemoStarter
 
 StarReturnDemoStarter::StarReturnDemoStarter(const char* pName)
-    : LiveActor(pName), mReturnDemoRailMove(), mStageResultInformer(), mPosition(gZeroVec), mPowerStar(), mLuma(), mHair(), mFrame() {
+    : LiveActor(pName), mReturnDemoRailMove(), mStageResultInformer(), mPosition(gZeroVec), mFallGravity(0.0f, -1.0f, 0.0f), mPowerStar(), mLuma() {
     mTransform.identity();
 }
 
@@ -68,9 +71,6 @@ void StarReturnDemoStarter::kill() {
     LiveActor::kill();
     mLuma->kill();
 
-    if (mHair != nullptr) {
-        mHair->kill();
-    }
 
     if (MR::isDrawSpinDriverPathAtOpa()) {
         MR::offDrawSpinDriverPathAtOpa();
@@ -103,17 +103,11 @@ void StarReturnDemoStarter::tryRegisterDemo(const char* pDemoName, const JMapInf
         MR::tryRegisterDemoCast(mPowerStar, pDemoName, rIter);
         MR::tryRegisterDemoCast(mLuma, pDemoName, rIter);
 
-        if (mHair != nullptr) {
-            MR::tryRegisterDemoCast(mHair, pDemoName, rIter);
-        }
     }
 }
 
 
 
-const char* playerAnimName() {
-    return MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart";
-}
 
 void StarReturnDemoStarter::exeAppearWait() {
     if (MR::isFirstStep(this)) {
@@ -121,9 +115,6 @@ void StarReturnDemoStarter::exeAppearWait() {
         mPowerStar->appear();
         MR::hideModelAndOnCalcAnim(mPowerStar);
 
-        if (MR::isEqualStageName("AstroGalaxy")) {
-            MR::startStageBGM("MBGM_GALAXY_24", false);
-        }
     }
 
     if (MR::isStep(this, ::cDemoAppearEffectStep)) {
@@ -164,13 +155,14 @@ void StarReturnDemoStarter::exeFlyWaitGrandStar() {
 
     PowerStar::requestPointLightAtResultSequence(mPowerStar);
 
-    if (MR::isLessStep(this, MR::getBckFrameMaxPlayer("ResultFlyGrandStarEnd") - mReturnDemoRailMove->getDemoFlyBrakeFrame())) {
+    if (MR::isLessStep(this, static_cast< s16 >(MR::getBckFrameMaxPlayer("ResultFlyGrandStarEnd")) - mReturnDemoRailMove->getDemoFlyBrakeFrame())) {
         MR::startActionSound(mPowerStar, "OjLvRetPowStarFly");
     }
 
     if (MR::isBckOneTimeAndStoppedPlayer()) {
-        MR::startBckPlayer("ResultFlyGrandStarFlyAway");
+        MR::startBckPlayer("ResultFlyGrandStarFlyAway", nullptr);
         MR::startAction(mPowerStar, "ResultFlyGrandStarFlyAway");
+        MR::startActionSound(mPowerStar, "OjGrandStarEscape");
         MR::shakeCameraWeak();
         MR::tryRumblePadWeak(this, WPAD_CHAN0);
     }
@@ -183,36 +175,24 @@ void StarReturnDemoStarter::exeFlyWaitGrandStar() {
 
 void StarReturnDemoStarter::exeLand() {
     if (MR::isFirstStep(this)) {
-        MR::startBckPlayer("Land");
+        MR::startBckPlayer("Land", nullptr);
+        MR::tryRumblePadMiddle(this, 0);
     }
-
     if (MR::isBckStoppedPlayer()) {
-        LiveActor* lumaModel = mLuma;
-        lumaModel->appear();
-        MR::startAllAnim(lumaModel, playerAnimName());
-
-        LiveActor* hairModel = mHair;
-        if (hairModel != nullptr) {
-            hairModel->appear();
-            MR::startAllAnim(hairModel, playerAnimName());
-        }
-
+        LiveActor* luma = mLuma;
+        luma->appear();
+        MR::startAction(luma, MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
         setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvWait));
     }
 }
 
 void StarReturnDemoStarter::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::startBckPlayer(playerAnimName());
-
-        mFrame = 0;
-
-        if (MR::isEqualStageName("AstroGalaxy")) {
-            MR::stopStageBGM(90);
-        }
+        MR::changePlayerAnimationAndBva(MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
     }
-
-    tryStartResultWait();
+    if (MR::isBckOneTimeAndStoppedPlayer()) {
+        MR::startBckPlayer("ResultWait", nullptr);
+    }
     tryStartStageResult();
 }
 
@@ -231,14 +211,10 @@ void StarReturnDemoStarter::exeStageResultAfter() {
     if (MR::isFirstStep(this)) {
         mReturnDemoRailMove->offPathDraw();
         MR::resumeTimeKeepDemo(this);
-
-        if (MR::isEqualStageName("AstroGalaxy")) {
-            MR::startCurrentStageBGM();
-            MR::overlayWithPreviousScreen(::cOverlayFrame);
-            MR::endStartPosCamera();
-        }
+        MR::startCurrentStageBGM(false);
+        MR::overlayWithPreviousScreen(3);
+        MR::endStartPosCamera();
     }
-
     if (!MR::isTimeKeepDemoActive()) {
         kill();
     }
@@ -256,14 +232,101 @@ void StarReturnDemoStarter::tryStartStageResult() {
     }
 }
 
-// NONMATCHING (not restored): exeFall needs MR::startSoundPlayer(const char*) (1-arg); PlayerUtil.hpp only declares (const char*, s32, s32)
 
 void StarReturnDemoStarter::exeStageResult() {
-    tryStartResultWait();
-
+    if (MR::isBckOneTimeAndStoppedPlayer()) {
+        MR::startBckPlayer("ResultWait", nullptr);
+    }
     if (MR::isDead(mStageResultInformer) && MR::isEqualStringCase(MR::getPlayerCurrentBckName(), "ResultWait")) {
-        GameSequenceFunction::hasNextDemoForStorySequenceEvent() ?
-            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFadeOut)) :
+        if (GameSequenceFunction::isMarioFaceShipEventEmpty() && !MR::isWipeBlank()) {
+            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFadeOut));
+        } else {
             setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResultAfter));
+        }
     }
 }
+
+// NONMATCHING: regalloc and string pool order
+void StarReturnDemoStarter::init(const JMapInfoIter& rIter) {
+    MR::initDefaultPos(this, rIter);
+    MR::connectToSceneMapObjMovement(this);
+    MR::invalidateClipping(this);
+    mStageResultInformer = new StageResultInformer();
+    mStageResultInformer->initWithoutIter();
+    TPos3f* mtx = &mTransform;
+    bool grandStar = GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId());
+    mPowerStar = MR::createDemoObj("スターモデル", grandStar ? "GrandStar" : "PowerStar", "Demo", *mtx);
+    mPowerStar->kill();
+    mLuma = createSubModel("チコモデル", "SpinTico", false);
+    mReturnDemoRailMove = new ReturnDemoRailMove(this, mPowerStar, rIter,
+        GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()), &mTransform);
+    tryRegisterDemo("グランドスター帰還[２回目以降]", rIter);
+    tryRegisterDemo("パワースター帰還", rIter);
+    tryRegisterDemo("パワースター帰還[NPC紹介]", rIter);
+    tryRegisterDemo("パワースター帰還[アイテム惑星]", rIter);
+    tryRegisterDemo("パワースター帰還[初回]", rIter);
+    initNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvAppearWait), 0);
+    makeActorDead();
+}
+
+void StarReturnDemoStarter::appear() {
+    LiveActor::appear();
+    mReturnDemoRailMove->posToStart();
+    PowerStar::setupColorAtResultSequence(mPowerStar,
+        GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()));
+    if (MR::isDemoActive("天文ドームスター帰還")) {
+        MR::onDrawSpinDriverPathAtOpa();
+    }
+    setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvAppearWait));
+}
+
+void StarReturnDemoStarter::exeMove() {
+    if (MR::isFirstStep(this)) {
+        MR::showPlayer();
+        MR::showModel(mPowerStar);
+        mReturnDemoRailMove->start();
+    }
+    const char* part = cDemoMovePartName;
+    s32 step = MR::getDemoPartStep(part) - 44;
+    s32 total = MR::getDemoPartTotalStep(part) - 45;
+    mReturnDemoRailMove->update(step, total);
+    PowerStar::requestPointLightAtResultSequence(mPowerStar);
+    MR::startLevelSoundPlayer("SE_PM_LV_SPIN_DRV_FLY", -1);
+    if (MR::isDemoPartLastStep(part)) {
+        bool grandStar = GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId());
+        setNerve(grandStar ? static_cast< const Nerve* >(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFlyWaitGrandStar))
+                          : GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFlyWaitPowerStar));
+    }
+}
+
+// NONMATCHING: vector operation scheduling
+void StarReturnDemoStarter::exeFall() {
+    TVec3f pos;
+    pos.set< f32 >(mTransform.mMtx[0][3], mTransform.mMtx[1][3], mTransform.mMtx[2][3]);
+    if (MR::isFirstStep(this)) {
+        MR::startSoundPlayer("SE_PV_DM_ASTRO_RET_LANDING", -1, -1);
+        MR::startBckPlayer("Fall", nullptr);
+        mPowerStar->kill();
+        MR::calcGravityVector(this, pos, &mFallGravity, nullptr, 0);
+        TVec3f line;
+        line.scale(3000.0f, mFallGravity);
+        MR::getFirstPolyOnLineToMap(&mPosition, nullptr, pos, line);
+    }
+    f32 speed = 1.8f * getNerveStep();
+    speed = speed >= 35.0f ? 35.0f : speed;
+    if (PSVECDistance(&pos, &mPosition) < speed) {
+        pos.x = mPosition.x;
+        pos.y = mPosition.y;
+        pos.z = mPosition.z;
+        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvLand));
+    } else {
+        TVec3f velocity;
+        velocity.scale(speed, mFallGravity);
+        pos += velocity;
+    }
+    mTransform.mMtx[0][3] = pos.x;
+    mTransform.mMtx[1][3] = pos.y;
+    mTransform.mMtx[2][3] = pos.z;
+}
+
+StarReturnDemoStarter::~StarReturnDemoStarter() {}

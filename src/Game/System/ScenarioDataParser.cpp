@@ -54,7 +54,7 @@ s32 ScenarioData::getNormalPowerStarNum() const {
 s32 ScenarioData::getPowerStarNum() const {
     s32 count = 0;
     for (s32 scenarioNo = 1; scenarioNo <= mScenarioData->getNumEntries(); scenarioNo++) {
-        u32 powerStarId = 0;
+        s32 powerStarId = 0;
         getValueU32("PowerStarId", scenarioNo, &powerStarId);
         if (powerStarId != 0) {
             count++;
@@ -73,8 +73,8 @@ bool ScenarioData::getValueString(const char* pKey, s32 idx, const char** pOut) 
     return str;
 }
 
-bool ScenarioData::getValueU32(const char* pKey, s32 idx, u32* pOut) const {
-    return getScenarioDataIter(idx).getValue< u32 >(pKey, pOut);
+bool ScenarioData::getValueU32(const char* pKey, s32 idx, s32* pOut) const {
+    return getScenarioDataIter(idx).getValue< u32 >(pKey, reinterpret_cast< u32* >(pOut));
 }
 
 u32 ScenarioData::getScenarioLayers(const char* pKey, s32 idx) const {

@@ -1,5 +1,6 @@
 #pragma once
 #include <revolution.h>
+#include "Game/Util/Array.hpp"
 
 class NameObj;
 
@@ -24,6 +25,5 @@ public:
     NameObj** mObjs;  // 0x00
     u32 mMaxObjs;     // 0x04
     s32 mObjCount;    // 0x08
-    u8 _C[0x4C - 0xC];
-    u32 _4C;
+    MR::Vector< MR::FixedArray< NameObj*, 16 > > mObjArray2;  // 0x0C
 };

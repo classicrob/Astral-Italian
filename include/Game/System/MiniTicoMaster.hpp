@@ -19,6 +19,9 @@ public:
     bool isPointing();
     bool tryPointTalk();
     void setEffectDrawOrder(s32 order);
+    void startGoMarioPlanet();      // was fn_804E7170
+    void exeGoMarioPlanet();        // was fn_804E7180
+    void setPosOnRoute(f32 t);      // was fn_804E71F0
 
     WorldMapResultWorld* mUnk90; // 0x90
     s32* mUnk94;                 // 0x94 (*mUnk94 is the count)

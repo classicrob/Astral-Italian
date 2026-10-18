@@ -247,6 +247,8 @@ public:
     static void executeMovementList();
     static void executeMovementListOnPlayingMovie();
     static void executeCalcAnimList();
+    static void executeCalcAnimListWithWorldMap();
+    static void executeDrawAfterImageEffect();
     static void executeCalcAnimListOnPlayingMovie();
     static void executeCalcViewAndEntryList();
     static void executeCalcViewAndEntryList2D();
@@ -266,6 +268,7 @@ public:
     static void waitDoneStageFileLoad();
     static void startActorFileLoadCommon();
     static void startActorFileLoadScenario();
+    static void startActorFileLoadPostCreation();
     static void startActorPlacement();
     static void initAfterScenarioSelected();
     static void initForNameObj();
@@ -277,19 +280,27 @@ public:
 
 class CategoryList {
 public:
-    static void execute(MR::MovementType);
-    static void execute(MR::CalcAnimType);
-    static void execute(MR::DrawType);
-    static void entryDrawBuffer2D();
-    static void entryDrawBuffer3D();
-    static void entryDrawBufferMirror();
-    static void drawOpa(MR::DrawBufferType);
-    static void drawXlu(MR::DrawBufferType);
-    static void requestMovementOn(MR::MovementType);
-    static void requestMovementOff(MR::MovementType);
+    static void execute(MR::MovementType) NO_INLINE;
+    static void execute(MR::CalcAnimType) NO_INLINE;
+    static void execute(MR::DrawType) NO_INLINE;
+    static void entryDrawBuffer2D() NO_INLINE;
+    static void entryDrawBuffer3D() NO_INLINE;
+    static void entryDrawBufferMirror() NO_INLINE;
+    static void entryDrawBufferWorldMapBig() NO_INLINE;
+    static void entryDrawBufferWorldMapSmall() NO_INLINE;
+    static void drawOpa(MR::DrawBufferType) NO_INLINE;
+    static void drawXlu(MR::DrawBufferType) NO_INLINE;
+    static void requestMovementOn(MR::MovementType) NO_INLINE;
+    static void requestMovementOff(MR::MovementType) NO_INLINE;
 };
 
 namespace MR {
+    void movementWorldMapBig();
+    void calcAnimWorldMapBig();
+    void entryWorldMapBig();
+    void drawWorldMapBig();
+    void drawWorldMapMiniEffects();
+    void drawWorldMapInfo();
     void movementWorldMapMini();
     void calcAnimWorldMapMini();
     void entryWorldMapMini();

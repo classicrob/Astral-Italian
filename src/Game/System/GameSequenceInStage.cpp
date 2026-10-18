@@ -17,10 +17,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
-extern "C" {
-    void fn_80058C70(s32);
-};
-
 namespace NrvGameSequenceInStage {
     void GameSequenceInStageNrvMissLeft::execute(Spine* pSpine) const {
         reinterpret_cast< GameSequenceInStage* >(pSpine->mExecutor)->exeMissLeft();
@@ -106,7 +102,7 @@ void GameSequenceInStage::exeStart() {
             MR::openSystemWipeWhiteFade(0x5A);
         } else {
             GameSceneFunction::startStagePlayRetry();
-            fn_80058C70(-1);
+            MR::openSystemWipeCircleOnPlayer(-1);
         }
         if (mPlayResultHolder->mPadMode != 0) {
             MR::setStarPointerModeBase();
@@ -132,10 +128,9 @@ void GameSequenceInStage::exeEnd() {
     }
 }
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_804B4360(GameSequenceInStage* pInStage, void*) {
-    pInStage->mIsRetry = false;
-    if (pInStage->mPlayerMissLeft != nullptr) {
-        pInStage->mPlayerMissLeft->kill();
+void GameSequenceInStage::killPlayerMissLeft() {  // was fn_804B4360
+    mIsRetry = false;
+    if (mPlayerMissLeft != nullptr) {
+        mPlayerMissLeft->kill();
     }
 }

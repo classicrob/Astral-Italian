@@ -27,32 +27,10 @@
 #include "Game/System/UserFile.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 
-// Missing from shared include/Game/System/GameSequenceFunction.hpp (defined in its .cpp); local decl only.
-namespace GameSequenceFunction {
-    void restoreUserFile(UserFile*, int);
-    bool isSuccessSaveDataHandleSequence();
-    void startCreateUserFileSequence(int);
-    void startDeleteUserFileSequence(int);
-    void requestChangeStageAfterFileSelect();
-}
-
 namespace MR {
     void startSystemWipeCircleWithCaptureScreen(s32);
 }
 
-namespace StarPointerUtil {
-    bool sub_8005E720(LayoutActor*, bool);
-    void sub_8005E790(LayoutActor*);
-    void sub_8005E940(LayoutActor*);
-    TVec2f* getDefaultButtonOffsetVec2();
-    void addStarPointerMovePositionFromPane(LayoutActor*, const char*, TVec2f*);
-    void setStarPointerMovePosition(const char*, TVec2f*);
-    void setConnectionMovePositionRight2Way(const char*, const char*);
-    void setConnectionMovePositionRight(const char*, const char*);
-    void setConnectionMovePositionDown(const char*, const char*);
-}
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_8005EAE0(const char*, const char*);
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/FileUtil.hpp"
@@ -136,19 +114,6 @@ namespace NrvFileSelector {
 };  // namespace NrvFileSelector
 
 
-void FileSelector_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-}
-
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_803B6830(int);
-extern "C" void fn_80060290();
-extern "C" bool fn_800602A0();
-extern "C" void fn_8024CFE0(FileSelectItem*);
-extern "C" void fn_8024D010(FileSelectItem*);
-extern "C" void fn_804D4700();
-
 FileSelector::FileSelector(const char* pName)
     : LiveActor(pName), mCameraController(), mSky(), mItems(), mOperationButton(), mBackButton(), mSysInfoWindow(), _B0(), _B4(), _B8(), _BC(),
       mUserFile(), _C8(), mTitle(), mMiiSelect(), mMiiId(new RFLCreateID()), mManual(), mIsMiiSelectStartFirst(), mBgmState(), mSelectEffect(),
@@ -192,7 +157,7 @@ void FileSelector::appear() {
 void FileSelector::kill() {
     mBackButton->kill();
     LiveActor::kill();
-    fn_803B6830(nullptr);
+    MarioAccess::endRemoteDemo(nullptr);
 }
 
 void FileSelector::callbackStart() {
@@ -815,7 +780,7 @@ bool FileSelector::isAllOtherFileNew(FileSelectItem* pItem) {
         }
     }
 
-    fn_804D4700();
+    GameDataFunction::resetSysConfigCounters();
     return true;
 }
 
@@ -836,14 +801,6 @@ void FileSelector::playSelectedME() {
     default:
         break;
     }
-}
-
-void FileSelector_FORCE_MATCH() {
-    MR::startSystemME("ME_ASTRO_DOME_CALCEL1");
-    MR::startSystemME("ME_ASTRO_DOME_CALCEL2");
-    MR::startSystemME("ME_ASTRO_DOME_CALCEL3");
-    MR::startSystemME("ME_ASTRO_DOME_CALCEL4");
-    MR::startSystemME("ME_ASTRO_DOME_CALCEL5");
 }
 
 // NONMATCHING: register allocation in the smoothing step
@@ -883,7 +840,7 @@ void FileSelector::updatePointingGuidance() {
     TVec2f pos;
     TVec2f size;
 
-    if (StarPointerUtil::sub_8005E720(reinterpret_cast< LayoutActor* >(this), true)) {
+    if (StarPointerUtil::beginMovePositionRegistration(this, true)) {
         for (int i = 0; i < mItems->getObjNum(); i++) {
             LiveActor* pActor = mItems->getActor(i);
             size.x = 0.0f;
@@ -912,11 +869,11 @@ void FileSelector::updatePointingGuidance() {
         StarPointerUtil::setStarPointerMovePosition(pActor->mName, &screenPos);
     }
 
-    StarPointerUtil::sub_8005E790(reinterpret_cast< LayoutActor* >(this));
+    StarPointerUtil::endMovePositionRegistration(this);
 }
 
 void FileSelector::updatePointingGuidanceSelect() {
-    if (StarPointerUtil::sub_8005E720(reinterpret_cast< LayoutActor* >(this), true)) {
+    if (StarPointerUtil::beginMovePositionRegistration(this, true)) {
         StarPointerUtil::addStarPointerMovePositionFromPane(mBackButton, "BoxButton", StarPointerUtil::getDefaultButtonOffsetVec2());
         StarPointerUtil::addStarPointerMovePositionFromPane(mOperationButton, "PicMii", StarPointerUtil::getDefaultButtonOffsetVec2());
         StarPointerUtil::addStarPointerMovePositionFromPane(mOperationButton, "PicDelete", StarPointerUtil::getDefaultButtonOffsetVec2());
@@ -925,12 +882,12 @@ void FileSelector::updatePointingGuidanceSelect() {
         StarPointerUtil::setConnectionMovePositionDown("PicDelete", "BoxStartButton");
         StarPointerUtil::setConnectionMovePositionRight("PicMii", "PicDelete");
         StarPointerUtil::setConnectionMovePositionRight("BoxButton", "BoxStartButton");
-        fn_8005EAE0("BoxButton", "BoxStartButton");
+        StarPointerUtil::setFirstAndLastMovePosition("BoxButton", "BoxStartButton");
     }
 
-    StarPointerUtil::sub_8005E940(mBackButton);
-    StarPointerUtil::sub_8005E940(mOperationButton);
-    StarPointerUtil::sub_8005E790(reinterpret_cast< LayoutActor* >(this));
+    StarPointerUtil::refreshMovePositionsFromLayout(mBackButton);
+    StarPointerUtil::refreshMovePositionsFromLayout(mOperationButton);
+    StarPointerUtil::endMovePositionRegistration(this);
 }
 
 void FileSelector::exeTitle() {
@@ -939,7 +896,7 @@ void FileSelector::exeTitle() {
         MR::deactivateDefaultGameLayout();
         MR::startStarPointerModeTitle(this);
         MR::resetCameraMan();
-        fn_80060290();
+        MR::requestLoadStationedArchiveOthers();
         _F8 = false;
     }
 
@@ -980,7 +937,7 @@ void FileSelector::exeTitleEnd() {
         updateChildObjs();
     }
 
-    if (mCameraController->isAtFarPoint() && fn_800602A0()) {
+    if (mCameraController->isAtFarPoint() && MR::isEndStationedArchiveLoader()) {
         validateRotateAllItems();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));
     }
@@ -1054,7 +1011,7 @@ void FileSelector::exeFileConfirmStart() {
         invalidateSelectAll();
         disappearAllIndex();
         _B0->turnToFront(40);
-        fn_8024CFE0(_B0);
+        _B0->invalidateRotate();
     }
 
     if (mCameraController->isAtNearPoint()) {
@@ -1113,7 +1070,7 @@ void FileSelector::exeFileConfirm() {
         }
 
         mFileInfo->slide();
-        fn_8024D010(_B0);
+        _B0->requestRotateRefresh();
     }
 
     if (MR::isStep(this, 90)) {

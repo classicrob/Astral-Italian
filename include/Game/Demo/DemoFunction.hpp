@@ -19,6 +19,7 @@ namespace MR {
 };  // namespace MR
 
 namespace DemoFunction {
+    const char* getCurrentDemoPartNameSub(const char*);
     DemoDirector* getDemoDirector();
     DemoCastGroupHolder* getDemoCastSubGroupHolder();
 
@@ -66,10 +67,8 @@ namespace DemoFunction {
     void pauseTimeKeepDemo(LiveActor*);
     void resumeTimeKeepDemo(LiveActor*);
     bool isPauseTimeKeepDemo(LiveActor*);
-    // PLACEHOLDER(core4): unnamed SMG2 callees used by the DemoUtil tail wrappers; resolve when DemoFunction.cpp names fn_80138B20/fn_80138B90/fn_80139140
-    bool isDemoSubPartActiveFunction(const char*);  // fn_80138B20
-    void resetDemoSubPartFunction();  // fn_80138B90
-    bool isTalkWaitUserInputFunction();  // fn_80139140
+    bool isDemoSubPartActiveFunction(const char*);  // was fn_80138B20 (isDemoSubPartActive__12DemoFunctionFPCc)
+    bool isDemoSubPartLastStep();  // was fn_80138B90
 
     void pauseTimeKeepDemo(const char*);
     void resumeTimeKeepDemo(const char*);

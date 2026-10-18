@@ -29,6 +29,7 @@ u32 VIGetScanMode(void);
 u32 VIGetDTVStatus(void);
 BOOL VIEnableDimming(BOOL);
 u32 VIGetDimmingCount(void);
+u32 VIGetDVDStopMotorCount(void);
 BOOL VIResetDimmingCount();
 
 #ifdef __cplusplus

@@ -27,3 +27,7 @@ namespace SleepControlFunc {
     void addSleepControl(AreaObj*, const JMapInfoIter&);
     void addSleepControl(LiveActor*, const JMapInfoIter&);
 };  // namespace SleepControlFunc
+
+namespace AwakeControlFunc {
+    void initSyncSleepController();
+}

@@ -496,7 +496,6 @@ namespace MR {
         }
     }
 
-    // PLACEHOLDER(core4): SMG2 fn_80061520 sets TalkMessageCtrl byte 0x52 (_SMG2_52); name guessed, rename when the flag is named
     void onTalkSmg2Flag52(TalkMessageCtrl* pCtrl) {
         if (pCtrl != nullptr) {
             pCtrl->_SMG2_52 = true;

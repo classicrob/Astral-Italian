@@ -93,13 +93,12 @@ public:
     AudAudience_withSetting();
 
     void updateSetting();
+    f32 getCameraRate() const NO_INLINE;
 
     u32 calcDeltaPriority_(f32 dist, bool excludeFar, s32 distVolBit) const {
         f32 farDist = distVolBit == 8 ? mSetting.mFarDistance / 2.0f : mSetting.mFarDistance * distVolBit;
 
-        if (mFarCamera) {
-            farDist *= 3.0f;
-        }
+        farDist *= getCameraRate();
 
         if (dist > farDist) {
             if (excludeFar) {
@@ -120,9 +119,7 @@ public:
     f32 calcVolume_(f32 dist, s32 distVolBit) {
         f32 farDist = distVolBit == 8 ? mSetting.mFarDistance / 2.0f : mSetting.mFarDistance * distVolBit;
 
-        if (mFarCamera) {
-            farDist *= 3.0f;
-        }
+        farDist *= getCameraRate();
 
         if (dist > farDist) {
             return mSetting.mMinVolume;
@@ -132,7 +129,7 @@ public:
             return 1.0f;
         }
 
-        f32 volumeRate = distVolBit == 1 ? mVolumeRate : (mSetting.mMinVolume - 1.0f) / (farDist - mSetting.mNearDistance);
+        f32 volumeRate = distVolBit == 1 && !mFarCamera ? mVolumeRate : (mSetting.mMinVolume - 1.0f) / (farDist - mSetting.mNearDistance);
         return MR::clamp(volumeRate * (dist - mSetting.mNearDistance) + 1.0f, 0.0f, 1.0f);
     }
 
@@ -223,7 +220,7 @@ public:
 template < int MAX_CHANNELS, class Audible, class AudienceState, class Audience >
 class AudAudience_ : public Audience {
 public:
-    // SMG2: two audience states (players), independent of MAX_CHANNELS (vtable is still AudAudience_<4,...>)
+    // SMG2 has two listener channels.
     AudAudience_() : Audience(), mMaxChannels(AUDIENCE_STATE_NUM) {
         for (int i = 0; i < AUDIENCE_STATE_NUM; i++) {
             TPos3f mtx;
@@ -431,5 +428,6 @@ public:
         : AudAudience_< MAX_CHANNELS, AudDopplerAudible< MAX_CHANNELS >, AudDopplerAudienceState, AudAudience_withSetting_doppler >() {
 
           };
+    ~AudAudience() {}
     /* 0x1A8 */  // AudDopplerAudible< MAX_CHANNELS >* mAudible;
 };

@@ -3,21 +3,11 @@
 #include "Game/Util.hpp"
 
 extern "C" void* __nw__FUl(u32);
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void* fn_80095530(void*, BellyDragon*, const char*, const f32*);
-extern "C" void fn_800955C0(void*);
 extern "C" const char lbl_8066C858[];
 extern "C" const f32 lbl_807D76F4;
 extern "C" const f32 lbl_807D76F8;
 extern "C" const f32 lbl_807D76FC;
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" void fn_80093810(BellyDragon*);
-extern "C" void fn_80093B10(BellyDragon*);
-extern "C" void fn_80093B20(BellyDragon*);
-extern "C" void fn_800938E0(BellyDragon*, s32);
-extern "C" void fn_800951D0(BellyDragonArm*, HitSensor*, HitSensor*);
-extern "C" bool fn_80095260(BellyDragonArm*, u32, HitSensor*, HitSensor*);
 
 namespace NrvBellyDragon {
     NEW_NERVE(BellyDragonNrvStart, BellyDragon, Start);
@@ -34,8 +24,7 @@ namespace NrvBellyDragon {
     BellyDragonNrvEnd BellyDragonNrvEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBellyDragon
 
-// PLACEHOLDER(core): fn_8008EDA0 is a C++ (non-extern "C") function in SMG2 (symbol fn_8008EDA0__FP9LiveActor); resolve when named
-bool fn_8008EDA0(LiveActor* pActor) {
+bool isAttackNerve(LiveActor* pActor) {
     return pActor->isNerve(&NrvBellyDragon::BellyDragonNrvAttack::sInstance);
 }
 
@@ -55,20 +44,17 @@ void BellyDragon::init(const JMapInfoIter& rIter) {
     mArmA = new BellyDragonArm(this, 1);
     mArmB = new BellyDragonArm(this, 0);
 
-    void* pMem = __nw__FUl(0x1C);
-    void* pStateA = pMem ? fn_80095530(pMem, this, lbl_8066C858 + 0x10, &lbl_807D76F4) : NULL;
-    static_cast<BellyDragonState*>(pStateA)->setOverlay();
-    pMem = __nw__FUl(0x1C);
-    void* pStateB = pMem ? fn_80095530(pMem, this, lbl_8066C858 + 0x20, &lbl_807D76F8) : NULL;
-    pMem = __nw__FUl(0x1C);
-    void* pStateC = pMem ? fn_80095530(pMem, this, lbl_8066C858 + 0x2C, &lbl_807D76F8) : NULL;
-    fn_800955C0(pStateC);
+    BellyDragonState* pStateA = new BellyDragonState(this, lbl_8066C858 + 0x10, &lbl_807D76F4);
+    pStateA->setOverlay();
+    BellyDragonState* pStateB = new BellyDragonState(this, lbl_8066C858 + 0x20, &lbl_807D76F8);
+    BellyDragonState* pStateC = new BellyDragonState(this, lbl_8066C858 + 0x2C, &lbl_807D76F8);
+    pStateC->clearActive();
 
-    MR::initActorState(this, (ActorStateBaseInterface*)pStateA, &NrvBellyDragon::BellyDragonNrvStart::sInstance, lbl_8066C858 + 0x10);
+    MR::initActorState(this, pStateA, &NrvBellyDragon::BellyDragonNrvStart::sInstance, lbl_8066C858 + 0x10);
     MR::initActorState(this, (ActorStateBaseInterface*)mArmA, &NrvBellyDragon::BellyDragonNrvFire::sInstance, lbl_8066C858 + 0x3C);
-    MR::initActorState(this, (ActorStateBaseInterface*)pStateB, &NrvBellyDragon::BellyDragonNrvShot::sInstance, lbl_8066C858 + 0x20);
+    MR::initActorState(this, pStateB, &NrvBellyDragon::BellyDragonNrvShot::sInstance, lbl_8066C858 + 0x20);
     MR::initActorState(this, (ActorStateBaseInterface*)mArmB, &NrvBellyDragon::BellyDragonNrvAttack::sInstance, lbl_8066C858 + 0x48);
-    MR::initActorState(this, (ActorStateBaseInterface*)pStateC, &NrvBellyDragon::BellyDragonNrvEnd::sInstance, lbl_8066C858 + 0x2C);
+    MR::initActorState(this, pStateC, &NrvBellyDragon::BellyDragonNrvEnd::sInstance, lbl_8066C858 + 0x2C);
     MR::declarePowerStar(this);
 
     if (MR::tryRegisterDemoCast(this, rIter)) {
@@ -120,7 +106,7 @@ void BellyDragon::appear() {
 
 void BellyDragon::kill() {
     mBody->kill();
-    fn_80093810(this);
+    BellyDragonUtil::killWeakPoints(this);
     TVec3f pos(0.0f);
     if (MR::tryFindNamePos("グランドスター出現位置", &pos, NULL)) {
         MR::requestAppearPowerStar(this, pos);
@@ -167,7 +153,7 @@ void BellyDragon::exeFire() {
 void BellyDragon::exeShot() {
     if (mIsLv2) {
         if (MR::isStep(this, 0x11D)) {
-            fn_800938E0(this, 1);
+            BellyDragonUtil::appearPodSparks(this, 1);
         }
     }
     if (MR::updateActorState(this)) {
@@ -192,7 +178,7 @@ void NrvBellyDragon::BellyDragonNrvEnd::execute(Spine* pSpine) const {
 }
 
 void BellyDragon::control() {
-    fn_80093B10(this);
+    BellyDragonUtil::updatePodFlameMtx(this);
     mJointCtrl->update();
 }
 
@@ -200,25 +186,25 @@ void BellyDragon::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mBaseMtx);
     mBody->registerJointCallBacks();
     mJointCtrl->setCallBackFunction();
-    fn_80093B20(this);
+    BellyDragonUtil::resetPodFlame(this);
 }
 
 void BellyDragon::attackSensor(HitSensor* pSensorA, HitSensor* pSensorB) {
     if (isNerve(&NrvBellyDragon::BellyDragonNrvFire::sInstance)) {
-        fn_800951D0(mArmA, pSensorA, pSensorB);
+        mArmA->attackSensor(pSensorA, pSensorB);
         return;
     }
     if (isNerve(&NrvBellyDragon::BellyDragonNrvAttack::sInstance)) {
-        fn_800951D0(mArmB, pSensorA, pSensorB);
+        mArmB->attackSensor(pSensorA, pSensorB);
     }
 }
 
 bool BellyDragon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSensorA, HitSensor* pSensorB) {
     if (isNerve(&NrvBellyDragon::BellyDragonNrvFire::sInstance)) {
-        return fn_80095260(mArmA, msg, pSensorA, pSensorB);
+        return mArmA->receiveMessage(msg, pSensorA, pSensorB);
     }
     if (isNerve(&NrvBellyDragon::BellyDragonNrvAttack::sInstance)) {
-        return fn_80095260(mArmB, msg, pSensorA, pSensorB);
+        return mArmB->receiveMessage(msg, pSensorA, pSensorB);
     }
     return false;
 }

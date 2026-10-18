@@ -49,6 +49,8 @@ public:
     void exeCheckEnableToCreate();
     void exeSaveConfirm();
     void exeSave();
+    void exeWaitSaveData();
+    void exePreLoadBanner();
     void exeSaveWindowDisappear();
     void exeSaveDoneKeyWait();
     void exeSaveAllWithoutKeyWait();
@@ -64,7 +66,7 @@ public:
     UserFile* getBackupUserFile();
     void restoreUserFileConfigData(UserFile*, int);
     void restoreUserFileGameData(UserFile*, int);
-    void restoreSysConfigFile(SysConfigFile*);
+    void restoreSysConfigFile();
     bool trySave(bool*, const Nerve*);
     void prepareSaveAll(bool);  // SMG2 fn_804DAC30
     void startLoadUserFile(int);  // SMG2 fn_804D9CE0

@@ -8,9 +8,6 @@
 #include "Game/Screen/GalaxyConfirmLayout.hpp"
 #include "Game/System/WorldMapResultStateTicoRouteCreate.hpp"
 
-extern "C" {
-    void fn_804E7170(MiniTicoMaster*);
-}
 
 namespace MR {
     void setImageEffectControlAuto();
@@ -115,7 +112,7 @@ void WorldMapResultStateTicoRouteCreate::exeWait() {
 void WorldMapResultStateTicoRouteCreate::exeReturn() {
     if (MR::isFirstStep(this)) {
         mHost->startDemo();
-        fn_804E7170(mTicoCreator);
+        mTicoCreator->startGoMarioPlanet();
         MR::hidePlayer();
     }
 

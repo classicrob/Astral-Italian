@@ -126,7 +126,6 @@ namespace MR {
         }
     }
 
-    // PLACEHOLDER(core): semantic name unknown; stores into AudBgmMgr::_954. Resolve when fn_8001AFB0 callers are named.
     void setBgmMgr954(s32 param1) {
         AudWrap::getBgmMgr()->_954 = param1;
     }
@@ -243,7 +242,6 @@ namespace MR {
         return -1;
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001B3E0); used by EarthenPipe.
     void getStageBgmJMapArgs(s32* pArg4, s32* pArg5, const JMapInfoIter& rIter) {
         getJMapInfoArg4NoInit(rIter, pArg4);
         getJMapInfoArg5NoInit(rIter, pArg5);
@@ -439,7 +437,6 @@ namespace MR {
         }
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001BB90).
     void stopStageBGMImmediately() {
         AudBgm* pStageBgm = AudWrap::getStageBgm();
 
@@ -533,26 +530,22 @@ namespace MR {
         AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName), true, -1);
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001BF50).
     void startGrandStarReturnBGMIfNotUnlocked() {
         if (unlockStageBGM() == 0) {
             AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(getGrandStarReturnBGMName()), false, -1);
         }
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001BFA0).
     void startFirstAstroStageBgm() {
         AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID("STM_SMG2_FIRST_ASTRO2"), true, -1);
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001BFE0).
     void startEmptyNameBGMIfNotUnlocked() {
         if (unlockStageBGM() == 0) {
             AudWrap::startStageBgm(AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(""), false, -1);
         }
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001C030).
     void stopStageAndSubBGM(u32 param1) {
         AudBgm* pStageBgm = AudWrap::getStageBgm();
 

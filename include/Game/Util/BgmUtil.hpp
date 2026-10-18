@@ -6,6 +6,7 @@ class JAISoundHandle;
 class JMapInfoIter;
 
 namespace MR {
+    void moveStageBGMTrackVolume(s32, f32, u32);
     u32 getCurrentStageBgmId();
     JAISoundHandle* startStageBGM(const char*, bool);
     JAISoundHandle* startStageBGM(u32, bool);

@@ -63,7 +63,7 @@ void TwoLegsStateExplosion::exeDemo() {
         }
         MR::forceDeleteEffect(mHost, "Weaken1st");
         MR::forceDeleteEffect(mHost, "Weaken2nd");
-        MR::setPlayerPosAndWait("Weaken3rd");
+        MR::setPlayerPosAndWait("Weaken3rd", false);
     }
     if (MR::isStep(this, 180)) {
         MR::deleteEffect(mHost, "Eye");

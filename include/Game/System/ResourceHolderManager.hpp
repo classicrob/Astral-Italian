@@ -50,6 +50,7 @@ public:
     LayoutHolder* createAndAddLayoutHolderStationed(const char*);
     LayoutHolder* createAndAddLayoutHolderRawData(const char*);
     void removeIfIsEqualHeap(JKRHeap*);
+    void clearResourceHolderSceneData();
     static void startCreateResourceHolderOnMainThread(const char*, CreateResourceHolderArgs*);
     static void startCreateLayoutHolderOnMainThread(const char*, CreateResourceHolderArgs*);
 

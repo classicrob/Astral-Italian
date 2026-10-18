@@ -10,6 +10,11 @@ class NameObj;
 class GameSystemSceneController;
 
 namespace MR {
+    bool isUseStageAudioEffect();
+    bool isUseWorldMapHeapForGalaxy(const char*, const char*, s32);
+    u32 getFileCacheSizeForGalaxy(const char*, const char*, s32);
+    bool isPlayerArchiveChangePending();
+    void getDreamerPadData(void**, s32*);
     bool isStageMarioFaceShipNormal();
     s32 getCurrentScenarioNo();
     s32 getCurrentSelectedScenarioNo();
@@ -68,6 +73,7 @@ namespace MR {
     bool isStageKoopaVs3();
     bool isStageScoreAttack();
     bool isStagePlayStarChance(s32);
+    bool isTimerSwitchingPlatformGalaxyPowerStarAppeared();  // was fn_80056EB0
     bool isStageEpilogueDemo();
     bool isStageStaffRoll();
     bool isBeginScenarioStarter();

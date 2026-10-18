@@ -60,7 +60,7 @@ void KoopaJrCastleStateOpening::exe800D6E90() {
         mHost->mBody->onFlagF6();
         appearFireBar();
     }
-    if (MR::isDemoLastStep()) MR::setPlayerPosAndWait("\x83\x7d\x83\x8a\x83\x49\x88\xca\x92\x75[\x83\x66\x83\x82\x8c\xe3]");
+    if (MR::isDemoLastStep()) MR::setPlayerPosAndWait("\x83\x7d\x83\x8a\x83\x49\x88\xca\x92\x75[\x83\x66\x83\x82\x8c\xe3]", false);
     if (tryEndDemo("\x83\x4e\x83\x62\x83\x70Jr\x83\x4c\x83\x83\x83\x62\x83\x58\x83\x8b\x93\x6f\x8f\xea", "DemoOpeningKoopaJrCastle", false)) {
         MR::overlayWithPreviousScreen(8);
         mHost->mBody->onFlagF6();

@@ -24,13 +24,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees; resolve when GameSequenceFunction/DemoUtil/SystemUtil/WiiMessageBoardMailSenderState name them
-extern "C" {
-    void* fn_8001FD30(void*, const char*);
-    void fn_8001FEB0(void*, void*, const char*, const Nerve*, s32);
-    void fn_804B4360(void*, void*);
-};
-
 namespace NrvGameSequence {
     void GameSequenceNrvSystemStart::execute(Spine* pSpine) const {
         MR::updateActorState(static_cast< NerveExecutor* >(pSpine->mExecutor));
@@ -108,7 +101,7 @@ void GameSequence::setEnding() {
 }
 
 void GameSequence::cleanupInGame() {
-    fn_804B4360(mInGame->mInStage, mInGame);
+    mInGame->mInStage->killPlayerMissLeft();
     mEnding->killMessage();
 }
 

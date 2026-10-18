@@ -105,7 +105,7 @@ public:
     void exeGameOverNoDemo();
     const TVec3f& fn_803B8520();
     u32 fn_803B89E0();
-    void fn_803B8A80();
+    bool fn_803B8A80();
     s32 fn_803B8DE0();
     u8* fn_803B8FE0();
     u8* fn_803B9020();

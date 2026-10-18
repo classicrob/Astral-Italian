@@ -121,7 +121,6 @@ namespace MR {
     }
 
 
-    // PLACEHOLDER(core4): SMG2 fn_80008740; name guessed from the startXxxIfExist calls
     bool startAnimIfExistAll(const LiveActor* pActor, const char* pName) {
         bool isStarted = false;
 
@@ -464,7 +463,6 @@ namespace MR {
         return pActor->mModelManager->getBckCtrl()->checkPass(f) == 1;
     }
 
-    // PLACEHOLDER(core4): SMG2 fn_8000A320 (stops every non-Bck anim track and zeroes the Bck frame rate); name guessed
     void stopAllAnim(LiveActor* pActor) {
         if (pActor->mModelManager != nullptr) {
             if (getPlayingBckName(pActor) != nullptr) {
@@ -823,7 +821,6 @@ namespace MR {
         return isBvaPlayingIfExist(pActor, pName);
     }
 
-    // PLACEHOLDER(core4): SMG2 fn_80009570; loops changeTrackWeight over the 4 track weights
     void changeTrackWeights(const LiveActor* pActor, const f32* pWeights) {
         XanimePlayer* pPlayer = pActor->mModelManager->mXanimePlayer;
         for (u32 i = 0; i < 4; i++) {
@@ -831,7 +828,6 @@ namespace MR {
         }
     }
 
-    // PLACEHOLDER(core4): SMG2 fn_800095D0; packs three weights (fourth is 0) and forwards to changeTrackWeights
     void setTrackWeights(const LiveActor* pActor, f32 w0, f32 w1, f32 w2) {
         f32 weights[4] = {};
         weights[0] = w0;

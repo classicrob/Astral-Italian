@@ -297,7 +297,7 @@ namespace MR {
 
 namespace MR {
     void setRaceBestTime(int, u32);
-    s32 getGalaxyStarTotalNum(const char* pGalaxyName);
+    bool getGalaxyStarTotalNum(const char* pGalaxyName);
 };  // namespace MR
 
 namespace MR {
@@ -307,7 +307,6 @@ namespace MR {
 namespace MR { bool isPendingNormalEndingDemo(); bool isPending120StarEndingDemo(); }
 
 namespace MR {
-    // PLACEHOLDER(core): unnamed fn_80024FB0 / fn_80025030 / fn_80025260 / fn_800252C0 / fn_80025320 / fn_80025380; names are guesses from callers, resolve when the owners are named
     bool isAnyGalaxyAvailableWithStars();
     bool isPowerStarNumWorld3Enough();
     bool isPostmanTaskInProgressAtStage(const char* pStageName, s32 taskId);

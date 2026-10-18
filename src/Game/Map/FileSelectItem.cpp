@@ -277,9 +277,19 @@ void FileSelectItem::validateRotate() {
     mIsInvalidRotate = false;
 }
 
+void FileSelectItem::invalidateRotate() {
+    mIsInvalidRotate = true;
+    _154 = 1;
+    _160 = 0.0f;
+}
+
 void FileSelectItem::turnToFront(s32 angle) {
     _168 = angle;
     _16C = 0;
+}
+
+void FileSelectItem::requestRotateRefresh() {
+    _154 = 1;
 }
 
 void FileSelectItem::setPlanetColor() {

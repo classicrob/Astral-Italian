@@ -12,7 +12,7 @@ public:
     bool isPointing(const TVec2f&, f32, f32) const;
     void calcPosition(TVec3f*) const;
     f32 calcRadius2d(f32, f32, f32) const;
-    bool calcScreenPositionFromView(TVec2f*, const TVec3f&) const;
+    bool calcScreenPositionFromView(TVec2f*, const TVec3f&, f32) const;
 
     /* 0x00 */ f32 mRadius3d;
     /* 0x04 */ TVec3f mOffset;

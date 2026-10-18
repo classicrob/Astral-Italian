@@ -27,6 +27,7 @@ void BombTimerLayout::init(const JMapInfoIter& rIter) {
 }
 
 void BombTimerLayout::appear() {
+    MR::startAnimAndSetFrameAndStop(this, "Appear", 0.0f, 0);
     mFrame = 0;
 
     LayoutActor::appear();

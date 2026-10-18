@@ -169,10 +169,10 @@ namespace nw4r {
     namespace ut {
         template <>
         f32 TextWriterBase< wchar_t >::PrintImpl(StreamType str, int length, bool adjustBaseline) {
-            NW4R_POINTER_ASSERT_AT(271, this);
-            NW4R_POINTER_ASSERT_AT(272, str);
-            NW4R_POINTER_ASSERT_AT(273, GetFont());
-            NW4R_MIN_ASSERT_AT(274, length, 0);
+            NW4R_POINTER_ASSERT_AT(273, this);
+            NW4R_POINTER_ASSERT_AT(274, str);
+            NW4R_POINTER_ASSERT_AT(275, GetFont());
+            NW4R_MIN_ASSERT_AT(276, length, 0);
 
             f32 xOrigin = GetCursorX();
             f32 yOrigin = GetCursorY();
@@ -230,7 +230,7 @@ namespace nw4r {
                     operation = mTagProcessor->Process(code, &context);
 
                     if (operation == TagProcessor::OPERATION_NEXT_LINE) {
-                        NW4R_POINTER_ASSERT_AT(341, context.str);
+                        NW4R_POINTER_ASSERT_AT(343, context.str);
 
                         if (IsDrawFlagSet(HORIZONTAL_ALIGN_MASK, HORIZONTAL_ALIGN_CENTER)) {
                             const int remain = length - (context.str - str);
@@ -261,7 +261,7 @@ namespace nw4r {
                         break;
                     }
 
-                    NW4R_POINTER_ASSERT_AT(386, context.str);
+                    NW4R_POINTER_ASSERT_AT(388, context.str);
                     reader.Set(context.str);
                 } else
 

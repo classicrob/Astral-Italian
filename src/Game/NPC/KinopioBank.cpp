@@ -174,7 +174,8 @@ bool KinopioBank::eventFunc(u32 id) {
         s32 interest=MR::isOnGameEventFlagKinopioBankAtFirst()?GameDataFunction::getBankInterest():100;
         GameDataFunction::setBankedStarPieceNum(GameDataFunction::getBankedStarPieceNum()+interest);
         GameDataFunction::clearKinopioBankInterest();
-        MR::setMessageArg(mMsgCtrl,GameDataFunction::getBankedStarPieceNum());
+        TalkMessageCtrl* ctrl = mMsgCtrl;
+        MR::setMessageArg(ctrl,GameDataFunction::getBankedStarPieceNum());
         if(!MR::isOnGameEventFlagKinopioBankAtFirst()) MR::onGameEventFlagKinopioBankAtFirst();
         return true;
     }
@@ -183,7 +184,7 @@ bool KinopioBank::eventFunc(u32 id) {
         if(!isNerve(&NrvKinopioBank::StarPieceWait::sInstance) && !isNerve(&NrvKinopioBank::WaitSelect::sInstance)) setNerve(&NrvKinopioBank::WaitSelect::sInstance);
         return false;
     }
-    if(id==2) { MR::setMessageArg(mMsgCtrl,GameDataFunction::getBankInterest()); return true; }
+    if(id==2) { TalkMessageCtrl* ctrl = mMsgCtrl; MR::setMessageArg(ctrl,GameDataFunction::getBankInterest()); return true; }
     if(id==3) { GameSequenceFunction::setFaceShipSkipBankInfo(); return true; }
     if(id==4) {
         if(!isNerve(&NrvKinopioBank::CountUp::sInstance) && !isNerve(&NrvKinopioBank::Complete::sInstance) && !isNerve(&NrvKinopioBank::End::sInstance)) {

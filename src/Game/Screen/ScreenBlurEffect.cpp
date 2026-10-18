@@ -118,6 +118,6 @@ void ScreenBlurEffect::drawBlur() const {
 void ScreenBlurEffect::captureBlur() const {
     CopyFilterNegater copyFilterNegater = CopyFilterNegater();
 
-    _14->capture(0, 0, GX_TF_RGBA8, false, 0);
+    _14->capture(0, 0, static_cast<GXTexFmt>(_14->getFormat()), false, 0);
     _18->capture(0, 0, GX_TF_Z8, true, 0);
 }

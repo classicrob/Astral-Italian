@@ -30,7 +30,7 @@ bool StarPointerTarget::calcScreenPosition(TVec2f* pScreenPos) const {
     TVec3f worldPos, viewPos;
     calcPosition(&worldPos);
     PSMTXMultVec(MR::getStarPointerViewMtx(), &worldPos, &viewPos);
-    return calcScreenPositionFromView(pScreenPos, viewPos);
+    return calcScreenPositionFromView(pScreenPos, viewPos, calcRadius2d(mRadius3d, 0.0f, -viewPos.z));
 }
 
 bool StarPointerTarget::isPointing(const TVec2f& rPointerPos, f32 zMargin, f32 radiusMargin) const {
@@ -48,7 +48,7 @@ bool StarPointerTarget::isPointing(const TVec2f& rPointerPos, f32 zMargin, f32 r
 
     f32 radius = calcRadius2d(mRadius3d, radiusMargin, -viewPos.z);
     TVec2f screenPos;
-    if (!calcScreenPositionFromView(&screenPos, viewPos)) {
+    if (!calcScreenPositionFromView(&screenPos, viewPos, radius)) {
         return false;
     }
 
@@ -82,14 +82,16 @@ f32 StarPointerTarget::calcRadius2d(f32 radius3d, f32 margin, f32 z) const {
     return radius2d + margin;
 }
 
-bool StarPointerTarget::calcScreenPositionFromView(TVec2f* pScreenPos, const TVec3f& rViewPos) const {
+bool StarPointerTarget::calcScreenPositionFromView(TVec2f* pScreenPos, const TVec3f& rViewPos, f32 radius) const {
     TProj3f mtx;
     mtx.setInline(MR::getStarPointerProjMtx());
     TVec3f pos;
     multProj(mtx, rViewPos, pos);
     pos.y = -pos.y;
 
-    if (1.0f < MR::abs(pos.x) || 1.0f < MR::abs(pos.y)) {
+    f32 marginX = radius / (MR::getScreenWidth() * 0.5f);
+    f32 marginY = radius / (MR::getScreenHeight() * 0.5f);
+    if (1.0f + marginX < MR::abs(pos.x) || 1.0f + marginY < MR::abs(pos.y)) {
         return false;
     }
 

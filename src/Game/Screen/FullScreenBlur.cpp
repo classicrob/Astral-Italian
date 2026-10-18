@@ -29,11 +29,11 @@ namespace MR {
         GXColorS10 color1 = {0, 0, 0, param3};
         GXSetTevColorS10(GX_TEVREG0, color1);
 
-        TDDraw::drawTexture(TVec2f(-param1, -param1), &texture, TVec2f(screenWidth + param1 * 2.0f, 456.0f + param1 * 2.0f));
+        TDDraw::drawTexture(TVec2f(-param1, -param1), &texture, TVec2f(screenWidth + param1 * 2.0f, MR::getScreenHeight() + param1 * 2.0f));
 
         GXColorS10 color2 = {0, 0, 0, param4};
         GXSetTevColorS10(GX_TEVREG0, color2);
-        TDDraw::drawTexture(TVec2f(-param2, -param2), MR::getFullScreenBlurTexture(), TVec2f(screenWidth + param2 * 2.0f, 456.0f + param2 * 2.0f));
+        TDDraw::drawTexture(TVec2f(-param2, -param2), MR::getFullScreenBlurTexture(), TVec2f(screenWidth + param2 * 2.0f, MR::getScreenHeight() + param2 * 2.0f));
         MR::nonFilteredCapture(MR::getFullScreenBlurTexture(), 0, 464);
         MR::loadProjectionMtx();
         MR::loadViewMtx();

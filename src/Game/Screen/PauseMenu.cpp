@@ -247,7 +247,7 @@ void PauseMenu::exeDecided() {
     } else {
         if (_38 != nullptr && _38->mIsSelected) {
             if (_38->isTimingForSelectedSe()) {
-                MR::startSystemSE("SE_SY_FILE_SEL_UPPER_DECIDE");
+                MR::startSystemSE("SE_SY_PAUSE_DECIDE_S_RESULT");
                 MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
             }
 

@@ -32,7 +32,7 @@ void PostFog::captureScreen() const {
     ImageEffectLocalUtil::capture(mDepthTexture, 1, 0, GX_TF_Z16, false, 0);
 }
 
-// NONMATCHING: floating-point register allocation and multiplication operand order differ.
+// NONMATCHING: one floating-point multiplication has commuted operands.
 void PostFog::drawFog(s16 left, s16 top, s16 right, s16 bottom, bool replaceColor) const {
     Mtx44 projection;
     C_MTXOrtho(projection, 0.0f, MR::getFrameBufferHeight(), 0.0f, MR::getFrameBufferWidth(), -10000.0f, 10000.0f);
@@ -71,10 +71,12 @@ void PostFog::drawFog(s16 left, s16 top, s16 right, s16 bottom, bool replaceColo
         nearDepth = mEndDepth / 10000.0f;
         farDepth = mStartDepth / 10000.0f;
     }
-    f32 nearRemainder = 1.0f - nearDepth;
-    f32 farRemainder = 1.0f - farDepth;
-    f32 start = 1.0f - nearRemainder * nearRemainder;
-    f32 end = 1.0f - farRemainder * farRemainder;
+    nearDepth = 1.0f - nearDepth;
+    farDepth = 1.0f - farDepth;
+    nearDepth *= nearDepth;
+    farDepth *= farDepth;
+    f32 start = 1.0f - nearDepth;
+    f32 end = 1.0f - farDepth;
     if (100.0f != MR::getNearZ()) {
         start = MR::convertDepthForProjection(start, 100.0f, 800000.0f, MR::getNearZ(), MR::getFarZ());
         end = MR::convertDepthForProjection(end, 100.0f, 800000.0f, MR::getNearZ(), MR::getFarZ());

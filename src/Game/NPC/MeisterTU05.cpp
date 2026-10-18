@@ -48,9 +48,15 @@ bool MeisterTalkHolder::isGeneralTalkInitiallyEnabled(s32 index) {
     case 0: case 1: return GameSequenceFunction::isTicoFatStarPieceActive();
     case 3: return mStarCount==77;
     case 8: return mStarCount>=100 && !GameDataFunction::isOnGameEventFlag("ルイージプレイ済");
-    case 9: return GameDataFunction::getPlayerMissNum()%19==0 && GameDataFunction::getPlayerMissNum()!=0;
-    case 10: return GameDataFunction::getPlayerMissNum()%13==0 && GameDataFunction::getPlayerMissNum()!=0;
-    case 11: return GameSequenceFunction::hasStageResultSequence() && GameSequenceFunction::getResultMissCount()>=8;
+    case 9:
+        if (GameDataFunction::getPlayerMissNum()%19==0 && GameDataFunction::getPlayerMissNum()!=0) return true;
+        return false;
+    case 10:
+        if (GameDataFunction::getPlayerMissNum()%13==0 && GameDataFunction::getPlayerMissNum()!=0) return true;
+        return false;
+    case 11:
+        if (GameSequenceFunction::hasStageResultSequence() && GameSequenceFunction::getResultMissCount()>=8) return true;
+        return false;
     case 12: return GameSequenceFunction::hasStageResultSequence() && GameSequenceFunction::getResultMissCount()>=4;
     case 14: return GameDataFunction::isOnGameEventFlagEnding120Stars();
     default: return true;
@@ -167,7 +173,8 @@ MeisterTalkHolder::MeisterTalkHolder(Meister* host,const JMapInfoIter& iter,cons
         _30=GameSequenceFunction::getTicoFatStarPieceRequirement();
     }
     if(GameDataFunction::getFaceShipEventGrandStarNo()>0) GameSequenceFunction::clearFaceShipClearedScenariosCount();
-    _38=(GameSequenceFunction::getFaceShipClearedScenariosCount()&1)==0;
+    if ((GameSequenceFunction::getFaceShipClearedScenariosCount()&1)==0) _38=true;
+    else _38=false;
     if(GameSequenceFunction::hasStageResultSequence() && mEventTalkCount==0) GameSequenceFunction::incFaceShipClearedScenariosCount();
 }
 

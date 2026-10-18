@@ -2,12 +2,14 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/FileSelectCameraController.hpp"
+#include "Game/Player/MarioAccess.hpp"
 #include "Game/Map/FileSelectEffect.hpp"
 #include "Game/Map/FileSelectFunc.hpp"
 #include "Game/Map/FileSelectItem.hpp"
 #include "Game/Map/FileSelectItemDelegator.hpp"
 #include "Game/Map/FileSelectSky.hpp"
 #include "Game/NPC/MiiFacePartsHolder.hpp"
+#include "Game/NameObj/NameObjFactory.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Screen/BackButton.hpp"
@@ -26,8 +28,37 @@
 
 // Missing from shared include/Game/System/GameSequenceFunction.hpp (defined in its .cpp); local decl only.
 namespace GameSequenceFunction {
-    void restoreUserFile(UserFile*, int, bool);
+    void restoreUserFile(UserFile*, int);
+    bool isSuccessSaveDataHandleSequence();
+    void startCreateUserFileSequence(int);
+    void startDeleteUserFileSequence(int);
+    void requestChangeStageAfterFileSelect();
 }
+
+namespace GameDataFunction {
+    typedef wchar_t* WideStr;
+    void setUserName(const WideStr);
+}
+
+namespace MR {
+    void startSystemWipeCircleWithCaptureScreen(s32);
+}
+
+namespace StarPointerUtil {
+    bool sub_8005E720(LayoutActor*, bool);
+    void sub_8005E790(LayoutActor*);
+    void sub_8005E940(LayoutActor*);
+    TVec2f* getDefaultButtonOffsetVec2();
+    void addStarPointerMovePosition(const char*, TVec3f*, const TVec3f&);
+    void addStarPointerMovePositionFromPane(LayoutActor*, const char*, TVec2f*);
+    void setStarPointerMovePosition(const char*, TVec2f*);
+    void setConnectionMovePositionRight2Way(const char*, const char*);
+    void setConnectionMovePositionRight(const char*, const char*);
+    void setConnectionMovePositionDown(const char*, const char*);
+}
+extern "C" void fn_8005EA60(const char*);
+extern "C" void fn_8005EAA0(const char*);
+extern "C" void fn_8005EAE0(const char*, const char*);
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/FileUtil.hpp"
@@ -44,31 +75,21 @@ namespace GameSequenceFunction {
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <JSystem/JKernel/JKRMemArchive.hpp>
+#include <cstdio>
 #include <nw4r/ut/ResFont.h>
 
-#define USER_FILE_NUM 6
+#define USER_FILE_NUM 3
 
 namespace {
-    static const f32 sSlopeDegree = 20.0f;
-    static const f32 sItemPosRadius = 5000.0f;
-    static const f32 sSelectEffectOffset = 1000.0f;
-    const char* cLuigiNameMessageID = "System_FileSelect_Icon001";
+    static const s32 sIndexOrder[6] = {1, 2, 3, 4, 5, 6};
     const char* cMarioNameMessageID = "System_FileSelect_Icon000";
-    static s32 sBgmFarState = 5;
-    static u32 sBgmFarStateChangeFrames = 60;
-    static s32 sBgmNearState = 6;
-    static u32 sBgmNearStateChangeFrames = 60;
-    // static _ sThetaOffset = _;
-    // static _ sCreatorOffset = _;
-    static const f32 sItemThetaOffset[USER_FILE_NUM] ATTRIBUTE_ALIGN(4) = {10.0f, -10.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    static const s32 sIndexOrder[USER_FILE_NUM] = {1, 2, 4, 6, 5, 3};
 };  // namespace
 
 namespace {
     inline int getItemArrayIndex(s32 id) {
         const s32* pIndexOrder = sIndexOrder;
 
-        for (int i = 0; i < ARRAY_SIZE(::sIndexOrder); i++) {
+        for (int i = 0; i < USER_FILE_NUM; i++) {
             if (id == pIndexOrder[i]) {
                 return i;
             }
@@ -83,7 +104,6 @@ namespace {
 };  // namespace
 
 namespace NrvFileSelector {
-    NEW_NERVE(FileSelectorNrvWaitBind, FileSelector, WaitBind);
     NEW_NERVE(FileSelectorNrvTitle, FileSelector, Title);
     NEW_NERVE(FileSelectorNrvTitleEnd, FileSelector, TitleEnd);
     NEW_NERVE(FileSelectorNrvRFLError, FileSelector, RFLError);
@@ -101,16 +121,6 @@ namespace NrvFileSelector {
     NEW_NERVE(FileSelectorNrvCreateConfirmStart, FileSelector, CreateConfirmStart);
     NEW_NERVE(FileSelectorNrvCreateConfirm, FileSelector, CreateConfirm);
     NEW_NERVE(FileSelectorNrvCreate, FileSelector, Create);
-    NEW_NERVE(FileSelectorNrvCopyWait, FileSelector, CopyWait);
-    NEW_NERVE(FileSelectorNrvCopySelect, FileSelector, CopySelect);
-    NEW_NERVE(FileSelectorNrvCopyConfirmStart, FileSelector, CopyConfirmStart);
-    NEW_NERVE(FileSelectorNrvCopyConfirm, FileSelector, CopyConfirm);
-    NEW_NERVE(FileSelectorNrvCopySave, FileSelector, CopySave);
-    NEW_NERVE(FileSelectorNrvCopySaveMii, FileSelector, CopySaveMii);
-    NEW_NERVE(FileSelectorNrvCopyDemo, FileSelector, CopyDemo);
-    NEW_NERVE(FileSelectorNrvCopyRejectStart, FileSelector, CopyRejectStart);
-    NEW_NERVE(FileSelectorNrvCopyReject, FileSelector, CopyReject);
-    NEW_NERVE(FileSelectorNrvMiiWait, FileSelector, MiiWait);
     NEW_NERVE(FileSelectorNrvMiiTip, FileSelector, MiiTip);
     NEW_NERVE(FileSelectorNrvMiiSelectStartFirst, FileSelector, MiiSelectStart);
     NEW_NERVE(FileSelectorNrvMiiSelectStart, FileSelector, MiiSelectStart);
@@ -127,36 +137,51 @@ namespace NrvFileSelector {
     NEW_NERVE(FileSelectorNrvDeleteConfirm, FileSelector, DeleteConfirm);
     NEW_NERVE(FileSelectorNrvDelete, FileSelector, Delete);
     NEW_NERVE(FileSelectorNrvDeleteDemo, FileSelector, DeleteDemo);
-    NEW_NERVE(FileSelectorNrvFileBroken, FileSelector, FileBroken);
     NEW_NERVE(FileSelectorNrvManualStart, FileSelector, ManualStart);
     NEW_NERVE(FileSelectorNrvManual, FileSelector, Manual);
 };  // namespace NrvFileSelector
 
+
 void FileSelector_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;
-    (void)PI;
 }
+
+extern "C" void fn_8004B340(NameObj*);
+extern "C" void fn_803B6830(int);
+extern "C" void fn_8045E970(BackButton*);
+extern "C" bool fn_8045E9D0(BackButton*);
+extern "C" void fn_80486AA0();
+extern "C" bool fn_804A2BB0(SysInfoWindow*);
+extern "C" void fn_80486AF0();
+extern "C" void fn_80060290();
+extern "C" bool fn_800602A0();
+extern "C" bool fn_804A54D0(TitleSequenceProduct*);
+extern "C" void fn_8024CFE0(FileSelectItem*);
+extern "C" void fn_8024D010(FileSelectItem*);
+extern "C" void fn_804D5F60(s32, s32, s32*);
+extern "C" void fn_804D5E70(s32);
+extern "C" void fn_804D4700();
+extern "C" void fn_804D3DF0();
 
 FileSelector::FileSelector(const char* pName)
-    : LiveActor(pName), mCameraController(), mSky(), mItems(), mOperationButton(), mBackButton(), mBrosButton(), mInfoMessage(), mSysInfoWindow(),
-      _B4(), _B8(), _BC(), _C0(), mUserFile(), _CC(), mTitle(), mMiiSelect(), mMiiId(new RFLCreateID()), mManual(), mIsMiiSelectStartFirst(),
-      mBgmState(), mSelectEffect() {
+    : LiveActor(pName), mCameraController(), mSky(), mItems(), mOperationButton(), mBackButton(), mSysInfoWindow(), _B0(), _B4(), _B8(), _BC(),
+      mUserFile(), _C8(), mTitle(), mMiiSelect(), mMiiId(new RFLCreateID()), mManual(), mIsMiiSelectStartFirst(), mBgmState(), mSelectEffect(),
+      _EC(), _F0(), _F4(), _F8(), _FC(), _100(), _104() {
 }
 
+// NONMATCHING: the two TVec3f temporaries (sensor offset / sound offset) get swapped stack slots
 void FileSelector::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, MR::MovementType_Environment, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);
+    MR::connectToScene(this, 0x20, -1, -1, -1);
     initHitSensor(1);
-    MR::addHitSensorPriorBinder(this, "body", 8, 500.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorPriorBinder(this, "Body", 8, 500.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    initSound(4, "FileSelector", nullptr, TVec3f(0.0f));
     initUserFileArray();
     MR::invalidateClipping(this);
     createCameraController();
-    createSky();
     createFileItems();
     createOperationButton();
     createBackButton();
-    createBrosButton();
-    createInfoMessage();
     createSysInfoWindow();
     createFileInfo();
     createTitle();
@@ -164,34 +189,44 @@ void FileSelector::init(const JMapInfoIter& rIter) {
     createMiiConfirmIcon();
     createManual();
     createSelectEffect();
-    initNerve(GET_NERVE(FileSelector, FileSelectorNrvWaitBind));
+    initNerve(GET_NERVE(FileSelector, FileSelectorNrvTitle));
     MR::tryRegisterDemoCast(this, rIter);
-#if (VERSION == RMGK01)
-    createMiiFont();
-#endif
+    initChildObjs(rIter);
+    MR::initUseStageSwitchWriteA(this, rIter);
+    _F8 = false;
     appear();
 }
 
 void FileSelector::appear() {
     LiveActor::appear();
-    mCameraController->appear();
-    setNerve(GET_NERVE(FileSelector, FileSelectorNrvWaitBind));
+    MarioAccess::readyRemoteDemo();
+    MR::hidePlayer();
+    setNerve(GET_NERVE(FileSelector, FileSelectorNrvTitle));
 }
 
 void FileSelector::kill() {
     mBackButton->kill();
     LiveActor::kill();
+    fn_803B6830(nullptr);
 }
 
-
+void FileSelector::callbackStart() {
+    setNerve(GET_NERVE(FileSelector, FileSelectorNrvDemoStartWait));
+}
 
 void FileSelector::callbackMii() {
     disappearAllLayout();
     invalidateSelectAll();
-    setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiWait));
+    setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiTip));
 }
 
+void FileSelector::callbackDelete() {
+    setNerve(GET_NERVE(FileSelector, FileSelectorNrvDeleteConfirmStart));
+}
 
+void FileSelector::callbackManual() {
+    setNerve(GET_NERVE(FileSelector, FileSelectorNrvManualStart));
+}
 
 void FileSelector::notifyItem(FileSelectItem* pItem, s32 msg) {
     switch (msg) {
@@ -201,60 +236,35 @@ void FileSelector::notifyItem(FileSelectItem* pItem, s32 msg) {
     case 1:
         onSelect(pItem);
         break;
-    case 2:
-        if (isNerve(GET_NERVE(FileSelector, FileSelectorNrvCopySelect))) {
-            onPoint(pItem);
-        }
-
-        break;
     default:
         break;
     }
 }
 
+// NONMATCHING: register allocation (i/offset/temp pointer registers swapped in the first loop)
 void FileSelector::control() {
-    _C0 = nullptr;
+    _BC = nullptr;
 
     for (int i = 0; i < mItems->getObjNum(); i++) {
         LiveActor* pActor = mItems->getActor(i);
         TVec3f& rPosition = pActor->mPosition;
-        rPosition = _98[i] * 0.05f + rPosition * 0.95f;
+        rPosition = _9C[i] * 0.05f + rPosition * 0.95f;
     }
 
-    TVec3f* pEffectPosition;
-
     for (int i = 0; i < mItems->getObjNum(); i++) {
-        LiveActor* pActor = mItems->getActor(i);
-        pEffectPosition = &mSelectEffect[i].mPosition;
-        pEffectPosition->set(pActor->mPosition + TVec3f(0.0f, ::sSelectEffectOffset, 0.0f));
+        MR::setPosition(&mSelectEffect[i], mItems->getActor(i)->mPosition + TVec3f(0.0f, 1000.0f, 0.0f));
     }
 
     updateBgm();
 }
 
 bool FileSelector::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgAutoRushBegin(msg) && isNerve(GET_NERVE(FileSelector, FileSelectorNrvWaitBind))) {
-        MR::hidePlayer();
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvTitle));
-
-        return true;
-    }
-
-    if (MR::isMsgUpdateBaseMtx(msg)) {
-        TMtx34f baseMtx;
-        baseMtx.identity();
-
-        MR::setPlayerBaseMtx(baseMtx.toMtxPtr());
-
-        return true;
-    }
-
     return false;
 }
 
 void FileSelector::initUserFileArray() {
     mUserFile = new UserFile[USER_FILE_NUM]();
-    _CC = new bool[USER_FILE_NUM];
+    _C8 = new bool[USER_FILE_NUM];
 
     initUserFile();
 }
@@ -264,18 +274,9 @@ void FileSelector::createCameraController() {
     mCameraController->initWithoutIter();
 }
 
-
-namespace {
-    inline FileSelectItem* createFileItem(s32 id) {
-        FileSelectIconID iconId = FileSelectIconID();
-
-        return new FileSelectItem(id, true, iconId, "ファイルセレクトアイテム");
-    }
-};  // namespace
-
 void FileSelector::createFileItems() {
     mItems = new DeriveActorGroup< FileSelectItem >("全ファイルアイテム保持", USER_FILE_NUM);
-    _98 = new TVec3f[USER_FILE_NUM]();
+    _9C = new TVec3f[USER_FILE_NUM]();
 
     calcBasePos(0.0f);
     MR::createSceneObj(SceneObj_MiiFacePartsHolder);
@@ -283,11 +284,10 @@ void FileSelector::createFileItems() {
     FileSelectItemDelegator< FileSelector >* pDelegator = new FileSelectItemDelegator< FileSelector >(this, &FileSelector::notifyItem);
 
     for (int i = 0; i < USER_FILE_NUM; i++) {
-        FileSelectItem* pItem = ::createFileItem(::sIndexOrder[i]);
+        FileSelectItem* pItem = createFileItem(::sIndexOrder[i]);
 
-        pItem->initWithoutIter();
         pItem->setSelectDelegator(pDelegator);
-        pItem->mPosition.set(_98[i]);
+        MR::setPosition(pItem, _9C[i]);
         mItems->registerActor(pItem);
     }
 }
@@ -295,23 +295,26 @@ void FileSelector::createFileItems() {
 void FileSelector::createOperationButton() {
     mOperationButton = new FileSelectButton("FileSelectButton");
     mOperationButton->initWithoutIter();
-    mOperationButton->setCallbackFunctor(MR::Functor(this, &FileSelector::callbackStart), MR::Functor(this, &FileSelector::callbackCopy),
-                                         MR::Functor(this, &FileSelector::callbackMii), MR::Functor(this, &FileSelector::callbackDelete),
-                                         MR::Functor(this, &FileSelector::callbackManual));
+    mOperationButton->setCallbackFunctor(MR::Functor(this, &FileSelector::callbackStart), MR::Functor(this, &FileSelector::callbackMii),
+                                         MR::Functor(this, &FileSelector::callbackDelete), MR::Functor(this, &FileSelector::callbackManual));
 }
 
 void FileSelector::createBackButton() {
-    mBackButton = new BackButton("戻るボタン", false);
+    mBackButton = new BackButtonCancelB("戻るボタン", false);
     mBackButton->initWithoutIter();
-
-    MR::connectToScene(mBackButton, MR::MovementType_Layout, MR::CalcAnimType_Layout, MR::DrawBufferType_None, MR::DrawType_LayoutDecoration);
+    fn_8045E970(mBackButton);
+    MR::connectToScene(mBackButton, 0xE, 0xD, -1, 0x51);
 }
 
-
-
+void FileSelector::createSysInfoWindow() {
+    mSysInfoWindow = MR::createSysInfoWindow();
+    fn_8004B340(mSysInfoWindow);
+    mSysInfoWindowMini = MR::createSysInfoWindowMiniExecuteWithChildren();
+    fn_8004B340(mSysInfoWindowMini);
+}
 
 void FileSelector::createFileInfo() {
-    mFileInfo = new FileSelectInfo(RFL_NAME_LEN + 1, "ファイル情報");
+    mFileInfo = new FileSelectInfo(12, "ファイル情報");
     mFileInfo->initWithoutIter();
 }
 
@@ -325,15 +328,26 @@ void FileSelector::createMiiSelect() {
     mMiiSelect->initWithoutIter();
 }
 
-
-#if (VERSION == RMGK01)
-#endif
+void FileSelector::createMiiConfirmIcon() {
+    mMiiConfirmIcon = new MiiConfirmIcon("Mii確認用アイコン");
+    mMiiConfirmIcon->initWithoutIter();
+    MR::connectToScene(mMiiConfirmIcon, 0xE, 0xD, -1, 0x51);
+}
 
 void FileSelector::createManual() {
     mManual = new Manual2P("２Ｐマニュアル");
     mManual->initWithoutIter();
 }
 
+void FileSelector::createSelectEffect() {
+    mSelectEffect = new FileSelectEffect[USER_FILE_NUM];
+
+    for (int i = 0; i < USER_FILE_NUM; i++) {
+        mSelectEffect[i].initWithoutIter();
+        MR::setPosition(&mSelectEffect[i], _9C[i]);
+        MR::setScale(&mSelectEffect[i], 0.4f);
+    }
+}
 
 void FileSelector::appearAllItems() {
     for (int i = 0; i < mItems->getObjNum(); i++) {
@@ -354,37 +368,32 @@ void FileSelector::disappearAllLayout() {
         mFileInfo->disappear();
     }
 
-    if (!mBackButton->isHidden() && mBackButton->_24 == 0) {
+    if (!mBackButton->isHidden()) {
         mBackButton->disappear();
-    }
-
-    if (!MR::isDead(mBrosButton)) {
-        mBrosButton->disappear();
     }
 }
 
 bool FileSelector::isHiddenAllLayout() const {
-    return MR::isDead(mOperationButton) && MR::isDead(mFileInfo) && mBackButton->isHidden() && MR::isDead(mBrosButton);
+    return MR::isDead(mOperationButton) && MR::isDead(mFileInfo) && mBackButton->isHidden();
 }
 
 void FileSelector::updateFileInfo() {
-    if (_C0 != nullptr) {
-        if (_BC != _C0) {
-            if (_BC != nullptr) {
+    if (_BC != nullptr) {
+        if (_B8 != _BC) {
+            if (_B8 != nullptr) {
                 clearPointing();
                 mFileInfo->disappear();
             }
 
-            if (_C0->isExist()) {
-                setFileInfo(_C0->_140);
+            if (_BC->isExist()) {
+                setFileInfo(_BC->_140);
                 mFileInfo->appear();
-                mFileInfo->forceChange();
             }
 
-            _BC = _C0;
-            _BC->onPointing();
+            _B8 = _BC;
+            _B8->onPointing();
         }
-    } else if (_BC != nullptr) {
+    } else if (_B8 != nullptr) {
         clearPointing();
         mFileInfo->disappear();
     }
@@ -424,55 +433,32 @@ void FileSelector::initUserFile() {
 
 void FileSelector::restoreUserFile() {
     for (int i = 0; i < USER_FILE_NUM; i++) {
-        GameSequenceFunction::restoreUserFile(&mUserFile[i], i + 1, mUserFile[i].mIsPlayerMario);
+        GameSequenceFunction::restoreUserFile(&mUserFile[i], i + 1);
     }
 
     checkAllComplete();
 }
 
 void FileSelector::checkAllComplete() {
-    bool isPlayerMario;
-
     for (int i = 0; i < USER_FILE_NUM; i++) {
-        isPlayerMario = mUserFile[i].mIsPlayerMario;
-        _CC[i] = false;
-
-        if (!isPlayerMario) {
-            GameSequenceFunction::restoreUserFile(&mUserFile[i], i + 1, true);
-        }
-
-        if (mUserFile[i].isPowerStarGetFinalChallengeGalaxy()) {
-            GameSequenceFunction::restoreUserFile(&mUserFile[i], i + 1, false);
-
-            if (mUserFile[i].isPowerStarGetFinalChallengeGalaxy()) {
-                _CC[i] = true;
-            }
-        }
-
-        if (isPlayerMario != mUserFile[i].mIsPlayerMario) {
-            GameSequenceFunction::restoreUserFile(&mUserFile[i], i + 1, isPlayerMario);
-        }
+        _C8[i] = mUserFile[i].isComplete();
     }
 }
 
 void FileSelector::onPoint(FileSelectItem* pItem) {
-    if (!mBackButton->isHidden() && mBackButton->isPointing()) {
-        return;
-    }
-
-    if (_C0 != nullptr) {
-        if (_C0->_140 > pItem->_140) {
-            _C0 = pItem;
+    if (mBackButton->isHidden() || !mBackButton->isPointing()) {
+        if (_BC != nullptr) {
+            if (_BC->_140 > pItem->_140) {
+                _BC = pItem;
+            }
+        } else {
+            _BC = pItem;
         }
-    } else {
-        _C0 = pItem;
     }
 }
 
 void FileSelector::onSelect(FileSelectItem* pItem) {
-    if (isNerve(GET_NERVE(FileSelector, FileSelectorNrvCopySelect))) {
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvCopyConfirmStart));
-    } else if (isNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelect))) {
+    if (isNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelect))) {
         if (pItem->isNew()) {
             setNerve(GET_NERVE(FileSelector, FileSelectorNrvCreateConfirmStart));
         } else {
@@ -482,19 +468,19 @@ void FileSelector::onSelect(FileSelectItem* pItem) {
         return;
     }
 
-    _B4 = pItem;
+    _B0 = pItem;
 
-    MR::startSystemSE("SE_SY_GALAXY_SELECTED");
+    MR::startActionSound(this, "SyGalaxySelected", -1, -1, -1);
     playSelectedME();
 }
 
 void FileSelector::clearPointing() {
-    if (_BC == nullptr) {
+    if (_B8 == nullptr) {
         return;
     }
 
-    _BC->offPointing();
-    _BC = nullptr;
+    _B8->offPointing();
+    _B8 = nullptr;
 }
 
 namespace {
@@ -528,9 +514,10 @@ namespace {
 
 void FileSelector::setFileInfo(s32 id) {
     OSCalendarTime td;
-    u16 nameBuffer[RFL_NAME_LEN + 1];
+    u16 nameBuffer[12];
     wchar_t dateBuffer[32];
     wchar_t timeBuffer[32];
+    wchar_t playTimeBuffer[32];
 
     if (static_cast< FileSelectItem* >(mItems->getActor(::getItemArrayIndex(id)))->_146) {
         FileSelectFunc::copyMiiName(nameBuffer, FileSelectIconID());
@@ -542,16 +529,22 @@ void FileSelector::setFileInfo(s32 id) {
 
     MR::makeDateString(dateBuffer, ARRAY_SIZE(dateBuffer), td.year, td.mon + 1, td.mday);
     MR::makeTimeString(timeBuffer, ARRAY_SIZE(timeBuffer), td.hour, td.min);
+    MR::makePlayTimeString(playTimeBuffer, ARRAY_SIZE(playTimeBuffer), mUserFile[id - 1].getCumulativePlayTime());
 
-    bool isViewCompleteEnding = ::isUserFileViewCompleteEnding(this, id);
-    bool isViewNormalEnding = ::isUserFileViewNormalEnding(this, id);
-    s32 starPieceNum = ::getUserFileStarPieceNum(this, id);
-    s32 powerStarNum = ::getUserFilePowerStarNum(this, id);
-    s32 missCount = getMissCount(id);
-    bool isUserFileMario = !isUserFileLuigi(id);
-
-    mFileInfo->setInfo(nameBuffer, id, powerStarNum, starPieceNum, isUserFileMario, isViewNormalEnding, isViewCompleteEnding, dateBuffer, timeBuffer,
-                       missCount);
+    FileSelectFileInfo info;
+    info.mName = nameBuffer;
+    info.mFileId = id;
+    info.mPowerStarNum = mUserFile[id - 1].getPowerStarNum();
+    info.mGrandStarNum = getGrandStarNum(id);
+    info.mHas120Stars = mUserFile[id - 1].calcNormalPowerStarNum() >= 120;
+    info.mIsViewed120StarsEnding = mUserFile[id - 1].isView120StarsEnding();
+    info.mIsComplete = isUserFileComplete(id);
+    info.mHas240Stars = mUserFile[id - 1].getPowerStarNum() >= 242;
+    info.mDate = dateBuffer;
+    info.mTime = timeBuffer;
+    info.mMissCount = getMissCount(id);
+    info.mPlayTime = playTimeBuffer;
+    mFileInfo->setInfo(info);
 }
 
 bool FileSelector::checkSelectedBackButton() {
@@ -559,107 +552,42 @@ bool FileSelector::checkSelectedBackButton() {
         return false;
     }
 
-    if (mBackButton->_24) {
-        return true;
-    }
-
-    if (MR::testSystemTriggerB()) {
-        MR::startSystemSE("SE_SY_GALAXY_DECIDE_CANCEL");
-        mBackButton->disappear();
-
-        return true;
-    }
-
-    return false;
+    return fn_8045E9D0(mBackButton);
 }
 
 void FileSelector::goToNearPoint() {
     calcBasePos(-16000.0f);
-    mCameraController->goToNearPoint(_98[::getItemArrayIndex(_B4->_140)]);
+    mCameraController->goToNearPoint(_9C[::getItemArrayIndex(_B0->_140)]);
 }
 
-namespace {
-    inline f32 calcSin(f32 angle) {
-        f32 r = sin(angle);
-        return r;
-    }
-
-    inline f32 calcCos(f32 angle) {
-        f32 r = cos(angle);
-        return r;
-    }
-
-    class RotateMtx : public TPos3f {
-    public:
-        f32& ref(int x, int y) {
-            return mMtx[x][y];
-        }
-
-        void makeRotate(const TVec3f& rAxis, f32 angle) {
-            zeroTrans();
-            setRotate(rAxis, angle);
-        }
-
-        void setRotate(const TVec3f& rAxis, f32 angle) {
-            TVec3f vec;
-            vec.normalize(rAxis);
-
-            f32 s = calcSin(angle);
-            f32 c = calcCos(angle);
-
-            f32 negc = 1.0f - c;
-
-            f32 x, y, z;
-
-            x = vec.x;
-            y = vec.y;
-            z = vec.z;
-
-            f32 xx, yy, zz;
-            xx = x * x;
-            yy = y * y;
-            zz = z * z;
-
-            ref(0, 0) = c + negc * xx;
-            ref(0, 1) = negc * x * y - s * z;
-            ref(0, 2) = negc * x * z + s * y;
-            ref(1, 0) = negc * x * y + s * z;
-            ref(1, 1) = c + negc * yy;
-            ref(1, 2) = negc * y * z - s * x;
-            ref(2, 0) = negc * x * z - s * y;
-            ref(2, 1) = negc * y * z + s * x;
-            ref(2, 2) = c + negc * zz;
-        }
-    };
-};  // namespace
-
-#pragma push
-#pragma opt_prelinearize off
+// NONMATCHING: float constant registers f30/f31 swapped
 void FileSelector::calcBasePos(f32 offset) {
-    f32 thetaStep = 2.0f * PI / USER_FILE_NUM;
-    TPos3f translationMtx;
-    TPos3f& translation = translationMtx;
-    translation.makeTrans(0.0f, offset, 0.0f);
-
-    RotateMtx rotation;
-    rotation.makeRotate(TVec3f(1.0f, 0.0f, 0.0f), ::sSlopeDegree * PI / 180.0f);
-
-    TPos3f transform;
-    transform.concat(translation, rotation);
+    TVec3f pos;
+    pos.x = -3000.0f;
+    pos.y = offset;
+    pos.z = 0.0f;
 
     for (int i = 0; i < USER_FILE_NUM; i++) {
-        if (_B4 != nullptr && _B4 == mItems->getActor(i)) {
-            continue;
+        if (_B0 == nullptr || _B0 != mItems->getActor(i)) {
+            _9C[i].set(pos);
         }
 
-        f32 theta = static_cast< f32 >(-(i + 4)) * thetaStep - ::sItemThetaOffset[i] * MR::pi() / 180.0f;
-        f32 cosTheta = MR::cos(theta);
-        f32 sinTheta = MR::sin(theta);
-        _98[i].set(::sItemPosRadius * cosTheta, 0.0f, ::sItemPosRadius * sinTheta);
-        transform.mult(_98[i], _98[i]);
+        TVec3f step;
+        step.x = 3000.0f;
+        step.y = 0.0f;
+        step.z = 0.0f;
+        pos.add(step);
     }
 }
-#pragma pop
+
+FileSelectItem* FileSelector::createFileItem(s32 id) {
+    FileSelectIconID iconId = FileSelectIconID();
+    char* pName = new char[0x40];
+    snprintf(pName, 0x40, "ファイルセレクトアイテム[%d]", id);
+    FileSelectItem* pItem = new FileSelectItem(id, true, iconId, pName);
+    pItem->initWithoutIter();
+    return pItem;
+}
 
 namespace {
     inline void initFileItem(FileSelector* pSelector, FileSelectItem* pItem) {
@@ -687,7 +615,7 @@ namespace {
             }
         }
 
-        pItem->forceChange(iconId, pSelector->_CC[id - 1]);
+        pItem->forceChange(iconId, pSelector->_C8[id - 1]);
     }
 };  // namespace
 
@@ -700,6 +628,77 @@ void FileSelector::initAllItems() {
 void FileSelector::validateRotateAllItems() {
     for (int i = 0; i < mItems->getObjNum(); i++) {
         static_cast< FileSelectItem* >(mItems->getActor(i))->validateRotate();
+    }
+}
+
+void FileSelector::stopMovementForLayout() {
+    if (!_EC) {
+        fn_80486AA0();
+
+        if (mSky != nullptr) {
+            MR::requestMovementOff(mSky);
+        }
+
+        if (_B0 != nullptr) {
+            MR::requestMovementOff(_B0);
+        }
+
+        _EC = true;
+    }
+}
+
+void FileSelector::restartMovementForLayout() {
+    if (_EC) {
+        fn_80486AF0();
+
+        if (mSky != nullptr) {
+            MR::requestMovementOn(mSky);
+        }
+
+        if (_B0 != nullptr) {
+            MR::requestMovementOn(_B0);
+        }
+
+        _EC = false;
+    }
+}
+
+void FileSelector::initChildObjs(const JMapInfoIter& rIter) {
+    _F4 = MR::getChildObjNum(rIter);
+    _F0 = new LiveActor*[_F4];
+
+    for (int i = 0; i < _F4; i++) {
+        _F0[i] = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
+    }
+}
+
+// NONMATCHING: register allocation (loop counter / actor pointer registers swapped)
+void FileSelector::updateChildObjs() {
+    f32 degToRad = PI / 180.0f;
+    f32 radToDeg = 180.0f / PI;
+
+    TPos3f mtxA;
+    mtxA.identity();
+    mtxA.setRotate(35.0f * degToRad, 0.0f, 345.0f * degToRad);
+    mtxA.invert(mtxA);
+
+    TPos3f mtxB;
+    mtxB.identity();
+    mtxB.setRotate(335.0f * degToRad, 0.0f, 0.0f);
+    mtxB.concat(mtxA);
+
+    for (int i = 0; i < _F4; i++) {
+        TPos3f mtx;
+        mtx.identity();
+
+        TVec3f rot(_F0[i]->mRotation);
+        rot.scale(degToRad);
+        mtx.setRotate(rot.x, rot.y, rot.z);
+        mtx.concat(mtxB, mtx);
+
+        LiveActor* pActor = _F0[i];
+        mtx.getEulerXYZ(pActor->mRotation);
+        pActor->mRotation.scale(radToDeg);
     }
 }
 
@@ -749,6 +748,19 @@ u16 FileSelector::getUserFileMiiIndex(s32 id) const {
 
 
 
+// NONMATCHING: register allocation (result flag / index offset registers swapped)
+bool FileSelector::isUserFileComplete(s32 id) const {
+    bool result = false;
+
+    if (mUserFile[id - 1].calcNormalPowerStarNum() >= 120) {
+        if (mUserFile[id - 1].getPowerStarNum() >= 240) {
+            result = true;
+        }
+    }
+
+    return result;
+}
+
 void FileSelector::storeSetMiiIdUserFile(s32 id, const FileSelectIconID& rIconId) {
     if (rIconId.isFellow()) {
         u32 fellowId = rIconId.getFellowID() + 1;
@@ -789,11 +801,34 @@ void FileSelector::getIconId(FileSelectIconID* pIconId, s32 id) const {
 }
 
 s32 FileSelector::getMissCount(s32 id) const {
-    if (!_CC[id - 1]) {
+    if (!_C8[id - 1]) {
         return -1;
     }
 
     return mUserFile[id - 1].getPlayerMissNum();
+}
+
+s32 FileSelector::getGrandStarNum(s32 id) const {
+    for (s32 i = 6; i > 0; i--) {
+        if (mUserFile[id - 1].hasGrandStar(i)) {
+            return i;
+        }
+    }
+
+    return 0;
+}
+
+bool FileSelector::isAllOtherFileNew(FileSelectItem* pItem) {
+    for (int i = 0; i < USER_FILE_NUM; i++) {
+        FileSelectItem* pOther = static_cast< FileSelectItem* >(mItems->getActor(i));
+
+        if (pOther != pItem && mUserFile[pOther->_140 - 1].isCreated()) {
+            return false;
+        }
+    }
+
+    fn_804D4700();
+    return true;
 }
 
 void FileSelector::playSelectedME() {
@@ -823,31 +858,93 @@ void FileSelector_FORCE_MATCH() {
     MR::startSystemME("ME_ASTRO_DOME_CALCEL5");
 }
 
+// NONMATCHING: register allocation in the smoothing step
 void FileSelector::updateBgm() {
-    if (mCameraController == nullptr) {
-        return;
+    if (_F8) {
+        if (mCameraController != nullptr) {
+            s32 state = 0;
+
+            if (mCameraController->isToOrAtFarPoint()) {
+                _100 = 0;
+                state = 0;
+            } else if (mCameraController->isToOrAtNearPoint()) {
+                _100 = 100;
+                state = 1;
+            }
+
+            if (mBgmState != state) {
+                _104 = 60;
+                mBgmState = state;
+            }
+
+            if (_104 > 0) {
+                s32 frame = _104;
+                _104 = frame - 1;
+                _FC += (_100 - _FC) / frame;
+            }
+
+            MR::startSystemLevelSE("SE_SY_LV_TITLE_BGM", -1, -1);
+            MR::startSystemLevelSE("SE_SY_LV_TITLE_BGM_RHYTHM", _FC, -1);
+        }
     }
-
-    s32 state = 0;
-    u32 stateChangeFrames = 0;
-
-    if (mCameraController->isToOrAtFarPoint()) {
-        state = ::sBgmFarState;
-        stateChangeFrames = ::sBgmFarStateChangeFrames;
-    } else if (mCameraController->isToOrAtNearPoint()) {
-        state = ::sBgmNearState;
-        stateChangeFrames = ::sBgmNearStateChangeFrames;
-    }
-
-    if (mBgmState == state) {
-        return;
-    }
-
-    MR::setStageBGMState(state, stateChangeFrames);
-
-    mBgmState = state;
 }
 
+// NONMATCHING: register allocation (loop counter / actor registers swapped in the second loop)
+void FileSelector::updatePointingGuidance() {
+    TVec2f screenPos;
+    TVec2f pos;
+    TVec2f size;
+
+    if (StarPointerUtil::sub_8005E720(reinterpret_cast< LayoutActor* >(this), true)) {
+        for (int i = 0; i < mItems->getObjNum(); i++) {
+            LiveActor* pActor = mItems->getActor(i);
+            size.x = 0.0f;
+            size.y = 0.0f;
+            pos.x = 0.0f;
+            pos.y = 0.0f;
+            StarPointerUtil::addStarPointerMovePosition(pActor->mName, reinterpret_cast< TVec3f* >(&pos),
+                                                        *reinterpret_cast< const TVec3f* >(&size));
+        }
+
+        LiveActor* pActor;
+        for (int i = 0; i < mItems->getObjNum() - 1; i++) {
+            pActor = mItems->getActor(i);
+            StarPointerUtil::setConnectionMovePositionRight2Way(pActor->mName, mItems->getActor(i + 1)->mName);
+        }
+
+        LiveActor* pFirst = mItems->getActor(0);
+        LiveActor* pLast = mItems->getActor(mItems->getObjNum() - 1);
+        StarPointerUtil::setConnectionMovePositionRight2Way(pLast->mName, pFirst->mName);
+        fn_8005EA60(pFirst->mName);
+        fn_8005EAA0(pLast->mName);
+    }
+
+    for (int i = 0; i < mItems->getObjNum(); i++) {
+        LiveActor* pActor = mItems->getActor(i);
+        MR::calcScreenPosition(&screenPos, pActor->mPosition);
+        StarPointerUtil::setStarPointerMovePosition(pActor->mName, &screenPos);
+    }
+
+    StarPointerUtil::sub_8005E790(reinterpret_cast< LayoutActor* >(this));
+}
+
+void FileSelector::updatePointingGuidanceSelect() {
+    if (StarPointerUtil::sub_8005E720(reinterpret_cast< LayoutActor* >(this), true)) {
+        StarPointerUtil::addStarPointerMovePositionFromPane(mBackButton, "BoxButton", StarPointerUtil::getDefaultButtonOffsetVec2());
+        StarPointerUtil::addStarPointerMovePositionFromPane(mOperationButton, "PicMii", StarPointerUtil::getDefaultButtonOffsetVec2());
+        StarPointerUtil::addStarPointerMovePositionFromPane(mOperationButton, "PicDelete", StarPointerUtil::getDefaultButtonOffsetVec2());
+        StarPointerUtil::addStarPointerMovePositionFromPane(mOperationButton, "BoxStartButton", StarPointerUtil::getDefaultButtonOffsetVec2());
+        StarPointerUtil::setConnectionMovePositionDown("PicMii", "BoxButton");
+        StarPointerUtil::setConnectionMovePositionDown("PicDelete", "BoxStartButton");
+        StarPointerUtil::setConnectionMovePositionRight("PicMii", "PicDelete");
+        StarPointerUtil::setConnectionMovePositionRight("BoxButton", "BoxStartButton");
+        fn_8005EAE0("BoxButton", "BoxStartButton");
+    }
+
+    StarPointerUtil::sub_8005E940(mBackButton);
+    StarPointerUtil::sub_8005E940(mOperationButton);
+    StarPointerUtil::sub_8005E790(reinterpret_cast< LayoutActor* >(this));
+}
 
 void FileSelector::exeTitle() {
     if (MR::isFirstStep(this)) {
@@ -855,27 +952,37 @@ void FileSelector::exeTitle() {
         MR::deactivateDefaultGameLayout();
         MR::startStarPointerModeTitle(this);
         MR::resetCameraMan();
+        fn_80060290();
+        _F8 = false;
     }
 
     mTitle->updateNerve();
 
-    if (mTitle->isActive()) {
-        return;
+    if (fn_804A54D0(mTitle)) {
+        _F8 = true;
     }
 
-    if (::getMiiFacePartsHolder()->isInitEnd()) {
-        if (::getMiiFacePartsHolder()->isError()) {
-            setNerve(GET_NERVE(FileSelector, FileSelectorNrvRFLError));
+    if (!mTitle->isActive()) {
+        mCameraController->appear();
+
+        if (::getMiiFacePartsHolder()->isInitEnd()) {
+            if (::getMiiFacePartsHolder()->isError()) {
+                setNerve(GET_NERVE(FileSelector, FileSelectorNrvRFLError));
+            } else {
+                setNerve(GET_NERVE(FileSelector, FileSelectorNrvTitleEnd));
+            }
         } else {
-            setNerve(GET_NERVE(FileSelector, FileSelectorNrvTitleEnd));
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvRFLWait));
         }
-    } else {
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvRFLWait));
     }
 }
 
 void FileSelector::exeTitleEnd() {
     if (MR::isFirstStep(this)) {
+        if (MR::isValidSwitchA(this)) {
+            MR::onSwitchA(this);
+        }
+
         mCameraController->goToFarPoint();
         calcBasePos(0.0f);
         appearAllItems();
@@ -883,32 +990,237 @@ void FileSelector::exeTitleEnd() {
         mMiiSelect->collectValidMiiIndex();
         invalidateSelectAll();
         MR::startStarPointerModeFileSelect(this);
-        MR::startStageBGM("MBGM_FILE_SELECT", false);
+        updateChildObjs();
+    }
+
+    if (mCameraController->isAtFarPoint() && fn_800602A0()) {
+        validateRotateAllItems();
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));
+    }
+}
+
+void FileSelector::exeRFLError() {
+    if (MR::isFirstStep(this)) {
+        mSysInfoWindowMini->appear("System_FileSelect018", SysInfoWindow::Type_Key, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
+        MR::showPaneRecursive(mSysInfoWindowMini, "BG");
+        stopMovementForLayout();
+    }
+
+    if (MR::isDead(mSysInfoWindowMini)) {
+        restartMovementForLayout();
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvTitleEnd));
+    }
+}
+
+void FileSelector::exeRFLWait() {
+    if (MR::isFirstStep(this)) {
+        mSysInfoWindowMini->appear("System_FileSelect017", SysInfoWindow::Type_Blocking, SysInfoWindow::TextPos_Center,
+                                   SysInfoWindow::MessageType_System);
+        MR::showPaneRecursive(mSysInfoWindowMini, "BG");
+        stopMovementForLayout();
+    }
+
+    if (::getMiiFacePartsHolder()->isInitEnd() && mSysInfoWindowMini->isWait()) {
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvRFLWaitEnd));
+    }
+}
+
+void FileSelector::exeRFLWaitEnd() {
+    if (MR::isFirstStep(this)) {
+        mSysInfoWindowMini->disappear();
+        restartMovementForLayout();
+    }
+
+    if (MR::isDead(mSysInfoWindowMini)) {
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvTitleEnd));
+    }
+}
+
+void FileSelector::exeFileSelectStart() {
+    if (MR::isFirstStep(this)) {
+        mCameraController->goToFarPoint();
+        calcBasePos(0.0f);
+        validateRotateAllItems();
     }
 
     if (mCameraController->isAtFarPoint()) {
-        validateRotateAllItems();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelect));
     }
 }
 
+void FileSelector::exeFileSelect() {
+    if (MR::isFirstStep(this)) {
+        validateSelectAll();
+        appearAllIndex();
+        MR::activeStarPointerGuidance();
+    } else {
+        updateFileInfo();
+    }
 
+    MR::requestFileSelectGuidance();
+    updatePointingGuidance();
+}
 
+void FileSelector::exeFileConfirmStart() {
+    if (MR::isFirstStep(this)) {
+        goToNearPoint();
+        invalidateSelectAll();
+        disappearAllIndex();
+        _B0->turnToFront(40);
+        fn_8024CFE0(_B0);
+    }
 
+    if (mCameraController->isAtNearPoint()) {
+        if (_B0->_146) {
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirmMiiDeleteWarningStart));
+        } else {
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
+        }
+    }
+}
 
+void FileSelector::exeFileConfirmMiiDeleteWarningStart() {
+    if (MR::isFirstStep(this)) {
+        disappearAllLayout();
+    }
 
+    if (isHiddenAllLayout()) {
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirmMiiDeleteWarning));
+    }
+}
 
+void FileSelector::exeFileConfirmMiiDeleteWarning() {
+    if (MR::isFirstStep(this)) {
+        mSysInfoWindowMini->appear("System_FileSelect009", SysInfoWindow::Type_Key, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
+        MR::showPaneRecursive(mSysInfoWindowMini, "BG");
+        stopMovementForLayout();
+    }
 
+    if (MR::isDead(mSysInfoWindowMini)) {
+        restartMovementForLayout();
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirmMiiDeleteSave));
+    }
+}
 
+void FileSelector::exeFileConfirmMiiDeleteSave() {
+    if (MR::isFirstStep(this)) {
+        s32 arg = 1;
+        fn_804D5F60(_B0->_140, 0, &arg);
+    }
 
+    if (!GameSequenceFunction::isActiveSaveDataHandleSequence()) {
+        _B0->_146 = false;
+        restoreUserFile();
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
+    }
+}
 
+void FileSelector::exeFileConfirm() {
+    if (MR::isFirstStep(this)) {
+        mOperationButton->appear();
+        mBackButton->appear();
 
+        if (MR::isDead(mFileInfo)) {
+            setFileInfo(_B0->_140);
+            mFileInfo->appear();
+        }
 
+        mFileInfo->slide();
+        fn_8024D010(_B0);
+    }
 
+    if (MR::isStep(this, 90)) {
+        _B0->validateRotate();
+    }
+
+    if (checkSelectedBackButton()) {
+        _B0->validateRotate();
+        disappearAllLayout();
+        clearPointing();
+        mMiiSelect->clearPage();
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));
+        return;
+    }
+
+    updatePointingGuidanceSelect();
+}
+
+void FileSelector::exeDemoStartWait() {
+    if (MR::isFirstStep(this)) {
+        disappearAllLayout();
+        MR::stopSystemSE("SE_SY_LV_TITLE_BGM", 30);
+        MR::stopSystemSE("SE_SY_LV_TITLE_BGM_RHYTHM", 30);
+        _F8 = false;
+    }
+
+    if (isHiddenAllLayout()) {
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvDemo));
+    }
+}
+
+void FileSelector::exeDemo() {
+    if (MR::isFirstStep(this)) {
+        fn_804D5E70(_B0->_140);
+        MR::stopSystemSE("SE_SY_LV_TITLE_BGM", 30);
+        MR::stopSystemSE("SE_SY_LV_TITLE_BGM_RHYTHM", 30);
+        _F8 = false;
+    }
+
+    FileSelectIconID iconId;
+    getIconId(&iconId, _B0->_140);
+    wchar_t name[12];
+
+    if (iconId.isMii()) {
+        FileSelectFunc::copyMiiName(reinterpret_cast< u16* >(name), iconId);
+    } else {
+        MR::copyString(name, MR::getGameMessageDirect(cMarioNameMessageID), 12);
+    }
+
+    GameDataFunction::setUserName(name);
+    fn_804D3DF0();
+    GameSequenceFunction::requestChangeStageAfterFileSelect();
+    MR::startSystemWipeCircleWithCaptureScreen(90);
+}
+
+void FileSelector::exeCreateConfirmStart() {
+    if (MR::isFirstStep(this)) {
+        goToNearPoint();
+        invalidateSelectAll();
+        disappearAllIndex();
+    }
+
+    if (mCameraController->isAtNearPoint()) {
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvCreateConfirm));
+    }
+}
+
+void FileSelector::exeCreateConfirm() {
+    if (MR::isFirstStep(this)) {
+        mSysInfoWindow->appear("System_FileSelect001", SysInfoWindow::Type_YesNo, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
+        MR::showPaneRecursive(mSysInfoWindow, "BG");
+        mSysInfoWindow->setYesNoSelectorSE("SE_SY_BUTTON_CURSOR_ON", "SE_SY_FILE_SEL_NEW_FILE", "SE_SY_TALK_SELECT_NO");
+        stopMovementForLayout();
+    }
+
+    if (mSysInfoWindow->isDisappear()) {
+        restartMovementForLayout();
+    }
+
+    if (MR::isDead(mSysInfoWindow)) {
+        mSysInfoWindow->resetYesNoSelectorSE();
+
+        if (mSysInfoWindow->isSelectedYes()) {
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvCreate));
+        } else {
+            clearPointing();
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));
+        }
+    }
+}
 
 void FileSelector::exeCreate() {
     if (MR::isFirstStep(this)) {
-        GameSequenceFunction::startCreateUserFileSequence(_B4->_140);
+        GameSequenceFunction::startCreateUserFileSequence(_B0->_140);
     }
 
     if (GameSequenceFunction::isActiveSaveDataHandleSequence()) {
@@ -920,6 +1232,7 @@ void FileSelector::exeCreate() {
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStartFirst));
     } else {
         clearPointing();
+        restartMovementForLayout();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));
     }
 }
@@ -935,17 +1248,11 @@ void FileSelector::exeCreate() {
 
 
 void FileSelector::exeMiiTip() {
-    if (MR::isFirstStep(this)) {
-        mSysInfoWindow->appear("System_FileSelect004", SysInfoWindow::Type_Key, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
-        clearPointing();
-        mFileInfo->disappear();
-    }
+    MR::isFirstStep(this);
 
-    if (!MR::isDead(mSysInfoWindow)) {
-        return;
+    if (mBackButton->isHidden() && MR::isDead(mFileInfo)) {
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStart));
     }
-
-    setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStart));
 }
 
 void FileSelector::exeMiiSelectStart() {
@@ -953,7 +1260,7 @@ void FileSelector::exeMiiSelectStart() {
         if (isNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStart))) {
             FileSelectIconID iconId = FileSelectIconID();
 
-            _B4->copyIconID(&iconId);
+            _B0->copyIconID(&iconId);
             mMiiSelect->prohibitIcon(iconId);
         } else {
             mIsMiiSelectStartFirst = true;
@@ -961,13 +1268,14 @@ void FileSelector::exeMiiSelectStart() {
             mMiiSelect->admitIcon();
         }
 
-        if (isUserFileAppearLuigi(_B4->_140)) {
-            mMiiSelect->validateAllSpecialMii();
-        } else {
-            mMiiSelect->invalidateSpecialMii(FileSelectIconID::Luigi);
+        mMiiSelect->validateAllSpecialMii();
+
+        if (!mUserFile[_B0->_140 - 1].isView120StarsEnding()) {
+            mMiiSelect->invalidateSpecialMii(static_cast< FileSelectIconID::EFellowID >(5));
         }
 
         mMiiSelect->appear();
+        stopMovementForLayout();
     }
 
     if (mMiiSelect->isAppearing()) {
@@ -978,14 +1286,12 @@ void FileSelector::exeMiiSelectStart() {
 }
 
 void FileSelector::exeMiiSelect() {
-    if (MR::isFirstStep(this)) {
-        if (!mIsMiiSelectStartFirst) {
-            mBackButton->appear();
-        }
+    if (MR::isFirstStep(this) && !mIsMiiSelectStartFirst) {
+        mBackButton->appear();
     }
 
     if (mMiiSelect->isDummySelected()) {
-        MR::startSystemSE("SE_SY_FILE_SEL_MII_SELECTED");
+        MR::startActionSound(this, "SyFileSelMiiSelected", -1, -1, -1);
         mMiiSelect->disappear();
 
         if (!mBackButton->isHidden()) {
@@ -993,8 +1299,11 @@ void FileSelector::exeMiiSelect() {
         }
 
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiInfoStart));
-    } else if (mMiiSelect->isSelected()) {
-        MR::startSystemSE("SE_SY_FILE_SEL_MII_SELECTED");
+        return;
+    }
+
+    if (mMiiSelect->isSelected()) {
+        MR::startActionSound(this, "SyFileSelMiiSelected", -1, -1, -1);
         mMiiSelect->disappear();
 
         if (!mBackButton->isHidden()) {
@@ -1002,9 +1311,13 @@ void FileSelector::exeMiiSelect() {
         }
 
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiConfirmWait));
-    } else if (checkSelectedBackButton()) {
+        return;
+    }
+
+    if (checkSelectedBackButton()) {
         mMiiSelect->disappear();
         mBackButton->disappear();
+        restartMovementForLayout();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiCancel));
     }
 }
@@ -1038,12 +1351,14 @@ void FileSelector::exeMiiConfirm() {
         if (mIsMiiSelectStartFirst) {
             mSysInfoWindow->appear("System_FileSelect013", SysInfoWindow::Type_YesNo, SysInfoWindow::TextPos_Bottom,
                                    SysInfoWindow::MessageType_System);
+            MR::showPaneRecursive(mSysInfoWindow, "BG");
         } else {
             mSysInfoWindow->appear("System_FileSelect005", SysInfoWindow::Type_YesNo, SysInfoWindow::TextPos_Bottom,
                                    SysInfoWindow::MessageType_System);
+            MR::showPaneRecursive(mSysInfoWindow, "BG");
         }
 
-        u16 name[RFL_NAME_LEN + 1];
+        u16 name[12];
         FileSelectIconID iconId = FileSelectIconID();
 
         mMiiSelect->getSelectedID(&iconId);
@@ -1056,17 +1371,25 @@ void FileSelector::exeMiiConfirm() {
         mMiiConfirmIcon->disappear();
     }
 
-    if (!MR::isDead(mSysInfoWindow)) {
-        return;
+    if (mSysInfoWindow->isDisappear()) {
+        if (fn_804A2BB0(mSysInfoWindow)) {
+            restartMovementForLayout();
+        }
     }
 
-    mSysInfoWindow->resetYesNoSelectorSE();
+    if (MR::isDead(mSysInfoWindow)) {
+        mSysInfoWindow->resetYesNoSelectorSE();
 
-    if (mSysInfoWindow->isSelectedYes()) {
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiCreateWait));
-    } else if (mIsMiiSelectStartFirst) {
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStartFirst));
-    } else {
+        if (mSysInfoWindow->isSelectedYes()) {
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiCreateWait));
+            return;
+        }
+
+        if (mIsMiiSelectStartFirst) {
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStartFirst));
+            return;
+        }
+
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvMiiSelectStart));
     }
 }
@@ -1076,7 +1399,7 @@ void FileSelector::exeMiiCreateWait() {
         FileSelectIconID iconId = FileSelectIconID();
 
         mMiiSelect->getSelectedID(&iconId);
-        storeSetMiiIdUserFile(_B4->_140, iconId);
+        storeSetMiiIdUserFile(_B0->_140, iconId);
 
         mIsMiiSelectStartFirst = false;
     }
@@ -1092,15 +1415,15 @@ void FileSelector::exeMiiCreateDemo() {
     if (MR::isFirstStep(this)) {
         restoreUserFile();
 
-        s32 id = _B4->_140;
+        s32 id = _B0->_140;
         FileSelectIconID iconId = FileSelectIconID();
 
         mMiiSelect->getSelectedID(&iconId);
-        _B4->change(iconId, _CC[id - 1]);
+        _B0->change(iconId, _C8[id - 1]);
         setFileInfo(id);
     }
 
-    if (!_B4->isExist()) {
+    if (!_B0->isExist()) {
         return;
     }
 
@@ -1118,9 +1441,12 @@ void FileSelector::exeMiiCreateDemo() {
 void FileSelector::exeMiiCaution() {
     if (MR::isFirstStep(this)) {
         mSysInfoWindowMini->appear("System_FileSelect006", SysInfoWindow::Type_Key, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
+        MR::showPaneRecursive(mSysInfoWindowMini, "BG");
+        stopMovementForLayout();
     }
 
     if (MR::isDead(mSysInfoWindowMini)) {
+        restartMovementForLayout();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
     }
 }
@@ -1140,6 +1466,7 @@ void FileSelector::exeMiiInfoStart() {
 void FileSelector::exeMiiInfo() {
     if (MR::isFirstStep(this)) {
         mSysInfoWindowMini->appear("System_FileSelect015", SysInfoWindow::Type_Key, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
+        MR::showPaneRecursive(mSysInfoWindowMini, "BG");
     }
 
     if (!MR::isDead(mSysInfoWindowMini)) {
@@ -1155,7 +1482,6 @@ void FileSelector::exeMiiInfo() {
 
 void FileSelector::exeDeleteConfirmStart() {
     if (MR::isFirstStep(this)) {
-        MR::startSystemSE("SE_SY_FILE_SEL_UPPER_DECIDE");
         disappearAllLayout();
     }
 
@@ -1168,26 +1494,30 @@ void FileSelector::exeDeleteConfirm() {
     if (MR::isFirstStep(this)) {
         mSysInfoWindow->setYesNoSelectorSE("SE_SY_BUTTON_CURSOR_ON", "SE_SY_FILE_SEL_DELETE", "SE_SY_TALK_SELECT_NO");
         mSysInfoWindow->appear("System_FileSelect007", SysInfoWindow::Type_YesNo, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
+        MR::showPaneRecursive(mSysInfoWindow, "BG");
+        stopMovementForLayout();
     }
 
-    if (!MR::isDead(mSysInfoWindow)) {
-        return;
+    if (mSysInfoWindow->isDisappear()) {
+        restartMovementForLayout();
     }
 
-    mSysInfoWindow->resetYesNoSelectorSE();
+    if (MR::isDead(mSysInfoWindow)) {
+        mSysInfoWindow->resetYesNoSelectorSE();
 
-    if (mSysInfoWindow->isSelectedYes()) {
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvDelete));
-    } else {
-        mOperationButton->shiftSelect();
-        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
+        if (mSysInfoWindow->isSelectedYes()) {
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvDelete));
+        } else {
+            mOperationButton->shiftSelect();
+            setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
+        }
     }
 }
 
 void FileSelector::exeDelete() {
     if (MR::isFirstStep(this)) {
-        setUserFileMario(_B4->_140, true);
-        GameSequenceFunction::startDeleteUserFileSequence(_B4->_140);
+        isAllOtherFileNew(_B0);
+        GameSequenceFunction::startDeleteUserFileSequence(_B0->_140);
     }
 
     if (GameSequenceFunction::isActiveSaveDataHandleSequence()) {
@@ -1204,10 +1534,10 @@ void FileSelector::exeDelete() {
 
 void FileSelector::exeDeleteDemo() {
     if (MR::isFirstStep(this)) {
-        _B4->format();
+        _B0->format();
     }
 
-    if (_B4->isNew()) {
+    if (_B0->isNew()) {
         initUserFile();
         clearPointing();
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileSelectStart));
@@ -1222,6 +1552,18 @@ void FileSelector::exeManualStart() {
 
     if (isHiddenAllLayout()) {
         setNerve(GET_NERVE(FileSelector, FileSelectorNrvManual));
+    }
+}
+
+void FileSelector::exeManual() {
+    if (MR::isFirstStep(this)) {
+        mManual->appear();
+        stopMovementForLayout();
+    }
+
+    if (mManual->isClosed()) {
+        restartMovementForLayout();
+        setNerve(GET_NERVE(FileSelector, FileSelectorNrvFileConfirm));
     }
 }
 

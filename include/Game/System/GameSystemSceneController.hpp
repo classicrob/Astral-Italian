@@ -96,15 +96,15 @@ public:
     bool isNextNerve(const Nerve*) const;
 
     /* 0x00 */ SceneControlInfo mCurrSceneControlInfo;
-    /* 0x4C */ SceneControlInfo mNextSceneControlInfo;
-    /* 0x98 */ Spine* mSpine;
-    /* 0x9C */ const Nerve* mNextNerve;
-    /* 0xA0 */ bool mIsResetProcessing;
-    /* 0xA4 */ ScenarioDataParser* mScenarioParser;
-    /* 0xA8 */ NameObjHolder* mObjHolder;
-    /* 0xAC */ Scene* mScene;
-    /* 0xB0 */ SceneInitializeState mSceneInitializeState;
-    /* 0xB4 */ IntermissionScene* mIntermissionScene;
-    /* 0xB8 */ PlayTimerScene* mPlayTimerScene;
-    /* 0xBC */ ScenarioSelectScene* mScenarioSelectScene;
+    /* 0x8C */ SceneControlInfo mNextSceneControlInfo;  // SMG2 offsets (SceneControlInfo is 0x8C)
+    /* 0x118 */ Spine* mSpine;
+    /* 0x11C */ const Nerve* mNextNerve;
+    /* 0x120 */ bool mIsResetProcessing;
+    /* 0x124 */ ScenarioDataParser* mScenarioParser;
+    /* 0x128 */ NameObjHolder* mObjHolder;
+    /* 0x12C */ Scene* mScene;
+    /* 0x130 */ SceneInitializeState mSceneInitializeState;
+    /* 0x134 */ IntermissionScene* mIntermissionScene;
+    /* 0x138 */ PlayTimerScene* mPlayTimerScene;
+    /* 0x13C */ ScenarioSelectScene* mScenarioSelectScene;
 };

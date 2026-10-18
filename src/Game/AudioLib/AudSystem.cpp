@@ -40,6 +40,10 @@
 #include <revolution/sc.h>
 #include <revolution/vi/vifuncs.h>
 
+// SMG2 AudSystem has a different layout from the one in AudSystem.hpp (SMG1 layout, shared with the rest of AudioLib).
+// Members that only exist at SMG2 offsets are accessed through this overlay until the header is re-laid out.
+#define AUD_FIELD(type, offset) (*reinterpret_cast< type* >((u8*)this + (offset)))
+
 const char sAudioResFile[] = "/AudioRes/SMR.szs";
 const char sJaiSeqArc[] = "/AudioRes/Seqs/JaiSeq.arc";
 const char sJaiChordArc[] = "/AudioRes/Info/JaiChord.arc";
@@ -489,50 +493,109 @@ void AudSystem::unpause() {
     mIsPaused = false;
 }
 
+
+extern "C" void fn_804AC160(SpkSystem*, s32, s32);
+
+void AudSystem::stopAllSounds(u32 fadeTime) {
+    JAUSoundMgr::stop(fadeTime);
+}
+
+void AudSystem::stopAllSe() {
+    mSeMgr.stop();
+}
+
+void AudSystem::stopSeCategories(u32 fadeTime) {
+    JAISeMgr* pSeMgr = &mSeMgr;
+
+    for (int i = 0; i < 16; i++) {
+        JAISeCategoryMgr* pCategory = pSeMgr->getCategory(i);
+
+        if (i != 0 && i != 13) {
+            pCategory->stop(fadeTime);
+        }
+    }
+}
+
+bool AudSystem::isHomeButtonMenuEntering() const {
+    return AUD_FIELD(s32, 0x988) == 1;
+}
+
+bool AudSystem::isHomeButtonMenuLeaving() const {
+    return static_cast< u32 >(AUD_FIELD(s32, 0x988) - 2) <= 1;
+}
+
+void AudSystem::pauseSeCategories(s32 menuType, bool pause) {
+    for (int i = 0; i < 16; i++) {
+        if (i != 13 && (menuType != 1 || i != 0)) {
+            mSeMgr.getCategory(i)->pause(pause);
+        }
+    }
+}
+
+void AudSystem::stopMenuSystemSounds() {
+    AudSoundObject* pObject = AUD_FIELD(AudSoundObject*, 0x950);
+
+    if (pObject != nullptr) {
+        pObject->stopSound(JAISoundID(0x11), 0);
+        AUD_FIELD(AudSoundObject*, 0x950)->stopSound(JAISoundID(3), 0);
+    }
+}
+
 void AudSystem::enterHomeButtonMenu() {
-    mHomeButtonMenuState = MenuState_Enter;
-    mHomeButtonToggleTime = 18 + 1;
-    mSeqMgr.getParams()->moveVolume(0.0f, 18);
-    mStreamMgr.getParams()->moveVolume(0.0f, 18);
-    setVolumeZeroForce(MenuType_HomeButtonMenu);
-    setSeVolumeSet(AudSystemVolumeController::VolumeSet_HomeButtonMenu, 18);
+    stopMenuSystemSounds();
+    AUD_FIELD(s32, 0x988) = MenuState_Enter;
+    AUD_FIELD(s32, 0x98C) = 15 + 1;
+    mSeqMgr.getParams()->moveVolume(0.0f, 15);
+    mStreamMgr.getParams()->moveVolume(0.0f, 15);
+
+    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    if (pController != nullptr) {
+        pController->setSeVolumeSetTrig(5, 15);
+    }
+
+    fn_804AC160(AUD_FIELD(SpkSystem*, 0x9A8), -1, 100);
 }
 
 void AudSystem::exitHomeButtonMenu() {
     updateOutputMode();
-    mHomeButtonMenuState = MenuState_Exit;
-    mHomeButtonToggleTime = 20 + 1;
+    AUD_FIELD(s32, 0x988) = MenuState_Exit;
+    AUD_FIELD(s32, 0x98C) = 20 + 1;
 
     if (!isPauseMenuActive()) {
         mSeqMgr.getParams()->moveVolume(AudParams::masterVolBgm, 20);
-        mStreamMgr.getParams()->moveVolume(AudParams::masterVolStream, 18);
+        mStreamMgr.getParams()->moveVolume(AudParams::masterVolStream, 15);
     }
 
-    recoverSeVolumeSet(20);
+    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    if (pController != nullptr) {
+        pController->recoverSeVolumeSet(20);
+    }
 
-    if (!isPauseMenuActive() && !mIsDvdError) {
+    if (!isPauseMenuActive() && AUD_FIELD(u8, 0x998) == 0) {
+        pauseSeCategories(0, false);
         unpause();
     }
 }
 
 void AudSystem::updateHomeButtonMenu() {
-    switch (mHomeButtonMenuState) {
+    switch (AUD_FIELD(s32, 0x988)) {
     case MenuState_Off:
         break;
     case MenuState_Enter:
-        if (mHomeButtonToggleTime > 0 && --mHomeButtonToggleTime <= 0) {
-            mHomeButtonToggleTime = -1;
-            mHomeButtonMenuState = MenuState_Active;
+        if (AUD_FIELD(s32, 0x98C) > 0 && --AUD_FIELD(s32, 0x98C) <= 0) {
+            AUD_FIELD(s32, 0x98C) = -1;
+            AUD_FIELD(s32, 0x988) = MenuState_Active;
             if (!isPauseMenuActive()) {
                 pause();
+                pauseSeCategories(0, true);
             }
         }
 
         break;
     case MenuState_Exit:
-        if (mHomeButtonToggleTime > 0 && --mHomeButtonToggleTime <= 0) {
-            mHomeButtonToggleTime = -1;
-            mHomeButtonMenuState = MenuState_Off;
+        if (AUD_FIELD(s32, 0x98C) > 0 && --AUD_FIELD(s32, 0x98C) <= 0) {
+            AUD_FIELD(s32, 0x98C) = -1;
+            AUD_FIELD(s32, 0x988) = MenuState_Off;
         }
 
         break;
@@ -542,7 +605,7 @@ void AudSystem::updateHomeButtonMenu() {
 }
 
 bool AudSystem::isHomeButtonMenuActive() const {
-    if (mHomeButtonMenuState == MenuState_Off || mHomeButtonMenuState == MenuState_Exit) {
+    if (AUD_FIELD(s32, 0x988) == MenuState_Off || AUD_FIELD(s32, 0x988) == MenuState_Exit) {
         return false;
     }
 
@@ -550,39 +613,52 @@ bool AudSystem::isHomeButtonMenuActive() const {
 }
 
 void AudSystem::enterPauseMenu() {
-    mPauseMenuState = MenuState_Enter;
-    mPauseMenuToggleTime = 18 + 1;
-    mSeqMgr.getParams()->moveVolume(0.0f, 18);
-    mStreamMgr.getParams()->moveVolume(0.0f, 18);
-    setVolumeZeroForce(MenuType_Pause);
-    setSeVolumeSet(AudSystemVolumeController::VolumeSet_PauseMenu, 18);
+    stopMenuSystemSounds();
+    AUD_FIELD(s32, 0x990) = MenuState_Enter;
+    AUD_FIELD(s32, 0x994) = 1;
+    mSeqMgr.getParams()->moveVolume(0.0f, 0);
+    mStreamMgr.getParams()->moveVolume(0.0f, 0);
+
+    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    if (pController != nullptr) {
+        pController->setSeVolumeSetTrig(6, 0);
+    }
+
+    fn_804AC160(AUD_FIELD(SpkSystem*, 0x9A8), -1, 100);
 }
 
 void AudSystem::exitPauseMenu() {
-    mPauseMenuState = MenuState_Exit;
-    mPauseMenuToggleTime = 20 + 1;
+    AUD_FIELD(s32, 0x990) = MenuState_Exit;
+    AUD_FIELD(s32, 0x994) = 20 + 1;
     mSeqMgr.getParams()->moveVolume(AudParams::masterVolBgm, 20);
     mStreamMgr.getParams()->moveVolume(AudParams::masterVolStream, 20);
-    recoverSeVolumeSet(20);
+
+    AudSystemVolumeController* pController = AUD_FIELD(AudSystemVolumeController*, 0x978);
+    if (pController != nullptr) {
+        pController->recoverSeVolumeSet(20);
+    }
+
     unpause();
+    pauseSeCategories(1, false);
 }
 
 void AudSystem::updatePauseMenu() {
-    switch (mPauseMenuState) {
+    switch (AUD_FIELD(s32, 0x990)) {
     case MenuState_Off:
         break;
     case MenuState_Enter:
-        if (mPauseMenuToggleTime > 0 && --mPauseMenuToggleTime <= 0) {
-            mPauseMenuToggleTime = -1;
-            mPauseMenuState = MenuState_Active;
+        if (AUD_FIELD(s32, 0x994) > 0 && --AUD_FIELD(s32, 0x994) <= 0) {
+            AUD_FIELD(s32, 0x994) = -1;
+            AUD_FIELD(s32, 0x990) = MenuState_Active;
             pause();
+            pauseSeCategories(1, true);
         }
 
         break;
     case MenuState_Exit:
-        if (mPauseMenuToggleTime > 0 && --mPauseMenuToggleTime <= 0) {
-            mPauseMenuToggleTime = -1;
-            mPauseMenuState = MenuState_Off;
+        if (AUD_FIELD(s32, 0x994) > 0 && --AUD_FIELD(s32, 0x994) <= 0) {
+            AUD_FIELD(s32, 0x994) = -1;
+            AUD_FIELD(s32, 0x990) = MenuState_Off;
         }
 
         break;
@@ -592,11 +668,23 @@ void AudSystem::updatePauseMenu() {
 }
 
 bool AudSystem::isPauseMenuActive() const {
-    if (mPauseMenuState == MenuState_Off || mPauseMenuState == MenuState_Exit) {
+    if (AUD_FIELD(s32, 0x990) == MenuState_Off || AUD_FIELD(s32, 0x990) == MenuState_Exit) {
         return false;
     }
 
     return true;
+}
+
+void AudSystem::setField9A0(s32 value) {
+    AUD_FIELD(s32, 0x9A0) = value;
+}
+
+void AudSystem::setField9A4(bool value) {
+    AUD_FIELD(bool, 0x9A4) = value;
+}
+
+void AudSystem::setField834(s32 value) {
+    *reinterpret_cast< s32* >(reinterpret_cast< u8* >(msBasic) + 0x834) = value;
 }
 
 // Used by AudBgmVolumeController::update and AudSystemVolumeController::updateSeVolumeSetLevel.
@@ -639,22 +727,76 @@ bool AudSystem::isEnableStartSound(JAISoundID soundID) {
         return false;
     }
 
+    if (AUD_FIELD(s32, 0x834) >= 0 && isRestrictedSound(soundID)) {
+        return false;
+    }
+
     return true;
 }
 
+bool AudSystem::isRestrictedSound(JAISoundID soundID) {
+    u8 groupID = soundID.getGroupID();
+
+    if (groupID == 13) {
+        return false;
+    }
+
+    if (groupID == 1) {
+        return false;
+    }
+
+    if (groupID == 2) {
+        return false;
+    }
+
+    switch (static_cast< u32 >(soundID)) {
+    case 0xA0135:
+        return false;
+    case 0xA0136:
+        return false;
+    case 0xE8:
+        return false;
+    case 0x111:
+        return false;
+    case 0x70076:
+        return false;
+    case 0x70077:
+        return false;
+    case 0x70078:
+        return false;
+    case 0x501FC:
+        return false;
+    case 0x50359:
+        return false;
+    case 0x5035A:
+        return false;
+    case 0x5035B:
+        return false;
+    default:
+        return true;
+    }
+}
+
 void AudSystem::doDvdErrorProcess() {
-    mIsDvdError = true;
-    setVolumeZeroForce(MenuType_Error);
-    mSeMgr.stop(10);
-    pause();
+    AUD_FIELD(u8, 0x998) = 1;
+
+    if (!isPauseMenuActive() && !isHomeButtonMenuActive() && !isHomeButtonMenuEntering()) {
+        pauseSeCategories(2, true);
+        pause();
+        mSeqMgr.getParams()->moveVolume(0.0f, 0);
+        mStreamMgr.getParams()->moveVolume(0.0f, 0);
+    }
 }
 
 void AudSystem::exitDvdErrorProcess() {
     if (!isPauseMenuActive() && !isHomeButtonMenuActive()) {
+        mSeqMgr.getParams()->moveVolume(AudParams::masterVolBgm, 20);
+        mStreamMgr.getParams()->moveVolume(AudParams::masterVolStream, 20);
         unpause();
+        pauseSeCategories(2, false);
     }
 
-    mIsDvdError = false;
+    AUD_FIELD(u8, 0x998) = 0;
 }
 
 s32 AudSystem::getNumOfPlaying(JAISoundID soundID) {
@@ -823,14 +965,14 @@ void AudSystem::registerLimitedSound(JAISoundID soundID, s32 delay) {
     stopSoundID(soundID);
 
     for (s32 i = 0; i < 2; i++) {
-        if (mLimitedSoundInfo[i].mSoundID == soundID) {
+        if (AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].mSoundID == soundID) {
             return;
         }
     }
 
     for (s32 i = 0; i < 2; i++) {
-        if (mLimitedSoundInfo[i].isFree()) {
-            mLimitedSoundInfo[i].set(soundID, delay);
+        if (AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].isFree()) {
+            AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].set(soundID, delay);
             break;
         }
     }
@@ -838,13 +980,13 @@ void AudSystem::registerLimitedSound(JAISoundID soundID, s32 delay) {
 
 void AudSystem::clearAllLimitedSound() {
     for (s32 i = 0; i < 2; i++) {
-        mLimitedSoundInfo[i].init();
+        AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].init();
     }
 }
 
 bool AudSystem::isRegisteredLimitedSound(JAISoundID soundID) {
     for (s32 i = 0; i < 2; i++) {
-        if (mLimitedSoundInfo[i].mSoundID == soundID) {
+        if (AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].mSoundID == soundID) {
             return true;
         }
     }
@@ -854,7 +996,7 @@ bool AudSystem::isRegisteredLimitedSound(JAISoundID soundID) {
 
 void AudSystem::updateLimitedSound() {
     for (s32 i = 0; i < 2; i++) {
-        mLimitedSoundInfo[i].update();
+        AUD_FIELD(AudLimitedSoundInfo*, 0x99C)[i].update();
     }
 }
 

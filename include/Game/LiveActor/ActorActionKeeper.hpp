@@ -5,4 +5,6 @@
 class ActorActionKeeper {
 public:
     void initFlagCtrl();
+    void updateAnimKeeper();
+    void update();
 };

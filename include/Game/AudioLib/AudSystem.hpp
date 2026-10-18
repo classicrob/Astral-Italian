@@ -102,6 +102,18 @@ public:
     bool isAlreadyPlayingSoundNear(JAISoundID, const TVec3f*, f32);
     void setVolumeZeroForce(s32);
 
+    bool isRestrictedSound(JAISoundID);
+    void stopAllSounds(u32 fadeTime);
+    void stopAllSe();
+    void stopSeCategories(u32 fadeTime);
+    bool isHomeButtonMenuEntering() const NO_INLINE;
+    bool isHomeButtonMenuLeaving() const;
+    void pauseSeCategories(s32 menuType, bool pause);
+    void stopMenuSystemSounds();
+    void setField9A0(s32 value);
+    void setField9A4(bool value);
+    static void setField834(s32 value);
+
     void set830(u32 var) {
         _830 = var;
     }

@@ -23,3 +23,11 @@ public:
     /* 0x24 */ bool _24;
     /* 0x24 */ bool _25;
 };
+
+class BackButtonCancelB : public BackButton {
+public:
+    BackButtonCancelB(const char* pName, bool param2);
+
+    virtual ~BackButtonCancelB();
+    virtual void control();
+};

@@ -84,6 +84,10 @@ public:
         return iconID;
     }
 
+    void clearPage() {
+        *reinterpret_cast< u32* >(reinterpret_cast< u8* >(this) + 0x1F8) = 0;
+    }
+
 private:
     /* 0x020 */ ButtonPaneController* _20[2];
     /* 0x028 */ MR::BitArray* _28;

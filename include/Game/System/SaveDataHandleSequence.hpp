@@ -44,6 +44,7 @@ public:
     void restoreUserFile(UserFile*, int);
     void restoreUserFile(UserFile*, int, bool);
     void backupCurrentUserFile();
+    void backupCurrentGameData();
     void exeNoOperation();
     void exeCheckEnableToCreate();
     void exeSaveConfirm();
@@ -62,16 +63,18 @@ public:
     UserFile* getCurrentUserFile();
     UserFile* getBackupUserFile();
     void restoreUserFileConfigData(UserFile*, int);
-    void restoreUserFileGameData(UserFile*, int, bool);
+    void restoreUserFileGameData(UserFile*, int);
     void restoreSysConfigFile(SysConfigFile*);
-    bool trySave();
+    bool trySave(bool*, const Nerve*);
+    void prepareSaveAll(bool);  // SMG2 fn_804DAC30
+    void startLoadUserFile(int);  // SMG2 fn_804D9CE0
     bool trySaveWindowDisappear(bool*, const Nerve*);
     bool trySaveWithoutWindow(bool*, const Nerve*);
     bool tryConfirm(const char*, bool*);
     bool tryProcessDoneKeyWait(const char*);
     bool tryNoSave();
     bool isEnablePointer() const;
-    bool executeSaveFinish(bool*, const Nerve*);
+    void executeSaveFinish(bool*, const Nerve*);
     void syncNoSaveFlagsFromErrorSequence();
 
     /* 0x08 */ SysConfigFile* mSysConfigFile;

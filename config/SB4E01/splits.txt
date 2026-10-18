@@ -3184,7 +3184,7 @@ Game/Map/NrvFileSelectModel.cpp:
 	.text       start:0x8024F120 end:0x8024F220
 
 Game/Map/FileSelector.cpp:
-	.text       start:0x8024F220 end:0x80252F00
+	.text       start:0x8024F220 end:0x80253360
 	.ctors      start:0x806442AC end:0x806442B0
 	.rodata     start:0x80648B78 end:0x80648B90
 	.data       start:0x80697468 end:0x80697540

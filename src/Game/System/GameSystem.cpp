@@ -19,6 +19,7 @@
 #include "Game/System/GameSystemObjHolder.hpp"
 #include "Game/System/GameSystemResetAndPowerProcess.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
+#include "Game/Scene/ScenarioSelectScene.hpp"
 #include "Game/System/GameSystemStationedArchiveLoader.hpp"
 #include "Game/System/HeapMemoryWatcher.hpp"
 #include "Game/System/HomeButtonStateNotifier.hpp"
@@ -34,6 +35,9 @@
 #include <JSystem/JKernel/JKRExpHeap.hpp>
 #include <nw4r/lyt/init.h>
 #include <revolution.h>
+
+extern "C" s32 fn_804BB950(void*);
+extern "C" void fn_804D9230();
 
 #define GX_FIFO_SIZE 0x80000
 
@@ -147,7 +151,7 @@ void GameSystem::exeLoadStationedArchive() {
     mStationedArchiveLoader->update();
     updateSceneController();
 
-    if (mStationedArchiveLoader->isDone()) {
+    if (fn_804BB950(mStationedArchiveLoader) || mStationedArchiveLoader->isDone()) {
         setNerve(GET_NERVE(GameSystem, GameSystemNormal));
     }
 }
@@ -222,6 +226,12 @@ void GameSystem::draw() {
         mSystemWipeHolder->draw();
     }
 
+    fn_804D9230();
+
+    if (mSceneController->mScenarioSelectScene != nullptr) {
+        mSceneController->mScenarioSelectScene->draw();
+    }
+
     mErrorWatcher->draw();
     mHomeButtonLayout->draw();
     SingletonHolder< GameSystemResetAndPowerProcess >::get()->draw();
@@ -245,8 +255,6 @@ void GameSystem::update() {
 void GameSystem::updateSceneController() {
     bool isSceneUpdate = true;
     bool isResetProcessing = SingletonHolder< GameSystemResetAndPowerProcess >::get()->isActive();
-
-    mObjHolder->updateAudioSystem();
 
     if (isResetProcessing) {
         isSceneUpdate = false;
@@ -275,6 +283,8 @@ void GameSystem::updateSceneController() {
     if (isResetProcessing) {
         mSceneController->updateSceneDuringResetProcessing();
     }
+
+    mObjHolder->updateAudioSystem();
 }
 
 void GameSystem::calcAnim() {

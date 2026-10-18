@@ -1,4 +1,7 @@
 #include "Game/System/SaveDataHandleSequence.hpp"
+
+extern "C" void fn_804D45B0();
+extern "C" void fn_804DEA70(void*);
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/SaveIcon.hpp"
@@ -63,12 +66,49 @@ void SaveDataHandleSequence::initAfterResourceLoaded() {
 
 
 
+void SaveDataHandleSequence::update() {
+    updateNerve();
+
+    if (mSaveDataHandler != nullptr) {
+        mSaveDataHandler->update();
+    }
+
+    if (mSysInfoWindowConfirm != nullptr) {
+        mSysInfoWindowConfirm->movement();
+        mSysInfoWindowConfirm->calcAnim();
+    }
+
+    if (mSysInfoWindowSave != nullptr) {
+        mSysInfoWindowSave->movement();
+        mSysInfoWindowSave->calcAnim();
+        mSaveIcon->movement();
+        mSaveIcon->calcAnim();
+    }
+
+    if (isEnablePointer()) {
+        MR::requestStarPointerModeSaveLoad(this);
+    }
+}
+
+void SaveDataHandleSequence::draw() const {
+    if (mSysInfoWindowConfirm != nullptr) {
+        mSysInfoWindowConfirm->draw();
+    }
+
+    if (mSysInfoWindowSave != nullptr) {
+        mSysInfoWindowSave->draw();
+        mSaveIcon->draw();
+    }
+}
+
 void SaveDataHandleSequence::startPreLoad() {
     setNerve(GET_NERVE_ANON(SaveDataHandleSequencePreLoad));
 }
 
 void SaveDataHandleSequence::startCreateUserFile(int index) {
-    restoreUserFile(mCurrentUserFile, index, true);
+    UserFile* pUserFile = mCurrentUserFile;
+    restoreUserFileConfigData(pUserFile, index);
+    restoreUserFileGameData(pUserFile, index);
     mCurrentUserFile->resetAllData();
     mCurrentUserFile->setCreated();
     mCurrentUserFile->updateLastModified();
@@ -77,13 +117,62 @@ void SaveDataHandleSequence::startCreateUserFile(int index) {
 }
 
 void SaveDataHandleSequence::startDeleteUserFile(int index) {
-    restoreUserFile(mCurrentUserFile, index, true);
+    UserFile* pUserFile = mCurrentUserFile;
+    restoreUserFileConfigData(pUserFile, index);
+    restoreUserFileGameData(pUserFile, index);
     mCurrentUserFile->resetAllData();
     mSaveDataHandler->initializeUserFileMemory(index, mCurrentUserFile);
     setNerve(GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWait));
 }
 
 
+
+void SaveDataHandleSequence::startLoadUserFile(int userFileIndex) {
+    _10 = userFileIndex;
+    restoreUserFileConfigData(mCurrentUserFile, userFileIndex);
+    restoreUserFileGameData(mCurrentUserFile, userFileIndex);
+
+    _24 = 2;
+
+    setNerve(GET_NERVE_ANON(SaveDataHandleSequenceNoOperation));
+}
+
+void SaveDataHandleSequence::storeMiiOrIconId(int userFileIndex, const void* pMiiId, const u32* pIconId) {
+    restoreUserFile(mCurrentUserFile, userFileIndex);
+    mCurrentUserFile->setMiiOrIconId(pMiiId, pIconId);
+    mCurrentUserFile->updateLastModified();
+    mSaveDataHandler->storeUserFile(mCurrentUserFile);
+}
+
+void SaveDataHandleSequence::exeSave() {
+    if (MR::isFirstStep(this)) {
+        prepareSaveAll(true);
+        mSaveDataHandler->storeUserFile(mWorkUserFile);
+    }
+
+    if (tryNoSave()) {
+        return;
+    }
+
+    if (_2A) {
+        bool isErr = true;
+        executeSaveFinish(&isErr, GET_NERVE_ANON(SaveDataHandleSequenceSaveConfirm));
+        return;
+    }
+
+    if (_2C) {
+        bool isErr = false;
+        if (trySave(&isErr, GET_NERVE_ANON(SaveDataHandleSequenceSave)) && !isErr) {
+            setNerve(GET_NERVE_ANON(SaveDataHandleSequenceSaveDoneKeyWait));
+        }
+    } else {
+        bool isErr = false;
+        if (trySave(&isErr, GET_NERVE_ANON(SaveDataHandleSequenceSave)) && !isErr) {
+            _24 = 2;
+            setNerve(GET_NERVE_ANON(SaveDataHandleSequenceNoOperation));
+        }
+    }
+}
 
 void SaveDataHandleSequence::startSaveAll() {
     setNerve(GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWait));
@@ -171,12 +260,12 @@ bool SaveDataHandleSequence::isInitializedGameDataHolder() const {
 
 void SaveDataHandleSequence::restoreUserFile(UserFile* pUserFile, int index) {
     restoreUserFileConfigData(pUserFile, index);
-    restoreUserFileGameData(pUserFile, index, pUserFile->isLastLoadedMario());
+    restoreUserFileGameData(pUserFile, index);
 }
 
 void SaveDataHandleSequence::restoreUserFile(UserFile* pUserFile, int index, bool isPlayerMario) {
     restoreUserFileConfigData(pUserFile, index);
-    restoreUserFileGameData(pUserFile, index, isPlayerMario);
+    restoreUserFileGameData(pUserFile, index);
     pUserFile->setLastLoadedMario(isPlayerMario);
 }
 
@@ -185,6 +274,11 @@ void SaveDataHandleSequence::backupCurrentUserFile() {
     mBackupUserFile->loadFromGameDataBinary(mCurrentUserFile->getGameDataName(), mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
     mCurrentUserFile->makeConfigDataBinary(mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
     mBackupUserFile->loadFromConfigDataBinary(mCurrentUserFile->getConfigDataName(), mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
+}
+
+void SaveDataHandleSequence::backupCurrentGameData() {
+    mBackupUserFile->makeGameDataBinary(mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
+    mCurrentUserFile->loadFromGameDataBinary(mBackupUserFile->getGameDataName(), mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
 }
 
 void SaveDataHandleSequence::exeNoOperation() {
@@ -252,23 +346,21 @@ void SaveDataHandleSequence::exeSaveDoneKeyWait() {
 
 void SaveDataHandleSequence::exeSaveAllWithoutKeyWait() {
     if (MR::isFirstStep(this)) {
-        if (mJustBeforeSaveFunc != nullptr) {
-            (*mJustBeforeSaveFunc)();
+        prepareSaveAll(false);
+    }
+
+    if (!tryNoSave()) {
+        if (_2A) {
+            bool isErr = true;
+            executeSaveFinish(&isErr, GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWait));
+            return;
         }
 
-        mSaveDataHandler->storeSysConfigFile(mSysConfigFile);
-    }
-
-    if (tryNoSave()) {
-        return;
-    }
-
-    if (_2A) {
-        bool isErr = true;
-
-        executeSaveFinish(&isErr, GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWait));
-    } else if (trySave()) {
-        setNerve(GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWaitDisappear));
+        bool isErr = false;
+        if (trySave(&isErr, GET_NERVE_ANON(SaveDataHandleSequenceSaveAllWithoutKeyWait)) && !isErr) {
+            _24 = 2;
+            setNerve(GET_NERVE_ANON(SaveDataHandleSequenceNoOperation));
+        }
     }
 }
 
@@ -345,37 +437,36 @@ void SaveDataHandleSequence::restoreUserFileConfigData(UserFile* pUserFile, int 
     pUserFile->loadFromConfigDataBinary(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
 }
 
-void SaveDataHandleSequence::restoreUserFileGameData(UserFile* pUserFile, int index, bool isPlayerMario) {
+void SaveDataHandleSequence::restoreUserFileGameData(UserFile* pUserFile, int index) {
     char dataName[16];
-    snprintf(dataName, sizeof(dataName), "%s%1d", isPlayerMario ? "mario" : "luigi", index);
+    snprintf(dataName, sizeof(dataName), "%s%1d", "user", index);
 
     mSaveDataHandler->restoreGameDataFile(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
     pUserFile->loadFromGameDataBinary(dataName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
-
-    pUserFile->mIsPlayerMario = isPlayerMario;
 }
 
 void SaveDataHandleSequence::restoreSysConfigFile(SysConfigFile* pSysConfigFile) {
     const char* pName = "sysconf";
     mSaveDataHandler->restoreGameDataFile(pName, mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
-    pSysConfigFile->loadFromDataBinary(mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
+    mSysConfigFile->loadFromDataBinary(mTempBuffer, SaveDataHandler::getEnoughtTempBufferSize());
 }
 
-bool SaveDataHandleSequence::trySave() {
+void SaveDataHandleSequence::prepareSaveAll(bool isWithBeforeSave) {
+    if (isWithBeforeSave) {
+        fn_804D45B0();
+    }
+
+    fn_804DEA70(*reinterpret_cast< void** >(mSysConfigFile));
+    mSaveDataHandler->storeSysConfigFile(mSysConfigFile);
+}
+
+bool SaveDataHandleSequence::trySave(bool* pIsErr, const Nerve* pNerve) {
     if (MR::isFirstStep(this)) {
         mSaveDataHandler->requestSaveSaveData();
-        mSysInfoWindowSave->appear("System_Save01", SysInfoWindow::Type_Blocking, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);
     }
 
-    if (MR::isDead(mSaveIcon) && mSysInfoWindowSave->isWait()) {
-        mSaveIcon->appear();
-    }
-
-    if (MR::isGreaterStep(this, 20)) {
-        MR::startSystemLevelSE("SE_SY_LV_SAVING");
-    }
-
-    if (MR::isGreaterStep(this, 120) && mSaveDataHandler->isDone()) {
+    if (mSaveDataHandler->isDone()) {
+        executeSaveFinish(pIsErr, pNerve);
         return true;
     }
 
@@ -428,19 +519,29 @@ bool SaveDataHandleSequence::tryNoSave() {
 }
 
 bool SaveDataHandleSequence::isEnablePointer() const {
-    if (isNerve(GET_NERVE_ANON(SaveDataHandleSequenceNoOperation)) || isNerve(GET_NERVE_ANON(SaveDataHandleSequencePreLoad)) ||
-        isNerve(GET_NERVE_ANON(SaveDataHandleSequencePreLoadDone))) {
-        return false;
+    if (isNerve(GET_NERVE_ANON(SaveDataHandleSequenceNoSaveConfirmRemind)) || isNerve(GET_NERVE_ANON(SaveDataHandleSequenceErrorHandling))) {
+        return true;
     }
 
-    if (isNerve(GET_NERVE_ANON(SaveDataHandleSequenceCheckEnableToCreate)) && !mNANDErrorSequence->isEnablePointer()) {
-        return false;
+    if (isNerve(GET_NERVE_ANON(SaveDataHandleSequenceSaveConfirm))) {
+        bool isRemind = false;
+        if (_2C || _2B) {
+            isRemind = true;
+        }
+
+        if (!isRemind) {
+            return true;
+        }
     }
 
-    return true;
+    if (isNerve(GET_NERVE_ANON(SaveDataHandleSequenceCheckEnableToCreate)) && mNANDErrorSequence->isEnablePointer()) {
+        return true;
+    }
+
+    return false;
 }
 
-bool SaveDataHandleSequence::executeSaveFinish(bool* pIsErr, const Nerve* pNerveForError) {
+void SaveDataHandleSequence::executeSaveFinish(bool* pIsErr, const Nerve* pNerveForError) {
     NANDResultCode resultCode = mSaveDataHandler->getLastResultCode();
 
     if (_2A) {
@@ -448,37 +549,35 @@ bool SaveDataHandleSequence::executeSaveFinish(bool* pIsErr, const Nerve* pNerve
     }
 
     if (resultCode.isSuccess()) {
-        MR::startSystemSE("SE_SY_SAVE_SUCCESS");
+        if (!mIsSaveAndQuitMsg) {
+            MR::startSystemSE("SE_SY_SAVE_SUCCESS");
+        }
 
         *pIsErr = false;
         _2A = false;
-
-        return true;
+        return;
     }
 
     *pIsErr = true;
 
-    MR::startSystemSE("SE_SY_SAVE_FAILURE");
+    if (!mIsSaveAndQuitMsg) {
+        MR::startSystemSE("SE_SY_SAVE_FAILURE");
+    }
 
     if (resultCode.isSaveDataCorrupted()) {
         mNerveForError = pNerveForError;
 
         mNANDErrorSequence->startRemoveFile();
         setNerve(GET_NERVE_ANON(SaveDataHandleSequenceErrorHandling));
-
-        return true;
+        return;
     }
 
-    if (tryNANDErrorSequence(resultCode.getCode())) {
-        return true;
+    if (!tryNANDErrorSequence(resultCode.getCode())) {
+        mNerveForError = GET_NERVE_ANON(SaveDataHandleSequenceNoOperation);
+
+        mNANDErrorSequence->startErrorToWiiMenu("NAND_11_2");
+        setNerve(GET_NERVE_ANON(SaveDataHandleSequenceErrorHandling));
     }
-
-    mNerveForError = GET_NERVE_ANON(SaveDataHandleSequenceNoOperation);
-
-    mNANDErrorSequence->startErrorToWiiMenu("NAND_11_2");
-    setNerve(GET_NERVE_ANON(SaveDataHandleSequenceErrorHandling));
-
-    return true;
 }
 
 void SaveDataHandleSequence::syncNoSaveFlagsFromErrorSequence() {

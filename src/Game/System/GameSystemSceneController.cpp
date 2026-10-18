@@ -358,8 +358,14 @@ bool GameSystemSceneController::isPreparedReset() {
 }
 
 bool GameSystemSceneController::isExistRequest() const {
-    return isNextNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneScene)) ||
-           isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneScene));
+    const Nerve* pWaitDrawDone = GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneScene);
+    bool isExist = true;
+
+    if (mNextNerve != pWaitDrawDone && mSpine->getCurrentNerve() != pWaitDrawDone) {
+        isExist = false;
+    }
+
+    return isExist;
 }
 
 bool GameSystemSceneController::isSameAtNextSceneAndStage() const {
@@ -394,19 +400,20 @@ Scene* GameSystemSceneController::getCurrentSceneForExecute() const {
 const Nerve* GameSystemSceneController::getNextNerveOnResetProcessing() const {
     const Nerve* nextNerve = nullptr;
 
-    if (isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneSceneForDestroy)) ||
-        isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroySceneForDestroy)) ||
-        isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroyed))) {
-    } else if (isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroyScene)) ||
-               isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerChangeWaveBank)) ||
-               isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerNotInitialized))) {
-        nextNerve = GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroyed);
-    } else if (isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneScene)) ||
-               isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerNormal)) ||
-               isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerInitializeScene)) ||
-               isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerInvalidateSystemWipe)) ||
-               isCurrentNerve(GET_NERVE(GameSystemSceneController, GameSystemSceneControllerReadyToStartScene))) {
-        nextNerve = GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneSceneForDestroy);
+    if (mSpine->getCurrentNerve() != GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneSceneForDestroy) &&
+        mSpine->getCurrentNerve() != GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroySceneForDestroy) &&
+        mSpine->getCurrentNerve() != GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroyed)) {
+        if (mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroyScene) ||
+            mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerChangeWaveBank) ||
+            mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerNotInitialized)) {
+            nextNerve = GET_NERVE(GameSystemSceneController, GameSystemSceneControllerDestroyed);
+        } else if (mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneScene) ||
+                   mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerNormal) ||
+                   mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerInitializeScene) ||
+                   mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerInvalidateSystemWipe) ||
+                   mSpine->getCurrentNerve() == GET_NERVE(GameSystemSceneController, GameSystemSceneControllerReadyToStartScene)) {
+            nextNerve = GET_NERVE(GameSystemSceneController, GameSystemSceneControllerWaitDrawDoneSceneForDestroy);
+        }
     }
 
     return nextNerve;

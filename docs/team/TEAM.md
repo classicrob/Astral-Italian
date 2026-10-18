@@ -67,6 +67,8 @@ Never let free space on / drop below 33 GB (`df -h /`). A worktree with its buil
 
 ## Correct fixes only
 
-No fallbacks or workarounds (local ABI re-declarations, extern "C" stubs, no-op shims, `#if 1` pins, temporary
-hacks). Fix the header / symbols.txt / splits at the source and update every caller in the same commit. Register-
-allocation-only NONMATCHING functions are fine; wrong logic, signatures or layouts are not.
+No workarounds that compromise correctness or never get revisited (permanent local ABI re-declarations, extern "C"
+stubs, no-op shims, `#if 1` pins). Fix the header / symbols.txt / splits at the source and update every caller in the
+same commit. Temporary placeholders that help solve neighbouring code are fine if marked
+`// PLACEHOLDER(<lane>): <why>; resolve when <condition>` and resolved later (counted by placeholders.py every retro).
+Register-allocation-only NONMATCHING functions are fine; wrong logic, signatures or layouts are not.

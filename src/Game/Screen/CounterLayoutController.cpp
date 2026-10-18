@@ -2,10 +2,12 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/CoinCounter.hpp"
+#include "Game/Screen/CometMedalCounter.hpp"
 #include "Game/Screen/MarioMeter.hpp"
 #include "Game/Screen/PlayerLeft.hpp"
 #include "Game/Screen/StarCounter.hpp"
 #include "Game/Screen/StarPieceCounter.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/GamePadUtil.hpp"
 #include "Game/Util/LayoutUtil.hpp"
@@ -26,7 +28,7 @@ namespace NrvCounterLayoutController {
 
 CounterLayoutController::CounterLayoutController()
     : LayoutActor("カウンタ系レイアウト制御", true), mPlayerNotMovingFrame(), _24(), mCoinCounter(), mStarPieceCounter(), mPlayerLeft(),
-      mStarCounter(), mHPMeter() {
+      mStarCounter(), mHPMeter(), mCometMedalCounter() {
 }
 
 void CounterLayoutController::init(const JMapInfoIter& rIter) {
@@ -41,6 +43,8 @@ void CounterLayoutController::init(const JMapInfoIter& rIter) {
     mPlayerLeft->initWithoutIter();
     mStarCounter = new StarCounter();
     mStarCounter->initWithoutIter();
+    mCometMedalCounter = new CometMedalCounter();
+    mCometMedalCounter->initWithoutIter();
 
     appear();
 }
@@ -61,7 +65,11 @@ void CounterLayoutController::kill() {
     killAllCoounter();
 }
 
-void CounterLayoutController::forceAppear() {
+void CounterLayoutController::forceAppear(bool) {
+    if (!MR::isStageMarioFaceShipOrWorldMap() && GameSequenceFunction::isPadModeSuperDreamer()) {
+        return;
+    }
+
     setNerve(GET_NERVE(CounterLayoutController, CounterLayoutControllerNrvPlayerNotMoving));
 }
 
@@ -74,13 +82,10 @@ void CounterLayoutController::requestedTicoEat(bool param1) {
         mCoinCounter->kill();
         mPlayerLeft->kill();
         mStarCounter->kill();
+        mCometMedalCounter->kill();
     }
 
     _24 = true;
-}
-
-bool CounterLayoutController::isInvalidSystemStateShowCounter() {
-    return MR::isExistStarPointerGuidance() || MR::isPlayerInBind() || MR::isSystemTalking();
 }
 
 bool CounterLayoutController::isWaitToDisappearCounter(const LayoutActor* pActor) {
@@ -93,18 +98,20 @@ void CounterLayoutController::control() {
 
 void CounterLayoutController::showAllLayout() {
     if (!_24) {
-        mCoinCounter->forceAppear();
+        mCoinCounter->forceAppear(false);
         mStarPieceCounter->forceAppear(false);
         mPlayerLeft->forceAppear();
+        mCometMedalCounter->forceAppear(false);
         mStarCounter->appear();
     }
 }
 
 void CounterLayoutController::hideAllLayout() {
     if (!_24) {
-        mCoinCounter->disappear();
+        mCoinCounter->disappear(false);
         mStarPieceCounter->disappear(false);
         mPlayerLeft->disappear();
+        mCometMedalCounter->disappear();
         mStarCounter->disappear();
     }
 }
@@ -116,8 +123,10 @@ namespace {
     }
 };  // namespace
 
+// NONMATCHING: only the order of the flag-zeroing li instructions (r29..r26) differs
 bool CounterLayoutController::isHiddenOrWaitAllLayout() const {
-    return ::isHiddenOrWait(mCoinCounter) && ::isHiddenOrWait(mStarPieceCounter) && ::isHiddenOrWait(mPlayerLeft) && ::isHiddenOrWait(mStarCounter);
+    return ::isHiddenOrWait(mCoinCounter) && ::isHiddenOrWait(mStarPieceCounter) && ::isHiddenOrWait(mPlayerLeft) && ::isHiddenOrWait(mCometMedalCounter) &&
+           ::isHiddenOrWait(mStarCounter);
 }
 
 bool CounterLayoutController::isPlayerMoving() const {
@@ -141,10 +150,15 @@ bool CounterLayoutController::isPlayerMoving() const {
     return false;
 }
 
+bool CounterLayoutController::isInvalidSystemStateShowCounter() {
+    return MR::isExistStarPointerGuidance() || MR::isPlayerInRush() || MR::isPlayerRecovering() || MR::isSystemTalking();
+}
+
 void CounterLayoutController::appearAllCounterWithoutStar() {
     mCoinCounter->appear();
     mStarPieceCounter->appear();
     mPlayerLeft->appear();
+    mCometMedalCounter->appear();
 }
 
 void CounterLayoutController::killAllCoounter() {
@@ -152,6 +166,7 @@ void CounterLayoutController::killAllCoounter() {
     mStarPieceCounter->kill();
     mPlayerLeft->kill();
     mStarCounter->kill();
+    mCometMedalCounter->kill();
 }
 
 bool CounterLayoutController::tryEndTicoEatStarPiece() {
@@ -159,6 +174,7 @@ bool CounterLayoutController::tryEndTicoEatStarPiece() {
         if (mStarPieceCounter->tryOffModeTicoEat()) {
             mCoinCounter->appear();
             mPlayerLeft->appear();
+            mCometMedalCounter->appear();
         }
 
         return true;

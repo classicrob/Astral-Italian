@@ -18,8 +18,6 @@ public:
     /// @brief Creates a new `GameSceneLayoutHolder`.
     GameSceneLayoutHolder();
 
-    virtual void movement();
-
     void createPurpleCoinCounter();
     PurpleCoinCounter* getPurpleCoinCounter() const;
     void initLifeCount(u32);
@@ -36,21 +34,19 @@ public:
     bool isMissAnimEnd() const;
     void activateDefaultGameLayout();
     void deactivateDefaultGameLayout();
-    void invalidateStatusLayout();
 
-    /* 0x0C */ CameraInfo* mCameraInfo;
-    /* 0x10 */ InformationMessage* mInformationMessage;
-    /* 0x14 */ MarioMeter* mMarioMeter;
-    /* 0x18 */ MarioSubMeter* mMarioSubMeter;
-    /* 0x1C */ MissLayout* mMissLayout;
-    /* 0x20 */ NoteCounter* mNoteCounter;
-    /* 0x24 */ OneUpBoard* mOneUpBoard;
-    /* 0x28 */ YesNoLayout* mYesNoLayout;
-    /* 0x2C */ PurpleCoinCounter* mPurpleCoinCounter;
-    /* 0x30 */ bool _30;
-    /* 0x31 */ bool _31;
+    /* 0x14 */ InformationMessage* mInformationMessage;
+    /* 0x18 */ YesNoLayout* mYesNoLayout;
+    /* 0x1C */ CameraInfo* mCameraInfo;
+    /* 0x20 */ MarioMeter* mMarioMeter;
+    /* 0x24 */ MarioSubMeter* mMarioSubMeter;
+    /* 0x28 */ MissLayout* mMissLayout;
+    /* 0x2C */ OneUpBoard* mOneUpBoard;
+    /* 0x30 */ NoteCounter* mNoteCounter;
     /* 0x34 */ CounterLayoutController* mCounterLayoutCtrl;
-    /* 0x38 */ bool mIsActiveDefaultGameLayout;
+    /* 0x38 */ PurpleCoinCounter* mPurpleCoinCounter;
+    /* 0x3C */ void* _3C;
+    /* 0x40 */ bool mIsActiveDefaultGameLayout;
 };
 
 namespace MR {

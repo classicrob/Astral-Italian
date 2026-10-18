@@ -15,8 +15,9 @@ public:
     virtual void appear();
     virtual void control();
 
-    void forceAppear();
-    void disappear();
+    void forceAppear(bool);
+    void disappear(bool);
+    void forceSync();
     bool isWait() const;
     void updateCounter();
     void exeHide();
@@ -32,4 +33,5 @@ private:
     /* 0x30 */ CountUpPaneRumbler* mPaneRumbler;
     /* 0x34 */ bool mIsForceAppear;
     /* 0x38 */ TVec2f mFollowPos;
+    /* 0x40 */ bool _4C;
 };

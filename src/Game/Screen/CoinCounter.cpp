@@ -11,7 +11,6 @@
 
 namespace {
     const s32 cInvalidCountUpInterval = 3;
-    const f32 cAstroLocationOffsetY = 40.0f;
 };  // namespace
 
 namespace NrvCoinCounter {
@@ -23,7 +22,7 @@ namespace NrvCoinCounter {
 
 CoinCounter::CoinCounter(const char* pName)
     : LayoutActor(pName, true), mCoinNum(0), mCoinDisplayNum(0), mInvalidCountUpFrame(0), mLayoutAppearer(nullptr), mPaneRumbler(nullptr),
-      mIsForceAppear(false), mFollowPos(0.0f, 0.0f) {
+      mIsForceAppear(false), mFollowPos(0.0f, 0.0f), _4C(false) {
 }
 
 void CoinCounter::init(const JMapInfoIter& rIter) {
@@ -42,30 +41,45 @@ void CoinCounter::init(const JMapInfoIter& rIter) {
 }
 
 void CoinCounter::appear() {
+    if (MR::isStageMarioFaceShipOrWorldMap() && MR::getPowerStarNum() == 0) {
+        return;
+    }
+
     mLayoutAppearer->reset();
     mPaneRumbler->reset();
 
     mInvalidCountUpFrame = 0;
     mIsForceAppear = false;
+    _4C = false;
 
     MR::hideLayout(this);
+    forceSync();
     setNerve(GET_NERVE(CoinCounter, CoinCounterNrvHide));
     LayoutActor::appear();
+    MR::requestMovementOn(this);
 }
 
-void CoinCounter::forceAppear() {
-    if (!isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) {
+void CoinCounter::forceAppear(bool param) {
+    if (param || !isNerve(GET_NERVE(CoinCounter, CoinCounterNrvWait))) {
         appear();
         setNerve(GET_NERVE(CoinCounter, CoinCounterNrvAppear));
     }
 
     mIsForceAppear = true;
+    _4C = param;
 }
 
-void CoinCounter::disappear() {
+void CoinCounter::disappear(bool param) {
     mIsForceAppear = false;
 
     setNerve(GET_NERVE(CoinCounter, CoinCounterNrvDisappear));
+    _4C = param;
+}
+
+void CoinCounter::forceSync() {
+    mInvalidCountUpFrame = 0;
+    mCoinNum = MR::getCoinNum();
+    mCoinDisplayNum = mCoinNum;
 }
 
 bool CoinCounter::isWait() const {
@@ -126,11 +140,7 @@ void CoinCounter::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::showLayout(this);
 
-        if (MR::isStageAstroLocation()) {
-            mLayoutAppearer->appear(TVec2f(0.0f, ::cAstroLocationOffsetY));
-        } else {
-            mLayoutAppearer->appear(TVec2f(0.0f, 0.0f));
-        }
+        mLayoutAppearer->appear(TVec2f(0.0f, 0.0f));
 
         MR::startAnim(this, "Wait", 1);
     }

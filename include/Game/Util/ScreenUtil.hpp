@@ -97,8 +97,10 @@ namespace MR {
     bool isStopCinemaFrame();
     void appearInformationMessage(const char*, bool);
     void appearInformationMessageCenter(const char*, bool);
+    void appearInformationMessageUp(const char*, bool);
     void setInformationMessageReplaceString(const wchar_t*, s32);
     void disappearInformationMessage();
+    void disableCloseInformationMessage();
     bool isDeadInformationMessage();
     void appearYesNoSelector(const char*, const char*, const char*);
     void setYesNoSelectorSE(const char*, const char*, const char*);

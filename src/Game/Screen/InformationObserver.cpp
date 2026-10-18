@@ -12,6 +12,8 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
+extern "C" bool fn_800210B0();
+
 struct InformationObserverAttribute {
     /* 0x00 */ const char* mMessageId;
     /* 0x04 */ bool _4;
@@ -20,16 +22,21 @@ struct InformationObserverAttribute {
 };
 
 static InformationObserverAttribute sAttr[] = {
-    {"InformationObserverBee", true, "BGM_FIRST_MORPH_B", nullptr},
-    {"InformationObserverTeresa", true, "BGM_FIRST_MORPH_B", nullptr},
-    {"InformationObserverHopper", true, "BGM_FIRST_MORPH_B", nullptr},
+    {"InformationObserverBee", true, "BGM_FIRST_MORPH_A", nullptr},
+    {"InformationObserverTeresa", true, "BGM_FIRST_MORPH_A", nullptr},
+    {"InformationObserverHopper", true, "BGM_FIRST_MORPH_A", nullptr},
     {"InformationObserverFire", true, "BGM_FIRST_MORPH_A", "BGM_FIRE_B"},
     {"InformationObserverIce", true, "BGM_FIRST_MORPH_A", "BGM_ICE_B"},
     {"InformationObserverFlying", true, "BGM_FIRST_MORPH_A", "BGM_FLYING_B"},
     {"InformationObserverInvincible", true, "BGM_FIRST_MORPH_A", "BGM_MUTEKI_B"},
+    {"InformationObserverRock", true, "BGM_FIRST_MORPH_A", nullptr},
+    {"InformationObserverCloud", true, "BGM_FIRST_MORPH_A", nullptr},
+    {"InformationObserverDrill", true, "BGM_FIRST_MORPH_A", nullptr},
     {"InformationObserverLifeUpMario", true, nullptr, nullptr},
     {"InformationObserverOneUp", true, nullptr, nullptr},
-    {"InformationObserverSpin", false, nullptr, nullptr},
+    {"InformationObserverYoshi", false, nullptr, nullptr},
+    {"InformationObserverCometMedal", false, nullptr, nullptr},
+    {"InformationObserverMarioFacePlanet", false, nullptr, nullptr},
 };
 
 namespace {
@@ -38,13 +45,14 @@ namespace {
 
 namespace {
     InformationObserver* getInformationObserver() {
-        return MR::getSceneObj< InformationObserver >(SceneObj_InformationObserver);
+        return MR::getSceneObj< InformationObserver* >(SceneObj_InformationObserver);
     }
 };  // namespace
 
 namespace NrvInformationObserver {
     NEW_NERVE(InformationObserverNrvWait, InformationObserver, Wait);
     NEW_NERVE(InformationObserverNrvDisp, InformationObserver, Disp);
+    NEW_NERVE(InformationObserverNrvEnd, InformationObserver, End);
 };  // namespace NrvInformationObserver
 
 InformationObserver::InformationObserver() : LiveActor("初出監視"), mType(Type_Bee), _90(false), mDisplayFrame(-1) {
@@ -58,13 +66,16 @@ void InformationObserver::init(const JMapInfoIter& rIter) {
     makeActorDead();
 }
 
-void InformationObserver::entry(TYPE type, LiveActor* pParam2) {
+void InformationObserver::entry(TYPE type, LiveActor* pParam2, bool isPauseable) {
     _94 = pParam2;
     mType = type;
-    _90 = MR::isTimeKeepDemoActive();
+    _90 = false;
 
-    if (_90) {
-        MR::pauseTimeKeepDemo(_94);
+    if (::fn_800210B0()) {
+        if (isPauseable) {
+            _90 = true;
+            MR::pauseTimeKeepDemo(_94);
+        }
         setNerve(GET_NERVE(InformationObserver, InformationObserverNrvDisp));
     } else {
         MR::requestStartDemoWithoutCinemaFrame(this, "初出表示", GET_NERVE(InformationObserver, InformationObserverNrvDisp),
@@ -80,10 +91,12 @@ void InformationObserver::exeWait() {
 void InformationObserver::exeDisp() {
     if (MR::isFirstStep(this)) {
         if (mType == Type_LifeUp && MR::isPlayerLuigi()) {
-            MR::appearInformationMessage(MR::getLayoutMessageDirect("InformationObserverLifeUpLuigi"), true);
+            MR::appearInformationMessageUp("InformationObserverLifeUpLuigi", true);
         } else {
-            MR::appearInformationMessage(MR::getLayoutMessageDirect(sAttr[mType].mMessageId), true);
+            MR::appearInformationMessageUp(sAttr[mType].mMessageId, true);
         }
+
+        MR::disableCloseInformationMessage();
 
         if (sAttr[mType].mFirstMorphBgmName != nullptr) {
             MR::stopSubBGM(0);
@@ -101,12 +114,6 @@ void InformationObserver::exeDisp() {
         return;
     }
 
-    if (_90) {
-        MR::resumeTimeKeepDemo(_94);
-    } else {
-        MR::endDemo(this, "初出表示");
-    }
-
     if (sAttr[mType].mBgmName != nullptr) {
         if (mType == Type_Flying) {
             MR::stopSubBGM(5);
@@ -115,9 +122,6 @@ void InformationObserver::exeDisp() {
             MR::startSubBGM(sAttr[mType].mBgmName, false);
         }
     }
-
-    MR::startSystemSE("SE_SY_TALK_OK");
-    MR::disappearInformationMessage();
 
     switch (mType) {
     case Type_Bee:
@@ -141,58 +145,132 @@ void InformationObserver::exeDisp() {
     case Type_Invincible:
         MR::onGameEventFlagInvincibleMarioAtFirst();
         break;
+    case Type_Rock:
+        MR::onGameEventFlagRockMarioAtFirst();
+        break;
+    case Type_Cloud:
+        MR::onGameEventFlagCloudMarioAtFirst();
+        break;
+    case Type_Drill:
+        MR::onGameEventFlagDrillAtFirst();
+        break;
     case Type_LifeUp:
         MR::onGameEventFlagLifeUpAtFirst();
         break;
     case Type_OneUp:
         MR::onGameEventFlagOneUpAtFirst();
         break;
-    case Type_Spin:
-        MR::onGameEventFlagEnableToSpinAndStarPointer();
+    case Type_Yoshi:
+        MR::onGameEventFlagYoshiAtFirst();
+        break;
+    case Type_CometMedal:
+        MR::onGameEventFlagCometMedalAtFirst();
+        break;
+    default:
         break;
     }
 
-    makeActorDead();
+    setNerve(GET_NERVE(InformationObserver, InformationObserverNrvEnd));
+}
+
+void InformationObserver::exeEnd() {
+    if (MR::isFirstStep(this)) {
+        MR::disappearInformationMessage();
+    }
+
+    if (MR::isDeadInformationMessage()) {
+        if (_90) {
+            MR::resumeTimeKeepDemo(_94);
+        } else if (MR::isDemoActive("初出表示")) {
+            MR::endDemo(this, "初出表示");
+        }
+
+        if (sAttr[mType].mFirstMorphBgmName != nullptr && sAttr[mType].mBgmName == nullptr) {
+            MR::stopSubBGM(10);
+        }
+
+        makeActorDead();
+    }
 }
 
 namespace InformationObserverFunction {
+    bool isActive() {
+        bool result = false;
+
+        if (!MR::isDead(::getInformationObserver())) {
+            InformationObserver* pObserver = ::getInformationObserver();
+            bool isDispOrEnd = false;
+
+            if (pObserver->isNerve(GET_NERVE(InformationObserver, InformationObserverNrvDisp)) ||
+                pObserver->isNerve(GET_NERVE(InformationObserver, InformationObserverNrvEnd))) {
+                isDispOrEnd = true;
+            }
+
+            if (isDispOrEnd) {
+                result = true;
+            }
+        }
+
+        return result;
+    }
+
     void explainBee() {
-        ::getInformationObserver()->entry(InformationObserver::Type_Bee, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_Bee, nullptr, true);
     }
 
     void explainTeresa() {
-        ::getInformationObserver()->entry(InformationObserver::Type_Teresa, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_Teresa, nullptr, true);
     }
 
     void explainHopper() {
-        ::getInformationObserver()->entry(InformationObserver::Type_Hopper, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_Hopper, nullptr, true);
     }
 
     void explainFire() {
-        ::getInformationObserver()->entry(InformationObserver::Type_Fire, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_Fire, nullptr, true);
     }
 
     void explainIce() {
-        ::getInformationObserver()->entry(InformationObserver::Type_Ice, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_Ice, nullptr, true);
     }
 
     void explainFlying() {
-        ::getInformationObserver()->entry(InformationObserver::Type_Flying, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_Flying, nullptr, true);
     }
 
     void explainInvincible() {
-        ::getInformationObserver()->entry(InformationObserver::Type_Invincible, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_Invincible, nullptr, true);
+    }
+
+    void explainRock() {
+        ::getInformationObserver()->entry(InformationObserver::Type_Rock, nullptr, true);
+    }
+
+    void explainCloud() {
+        ::getInformationObserver()->entry(InformationObserver::Type_Cloud, nullptr, true);
+    }
+
+    void explainDrill() {
+        ::getInformationObserver()->entry(InformationObserver::Type_Drill, nullptr, true);
     }
 
     void explainLifeUp() {
-        ::getInformationObserver()->entry(InformationObserver::Type_LifeUp, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_LifeUp, nullptr, true);
     }
 
     void explainOneUp() {
-        ::getInformationObserver()->entry(InformationObserver::Type_OneUp, nullptr);
+        ::getInformationObserver()->entry(InformationObserver::Type_OneUp, nullptr, true);
     }
 
-    void explainSpin(LiveActor* pParam1) {
-        ::getInformationObserver()->entry(InformationObserver::Type_Spin, pParam1);
+    void explainYoshi(LiveActor* pParam1) {
+        ::getInformationObserver()->entry(InformationObserver::Type_Yoshi, pParam1, false);
+    }
+
+    void explainCometMedal(LiveActor* pParam1) {
+        ::getInformationObserver()->entry(InformationObserver::Type_CometMedal, pParam1, true);
+    }
+
+    void explainMarioFacePlanet(LiveActor* pParam1) {
+        ::getInformationObserver()->entry(InformationObserver::Type_MarioFacePlanet, pParam1, true);
     }
 };  // namespace InformationObserverFunction

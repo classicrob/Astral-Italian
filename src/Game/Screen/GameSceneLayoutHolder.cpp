@@ -12,12 +12,13 @@
 #include "Game/Screen/OneUpBoard.hpp"
 #include "Game/Screen/PurpleCoinCounter.hpp"
 #include "Game/Screen/YesNoLayout.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
 GameSceneLayoutHolder::GameSceneLayoutHolder()
     : NameObj("ゲームシーンのレイアウト保持"), mCameraInfo(nullptr), mInformationMessage(nullptr), mMarioMeter(nullptr), mMarioSubMeter(nullptr),
-      mMissLayout(nullptr), mNoteCounter(nullptr), mYesNoLayout(nullptr), mPurpleCoinCounter(nullptr), _30(false), _31(false),
+      mMissLayout(nullptr), mNoteCounter(nullptr), mYesNoLayout(nullptr), mPurpleCoinCounter(nullptr),
       mCounterLayoutCtrl(nullptr), mIsActiveDefaultGameLayout(true) {
     MR::joinToNameObjGroup(this, "IgnorePauseNameObj");
     MR::connectToSceneLayoutMovement(this);
@@ -57,22 +58,14 @@ void GameSceneLayoutHolder::createPurpleCoinCounter() {
     mPurpleCoinCounter->initWithoutIter();
 }
 
-void GameSceneLayoutHolder::movement() {
-    if (!_30) {
-        return;
-    }
-
-    invalidateStatusLayout();
-
-    _30 = false;
-}
-
 void GameSceneLayoutHolder::initLifeCount(u32 lifeCount) {
     mMarioMeter->initLifeCount(lifeCount);
 }
 
 void GameSceneLayoutHolder::setLifeCount(u32 lifeCount) {
-    mMarioMeter->setLifeCount(lifeCount);
+    if (mMarioMeter != nullptr) {
+        mMarioMeter->setLifeCount(lifeCount);
+    }
 }
 
 void GameSceneLayoutHolder::setOxygenRatio(f32 oxygenRatio) {
@@ -96,7 +89,9 @@ void GameSceneLayoutHolder::changeLifeMeterModeBee() {
 }
 
 void GameSceneLayoutHolder::requestOneUp(s32 oneUpNum) {
-    mOneUpBoard->popup(oneUpNum);
+    if (mOneUpBoard != nullptr) {
+        mOneUpBoard->popup(oneUpNum);
+    }
 }
 
 void GameSceneLayoutHolder::requestPowerUpHPMeter() {
@@ -104,6 +99,10 @@ void GameSceneLayoutHolder::requestPowerUpHPMeter() {
 }
 
 void GameSceneLayoutHolder::requestForceAppearHPMeter() {
+    if (mMarioMeter == nullptr || GameSequenceFunction::isPadModeSuperDreamer()) {
+        return;
+    }
+
     mMarioMeter->requestForceAppearHPMeter();
 }
 
@@ -154,19 +153,6 @@ void GameSceneLayoutHolder::deactivateDefaultGameLayout() {
 
 PurpleCoinCounter* GameSceneLayoutHolder::getPurpleCoinCounter() const {
     return mPurpleCoinCounter;
-}
-
-void GameSceneLayoutHolder::invalidateStatusLayout() {
-    mCameraInfo->kill();
-    mMarioMeter->deactivate();
-    mMarioSubMeter->deactivate();
-    mCounterLayoutCtrl->kill();
-
-    if (mPurpleCoinCounter != nullptr) {
-        mPurpleCoinCounter->kill();
-    }
-
-    MR::deactivateChipLayout();
 }
 
 namespace MR {

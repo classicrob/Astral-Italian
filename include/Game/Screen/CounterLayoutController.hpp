@@ -3,6 +3,7 @@
 #include "Game/Screen/LayoutActor.hpp"
 
 class CoinCounter;
+class CometMedalCounter;
 class MarioMeter;
 class PlayerLeft;
 class StarCounter;
@@ -18,7 +19,7 @@ public:
     virtual void kill();
     virtual void control();
 
-    void forceAppear();
+    void forceAppear(bool);
     void setHPMeter(MarioMeter*);
     void requestedTicoEat(bool);
     static bool isInvalidSystemStateShowCounter();
@@ -40,4 +41,5 @@ public:
     /* 0x3C */ PlayerLeft* mPlayerLeft;
     /* 0x40 */ StarCounter* mStarCounter;
     /* 0x44 */ MarioMeter* mHPMeter;
+    /* 0x48 */ CometMedalCounter* mCometMedalCounter;
 };

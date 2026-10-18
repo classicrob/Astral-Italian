@@ -12,9 +12,14 @@ public:
         Type_Ice,
         Type_Flying,
         Type_Invincible,
+        Type_Rock,
+        Type_Cloud,
+        Type_Drill,
         Type_LifeUp,
         Type_OneUp,
-        Type_Spin,
+        Type_Yoshi,
+        Type_CometMedal,
+        Type_MarioFacePlanet,
     };
 
     /// @brief Creates a new `InformationObserver`.
@@ -22,9 +27,10 @@ public:
 
     virtual void init(const JMapInfoIter& rIter);
 
-    void entry(InformationObserver::TYPE, LiveActor*);
+    void entry(InformationObserver::TYPE, LiveActor*, bool);
     void exeWait();
     void exeDisp();
+    void exeEnd();
 
 private:
     /* 0x8C */ TYPE mType;
@@ -34,6 +40,7 @@ private:
 };
 
 namespace InformationObserverFunction {
+    bool isActive();
     void explainBee();
     void explainTeresa();
     void explainHopper();
@@ -41,7 +48,12 @@ namespace InformationObserverFunction {
     void explainIce();
     void explainFlying();
     void explainInvincible();
+    void explainRock();
+    void explainCloud();
+    void explainDrill();
     void explainLifeUp();
     void explainOneUp();
-    void explainSpin(LiveActor*);
+    void explainYoshi(LiveActor*);
+    void explainCometMedal(LiveActor*);
+    void explainMarioFacePlanet(LiveActor*);
 };  // namespace InformationObserverFunction

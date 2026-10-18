@@ -104,7 +104,7 @@ void MapObjActor::appear() {
     }
 
     if (_BB) {
-        fn_800083F0(this, "MapObjActorAppear", -1, -1, -1);
+        MR::startActionSoundAuto(this, "MapObjActorAppear", -1, -1, -1);
     }
 }
 
@@ -877,7 +877,7 @@ namespace {
 };  // namespace
 
 bool MapObjActorUtil::tryStartBreak(MapObjActor* pActor) {
-    fn_800083F0(pActor, "MapObjActorBreak", -1, -1, -1);
+    MR::startActionSoundAuto(pActor, "MapObjActorBreak", -1, -1, -1);
 
     const char* breakEffect = ::cEffectNameBreak;
     if (MR::isRegisteredEffect(pActor, breakEffect)) {

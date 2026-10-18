@@ -22,3 +22,9 @@ public:
 namespace MR {
     NameObj* createFallOutFieldDraw(const char*);
 };  // namespace MR
+
+#include <revolution.h>
+namespace MR {
+    void setFallOutFieldDrawEdgeColor(const GXColor&);
+    void resetFallOutFieldDrawEdgeColor();
+}

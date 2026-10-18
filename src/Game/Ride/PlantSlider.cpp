@@ -27,8 +27,6 @@
 #include <revolution/mtx.h>
 #include <revolution/types.h>
 
-// PLACEHOLDER(objects): unnamed core helper (copies/sets a TVec3f from a const TVec3f&); resolve when core names fn_800145D0
-extern "C" void fn_800145D0(TVec3f*, const TVec3f&);
 
 namespace {
     Color8 sColorWhite(0xFF, 0xFF, 0xFF, 0xFF);
@@ -362,7 +360,7 @@ bool PlantSlider::tryReachGoal() {
     MR::setGameCameraTargetToPlayer();
 
     TVec3f jumpPos;
-    fn_800145D0(&jumpPos, mPosition);
+    MR::restrictVelocityToPlaneModeArea(&jumpPos, mPosition);
     MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, camUp);
 
     mRider = nullptr;

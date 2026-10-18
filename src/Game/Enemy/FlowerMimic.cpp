@@ -257,7 +257,7 @@ void FlowerMimic::fn_80181320() {
                     2.0f * (mQuat.y * mQuat.z) - 2.0f * (mQuat.w * mQuat.x),
                     (1.0f - 2.0f * (mQuat.x * mQuat.x)) - 2.0f * (mQuat.y * mQuat.y));
         TVec3f sp20 = sp2C * 80.0f;
-        MR::fn_800145D0(&sp20, mPosition);
+        MR::restrictVelocityToPlaneModeArea(&sp20, mPosition);
         MR::endBindAndPlayerDamage(this, sp20);
         MR::validateCollisionParts(this);
     }

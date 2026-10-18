@@ -36,8 +36,6 @@
 
 // PLACEHOLDER(objects): unnamed target symbol fn_800145C0, declared extern "C" so the reloc name matches; resolve when fn_800145C0 gets its real name in symbols.txt
 extern "C" void fn_800145C0(LiveActor*);
-// PLACEHOLDER(objects): unnamed target symbol fn_800145D0, declared extern "C" so the reloc name matches; resolve when fn_800145D0 gets its real name in symbols.txt
-extern "C" void fn_800145D0(TVec3f*, const TVec3f&);
 
 const GXColor effectColors[] = {{0x00, 0x55, 0xff, 0xFF}, {0xFF, 0xFF, 0x00, 0xFF}, {0x55, 0xFF, 0x00, 0xFF}, {0x7F, 0x7F, 0x00, 0xFF}};
 const GXColor initColors[] = {{0x80, 0x00, 0x99, 0xFF}, {0xE6, 0xA0, 0x00, 0xFF}, {0x46, 0xA1, 0x08, 0xFF},
@@ -978,7 +976,7 @@ void StarPiece::launch(const TVec3f& rVec, f32 f1, f32 f2, bool notCheckInWater,
         }
     }
 
-    fn_800145D0(&mVelocity, rVec);
+    MR::restrictVelocityToPlaneModeArea(&mVelocity, rVec);
     MR::resetPosition(this);
     appear();
     setNerve(GET_NERVE(StarPiece, HostTypeNrvFall));
@@ -1017,7 +1015,7 @@ void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, f32 f1, f32 f2,
         }
     }
 
-    fn_800145D0(&mVelocity, rVec1);
+    MR::restrictVelocityToPlaneModeArea(&mVelocity, rVec1);
     MR::resetPosition(this);
     appear();
     setNerve(GET_NERVE(StarPiece, HostTypeNrvFall));
@@ -1053,7 +1051,7 @@ void StarPiece::launch(const TVec3f& rVec1, const TVec3f& rVec2, bool notCheckIn
         }
     }
 
-    fn_800145D0(&mVelocity, rVec1);
+    MR::restrictVelocityToPlaneModeArea(&mVelocity, rVec1);
     MR::resetPosition(this, rVec1);
     appear();
     setNerve(GET_NERVE(StarPiece, HostTypeNrvFall));

@@ -1,3 +1,4 @@
+#include "Game/MapObj/PowerStarColor.hpp"
 #include "Game/MapObj/PowerStar.hpp"
 #include "Game/Util.hpp"
 #include <cstdio>
@@ -35,8 +36,6 @@
 
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
-s32 fn_802DEFF0(const NameObj*, s32, bool*);
-s32 fn_802DF0C0(bool*);
 bool fn_804D7EE0();
 void fn_80024F50();
 void fn_8005BBE0(bool);
@@ -257,7 +256,7 @@ s32 PowerStar::setupColor(LiveActor* pActor, const NameObj* a2, s32 a3) {
     s32 color = 0;
 
     if (MR::isProductGameScene()) {
-        color = fn_802DEFF0(a2, a3, &isBronze);
+        color = PowerStarColor::calcCurrentStage(a2, a3, &isBronze);
     }
 
     if (MR::isGrandStarInCurrentStageWithDeclarer(a2->mName, a3)) {
@@ -271,7 +270,7 @@ s32 PowerStar::setupColor(LiveActor* pActor, const NameObj* a2, s32 a3) {
 
 s32 PowerStar::setupColorAtResultSequence(LiveActor* pPowerStar, bool a2) {
     bool isBronze = false;
-    s32 color = fn_802DF0C0(&isBronze);
+    s32 color = PowerStarColor::calcResult(&isBronze);
 
     if (a2) {
         ::setupColorGrandStar(pPowerStar, isBronze, color);
@@ -286,14 +285,14 @@ void PowerStar::requestPointLight(const LiveActor* pActor, const NameObj* a2, s3
     s32 colorIdx = 0;
 
     if (MR::isProductGameScene()) {
-        colorIdx = fn_802DEFF0(a2, a3, nullptr);
+        colorIdx = PowerStarColor::calcCurrentStage(a2, a3, nullptr);
     }
 
     ::requestPointLight(pActor, colorIdx);
 }
 
 void PowerStar::requestPointLightAtResultSequence(const LiveActor* pActor) {
-    ::requestPointLight(pActor, fn_802DF0C0(nullptr));
+    ::requestPointLight(pActor, PowerStarColor::calcResult(nullptr));
 }
 
 f32 PowerStar::getPowerStarWaitRotateSpeed() {

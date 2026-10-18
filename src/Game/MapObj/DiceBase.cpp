@@ -1,3 +1,4 @@
+#include "Game/MapObj/ItemDiceFunction.hpp"
 #pragma auto_inline off
 
 #include "Game/MapObj/DiceBase.hpp"
@@ -18,8 +19,6 @@ static const f32 sDiceSpheres[8][4] = {
     {0.0f, 0.0f, 0.0f, 20.0f},  {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f}, {0.0f, 0.0f, 0.0f, 20.0f},
 };
 
-// PLACEHOLDER(objects): unnamed target symbol fn_802B2FB0, declared extern "C" so the reloc name matches; resolve when fn_802B2FB0 gets its real name in symbols.txt
-extern "C" s32 fn_802B2FB0(MtxPtr, const TVec3f*);
 
 namespace NrvItemDice {
     NEW_NERVE(ItemDiceNrvSpin, DiceBase, Spin);
@@ -230,7 +229,7 @@ void DiceBase::exeThrow() {
 void DiceBase::exeLand() {
     if (MR::isFirstStep(this)) {
         const TVec3f* pVel = &TVec3f(mGravity);
-        s32 result = fn_802B2FB0(getBaseMtx(), pVel);
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         if (isGoodResult(result)) {
             MR::startActionSound(this, "FixedGood", -1, -1, -1);
         } else {
@@ -240,7 +239,7 @@ void DiceBase::exeLand() {
 
     if (MR::isStep(this, 10)) {
         const TVec3f* pVel = &TVec3f(mGravity);
-        s32 result = fn_802B2FB0(getBaseMtx(), pVel);
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         setResultFrame(result);
     }
 
@@ -249,7 +248,7 @@ void DiceBase::exeLand() {
         mIsLanded = true;
 
         const TVec3f* pVel = &TVec3f(mGravity);
-        s32 result = fn_802B2FB0(getBaseMtx(), pVel);
+        s32 result = ItemDiceFunction::calcFaceIndex(getBaseMtx(), pVel);
         mIsGood = makeResult(result);
         if (mIsGood) {
             MR::startActionSound(this, "VanishGood", -1, -1, -1);

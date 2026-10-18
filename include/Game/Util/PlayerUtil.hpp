@@ -318,3 +318,16 @@ namespace MR {
     LiveActor* getPlayerCarrySensorActor();
     void preparePlayerForPositionReset();
 }
+
+namespace MR {
+    // PLACEHOLDER(m1): clears Mario movement flag 0x20000000; resolve when Player owner recovers its meaning.
+    void fn_8004F310();
+    void extendPlayerBeeAirWalk(s32);
+}
+
+namespace MR { void enablePlayerResourceCloud(); }
+
+namespace MR {
+    // PLACEHOLDER(m1): semantic name unknown; resolve after Mario flags 0x00300000 are identified.
+    void fn_8004FA20();
+}

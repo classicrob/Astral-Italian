@@ -48,3 +48,13 @@ public:
     /* 0x0C */ f32 _C;
     /* 0x10 */ s32 _10;
 };
+
+class ClipAreaShapeCylinder : public ClipAreaShape {
+public:
+    ClipAreaShapeCylinder();
+    virtual bool isInArea(const TVec3f&) const;
+    virtual void calcVolumeMatrix(TPos3f*, const TPos3f&, const TVec3f&) const;
+    void calcScale(TVec3f*, const TVec3f&) const;
+    f32 mRadius; // 0x08
+    f32 mHeight; // 0x0C
+};

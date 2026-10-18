@@ -17,3 +17,5 @@ namespace AudRhythmWrap {
     }
 
 };  // namespace AudRhythmWrap
+
+#include "Game/RhythmLib/AudRhythmTiming.hpp"

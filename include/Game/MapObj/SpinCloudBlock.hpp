@@ -57,7 +57,7 @@ public:
 
 namespace MR {
     void createSpinCloudBlockGroup();
-    void spawnSpinCloudBlocks();
+    bool spawnSpinCloudBlocks();
     void resetSpinCloudBlocks();
     bool isSpinCloudBlockGroupEmpty();
     f32 getSpinCloudBlockSpinSpeed();

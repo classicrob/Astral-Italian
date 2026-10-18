@@ -308,11 +308,11 @@ bool GalaxyWorldMapInfo::isNerveHide() const {
 
 bool GalaxyWorldMapInfo::startOpenSound(s32 kind) {
     if (kind == 0) {
-        fn_800083F0(this, "OnGalaxy", -1, -1, -1);
+        MR::startActionSoundAuto(this, "OnGalaxy", -1, -1, -1);
         return true;
     }
     if (kind == 1) {
-        fn_800083F0(this, "BesideGalaxy", -1, -1, -1);
+        MR::startActionSoundAuto(this, "BesideGalaxy", -1, -1, -1);
         return true;
     }
     return false;

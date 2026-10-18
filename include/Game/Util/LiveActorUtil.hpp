@@ -1,5 +1,7 @@
 #pragma once
 
+class JMapLinkInfo;
+
 #include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/Util/ActorInitUtil.hpp"
 
@@ -359,15 +361,14 @@ namespace MR {
     bool tryKillAndForceDeleteEffectAll(LiveActor* pActor);
     void forceClearFootPrint(LiveActor* pActor);
 
-    LiveActor* getLinkedActor(const LiveActor* pActor);
+    LiveActor* getLinkedActor(const JMapLinkInfo* pLink);
 
     HitSensor* getBodySensor(LiveActor* pActor);
     void setBodySensorType(LiveActor* pActor, u32 sensorType);
     // LiveActorUtil (enemies lane, callees named by address; lead renames symbols)
     void fn_80034820(LiveActor*);
     void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
-    // PLACEHOLDER(enemies): fn_800145D0, fn_800514B0, fn_800513C0 (unnamed core helpers used by FlowerMimic); resolve when their owner unit names them. Signatures inferred from the callers.
-    void fn_800145D0(TVec3f*, const TVec3f&);
+    // PLACEHOLDER(enemies): fn_800514B0, fn_800513C0 (unnamed core helpers used by FlowerMimic); resolve when their owner unit names them. Signatures inferred from the callers.
     void fn_800514B0(TQuat4f*, TVec3f*);
     void fn_800513C0(TQuat4f*, TVec3f*);
     bool isInPlaneModeCube(const TVec3f&);
@@ -446,4 +447,12 @@ namespace MR {
 };  // namespace MR
 
 namespace MR {
+}
+
+namespace MR {
+    RailObj* createRailObj(const char*, LiveActor*, const JMapInfoIter&, int);
+}
+
+namespace MR {
+    void restrictVelocityToPlaneModeArea(TVec3f*, const TVec3f&);
 }

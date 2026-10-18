@@ -1,9 +1,8 @@
+#include "Game/RhythmLib/AudRhythmTiming.hpp"
 #include "Game/MapObj/RepeatTimerSwitchingBlock.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): unnamed core helper (returns s32 from a float timer roll); resolve when core names fn_8042A6E0
-extern "C" s32 fn_8042A6E0(s32, f32);
 
 // zero-valued .sbss2 constants (loaded via sda21, not folded)
 const volatile f32 sZeroShift = 0.0f;
@@ -252,7 +251,7 @@ bool RepeatTimerSwitchingBlock::isSwitchBOn() {
 
 s32 RepeatTimerSwitchingBlock::isSwitchTimingReady() {
     if (MR::isGreaterEqualStep(this, mTimer)) {
-        return fn_8042A6E0((s32)mWaitStep, mWaitRandom);
+        return AudRhythmWrap::isBeatTiming((s32)mWaitStep, mWaitRandom);
     }
     return 0;
 }

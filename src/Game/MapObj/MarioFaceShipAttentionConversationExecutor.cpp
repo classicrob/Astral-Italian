@@ -1,3 +1,4 @@
+#include "Game/MapObj/MarioFaceShipNpcHolder.hpp"
 #include "Game/MapObj/MarioFaceShipAttentionConversationExecutor.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
@@ -5,13 +6,12 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/NPC/Meister.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/EventUtil.hpp"
 
-// PLACEHOLDER(objects): unnamed core helpers (only used by this unit); resolve when core names fn_802C9060 fn_804C0190 fn_804C01A0 fn_804C24E0 fn_804C2510
+// PLACEHOLDER(objects): unnamed core helpers (only used by this unit); resolve when core names fn_804C0190 fn_804C01A0 fn_804C2510
 extern "C" {
-void fn_802C9060();
 const char* fn_804C0190();
 void fn_804C01A0(char*, s32, s32);
-bool fn_804C24E0();
 bool fn_804C2510();
 }
 
@@ -139,7 +139,7 @@ void MarioFaceShipAttentionConversationExecutor::init(const JMapInfoIter&) {
 
 void MarioFaceShipAttentionConversationExecutor::exeDemoStart() {
     if (MR::isFirstStep(this)) {
-        fn_802C9060();
+        MR::requestMarioFaceShipNpcMovement();
         for (s32 i = 0; i < mActorGroup->getObjectCount(); i++) {
             MR::requestMovementOn(mActorGroup->getActor(i));
         }
@@ -290,7 +290,7 @@ void MarioFaceShipAttentionConversationExecutor::initConversation(Param* pParam,
     mDemoIndex = pParam->mDemoIndex;
     mTalkCtrl = pParam->mTalkCtrl;
     mIsDefaultCamera = false;
-    mIsNpcIntro = fn_804C24E0();
+    mIsNpcIntro = MR::fn_804C24E0();
     mIsItemPlanet = fn_804C2510();
     mIsArg4 = pParam->mIsArg4;
     mIsArg5 = pParam->mIsArg5;

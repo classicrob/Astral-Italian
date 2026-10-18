@@ -9,8 +9,6 @@
 #include "Game/LiveActor/Spine.hpp"
 #include "Game/Map/CollisionParts.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8000E760, declared extern "C" so the reloc name matches; resolve when fn_8000E760 gets its real name in symbols.txt
-extern "C" void fn_8000E760(TVec3f*, LiveActor*, const TVec3f*, f32, f32);
 
 namespace NrvGorogoro {
     NEW_NERVE(GorogoroNrvWait, Gorogoro, Wait);
@@ -142,7 +140,7 @@ void Gorogoro::calcAndSetBaseMtx() {
 }
 
 void Gorogoro::control() {
-    fn_8000E760(&mSensorFollowPos, this, &mPosition, -mRollSpeed, mRollSpeed);
+    MR::fn_8000E760(&mSensorFollowPos, this, &mPosition, -mRollSpeed, mRollSpeed);
 }
 
 void Gorogoro::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

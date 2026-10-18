@@ -112,3 +112,7 @@ namespace MR {
         PSMTXConcat(pB, pA, pOut);
     }
 };  // namespace MR
+
+namespace MR {
+    void fn_80046A70(MtxPtr, MtxPtr, MtxPtr);
+}

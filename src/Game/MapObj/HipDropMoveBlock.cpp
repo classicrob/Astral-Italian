@@ -206,14 +206,14 @@ void HipDropMoveBlock::exeMove() {
     const char* pNames = "InitHipDropMoveBlockSwitch";
     if (MR::isFirstStep(this)) {
         MR::tryStartAllAnim(this, pNames + 0x60);
-        fn_800083F0(this, pNames + 0x60, -1, -1, -1);
+        MR::startActionSoundAuto(this, pNames + 0x60, -1, -1, -1);
         MR::tryHitReaction(this, pNames + 0x68);
         if (MR::isValidSwitchA(this) && mFlag96) {
             MR::onSwitchA(this);
         }
     }
 
-    fn_800083F0(this, pNames + 0x74, -1, -1, -1);
+    MR::startActionSoundAuto(this, pNames + 0x74, -1, -1, -1);
     if (mMoveFunction->update()) {
         bool bMove = (mMoveFunction->isEndStep() && mMoveFunction->mFlag74) ||
                      (mMoveFunction->isStartStep() && !mMoveFunction->mFlag74);
@@ -222,7 +222,7 @@ void HipDropMoveBlock::exeMove() {
                 MR::onSwitchA(this);
             }
             MR::tryStartAllAnim(this, pNames + 0x80);
-            fn_800083F0(this, pNames + 0x80, -1, -1, -1);
+            MR::startActionSoundAuto(this, pNames + 0x80, -1, -1, -1);
             MR::tryHitReaction(this, pNames + 0x88);
             setNerve(GET_NERVE(HipDropMoveBlock, HipDropMoveBlockNrvWait));
             return;
@@ -232,7 +232,7 @@ void HipDropMoveBlock::exeMove() {
             MR::offSwitchA(this);
         }
         MR::tryStartAllAnim(this, pNames + 0x98);
-        fn_800083F0(this, pNames + 0x98, -1, -1, -1);
+        MR::startActionSoundAuto(this, pNames + 0x98, -1, -1, -1);
         MR::tryHitReaction(this, pNames + 0xA0);
 
         if (mActiveSwitch != nullptr) {

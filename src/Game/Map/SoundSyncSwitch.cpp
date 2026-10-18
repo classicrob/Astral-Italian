@@ -1,3 +1,4 @@
+#include "Game/RhythmLib/AudRhythmTiming.hpp"
 #include "Game/Map/SoundSyncSwitch.hpp"
 #include "Game/GameAudio/ActionSoundKeeper.hpp"
 #include "Game/Map/StageSwitch.hpp"
@@ -9,7 +10,6 @@
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 // Unnamed SMG2 helpers (sound object and beat/timing checks).
-extern "C" bool fn_8042A6E0(s32, f32);
 extern "C" bool fn_80056EB0();
 
 SoundSyncSwitch::SoundSyncSwitch(const char* pName)
@@ -69,7 +69,7 @@ void SoundSyncSwitch::movement() {
     if (mCounter >= mInterval) {
         emit();
 
-        if (fn_8042A6E0(mBeatNum, (f32)mTimeOffset)) {
+        if (AudRhythmWrap::isBeatTiming(mBeatNum, (f32)mTimeOffset)) {
             if (mStageSwitchCtrl->isOnSwitchA()) {
                 mStageSwitchCtrl->offSwitchA();
             } else {
@@ -102,23 +102,23 @@ void SoundSyncSwitch::emit() {
     }
 
     if (mSoundType == 1) {
-        if (fn_8042A6E0(8, 0.07f)) {
+        if (AudRhythmWrap::isBeatTiming(8, 0.07f)) {
             MR::startCSSound("CS_METRO_CLICK2", "SE_SY_CSP_ALT_METRO_CLICK2", -1, 0, 0.7f);
-        } else if (fn_8042A6E0(8, 5.0f + 0.07f) || fn_8042A6E0(8, 6.0f + 0.07f) || fn_8042A6E0(8, 7.0f + 0.07f)) {
+        } else if (AudRhythmWrap::isBeatTiming(8, 5.0f + 0.07f) || AudRhythmWrap::isBeatTiming(8, 6.0f + 0.07f) || AudRhythmWrap::isBeatTiming(8, 7.0f + 0.07f)) {
             MR::startCSSound("CS_METRO_CLICK1", "SE_SY_CSP_ALT_METRO_CLICK1", -1, 0, 0.7f);
         }
         return;
     }
 
-    if (fn_8042A6E0(2, 1.0f + 0.07f)) {
+    if (AudRhythmWrap::isBeatTiming(2, 1.0f + 0.07f)) {
         MR::startCSSound("CS_METRO_CLICK2", "SE_SY_CSP_ALT_METRO_CLICK2", -1, 0, 0.7f);
-    } else if (fn_8042A6E0(2, 0.07f)) {
+    } else if (AudRhythmWrap::isBeatTiming(2, 0.07f)) {
         MR::startCSSound("CS_METRO_CLICK1", "SE_SY_CSP_ALT_METRO_CLICK1", -1, 0, 0.7f);
     }
 
-    if (fn_8042A6E0(8, 0.0f)) {
+    if (AudRhythmWrap::isBeatTiming(8, 0.0f)) {
         mSound->startSound("Change", -1, -1);
-    } else if (fn_8042A6E0(8, 5.0f) || fn_8042A6E0(8, 6.0f) || fn_8042A6E0(8, 7.0f)) {
+    } else if (AudRhythmWrap::isBeatTiming(8, 5.0f) || AudRhythmWrap::isBeatTiming(8, 6.0f) || AudRhythmWrap::isBeatTiming(8, 7.0f)) {
         mSound->startSound("ChangeSign", -1, -1);
     }
 }

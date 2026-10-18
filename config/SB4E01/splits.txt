@@ -4110,14 +4110,10 @@ Game/MapObj/BigFan.cpp:
 	.data       start:0x8069C290 end:0x8069C350
 
 Game/MapObj/BigFanCloud.cpp:
-	.text       start:0x802791D0 end:0x80279680
-
-Game/MapObj/JointControlDelegator.cpp:
-	.text       start:0x80279680 end:0x802797A0
-
-Game/MapObj/BigFanCloud2.cpp:
-	.text       start:0x802797A0 end:0x802798C0
+	.text       start:0x802791D0 end:0x802798C0
 	.ctors      start:0x8064431C end:0x80644320
+	.data       start:0x8069C350 end:0x8069C438
+	.sbss       start:0x807D3808 end:0x807D3818
 
 Game/MapObj/BigFanHolder.cpp:
 	.text       start:0x802798C0 end:0x80279BF0
@@ -4300,6 +4296,7 @@ Game/MapObj/ConstructionLight.cpp:
 Game/MapObj/CountFlower.cpp:
 	.text       start:0x80291270 end:0x80291660
 	.ctors      start:0x80644384 end:0x80644388
+	.bss        start:0x80729908 end:0x80729910
 
 Game/MapObj/CrescentSeesawPlanet.cpp:
 	.text       start:0x80291660 end:0x80291A70
@@ -4311,17 +4308,11 @@ Game/MapObj/CrystalCage.cpp:
 	.data       start:0x8069EEB8 end:0x8069EF78
 
 Game/MapObj/CrystalCageOpa.cpp:
-	.text       start:0x80292ED0 end:0x802935A0
+	.text       start:0x80292ED0 end:0x802934E0
 	.ctors      start:0x80644390 end:0x80644394
 
 Game/MapObj/CymbalsStep.cpp:
-	.text       start:0x802935A0 end:0x80293B90
-
-Game/MapObj/JointControlDelegator2.cpp:
-	.text       start:0x80293B90 end:0x80293CB0
-
-Game/MapObj/CymbalsStep2.cpp:
-	.text       start:0x80293CB0 end:0x80293DD0
+	.text       start:0x802934E0 end:0x80293DB0
 	.ctors      start:0x80644394 end:0x80644398
 
 Game/MapObj/DashFruit.cpp:
@@ -4646,17 +4637,11 @@ Game/MapObj/LavaProminence.cpp:
 	.data       start:0x806A47B0 end:0x806A48A0
 
 Game/MapObj/LavaSeparateWaterfall.cpp:
-	.text       start:0x802C2110 end:0x802C2860
-
-Game/MapObj/JointControlDelegator3.cpp:
-	.text       start:0x802C2860 end:0x802C2980
-
-Game/MapObj/NrvLavaSeparateWaterfall.cpp:
-	.text       start:0x802C2980 end:0x802C2C30
+	.text       start:0x802C2110 end:0x802C2AA0
 	.ctors      start:0x80644488 end:0x8064448C
 
 Game/MapObj/LeafBoard.cpp:
-	.text       start:0x802C2C30 end:0x802C3830
+	.text       start:0x802C2AA0 end:0x802C3830
 	.ctors      start:0x8064448C end:0x80644490
 
 Game/MapObj/LiftFlower.cpp:
@@ -4668,10 +4653,8 @@ Game/MapObj/LightFruit.cpp:
 	.ctors      start:0x80644494 end:0x80644498
 
 Game/MapObj/LightFruitClipArea.cpp:
-	.text       start:0x802C4AC0 end:0x802C51D0
-
-Game/MapObj/NrvLightFruitClipArea.cpp:
-	.text       start:0x802C5210 end:0x802C52B0
+	.text       start:0x802C4AC0 end:0x802C52B0
+	.ctors      start:0x80644498 end:0x8064449C
 
 Game/MapObj/LotusLeaf.cpp:
 	.text       start:0x802C52B0 end:0x802C5870
@@ -4704,9 +4687,13 @@ Game/MapObj/ManholeCover.cpp:
 	.data       start:0x806A54C0 end:0x806A5560
 	.sbss       start:0x807D3EE0 end:0x807D3EF0
 
+Game/MapObj/MarioFacePlanet.cpp:
+	.text       start:0x802C7670 end:0x802C78B0
+	.ctors      start:0x806444B8 end:0x806444BC
+
 Game/MapObj/MarioFacePlanetPrevious.cpp:
-	.text       start:0x802C7670 end:0x802C7D90
-	.ctors      start:0x806444B8 end:0x806444C0
+	.text       start:0x802C78B0 end:0x802C7D90
+	.ctors      start:0x806444BC end:0x806444C0
 
 Game/MapObj/MarioFaceShipAttentionConversationExecutor.cpp:
 	.text       start:0x802C7D90 end:0x802C8BE0
@@ -4851,7 +4838,10 @@ Game/MapObj/PlayerFollowPass.cpp:
 	.text       start:0x802DE650 end:0x802DED40
 
 Game/MapObj/PoleObstacleParts.cpp:
-	.text       start:0x802DED40 end:0x802DF170
+	.text       start:0x802DED40 end:0x802DEFF0
+
+Game/MapObj/PowerStarColor.cpp:
+	.text       start:0x802DEFF0 end:0x802DF170
 
 Game/MapObj/PowerStar.cpp:
 	.text       start:0x802DF170 end:0x802E1960
@@ -5154,15 +5144,12 @@ Game/MapObj/StarPiece.cpp:
 	.data       start:0x806AEC98 end:0x806AEDE0
 	.sbss       start:0x807D44A8 end:0x807D44D8
 
-Game/MapObj/StarPieceClusterRock.cpp:
-	.text       start:0x80314E80 end:0x803153B0
+Game/MapObj/StarPieceCluster.cpp:
+	.text       start:0x80314E80 end:0x803150F0
 	.ctors      start:0x806445EC end:0x806445F0
 
-Game/MapObj/StarPieceTracking.cpp:
-	.text       start:0x803153B0 end:0x80315560
-
-Game/MapObj/NrvStarPieceClusterRock.cpp:
-	.text       start:0x80315560 end:0x80315680
+Game/MapObj/StarPieceClusterRock.cpp:
+	.text       start:0x803150F0 end:0x80315680
 	.ctors      start:0x806445F0 end:0x806445F4
 
 Game/MapObj/StarPieceDirector.cpp:
@@ -5453,11 +5440,11 @@ Game/MapObj/MapPartsSeesaw2AxisRotator.cpp:
 	.sbss       start:0x807D47F0 end:0x807D4800
 
 Game/MapObj/MapPartsSeesaw2AxisRollerRotator.cpp:
-	.text       start:0x80338CB0 end:0x80339410
+	.text       start:0x80338CB0 end:0x80339390
 	.ctors      start:0x806446A4 end:0x806446A8
 
 Game/MapObj/PlantObjFactory.cpp:
-	.text       start:0x80339410 end:0x80339560
+	.text       start:0x80339390 end:0x80339560
 
 Game/NameObj/MovementOnOffGroupHolder.cpp:
 	.text       start:0x80339560 end:0x80339610

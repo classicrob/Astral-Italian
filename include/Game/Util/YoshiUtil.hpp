@@ -19,3 +19,5 @@ namespace YoshiFunction {
     void tryYoshiEat(YoshiLockOnTarget*);
     void tryYoshiCapture(YoshiLockOnTarget*, bool);
 }
+
+namespace YoshiFunction { void emitGlowEffect(); void deleteGlowEffect(); }

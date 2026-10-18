@@ -1,3 +1,4 @@
+#include "Game/MapObj/PlayerFollowPass.hpp"
 #include "Game/MapObj/SpinCloudBlock.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/AreaObj/SpinSwitchArea.hpp"
@@ -10,8 +11,6 @@
 extern "C" {
 void fn_80035690(LiveActor*);
 void fn_800145C0(LiveActor*);
-void fn_800145D0(TVec3f*, TVec3f*);
-void fn_802DEBE0();
 void fn_80068E40(SpringValue*, f32);
 f32 fn_8004F300();
 void* fn_8004FEF0();
@@ -131,7 +130,7 @@ void SpinCloudBlock::control() {
     mSpring->update();
     fn_80068E40(mSpring, 60.0f);
     if (!MR::isNearZero(mSwayVel, 0.001f)) {
-        fn_800145D0(&mSwayVel, &mPosition);
+        MR::restrictVelocityToPlaneModeArea(&mSwayVel, mPosition);
         mPosition.add(mSwayVel);
     }
     fn_800145C0(this);
@@ -515,7 +514,7 @@ void SpinCloudBlockGroup::updateBlockScale() {
 }
 
 bool SpinCloudBlockGroup::spawnBlocks() {
-    fn_802DEBE0();
+    MR::resetPlayerFollowPass();
     bool result = false;
     s32 count = 3 - mBlockNum;
     if (count > 0) {
@@ -562,8 +561,8 @@ namespace MR {
         createSceneObj(0x60);
     }
 
-    void spawnSpinCloudBlocks() {
-        getBlockGroup()->spawnBlocks();
+    bool spawnSpinCloudBlocks() {
+        return getBlockGroup()->spawnBlocks();
     }
 
     void resetSpinCloudBlocks() {

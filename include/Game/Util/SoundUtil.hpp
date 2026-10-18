@@ -12,6 +12,7 @@ class AudLifeAlertCounter;
 class LiveActor;
 
 namespace MR {
+    bool isGravityBGMPlaying();
     // SMG2-only (original names unknown; named by address)
     void startPlayFireMorphBGM();
     void fn_8001C280();
@@ -170,4 +171,12 @@ namespace MR {
 namespace MR {
     void startStarGetJingle();
     void startGrandStarGetJingle();
+}
+
+namespace MR {
+    bool fn_8005B860(const LiveActor*, const TVec3f*);
+}
+
+namespace MR {
+    void startPlayerSoundForYoshiMode(const char*, const char*, s32);
 }

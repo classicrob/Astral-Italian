@@ -1,3 +1,4 @@
+#include "Game/MapObj/ItemDiceFunction.hpp"
 #pragma auto_inline off
 
 #include "Game/MapObj/ItemDice.hpp"
@@ -13,8 +14,6 @@
 
 
 // Unnamed SMG2 helpers (DiceBase/BenefitItem unit, not ours to name here).
-// PLACEHOLDER(objects): unnamed target symbol fn_802B30F0, declared extern "C" so the reloc name matches; resolve when fn_802B30F0 gets its real name in symbols.txt
-extern "C" void fn_802B30F0(BenefitItemObj*, const TVec3f*, TRot3f*, f32);
 // PLACEHOLDER(objects): unnamed target symbol fn_801B9BD0, declared extern "C" so the reloc name matches; resolve when fn_801B9BD0 gets its real name in symbols.txt
 extern "C" void fn_801B9BD0(BenefitItemObj*, const TVec3f*, TQuat4f*);
 
@@ -125,7 +124,7 @@ bool ItemDice::isGoodResult(u32 result) const {
 // unnamed fn_802B4B50: orient the main item by the dice rotation and place it
 void ItemDice::placeMainItem() {
     TRot3f rot;
-    fn_802B30F0(mMainItem, &mPosition, &rot, 0.0f);
+    ItemDiceFunction::initItemPose(mMainItem, &mPosition, &rot, 0.0f);
     TQuat4f quat;
     rot.getQuat(quat);
     fn_801B9BD0(mMainItem, &mPosition, &quat);
@@ -133,7 +132,7 @@ void ItemDice::placeMainItem() {
 
 // unnamed fn_802B4BB0: pop the sub item out of the dice with a random speed
 void ItemDice::popSubItem() {
-    fn_802B30F0(mSubItem, &mPosition, nullptr, 3.1415927f * MR::getRandom(-1.0f, 1.0f));
+    ItemDiceFunction::initItemPose(mSubItem, &mPosition, nullptr, 3.1415927f * MR::getRandom(-1.0f, 1.0f));
     mSubItem->_DE = 2;
     mSubItem->appearPop();
 }
@@ -265,7 +264,7 @@ bool PositiveDice::isGoodResult(u32 result) const {
 
 // unnamed fn_802B4F90
 void PositiveDice::popItem() {
-    fn_802B30F0(mItem, &mPosition, nullptr, 3.1415927f * MR::getRandom(-1.0f, 1.0f));
+    ItemDiceFunction::initItemPose(mItem, &mPosition, nullptr, 3.1415927f * MR::getRandom(-1.0f, 1.0f));
     mItem->_DE = 2;
     mItem->appearPop();
 }

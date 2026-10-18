@@ -303,3 +303,8 @@ namespace MR {
 }
 
 namespace MR { bool isPendingNormalEndingDemo(); bool isPending120StarEndingDemo(); }
+
+namespace MR {
+    // PLACEHOLDER(m1): event predicate name unknown; resolve when MarioFaceShip event semantics are recovered.
+    bool fn_804C24E0();
+}

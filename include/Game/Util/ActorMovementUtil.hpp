@@ -235,3 +235,7 @@ namespace MR {
 namespace MR {
     void setRotationFromQuat(LiveActor*, const TQuat4f&);
 }
+
+namespace MR {
+    f32 fn_8000E760(TVec3f*, const LiveActor*, const TVec3f*, f32, f32);
+}

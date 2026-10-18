@@ -156,6 +156,13 @@ void Kameck::kill() {
     MR::emitEffect(this, "Death");
 }
 
+void SmallKameckBeamEventListener::hitBeam() {
+    Kameck* pHost = mHost;
+    if (!MR::isDead(pHost)) {
+        MR::startActionSound(pHost, "EvKameckAtkSuccess", -1, -1, -1);
+    }
+}
+
 void Kameck::control() {
     mAnimScaleController->updateNerve();
     MR::blendQuatUpFront(&mRotateQuat, -mGravity, mFrontVec, ::sUpVecBlendRate, ::sFrontVecBlendRate);
@@ -385,6 +392,28 @@ bool Kameck::tryNonActive() {
     return false;
 }
 
+bool Kameck::tryAttackWait() {
+    if (MR::isNearPlayer(this, ::sAttackRange)) {
+        s32 railPoint = -1;
+        if (MR::isExistRail(this)) {
+            MR::getCurrentRailPointArg0WithInit(this, &railPoint);
+        }
+
+        if (railPoint == 0) {
+            setNerve(reinterpret_cast<const Nerve*>(&lbl_807D27E0));
+            return true;
+        }
+
+        mBeam = mActiveActorList->fn_801A7CF0(0.6f, MR::getJointMtx(this, "Wand"), TVec3f(0.0f, 110.0f, 0.0f), mBeamEventListener);
+        if (mBeam != nullptr) {
+            setNerve(GET_NERVE(Kameck, KameckNrvAttackWait));
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Kameck::setNonActive() {
     MR::hideModel(this);
     MR::invalidateHitSensors(this);
@@ -413,28 +442,6 @@ bool Kameck::tryAppearEnd() {
         }
 
         return true;
-    }
-
-    return false;
-}
-
-bool Kameck::tryAttackWait() {
-    if (MR::isNearPlayer(this, ::sAttackRange)) {
-        s32 railPoint = -1;
-        if (MR::isExistRail(this)) {
-            MR::getCurrentRailPointArg0WithInit(this, &railPoint);
-        }
-
-        if (railPoint == 0) {
-            setNerve(reinterpret_cast<const Nerve*>(&lbl_807D27E0));
-            return true;
-        }
-
-        mBeam = mActiveActorList->fn_801A7CF0(0.6f, MR::getJointMtx(this, "Wand"), TVec3f(0.0f, 110.0f, 0.0f), mBeamEventListener);
-        if (mBeam != nullptr) {
-            setNerve(GET_NERVE(Kameck, KameckNrvAttackWait));
-            return true;
-        }
     }
 
     return false;
@@ -756,9 +763,3 @@ namespace MR {
     }
 };  // namespace MR
 
-void SmallKameckBeamEventListener::hitBeam() {
-    Kameck* pHost = mHost;
-    if (!MR::isDead(pHost)) {
-        MR::startActionSound(pHost, "EvKameckAtkSuccess", -1, -1, -1);
-    }
-}

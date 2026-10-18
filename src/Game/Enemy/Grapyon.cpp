@@ -9,18 +9,7 @@
 #include "Game/Util.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
 
-// Single Newton step on frsqrte (stays in f32, no frsp).
 extern const f32 cGrapyonFallAccel;
-
-static inline f32 sqrtNewton(__REGISTER f32 val) {
-    if (val > 0.0f) {
-        __REGISTER f32 e;
-        asm { frsqrte e, val }
-        f32 x = e * val;
-        return -((x * e) - 3.0f) * x * 0.5f;
-    }
-    return val;
-}
 
 namespace NrvGrapyon {
     NEW_NERVE(GrapyonNrvWait, Grapyon, Wait);
@@ -169,9 +158,6 @@ void Grapyon::exeJump() {
     }
 }
 
-// NONMATCHING: target keeps 2.0f * 1.2f unfolded (two literal loads) and different float register allocation around the sqrt step
-#pragma push
-#pragma opt_common_subs off
 void Grapyon::exeFall() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Fall");
@@ -190,7 +176,7 @@ void Grapyon::exeFall() {
             f32 g = MR::calcGravitySpeed(this);
             f32 d = g * g + 2.0f * cGrapyonFallAccel * len;
             if (d > 0.0f) {
-                f32 s = sqrtNewton(d);
+                f32 s = MR::sqrt(d);
                 if (-g + s / cGrapyonFallAccel <= 20.0f) {
                     setNerve(NRV(Land));
                     return;
@@ -207,8 +193,6 @@ void Grapyon::exeFall() {
     }
 }
 
-
-#pragma pop
 
 // NONMATCHING: target hoists the inlined TVec3 add operands into r30/r31 (stack slot / register allocation only)
 void Grapyon::exeLand() {
@@ -320,7 +304,7 @@ void Grapyon::calcAndSetBaseMtx() {
     MR::makeMtxUpFrontPos(&mMtx, scaledUp, mFront, headPos);
 }
 
-// NONMATCHING: target keeps the compare + branch of empty `if (sendMsg...) {}` bodies, MWCC drops them from our output
+// Existing mismatch: target retains branches around the empty send-result checks.
 void Grapyon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorPlayerOrRide(pReceiver)) {
         if (!isNerve(NRV(Down))) {

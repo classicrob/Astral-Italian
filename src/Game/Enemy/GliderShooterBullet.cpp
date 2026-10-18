@@ -36,8 +36,8 @@ void GliderShooterBullet::init(const JMapInfoIter& rIter) {
 }
 
 void GliderShooterBullet::appear() {
-    mUnk9C = mPosition;
-    mUnk90 = mPosition;
+    mUnk9C.set(mVelocity);
+    mUnk90.set(mVelocity);
     MR::normalize(&mUnk90);
     LiveActor::appear();
     MR::emitEffect(this, "Blur");
@@ -52,7 +52,7 @@ void GliderShooterBullet::kill() {
 }
 
 void GliderShooterBullet::exeFly() {
-    if (MR::isGreaterStep(this, 60) && MR::isBindedGround(this)) {
+    if (MR::isGreaterStep(this, 60) && MR::isBinded(this)) {
         MR::emitEffectHit(this, mPosition, "Hit");
         kill();
         return;
@@ -68,7 +68,7 @@ void GliderShooterBullet::exeFreeze() {
     }
     if (MR::updateActorState(this)) {
         MR::emitEffect(this, "Blur");
-        mPosition = mUnk9C;
+        mVelocity.set(mUnk9C);
         setNerve(&NrvGliderShooterBullet::GliderShooterBulletNrvFly::sInstance);
     }
 }

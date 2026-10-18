@@ -64,7 +64,7 @@ void ActorActionSoundKeeper::fn_8021F2D0() {
     JointSoundInfo* joint;
     for (s32 i = 0; i < mJointCount; i++) {
         joint = &mJoints[i];
-        if (joint->mSoundObject->hasActiveSound()) {
+        if (joint->mSoundObject->fn_80596A60()) {
             joint->mPosition.set<f32>(joint->mJointMtx[0][3], joint->mJointMtx[1][3], joint->mJointMtx[2][3]);
             joint->mSoundObject->process();
         }

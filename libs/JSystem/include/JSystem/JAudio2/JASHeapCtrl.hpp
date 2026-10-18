@@ -25,7 +25,6 @@ public:
     JASHeap* getTailHeap();
     u32 getTailOffset();
     u32 getCurOffset();
-    u32 getMaxFreeSize();
 
     void* getBase() {
         return mBase;

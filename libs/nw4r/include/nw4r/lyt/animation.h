@@ -85,9 +85,9 @@ namespace nw4r {
             u16 GetAnimationShareInfoNum() const;
             const AnimationShareInfo* GetAnimationShareInfoArray() const;
 
-            u32 CalcAnimationNum(Pane*, bool) const NO_INLINE;
+            u16 CalcAnimationNum(Pane*, bool) const;
             u16 CalcAnimationNum(Material*) const;
-            u32 CalcAnimationNum(Group*, bool) const;
+            u16 CalcAnimationNum(Group*, bool) const;
 
             const res::BinaryFileHeader* mpFileHeader;
             const res::AnimationBlock* mpResBlock;

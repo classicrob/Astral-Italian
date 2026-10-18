@@ -89,22 +89,14 @@ void Popo::init(const JMapInfoIter& rIter) {
     mScaleController = new AnimScaleController(&sScaleParam);
 }
 
+// NONMATCHING: stack slot order of expression temporaries
 void Popo::initAfterPlacement() {
     MR::calcGravity(this);
-    TVec3f offs(mGravity);
-    offs.scale(120.0f);
-    TVec3f start(mPosition);
-    start -= offs;
-    TVec3f dir(mGravity);
-    dir.scale(120.0f);
-    TVec3f line(dir);
-    line.scale(2.0f);
+    TVec3f start(mPosition - mGravity * 120.0f);
+    TVec3f line = mGravity * 120.0f * 2.0f;
     TVec3f hitPos;
     if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, start, line)) {
-        TVec3f up(mGravity);
-        up.scale(120.0f);
-        TVec3f pos(hitPos);
-        pos -= up;
+        TVec3f pos(hitPos - mGravity * 120.0f);
         MR::setPosition(this, pos);
     }
     MR::calcFrontVec(&mFrontVec, this);
@@ -121,7 +113,6 @@ void Popo::kill() {
     LiveActor::kill();
 }
 
-// NONMATCHING: trailing cmpwi after the tryFindYoshi result is not reproduced
 void Popo::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
@@ -133,6 +124,7 @@ void Popo::exeWait() {
     YoshiFunction::tryYoshiLick(mYoshiLockOn);
     if (MR::isGreaterEqualStep(this, 20)) {
         if (tryFindYoshi()) {
+            return;
         }
     }
 }
@@ -214,7 +206,7 @@ void Popo::exeEscape() {
     }
     bool far = !MR::isNearPlayerHorizontal(this, 1000.0f);
     if (far) {
-        setNerve(&NrvPopo::PopoNrvRest::sInstance);
+        setNerve(&NrvPopo::PopoNrvStop::sInstance);
         return;
     }
     calcFloatVelocity();
@@ -255,7 +247,7 @@ void Popo::exeRest() {
     }
 }
 
-// NONMATCHING: register allocation (r30/r31) and fsubs/fmuls operand order
+// NONMATCHING: f0/f3 allocation for the 0.9f/0.5f literals
 void Popo::exeReturn() {
     MR::turnDirectionToTargetDegreeHorizon(this, &mFrontVec, mHomePos, 3.0f);
     YoshiFunction::tryYoshiLick(mYoshiLockOn);
@@ -267,9 +259,12 @@ void Popo::exeReturn() {
     } else {
         toHome.scale(1.0f / dist);
     }
-    f32 along = 0.5f + toHome.dot(mVelocity);
+    f32 dotv = toHome.dot(mVelocity);
+    f32 one = 1.0f;
     f32 damp = 0.9f;
-    f32 limit = dist * (1.0f - damp);
+    f32 diff = one - damp;
+    f32 along = 0.5f + dotv;
+    f32 limit = dist * diff;
     if (limit < along) {
         TVec3f v(toHome);
         v.scale(limit);
@@ -279,8 +274,9 @@ void Popo::exeReturn() {
         v.scale(along);
         mVelocity.set(v);
     }
-    if (PSVECMag(&mVelocity) > 10.0f) {
-        mVelocity.setLength(10.0f);
+    TVec3f* pVel = &mVelocity;
+    if (PSVECMag(pVel) > 10.0f) {
+        pVel->setLength(10.0f);
     }
     if (!tryFindYoshi() && (PSVECDistance(&mPosition, &mHomePos) < 1.0f || MR::isGreaterEqualStep(this, 600))) {
         setNerve(&NrvPopo::PopoNrvWait::sInstance);
@@ -326,7 +322,7 @@ void Popo::exeRecover() {
     }
 }
 
-// NONMATCHING: stack temporaries and instruction order of the quaternion math, one extra callee-saved GPR
+// NONMATCHING: stack slot order of the three expression temporaries (rotated by one)
 void Popo::exeStick() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Stick");
@@ -339,15 +335,9 @@ void Popo::exeStick() {
     pManager->getMouthMtx()->getTrans(mouthPos);
     TVec3f playerUp;
     MR::getPlayerUpVec(&playerUp);
-    TVec3f toMouth(mouthPos);
-    toMouth -= *MR::getPlayerPos();
-    f32 height = playerUp.dot(toMouth);
-    TVec3f heightVec(playerUp);
-    heightVec.scale(height);
-    TVec3f halfVec(heightVec);
-    halfVec.scale(0.5f);
-    TVec3f center(*MR::getPlayerPos());
-    center.add(halfVec);
+    const TVec3f* pPlayerPos = MR::getPlayerPos();
+    f32 height = playerUp.dot(mouthPos - *pPlayerPos);
+    TVec3f center(*MR::getPlayerPos() + playerUp * height * 0.5f);
     TVec3f dirMouth(mouthPos);
     dirMouth -= center;
     f32 lenMouth = PSVECMag(&dirMouth);
@@ -449,7 +439,6 @@ void Popo::exeTouch() {
     }
 }
 
-// NONMATCHING: order of the independent TVec3 temporaries
 void Popo::exeStickCancel() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StickCancel");
@@ -457,12 +446,17 @@ void Popo::exeStickCancel() {
         Triangle tri;
         f32 radius = MR::getSensorRadius(this, "Body");
         TVec3f hitPos;
-        TVec3f from(mPosition);
-        from -= mGravity * radius;
+        TVec3f from;
+        {
+            TVec3f offset = mGravity * radius;
+            from = mPosition;
+            from -= offset;
+        }
         TVec3f line = mGravity * radius * 2.0f;
         if (MR::getFirstPolyOnLineToMap(&hitPos, &tri, from, line)) {
+            TVec3f up = *tri.getNormal(0) * radius;
             TVec3f pos(hitPos);
-            pos.add(*tri.getNormal(0) * radius);
+            pos.add(up);
             MR::setPosition(this, pos);
         }
     }
@@ -506,7 +500,6 @@ void Popo::control() {
     mScaleController->updateNerve();
 }
 
-// NONMATCHING: mr r4,r3 / register order for the mtx rows
 void Popo::calcAndSetBaseMtx() {
     bool sticking = false;
     if (isNerve(&NrvPopo::PopoNrvStickStart::sInstance) || isNerve(&NrvPopo::PopoNrvStickWait::sInstance) ||
@@ -518,7 +511,10 @@ void Popo::calcAndSetBaseMtx() {
         MR::setBaseTRMtx(this, *pManager->getMouthMtx());
         pManager->getMouthMtx()->getTrans(mPosition);
         TPos3f* pMtx = pManager->getMouthMtx();
-        mFrontVec.set< f32 >(pMtx->mMtx[0][2], pMtx->mMtx[1][2], pMtx->mMtx[2][2]);
+        f32 z = pMtx->mMtx[2][2];
+        f32 y = pMtx->mMtx[1][2];
+        f32 x = pMtx->mMtx[0][2];
+        mFrontVec.set< f32 >(x, y, z);
     } else {
         MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFrontVec);
     }
@@ -775,14 +771,17 @@ void Popo::decelerate() {
     mVelocity.z *= 0.95f;
 }
 
-// NONMATCHING: matrix-column load scheduling and floating-point register allocation.
+// NONMATCHING: f0/f5 allocation of the x/z matrix column loads
 bool Popo::tryFindYoshi() {
     MtxPtr pMtx = MR::getJointMtx(this, "JointRoot");
     TVec3f dir;
-    dir.x = pMtx[0][0];
-    dir.y = pMtx[1][0];
-    dir.z = pMtx[2][0];
     SightParam sight;
+    f32 z = pMtx[2][0];
+    f32 y = pMtx[1][0];
+    f32 x = pMtx[0][0];
+    dir.x = x;
+    dir.y = y;
+    dir.z = z;
     sight.a = 800.0f;
     sight.b = 90.0f;
     sight.c = 45.0f;

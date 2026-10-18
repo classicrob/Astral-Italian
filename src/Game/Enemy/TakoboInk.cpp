@@ -83,11 +83,3 @@ void TakoboInk::exeWait() {
     }
 }
 
-// NONMATCHING: target symbol __ct__15TakoboInkHolderFv has no parameter list yet the body reads r4 (TakoSho passes 2)
-TakoboInkHolder::TakoboInkHolder(s32 numMax) : DeriveActorGroup< TakoboInk >("TakoboInkHolder", numMax) {
-    for (s32 i = 0; i < numMax; i++) {
-        TakoboInk* pInk = new TakoboInk("TakoHeiInk");
-        pInk->initWithoutIter();
-        registerActor(pInk);
-    }
-}

@@ -203,13 +203,13 @@ void TakoSho::exeWait() {
     }
 }
 
-#pragma dont_inline on
-// NONMATCHING: Vector copy elision, stack slots and floating-point scheduling differ.
+// NONMATCHING: stack slot order of TVec3f temporaries and fdivs scheduling differ.
 void TakoSho::exeMove() {
     if (MR::isFirstStep(this)) {
         f32 sign = mIsRight ? 1.0f : -1.0f;
+        TVec3f offset = (mSideVec * mSpeed) * sign;
         TVec3f target(mStartPos);
-        target -= (mSideVec * mSpeed) * sign;
+        target -= offset;
         mTargetPos = target;
         TVec3f delta(mTargetPos);
         delta -= mPosition;
@@ -226,7 +226,9 @@ void TakoSho::exeMove() {
     MR::vecKillElement(dir, mGravity, &dir);
     MR::normalizeOrZero(&dir);
     TVec3f gravity = mGravity * gravitySpeed;
-    TVec3f velocity(dir * (mMoveRange / 1.3f));
+    f32 moveSpeed = mMoveRange / 1.3f;
+    TVec3f scaled = dir * moveSpeed;
+    TVec3f velocity(scaled);
     velocity -= gravity;
     MR::setVelocity(this, velocity);
     if (MR::isGreaterStep(this, mShotStep)) {
@@ -241,7 +243,6 @@ void TakoSho::exeMove() {
         fn_80208970(&mFrontVec, this, 2.865f);
     }
 }
-#pragma dont_inline off
 
 void TakoSho::exeAttackSign() {
     if (MR::isFirstStep(this)) {

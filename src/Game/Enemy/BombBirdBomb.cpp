@@ -195,7 +195,7 @@ void BombBirdBomb::exeExplosion() {
     if (MR::isFirstStep(this)) {
         MR::hideModel(this);
         MR::validateHitSensor(this, "bomb");
-        MR::invalidateHitSensor(this, "body");
+        MR::invalidateHitSensor(this, "Body");
         MR::emitEffect(this, "Explosion");
         MR::startActionSound(this, "EmBombExplosion");
         MR::tryRumblePadAndCameraDistanceStrong(this, 800.0f, 1200.0f, 2000.0f);

@@ -1,6 +1,8 @@
 #pragma auto_inline off
 #include "Game/Enemy/Battan.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/BattanKingCollisionPress.hpp"
+#include "Game/Enemy/BattanKing.hpp"
 #include "Game/Util/JointController.hpp"
 #include "Game/Enemy/SupportTicoStop.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
@@ -186,10 +188,8 @@ void Battan::init(const JMapInfoIter& rIter) {
             mPressParts[i] = nullptr;
         }
 
-        LiveActor* pCollision = static_cast<LiveActor*>(::operator new(0x98));
-        if (pCollision != nullptr) {
-            pCollision = MR::fn_8008DB20(pCollision, this, rDesc.mName, rDesc.mModelName, 0, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
-        }
+        // the SMG2 ctor takes a BattanKing*, but Battan passes itself
+        LiveActor* pCollision = new BattanKingCollision(reinterpret_cast<BattanKing*>(this), rDesc.mName, rDesc.mModelName, nullptr, MR::getJointMtx(this, rDesc.mJointName), 0x1E);
         mCollisionParts[i] = pCollision;
         mCollisionParts[i]->initWithoutIter();
     }
@@ -417,7 +417,7 @@ void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool Battan::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDropFloor(msg)) {
-        if (MR::fn_8008DDC0(MR::getJointMtx(this, "Root"), &sVector4, 200.0f, 400.0f)) {
+        if (MR::isPlayerInCollisionCylinder(MR::getJointMtx(this, "Root"), &sVector4, 200.0f, 400.0f)) {
             return fn_8015ABD0();
         }
         return false;
@@ -659,12 +659,12 @@ void Battan::fn_801597E0() {
         TVec3f up = -mGravity;
         MR::makeMtxFrontUpPos(&mtx, mFront, up, mPosition);
         MR::addTransMtxLocal(mtx.toMtxPtr(), sVector3);
-        if (MR::fn_8008E060(&mtx, &sVector1)) {
+        if (MR::isPlayerInCollisionBox(&mtx, &sVector1)) {
             MR::zeroVelocity(this);
             setNerve(GET_BATTAN_NERVE(BattanNrvFind));
             return;
         }
-        fn_8015ACE0(0.01f * mWalkSpeed);
+        fn_8015ACE0(mWalkSpeed * 0.01f);
         if (isRailEndReached()) {
             tryRailEndTurn();
         }
@@ -729,7 +729,7 @@ void Battan::fn_80159B20() {
         TVec3f up = -mGravity;
         MR::makeMtxFrontUpPos(&mtx, mFront, up, mPosition);
         MR::addTransMtxLocal(mtx.toMtxPtr(), sVector3);
-        if (MR::fn_8008E060(&mtx, &sVector2)) {
+        if (MR::isPlayerInCollisionBox(&mtx, &sVector2)) {
             setNerve(GET_BATTAN_NERVE(BattanNrvAttackSign));
             return;
         }
@@ -748,16 +748,16 @@ void Battan::fn_80159BF0() {
         TVec3f up = -mGravity;
         MR::makeMtxFrontUpPos(&mtx, mFront, up, mPosition);
         MR::addTransMtxLocal(mtx.toMtxPtr(), sVector3);
-        if (MR::fn_8008E060(&mtx, &sVector0)) {
+        if (MR::isPlayerInCollisionBox(&mtx, &sVector0)) {
             TPos3f mtx2;
             MR::makeMtxFrontUpPos(&mtx2, mFront, -mGravity, mPosition);
             MR::addTransMtxLocal(mtx2.toMtxPtr(), sVector3);
-            if (MR::fn_8008E060(&mtx2, &sVector2)) {
+            if (MR::isPlayerInCollisionBox(&mtx2, &sVector2)) {
                 MR::zeroVelocity(this);
                 setNerve(GET_BATTAN_NERVE(BattanNrvAttackSign));
                 return;
             }
-            fn_8015ACE0(0.01f * mRunSpeed);
+            fn_8015ACE0(mRunSpeed * 0.01f);
             if (isRailEndReached()) {
                 mIsTurnBack = true;
                 MR::zeroVelocity(this);

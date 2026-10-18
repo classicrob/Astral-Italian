@@ -625,7 +625,7 @@ bool Meramera::sendMsgElementAttack(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-void Meramera::appearAtPos(const TVec3f& rPos) {
+void Meramera::appearAtPos(const TVec3f& rPos, const TVec3f&) {
     if (MR::isDead(this)) {
         mHomePosition.set(rPos);
         resetAppear();

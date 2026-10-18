@@ -10,17 +10,6 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-void MogucchiHill_FORCE_MATCH_SDATA2() {
-    (void)0.0f;
-    (void)0.5f;
-    (void)120.0f;
-    (void)90000.0f;
-    (void)100.0f;
-    (void)150.0f;
-    (void)0.6f;
-    (void)(1.0f - 0.6f);
-}
-
 namespace {
     static const char* sPieceModelTable[] = {
         "MogucchiHillA",
@@ -51,11 +40,13 @@ MogucchiHillPiece::MogucchiHillPiece(const char* pName) : LiveActor(pName), mHos
     _9C.identity();
 }
 
+// NONMATCHING: sensor and sound vector temporary stack slots are exchanged.
 void MogucchiHillPiece::init(const JMapInfoIter& rIter) {
-    initModelManagerWithAnm(mModelName, nullptr, false);
+    TVec3f soundOffset;
+    MR::initActor(this, mModelName, false);
     MR::connectToSceneMapObjDecorationStrongLight(this);
     initHitSensor(1);
-    MR::addHitSensorAtJointMapObj(this, "body", mJointName, 8, mScale.x * ::sPieceSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorAtJointMapObj(this, "Body", mJointName, 8, mScale.x * ::sPieceSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
 
     if (mAutoEffectName != nullptr) {
         initEffectKeeper(0, mAutoEffectName, false);
@@ -65,7 +56,8 @@ void MogucchiHillPiece::init(const JMapInfoIter& rIter) {
         MR::initLightCtrl(this);
     }
 
-    initSound(1, "MogucchiHillPiece", nullptr, TVec3f(0.0f));
+    soundOffset.setAll<f32>(0.0f);
+    initSound(1, "MogucchiHill", nullptr, soundOffset);
     initNerve(GET_NERVE(MogucchiHillPiece, MogucchiHillPieceNrvWait));
     makeActorDead();
 }
@@ -163,8 +155,7 @@ void MogucchiHillPiece::destroy() {
 
 void MogucchiHillPiece::setSize(f32 size) {
     mScale.setAll< f32 >(size);
-    HitSensor* pSensor = getSensor("body");
-    pSensor->mRadius = ::sPieceSensorRadius * size;
+    MR::setSensorRadius(this, "Body", ::sPieceSensorRadius * size);
 }
 
 void MogucchiHillPiece::calcAndSetBaseMtx() {
@@ -276,9 +267,10 @@ bool MogucchiHillPiece::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSe
 }
 
 bool MogucchiHillPiece::isTargetGoingAway(HitSensor* pSender, HitSensor* pReceiver) const NO_INLINE {
-    TVec3f toReceiver = pReceiver->mPosition - pSender->mPosition;
+    const TVec3f* senderPos = MR::getSensorPos(pSender);
+    TVec3f toReceiver = *MR::getSensorPos(pReceiver) - *senderPos;
 
-    return toReceiver.dot(pReceiver->mHost->mVelocity) >= 0.0f;
+    return toReceiver.dot(MR::getSensorHost(pReceiver)->mVelocity) >= 0.0f;
 }
 
 MogucchiHill::MogucchiHill(LiveActor* pHost, s32 pieceCount, const char* pName)

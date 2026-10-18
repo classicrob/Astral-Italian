@@ -292,7 +292,8 @@ void PackunPetit::fn_801E3080() {
     }
     MR::calcVecToPlayerH(&_94, this, nullptr);
     f32 distance = PSVECDistance(&_110, &mPosition);
-    if (MR::isNearPlayer(this, 75.0f + distance) == false) {
+    bool isFar = !MR::isNearPlayer(this, 75.0f + distance);
+    if (isFar) {
         MR::tryHitReaction(this, "ヨッシー舌引き抜き");
         MR::invalidateClipping(this);
         MR::setVelocity(mBlownModel, _94 * 15.0f);
@@ -381,6 +382,7 @@ void PackunPetit::control() {
 }
 
 // NONMATCHING: one extra boolean register move remains.
+// NONMATCHING: the `pushing` bool is copied to r3 before its compare (target compares r31 directly); the rest matches.
 void PackunPetit::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver)) {
         bool dying = false;
@@ -641,14 +643,14 @@ bool PackunPetit::fn_801E41B0() const {
 }
 
 // NONMATCHING: compiler duplicates a common false-return block.
+// NONMATCHING: branch sense/return-block layout of the nested dying/pulled tests (the single-exit form scores worse).
 bool PackunPetit::fn_801E4260() const {
     bool dying = false;
     if (isNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPunchDown))) dying = true;
     if (!dying) {
         bool pulled = false;
         if (isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPullStart)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPull)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvEaten))) pulled = true;
-        if (pulled) return false;
-        return true;
+        if (!pulled) return true;
     }
     return false;
 }

@@ -18,17 +18,7 @@ TakoHeiInk::TakoHeiInk(const char* pName) : LiveActor(pName) {
 }
 
 void TakoHeiInk::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
     MR::initActor(this, rIter, "TakoHeiInk", false);
-    MR::connectToSceneEnemy(this);
-    MR::onCalcGravity(this);
-    initHitSensor(1);
-
-    MR::addHitSensorEnemy(this, "Body", 8, ::sModelSize, TVec3f(0.0f, 0.0f, 0.0f));
-    initBinder(::sModelSize, 0.0f, 0);
-    initEffectKeeper(0, nullptr, false);
-    initSound(1, "TakoHeiInk", nullptr, TVec3f(0.0f));
-    MR::initShadowVolumeSphere(this, ::sModelSize);
     initNerve(GET_NERVE(TakoHeiInk, TakoHeiInkNrvWait));
     MR::invalidateClipping(this);
     makeActorDead();

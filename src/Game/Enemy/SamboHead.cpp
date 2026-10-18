@@ -328,13 +328,13 @@ void SamboHead::exeHitBlow() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Blow");
         MR::startBlowHitSound(this);
-        MR::invalidateHitSensor(this, "body");
+        MR::invalidateHitSensor(this, "Body");
     }
 
     if (mSpinCtrl->execute(this)) {
         MR::emitItemHit(this);
         MR::startActionSound(this, "EmExplodeS");
-        MR::validateHitSensor(this, "body");
+        MR::validateHitSensor(this, "Body");
     }
 }
 
@@ -403,7 +403,7 @@ void fn_801F9370(LiveActor* pActor) {
 
 // this was laid out in some other way
 void SamboHead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pSender != getSensor("body")) {
+    if (pSender != getSensor("Body")) {
         return;
     }
 
@@ -414,7 +414,7 @@ void SamboHead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
         if (isNerve(GET_NERVE(SamboHead, HostTypeNrvPursue)) || isNerve(GET_NERVE(SamboHead, HostTypeNrvPrePursue)) ||
             isNerve(GET_NERVE(SamboHead, HostTypeNrvPursueEnd)) || isNerve(GET_NERVE(SamboHead, HostTypeNrvWait))) {
-            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
+            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f)) {
                 MR::sendMsgPush(pReceiver, pSender);
                 return;
             }
@@ -429,7 +429,7 @@ void SamboHead::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
 
         if (isNerve(GET_NERVE(SamboHead, HostTypeNrvAppear)) && MR::isGreaterStep(this, 45)) {
-            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
+            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f)) {
                 MR::sendMsgPush(pReceiver, pSender);
                 return;
             }

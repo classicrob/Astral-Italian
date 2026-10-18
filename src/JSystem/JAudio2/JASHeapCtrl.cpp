@@ -199,27 +199,6 @@ u32 JASHeap::getCurOffset() {
     return offset;
 }
 
-// Retain the postfix iterator helper also emitted by the original heap unit.
-template JSUTreeIterator< JASHeap > JSUTreeIterator< JASHeap >::operator++(int);
-
-u32 JASHeap::getMaxFreeSize() {
-    JASMutexLock lock(&mMutex);
-    u32 largestGap = 0;
-    u8* current = mBase;
-    for (JSUTreeIterator< JASHeap > it(mTree.getFirstChild()); it != mTree.getEndChild(); it++) {
-        u32 gap = it->mBase - current;
-        if (gap > largestGap) {
-            largestGap = gap;
-        }
-        current = it->mBase + it->mSize;
-    }
-    u32 tailGap = mBase + mSize - current;
-    if (tailGap > largestGap) {
-        largestGap = tailGap;
-    }
-    return largestGap;
-}
-
 JASGenericMemPool::JASGenericMemPool() : _0(), mFreeMemCount(), mTotalMemCount(), mUsedMemCount() {
 }
 
@@ -303,8 +282,4 @@ void JASKernel::setupAramHeap(u32 base, u32 size) {
 
 JASHeap* JASKernel::getAramHeap() {
     return &audioAramHeap;
-}
-
-u32 JASKernel::getAramFreeSize() {
-    return audioAramHeap.getMaxFreeSize();
 }

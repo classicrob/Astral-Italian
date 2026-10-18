@@ -28,7 +28,7 @@ namespace NrvWanwan {
     NEW_NERVE(WanwanNrvFreeze, Wanwan, Freeze);
 };  // namespace NrvWanwan
 
-// NONMATCHING: zero-vector store scheduling and equivalent child-object loop precheck.
+// NONMATCHING: addr-of-zero-vec arg scheduling and hoisted KeySwitch name pointer in the child loop
 void Wanwan::init(const JMapInfoIter& rIter) {
     mType = getType(rIter);
     switch (mType) {
@@ -52,7 +52,9 @@ void Wanwan::init(const JMapInfoIter& rIter) {
     initRailRider(rIter);
     initEffect();
     TVec3f zero;
-    zero.x = zero.y = zero.z = 0.0f;
+    zero.x = 0.0f;
+    zero.y = 0.0f;
+    zero.z = 0.0f;
     MR::initStarPointerTarget(this, 275.0f * (mType == 1 ? 0.3f : mScale.x), zero);
     MR::initUseStageSwitchWriteDead(this, rIter);
     initSound(5, "Wanwan", nullptr, TVec3f(0.0f));
@@ -65,10 +67,13 @@ void Wanwan::init(const JMapInfoIter& rIter) {
     }
     if (mType == 1) {
         s32 num = MR::getChildObjNum(rIter);
-        for (s32 i = 0; i < num; i++) {
-            mKeySwitch = new KeySwitch("\x8c\xae\x83\x58\x83\x43\x83\x62\x83\x60");
-            MR::initChildObj(mKeySwitch, rIter, i);
-            mKeySwitch->prepareDemoStart();
+        s32 i = 0;
+        if (num > 0) {
+            for (; i < num; i++) {
+                mKeySwitch = new KeySwitch("\x8c\xae\x83\x58\x83\x43\x83\x62\x83\x60");
+                MR::initChildObj(mKeySwitch, rIter, i);
+                mKeySwitch->prepareDemoStart();
+            }
         }
     }
     if (mType == 0) {
@@ -147,7 +152,7 @@ s32 Wanwan::getGoalStayStep() {
     return 27;
 }
 
-// NONMATCHING: conditional return lowers to integer masking instead of branches.
+// NONMATCHING: final `return Gold ? 2 : 0` lowers to subfic/subfe/rlwinm mask instead of cmpwi/beq
 s32 Wanwan::getType(const JMapInfoIter& rIter) {
     if (MR::isEqualObjectName(rIter, "WanwanRollingMini")) {
         return 1;
@@ -162,21 +167,22 @@ s32 Wanwan::getAppearStarPieceNum(Rock::Type type) {
     return type == Rock::TypeMini ? 3 : 9;
 }
 
-// NONMATCHING: boolean registers and vector temporary stack slots.
+// NONMATCHING: stack slot order of toRail/g temporaries
 void Wanwan::control() {
     if (!isNerve(&NrvWanwan::WanwanNrvAppearSign::sInstance) && !isNerve(&NrvWanwan::WanwanNrvBreak::sInstance)) {
+        bool inMove;
         bool turn = false;
         bool moved = false;
         TVec3f dir;
         JMathInlineVEC::PSVECSubtract(&mPosition, &mLastFront, &dir);
         if (!MR::isNearZero(dir, 0.001f)) {
             MR::normalize(&dir);
-            mLastFront.set(mPosition);
             moved = true;
+            mLastFront.set(mPosition);
         }
         turn = false;
         if (moved) {
-            bool inMove = false;
+            inMove = false;
             if (isNerve(&NrvWanwan::WanwanNrvAppear::sInstance) || isNerve(&NrvWanwan::WanwanNrvAppearMoveInvalidBind::sInstance) || isNerve(&NrvWanwan::WanwanNrvMove::sInstance) ||
                 isNerve(&NrvWanwan::WanwanNrvMoveInvalidBind::sInstance) || isNerve(&NrvWanwan::WanwanNrvMoveToGoal::sInstance)) {
                 inMove = true;
@@ -448,6 +454,7 @@ bool Wanwan::move(f32 speed) {
 
 // NONMATCHING: matrix temporary stack layout and rotate-call argument scheduling.
 #pragma auto_inline off
+// NONMATCHING: literal load scheduling (0.0174 vs 1.0 order)
 void Wanwan::calcBaseMtx(TPos3f* pMtx) const {
     TVec3f up;
     JGeometry::negateInternal(&mGravity.x, &up.x);
@@ -674,7 +681,7 @@ void Wanwan::exeAppearSign() {
     }
 }
 
-// NONMATCHING: boolean lowering and floating-point temporary/narrowing schedule.
+// NONMATCHING: isMini() lowers to cmpwi/bne instead of cntlzw bool + frsp copy of the start angle
 void Wanwan::exeAppear() {
     f32 rate = 1386.0f / (mRadius * 3.1415927f);
     if (MR::isFirstStep(this)) {
@@ -722,7 +729,6 @@ void Wanwan::exeAppearMoveInvalidBind() {
     }
 }
 
-// NONMATCHING: rotation operand schedule and omitted unused-result comparison.
 void Wanwan::exeMove() {
     if (MR::isOnGround(this)) {
         if (!MR::isHiddenModel(this)) {
@@ -757,8 +763,11 @@ void Wanwan::exeMove() {
         setNerve(&NrvWanwan::WanwanNrvBreak::sInstance);
     } else if (!tryBreakReachedGoal()) {
         move(mSpeed);
-        updateRotateX(mRotation.x + mRotSpeed);
-        tryFreeze(&NrvWanwan::WanwanNrvMove::sInstance);
+        f32 speed = mRotSpeed;
+        updateRotateX(mRotation.x + speed);
+        if (tryFreeze(&NrvWanwan::WanwanNrvMove::sInstance)) {
+            return;
+        }
     }
 }
 
@@ -865,7 +874,7 @@ void Wanwan::exeGoalIn() {
     }
 }
 
-// NONMATCHING: Euler-angle register allocation.
+// NONMATCHING: Euler-angle fp register allocation (f0..f3)
 void Wanwan::exeBreak() {
     if (MR::isFirstStep(this)) {
         if (mType != 2 && !_144 && (mModel == nullptr || isInClippingRange())) {

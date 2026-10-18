@@ -1,6 +1,7 @@
 #pragma auto_inline off
 #include "Game/Enemy/Pattan.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/BattanKingCollisionPress.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
@@ -78,11 +79,11 @@ void Pattan::makeActorAppeared() {
     mDamageTimer = 0x708;
 }
 
-void Pattan::fn_801E6F00(const TVec3f* pFront) {
-    LiveActor::appear();
-    MR::calcGravity(this);
-    mFront = *pFront;
-    this->setNerve(GET_PATTAN_NERVE(PattanNrvAppear));
+void appearPattanByJump(LiveActor* pActor, const TVec3f* pFront) {
+    pActor->LiveActor::appear();
+    MR::calcGravity(pActor);
+    static_cast<Pattan*>(pActor)->mFront = *pFront;
+    pActor->setNerve(GET_PATTAN_NERVE(PattanNrvAppear));
 }
 
 void Pattan::control() {
@@ -142,14 +143,14 @@ void Pattan::fn_801E71D0() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Run");
     }
-    if (MR::fn_8008E060(reinterpret_cast<const TPos3f*>(getBaseMtx()), &sRayOffsetA) || mDamageTimer < 0) {
+    if (MR::isPlayerInCollisionBox(reinterpret_cast<const TPos3f*>(getBaseMtx()), &sRayOffsetA) || mDamageTimer < 0) {
         MR::zeroVelocity(this);
         setNerve(GET_PATTAN_NERVE(PattanNrvAttackSign));
         MR::offBind(this);
         return;
     }
     if (MR::isGreaterStep(this, 0x258)) {
-        if (!MR::fn_8008E060(reinterpret_cast<const TPos3f*>(getBaseMtx()), &sRayOffsetB)) {
+        if (!MR::isPlayerInCollisionBox(reinterpret_cast<const TPos3f*>(getBaseMtx()), &sRayOffsetB)) {
             MR::zeroVelocity(this);
             setNerve(GET_PATTAN_NERVE(PattanNrvWait));
         }

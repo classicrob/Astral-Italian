@@ -11,7 +11,8 @@ extern s32 lbl_807E3030;
 
 // PLACEHOLDER(enemies): the target keeps these three ints in .sdata2 and loads them at run time; a `const` here would be
 // constant-folded by the compiler, so they are plain statics (.sdata); resolve when .sdata2 of this unit is split and a
-// non-folding spelling is found.
+// non-folding spelling is found. Tried: static const + address table (folded, 75.8%), static const volatile (partly folded,
+// 81.3%), static volatile (82.1%); plain statics are the best found (84.4%).
 static s32 sHoldProjectileStep = 8;
 static s32 sSeekTargetStep = 6;
 static s32 sJumpFrames = 48;
@@ -236,11 +237,13 @@ void BrosStateJump::selectTarget() {
     mTargetPos = mHomePos;
 }
 
+// NONMATCHING: stack slots of the dummy TVec3 and the negated-gravity temp are swapped (only addi r1 offsets differ).
 void BrosStateJump::updateJump() {
     mJumpVelocity.y -= 1.5f;
     TPos3f mtx;
     PSMTXIdentity(mtx.toMtxPtr());
-    MR::makeMtxUpFront(&mtx, -mHost->mGravity, mFront);
+    TVec3f upDir = -mHost->mGravity;
+    MR::makeMtxUpFront(&mtx, upDir, mFront);
     MR::extractMtxZDir(mtx.toMtxPtr(), &mFront);
     TVec3f dummy(0.0f);
     PSMTXMultVecSR(mtx.toMtxPtr(), &mJumpVelocity, &mHost->mVelocity);

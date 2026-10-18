@@ -5,7 +5,6 @@
 namespace nw4r {
     namespace db {
         void Panic(const char*, int, const char*, ...);
-        void Warning(const char*, int, const char*, ...);
     }
 }  // namespace nw4r
 

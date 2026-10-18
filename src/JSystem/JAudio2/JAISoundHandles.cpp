@@ -43,12 +43,3 @@ void JAISoundHandles::setPos(const TVec3f& pos) {
         }
     }
 }
-
-bool JAISoundHandles::hasActiveSound() const {
-    for (int i = 0; i < mNumHandles; i++) {
-        if (mHandles[i].isSoundAttached()) {
-            return true;
-        }
-    }
-    return false;
-}

@@ -28,7 +28,7 @@ public:
 
     static s32 initElementType(const JMapInfoIter&);
     static void initPlayerResource(const JMapInfoIter&);
-    void appearAtPos(const TVec3f&);
+    void appearAtPos(const TVec3f&, const TVec3f&);
     void initEffect();
     void initAppearState(const JMapInfoIter&);
     bool requestDamage(HitSensor*, HitSensor*);

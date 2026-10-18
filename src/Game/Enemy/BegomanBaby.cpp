@@ -401,41 +401,6 @@ void BegomanBaby::endBindStarPointer() {
     BegomanBase::finishBindStarPointer();
 }
 
-void BegomanBaby::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pSender != getSensor("Body")) {
-        return;
-    }
-
-    if (MR::isSensorEnemy(pReceiver) && MR::isOnGround(this)) {
-        MR::sendMsgEnemyAttack(pReceiver, pSender);
-        return;
-    }
-
-    if (!MR::isSensorPlayer(pReceiver) || isNerve(GET_NERVE(BegomanBaby, HostTypeNrvBlow)) || MR::isPlayerSwingAction() || !MR::isOnGroundPlayer()) {
-        return;
-    }
-
-    if (MR::sendMsgEnemyAttackFlipRot(pReceiver, pSender)) {
-        TVec3f dirFromSenderToReceiver(*MR::getSensorPos(pSender));
-
-        dirFromSenderToReceiver -= *MR::getSensorPos(pReceiver);
-        MR::normalizeOrZero(&dirFromSenderToReceiver);
-
-        if (!MR::isNearZero(dirFromSenderToReceiver)) {
-            bool reflected = reboundPlaneWithEffect(dirFromSenderToReceiver, 0.0f, 0.0f, "Spark");
-            TVec3f velAdd(dirFromSenderToReceiver);
-            velAdd.scale(2.0f);
-            mVelocity += velAdd;
-
-            if (reflected) {
-                MR::startActionSound(this, "EmBabybegoColli");
-            }
-        }
-
-        setNerve(GET_NERVE(BegomanBaby, HostTypeNrvHitReaction));
-    }
-}
-
 bool BegomanBaby::receiveMsgPushEnemy(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(BegomanBaby, HostTypeNrvAfterLaunch))) {
         return false;
@@ -482,6 +447,41 @@ bool BegomanBaby::receiveMsgPushEnemy(HitSensor* pSender, HitSensor* pReceiver) 
     }
 
     return true;
+}
+
+void BegomanBaby::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (pSender != getSensor("Body")) {
+        return;
+    }
+
+    if (MR::isSensorEnemy(pReceiver) && MR::isOnGround(this)) {
+        MR::sendMsgEnemyAttack(pReceiver, pSender);
+        return;
+    }
+
+    if (!MR::isSensorPlayer(pReceiver) || isNerve(GET_NERVE(BegomanBaby, HostTypeNrvBlow)) || MR::isPlayerSwingAction() || !MR::isOnGroundPlayer()) {
+        return;
+    }
+
+    if (MR::sendMsgEnemyAttackFlipRot(pReceiver, pSender)) {
+        TVec3f dirFromSenderToReceiver(*MR::getSensorPos(pSender));
+
+        dirFromSenderToReceiver -= *MR::getSensorPos(pReceiver);
+        MR::normalizeOrZero(&dirFromSenderToReceiver);
+
+        if (!MR::isNearZero(dirFromSenderToReceiver)) {
+            bool reflected = reboundPlaneWithEffect(dirFromSenderToReceiver, 0.0f, 0.0f, "Spark");
+            TVec3f velAdd(dirFromSenderToReceiver);
+            velAdd.scale(2.0f);
+            mVelocity += velAdd;
+
+            if (reflected) {
+                MR::startActionSound(this, "EmBabybegoColli");
+            }
+        }
+
+        setNerve(GET_NERVE(BegomanBaby, HostTypeNrvHitReaction));
+    }
 }
 
 bool BegomanBaby::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {

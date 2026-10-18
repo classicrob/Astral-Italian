@@ -98,9 +98,9 @@ void KameckBeamMeramera::control() {
     }
 }
 
-void KameckBeamMeramera::appearDirection(const TVec3f& position, const TVec3f&) {
+void KameckBeamMeramera::appearDirection(const TVec3f& position, const TVec3f& direction) {
     appear();
-    mEnemy->appearAtPos(position);
+    mEnemy->appearAtPos(position, direction);
     mStep = 600;
 }
 

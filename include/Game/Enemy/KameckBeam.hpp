@@ -8,7 +8,7 @@ class KameckFireBall;
 
 class KameckBeamProjectile {
 public:
-    KameckBeamProjectile();
+    KameckBeamProjectile() NO_INLINE;
     virtual void appearDirection(const TVec3f&, const TVec3f&);
     virtual bool fn_801A74D0();
     virtual void fn_801A7180();

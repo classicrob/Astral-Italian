@@ -76,6 +76,11 @@ void AnimScaleController::startHitReaction() {
     setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvHitReaction));
 }
 
+void AnimScaleController::startScaleVelocityY(f32 f1) {
+    _18 = f1;
+    setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvAnim));
+}
+
 void AnimScaleController::startAndAddScaleVelocityY(f32 f1) {
     _18 += f1;
     setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvAnim));
@@ -90,6 +95,14 @@ void AnimScaleController::stopAndReset() {
     // resetScale already sets _18 to 0, so this is completely unnecessary
     _18 = 0.0f;
     setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
+}
+
+void AnimScaleController::stop(const TVec3f& rScale) {
+    _18 = 0.0f;
+    setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
+    _C.x = rScale.x;
+    _C.y = rScale.y;
+    _C.z = rScale.z;
 }
 
 void AnimScaleController::resetScale() {
@@ -141,6 +154,12 @@ void AnimScaleController::exeCrush() {
     if (MR::isGreaterStep(this, _8->_2C)) {
         setNerve(GET_NERVE(AnimScaleController, AnimScaleControllerNrvStop));
     }
+}
+
+// NONMATCHING: same instructions as target (ps_mul of _C.xy * mScale.xy, fmuls for z), but CW schedules the _C.z load before the mScale paired load and uses f1/f2 swapped; instruction order and FPR allocation only
+void MR::updateBaseScale(LiveActor* pActor, AnimScaleController* pController) {
+    TVec3f scale = pController->_C * pActor->mScale;
+    MR::setBaseScale(pActor, scale);
 }
 
 bool AnimScaleController::isHitReaction(s32 a1) const {

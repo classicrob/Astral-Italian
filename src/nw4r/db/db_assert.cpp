@@ -6,24 +6,7 @@
 
 namespace nw4r {
     namespace db {
-        static u32 sWarningTime = 0;
         static ConsoleHandle sAssertionConsole = NULL;
-        static bool sDispWarningAuto = true;
-
-        void WarningAlarmFunc_(OSAlarm*, OSContext*) {
-            if (sAssertionConsole != NULL) Console_SetVisible(sAssertionConsole, false);
-        }
-
-        static OSAlarm* GetWarningAlarm_() {
-            static OSAlarm sWarningAlarm;
-            static bool sInitializedAlarm;
-            if (!sInitializedAlarm) {
-                OSCreateAlarm(&sWarningAlarm);
-                sInitializedAlarm = true;
-            }
-            return &sWarningAlarm;
-        }
-
 
         static void Assertion_Printf_(const char* fmt, ...) {
             va_list vlist;
@@ -93,28 +76,6 @@ namespace nw4r {
             nw4r::db::VPanic(file, line, fmt, vlist, true);
             va_end(vlist);
             PPCHalt();
-        }
-
-        void Warning(const char* file, int line, const char* fmt, ...) {
-            va_list args;
-            va_start(args, fmt);
-            if (sAssertionConsole != NULL) {
-                Console_Printf(sAssertionConsole, "%s:%d Warning:", file, line);
-                Console_Printf(sAssertionConsole, "\n");
-                Console_ShowLatestLine(sAssertionConsole);
-                if (sDispWarningAuto && sAssertionConsole != NULL) {
-                    const u32 time = sWarningTime;
-                    OSAlarm* alarm = GetWarningAlarm_();
-                    OSCancelAlarm(alarm);
-                    Console_SetVisible(sAssertionConsole, true);
-                    if (time != 0) OSSetAlarm(alarm, time, WarningAlarmFunc_);
-                }
-            } else {
-                OSReport("%s:%d Warning:", file, line);
-                OSVReport(fmt, args);
-                OSReport("\n");
-            }
-            va_end(args);
         }
 
     };  // namespace db

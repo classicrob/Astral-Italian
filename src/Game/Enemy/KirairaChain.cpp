@@ -213,7 +213,7 @@ void KirairaChain::init(const JMapInfoIter& rIter) {
     mModelDrawer = new SimpleJ3DModelDrawer(this, "キライラの鎖描画", "KirairaChain", -1);
     mModelDrawer->initWithoutIter();
 
-    mFixPointTop = MR::createModelObjEnemy("キライラの固定点[Top]", "KirairaFixPointTop", mFixPointBottomMtx.toMtxPtr());
+    mFixPointTop = MR::createModelObjEnemy("キライラの固定点[Bottom]", "KirairaFixPointBottom", mFixPointBottomMtx.toMtxPtr());
 
     mFixPointTop->appear();
     makeActorAppeared();

@@ -7073,8 +7073,23 @@ Game/System/GalaxyWorldMapInfo.cpp:
 	.ctors      start:0x80644A84 end:0x80644A88
 
 Game/System/GalaxyWorldMapInfoTU01.cpp:
-	.text       start:0x804EA540 end:0x804EE9C0
+	.text       start:0x804EA540 end:0x804EB2F0
+
+Game/System/WorldMapCameraHolder.cpp:
+	.text       start:0x804EB2F0 end:0x804EB450
+
+Game/System/MiniRouteLine.cpp:
+	.text       start:0x804EB450 end:0x804EC230
+
+Game/System/MiniRouteLineList.cpp:
+	.text       start:0x804EC230 end:0x804ECBC0
+
+Game/System/WorldMapPointParts.cpp:
+	.text       start:0x804ECBC0 end:0x804EE100
 	.ctors      start:0x80644A88 end:0x80644A8C
+
+Game/System/WorldMapPointMarks.cpp:
+	.text       start:0x804EE100 end:0x804EE9C0
 
 Game/System/WorldMapResultCommand.cpp:
 	.text       start:0x804EE9C0 end:0x804EF9C0

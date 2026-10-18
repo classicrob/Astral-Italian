@@ -115,7 +115,7 @@ void RollingRock::calcAnim() {
         pos.set(*MR::getPlayerPos());
     }
     TVec3f sum(pos);
-    sum.add(off);
+    addVec(sum, off);
     mEffectPos.set(sum);
 }
 
@@ -865,7 +865,7 @@ void RollingRockStateRoll::updateVelocity() {
                 TVec3f dir(mHost->mGravity);
                 MR::normalize(&dir);
                 proj.scale(dir.dot(mHost->mVelocity), dir);
-                MR::startActionSound(mHost, "Land", (s32)(1000.0f * MR::fabs(PSVECMag(proj))), -1, -1);
+                MR::startActionSound(mHost, "Land", (s32)(1000.0f * MR::abs(PSVECMag(proj))), -1, -1);
             }
             mAirStep = 0;
         } else {
@@ -966,15 +966,14 @@ void RollingRockStateRoll::updatePose() {
 
 void RollingRockStateRoll::updateEffect() {
     if (!isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvStart::sInstance)) {
-        if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
-            return;
-        }
-        if (mAirStep > 5) {
-            if (MR::isEffectValid(mHost, "Move")) {
-                MR::deleteEffect(mHost, "Move");
+        if (!isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance)) {
+            if (mAirStep > 5) {
+                if (MR::isEffectValid(mHost, "Move")) {
+                    MR::deleteEffect(mHost, "Move");
+                }
+            } else if (!MR::isEffectValid(mHost, "Move")) {
+                MR::emitEffect(mHost, "Move");
             }
-        } else if (!MR::isEffectValid(mHost, "Move")) {
-            MR::emitEffect(mHost, "Move");
         }
     }
 }
@@ -1204,7 +1203,7 @@ bool RollingRockStateRoll::turnByStick() {
     RollingRock::calcStickDir(&stick);
     TVec3f dir(mHost->mVelocity);
     MR::normalize(&dir);
-    mStickRate = MR::fabs(dir.dot(stick));
+    mStickRate = MR::abs(dir.dot(stick));
     MR::turnDirectionDegree(mHost, &dir, stick, 1.2f);
     f32 speed = MR::calcVelocityLength(mHost);
     TVec3f vel(dir);

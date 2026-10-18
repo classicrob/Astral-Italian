@@ -969,11 +969,11 @@ Game/Boss/KingTossin.cpp:
 	.sbss2      start:0x807E2FF8 end:0x807E3000
 
 Game/Boss/KoopaBattle.cpp:
-	.text       start:0x800C8980 end:0x800C9370
+	.text       start:0x800C8980 end:0x800C9540
+	.ctors      start:0x80643E6C end:0x80643E70
 
 Game/Boss/KoopaBattleAccessor.cpp:
-	.text       start:0x800C9440 end:0x800CA2C0
-	.ctors      start:0x80643E6C end:0x80643E70
+	.text       start:0x800C9540 end:0x800CA2C0
 
 Game/Boss/KoopaDemoChamber.cpp:
 	.text       start:0x800CA2C0 end:0x800CA6A0
@@ -1196,11 +1196,11 @@ Game/Boss/KoopaStateBaseTU11.cpp:
 	.ctors      start:0x80643F48 end:0x80643F4C
 
 Game/Boss/KoopaStateBaseTU12.cpp:
-	.text       start:0x800EAFB0 end:0x800EBA70
+	.text       start:0x800EAFB0 end:0x800EBB60
 	.ctors      start:0x80643F4C end:0x80643F50
 
 Game/Boss/KoopaStateBaseTU13.cpp:
-	.text       start:0x800EBA70 end:0x800EC1E0
+	.text       start:0x800EBB60 end:0x800EC1E0
 	.ctors      start:0x80643F50 end:0x80643F54
 
 Game/Boss/KoopaStateLv1Sequence.cpp:

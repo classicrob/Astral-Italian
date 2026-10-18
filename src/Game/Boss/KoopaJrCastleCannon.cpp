@@ -13,10 +13,6 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
 
-// PLACEHOLDER(objects): unnamed KoopaJrCastleFunction helper (0x378, gauge step check, returns s32); resolve when core names fn_800D4C40
-extern "C" s32 fn_800D4C40(f32, f32);
-// PLACEHOLDER(objects): unnamed KoopaJrCastleFunction helper (getJointMtx(head, "Cannon3") wrapper); resolve when names fn_800D5720
-extern "C" MtxPtr fn_800D5720(LiveActor*, KoopaJrCastle*);
 // PLACEHOLDER(objects): unnamed KoopaJrCastleCannonBall shoot helper (ball, mtx, speed); resolve when CannonBall TU names fn_800D1770
 extern "C" void fn_800D1770(LiveActor*, MtxPtr, f32*);
 
@@ -89,7 +85,7 @@ void KoopaJrCastleCannon::exe800D0640() {
     MR::startActionSound(mHost->mHead, "EmLvWaterbazTurn", -1, -1, -1);
     MR::startActionSound(mHost->mHead, "PreShoot", -1, -1, -1);
     updateGauge();
-    if (fn_800D4C40(_D8, 15.0f) != 0 || MR::isGreaterEqualStep(this, 40)) {
+    if (KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f) != 0 || MR::isGreaterEqualStep(this, 40)) {
         if (_D4) {
             setNerve(&NrvKoopaJrCastleCannon::KoopaJrCastleCannonNrvE::sInstance);
             return;
@@ -107,7 +103,7 @@ void KoopaJrCastleCannon::exe800D0720() {
     }
     MR::startActionSound(mHost->mHead, "EmLvWaterbazTurn", -1, -1, -1);
     updateGauge();
-    fn_800D4C40(_D8, 15.0f);
+    KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f);
 }
 
 void KoopaJrCastleCannon::exe800D07E0() {
@@ -121,7 +117,7 @@ void KoopaJrCastleCannon::exe800D07E0() {
         _D8 = 0.0f;
     } else {
         updateGauge();
-        fn_800D4C40(_D8, 15.0f);
+        KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f);
     }
     if (MR::isLessStep(this, 30)) {
         MR::startActionSound(mHost->mHead, "PreShoot", -1, -1, -1);
@@ -147,13 +143,13 @@ void KoopaJrCastleCannon::exe800D07E0() {
 
 void KoopaJrCastleCannon::exe800D09B0() {
     updateGauge();
-    fn_800D4C40(_D8, 15.0f);
+    KoopaJrCastleFunction::aimHeadAtPlayer(_D8, 15.0f);
     if (MR::isGreaterStep(this, 30)) {
         kill();
     }
 }
 
-// NONMATCHING: mShock call: target passes a stale r4 to the 1-arg fn_800D5720 wrapper in this function (2-arg use in shoot); size matches, 1 insn differs
+// NONMATCHING: mShock call: target passes a stale r4 to the 1-arg getCannon3Mtx wrapper in this function (2-arg use in shoot); size matches, 1 insn differs
 void KoopaJrCastleCannon::exe800D0A10() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost->mHead, "Shot");
@@ -161,7 +157,7 @@ void KoopaJrCastleCannon::exe800D0A10() {
     if (MR::isStep(this, 30)) {
         MR::startActionSound(mHost->mHead, "EmWaterbazShot", -1, -1, -1);
         if (MR::isDead(mShock)) {
-            MtxPtr pMtx = fn_800D5720(mHost->mHead, mHost);
+            MtxPtr pMtx = KoopaJrCastleFunction::getCannon3Mtx(mHost->mHead);
             TPos3f mtx;
             PSMTXIdentity(mtx);
             TVec3f a, b, c;
@@ -190,7 +186,7 @@ void KoopaJrCastleCannon::killAllBalls() {
 
 bool KoopaJrCastleCannon::shoot() {
     KoopaJrCastle* pCastle = mHost;
-    MtxPtr pMtx = fn_800D5720(pCastle->mHead, pCastle);
+    MtxPtr pMtx = KoopaJrCastleFunction::getCannon3Mtx(pCastle->mHead);
     KoopaJrCastleCannonBall* pBall = findDeadBall();
     if (pBall == nullptr) {
         return false;

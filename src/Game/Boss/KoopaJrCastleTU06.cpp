@@ -12,13 +12,14 @@
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/NPC/TalkMessageCtrl.hpp"
+#include "Game/Util/FixedPosition.hpp"
 
 namespace NrvKoopaJrCastleFireBar { KoopaJrCastleFireBarNrvA KoopaJrCastleFireBarNrvA::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleFireBar { KoopaJrCastleFireBarNrvB KoopaJrCastleFireBarNrvB::sInstance ATTRIBUTE_WEAK; }
 namespace NrvKoopaJrCastleFireBar { KoopaJrCastleFireBarNrvC KoopaJrCastleFireBarNrvC::sInstance ATTRIBUTE_WEAK; }
 
 KoopaJrCastleFireBar::KoopaJrCastleFireBar(const char* pName) : LiveActor(pName) {
-    mBody = nullptr;
+    mFixedPos = nullptr;
     mMtxs = nullptr;
     mChildren = nullptr;
     mChildCount = 0;
@@ -81,8 +82,39 @@ void KoopaJrCastleFireBar::exe800D2BF0() {
     MR::startActionSound(this, "OjLvFireBarCenter", -1, -1, -1);
 }
 
-void KoopaJrCastleFireBar::fn_800D2C50() {
+void KoopaJrCastleFireBar::setCurrentToMax() {
     _C4 = _C8;
+}
+
+// fn_800D2AB0: fixed-position helper bound to the host; a name selects the named variant.
+void KoopaJrCastleFireBar::setup(LiveActor* pHost, const TVec3f& rPos, const TVec3f& rOffset, const char* pName) {
+    if (pName != nullptr) {
+        mFixedPos = new FixedPosition(pHost, pName, rPos, rOffset);
+    } else {
+        mFixedPos = new FixedPosition(pHost, rPos, rOffset);
+    }
+}
+
+// fn_800D2C60: request movement on every child part.
+void KoopaJrCastleFireBar::requestMovementOnChildren() {
+    for (s32 i = 0; i < mChildCount; i++) {
+        MR::requestMovementOn(mChildren[i]);
+    }
+}
+
+// fn_800D2CC0: shadow every child except one per group of _B8 (group size mChildCount / _B8).
+void KoopaJrCastleFireBar::updateChildShadows() {
+    MR::invalidateShadowAll(this);
+    s32 lastInGroup;
+    s32 groupSize = mChildCount / _B8;
+    lastInGroup = groupSize - 1;
+    for (s32 i = 0; i < mChildCount; i++) {
+        if (lastInGroup != i % groupSize) {
+            MR::validateShadowAll(mChildren[i]);
+        } else {
+            MR::invalidateShadowAll(mChildren[i]);
+        }
+    }
 }
 
 void KoopaJrCastleFireBar::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

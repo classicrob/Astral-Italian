@@ -329,3 +329,50 @@ public:
     /* 0x44 */ bool mIsLongDamage;
     /* 0x45 */ bool mIsFinal;
 };
+
+// TU12: last chase (rolls through the arena in front of the player, dash states reuse KoopaStateDefense).
+struct KoopaStateLastChasePattern {
+    KoopaStateLastChasePattern(f32 x, f32 y, s32 a, s32 b) : mX(x), mY(y), mRollStep(a), mHoldStep(b) {}
+
+    /* 0x00 */ f32 mX;
+    /* 0x04 */ f32 mY;
+    /* 0x08 */ s32 mRollStep;
+    /* 0x0C */ s32 mHoldStep;
+};
+
+class KoopaStateLastChase : public ActorStateBase< KoopaBattle > {
+public:
+    KoopaStateLastChase(KoopaBattle*);
+
+    virtual ~KoopaStateLastChase();
+    virtual void appear();
+    virtual void control();
+
+    void setPatternMode(s32);
+    void setupTarget();
+    void nextPattern();
+    bool calcTargetPos(TVec3f*, const TVec3f&, s32);
+    bool isChasing() const;
+    bool moveToTarget();
+    void exeDashWait();
+    void exeRoll();
+    void exeDashEnd();
+    void exeMoveEnd();
+
+    /* 0x10 */ KoopaStateDefense* mDashWait;
+    /* 0x14 */ KoopaStateDefense* mDashEnd;
+    /* 0x18 */ TVec3f mPosA;
+    /* 0x24 */ TVec3f mPosB;
+    /* 0x30 */ TVec3f mPosC;
+    /* 0x3C */ TQuat4f mQuat;
+    /* 0x4C */ KoopaStateLastChasePattern* mPatterns;
+    /* 0x50 */ s32 mPatternIdx;
+    /* 0x54 */ s32 mPatternNum;
+    /* 0x58 */ s32 mRollStep;
+    /* 0x5C */ s32 mHoldStep;
+    /* 0x60 */ s32 mStep;
+    /* 0x64 */ bool _64;
+    /* 0x65 */ bool mIsLoopAnim;
+    /* 0x66 */ bool mIsLeft;
+    /* 0x67 */ bool _67;
+};

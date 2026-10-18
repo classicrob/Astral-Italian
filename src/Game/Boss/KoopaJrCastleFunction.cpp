@@ -157,7 +157,7 @@ namespace KoopaJrCastleFunction {
         if (MR::isDead(pCastle->mFireBar)) {
             pCastle->mFireBar->appear();
         }
-        pCastle->mFireBar->fn_800D2C50();
+        pCastle->mFireBar->setCurrentToMax();
     }
 
     f32 getFireBarB0() {
@@ -191,6 +191,100 @@ namespace KoopaJrCastleFunction {
 
     bool isElectricDead() {
         return MR::isDead(CASTLE()->mElectric);
+    }
+
+    MtxPtr getCannon3Mtx(LiveActor* pHead) {
+        return MR::getJointMtx(pHead, "Cannon3");
+    }
+
+    // fn_800D4C40: turns the head's matrix toward the player (joint "JointRoot" local space) and reports
+    // whether the side vector is within 1 degree of the player direction.
+    bool aimHeadAtPlayer(f32 turnRate, f32 limitAngle) {
+        f32 rate = turnRate;
+        if (MR::isNearZero(turnRate, 0.001f)) {
+            rate = 0.1f;
+        }
+
+        MtxPtr headMtx = CASTLE()->mHead->_A4;
+        MtxPtr jointMtx = MR::getJointMtx(CASTLE()->mHead, "JointRoot");
+        TPos3f mtx;
+        PSMTXIdentity(mtx);
+        PSMTXCopy(jointMtx, mtx);
+        MR::makeMtxWithoutScale(&mtx, mtx);
+        PSMTXInverse(mtx, mtx);
+
+        TVec3f up(0.0f, 1.0f, 0.0f);
+        TVec3f front(0.0f, 0.0f, 1.0f);
+        TVec3f side(front);
+        MR::extractMtxXDir(headMtx, &side);
+        TVec3f pos(0.0f);
+        MR::extractMtxTrans(headMtx, &pos);
+
+        TVec3f offset = *MR::getPlayerGravity() * 100.0f;
+        TVec3f playerPos(*MR::getPlayerPos());
+        PSVECSubtract(&playerPos, &offset, &playerPos);
+        TVec3f local(playerPos);
+        PSMTXMultVec(mtx, playerPos, local);
+        TVec3f dir(local);
+        PSVECSubtract(&dir, &pos, &dir);
+        if (MR::normalizeOrZero(&dir)) {
+            dir = front;
+        }
+
+        TVec3f planeDir;
+        MR::turnVecToPlane(&planeDir, dir, up);
+        if (dir.dot(up) >= 0.0f) {
+            MR::clampVecAngleDeg(&dir, planeDir, limitAngle);
+        } else {
+            MR::clampVecAngleDeg(&dir, planeDir, 10.0f);
+        }
+        if (MR::normalizeOrZero(&dir)) {
+            dir = front;
+        }
+
+        f32 cosRate = MR::cosDegree(rate);
+        f32 sideAngle = 57.295780181884766f * side.angle(dir);
+        TVec3f cross;
+        PSVECCrossProduct(&side, &dir, &cross);
+        if (MR::normalizeOrZero(&cross)) {
+            cross = up;
+        }
+
+        if (sideAngle > 90.0f) {
+            TVec3f sideXZ(side);
+            sideXZ.y = 0.0f;
+            if (MR::normalizeOrZero(&sideXZ)) {
+                sideXZ = front;
+            }
+            MR::vecBlend(&side, side, sideXZ, 0.02f);
+            if (MR::normalizeOrZero(&side)) {
+                side = front;
+            }
+            TVec3f negUp;
+            JGeometry::negateInternal(&up.x, &negUp.x);
+            MR::rotateVecDegree(&side, side, negUp, cosRate);
+        } else {
+            MR::turnVecToVecCos(&side, side, dir, cosRate, cross, 0.02f);
+        }
+        if (MR::normalizeOrZero(&side)) {
+            side = front;
+        }
+        MR::makeMtxSideUpPos(reinterpret_cast<TPos3f*>(headMtx), side, up, pos);
+
+        TVec3f xDir;
+        MR::extractMtxXDir(headMtx, &xDir);
+        f32 tolerance = 1.0f;
+        return xDir.angle(dir) <= 0.017453292f * tolerance;
+    }
+
+    // fn_800D5340: star piece burst from the capsule, opposite its gravity, with the burst sound on the body.
+    void appearCapsuleStarPiece() {
+        KoopaJrCastle* pCastle = CASTLE();
+        const TVec3f& rCapsulePos = pCastle->mCapsule->mPosition;
+        TVec3f dir;
+        JGeometry::negateInternal(&pCastle->mGravity.x, &dir.x);
+        MR::appearStarPieceToDirection(pCastle, rCapsulePos, dir, 15, 30.0f, 40.0f, false);
+        MR::startSound(pCastle->mBody, "SE_OJ_STAR_PIECE_BURST", -1, -1);
     }
 
     bool isElectricActive() {

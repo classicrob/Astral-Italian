@@ -19,6 +19,7 @@ class KoopaJrCastle;
 class KoopaJrCastleWind;
 class KoopaJrCastleCannon;
 class KoopaJrCastleFireBar;
+class FixedPosition;
 class KoopaJrCastleRingBeam;
 class KoopaJrCastleElectric;
 class KoopaJrCastleDominate;
@@ -266,9 +267,10 @@ public:
     virtual void makeActorDead();
     virtual void attackSensor(HitSensor*, HitSensor*);
     void setup(LiveActor*, const TVec3f&, const TVec3f&, const char*);
-    void fn_800D2C50();
-    void fn_800D2CC0();
-    /* 0x90 */ LiveActor* mBody;
+    void setCurrentToMax();
+    void requestMovementOnChildren();
+    void updateChildShadows();
+    /* 0x90 */ FixedPosition* mFixedPos;
     /* 0x94 */ char** mNames;
     /* 0x98 */ TPos3f* mMtxs;
     /* 0x9C */ LiveActor** mChildren;
@@ -496,4 +498,7 @@ namespace KoopaJrCastleFunction {
     void appearElectric();
     void killElectric();
     bool isElectricDead();
+    MtxPtr getCannon3Mtx(LiveActor*);
+    void appearCapsuleStarPiece();
+    bool aimHeadAtPlayer(f32, f32);
 };  // namespace KoopaJrCastleFunction

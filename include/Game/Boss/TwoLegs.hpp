@@ -30,6 +30,7 @@ class TwoLegsStateDamage;
 class TwoLegsStateJump;
 class TwoLegsStateWalkNoDamage;
 class TwoLegsStateWalkDamage;
+class XjointTransform;
 
 namespace MR {
     // SMG2 helpers used by the TwoLegs states (additive declarations, mangled names taken from the target asm)
@@ -91,8 +92,8 @@ public:
     bool calcJoint(TPos3f*, const JointControllerInfo&);  // fn_80106560
 
     /* 0x00 */ bool mSpin;
-    /* 0x04 */ void* mJointR;
-    /* 0x08 */ void* mJointL;
+    /* 0x04 */ XjointTransform* mJointL;   // "BoltL"
+    /* 0x08 */ XjointTransform* mJointR;   // "BoltR"
     /* 0x0C */ TPos3f mMtxR;
     /* 0x3C */ TPos3f mMtxL;
     /* 0x6C */ bool mTrack;
@@ -110,6 +111,9 @@ public:
     void setCallBack();                    // fn_801069A0
     void start(bool);                      // fn_801069B0
     void setIK(f32);                       // fn_80106A70
+    void exeWait();                        // NrvTwoLegsReflectCtrl wait nerve (vtable 8067B350, fn_80106CC0)
+    void exeReflect();                     // reflect nerve (vtable 8067B340, fn_80106C70)
+    void exeReturn();                      // return nerve (vtable 8067B330, fn_80106C10)
 
     /* 0x08 */ LiveActor* mHost;
     /* 0x0C */ ActorJointCtrl* mJointCtrl;

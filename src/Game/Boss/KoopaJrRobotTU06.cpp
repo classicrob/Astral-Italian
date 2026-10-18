@@ -4,6 +4,7 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
+// PLACEHOLDER(objects): unnamed target symbol fn_800DA9C0, declared extern "C" so the reloc name matches; resolve when fn_800DA9C0 gets its real name in symbols.txt
 extern "C" const char* fn_800DA9C0();
 
 static const char* sCameraName = "DemoOpeningKoopaJrRobot";

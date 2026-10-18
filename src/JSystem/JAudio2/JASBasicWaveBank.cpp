@@ -149,3 +149,7 @@ int JASBasicWaveBank::TWaveHandle::getWavePtr() const {
 
     return (intptr_t)base + mWaveInfo.mAWStartOffs;
 }
+
+u32 JASBasicWaveBank::TWaveGroup::getWaveID(int index) const {
+    return mCtrlWaveArray[index].mWaveId;
+}

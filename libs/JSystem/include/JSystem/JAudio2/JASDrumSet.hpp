@@ -53,6 +53,7 @@ struct JASDrumSet : public JASInst {
     void newPercArray(u8, JKRHeap*);
     virtual bool getParam(int, int, JASInstParam*) const;
     void setPerc(int, JASDrumSet::TPerc*);
+    TPerc* getPerc(int) const;
     virtual u32 getType() const {
         return 'PERC';
     }

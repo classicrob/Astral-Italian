@@ -92,8 +92,8 @@ void* JUTException::run() {
 
     while (true) {
         OSReceiveMessage(&sMessageQueue, &msg, OS_MESSAGE_BLOCK);
-        VISetPreRetraceCallback(nullptr);
         VISetPostRetraceCallback(nullptr);
+        VISetPreRetraceCallback(nullptr);
 
         CallbackObject* obj = static_cast< CallbackObject* >(msg);
         JUTExceptionUserCallback callback = obj->callback;
@@ -423,6 +423,7 @@ bool JUTException::showMapInfo_subroutine(u32 address, bool begin_with_newline) 
     return false;
 }
 
+// NONMATCHING: compiler combines the equivalent unsigned address-range comparisons.
 void JUTException::showGPRMap(OSContext* context) {
     if (!sConsole) {
         return;
@@ -451,6 +452,7 @@ void JUTException::showGPRMap(OSContext* context) {
     }
 }
 
+// NONMATCHING: compiler combines the equivalent unsigned address-range comparisons.
 void JUTException::showSRR0Map(OSContext* context) {
     if (!sConsole) {
         return;
@@ -504,8 +506,8 @@ void JUTException::printContext(u16 error, OSContext* context, u32 dsisr, u32 da
         return;
     }
 
-    VISetPreRetraceCallback(nullptr);
     VISetPostRetraceCallback(nullptr);
+    VISetPreRetraceCallback(nullptr);
     VISetBlack(FALSE);
     VIFlush();
 

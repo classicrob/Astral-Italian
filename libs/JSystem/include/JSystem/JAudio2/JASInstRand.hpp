@@ -18,7 +18,7 @@ public:
         mRange = range;
     }
 
-    /* 0x04 */ u32 mType;
+    /* 0x04 */ EffectType mType;
     /* 0x08 */ f32 mBaseValue;
     /* 0x0C */ f32 mRange;
 };

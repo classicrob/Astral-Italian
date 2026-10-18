@@ -227,6 +227,7 @@ u32 JKRAramArchive::fetchResource_subroutine(u32 srcAram, u32 srcLength, u8* dst
     }
 }
 
+// NONMATCHING: aligned temporary header buffer has a different stack offset.
 u32 JKRAramArchive::fetchResource_subroutine(u32 entryNum, u32 length, JKRHeap* pHeap, int compression, u8** out) {
     u32 alignedLen = ALIGN_NEXT(length, 0x20);
 

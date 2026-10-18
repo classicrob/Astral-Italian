@@ -17,7 +17,7 @@ public:
     virtual void effect(int pitch, int velocity, JASInstParam* pParams) const;
     void setParams(int senseType, int maxPoint, f32 startLvl, f32 endLvl);
 
-    /* 0x04 */ u32 mType;
+    /* 0x04 */ EffectType mType;
     /* 0x08 */ u8 mSenseType;
     /* 0x09 */ u8 mMaxPoint;
     /* 0x0C */ f32 mStartLvl;

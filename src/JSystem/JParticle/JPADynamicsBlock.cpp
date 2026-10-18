@@ -206,7 +206,7 @@ void JPADynamicsBlock::create(JPAEmitterWorkData* work) {
 
     JPABaseEmitter* emtr = work->mpEmtr;
     if (++emtr->mRateStepTimer >= (emtr->mRateStep + 1)) {
-        work->mpEmtr->mRateStepTimer -= (work->mpEmtr->mRateStep + 1);
+        work->mpEmtr->mRateStepTimer -= s16(work->mpEmtr->mRateStep + 1);
         work->mpEmtr->setStatus(JPAEmtrStts_RateStepEmit);
     } else {
         work->mpEmtr->clearStatus(JPAEmtrStts_RateStepEmit);

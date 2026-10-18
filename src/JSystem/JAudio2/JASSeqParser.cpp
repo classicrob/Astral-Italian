@@ -733,6 +733,7 @@ s32 JASSeqParser::cmdDump(JASTrack* track, u32* args) {
     return 0;
 }
 
+// NONMATCHING: the compiler hoists an equivalent empty-loop check before the argument loop.
 s32 JASSeqParser::cmdPrintf(JASTrack* track, u32* args) {
     char formatString[0x80];
     u32 values[4];
@@ -873,7 +874,7 @@ s32 JASSeqParser::parseCommand(JASTrack* track, u8 cmdCode, u16 c) {
 
     for (int i = 0; i < cmd->numArgs; i++) {
         u32 arg = 0;
-        switch (readType & 3) {
+        switch (static_cast<s32>(readType & 3)) {
         case 0:
             arg = track->getSeqCtrl()->readByte();
             break;

@@ -67,9 +67,9 @@ static void loadResRead2ndcallback_(void) {
             loader->numResources++;
             switch (RFLiReadAsync(RFLiFileType_Resource, loader->headerBuf2, 32,
                                   loadResRead2ndcallback_, *(headerBuf1 + 1))) {
-            case RFLErrcode_Busy:
-                break;
             case RFLErrcode_Success:
+                break;
+            case RFLErrcode_Busy:
                 break;
             default:
                 free = TRUE;
@@ -115,9 +115,9 @@ static void loadResRead1stcallback_(void) {
         switch (RFLiReadAsync(RFLiFileType_Resource, headerBuf2,
                               LOADER_HEADER_BUF_2_SIZE, loadResRead2ndcallback_,
                               *(headerBuf1 + 1))) {
-        case RFLErrcode_Busy:
-            break;
         case RFLErrcode_Success:
+            break;
+        case RFLErrcode_Busy:
             break;
         default:
             free = TRUE;
@@ -151,9 +151,9 @@ static void loadResGetlengthcallback_(void) {
         switch (RFLiReadAsync(RFLiFileType_Resource, headerBuf1,
                               LOADER_HEADER_BUF_1_SIZE, loadResRead1stcallback_,
                               0)) {
-        case RFLErrcode_Busy:
-            break;
         case RFLErrcode_Success:
+            break;
+        case RFLErrcode_Busy:
             break;
         default:
             RFLiFree(loader->headerBuf1);
@@ -173,9 +173,9 @@ static void loadResOpencallback_(void) {
         loader->cacheSize = 0;
         switch (RFLiGetLengthAsync(RFLiFileType_Resource, &loader->cacheSize,
                                    loadResGetlengthcallback_)) {
-        case RFLErrcode_Busy:
-            break;
         case RFLErrcode_Success:
+            break;
+        case RFLErrcode_Busy:
             break;
         default:
             RFLiCloseAsync(RFLiFileType_Resource, NULL);

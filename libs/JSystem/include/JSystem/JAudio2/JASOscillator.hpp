@@ -72,8 +72,8 @@ struct JASOscillator {
     bool isRelease() const {
         return _1C == 3 || _1C == 4;
     }
-    u32 getTarget() const {
-        return mData->mTarget;
+    Target getTarget() const {
+        return static_cast<Target>(mData->mTarget);
     }
 
     /* 0x00 */ const Data* mData;

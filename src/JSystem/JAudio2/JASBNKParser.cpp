@@ -63,7 +63,7 @@ JASInstEffect* JASBNKParser::Ver1::createEffector(void const* stream, JKRHeap* h
     case 'Rand': {
         TRandData* randData = (TRandData*)data;
         JASInstRand* rand = new (heap, 0) JASInstRand();
-        rand->mType = randData->mType;
+        rand->mType = static_cast<JASInstEffect::EffectType>(randData->mType);
         rand->setBase(randData->mBase);
         rand->setRange(randData->mRange);
         return rand;
@@ -71,7 +71,7 @@ JASInstEffect* JASBNKParser::Ver1::createEffector(void const* stream, JKRHeap* h
     case 'Sens': {
         TSenseData* senseData = (TSenseData*)data;
         JASInstSense* sense = new (heap, 0) JASInstSense();
-        sense->mType = senseData->mType;
+        sense->mType = static_cast<JASInstEffect::EffectType>(senseData->mType);
         sense->setParams(senseData->mSenseType, senseData->mMaxPoint, senseData->mStartLvl, senseData->mEndLvl);
         return sense;
     }
@@ -271,7 +271,7 @@ JASBasicBank* JASBNKParser::Ver0::createBasicBank(void const* stream, JKRHeap* h
                 TRandEffect* randEffect = tinst->mRandOffset[j].ptr(header);
                 if (randEffect != nullptr) {
                     JASInstRand* rand = new (heap, 0) JASInstRand();
-                    rand->mType = randEffect->mType;
+                    rand->mType = static_cast<JASInstEffect::EffectType>(randEffect->mType);
                     rand->mBaseValue = randEffect->mBaseValue;
                     rand->mRange = randEffect->mRange;
                     instp->appendEffect(new (heap, 0) JASPtrListAdaptor< JASInstEffect >(rand));
@@ -282,7 +282,7 @@ JASBasicBank* JASBNKParser::Ver0::createBasicBank(void const* stream, JKRHeap* h
                 TSenseEffect* senseEffect = tinst->mSenseOffset[j].ptr(header);
                 if (senseEffect != nullptr) {
                     JASInstSense* sense = new (heap, 0) JASInstSense();
-                    sense->mType = senseEffect->mType;
+                    sense->mType = static_cast<JASInstEffect::EffectType>(senseEffect->mType);
                     sense->setParams(senseEffect->mSenseType, senseEffect->mMaxPoint, senseEffect->mStartLvl, senseEffect->mEndLvl);
                     instp->appendEffect(new (heap, 0) JASPtrListAdaptor< JASInstEffect >(sense));
                 }
@@ -330,7 +330,7 @@ JASBasicBank* JASBNKParser::Ver0::createBasicBank(void const* stream, JKRHeap* h
                         TRandEffect* randEffect = tpmap->mRandOffset[k].ptr(header);
                         if (randEffect != nullptr) {
                             JASInstRand* rand = new (heap, 0) JASInstRand();
-                            rand->mType = randEffect->mType;
+                            rand->mType = static_cast<JASInstEffect::EffectType>(randEffect->mType);
                             rand->mBaseValue = randEffect->mBaseValue;
                             rand->mRange = randEffect->mRange;
                             percp->appendEffect(new (heap, 0) JASPtrListAdaptor< JASInstEffect >(rand));

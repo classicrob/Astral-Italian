@@ -1049,26 +1049,6 @@ void JPADrawRotYBillboard(JPAEmitterWorkData* pWork, JPABaseParticle* pParticle)
     GXCallDisplayList(jpa_dl, 32);
 }
 
-void JKRAramPiece::startDMA(JKRAMCommand* pCommand) {
-    if (pCommand->mSrc < 0x80000000) {
-        doneDMA(reinterpret_cast< u32 >(pCommand));
-        return;
-    }
-
-    if (pCommand->mDst >= 0x04000000) {
-        doneDMA(reinterpret_cast< u32 >(pCommand));
-        return;
-    }
-
-    if (pCommand->mDataLength > 0x00E00000) {
-        doneDMA(reinterpret_cast< u32 >(pCommand));
-        return;
-    }
-
-    ARStartDMA(pCommand->mTransferDirection, pCommand->mSrc, pCommand->mDst, pCommand->mDataLength);
-    doneDMA(reinterpret_cast< u32 >(pCommand));
-}
-
 void JAU_JASInitializer::initJASystem(JKRSolidHeap* pHeap) {
     if (JASAudioThread::getThreadPointer() == nullptr && JASDvd::getThreadPointer() == nullptr) {
         JASKernel::setupRootHeap(pHeap, heapSize_);

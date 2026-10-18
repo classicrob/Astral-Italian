@@ -185,7 +185,7 @@ void JKRArchive::CArcName::store(const char* name) {
     mHash = 0;
     s32 length = 0;
     while (*name) {
-        s32 ch = tolower(*name);
+        s32 ch = *name;
         mHash = ch + mHash * 3;
         if (length < ARRAY_SIZE(mName)) {
             mName[length++] = ch;
@@ -201,7 +201,7 @@ const char* JKRArchive::CArcName::store(const char* name, char endChar) {
     mHash = 0;
     s32 length = 0;
     while (*name && *name != endChar) {
-        s32 lch = tolower(static_cast< int >(*name));
+        s32 lch = *name;
         mHash = lch + mHash * 3;
         if (length < ARRAY_SIZE(mName)) {
             mName[length++] = lch;

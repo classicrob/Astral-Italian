@@ -18,13 +18,6 @@ JPAResourceManager::JPAResourceManager(void const* pData, JKRHeap* pHeap) {
     JPAResourceLoader loader((u8 const*)pData, this);
 }
 
-JPAResource* JPAResourceManager::getResource(u16 usrIdx) const {
-    for (u16 i = 0; i < mResNum; i++)
-        if (mpResArr[i]->getUsrIdx() == usrIdx)
-            return mpResArr[i];
-    return NULL;
-}
-
 const ResTIMG* JPAResourceManager::swapTexture(ResTIMG const* img, char const* swapName) {
     const ResTIMG* ret = NULL;
 

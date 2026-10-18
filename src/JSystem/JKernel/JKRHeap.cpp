@@ -358,3 +358,33 @@ u8 JKRHeap::do_getCurrentGroupId() {
 bool JKRHeap::dump_sort() {
     return true;
 }
+
+OSMutex JKRHeap::sDisposerMutex;
+
+void JKRHeap::initializeDisposerMutex() {
+    OSInitMutex(&sDisposerMutex);
+}
+
+void JKRHeap::appendDisposer(JKRDisposer* disposer) {
+    OSLockMutex(&sDisposerMutex);
+    mDisposerList.append(&disposer->mLink);
+    OSUnlockMutex(&sDisposerMutex);
+}
+
+void JKRHeap::removeDisposer(JKRDisposer* disposer) {
+    OSLockMutex(&sDisposerMutex);
+    mDisposerList.remove(&disposer->mLink);
+    OSUnlockMutex(&sDisposerMutex);
+}
+
+void JKRHeap::destroy() {
+    do_destroy();
+}
+
+void JKRHeap::fillFreeArea() {
+    do_fillFreeArea();
+}
+
+s32 JKRHeap::getSize(void* ptr) {
+    return do_getSize(ptr);
+}

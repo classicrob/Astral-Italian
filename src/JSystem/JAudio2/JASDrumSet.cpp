@@ -62,6 +62,16 @@ void JASDrumSet::setPerc(int index, JASDrumSet::TPerc* pPerc) {
     mPercArray[index] = pPerc;
 }
 
+JASDrumSet::TPerc* JASDrumSet::getPerc(int index) const {
+    if (index < 0) {
+        return nullptr;
+    }
+    if (u32(index) >= PERC_MAX) {
+        return nullptr;
+    }
+    return mPercArray[index];
+}
+
 JASDrumSet::TPerc::TPerc() : mVolume(1.0f), mPitch(1.0f), mPan(0.5f), mRelease(1000), mEffects(), mVelomapCount(0), mVelomap(nullptr) {
 }
 

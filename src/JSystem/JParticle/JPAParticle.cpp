@@ -8,6 +8,7 @@
 JPAParticleCallBack::~JPAParticleCallBack() {
 }
 
+// NONMATCHING: RNG extraction and matrix-argument loads are scheduled differently; saved registers differ.
 void JPABaseParticle::init_p(JPAEmitterWorkData* pWork) {
     JPABaseEmitter* emtr = pWork->mpEmtr;
     JPAExtraShape* esp = pWork->mpRes->mpExtraShape;
@@ -108,7 +109,7 @@ void JPABaseParticle::init_p(JPAEmitterWorkData* pWork) {
         if (esp->isEnableRotateAnm()) {
             mRotateAngle = esp->getRotateInitAngle() + esp->getRotateRndmAngle() * emtr->mRndm.get_rndm_zh();
             mRotateSpeed = esp->getRotateInitSpeed() * (esp->getRotateRndmSpeed() * emtr->get_r_zp() + 1.0f);
-            mRotateSpeed = emtr->get_r_zp() < esp->getRotateDirection() ? mRotateSpeed : (s16)-mRotateSpeed;
+            mRotateSpeed = emtr->get_r_zp() < esp->getRotateDirection() ? s16(mRotateSpeed) : s16(-s16(mRotateSpeed));
         } else {
             mRotateAngle = 0;
             mRotateSpeed = 0;

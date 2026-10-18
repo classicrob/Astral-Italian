@@ -41,7 +41,7 @@ void* JKRAramStream::run() {
         OSReceiveMessage(&sMessageQueue, &message, OS_MESSAGE_BLOCK);
         JKRAramStreamCommand* command = (JKRAramStreamCommand*)message;
 
-        switch (command->mType) {
+        switch (static_cast<u32>(command->mType)) {
         case JKRAramStreamCommand::READ:
             break;
         case JKRAramStreamCommand::WRITE:

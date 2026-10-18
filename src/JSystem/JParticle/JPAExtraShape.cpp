@@ -5,6 +5,7 @@
 #include "JSystem/JParticle/JPAParticle.hpp"
 #include <revolution/os.h>
 
+// NONMATCHING: shape and resource pointers use different registers.
 void JPACalcScaleX(JPAEmitterWorkData* work, JPABaseParticle* ptcl) {
     JPAExtraShape* esp = work->mpRes->getEsp();
     if (work->mScaleAnm < esp->getScaleInTiming()) {
@@ -16,6 +17,7 @@ void JPACalcScaleX(JPAEmitterWorkData* work, JPABaseParticle* ptcl) {
     }
 }
 
+// NONMATCHING: shape and resource pointers use different registers.
 void JPACalcScaleY(JPAEmitterWorkData* work, JPABaseParticle* ptcl) {
     JPAExtraShape* esp = work->mpRes->getEsp();
     if (work->mScaleAnm < esp->getScaleInTiming()) {
@@ -62,6 +64,7 @@ void JPACalcScaleAnmReverseY(JPAEmitterWorkData* work, JPABaseParticle* ptcl) {
     work->mScaleAnm = base + (cycle * (1.0f - base * 2.0f));
 }
 
+// NONMATCHING: shape and resource pointers use different registers.
 void JPACalcAlphaAnm(JPAEmitterWorkData* work, JPABaseParticle* ptcl) {
     JPAExtraShape* esp = work->mpRes->getEsp();
     f32 alpha = 0.0f;

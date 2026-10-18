@@ -12,9 +12,7 @@ struct JASBasicWaveBank : public JASWaveBank {
         void setWaveCount(u32, JKRHeap*);
         virtual void onLoadDone();
         virtual void onEraseDone();
-        u32 getWaveID(int index) const {
-            return mCtrlWaveArray[index].mWaveId;
-        }
+        u32 getWaveID(int index) const;
         void setWaveInfo(int param_0, u32 param_1, const JASWaveInfo& waveInfo);
 
         /* 0x74 */ JASBasicWaveBank* mBank;

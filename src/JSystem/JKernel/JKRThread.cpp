@@ -84,8 +84,8 @@ JKRThread* JKRThreadSwitch::enter(JKRThread* pThread, int a2) {
     JKRThread::TLoad* inf = &pThread->mLoadInfo;
 
     inf->clear();
-    inf->_10 = a2;
     inf->_0 = 1;
+    inf->_10 = a2;
 
     return pThread;
 }

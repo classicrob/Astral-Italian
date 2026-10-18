@@ -337,6 +337,7 @@ void JPACalcTexIdxReverse(JPAEmitterWorkData* work) {
     work->mpEmtr->mTexAnmIdx = shape->getTexIdx(rem + (div & 1) * (keyNum - rem * 2));
 }
 
+// NONMATCHING: shape and resource pointers use different registers.
 void JPACalcTexIdxReverse(JPAEmitterWorkData* work, JPABaseParticle* param_1) {
     JPABaseShape* const shape = work->mpRes->getBsp();
     s32 tick = shape->getTexLoopOfst(param_1->mAnmRandom) + param_1->mAge;
@@ -351,6 +352,7 @@ void JPACalcTexIdxMerge(JPAEmitterWorkData* work) {
     work->mpEmtr->mTexAnmIdx = work->mpRes->getBsp()->getTexIdx();
 }
 
+// NONMATCHING: shape and resource pointers use different registers.
 void JPACalcTexIdxMerge(JPAEmitterWorkData* work, JPABaseParticle* param_1) {
     JPABaseShape* const shape = work->mpRes->getBsp();
     s32 maxFrm = shape->getTexAnmKeyNum();
@@ -1100,6 +1102,7 @@ GXTevAlphaArg JPABaseShape::st_aa[2][4] = {
     },
 };
 
+// NONMATCHING: draw-table base and texture-color pointers use different saved registers.
 void JPABaseShape::setGX(JPAEmitterWorkData* work) const {
     const GXTevColorArg* const colorArg = getTevColorArg();
     const GXTevAlphaArg* alphaArg = getTevAlphaArg();

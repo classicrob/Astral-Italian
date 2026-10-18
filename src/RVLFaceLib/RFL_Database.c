@@ -67,8 +67,8 @@ static void bootloadDBopencallback_(void) {
     case RFLErrcode_Success:
         switch (RFLiReadAsync(RFLiFileType_Database, mgr->database,
                               sizeof(RFLiDatabase), bootloadDBcallback_, 0)) {
-        case RFLErrcode_Busy:
         case RFLErrcode_Success:
+        case RFLErrcode_Busy:
             break;
         default:
             if (mgr->bootloadCb != NULL) {
@@ -89,8 +89,8 @@ static void bootloadDBopencallback_(void) {
         case NAND_RESULT_CORRUPT:
             RFLiSetFileBroken(RFLiFileBrokenType_Corrupt);
             break;
-        case NAND_RESULT_AUTHENTICATION:
         case NAND_RESULT_ECC_CRIT:
+        case NAND_RESULT_AUTHENTICATION:
             RFLiSetFileBroken(RFLiFileBrokenType_DBBroken);
             if (mgr->bootloadCb != NULL) {
                 mgr->bootloadCb();

@@ -287,7 +287,7 @@ void JASTrack::connectBus(int idx, int bus) {
 
 void JASTrack::setLatestKey(u8 key) {
     mPitch = key;
-    mPitch += getTransposeTotal();
+    mPitch += static_cast<u8>(getTransposeTotal());
 }
 
 bool JASTrack::noteOn(u32 channelNum, u32 pitch, u32 velocity) {

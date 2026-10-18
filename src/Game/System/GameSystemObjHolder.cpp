@@ -1,5 +1,6 @@
 #include "Game/System/GameSystemObjHolder.hpp"
 #include <cstdio>
+#include "JSystem/JKernel/JKRHeap.hpp"
 #include "Game/Util.hpp"
 #include "Game/Effect/ParticleResourceHolder.hpp"
 #include "Game/NameObj/NameObjHolder.hpp"
@@ -118,6 +119,7 @@ GXRenderModeObj* GameSystemObjHolder::getRenderModeObj() const {
 }
 
 void GameSystemObjHolder::initDvd() {
+    JKRHeap::initializeDisposerMutex();
     JKRMemArchive archive;
 
     JKRFileLoader::initializeVolumeList();

@@ -5,12 +5,12 @@ JKRDisposer::JKRDisposer() : mLink(this) {
     mHeap = JKRHeap::findFromRoot(this);
 
     if (mHeap) {
-        mHeap->mDisposerList.append(&mLink);
+        mHeap->appendDisposer(this);
     }
 }
 
 JKRDisposer::~JKRDisposer() {
     if (mHeap) {
-        mHeap->mDisposerList.remove(&mLink);
+        mHeap->removeDisposer(this);
     }
 }

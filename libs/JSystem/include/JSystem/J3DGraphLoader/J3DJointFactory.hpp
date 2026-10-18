@@ -7,7 +7,7 @@ struct J3DJointBlock;
 
 struct J3DJointInitData {
     /* 0x00 */ u16 mKind;
-    /* 0x02 */ bool mScaleCompensate;
+    /* 0x02 */ u8 mScaleCompensate;
     /* 0x04 */ J3DTransformInfo mTransformInfo;
     /* 0x24 */ f32 mRadius;
     /* 0x28 */ Vec mMin;

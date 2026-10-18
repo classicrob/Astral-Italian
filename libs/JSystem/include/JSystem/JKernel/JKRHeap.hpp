@@ -72,6 +72,8 @@ public:
 
     void freeAll();
     void freeTail();
+    void fillFreeArea();
+    s32 getSize(void*);
     s32 resize(void*, u32);
     s32 getFreeSize();
     void* getMaxFreeBlock();
@@ -140,6 +142,10 @@ public:
     static s32 resize(void* pPtr, u32 size, JKRHeap* pHeap);
     static s32 getSize(void* pPtr, JKRHeap* pHeap);
     static JKRHeap* findFromRoot(void* pPtr);
+    static void initializeDisposerMutex();
+    void appendDisposer(JKRDisposer* disposer);
+    void removeDisposer(JKRDisposer* disposer);
+    static OSMutex sDisposerMutex;
 
     static void copyMemory(void* pDst, void* pSrc, u32 size);
     static void fillMemory(void* pDst, u32 size, u8 value);

@@ -108,7 +108,7 @@ void JPAResource::init(JKRHeap* heap) {
     int func_no = 0;
 
     if (is_glbl_tex_anm && is_tex_anm) {
-        switch (mpBaseShape->getTexAnmType()) {
+        switch (s32(mpBaseShape->getTexAnmType())) {
         case 0:
             mpCalcEmitterFuncList[func_no] = &JPACalcTexIdxNormal;
             break;
@@ -138,7 +138,7 @@ void JPAResource::init(JKRHeap* heap) {
             func_no++;
         }
         if (is_prm_anm || is_env_anm) {
-            switch (mpBaseShape->getClrAnmType()) {
+            switch (s32(mpBaseShape->getClrAnmType())) {
             case 0:
                 mpCalcEmitterFuncList[func_no] = &JPACalcClrIdxNormal;
                 break;
@@ -204,7 +204,7 @@ void JPAResource::init(JKRHeap* heap) {
     func_no = 0;
 
     if (!is_glbl_tex_anm && is_tex_anm) {
-        switch (mpBaseShape->getTexAnmType()) {
+        switch (s32(mpBaseShape->getTexAnmType())) {
         case 0:
             mpCalcParticleFuncList[func_no] = &JPACalcTexIdxNormal;
             break;
@@ -244,7 +244,7 @@ void JPAResource::init(JKRHeap* heap) {
             func_no++;
         }
         if (is_prm_anm || is_env_anm) {
-            switch (mpBaseShape->getClrAnmType()) {
+            switch (s32(mpBaseShape->getClrAnmType())) {
             case 0:
                 mpCalcParticleFuncList[func_no] = &JPACalcClrIdxNormal;
                 break;

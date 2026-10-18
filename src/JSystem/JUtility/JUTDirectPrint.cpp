@@ -128,6 +128,7 @@ void JUTDirectPrint::changeFrameBuffer(void* frameBuffer, u16 width, u16 height)
     mFrameBufferSize = static_cast< u32 >(mStride) * static_cast< u32 >(mFrameBufferHeight) * 2;
 }
 
+// NONMATCHING: equivalent coordinate wrapping is narrowed at different points; register allocation differs.
 void JUTDirectPrint::printSub(u16 position_x, u16 position_y, char const* format, va_list args, bool clear) {
     char buffer[256];
     if (!mFrameBuffer) {

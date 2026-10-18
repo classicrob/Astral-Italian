@@ -8187,8 +8187,9 @@ Game/NWC24/WiiMessageBoardMailSenderState.cpp:
 	.data       start:0x80703ED8 end:0x80703F98
 
 JSystem/JKernel/JKRHeap.cpp:
-	.text       start:0x80500F60 end:0x80501920 align:16
+	.text       start:0x80500F60 end:0x805019F0 align:16
 	.data       start:0x80704000 end:0x80704060
+	.bss       start:0x8072BB98 end:0x8072BBB0
 
 JSystem/JKernel/JKRExpHeap.cpp:
 	.text       start:0x805019F0 end:0x80503670 align:16
@@ -8196,7 +8197,9 @@ JSystem/JKernel/JKRExpHeap.cpp:
 
 JSystem/JKernel/JKRSolidHeap.cpp:
 	.text       start:0x80503670 end:0x80503F00 align:16
-	.data       start:0x807045C8 end:0x80704628
+	.rodata     start:0x806542A8 end:0x806542B8
+	.data       start:0x80704458 end:0x80704628
+	.sdata2     start:0x807E1EA0 end:0x807E1EA8
 
 JSystem/JKernel/JKRUnitHeap.cpp:
 	.text       start:0x80503F00 end:0x80504B50 align:16
@@ -8331,12 +8334,17 @@ JSystem/JUtility/JUTFont.cpp:
 JSystem/JUtility/JUTException.cpp:
 	.text       start:0x8050F340 end:0x80510C20 align:16
 	.ctors      start:0x80644B18 end:0x80644B1C
-	.data       start:0x80705250 end:0x80705260
+	.data       start:0x80704DB8 end:0x80705260
 	.bss        start:0x8072BE08 end:0x8072BE18
+	.sdata      start:0x807D05E8 end:0x807D05F8
 	.sbss       start:0x807D6250 end:0x807D6278
+	.sdata2     start:0x807E1EB8 end:0x807E1EC8
 
 JSystem/JUtility/JUTDirectPrint.cpp:
 	.text       start:0x80510CB0 end:0x805113C0 align:16
+	.rodata     start:0x806542D8 end:0x80654330
+	.data       start:0x80705260 end:0x80705528
+	.sdata      start:0x807D05F8 end:0x807D05FC
 	.sbss       start:0x807D6278 end:0x807D6280
 
 JSystem/JUtility/JUTAssert.cpp:
@@ -8386,6 +8394,10 @@ JSystem/J2DGraph/J2DManage.cpp:
 
 JSystem/J3DGraphBase/J3DGD.cpp:
 	.text       start:0x80517CF0 end:0x805195E0 align:16
+	.rodata     start:0x80654368 end:0x80654380
+	.data       start:0x80705780 end:0x80705868
+	.sdata      start:0x807D0618 end:0x807D0620
+	.sdata2     start:0x807E1F38 end:0x807E1F58
 
 JSystem/J3DGraphBase/J3DSys.cpp:
 	.text       start:0x805195E0 end:0x8051A6C0 align:16
@@ -8397,6 +8409,8 @@ JSystem/J3DGraphBase/J3DVertex.cpp:
 
 JSystem/J3DGraphBase/J3DTransform.cpp:
 	.text       start:0x8051A8C0 end:0x8051B360 align:16
+	.data       start:0x807058B0 end:0x807058B8
+	.sdata2     start:0x807E1F68 end:0x807E1F78
 
 JSystem/J3DGraphBase/J3DPacket.cpp:
 	.text       start:0x8051B5F0 end:0x8051B620 align:16
@@ -8418,16 +8432,21 @@ JSystem/J3DGraphBase/J3DShape.cpp:
 	.sbss       start:0x807D62F0 end:0x807D62F4
 
 JSystem/J3DGraphBase/J3DMaterial.cpp:
-	.text       start:0x8051E470 end:0x8051FDB0 align:16
+	.text       start:0x8051E470 end:0x805210C0 align:16
 	.data       start:0x80705B88 end:0x80705C68
 
 JSystem/J3DGraphBase/J3DMatBlock.cpp:
 	.text       start:0x805210C0 end:0x80527CB0 align:16
 	.ctors      start:0x80644B24 end:0x80644B28
-	.data       start:0x80705D28 end:0x80706708
+	.data       start:0x80705C68 end:0x80706708
+	.sdata      start:0x807D062C end:0x807D0638
+	.sdata2     start:0x807E1F8C end:0x807E1F90
 
 JSystem/J3DGraphBase/J3DTevs.cpp:
 	.text       start:0x80527D70 end:0x80528BC0 align:16
+	.rodata     start:0x80654428 end:0x80654430
+	.data       start:0x80706708 end:0x80706828
+	.sdata2     start:0x807E1F90 end:0x807E1F98
 
 JSystem/J3DGraphBase/J3DDrawBuffer.cpp:
 	.text       start:0x80528BC0 end:0x80529250 align:16
@@ -8514,12 +8533,19 @@ JSystem/JParticle/JPAResourceManager.cpp:
 
 JSystem/JParticle/JPAResource.cpp:
 	.text       start:0x8053AF30 end:0x8053D8B0 align:16
+	.rodata       start:0x806545B8 end:0x806545C0
+	.data       start:0x80706E60 end:0x80707064
+	.sdata2       start:0x807E2070 end:0x807E2080
 
 JSystem/JParticle/JPABaseShape.cpp:
 	.text       start:0x8053E7B0 end:0x8053F970 align:16
+	.rodata       start:0x806545C0 end:0x806545D0
+	.data       start:0x80707080 end:0x80707230
 
 JSystem/JParticle/JPAExtraShape.cpp:
 	.text       start:0x8053F970 end:0x8053FFF0 align:16
+	.rodata       start:0x806545D0 end:0x806545D8
+	.sdata2       start:0x807E2098 end:0x807E20B0
 
 JSystem/JParticle/JPAChildShape.cpp:
 	.text       start:0x8053FFF0 end:0x80540190 align:16
@@ -8529,6 +8555,8 @@ JSystem/JParticle/JPAExTexShape.cpp:
 
 JSystem/JParticle/JPADynamicsBlock.cpp:
 	.text       start:0x80540280 end:0x80540EE0 align:16
+	.rodata       start:0x806545D8 end:0x806545E8
+	.sdata2       start:0x807E20B8 end:0x807E20C8
 
 JSystem/JParticle/JPAFieldBlock.cpp:
 	.text       start:0x805416E0 end:0x805419B0 align:16
@@ -8552,6 +8580,8 @@ JSystem/JParticle/JPAEmitter.cpp:
 
 JSystem/JParticle/JPAParticle.cpp:
 	.text       start:0x80542BE0 end:0x80543B10 align:16
+	.rodata       start:0x806545F0 end:0x80654600
+	.sdata2       start:0x807E20E0 end:0x807E20F0
 
 JSystem/JParticle/JPAMath.cpp:
 	.text       start:0x80543C40 end:0x80544010 align:16
@@ -9015,8 +9045,9 @@ JSystem/JAudio2/JASCmdStack.cpp:
 
 JSystem/JAudio2/JASTrack.cpp:
 	.text       start:0x80585200 end:0x805877D0 align:16
-	.rodata     start:0x80659280 end:0x806592B0
+	.rodata     start:0x80659268 end:0x806592C0
 	.data       start:0x807081F8 end:0x80708220
+	.sdata2     start:0x807E23F0 end:0x807E2418
 
 JSystem/JAudio2/JASTrackPort.cpp:
 	.text       start:0x80587CA0 end:0x80587DD0 align:16
@@ -9032,7 +9063,11 @@ JSystem/JAudio2/JASSeqCtrl.cpp:
 JSystem/JAudio2/JASSeqParser.cpp:
 	.text       start:0x80588430 end:0x8058A2F0 align:16
 	.ctors      start:0x80644B3C end:0x80644B40
+	.rodata     start:0x806592C0 end:0x806592D0
+	.data       start:0x80709860 end:0x80709A34
+	.sdata      start:0x807D08B8 end:0x807D08C0
 	.sbss       start:0x807D6480 end:0x807D6484
+	.sdata2     start:0x807E2418 end:0x807E2438
 
 JSystem/JAudio2/JASSeqReader.cpp:
 	.text       start:0x8058A2F0 end:0x8058A550 align:16
@@ -9040,7 +9075,9 @@ JSystem/JAudio2/JASSeqReader.cpp:
 JSystem/JAudio2/JASAramStream.cpp:
 	.text       start:0x8058A550 end:0x8058BB20 align:16
 	.ctors      start:0x80644B40 end:0x80644B44
+	.rodata     start:0x806592E0 end:0x80659300
 	.sbss       start:0x807D6490 end:0x807D64A0
+	.sdata2     start:0x807E2438 end:0x807E2450
 
 JSystem/JAudio2/JASBank.cpp:
 	.text       start:0x8058BB80 end:0x8058BCC0 align:16
@@ -9074,11 +9111,15 @@ JSystem/JAudio2/JASSimpleWaveBank.cpp:
 
 JSystem/JAudio2/JASInstSense.cpp:
 	.text       start:0x8058D200 end:0x8058D3D0 align:16
+	.rodata     start:0x80659340 end:0x80659358
 	.data       start:0x80709CB0 end:0x80709CC0
+	.sdata2     start:0x807E2470 end:0x807E2478
 
 JSystem/JAudio2/JASInstRand.cpp:
 	.text       start:0x8058D3D0 end:0x8058D510 align:16
+	.rodata     start:0x80659358 end:0x80659360
 	.data       start:0x80709CC0 end:0x80709CD0
+	.sdata2     start:0x807E2478 end:0x807E2488
 
 JSystem/JAudio2/JASWSParser.cpp:
 	.text       start:0x8058D510 end:0x8058DAA0 align:16
@@ -9093,8 +9134,10 @@ JSystem/JAudio2/JASWaveArcLoader.cpp:
 JSystem/JAudio2/JASChannel.cpp:
 	.text       start:0x8058EFE0 end:0x805903F0 align:16
 	.ctors      start:0x80644B48 end:0x80644B4C
+	.rodata     start:0x80659370 end:0x80659388
 	.bss        start:0x8077BD78 end:0x8077BE18
 	.sbss       start:0x807D64D0 end:0x807D64D8
+	.sdata2     start:0x807E2498 end:0x807E24D0
 
 JSystem/JAudio2/JASLfo.cpp:
 	.text       start:0x805903F0 end:0x80590560 align:16
@@ -9223,6 +9266,7 @@ JSystem/JAudio2/JAUInitializer.cpp:
 JSystem/JAudio2/JAUSectionHeap.cpp:
 	.text       start:0x80598E20 end:0x8059A990 align:16
 	.data       start:0x8070BF90 end:0x8070BFF8
+	.sdata      start:0x807D08F0 end:0x807D08F8
 	.sbss       start:0x807D6568 end:0x807D6570
 
 JSystem/JAudio2/JAUSeqCollection.cpp:
@@ -10634,3 +10678,6 @@ Runtime/__mem.c:
 
 MetroTRK/debugger/embedded/MetroTRK/Processor/ppc/Generic/exception.s:
 	.init       start:0x80004744 end:0x80006678
+
+JSystem/JParticle/JPAResourceManagerInline.cpp:
+	.text       start:0x804C8400 end:0x804C8410

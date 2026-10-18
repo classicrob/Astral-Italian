@@ -15,4 +15,5 @@ cp -R "$main/build/tools" "$wt/build/tools"
 cd "$wt"
 python3 configure.py >/dev/null
 ninja >/dev/null
+touch "$wt/.metadata_never_index" "$wt/build/.metadata_never_index"
 echo "ready: $wt"

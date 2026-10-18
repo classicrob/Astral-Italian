@@ -3,6 +3,8 @@
 #include "Game/Enemy/StinkBugBase.hpp"
 
 class CollisionParts;
+class AnimScaleController;
+class WalkerStateBindStarPointer;
 
 namespace {
     struct Param {
@@ -36,6 +38,8 @@ public:
     void exeSpinReaction();
     void exePanic();
     void exeRecover();
+    void exeFreeze();
+    virtual void appear();
     void exeShakeStart();
     void exeShake();
     void exeDemoPrepare();
@@ -49,6 +53,8 @@ public:
     inline bool isNrvMoving() const;
     inline bool isNrvDemo() const;
 
-    /* 0xBC */ CollisionParts* mParent;
-    /* 0xC0 */ bool mIsChildAlive;
+    /* 0xC0 */ AnimScaleController* mAnimScaleCtrl;
+    /* 0xC4 */ WalkerStateBindStarPointer* mStarPointBind;
+    /* 0xC8 */ CollisionParts* mParent;
+    /* 0xCC */ bool mIsChildAlive;
 };

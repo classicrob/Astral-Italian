@@ -6,6 +6,7 @@ class AnimScaleController;
 class JetTurtle;
 class MapPartsRailPointPassChecker;
 class WalkerStateBindStarPointer;
+class YoshiLockOnTarget;
 
 class NokonokoLand : public LiveActor {
 public:
@@ -31,6 +32,7 @@ public:
     bool isStateRattle() const;
     bool isStateBindStarPointer() const;
     bool isStateAttack() const;
+    inline bool isStateYoshi() const;
     bool isLookDirRailDirection() const;
     bool tryAttack(HitSensor*, HitSensor*);
     bool tryJetTurtleTouch();
@@ -57,8 +59,8 @@ public:
     void exeAttack();
     void exeRattle();
     void exeBindStarPointer();
-    void endBindStarPointer();
     void exeShellStartTrample();
+    void exeNone() {}
     void exeShellStartPunch();
     void exeShellWait();
     void exeShellEnd();
@@ -72,4 +74,6 @@ public:
     /* 0xA0 */ TVec3f mAppearPos;
     /* 0xAC */ TQuat4f mTargetQuat;
     /* 0xBC */ TVec3f mTurnAxis;
+    /* 0xCC */ YoshiLockOnTarget* mYoshiLockOn;
+    /* 0xD0 */ bool mFlagArg3;
 };

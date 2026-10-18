@@ -57,4 +57,5 @@ public:
     /* 0xB0 */ SpinHitController* mSpinHitController;
     /* 0xB4 */ AnimScaleController* mScaleController;
     /* 0xB8 */ WalkerStateBindStarPointer* mStarPointer;
+    /* 0xC0 */ WalkerStateBindStarPointer* mStarPointer2;  // SMG2-only second star-pointer bind
 };

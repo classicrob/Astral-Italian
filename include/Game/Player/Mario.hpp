@@ -621,396 +621,390 @@ public:
         _41E = val;
     }
 
+    /* 0x008 */ u8 _pad8[0x4];
     union {
-        /* 0x008 */ MovementStates mMovementStates;
+        /* 0x00C */ MovementStates mMovementStates;
         struct {
-            /* 0x008 */ u32 mMovementStates_LOW_WORD;
-            /* 0x00C */ u32 mMovementStates_HIGH_WORD;
+            /* 0x00C */ u32 mMovementStates_LOW_WORD;
+            /* 0x010 */ u32 mMovementStates_HIGH_WORD;
         };
     };
-
     union {
-        /* 0x010 */ MovementStates _10;
+        /* 0x014 */ MovementStates _10;
         struct {
-            /* 0x010 */ u32 _10_LOW_WORD;
-            /* 0x014 */ u32 _10_HIGH_WORD;
+            /* 0x014 */ u32 _10_LOW_WORD;
+            /* 0x018 */ u32 _10_HIGH_WORD;
         };
     };
-
     union {
-        /* 0x018 */ DrawStates mDrawStates;
-        /* 0x018 */ u32 mDrawStates_WORD;
+        /* 0x01C */ DrawStates mDrawStates;
+        /* 0x01C */ u32 mDrawStates_WORD;
     };
     union {
-        /* 0x01C */ DrawStates _1C;
-        /* 0x01C */ u32 _1C_WORD;
+        /* 0x020 */ DrawStates _1C;
+        /* 0x020 */ u32 _1C_WORD;
     };
     union {
-        /* 0x020 */ MovementStates _20;
+        /* 0x024 */ MovementStates _20;
         struct {
-            /* 0x20 */ u32 _20_LOW_WORD;
-            /* 0x24 */ u32 _20_HIGH_WORD;
+            /* 0x024 */ u32 _20_LOW_WORD;
+            /* 0x028 */ u32 _20_HIGH_WORD;
         };
     };
-    /* 0x028 */ u32 _28;
-    /* 0x02C */ u32 _2C;
-
-    /* 0x030 */ DrawStates mPrevDrawStates;
-    // FAKE
-    /* 0x034 */ u32 _34;
-    // NOT FAKE
-
-    /* 0x038 */ f32 _38;
-    /* 0x03C */ f32 _3C;
-    /* 0x040 */ TVec3f _40;
-    /* 0x04C */ TVec3f _4C;
-    /* 0x058 */ TVec3f _58;
-    /* 0x064 */ TMtx34f _64;
-    /* 0x094 */ TMtx34f _94;
-    /* 0x0C4 */ TMtx34f _C4;
-    /* 0x0F4 */ TMtx34f _F4;
-    /* 0x124 */ f32 _124;
-    /* 0x128 */ f32 _128;
-    /* 0x12C */ u32 _12C;
-    /* 0x130 */ TVec3f mPosition;
-    /* 0x13C */ TVec3f _13C;
-    /* 0x148 */ TVec3f _148;
-    /* 0x154 */ TVec3f _154;
-    /* 0x160 */ TVec3f mVelocity;
-    /* 0x16C */ TVec3f _16C;
-    /* 0x178 */ TVec3f mVelocityAfter;
-    /* 0x184 */ TVec3f _184;
-    /* 0x190 */ TVec3f _190;
-    /* 0x19C */ TVec3f _19C;
-    /* 0x1A8 */ TVec3f _1A8;
-    /* 0x1B4 */ TVec3f _1B4;
+    /* 0x02C */ u32 _28;
+    /* 0x030 */ u32 _2C;
+    /* 0x034 */ DrawStates mPrevDrawStates;
+    /* 0x038 */ u32 _34;
+    /* 0x03C */ f32 _38;
+    /* 0x040 */ f32 _3C;  // SMG2 offset guess
+    /* 0x044 */ MarioTeresa* mTeresa;
+    /* 0x048 */ TVec3f _40;  // SMG2 offset guess-gap
+    /* 0x054 */ TVec3f _4C;  // SMG2 offset guess-gap
+    /* 0x060 */ TVec3f _58;  // SMG2 offset guess-gap
+    /* 0x06C */ TMtx34f _64;  // SMG2 offset guess-gap
+    /* 0x09C */ TMtx34f _94;  // SMG2 offset guess-gap
+    /* 0x0CC */ TMtx34f _C4;  // SMG2 offset guess-gap
+    /* 0x0FC */ TMtx34f _F4;  // SMG2 offset guess-gap
+    /* 0x12C */ f32 _124;  // SMG2 offset guess-gap
+    /* 0x130 */ f32 _128;  // SMG2 offset guess-gap
+    /* 0x134 */ u32 _12C;  // SMG2 offset guess-gap
+    /* 0x138 */ TVec3f mPosition;  // SMG2 offset guess-gap
+    /* 0x144 */ TVec3f _13C;  // SMG2 offset guess-gap
+    /* 0x150 */ TVec3f _148;  // SMG2 offset guess-gap
+    /* 0x15C */ TVec3f _154;  // SMG2 offset guess-gap
+    /* 0x168 */ TVec3f mVelocity;  // SMG2 offset guess-gap
+    /* 0x174 */ TVec3f _16C;  // SMG2 offset guess-gap
+    /* 0x180 */ TVec3f mVelocityAfter;  // SMG2 offset guess-gap
+    /* 0x18C */ TVec3f _184;  // SMG2 offset guess-gap
+    /* 0x198 */ TVec3f _190;  // SMG2 offset guess-gap
+    /* 0x1A4 */ TVec3f _19C;  // SMG2 offset guess-gap
+    /* 0x1B0 */ TVec3f _1A8;  // SMG2 offset guess-gap
+    /* 0x1BC */ u8 _pad1BC[0x4];
     /* 0x1C0 */ TVec3f mStickPos;
-    /* 0x1CC */ TVec3f mWorldPadDir;
-    /* 0x1D8 */ TVec3f mAirGravityVec;
-    /* 0x1E4 */ TVec3f _1E4;
-    /* 0x1F0 */ TVec3f mHeadVec;
-    /* 0x1FC */ TVec3f _1FC;
-    /* 0x208 */ TVec3f mFrontVec;
-    /* 0x214 */ TVec3f _214;
-    /* 0x220 */ TVec3f _220;
-    /* 0x22C */ TVec3f _22C;
-    /* 0x238 */ TVec3f _238;
-    /* 0x244 */ TVec3f _244;
-    /* 0x250 */ TVec3f _250;
-    /* 0x25C */ TVec3f _25C;
-    /* 0x268 */ TVec3f _268;
+    /* 0x1CC */ TVec3f mWorldPadDir;  // SMG2 offset inh
+    /* 0x1D8 */ TVec3f mAirGravityVec;  // SMG2 offset inh
+    /* 0x1E4 */ TVec3f _1E4;  // SMG2 offset inh
+    /* 0x1F0 */ TVec3f mHeadVec;  // SMG2 offset inh
+    /* 0x1FC */ TVec3f _1FC;  // SMG2 offset inh
+    /* 0x208 */ TVec3f mFrontVec;  // SMG2 offset inh
+    /* 0x214 */ TVec3f _214;  // SMG2 offset inh
+    /* 0x220 */ TVec3f _220;  // SMG2 offset inh
+    /* 0x22C */ TVec3f _22C;  // SMG2 offset inh
+    /* 0x238 */ TVec3f _238;  // SMG2 offset inh
+    /* 0x244 */ TVec3f _244;  // SMG2 offset inh
+    /* 0x250 */ TVec3f _250;  // SMG2 offset inh
+    /* 0x25C */ TVec3f _25C;  // SMG2 offset inh
+    /* 0x268 */ TVec3f _268;  // SMG2 offset inh
     /* 0x274 */ u8 _274;
+    /* 0x275 */ u8 _pad275[0x3];
     /* 0x278 */ f32 mWalkSpeed;
-    /* 0x27C */ f32 mPrevAnimFrame;
+    /* 0x27C */ f32 mPrevAnimFrame;  // SMG2 offset inh
     /* 0x280 */ f32 _280;
-    /* 0x284 */ TVec3f _284;
-    /* 0x290 */ TVec3f _290;
-    /* 0x29C */ TVec3f _29C;
-    /* 0x2A8 */ TVec3f _2A8;
-    /* 0x2B4 */ f32 _2B4;
-    /* 0x2B8 */ TVec3f _2B8;
-    /* 0x2C4 */ TVec3f _2C4;
+    /* 0x284 */ TVec3f _284;  // SMG2 offset inh
+    /* 0x290 */ TVec3f _290;  // SMG2 offset inh
+    /* 0x29C */ TVec3f _29C;  // SMG2 offset inh
+    /* 0x2A8 */ TVec3f _2A8;  // SMG2 offset inh
+    /* 0x2B4 */ f32 _2B4;  // SMG2 offset inh
+    /* 0x2B8 */ TVec3f _2B8;  // SMG2 offset inh
+    /* 0x2C4 */ TVec3f _2C4;  // SMG2 offset inh
     /* 0x2D0 */ f32 _2D0;
-    /* 0x2D4 */ TVec3f mJumpVec;
-    /* 0x2E0 */ TVec3f _2E0;
-    /* 0x2EC */ TVec3f _2EC;
-    /* 0x2F8 */ TVec3f _2F8;
-    /* 0x304 */ TVec3f _304;
-    /* 0x310 */ TVec3f mSideVec;
-    /* 0x31C */ TVec3f mShadowPos;
-    /* 0x328 */ TVec3f _328;
-    /* 0x334 */ TVec3f _334;
+    /* 0x2D4 */ TVec3f mJumpVec;  // SMG2 offset inh
+    /* 0x2E0 */ TVec3f _2E0;  // SMG2 offset inh
+    /* 0x2EC */ TVec3f _2EC;  // SMG2 offset inh
+    /* 0x2F8 */ TVec3f _2F8;  // SMG2 offset inh
+    /* 0x304 */ TVec3f _304;  // SMG2 offset inh
+    /* 0x310 */ TVec3f mSideVec;  // SMG2 offset inh
+    /* 0x31C */ TVec3f mShadowPos;  // SMG2 offset inh
+    /* 0x328 */ TVec3f _328;  // SMG2 offset inh
+    /* 0x334 */ TVec3f _334;  // SMG2 offset inh
     /* 0x340 */ f32 _340;
-    /* 0x344 */ TVec3f _344;  // left/right?
-    /* 0x350 */ TVec3f _350;
-    /* 0x35C */ TVec3f _35C;
-    /* 0x368 */ TVec3f _368;
-    /* 0x374 */ TVec3f _374;
-    /* 0x380 */ TVec3f _380;
-    /* 0x38C */ TVec3f _38C;
-    /* 0x398 */ TVec3f _398;
-    /* 0x3A4 */ TVec3f _3A4;
-    /* 0x3B0 */ TVec3f _3B0;
+    /* 0x344 */ TVec3f _344;  // left/right?  // SMG2 offset inh
+    /* 0x350 */ TVec3f _350;  // SMG2 offset inh
+    /* 0x35C */ TVec3f _35C;  // SMG2 offset inh
+    /* 0x368 */ TVec3f _368;  // SMG2 offset inh
+    /* 0x374 */ TVec3f _374;  // SMG2 offset inh
+    /* 0x380 */ TVec3f _380;  // SMG2 offset inh
+    /* 0x38C */ TVec3f _38C;  // SMG2 offset inh
+    /* 0x398 */ TVec3f _398;  // SMG2 offset inh
+    /* 0x3A4 */ TVec3f _3A4;  // SMG2 offset inh
+    /* 0x3B0 */ TVec3f _3B0;  // SMG2 offset inh
     /* 0x3BC */ u16 _3BC;
     /* 0x3BE */ u16 _3BE;
-    /* 0x3C0 */ u16 _3C0;
+    /* 0x3C0 */ u16 _3C0;  // SMG2 offset inh
     /* 0x3C2 */ u16 _3C2;
     /* 0x3C4 */ u16 _3C4;
     /* 0x3C6 */ u16 _3C6;
-    /* 0x3C8 */ u16 _3C8;
+    /* 0x3C8 */ u16 _3C8;  // SMG2 offset inh
     /* 0x3CA */ u16 _3CA;
     /* 0x3CC */ u16 _3CC;
     /* 0x3CE */ u16 _3CE;  // a timer
     /* 0x3D0 */ u16 _3D0;
     /* 0x3D2 */ u16 _3D2;
     /* 0x3D4 */ u16 _3D4;
-    /* 0x3D8 */ TVec3f _3D8;
-    /* 0x3E4 */ TVec3f _3E4;
+    /* 0x3D6 */ u16 _412;  // SMG2 offset guess-gap
+    /* 0x3D8 */ TVec3f _3D8;  // SMG2 offset inh
+    /* 0x3E4 */ TVec3f _3E4;  // SMG2 offset inh
     /* 0x3F0 */ f32 _3F0;
     /* 0x3F4 */ f32 _3F4;
     /* 0x3F8 */ u16 _3F8;
-    /* 0x3FA */ u16 _3FA;
-    /* 0x3FC */ u16 _3FC;
-    /* 0x3FE */ u16 _3FE;
-    /* 0x400 */ u16 _400;
+    /* 0x3FA */ u16 _3FA;  // SMG2 offset inh
+    /* 0x3FC */ u16 _3FC;  // SMG2 offset inh
+    /* 0x3FE */ u16 _3FE;  // SMG2 offset inh
+    /* 0x400 */ u16 _400;  // SMG2 offset inh
     /* 0x402 */ u16 _402;
-    /* 0x404 */ u16 _404;
-    /* 0x406 */ u16 _406;
-    /* 0x408 */ u16 _408;
-    /* 0x40A */ u16 _40A;
-    /* 0x40C */ u16 _40C;
-    /* 0x40E */ u16 _40E;
-    /* 0x410 */ u16 _410;
-    /* 0x412 */ u16 _412;
-    /* 0x414 */ u16 _414;  // a timer
-    /* 0x416 */ u16 mMorphResetTimer;
-    /* 0x418 */ u16 _418;
-    /* 0x41A */ u16 _41A;
-    /* 0x41C */ u16 _41C;
-    /* 0x41E */ u16 _41E;
-    /* 0x420 */ u16 _420;
-    /* 0x422 */ u16 _422;
-    /* 0x424 */ u16 _424;
-    /* 0x426 */ u16 _426;
-    /* 0x428 */ u16 _428;
-    /* 0x42A */ u16 _42A;
-    /* 0x42C */ u16 _42C;
-    /* 0x430 */ u32 _430;
-    /* 0x434 */ u16 _434;  // a timer
-    /* 0x436 */ u16 _436;
-    /* 0x438 */ u16 _438;
-    /* 0x43A */ u16 _43A;
-    /* 0x43C */ TVec3f _43C;  // front?
-    /* 0x448 */ TVec3f _448;
-    /* 0x454 */ f32 _454;
-    /* 0x458 */ TriangleFilterDelegator< Mario >* _458;
-    /* 0x45C */ Triangle* _45C;
-    /* 0x460 */ Triangle* _460;
-    /* 0x464 */ Triangle* mGroundPolygon;
-    /* 0x468 */ Triangle* _468;
-    /* 0x46C */ Triangle* _46C;
-    /* 0x470 */ Triangle* _470;
-    /* 0x474 */ Triangle* _474;
-    /* 0x478 */ Triangle* mTmpPolygon;
-    /* 0x47C */ Triangle* _47C;
-    /* 0x480 */ Triangle* _480;
-    /* 0x484 */ Triangle* _484;
-    /* 0x488 */ f32 mVerticalSpeed;
-    /* 0x48C */ TVec3f mGroundPos;
-    /* 0x498 */ TVec3f _498;
-    /* 0x4A4 */ TVec3f _4A4;
-    /* 0x4B0 */ TVec3f _4B0;
-    /* 0x4BC */ TVec3f _4BC;
-    /* 0x4C8 */ Triangle* _4C8;
-    /* 0x4CC */ Triangle* mFrontWallTriangle;
-    /* 0x4D0 */ Triangle* mBackWallTriangle;
-    /* 0x4D4 */ Triangle* mSideWallTriangle;
-    /* 0x4D8 */ Triangle* _4D8;
-    /* 0x4DC */ Triangle* _4DC;
-    /* 0x4E0 */ f32 _4E0;
-    /* 0x4E4 */ f32 _4E4;
-    /* 0x4E8 */ TVec3f _4E8;
-    /* 0x4F4 */ TVec3f _4F4;
-
-    // FAKE
-    /* 0x500 */ TVec3f _500;
-    // NOT FAKE
-
-    /* 0x50C */ TVec3f _50C;
-    /* 0x518 */ TVec3f _518;
-    /* 0x524 */ f32 _524;
-    /* 0x528 */ f32 _528;
-    /* 0x52C */ f32 _52C;
-    /* 0x530 */ f32 _530;
-    /* 0x534 */ u16 _534;
-    /* 0x538 */ f32 _538;
-    /* 0x53C */ f32 _53C;
-    /* 0x540 */ f32 mYAngleOffset;
-    /* 0x544 */ u16 _544;
-    /* 0x548 */ f32 _548;
-    /* 0x54C */ TVec3f _54C;
-    /* 0x558 */ u32 _558;
-
-    /// FAKE
-    /* 0x55C */ u32 _55C;
-    /* 0x560 */ u32 _560;
-    // NOT FAKE
-
-    /* 0x564 */ s32 _564;
-    /* 0x568 */ CubeCameraArea* _568;
-    /* 0x56C */ AreaObj* _56C;
-    /* 0x570 */ u8 _570;
-    /* 0x574 */ void* _574;
-    /* 0x578 */ u32 _578;
-    /* 0x57C */ Triangle* _57C[0x20];
+    /* 0x404 */ u16 _404;  // SMG2 offset guess
+    /* 0x406 */ u16 _408;
+    /* 0x408 */ u16 _40A;
+    /* 0x40A */ u16 _40C;  // SMG2 offset inh
+    /* 0x40C */ u16 _40E;
+    /* 0x40E */ u16 _406;  // SMG2 offset guess-gap
+    /* 0x410 */ u16 _414;  // a timer
+    /* 0x412 */ u16 mMorphResetTimer;
+    /* 0x414 */ u16 _418;
+    /* 0x416 */ u16 _41A;  // SMG2 offset inh
+    /* 0x418 */ u16 _41C;
+    /* 0x41A */ u16 _41E;
+    /* 0x41C */ u16 _420;
+    /* 0x41E */ u16 _422;
+    /* 0x420 */ u16 _424;
+    /* 0x422 */ u16 _426;
+    /* 0x424 */ u16 _428;
+    /* 0x426 */ u16 _42A;
+    /* 0x428 */ u16 _42C;
+    /* 0x42A */ u16 _410;  // SMG2 offset guess-gap
+    /* 0x42C */ u32 _430;
+    /* 0x430 */ u16 _434;  // a timer
+    /* 0x432 */ u16 _436;  // SMG2 offset inh
+    /* 0x434 */ u16 _438;
+    /* 0x436 */ u16 _43A;
+    /* 0x438 */ TVec3f _43C;  // front?  // SMG2 offset inh
+    /* 0x444 */ TVec3f _448;  // SMG2 offset inh
+    /* 0x450 */ f32 _454;
+    /* 0x454 */ TriangleFilterDelegator< Mario >* _458;  // SMG2 offset inh
+    /* 0x458 */ Triangle* _45C;
+    /* 0x45C */ Triangle* _460;
+    /* 0x460 */ Triangle* mGroundPolygon;
+    /* 0x464 */ Triangle* _468;  // SMG2 offset inh
+    /* 0x468 */ Triangle* _46C;
+    /* 0x46C */ Triangle* _470;  // SMG2 offset inh
+    /* 0x470 */ Triangle* _474;
+    /* 0x474 */ TVec3f _1B4;  // SMG2 offset guess-gap
+    /* 0x480 */ Triangle* _484;  // SMG2 offset vote-gap
+    /* 0x484 */ f32 mVerticalSpeed;
+    /* 0x488 */ TVec3f mGroundPos;  // SMG2 offset inh
+    /* 0x494 */ TVec3f _498;  // SMG2 offset inh
+    /* 0x4A0 */ TVec3f _4A4;  // SMG2 offset inh
+    /* 0x4AC */ TVec3f _4B0;  // SMG2 offset inh
+    /* 0x4B8 */ TVec3f _4BC;  // SMG2 offset inh
+    /* 0x4C4 */ Triangle* _4C8;
+    /* 0x4C8 */ Triangle* mFrontWallTriangle;
+    /* 0x4CC */ Triangle* mBackWallTriangle;
+    /* 0x4D0 */ Triangle* mSideWallTriangle;
+    /* 0x4D4 */ Triangle* _4D8;  // SMG2 offset inh
+    /* 0x4D8 */ Triangle* _4DC;
+    /* 0x4DC */ f32 _4E0;  // SMG2 offset inh
+    /* 0x4E0 */ f32 _4E4;  // SMG2 offset inh
+    /* 0x4E4 */ TVec3f _4E8;  // SMG2 offset inh
+    /* 0x4F0 */ TVec3f _4F4;  // SMG2 offset inh
+    /* 0x4FC */ TVec3f _500;  // SMG2 offset inh
+    /* 0x508 */ TVec3f _50C;  // SMG2 offset inh
+    /* 0x514 */ TVec3f _518;  // SMG2 offset inh
+    /* 0x520 */ f32 _524;
+    /* 0x524 */ f32 _528;
+    /* 0x528 */ f32 _52C;  // SMG2 offset inh
+    /* 0x52C */ f32 _530;
+    /* 0x530 */ u16 _534;
+    /* 0x532 */ u8 _pad532[0x2];
+    /* 0x534 */ f32 _538;
+    /* 0x538 */ f32 _53C;  // SMG2 offset inh
+    /* 0x53C */ f32 mYAngleOffset;
+    /* 0x540 */ u16 _544;
+    /* 0x542 */ u8 _pad542[0x2];
+    /* 0x544 */ f32 _548;  // SMG2 offset inh
+    /* 0x548 */ TVec3f _54C;  // SMG2 offset inh
+    /* 0x554 */ u32 _558;
+    /* 0x558 */ Triangle* mTmpPolygon;  // SMG2 offset guess-gap
+    /* 0x55C */ Triangle* _47C;  // SMG2 offset guess-gap
+    /* 0x560 */ Triangle* _480;  // SMG2 offset guess-gap
+    /* 0x564 */ u32 _55C;  // SMG2 offset guess-gap
+    /* 0x568 */ u32 _560;  // SMG2 offset guess-gap
+    /* 0x56C */ void* _574;
+    /* 0x570 */ s32 _564;  // SMG2 offset guess-gap
+    /* 0x574 */ CubeCameraArea* _568;  // SMG2 offset guess-gap
+    /* 0x578 */ AreaObj* _56C;  // SMG2 offset guess-gap
+    /* 0x57C */ u8 _570;  // SMG2 offset guess-gap
+    /* 0x57D */ u8 _pad57D[0x3];
+    /* 0x580 */ u32 _578;  // SMG2 offset guess-gap
+    /* 0x584 */ TVec3f _A8C[9];  // SMG2 offset guess-gap
+    /* 0x5F0 */ TVec3f _6A0;  // SMG2 offset guess-gap
     /* 0x5FC */ const HitSensor* _5FC;
-    /* 0x600 */ TVec3f _600;
+    /* 0x600 */ TVec3f _600;  // SMG2 offset inh
     /* 0x60C */ u8 _60C;
-    /* 0x60D */ bool _60D;
+    /* 0x60D */ bool _60D;  // SMG2 offset inh
     /* 0x60E */ u8 _60E;
     /* 0x60F */ u8 _60F;
     /* 0x610 */ u8 _610;
     /* 0x611 */ u8 _611;
+    /* 0x612 */ u8 _pad612[0x2];
     /* 0x614 */ f32 _614;
-    /* 0x618 */ f32 _618;
-    /* 0x61C */ f32 _61C;
-    /* 0x620 */ f32 _620;
+    /* 0x618 */ f32 _618;  // SMG2 offset vote-gap
+    /* 0x61C */ f32 _620;
+    /* 0x620 */ u8 _pad620[0x4];
     /* 0x624 */ bool _624;
-    /* 0x628 */ TVec3f _628;
-    /* 0x634 */ f32 _634;
-
-    /* 0x638 */ u8 _638;
-    /* 0x63C */ TVec3f mSide2D;
-    /* 0x648 */ TVec3f mUp2D;
-    /* 0x654 */ TVec3f mNormal2D;
-    /* 0x660 */ TVec3f _660;
-    /* 0x66C */ bool _66C;
-    /* 0x670 */ TVec3f _670;
-    /* 0x67C */ TVec3f _67C;
-
-    /* 0x688 */ TVec3f _688;
-    /* 0x694 */ TVec3f _694;
-    /* 0x6A0 */ TVec3f _6A0;
-    /* 0x6AC */ u8 _6AC;
-    /* 0x6AD */ u8 _6AD;
-    /* 0x6B0 */ TVec3f _6B0;
-    /* 0x6BC */ TVec3f _6BC;
-    /* 0x6C8 */ TVec2f _6C8;
-    /* 0x6D0 */ TVec3f _6D0;
-    /* 0x6DC */ TVec3f _6DC;
-    /* 0x6E8 */ TVec3f _6E8;
-    /* 0x6F4 */ TVec3f _6F4;
-    /* 0x700 */ TVec3f _700;
-    /* 0x70C */ TVec3f _70C;
-    /* 0x718 */ f32 _718;
-    /* 0x71C */ u8 mTargetWalkSpeedIndex;
-    /* 0x71D */ u8 _71D;
-    /* 0x71E */ u8 _71E;
-    /* 0x71F */ u8 _71F;
-    /* 0x720 */ const char* _720;
-    /* 0x724 */ const char* _724;
-    /* 0x728 */ const char* _728;
-    /* 0x72C */ f32 _72C;
-    /* 0x730 */ HitSensor* _730;
-    /* 0x734 */ u8 mIceAnimFoot;
-    /* 0x735 */ u8 mSinkTimer;
-    /* 0x738 */ f32 _738;
-    /* 0x73C */ TVec3f _73C;
-    /* 0x748 */ u8 mPoisonTimer;
-    /* 0x74C */ f32 _74C;
-    /* 0x750 */ u32 _750;
-    /* 0x754 */ u32 _754;
-    /* 0x758 */ MarioWall* mWall;
-    /* 0x75C */ TVec3f _75C;
-    /* 0x768 */ MarioStick* mStick;
-    /* 0x76C */ u16 _76C;
-    /* 0x770 */ f32 _770;
-    /* 0x774 */ u16 _774;
-    /* 0x778 */ MarioRabbit* mRabbit;
-    /* 0x77C */ MarioFoo* mFoo;
-    /* 0x780 */ MarioSukekiyo* mSukekiyo;
-    /* 0x784 */ MarioBury* mBury;
-    /* 0x788 */ MarioWait* mWait;
-    /* 0x78C */ MarioClimb* mClimb;
-    /* 0x790 */ TVec3f _790;
-    /* 0x79C */ MarioHang* mHang;
-    /* 0x7A0 */ MarioRecovery* mRecovery;
-    /* 0x7A4 */ MarioWarp* mWarp;
-    /* 0x7A8 */ MarioFlip* mFlip;
-    /* 0x7AC */ MarioSideStep* mSideStep;
-    /* 0x7B0 */ MarioFrontStep* mFrontStep;
-    /* 0x7B4 */ MarioSkate* mSkate;
-    /* 0x7B8 */ MarioTalk* mTalk;
-    /* 0x7BC */ MarioTeresa* mTeresa;
-    /* 0x7C0 */ MarioDamage* mDamage;
-    /* 0x7C4 */ TVec3f _7C4;
-    /* 0x7D0 */ u16 _7D0;
-    /* 0x7D4 */ TVec3f _7D4;
-    /* 0x7E0 */ Triangle* _7E0;
-    /* 0x7E4 */ TMtx34f _7E4;
-    /* 0x814 */ TVec3f _814;
-    /* 0x820 */ Triangle* _820;
-    /* 0x824 */ TMtx34f _824;
-    /* 0x854 */ MarioFlow* mFlow;
-    /* 0x858 */ MarioFireDamage* mFireDamage;
-    /* 0x85C */ MarioFireDance* mFireDance;
-    /* 0x860 */ MarioFireRun* mFireRun;
-    /* 0x864 */ MarioParalyze* mParalyze;
-    /* 0x868 */ MarioStun* mStun;
-    /* 0x86C */ MarioCrush* mCrush;
-    /* 0x870 */ MarioFreeze* mFreeze;
-    /* 0x874 */ MarioAbyssDamage* mAbyssDamage;
-    /* 0x878 */ MarioDarkDamage* mDarkDamage;
-    /* 0x87C */ MarioFaint* mFaint;
-    /* 0x880 */ MarioBlown* mBlown;
-    /* 0x884 */ MarioSwim* mSwim;
-    /* 0x888 */ MarioSlider* mSlider;
-    /* 0x88C */ MarioStep* mStep;
-    /* 0x890 */ MarioBump* mBump;
-    /* 0x894 */ MarioMagic* mMagic;
-    /* 0x898 */ bool _898;
-    /* 0x89C */ MarioFpView* mFpView;
-    /* 0x8A0 */ MarioMove* mMove;
-    /* 0x8A4 */ TVec3f _8A4;
-    union {
-        struct {
-            /* 0x8B0 */ TVec3f _8B0;
-            /* 0x8BC */ TVec3f _8BC;
-        };
-        /* 0x8B0 */ TVec3f mRelativeWallPos[2];
-    };
-    /* 0x8C8 */ Triangle* _8C8;
-    /* 0x8CC */ Triangle* _8CC[2];
-    /* 0x8D4 */ HitSensor* _8D4;
-    /* 0x8D8 */ HitSensor* _8D8;
-    /* 0x8DC */ TVec3f _8DC;
-    /* 0x8E8 */ Triangle* _8E8;
-    /* 0x8EC */ u8 _8EC;
-
-    // FAKE?
-    /* 0x8F0 */ f32 _8F0;
-    // NOT FAKE
-
-    /* 0x8F4 */ f32 _8F4;
-
-    /* 0x8F8 */ TVec3f _8F8;
-    /* 0x904 */ TVec3f _904;
-    // NOT FAKE
-
-    /* 0x910 */ TVec3f _910;
-    /* 0x91C */ TVec3f _91C;
-    /* 0x928 */ TVec3f _928;
-    /* 0x934 */ f32 _934;
-    /* 0x938 */ TVec3f _938;
-    /* 0x944 */ TVec3f _944;
-    /* 0x950 */ TVec3f _950;
-    /* 0x95C */ FloorCode* _95C;
-    /* 0x960 */ u16 _960;
-    /* 0x962 */ u16 _962;
-    /* 0x964 */ u16 _964[3];
-    /* 0x96A */ u16 _96A;
-
-    /* 0x96C */ HashSortTable* _96C;  // Sounds
-    /* 0x970 */ const char* _970;     // Sounds or somthing
-    /* 0x974 */ MarioModuleTask* _974;
-
-    // Fake
-    /* 0x978 */ u32 _978;
-    // Not fake
-
-    /* 0x97C */ MarioState* _97C;
-    /* 0x980 */ MarioState* _980;
-
-    /* 0x984 */ Task _984[0xb];
-    /* 0xA08 */ u32 _A08[11];
-    /* 0xA34 */ u16 _A34;
-    /* 0xA38 */ u32 _A38;
-    /* 0xA3C */ u16 _A3C;
-    /* 0xA40 */ TVec3f _A40;
-    /* 0xA4C */ TVec3f _A4C;
-    /* 0xA58 */ TVec3f _A58;
-    /* 0xA64 */ f32 _A64;
-    /* 0xA68 */ HitSensor* _A68;
-    /* 0xA6C */ u8 _A6C[0x20];  // animations
-    /* 0xA8C */ TVec3f _A8C[9];
+    /* 0x625 */ u8 _pad625[0x3];
+    /* 0x628 */ f32 _61C;
+    /* 0x62C */ u8 _638;
+    /* 0x62D */ u8 _pad62D[0x3];
+    /* 0x630 */ TVec3f _628;  // SMG2 offset guess-gap
+    /* 0x63C */ f32 _634;  // SMG2 offset guess-gap
+    /* 0x640 */ TVec3f mSide2D;  // SMG2 offset guess-gap
+    /* 0x64C */ TVec3f mUp2D;  // SMG2 offset guess-gap
+    /* 0x658 */ TVec3f mNormal2D;  // SMG2 offset guess-gap
+    /* 0x664 */ TVec3f _660;  // SMG2 offset guess-gap
+    /* 0x670 */ bool _66C;  // SMG2 offset guess-gap
+    /* 0x671 */ u8 _pad671[0x3];
+    /* 0x674 */ TVec3f _670;  // SMG2 offset guess-gap
+    /* 0x680 */ TVec3f _67C;  // SMG2 offset guess-gap
+    /* 0x68C */ TVec3f _688;  // SMG2 offset guess-gap
+    /* 0x698 */ TVec3f _694;  // SMG2 offset guess-gap
+    /* 0x6A4 */ u8 _6AC;
+    /* 0x6A5 */ u8 _6AD;
+    /* 0x6A6 */ u8 _pad6A6[0x2];
+    /* 0x6A8 */ TVec3f _6B0;  // SMG2 offset inh
+    /* 0x6B4 */ TVec3f _6BC;  // SMG2 offset inh
+    /* 0x6C0 */ TVec2f _6C8;
+    /* 0x6C8 */ TVec3f _6D0;  // SMG2 offset inh
+    /* 0x6D4 */ TVec3f _6DC;  // SMG2 offset inh
+    /* 0x6E0 */ TVec3f _6E8;  // SMG2 offset inh
+    /* 0x6EC */ TVec3f _6F4;  // SMG2 offset inh
+    /* 0x6F8 */ TVec3f _700;  // SMG2 offset inh
+    /* 0x704 */ TVec3f _70C;  // SMG2 offset inh
+    /* 0x710 */ f32 _718;
+    /* 0x714 */ u8 mTargetWalkSpeedIndex;
+    /* 0x715 */ u8 _71D;
+    /* 0x716 */ u8 _71E;
+    /* 0x717 */ u8 _71F;
+    /* 0x718 */ const char* _720;
+    /* 0x71C */ const char* _724;
+    /* 0x720 */ const char* _728;
+    /* 0x724 */ f32 _72C;
+    /* 0x728 */ HitSensor* _730;  // SMG2 offset inh
+    /* 0x72C */ u8 mIceAnimFoot;
+    /* 0x72D */ u8 mSinkTimer;
+    /* 0x72E */ u8 _pad72E[0x2];
+    /* 0x730 */ f32 _738;
+    /* 0x734 */ TVec3f _73C;  // SMG2 offset inh
+    /* 0x740 */ u8 mPoisonTimer;
+    /* 0x741 */ u8 _pad741[0x3];
+    /* 0x744 */ f32 _74C;
+    /* 0x748 */ u32 _750;
+    /* 0x74C */ u32 _754;
+    /* 0x750 */ MarioWall* mWall;
+    /* 0x754 */ TVec3f _75C;  // SMG2 offset inh
+    /* 0x760 */ MarioStick* mStick;
+    /* 0x764 */ u16 _76C;
+    /* 0x766 */ u8 _pad766[0x2];
+    /* 0x768 */ f32 _770;  // SMG2 offset inh
+    /* 0x76C */ u16 _774;
+    /* 0x76E */ u8 _pad76E[0x2];
+    /* 0x770 */ MarioRabbit* mRabbit;
+    /* 0x774 */ MarioFoo* mFoo;
+    /* 0x778 */ MarioSukekiyo* mSukekiyo;  // SMG2 offset inh
+    /* 0x77C */ MarioBury* mBury;  // SMG2 offset inh
+    /* 0x780 */ MarioWait* mWait;
+    /* 0x784 */ MarioClimb* mClimb;
+    /* 0x788 */ TVec3f _790;  // SMG2 offset inh
+    /* 0x794 */ MarioHang* mHang;
+    /* 0x798 */ MarioRecovery* mRecovery;
+    /* 0x79C */ MarioWarp* mWarp;  // SMG2 offset inh
+    /* 0x7A0 */ MarioFlip* mFlip;
+    /* 0x7A4 */ MarioSideStep* mSideStep;  // SMG2 offset inh
+    /* 0x7A8 */ MarioFrontStep* mFrontStep;
+    /* 0x7AC */ MarioSkate* mSkate;
+    /* 0x7B0 */ MarioTalk* mTalk;
+    /* 0x7B4 */ u8 _pad7B4[0x10];
+    /* 0x7C4 */ MarioDamage* mDamage;
+    /* 0x7C8 */ TVec3f _7C4;  // SMG2 offset inh
+    /* 0x7D4 */ u16 _7D0;  // SMG2 offset inh
+    /* 0x7D6 */ u8 _pad7D6[0x2];
+    /* 0x7D8 */ TVec3f _7D4;  // SMG2 offset inh
+    /* 0x7E4 */ Triangle* _7E0;
+    /* 0x7E8 */ TMtx34f _7E4;  // SMG2 offset inh
+    /* 0x818 */ TVec3f _814;  // SMG2 offset inh
+    /* 0x824 */ Triangle* _820;
+    /* 0x828 */ TMtx34f _824;  // SMG2 offset inh
+    /* 0x858 */ MarioFlow* mFlow;  // SMG2 offset inh
+    /* 0x85C */ MarioFireDamage* mFireDamage;
+    /* 0x860 */ MarioFireDance* mFireDance;
+    /* 0x864 */ MarioFireRun* mFireRun;
+    /* 0x868 */ MarioParalyze* mParalyze;
+    /* 0x86C */ MarioStun* mStun;  // SMG2 offset inh
+    /* 0x870 */ MarioCrush* mCrush;
+    /* 0x874 */ MarioFreeze* mFreeze;
+    /* 0x878 */ MarioAbyssDamage* mAbyssDamage;
+    /* 0x87C */ MarioDarkDamage* mDarkDamage;  // SMG2 offset inh
+    /* 0x880 */ MarioFaint* mFaint;
+    /* 0x884 */ MarioBlown* mBlown;
+    /* 0x888 */ MarioSwim* mSwim;
+    /* 0x88C */ MarioSlider* mSlider;
+    /* 0x890 */ MarioStep* mStep;  // SMG2 offset inh
+    /* 0x894 */ MarioBump* mBump;  // SMG2 offset inh
+    /* 0x898 */ MarioMagic* mMagic;
+    /* 0x89C */ bool _898;  // SMG2 offset inh
+    /* 0x89D */ u8 _pad89D[0x3];
+    /* 0x8A0 */ MarioFpView* mFpView;
+    /* 0x8A4 */ MarioMove* mMove;  // SMG2 offset inh
+    /* 0x8A8 */ TVec3f _8A4;  // SMG2 offset inh
+    union {  // SMG2 offset inh
+        struct {  // SMG2 offset inh
+            /* 0x8B4 */ TVec3f _8B0;  // SMG2 offset inh
+            /* 0x8C0 */ TVec3f _8BC;  // SMG2 offset inh
+        };  // SMG2 offset inh
+        /* 0x8B4 */ TVec3f mRelativeWallPos[2];  // SMG2 offset inh
+    };  // SMG2 offset inh
+    /* 0x8CC */ Triangle* _8C8;
+    /* 0x8D0 */ Triangle* _8CC[2];
+    /* 0x8D8 */ HitSensor* _8D4;
+    /* 0x8DC */ HitSensor* _8D8;
+    /* 0x8E0 */ TVec3f _8DC;  // SMG2 offset inh
+    /* 0x8EC */ Triangle* _8E8;
+    /* 0x8F0 */ u8 _8EC;
+    /* 0x8F1 */ u8 _pad8F1[0x3];
+    /* 0x8F4 */ f32 _8F0;
+    /* 0x8F8 */ f32 _8F4;
+    /* 0x8FC */ TVec3f _8F8;  // SMG2 offset inh
+    /* 0x908 */ TVec3f _904;  // SMG2 offset inh
+    /* 0x914 */ TVec3f _910;  // SMG2 offset inh
+    /* 0x920 */ TVec3f _91C;  // SMG2 offset inh
+    /* 0x92C */ TVec3f _928;  // SMG2 offset inh
+    /* 0x938 */ f32 _934;
+    /* 0x93C */ TVec3f _938;  // SMG2 offset inh
+    /* 0x948 */ TVec3f _944;  // SMG2 offset inh
+    /* 0x954 */ TVec3f _950;  // SMG2 offset inh
+    /* 0x960 */ FloorCode* _95C;
+    /* 0x964 */ u16 _960;
+    /* 0x966 */ u16 _962;
+    /* 0x968 */ u16 _964[3];
+    /* 0x96E */ u16 _96A;
+    /* 0x970 */ HashSortTable* _96C;  // Sounds  // SMG2 offset inh
+    /* 0x974 */ const char* _970;     // Sounds or somthing  // SMG2 offset inh
+    /* 0x978 */ MarioModuleTask* _974;
+    /* 0x97C */ u32 _978;  // SMG2 offset inh
+    /* 0x980 */ MarioState* _97C;
+    /* 0x984 */ MarioState* _980;
+    /* 0x988 */ Task _984[0xb];  // SMG2 offset inh
+    /* 0xA0C */ u32 _A08[11];  // SMG2 offset inh
+    /* 0xA38 */ u16 _A34;
+    /* 0xA3A */ u8 _padA3A[0x2];
+    /* 0xA3C */ u32 _A38;
+    /* 0xA40 */ u16 _A3C;
+    /* 0xA42 */ u8 _padA42[0x2];
+    /* 0xA44 */ TVec3f _A40;  // SMG2 offset inh
+    /* 0xA50 */ TVec3f _A4C;  // SMG2 offset inh
+    /* 0xA5C */ TVec3f _A58;  // SMG2 offset inh
+    /* 0xA68 */ f32 _A64;
+    /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
+    /* 0xA70 */ u8 _A6C[0x20];  // animations  // SMG2 offset guess
+    /* 0xA90 */ u8 _padA90[0xc];
+    /* 0xA9C */ Triangle* _57C[0x20];  // SMG2 offset guess-TAIL
 };

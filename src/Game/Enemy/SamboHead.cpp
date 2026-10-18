@@ -7,6 +7,8 @@
 #include "Game/Util.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+extern "C" void fn_8022BA10(LiveActor*);
+
 namespace NrvSamboHead {
     NEW_NERVE(HostTypeNrvWaitUnderGround, SamboHead, WaitUnderGround);
     NEW_NERVE(HostTypeNrvHide, SamboHead, Hide);
@@ -32,14 +34,8 @@ SamboHead::SamboHead(const char* pName) : LiveActor(pName), mSpinCtrl(), mScaleC
 
 void SamboHead::init(const JMapInfoIter& rIter) {
     if (MR::isValidInfo(rIter)) {
-        MR::initDefaultPos(this, rIter);
-        MR::useStageSwitchWriteDead(this, rIter);
-        MR::useStageSwitchSyncAppear(this, rIter);
-
-        MR::useStageSwitchReadA(this, rIter);
         s32 arg0 = -1;
         MR::getJMapInfoArg0NoInit(rIter, &arg0);
-
         if (arg0 == -1) {
             _B0 = false;
         } else {
@@ -47,34 +43,23 @@ void SamboHead::init(const JMapInfoIter& rIter) {
         }
     }
 
-    _A4.set(mPosition);
     MR::initActor(this, rIter, "SamboHead", false);
+    _A4.set(mPosition);
     TPos3f mtx = getBaseMtx();
     mtx.getZDir(_98);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    f32 scale_y = mScale.y;
-    initBinder((100.0f * mScale.y), (100.0f * mScale.y), 0);
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 50.0f, 0.0f));
-    initHitSensor(1);
-    MR::addHitSensorEnemy(this, "body", 0x20, 100.0f * scale_y, TVec3f(0.0f, 100.0f * scale_y, 0.0f));
-    initEffectKeeper(1, nullptr, false);
-    initSound(4, "SamboHead", nullptr, TVec3f(0.0f));
-    initNerve(GET_NERVE(SamboHead, HostTypeNrvWaitUnderGround));
+    initNerve(GET_NERVE(SamboHead, HostTypeNrvWaitUnderGround), 1);
     MR::onCalcGravity(this);
-    MR::initShadowVolumeSphere(this, (60.0f * mScale.y));
-    MR::declareStarPiece(this, 3);
-    MR::declareCoin(this, 1);
+
     mScaleController = new AnimScaleController(nullptr);
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
-
-    if (MR::isValidSwitchAppear(this)) {
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(SamboHead, HostTypeNrvBindStarPointer), "SupportFreeze");
 
     mSpinCtrl = new SpinHitController(this);
+
+    MR::useStageSwitchWriteDead(this, rIter);
+    MR::useStageSwitchReadA(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void SamboHead::appear() {
@@ -95,22 +80,39 @@ void SamboHead::kill() {
 void SamboHead::control() {
     mScaleController->updateNerve();
 
-    if (!isNerve(GET_NERVE(SamboHead, HostTypeNrvStampFall)) && !isNerve(GET_NERVE(SamboHead, HostTypeNrvStampDeath)) &&
-        !isNerve(GET_NERVE(SamboHead, HostTypeNrvHitBlow)) && !isNerve(GET_NERVE(SamboHead, HostTypeNrvBuryDeath)) &&
-        MR::isBindedGroundSinkDeath(this)) {
+    if (!isNerveTypeDead() && MR::isPressedBetweenWalls(this)) {
+        fn_8022BA10(this);
+        kill();
+        return;
+    }
+
+    if (isNerveTypeDead() && MR::isBindedGroundSinkDeath(this)) {
         setNerve(GET_NERVE(SamboHead, HostTypeNrvBuryDeath));
         return;
     }
 
-    if (!isNerve(GET_NERVE(SamboHead, HostTypeNrvWait)) && !isNerve(GET_NERVE(SamboHead, HostTypeNrvPrePursue)) &&
-        !isNerve(GET_NERVE(SamboHead, HostTypeNrvPursue)) && !isNerve(GET_NERVE(SamboHead, HostTypeNrvPursueEnd)) &&
-        !isNerve(GET_NERVE(SamboHead, HostTypeNrvHitToPlayer))) {
-        return;
-    }
-
-    if (mBindStarPointer->tryStartPointBind()) {
+    if (isStarPointerBindable() && mBindStarPointer->tryStartPointBind()) {
         setNerve(GET_NERVE(SamboHead, HostTypeNrvBindStarPointer));
     }
+}
+
+bool SamboHead::isNerveTypeDead() const {
+    if (isNerve(GET_NERVE(SamboHead, HostTypeNrvStampFall)) || isNerve(GET_NERVE(SamboHead, HostTypeNrvStampDeath)) ||
+        isNerve(GET_NERVE(SamboHead, HostTypeNrvHitBlow)) || isNerve(GET_NERVE(SamboHead, HostTypeNrvBuryDeath))) {
+        return false;
+    }
+
+    return true;
+}
+
+bool SamboHead::isStarPointerBindable() const {
+    if (isNerve(GET_NERVE(SamboHead, HostTypeNrvWait)) || isNerve(GET_NERVE(SamboHead, HostTypeNrvPrePursue)) ||
+        isNerve(GET_NERVE(SamboHead, HostTypeNrvPursue)) || isNerve(GET_NERVE(SamboHead, HostTypeNrvPursueEnd)) ||
+        isNerve(GET_NERVE(SamboHead, HostTypeNrvHitToPlayer))) {
+        return true;
+    }
+
+    return isNerve(GET_NERVE(SamboHead, HostTypeNrvStarPieceHit)) && MR::isGreaterStep(this, 20);
 }
 
 void SamboHead::exeWaitUnderGround() {

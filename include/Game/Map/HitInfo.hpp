@@ -28,6 +28,10 @@ public:
     JMapInfoIter getAttributes() const;
     TPos3f* getBaseMtx() const;
     TPos3f* getBaseInvMtx() const;
+
+    HitSensor* getSensor() const {
+        return mSensor;
+    }
     TPos3f* getPrevBaseMtx() const;
 
     CollisionParts* mParts;  // 0x0

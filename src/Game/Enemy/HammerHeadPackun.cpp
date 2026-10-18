@@ -46,9 +46,11 @@ HammerHeadPackun::HammerHeadPackun(const char* pName) : LiveActor(pName) {
     _AC.z = 1.0f;
     mJointRumbler = nullptr;
     mNumbTime = 0;
+    _C4 = false;
+    _C5 = false;
 }
 
-namespace {
+namespace NrvHammerHeadPackun {
     NEW_NERVE(HammerHeadPackunNrvWait, HammerHeadPackun, Wait);
     NEW_NERVE(HammerHeadPackunNrvSearch, HammerHeadPackun, Search);
     NEW_NERVE(HammerHeadPackunNrvAttack, HammerHeadPackun, Attack);
@@ -62,32 +64,43 @@ namespace {
     NEW_NERVE(HammerHeadPackunNrvBlowKill, HammerHeadPackun, BlowKill);
     NEW_NERVE(HammerHeadPackunNrvBlowKillRock, HammerHeadPackun, BlowKillRock);
     NEW_NERVE_ONEND(HammerHeadPackunNrvNumb, HammerHeadPackun, Numb, Numb);
-};  // namespace
+};  // namespace NrvHammerHeadPackun
 
 void HammerHeadPackun::init(const JMapInfoIter& rIter) {
+    _C4 = MR::isEqualObjectName(rIter, "HammerHeadPackunSpike");
     MR::initDefaultPos(this, rIter);
     initPosture();
-    MR::initActor(this, rIter, "PackunFlower", false);
+    MR::initActor(this, rIter, _C4 ? "PackunFlower" : "PackunFlowerSpike", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     initSensor();
-    initEffectKeeper(1, nullptr, false);
+    initEffectKeeper(1, _C4 ? "PackunFlower" : "PackunFlowerSpike", false);
     MR::addEffect(this, "PointerTouchManual");
     MR::setEffectHostMtx(this, "PointerTouchManual", MR::getJointMtx(this, "MouthUp"));
     initSound(4, "HammerHeadPackun", nullptr, TVec3f(0.0f));
-    initNerve(GET_NERVE_ANON(HammerHeadPackunNrvWait));
+    initNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait), 0);
     MR::useStageSwitchWriteDead(this, rIter);
     initShadow();
     initLeaf(rIter);
     MR::initStarPointerTargetAtJoint(this, "Head", 169.0f, TVec3f(120.0f, 0.0f, 0.0f));
     MR::declareStarPiece(this, 9);
     mJointRumbler = new JointRumbler(this, "AllRoot", 8.0f, 0.06f, 60, true, 0);
+    MR::useStageSwitchAwake(this, rIter);
+
+    s32 arg0;
+    MR::getJMapInfoArg0WithInit(rIter, &arg0);
+    if (arg0 == -1) {
+        _C5 = true;
+    } else {
+        _C5 = false;
+    }
+
     makeActorAppeared();
 }
 
 void HammerHeadPackun::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-    setNerve(GET_NERVE_ANON(HammerHeadPackunNrvWait));
+    setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait));
 }
 
 void HammerHeadPackun::kill() {
@@ -101,10 +114,11 @@ void HammerHeadPackun::kill() {
 }
 
 void HammerHeadPackun::appearStarPiece() {
-    TVec3f pos;
-    MR::copyJointPos(this, "Head", &pos);
-    MR::appearStarPiece(this, pos, 9, 10.0f, 40.0f, false);
-    MR::startActionSound(this, "OjStarPieceBurst");
+    if (_C5) {
+        TVec3f pos;
+        MR::copyJointPos(this, "Head", &pos);
+        MR::appearStarPiece(this, pos, 9, 10.0f, 40.0f, false);
+    }
 }
 
 void HammerHeadPackun::control() {
@@ -119,7 +133,7 @@ void HammerHeadPackun::exeWait() {
     }
 
     if (!tryShiftNumb() && isTargetInRange()) {
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvSearch));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSearch));
     }
 }
 
@@ -128,7 +142,7 @@ void HammerHeadPackun::exeSearch() {
     if (calcPlayerDir(&dir) && !tryShiftNumb()) {
         turnTo(dir, 1.0f);
         if (isInFieldOfView(dir)) {
-            setNerve(GET_NERVE_ANON(HammerHeadPackunNrvAttack));
+            setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack));
         }
     }
 }
@@ -154,7 +168,7 @@ void HammerHeadPackun::exeAttack() {
         } else {
             turnToAttackVec(60);
         }
-        MR::setNerveAtBckStopped(this, GET_NERVE_ANON(HammerHeadPackunNrvRest));
+        MR::setNerveAtBckStopped(this, GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest));
     }
 }
 
@@ -167,7 +181,7 @@ void HammerHeadPackun::exeRest() {
     }
 
     if (!tryShiftNumb()) {
-        MR::setNerveAtStep(this, GET_NERVE_ANON(HammerHeadPackunNrvRecover), 90);
+        MR::setNerveAtStep(this, GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover), 90);
     }
 }
 
@@ -180,7 +194,7 @@ void HammerHeadPackun::exeRecover() {
 
     if (!tryShiftNumb()) {
         MR::startActionSound(this, "EmLvHhpackunRecovery");
-        MR::setNerveAtBckStopped(this, GET_NERVE_ANON(HammerHeadPackunNrvWait));
+        MR::setNerveAtBckStopped(this, GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait));
     }
 }
 
@@ -207,7 +221,7 @@ void HammerHeadPackun::exeDamage() {
     if (MR::isGreaterEqualStep(this, 60)) {
         MR::startActionSound(this, "EmLvSwoonS");
     }
-    MR::setNerveAtStep(this, GET_NERVE_ANON(HammerHeadPackunNrvRise), 180);
+    MR::setNerveAtStep(this, GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise), 180);
 }
 
 void HammerHeadPackun::exeRise() {
@@ -228,9 +242,9 @@ void HammerHeadPackun::exeRise() {
                 const char* wait = "Wait";
                 MR::startAction(this, wait);
                 MR::startAction(mLeafModel, wait);
-                setNerve(GET_NERVE_ANON(HammerHeadPackunNrvSearch));
+                setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSearch));
             } else {
-                setNerve(GET_NERVE_ANON(HammerHeadPackunNrvWait));
+                setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait));
             }
         }
     }
@@ -238,7 +252,7 @@ void HammerHeadPackun::exeRise() {
 
 inline void HammerHeadPackun::exeHit() {
     if (!tryShiftNumb()) {
-        MR::setNerveAtBckStopped(this, GET_NERVE_ANON(HammerHeadPackunNrvCrow));
+        MR::setNerveAtBckStopped(this, GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvCrow));
     }
 }
 
@@ -254,7 +268,7 @@ void HammerHeadPackun::exeCrow() {
             MR::shakeCameraNormalWeak();
             MR::tryRumblePadWeak(this, WPAD_CHAN0);
         }
-        MR::setNerveAtBckStopped(this, GET_NERVE_ANON(HammerHeadPackunNrvWait));
+        MR::setNerveAtBckStopped(this, GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait));
     }
 }
 
@@ -326,7 +340,7 @@ void HammerHeadPackun::exeNumb() {
     mNumbTime++;
     if (mNumbTime >= 20) {
         MR::deleteEffect(this, "PointerTouchManual");
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvWait));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait));
     }
 }
 
@@ -354,35 +368,38 @@ void HammerHeadPackun::calcAndSetBaseMtx() {
 }
 
 inline bool HammerHeadPackun::checkBlowAttack() const {
-    return isNerve(GET_NERVE_ANON(HammerHeadPackunNrvSmashKill)) || isNerve(GET_NERVE_ANON(HammerHeadPackunNrvBlowKill));
+    return isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill)) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill)) ||
+           isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock));
 }
 
 void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!checkBlowAttack() && MR::isEqualSensor(pSender, this, "blow") && MR::getSensorHost(pReceiver) &&
         !strcmp(MR::getSensorHost(pReceiver)->mName, "パンチングキノコ")) {
-        f32 recvRadius = pReceiver->mRadius;
-        f32 sendRadius = pSender->mRadius;
+        f32 recvRadius = MR::getSensorRadius(pReceiver);
+        f32 sendRadius = MR::getSensorRadius(pSender);
         f32 temp = recvRadius / (sendRadius + recvRadius);
-        TVec3f hitMtx = pSender->mPosition * temp + (pReceiver->mPosition) * (1.0f - temp);
+        TVec3f senderWeighted = *MR::getSensorPos(pSender) * temp;
+        TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * (1.0f - temp);
+        TVec3f hitMtx = senderWeighted + receiverWeighted;
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         MR::emitEffectHit(this, hitMtx, nullptr);
         MR::stopScene(8);
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvBlowKill));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill));
         MR::sendMsgPush(pReceiver, pSender);
         return;
     }
 
-    if (MR::isSensorPlayerOrRide(pReceiver)) {
+    if (MR::isSensorPlayerOrYoshiOrRide(pReceiver)) {
         bool isSensorBody = getSensor("body") != pSender;
         if (isSensorBody) {
-            if (!MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+            if (checkBlowAttack() || !MR::sendMsgEnemyAttack(pReceiver, pSender)) {
                 MR::sendMsgPush(pReceiver, pSender);
             }
         } else if (isAttackSensorValid() && MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
             MR::shakeCameraNormal();
             MR::tryRumblePadMiddle(this, WPAD_CHAN0);
-            if (isNerve(GET_NERVE_ANON(HammerHeadPackunNrvAttack)) && !MR::isNewNerve(this)) {
-                setNerve(GET_NERVE_ANON(HammerHeadPackunNrvHit));
+            if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack)) && !MR::isNewNerve(this)) {
+                setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvHit));
             } else {
                 mJointRumbler->start();
             }
@@ -408,7 +425,7 @@ bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         MR::emitEffectHit(this, hitMtx, nullptr);
         MR::stopScene(8);
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvBlowKill));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill));
         return true;
     }
 
@@ -435,16 +452,19 @@ bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
 
 bool HammerHeadPackun::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgToEnemyAttackBlow(msg) && !checkBlowAttack()) {
-        f32 sendRadius = pReceiver->mRadius;
-        f32 recvRadius = pSender->mRadius;
-        f32 temp = recvRadius / (recvRadius + sendRadius);
-        TVec3f hitMtx = pReceiver->mPosition * temp + (pSender->mPosition) * (1.0f - temp);
+        f32 sendRadius = MR::getSensorRadius(pReceiver);
+        sendRadius = MR::getSensorRadius(pSender) + sendRadius;
+        f32 temp = MR::getSensorRadius(pSender) / sendRadius;
+        TVec3f senderWeighted = *MR::getSensorPos(pSender) * (1.0f - temp);
+        TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * temp;
+        TVec3f hitMtx = receiverWeighted + senderWeighted;
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         MR::emitEffectHit(this, hitMtx, nullptr);
         MR::stopScene(8);
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvBlowKill));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill));
         return true;
     }
+
     return false;
 }
 
@@ -522,22 +542,47 @@ bool HammerHeadPackun::isInFieldOfView(const TVec3f& rPos) const {
 }
 
 bool HammerHeadPackun::isAttackSensorValid() const {
-    bool isValid = false;
-    if ((!isNerve(GET_NERVE_ANON(HammerHeadPackunNrvAttack)) || !MR::isNewNerve(this)) && !isNerve(GET_NERVE_ANON(HammerHeadPackunNrvRest)) &&
-        (!isNerve(GET_NERVE_ANON(HammerHeadPackunNrvRecover)) || !MR::isLessEqualStep(this, 40)) &&
-        !isNerve(GET_NERVE_ANON(HammerHeadPackunNrvDamage)) && (!isNerve(GET_NERVE_ANON(HammerHeadPackunNrvRise)) || !MR::isLessStep(this, 60)) &&
-        !isNerve(GET_NERVE_ANON(HammerHeadPackunNrvNumb)) && !isNerve(GET_NERVE_ANON(HammerHeadPackunNrvSmashKill)) &&
-        !isNerve(GET_NERVE_ANON(HammerHeadPackunNrvBlowKill))) {
-        isValid = true;
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill)) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill)) ||
+        isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock))) {
+        return false;
     }
-    return isValid;
+
+    if (_C4) {
+        return true;
+    }
+
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack)) && MR::isNewNerve(this)) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest))) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 40)) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage))) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessStep(this, 60)) {
+        return false;
+    }
+
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb))) {
+        return false;
+    }
+
+    return true;
 }
 
 bool HammerHeadPackun::isChance() const {
     bool isChance = false;
-    if (isNerve(GET_NERVE_ANON(HammerHeadPackunNrvRest)) && !MR::isNewNerve(this) || isNerve(GET_NERVE_ANON(HammerHeadPackunNrvDamage)) ||
-        isNerve(GET_NERVE_ANON(HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 50) ||
-        isNerve(GET_NERVE_ANON(HammerHeadPackunNrvRise)) && MR::isLessEqualStep(this, 30) || isNerve(GET_NERVE_ANON(HammerHeadPackunNrvNumb))) {
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest)) && !MR::isNewNerve(this) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage)) ||
+        isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 50) ||
+        isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessEqualStep(this, 30) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb))) {
         isChance = true;
     }
     return isChance;
@@ -588,7 +633,7 @@ void HammerHeadPackun::verticalizeFrontVec() {
 
 bool HammerHeadPackun::tryShiftNumb() {
     if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvNumb));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb));
         return true;
     }
     return false;
@@ -597,18 +642,18 @@ bool HammerHeadPackun::tryShiftNumb() {
 bool HammerHeadPackun::receiveMsgPlayerAttackChance(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDrop(msg)) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvSmashKill));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill));
         MR::sendMsgAwayJump(pSender, pReceiver);
         return true;
     } else if (MR::isMsgPlayerTrample(msg)) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
-        setNerve(GET_NERVE_ANON(HammerHeadPackunNrvSmashKill));
+        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill));
         return true;
     } else if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
         if (mImmunityTime >= 3u) {
-            setNerve(GET_NERVE_ANON(HammerHeadPackunNrvRise));
+            setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise));
         } else {
-            setNerve(GET_NERVE_ANON(HammerHeadPackunNrvDamage));
+            setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage));
         }
         return true;
     }

@@ -32,7 +32,7 @@ public:
     void exeSmashKill();
     void exeBlowKill();
     void exeBlowKillRock();
-    void appearStarPiece();
+    void appearStarPiece() NO_INLINE;
     void exeNumb();
     void endNumb();
     void initPosture();
@@ -59,4 +59,6 @@ public:
     /* 0xAC */ TVec3f _AC;
     /* 0xB8 */ JointRumbler* mJointRumbler;
     /* 0xBC */ s32 mNumbTime;
+    /* 0xC0 */ bool _C4;
+    /* 0xC1 */ bool _C5;
 };

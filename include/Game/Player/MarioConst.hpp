@@ -524,8 +524,8 @@ public:
 
 private:
     /// @brief The array of player character constant tables.
-    /* 0x00 */ MarioConstTable* mTable[2];
+    /* 0x00 */ MarioConstTable* mTable[3];  // SMG2: 3 tables (mCurrentTable read at 0xC)
 
     /// @brief The index of the working player character constant table.
-    /* 0x08 */ u32 mCurrentTable;
+    /* 0x0C */ u32 mCurrentTable;
 };

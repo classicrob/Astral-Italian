@@ -55,7 +55,7 @@ BombBird::~BombBird() {
 
 BombBird::BombBird(const char* pName)
     : LiveActor(pName), mHeldBomb(), mFront(0, 0, 1), mSearchPlayer(), mHoldBomb(), mFixedPos(), mSpinHitController(), mScaleController(),
-      mStarPointer() {
+      mStarPointer(), mStarPointer2() {
 }
 
 void BombBird::init(const JMapInfoIter& rIter) {
@@ -217,7 +217,7 @@ void BombBird::exeFlyOnRailSearch() {
 
         if (MR::isActionEnd(this) && !MR::isDemoActive()) {
             if (mHeldBomb) {
-                mHeldBomb->mScale.set(1.0f, 1.0f, 1.0f);
+                MR::setScale(mHeldBomb, 1.0f);
                 setNerve(GET_NERVE(BombBird, HostTypeNrvFlyWithAttack));
             } else {
                 setNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRail));
@@ -290,16 +290,19 @@ void BombBird::exeFlyWithAttack() {
     }
 }
 
+extern "C" void fn_8022BA10(LiveActor*);
+extern "C" void fn_8022BAA0(LiveActor*);
+
 void BombBird::exeBlow() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "DownSpin");
         MR::startActionSound(this, "EvBombbirdDead");
         MR::startActionSound(this, "EmBombbirdDamage");
         MR::startBlowHitSound(this);
-        MR::invalidateClipping(this);
     }
 
     if (mSpinHitController->execute(this)) {
+        fn_8022BA10(this);
         MR::startActionSound(this, "EmExplodeS");
         MR::emitEffect(this, "Death");
     }
@@ -452,7 +455,7 @@ void BombBird::exeTrample() {
 
     if (MR::isStep(this, 36)) {
         TVec3f pos(mPosition - mGravity * MR::getSensorRadius(this, "body"));
-        MR::appearCoinPop(this, pos, 1);
+        fn_8022BAA0(this);
         MR::startActionSound(this, "EmExplodeS");
         MR::emitEffect(this, "Death");
         kill();

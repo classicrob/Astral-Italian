@@ -5,6 +5,7 @@
 
 class AnimScaleController;
 class FootPrint;
+class YoshiLockOnTarget;
 
 class Petari : public LiveActor {
 public:
@@ -36,6 +37,14 @@ public:
     void exeSpinOut();
     void exeKickOut();
     void exeFreeze();
+    void exeSwoonFreeze();
+    void exeEaten() {}
+    void endSwoonFreeze();
+    bool tryFreeze();
+    bool trySwoonFreeze();
+    bool isEatable() const;
+    inline bool isFrozen() const;
+    inline bool isSwoonAny() const;
 
     void endApproach();
     void endWait();
@@ -47,7 +56,6 @@ public:
     void updateFootPrint();
     void initFrontVec();
     void initStarPiece(const JMapInfoIter& rIter);
-    bool reflectStarPointer2P();
     bool tryShiftApproach();
     bool tryApproachEnd();
     bool tryShiftJumpOut();
@@ -72,6 +80,7 @@ public:
 
     /* 0x8C */ AnimScaleController* mAnimScaleCtrl;
     /* 0x90 */ FootPrint* mFootPrint;
+    /* 0x98 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x94 */ f32 mFootprintYOffs;
     /* 0x98 */ bool mRequestSmoke;
     /* 0x9C */ TVec3f mFront;

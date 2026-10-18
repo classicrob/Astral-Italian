@@ -6,6 +6,23 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
+namespace YoshiFunction {
+    void tryYoshiEat(YoshiLockOnTarget*);
+}
+
+extern "C" void fn_80011180(LiveActor*, const TVec3f&, f32);
+extern "C" void fn_8022BA10(LiveActor*);
+extern "C" void fn_8022BAA0(LiveActor*);
+extern "C" void fn_80376C30(LiveActor*, u32, HitSensor*);
+
+namespace MR {
+    bool isMsgYoshiStartTongue(u32);
+    bool isMsgYoshiLoopTongue(u32);
+    bool isMsgYoshiCancelEaten(u32);
+    bool isMsgYoshiReleaseEaten(u32);
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
+}
+
 namespace {
     static TVec3f sInkShotOffset(0.0f, 20.0f, 0.0f);
     static const f32 sBaseScale = 1.0f;
@@ -79,56 +96,46 @@ namespace NrvTakoHei {
     NEW_NERVE(TakoHeiNrvAttackSign, TakoHei, AttackSign);
     NEW_NERVE(TakoHeiNrvAttack, TakoHei, Attack);
     NEW_NERVE(TakoHeiNrvAttackSuccess, TakoHei, AttackSuccess);
-    NEW_NERVE_ONEND(TakoHeiNrvBindStarPointer, TakoHei, BindStarPointer, BindStarPointer);
+    NEW_NERVE(TakoHeiNrvBindStarPointer, TakoHei, BindStarPointer);
     NEW_NERVE(TakoHeiNrvSwoon, TakoHei, Swoon);
     NEW_NERVE(TakoHeiNrvRecover, TakoHei, Recover);
     NEW_NERVE(TakoHeiNrvPressDown, TakoHei, PressDown);
     NEW_NERVE(TakoHeiNrvHipDropDown, TakoHei, HipDropDown);
     NEW_NERVE(TakoHeiNrvFlatDown, TakoHei, FlatDown);
     NEW_NERVE(TakoHeiNrvPunchDown, TakoHei, PunchDown);
+
+    class TakoHeiNrvDown : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static TakoHeiNrvDown sInstance;
+    };
+    TakoHeiNrvDown TakoHeiNrvDown::sInstance;
 };  // namespace NrvTakoHei
 
 TakoHei::TakoHei(const char* pName)
-    : LiveActor(pName), _8C(0), _90(0), _94(0.0f, 0.0f, 0.0f, 1.0f), _A4(0, 0, 0), _B0(0, 0, 1), _BC(0, 0, 0), _C8(0, 0, 1), _D4(0, 0, 0), _E0(0),
+    : LiveActor(pName), _8C(0), _90(0), mYoshiLockOn(0), _94(0.0f, 0.0f, 0.0f, 1.0f), _A4(0, 0, 0), _B0(0, 0, 1), _BC(0, 0, 0), _C8(0, 0, 1), _D4(0, 0, 0), _E0(0),
       _E4(0), _E8(0), _EC(0), _ED(0) {
     MR::createTakoHeiInkHolder();
 }
 
 void TakoHei::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    mScale.mult(::sBaseScale);
     MR::initActor(this, rIter, "TakoHei", false);
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    MR::onCalcGravity(this);
     _D4 = mPosition;
     MR::makeQuatAndFrontFromRotate(&_94, &_B0, this);
     MR::addToAttributeGroupSearchTurtle(this);
-    initBinder(::sCollisionRadius * mScale.y, ::sCollisionRadius * mScale.y, 0);
-    initEffectKeeper(0, nullptr, false);
-    initSound(4, "TakoHei", nullptr, TVec3f(0.0f));
-    initSensor();
-    MR::initShadowVolumeSphere(this, ::sShadowRadius);
-    initNerve(GET_NERVE(TakoHei, TakoHeiNrvWait));
+    initNerve(GET_NERVE(TakoHei, TakoHeiNrvWait), 1);
     _8C = new AnimScaleController(nullptr);
     _90 = new WalkerStateBindStarPointer(this, _8C);
-
-    MR::declareStarPiece(this, 3);
-    MR::declareCoin(this, 1);
-    makeActorAppeared();
+    MR::initActorState(this, _90, GET_NERVE(TakoHei, TakoHeiNrvBindStarPointer), "SupportFreeze");
+    MR::useStageSwitchAwake(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, MR::getJointMtx(this, "Center"), TVec3f(0.0f));
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void TakoHei::initAfterPlacement() {
     MR::turnQuatUpToGravity(&_94, _94, this);
     _ED = MR::trySetMoveLimitCollision(this);
-}
-
-void TakoHei::initSensor() {
-    const f32 scaleX = mScale.x;
-    initHitSensor(2);
-    MR::addHitSensorEnemyAttack(this, "attack", 8, ::sAttackHitRadius * scaleX, TVec3f(0.0f, ::sAttackHitYOffset * scaleX, 0.0f));
-    MR::addHitSensorEnemy(this, "body", 8, ::sBodyHitRadius * scaleX, TVec3f(0.0f, ::sBodyHitYOffset * scaleX, 0.0f));
-    MR::initStarPointerTarget(this, ::sPointerHitSize * mScale.y, TVec3f(0.0f, ::sPointerHitSize * mScale.y, 0.0f));
 }
 
 void TakoHei::kill() {
@@ -146,12 +153,27 @@ void TakoHei::control() {
     }
 
     _8C->updateNerve();
-    if (_E4 != 0) {
-        _E4--;
+    if (_E0 != 0) {
+        _E0--;
+    }
+
+    if (MR::isBindedGround(this)) {
+        _E8 = 0;
+    } else {
+        _E8++;
+    }
+
+    if (_E8 >= 5) {
+        MR::invalidateClipping(this);
+    } else {
+        MR::validateClipping(this);
     }
 
     updatePose();
     tryPressed();
+    if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f))) {
+        kill();
+    }
 }
 
 void TakoHei::calcAndSetBaseMtx() {
@@ -160,6 +182,10 @@ void TakoHei::calcAndSetBaseMtx() {
 }
 
 void TakoHei::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(&NrvTakoHei::TakoHeiNrvDown::sInstance)) {
+        return;
+    }
+
     if (MR::isSensorEnemyAttack(pSender)) {
         if (MR::isSensorPlayer(pReceiver) && canAttack()) {
             if (!MR::isPlayerHipDropFalling() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
@@ -168,7 +194,7 @@ void TakoHei::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 MR::sendMsgPush(pReceiver, pSender);
             }
         }
-    } else if ((MR::isSensorPlayer(pReceiver) && !canAttack()) || MR::isSensorEnemy(pReceiver)) {
+    } else if ((MR::isSensorPlayer(pReceiver) && !canAttack()) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
         if (MR::sendMsgPush(pReceiver, pSender) && isPushMovable()) {
             TVec3f sensorDirection;
             MR::calcSensorDirectionNormalize(&sensorDirection, pReceiver, pSender);
@@ -188,7 +214,7 @@ bool TakoHei::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
                 MR::calcSensorDirectionNormalize(&sensorDirection, pSender, pReceiver);
                 mVelocity += sensorDirection * (MR::isSensorPlayer(pSender) ? ::sPushMarioAccel : ::sPushAccel);
                 _8C->startAndAddScaleVelocityY(MR::isSensorPlayer(pSender) ? ::sPushScaleYMarioSpeed : ::sPushScaleYSpeed);
-                _E4 = MR::isSensorPlayer(pSender) ? ::sNoPushMarioTime : ::sNoPushTime;
+                _E0 = MR::isSensorPlayer(pSender) ? ::sNoPushMarioTime : ::sNoPushTime;
             }
             return true;
         }
@@ -211,19 +237,27 @@ bool TakoHei::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     }
 
     if (MR::isMsgInvincibleAttack(msg)) {
-        return requestPunch(pReceiver, pSender);
+        return requestPunch(msg, pReceiver, pSender);
     }
 
     if (MR::isMsgPlayerHipDrop(msg)) {
-        return requestHipDropDown();
+        if (requestHipDropDown()) {
+            fn_80376C30(this, msg, nullptr);
+            return true;
+        }
+        return false;
     }
 
     if (MR::isMsgPlayerTrample(msg)) {
-        return requestFlatDown();
+        if (requestFlatDown()) {
+            fn_80376C30(this, msg, nullptr);
+            return true;
+        }
+        return false;
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
-        return requestPunch(pReceiver, pSender);
+        return requestPunch(msg, pReceiver, pSender);
     }
 
     return false;
@@ -239,14 +273,39 @@ bool TakoHei::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     }
 
     if (MR::isMsgToEnemyAttackBlow(msg)) {
-        return requestPunch(pReceiver, pSender);
+        return requestPunch(msg, pReceiver, pSender);
     }
 
     return false;
 }
 
 bool TakoHei::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerKick(msg) && isEnableKick() && requestPunch(pReceiver, pSender)) {
+    if (MR::isMsgPlayerKick(msg) && isEnableKick() && requestPunch(msg, pReceiver, pSender)) {
+        return true;
+    }
+
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        setNerve(&NrvTakoHei::TakoHeiNrvDown::sInstance);
+        return true;
+    }
+
+    if (MR::isMsgYoshiLoopTongue(msg)) {
+        return true;
+    }
+
+    if (MR::isMsgYoshiReleaseEaten(msg)) {
+        if (MR::isValidSwitchDead(this)) {
+            MR::onSwitchDead(this);
+        }
+        makeActorDead();
+        return true;
+    }
+
+    if (MR::isMsgYoshiCancelEaten(msg)) {
+        if (MR::isValidSwitchDead(this)) {
+            MR::onSwitchDead(this);
+        }
+        makeActorDead();
         return true;
     }
 
@@ -258,7 +317,6 @@ bool TakoHei::requestPressDown() {
         MR::clearHitSensors(this);
         MR::invalidateHitSensors(this);
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvPressDown));
-        _E0 = 1;
         return true;
     }
 
@@ -270,7 +328,6 @@ bool TakoHei::requestHipDropDown() {
         MR::clearHitSensors(this);
         MR::invalidateHitSensors(this);
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvHipDropDown));
-        _E0 = 1;
         return true;
     }
 
@@ -282,7 +339,6 @@ bool TakoHei::requestFlatDown() {
         MR::clearHitSensors(this);
         MR::invalidateHitSensors(this);
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvFlatDown));
-        _E0 = 1;
         return true;
     }
 
@@ -298,13 +354,13 @@ bool TakoHei::requestSwoon() {
     return false;
 }
 
-bool TakoHei::requestPunch(HitSensor* pReceiver, HitSensor* pSender) {
+bool TakoHei::requestPunch(u32 msg, HitSensor* pReceiver, HitSensor* pSender) {
     if (!isDown()) {
         MR::clearHitSensors(this);
         MR::invalidateHitSensors(this);
         MR::addVelocitySeparateHV(this, pSender, pReceiver, ::sPunchHorizonPower, ::sPunchVerticalPower);
         setNerve(GET_NERVE(TakoHei, TakoHeiNrvPunchDown));
-        _E0 = 2;
+        fn_80376C30(this, msg, pSender);
         return true;
     }
 
@@ -505,7 +561,7 @@ void TakoHei::exeWait() {
         MR::startBtp(this, "Open");
     }
 
-    if (_E4 == 1) {
+    if (_E0 == 1) {
         MR::startBtp(this, "Open");
     }
 
@@ -514,6 +570,7 @@ void TakoHei::exeWait() {
     }
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind() || tryFindTurn() || tryWalk() || tryNonActive()) {
         // needed to get unused comparison to generate
@@ -528,7 +585,7 @@ void TakoHei::exeWalk() {
         decideNextTargetPos();
     }
 
-    if (_E4 == 1) {
+    if (_E0 == 1) {
         MR::startBtp(this, "Open");
     }
 
@@ -543,6 +600,7 @@ void TakoHei::exeWalk() {
     }
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind() || tryFindTurn() || tryWalkEnd()) {
         return;
@@ -556,13 +614,14 @@ void TakoHei::exeFindTurn() {
         MR::startActionSound(this, "EmTakoheiFind");
     }
 
-    if (_E4 == 1) {
+    if (_E0 == 1) {
         MR::startBtp(this, "Open");
     }
 
     MR::turnDirectionToTargetDegree(this, &_B0, *MR::getPlayerPos(), ::sFindTurnDegree);
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind() || tryFind()) {
         return;
@@ -576,6 +635,7 @@ void TakoHei::exeFind() {
     }
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind() || tryPursue()) {
         return;
@@ -588,14 +648,14 @@ void TakoHei::exePursue() {
         MR::startBtp(this, "Blink");
     }
 
-    if (_E4 == 1) {
+    if (_E0 == 1) {
         MR::startBtp(this, "Blink");
     }
 
     bool isFarPlayer = false;
 
     if (MR::isNearPlayer(this, 700.0f)) {
-        MR::addVelocityAwayFromTarget(this, *MR::getPlayerPos(), ::sPursueAccel);
+        fn_80011180(this, *MR::getPlayerPos(), ::sPursueAccel);
     } else {
         MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), ::sPursueAccel);
         isFarPlayer = true;
@@ -604,6 +664,7 @@ void TakoHei::exePursue() {
     MR::turnDirectionToTargetDegree(this, &_B0, *MR::getPlayerPos(), ::sPursueTurnDegree);
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (isFarPlayer) {
         if (checkFront()) {
@@ -623,13 +684,14 @@ void TakoHei::exeCoolDown() {
         MR::startBtp(this, "Cry");
     }
 
-    if (_E4 == 1) {
+    if (_E0 == 1) {
         MR::startBtp(this, "Cry");
     }
 
     MR::turnDirectionToTargetDegree(this, &_B0, *MR::getPlayerPos(), 0.0f);
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind() || tryCoolDownEnd()) {
         return;
@@ -651,6 +713,7 @@ void TakoHei::exeAttackSign() {
     }
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind()) {
         return;
@@ -673,6 +736,7 @@ void TakoHei::exeAttack() {
     }
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind()) {
         return;
@@ -690,6 +754,7 @@ void TakoHei::exeAttackSuccess() {
     }
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryPointBind() || tryAttackSuccessEnd()) {
         return;
@@ -697,11 +762,7 @@ void TakoHei::exeAttackSuccess() {
 }
 
 void TakoHei::exeBindStarPointer() {
-    MR::updateActorStateAndNextNerve(this, _90, GET_NERVE(TakoHei, TakoHeiNrvWait));
-}
-
-void TakoHei::endBindStarPointer() {
-    _90->kill();
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(TakoHei, TakoHeiNrvWait));
 }
 
 void TakoHei::exeSwoon() {
@@ -718,7 +779,12 @@ void TakoHei::exeSwoon() {
         MR::startActionSound(this, "EmLvSwoonS");
     }
 
-    updateSwoonVelocity();
+    updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
+
+    if (MR::isGreaterStep(this, 60) && tryPointBind()) {
+        return;
+    }
 
     if (tryRecover()) {
         return;
@@ -733,6 +799,7 @@ void TakoHei::exeRecover() {
     }
 
     updateNormalVelocity();
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (tryRecoverEnd()) {
         return;
@@ -748,6 +815,7 @@ void TakoHei::exePressDown() {
     }
 
     if (MR::isGreaterStep(this, ::sPressDownTime)) {
+        fn_8022BAA0(this);
         kill();
     }
 }
@@ -761,6 +829,7 @@ void TakoHei::exeHipDropDown() {
     }
 
     if (MR::isGreaterStep(this, ::sHipDropDownTime)) {
+        fn_8022BAA0(this);
         kill();
     }
 }
@@ -774,6 +843,7 @@ void TakoHei::exeFlatDown() {
     }
 
     if (MR::isGreaterStep(this, ::sFlatDownTime)) {
+        fn_8022BAA0(this);
         kill();
     }
 }
@@ -786,11 +856,13 @@ void TakoHei::exePunchDown() {
         MR::stopScene(::sPunchStopSceneTime);
         MR::startActionSound(this, "EmTakoheiHitpunch");
         MR::startBlowHitSound(this);
+        _E8 = 10;
     }
 
     updateNormalVelocity();
 
     if (MR::isGreaterStep(this, ::sPunchDownTime) || (MR::isBinded(this) && MR::isGreaterStep(this, 5))) {
+        fn_8022BA10(this);
         kill();
     }
 }
@@ -799,26 +871,18 @@ void TakoHei::updatePose() {
     MR::blendQuatUpFront(&_94, MR::isBindedGround(this) ? MR::getGroundNormal(this) : -mGravity, _B0, 0.1f, 0.2f);
 }
 
+// NONMATCHING: branch block order (target emits the airborne path first, shared attenuate call after the ground lfs)
 void TakoHei::updateNormalVelocity() {
-    if (MR::isBindedGround(this)) {
-        MR::attenuateVelocity(this, ::sNormalGroundFrec);
+    f32 frec;
+    if (!MR::isBindedGround(this)) {
+        MR::addVelocityToGravity(this, 1.0f);
+        frec = (_E8 >= 5) ? ::sNormalAirFrec : ::sNormalGroundFrec;
     } else {
-        MR::addVelocityToGravity(this, ::sNormalGravityAccel);
-        MR::attenuateVelocity(this, ::sNormalAirFrec);
+        frec = ::sNormalGroundFrec;
     }
 
-    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
-}
-
-void TakoHei::updateSwoonVelocity() {
-    if (MR::isBindedGround(this)) {
-        MR::attenuateVelocity(this, ::sSwoonGroundFrec);
-    } else {
-        MR::addVelocityToGravity(this, ::sSwoonGravityAccel);
-        MR::attenuateVelocity(this, ::sNormalAirFrec);
-    }
-
-    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+    MR::attenuateVelocity(this, frec);
+    MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void TakoHei::decideNextTargetPos() {
@@ -846,7 +910,7 @@ bool TakoHei::canAttack() const {
 }
 
 bool TakoHei::isPushMovable() const {
-    if (_E4 > 0) {
+    if (_E0 > 0) {
         return false;
     }
 
@@ -855,7 +919,7 @@ bool TakoHei::isPushMovable() const {
     }
 
     if (isNerve(GET_NERVE(TakoHei, TakoHeiNrvNonActive)) || isNerve(GET_NERVE(TakoHei, TakoHeiNrvAttackSuccess)) ||
-        isNerve(GET_NERVE(TakoHei, TakoHeiNrvBindStarPointer)) || isNerve(GET_NERVE(TakoHei, TakoHeiNrvSwoon))) {
+        isNerve(GET_NERVE(TakoHei, TakoHeiNrvBindStarPointer)) || isNerve(GET_NERVE(TakoHei, TakoHeiNrvSwoon)) || isNerve(&NrvTakoHei::TakoHeiNrvDown::sInstance)) {
         return false;
     } else {
         return true;

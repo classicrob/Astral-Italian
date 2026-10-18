@@ -2,10 +2,11 @@
 
 #include "Game/Enemy/KameckBeam.hpp"
 
-class ActiveActorList;
+class KameckBeamHolder;
 class AnimScaleController;
 class SmallKameckBeamEventListener;
 class WalkerStateBindStarPointer;
+class YoshiLockOnTarget;
 
 /// @brief Magikoopa
 class Kameck : public LiveActor {
@@ -13,6 +14,7 @@ public:
     Kameck(const char*);
 
     virtual void init(const JMapInfoIter& rIter);
+    virtual void initAfterPlacement();
     virtual void makeActorDead();
     virtual void appear();
     virtual void kill();
@@ -48,6 +50,7 @@ public:
     void killForce();
     void resetBeam();
     bool isEnableAttack() const;
+    bool isEnableEat() const;
     bool isEnableDown() const;
     bool isEnableGurad() const;
     bool tryNonActive();
@@ -64,26 +67,25 @@ public:
     bool tryAttackWait();
     bool tryAttack();
     bool tryAttackEnd();
-    bool tryHitEnd();
-    bool tryMove();
-    bool tryMoveEnd();
     bool tryPointBind();
-    void hitBeam(s32);
     void setBeamType(s32);
     void makeActorDeadForce();
 
     /* 0x8C */ KameckBeam* mBeam;
-    /* 0x90 */ ActiveActorList* mActiveActorList;
+    /* 0x90 */ KameckBeamHolder* mActiveActorList;
     /* 0x94 */ SmallKameckBeamEventListener* mBeamEventListener;
     /* 0x98 */ AnimScaleController* mAnimScaleController;
     /* 0x9C */ WalkerStateBindStarPointer* mStateBindStarPointer;
     /* 0xA0 */ TQuat4f mRotateQuat;
     /* 0xB0 */ TVec3f mFrontVec;
-    /* 0xBC */ s32 mBeamType;
     /* 0xC0 */ s32 mMoveStep;
     /* 0xC4 */ f32 mRailCoord;
     /* 0xC8 */ f32 mRailNextPointCoord;
-    /* 0xCC */ f32 mActiveDistance;
+    /* 0xCC */ s32 mBeamType;
+    /* 0xD0 */ s32 mBeamCount;
+    /* 0xD4 */ s32 mShootTiming;
+    /* 0xD8 */ f32 mActiveDistance;
+    /* 0xDC */ YoshiLockOnTarget* mYoshiLockOn;
 };
 
 class SmallKameckBeamEventListener : public KameckBeamEventListener {

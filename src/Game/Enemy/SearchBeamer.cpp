@@ -22,6 +22,7 @@ namespace NrvSearchBeamer {
     NEW_NERVE(SearchBeamerNrvStop, SearchBeamer, Stop);
     NEW_NERVE(SearchBeamerNrvStopForPlayerOff, SearchBeamer, StopForPlayerOff);
     NEW_NERVE(SearchBeamerNrvRecover, SearchBeamer, Recover);
+    NEW_NERVE(SearchBeamerNrvEaten, SearchBeamer, Eaten);
     NEW_NERVE_ONEND(SearchBeamerNrvDPDSwoon, SearchBeamer, DPDSwoon, DPDSwoon);
 };  // namespace NrvSearchBeamer
 
@@ -69,28 +70,30 @@ void SearchBeamer::init(const JMapInfoIter& rIter) {
     mScaleController->setParamTight();
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
 
-    MR::initShadowController(this, 2);
+    MR::initShadowControllerList(this, 2);
     MR::addShadowVolumeCylinder(this, "body", 80.0f);
     MR::addShadowVolumeBox(this, "beam", TVec3f(10.0f, 10.0f, 100.0f), MR::getJointMtx(this, "BeamStart"));
     MR::setShadowVolumeStartDropOffset(this, "body", 100.0f);
     MR::invalidateShadow(this, "beam");
     MR::setShadowDropLength(this, "body", 200.0f);
     MR::setShadowDropLength(this, "beam", 200.0f);
-    MR::useStageSwitchSleep(this, rIter);
-    MR::useStageSwitchReadA(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
 
     mPropellerJointCtrl = MR::createJointController(this, "Propeller", &SearchBeamer::calcJointPropeller);
     _B0 = 40.0f;
     mBeanStartJointCtrl = MR::createJointController(this, "BeamStart", &SearchBeamer::calcJointBeamStart);
     mBeamEndJointCtrl = MR::createJointController(this, "BeamEnd", &SearchBeamer::calcJointBeamEnd);
     initBeamPos();
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
     MR::getJMapInfoArg0NoInit(rIter, &_138);
     MR::getJMapInfoArg1NoInit(rIter, &_13C);
     _140 = 300.0f + _13C;
     MR::calcFrontVec(&_94, this);
     MR::calcUpVec(&_A0, this);
     mGravity.negate(_A0);
-    initNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvCloseWaitFar));
+    initNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvCloseWaitFar), 1);
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(SearchBeamer, SearchBeamerNrvDPDSwoon), "SupportFreeze");
     makeActorAppeared();
 }
 
@@ -304,7 +307,7 @@ void SearchBeamer::exeDPDSwoon() {
         MR::validateClipping(this);
     }
 
-    MR::updateActorStateAndNextNerve(this, mBindStarPointer, GET_NERVE(SearchBeamer, SearchBeamerNrvCloseWaitNear));
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(SearchBeamer, SearchBeamerNrvCloseWaitNear));
 }
 
 void SearchBeamer::calcAndSetBaseMtx() {
@@ -321,13 +324,17 @@ void SearchBeamer::control() {
     mScaleController->updateNerve();
     updatePropeller();
 
-    if (tryDPDSwoon()) {
-        return;
+    if (isEatable()) {
+        YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
+
+    tryDPDSwoon();
 }
 
 void SearchBeamer::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayer(pReceiver)) {
+    if (MR::isSensorYoshi(pReceiver)) {
+        MR::sendMsgPush(pReceiver, pSender);
+    } else if (MR::isSensorPlayer(pReceiver)) {
         if (MR::isSensorEnemyAttack(pSender)) {
             MR::sendMsgEnemyAttackElectric(pReceiver, pSender);
         } else if (MR::isSensorEnemy(pSender)) {
@@ -366,6 +373,29 @@ bool SearchBeamer::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
 }
 
 bool SearchBeamer::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgYoshiStartTongue(msg)) {
+        if (isEatable()) {
+            MR::deleteEffectAll(this);
+            MR::invalidateHitSensor(this, "beam");
+            MR::invalidateShadow(this, "beam");
+            initBeamPos();
+            MR::validateClipping(this);
+            setNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvCloseWaitNear));
+            return false;
+        }
+    }
+
+    if (MR::isMsgYoshiLoopTongue(msg)) {
+        return true;
+    }
+
+    if (!MR::isMsgYoshiReleaseEaten(msg)) {
+        if (MR::isMsgYoshiCancelEaten(msg)) {
+            kill();
+            return true;
+        }
+    }
+
     if (MR::isMsgFloorTouch(msg)) {
         if (isNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvStopForPlayerOff))) {
             setNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvStopForPlayerOff));
@@ -379,16 +409,17 @@ bool SearchBeamer::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
 }
 
 void SearchBeamer::updateHitSensor(HitSensor* pSensor) {
-    if (!pSensor->mValidByHost) {
-        pSensor->mPosition.set(mBeamStart);
+    if (!MR::isSensorValid(pSensor)) {
+        MR::setSensorPos(pSensor, mBeamStart);
         return;
     }
 
+    MR::getSensorRadius(pSensor);
     TVec3f v7;
     TVec3f up;
     MR::getPlayerUpVec(&up);
     v7.scaleAdd(-20.0f, up, *MR::getPlayerCenterPos());
-    MR::calcPerpendicFootToLineInside(&pSensor->mPosition, v7, mPosition, mBeamEnd);
+    MR::calcPerpendicFootToLineInside(MR::getSensorPos2(pSensor), v7, mPosition, mBeamEnd);
 }
 
 bool SearchBeamer::calcJointPropeller(TPos3f* pPos, const JointControllerInfo& rInfo) {
@@ -444,9 +475,9 @@ void SearchBeamer::updateBeamEffect(bool a1) {
 void SearchBeamer::updateBeamShadow() {
     f32 dist = mPosition.distance(mBeamEnd);
     TVec3f v5;
-    v5.z = dist;
     v5.x = 15.0f;
     v5.y = 15.0f;
+    v5.z = dist;
     MR::setShadowVolumeBoxSize(this, "beam", v5);
     TVec3f v4;
     v4.x = 0.0f;
@@ -570,6 +601,10 @@ bool SearchBeamer::tryDPDSwoon() {
 
     setNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvDPDSwoon));
     return true;
+}
+
+bool SearchBeamer::isEatable() const {
+    return !isNerve(GET_NERVE(SearchBeamer, SearchBeamerNrvEaten));
 }
 
 void SearchBeamer::endNonActive() {

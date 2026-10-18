@@ -5,6 +5,7 @@
 class AnimScaleController;
 class HitSensor;
 class WalkerStateBindStarPointer;
+class YoshiLockOnTarget;
 
 class TakoHei : public LiveActor {
 public:
@@ -22,13 +23,11 @@ public:
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    void initSensor();
-
     bool requestPressDown();
     bool requestHipDropDown();
     bool requestFlatDown();
     bool requestSwoon();
-    bool requestPunch(HitSensor*, HitSensor*);
+    bool requestPunch(u32, HitSensor*, HitSensor*);
     bool requestAttackSuccess(HitSensor*, HitSensor*);
 
     bool tryActive();
@@ -58,7 +57,6 @@ public:
     void exeAttack();
     void exeAttackSuccess();
     void exeBindStarPointer();
-    void endBindStarPointer();
     void exeSwoon();
     void exeRecover();
     void exePressDown();
@@ -68,7 +66,6 @@ public:
 
     void updatePose();
     void updateNormalVelocity();
-    void updateSwoonVelocity();
     void decideNextTargetPos();
 
     bool checkFront() const;
@@ -81,15 +78,16 @@ public:
 
     /* 0x8C */ AnimScaleController* _8C;
     /* 0x90 */ WalkerStateBindStarPointer* _90;
+    /* 0x98 */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x94 */ TQuat4f _94;
     /* 0xA4 */ TVec3f _A4;
     /* 0xB0 */ TVec3f _B0;
     /* 0xBC */ TVec3f _BC;
     /* 0xC8 */ TVec3f _C8;
     /* 0xD4 */ TVec3f _D4;
-    /* 0xE0 */ u32 _E0;
+    /* 0xE0 */ s32 _E0;
     /* 0xE4 */ s32 _E4;
-    /* 0xE8 */ u32 _E8;
+    /* 0xE8 */ s32 _E8;
     /* 0xEC */ u8 _EC;
     /* 0xED */ u8 _ED;
 };

@@ -40,6 +40,9 @@
 #include "Game/Util/TalkUtil.hpp"
 #include <cstdio>
 
+// SMG2 2-arg tryFindNamePos (no symbol name in symbols.txt)
+extern "C" void fn_8004E770(const char*, MtxPtr);
+
 void Dodoryu_FORCE_MATCH(DodoryuStateBase* pState, TPos3f* pMtx, TVec3f* pVec) {
     pVec->setAll< f32 >(0.0f);
     pState->DodoryuStateBase::catchSendPlayerFlying(nullptr, nullptr);
@@ -287,20 +290,21 @@ void Dodoryu::init(const JMapInfoIter& rIter) {
     MR::initLightCtrl(this);
     MR::initFur(this);
     initHitSensor();
-    initSound(8, "Dodoryu", nullptr, TVec3f(0.0f));
+    TVec3f zero;
+    zero.x = 0.0f;
+    zero.y = 0.0f;
+    zero.z = 0.0f;
+    initSound(8, "Dodoryu", nullptr, zero);
     initRailRider(rIter);
     MR::moveCoordToNearestPos(this, mPosition);
     initSwitch(rIter);
     initEffectKeeper(0, nullptr, false);
-    MR::initShadowFromCSV(this, "Shadow");
+    MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     MR::declareCameraRegisterVec(this, 0, &_BC);
     MR::declareGlobalEventCameraFixedThere(::sSpinOutCamera, true, 0.0f);
     createMogucchiHill();
     mLeadHill = new DodoryuLeadHill(this);
     createDodoryuBank();
-    mRabbit = new DodoryuRabbit(this, rIter);
-    MR::declarePowerStar(this);
-    MR::createDepthOfFieldBlur();
     MR::declareStarPiece(this, 24);
     MR::createCenterScreenBlur();
     _148->mMatrix.setInline(MR::getZonePlacementMtx(rIter));
@@ -313,6 +317,7 @@ void Dodoryu::init(const JMapInfoIter& rIter) {
         MR::onSwitchB(this);
     }
 
+    MR::useStageSwitchWriteAutoDead(this, rIter);
     makeActorAppeared();
 }
 
@@ -331,13 +336,11 @@ void Dodoryu::control() {
 
 void Dodoryu::startClipped() {
     LiveActor::startClipped();
-    MR::validateClipping(mRabbit);
     mState[_CC]->catchStartClipped();
 }
 
 void Dodoryu::endClipped() {
     LiveActor::endClipped();
-    MR::invalidateClipping(mRabbit);
     mState[_CC]->catchEndClipped();
 }
 
@@ -398,7 +401,6 @@ void Dodoryu::notifyOnSwitchA() {
     MR::invalidateClipping(mHill);
     MR::invalidateClipping(mLeadHill);
     MR::invalidateClipping(mBank);
-    MR::invalidateClipping(mRabbit);
     _144 = 1;
     mHill->setAppearNum(mHill->_94);
 }
@@ -409,19 +411,14 @@ void Dodoryu::nextState() {
     _CC++;
 
     if (_CC >= mState.size()) {
-        MR::startAfterBossBGM();
-        MR::requestAppearPowerStar(this, mPosition);
-        mRabbit->setNerve(GET_NERVE_ANON(DodoryuRabbitNrvRabbitReturn));
+        MR::startAfterBossRushBGM();
 
         if (MR::isValidSwitchB(this)) {
             MR::onSwitchB(this);
         }
 
-        MR::setImageEffectControlAuto();
         kill();
     } else {
-        MR::turnOnDepthOfField(true);
-        MR::setDepthOfFieldBlurIntensity(0.75f);
         mState[_CC]->start();
     }
 }
@@ -431,7 +428,6 @@ void Dodoryu::pauseOff() {
     mHill->pauseOff();
     MR::requestMovementOn(mLeadHill);
     MR::requestMovementOn(mBank);
-    MR::requestMovementOn(mRabbit);
     MR::requestEffectStopSceneEnd();
 }
 
@@ -451,7 +447,7 @@ void Dodoryu::getPlayerResetMtx(TPos3f* pMtx, u32 param2) const {
     char buf[64];
     snprintf(buf, sizeof(buf), "マリオ再セット%d", param2 + 1);
 
-    MR::tryFindNamePos(buf, (MtxPtr)pMtx);
+    fn_8004E770(buf, (MtxPtr)pMtx);
 }
 
 bool Dodoryu::checkWallWithVelocity() {
@@ -675,17 +671,16 @@ void Dodoryu::displayRabbitMessage() {
 
 void Dodoryu::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mBaseMtx);
-    TVec3f scale = mAnimScaleCtrl->_C * mScale;
-    MR::setBaseScale(this, scale);
+    MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
 void Dodoryu::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensor(pSender, ::sStarPieceSensorName)) {
+    if (MR::isEqualSensor(pSender, this, ::sStarPieceSensorName)) {
         return;
     }
 
     if (MR::isSensorMapObj(pReceiver)) {
-        if (MR::isSensor(pSender, ::sMapObjSensorName)) {
+        if (MR::isEqualSensor(pSender, this, ::sMapObjSensorName)) {
             MR::sendMsgEnemyAttack(pReceiver, pSender);
         }
     } else {
@@ -694,7 +689,7 @@ void Dodoryu::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool Dodoryu::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensor(pReceiver, ::sStarPieceSensorName)) {
+    if (MR::isEqualSensor(pReceiver, this, ::sStarPieceSensorName)) {
         if (MR::isMsgStarPieceAttack(msg)) {
             MR::startActionSound(this, "SE_OJ_STAR_PIECE_HIT_STOP", -1, -1, -1);
             mAnimScaleCtrl->startHitReaction();
@@ -732,11 +727,11 @@ void Dodoryu::initHitSensor() {
 }
 
 void Dodoryu::initSwitch(const JMapInfoIter& rIter) {
-    if (MR::useStageSwitchReadA(this, rIter)) {
-        MR::listenStageSwitchOnA(this, MR::Functor(this, &Dodoryu::notifyOnSwitchA));
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
+        MR::listenStageSwitchOnA(this, MR::Functor_Inline(this, &Dodoryu::notifyOnSwitchA));
     }
 
-    MR::useStageSwitchWriteB(this, rIter);
+    MR::initUseStageSwitchWriteB(this, rIter);
 }
 
 void Dodoryu::createMogucchiHill() {
@@ -1101,7 +1096,7 @@ void DodoryuLeadHill::init(const JMapInfoIter& rIter) {
     MR::initLightCtrl(this);
     TVec3f zero;
     zero.setAll<f32>(0.0f);
-    initSound(8, "DodoryuLeadHill", nullptr, zero);
+    initSound(8, "Dodoryu", nullptr, zero);
     initEffectKeeper(8, nullptr, false);
     mPosition.setTrans(mHostBaseMtx);
     initJoint();

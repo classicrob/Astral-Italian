@@ -15,6 +15,7 @@ public:
     virtual void initAfterPlacement();
     virtual void makeActorAppeared();
     virtual void kill();
+    virtual void makeActorDead();
     virtual void control();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);

@@ -12,6 +12,7 @@ class KameckBeamHolder : public DeriveActorGroup< KameckBeam > {
 public:
     /// @brief Creates a new `KameckBeamHolder`.
     KameckBeamHolder();
+    KameckBeamHolder(s32, s32, s32);
 };
 
 class KameckFireBallHolder : public DeriveActorGroup< KameckFireBall > {

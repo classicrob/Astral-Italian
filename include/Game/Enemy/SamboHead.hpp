@@ -15,6 +15,8 @@ public:
     virtual void appear();
     virtual void kill();
     virtual void control();
+    bool isNerveTypeDead() const;
+    bool isStarPointerBindable() const;
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
     virtual bool receiveMsgPush(HitSensor*, HitSensor*);

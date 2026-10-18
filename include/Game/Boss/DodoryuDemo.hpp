@@ -25,6 +25,7 @@ public:
     void exeHide();
 
     /* 0x90 */ ActorCameraInfo mActorCameraInfo;
+    /* 0x9C */ bool _9C;  // SMG2 adds a bool after the camera info (object size 0xA0)
 };
 
 class DodoryuDemoAppear : public DodoryuStateBase {

@@ -11,6 +11,19 @@ class ValueControl;
 class Pukupuku;
 class WalkerStateBindStarPointer;
 class AnimScaleController;
+class YoshiLockOnTarget;
+
+namespace YoshiFunction {
+    void tryYoshiEat(YoshiLockOnTarget*);
+};
+
+namespace MR {
+    bool isMsgYoshiStartTongue(u32);
+    bool isMsgYoshiLoopTongue(u32);
+    bool isMsgYoshiCancelEaten(u32);
+    bool isMsgYoshiReleaseEaten(u32);
+    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
+};  // namespace MR
 
 class PukupukuStateLanding : public ActorStateBase< Pukupuku > {
 public:
@@ -44,6 +57,7 @@ public:
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
+    virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void updatePoseByRailIgnoreUpScale();
@@ -51,6 +65,7 @@ public:
     void calcGroundHitMtx(TPos3f* pMtx) const;
     bool isReadyToJumpFromLand() const NO_INLINE;
     bool isDamaged() const;
+    NO_INLINE bool isEatable() const;
     void exeWait();
     void exeMoveWater();
     void exeMoveWaterAfterJump();
@@ -58,6 +73,7 @@ public:
     void exeTrampled();
     void exeBlownOff();
     void exeBindStarPointer();
+    void exeEaten() {}
     void updatePoseByRail();
     void updateMoveWaterAfterJump();
     bool tryBindStarPointer();
@@ -87,6 +103,7 @@ public:
     /* 0xA8 */ TQuat4f _A8;
     /* 0xB8 */ AnimScaleController* mScaleCtrl;
     /* 0xBC */ WalkerStateBindStarPointer* mStarPointer;
+    /* 0xC0 */ YoshiLockOnTarget* mYoshiLockOn;  // SMG2 extra field
     /* 0xC0 */ const char* _C0;
     /* 0xC4 */ Nerve* _C4;
     /* 0xC8 */ f32 _C8;

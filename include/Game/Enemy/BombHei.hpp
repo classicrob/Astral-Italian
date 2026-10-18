@@ -24,9 +24,9 @@ public:
     virtual bool receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    virtual bool receiveMsgThrow(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
+    bool receiveMsgThrow(HitSensor* pSender, HitSensor* pReceiver);
     void setGroupClipping(const JMapInfoIter& rIter);
     void startCountdown();
     void endCountdown();
@@ -48,10 +48,9 @@ public:
     void endThrown();
     void exeExplode();
     void exeBindStarPointer();
-    void endBindStarPointer();
 
     bool calcJoint(TPos3f*, const JointControllerInfo&);
-    void startBoundSound();
+    void startBoundSound() NO_INLINE;
 
     /* 0x8C */ AnimScaleController* mScaleController;
     /* 0x90 */ WalkerStateBindStarPointer* mBindStarPointerState;
@@ -62,7 +61,8 @@ public:
     /* 0xC8 */ s32 mCountdown;
     /* 0xCC */ HitSensor* mCarrySensor;
     /* 0xD0 */ f32 mExplodeRadius;
-    /* 0xD4 */ JointController* mBodyJoint;
+    /* 0xD4 */ s32 mCountTimer;
+    /* 0xD8 */ JointController* mBodyJoint;
     /* 0xD8 */ Type mType;
     /* 0xDC */ bool mExplosionIgnoreCollision;
 };

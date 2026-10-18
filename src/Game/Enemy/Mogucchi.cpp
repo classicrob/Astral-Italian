@@ -36,7 +36,7 @@ namespace NrvMogucchi {
 
 namespace {
     inline void resetBodySensorOffset(LiveActor* pActor) {
-        MR::setSensorOffset(pActor, "body", TVec3f(0.0f, 0.0f, 0.0f));
+        MR::setSensorOffset(pActor, "Body", TVec3f(0.0f, 0.0f, 0.0f));
     }
 };  // namespace
 
@@ -69,7 +69,7 @@ void Mogucchi::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(Mogucchi, MogucchiNrvStroll));
     MR::initUseStageSwitchWriteDead(this, rIter);
 
-    MR::initStarPointerTargetAtJoint(this, "Head", 83.0f, TVec3f(::sHeadOffset));
+    MR::initStarPointerTargetAtJoint(this, "Head", 113.0f, TVec3f(::sHeadOffset));
     createMogucchiHill();
     createHole();
     MR::startAction(this, "Walk");
@@ -182,9 +182,8 @@ void Mogucchi::exeDown() {
         MR::startAction(this, "Swoon");
         MR::startBtp(this, "EyeClose");
         MR::startAction(mHole, "Swoon");
+        mIsStoppedByP2 = false;
     }
-
-    mIsStoppedByP2 = false;
     reflectStarPointer2P();
     MR::startActionSound(this, "EmLvSwoonS");
 
@@ -256,7 +255,7 @@ void Mogucchi::endStroll() {
 }
 
 void Mogucchi::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayerOrRide(pReceiver) && (MR::isEqualSensor(pSender, this, "body") || MR::isEqualSensor(pSender, this, "head"))) {
+    if (MR::isSensorPlayerOrRide(pReceiver) && (MR::isEqualSensor(pSender, this, "Body") || MR::isEqualSensor(pSender, this, "head"))) {
         bool isStroll = false;
         if (isNerve(GET_NERVE(Mogucchi, MogucchiNrvStroll))) {
             if (!mIsStoppedByP2) {
@@ -292,7 +291,7 @@ bool Mogucchi::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 void Mogucchi::initSensor() {
     LiveActor::initHitSensor(3);
     MR::addHitSensorAtJointEnemy(this, "head", "Head", 32, 83.0f, TVec3f(::sHeadOffset));
-    MR::addHitSensorAtJointEnemy(this, "body", "Spine", 32, 120.0f, TVec3f(::sBodyOffset));
+    MR::addHitSensorAtJointEnemy(this, "Body", "Spine", 32, 120.0f, TVec3f(::sBodyOffset));
     MR::addHitSensorEnemy(this, "spin", 16, 180.0f, TVec3f(0.0f, 0.0f, 0.0f));
 }
 
@@ -362,7 +361,7 @@ void Mogucchi::updatePosition() {
 
 void Mogucchi::createHole() {
     // "Mogucchi hole"
-    mHole = new ModelObj("モグッチ穴", "MogucchiHole", mNewHolePos, static_cast<MR::DrawBufferType>(0xB) /* SMG2 draw buffer id for map-obj strong light */, -2, -2, false);
+    mHole = new ModelObj("モグッチ穴", "MogucchiHole", mNewHolePos, MR::DrawBufferType_MapObjStrongLight, -2, -2, false);
     mHole->initWithoutIter();
 }
 
@@ -484,4 +483,10 @@ void Mogucchi::updateReferenceMtx() {
     mNewHolePos.setRT(v1, mPosition);
 
     MR::setPosition(mHole, mPosition);
+}
+
+void Mogucchi::fn_801CDAD0() {
+    if (--_F4 <= 0) {
+        _F4 = 0;
+    }
 }

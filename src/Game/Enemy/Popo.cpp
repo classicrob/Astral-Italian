@@ -20,26 +20,8 @@
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/MapObj/PetitPorter.hpp"
 
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
-    bool isMsgYoshiStartTongue(u32);
-    bool isMsgYoshiLoopTongue(u32);
-    bool isMsgYoshiCancelEaten(u32);
-    bool isMsgYoshiReleaseEaten(u32);
-    bool isMsgPlayerKick(u32);
-};  // namespace MR
-
-namespace YoshiFunction {
-    void tryYoshiLick(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
-
-// Unnamed SMG2 helpers outside this unit.
-
-// Shared (with Peto) AnimScaleParam subclass; its inline ctor lives in another unit (fn_801ECB20).
-class PetoPopoParam : public AnimScaleParam {
-public:
-    PetoPopoParam();
-};
+#include "Game/Util/YoshiLockOnUtil.hpp"
+#include "Game/Enemy/PetoPopoParam.hpp"
 
 struct SightParam {
     f32 a;
@@ -52,12 +34,7 @@ static const SightParam sSightParam = {5000.0f, 90.0f, 45.0f};
 f32 fn_801ED1F0(f32) NO_INLINE;
 
 // Nerve helpers whose bodies are inlined into the nerve (defined before NEW_NERVE).
-void Popo::exeStickWait() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "StickWait");
-    }
-    tryReleaseYoshi();
-}
+
 
 void Popo::exeLick() {
 }
@@ -66,10 +43,7 @@ void Popo::endWait() {
     MR::invalidateClipping(this);
 }
 
-void Popo::endTouch() {
-    mScaleController->startAnim();
-    MR::deleteEffect(this, "Touch");
-}
+
 
 void Popo::endReturn() {
     MR::onBind(this);
@@ -390,7 +364,8 @@ void Popo::exeStick() {
     } else {
         dirSelf.scale(1.0f / lenSelf);
     }
-    f32 rate = (f32)getNerveStep() / 20.0f;
+    s32 stickTime = 20;
+    f32 rate = (f32)getNerveStep() / (f32)stickTime;
     if (rate > 1.0f) {
         rate = 1.0f;
     }
@@ -404,6 +379,13 @@ void Popo::exeStick() {
     if (MR::isGreaterEqualStep(this, 20)) {
         setNerve(&NrvPopo::PopoNrvStickWait::sInstance);
     }
+}
+
+void Popo::exeStickWait() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "StickWait");
+    }
+    tryReleaseYoshi();
 }
 
 void Popo::exeStickStart() {
@@ -446,6 +428,11 @@ void Popo::exeKicked() {
         MR::emitItemHit(this);
         kill();
     }
+}
+
+void Popo::endTouch() {
+    mScaleController->startAnim();
+    MR::deleteEffect(this, "Touch");
 }
 
 void Popo::exeTouch() {
@@ -788,14 +775,18 @@ void Popo::decelerate() {
     mVelocity.z *= 0.95f;
 }
 
-// NONMATCHING: dead stack stores of the 800/90/45 sight constants
+// NONMATCHING: matrix-column load scheduling and floating-point register allocation.
 bool Popo::tryFindYoshi() {
     MtxPtr pMtx = MR::getJointMtx(this, "JointRoot");
     TVec3f dir;
     dir.x = pMtx[0][0];
     dir.y = pMtx[1][0];
     dir.z = pMtx[2][0];
-    if (MR::isInSightFanPlayer(this, dir, 800.0f, 90.0f, 45.0f)) {
+    SightParam sight;
+    sight.a = 800.0f;
+    sight.b = 90.0f;
+    sight.c = 45.0f;
+    if (MR::isInSightFanPlayer(this, dir, sight.a, sight.b, sight.c)) {
         PopoStickingManager* pManager = MR::getSceneObj< PopoStickingManager* >(SceneObj_PopoStickingManager);
         if (!pManager->isStick()) {
             setNerve(&NrvPopo::PopoNrvFind::sInstance);
@@ -870,7 +861,7 @@ void PopoStickingManager::init(const JMapInfoIter& rIter) {
 
 void PopoStickingManager::initAfterPlacement() {
     if (MR::fn_80421D10()) {
-        mMouthPosition = new FixedPosition(MR::getYoshiMouthMtx(), TVec3f(0.0f, 85.0f, -65.0f), TVec3f(90.0f, -280.0f, 0.0f));
+        mMouthPosition = new FixedPosition(MR::getYoshiMouthMtx(), TVec3f(85.0f, -65.0f, 0.0f), TVec3f(-65.0f, 90.0f, -280.0f));
     }
 }
 

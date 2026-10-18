@@ -40,8 +40,9 @@ public:
     ActorStateParamScale(LiveActor*);
     void init(const JMapInfoIter&);
     void calcHostVelocity();
+    bool isFirstStep();
 
-    char mStateData[0x30 - 4];
+    char mStateData[0x30];
 };
 
 void Birikyu::control() {
@@ -201,7 +202,7 @@ void Birikyu::initShadow() {
 
 bool Birikyu::tryStopPointing() {
     if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        MR::sendMsgToGroupMember(123 /* ACTMES_GROUP_MOVE_STOP */, this, getSensor("body"), "body");
+        MR::sendMsgToGroupMember(123 /* ACTMES_GROUP_MOVE_STOP */, this, getSensor("Body"), "Body");
         setNerve(GET_NERVE(Birikyu, HostTypeStopPointing));
 
         return true;
@@ -281,7 +282,7 @@ void Birikyu::exeAttackWait() {
 }
 
 void Birikyu::exeStopPointing() {
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         MR::startDPDHitSound();
         if (MR::isRegisteredEffect(this, "Touch")) {
             MR::emitEffect(this, "Touch");
@@ -300,7 +301,7 @@ void Birikyu::endStopPointing() {
         MR::deleteEffect(this, "Touch");
     }
 
-    MR::sendMsgToGroupMember(122 /* ACTMES_GROUP_MOVE_START */, this, getSensor("body"), "body");
+    MR::sendMsgToGroupMember(122 /* ACTMES_GROUP_MOVE_START */, this, getSensor("Body"), "Body");
 }
 
 BirikyuWithFace::BirikyuWithFace(const char* pName) : Birikyu(pName) {
@@ -329,6 +330,11 @@ void BirikyuWithFace::initAfterPlacement() {
 }
 
 void BirikyuWithFace::calcAndSetBaseMtx() {
+    if (_D8 == -1) {
+        LiveActor::calcAndSetBaseMtx();
+        return;
+    }
+
     TPos3f vec3;
     vec3.identity();
     if (_A9) {

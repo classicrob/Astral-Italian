@@ -320,6 +320,7 @@ namespace MR {
     void preparePlayerForPositionReset();
 }
 
+namespace MR { bool fn_804222D0(); f32 fn_80422390(); }
 namespace MR { void requestPlayerMovementOnDuringDemo(); }
 
 namespace MR { void setPlayerPosAndWait(const char*, bool); }
@@ -338,4 +339,8 @@ namespace MR {
 
 namespace MR {
     void startDemoBckPlayer(const char*, const BckCtrlData&);
+}
+
+namespace MR {
+    void fn_803B6830(bool);
 }

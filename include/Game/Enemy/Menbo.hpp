@@ -30,10 +30,10 @@ public:
     void exeWait();
     void exeMove();
     void exeTurn();
-    void exeTurnBack();
+    NO_INLINE void fn_801C43C0();
     void exeFind();
     void exeAttack();
-    void exeAttackEnd();
+    NO_INLINE void fn_801C4720();
     void exeSwoonStart();
     void exeSwoon();
     void exeSwoonEnd();
@@ -43,25 +43,25 @@ public:
     void exeBreak();
 
     // Helpers (unnamed in the SMG2 symbol table; named by role).
-    bool isYoshiEatable() const;
-    bool isPlayerAttackable() const;
-    bool isStarPointerBindable() const;
-    bool tryPressDown();
-    bool tryBlowDown(HitSensor* pSender, HitSensor* pReceiver);
+    NO_INLINE bool fn_801C53A0() const;
+    NO_INLINE bool fn_801C5430() const;
+    NO_INLINE bool fn_801C54D0() const;
+    NO_INLINE bool fn_801C55B0(HitSensor*, HitSensor*);
+    NO_INLINE bool fn_801C5680(HitSensor* pSender, HitSensor* pReceiver);
     void updateWaterInfo();
     void blendUpVec();
     void updateGravityWater();
-    void calcFrontFromUp(f32 rate);
-    void rotateFrontGround();
-    void blendFrontToPlayer();
-    void updateFallVelocity();
-    bool isMovedFromBase() const;
-    bool isWallFreezeReady(f32 angle);
+    NO_INLINE void fn_801C58E0(f32 rate);
+    NO_INLINE void fn_801C5A50();
+    NO_INLINE void fn_801C5AB0();
+    NO_INLINE void fn_801C5B10();
+    NO_INLINE bool fn_801C5BD0() const;
+    NO_INLINE bool fn_801C5C30(f32 angle);
     bool isGroundIceEdge();
     bool isPlayerInSightWet();
-    f32 tickCooldown(f32 rate);
-    f32 tickTurnTimer();
-    void calcMtxUpFront(TPos3f* pMtx, const TVec3f& rUp, const TVec3f& rFront);
+    NO_INLINE f32 fn_801C5E60(f32 rate);
+    NO_INLINE f32 fn_801C5E90();
+    NO_INLINE void fn_801C5EF0(TPos3f* pMtx, const LiveActor* actor, const TVec3f& rUp, const TVec3f& rFront);
 
 public:
     /* 0x90 */ AnimScaleController* mAnimScaleCtrl;

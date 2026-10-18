@@ -38,7 +38,7 @@ Chorobon::Chorobon(const char* pName) : LiveActor(pName) {
 }
 
 void Chorobon::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, nullptr, false);
+    MR::initActor(this, rIter, false);
     if (MR::isConnectedWithRail(rIter)) {
         MR::moveCoordAndTransToNearestRailPos(this);
         MR::initAndSetRailClipping(&mRailClip, this, 100.0f, 500.0f);

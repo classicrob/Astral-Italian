@@ -1,5 +1,6 @@
 #include "Game/Enemy/HammerHeadPackun.hpp"
 #include "Game/Util.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/LiveActor/EffectKeeper.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -26,12 +27,6 @@
 #include <revolution/mtx.h>
 #include <revolution/types.h>
 
-void HammerHeadPackun_DUMMY() {
-    // to emit operator-
-    TVec3f a, b;
-    TVec3f c = a - b;
-}
-
 HammerHeadPackun::HammerHeadPackun(const char* pName) : LiveActor(pName) {
     mLeafModel = nullptr;
     mImmunityTime = 0;
@@ -47,7 +42,7 @@ HammerHeadPackun::HammerHeadPackun(const char* pName) : LiveActor(pName) {
     mJointRumbler = nullptr;
     mNumbTime = 0;
     _C4 = false;
-    _C5 = false;
+    _C5 = true;
 }
 
 namespace NrvHammerHeadPackun {
@@ -70,16 +65,16 @@ void HammerHeadPackun::init(const JMapInfoIter& rIter) {
     _C4 = MR::isEqualObjectName(rIter, "HammerHeadPackunSpike");
     MR::initDefaultPos(this, rIter);
     initPosture();
-    MR::initActor(this, rIter, _C4 ? "PackunFlower" : "PackunFlowerSpike", false);
+    MR::initActor(this, rIter, _C4 ? "PackunFlowerSpike" : "PackunFlower", false);
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     initSensor();
-    initEffectKeeper(1, _C4 ? "PackunFlower" : "PackunFlowerSpike", false);
+    initEffectKeeper(1, _C4 ? "PackunFlowerSpike" : "PackunFlower", false);
     MR::addEffect(this, "PointerTouchManual");
     MR::setEffectHostMtx(this, "PointerTouchManual", MR::getJointMtx(this, "MouthUp"));
     initSound(4, "HammerHeadPackun", nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait), 0);
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
     initShadow();
     initLeaf(rIter);
     MR::initStarPointerTargetAtJoint(this, "Head", 169.0f, TVec3f(120.0f, 0.0f, 0.0f));
@@ -279,6 +274,7 @@ void HammerHeadPackun::exeSmashKill() {
         MR::startAction(mLeafModel, down);
         MR::startActionSound(this, "EmHhpackunStomped");
         MR::startActionSound(this, "EmStompedS");
+        MR::invalidateClipping(this);
     }
 
     if (MR::isActionEnd(this)) {
@@ -304,7 +300,7 @@ void HammerHeadPackun::exeBlowKill() {
 
 void HammerHeadPackun::exeBlowKillRock() {
     if (MR::isFirstStep(this)) {
-        const char* blowDown = "BlowDown";
+        const char* blowDown = "BlowDownRock";
         MR::startAction(this, blowDown);
         MR::startAction(mLeafModel, blowDown);
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
@@ -372,14 +368,15 @@ inline bool HammerHeadPackun::checkBlowAttack() const {
            isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock));
 }
 
+// NONMATCHING: Vector expression temporary stack slots differ.
 void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!checkBlowAttack() && MR::isEqualSensor(pSender, this, "blow") && MR::getSensorHost(pReceiver) &&
         !strcmp(MR::getSensorHost(pReceiver)->mName, "パンチングキノコ")) {
-        f32 recvRadius = MR::getSensorRadius(pReceiver);
-        f32 sendRadius = MR::getSensorRadius(pSender);
-        f32 temp = recvRadius / (sendRadius + recvRadius);
-        TVec3f senderWeighted = *MR::getSensorPos(pSender) * temp;
+        f32 temp = MR::getSensorRadius(pReceiver);
+        temp = MR::getSensorRadius(pSender) + temp;
+        temp = MR::getSensorRadius(pReceiver) / temp;
         TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * (1.0f - temp);
+        TVec3f senderWeighted = *MR::getSensorPos(pSender) * temp;
         TVec3f hitMtx = senderWeighted + receiverWeighted;
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         MR::emitEffectHit(this, hitMtx, nullptr);
@@ -390,9 +387,10 @@ void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 
     if (MR::isSensorPlayerOrYoshiOrRide(pReceiver)) {
-        bool isSensorBody = getSensor("body") != pSender;
+        bool isSensorBody = getSensor("Body") != pSender;
         if (isSensorBody) {
             if (checkBlowAttack() || !MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+                MR::sendMsgPush(pReceiver, pSender);
                 MR::sendMsgPush(pReceiver, pSender);
             }
         } else if (isAttackSensorValid() && MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
@@ -404,38 +402,66 @@ void HammerHeadPackun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 mJointRumbler->start();
             }
         } else {
+            if (!checkBlowAttack()) {
+                MR::sendMsgPush(pReceiver, pSender);
+            }
             MR::sendMsgPush(pReceiver, pSender);
         }
     }
 }
 
+// NONMATCHING: Vector expression temporary stack slots differ.
 bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    MR::isEqualSensor(pReceiver, this, "body");
+    MR::isEqualSensor(pReceiver, this, "Body");
     MR::isEqualSensor(pReceiver, this, "blow");
     MR::isEqualSensor(pReceiver, this, "push1");
     MR::isEqualSensor(pReceiver, this, "push2");
     MR::isEqualSensor(pReceiver, this, "push3");
     MR::isEqualSensor(pReceiver, this, "push4");
 
-    if (!checkBlowAttack() && (MR::isMsgJetTurtleAttack(msg) || MR::isMsgFireBallAttack(msg))) {
-        f32 sendRadius = pReceiver->mRadius;
-        f32 recvRadius = pSender->mRadius;
-        f32 temp = recvRadius / (recvRadius + sendRadius);
-        TVec3f hitMtx = pReceiver->mPosition * temp + (pSender->mPosition) * (1.0f - temp);
-        MR::tryRumblePadMiddle(this, WPAD_CHAN0);
-        MR::emitEffectHit(this, hitMtx, nullptr);
-        MR::stopScene(8);
-        setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill));
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        return false;
+    }
+    if (!checkBlowAttack() && MR::isMsgPlayerHitProjectiles(msg)) {
+        f32 temp = MR::getSensorRadius(pReceiver);
+        temp = MR::getSensorRadius(pSender) + temp;
+        temp = MR::getSensorRadius(pSender) / temp;
+        if (MR::isMsgRockAttack(msg)) {
+            MR::invalidateHitSensors(this);
+            MR::sendMsgIsRushEnable(pSender, pReceiver);
+            TVec3f senderWeighted = *MR::getSensorPos(pSender) * (1.0f - temp);
+            TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * temp;
+            TVec3f hitMtx = receiverWeighted + senderWeighted;
+            MR::tryRumblePadMiddle(this, WPAD_CHAN0);
+            MR::emitEffectHit(this, hitMtx, nullptr);
+            MR::stopScene(8);
+            setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock));
+        } else {
+            TVec3f senderWeighted = *MR::getSensorPos(pSender) * (1.0f - temp);
+            TVec3f receiverWeighted = *MR::getSensorPos(pReceiver) * temp;
+            TVec3f hitMtx = receiverWeighted + senderWeighted;
+            MR::tryRumblePadMiddle(this, WPAD_CHAN0);
+            MR::emitEffectHit(this, hitMtx, nullptr);
+            MR::stopScene(8);
+            setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill));
+        }
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         return true;
     }
-
-    if (MR::isMsgStarPieceReflect(msg)) {
+    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvWait)) ||
+        isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSearch))) {
+        if (MR::isMsgStarPieceAttack(msg)) {
+            mJointRumbler->start();
+            setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack));
+            return true;
+        }
+    } else if (MR::isMsgStarPieceReflect(msg)) {
         mJointRumbler->start();
         MR::startActionSound(this, "EmStarpieceRefrectPliable");
         return true;
     }
 
-    if (pReceiver != getSensor("body")) {
+    if (pReceiver != getSensor("Body")) {
         return false;
     }
 
@@ -450,6 +476,7 @@ bool HammerHeadPackun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
     }
 }
 
+// NONMATCHING: Vector temporary stack slots and commutative add operand order differ.
 bool HammerHeadPackun::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgToEnemyAttackBlow(msg) && !checkBlowAttack()) {
         f32 sendRadius = MR::getSensorRadius(pReceiver);
@@ -477,7 +504,7 @@ void HammerHeadPackun::initPosture() {
 
 void HammerHeadPackun::initSensor() {
     initHitSensor(6);
-    MR::addHitSensorAtJointMapObj(this, "body", "Head", 32, 130.0f, TVec3f(120.0f, 0.0f, 0.0f));
+    MR::addHitSensorAtJointMapObj(this, "Body", "Head", 32, 130.0f, TVec3f(120.0f, 0.0f, 0.0f));
     MR::addHitSensorAtJointMapObj(this, "blow", "Spin1", 32, 120.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorAtJointMapObj(this, "push1", "Spin2", 8, 45.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorAtJointMapObj(this, "push2", "Spin2", 8, 45.0f, TVec3f(50.0f, 0.0f, 0.0f));
@@ -499,7 +526,8 @@ inline bool JMapInfo_inRange(const JMapInfoIter& rIter) {
 }
 
 void HammerHeadPackun::initLeaf(const JMapInfoIter& rIter) {
-    mLeafModel = new PartsModel(this, "パックンの葉", "PackunLeaf", nullptr, 18, false);
+    const char* model = _C4 ? "PackunLeafSpike" : "PackunLeaf";
+    mLeafModel = new PartsModel(this, "パックンの葉", model, nullptr, 19, false);
     MR::initLightCtrl(mLeafModel);
     s32 arg = -1;
     if (JMapInfo_inRange(rIter)) {
@@ -542,23 +570,30 @@ bool HammerHeadPackun::isInFieldOfView(const TVec3f& rPos) const {
 }
 
 bool HammerHeadPackun::isAttackSensorValid() const {
-    bool valid = true;
-    if (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill)) || isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill)) ||
-        isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock))) {
-        valid = false;
-    } else if (_C4) {
+    if (checkBlowAttack()) {
+        return false;
+    }
+    bool valid;
+    if (_C4) {
         valid = true;
-    } else if ((isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack)) && MR::isNewNerve(this)) ||
-               isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest)) ||
-               (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 40)) ||
-               isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage)) ||
-               (isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessStep(this, 60)) ||
-               isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb))) {
+    } else {
         valid = false;
+        if (!(isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvAttack)) && MR::isNewNerve(this)) &&
+            !isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRest)) &&
+            !(isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRecover)) && MR::isLessEqualStep(this, 40)) &&
+            !isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvDamage)) &&
+            !(isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvRise)) && MR::isLessStep(this, 60)) &&
+            !isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvNumb)) &&
+            !isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill)) &&
+            !isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKill)) &&
+            !isNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvBlowKillRock))) {
+            valid = true;
+        }
     }
     return valid;
 }
 
+// NONMATCHING: Early-return register and epilogue load scheduling differ.
 bool HammerHeadPackun::isChance() const {
     if (_C4) {
         return false;
@@ -573,6 +608,7 @@ bool HammerHeadPackun::isChance() const {
     return isChance;
 }
 
+// NONMATCHING: Vector subtraction is expanded inline instead of an operator call.
 bool HammerHeadPackun::calcPlayerDir(TVec3f* pPos) const {
     pPos->set(*MR::getPlayerPos() - mPosition);
     pPos->orthogonalize2(_94);
@@ -627,11 +663,13 @@ bool HammerHeadPackun::tryShiftNumb() {
 bool HammerHeadPackun::receiveMsgPlayerAttackChance(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDrop(msg)) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill));
         MR::sendMsgAwayJump(pSender, pReceiver);
         return true;
     } else if (MR::isMsgPlayerTrample(msg)) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         setNerve(GET_NERVE(HammerHeadPackun, HammerHeadPackunNrvSmashKill));
         return true;
     } else if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {

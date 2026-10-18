@@ -42,14 +42,14 @@ public:
     void exeSwoonSpin();
     void exeSwoonWait();
     void exeRecover();
-    void exeDPDSwoon();
-    void endDPDSwoon();
     void moveOrFall(const MR::ActorMoveParam&, const TVec3f*);
     void startSwoon(bool);
     bool tryNonActive();
     bool trySearch();
     bool tryDPDSwoon();
     bool isNrvNormal() const;
+    bool fn_801CBD00() const;
+    bool isEatable() const;
 
     inline bool isNrvDown() const;
     inline bool isNrvSwoon() const;

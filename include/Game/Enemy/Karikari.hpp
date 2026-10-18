@@ -51,7 +51,6 @@ public:
     bool tryDPDAttacked();
 
     void setVelocityFromCursorMove(const TVec2f&);
-    void generateItem(s32 numStarPieces);
 
     void tryTurnToDirection(const TVec3f& rDir, f32 turnRatio);
 

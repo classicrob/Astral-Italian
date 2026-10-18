@@ -10,6 +10,7 @@ class SpinHitController;
 class BasaBasa : public LiveActor {
 public:
     BasaBasa(const char*);
+    static void fn_80156F60(const JMapInfoIter&);
 
     virtual ~BasaBasa();
     virtual void init(const JMapInfoIter&);

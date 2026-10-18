@@ -47,7 +47,7 @@ namespace {
     static const s32 sWaitTime = 120;
     static const s32 sWalkMoveStartTime = 10;
     static const s32 sWalkEndTime = 120;
-    static const f32 sWalkAccel = 0.2f;
+    static const f32 sWalkAccel = 0.5f;
     static const f32 sWalkGoalDistance = 500.0f;
     static const f32 sWalkTurnDegree = 6.0f;
     static const f32 sWalkTerritoryRadius = 400.0f;
@@ -56,7 +56,7 @@ namespace {
     static const f32 sFindDistance = 1600.0f;
     static const f32 sFindTurnDegree = 6.0f;
     static const s32 sPursueTime = 300;
-    static const f32 sPursueAccel = 0.5f;
+    static const f32 sPursueAccel = 1.0f;
     static const f32 sPursueTurnDegree = 6.0f;
     static const s32 sCoolDownTime = 60;
     static const f32 sAttackSignDegree = 8.0f;

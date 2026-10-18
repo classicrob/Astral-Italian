@@ -26,55 +26,57 @@ namespace NrvNigero {
     NEW_NERVE(NigeroNrvWalkMove, Nigero, WalkMove);
     NEW_NERVE(NigeroNrvSearch, Nigero, Search);
     NEW_NERVE(NigeroNrvFind, Nigero, Find);
-    NEW_NERVE(NigeroNrvAttackStart, Nigero, AttackStart);
-    NEW_NERVE(NigeroNrvThrow, Nigero, Throw);
-    NEW_NERVE(NigeroNrvAway, Nigero, Away);
-    NEW_NERVE(NigeroNrvSwoon, Nigero, Swoon);
+    NEW_NERVE(NigeroNrvAttackStart, Nigero, Chase);
+    // NOTE: the next three class names (symbols.txt) are rotated against their behaviour:
+    // slot Throw runs exeFlee, slot Away runs exeSwoon, slot Swoon runs exeGet.
+    NEW_NERVE(NigeroNrvThrow, Nigero, Flee);
+    NEW_NERVE(NigeroNrvAway, Nigero, Swoon);
+    NEW_NERVE(NigeroNrvSwoon, Nigero, Get);
     NEW_NERVE(NigeroNrvDead, Nigero, Dead);
     NEW_NERVE(NigeroNrvHide, Nigero, Hide);
     NEW_NERVE(NigeroNrvHidden, Nigero, Hidden);
     NEW_NERVE(NigeroNrvAttackSuccess, Nigero, AttackSuccess);
-    class NigeroNrvSupportFreeze : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const {}
-        static NigeroNrvSupportFreeze sInstance;
-    };
-    NigeroNrvSupportFreeze NigeroNrvSupportFreeze::sInstance ATTRIBUTE_WEAK;
+};  // namespace NrvNigero
+
+// Inlined into the SupportFreeze nerve (defined before its NEW_NERVE).
+void Nigero::exeSupportFreeze() {
+    if (MR::isFirstStep(this)) {
+        recvStarPieceEnd();
+    }
+    MR::updateActorStateAndNextNerve(this, &NrvNigero::NigeroNrvWaitNormal::sInstance);
+}
+
+namespace NrvNigero {
+    NEW_NERVE(NigeroNrvSupportFreeze, Nigero, SupportFreeze);
     class NigeroNrvTongue : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {}
+        virtual void execute(Spine* pSpine) const {
+        }
         static NigeroNrvTongue sInstance;
     };
     NigeroNrvTongue NigeroNrvTongue::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvNigero
 
-Nigero::Nigero(const char* pName) : LiveActor(pName) {
-    mRotate.set(0.0f, 0.0f, 0.0f, 1.0f);
-    mRotateTarget.set(0.0f, 0.0f, 0.0f, 1.0f);
-    mIsHolding = 0;
-    mTargetSensor = nullptr;
-    mPath = nullptr;
-    mAnimScaleCtrl = nullptr;
-    mBindStar = nullptr;
-    mGroundPos.set(0.0f, 0.0f, 0.0f);
-    mFront.set(0.0f, 0.0f, 0.0f);
-    mResetPos.set(0.0f, 0.0f, 0.0f);
-    mUpCounter = 0;
-    mAwayTimer = 0;
-    mYoshiLockOn = nullptr;
+#define NRV(n) (&NrvNigero::NigeroNrv##n::sInstance)
+
+Nigero::Nigero(const char* pName)
+    : LiveActor(pName), mRotate(0.0f, 0.0f, 0.0f, 1.0f), mRotateTarget(0.0f, 0.0f, 0.0f, 1.0f), mHoldSensor(nullptr), mTargetSensor(nullptr),
+      mPath(new ParabolicPath()), mAnimScaleCtrl(nullptr), mBindStar(nullptr), mMoveDir(0.0f, 0.0f, 1.0f), mFront(0.0f, 0.0f, 1.0f),
+      mResetPos(0.0f, 0.0f, 0.0f), mUpCounter(0), mAwayTimer(0), mYoshiLockOn(nullptr) {
 }
 
 void Nigero::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, false);
     MR::calcPositionUpOffset(&mPosition, this, MR::getBinderRadius(this));
     MR::makeQuatAndFrontFromRotate(&mRotate, &mFront, this);
     mRotateTarget.set(mRotate);
     mResetPos.set(mPosition);
-    initNerve(GET_NERVE(Nigero, NigeroNrvWaitNormal), 1);
+    initNerve(NRV(WaitNormal), 1);
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mBindStar = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
-    MR::initActorState(this, mBindStar, GET_NERVE(Nigero, NigeroNrvSupportFreeze), "SupportFreeze");
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f, 0.0f, 0.0f));
-    MR::resetPosition(this, mResetPos);
+    MR::initActorState(this, mBindStar, NRV(SupportFreeze), "SupportFreeze");
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    MR::resetPosition(this);
     MR::useStageSwitchAwake(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
 }
@@ -85,7 +87,7 @@ void Nigero::control() {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
     if (isActiveNerve() && mBindStar->tryStartPointBind()) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvSupportFreeze));
+        setNerve(reinterpret_cast< const Nerve* >(NRV(SupportFreeze)));
     }
 }
 
@@ -95,333 +97,368 @@ void Nigero::calcAndSetBaseMtx() {
 }
 
 void Nigero::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!recvEyeAttack(pSender, pReceiver) && !recvItemGet(pSender, pReceiver) && !recvBodyNerve(pSender, pReceiver) &&
-        !recvAttackSensor(pSender, pReceiver)) {
-        recvPushDefault(pSender, pReceiver);
+    if (recvEyeAttack(pSender, pReceiver)) {
+        return;
+    }
+    if (recvItemGet(pSender, pReceiver)) {
+        return;
+    }
+    if (recvBodyNerve(pSender, pReceiver)) {
+        return;
+    }
+    if (recvAttackSensor(pSender, pReceiver)) {
+        return;
+    }
+    if (recvPushDefault(pSender, pReceiver)) {
+        return;
     }
 }
 
 bool Nigero::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgLockOnStarPieceShoot(msg)) {
-        return isEatenNerve();
+    if (!MR::isEqualSensor(pReceiver, this, "Body")) {
+        return false;
     }
-    if (MR::isMsgStarPieceAttack(msg)) {
-        if (isEatenNerve()) {
-            setNerve(GET_NERVE(Nigero, NigeroNrvAttackSuccess));
-        }
+    if (MR::isMsgLockOnStarPieceShoot(msg)) {
+        return isLockOnNerve();
+    }
+    if (MR::isMsgStarPieceAttack(msg) && isLockOnNerve()) {
+        setNerve(NRV(Away));
+        return true;
     }
     if (MR::isMsgPlayerHitAll(msg)) {
-        MR::fn_80010200(&mRotate, &mRotateTarget, this, pSender, pReceiver);
-        MR::setVelocitySeparateHV(this, pSender, pReceiver, 25.0f, 25.0f);
-        MR::startAction(this, "SupportFreeze");
-        setNerve(GET_NERVE(Nigero, NigeroNrvSwoon));
+        MR::fn_80010200(&mRotate, &mFront, this, pReceiver, pSender);
+        MR::setVelocitySeparateHV(this, pSender, pReceiver, 30.0f, 30.0f);
+        MR::startAction(this, "BlowDown");
+        setNerve(NRV(Dead));
+        return true;
     }
     if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
         MR::zeroVelocity(this);
-        MR::startAction(this, "SupportFreeze");
-        setNerve(GET_NERVE(Nigero, NigeroNrvDead));
+        MR::startAction(this, "StepDown");
+        setNerve(NRV(Hide));
+        return true;
     }
     return false;
 }
 
 bool Nigero::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isEqualSensor(pReceiver, this, "Body")) {
+        return false;
+    }
     if (MR::isSensorEnemy(pSender)) {
-        MR::addVelocityFromPush(this, 30.0f, pSender, pReceiver);
-    }
-    return true;
-}
-
-bool Nigero::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgYoshiStartTongue(msg)) {
-        if (!isNerve(GET_NERVE(Nigero, NigeroNrvTongue))) {
-            recvLostTarget();
-            MR::startAction(this, "Eat");
-            MR::zeroVelocity(this);
-            setNerve(GET_NERVE(Nigero, NigeroNrvTongue));
-        }
-    }
-    if (MR::isMsgYoshiLoopTongue(msg)) {
-    }
-    if (MR::isMsgYoshiReleaseEaten(msg) || MR::isMsgYoshiCancelEaten(msg)) {
-        MR::setScale(this, 1.0f);
-        MR::setRotation(this, TVec3f(0.0f, 0.0f, 0.0f));
-        setNerve(GET_NERVE(Nigero, NigeroNrvDead));
-    }
-    if (msg == 0xCB && MR::isEqualSensor(pReceiver, this, "Body")) {
-        return isNerve(GET_NERVE(Nigero, NigeroNrvHidden));
+        MR::addVelocityFromPush(this, 1.0f, pSender, pReceiver);
+        return true;
     }
     return false;
 }
 
-// fn_801D1480: eye sensor (sends msg 0x8A, records the target, moves to the search nerve).
-bool Nigero::recvEyeAttack(HitSensor* pSender, HitSensor* pReceiver) {
-    return MR::isEqualSensor(pSender, this, "Eye") && isEatenNerve();
+bool Nigero::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgYoshiStartTongue(msg) && !isNerve(NRV(Tongue))) {
+        recvLostTarget();
+        MR::startAction(this, "Eat");
+        setNerve(NRV(Tongue));
+        MR::zeroVelocity(this);
+        return true;
+    }
+    if (MR::isMsgYoshiLoopTongue(msg)) {
+        return true;
+    }
+    if (MR::isMsgYoshiReleaseOrCancelEaten(msg)) {
+        MR::setScale(this, 1.0f);
+        MR::setRotation(this, 0.0f);
+        setNerve(NRV(Hidden));
+        return true;
+    }
+    if (msg == 0xCB && MR::isEqualSensor(pReceiver, this, "Body")) {
+        return isNerve(NRV(Throw));
+    }
+    return false;
 }
 
-// fn_801D1520: item-get sensor (msg 0x8B).
-bool Nigero::recvItemGet(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isEqualSensor(pReceiver, this, "ItemGet")) {
+bool Nigero::recvEyeAttack(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isEqualSensor(pSender, this, "Eye")) {
         return false;
     }
-    if (MR::sendArbitraryMsg(0x8B, pReceiver, pSender)) {
+    if (!MR::sendArbitraryMsg(0x8A, pReceiver, pSender)) {
         return false;
     }
-    mIsHolding = 1;
-    setNerve(GET_NERVE(Nigero, NigeroNrvHidden));
+    mTargetSensor = pReceiver;
+    setNerve(NRV(Find));
+    MR::invalidateClipping(this);
     return true;
 }
 
-// fn_801D15B0: body sensor (msg 0xCB).
-bool Nigero::recvBodyNerve(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isEqualSensor(pSender, this, "Eye")) {
+bool Nigero::recvItemGet(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isEqualSensor(pSender, this, "ItemGet")) {
         return false;
     }
-    if (!isBindedNerve()) {
-        if (MR::sendArbitraryMsg(0xCB, pReceiver, pSender)) {
-            return false;
-        }
-        if (isNerve(GET_NERVE(Nigero, NigeroNrvSearch))) {
-            if (mTargetSensor == nullptr) {
+    if (!MR::sendArbitraryMsg(0x8B, pReceiver, pSender)) {
+        return false;
+    }
+    mHoldSensor = pReceiver;
+    setNerve(NRV(Swoon));
+    return true;
+}
+
+bool Nigero::recvBodyNerve(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isEqualSensor(pSender, this, "Eye")) {
+        return false;
+    }
+    if (!isWalkNerve()) {
+        return false;
+    }
+    if (!MR::sendArbitraryMsg(0xCB, pReceiver, pSender)) {
+        return false;
+    }
+    if (isNerve(NRV(Search))) {
+        if (mTargetSensor == nullptr) {
+            mTargetSensor = pReceiver;
+        } else if (mTargetSensor != pReceiver) {
+            f32 dist = MR::calcDistance(pSender, mTargetSensor, nullptr);
+            if (MR::calcDistance(pSender, pReceiver, nullptr) < dist) {
                 mTargetSensor = pReceiver;
             }
-        } else {
-            mTargetSensor = pReceiver;
-            MR::invalidateClipping(this);
-            setNerve(GET_NERVE(Nigero, NigeroNrvSearch));
         }
+    } else {
+        mTargetSensor = pReceiver;
+        setNerve(NRV(Search));
+        MR::invalidateClipping(this);
     }
     return true;
 }
 
-// fn_801D16D0: attack sensor.
 bool Nigero::recvAttackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isEqualSensor(pSender, this, "Attack")) {
         return false;
     }
-    if (MR::isSensorPlayer(pReceiver)) {
+    if (!MR::isSensorPlayer(pReceiver)) {
         return false;
     }
     if (isBindedNerve() && MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvSwoon));
+        setNerve(NRV(AttackSuccess));
         return true;
     }
-    return MR::sendMsgPush(pReceiver, pSender);
+    if (MR::sendMsgPush(pReceiver, pSender)) {
+        return true;
+    }
+    return false;
 }
 
-// fn_801D17A0: default push for enemies and yoshi sensors.
 bool Nigero::recvPushDefault(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isEqualSensor(pSender, this, "Body")) {
         return false;
     }
-    bool isEnemy = MR::isSensorEnemy(pReceiver);
-    if (!isEnemy && !MR::isSensorYoshi(pReceiver)) {
-        return MR::sendMsgPush(pReceiver, pSender);
+    if (!MR::isSensorEnemy(pReceiver) && !MR::isSensorYoshi(pReceiver)) {
+        return false;
     }
-    return false;
-}
-
-// fn_801D1850
-bool Nigero::isBindedNerve() const {
-    return isNerve(GET_NERVE(Nigero, NigeroNrvWalk)) || isNerve(GET_NERVE(Nigero, NigeroNrvWalkMove)) ||
-           isNerve(GET_NERVE(Nigero, NigeroNrvSearch));
-}
-
-// fn_801D1910
-bool Nigero::isEatenNerve() const {
-    return isNerve(GET_NERVE(Nigero, NigeroNrvAway)) || isNerve(GET_NERVE(Nigero, NigeroNrvFind)) ||
-           isNerve(GET_NERVE(Nigero, NigeroNrvAttackStart)) || isNerve(GET_NERVE(Nigero, NigeroNrvThrow));
-}
-
-// fn_801D19B0
-bool Nigero::isLockOnNerve() const {
-    return isNerve(GET_NERVE(Nigero, NigeroNrvAway)) || isNerve(GET_NERVE(Nigero, NigeroNrvFind)) ||
-           isNerve(GET_NERVE(Nigero, NigeroNrvAttackStart)) || isNerve(GET_NERVE(Nigero, NigeroNrvThrow));
-}
-
-// fn_801D1A50
-bool Nigero::isActiveNerve() const {
-    if (isEatenNerve()) {
+    if (MR::sendMsgPush(pReceiver, pSender)) {
         return true;
     }
-    if (isNerve(GET_NERVE(Nigero, NigeroNrvHide))) {
-        return MR::isGreaterStep(this, 20);
+    return false;
+}
+
+bool Nigero::isBindedNerve() const {
+    if (isNerve(NRV(WaitNormal)) || isNerve(NRV(Walk)) || isNerve(NRV(WalkMove)) || isNerve(NRV(Search)) || isNerve(NRV(Find)) ||
+        isNerve(NRV(AttackStart)) || isNerve(NRV(Throw))) {
+        return true;
     }
     return false;
 }
 
-// fn_801D1B20
-bool Nigero::isWalkNerve() const {
-    return isNerve(GET_NERVE(Nigero, NigeroNrvWalk)) || isNerve(GET_NERVE(Nigero, NigeroNrvWalkMove)) ||
-           isNerve(GET_NERVE(Nigero, NigeroNrvSearch));
+bool Nigero::isEatenNerve() const {
+    if (isNerve(NRV(Appear)) || isNerve(NRV(Dead)) || isNerve(NRV(Hide)) || isNerve(NRV(Hidden)) || isNerve(NRV(Tongue))) {
+        return false;
+    }
+    return true;
 }
 
-// fn_801D1B90: release the held sensor host.
+bool Nigero::isLockOnNerve() const {
+    if (isNerve(NRV(Appear)) || isNerve(NRV(Dead)) || isNerve(NRV(Hide)) || isNerve(NRV(Hidden)) || isNerve(NRV(Tongue))) {
+        return false;
+    }
+    return true;
+}
+
+bool Nigero::isActiveNerve() const {
+    if (isNerve(NRV(Appear)) || isNerve(NRV(Dead)) || isNerve(NRV(Hide)) || isNerve(NRV(Hidden)) ||
+        isNerve(reinterpret_cast< const Nerve* >(NRV(SupportFreeze))) || isNerve(NRV(Tongue))) {
+        return false;
+    }
+    if (isNerve(NRV(Away))) {
+        return MR::isGreaterStep(this, 20);
+    }
+    return true;
+}
+
+bool Nigero::isWalkNerve() const {
+    if (isNerve(NRV(WaitNormal)) || isNerve(NRV(Walk)) || isNerve(NRV(WalkMove))) {
+        return true;
+    }
+    return false;
+}
+
 void Nigero::recvLostTarget() {
-    if (mTargetSensor != nullptr) {
-        MR::getSensorHost(mTargetSensor)->mPosition.set(mPosition);
-        MR::setVelocity(MR::getSensorHost(mTargetSensor), mGravity * 0.0f);
-        MR::sendArbitraryMsg(0x8D, mTargetSensor, getSensor("Body"));
-        mTargetSensor = nullptr;
+    if (mHoldSensor != nullptr) {
+        MR::getSensorHost(mHoldSensor)->mPosition.set(mPosition);
+        MR::setVelocity(MR::getSensorHost(mHoldSensor), mGravity * 0.0f);
+        MR::sendArbitraryMsg(0x8D, mHoldSensor, getSensor("Body"));
+        mHoldSensor = nullptr;
     }
 }
 
-// fn_801D1C20: bounce the held sensor host away.
 void Nigero::recvStarPieceEnd() {
-    if (mTargetSensor != nullptr) {
-        LiveActor* pHost = MR::getSensorHost(mTargetSensor);
-        MR::zeroVelocity(pHost);
+    if (mHoldSensor != nullptr) {
+        MR::getSensorHost(mHoldSensor)->mPosition.set(mPosition);
+        MR::zeroVelocity(MR::getSensorHost(mHoldSensor));
         TVec3f up;
         MR::fn_8000EAB0(&up, this);
-        f32 d = mFront.dot(up);
-        if (d > 0.0f) {
+        if (mFront.dot(up) > 0.0f) {
             up.negate();
         }
-        MR::setVelocitySeparateHV(MR::getSensorHost(mTargetSensor), up, 0.0f, 0.0f);
-        MR::sendArbitraryMsg(0x8D, mTargetSensor, getSensor("Body"));
-        mTargetSensor = nullptr;
+        MR::calcGravity(MR::getSensorHost(mHoldSensor));
+        MR::setVelocitySeparateHV(MR::getSensorHost(mHoldSensor), up, 6.0f, 20.0f);
+        MR::sendArbitraryMsg(0x8D, mHoldSensor, getSensor("Body"));
+        mHoldSensor = nullptr;
     }
 }
 
-// fn_801D1CF0
 void Nigero::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::resetPosition(this, mResetPos);
-        MR::zeroVelocity(this);
         MR::startAction(this, "Appear");
+        MR::zeroVelocity(this);
     }
     if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvWaitNormal));
+        setNerve(NRV(WaitNormal));
     }
 }
 
-// fn_801D1D70
 void Nigero::exeWaitNormal() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::startAction(this, "WaitNormal");
     }
-    MR::attenuateVelocity(this, MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f));
+    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+    MR::addVelocityToGravityOrGround(this, 1.0f);
+    MR::attenuateVelocity(this, 0.9f);
     updateUpVec();
     if (MR::isGreaterStep(this, 60)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvSearch));
+        setNerve(NRV(Walk));
     }
 }
 
-// fn_801D1E10
 void Nigero::exeWalk() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Walk");
     }
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f dir(0.0f, 0.0f, 1.0f);
-    if (MR::normalizeOrZero(&dir)) {
+    TVec3f dir(0.0f);
+    dir.killElement(mFront, up);
+    if (!MR::normalizeOrZero(&dir)) {
         mFront.set(dir);
     }
-    MR::rotateVecDegree(&mFront, up, 0.0f);
+    MR::rotateVecDegree(&mFront, up, 3.0f);
     if (mUpCounter <= 10) {
-        MR::addVelocity(this, TVec3f(0.0f, 0.0f, 0.0f));
+        MR::addVelocity(this, up * -1.0f);
         MR::attenuateVelocity(this, 0.9f);
     } else {
         MR::addVelocityToGravity(this, 1.0f);
-        MR::attenuateVelocity(this, 0.8f);
+        MR::attenuateVelocity(this, 0.99f);
     }
     updateUpVec();
     if (MR::isGreaterStep(this, 40)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvWalkMove));
+        setNerve(NRV(WalkMove));
     }
 }
 
-// fn_801D1F30
 void Nigero::exeWalkMove() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Walk");
-        mGroundPos.set(mFront);
+        mMoveDir.set(mFront);
     }
-    MR::turnDirectionToGround(this, &mGroundPos);
-    moveToTarget(mGroundPos, 0.0f, 1.0f, 0.0f, 0.9f, 0.9f);
+    MR::turnDirectionToGround(this, &mMoveDir);
+    moveToTarget(mMoveDir, 0.7f, 1.0f, 1.0f, 0.9f, 0.99f);
     updateUpVec();
     if (MR::isGreaterStep(this, 300)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvAway));
+        setNerve(NRV(Walk));
     }
 }
 
-// fn_801D1FE0
 void Nigero::exeSearch() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Walk");
     }
     if (mTargetSensor == nullptr) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvWaitNormal));
-    } else {
-        TVec3f toTarget = -(*MR::getSensorPos(mTargetSensor) - mPosition);
-        moveToTarget(toTarget, 0.0f, 1.0f, 0.0f, 0.9f, 0.9f);
-        updateUpVec();
+        setNerve(NRV(WaitNormal));
+        return;
     }
-    if (!MR::sendArbitraryMsg(0xCB, mTargetSensor, getSensor("Body"))) {
+    TVec3f dir = *MR::getSensorPos(mTargetSensor) - mPosition;
+    moveToTarget(dir, 1.0f, 2.0f, 1.0f, 0.9f, 0.99f);
+    updateUpVec();
+    if (!MR::sendArbitraryMsg(0xCB, mTargetSensor, getSensor("Eye"))) {
         mTargetSensor = nullptr;
-        setNerve(GET_NERVE(Nigero, NigeroNrvWaitNormal));
+        setNerve(NRV(WaitNormal));
+        return;
     }
     mTargetSensor = nullptr;
 }
 
-// fn_801D20C0
 void Nigero::exeFind() {
     if (MR::isFirstStep(this)) {
-        MR::zeroVelocity(this);
         MR::startAction(this, "Find");
+        MR::zeroVelocity(this);
     }
-    MR::moveAndTurnToTarget(this, &mFront, *MR::getSensorPos(mTargetSensor), 0.0f, 0.0f, 0.0f, 0.0f);
-    if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvAttackStart));
-    }
+    MR::moveAndTurnToTarget(this, &mFront, *MR::getSensorPos(mTargetSensor), 0.0f, 1.0f, 0.9f, 10.0f);
     updateUpVec();
+    if (MR::isActionEnd(this)) {
+        setNerve(NRV(AttackStart));
+    }
 }
 
-// fn_801D2160
-void Nigero::exeAttackStart() {
+void Nigero::exeChase() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Chase");
     }
-    TVec3f toTarget = -(*MR::getSensorPos(mTargetSensor) - mPosition);
-    moveToTarget(toTarget, 0.0f, 1.2f, 0.0f, 0.95f, 0.95f);
+    TVec3f dir = *MR::getSensorPos(mTargetSensor) - mPosition;
+    moveToTarget(dir, 1.5f, 3.0f, 1.0f, 0.9f, 0.99f);
     updateUpVec();
-    if (!MR::sendArbitraryMsg(0x8A, mTargetSensor, getSensor("Body"))) {
+    if (!MR::sendArbitraryMsg(0x8A, mTargetSensor, getSensor("Eye"))) {
         mTargetSensor = nullptr;
-        setNerve(GET_NERVE(Nigero, NigeroNrvWaitNormal));
+        setNerve(NRV(WaitNormal));
     }
 }
 
-// fn_801D2220
-void Nigero::exeThrow() {
+void Nigero::exeGet() {
     if (MR::isFirstStep(this)) {
-        MR::zeroVelocity(MR::getSensorHost(mTargetSensor));
-        TVec3f up;
-        MR::calcPositionUpOffset(&up, this, 0.0f);
-        TVec3f neg(mGravity);
-        neg.negate();
-        mPath->initFromUpVector(mTargetSensor ? mPosition : mPosition, up, neg, 0.0f);
+        MR::startAction(this, "Get");
+        MR::zeroVelocity(this);
+        TVec3f from(MR::getSensorHost(mHoldSensor)->mPosition);
+        TVec3f to;
+        MR::calcPositionUpOffset(&to, this, 150.0f);
+        TVec3f up = -mGravity;
+        mPath->initFromUpVector(from, to, up, 230.0f);
     }
-    mPath->calcPosition(&MR::getSensorHost(mTargetSensor)->mPosition, MR::calcNerveRate(this, 20));
+    LiveActor* pHost = MR::getSensorHost(mHoldSensor);
+    mPath->calcPosition(&pHost->mPosition, MR::calcNerveRate(this, 20));
     updateUpVec();
     if (MR::isActionEnd(this)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvAway));
+        setNerve(NRV(Throw));
     }
 }
 
-// fn_801D2310
-void Nigero::exeAway() {
+void Nigero::exeFlee() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Away");
         mAwayTimer = 120;
     }
-    bool isNear = MR::isNearPlayer(this, 1000.0f);
-    f32 speed = isNear ? 0.75f : 0.0f;
-    TVec3f toPlayer = -(*MR::getPlayerPos() - mPosition);
-    moveToTarget(toPlayer, 0.0f, speed, 0.0f, 0.99f, 0.99f);
+    f32 turn = MR::isNearPlayer(this, 1200.0f) ? 2.0f : 0.0f;
+    TVec3f dir = mPosition - *MR::getPlayerPos();
+    moveToTarget(dir, 1.2f, turn, 1.0f, 0.9f, 0.99f);
     updateUpVec();
+    MR::calcPositionUpOffset(&MR::getSensorHost(mHoldSensor)->mPosition, this, 150.0f);
     if (mAwayTimer <= 0) {
-        if (MR::isNearPlayer(this, 1000.0f)) {
+        if (MR::isNearPlayer(this, 1200.0f)) {
             MR::startActionSound(this, "NearPlayer", -1, -1, -1);
             mAwayTimer = 120;
         }
@@ -430,56 +467,52 @@ void Nigero::exeAway() {
     }
 }
 
-// fn_801D2430
 void Nigero::exeSwoon() {
     if (MR::isFirstStep(this)) {
         mAnimScaleCtrl->startHitReaction();
-        MR::tryHitReaction(this, "\x83\x58\x83\x5e\x81\x5b\x83\x73\x81\x5b\x83\x58\x83\x71\x83\x62");
-        recvLostTarget();
+        MR::tryHitReaction(this, "\x83\x58\x83\x5e\x81\x5b\x83\x73\x81\x5b\x83\x58\x83\x71\x83\x62\x83\x67");
+        recvStarPieceEnd();
         MR::startAction(this, "Swoon");
     }
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+    MR::addVelocityToGravityOrGround(this, 1.0f);
     MR::attenuateVelocity(this, 0.9f);
     updateUpVec();
     if (MR::isGreaterStep(this, 120)) {
-        setNerve(GET_NERVE(Nigero, NigeroNrvWaitNormal));
+        setNerve(NRV(WaitNormal));
     }
 }
 
-// fn_801D24F0
 void Nigero::exeDead() {
     if (MR::isFirstStep(this)) {
         MR::stopScene(5);
         MR::fn_80034820(this);
     }
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
-    MR::attenuateVelocity(this, 0.9f);
+    MR::addVelocityToGravityOrGround(this, 1.2f);
+    MR::attenuateVelocity(this, 0.99f);
     MR::turnQuatUpToGravity(&mRotate, mRotate, this);
-    if (mTargetSensor != nullptr) {
-        MR::calcPositionUpOffset(&MR::getSensorHost(mTargetSensor)->mPosition, this, 0.0f);
+    if (mHoldSensor != nullptr) {
+        MR::calcPositionUpOffset(&MR::getSensorHost(mHoldSensor)->mPosition, this, 150.0f);
     }
-    if (MR::isGreaterStep(this, 5)) {
-        if (MR::isBindedGround(this)) {
-            MR::zeroVelocity(this);
-            MR::startAction(this, "Hide");
-            setNerve(GET_NERVE(Nigero, NigeroNrvHide));
-        }
+    if (MR::isGreaterStep(this, 5) && MR::isBindedGround(this)) {
+        MR::zeroVelocity(this);
+        MR::tryStartActionNotPlaying(this, "Hide");
+        setNerve(NRV(Hidden));
     }
 }
 
-// fn_801D25E0
 void Nigero::exeHide() {
     if (MR::isFirstStep(this)) {
         MR::turnQuatUpToGravity(&mRotate, mRotate, this);
         recvLostTarget();
     }
     if (MR::isGreaterStep(this, 40)) {
-        MR::startAction(this, "Hide");
-        setNerve(GET_NERVE(Nigero, NigeroNrvHidden));
+        MR::tryStartActionNotPlaying(this, "Hide");
+        setNerve(NRV(Hidden));
     }
 }
 
-// fn_801D2660
 void Nigero::exeHidden() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
@@ -491,72 +524,77 @@ void Nigero::exeHidden() {
     if (MR::isGreaterStep(this, 300)) {
         MR::resetPosition(this, mResetPos);
         mRotate.set(mRotateTarget);
-        mFront.set(-mGravity);
-        setNerve(GET_NERVE(Nigero, NigeroNrvAppear));
+        mRotate.getZDir(mFront);
+        setNerve(NRV(Appear));
     }
 }
 
-// fn_801D2760
 void Nigero::exeAttackSuccess() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "AttackSuccess");
         MR::calcVecToPlayerH(&mFront, this, nullptr);
     }
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+    MR::addVelocityToGravityOrGround(this, 1.0f);
     MR::attenuateVelocity(this, 0.9f);
     updateUpVec();
-    if (mTargetSensor != nullptr) {
-        MR::calcPositionUpOffset(&MR::getSensorHost(mTargetSensor)->mPosition, this, 0.0f);
+    if (mHoldSensor != nullptr) {
+        MR::calcPositionUpOffset(&MR::getSensorHost(mHoldSensor)->mPosition, this, 150.0f);
     }
     if (MR::isActionEnd(this)) {
-        if (mTargetSensor != nullptr) {
-            setNerve(GET_NERVE(Nigero, NigeroNrvThrow));
+        if (mHoldSensor != nullptr) {
+            setNerve(NRV(Throw));
+            return;
         }
-        setNerve(GET_NERVE(Nigero, NigeroNrvWaitNormal));
+        setNerve(NRV(WaitNormal));
     }
 }
 
-// fn_801D2840: move along front vector toward the given direction (approximate).
-void Nigero::moveToTarget(const TVec3f& rDir, f32 farg0, f32 farg1, f32 farg2, f32 farg3, f32 farg4) {
+void Nigero::moveToTarget(const TVec3f& rDir, f32 speed, f32 turn, f32 grav, f32 atten, f32 airAtten) {
     TVec3f up;
     MR::calcUpVec(&up, this);
-    TVec3f front(0.0f, 0.0f, 1.0f);
-    MR::normalizeOrZero(&front);
-    mFront.set(front);
-    TVec3f side(rDir);
-    side.normalize();
-    f32 turn = side.dot(up);
-    f32 mag = side.length();
-    MR::reboundVelocityFromCollision(this, farg0 * turn, farg1, 1.0f);
-    if (mUpCounter <= 10) {
-        TVec3f v(mFront);
-        v.scale(farg1);
-        MR::addVelocity(this, v);
-        TVec3f w(mFront);
-        w.scale(-farg2);
-        MR::addVelocity(this, w);
-        MR::attenuateVelocity(this, farg3);
-    } else {
-        MR::addVelocityToGravity(this, farg2);
-        MR::attenuateVelocity(this, farg4);
+    TVec3f front(0.0f);
+    front.killElement(mFront, up);
+    if (!MR::normalizeOrZero(&front)) {
+        mFront.set(front);
     }
-    (void)mag;
+    TVec3f dir;
+    dir.killElement(rDir, mGravity);
+    if (!MR::normalizeOrZero(&dir)) {
+        TQuat4f q;
+        TVec3f upDir;
+        mRotate.getYDir(upDir);
+        TVec3f negGrav = -mGravity;
+        q.setRotate(negGrav, upDir, 1.0f);
+        q.transform(dir);
+        TVec3f axis;
+        axis.set(0.0f, 1.0f, 0.0f);
+        MR::turnVecToVecDegree(&mFront, mFront, dir, turn, axis);
+    }
+    MR::reboundVelocityFromCollision(this, -0.1f, 0.0f, 1.0f);
+    if (mUpCounter <= 10) {
+        MR::addVelocity(this, mFront * speed);
+        MR::addVelocity(this, up * -grav);
+        MR::attenuateVelocity(this, atten);
+    } else {
+        MR::addVelocityToGravity(this, grav);
+        MR::attenuateVelocity(this, airAtten);
+    }
 }
 
-// fn_801D2C30: keeps the up vector aligned with the binder and steps the up counter.
 void Nigero::updateUpVec() {
-    bool isBinded = MR::isBinded(this);
-    if (isBinded) {
+    MR::turnQuatZDirRate(&mRotate, mRotate, mFront, 0.3f);
+    if (MR::isBinded(this)) {
+        MR::turnQuatYDirRate(&mRotate, mRotate, MR::getBindedFixReactionVector(this), 0.15f);
         mUpCounter = 0;
     } else {
         mUpCounter++;
     }
     if (mUpCounter > 10) {
-        TVec3f neg(mGravity);
-        neg.negate();
-        MR::turnQuatYDirRate(&mRotate, mRotate, neg, 0.1f);
+        TVec3f up = -mGravity;
+        MR::turnQuatYDirRate(&mRotate, mRotate, up, 0.15f);
     }
 }
 
-// Nigero::~Nigero
-Nigero::~Nigero() {}
+Nigero::~Nigero() {
+}

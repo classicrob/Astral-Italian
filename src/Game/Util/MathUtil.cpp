@@ -847,10 +847,10 @@ namespace MR {
 
     // one unlabled function goes here
 
-    void calcLocalVec(TVec3f* pVec, MtxPtr pMtx) {
+    void calcLocalVec(TVec3f* pOut, const TVec3f& rVec, MtxPtr pMtx) {
         TPos3f inv = pMtx;
         inv.invert(inv);
-        inv.mult(*pVec, *pVec);
+        inv.mult(rVec, *pOut);
     }
 
     void normalize(TVec2f* pVec) {

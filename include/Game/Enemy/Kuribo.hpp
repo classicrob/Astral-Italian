@@ -34,21 +34,26 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void initState();
-    void initSensor();
     void initAppearState(const JMapInfoIter&);
     bool requestDead();
-    bool requestFlatDown(HitSensor*, HitSensor*);
-    bool requestHipDropDown(HitSensor*, HitSensor*);
+    bool requestFlatDown(u32, HitSensor*, HitSensor*);
+    bool requestHipDropDown(u32, HitSensor*, HitSensor*);
     bool requestPressDown();
     bool requestStagger(HitSensor*, HitSensor*);
-    bool requestBlowDown(HitSensor*, HitSensor*);
+    bool requestBlowDown(u32, HitSensor*, HitSensor*);
     bool requestAttackSuccess();
     void onNoGravitySupport();
     void setUp(const TVec3f&, const TQuat4f&, const TVec3f&);
     void appearBlowed(const TVec3f&, const TQuat4f&, const TVec3f&);
     void appearHipDropped(const TVec3f&, const TQuat4f&);
-    // PLACEHOLDER(enemies): fn_801B9B10 (0x801B9B10, 0x4C, unnamed Kuribo member used by Patakuri); resolve when the Kuribo unit names it.
     void fn_801B9B10(const TVec3f&, const TQuat4f&, const TVec3f&);
+    bool fn_801B9880(HitSensor*, HitSensor*);
+    void fn_801B9BD0(const TVec3f&, const TQuat4f&);
+    void fn_801B9C60(const TVec3f&, const TQuat4f&);
+    void fn_801BA420();
+    bool fn_801BACC0() const;
+    bool fn_801BAD90() const;
+    bool fn_801BAF60() const;
     bool tryNonActive();
     bool tryActive();
     bool tryEndBlow();
@@ -70,7 +75,6 @@ public:
     void exePressDown();
     void exeBlowDown();
     void exeBindStarPointer();
-    void endBindStarPointer();
     void exeBlowLand();
     void calcPassiveMovement();
     bool isEnableKick() const;

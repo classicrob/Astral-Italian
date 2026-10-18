@@ -3,6 +3,7 @@
 #include "Game/LiveActor/ActorStateBase.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
@@ -12,18 +13,6 @@ class Pukupuku;
 class WalkerStateBindStarPointer;
 class AnimScaleController;
 class YoshiLockOnTarget;
-
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};
-
-namespace MR {
-    bool isMsgYoshiStartTongue(u32);
-    bool isMsgYoshiLoopTongue(u32);
-    bool isMsgYoshiCancelEaten(u32);
-    bool isMsgYoshiReleaseEaten(u32);
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
-};  // namespace MR
 
 class PukupukuStateLanding : public ActorStateBase< Pukupuku > {
 public:
@@ -70,6 +59,8 @@ public:
     void exeMoveWater();
     void exeMoveWaterAfterJump();
     void exeLanding();
+    bool fn_801F1380() NO_INLINE;
+    bool fn_801F1440(HitSensor*) NO_INLINE;
     void exeTrampled();
     void exeBlownOff();
     void exeBindStarPointer();
@@ -81,7 +72,7 @@ public:
     f32 getBlownOffSpeedRate() const;
 
     inline void startAnim(const char* pBck, const char* pBtp) {
-        MR::startBck(this, pBck);
+        MR::startAction(this, pBck);
         MR::startBtp(this, pBtp);
     }
 

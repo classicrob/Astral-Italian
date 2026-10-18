@@ -201,7 +201,7 @@ void OtaRock::initModel() {
 
 void OtaRock::initSensor() {
     initHitSensor(1);
-    MR::addHitSensorMtxEnemy(this, "body", 8, ::cSensorRadius, getBaseMtx(), static_cast< TVec3f >(::cSensorOffset));
+    MR::addHitSensorMtxEnemy(this, "Body", 8, ::cSensorRadius, getBaseMtx(), static_cast< TVec3f >(::cSensorOffset));
 }
 
 void OtaRock::updateBaseMtx() {

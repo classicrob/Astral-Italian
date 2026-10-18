@@ -72,6 +72,8 @@ namespace MR {
     s32 getSoundCodeIndex(const JMapInfoIter&);
     s32 getFloorCodeIndex(const Triangle*);
     s32 getWallCodeIndex(const Triangle*);
+    bool isGroundCodeWater(const Triangle*);
+    bool isGroundCodeWet(const Triangle*);
     bool isGroundCodeWaterIter(const JMapInfoIter&);
     bool isGroundCodeIceIter(const JMapInfoIter&);
     bool isGroundCodeDeath(const Triangle*);
@@ -118,8 +120,9 @@ namespace MR {
     HitSensor* fn_80038D20(const Triangle*);
     // MapUtil (enemies lane, callees named by address; lead renames symbols)
     bool fn_80037E40(s32, Triangle**, const TVec3f*, const TVec3f*);
+    bool fn_80037E40(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
     bool fn_80038570(const TVec3f*, const TVec3f*);
-    bool fn_8008DDC0(const TVec3f*, f32, f32);
+    bool fn_8008DDC0(MtxPtr, const TVec3f*, f32, f32);
     bool fn_8008E060(const TPos3f*, const TVec3f*);
     LiveActor* fn_8008D920(LiveActor*, LiveActor*, const char*, const char*, s32, MtxPtr, s32);
     LiveActor* fn_8008DB20(LiveActor*, LiveActor*, const char*, const char*, s32, MtxPtr, s32);

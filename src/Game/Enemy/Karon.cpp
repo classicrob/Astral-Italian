@@ -1,5 +1,8 @@
+#pragma auto_inline off
 #include "Game/Enemy/Karon.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/TerritoryMover.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -23,49 +26,25 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/types.h>
 
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
-};  // namespace MR
-
-namespace {
-    // hGravity
-    // hTurnLimitRadian
-    // hUpdateUpRate
-    // hWallJumpVel
-    // hWallJumpJudge
-    // hPushRate
-    // hPushMaxVel
-    // hFaceToDegree
-    // hForceBindOnGroundOffset
-    // hForceBindOnGroundMul
-    // hFrontLength
-    // hHeight
-    // hLimit
-    // hShiftingSandVel
-    // hPursueDistance
-    // hFireAttackDistance
-    // hFollowRailDistance
-    // hToRailDiv
-    // hWaitTime
-    // hStarPieceHitWaitTime
-    // hWalkLimitTime
-    // hGoalDist
-    // hPrePursueJumpVel
-    // hHitReactionTime
-    // hHitReactionVelH
-    // hHitReactionVelV
-    // hBrokenTime
-};  // namespace
-
 namespace {
     static const MR::ActorMoveParam hNoMoveNoTurnParam = {0.0f, 1.2f, 0.8f, 0.0f};
     static const MR::ActorMoveParam hNoMoveNoTurnOnAirParam = {0.0f, 2.0f, 0.95, 0.0f};
     static const MR::ActorMoveParam hWalkParam = {0.12f, 1.2f, 0.95f, 2.0f};
+    static const MR::ActorMoveParam hRailTurnParam = {0.15f, 1.2f, 0.9f, 3.0f};
     static const MR::ActorMoveParam hSearchParam = {0.0f, 1.2f, 0.95f, 2.0f};
     static const MR::ActorMoveParam hPursueParam = {0.25f, 1.2f, 0.95f, 2.0f};
     static const MR::ActorMoveParam hHitReactionOnGroundParam = {0.0f, 1.2f, 0.8f, 5.0f};
     static const MR::ActorMoveParam hHitReactionAirParam = {0.0f, 2.0f, 0.95f, 5.0f};
+    static const MR::ActorMoveParam hRailWalkParam = {0.15f, 1.2f, 0.95f, 2.0f};
+    static const MR::ActorMoveParam hRailPursueParam = {0.3f, 1.2f, 0.95f, 2.0f};
 };  // namespace
+
+#define KARON_NERVE(Name, Method) \
+    class Name : public Nerve { public: virtual void execute(Spine* spine) const { static_cast<Karon*>(spine->mExecutor)->Method(); } static Name sInstance; }; \
+    Name Name::sInstance ATTRIBUTE_WEAK;
+#define KARON_NERVE_END(Name, Method) \
+    class Name : public Nerve { public: virtual void execute(Spine* spine) const { static_cast<Karon*>(spine->mExecutor)->Method(); } virtual void executeOnEnd(Spine* spine) const { MR::validateClipping(static_cast<Karon*>(spine->mExecutor)); } static Name sInstance; }; \
+    Name Name::sInstance ATTRIBUTE_WEAK;
 
 namespace NrvKaron {
     NEW_NERVE(HostTypeNrvFixWait, Karon, FixWait);
@@ -73,9 +52,11 @@ namespace NrvKaron {
     NEW_NERVE(HostTypeNrvStarPieceHitWait, Karon, Wait);
     NEW_NERVE(HostTypeNrvWalk, Karon, Walk);
     NEW_NERVE(HostTypeNrvTurn, Karon, Turn);
+    KARON_NERVE(HostTypeNrvRailTurn, fn_801B1670);
     NEW_NERVE(HostTypeNrvWalkOnRail, Karon, WalkOnRail);
     NEW_NERVE(HostTypeNrvSearch, Karon, Search);
     NEW_NERVE_ONEND(HostTypeNrvPursue, Karon, Pursue, Pursue);
+    KARON_NERVE_END(HostTypeNrvRailPursue, fn_801B1A10);
     NEW_NERVE(HostTypeNrvBroken, Karon, Broken);
     NEW_NERVE(HostTypeNrvStepBroken, Karon, StepBroken);
     NEW_NERVE(HostTypeNrvRecover, Karon, Recover);
@@ -83,15 +64,23 @@ namespace NrvKaron {
     NEW_NERVE(HostTypeNrvStarPieceHit, Karon, HitReaction);
     NEW_NERVE(HostTypeNrvDeath, Karon, Death);
     NEW_NERVE(HostTypeNrvSinkDown, Karon, SinkDown);
+    NEW_NERVE(HostTypeNrvLavaDown, Karon, LavaDown);
+    class HostTypeNrvEaten : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static HostTypeNrvEaten sInstance;
+    };
+    HostTypeNrvEaten HostTypeNrvEaten::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, Karon, BindStarPointer, BindStarPointer);
 };  // namespace NrvKaron
 
 Karon::Karon(const char* pName) : LiveActor(pName) {
     mTerritoryMover = nullptr;
     mYoshiLockOn = nullptr;
-    _95 = false;
-    _98 = 0.0f;
     mStopSwAnim = false;
+    _95 = false;
+    _98 = 80.0f;
+    mRailDirection.set(0.0f);
     mScaleController = nullptr;
     mStateStarPointer = nullptr;
 }
@@ -110,9 +99,9 @@ void Karon::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg1NoInit(rIter, &_95);
     if (_95) {
         _98 = 20.0f;
-        mTerritoryMover = new TerritoryMover(500.0f);
-        mTerritoryMover->mCenter.set(mPosition);
     }
+    mTerritoryMover = new TerritoryMover(500.0f);
+    mTerritoryMover->mCenter.set(mPosition);
 
     mScaleController = new AnimScaleController(nullptr);
     mScaleController->setParamTight();
@@ -157,6 +146,12 @@ void Karon::exeFixWait() {
 void Karon::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
+        if (_95) {
+            TVec3f direction(MR::getRailDirection(this));
+            TVec3f front(0.0f);
+            MR::calcFrontVec(&front, this);
+            if (direction.dot(front) < 0.0f) MR::reverseRailDirection(this);
+        }
     }
 
     mBinder->_1EC._5 = true;
@@ -175,7 +170,9 @@ void Karon::exeWait() {
         step = 120;
     }
 
-    if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, 80.0f)) {
+    f32 range = 700.0f;
+    if (_95) range = 1500.0f;
+    if (MR::calcDistanceToPlayer(this) < range && MR::isFaceToPlayerDegree(this, _98) && fn_801B27C0()) {
         setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
     } else if (MR::isGreaterStep(this, step)) {
         if (mRailRider != nullptr) {
@@ -198,7 +195,7 @@ void Karon::exeWalk() {
         setNerve(GET_NERVE(Karon, HostTypeNrvWait));
     } else if (isFallNextMove(true)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvTurn));
-    } else if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, 80.0f)) {
+    } else if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, _98)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
     }
 }
@@ -211,7 +208,7 @@ void Karon::exeTurn() {
 
     MR::moveAndTurnToTarget(this, mTerritoryMover->mTarget, ::hSearchParam._0, ::hSearchParam._4, ::hSearchParam._8, ::hSearchParam._C);
 
-    if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, 80.0f)) {
+    if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, _98)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvPursue));
     } else {
         TVec3f frontVec;
@@ -226,17 +223,31 @@ void Karon::exeTurn() {
     }
 }
 
+void Karon::fn_801B1670() {
+    if (MR::isFirstStep(this)) mRailDirection = MR::getRailDirection(this);
+    MR::moveAndTurnAlongRail(this, 600.0f, hRailTurnParam._0, hRailTurnParam._4, hRailTurnParam._8, hRailTurnParam._C, nullptr);
+    if (fn_801B27C0()) {
+        TVec3f front(0.0f);
+        MR::calcFrontVec(&front, this);
+        if (mRailDirection.dot(front) < -0.9f) setNerve(GET_NERVE(Karon, HostTypeNrvWalkOnRail));
+    }
+}
+
 void Karon::exeWalkOnRail() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Walk");
+    if (MR::isFirstStep(this)) MR::startAction(this, "Walk");
+    f32 range = 700.0f;
+    if (_95) {
+        range = 1500.0f;
+        if (MR::isRailReachedNearGoal(this, 50.0f)) {
+            setNerve(GET_NERVE(Karon, HostTypeNrvRailTurn));
+            return;
+        }
+        MR::moveAndTurnAlongRail(this, 600.0f, hRailWalkParam._0, hRailWalkParam._4, hRailWalkParam._8, hRailWalkParam._C, nullptr);
+    } else {
+        MR::moveAndTurnAlongRail(this, 600.0f, hWalkParam._0, hWalkParam._4, hWalkParam._8, hWalkParam._C, nullptr);
     }
-
-    MR::moveAndTurnAlongRail(this, 600.0f, ::hWalkParam._0, ::hWalkParam._4, ::hWalkParam._8, ::hWalkParam._C, nullptr);
     MR::calcDistanceToPlayer(this);
-
-    if (MR::calcDistanceToPlayer(this) < 700.0f && MR::isFaceToPlayerDegree(this, 80.0f)) {
-        setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
-    }
+    if (MR::calcDistanceToPlayer(this) < range && MR::isFaceToPlayerDegree(this, _98) && fn_801B27C0()) setNerve(GET_NERVE(Karon, HostTypeNrvSearch));
 }
 
 void Karon::exeSearch() {
@@ -245,9 +256,14 @@ void Karon::exeSearch() {
         MR::startActionSound(this, "EvKaronFind");
     }
 
-    MR::moveAndTurnToPlayer(this, ::hSearchParam._0, ::hSearchParam._4, ::hSearchParam._8, ::hSearchParam._C);
+    if (_95) {
+        MR::moveAndTurnAlongRail(this, 600.0f, ::hSearchParam._0, ::hSearchParam._4, ::hSearchParam._8, ::hSearchParam._C, nullptr);
+    } else {
+        MR::moveAndTurnToPlayer(this, ::hSearchParam._0, ::hSearchParam._4, ::hSearchParam._8, ::hSearchParam._C);
+    }
 
     if (MR::isActionEnd(this)) {
+        if (_95) { setNerve(GET_NERVE(Karon, HostTypeNrvRailPursue)); return; }
         setNerve(GET_NERVE(Karon, HostTypeNrvPursue));
     }
 }
@@ -261,13 +277,19 @@ void Karon::exePursue() {
 
     MR::moveAndTurnToPlayer(this, ::hPursueParam._0, ::hPursueParam._4, ::hPursueParam._8, ::hPursueParam._C);
 
-    if (1200.0f < MR::calcDistanceToPlayer(this) || !MR::isFaceToPlayerDegree(this, 80.0f)) {
+    if (1200.0f < MR::calcDistanceToPlayer(this) || !MR::isFaceToPlayerDegree(this, _98)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvWait));
     }
 }
 
-void Karon::endPursue() {
-    MR::validateClipping(this);
+void Karon::fn_801B1A10() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Pursue");
+        MR::invalidateClipping(this);
+        mVelocity.add(mGravity * -10.0f);
+    }
+    MR::moveAndTurnAlongRail(this, 600.0f, hRailPursueParam._0, hRailPursueParam._4, hRailPursueParam._8, hRailPursueParam._C, nullptr);
+    if (3200.0f < MR::calcDistanceToPlayer(this) || !MR::isFaceToPlayerDegree(this, _98) || !fn_801B27C0()) setNerve(GET_NERVE(Karon, HostTypeNrvWait));
 }
 
 void Karon::exeBroken() {
@@ -277,8 +299,13 @@ void Karon::exeBroken() {
         MR::startActionSound(this, "EvKaronDamage");
         MR::offCalcGravity(this);
         MR::forceBindOnGround(this, 0.0f, 1.0f);
+        mScaleController->resetScale();
     }
 
+    if (_95) {
+        MR::offBind(this);
+        MR::zeroVelocity(this);
+    } else {
     TVec3f velVec(0, 0, 0);
     if (MR::calcVelocityAreaOrRailMoveOnGround(&velVec, this)) {
         MR::addVelocityLimit(this, velVec * 1.0f);
@@ -295,7 +322,10 @@ void Karon::exeBroken() {
 
     mBinder->_1EC._5 = true;
 
+    }
+
     if (MR::isGreaterStep(this, 300)) {
+        if (_95) MR::onBind(this);
         setNerve(GET_NERVE(Karon, HostTypeNrvRecover));
     }
 }
@@ -309,6 +339,10 @@ void Karon::exeStepBroken() {
         MR::forceBindOnGround(this, 0.0f, 1.0f);
     }
 
+    if (_95) {
+        MR::offBind(this);
+        MR::zeroVelocity(this);
+    } else {
     TVec3f velVec(0, 0, 0);
     if (MR::calcVelocityAreaOrRailMoveOnGround(&velVec, this)) {
         MR::addVelocityLimit(this, velVec * 1.0f);
@@ -325,7 +359,10 @@ void Karon::exeStepBroken() {
 
     mBinder->_1EC._5 = true;
 
+    }
+
     if (MR::isGreaterStep(this, 300)) {
+        if (_95) MR::onBind(this);
         setNerve(GET_NERVE(Karon, HostTypeNrvRecover));
     }
 }
@@ -418,25 +455,43 @@ void Karon::exeSinkDown() {
     }
 }
 
-void Karon::exeBindStarPointer() {
-    const Nerve* nerve = GET_NERVE(Karon, HostTypeNrvWait);
-    mBinder->_1EC._5 = true;
-    if (MR::updateActorStateAndNextNerve(this, mStateStarPointer, nerve)) {
-        return;
+void Karon::exeLavaDown() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "LavaDown");
+        MR::invalidateShadow(this, nullptr);
+    }
+
+    if (MR::isOnGround(this)) {
+        TVec3f* gravity = &mGravity;
+        mVelocity.scale(gravity->dot(mVelocity), *gravity);
+    }
+
+    MR::startActionSound(this, "EvLvKaronSink");
+    MR::startActionSound(this, "EmLvKaronSink");
+    MR::moveAndTurnToPlayer(this, ::hNoMoveNoTurnParam._0, ::hNoMoveNoTurnParam._4, ::hNoMoveNoTurnParam._8, ::hNoMoveNoTurnParam._C);
+
+    if (MR::isActionEnd(this)) {
+        kill();
     }
 }
 
-void Karon::endBindStarPointer() {
-    mStateStarPointer->kill();
+void Karon::exeBindStarPointer() {
+    mBinder->_1EC._5 = true;
+    const Nerve* nerve = GET_NERVE(Karon, HostTypeNrvWait);
+    if (MR::updateActorStateAndNextNerve(this, nerve)) return;
 }
 
 void Karon::control() {
     mScaleController->updateNerve();
+    if (fn_801B2840()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) || MR::isInWater(mPosition) || MR::isInDarkMatter(mPosition)) {
         kill();
         return;
     }
+
+    if (MR::isPressedRoofAndGround(this)) { kill(); return; }
+    MR::fn_800145C0(this);
 
     if (!isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken)) && !isNerve(GET_NERVE(Karon, HostTypeNrvBroken))) {
         TVec3f velVec(0, 0, 0);
@@ -455,8 +510,14 @@ void Karon::control() {
 
     if (!isNerve(GET_NERVE(Karon, HostTypeNrvBroken)) && !isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken)) &&
         !isNerve(GET_NERVE(Karon, HostTypeNrvRecover)) && !isNerve(GET_NERVE(Karon, HostTypeNrvDeath)) &&
-        !isNerve(GET_NERVE(Karon, HostTypeNrvSinkDown)) && MR::isBindedGroundSinkDeath(this)) {
+        !isNerve(GET_NERVE(Karon, HostTypeNrvSinkDown)) && !isNerve(GET_NERVE(Karon, HostTypeNrvLavaDown)) && MR::isBindedGroundSinkDeath(this)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvSinkDown));
+        return;
+    }
+    if (!isNerve(GET_NERVE(Karon, HostTypeNrvBroken)) && !isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken)) &&
+        !isNerve(GET_NERVE(Karon, HostTypeNrvRecover)) && !isNerve(GET_NERVE(Karon, HostTypeNrvDeath)) &&
+        !isNerve(GET_NERVE(Karon, HostTypeNrvSinkDown)) && !isNerve(GET_NERVE(Karon, HostTypeNrvLavaDown)) && MR::isBindedGroundDamageFire(this)) {
+        setNerve(GET_NERVE(Karon, HostTypeNrvLavaDown));
     }
 }
 
@@ -470,23 +531,38 @@ bool Karon::isFallNextMove(bool a1) {
     return MR::isFallOrDangerNextMove(mPosition, frontVec, mGravity, 150.0f, 140.0f, 150.0f);
 }
 
+bool Karon::fn_801B27C0() const {
+    if (!_95) return true;
+    if (!MR::isExistRail(this)) return true;
+    if (MR::isLoopRail(this)) return true;
+    return !MR::isRailReachedNearGoal(this, 50.0f);
+}
+
+bool Karon::fn_801B2840() const {
+    if (isNerve(GET_NERVE(Karon, HostTypeNrvBroken)) || isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken)) ||
+        isNerve(GET_NERVE(Karon, HostTypeNrvRecover)) || isNerve(GET_NERVE(Karon, HostTypeNrvDeath)) ||
+        isNerve(GET_NERVE(Karon, HostTypeNrvSinkDown)) || isNerve(GET_NERVE(Karon, HostTypeNrvLavaDown)) ||
+        isNerve(GET_NERVE(Karon, HostTypeNrvEaten))) return false;
+    return true;
+}
+
 void Karon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(Karon, HostTypeNrvBroken)) || isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken)) ||
         isNerve(GET_NERVE(Karon, HostTypeNrvRecover)) || isNerve(GET_NERVE(Karon, HostTypeNrvDeath))) {
         return;
     }
 
-    if (getSensor("body") == pSender) {
+    if (getSensor("Body") == pSender) {
         if (MR::isSensorPlayer(pReceiver)) {
-            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f) && MR::isOnGroundPlayer()) {
+            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f) && MR::isOnGroundPlayer()) {
                 if (MR::sendMsgTouchJump(pReceiver, pSender)) {
                     setNerve(GET_NERVE(Karon, HostTypeNrvStepBroken));
                 }
-            } else if (!isNerve(GET_NERVE(Karon, HostTypeNrvHitReaction)) && !isNerve(GET_NERVE(Karon, HostTypeNrvFixWait)) &&
-                       !MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f) && MR::isOnGroundPlayer() && !MR::isPlayerHipDropFalling() &&
+            } else if (!isNerve(GET_NERVE(Karon, HostTypeNrvHitReaction)) && !isNerve(GET_NERVE(Karon, HostTypeNrvFixWait)) && !isNerve(GET_NERVE(Karon, HostTypeNrvBindStarPointer)) &&
+                       !MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f) && MR::isOnGroundPlayer() && !MR::isPlayerHipDropFalling() &&
                        !MR::isPlayerHipDropLand() && MR::sendMsgEnemyAttack(pReceiver, pSender)) {
-                TVec3f v18(pSender->mPosition);
-                v18 -= pReceiver->mPosition;
+                TVec3f v18(*MR::getSensorPos(pSender));
+                v18 -= *MR::getSensorPos(pReceiver);
                 MR::vecKillElement(v18, mGravity, &v18);
                 MR::normalizeOrZero(&v18);
                 mVelocity.add(v18 * 10.0f);
@@ -495,22 +571,27 @@ void Karon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             } else {
                 MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
             }
-        } else if (MR::isSensorEnemy(pReceiver)) {
+        } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
             MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
         }
     }
 }
 
 bool Karon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(GET_NERVE(Karon, HostTypeNrvBroken)) || isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken)) ||
-        isNerve(GET_NERVE(Karon, HostTypeNrvDeath)) || isNerve(GET_NERVE(Karon, HostTypeNrvSinkDown))) {
+    if (isNerve(GET_NERVE(Karon, HostTypeNrvDeath)) || isNerve(GET_NERVE(Karon, HostTypeNrvSinkDown)) || isNerve(GET_NERVE(Karon, HostTypeNrvLavaDown))) return false;
+    if (isNerve(GET_NERVE(Karon, HostTypeNrvBroken)) || isNerve(GET_NERVE(Karon, HostTypeNrvStepBroken))) {
+        if (MR::isMsgInvincibleAttack(msg)) {
+            setNerve(GET_NERVE(Karon, HostTypeNrvDeath));
+            MR::emitItemHit(this);
+            MR::startBlowHitSound(this);
+            return true;
+        }
         return false;
     }
 
     if (MR::isMsgPlayerTrample(msg)) {
         if (MR::isPlayerElementModeInvincible()) {
-            MR::appearStarPiece(this, mPosition, 3, 10.0f, 40.0f, false);
-            MR::startActionSound(this, "OjStarPieceBurst");
+            MR::emitItemHit(this);
             setNerve(GET_NERVE(Karon, HostTypeNrvDeath));
         } else {
             setNerve(GET_NERVE(Karon, HostTypeNrvStepBroken));
@@ -540,10 +621,9 @@ bool Karon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
         return true;
     }
 
-    if (MR::isMsgInvincibleAttack(msg)) {
+    if (MR::isMsgInvincibleAttack(msg) || MR::isMsgYoshiProjectileOrEat(msg) || MR::isMsgDrillAttack(msg)) {
         setNerve(GET_NERVE(Karon, HostTypeNrvDeath));
-        MR::appearStarPiece(this, mPosition, 3, 10.0f, 40.0f, false);
-        MR::startActionSound(this, "OjStarPieceBurst");
+        MR::emitItemHit(this);
         MR::startBlowHitSound(this);
         return true;
     }
@@ -554,8 +634,7 @@ bool Karon::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRece
 bool Karon::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgExplosionAttack(msg)) {
         kill();
-        MR::appearStarPiece(this, mPosition, 3, 10.0f, 40.0f, false);
-        MR::startActionSound(this, "OjStarPieceBurst");
+        MR::emitItemHit(this);
         return true;
     }
 
@@ -587,6 +666,15 @@ bool Karon::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         return true;
     }
 
+    if (MR::isMsgYoshiStartTongue(msg) && fn_801B2840()) {
+        MR::stopBck(this);
+        MR::invalidateHitSensors(this);
+        setNerve(GET_NERVE(Karon, HostTypeNrvEaten));
+        return true;
+    }
+    if (MR::isMsgYoshiLoopTongue(msg)) return true;
+    if (MR::isMsgYoshiReleaseEaten(msg)) { makeActorDead(); return true; }
+    if (MR::isMsgYoshiCancelEaten(msg)) { makeActorDead(); return true; }
     return false;
 }
 
@@ -596,4 +684,12 @@ void Karon::calcAndSetBaseMtx() {
 }
 
 Karon::~Karon() {
+}
+
+void Karon::endPursue() {
+    MR::validateClipping(this);
+}
+
+void Karon::endBindStarPointer() {
+    mStateStarPointer->kill();
 }

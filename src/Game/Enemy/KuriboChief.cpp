@@ -60,9 +60,7 @@ namespace {
         KuriboChiefParam();
 
         WalkerStateParam mStateParam1;
-        u32 _18;
         WalkerStateParam mStateParam2;
-        u32 _34;
         WalkerStateStaggerParam mStaggerParam;
         WalkerStateFindPlayerParam mFindPlayerParam;
         WalkerStateChaseParam mChaseParam;
@@ -319,7 +317,7 @@ bool KuriboChief::requestBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
         return false;
     }
 
-    MR::setVelocityBlowAttack(this, pSender, pReceiver, 25.0f, 35.0f, 4);
+    MR::fn_80012B90(this, 25.0f, 35.0f, pSender, pReceiver, 4);
     setNerve(GET_NERVE(KuriboChief, KuriboChiefNrvBlowDown));
     MR::invalidateClipping(this);
     MR::invalidateHitSensors(this);

@@ -451,7 +451,7 @@ bool Kanina::receiveMsgYoshi(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
         }
 
         setNerve(GET_NERVE(Kanina, HostTypeEaten));
-        MR::startAction(this, "Eaten");
+        MR::startAction(this, "Wait");
         MR::hideModelAndOnCalcAnim(this);
         MR::offBind(this);
         return true;
@@ -510,7 +510,7 @@ bool Kanina::receivePunch(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool Kanina::receiveFireBall(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver == getSensor("attack")) {
+    if (pReceiver == getSensor("Attack")) {
         return false;
     }
 
@@ -539,7 +539,6 @@ void Kanina::doDamageFireBall(HitSensor* pSender, HitSensor* pReceiver) {
     setNerve(GET_NERVE(Kanina, HostTypeDamageFireBall));
 }
 
-// NONMATCHING: target passes a 3rd arg (li r5,0) to calcVecFromPlayerH, whose symbol in symbols.txt only has 2 params
 void Kanina::startRun() {
     if (mType == KaninaType_Red) {
         MR::startAction(this, "ChaseRun");
@@ -554,7 +553,7 @@ void Kanina::startRun() {
     MR::calcUpVec(&upVec, this);
 
     TVec3f vecFromPlayerH;
-    MR::calcVecFromPlayerH(&vecFromPlayerH, this);
+    MR::calcVecFromPlayerH(&vecFromPlayerH, this, nullptr);
 
     f32 BC = _BC;
     f32 angle = -1.0f * BC * getFloatDependentType(::sRunAwayDirectionAngleRed, ::sRunAwayDirectionAngle);
@@ -610,7 +609,7 @@ bool Kanina::receiveHipDrop(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool Kanina::receiveInvincibleAttack(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver == getSensor("attack")) {
+    if (pReceiver == getSensor("Attack")) {
         return false;
     }
 
@@ -1162,7 +1161,7 @@ void Kanina::exeDamageFireBall() {
     if (MR::isGreaterEqualStep(this, ::sPunchDamageTime)) {
         MR::validateClipping(this);
         MR::validateHitSensors(this);
-        MR::emitItemHit(this);
+        appearItemTrample();
         kill();
     }
 }
@@ -1258,7 +1257,7 @@ void Kanina::exePointing() {
     bool isPointing = MR::isStarPointerPointing2PAttachTarget(this);
     if (isPointing) {
         MR::startDPDFreezeLevelSound(this);
-        MR::tryEmitEffect(this, "Touch");
+        MR::emitEffect(this, "Touch");
     }
 
     YoshiFunction::tryYoshiProjectile(mYoshiLockOn);

@@ -55,3 +55,7 @@ namespace MR {
     void showJointAndChildren(const LiveActor*, const char*);
     J3DJoint* getParentJoint(const LiveActor*, J3DJoint*);
 };  // namespace MR
+
+namespace MR {
+    void fn_8002D5C0(TVec3f*, const TVec3f&, const LiveActor*, const char*);
+}

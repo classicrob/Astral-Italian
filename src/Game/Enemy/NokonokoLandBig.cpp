@@ -3,6 +3,8 @@
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/LiveActor/HitSensor.hpp"
+#include "Game/Util/Functor.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ActorStateUtil.hpp"
@@ -12,12 +14,6 @@
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
-
-// String blob of the unit: action, model and sensor names are read at fixed offsets from its base.
-// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
-extern char lbl_8068DE30[];
-
-// Unnamed SMG2 helpers that are not part of this unit.
 
 // NEW_NERVE declarations, in SMG2 sbss order (lbl_807D2CE8 .. lbl_807D2D08). Execute thunks name the exe functions.
 namespace NrvNokonokoLandBig {
@@ -72,6 +68,30 @@ NokonokoLandBig::NokonokoLandBig(const char* pName) : LiveActor(pName), mArg0(0)
     mBaseQuat.set(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
+void NokonokoLandBig::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, false);
+    initNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvWalk), 1);
+    MR::getJMapInfoArg0NoInit(rIter, &mArg0);
+    MR::startBrk(this, "NokonokoLandBig");
+    MR::setBrkFrameAndStop(this, (f32)mArg0);
+    mAnimScaleController = new AnimScaleController(nullptr);
+    mAnimScaleController->setParamTight();
+    mBindStarPointerState = new WalkerStateBindStarPointer(this, mAnimScaleController);
+    MR::initActorState(this, mBindStarPointerState, GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvBindStarPointer), "SupportFreeze");
+    MR::moveCoordAndTransToNearestRailPos(this);
+    TVec3f up = -mGravity;
+    MR::makeQuatFromVec(&mQuat, MR::getRailDirection(this), up);
+    mBaseQuat = mQuat;
+    mRailCoord = MR::getRailCoord(this);
+    MR::declareCoin(this, 1);
+    MR::initUseStageSwitchReadA(this, rIter);
+    if (MR::isValidSwitchA(this)) {
+        MR::FunctorV0M<NokonokoLandBig*, void (NokonokoLandBig::*)()> callback(this, &NokonokoLandBig::fn_801D6BE0);
+        MR::listenStageSwitchOnA(this, callback);
+    }
+    MR::useStageSwitchSyncAppear(this, rIter);
+}
+
 void NokonokoLandBig::appear() {
     LiveActor::appear();
 }
@@ -97,40 +117,39 @@ void NokonokoLandBig::calcAndSetBaseMtx() {
     baseMtx.set(getBaseMtx());
     TQuat4f quat;
     baseMtx.getQuat(quat);
-    TQuat4f blended;
-    blended.slerp(quat, mQuat, 0.3f);
-    MR::setBaseTRMtx(this, blended);
+    quat.slerp(mQuat, 0.3f);
+    MR::setBaseTRMtx(this, quat);
     MR::updateBaseScale(this, mAnimScaleController);
 }
 
+// NONMATCHING: MWCC merges an extra return branch after sendMsgPush.
 void NokonokoLandBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    bool doRest = true;
-    if (MR::isEqualSensor(pSender, this, lbl_8068DE30 + 0x30)) {
-        doRest = false;
-        if (!MR::isSensorPlayer(pReceiver)) {
-            if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvHitRecovery)) ||
-                isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvBindStarPointer))) {
-                MR::sendMsgPush(pReceiver, pSender);
-            }
-            doRest = true;
+    if (MR::isEqualSensor(pSender, this, "Push")) {
+        if (MR::isSensorPlayer(pReceiver)) {
+            return;
+        }
+        if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvHitRecovery)) ||
+            isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvBindStarPointer))) {
+            MR::sendMsgPush(pReceiver, pSender);
         }
     }
-
-    if (doRest) {
-        if (MR::isSensorEnemyAttack(pSender)) {
-            if (MR::isSensorPlayerOrRide(pReceiver) && !this->fn_801D73E0(pSender, pReceiver)) {
-                MR::sendMsgPush(pReceiver, pSender);
-            }
-        } else {
-            if (pSender == getSensor(lbl_8068DE30 + 0x38)) {
-                MR::sendMsgPush(pReceiver, pSender);
-            }
-            if (pSender == getSensor(lbl_8068DE30 + 0x40)) {
-                if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvAttack)) ||
-                    isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvAttackTurn))) {
-                    MR::sendMsgPush(pReceiver, pSender);
-                }
-            }
+    if (MR::isSensorEnemyAttack(pSender)) {
+        if (MR::isSensorPlayerOrRide(pReceiver) && !fn_801D73E0(pSender, pReceiver)) {
+            MR::sendMsgPush(pReceiver, pSender);
+        }
+        return;
+    }
+    if (pSender == getSensor("Neck")) {
+        MR::sendMsgPush(pReceiver, pSender);
+    }
+    if (pSender == getSensor("Body")) {
+        bool attack = false;
+        if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvAttack)) ||
+            isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvAttackTurn))) {
+            attack = true;
+        }
+        if (attack) {
+            MR::sendMsgPush(pReceiver, pSender);
         }
     }
 }
@@ -147,10 +166,10 @@ bool NokonokoLandBig::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool NokonokoLandBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isEqualSensor(pReceiver, this, lbl_8068DE30 + 0x30)) {
+    if (MR::isEqualSensor(pReceiver, this, "Push")) {
         return false;
     }
-    if (MR::isEqualSensor(pReceiver, this, lbl_8068DE30 + 0x48)) {
+    if (MR::isEqualSensor(pReceiver, this, "DrillDamage")) {
         if (!MR::isMsgDrillAttack(msg)) {
             return false;
         }
@@ -159,7 +178,8 @@ bool NokonokoLandBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
         TVec3f dir(0.0f);
         MR::fn_8000E650(&dir, this, MR::getSensorPos(pSender));
         f32 d = up.dot(dir);
-        if (d < -20.0f || d > 0.0f) {
+        f32 range = 20.0f;
+        if (d < -range || d > 0.0f) {
             return false;
         }
         TVec3f playerUp(0.0f);
@@ -183,19 +203,31 @@ bool NokonokoLandBig::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
     if (!MR::isMsgRushEnd(msg)) {
         return false;
     }
-    if (MR::isEqualSensor(pReceiver, this, lbl_8068DE30 + 0x54)) {
-        MR::tryHitReaction(this, lbl_8068DE30 + 0x5C);
+    if (MR::isEqualSensor(pReceiver, this, "attack")) {
+        MR::tryHitReaction(this, "ドリルキャンセル[顔]");
         return true;
     }
-    if (MR::isEqualSensor(pReceiver, this, lbl_8068DE30 + 0x74)) {
-        MR::tryHitReaction(this, lbl_8068DE30 + 0x80);
+    if (MR::isEqualSensor(pReceiver, this, "BodyAttack")) {
+        MR::tryHitReaction(this, "ドリルキャンセル[甲羅]");
         return true;
     }
     return false;
 }
 
+// NONMATCHING: Remaining GPR assignment and vector temporary scheduling differ.
 bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pReceiver == getSensor(lbl_8068DE30 + 0x48) && this->fn_801D7290()) {
+    if (pReceiver == getSensor("DrillDamage") && fn_801D7290()) {
+        MR::tryHitReaction(this, "ドリルダメージ");
+        const TVec3f* hostVelocity = &MR::getSensorHost(pSender)->mVelocity;
+        TVec3f velocity(*hostVelocity);
+        if (!MR::isNearZero(velocity, 0.001f)) {
+            mVelocity.set(velocity);
+        } else {
+            const TVec3f* senderPos = MR::getSensorPos(pSender);
+            TVec3f delta(*MR::getSensorPos(pReceiver));
+            delta.sub(*senderPos);
+            mVelocity.set(delta);
+        }
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvFall));
         return true;
     }
@@ -203,7 +235,7 @@ bool NokonokoLandBig::tryDrillFall(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool NokonokoLandBig::tryBodyTouch(HitSensor* pSender, HitSensor* pReceiver) {
-    if (pSender == getSensor(lbl_8068DE30 + 0x40) && this->fn_801D7290()) {
+    if (pReceiver == getSensor("Body") && this->fn_801D7290()) {
         return true;
     }
     return false;
@@ -223,13 +255,13 @@ bool NokonokoLandBig::isWalkNerve() const {
 
 void NokonokoLandBig::exeWalk() {
     if (MR::isFirstStep(this)) {
-        if (!MR::isAnyAnimPlaying(this, lbl_8068DE30 + 0xA8)) {
-            startBckBtp(this, lbl_8068DE30 + 0xA8, lbl_8068DE30 + 0xB8);
+        if (!MR::isAnyAnimPlaying(this, "WalkFastWait")) {
+            startBckBtp(this, "WalkFastWait", "WalkWait");
         }
         MR::setRailCoordSpeed(this, 6.0f);
     }
     MR::moveCoordAndFollowTrans(this);
-    TVec3f neg = -mUpVec;
+    TVec3f neg = -mGravity;
     MR::makeQuatFromVec(&mQuat, MR::getRailDirection(this), neg);
     if (MR::isRailReachedGoal(this)) {
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvTurnStart));
@@ -238,7 +270,7 @@ void NokonokoLandBig::exeWalk() {
 
 void NokonokoLandBig::exeTurnStart() {
     if (MR::isFirstStep(this)) {
-        startBckBtp(this, lbl_8068DE30 + 0xC4, lbl_8068DE30 + 0xB8);
+        startBckBtp(this, "TurnStart", "WalkWait");
     }
     if (MR::isActionEnd(this)) {
         MR::reverseRailDirection(this);
@@ -246,13 +278,22 @@ void NokonokoLandBig::exeTurnStart() {
     }
 }
 
+// NONMATCHING: The three matrix-column loads are scheduled in a different order.
 void NokonokoLandBig::exeTurnLoop() {
     if (MR::isFirstStep(this)) {
-        startBckBtp(this, lbl_8068DE30 + 0xD0, lbl_8068DE30 + 0xB8);
+        startBckBtp(this, "TurnLoopStart", "WalkWait");
+        TPos3f mtx;
+        mtx.set(getBaseMtx());
+        mUpVec.set<f32>(mtx.mMtx[0][1], mtx.mMtx[1][1], mtx.mMtx[2][1]);
+        MR::normalize(&mUpVec);
     }
     if (MR::isBckOneTimeAndStopped(this)) {
-        startBckBtp(this, lbl_8068DE30 + 0xE0, lbl_8068DE30 + 0xB8);
+        startBckBtp(this, "TurnLoop", "WalkWait");
     }
+    s32 turnSteps = 139;
+    TQuat4f rotation;
+    rotation.setRotate(mUpVec, -(3.1415927f / turnSteps));
+    PSQUATMultiply(&rotation, &mQuat, &mQuat);
     if (isAlignedToRail()) {
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvTurnEnd));
     }
@@ -260,7 +301,7 @@ void NokonokoLandBig::exeTurnLoop() {
 
 void NokonokoLandBig::exeTurnEnd() {
     if (MR::isFirstStep(this)) {
-        startBckBtp(this, lbl_8068DE30 + 0xF0);
+        startBckBtp(this, "TurnEnd", "WalkWait");
     }
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvWalk));
@@ -269,7 +310,7 @@ void NokonokoLandBig::exeTurnEnd() {
 
 void NokonokoLandBig::exeAttack() {
     if (MR::isFirstStep(this)) {
-        startBckBtp(this, lbl_8068DE30 + 0x100);
+        startBckBtp(this, "Attack");
     }
     if (MR::isActionEnd(this)) {
         if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvAttackTurn))) {
@@ -280,11 +321,34 @@ void NokonokoLandBig::exeAttack() {
     }
 }
 
+// NONMATCHING: Remaining vector temporary stack slots and load scheduling differ.
 void NokonokoLandBig::exeFall() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, lbl_8068DE30 + 0xF8);
+        MR::startAction(this, "Rotate");
+        TPos3f mtx;
+        mtx.set(getBaseMtx());
+        TVec3f front;
+        front.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
+        front = -front;
+        MR::normalize(&front);
+        TVec3f up = -mGravity;
+        TVec3f lift(up);
+        lift.scale(45.0f);
+        TVec3f forward(front);
+        forward.scale(5.0f);
+        TVec3f velocity(forward);
+        velocity.add(lift);
+        mVelocity.set(velocity);
+        MR::makeQuatFromVec(&mQuat, -front, -mGravity);
     }
+    TVec3f acceleration(mGravity);
+    acceleration.scale(1.2f);
+    mVelocity.add(acceleration);
+    mVelocity.scale(0.99f);
     if (MR::isStep(this, 45)) {
+        mVelocity.z = 0.0f;
+        mVelocity.y = 0.0f;
+        mVelocity.x = 0.0f;
         setNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvDead));
     }
 }
@@ -300,30 +364,46 @@ void NokonokoLandBig::exeDead() {
 }
 
 bool NokonokoLandBig::isAlignedToRail() const {
-    f32 x = mQuat.x;
-    f32 y = mQuat.y;
-    f32 z = mQuat.z;
-    f32 w = mQuat.w;
-    TVec3f front(2.0f * (x * z + w * y), 2.0f * (y * z - w * x), 1.0f - 2.0f * (x * x) - 2.0f * (y * y));
+    TVec3f front;
+    mQuat.getZDir(front);
     TVec3f railDir = MR::getRailDirection(this);
     if (MR::isSameDirection(front, railDir, 0.01f)) {
-        return front.dot(railDir) >= 0.0f;
+        return 0.0f <= front.dot(railDir);
     }
     return false;
 }
 
 bool NokonokoLandBig::fn_801D7290() {
-    return this->isWalkOrBindNerve();
+    bool result = false;
+    if (isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvWalk)) ||
+        isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvHitRecovery)) ||
+        isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvTurnStart)) ||
+        isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvTurnLoop)) ||
+        isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvTurnEnd)) ||
+        isNerve(GET_NERVE_DIRECT(NrvNokonokoLandBig, NokonokoLandBigNrvBindStarPointer))) {
+        result = true;
+    }
+    return result;
 }
 
 // Sensor-driven helper: a hit from an enemy-attack sensor while walking is answered with an attack push.
+#pragma push
+#pragma global_optimizer off
 bool NokonokoLandBig::fn_801D73E0(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorEnemyAttack(pSender)) {
         return false;
     }
-    if (!this->isWalkNerve()) {
+    if (!isWalkNerve()) {
         return false;
     }
     return MR::sendMsgEnemyAttackStrong(pReceiver, pSender);
 }
+#pragma pop
 
+void NokonokoLandBig::fn_801D6BE0() {
+    MR::setBaseTRMtx(this, mBaseQuat);
+    MR::setRailCoord(this, mRailCoord);
+}
+
+NokonokoLandBig::~NokonokoLandBig() {
+}

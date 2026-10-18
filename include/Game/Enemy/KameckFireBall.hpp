@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Enemy/KameckBeam.hpp"
 
 class KameckBeamEventListener;
 
-class KameckFireBall : public LiveActor {
+class KameckFireBall : public LiveActor, public KameckBeamProjectile {
 public:
     /// @brief Creates a new `KameckFireBall`.
     /// @param pName A pointer to the null-terminated name of the object.
@@ -20,13 +20,14 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    void appearDirection(const TVec3f&);
+    virtual void appearDirection(const TVec3f&, const TVec3f&);
+    virtual void fn_801A7180();
+    virtual bool fn_801A78B0() const;
     void setEventListener(KameckBeamEventListener*);
 
     void exeWait();
     void exeSweep();
 
-    /* 0x8C */ TQuat4f mRotateQuat;
-    /* 0x9C */ KameckBeamEventListener* mEventListener;
-    /* 0xA0 */ u8 _A0[4];
+    /* 0x98 */ TQuat4f mRotateQuat;
+    /* 0xA8 */ u8 _A0[4];
 };

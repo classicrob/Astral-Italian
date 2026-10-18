@@ -48,7 +48,18 @@ namespace NrvBombBird {
     NEW_NERVE(HostTypeNrvSwoonEnd, BombBird, SwoonEnd);
     NEW_NERVE(HostTypeNrvTrample, BombBird, Trample);
     NEW_NERVE(HostTypeNrvSinkDown, BombBird, SinkDown);
-    NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, BombBird, BindStarPointer, BindStarPointer);
+    class HostTypeNrvBindStarPointer : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static HostTypeNrvBindStarPointer sInstance;
+    };
+    HostTypeNrvBindStarPointer HostTypeNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
+    class HostTypeNrvBindStarPointerGround : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static HostTypeNrvBindStarPointerGround sInstance;
+    };
+    HostTypeNrvBindStarPointerGround HostTypeNrvBindStarPointerGround::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBombBird
 
 BombBird::~BombBird() {
@@ -60,61 +71,31 @@ BombBird::BombBird(const char* pName)
 }
 
 void BombBird::init(const JMapInfoIter& rIter) {
-    if (MR::isValidInfo(rIter)) {
-        MR::isConnectedWithRail(rIter);
-    }
-
-    MR::initDefaultPos(this, rIter);
-    initRailRider(rIter);
-    MR::useStageSwitchReadB(this, rIter);
-    MR::useStageSwitchSyncAppear(this, rIter);
-
+    MR::initActor(this, rIter, "BombBird", false);
     s32 arg = -1;
     MR::getJMapInfoArg0NoInit(rIter, &arg);
-    if (arg != -1) {
-        mSearchPlayer = true;
-    } else {
-        mSearchPlayer = false;
-    }
-
-    MR::initActor(this, rIter, "BombBird", false);
-    MR::connectToSceneEnemy(this);
-    initNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRail));
-    initHitSensor(1);
-    MR::addHitSensorEnemy(this, "body", 16, 100.0f, TVec3f(0.0f, 100.0f, 0.0f));
-    initSound(4, "BombBird", nullptr, TVec3f(0.0f));
+    if (arg != -1) mSearchPlayer = true;
+    else mSearchPlayer = false;
+    initNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRail), 2);
     MR::onCalcGravity(this);
-    MR::initShadowVolumeSphere(this, MR::getSensorRadius(this, "body"));
-    initBinder(100.0f, 100.0f, 0);
-    MR::initLightCtrl(this);
-    MR::declareCoin(this, 1);
-    MR::declareStarPiece(this, 3);
     mFixedPos = new FixedPosition(this, "BombPos", TVec3f(0, 0, 0), TVec3f(0, 0, 0));
     mFixedPos->mNormalizeScale = false;
-    mSpinHitController = new SpinHitController(this, 25, 4, 1.5f, 30.0f, 40.0f);
-
+    mSpinHitController = new SpinHitController(this, 20, 4, 1.5f, 30.0f, 40.0f);
     for (BombBirdBomb** it = mBombs.begin(); it < mBombs.end(); it++) {
         *it = new BombBirdBomb("バクダン鳥のボム");
         (*it)->initWithoutIter();
         (*it)->makeActorDead();
     }
-
-    MR::tryRegisterDemoCast(this, rIter);
-    if (mSearchPlayer) {
-        MR::invalidateClipping(this);
-    } else {
-        MR::validateClipping(this);
-    }
-
-    initEffectKeeper(1, nullptr, false);
-    MR::initStarPointerTarget(this, MR::getSensorRadius(this, "body"), TVec3f(0.0f, 0.5f * MR::getSensorRadius(this, "body"), 0.0f));
+    if (mSearchPlayer) MR::invalidateClipping(this);
+    else MR::validateClipping(this);
     mScaleController = new AnimScaleController(nullptr);
+    mScaleController->setParamTight();
     mStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
-    if (MR::isValidSwitchAppear(this)) {
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::initActorState(this, mStarPointer, GET_NERVE(BombBird, HostTypeNrvBindStarPointer), "SupportFreezeAir");
+    mStarPointer2 = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActorState(this, mStarPointer2, GET_NERVE(BombBird, HostTypeNrvBindStarPointerGround), "SupportFreezeGround");
+    MR::initUseStageSwitchReadB(this, rIter);
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void BombBird::makeActorDead() {
@@ -140,10 +121,28 @@ void BombBird::control() {
         }
     }
 
-    if (!isNerve(GET_NERVE(BombBird, HostTypeNrvBlow)) && !isNerve(GET_NERVE(BombBird, HostTypeNrvTrample)) &&
-        !isNerve(GET_NERVE(BombBird, HostTypeNrvSinkDown)) && MR::isBindedGroundSinkDeath(this)) {
-        setNerve(GET_NERVE(BombBird, HostTypeNrvSinkDown));
+    if ((isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) ||
+        isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd))) && mStarPointer2->tryStartPointBind()) {
+        setNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointerGround));
         return;
+    }
+
+    if (!isNerve(GET_NERVE(BombBird, HostTypeNrvBlow)) && !isNerve(GET_NERVE(BombBird, HostTypeNrvTrample)) &&
+        !isNerve(GET_NERVE(BombBird, HostTypeNrvSinkDown))) {
+        if (MR::isBindedGroundSinkDeath(this)) {
+            setNerve(GET_NERVE(BombBird, HostTypeNrvSinkDown));
+            return;
+        }
+        TVec3f offset;
+        offset.x = 0.0f;
+        offset.y = 0.0f;
+        offset.z = 0.0f;
+        if (MR::isInDeath(this, offset)) {
+            MR::startActionSound(this, "EmExplodeS");
+            MR::emitEffect(this, "Death");
+            kill();
+            return;
+        }
     }
 
     if (!isNerve(GET_NERVE(BombBird, HostTypeNrvTrample)) && MR::isPressedRoofAndGround(this)) {
@@ -159,7 +158,9 @@ void BombBird::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(BombBird, HostTypeNrvEscape)) || isNerve(GET_NERVE(BombBird, HostTypeNrvDamage)) ||
         isNerve(GET_NERVE(BombBird, HostTypeNrvFall)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) ||
         isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd)) ||
-        MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f) || MR::isPlayerHipDropFalling() || MR::isPlayerHipDropLand()) {
+        isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointer)) ||
+        isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointerGround)) ||
+        MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f) || MR::isPlayerHipDropFalling() || MR::isPlayerHipDropLand()) {
         MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
     } else if (!MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
@@ -212,7 +213,7 @@ void BombBird::exeFlyOnRailSearch() {
             if (mHeldBomb) {
                 TVec3f scale;
                 MR::copyJointScale(this, "BombPos", &scale);
-                mHeldBomb->mScale.set(scale);
+                MR::setScale(mHeldBomb, scale);
             }
         }
 
@@ -275,7 +276,7 @@ void BombBird::exeFlyWithAttack() {
         }
 
         if (MR::isStep(this, 130)) {
-            MR::startActionSound(mHeldBomb, "EmBombbirdDropBomb");
+            MR::startActionSound(this, "EmBombbirdDropBomb");
             mHeldBomb->start(mPosition, mFront * ::hBombFallFrontVel - mGravity * ::hBombFallUpVel);
             mHeldBomb = nullptr;
             mHoldBomb = false;
@@ -453,7 +454,7 @@ void BombBird::exeTrample() {
     MR::moveAndTurnToPlayer(this, &mFront, param->_0, param->_4, param->_8, param->_C);
 
     if (MR::isStep(this, 36)) {
-        TVec3f pos(mPosition - mGravity * MR::getSensorRadius(this, "body"));
+        TVec3f pos(mPosition - mGravity * MR::getSensorRadius(this, "Body"));
         MR::emitItemStomp(this);
         MR::startActionSound(this, "EmExplodeS");
         MR::emitEffect(this, "Death");
@@ -479,78 +480,95 @@ void BombBird::exeSinkDown() {
     }
 }
 
-void BombBird::endBindStarPointer() {
-    mStarPointer->kill();
+// NONMATCHING: The epilogue restores LR and the saved GPR in a different order.
+void BombBird::fn_8016A6C0() {
+    if (MR::isFirstStep(this)) MR::invalidateClipping(this);
+    if (mHeldBomb) {
+        mHeldBomb->kill();
+        mHeldBomb = nullptr;
+    }
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBird, HostTypeNrvFlyOnRail));
+}
+// NONMATCHING: The epilogue restores LR and the saved GPR in a different order.
+void BombBird::fn_8016A730() {
+    if (MR::isFirstStep(this)) MR::invalidateClipping(this);
+    if (mHeldBomb) {
+        mHeldBomb->kill();
+        mHeldBomb = nullptr;
+    }
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(BombBird, HostTypeNrvSwoonEnd));
 }
 
-void BombBird::exeBindStarPointer() {
-    if (MR::isFirstStep(this)) {
-        MR::invalidateClipping(this);
-    }
-
-    killAllBomb();
-    if (MR::updateActorStateAndNextNerve(this, mStarPointer, GET_NERVE(BombBird, HostTypeNrvFlyOnRail))) {
-        return;
-    }
-}
-
-bool BombBird::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgLockOnStarPieceShoot(msg)) {
-        return true;
-    }
-
-    if (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) ||
-        (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd)) && MR::isLessStep(this, ::hSwoonEndFlyStartTime))) {
+bool BombBird::receiveMsgPlayerAttack(u32 msg, HitSensor* sender, HitSensor* receiver) {
+    if (MR::isMsgLockOnStarPieceShoot(msg)) return true;
+    if (fn_8016AAA0()) {
         if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
             setNerve(GET_NERVE(BombBird, HostTypeNrvTrample));
             return true;
         }
-
         if (MR::isMsgStarPieceAttack(msg)) {
             mScaleController->startHitReaction();
             return true;
         }
-
-        if (MR::isMsgPlayerHitAll(msg)) {
-            mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
-            setNerve(GET_NERVE(BombBird, HostTypeNrvBlow));
+        if (MR::isMsgSupportTicoSpin(msg)) {
+            MR::zeroVelocity(this);
+            MR::addVelocityToGravity(this, -20.0f);
+            setNerve(GET_NERVE(BombBird, HostTypeNrvFall));
             return true;
         }
-
+        if (MR::isMsgPlayerHitAll(msg)) {
+            fn_8016AB40(sender, receiver);
+            return true;
+        }
         return false;
     }
-
-    if (isNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRail)) || isNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRailSearch)) ||
-        isNerve(GET_NERVE(BombBird, HostTypeNrvFlyWithAttack)) || isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointer)) ||
-        isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd))) {
-        if (MR::isMsgPlayerHitAll(msg) || MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg) || MR::isMsgStarPieceAttack(msg)) {
-            if (mHeldBomb) {
-                mHeldBomb->kill();
-                mHeldBomb = nullptr;
-            }
-
-            MR::setVelocitySeparateHV(this, pSender, pReceiver, ::hSpinAttackedVelH, ::hSpinAttackedVelV);
-            setNerve(GET_NERVE(BombBird, HostTypeNrvDamage));
-            if (MR::isMsgPlayerHipDrop(msg)) {
-                MR::sendMsgAwayJump(pSender, pReceiver);
-            }
-
+    if (fn_8016A9F0()) {
+        if (MR::isMsgPlayerHitProjectiles(msg)) {
+            if (mHeldBomb) { mHeldBomb->kill(); mHeldBomb = nullptr; }
+            fn_8016AB40(sender, receiver);
             return true;
         }
-    } else if (MR::isMsgStarPieceAttack(msg)) {
-        return true;
-    }
-
+        if (MR::isMsgPlayerHitAll(msg) || MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg) || MR::isMsgStarPieceAttack(msg)) {
+            if (mHeldBomb) { mHeldBomb->kill(); mHeldBomb = nullptr; }
+            MR::setVelocitySeparateHV(this, sender, receiver, 10.0f, 20.0f);
+            setNerve(GET_NERVE(BombBird, HostTypeNrvDamage));
+            if (MR::isMsgPlayerHipDrop(msg)) MR::sendMsgAwayJump(sender, receiver);
+            return true;
+        }
+    } else if (MR::isMsgStarPieceAttack(msg)) return true;
     return false;
 }
-
-bool BombBird::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerKick(msg) && (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)))) {
-        mSpinHitController->start(this, pSender->mPosition, pReceiver->mPosition);
-        setNerve(GET_NERVE(BombBird, HostTypeNrvBlow));
+bool BombBird::fn_8016A9F0() const {
+    if (isNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRail)) || isNerve(GET_NERVE(BombBird, HostTypeNrvFlyOnRailSearch)) ||
+        isNerve(GET_NERVE(BombBird, HostTypeNrvFlyWithAttack)) || isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointer)) ||
+        (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd)) && MR::isGreaterEqualStep(this, 30))) return true;
+    return false;
+}
+bool BombBird::fn_8016AAA0() const {
+    if (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) || isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) ||
+        (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonEnd)) && MR::isLessStep(this, 30)) ||
+        isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointerGround))) return true;
+    return false;
+}
+void BombBird::fn_8016AB40(HitSensor* sender, HitSensor* receiver) {
+    mSpinHitController->start(this, *MR::getSensorPos(sender), *MR::getSensorPos(receiver));
+    MR::calcSensorHorizonNormalize(&mFront, mGravity, receiver, sender);
+    MR::invalidateClipping(this);
+    setNerve(GET_NERVE(BombBird, HostTypeNrvBlow));
+}
+bool BombBird::receiveOtherMsg(u32 msg, HitSensor* sender, HitSensor* receiver) {
+    if (MR::isMsgPlayerKick(msg) && (isNerve(GET_NERVE(BombBird, HostTypeNrvSwoonStart)) ||
+        isNerve(GET_NERVE(BombBird, HostTypeNrvSwoon)) || isNerve(GET_NERVE(BombBird, HostTypeNrvBindStarPointerGround)))) {
+        fn_8016AB40(sender, receiver);
         return true;
     }
-
+    if (MR::isMsgInhaleBlackHole(msg) && !isNerve(GET_NERVE(BombBird, HostTypeNrvBlow)) &&
+        !isNerve(GET_NERVE(BombBird, HostTypeNrvTrample)) && !isNerve(GET_NERVE(BombBird, HostTypeNrvSinkDown))) {
+        MR::startActionSound(this, "EmExplodeS");
+        MR::emitEffect(this, "Death");
+        kill();
+        return true;
+    }
     return false;
 }
 
@@ -566,4 +584,11 @@ void BombBird::calcAndSetBaseMtx() {
         mFixedPos->mMtx.getScale(scale);
         MR::setBaseScale(mHeldBomb, scale);
     }
+}
+
+void NrvBombBird::HostTypeNrvBindStarPointer::execute(Spine* spine) const {
+    static_cast<BombBird*>(spine->mExecutor)->fn_8016A6C0();
+}
+void NrvBombBird::HostTypeNrvBindStarPointerGround::execute(Spine* spine) const {
+    static_cast<BombBird*>(spine->mExecutor)->fn_8016A730();
 }

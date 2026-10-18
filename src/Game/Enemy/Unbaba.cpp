@@ -1,18 +1,12 @@
 #include "Game/Enemy/Unbaba.hpp"
 #include "Game/Util.hpp"
+#include "Game/Enemy/UnbabaSlim.hpp"
+#include "Game/MapObj/MapPartsRotator.hpp"
+#include "Game/Util/MapPartsUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-namespace MR {
-    VolumeDrawer* createVolumeDrawer(const char*, const char*, MtxPtr);
-    bool getFirstPolyOnLineToMap(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
-};  // namespace MR
-
-// Unnamed SMG2 helpers in this unit (spline / movement math, not yet ported).
-
-namespace {
-    // Static parameter vectors (sbss at 0x807294E0).
-    TVec3f sParam[3] = {TVec3f(1.2f, 1.0f, 1.4f), TVec3f(400.0f, 0.0f, -300.0f), TVec3f(0.09f, 0.09f, 0.09f)};
-};  // namespace
+// PLACEHOLDER(enemies): unnamed mutable spline slope in sbss2; resolve when its data symbol is named.
+extern f32 lbl_807E3080;
 
 namespace NrvUnbaba {
     NEW_NERVE(UnbabaNrvWait, Unbaba, Wait);
@@ -23,6 +17,15 @@ namespace NrvUnbaba {
     NEW_NERVE(UnbabaNrvLaunch, Unbaba, Launch);
     NEW_NERVE(UnbabaNrvRestart, Unbaba, Restart);
 };  // namespace NrvUnbaba
+
+namespace {
+    extern const f32 sOne;
+    extern const f32 sRiseTime;
+    extern const f32 sRiseTime1;
+    extern const f32 sRiseSlope1;
+    // NONMATCHING: static initialization differs in scheduling and literal-base register setup.
+    TVec3f sParam[3] = {TVec3f(1.2f, 1.0f, 1.4f), TVec3f(400.0f, 0.0f, -300.0f), TVec3f(0.09f, 0.09f, 0.09f)};
+};  // namespace
 
 #define UNBABA_NERVE(n) (&NrvUnbaba::UnbabaNrv##n::sInstance)
 
@@ -42,26 +45,23 @@ Unbaba::Unbaba(const char* pName) : LiveActor(pName), mVolumeDrawer(nullptr) {
     mLaunchMtx.identity();
 }
 
-Unbaba::~Unbaba() {}
-
 void Unbaba::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "Unbaba", false);
-    mVolumeDrawer = MR::createVolumeDrawer("Unbaba", "Unbaba", mMtx.toMtxPtr());
+    mVolumeDrawer = MR::createVolumeDrawer("マグマ範囲描画", "VolumeSphere", mMtx.toMtxPtr());
     mVolumeDrawer->setHost(this);
     f32 dist = -1.0f;
     MR::getJMapInfoArg0NoInit(rIter, &dist);
-    if (dist == -1.0f) {
-        dist = 500.0f;
-    }
+    if (-1.0f == dist) dist = 500.0f;
     mDistance = dist;
-    MR::calcUpVec(&mUpVec, this);
-    initNerve(UNBABA_NERVE(Wait), 0);
-    MR::getJMapInfoArg1NoInit(rIter, &mStepAttackSign);
-    MR::getJMapInfoArg2NoInit(rIter, &mStepAttack);
-    MR::getJMapInfoArg3NoInit(rIter, &mIsScaleUp);
+    fn_80215FB0();
+    MR::getJMapInfoArg1NoInit(rIter, &mStepAttack);
+    MR::getJMapInfoArg2NoInit(rIter, &mStepAttackSign);
+    MR::getJMapInfoArg3NoInit(rIter, &mIsAttackBlocked);
     MR::getJMapInfoTrans(rIter, &mPos);
     MR::getJMapInfoRotate(rIter, &mRotate);
-    calcAndSetBaseMtx();
+    MR::calcUpVec(&mUpVec, this);
+    initNerve(UNBABA_NERVE(Wait), 0);
+    makeActorAppeared();
 }
 
 void Unbaba::makeActorAppeared() {
@@ -72,32 +72,16 @@ void Unbaba::makeActorAppeared() {
     MR::setRotation(this, mRotate);
     TPos3f mtx;
     mtx.identity();
-    TVec3f scale(1.0f);
-    MR::makeMtxTR(mtx.toMtxPtr(), scale, mRotate);
-    fn_80215FB0();
+    MR::makeMtxTR(mtx.toMtxPtr(), TVec3f(0.0f), mRotate);
+    mtx.getYDir(mUpVec);
+    mHeight = -2500.0f * mScale.x;
+    mVolumeDrawer->makeActorAppeared();
+    mVolumeDrawer->setScaleDownRate(0);
 }
 
 void Unbaba::makeActorDead() {
     LiveActor::makeActorDead();
-}
-
-bool Unbaba::receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) {
-    return false;
-}
-
-void Unbaba::exeWait() {
-    if (MR::isFirstStep(this)) {
-        MR::tryStartActionNotPlaying(this, "Wait");
-        MR::validateClipping(this);
-    }
-    if (MR::isValidSwitchA(this)) {
-        if (MR::isOnSwitchA(this)) {
-            setNerve(UNBABA_NERVE(AppearStep));
-        }
-    } else if (MR::isGreaterStep(this, 0x78)) {
-        setNerve(UNBABA_NERVE(AppearStep));
-    }
-    MR::startActionSound(this, "MagmaWait", -1, -1, -1);
+    mVolumeDrawer->makeActorDead();
 }
 
 void Unbaba::exeAppear() {
@@ -119,6 +103,21 @@ void Unbaba::exeAppear() {
     if (MR::isFirstStep(this)) {
         setNerve(UNBABA_NERVE(Wait));
     }
+}
+
+void Unbaba::exeWait() {
+    if (MR::isFirstStep(this)) {
+        MR::tryStartActionNotPlaying(this, "Wait");
+        MR::validateClipping(this);
+    }
+    if (MR::isValidSwitchA(this)) {
+        if (MR::isOnSwitchA(this)) {
+            setNerve(UNBABA_NERVE(AppearStep));
+        }
+    } else if (MR::isGreaterStep(this, 0x78)) {
+        setNerve(UNBABA_NERVE(AppearStep));
+    }
+    MR::startActionSound(this, "MagmaWait", -1, -1, -1);
 }
 
 void Unbaba::exeAppearStep() {
@@ -150,7 +149,8 @@ void Unbaba::exeAttack() {
         MR::invalidateClipping(this);
         MR::startAction(this, "Attack");
     }
-    mIsScaleUp = !MR::isGreaterStep(this, 0x58);
+    if (MR::isGreaterStep(this, 0x58)) mIsScaleUp = false;
+    else mIsScaleUp = true;
     if (MR::isActionEnd(this)) {
         setNerve(UNBABA_NERVE(Launch));
     }
@@ -162,8 +162,8 @@ void Unbaba::exeLaunch() {
         MR::validateClipping(this);
     }
     if (MR::isGreaterStep(this, mStepAttack)) {
-        mHeight = -2500.0f * mScale.x;
         mT0 = 0.0f;
+        mHeight = -2500.0f * mScale.x;
         setNerve(UNBABA_NERVE(Restart));
     }
     fn_80215EF0();
@@ -179,45 +179,52 @@ void Unbaba::exeRestart() {
     MR::startActionSound(this, "MagmaWait", -1, -1, -1);
 }
 
+// NONMATCHING: compiler emits aggregate-copy loops and scalar vector arithmetic instead of the target paired-single operations.
 void Unbaba::control() {
-    PSMTXCopy(MR::getJointMtx(this, "Head"), mMtx.toMtxPtr());
+    mMtx = *reinterpret_cast<const TPos3f*>(MR::getJointMtx(this, "Head"));
     MR::addTransMtxLocal(mMtx.toMtxPtr(), sParam[1]);
-    TVec3f scaled = sParam[0] * 10.0f;
-    MR::preScaleMtx(mMtx.toMtxPtr(), scaled);
-    Color8 color(0x8C, 0x28, 0x00, 0x87);
-    mVolumeDrawer->setColor(color);
+    MR::preScaleMtx(mMtx.toMtxPtr(), sParam[0] * 10.0f);
+    const GXColor color = {0x8C, 0x28, 0x00, 0x87};
+    Color8 drawColor;
+    drawColor.r = color.r;
+    drawColor.g = color.g;
+    drawColor.b = color.b;
+    drawColor.a = color.a;
+    mVolumeDrawer->setColor(drawColor);
     mVolumeDrawer->setDrawPasses(4);
     mVolumeDrawer->setScale(sParam[2]);
-    bool scaleUp = mIsScaleUp && !mIsAttackBlocked;
+    bool scaleUp = false;
+    if (mIsScaleUp && !mIsAttackBlocked) scaleUp = true;
     if (scaleUp) {
-        TVec3f pos;
+        TVec3f diff(0.0f);
+        TVec3f pos(0.0f);
         MR::extractMtxTrans(mMtx.toMtxPtr(), &pos);
-        TVec3f diff(*MR::getPlayerPos());
-        diff -= pos;
-        if (diff.length() > 3500.0f) {
-            scaleUp = false;
-        }
+        TVec3f temp(*MR::getPlayerPos());
+        temp.x -= pos.x;
+        temp.y -= pos.y;
+        temp.z -= pos.z;
+        diff.x = temp.x;
+        diff.y = temp.y;
+        diff.z = temp.z;
+        s32 distance = 3500;
+        if (diff.length() > f32(distance)) scaleUp = false;
     }
-    if (scaleUp) {
-        mVolumeDrawer->setScaleUpRate(60);
-    } else {
-        mVolumeDrawer->setScaleDownRate(60);
-    }
+    if (scaleUp) mVolumeDrawer->setScaleUpRate(60);
+    else mVolumeDrawer->setScaleDownRate(60);
     mIsScaleUp = false;
 }
 
+// NONMATCHING: temporary allocation, register assignment and vector-add scheduling differ.
 void Unbaba::calcAndSetBaseMtx() {
-    TVec3f offset = mUpVec * mHeight;
-    TVec3f pos = mPos;
-    pos += offset;
-    MR::setPosition(this, pos);
+    MR::setPosition(this, mPos + mUpVec * mHeight);
     LiveActor::calcAndSetBaseMtx();
 }
 
+// NONMATCHING: compiler folds the unused attack-result branches.
 void Unbaba::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender)) {
         if (MR::isSensorPlayerOrRide(pReceiver)) {
-            if (MR::sendMsgEnemyAttackFireStrong(pReceiver, pSender)) {
+            if (!MR::sendMsgEnemyAttackFireStrong(pReceiver, pSender)) {
             }
         }
     } else if (MR::isSensorEnemy(pSender)) {
@@ -227,20 +234,223 @@ void Unbaba::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+bool Unbaba::receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) {
+    return false;
+}
 
-// Timer-driven height update used while the Unbaba is attacking (leaf helper).
+// NONMATCHING: scalar expression scheduling and float-register assignment differ.
+f32 fn_80215D50(f32 t, f32 start, f32 value, f32 slope, f32 end, f32 endValue, f32 endSlope) {
+    f32 dt = t - start;
+    f32 rate = dt / (end - start);
+    f32 rate2 = rate * rate;
+    f32 curve = rate2 - rate;
+    return (value + ((((rate + rate) * curve) - rate2) * (value - endValue))) - (dt * ((rate * slope) - (slope + (slope * curve) + (endSlope * curve))));
+}
+
+f32 fn_80215DA0(f32 t, f32 slope0, f32 time1, f32 value1, f32 slope1, f32 time2, f32 slope2) {
+    if (t >= 1.0f) return 1.0f;
+    if (t <= 0.0f) return 0.0f;
+    if (t <= time1) return fn_80215D50(t, 0.0f, 0.0f, slope0, time1, value1, slope1);
+    if (t <= time2) return fn_80215D50(t, time1, value1, slope1, time2, 1.0f, slope2);
+    return fn_80215D50(t, time2, 1.0f, slope2, 1.0f, 1.0f, 0.0f);
+}
+
+// NONMATCHING: float-load scheduling and product register assignment differ.
 bool Unbaba::fn_80215E50() {
-    this->mTimer += 1.0f / 130.0f;
+    this->mTimer += sOne / sRiseTime;
     MR::clamp01(&this->mTimer);
-    f32 t = fn_80215DA0(this->mTimer, 0.0f, 0.6f, 1.1f, 0.6f, 0.85f, 0.3f);
+    f32 t = fn_80215DA0(this->mTimer, lbl_807E3080, sRiseTime1, 1.1f, sRiseSlope1, 0.85f, 0.3f);
     this->mHeight = this->mDistance * t + -2500.0f * this->mScale.x;
     return 1.0f == this->mTimer;
 }
 
+// NONMATCHING: float-load scheduling and product register assignment differ.
 bool Unbaba::fn_80215EF0() {
-    this->mTimer -= 1.0f / 20.0f;
+    s32 frames = 20;
+    this->mTimer -= sOne / f32(frames);
     MR::clamp01(&this->mTimer);
     f32 t = fn_80215DA0(this->mTimer, 3.0f, 0.75f, 1.0f, -0.9f, 0.92f, 0.55f);
     this->mHeight = this->mDistance * t + -2500.0f * this->mScale.x;
     return 0.0f == this->mTimer;
+}
+
+// NONMATCHING: constant and field load order differ.
+void Unbaba::fn_80215FB0() {
+    PSMTXCopy(getBaseMtx(), mLaunchMtx.toMtxPtr());
+    MR::setMtxTrans(mLaunchMtx.toMtxPtr(), mPos.x, mPos.y, mPos.z);
+    MR::addTransMtxLocalX(mLaunchMtx.toMtxPtr(), mDistance + -1000.0f);
+}
+
+Unbaba::~Unbaba() {}
+
+namespace {
+    const f32 sOne = 1.0f;
+    const f32 sRiseTime = 130.0f;
+    const f32 sRiseTime1 = 0.6f;
+    const f32 sRiseSlope1 = 0.6f;
+}
+
+bool UnbabaSlim::fn_80216200(const TVec3f* pOffset) {
+    TVec3f hit(0.0f);
+    TPos3f mtx;
+    PSMTXCopy(getBaseMtx(), mtx);
+    MR::addTransMtxLocal(mtx, *pOffset);
+    TVec3f pos(0.0f);
+    TVec3f up(0.0f, 1.0f, 0.0f);
+    MR::extractMtxTrans(mtx, &pos);
+    MR::extractMtxYDir(mtx, &up);
+    return MR::getFirstPolyOnLineToMap(&hit, nullptr, pos, -up * 1300.0f);
+}
+
+UnbabaSlim::UnbabaSlim(const char* pName) : LiveActor(pName) {
+    mRotator = nullptr;
+    mRotateSpeed = 0.0f;
+    mVolumeDrawer = nullptr;
+    mEatCount = 0;
+    mMtx.identity();
+}
+
+void UnbabaSlim::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "UnbabaSlim", false);
+    initRotator(rIter);
+    mVolumeDrawer = MR::createVolumeDrawer("マグマ範囲描画", "VolumeSphere", mMtx);
+    mVolumeDrawer->setHost(this);
+    initNerve(&NrvUnbabaSlim::UnbabaSlimNrvWait::sInstance, 0);
+    s32 rotateAxis = 0;
+    MR::getMapPartsArgRotateAxis(&rotateAxis, rIter);
+    if (rotateAxis == 2) {
+        mRotateSpeed = 90.0f;
+    }
+    makeActorAppeared();
+    MR::fn_80008890(this, "UnbabaSlim");
+}
+
+// NONMATCHING: scalar subtraction and copy generation differ from paired-single target operations.
+void UnbabaSlim::control() {
+    if (!MR::isValidSwitchB(this) || MR::isOnSwitchB(this)) {
+        if (mRotator != nullptr) mRotator->movement();
+    }
+    bool scaleUp = false;
+    TVec3f diff(0.0f);
+    TVec3f pos(0.0f);
+    MR::extractMtxTrans(mMtx, &pos);
+    TVec3f temp(*MR::getPlayerPos());
+        temp.x -= pos.x;
+        temp.y -= pos.y;
+        temp.z -= pos.z;
+        diff.x = temp.x;
+        diff.y = temp.y;
+        diff.z = temp.z;
+    s32 distance = 3500;
+    if (diff.length() < f32(distance)) scaleUp = true;
+    if (scaleUp) mVolumeDrawer->setScaleUpRate(120);
+    else mVolumeDrawer->setScaleDownRate(120);
+    fn_802169A0();
+}
+
+void UnbabaSlim::calcAndSetBaseMtx() {
+    fn_802168F0();
+}
+
+void UnbabaSlim::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    startRotator();
+    mVolumeDrawer->makeActorAppeared();
+    mVolumeDrawer->setScaleDownRate(0);
+}
+
+void UnbabaSlim::makeActorDead() {
+    mVolumeDrawer->makeActorDead();
+    endRotator();
+    LiveActor::makeActorDead();
+}
+
+void UnbabaSlim::exeWait() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "UnbabaSlim");
+    }
+    if (fn_80216200(&sUnbabaVec[0])) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEatStart::sInstance);
+    }
+}
+
+void UnbabaSlim::exeEatStart() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "EatStart");
+    }
+    if (MR::isActionEnd(this)) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEat::sInstance);
+    }
+}
+
+void UnbabaSlim::exeEat() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Eat");
+        mEatCount = 1;
+    }
+    if (MR::isGreaterStep(this, 15)) {
+        TVec3f sp8(sUnbabaVec[0]);
+        sp8.z = -sp8.z;
+        if (!fn_80216200(&sp8)) {
+            if (mEatCount == 0) {
+                MR::tryHitReaction(this, "小惑星抜け");
+                MR::startActionSound(this, "EatEnd", -1, -1, -1);
+            }
+            mEatCount++;
+        } else {
+            if (mEatCount > 0) {
+                MR::tryHitReaction(this, "小惑星衝突");
+                MR::startActionSound(this, "Eat", -1, -1, -1);
+            }
+            mEatCount = 0;
+        }
+    }
+    if (mEatCount > 60) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvEatEnd::sInstance);
+    }
+}
+
+void UnbabaSlim::exeEatEnd() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "EatEnd");
+    }
+    if (MR::isActionEnd(this)) {
+        setNerve(&NrvUnbabaSlim::UnbabaSlimNrvWait::sInstance);
+    }
+}
+
+void UnbabaSlim::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayer(pReceiver)) {
+        if (MR::sendMsgEnemyAttackFireStrong(pReceiver, pSender)) return;
+    }
+}
+
+bool UnbabaSlim::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    return false;
+}
+
+// NONMATCHING: field/constant load order and multiply operand registers differ.
+void UnbabaSlim::fn_802168F0() {
+    TPos3f mtx;
+    mtx.identity();
+    if (mRotator != nullptr) mtx.concat(mRotator->getRotateMtx(), mtx);
+    MR::rotateMtxLocalY(mtx, mRotateSpeed * 0.017453292f);
+    mtx.setTrans(mPosition);
+    MR::setBaseTRMtx(this, mtx);
+}
+
+// NONMATCHING: aggregate matrix and color-copy generation differ from target paired-single copies.
+void UnbabaSlim::fn_802169A0() {
+    mMtx = *reinterpret_cast<const TPos3f*>(MR::getJointMtx(this, "Head"));
+    MR::addTransMtxLocal(mMtx, sUnbabaVec[2]);
+    MR::preScaleMtx(mMtx, sUnbabaVec[1] * 5.0f);
+    const GXColor color = {0x8C, 0x28, 0x00, 0x87};
+    Color8 drawColor;
+    drawColor.r = color.r;
+    drawColor.g = color.g;
+    drawColor.b = color.b;
+    drawColor.a = color.a;
+    mVolumeDrawer->setColor(drawColor);
+    mVolumeDrawer->setDrawPasses(2);
+    mVolumeDrawer->setScale(sUnbabaVec[3]);
 }

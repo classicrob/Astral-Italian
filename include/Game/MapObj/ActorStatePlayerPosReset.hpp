@@ -7,6 +7,7 @@ class LiveActor;
 class ActorStatePlayerPosReset : public ActorStateBase<LiveActor> {
 public:
     ActorStatePlayerPosReset(LiveActor*, const char*, bool);
+    ActorStatePlayerPosReset(LiveActor*, MtxPtr, const TVec3f&, bool);  // fn_8026DF40 (SMG2-only, by address)
     virtual ~ActorStatePlayerPosReset();
     virtual void appear();
     bool isResetStart();

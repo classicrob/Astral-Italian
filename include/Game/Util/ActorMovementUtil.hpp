@@ -11,6 +11,7 @@ class HitSensor;
 class LiveActor;
 
 namespace MR {
+    void fn_80010E30(LiveActor*, const TVec3f&, f32, f32, f32, f32);
     void killVelocityVertical(LiveActor*);
     void killVelocityHorizon(LiveActor*);
     void setQuatUpNoSupport(LiveActor*, const TVec3f&);
@@ -209,7 +210,7 @@ namespace MR {
     f32 fn_80012450(const LiveActor*);
     void fn_80011F80(LiveActor*, f32, f32);
     void fn_80011180(LiveActor*, const TVec3f&, f32);
-    void fn_80010200(TQuat4f*, TQuat4f*, LiveActor*, HitSensor*, HitSensor*);
+    void fn_80010200(TQuat4f*, TVec3f*, LiveActor*, HitSensor*, HitSensor*);  // 2nd arg: front vector out (asm)
     void fn_8000F9A0(LiveActor*, TVec3f*, const TVec3f*);
     void fn_8000F910(LiveActor*, TVec3f*, TVec3f*);
     void fn_8000EAB0(TVec3f*, LiveActor*);
@@ -247,6 +248,22 @@ namespace MR {
     void initActorPoseTQ(ActorPoseTQ*, const LiveActor*);
 }
 
+namespace MR {
+    // SMG2 unnamed helper at 0x80014360 (owner split not assigned; used by the Buzz/SMG2-only lane), named by address.
+    void fn_80014360(TVec3f* pOut, LiveActor* pActor, f32 scale);
+};  // namespace MR
+
+namespace MR {
+    // SMG2 unnamed helpers at 0x80010130 / 0x800102E0 (ActorMovementUtil.cpp), named by address; used by Garigari init.
+    void fn_80010130(ActorPoseTQ* pPose, LiveActor* pActor);
+};  // namespace MR
+
+namespace MR {
+    void fn_800145C0(LiveActor*);
+    void fn_80014670(LiveActor*);
+}
+
+namespace MR { void fn_8000FA30(LiveActor*, const TVec3f*); }
 namespace MR {
     void setRotationFromQuat(LiveActor*, const TQuat4f&);
 }

@@ -1,3 +1,4 @@
+#pragma auto_inline off
 #include "Game/Util/YoshiLockOnUtil.hpp"
 #include "Game/Enemy/Menbo.hpp"
 #include "Game/Util.hpp"
@@ -8,21 +9,26 @@
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/Map/CollisionParts.hpp"
+#include "Game/Map/HitInfo.hpp"
+#include "Game/Map/CollisionDirector.hpp"
+#include "Game/Map/CollisionCategorizedKeeper.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
+
+#define BATCH_NERVE(Name, Method) \
+    class Name : public Nerve { public: virtual void execute(Spine* spine) const { static_cast<Menbo*>(spine->mExecutor)->Method(); } static Name sInstance; }; \
+    Name Name::sInstance ATTRIBUTE_WEAK;
 
 namespace NrvMenbo {
     NEW_NERVE(MenboNrvWait, Menbo, Wait);
     NEW_NERVE(MenboNrvMove, Menbo, Move);
     NEW_NERVE(MenboNrvTurn, Menbo, Turn);
 
-    // Turn-again nerve: execute hands off to the turn-back helper.
-    NEW_NERVE(MenboNrvTurnBack, Menbo, TurnBack);
+    BATCH_NERVE(MenboNrvTurnBack, fn_801C43C0);
 
     NEW_NERVE(MenboNrvFind, Menbo, Find);
     NEW_NERVE(MenboNrvAttack, Menbo, Attack);
 
-    // Attack end nerve (custom execute in SMG2 as well).
-    NEW_NERVE(MenboNrvAttackEnd, Menbo, AttackEnd);
+    BATCH_NERVE(MenboNrvAttackEnd, fn_801C4720);
 
     NEW_NERVE(MenboNrvSwoonStart, Menbo, SwoonStart);
     NEW_NERVE(MenboNrvSwoon, Menbo, Swoon);
@@ -32,7 +38,6 @@ namespace NrvMenbo {
     NEW_NERVE(MenboNrvBlowDown, Menbo, BlownDown);
     NEW_NERVE(MenboNrvBreak, Menbo, Break);
 
-    // Yoshi tongue nerve: empty execute in SMG2.
     class MenboNrvEaten : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {}
@@ -40,7 +45,6 @@ namespace NrvMenbo {
     };
     MenboNrvEaten MenboNrvEaten::sInstance ATTRIBUTE_WEAK;
 
-    // Star-pointer bind state nerve: runs the state, then goes to Wait.
     class MenboNrvFreezeBind : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
@@ -51,28 +55,21 @@ namespace NrvMenbo {
 
 #define GET_MENBO_NERVE(name) (&NrvMenbo::name::sInstance)
 
-// Blob of Menbo strings (SMG2 lbl_8068C660 + offsets); used as literal names below.
-// unk8 "SupportFreeze", unk18 "氷モデル", unk24 "MenboFreezeIce", unk34/48/5C/70 ripple effects,
-// unk84 "星の入り江惑星氷化" (demo cast), unk98 "Normal", unkE8 "Freeze", unkF0 "IceEnd".
-
-
-// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
+// PLACEHOLDER(enemies): unnamed sbss2 water-probe height; resolve when its owning data is named.
 extern f32 lbl_807E3048;
 
-// Water normal stored in the SMG2 WaterInfo area at this+0xB0 (WaterInfo + 0x14).
-static inline TVec3f& waterNormalRef(Menbo* pActor) {
-    return *reinterpret_cast<TVec3f*>(reinterpret_cast<char*>(pActor) + 0xB0);
+namespace {
+extern const f32 cDamp;
+extern const f32 cTickBoost;
+extern const f32 cTurnDamp;
+extern const f32 cFriction;
+extern const f32 cProbeAbove;
+extern const f32 cProbeBelow;
+struct MenboSightParam { f32 distance, horizontal, vertical; };
+static const MenboSightParam cSight = {1000.0f, 160.0f, 30.0f};
 }
 
-// PartsModel byte at +0x9D (NameObj draw-flag position in SMG2).
-static inline void setPartsModelVisible(Menbo* pActor, bool b) {
-    *reinterpret_cast<bool*>(reinterpret_cast<char*>(pActor) + 0x9D) = b;
-}
-
-Menbo::Menbo(const char* pName) : LiveActor(pName) {
-    mAnimScaleCtrl = nullptr;
-    mStarPointBind = nullptr;
-    mPartsModel = nullptr;
+Menbo::Menbo(const char* pName) : LiveActor(pName), mAnimScaleCtrl(nullptr), mStarPointBind(nullptr), mPartsModel(nullptr) {
     mSpawnPos.set(0.0f, 0.0f, 0.0f);
     mSpawnRot.set(0.0f, 0.0f, 0.0f);
     mBasePos.set(0.0f, 0.0f, 0.0f);
@@ -88,15 +85,11 @@ Menbo::Menbo(const char* pName) : LiveActor(pName) {
     mIsInWater = false;
     mIsPlayerWet = false;
     mIsTurning = false;
-    TVec3f zero(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), zero);
-}
-
-Menbo::~Menbo() {
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), TVec3f(0.0f));
 }
 
 void Menbo::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "Menbo", nullptr, false);
+    MR::initActor(this, rIter, "Menbo", false);
     mSpawnPos = mPosition;
     mSpawnRot = mRotation;
     mBasePos = mPosition;
@@ -109,7 +102,7 @@ void Menbo::init(const JMapInfoIter& rIter) {
     MR::initActorState(this, mStarPointBind, GET_MENBO_NERVE(MenboNrvFreezeBind), "SupportFreeze");
     mPartsModel = new PartsModel(this, "氷モデル", "MenboFreezeIce", getBaseMtx(), 0x13, 0);
     mPartsModel->initWithoutIter();
-    setPartsModelVisible(this, true);
+    mPartsModel->mCheckHiddenHost = true;
     MR::onEmitEffectSyncClipping(this, "MenboRippleFrontL");
     MR::onEmitEffectSyncClipping(this, "MenboRippleFrontR");
     MR::onEmitEffectSyncClipping(this, "MenboRippleBackL");
@@ -118,30 +111,34 @@ void Menbo::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
+#pragma dont_inline on
+// NONMATCHING: collision-parts pointer and actor register allocation differ; typed probe and keeper calls agree.
 void Menbo::initAfterPlacement() {
-    TVec3f pos = mPosition;
-    TVec3f grav = mGravity;
-    TVec3f scaledGrav;
-    scaledGrav = grav;
-    scaledGrav.scale(150.0f);
-    pos.sub(scaledGrav);
-    TVec3f ray = mGravity;
-    ray.scale(mGroundDist);
-
-    Triangle* pTri = nullptr;
-    CollisionParts* pParts = nullptr;
-    if (MR::fn_80037E40(0, &pTri, &pos, &ray)) {
-        pParts = reinterpret_cast<CollisionParts*>(pTri);
-    } else {
-        if (MR::getFirstPolyOnLineToMap(nullptr, pTri, pos, ray)) {
-            pParts = nullptr;  // SMG2 searches the same-host parts through the collision director here
-        }
-    }
-
-    if (pParts != nullptr) {
-        mBinder->setExCollisionParts(pParts);
+    f32 groundDist = mGroundDist;
+    TVec3f pos(mPosition);
+    TVec3f ray(mGravity);
+    Triangle triangle;
+    TVec3f offset(ray);
+    offset *= 150.0f;
+    pos.sub(offset);
+    ray *= groundDist;
+    CollisionParts* parts;
+    if (MR::fn_80037E40(static_cast<TVec3f*>(nullptr), &triangle, pos, ray)) {
+        parts = triangle.mParts;
+    } else if (MR::getFirstPolyOnLineToMap(nullptr, &triangle, pos, ray)) {
+        CollisionParts* same = nullptr;
+        CollisionParts* hitParts = triangle.mParts;
+        MR::getCollisionDirector()->mCategoryKeeper[3]->searchSameHostParts(&same, hitParts);
+        parts = same;
+    } else parts = nullptr;
+    if (parts) {
+        Binder* binder = mBinder;
+        binder->mExCollisionParts = parts;
+        if (parts == nullptr) binder->_1EC._2 = false;
+        else binder->_1EC._2 = true;
     }
 }
+#pragma dont_inline off
 
 void Menbo::makeActorAppeared() {
     setNerve(GET_MENBO_NERVE(MenboNrvMove));
@@ -157,9 +154,9 @@ void Menbo::makeActorAppeared() {
     MR::startBrk(this, "Normal");
     mPartsModel->kill();
     MR::showModelIfHidden(this);
+    mIsTurning = false;
     mIsInWater = false;
     mIsPlayerWet = false;
-    mIsTurning = false;
 }
 
 void Menbo::kill() {
@@ -171,10 +168,10 @@ void Menbo::kill() {
 
 void Menbo::control() {
     mAnimScaleCtrl->updateNerve();
-    if (isYoshiEatable()) {
+    if (fn_801C53A0()) {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
-    if (isStarPointerBindable() && mStarPointBind->tryStartPointBind()) {
+    if (fn_801C54D0() && mStarPointBind->tryStartPointBind()) {
         setNerve(GET_MENBO_NERVE(MenboNrvFreezeBind));
     }
 }
@@ -222,7 +219,7 @@ void Menbo::exeMove() {
     }
 
     if (MR::isGreaterEqualStep(this, static_cast<s32>(MR::getBckFrameMax(this))) || MR::isGreaterStep(this, 600)) {
-        if (isMovedFromBase() && isWallFreezeReady(50.0f)) {
+        if (fn_801C5BD0() && fn_801C5C30(50.0f)) {
             mRetryCount = 0;
             setNerve(GET_MENBO_NERVE(MenboNrvTurnBack));
             return;
@@ -249,7 +246,7 @@ void Menbo::exeMove() {
     updateWaterInfo();
     blendUpVec();
     updateGravityWater();
-    calcFrontFromUp(7.0f);
+    fn_801C58E0(7.0f);
 }
 
 void Menbo::exeTurn() {
@@ -266,7 +263,7 @@ void Menbo::exeTurn() {
         setNerve(GET_MENBO_NERVE(MenboNrvMove));
     }
 
-    if (!isMovedFromBase() && isPlayerInSightWet()) {
+    if (!fn_801C5BD0() && isPlayerInSightWet()) {
         setNerve(GET_MENBO_NERVE(MenboNrvFind));
     }
 
@@ -278,11 +275,10 @@ void Menbo::exeTurn() {
     updateWaterInfo();
     blendUpVec();
     updateGravityWater();
-    rotateFrontGround();
+    fn_801C5A50();
 }
 
-// SMG2 fn_801C43C0: turn-again nerve (retries the turn up to 3 times, then attack end).
-void Menbo::exeTurnBack() {
+void Menbo::fn_801C43C0() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::startAction(this, "Turn");
@@ -295,7 +291,7 @@ void Menbo::exeTurnBack() {
     }
 
     if (MR::isGreaterStep(this, 110)) {
-        if (isWallFreezeReady(30.0f)) {
+        if (fn_801C5C30(30.0f)) {
             if (mRetryCount < 3) {
                 setNerve(GET_MENBO_NERVE(MenboNrvTurnBack));
                 mRetryCount++;
@@ -311,11 +307,11 @@ void Menbo::exeTurnBack() {
         setNerve(GET_MENBO_NERVE(MenboNrvFreeze));
     }
 
-    MR::attenuateVelocity(this, 0.97f * 0.99f);
+    MR::attenuateVelocity(this, cTurnDamp * cFriction);
     updateWaterInfo();
     blendUpVec();
     updateGravityWater();
-    rotateFrontGround();
+    fn_801C5A50();
 }
 
 void Menbo::exeFind() {
@@ -336,7 +332,7 @@ void Menbo::exeFind() {
     updateWaterInfo();
     blendUpVec();
     updateGravityWater();
-    blendFrontToPlayer();
+    fn_801C5AB0();
 }
 
 void Menbo::exeAttack() {
@@ -358,22 +354,18 @@ void Menbo::exeAttack() {
     updateGravityWater();
 
     if (MR::isFirstStep(this)) {
-        // NONMATCHING: SMG2 frame clamp approximated (the target reads a constant pool value here).
-        f32 frameMax = MR::getBckFrameMax(this);
-        if (frameMax < 600.0f) {
-            MR::setBckFrameAndStop(this, frameMax);
-        }
-        TVec3f front = mFront;
-        TVec3f projected;
-        MR::normalize(&projected, front);
-        projected.scale(1.0f);
-        mVelocity.scale(mVelocity.dot(projected), projected);
-        MR::fn_80010CB0(this, projected, 27.0f);
+        s32 frameLimit = 600;
+        f32 limit = frameLimit;
+        if (MR::getBckFrameMax(this) < limit) MR::getBckFrameMax(this);
+        TVec3f front(mFront);
+        JMAVECScaleAdd(&mUp, &front, &front, -mUp.dot(front));
+        MR::normalize(&front);
+        mVelocity.scale(front.dot(mVelocity), front);
+        MR::fn_80010CB0(this, front, 27.0f);
     }
 }
 
-// SMG2 fn_801C4720: attack end nerve (goes to Turn once the timer runs out).
-void Menbo::exeAttackEnd() {
+void Menbo::fn_801C4720() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Wait");
         MR::validateClipping(this);
@@ -402,7 +394,7 @@ void Menbo::exeSwoonStart() {
         MR::invalidateClipping(this);
     }
 
-    MR::attenuateVelocity(this, 0.98f * 0.98f);
+    MR::attenuateVelocity(this, cDamp * cDamp);
     updateWaterInfo();
     blendUpVec();
     updateGravityWater();
@@ -422,7 +414,7 @@ void Menbo::exeSwoon() {
         MR::startAction(this, "Swoon");
     }
 
-    MR::attenuateVelocity(this, 0.98f * 0.98f);
+    MR::attenuateVelocity(this, cDamp * cDamp);
     updateWaterInfo();
     blendUpVec();
     updateGravityWater();
@@ -442,7 +434,7 @@ void Menbo::exeSwoonEnd() {
         MR::startAction(this, "SwoonEnd");
     }
 
-    MR::attenuateVelocity(this, 0.98f * 0.98f);
+    MR::attenuateVelocity(this, cDamp * cDamp);
     updateWaterInfo();
     blendUpVec();
     updateGravityWater();
@@ -477,8 +469,8 @@ void Menbo::exeFreeze() {
             setNerve(GET_MENBO_NERVE(MenboNrvWait));
             MR::startBrk(this, "Normal");
             MR::tryDeleteEffect(this, "Ice");
-            MR::zeroVelocity(this);
             MR::emitEffect(this, "IceEnd");
+            MR::zeroVelocity(this);
             mPartsModel->kill();
         }
     } else {
@@ -499,125 +491,127 @@ void Menbo::exePressDown() {
     }
 }
 
+#pragma dont_inline on
+// NONMATCHING: negative-velocity and item-position temporaries occupy different stack slots.
 void Menbo::exeBlownDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "BlowDown");
     }
 
+    MR::turnDirectionDegree(this, &mFront, -mVelocity, 30.0f);
     if ((MR::isBindedGround(this) && MR::isGreaterStep(this, 15)) || MR::isGreaterStep(this, 35)) {
-        TVec3f side = mUp;
-        side.scale(100.0f);
-        TVec3f pos = side;
-        pos.add(mPosition);
+        TVec3f side(mUp);
+        side *= 100.0f;
+        TVec3f pos = mPosition + side;
         MR::emitItemHitAtPos(this, &pos);
         MR::tryHitReactionDead(this);
         kill();
         return;
     }
 
-    updateFallVelocity();
+    fn_801C5B10();
 }
+#pragma dont_inline off
 
+#pragma dont_inline on
+// NONMATCHING: item-position vector temporaries occupy different stack slots.
 void Menbo::exeBreak() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
         MR::startAction(mPartsModel, "Break");
-        TVec3f side = mUp;
-        side.scale(100.0f);
-        TVec3f pos = side;
-        pos.add(mPosition);
+        TVec3f side(mUp);
+        side *= 100.0f;
+        TVec3f pos = mPosition + side;
         MR::emitItemHitAtPos(this, &pos);
         MR::hideModelIfShown(this);
     }
 
     if (MR::isActionEnd(mPartsModel)) {
         MR::startBva(mPartsModel, "Normal");
-        setPartsModelVisible(this, false);
+        mPartsModel->mCheckHiddenHost = false;
         mPartsModel->kill();
         kill();
     }
 }
+#pragma dont_inline off
 
 void Menbo::calcAndSetBaseMtx() {
     TPos3f mtx;
     mtx.identity();
-    calcMtxUpFront(&mtx, mUp, mFront);
+    fn_801C5EF0(&mtx, this, mUp, mFront);
     MR::setBaseTRMtx(this, mtx);
     MR::calcFrontVec(&mFront, this);
     MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
+// NONMATCHING: compiler folds one redundant branch to the shared epilogue.
 void Menbo::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender)) {
         if (MR::isSensorPlayerOrRide(pReceiver) && !isNerve(GET_MENBO_NERVE(MenboNrvFreeze))) {
             if (isNerve(GET_MENBO_NERVE(MenboNrvFreezeBind)) || isNerve(GET_MENBO_NERVE(MenboNrvSwoonStart)) ||
-                isNerve(GET_MENBO_NERVE(MenboNrvSwoon)) || isNerve(GET_MENBO_NERVE(MenboNrvSwoonEnd))) {
+            isNerve(GET_MENBO_NERVE(MenboNrvSwoon)) || isNerve(GET_MENBO_NERVE(MenboNrvSwoonEnd))) {
                 MR::sendMsgPush(pReceiver, pSender);
                 return;
             }
-
-            bool isHit = isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) || isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) ||
-                         isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten));
-            if (!isHit) {
-                MR::sendMsgEnemyAttackStrong(pReceiver, pSender);
-            }
+            bool blocked = false;
+            if (isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) || isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) ||
+            isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) blocked = true;
+            if (!blocked && !MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) return;
         }
-    } else {
-        bool isEnemyOrOther = MR::isSensorEnemy(pSender) && !MR::isSensorEnemy(pReceiver) &&
-                              !MR::isSensorMapObj(pReceiver) && !MR::isSensorNpc(pReceiver) &&
-                              !MR::isSensorYoshi(pReceiver);
-        if (isEnemyOrOther || !MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender)) {
-            if (MR::isSensorPlayerOrRide(pReceiver) && MR::isPlayerDamaging()) {
-                MR::sendMsgPush(pReceiver, pSender);
-            }
-        }
+    } else if (MR::isSensorEnemy(pSender) &&
+    ((!MR::isSensorEnemy(pReceiver) && !MR::isSensorMapObj(pReceiver) && !MR::isSensorNpc(pReceiver) && !MR::isSensorYoshi(pReceiver)) ||
+    !MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender))) {
+        if (MR::isSensorPlayerOrRide(pReceiver) && MR::isPlayerDamaging()) MR::sendMsgPush(pReceiver, pSender);
     }
 }
 
 bool Menbo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isSensorEnemy(pReceiver)) {
+    if (MR::isSensorEnemy(pReceiver)) {
+
+        if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg) || MR::isMsgExplosionAttack(msg) ||
+        MR::isMsgYoshiEat(msg)) {
+            return fn_801C5680(pSender, pReceiver);
+        }
+
+        if (MR::isMsgLockOnStarPieceShoot(msg)) {
+            return true;
+        }
+
+        if (MR::isMsgStarPieceAttack(msg)) {
+            if (fn_801C5430()) {
+                setNerve(GET_MENBO_NERVE(MenboNrvSwoonStart));
+                return true;
+            }
+            return true;
+        }
+
+        if (MR::isMsgPlayerTrample(msg)) {
+            return fn_801C55B0(pSender, pReceiver);
+        }
+
+        if (MR::isMsgPlayerHipDrop(msg)) {
+            return fn_801C55B0(pSender, pReceiver);
+        }
+
+        if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) || MR::isMsgJetTurtleAttack(msg)) {
+            return fn_801C5680(pSender, pReceiver);
+        }
+
         return false;
     }
-
-    if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg) || MR::isMsgExplosionAttack(msg) ||
-        MR::isMsgYoshiEat(msg)) {
-        return tryBlowDown(pSender, pReceiver);
-    }
-
-    if (MR::isMsgLockOnStarPieceShoot(msg)) {
-        return true;
-    }
-
-    if (MR::isMsgStarPieceAttack(msg)) {
-        if (isPlayerAttackable()) {
-            setNerve(GET_MENBO_NERVE(MenboNrvSwoonStart));
-        }
-        return true;
-    }
-
-    if (MR::isMsgPlayerTrample(msg)) {
-        return tryPressDown();
-    }
-
-    if (MR::isMsgPlayerHipDrop(msg)) {
-        return tryPressDown();
-    }
-
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) || MR::isMsgJetTurtleAttack(msg)) {
-        return tryBlowDown(pSender, pReceiver);
-    }
-
     return false;
 }
 
 bool Menbo::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
+    bool blocked = false;
     if (isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) || isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) ||
-        isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) {
-        return false;
+    isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) {
+        blocked = true;
     }
+    if (blocked) return false;
 
     if (MR::isSensorEnemy(pSender) || MR::isSensorMapObj(pSender) || MR::isSensorNpc(pSender) ||
-        MR::isSensorRide(pSender)) {
+    MR::isSensorRide(pSender)) {
         MR::addVelocityFromPush(this, 1.0f, pSender, pReceiver);
         return true;
     }
@@ -628,18 +622,18 @@ bool Menbo::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 bool Menbo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerKick(msg)) {
         if (isNerve(GET_MENBO_NERVE(MenboNrvFreeze)) || isNerve(GET_MENBO_NERVE(MenboNrvSwoonStart)) ||
-            isNerve(GET_MENBO_NERVE(MenboNrvSwoon))) {
-            return tryBlowDown(pSender, pReceiver);
+        isNerve(GET_MENBO_NERVE(MenboNrvSwoon))) {
+            return fn_801C5680(pSender, pReceiver);
         }
         return false;
     }
 
     if (MR::isMsgExplosionAttack(msg)) {
-        return tryBlowDown(pSender, pReceiver);
+        return fn_801C5680(pSender, pReceiver);
     }
 
     if (MR::isMsgYoshiStartTongue(msg)) {
-        if (isYoshiEatable()) {
+        if (fn_801C53A0()) {
             setNerve(GET_MENBO_NERVE(MenboNrvEaten));
             return true;
         }
@@ -658,72 +652,82 @@ bool Menbo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     return false;
 }
 
-// Helpers -----------------------------------------------------------------------------------------
-
-bool Menbo::isYoshiEatable() const {
-    return !isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) && !isNerve(GET_MENBO_NERVE(MenboNrvFreeze)) &&
-           !isNerve(GET_MENBO_NERVE(MenboNrvBreak)) && !isNerve(GET_MENBO_NERVE(MenboNrvEaten));
+bool Menbo::fn_801C53A0() const {
+    bool result = false;
+    if (!isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) && !isNerve(GET_MENBO_NERVE(MenboNrvFreeze)) &&
+    !isNerve(GET_MENBO_NERVE(MenboNrvBreak)) && !isNerve(GET_MENBO_NERVE(MenboNrvEaten))) result = true;
+    return result;
 }
 
-bool Menbo::isPlayerAttackable() const {
-    return !isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) && !isNerve(GET_MENBO_NERVE(MenboNrvFreeze)) &&
-           !isNerve(GET_MENBO_NERVE(MenboNrvBreak)) && !isNerve(GET_MENBO_NERVE(MenboNrvEaten)) &&
-           !isNerve(GET_MENBO_NERVE(MenboNrvSwoonStart));
+bool Menbo::fn_801C5430() const {
+    bool result = false;
+    if (!isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) && !isNerve(GET_MENBO_NERVE(MenboNrvFreeze)) &&
+    !isNerve(GET_MENBO_NERVE(MenboNrvBreak)) && !isNerve(GET_MENBO_NERVE(MenboNrvEaten)) &&
+    !isNerve(GET_MENBO_NERVE(MenboNrvSwoonStart))) result = true;
+    return result;
 }
 
-bool Menbo::isStarPointerBindable() const {
+bool Menbo::fn_801C54D0() const {
+    bool result = false;
+    if (!isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) && !isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) &&
+    !isNerve(GET_MENBO_NERVE(MenboNrvFreeze)) && !isNerve(GET_MENBO_NERVE(MenboNrvBreak)) &&
+    !isNerve(GET_MENBO_NERVE(MenboNrvEaten)) &&
+    (!isNerve(GET_MENBO_NERVE(MenboNrvSwoonStart)) || !MR::isLessStep(this, 30)) &&
+    !isNerve(GET_MENBO_NERVE(MenboNrvFreezeBind))) result = true;
+    return result;
+}
+
+bool Menbo::fn_801C55B0(HitSensor* pSender, HitSensor* pReceiver) {
+    bool blocked = false;
     if (isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) || isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) ||
-        isNerve(GET_MENBO_NERVE(MenboNrvFreeze)) || isNerve(GET_MENBO_NERVE(MenboNrvBreak)) ||
-        isNerve(GET_MENBO_NERVE(MenboNrvEaten))) {
-        return false;
+    isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) {
+        blocked = true;
     }
-    if (isNerve(GET_MENBO_NERVE(MenboNrvSwoonStart)) && MR::isLessStep(this, 30)) {
-        return false;
+    if (!blocked) {
+
+        MR::zeroVelocity(this);
+        if (isNerve(GET_MENBO_NERVE(MenboNrvFreeze))) {
+            setNerve(GET_MENBO_NERVE(MenboNrvBreak));
+        } else {
+            setNerve(GET_MENBO_NERVE(MenboNrvPressDown));
+        }
+        return true;
     }
-    return !isNerve(GET_MENBO_NERVE(MenboNrvFreezeBind));
+    return false;
 }
 
-bool Menbo::tryPressDown() {
+bool Menbo::fn_801C5680(HitSensor* pSender, HitSensor* pReceiver) {
+    bool blocked = false;
     if (isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) || isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) ||
-        isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) {
-        return false;
+    isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) {
+        blocked = true;
     }
+    if (!blocked) {
 
-    MR::zeroVelocity(this);
-    if (isNerve(GET_MENBO_NERVE(MenboNrvFreeze))) {
-        setNerve(GET_MENBO_NERVE(MenboNrvBreak));
-    } else {
-        setNerve(GET_MENBO_NERVE(MenboNrvPressDown));
+        MR::zeroVelocity(this);
+        if (isNerve(GET_MENBO_NERVE(MenboNrvFreeze))) {
+            MR::tryHitReactionBreak(this);
+            setNerve(GET_MENBO_NERVE(MenboNrvBreak));
+        } else {
+            MR::tryHitReaction(this, "吹っ飛び");
+            MR::fn_80012B90(this, 28.0f, 20.0f, pSender, pReceiver, 4);
+            setNerve(GET_MENBO_NERVE(MenboNrvBlowDown));
+            MR::invalidateExCollisionParts(this);
+        }
+        return true;
     }
-    return true;
+    return false;
 }
 
-bool Menbo::tryBlowDown(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) || isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) ||
-        isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) {
-        return false;
-    }
-
-    MR::zeroVelocity(this);
-    if (isNerve(GET_MENBO_NERVE(MenboNrvFreeze))) {
-        MR::tryHitReactionBreak(this);
-        setNerve(GET_MENBO_NERVE(MenboNrvBreak));
-    } else {
-        MR::tryHitReaction(this, "吹っ飛び");
-        MR::fn_80012B90(this, 28.0f, 20.0f, pSender, pReceiver, 4);
-        setNerve(GET_MENBO_NERVE(MenboNrvBlowDown));
-        MR::invalidateExCollisionParts(this);
-    }
-    return true;
-}
-
+#pragma dont_inline on
+// NONMATCHING: probe and position temporaries occupy different stack slots.
 void Menbo::updateWaterInfo() {
     TVec3f up(0.0f);
     MR::calcUpVec(&up, this);
     TVec3f probe = up;
-    probe.scale(lbl_807E3048);
-    probe.add(mPosition);
-    if (MR::getWaterAreaObj(&mWaterInfo, probe)) {
+    probe *= lbl_807E3048;
+    TVec3f position = mPosition + probe;
+    if (MR::getWaterAreaObj(&mWaterInfo, position)) {
         MR::getWaterAreaInfo(&mWaterInfo, mPosition, mGravity, false);
         return;
     }
@@ -731,56 +735,56 @@ void Menbo::updateWaterInfo() {
         MR::getWaterAreaInfo(&mWaterInfo, mPosition, mGravity, false);
     }
 }
+#pragma dont_inline off
 
 void Menbo::blendUpVec() {
-    TVec3f target;
+    TVec3f target(0.0f);
     if (mWaterInfo.isInWater()) {
-        target = waterNormalRef(this);
+        target = mWaterInfo.mSurfaceNormal;
     } else {
-        target = mGravity;
-        target.scale(-1.0f);
+        target = -mGravity;
     }
     MR::vecBlendSphere(&mUp, mUp, target, 0.3f);
 }
 
+void Menbo::fn_801C58E0(f32 rate) {
+    f32 cooled = fn_801C5E60(rate);
+    if (cooled > 0.0f) {
+        TVec3f front(mFront);
+        JMAVECScaleAdd(&mUp, &front, &front, -mUp.dot(front));
+        MR::normalize(&front);
+        mVelocity.scale(front.dot(mVelocity), front);
+        MR::fn_80010CB0(this, front, cooled);
+    }
+}
+
+#pragma dont_inline on
+// NONMATCHING: scaled water-normal and velocity-sum stack slots and argument setup order differ.
 void Menbo::updateGravityWater() {
     if (mWaterInfo.isInWater()) {
-        TVec3f water = waterNormalRef(this);
-        TVec3f projected = mVelocity;
-        TVec3f removed = water;
-        removed.scale(-water.dot(mVelocity));
-        projected.add(removed);
-        TVec3f scaled = water;
-        scaled.scale(0.2f);
-        scaled.add(projected);
-        MR::setVelocity(this, scaled);
+        TVec3f& velocity = mVelocity;
+        const TVec3f& water = mWaterInfo.mSurfaceNormal;
+        Vec projected;
+        JMAVECScaleAdd(&water, &velocity, &projected, -water.dot(velocity));
+        TVec3f scaled(water);
+        scaled *= 0.2f;
+        MR::setVelocity(this, reinterpret_cast<const TVec3f&>(projected) + scaled);
         mIsInWater = true;
         return;
     }
     mIsInWater = false;
     MR::addVelocityToGravity(this, 0.2f);
 }
+#pragma dont_inline off
 
-void Menbo::calcFrontFromUp(f32 rate) {
-    f32 cooled = tickCooldown(rate);
-    if (cooled > 0.0f) {
-        TVec3f front = mFront;
-        TVec3f projected = mUp;
-        projected.scale(-mUp.dot(front));
-        projected.add(front);
-        MR::normalize(&projected, projected);
-        mVelocity.scale(mVelocity.dot(projected), projected);
-        MR::fn_80010CB0(this, projected, cooled);
-    }
-}
-
-void Menbo::rotateFrontGround() {
+// NONMATCHING: operand floating-point registers are swapped for the damping multiply.
+void Menbo::fn_801C5A50() {
     mTurnRate = mTurnRate * 0.985f;
-    mTurnRate = mTurnRate + tickTurnTimer();
+    mTurnRate = mTurnRate + fn_801C5E90();
     MR::rotateVecDegree(&mFront, mFront, mUp, mTurnRate * mTurnDir);
 }
 
-void Menbo::blendFrontToPlayer() {
+void Menbo::fn_801C5AB0() {
     if (isPlayerInSightWet()) {
         TVec3f toPlayer;
         MR::calcVecToPlayerH(&toPlayer, this, nullptr);
@@ -788,7 +792,7 @@ void Menbo::blendFrontToPlayer() {
     }
 }
 
-void Menbo::updateFallVelocity() {
+void Menbo::fn_801C5B10() {
     f32 decel = MR::isOnGround(this) ? 0.93f : 0.99f;
     MR::attenuateVelocity(this, decel);
     if (!MR::isOnGround(this)) {
@@ -802,24 +806,21 @@ void Menbo::updateFallVelocity() {
     }
 }
 
-bool Menbo::isMovedFromBase() const {
+bool Menbo::fn_801C5BD0() const {
     TVec3f d = mBasePos;
     d.sub(mPosition);
-    return d.length() > 0.0f;
+    return d.length() > 1000.0f;
 }
 
-// SMG2 fn_801C5C30: true when the facing is within the given cone of the player-side direction.
-bool Menbo::isWallFreezeReady(f32 angle) {
+bool Menbo::fn_801C5C30(f32 angle) {
     TVec3f dir(0.0f);
     MR::fn_8000E960(&dir, this, &mBasePos);
-    if (angle < 0.0f) {
-        angle = -angle;
-    }
     f32 limit = MR::cosDegree(angle);
     return dir.dot(mFront) < limit;
 }
 
-// SMG2 fn_801C5CE0: true when the body is touching ice or a sloped ground edge.
+#pragma dont_inline on
+// NONMATCHING: probe origin and scaled-up temporaries occupy different stack slots.
 bool Menbo::isGroundIceEdge() {
     if (MR::isBindedGroundIce(this)) {
         return true;
@@ -827,29 +828,31 @@ bool Menbo::isGroundIceEdge() {
     TVec3f up(0.0f);
     MR::calcUpVec(&up, this);
     TVec3f s = up;
-    s.scale(200.0f);
-    TVec3f origin = s;
-    origin.add(mPosition);
+    s *= cProbeAbove;
+    TVec3f origin = mPosition + s;
     TVec3f ray = up;
-    ray.scale(-250.0f);
+    ray *= -(cProbeAbove - cProbeBelow);
     return MR::fn_80038570(&origin, &ray);
 }
+#pragma dont_inline off
 
 bool Menbo::isPlayerInSightWet() {
     if (MR::isPlayerSwimming()) {
         mIsPlayerWet = true;
     } else if (MR::isOnGroundPlayer()) {
         Triangle* pTri = MR::getPlayerGroundingPolygon();
-        if (MR::isGroundCodeWaterBottomH(pTri) || MR::isGroundCodeWaterBottomM(pTri)) {
+        if (MR::isGroundCodeWater(pTri) || MR::isGroundCodeWet(MR::getPlayerGroundingPolygon())) {
             mIsPlayerWet = true;
         } else {
             mIsPlayerWet = false;
         }
     }
-    return MR::isInSightFanPlayer(this, mFront, 1000.0f, 160.0f, 30.0f) && mIsPlayerWet;
+    bool result = false;
+    if (MR::isInSightFanPlayer(this, mFront, cSight.distance, cSight.horizontal, cSight.vertical) && mIsPlayerWet) result = true;
+    return result;
 }
 
-f32 Menbo::tickCooldown(f32 rate) {
+f32 Menbo::fn_801C5E60(f32 rate) {
     mCooldown -= 1;
     if (mCooldown <= 0) {
         mCooldown = 81;
@@ -858,34 +861,51 @@ f32 Menbo::tickCooldown(f32 rate) {
     return 0.0f;
 }
 
-f32 Menbo::tickTurnTimer() {
+f32 Menbo::fn_801C5E90() {
     f32 v = mTurnTimer - 1.0f;
     mTurnTimer = v;
     f32 ret = 0.0f;
-    if (v == 0.0f) {
-        ret = 1.0f;
-        mTurnTimer = 81.0f;
+    if (v <= 0.0f) {
+        ret = cTickBoost;
+        s32 interval = 81;
+        mTurnTimer = interval;
     }
     return ret;
 }
 
-void Menbo::calcMtxUpFront(TPos3f* pMtx, const TVec3f& rUp, const TVec3f& rFront) {
-    TVec3f up = rUp;
-    TVec3f front = rFront;
-    if (MR::isNearZero(front, 0.001f)) {
-        front = mFront;
+void Menbo::fn_801C5EF0(TPos3f* pMtx, const LiveActor* actor, const TVec3f& rUp, const TVec3f& rFront) {
+    TPos3f base;
+    base.set(actor->getBaseMtx());
+    TVec3f up;
+    TVec3f front;
+    if (!MR::isNearZero(rUp, 0.001f)) up = rUp;
+    else base.getYDir(up);
+    if (!MR::isNearZero(rFront, 0.001f)) front = rFront;
+    else base.getZDir(front);
+    TVec3f cross;
+    PSVECCrossProduct(&front, &up, &cross);
+    if (MR::isNearZero(cross, 0.001f)) {
+        TVec3f side;
+        base.getXDir(side);
+        PSVECCrossProduct(&side, &up, &front);
     }
-    if (MR::isNearZero(up, 0.001f)) {
-        up = mUp;
-    }
-    MR::makeMtxUpFrontPos(pMtx, up, front, mPosition);
+    MR::makeMtxUpFrontPos(pMtx, up, front, actor->mPosition);
 }
 
-// Nerve execute bodies --------------------------------------------------------------------------
+Menbo::~Menbo() {
+}
 
 void NrvMenbo::MenboNrvFreezeBind::execute(Spine* pSpine) const {
     LiveActor* actor = reinterpret_cast<LiveActor*>(pSpine->mExecutor);
     MR::updateActorStateAndNextNerve(actor, GET_MENBO_NERVE(MenboNrvWait));
 }
 
-// Named nerve classes with custom exe are generated above by NEW_NERVE; exeEaten etc. are inline.
+namespace {
+const f32 cDamp = 0.98f;
+const f32 cTurnDamp = 0.97f;
+const f32 cFriction = 0.99f;
+const f32 cProbeAbove = 200.0f;
+const f32 cProbeBelow = -50.0f;
+
+const f32 cTickBoost = 1.0f;
+}

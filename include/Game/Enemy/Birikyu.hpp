@@ -17,8 +17,8 @@ public:
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    virtual f32 getHitRadius() const;
-    virtual char* getCenterJointName() const;
+    f32 getHitRadius() const;
+    char* getCenterJointName() const;
 
     void initFromJmpArgs(const JMapInfoIter&);
     void initRail(const JMapInfoIter&);
@@ -54,8 +54,8 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void calcAndSetBaseMtx();
-    virtual f32 getHitRadius() const;
-    virtual char* getCenterJointName() const;
+    f32 getHitRadius() const;
+    char* getCenterJointName() const;
 
     bool _CC;
     s32 _D8;

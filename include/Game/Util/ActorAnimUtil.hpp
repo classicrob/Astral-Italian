@@ -95,6 +95,7 @@ namespace MR {
     bool isBvaPlayingIfExist(const LiveActor*, const char*);
     bool isPlayingAnim(const LiveActor*, const char*);
     bool isExistAnim(const LiveActor*, const char*);
+    bool fn_80008F00(const LiveActor*, const char*);  // enemies lane: by address
     bool isExistBck(const LiveActor*, const char*);
     bool isExistBtk(const LiveActor*, const char*);
     bool isExistBrk(const LiveActor*, const char*);

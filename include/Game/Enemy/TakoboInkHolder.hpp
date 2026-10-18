@@ -1,14 +1,12 @@
 #pragma once
 
-#include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/LiveActorGroup.hpp"
+#include "Game/Enemy/TakoboInk.hpp"
 
-// Minimal declaration from its uses (TakoSho): allocated as 0x20 bytes, built by a default ctor,
-// spurts ink with (pos, dir). Its base is DeriveActorGroup<TakoboInk> (not modeled here).
-class TakoboInkHolder {
+/// @brief Pool of TakoboInk actors (SMG2). Built with a count by TakoSho (count 2 in its asm); spurts ink from the dead pool.
+class TakoboInkHolder : public DeriveActorGroup< TakoboInk > {
 public:
-    TakoboInkHolder();
+    TakoboInkHolder(s32 numMax);
 
-    void spurtTakoboInk(const TVec3f&, const TVec3f&);
-
-    /* 0x00 */ u8 _00[0x20];
+    bool spurtTakoboInk(const TVec3f& rPos, const TVec3f& rDir);
 };

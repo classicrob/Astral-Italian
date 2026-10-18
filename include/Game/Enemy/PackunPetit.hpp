@@ -15,6 +15,7 @@ public:
     virtual void init(const JMapInfoIter&);
     virtual void initAfterPlacement();
     virtual void kill();
+    virtual void makeActorDead();
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);
@@ -39,11 +40,17 @@ public:
     void exeSwoon();
     void exeSwoonToThreat();
     void exeDPDSwoon();
-    void endDPDSwoon();
 
-    void initStarPointer(const char*);
     void initBlowModel();
-    void punchDown(HitSensor*, HitSensor*);
+    void fn_801E3080();
+    void fn_801E3170();
+    void fn_801E31E0();
+    void fn_801E3C70();
+    void fn_801E3D00();
+    bool fn_801E41B0() const;
+    bool fn_801E4260() const;
+    void fn_801E4320(const TPos3f&, f32);
+    void punchDown(u32, HitSensor*, HitSensor*);
     void selectNrvWait();
     bool tryNonActive();
     bool tryTurn();
@@ -55,7 +62,8 @@ public:
     /* 0xA0 */ ModelObj* mBlownModel;
     /* 0xA8 */ bool mDontTurn;
     /* 0xA9 */ bool _A9;
-    /* 0xAA */ u8 _AA[0xDC - 0xAA];
+    /* 0xAA */ u8 _AA[2];
+    /* 0xAC */ TPos3f mPullMtx;
     /* 0xDC */ TPos3f mJointMtx;
     /* 0x10C */ YoshiLockOnTarget* mYoshiLockOn;
     /* 0x110 */ TVec3f _110;

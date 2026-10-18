@@ -11,10 +11,11 @@ class YoshiLockOnTarget;
 class DanceFlower : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    bool fn_8017A520();
+    virtual bool fn_8017A520();
+    void fn_8017A5B0(HitSensor*, HitSensor*);
     void fn_8017A660();
     bool fn_8017A720() const;
-    s8 fn_8017A7F0() const;
+    s32 fn_8017A7F0() const;
     bool fn_8017A850() const;
     bool fn_8017A920() const;
     bool fn_8017A980() const;
@@ -35,17 +36,15 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    void exeWait();
+    void fn_8017AD00();
     void exeAttackSign();
-    void exeAttack();
+    void fn_8017ADE0();
     void exeAttackEnd();
     void exeSwoonStart();
     void exeSwoon();
     void exeSwoonEnd();
     void exePressDown();
     void exeBlowDown();
-    void exeTongue();
-    void exeFreeze();
 
 public:
     /* 0x90 */ ActorPoseTQ* mPose;
@@ -53,5 +52,5 @@ public:
     /* 0xA0 */ AnimScaleController* mAnimScaleCtrl;
     /* 0xA4 */ WalkerStateBindStarPointer* mStarPointBind;
     /* 0xA8 */ YoshiLockOnTarget* mYoshiLockOn;
-    /* 0xAC */ s8 mIsSwoonStep;
+    /* 0xAC */ u8 mIsSwoonStep;
 };

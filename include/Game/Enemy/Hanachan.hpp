@@ -14,7 +14,7 @@ public:
         /* 0x2 */ PartsType_BodyS,
     };
 
-    HanachanParts(Hanachan*, s32, const char*, const char*);
+    HanachanParts(Hanachan*, s32, const char*);
 
     virtual void init(const JMapInfoIter&);
     virtual void kill();

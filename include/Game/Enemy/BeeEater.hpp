@@ -2,6 +2,7 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
+#include "Game/Util/JointController.hpp"
 
 class AnimScaleController;
 class BeeEater;
@@ -9,7 +10,17 @@ class HitSensor;
 class JointController;
 class WalkerStateBindStarPointer;
 
-// Stem/body model of the BeeEater. Owns five joint-controller delegates (created by fn_8015BA20 in init).
+class BeeEaterJointControl {
+public:
+    BeeEaterJointControl(LiveActor*, const char*);
+    void fn_8015BB30(const TVec3f*) NO_INLINE;
+    bool fn_8015BB90(TPos3f*, const JointControllerInfo&) NO_INLINE;
+
+    JointController* mController;
+    TVec3f mPos;
+    TVec3f mDir;
+};
+
 class BeeEaterBody : public PartsModel {
 public:
     BeeEaterBody(BeeEater* pHost, const char* pName, const char* pJointName);
@@ -18,13 +29,10 @@ public:
     virtual void calcAndSetBaseMtx();
 
 public:
-    /* 0xA0 */ JointController** mJointCtrls;
+    /* 0xA0 */ BeeEaterJointControl** mJointCtrls;
     /* 0xA4 */ s32 mJointCount;
 };
 
-// SMG2-only unit (BeeEater, bee-shaped walker that bites star-pointer targets). LiveActor = 0x90 bytes.
-// The ctor stores quaternions/vectors into an overlapping run (0x90..0xDC); the layout below follows
-// the ctor and the init/exe accesses (TQuat4 at 0x90, TVec3 at 0xA0/0xAC/0xB8/0xC8, face vec at 0xD4).
 class BeeEater : public LiveActor {
 public:
     BeeEater(const char* pName);
@@ -36,17 +44,16 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
     void exeWait();
-    void exeHit();
-    void exeBindStarPointer();
-    void exeFind();
-    void exeAttack();
-    void exeAttackEnd();
-    void exeAttackSuccess();
-    void exeAttackDash();
-
-    bool isPlayerNearFront() const;
-    bool isFacingPlayer() const;
-    bool moveAttackDash();
+    bool fn_8015C690() const NO_INLINE;
+    bool fn_8015C700() const NO_INLINE;
+    void fn_8015C7B0() NO_INLINE;
+    bool fn_8015C8C0() NO_INLINE;
+    void fn_8015C9E0() NO_INLINE;
+    void fn_8015CA50() NO_INLINE;
+    void fn_8015CAD0() NO_INLINE;
+    void fn_8015CC00() NO_INLINE;
+    void fn_8015CCB0() NO_INLINE;
+    void fn_8015CDC0() NO_INLINE;
 
 public:
     /* 0x90 */ TQuat4f mRot;
@@ -56,6 +63,10 @@ public:
     /* 0xC4 */ f32 mRangeLimit;      // 450.0f in the ctor
     /* 0xC8 */ TVec3f mTargetVec;
     /* 0xD4 */ TVec3f mFaceVec;      // (0, 0, 1) in the ctor
+    /* 0xE0 */ TVec3f mCurveStart;
+    /* 0xEC */ TVec3f mCurveControl1;
+    /* 0xF8 */ TVec3f mCurveControl2;
+    /* 0x104 */ TVec3f mCurveEnd;
     /* 0x110 */ BeeEaterBody* mBody;
     /* 0x114 */ AnimScaleController* mAnimScaleCtrl;
     /* 0x118 */ WalkerStateBindStarPointer* mStarPointBind;

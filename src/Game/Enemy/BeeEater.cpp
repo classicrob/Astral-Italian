@@ -7,23 +7,86 @@
 
 namespace NrvBeeEater {
     NEW_NERVE(BeeEaterNrvWait, BeeEater, Wait);
-    NEW_NERVE(BeeEaterNrvHit, BeeEater, Hit);
-    NEW_NERVE(BeeEaterNrvBindStarPointer, BeeEater, BindStarPointer);
-    NEW_NERVE(BeeEaterNrvFind, BeeEater, Find);
-    NEW_NERVE(BeeEaterNrvAttack, BeeEater, Attack);
-    NEW_NERVE(BeeEaterNrvAttackEnd, BeeEater, AttackEnd);
-    NEW_NERVE(BeeEaterNrvAttackSuccess, BeeEater, AttackSuccess);
-    NEW_NERVE(BeeEaterNrvAttackDash, BeeEater, AttackDash);
+    class BeeEaterNrvHit : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015C9E0();
+        }
+        static BeeEaterNrvHit sInstance;
+    };
+    BeeEaterNrvHit BeeEaterNrvHit::sInstance ATTRIBUTE_WEAK;
+    class BeeEaterNrvFind : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CA50();
+        }
+        static BeeEaterNrvFind sInstance;
+    };
+
+    class BeeEaterNrvBindStarPointer : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            MR::updateActorStateAndNextNerve(static_cast<LiveActor*>(pSpine->mExecutor), &BeeEaterNrvFind::sInstance);
+        }
+        static BeeEaterNrvBindStarPointer sInstance;
+    };
+    BeeEaterNrvBindStarPointer BeeEaterNrvBindStarPointer::sInstance ATTRIBUTE_WEAK;
+    BeeEaterNrvFind BeeEaterNrvFind::sInstance ATTRIBUTE_WEAK;
+    class BeeEaterNrvAttack : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CAD0();
+        }
+        static BeeEaterNrvAttack sInstance;
+    };
+    BeeEaterNrvAttack BeeEaterNrvAttack::sInstance ATTRIBUTE_WEAK;
+    class BeeEaterNrvAttackEnd : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CC00();
+        }
+        static BeeEaterNrvAttackEnd sInstance;
+    };
+    BeeEaterNrvAttackEnd BeeEaterNrvAttackEnd::sInstance ATTRIBUTE_WEAK;
+    class BeeEaterNrvAttackSuccess : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CCB0();
+        }
+        static BeeEaterNrvAttackSuccess sInstance;
+    };
+    BeeEaterNrvAttackSuccess BeeEaterNrvAttackSuccess::sInstance ATTRIBUTE_WEAK;
+    class BeeEaterNrvAttackDash : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            static_cast<BeeEater*>(pSpine->mExecutor)->fn_8015CDC0();
+        }
+        static BeeEaterNrvAttackDash sInstance;
+    };
+    BeeEaterNrvAttackDash BeeEaterNrvAttackDash::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBeeEater
 
 #define GET_BEE_EATER_NERVE(name) (&NrvBeeEater::name::sInstance)
 
-// Joint-controller delegate table name blob: five pointers (SMG2 lbl_80683230).
-// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
-extern const char* lbl_80683230[];
+static const char* sJointNames[] = {"Body1", "Body2", "Body3", "Body4", "Body5"};
 
-// PLACEHOLDER(enemies): fn_8015BA20 is the joint-delegate ctor shared with Battan (ctor-shaped: r3=new mem, r4=host, r5=name); this call passes BeeEaterBody*; resolve when the delegate class is named and fn_8015BA20 gets one signature in its owner header.
-JointController* fn_8015BA20(BeeEaterBody*, const char*);
+BeeEaterJointControl::BeeEaterJointControl(LiveActor* pHost, const char* pJointName)
+    : mController(nullptr), mPos(0.0f, 0.0f, 0.0f), mDir(0.0f, 1.0f, 0.0f) {
+    mController = MR::createJointController<BeeEaterJointControl>(this, pHost, pJointName, &BeeEaterJointControl::fn_8015BB90, 0);
+}
+
+void BeeEaterJointControl::fn_8015BB30(const TVec3f* pDir) {
+    TVec3f old(mDir);
+    if (MR::normalizeOrZero(&mDir, *pDir)) {
+        mDir.set(old);
+    }
+}
+
+bool BeeEaterJointControl::fn_8015BB90(TPos3f* pMtx, const JointControllerInfo&) {
+    MR::turnMtxToXDirRate(pMtx, mDir, 1.0f);
+    pMtx->setTrans(mPos);
+    return true;
+}
 
 BeeEaterBody::BeeEaterBody(BeeEater* pHost, const char* pName, const char* pJointName)
     : PartsModel(pHost, pName, pJointName, nullptr, -1, 0) {
@@ -34,41 +97,45 @@ BeeEaterBody::BeeEaterBody(BeeEater* pHost, const char* pName, const char* pJoin
 void BeeEaterBody::init(const JMapInfoIter& rIter) {
     PartsModel::init(rIter);
     mJointCount = 5;
-    mJointCtrls = new JointController*[5];
+    mJointCtrls = new BeeEaterJointControl*[5];
     for (s32 i = 0; i < mJointCount; i++) {
-        JointController* pCtrl = nullptr;
-        pCtrl = fn_8015BA20(this, lbl_80683230[i]);
+        BeeEaterJointControl* pCtrl = new BeeEaterJointControl(this, sJointNames[i]);
         mJointCtrls[i] = pCtrl;
     }
 }
 
 void BeeEaterBody::calcAndSetBaseMtx() {
     PartsModel::calcAndSetBaseMtx();
-    for (s32 i = 0; i < mJointCount; i++) {
-        mJointCtrls[i]->registerCallBack();
+    if (mJointCount > 0) {
+        for (s32 i = 0; i < mJointCount; i++) {
+            mJointCtrls[i]->mController->registerCallBack();
+        }
     }
 }
 
 BeeEater::BeeEater(const char* pName) : LiveActor(pName) {
-    mRot.set(0.0f, 0.0f, 0.0f, 1.0f);
+    mRot.x = 0.0f;
+    mRot.y = 0.0f;
+    mRot.z = 0.0f;
+    mRot.w = 1.0f;
     mBasePos.set(0.0f, 0.0f, 0.0f);
-    mSideVec.set(0.0f, 0.0f, 0.0f);
-    mUpVec.set(0.0f, 0.0f, 0.0f);
+    mSideVec.set(1.0f, 0.0f, 0.0f);
+    mUpVec.set(0.0f, 1.0f, 0.0f);
     mRangeLimit = 450.0f;
-    mTargetVec.set(0.0f, 0.0f, 0.0f);
+    mTargetVec.set(0.0f, 1.0f, 0.0f);
     mFaceVec.set(0.0f, 0.0f, 1.0f);
     mBody = nullptr;
     mAnimScaleCtrl = nullptr;
 }
 
 void BeeEater::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, nullptr, false);
+    MR::initActor(this, rIter, false);
     MR::makeQuatFromRotate(&mRot, this);
-    mBasePos = mPosition;
+    mBasePos.set(mPosition);
     MR::calcSideVec(&mSideVec, this);
     MR::calcUpVec(&mUpVec, this);
-    mTargetVec = mUpVec;
-    mGravity.set(0.0f, 0.0f, 0.0f);
+    mTargetVec.set(mUpVec);
+    mGravity.set(-mUpVec);
 
     mBody = new BeeEaterBody(this, "茎モデル", "BeeEaterBody");
     mBody->initWithoutIter();
@@ -90,12 +157,82 @@ void BeeEater::control() {
     }
 }
 
-// NONMATCHING: the SMG2 body builds the pose from the joint controllers (0x57c bytes); approximated here.
+// NONMATCHING: quaternion matrix instruction scheduling and curve temporary stack allocation.
 void BeeEater::calcAndSetBaseMtx() {
     TPos3f mtx;
-    mtx.identity();
+    mtx.setQuat(mRot);
+    mtx.setTrans(mPosition);
+    MR::addTransMtxLocalY(mtx, 76.0f * -(1.0f - mAnimScaleCtrl->_C.y));
     MR::setBaseTRMtx(this, mtx);
     MR::updateBaseScale(this, mAnimScaleCtrl);
+
+    TVec3f up;
+    MR::calcUpVec(&up, this);
+    TVec3f upOffset(up);
+    upOffset.scale(76.0f);
+    TVec3f end = mPosition - upOffset;
+    TVec3f baseUp(mUpVec);
+    f32 distance = PSVECDistance(&end, &mBasePos);
+    f32 length = distance / 3.0f;
+    length = 100.0f >= length ? length : 100.0f;
+    f32 blend = MR::normalize(distance, 270.0f, 450.0f);
+    TVec3f delta = end - mBasePos;
+    TVec3f direction;
+    if (MR::normalizeOrZero(&direction, delta)) {
+        direction.set(baseUp);
+    }
+    TVec3f endUp(up);
+    if (direction.dot(up) < 0.0f) {
+        endUp.killElement(up, direction);
+        MR::normalizeOrZero(&endUp);
+    }
+    mCurveEnd.set(end);
+    TVec3f endOffset(endUp);
+    endOffset.scale(-(distance * 0.5f));
+    mCurveControl2.set(mCurveEnd + endOffset);
+    TVec3f baseOffset(baseUp);
+    baseOffset.scale(length);
+    mCurveControl1.set(mBasePos + baseOffset);
+    mCurveStart.set(mBasePos);
+    if (blend > 0.0f) {
+        TVec3f step1(delta);
+        step1.scale(1.0f);
+        TVec3f third1(step1);
+        third1.scale(1.0f / 3.0f);
+        TVec3f control1 = mBasePos + third1;
+        TVec3f step2(delta);
+        step2.scale(2.0f);
+        TVec3f third2(step2);
+        third2.scale(1.0f / 3.0f);
+        TVec3f control2 = mBasePos + third2;
+        MR::vecBlend(&mCurveControl1, mCurveControl1, control1, blend);
+        MR::vecBlend(&mCurveControl2, mCurveControl2, control2, blend);
+    }
+    s32 count = mBody->mJointCount;
+    for (s32 i = 0; i < count; i++) {
+        f32 t = (f32)i / (f32)(count - 1);
+        f32 u = 1.0f - t;
+        f32 a = u * (u * u);
+        f32 b = u * (3.0f * t * u);
+        f32 c = u * (3.0f * t * t);
+        f32 d = t * (t * t);
+        TVec3f p3(mCurveEnd);
+        p3.scale(d);
+        TVec3f p2(mCurveControl2);
+        p2.scale(c);
+        TVec3f p1(mCurveControl1);
+        p1.scale(b);
+        TVec3f p0(mCurveStart);
+        p0.scale(a);
+        TVec3f pos = p0 + p1 + p2 + p3;
+        mBody->mJointCtrls[i]->mPos.set(pos);
+    }
+    mBody->mJointCtrls[0]->fn_8015BB30(&mUpVec);
+    for (s32 i = 1; i < count - 1; i++) {
+        TVec3f dir = mBody->mJointCtrls[i + 1]->mPos - mBody->mJointCtrls[i]->mPos;
+        mBody->mJointCtrls[i]->fn_8015BB30(&dir);
+    }
+    mBody->mJointCtrls[count - 1]->fn_8015BB30(&endUp);
 }
 
 void BeeEater::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -127,145 +264,17 @@ bool BeeEater::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
-// Nerve exes ---------------------------------------------------------------------------------------------
-
-// SMG2 fn_8015C9E0: Wait; after 60 steps the bee goes to Find.
-void BeeEater::exeWait() {
-    if (MR::isFirstStep(this)) {
-        MR::zeroVelocity(this);
-        MR::startAction(this, "Wait");
-    }
-
-    if (MR::isGreaterStep(this, 60)) {
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvFind));
-    }
-}
-
-// SMG2 fn_8015CC00: Hit reaction (HitEnd action); returns to Wait once it rebounds.
-void BeeEater::exeHit() {
-    if (moveAttackDash()) {
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttackSuccess));
-        return;
-    }
-
-    if (MR::reboundVelocityFromCollision(this, 0.0f, 10.0f, 0.0f)) {
-        MR::emitEffectHit(this, MR::getBindedHitPos(this), "HitSmoke");
-        MR::tryHitReaction(this, "地形ヒット");
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvWait));
-    }
-}
-
-// SMG2 fn_8015C7B0: bind to the star pointer (turning toward the target and rebounding).
-void BeeEater::exeBindStarPointer() {
-    if (MR::isFirstStep(this)) {
-        MR::validateClipping(this);
-        MR::tryStartActionNotPlaying(this, "Wait");
-    }
-
-    MR::fn_80010CB0(this, mUpVec, 1.0f);
-    MR::attenuateVelocity(this, 0.85f);
-    MR::turnQuatXDirRad(&mRot, mRot, mSideVec, 0.0349f);
-
-    if (isPlayerNearFront()) {
-        // NONMATCHING: the SMG2 face-target blend is simplified.
-        TVec3f toTarget;
-        MR::fn_8000E960(&mTargetVec, this, nullptr);
-    }
-
-    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
-    if (MR::isGreaterStep(this, 120)) {
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvWait));
-    }
-}
-
-// SMG2 fn_8015CA50: Find; faces the player and attacks when in front.
-void BeeEater::exeFind() {
-    exeBindStarPointer();
-    if (isFacingPlayer() && MR::isNearPlayer(this, 1000.0f)) {
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttack));
-    }
-}
-
-// SMG2 fn_8015CAD0: Attack (AttackSign); goes to AttackEnd after 120 steps.
-void BeeEater::exeAttack() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "AttackSign");
-    }
-
-    if (MR::isLessEqualStep(this, 80)) {
-        if (isPlayerNearFront()) {
-            MR::fn_8000E960(&mTargetVec, this, nullptr);
-        }
-        TVec3f push = mTargetVec;
-        push.scale(2.0f);
-        MR::addVelocity(this, push);
-        MR::fn_80010CB0(this, mUpVec, 1.0f);
-        MR::attenuateVelocity(this, 0.985f);
-    } else {
-        MR::zeroVelocity(this);
-    }
-    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 0.0f);
-
-    if (MR::isGreaterStep(this, 120)) {
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttackEnd));
-    }
-}
-
-// SMG2 fn_8015CCB0: AttackEnd (AttackEnd action); back to Wait after 40 steps.
-void BeeEater::exeAttackEnd() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "AttackEnd");
-    }
-
-    if (MR::isLessStep(this, 25)) {
-        TVec3f front = mFaceVec;
-        front.scale(-1.0f);
-        MR::attenuateVelocity(this, 0.97f);
-    } else {
-        TVec3f front = mFaceVec;
-        front.scale(-2.5f);
-        MR::addVelocity(this, front);
-        MR::attenuateVelocity(this, 0.85f);
-    }
-    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 0.0f);
-    if (MR::isGreaterStep(this, 40)) {
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvWait));
-    }
-}
-
-// SMG2 fn_8015CDC0: AttackSuccess action; returns to Wait when it ends.
-void BeeEater::exeAttackSuccess() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "AttackSuccess");
-    }
-    if (MR::isActionEnd(this)) {
-        MR::zeroVelocity(this);
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvWait));
-    }
-}
-
-// SMG2 fn_8015C8C0: AttackDash body; the dash returns true once close or after 30 steps.
-void BeeEater::exeAttackDash() {
-    if (moveAttackDash()) {
-        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttackSuccess));
-    }
-}
-
-// Helpers ---------------------------------------------------------------------------------------------
-
-// SMG2 fn_8015C690: non-null when the player is not near enough; then the facing angle is checked.
-bool BeeEater::isPlayerNearFront() const {
-    if (MR::isNearPlayer(this, 120.0f)) {
+bool BeeEater::fn_8015C690() const {
+    if (MR::isNearPlayer(mBasePos, 120.0f)) {
         return false;
     }
-    return true;
+    return MR::isNearAngleDegree(*MR::getPlayerPos() - mBasePos, mUpVec, 100.0f);
 }
 
-// SMG2 fn_8015C700: the player is in front of the bee (cross/dot sign test).
-bool BeeEater::isFacingPlayer() const {
+bool BeeEater::fn_8015C700() const {
     TVec3f toPlayer;
     MR::calcVecToPlayer(&toPlayer, this);
-    if (mUpVec.dot(toPlayer) == 0.0f) {
+    if (mUpVec.dot(toPlayer) >= 0.0f) {
         return false;
     }
     TVec3f yDir;
@@ -274,23 +283,146 @@ bool BeeEater::isFacingPlayer() const {
     PSVECCrossProduct(&yDir, &toPlayer, &c1);
     TVec3f c2;
     PSVECCrossProduct(&mUpVec, &toPlayer, &c2);
-    return c1.dot(c2) != 0.0f;
+    return !(c1.dot(c2) >= 0.0f);
 }
 
-// SMG2 fn_8015C8C0: dash toward the target; returns true when close or after 30 steps.
-bool BeeEater::moveAttackDash() {
+void BeeEater::fn_8015C7B0() {
+    if (MR::isFirstStep(this)) {
+        MR::tryStartActionNotPlaying(this, "Wait");
+        MR::validateClipping(this);
+    }
+    MR::fn_80010CB0(this, mUpVec, 1.0f);
+    MR::fn_80010E30(this, mBasePos, 0.0f, 2.0f, 100.0f, 200.0f);
+    MR::attenuateVelocity(this, 0.85f);
+    MR::turnQuatXDirRad(&mRot, mRot, mSideVec, 0.03490658476948738f);
+    if (fn_8015C690()) {
+        if (fn_8015C700()) {
+            mTargetVec.set(mUpVec);
+        } else {
+            MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
+        }
+    }
+    MR::turnQuatYDirRad(&mRot, mRot, mTargetVec, 0.03490658476948738f);
+    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+}
+
+// NONMATCHING: dash/direction temporary stack allocation.
+bool BeeEater::fn_8015C8C0() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");
         mRot.getYDir(mFaceVec);
     }
-
-    TVec3f dash = mFaceVec;
+    TVec3f dash(mFaceVec);
     dash.scale(1.5f);
+    MR::addVelocity(this, dash);
     MR::attenuateVelocity(this, 0.99f);
-    f32 dist = MR::calcDistance(this, mBasePos);
-    MR::turnQuatYDirRate(&mRot, mRot, dash, dist * 0.0f);
-    if (dist > 0.0f || MR::isGreaterStep(this, 30)) {
+    f32 distance = MR::calcDistance(this, mBasePos);
+    f32 rate = MR::normalize(distance, 445.5f, 450.0f);
+    TVec3f dir = mPosition - mBasePos;
+    MR::normalizeOrZero(&dir);
+    MR::turnQuatYDirRate(&mRot, mRot, dir, rate);
+    if (distance > 450.0f || MR::isGreaterStep(this, 30)) {
         return true;
     }
     return false;
 }
+
+void BeeEater::fn_8015C9E0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
+        MR::zeroVelocity(this);
+    }
+    if (MR::isGreaterStep(this, 60)) {
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvFind));
+    }
+}
+
+void BeeEater::fn_8015CA50() {
+    fn_8015C7B0();
+    TVec3f up;
+    MR::calcUpVec(&up, this);
+    if (MR::isFaceToPlayerDegree(this, up, 20.0f) && MR::isNearPlayer(this, 1000.0f)) {
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttack));
+        MR::invalidateClipping(this);
+    }
+}
+
+void BeeEater::fn_8015CAD0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "AttackSign");
+    }
+    if (MR::isLessEqualStep(this, 80)) {
+        if (fn_8015C690()) {
+            MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
+            MR::turnQuatYDirRad(&mRot, mRot, mTargetVec, 0.008726646192371845f);
+        }
+        TVec3f retreat(mTargetVec);
+        retreat.scale(-0.5f);
+        MR::addVelocity(this, retreat);
+        MR::fn_80010CB0(this, mUpVec, 1.0f);
+        MR::fn_80010E30(this, mBasePos, 0.0f, 2.0f, 100.0f, 400.0f);
+        MR::attenuateVelocity(this, 0.85f);
+    } else {
+        MR::zeroVelocity(this);
+    }
+    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+    if (MR::isGreaterStep(this, 120)) {
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttackEnd));
+    }
+}
+
+void BeeEater::fn_8015CC00() {
+    if (fn_8015C8C0()) {
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvAttackSuccess));
+        return;
+    }
+    if (MR::reboundVelocityFromCollision(this, 0.0f, 10.0f, 0.0f)) {
+        MR::startAction(this, "HitEnd");
+        MR::emitEffectHit(this, MR::getBindedHitPos(this), "HitSmoke");
+        MR::tryHitReaction(this, "地形ヒット");
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvWait));
+    }
+}
+
+void BeeEater::fn_8015CCB0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "AttackEnd");
+    }
+    if (MR::isLessStep(this, 25)) {
+        MR::attenuateVelocity(this, 0.0f);
+    } else {
+        TVec3f retreat(mFaceVec);
+        retreat.scale(-2.5f);
+        MR::addVelocity(this, retreat);
+        MR::attenuateVelocity(this, 0.85f);
+        if (fn_8015C690()) {
+            if (fn_8015C700()) {
+                mTargetVec.set(mUpVec);
+            } else {
+                MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
+            }
+        }
+    }
+    MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 0.0f);
+    if (MR::isGreaterStep(this, 40)) {
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvWait));
+    }
+}
+
+void BeeEater::fn_8015CDC0() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "AttackSuccess");
+    }
+    MR::zeroVelocity(this);
+    if (MR::isActionEnd(this)) {
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvWait));
+    }
+}
+
+void BeeEater::exeWait() {
+    fn_8015C7B0();
+    if (MR::isGreaterStep(this, 120)) {
+        setNerve(GET_BEE_EATER_NERVE(BeeEaterNrvFind));
+    }
+}
+

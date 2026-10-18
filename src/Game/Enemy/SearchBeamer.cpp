@@ -608,7 +608,7 @@ bool SearchBeamer::isEatable() const {
 }
 
 void SearchBeamer::endNonActive() {
-    MR::validateHitSensor(this, "body");
+    MR::validateHitSensor(this, "Body");
     MR::validateCollisionParts(this);
     MR::onCalcAnim(this);
 }

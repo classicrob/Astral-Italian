@@ -19,7 +19,7 @@
 namespace {
     const f32 cSensorRadius = 40.0f;
     const f32 cBinderRadius = 60.0f;
-    const f32 cForceKillDistance = 5000.0f;
+    const f32 cForceKillDistance = 7000.0f;
     const f32 cStarWandRadius3d = 150.0f;
     const f32 cThrowOffsetY = 120.0f;
     const f32 cReflectSpeed = 100.0f;
@@ -162,7 +162,7 @@ bool FireBall::tryToKill() {
     HitSensor* bindedSensor = isBindedAny();
 
     if (bindedSensor != nullptr) {
-        MR::sendMsgEnemyAttack(bindedSensor, getSensor("body"));
+        MR::sendMsgEnemyAttack(bindedSensor, getSensor("Body"));
 
         kill();
 

@@ -1,34 +1,45 @@
+#pragma auto_inline off
 #include "Game/Enemy/Bussun.hpp"
-const Nerve* fn_80175850(const LiveActor* pActor);
-const Nerve* fn_801758B0(const LiveActor* pActor);
-bool fn_80175910(const LiveActor* pActor);
-bool fn_80175940(const LiveActor* pActor);
-bool fn_80175970(const LiveActor* pActor);
-void fn_801759D0(LiveActor* pActor);
-bool fn_80175A70(const LiveActor* pActor);
-TVec3f* fn_801757C0(TVec3f* pDir, TVec3f* pOut, LiveActor* pActor);
 #include "Game/Util.hpp"
+#include "Game/Map/HitInfo.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
+#define BATCH_NERVE(Name, Method) \
+    class Name : public Nerve { public: virtual void execute(Spine* spine) const { static_cast<Bussun*>(spine->mExecutor)->Method(); } static Name sInstance; }; \
+    Name Name::sInstance ATTRIBUTE_WEAK;
+
 namespace NrvBussun {
-    NEW_NERVE(BussunNrvWalk, Bussun, Walk);
+    BATCH_NERVE(BussunNrvWalk, fn_80175330);
     NEW_NERVE(BussunNrvWait, Bussun, Wait);
     NEW_NERVE(BussunNrvTurn, Bussun, Turn);
-    NEW_NERVE(BussunNrvTurnEnd, Bussun, TurnEnd);
+    BATCH_NERVE(BussunNrvTurnEnd, fn_801754E0);
     NEW_NERVE(BussunNrvAttack, Bussun, Attack);
     NEW_NERVE(BussunNrvHit, Bussun, Hit);
     NEW_NERVE(BussunNrvDown, Bussun, Down);
     NEW_NERVE(BussunNrvBlow, Bussun, Blow);
-    NEW_NERVE(BussunNrvDead, Bussun, Dead);
-    NEW_NERVE(BussunNrvFreeze, Bussun, Freeze);
+    BATCH_NERVE(BussunNrvDead, fn_801756F0);
+    class BussunNrvFreeze : public Nerve { public: virtual void execute(Spine* spine) const { Bussun* actor = static_cast<Bussun*>(spine->mExecutor); MR::updateActorStateAndNextNerve(actor, actor->mNextNerve); } static BussunNrvFreeze sInstance; };
+    BussunNrvFreeze BussunNrvFreeze::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBussun
 
 #define GET_BUSSUN_NERVE(name) (&NrvBussun::name::sInstance)
 
-// Unnamed SMG2 helpers used by Bussun.
+const Nerve* Bussun::fn_80175850() const {
+    if (this->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) || this->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn))) {
+        return GET_BUSSUN_NERVE(BussunNrvHit);
+    }
+    return GET_BUSSUN_NERVE(BussunNrvAttack);
+}
+
+const Nerve* Bussun::fn_801758B0() const {
+    if (this->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) || this->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn))) {
+        return GET_BUSSUN_NERVE(BussunNrvBlow);
+    }
+    return GET_BUSSUN_NERVE(BussunNrvDown);
+}
 
 Bussun::Bussun(const char* pName) : LiveActor(pName) {
     mFront.x = 0.0f;
@@ -43,11 +54,8 @@ Bussun::Bussun(const char* pName) : LiveActor(pName) {
     mNextNerve = nullptr;
 }
 
-Bussun::~Bussun() {
-}
-
 void Bussun::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, nullptr, false);
+    MR::initActor(this, rIter, false);
     MR::moveCoordAndTransToNearestRailPos(this);
     MR::calcRailDirection(&mFront, this);
     mRailPointNo = MR::getCurrentRailPointNo(this);
@@ -64,9 +72,10 @@ void Bussun::init(const JMapInfoIter& rIter) {
 
 void Bussun::control() {
     mAnimScaleCtrl->updateNerve();
-    MR::setSeVersion(this, fn_80175A70(this) ? 1 : 0);
-    if (fn_80175970(this) && mStarPointBind->tryStartPointBind()) {
-        fn_801759D0(this);
+    if (fn_80175A70()) MR::setSeVersion(this, 1);
+    else MR::setSeVersion(this, 0);
+    if (fn_80175970() && mStarPointBind->tryStartPointBind()) {
+        fn_801759D0();
         setNerve(GET_BUSSUN_NERVE(BussunNrvFreeze));
     }
 }
@@ -82,20 +91,24 @@ void Bussun::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
-// NONMATCHING: the SMG2 ground/dot test is simplified to the sensor and nerve checks.
 void Bussun::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorPlayerOrYoshi(pSender) && fn_80175940(this) && MR::isEqualSensor(pReceiver, this, "Body")) {
-        if (isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) {
-            MR::sendMsgPush(pSender, pReceiver);
-            return;
-        }
-        if (MR::sendMsgEnemyAttackOrPush(pSender, pReceiver)) {
-            setNerve(fn_80175850(this));
+    if (MR::isSensorPlayerOrYoshi(pReceiver) && fn_80175940()) {
+        TVec3f up(0.0f);
+        MR::calcUpVec(&up, this);
+        TVec3f dir(0.0f);
+        MR::calcSensorDirection(&dir, pSender, pReceiver);
+        if (up.dot(dir) < 0.0f) return;
+        if (up.dot(*MR::getPlayerGravity()) >= 0.0f) return;
+        if (MR::isEqualSensor(pSender, this, "Attack")) {
+            if (isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) {
+                MR::sendMsgPush(pReceiver, pSender);
+                return;
+            }
+            if (MR::sendMsgEnemyAttackOrPush(pReceiver, pSender)) setNerve(fn_80175850());
         }
     }
 }
 
-// NONMATCHING: hit classification simplified; the nerve choices follow the draft.
 bool Bussun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceReflect(msg)) {
         if (!isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) {
@@ -106,13 +119,17 @@ bool Bussun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     if (!MR::isSensorPlayer(pSender)) {
         return false;
     }
-    if (!MR::isEqualSensor(pReceiver, this, "Attack") && !MR::isEqualSensor(pReceiver, this, "WeakBody")) {
+    if (!MR::isEqualSensor(pReceiver, this, "Body") && !MR::isEqualSensor(pReceiver, this, "WeakBody")) {
         return false;
     }
-    if (!fn_80175910(this)) {
+    if (!fn_80175910()) {
         return false;
     }
-    if (MR::isEqualSensor(pReceiver, this, "Attack")) {
+    TVec3f up(0.0f);
+    MR::calcUpVec(&up, this);
+    f32 dot = up.dot(*MR::getPlayerGravity());
+    if (MR::isEqualSensor(pReceiver, this, "Body")) {
+        if (dot >= 0.0f) return false;
         if (isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) {
             if (MR::isMsgPlayerTrample(msg)) {
                 return true;
@@ -125,29 +142,38 @@ bool Bussun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
         }
         if (MR::isMsgPlayerTrample(msg)) {
             if (MR::sendMsgEnemyAttackOrPush(pSender, pReceiver)) {
-                setNerve(fn_80175850(this));
+                setNerve(fn_80175850());
             }
             return false;
         }
         if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-            setNerve(fn_801758B0(this));
+            setNerve(fn_801758B0());
             return true;
         }
         return false;
     }
-    if (MR::isMsgPlayerHipDrop(msg)) {
-        setNerve(GET_BUSSUN_NERVE(BussunNrvDead));
-        return true;
+    if (MR::isEqualSensor(pReceiver, this, "WeakBody")) {
+        if (dot < 0.0f) return false;
+        TVec3f dir(0.0f);
+        MR::calcSensorDirection(&dir, pSender, pReceiver);
+        if (up.dot(dir) > 50.0f) return false;
+        if (MR::isMsgPlayerHipDrop(msg)) {
+            setNerve(GET_BUSSUN_NERVE(BussunNrvDead));
+            return true;
+        }
+        return false;
     }
     return false;
 }
 
-void Bussun::exeWalk() {
+void Bussun::fn_80175330() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Walk");
     }
     TVec3f dir;
-    MR::turnDirection(this, &mFront, dir, 0.0f);
+    fn_801757C0(&dir);
+    MR::moveCoordAndFollowTrans(this, 4.5f);
+    MR::turnDirection(this, &mFront, dir, MR::cosDegree(2.0f));
     s32 railNo = MR::getCurrentRailPointNo(this);
     if (!MR::isLoopRail(this)) {
         if (MR::isRailReachedGoal(this)) {
@@ -174,19 +200,20 @@ void Bussun::exeWait() {
 
 void Bussun::exeTurn() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Turn");
+        MR::startAction(this, "TurnStart");
     }
     if (MR::isActionEnd(this)) {
         setNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd));
     }
 }
 
-void Bussun::exeTurnEnd() {
+void Bussun::fn_801754E0() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "TurnEnd");
     }
     TVec3f dir;
-    MR::turnDirection(this, &mFront, dir, 0.0f);
+    fn_801757C0(&dir);
+    MR::turnDirection(this, &mFront, dir, MR::cosDegree(2.0f));
     if (mFront.dot(dir) > 0.9999f) {
         setNerve(GET_BUSSUN_NERVE(BussunNrvWalk));
     }
@@ -212,7 +239,7 @@ void Bussun::exeHit() {
 
 void Bussun::exeDown() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Down");
+        MR::startAction(this, "Guard");
     }
     if (MR::isActionEnd(this)) {
         setNerve(GET_BUSSUN_NERVE(BussunNrvWalk));
@@ -221,83 +248,77 @@ void Bussun::exeDown() {
 
 void Bussun::exeBlow() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Down");
+        MR::startAction(this, "Guard");
     }
     if (MR::isActionEnd(this)) {
         setNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd));
     }
 }
 
-// Dead: copies the joint position, drops a coin and kills (fn_801756F0). NONMATCHING: coin pop arguments approximated.
-void Bussun::exeDead() {
+void Bussun::fn_801756F0() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Dead");
+        MR::startAction(this, "Die");
     }
     if (MR::isActionEnd(this)) {
         TVec3f pos(mPosition);
+        MR::copyJointPos(this, "Center", &pos);
+        pos += mUp * 150.0f;
         MR::appearCoinPop(this, pos, 1);
-        MR::startActionSound(this, "BussunDead", -1, -1, -1);
+        MR::startActionSound(this, "Explosion", -1, -1, -1);
         kill();
     }
 }
 
-void Bussun::exeFreeze() {
-    MR::updateActorStateAndNextNerve(this, GET_BUSSUN_NERVE(BussunNrvWalk));
+void Bussun::fn_801757C0(TVec3f* out) {
+    TVec3f dir;
+    MR::calcRailDirection(&dir, this);
+    if (!MR::isRailGoingToEnd(this)) dir = -dir;
+    out->x = dir.x;
+    out->y = dir.y;
+    out->z = dir.z;
 }
 
-// Picks the hit-reaction nerve from the current state (fn_80175850).
-const Nerve* fn_80175850(const LiveActor* pActor) {
-    if (pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn))) {
-        return GET_BUSSUN_NERVE(BussunNrvHit);
-    }
-    return GET_BUSSUN_NERVE(BussunNrvAttack);
+bool Bussun::fn_80175910() const {
+    return !this->isNerve(GET_BUSSUN_NERVE(BussunNrvDead));
 }
 
-// Picks the blow-away nerve from the current state (fn_801758B0).
-const Nerve* fn_801758B0(const LiveActor* pActor) {
-    if (pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn))) {
-        return GET_BUSSUN_NERVE(BussunNrvBlow);
-    }
-    return GET_BUSSUN_NERVE(BussunNrvDown);
+bool Bussun::fn_80175940() const {
+    return !this->isNerve(GET_BUSSUN_NERVE(BussunNrvDead));
 }
 
-// True unless dead (fn_80175910 / fn_80175940).
-bool fn_80175910(const LiveActor* pActor) {
-    return !pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvDead));
+bool Bussun::fn_80175970() const {
+    if (isNerve(GET_BUSSUN_NERVE(BussunNrvDead)) || isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) return false;
+    return true;
 }
 
-bool fn_80175940(const LiveActor* pActor) {
-    return !pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvDead));
-}
-
-// True unless dead or frozen (fn_80175970).
-bool fn_80175970(const LiveActor* pActor) {
-    return !(pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvDead)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze)));
-}
-
-// Stores the nerve to resume after a freeze (fn_801759D0). NONMATCHING: stores into the Bussun's next-nerve slot.
-void fn_801759D0(LiveActor* pActor) {
-    Bussun* pBussun = static_cast<Bussun*>(pActor);
-    if (pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) {
+void Bussun::fn_801759D0() {
+    if (this->isNerve(GET_BUSSUN_NERVE(BussunNrvFreeze))) {
         return;
     }
-    if (pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) ||
-        pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvHit)) || pActor->isNerve(GET_BUSSUN_NERVE(BussunNrvBlow))) {
-        pBussun->mNextNerve = GET_BUSSUN_NERVE(BussunNrvTurnEnd);
+    if (this->isNerve(GET_BUSSUN_NERVE(BussunNrvTurn)) || this->isNerve(GET_BUSSUN_NERVE(BussunNrvTurnEnd)) ||
+    this->isNerve(GET_BUSSUN_NERVE(BussunNrvHit)) || this->isNerve(GET_BUSSUN_NERVE(BussunNrvBlow))) {
+        this->mNextNerve = GET_BUSSUN_NERVE(BussunNrvTurnEnd);
         return;
     }
-    pBussun->mNextNerve = GET_BUSSUN_NERVE(BussunNrvWalk);
+    this->mNextNerve = GET_BUSSUN_NERVE(BussunNrvWalk);
 }
 
-// Ground/rail check used by control (fn_80175A70). NONMATCHING: the SMG2 triangle probe is not reproduced.
-bool fn_80175A70(const LiveActor* pActor) {
-    (void)pActor;
+bool Bussun::fn_80175A70() const {
+    TVec3f up(0.0f);
+    MR::calcUpVec(&up, this);
+    TVec3f line = -up * 100.0f;
+    TVec3f pos = mPosition + up * 5.0f;
+    TVec3f hit(0.0f);
+    Triangle triangle;
+    if (MR::getFirstPolyOnLineToMapExceptActor(&hit, &triangle, pos, line, this) &&
+    MR::isEqualString(MR::getSoundCodeString(&triangle), "Metal")) return true;
     return false;
 }
 
-// Rail direction toward the goal, written to pOut (fn_801757C0). NONMATCHING: arguments approximated.
-TVec3f* fn_801757C0(TVec3f* pDir, TVec3f* pOut, LiveActor* pActor) {
-    (void)pDir;
-    MR::calcRailDirection(pOut, pActor);
-    return pOut;
+Bussun::~Bussun() {
 }
+
+void Bussun::exeFreeze() {
+    MR::updateActorStateAndNextNerve(this, mNextNerve);
+}
+

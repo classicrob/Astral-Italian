@@ -48,7 +48,7 @@ public:
     void setTypeMagnumKiller();
     void setChaseRotateSpeed(f32);
     void initSpeed();
-    void setType(s32);
+    void setType(s32) NO_INLINE;
     void setMovementType(s32);
     bool isNormalNerve() const;
     bool isYoshiHold() const;

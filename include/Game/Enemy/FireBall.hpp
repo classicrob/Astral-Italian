@@ -21,6 +21,7 @@ public:
     void setVelocityToPlayer(f32);
     void calcReflectVelocity();
     bool tryToKill();
+    void fn_8017DA20(const TVec3f&, const TVec3f&);  // SMG2-only, by address (OtaRockTank throw)
 
     void exeThrow();
     void exeReflect();

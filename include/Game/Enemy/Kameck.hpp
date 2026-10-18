@@ -93,7 +93,7 @@ public:
     SmallKameckBeamEventListener(Kameck* pHost) : mHost(pHost) {
     }
 
-    virtual void hitBeam(s32 beamType);
+    virtual void hitBeam();
 
     /* 0x04 */ Kameck* mHost;
 };

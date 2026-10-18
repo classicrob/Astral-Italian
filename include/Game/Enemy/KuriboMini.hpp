@@ -38,12 +38,13 @@ public:
     bool tryFind();
     bool tryPointBind();
     bool tryDeadMap();
+    void fn_801BDB60(const TVec3f&, const TVec3f&);
+    void exeTrampoline();
     void exeWander();
     void exeFindPlayer();
     void exeChase();
     void exeStagger();
     void exeBindStarPointer();
-    void endBindStarPointer();
     void exeAttackSuccess();
     void exeHipDropDown();
     void exeFlatDown();

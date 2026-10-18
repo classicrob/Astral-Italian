@@ -1,14 +1,4 @@
 #include "Game/Enemy/AttackRock.hpp"
-f32 fn_801510C0();
-bool fn_801510D0(LiveActor* pActor);
-bool fn_801517C0(LiveActor* pActor, s32 arg);
-void fn_801552A0(LiveActor* pActor);
-f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat);
-void fn_80155360(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
-void fn_801553D0(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
-void fn_801554D0(TPos3f* pMtx, LiveActor* pActor);
-void fn_80155540(ProjmapEffectMtxSetter* pSetter, TQuat4f* pQuat, TVec3f* pPos);
-ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Util.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -21,30 +11,8 @@ ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Boss/KoopaFinalBattlePos.hpp"
 #include "Game/Boss/KoopaJrRobot.hpp"
 
-class BaseMatrixFollowValidater;
-class KoopaBattleAccessor {
-public:
-    void addAttackRockFinal(AttackRockFinal*);
-};
-
-namespace MR {
-    bool isMsgKoopaCastAttackRockStart(u32);
-    bool isMsgKoopaCastAttackRockEnd(u32);
-    bool isMsgKoopaPunchAttack(u32);
-    bool isMsgKoopaReleaseAttackRock(u32);
-    bool isMsgKoopaFinalBattleStart(u32);
-    bool isMsgAutoRushBegin(u32);
-    bool isMsgUpdateBaseMtx(u32);
-    bool isMsgRushCancel(u32);
-    bool isMsgFloorTouch(u32);
-    f32 calcNerveEaseOutValue(const NerveExecutor*, s32, s32, f32, f32);
-    void createKoopaBattleAccessor();
-    KoopaBattleAccessor* getKoopaBattleAccessor();
-};  // namespace MR
-
-// Unnamed SMG2 helpers outside this unit (Koopa battle functions).
-
-// Unit-local helpers (unnamed in the target).
+#include "Game/Boss/KoopaBattleAccessor.hpp"
+#include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
 
 namespace NrvAttackRockStateFall {
     class AttackRockStateFallNrvAppear : public Nerve {
@@ -73,7 +41,7 @@ AttackRockStateFall::AttackRockStateFall(AttackRock* pRock, s32 rockNum)
       mStartPos(0.0f, 0.0f, 0.0f), mLandPos(0.0f, 0.0f, 0.0f), mLandNormal(0.0f, 1.0f, 0.0f), mIsNear(false) {
     initNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvAppear::sInstance, 0);
     if (rockNum >= 2) {
-        mBreakModel = new BreakModel(mHost, "\222n\220k\224g", nullptr, nullptr, nullptr);
+        mBreakModel = new KoopaJrRobotShockWave("\222n\220k\224g");
         mBreakModel->initWithoutIter();
     }
     MR::setSensorFollowPos(mHost, "Land", &mLandPos);
@@ -104,10 +72,12 @@ void AttackRockStateFall::kill() {
 void AttackRockStateFall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pSender, mHost, "Body") && isNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvWait::sInstance)) {
         MR::sendMsgEnemyAttackStrongOrPush(pReceiver, pSender);
+        MR::sendMsgKoopaPunchAttack(pReceiver, pSender);
         return;
     }
     if (MR::isEqualSensor(pSender, mHost, "Land") && mIsNear) {
         TVec3f dir;
+        MR::calcSensorHorizonNormalize(&dir, mLandNormal, pSender, pReceiver);
         if (MR::isNearZero(dir, 0.001f)) {
             MR::makeAxisVerticalZX(&dir, mLandNormal);
         }
@@ -133,38 +103,40 @@ bool AttackRockStateFall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
     return false;
 }
 
-// NONMATCHING: written from the m2c output; stack/temporaries not verified.
+// NONMATCHING: Host reloads and floating-point scheduling differ.
 void AttackRockStateFall::fn_80153DE0() {
     AttackRock* pHost = this->mHost;
     f32 dist = PSVECDistance(&this->mLandPos, &pHost->mPosition);
-    f32 radius = 1.5f + fn_801510C0() * pHost->mScale.x;
+    f32 radius = 1.5f + pHost->fn_801510C0() * pHost->mScale.y;
     if (dist < radius) {
-        f32 scale = pHost->mScale.x;
-        f32 base = fn_801510C0() * scale;
+        f32 scale = pHost->mScale.y;
+        f32 base = pHost->fn_801510C0() * scale;
         MR::setSensorRadius(this->mHost, "Land",
-                            MR::getLinerValueFromMinMax(dist, 0.0f, radius, fn_801510C0() * pHost->mScale.x, 0.5f * base));
+                            MR::getLinerValueFromMinMax(dist, 0.0f, radius, pHost->fn_801510C0() * pHost->mScale.y, 0.5f * base));
         this->mIsNear = true;
         return;
     }
     this->mIsNear = false;
 }
 
-// NONMATCHING: operator*/operator+ out-of-line vs inline decisions differ (target was a separate TU).
+#pragma auto_inline off
+// NONMATCHING: Vector expression temporaries and inlining differ.
 void AttackRockStateFall::fn_80153EE0() {
     TVec3f start(this->mHost->mPosition);
     f32 t = MR::calcNerveRate(this, 110);
     f32 s = 1.0f - t;
     f32 b = s * s;
     f32 m = 2.0f * t * s;
-    TVec3f p0 = start * (t * t);
-    TVec3f p1 = this->mFallPos * m;
-    TVec3f p2 = this->mLandPos * b;
-    TVec3f sum = p0 + p2;
-    sum = sum + p1;
-    TVec3f pos(sum);
-    TVec3f vel = pos - this->mHost->mPosition;
+    TVec3f p0 = this->mLandPos * (t * t);
+    TVec3f p1 = this->mStartPos * m;
+    TVec3f p2 = this->mFallPos * b;
+    TVec3f sum = (p2 + p1) + p0;
+    TVec3f pos;
+    pos.set(sum);
+    TVec3f vel = pos - start;
     MR::setVelocity(this->mHost, vel);
 }
+#pragma auto_inline on
 
 void AttackRockStateFall::fn_80153FE0() {
     AttackRock* pHost = this->mHost;
@@ -176,31 +148,42 @@ void AttackRockStateFall::fn_80153FE0() {
     pDemo->appear();
 }
 
-// NONMATCHING: written from the m2c output; stack/temporaries not verified.
+#pragma auto_inline off
+// NONMATCHING: Commutative floating-point multiply operand order differs.
 void AttackRockStateFall::fn_80154060() {
     if (MR::isFirstStep(this)) {
         this->mIsNear = false;
         MR::startAction(this->mHost, "Wait");
         MR::invalidateCollisionParts(this->mHost);
     }
-    TVec3f playerPos = *MR::getPlayerPos() + *MR::getPlayerLastMove() * 60.0f;
-    TVec3f ground;
+    TVec3f move = *MR::getPlayerLastMove() * 60.0f;
+    TVec3f playerPos;
+    playerPos.set(*MR::getPlayerPos() + move);
+    MR::calcKoopaBattleEdgePos(&mLandPos, playerPos);
+    MR::calcKoopaBattleDirFromBase(&mLandNormal, playerPos);
     MR::makeQuatUpNoSupport(&this->mHost->mQuatF0, this->mLandNormal);
     MR::setPosition(this->mVolumeDrawer, this->mLandPos);
     MR::setShadowProjection(this->mHost, nullptr, this->mLandPos, this->mLandNormal, true);
     this->mHost->mGravity.set(-this->mLandNormal);
-    this->mFallPos.set(this->mLandPos + this->mLandNormal * 4000.0f);
-    TVec3f toHost = this->mHost->mPosition - ground;
-    this->mStartPos.set(this->mLandPos);
-    MR::resetPosition(this->mHost, this->mStartPos);
+    this->mStartPos.set(this->mLandPos + this->mLandNormal * 4000.0f);
+    TVec3f toHost = this->mHost->mPosition - this->mLandPos;
+    TVec3f horizon;
+    JMAVECScaleAdd(&mLandNormal, &toHost, &horizon, -mLandNormal.dot(toHost));
+    if (MR::normalizeOrZero(&horizon)) {
+        mFallPos.set(mLandPos + mLandNormal * 6000.0f);
+    } else {
+        mFallPos.set(mStartPos + horizon * 2000.0f);
+    }
+    MR::resetPosition(this->mHost, this->mFallPos);
+    this->setNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvWait::sInstance);
     MR::showModel(this->mHost);
     MR::validateHitSensors(this->mHost);
-    this->setNerve(&NrvAttackRockStateFall::AttackRockStateFallNrvWait::sInstance);
     AttackRock* pHost = this->mHost;
-    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, 0.05f * fn_801510C0() * pHost->mScale.x);
+    MR::setShadowVolumeSphereRadius(this->mHost, nullptr, 0.05f * pHost->fn_801510C0() * pHost->mScale.y);
 }
+#pragma auto_inline on
 
-// NONMATCHING: written from the m2c output; stack/temporaries not verified.
+// NONMATCHING: Host reloads, GPR allocation and floating-point scheduling differ.
 void AttackRockStateFall::fn_80154280() {
     if (MR::isFirstStep(this)) {
         const char* pName = "Fall";
@@ -214,8 +197,8 @@ void AttackRockStateFall::fn_80154280() {
         MR::setShadowProjection(this->mHost, nullptr, this->mLandPos, this->mLandNormal, true);
     }
     AttackRock* pHost = this->mHost;
-    f32 base = 0.05f * fn_801510C0() * pHost->mScale.x;
-    f32 radius = MR::calcNerveEaseInOutValue(this->mHost, 88, base, 0.95f * fn_801510C0() * pHost->mScale.x);
+    f32 base = 0.05f * pHost->fn_801510C0() * pHost->mScale.y;
+    f32 radius = MR::calcNerveEaseInOutValue(this->mHost, 88, base, 0.95f * pHost->fn_801510C0() * pHost->mScale.y);
     MR::setShadowVolumeSphereRadius(this->mHost, nullptr, radius);
     MR::setScale(this->mVolumeDrawer, TVec3f(1.2f * radius / 100.0f));
     this->fn_80153EE0();
@@ -229,6 +212,7 @@ void AttackRockStateFall::fn_80154280() {
     }
 }
 
+// NONMATCHING: Host load is scheduled after the action-name selection.
 void AttackRockStateFall::fn_80154400() {
     if (MR::isFirstStep(this)) {
         const char* pName = "Land";
@@ -242,7 +226,7 @@ void AttackRockStateFall::fn_80154400() {
         MR::validateCollisionParts(this->mHost);
         MR::validateCollisionParts(this->mHost->mDemoObj);
         if (this->mBreakModel != nullptr) {
-            reinterpret_cast< KoopaJrRobotShockWave* >(this->mBreakModel)->start(this->mHost->mPosition);
+            this->mBreakModel->start(this->mHost->mPosition);
         }
     }
     if (MR::isGreaterEqualStep(this, 58)) {

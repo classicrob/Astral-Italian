@@ -38,3 +38,5 @@ namespace MR {
     void deactivateClipArea();
     void setBinderExceptSensorType(LiveActor*, const TVec3f&, f32);
 };  // namespace MR
+
+namespace MR { bool isInClipArea(const TVec3f&); }

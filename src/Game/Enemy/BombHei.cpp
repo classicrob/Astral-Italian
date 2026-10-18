@@ -103,7 +103,7 @@ namespace NrvBombHei {
 
 BombHei::BombHei(const char* pName)
     : LiveActor(pName), mScaleController(nullptr), mBindStarPointerState(nullptr), mRotQuat(0.0f, 0.0f, 0.0f, 1.0f), mFront(0, 0, 1),
-      mBinderOffset(0.0f, 1.0f, 0.0f), mTargetFront(0, 0, 1), mCountdown(-1), mCarrySensor(nullptr), mExplodeRadius(500.0f), mCountTimer(hStartBrkTime), mBodyJoint(nullptr),
+      mBinderOffset(0.0f, ::hTranslateHeight, 0.0f), mTargetFront(0, 0, 1), mCountdown(-1), mCarrySensor(nullptr), mExplodeRadius(500.0f), mCountTimer(hStartBrkTime), mBodyJoint(nullptr),
       mType(BOMB_HEI), mExplosionIgnoreCollision(false) {
 }
 
@@ -194,9 +194,9 @@ void BombHei::appear() {
 
     if (mType == BOMB_HEI || mType == BOMB) {
         setNerve(GET_NERVE(BombHei, HostTypeNrvLaunch));
-        mCountdown = -1;
     }
 
+    mCountdown = -1;
     MR::showModel(this);
 }
 
@@ -286,7 +286,7 @@ void BombHei::exeStarting() {
     }
 }
 
-// NONMATCHING: target keeps `mCountdown > 0 && mCountdown < 120` as two compares; CW merges them into one unsigned range check
+#pragma global_optimizer off
 void BombHei::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Wait");
@@ -312,6 +312,7 @@ void BombHei::exeWait() {
         }
     }
 }
+#pragma global_optimizer on
 
 // NONMATCHING: target keeps `mCountdown > 0 && mCountdown < 120` as two compares; CW merges them into one unsigned range check
 void BombHei::exeWalk() {
@@ -339,7 +340,7 @@ void BombHei::exeWalk() {
     }
 
     if (MR::calcDistanceToPlayer(this) < 1000.0f && (!MR::isValidSwitchA(this) || MR::isOnSwitchA(this))) {
-        if (mCountdown < ::hBrkRateUpTime && mCountdown > 0) {
+        if (mCountdown > 0 && mCountdown < ::hBrkRateUpTime) {
             setNerve(GET_NERVE(BombHei, HostTypeNrvPursueFast));
         } else {
             setNerve(GET_NERVE(BombHei, HostTypeNrvPursue));
@@ -347,7 +348,8 @@ void BombHei::exeWalk() {
     }
 }
 
-// NONMATCHING: target keeps `mCountdown > 0 && mCountdown < 120` as two compares; CW merges them into one unsigned range check
+
+#pragma global_optimizer off
 void BombHei::exePursue() {
     if (MR::isFirstStep(this)) {
         startCountdown();
@@ -355,9 +357,7 @@ void BombHei::exePursue() {
         mVelocity.set(mGravity * -::hPrePursueJumpVel);
     }
 
-    // NOTE: this is a dummy line to emit the structure, this value is not real
-    if (MR::calcDistanceToPlayer(this) < 0.0f) {
-    }
+    MR::calcDistanceToPlayer(this);
 
     if (isNerve(GET_NERVE(BombHei, HostTypeNrvPursueFast))) {
         MR::tryStartBck(this, "CountDown");
@@ -369,7 +369,7 @@ void BombHei::exePursue() {
                                 ::hPursueFarParam.mTurnRate);
     }
 
-    if (isNerve(GET_NERVE(BombHei, HostTypeNrvPursue)) && mCountdown < ::hBrkRateUpTime && mCountdown > 0) {
+    if (isNerve(GET_NERVE(BombHei, HostTypeNrvPursue)) && mCountdown > 0 && mCountdown < ::hBrkRateUpTime) {
         setNerve(GET_NERVE(BombHei, HostTypeNrvPursueFast));
         return;
     }
@@ -378,8 +378,9 @@ void BombHei::exePursue() {
         MR::blendQuatUpFront(&mRotQuat, -mGravity, mFront, 0.5f, 0.5f);
     }
 }
+#pragma global_optimizer on
 
-// NONMATCHING: target keeps `mCountdown > 0 && mCountdown < 120` as two compares; CW merges them into one unsigned range check
+#pragma global_optimizer off
 void BombHei::exePursueHit() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Hit");
@@ -394,13 +395,14 @@ void BombHei::exePursueHit() {
     }
 
     if (MR::isGreaterStep(this, ::hPursueHitTime)) {
-        if (mCountdown < ::hBrkRateUpTime && mCountdown > 0) {
+        if (mCountdown > 0 && mCountdown < ::hBrkRateUpTime) {
             setNerve(GET_NERVE(BombHei, HostTypeNrvPursueFast));
         } else {
             setNerve(GET_NERVE(BombHei, HostTypeNrvPursue));
         }
     }
 }
+#pragma global_optimizer on
 
 void BombHei::exeSpinHit() {
     if (MR::isFirstStep(this)) {
@@ -635,7 +637,7 @@ void BombHei::control() {
     if (isNerve(GET_NERVE(BombHei, HostTypeNrvTaken))) {
         mBinderOffset.zero();
     } else {
-        mBinderOffset.set(0.0f, 1.0f, 0.0f);
+        mBinderOffset.set(0.0f, ::hTranslateHeight, 0.0f);
     }
 
     if (MR::isInDeath(this, TVec3f(0.0f, 0.0f, 0.0f)) && !isNerve(GET_NERVE(BombHei, HostTypeNrvExplode))) {
@@ -755,8 +757,10 @@ bool BombHei::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
         return true;
     }
 
-    if (MR::isMsgFireBallAttack(msg) && !isNerve(GET_NERVE(BombHei, HostTypeNrvExplode))) {
-        setNerve(GET_NERVE(BombHei, HostTypeNrvExplode));
+    if (MR::isMsgFireBallAttack(msg)) {
+        if (!isNerve(GET_NERVE(BombHei, HostTypeNrvExplode))) {
+            setNerve(GET_NERVE(BombHei, HostTypeNrvExplode));
+        }
         return true;
     }
 

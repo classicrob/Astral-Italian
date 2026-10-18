@@ -6,31 +6,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
-// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
-extern s32 lbl_807E3028;
-
-// Per-state actor states (defined in the second half of the original unit, not ported yet).
-class HammerBrosStateJump : public ActorStateBase< HammerBros > {
-public:
-    HammerBrosStateJump(HammerBros*);
-    u8 _pad[88 - sizeof(ActorStateBase< HammerBros >)];
-};
-
-class HammerBrosStateAttack : public ActorStateBase< HammerBros > {
-public:
-    HammerBrosStateAttack(HammerBros*);
-    u8 _pad[20 - sizeof(ActorStateBase< HammerBros >)];
-};
-
-class HammerBrosStateSwoon : public ActorStateBase< HammerBros > {
-public:
-    HammerBrosStateSwoon(HammerBros*);
-    void fn_8018AFF0();
-    bool fn_8018B000() const;
-    bool fn_8018B080() const;
-    bool fn_8018B0E0() const;
-    u8 _pad[24 - sizeof(ActorStateBase< HammerBros >)];
-};
 
 static TVec3f sThrowVel(0.0f, 11.0f, 27.0f);
 HammerBrosHammer::HammerBrosHammer(const char* pName) : BrosProjectileBase(pName), mBind(nullptr) {

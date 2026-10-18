@@ -320,7 +320,7 @@ void Patakuri::fn_801E54C0() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Blow");
     }
-    MR::applyVelocityDampAndGravity(this, 0.3f, 0.8f, 0.96f, 0.93f, 0.0f);
+    MR::applyVelocityDampAndGravity(this, 0.3f, 0.8f, 0.96f, 0.93f, 1.0f);
     if (MR::isOnGround(this)) {
         setNerve(&PatakuriNrvSwoonLand::sInstance);
     }

@@ -31,14 +31,7 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include <JSystem/JMath/JMATrigonometric.hpp>
 
- void BegomanBase_FORCE_MATCH_SDATA2() {
-    (void) 1.0f;
-    (void) 0.0f;
-    (void) 0.5f;
-    (void) 3.0f;
-    (void) -1.0f;
-    (void) 2.0f;
- }
+ 
 
 namespace {
     const MR::ActorMoveParam hReturnWaitParam = {0.0f, 1.0f, 0.95f, 0.0f};
@@ -86,9 +79,9 @@ namespace {
     // static const _32 hLaunchDampVelGround = _;
     static const s32 hReceiveLimitTime = 2;
     static const s32 hPermitLimitTime = 30;
-    static const BegomanSound sound_baby = {"EmLvBabybegoDash"};
-    static const BegomanSound sound_normal = {"EmLvBegomanDash"};
-    static const BegomanSound sound_boss = {"BmLvBbegoDash"};
+    static const BegomanSound sound_baby = {"SE_EM_LV_BABYBEGO_DASH"};
+    static const BegomanSound sound_normal = {"SE_EM_LV_BEGOMAN_DASH"};
+    static const BegomanSound sound_boss = {"SE_BM_LV_BBEGO_DASH"};
 };  // namespace
 
 namespace {
@@ -111,7 +104,6 @@ BegomanBase::BegomanBase(const char* pName)
       mCanTrySetReturn() {
 }
 
-// needed to get a string to show up in .data, should be deadstripped.
 const BegomanSound* BegomanBase::getSoundBaby() {
     return &::sound_baby;
 }
@@ -202,7 +194,7 @@ void BegomanBase::initSensor(s32 extraSensorNum, f32 radius, f32 pushedRailRadiu
     f32 yScale = mScale.y;
     initHitSensor(extraSensorNum + 3);
 
-    MR::addHitSensor(this, "Check", 0x7A /* ATYPE_EYE */, 1, radius * yScale, TVec3f(0.0f, 0.5f * radius * yScale, 1.5f * radius * yScale));
+    MR::addHitSensor(this, "check", 0x7A /* ATYPE_EYE */, 1, radius * yScale, TVec3f(0.0f, 0.5f * radius * yScale, 1.5f * radius * yScale));
     MR::addHitSensorAtJoint(this, "Body", pSensorJointName, 0x21 /* ATYPE_BEGOMAN */, 32, radius * yScale, TVec3f(0.0f, 0.5f * radius * yScale, 0.0f));
     MR::addHitSensorAtJoint(this, "pushed_rail", pSensorJointName, 0x7A /* ATYPE_EYE */, 32, pushedRailRadius * yScale,
                             TVec3f(0.0f, 0.5f * pushedRailRadius * yScale, 0.0f));
@@ -323,7 +315,7 @@ void BegomanBase::exeWaitCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
         if (!isFallNextMove(150.0f, 150.0f)) {
             TVec3f touchRailVec;
 
-            if (!ElectricRailFunction::isTouchRail(getSensor("Check"), &touchRailVec, nullptr)) {
+            if (!ElectricRailFunction::isTouchRail(getSensor("check"), &touchRailVec, nullptr)) {
                 if (requestAttack()) {
                     setNerve(pNerve1);
                     return;
@@ -334,7 +326,7 @@ void BegomanBase::exeWaitCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
             }
 
             TVec3f touchRailToSensor(touchRailVec);
-            touchRailToSensor.sub((*MR::getSensorPos(this, "Check")));
+            touchRailToSensor.sub((*MR::getSensorPos(this, "check")));
             MR::normalizeOrZero(&touchRailToSensor);
 
             if (!MR::isNearZero(touchRailToSensor)) {
@@ -404,7 +396,7 @@ void BegomanBase::exePursueCore(const MR::ActorMoveParam& rMoveParam, const Nerv
         return;
     }
 
-    if (ElectricRailFunction::isTouchRail(getSensor("Check"), nullptr, nullptr)) {
+    if (ElectricRailFunction::isTouchRail(getSensor("check"), nullptr, nullptr)) {
         setNerve(pNerve1);
         return;
     }
@@ -439,7 +431,7 @@ void BegomanBase::exeTurnCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
     reboundWallAndGround(&mFaceVec, true);
 
     if (!notCheckRail) {
-        if (ElectricRailFunction::isTouchRail(getSensor("Check"), nullptr, nullptr)) {
+        if (ElectricRailFunction::isTouchRail(getSensor("check"), nullptr, nullptr)) {
             setNerve(pNerve1);
             return;
         }
@@ -469,7 +461,6 @@ void BegomanBase::exeTurnCore(const MR::ActorMoveParam& rMoveParam, const Nerve*
     }
 }
 
-// NONMATCHING: branch layout/instruction order
 void BegomanBase::exeBrakeCore(const Nerve* pNerve) {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Brake");
@@ -487,11 +478,10 @@ void BegomanBase::exeBrakeCore(const Nerve* pNerve) {
 
     if (isFallNextMove(150.0f, 150.0f)) {
         MR::addVelocityLimit(this, (-mFaceVec) * 0.0f);
-    } else {
-        if (!ElectricRailFunction::isTouchRail(getSensor("Check"), nullptr, nullptr) && MR::isGreaterStep(this, ::hBrakeTime)) {
-            MR::startAction(this, "Brake");
-            setNerve(pNerve);
-        }
+    }
+    if (!ElectricRailFunction::isTouchRail(getSensor("check"), nullptr, nullptr) && MR::isGreaterStep(this, ::hBrakeTime)) {
+        MR::startAction(this, "Brake");
+        setNerve(pNerve);
     }
 }
 
@@ -704,8 +694,7 @@ void BegomanBase::launchBegomanCore(LiveActor* pActor, BegomanBase** pBegomanArr
 
         directionFromLauncher += (vec1 * MR::sin(angle));
 
-        TVec3f& rPosition = pBegomanArray[i]->mPosition;
-        rPosition.set(pActor->mPosition + directionFromLauncher * radius);
+        MR::setPosition(pBegomanArray[i], pActor->mPosition + directionFromLauncher * radius);
         TVec3f& rVelocity = pBegomanArray[i]->mVelocity;
         rVelocity.set(directionFromLauncher * velH - pActor->mGravity * velV);
         pBegomanArray[i]->mFaceVec.set(directionFromLauncher);
@@ -1021,6 +1010,7 @@ bool BegomanBase::calcJointLocator1(TPos3f* pPos, const JointControllerInfo& rJo
     return true;
 }
 
+// NONMATCHING: pointer register allocation.
 void BegomanBase::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, _C0);
 
@@ -1036,6 +1026,7 @@ void BegomanBase::calcAndSetBaseMtx() {
     mBaseDelegator->registerCallBack();
 }
 
+// NONMATCHING: copy-constructor argument scheduling.
 void BegomanBase::doChange(ChangeObj* pOther) {
     changeTRSVGFromOther(pOther);
 
@@ -1052,7 +1043,7 @@ void BegomanBase::doChange(ChangeObj* pOther) {
     MR::setRotation(this, 0.0f);
 
     TVec3f gravityOffset(TVec3f(-mGravity));
-    gravityOffset.scale(0.5f);
+    gravityOffset.scale(10.0f);
     mPosition.add(gravityOffset);
 
     calcAndSetBaseMtx();

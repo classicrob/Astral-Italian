@@ -30,6 +30,11 @@ public:
     virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*) override;
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*) override;
 
+    void fn_8016A6C0();
+    void fn_8016A730();
+    bool fn_8016A9F0() const;
+    bool fn_8016AAA0() const;
+    void fn_8016AB40(HitSensor*, HitSensor*);
     void exeFlyOnRail();
     void exeFlyOnRailSearch();
     void doFly();
@@ -45,8 +50,6 @@ public:
     void exeSwoonEnd();
     void exeTrample();
     void exeSinkDown();
-    void exeBindStarPointer();
-    void endBindStarPointer();
 
     /* 0x8C */ MR::FixedArray< BombBirdBomb*, 3 > mBombs;
     /* 0x98 */ BombBirdBomb* mHeldBomb;

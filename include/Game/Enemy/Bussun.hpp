@@ -19,15 +19,23 @@ public:
     virtual void attackSensor(HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    void exeWalk();
+    const Nerve* fn_80175850() const;
+    const Nerve* fn_801758B0() const;
+    NO_INLINE bool fn_80175910() const;
+    NO_INLINE bool fn_80175940() const;
+    bool fn_80175970() const;
+    void fn_801759D0();
+    bool fn_80175A70() const;
+    void fn_801757C0(TVec3f*);
+    void fn_80175330();
     void exeWait();
     void exeTurn();
-    void exeTurnEnd();
+    void fn_801754E0();
     void exeAttack();
     void exeHit();
     void exeDown();
     void exeBlow();
-    void exeDead();
+    void fn_801756F0();
     void exeFreeze();
 
 public:

@@ -20,7 +20,14 @@ struct RhythmInfo {
     /* 0x28 */ s64 mPausedTime;
     /* 0x30 */ u32 _30;
     /* 0x34 */ u32 _34;
-};
+    /* 0x38 */ u8 _38[0x8];
+};  // 0x40 bytes per record (the holder's mInfos stride)
+
+// SMG2 unnamed helpers in the AudRhythmHolder split: index a 0x40-byte track record table at pBase (named by address).
+f32 fn_8042A170(s32 pBase, s32 index);
+f32 fn_8042A1D0(s32 pBase, s32 index);
+f32 fn_8042A230(s32 pBase, s32 index);
+f32 fn_8042A280(s32 pBase, s32 index);
 
 class AudRhythmHolder {
 public:
@@ -38,8 +45,8 @@ public:
     /* 0x008 */ f32 _8;
     /* 0x00C */ bool mIsPaused;
     /* 0x010 */ RhythmInfo mInfos[6];
-    /* 0x160 */ bool mIsRhythmActive;
-    /* 0x164 */ AudRhythmSeqParser* mSeqParser;
-    /* 0x168 */ u32 _168;
-    /* 0x16C */ u32 _16C;
+    /* 0x190 */ bool mIsRhythmActive;
+    /* 0x194 */ AudRhythmSeqParser* mSeqParser;
+    /* 0x198 */ u32 _168;
+    /* 0x19C */ u32 _16C;
 };

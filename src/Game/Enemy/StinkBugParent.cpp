@@ -21,8 +21,8 @@
 
 namespace {
     // sGravity
-    static const f32 sTurnRateSearch = 1.0f;
-    static const f32 sTurnRateDashSign = 3.0f;
+    static const f32 sTurnRateSearch = 2.0f;
+    static const f32 sTurnRateDashSign = 4.0f;
     static const s32 sStepForWait = 1;
     static const s32 sStepForDashSignEnd = 10;
     static const s32 sStepForShakeStart = 40;
@@ -40,6 +40,12 @@ namespace {
 };  // namespace
 
 namespace NrvStinkBugParent {
+    class StinkBugParentNrvAppearFall : public Nerve {
+    public:
+        virtual void execute(Spine*) const;
+        static StinkBugParentNrvAppearFall sInstance;
+    };
+    StinkBugParentNrvAppearFall StinkBugParentNrvAppearFall::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(StinkBugParentNrvWait, StinkBugParent, Wait);
     NEW_NERVE(StinkBugParentNrvSearch, StinkBugParent, Search);
     NEW_NERVE(StinkBugParentNrvDashSign, StinkBugParent, DashSign);
@@ -77,6 +83,7 @@ StinkBugParent::StinkBugParent(const char* pName) : StinkBugBase(pName), mAnimSc
 
 void StinkBugParent::init(const JMapInfoIter& rIter) {
     StinkBugBase::init(rIter);
+    initSound(4, "StinkBugParent", nullptr, TVec3f(0.0f));
     initHitSensor(2);
     MR::addHitSensorEye(this, "Body", 4, 250.0f, TVec3f(0.0f, 150.0f, 0.0f));
     MR::addHitSensorAtJointEnemyAttack(this, "head", "Face", 8, 160.0f, TVec3f(0.0f, -50.0f, 80.0f));
@@ -87,17 +94,22 @@ void StinkBugParent::init(const JMapInfoIter& rIter) {
     MR::setBinderIgnoreMovingCollision(this);
     MR::declarePowerStar(this);
     MR::declareStarPiece(this, 8);
+    MR::initStarPointerTarget(this, 250.0f, TVec3f(0.0f, 100.0f, 0.0f));
+    mAnimScaleCtrl = new AnimScaleController(nullptr);
+    mAnimScaleCtrl->setParamTight();
+    mStarPointBind = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
 
     if (MR::tryRegisterDemoCast(this, rIter)) {
         MR::registerDemoActionNerve(this, GET_NERVE(StinkBugParent, StinkBugParentNrvDemoAnger), "ダメージ中");
     }
 
-    _B0 = 50.0f;
+    _B0 = 180.0f;
     mRadius = 1200.0f;
     MR::startBrk(this, "Anger");
     MR::setBrkFrameAndStop(this, 0.0f);
-    initNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvWait));
-    makeActorAppeared();
+    initNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvAppearFall), 1);
+    MR::initActorState(this, mStarPointBind, GET_NERVE(StinkBugParent, StinkBugParentNrvFreeze), "SupportFreeze");
+    makeActorDead();
 }
 
 void StinkBugParent::exeWait() {
@@ -158,8 +170,9 @@ void StinkBugParent::exeDash() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Rush");
         MR::validateHitSensors(this);
-        MR::startActionSound(this, "EmLvStinkbugLDash", -1, -1, -1);
     }
+
+    MR::startActionSound(this, "EmLvStinkbugLDash", -1, -1, -1);
 
     if (!MR::isNear(this, _98, mRadius) || MR::isBindedWall(this)) {
         mVelocity.zero();
@@ -268,24 +281,22 @@ void StinkBugParent::exeRecover() {
     }
 }
 
-void StinkBugParent::appear() {
-    MR::startStageBGM("BGM_PINCH_01", false);
-    LiveActor::appear();
-}
+
 
 void StinkBugParent::exeFreeze() {
     if (MR::isFirstStep(this)) {
         MR::deleteEffectAll(this);
         MR::startAction(this, "Back");
-        mVelocity.zero();
+    }
 
-        if (MR::isEffectValid(this, "RushSmoke")) {
-            MR::deleteEffect(this, "RushSmoke");
-        }
+    mVelocity.zero();
 
-        if (MR::isEffectValid(this, "BackSmoke")) {
-            MR::deleteEffect(this, "BackSmoke");
-        }
+    if (MR::isEffectValid(this, "RushSmoke")) {
+        MR::deleteEffect(this, "RushSmoke");
+    }
+
+    if (MR::isEffectValid(this, "BackSmoke")) {
+        MR::deleteEffect(this, "BackSmoke");
     }
 
     MR::updateActorStateAndNextNerve(this, GET_NERVE(StinkBugParent, StinkBugParentNrvBack));
@@ -308,7 +319,7 @@ void StinkBugParent::exeShake() {
 }
 
 void StinkBugParent::exeDemoPrepare() {
-    if (MR::tryStartDemoRegisteredMarioPuppetable(this, nullptr)) {
+    if (MR::tryStartDemoRegisteredMarioPuppetable(this, "ため")) {
         setNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvDemoChildDown));
     }
 }
@@ -347,15 +358,18 @@ void StinkBugParent::exeDemoAnger() {
         MR::startAction(this, "Anger");
         MR::startBrk(this, "Anger");
         MR::resetPosition(this, _98);
-        MR::setPlayerPosAndWait("子連れカメムシデモ後ポイント");
+        MR::setPlayerPosAndWait("子連れカメムシデモ後ポイント", false);
         MR::findNamePos("子連れカメムシデモ後ポイント", &v1, nullptr);
         MR::turnDirectionToTargetUseGroundNormalDegree(this, &_8C, v1, 180.0f);
+        if (MR::isDemoEndWaitCameraInterpolating()) {
+            MR::fn_803B6830(false);
+        }
     }
 
     MR::startActionSound(this, "EvLvStinkbugLAngry");
     MR::startActionSound(this, "EmLvStinkbugLAngry");
 
-    if (MR::isActionEnd(this)) {
+    if (MR::isActionEnd(this) || MR::isDemoEndWaitCameraInterpolating()) {
         TVec3f v2, v3;
         v2.scaleAdd(200.0f, _8C, mPosition);
         v3.scaleAdd(-1.0f, mGravity, _8C);
@@ -366,6 +380,11 @@ void StinkBugParent::exeDemoAnger() {
         setNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvWait));
         MR::startActionSound(this, "EmStinkbugLAngryEnd");
     }
+}
+
+void StinkBugParent::appear() {
+    MR::startStageBGM("BGM_PINCH_01", false);
+    LiveActor::appear();
 }
 
 void StinkBugParent::kill() {
@@ -505,6 +524,10 @@ bool StinkBugParent::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
         return false;
     }
 
+    if (isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvFreeze))) {
+        return false;
+    }
+
     if (MR::isMsgFloorTouch(msg) && MR::isOnPlayer(getSensor("Body"))) {
         setNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvPanic));
         return true;
@@ -576,4 +599,14 @@ inline bool StinkBugParent::isNrvMoving() const {
 inline bool StinkBugParent::isNrvDemo() const {
     return isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvDemoPrepare)) || isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvDemoChildDown)) ||
            isNerve(GET_NERVE(StinkBugParent, StinkBugParentNrvDemoAnger));
+}
+
+namespace NrvStinkBugParent {
+    inline void StinkBugParentNrvAppearFall::execute(Spine* pSpine) const {
+        LiveActor* pActor = reinterpret_cast<LiveActor*>(pSpine->mExecutor);
+        if (!MR::isDemoActiveRegistered(pActor)) {
+            MR::invalidateClipping(pActor);
+            pActor->setNerve(&StinkBugParentNrvWait::sInstance);
+        }
+    }
 }

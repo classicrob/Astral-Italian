@@ -47,7 +47,7 @@ Foomin::Foomin(const char* pName) : LiveActor(pName) {
 }
 
 void Foomin::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "Foomin", nullptr, false);
+    MR::initActor(this, rIter, "Foomin", false);
     if (MR::isExistRail(this)) {
         MR::moveCoordAndTransToNearestRailPos(this);
     }
@@ -67,7 +67,7 @@ void Foomin::init(const JMapInfoIter& rIter) {
         mArg1 = arg1;
     }
 
-    initNerve(GET_FOOMIN_NERVE(FoominNrvWait), 0);
+    initNerve(GET_FOOMIN_NERVE(FoominNrvWaitTouch), 0);
     makeActorAppeared();
 }
 
@@ -90,8 +90,8 @@ void Foomin::calcAndSetBaseMtx() {
 
 void Foomin::fn_80181940() {
     if (MR::isFirstStep(this)) {
-        MR::validateClipping(this);
         MR::startAction(this, "Wait");
+        MR::validateClipping(this);
     }
 
     if ((!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) && MR::isGreaterStep(this, this->mArg0)) {
@@ -101,8 +101,8 @@ void Foomin::fn_80181940() {
 
 void Foomin::fn_801819D0() {
     if (MR::isFirstStep(this)) {
-        MR::validateClipping(this);
         MR::startAction(this, "Wait");
+        MR::validateClipping(this);
     }
 
     if (this->mSupportTico->tryAttachTouch() == 0) {
@@ -115,8 +115,8 @@ void Foomin::fn_801819D0() {
 
 void Foomin::fn_80181A80() {
     if (MR::isFirstStep(this)) {
-        MR::invalidateClipping(this);
         MR::startAction(this, "AttackSign");
+        MR::invalidateClipping(this);
     }
 
     if (this->mSupportTico->tryAttachTouch() == 0) {
@@ -135,17 +135,18 @@ void Foomin::fn_80181B00() {
     if (MR::isLessStep(this, 25) && MR::isActorOnPlayer(this)) {
         TVec3f front(0.0f);
         MR::calcFrontVec(&front, this);
-        TVec3f jump = front * -0.5f;
-        jump.normalize();
+        TVec3f jump = -mGravity + (-front) * -0.5f;
+        MR::normalize(&jump);
         MR::forceJumpPlayer(jump * 35.0f);
         MR::startBckPlayer("Blow", nullptr);
         MR::startLevelSoundPlayer("Thrown", -1, -1);
         MR::emitEffect(this, "Shrink");
+        MR::invalidateCollisionParts(this);
     }
 
     this->fn_80181C80();
     if (MR::isActionEnd(this)) {
-        MR::validateClipping(this);
+        MR::validateCollisionParts(this);
         this->setNerve(GET_FOOMIN_NERVE(FoominNrvWaitTouch));
     }
 }

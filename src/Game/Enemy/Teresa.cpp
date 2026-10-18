@@ -108,23 +108,19 @@ void Teresa::init(const JMapInfoIter& rIter) {
     setStartNerve();
 }
 
-// NONMATCHING: target passes two extra TVec3f(0,0,0) args to createDummyDisplayModel (symbols.txt names it
-// ...PCcl, likely a misnamed 6-arg overload)
 void Teresa::initDummyModel(const JMapInfoIter& rIter) {
     if (MR::isValidInfo(rIter)) {
-        mDisplayModel = MR::createDummyDisplayModel(this, rIter, "SklRoot", -1);
-    }
-
-    if (mDisplayModel != nullptr) {
-        mDisplayModel->kill();
-
-        if (MR::getDummyDisplayModelId(rIter, -1) == 6) {
-            mKeySwitch = new KeySwitch("鍵スイッチ");
-            mKeySwitch->initKeySwitchByOwner(rIter);
-            _FC = 0;
+        mDisplayModel = MR::createDummyDisplayModel(this, rIter, "SklRoot", -1,
+                                                  TVec3f(0.0f, 0.0f, 0.0f), TVec3f(0.0f, 0.0f, 0.0f));
+        if (mDisplayModel != nullptr) {
+            mDisplayModel->kill();
+            if (MR::getDummyDisplayModelId(rIter, -1) == 6) {
+                mKeySwitch = new KeySwitch("鍵スイッチ");
+                mKeySwitch->initKeySwitchByOwner(rIter);
+                _FC = 0;
+            }
+            MR::tryStartAllAnim(mDisplayModel, "InTeresa");
         }
-
-        MR::tryStartAllAnim(mDisplayModel, "InTeresa");
     }
 }
 
@@ -217,8 +213,8 @@ void Teresa::control() {
 
 void Teresa::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, _94);
-    TVec3f scale(_D4);
-    scale.mul(mScale);
+    TVec3f scale(mScale);
+    scale.mul(_D4);
     scale.mul(mScaleController->_C);
     MR::setBaseScale(this, scale);
 }
@@ -1029,16 +1025,15 @@ void Teresa::addDriftVelocity() {
         mVelocity.add(v4);
     }
 
-    MR::addVelocityAwayFromTarget(this, *MR::getPlayerPos(), -1.25f);
+    MR::fn_80011180(this, *MR::getPlayerPos(), -1.25f);
 }
 
 void Teresa::updateDriftAnimScale() {
     TVec3f v4;
     _94.getXDir(v4);
     f32 v2 = v4.dot(mVelocity);
-    f32 v3 = (1.0f + (0.30f * MR::normalize(MR::abs(v2), 3.0f, 53.0f)));
-    _D4.x = v3;
-    _D4.z = 1.0f / v3;
+    _D4.x = 1.0f + 0.5f * MR::normalize(MR::abs(v2), 3.0f, 53.0f);
+    _D4.z = 1.0f / _D4.x;
 }
 
 void Teresa::updateDriftTransparency() {

@@ -2778,14 +2778,10 @@ Game/Enemy/JellyfishElectric.cpp:
 	.sbss       start:0x807D2690 end:0x807D26B8
 
 Game/Enemy/Jugem.cpp:
-	.text       start:0x8019B020 end:0x8019F010
-
-Game/Enemy/JointControlDelegator2.cpp:
-	.text       start:0x8019F010 end:0x8019F130
-
-Game/Enemy/Jugem2.cpp:
-	.text       start:0x8019F130 end:0x8019F650
+	.text       start:0x8019ABD0 end:0x8019F650
 	.ctors      start:0x80644148 end:0x8064414C
+	.bss        start:0x80729008 end:0x80729050
+	.sbss       start:0x807D26B8 end:0x807D2718
 
 Game/Enemy/JumpBeamer.cpp:
 	.text       start:0x8019F650 end:0x801A0D20
@@ -2980,10 +2976,9 @@ Game/Enemy/OtaRockChief.cpp:
 	.ctors      start:0x806441D4 end:0x806441D8
 
 Game/Enemy/OtaRockTank.cpp:
-	.text       start:0x801DD600 end:0x801E1670
-
-Game/Enemy/JointControlDelegator4.cpp:
-	.text       start:0x801E1670 end:0x801E1790
+	.text       start:0x801DD600 end:0x801E1D20
+	.ctors      start:0x806441D8 end:0x806441DC
+	.sbss       start:0x807D2D78 end:0x807D2DE0
 
 Game/Enemy/PackunFlowerBig.cpp:
 	.text       start:0x801E1D20 end:0x801E2600

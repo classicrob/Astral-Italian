@@ -894,9 +894,9 @@ void Togezo::calcYoshiDirection() {
     f32 tx = mtx.mMtx[0][3];
     mPosition.set< f32 >(tx, ty, tz);
     mtx.getEuler(mRotation);
-    mRotation.x *= 57.29578f;
-    mRotation.y *= 57.29578f;
-    mRotation.z *= 57.29578f;
+    mRotation.x *= 57.2957763671875f;
+    mRotation.y *= 57.2957763671875f;
+    mRotation.z *= 57.2957763671875f;
     mtx.getZDir(mFrontVec);
     TVec3f offs(mFrontVec);
     offs.scale(20.0f);
@@ -933,9 +933,9 @@ void Togezo::calcThrowDirection() {
         rot.setYDir(up);
         rot.setZDir(throwVec);
         rot.getEuler(mRotation);
-        mRotation.x *= 57.29578f;
-        mRotation.y *= 57.29578f;
-        mRotation.z *= 57.29578f;
+        mRotation.x *= 57.2957763671875f;
+        mRotation.y *= 57.2957763671875f;
+        mRotation.z *= 57.2957763671875f;
         rot.getZDir(mFrontVec);
     }
 }

@@ -26,7 +26,7 @@ public:
     void exeWhistle();
     void exeBindStarPointer();
     bool isStarPointerPointing();
-    f32 updateTubeParts();
+    void fn_80194540();
 
 public:
     /* 0x90 */ TubeSlider* mTubeSlider;
@@ -46,7 +46,7 @@ public:
 // Body part (one per extra segment). Forwards hit callbacks to the owner.
 class HanachanRunawayParts : public LiveActor {
 public:
-    HanachanRunawayParts(HanachanRunaway* pOwner, const char* pIndex, char* pUnused);
+    HanachanRunawayParts(HanachanRunaway* pOwner, s32 index);
 
     virtual ~HanachanRunawayParts();
     virtual void init(const JMapInfoIter&);
@@ -57,5 +57,5 @@ public:
 public:
     /* 0x90 */ HanachanRunaway* mOwner;
     /* 0x94 */ TPos3f mBaseMtx;
-    /* 0xC4 */ s32 mIndex;  // loop index passed through the ctor's pointer argument
+    /* 0xC4 */ s32 mIndex;
 };

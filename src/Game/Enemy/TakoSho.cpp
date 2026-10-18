@@ -9,21 +9,9 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
-};  // namespace MR
+#include "Game/Util/YoshiLockOnUtil.hpp"
 
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
-
-namespace MR {
-    void makeMtxUpFrontPos(TPos3f*, const TVec3f&, const TVec3f&, const TVec3f&);
-};  // namespace MR
-
-// Unnamed SMG2 helpers outside this unit.
-// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
-extern s32 lbl_807E3078;
+static const volatile s32 sShotStep = 0;
 
 namespace NrvTakoSho {
     NEW_NERVE(TakoShoNrvWaitAfter, TakoSho, Wait);
@@ -65,6 +53,7 @@ TakoSho::TakoSho(const char* pName)
 
 TakoSho::~TakoSho() {}
 
+// NONMATCHING: Argument sentinel register lifetime and constructor-result address selection differ.
 void TakoSho::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     mStartPos.set(mPosition);
@@ -76,27 +65,22 @@ void TakoSho::init(const JMapInfoIter& rIter) {
 
     s32 arg = -1;
     MR::getJMapInfoArg1NoInit(rIter, &arg);
-    switch (arg) {
-    case 0:
+    if (arg == 0) {
         MR::calcSideVec(&mSideVec, this);
         mIsReverse = false;
         mIsRight = false;
-        break;
-    case 1:
+    } else if (arg == 1) {
         MR::calcSideVec(&mSideVec, this);
         mIsReverse = false;
         mIsRight = true;
-        break;
-    case 3:
+    } else if (arg == 3) {
         MR::calcFrontVec(&mSideVec, this);
         mIsReverse = true;
         mIsRight = true;
-        break;
-    default:
+    } else {
         MR::calcFrontVec(&mSideVec, this);
         mIsReverse = true;
         mIsRight = false;
-        break;
     }
 
     arg = -1;
@@ -118,17 +102,17 @@ void TakoSho::init(const JMapInfoIter& rIter) {
         MR::setSensorFollowMtx(this, "Body", getBaseMtx());
     }
 
-    mInkHolder = new TakoboInkHolder();
+    mInkHolder = new TakoboInkHolder(2);
     mScaleController = new AnimScaleController(nullptr);
     initNerve(&NrvTakoSho::TakoShoNrvWait::sInstance, 1);
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
     MR::initActorState(this, mBindStarPointer, &NrvTakoSho::TakoShoNrvSupportFreeze::sInstance, "SupportFreeze");
     mSpinHitController = new SpinHitController(this, 0x16, 0, 1.5f, 20.0f, 35.0f);
-    TVec3f zero(0.0f, 0.0f, 0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, "Center", zero);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, "Center", TVec3f(0.0f));
     MR::useStageSwitchSyncAppear(this, rIter);
 }
 
+// NONMATCHING: Vector temporary stack slots differ.
 void TakoSho::initAfterPlacement() {
     TVec3f up;
     MR::calcUpVec(&up, this);
@@ -164,6 +148,7 @@ void TakoSho::control() {
     mScaleController->updateNerve();
 }
 
+// NONMATCHING: Vector temporary stack slots differ.
 void TakoSho::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mScaleController);
     if (mConnector != nullptr) {
@@ -175,7 +160,7 @@ void TakoSho::calcAndSetBaseMtx() {
             MR::makeMtxUpFrontPos(&mtx, up, mFrontVec, mPosition);
             MR::setBaseTRMtx(this, mtx);
             MR::calcFrontVec(&mFrontVec, this);
-            TVec3f diff = mPosition - mGravity;
+            TVec3f diff = -up;
             mGravity.set(diff);
             return;
         }
@@ -192,7 +177,6 @@ void TakoSho::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mtx);
 }
 
-// NOTE: the exe/helper bodies below are first drafts from m2c; their fn_ names are listed in the report.
 
 void TakoSho::exeWait() {
     if (MR::isFirstStep(this)) {
@@ -219,6 +203,46 @@ void TakoSho::exeWait() {
     }
 }
 
+#pragma dont_inline on
+// NONMATCHING: Vector copy elision, stack slots and floating-point scheduling differ.
+void TakoSho::exeMove() {
+    if (MR::isFirstStep(this)) {
+        f32 sign = mIsRight ? 1.0f : -1.0f;
+        TVec3f target(mStartPos);
+        target -= (mSideVec * mSpeed) * sign;
+        mTargetPos = target;
+        TVec3f delta(mTargetPos);
+        delta -= mPosition;
+        mShotStep = static_cast<s32>(1.3f * static_cast<s32>(PSVECMag(&delta) / mMoveRange));
+    }
+    f32 gravitySpeed = MR::calcGravitySpeedAbs(this);
+    if (MR::isBindedGround(this)) {
+        gravitySpeed = 0.0f;
+    } else {
+        gravitySpeed -= 7.0f;
+    }
+    TVec3f dir(mTargetPos);
+    dir -= mPosition;
+    MR::vecKillElement(dir, mGravity, &dir);
+    MR::normalizeOrZero(&dir);
+    TVec3f gravity = mGravity * gravitySpeed;
+    TVec3f velocity(dir * (mMoveRange / 1.3f));
+    velocity -= gravity;
+    MR::setVelocity(this, velocity);
+    if (MR::isGreaterStep(this, mShotStep)) {
+        mIsRight = !mIsRight;
+        MR::zeroVelocity(this);
+        if (MR::calcDistanceToPlayer(this) < 750.0f) {
+            setNerve(&NrvTakoSho::TakoShoNrvAttackSign::sInstance);
+        } else {
+            setNerve(&NrvTakoSho::TakoShoNrvWaitAfter::sInstance);
+        }
+    } else {
+        fn_80208970(&mFrontVec, this, 2.865f);
+    }
+}
+#pragma dont_inline off
+
 void TakoSho::exeAttackSign() {
     if (MR::isFirstStep(this)) {
         MR::zeroVelocity(this);
@@ -233,11 +257,13 @@ void TakoSho::exeAttackSign() {
     }
 }
 
+// NONMATCHING: Vector temporary stack slots differ.
 void TakoSho::exeAttack1st() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack1st");
     }
-    if (MR::isStep(this, lbl_807E3078)) {
+    s32 shotStep = sShotStep;
+    if (MR::isStep(this, shotStep)) {
         TVec3f pos(mPosition);
         TVec3f up;
         MR::calcUpVec(&up, this);
@@ -252,7 +278,7 @@ void TakoSho::exeAttack1st() {
         mInkHolder->spurtTakoboInk(pos, dir);
     }
     updateFallVelocity();
-    if (MR::isGreaterStep(this, lbl_807E3078 + 20)) {
+    if (MR::isGreaterStep(this, shotStep + 20)) {
         fn_80208970(&mFrontVec, this, 4.8f);
     }
     if (MR::isGreaterStep(this, 35)) {
@@ -260,11 +286,12 @@ void TakoSho::exeAttack1st() {
     }
 }
 
+// NONMATCHING: Vector temporary stack slots differ.
 void TakoSho::exeAttack2nd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack2nd");
     }
-    if (MR::isStep(this, lbl_807E3078)) {
+    if (MR::isStep(this, sShotStep)) {
         TVec3f pos(mPosition);
         TVec3f up;
         MR::calcUpVec(&up, this);
@@ -367,7 +394,7 @@ bool TakoSho::tryStartSpinHit(u32 msg, HitSensor* pSensor2, HitSensor* pSensor3)
         MR::zeroVelocity(this);
         MR::fn_80034820(this);
         setNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance);
-        TVec3f pos3(*MR::getSensorPos(pSensor3));
+        const TVec3f& pos3 = *MR::getSensorPos(pSensor3);
         mSpinHitController->startWithoutStopScene(this, *MR::getSensorPos(pSensor2), pos3);
         ScoreAttackFunction::scoreByAttack(this, msg, 0);
         return true;
@@ -406,25 +433,37 @@ bool TakoSho::tryStartSupportFreeze() {
 }
 
 bool TakoSho::isYoshiEatEnable() const {
-    return !isNerve(&NrvTakoSho::TakoShoNrvStun::sInstance) && !isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance) &&
-           !isNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance);
+    if (!isNerve(&NrvTakoSho::TakoShoNrvPress::sInstance) && !isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance) &&
+           !isNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance)) {
+        return true;
+    }
+    return false;
 }
 
 bool TakoSho::isEnableStun() const {
-    return !isNerve(&NrvTakoSho::TakoShoNrvPress::sInstance) && !isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance) &&
-           !isNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance);
+    if (!isNerve(&NrvTakoSho::TakoShoNrvPress::sInstance) && !isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance) &&
+           !isNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance)) {
+        return true;
+    }
+    return false;
 }
 
 bool TakoSho::isEnableSupportFreeze() const {
-    return !isNerve(&NrvTakoSho::TakoShoNrvPress::sInstance) && !isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance) &&
+    if (!isNerve(&NrvTakoSho::TakoShoNrvPress::sInstance) && !isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance) &&
            !isNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance) &&
            (!isNerve(&NrvTakoSho::TakoShoNrvStun::sInstance) || !MR::isLessStep(this, 60)) &&
-           !isNerve(&NrvTakoSho::TakoShoNrvSupportFreeze::sInstance);
+           !isNerve(&NrvTakoSho::TakoShoNrvSupportFreeze::sInstance)) {
+        return true;
+    }
+    return false;
 }
 
 bool TakoSho::isDamaging() const {
-    return isNerve(&NrvTakoSho::TakoShoNrvPress::sInstance) || isNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance) ||
-           isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance);
+    if (isNerve(&NrvTakoSho::TakoShoNrvPress::sInstance) || isNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance) ||
+        isNerve(&NrvTakoSho::TakoShoNrvTongue::sInstance)) {
+        return true;
+    }
+    return false;
 }
 
 void TakoSho::startBrkDamage() {
@@ -448,6 +487,7 @@ void TakoSho::updateFallVelocity() {
     }
 }
 
+// NONMATCHING: Equivalent hip-drop-land early-return branch is folded.
 void TakoSho::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isDamaging()) {
         return;

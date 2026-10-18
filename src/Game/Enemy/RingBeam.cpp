@@ -1,4 +1,6 @@
 #include "Game/Enemy/RingBeam.hpp"
+#include "Game/LiveActor/ActorStateParamScale.hpp"
+#include <cstdio>
 #include "Game/Util.hpp"
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -17,12 +19,6 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
-
-void RingBeam_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    f32 f3 = MR::epsilon();
-}
 
 namespace NrvRingBeam {
     NEW_NERVE(RingBeamNrvSpread, RingBeam, Spread);
@@ -166,7 +162,9 @@ RingBeam::RingBeam(const char* pName, LiveActor* arg1, bool arg2, bool arg3, boo
     _9f = arg5;
     _a0 = nullptr;
     _a4 = nullptr;
-    _e4.set(0.0f, 0.0f, 2000.0f);
+    mColor = 0.0f;
+    mStartRadius = 0.0f;
+    mMaxRadius = 2000.0f;
 }
 
 void RingBeam::setSpeed(f32 speed) {
@@ -180,13 +178,12 @@ void RingBeam::setLife(s32 life) {
 void RingBeam::init(const JMapInfoIter& rIter) {
     TPos3f mtx;
     MR::initDefaultPos(this, rIter);
-    MR::initActor(this, rIter, "JumpBeamerBeam", false);
+    MR::initActor(this, rIter, mBeamName, false);
     MR::connectToSceneIndirectEnemy(this);
     initHitSensor(1);
     MR::addHitSensorEye(this, "Beam", 8, 0.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initEffectKeeper(1, nullptr, false);
-    initSound(2, "RingBeam", nullptr, TVec3f(0.0f));
-    // TODO mSoundObject
+    initSound(2, "RingBeam", &_cc, TVec3f(0.0f));
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(RingBeam, RingBeamNrvSpread));
 
@@ -196,23 +193,28 @@ void RingBeam::init(const JMapInfoIter& rIter) {
     mtx.getTrans(_c0);
     mtx.getTrans(_cc);
     if (_9d) {
-        _a4 = new ModelObj("影モデル", "JumpBeamerBeamShadow", nullptr, MR::DrawBufferType_IndirectEnemy, MR::MovementType_Enemy,
-                           MR::CalcAnimType_Enemy, false);
+        char name[256];
+        snprintf(name, sizeof(name), "%sShadow", mBeamName);
+        _a4 = new ModelObj("影モデル", name, nullptr, 29, 41, 8, false);
         _a4->initWithoutIter();
-        _a4->mPosition.set(this->mPosition);
-        _a4->mRotation.set(this->mRotation);
-        _a4->mScale.set(this->mScale);
+        MR::copyTransRotateScale(_a4, this);
     } else {
         _a0 = new RingBeamShadowDrawer(this);
     }
-    mBloomModel = MR::createModelObjBloomModel("リングビームブルーム", "JumpBeamerBeamBloom", getBaseMtx(), false);
-    MR::invalidateClipping(mBloomModel);
+    if (_9e) {
+        char name[256];
+        snprintf(name, sizeof(name), "%sBloom", mBeamName);
+        mBloomModel = MR::createModelObjBloomModel("リングビームブルーム", name, getBaseMtx(), true);
+        MR::invalidateClipping(mBloomModel);
+    }
+    mParamScale = new ActorStateParamScale(this);
     makeActorDead();
 }
 
 void RingBeam::appear() {
+    initPos(_8c);
     LiveActor::appear();
-    mBloomModel->appear();
+    if (mBloomModel) mBloomModel->appear();
 }
 
 
@@ -230,24 +232,39 @@ void RingBeam::startBrk(const char* pchar) {
     }
 }
 
+void RingBeam::fn_801F6990(const char* name) {
+    MR::startBckNoInterpole(this, name);
+    if (mBloomModel) MR::startBckNoInterpole(mBloomModel, name);
+}
+void RingBeam::fn_801F69E0(f32 frame) {
+    MR::setBckFrameAndStop(this, frame);
+    if (mBloomModel) MR::setBckFrameAndStop(mBloomModel, frame);
+}
+void RingBeam::fn_801F6A80(f32 color) {
+    if (_9f) {
+        MR::startBtp(this, "ColorChange");
+        MR::setBtpFrameAndStop(this, color);
+    }
+    if (mBloomModel) {
+        MR::startBpk(mBloomModel, "ColorChange");
+        MR::setBpkFrameAndStop(mBloomModel, color);
+    }
+}
 void RingBeam::setRadius(f32 radius) {
     TVec3f Ydir;
     TVec3f temp2;
     TVec3f temp6;
 
-    if (radius >= 2000.0f) {
-        radius = 2000.0f;
+    if (radius >= mMaxRadius) {
+        radius = mMaxRadius;
     }
     if (_a0) {
         _a0->_20 = radius;
     }
     MR::setSensorRadius(this, "Beam", radius);
-    char* str = "Spread";
-    MR::startBckNoInterpole(this, str);
-    MR::startBckNoInterpole(mBloomModel, str);
-    radius = (radius / 2000.0f) * MR::getBckFrameMax(this);
-    MR::setBckFrameAndStop(this, radius);
-    MR::setBckFrameAndStop(mBloomModel, radius);
+    fn_801F6990("Spread");
+    fn_801F69E0((radius / mMaxRadius) * MR::getBckFrameMax(this));
+    fn_801F6A80(mColor);
     if (_a4) {
         Triangle triangle;
         MR::extractMtxYDir(_8c->getBaseMtx(), &Ydir);
@@ -257,11 +274,11 @@ void RingBeam::setRadius(f32 radius) {
 
         temp2 -= _b4 * 10.0f;
         MR::calcPerpendicFootToLine(&temp6, temp2, _8c->mPosition + Ydir, _8c->mPosition - Ydir);
-        _a4->mPosition.set(temp6);
-        MR::startBckNoInterpole(_a4, str);
+        MR::setPosition(_a4, temp6);
+        MR::startBckNoInterpole(_a4, "Spread");
         f32 length = (temp2 - temp6).length();
-        if (0.0f <= length && length < 2000.0f) {
-            MR::setBckFrameAndStop(_a4, (length / 2000.0f) * MR::getBckFrameMax(_a4));
+        if (0.0f <= length && length < mMaxRadius) {
+            MR::setBckFrameAndStop(_a4, (length / mMaxRadius) * MR::getBckFrameMax(_a4));
         }
     }
 }
@@ -278,8 +295,9 @@ void RingBeam::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     TRot3f mtx;
     TVec3f temp;
     TVec3f temp2;
-    TVec3f sensordiff = pReceiver->mPosition;
-    sensordiff -= pSender->mPosition;
+    const TVec3f* senderPos = MR::getSensorPos(pSender);
+    TVec3f sensordiff(*MR::getSensorPos(pReceiver));
+    sensordiff -= *senderPos;
     MR::makeMtxTR((MtxPtr)&mtx, this);
     // this is 100% certainly an inline
     f32 x = mtx.mMtx[0][1];
@@ -287,12 +305,12 @@ void RingBeam::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     f32 z = mtx.mMtx[2][1];
     temp.set< f32 >(x, y, z);
     MR::vecKillElement(sensordiff, temp, &temp2);
-    temp2.setLength(pSender->mRadius);
+    temp2.setLength(MR::getSensorRadius(pSender));
 
     TVec3f temp3 = temp2;
     temp3 -= sensordiff;
     f32 length = temp3.length();
-    f32 receiverRadius = pReceiver->mRadius;
+    f32 receiverRadius = MR::getSensorRadius(pReceiver);
 
     if (!(length > 5.0f + receiverRadius) && MR::isSensorPlayerOrRide(pReceiver)) {
         MR::sendMsgEnemyAttackElectric(pReceiver, pSender);
@@ -303,16 +321,17 @@ bool RingBeam::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return false;
 }
 
+// NONMATCHING: A temporary scalar uses f31 instead of f30.
 void RingBeam::exeSpread() {
     TPos3f mtx;
 
-    if (MR::isFirstStep(this)) {
+    if (mParamScale->isFirstStep()) {
         if (!MR::isPowerStarGetDemoActive()) {
             MR::startActionSound(this, "EmJumpringAppear");
         }
         char* str = "Spread";
-        MR::startBckNoInterpole(this, str);
-        MR::startBckNoInterpole(mBloomModel, str);
+        fn_801F6990(str);
+        fn_801F6A80(mColor);
         startBrk("Erase");
         MR::setBrkFrameAndStop(this, 0.0f);
         if (_a4) {
@@ -323,6 +342,7 @@ void RingBeam::exeSpread() {
         MR::extractMtxYDir(_8c->getBaseMtx(), &temp);
         _c0.set(_8c->mPosition + temp * 75.0f);
         MR::calcGravityVector(this, _c0, &_b4, nullptr, 0);
+        _c0 += _a8 * mStartRadius;
     }
 
     TVec3f ec;
@@ -338,7 +358,8 @@ void RingBeam::exeSpread() {
         ec = mPosition;
     }
 
-    _c0 += _a8 * mSpeed;
+    f32 rate = mParamScale->getSpeed();
+    _c0 += (_a8 * mSpeed) * rate;
     setRadius((_c0 - ec).length());
 
     if (!MR::isPowerStarGetDemoActive()) {
@@ -359,10 +380,38 @@ void RingBeam::exeSpread() {
         }
         MR::startActionSound(this, "EmLvRingbeamMove");
     }
-    if (MR::isStep(this, mLife - (s32)MR::getBrkFrameMax(this))) {
+    if (mParamScale->isStep(mLife - (s32)MR::getBrkFrameMax(this))) {
         startBrk("Erase");
     }
-    if (MR::isGreaterEqualStep(this, mLife)) {
+    if (mParamScale->isGreaterEqualStep(mLife)) {
         kill();
+    }
+}
+
+void RingBeam::setColor(f32 color) { mColor = color; }
+void RingBeam::initWithParamScale(const JMapInfoIter& iter, const ActorStateParamScale* param) {
+    init(iter);
+    mParamScale->init(param);
+}
+void RingBeam::movement() {
+    mParamScale->update();
+    LiveActor::movement();
+    mParamScale->resetHostVelocity();
+}
+void RingBeam::control() { mParamScale->calcHostVelocity(); }
+void RingBeam::makeActorDead() {
+    LiveActor::makeActorDead();
+    if (mBloomModel) mBloomModel->makeActorDead();
+}
+void RingBeam::fn_801F6DB0(f32 radius) { mStartRadius = radius; }
+// NONMATCHING: Remaining FP register allocation and store scheduling differ.
+void RingBeam::fn_801F6DC0(f64 radius) {
+    f32 scale = (f32)radius / 2000.0f;
+    mMaxRadius = radius;
+    mScale.x *= scale;
+    mScale.z *= scale;
+    if (mBloomModel) {
+        mBloomModel->mScale.x *= scale;
+        mBloomModel->mScale.z *= mMaxRadius / 2000.0f;
     }
 }

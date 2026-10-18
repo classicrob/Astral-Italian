@@ -1,4 +1,6 @@
 #include "Game/Enemy/Pukupuku.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -24,27 +26,6 @@
 #include "Game/Util/ValueControl.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
-void Pukupuku_FORCE_MATCH_SDATA2() {
-    (void)300.0f;
-    (void)15.0f;
-    (void)500.0f;
-    (void)0.15f;
-    (void)0.01f;
-    (void)1.5f;
-    (void)100.0f;
-    (void)60.0f;
-    (void)70.0f;
-    (void)50.0f;
-    (void)10.0f;
-    (void)40.0f;
-    (void)0.08f;
-    (void)0.89f;
-    (void)35.0f;
-    (void)20.0f;
-    (void)5.0f;
-    (void)0.6f;
-}
-
 namespace NrvPukupukuStateLanding {
     NEW_NERVE(PukupukuStateLandingNrvLandingMoveLand, PukupukuStateLanding, LandingMoveLand);
     NEW_NERVE(PukupukuStateLandingNrvLandingJumpFromWater, PukupukuStateLanding, LandingJumpFromWater);
@@ -59,8 +40,8 @@ namespace NrvPukupuku {
     NEW_NERVE(PukupukuNrvLanding, Pukupuku, Landing);
     NEW_NERVE(PukupukuNrvTrampled, Pukupuku, Trampled);
     NEW_NERVE(PukupukuNrvBlownOff, Pukupuku, BlownOff);
-    NEW_NERVE(PukupukuNrvBindStarPointer, Pukupuku, BindStarPointer);
     NEW_NERVE(PukupukuNrvEaten, Pukupuku, Eaten);
+    NEW_NERVE(PukupukuNrvBindStarPointer, Pukupuku, BindStarPointer);
 };  // namespace NrvPukupuku
 
 namespace {
@@ -251,7 +232,7 @@ void PukupukuStateLanding::emitGroundHitEffect() {
     MR::startActionSound(mHost, "EmPukupukuLand");
 }
 
-Pukupuku::Pukupuku(const char* pName) : LiveActor(pName), mStateLanding(), mScaleCtrl(), mStarPointer(), _C0(), _C4(), _C8(), _CC(), _D3() {
+Pukupuku::Pukupuku(const char* pName) : LiveActor(pName), mStateLanding(), mScaleCtrl(), mStarPointer(), mYoshiLockOn(), _C0(), _C4(), _C8(), _CC() {
     _90.zero();
     _9C.zero();
     _A8.set< f32 >(0.0f, 0.0f, 0.0f, 1.0f);
@@ -276,11 +257,11 @@ void Pukupuku::init(const JMapInfoIter& rIter) {
 }
 
 bool Pukupuku::isEatable() const {
-    if (isNerve(GET_NERVE(Pukupuku, PukupukuNrvTrampled)) || isNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff))) {
+    if (isNerve(GET_NERVE(Pukupuku, PukupukuNrvTrampled)) || isNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff)) || isNerve(GET_NERVE(Pukupuku, PukupukuNrvEaten))) {
         return false;
     }
 
-    return !isNerve(GET_NERVE(Pukupuku, PukupukuNrvEaten));
+    return true;
 }
 
 void Pukupuku::kill() {
@@ -380,6 +361,7 @@ void Pukupuku::exeMoveWaterAfterJump() {
 
 void Pukupuku::exeLanding() {
     if (!tryBindStarPointer()) {
+        fn_801F1380();
         mStateLanding->update();
         if (mStateLanding->mIsDead) {
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvMoveWaterAfterJump));
@@ -402,6 +384,7 @@ void Pukupuku::exeTrampled() {
     }
 
     if (MR::isStep(this, 30)) {
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -425,6 +408,7 @@ void Pukupuku::exeBlownOff() {
 
     MR::stopSceneAtStep(this, 2, 4);
     if (MR::isStep(this, 15)) {
+        MR::emitItemHit(this);
         kill();
     }
 }
@@ -528,9 +512,9 @@ void Pukupuku::control() {
     }
 
     if (isNerve(GET_NERVE(Pukupuku, PukupukuNrvBindStarPointer))) {
-        MR::setSensorRadius(this, "body", 100.0f);
+        MR::setSensorRadius(this, "Body", 100.0f);
     } else {
-        MR::setSensorRadius(this, "body", 60.0f);
+        MR::setSensorRadius(this, "Body", 60.0f);
     }
 }
 
@@ -550,7 +534,7 @@ void Pukupuku::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     } else if (isNerve(GET_NERVE(Pukupuku, PukupukuNrvBindStarPointer)) && MR::isSensorType(pReceiver, 0x27 /* ATYPE_PUKUPUKU */) &&
                MR::sendMsgEnemyAttack(pReceiver, pSender)) {
         f32 rate = getBlownOffSpeedRate();
-        MR::setVelocityBlowAttack(this, pReceiver, pSender, 35.0f * rate, 20.0f * rate, 4);
+        MR::fn_80012B90(this, 35.0f * rate, 20.0f * rate, pReceiver, pSender, 4);
         setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
     } else if (MR::isSensorYoshi(pReceiver)) {
         MR::sendMsgPush(pReceiver, pSender);
@@ -600,7 +584,7 @@ bool Pukupuku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
         if (MR::isMsgPlayerHitAll(msg) || MR::isMsgYoshiProjectile(msg)) {
             f32 rate = getBlownOffSpeedRate();
-            MR::setVelocityBlowAttack(this, pSender, pReceiver, 35.0f * rate, 20.0f * rate, 4);
+            MR::fn_80012B90(this, 35.0f * rate, 20.0f * rate, pSender, pReceiver, 4);
             ScoreAttackFunction::scoreByAttack(this, msg, false);
             setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
             return true;
@@ -613,11 +597,34 @@ bool Pukupuku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 bool Pukupuku::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (!isDamaged() && MR::isSensorType(pSender, 0x27 /* ATYPE_PUKUPUKU */)) {
         f32 rate = getBlownOffSpeedRate();
-        MR::setVelocityBlowAttack(this, pSender, pReceiver, 35.0f * rate, 20.0f * rate, 4);
+        MR::fn_80012B90(this, 35.0f * rate, 20.0f * rate, pSender, pReceiver, 4);
         setNerve(GET_NERVE(Pukupuku, PukupukuNrvBlownOff));
         return true;
     }
 
+    return false;
+}
+
+bool Pukupuku::fn_801F1380() {
+    if (!MR::isBinded(this)) {
+        return false;
+    }
+    if (MR::isBindedGround(this)) {
+        return fn_801F1440(MR::getGroundSensor(this));
+    }
+    if (MR::isBindedWall(this)) {
+        return fn_801F1440(MR::getWallSensor(this));
+    }
+    if (MR::isBindedRoof(this)) {
+        return fn_801F1440(MR::getRoofSensor(this));
+    }
+    return false;
+}
+
+bool Pukupuku::fn_801F1440(HitSensor* sensor) {
+    if (MR::isSensorType(sensor, 64)) {
+        return MR::sendMsgEnemyAttackExplosion(sensor, getSensor("Body"));
+    }
     return false;
 }
 

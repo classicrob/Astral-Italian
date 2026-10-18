@@ -16,24 +16,20 @@ public:
     void removeAllClingingKarikari();
     void blowOutAllClingingKarikari(const TVec3f&);
     void electricKillAllClingingKarikari();
-    void clearScratchInfo();
     bool requestRelease(Karikari*, TVec2f, f32);
     bool registCling(Karikari*);
     bool unregistCling(Karikari*);
+    bool fn_801B0DB0(Karikari*);
 
     inline MtxPtr getClingMtx(int idx) const {
         return (MtxPtr)&mClingJointMtxs[idx];
     }
 
-    /* 0x18 */ s32 mClingNum;
-    /* 0x1C */ TPos3f* mClingJointMtxs;  // array
-    /* 0x20 */ FixedPosition** mClingPositions;
-    /* 0x24 */ Karikari** mClingingKarikari;
-    /* 0x28 */ Karikari* mReleaseKarikari;
-    /* 0x2C */ TVec2f mReleaseVel;
-    /* 0x34 */ f32 mLowestReleaseDist;
-    /* 0x38 */ s32 mNoReleaseTime;
-    /* 0x3C */ s32 mRumbleTime;
+    /* 0x20 */ s32 mClingNum;
+    /* 0x24 */ TPos3f* mClingJointMtxs;  // array
+    /* 0x28 */ FixedPosition** mClingPositions;
+    /* 0x2C */ Karikari** mClingingKarikari;
+    /* 0x30 */ s32 mRumbleTime;
 };
 
 struct ClingData {

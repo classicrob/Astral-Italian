@@ -1,3 +1,4 @@
+#pragma auto_inline off
 #include "Game/MapObj/ClipAreaDropHolder.hpp"
 #include "Game/LiveActor/ActorPoseTQ.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
@@ -7,15 +8,13 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/MapObj/ClipAreaHolder.hpp"
 #include "Game/LiveActor/ActorParam.hpp"
-
-// Unnamed SMG2 helpers used by this unit (declared here, defined in their own units).
 
 namespace NrvBakuBaku {
     NEW_NERVE(BakuBakuNrvMove, BakuBaku, Move);
     NEW_NERVE(BakuBakuNrvTurn, BakuBaku, Turn);
 
-    // Nerve Freeze: hands control to the star-pointer state, then goes to Move.
     class BakuBakuNrvFreeze : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const;
@@ -28,50 +27,43 @@ namespace NrvBakuBaku {
 
 #define GET_BAKUBAKU_NERVE(name) (&NrvBakuBaku::name::sInstance)
 
-
-// Static helpers of this unit (SMG2 fn_ names).
-static void fn_80155D10(BakuBaku* pActor);
-static void fn_80155DC0(BakuBaku* pActor);
-static void fn_80155E60(BakuBaku* pActor);
-
 BakuBaku::BakuBaku(const char* pName) : LiveActor(pName) {
-    mPose = nullptr;
+    mPose = new ActorPoseTQ();
     mAnimScaleCtrl = nullptr;
     mStarPointBind = nullptr;
-    _9C.x = 0.0f;
-    _9C.y = 0.0f;
-    _9C.z = 0.0f;
+    _9C.set(0.0f, 0.0f, 0.0f);
     mMoveLimit = 5.0f;
-    mPose = new ActorPoseTQ();
+    MR::createClipAreaDropHolder();
 }
 
 void BakuBaku::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "BakuBaku", false);
     MR::initActorPoseTQ(mPose, this);
     initNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove), 1);
     mAnimScaleCtrl = new AnimScaleController(nullptr);
     mStarPointBind = new WalkerStateBindStarPointer(this, mAnimScaleCtrl);
-    if (MR::isExistRail(this)) {
-        MR::offBind(this);
-        MR::moveCoordAndTransToNearestRailPos(this);
-    }
-    s32 arg = 0;
-    if (MR::getRailArg0NoInit(this, &arg)) {
-        mMoveLimit = (f32)arg;
-    }
     MR::initActorState(this, mStarPointBind, GET_BAKUBAKU_NERVE(BakuBakuNrvFreeze), "SupportFreeze");
+    if (MR::isExistRail(this)) {
+        MR::moveCoordAndTransToNearestRailPos(this);
+        MR::offBind(this);
+        s32 arg;
+        if (MR::getRailArg0NoInit(this, &arg)) mMoveLimit = arg;
+    }
     MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void BakuBaku::initAfterPlacement() {
+    MR::trySetMoveLimitCollision(this);
 }
 
 void BakuBaku::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isSensorRide(pSender)) {
-        if (MR::isSensorPlayerOrYoshi(pReceiver)) {
-            setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvAttackSuccess));
-            return;
-        }
+    if (MR::isSensorRide(pReceiver) && fn_80155F00() && MR::sendMsgToEnemyAttackRoll(pReceiver, pSender)) return;
+    if (MR::isSensorPlayerOrYoshi(pReceiver) && MR::isOnGroundPlayer() && fn_80155F00() &&
+    MR::sendMsgEnemyAttackStrongOrPush(pReceiver, pSender)) {
+        setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvAttackSuccess));
+        return;
     }
+    MR::sendMsgPush(pReceiver, pSender);
 }
 
 bool BakuBaku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -84,6 +76,7 @@ bool BakuBaku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     }
 
     if (MR::isMsgPlayerHipDrop(msg) && isAttackable()) {
+        MR::sendMsgAwayJump(pSender, pReceiver);
         return true;
     }
 
@@ -91,9 +84,10 @@ bool BakuBaku::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 }
 
 bool BakuBaku::isAttackable() const {
-    if (isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove))) {
-        MR::zeroVelocity(const_cast<BakuBaku*>(this));
+    if (isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove)) ||
+    (isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn)) && MR::isGreaterStep(this, 20))) {
         const_cast<BakuBaku*>(this)->setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn));
+        MR::zeroVelocity(const_cast<BakuBaku*>(this));
         return true;
     }
     return false;
@@ -101,40 +95,36 @@ bool BakuBaku::isAttackable() const {
 
 void BakuBaku::control() {
     mAnimScaleCtrl->updateNerve();
-    MR::fn_80010600(mPose, this, 0.05f, 140.0f);
+    MR::fn_80010600(mPose, this, 0.05f, 0.5f);
     if (this->fn_80155F60() && mStarPointBind->tryStartPointBind()) {
         setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvFreeze));
     }
 }
 
 void BakuBaku::calcAndSetBaseMtx() {
+    MR::setBaseTRMtx(this, mPose);
     MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 
 void BakuBaku::exeTurn() {
     if (MR::isFirstStep(this)) {
-        bool exist = MR::isExistRail(this);
         MR::startAction(this, "Turn");
-        if (exist) {
-            MR::reverseRailDirection(this);
-        }
+        if (MR::isExistRail(this)) MR::reverseRailDirection(this);
+        mPose->mFront.negate();
+        ActorPoseTQ* pose = mPose;
+        TVec3f up = -mGravity;
+        MR::makeQuatUpFront(pose, up, mPose->mFront);
     }
-
-    if (MR::isActionEnd(this)) {
-        setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove));
-    }
+    MR::zeroVelocity(this);
+    if (MR::isActionEnd(this)) setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove));
 }
 
 void BakuBaku::exeMove() {
-    if (MR::isExistRail(this)) {
-        fn_80155DC0(this);
-    } else {
-        fn_80155E60(this);
-    }
-
-    if (MR::isActionEnd(this)) {
-        setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn));
-    }
+    if (MR::isExistRail(this)) fn_80155DC0();
+    else fn_80155E60();
+    f32 scale = mScale.x;
+    if (PSVECDistance(&mPosition, &_9C) > 140.0f * scale &&
+    MR::fn_802861E0(mPosition, 120.0f * scale, 5, 250, 300)) _9C.set(mPosition);
 }
 
 void BakuBaku::exeSuccess() {
@@ -142,55 +132,59 @@ void BakuBaku::exeSuccess() {
         MR::startAction(this, "AttackSuccess");
     }
 
+    MR::zeroVelocity(this);
     if (MR::isActionEnd(this)) {
         setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove));
     }
 }
 
-BakuBaku::~BakuBaku() {
-}
-
-// NONMATCHING: sound-check helper approximated from the draft.
-static void fn_80155D10(BakuBaku* pActor) {
-    if (MR::checkPassBckFrame(pActor, 14.0f) || MR::checkPassBckFrame(pActor, 27.0f)) {
-        MR::startActionSound(pActor, "Bite", -1, -1, -1);
+// NONMATCHING: compiler reloads the 120.0f clip radius after calcPositionFrontOffset; target retains it in f1.
+void BakuBaku::fn_80155D10() {
+    if (MR::checkPassBckFrame(this, 14.0f) || MR::checkPassBckFrame(this, 27.0f)) {
+        TVec3f pos;
+        MR::calcPositionFrontOffset(&pos, this, 120.0f);
+        if (MR::isInClipArea(pos)) {
+            MR::startActionSound(this, "Bite", -1, -1, -1);
+            return;
+        }
+        MR::startActionSound(this, "Eat", -1, -1, -1);
     }
 }
 
-// NONMATCHING: rail-move helper approximated from the draft.
-static void fn_80155DC0(BakuBaku* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::fn_80008890(pActor, "Move");
+void BakuBaku::fn_80155DC0() {
+    if (MR::isFirstStep(this)) {
+        MR::fn_80008890(this, "Move");
     }
-    fn_80155D10(pActor);
-    MR::moveCoordAndFollowTrans(pActor, pActor->mMoveLimit);
-    if (MR::isRailReachedGoal(pActor)) {
-        MR::reverseRailDirection(pActor);
-    }
-}
-
-// NONMATCHING: non-rail move helper approximated from the draft.
-static void fn_80155E60(BakuBaku* pActor) {
-    if (MR::isFirstStep(pActor)) {
-        MR::fn_80008890(pActor, "Move");
-    }
-    fn_80155D10(pActor);
-    {
-        TVec3f dir(pActor->_9C);
-        MR::turnDirectionToPlayerDegree(pActor, &dir, 1.0f);
-    }
-    if (!MR::isBindedGround(pActor)) {
-        MR::addVelocityToGravity(pActor, 1.0f);
+    fn_80155D10();
+    MR::moveCoordAndFollowTrans(this, mMoveLimit);
+    TVec3f* front = &mPose->mFront;
+    front->set(MR::getRailDirection(this));
+    if (MR::isRailReachedGoal(this)) {
+        MR::reverseRailDirection(this);
     }
 }
 
-// NONMATCHING: Move/Turn check approximated from the draft.
+void BakuBaku::fn_80155E60() {
+    if (MR::isFirstStep(this)) MR::fn_80008890(this, "Move");
+    fn_80155D10();
+    MR::turnDirectionToPlayerDegree(this, &mPose->mFront, 1.0f);
+    MR::addVelocityMoveToDirection(this, mPose->mFront, 0.6f);
+    if (!MR::isBindedGround(this)) MR::addVelocityToGravity(this, 1.0f);
+    MR::attenuateVelocity(this, 0.9f);
+}
+
 bool BakuBaku::fn_80155F00() {
-    return this->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove)) || this->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn));
+    if (isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove)) || isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn))) return true;
+    return false;
 }
 
 bool BakuBaku::fn_80155F60() {
-    return this->fn_80155F00() || this->isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvAttackSuccess));
+    if (isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvMove)) || isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvTurn)) ||
+    isNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvAttackSuccess))) return true;
+    return false;
+}
+
+BakuBaku::~BakuBaku() {
 }
 
 void NrvBakuBaku::BakuBakuNrvFreeze::execute(Spine* pSpine) const {

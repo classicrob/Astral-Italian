@@ -1,15 +1,4 @@
 #include "Game/Enemy/AttackRock.hpp"
-f32 fn_801510C0();
-bool fn_801510D0(LiveActor* pActor);
-bool fn_801517C0(LiveActor* pActor, s32 arg);
-bool fn_80152700(LiveActor* pActor);
-void fn_801552A0(LiveActor* pActor);
-f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat);
-void fn_80155360(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
-void fn_801553D0(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
-void fn_801554D0(TPos3f* pMtx, LiveActor* pActor);
-void fn_80155540(ProjmapEffectMtxSetter* pSetter, TQuat4f* pQuat, TVec3f* pPos);
-ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Util.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -21,30 +10,8 @@ ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Util/FixedPosition.hpp"
 #include "Game/Boss/KoopaFinalBattlePos.hpp"
 
-class BaseMatrixFollowValidater;
-class KoopaBattleAccessor {
-public:
-    void addAttackRockFinal(AttackRockFinal*);
-};
-
-namespace MR {
-    bool isMsgKoopaCastAttackRockStart(u32);
-    bool isMsgKoopaCastAttackRockEnd(u32);
-    bool isMsgKoopaPunchAttack(u32);
-    bool isMsgKoopaReleaseAttackRock(u32);
-    bool isMsgKoopaFinalBattleStart(u32);
-    bool isMsgAutoRushBegin(u32);
-    bool isMsgUpdateBaseMtx(u32);
-    bool isMsgRushCancel(u32);
-    bool isMsgFloorTouch(u32);
-    f32 calcNerveEaseOutValue(const NerveExecutor*, s32, s32, f32, f32);
-    void createKoopaBattleAccessor();
-    KoopaBattleAccessor* getKoopaBattleAccessor();
-};  // namespace MR
-
-// Unnamed SMG2 helpers outside this unit (Koopa battle functions).
-
-// Unit-local helpers (unnamed in the target).
+#include "Game/Boss/KoopaBattleAccessor.hpp"
+#include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
 
 namespace NrvAttackRockFinal {
     class AttackRockFinalNrvWait : public Nerve {
@@ -82,7 +49,7 @@ namespace NrvAttackRockFinal {
 
 AttackRockFinal::AttackRockFinal(const char* pName)
     : LiveActor(pName), mProjmapEffectMtxSetter(nullptr), mBreakModel(nullptr), mRide(nullptr), mStartPos(0.0f, 0.0f, 0.0f),
-      mAxisF8(1.0f, 0.0f, 0.0f), mAxis104(0.0f, 1.0f, 0.0f), mWaitStep(0), mIsOnPlayer(false) {
+      mAxisF8(1.0f, 0.0f, 0.0f), mAxis104(0.0f, -1.0f, 0.0f), mWaitStep(0), mIsOnPlayer(false) {
     mQuatDC.set(0.0f, 0.0f, 0.0f, 1.0f);
     mQuatCC.set(0.0f, 0.0f, 0.0f, 1.0f);
     mMtx9C.identity();
@@ -109,10 +76,10 @@ void AttackRockFinal::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(mBreakModel);
     MR::declareCoin(this, 16);
     MR::getJMapInfoArg0NoInit(rIter, &mWaitStep);
-    mRide = new AttackRockRide;
-    mRide->fn_801528E0(this);
-    BaseMatrixFollowValidater* pValidater = nullptr;
+    mRide = new AttackRockRide(this);
+    BaseMatrixFollowValidater* pValidater = MR::createBaseMatrixFollowValidateDelegator(this, &AttackRockFinal::fn_80152700);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, pValidater);
+    MR::addKoopaBattleReceiverSensor(getSensor("Body"));
     initNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance, 0);
     makeActorDead();
 }
@@ -123,10 +90,11 @@ void AttackRockFinal::makeActorDead() {
     mIsOnPlayer = false;
 }
 
-// NONMATCHING: vector ops: target expands ps_sub inline, operator-/operator* inline decisions differ (separate TU).
+// NONMATCHING: Vector temporary stack slots and GPR allocation differ.
 void AttackRockFinal::control() {
     TVec3f dir;
-    TVec3f toPlayer = dir - mPosition;
+    MR::getKoopaBattleTargetPos(&dir);
+    TVec3f toPlayer = mPosition - dir;
     MR::normalizeOrZero(&dir, toPlayer);
     MR::turnQuatZDirRate(&mQuatCC, mQuatCC, dir, 0.3f);
     TVec3f zdir;
@@ -174,14 +142,13 @@ bool AttackRockFinal::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pR
     if (MR::isMsgKoopaPunchAttack(msg) && MR::isEqualSensor(pReceiver, this, "Body") &&
         isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFloat::sInstance)) {
         MR::appearCoinPop(this, mPosition, 1);
-        setNerve(&NrvAttackRockFinal::AttackRockFinalNrvBound::sInstance);
+        setNerve(&NrvAttackRockFinal::AttackRockFinalNrvBreak::sInstance);
         MR::startBrk(mBreakModel, "Outer");
         return false;
     }
     return false;
 }
 
-// NONMATCHING: operator*/add inline decisions differ (target was a separate TU).
 void AttackRockFinal::fn_801521F0(f32 a, f32 b) {
     this->mPosition.set(this->mStartPos);
     TVec3f va = this->mAxisF8 * a;
@@ -247,6 +214,7 @@ void AttackRockFinal::fn_801524F0() {
     }
     fn_801554D0(&this->mMtx9C, this);
     if (MR::isBinded(this)) {
+        MR::sendMsgToBindedAttackRockReflect(this, getSensor("Body"));
     }
     if (MR::reboundVelocityFromCollision(this, 0.8f, 0.0f, 1.0f)) {
         MR::emitEffectHit(this, MR::getBindedHitPos(this), MR::getBindedFixReactionVector(this), "GroundHit");
@@ -262,23 +230,24 @@ void AttackRockFinal::fn_80152620() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Break");
         MR::startActionSound(this, "FinalBreak", -1, -1, -1);
+        this->mBreakModel->appear();
         MR::startBrk(this->mBreakModel, "Inner");
         MR::hideModelAndOnCalcAnim(this);
         MR::invalidateCollisionParts(this);
         MR::invalidateHitSensors(this);
         MR::zeroVelocity(this);
         MR::offBind(this);
-        this->mBreakModel->appear();
         this->mRide->fn_80152F20();
     }
     if (MR::isDead(this->mBreakModel)) {
-        this->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance);
+        this->setNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance);
     }
 }
 
-bool fn_80152700(LiveActor* pActor) {
-    if (pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvWait::sInstance) ||
-        pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance)) {
+bool AttackRockFinal::fn_80152700(s32) const {
+    const AttackRockFinal* pActor = this;
+    if (pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFall::sInstance) ||
+        pActor->isNerve(&NrvAttackRockFinal::AttackRockFinalNrvFloat::sInstance)) {
         return true;
     }
     return false;

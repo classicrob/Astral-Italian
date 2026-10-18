@@ -32,38 +32,39 @@ public:
     void exeWalkMove();
     void exeSearch();
     void exeFind();
-    void exeAttackStart();
-    void exeThrow();
-    void exeAway();
+    void exeChase();
+    void exeFlee();
     void exeSwoon();
+    void exeGet();
     void exeDead();
     void exeHide();
     void exeHidden();
     void exeAttackSuccess();
+    void exeSupportFreeze();
 
-    bool isEatenNerve() const;
-    bool isLockOnNerve() const;
-    bool isActiveNerve() const;
-    bool isWalkNerve() const;
-    bool isBindedNerve() const;
     bool recvEyeAttack(HitSensor*, HitSensor*);
     bool recvItemGet(HitSensor*, HitSensor*);
     bool recvBodyNerve(HitSensor*, HitSensor*);
     bool recvAttackSensor(HitSensor*, HitSensor*);
     bool recvPushDefault(HitSensor*, HitSensor*);
-    void recvLostTarget();
-    void recvStarPieceEnd();
-    void updateUpVec();
-    void moveToTarget(const TVec3f&, f32, f32, f32, f32, f32);
+    bool isBindedNerve() const;  // fn_801D1850
+    bool isEatenNerve() const;   // fn_801D1910
+    bool isLockOnNerve() const;  // fn_801D19B0
+    bool isActiveNerve() const;  // fn_801D1A50
+    bool isWalkNerve() const;    // fn_801D1B20
+    void recvLostTarget();       // fn_801D1B90
+    void recvStarPieceEnd();     // fn_801D1C20
+    void moveToTarget(const TVec3f&, f32, f32, f32, f32, f32);  // fn_801D2840
+    void updateUpVec();                                           // fn_801D2C30
 
     /* 0x90 */ TQuat4f mRotate;
     /* 0xA0 */ TQuat4f mRotateTarget;
-    /* 0xB0 */ s32 mIsHolding;
+    /* 0xB0 */ HitSensor* mHoldSensor;
     /* 0xB4 */ HitSensor* mTargetSensor;
     /* 0xB8 */ ParabolicPath* mPath;
     /* 0xBC */ AnimScaleController* mAnimScaleCtrl;
     /* 0xC0 */ WalkerStateBindStarPointer* mBindStar;
-    /* 0xC4 */ TVec3f mGroundPos;
+    /* 0xC4 */ TVec3f mMoveDir;
     /* 0xD0 */ TVec3f mFront;
     /* 0xDC */ TVec3f mResetPos;
     /* 0xE8 */ s32 mUpCounter;

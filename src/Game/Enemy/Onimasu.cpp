@@ -359,7 +359,7 @@ namespace OnimasuFunction {
         gravity.setLength(2000.0f);
 
         Triangle triangle;
-        if (!MR::getFirstPolyOnLineToMapExceptSensor(pPosition, &triangle, railPosition, gravity, pActor->getSensor("body"))) {
+        if (!MR::getFirstPolyOnLineToMapExceptSensor(pPosition, &triangle, railPosition, gravity, pActor->getSensor("Body"))) {
             return false;
         }
 

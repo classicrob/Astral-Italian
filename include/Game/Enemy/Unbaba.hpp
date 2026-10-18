@@ -5,15 +5,7 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include "Game/Util/Color.hpp"
 
-class VolumeDrawer {
-public:
-    void setHost(const LiveActor*);
-    void setColor(const Color8&);
-    void setDrawPasses(s32);
-    void setScale(const TVec3f&);
-    void setScaleUpRate(s32);
-    void setScaleDownRate(s32);
-};
+#include "Game/LiveActor/VolumeDrawer.hpp"
 
 class Unbaba : public LiveActor {
 public:
@@ -57,3 +49,5 @@ public:
 
 // unnamed by address (fn_80215DA0): pure easing helper, no object argument.
 f32 fn_80215DA0(f32, f32, f32, f32, f32, f32, f32);
+
+f32 fn_80215D50(f32, f32, f32, f32, f32, f32, f32);

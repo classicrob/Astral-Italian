@@ -57,7 +57,7 @@ void SamboHead::init(const JMapInfoIter& rIter) {
 
     mSpinCtrl = new SpinHitController(this);
 
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
     MR::useStageSwitchReadA(this, rIter);
     MR::useStageSwitchAwake(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
@@ -81,7 +81,7 @@ void SamboHead::kill() {
 void SamboHead::control() {
     mScaleController->updateNerve();
 
-    if (!isNerveTypeDead() && MR::isPressedBetweenWalls(this)) {
+    if (isNerveTypeDead() && MR::isPressedBetweenWalls(this)) {
         MR::emitItemHit(this);
         kill();
         return;
@@ -125,7 +125,7 @@ void SamboHead::exeWaitUnderGround() {
         MR::startAction(this, "AppearMini");
         MR::setPosition(this, _A4);
         MR::invalidateShadow(this, nullptr);
-        MR::invalidateHitSensor(this, "body");
+        MR::invalidateHitSensor(this, "Body");
     }
 
     if (!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) {
@@ -134,7 +134,7 @@ void SamboHead::exeWaitUnderGround() {
 
         if (MR::isGreaterStep(this, 120)) {
             if (dist < 800.0f) {
-                MR::validateHitSensor(this, "body");
+                MR::validateHitSensor(this, "Body");
                 setNerve(GET_NERVE(SamboHead, HostTypeNrvAppear));
             }
         }
@@ -516,7 +516,7 @@ bool SamboHead::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
         return true;
     }
     if (MR::isMsgPlayerKick(msg)) {
-        if (!MR::isPlayerExistSide(this, MR::getSensorRadius(this, "body"), 0.25f)) {
+        if (!MR::isPlayerExistSide(this, MR::getSensorRadius(this, "Body"), 0.25f)) {
             return false;
         }
         if (isNerve(GET_NERVE(SamboHead, HostTypeNrvStarPieceHit))) {

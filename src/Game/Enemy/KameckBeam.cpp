@@ -1,3 +1,4 @@
+#pragma auto_inline off
 #include "Game/Enemy/KameckBeam.hpp"
 #include "Game/Enemy/KameckBeamHolder.hpp"
 #include "Game/Enemy/KameckFireBall.hpp"
@@ -21,9 +22,6 @@ namespace {
 KameckBeamEventListener::KameckBeamEventListener() {
 }
 
-KameckBeamCollisionFilter::KameckBeamCollisionFilter(const TVec3f* pVec, f32 f) : _4(pVec), _8(f) {
-}
-
 bool KameckBeamCollisionFilter::isInvalidParts(const CollisionParts* pCollisionParts) const {
     u32 sensorType = MR::getCollisionSensorType(pCollisionParts);
 
@@ -31,31 +29,50 @@ bool KameckBeamCollisionFilter::isInvalidParts(const CollisionParts* pCollisionP
         return true;
     }
 
+    if (sensorType == 83 /* ATYPE_CLIP_FIELD_MAP_PARTS */) {
+        return true;
+    }
+
     if (!MR::isExistClipAreaHolder()) {
         return false;
     }
 
-    if (sensorType == 83 /* ATYPE_CLIP_FIELD_MAP_PARTS */ && !MR::isInClipArea(*_4)) {
-        return true;
-    }
-
-    return false;
+    if (sensorType != 67) return false;
+    return !MR::isInClipArea(*_4);
 }
 
 namespace NrvKameckBeam {
     NEW_NERVE(KameckBeamNrvFollowWand, KameckBeam, FollowWand);
     NEW_NERVE(KameckBeamNrvShoot, KameckBeam, Shoot);
     NEW_NERVE(KameckBeamNrvExplosion, KameckBeam, Explosion);
-    NEW_NERVE(KameckBeamNrvJetTurtle, KameckBeam, JetTurtle);
-    NEW_NERVE(KameckBeamNrvFire, KameckBeam, Fire);
+    class KameckBeamNrvFire : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const { static_cast<KameckBeam*>(spine->mExecutor)->fn_801A7810(); }
+        static KameckBeamNrvFire sInstance;
+    };
+    KameckBeamNrvFire KameckBeamNrvFire::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvKameckBeam
 
-KameckBeam::KameckBeam(const char* pName)
-    : LiveActor(pName), mEventListener(), mKameckTurtle(), mFollowMtx(), _A4(0, 0, 1), mWandLocalPosition(0, 0, 0), mBeamKind(BeamType_FireBall1) {
-    for (u32 i = 0; i < ARRAY_SIZE(mKameckFireBalls); i++) {
-        mKameckFireBalls[i] = nullptr;
+KameckBeam::KameckBeam(const char* pName, s32 kind, s32 count)
+    : LiveActor(pName), mEventListener(), mFollowMtx(), _A4(0, 0, 1), mWandLocalPosition(0, 0, 0), mBeamKind(kind), mProjectileCount(count) {
+    for (u32 i = 0; i < ARRAY_SIZE(mProjectiles); i++) {
+        mProjectiles[i] = nullptr;
     }
 }
+
+namespace MR {
+    void setKameckBeamCollisionFilter(LiveActor* pActor) {
+        MR::setBinderCollisionPartsFilter(pActor, new KameckBeamCollisionFilter(&pActor->mPosition));
+    }
+};  // namespace MR
+
+KameckBeamCollisionFilter::KameckBeamCollisionFilter(const TVec3f* pVec) : _4(pVec) {
+}
+
+void KameckBeamProjectile::fn_801A7180() {}
+bool KameckBeamProjectile::fn_801A74D0() { return false; }
+void KameckBeamProjectile::appearDirection(const TVec3f&, const TVec3f&) {}
+bool KameckBeamProjectile::fn_801A78B0() const { return false; }
 
 void KameckBeam::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
@@ -63,16 +80,40 @@ void KameckBeam::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(KameckBeam, KameckBeamNrvFollowWand));
     initSound(4, "KameckBeam", nullptr, TVec3f(0.0f));
     initBinder(::sBeamRadius, 0.0f, 0);
-    MR::setKameckBeamCollisionFilter(this);
+    MR::setBinderCollisionPartsFilter(this, new KameckBeamCollisionFilter(&mPosition));
     initEffectKeeper(0, "BossKameckBeam", false);
     MR::setEffectHostSRT(this, "BeamTurtleReady", &mPosition, nullptr, nullptr);
     MR::setEffectHostSRT(this, "BeamFireReady", &mPosition, nullptr, nullptr);
+    MR::setEffectHostSRT(this, "BeamEnemyReady", &mPosition, nullptr, nullptr);
     MR::setEffectHostSRT(this, "BeamTurtle", &mPosition, nullptr, nullptr);
     MR::setEffectHostSRT(this, "BeamFire", &mPosition, nullptr, nullptr);
+    MR::setEffectHostSRT(this, "BeamEnemy", &mPosition, nullptr, nullptr);
     initHitSensor(1);
-    MR::addHitSensorEnemyAttack(this, "attack", 8, ::sBeamRadius, TVec3f(0.0f));
+    MR::addHitSensorEnemyAttack(this, "attack", 8, ::sBeamRadius, TVec3f(0.0f, 0.0f, 0.0f));
     MR::initShadowVolumeSphere(this, ::sBeamRadius);
     MR::onCalcShadow(this, nullptr);
+    switch (mBeamKind) {
+    case BeamType_FireBall1:
+        for (u32 i = 0; i < mProjectileCount; i++) {
+            KameckFireBall* ball = new KameckFireBall("火弾");
+            ball->initWithoutIter();
+            mProjectiles[i] = ball;
+        }
+        break;
+    case BeamType_Turtle:
+        for (u32 i = 0; i < mProjectileCount; i++) {
+            KameckTurtle* turtle = new KameckTurtle("カメ弾");
+            turtle->initWithoutIter();
+            mProjectiles[i] = turtle;
+        }
+        break;
+    case BeamType_KuriboMini:
+        for (u32 i = 0; i < mProjectileCount; i++) mProjectiles[i] = new KameckBeamKuriboMini;
+        break;
+    case BeamType_Meramera:
+        for (u32 i = 0; i < mProjectileCount; i++) mProjectiles[i] = new KameckBeamMeramera;
+        break;
+    }
     MR::invalidateClipping(this);
     makeActorDead();
 }
@@ -92,34 +133,9 @@ void KameckBeam::calcAnim() {
 }
 
 void KameckBeam::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isSensorPlayer(pReceiver)) {
-        return;
-    }
-
-    switch (mBeamKind) {
-    case BeamType_Turtle:
-        if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
-            if (mEventListener != nullptr) {
-                mEventListener->hitBeam(mBeamKind);
-            }
-            kill();
-        }
-        break;
-    case BeamType_FireBall1:
-    case BeamType_FireBall2:
-    case BeamType_FireBall3:
-        if (MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
-            if (mEventListener != nullptr) {
-                mEventListener->hitBeam(mBeamKind);
-            }
-            kill();
-        }
-        break;
-    default:
-        if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
-            kill();
-        }
-        break;
+    if ((MR::isSensorPlayer(pReceiver) || MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) && fn_801A78C0(pSender, pReceiver)) {
+        if (mEventListener != nullptr) mEventListener->hitBeam();
+        kill();
     }
 }
 
@@ -141,40 +157,16 @@ void KameckBeam::setWandLocalPosition(const TVec3f& rLocalPos) {
     mWandLocalPosition.set(rLocalPos);
 }
 
-void KameckBeam::setBeamKind(s32 kind) {
-    mBeamKind = kind;
-}
-
 void KameckBeam::setEventListener(KameckBeamEventListener* pEventListener) {
     mEventListener = pEventListener;
 }
 
 void KameckBeam::resetBeam() {
-    if (mKameckTurtle != nullptr) {
-        if (!MR::isDead(mKameckTurtle)) {
-            mKameckTurtle->kill();
-        }
-
-        mKameckTurtle = nullptr;
-    }
-
-    for (u32 i = 0; i < ARRAY_SIZE(mKameckFireBalls); i++) {
-        if (mKameckFireBalls[i] == nullptr) {
-            continue;
-        }
-
-        if (!MR::isDead(mKameckFireBalls[i])) {
-            mKameckFireBalls[i]->kill();
-        }
-
-        mKameckFireBalls[i] = nullptr;
-    }
-
-    mEventListener = nullptr;
+    for (u32 i = 0; i < mProjectileCount; i++) mProjectiles[i]->fn_801A7180();
 }
 
 bool KameckBeam::requestFollowWand(MtxPtr pMtx, f32 scale) {
-    mScale.set(scale);
+    MR::setScale(this, scale);
     MR::setShadowVolumeSphereRadius(this, nullptr, scale * ::sBeamRadius);
     MR::setBinderRadius(this, scale * ::sBeamRadius);
     MR::setSensorRadius(this, "attack", scale * ::sBeamRadius);
@@ -189,33 +181,16 @@ bool KameckBeam::requestFollowWand(MtxPtr pMtx, f32 scale) {
     return true;
 }
 
-void KameckBeam::requestShootToPlayerGround(f32 speed) {
-    TVec3f shootDir;
-    MR::getPlayerGroundPos(&shootDir);
-
-    shootDir -= mGravity * ::sBeamRadius;
-    shootDir -= mPosition;
-    MR::normalizeOrZero(&shootDir);
-
-    if (MR::isNearZero(shootDir)) {
-        MR::calcGravity(this);
-        shootDir.set(mGravity);
-    }
-
-    requestShoot(shootDir, speed);
-}
-
 void KameckBeam::requestShootToPlayerCenter(f32 speed) {
     TVec3f shootDir;
-    shootDir.set(*MR::getPlayerCenterPos() - mPosition);
-
+    MR::getPlayerGroundPos(&shootDir);
+    shootDir += mGravity * 80.0f;
+    shootDir -= mPosition;
     MR::normalizeOrZero(&shootDir);
-
     if (MR::isNearZero(shootDir)) {
         MR::calcGravity(this);
         shootDir.set(mGravity);
     }
-
     requestShoot(shootDir, speed);
 }
 
@@ -231,24 +206,14 @@ void KameckBeam::requestShoot(const TVec3f& rDir, f32 speed) {
 }
 
 bool KameckBeam::requestStorm(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::getSensorPos(pSender)->distance(*MR::getSensorPos(pReceiver)) >= ::sStormRange) {
-        return false;
-    }
-
-    if (!isNerve(GET_NERVE(KameckBeam, KameckBeamNrvShoot))) {
-        return false;
-    }
-
-    if (mBeamKind == BeamType_Turtle) {
-        if (tryChangeTurtle()) {
+    if (MR::getSensorPos(pSender)->distance(*MR::getSensorPos(pReceiver)) >= 500.0f) return false;
+    if (!isNerve(GET_NERVE(KameckBeam, KameckBeamNrvShoot))) return false;
+    for (u32 i = 0; i < mProjectileCount; i++) {
+        if (mProjectiles[i]->fn_801A74D0()) {
+            kill();
             return true;
         }
-
-        kill();
-
-        return true;
     }
-
     return false;
 }
 
@@ -271,191 +236,120 @@ bool KameckBeam::tryShootEnd() {
     return false;
 }
 
-bool KameckBeam::tryChangeTurtle() {
-    mKameckTurtle = MR::getKameckBeamTurtle();
-
-    if (mKameckTurtle == nullptr) {
-        return false;
+bool KameckBeam::fn_801A7590() {
+    TVec3f direction;
+    direction.killElement(_A4, mGravity);
+    if (MR::isNearZero(direction)) MR::makeAxisVerticalZX(&direction, mGravity);
+    else MR::normalize(&direction);
+    for (u32 i = 0; i < mProjectileCount; i++) {
+        mProjectiles[i]->fn_801A7E30(mEventListener);
+        TVec3f rotated;
+        MR::rotateVecDegree(&rotated, direction, mGravity, sFireAngleList[mProjectileCount][i]);
+        mProjectiles[i]->appearDirection(mPosition, rotated);
     }
-
     MR::offBind(this);
     MR::invalidateShadow(this, nullptr);
     MR::invalidateHitSensors(this);
     MR::forceDeleteEffectAll(this);
-    mKameckTurtle->mPosition.set(mPosition);
-    mKameckTurtle->appearDirection(_A4);
-    setNerve(GET_NERVE(KameckBeam, KameckBeamNrvJetTurtle));
-
+    setNerve(GET_NERVE(KameckBeam, KameckBeamNrvFire));
     return true;
 }
 
-bool KameckBeam::tryChangeFire() {
-    s32 fireAngleListIndex = 0;
-
-    switch (mBeamKind) {
-    case BeamType_FireBall1:
-        fireAngleListIndex = 1;
-        break;
-    case BeamType_FireBall2:
-        fireAngleListIndex = 2;
-        break;
-    case BeamType_FireBall3:
-        fireAngleListIndex = 3;
-        break;
-    }
-
-    TVec3f result;
-    result.killElement(_A4, mGravity);
-
-    if (MR::isNearZero(result)) {
-        MR::makeAxisVerticalZX(&result, mGravity);
-    } else {
-        MR::normalize(&result);
-    }
-
-    bool b1 = false;
-    for (u32 i = 0; i < fireAngleListIndex; i++) {
-        mKameckFireBalls[i] = MR::getKameckFireBall();
-        if (mKameckFireBalls[i] != nullptr) {
-            mKameckFireBalls[i]->setEventListener(mEventListener);
-            mKameckFireBalls[i]->mPosition.set(mPosition);
-            TVec3f result2;
-            MR::rotateVecDegree(&result2, result, mGravity, ::sFireAngleList[fireAngleListIndex][i]);
-            mKameckFireBalls[i]->appearDirection(result2);
-            b1 = true;
-        }
-    }
-
-    if (b1) {
-        MR::offBind(this);
-        MR::invalidateShadow(this, nullptr);
-        MR::invalidateHitSensors(this);
-        MR::forceDeleteEffectAll(this);
-        setNerve(GET_NERVE(KameckBeam, KameckBeamNrvFire));
-        return true;
-    }
-
-    return false;
-}
-
-void KameckBeam::exeFollowWand() {
-    startBeamLevelSound();
-}
-
 void KameckBeam::exeShoot() {
-    if (MR::isFirstStep(this)) {
-        MR::startActionSound(this, "BmKameckFireShoot");
-    }
-
-    if (tryShootEnd()) {
-        return;
-    }
-
-    if (MR::isInWater(mPosition)) {
-        switch (mBeamKind) {
-        case BeamType_Turtle:
-            MR::emitEffect(this, "BeamTurtleBreak");
-            break;
-        case BeamType_FireBall1:
-        case BeamType_FireBall2:
-        case BeamType_FireBall3:
-            MR::emitEffect(this, "BeamFireBreak");
-            break;
-        }
-
+    if (MR::isFirstStep(this)) MR::startActionSound(this, "BmKameckFireShoot");
+    if (MR::isInWater(mPosition) || MR::isBindedGroundSinkDeath(this)) {
+        fn_801A79D0();
         kill();
         return;
     }
-
-    startBeamLevelSound();
-    MR::startActionSound(this, "BmLvKameckMagicComm");
+    if (!tryShootEnd()) {
+        startBeamLevelSound();
+        MR::startActionSound(this, "BmLvKameckMagicComm");
+    }
 }
-
 
 void KameckBeam::exeExplosion() {
     if (fn_801A7590()) {
         MR::shakeCameraNormalWeak();
         MR::tryRumblePadStrong(this, WPAD_CHAN0);
         fn_801A79D0();
+        return;
     }
-
     kill();
 }
 
-void KameckBeam::exeJetTurtle() {
-    if (MR::isFirstStep(this)) {
-        MR::startSystemSE("SE_SY_APPEAR_TURTLE_JET");
+void KameckBeam::fn_801A7810() {
+    bool dead = true;
+    for (u32 i = 0; i < mProjectileCount; i++) {
+        if (!mProjectiles[i]->fn_801A78B0()) { dead = false; break; }
     }
-
-    if (MR::isDead(mKameckTurtle)) {
-        kill();
-    }
+    if (dead) kill();
 }
 
-void KameckBeam::exeFire() {
-    if (MR::isFirstStep(this)) {
-        MR::emitEffect(this, "BeamFireBurn");
-    }
-
-    if (MR::isStep(this, ::sBurningTime)) {
-        MR::deleteEffect(this, "BeamFireBurn");
-    }
-
-    // Possible inline or a while loop
-    bool killBeam = true;
-    for (u32 i = 0; i < ARRAY_SIZE(mKameckFireBalls); i++) {
-        if (mKameckFireBalls[i] != nullptr && !MR::isDead(mKameckFireBalls[i])) {
-            killBeam = false;
-            break;
-        }
-    }
-
-    if (killBeam) {
-        kill();
+bool KameckBeam::fn_801A78C0(HitSensor* sender, HitSensor* receiver) {
+    switch (mBeamKind) {
+    case BeamType_Turtle: return MR::sendMsgEnemyAttackStrong(receiver, sender);
+    case BeamType_FireBall1: return MR::sendMsgEnemyAttackFire(receiver, sender);
+    default: return MR::sendMsgEnemyAttack(receiver, sender);
     }
 }
 
 void KameckBeam::startBeamLevelSound() {
     switch (mBeamKind) {
-    case BeamType_Turtle:
-        MR::startActionSound(this, "BmLvKameckMagicTurt");
-        break;
-    case BeamType_FireBall1:
-    case BeamType_FireBall2:
-    case BeamType_FireBall3:
-        MR::startActionSound(this, "BmLvKameckMagicFire");
-        break;
+    case BeamType_Turtle: MR::startActionSound(this, "BmLvKameckMagicTurt"); break;
+    case BeamType_FireBall1: MR::startActionSound(this, "BmLvKameckMagicFire"); break;
+    default: MR::startActionSound(this, "BmLvKameckMagicTurt"); break;
     }
 }
 
 void KameckBeam::emitBeamReadyEffect() {
     switch (mBeamKind) {
-    case BeamType_Turtle:
-        MR::emitEffect(this, "BeamTurtleReady");
-        break;
-    case BeamType_FireBall1:
-    case BeamType_FireBall2:
-    case BeamType_FireBall3:
-        MR::emitEffect(this, "BeamFireReady");
-        break;
+    case BeamType_Turtle: MR::emitEffect(this, "BeamTurtleReady"); break;
+    case BeamType_FireBall1: MR::emitEffect(this, "BeamFireReady"); break;
+    default: MR::emitEffect(this, "BeamEnemyReady"); break;
     }
 }
 
 void KameckBeam::emitBeamEffect() {
     switch (mBeamKind) {
-    case BeamType_Turtle:
-        MR::emitEffect(this, "BeamTurtle");
-        break;
-    case BeamType_FireBall1:
-    case BeamType_FireBall2:
-    case BeamType_FireBall3:
-        MR::emitEffect(this, "BeamFire");
-        break;
+    case BeamType_Turtle: MR::emitEffect(this, "BeamTurtle"); break;
+    case BeamType_FireBall1: MR::emitEffect(this, "BeamFire"); break;
+    default: MR::emitEffect(this, "BeamEnemy"); break;
     }
 }
 
-namespace MR {
-    void setKameckBeamCollisionFilter(LiveActor* pActor) {
-        MR::setBinderCollisionPartsFilter(pActor, new KameckBeamCollisionFilter(&pActor->mPosition, 10.0f));
+void KameckBeam::fn_801A79D0() {
+    switch (mBeamKind) {
+    case BeamType_Turtle: MR::emitEffect(this, "BeamTurtleBreak"); return;
+    case BeamType_FireBall1:
+        MR::emitEffect(this, "BeamFireBreak");
+        MR::startActionSound(this, "BmKameckFireExplosion");
+        return;
+    default: MR::emitEffect(this, "BeamEnemyBreak"); return;
     }
-};  // namespace MR
+}
+
+void KameckBeam::setBeamKind(s32 kind) {
+    mBeamKind = kind;
+}
+
+void KameckBeam::requestShootToPlayerGround(f32 speed) {
+    TVec3f shootDir;
+    MR::getPlayerGroundPos(&shootDir);
+
+    shootDir -= mGravity * ::sBeamRadius;
+    shootDir -= mPosition;
+    MR::normalizeOrZero(&shootDir);
+
+    if (MR::isNearZero(shootDir)) {
+        MR::calcGravity(this);
+        shootDir.set(mGravity);
+    }
+
+    requestShoot(shootDir, speed);
+}
+
+void KameckBeam::exeFollowWand() {
+    startBeamLevelSound();
+}
+

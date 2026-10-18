@@ -13,3 +13,5 @@ namespace MR {
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
     YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
 };  // namespace MR
+
+namespace YoshiFunction { void tryYoshiPull(YoshiLockOnTarget*); }

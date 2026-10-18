@@ -7,20 +7,18 @@ class BreakModel;
 class SupportTicoStop;
 class Battan;
 
-// SMG2-only unit (Battan, rail-riding crab-like enemy with 5 collision parts and 4 break parts).
+// Rail-riding Battan with five collision parts and four break parts.
 // LiveActor = 0x90 bytes in SMG2; members start at 0x90.
 
 // Collision filter built in Battan::init: rejects the Battan's own collision parts.
 class BattanPartsFilter : public CollisionPartsFilterBase {
 public:
-    BattanPartsFilter(Battan* pHost);
+    BattanPartsFilter(Battan* pHost, bool (Battan::*callback)(const CollisionParts*) const);
 
     virtual bool isInvalidParts(const CollisionParts*) const;
 
     /* 0x04 */ Battan* mHost;
-    /* 0x08 */ s32 _8;
-    /* 0x0C */ s32 _C;
-    /* 0x10 */ void* _10;
+    /* 0x08 */ bool (Battan::*mCallback)(const CollisionParts*) const;
 };
 
 class Battan : public LiveActor {
@@ -38,34 +36,35 @@ public:
     virtual void updateHitSensor(HitSensor* pSensor);
 
     void exeWait();
-    void exeWalk();
+    void fn_801597E0();
     void exeTurn();
-    void exeTurnEnd();
-    void exeHalfTurn();
-    void exeFind();
-    void exeRun();
+    void fn_80159980();
+    void fn_80159A00();
+    void fn_80159B20();
+    void fn_80159BF0();
     void exeAttackSign();
-    void exeAttack();
+    void fn_80159DE0();
     void exeWaitFall();
-    void exeRiseSign();
-    void exeRise();
-    void exeDown();
+    void fn_80159F60();
+    void fn_8015A000();
+    void fn_8015A0F0();
 
-    void setPartsStateStand();
-    void setPartsStateAttack();
-    void setPartsStateAllAppear();
-    void setPartsStateHalf();
+    void fn_8015A310();
+    void fn_8015A410();
+    void fn_8015A500();
+    void fn_8015A600();
     void killPartsAll();
-    void onCollisionPartsAll(LiveActor* pActor);
-    void offCollisionPartsAll(LiveActor* pActor);
-    bool isBattanPartsSensor(const CollisionParts* pParts) const;
+    void onCollisionPartsAll();
+    void offCollisionPartsAll();
+    bool fn_8015A850(const CollisionParts* pParts) const;
     bool tryRailEndTurn();
-    bool tryAttackDown(LiveActor* pActor);
-    bool moveRailStep(f32 speed);
+    bool fn_8015AB40() const;
+    bool fn_8015ABD0();
+    void fn_8015ACE0(f32 speed);
     bool isRailEndReached() const;
-    void updateLegs();
-    bool calcLegPos(TVec3f* pPos, s32 index);
-    bool calcPlayerHitSide(TVec3f* pDir, const TVec3f* pRange);
+    void fn_8015AEE0();
+    bool fn_8015B130(TVec3f* pPos, s32 index);
+    bool fn_8015B2D0(TVec3f* pDir, const TVec3f* pRange);
 
 public:
     /* 0x90 */ SupportTicoStop* mTicoStop;

@@ -125,7 +125,7 @@ void Balloonfish::exeDash() {
     if (mSupportTicoStop->mIsTouching) {
         TVec3f zDir;
         mQuat.getZDir(zDir);
-        mVelocity.set(zDir * 0.0f);
+        mVelocity.set(zDir * ::hDashVel);
     }
 
     s32 nerveMaxDuration;

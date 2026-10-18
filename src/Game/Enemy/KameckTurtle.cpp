@@ -26,7 +26,7 @@ namespace NrvKameckTurtle {
 };  // namespace NrvKameckTurtle
 
 KameckTurtle::KameckTurtle(const char* pName)
-    : LiveActor(pName), mEventListener(), _94(), mTurtle(), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f), _A4(0.0f, 0.0f, 1.0f), _B0(0.0f, 0.0f, 1.0f) {
+    : LiveActor(pName), mTurtle(), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f), _A4(0.0f, 0.0f, 1.0f), _B0(0.0f, 0.0f, 1.0f) {
 }
 
 void KameckTurtle::init(const JMapInfoIter& rIter) {
@@ -91,7 +91,7 @@ void KameckTurtle::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             }
 
             if (mEventListener != nullptr) {
-                mEventListener->hitBeam(KameckBeam::BeamType_Turtle);
+                mEventListener->hitBeam();
             }
         }
     } else if (!isNerve(GET_NERVE(KameckTurtle, KameckTurtleNrvWait))) {
@@ -126,7 +126,8 @@ bool KameckTurtle::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
     return false;
 }
 
-void KameckTurtle::appearDirection(const TVec3f& rDir) {
+void KameckTurtle::appearDirection(const TVec3f& rPos, const TVec3f& rDir) {
+    MR::setPosition(this, rPos);
     MR::calcGravity(this);
     mVelocity.set(rDir);
     _B0.killElement(rDir, mGravity);
@@ -224,4 +225,18 @@ void KameckTurtle::appearJetTurtle(bool tryTaken) {
     } else {
         mTurtle->appear();
     }
+}
+
+void KameckTurtle::fn_801A7180() {
+    kill();
+}
+
+bool KameckTurtle::fn_801A78B0() const {
+    return MR::isDead(this);
+}
+
+bool KameckTurtle::fn_801A74D0() {
+    appear();
+    appearJetTurtle(true);
+    return true;
 }

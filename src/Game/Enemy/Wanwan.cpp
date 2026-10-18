@@ -28,6 +28,7 @@ namespace NrvWanwan {
     NEW_NERVE(WanwanNrvFreeze, Wanwan, Freeze);
 };  // namespace NrvWanwan
 
+// NONMATCHING: zero-vector store scheduling and equivalent child-object loop precheck.
 void Wanwan::init(const JMapInfoIter& rIter) {
     mType = getType(rIter);
     switch (mType) {
@@ -50,7 +51,8 @@ void Wanwan::init(const JMapInfoIter& rIter) {
     initBinder(mRadius, 0.0f, 0);
     initRailRider(rIter);
     initEffect();
-    TVec3f zero(0.0f, 0.0f, 0.0f);
+    TVec3f zero;
+    zero.x = zero.y = zero.z = 0.0f;
     MR::initStarPointerTarget(this, 275.0f * (mType == 1 ? 0.3f : mScale.x), zero);
     MR::initUseStageSwitchWriteDead(this, rIter);
     initSound(5, "Wanwan", nullptr, TVec3f(0.0f));
@@ -131,9 +133,9 @@ void Wanwan::kill() {
         tryOnSwitchDead();
         MR::emitEffect(this, "MiniBreak");
         MR::startActionSound(this, "EmWanwanrollminiExplosion", -1, -1, -1);
-        if (mKeySwitch != nullptr) {
-            mKeySwitch->appearKeySwitch(mPosition);
-        }
+    }
+    if (mKeySwitch != nullptr) {
+        mKeySwitch->appearKeySwitch(mPosition);
     }
 }
 
@@ -145,6 +147,7 @@ s32 Wanwan::getGoalStayStep() {
     return 27;
 }
 
+// NONMATCHING: conditional return lowers to integer masking instead of branches.
 s32 Wanwan::getType(const JMapInfoIter& rIter) {
     if (MR::isEqualObjectName(rIter, "WanwanRollingMini")) {
         return 1;
@@ -159,6 +162,7 @@ s32 Wanwan::getAppearStarPieceNum(Rock::Type type) {
     return type == Rock::TypeMini ? 3 : 9;
 }
 
+// NONMATCHING: boolean registers and vector temporary stack slots.
 void Wanwan::control() {
     if (!isNerve(&NrvWanwan::WanwanNrvAppearSign::sInstance) && !isNerve(&NrvWanwan::WanwanNrvBreak::sInstance)) {
         bool turn = false;
@@ -218,6 +222,7 @@ void Wanwan::control() {
     mScaleCtrl->update();
 }
 
+// NONMATCHING: vector temporary stack slots.
 void Wanwan::calcAndSetBaseMtx() {
     TVec3f grav(mGravity);
     TPos3f mtx;
@@ -289,7 +294,7 @@ void Wanwan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                     }
                 }
             } else if (!isNerve(&NrvWanwan::WanwanNrvFreeze::sInstance)) {
-                MR::sendMsgToEnemyAttackBlowOrTrample(pReceiver, pSender, 0.5f);
+                MR::sendMsgToEnemyAttackBlowOrTrample(pReceiver, pSender, 0.25f);
             } else {
                 MR::sendMsgPush(pReceiver, pSender);
             }
@@ -343,6 +348,7 @@ bool Wanwan::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
     return false;
 }
 
+// NONMATCHING: floating-point operand/load scheduling.
 void Wanwan::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     mInitPos.set(mPosition);
@@ -358,7 +364,7 @@ void Wanwan::initMapToolInfo(const JMapInfoIter& rIter) {
         mZeroGravity = true;
         Mtx mtx;
         MR::makeMtxTR(mtx, this);
-        mGravity.set(mtx[0][1], mtx[1][1], mtx[2][1]);
+        mGravity.set<f32>(mtx[0][1], mtx[1][1], mtx[2][1]);
         mGravity.negate();
     }
 }
@@ -440,8 +446,8 @@ bool Wanwan::move(f32 speed) {
     return true;
 }
 
-// NONMATCHING: target calls TPosition3::makeRotate out of line (dont_inline reproduces that) but inlines the TVec3f/TPosition3 default ctors
-#pragma dont_inline on
+// NONMATCHING: matrix temporary stack layout and rotate-call argument scheduling.
+#pragma auto_inline off
 void Wanwan::calcBaseMtx(TPos3f* pMtx) const {
     TVec3f up;
     JGeometry::negateInternal(&mGravity.x, &up.x);
@@ -456,7 +462,7 @@ void Wanwan::calcBaseMtx(TPos3f* pMtx) const {
     pMtx->concat(*pMtx, rot);
 }
 
-#pragma dont_inline reset
+#pragma auto_inline reset
 bool Wanwan::isInClippingRange() const {
     f32 s = mType == 1 ? 0.3f : mScale.x;
     if (MR::isJudgedToClipFrustum(mPosition, 300.0f + 250.0f * s)) {
@@ -537,7 +543,7 @@ void Wanwan::setBtkForEnvironmentMap(LiveActor* pActor, const char* pName) {
 }
 
 void Wanwan::rumblePadAndCamera() {
-    MR::startRumbleWithShakeCameraWeak(this, "", "", 1000.0f, 2000.0f);
+    MR::startRumbleWithShakeCameraWeak(this, "強", "中", 1000.0f, 2000.0f);
     f32 dist = MR::calcDistanceToPlayer(this);
     if (dist < 1000.0f) {
         MR::shakeCameraNormal();
@@ -565,6 +571,7 @@ void Wanwan::appearStarPiece() {
     MR::appearStarPieceToDirection(_90, mPosition, dir, getAppearStarPieceNum((Rock::Type)mType), 10.0f, 40.0f, false);
 }
 
+// NONMATCHING: vector temporary stack slots.
 void Wanwan::moveOnRail(f32 speed, f32 rot, bool checkGround) {
     MR::moveCoordAndFollowTrans(this, speed);
     updateRotateX(mRotation.x + rot);
@@ -626,6 +633,35 @@ bool Wanwan::tryOnSwitchDead() {
     return true;
 }
 
+void Wanwan::exeFreeze() {
+    if (MR::isFirstStep(this)) {
+        MR::emitEffect(this, mType == 1 ? "MiniTouch" : "Touch");
+        MR::deleteEffect(this, "Smoke");
+    }
+    MR::startDPDFreezeLevelSound(this);
+    if (mFreezeReturnNerve == &NrvWanwan::WanwanNrvMove::sInstance) {
+        if (MR::isOnGround(this)) {
+            mVelocity.zero();
+        }
+        MR::addVelocityToGravityOrGround(this, 10.0f);
+        MR::clampLength(&mVelocity, mVelocity, 40.0f);
+    }
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
+        setNerve(&NrvWanwan::WanwanNrvFreeze::sInstance);
+    } else if (MR::isStep(this, 20)) {
+        if (mFreezeReturnNerve == &NrvWanwan::WanwanNrvMove::sInstance) {
+            f32 coord = MR::getRailCoord(this);
+            MR::moveCoordToNearestPos(this, mPosition);
+            if (MR::getRailCoord(this) < coord) {
+                MR::setRailCoord(this, coord);
+            }
+        }
+        mScaleCtrl->startAnim();
+        MR::deleteEffect(this, mType == 1 ? "MiniTouch" : "Touch");
+        setNerve(mFreezeReturnNerve);
+    }
+}
+
 void Wanwan::exeAppearSign() {
     if (MR::isFirstStep(this)) {
         MR::emitEffect(this, "Appear");
@@ -638,6 +674,7 @@ void Wanwan::exeAppearSign() {
     }
 }
 
+// NONMATCHING: boolean lowering and floating-point temporary/narrowing schedule.
 void Wanwan::exeAppear() {
     f32 rate = 1386.0f / (mRadius * 3.1415927f);
     if (MR::isFirstStep(this)) {
@@ -685,6 +722,7 @@ void Wanwan::exeAppearMoveInvalidBind() {
     }
 }
 
+// NONMATCHING: rotation operand schedule and omitted unused-result comparison.
 void Wanwan::exeMove() {
     if (MR::isOnGround(this)) {
         if (!MR::isHiddenModel(this)) {
@@ -738,6 +776,7 @@ void Wanwan::exeMoveInvalidBind() {
     }
 }
 
+// NONMATCHING: vector temporary stack slots.
 void Wanwan::exeMoveLava() {
     if (MR::isFirstStep(this)) {
         mVelocity.zero();
@@ -784,7 +823,7 @@ void Wanwan::exeMoveLava() {
             if (prevNo != mRailPointNo) {
                 s32 arg;
                 MR::getCurrentRailPointArg3WithInit(this, &arg);
-                if (arg < 0) {
+                if (arg >= 0) {
                     MR::onBind(this);
                     setNerve(&NrvWanwan::WanwanNrvMove::sInstance);
                 }
@@ -826,6 +865,7 @@ void Wanwan::exeGoalIn() {
     }
 }
 
+// NONMATCHING: Euler-angle register allocation.
 void Wanwan::exeBreak() {
     if (MR::isFirstStep(this)) {
         if (mType != 2 && !_144 && (mModel == nullptr || isInClippingRange())) {
@@ -878,34 +918,7 @@ void Wanwan::exeBreak() {
     }
 }
 
-void Wanwan::exeFreeze() {
-    if (MR::isFirstStep(this)) {
-        MR::emitEffect(this, mType == 1 ? "MiniTouch" : "Touch");
-        MR::deleteEffect(this, "Smoke");
-    }
-    MR::startDPDFreezeLevelSound(this);
-    if (mFreezeReturnNerve == &NrvWanwan::WanwanNrvMove::sInstance) {
-        if (MR::isOnGround(this)) {
-            mVelocity.zero();
-        }
-        MR::addVelocityToGravityOrGround(this, 10.0f);
-        MR::clampLength(&mVelocity, mVelocity, 40.0f);
-    }
-    if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        setNerve(&NrvWanwan::WanwanNrvFreeze::sInstance);
-    } else if (MR::isStep(this, 20)) {
-        if (mFreezeReturnNerve == &NrvWanwan::WanwanNrvMove::sInstance) {
-            f32 coord = MR::getRailCoord(this);
-            MR::moveCoordToNearestPos(this, mPosition);
-            if (MR::getRailCoord(this) < coord) {
-                MR::setRailCoord(this, coord);
-            }
-        }
-        mScaleCtrl->startAnim();
-        MR::deleteEffect(this, mType == 1 ? "MiniTouch" : "Touch");
-        setNerve(mFreezeReturnNerve);
-    }
-}
+
 
 Wanwan::~Wanwan() {
 }

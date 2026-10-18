@@ -15,17 +15,12 @@ class BreakModel;
 class PartsModel;
 class ProjmapEffectMtxSetter;
 class VolumeDrawer;
+class KoopaJrRobotShockWave;
 
 // SMG2-only unit (Koopa battle rocks). Offsets are SMG2 (LiveActor = 0x90). Written from the target asm.
 
 // Helper that lets the player ride the rock ("AutoRush" handling).
 // ---- unit-local free helpers (AttackRock family; defined in the .cpp files) ----
-f32 fn_801510C0() NO_INLINE;
-bool fn_801510D0(LiveActor* pActor) NO_INLINE;
-bool fn_801517C0(LiveActor* pActor, s32 arg) NO_INLINE;
-void fn_80151850(void*) NO_INLINE;
-bool fn_80152700(LiveActor* pActor);
-bool fn_80155090(LiveActor* pActor, s32 arg);
 void fn_801552A0(LiveActor* pActor) NO_INLINE;
 f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat) NO_INLINE;
 void fn_80155360(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed) NO_INLINE;
@@ -37,15 +32,13 @@ ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor) NO_INLINE;
 class AttackRockRide {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    // SMG2-only functions (original names unknown; named by address)
-    AttackRockRide* fn_801528E0(LiveActor* pHost);
+    AttackRockRide(LiveActor* pHost);
     void fn_801529E0(const TVec3f* pVec);
     void fn_80152A00();
     void fn_80152C00();
     bool fn_80152E20(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    void fn_80152F10();
-    void fn_80152F20();
-    // SMG2-only functions (original names unknown; named by address)
+    void fn_80152F10() NO_INLINE;
+    void fn_80152F20() NO_INLINE;
     // SMG2-only functions (original names unknown; named by address)
 
     /* 0x00 */ LiveActor* mHost;
@@ -115,7 +108,7 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
 
-    /* 0x10 */ BreakModel* mBreakModel;
+    /* 0x10 */ KoopaJrRobotShockWave* mBreakModel;
     /* 0x14 */ VolumeDrawer* mVolumeDrawer;
     /* 0x18 */ TVec3f mFallPos;
     /* 0x24 */ TVec3f mStartPos;
@@ -126,6 +119,9 @@ public:
 
 class AttackRock : public LiveActor {
 public:
+    f32 fn_801510C0() const NO_INLINE;
+    bool fn_801510D0() const NO_INLINE;
+    bool fn_801517C0(s32) const;
     void fn_80151160();
     void fn_80151510();
     void fn_801516E0();
@@ -158,6 +154,7 @@ public:
 
 class AttackRockFinal : public LiveActor {
 public:
+    bool fn_80152700(s32) const;
     void fn_801521F0(f32 a, f32 b);
     void fn_80152280();
     void fn_801522F0();
@@ -190,6 +187,7 @@ public:
 
 class AttackRockTutorial : public LiveActor {
 public:
+    bool fn_80155090(s32) const;
     void fn_80154B60();
     void fn_80154BB0();
     void fn_80154C60();

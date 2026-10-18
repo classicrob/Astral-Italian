@@ -52,6 +52,25 @@ public:
     /* 0x24 */ bool mIsBound;
 };
 
+/// Cubic Hermite spline through two points (SMG2-only; fn_80066D40 lives in the BindCone unit, named by address).
+/// Used by BoomerangBrosBoomerang. Evaluated as P0*h00 + P1*h01 + M0*h10 + M1*h11 at parameter t.
+class HermiteSpline {
+public:
+    HermiteSpline(const TVec3f& rP0, const TVec3f& rM0, const TVec3f& rP1, const TVec3f& rM1) {
+        mP0 = rP0;
+        mM0 = rM0;
+        mP1 = rP1;
+        mM1 = rM1;
+    }
+    virtual ~HermiteSpline() {}
+    void fn_80066D40(TVec3f* pOut, f32 t) const;
+
+    /* 0x04 */ TVec3f mP0;
+    /* 0x10 */ TVec3f mP1;
+    /* 0x1C */ TVec3f mM0;
+    /* 0x28 */ TVec3f mM1;
+};
+
 namespace MR {
     bool bindSpereToCone(BindResult* pResult, const TVec3f& rMovement, const BindSphere& rSphere, const BindCone& rCone);
     void updateBindPositionAndVelocity(TVec3f* pPosition, TVec3f* pVelocity, const BindResult& rResult, f32 factor);

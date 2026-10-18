@@ -24,6 +24,9 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void onAppearSwitchOn();
+    void exeWaterBreak();
+    bool fn_801C34F0();
+    bool fn_801C3590();
     void exeWait();
     void exeWalkOnRail();
     void exeTurn();
@@ -41,7 +44,6 @@ public:
     void exeTrample();
     void exeHipDropped();
     void exeBindStarPointer();
-    void endBindStarPointer();
 
     /* 0x8C */ bool mIsAppearJumping;
     /* 0x8D */ bool mIsForbidPause;

@@ -41,7 +41,7 @@ BombBirdBomb::BombBirdBomb(const char* pName) : LiveActor(pName), mBindStarPtr()
 }
 
 void BombBirdBomb::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "BombBirdBomb", false);
+    MR::initActor(this, "BombBirdBomb", false);
     MR::invalidateHitSensor(this, "bomb");
     MR::onCalcGravity(this);
     initNerve(GET_NERVE(BombBirdBomb, HostTypeNrvHold), 1);

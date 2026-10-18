@@ -46,5 +46,4 @@ public:
     /* 0x154 */ TVec3f mClippingCenter;
     /* 0x160 */ SimpleJ3DModelDrawer* mModelDrawer;
     /* 0x164 */ ModelObj* mFixPointTop;
-    /* 0x168 */ ModelObj* mFixPointBottom;
 };

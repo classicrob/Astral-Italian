@@ -41,4 +41,4 @@ public:
 };
 
 // unnamed by address (fn_801B3420), r3 is a TVec3f output.
-void fn_801B3420(TVec3f*, KickStone*, s32);
+bool fn_801B3420(TVec3f*, KickStone*, s32);

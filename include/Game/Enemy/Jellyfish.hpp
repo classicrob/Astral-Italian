@@ -35,6 +35,7 @@ public:
     bool selectNerveAfterWait();
     bool selectNerveThreat();
     bool tryDPDSwoon();
+    bool isNerveTypeMoving() const NO_INLINE;
 
     /* 0x8C */ AnimScaleController* mController;
     /* 0x90 */ WalkerStateBindStarPointer* mBindStarPtr;

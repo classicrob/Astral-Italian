@@ -26,6 +26,11 @@ public:
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
+    void fn_801B6650();
+    bool fn_801B7B40() const;
+    bool fn_801B7BE0() const;
+    bool fn_801B7CF0() const;
+    bool fn_801B7D60();
     void exeNoCalcWait();
     void endNoCalcWait();
     void exeWait();

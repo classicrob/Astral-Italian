@@ -15,7 +15,6 @@ namespace {
                                     {"ShoulderR", {19.04f, 0.0f, 0.0f}, {2.29f, -199.69f, 205.0f}}};
 
     static const s32 hKarikariHoldingMax = ARRAY_SIZE(cling_data);
-    static const s32 sNoReleaseTime = 10;
     static const s32 sRumbleInterval = 120;
 
     KarikariDirector* getKarikariDirector() {
@@ -24,8 +23,7 @@ namespace {
 };  // namespace
 
 KarikariDirector::KarikariDirector(const char* pName)
-    : LiveActorGroup(pName, 128), mClingNum(0), mClingJointMtxs(nullptr), mClingPositions(nullptr), mClingingKarikari(nullptr),
-      mReleaseKarikari(nullptr), mReleaseVel(0.0f, 0.0f), mLowestReleaseDist(999999.0f), mNoReleaseTime(0) {
+    : LiveActorGroup(pName, 128), mClingNum(0), mClingJointMtxs(nullptr), mClingPositions(nullptr), mClingingKarikari(nullptr) {
     MR::connectToSceneEnemyMovement(this);
     mClingJointMtxs = new TPos3f[5];
     mClingPositions = new FixedPosition*[::hKarikariHoldingMax];
@@ -78,19 +76,10 @@ void KarikariDirector::movement() {
 
     if (MR::isPlayerSwingAction()) {
         blowOutAllClingingKarikari(*MR::getPlayerPos());
-        clearScratchInfo();
     } else if (MR::isPlayerParalyzing()) {
         electricKillAllClingingKarikari();
-        clearScratchInfo();
-    } else if (MR::isPlayerInRush()) {
+    } else if (MR::isPlayerInRush() || MR::isPlayerRecovering()) {
         removeAllClingingKarikari();
-        clearScratchInfo();
-    } else if (mReleaseKarikari != nullptr) {
-        unregistCling(mReleaseKarikari);
-        mReleaseKarikari->tryDPDRelease(mReleaseVel);
-        clearScratchInfo();
-    } else {
-        mNoReleaseTime--;
     }
 
     mRumbleTime = (mRumbleTime + 1 + ::sRumbleInterval) % ::sRumbleInterval;
@@ -101,28 +90,22 @@ void KarikariDirector::movement() {
     }
 }
 
-void KarikariDirector::clearScratchInfo() {
-    mReleaseKarikari = nullptr;
-    mLowestReleaseDist = 100000000.0f;
-    mReleaseVel.y = 0.0f;
-    mReleaseVel.x = 0.0f;
-    mNoReleaseTime = ::sNoReleaseTime;
-}
-
-bool KarikariDirector::requestRelease(Karikari* pReleaseKarikari, TVec2f releaseVel, f32 dist) {
-    if (mNoReleaseTime > 0) {
+bool KarikariDirector::requestRelease(Karikari* pKarikari, TVec2f, f32) {
+    if (mClingNum >= ::hKarikariHoldingMax) {
         return false;
     }
 
-    if (mLowestReleaseDist < dist) {
-        return false;
+    mClingNum++;
+
+    for (s32 idx = 0; idx < ::hKarikariHoldingMax; idx++) {
+        if (mClingingKarikari[idx] == nullptr) {
+            mClingingKarikari[idx] = pKarikari;
+            pKarikari->mClingPosition = mClingPositions[idx];
+            return true;
+        }
     }
 
-    mReleaseKarikari = pReleaseKarikari;
-    mLowestReleaseDist = dist;
-    mReleaseVel = releaseVel;
-
-    return true;
+    return false;
 }
 
 bool KarikariDirector::registCling(Karikari* pKarikari) {

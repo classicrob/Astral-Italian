@@ -37,7 +37,7 @@ namespace MR {
 namespace {
     static const Vec sBodySensorOffset = {0.0f, 60.0f, 0.0f};
     static const Vec sSpinSensorOffset = {0.0f, 0.0f, 0.0f};
-    const char* sBodySensorName = "body";
+    const char* sBodySensorName = "Body";
     const char* sSpinSensorName = "spin";
 };  // namespace
 

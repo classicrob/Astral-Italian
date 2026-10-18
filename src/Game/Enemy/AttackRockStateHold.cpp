@@ -1,14 +1,4 @@
 #include "Game/Enemy/AttackRock.hpp"
-f32 fn_801510C0();
-bool fn_801510D0(LiveActor* pActor);
-bool fn_801517C0(LiveActor* pActor, s32 arg);
-void fn_801552A0(LiveActor* pActor);
-f32 fn_801552E0(LiveActor* pActor, TQuat4f* pQuat);
-void fn_80155360(TVec3f* pOut, TQuat4f* pQuat, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
-void fn_801553D0(TVec3f* pOut, TVec3f* pDir, HitSensor* pSender, HitSensor* pReceiver, f32 speed);
-void fn_801554D0(TPos3f* pMtx, LiveActor* pActor);
-void fn_80155540(ProjmapEffectMtxSetter* pSetter, TQuat4f* pQuat, TVec3f* pPos);
-ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Util.hpp"
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -20,36 +10,11 @@ ProjmapEffectMtxSetter* fn_80155660(LiveActor* pActor);
 #include "Game/Util/FixedPosition.hpp"
 #include "Game/Boss/KoopaFinalBattlePos.hpp"
 
-class BaseMatrixFollowValidater;
-class KoopaBattleAccessor {
-public:
-    void addAttackRockFinal(AttackRockFinal*);
-};
+#include "Game/Boss/KoopaBattleAccessor.hpp"
+#include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
 
-namespace MR {
-    bool isMsgKoopaCastAttackRockStart(u32);
-    bool isMsgKoopaCastAttackRockEnd(u32);
-    bool isMsgKoopaPunchAttack(u32);
-    bool isMsgKoopaReleaseAttackRock(u32);
-    bool isMsgKoopaFinalBattleStart(u32);
-    bool isMsgAutoRushBegin(u32);
-    bool isMsgUpdateBaseMtx(u32);
-    bool isMsgRushCancel(u32);
-    bool isMsgFloorTouch(u32);
-    f32 calcNerveEaseOutValue(const NerveExecutor*, s32, s32, f32, f32);
-    void createKoopaBattleAccessor();
-    KoopaBattleAccessor* getKoopaBattleAccessor();
-};  // namespace MR
-
-// Unnamed SMG2 helpers outside this unit (Koopa battle functions).
-
-// Unit-local helpers (unnamed in the target).
-
-AttackRockRide* AttackRockRide::fn_801528E0(LiveActor* pHost) {
-    this->mHost = pHost;
-    this->mQuat0.set(0.0f, 0.0f, 0.0f, 1.0f);
-    this->mQuat1.set(0.0f, 0.0f, 0.0f, 1.0f);
-    this->mQuat2.set(0.0f, 0.0f, 0.0f, 1.0f);
+AttackRockRide::AttackRockRide(LiveActor* pHost)
+    : mHost(pHost), mQuat0(0.0f, 0.0f, 0.0f, 1.0f), mQuat1(0.0f, 0.0f, 0.0f, 1.0f), mQuat2(0.0f, 0.0f, 0.0f, 1.0f) {
     this->_34.set(0.0f, 0.0f, 1.0f);
     this->_40.set(0.0f, 0.0f, 0.0f);
     this->_4C.set(0.0f, 0.0f, 0.0f);
@@ -64,18 +29,16 @@ AttackRockRide* AttackRockRide::fn_801528E0(LiveActor* pHost) {
     this->_98 = 0;
     this->mIsRush = false;
     this->mIsEnable = false;
-    return this;
 }
 
-// NONMATCHING: TVec3f operator= is expanded inline (psq copy) in the target.
 void AttackRockRide::fn_801529E0(const TVec3f* pVec) {
     this->_34 = *pVec;
 }
 
-// NONMATCHING: vector math written from the m2c output; operand order / temporaries not verified.
+// NONMATCHING: Vector temporary stack slots, load order and GPR allocation differ.
 void AttackRockRide::fn_80152A00() {
-    TVec3f last = *MR::getPlayerLastMove();
-    TVec3f tmp(last);
+    MR::fn_800514B0(&mQuat0, &_40);
+    TVec3f tmp(*MR::getPlayerLastMove());
     tmp.scale(0.9f);
     this->_4C.set(tmp);
     this->_58.set(this->_4C);
@@ -94,11 +57,13 @@ void AttackRockRide::fn_80152A00() {
     }
     this->_98 = 0;
     this->mQuat1.set(this->mQuat0);
-    TVec3f rotated;
-    MR::rotateVecRadian(&rotated, this->_64, this->_7C, 10.0f * this->_88);
-    TVec3f up(0.0f, 1.0f, 0.0f);
-    MR::turnVecToVecDegree(&this->_70, this->_34, rotated, 45.0f, up);
-    TVec3f side = this->_70 - this->_70;
+    MR::rotateVecRadian(&dir, this->_64, this->_7C, 10.0f * this->_88);
+    TVec3f up;
+    up.x = 0.0f;
+    up.y = 1.0f;
+    up.z = 0.0f;
+    MR::turnVecToVecDegree(&this->_70, this->_34, dir, 45.0f, up);
+    TVec3f side = this->_70 - this->_64;
     if (MR::isNearZero(side, 0.001f)) {
         MR::makeAxisVerticalZX(&side, this->_70);
     }
@@ -110,7 +75,7 @@ void AttackRockRide::fn_80152A00() {
     MR::startBckPlayer("Fall", "SpinDriverFall");
 }
 
-// NONMATCHING: vector math written from the m2c output; operand order / temporaries not verified.
+// NONMATCHING: Floating-point register allocation and scheduling differ.
 void AttackRockRide::fn_80152C00() {
     if (this->mIsRush) {
         f32 a = this->_88;
@@ -214,12 +179,12 @@ namespace NrvAttackRockStateHold {
 };  // namespace NrvAttackRockStateHold
 
 
+// NONMATCHING: String-pool base, host reload and GPR allocation differ.
 AttackRockStateHold::AttackRockStateHold(AttackRock* pRock, s32 rockNum)
     : ActorStateBase< AttackRock >("\215U\214\202\212\342\225\202\202\251\202\361\202\305\202\242\202\351\217\363\221\324", pRock), mRide(nullptr), mBreakModel(nullptr), mStartPos(0.0f, 0.0f, 0.0f), mUpVec(0.0f, 1.0f, 0.0f),
       mRate(0.0f), mRockNum(rockNum) {
     initNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvFloat::sInstance, 0);
-    mRide = new AttackRockRide;
-    mRide->fn_801528E0(pRock);
+    mRide = new AttackRockRide(pRock);
     mBreakModel = new BreakModel(mHost, "\225\366\202\352\203\202\203f\203\213", "AttackRockFallBreak", mHost->getBaseMtx(), "Break");
     mBreakModel->initWithoutIter();
 }
@@ -227,18 +192,21 @@ AttackRockStateHold::AttackRockStateHold(AttackRock* pRock, s32 rockNum)
 AttackRockStateHold::~AttackRockStateHold() {
 }
 
-// NONMATCHING: vector math written from the m2c output; operand order / temporaries not verified.
+#pragma auto_inline off
+// NONMATCHING: Vector temporary placement and copy/inlining choices differ.
 void AttackRockStateHold::appear() {
     mIsDead = false;
     TVec3f up;
     MR::calcUpVec(&up, mHost);
     TVec3f dir;
+    MR::getKoopaBattlePos(&dir);
     TVec3f offset = up * 700.0f;
-    TVec3f target(mHost->mPosition + offset);
-    TVec3f toTarget = dir - target;
+    TVec3f target;
+    target.set(mHost->mPosition + offset);
+    TVec3f toTarget = target - dir;
     MR::normalizeOrZero(&dir, toTarget);
-    TVec3f scaled = up * (0.5f * up.dot(dir));
-    TVec3f side = scaled - up;
+    TVec3f scaled = dir * (0.5f * up.dot(dir));
+    TVec3f side = up - scaled;
     mUpVec.set(side);
     MR::normalizeOrZero(&mUpVec);
     mRate = 0.0f;
@@ -246,19 +214,23 @@ void AttackRockStateHold::appear() {
     setNerve(&NrvAttackRockStateHold::AttackRockStateHoldNrvFloat::sInstance);
     mHost->mDemoObj->kill();
 }
+#pragma auto_inline on
 
 void AttackRockStateHold::kill() {
     mIsDead = true;
     mRide->fn_80152F20();
 }
 
+// NONMATCHING: Quaternion-copy temporary placement and floating-point scheduling differ.
 void AttackRockStateHold::control() {
     TVec3f dir;
-    TVec3f toPlayer = dir - mHost->mPosition;
+    MR::getKoopaBattleTargetPos(&dir);
+    TVec3f toPlayer = mHost->mPosition - dir;
     MR::normalizeOrZero(&dir, toPlayer);
     MR::turnQuatZDirRate(&mHost->mQuat100, mHost->mQuat100, dir, 0.3f);
     TVec3f zdir;
-    mHost->mQuat100.getZDir(zdir);
+    TQuat4f quat(mHost->mQuat100);
+    quat.getZDir(zdir);
     mRide->fn_801529E0(&zdir);
     mRide->fn_80152C00();
 }
@@ -296,13 +268,13 @@ bool AttackRockStateHold::fn_80153460() {
     return false;
 }
 
-// NONMATCHING: operator*/operator+ out-of-line vs inline decisions differ (target was a separate TU).
+#pragma dont_inline on
 void AttackRockStateHold::fn_801534D0() {
     AttackRock* pHost = this->mHost;
-    TVec3f offset = this->mUpVec * this->mRate;
-    TVec3f pos(this->mStartPos + offset);
+    TVec3f pos(this->mStartPos + this->mUpVec * this->mRate);
     MR::setPosition(pHost, pos);
 }
+#pragma dont_inline off
 
 void AttackRockStateHold::fn_80153530() {
     if (MR::isFirstStep(this)) {
@@ -367,6 +339,7 @@ void AttackRockStateHold::fn_80153720() {
     }
 }
 
+// NONMATCHING: Commutative floating-point multiply operand order differs.
 void AttackRockStateHold::fn_801537D0() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this->mHost, "FallBreak");
@@ -377,7 +350,7 @@ void AttackRockStateHold::fn_801537D0() {
         this->mRide->fn_80152F20();
     }
     AttackRock* pHost = this->mHost;
-    f32 base = fn_801510C0() * pHost->mScale.x;
+    f32 base = pHost->fn_801510C0() * pHost->mScale.y;
     MR::setShadowVolumeSphereRadius(this->mHost, nullptr, MR::calcNerveValue(this, 30, 0.95f * base, 0.05f * base));
     if (MR::isStep(this, 1)) {
         MR::hideModelAndOnCalcAnim(this->mHost);

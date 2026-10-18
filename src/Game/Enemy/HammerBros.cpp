@@ -1,39 +1,41 @@
 #include "Game/Enemy/HammerBros.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
+#include "Game/Enemy/BrosState.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
-// PLACEHOLDER(enemies): unnamed .sbss2 constant/static (owner unit not named); resolve when the owner unit names it.
-extern s32 lbl_807E3028;
+namespace {
+    extern const f32 sTongueAccel;
+}
 
-// Per-state actor states (defined in the second half of the original unit, not ported yet).
-class HammerBrosStateJump : public ActorStateBase< HammerBros > {
-public:
-    HammerBrosStateJump(HammerBros*);
-    u8 _pad[88 - sizeof(ActorStateBase< HammerBros >)];
-};
+const volatile s32 lbl_807E3028 = 0;
 
-class HammerBrosStateAttack : public ActorStateBase< HammerBros > {
-public:
-    HammerBrosStateAttack(HammerBros*);
-    u8 _pad[20 - sizeof(ActorStateBase< HammerBros >)];
-};
-
-class HammerBrosStateSwoon : public ActorStateBase< HammerBros > {
-public:
-    HammerBrosStateSwoon(HammerBros*);
-    void fn_8018AFF0();
-    bool fn_8018B000() const;
-    bool fn_8018B080() const;
-    bool fn_8018B0E0() const;
-    u8 _pad[24 - sizeof(ActorStateBase< HammerBros >)];
-};
+void HammerBros::throwProjectile(BrosProjectileBase* pProj) {
+    MtxPtr pHand = MR::getJointMtx(this, "HandR");
+    Mtx a, b, c;
+    PSMTXIdentity(a);
+    PSMTXIdentity(b);
+    PSMTXIdentity(c);
+    PSMTXInverse(getBaseMtx(), a);
+    PSMTXConcat(a, pHand, b);
+    b[0][3] += 20.0f;
+    b[1][3] = 260.0f;
+    b[2][3] = 125.0f;
+    PSMTXConcat(getBaseMtx(), b, c);
+    TVec3f trans(0.0f);
+    MR::extractMtxTrans(c, &trans);
+    pProj->v70(trans, TVec3f(mPosition));
+}
 
 HammerBros::HammerBros(const char* pName) : BrosBase(pName), _E0(0.0f), mWaitCount(0), mStateJump(nullptr), mStateAttack(nullptr), mStateSwoon(nullptr) {
     mMtx.identity();
+}
+
+void HammerBros::exeEaten() {
+    mJointCtrl->endFaceCtrl(10);
 }
 
 namespace NrvHammerBros {
@@ -109,9 +111,9 @@ void HammerBros::init(const JMapInfoIter& rIter) {
 
 void HammerBros::initStates() {
     initNerve(NRV(Wait), 16);
-    mStateJump = new HammerBrosStateJump(this);
+    mStateJump = new BrosStateJump(this);
     mStateAttack = new HammerBrosStateAttack(this);
-    mStateSwoon = new HammerBrosStateSwoon(this);
+    mStateSwoon = new BrosStateSwoon(this);
     MR::initActorState(this, mStateJump, NRV(Jump), "Jump");
     MR::initActorState(this, mStateAttack, NRV(Attack), "Attack");
     MR::initActorState(this, mStateSwoon, NRV(Swoon), "Swoon");
@@ -325,6 +327,51 @@ bool HammerBros::isStarPointerBindable() const {
     return false;
 }
 
+bool HammerBros::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isSensorEnemy(pReceiver)) {
+        return false;
+    }
+    if (MR::isMsgDrillAttack(msg)) {
+        return tryExplosionDamage(pSender, pReceiver);
+    }
+    if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg) || MR::isMsgYoshiEat(msg) || MR::isMsgExplosionAttack(msg)) {
+        if (tryExplosionDamage(pSender, pReceiver)) {
+            MR::tryHitReactionBetweenSensors(this, "\x93\x8a\x82\xb0\x81\x45\x94\x9a\x94\xad\x95\xa8\x83\x5f\x83\x81\x81\x5b\x83\x57", pSender, pReceiver);
+            return true;
+        }
+        return false;
+    }
+    if (MR::isMsgSupportTicoSpin(msg)) {
+        return trySpinDamage(pSender, pReceiver);
+    }
+    if (MR::isMsgPlayerHitAll(msg)) {
+        if (tryKickDamage(pSender, pReceiver)) {
+            return true;
+        }
+        return tryHitDamage(pSender, pReceiver);
+    }
+    if (MR::isMsgPlayerHipDrop(msg)) {
+        return tryStomp();
+    }
+    if (MR::isMsgPlayerTrample(msg)) {
+        return tryStomp();
+    }
+    if (MR::isMsgLockOnStarPieceShoot(msg)) {
+        return true;
+    }
+    if (MR::isMsgStarPieceReflect(msg)) {
+        return tryStarPieceReflect();
+    }
+    if (MR::isMsgStarPieceAttack(msg)) {
+        if (!isGuardable()) {
+            trySpinDamage(pSender, pReceiver);
+            return true;
+        }
+        return true;
+    }
+    return MR::isMsgStarPieceAttack(msg);
+}
+
 bool HammerBros::tryExplosionDamage(HitSensor* pSender, HitSensor* pReceiver) {
     if (isVulnerable()) {
         MR::fn_80012B90(this, 36.0f, 40.0f, pSender, pReceiver, 4);
@@ -421,14 +468,14 @@ bool HammerBros::tryStarPieceReflect() {
 bool HammerBros::tryYoshiTongue(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
         MR::addVelocityMoveToTargetHorizon(this, *MR::getPlayerPos(), 22.0f);
-        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -2.0f);
+        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
         MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
         setNerve(NRV(Swoon));
         killHeldProjectile();
         return false;
     }
     if (isAliveNerve()) {
-        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -2.0f);
+        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
         MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
         setNerve(NRV(Swoon));
         killHeldProjectile();
@@ -489,50 +536,7 @@ bool HammerBros::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     return false;
 }
 
-bool HammerBros::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (!MR::isSensorEnemy(pReceiver)) {
-        return false;
-    }
-    if (MR::isMsgDrillAttack(msg)) {
-        return tryExplosionDamage(pSender, pReceiver);
-    }
-    if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg) || MR::isMsgYoshiEat(msg) || MR::isMsgExplosionAttack(msg)) {
-        if (tryExplosionDamage(pSender, pReceiver)) {
-            MR::tryHitReactionBetweenSensors(this, "\x93\x8a\x82\xb0\x81\x45\x94\x9a\x94\xad\x95\xa8\x83\x5f\x83\x81\x81\x5b\x83\x57", pSender, pReceiver);
-            return true;
-        }
-        return false;
-    }
-    if (MR::isMsgSupportTicoSpin(msg)) {
-        return trySpinDamage(pSender, pReceiver);
-    }
-    if (MR::isMsgPlayerHitAll(msg)) {
-        if (tryKickDamage(pSender, pReceiver)) {
-            return true;
-        }
-        return tryHitDamage(pSender, pReceiver);
-    }
-    if (MR::isMsgPlayerHipDrop(msg)) {
-        return tryStomp();
-    }
-    if (MR::isMsgPlayerTrample(msg)) {
-        return tryStomp();
-    }
-    if (MR::isMsgLockOnStarPieceShoot(msg)) {
-        return true;
-    }
-    if (MR::isMsgStarPieceReflect(msg)) {
-        return tryStarPieceReflect();
-    }
-    if (MR::isMsgStarPieceAttack(msg)) {
-        if (!isGuardable()) {
-            trySpinDamage(pSender, pReceiver);
-            return true;
-        }
-        return true;
-    }
-    return false;
-}
+
 
 bool HammerBros::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgExplosionAttack(msg) && tryExplosionDamage(pSender, pReceiver)) {
@@ -559,23 +563,12 @@ bool HammerBros::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     return false;
 }
 
-void HammerBros::throwProjectile(BrosProjectileBase* pProj) {
-    MtxPtr pHand = MR::getJointMtx(this, "HandR");
-    Mtx a, b, c;
-    PSMTXIdentity(a);
-    PSMTXIdentity(b);
-    PSMTXIdentity(c);
-    PSMTXInverse(getBaseMtx(), a);
-    PSMTXConcat(a, pHand, b);
-    b[0][3] += 20.0f;
-    b[1][3] = 260.0f;
-    b[2][3] = 125.0f;
-    PSMTXConcat(b, getBaseMtx(), c);
-    TVec3f trans(0.0f);
-    MR::extractMtxTrans(c, &trans);
-    pProj->v70(trans, TVec3f(mPosition));
-}
+
 
 HammerBros::~HammerBros() {
 }
 
+
+namespace {
+    const f32 sTongueAccel = 2.0f;
+}

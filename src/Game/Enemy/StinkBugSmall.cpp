@@ -323,7 +323,7 @@ void StinkBugSmall::initAfterPlacement() {
     TVec3f up;
     MR::calcUpVec(&up, this);
     up.scale(-200.0f);
-    HitSensor* pSensor = getSensor("body");
+    HitSensor* pSensor = getSensor("Body");
     MR::getFirstPolyOnLineToMapExceptSensor(&_98, nullptr, v7, up, pSensor);
     MR::resetPosition(this, _98);
 }
@@ -376,7 +376,7 @@ void StinkBugSmall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (_C4 && pSender == getSensor("body")) {
+    if (_C4 && pSender == getSensor("Body")) {
         MR::sendMsgPush(pReceiver, pSender);
         return;
     }
@@ -402,7 +402,7 @@ bool StinkBugSmall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
         return false;
     }
 
-    if (pReceiver != getSensor("body")) {
+    if (pReceiver != getSensor("Body")) {
         return false;
     }
 
@@ -428,7 +428,7 @@ bool StinkBugSmall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
         return false;
     }
 
-    if (MR::isMsgStarPieceReflect(msg) && pReceiver == getSensor("body")) {
+    if (MR::isMsgStarPieceReflect(msg) && pReceiver == getSensor("Body")) {
         if (isNrvEnableStarPieceAttack()) {
             setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvSpinReaction));
         }
@@ -437,7 +437,7 @@ bool StinkBugSmall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
     }
 
     if (!isNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvSpinReaction)) && !isNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvDash)) &&
-        MR::isMsgPlayerSpinAttackOrSupportTico(msg) && pReceiver == getSensor("body")) {
+        MR::isMsgPlayerSpinAttackOrSupportTico(msg) && pReceiver == getSensor("Body")) {
         setNerve(GET_NERVE(StinkBugSmall, StinkBugSmallNrvSpinReaction));
         return true;
     }
@@ -472,7 +472,7 @@ bool StinkBugSmall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRec
     }
 
     if (MR::isMsgFloorTouch(msg)) {
-        if (MR::isOnPlayer(getSensor("body"))) {
+        if (MR::isOnPlayer(getSensor("Body"))) {
             if (StinkBugSmall::isShakeChance()) {
                 MR::sendMsgEnemyAttackFlip(pSender, pReceiver);
             } else {

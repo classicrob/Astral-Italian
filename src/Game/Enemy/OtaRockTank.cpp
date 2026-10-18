@@ -1,74 +1,170 @@
 #include "Game/Enemy/OtaRockTank.hpp"
-void fn_801DDD70(void* pThis);
 #include "Game/Util.hpp"
+#include "Game/LiveActor/BreakModel.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/Enemy/CocoNutBall.hpp"
 #include "Game/Enemy/FireBall.hpp"
-#include "Game/Util/FixedPosition.hpp"
+#include "Game/Enemy/OtaRockChief.hpp"
 #include "Game/LiveActor/Nerve.hpp"
+#include "Game/Util/FixedPosition.hpp"
+#include <cstdio>
 
-// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
-extern TVec3f lbl_8072942C;
-// PLACEHOLDER(enemies): unnamed data at this address (owner unit not named); resolve when the owner unit names it.
-extern u8 lbl_8068E95C[];
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D2D8C;
+#include "Game/Enemy/ScatterFireBall.hpp"
+namespace NrvOtaRockTank {
+    NEW_NERVE(OtaRockTankNrvRunAccel, OtaRockTank, RunAccel);
+    NEW_NERVE(OtaRockTankNrvRunKeep, OtaRockTank, RunKeep);
+    NEW_NERVE(OtaRockTankNrvBrakeA, OtaRockTank, BrakeA);
+    NEW_NERVE(OtaRockTankNrvRunRail, OtaRockTank, RunRail);
 
-// PLACEHOLDER(enemies): fn_8017E260 is a placement ctor (r3 = raw object, r4 = name data, sets a vtable); the class is not yet named; resolve when the class that owns vtable lbl_80686668 is ported.
-void fn_8017E260(void* pThis, const void* pData);
+    // Empty nerve (no executor).
+    class OtaRockTankNrvNone : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {}
+        static OtaRockTankNrvNone sInstance;
+    };
+    OtaRockTankNrvNone OtaRockTankNrvNone::sInstance ATTRIBUTE_WEAK;
 
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D2D78;
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D2D7C;
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D2D80;
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D2D84;
+    NEW_NERVE(OtaRockTankNrvStartDemo, OtaRockTank, StartDemo);
+    NEW_NERVE(OtaRockTankNrvRunStart, OtaRockTank, RunStart);
+    NEW_NERVE(OtaRockTankNrvRun, OtaRockTank, Run);
+    NEW_NERVE(OtaRockTankNrvFireAttack, OtaRockTank, FireAttack);
+    NEW_NERVE(OtaRockTankNrvBrakeB, OtaRockTank, BrakeB);
+    NEW_NERVE(OtaRockTankNrvTurnAttack, OtaRockTank, TurnAttack);
+    NEW_NERVE(OtaRockTankNrvRunFukashi, OtaRockTank, RunFukashi);
+    NEW_NERVE(OtaRockTankNrvMeteor, OtaRockTank, Meteor);
+    NEW_NERVE(OtaRockTankNrvFallDash, OtaRockTank, Dash);
+    NEW_NERVE(OtaRockTankNrvFallDashStart, OtaRockTank, Dash);
+    NEW_NERVE(OtaRockTankNrvDashStart, OtaRockTank, DashStart);
+    NEW_NERVE(OtaRockTankNrvFallDashBrake, OtaRockTank, DashBrake);
+    NEW_NERVE(OtaRockTankNrvBackDashStart, OtaRockTank, Dash);
+    NEW_NERVE(OtaRockTankNrvBackDash, OtaRockTank, Dash);
+    NEW_NERVE(OtaRockTankNrvBackDashBrake, OtaRockTank, DashBrake);
+    NEW_NERVE(OtaRockTankNrvRunAfterDash, OtaRockTank, Run);
+    NEW_NERVE(OtaRockTankNrvDamageA, OtaRockTank, Damage);
+    NEW_NERVE(OtaRockTankNrvDamageB, OtaRockTank, Damage);
+    NEW_NERVE(OtaRockTankNrvDownDemo, OtaRockTank, DownDemo);
+    NEW_NERVE(OtaRockTankNrvExplosion, OtaRockTank, Explosion);
+};  // namespace NrvOtaRockTank
+
+#define NT(n) (&NrvOtaRockTank::OtaRockTankNrv##n::sInstance)
+
+namespace {
+    const f32 cWheelBrake = 0.15f;
+    TVec3f sBatteryOffset(0.0f, -20.0f, 500.0f);
+    TVec3f sMouthOffset(180.0f, 0.0f, 0.0f);
+    TVec3f sBatteryRotate(0.0f, 180.0f, 0.0f);
+    TVec3f sCameraOffset(0.0f, 500.0f, 0.0f);
+};
 
 OtaRockTank::OtaRockTank(const char* pName) : LiveActor(pName) {
     mBreakModel = nullptr;
     mActorCameraInfo = nullptr;
     mAnimCameraInfo = nullptr;
-    mPos.x = 0.0f;
-    mPos.y = 0.0f;
-    mPos.z = 0.0f;
+    mPos.set(0.0f, 0.0f, 0.0f);
     mHasPowerStar = false;
-    mUnkB0 = 3;
+    mLife = 3;
     mChief = nullptr;
     mJointCtrl0 = nullptr;
     mJointCtrl1 = nullptr;
-    mUnkC4 = 0.0f;
-    mUnkC8 = 1;
-    mUnkCC = 0;
-    mUnkD0 = 0;
+    mWheelRot = 0.0f;
+    mShotIndex = 1;
+    mMeteorCount = 0;
+    mMeteorRandom = 0;
     mCocoNutBalls = nullptr;
     mFireBalls = nullptr;
     mFixedPositions = nullptr;
-    mRailClipPos.x = 0.0f;
-    mRailClipPos.y = 0.0f;
-    mRailClipPos.z = 0.0f;
-    mRailDirection.x = 0.0f;
-    mRailDirection.y = 0.0f;
-    mRailDirection.z = 0.0f;
-    mPrevRailDirection.x = 0.0f;
-    mPrevRailDirection.y = 0.0f;
-    mPrevRailDirection.z = 0.0f;
-    mUnk10C = 10.0f;
-    mUnk110 = 0xFF;
+    mRailClipPos.set(0.0f, 0.0f, 0.0f);
+    mRailDirection.set(0.0f, 0.0f, 0.0f);
+    mPrevRailDirection.set(0.0f, 0.0f, 0.0f);
+    mWheelSpeed = 10.0f;
+    mDamageMask = 0xFF;
     mCurrentRailPointNo = 0;
-    mUnk118 = 0;
-    mUnk11C = 16.0f;
+    mTargetRailPointNo = 0;
+    mSpeed = 16.0f;
     mUnk120 = 0;
     mUnk121 = 0;
     mUnk122 = 0;
-    mUnk124 = nullptr;
-    mUnk128 = 2;
-    mUnk12C = 0;
-    mUnk130 = 0.0f;
+    mFireTimer = 0;
+    mThrowNum = 2;
+    mMeteorStep = 0;
+    mSpeedStart = 0.0f;
 }
 
-void fn_801DDD70(void* pThis) {
-    fn_8017E260(pThis, lbl_8068E95C);
+JointController* OtaRockTank::fn_801DDD80(const char* pJointName, bool (OtaRockTank::*calcFunc)(TPos3f*, const JointControllerInfo&)) {
+    return MR::createJointDelegator< OtaRockTank >(this, this, calcFunc, nullptr, pJointName);
+}
+
+void OtaRockTank::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, nullptr, false);
+    mChief = new OtaRockChief(this, "\x83\x49\x83\x5E\x83\x8D\x83\x62\x83\x4E\x83\x60\x81\x5B\x83\x74");
+    mChief->initWithoutIter();
+    MR::startBrk(mChief, "Normal");
+    mBreakModel = new BreakModel(this, "\x83\x5E\x83\x93\x83\x4E\x89\x95\x82\xEA\x83\x82\x83\x66\x83\x8B", "OtaRockTankBreak", getBaseMtx(), "Break");
+    mBreakModel->initWithoutIter();
+    mAnimCameraInfo = MR::createActorCameraInfo(rIter);
+    MR::initAnimCamera(this, mAnimCameraInfo, "StartDemo");
+    mAnimCameraInfo2 = MR::createActorCameraInfo(rIter);
+    MR::initAnimCamera(this, mAnimCameraInfo2, "DownDemo");
+    MR::initActorCamera(this, rIter, &mActorCameraInfo);
+    MR::declareCameraRegisterVec(this, 0, &mPos);
+    mCocoNutBalls = new CocoNutBall[8];
+    for (s32 i = 0; i < 8; i++) {
+        mCocoNutBalls[i].mScale = TVec3f(1.5f, 1.5f, 1.5f);
+        mCocoNutBalls[i].initWithoutIter();
+        mCocoNutBalls[i]._8C = this;
+        mCocoNutBalls[i]._DE = true;
+    }
+    mFireBalls = new FireBall[48];
+    for (s32 i = 0; i < 48; i++) {
+        mFireBalls[i].mScale = TVec3f(1.5f, 1.5f, 1.5f);
+        mFireBalls[i]._B4 = 2.0f;
+        mFireBalls[i].initWithoutIter();
+        mFireBalls[i].mHost = this;
+    }
+    mScatterBalls = new ScatterFireBall[24];
+    for (s32 i = 0; i < 24; i++) {
+        mScatterBalls[i].mScale = TVec3f(1.5f, 1.5f, 1.5f);
+        mScatterBalls[i]._B4 = 2.0f;
+        mScatterBalls[i].initWithoutIter();
+        mScatterBalls[i].mHost = this;
+    }
+    mTargetPoses = new TVec3f[11];
+    for (s32 i = 0; i < 11; i++) {
+        mTargetPoses[i].set(0.0f, 0.0f, 0.0f);
+        char name[128];
+        snprintf(name, 128, "\x92\x65\x92\x65\x93\x5F%d", i);
+        TVec3f def(0.0f);
+        MR::tryFindNamePos(name, &mTargetPoses[i], &def);
+    }
+    TVec3f rot(0.0f);
+    TVec3f offs = -rot;
+    offs.y = -offs.y;
+    mFixedPositions = new FixedPosition*[7];
+    mFixedPositions[0] = new FixedPosition(this, "Battery03", offs, sBatteryRotate);
+    mFixedPositions[1] = new FixedPosition(this, "Battery01", sBatteryOffset, rot);
+    mFixedPositions[2] = new FixedPosition(this, "Battery02", sBatteryOffset, rot);
+    mFixedPositions[3] = new FixedPosition(this, "Battery05", sBatteryOffset, rot);
+    mFixedPositions[4] = new FixedPosition(this, "Battery04", offs, sBatteryRotate);
+    mFixedPositions[5] = new FixedPosition(this, "Battery06", offs, sBatteryRotate);
+    mFixedPositions[6] = new FixedPosition(mChief, "Mouth", sMouthOffset, TVec3f(0.0f, 90.0f, 0.0f));
+    mJointCtrl0 = fn_801DDD80("WheelL", &OtaRockTank::fn_801E1010);
+    mJointCtrl1 = fn_801DDD80("WheelR", &OtaRockTank::fn_801E1020);
+    mJointCtrl2 = fn_801DDD80("OtaRockPos", &OtaRockTank::fn_801E1090);
+    initNerve(NT(RunAccel), 0);
+    MR::initAndSetRailClipping(&mRailClipPos, this, 100.0f, 500.0f);
+    MR::moveCoordToStartPos(this);
+    MR::moveTransXZToCurrentRailPos(this);
+    MR::calcRailDirection(&mRailDirection, this);
+    mPrevRailDirection.set(mRailDirection);
+    mCurrentRailPointNo = MR::getCurrentRailPointNo(this);
+    s32 arg0 = -1;
+    MR::getJMapInfoArg0NoInit(rIter, &arg0);
+    if (arg0 != -1) {
+        mHasPowerStar = true;
+        MR::declarePowerStar(this);
+    }
+    fn_801E12C0();
+    makeActorAppeared();
 }
 
 void OtaRockTank::appear() {
@@ -104,7 +200,7 @@ void OtaRockTank::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mRailDirection);
     MR::extractMtxTrans(getBaseMtx(), &mPosition);
     TVec3f sp14(0.0f);
-    PSMTXMultVecSR(getBaseMtx(), &lbl_8072942C, &sp14);
+    PSMTXMultVecSR(getBaseMtx(), &sCameraOffset, &sp14);
     TVec3f sp8(mPosition);
     sp8 += sp14;
     mPos = sp8;
@@ -113,18 +209,605 @@ void OtaRockTank::calcAndSetBaseMtx() {
     mJointCtrl2->registerCallBack();
 }
 
+void OtaRockTank::exeRunAccel() {
+    if (MR::isFirstStep(this)) {
+        fn_801E0170();
+    }
+    if (MR::isLessEqualStep(this, 5)) {
+        fn_801DFE20();
+        fn_801E04B0();
+        fn_801E0630();
+    } else {
+        fn_801DFDC0();
+    }
+    mWheelRot += mWheelSpeed;
+    if (MR::isGreaterStep(this, 10)) {
+        mSpeed = fn_801DFC60();
+        setNerve(NT(RunKeep));
+    }
+    fn_801E1490();
+}
+
+void OtaRockTank::exeRunKeep() {
+    if (MR::isFirstStep(this)) {
+        fn_801E0170();
+    }
+    if (fn_801DFDC0()) {
+        MR::tryStartActionNotPlaying(mChief, "Wait");
+        setNerve(NT(BrakeA));
+    }
+    mWheelRot += mWheelSpeed;
+    fn_801E1490();
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::exeBrakeA() {
+    if (MR::isFirstStep(this)) {
+        mSpeedStart = mSpeed;
+        MR::emitEffect(this, "BrakeL");
+        MR::emitEffect(this, "BrakeR");
+        MR::tryStartAllAnim(this, "Brake");
+        MR::tryStartAllAnim(mChief, "Brake");
+    }
+    fn_801E0340(mSpeedStart);
+    fn_801DFE20();
+    fn_801E05E0();
+    mWheelRot += mWheelSpeed;
+    if (MR::isGreaterEqualStep(this, 15)) {
+        fn_801E12C0();
+        setNerve(NT(RunRail));
+        MR::tryDeleteEffect(this, "BrakeL");
+        MR::tryDeleteEffect(this, "BrakeR");
+    }
+    fn_801E1490();
+}
+
+void OtaRockTank::exeRunRail() {
+    if (!fn_801E1490()) {
+        if (MR::isFirstStep(this)) {
+            mSpeedStart = mSpeed;
+        }
+        TVec3f dir(mRailDirection);
+        MR::calcRailDirectionAtNextPoint(&dir, this);
+        fn_801DFF10(dir, 0.2f);
+        mWheelRot += mWheelSpeed;
+        if (MR::isGreaterEqualStep(this, 65)) {
+            if (mCurrentRailPointNo != MR::getCurrentRailPointNo(this)) {
+                mCurrentRailPointNo = MR::getCurrentRailPointNo(this);
+                setNerve(NT(RunAccel));
+            }
+        }
+    }
+}
+
+void OtaRockTank::exeStartDemo() {
+    if (MR::isFirstStep(this)) {
+        TPos3f mtx;
+        mtx.identity();
+        MR::tryFindNamePos("\x83\x7B\x83\x58\x90\xED\x83\x66\x83\x82\x8A\x4A\x8E\x6E\x88\xCA\x92\x75", mtx.toMtxPtr());
+        mtx.getTrans(mPosition);
+        mtx.getZDir(mRailDirection);
+        mPrevRailDirection.set(mRailDirection);
+        MR::forceDeleteEffectAll(this);
+        MR::forceDeleteEffectAll(mChief);
+        MR::startAction(this, "StartDemo");
+        MR::startAction(mChief, "StartDemo");
+        MR::hidePlayer();
+        MR::stopStageBgmForDemo();
+    }
+    if (MR::tryEndDemoAndAnimCamera(this, mAnimCameraInfo, "StartDemo", 0)) {
+        MR::moveCoordToStartPos(this);
+        MR::moveTransXZToCurrentRailPos(this);
+        MR::calcRailDirection(&mRailDirection, this);
+        mPrevRailDirection.set(mRailDirection);
+        mCurrentRailPointNo = MR::getCurrentRailPointNo(this);
+        MR::showPlayer();
+        MR::startActorCameraTargetPlayer(this, mActorCameraInfo, -1);
+        setNerve(NT(RunStart));
+    }
+}
+
+void OtaRockTank::exeRunStart() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "RunStart");
+        mSpeed = fn_801DFC60();
+        if (mLife == 1) {
+            MR::startAction(mChief, "AngryRunStart");
+            MR::startBrk(mChief, "Angry");
+            if (!MR::isEffectValid(mChief, "AngrySmoke")) {
+                MR::emitEffect(mChief, "AngrySmoke");
+            }
+        } else {
+            MR::startAction(mChief, "RunStart");
+        }
+        mWheelSpeed = 0.0f;
+        mUnk120 = 0;
+    }
+    if (MR::isGreaterStep(this, 60)) {
+        fn_801E0630();
+        mWheelRot += mWheelSpeed;
+    }
+    if (MR::isActionEnd(this)) {
+        fn_801E12C0();
+        if (MR::isRailReachedNearNextPoint(this, fn_801DFD10())) {
+            mCurrentRailPointNo = MR::getNextRailPointNo(this);
+            MR::moveRailToNextPoint(this);
+        }
+        setNerve(NT(Run));
+    }
+}
+
+void OtaRockTank::exeRun() {
+    if (MR::isFirstStep(this)) {
+        mUnk120 = 0;
+        mFireTimer = 30;
+        fn_801E0170();
+    }
+    MR::startActionSound(this, "Run", -1, -1, -1);
+    if (MR::isLessEqualStep(this, 5)) {
+        fn_801DFE20();
+        fn_801E04B0();
+        fn_801E0630();
+    } else {
+        fn_801DFDC0();
+    }
+    mWheelRot += mWheelSpeed;
+    bool isRunStart = isNerve(NT(RunStart));
+    if (MR::isStep(this, 10) && isRunStart) {
+        fn_801E08C0();
+    }
+    if (MR::isGreaterStep(this, 10)) {
+        mUnk120 = fn_801E1220();
+        mSpeed = fn_801DFC60();
+        setNerve(NT(RunFukashi));
+    }
+}
+
+void OtaRockTank::exeFireAttack() {
+    if (MR::isFirstStep(this)) {
+        mUnk121 = 0;
+        mFireTimer = 1000;
+    }
+    MR::startActionSound(this, "Run", -1, -1, -1);
+    if (MR::isBckOneTimeAndStopped(this)) {
+        fn_801E12C0();
+        mFireTimer = getNerveStep() + 30;
+        mUnk121 = 0;
+    }
+    if (fn_801DFDC0() && !mUnk121) {
+        if (mLife == 1) {
+            MR::tryStartActionNotPlaying(mChief, "AngryWait");
+        } else {
+            MR::tryStartActionNotPlaying(mChief, "Wait");
+        }
+        setNerve(NT(Meteor));
+        return;
+    }
+    mWheelRot += mWheelSpeed;
+    if (mUnk120 && (fn_801E1220() || mUnk121)) {
+        if (MR::isStep(this, mFireTimer)) {
+            MR::startBrk(this, "FireSign");
+            mUnk121 = 1;
+        }
+        if (MR::isStep(this, mFireTimer + 10)) {
+            MR::startAction(this, "Attack");
+            MR::startAction(mChief, "Attack");
+        }
+        if (MR::isStep(this, mFireTimer + 50)) {
+            fn_801E08C0();
+            mUnk121 = 0;
+        }
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::exeBrakeB() {
+    if (MR::isFirstStep(this)) {
+        mSpeedStart = mSpeed;
+        MR::emitEffect(this, "BrakeL");
+        MR::emitEffect(this, "BrakeR");
+        MR::tryStartAllAnim(this, "Brake");
+        MR::tryStartAllAnim(mChief, "Brake");
+    }
+    MR::startActionSound(this, "Brake", -1, -1, -1);
+    fn_801E0340(mSpeedStart);
+    fn_801DFE20();
+    fn_801E05E0();
+    mWheelRot += mWheelSpeed;
+    if (MR::isGreaterEqualStep(this, 40)) {
+        const Nerve* pNext = NT(Meteor);
+        if (mLife <= 2 && MR::getNextRailPointNo(this) == 4) {
+            pNext = NT(FallDash);
+        }
+        fn_801E12C0();
+        setNerve(pNext);
+        MR::tryDeleteEffect(this, "BrakeL");
+        MR::tryDeleteEffect(this, "BrakeR");
+    }
+}
+
+void OtaRockTank::exeTurnAttack() {
+    if (MR::isFirstStep(this)) {
+        mSpeedStart = mSpeed;
+        MR::startActionSound(this, "Turn", -1, -1, -1);
+    }
+    TVec3f dir(mRailDirection);
+    MR::calcRailDirectionAtNextPoint(&dir, this);
+    fn_801DFF10(dir, 0.2f);
+    mWheelRot += mWheelSpeed;
+    if (MR::isStep(this, 25)) {
+        MR::startBrk(this, "FireSign");
+        mUnk121 = 1;
+    }
+    if (MR::isStep(this, 35)) {
+        MR::startAction(this, "Attack");
+        MR::startAction(mChief, "Attack");
+        MR::startActionSound(this, "RunFukashi", -1, -1, -1);
+    }
+    if (MR::isGreaterEqualStep(this, 65)) {
+        if (mCurrentRailPointNo != MR::getCurrentRailPointNo(this)) {
+            mCurrentRailPointNo = MR::getCurrentRailPointNo(this);
+            setNerve(NT(RunRail));
+        }
+    }
+}
+
+void OtaRockTank::exeRunFukashi() {
+    if (MR::isFirstStep(this)) {
+        mSpeedStart = mSpeed;
+    }
+    MR::startActionSound(this, "Brake", -1, -1, -1);
+    TVec3f dir(mRailDirection);
+    TVec3f from(0.0f);
+    TVec3f to(0.0f);
+    MR::calcRailPointPos(&from, this, 4);
+    MR::calcRailPointPos(&to, this, 1);
+    MR::calcDirectionVec(&dir, from, to);
+    fn_801DFF10(dir, 0.2f);
+    mWheelRot += mWheelSpeed;
+    if (MR::isGreaterEqualStep(this, 25)) {
+        if (mCurrentRailPointNo != MR::getCurrentRailPointNo(this)) {
+            mCurrentRailPointNo = MR::getCurrentRailPointNo(this);
+            setNerve(NT(FallDashBrake));
+        }
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::exeMeteor() {
+    if (MR::isFirstStep(this)) {
+        mWheelSpeed = 0.0f;
+        mSpeed = 0.0f;
+        mMeteorCount = 0;
+        mMeteorRandom = MR::getRandom(static_cast< s32 >(0), static_cast< s32 >(10));
+        MR::tryStartAllAnim(this, "MeteorSign");
+        MR::tryStartAllAnim(mChief, "MeteorSign");
+    }
+    MR::startActionSound(this, "FallAttack", -1, -1, -1);
+    if (!MR::isAnyAnimPlaying(this, "MeteorSign")) {
+        if (mMeteorCount > 10) {
+            if (MR::isActionEnd(this)) {
+                setNerve(NT(BackDash));
+                return;
+            }
+        } else {
+            if (MR::isActionEnd(this)) {
+                if (mMeteorCount < 10) {
+                    MR::tryStartAllAnim(this, "MeteorAttack");
+                    MR::tryStartAllAnim(mChief, "MeteorAttack");
+                } else {
+                    MR::tryStartAllAnim(this, "MeteorEnd");
+                    MR::tryStartAllAnim(mChief, "MeteorEnd");
+                }
+                mMeteorStep = 0;
+                mMeteorCount++;
+            } else if (MR::isAnyAnimPlaying(this, "MeteorAttack") && mMeteorStep == 5) {
+                fn_801E0D90(mMeteorCount - 1, mMeteorRandom);
+                fn_801E0E80(mMeteorCount - 1, mMeteorRandom);
+            }
+        }
+        mMeteorStep++;
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::exeDashStart() {
+    if (MR::isFirstStep(this)) {
+        MR::tryStartAllAnim(this, "DashStart");
+        MR::tryStartAllAnim(mChief, "DashStart");
+        MR::startActionSound(this, "FallDashStart", -1, -1, -1);
+        if (mLife == 1) {
+            MR::startAction(mChief, "AngryRunStart");
+            MR::startBrk(mChief, "Angry");
+            if (!MR::isEffectValid(mChief, "AngrySmoke")) {
+                MR::emitEffect(mChief, "AngrySmoke");
+            }
+        }
+    }
+    fn_801E0630();
+    s32 target = mTargetRailPointNo;
+    mWheelRot += mWheelSpeed;
+    if (target == 4) {
+        TVec3f dir(mRailDirection);
+        TVec3f from(0.0f);
+        TVec3f to(0.0f);
+        MR::calcRailPointPos(&from, this, 4);
+        MR::calcRailPointPos(&to, this, 1);
+        MR::calcDirectionVec(&dir, to, from);
+        MR::turnDirection(this, &mRailDirection, dir, 0.9989f);
+    } else if (target != 1) {
+        TVec3f dir(mRailDirection);
+        MR::calcRailDirectionAtCoord(&dir, this, MR::getRailPointCoord(this, 4));
+        MR::turnDirection(this, &mRailDirection, dir, 0.9989f);
+        TVec3f p(0.0f);
+        MR::calcRailPointPos(&p, this, 4);
+        TVec3f d(p);
+        d -= mPosition;
+        f32 rate = MR::calcNerveRate(this, 1200);
+        mPosition.x += d.x * rate;
+        mPosition.z += d.z * rate;
+    }
+    if (MR::isActionEnd(this)) {
+        if (mTargetRailPointNo == 4) {
+            setNerve(NT(BackDash));
+            return;
+        }
+        if (mTargetRailPointNo == 1) {
+            setNerve(NT(FallDash));
+            return;
+        }
+        fn_801E12C0();
+        mCurrentRailPointNo = 4;
+        MR::moveCoordToRailPoint(this, 4);
+        setNerve(NT(Run));
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::exeDash() {
+    if (isNerve(NT(FallDashStart)) && MR::isFirstStep(this)) {
+        MR::startActionSound(this, "FallDashStart", -1, -1, -1);
+    }
+    if (isNerve(NT(FallDashStart)) || isNerve(NT(BackDashStart))) {
+        fn_801E0630();
+        mWheelRot += mWheelSpeed;
+        if (MR::isFirstStep(this)) {
+            MR::tryStartAllAnim(this, "DashStart");
+            MR::tryStartAllAnim(mChief, "DashStart");
+        }
+        if (MR::isActionEnd(this)) {
+            if (isNerve(NT(FallDashStart))) {
+                setNerve(NT(FallDash));
+                mTargetRailPointNo = 1;
+                return;
+            }
+            setNerve(NT(BackDash));
+            mTargetRailPointNo = 4;
+        }
+    } else {
+        if (MR::isFirstStep(this)) {
+            MR::tryStartAllAnim(this, "DashRun");
+            MR::tryStartAllAnim(mChief, "DashRun");
+            mSpeed = 35.0f;
+        }
+        if (isNerve(NT(BackDash))) {
+            MR::startActionSound(this, "BackDash", -1, -1, -1);
+        } else if (isNerve(NT(FallDash))) {
+            MR::startActionSound(this, "FallDash", -1, -1, -1);
+        }
+        mPosition.x += mRailDirection.x * mSpeed;
+        mPosition.z += mRailDirection.z * mSpeed;
+        mWheelRot += mWheelSpeed;
+        TVec3f p(0.0f);
+        MR::calcRailPointPos(&p, this, mTargetRailPointNo);
+        f32 dist = MR::calcDistance(this, p);
+        f32 limit = mLife == 1 ? 1200.0f : 1200.0f;
+        if (dist < limit) {
+            if (isNerve(NT(FallDash))) {
+                setNerve(NT(FallDashBrake));
+                return;
+            }
+            setNerve(NT(BackDashBrake));
+        }
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::exeDashBrake() {
+    if (MR::isFirstStep(this)) {
+        mSpeedStart = mSpeed;
+        MR::emitEffect(this, "BrakeL");
+        MR::emitEffect(this, "BrakeR");
+        if (isNerve(NT(BackDashBrake))) {
+            MR::tryStartAllAnim(this, "Brake");
+            MR::tryStartAllAnim(mChief, "Brake");
+        }
+    }
+    MR::startActionSound(this, "Brake", -1, -1, -1);
+    TVec3f dir(mRailDirection);
+    TVec3f from(0.0f);
+    TVec3f to(0.0f);
+    MR::calcRailPointPos(&from, this, 4);
+    MR::calcRailPointPos(&to, this, 1);
+    MR::calcDirectionVec(&dir, to, from);
+    bool isFall = isNerve(NT(FallDashBrake));
+    if (isFall) {
+        mTargetRailPointNo = 4;
+        MR::turnDirection(this, &mRailDirection, dir, MR::cosDegree(4.0f));
+        mPosition.x -= dir.x * mSpeed;
+        mPosition.z -= dir.z * mSpeed;
+    } else {
+        mTargetRailPointNo = 5;
+        TVec3f keep(dir);
+        MR::calcRailDirectionAtCoord(&dir, this, MR::getRailPointCoord(this, 4));
+        MR::turnDirection(this, &mRailDirection, dir, MR::cosDegree(4.0f));
+        mPosition.x += keep.x * mSpeed;
+        mPosition.z += keep.z * mSpeed;
+    }
+    mWheelRot += mWheelSpeed;
+    if (MR::isGreaterEqualStep(this, 40)) {
+        mSpeed *= 0.95f;
+        fn_801E0630();
+        if (!(mRailDirection.dot(dir) < 0.999f) && !MR::isLessStep(this, 100)) {
+            mRailDirection.set(dir);
+            MR::tryDeleteEffect(this, "BrakeL");
+            MR::tryDeleteEffect(this, "BrakeR");
+            if (isFall) {
+                setNerve(NT(BackDashStart));
+                return;
+            }
+            fn_801E12C0();
+            setNerve(NT(RunAfterDash));
+            mCurrentRailPointNo = 4;
+        }
+    } else {
+        fn_801E0430(40, mSpeedStart, 20.0f);
+        fn_801E05E0();
+        fn_801E05E0();
+        fn_801E05E0();
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::exeDamage() {
+    if (MR::isFirstStep(this)) {
+        switch (mLife) {
+        case 2:
+            if (!MR::isEffectValid(this, "Weaken0")) {
+                MR::emitEffect(this, "Weaken0");
+            }
+            break;
+        case 1:
+            if (!MR::isEffectValid(this, "Weaken1")) {
+                MR::emitEffect(this, "Weaken1");
+            }
+            break;
+        }
+        MR::setBrkFrameAndStop(this, 0.0f);
+        MR::startAction(this, "Damage");
+        MR::startAction(mChief, "Damage");
+        MR::stopScene(16);
+        if (mLife > 0) {
+            MR::shakeCameraNormal();
+            MR::emitItemBossDamage(this);
+            MR::startActionSound(this, "DamageHitSound", -1, -1, -1);
+        } else {
+            MR::shakeCameraStrong();
+            MR::startActionSound(this, "DamageLastHitSound", -1, -1, -1);
+            MR::stopStageBGM(10);
+        }
+        mShotIndex = 1;
+        if (mLife <= 2) {
+            mThrowNum = 3;
+        }
+        if (mCurrentRailPointNo != MR::getCurrentRailPointNo(this)) {
+            mCurrentRailPointNo = MR::getCurrentRailPointNo(this);
+        }
+    }
+    if (MR::isActionEnd(this)) {
+        if (mLife <= 0) {
+            if (MR::tryStartDemo(this, "DownDemo")) {
+                setNerve(NT(DownDemo));
+                MR::startAnimCameraTargetSelf(this, mAnimCameraInfo2, "DownDemo", 0, false, 1.0f);
+                MR::requestMovementOn(mChief);
+            }
+        } else {
+            if (isNerve(NT(DamageB))) {
+                setNerve(NT(BackDashStart));
+                return;
+            }
+            setNerve(NT(RunStart));
+        }
+    }
+}
+
+void OtaRockTank::exeDownDemo() {
+    if (MR::isFirstStep(this)) {
+        MR::forceDeleteEffect(this, "Weaken0");
+        MR::forceDeleteEffect(this, "Weaken1");
+        MR::startAction(this, "DownDemo");
+        MR::startAction(mChief, "DownDemo");
+        mPrevRailDirection.set(mRailDirection);
+        fn_801E1550();
+        MR::forceDeleteEffect(mChief, "AngrySmoke");
+    }
+    if (MR::isAnimCameraEnd(this, mAnimCameraInfo2, "DownDemo") && MR::isActionEnd(this)) {
+        MR::emitEffect(this, "DownDemoExplosion");
+        mBreakModel->appear();
+        setNerve(NT(Explosion));
+    }
+}
+
+void OtaRockTank::exeExplosion() {
+    if (MR::isFirstStep(this)) {
+        MR::hideModel(this);
+        mChief->kill();
+        MR::startActionSound(this, "Explosion", -1, -1, -1);
+    }
+    if (MR::isDead(static_cast< LiveActor* >(mBreakModel)) || MR::isActionEnd(static_cast< LiveActor* >(mBreakModel))) {
+        MR::overlayWithPreviousScreen(2);
+        MR::endAnimCamera(this, mAnimCameraInfo2, "DownDemo", 1, true);
+        MR::endDemo(this, "DownDemo");
+        kill();
+    }
+}
+
+void OtaRockTank::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isSensorEnemy(pReceiver)) {
+        if (MR::isSensorEnemyAttack(pSender)) {
+            MR::sendMsgEnemyAttack(pReceiver, pSender);
+        }
+    } else if (MR::isSensorPlayer(pReceiver)) {
+        bool ret = false;
+        if (isNerve(NT(DamageA)) || isNerve(NT(DamageB)) || isNerve(NT(DownDemo)) || isNerve(NT(Explosion))) {
+            ret = true;
+        }
+        if (ret) {
+            MR::sendMsgPush(pReceiver, pSender);
+            return;
+        }
+        MR::sendMsgEnemyAttackStrongOrPush(pReceiver, pSender);
+    }
+}
+
+bool OtaRockTank::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isMsgStarPieceReflect(msg)) {
+        return false;
+    }
+    if (MR::isEqualSensor(pReceiver, this, "Body")) {
+        mChief->startHitReaction();
+        return true;
+    }
+    return true;
+}
+
+bool OtaRockTank::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (!MR::isEqualString(MR::getSensorHost(pSender)->mName, "\x83\x84\x83\x56\x82\xCC\x8E\xC0\x92\x65")) {
+        return false;
+    }
+    if (isNerve(NT(DamageA)) || isNerve(NT(DamageB))) {
+        return true;
+    }
+    mLife--;
+    MR::tryDeleteEffect(this, "BrakeL");
+    MR::tryDeleteEffect(this, "BrakeR");
+    if (fn_801E1170()) {
+        setNerve(NT(DamageB));
+    } else {
+        setNerve(NT(DamageA));
+    }
+    return true;
+}
+
 f32 OtaRockTank::fn_801DFBB0() {
     bool flag = false;
-    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
+    if (isNerve(NT(RunAccel)) || isNerve(NT(RunKeep)) || isNerve(NT(RunRail)) || isNerve(NT(BrakeA))) {
         flag = true;
     }
     if (flag) {
         return 25.0f;
     }
-    if (this->mUnkB0 == 1) {
+    if (mLife == 1) {
         return 21.0f;
     }
     return 16.0f;
@@ -132,16 +815,13 @@ f32 OtaRockTank::fn_801DFBB0() {
 
 f32 OtaRockTank::fn_801DFC60() {
     bool flag = false;
-    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
+    if (isNerve(NT(RunAccel)) || isNerve(NT(RunKeep)) || isNerve(NT(RunRail)) || isNerve(NT(BrakeA))) {
         flag = true;
     }
     if (flag) {
         return 35.0f;
     }
-    if (this->mUnkB0 == 1) {
+    if (mLife == 1) {
         return 25.0f;
     }
     return 25.0f;
@@ -149,33 +829,468 @@ f32 OtaRockTank::fn_801DFC60() {
 
 f32 OtaRockTank::fn_801DFD10() {
     bool flag = false;
-    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D78)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D7C)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D84)) ||
-        this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D80))) {
+    if (isNerve(NT(RunAccel)) || isNerve(NT(RunKeep)) || isNerve(NT(RunRail)) || isNerve(NT(BrakeA))) {
         flag = true;
     }
     if (flag) {
         return 1000.0f;
     }
-    if (this->mUnkB0 == 1) {
+    if (mLife == 1) {
         return 900.0f;
     }
     return 800.0f;
 }
 
-bool OtaRockTank::fn_801E1010(TPos3f* pMtx) {
-    return this->fn_801E1030(pMtx);
-}
-
-bool OtaRockTank::fn_801E1020(TPos3f* pMtx) {
-    return this->fn_801E1030(pMtx);
-}
-
-bool OtaRockTank::fn_801E1030(TPos3f* pMtx) {
-    if (this->isNerve(reinterpret_cast<const Nerve*>(&lbl_807D2D8C))) {
-        return false;
+bool OtaRockTank::fn_801DFDC0() {
+    if (MR::isRailReachedNearNextPoint(this, fn_801DFD10())) {
+        return true;
     }
-    MR::rotateMtxLocalXDegree(reinterpret_cast<MtxPtr>(pMtx), this->mUnkC4);
+    fn_801DFE20();
+    fn_801E0540();
+    fn_801E0680();
+    return false;
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::fn_801DFE20() {
+    TVec3f railPos;
+    TVec3f railDir;
+    MR::moveCoord(this, mSpeed);
+    MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, MR::getRailCoord(this));
+    TVec3f diff(railPos);
+    diff -= mPosition;
+    MR::vecKillElement(diff, mGravity, &diff);
+    if (MR::normalizeOrZero(&diff)) {
+        diff = railDir;
+    }
+    TVec3f blend;
+    MR::vecBlend(&blend, railDir, diff, 0.05f);
+    if (MR::normalizeOrZero(&blend)) {
+        blend = railDir;
+    }
+    MR::turnDirection(this, &mRailDirection, blend, 0.9989f);
+    TVec3f move(mRailDirection);
+    move *= mSpeed;
+    mPosition += move;
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::fn_801DFF10(const TVec3f& rDir, f32 scale) {
+    if (mCurrentRailPointNo == MR::getCurrentRailPointNo(this)) {
+        TVec3f railPos;
+        TVec3f railDir;
+        MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, MR::getRailCoord(this));
+        f32 angle = MR::diffAngleAbs(railDir, rDir) / 3.5032461608120427e-44f;
+        if (angle < 0.0f) {
+            angle = -angle;
+        }
+        MR::turnDirection(this, &mRailDirection, rDir, JMath::sSinCosTable.cosLap(angle));
+        TVec3f along(mRailDirection);
+        MR::vecKillElement(along, railDir, &along);
+        if (mRailDirection.dot(rDir) > 0.99f) {
+            fn_801E0630();
+        } else {
+            fn_801E05E0();
+        }
+        fn_801E01F0(getNerveStep(), mSpeedStart);
+        f32 ease = MR::getEaseInValue(mRailDirection.dot(rDir), 0.0f, 1.0f, 1.0f);
+        mPosition.x += ease * (scale * (along.x * mSpeed)) + railDir.x * mSpeed;
+        mPosition.z += ease * (scale * (along.z * mSpeed)) + railDir.z * mSpeed;
+        MR::moveCoord(this, mSpeed);
+        return;
+    }
+    TVec3f dirAt(0.0f);
+    MR::calcRailDirectionAtCoord(&dirAt, this, MR::getRailPointCoord(this, mCurrentRailPointNo));
+    fn_801E0630();
+    fn_801E01F0(getNerveStep(), mSpeedStart);
+    mPosition.x += scale * (mRailDirection.x * mSpeed) + dirAt.x * mSpeed;
+    mPosition.z += scale * (mRailDirection.z * mSpeed) + dirAt.z * mSpeed;
+}
+
+void OtaRockTank::fn_801E0170() {
+    TVec3f railPos;
+    TVec3f railDir;
+    MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, MR::getRailCoord(this));
+    TVec3f diff(mPosition);
+    diff -= railPos;
+    MR::vecKillElement(diff, mGravity, &diff);
+    f32 d = diff.dot(railDir);
+    if (d > 0.0f) {
+        MR::moveCoord(this, d);
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::fn_801E01F0(s32 step, f32 target) {
+    f32 base = 3.0f;
+    bool flag = false;
+    if (isNerve(NT(RunAccel)) || isNerve(NT(RunKeep)) || isNerve(NT(RunRail)) || isNerve(NT(BrakeA))) {
+        flag = true;
+    }
+    if (flag) {
+        base = 8.0f;
+    }
+    s32 totalStep = 65;
+    f32 len = totalStep;
+    if (mLife == 1) {
+        len *= 0.9f;
+    }
+    mSpeed = base + (1.0f - MR::getEaseInValue(step / len, 0.0f, 1.0f, 1.0f)) * (target - base);
+    mSpeed = MR::clamp(mSpeed, base, fn_801DFBB0());
+}
+
+void OtaRockTank::fn_801E0340(f32 target) {
+    f32 base = 7.0f;
+    s32 steps = 40;
+    if (mLife == 1) {
+        base = 10.0f;
+    }
+    bool flag = false;
+    if (isNerve(NT(RunAccel)) || isNerve(NT(RunKeep)) || isNerve(NT(RunRail)) || isNerve(NT(BrakeA))) {
+        flag = true;
+    }
+    if (flag) {
+        base = 16.0f;
+        steps = 15;
+    }
+    fn_801E0430(steps, target, base);
+}
+
+void OtaRockTank::fn_801E0430(s32 steps, f32 from, f32 to) {
+    f32 diff = from - to;
+    if (!(diff < 0.0f)) {
+        f32 rate = MR::calcNerveRate(this, steps);
+        mSpeed = to + MR::getEaseInValue(1.0f - rate, 0.0f, 1.0f, 1.0f) * diff;
+    }
+}
+
+void OtaRockTank::fn_801E04B0() {
+    f32 diff = fn_801DFC60() - 3.0f;
+    s32 divisor = 5;
+    f32 step = diff / divisor;
+    mSpeed += step;
+    mSpeed = MR::clamp(mSpeed, 3.0f, fn_801DFC60());
+}
+
+void OtaRockTank::fn_801E0540() {
+    f32 target = fn_801DFBB0();
+    if (mSpeed > target) {
+        mSpeed -= 0.2f;
+        mSpeed = MR::clamp(mSpeed, target, fn_801DFC60());
+        return;
+    }
+    if (mSpeed < target) {
+        mSpeed += 0.2f;
+        mSpeed = MR::clamp(mSpeed, 3.0f, target);
+    }
+}
+
+void OtaRockTank::fn_801E05E0() {
+    mWheelSpeed -= 0.15f;
+    mWheelSpeed = MR::clamp(mWheelSpeed, 3.0f, 18.0f);
+}
+
+void OtaRockTank::fn_801E0630() {
+    mWheelSpeed += 0.4f;
+    mWheelSpeed = MR::clamp(mWheelSpeed, 0.0f, 18.0f);
+}
+
+void OtaRockTank::fn_801E0680() {
+    if (mWheelSpeed > 10.0f) {
+        mWheelSpeed -= 0.15f;
+        mWheelSpeed = MR::clamp(mWheelSpeed, 10.0f, 18.0f);
+        return;
+    }
+    if (mWheelSpeed < 10.0f) {
+        mWheelSpeed += 0.15f;
+        mWheelSpeed = MR::clamp(mWheelSpeed, 0.0f, 10.0f);
+    }
+}
+
+s32 OtaRockTank::fn_801E0700() {
+    s32 count = 0;
+    for (s32 i = 0; i < 48; i++) {
+        if (MR::isDead(&mFireBalls[i])) {
+            count++;
+        }
+    }
+    return count;
+}
+
+CocoNutBall* OtaRockTank::fn_801E0770() {
+    for (s32 i = 0; i < 8; i++) {
+        if (MR::isDead(&mCocoNutBalls[i])) {
+            return &mCocoNutBalls[i];
+        }
+    }
+    return nullptr;
+}
+
+FireBall* OtaRockTank::fn_801E07E0() {
+    for (s32 i = 0; i < 48; i++) {
+        if (MR::isDead(&mFireBalls[i])) {
+            return &mFireBalls[i];
+        }
+    }
+    return nullptr;
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+ScatterFireBall* OtaRockTank::fn_801E0850() {
+    for (s32 i = 0; i < 24; i++) {
+        ScatterFireBall* pBall = &mScatterBalls[i];
+        if (pBall->fn_8017E750()) {
+            return pBall;
+        }
+    }
+    return nullptr;
+}
+
+bool OtaRockTank::fn_801E08C0() {
+    if (fn_801E0700() <= 0) {
+        fn_801E0940();
+    }
+    fn_801E0A90();
+    mShotIndex = (mShotIndex + 1) % mThrowNum;
+    MR::shakeCameraVeryWeak();
+    MR::tryRumblePadWeak(this, 0);
     return true;
 }
+
+// NONMATCHING: blend/emit loop scheduling differs
+void OtaRockTank::fn_801E0940() {
+    TVec3f trans[6];
+    TVec3f dir[6];
+    for (s32 i = 0; i < 6; i++) {
+        FixedPosition* pFixedPos = mFixedPositions[i];
+        pFixedPos->calc();
+        pFixedPos->mMtx.getTrans(trans[i]);
+        pFixedPos->mMtx.getZDir(dir[i]);
+    }
+    MR::vecBlend(&dir[0], dir[0], dir[1], 0.5f);
+    MR::vecBlend(&dir[1], dir[1], dir[2], 0.5f);
+    MR::vecBlend(&dir[2], dir[2], dir[3], 0.5f);
+    MR::vecBlend(&dir[3], dir[3], dir[4], 0.5f);
+    for (u16 i = 0; i < 6; i++) {
+        if (mDamageMask & (1 << i)) {
+            MR::normalize(&dir[i]);
+            MR::emitEffect(this, "BrakeL");
+            fn_801E0F80(trans[i], dir[i]);
+        }
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::fn_801E0A90() {
+    FixedPosition* pFixedPos = mFixedPositions[6];
+    pFixedPos->calc();
+    TVec3f trans;
+    pFixedPos->mMtx.getTrans(trans);
+    TVec3f zdir;
+    pFixedPos->mMtx.getZDir(zdir);
+    TVec3f toPlayer(*MR::getPlayerPos());
+    toPlayer -= zdir;
+    MR::normalizeOrZero(&toPlayer);
+    TVec3f gravKilled;
+    MR::vecKillElement(toPlayer, mGravity, &gravKilled);
+    if (mDamageMask & 0x40) {
+        if (zdir.dot(gravKilled) > 0.6f) {
+            MR::vecBlend(&zdir, zdir, toPlayer, 1.0f);
+        }
+        MR::normalize(&zdir);
+        MR::emitEffect(mChief, "AngrySmoke");
+        f32 speed = mLife == 1 ? 34.0f : 32.0f;
+        f32 angle = 5.0f + 2.5f * (f32)MR::getRandom(static_cast< s32 >(1), static_cast< s32 >(3));
+        if (MR::getRandom(static_cast< s32 >(0), static_cast< s32 >(2)) == 1) {
+            angle = -angle;
+        }
+        if (mShotIndex % mThrowNum == 0) {
+            fn_801E0770()->fn_80177670(trans, speed, angle, 160.0f);
+            return;
+        }
+        f32 offs = 30.0f;
+        s32 i = 0;
+        do {
+            f32 a = 0.0f;
+            if (i == 1) {
+                a = offs;
+            } else if (i == 2) {
+                a = -offs;
+            }
+            fn_801E0850()->fn_8017E490(trans, speed, a);
+            if (mLife == 1) {
+                i++;
+            } else {
+                break;
+            }
+        } while (i < 3);
+    }
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+bool OtaRockTank::fn_801E0CA0(u32 a, s32 b) {
+    f32 half = (f32)10 / (f32)2;
+    u32 n = (u32)half;
+    if ((half - (f32)n) > 0.0f) {
+        n += 1;
+    }
+    return ((((a + 10) - b) % 10) % n) == 0;
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::fn_801E0D90(u32 a, s32 b) {
+    TVec3f dir(mRailDirection);
+    TVec3f trans(0.0f);
+    FixedPosition* pFixedPos = mFixedPositions[6];
+    pFixedPos->calc();
+    pFixedPos->mMtx.getTrans(trans);
+    pFixedPos->mMtx.getZDir(dir);
+    if (!fn_801E0CA0(a, b)) {
+        ScatterFireBall* pBall = fn_801E0850();
+        TVec3f vel = dir * 50.0f;
+        pBall->fn_8017E660(trans, vel);
+        return;
+    }
+    CocoNutBall* pBall = fn_801E0770();
+    TVec3f vel = dir * 50.0f;
+    pBall->fn_80177700(trans, vel);
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::fn_801E0E80(u32 a, s32 b) {
+    TVec3f pos = mTargetPoses[a] - mPosition;
+    TVec3f vel = pos * (2900.0f + (f32)a * 100.0f);
+    if (!fn_801E0CA0(a, b)) {
+        ScatterFireBall* pBall = fn_801E0850();
+        TVec3f v = vel * 8.0f;
+        pBall->fn_8017E6D0(pos, v);
+        return;
+    }
+    CocoNutBall* pBall = fn_801E0770();
+    TVec3f v = vel * 8.0f;
+    pBall->fn_80177780(pos, v);
+}
+
+void OtaRockTank::fn_801E0F80(const TVec3f& rPos, const TVec3f& rDir) {
+    f32 speed = mLife == 1 ? 34.0f : 32.0f;
+    FireBall* pBall = fn_801E07E0();
+    TVec3f vel = rDir * speed;
+    pBall->fn_8017DA20(rPos, vel);
+}
+
+bool OtaRockTank::fn_801E1010(TPos3f* pMtx, const JointControllerInfo& rInfo) {
+    return fn_801E1030(pMtx, rInfo);
+}
+
+bool OtaRockTank::fn_801E1020(TPos3f* pMtx, const JointControllerInfo& rInfo) {
+    return fn_801E1030(pMtx, rInfo);
+}
+
+bool OtaRockTank::fn_801E1030(TPos3f* pMtx, const JointControllerInfo&) {
+    if (isNerve(NT(StartDemo))) {
+        return false;
+    }
+    MR::rotateMtxLocalXDegree(pMtx->toMtxPtr(), mWheelRot);
+    return true;
+}
+
+bool OtaRockTank::fn_801E1090(TPos3f* pMtx, const JointControllerInfo&) {
+    if (fn_801E1320()) {
+        TVec3f toPlayer;
+        MR::calcVecToPlayerH(&toPlayer, this, nullptr);
+        MR::vecBlend(&mPrevRailDirection, mPrevRailDirection, toPlayer, 0.05f);
+    } else {
+        mPrevRailDirection.set(mRailDirection);
+    }
+    if ((!isNerve(NT(StartDemo)) && !isNerve(NT(Explosion))) || MR::isFirstStep(this)) {
+        TVec3f up(pMtx->mMtx[0][1], pMtx->mMtx[1][1], pMtx->mMtx[2][1]);
+        MR::makeMtxFrontUp(pMtx, mPrevRailDirection, up);
+    }
+    return true;
+}
+
+bool OtaRockTank::fn_801E1170() {
+    bool ret = false;
+    if (isNerve(NT(FallDash)) || isNerve(NT(FallDashStart)) || isNerve(NT(FallDashBrake)) || isNerve(NT(BackDashStart)) || isNerve(NT(BackDash)) ||
+        isNerve(NT(BackDashBrake))) {
+        ret = true;
+    }
+    return ret;
+}
+
+bool OtaRockTank::fn_801E1220() {
+    s32 arg = -1;
+    MR::getCurrentRailPointArg0NoInit(this, &arg);
+    if (arg != 0) {
+        f32 dist = 0.0f;
+        MR::calcDistanceToNextRailPoint(this, &dist);
+        f32 limit = 1200.0f;
+        if (mLife == 1) {
+            limit = 1500.0f;
+        }
+        if ((dist - fn_801DFD10()) > limit) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void OtaRockTank::fn_801E12C0() {
+    MR::startAction(this, "Run");
+    if (mLife == 1) {
+        MR::startAction(mChief, "AngryWait");
+        return;
+    }
+    MR::startAction(mChief, "Wait");
+}
+
+bool OtaRockTank::fn_801E1320() {
+    if (isNerve(NT(DamageA)) || isNerve(NT(StartDemo)) || isNerve(NT(Explosion)) || isNerve(NT(RunAccel)) || isNerve(NT(RunKeep)) || isNerve(NT(RunRail)) ||
+        isNerve(NT(BrakeA)) || isNerve(NT(TurnAttack)) || isNerve(NT(FallDash)) || isNerve(NT(FallDashStart)) || isNerve(NT(BackDashStart)) ||
+        isNerve(NT(BackDash)) || isNerve(NT(RunFukashi)) || isNerve(NT(FallDashBrake)) || isNerve(NT(BackDashBrake)) || isNerve(NT(DamageB))) {
+        return false;
+    }
+    return true;
+}
+
+bool OtaRockTank::fn_801E1490() {
+    if (!MR::isValidSwitchA(this)) {
+        return false;
+    }
+    if (!MR::isOnSwitchA(this)) {
+        return false;
+    }
+    if (MR::tryStartDemo(this, "StartDemo")) {
+        MR::tryForceDeleteEffectAll(this);
+        MR::tryForceDeleteEffectAll(mChief);
+        MR::startAnimCameraTargetSelf(this, mAnimCameraInfo, "StartDemo", 0, false, 1.0f);
+        MR::requestMovementOn(mChief);
+        setNerve(NT(StartDemo));
+    }
+    return false;
+}
+
+// NONMATCHING: register allocation / instruction scheduling and float-constant pool layout differ from the target
+void OtaRockTank::fn_801E1550() {
+    for (s32 i = 0; i < 8; i++) {
+        if (!MR::isDead(&mCocoNutBalls[i])) {
+            mCocoNutBalls[i].kill();
+        }
+    }
+    for (s32 i = 0; i < 48; i++) {
+        if (!MR::isDead(&mFireBalls[i])) {
+            mFireBalls[i].kill();
+        }
+    }
+    for (s32 i = 0; i < 24; i++) {
+        ScatterFireBall* pBall = &mScatterBalls[i];
+        if (!pBall->fn_8017E750()) {
+            if (!MR::isDead(static_cast< LiveActor* >(pBall))) {
+                static_cast< LiveActor* >(pBall)->kill();
+            }
+            pBall->fn_8017E7B0();
+        }
+    }
+}
+
+OtaRockTank::~OtaRockTank() {}

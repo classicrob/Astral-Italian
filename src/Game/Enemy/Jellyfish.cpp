@@ -22,21 +22,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
-void Jellyfish_FORCE_MATCH_SDATA2() {
-    (void)5.0f;
-    (void)30.0f;
-    (void)100.0f;
-    (void)130.0f;
-    (void)1900.0f;
-    (void)500.0f;
-    (void)0.9999f;
-    (void)-45.511112f;
-    (void)45.511112f;
-    (void)0.2f;
-    (void)-0.2f;
-    (void)1500.0f;
-}
-
 namespace NrvJellyfish {
     NEW_NERVE(JellyfishNrvWait, Jellyfish, Wait);
     NEW_NERVE(JellyfishNrvWaitWithRightTurn, Jellyfish, WaitWithRightTurn);
@@ -59,6 +44,7 @@ Jellyfish::Jellyfish(const char* pName)
     : LiveActor(pName), mController(), _94(), _98(0.0f, 0.0f, 1.0f), mIsConnectedRail(), _A8(5.0f), _AC(60), _B0(), _B4(0.0f, 0.0f, 0.0f) {
 }
 
+// NONMATCHING: sound temporary and pointing-offset local occupy swapped stack slots.
 void Jellyfish::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
 
@@ -70,8 +56,10 @@ void Jellyfish::init(const JMapInfoIter& rIter) {
 
     initHitSensor(1);
     TVec3f offset;
-    offset.set(0.0f, 30.0f, 0.0f);
-    MR::addHitSensor(this, "body", 34, 8, 100.0f, offset);
+    offset.x = 0.0f;
+    offset.y = 30.0f;
+    offset.z = 0.0f;
+    MR::addHitSensor(this, "Body", 34, 8, 100.0f, offset);
 
     initBinder(130.0f, 0.0f, 0);
     MR::offBind(this);
@@ -89,7 +77,11 @@ void Jellyfish::init(const JMapInfoIter& rIter) {
 
     MR::declareCoin(this, 1);
 
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    TVec3f pointingOffset;
+    pointingOffset.x = 0.0f;
+    pointingOffset.y = 0.0f;
+    pointingOffset.z = 0.0f;
+    MR::initStarPointerTarget(this, 100.0f, pointingOffset);
 
     mController = new AnimScaleController(nullptr);
     mBindStarPtr = new WalkerStateBindStarPointer(this, mController);
@@ -107,11 +99,15 @@ void Jellyfish::init(const JMapInfoIter& rIter) {
         s32 arg2 = 0;
         MR::getJMapInfoArg2NoInit(rIter, &arg2);
         _B0 = arg2 == 1;
+        MR::onCalcGravity(this);
+    } else {
+        MR::calcGravity(this);
     }
 
     MR::calcFrontVec(&_98, this);
 
-    initNerve(GET_NERVE(Jellyfish, JellyfishNrvWait));
+    initNerve(GET_NERVE(Jellyfish, JellyfishNrvWait), 1);
+    MR::initActorState(this, mBindStarPtr, GET_NERVE(Jellyfish, JellyfishNrvDPDSwoon), "SupportFreeze");
 
     makeActorAppeared();
 }
@@ -124,15 +120,14 @@ void Jellyfish::kill() {
     LiveActor::kill();
 }
 
-#pragma push
-#pragma opt_propagation off
+// NONMATCHING: velocity/gravity argument-address loads are scheduled in reverse order.
 void Jellyfish::control() {
     const TVec3f& rPosition = mPosition;
     MR::requestPointLight(this, TVec3f(rPosition), ::sPointLightColor, 0.9999f, -1);
 
     mController->updateNerve();
 
-    if (!isNerve(GET_NERVE(Jellyfish, JellyfishNrvDeath))) {
+    if (isNerveTypeMoving()) {
         if (mIsConnectedRail) {
             MR::moveCoordAndFollowTrans(this, _A8);
             if (MR::isRailReachedGoal(this) && !isNerve(GET_NERVE(Jellyfish, JellyfishNrvRailGoal))) {
@@ -142,8 +137,9 @@ void Jellyfish::control() {
         }
 
         f32 wave = MR::sinDegree(_94 + 45);
-        const TVec3f& rGravity = mGravity;
-        mVelocity.scale(wave, rGravity);
+        const TVec3f* gravity = &mGravity;
+        TVec3f* velocity = &mVelocity;
+        velocity->scale(wave, *gravity);
 
         _94++;
     }
@@ -151,7 +147,6 @@ void Jellyfish::control() {
     if (tryDPDSwoon()) {
     }
 }
-#pragma pop
 
 void Jellyfish::calcAndSetBaseMtx() {
     TPos3f baseMtx;
@@ -262,7 +257,7 @@ void Jellyfish::exeThreatWithRightTurn() {
 }
 
 void Jellyfish::exeDPDSwoon() {
-    MR::updateActorStateAndNextNerve(this, mBindStarPtr, GET_NERVE(Jellyfish, JellyfishNrvWait));
+    MR::updateActorStateAndNextNerve(this, GET_NERVE(Jellyfish, JellyfishNrvWait));
 }
 
 void Jellyfish::exeWaitWithLeftTurn() {
@@ -292,12 +287,20 @@ void Jellyfish::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+inline void Jellyfish::knockOut(HitSensor* pSender, HitSensor* pReceiver) {
+    TVec3f toReceiverDir;
+    MR::calcSensorDirectionNormalize(&toReceiverDir, pSender, pReceiver);
+    mVelocity.scale(40.0f, toReceiverDir);
+    _98.negate(toReceiverDir);
+    setNerve(GET_NERVE(Jellyfish, JellyfishNrvDeath));
+}
+
 bool Jellyfish::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
         return true;
     }
 
-    if (MR::isMsgStarPieceAttack(msg)) {
+    if (MR::isMsgStarPieceReflect(msg)) {
         mController->startHitReaction();
         return true;
     } else if (MR::isMsgPlayerHitAll(msg)) {
@@ -373,17 +376,6 @@ bool Jellyfish::faceToMario() {
     return true;
 }
 #pragma pop
-
-void Jellyfish::knockOut(HitSensor* pSender, HitSensor* pReceiver) {
-    TVec3f toReceiverDir;
-    MR::normalize(pReceiver->mPosition - pSender->mPosition, &toReceiverDir);
-
-    mVelocity.scale(40.0f, toReceiverDir);
-
-    _98.negate(toReceiverDir);
-
-    setNerve(GET_NERVE(Jellyfish, JellyfishNrvDeath));
-}
 
 bool Jellyfish::selectNerveAfterWait() {
     if (MR::isNearPlayer(this, 1000.0f)) {
@@ -470,5 +462,12 @@ bool Jellyfish::tryDPDSwoon() {
     }
 
     setNerve(GET_NERVE(Jellyfish, JellyfishNrvDPDSwoon));
+    return true;
+}
+
+bool Jellyfish::isNerveTypeMoving() const {
+    if (isNerve(GET_NERVE(Jellyfish, JellyfishNrvDeath)) || isNerve(GET_NERVE(Jellyfish, JellyfishNrvDPDSwoon))) {
+        return false;
+    }
     return true;
 }

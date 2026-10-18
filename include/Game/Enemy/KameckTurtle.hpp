@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Enemy/KameckBeam.hpp"
 
 class JetTurtle;
 class SmallKameckBeamEventListener;
 
-class KameckTurtle : public LiveActor {
+class KameckTurtle : public LiveActor, public KameckBeamProjectile {
 public:
     /// @brief Creates a new `KameckTurtle`.
     /// @param pName A pointer to the null-terminated name of the object.
@@ -21,14 +21,15 @@ public:
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
     void initJetTurtle();
-    void appearDirection(const TVec3f&);
+    virtual void appearDirection(const TVec3f&, const TVec3f&);
+    virtual bool fn_801A74D0();
+    virtual void fn_801A7180();
+    virtual bool fn_801A78B0() const;
     void exeRun();
     void exeWait();
     bool isEnableAttack() const;
     void appearJetTurtle(bool);
 
-    /* 0x8C */ SmallKameckBeamEventListener* mEventListener;
-    /* 0x94 */ u32 _94;
     /* 0x98 */ JetTurtle* mTurtle;
     /* 0x9C */ TQuat4f mRotateQuat;
     /* 0xAC */ TVec3f _A4;

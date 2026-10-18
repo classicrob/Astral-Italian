@@ -112,10 +112,10 @@ void Kameck::initJMapParam(const JMapInfoIter& rIter) {
 
     mBeamType = KameckBeam::BeamType_Turtle;
     if (MR::isObjectName(rIter, "KameckKuriboMini")) {
-        mBeamType = KameckBeam::BeamType_FireBall2;
+        mBeamType = KameckBeam::BeamType_KuriboMini;
     }
     if (MR::isObjectName(rIter, "KameckMeramera")) {
-        mBeamType = KameckBeam::BeamType_FireBall3;
+        mBeamType = KameckBeam::BeamType_Meramera;
     }
 
     MR::getJMapInfoArg0NoInit(rIter, &mBeamCount);
@@ -392,7 +392,7 @@ void Kameck::setNonActive() {
     MR::offCalcShadow(this, nullptr);
     MR::validateClipping(this);
     MR::deleteEffectAll(this);
-    MR::startAction(this, "Wait"); // target string lbl_80689BFC not verified
+    MR::startAction(this, "NonActive");
     setNerve(GET_NERVE(Kameck, KameckNrvNonActive));
 }
 
@@ -756,7 +756,7 @@ namespace MR {
     }
 };  // namespace MR
 
-void SmallKameckBeamEventListener::hitBeam(s32 beamType) {
+void SmallKameckBeamEventListener::hitBeam() {
     Kameck* pHost = mHost;
     if (!MR::isDead(pHost)) {
         MR::startActionSound(pHost, "EvKameckAtkSuccess", -1, -1, -1);

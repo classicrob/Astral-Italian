@@ -214,7 +214,7 @@ namespace MR {
     void rotateVecDegree(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rAxis, f32 degree);
     void rotateVecRadian(TVec3f* pDst, const TVec3f& rAxis, f32 angle);
     void rotateVecRadian(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rAxis, f32 angle);
-    void calcLocalVec(TVec3f* pVec, MtxPtr pMtx);
+    void calcLocalVec(TVec3f* pOut, const TVec3f& rVec, MtxPtr pMtx);  // SMG2: 3 args (SMG1 was in-place)
 
     /// @brief Converts a two-dimensional vector into a vector of unit length.
     /// @param[in,out] pVec A pointer to the two-dimensional vector to evaluate and initialize.
@@ -353,6 +353,7 @@ namespace MR {
     void vecScaleAdd(const TVec3f* pScale, const TVec3f* pAdd, f32 scale);
     void PSvecBlend(const TVec3f*, const TVec3f*, f32, f32 rate);
     void vecBlend(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, f32 rate);  // DIFFERENT THAN SMG1
+    void calcDirectionVec(TVec3f*, const TVec3f&, const TVec3f&);  // enemies lane: SMG2 symbol 0x80040B50 (also declared in Boss/TwoLegs.hpp)
     void vecBlendNormal(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, f32 rate);
     bool vecBlendSphere(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, f32 rate);
     // Petari (SMG1) argument order; SMG2 moved pDst first.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActorGroup.hpp"
+#include "Game/Enemy/KameckBeam.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
 class KameckBeam;
@@ -37,3 +38,16 @@ namespace MR {
     KameckFireBall* getKameckFireBall();
     KameckTurtle* getKameckBeamTurtle();
 };  // namespace MR
+
+class KameckBeamKuriboMini : public LiveActor, public KameckBeamProjectile {
+public:
+    KameckBeamKuriboMini();
+    LiveActor* mEnemy;
+    s32 mStep;
+};
+class KameckBeamMeramera : public LiveActor, public KameckBeamProjectile {
+public:
+    KameckBeamMeramera();
+    LiveActor* mEnemy;
+    s32 mStep;
+};

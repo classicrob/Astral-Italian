@@ -5,9 +5,9 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class WalkerStateBindStarPointer;
-class HammerBrosStateJump;
+class BrosStateJump;
 class HammerBrosStateAttack;
-class HammerBrosStateSwoon;
+class BrosStateSwoon;
 
 namespace MR {
     bool isMsgYoshiReleaseOrCancelEaten(u32);
@@ -63,9 +63,9 @@ public:
     /* 0x0E0 */ f32 _E0;
     /* 0x0E4 */ s32 mWaitCount;
     /* 0x0E8 */ TPos3f mMtx;
-    /* 0x118 */ HammerBrosStateJump* mStateJump;
+    /* 0x118 */ BrosStateJump* mStateJump;
     /* 0x11C */ HammerBrosStateAttack* mStateAttack;
-    /* 0x120 */ HammerBrosStateSwoon* mStateSwoon;
+    /* 0x120 */ BrosStateSwoon* mStateSwoon;
 };
 
 class HammerBrosHammer : public BrosProjectileBase {

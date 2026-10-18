@@ -8,7 +8,7 @@ class MogucchiHill;
 
 class Mogucchi : public LiveActor {
 public:
-    void fn_801CDAD0();
+    void fn_801CDAD0() NO_INLINE;
     Mogucchi(const char*);
     virtual ~Mogucchi();
 
@@ -42,16 +42,16 @@ public:
     bool receiveAttackByBodySensor(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     void calcScatterVec(const TVec3f&, const TVec3f&);
 
-    /* 0x8C */ MogucchiHill* mHill;
-    /* 0x90 */ ModelObj* mHole;
-    /* 0x94 */ TPos3f mNewHolePos;
-    /* 0xC4 */ TVec3f mRailGravity;
-    /* 0xD0 */ bool mGrounded;
-    /* 0xD4 */ f32 mScatterPropulsionSpeed;
-    /* 0xD8 */ TVec3f mScatterNormal;
-    f32 _E4;
-    /* 0xE8 */ f32 mStrollSpeed;
-    /* 0xEC */ f32 mMaxStrollSpeed;
+    /* 0x90 */ MogucchiHill* mHill;
+    /* 0x94 */ ModelObj* mHole;
+    /* 0x98 */ TPos3f mNewHolePos;
+    /* 0xC8 */ TVec3f mRailGravity;
+    /* 0xD4 */ bool mGrounded;
+    /* 0xD8 */ f32 mScatterPropulsionSpeed;
+    /* 0xDC */ TVec3f mScatterNormal;
+    /* 0xE8 */ f32 _E4;
+    /* 0xEC */ f32 mStrollSpeed;
+    /* 0xF0 */ f32 mMaxStrollSpeed;
     /* 0xF4 */ s32 _F4;
     /* 0xF8 */ bool mIsStoppedByP2;
 };

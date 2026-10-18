@@ -105,7 +105,7 @@ void JellyfishElectric::kill() {
 #pragma opt_propagation off
 void JellyfishElectric::control() {
     MR::requestPointLight(this, TVec3f(mPosition), ::sPointLightColor, 0.9999f, -1);
-    MR::changeShowModelFlagSyncNearClipping(this, 700.0f);
+    MR::changeShowModelFlagSyncNearClipping(this, 400.0f);
     mController->updateNerve();
 
     if (!tryDPDSwoon() && !isNerve(GET_NERVE(JellyfishElectric, JellyfishElectricNrvDeath)) && !isNerve(GET_NERVE(JellyfishElectric, JellyfishElectricNrvDPDSwoon))) {

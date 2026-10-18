@@ -29,7 +29,7 @@ void KabokuriFire::init(const JMapInfoIter& rIter) {
     initSound(2, "KabokuriFire", nullptr, TVec3f(0.0f));
     initHitSensor(1);
 
-    MR::addHitSensorEnemy(this, "body", 8, ::sBodyHitSize, TVec3f(0.0f, ::sBodyHitYOffset, 0.0f));
+    MR::addHitSensorEnemy(this, "Body", 8, ::sBodyHitSize, TVec3f(0.0f, ::sBodyHitYOffset, 0.0f));
     MR::invalidateClipping(this);
     makeActorDead();
 }

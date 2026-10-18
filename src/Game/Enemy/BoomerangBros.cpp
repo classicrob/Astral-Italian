@@ -1,34 +1,19 @@
 #include "Game/Enemy/BoomerangBros.hpp"
+#include "Game/Enemy/BrosState.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/ActorJointCtrl.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
+namespace {
+    extern const f32 sTongueAccel;
+}
 
-class BoomerangBrosStateJump : public ActorStateBase< BoomerangBros > {
-public:
-    BoomerangBrosStateJump(BoomerangBros*);
-    u8 _pad[88 - sizeof(ActorStateBase< BoomerangBros >)];
-};
 
-class BoomerangBrosStateAttack : public ActorStateBase< BoomerangBros > {
-public:
-    BoomerangBrosStateAttack(BoomerangBros*);
-    bool fn_8018AE50() const;
-    bool fn_8018ADF0() const;
-    u8 _pad[28 - sizeof(ActorStateBase< BoomerangBros >)];
-};
-
-class BoomerangBrosStateSwoon : public ActorStateBase< BoomerangBros > {
-public:
-    BoomerangBrosStateSwoon(BoomerangBros*);
-    void fn_8018AFF0();
-    bool fn_8018B000() const;
-    bool fn_8018B080() const;
-    bool fn_8018B0E0() const;
-    u8 _pad[24 - sizeof(ActorStateBase< BoomerangBros >)];
-};
+void BoomerangBros::exeEaten() {
+    endFaceCtrl();
+}
 
 namespace NrvBoomerangBros {
     NEW_NERVE(BoomerangBrosNrvWait, BoomerangBros, Wait);
@@ -103,9 +88,9 @@ void BoomerangBros::init(const JMapInfoIter& rIter) {
 
 void BoomerangBros::initStates() {
     initNerve(BNRV(Wait), 16);
-    mStateJump = new BoomerangBrosStateJump(this);
+    mStateJump = new BrosStateJump(this);
     mStateAttack = new BoomerangBrosStateAttack(this);
-    mStateSwoon = new BoomerangBrosStateSwoon(this);
+    mStateSwoon = new BrosStateSwoon(this);
     MR::initActorState(this, mStateJump, BNRV(Jump), "Jump");
     MR::initActorState(this, mStateAttack, BNRV(Attack), "Attack");
     MR::initActorState(this, mStateSwoon, BNRV(Swoon), "Swoon");
@@ -317,7 +302,7 @@ bool BoomerangBros::isGuardable() const {
 
 bool BoomerangBros::isCatchNerve() const {
     bool r = false;
-    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || (isNerve(BNRV(Attack)) && mStateAttack->fn_8018AE50()) || isNerve(BNRV(Guard))) {
+    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || (isNerve(BNRV(Attack)) && mStateAttack->isAttackEnd()) || isNerve(BNRV(Guard))) {
         r = true;
     }
     return r;
@@ -440,14 +425,14 @@ bool BoomerangBros::tryStarPieceReflect() {
 bool BoomerangBros::tryYoshiTongue(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNormalNerve()) {
         MR::addVelocityMoveToTargetHorizon(this, *MR::getPlayerPos(), 22.0f);
-        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -2.0f);
+        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
         MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
         setNerve(BNRV(Swoon));
         killHeldProjectile();
         return false;
     }
     if (isAliveNerve()) {
-        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -2.0f);
+        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
         MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
         setNerve(BNRV(Swoon));
         killHeldProjectile();
@@ -561,7 +546,7 @@ bool BoomerangBros::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor
     if (MR::isMsgEnemyAttack(msg)) {
         for (s32 i = 0; i < 5; i++) {
             if (MR::getSensorHost(pSender) == mProjectiles[i] && MR::getSensorHost(pSender) != mHeld) {
-                if (isCatchNerve() && mStateAttack->fn_8018ADF0() && mProjectiles[i]->v7C()) {
+                if (isCatchNerve() && mStateAttack->tryCatch() && mProjectiles[i]->v7C()) {
                     mHeld = mProjectiles[i];
                     mHeld->attachToBros(this);
                     MR::startActionSound(this, "CatchBoomerang", -1, -1, -1);
@@ -619,4 +604,8 @@ void BoomerangBros::throwProjectile(BrosProjectileBase* pProj) {
 }
 
 BoomerangBros::~BoomerangBros() {
+}
+
+namespace {
+    const f32 sTongueAccel = 2.0f;
 }

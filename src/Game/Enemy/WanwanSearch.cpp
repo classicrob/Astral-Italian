@@ -1,5 +1,4 @@
-#define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
-#define JGEOMETRY_VEC3_ZERO_NOINLINE
+#pragma auto_inline off
 #include "Game/Enemy/Wanwan.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -108,8 +107,8 @@ bool WanwanSearch::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor*
         mFront.set(horizon);
         if (mVelocity.dot(horizon) < 20.0f) {
             MR::addVelocity(this, horizon * 20.0f);
+            MR::startActionSound(this, "Rebound", (s32)(100.0f * PSVECMag(&mVelocity)), -1, -1);
         }
-        MR::startActionSound(this, "Rebound", (s32)(100.0f * PSVECMag(&mVelocity)), -1, -1);
         return true;
     }
     if (MR::isMsgToEnemyAttackBlow(msg) && isMoveOrFreeze()) {
@@ -184,6 +183,7 @@ void WanwanSearch::exeWait() {
     }
 }
 
+// NONMATCHING: death-test and collision-vector temporary stack allocation.
 void WanwanSearch::exeMove() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Move");
@@ -213,14 +213,12 @@ void WanwanSearch::exeMove() {
     }
     MR::attenuateVelocity(this, mAirCount >= 5 ? 0.99f : 0.9f);
     if (MR::reboundVelocityFromEachCollision(this, -1.0f, 0.0f, 0.0f, 0.0f) && MR::isBindedWall(this)) {
-        TVec3f delta = mPosition - mLastPos;
-        MR::startActionSound(this, "Collision", (s32)PSVECMag(&delta), -1, -1);
-        mLastPos.set(mPosition);
+        MR::startActionSound(this, "Collision", (s32)(mPosition - mLastPos).length(), -1, -1);
+        mLastPos = mPosition;
     }
     MR::sendMsgEnemyAttackTrampleDeathToGroundSensor(getSensor(nullptr));
     MR::sendMsgEnemyAttackRollToBindedSensor(this, getSensor(nullptr));
-    TVec3f up = -mGravity;
-    MR::rotateQuatRollBall(&mQuat, mVelocity, up, mRadius * mScale.x);
+    MR::rotateQuatRollBall(&mQuat, mVelocity, -mGravity, mRadius * mScale.x);
     if (onGround) {
         MR::startActionSound(this, "Roll", (s32)(100.0f * PSVECMag(&mVelocity)), -1, 5);
     }
@@ -232,9 +230,7 @@ void WanwanSearch::exeGoal() {
     TVec3f prev(mPosition);
     f32 rate = MR::calcNerveRate(this, 120);
     MR::vecBlend(&mPosition, mPosition, mGoalPos, rate);
-    TVec3f up = -mGravity;
-    TVec3f delta = mPosition - prev;
-    MR::rotateQuatRollBall(&mQuat, delta, up, mRadius * mScale.x);
+    MR::rotateQuatRollBall(&mQuat, mPosition - prev, -mGravity, mRadius * mScale.x);
     if (MR::isGreaterStep(this, 160)) {
         if (MR::isValidSwitchA(this)) {
             MR::onSwitchA(this);

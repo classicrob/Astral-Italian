@@ -361,7 +361,7 @@ bool BombTeresa::tryDriftReleaseEnd() {
 
 bool BombTeresa::tryExplosion() {
     if (MR::isBinded(this)) {
-        if (MR::sendMsgEnemyAttackExplosionToBindedSensor(this, getSensor("body"))) {
+        if (MR::sendMsgEnemyAttackExplosionToBindedSensor(this, getSensor("Body"))) {
             MR::zeroVelocity(this);
             setNerve(GET_NERVE(BombTeresa, BombTeresaNrvExplosion));
             MR::forceDeleteEffect(this, "SpinBlur");

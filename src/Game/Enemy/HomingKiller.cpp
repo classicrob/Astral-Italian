@@ -1,5 +1,6 @@
 #include "Game/Enemy/HomingKiller.hpp"
 #include "Game/Util.hpp"
+#include "Game/Scene/SceneFunction.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
@@ -106,11 +107,12 @@ HomingKiller::HomingKiller(const char* pName)
       mChaseRotateSpeed(0.9997f), mChaseStartAngle(::cChaseStartAngle), mFront(0.0f, 0.0f, 1.0f), mUp(0.0f, 1.0f, 0.0f), mBasePos(gZeroVec),
       mBaseFront(0.0f, 0.0f, 1.0f), mBaseUp(0.0f, 1.0f, 0.0f), mUnfreezeNerve(nullptr), mChaseInvalidTime(0), mMoveTime(0), mTargetSensor(),
       mDisableChase(), mIsLinearShot(), mUseFullSightAngle(), mPropeller(), mTorpedoLight(), mShotBindTime(0), mYoshiLockOn(nullptr),
-      mMovementType(41), mForceKillTime(600), mChaseInvalidFrame(35), mShotTime(10), mScaleParam(nullptr), mScaleController(nullptr) {
+      mMovementType(MR::MovementType_Enemy), mForceKillTime(600), mChaseInvalidFrame(35), mShotTime(10), mScaleParam(nullptr), mScaleController(nullptr) {
     mBaseMtx.identity();
     mEffectMtx.identity();
 }
 
+// NONMATCHING: vector temporary stack-slot order.
 void HomingKiller::init(const JMapInfoIter& rIter) {
     const char* objectName = "HomingKiller";
     if (MR::isValidInfo(rIter)) {
@@ -145,7 +147,7 @@ void HomingKiller::init(const JMapInfoIter& rIter) {
         mSpeed = ::cChaseSpeedTorpedo;
     }
 
-    MR::connectToScene(this, mMovementType, 8, 19, -1);
+    MR::connectToScene(this, mMovementType, 8, MR::DrawBufferType_Enemy, -1);
     MR::initLightCtrl(this);
 
     initHitSensor(2);
@@ -157,7 +159,7 @@ void HomingKiller::init(const JMapInfoIter& rIter) {
     f32 offsetScale = getScale();
 
     MR::addHitSensor(this, "Body", sensorType, 8, ::cBodyHitSensorRadius * hitRadius, TVec3f(::cBodyHitSensorOffset) * offsetScale);
-    MR::addHitSensorEye(this, "Eye", 16, ::cEyeHitSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorEye(this, "eye", 16, ::cEyeHitSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
 
     f32 binderRadius = getScale();
     initBinder(::cBinderRadius * binderRadius, 0.0f, 0);
@@ -292,7 +294,7 @@ void HomingKiller::initSpeed() {
     }
 }
 
-// NONMATCHING: local bool register choice (r30 vs r31) and branch polarity in the isInactive check
+// NONMATCHING: local boolean registers and effect-argument scheduling.
 void HomingKiller::control() {
     bool isInactive = false;
     if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvAppear)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak)) ||
@@ -317,7 +319,7 @@ void HomingKiller::control() {
             if (mType != Type_Torpedo) {
                 bool isMoving = false;
                 if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvMoveStart)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvMove)) ||
-                    mType == Type_HomingKiller) {
+                    mType != Type_HomingKiller) {
                     isMoving = true;
                 }
                 MR::emitEffect(this, isMoving ? "Smoke" : "SmokeChase");
@@ -374,6 +376,7 @@ void HomingKiller::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mScaleController);
 }
 
+// NONMATCHING: unused send-message result comparison omitted.
 void HomingKiller::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak))) {
         return;
@@ -392,7 +395,7 @@ void HomingKiller::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (pSender == getSensor("Eye")) {
+    if (pSender == getSensor("eye")) {
         if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvAppear))) {
             return;
         }
@@ -511,7 +514,7 @@ bool HomingKiller::isBreakByEnemyAttack(u32 msg, HitSensor* pSender) {
     return false;
 }
 
-// NONMATCHING: target loads the sensor type 51 from an sdata2 int (lwz) instead of li
+// NONMATCHING: target loads sensor type 51 from sdata2 and retains a normalized boolean temporary.
 bool HomingKiller::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(HomingKiller, HomingKillerNrvBreak)) || isNerve(GET_NERVE(HomingKiller, HomingKillerNrvEaten))) {
         return false;
@@ -881,7 +884,7 @@ bool HomingKiller::tryToExplosion(HitSensor* pSender, HitSensor* pReceiver) {
 
 void HomingKiller::sendMsgExplosionToNearActor() {
     HitSensor* receiver;
-    HitSensor* eyeSensor = getSensor("Eye");
+    HitSensor* eyeSensor = getSensor("eye");
 
     for (s32 idx = 0; idx < eyeSensor->mSensorCount; idx++) {
         receiver = eyeSensor->mSensors[idx];
@@ -905,6 +908,7 @@ bool HomingKiller::isUpdateChaseFrontVec(const TVec3f& rFront) const {
     return target.dot(mFront) < target.dot(rFront);
 }
 
+// NONMATCHING: vector temporary stack-slot order.
 void HomingKiller::calcFrontVecToTarget(TVec3f* pFront) const {
     TVec3f playerUp;
     TVec3f targetPos;
@@ -1103,9 +1107,8 @@ void HomingKiller::exeChaseStart() {
         MR::startBpk(this, "Chase");
         MR::startBrk(this, "Chase");
         MR::startActionSound(this, "EmKillerJet");
+        initSpeed();
     }
-
-    initSpeed();
 
     if (processChase() && !tryFreeze(GET_NERVE(HomingKiller, HomingKillerNrvChaseStart)) && MR::isActionEnd(this)) {
         setNerve(GET_NERVE(HomingKiller, HomingKillerNrvChase));
@@ -1220,7 +1223,7 @@ void HomingKiller::exeGoToTarget() {
     startMoveLevelSound(false);
 
     if (processChase() && !tryFreeze(GET_NERVE(HomingKiller, HomingKillerNrvGoToTarget))) {
-        HitSensor* eyeSensor = getSensor("Eye");
+        HitSensor* eyeSensor = getSensor("eye");
         bool foundTarget = false;
         for (s32 idx = 0; idx < eyeSensor->mSensorCount; idx++) {
             if (eyeSensor->mSensors[idx] == mTargetSensor) {
@@ -1259,6 +1262,7 @@ void HomingKiller::exeEaten() {
     }
 }
 
+// NONMATCHING: matrix/quaternion temporary stack slots.
 void HomingKiller::exeShot() {
     if (MR::isFirstStep(this)) {
         MR::showModel(this);
@@ -1304,7 +1308,7 @@ namespace NrvHomingKillerLauncher {
     NEW_NERVE(HomingKillerLauncherNrvDeadKiller, HomingKillerLauncher, DeadKiller);
 };  // namespace NrvHomingKillerLauncher
 
-HomingKillerLauncher::HomingKillerLauncher(const char* pName) : LiveActor("ホーミングキラーランチャー"), mKillers(nullptr), mKillerNum(1), mAppearInterval(180) {
+HomingKillerLauncher::HomingKillerLauncher(const char* pName) : LiveActor("ホーミングキラー発生源"), mKillers(nullptr), mKillerNum(1), mAppearInterval(180) {
 }
 
 void HomingKillerLauncher::init(const JMapInfoIter& rIter) {

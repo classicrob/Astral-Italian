@@ -1,4 +1,6 @@
 #include "Game/Enemy/MechanicKoopaMini.hpp"
+#include "Game/NameObj/NameObjFactory.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/MapObj/KeySwitch.hpp"
@@ -36,14 +38,15 @@ namespace NrvMechanicKoopaMini {
     NEW_NERVE(HostTypeNrvFind, MechanicKoopaMini, Find);
     NEW_NERVE(HostTypeNrvPursue, MechanicKoopaMini, Pursue);
     NEW_NERVE(HostTypeNrvPreFireAttack, MechanicKoopaMini, PreFireAttack);
-    NEW_NERVE(HostTypeNrvPreFireAttackAfterBind, MechanicKoopaMini, PreFireAttackAfterBind);
     NEW_NERVE_ONEND(HostTypeNrvFireAttack, MechanicKoopaMini, FireAttack, FireAttack);
     NEW_NERVE(HostTypeNrvFireAttackEnd, MechanicKoopaMini, FireAttackEnd);
     NEW_NERVE(HostTypeNrvAttackHit, MechanicKoopaMini, AttackHit);
     NEW_NERVE(HostTypeNrvSpinHit, MechanicKoopaMini, SpinHit);
     NEW_NERVE(HostTypeNrvTrample, MechanicKoopaMini, Trample);
     NEW_NERVE(HostTypeNrvHipDropped, MechanicKoopaMini, HipDropped);
-    NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, MechanicKoopaMini, BindStarPointer, BindStarPointer);
+    NEW_NERVE(HostTypeWaterBreak, MechanicKoopaMini, WaterBreak);
+    NEW_NERVE(HostTypeNrvBindStarPointer, MechanicKoopaMini, BindStarPointer);
+    NEW_NERVE(HostTypeNrvPreFireAttackAfterBind, MechanicKoopaMini, PreFireAttackAfterBind);
 };  // namespace NrvMechanicKoopaMini
 
 namespace {
@@ -82,63 +85,37 @@ void MechanicKoopaMini::onAppearSwitchOn() {
     }
 }
 
+// NONMATCHING: MWCC elides repeated member-function-pointer copies, reducing stack size.
 void MechanicKoopaMini::init(const JMapInfoIter& rIter) {
-    if (MR::isValidInfo(rIter)) {
-        MR::isConnectedWithRail(rIter);
-    }
-
-    MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
-
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::listenStageSwitchOnAppear(this, MR::Functor(this, &::MechanicKoopaMini::onAppearSwitchOn));
-    }
-
-    s32 arg = -1;
-    MR::getJMapInfoArg0NoInit(rIter, &arg);
-    if (arg == -1) {
-        mIsAppearJumping = false;
-    } else {
-        mIsAppearJumping = true;
-    }
-
-    arg = -1;
-    MR::getJMapInfoArg1NoInit(rIter, &arg);
-    if (arg == -1) {
-        mIsForbidPause = false;
-    } else {
-        mIsForbidPause = true;
-    }
-
-    initRailRider(rIter);
+    initNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail), 1);
     MR::initActor(this, rIter, "MechanicKoopaMini", false);
-    MR::connectToSceneEnemy(this);
-    initBinder(120.0f, 0.0f, 0);
-    MR::setBinderOffsetVec(this, &::hBinderOffset, true);
-    MR::onCalcGravity(this);
-    initSound(3, "MechanicKoopaMini", nullptr, TVec3f(0.0f));
-    MR::initLightCtrl(this);
-    initEffectKeeper(1, nullptr, false);
-    initNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail));
-    initHitSensor(3);
-    f32 yScale = mScale.y;
-    MR::addHitSensorAtJointEnemy(this, "body", "JointRoot", 16, 130.0f * yScale, TVec3f(48.0f, 13.0f, 0.0f));
-    MR::addHitSensorCallbackEnemyAttack(this, "fire", 16, 29.0f * yScale);
-    MR::initShadowFromCSV(this, "Shadow");
-    MR::declareCoin(this, 1);
-    MR::initStarPointerTarget(this, 70.0f, TVec3f(0.0f, 35.0f, 0.0f));
-    MR::validateClipping(this);
-    MR::tryRegisterDemoCast(this, rIter);
+    if (MR::isValidSwitchAppear(this)) {
+        MR::listenStageSwitchOnAppear(this, MR::Functor_Inline(this, &MechanicKoopaMini::onAppearSwitchOn));
+    }
+    MR::getJMapInfoArg0NoInit(rIter, &mIsAppearJumping);
+    MR::getJMapInfoArg1NoInit(rIter, &mIsForbidPause);
+    MR::setBinderOffsetVec(this, &hBinderOffset, true);
+    bool useUp = false;
+    MR::getJMapInfoArg2NoInit(rIter, &useUp);
+    if (useUp) {
+        TVec3f up(0.0f, 1.0f, 0.0f);
+        MR::calcUpVec(&up, this);
+        mGravity = -up;
+    } else {
+        MR::onCalcGravity(this);
+    }
+    s32 count = MR::getChildObjNum(rIter);
+    for (s32 i = 0; i < count; i++) {
+        mKeySwitch = static_cast<KeySwitch*>(NameObjFactory::initChildObj(rIter, i));
+        mKeySwitch->prepareDemoStart();
+        MR::disableAllItemGenerator(this);
+    }
     mScaleController = new AnimScaleController(nullptr);
     mScaleController->setParamTight();
+    MR::tryRegisterDemoCast(this, rIter);
     mBindStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
-
-    if (MR::isValidSwitchAppear(this)) {
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::initActorState(this, mBindStarPointer, GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer), "SupportFreeze");
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void MechanicKoopaMini::initAfterPlacement() {
@@ -147,7 +124,6 @@ void MechanicKoopaMini::initAfterPlacement() {
 
 void MechanicKoopaMini::makeActorAppeared() {
     LiveActor::makeActorAppeared();
-    getSensor("fire")->invalidate();
 }
 
 void MechanicKoopaMini::kill() {
@@ -171,9 +147,7 @@ void MechanicKoopaMini::exeWait() {
 
     MR::moveAndTurnToPlayer(this, ::hNoMoveNoTurnParam._0, ::hNoMoveNoTurnParam._4, ::hNoMoveNoTurnParam._8, ::hNoMoveNoTurnParam._C);
 
-    if (MR::calcDistanceToPlayer(this) < 900.0f && MR::isFaceToPlayerDegree(this, 120.0f)) {
-        setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFind));
-    } else if (MR::isGreaterStep(this, 120)) {
+    if (!fn_801C34F0() && MR::isGreaterStep(this, 120)) {
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail));
     }
 }
@@ -188,18 +162,8 @@ void MechanicKoopaMini::exeWalkOnRail() {
         MR::moveAndTurnAlongRail(this, 600.0f, ::hWalkParam._0, ::hWalkParam._4, ::hWalkParam._8, ::hWalkParam._C, &canTurn);
         TVec3f frontVec;
         MR::calcFrontVec(&frontVec, this);
-        if (MR::isBindedWallOfMap(this)) {
-            TVec3f vecc(MR::getWallNormal(this));
-            if (frontVec.dot(vecc) < -0.99f) {
-                setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvJumpStart));
-                return;
-            }
-        }
-
-        if (MR::calcDistanceToPlayer(this) < 900.0f && MR::isFaceToPlayerDegree(this, 120.0f)) {
-            setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFind));
-            return;
-        }
+        if (fn_801C3590()) return;
+        if (fn_801C34F0()) return;
     } else {
         MR::moveAndTurnAlongRail(this, 600.0f, ::hOnAirMoveParam._0, ::hOnAirMoveParam._4, ::hOnAirMoveParam._8, ::hOnAirMoveParam._C, &canTurn);
     }
@@ -295,23 +259,25 @@ void MechanicKoopaMini::exePursue() {
 
     if (MR::isOnGround(this)) {
         MR::moveAndTurnToPlayer(this, ::hPursueParam._0, ::hPursueParam._4, ::hPursueParam._8, ::hPursueParam._C);
-        MR::calcFrontVec(&frontVec, this);
-        if (MR::isBindedWall(this)) {
-            TVec3f vecc(MR::getWallNormal(this));
-            if (frontVec.dot(vecc) < -0.99f) {
-                setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvJumpStart));
-            }
-        }
+        if (fn_801C3590()) return;
     } else {
-        MR::moveAndTurnToPlayer(this, ::hOnAirMoveParam._0, ::hOnAirMoveParam._4, ::hOnAirMoveParam._8, ::hOnAirMoveParam._C);
-        MR::calcFrontVec(&frontVec, this);
+        MR::moveAndTurnToPlayer(this, hOnAirMoveParam._0, hOnAirMoveParam._4, hOnAirMoveParam._8, hOnAirMoveParam._C);
     }
 
     f32 distance = MR::calcDistanceToPlayer(this);
-    if (1100.0f < distance) {
-        setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail));
-    } else if (distance < 300.0f && MR::isFaceToPlayerHorizontalDegree(this, frontVec, 5.729578f) && MR::isOnGround(this)) {
-        setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttack));
+    if (!(1100.0f < distance)) {
+        bool enabled = false;
+        if (!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) enabled = true;
+        if (enabled) goto canAttack;
+    }
+    setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail));
+    return;
+canAttack:
+    if (distance < 300.0f) {
+        MR::calcFrontVec(&frontVec, this);
+        if (MR::isFaceToPlayerHorizontalDegree(this, frontVec, 5.729578f) && MR::isOnGround(this)) {
+            setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttack));
+        }
     }
 }
 
@@ -340,23 +306,23 @@ void MechanicKoopaMini::exePreFireAttack() {
 void MechanicKoopaMini::exePreFireAttackAfterBind() {
     if (MR::getBckFrame(this) >= 60.0f) {
         MR::startActionSound(this, "EmLvMkoopaminiPreFire", -1, -1, -1);
-
-        if (MR::isOnGround(this)) {
-            MR::moveAndTurnToPlayer(this, ::hPreFireAttackParam._0, ::hPreFireAttackParam._4, ::hPreFireAttackParam._8, ::hPreFireAttackParam._C);
-        } else {
-            MR::moveAndTurnToPlayer(this, ::hOnAirParam._0, ::hOnAirParam._4, ::hOnAirParam._8, ::hOnAirParam._C);
-        }
-
-        if (MR::isActionEnd(this)) {
-            setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttack));
-        }
     }
+
+    if (MR::isOnGround(this)) {
+        MR::moveAndTurnToPlayer(this, ::hPreFireAttackParam._0, ::hPreFireAttackParam._4, ::hPreFireAttackParam._8, ::hPreFireAttackParam._C);
+    } else {
+        MR::moveAndTurnToPlayer(this, ::hOnAirParam._0, ::hOnAirParam._4, ::hOnAirParam._8, ::hOnAirParam._C);
+    }
+
+    if (MR::isActionEnd(this)) {
+        setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttack));
+    }
+
 }
 
 void MechanicKoopaMini::exeFireAttack() {
     if (MR::isFirstStep(this)) {
-        getSensor("fire")->validate();
-        MR::emitEffect(this, "Fire");
+            MR::validateHitSensor(this, "fire");
         MR::startAction(this, "Fire");
     }
 
@@ -368,14 +334,15 @@ void MechanicKoopaMini::exeFireAttack() {
 
     if (MR::isGreaterStep(this, 120)) {
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttackEnd));
-    } else if (MR::isLessEqualStep(this, 90)) {
+        return;
+    }
+    if (MR::isLessEqualStep(this, 90)) {
         MR::startActionSound(this, "EmLvMkoopaminiFire");
     }
 }
 
 void MechanicKoopaMini::endFireAttack() {
-    MR::deleteEffect(this, "Fire");
-    getSensor("fire")->invalidate();
+    MR::invalidateHitSensor(this, "fire");
 }
 
 void MechanicKoopaMini::exeFireAttackEnd() {
@@ -462,7 +429,7 @@ void MechanicKoopaMini::exeHipDropped() {
 
     if (MR::isActionEnd(this)) {
         kill();
-        MR::appearCoinPop(this, mPosition, 1);
+        MR::emitItemStomp(this);
     }
 }
 
@@ -476,9 +443,7 @@ void MechanicKoopaMini::exeBindStarPointer() {
     }
 }
 
-void MechanicKoopaMini::endBindStarPointer() {
-    mBindStarPointer->kill();
-}
+
 
 void MechanicKoopaMini::control() {
     mScaleController->updateNerve();
@@ -488,13 +453,14 @@ void MechanicKoopaMini::control() {
         return;
     }
 
-    if (!isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttack)) && !isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail)) &&
-        !isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPursue)) && !isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvTrample))) {
-        if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttackEnd)) && mBindStarPointer->tryStartPointBind()) {
-            _8E = false;
-            setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer));
-            return;
-        }
+    if ((isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttack)) ||
+        isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvWalkOnRail)) ||
+        isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPursue)) ||
+        isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvTrample)) ||
+        isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttackEnd))) && mBindStarPointer->tryStartPointBind()) {
+        _8E = false;
+        setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer));
+        return;
     }
 
     if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFireAttack)) && mBindStarPointer->tryStartPointBind()) {
@@ -504,8 +470,8 @@ void MechanicKoopaMini::control() {
         return;
     }
 
-    if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) && !MR::isGreaterStep(this, 60) &&
-        isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttackAfterBind)) && mBindStarPointer->tryStartPointBind()) {
+    if (((isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) && MR::isGreaterStep(this, 60)) ||
+        isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttackAfterBind))) && mBindStarPointer->tryStartPointBind()) {
         _8E = true;
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer));
     }
@@ -521,9 +487,10 @@ void MechanicKoopaMini::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             if (!MR::isPlayerHipDropFalling()) {
                 TVec3f pos(*MR::getSensorPos(pReceiver));
                 pos -= *MR::getSensorPos(pSender);
+                f32 dot = pos.dot(-mGravity);
                 f32 SenderRad = MR::getSensorRadius(pSender);
                 f32 ReceiverRad = MR::getSensorRadius(pReceiver);
-                if (!(((ReceiverRad + SenderRad) - ::hPushUpRangeSub) < pos.dot(-mGravity))) {
+                if (!(((ReceiverRad + SenderRad) - ::hPushUpRangeSub) < dot)) {
                     MR::sendMsgPush(pReceiver, pSender);
                 }
             }
@@ -542,21 +509,31 @@ bool MechanicKoopaMini::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitS
         return false;
     }
 
+    if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeWaterBreak))) return false;
+
     if (MR::isMsgStarPieceAttack(msg)) {
         setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit));
         return true;
     }
 
+    if (MR::isMsgDrillAttack(msg)) {
+        setNerve(GET_NERVE(MechanicKoopaMini, HostTypeWaterBreak));
+        return true;
+    }
+
     if (MR::isMsgPlayerTrample(msg)) {
-        TVec3f v16(pSender->mPosition);
-        v16 -= pReceiver->mPosition;
-        f32 ReceiverRad = pReceiver->mRadius;
-        f32 SenderRad = pSender->mRadius;
-        if (((SenderRad + ReceiverRad) - ::hTrampleUpRangeSub) < v16.dot(-mGravity)) {
+        TVec3f v16(*MR::getSensorPos(pSender));
+        v16 -= *MR::getSensorPos(pReceiver);
+        f32 dot = v16.dot(-mGravity);
+        f32 ReceiverRad = MR::getSensorRadius(pReceiver);
+        f32 SenderRad = MR::getSensorRadius(pSender);
+        if (((SenderRad + ReceiverRad) - ::hTrampleUpRangeSub) < dot) {
             return false;
         } else {
             MR::startActionSound(this, "EmMkoopaminiTrample");
-            if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit))) {
+            if (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) ||
+                (isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvBindStarPointer)) && _8E) ||
+                isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttackAfterBind))) {
                 return true;
             }
 
@@ -572,20 +549,21 @@ bool MechanicKoopaMini::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitS
         return true;
     }
 
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        if (!isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) || !MR::isLessStep(this, 120)) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) || MR::isMsgJetTurtleAttack(msg)) {
+        if ((!isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit)) || !MR::isLessStep(this, 120)) &&
+            (!isNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvPreFireAttackAfterBind)) || !(MR::getBckFrame(this) < 120.0f))) {
             setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvSpinHit));
+            return true;
         }
-        return true;
+        return false;
     }
-
     return false;
 }
 
 bool MechanicKoopaMini::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgExplosionAttack(msg)) {
         kill();
-        MR::appearCoinPop(this, mPosition, 1);
+        MR::emitItemHit(this);
         return true;
     }
 
@@ -610,20 +588,64 @@ bool MechanicKoopaMini::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver)
     return false;
 }
 
-void MechanicKoopaMini::updateHitSensor(HitSensor* pSensor) {
+// NONMATCHING: MWCC folds an empty clamp arm into a single conditional branch.
+void MechanicKoopaMini::updateHitSensor(HitSensor* sensor) {
     TVec3f up, front;
     MR::calcUpVec(&up, this);
     MR::calcFrontVec(&front, this);
-    f32 dot = front.dot(*MR::getPlayerCenterPos() - mPosition);
-    f32 nerveRate = 400.0f * MR::calcNerveRate(this, 10, 30);
-    f32 frontDist = MR::clamp(dot, 0.0f, nerveRate);
-
-    pSensor->mPosition.set(mPosition);
-    pSensor->mPosition.add(up * MR::getSensorRadius(this, "body"));
-    pSensor->mPosition.add(front * frontDist);
+    TVec3f toPlayer(*MR::getPlayerCenterPos());
+    toPlayer -= mPosition;
+    f32 frontDist = front.dot(toPlayer);
+    f32 upDist = up.dot(toPlayer);
+    f32 offset = 0.0f;
+    if (upDist - MR::getSensorRadius(this, "Body") < 0.0f) offset = -10.0f;
+    f32 rate = MR::calcNerveRate(this, 5, 15);
+    f32 maximum = 350.0f * rate;
+    f32 distance = 0.0f;
+    if (frontDist < distance) {}
+    else if (frontDist > maximum) distance = maximum;
+    else distance = frontDist;
+    MR::getSensorPos2(sensor)->set(mPosition);
+    MR::getSensorPos2(sensor)->add(up * (offset + MR::getSensorRadius(this, "Body")));
+    MR::getSensorPos2(sensor)->add(front * distance);
 }
 
 void MechanicKoopaMini::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     MR::updateBaseScale(this, mScaleController);
+}
+
+void MechanicKoopaMini::exeWaterBreak() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Break");
+        MR::invalidateHitSensors(this);
+        MR::startActionSound(this, "EmMkoopaminiBreak");
+    }
+    if (MR::isActionEnd(this)) {
+        kill();
+        MR::emitItemStomp(this);
+    }
+}
+bool MechanicKoopaMini::fn_801C34F0() {
+    if (MR::calcDistanceToPlayer(this) < 900.0f && MR::isFaceToPlayerDegree(this, 120.0f)) {
+        bool enabled = false;
+        if (!MR::isValidSwitchA(this) || MR::isOnSwitchA(this)) enabled = true;
+        if (enabled) {
+            setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvFind));
+            return true;
+        }
+    }
+    return false;
+}
+bool MechanicKoopaMini::fn_801C3590() {
+    TVec3f front;
+    MR::calcFrontVec(&front, this);
+    if (MR::isBindedWall(this)) {
+        TVec3f normal(MR::getWallNormal(this));
+        if (front.dot(normal) < -0.99f) {
+            setNerve(GET_NERVE(MechanicKoopaMini, HostTypeNrvJumpStart));
+            return true;
+        }
+    }
+    return false;
 }

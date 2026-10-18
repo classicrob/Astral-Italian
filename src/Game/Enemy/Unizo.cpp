@@ -180,20 +180,20 @@ void Unizo::init(const JMapInfoIter& rIter) {
 
     if (mType == TypeSea) {
         MR::initActor(this, rIter, "Unizo", false);
-        mBreakModel = new ModelObj("ウニゾー壊れモデル", "UnizoBreak", nullptr, 0x13 /* DrawBufferType_Enemy (SMG2) */, -2, -2, false);
+        mBreakModel = new ModelObj("ウニゾー壊れモデル", "UnizoBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
     } else if (mType == TypeLand) {
         mRollHeight = ::sRollHeightLand;
         mGravityRate = ::sGravityRateLand;
         MR::initActor(this, rIter, "UnizoLand", false);
-        mBreakModel = new ModelObj("陸ウニゾー壊れモデル", "UnizoLandBreak", nullptr, 0x13 /* DrawBufferType_Enemy (SMG2) */, -2, -2, false);
+        mBreakModel = new ModelObj("陸ウニゾー壊れモデル", "UnizoLandBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
         MR::initFur(this);
     } else if (mType == TypeShoal) {
         MR::initActor(this, rIter, "UnizoShoal", false);
-        mBreakModel = new ModelObj("浅瀬ウニゾー壊れモデル", "UnizoShoalBreak", nullptr, 0x13 /* DrawBufferType_Enemy (SMG2) */, -2, -2, false);
+        mBreakModel = new ModelObj("浅瀬ウニゾー壊れモデル", "UnizoShoalBreak", nullptr, MR::DrawBufferType_Enemy, -2, -2, false);
         mBreakModel->initWithoutIter();
         mBreakModel->makeActorDead();
     }
@@ -205,8 +205,8 @@ void Unizo::init(const JMapInfoIter& rIter) {
     MR::connectToSceneEnemy(this);
     MR::initLightCtrl(this);
     initHitSensor(1);
-    MR::addHitSensor(this, "Body", 0x28 /* SMG2 ATYPE (SMG1 0x24) */, 8, 115.2f * mRadiusScale, TVec3f(0.0f, 126.36f * mRadiusScale, 0.0f));
-    MR::initStarPointerTarget(this, 115.2f * mRadiusScale, TVec3f(0.0f, 126.36f * mRadiusScale, 0.0f));
+    MR::addHitSensor(this, "Body", 0x28 /* SMG2 ATYPE (SMG1 0x24) */, 8, 100.0f * mRadiusScale, TVec3f(0.0f, 126.36f * mRadiusScale, 0.0f));
+    MR::initStarPointerTarget(this, 100.0f * mRadiusScale, TVec3f(0.0f, 126.36f * mRadiusScale, 0.0f));
     initBinder(126.36f * mRadiusScale, 126.36f * mRadiusScale, 8);
     MR::initShadowVolumeSphere(this, 106.36f * mRadiusScale);
     MR::initShadowVolumeSphere(mBreakModel, 106.36f * mRadiusScale);

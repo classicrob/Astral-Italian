@@ -1,3 +1,4 @@
+#pragma auto_inline off
 #include "Game/Enemy/KoteBug.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/AnimStampController.hpp"
@@ -7,6 +8,9 @@
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
+#include "Game/Util/YoshiLockOnUtil.hpp"
 #include "Game/Util/JointController.hpp"
 
 namespace {
@@ -14,13 +18,11 @@ namespace {
     const f32 hGroundDamp = 0.8f;
     const f32 hAirDampH = 0.96f;
     const f32 hAirDampV = 0.93f;
-    // hOnGroundTime
     const f32 hPushedAcc = 2.0f;
     const f32 hSearchDistance = 1000.0f;
     const f32 hFlyDistance = 2000.0f;
     const f32 hFlyPursueVel = 0.2f;
     const f32 hFlyPursueLastSubVel = 0.01f;
-    // hFlyRateV
     const f32 hFlyHeight = 100.0f;
     const s32 hFlyStartTime = 20;
     const s32 hFlyPursueTime = 200;
@@ -42,13 +44,7 @@ namespace {
     const f32 hHitToPlayerJumpVelV = 10.0f;
     const f32 hHitToPlayerJumpVelH = -10.0f;
     const f32 hHitScaleYSpeed = 0.1f;
-    // hStampFallVel
     const s32 hStampDeathTime = 20;
-    // hHitBlowGravity
-    // hTimeHitPunch
-    // hPunchHitVelV
-    // hPunchHitVelH
-    // hCoinGenPunchTime
     const s32 hBlowStopSceneTime = 3;
     const f32 hSearchTurnLimitDegree = 5.7f;
     const f32 hFlyTurnLimitDegree = 5.7f;
@@ -56,12 +52,17 @@ namespace {
     const f32 hOverturnRotateRate = 0.15f;
     const f32 hRecoverRotateRate = 0.2f;
     const f32 hBlowRotateAngle = -1.0f;
-    // hStampDeathOffset
 };  // namespace
 
 namespace NrvKoteBug {
     NEW_NERVE_ONEND(HostTypeNrvNoCalcWait, KoteBug, NoCalcWait, NoCalcWait);
     NEW_NERVE_ONEND(HostTypeNrvWait, KoteBug, Wait, Wait);
+    class HostTypeNrvAppear : public Nerve {
+    public:
+        virtual void execute(Spine* spine) const { static_cast<KoteBug*>(spine->mExecutor)->fn_801B6650(); }
+        static HostTypeNrvAppear sInstance;
+    };
+    HostTypeNrvAppear HostTypeNrvAppear::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(HostTypeNrvSearch, KoteBug, Search);
     NEW_NERVE(HostTypeNrvEscapeSearch, KoteBug, EscapeSearch);
     NEW_NERVE(HostTypeNrvPreEscape, KoteBug, PreEscape);
@@ -77,6 +78,12 @@ namespace NrvKoteBug {
     NEW_NERVE(HostTypeNrvBlow, KoteBug, Blow);
     NEW_NERVE(HostTypeNrvStampDeath, KoteBug, StampDeath);
     NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, KoteBug, BindStarPointer, BindStarPointer);
+    class HostTypeNrvEaten : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static HostTypeNrvEaten sInstance;
+    };
+    HostTypeNrvEaten HostTypeNrvEaten::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvKoteBug
 
 KoteBug::KoteBug(const char* pName)
@@ -85,42 +92,21 @@ KoteBug::KoteBug(const char* pName)
 }
 
 void KoteBug::init(const JMapInfoIter& rIter) {
-    if (MR::isValidInfo(rIter)) {
-        MR::initDefaultPos(this, rIter);
-        MR::useStageSwitchWriteDead(this, rIter);
-        MR::useStageSwitchSyncAppear(this, rIter);
-    }
-
     MR::initActor(this, rIter, "KoteBug", false);
     TPos3f mtx;
     mtx.set(getBaseMtx());
     mtx.getZDir(mFront);
-
-    MR::connectToSceneEnemy(this);
-    MR::initLightCtrl(this);
-    f32 scale = mScale.y;
-    initBinder(70.0f * scale, 70.0f * scale, 0);
-    initHitSensor(1);
-    MR::addHitSensorAtJointEnemy(this, "body", "Center", 32, 100.0f * scale, TVec3f(0.0f, 20.0f * scale, 0.0f));
-    initEffectKeeper(0, nullptr, false);
-    initSound(4, "KoteBug", nullptr, TVec3f(0.0f));
-    initNerve(GET_NERVE(KoteBug, HostTypeNrvWait));
-    MR::initStarPointerTarget(this, 110.0f, TVec3f(0.0f, 80.0f, 0.0f));
-    MR::declareStarPiece(this, 3);
-    MR::declareCoin(this, 1);
+    initNerve(GET_NERVE(KoteBug, HostTypeNrvWait), 1);
     mSpinHitController = new SpinHitController(this);
     mScaleController = new AnimScaleController(nullptr);
     mStampController = new AnimStampController();
     mStarPointer = new WalkerStateBindStarPointer(this, mScaleController);
+    MR::initActorState(this, mStarPointer, GET_NERVE(KoteBug, HostTypeNrvBindStarPointer), "SupportFreeze");
     MR::onCalcGravity(this);
-    MR::initShadowVolumeSphere(this, 70.0f * mScale.y);
     MR::validateClipping(this);
     mJointController = MR::createJointDelegatorWithNullChildFunc(this, &KoteBug::calcJoint, "Center");
-    if (MR::isValidSwitchAppear(this)) {
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, (MtxPtr)nullptr, TVec3f(0.0f));
+    if (MR::useStageSwitchSyncAppear(this, rIter)) setNerve(GET_NERVE(KoteBug, HostTypeNrvAppear));
 }
 
 void KoteBug::appear() {
@@ -141,8 +127,8 @@ void KoteBug::control() {
 
     mScaleController->updateNerve();
     mStampController->updateNerve();
-    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) ||
-        isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
+    if (_C0 > 0) _C0--;
+    if (fn_801B7B40()) {
         TQuat4f rotation;
         rotation.setRotate(TVec3f(1, 0, 0), 3.1415927f);
         mPosture.slerp(rotation, ::hOverturnRotateRate);
@@ -154,13 +140,20 @@ void KoteBug::control() {
         mPosture.slerp(TQuat4f(0, 0, 0, 1), ::hRecoverRotateRate);
     }
 
-    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvNoCalcWait)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvWait)) ||
-        isNerve(GET_NERVE(KoteBug, HostTypeNrvSearch)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvEscapeSearch)) ||
-        isNerve(GET_NERVE(KoteBug, HostTypeNrvPreEscape)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyStart)) ||
-        isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyEscape))) {
-        if (mStarPointer->tryStartPointBind()) {
-            setNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer));
-        }
+    if (fn_801B7D60()) return;
+}
+
+void KoteBug::fn_801B6650() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "PreEscape");
+        MR::startActionSound(this, "EmKotebugFind");
+    }
+    MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, 5.7f);
+    MR::zeroVelocity(this);
+    if (MR::isActionEnd(this)) {
+        bool escape = !MR::isPlayerElementModeBee();
+        if (escape) { setNerve(GET_NERVE(KoteBug, HostTypeNrvFlyEscape)); return; }
+        setNerve(GET_NERVE(KoteBug, HostTypeNrvSearch));
     }
 }
 
@@ -178,35 +171,21 @@ void KoteBug::exeNoCalcWait() {
     }
 }
 
-void KoteBug::endNoCalcWait() {
-    MR::onBind(this);
-    MR::onCalcShadow(this, nullptr);
-    MR::onCalcGravity(this);
-}
-
 void KoteBug::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::startAction(this, "Wait");
     }
-
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     f32 distance = MR::calcDistanceToPlayer(this);
-    if (MR::isOnGround(this) && distance < ::hSearchDistance) {
+    if (MR::isOnGround(this) && distance < hSearchDistance) {
         bool escape = !MR::isPlayerElementModeBee();
-        if (escape) {
-            setNerve(GET_NERVE(KoteBug, HostTypeNrvEscapeSearch));
-        } else {
-            setNerve(GET_NERVE(KoteBug, HostTypeNrvSearch));
-        }
-    } else if (MR::isOnGround(this)) {
-        setNerve(GET_NERVE(KoteBug, HostTypeNrvNoCalcWait));
-    } else {
-        MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
+        if (escape) { setNerve(GET_NERVE(KoteBug, HostTypeNrvEscapeSearch)); return; }
+        setNerve(GET_NERVE(KoteBug, HostTypeNrvSearch));
+        return;
     }
-}
-
-void KoteBug::endWait() {
-    MR::invalidateClipping(this);
+    if (MR::isOnGround(this)) MR::zeroVelocity(this);
+    MR::applyVelocityDampAndGravity(this, hCommonGravity, hGroundDamp, hAirDampH, hAirDampV, 1.0f);
 }
 
 void KoteBug::exeSearch() {
@@ -215,6 +194,7 @@ void KoteBug::exeSearch() {
     }
 
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, ::hSearchTurnLimitDegree);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isGreaterStep(this, ::hSeachTime)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue));
     } else if (::hSearchDistance < MR::calcDistanceToPlayer(this)) {
@@ -230,6 +210,7 @@ void KoteBug::exeEscapeSearch() {
     }
 
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, ::hPreEscapeTurnLimitDegree);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isGreaterStep(this, ::hEscapeSeachTime)) {
         bool escape = !MR::isPlayerElementModeBee();
         if (escape) {
@@ -252,6 +233,7 @@ void KoteBug::exePreEscape() {
 
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, ::hPreEscapeTurnLimitDegree);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvFlyEscape));
     }
@@ -265,6 +247,7 @@ void KoteBug::exeFlyStart() {
     MR::startActionSound(this, "EmLvKotebugFly");
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, ::hFlyTurnLimitDegree);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isGreaterStep(this, ::hFlyStartTime)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue));
     }
@@ -286,6 +269,7 @@ void KoteBug::exeFlyPursue() {
     } else {
         MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, ::hFlyTurnLimitDegree);
     }
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
 
     mVelocity.add(mFront * ::hFlyPursueVel);
     if (MR::isShadowProjected(this, nullptr)) {
@@ -324,6 +308,7 @@ void KoteBug::exeFlyPursueLast() {
         MR::addVelocityKeepHeightUseShadow(this, ::hFlyJitabataHeightBase + ::hFlyJitabataHeight * rate, 0.0f, ::hKeepAcc, ::hFreqRange, nullptr);
     }
 
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (::hFlyDistance < MR::calcDistanceToPlayer(this)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvWait));
     } else if (MR::isGreaterStep(this, ::hFlyPursueLastTime)) {
@@ -339,6 +324,7 @@ void KoteBug::exeOverturnFall() {
     }
 
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isOnGroundCos(this, 0.75f)) {
         mScaleController->startAndAddScaleVelocityY(::hHitScaleYSpeed);
         mScaleController->startAnim();
@@ -357,6 +343,7 @@ void KoteBug::exeOverturn() {
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
     MR::killVelocityOnGroundH(this);
     mBinder->_1EC._5 = true;
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isGreaterStep(this, ::hOverturnTime)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover));
     }
@@ -370,6 +357,7 @@ void KoteBug::exePreRecover() {
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
     MR::killVelocityOnGroundH(this);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvRecover));
     }
@@ -383,6 +371,7 @@ void KoteBug::exeRecover() {
     }
 
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
     if (MR::isOnGround(this)) {
         MR::startActionSound(this, "EmKotebugLand");
@@ -403,6 +392,7 @@ void KoteBug::exeHitToPlayer() {
 
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
     MR::applyVelocityDampAndGravity(this, ::hCommonGravity, ::hGroundDamp, ::hAirDampH, ::hAirDampV, 1.0f);
+    YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isOnGround(this)) {
         setNerve(GET_NERVE(KoteBug, HostTypeNrvFlyStart));
     }
@@ -419,9 +409,10 @@ void KoteBug::exeBlow() {
 
     TQuat4f rotation;
     rotation.setRotate(TVec3f(1, 0, 0), ::hBlowRotateAngle);
-    mPosture.mult(mPosture, rotation);
+    PSQUATMultiply(mPosture, rotation, mPosture);
 
     if (mSpinHitController->execute(this)) {
+        MR::emitItemHit(this);
         MR::startActionSound(this, "EmExplodeS");
     }
 }
@@ -439,14 +430,10 @@ void KoteBug::exeStampDeath() {
     mBinder->_1EC._5 = true;
     if (MR::isGreaterStep(this, ::hStampDeathTime)) {
         MR::startActionSound(this, "EmExplodeS");
-        MR::appearCoinPop(this, mPosition, 1);
+        MR::emitItemStomp(this);
         kill();
     }
 }
-
-namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-};
 
 void KoteBug::exeBindStarPointer() {
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
@@ -460,17 +447,14 @@ void KoteBug::exeBindStarPointer() {
     }
 }
 
-void KoteBug::endBindStarPointer() {
-    mStarPointer->kill();
-}
-
 bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvAppear)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
         return false;
     }
 
     if (MR::isMsgPlayerHipDrop(msg)) {
         MR::startActionSound(this, "EmStompedS");
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         setNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath));
         return true;
     }
@@ -480,8 +464,9 @@ bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             return false;
         }
 
-        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover))) {
+        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && _C4)) {
             MR::startActionSound(this, "EmStompedS");
+            ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
             setNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath));
             return true;
         }
@@ -510,19 +495,25 @@ bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
         return true;
     }
 
-    if (MR::isMsgInvincibleAttack(msg) || MR::isMsgFireBallAttack(msg)) {
+    if (MR::isMsgInvincibleAttack(msg) || MR::isMsgFireBallAttack(msg) || MR::isMsgYoshiProjectile(msg) || MR::isMsgYoshiEat(msg)) {
         mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
         return true;
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
-        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn))) {
-            mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
-            setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
-            return true;
+        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && _C4)) {
+            if (_C0 == 0) {
+                mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
+                ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
+                setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
+                return true;
+            }
+            return false;
         }
 
+        _C0 = 30;
         setOverturnFall(pSender, pReceiver);
         return true;
     }
@@ -531,24 +522,56 @@ bool KoteBug::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
 }
 
 bool KoteBug::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvAppear)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) return false;
+
     if (MR::isMsgInhaleBlackHole(msg)) {
         kill();
         return true;
     }
 
     if (MR::isMsgPlayerKick(msg)) {
-        if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
+        if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f)) {
             return false;
         }
 
         if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) ||
-            isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover))) {
+            isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover)) || (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer)) && _C4)) {
             mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
+            ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
             setNerve(GET_NERVE(KoteBug, HostTypeNrvBlow));
             return true;
         }
     }
 
+    if (MR::isMsgYoshiStartTongue(msg)) { setNerve(GET_NERVE(KoteBug, HostTypeNrvEaten)); return true; }
+    if (MR::isMsgYoshiLoopTongue(msg)) return true;
+    if (MR::isMsgYoshiReleaseEaten(msg)) { makeActorDead(); return true; }
+    if (MR::isMsgYoshiCancelEaten(msg)) { MR::startActionSound(this, "EmExplodeS"); makeActorDead(); return true; }
+    return false;
+}
+
+bool KoteBug::fn_801B7B40() const {
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturnFall)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) return true;
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer))) return _C4;
+    return false;
+}
+
+bool KoteBug::fn_801B7BE0() const {
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvNoCalcWait)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvWait)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvSearch)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvEscapeSearch)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreEscape)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyStart)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyEscape)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover))) return true;
+    return false;
+}
+
+bool KoteBug::fn_801B7CF0() const {
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvOverturn)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvPreRecover)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvRecover))) return true;
+    return false;
+}
+
+bool KoteBug::fn_801B7D60() {
+    if (fn_801B7BE0() && mStarPointer->tryStartPointBind()) {
+        _C4 = fn_801B7CF0();
+        setNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer));
+        return true;
+    }
     return false;
 }
 
@@ -565,7 +588,7 @@ void KoteBug::setOverturnFall(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool KoteBug::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvAppear)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
         return false;
     }
 
@@ -589,40 +612,40 @@ bool KoteBug::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
     return false;
 }
 
+// NONMATCHING: compiler folds the target eaten-state branch into the common exit.
 void KoteBug::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
-        return;
-    }
-
-    if (pSender != getSensor("body")) {
-        return;
-    }
-
-    if (MR::isSensorPlayer(pReceiver)) {
-        if (MR::isPlayerHipDropFalling() || MR::isPlayerHipDropLand()) {
+    if (!isNerve(GET_NERVE(KoteBug, HostTypeNrvAppear)) && !isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) && !isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath))) {
+        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvEaten))) return;
+        if (pSender != getSensor("Body")) {
             return;
         }
 
-        if (isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyStart)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue))) {
-            if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
-                MR::sendMsgPush(pReceiver, pSender);
+        if (MR::isSensorPlayer(pReceiver)) {
+            if (MR::isPlayerHipDropFalling() || MR::isPlayerHipDropLand()) {
                 return;
             }
 
-            if (MR::sendMsgEnemyAttack(pReceiver, pSender) == true) {
-                setNerve(GET_NERVE(KoteBug, HostTypeNrvHitToPlayer));
-                return;
+            if (isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyStart)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvFlyPursue))) {
+                if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f)) {
+                    MR::sendMsgPush(pReceiver, pSender);
+                    return;
+                }
+
+                if (MR::sendMsgEnemyAttack(pReceiver, pSender) == true) {
+                    setNerve(GET_NERVE(KoteBug, HostTypeNrvHitToPlayer));
+                    return;
+                }
             }
+
+            MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
+        } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorYoshi(pReceiver)) {
+            MR::sendMsgPush(pReceiver, pSender);
         }
-
-        MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
-    } else if (MR::isSensorEnemy(pReceiver)) {
-        MR::sendMsgPush(pReceiver, pSender);
     }
 }
 
 bool KoteBug::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath)) ||
+    if (isNerve(GET_NERVE(KoteBug, HostTypeNrvAppear)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvBlow)) || isNerve(GET_NERVE(KoteBug, HostTypeNrvStampDeath)) ||
         isNerve(GET_NERVE(KoteBug, HostTypeNrvBindStarPointer))) {
         return false;
     }
@@ -653,3 +676,18 @@ bool KoteBug::calcJoint(TPos3f* pMtx, const JointControllerInfo& rInfo) {
     pMtx->concat(*pMtx, rotation);
     return true;
 }
+
+void KoteBug::endNoCalcWait() {
+    MR::onBind(this);
+    MR::onCalcShadow(this, nullptr);
+    MR::onCalcGravity(this);
+}
+
+void KoteBug::endWait() {
+    MR::invalidateClipping(this);
+}
+
+void KoteBug::endBindStarPointer() {
+    mStarPointer->kill();
+}
+

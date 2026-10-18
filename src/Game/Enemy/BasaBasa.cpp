@@ -1,4 +1,6 @@
 #include "Game/Enemy/BasaBasa.hpp"
+#include "Game/LiveActor/ActorItemGenerator.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/AnimStampController.hpp"
@@ -50,15 +52,16 @@ BasaBasa::BasaBasa(const char* pName)
       _A8(2000.0f), _AC(0.0f), _B4(0), _B8(0.0f), _BC(0.0f, 0.0f, 0.0f), mIsIceModel(false), _CC(0.0f, 0.0f, 0.0f), _E4(-1.0f), _E8(0), _EC(0) {
 }
 
+// NONMATCHING: pointing-offset local and constructor temporaries occupy different stack slots.
 void BasaBasa::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     const char* objName;
     MR::getObjectName(&objName, rIter);
     mIsIceModel = MR::isEqualString(objName, "BasaBasaIce");
-    initModelManagerWithAnm(objName, nullptr, false);
+    MR::initActor(this, rIter, objName, false);
     MR::connectToSceneEnemy(this);
     initHitSensor(2);
-    MR::addHitSensorAtJointEnemy(this, "body", "JointRoot", 8, 90.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorAtJointEnemy(this, "Body", "JointRoot", 8, 90.0f, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensorAtJointEnemyAttack(this, "attack", "JointRoot", 8, 60.0f, TVec3f(0.0f, 0.0f, 0.0f));
     initBinder(110.0f, 0.0f, 0);
     MR::initLightCtrl(this);
@@ -74,10 +77,12 @@ void BasaBasa::init(const JMapInfoIter& rIter) {
         _B4 = MR::getPlayerCenterPos();
     }
 
-    MR::declareStarPiece(this, 3);
-    MR::declareCoin(this, 1);
     MR::onCalcGravity(this);
-    MR::initStarPointerTarget(this, 100.0f, TVec3f(0.0f));
+    TVec3f pointingOffset;
+    pointingOffset.x = 0.0f;
+    pointingOffset.y = 0.0f;
+    pointingOffset.z = 0.0f;
+    MR::initStarPointerTarget(this, 100.0f, pointingOffset);
     mScaleController = new AnimScaleController(nullptr);
     mStampController = new AnimStampController();
     mSpinHitController = new SpinHitController(this, 20, 5, 0.0f, 20.0f, 10.0f);
@@ -91,8 +96,16 @@ void BasaBasa::init(const JMapInfoIter& rIter) {
     MR::calcFrontVec(&_9C, this);
     _AC = MR::getRandom(600.0f, 800.0f);
     _B8 = MR::getRandom(-25.0f, 25.0f);
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
     makeActorAppeared();
+}
+
+void BasaBasa::fn_80156F60(const JMapInfoIter& rIter) {
+    const char* name = nullptr;
+    MR::getObjectName(&name, rIter);
+    if (MR::isEqualString(name, "BasaBasaIce")) {
+        MR::enablePlayerResourceFreezeIce();
+    }
 }
 
 void BasaBasa::exeWait() {
@@ -199,8 +212,8 @@ void BasaBasa::exeQuickTurnStart() {
 
 void BasaBasa::exeQuickTurn() {
     mVelocity.scaleAdd(2.0f, _9C, mVelocity);
-    MR::turnDirectionToTargetDegree(this, &_9C, *_B4, 2.55f);
-    if (MR::isFaceToTargetHorizontalDegree(this, *_B4, _9C, 2.55f)) {
+    MR::turnDirectionToTargetDegree(this, &_9C, *_B4, 2.5500001907348633f);
+    if (MR::isFaceToTargetHorizontalDegree(this, *_B4, _9C, 2.5500001907348633f)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvChase));
     } else {
         trySetNerveDPDSwoon();
@@ -220,7 +233,7 @@ void BasaBasa::exeTrampleDown() {
     mStampController->updateNerve();
 
     if (mStampController->isAnimEnd()) {
-        MR::appearCoinPop(this, mPosition, 1);
+        MR::emitItemStomp(this);
         kill();
     }
 }
@@ -235,7 +248,9 @@ void BasaBasa::exePunchDown() {
         MR::onBind(this);
     }
 
-    mSpinHitController->execute(this);
+    if (mSpinHitController->execute(this)) {
+        MR::emitItemHit(this);
+    }
 }
 
 void BasaBasa::exeAttackStart() {
@@ -243,7 +258,7 @@ void BasaBasa::exeAttackStart() {
         MR::startAction(this, "AttackStart");
     }
 
-    MR::turnDirectionToTargetDegree(this, &_9C, *_B4, 2.55f);
+    MR::turnDirectionToTargetDegree(this, &_9C, *_B4, 2.5500001907348633f);
     TVec3f v3;
     v3.scaleAdd(2.0f, _9C, mGravity);
     v3.negate();
@@ -282,7 +297,7 @@ void BasaBasa::exeAttack() {
     }
     TVec3f v5;
     MR::normalize(v9, &v5);
-    MR::turnDirectionToTargetDegree(this, &_9C, _BC, 2.55f);
+    MR::turnDirectionToTargetDegree(this, &_9C, _BC, 2.5500001907348633f);
     mVelocity.scaleAdd(10.0f, v5, mVelocity);
     if (MR::isNear(this, _BC, 40.0f) || MR::isBindedWall(this) || MR::isStep(this, 180)) {
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvAttackEnd));
@@ -371,16 +386,20 @@ void BasaBasa::exeComeHome() {
         _B4 = &_CC;
     }
 
-    MR::turnDirectionToTargetDegree(this, &_9C, *_B4, 2.55f);
+    MR::turnDirectionToTargetDegree(this, &_9C, *_B4, 2.5500001907348633f);
     mVelocity.scaleAdd(2.0f, _9C, mVelocity);
     tuneHeight();
     if (isNearTarget(300.0f)) {
         if (_EC) {
             setNerve(GET_NERVE(BasaBasa, BasaBasaNrvAttachCelling));
-        } else {
+            return;
+        } else if (MR::isExistRail(this)) {
             setNerve(GET_NERVE(BasaBasa, BasaBasaNrvAirWait));
+            return;
         }
-    } else if (MR::isGreaterEqualStep(this, 120) && MR::isNearPlayer(this, _A8) && MR::isNearPlayer(_CC, _E4)) {
+    }
+
+    if (MR::isGreaterEqualStep(this, 120) && MR::isNearPlayer(this, _A8) && MR::isNearPlayer(_CC, _E4)) {
         _B4 = MR::getPlayerCenterPos();
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvChase));
     } else {
@@ -395,7 +414,7 @@ void BasaBasa::exeAttachCelling() {
         MR::invalidateHitSensors(this);
     }
 
-    MR::turnDirectionDegree(this, &_9C, _D8, 2.55f);
+    MR::turnDirectionDegree(this, &_9C, _D8, 2.5500001907348633f);
     if (MR::isNear(this, _CC, 10.0f)) {
         mVelocity.zero();
         MR::resetPosition(this, _CC);
@@ -507,7 +526,7 @@ void BasaBasa::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayer(pReceiver)) {
+    if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayerOrYoshiOrRide(pReceiver)) {
         bool v7 = false;
         if (!MR::isPlayerHipDropFalling()) {
             if (mIsIceModel) {
@@ -534,7 +553,7 @@ void BasaBasa::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         if (MR::isSensorEnemy(pReceiver)) {
             MR::sendMsgPush(pReceiver, pSender);
             TVec3f v10;
-            v10.sub(mPosition, pReceiver->mHost->mPosition);
+            v10.sub(mPosition, MR::getSensorHost(pReceiver)->mPosition);
             MR::normalizeOrZero(&v10);
             if (mVelocity.dot(v10) < 0.0f) {
                 const TVec3f& vel = mVelocity;
@@ -578,12 +597,14 @@ bool BasaBasa::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
     if (MR::isMsgPlayerTrample(msg) || MR::isMsgPlayerHipDrop(msg)) {
         MR::tryRumbleDefaultHit(this, 0);
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvTrampleDown));
         return true;
     }
 
     if (MR::isMsgPlayerHitAll(msg)) {
         mSpinHitController->start(this, (*MR::getSensorPos(pSender)), (*MR::getSensorPos(pReceiver)));
+        ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
         setNerve(GET_NERVE(BasaBasa, BasaBasaNrvPunchDown));
         return true;
     }
@@ -602,7 +623,7 @@ bool BasaBasa::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
 
     if (MR::isSensorEnemy(pSender) || MR::isSensorMapObj(pSender)) {
         TVec3f v7;
-        v7.sub(mPosition, pSender->mHost->mPosition);
+        v7.sub(mPosition, MR::getSensorHost(pSender)->mPosition);
         MR::normalizeOrZero(&v7);
         mVelocity.scaleAdd(1.5f, v7, mVelocity);
         return true;
@@ -668,7 +689,7 @@ bool BasaBasa::tryClippingAndResetPos() {
         return false;
     }
 
-    f32 radius = MR::getSensorRadius(this, "body");
+    f32 radius = MR::getSensorRadius(this, "Body");
     if (!MR::isJudgedToClipFrustum(mPosition, radius) || MR::isNearPlayer(this, 2500.0f)) {
         _E8 = 0;
         return false;

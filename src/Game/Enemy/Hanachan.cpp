@@ -21,19 +21,6 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-// PLACEHOLDER(enemies): unnamed nerve/data in the .sbss range 0x807D2xxx (instance of an owner nerve class not yet named); resolve when the owner unit names it.
-extern u32 lbl_807D25C0;
-
-void Hanachan_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)3.0f;
-    (void)-1.0f;
-    (void)MR::pi();
-    (void)2.0f;
-}
-
 namespace {
     const f32 hFarDistToPursuePlayer = 2000.0f;
     // hPursuePlayerTurnLimitRadian
@@ -71,7 +58,7 @@ namespace {
     const s32 hBecomeAngryInterval = 10;
     const s32 hPunchStopSceneTime = 4;
     const s32 hSpinInterval = 3;
-    const s32 hOverturnCanTrampleDeathTime = 50;
+    const s32 hOverturnCanTrampleDeathTime = 10;
     const s32 hRecoverCanTrampleDeathTime = 60;
     const s32 hRecoverInit = 67;
     const s32 hRecoverInterval = 3;
@@ -121,6 +108,13 @@ namespace NrvHanachan {
     NEW_NERVE(HanachanPartsNrvBlow, HanachanParts, Blow);
     NEW_NERVE_ONEND(HanachanPartsNrvStarPointerBind, HanachanParts, StarPointerBind, StarPointerBind);
 
+    class HanachanNrv_801922D0 : public Nerve {
+    public:
+        virtual void execute(Spine*) const {}
+        static HanachanNrv_801922D0 sInstance;
+    };
+    HanachanNrv_801922D0 HanachanNrv_801922D0::sInstance ATTRIBUTE_WEAK;
+
     NEW_NERVE(HanachanNrvHanachanWalk, Hanachan, Walk);
     NEW_NERVE(HanachanNrvHanachanBecomeAngry, Hanachan, BecomeAngry);
     NEW_NERVE(HanachanNrvHanachanAngryPursue, Hanachan, AngryPursue);
@@ -140,7 +134,7 @@ namespace NrvHanachan {
     NEW_NERVE(HanachanNrvHanachanStarPointerBindEndOverturn, Hanachan, WallHitEnd);
 };  // namespace NrvHanachan
 
-HanachanParts::HanachanParts(Hanachan* pHost, s32 partsIndex, const char* pName, const char* pModelName)
+HanachanParts::HanachanParts(Hanachan* pHost, s32 partsIndex, const char* pName)
     : LiveActor(pName), mHost(pHost), mPushVelocity(0.0f, 0.0f, 0.0f), mFallVelocity(0.0f, 0.0f, 0.0f), mPartsType(PartsType_Body),
       mRotationQuat(0.0f, 0.0f, 0.0f, 1.0f), mPartsIndex(partsIndex), mActionStartStep(-1), mIsLanded() {
 }
@@ -168,6 +162,7 @@ void HanachanParts::init(const JMapInfoIter& rIter) {
     }
 }
 
+// NONMATCHING: host/iterator register allocation.
 void Hanachan::fn_801905E0() {
     this->kill();
 
@@ -185,15 +180,7 @@ void HanachanParts::control() {
     zero.y = 0.0f;
     zero.z = 0.0f;
 
-    if (MR::isInDeath(this, zero)) {
-        return;
-    }
-
-    if (MR::isBindedGroundDamageFire(this)) {
-        return;
-    }
-
-    if (MR::isInWater(this, mPosition)) {
+    if (MR::isInDeath(this, zero) || MR::isBindedGroundDamageFire(this) || MR::isInWater(mPosition)) {
         mHost->fn_801905E0();
     }
 }
@@ -225,6 +212,16 @@ const TVec3f* HanachanParts::getCommonGravity() const {
     }
 
     return &mGravity;
+}
+
+bool Hanachan::isOwnSensor(HitSensor* pSensor) {
+    for (HanachanParts** current = mBodyParts.begin(); current < mBodyParts.end(); current++) {
+        if ((*current)->getSensor("Body") == pSensor) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void HanachanParts::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -320,7 +317,7 @@ bool HanachanParts::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSenso
     }
 
     if (MR::isMsgPlayerTrample(msg)) {
-        MR::startActionSound(this, "EmHanachanTrample");
+        MR::startActionSound(mHost, "EmHanachanTrample");
 
         if (mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanAngryPursue)) || mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanAngryEnd)) ||
             mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanWallHitEnd)) || mHost->isNerve(GET_NERVE(Hanachan, HanachanNrvHanachanTrample)) ||
@@ -373,6 +370,7 @@ bool HanachanParts::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor
     return true;
 }
 
+// NONMATCHING: floating-point register allocation.
 bool HanachanParts::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pSender)) {
         return false;
@@ -418,7 +416,7 @@ void HanachanParts::calcAndSetBaseMtx() {
 
 void HanachanParts::exeWalk() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Walk");
+        MR::startAction(this, "WalkNormal");
         s32 frameMax = MR::getBckFrameMax(this, "Walk") - 1;
         f32 unused = (frameMax + ::hWalkStep * mPartsIndex) % frameMax;
         MR::setBckFrameAndStop(this, ::hWalkStep * mPartsIndex);
@@ -456,7 +454,7 @@ void HanachanParts::exeTrample() {
         if (!mIsLanded && MR::isGreaterStep(this, mActionStartStep)) {
             mIsLanded = true;
             changeHeadAngry();
-            MR::startAction(this, "Walk");
+            MR::startAction(this, "AngryDash");
 
             s32 frameMax = MR::getBckFrameMax(this, "Walk") - 1;
             f32 unused = (frameMax + mPartsIndex * ::hWalkStep) % frameMax;
@@ -661,7 +659,7 @@ void HanachanParts::exeOverturnWait() {
         mIsLanded = true;
     }
 
-    MR::zeroVelocity(this);
+    mVelocity.zero();
     mVelocity.add(mPushVelocity);
 }
 
@@ -691,7 +689,7 @@ void HanachanParts::exeRecover() {
         if (mActionStartStep == 0) {
             if (MR::isBckOneTimeAndStopped(this)) {
                 mIsLanded = true;
-                MR::startAction(this, "Walk");
+                MR::startAction(this, "AngryDash");
                 MR::setBckRate(this, ::hAngryAnimRate);
             }
         } else if (MR::isGreaterStep(this, mActionStartStep)) {
@@ -763,7 +761,7 @@ void HanachanParts::exeStarPointerBind() {
     if (MR::isFirstStep(this)) {
         MR::startDPDHitSound();
         MR::stopBck(this);
-        MR::zeroVelocity(this);
+        mVelocity.zero();
         MR::emitEffect(this, "PointerTouch");
     }
 
@@ -839,11 +837,11 @@ void Hanachan::init(const JMapInfoIter& rIter) {
     MR::declareStarPiece(this, 6);
     MR::setGroupClipping(this, rIter, 16);
 
-    mBodyParts[0] = new HanachanParts(this, 0, "頭パーツ", "HanachanHead");
-    mBodyParts[1] = new HanachanParts(this, 1, "体パーツ", "HanachanBodyS");
-    mBodyParts[2] = new HanachanParts(this, 2, "体パーツ", "HanachanBody");
-    mBodyParts[3] = new HanachanParts(this, 3, "体パーツ", "HanachanBodyS");
-    mBodyParts[4] = new HanachanParts(this, 4, "体パーツ", "HanachanBody");
+    mBodyParts[0] = new HanachanParts(this, 0, "頭パーツ");
+    mBodyParts[1] = new HanachanParts(this, 1, "体パーツ");
+    mBodyParts[2] = new HanachanParts(this, 2, "体パーツ");
+    mBodyParts[3] = new HanachanParts(this, 3, "体パーツ");
+    mBodyParts[4] = new HanachanParts(this, 4, "体パーツ");
 
     mBodyParts[0]->initWithoutIter();
     mBodyParts[1]->initWithoutIter();
@@ -889,7 +887,7 @@ void Hanachan::makeActorDead() {
 }
 
 void Hanachan::makeActorAppeared() {
-    if (!isNerve(reinterpret_cast<const Nerve*>(&lbl_807D25C0))) {
+    if (!isNerve(&NrvHanachan::HanachanNrv_801922D0::sInstance)) {
         LiveActor::makeActorAppeared();
 
         for (u32 i = 0; i < 5; i++) {
@@ -904,8 +902,7 @@ void Hanachan::kill() {
     if (MR::isValidSwitchDead(this)) {
         MR::onSwitchDead(this);
     }
-    // NONMATCHING-ish: target sets the nerve sInstance at lbl_807D25C0 (unnamed sbss nerve, no source name)
-    setNerve(reinterpret_cast<const Nerve*>(&lbl_807D25C0));
+    setNerve(&NrvHanachan::HanachanNrv_801922D0::sInstance);
 }
 
 void Hanachan::startClipped() {
@@ -1225,15 +1222,7 @@ s32 Hanachan::calcNearestInfectionId() {
     return nearestId;
 }
 
-bool Hanachan::isOwnSensor(HitSensor* pSensor) {
-    for (HanachanParts** current = mBodyParts.begin(); current < mBodyParts.end(); current++) {
-        if ((*current)->getSensor("body") == pSensor) {
-            return true;
-        }
-    }
 
-    return false;
-}
 
 #pragma push
 #pragma opt_propagation off
@@ -1375,6 +1364,7 @@ TVec3f Hanachan::calcSensorDirection(const HitSensor* pSensor, const HitSensor* 
     return dir;
 }
 
+// NONMATCHING: vector expression scheduling, stack slots and saved-register allocation.
 void Hanachan::moveBodyAlongHead() {
     for (s32 i = 1; i < mBodyParts.size(); i++) {
         TVec3f toPrev = *MR::getSensorPos(mBodyParts[i - 1], "Body");

@@ -5,9 +5,9 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class WalkerStateBindStarPointer;
-class BoomerangBrosStateJump;
+class BrosStateJump;
 class BoomerangBrosStateAttack;
-class BoomerangBrosStateSwoon;
+class BrosStateSwoon;
 
 namespace MR {
     bool isMsgYoshiReleaseOrCancelEaten(u32);
@@ -65,9 +65,9 @@ public:
     /* 0x0DC */ WalkerStateBindStarPointer* mBindSwoon;
     /* 0x0E0 */ f32 _E0;
     /* 0x0E4 */ s32 mWaitCount;
-    /* 0x0E8 */ BoomerangBrosStateJump* mStateJump;
+    /* 0x0E8 */ BrosStateJump* mStateJump;
     /* 0x0EC */ BoomerangBrosStateAttack* mStateAttack;
-    /* 0x0F0 */ BoomerangBrosStateSwoon* mStateSwoon;
+    /* 0x0F0 */ BrosStateSwoon* mStateSwoon;
 };
 
 /// @brief The boomerang thrown by BoomerangBros (SMG2). Only the simple methods are ported.
@@ -80,6 +80,8 @@ public:
     virtual void appear();
     virtual void kill();
     virtual void control();
+    virtual void attackSensor(HitSensor*, HitSensor*);
+    virtual bool receiveMsgPlayerAttack(u32, HitSensor*, HitSensor*);
     virtual void v70(const TVec3f&, const TVec3f&);   // fn_80173EF0
     virtual void attachToBros(BrosBase*);             // fn_80173CE0
     virtual bool v78();                               // fn_80174890
@@ -90,17 +92,17 @@ public:
     virtual bool v8C();                               // fn_801749C0
     virtual bool v90();                               // fn_80174A30
 
-    // exe* nerve bodies (fn_80173FE0.. etc.) are not ported yet
-    void exeFly();
-    void exeOut();
-    void exeBack();
-    void exeTongue();
-    void exeEaten2();
-    void exeThrown();
-    void exeX();
+    void exeFly();         // fn_80173FE0
+    void exeOut();         // fn_80174060
+    void exeBack();        // fn_80174240
+    void exeTongue();      // fn_801742D0
+    void exeThrown();      // fn_80174330
+    void exeThrownBack();  // fn_80174560
+    void calcPath(TVec3f*, f32);  // fn_80174650: point of the out/back flight curve at t
+    bool isReturning() const;     // fn_801747E0
 
     /* 0xBC */ f32 _BC;
     /* 0xC0 */ s32 mStep;
-    /* 0xC4 */ u8 _C4[0xF4 - 0xC4];
+    /* 0xC4 */ TPos3f mMtx;
     /* 0xF4 */ WalkerStateBindStarPointer* mBind;
 };

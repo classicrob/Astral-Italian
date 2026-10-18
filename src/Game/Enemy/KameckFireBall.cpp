@@ -32,7 +32,7 @@ namespace NrvBossKameckBeamFire {
     NEW_NERVE(KameckFireBallNrvSweep, KameckFireBall, Sweep);
 };  // namespace NrvBossKameckBeamFire
 
-KameckFireBall::KameckFireBall(const char* pName) : LiveActor(pName), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f), mEventListener() {
+KameckFireBall::KameckFireBall(const char* pName) : LiveActor(pName), mRotateQuat(0.0f, 0.0f, 0.0f, 1.0f) {
 }
 
 void KameckFireBall::init(const JMapInfoIter& rIter) {
@@ -91,7 +91,7 @@ void KameckFireBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(GET_NERVE(BossKameckBeamFire, KameckFireBallNrvWait))) {
         if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayer(pReceiver) && MR::sendMsgEnemyAttackFire(pReceiver, pSender)) {
             if (mEventListener != nullptr) {
-                mEventListener->hitBeam(KameckBeam::BeamType_FireBall1);
+                mEventListener->hitBeam();
             }
 
             kill();
@@ -121,7 +121,8 @@ bool KameckFireBall::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
     return false;
 }
 
-void KameckFireBall::appearDirection(const TVec3f& rDirection) {
+void KameckFireBall::appearDirection(const TVec3f& rPos, const TVec3f& rDirection) {
+    MR::setPosition(this, rPos);
     appear();
     MR::onCalcGravity(this);
     MR::calcGravity(this);
@@ -163,4 +164,12 @@ void KameckFireBall::exeSweep() {
     if (MR::isGreaterStep(this, ::sSweepTime)) {
         kill();
     }
+}
+
+void KameckFireBall::fn_801A7180() {
+    kill();
+}
+
+bool KameckFireBall::fn_801A78B0() const {
+    return MR::isDead(this);
 }

@@ -32,5 +32,10 @@ while read -r h m f; do
 done < "$stamps"
 tools/team/nj.sh >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
 git -C "$main" merge --ff-only -q "$branch"
+# cache the report of the exact main we just built, so lanes can use it as a regression baseline
+# (safe_land.py: skip the separate "build plain main" step when ~/MacioGalaxy2-team/main-report/<main sha>.json exists)
+mkdir -p "$HOME/MacioGalaxy2-team/main-report"
+cp build/SB4E01/report.json "$HOME/MacioGalaxy2-team/main-report/$(git rev-parse HEAD).json" 2>/dev/null || true
+ls -t "$HOME/MacioGalaxy2-team/main-report"/*.json 2>/dev/null | tail -n +31 | xargs rm -f 2>/dev/null || true
 git -C "$main" push -q origin main || echo "push failed (landed locally)" >&2
 echo "landed $branch at $(git rev-parse --short HEAD)"

@@ -15,4 +15,10 @@ public:
     void fn_803EC780();
     bool fn_803EC7F0(const char*);
     bool fn_803EC8A0(const char*, const BckCtrlData&);
+
+    /* 0x90 */ MtxPtr _90;
+    /* 0x94 */ MtxPtr _94;
+    /* 0x98 */ void* _98;
+    /* 0x9C */ bool _9C;
+    /* 0x9D */ bool _9D;
 };

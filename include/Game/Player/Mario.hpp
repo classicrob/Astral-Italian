@@ -218,7 +218,6 @@ public:
     void fn_803A96D0(f32);
     bool fn_803AA2C0();
     bool fn_803AA340(const TVec3f*, TVec3f*);
-    void fn_803ABD20();
     void fn_803AC550();
     void fn_803AC810();
     void fn_803ACC40();
@@ -687,6 +686,7 @@ public:
     void callExtraTasks(u32);
     void startHandy();
     bool taskOnHipDropBlurHopper(u32);
+    bool taskOnHipDropBlurCloud(u32);
     bool taskOnHipDropBlur(u32);
     bool taskOnHipDropSlide(u32);
     bool taskOnFreezeEnd(u32);

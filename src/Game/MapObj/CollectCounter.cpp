@@ -7,9 +7,10 @@ namespace NrvCollectCounter {
     NEW_NERVE(CollectCounterNrvShow, CollectCounter, Show);
 };  // namespace NrvCollectCounter
 
-CollectCounter::CollectCounter(const char* pName) : LayoutActor(pName, true) {
+CollectCounter::CollectCounter(const char* pName, f32 offset) : LayoutActor(pName, true) {
     mFollowPosition.x = 0.0f;
     mFollowPosition.y = 0.0f;
+    _34 = offset;
 }
 
 void CollectCounter::init(const JMapInfoIter& rIter) {
@@ -52,7 +53,7 @@ bool CollectCounter::tryEndShow() {
 }
 
 void CollectCounter::setPosition() {
-    f32 point_rad = MR::calcPointRadius2D(*MR::getPlayerCenterPos(), 75.0f);
+    f32 point_rad = MR::calcPointRadius2D(*MR::getPlayerCenterPos(), 75.0f + _34);
     TVec2f screen_pos;
     MR::calcScreenPosition(&screen_pos, *MR::getPlayerCenterPos());
     screen_pos.y -= point_rad;

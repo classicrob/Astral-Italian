@@ -5973,7 +5973,8 @@ Game/Player/DrawAdaptor.cpp:
 Game/Player/FireMarioBall.cpp:
 	.text       start:0x8037E420 end:0x8037EC50
 	.ctors      start:0x806447AC end:0x806447B0
-	.data       start:0x806C0750 end:0x806C07D0
+	.data       start:0x806C06C0 end:0x806C07D0
+	.sdata      start:0x807CFF88 end:0x807CFFA0
 	.sbss       start:0x807D4DB8 end:0x807D4DC0
 
 Game/Player/GhostPacket.cpp:
@@ -6225,7 +6226,7 @@ Game/Player/MarioSkate.cpp:
 	.data       start:0x806DDED0 end:0x806DDF18
 
 Game/Player/MarioSlider.cpp:
-	.text       start:0x803F56D0 end:0x803F6290
+	.text       start:0x803F56D0 end:0x803F62E0
 	.data       start:0x806DDF60 end:0x806DDFA8
 
 Game/Player/MarioMagic.cpp:

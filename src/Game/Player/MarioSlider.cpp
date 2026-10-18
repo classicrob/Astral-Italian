@@ -31,9 +31,11 @@ MarioSlider::MarioSlider(MarioActor* pActor) : MarioState(pActor, MarioStatus_Sl
     _2C.x = 0.0f;
     _2C.y = 0.0f;
     _2C.z = 0.0f;
-    _40 = 0;
     _38 = 0.0f;
     _3C = 0.0f;
+    _40 = 0;
+    mPushCooldown = 0;
+    mSlideEffectActive = false;
 }
 
 void MarioSlider::calcGroundAccel() {
@@ -54,7 +56,7 @@ bool MarioSlider::postureCtrl(MtxPtr) {
 
     MarioConst* pConst = mActor->mConst;
     Mario* pPlayer = getPlayer();
-    MR::vecBlendSphere(getPlayer()->_1FC, newHeadVec, &pPlayer->_1FC, pConst->getTable()->mSliderHeadRotateRatio);
+    MR::vecBlendSphere(&getPlayer()->_1FC, pPlayer->_1FC, newHeadVec, pConst->getTable()->mSliderHeadRotateRatio);
     return false;
 }
 
@@ -120,13 +122,15 @@ bool MarioSlider::start() {
     _38 = 0.0f;
     _3C = 0.0f;
     _40 = 10;
+    mPushCooldown = 0;
+    mSlideEffectActive = false;
     return true;
 }
 
 bool MarioSlider::update() {
     if (!getPlayer()->checkSliderMode()) {
         if (getPlayer()->mMovementStates._1 != 0) {
-            if (isSlipPolygon(getGroundPolygon())) {
+            if (fn_803EF670(getGroundPolygon())) {
                 Mario* player = getPlayer();
                 player->_8F8 = _14;
                 player->_8F0 = 10.0f;
@@ -145,14 +149,18 @@ bool MarioSlider::update() {
     }
 
     calcGroundAccel();
+    if (mPushCooldown > 0) --mPushCooldown;
 
     if (checkTrgA()) {
         getPlayer()->mWalkSpeed = (_14.length() / mActor->mConst->getTable()->mJumpFrontSpeed);
         getPlayer()->tryJump();
         return false;
     } else {
-        f32 stickY = -getStickY();
-        f32 stickX = getStickX();
+        const TVec3f& front=getFrontVec();
+        TVec3f cam=MR::getCamZdir();
+        f32 stickY,stickX;
+        if (cam.dot(front)>=0.0f) {stickY=-getStickY();stickX=getStickX();}
+        else {stickY=getStickY();stickX=-getStickX();}
         _38 = (stickY * (1.0f - mActor->getConst().getTable()->mSliderBrakeIne)) + (_38 * mActor->mConst->getTable()->mSliderBrakeIne);
         MarioConstTable* tbl = mActor->mConst->getTable();
         _3C = (stickX * (1.0f - tbl->mSliderWeightIne)) + (_3C * tbl->mSliderWeightIne);
@@ -204,10 +212,14 @@ bool MarioSlider::update() {
 
             calcWallHit();
             playSound("坂滑り");
-            return true;
+            s32 soundLevel=static_cast<s32>(1000.0f*_3C);
+            if (MR::abs(soundLevel)>50) MR::startActionSound(mActor,"SlipSandCurving",MR::abs(soundLevel),-1,-1);
         }
     }
 
+    if (getPlayer()->fn_803B2730()) {
+        if (!mSlideEffectActive) { playEffect("砂スライダー煙");mSlideEffectActive=true; }
+    } else stopSlideEffect();
     return true;
 }
 
@@ -220,5 +232,24 @@ bool MarioSlider::close() {
         stopAnimation("スライダー尻", "基本");
     }
 
+    stopSlideEffect();
     return true;
+}
+
+void clampSliderStick(f32* value) {
+    f32 result;
+    if (*value < -1.0f) result=-1.0f;
+    else if (*value > 1.0f) result=1.0f;
+    else result=*value;
+    *value=result;
+}
+bool MarioSlider::pushSensor(HitSensor* sender,HitSensor* receiver) {
+    const TVec3f& senderPos=*MR::getSensorPos(sender);
+    const TVec3f& receiverPos=*MR::getSensorPos(receiver);
+    TVec3f push=receiverPos-senderPos;
+    if (mPushCooldown>0 && push.dot(_14)>0.0f) return false;
+    _14+=push;mPushCooldown=2;return true;
+}
+void MarioSlider::stopSlideEffect() {
+    if (mSlideEffectActive) {stopEffect("砂スライダー煙");mSlideEffectActive=false;}
 }

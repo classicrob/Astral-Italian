@@ -2,6 +2,8 @@
 #include "Game/Util.hpp"
 #include "Game/Enemy/KarikariDirector.hpp"
 #include "Game/Player/MarioActor.hpp"
+#include "Game/Player/Yoshi.hpp"
+#include "Game/Player/YoshiTongueAction.hpp"
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/GamePadUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
@@ -123,7 +125,7 @@ bool Mario::isDisableFpViewMode() const {
     return isDisableStayHere();
 }
 
-MarioFpView::MarioFpView(MarioActor* pActor) : MarioState(pActor, MarioStatus_FpView), mDelay(), mIsActive(), mBlurOffset() {
+MarioFpView::MarioFpView(MarioActor* pActor) : MarioState(pActor, MarioStatus_FpView), mDelay(), mIsActive(), mBlurOffset(), mFrame() {
 }
 
 bool MarioFpView::start() {
@@ -135,6 +137,9 @@ bool MarioFpView::start() {
     mDelay = 0;
     mIsActive = true;
     mBlurOffset = 30.0f;
+    mFrame = 0;
+    if (isPlayerModeCloud()) stopEffect("雲マリオ頭煙");
+    if (isPlayerModeYoshi()) mActor->fn_803B9810()->fn_8041FF80();
 
     return true;
 }
@@ -145,7 +150,10 @@ bool MarioFpView::update() {
         return true;
     }
 
+    if (mFrame == 20 && mDelay == 0) fn_803EE8F0("ヨッシー主観カメラ開始");
+    if (mFrame == 25 && mDelay == 0 && isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040CC20();
     mBlurOffset -= 0.5f;
+    ++mFrame;
     if (mBlurOffset < 0.0f) {
         mBlurOffset = 0.0f;
     }
@@ -161,6 +169,8 @@ bool MarioFpView::update() {
 
         mDelay = 20;
         mIsActive = false;
+        fn_803EE8F0("ヨッシー主観カメラ終了");
+        if (isPlayerModeYoshi()) mActor->fn_803B97F0()->fn_8040CC00();
     }
 
     if (mDelay != 0 && --mDelay == 0) {
@@ -178,6 +188,12 @@ bool MarioFpView::close() {
     stopAnimation("見る");
 
     mActor->showBeeFur();
+    if (isPlayerModeCloud()) playEffect("雲マリオ頭煙");
+    if (isPlayerModeYoshi()) {
+        if (isAnimationRun("ヨッシー主観カメラ開始")) fn_803EE8F0("ヨッシー主観カメラ終了");
+        mActor->fn_803B97F0()->fn_8040CC00();
+        mActor->fn_803B9810()->fn_80420000();
+    }
 
     return true;
 }

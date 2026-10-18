@@ -145,7 +145,7 @@ void SecretGateCounter::init(const JMapInfoIter& rIter) {
         }
     }
     MR::invalidateClipping(this);
-    mCounter = new CollectCounter(&sSecretGateNames[0x24]);
+    mCounter = new CollectCounter(&sSecretGateNames[0x24], 110.0f);
     mCounter->initWithoutIter();
     initSound(3, &sSecretGateNames[0x38], nullptr, TVec3f(0.0f));
     initNerve(GET_NERVE(SecretGateCounter, SecretGateCounterNrvCount), 0);

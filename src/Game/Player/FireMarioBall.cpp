@@ -34,12 +34,12 @@ FireMarioBall::FireMarioBall(const char* pName) : LiveActor(pName) {
 }
 
 void FireMarioBall::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "MarioFireBall", false);
+    MR::initActor(this, "MarioFireBall", false);
     MR::connectToSceneEnemyDecoration(this);
     initSensor();
     initBinder(::cBinderRadius, 0.0f, 0);
     initEffectKeeper(4, "MarioFireBall", false);
-    initSound(4, "FireMarioBall", nullptr, TVec3f(0.0f));
+    initSound(4, nullptr, nullptr, TVec3f(0.0f));
     MR::initShadowVolumeCylinder(this, 25.0f);
     MR::onShadowVolumeCutDropLength(this, 0);
     MR::setShadowVolumeEndDropOffset(this, 0, 50.0f);
@@ -58,7 +58,7 @@ void FireMarioBall::appear() {
 
 void FireMarioBall::kill() {
     MR::emitEffect(this, "Break");
-    MR::startActionSound(this, "OjMarioFireBallBreak");
+    MR::startSound(this, "SE_OJ_MARIO_FIRE_BALL_BREAK");
     LiveActor::kill();
 }
 
@@ -77,7 +77,7 @@ void FireMarioBall::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool FireMarioBall::attackFire(HitSensor* pReceiver) {
-    if (MR::sendArbitraryMsg(ACTMES_FIREBALL_ATTACK, pReceiver, getSensor("body"))) {
+    if (MR::sendArbitraryMsg(ACTMES_FIREBALL_ATTACK, pReceiver, getSensor("Body"))) {
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         kill();
 
@@ -89,7 +89,7 @@ bool FireMarioBall::attackFire(HitSensor* pReceiver) {
 
 void FireMarioBall::initSensor() {
     initHitSensor(1);
-    MR::addHitSensorEnemy(this, "body", 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensorEnemy(this, "Body", 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
 }
 
 HitSensor* FireMarioBall::isBindedAny() const {
@@ -138,16 +138,16 @@ void FireMarioBall::exeThrow() {
         MR::startAction(this, "Roll");
         MR::startBtk(this, "Roll");
         MR::startBrk(this, "Roll");
-        MR::startActionSound(this, "OjMarioFireBallOut");
-        MR::startCSSound("CS_FIRE_BALL", nullptr, 0);
+        MR::startSound(this, "SE_OJ_MARIO_FIRE_BALL_OUT");
+        MR::startCSSound("CS_FIRE_BALL", nullptr, 0, 0, 1.0f);
     }
     if (MR::isBindedGround(this)) {
-        MR::startActionSound(this, "OjMarioFireBallBound");
+        MR::startSound(this, "SE_OJ_MARIO_FIRE_BALL_BOUND");
         const TVec3f* v1 = &MR::getGroundNormal(this);
         mVelocity += -*v1 * MR::vecKillElement(mVelocity, *v1, &mVelocity) * ::cBoundReduction;
 
     } else if (MR::isBindedRoof(this)) {
-        MR::startActionSound(this, "OjMarioFireBallBound");
+        MR::startSound(this, "SE_OJ_MARIO_FIRE_BALL_BOUND");
         const TVec3f* v2 = &MR::getRoofNormal(this);
         mVelocity += -*v2 * MR::vecKillElement(mVelocity, *v2, &mVelocity) * ::cBoundReduction;
     } else {

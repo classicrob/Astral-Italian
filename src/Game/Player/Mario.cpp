@@ -16356,6 +16356,16 @@ void Mario::startHipDropBlur() {
         return;
     }
 
+    if (isPlayerModeCloud()) {
+        if (gIsLuigi) {
+            playEffect("雲尻落ルイージ");
+        } else {
+            playEffect("雲尻落");
+        }
+        pushTask(&Mario::taskOnHipDropBlurCloud, 0x80);
+        return;
+    }
+
     if (gIsLuigi) {
         playEffect("尻落ルイージ");
     } else {
@@ -16366,7 +16376,7 @@ void Mario::startHipDropBlur() {
 }
 
 
-bool Mario::taskOnHipDropBlurHopper(u32) {
+bool Mario::taskOnHipDropBlurCloud(u32) {
     if (!getPlayer()->mMovementStates._B || mMovementStates._1 || isStatusActive(MarioStatus_Swim)) {
         if (gIsLuigi) {
             stopEffect("雲尻落ルイージ");

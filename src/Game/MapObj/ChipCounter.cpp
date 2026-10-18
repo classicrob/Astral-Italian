@@ -52,7 +52,7 @@ void ChipCounter::init(const JMapInfoIter& rIter) {
     MR::startAnim(this, "ShowHide", 1);
     MR::setAnimFrameAndStop(this, _30 * 20.0f, 1);
 
-    mCollectCounter = new CollectCounter("集め数字");
+    mCollectCounter = new CollectCounter("集め数字", 0.0f);
     mCollectCounter->initWithoutIter();
 
     kill();

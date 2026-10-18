@@ -18,4 +18,5 @@ public:
     /* 0x12 */ u16 mDelay;
     /* 0x14 */ bool mIsActive;
     /* 0x18 */ f32 mBlurOffset;
+    /* 0x1C */ s32 mFrame;
 };

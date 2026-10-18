@@ -9,6 +9,7 @@ class Mario;
 class YoshiTongueTarget;
 class YoshiArrow;
 class LiveActor;
+class HitSensor;
 
 class YoshiTongueAction : public NerveExecutor {
 public:
@@ -63,7 +64,8 @@ public:
     void fn_80420130();
     bool fn_804201A0() const;
     void fn_80420230(LiveActor*);
-    LiveActor* fn_804202B0(const TVec3f&);
+    HitSensor* fn_804202B0(const TVec3f&);
+    void fn_80420480(bool);
     bool fn_804206E0();
     void fn_80420780();
     void fn_804207D0();
@@ -73,10 +75,13 @@ public:
     void fn_80420AC0(TVec3f*, const TVec3f&, const TVec3f&, f32) const;
     void fn_80420C30(TVec3f*, const TVec3f&, const TVec3f&, f32) const;
     void fn_80420D20(const TVec3f&, const TVec3f&, const TVec3f&, f32);
+    void fn_804210B0();
     bool fn_80421410();
     void fn_804214C0();
-    void fn_80421790();
-    void fn_804217B0();
+    void fn_80421730(u32, HitSensor*, HitSensor*);
+    void fn_804217D0();
+    void fn_80421790() NO_INLINE;
+    void fn_804217B0() NO_INLINE;
     void fn_80421830(TVec3f*) const;
     bool fn_80421880() const;
 
@@ -100,7 +105,7 @@ public:
     bool _8D;
     TVec3f _90;
     bool _9C;
-    LiveActor* _A0;
+    HitSensor* _A0;
     f32 _A4;
     bool _A8;
 };

@@ -47,6 +47,7 @@ public:
     bool isPlayerModeFoo() const;
     void changeAnimation(const char*, const char* = nullptr);
     void changeAnimationNonStop(const char*);
+    void fn_803EE8F0(const char*);
     void changeAnimationWithAttr(const char*, u32);
     void stopAnimation(const char*, const char* = nullptr);
     bool isDefaultAnimationRun(const char*) const;

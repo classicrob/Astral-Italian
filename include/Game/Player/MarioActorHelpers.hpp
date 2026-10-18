@@ -7,6 +7,33 @@ class HashSortTable;
 class LiveActor;
 class MarioActor;
 class MatrixValueGetter;
+class MarioActorCondition;
+
+class MarioActorConditionGroup {
+public:
+    MarioActorConditionGroup(MarioActor*);
+    MarioActor* mActor;
+    MarioActorCondition* mConditions[8];
+};
+
+class MarioScreenStrip {
+public:
+    MarioScreenStrip();
+    u8* mBuffers[2];
+    bool mEnabled;
+    f32 mProgress;
+    u16 mMode;
+    f32 mBlend;
+};
+
+class MarioActorEffectState {
+public:
+    MarioActorEffectState() : mActive(0), mAlpha(255), mScale(1.0f), mTimer(0) {}
+    u8 mActive;
+    u32 mAlpha;
+    f32 mScale;
+    u16 mTimer;
+};
 
 // Small helper classes owned by MarioActor in SMG2. Original names unknown; named by role/address.
 
@@ -23,6 +50,7 @@ public:
 /// @brief Fixed array of 16 (value, actor) slots (MarioActor + 0x108C).
 class MarioSensorSlots {
 public:
+    MarioSensorSlots();
     void fn_803DAB10(LiveActor*);
 
     /* 0x00 */ u8 _0[0x80];

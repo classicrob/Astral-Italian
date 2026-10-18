@@ -13,6 +13,7 @@ class LiveActor;
 
 namespace MR {
     bool isGravityBGMPlaying();
+    void startCSSound1P(const char*, s32, f32);
     // SMG2-only (original names unknown; named by address)
     void startPlayFireMorphBGM();
     void fn_8001C280();

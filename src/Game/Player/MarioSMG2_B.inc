@@ -417,16 +417,16 @@ void Mario::startBas(const char* pName, bool loop, f32 startFrame, f32 speed) {
     }
 }
 
-// NONMATCHING: stop-effect selection approximated
-void Mario::fn_803ABD20() {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    if (!((FLD<u32>(this->getPlayer(), 0x14) >> 20) & 1) || ((FLD<u32>(m, 0xC) >> 30) & 1) || m->isStatusActive(6)) {
-        if (false /* NONMATCHING: sPlayerType__10MarioActor not recovered */) {
-            this->stopEffect("ホッパー尻落ルイージ");
+bool Mario::taskOnHipDropBlurHopper(u32) {
+    if (!getPlayer()->mMovementStates._B || mMovementStates._1 || isStatusActive(MarioStatus_Swim)) {
+        if (gIsLuigi) {
+            stopEffect("ホッパー尻落ルイージ");
         } else {
-            this->stopEffect("ホッパー尻落");
+            stopEffect("ホッパー尻落");
         }
+        return false;
     }
+    return true;
 }
 
 // NONMATCHING: the per-frame reset chain is approximated from the draft

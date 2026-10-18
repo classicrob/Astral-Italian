@@ -6,7 +6,7 @@
 
 class CollectCounter : public LayoutActor {
 public:
-    CollectCounter(const char*);
+    CollectCounter(const char*, f32);
 
     virtual ~CollectCounter();
     virtual void init(const JMapInfoIter&);
@@ -19,5 +19,6 @@ public:
     bool tryEndShow();
     void setPosition();
 
-    /* 0x20 */ TVec2f mFollowPosition;
+    /* 0x2C */ TVec2f mFollowPosition;
+    /* 0x34 */ f32 _34;
 };

@@ -16,6 +16,8 @@ public:
 
     void calcGroundAccel();
     void calcWallHit();
+    bool pushSensor(HitSensor*, HitSensor*);
+    void stopSlideEffect();
 
     TVec3f _14;
     TVec3f _20;
@@ -23,4 +25,6 @@ public:
     f32 _38;
     f32 _3C;
     u16 _40;
+    s32 mPushCooldown;
+    bool mSlideEffectActive;
 };

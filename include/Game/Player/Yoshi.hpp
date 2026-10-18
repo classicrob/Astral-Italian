@@ -162,6 +162,7 @@ public:
     bool fn_8041AD70(s32) const;
     void fn_8041AA70(s32, const TVec3f*);
     void fn_8041AB50(s32);
+    void fn_8041AC40(s32);
     YoshiModelCtrl* mModelCtrl;
     s32 _4;
     s32 mTargetCount;
@@ -173,6 +174,8 @@ public:
 /// @brief The Yoshi actor (LiveActor subclass, units around 0x8040B000..0x80410000).
 class Yoshi : public LiveActor {
 public:
+    bool fn_8040F5F0() const;
+    bool fn_8040F070() const;
     Yoshi(const char*);
     virtual ~Yoshi();
     virtual void init(const JMapInfoIter&);

@@ -13,6 +13,7 @@ void CameraFix::reset() {
     calc();
 }
 
+// NONMATCHING: regalloc (target keeps this in r30 and the watch-pos temp in r31)
 CameraTargetObj* CameraFix::calc() {
     TVec3f axis = mAxis;
     TVec3f watchPos = mWPoint;

@@ -6,6 +6,8 @@
 
 class JKRArchive;
 class JMapIdInfo;
+class JMapInfo;
+class JMapInfoIter;
 class PlacementInfoOrdered;
 
 class StageDataHolder : public NameObj {

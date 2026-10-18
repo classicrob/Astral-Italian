@@ -7,6 +7,21 @@
 #include <JSystem/J3DGraphBase/J3DPacket.hpp>
 
 template < typename T >
+void modifyDiffFlag(u32* pFlags, const T* pAnm, J3DDiffFlag flag, bool enable, const char* pName, const char* pType, const char* pExtra) {
+    for (u16 i = 0; i < pAnm->getUpdateMaterialNum(); i++) {
+        u16 material = pAnm->getUpdateMaterialID(i);
+
+        if (material != 0xFFFF) {
+            if (enable) {
+                pFlags[material] |= flag;
+            } else {
+                pFlags[material] &= ~flag;
+            }
+        }
+    }
+}
+
+template < typename T >
 void modifyDiffFlag(u32* pFlags, const T* pAnm, J3DDiffFlag flag, bool enable, const char* pName, const char* pType) {
     for (u16 i = 0; i < pAnm->getUpdateMaterialNum(); i++) {
         u16 material = pAnm->getUpdateMaterialID(i);
@@ -182,11 +197,11 @@ namespace MR {
     }
 
     void onDiffFlagBtk(u32* pFlags, const J3DAnmTextureSRTKey* pAnm, const char* pName) {
-        modifyDiffFlag(pFlags, pAnm, static_cast< J3DDiffFlag >(0x200), true, pName, "btk");
+        modifyDiffFlag(pFlags, pAnm, static_cast< J3DDiffFlag >(0x200), true, "btk", pName, nullptr);
     }
 
     void offDiffFlagBtk(u32* pFlags, const J3DAnmTextureSRTKey* pAnm, const char* pName) {
-        modifyDiffFlag(pFlags, pAnm, static_cast< J3DDiffFlag >(0x200), false, pName, "btk");
+        modifyDiffFlag(pFlags, pAnm, static_cast< J3DDiffFlag >(0x200), false, "btk", pName, nullptr);
     }
 
     void onDiffFlagBrk(u32* pFlags, const J3DAnmTevRegKey* pAnm, const char* pName) {

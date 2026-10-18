@@ -62,8 +62,71 @@ namespace MR {
         return NPCFunction::getNPCItemData(pItem, type);
     }
 
+    bool isNPCItemFileExist(const char* pName) {
+        char path[256];
+        snprintf(path, sizeof(path), "/ObjectData/%s.arc", pName);
+        return isFileExist(path, false);
+    }
 
+    void initDefaultPose(NPCActor* pActor, const JMapInfoIter& rIter) {
+        initDefaultPosAndQuat(pActor, rIter);
+        pActor->setInitPose();
+    }
 
+    void turnPlayerToActor(const LiveActor* pActor, f32 turnSpeed) {
+        LiveActor* pPlayer = getPlayerDemoActor();
+        TPos3f playerMtx;
+        playerMtx.set(getPlayerBaseMtx());
+        if (isPlayerInWaterMode()) {
+            if (isNearPlayer(pActor, 10.0f)) {
+                if (!isBckPlaying(pPlayer, "SwimWait")) {
+                    startBckPlayer("SwimWait");
+                }
+
+                return;
+            }
+
+            if (faceToPoint(playerMtx, pActor->mPosition, turnSpeed)) {
+                if (!isBckPlaying(pPlayer, "SwimWait")) {
+                    startBckPlayer("SwimWait");
+                }
+            } else {
+                if (!isBckPlaying(pPlayer, "WatchTurnSwim")) {
+                    startBckPlayer("WatchTurnSwim");
+                }
+
+                setPlayerBaseMtx(playerMtx);
+            }
+        } else if (isOnGroundPlayer()) {
+            if (isNearPlayer(pActor, 10.0f)) {
+                if (!isBckPlaying(pPlayer, "Watch")) {
+                    startBckPlayer("Watch");
+                }
+
+                return;
+            }
+
+            if (faceToPoint(playerMtx, pActor->mPosition, turnSpeed)) {
+                if (!isBckPlaying(pPlayer, "Watch")) {
+                    startBckPlayer("Watch");
+                }
+            } else {
+                if (!isBckPlaying(pPlayer, "WatchTurn")) {
+                    startBckPlayer("WatchTurn");
+                }
+
+                setPlayerBaseMtx(playerMtx);
+            }
+        }
+
+        TVec3f separation(*getPlayerCenterPos() - pActor->mPosition);
+        if (separation.length() < 100.0f && isOnGroundPlayer()) {
+            vecKillElement(separation, *getPlayerGroundNormal(), &separation);
+            if (!normalizeOrZero(&separation)) {
+                pushPlayer(separation * 10.0f);
+            }
+        }
+    }
 
     void decidePose(NPCActor* pActor, const TVec3f& rUp, const TVec3f& rFront, const TVec3f& rPos, f32 upBlend, f32 frontBlend, f32 posBlend) {
         blendVec(&pActor->mPosition, pActor->mPosition, rPos, posBlend);
@@ -74,21 +137,69 @@ namespace MR {
         }
     }
 
+    void setNPCActorPos(NPCActor* pActor, const char* pName) {
+        TPos3f mtx;
+        mtx.identity();
+        findNamePos(pName, mtx);
+        pActor->setBaseMtx(mtx);
+        mtx.getTrans(pActor->mPosition);
+        resetPosition(pActor);
+        onCalcShadowOneTimeAll(pActor);
+    }
 
+    void setNPCActorPos(NPCActor* pActor, const TVec3f& rPos) {
+        pActor->mPosition.set(rPos);
+        resetPosition(pActor);
+        onCalcShadowOneTimeAll(pActor);
+    }
 
+    void setNPCActorPose(NPCActor* pActor, const TVec3f& rFront, const TVec3f& rUp, const TVec3f& rPos) {
+        TPos3f mtx;
+        makeMtxUpFrontPos(&mtx, rUp, rFront, rPos);
+        pActor->setBaseMtx(mtx);
+        pActor->mPosition.set(rPos);
+        resetPosition(pActor);
+        onCalcShadowOneTimeAll(pActor);
+    }
 
     void followRailPose(NPCActor* pActor, f32 directionBlend, f32 posBlend) {
         decidePose(pActor, -pActor->mGravity, getRailDirection(pActor), getRailPos(pActor), 1.0f, directionBlend, posBlend);
     }
 
+    void followRailPoseOnGround(NPCActor* pActor, f32 blend) {
+        followRailPoseOnGround(pActor, pActor, blend);
+    }
 
+    void followRailPoseOnGround(NPCActor* pActor, const LiveActor* pRailActor, f32 blend) {
+        TVec3f pos(getRailPos(pRailActor));
+        TVec3f gravity(pActor->mGravity);
+        getFirstPolyOnLineToMap(&pos, nullptr, getRailPos(pRailActor) - gravity * 10.0f, gravity * 1000.0f);
+        const TVec3f& rDirection = getRailDirection(pRailActor);
+        decidePose(pActor, -gravity, rDirection, pos, 1.0f, blend, 1.0f);
+    }
 
     void setDefaultPose(NPCActor* pActor) {
         pActor->setToDefault();
     }
 
+    bool convertPosOnGround(TVec3f* pPos, const TVec3f& rDirection) {
+        Triangle triangle;
+        TVec3f hitPos;
+        if (getFirstPolyOnLineToMap(&hitPos, &triangle, *pPos, rDirection)) {
+            *pPos = hitPos;
+            return true;
+        }
 
+        return false;
+    }
 
+    void timeKeepDemoFadeIn() {
+        openWipeFade();
+    }
+
+    void timeKeepDemoFadeOut() {
+        closeWipeFade();
+    }
 
     void startNPCTalkCamera(const TalkMessageCtrl* pTalk, MtxPtr pActorMtx, f32 distanceScale, s32 frames) {
         startNPCTalkCamera(pTalk, pActorMtx, getPlayerBaseMtx(), distanceScale, frames);
@@ -125,7 +236,15 @@ namespace MR {
         startTalkCamera(actorPos, up, cameraHeight, cameraDistance, frames);
     }
 
+    void endNPCTalkCamera(bool interpolate, s32 frames) {
+        endTalkCamera(interpolate, frames);
+    }
 
+    void initDefaultPosAndQuat(NPCActor* pActor, const JMapInfoIter& rIter) {
+        initDefaultPos(pActor, rIter);
+        makeQuatRotateDegree(&pActor->_A0, pActor->mRotation);
+        pActor->setInitPose();
+    }
 
     PartsModel* createNPCGoods(LiveActor* pActor, const char* pModelName, const char* pJointName) {
         PartsModel* pGoods = nullptr;
@@ -153,7 +272,41 @@ namespace MR {
         return pGoods;
     }
 
+    bool calcPlayerFaceStareVector(TVec3f* pOut, MtxPtr pActorMtx, MtxPtr pBaseMtx) {
+        TPos3f mtx;
+        TVec3f facePos;
+        TVec3f actorPos;
+        TVec3f front;
+        TVec3f side;
+        TVec3f up;
+        TVec3f direction;
+        bool facing = true;
+        calcPlayerJointMtx(&mtx, "Face0");
+        mtx.getTrans(facePos);
+        mtx.set(pActorMtx);
+        mtx.getTrans(actorPos);
+        mtx.set(pBaseMtx);
+        mtx.getXDir(side);
+        mtx.getZDir(front);
+        mtx.getYDir(up);
+        direction.set(facePos - actorPos);
+        if (front.dot(direction) < 0.0f) {
+            f32 projection = vecKillElement(direction, front, &direction);
+            direction = direction - (front * 2.0f) * projection;
+            facing = false;
+        }
 
+        pOut->set(direction);
+        return facing;
+    }
+
+    bool calcPlayerFaceStarePos(TVec3f* pOut, MtxPtr pActorMtx, MtxPtr pBaseMtx) {
+        TVec3f pos;
+        extractMtxTrans(pActorMtx, &pos);
+        bool facing = calcPlayerFaceStareVector(pOut, pActorMtx, pBaseMtx);
+        pOut->add(pos);
+        return facing;
+    }
 
     bool isActionContinuous(const LiveActor* pActor) {
         return getBckCtrl(pActor)->getAttribute() == 0 && !isBckStopped(pActor);
@@ -167,6 +320,9 @@ namespace MR {
         return isBckLooped(pActor);
     }
 
+    void invalidateLodCtrl(const NPCActor* pActor) {
+        pActor->mLodCtrl->invalidate();
+    }
 
     void startMoveAction(NPCActor* pActor) {
         if (isExistRail(pActor)) {
@@ -366,7 +522,15 @@ namespace MR {
         return tryTalkNearPlayerAtEnd(pActor->mMsgCtrl);
     }
 
+    bool tryTalkForceAndStartMoveTalkAction(NPCActor* pActor) {
+        tryStartMoveTalkAction(pActor);
+        return tryTalkForce(pActor->mMsgCtrl);
+    }
 
+    bool tryTalkForceAtEndAndStartTalkAction(NPCActor* pActor) {
+        tryStartTalkAction(pActor);
+        return tryTalkForceAtEnd(pActor->mMsgCtrl);
+    }
 
     bool tryStartReactionAndPushNerve(NPCActor* pActor, const Nerve* pNerve) {
         if (tryStartReaction(pActor)) {
@@ -395,8 +559,62 @@ namespace MR {
         return false;
     }
 
+    bool tryChangeTalkActionRandom(NPCActor* pActor, const char* pAction0, const char* pAction1, const char* pAction2) {
+        if (getBckCtrl(pActor)->getAttribute() != 2 || !isBckLooped(pActor)) {
+            return false;
+        }
 
+        switch (getRandom(0L, 3L)) {
+        case 0:
+            if (pAction0) {
+                pActor->mParam._1C = pAction0;
+            }
 
+            break;
+        case 1:
+            if (pAction1) {
+                pActor->mParam._1C = pAction1;
+            }
+
+            break;
+        case 2:
+            if (pAction2) {
+                pActor->mParam._1C = pAction2;
+            }
+
+            break;
+        }
+
+        return true;
+    }
+
+    f32 calcFloatOffset(const NPCActor* pActor, f32 currentOffset, f32 maxOffset) {
+        TalkMessageCtrl* pTalk = pActor->mMsgCtrl;
+        currentOffset -= 0.5f;
+        currentOffset = currentOffset >= 0.0f ? currentOffset : 0.0f;
+        if (pTalk && isTalkTalking(pTalk) && !isShortTalk(pTalk)) {
+            TVec3f up;
+            TVec3f direction(pActor->mPosition - *getPlayerPos());
+            getPlayerUpVec(&up);
+            if (direction.dot(up) > 0.0f && direction.length() < 200.0f) {
+                f32 target = getLinerValueFromMinMax(direction.length(), 0.0f, 200.0f, maxOffset, 0.0f);
+                f32 limit = 0.5f + (5.0f + currentOffset);
+                currentOffset = limit >= target ? target : limit;
+            }
+        }
+
+        return currentOffset;
+    }
+
+    void calcAndSetFloatBaseMtx(NPCActor* pActor, f32 offset) {
+        TVec3f up;
+        TVec3f pos(pActor->mPosition);
+        pActor->_A0.getYDir(up);
+        up.scale(offset);
+        pActor->mPosition.add(up);
+        pActor->NPCActor::calcAndSetBaseMtx();
+        pActor->mPosition.set(pos);
+    }
 };  // namespace MR
 
 TakeOutStar::TakeOutStar(NPCActor* pActor, const char* pActionName, const char* pAnimName, const Nerve* pNerve)
@@ -417,7 +635,13 @@ bool TakeOutStar::takeOut() {
     return false;
 }
 
+bool TakeOutStar::isFirstStep() {
+    return isNerve(GET_NERVE(TakeOutStar, TakeOutStarNrvAnim)) && MR::isFirstStep(this);
+}
 
+bool TakeOutStar::isLastStep() {
+    return isNerve(GET_NERVE(TakeOutStar, TakeOutStarNrvTerm));
+}
 
 void TakeOutStar::exeAnim() {
     if (MR::isFirstStep(this)) {
@@ -474,11 +698,22 @@ void TakeOutStar::exeDemo() {
     }
 }
 
+void TakeOutStar::exeTerm() {
+}
 
 FadeStarter::FadeStarter(NPCActor* pActor, s32 a2) : NerveExecutor("フェード開始制御"), mActor(pActor), _C(), _10(a2) {
     initNerve(GET_NERVE(FadeStarter, FadeStarterNrvFade));
 }
 
+bool FadeStarter::update() {
+    if (isNerve(GET_NERVE(FadeStarter, FadeStarterNrvTerm))) {
+        return true;
+    }
+
+    updateNerve();
+
+    return false;
+}
 
 void FadeStarter::exeFade() {
     if (MR::isFirstStep(this)) {
@@ -505,13 +740,27 @@ void FadeStarter::exeFade() {
     setNerve(GET_NERVE(FadeStarter, FadeStarterNrvTerm));
 }
 
+void FadeStarter::exeTerm() {
+}
 
 DemoStarter::DemoStarter(NPCActor* pActor) : NerveExecutor("デモ開始制御"), mActor(pActor) {
     initNerve(GET_NERVE(DemoStarter, DemoStarterNrvInit));
 }
 
+bool DemoStarter::update() {
+    updateNerve();
 
+    return isNerve(GET_NERVE(DemoStarter, DemoStarterNrvTerm));
+}
 
+void DemoStarter::start() {
+    if (isNerve(GET_NERVE(DemoStarter, DemoStarterNrvInit))) {
+        setNerve(GET_NERVE(DemoStarter, DemoStarterNrvFade));
+    }
+}
+
+void DemoStarter::exeInit() {
+}
 
 void DemoStarter::exeFade() {
     if (MR::isFirstStep(this)) {
@@ -527,4 +776,15 @@ void DemoStarter::exeFade() {
     setNerve(GET_NERVE(DemoStarter, DemoStarterNrvWait));
 }
 
+void DemoStarter::exeWait() {
+    if (MR::isLessStep(this, 30)) {
+        return;
+    }
 
+    if (MR::canStartDemo()) {
+        setNerve(GET_NERVE(DemoStarter, DemoStarterNrvTerm));
+    }
+}
+
+void DemoStarter::exeTerm() {
+}

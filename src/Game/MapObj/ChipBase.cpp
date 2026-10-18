@@ -186,9 +186,15 @@ void ChipBase::makeActorDead() {
 }
 
 void ChipBase::control() {
-    if (mRailMover != nullptr) {
-        mRailMover->movement();
-        mPosition.set(mRailMover->_28);
+    if (mCounter > 0) {
+        mCounter--;
+
+        if (mRailMover != nullptr) {
+            mRailMover->movement();
+        }
+
+        // SMG2 target reads mRailMover unconditionally here (the counter is only armed on rail chips).
+        MR::setPosition(this, mRailMover->_28);
         MR::setClippingRangeIncludeShadow(this, &mClippingRange, 100.0f);
     }
 }

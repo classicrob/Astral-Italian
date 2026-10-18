@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/MapObj/SpinDriverCamera.hpp"
 #include "Game/MapObj/SpinDriverOperateRing.hpp"
@@ -88,6 +89,7 @@ public:
     /* 0x98 */ SpinDriverOperateRing* mOperateRing;
     /* 0x9C */ SpinDriverPathDrawer* mPathDrawer;
     /* 0xA0 */ ModelObj* mEmptyModel;
+    /* 0xA8 */ TPos3f _SMG2A8;  // SMG2 (offsets below are Petari; SMG2 = +0x34 then +0x38 after mColor)
     /* 0xA4 */ TQuat4f _A4;
     /* 0xB4 */ TQuat4f _B4;
     /* 0xC4 */ TVec3f _C4;
@@ -116,14 +118,15 @@ public:
     /* 0x168 */ bool _168;
     /* 0x16C */ int mAlreadyDoneFlagIdx;
     /* 0x170 */ s32 mColor;
+    /* 0x1A8 */ s32 _SMG2_1A8;
     /* 0x174 */ bool _174;
     // u8 _175;
     // u8 _176;
     // u8 _177;
     /* 0x178 */ s32 _178;
     /* 0x17C */ bool _17C;
-    /* 0x17D */ bool _17D;
     /* 0x17E */ bool mIsPullPlayer;
+    /* 0x17D */ bool _17D;
     /* 0x17F */ bool mIsDisableJingle;
 };
 

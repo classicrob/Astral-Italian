@@ -150,7 +150,7 @@ void BreakableCage::calcAndSetBaseMtx() {
 bool BreakableCage::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     bool result;
 
-    if (MR::isMsgJetTurtleAttack(msg)) {
+    if (MR::isMsgJetTurtleAttack(msg) || MR::isMsgYoshiProjectile(msg)) {
         result = tryBreak();
     } else {
         result = false;
@@ -277,15 +277,9 @@ bool BreakableCage::tryBreak() {
 }
 
 void BreakableCage::exeWait() {
+    // SMG2 target only rotates the cage here; the Petari item-model spin block is not present.
     if (mCageType == CAGE_NORMAL) {
         mRotation.y = MR::repeat(mRotation.y + mRotationSpeed, 0.0f, 360.0f);
-    }
-
-    if (mItemModel != nullptr) {
-        if (isAppearPowerStar()) {
-            DummyDisplayModel* pModel = mItemModel;
-            mItemModel->mRotation.y = MR::repeat(pModel->mRotation.y + PowerStar::getPowerStarWaitRotateSpeed(), 0.0f, 360.0f);
-        }
     }
 }
 

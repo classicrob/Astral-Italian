@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Game/MapObj/MapObjActor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
+
+class BenefitItemObj;
 
 class SpaceMine : public MapObjActor {
 public:
@@ -16,6 +19,7 @@ public:
     bool isCalcShadowAlways() const;
     void exeWait();
     void exeAppear();
+    bool appearItem();
 
     inline bool isShadowValid(s32 val) const {
         return val > -1 && val < 2;
@@ -24,5 +28,8 @@ public:
     /* 0xC4 */ f32 mRotateSpeed;
     /* 0xC8 */ TVec3f mClippingRange;
     /* 0xD4 */ s32 mShadowType;
-    /* 0xD8 */ u8 mIsPlayerNear;
+    /* 0xE4 */ s32 mItemType;
+    /* 0xE8 */ u8 mIsPlayerNear;
+    /* 0xEC */ BenefitItemObj* mBenefitItem;
+    /* 0xF0 */ TPos3f mKinokoMtx;
 };

@@ -17,7 +17,9 @@ public:
     void initStarInfoTable();
     s32 findStarID(const char*) const;
     void declareStar(const char*, const char*, s32, bool);
+    void declareStar(const char*, const char*, s32);  // SMG2 3-arg form
     bool isGreen(const char*, s32) const;
+    bool isBronze(const char*, s32) const;
     bool isRed(const char*, s32) const;
     bool isGrand(const char*, s32) const;
     void initStarInfoTableAfterPlacement();

@@ -12,6 +12,9 @@ public:
     };
 
     ImageEffectArea(EImageEffectType, int, const char*);
+    ImageEffectArea(int, const char*);
+
+    virtual void init(const JMapInfoIter&);
 
     virtual bool isSyncWithPlayer() const {
         return false;

@@ -16,6 +16,12 @@ public:
     bool isStartTimeLimitEvent() const;
     void startCometEventIfExist();
     void endCometEvent();
+    void pauseCometTimer();
+    void resumeCometTimer();
+    void showCometTimer();
+    void hideCometTimer();
+    void addCometTimer(s32);
+    void decCometTimer(s32);
     static u32 getTimeLimitFromTable(const GalaxyTimeLimitInfo*, int);
     void initCometStatus();
 

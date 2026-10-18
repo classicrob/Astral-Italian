@@ -34,6 +34,7 @@ namespace MR {
     void startAfterBossRushBGM();
 
     void startStarChanceBGM(bool);
+    void startStarChanceBGM2(bool);
 
     void startMarioFaceShipBGM();
     void startGrandStarReturnBGM();

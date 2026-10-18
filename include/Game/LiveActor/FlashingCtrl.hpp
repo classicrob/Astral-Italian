@@ -22,4 +22,5 @@ public:
     /* 0x12 */ u8 mOverrideInterval;
     /* 0x14 */ s32 mTimer;
     /* 0x18 */ s32 mFlashStartTime;
+    /* 0x1C */ u8 _SMG2_extra;  // SMG2: object is 0x28 bytes (byte at +0x24)
 };

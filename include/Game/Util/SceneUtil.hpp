@@ -62,6 +62,8 @@ namespace MR {
     bool isStageKoopaVs1();
     bool isStageKoopaVs2();
     bool isStageKoopaVs3();
+    bool isStageScoreAttack();
+    bool isStagePlayStarChance(s32);
     bool isStageEpilogueDemo();
     bool isBeginScenarioStarter();
     bool isStageSuddenDeathDodoryu();

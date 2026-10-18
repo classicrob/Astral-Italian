@@ -58,6 +58,6 @@ public:
     /* 0xA4 */ TVec3f mClippingRange;
     /* 0xB0 */ s32 mGroupID;
     /* 0xB4 */ s32 mChipType;
-    /* 0xB8 */ bool _B4;
+    /* 0xB8 */ s32 mCounter;
     /* 0xB9 */ bool mIsCalcShadow;
 };

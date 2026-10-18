@@ -75,11 +75,35 @@ void SpaceMine::kill() {
 }
 
 void SpaceMine::initAfterPlacement() {
+    if (MR::isExistRail(this)) {
+        MR::initAndSetRailClipping(&mClippingRange, this, ::sSensorRadius, 500.0f);
+        return;
+    }
+
     bool isShadow = isShadowValid(mShadowType);
 
     if (isShadow) {
         MR::setClippingRangeIncludeShadow(this, &mClippingRange, ::sSensorRadius);
     }
+}
+
+bool SpaceMine::appearItem() {
+    if (mItemType == 0) {
+        MR::appearStarPiece(this, mPosition, 3, 10.0f, 40.0f, false);
+        return true;
+    }
+
+    if (mItemType == 1) {
+        MR::appearCoinPop(this, mPosition, 1);
+        return true;
+    }
+
+    if (mItemType == 2) {
+        MR::appearKinokoOneUpPop(mBenefitItem, mKinokoMtx.toMtxPtr());
+        return true;
+    }
+
+    return false;
 }
 
 void SpaceMine::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
@@ -92,11 +116,25 @@ void SpaceMine::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
 bool SpaceMine::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgInvincibleAttack(msg)) {
+        appearItem();
         kill();
         return true;
     }
 
     if (MR::isMsgStarPieceAttack(msg)) {
+        appearItem();
+        kill();
+        return true;
+    }
+
+    if (MR::isMsgSupportTicoSpin(msg) && !MR::isDead(this)) {
+        appearItem();
+        kill();
+        return true;
+    }
+
+    if (MR::isMsgYoshiProjectileOrEat(msg) && !MR::isDead(this)) {
+        appearItem();
         kill();
         return true;
     }

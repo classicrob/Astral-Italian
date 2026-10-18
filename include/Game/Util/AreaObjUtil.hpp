@@ -28,6 +28,7 @@ namespace MR {
 
     void calcCubeWorldBox(TDirBox3f* pBox, const AreaObj* pArea);
     void calcCubePos(const AreaObj*, TVec3f*);
+    void getAreaCenterPos(TVec3f*, const AreaObj*);
     void calcCubeAxisZ(const AreaObj*, TVec3f*);
     void calcCubeLocalPos(TVec3f*, const AreaObj*, const TVec3f&);
 

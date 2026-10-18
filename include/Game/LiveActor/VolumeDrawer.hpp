@@ -26,3 +26,7 @@ public:
     /* 0xB0 */ f32 mScaleStep;
     /* 0xB4 */ bool mIsEnabled;
 };
+
+namespace MR {
+    VolumeDrawer* createVolumeDrawer(const char*, const char*, MtxPtr);
+};  // namespace MR

@@ -24,11 +24,14 @@ namespace MR {
         if (*angle > PI) *angle -= TWO_PI;
         *angle *= 1.0f / PI;
     }
-    // NONMATCHING: floating-point and integer register allocation.
+    // NONMATCHING: register allocation and integer-extension/store scheduling.
     bool fn_8037F5B0(const TVec3f& input, s8 shift, TVec3s* output) {
         f32 factor = getShiftRatio(shift);
         f32 x = input.x * factor, y = input.y * factor, z = input.z * factor;
-        s16 ix = static_cast<s16>(x), iy = static_cast<s16>(y), iz = static_cast<s16>(z);
+        // Supported Wii/Mac integer narrowing retains the low16 bits after signed32 truncation.
+        s16 ix = static_cast<s16>(static_cast<s32>(x));
+        s16 iy = static_cast<s16>(static_cast<s32>(y));
+        s16 iz = static_cast<s16>(static_cast<s32>(z));
         output->x = ix;
         output->y = iy;
         output->z = iz;
@@ -46,9 +49,11 @@ namespace MR {
         if (static_cast<s8>(static_cast<u8>(ix)) != static_cast<s32>(x) || static_cast<s8>(static_cast<u8>(iy)) != static_cast<s32>(y) || static_cast<s8>(static_cast<u8>(iz)) != static_cast<s32>(z)) return true;
         return false;
     }
+    // NONMATCHING: integer register allocation and load/store scheduling after signed32 truncation.
     bool fn_8037F680(f32 input, s8 shift, s16* output) {
         f32 value = input * getShiftRatio(shift);
-        s16 result = static_cast<s16>(value);
+        // Supported Wii/Mac integer narrowing retains the low16 bits after signed32 truncation.
+        s16 result = static_cast<s16>(static_cast<s32>(value));
         *output = result;
         return result != static_cast<s32>(value);
     }

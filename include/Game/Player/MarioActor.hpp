@@ -457,7 +457,6 @@ public:
     void exeGameOverBlackHole2();
     void initBlink();
     void updateBlink();
-    void setBlink(const char*);
 
     void entryWallWalkMode(const TVec3f&, const TVec3f&);
 

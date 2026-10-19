@@ -213,10 +213,6 @@ namespace MR {
         MarioAccess::changeAnimationE(pName, rCtrlData);
     }
 
-    void startBckPlayer(const char* pName, s32 param2) {
-        MarioAccess::changeAnimationE(pName, param2);
-    }
-
     bool startPlayerBvaWithCtrl(const char* pName, const BckCtrlData& rCtrlData) {
         if (!startBvaIfExist(MarioAccess::getPlayerActor(), pName)) {
             return false;

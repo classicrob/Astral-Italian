@@ -395,36 +395,6 @@ namespace MarioAccess {
         getPlayerActor()->changeAnimationNonStop(pAnimName);
     }
 
-    void changeAnimationE(const char* pAnimName, s32 a2) {
-        // unused
-        getPlayerActor();
-        if (getPlayerActor()->_B91) {
-            return;
-        }
-
-        if (getPlayerActor()->getMario()->isPlayerModeTeresa()) {
-            getPlayerActor()->changeTeresaAnimation(pAnimName, a2);
-            return;
-        }
-
-        if (getPlayerActor()->_468 == 0) {
-            getPlayerActor()->getMario()->stopAnimationUpperForce();
-        }
-
-        MR::startBck(getPlayerActor(), pAnimName);
-
-        // unused
-        getPlayerActor();
-
-        if (a2 >= 0) {
-            getPlayerActor()->mMarioAnim->getXanimePlayer()->changeInterpoleFrame(a2);
-        }
-
-        getPlayerActor()->setBlink(pAnimName);
-        getPlayerActor()->mMarioAnim->closeCallback();
-        getPlayerActor()->mMarioAnim->entryCallback(pAnimName);
-    }
-
     void changeAnimationE(const char* pAnimName, const char* pChar2) {
         getPlayerActor()->fn_803BEA60(pAnimName, pChar2);
         getPlayerActor()->fn_803BEA80(pAnimName);

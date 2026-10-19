@@ -89,7 +89,6 @@ namespace MarioAccess {
     void killTakingActor();
     f32 getAnimationFrameMax();
     void changeAnimationJ(const char*);
-    void changeAnimationE(const char*, s32);
     void changeAnimationE(const char*, const char*);
     void changeAnimationE(const char*, const BckCtrlData&);
     void keepCurrentAnimation();

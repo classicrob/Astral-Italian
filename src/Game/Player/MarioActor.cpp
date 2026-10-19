@@ -3753,25 +3753,6 @@ void MarioActor::initBlink() {
 }
 
 
-void MarioActor::setBlink(const char* pName) {
-    if (pName == nullptr) {
-        mEyeRes = nullptr;
-
-        return;
-    }
-
-    if (MR::getResourceHolder(this)->mBtpResTable->isExistRes(pName)) {
-        J3DAnmTexPattern* pPattern = static_cast< J3DAnmTexPattern* >(MR::getResourceHolder(this)->mBtpResTable->getRes(pName));
-        mEyeRes = pPattern;
-        mEyeRes->mFrame = 0.0f;
-
-        return;
-    }
-
-    mEyeRes = nullptr;
-}
-
-
 // NONMATCHING: equivalent early model guards and verified pooled literal/table addresses.
 void MarioActor::updateBlink() {
     if (mAllModel->mCurrentModel == 1 || mAllModel->mCurrentModel == 6) {

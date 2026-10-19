@@ -166,7 +166,13 @@ s32 ResourceHolder::count(JKRArchive* pArchive, const char* pExtName, const char
         if (finder->mFileIsFolder) {
             if (finder->mName[0] != '.') {
                 char path[128];
+#ifdef GALAXY_NATIVE
+                const int length = snprintf(path, sizeof(path), "%s/%s", pPath ? pPath : "", finder->mName);
+                if (length < 0 || static_cast<size_t>(length) >= sizeof(path))
+                    OSPanic(__FILE__, __LINE__, "Resource archive path is too long");
+#else
                 sprintf(path, "%s%s%s", pPath, "/", finder->mName);
+#endif
                 num += count(pArchive, pExtName, path);
             }
         } else {
@@ -181,6 +187,31 @@ s32 ResourceHolder::count(JKRArchive* pArchive, const char* pExtName, const char
     return num;
 }
 
+#ifdef GALAXY_NATIVE
+namespace {
+    // Archive resources are big-endian. Loose resources that game code reads through
+    // structs are converted in place to host order when their archive file is registered,
+    // which happens once per file (not per lookup):
+    //   .bti  ResTIMG texture header (image bytes stay big-endian for GX)
+    //   .kcl  KCL collision (see petari/kcl_collision.hpp)
+    void normalizeLooseResource(const char* pName, void* pData, u32 size) {
+        if (pData == nullptr) {
+            return;
+        }
+
+        if (strstr(pName, ".bti") != nullptr) {
+            if (!JUTNativeNormalizeResTIMG(static_cast< ResTIMG* >(pData), size)) {
+                OSReport("ResourceHolder: invalid texture header in %s\n", pName);
+            }
+        } else if (strstr(pName, ".kcl") != nullptr && !PetariNative::KCL::isHostResource(pData)) {
+            if (const char* pError = PetariNative::KCL::convertInPlace(pData, size)) {
+                OSReport("ResourceHolder: invalid collision in %s: %s\n", pName, pError);
+            }
+        }
+    }
+}  // namespace
+#endif
+
 void ResourceHolder::mount(JKRArchive* pArchive, char* pPath) {
     JKRFileFinder* finder = getFileFinder(pArchive, pPath);
 
@@ -188,11 +219,21 @@ void ResourceHolder::mount(JKRArchive* pArchive, char* pPath) {
         if (finder->mFileIsFolder) {
             if (finder->mName[0] != '.') {
                 char path[128];
+#ifdef GALAXY_NATIVE
+                const int length = snprintf(path, sizeof(path), "%s/%s", pPath ? pPath : "", finder->mName);
+                if (length < 0 || static_cast<size_t>(length) >= sizeof(path))
+                    OSPanic(__FILE__, __LINE__, "Resource archive path is too long");
+#else
                 snprintf(path, 128, "%s/%s", pPath, finder->mName);
+#endif
                 mount(pArchive, path);
             }
         } else {
             u32 fileID = pArchive->getFileAttribute(finder->mFileID);
+#ifdef GALAXY_NATIVE
+            void* pResource = pArchive->getResource(finder->mFileID);
+            normalizeLooseResource(finder->mName, pResource, pArchive->getResSize(pResource));
+#endif
             ResFileInfo* info = createAndRegisterObject(finder->mName, pArchive->getResource(finder->mFileID));
             info->_8 = pArchive->getResource(finder->mFileID);
             info->_4 = pArchive->getResSize(info->_8);

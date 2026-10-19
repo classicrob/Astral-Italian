@@ -370,7 +370,16 @@ bool GameScene::isValidScenarioOpeningCamera() const {
 
 
 void GameScene::startStagePlayFirst() {
+#ifdef GALAXY_NATIVE
+    // Test-only (PETARI_FAST_BOOT=1, set by the smoke tools): no galaxy fly-over camera at stage start.
+    static const bool fastBoot = [] {
+        const char* pFast = std::getenv("PETARI_FAST_BOOT");
+        return pFast != nullptr && pFast[0] == '1';
+    }();
+    if (isValidScenarioOpeningCamera() && !fastBoot) {
+#else
     if (isValidScenarioOpeningCamera()) {
+#endif
         setNerve(GET_NERVE(GameScene, GameSceneScenarioOpeningCamera));
     } else if (MR::isBeginScenarioStarter()) {
         MR::forceToBlankCinemaFrame();
@@ -481,7 +490,13 @@ void GameScene::init() {
     if (MR::isScenarioSelecting()) {
         MR::receiveAllRequestedFile();
         MR::getGameSystemObjHolder()->mAudioSystem->setStageResourceLoading(loadPlayer);
+
         while (!GameSceneFunction::isLoadDoneScenarioWaveData()) {
+#ifdef GALAXY_NATIVE
+            // The load finishes on higher-priority threads (ARAM stream, wave
+            // archive loader) that a Wii interrupt would let preempt this loop.
+            petari_os_preemption_point();
+#endif
         }
     }
     MR::suspendAsyncExecuteThread("シーン初期化");

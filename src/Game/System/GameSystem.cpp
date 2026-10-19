@@ -48,7 +48,12 @@ namespace NrvGameSystem {
     NEW_NERVE(GameSystemNormal, GameSystem, Normal);
 };  // namespace NrvGameSystem
 
+#ifdef GALAXY_NATIVE
+// The native host entry point initializes the platform, then calls this game main.
+extern "C" void petari_game_main(void) {
+#else
 void main(void) {
+#endif
     OSInitFastCast();
     DVDInit();
     VIInit();
@@ -111,6 +116,12 @@ bool GameSystem::isDoneLoadSystemArchive() const {
 
 void GameSystem::startToLoadSystemArchive() {
     mIsExecuteLoadSystemArchive = true;
+#ifdef GALAXY_NATIVE
+    TRACE_BOOT("[boot] stationed archive loading: start\n");
+    if (isTraceBoot()) {
+        traceBootHeaps();
+    }
+#endif
 
     SingletonHolder< HeapMemoryWatcher >::get()->setCurrentHeapToStationedHeap();
     SingletonHolder< NameObjRegister >::get()->setCurrentHolder(mObjHolder->mObjHolder);
@@ -125,6 +136,16 @@ void GameSystem::exeInitializeAudio() {
 
     updateSceneController();
 
+#ifdef GALAXY_NATIVE
+    u32 traceFrames, traceSeconds;
+    if (isTraceBoot() && isTraceBootHeartbeat("InitializeAudio", &traceFrames, &traceSeconds)) {
+        // The wave-data query reads the audio system, so only ask after creation ended.
+        bool isCreated = MR::isEndFunctionAsyncExecute(INIT_AUDIO_KEY);
+        OSReport("[boot] InitializeAudio: waiting %us (%u frames), audio system created %d, system wave data loaded %s\n",
+                 traceSeconds, traceFrames, isCreated, isCreated ? (mObjHolder->mAudioSystem->isLoadDoneWaveDataAtSystemInit() ? "1" : "0") : "-");
+    }
+#endif
+
     if (MR::isEndFunctionAsyncExecute(INIT_AUDIO_KEY) && mObjHolder->mAudioSystem->isLoadDoneWaveDataAtSystemInit()) {
         mObjHolder->mAudioSystem->loadSystemWaveData();
         MR::waitForEndFunctionAsyncExecute(INIT_AUDIO_KEY);
@@ -135,6 +156,7 @@ void GameSystem::exeInitializeAudio() {
 
 void GameSystem::exeInitializeLogoScene() {
     if (GameSystemFunction::isResetProcessing()) {
+        TRACE_BOOT("[boot] InitializeLogoScene: reset in progress, waiting for reboot\n");
         setNerve(GET_NERVE(GameSystem, GameSystemWaitForReboot));
     } else {
         if (MR::isFirstStep(this)) {
@@ -142,6 +164,14 @@ void GameSystem::exeInitializeLogoScene() {
         }
 
         updateSceneController();
+
+#ifdef GALAXY_NATIVE
+        u32 traceFrames, traceSeconds;
+        if (isTraceBoot() && isTraceBootHeartbeat("InitializeLogoScene", &traceFrames, &traceSeconds)) {
+            OSReport("[boot] InitializeLogoScene: %us (%u frames), stationed loading requested %d\n", traceSeconds, traceFrames,
+                     mIsExecuteLoadSystemArchive);
+        }
+#endif
     }
 }
 
@@ -171,6 +201,7 @@ void GameSystem::initGX() {
 }
 
 void GameSystem::initAfterStationedResourceLoaded() {
+    TRACE_BOOT("[boot] initAfterStationedResourceLoaded: start\n");
     mFontHolder->createFontFromFile();
     mObjHolder->initAfterStationedResourceLoaded();
     mHomeButtonLayout->initWithoutIter();
@@ -208,8 +239,22 @@ void GameSystem::frameLoop() {
     update();
     calcAnim();
     mObjHolder->captureIfAllowForScreenPreserver();
+#ifdef GALAXY_NATIVE
+    petari_host_frame_mark(PETARI_FRAME_MARK_END_FRAME);  // frame-time statistics
+#endif
     MainLoopFramework::sManager->endFrame();
+#ifdef GALAXY_NATIVE
+    // Host window, events and Aurora frame boundary (native/app).
+    petari_host_frame_seam();
+#endif
     MainLoopFramework::sManager->waitForRetrace();
+#ifdef GALAXY_NATIVE
+    petari_host_frame_mark(PETARI_FRAME_MARK_RETRACE_DONE);
+    // Draw done no longer waits for the frame's token-time EFB captures; the
+    // token callbacks (star pointer, lens flare, talk Z peeks) finish here,
+    // before any of the next frame's game code reads what they wrote.
+    petari_gx_sync_wait_tokens_delivered();
+#endif
 }
 
 void GameSystem::draw() {

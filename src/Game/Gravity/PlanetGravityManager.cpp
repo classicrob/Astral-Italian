@@ -30,7 +30,7 @@ bool PlanetGravityManager::calcTotalGravityVector(TVec3f* pGravity, GravityInfo*
         }
 
         // Gravity is valid, matches specified gravity type(s) and does not have same host
-        if (validGravity && ((gravityType & (*pGravities)->mGravityType) != 0) && (host != (u32)(*pGravities)->mHost)) {
+        if (validGravity && ((gravityType & (*pGravities)->mGravityType) != 0) && (host != (GravityHostID)(*pGravities)->mHost)) {
             // Is priority lower -> end of list reached as it's sorted in descending order
             s32 priority = (*pGravities)->mPriority;
 
@@ -106,3 +106,13 @@ inline void PlanetGravityManager::bubbleDown(int i) {
     mGravities[i - 1] = mGravities[i];
     mGravities[i] = temp;
 }
+
+#ifdef GALAXY_NATIVE
+void PlanetGravityManager::nativeResortGravities() {
+    for (s32 i = 1; i < mNumGravities; ++i) {
+        for (s32 j = i; j > 0 && mGravities[j]->mPriority > mGravities[j - 1]->mPriority; --j) {
+            bubbleDown(j);
+        }
+    }
+}
+#endif

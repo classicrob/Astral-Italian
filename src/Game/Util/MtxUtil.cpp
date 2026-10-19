@@ -916,6 +916,9 @@ namespace MR {
         MtxPtr first, second, third;
 
         switch (order) {
+#ifdef GALAXY_NATIVE
+        default:
+#endif
         case 0:
             first = mtxY;
             second = mtxX;
@@ -939,7 +942,11 @@ namespace MR {
         case 4:
             second = mtxZ;
             first = mtxX;
+#ifdef GALAXY_NATIVE
+            third = mtxY;
+#else
             third = mtxZ;
+#endif
             break;
         case 5:
             first = mtxY;

@@ -4,6 +4,9 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include <JSystem/JKernel/JKRExpHeap.hpp>
 #include <cstdio>
+#ifdef GALAXY_NATIVE
+#include <petari/editor/runtime.hpp>
+#endif
 
 NANDRequestInfo::NANDRequestInfo() {
     init();

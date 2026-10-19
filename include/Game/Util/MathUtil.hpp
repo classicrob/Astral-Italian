@@ -7,6 +7,17 @@
 #include <JSystem/JMath/JMATrigonometric.hpp>
 #include <revolution/gx.h>
 #include <revolution/types.h>
+#ifdef GALAXY_NATIVE
+#include "Game/Util/NativeOverload.hpp"
+
+// MSL <cmath> extensions used by game code (MSL's M_PI is a float literal).
+#ifndef DEG_TO_RAD
+#define DEG_TO_RAD(degrees) (degrees * (3.14159265358979323846f / 180.0f))
+#endif
+#ifndef RAD_TO_DEG
+#define RAD_TO_DEG(radians) (radians * (180.0f / 3.14159265358979323846f))
+#endif
+#endif
 
 namespace MR {
     void turnVecRandomAroundAxis(TVec3f*, const TVec3f&, const TVec3f&, f32, f32);
@@ -33,6 +44,13 @@ namespace MR {
     /// @param max The exclusive maximum integer.
     /// @return The pseudorandom integer.
     s32 getRandom(s32 min, s32 max);
+
+#ifdef GALAXY_NATIVE
+    template < typename A, typename B, PETARI_WII_LONG_ARGS(A, B) >
+    inline s32 getRandom(A min, B max) {
+        return getRandom(static_cast< s32 >(min), static_cast< s32 >(max));
+    }
+#endif
 
     /// @brief Computes the next pseudorandom floating-point number within the half-open interval `[0.0f, 360.0f)`.
     /// @return The pseudorandom number of degrees.
@@ -631,6 +649,13 @@ namespace MR {
 
         return ret;
     }
+
+#ifdef GALAXY_NATIVE
+    template < typename A, typename B, typename C, PETARI_WII_LONG_ARGS(A, B, C) >
+    inline s32 clamp(A x, B min, C max) {
+        return clamp(static_cast< s32 >(x), static_cast< s32 >(min), static_cast< s32 >(max));
+    }
+#endif
 
     /// @brief Restricts a number to the unit interval.
     /// @param[in,out] pX A pointer to the number to evaluate and initialize.

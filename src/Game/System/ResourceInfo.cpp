@@ -2,7 +2,11 @@
 #include "Game/Util/HashUtil.hpp"
 #include <cstdio>
 #include <cstring>
+#ifdef GALAXY_NATIVE
+#include <cstddef>
+#else
 #include <size_t.h>
+#endif
 
 ResFileInfo::ResFileInfo() {
     mName = 0;

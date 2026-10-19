@@ -51,6 +51,12 @@ void* FileRipper::loadToMainRAM(const char* fpath, u8* dest, bool decompress, JK
         OSPanic(__FILE__, 125, "DVDOpen() failed");
     }
 
+#ifdef GALAXY_NATIVE
+    // copySrc points into buf and is read after the block (the first 0x20 bytes of an
+    // uncompressed file, the Yaz0 header), so buf must outlive it; Clang reuses
+    // block-local stack slots.
+    u8 buf[0x60];
+#endif
     if (decompress) {
         u8 buf[0x60];
         copySrc = (u8*)((u32)(buf + 0x3B) / 0x40 * 0x40);
@@ -172,12 +178,31 @@ bool FileRipper::decompressSzsSub(u8* src, u8* dest) {
         return false;
     }
 
+#ifdef GALAXY_NATIVE
+    // The Yaz0 header's decompressed size is big-endian.
+    u32 data_len = (src[4] << 24) | (src[5] << 16) | (src[6] << 8) | src[7];
+#else
     u32 data_len = *(u32*)(src + 4);
+#endif
     u8* dest_end = dest + data_len;
     src += 0x10;
+#ifdef GALAXY_NATIVE
+    // Natively a higher-priority thread readied by an interrupt (the audio thread) only
+    // preempts at an interrupt-state change; the Wii preempts at any instruction. Offer that
+    // point every 16 KiB of output so a long decode does not hold the CPU for tens of ms.
+    // Inside an interrupts-disabled region the pair is a no-op, as on the Wii.
+    const u32 cPreemptionStride = 0x4000;
+    u8* last_preemption = dest;
+#endif
 
     do {
         if (!group_count) {
+#ifdef GALAXY_NATIVE
+            if (static_cast< u32 >(dest - last_preemption) >= cPreemptionStride) {
+                OSRestoreInterrupts(OSDisableInterrupts());
+                last_preemption = dest;
+            }
+#endif
             if (src > ::sReadBufferLimit && ::sReadDvdLeftSize) {
                 if (!(src = readSrcDataNext(src))) {
                     return false;

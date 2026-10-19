@@ -11,7 +11,16 @@
 #include <JSystem/JUtility/JUTVideo.hpp>
 #include <JSystem/JUtility/JUTXfb.hpp>
 #include <revolution/gx/GXRegs.h>
+#ifndef GALAXY_NATIVE
 #include <runtime.h>
+#endif
+
+#ifdef GALAXY_NATIVE
+extern "C" bool petari_gx_waiting_for_pipeline();
+extern "C" u64 petari_gx_sync_held_ticket();
+// native/platform/include/petari/platform/diagnostics.hpp
+extern "C" int petari_gx_wait_check(MainLoopFrameworkAlarm::NativeWaitCheck* check, int pipelineWait);
+#endif
 
 MainLoopFramework* MainLoopFramework::sManager;
 
@@ -21,8 +30,22 @@ GXTexObj clear_z_tobj;
 
 Mtx e_mtx = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
 
+#ifdef GALAXY_NATIVE
+// GX texture bytes keep Wii order even though the CPU is little-endian.
+u8 clearZTexData[] ATTRIBUTE_ALIGN(32) = {
+    0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+    0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+    0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+    0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+};
+#else
 u32 clearZTexData[] ATTRIBUTE_ALIGN(32) = {0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF,
                                            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+#endif
 
 namespace {
     s32 getDisplayingXfbIndex() NO_INLINE;
@@ -330,7 +353,13 @@ void MainLoopFramework::clearEfb(int param1, int param2, int param3, int param4,
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
+#ifdef GALAXY_NATIVE
+    // Aurora does not implement Z-texture replacement. This clear's constant
+    // 0xffffff depth is equivalent to a quad on the orthographic far plane.
+    GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+#else
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XY, GX_U16, 0);
+#endif
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_POS_XYZ, GX_U8, 0);
     GXSetNumChans(0);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_NONE, GX_AF_NONE);
@@ -360,16 +389,32 @@ void MainLoopFramework::clearEfb(int param1, int param2, int param3, int param4,
 
     GXBegin(GX_QUADS, GX_VTXFMT0, 4);
     {
+#ifdef GALAXY_NATIVE
+        GXPosition3f32(param1, param2, -1.0f);
+#else
         GXPosition2u16(param1, param2);
+#endif
         GXTexCoord2u8(0, 0);
 
+#ifdef GALAXY_NATIVE
+        GXPosition3f32(param1 + param3, param2, -1.0f);
+#else
         GXPosition2u16(param1 + param3, param2);
+#endif
         GXTexCoord2u8(1, 0);
 
+#ifdef GALAXY_NATIVE
+        GXPosition3f32(param1 + param3, param2 + param4, -1.0f);
+#else
         GXPosition2u16(param1 + param3, param2 + param4);
+#endif
         GXTexCoord2u8(1, 1);
 
+#ifdef GALAXY_NATIVE
+        GXPosition3f32(param1, param2 + param4, -1.0f);
+#else
         GXPosition2u16(param1, param2 + param4);
+#endif
         GXTexCoord2u8(0, 1);
     }
     GXEnd();
@@ -482,14 +527,41 @@ namespace {
         u32 ras_busy, clocks, xf_wait_in, xf_wait_out;
         GXReadXfRasMetric(&xf_wait_in, &xf_wait_out, &ras_busy, &clocks);
         GXReadXfRasMetric(&xf_wait_in2, &xf_wait_out2, &ras_busy2, &clocks2);
+#ifdef GALAXY_NATIVE
+        // Natively the Wii's test (no GP progress for 0.5 s) misfires: the
+        // processor reports progress only between command batches, and one
+        // batch can spend seconds in serial first-use pipeline compiles. An
+        // abort there discards a good frame. petari_gx_wait_check aborts only
+        // when the processor is halted at the breakpoint or idle with the
+        // draw done outstanding and no game thread can run to change that;
+        // other stalls are reported (with a full state dump after 10 s) while
+        // the wait continues.
+        auto* nativeAlarm = static_cast<MainLoopFrameworkAlarm*>(alarm);
+        const u64 capture = petari_gx_sync_held_ticket();
+        if (capture != nativeAlarm->mNativeCaptureTicket) {
+            nativeAlarm->mNativeCaptureTicket = capture;
+            nativeAlarm->mNativeCaptureSince = OSGetTime();
+        }
+        if (capture && OSGetTime() - nativeAlarm->mNativeCaptureSince > static_cast<OSTime>(OS_BUS_CLOCK / 4) * 30)
+            OSPanic(__FILE__, __LINE__, "GPU capture ticket %llu did not complete within 30 seconds", capture);
+        if (!petari_gx_wait_check(&nativeAlarm->mNativeWait, petari_gx_waiting_for_pipeline() ? 1 : 0)) {
+            OSSetAlarm(alarm, static_cast<OSTime>(OS_BUS_CLOCK / 8), &handleGXAbortAlarm);
+            return;
+        }
+#endif
         GXBool brkpt, cmdIdle, readIdle, underlow, overhi;
         GXGetGPStatus(&overhi, &underlow, &readIdle, &cmdIdle, &brkpt);
         GXDisableBreakPt();
         GXFlush();
         GXAbortFrame();
         DrawSyncManager::sInstance->clearFifo();
+#ifdef GALAXY_NATIVE
+        GXCmd1u8(0x61);
+        GXCmd1u32(0x5800000f);
+#else
         GX_WRITE_U8(0x61);
         GX_WRITE_U32(0x5800000f);
+#endif
         GXSetDrawDone();
         DrawSyncManager::prepareReset();
     }

@@ -7882,8 +7882,9 @@ void MarioActor::calcViewBlurModel() {
 void MarioActor::calcViewFootPrint() {
     if (!_934 && ((mMario->mMovementStates.mLowWord >> 30) & 1U) &&
         (mMario->mTargetWalkSpeedIndex || ((getMario()->mFlags20.mWord & Mario::DrawStates::Underwater) >> 13) || mMario->mWalkSpeed > 0.1f || mMario->isPlayerModeHopper())) {
-        if (!mMario->mSinkTimer && !((mMario->mDrawStates.mWord >> 22) & 1U) && !((mMario->mDrawStates.mWord >> 21) & 1U) && ((mMario->mFlags20.mWord >> 12) & 1U) && ((mMario->mFlags20.mWord >> 11) & 1U) &&
-            (mMario->checkCurrentFloorCodeSevere(13) || mMario->checkCurrentFloorCodeSevere(26))) {
+        if (!mMario->mSinkTimer && !((mMario->mDrawStates.mWord >> 22) & 1U) && !((mMario->mDrawStates.mWord >> 21) & 1U) && ((mMario->mFlags20.mWord >> 12) & 1U) &&
+            (mMario->checkCurrentFloorCodeSevere(13) || mMario->checkCurrentFloorCodeSevere(26) ||
+                mMario->checkCurrentFloorCodeSevere(43) || mMario->checkCurrentFloorCodeSevere(42))) {
             _B48->addPrint(mPosition, mMario->mFrontVec, mMario->_368, false);
         }
     }

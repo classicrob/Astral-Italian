@@ -104,7 +104,6 @@ namespace MarioAccess {
     void startTalk(const LiveActor*);
     void endTalk();
     void readyRemoteDemo();
-    void onFollowDemo();
     void setBaseMtx(MtxPtr);
     MtxPtr getBaseMtx();
     bool calcSpinPullVelocity(TVec3f*, const TVec3f&);

@@ -6,8 +6,8 @@
 /// Original name unknown; layout from Mario::fn_8038C540.
 class AudLifeAlertCounter {
 public:
-    void fn_80085D30(s32);  // _4 += arg
-    void fn_80085D40();     // clear
+    void add(s32);  // _4 += arg
+    void reset();     // clear
 
     /* 0x00 */ s32 _0;
     /* 0x04 */ s32 _4;

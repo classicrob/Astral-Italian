@@ -462,6 +462,8 @@ Mario::Mario(MarioActor* pActor)
     mYoshiShot = new MarioYoshiShot(mActor);
     mYoshiDash = new MarioYoshiDash(mActor);
     mMove = new MarioMove(mActor);
+    mLifeAlertCounter = nullptr;
+    _A98 = 0;
 
     initTask();
     _95C = new FloorCode();
@@ -7324,7 +7326,7 @@ void Mario::tryTornadoJump() {
 
 
 void Mario::startTornadoCentering(HitSensor* pSensor) {
-    pushTask(reinterpret_cast< Task >(&Mario::taskOnTornadoCentering), 0x400);
+    pushTask(&Mario::taskOnTornadoCentering, 0x400);
     mTornadoCenterSensor = pSensor;
     _A34 = 0x1E;
 }
@@ -8966,7 +8968,7 @@ COMMON_LANDING:
 void Mario::startSlidingTask(u32 a1, f32 a2, u16 a3) {
     _A40 = mFrontVec * a2;
     _A3C = a3;
-    pushTask(reinterpret_cast< Task >(&Mario::taskOnSlide), a1);
+    pushTask(&Mario::taskOnSlide, a1);
 }
 
 

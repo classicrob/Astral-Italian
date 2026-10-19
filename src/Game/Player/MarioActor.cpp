@@ -483,8 +483,7 @@ void MarioActor::initAfterPlacement() {
     MR::updateHitSensorsAll(this);
     _360 = getGravityVector();
     _1C0 = true;
-    // PLACEHOLDER(astra): the target ED0 gravity copy awaits canonical Teresa storage.
-    _9F4 = getGravityVector();
+    mGravityReferenceED0 = getGravityVector();
     updateCameraInfo();
     calcBaseFrontVec(-mAppliedGravityVec);
 }
@@ -1383,9 +1382,9 @@ void MarioActor::scaleMtx(MtxPtr pRawMtx) {
 
 void MarioActor::updateBaseScaleMtx() {
     if (((mMario->mMovementStates.mHighWord >> 3) & 1U)) {
-        PSMTXScale(_BF8.toMtxPtr(), mScale.x, mScale.y, mScale.z);
+        PSMTXScale(mJointTransform294.toMtxPtr(), mScale.x, mScale.y, mScale.z);
     } else {
-        PSMTXIdentity(_BF8.toMtxPtr());
+        PSMTXIdentity(mJointTransform294.toMtxPtr());
     }
 }
 
@@ -1632,7 +1631,7 @@ void MarioActor::calcAndSetBaseMtx() {
         }
     }
     PSMTXConcat(matrix.toMtxPtr(), MR::tmpMtxRotYRad(mMario->mYAngleOffset), matrix.toMtxPtr());
-    if (mPlayerMode == 6) fn_803CF130(matrix.toMtxPtr());
+    if (mPlayerMode == 6) updateBaseMtxTeresa(matrix.toMtxPtr());
     if (!received && fn_803C4FB0()) fn_803C5090(matrix.toMtxPtr());
     else fn_803C56F0();
     MR::addTransMtx(matrix.toMtxPtr(), mPosition);
@@ -3075,7 +3074,7 @@ void MarioActor::initDrawAndModel() {
 
     mAllModel->registerModel(0, this, false, true);
     _9E4 = nullptr;
-    _9BC = nullptr;
+    mModelE9C = nullptr;
     _B4C = nullptr;
     _9C0 = nullptr;
     mModelEDC = nullptr;
@@ -3527,20 +3526,7 @@ void MarioActor::initBlur() {
 
 
 
-void MarioActor::calcViewMainModel() {
-    J3DModelX* model = mAllModel->mModels[mAllModel->mCurrentModel];
-    if (mFlags.mIsNoCalcView) {
-        return;
-    }
 
-    model->viewCalc3(0, nullptr);
-
-    Mtx invView;
-    Mtx invBase;
-    PSMTXInverse(_BF8, invView);
-    PSMTXInverse(mAllModel->mModels[mAllModel->mCurrentModel]->mBaseTransformMtx, invBase);
-    MR::multMtx(_BC8, invBase, invView);
-}
 
 
 void MarioActor::draw() const {
@@ -6290,20 +6276,7 @@ void MarioActor::createIceWall(const TVec3f& rVec1, const TVec3f& rVec2) {
 }
 
 
-void MarioActor::updateBaseMtxTeresa(MtxPtr mtx) {
-    TVec3f horizontal;
-    f32 tilt = MR::clamp(MR::vecKillElement(mVelocity, getGravityVec(), &horizontal) / 10.0f, -1.0f, 1.0f);
-    if (!MR::isNearZero(mMario->getWorldPadDir())) {
-        const TVec3f& front = mMario->mFrontVec;
-        if (MR::diffAngleAbsHorizontal(mMario->getWorldPadDir(), front, getGravityVec()) > 0.3926991f)
-            tilt = 0.0f;
-    }
-    _9AC = 0.98f * _9AC + 0.02f * tilt;
-    f32 angle = mConst->getTable()->mTeresaAngleDown;
-    if (_9AC > 0.0f)
-        angle = mConst->getTable()->mTeresaAngleUp;
-    PSMTXConcat(mtx, MR::tmpMtxRotXRad(_9AC * angle), mtx);
-}
+
 
 
 bool MarioActor::finalizeFreezeModel() {
@@ -7732,96 +7705,7 @@ void MarioActor::calcViewReflectionModel() {
 }
 
 
-void MarioActor::calcViewWallShadowModel() {
-    _A0C = 0;
-    if (_A08 & 2) {
-        return;
-    }
 
-    if (mBeeWallWalk) {
-        return;
-    }
-
-    TVec3f direction;
-    s32 length = 0;
-    const AreaObj* pArea = MR::getAreaObj("ExtraWallCheckArea", _2A0);
-    if (pArea != nullptr) {
-        MR::calcCubeAxisZ(pArea, &direction);
-        length = MR::getAreaObjArg(pArea, 0);
-        _20C = pArea;
-        _210 = 0;
-    } else {
-        pArea = MR::getAreaObj("ExtraWallCheckCylinder", _2A0);
-        if (pArea != nullptr) {
-            length = calcCylinderToCenter(pArea, &direction);
-            _20C = pArea;
-            _210 = 1;
-        }
-    }
-
-    bool fading = false;
-    if (pArea == nullptr || static_cast< f32 >(length) < 0.0f) {
-        if (_208 >= 1000.0f) {
-            return;
-        }
-
-        _208 += 10.0f;
-        if (_208 >= 1000.0f) {
-            _208 = 1000.0f;
-        }
-
-        switch (_210) {
-        case 0:
-            MR::calcCubeAxisZ(_20C, &direction);
-            length = MR::getAreaObjArg(_20C, 0);
-            break;
-        case 1:
-            length = calcCylinderToCenter(_20C, &direction);
-            break;
-        }
-
-        fading = true;
-    }
-
-    Triangle triangle;
-    TVec3f position;
-    if (!MR::getFirstPolyOnLineToMap(&position, &triangle, _2A0, direction * static_cast< f32 >(length))) {
-        return;
-    }
-
-    mLastMove = position;
-    _1FC = *triangle.getNormal(0);
-    if (!fading) {
-        _208 = 0.9f * _208 + 0.1f * (position - _2A0).length();
-    }
-
-    updateRandomTexture(_208);
-    TVec3f normal(direction);
-    MR::normalizeOrZero(&normal);
-    J3DModelX* pModel = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
-    J3DModelX* pSimple = mSimpleModelF08;
-    PSMTXCopy(pModel->getBaseTRMtx(), pSimple->getBaseTRMtx());
-    TPos3f& matrix = *reinterpret_cast< TPos3f* >(pSimple->getBaseTRMtx());
-    TVec3f x;
-    matrix.getXDir(x);
-    MR::vecKillElement(x, normal, &x);
-    TVec3f y;
-    matrix.getYDir(y);
-    MR::vecKillElement(y, normal, &y);
-    TVec3f z;
-    matrix.getZDir(z);
-    MR::vecKillElement(z, normal, &z);
-    matrix.setXDir(x);
-    matrix.setYDir(y);
-    matrix.setZDir(z);
-    TVec3f horizontal;
-    MR::vecKillElement(mPosition - position, getGravityVec(), &horizontal);
-    TVec3f translation = mPosition + normal * (10.0f + horizontal.length());
-    MR::setMtxTrans(matrix.toMtxPtr(), translation.x, translation.y, translation.z);
-    PSMTXConcat(matrix.toMtxPtr(), _BC8.mMtx, matrix.toMtxPtr());
-    pSimple->viewCalcRef(3, pModel);
-    _A0C = 1;
-}
 
 
 // NONMATCHING: register allocation and verified pooled string address hoisting.
@@ -7888,60 +7772,7 @@ void MarioActor::drawShadow() const {
 }
 
 
-void MarioActor::decideShadowMode() {
-    if (((getMovementStates().mLowWord >> 29) & 1U) && !mMario->isNotReflectGlassGround() && !mMario->isStatusActive(MarioStatus_FpView) &&
-        (mMario->_962 == 14 || mMario->_962 == 33)) {
-        _A08 = 2;
-        f32 distance = mMario->mVerticalSpeed / 500.0f;
-        if (distance >= 0.75f) {
-            distance = 0.75f;
-        }
 
-        u32 maximum = 64;
-        distance = 1.0f - distance;
-        u8 target = static_cast< f32 >(maximum) * distance;
-        for (s32 i = 0; i < 4; i++) {
-            if (_A09 < target) {
-                _A09++;
-            } else if (_A09 > target) {
-                _A09--;
-            }
-        }
-    } else if (_A09) {
-        _A09--;
-        if (_A09) {
-            _A09--;
-        }
-
-        if (_A09) {
-            _A09--;
-        }
-
-        if (_A09) {
-            _A09--;
-        }
-
-        if (!_A09) {
-            _A08 = 1;
-        } else {
-            _A08 = 2;
-        }
-    } else {
-        _A08 = 1;
-    }
-
-    if (mMario->isSwimming() && MR::isInWater(mCamPos)) {
-        if (_A25 || mCamDirZ.dot(-getGravityVector()) > 0.0f) {
-            _A08 = 3;
-        }
-
-        if (_A24 || (mMario->mSwim->getWaterEdgeDist() > 0.0f && mMario->mSwim->getWaterEdgeDist() < 1000.0f)) {
-            _A08 = 7;
-        }
-    }
-
-    _214->setUpdateFlag();
-}
 
 
 // NONMATCHING: model register allocation, load scheduling and verified pooled literals.
@@ -10335,14 +10166,14 @@ void MarioActor::initEffect() {
     MR::setEffectName(this, "PunchHit", "パンチヒット");
     MR::setEffectName(this, "WaterRipple", "水波紋");
     MR::setEffectName(this, "SwimWaitRipple", "水面ウエイト波紋");
-    MR::setEffectHostSRT(this, "水面ウエイト波紋", &_BAC, &_BB8, nullptr);
+    MR::setEffectHostSRT(this, "水面ウエイト波紋", &mEffectTranslationFD0, &mEffectRotationFDC, nullptr);
     MR::setEffectName(this, "SwimSpinLight", "水泳スピン");
     MR::setEffectName(this, "CloudMarioSpinLight", "雲スピン");
     MR::setEffectName(this, "DiveBubble", "水面Ｚ沈降");
     MR::addEffect(this, "WaterColumnS");
     MR::setEffectName(this, "WaterColumnS", "水面ジャンプ水柱");
     MR::setEffectName(this, "SurfaceWave", "水面泳ぎ");
-    MR::setEffectHostSRT(this, "水面泳ぎ", &_BAC, &_BB8, nullptr);
+    MR::setEffectHostSRT(this, "水面泳ぎ", &mEffectTranslationFD0, &mEffectRotationFDC, nullptr);
     MR::setEffectName(this, "BodyBubble", "水中身体泡");
     MR::setEffectName(this, "MouthBubble", "水中口泡");
     MR::setEffectName(this, "SeaSmoke", "水底接触");
@@ -10576,8 +10407,8 @@ void MarioActor::playEffectRTW(const char* pName, const TVec3f& rDir, const TVec
     MR::makeMtxUpNoSupportPos(&mtx, rDir, TVec3f(0.0f, 0.0f, 0.0f));
     MR::makeRTFromMtxPtr(nullptr, &rot, mtx.toMtxPtr(), true);
 
-    _BB8 = rot;
-    _BAC = rTrans;
+    mEffectRotationFDC = rot;
+    mEffectTranslationFD0 = rTrans;
     playEffect(pName);
 }
 
@@ -10979,38 +10810,38 @@ void MarioTeresa_FORCE_MATCH_SDATA2() {
 
 
 void MarioActor::runTeresaBaseAnimation() {
-    if (!mMario->isStatusActive(MarioStatus_Wait) && !_9B8->isRun("基本")) {
-        _9B8->changeAnimation("基本");
-        _9B4 = MR::getRandom(60L, 180L);
-        MR::startBtp(_9A4, "blink");
+    if (!mMario->isStatusActive(MarioStatus_Wait) && !mTeresaModel->mPlayer->isRun("基本")) {
+        mTeresaModel->mPlayer->changeAnimationBck("基本");
+        mTeresaModel->_10 = MR::getRandom(60L, 180L);
+        MR::startBtp(mTeresaModel->mActor, "blink");
     }
 }
 
 
 void MarioActor::changeTeresaAnimation(const char* pAnimation, s32 interpolation) {
-    if (MR::isBckPlaying(_9A4, "sleep")) {
-        MR::deleteEffect(_9A4, "Sleep");
+    if (MR::isBckPlaying(mTeresaModel->mActor, "sleep")) {
+        MR::deleteEffect(mTeresaModel->mActor, "Sleep");
     }
 
     if (interpolation == -1) {
-        MR::startAction(_9A4, pAnimation);
+        MR::startAction(mTeresaModel->mActor, pAnimation);
     } else {
-        MR::startBckWithInterpole(_9A4, pAnimation, interpolation);
+        MR::startBckWithInterpole(mTeresaModel->mActor, pAnimation, interpolation);
     }
 
     if (MR::isEqualString(pAnimation, "wait") || MR::isEqualString(pAnimation, "run")) {
-        _9B4 = MR::getRandom(60L, 180L);
-        MR::stopBtp(_9A4);
+        mTeresaModel->_10 = MR::getRandom(60L, 180L);
+        MR::stopBtp(mTeresaModel->mActor);
         return;
     }
 
-    _9B4 = 0;
-    if (MR::isExistBtp(_9A4, pAnimation)) {
-        MR::startBtp(_9A4, pAnimation);
+    mTeresaModel->_10 = 0;
+    if (MR::isExistBtp(mTeresaModel->mActor, pAnimation)) {
+        MR::startBtp(mTeresaModel->mActor, pAnimation);
         return;
     }
 
-    MR::startBtp(_9A4, "blink");
+    MR::startBtp(mTeresaModel->mActor, "blink");
 }
 
 
@@ -11109,27 +10940,6 @@ void MarioActor::updateTeresaAnimation() {
     }
 }
 
-
-XanimeGroupInfo teresaAnimeTable[] = {
-    {{"基本"}, 1.0f, 16},
-    {{""}},
-};
-
-
-XanimeBckTable2 teresaAnime2[] = {
-    {{"基本"}, {{"wait", 1.0f}, {"run", 0.0f}}},
-    {{""}, {{"", 0.0f}, {nullptr, 0.0f}}},
-};
-
-
-void MarioActor::initTeresaMarioAnimation() {
-    _9B0 = 0.0f;
-    _9BC = new XanimeResourceTable(MR::getResourceHolder(_9A4), teresaAnimeTable, nullptr, nullptr, teresaAnime2, nullptr, nullptr, nullptr);
-    _9B8 = new XanimePlayer(MR::getJ3DModel(_9A4), _9BC);
-    _9B8->setDefaultAnimation("基本");
-    _9B8->changeAnimation("基本");
-    _9A4->mModelManager->mXanimePlayer = _9B8;
-}
 
 #include "../src/Game/Player/MarioActorSMG2_A.inc"
 #include "../src/Game/Player/MarioActorSMG2_B.inc"

@@ -894,7 +894,7 @@ void MarioActor::fn_803CE9D0(HitSensor* s) {
 void MarioActor::fn_803CEA80(HitSensor* s, f32 t) {
     if (F(s32, 0x1054) == 0) {
         Mtx tmp;
-        PSMTXConcat(this->getBaseMtx(), F(Mtx, 0x4A8), tmp);
+        PSMTXConcat(this->getBaseMtx(), mMainJointMatrix4A8.mMtx, tmp);
         PSMTXCopy(tmp, FP(MR::getJ3DModel(F(LiveActor*, 0xFB4)), Mtx, 0x24));
         TVec3f pos, rot;
         if (mNullAnimation->getFramePos(t, &pos, &rot)) {
@@ -945,7 +945,7 @@ void MarioActor::fn_803CEBC0() {
             }
             TVec3f lp;
             mNullAnimation->getLastPos(&lp);
-            PSMTXMultVec(F(Mtx, 0x4A8), (Vec*)&lp, (Vec*)&lp);
+            PSMTXMultVec(mMainJointMatrix4A8.mMtx, (Vec*)&lp, (Vec*)&lp);
             PSMTXMultVec(this->getBaseMtx(), (Vec*)&lp, (Vec*)&lp);
             f32 sp = FP(this->mMario, f32, 0x278);
             f32 amp = 10.0f * (sp * sp);
@@ -984,21 +984,21 @@ void MarioActor::fn_803CEF50(LiveActor* a) {
     mSensorSlots108C->fn_803DAB10(a);
 }
 
-void MarioActor::fn_803CF130(MtxPtr mtx) {
+void MarioActor::updateBaseMtxTeresa(MtxPtr mtx) {
     TVec3f tmp;
-    f32 k = MR::vecKillElement(F(TVec3f, 0x38), *this->mMario->getGravityVec(), &tmp);
+    f32 k = MR::vecKillElement(mVelocity, *this->mMario->getGravityVec(), &tmp);
     f32 v = MR::clamp(k / 10.0f, -1.0f, 1.0f);
     if (!MR::isNearZero(this->mMario->getWorldPadDir(), 0.001f)) {
         Mario* m = this->mMario;
         const TVec3f* g = m->getGravityVec();
-        if (MR::diffAngleAbsHorizontal(m->getWorldPadDir(), FP(m, TVec3f, 0x208), *g) > 0.3926991f) {
+        if (MR::diffAngleAbsHorizontal(m->getWorldPadDir(), m->mFrontVec, *g) > 0.3926991f) {
             v = 0.0f;
         }
     }
     mTeresaModel->_8 = 0.02f * v + 0.98f * mTeresaModel->_8;
-    f32 var = CT(0x700);
+    f32 var = mConst->getTable()->mTeresaAngleDown;
     if (mTeresaModel->_8 > 0.0f) {
-        var = CT(0x6FC);
+        var = mConst->getTable()->mTeresaAngleUp;
     }
     PSMTXConcat(mtx, MR::tmpMtxRotXRad(var * mTeresaModel->_8), mtx);
 }
@@ -1465,7 +1465,7 @@ void MarioActor::fn_803D32F0() {
                     TVec3f p(this->mPosition);
                     p += t;
                     MR::setMtxTrans(rot->mMtx, p.x, p.y, p.z);
-                    PSMTXConcat(rot->mMtx, F(Mtx, 0x264), rot->mMtx);
+                    PSMTXConcat(rot->mMtx, mReflectionBaseMtx264.mMtx, rot->mMtx);
                     mx->viewCalcRef(3, mdl);
                     mWallShadow574->mActive = 1;
                 }

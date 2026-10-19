@@ -537,12 +537,6 @@ namespace MarioAccess {
         getPlayerActor()->_EA6 = false;
     }
 
-    void onFollowDemo() {
-        if (getPlayerActor()->mPlayerMode == PlayerMode_Teresa) {
-            MR::requestMovementOn(getPlayerActor()->_9A4);
-        }
-    }
-
     void setBaseMtx(MtxPtr mtx) {
         getPlayerActor()->forceSetBaseMtx(mtx);
     }

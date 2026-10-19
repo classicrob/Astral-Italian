@@ -232,10 +232,13 @@ bool Mario::fn_80395310() {
 
 bool Mario::fn_803972D0(const TVec3f* arg1) {
     if (this->isStatusActive(0x19) != 0) {
+        return false;
     }
     if (this->isAnimationRun("空中ひねり") != 0) {
+        return false;
     }
     if (this->isAnimationRun("雲スピン空中") != 0) {
+        return false;
     }
     if (this->isPlayerModeYoshi() != 0) {
         this->mActor->fn_803B9870();
@@ -966,27 +969,24 @@ void Mario::fn_803A1AC0() {
     this->fn_803A1A20(&this->_250.x);
 }
 
-// NONMATCHING: the second gate and the press-normal copy are approximated
 void Mario::fn_8039ACE0() {
-    if (this->calcDistToCeil(false) < 80.0f) {
+    if (this->calcDistToCeil(false) >= 80.0f) {
         return;
     }
     bool a = false;
-    if (FLD<void*>(this, 0x728) != nullptr && MR::isSensorPressObj(reinterpret_cast<const HitSensor*>(FLD<void*>(this, 0x728)))) {
+    if (this->_730 != nullptr && MR::isSensorPressObj(this->_730)) {
         a = true;
     }
     bool b = false;
-    Triangle* g = this->mGroundPolygon;
-    void* gs = FLD<void*>(g, 8);
-    if (gs != nullptr && MR::isSensorPressObj(reinterpret_cast<const HitSensor*>(gs))) {
+    if (this->mGroundPolygon->mSensor != nullptr && MR::isSensorPressObj(this->mGroundPolygon->mSensor)) {
         b = true;
     }
-    if (FLD<void*>(this, 0x728) == gs) {
+    if (this->_730 == this->mGroundPolygon->mSensor) {
         return;
     }
-    if (!a && b) {
+    if (a || b) {
         this->mActor->setPress(0, 0);
-        FLD<TVec3f>(this->mActor, 0x6D8) = *g->getNormal(0);
+        this->mActor->mPressNormal6D8 = *this->mGroundPolygon->getNormal(0);
     }
 }
 
@@ -1058,43 +1058,48 @@ bool Mario::fn_8038AA30() {
     return (alignment < 0.0f && this->_74C < 0.0f) || (alignment > 0.0f && this->_74C > 0.0f);
 }
 
-// NONMATCHING: sound-slot bookkeeping approximated from the m2c draft
 void Mario::fn_8038C540() {
-    if (FLD<u32>(this, 0xA92) != 0) {
-        AudLifeAlertCounter* p = FLD<AudLifeAlertCounter*>(this, 0xA94);
+    if (this->mStateFlags._2 != 0) {
+        AudLifeAlertCounter* p = this->mLifeAlertCounter;
         if (p == nullptr || p->_9 == 0) {
-            FLD<AudLifeAlertCounter*>(this, 0xA94) = MR::fn_8005BC60(0x258);
+            this->mLifeAlertCounter = MR::fn_8005BC60(0x258);
         }
-        p = FLD<AudLifeAlertCounter*>(this, 0xA94);
-        p->fn_80085D30(1);
-        s32 v = MR::clamp(0x1A4 - p->_0, 0, 0x1A4);
-        if (p->_0 % 74 == 5) {
+        this->mLifeAlertCounter->add(1);
+        s32 count = this->mLifeAlertCounter->_0;
+        s32 v = MR::clamp(0x1A4 - count, 0, 0x1A4);
+        if (count % 74 == 5) {
             MR::startActionSound(this->mActor, "LifeAlertTrg", v, -1, -1);
         }
     } else {
-        AudLifeAlertCounter* p = FLD<AudLifeAlertCounter*>(this, 0xA94);
+        AudLifeAlertCounter* p = this->mLifeAlertCounter;
         if (p != nullptr && p->_9 != 0) {
-            p->fn_80085D40();
+            p->reset();
         }
     }
 }
 
-// NONMATCHING: only the animation-run gate chain is recovered; the flags are approximated
 bool Mario::fn_8038CCF0() {
     if (this->isPlayerModeTeresa()) {
+        return false;
     }
     if (this->isAnimationRun("着地") || this->isAnimationRun("着地B") || this->isAnimationRun("着地C") ||
         this->isAnimationRun("着地ターン") || this->isAnimationRun("着地幅とび")) {
+        return true;
     }
     if (this->isAnimationRun("すべり着地")) {
+        return true;
     }
-    if (this->isAnimationRun(FLD<const char*>(this, 0x728))) {
+    if (this->isAnimationRun(this->_728)) {
+        return true;
     }
     if (this->isAnimationRun("ハード着地")) {
+        return true;
     }
     if (this->isAnimationRun("逆着地")) {
+        return true;
     }
     if (this->isAnimationRun("ショート着地")) {
+        return true;
     }
     return MR::isBckPlaying(this->mActor, "pulloutgraspend");
 }

@@ -610,7 +610,7 @@ void MarioActor::initMember() {
     F(u8, 0xECC) = 0;
     F(u8, 0xECD) = 0;
     F(u16, 0xECE) = 0;
-    F(TVec3f, 0xED0).zero();
+    mGravityReferenceED0.zero();
     mModelEDC = nullptr;
     mModelEE0 = nullptr;
     mModelEE8 = nullptr;
@@ -683,23 +683,23 @@ void MarioActor::initMember() {
     mTimedCommonEffects = nullptr;
     mMaterialEffectsFC8 = nullptr;
     mWaterColumn = nullptr;
-    mVectorFD0.zero();
-    F(TVec3f, 0xFDC).zero();
+    mEffectTranslationFD0.zero();
+    mEffectRotationFDC.zero();
     F(u16, 0x260) = 0;
-    PSMTXIdentity(F(TMtx34f, 0x264).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x294).toMtxPtr());
+    PSMTXIdentity(mReflectionBaseMtx264.toMtxPtr());
+    PSMTXIdentity(mJointTransform294.toMtxPtr());
     mJointMatrices2C4 = nullptr;
-    PSMTXIdentity(F(TMtx34f, 0x2C8).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x2F8).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x328).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x358).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x388).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x3B8).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x3E8).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x418).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x448).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x478).toMtxPtr());
-    PSMTXIdentity(F(TMtx34f, 0x4A8).toMtxPtr());
+    PSMTXIdentity(mHandLMatrix.toMtxPtr());
+    PSMTXIdentity(mHandRMatrix.toMtxPtr());
+    PSMTXIdentity(mHandLJointMatrix.toMtxPtr());
+    PSMTXIdentity(mHandRJointMatrix.toMtxPtr());
+    PSMTXIdentity(mFaceJointMatrix.toMtxPtr());
+    PSMTXIdentity(mFootRMatrix.toMtxPtr());
+    PSMTXIdentity(mSpine1Matrix.toMtxPtr());
+    PSMTXIdentity(mCapMatrix.toMtxPtr());
+    PSMTXIdentity(mHipMatrix.toMtxPtr());
+    PSMTXIdentity(mSpine2Matrix.toMtxPtr());
+    PSMTXIdentity(mMainJointMatrix4A8.toMtxPtr());
     F(u16, 0x4D8) = 0;
     F(f32, 0x4DC) = 0.0f;
     F(u8, 0x4E0) = 0;
@@ -1323,7 +1323,7 @@ void MarioActor::fn_803C34F0() {
     if ((u32)F(s32, 0x6B0) <= 1) {
         if (!MR::isDemoActive() && !MR::isPowerStarGetDemoActive() && !MR::isGalaxyDarkCometAppearInCurrentStage() && MR::isPermitSE() &&
             this->isEnableNerveChange()) {
-            FP(this->mMario, u8, 0xA92) = 1;
+            this->mMario->mStateFlags._2 = true;
         }
     }
     this->mMario->fn_8038C540();
@@ -1630,14 +1630,14 @@ bool MarioActor::fn_803C4FB0() {
 
 // NONMATCHING: saved-register allocation, stack slots and equivalent scheduling.
 void MarioActor::fn_803C5090(MtxPtr mtx) {
-    F(TVec3f, 0xED0) = FP(this->mMario, TVec3f, 0x1D8);
+    mGravityReferenceED0 = FP(this->mMario, TVec3f, 0x1D8);
     f32 k = CT(0x69C);
     TVec3f grav = -*this->mMario->getGravityVec();
     TVec3f t1(grav);
     t1.scale(k);
     MtxPtr m1 = MR::tmpMtxTrans(-t1);
     f32 k2 = CT(0x69C);
-    TVec3f e(F(TVec3f, 0xED0));
+    TVec3f e(mGravityReferenceED0);
     e.scale(k2);
     TVec3f p(this->mPosition);
     p -= e;
@@ -1648,7 +1648,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     if (!MR::normalizeOrZero(&d)) {
         PSVECCrossProduct((Vec*)&FP(this->mMario, TVec3f, 0x208), (Vec*)&d, (Vec*)&axis);
         if (!MR::normalizeOrZero(&axis)) {
-            f32 ang = MR::acosEx(F(TVec3f, 0xED0).dot(d));
+            f32 ang = MR::acosEx(mGravityReferenceED0.dot(d));
             f32 lim = CT(0x688);
             if (BITAT(this->mMario, 0xC, 0x1E)) {
                 lim = CT(0x68C);
@@ -1662,7 +1662,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     PSMTXConcat(rot, mtx, mtx);
     PSMTXConcat(MR::tmpMtxTrans(t1), mtx, mtx);
     f32 k3 = CT(0x690);
-    TVec3f s110(F(TVec3f, 0xED0));
+    TVec3f s110(mGravityReferenceED0);
     s110.scale(k3);
     MR::vecKillElement(s110, F(TVec3f, 0x690), &s110);
     TVec3f b0(F(TVec3f, 0x684));
@@ -1672,7 +1672,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     a4 += F(TVec3f, 0x684);
     F(TVec3f, 0x66C) = a4;
     f32 k4 = CT(0x69C);
-    TVec3f s80(F(TVec3f, 0xED0));
+    TVec3f s80(mGravityReferenceED0);
     s80.scale(k4);
     TVec3f s8c(this->mPosition);
     s8c -= s80;
@@ -1682,20 +1682,20 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     TVec3f s104(F(TVec3f, 0x690));
     TVec3f sF8(F(TVec3f, 0x690));
     MR::normalizeOrZero(&sF8);
-    f32 ang2 = MR::acosEx(F(TVec3f, 0xED0).dot(sF8));
+    f32 ang2 = MR::acosEx(mGravityReferenceED0.dot(sF8));
     f32 lim2 = CT(0x694);
     if (BITAT(this->mMario, 0xC, 0x1E)) {
         lim2 = CT(0x698);
     }
     if (ang2 > lim2) {
         TVec3f sEC;
-        PSVECCrossProduct((Vec*)&F(TVec3f, 0xED0), (Vec*)&sF8, (Vec*)&sEC);
+        PSVECCrossProduct((Vec*)&mGravityReferenceED0, (Vec*)&sF8, (Vec*)&sEC);
         if (MR::normalizeOrZero(&sEC)) {
-            F(TVec3f, 0x690) = F(TVec3f, 0xED0);
+            F(TVec3f, 0x690) = mGravityReferenceED0;
         } else {
             Mtx rot2;
             PSMTXRotAxisRad(rot2, (Vec*)&sEC, lim2);
-            PSMTXMultVec(rot2, (Vec*)&F(TVec3f, 0xED0), (Vec*)&F(TVec3f, 0x690));
+            PSMTXMultVec(rot2, (Vec*)&mGravityReferenceED0, (Vec*)&F(TVec3f, 0x690));
         }
     }
     F(TVec3f, 0x690).setLength(CT(0x69C));
@@ -1706,7 +1706,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
         F(TVec3f, 0x684) += n;
     }
     f32 k5 = CT(0x69C);
-    TVec3f s44(F(TVec3f, 0xED0));
+    TVec3f s44(mGravityReferenceED0);
     s44.scale(k5);
     TVec3f s50(this->mPosition);
     s50 -= s44;
@@ -1753,7 +1753,7 @@ void MarioActor::fn_803C56F0() {
     F(TVec3f, 0x684).zero();
     F(TVec3f, 0x678).zero();
     F(TVec3f, 0x66C) = this->mPosition;
-    F(TVec3f, 0xED0) = *this->mMario->getGravityVec();
+    mGravityReferenceED0 = *this->mMario->getGravityVec();
 }
 
 bool MarioActor::fn_803C5750() {
@@ -2028,7 +2028,7 @@ void MultiEmitter::setGlobalScale(f32 scale, s32 n) {
 }
 
 void MarioActor::fn_803BDA20(MtxPtr dst, const char* joint) {
-    PSMTXConcat(MR::getJointMtx(this, joint), F(Mtx, 0x294), dst);
+    PSMTXConcat(MR::getJointMtx(this, joint), mJointTransform294.mMtx, dst);
 }
 
 bool MarioActor::fn_803BDE10() {
@@ -2114,9 +2114,9 @@ void MarioActor::fn_803C8AA0() {
     if (F(u8, 0x73) == 0) {
         m->viewCalc3(0, nullptr);
         Mtx inv1, inv2;
-        PSMTXInverse(F(Mtx, 0x294), inv1);
+        PSMTXInverse(mJointTransform294.mMtx, inv1);
         PSMTXInverse(FP(mAllModel->getJ3DModel(), Mtx, 0x24), inv2);
-        PSMTXConcat(inv1, inv2, F(Mtx, 0x264));
+        PSMTXConcat(inv1, inv2, mReflectionBaseMtx264.mMtx);
     }
 }
 

@@ -20,20 +20,20 @@ YoshiTongueTarget::YoshiTongueTarget(YoshiLockOnManager* manager)
     mCapacity = manager->getTargetCapacity();
     mTargets = new YoshiLockOnTargetDesc[mCapacity];
 }
-void YoshiTongueTarget::fn_8041BFD0() { mCount=mManager->takeActiveTargets(mTargets,mCapacity);mIndex=0; }
-bool YoshiTongueTarget::fn_8041C020() {return fn_8041C4E0(0xF8);}
-bool YoshiTongueTarget::fn_8041C030() {return fn_8041C4E0(0xF9);}
-void YoshiTongueTarget::fn_8041C040() {fn_8041C4E0(0xFB);}
-void YoshiTongueTarget::fn_8041C050() {fn_8041C4E0(0xFA);}
+void YoshiTongueTarget::takeLockOnTargets() { mCount=mManager->takeActiveTargets(mTargets,mCapacity);mIndex=0; }
+bool YoshiTongueTarget::sendStartTongueMessage() {return sendMessageToCurrentTarget(0xF8);}
+bool YoshiTongueTarget::sendLoopTongueMessage() {return sendMessageToCurrentTarget(0xF9);}
+void YoshiTongueTarget::sendStartEatenMessage() {sendMessageToCurrentTarget(0xFB);}
+void YoshiTongueTarget::sendReleaseEatenMessage() {sendMessageToCurrentTarget(0xFA);}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-void YoshiTongueTarget::fn_8041C060() {if(mIndex<mCount-1)++mIndex;}
+void YoshiTongueTarget::advanceTargetIfMore() {if(mIndex<mCount-1)++mIndex;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-void YoshiTongueTarget::fn_8041C080() {fn_8041C4E0(0xFC);++mIndex;}
-bool YoshiTongueTarget::fn_8041C0C0()const{return mCount-mIndex>1;}
+void YoshiTongueTarget::cancelTargetAndAdvance() {sendMessageToCurrentTarget(0xFC);++mIndex;}
+bool YoshiTongueTarget::hasMultipleRemainingTargets()const{return mCount-mIndex>1;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-bool YoshiTongueTarget::fn_8041C0E0()const{return mIndex<mCount;}
+bool YoshiTongueTarget::hasCurrentTarget()const{return mIndex<mCount;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-bool YoshiTongueTarget::fn_8041C100()const{return mIndex<mCount-1;}
+bool YoshiTongueTarget::hasNextTarget()const{return mIndex<mCount-1;}
 bool YoshiTongueTarget::fn_8041C120()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Eat;}
 bool YoshiTongueTarget::fn_8041C140()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Lick;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
@@ -41,8 +41,8 @@ bool YoshiTongueTarget::fn_8041C170()const{return mTargets[mIndex].mType==YoshiL
 bool YoshiTongueTarget::fn_8041C1B0()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Capture;}
 bool YoshiTongueTarget::fn_8041C1E0()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Pull;}
 bool YoshiTongueTarget::fn_8041C210()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Projectile;}
-void YoshiTongueTarget::fn_8041C240(TVec3f* out)const {
-    MtxPtr source=fn_8041C4C0();
+void YoshiTongueTarget::calcCurrentTargetPosition(TVec3f* out)const {
+    MtxPtr source=getCurrentTargetMatrix();
     if(!source)out->set<f32>(mTargets[mIndex].mActor->mPosition);
     else out->set<f32>(source[0][3],source[1][3],source[2][3]);
     TVec3f x,y,z;
@@ -56,9 +56,9 @@ void YoshiTongueTarget::fn_8041C240(TVec3f* out)const {
 void YoshiTongueTarget::fn_8041C440(TVec3f* out)const {
     MtxPtr matrix=mTargets[mIndex].mActor->getBaseMtx();out->set<f32>(matrix[0][2],matrix[1][2],matrix[2][2]);
 }
-LiveActor* YoshiTongueTarget::fn_8041C4A0()const{return mTargets[mIndex].mActor;}
-MtxPtr YoshiTongueTarget::fn_8041C4C0()const{return mTargets[mIndex].mMtx;}
-bool YoshiTongueTarget::fn_8041C4E0(u32 message){
+LiveActor* YoshiTongueTarget::getCurrentTargetActor()const{return mTargets[mIndex].mActor;}
+MtxPtr YoshiTongueTarget::getCurrentTargetMatrix()const{return mTargets[mIndex].mMtx;}
+bool YoshiTongueTarget::sendMessageToCurrentTarget(u32 message){
     LiveActor* actor = mTargets[mIndex].mActor;
     HitSensor* sensor = MR::getMessageSensor();
     return actor->receiveMessage(message,mSensor,sensor);

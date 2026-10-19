@@ -146,11 +146,11 @@ void Mario::fn_8038A840(void*, f32 x, f32 y, f32 z) {
 
 void Mario::fn_8038A9D0() {
     TMtx34f sp18;
-    PSMTXRotAxisRad(sp18, &this->mHeadVec, FLD<f32>(this, 0x74C));
+    PSMTXRotAxisRad(sp18, &this->mHeadVec, this->_74C);
     TVec3f sp8;
     PSMTXMultVec(sp18, &this->mFrontVec, &sp8);
     this->setFrontVecKeepUp(sp8);
-    FLD<f32>(this, 0x74C) = 0.0f;
+    this->_74C = 0.0f;
 }
 
 void Mario::fn_8038AB10() {
@@ -948,21 +948,22 @@ void Mario::fn_803A28D0(TVec3f* arg) {
 }
 
 
-// NONMATCHING: the nested gate structure is approximated from the asm
 void Mario::fn_803A1AC0() {
-    if (MR::isNearZero(FLD<f32>(this, 0x1C8), 0.001f)) {
+    if (MR::isNearZero(this->mStickPos.z, 0.001f)) {
         this->_10_LOW_WORD &= 0xFFF7FFFF;
         this->mMovementStates_LOW_WORD &= 0xEFFFFFFF;
-        return;
-    }
-    if (!MR::isNearZero(FLD<TVec3f>(this, 0x244), 0.001f)) {
-        if (!((this->mMovementStates_HIGH_WORD >> 24) & 1) && this->fn_803A1920()) {
+    } else if (MR::isNearZero(this->_244, 0.001f) && !((this->mMovementStates_HIGH_WORD >> 8) & 1)) {
+        if (this->fn_803A1920()) {
             this->mMovementStates_LOW_WORD |= 0x10000000;
+        } else {
+            this->fn_803A1BB0();
         }
+    } else if (this->fn_803A19C0() && !((this->mMovementStates_HIGH_WORD >> 8) & 1)) {
+        this->mMovementStates_LOW_WORD |= 0x10000000;
     } else {
         this->fn_803A1BB0();
     }
-    this->fn_803A1A20(&FLD<f32>(this, 0x250));
+    this->fn_803A1A20(&this->_250.x);
 }
 
 // NONMATCHING: the second gate and the press-normal copy are approximated
@@ -1016,39 +1017,45 @@ f32 Mario::fn_8039AA40() {
 // ---- rough bodies (NONMATCHING) for the remaining range-A functions ----
 
 
-// NONMATCHING: follows the m2c call sequence; the isNearZero/identity branches are approximated
-s32 Mario::fn_8038A8A0(f32 (*arg1)[4], TVec3f* arg2) {
-    *arg2 = TVec3f(0.0f, 0.0f, 0.0f);
+s32 Mario::fn_8038A8A0(f32 (*matrix)[4], TVec3f* offset) {
+    offset->zero();
     if (this->isNonFixHeadVec()) {
-        PSMTXIdentity(arg1);
+        PSMTXIdentity(matrix);
+        return 0;
     }
-    if (MR::isNearZero(FLD<f32>(this, 0x74C), 0.001f) && FLD<s32>(this, 0x754) == 0) {
-        PSMTXIdentity(arg1);
-        FLD<s32>(this, 0x750) = 0;
-        FLD<f32>(this, 0x74C) = 0.0f;
+    if (MR::isNearZero(this->_74C, 0.001f) && this->_754 == 0) {
+        PSMTXIdentity(matrix);
+        this->_750 = 0;
+        this->_74C = 0.0f;
+        return 1;
     }
-    if (FLD<s32>(this, 0x750) == 0 && FLD<s32>(this, 0x754) == 0) {
+    bool apply = false;
+    if (this->_750 == 0 && this->_754 == 0) {
+        apply = true;
+    }
+    if (apply) {
         this->fn_8038A9D0();
     }
-    TVec3f sp8(0.0f, 1.0f, 0.0f);
+    TVec3f up(0.0f, 1.0f, 0.0f);
     if (this->fn_8038AA30()) {
-        PSMTXRotAxisRad(arg1, &sp8, -FLD<f32>(this, 0x74C));
+        PSMTXRotAxisRad(matrix, &up, -this->_74C);
     } else {
-        PSMTXRotAxisRad(arg1, &sp8, FLD<f32>(this, 0x74C));
+        PSMTXRotAxisRad(matrix, &up, this->_74C);
     }
     this->fn_8038AB10();
     this->fn_8038AB70();
-    return 0;
+    return 1;
 }
 
-// NONMATCHING: branch structure of the two sign tests is approximated
 bool Mario::fn_8038AA30() {
-    f32 d = this->mFrontVec.dot(this->getCamDirX());
-    if (FLD<TVec3f>(this, 0x1FC).dot(this->getCamDirY()) < 0.0f) {
-        d = -d;
+    if (!((this->mMovementStates_HIGH_WORD >> 8) & 1) || this->isStatusActive(0x22)) {
+        return false;
     }
-    f32 t = FLD<f32>(this, 0x74C);
-    return (d < 0.0f && t < 0.0f) || (d > 0.0f && t > 0.0f);
+    f32 alignment = this->mFrontVec.dot(this->getCamDirX());
+    if (this->_1FC.dot(this->getCamDirY()) < 0.0f) {
+        alignment = -alignment;
+    }
+    return (alignment < 0.0f && this->_74C < 0.0f) || (alignment > 0.0f && this->_74C > 0.0f);
 }
 
 // NONMATCHING: sound-slot bookkeeping approximated from the m2c draft

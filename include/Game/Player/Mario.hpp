@@ -494,7 +494,7 @@ public:
     f32 decideInertiaOnIce(f32);
     f32 decideInertiaOnSlip(f32);
     void calcShadowDir(const TVec3f&, TVec3f*);
-    bool retainMoveDir(f32, f32, TVec3f*);
+    void retainMoveDir(f32, f32, TVec3f*);
     void calcMoveDir(f32, f32, TVec3f*, bool);
     bool checkLockOnHoming();
     void doLockOnHoming();
@@ -1079,7 +1079,7 @@ public:
     /* 0x614 */ f32 _614;
     /* 0x618 */ f32 _618;  // SMG2 offset vote-gap  // SMG2 offset vote-gap
     /* 0x61C */ f32 _620;
-    /* 0x620 */ u8 _pad620[0x4];
+    /* 0x620 */ f32 _620SMG2;
     /* 0x624 */ bool _624;
     /* 0x625 */ u8 _pad625[0x3];
     /* 0x628 */ f32 _61C;
@@ -1104,7 +1104,9 @@ public:
     /* 0x695 */ u8 _6AD;
     /* 0x696 */ u8 _pad696[0x2];
     /* 0x698 */ TVec3f _628;  // SMG2: moved (guess); 0x630.. is the 2D block
-    /* 0x6A4 */ f32 _634;  // SMG2: moved (guess)
+    /* 0x6A4 */ u8 mAxisMode6A4;
+    /* 0x6A5 */ u8 mCandidateAxisMode6A5;
+    /* 0x6A6 */ u8 _padAxis6A6[2];
         };
     };
     /* 0x6A8 */ TVec3f _6B0;  // SMG2 offset inh  // SMG2 offset inh

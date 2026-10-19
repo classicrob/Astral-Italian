@@ -406,8 +406,8 @@ Mario::Mario(MarioActor* pActor) : MarioModule(pActor) {
 
     clear2DStick();
 
-    _6AC = 0;
-    _6AD = 0;
+    mAxisMode6A4 = 0;
+    mCandidateAxisMode6A5 = 0;
     _6B0.zero();
     _6BC.zero();
 
@@ -1289,8 +1289,8 @@ bool Mario::isInvincible() const {
 
 void Mario::inputStick() {
     mActor->getStickValue(&mStickPos.x, &mStickPos.y);
-    if (_10._28) {
-        _10._28 = false;
+    if ((_10_HIGH_WORD >> 23) & 1) {
+        _10_HIGH_WORD &= 0xFF7FFFFF;
         mStickPos.x = 0.0f;
         mStickPos.y = 0.0f;
     }
@@ -1331,7 +1331,7 @@ void Mario::inputStick() {
 
     resultAngle += quarterTurn * static_cast< f32 >(quotient);
 
-    if (!getPlayer()->_10._11) {
+    if (!((getPlayer()->_10_LOW_WORD >> 14) & 1)) {
         mStickPos.x = mStickPos.z * MR::cos(resultAngle);
         mStickPos.y = mStickPos.z * MR::sin(resultAngle);
     }
@@ -1339,25 +1339,18 @@ void Mario::inputStick() {
     _524 = _528;
     _528 = resultAngle;
 
-    if (mMovementStates._37) {
+    if (((mMovementStates_HIGH_WORD >> 8) & 1) && !isSwimming()) {
         stick2DadjustGround(mStickPos.x, mStickPos.y);
-    }
-
-    if (_10._15) {
+    } else if ((_10_LOW_WORD >> 10) & 1) {
         stick2Dadjust(mStickPos.x, mStickPos.y);
-    }
-
-    if (mMovementStates._3A) {
+    } else if ((mMovementStates_HIGH_WORD >> 5) & 1) {
         update25Dmode();
-        updateAxisFromMode(_6AC);
+        updateAxisFromMode(mAxisMode6A4);
+    } else if ((_10_LOW_WORD >> 12) & 1) {
+        fn_803A56C0();
     }
-
-    if (_10._13) {
-        mStickPos.y = 0.0f;
-    }
-
     if (mStickPos.z <= 0.01f) {
-        mMovementStates._1D = false;
+        mMovementStates_LOW_WORD &= 0xFFFFFFFB;
     }
 
     calcWorldPadDir(&mWorldPadDir, mStickPos.x, mStickPos.y, false);
@@ -10023,90 +10016,57 @@ void Mario::calcShadowDir(const TVec3f& rInput, TVec3f* pShadowDir) {
 }
 
 
-bool Mario::retainMoveDir(f32 stickX, f32 stickY, TVec3f* pMoveDir) {
+void Mario::retainMoveDir(f32 stickX, f32 stickY, TVec3f* pMoveDir) {
     f32 angle = MR::atan2(stickY, stickX);
-    f32 difference = MR::diffAngleAbs(angle, _2B4);
-    if (isAnimationRun("その場足踏み")) {
-        difference = 1.0f;
+    f32 difference = fn_803A3780(angle);
+    if (((_10_LOW_WORD >> 20) & 1) && isStickOn()) {
+        _10_LOW_WORD &= 0xFFEFFFFF;
     }
-
-    if (isAnimationRun("ターンブレーキ")) {
-        difference = 1.0f;
-    }
-
-    if (isSwimming()) {
-        difference = 1.0f;
-    }
-
-    if (mActor->isRequestSpin() && mMovementStates.jumping && mWorldPadDir.dot(_16C) < 0.0f) {
-        difference = 1.0f;
-    }
-
     f32 limit = 0.06f;
     if (_3CE < 2) {
         limit = 0.1f;
     }
-
-    if (_10._B) {
-        if (isStickOn()) {
-            _10._B = false;
-        }
-
-        difference = 1.0f;
-    }
-
     bool retain = true;
-    mDrawStates._16 = true;
-    if (mMovementStates.jumping && !_10._A) {
+    mDrawStates_WORD |= 0x200;
+    if ((mMovementStates_LOW_WORD >> 31) && !((_10_LOW_WORD >> 21) & 1)) {
         retain = false;
     }
-
-    if (mMovementStates.jumping && mMovementStates._8) {
+    if ((mMovementStates_LOW_WORD >> 31) && ((mMovementStates_LOW_WORD >> 23) & 1)) {
         retain = false;
     }
-
-    if (mMovementStates.jumping && !isAnimationRun(nullptr)) {
+    if ((mMovementStates_LOW_WORD >> 31) && !isAnimationRun(nullptr)) {
         retain = false;
     }
-
     if (difference < limit && isStickOn() && retain) {
-        if (!_40E || (_10._A && mMovementStates.jumping)) {
-            mDrawStates._D = true;
+        if (_40E == 0 || (((_10_LOW_WORD >> 21) & 1) && (mMovementStates_LOW_WORD >> 31))) {
             _40E = 0;
+            mDrawStates_WORD |= 0x40000;
         } else {
-            if (_40E) {
+            if (_40E != 0) {
                 _40E--;
             }
-
             _29C = _368;
             _2A8 = *getGravityVec();
         }
-
-        _2B4 = angle;
     } else {
-        if (mMovementStates.jumping) {
+        if (mMovementStates_LOW_WORD >> 31) {
             if (isStickOn()) {
-                _10._A = false;
+                _10_LOW_WORD &= 0xFFDFFFFF;
             }
         } else {
-            _10._A = true;
+            _10_LOW_WORD |= 0x200000;
         }
-
-        if (!_40E) {
+        if (_40E == 0) {
             _3D4 = 0;
         }
-
         _40E = 30;
         if (!isStickOn()) {
-            _10._B = true;
+            _10_LOW_WORD |= 0x100000;
         }
-
-        _2B4 = angle;
         _29C = _368;
         _2A8 = *getGravityVec();
     }
-
-    return false;
+    _2B4 = angle;
 }
 
 
@@ -10211,11 +10171,21 @@ void Mario::doLockOnHoming() {
 
 
 void Mario::fixPositionInTower() {
-    if (_10._13) {
-        TVec3f offset = mPosHolder->mPos - _6F4;
-        f32 height = MR::vecKillElement(offset, _700, &offset);
-        offset.setLength(_718 - 200.0f);
-        offset += _700 * height;
+    if (fn_803A4210()) {
+        bool blocked = false;
+        if (isStatusActiveID(0x11) || isStatusActiveID(0x1F)) {
+            blocked = true;
+        }
+        if (!blocked) {
+            fn_803A42B0();
+        }
+    } else {
+        if (isAnimationRun("ブレーキ")) {
+            doBrakingAnimation();
+            mTargetWalkSpeedIndex = 0;
+            return;
+        }
+        stopAnimation("ブレーキ滑り床", (const char*)nullptr);
     }
 }
 
@@ -10243,7 +10213,7 @@ void Mario::update25Dmode() {
     MR::vecKillElement(-*getGravityVec(), _6D0, &up);
     MR::normalizeOrZero(&up);
     if (MR::isNearZero(up)) {
-        _6AC = -getGravityVec()->dot(_6D0) > 0.0f ? 4 : 5;
+        mAxisMode6A4 = -getGravityVec()->dot(_6D0) > 0.0f ? 4 : 5;
         return;
     }
 
@@ -10266,11 +10236,11 @@ void Mario::update25Dmode() {
         mode = normalDot > 0.0f ? 4 : 5;
     }
 
-    _6AD = mode;
+    mCandidateAxisMode6A5 = mode;
     if (mode == 2 || mode == 3) {
         if (mode == 2 || mode == 3) {
             f32 threshold = 0.965f;
-            if (_6AC == 2 || _6AC == 3) {
+            if (mAxisMode6A4 == 2 || mAxisMode6A4 == 3) {
                 threshold = 0.9397f;
             }
 
@@ -10289,16 +10259,16 @@ void Mario::update25Dmode() {
     }
 
     if (!isStickOn()) {
-        _6AC = mode;
+        mAxisMode6A4 = mode;
         mMovementStates._3B = false;
     } else if (!mMovementStates._3B && mStickPos.z > 0.7f) {
         _6C8.set(mStickPos.x, mStickPos.y);
-        _6AC = mode;
+        mAxisMode6A4 = mode;
         mMovementStates._3B = true;
     } else {
         TVec2f stick(mStickPos.x, mStickPos.y);
         if (MR::diffAngleAbs(_6C8, stick) >= 0.7853982f) {
-            _6AC = mode;
+            mAxisMode6A4 = mode;
             _6C8.set(mStickPos.x, mStickPos.y);
         }
     }
@@ -10745,12 +10715,13 @@ void Mario::clear2DStick() {
     _611 = 0;
     _618 = 0.0f;
     _614 = 0.0f;
+    _620SMG2 = 0.0f;
     _620 = 0.0f;
-    _61C = 0.0f;
     _624 = false;
-    _628.zero();
-    _66C = false;
-    _634 = 0.0f;
+    _61C = 0.0f;
+    if (_66C) {
+        _66C = false;
+    }
     _670.zero();
     _67C.zero();
 }

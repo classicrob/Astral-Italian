@@ -64,7 +64,7 @@ public:
     void fn_80420130();
     bool fn_804201A0() const;
     void fn_80420230(LiveActor*);
-    bool fn_804202B0(const TVec3f&);
+    bool tryStartNearestAutoEat(const TVec3f&);
     void fn_80420480(bool);
     bool fn_804206E0();
     void fn_80420780();
@@ -82,7 +82,7 @@ public:
     void fn_804214C0();
     bool fn_80421510() const;
     bool fn_804216C0() const;
-    bool fn_80421730(u32, HitSensor*, HitSensor*);
+    bool sendAutoEatSensorMessage(u32, HitSensor*, HitSensor*);
     void fn_804217D0();
     void fn_80421790() NO_INLINE;
     void fn_804217B0() NO_INLINE;

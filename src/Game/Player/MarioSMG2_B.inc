@@ -380,36 +380,40 @@ s32 Mario::fn_803A3030() {
     return 0;
 }
 
-// NONMATCHING: angle-based run-cancel selection approximated
-f32 Mario::fn_803A3780(f32 fself) {
-    f32 var_f31 = MR::diffAngleAbs(fself, FLD<f32>(this, 0x2B4));
+f32 Mario::fn_803A3780(f32 angle) {
+    f32 difference = MR::diffAngleAbs(angle, this->_2B4);
     if (this->isAnimationRun("その場足踏み")) {
-        var_f31 = 1.0f;
+        difference = 1.0f;
     }
     if (this->isAnimationRun("ターンブレーキ")) {
-        var_f31 = 1.0f;
+        difference = 1.0f;
     }
     if (this->isSwimming()) {
-        var_f31 = 1.0f;
+        difference = 1.0f;
     }
-    if (this->mActor->isRequestSpin() && (FLD<u32>(this, 0xC) >> 31) != 0 && this->mWorldPadDir.dot(FLD<TVec3f>(this, 0x16C)) < 0.0f) {
-        var_f31 = 1.0f;
+    if (this->mActor->isRequestSpin() && (this->mMovementStates_LOW_WORD >> 31) != 0 && this->mWorldPadDir.dot(this->_16C) < 0.0f) {
+        difference = 1.0f;
     }
-    if ((FLD<u32>(this, 0x10) >> 20) & 1) {
-        var_f31 = 1.0f;
+    if ((this->_10_LOW_WORD >> 20) & 1) {
+        difference = 1.0f;
     }
-    return var_f31;
+    return difference;
 }
 
-// NONMATCHING: the stage of the face-direction test is approximated from the draft
 bool Mario::fn_803A4210() {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    u32 pw = FLD<u32>(this->getPlayer(), 0x14);
-    bool var_r31 = false;
-    if (!((pw >> 16) & 1) && ((pw >> 15) & 1) && !((pw >> 21) & 1) && FLD<f32>(m, 0x8F0) == 0.0f && m->checkStickFrontBack() == 2) {
-        var_r31 = true;
+    if ((this->getPlayer()->mMovementStates_LOW_WORD >> 16) & 1) {
+        return false;
     }
-    return var_r31;
+    if (!((this->getPlayer()->mMovementStates_LOW_WORD >> 15) & 1)) {
+        return false;
+    }
+    if ((this->getPlayer()->mMovementStates_LOW_WORD >> 21) & 1) {
+        return false;
+    }
+    if (this->_8F0 != 0.0f) {
+        return false;
+    }
+    return static_cast<u8>(this->checkStickFrontBack()) == 2;
 }
 
 void Mario::startBas(const char* pName, bool loop, f32 startFrame, f32 speed) {
@@ -560,20 +564,20 @@ void Mario::fn_803AF2F0(const f32* pSpeedTable) {
     this->getAnimator()->setBlendWeight(pSpeedTable, var_f31);
 }
 
-// NONMATCHING: stick-to-camera re-centering approximated from the draft
 void Mario::fn_803A56C0() {
-    TVec3f sp14(this->mStickPos.x, FLD<f32>(this, 0x1C4), 0.0f);
-    f32 sp8 = FLD<TVec3f>(this, 0x368).dot(this->getCamDirX());
-    f32 spC = FLD<TVec3f>(this, 0x368).dot(this->getCamDirY());
-    TVec3f camv(sp8, 0.0f, spC);
-    MR::normalizeOrZero(&camv);
-    f32 ang = MR::diffAngleAbs(camv, sp14);
-    f32 t = MR::clamp(ang, 0.0f, 1.0f);
-    f32 lim = t * 1.0f + 0.5f;
-    if (ang < lim || ang > 3.1415927f - lim) {
-        FLD<f32>(this, 0x1C8) = 0.0f;
-        FLD<f32>(this, 0x1C4) = 0.0f;
-        this->mStickPos = TVec3f(0.0f, 0.0f, 0.0f);
+    TVec3f stick(this->mStickPos.x, this->mStickPos.y, 0.0f);
+    TVec3f camera;
+    camera.x = this->_368.dot(this->getCamDirX());
+    camera.y = this->_368.dot(this->getCamDirY());
+    camera.z = 0.0f;
+    MR::normalizeOrZero(&camera);
+    f32 angle = MR::diffAngleAbs(camera, stick);
+    f32 t = MR::clamp(1.0f - this->mStickPos.z * this->mStickPos.z, 0.0f, 1.0f);
+    f32 limit = MR::getInterpolateValue(t, 0.5f, 1.5f);
+    if (angle < limit || angle > 3.1415927f - limit) {
+        this->mStickPos.z = 0.0f;
+        this->mStickPos.y = 0.0f;
+        this->mStickPos.x = 0.0f;
     }
 }
 

@@ -3276,8 +3276,8 @@ void MarioActor::initDrawAndModel() {
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::initBeeMario() {
-    J3DModelX* model;
     const char* modelName;
     const char* archiveName;
     if (gIsLuigi) {
@@ -3288,11 +3288,7 @@ void MarioActor::initBeeMario() {
         archiveName = "BeeMario.arc";
     }
 
-    if (!MR::isLoadedObjectOrLayoutArchive(modelName)) {
-        return;
-    }
-
-    if (!MR::isLoadedObjectOrLayoutArchive("BeeMarioWing")) {
+    if (!MR::isCreatePlayerResourceBee()) {
         return;
     }
 
@@ -3301,13 +3297,7 @@ void MarioActor::initBeeMario() {
     _9E4 = new ModelHolder(modelName, true);
     _9E4->initWithoutIter();
 
-    model = static_cast< J3DModelX* >(MR::getJ3DModel(_9E4));
-    model->copyExtraMtxBuffer(mModels[0]);
-
-    MR::initDLMakerFog(_9E4, true);
-    MR::newDifferedDLBuffer(_9E4);
-
-    mModels[2] = model;
+    mAllModel->registerModel(2, _9E4, false, true);
     _9E4->kill();
     MR::hideModel(_9E4);
     _9EC = MR::initFurPlayer(_9E4);
@@ -3324,8 +3314,11 @@ void MarioActor::initBeeMario() {
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::initHopperMario() {
-    J3DModelX* model;
+    if (!MR::isCreatePlayerResourceHopper()) {
+        return;
+    }
     const char* modelName;
     const char* archiveName;
     if (gIsLuigi) {
@@ -3335,32 +3328,19 @@ void MarioActor::initHopperMario() {
         modelName = "HopperMario";
         archiveName = "HopperMario.arc";
     }
-
-    if (!MR::isLoadedObjectOrLayoutArchive(modelName)) {
-        return;
-    }
-
     MR::createAndAddResourceHolder(archiveName);
-
-    _A00 = new ModelHolder(modelName, true);
-    _A00->initWithoutIter();
-
-    model = static_cast< J3DModelX* >(MR::getJ3DModel(_A00));
-    model->copyExtraMtxBuffer(mModels[0]);
-
-    MR::initDLMakerFog(_A00, true);
-    MR::newDifferedDLBuffer(_A00);
-
-    mModels[5] = model;
-    _A00->kill();
-    MR::hideModel(_A00);
-    MR::hideJoint(_A00, "Face0");
+    mModelEDC = new ModelHolder(modelName, true);
+    mModelEDC->initWithoutIter();
+    mAllModel->registerModel(5, mModelEDC, false, true);
+    mModelEDC->kill();
+    MR::hideModel(mModelEDC);
+    MR::hideJoint(mModelEDC, "Face0");
     _3D2 |= 0x20;
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::initIceMario() {
-    J3DModelX* model;
     const char* modelName;
     const char* archiveName;
     if (gIsLuigi) {
@@ -3371,25 +3351,18 @@ void MarioActor::initIceMario() {
         archiveName = "IceMario.arc";
     }
 
-    if (!MR::isLoadedObjectOrLayoutArchive(modelName)) {
+    if (!MR::isCreatePlayerResourceIce()) {
         return;
     }
 
     MR::createAndAddResourceHolder(archiveName);
 
-    _9C0 = new ModelHolder(modelName, true);
-    _9C0->initWithoutIter();
+    mModelE9C = new ModelHolder(modelName, true);
+    mModelE9C->initWithoutIter();
 
-    model = static_cast< J3DModelX* >(MR::getJ3DModel(_9C0));
-    model->copyExtraMtxBuffer(mModels[0]);
-    model->copyAnmMtxBuffer(mModels[0]);
-
-    MR::initDLMakerFog(_9C0, true);
-    MR::newDifferedDLBuffer(_9C0);
-
-    mModels[3] = model;
-    _9C0->kill();
-    MR::hideModel(_9C0);
+    mAllModel->registerModel(3, mModelE9C, true, false);
+    mModelE9C->kill();
+    MR::hideModel(mModelE9C);
 
     _B4C = new IceStep*[20];
     for (u32 i = 0; i < 20; i++) {
@@ -3403,8 +3376,8 @@ void MarioActor::initIceMario() {
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::initInvincibleMario() {
-    J3DModelX* model;
     const char* modelName;
     const char* archiveName;
     if (gIsLuigi) {
@@ -3415,26 +3388,19 @@ void MarioActor::initInvincibleMario() {
         archiveName = "InvincibleMario.arc";
     }
 
-    if (!MR::isLoadedObjectOrLayoutArchive(modelName)) {
+    if (!MR::isCreatePlayerResourceInvincible() && !MR::isGalaxyRainbowCometAppearInCurrentStage()) {
         return;
     }
 
     MR::createAndAddResourceHolder(archiveName);
 
-    _9C8 = new ModelHolder(modelName, true);
-    _9C8->initWithoutIter();
+    _9C0 = new ModelHolder(modelName, true);
+    _9C0->initWithoutIter();
 
-    model = static_cast< J3DModelX* >(MR::getJ3DModel(_9C8));
-    model->copyExtraMtxBuffer(mModels[0]);
-    model->copyAnmMtxBuffer(mModels[0]);
-
-    MR::initDLMakerFog(_9C8, true);
-    MR::newDifferedDLBuffer(_9C8);
-
-    mModels[4] = model;
-    _9C8->kill();
-    MR::hideModel(_9C8);
-    MR::startBrk(_9C8, "InvincibleMario");
+    mAllModel->registerModel(4, _9C0, true, false);
+    _9C0->kill();
+    MR::hideModel(_9C0);
+    MR::startBrk(_9C0, "InvincibleMario");
     _3D2 |= 0x2;
 }
 

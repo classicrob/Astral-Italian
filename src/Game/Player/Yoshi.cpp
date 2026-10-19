@@ -393,15 +393,15 @@ void Yoshi::fn_8040F370() {
     }
 }
 
-s32 Yoshi::fn_8040F190() const {
+s32 Yoshi::getAutoEatSensorCount() const {
     return getSensor("AutoEat")->mSensorCount;
 }
 
-HitSensor* Yoshi::fn_8040F1C0(s32 index) const {
+HitSensor* Yoshi::getAutoEatSensor(s32 index) const {
     return getSensor("AutoEat")->mSensors[index];
 }
 
-const TVec3f& Yoshi::fn_8040F200() const {
+const TVec3f& Yoshi::getAutoEatSensorPosition() const {
     return getSensor("AutoEat")->mPosition;
 }
 

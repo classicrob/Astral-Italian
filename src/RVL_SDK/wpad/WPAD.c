@@ -1,4 +1,5 @@
 #include "revolution/wpad.h"
+#include "revolution/wbc.h"
 #include "private/flipper.h"
 #include "revolution/dvd.h"
 #include "revolution/sc.h"
@@ -72,7 +73,7 @@ s32 WPADiRetrieveChannel(u8 dev_handle);
 static void WPADiConnCallback(WUDDevInfo* info, u8 open);
 static void WPADiRecvCallback(u8 dev_handle, u8* p_rpt, u16);
 void WPADGetAccGravityUnit(s32 chan, u32 type, WPADAcc* acc);
-static void __SendData(s32 chan, WPADCommand cmd);
+static s32 __wpadSendDataSub(s32 chan, WPADCommand cmd);
 BOOL WPADiSendWriteDataCmd(WPADCmdQueue* queue, u8 cmd, u32 addr, WPADCallback callback);
 BOOL WPADiSendWriteData(WPADCmdQueue* queue, void* p_buf, u16 len, u32 addr, WPADCallback callback);
 BOOL WPADiSendReadData(WPADCmdQueue* queue, void* p_buf, u16 len, u32 addr, WPADCallback callback);
@@ -86,6 +87,25 @@ void* noAlloc(u32 size) {
 u8 noFree(void* ptr) {
     DEBUGPrint("No Free: Nothing to do!!!\n");
     return 0;
+}
+
+BOOL WBCSetupCalibration(void) { return FALSE; }
+BOOL WBCGetCalibrationStatus(void) { return FALSE; }
+u32 WBCGetBatteryLevel(u8 battery) {
+#pragma unused(battery)
+    return 0;
+}
+s32 WBCRead(WPADBLStatus* report, f64* weight, u32 count) {
+#pragma unused(report, weight, count)
+    return -1;
+}
+s32 WBCSetZEROPoint(f64* averagePressure, u32 count) {
+#pragma unused(averagePressure, count)
+    return -1;
+}
+s32 WBCGetTGCWeight(f64 averageWeight, f64* result, WPADBLStatus* report) {
+#pragma unused(averageWeight, result, report)
+    return -1;
 }
 
 BOOL OnShutdown(BOOL final, u32 event) {
@@ -178,7 +198,7 @@ s32 WPADiSendData(s32 chan, WPADCommand cmd) {
         if (getStat) {
             status = WPAD_ERR_BUSY;
         } else {
-            __SendData(chan, cmd);
+            __wpadSendDataSub(chan, cmd);
         }
     } else if (status != WPAD_ERR_BUSY) {
         if (status == WPAD_ERR_TRANSFER) {
@@ -670,7 +690,7 @@ static void WPADiRumbleMotor(s32 chan, BOOL sendCmd) {
         cmd.data[0] = 0;
         cmd.callback = NULL;
 
-        __SendData(chan, cmd);
+        __wpadSendDataSub(chan, cmd);
     }
     _rumbleCnt[chan] = (u8)((_wpdcb[chan]->rumble) ? _rumbleCnt[chan] + 1 : 0);
 }
@@ -2219,7 +2239,71 @@ s32 WPADControlDpd(s32 chan, u32 command, WPADCallback callback) {
     return result;
 }
 
-static void __SendData(s32 chan, WPADCommand cmd) {
+s32 WPADControlBLC(s32 chan, u8 command, WPADCallback callback) {
+    WPADControlBlock* p_wpd = _wpdcb[chan];
+    s32 result;
+    BOOL setup;
+    BOOL enable;
+    u8 data[7];
+
+    enable = OSDisableInterrupts();
+    result = p_wpd->status;
+    setup = p_wpd->setup;
+    OSRestoreInterrupts(enable);
+
+    if (result == WPAD_ERR_NO_CONTROLLER) {
+        goto _exit;
+    }
+    if (!setup || !WUDIsLinkedWBC()) {
+        result = WPAD_ERR_BUSY;
+        goto _exit;
+    }
+    {
+        data[0] = data[1] = data[2] = 0xAA;
+        data[3] = 0x55;
+        data[4] = data[5] = data[6] = command;
+        enable = OSDisableInterrupts();
+        switch (command) {
+        case 0xAA:
+            if (__CanPushCmdQueue(&p_wpd->cmdq, 4)) {
+                fn_805F8560(chan, data, 7, 0xA4, 0xF1, NULL);
+                fn_805F8560(chan, data, 1, 0xA4, 0xF1, NULL);
+                fn_805F8560(chan, data, 1, 0xA4, 0xF1, NULL);
+                fn_805F8560(chan, data, 1, 0xA4, 0xF1, callback);
+                OSRestoreInterrupts(enable);
+                return WPAD_ERR_NONE;
+            }
+            result = WPAD_ERR_BUSY;
+            break;
+        case 0x55:
+            result = fn_805F8560(chan, data, 7, 0xA4, 0xF1, callback);
+            if (result == WPAD_ERR_NONE) {
+                OSRestoreInterrupts(enable);
+                return WPAD_ERR_NONE;
+            }
+            break;
+        case 0:
+            result = fn_805F8560(chan, data, 1, 0xA4, 0xF1, callback);
+            if (result == WPAD_ERR_NONE) {
+                OSRestoreInterrupts(enable);
+                return WPAD_ERR_NONE;
+            }
+            break;
+        default:
+            result = WPAD_ERR_BUSY;
+            break;
+        }
+        OSRestoreInterrupts(enable);
+    }
+_exit:
+    if (callback) {
+        callback(chan, result);
+    }
+    return result;
+}
+
+// NONMATCHING: incoming report/index GPR allocation and canonical data labels differ; target452B control flow and typed fields retained.
+static s32 __wpadSendDataSub(s32 chan, WPADCommand cmd) {
     BOOL enable;
     BOOL motor;
     BT_HDR* p_buf = NULL;
@@ -2231,29 +2315,23 @@ static void __SendData(s32 chan, WPADCommand cmd) {
     u8* p_data = cmd.data;
     u16 len = cmd.len;
 
-    enable = OSDisableInterrupts();
     p_wpd = _wpdcb[chan];
+    enable = OSDisableInterrupts();
     status = p_wpd->status;
     handle = p_wpd->dev_handle;
     if (handle < 0) {
         OSRestoreInterrupts(enable);
-        return;
+        return WPAD_ERR_INVALID;
     }
     p_wpd->status = WPAD_ERR_BUSY;
     motor = p_wpd->motor & _rumble;
-    OSRestoreInterrupts(enable);
 
     if (rep_id == WPAD_HIDREP_VIBRATOR) {
-        enable = OSDisableInterrupts();
         p_wpd->status = status;
-        OSRestoreInterrupts(enable);
     } else if (rep_id == WPAD_HIDREP_STRM) {
-        enable = OSDisableInterrupts();
         p_wpd->status = status;
         p_wpd->audioFrames--;
-        OSRestoreInterrupts(enable);
     } else {
-        enable = OSDisableInterrupts();
         switch (rep_id) {
         case WPAD_HIDREP_WRDATA:
             break;
@@ -2271,15 +2349,6 @@ static void __SendData(s32 chan, WPADCommand cmd) {
             p_wpd->getStatFlag = 1;
             break;
 
-        case WPAD_HIDREP_WAIT: {
-            OSTick tick;
-            memcpy(&tick, cmd.data, sizeof(OSTick));
-            p_wpd->cmdTimer = tick + __OSGetSystemTime();
-            p_wpd->cmdTimeoutAction = 1;
-        }
-            return;
-            break;
-
         default:
             p_data[0] |= 2;
             break;
@@ -2289,10 +2358,9 @@ static void __SendData(s32 chan, WPADCommand cmd) {
         p_wpd->cmdId = rep_id;
         p_wpd->cmdTimer = OSSecondsToTicks(2) + __OSGetSystemTime();
         p_wpd->cmdTimeoutAction = 0;
-        OSRestoreInterrupts(enable);
     }
 
-    DEBUGPrint("handle = %d, repid = %02x\n", handle, rep_id);
+    OSRestoreInterrupts(enable);
 
     p_buf = GKI_getbuf((u8)(10 + len + sizeof(BT_HDR)));
     p_buf->len = (u8)(len + 1);
@@ -2310,6 +2378,7 @@ static void __SendData(s32 chan, WPADCommand cmd) {
     }
 
     BTA_HhSendData((u8)handle, p_buf);
+    return WPAD_ERR_NONE;
 }
 
 BOOL WPADiSendSetReportType(WPADCmdQueue* queue, u32 fmt, BOOL powerSave, WPADCallback callback) {

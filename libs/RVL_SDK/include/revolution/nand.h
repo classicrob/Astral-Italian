@@ -140,6 +140,12 @@ s32 NANDSeekAsync(NANDFileInfo*, s32, s32, NANDCallback, NANDCommandBlock*);
 BOOL nandIsInitialized(void);
 s32 nandConvertErrorCode(const ISFSError);
 
+BOOL NANDSetAutoErrorMessaging(BOOL);
+void __NANDPrintErrorMessage(ISFSError);
+
+BOOL nandCheckPathName(const char*);
+BOOL nandIsRelativePath(const char*);
+BOOL nandIsUnderPrivatePath(const char*);
 BOOL nandIsPrivatePath(const char*);
 void nandGenerateAbsPath(char*, const char*);
 void nandGetParentDirectory(char*, const char*);

@@ -4,7 +4,6 @@
 #include "revolution/nand.h"
 #include "private/OSLoMem.h"
 
-OSThread* __OSExpireThread;
 OSAlarm __OSExpireAlarm;
 OSTime __OSExpireTime;
 OSPlayTimeCallbackFunc __OSExpireCallback;
@@ -16,10 +15,8 @@ OSThreadQueue __OSActiveThreadQueue : (OS_BASE_CACHED | OS_ACTIVETHREADQUEUE_ADD
 OSThreadQueue __OSActiveThreadQueue;
 #endif
 
-static void __OSPlayTimeRebootCallback(OSAlarm *, OSContext *);
 static void*  __OSPlayTimeRebootThread(void *);
 
-extern void __OSHotResetForError(void);
 
 typedef struct {
 	s16 new_ai_buffer[2][48*2*3];
@@ -37,6 +34,7 @@ BOOL OSPlayTimeIsLimited() {
     return __OSExpireTime != 0;
 }
 
+// NONMATCHING: one private conversion-stack store is scheduled earlier; ordered FP instructions and payloads agree.
 void __OSPlayTimeFadeLastAIDCallback(void) {
     if (__OSExpireAIFade->gameAIDCallback) {
         __OSExpireAIFade->gameAIDCallback();
@@ -130,31 +128,6 @@ out:
     return rv == 0 ? TRUE : FALSE;
 }
 
-static void __OSPlayTimeRebootCallback(OSAlarm* alarm, OSContext* context) {
-    void* arenaHi;
-	u32 memSize;
-	OSThread* thread;
-	void* stack;
-        
-    for (thread = __OSActiveThreadQueue.head; thread; thread = thread->linkActive.next) {
-        OSSuspendThread(thread);
-    }
-
-    memSize = OSRoundUp32B(sizeof(OSThread)) + 0x1000;
-    arenaHi = *(void**)OSPhysicalToCached(0x3128);
-    arenaHi = (void*)((u32)arenaHi - memSize);
-
-    thread  = (OSThread*)arenaHi;
-    arenaHi = (void*)((u32)arenaHi + OSRoundUp32B(sizeof(OSThread)));
-    stack   = arenaHi;
-
-    if (!OSCreateThread(thread, __OSPlayTimeRebootThread, NULL, (void*)((u32)stack + 0x1000), 0x1000, 0, 0)) {
-        __OSHotResetForError();
-    }
-
-    OSResumeThread(thread);
-}
-
 BOOL __OSWriteExpiredFlagIfSet(void) {
     if (__OSExpireSetExpiredFlag) {
         return __OSWriteExpiredFlag();
@@ -195,27 +168,15 @@ void* __OSPlayTimeRebootThread(void* args) {
     return NULL;
 }
 
-void __OSPlayTimeAlarmExpired(OSAlarm* alarm, OSContext* context) {
-	void *arenaHi;
-	u32 memSize;
-	OSThread *thread;
-	void *stack;
+static void __OSPlayTimeAlarmExpired(OSAlarm* alarm, OSContext* context) {
+    void* arenaHi;
+    u32 memSize;
+    OSThread* thread;
+    void* stack;
 
-    if (__OSExpireThread != NULL) {
-        for (thread = __OSActiveThreadQueue.head; thread; thread = thread->linkActive.next) {
-            if (thread != __OSExpireThread) {
-                OSSuspendThread(thread);
-            }
-        }
-
-        OSCreateAlarm(&__OSExpireAlarm);
-        OSSetAlarm(&__OSExpireAlarm,  OSSecondsToTicks((OSTime)0xF0), __OSPlayTimeRebootCallback);
-    
-        while (__OSExpireThread->suspend > 0) {
-            OSResumeThread(__OSExpireThread);
-        }
-    }
-    else {
+    if (__OSExpireCallback != NULL) {
+        __OSExpireCallback();
+    } else {
         for (thread = __OSActiveThreadQueue.head; thread; thread = thread->linkActive.next) {
             OSSuspendThread(thread);
         }
@@ -261,6 +222,7 @@ out:
 	return rv;
 }
 
+// NONMATCHING: loop-alignment NOP and zero-output temporary register/scheduling; same CFG and output values.
 s32 __OSGetPlayTime(ESTicketView *ticket, __OSPlayTimeType *type, u32 *playTime) {
 	s32 rv;
 	u32 i;
@@ -345,13 +307,14 @@ out:
     return rv;
 }
 
+// NONMATCHING: low-word GPR and two-word store order in the same nonvolatile 64-bit deadline assignment.
 void __OSInitPlayTime() {
     s32 rv;
     u32 limit;
     __OSPlayTimeType type;
 
     __OSExpireTime = 0;
-    __OSExpireThread = NULL;
+    __OSExpireCallback = NULL;
     __OSExpireSetExpiredFlag = TRUE;
 
     rv = ESP_InitLib();
@@ -376,11 +339,11 @@ void __OSInitPlayTime() {
     }
     else if (type == OSPLAYTIME_LIMITED) {
         if (limit == 0) {
-            OSPanic(__FILE__, 0x307, "Expired");
+            OSPanic(__FILE__, 0x2E1, "Expired");
         }
 
         OSCreateAlarm(&__OSExpireAlarm);
-        OSSetAlarm(&__OSExpireAlarm, OSSecondsToTicks((OSTime)limit + 1), __OSPlayTimeAlarmExpired);
+        OSSetAlarm(&__OSExpireAlarm, OSSecondsToTicks((OSTime)limit + 20), __OSPlayTimeAlarmExpired);
         __OSExpireTime = __OSExpireAlarm.fire;
         OSReport("PlayTime: %d seconds left\n", limit);
     }

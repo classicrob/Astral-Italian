@@ -144,7 +144,7 @@ struct DVDErrorInfo {
     u32 error;
     u32 dateTime;
     u32 status;
-    u8 reserved1[4];
+    u32 control;
     u32 nextOffset;
     DVDCommandInfo lastCommand[5];
 };
@@ -252,6 +252,9 @@ bool DVDLowRequestError(DVDLowCallback);
 bool DVDLowUnencryptedRead(void*, u32, u32, DVDLowCallback);
 bool DVDLowReportKey(DVDVideoReportKey*, u32, u32, DVDLowCallback);
 bool DVDLowPrepareStatusRegister(DVDLowCallback);
+BOOL DVDLowPrepareControlRegister(DVDLowCallback);
+u32 DVDLowGetStatusRegister(void);
+u32 DVDLowGetControlRegister(void);
 bool DVDLowMaskCoverInterrupt(void);
 bool DVDLowInit(void);
 bool DVDLowUnmaskStatusInterrupts(void);

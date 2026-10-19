@@ -29,7 +29,7 @@ s32 VFReadFile(void* i_file_p, void* o_buf_p, u32 i_size, u32* o_read_size_p);
 s32 VFWriteFile(void* i_file_p, void* i_buf_p, u32 i_size);
 s32 VFDeleteFile(const char* i_path_p);
 s32 VFGetFileSizeByFd(void* i_file_p);
-s32 VFGetLastError();
+s32 VFGetLastError(void);
 s32 VFGetLastDeviceError(const char* i_drive);
 s32 VFGetDriveFreeSize(const char* i_drive);
 s32 VFSetSyncMode(const char* i_drive, u32 i_mode);

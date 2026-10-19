@@ -56,7 +56,7 @@ static int GetLeapDays(int year) {
     return (year + 3) / 4 - (year - 1) / 100 + (year - 1) / 400; 
 }
 
-static void GetDates(s32 days, OSCalendarTime *pTime) NO_INLINE;
+static void GetDates(s32 days, OSCalendarTime *pTime);
 
 void OSTicksToCalendarTime(OSTime ticks, OSCalendarTime *pTime) {
     int numDays;

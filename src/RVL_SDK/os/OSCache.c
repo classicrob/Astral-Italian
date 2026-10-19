@@ -2,8 +2,6 @@
 #include "revolution/os/OSCache.h"
 #include "revolution/os.h"
 
-//needs to be a char[] to prevent something from showing up in .sdata
-static char error[] = ">>> L2 INVALIDATE : SHOULD NEVER HAPPEN\n";
 
 asm void DCEnable(void) {
     nofralloc
@@ -333,7 +331,6 @@ void L2GlobalInvalidate(void) {
     PPCMtl2cr(PPCMfl2cr() & ~0x200000);
 
     while (PPCMfl2cr() & 1) {
-        DBPrintf(error);
     }
 }
 
@@ -374,21 +371,17 @@ void DMAErrorHandler(OSError, OSContext *pContext, ...) {
 void __OSCacheInit(void) {
     if (!(PPCMfhid0() & 0x8000)) {
         ICEnable();
-        DBPrintf("L1 i-caches initialized\n");
     }
 
     if (!(PPCMfhid0() & 0x4000)) {
         DCEnable();
-        DBPrintf("L1 d-caches initialized\n");
     }
 
     if (!(PPCMfl2cr() & 0x80000000)) {
         // these two functions are inlined
         L2Init();
         L2Enable();
-        DBPrintf("L2 cache initialized\n");
     }
 
     OSSetErrorHandler(1, DMAErrorHandler);
-    DBPrintf("Locked cache machine check handler installed\n");
 }

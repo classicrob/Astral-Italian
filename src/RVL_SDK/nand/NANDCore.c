@@ -6,7 +6,7 @@
 #include <cstring>
 #include <wstring.h>
 
-const char* __NANDVersion = "<< RVL_SDK - NAND \trelease build: Dec 11 2007 01:35:48 (0x4199_60831) >>";
+const char* __NANDVersion = "<< RVL_SDK - NAND \trelease build: Dec 11 2009 15:59:08 (0x4302_145) >>";
 enum LibState {
     STATE_NOT_INITIALIZED, 
     STATE_WORKING, 
@@ -130,7 +130,7 @@ void nandConvertPath(char* abspath, const char* wd, const char* relpath) {
     }
 }
 
-inline BOOL nandIsRelativePath(const char* path) {
+BOOL nandIsRelativePath(const char* path) {
     if (path[0] == '/') {
         return FALSE;
     }
@@ -166,10 +166,14 @@ BOOL nandIsInitialized(void) {
     }
 }
 
-void nandReportErrorCode(const ISFSError err) NO_INLINE {
-    return;
+static void nandLoggingCallback(BOOL result, ISFSError error) {
+    if (error == ISFS_ERROR_UNKNOWN || error == IOS_ERROR_UNKNOWN) {
+        __NANDPrintErrorMessage(error);
+    }
 }
 
+// NONMATCHING: target retains two dead CR comparison sequences (24 bytes);
+// effective instructions, branches, calls and data references agree.
 s32 nandConvertErrorCode(const ISFSError err) {
     const int ERRMAP[]=
     {
@@ -229,10 +233,14 @@ s32 nandConvertErrorCode(const ISFSError err) {
             if (err == ISFS_ERROR_ECC_CRIT || err == ISFS_ERROR_HMAC || err == ISFS_ERROR_UNKNOWN || err == IOS_ERROR_UNKNOWN || err == IOS_ERROR_ECC_CRIT) {
                 char buf[128] __attribute__ ((aligned(64)));
                 sprintf(buf, "ISFS error code: %d", err);
-                NANDLoggingAddMessageAsync(0, buf);
+                NANDLoggingAddMessageAsync(nandLoggingCallback, err, buf);
             }
 
-            nandReportErrorCode(err);
+            if (err == ISFS_ERROR_MAXBLOCKS || err == ISFS_ERROR_MAXFILES ||
+                err == ISFS_ERROR_CORRUPT || err == ISFS_ERROR_BUSY ||
+                err == IOS_ERROR_QFULL || err == IOS_ERROR_FAIL_ALLOC) {
+                __NANDPrintErrorMessage(err);
+            }
             return ERRMAP[i + 1];
         }
     }
@@ -241,10 +249,9 @@ s32 nandConvertErrorCode(const ISFSError err) {
     {
         char buf[128] __attribute__ ((aligned(64)));
         sprintf(buf, "ISFS unexpected error code: %d", err);
-        NANDLoggingAddMessageAsync(0, buf);
+        NANDLoggingAddMessageAsync(nandLoggingCallback, err, buf);
     }
 
-    nandReportErrorCode(err);
     return -64;
 }
 
@@ -330,6 +337,7 @@ s32 NANDInit(void) {
             enabled = OSDisableInterrupts();
             s_libState = STATE_INITIALIZED;
             OSRestoreInterrupts(enabled);
+            NANDSetAutoErrorMessaging(TRUE);
             OSRegisterVersion(__NANDVersion);
             return 0;
         }
@@ -384,6 +392,7 @@ void nandCallback(ISFSError result, void* ctxt) {
 
 void nandGetTypeCallback(ISFSError result, void* ctxt);
 
+// NONMATCHING: four independent r3 argument assignments cross r0 stores.
 static ISFSError nandGetType(const char* path, u8* type, NANDCommandBlock* block, const BOOL async_flag, const BOOL privilege_flag) {
     if (strlen(path) == 0) {
         return ISFS_ERROR_INVALID;

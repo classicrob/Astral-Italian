@@ -5,6 +5,7 @@
 #include <mem.h>
 
 static IOSFd s_fd = -255;
+static ISFSError s_err = ISFS_ERROR_UNKNOWN;
 static int s_stage;
 static char s_message[256] __attribute__ ((aligned (64)));
 static NANDLoggingCallback s_callback = 0;
@@ -36,7 +37,7 @@ BOOL reserveFileDescriptor(void) {
     return busy_flag ? FALSE : TRUE;
 }
 
-BOOL NANDLoggingAddMessageAsync(NANDLoggingCallback cb, const char* fmt, ...) {
+BOOL NANDLoggingAddMessageAsync(NANDLoggingCallback cb, ISFSError error, const char* fmt, ...) {
     va_list ap;
     ISFSError err = ISFS_ERROR_UNKNOWN;
 
@@ -50,6 +51,9 @@ BOOL NANDLoggingAddMessageAsync(NANDLoggingCallback cb, const char* fmt, ...) {
 
     s_callback = cb;
     s_stage = 1;
+    if (error == ISFS_ERROR_UNKNOWN || error == IOS_ERROR_UNKNOWN) {
+        s_err = error;
+    }
     err = ISFS_OpenAsync((const u8*)"/shared2/test2/nanderr.log", 3, asyncRoutine, 0);
 
     if (err == ISFS_ERROR_OK) {
@@ -62,7 +66,7 @@ BOOL NANDLoggingAddMessageAsync(NANDLoggingCallback cb, const char* fmt, ...) {
 
 static void callbackRoutine(BOOL result) {
     if (s_callback) {
-        s_callback(result);
+        s_callback(result, s_err);
     }
 }
 

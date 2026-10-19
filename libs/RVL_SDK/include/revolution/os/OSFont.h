@@ -34,6 +34,8 @@ typedef struct OSFontHeader {
     u8  c3;
 } OSFontHeader;
 
+u16 OSSetFontEncode(u16);
+
 u32 OSLoadFont(OSFontHeader *, void *);
 char* OSGetFontTexel(const char *, void *, s32, s32, s32 *);
 

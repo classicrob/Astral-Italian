@@ -51,6 +51,7 @@ static u8 __bte_trace_level = 0;
 static u8 _normalTarget;
 static BOOL _readNand = FALSE;
 static volatile BOOL _abortSync = FALSE;
+BOOL _linkedWBC;
 
 // clang-format off
 static u8 descriptor[] = {
@@ -191,6 +192,10 @@ static u8 descriptor[] = {
     0xC0,       // End Collection
 };
 // clang-format on
+
+BOOL WUDIsLinkedWBC(void) {
+    return _linkedWBC;
+}
 
 void* App_MEMalloc(u32 size) {
     DEBUGPrint("App_MEMalloc\n");

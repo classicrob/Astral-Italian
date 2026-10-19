@@ -9,7 +9,7 @@ extern DSPTaskInfo *__DSP_first_task;
 extern DSPTaskInfo *__DSP_last_task;
 extern DSPTaskInfo *__DSP_tmp_task;
 
-const char* __DSPVersion = "<< RVL_SDK - DSP \trelease build: Aug  8 2007 01:59:06 (0x4199_60831) >>";
+const char* __DSPVersion = "<< RVL_SDK - DSP \trelease build: Dec 11 2009 15:55:55 (0x4302_145) >>";
 
 u32 DSPCheckMailToDSP(void) {
     return ((__DSPRegs[0] & 0x8000) >> 15);

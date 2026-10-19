@@ -564,7 +564,6 @@ static asm void OSSwitchFPUContext(register __OSException ex, register OSContext
 void __OSContextInit(void) {
     __OSSetExceptionHandler(7, OSSwitchFPUContext);
     __OSFPUContext = NULL;
-    DBPrintf("FPU-unavailable handler installed\n");
 }
 
 #pragma push

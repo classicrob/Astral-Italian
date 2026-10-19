@@ -9,6 +9,8 @@ extern "C" {
 #include "private/iosrestypes.h"
 #include "private/iosresclt.h"
 
+IOSError IPCCltReInit(void);
+
 s32 IOS_Open(const char *, u32);
 s32 IOS_Close(s32);
 s32 IOS_CloseAsync(IOSFd, IOSIpcCb, void *);

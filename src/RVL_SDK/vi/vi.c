@@ -4,7 +4,7 @@
 #include "revolution/sc.h"
 #include "revolution/vi.h"
 
-const char* __VIVersion = "<< RVL_SDK - VI \trelease build: Aug  8 2007 02:07:17 (0x4199_60831) >>";
+const char* __VIVersion = "<< RVL_SDK - VI \trelease build: Dec 11 2009 15:58:44 (0x4302_145) >>";
 
 static BOOL IsInitialized = FALSE;
 static void __VIRetraceHandler(__OSInterrupt, OSContext*);

@@ -141,6 +141,8 @@ u16 _WUDGetQueuedSize(s8 handle);
 u16 _WUDGetNotAckedSize(s8 handle);
 u8 _WUDGetLinkNumber(void);
 
+BOOL WUDIsLinkedWBC(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -2,14 +2,15 @@
 #define NANDLOGGING_H
 
 #include "revolution/os.h"
+#include "revolution/fs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void (*NANDLoggingCallback)(BOOL);
+typedef void (*NANDLoggingCallback)(BOOL, ISFSError);
 
-BOOL NANDLoggingAddMessageAsync(NANDLoggingCallback, const char *, ...);
+BOOL NANDLoggingAddMessageAsync(NANDLoggingCallback, ISFSError, const char *, ...);
 
 #ifdef __cplusplus
 }

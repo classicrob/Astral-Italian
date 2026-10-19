@@ -313,6 +313,8 @@ typedef struct WPADConfig {
     WPADAcc acc_1g;
     u8 motor;
     u8 volume;
+    // PLACEHOLDER(m1): target clears 0x30 bytes; resolve final two configuration bytes from EEPROM/config parser writes.
+    u8 reservedConfig[2];
 } WPADConfig;
 
 typedef struct WPADStick {
@@ -337,11 +339,25 @@ typedef struct WPADClConfig {
     u8 triggerR;
 } WPADClConfig;
 
+typedef struct WPADMplsCalibrationAxis {
+    f32 zero;
+    f32 scale;
+} WPADMplsCalibrationAxis;
+
+typedef struct WPADMplsCalibration {
+    WPADMplsCalibrationAxis axis[3];
+    s32 referenceRate;
+} WPADMplsCalibration;
+
 typedef struct WPADExtConfig {
     union {
         WPADFsConfig fs;
         WPADClConfig cl;
     };
+    // Exported in this order by WPADiGetMplsCalibration; axis zero/scale pairs.
+    WPADMplsCalibration mplsCalibration[2];
+    u32 mplsCalibrationCRC32;
+    u16 mplsCalibrationTag;
 } WPADExtConfig;
 
 typedef struct WPADControlBlock {
@@ -385,13 +401,34 @@ typedef struct WPADControlBlock {
     BOOL setup;
     BOOL oldFw;
     OSThreadQueue threadq;
+    // PLACEHOLDER(m1): accessed extension state at 0x930..0x93E; resolve each flag/retry role from extension setup and report consumers.
+    u8 reservedControllerState[0xE];
+    u8 certParamBytes;
+    u8 certTransferRetries;
+    u16 certWorkCount;
+    s16 certWorkDelay;
+    s8 certChallengeBit;
+    u8 certBusy;
+    s8 certValidity;
+    s8 certState;
+    // LINT representation: word 0 is the active limb count, followed by unsigned limbs.
+    // The read callback selects certParamX, certParamY, or certWork through this pointer.
+    u32* certParam;
+    u32 certParamX[18];
+    u32 certParamY[18];
+    u32 certWork[66];
+    // PLACEHOLDER(m1): target clears this word at 0xAE4; resolve a nonzero writer/consumer before assigning behavior.
+    u32 reservedControllerWord;
     OSTime lastUpdateTime;
     u16 diffCountDpd;
-    u16 hystCountDpd;
     u16 diffCountAcc;
-    u16 hystCountAcc;
     u16 diffCountfsAcc;
+    // PLACEHOLDER(m1): fourth diff/hysteresis category; resolve category from controller-change helper805E8140.
+    u16 reservedDiffCounter;
+    u16 hystCountDpd;
+    u16 hystCountAcc;
     u16 hystCountfsAcc;
+    u16 reservedHystCounter;
     OSTime cmdTimer;
     u8 cmdTimeoutAction;
     u8 isSetStickOrigin;
@@ -414,6 +451,15 @@ typedef struct WPADControlBlock {
     u8 extEnc;
     u8 pwrSave;
     u8 padding2;
+    // PLACEHOLDER(m1): accessed extension state at 0xB88..0xBAE; resolve through MotionPlus setup/report consumers.
+    u8 reservedExtensionState[0x26];
+    s8 certCachedValidity;
+    // PLACEHOLDER(m1): resolve bytes 0xBAF..0xBB2 through their extension-state consumers.
+    u8 reservedExtensionIdentity[3];
+    u16 certCachedCalibrationTag;
+    u32 certCachedCalibrationCRC32;
+    // PLACEHOLDER(m1): target WPADInit stride 0xBE0; resolve tail through extension-state consumers before naming any accessed fields.
+    u8 reservedExtensionTail[0x28];
 } WPADControlBlock;
 
 typedef struct WPADMEMControlBlock {
@@ -449,14 +495,6 @@ u8 WPADGetSensorBarPosition(void);
 s32 WPADProbe(s32 chan, u32* type);
 s32 WPADGetStatus(void);
 
-// Address names retained for compiled-out SDK board providers. Signatures come
-// from every KPAD caller; actual target bodies return 0/0/0/-1/-1/-1.
-BOOL fn_805E7BE0(void);
-BOOL fn_805E7BF0(void);
-BOOL fn_805E7C00(u8 battery);
-s32 fn_805E7C10(const WPADBLStatus* report, f64* weight, u32 count);
-s32 fn_805E7C20(const f64* weight, u32 count);
-s32 fn_805E7C30(f64* result, const WPADBLStatus* report, f64 totalWeight);
 s32 WPADControlBLC(s32 chan, u8 command, WPADCallback callback);
 s32 WPADiControlMpls(s32 chan, u8 mode, WPADCallback callback);
 u8 WPADiGetMplsStatus(s32 chan);
@@ -480,6 +518,8 @@ BOOL WPADiSendSetReportType(WPADCmdQueue*, u32, BOOL, WPADCallback);
 BOOL WPADiSendWriteDataCmd(WPADCmdQueue*, u8, u32, WPADCallback);
 BOOL WPADiSendReadData(WPADCmdQueue*, void*, u16, u32, WPADCallback);
 BOOL WPADiSendWriteData(WPADCmdQueue*, void*, u16, u32, WPADCallback);
+// PLACEHOLDER(m1): resolve actual WPAD memory API name from SDK reference; target805F8560 body proves this six-argument typed register-write contract.
+s32 fn_805F8560(s32 chan, void* data, u16 length, u8 extension, u16 address, WPADCallback callback);
 
 void WPADiCopyOut(s32);
 void WPADiExcludeButton(s32);

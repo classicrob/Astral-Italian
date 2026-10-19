@@ -129,53 +129,6 @@ static asm void ConfigMEM1_24MB(void) {
     rfi
 }
 
-static asm void ConfigMEM1_48MB(void)
-{
-    nofralloc
-
-    addi    r7,r0, 0
-
-    addis   r4,r0,0x00000002@ha
-    addi    r4,r4,0x00000002@l
-    addis   r3,r0,0x800003ff@ha
-    addi    r3,r3,0x800003ff@l
-
-    addis   r6,r0,0x02000002@ha
-    addi    r6,r6,0x02000002@l
-    addis   r5,r0,0x820001ff@ha
-    addi    r5,r5,0x820001ff@l
-
-    isync
-
-    mtspr   dbat0u,r7
-    mtspr   dbat0l,r4
-    mtspr   dbat0u,r3
-    isync
-
-    mtspr   ibat0u,r7
-    mtspr   ibat0l,r4
-    mtspr   ibat0u,r3
-    isync
-
-    mtspr   dbat2u,r7
-    mtspr   dbat2l,r6
-    mtspr   dbat2u,r5
-    isync
-
-    mtspr   ibat2u,r7
-    mtspr   ibat2l,r6
-    mtspr   ibat2u,r5
-    isync
-
-    mfmsr   r3
-    ori     r3, r3, 0x30
-    mtsrr1  r3
-
-    mflr    r3
-    mtsrr0  r3
-    rfi
-}
-
 static asm void ConfigMEM2_52MB(void) {
     nofralloc
 
@@ -199,8 +152,7 @@ static asm void ConfigMEM2_52MB(void) {
     isync
 
     mtspr   IBAT4U,r7
-    mtspr   IBAT4L,r4
-    mtspr   IBAT4U,r3
+    mtspr   IBAT4L,r7
 
     isync
 
@@ -231,8 +183,7 @@ static asm void ConfigMEM2_52MB(void) {
     isync
 
     mtspr   IBAT6U,r7
-    mtspr   IBAT6L,r4
-    mtspr   IBAT6U,r3
+    mtspr   IBAT6L,r7
 
     isync
 
@@ -242,8 +193,7 @@ static asm void ConfigMEM2_52MB(void) {
     isync
 
     mtspr   IBAT7U,r7
-    mtspr   IBAT7L,r6
-    mtspr   IBAT7U,r5
+    mtspr   IBAT7L,r7
 
     isync
 
@@ -279,8 +229,7 @@ static asm void ConfigMEM2_56MB(void) {
     isync
 
     mtspr   IBAT4U,r7
-    mtspr   IBAT4L,r4
-    mtspr   IBAT4U,r3
+    mtspr   IBAT4L,r7
 
     isync
 
@@ -311,8 +260,7 @@ static asm void ConfigMEM2_56MB(void) {
     isync
 
     mtspr   IBAT6U,r7
-    mtspr   IBAT6L,r4
-    mtspr   IBAT6U,r3
+    mtspr   IBAT6L,r7
 
     isync
 
@@ -322,8 +270,7 @@ static asm void ConfigMEM2_56MB(void) {
     isync
 
     mtspr   IBAT7U,r7
-    mtspr   IBAT7L,r6
-    mtspr   IBAT7U,r5
+    mtspr   IBAT7L,r7
 
     isync
 
@@ -359,8 +306,7 @@ static asm void ConfigMEM2_64MB(void) {
     isync
 
     mtspr   IBAT4U,r7
-    mtspr   IBAT4L,r4
-    mtspr   IBAT4U,r3
+    mtspr   IBAT4L,r7
 
     isync
 
@@ -421,8 +367,7 @@ static asm void ConfigMEM2_112MB(void) {
     isync
 
     mtspr   IBAT4U,r7
-    mtspr   IBAT4L,r4
-    mtspr   IBAT4U,r3
+    mtspr   IBAT4L,r7
 
     isync
 
@@ -453,8 +398,7 @@ static asm void ConfigMEM2_112MB(void) {
     isync
 
     mtspr   IBAT6U,r7
-    mtspr   IBAT6L,r4
-    mtspr   IBAT6U,r3
+    mtspr   IBAT6L,r7
     isync
 
     mtspr   DBAT7U,r7
@@ -463,8 +407,7 @@ static asm void ConfigMEM2_112MB(void) {
     isync
 
     mtspr   IBAT7U,r7
-    mtspr   IBAT7L,r6
-    mtspr   IBAT7U,r5
+    mtspr   IBAT7L,r7
 
     isync
 
@@ -500,8 +443,7 @@ static asm void ConfigMEM2_128MB(void) {
     isync
 
     mtspr   IBAT4U,r7
-    mtspr   IBAT4L,r4
-    mtspr   IBAT4U,r3
+    mtspr   IBAT4L,r7
 
     isync
 
@@ -539,37 +481,6 @@ static asm void ConfigMEM2_128MB(void) {
     rfi
 }
 
-static asm void ConfigMEM_ES1_0(void) {
-    nofralloc
-
-    addi    r7, r0, 0
-
-    addis   r4,r0,0x00000002@ha
-    addi    r4,r4,0x00000002@l
-    addis   r3,r0,0x80000fff@ha
-    addi    r3,r3,0x80000fff@l
-
-    isync
-
-    mtspr   dbat0u,r7
-    mtspr   dbat0l,r4
-    mtspr   dbat0u,r3
-    isync
-
-    mtspr   ibat0u,r7
-    mtspr   ibat0l,r4
-    mtspr   ibat0u,r3
-    isync
-
-    mfmsr   r3
-    ori     r3, r3, 0x30
-    mtsrr1  r3
-
-    mflr    r3
-    mtsrr0  r3
-    rfi
-}
-
 static asm void RealMode(register u32 addr) {
     nofralloc
 
@@ -581,15 +492,8 @@ static asm void RealMode(register u32 addr) {
     rfi
 }
 
-static void BATConfig(void) {
+static void BATConfig(u32 key) {
     u32 size1, size2, prot;
-
-    if (*(u32*)OSPhysicalToCached(0x3138) == 0) {
-        if (OSGetPhysicalMem1Size == 0) {
-            RealMode((u32)ConfigMEM_ES1_0);
-            return;
-        }
-    }
 
     size1 = OSGetConsoleSimulatedMem1Size();
 
@@ -600,9 +504,6 @@ static void BATConfig(void) {
 
     if (size1 <= 25165824) {
         RealMode((u32)ConfigMEM1_24MB);
-    }
-    else if (size1 <= 50331648) {
-        RealMode((u32)ConfigMEM1_48MB);
     }
 
     size2 = OSGetConsoleSimulatedMem2Size();
@@ -627,11 +528,23 @@ static void BATConfig(void) {
             RealMode((u32)ConfigMEM2_128MB);
         }
     }
+    while (key != 0xBA2CF) {
+    }
+}
+
+void __OSRestoreCodeExecOnMEM1(u32 key) {
+    RealMode((u32)ConfigMEM1_24MB);
+    while (key != 0xBA2CF) {
+    }
 }
 
 void __OSInitMemoryProtection(void) {
     static BOOL initialized = FALSE;
     BOOL enabled;
+
+    if (initialized) {
+        return;
+    }
 
     enabled = OSDisableInterrupts();
     __MEMRegs[0x10] = 0;
@@ -643,7 +556,8 @@ void __OSInitMemoryProtection(void) {
     __OSSetInterruptHandler(3, MEMIntrruptHandler);
     __OSSetInterruptHandler(4, MEMIntrruptHandler);
     OSRegisterShutdownFunction(&ShutdownFunctionInfo);
-    BATConfig();
+    BATConfig(0xBA2CF);
     __OSUnmaskInterrupts(0x8000000);
+    initialized = TRUE;
     OSRestoreInterrupts(enabled);
 }

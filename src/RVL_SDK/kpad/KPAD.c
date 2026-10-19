@@ -1,5 +1,6 @@
 #include "revolution/kpad/KPADInternal.h"
 #include "revolution/kmpls.h"
+#include "revolution/wbc.h"
 #include "revolution/mtx.h"
 #include <cmath>
 #include <cstdio>
@@ -1187,8 +1188,8 @@ void read_kpad_stick(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
         clamp_trigger(&ep->cl.ltrigger, uwp->u.analog.trigger[0], kp_ext_trigger_min, kp_ext_trigger_max);
         clamp_trigger(&ep->cl.rtrigger, uwp->u.analog.trigger[1], kp_ext_trigger_min, kp_ext_trigger_max);
     } else if (uwp->u.core.dev == 3 && uwp->fmt == 12) {
-        ep->bl.weight_err = fn_805E7C10(&uwp->u.bl, ep->bl.weight, 4);
-        if (!fn_805E7C00(uwp->u.bl.battery)) {
+        ep->bl.weight_err = WBCRead(&uwp->u.bl, ep->bl.weight, 4);
+        if (!WBCGetBatteryLevel(uwp->u.bl.battery)) {
             ep->bl.weight_err = -1;
             goto finish_board;
         }
@@ -1284,7 +1285,7 @@ void read_kpad_stick(KPADInsideStatus* kp, KPADUnifiedWpadStatus* uwp) {
                 sampleWeight = wbcSampleWeight[0] + wbcSampleWeight[1];
                 sampleWeight = wbcSampleWeight[2] + sampleWeight;
                 sampleWeight = wbcSampleWeight[3] + sampleWeight;
-                fn_805E7C30(&wbcTgcWeight, &uwp->u.bl, sampleWeight);
+                WBCGetTGCWeight(sampleWeight, &wbcTgcWeight, &uwp->u.bl);
                 if (sampleWeight - wbcWeightBaseline > 0.3 || wbcWeightWork - sampleWeight > 0.3) {
                     wbcTgcResult = -1;
                 }
@@ -1866,8 +1867,8 @@ static void KPADiSamplingCallback(s32 chan) {
                 if ((f32)wbcSampleCount == kp_wbc_average_count) {
                     wbcCalibrationState = 4;
                     wbcSampleCount = 0;
-                    fn_805E7C10(&uwp->u.bl, wbcFilteredWeight, 4);
-                    fn_805E7C20(wbcSampleWeight, 4);
+                    WBCRead(&uwp->u.bl, wbcFilteredWeight, 4);
+                    WBCSetZEROPoint(wbcSampleWeight, 4);
                 }
             }
         } else if (wbcSetupState == 0) {
@@ -1876,7 +1877,7 @@ static void KPADiSamplingCallback(s32 chan) {
             }
         } else if (wbcSetupState == 1) {
             if (wbcSetupRetryCount < 3) {
-                if (fn_805E7BE0() == 1) {
+                if (WBCSetupCalibration() == 1) {
                     wbcSetupState = 2;
                     wbcSettleCount = 0;
                 } else {
@@ -1886,7 +1887,7 @@ static void KPADiSamplingCallback(s32 chan) {
                 wbcSetupState = -1;
             }
         } else if (wbcSetupState == 2) {
-            if (fn_805E7BF0()) {
+            if (WBCGetCalibrationStatus()) {
                 wbcSetupState = 3;
                 wbcSetupRetryCount = 0;
             } else {

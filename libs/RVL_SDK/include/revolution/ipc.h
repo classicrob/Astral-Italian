@@ -8,13 +8,22 @@
 
 typedef s32 IPCResult;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern u32 IPCReadReg(u32);
 
 void IPCInit(void);
+void IPCReInit(void);
 IOSError IPCCltInit(void);
 
 extern void* IPCGetBufferHi(void);
 extern void* IPCGetBufferLo(void);
 extern void IPCSetBufferLo(void*);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // IPC_H

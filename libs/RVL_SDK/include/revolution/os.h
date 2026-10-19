@@ -2,6 +2,7 @@
 #define OS_H
 
 #include <cstdarg>
+#include <stdint.h>
 #include "revolution/types.h"
 
 #ifdef __cplusplus
@@ -46,16 +47,16 @@ void* OSPhysicalToUncached(u32);
 #define OS_BASE_CACHED (OS_CACHED_REGION_PREFIX << 16)
 #define OS_BASE_UNCACHED (OS_UNCACHED_REGION_PREFIX << 16)
 
-#define OSPhysicalToCached(paddr) ((void*)((u32)(paddr) + OS_BASE_CACHED))
-#define OSCachedToPhysical(caddr) ((u32)((u8*)(caddr)-OS_BASE_CACHED))
-#define OSUncachedToPhysical(ucaddr) ((u32)((u32)(ucaddr) & (~OS_BASE_UNCACHED)))
-#define OSPhysicalToUncached(paddr) ((void*)((u32)(paddr) + OS_BASE_UNCACHED))
+#define OSPhysicalToCached(paddr) ((void*)((uintptr_t)(paddr) + (u32)OS_BASE_CACHED))
+#define OSCachedToPhysical(caddr) ((uintptr_t)(caddr) - (u32)OS_BASE_CACHED)
+#define OSUncachedToPhysical(ucaddr) ((uintptr_t)(ucaddr) & ~(uintptr_t)(u32)OS_BASE_UNCACHED)
+#define OSPhysicalToUncached(paddr) ((void*)((uintptr_t)(paddr) + (u32)OS_BASE_UNCACHED))
 
-#define OSIsMEM1Region(addr) (((u32)(addr)&0x30000000) == 0x00000000)
-#define OSIsMEM2Region(addr) (((u32)(addr)&0x30000000) == 0x10000000)
+#define OSIsMEM1Region(addr) (((uintptr_t)(addr) & 0x30000000u) == 0x00000000u)
+#define OSIsMEM2Region(addr) (((uintptr_t)(addr) & 0x30000000u) == 0x10000000u)
 
-#define OSRoundUp32B(x) (((u32)(x) + 32 - 1) & ~(32 - 1))
-#define OSRoundDown32B(x) (((u32)(x)) & ~(32 - 1))
+#define OSRoundUp32B(x) (((uintptr_t)(x) + 32 - 1) & ~(uintptr_t)(32 - 1))
+#define OSRoundDown32B(x) ((uintptr_t)(x) & ~(uintptr_t)(32 - 1))
 #define OSDiffTick(tick1, tick0) ((s32)(tick1) - (s32)(tick0))
 
 #define OS_TICKS_DELTA(x, y) ((s32)x - (s32)y)
@@ -206,6 +207,7 @@ void __OSInterruptInit(void);
 void __OSContextInit(void);
 void __OSInitAudioSystem(void);
 void __OSInitMemoryProtection(void);
+void __OSRestoreCodeExecOnMEM1(u32 key);
 void __OSGetIOSRev(OSIOSRev*);
 int __OSInitSTM(void);
 void __OSInitNet(void);

@@ -39,6 +39,7 @@ static u32 registerBuf[8] __attribute__((aligned(32)));
 static u32 coverRegister[8] __attribute__((aligned(32)));
 static u32 coverStatus[8] __attribute__((aligned(32)));
 static u32 statusRegister[8] __attribute__((aligned(32)));
+static u32 controlRegister[8] __attribute__((aligned(32)));
 static s32 lastTicketError[8] __attribute__((aligned(32)));
 
 static IOSIoVector ioVec[10] __attribute__((aligned(32)));
@@ -1268,6 +1269,10 @@ u32 DVDLowGetStatusRegister(void) {
     return statusRegister[0];
 }
 
+u32 DVDLowGetControlRegister(void) {
+    return controlRegister[0];
+}
+
 bool DVDLowPrepareCoverRegister(DVDLowCallback callback) {
     dvdContext_t* dvdContext;
     IOSError rv;
@@ -1307,6 +1312,26 @@ bool DVDLowPrepareStatusRegister(DVDLowCallback callback) {
         return false;
     }
 
+    return true;
+}
+
+// NONMATCHING: only four pooled-string relocation identities differ; actual call strings verified against DOL.
+BOOL DVDLowPrepareControlRegister(DVDLowCallback callback) {
+    dvdContext_t* dvdContext;
+    IOSError rv;
+
+    nextCommandBuf(&freeCommandBuf);
+    diCommand[freeCommandBuf].theCommand = 0x96;
+    requestInProgress = true;
+    dvdContext = newContext(callback, TRANSACTION_CB);
+
+    rv = IOS_IoctlAsync(DiFD, 0x96, &diCommand[freeCommandBuf], sizeof(diCommand_t), controlRegister, sizeof(controlRegister), doTransactionCallback,
+                        dvdContext);
+    if (rv != IOS_ERROR_OK) {
+        OSReport("@@@ (DVDLowPrepareControlRegister) IOS_IoctlAsync returned error: %d\n", rv);
+        dvdContext->inUse = false;
+        return false;
+    }
     return true;
 }
 

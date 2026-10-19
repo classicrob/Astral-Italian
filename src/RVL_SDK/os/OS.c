@@ -690,30 +690,24 @@ static void OSExceptionInit(void) {
     destAddr = (void*)OSPhysicalToCached(0x60);
 
     if (*(u32*)destAddr == 0) {
-        DBPrintf("Installing OSDBIntegrator\n");
-        memcpy(destAddr, (void*)__OSDBINTSTART, (u32)__OSDBINTEND - (u32)__OSDBINTSTART);
-        DCFlushRangeNoSync(destAddr, (u32)__OSDBINTEND - (u32)__OSDBINTSTART);
+        memcpy(destAddr, (void*)__OSDBINTSTART, (u32)((u8*)__OSDBINTEND - (u8*)__OSDBINTSTART));
+        DCFlushRangeNoSync(destAddr, (u32)((u8*)__OSDBINTEND - (u8*)__OSDBINTSTART));
         __sync();
-        ICInvalidateRange(destAddr, (u32)__OSDBINTEND - (u32)__OSDBINTSTART);
+        ICInvalidateRange(destAddr, (u32)((u8*)__OSDBINTEND - (u8*)__OSDBINTSTART));
     }
 
     for (exception = 0; exception < 15; exception++) {
-        if (BI2DebugFlag && (*BI2DebugFlag >= 2) && __DBIsExceptionMarked(exception)) {
-            DBPrintf(">>> OSINIT: exception %d commandeered by TRK\n", exception);
+        if (BI2DebugFlag && (*BI2DebugFlag >= 2)) {
             continue;
         }
 
         *opCodeAddr = oldOpCode | exception;
 
-        if (__DBIsExceptionMarked(exception)) {
-            DBPrintf(">>> OSINIT: exception %d vectored to debugger\n", exception);
-            memcpy((void*)__DBVECTOR, (void*)__OSDBINTEND, (u32)__OSDBJUMPEND - (u32)__OSDBINTEND);
-        }
-        else {
+        {
             u32* ops = (u32*)__DBVECTOR;
             int cb;
 
-            for (cb = 0; cb < (u32)__OSDBJUMPEND - (u32)__OSDBINTEND; cb += 4) {
+            for (cb = 0; cb < (u32)((u8*)__OSDBJUMPEND - (u8*)__OSDBJUMPSTART); cb += 4) {
                 // set op to NOP
                 *ops++ = 0x60000000;
             }
@@ -733,7 +727,6 @@ static void OSExceptionInit(void) {
     }
 
     *opCodeAddr = oldOpCode;
-    DBPrintf("Exceptions initialized...\n");
 }
 
 static asm void __OSDBIntegrator(void) {

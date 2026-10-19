@@ -879,11 +879,11 @@ static s32 VFSysCreateDir_common(const s8* i_dir_name_p) {
     return VFipf2_errnum();
 }
 
-s32 VFSysGetFileSizeByFd(s32* o_size_p, struct PF_FILE* i_file_p) {
+s32 VFSysGetFileSizeByFd(u32* o_size_p, struct PF_FILE* i_file_p) {
     struct PF_INFO info;
     s32 err;
 
-    *o_size_p = -1;
+    *o_size_p = 0;
     if (i_file_p != NULL) {
         err = VFipf2_finfo(i_file_p, &info);
         if (err == 0) {
@@ -895,7 +895,7 @@ s32 VFSysGetFileSizeByFd(s32* o_size_p, struct PF_FILE* i_file_p) {
     return -1;
 }
 
-s32 VFSysGetDriveFreeSize(s32 i_handle_idx) {
+s32 VFSysGetDriveFreeSizeInfo(s32 i_handle_idx, u32* o_free_clusters, u32* o_sectors_per_cluster, u32* o_bytes_per_sector) {
     struct VF_HANDLE_TYPE* handle_p;
     struct PF_DEV_INF device_info;
     s32 err;
@@ -903,22 +903,25 @@ s32 VFSysGetDriveFreeSize(s32 i_handle_idx) {
     handle_p = VFSysGetHandleP(i_handle_idx);
     if (handle_p == NULL || handle_p->device_p == NULL) {
         VFSysSetLastError(0xB003);
-        return -1;
+        return 0xB003;
     }
     if (handle_p->drive.pf_disk_p == NULL) {
         VFSysSetLastError(0xB003);
-        return -1;
+        return 0xB003;
     }
-
     VFSys_set_device_err_info(handle_p, 0);
     err = VFipf2_devinf(handle_p->drive.pf_drv.drive, &device_info);
     if (err != 0) {
         err = VFipf2_errnum();
-        VFSysSetLastError(err);
-        return -1;
-    } else {
-        return device_info.ecl * device_info.bps * device_info.spc;
+        if (err != 0) {
+            VFSysSetLastError(err);
+        }
+        return err;
     }
+    *o_free_clusters = device_info.ecl;
+    *o_sectors_per_cluster = device_info.spc;
+    *o_bytes_per_sector = device_info.bps;
+    return 0;
 }
 
 s32 VFSysGetLastError(void) {

@@ -13,6 +13,10 @@ ISFSError nandCreate(const char *path, const u8 perm, const u8 attr,
                      BOOL privilege_flag) {
   char absPath[64] = "";
   u32 owner = 0, group = 0, others = 0;
+  if (!nandCheckPathName(path)) {
+    return ISFS_ERROR_INVALID;
+  }
+
   nandGenerateAbsPath(absPath, path);
 
   if (!privilege_flag && nandIsPrivatePath(absPath)) {
@@ -188,6 +192,10 @@ ISFSError nandCreateDir(const char *path, const u8 perm, const u8 attr,
                         NANDCommandBlock *block, const BOOL async_flag,
                         const BOOL privilege_flag) {
   char absPath[64] = "";
+
+  if (!nandCheckPathName(path)) {
+    return ISFS_ERROR_INVALID;
+  }
 
   nandGenerateAbsPath(absPath, path);
   if (!privilege_flag && nandIsPrivatePath(absPath)) {
@@ -467,4 +475,63 @@ static BOOL nandInspectPermission(const u8 perm) {
   } else {
     return FALSE;
   }
+}
+
+// The target copies this 66-byte character set into a by-value membership argument.
+// It contains no terminator.
+typedef struct {
+  char value[66];
+} NANDPathCharacters;
+
+static BOOL nandIsPathCharacter(char value, NANDPathCharacters allowed) {
+  u32 i;
+  for (i = 0; i < sizeof(allowed.value); i++) {
+    if (value == allowed.value[i]) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+// NONMATCHING: GPR allocation, table-temporary stack slots, copy scheduling
+// and loop-NOP placement after three source forms; bounded PPC checks agree.
+BOOL nandCheckPathName(const char* path) {
+  u32 length = strlen(path);
+  char absPath[NAND_MAX_PATH];
+  char relativeName[13];
+  if (length == 0) {
+    return FALSE;
+  }
+
+  if (nandIsRelativePath(path)) {
+    NANDPathCharacters allowed = {
+        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_./"};
+    u32 i;
+    for (i = 0; i < length; i++) {
+      if (!nandIsPathCharacter(*path, allowed)) {
+        return FALSE;
+      }
+      path++;
+    }
+  } else {
+    strcpy(absPath, path);
+    if (absPath[length - 1] == '/' && length - 1 != 0) {
+      absPath[length - 1] = '\0';
+    }
+    nandGetRelativeName(relativeName, absPath);
+    length = strlen(relativeName);
+    {
+      NANDPathCharacters allowed = {
+          "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_./"};
+      const char* name = relativeName;
+      u32 i;
+      for (i = 0; i < length; i++) {
+        if (!nandIsPathCharacter(*name, allowed)) {
+          return FALSE;
+        }
+        name++;
+      }
+    }
+  }
+  return TRUE;
 }

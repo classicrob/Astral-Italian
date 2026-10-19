@@ -1,4 +1,5 @@
 #include "revolution/vf/d_vf.h"
+#include "revolution/vf/d_vf_sys.h"
 #include "revolution/os.h"
 #include "revolution/vf/vf_struct.h"
 
@@ -40,12 +41,12 @@ void VFInitEx(void* i_heap_start_address_p, u32 i_size) {
     _VFLockMutex();
 
     if (l_vf_init == 0) {
-        l_vf_init = 1;
         VFSysInit(i_heap_start_address_p, i_size);
         VFipdm_init_diskmanager(0, 0);
         VFipf2_init_prfile2(0, 0);
         dHash_InitHashTable();
         VFSysSetTimeStampCallback(0);
+        l_vf_init = 1;
     }
 
     _VFUnlockMutex();
@@ -59,12 +60,12 @@ void VFInit(void) {
 
 static s32 VFAttachDriveNANDFlash(const s8* i_drive) {
     s32 err = VF_ERR_0xB004;
-    s32 idx = -1;
+    s32 idx;
 
     _VFLockMutex();
     if (dHash_GetArg(i_drive) == -1) {
         err = VFSysSetDeviceNANDFlash(&idx, 0, 0);
-        if (err == 0) {
+        if (err == 0 && idx != -1) {
             dHash_SetArg(i_drive, idx & 0xFF);
         }
     }
@@ -187,6 +188,7 @@ s32 VFUnmountDrive(const char* i_drive) {
     return err;
 }
 
+// NONMATCHING: target has one loop-alignment nop; instructions otherwise match.
 s8* VF_path2handleidx(long* o_handle_idx_p, const char* i_path_p) {
     s8 drive[8];
     const s8* str_p;
@@ -229,28 +231,18 @@ s8* VF_path2handleidx(long* o_handle_idx_p, const char* i_path_p) {
 void* VFOpenFile(const char* i_path_p, const char* i_mode, u32 i_attr) {
     s32 handle_idx;
     const s8* path_p;
-    void* pFile;
-
-    handle_idx = -1;
+    VFFile pFile = NULL;
 
     _VFLockMutex();
-
     path_p = VF_path2handleidx(&handle_idx, i_path_p);
-
-    if (path_p == 0) {
+    if (path_p == NULL) {
         VFSysSetLastError(VF_ERR_DRIVE_NOT_FOUND);
-        _VFUnlockMutex();
-        return 0;
-    }
-
-    if (handle_idx != -1) {
-        pFile = (VFFile)VFSysOpenFile(handle_idx, (const s8*)path_p, (const s8*)i_mode);
+    } else if (handle_idx != -1) {
+        pFile = VFSysOpenFile(handle_idx, path_p, (const s8*)i_mode);
     } else {
-        pFile = (VFFile)VFSysOpenFile_current((const s8*)path_p, (const s8*)i_mode);
+        pFile = VFSysOpenFile_current(path_p, (const s8*)i_mode);
     }
-
     _VFUnlockMutex();
-
     return pFile;
 }
 
@@ -299,45 +291,42 @@ s32 VFDeleteFile(const char* i_path_p) {
     const s8* path_p;
     s32 Err;
 
-    handle_idx = -1;
-
     _VFLockMutex();
-
     path_p = VF_path2handleidx(&handle_idx, i_path_p);
-
-    if (path_p == 0) {
+    if (path_p == NULL) {
         Err = VF_ERR_DRIVE_NOT_FOUND;
-        VFSysSetLastError(Err);
-        _VFUnlockMutex();
-        return VF_ERR_DRIVE_NOT_FOUND;
-    }
-
-    if (handle_idx != -1) {
+    } else if (handle_idx != -1) {
         Err = VFSysDeleteFile(handle_idx, path_p);
     } else {
         Err = VFSysDeleteFile_current(path_p);
     }
-
     VFSysSetLastError(Err);
     _VFUnlockMutex();
     return Err;
 }
 
 s32 VFGetFileSizeByFd(void* i_file_p) {
-    s32 size;
+    u32 size;
     s32 Err;
 
-    size = -1;
+    _VFLockMutex();
     Err = VFSysGetFileSizeByFd(&size, i_file_p);
     if (Err != 0) {
         VFSysSetLastError(Err);
     }
-
-    return size;
+    _VFUnlockMutex();
+    if (Err != 0) {
+        return -1;
+    }
+    return size > 0x7FFFFFFF ? 0x7FFFFFFF : size;
 }
 
-s32 VFGetLastError() {
-    return VFSysGetLastError();
+s32 VFGetLastError(void) {
+    s32 Err;
+    _VFLockMutex();
+    Err = VFSysGetLastError();
+    _VFUnlockMutex();
+    return Err;
 }
 
 s32 VFGetLastDeviceError(const char* i_drive) {
@@ -353,29 +342,33 @@ s32 VFGetLastDeviceError(const char* i_drive) {
         err = VFSysGetLastDeviceError_current();
     }
 
-    VFSysSetLastError(err);
 
     _VFUnlockMutex();
     return err;
 }
 
 s32 VFGetDriveFreeSize(const char* i_drive) {
-    s32 size;
+    s32 Err;
     s32 handle_idx;
+    u32 free_clusters;
+    u32 sectors_per_cluster;
+    u32 bytes_per_sector;
+    u64 size;
 
     _VFLockMutex();
-
-    if (i_drive != 0) {
+    if (i_drive != NULL) {
         handle_idx = dHash_GetArg((const s8*)i_drive);
-        size = VFSysGetDriveFreeSize(handle_idx);
+        Err = VFSysGetDriveFreeSizeInfo(handle_idx, &free_clusters, &sectors_per_cluster, &bytes_per_sector);
     } else {
-        VFSysSetLastError(-1);
-        size = -1;
+        Err = -1;
     }
-
     _VFUnlockMutex();
-
-    return size;
+    if (Err != 0) {
+        VFSysSetLastError(Err);
+        return -1;
+    }
+    size = (u64)free_clusters * sectors_per_cluster * bytes_per_sector;
+    return size > 0x7FFFFFFF ? 0x7FFFFFFF : size;
 }
 
 s32 VFSetSyncMode(const char* i_drive, u32 i_mode) {

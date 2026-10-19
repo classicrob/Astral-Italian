@@ -997,7 +997,7 @@ void Mario::fixFrontVecByGravity() {
     }
 
     TVec3f front = _344.cross(up);
-    if (MR::normalizeOrZero(&front) == nullptr) {
+    if (MR::normalizeOrZero(&front) == false) {
         setFrontVec(front);
         _22C = mFrontVec;
         f32 _328mag = _328.length();
@@ -1166,7 +1166,7 @@ void Mario::setFrontVecKeepSide(const TVec3f& rFront) {
     }
 
     headVec.cross(mFrontVec, mSideVec);
-    if (MR::normalizeOrZero(&headVec) != nullptr) {
+    if (MR::normalizeOrZero(&headVec) != false) {
         const TVec3f* gravity = getGravityVec();
         TVec3f up = -(*gravity);
         mHeadVec = up;
@@ -3203,27 +3203,36 @@ const TVec3f& Mario::getSideWallNorm() const {
         return *mSideWallTriangle->getNormal(0);
     }
 
+#ifdef GALAXY_NATIVE
+    return sNativeZeroVec;  // the Wii build returns a reference to a temporary copy of gZeroVec
+#else
     return TVec3f(gZeroVec);
+#endif
 }
-
 
 const TVec3f& Mario::getFrontWallNorm() const {
     if (((mMovementStates.mLowWord >> 23) & 1U)) {
         return *mFrontWallTriangle->getNormal(0);
     }
 
+#ifdef GALAXY_NATIVE
+    return sNativeZeroVec;  // the Wii build returns a reference to a temporary copy of gZeroVec
+#else
     return TVec3f(gZeroVec);
+#endif
 }
-
 
 const TVec3f& Mario::getBackWallNorm() const {
     if (((mMovementStates.mLowWord >> 6) & 1U)) {
         return *mBackWallTriangle->getNormal(0);
     }
 
+#ifdef GALAXY_NATIVE
+    return sNativeZeroVec;  // the Wii build returns a reference to a temporary copy of gZeroVec
+#else
     return TVec3f(gZeroVec);
+#endif
 }
-
 
 const TVec3f& Mario::getWallPos() const {
     if (((mMovementStates.mLowWord >> 23) & 1U)) {
@@ -8115,8 +8124,16 @@ void Mario::checkWallJumpHit() {
             }
 
             mJumpVec -= getWallNorm() * wallDot;
+#ifdef GALAXY_NATIVE
+            if (petari_ui_observing()) {
+                std::fprintf(stderr, "[mario] blown by wall-jump hit: wall normal (%.2f, %.2f, %.2f), jump vec (%.1f, %.1f, %.1f), gravity (%.2f, %.2f, %.2f), pos (%.0f, %.0f, %.0f)\n",
+                             getWallNorm().x, getWallNorm().y, getWallNorm().z, mJumpVec.x, mJumpVec.y, mJumpVec.z, getGravityVec()->x,
+                             getGravityVec()->y, getGravityVec()->z, mPosition.x, mPosition.y, mPosition.z);
+            }
+#endif
 
             blown(mJumpVec * 0.2f);
+
 
             TVec3f horizontal;
             MR::vecKillElement(mJumpVec, *getGravityVec(), &horizontal);

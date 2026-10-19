@@ -12,7 +12,6 @@
 DemoSoundInfo::DemoSoundInfo() : mPartName(), mBgm(""), mSystemSe(""), mActionSe(""), mReturnBgm(), mBgmWipeoutFrame(-1), mAllSoundStopFrame(-1) {
 }
 
-#pragma auto_inline off
 DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(pExecutor), mActionSoundKeeper() {
     JMapInfo* pMap = nullptr;
     const DemoExecutor* pSheetExecutor = mExecutor;
@@ -30,14 +29,18 @@ DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(
         if (MR::hasCsvItem(pMap, "AllSoundStopFrame")) {
             pMap->getValue(i, "AllSoundStopFrame", &info.mAllSoundStopFrame);
         }
+#pragma dont_inline on
         mInfo.push_back(info);
+#pragma dont_inline reset
         if (!MR::isNullOrEmptyString(info.mActionSe)) {
             initActionSoundKeeper();
         }
     }
 }
 
-#pragma auto_inline on
+void DemoSoundKeeper::start() {
+}
+
 void DemoSoundKeeper::update() {
     DemoSheetKeeperInfoHolder< DemoSoundInfo >::update();
 

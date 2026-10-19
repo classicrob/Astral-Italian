@@ -68,36 +68,36 @@ public:
     void exeExistWait();
     void exeNewWait();
 
-   /* 0x90 */ bool mIsNew;
+    /* 0x90 */ bool mIsNew;
     /* 0x94 */ PartsModel* mPlanetMapObj;
     /* 0x98 */ FileSelectIconID* mIconID;
     /* 0x9C */ FileSelectModel** mModels;
     /* 0xA0 */ MiiFaceParts* mFaceParts;
-   /* 0xA4 */ FileSelectNumber* mNumber;
-   /* 0xA8 */ TPos3f mPlanetMtx;
-   /* 0xD8 */ TMtx34f mFellowMtx;
-   /* 0x108 */ TMtx34f mMiiMtx;
-   /* 0x138 */ TVec3f mUnusedVector;
-   /* 0x144 */ s32 mFileIndex;
-   /* 0x148 */ u8 mIsPointed;
+    /* 0xA4 */ FileSelectNumber* mNumber;
+    /* 0xA8 */ TPos3f mPlanetMtx;
+    /* 0xD8 */ TMtx34f mFellowMtx;
+    /* 0x108 */ TMtx34f mMiiMtx;
+    /* 0x138 */ TVec3f mUnusedVector;
+    /* 0x144 */ s32 mFileIndex;
+    /* 0x148 */ u8 mIsPointed;
     /* 0x149 */ bool mIsInvalidateSelect;
-   /* 0x14A */ u8 mHasInvalidMiiId;
-   /* 0x14B */ u8 mIsComplete;
+    /* 0x14A */ u8 mHasInvalidMiiId;
+    /* 0x14B */ u8 mIsComplete;
     /* 0x14C */ FileSelectItemSub::ScaleController* mScaleCtrl;
     /* 0x150 */ FileSelectItemSub::BlinkController* mBlinkCtrl;
     /* 0x154 */ FileSelectItemDelegatorBase* mDelegator;
-   /* 0x158 */ u8 mNeedsPointerReset;
-   /* 0x159 */ u8 mIsDragging;
-   /* 0x15A */ u8 mWasDragging;
-   /* 0x15B */ u8 mReservedDragFlag;
-   /* 0x15C */ TVec2f mPreviousPointerPos;
-   /* 0x164 */ f32 mRotationSpeed;
+    /* 0x158 */ u8 mNeedsPointerReset;
+    /* 0x159 */ u8 mIsDragging;
+    /* 0x15A */ u8 mWasDragging;
+    /* 0x15B */ u8 mReservedDragFlag;
+    /* 0x15C */ TVec2f mPreviousPointerPos;
+    /* 0x164 */ f32 mRotationSpeed;
     /* 0x168 */ bool mIsInvalidRotate;
-   /* 0x169 */ u8 mUseCopyEffect;
-   /* 0x16A */ u8 mReservedEffectFlag0;
-   /* 0x16B */ u8 mReservedEffectFlag1;
-   /* 0x16C */ s32 mTurnToFrontDuration;
-   /* 0x170 */ s32 mTurnToFrontStep;
+    /* 0x169 */ u8 mUseCopyEffect;
+    /* 0x16A */ u8 mReservedEffectFlag0;
+    /* 0x16B */ u8 mReservedEffectFlag1;
+    /* 0x16C */ s32 mTurnToFrontDuration;
+    /* 0x170 */ s32 mTurnToFrontStep;
 };
 
 namespace FileSelectItemSub {
@@ -111,7 +111,7 @@ namespace FileSelectItemSub {
         void exeBig();
 
         f32 getScale() const {
-           /* 0x08 */ return mScale;
+            return mScale;
         }
 
         /* 0x08 */ f32 mScale;

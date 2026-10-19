@@ -1,3 +1,4 @@
+#define COLOR8_GX_CTOR_INLINE
 #include "Game/Effect/MultiEmitterCallBack.hpp"
 #include "Game/Effect/AutoEffectInfo.hpp"
 #include "Game/Effect/EffectSystemUtil.hpp"

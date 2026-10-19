@@ -1,4 +1,3 @@
-#define JGEOMETRY_VEC3_APL_OUTLINE
 #include "Game/Camera/CameraSphereTrundle.hpp"
 #include "Game/Camera/CameraLocalUtil.hpp"
 #include "Game/Camera/CameraTargetObj.hpp"
@@ -16,6 +15,7 @@ CameraSphereTrundle::CameraSphereTrundle(const char* pName) : Camera(pName) {
     mUp.set(0.0f, 0.0f, 0.0f);
 }
 
+// NONMATCHING: matrix evaluation and vector-copy scheduling.
 void CameraSphereTrundle::reset() {
     TVec3f sp20(mOffset);
     mZoneMatrix.mult(sp20, sp20);
@@ -24,7 +24,7 @@ void CameraSphereTrundle::reset() {
     f32 x = sp14.x;
     f32 y = sp14.y;
     f32 z = sp14.z;
-    sp14.set(mZoneMatrix.mMtx[0][0] * x + mZoneMatrix.mMtx[0][1] * y + mZoneMatrix.mMtx[0][2] * z,
+    sp14.set< f32 >(mZoneMatrix.mMtx[0][0] * x + mZoneMatrix.mMtx[0][1] * y + mZoneMatrix.mMtx[0][2] * z,
              mZoneMatrix.mMtx[1][0] * x + mZoneMatrix.mMtx[1][1] * y + mZoneMatrix.mMtx[1][2] * z,
              mZoneMatrix.mMtx[2][0] * x + mZoneMatrix.mMtx[2][1] * y + mZoneMatrix.mMtx[2][2] * z);
 
@@ -45,6 +45,7 @@ void CameraSphereTrundle::reset() {
     }
 }
 
+// NONMATCHING: equivalent temporary/copy layout and register scheduling.
 CameraTargetObj* CameraSphereTrundle::calc() {
     TVec3f sp58;
     CameraLocalUtil::makeWatchPoint(&sp58, this, CameraLocalUtil::getTarget(this), 0.0066666668f);
@@ -62,7 +63,7 @@ CameraTargetObj* CameraSphereTrundle::calc() {
     sp30.transform(mSide);
     sp30.transform(mUp);
 
-    mFront = sp40;
+    mFront.set(sp40);
     if (MR::normalizeOrZero(&mFront)) {
         return NULL;
     }
@@ -79,7 +80,7 @@ CameraTargetObj* CameraSphereTrundle::calc() {
     PSVECCrossProduct(&mUp, &mFront, &mSide);
 
     f32 angle = 0.5f * mAngle;
-    reinterpret_cast<TVec3f&>(sp30).scale((f32)sin(angle), mSide);
+    sp30.toTvec()->scale((f32)sin(angle), mSide);
     sp30.w = (f32)cos(angle);
 
     TVec3f sp20(mFront);

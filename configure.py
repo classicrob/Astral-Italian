@@ -2464,7 +2464,6 @@ config.libs = [
             Object(NonMatching, "Game/Demo/DemoAstroPlanet.cpp"),
             Object(NonMatching, "Game/Demo/DemoEndStartPosCameraSetter.cpp"),
             Object(NonMatching, "Game/Demo/DemoTitleAnim.cpp"),
-            Object(NonMatching, "Game/Demo/KoopaAssaultFallObj.cpp"),
             Object(NonMatching, "Game/Demo/MarioFaceAfterGrandStarTakeOffDemoObj.cpp"),
             Object(NonMatching, "Game/Demo/MarioFacePlanetTakeOffDemoObj.cpp"),
             Object(NonMatching, "Game/Demo/MeetKoopaDemoObj.cpp"),

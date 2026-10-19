@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MULASSIGN_NOINLINE
 #include "Game/Camera/CameraCalc.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/VectorUtil.hpp"

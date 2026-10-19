@@ -72,6 +72,7 @@ SwitchWatcherHolder::SwitchWatcherHolder() : NameObj("SwitchWatcherHolder") {
 }
 
 // https://decomp.me/scratch/BNgz7
+// NONMATCHING: member-pointer stack copies and register allocation differ; listener range and calls match.
 void SwitchWatcherHolder::movement() {
     void (SwitchWatcher::*func)(void) = &SwitchWatcher::movement;
 

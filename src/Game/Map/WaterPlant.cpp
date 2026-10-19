@@ -341,7 +341,7 @@ void WaterPlantDrawInit::updateSwingPos() {
 
     for (int i = 0; i < ::sSwingPosTableSize; i++) {
         mSwingPosTable[i] = ::sSwingWidth * MR::sin(mAngleOffset + angle);
-        angle += 0.19999998807907104f;
+        angle += 0.2f;
     }
 }
 

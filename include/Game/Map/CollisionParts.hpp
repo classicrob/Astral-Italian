@@ -47,28 +47,28 @@ public:
     u32 createAreaPolygonListArray(Triangle*, u32, TVec3f*, u32);
     void calcForceMovePower(TVec3f*, const TVec3f&) const;
 
-   /* 0x00 */ TPos3f* mFollowMtx;
+    /* 0x00 */ TPos3f* mFollowMtx;
     /* 0x04 */ TPos3f mMatrix;
     /* 0x34 */ TPos3f mBaseMatrix;
     /* 0x64 */ TPos3f mInvBaseMatrix;
     /* 0x94 */ TPos3f mPrevBaseMatrix;
     /* 0xC4 */ KCollisionServer* mServer;
     /* 0xC8 */ HitSensor* mHitSensor;
-   /* 0xCC */ bool mIsRegistered;
-   /* 0xCD */ bool mNeedsZoneUpdate;  // SMG2 has one more byte here than SMG1 (flags below shifted +1)
-   /* 0xCE */ bool mIsUpdateEnabled;  // updated flag (LiveActorUtil onUpdate/offUpdate writes 0xCE in SMG2)
-   /* 0xCF */ bool mForceUpdateOnce;
-   /* 0xD0 */ bool mUseAutoScale;
-   /* 0xD1 */ bool mIgnoreScale;
-   /* 0xD2 */ u8 mReserved[2];
-   /* 0xD4 */ s32 mStationaryFrames;
-   /* 0xD8 */ f32 mBoundingSphereRadius;
-   /* 0xDC */ f32 mEqualScale;
+    /* 0xCC */ bool mIsRegistered;
+    /* 0xCD */ bool mNeedsZoneUpdate;  // SMG2 has one more byte here than SMG1 (flags below shifted +1)
+    /* 0xCE */ bool mIsUpdateEnabled;  // updated flag (LiveActorUtil onUpdate/offUpdate writes 0xCE in SMG2)
+    /* 0xCF */ bool mForceUpdateOnce;
+    /* 0xD0 */ bool mUseAutoScale;
+    /* 0xD1 */ bool mIgnoreScale;
+    /* 0xD2 */ u8 mReserved[2];
+    /* 0xD4 */ s32 mStationaryFrames;
+    /* 0xD8 */ f32 mBoundingSphereRadius;
+    /* 0xDC */ f32 mEqualScale;
     /* 0xE0 */ s32 mKeeperIndex;
     /* 0xE4 */ CollisionZone* mZone;
-   /* 0xE8 */ f32 mScaleX;
-   /* 0xEC */ f32 mScaleY;
-   /* 0xF0 */ f32 mScaleZ;
+    /* 0xE8 */ f32 mScaleX;
+    /* 0xEC */ f32 mScaleY;
+    /* 0xF0 */ f32 mScaleZ;
 };
 
 namespace Collision {

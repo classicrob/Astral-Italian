@@ -43,6 +43,7 @@ void HeadLight::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mtx);
 }
 
+// NONMATCHING: vector stores and floating-point scheduling differ; calls, fields and scalar values match.
 void HeadLight::control() {
     TVec3f upVec;
     MR::getPlayerUpVec(&upVec);

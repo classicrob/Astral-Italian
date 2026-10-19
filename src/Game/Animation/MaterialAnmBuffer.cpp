@@ -76,6 +76,7 @@ void MaterialAnmBuffer::searchUpdateMaterialID(const ResourceHolder* pResourceHo
     }
 }
 
+// NONMATCHING: register allocation differs; material animation checks and archive arguments match.
 void MaterialAnmBuffer::setDiffFlag(const ResourceHolder* pResourceHolder) {
     const char* pBpkName;
     const ResTable* pBpkTable = pResourceHolder->mBpkResTable;

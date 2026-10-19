@@ -38,7 +38,7 @@ public:
     /* 0x1D */ u8 mReserved;
     /* 0x20 */ void* mAnimations[4];
     /* 0x30 */ f32 mWeights[4];
-   /* 0x40 */ u32 mAnimationHash;
+    /* 0x40 */ u32 mAnimationHash;
     /* 0x44 */ const char* mBckName;
 
     void init();
@@ -64,7 +64,7 @@ class XanimeBckTable1 {
 public:
     /* 0x0 */ XanimeBckTable mParent;
     /* 0x4 */ const char* mFileName;
-   /* 0x40 */ u32 mAnimationHash;
+    /* 0x40 */ u32 mAnimationHash;
     /* 0xC */ u32 mFileHash;
 };
 
@@ -125,7 +125,7 @@ public:
     /* 0x0C */ u32 mAmountOfSimpleGroupInfos;
     /* 0x10 */ XanimeGroupInfo* mGroupInfos;
     /* 0x14 */ XanimeBckTable1* mBckTables;
-   /* 0x18 */ XanimeGroupInfo mDefaultGroup;
+    /* 0x18 */ XanimeGroupInfo mDefaultGroup;
     /* 0x60 */ XanimeGroupInfo* mSimpleGroupInfos;
     /* 0x64 */ ResourceHolder* mResourceHolder;
     /* 0x68 */ HashSortTable* mSortTable;

@@ -8,8 +8,12 @@ public:
     Color8() : mColor(-1) {
     }
 
-    // Never inlined; its weak copy is emitted in the first TU that uses it (BattanKing, 0x8008B150).
+    // Outlined by default; BattanKing emits the first weak copy at 0x8008B150.
+#ifdef COLOR8_GX_CTOR_INLINE
+    Color8(GXColor color) {
+#else
     Color8(GXColor color) NO_INLINE {
+#endif
         set(color);
     }
 

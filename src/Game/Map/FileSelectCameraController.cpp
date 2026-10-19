@@ -38,6 +38,7 @@ void FileSelectCameraController::init(const JMapInfoIter& rIter) {
     makeActorDead();
 }
 
+// NONMATCHING: chained vector-assignment code generation differs; camera state and parameters match.
 void FileSelectCameraController::appear() {
     LiveActor::appear();
     setNerve(GET_NERVE(FileSelectCameraController, FileSelectCameraControllerNrvFarPoint));

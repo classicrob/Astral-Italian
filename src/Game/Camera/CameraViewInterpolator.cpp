@@ -277,6 +277,7 @@ void CameraViewInterpolator::updateCalcState(const CameraTargetObj* pTargetObj) 
 
     mTargetObj = pTargetObj;
     mIsCorrectErpPositionOn = true;
+    mIsTargetOffsetOn = true;
 }
 
 void CameraViewInterpolator::interpolateCameraSwitching(MtxPtr pMtx, const TVec3f& rPos, f32 fovy) {

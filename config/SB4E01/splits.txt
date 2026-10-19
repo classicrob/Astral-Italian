@@ -2330,10 +2330,10 @@ Game/Demo/MarioFacePlanetTakeOffDemoObj.cpp:
 	.ctors      start:0x80644034 end:0x80644038
 
 Game/Demo/MeetKoopaDemoObj.cpp:
-	.text       start:0x8013EF70 end:0x8013F6B0
-
-Game/Demo/KoopaAssaultFallObj.cpp:
-	.text       start:0x8013F6B0 end:0x8013FA80
+	.text       start:0x8013EF70 end:0x8013FCC0
+	.ctors      start:0x80644038 end:0x8064403C
+	.data       start:0x8067FD80 end:0x80680070
+	.sbss       start:0x807D1DE8 end:0x807D1E08
 
 Game/Demo/NormalEndingDemoObj.cpp:
 	.text       start:0x8013FEE0 end:0x80140A20

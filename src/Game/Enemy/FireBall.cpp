@@ -1,3 +1,4 @@
+#define COLOR8_GX_CTOR_INLINE
 #include "Game/Enemy/FireBall.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -99,8 +100,7 @@ void FireBall::appearAndThrow(const TVec3f& rAppearPos, f32 speed, f32 angle) {
 
 // NONMATCHING: Color8 argument construction and temporary copies lower differently.
 void FireBall::control() {
-    GXColor light = color;
-    MR::requestPointLight(this, mPosition, Color8(light.r, light.g, light.b, light.a), 1.0f, -1);
+    MR::requestPointLight(this, mPosition, color, 1.0f, -1);
 }
 
 void FireBall::calcAndSetBaseMtx() {

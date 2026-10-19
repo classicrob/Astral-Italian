@@ -2526,24 +2526,34 @@ bool Mario::isIgnoreTriangle(const Triangle* pTriangle) {
 
 void Mario::checkBaseTransBall() {
     TVec3f center = mPosHolder->mPos + mVelocity + mHeadVec * 50.0f;
-    u32 count = Collision::checkStrikeBallToMap(center, 50.0f, nullptr, nullptr);
-
+    u32 count;
+    if (fn_803B2950()) {
+        count = Collision::checkStrikeBallToDashYoshiStepAndMap(center, 50.0f, nullptr, nullptr);
+    } else {
+        count = Collision::checkStrikeBallToMap(center, 50.0f, nullptr, nullptr);
+    }
     for (u32 i = 0; i < count; i++) {
-        doSwimmingHitCheck(Collision::getStrikeInfoMap(i), 0);
+        doSwimmingHitCheck(fn_803B2AA0(i), 0);
     }
 
     center = mPosHolder->mPos + mVelocity - mHeadVec * 40.0f;
-    count = Collision::checkStrikeBallToMap(center, 50.0f, nullptr, nullptr);
-
+    if (fn_803B2950()) {
+        count = Collision::checkStrikeBallToDashYoshiStepAndMap(center, 50.0f, nullptr, nullptr);
+    } else {
+        count = Collision::checkStrikeBallToMap(center, 50.0f, nullptr, nullptr);
+    }
     for (u32 i = 0; i < count; i++) {
-        doSwimmingHitCheck(Collision::getStrikeInfoMap(i), 1);
+        doSwimmingHitCheck(fn_803B2AA0(i), 1);
     }
 
     center = mPosHolder->mPos + mVelocity;
-    count = Collision::checkStrikeBallToMap(center, 40.0f, nullptr, nullptr);
-
+    if (fn_803B2950()) {
+        count = Collision::checkStrikeBallToDashYoshiStepAndMap(center, 40.0f, nullptr, nullptr);
+    } else {
+        count = Collision::checkStrikeBallToMap(center, 40.0f, nullptr, nullptr);
+    }
     for (u32 i = 0; i < count; i++) {
-        doSwimmingHitCheck(Collision::getStrikeInfoMap(i), 2);
+        doSwimmingHitCheck(fn_803B2AA0(i), 2);
     }
 }
 
@@ -2745,64 +2755,44 @@ void Mario::checkMap() {
 
 
 f32 Mario::calcDistToCeil(bool saveSensor) {
-    Triangle triangle;
-    TVec3f hitPos;
     f32 offset = 30.0f;
-
+    if (isPlayerModeYoshi()) {
+        getCurrentStatus();
+    }
     if (saveSensor) {
         _730 = nullptr;
     }
-
     if (isStatusActive(MarioStatus_Hang)) {
         offset = 0.0f;
     }
-
-    while (true) {
-        TVec3f start = mPosHolder->mPos + getAirGravityVec() * offset;
-        bool hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, -getAirGravityVec() * (200.0f + offset));
-
-        if (isThroughWall(&triangle)) {
-            hit = false;
-        }
-
-        if (!hit) {
-            break;
-        }
-
-        bool pressGround = false;
-
-        if (mGroundPolygon->mSensor != nullptr && MR::isSensorPressObj(mGroundPolygon->mSensor)) {
-            pressGround = true;
-        }
-
-        if (!MR::isSensorPressObj(triangle.mSensor) && _95C->getCode(&triangle) != CollisionFloorCode_Press && !pressGround &&
-            _960 != CollisionFloorCode_Press) {
-            if ((hitPos - mPosHolder->mPos).dot(*getGravityVec()) >= 0.0f) {
-                if (offset <= 1.0f) {
-                    offset = -10.0f;
-                    continue;
-                }
-
-                return 200.0f;
-            }
-        }
-
-        _3B0 = *triangle.getNormal(0);
-
-        if (saveSensor) {
-            _730 = triangle.mSensor;
-        }
-
-        f32 distance = (hitPos - mPosHolder->mPos).length();
-
-        if (!_4C8->isValid()) {
-            *_4C8 = triangle;
-        }
-
-        return distance;
+    MR::isNearZero(mAirGravityVec, 0.001f);
+    TVec3f start = mPosHolder->mPos + mAirGravityVec * offset;
+    MR::isNearZero(mAirGravityVec, 0.001f);
+    TVec3f ray = -mAirGravityVec * (200.0f + offset);
+    Triangle triangle;
+    TVec3f hitPos;
+    bool hit;
+    if (fn_803B2950()) {
+        hit = MR::fn_80037E80(&hitPos, &triangle, start, ray);
+    } else {
+        hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, ray);
     }
-
-    return 200.0f;
+    if (!hit || isThroughWall(&triangle)) {
+        return 200.0f;
+    }
+    if (fn_80390210(&triangle)) {
+        if ((hitPos - mPosHolder->mPos).dot(*getGravityVec()) >= 0.0f) {
+            return 200.0f;
+        }
+    }
+    _3B0 = *triangle.getNormal(0);
+    if (saveSensor) {
+        _730 = triangle.mSensor;
+    }
+    if (!_4C8->isValid()) {
+        *_4C8 = triangle;
+    }
+    return (hitPos - mPosHolder->mPos).length();
 }
 
 
@@ -3599,7 +3589,7 @@ void Mario::checkBaseTransPoint() {
     u32 count;
     if(fn_803B2950()) count=Collision::checkStrikeBallToDashYoshiStepAndMap(position,1.0f,nullptr,nullptr);
     else count=Collision::checkStrikeBallToMap(position,1.0f,nullptr,nullptr);
-    for(u32 i=0;i<count;i++) fn_8038E1A0(&fn_803B2AA0(i)->mParentTriangle,inside);
+    for(u32 i=0;i<count;i++) fn_8038E1A0(fn_803B2AA0(i),inside);
 }
 
 
@@ -14498,22 +14488,34 @@ void Mario::startStep(const TVec3f& rVec) {
     TVec3f checkPos = rVec - *getGravityVec() * 80.0f;
     HitInfo hitInfo;
 
-    if (MR::checkStrikePointToMap(checkPos, &hitInfo)) {
+    if (fn_803B2AF0(checkPos, &hitInfo)) {
         return;
     }
 
-    const bool hitNear = Collision::checkStrikeBallToMap(checkPos, 20.0f, nullptr, nullptr);
+    bool hitNear;
+    if (fn_803B2950()) {
+        hitNear = Collision::checkStrikeBallToDashYoshiStepAndMap(checkPos, 20.0f, nullptr, nullptr);
+    } else {
+        hitNear = Collision::checkStrikeBallToMap(checkPos, 20.0f, nullptr, nullptr);
+    }
     if (hitNear) {
         return;
     }
 
-    const bool hitFar = Collision::checkStrikeBallToMap(checkPos, 50.0f, nullptr, nullptr);
+    bool hitFar;
+    if (fn_803B2950()) {
+        hitFar = Collision::checkStrikeBallToDashYoshiStepAndMap(checkPos, 50.0f, nullptr, nullptr);
+    } else {
+        hitFar = Collision::checkStrikeBallToMap(checkPos, 50.0f, nullptr, nullptr);
+    }
     if (hitFar) {
         return;
     }
 
     TVec3f oldPos(mPosHolder->mPos);
+    mPosHolder->fn_80405F90(rVec);
     const f32 ceilDist = calcDistToCeil(false);
+    mPosHolder->fn_80405F90(oldPos);
 
     if (ceilDist < 200.0f) {
         return;
@@ -14538,12 +14540,9 @@ void Mario::startStep(const TVec3f& rVec) {
 
     setTrans(rVec, "階段");
     changeStatus(mStep);
+    mVelocity.zero();
     _3D0 = 0;
-    const f32 zero = 0.0f;
-    mVelocity.z = zero;
-    mVelocity.y = zero;
-    mVelocity.x = zero;
-    mMovementStates._10 = false;
+    mMovementStates_LOW_WORD &= 0xFFFF7FFF;
 }
 
 // ---- MarioStick.cpp ----

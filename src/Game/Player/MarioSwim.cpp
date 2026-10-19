@@ -3745,8 +3745,9 @@ void MarioSwim::fn_803F95A0(f32 input) {
         ratio = 0.01f * (12.0f - mForwardSpeed);
         if (ratio <= 0.01f) ratio = 0.01f;
     } else ratio = 0.01f * (10.0f - mForwardSpeed);
+    ratio *= mJet->calcSpeedScale();
     f32 scale = mActor->mConst->getTable()->mSwimRotSpeedRatioSurface;
-    f32 limit = MR::clamp(ratio * mJet->calcSpeedScale() * scale, 0.0f, 1.0f);
+    f32 limit = MR::clamp(ratio * scale, 0.0f, 1.0f);
     f32 angle = MR::diffAngleAbs(mFrontVec, pad);
     if (angle > 0.0f) {
         if (angle < limit) {
@@ -4016,17 +4017,23 @@ bool MarioSwim::fn_803FB9C0() {
         if (!fn_803FC020()) return false;
     } else if (checkLvlA()) {
         const MarioConstTable* table = mActor->mConst->getTable();
+        f32 currentSpeed = mForwardSpeed;
         f32 inertia = table->mSwimFrontIne;
+        f32 normalSpeed = table->mSwimFrontNormalSpeedYoshi;
         mBuoyancySpeed = 0.0f;
-        mForwardSpeed = mForwardSpeed * inertia + table->mSwimFrontNormalSpeedYoshi * (1.0f - inertia);
+        mForwardSpeed = currentSpeed * inertia + normalSpeed * (1.0f - inertia);
     } else {
-        f32 y = getStickY();
-        f32 yy = getStickY() * y;
-        f32 x = getStickX();
-        if (getStickX() * x + yy > 0.2f) {
+        f32 xx;
+        f32 yy = getStickY();
+        yy = getStickY() * yy;
+        xx = getStickX();
+        xx = getStickX() * xx;
+        if (xx + yy > 0.2f) {
             const MarioConstTable* table = mActor->mConst->getTable();
+            f32 stick = getStickP();
+            f32 normalSpeed = table->mSwimFrontNormalSpeedYoshi;
             f32 inertia = table->mSwimFrontIne;
-            f32 speed = 0.3f * (table->mSwimFrontNormalSpeedYoshi * getStickP());
+            f32 speed = 0.3f * (normalSpeed * stick);
             mBuoyancySpeed = 0.0f;
             mForwardSpeed = mForwardSpeed * inertia + (1.0f - inertia) * speed;
         } else {

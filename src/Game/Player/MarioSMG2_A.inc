@@ -366,13 +366,9 @@ void Mario::fn_803A1D60() {
     FLD<TVec3f>(this, 0x238) = FLD<TVec3f>(this, 0x22C);
 }
 
-bool Mario::fn_803902B0(HitSensor* arg1) {
-    bool r = false;
-    const HitSensor* temp_r3 = FLD<const HitSensor*>(FLD<void*>(this, 0x460), 8);
-    if (temp_r3 != nullptr && MR::isSensorPressObj(temp_r3)) {
-        r = true;
-    }
-    return r;
+bool Mario::fn_803902B0() {
+    const HitSensor* sensor = this->mGroundPolygon->mSensor;
+    return sensor != nullptr && MR::isSensorPressObj(sensor);
 }
 
 bool Mario::fn_80391260(const Triangle* triangle) {
@@ -545,22 +541,20 @@ bool Mario::fn_80394550(const TVec3f* arg) {
     return false;
 }
 
-bool Mario::fn_80390210(HitSensor* arg) {
-    if (MR::isSensorPressObj(reinterpret_cast<const HitSensor*>(FLD<void*>(arg, 8)))) {
+bool Mario::fn_80390210(const Triangle* triangle) {
+    if (MR::isSensorPressObj(triangle->mSensor)) {
         return true;
     }
-    FloorCode* fc = FLD<FloorCode*>(this, 0x960);
-    if (fc->getCode(reinterpret_cast<const Triangle*>(arg)) == 0x1D) {
+    if (this->_95C->getCode(triangle) == 0x1D) {
         return true;
     }
-    if (fc->getCode(reinterpret_cast<const Triangle*>(arg)) == 0x27) {
+    if (this->_95C->getCode(triangle) == 0x27) {
         return true;
     }
-    if (this->fn_803902B0(arg)) {
+    if (this->fn_803902B0()) {
         return true;
     }
-    u16 v = FLD<u16>(this, 0x964);
-    return v == 0x1D || v == 0x27;
+    return this->_960 == 0x1D || this->_960 == 0x27;
 }
 
 void Mario::fn_803A1A60(TVec3f* arg) {
@@ -1433,35 +1427,34 @@ void Mario::fn_8038C620(s32) {
 }
 
 // NONMATCHING: the wall-contact push-out is approximated
-void Mario::fn_8038E1A0(const Triangle* tri, s32 arg2) {
-    if (!MR::isThroughPolygon(tri)) {
-        if (this->isThroughWall(tri)) {
-        }
-        if (reinterpret_cast<const HitInfo*>(tri)->isCollisionAtEdge() || reinterpret_cast<const HitInfo*>(tri)->isCollisionAtCorner()) {
-            FLD<u32>(this, 0xC) |= 0x400000;
-        }
-        const TVec3f* n = tri->getNormal(0);
-        f32 d = n->dot(FLD<TVec3f>(this, 0x368));
-        if (!MR::isNearZero(d, 0.3f) || arg2 != 0) {
-            TVec3f sp2C(FLD<TVec3f>(this, 0x16C));
-            MR::normalizeOrZero(&sp2C);
-            TVec3f sp20;
-            sp20 = -*n;
-            if (!(sp2C.dot(sp20) < 0.707f)) {
-                f32 d2 = FLD<TVec3f>(this, 0x16C).dot(*n);
-                f32 lim = FLD<f32>(tri, 0x60);
-                if (!((d2 < 0.0f ? -d2 : d2) < lim) && !MR::isNearZero(d2 - lim, 0.001f)) {
-                    TVec3f sp14(FLD<TVec3f>(tri, 0x64));
-                    sp14 -= this->mPosHolder->mPos;
-                    if (!(sp14.dot(this->mHeadVec) < 0.0f)) {
-                        f32 tf = lim - 1.0f;
-                        TVec3f sp8(*n);
-                        sp8 *= tf;
-                        this->addTrans(sp8, nullptr);
-                        u32 t = FLD<u32>(this, 0xC);
-                        if (!((t >> 30) & 1) && (t >> 31) != 0 && !this->isRising() && n->dot(*this->getGravityVec()) < -0.99f) {
-                            this->mTargetWalkSpeedIndex = this->mTargetWalkSpeedIndex;
-                        }
+void Mario::fn_8038E1A0(const HitInfo* hit, s32 inside) {
+    const Triangle* tri = &hit->mParentTriangle;
+    if (MR::isThroughPolygon(tri) || this->isThroughWall(tri)) {
+        return;
+    }
+    if (hit->isCollisionAtEdge() || hit->isCollisionAtCorner()) {
+        this->mDrawStates_WORD |= 0x400000;
+        return;
+    }
+    const TVec3f* normal = tri->getNormal(0);
+    f32 alignment = normal->dot(this->_368);
+    if (!MR::isNearZero(alignment, 0.3f) || inside != 0) {
+        TVec3f movement(this->_16C);
+        MR::normalizeOrZero(&movement);
+        TVec3f inward = -*normal;
+        if (!(movement.dot(inward) < 0.707f)) {
+            f32 approach = this->_16C.dot(*normal);
+            f32 depth = hit->_60;
+            if (!(MR::abs(approach) < depth) && !MR::isNearZero(depth, 1.01f)) {
+                TVec3f offset(hit->_64);
+                offset -= this->mPosHolder->mPos;
+                if (!(offset.dot(this->mHeadVec) < 0.0f)) {
+                    TVec3f push(*normal);
+                    push *= depth - 1.0f;
+                    this->addTrans(push, nullptr);
+                    u32 flags = this->mMovementStates_LOW_WORD;
+                    if (!((flags >> 30) & 1) && (flags >> 31) != 0 && !this->isRising() && normal->dot(*this->getGravityVec()) < -0.99f) {
+                        this->addVelocity(this->mFrontVec, 5.0f);
                     }
                 }
             }

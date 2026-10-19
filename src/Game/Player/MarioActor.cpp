@@ -2421,7 +2421,7 @@ MtxPtr MarioActor::getMapBaseMtx() const {
         return nullptr;
     }
 
-    return pSensor->mHost->getBaseMtx();
+    return MR::getSensorHost(pSensor)->getBaseMtx();
 }
 
 
@@ -5259,16 +5259,15 @@ struct myStruct {
 static myStruct cMorphStringTable[] = {{"DieBlackHole", 0, 0, 0, "DieBlackHoleBee", 0, 0, 0, "DieBlackHoleLuigi", 0}, {}};
 
 
+// NONMATCHING: saved Mario receiver, stack frame size, and register allocation.
 void MarioActor::touchSensor(HitSensor* pSensor) {
-    switch (pSensor->mType) {
-    case ATYPE_WATER_PRESSURE_BULLET_BIND:
-        if (MR::isExistMapCollision(_2A0, pSensor->mPosition - _2A0)) {
+    if (pSensor->mType == ATYPE_WATER_PRESSURE_BULLET_BIND) {
+        const TVec3f collisionOffset = *MR::getSensorPos(pSensor) - _240;
+        if (mMario->fn_803B2880(_240, collisionOffset)) {
             return;
         }
-
         mMario->touchWater();
     }
-
     if (MR::isSensorEnemy(pSensor) && mMario->isStatusActive(MarioStatus_Bury)) {
         mMario->closeStatus(nullptr);
     }
@@ -7614,61 +7613,33 @@ bool MarioActor::tryStartRush(HitSensor* target, bool automatic) {
 }
 
 
+// NONMATCHING: equivalent early guards, saved registers, and verified pooled literals.
 bool MarioActor::tryJumpRush() {
-    if (mHealth == 0) {
-        return false;
-    }
-
-    if (mMario->getMovementStates().debugMode) {
-        return false;
-    }
-
-    if (mMarioAnim->isLandingAnimationRun()) {
-        return false;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_13)) {
-        return false;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Bury)) {
-        return false;
-    }
-
     HitSensor* jumpTarget = getNearestJumpTarget();
-    if (jumpTarget != nullptr) {
-        unsigned char autoBind;
-        bool b = mActionTable1080->selectAutoBind(jumpTarget->mHost->mName, &autoBind);
-        if (!b && !mActionTable1080->isActionOk("ジャンプ系バインド")) {
-            return false;
-        }
-
-        if (_468 != 0 && selectHandyRush(jumpTarget)) {
-            return false;
-        }
-
-        if (b && autoBind == 0) {
-            return false;
-        }
-
-        _7E4[0] = jumpTarget;
-
-        bool out = jumpTarget->receiveMessage(ACTMES_AUTORUSH_BEGIN, getSensor("body"));
-
-        if (out != nullptr) {
-            resetSensorCount();
-            mVelocity.zero();
-            beginRush(jumpTarget);
-
-            if (b && autoBind == 2) {
-                setPlayerMode(0, true, true);
-            }
-        }
-
-        return out;
+    if (jumpTarget == nullptr || fn_803D11C0()) {
+        return false;
     }
-
-    return false;
+    u8 autoBind;
+    const bool hasAutoBind = mActionTable1080->selectAutoBind(MR::getSensorHost(jumpTarget)->mName, &autoBind);
+    if (!hasAutoBind && !mActionTable1080->isActionOk("ジャンプ系バインド")) {
+        return false;
+    }
+    if (_468 != 0 && selectHandyRush(jumpTarget)) {
+        return false;
+    }
+    if (hasAutoBind && autoBind == 0) {
+        return false;
+    }
+    if (!jumpTarget->receiveMessage(ACTMES_AUTORUSH_BEGIN, getSensor("Body"))) {
+        return false;
+    }
+    resetSensorCount();
+    mVelocity.zero();
+    beginRush(jumpTarget);
+    if (hasAutoBind) {
+        applyAutoBindPlayerMode(autoBind);
+    }
+    return true;
 }
 
 
@@ -9581,39 +9552,22 @@ bool MarioActor::tryThrow() {
 
 
 void MarioActor::tryReleaseDirect(const HitSensor* pSensor) {
-    u32 maxIdx = _468;
-    for (s32 idx = 0; idx < maxIdx; idx++) {
+    const u32 count = _468;
+    for (u32 idx = 0; idx < count; ++idx) {
         if (_428[idx] == pSensor) {
             _428[idx] = nullptr;
-            _468--;
-
-            continue;
-        }
-
-        if (idx == 0) {
-            continue;
-        }
-
-        for (u32 innerIdx = 0; innerIdx < idx; innerIdx++) {
-            if (_428[innerIdx] == nullptr) {
-                _428[innerIdx] = _428[idx];
-                _428[idx] = nullptr;
-
-                break;
-            }
+            --_468;
+        } else {
+            fn_803D5A00(idx);
         }
     }
-
     if (_474 == pSensor) {
         _474 = nullptr;
     }
-
     if (_468 == 0) {
         mMario->stopAnimationUpper(nullptr);
         mMario->mSwim->resetJet();
-
         offTakingFlag();
-
         clearNullAnimation(0);
     }
 }

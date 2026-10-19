@@ -107,9 +107,9 @@ public:
     void fn_8038C620(s32 arg3);
     bool fn_8038CCF0();
     void fn_8038CE40();
-    void fn_8038E1A0(const Triangle* tri, s32 arg2);
-    bool fn_80390210(HitSensor* arg);
-    bool fn_803902B0(HitSensor* arg1);
+    void fn_8038E1A0(const HitInfo* hit, s32 arg2);
+    bool fn_80390210(const Triangle* triangle);
+    bool fn_803902B0();
     bool fn_80391260(const Triangle*);
     void fn_803912D0(const HitInfo*, const TVec3f&, const TVec3f&);
     bool fn_80391330(const HitInfo*, const TVec3f&, const TVec3f&);

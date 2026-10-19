@@ -15655,11 +15655,10 @@ bool Mario::isEnableStickWall() {
     case PlayerMode_Teresa:
         return false;
     case PlayerMode_Foo:
-        if (isStatusActive(MarioStatus_Foo)) {
-            return false;
-        }
-
-        break;
+        isStatusActive(MarioStatus_Foo);
+        return false;
+    case 0xA:
+        return false;
     }
 
     if (mWall->isCancel()) {

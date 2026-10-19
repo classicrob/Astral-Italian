@@ -136,6 +136,7 @@ void NokonokoLandBig::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender)) {
         if (MR::isSensorPlayerOrRide(pReceiver) && !tryPushEnemyAttack(pSender, pReceiver)) {
             MR::sendMsgPush(pReceiver, pSender);
+            return;
         }
         return;
     }

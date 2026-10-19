@@ -96,7 +96,7 @@ private:
     /* 0x03C */ u32 mFavoriteMiiIndices[10];
     /* 0x064 */ u16 mMiiNum;
     /* 0x068 */ u32 mMiiIndices[10];
-    /* 0x090 */ u8 _84[360];
+    /* 0x090 */ u8 mReserved90[360];
     /* 0x1F8 */ s32 mPageStartIndex;
     /* 0x1FC */ s32 mSelectedIconIndex;
     /* 0x200 */ nw4r::lyt::TexMap* mSelectedMiiTexMap;

@@ -13,8 +13,8 @@
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
-extern s32 sStarPieceTicoEatSpeedStartStep;
-extern f32 sStarPieceTicoCameraEyeSide, sStarPieceTicoCameraTargetSide, sStarPieceTicoCameraTargetFront;
+extern const volatile s32 sStarPieceTicoEatSpeedStartStep;
+extern const volatile f32 sStarPieceTicoCameraEyeSide, sStarPieceTicoCameraTargetSide, sStarPieceTicoCameraTargetFront;
 
 extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 namespace { const char* sEventCamera = "デブチコカメラ"; }
@@ -395,3 +395,8 @@ bool TicoFatStarPiece::tryEndEventCamera() {
 
 
 TicoFatStarPiece::~TicoFatStarPiece() {}
+
+extern const volatile s32 sStarPieceTicoEatSpeedStartStep = 0;
+extern const volatile f32 sStarPieceTicoCameraEyeSide = 0.0f;
+extern const volatile f32 sStarPieceTicoCameraTargetSide = 0.0f;
+extern const volatile f32 sStarPieceTicoCameraTargetFront = 0.0f;

@@ -87,7 +87,7 @@ void WalkerStateFindPlayer::exeFindJumpEnd() {
 }
 
 bool WalkerStateFindPlayer::isInSightPlayer() const {
-    return WalkerStateFunction::isInSightPlayer(getHost(), *mDirection, mStateParam);
+    return WalkerStateFunction::isNearOrInSightPlayer(getHost(), *mDirection, mStateParam);
 }
 
 bool WalkerStateFindPlayer::isFindJumpBegin() const {

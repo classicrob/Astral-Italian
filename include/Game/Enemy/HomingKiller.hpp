@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Player/YoshiFunction.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class ModelObj;
@@ -9,23 +11,6 @@ class AnimScaleController;
 class PartsModel;
 
 class YoshiLockOnTarget;
-
-namespace YoshiFunction {
-    void tryYoshiProjectile(YoshiLockOnTarget*);
-};
-
-extern "C" void fn_804221D0();
-extern "C" void fn_80422250();
-
-namespace MR {
-
-    bool isMsgYoshiStartTongue(u32);
-    bool isMsgYoshiLoopTongue(u32);
-    bool isMsgYoshiStartEaten(u32);
-    bool isMsgYoshiCancelEaten(u32);
-    bool isMsgYoshiReleaseEaten(u32);
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-};
 
 class HomingKiller : public LiveActor {
 public:
@@ -91,8 +76,8 @@ public:
     void exeGoToTarget();
     void exeTongue() {}
     void endEaten() {
-        fn_804221D0();
-        fn_80422250();
+        MR::fn_804221D0();
+        MR::fn_80422250();
     }
     void exeEaten();
     void exeShot();
@@ -145,7 +130,7 @@ public:
 class HomingKillerLauncher : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    HomingKiller* fn_80198540();
+    HomingKiller* findDeadKiller();
     HomingKillerLauncher(const char*);
 
     virtual void init(const JMapInfoIter&);

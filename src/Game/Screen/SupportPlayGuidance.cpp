@@ -36,6 +36,10 @@ void SupportPlayGuidance::kill() {
     MR::hideScreen(this);
 }
 void SupportPlayGuidance::requestAppear() { if (MR::isDead(this)) appear(); }
+namespace {
+    char sSupportGuidanceDemo[] = "サポートプレイガイダンスデモ";
+}
+
 void SupportPlayGuidance::exeAppear() {
     if (MR::isFirstStep(this)) {
         MR::showScreen(this);
@@ -57,7 +61,7 @@ void SupportPlayGuidance::exeDisappear() {
         mIconAButton->term();
     }
     if (MR::isAnimStopped(this, 0)) {
-        MR::endDemo(this, "サポートプレイガイダンスデモ");
+        MR::endDemo(this, sSupportGuidanceDemo);
         kill();
     }
 }
@@ -65,6 +69,6 @@ SupportPlayGuidance::~SupportPlayGuidance() {}
 namespace NrvSupportPlayGuidance {
     void SupportPlayGuidanceNrvWaitDemo::execute(Spine* spine) const {
         SupportPlayGuidance* actor = static_cast<SupportPlayGuidance*>(spine->mExecutor);
-        if (MR::tryStartDemo(actor, "サポートプレイガイダンスデモ")) actor->setNerve(&SupportPlayGuidanceNrvAppear::sInstance);
+        if (MR::tryStartDemo(actor, sSupportGuidanceDemo)) actor->setNerve(&SupportPlayGuidanceNrvAppear::sInstance);
     }
 }

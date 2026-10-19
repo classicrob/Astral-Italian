@@ -2,20 +2,13 @@
 
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/JMapInfo.hpp"
+#include "Game/Player/YoshiFunction.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
 class BrosBase;
 class YoshiLockOnTarget;
 class AnimScaleController;
-
-namespace YoshiFunction {
-    bool tryYoshiProjectile(YoshiLockOnTarget*);
-    bool tryYoshiEat(YoshiLockOnTarget*);
-};
-
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-};
 
 /// @brief Common base of HammerBrosHammer and BoomerangBrosBoomerang (SMG2).
 class BrosProjectileBase : public LiveActor {

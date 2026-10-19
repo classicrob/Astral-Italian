@@ -17,8 +17,12 @@ namespace {
     static const f32 sDisappearAnimRate = 0.25f;
 };  // namespace
 
+namespace {
+    extern char sDisplayWaitAnimation[];
+}
+
 inline void FileSelectInfo::exeDisplay() {
-    if (MR::isFirstStep(this)) MR::startAnim(this, "Wait", 0);
+    if (MR::isFirstStep(this)) MR::startAnim(this, sDisplayWaitAnimation, 0);
 }
 
 namespace NrvFileSelectInfo {
@@ -133,6 +137,10 @@ void FileSelectInfo::exeDisappear() {
 
 void FileSelectInfo::control() {
     mSlideState->updateNerve();
+}
+
+namespace {
+    char sDisplayWaitAnimation[] = "Wait";
 }
 
 void FileSelectInfo::reflectInfo() {

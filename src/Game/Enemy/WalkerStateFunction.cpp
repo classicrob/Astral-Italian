@@ -4,6 +4,16 @@
 #include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 
+bool WalkerStateFunction::isNearOrInSightPlayer(const LiveActor* pActor, const TVec3f& rDirection, const WalkerStateParam* pStateParam) {
+    bool result = false;
+    if (MR::isNearPlayer(pActor, pStateParam->mFindPlayerDistance) ||
+        MR::isInSightFanPlayer(pActor, rDirection, pStateParam->mPlayerNearDistance, pStateParam->mPlayerSightFanDegreeH,
+                               pStateParam->mPlayerSightFanDegreeV)) {
+        result = true;
+    }
+    return result;
+}
+
 bool WalkerStateFunction::isInSightPlayer(const LiveActor* pActor, const TVec3f& rDirection, const WalkerStateParam* pStateParam) {
     return MR::isInSightFanPlayer(pActor, rDirection, pStateParam->mPlayerNearDistance, pStateParam->mPlayerSightFanDegreeH,
                                   pStateParam->mPlayerSightFanDegreeV);

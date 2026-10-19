@@ -1,3 +1,4 @@
+#include "Game/Player/YoshiFunction.hpp"
 #include "Game/Enemy/NokonokoLand.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util.hpp"
@@ -60,21 +61,6 @@ namespace {
     }
 };  // namespace
 
-namespace YoshiFunction {
-    void tryYoshiProjectile(YoshiLockOnTarget*);
-}
-
-
-namespace MR {
-    void setRotation(LiveActor*, const TPos3f&);
-    bool isMsgYoshiStartTongue(u32);
-    bool isMsgYoshiLoopTongue(u32);
-    bool isMsgYoshiStartEaten(u32);
-    bool isMsgYoshiCancelEaten(u32);
-    bool isMsgYoshiReleaseEaten(u32);
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, MtxPtr, const TVec3f&);
-}  // namespace MR
-
 namespace NrvNokonokoLand {
     NEW_NERVE(HostTypeAppearReady, NokonokoLand, AppearReady);
     NEW_NERVE_ONEND(HostTypeAppearStart, NokonokoLand, AppearStart, AppearStart);
@@ -106,7 +92,7 @@ namespace NrvNokonokoLand {
     class HostTypeYoshiRelease : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            (reinterpret_cast< NokonokoLand* >(pSpine->mExecutor))->fn_801D5A90();
+            (reinterpret_cast< NokonokoLand* >(pSpine->mExecutor))->exeYoshiRelease();
         }
         static HostTypeYoshiRelease sInstance;
     };
@@ -115,14 +101,14 @@ namespace NrvNokonokoLand {
     class HostTypeYoshiCancel : public Nerve {
     public:
         virtual void execute(Spine* pSpine) const {
-            (reinterpret_cast< NokonokoLand* >(pSpine->mExecutor))->fn_801D5B80();
+            (reinterpret_cast< NokonokoLand* >(pSpine->mExecutor))->exeYoshiCancel();
         }
         static HostTypeYoshiCancel sInstance;
     };
     HostTypeYoshiCancel HostTypeYoshiCancel::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvNokonokoLand
 
-void NokonokoLand::fn_801D5A90() {
+void NokonokoLand::exeYoshiRelease() {
     if (MR::isFirstStep(this)) {
         MR::hideModel(this);
         MR::deleteEffectAll(this);
@@ -149,7 +135,7 @@ void NokonokoLand::fn_801D5A90() {
     }
 }
 
-void NokonokoLand::fn_801D5B80() {
+void NokonokoLand::exeYoshiCancel() {
     if (MR::isFirstStep(this)) {
         MR::hideModel(this);
         MR::deleteEffectAll(this);

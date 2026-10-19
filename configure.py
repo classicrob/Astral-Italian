@@ -1699,7 +1699,6 @@ config.libs = [
             Object(NonMatching, "Game/Screen/GameStageClearSequence.cpp"),
             Object(NonMatching, "Game/Screen/HeatHazeEffect.cpp"),
             Object(NonMatching, "Game/Screen/HomeButtonLayout.cpp"),
-            Object(NonMatching, "Game/Screen/ImageEffectBase.cpp"),
             Object(NonMatching, "Game/Screen/ImageEffectDirector.cpp"),
             Object(NonMatching, "Game/Screen/ImageEffectLocalUtil.cpp"),
             Object(NonMatching, "Game/Screen/ImageEffectResource.cpp"),

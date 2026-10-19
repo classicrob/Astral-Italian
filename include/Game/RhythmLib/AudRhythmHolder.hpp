@@ -1,19 +1,16 @@
 #pragma once
 
-// TODO
-
 #include <revolution.h>
 
 #define NUM_RHYTHM_INFO 6
 
 class AudRhythmSeqParser;
 
-// TODO: replace with proper struct/class
 struct RhythmInfo {
     /* 0x00 */ bool mIsActive;
     /* 0x04 */ u32 _4;
     /* 0x08 */ u32 _8;
-    /* 0x0C */ f32 _C;
+    /* 0x0C */ f32 mNoteDurationSec;
     /* 0x10 */ s64 mStartTime;
     /* 0x18 */ s64 mPlayTime;
     /* 0x20 */ s64 mPrevPlayTime;
@@ -34,7 +31,7 @@ public:
     void init();
     void copyInfoFromParserOne(u32, u32, u32, s64);
 
-    // SMG2 unnamed helpers: index the 0x40-byte record table that starts at the holder (named by address).
+    // Elapsed-time and phase accessors for the selected rhythm record.
     f32 getPlayTimeSec(s32 index);
     f32 getPrevPlayTimeSec(s32 index);
     f32 calcBeatPhase(s32 index);

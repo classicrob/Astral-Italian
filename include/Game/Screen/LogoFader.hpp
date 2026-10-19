@@ -19,9 +19,9 @@ public:
     void startFadeOut();
     bool isFadeEnd() const;
 
-    /* 0x20 */ bool _20;
-    /* 0x24 */ u32 mMaxStep;
-    /* 0x28 */ f32 mRate;
+    /* 0x2C */ bool mUnused2C;
+    /* 0x30 */ u32 mMaxStep;
+    /* 0x34 */ f32 mRate;
 };
 
 #include "Game/LiveActor/Nerve.hpp"

@@ -42,14 +42,14 @@ public:
     void exeDPDSwoon();
 
     void initBlowModel();
-    void fn_801E3080();
-    void fn_801E3170();
-    void fn_801E31E0();
-    void fn_801E3C70();
-    void fn_801E3D00();
-    bool fn_801E41B0() const;
-    bool fn_801E4260() const;
-    void fn_801E4320(const TPos3f&, f32);
+    void exeYoshiPull();
+    void exeYoshiPullEnd();
+    void exePetitEaten();
+    void startTrampleDown();
+    void startPunchDown();
+    bool isTongueGrabbableNerve() const;
+    bool isTongueHittableNerve() const;
+    void setBlownModelPosture(const TPos3f&, f32);
     void punchDown(u32, HitSensor*, HitSensor*);
     void selectNrvWait();
     bool tryNonActive();

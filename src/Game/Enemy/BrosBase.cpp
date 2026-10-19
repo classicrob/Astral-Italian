@@ -9,7 +9,7 @@
 
 BrosBase::BrosBase(const char* pName)
     : LiveActor(pName), mHeld(nullptr), mProjectileIdx(0), mFront(0.0f, 0.0f, 1.0f), _B8(true), _B9(false), mItemType(1), mJointCtrl(nullptr), _CC(0), mConnector(nullptr), mConnected(false) {
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, TVec3f(0.0f));
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(nullptr), TVec3f(0.0f));
 }
 
 void BrosBase::init(const JMapInfoIter& rIter) {

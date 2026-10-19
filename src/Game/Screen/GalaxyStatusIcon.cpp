@@ -155,7 +155,7 @@ bool GalaxyStatusIcon::updateCometAppear() {
 bool GalaxyStatusIcon::isPointingBox() {
     bool pointing = false;
     if (mIsPointable) {
-        pointing = MR::isStarPointerPointingPane(this, "BoxIcon", 0, true, "");
+        pointing = MR::isStarPointerPointingPane(this, "BoxIcon", 0, true, "弱");
     }
     return mIsEnabled && pointing;
 }

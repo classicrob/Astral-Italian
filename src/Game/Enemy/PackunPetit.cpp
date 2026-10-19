@@ -58,9 +58,9 @@ namespace NrvPackunPetit {
 #define PACKUN_NERVE(Name, Method) \
     class Name : public Nerve { public: virtual void execute(Spine* spine) const { static_cast<PackunPetit*>(spine->mExecutor)->Method(); } static Name sInstance; }; \
     Name Name::sInstance ATTRIBUTE_WEAK;
-    PACKUN_NERVE(PackunPetitNrvPull, fn_801E3080);
-    PACKUN_NERVE(PackunPetitNrvPullEnd, fn_801E3170);
-    PACKUN_NERVE(PackunPetitNrvEaten, fn_801E31E0);
+    PACKUN_NERVE(PackunPetitNrvPull, exeYoshiPull);
+    PACKUN_NERVE(PackunPetitNrvPullEnd, exeYoshiPullEnd);
+    PACKUN_NERVE(PackunPetitNrvEaten, exePetitEaten);
 };  // namespace NrvPackunPetit
 
 PackunPetit::PackunPetit(const char* pName)
@@ -228,7 +228,7 @@ void PackunPetit::exePunchDown() {
         MR::invalidateHitSensor(this, "attack");
         TPos3f mtx;
         PSMTXCopy(getBaseMtx(), mtx);
-        fn_801E4320(mtx, 1.0f);
+        setBlownModelPosture(mtx, 1.0f);
         MR::copyJointPos(this, "Head", &mBlownModel->mPosition);
         mBlownModel->makeActorAppeared();
         MR::onCalcGravity(mBlownModel);
@@ -285,7 +285,7 @@ void PackunPetit::exeDPDSwoon() {
 }
 
 // NONMATCHING: compiler folds target boolean materialization into a direct branch.
-void PackunPetit::fn_801E3080() {
+void PackunPetit::exeYoshiPull() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Pull");
         MR::invalidateClipping(this);
@@ -299,11 +299,11 @@ void PackunPetit::fn_801E3080() {
         MR::setVelocity(mBlownModel, _94 * 15.0f);
         MR::addVelocity(mBlownModel, mGravity * -40.0f);
         ScoreAttackFunction::score100Points(this);
-        fn_801E3D00();
+        startPunchDown();
     }
 }
 
-void PackunPetit::fn_801E3170() {
+void PackunPetit::exeYoshiPullEnd() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::startAction(this, "PullEnd");
@@ -313,7 +313,7 @@ void PackunPetit::fn_801E3170() {
 }
 
 // NONMATCHING: compiler emits an aggregate-copy loop instead of paired-single matrix copies; stack allocation differs.
-void PackunPetit::fn_801E31E0() {
+void PackunPetit::exePetitEaten() {
     if (MR::isStep(this, 0)) {
         MR::hideModel(this);
         MR::tryHitReactionDead(this);
@@ -324,9 +324,9 @@ void PackunPetit::fn_801E31E0() {
         MR::calcYoshiTongueTipMtx(&yoshi);
         yoshi.invert(yoshi);
         TPos3f head;
-        head = *reinterpret_cast<const TPos3f*>(MR::getJointMtx(this, "Head"));
+        head.setInline(MR::getJointMtx(this, "Head"));
         f32 scale = MR::getYoshiTongueScale();
-        fn_801E4320(head, scale);
+        setBlownModelPosture(head, scale);
         mPullMtx.concat(yoshi, head);
     }
     if (MR::isGreaterStep(this, 0)) {
@@ -335,7 +335,7 @@ void PackunPetit::fn_801E31E0() {
         TPos3f mtx;
         mtx.concat(yoshi, mPullMtx);
         f32 scale = MR::getYoshiTongueScale();
-        fn_801E4320(mtx, scale);
+        setBlownModelPosture(mtx, scale);
     }
     if (MR::isStep(this, 1)) MR::startAction(this, "Blow");
 }
@@ -422,10 +422,10 @@ bool PackunPetit::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
     }
 
     if (MR::isMsgLockOnStarPieceShoot(msg)) {
-        return fn_801E4260();
+        return isTongueHittableNerve();
     }
 
-    if (MR::isMsgStarPieceAttack(msg) && fn_801E4260()) {
+    if (MR::isMsgStarPieceAttack(msg) && isTongueHittableNerve()) {
         setNerve(GET_NERVE(PackunPetit, PackunPetitNrvSwoonStart));
         return true;
     }
@@ -448,14 +448,14 @@ bool PackunPetit::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor*
     if (MR::isMsgPlayerTrample(msg)) {
         MR::tryRumbleDefaultHit(this, 0);
         ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
-        fn_801E3C70();
+        startTrampleDown();
         return true;
     }
 
     if (MR::isMsgPlayerHipDrop(msg)) {
         MR::tryRumbleDefaultHit(this, 0);
         ScoreAttackFunction::scoreByAttack(this, msg, nullptr);
-        fn_801E3C70();
+        startTrampleDown();
         return true;
     }
 
@@ -481,7 +481,7 @@ bool PackunPetit::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* 
     }
 
     if (MR::isMsgToEnemyAttackTrample(msg)) {
-        fn_801E3C70();
+        startTrampleDown();
         return true;
     }
 
@@ -489,7 +489,7 @@ bool PackunPetit::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* 
 }
 
 bool PackunPetit::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgYoshiStartTongue(msg) && fn_801E41B0()) {
+    if (MR::isMsgYoshiStartTongue(msg) && isTongueGrabbableNerve()) {
         MR::tryHitReaction(this, "ヨッシー舌アクセス");
         setNerve(GET_NERVE(PackunPetit, PackunPetitNrvPullStart));
         return true;
@@ -532,14 +532,14 @@ bool PackunPetit::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
     return false;
 }
 
-void PackunPetit::fn_801E3C70() {
+void PackunPetit::startTrampleDown() {
     bool pulled = false;
     if (isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPullStart)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPull)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvEaten))) pulled = true;
     if (pulled) MR::fn_804222D0();
     setNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown));
 }
 
-void PackunPetit::fn_801E3D00() {
+void PackunPetit::startPunchDown() {
     bool pulled = false;
     if (isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPullStart)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPull)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvEaten))) pulled = true;
     if (pulled) MR::fn_804222D0();
@@ -567,7 +567,7 @@ void PackunPetit::punchDown(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     mBlownModel->mVelocity.set(v5);
     ScoreAttackFunction::scoreByAttack(this, msg, pSender);
     MR::startBlowHitSound(this);
-    fn_801E3D00();
+    startPunchDown();
 }
 
 void PackunPetit::selectNrvWait() {
@@ -635,16 +635,15 @@ bool PackunPetit::tryDPDSwoon() {
     return true;
 }
 
-bool PackunPetit::fn_801E41B0() const {
+bool PackunPetit::isTongueGrabbableNerve() const {
     bool dying = false;
     if (isNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPunchDown))) dying = true;
     if (dying || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPullStart)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPull)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvEaten))) return false;
     return true;
 }
 
-// NONMATCHING: compiler duplicates a common false-return block.
 // NONMATCHING: branch sense/return-block layout of the nested dying/pulled tests (the single-exit form scores worse).
-bool PackunPetit::fn_801E4260() const {
+bool PackunPetit::isTongueHittableNerve() const {
     bool dying = false;
     if (isNerve(GET_NERVE(PackunPetit, PackunPetitNrvTrampleDown)) || isNerve(GET_NERVE(PackunPetit, PackunPetitNrvPunchDown))) dying = true;
     if (!dying) {
@@ -656,7 +655,7 @@ bool PackunPetit::fn_801E4260() const {
 }
 
 // NONMATCHING: argument load scheduling differs.
-void PackunPetit::fn_801E4320(const TPos3f& mtx, f32 scale) {
+void PackunPetit::setBlownModelPosture(const TPos3f& mtx, f32 scale) {
     ModelObj* model = mBlownModel;
     MR::setPosition(model, mtx(0,3), mtx(1,3), mtx(2,3));
     mtx.getEuler(mBlownModel->mRotation);

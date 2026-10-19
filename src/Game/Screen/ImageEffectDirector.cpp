@@ -248,6 +248,7 @@ void ImageEffectDirector::setPlayerSync(bool isPlayerSync) {
 }
 
 // NONMATCHING: equivalent outline intensity argument register scheduling.
+// NONMATCHING: equivalent narrowed argument and state-pointer loads schedule differently.
 void ImageEffectDirector::updateAuto() {
     AreaObj* pArea = MR::getAreaObj("ImageEffectArea", *MR::getPlayerPos());
 

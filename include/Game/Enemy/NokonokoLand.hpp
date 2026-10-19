@@ -11,8 +11,8 @@ class YoshiLockOnTarget;
 class NokonokoLand : public LiveActor {
 public:
     // SMG2-only functions (original names unknown; named by address)
-    void fn_801D5A90();
-    void fn_801D5B80();
+    void exeYoshiRelease();
+    void exeYoshiCancel();
     NokonokoLand(const char*);
 
     virtual void init(const JMapInfoIter&);

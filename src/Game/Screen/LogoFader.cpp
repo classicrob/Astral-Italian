@@ -14,11 +14,12 @@ namespace NrvLogoFader {
     LogoFaderNrvFadeOut LogoFaderNrvFadeOut::sInstance;
 }
 
-LogoFader::LogoFader(const char* pName) : LayoutActor(pName, true), _20(true), mMaxStep(30), mRate(0.0f) {
+LogoFader::LogoFader(const char* pName) : LayoutActor(pName, true), mUnused2C(true), mMaxStep(30), mRate(0.0f) {
     initNerve(GET_NERVE_DIRECT(NrvLogoFader, LogoFaderNrvDisplay));
     kill();
 }
 
+// NONMATCHING: zero RGB initialization uses a word store instead of three byte stores.
 void LogoFader::draw() const {
     if (mRate > RATE_MIN) {
         GXSetColorUpdate(GX_TRUE);

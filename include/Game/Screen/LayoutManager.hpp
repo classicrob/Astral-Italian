@@ -86,7 +86,7 @@ public:
     /* 0x08 */ nw4r::lyt::AnimTransform** mAnimTransList;
     /* 0x0C */ nw4r::lyt::DrawInfo mDrawInfo;
     /* 0x60 */ bool mIsScreenHidden;
-    /* 0x61 */ bool _61;
+    /* 0x61 */ bool mUseRecursiveAnimationBinding;
     /* 0x64 */ nw4r::lyt::TexMap* mIndDummyTexMap;
     /* 0x68 */ u32 mPaneCount;
     /* 0x6C */ LayoutPaneInfo* mPaneInfoList;

@@ -795,7 +795,7 @@ u32 MR::getTextLineNumMaxRecursive(const LayoutActor* pActor, const char* pPaneN
 void MR::invalidateParentAnim(LayoutActor* pActor) {
     LayoutManager* pLayoutManager = pActor->getLayoutManager();
 
-    pLayoutManager->_61 = 0;
+    pLayoutManager->mUseRecursiveAnimationBinding = 0;
 }
 
 namespace {

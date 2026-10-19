@@ -132,7 +132,7 @@ namespace {
 }  // namespace
 
 LayoutManager::LayoutManager(const char* pLayoutName, bool useArchiveNamePrefix, u32 rootPaneAnimLayerNum, u32 textBoxBufferLength)
-    : mLayoutHolder(), mLayout(), mAnimTransList(), mDrawInfo(), mIsScreenHidden(), _61(true), mIndDummyTexMap(), mPaneCount(), mPaneInfoList(),
+    : mLayoutHolder(), mLayout(), mAnimTransList(), mDrawInfo(), mIsScreenHidden(), mUseRecursiveAnimationBinding(true), mIndDummyTexMap(), mPaneCount(), mPaneInfoList(),
       mGroupCtrlCount(), mGroupCtrlList(), mLayoutName() {
     if (useArchiveNamePrefix) {
         char fileNameWithoutExtension[0x60];

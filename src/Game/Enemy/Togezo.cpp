@@ -1,5 +1,6 @@
 #include "Game/Enemy/Togezo.hpp"
 #include "Game/Util/PlayerUtil.hpp"
+#include "Game/Player/YoshiFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -19,29 +20,6 @@
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 
-namespace MR {
-    YoshiLockOnTarget* createYoshiLockOnTarget(LiveActor*, const char*, const TVec3f&);
-};  // namespace MR
-
-namespace YoshiFunction {
-    void tryYoshiProjectile(YoshiLockOnTarget*);
-    void tryYoshiEat(YoshiLockOnTarget*);
-};  // namespace YoshiFunction
-
-namespace MR {
-    bool isMsgYoshiStartTongue(u32);
-    bool isMsgYoshiLoopTongue(u32);
-    bool isMsgYoshiStartEaten(u32);
-    bool isMsgYoshiCancelEaten(u32);
-    bool isMsgYoshiReleaseEaten(u32);
-    bool isMsgEnemyAttackElectric(u32);
-    bool isMsgExplosionAttack(u32);
-    bool isMsgToEnemyAttackBlow(u32);
-    bool isMsgToEnemyAttackTrampleDeath(u32);
-    bool isMsgInhaleBlackHole(u32);
-};  // namespace MR
-
-// Unnamed SMG2 helpers outside this unit.
 
 namespace {
     static const MR::ActorMoveParam hBoundParam = {0.65f, 20.0f, 0.3f, 0.0f};
@@ -1084,7 +1062,7 @@ s32 TogezoMgr::getActiveNum() const {
 TogezoMgr::~TogezoMgr() {
 }
 
-void fn_80214610(TVec3f* pDst, const LiveActor* pActor) {
+void calcDiagonalRailDirectionFacingCamera(TVec3f* pDst, const LiveActor* pActor) {
     TVec3f camPos = MR::getCamPos();
     TVec3f toCam(0.0f);
     TVec3f railDir(0.0f);

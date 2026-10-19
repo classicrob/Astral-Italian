@@ -69,7 +69,7 @@ void AudRhythmHolder::init() {
         mInfos[i].mIsActive = false;
         mInfos[i]._4 = 0;
         mInfos[i]._8 = 0;
-        mInfos[i]._C = 0.0f;
+        mInfos[i].mNoteDurationSec = 0.0f;
         mInfos[i].mStartTime = 0;
         mInfos[i].mPlayTime = 0;
         mInfos[i].mPrevPlayTime = 0;
@@ -94,7 +94,7 @@ void AudRhythmHolder::copyInfoFromParserOne(u32 type, u32 velocity, u32 noteOff,
         mInfos[type]._4++;
     }
     mInfos[type].mStartTime = time;
-    mInfos[type]._C = noteOff / 120.0f * (60.0f / mModifiedTempo);
+    mInfos[type].mNoteDurationSec = noteOff / 120.0f * (60.0f / mModifiedTempo);
     mInfos[type]._38++;
     mInfos[type].mPausedTime = 0;
 }
@@ -110,15 +110,15 @@ f32 AudRhythmHolder::getPrevPlayTimeSec(s32 index) {
 }
 
 f32 AudRhythmHolder::calcBeatPhase(s32 index) {
-    if (0.0f == mInfos[index]._C) {
+    if (0.0f == mInfos[index].mNoteDurationSec) {
         return 0.0f;
     }
-    return getPlayTimeSec(index) / mInfos[index]._C;
+    return getPlayTimeSec(index) / mInfos[index].mNoteDurationSec;
 }
 
 f32 AudRhythmHolder::calcPrevBeatPhase(s32 index) {
-    if (0.0f == mInfos[index]._C) {
+    if (0.0f == mInfos[index].mNoteDurationSec) {
         return 0.0f;
     }
-    return getPrevPlayTimeSec(index) / mInfos[index]._C;
+    return getPrevPlayTimeSec(index) / mInfos[index].mNoteDurationSec;
 }

@@ -3481,7 +3481,7 @@ Game/Enemy/WalkerStateFindPlayer.cpp:
 	.sbss       start:0x807D3438 end:0x807D3448
 
 Game/Enemy/WalkerStateFunction.cpp:
-	.text       start:0x80219F10 end:0x80219FA0
+	.text       start:0x80219E90 end:0x80219FA0
 	.sdata2     start:0x807DC058 end:0x807DC060
 
 Game/Enemy/WalkerStateParam.cpp:
@@ -6268,6 +6268,7 @@ Game/NPC/TicoFatStarPiece.cpp:
 	.data       start:0x806BE648 end:0x806BE9A8
 	.sdata      start:0x807CFF50 end:0x807CFF60
 	.sdata2     start:0x807DF5D0 end:0x807DF638
+	.sbss2      start:0x807E3110 end:0x807E3120
 
 Game/NPC/TicoFatStarPieceTransformation.cpp:
 	.text       start:0x8036B040 end:0x8036B8B0
@@ -7324,11 +7325,8 @@ Game/Screen/BatteryInfo.cpp:
 Game/Screen/NrvBatteryInfo.cpp:
 	.text       start:0x8045F5B0 end:0x8045F760
 
-Game/Screen/ImageEffectBase.cpp:
-	.text       start:0x8045F760 end:0x8045F950
-
 Game/Screen/BloomEffect.cpp:
-	.text       start:0x8045F950 end:0x80460A30
+	.text       start:0x8045F760 end:0x80460A30
 	.rodata     start:0x8064C8D0 end:0x8064C928
 	.data       start:0x806F1988 end:0x806F19C8
 	.sdata2     start:0x807E1278 end:0x807E12A0
@@ -7457,7 +7455,7 @@ Game/Screen/FileSelectInfo.cpp:
 	.text       start:0x8046D820 end:0x8046E330
 	.ctors      start:0x806448D0 end:0x806448D4
 	.rodata     start:0x8064C9C0 end:0x8064C9C8
-	.data       start:0x806F33E0 end:0x806F35A0
+	.data       start:0x806F3338 end:0x806F35A0
 	.sbss       start:0x807D5514 end:0x807D5528
 	.sdata2     start:0x807E1380 end:0x807E1390
 

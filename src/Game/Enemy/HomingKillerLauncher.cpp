@@ -67,7 +67,7 @@ bool HomingKillerLauncher::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSenso
     return MR::tryForceKillIfMsgStartPowerStarGet(this, msg);
 }
 
-HomingKiller* HomingKillerLauncher::fn_80198540() {
+HomingKiller* HomingKillerLauncher::findDeadKiller() {
     for (s32 i = 0; i < this->mKillerNum; i++) {
         HomingKiller* pKiller = &this->mKillers[i];
         if (MR::isDead(pKiller)) {
@@ -79,12 +79,12 @@ HomingKiller* HomingKillerLauncher::fn_80198540() {
 }
 
 void HomingKillerLauncher::exeAppearKiller() {
-    if (MR::isFirstStep(this) && this->fn_80198540()) {
-        this->fn_80198540()->appear();
+    if (MR::isFirstStep(this) && this->findDeadKiller()) {
+        this->findDeadKiller()->appear();
     }
 
     if (mKillerNum == 1) {
-        if (this->fn_80198540()) {
+        if (this->findDeadKiller()) {
             setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvDeadKiller));
         }
     } else {
@@ -93,7 +93,7 @@ void HomingKillerLauncher::exeAppearKiller() {
 }
 
 void HomingKillerLauncher::exeDeadKiller() {
-    if (MR::isGreaterStep(this, mAppearInterval) && this->fn_80198540()) {
+    if (MR::isGreaterStep(this, mAppearInterval) && this->findDeadKiller()) {
         setNerve(GET_NERVE(HomingKillerLauncher, HomingKillerLauncherNrvAppearKiller));
     }
 }

@@ -5,7 +5,7 @@
 #include <JSystem/JGeometry/TVec.hpp>
 
 // Direction helper for rail-following Togezo (called from outside this unit).
-void fn_80214610(TVec3f* pDst, const LiveActor* pActor);
+void calcDiagonalRailDirectionFacingCamera(TVec3f* pDst, const LiveActor* pActor);
 
 class AnimScaleController;
 class ModelObj;

@@ -162,7 +162,7 @@ void Tongari::exeWait() {
 
     rotateOnRail(0.5f);
     if (mIs2D) {
-        fn_80214610(&mFront, this);
+        calcDiagonalRailDirectionFacingCamera(&mFront, this);
     }
 }
 
@@ -184,7 +184,7 @@ void Tongari::exeTurn() {
         dir = -dir;
     }
     if (mIs2D) {
-        fn_80214610(&dir, this);
+        calcDiagonalRailDirectionFacingCamera(&dir, this);
     }
     MR::turnVecToVecCosOnPlane(&mFront, dir, mUp, MR::cosDegree(1.0f));
 

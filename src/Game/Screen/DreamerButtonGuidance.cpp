@@ -26,6 +26,10 @@ void DreamerButtonGuidance::exeEnd() {
     if (MR::isFirstStep(this)) MR::startAnim(this, "End", 0);
     if (MR::isAnimStopped(this, 0)) kill();
 }
+namespace {
+    char sGuidanceWaitAnimation[] = "Wait";
+}
+
 void DreamerButtonGuidance::showDreamer() { MR::hidePane(this, "Esper"); MR::hidePane(this, "Exit"); MR::showPane(this, "Dreamer"); }
 void DreamerButtonGuidance::showSuperDreamer() { MR::hidePane(this, "Dreamer"); MR::showPane(this, "Esper"); MR::showPane(this, "Exit"); }
 void DreamerButtonGuidance::forceAppear() { appear(); setNerve(&DreamerButtonGuidanceNrvWait::sInstance); }
@@ -35,5 +39,5 @@ void DreamerButtonGuidance::showExit() { MR::showPane(this, "Exit"); }
 DreamerButtonGuidance::~DreamerButtonGuidance() {}
 void NrvDreamerButtonGuidance::DreamerButtonGuidanceNrvWait::execute(Spine* spine) const {
     DreamerButtonGuidance* actor = static_cast<DreamerButtonGuidance*>(spine->mExecutor);
-    if (MR::isFirstStep(actor)) MR::startAnim(actor, "Wait", 0);
+    if (MR::isFirstStep(actor)) MR::startAnim(actor, sGuidanceWaitAnimation, 0);
 }

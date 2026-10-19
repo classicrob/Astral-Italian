@@ -31,7 +31,7 @@ void LayoutPaneCtrl::start(const char* pAnimName, u32 layer) {
     LayoutAnmPlayer* pAnmPlayer = mAnmPlayerArray[layer];
 
     if (pAnmPlayer->mAnimTransform != nullptr) {
-        if (mHost->_61) {
+        if (mHost->mUseRecursiveAnimationBinding) {
             mPane->UnbindAnimation(pAnmPlayer->mAnimTransform, true);
         } else {
             mHost->unbindPaneCtrlAnim(this, pAnmPlayer->mAnimTransform);
@@ -40,7 +40,7 @@ void LayoutPaneCtrl::start(const char* pAnimName, u32 layer) {
 
     pAnmPlayer->start(pAnimName);
 
-    if (mHost->_61) {
+    if (mHost->mUseRecursiveAnimationBinding) {
         mPane->UnbindAnimation(pAnmPlayer->mAnimTransform, true);
         mPane->BindAnimation(pAnmPlayer->mAnimTransform, true, false);
     } else {

@@ -325,7 +325,7 @@ void BattanKing::control() {
         for (s32 i = 0; i < mPattanHolder->mObjectCount; i++) {
             Pattan* pPattan = static_cast< Pattan* >(mPattanHolder->getActor(i));
             if (!MR::isDead(pPattan)) {
-                pPattan->fn_801E77A0();
+                pPattan->tryPattanJump();
             }
         }
     }

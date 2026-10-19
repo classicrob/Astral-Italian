@@ -2,7 +2,7 @@
 #include <mem.h>
 #include "revolution/sc.h"
 
-const char* __SCVersion = "<< RVL_SDK - SC \trelease build: Feb 22 2008 06:21:38 (0x4199_60831) >>";
+const char* __SCVersion = "<< RVL_SDK - SC \trelease build: Dec 11 2009 15:59:09 (0x4302_145) >>";
 
 static void __SCFlushSyncCallback(u32 result);
 

@@ -10,8 +10,8 @@ static u8 Debug_BBA = 0;
 
 static void __init_registers(void);
 static void __init_data(void);
+static void __my_flush_cache(void*, u32);
 extern void OSInit(void);
-extern void DBInit(void);
 extern void main(void);
 extern void exit(void);
 extern void InitMetroTRK(void);
@@ -34,12 +34,12 @@ static u8 __get_debug_bba(void) {
 __declspec(weak) asm void __start(void) {
     nofralloc
     bl __init_registers
+    bl __init_data
     bl __init_hardware
     li r0, 0xFFFF
     stwu r1, -8(r1)
     stw r0, 4(r1)
     stw r0, 0(r1)
-    bl __init_data
 
     li r0, 0
     lis r6, 0x80000044@ha
@@ -126,7 +126,6 @@ no_args:
     li r15, 0
 
 end_args:
-    bl DBInit
     bl OSInit
 
     lis r4, 0x800030E6@ha
@@ -154,6 +153,30 @@ skip_init:
     mr r4, r15
     bl main
     b exit
+}
+
+// Flush BSS before enabling caches, including the whole range's partial lines.
+asm static void __my_flush_cache(void* addr, u32 size) {
+    nofralloc
+    cmplwi r4, 0
+    blelr
+    clrlwi r5, r3, 27
+    add r4, r4, r5
+    addi r4, r4, 31
+    srwi r4, r4, 5
+    mtctr r4
+
+flush_line:
+    dcbf 0, r3
+    addi r3, r3, 32
+    bdnz flush_line
+    mfspr r6, HID0
+    ori r7, r6, 8
+    mtspr HID0, r7
+    isync
+    sync
+    mtspr HID0, r6
+    blr
 }
 
 asm static void __init_registers(void) {
@@ -206,6 +229,7 @@ static void __copy_rom_section(void *pDest, const void *pSrc, u32 sectionSize) {
 static void __init_bss_section(void *pDest, u32 size) {
     if (size != 0) {
         memset(pDest, 0, size);
+        __my_flush_cache(pDest, size);
     }
 }
 

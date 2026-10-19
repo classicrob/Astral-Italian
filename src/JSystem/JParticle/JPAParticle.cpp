@@ -50,7 +50,8 @@ void JPABaseParticle::init_p(JPAEmitterWorkData* pWork) {
 
     if (emtr->mDirSpeed) {
         Mtx mtx;
-        JPAGetYZRotateMtx(emtr->get_r_zp() * 0x8000 * emtr->mSpread, emtr->mRndm.get_rndm_ss(), mtx);
+        const s16 angle = emtr->mRndm.get_rndm_ss();
+        JPAGetYZRotateMtx(emtr->get_r_zp() * 0x8000 * emtr->mSpread, angle, mtx);
         PSMTXConcat(pWork->mDirectionMtx, mtx, mtx);
         velDir.set< f32 >(emtr->mDirSpeed * mtx[0][2], emtr->mDirSpeed * mtx[1][2], emtr->mDirSpeed * mtx[2][2]);
     } else {

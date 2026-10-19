@@ -430,20 +430,21 @@ bool Mario::taskOnHipDropBlurHopper(u32) {
     return true;
 }
 
-// NONMATCHING: the per-frame reset chain is approximated from the draft
+// NONMATCHING: explicit null materialization for an unused Triangle argument.
 void Mario::fn_803ACC40() {
     this->_3F4 = 0.0f;
     if (!((this->mMovementStates.mLowWord >> 21) & 1)) {
         this->fn_803ACD80();
+        return;
     }
-    if (this->isAnimationRun("壁押し")) {
+    if (this->isAnimationRun("壁押し", static_cast<u32>(0))) {
         this->stopAnimation((const char*)nullptr, (const char*)nullptr);
     }
     this->fn_803ACCE0();
     this->fn_803AD120(nullptr);
     this->decideSquatWalkAnimation();
     this->fn_803AD4F0();
-    FLD<f32>(this, 0x2C4) = this->getAnimator()->fn_803DD460();
+    this->mPrevAnimFrame = this->getAnimator()->getFrame();
 }
 
 // NONMATCHING: squat/brake animation helpers, rough from the m2c draft
@@ -474,28 +475,28 @@ void Mario::fn_803ACD80() {
     this->mMovementStates.mHighWord &= 0xFDFFFFFF;
 }
 
-// NONMATCHING: squat-end transition approximated
-void Mario::fn_803ACE60() {
-    this->stopAnimation("飛び込み準備", (const char*)nullptr);
-    if (this->isAnimationRun("Squat")) {
-        this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
-    }
-    this->changeAnimation((const char*)nullptr, "基本");
-    this->stopAnimation("サマーソルト", (const char*)nullptr);
-    this->fn_803AF2F0(nullptr);
-    this->mMovementStates.mHighWord &= 0xFDFFFFFF;
-    if (this->isPlayerModeYoshi()) {
-        if (!((this->mFlags20.mWord >> 21) & 1)) {
-            MR::startActionSound(reinterpret_cast<const LiveActor*>(this->mActor->fn_803B97F0()), "声しゃがむ", -1, -1, -1);
-        }
-    } else if (((this->mMovementStates.mLowWord >> 31) == 0) && !this->isAnimationRun("ヨッシー泥移動")) {
-        this->playSound("声しゃがむ", -1);
-    }
-}
-
 namespace {
     const f32 cSquatWalkStoppedWeights[4] = {1.0f, 0.0f, 0.0f, 0.0f};
     const f32 cSquatWalkMovingWeights[4] = {0.0f, 1.0f, 0.0f, 0.0f};
+}
+
+// NONMATCHING: identical instructions apart from proven equal string-pool addresses.
+void Mario::fn_803ACE60() {
+    this->stopAnimation("歩行制動ブレーキ", static_cast<u32>(1));
+    if (this->isAnimationRun("カリカリ限界")) {
+        this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
+    }
+    this->changeAnimation((const char*)nullptr, "しゃがみ基本");
+    this->stopAnimation("飛び込み準備", static_cast<u32>(4));
+    this->fn_803AF2F0(cSquatWalkStoppedWeights);
+    this->mMovementStates.mHighWord &= 0xFDFFFFFF;
+    if (this->isPlayerModeYoshi()) {
+        if (!((this->mFlags24.mLowWord >> 21) & 1)) {
+            MR::startActionSound(this->mActor->fn_803B97F0(), "Squat", -1, -1, -1);
+        }
+    } else if (((this->mMovementStates.mLowWord >> 31) == 0) && !this->isAnimationRun("サマーソルト")) {
+        this->playSound("声しゃがむ", -1);
+    }
 }
 
 // NONMATCHING: independent maximum/minimum speed loads are scheduled in reverse order.
@@ -536,22 +537,28 @@ void Mario::fn_803AD0B0() {
     this->getAnimator()->setSpeed(var_f31);
 }
 
-// NONMATCHING: yoshi-mud effect gate approximated
+// NONMATCHING: equivalent direct exit replaces the target byte-gate trampoline.
 void Mario::fn_803AD4F0() {
-    if (this->isPlayerModeYoshi() && this->mTargetWalkSpeedIndex != 0 && ((FLD<u32>(this->getPlayer(), 0x14) >> 30) & 1)) {
-        f32 f2 = FLD<f32>(this, 0x2C4);
-        if (f2 > this->getAnimator()->fn_803DD460() || (f2 < 30.0f && this->getAnimator()->fn_803DD460() == 30.0f)) {
-            this->playEffect("ヨッシー泥移動");
+    if (isPlayerModeYoshi() && mTargetWalkSpeedIndex != 0 &&
+        ((getPlayer()->mMovementStates.mLowWord >> 30) & 1) && _A7F != 0) {
+        f32 frame = getAnimator()->getFrame();
+        f32 previousFrame = mPrevAnimFrame;
+        if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
+            playEffect("ヨッシー泥移動");
         }
     }
 }
 
-// NONMATCHING: same gate as fn_803AD4F0 with the extra speed-index test
+// NONMATCHING: equivalent direct exit replaces the target byte-gate trampoline.
 void Mario::fn_803AD9C0() {
-    if (this->isPlayerModeYoshi() && this->mTargetWalkSpeedIndex != 0 && ((FLD<u32>(this->getPlayer(), 0x14) >> 30) & 1)) {
-        f32 f2 = FLD<f32>(this, 0x2C4);
-        if (f2 > this->getAnimator()->fn_803DD460() || (f2 < 30.0f && this->getAnimator()->fn_803DD460() == 30.0f)) {
-            this->playEffect("ヨッシー泥移動");
+    if (isPlayerModeYoshi() && mTargetWalkSpeedIndex != 0 &&
+        ((getPlayer()->mMovementStates.mLowWord >> 30) & 1) && _A7F != 0) {
+        f32 frame = getAnimator()->getFrame();
+        f32 previousFrame = mPrevAnimFrame;
+        if (previousFrame > frame || (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
+            if (mTargetWalkSpeedIndex >= 2) {
+                playEffect("ヨッシー泥移動");
+            }
         }
     }
 }

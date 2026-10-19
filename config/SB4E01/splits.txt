@@ -6785,7 +6785,7 @@ Game/Player/MarioFaint.cpp:
 
 Game/Player/MarioFlip.cpp:
 	.text       start:0x803E8850 end:0x803E90C0
-	.data       start:0x806DCED8 end:0x806DCF20
+	.data       start:0x806DCE80 end:0x806DCF20
 
 Game/Player/MarioFlow.cpp:
 	.text       start:0x803E90C0 end:0x803E9540
@@ -6869,7 +6869,7 @@ Game/Player/MarioSideStep.cpp:
 
 Game/Player/MarioSkate.cpp:
 	.text       start:0x803F4AF0 end:0x803F56D0
-	.data       start:0x806DDED0 end:0x806DDF18
+	.data       start:0x806DDD78 end:0x806DDF18
 
 Game/Player/MarioSlider.cpp:
 	.text       start:0x803F56D0 end:0x803F62E0
@@ -7019,7 +7019,7 @@ Game/Player/Yoshi.cpp:
 	.text       start:0x8040BF30 end:0x80413C40
 	.ctors      start:0x806447E8 end:0x806447EC
 	.rodata     start:0x8064BEE0 end:0x8064BEE8
-	.data       start:0x806E9FF0 end:0x806EA718
+	.data       start:0x806E9FE4 end:0x806EA718
 	.bss        start:0x8072B448 end:0x8072B480
 	.sdata      start:0x807D00C4 end:0x807D00C8
 	.sbss       start:0x807D4EB8 end:0x807D4F38

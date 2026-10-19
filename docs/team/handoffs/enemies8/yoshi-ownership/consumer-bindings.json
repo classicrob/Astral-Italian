@@ -1,0 +1,967 @@
+{
+  "original_DOL_sha256": "abea6b0c498c4af90b17cfa08d54a01781186f097bee3e0761dbfb4838cbc281",
+  "symbols_sha256": "5b7f7ec55598a3d6a7e12ebda5c25370dd5847efbd5bcbcb3a35fcb2e6c4bb0f",
+  "consumers": [
+    {
+      "name": "search__19XanimeResourceTableCFPP14XanimeBckTablePCcUl",
+      "address": "0x8006e840",
+      "size": 160,
+      "full_DOL_body": "9421ffe07c0802a69001002439610020485bf9152c0400007c9b23787cbc2b787cdd33784082000c386000004800005c800400002c0000004082000c386000004800004883fb00007f84e37883df00007fc3f378485c6bb92c0300004082000c3860000148000024881e00007c0007754082000c38600000480000107c1fea14901b00004bffffc039610020485bf8e5800100247c0803a6382100204e800020",
+      "full_body_sha256": "d8e78d43ee6d58fcad3d202d06566f509b4e699cd96aa00151f8043cbabbb96f",
+      "target_object": "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/build/SB4E01/obj/Game/Animation/XanimeResourceTable.o",
+      "target_object_sha256": "489b138d14026633009e6f06dc609584b4108b2afd3d96a352ad26d7bafbdae4",
+      "complete_nonrelocated_bits_and_all_relocations_bound": true,
+      "relocations": [
+        {
+          "offset": "0x10",
+          "kind": 10,
+          "symbol": "_savegpr_27",
+          "addend": 0,
+          "resolved_address": "0x8062e164"
+        },
+        {
+          "offset": "0x54",
+          "kind": 10,
+          "symbol": "strcmp",
+          "addend": 0,
+          "resolved_address": "0x8063544c"
+        },
+        {
+          "offset": "0x8c",
+          "kind": 10,
+          "symbol": "_restgpr_27",
+          "addend": 0,
+          "resolved_address": "0x8062e1b0"
+        }
+      ]
+    },
+    {
+      "name": "initGroupInfo__19XanimeResourceTableFP14ResourceHolderP15XanimeGroupInfoP13XanimeOfsInfoP15XanimeBckTable1P15XanimeBckTable2P15XanimeBckTable3P15XanimeBckTable4P15XanimeSwapTable",
+      "address": "0x8006ea10",
+      "size": 1020,
+      "full_DOL_body": "9421ff607c0802a6900100a439610070dbe10090f3e10098dbc10080f3c10088dba10070f3a10078485bf6f9800100a83d6080649003006c7c6f1b78c3a286247c902378c3c286207cb12b78cbeb52e07cd233787cf33b787d1443787d354b787d5653783b4000003be000003b2000013b6000003b8000013ba000023bc0000339c000047c71f82e7f11fa14880300007c0007754182033038000004386000007c0903a67c981a143863000493640020d3a400304200fff0807800004bfbd235907800407de37b78388100183ae000009261001838c000109281001492a1001092c1000c9b78001c80b800004bfffd452c0300004182003c9b98001cd3d800308081001880700004808400044845c795808100187de37b7880840004480004b5907800208061001882e30004480001c880b800007de37b783881001438c000144bfffcf12c0300004182006028190002408000083b2000029bb8001c7de37b78808100148084000448000469907800207de37b7880810014c0040008d0180030808100148084000c480004499078002480610014c0030010d01800348061001482e300044800015080b800007de37b783881001038c0001c4bfffc792c0300004182008028190003408000083b2000039bd8001c7de37b788081001080840004480003f1907800207de37b7880810010c0040008d0180030808100108084000c480003d1907800247de37b7880810010c0040010d01800348081001080840014480003b19078002880610010c0030018d01800388061001082e30004480000b880b800007de37b783881000c38c000244bfffbe12c0300004182009c28190004408000083b20000499d8001c7de37b788081000c8084000448000359907800207de37b788081000cc0040008d01800308081000c8084000c48000339907800247de37b788081000cc0040010d01800348081000c8084001448000319907800287de37b788081000cc0040018d01800388081000c8084001c480002f99078002c8061000cc0030020d018003c8061000c82e3000492f80044d3b8000c807800202c03000040820014d3b80010d3b80014937800184800003088030004901800183c004330d3b80014a8630006900100206c60800090010024c8010020ec00f828d0180010924100087de37b783881000838c0001480b800004bfffad92c0300004182005880610008c0030004fc00e8404c41138240820008d018000c80610008c003000cfc00e8404c41138240820008d018001480610008c0030008fc00e8404c41138240820008d01800108061000880030010901800183b5a00013bff00484bfffcc49b2f00017f43d378e3e10098cbe10090e3c10088cbc10080e3a10078cba1007039610070485bf385800100a47c0803a6382100a04e800020",
+      "full_body_sha256": "882ea3c0b19f373a392dea4b7d7913840305b486337250b6df960e65282f12d2",
+      "target_object": "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/build/SB4E01/obj/Game/Animation/XanimeResourceTable.o",
+      "target_object_sha256": "489b138d14026633009e6f06dc609584b4108b2afd3d96a352ad26d7bafbdae4",
+      "complete_nonrelocated_bits_and_all_relocations_bound": true,
+      "relocations": [
+        {
+          "offset": "0x28",
+          "kind": 10,
+          "symbol": "_savegpr_14",
+          "addend": 0,
+          "resolved_address": "0x8062e130"
+        },
+        {
+          "offset": "0x30",
+          "kind": 6,
+          "symbol": "lbl_806452E0",
+          "addend": 0,
+          "resolved_address": "0x806452e0"
+        },
+        {
+          "offset": "0x3c",
+          "kind": 109,
+          "symbol": "lbl_807D72C4",
+          "addend": 0,
+          "resolved_address": "0x807d72c4"
+        },
+        {
+          "offset": "0x44",
+          "kind": 109,
+          "symbol": "lbl_807D72C0",
+          "addend": 0,
+          "resolved_address": "0x807d72c0"
+        },
+        {
+          "offset": "0x4c",
+          "kind": 4,
+          "symbol": "lbl_806452E0",
+          "addend": 0,
+          "resolved_address": "0x806452e0"
+        },
+        {
+          "offset": "0xbc",
+          "kind": 10,
+          "symbol": "getHashCode__2MRFPCc",
+          "addend": 0,
+          "resolved_address": "0x8002bd00"
+        },
+        {
+          "offset": "0xec",
+          "kind": 10,
+          "symbol": "search__19XanimeResourceTableCFPP14XanimeBckTablePCcUl",
+          "addend": 0,
+          "resolved_address": "0x8006e840"
+        },
+        {
+          "offset": "0x10c",
+          "kind": 10,
+          "symbol": "findFileInfo__8ResTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x804cb2b0"
+        },
+        {
+          "offset": "0x11c",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x140",
+          "kind": 10,
+          "symbol": "search__19XanimeResourceTableCFPP14XanimeBckTablePCcUl",
+          "addend": 0,
+          "resolved_address": "0x8006e840"
+        },
+        {
+          "offset": "0x168",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x188",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x1b8",
+          "kind": 10,
+          "symbol": "search__19XanimeResourceTableCFPP14XanimeBckTablePCcUl",
+          "addend": 0,
+          "resolved_address": "0x8006e840"
+        },
+        {
+          "offset": "0x1e0",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x200",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x220",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x250",
+          "kind": 10,
+          "symbol": "search__19XanimeResourceTableCFPP14XanimeBckTablePCcUl",
+          "addend": 0,
+          "resolved_address": "0x8006e840"
+        },
+        {
+          "offset": "0x278",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x298",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x2b8",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x2d8",
+          "kind": 10,
+          "symbol": "findResMotion__19XanimeResourceTableCFPCc",
+          "addend": 0,
+          "resolved_address": "0x8006efe0"
+        },
+        {
+          "offset": "0x358",
+          "kind": 10,
+          "symbol": "search__19XanimeResourceTableCFPP14XanimeBckTablePCcUl",
+          "addend": 0,
+          "resolved_address": "0x8006e840"
+        },
+        {
+          "offset": "0x3e8",
+          "kind": 10,
+          "symbol": "_restgpr_14",
+          "addend": 0,
+          "resolved_address": "0x8062e17c"
+        }
+      ]
+    },
+    {
+      "name": "__ct__19XanimeResourceTableFP14ResourceHolderP15XanimeGroupInfoP13XanimeOfsInfoP15XanimeBckTable1P15XanimeBckTable2P15XanimeBckTable3P15XanimeBckTable4P15XanimeSwapTable",
+      "address": "0x8006ee10",
+      "size": 320,
+      "full_DOL_body": "9421ffc07c0802a69001004439610040485bf33583a100487c7f1b787c9723787cb82b787cd933787cfa3b787d1b43787d3c4b787d5e53784bfff6f938000001981f00007fe3fb787ee4bb78931f00107f05c3787f26cb787f47d37892ff00647f68db787f89e3787fcaf378981f000193a100084bfffb8d907f00047fe3fb78480000c1935f00143ba000003bc00000480000487c63f02e880300007c000775418200444bfbce4d801f00147c80f21490640008801f00147c60f214806300044bfbce31801f00143bbd00017c80f2143bde00109064000c807f00142c0300004082ffb493bf0008387f00184bfff5e5c00286203c80806738000001d01f001c38849f8838600000909f0018901f0020981f00344849294d907f006038000000396100407fe3fb78901f000c485bf265800100447c0803a6382100404e800020",
+      "full_body_sha256": "8d7d9c8954c4fbba0015f226ba0c7b336daccf2291995c5d1f00964d346cd0bf",
+      "target_object": "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/build/SB4E01/obj/Game/Animation/XanimeResourceTable.o",
+      "target_object_sha256": "489b138d14026633009e6f06dc609584b4108b2afd3d96a352ad26d7bafbdae4",
+      "complete_nonrelocated_bits_and_all_relocations_bound": true,
+      "relocations": [
+        {
+          "offset": "0x10",
+          "kind": 10,
+          "symbol": "_savegpr_23",
+          "addend": 0,
+          "resolved_address": "0x8062e154"
+        },
+        {
+          "offset": "0x38",
+          "kind": 10,
+          "symbol": "init__19XanimeResourceTableFv",
+          "addend": 0,
+          "resolved_address": "0x8006e540"
+        },
+        {
+          "offset": "0x74",
+          "kind": 10,
+          "symbol": "initGroupInfo__19XanimeResourceTableFP14ResourceHolderP15XanimeGroupInfoP13XanimeOfsInfoP15XanimeBckTable1P15XanimeBckTable2P15XanimeBckTable3P15XanimeBckTable4P15XanimeSwapTable",
+          "addend": 0,
+          "resolved_address": "0x8006ea10"
+        },
+        {
+          "offset": "0x80",
+          "kind": 10,
+          "symbol": "createSortTable__19XanimeResourceTableFv",
+          "addend": 0,
+          "resolved_address": "0x8006ef50"
+        },
+        {
+          "offset": "0xa4",
+          "kind": 10,
+          "symbol": "getHashCode__2MRFPCc",
+          "addend": 0,
+          "resolved_address": "0x8002bd00"
+        },
+        {
+          "offset": "0xc0",
+          "kind": 10,
+          "symbol": "getHashCode__2MRFPCc",
+          "addend": 0,
+          "resolved_address": "0x8002bd00"
+        },
+        {
+          "offset": "0xec",
+          "kind": 10,
+          "symbol": "init__15XanimeGroupInfoFv",
+          "addend": 0,
+          "resolved_address": "0x8006e4e0"
+        },
+        {
+          "offset": "0xf0",
+          "kind": 109,
+          "symbol": "lbl_807D72C0",
+          "addend": 0,
+          "resolved_address": "0x807d72c0"
+        },
+        {
+          "offset": "0xf4",
+          "kind": 6,
+          "symbol": "lbl_80669F88",
+          "addend": 0,
+          "resolved_address": "0x80669f88"
+        },
+        {
+          "offset": "0x100",
+          "kind": 4,
+          "symbol": "lbl_80669F88",
+          "addend": 0,
+          "resolved_address": "0x80669f88"
+        },
+        {
+          "offset": "0x114",
+          "kind": 10,
+          "symbol": "__nwa__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501870"
+        },
+        {
+          "offset": "0x12c",
+          "kind": 10,
+          "symbol": "_restgpr_23",
+          "addend": 0,
+          "resolved_address": "0x8062e1a0"
+        }
+      ]
+    },
+    {
+      "name": "init__5YoshiFRC12JMapInfoIter",
+      "address": "0x8040c190",
+      "size": 972,
+      "full_DOL_body": "9421ff707c0802a6900100943961009048221fc53fa0806e7c7b1b783bbdf9d838c000003fdd000138bea60c4bc000257f63db783880002538a0000638c0001638e0ffff4bc3ea5d7f63db78388000064be2ba81c02218e838610064c0421900fc6008904bc02e2dc02218fc7c661b787f63db78389ea61838a000204bc08775c02218e838610058c0421908fc6008904bc02e01c02219047c661b787f63db78389ea62038a000204bc08589c02218e83861004cc042190cfc6008904bc02dd5c02219047c661b787f63db78389ea62838a000204bc0855dc02218e838610040c0421900fc6008904bc02da9c02219007c661b787f63db78389ea63438a000204bc086f1c02218e838610034c0421900fc6008904bc02d7dc02219107c671b787f63db78389ea64438a0000538c000204bc08441c02218e838610028c0421900fc6008904bc02d4dc02219007c661b787f63db78389ea65838a000204bc08655c022190c7f63db7838800100fc4008904be2b9b17f63db78389b00e838a000004bc27d217f63db784bc282297f63db78389ea6684bc0c2fd7f63db784bc256e57f63db784bc266ad3be000009bfb01387f63db78388ddba038a000004be2b8b5c02218e83861001cc0421914fc6008904bc02cc1c02219147c641b787f63db784bc4fd61819b00007f63db78818c00387d8903a64e80042138600070480f54c52c0300007c7c1b78418200387f63db784bc2593193e100087c641b787f83e37838bd3fd838dea17038fd2ab8391d02bc393d0228395d01144bc62a497c7c1b78939b00947f63db78480038f97f63db78480039a17f63db7848003a49386000f8480f54612c030000418200107f64db7838bea6704801014d907b00f44bf2d31538600034480f543d2c0300004182000c7f64db784800b91d907b00f838600018480f54212c0300004182000c809b00f84800e561907b00fc3860002c480f54052c0300004182001480bb00987f64db7838dea6804bffefdd907b010038600098480f53e12c0300004182000c7f64db784800eca1907b019c4bf2d2993860009c480f53c12c0300007c7c1b7841820038819b01a8387b01a8818c00087d8903a64e8004217c671b787f83e3787f64db7838bea68c38dea694391ea6a04be22ee57c7c1b78939b01a47f83e3784bf2d2453860001c480f536d2c0300004182000c7f64db78480090dd907b01043860000c480f53512c0300004182001080bb01007f64db7848006d8d907b012838610010c02218e84bbfa98d7c671b787f63db783880000a38a0000038c000004be2b9354bc4d3513961009048221c69800100947c0803a6382100904e800020",
+      "full_body_sha256": "d8ab914321578ca30d3fb38b3e014fe8980d3f0ba3d858e676604bc02008c563",
+      "target_object": "/Users/roberthaisfield/MacioGalaxy2-wt/enemies/build/SB4E01/obj/Game/Player/Yoshi.o",
+      "target_object_sha256": "dab1d396712cad2e8b636101f767f68802d1a2ed0b61149361ab0f2c411de661",
+      "complete_nonrelocated_bits_and_all_relocations_bound": true,
+      "relocations": [
+        {
+          "offset": "0x10",
+          "kind": 10,
+          "symbol": "_savegpr_27",
+          "addend": 0,
+          "resolved_address": "0x8062e164"
+        },
+        {
+          "offset": "0x14",
+          "kind": 6,
+          "symbol": "lbl_806DF9D8",
+          "addend": 0,
+          "resolved_address": "0x806df9d8"
+        },
+        {
+          "offset": "0x1c",
+          "kind": 4,
+          "symbol": "lbl_806DF9D8",
+          "addend": 0,
+          "resolved_address": "0x806df9d8"
+        },
+        {
+          "offset": "0x2c",
+          "kind": 10,
+          "symbol": "initActor__2MRFP9LiveActorRC12JMapInfoIterPCcb",
+          "addend": 0,
+          "resolved_address": "0x8000c1e0"
+        },
+        {
+          "offset": "0x44",
+          "kind": 10,
+          "symbol": "connectToScene__2MRFP9LiveActoriiii",
+          "addend": 0,
+          "resolved_address": "0x8004ac30"
+        },
+        {
+          "offset": "0x50",
+          "kind": 10,
+          "symbol": "initHitSensor__9LiveActorFl",
+          "addend": 0,
+          "resolved_address": "0x80237c60"
+        },
+        {
+          "offset": "0x54",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0x5c",
+          "kind": 109,
+          "symbol": "lbl_807E05A0",
+          "addend": 0,
+          "resolved_address": "0x807e05a0"
+        },
+        {
+          "offset": "0x64",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ffff",
+          "addend": 0,
+          "resolved_address": "0x8000f020"
+        },
+        {
+          "offset": "0x68",
+          "kind": 109,
+          "symbol": "lbl_807E059C",
+          "addend": 0,
+          "resolved_address": "0x807e059c"
+        },
+        {
+          "offset": "0x7c",
+          "kind": 10,
+          "symbol": "addHitSensorEye__2MRFP9LiveActorPCcUsfRCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x80014980"
+        },
+        {
+          "offset": "0x80",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0x88",
+          "kind": 109,
+          "symbol": "lbl_807E05A8",
+          "addend": 0,
+          "resolved_address": "0x807e05a8"
+        },
+        {
+          "offset": "0x90",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ffff",
+          "addend": 0,
+          "resolved_address": "0x8000f020"
+        },
+        {
+          "offset": "0x94",
+          "kind": 109,
+          "symbol": "lbl_807E05A4",
+          "addend": 0,
+          "resolved_address": "0x807e05a4"
+        },
+        {
+          "offset": "0xa8",
+          "kind": 10,
+          "symbol": "addHitSensorRide__2MRFP9LiveActorPCcUsfRCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x800147c0"
+        },
+        {
+          "offset": "0xac",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0xb4",
+          "kind": 109,
+          "symbol": "lbl_807E05AC",
+          "addend": 0,
+          "resolved_address": "0x807e05ac"
+        },
+        {
+          "offset": "0xbc",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ffff",
+          "addend": 0,
+          "resolved_address": "0x8000f020"
+        },
+        {
+          "offset": "0xc0",
+          "kind": 109,
+          "symbol": "lbl_807E05A4",
+          "addend": 0,
+          "resolved_address": "0x807e05a4"
+        },
+        {
+          "offset": "0xd4",
+          "kind": 10,
+          "symbol": "addHitSensorRide__2MRFP9LiveActorPCcUsfRCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x800147c0"
+        },
+        {
+          "offset": "0xd8",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0xe0",
+          "kind": 109,
+          "symbol": "lbl_807E05A0",
+          "addend": 0,
+          "resolved_address": "0x807e05a0"
+        },
+        {
+          "offset": "0xe8",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ffff",
+          "addend": 0,
+          "resolved_address": "0x8000f020"
+        },
+        {
+          "offset": "0xec",
+          "kind": 109,
+          "symbol": "lbl_807E05A0",
+          "addend": 0,
+          "resolved_address": "0x807e05a0"
+        },
+        {
+          "offset": "0x100",
+          "kind": 10,
+          "symbol": "addHitSensorEye__2MRFP9LiveActorPCcUsfRCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x80014980"
+        },
+        {
+          "offset": "0x104",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0x10c",
+          "kind": 109,
+          "symbol": "lbl_807E05A0",
+          "addend": 0,
+          "resolved_address": "0x807e05a0"
+        },
+        {
+          "offset": "0x114",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ffff",
+          "addend": 0,
+          "resolved_address": "0x8000f020"
+        },
+        {
+          "offset": "0x118",
+          "kind": 109,
+          "symbol": "lbl_807E05B0",
+          "addend": 0,
+          "resolved_address": "0x807e05b0"
+        },
+        {
+          "offset": "0x130",
+          "kind": 10,
+          "symbol": "addHitSensor__2MRFP9LiveActorPCcUlUsfRCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x80014700"
+        },
+        {
+          "offset": "0x134",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0x13c",
+          "kind": 109,
+          "symbol": "lbl_807E05A0",
+          "addend": 0,
+          "resolved_address": "0x807e05a0"
+        },
+        {
+          "offset": "0x144",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ffff",
+          "addend": 0,
+          "resolved_address": "0x8000f020"
+        },
+        {
+          "offset": "0x148",
+          "kind": 109,
+          "symbol": "lbl_807E05A0",
+          "addend": 0,
+          "resolved_address": "0x807e05a0"
+        },
+        {
+          "offset": "0x15c",
+          "kind": 10,
+          "symbol": "addHitSensorNpc__2MRFP9LiveActorPCcUsfRCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x80014940"
+        },
+        {
+          "offset": "0x160",
+          "kind": 109,
+          "symbol": "lbl_807E05AC",
+          "addend": 0,
+          "resolved_address": "0x807e05ac"
+        },
+        {
+          "offset": "0x170",
+          "kind": 10,
+          "symbol": "initBinder__9LiveActorFffUl",
+          "addend": 0,
+          "resolved_address": "0x80237cb0"
+        },
+        {
+          "offset": "0x180",
+          "kind": 10,
+          "symbol": "setBinderOffsetVec__2MRFP9LiveActorPCQ29JGeometry8TVec3<f>b",
+          "addend": 0,
+          "resolved_address": "0x80034030"
+        },
+        {
+          "offset": "0x188",
+          "kind": 10,
+          "symbol": "offBind__2MRFP9LiveActor",
+          "addend": 0,
+          "resolved_address": "0x80034540"
+        },
+        {
+          "offset": "0x194",
+          "kind": 10,
+          "symbol": "initShadowFromCSVWithInitShadowVolumeSphere__2MRFP9LiveActorPCc",
+          "addend": 0,
+          "resolved_address": "0x80018620"
+        },
+        {
+          "offset": "0x19c",
+          "kind": 10,
+          "symbol": "invalidateClipping__2MRFP9LiveActor",
+          "addend": 0,
+          "resolved_address": "0x80031a10"
+        },
+        {
+          "offset": "0x1a4",
+          "kind": 10,
+          "symbol": "initLightCtrl__2MRFP9LiveActor",
+          "addend": 0,
+          "resolved_address": "0x800329e0"
+        },
+        {
+          "offset": "0x1b4",
+          "kind": 109,
+          "symbol": "sInstance__Q28NrvYoshi16YoshiNrv80413860",
+          "addend": 0,
+          "resolved_address": "0x807d4ec0"
+        },
+        {
+          "offset": "0x1bc",
+          "kind": 10,
+          "symbol": "initNerve__9LiveActorFPC5Nervel",
+          "addend": 0,
+          "resolved_address": "0x80237c00"
+        },
+        {
+          "offset": "0x1c0",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0x1c8",
+          "kind": 109,
+          "symbol": "lbl_807E05B4",
+          "addend": 0,
+          "resolved_address": "0x807e05b4"
+        },
+        {
+          "offset": "0x1d0",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ffff",
+          "addend": 0,
+          "resolved_address": "0x8000f020"
+        },
+        {
+          "offset": "0x1d4",
+          "kind": 109,
+          "symbol": "lbl_807E05B4",
+          "addend": 0,
+          "resolved_address": "0x807e05b4"
+        },
+        {
+          "offset": "0x1e0",
+          "kind": 10,
+          "symbol": "initStarPointerTarget__2MRFP9LiveActorfRCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x8005c0d0"
+        },
+        {
+          "offset": "0x1fc",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x210",
+          "kind": 10,
+          "symbol": "getResourceHolder__2MRFPC9LiveActor",
+          "addend": 0,
+          "resolved_address": "0x80031cd0"
+        },
+        {
+          "offset": "0x238",
+          "kind": 10,
+          "symbol": "__ct__19XanimeResourceTableFP14ResourceHolderP15XanimeGroupInfoP13XanimeOfsInfoP15XanimeBckTable1P15XanimeBckTable2P15XanimeBckTable3P15XanimeBckTable4P15XanimeSwapTable",
+          "addend": 0,
+          "resolved_address": "0x8006ee10"
+        },
+        {
+          "offset": "0x248",
+          "kind": 10,
+          "symbol": "fn_8040FCD0__5YoshiFv",
+          "addend": 0,
+          "resolved_address": "0x8040fcd0"
+        },
+        {
+          "offset": "0x250",
+          "kind": 10,
+          "symbol": "fn_8040FD80__5YoshiFv",
+          "addend": 0,
+          "resolved_address": "0x8040fd80"
+        },
+        {
+          "offset": "0x258",
+          "kind": 10,
+          "symbol": "fn_8040FE30__5YoshiFv",
+          "addend": 0,
+          "resolved_address": "0x8040fe30"
+        },
+        {
+          "offset": "0x260",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x274",
+          "kind": 10,
+          "symbol": "__ct__11YoshiTongueFP5YoshiPCc",
+          "addend": 0,
+          "resolved_address": "0x8041c550"
+        },
+        {
+          "offset": "0x27c",
+          "kind": 10,
+          "symbol": "initWithoutIter__7NameObjFv",
+          "addend": 0,
+          "resolved_address": "0x80339720"
+        },
+        {
+          "offset": "0x284",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x294",
+          "kind": 10,
+          "symbol": "__ct__14YoshiModelCtrlFP5Yoshi",
+          "addend": 0,
+          "resolved_address": "0x80417d40"
+        },
+        {
+          "offset": "0x2a0",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x2b0",
+          "kind": 10,
+          "symbol": "__ct__13YoshiHeadCtrlFP14YoshiModelCtrl",
+          "addend": 0,
+          "resolved_address": "0x8041a9a0"
+        },
+        {
+          "offset": "0x2bc",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x2d4",
+          "kind": 10,
+          "symbol": "__ct__23YoshiAnimationModelCtrlFP5YoshiP12XanimePlayerPCc",
+          "addend": 0,
+          "resolved_address": "0x8040b440"
+        },
+        {
+          "offset": "0x2e0",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x2f0",
+          "kind": 10,
+          "symbol": "__ct__15YoshiSilhouetteFP5Yoshi",
+          "addend": 0,
+          "resolved_address": "0x8041b120"
+        },
+        {
+          "offset": "0x2f8",
+          "kind": 10,
+          "symbol": "initWithoutIter__7NameObjFv",
+          "addend": 0,
+          "resolved_address": "0x80339720"
+        },
+        {
+          "offset": "0x300",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x33c",
+          "kind": 10,
+          "symbol": "__ct__10BreakModelFP9LiveActorPCcPCcPA4_fPCc",
+          "addend": 0,
+          "resolved_address": "0x8022f3b0"
+        },
+        {
+          "offset": "0x34c",
+          "kind": 10,
+          "symbol": "initWithoutIter__7NameObjFv",
+          "addend": 0,
+          "resolved_address": "0x80339720"
+        },
+        {
+          "offset": "0x354",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x364",
+          "kind": 10,
+          "symbol": "__ct__14YoshiFruitCtrlFP5Yoshi",
+          "addend": 0,
+          "resolved_address": "0x804155d0"
+        },
+        {
+          "offset": "0x370",
+          "kind": 10,
+          "symbol": "__nw__FUl",
+          "addend": 0,
+          "resolved_address": "0x80501850"
+        },
+        {
+          "offset": "0x384",
+          "kind": 10,
+          "symbol": "__ct__20YoshiModelVisibilityFP5YoshiP23YoshiAnimationModelCtrl",
+          "addend": 0,
+          "resolved_address": "0x804132a0"
+        },
+        {
+          "offset": "0x390",
+          "kind": 109,
+          "symbol": "lbl_807E0588",
+          "addend": 0,
+          "resolved_address": "0x807e0588"
+        },
+        {
+          "offset": "0x394",
+          "kind": 10,
+          "symbol": "__ct__Q29JGeometry8TVec3<f>Ff",
+          "addend": 0,
+          "resolved_address": "0x80006eb0"
+        },
+        {
+          "offset": "0x3ac",
+          "kind": 10,
+          "symbol": "initSound__9LiveActorFlPCcPCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+          "addend": 0,
+          "resolved_address": "0x80237e70"
+        },
+        {
+          "offset": "0x3b0",
+          "kind": 10,
+          "symbol": "createCenterScreenBlur__2MRFv",
+          "addend": 0,
+          "resolved_address": "0x80059890"
+        },
+        {
+          "offset": "0x3b8",
+          "kind": 10,
+          "symbol": "_restgpr_27",
+          "addend": 0,
+          "resolved_address": "0x8062e1b0"
+        }
+      ]
+    }
+  ],
+  "exact_control_sites": [
+    {
+      "address": "0x8006e860",
+      "word": "7cdd3378",
+      "meaning": "preserve input stride r6 in r29"
+    },
+    {
+      "address": "0x8006e8a8",
+      "word": "881e0000",
+      "meaning": "load first byte of full record name"
+    },
+    {
+      "address": "0x8006e8b0",
+      "word": "4082000c",
+      "meaning": "only nonempty name reaches record advance"
+    },
+    {
+      "address": "0x8006e8bc",
+      "word": "7c1fea14",
+      "meaning": "next record = current + preserved stride"
+    },
+    {
+      "address": "0x8006ea9c",
+      "word": "88030000",
+      "meaning": "load group name first byte"
+    },
+    {
+      "address": "0x8006eaa4",
+      "word": "41820330",
+      "meaning": "empty name exits group loop"
+    },
+    {
+      "address": "0x8006eae4",
+      "word": "38c00010",
+      "meaning": "Bck1 search stride16"
+    },
+    {
+      "address": "0x8006eb4c",
+      "word": "38c00014",
+      "meaning": "Bck2 search stride20"
+    },
+    {
+      "address": "0x8006ebc4",
+      "word": "38c0001c",
+      "meaning": "Bck3 search stride28"
+    },
+    {
+      "address": "0x8006ec5c",
+      "word": "38c00024",
+      "meaning": "Bck4 search stride36"
+    },
+    {
+      "address": "0x8006ed60",
+      "word": "38c00014",
+      "meaning": "Ofs search stride20"
+    },
+    {
+      "address": "0x8006edcc",
+      "word": "3bff0048",
+      "meaning": "group advance72"
+    }
+  ],
+  "preserved_neighbor_strings": [
+    {
+      "address": "0x806e9b00",
+      "full24B": "837a83628370815b82d382dd835783838393837641000000",
+      "complete_NUL": "837a83628370815b82d382dd83578383839383764100",
+      "decoded": "ホッパーふみジャンプA"
+    },
+    {
+      "address": "0x806e9b18",
+      "full24B": "837a83628370815b82d382dd835783838393837642000000",
+      "complete_NUL": "837a83628370815b82d382dd83578383839383764200",
+      "decoded": "ホッパーふみジャンプB"
+    },
+    {
+      "address": "0x806e9b30",
+      "full24B": "93648b43835f8381815b83578169826d82908283816a0000",
+      "complete_NUL": "93648b43835f8381815b83578169826d82908283816a00",
+      "decoded": "電気ダメージ（Ｎｐｃ）"
+    }
+  ],
+  "model_prefix": {
+    "address": "0x806e9fe4",
+    "full12B": "596f73686900000000000000"
+  },
+  "scope": "Original target binding only; no compiled-source freshness assertion, no source/extent/split edits, no function-match claim"
+}

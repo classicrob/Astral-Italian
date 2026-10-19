@@ -2337,7 +2337,8 @@ void Mario::checkBump() {
                         if (_4DC->isValid()) {
                             const char* floor = MR::getFloorCodeString(_4DC);
 
-                            if (!isSlipPolygon(_4DC) || !strcmp(floor, "NoSlip") || !strcmp(floor, "Sand")) {
+                            if (!isSlipPolygon(_4DC) || !strcmp(floor, "NoSlip") || !strcmp(floor, "PressAndNoSlip") ||
+                                !strcmp(floor, "SnowAndNoSlip") || !strcmp(floor, "Sand")) {
                                 startBump(_518);
                             }
                         }
@@ -4607,10 +4608,13 @@ bool Mario::checkDamage() {
 
     if (isStatusActive(MarioStatus_Swim)) {
         checkWaterDamage();
+        mMovementStates.mHighWord &= 0xFFF7FFFFU;
+        mFlags14.mLowWord &= 0x7FFFF77FU;
         return false;
     }
 
-    if (((mMovementStates.mLowWord >> 4) & 1U)) {
+    if (((mMovementStates.mLowWord >> 4) & 1U) ||
+        (((mMovementStates.mHighWord >> 24) & 1U) && MR::isGalaxyHorrorCometAppearInCurrentStage())) {
         mMovementStates.mLowWord &= 0xFFFFFFEFU;
         changeStatus(mDamage);
         mMovementStates.mHighWord &= 0xFEFFFFFFU;
@@ -4622,7 +4626,12 @@ bool Mario::checkDamage() {
     if (((mMovementStates.mHighWord >> 24) & 1U)) {
         mMovementStates.mHighWord &= 0xFEFFFFFFU;
         mMovementStates.mHighWord &= 0xFFF7FFFFU;
-        changeStatus(mFaint);
+        if (isPlayerModeYoshi()) {
+            mDamage->_30 = true;
+            changeStatus(mDamage);
+        } else {
+            changeStatus(mFaint);
+        }
         return true;
     }
 
@@ -7737,7 +7746,7 @@ void Mario::tryStickJump(const TVec3f& rVec) {
 
 
 void Mario::trySlipUpJump() {
-    if (((mMovementStates.mLowWord >> 30) & 1U)) {
+    if (((mMovementStates.mLowWord >> 30) & 1U) || isPlayerModeYoshi()) {
         mMovementStates.mLowWord &= 0xFDFFFFFFU;
         mMovementStates.mHighWord &= 0xFF7FFFFFU;
         return;
@@ -7763,10 +7772,17 @@ void Mario::trySlipUpJump() {
     u32 hitCount;
     TVec3f hitPos;
     for (hitCount = 0; hitCount < 10; hitCount++) {
-        Triangle* pTmpPolygon = getTmpPolygon();
+        Triangle* pTmpPolygon = fn_803EFA20();
         predictPos += frontVec * step;
 
-        if (!MR::getFirstPolyOnLineBFast(predictPos, *getGravityVec() * 150.0f, &hitPos, pTmpPolygon)) {
+        TVec3f direction(*getGravityVec() * 150.0f);
+        bool hit;
+        if (fn_803B2950()) {
+            hit = MR::getFirstPolyOnLineBFastToDashYoshiStepAndMap(predictPos, direction, &hitPos, pTmpPolygon);
+        } else {
+            hit = MR::getFirstPolyOnLineBFast(predictPos, direction, &hitPos, pTmpPolygon);
+        }
+        if (!hit) {
             break;
         }
     }

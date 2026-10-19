@@ -1163,23 +1163,24 @@ void MarioActor::fn_803C26A0() {
 }
 
 bool MarioActor::fn_803C2710() {
-    s32 a = 0;
-    s32 b = 0;
-    s32 c = 0;
-    s32 d = 0;
-    if (this->mMario->isAnimationRun("ハンマー投げリリース") && ((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1)) {
-        d = 1;
+    bool releaseAnimation = false;
+    bool actorGateClear = false;
+    bool playerGateClear = false;
+    bool requested = false;
+    if (mMario->isAnimationRun("ハンマー投げリリース") &&
+        ((mMario->mMovementStates.mLowWord >> 30) & 1U)) {
+        releaseAnimation = true;
     }
-    if (d != 0 && this->_38C == 0) {
-        c = 1;
+    if (releaseAnimation && _38C == 0) {
+        actorGateClear = true;
     }
-    if (c != 0 && (this->mMario)->_420 == 0) {
-        b = 1;
+    if (actorGateClear && mMario->_420 == 0) {
+        playerGateClear = true;
     }
-    if (b != 0 && this->mMario->isStickOn()) {
-        a = 1;
+    if (playerGateClear && mMario->isStickOn()) {
+        requested = true;
     }
-    return a;
+    return requested;
 }
 
 

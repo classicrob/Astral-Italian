@@ -11,7 +11,7 @@ static TVec3f sCurveTangentA(0.0f, 0.0f, 0.0f);
 static TVec3f sCurveTangentB(0.0f, 0.0f, 0.0f);
 static TVec3f sCurveTangentC(0.0f, 0.0f, 2000.0f);
 
-BoomerangBrosBoomerang::BoomerangBrosBoomerang(const char* pName) : BrosProjectileBase(pName), _BC(2000.0f), mStep(0), mBind(nullptr) {
+BoomerangBrosBoomerang::BoomerangBrosBoomerang(const char* pName) : BrosProjectileBase(pName), mPathDistance(2000.0f), mStep(0), mBind(nullptr) {
 }
 
 namespace NrvBoomerangBrosBoomerang {
@@ -116,8 +116,8 @@ void BoomerangBrosBoomerang::v70(const TVec3f& rPos, const TVec3f& rTarget) {
     MR::offBind(this);
     TVec3f diff = *MR::getPlayerPos() - rPos;
     MR::vecKillElement(diff, mGravity, &diff);
-    _BC = PSVECMag(&diff);
-    _BC = MR::clamp(_BC, 2000.0f, 2000.0f);
+    mPathDistance = PSVECMag(&diff);
+    mPathDistance = MR::clamp(mPathDistance, 2000.0f, 2000.0f);
     MR::normalizeOrZero(&mFront, diff);
     mMtx.identity();
     MR::calcMtxFromGravityAndZAxis(&mMtx, this, mFront);
@@ -187,7 +187,7 @@ void BoomerangBrosBoomerang::exeThrown() {
         MR::startAction(this, "Spin");
         _B4 = false;
         mStep = 0;
-        _BC = 2000.0f;
+        mPathDistance = 2000.0f;
         MR::getPlayerThrowVec(&mFront);
         mMtx.identity();
         MR::calcMtxFromGravityAndZAxis(&mMtx, this, mFront);
@@ -238,7 +238,7 @@ void BoomerangBrosBoomerang::calcPath(TVec3f* pOut, f32 t) {
     f32 split = 0.45f;
     TVec3f p0(0.0f, 0.0f, 0.0f);
     TVec3f m0(0.0f, 0.0f, 0.0f);
-    TVec3f p1(0.0f, 0.0f, _BC);
+    TVec3f p1(0.0f, 0.0f, mPathDistance);
     TVec3f m1(0.0f, 0.0f, 0.0f);
     if (t < split) {
         rate = t / split;

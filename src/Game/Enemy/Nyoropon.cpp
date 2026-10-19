@@ -134,21 +134,19 @@ void Nyoropon::makeActorAppeared() {
 
 // NONMATCHING: equivalent sensor guards compile with a different branch layout.
 void Nyoropon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isEqualSensor(pSender, this, "Light")) {
+    if (MR::isEqualSensor(pSender, this, "Light") || MR::isEqualSensor(pSender, this, "HeadReceive")) {
         return;
     }
-    if (!MR::isEqualSensor(pSender, this, "HeadReceive")) {
-        if (MR::isSensorPlayer(pReceiver)) {
-            if (isLightTargetNerve()) {
-                if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
-                    MR::tryStartActionNotPlaying(mHead, "AttackSuccess");
-                }
-            } else {
-                MR::sendMsgPush(pReceiver, pSender);
+    if (MR::isSensorPlayer(pReceiver)) {
+        if (isLightTargetNerve()) {
+            if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
+                MR::tryStartActionNotPlaying(mHead, "AttackSuccess");
             }
-        } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorMapObj(pReceiver)) {
+        } else {
             MR::sendMsgPush(pReceiver, pSender);
         }
+    } else if (MR::isSensorEnemy(pReceiver) || MR::isSensorMapObj(pReceiver)) {
+        MR::sendMsgPush(pReceiver, pSender);
     }
 }
 

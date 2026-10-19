@@ -69,7 +69,7 @@ MeisterTalkHolder::MeisterTalkHolder(Meister* host,const JMapInfoIter& iter,cons
         }
         mGeneralTalks[i]=MR::createTalkCtrlDirectOnRootNodeAutomatic(host,iter,id,offset,nullptr);
         TalkMessageCtrl** talks = mGeneralTalks;
-        TalkMessageFuncM<MeisterTalkHolder*,bool(MeisterTalkHolder::*)(u32)> callback(this,&MeisterTalkHolder::branchFunc);
+        TalkMessageFuncM<MeisterTalkHolder*,bool(MeisterTalkHolder::*)(u32)> callback = TalkMessageFunc_Inline(this, &MeisterTalkHolder::branchFunc);
         MR::registerBranchFunc(talks[i],callback);
         u8* flags = mGeneralTalkFlags;
         flags[i]=isGeneralTalkInitiallyEnabled(i);
@@ -102,7 +102,7 @@ MeisterTalkHolder::MeisterTalkHolder(Meister* host,const JMapInfoIter& iter,cons
     default: defaultTalk=nullptr; break;
     }
     mDefaultTalk = defaultTalk;
-    TalkMessageFuncM<MeisterTalkHolder*,bool(MeisterTalkHolder::*)(u32)> callback(this,&MeisterTalkHolder::branchFunc);
+    TalkMessageFuncM<MeisterTalkHolder*,bool(MeisterTalkHolder::*)(u32)> callback = TalkMessageFunc_Inline(this, &MeisterTalkHolder::branchFunc);
     MR::registerBranchFunc(mDefaultTalk,callback);
     mReactionTalk=MR::createTalkCtrlDirectOnRootNodeAutomatic(host,iter,"Meister_StarPieceReaction",offset+gMeisterReactionTalkOffset,nullptr);
     if(GameSequenceFunction::isTicoFatStarPieceActive()) {

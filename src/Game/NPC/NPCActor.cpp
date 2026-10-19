@@ -46,9 +46,9 @@ namespace {
     class NPCParam : public AnimScaleParam {
     public:
         NPCParam(f32 speed, f32 magnitude, f32 damping) : AnimScaleParam() {
-            _10 = speed;
-            _14 = magnitude;
-            _20 = damping;
+            mDpdVibrationTime = speed;
+            mDpdVibrationBase = magnitude;
+            mHitReactionVelocityY = damping;
         };
     };
 
@@ -629,7 +629,7 @@ bool NPCActor::initTalkCtrlDirect(const JMapInfoIter& rIter, const char* pChar, 
 }
 
 bool NPCActor::calcJointScale(TPos3f* pPos, const JointControllerInfo&) {
-    MR::preScaleMtx(pPos->toMtxPtr(), mScaleController->_C);
+    MR::preScaleMtx(pPos->toMtxPtr(), mScaleController->mScale);
     return true;
 }
 
@@ -836,8 +836,8 @@ bool NPCActor::isScaleAnim() const {
         return false;
     }
 
-    bool isDefaultScale = (MR::isNearZero(1.0f - pScaleController->_C.x, 0.2f) && MR::isNearZero(1.0f - pScaleController->_C.y, 0.2f) &&
-                           MR::isNearZero(1.0f - pScaleController->_C.z, 0.2f));
+    bool isDefaultScale = (MR::isNearZero(1.0f - pScaleController->mScale.x, 0.2f) && MR::isNearZero(1.0f - pScaleController->mScale.y, 0.2f) &&
+                           MR::isNearZero(1.0f - pScaleController->mScale.z, 0.2f));
     if (isDefaultScale) {
         return false;
     }

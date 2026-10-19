@@ -631,7 +631,7 @@ bool Pukupuku::fn_801F1440(HitSensor* sensor) {
 void Pukupuku::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mPoseQuat);
     TVec3f scale = mScale;
-    scale.mul(scale, mScaleCtrl->_C);
+    scale.mul(scale, mScaleCtrl->mScale);
     MR::setBaseScale(this, scale);
 }
 

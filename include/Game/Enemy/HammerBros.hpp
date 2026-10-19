@@ -60,7 +60,7 @@ public:
 
     /* 0x0D8 */ WalkerStateBindStarPointer* mBindStand;
     /* 0x0DC */ WalkerStateBindStarPointer* mBindSwoon;
-    /* 0x0E0 */ f32 _E0;
+    /* 0x0E0 */ f32 mUnusedE0;
     /* 0x0E4 */ s32 mWaitCount;
     /* 0x0E8 */ TPos3f mMtx;
     /* 0x118 */ BrosStateJump* mStateJump;

@@ -48,7 +48,7 @@ namespace NrvFireBall {
     NEW_NERVE(FireBallNrvReflect, FireBall, Reflect);
 }
 
-FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), mScaleController(0), mBindStarPointer(0), mReflectDir(0.0f, 1.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), _B4(1.0f) {
+FireBall::FireBall(const char* pName) : LiveActor(pName), mHost(), mScaleController(0), mBindStarPointer(0), mReflectDir(0.0f, 1.0f, 0.0f), mUp(0.0f, 1.0f, 0.0f), mUnusedB4(1.0f) {
 }
 
 inline void FireBall::initHitSensors(const char* const hitSensor) {
@@ -136,7 +136,7 @@ bool FireBall::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
 
     if (MR::isMsgSupportTicoSpin(msg)) {
         if (isNerve(GET_NERVE(FireBall, FireBallNrvThrow)) || isNerve(GET_NERVE(FireBall, FireBallNrvFreeze))) {
-            fn_8017DF50();
+            randomizeReflectVelocity();
             setNerve(GET_NERVE(FireBall, FireBallNrvReflect));
             return true;
         }
@@ -260,7 +260,7 @@ void FireBall::exeReflect() {
     }
 }
 
-void FireBall::fn_8017DA20(const TVec3f& pos, const TVec3f& velocity) {
+void FireBall::launchFireBallWithVelocity(const TVec3f& pos, const TVec3f& velocity) {
     mPosition.set<f32>(pos);
     MR::calcGravity(this);
     mUp.negate(mGravity);
@@ -268,7 +268,7 @@ void FireBall::fn_8017DA20(const TVec3f& pos, const TVec3f& velocity) {
     appear();
 }
 
-void FireBall::fn_8017DF50() {
+void FireBall::randomizeReflectVelocity() {
     if (MR::isNearZero(mReflectDir)) {
         mReflectDir.set<f32>(mUp);
     }

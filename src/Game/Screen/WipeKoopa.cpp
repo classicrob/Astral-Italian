@@ -9,7 +9,7 @@ namespace {
     static const s32 sAnimFrame = 90;
 };  // namespace
 
-namespace {
+namespace NrvWipeKoopa {
     NEW_NERVE(WipeKoopaNrvWait, WipeKoopa, Wait);
     NEW_NERVE(WipeKoopaNrvWipeOut, WipeKoopa, WipeOut);
     NEW_NERVE(WipeKoopaNrvClose, WipeKoopa, Close);
@@ -19,7 +19,7 @@ WipeKoopa::WipeKoopa() : WipeLayoutBase("クッパ"), mFrame(::sAnimFrame) {
 }
 
 void WipeKoopa::init(const JMapInfoIter& rIter) {
-    initNerve(GET_NERVE_ANON(WipeKoopaNrvWait));
+    initNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvWait));
     initLayoutManager("WipeKoopa", 2);
 }
 
@@ -38,7 +38,7 @@ void WipeKoopa::exeWipeOut() {
     }
 
     if (MR::isAnimStopped(this, 0)) {
-        setNerve(GET_NERVE_ANON(WipeKoopaNrvClose));
+        setNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvClose));
     }
 }
 
@@ -46,7 +46,7 @@ void WipeKoopa::exeClose() {
 }
 
 void WipeKoopa::wipe(s32 frame) {
-    setNerve(GET_NERVE_ANON(WipeKoopaNrvWipeOut));
+    setNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvWipeOut));
     setColor();
     MR::hideLayout(this);
 
@@ -58,7 +58,7 @@ void WipeKoopa::wipe(s32 frame) {
 }
 
 void WipeKoopa::forceClose() {
-    setNerve(GET_NERVE_ANON(WipeKoopaNrvClose));
+    setNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvClose));
 
     MR::showLayout(this);
     
@@ -68,17 +68,17 @@ void WipeKoopa::forceClose() {
 }
 
 void WipeKoopa::forceOpen() {
-    setNerve(GET_NERVE_ANON(WipeKoopaNrvWait));
+    setNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvWait));
     MR::hideLayout(this);
     setColor();
 }
 
 bool WipeKoopa::isOpen() const {
-    return isNerve(GET_NERVE_ANON(WipeKoopaNrvWait));
+    return isNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvWait));
 }
 
 bool WipeKoopa::isClose() const {
-    return isNerve(GET_NERVE_ANON(WipeKoopaNrvClose));
+    return isNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvClose));
 }
 
 bool WipeKoopa::isWipeIn() const {
@@ -86,7 +86,7 @@ bool WipeKoopa::isWipeIn() const {
 }
 
 bool WipeKoopa::isWipeOut() const {
-    return isNerve(GET_NERVE_ANON(WipeKoopaNrvWipeOut));
+    return isNerve(GET_NERVE(WipeKoopa, WipeKoopaNrvWipeOut));
 }
 
 void WipeKoopa::setColor() {

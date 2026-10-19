@@ -12,7 +12,7 @@ KameckBeamHolder::KameckBeamHolder(s32 kind, s32 count, s32 projectileCount)
     }
 }
 
-KameckBeam* KameckBeamHolder::fn_801A7CF0(f32 scale, MtxPtr matrix, const TVec3f& position, KameckBeamEventListener* listener) {
+KameckBeam* KameckBeamHolder::requestBeamFromWand(f32 scale, MtxPtr matrix, const TVec3f& position, KameckBeamEventListener* listener) {
     KameckBeam* beam = getDeadMember();
     if (beam == nullptr) {
         return nullptr;

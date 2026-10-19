@@ -43,9 +43,9 @@ namespace {
     };
 
     Param::Param() {
-        _10 = 15.0f;
-        _14 = 1.4f;
-        _20 = 0.3f;
+        mDpdVibrationTime = 15.0f;
+        mDpdVibrationBase = 1.4f;
+        mHitReactionVelocityY = 0.3f;
     }
 
     static Param sParam;

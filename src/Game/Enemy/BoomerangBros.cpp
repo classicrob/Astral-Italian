@@ -55,7 +55,7 @@ namespace NrvBoomerangBros {
 static TVec3f sHoldTrans(52.0f, -15.0f, -70.0f);
 static TVec3f sHoldRotate(-53.0f, -78.0f, 200.0f);
 
-BoomerangBros::BoomerangBros(const char* pName) : BrosBase(pName), _E0(0.0f), mWaitCount(0), mStateJump(nullptr), mStateAttack(nullptr), mStateSwoon(nullptr) {
+BoomerangBros::BoomerangBros(const char* pName) : BrosBase(pName), mUnusedE0(0.0f), mWaitCount(0), mStateJump(nullptr), mStateAttack(nullptr), mStateSwoon(nullptr) {
 }
 
 void BoomerangBros::init(const JMapInfoIter& rIter) {

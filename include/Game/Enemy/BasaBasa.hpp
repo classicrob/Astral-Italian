@@ -10,7 +10,7 @@ class SpinHitController;
 class BasaBasa : public LiveActor {
 public:
     BasaBasa(const char*);
-    static void fn_80156F60(const JMapInfoIter&);
+    static void preloadIceFreezeResources(const JMapInfoIter&);
 
     virtual ~BasaBasa();
     virtual void init(const JMapInfoIter&);
@@ -60,7 +60,7 @@ public:
     /* 0x9C */ TVec3f mFront;
     /* 0xA8 */ f32 mChaseRange;
     /* 0xAC */ f32 mAttackDistance;
-    /* 0xB0 */ u32 _B0;
+    /* 0xB0 */ u32 mUnusedB0;
     /* 0xB4 */ const TVec3f* mTargetPos;
     /* 0xB8 */ f32 mWobbleDegree;
     /* 0xBC */ TVec3f mHoverTarget;

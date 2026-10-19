@@ -16,6 +16,7 @@ void ScreenPreserver::captureIfAllow() {
     MR::captureScreenIfAllow("GameScreen");
 }
 
+// NONMATCHING: screen-size conversion temporaries and argument scheduling differ.
 void ScreenPreserver::draw() const {
     if (!mIsActive) {
         return;

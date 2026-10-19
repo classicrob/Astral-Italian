@@ -49,8 +49,8 @@ void MiniPlayerRocket::init(const JMapInfoIter& rIter) {
     }
 
     mScaleParam = new AnimScaleParam();
-    mScaleParam->_0 = 0.5f;
-    mScaleParam->_4 = 0.7f;
+    mScaleParam->mSpringStrength = 0.5f;
+    mScaleParam->mVelocityDamping = 0.7f;
     mScaleCtrl = new AnimScaleController(mScaleParam);
 
     mSmokeMoveCb = new PlayerRocketSmokeMoveParticleCallBack(this, nullptr, 0);
@@ -77,7 +77,7 @@ void MiniPlayerRocket::kill() {
 
 // NONMATCHING: regalloc
 void MiniPlayerRocket::calcAndSetBaseMtx() {
-    TVec3f scale = mScaleCtrl->_C * mScale;
+    TVec3f scale = mScaleCtrl->mScale * mScale;
     J3DModel* pModel = MR::getJ3DModel(this);
     pModel->mBaseScale.x = scale.x;
     pModel->mBaseScale.y = scale.y;

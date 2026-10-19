@@ -18,7 +18,7 @@ public:
     void electricKillAllClingingKarikari();
     bool registCling(Karikari*);
     bool unregistCling(Karikari*);
-    bool fn_801B0DB0(Karikari*);
+    bool removeClingingKarikari(Karikari*);
 
     inline MtxPtr getClingMtx(int idx) const {
         return (MtxPtr)&mClingJointMtxs[idx];

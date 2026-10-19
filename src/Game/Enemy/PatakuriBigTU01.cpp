@@ -11,12 +11,12 @@ namespace {
     };
 
     PatakuriBigParam::PatakuriBigParam() : AnimScaleParam() {
-        _0 = 0.1f;
-        _10 = 30.0f;
-        _14 = 0.6f;
-        _18 = 0.06f;
-        _1C = 3.0f;
-        _24 = 0.1f;
+        mSpringStrength = 0.1f;
+        mDpdVibrationTime = 30.0f;
+        mDpdVibrationBase = 0.6f;
+        mDpdVibrationAmplitude = 0.06f;
+        mDpdVibrationFrequency = 3.0f;
+        mHitReactionSpringStrength = 0.1f;
     }
 
     PatakuriBigParam sBigScaleParam;
@@ -235,7 +235,6 @@ TVec3f PatakuriBig::calcBigBodyOffsetPos(PatakuriBig* pPatakuri) {
 
 // NONMATCHING: stack offsets of revDir/toPlayer/axis temporaries only
 void PatakuriBig::exeBigRail() {
-    TVec3f toPlayer;
     if (MR::isBckOneTimeAndStopped(this)) {
         MR::startAction(mWing, "Wait");
         MR::startAction(this, "PatakuriWait");
@@ -260,7 +259,7 @@ void PatakuriBig::exeBigRail() {
             MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));
         }
     } else {
-        toPlayer = *MR::getPlayerPos() - mPosition;
+        TVec3f toPlayer = *MR::getPlayerPos() - mPosition;
         MR::normalize(&toPlayer);
         MR::turnVecToVecDegree(&mFront, mFront, toPlayer, 2.0f, TVec3f(0, 1, 0));
     }
@@ -296,10 +295,7 @@ void PatakuriBig::exeBigStaggerEnd() {
     }
     if (MR::isActionEnd(this)) {
         setNerve(&PatakuriBigNrvDead::sInstance);
-        TVec3f pos;
-        TVec3f* zero = &(TVec3f(0.0f, 0.0f, 0.0f));
-        pos = calcBigBodyOffsetPos(this);
-        mBody->appearAndWander(pos, mQuat, *zero);
+        mBody->appearAndWander(calcBigBodyOffsetPos(this), mQuat, TVec3f(0.0f, 0.0f, 0.0f));
     }
 }
 

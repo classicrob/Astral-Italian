@@ -162,7 +162,7 @@ void BeeEater::calcAndSetBaseMtx() {
     TPos3f mtx;
     mtx.setQuat(mRot);
     mtx.setTrans(mPosition);
-    MR::addTransMtxLocalY(mtx, 76.0f * -(1.0f - mAnimScaleCtrl->_C.y));
+    MR::addTransMtxLocalY(mtx, 76.0f * -(1.0f - mAnimScaleCtrl->mScale.y));
     MR::setBaseTRMtx(this, mtx);
     MR::updateBaseScale(this, mAnimScaleCtrl);
 

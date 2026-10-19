@@ -275,9 +275,9 @@ void SuperDreamer::initForNpc(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg1NoInit(rIter, &mMissNum);
     setNerve(GET_NERVE(SuperDreamer, SuperDreamerNrvWait));
     mTalkCtrl = createTalkCtrl(rIter, gSuperDreamerMessageName, gSuperDreamerFallbackMessage);
-    TalkMessageFuncM< SuperDreamer*, bool (SuperDreamer::*)(u32) > event(this, &SuperDreamer::eventFunc);
+    TalkMessageFuncM< SuperDreamer*, bool (SuperDreamer::*)(u32) > event = TalkMessageFunc_Inline(this, &SuperDreamer::eventFunc);
     MR::registerEventFunc(mTalkCtrl, event);
-    TalkMessageFuncM< SuperDreamer*, bool (SuperDreamer::*)(u32) > kill(this, &SuperDreamer::killFunc);
+    TalkMessageFuncM< SuperDreamer*, bool (SuperDreamer::*)(u32) > kill = TalkMessageFunc_Inline(this, &SuperDreamer::killFunc);
     MR::registerKillFunc(mTalkCtrl, kill);
     if (mTalkCtrl != nullptr) {
         MR::onRootNodeAutomatic(mTalkCtrl);

@@ -22,6 +22,7 @@ void MiiFaceRecipe::initFaceModel(RFLCharModel* pCharModel, void* pBuffer) const
     RFLInitCharModel(pCharModel, mDataSource, mMiddleDB, mIndex, pBuffer, mResolution, mExpressionFlag);
 }
 
+// NONMATCHING: RGBA loads and setting stores use different register allocation and scheduling.
 RFLErrcode MiiFaceRecipe::makeIcon(void* pBuffer, int width, int height, GXColor bgColor) const {
     RFLIconSetting setting;
 

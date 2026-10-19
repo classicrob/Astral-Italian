@@ -393,12 +393,11 @@ void fn_801F9370(LiveActor* pActor) {
         horizontal *= 0.98f;
     }
 
-    if (damp.dot(*pGravity) < 0.0f) {
+    if (damp.dot(pActor->mGravity) < 0.0f) {
         damp *= 0.98f;
     }
 
-    horizontal += damp;
-    pVelocity->set(horizontal);
+    pVelocity->set(horizontal + damp);
 }
 
 // this was laid out in some other way

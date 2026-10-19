@@ -63,14 +63,14 @@ namespace {
     class DinoPackunParam : public AnimScaleParam {
     public:
         DinoPackunParam() {
-            _0 = 0.1f;
-            _10 = 30.0f;
-            _14 = 0.60f;
-            _18 = 0.06f;
-            _1C = 3.0f;
-            _20 = 0.07f;
-            _24 = 0.12f;
-            _28 = 0.92f;
+            mSpringStrength = 0.1f;
+            mDpdVibrationTime = 30.0f;
+            mDpdVibrationBase = 0.60f;
+            mDpdVibrationAmplitude = 0.06f;
+            mDpdVibrationFrequency = 3.0f;
+            mHitReactionVelocityY = 0.07f;
+            mHitReactionSpringStrength = 0.12f;
+            mHitReactionDamping = 0.92f;
         }
     };
 
@@ -277,7 +277,7 @@ bool DinoPackun::isHitReaction(s32 a1) const {
 }
 
 bool DinoPackun::hitScaleJoint(TPos3f* pA1, const JointControllerInfo& rA2) {
-    TVec3f v5(_B8->_C);
+    TVec3f v5(_B8->mScale);
     TVec3f v4;
     v4.x = v5.y;
     v4.y = v5.z;

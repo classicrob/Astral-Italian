@@ -51,6 +51,7 @@ namespace NrvOtaRockTank {
 #define NT(n) (&NrvOtaRockTank::OtaRockTankNrv##n::sInstance)
 
 namespace {
+    extern const s32 sAngleDivisor;
     const f32 cWheelBrake = 0.15f;
     const char* sOtaRockPosName = "OtaRockPos";
     const char* sWheelLName = "WheelL";
@@ -66,7 +67,6 @@ namespace {
         "OtaRockTankThrowLeftFront", "OtaRockTankThrowCenterFront", "OtaRockTankThrowRightFront",
         "OtaRockTankThrowLeftBack", "OtaRockTankThrowCenterBack", "OtaRockTankThrowRightBack", "Throw"
     };
-    extern const s32 sAngleDivisor;
     extern const f32 sLowLifeSpeed;
     extern const f32 sLowLifeStopRadius;
     TVec3f sBatteryOffset(0.0f, -20.0f, 500.0f);
@@ -135,14 +135,14 @@ void OtaRockTank::init(const JMapInfoIter& rIter) {
         TVec3f& scale = mCocoNutBalls[i].mScale;
         scale = TVec3f(1.1f, 1.1f, 1.1f);
         mCocoNutBalls[i].initWithoutIter();
-        mCocoNutBalls[i]._8C = this;
-        mCocoNutBalls[i]._DE = true;
+        mCocoNutBalls[i].mHost = this;
+        mCocoNutBalls[i].mIsTankBall = true;
     }
     mFireBalls = new FireBall[48];
     for (s32 i = 0; i < 48; i++) {
         TVec3f& scale = mFireBalls[i].mScale;
         scale = TVec3f(1.5f, 1.5f, 1.5f);
-        mFireBalls[i]._B4 = 2.0f;
+        mFireBalls[i].mUnusedB4 = 2.0f;
         mFireBalls[i].initWithoutIter();
         mFireBalls[i].mHost = this;
     }
@@ -156,9 +156,10 @@ void OtaRockTank::init(const JMapInfoIter& rIter) {
     }
     mTargetPoses = new TVec3f[11];
     for (s32 i = 0; i < 11; i++) {
-        mTargetPoses[i].x = 0.0f;
-        mTargetPoses[i].y = 0.0f;
-        mTargetPoses[i].z = 0.0f;
+        TVec3f& pose = mTargetPoses[i];
+        pose.x = 0.0f;
+        pose.y = 0.0f;
+        pose.z = 0.0f;
         TVec3f def(0.0f);
         char name[128];
         snprintf(name, 128, "着弾点%d", i);
@@ -519,11 +520,10 @@ void OtaRockTank::exeMeteor() {
     MR::startActionSound(this, "FallAttack", -1, -1, -1);
     if (!MR::isAnyAnimPlaying(this, "MeteorSign")) {
         if (mMeteorCount > 10) {
-            if (MR::isActionEnd(this)) {
-                setNerve(NT(FallDashStart));
-            } else {
+            if (!MR::isActionEnd(this)) {
                 return;
             }
+            setNerve(NT(FallDashStart));
         } else {
             if (MR::isActionEnd(this)) {
                 if (mMeteorCount < 10) {
@@ -908,7 +908,7 @@ void OtaRockTank::moveTankAlongRail() {
         blend = railDir;
     }
     MR::turnDirection(this, &mRailDirection, blend, 0.9989f);
-    mPosition += mRailDirection * mSpeed;
+    mPosition += blend * mSpeed;
 }
 
 // NONMATCHING: temporary stack slots and instruction scheduling differ
@@ -917,8 +917,7 @@ void OtaRockTank::moveTankTowardRailDirection(const TVec3f& rDir, f32 scale) {
         TVec3f railPos;
         TVec3f railDir;
         MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, MR::getRailCoord(this));
-        s32 angleDivisor = sAngleDivisor;
-        f32 angle = MR::diffAngleAbs(railDir, rDir) / (f32)angleDivisor;
+        f32 angle = MR::diffAngleAbs(railDir, rDir) / (f32)(*(const volatile s32*)&sAngleDivisor);  // read through a pointer: the target loads it from .sdata2 instead of folding 25
         MR::turnDirection(this, &mRailDirection, rDir, JMath::sSinCosTable.cosRadian(angle));
         TVec3f along(mRailDirection);
         MR::vecKillElement(along, railDir, &along);
@@ -1083,9 +1082,9 @@ ScatterFireBall* OtaRockTank::findFreeTankScatterBall() {
     return nullptr;
 }
 
-// NONMATCHING: positive-count test uses a different comparison idiom
 bool OtaRockTank::tryFireTankVolley() {
-    if (countFreeTankFireBalls() != 0) {
+    bool hasFreeBalls = countFreeTankFireBalls() > 0;
+    if (hasFreeBalls) {
         fireTankSideBatteries();
     }
     fireTankMouth();
@@ -1095,7 +1094,6 @@ bool OtaRockTank::tryFireTankVolley() {
     return true;
 }
 
-// NONMATCHING: blend/emit loop register allocation differs
 void OtaRockTank::fireTankSideBatteries() {
     TVec3f trans[6];
     TVec3f dir[6];
@@ -1109,8 +1107,8 @@ void OtaRockTank::fireTankSideBatteries() {
     MR::vecBlend(&dir[2], dir[2], dir[1], 0.5f);
     MR::vecBlend(&dir[3], dir[3], dir[4], 0.5f);
     MR::vecBlend(&dir[5], dir[5], dir[4], 0.5f);
-    for (u16 i = 0; i < 6; i++) {
-        if (mDamageMask & (1 << i)) {
+    for (s32 i = 0; i < 6; i++) {
+        if (mDamageMask & (1 << static_cast< u16 >(i))) {
             MR::normalize(&dir[i]);
             MR::emitEffect(this, sThrowEffects[i]);
             fireTankFlame(trans[i], TVec3f(dir[i]));
@@ -1142,7 +1140,7 @@ void OtaRockTank::fireTankMouth() {
             angle = -angle;
         }
         if (mShotIndex % mThrowNum == 0) {
-            findFreeTankCoconutBall()->fn_80177670(trans, speed, angle, 160.0f);
+            findFreeTankCoconutBall()->launchCoconutTowardPlayer(trans, speed, angle, 160.0f);
             return;
         }
         f32 offs = 30.0f;
@@ -1190,7 +1188,7 @@ void OtaRockTank::fireTankMeteorForward(u32 a, s32 b) {
     }
     CocoNutBall* pBall = findFreeTankCoconutBall();
     TVec3f vel = dir * 50.0f;
-    pBall->fn_80177700(trans, vel);
+    pBall->launchCoconutWithVelocity(trans, vel);
 }
 
 #pragma dont_inline on
@@ -1206,14 +1204,14 @@ void OtaRockTank::fireTankMeteorAtTarget(u32 a, s32 b) {
     }
     CocoNutBall* pBall = findFreeTankCoconutBall();
     TVec3f v = mGravity * 8.0f;
-    pBall->fn_80177780(pos, v);
+    pBall->launchFallingCoconut(pos, v);
 }
 
 void OtaRockTank::fireTankFlame(const TVec3f& rPos, const TVec3f& rDir) {
     f32 speed = mLife == 1 ? 34.0f : 32.0f;
     FireBall* pBall = findFreeTankFireBall();
     TVec3f vel = rDir * speed;
-    pBall->fn_8017DA20(rPos, vel);
+    pBall->launchFireBallWithVelocity(rPos, vel);
 }
 
 #pragma dont_inline reset
@@ -1311,7 +1309,6 @@ bool OtaRockTank::tryStartTankDemo() {
     return false;
 }
 
-// NONMATCHING: typed scatter-array traversal retains an extra saved register
 void OtaRockTank::killTankProjectiles() {
     for (s32 i = 0; i < 8; i++) {
         if (!MR::isDead(&mCocoNutBalls[i])) {
@@ -1324,12 +1321,11 @@ void OtaRockTank::killTankProjectiles() {
         }
     }
     for (s32 i = 0; i < 24; i++) {
-        ScatterFireBall* pBall = &mScatterBalls[i];
-        if (!pBall->isFullyDead()) {
-            if (!MR::isDead(static_cast< LiveActor* >(pBall))) {
-                static_cast< LiveActor* >(pBall)->kill();
+        if (!mScatterBalls[i].isFullyDead()) {
+            if (!MR::isDead(static_cast< LiveActor* >(&mScatterBalls[i]))) {
+                static_cast< LiveActor* >(&mScatterBalls[i])->kill();
             }
-            pBall->tryKillLava();
+            mScatterBalls[i].tryKillLava();
         }
     }
 }
@@ -1337,7 +1333,7 @@ void OtaRockTank::killTankProjectiles() {
 OtaRockTank::~OtaRockTank() {}
 
 namespace {
-    const s32 sAngleDivisor = 25;
     const f32 sLowLifeSpeed = 25.0f;
     const f32 sLowLifeStopRadius = 1200.0f;
+    const s32 sAngleDivisor = 25;
 }

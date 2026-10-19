@@ -32,15 +32,16 @@ namespace {
     class TicoEatParam : public AnimScaleParam {
     public:
         TicoEatParam();
+        static TicoEatParam sParam;
     };
 
     TicoEatParam::TicoEatParam() : AnimScaleParam() {
-        _20 = 0.12f;
-        _24 = 0.12f;
-        _28 = 0.9f;
+        mHitReactionVelocityY = 0.12f;
+        mHitReactionSpringStrength = 0.12f;
+        mHitReactionDamping = 0.9f;
     }
 
-    static TicoEatParam sParam;
+    TicoEatParam TicoEatParam::sParam;
 };  // namespace
 
 TicoEat::TicoEat(const char* pName) : Tico(pName) {
@@ -50,7 +51,7 @@ TicoEat::TicoEat(const char* pName) : Tico(pName) {
 }
 
 void TicoEat::init(const JMapInfoIter& rIter) {
-    mScaleController = new AnimScaleController(&::sParam);
+    mScaleController = new AnimScaleController(&TicoEatParam::sParam);
     mReactionNerve = GET_NERVE(TicoEat, TicoEatNrvReaction);
     mBodyJointMtx = MR::getJointMtx(this, "Center");
     mParam.setMoveAction("Wait", "Wait");

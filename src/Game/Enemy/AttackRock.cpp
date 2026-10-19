@@ -137,11 +137,16 @@ bool AttackRock::isOuterState() const {
     return false;
 }
 
+namespace {
+    char sOuterBreakAnimation[] = "Outer";
+    char sInnerBreakAnimation[] = "Inner";
+}
+
 void AttackRock::startRockBreak() {
     bool outer = isOuterState();
-    const char* pName = "Inner";
+    const char* pName = sInnerBreakAnimation;
     if (outer) {
-        pName = "Outer";
+        pName = sOuterBreakAnimation;
     }
     MR::startBrk(this->mBreakModel, pName);
     this->setNerve(&NrvAttackRock::AttackRockNrvBreak::sInstance);
@@ -204,22 +209,26 @@ bool AttackRock::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
     return false;
 }
 
+namespace {
+    char sRockFallSound[] = "PgFall";
+    char sRockWaitAnimation[] = "Wait";
+}
+
 namespace NrvAttackRock {
     inline void AttackRockNrvFall::execute(Spine* pSpine) const {
         AttackRock* pActor = reinterpret_cast< AttackRock* >(pSpine->mExecutor);
-        MR::startActionSound(pActor, "PgFall", -1, -1, -1);
+        MR::startActionSound(pActor, sRockFallSound, -1, -1, -1);
         MR::updateActorStateAndNextNerve(pActor, &AttackRockNrvWait::sInstance);
     }
     inline void AttackRockNrvWait::execute(Spine* pSpine) const {
         AttackRock* pActor = reinterpret_cast< AttackRock* >(pSpine->mExecutor);
         if (MR::isFirstStep(pActor)) {
-            MR::startAction(pActor, "Wait");
+            MR::startAction(pActor, sRockWaitAnimation);
             MR::invalidateShadow(pActor, nullptr);
         }
     }
 }
 
-// NONMATCHING: String-pool addends differ; resolved strings and instructions otherwise agree.
 void AttackRock::exeRockBound() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Attack");

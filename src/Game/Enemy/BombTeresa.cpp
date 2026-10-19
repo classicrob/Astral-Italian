@@ -54,7 +54,7 @@ namespace NrvBombTeresa {
 
 BombTeresa::BombTeresa(const char* pName)
     : LiveActor(pName), mJointDelegator(), mJointDelegator2(), mScaleController(), mBindStarPointer(), mPoseQuat(0.0f, 0.0f, 0.0f, 1.0f), mFront(0, 0, 1),
-      _B8(0, 0, 0), mTonguePos(0, 0, 0), mHomePos(0, 0, 0), mTongueBlendRate(), mClockwiseSpeed(), mPullSpeed(), mSwingCooldown(), mReleaseDrift(), mDisableRespawning(), mIsSpinRight(true), mCanWander() {
+      mUnusedVectorB8(0, 0, 0), mTonguePos(0, 0, 0), mHomePos(0, 0, 0), mTongueBlendRate(), mClockwiseSpeed(), mPullSpeed(), mSwingCooldown(), mReleaseDrift(), mDisableRespawning(), mIsSpinRight(true), mCanWander() {
 }
 
 void BombTeresa::init(const JMapInfoIter& rIter) {

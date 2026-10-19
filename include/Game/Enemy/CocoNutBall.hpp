@@ -4,11 +4,10 @@
 
 class CocoNutBall : public LiveActor {
 public:
-    // SMG2-only functions (original names unknown; named by address)
-    bool fn_80178940() const;
-    void fn_80177670(const TVec3f&, f32, f32, f32);      // SMG2-only, by address (OtaRockTank throw)
-    void fn_80177700(const TVec3f&, const TVec3f&);      // SMG2-only, by address
-    void fn_80177780(const TVec3f&, const TVec3f&);      // SMG2-only, by address
+    bool isInAttackOrFreezeNerve() const;
+    void launchCoconutTowardPlayer(const TVec3f&, f32, f32, f32);
+    void launchCoconutWithVelocity(const TVec3f&, const TVec3f&);
+    void launchFallingCoconut(const TVec3f&, const TVec3f&);
     CocoNutBall(const char* pName = "ヤシの実弾");
 
     virtual void init(const JMapInfoIter& rIter);
@@ -43,13 +42,13 @@ public:
     void exeRebound();
     void exeFreezeStart();
     void exeHitBackToOtaRockTank();
-    bool fn_80177F60(HitSensor*);
-    void fn_80178220();
-    void fn_80178440(HitSensor*);
+    bool canHitBackFromSensor(HitSensor*);
+    void calcTankHitBackVelocity();
+    void calcPlayerHitBackVelocity(HitSensor*);
     void exeFreeze();
     void exeFreezeRelease();
 
-    LiveActor* _8C;
+    /* 0x8C */ LiveActor* mHost;
     /* 0x90 */ TVec3f mAccel;
     /* 0x9C */ s32 mHitBackCount;
     /* 0xA0 */ s32 mFreezeStep;
@@ -64,7 +63,7 @@ public:
     /* 0xD4 */ f32 mKillDistance;
     /* 0xD8 */ bool mIsRallyBall;
     /* 0xDD */ bool mIsFalling;
-    bool _DE;
+    /* 0xDE */ bool mIsTankBall;
     /* 0xE0 */ f32 mFlightSteps;
     /* 0xE4 */ s32 mHitBackLockStep;
 };

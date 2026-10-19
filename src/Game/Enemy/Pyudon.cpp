@@ -388,8 +388,10 @@ void Pyudon::exeDamageAir() {
     if (MR::isFirstStep(this)) MR::validateHitSensor(this, "Damage");
     if (MR::updateActorState(this)) {
         MR::invalidateHitSensor(this, "Damage");
-        TVec3f start = mPosition - mGravity * 100.0f;
-        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, start, mGravity * 200.0f)) {
+        TVec3f upOffset = mGravity * 100.0f;
+        TVec3f ray = mGravity * 200.0f;
+        TVec3f start = mPosition - upOffset;
+        if (!MR::getFirstPolyOnLineToMap(nullptr, nullptr, start, ray)) {
             setNerve(GET_NERVE(Pyudon, PyudonNrvRecoveryAir));
             return;
         }
@@ -450,7 +452,7 @@ bool Pyudon::tryStepDown(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
         if (!waiting) {
             if (!(isNerve(GET_NERVE(Pyudon, PyudonNrvStarPieceReactionAir)) || isNerve(GET_NERVE(Pyudon, PyudonNrvRecovery)) ||
             isNerve(GET_NERVE(Pyudon, PyudonNrvRecoveryAir)) || isNerve(GET_NERVE(Pyudon, PyudonNrvDamage)))) {
-                MR::tryHitReaction(this, "\x93\xa5\x82\xdc\x82\xea\x83q\x83b\x83g");
+                MR::tryHitReaction(this, "\x93\xa5\x82\xdc\x82\xea\x83q\x83\x62\x83g");
                 MR::zeroVelocity(this);
                 ScoreAttackFunction::scoreByAttack(this, msg, 0);
                 setNerve(GET_NERVE(Pyudon, PyudonNrvStepDown));
@@ -474,7 +476,7 @@ bool Pyudon::tryBlowDownSpin(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
             waiting = true;
         }
         if (!waiting) {
-            MR::tryHitReaction(this, "\x90\x81\x82\xab\x94\xf2\x82\xd1\x83q\x83b\x83g");  // lbl_806905E8
+            MR::tryHitReaction(this, "\x90\x81\x82\xab\x94\xf2\x82\xd1\x83q\x83\x62\x83g");  // lbl_806905E8
             MR::zeroVelocity(this);
             MR::setVelocityBlowAttack(this, pSender, pReceiver, cBlowHorizontal, cBlowVertical, 4);
             ScoreAttackFunction::scoreByAttack(this, msg, 0);
@@ -488,7 +490,7 @@ bool Pyudon::tryBlowDownSpin(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
 // fn_5270
 bool Pyudon::tryBlowDownKick(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isHipDropNerve() || isNerve(GET_NERVE(Pyudon, PyudonNrvStarPieceReactionAir))) {
-        MR::tryHitReaction(this, "\x83L\x83b\x83N\x83q\x83b\x83g");  // lbl_806905F8
+        MR::tryHitReaction(this, "\x83L\x83\x62\x83N\x83q\x83\x62\x83g");  // lbl_806905F8
         MR::zeroVelocity(this);
         MR::setVelocityBlowAttack(this, pSender, pReceiver, cBlowHorizontal, cBlowVertical, 4);
         ScoreAttackFunction::scoreByAttack(this, msg, 0);
@@ -677,7 +679,9 @@ void Pyudon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             if (!isHipDropNerve() && !MR::isPlayerHipDropFalling() && !MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
                 MR::sendMsgPush(pReceiver, pSender);
             }
+            return;
         }
+        return;
     } else if (MR::isSensorPlayerOrRide(pReceiver)) {
         bool isFind = isNerve(GET_NERVE(Pyudon, PyudonNrvWait)) || isNerve(GET_NERVE(Pyudon, PyudonNrvFind)) ||
                       isNerve(GET_NERVE(Pyudon, PyudonNrvTrack));
@@ -690,7 +694,9 @@ void Pyudon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             MR::sendMsgPush(pReceiver, pSender);
             return;
         }
-        MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender);
+        if (MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender)) {
+            return;
+        }
     }
 }
 

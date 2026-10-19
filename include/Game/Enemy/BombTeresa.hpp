@@ -81,7 +81,7 @@ public:
     /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x9C */ TQuat4f mPoseQuat;
     /* 0xAC */ TVec3f mFront;
-    /* 0xB8 */ TVec3f _B8;
+    /* 0xB8 */ TVec3f mUnusedVectorB8;
     /* 0xC4 */ TVec3f mTonguePos;
     /* 0xD0 */ TVec3f mHomePos;
     /* 0xDC */ f32 mTongueBlendRate;

@@ -59,6 +59,7 @@ nw4r::ut::TagProcessorBase< wchar_t >::Operation MessageTagSkipTagProcessor::Pro
     }
 }
 
+// NONMATCHING: the compiler reuses the cursor load instead of loading it twice.
 nw4r::ut::TagProcessorBase< wchar_t >::Operation MessageTagSkipTagProcessor::skipTag(nw4r::ut::Rect* pRect, ContextType* pPrintContext, bool param3) {
     MessageEditorMessageTag tag(pPrintContext);
     pPrintContext->str += tag.getSkipLength();

@@ -219,7 +219,7 @@ void OtaKing::control() {
 
 void OtaKing::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
-    TVec3f scale = mScaleController->_C * mScale;
+    TVec3f scale = mScaleController->mScale * mScale;
     MR::setBaseScale(this, scale);
 }
 
@@ -342,7 +342,7 @@ void OtaKing::initModel(const JMapInfoIter& rIter) {
     mCocoNutBallArray = new CocoNutBall[3];
     for (int i = 0; i < 3; i++) {
         mCocoNutBallArray[i].initWithoutIter();
-        mCocoNutBallArray[i]._8C = this;
+        mCocoNutBallArray[i].mHost = this;
         mCocoNutBallArray[i].mIsBoundedByHost = true;
         mCocoNutBallArray[i].mIsRallyBall = true;
         mCocoNutBallArray[i].mKillDistance = 5000.0f;

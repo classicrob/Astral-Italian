@@ -42,10 +42,10 @@ void SnowMan::init(const JMapInfoIter& rrIter) {
     MR::validateCollisionParts(mHeadCollisionParts);
     MR::validateCollisionParts(mBodyCollisionParts);
     mAnimScaleParam = new AnimScaleParam();
-    mAnimScaleParam->_8 = 0.95f;
-    mAnimScaleParam->_C = 1.05f;
-    mAnimScaleParam->_24 = 0.60f;
-    mAnimScaleParam->_28 = 0.8f;
+    mAnimScaleParam->mMinScaleY = 0.95f;
+    mAnimScaleParam->mMaxScaleY = 1.05f;
+    mAnimScaleParam->mHitReactionSpringStrength = 0.60f;
+    mAnimScaleParam->mHitReactionDamping = 0.8f;
     mAnimScaleCtrl = new AnimScaleController(mAnimScaleParam);
     mBreakDustDemo = MR::tryCreateBreakDustDemoObj(this, getBaseMtx());
     initEffectKeeper(0, nullptr, false);
@@ -116,7 +116,7 @@ void SnowMan::damageBody() {
 
 void SnowMan::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
-    TVec3f scale = mAnimScaleCtrl->_C * mScale;
+    TVec3f scale = mAnimScaleCtrl->mScale * mScale;
     MR::setBaseScale(this, scale);
 }
 

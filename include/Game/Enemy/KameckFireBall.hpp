@@ -29,5 +29,5 @@ public:
     void exeSweep();
 
     /* 0x98 */ TQuat4f mRotateQuat;
-    /* 0xA8 */ u8 _A0[4];
+    /* 0xA8 */ u8 mReservedA8[4];
 };

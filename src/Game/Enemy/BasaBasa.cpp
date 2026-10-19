@@ -100,7 +100,7 @@ void BasaBasa::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-void BasaBasa::fn_80156F60(const JMapInfoIter& rIter) {
+void BasaBasa::preloadIceFreezeResources(const JMapInfoIter& rIter) {
     const char* name = nullptr;
     MR::getObjectName(&name, rIter);
     if (MR::isEqualString(name, "BasaBasaIce")) {

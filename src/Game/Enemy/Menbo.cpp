@@ -555,8 +555,14 @@ void Menbo::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             bool blocked = false;
             if (isNerve(GET_MENBO_NERVE(MenboNrvPressDown)) || isNerve(GET_MENBO_NERVE(MenboNrvBlowDown)) ||
             isNerve(GET_MENBO_NERVE(MenboNrvBreak)) || isNerve(GET_MENBO_NERVE(MenboNrvEaten))) blocked = true;
-            if (!blocked && !MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) return;
+            if (!blocked) {
+                if (MR::sendMsgEnemyAttackStrong(pReceiver, pSender)) {
+                    return;
+                }
+                return;
+            }
         }
+        return;
     } else if (MR::isSensorEnemy(pSender) &&
     ((!MR::isSensorEnemy(pReceiver) && !MR::isSensorMapObj(pReceiver) && !MR::isSensorNpc(pReceiver) && !MR::isSensorYoshi(pReceiver)) ||
     !MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender))) {

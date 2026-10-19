@@ -45,6 +45,7 @@ inline void FireBubble::initHitSensors(const char* const hitSensor1, const char*
     MR::addHitSensorAtJointEnemy(this, hitSensor1, hitSensor2, 8, ::cSensorRadius, TVec3f(0.0f, 0.0f, 0.0f));
 }
 
+// NONMATCHING: Vector temporary stack slots and register allocation differ.
 void FireBubble::init(const JMapInfoIter& rIter) {
     if (MR::isValidInfo(rIter)) {
         initMapToolInfo(rIter);

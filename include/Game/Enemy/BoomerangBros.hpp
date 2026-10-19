@@ -63,7 +63,7 @@ public:
 
     /* 0x0D8 */ WalkerStateBindStarPointer* mBindStand;
     /* 0x0DC */ WalkerStateBindStarPointer* mBindSwoon;
-    /* 0x0E0 */ f32 _E0;
+    /* 0x0E0 */ f32 mUnusedE0;
     /* 0x0E4 */ s32 mWaitCount;
     /* 0x0E8 */ BrosStateJump* mStateJump;
     /* 0x0EC */ BoomerangBrosStateAttack* mStateAttack;
@@ -101,7 +101,7 @@ public:
     void calcPath(TVec3f*, f32);  // fn_80174650: point of the out/back flight curve at t
     bool isReturning() const;     // fn_801747E0
 
-    /* 0xBC */ f32 _BC;
+    /* 0xBC */ f32 mPathDistance;
     /* 0xC0 */ s32 mStep;
     /* 0xC4 */ TPos3f mMtx;
     /* 0xF4 */ WalkerStateBindStarPointer* mBind;

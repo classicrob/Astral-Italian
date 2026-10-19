@@ -415,7 +415,7 @@ bool Kameck::tryAttackWait() {
             return true;
         }
 
-        mBeam = mActiveActorList->fn_801A7CF0(0.6f, MR::getJointMtx(this, "Wand"), TVec3f(0.0f, 110.0f, 0.0f), mBeamEventListener);
+        mBeam = mActiveActorList->requestBeamFromWand(0.6f, MR::getJointMtx(this, "Wand"), TVec3f(0.0f, 110.0f, 0.0f), mBeamEventListener);
         if (mBeam != nullptr) {
             setNerve(GET_NERVE(Kameck, KameckNrvAttackWait));
             return true;

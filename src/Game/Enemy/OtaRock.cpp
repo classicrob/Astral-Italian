@@ -141,7 +141,7 @@ void OtaRock::control() {
 
 void OtaRock::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mBaseMtx);
-    TVec3f scale = mAnimScaleController->_C * mScale;
+    TVec3f scale = mAnimScaleController->mScale * mScale;
     MR::setBaseScale(this, scale);
 }
 
@@ -185,7 +185,7 @@ void OtaRock::initModel() {
         mCocoNutArray = new CocoNutBall[4];
         for (int i = 0; i < 4; i++) {
             mCocoNutArray[i].initWithoutIter();
-            mCocoNutArray[i]._8C = this;
+            mCocoNutArray[i].mHost = this;
         }
     }
 

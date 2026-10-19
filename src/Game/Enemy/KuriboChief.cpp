@@ -89,12 +89,12 @@ namespace {
         mFindPlayerParam.mJumpStartStep = 56;
         mFindPlayerParam.mTurnMaxRateDegree = 2.0f;
         mFindPlayerParam.mJumpVelocity = 35.0f;
-        mScaleParam._0 = 0.1f;
-        mScaleParam._10 = 30.0f;
-        mScaleParam._14 = 0.6f;
-        mScaleParam._18 = 0.06f;
-        mScaleParam._1C = 3.0f;
-        mScaleParam._24 = 0.1f;
+        mScaleParam.mSpringStrength = 0.1f;
+        mScaleParam.mDpdVibrationTime = 30.0f;
+        mScaleParam.mDpdVibrationBase = 0.6f;
+        mScaleParam.mDpdVibrationAmplitude = 0.06f;
+        mScaleParam.mDpdVibrationFrequency = 3.0f;
+        mScaleParam.mHitReactionSpringStrength = 0.1f;
     }
 
     static KuriboChiefParam sParam;

@@ -2526,7 +2526,7 @@ Game/Enemy/AnimStampController.cpp:
 Game/Enemy/AttackRock.cpp:
 	.text       start:0x80150C20 end:0x80151AA0
 	.ctors      start:0x80644070 end:0x80644074
-	.data       start:0x80682390 end:0x80682468
+	.data       start:0x806822F8 end:0x80682468
 
 Game/Enemy/AttackRockFinal.cpp:
 	.text       start:0x80151AA0 end:0x801528E0
@@ -8023,6 +8023,7 @@ Game/Screen/WipeKoopa.cpp:
 	.rodata     start:0x8064CE50 end:0x8064CE58
 	.data       start:0x806F9918 end:0x806F9990
 	.sdata      start:0x807D0348 end:0x807D034C
+	.sbss       start:0x807D5AA0 end:0x807D5AB0
 	.sdata2     start:0x807E18D8 end:0x807E18E0
 
 Game/Screen/WipeMario.cpp:

@@ -450,6 +450,7 @@ void Popo::exeTouch() {
     }
 }
 
+// NONMATCHING: vector temporary stack slots differ after matching copy construction.
 void Popo::exeStickCancel() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StickCancel");

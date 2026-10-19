@@ -15,7 +15,7 @@
 
 // PLACEHOLDER(enemies): shared 4-byte empty NPC goods strings at 807CFE90..9C, referenced by 11 NPC TUs
 // (CareTaker, HoneyBee, Kinopio*, Tico*, NPC*ParameterReader); resolve when their defining TU/name is identified.
-extern const char lbl_807CFE90[], lbl_807CFE94[], lbl_807CFE98[], lbl_807CFE9C[];
+extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace {
     const char* sPlayerPrePosition = "タイムアタック前位置";

@@ -218,18 +218,18 @@ void HomingKiller::init(const JMapInfoIter& rIter) {
 
     mScaleParam = new AnimScaleParam();
     mScaleController = new AnimScaleController(mScaleParam);
-    mScaleParam->_0 = 0.5f;
-    mScaleParam->_4 = 0.85f;
-    mScaleParam->_10 = 8.0f;
+    mScaleParam->mSpringStrength = 0.5f;
+    mScaleParam->mVelocityDamping = 0.85f;
+    mScaleParam->mDpdVibrationTime = 8.0f;
 
     if (mType == Type_MagnumKiller) {
-        mScaleParam->_14 = 0.95f;
-        mScaleParam->_18 = 0.05f;
-        mScaleParam->_1C = 2.1f;
+        mScaleParam->mDpdVibrationBase = 0.95f;
+        mScaleParam->mDpdVibrationAmplitude = 0.05f;
+        mScaleParam->mDpdVibrationFrequency = 2.1f;
     } else {
-        mScaleParam->_14 = 0.85f;
-        mScaleParam->_18 = 0.2f;
-        mScaleParam->_1C = 2.3f;
+        mScaleParam->mDpdVibrationBase = 0.85f;
+        mScaleParam->mDpdVibrationAmplitude = 0.2f;
+        mScaleParam->mDpdVibrationFrequency = 2.3f;
     }
 
     makeActorDead();

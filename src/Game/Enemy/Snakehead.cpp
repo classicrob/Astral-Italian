@@ -181,7 +181,7 @@ void Snakehead::init(const JMapInfoIter& rIter) {
         mItem = MR::createKinokoOneUp();
     }
 
-    initNerve(GET_NERVE(Snakehead, SnakeheadNrvWait));
+    initNerve(GET_NERVE(Snakehead, SnakeheadNrvWait), 1);
     MR::initActorState(this, mStarPointer, GET_NERVE(Snakehead, SnakeheadNrvDPDSwoon), "SupportFreeze");
 
     if (isMove()) {

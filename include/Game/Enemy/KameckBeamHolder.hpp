@@ -17,7 +17,7 @@ public:
     KameckBeamHolder();
     KameckBeamHolder(s32, s32, s32);
     virtual ~KameckBeamHolder();
-    KameckBeam* fn_801A7CF0(f32, MtxPtr, const TVec3f&, KameckBeamEventListener*);  // unnamed, by address
+    KameckBeam* requestBeamFromWand(f32, MtxPtr, const TVec3f&, KameckBeamEventListener*);  // unnamed, by address
 };
 
 class KameckFireBallHolder : public DeriveActorGroup< KameckFireBall > {

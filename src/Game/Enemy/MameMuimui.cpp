@@ -15,6 +15,13 @@
 
 #define GET_MAMEMUIMUI_NERVE(name) (&NrvMameMuimui::name::sInstance)
 
+// The target has no standalone exeEaten symbol: the Eaten nerve's execute carries the body.
+inline void MameMuimui::exeEaten() {
+    if (MR::isFirstStep(this)) {
+        notifyScoreEvent();
+    }
+}
+
 namespace NrvMameMuimui {
     NEW_NERVE(MameMuimuiNrvAppearSign, MameMuimui, AppearSign);
     NEW_NERVE(MameMuimuiNrvAppear, MameMuimui, Appear);
@@ -121,6 +128,9 @@ void MameMuimuiListener::onUpdateEmpty() {}
 void MameMuimui::init(const JMapInfoIter& rIter) {
     const char* pName = "MameMuimuiGreen";
     switch (mType) {
+    case 0:
+        pName = "MameMuimuiGreen";
+        break;
     case 1:
         pName = "MameMuimuiRed";
         break;
@@ -140,8 +150,7 @@ void MameMuimui::init(const JMapInfoIter& rIter) {
     MR::initActorState(this, mStarPointBind, &NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance, "SupportFreeze");
     MR::invalidateClipping(this);
 
-    TVec3f zero(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(NULL), zero);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast< MtxPtr >(NULL), TVec3f(0.0f));
     makeActorDead();
 }
 
@@ -318,7 +327,7 @@ void MameMuimui::exeBlow() {
         MR::tryHitReactionBlow(this, &mPosition);
         notifyScoreEvent();
     }
-    MR::addVelocityToGravity(this, 0.0f);
+    MR::addVelocityToGravity(this, 1.0f);
     MR::attenuateVelocity(this, 0.96f);
     if (MR::isGreaterStep(this, 20)) {
         MR::tryHitReactionDead(this);
@@ -327,32 +336,38 @@ void MameMuimui::exeBlow() {
     }
 }
 
-void MameMuimui::exeEaten() {
-    if (MR::isFirstStep(this)) {
-        notifyScoreEvent();
-    }
-}
-
 bool MameMuimui::isWaitOrAppearNerve() const {
-    return isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear));
+    if (isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear))) {
+        return true;
+    }
+    return false;
 }
 
 bool MameMuimui::isTongueTargetNerve() const {
-    return isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) ||
-           isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide));
+    if (isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) ||
+        isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide))) {
+        return true;
+    }
+    return false;
 }
 
 bool MameMuimui::isHideableNerve() const {
-    return isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppearSign)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) ||
-           isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) || isNerve(&NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance);
+    if (isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppearSign)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) ||
+        isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) || isNerve(&NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance)) {
+        return true;
+    }
+    return false;
 }
 
 bool MameMuimui::canBeAttacked() const {
     if (mType == 3) {
         return false;
     }
-    return isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) ||
-           isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide)) || isNerve(&NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance);
+    if (isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvAppear)) || isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait)) ||
+        isNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide)) || isNerve(&NrvMameMuimui::MameMuimuiNrvBindStarPointer::sInstance)) {
+        return true;
+    }
+    return false;
 }
 
 bool MameMuimui::isYellowType() const {

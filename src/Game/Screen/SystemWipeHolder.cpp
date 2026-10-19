@@ -58,6 +58,7 @@ void SystemWipeHolder::startGameScreenCapture() {
     MR::startToCaptureScreen("SystemWipe");
 }
 
+// NONMATCHING: screen-size conversion temporaries and argument scheduling differ.
 void SystemWipeHolder::drawGameScreenCapture() const {
     if (!mIsCapturingScreen) {
         return;

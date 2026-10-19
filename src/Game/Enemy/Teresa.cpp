@@ -215,7 +215,7 @@ void Teresa::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mPoseQuat);
     TVec3f scale(mScale);
     scale.mul(mSquashScale);
-    scale.mul(mScaleController->_C);
+    scale.mul(mScaleController->mScale);
     MR::setBaseScale(this, scale);
 }
 

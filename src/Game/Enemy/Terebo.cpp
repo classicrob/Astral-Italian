@@ -398,6 +398,10 @@ bool Terebo::moveOnRailAndCheckNextPoint() {
 TereboGroup::TereboGroup(const char* pName) : LiveActor(pName) {}
 
 // NONMATCHING: target keeps `x - 0.0f` and `0.0f + x` as fsubs/fadds with a loaded 0.0 (CW folds them away here).
+namespace {
+    extern const f32 sTereboGroupZero;
+}
+
 void TereboGroup::init(const JMapInfoIter& rIter) {
     initRailRider(rIter);
     MR::setGroupClipping(this, rIter, 0x10);
@@ -408,7 +412,7 @@ void TereboGroup::init(const JMapInfoIter& rIter) {
     f32 spacing = 0.0f;
     MR::getJMapInfoArg7NoInit(rIter, &spacing);
     MR::moveCoordAndTransToNearestRailPos(this);
-    const f32 zero = 0.0f;
+    const f32 zero = sTereboGroupZero;
     for (s32 i = 0; i < count; i++) {
         Terebo* pTerebo = new Terebo("\x83\x65\x83\x8C\x83\x7B\x81\x5B\x81\x69\x83\x4F\x83\x8B\x81\x5B\x83\x76\x8E\x77\x92\xE8\x81\x6A");
         TVec3f pos(0.0f);
@@ -434,3 +438,7 @@ void TereboGroup::init(const JMapInfoIter& rIter) {
 Terebo::~Terebo() {}
 
 TereboGroup::~TereboGroup() {}
+
+namespace {
+    const f32 sTereboGroupZero = 0.0f;
+}

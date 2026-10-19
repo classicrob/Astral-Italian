@@ -504,10 +504,7 @@ void TakoSho::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
     if (MR::isSensorPlayer(pReceiver)) {
-        if (MR::isPlayerHipDropFalling()) {
-            return;
-        }
-        if (MR::isPlayerHipDropLand()) {
+        if (MR::isPlayerHipDropFalling() || MR::isPlayerHipDropLand()) {
             return;
         }
         if (!MR::isEqualSensor(pSender, this, "Body")) {

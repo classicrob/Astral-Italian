@@ -430,8 +430,8 @@ void Sandy::startScaleHitReaction() {
 // 800FE460
 AnimScaleParam* createScaleParam() {
     AnimScaleParam* pParam = new AnimScaleParam();
-    pParam->_24 = 0.3f;
-    pParam->_28 = 0.7f;
+    pParam->mHitReactionSpringStrength = 0.3f;
+    pParam->mHitReactionDamping = 0.7f;
     return pParam;
 }
 
@@ -534,7 +534,7 @@ void SandyHand::setBallType3() {
 // NONMATCHING: register numbers of the two ps_mul operands.
 void SandyHand::calcAndSetBaseMtx() {
     TVec3f scale;
-    mulScaleHand(&mScaleController->_C.x, &mScale.x, &scale.x);
+    mulScaleHand(&mScaleController->mScale.x, &mScale.x, &scale.x);
     MR::setBaseScale(this, scale);
     LiveActor::calcAndSetBaseMtx();
 }

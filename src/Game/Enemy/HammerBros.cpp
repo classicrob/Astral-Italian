@@ -11,7 +11,7 @@ namespace {
     extern const f32 sTongueAccel;
 }
 
-const volatile s32 lbl_807E3028 = 0;
+const volatile s32 gHammerBrosGuardEndStep = 0;
 
 void HammerBros::throwProjectile(BrosProjectileBase* pProj) {
     MtxPtr pHand = MR::getJointMtx(this, "HandR");
@@ -30,7 +30,7 @@ void HammerBros::throwProjectile(BrosProjectileBase* pProj) {
     pProj->v70(trans, TVec3f(mPosition));
 }
 
-HammerBros::HammerBros(const char* pName) : BrosBase(pName), _E0(0.0f), mWaitCount(0), mStateJump(nullptr), mStateAttack(nullptr), mStateSwoon(nullptr) {
+HammerBros::HammerBros(const char* pName) : BrosBase(pName), mUnusedE0(0.0f), mWaitCount(0), mStateJump(nullptr), mStateAttack(nullptr), mStateSwoon(nullptr) {
     mMtx.identity();
 }
 
@@ -247,6 +247,7 @@ void HammerBros::exeSwoonPressDown() {
     }
 }
 
+// NONMATCHING: Vector temporary registers and operand load scheduling differ.
 void HammerBros::exeStandPressDown() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "StandPressDown");
@@ -276,7 +277,7 @@ void HammerBros::exeGuard() {
         mJointCtrl->endFaceCtrl(10);
     }
     updateVelocity();
-    if (MR::isActionEnd(this) && MR::isGreaterStep(this, lbl_807E3028)) {
+    if (MR::isActionEnd(this) && MR::isGreaterStep(this, gHammerBrosGuardEndStep)) {
         setNerve(NRV(Wait));
     }
 }

@@ -98,7 +98,7 @@ void KinopioPostman::init(const JMapInfoIter& rIter) {
     MR::initUseStageSwitchReadA(this, rIter);
     this->initChildObj(rIter);
 
-    MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()> onSwitch(this, &KinopioPostman::onSwitchA);
+    MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()> onSwitch = MR::Functor_Inline(this, &KinopioPostman::onSwitchA);
     MR::listenStageSwitchOnA(this, onSwitch);
 
     const char* pNames[9] = {
@@ -148,39 +148,39 @@ bool KinopioPostman::initTalkCtrl() {
     }
 
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::eventGive);
         MR::registerEventFunc(this->mTalkCtrls[3], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::branchImportant);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::branchImportant);
         MR::registerBranchFunc(this->mTalkCtrls[3], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventRead);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::eventRead);
         MR::registerEventFunc(this->mTalkCtrls[2], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::eventGive);
         MR::registerEventFunc(this->mTalkCtrls[4], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::branchLuigi);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::branchLuigi);
         MR::registerBranchFunc(this->mTalkCtrls[4], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::eventGive);
         MR::registerEventFunc(this->mTalkCtrls[5], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventReply);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::eventReply);
         MR::registerEventFunc(this->mTalkCtrls[6], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventGive);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::eventGive);
         MR::registerEventFunc(this->mTalkCtrls[1], callback);
     }
     {
-        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback(this, &KinopioPostman::eventRead);
+        TalkMessageFuncM<KinopioPostman*, bool (KinopioPostman::*)(u32)> callback = TalkMessageFunc_Inline(this, &KinopioPostman::eventRead);
         MR::registerEventFunc(this->mTalkCtrls[0], callback);
     }
 
@@ -200,7 +200,7 @@ bool KinopioPostman::tryRegisterDemo(const char* pName, const JMapInfoIter& rIte
         if (hasLetter) {
             DemoFunction::registerDemoTalkMessageCtrlDirect(this, this->mMsgCtrl, pName);
         }
-        MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()> action(this, &KinopioPostman::startDemo);
+        MR::FunctorV0M<KinopioPostman*, void (KinopioPostman::*)()> action = MR::Functor_Inline(this, &KinopioPostman::startDemo);
         MR::registerDemoActionFunctorDirect(this, action, pName, nullptr);
         return true;
     }

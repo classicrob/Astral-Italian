@@ -550,6 +550,6 @@ bool Peto::tryFindDustPoint(TVec3f* out) {
 Peto::~Peto() {}
 
 PetoPopoParam::PetoPopoParam() : AnimScaleParam() {
-    _20 = 0.2f;
-    _24 = 0.3f;
+    mHitReactionVelocityY = 0.2f;
+    mHitReactionSpringStrength = 0.3f;
 }

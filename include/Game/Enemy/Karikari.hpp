@@ -61,7 +61,7 @@ public:
     /* 0xB8 */ bool mIsAttackEnabled;
     /* 0xB9 */ bool mIsPushable;
     /* 0xBC */ s32 mFrozenTime;
-    /* 0xC0 */ u32 _C0;
+    /* 0xC0 */ u32 mUnusedC0;
     /* 0xC4 */ bool mIsReadyToLandTornado;
-    /* 0xC5 */ bool _9D;
+    /* 0xC5 */ bool mUnusedC5;
 };

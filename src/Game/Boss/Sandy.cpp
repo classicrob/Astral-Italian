@@ -275,7 +275,7 @@ void Sandy::calcAndSetBaseMtx() {
     mJointCtrl->setCallBackFunction();
     MR::setBaseTRMtx(this, mTargetQuat);
     TVec3f scale;
-    mulScaleSandy(&mScaleController->_C.x, &mScale.x, &scale.x);
+    mulScaleSandy(&mScaleController->mScale.x, &mScale.x, &scale.x);
     MR::setBaseScale(this, scale);
 }
 

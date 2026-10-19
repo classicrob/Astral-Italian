@@ -24,17 +24,17 @@ public:
     void setVelocityToPlayer(f32);
     void calcReflectVelocity();
     bool tryToKill();
-    void fn_8017DA20(const TVec3f&, const TVec3f&);  // SMG2-only, by address (OtaRockTank throw)
+    void launchFireBallWithVelocity(const TVec3f&, const TVec3f&);
 
     void exeThrow();
     void exeReflect();
     void exeFreeze();
-    void fn_8017DF50();
+    void randomizeReflectVelocity();
 
     /* 0x8C */ LiveActor* mHost;
     /* 0x94 */ AnimScaleController* mScaleController;
     /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x9C */ TVec3f mReflectDir;
     /* 0xA8 */ TVec3f mUp;
-    f32 _B4;
+    /* 0xB4 */ f32 mUnusedB4;
 };

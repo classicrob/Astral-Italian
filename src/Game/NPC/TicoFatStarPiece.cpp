@@ -80,9 +80,9 @@ void TicoFatStarPiece::init(const JMapInfoIter& iter) {
     MR::setMessageArg(mMsgCtrl, mRemainingStarPieceCount);
     MR::declareEventCameraProgrammable(sEventCamera);
     AnimScaleParam param;
-    param._20 = 0.12f;
-    param._24 = 0.12f;
-    param._28 = 0.9f;
+    param.mHitReactionVelocityY = 0.12f;
+    param.mHitReactionSpringStrength = 0.12f;
+    param.mHitReactionDamping = 0.9f;
     mScaleController = new AnimScaleController(nullptr);
     _130 = cNPCSpinDefault; _134 = cNPCTrampledDefault; _138 = cNPCPointingDefault; _13C = cNPCReactionDefault;
     _12C = 1000.0f;

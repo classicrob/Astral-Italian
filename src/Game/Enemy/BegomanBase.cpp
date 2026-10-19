@@ -1017,7 +1017,7 @@ void BegomanBase::calcAndSetBaseMtx() {
     if (mScaleControler != nullptr) {
         TVec3f scale;
 
-        scale.set(mScaleControler->_C);
+        scale.set(mScaleControler->mScale);
         mHeadScale.set(scale);
         scale *= mScale;
         MR::setBaseScale(this, scale);

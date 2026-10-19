@@ -120,7 +120,7 @@ bool KarikariDirector::unregistCling(Karikari* pKarikari) {
     return false;
 }
 
-bool KarikariDirector::fn_801B0DB0(Karikari* pKarikari) {
+bool KarikariDirector::removeClingingKarikari(Karikari* pKarikari) {
     for (s32 idx = 0; idx < ::hKarikariHoldingMax; idx++) {
         if (mClingingKarikari[idx] == pKarikari) {
             mClingingKarikari[idx] = nullptr;

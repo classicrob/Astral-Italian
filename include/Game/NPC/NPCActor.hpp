@@ -156,10 +156,10 @@ public:
     void setBaseMtx(MtxPtr);
 
     inline void setDefaults() {
-        _130 = "Spin";
-        _134 = "Trampled";
-        _138 = "Pointing";
-        _13C = "Reaction";
+        _130 = cNPCSpinDefault;
+        _134 = cNPCTrampledDefault;
+        _138 = cNPCPointingDefault;
+        _13C = cNPCReactionDefault;
     }
 
     inline void setDefaults(const char* pReaction, const char* pPointing, const char* pTrampled, const char* pSpin) {
@@ -195,16 +195,16 @@ public:
         mParam._18 = "Turn";
         mParam._1C = "Talk";
         mParam._20 = "TalkTurn";
-        _130 = "Spin";
-        _134 = "Trampled";
-        _138 = "Pointing";
-        _13C = "Reaction";
+        _130 = cNPCSpinDefault;
+        _134 = cNPCTrampledDefault;
+        _138 = cNPCPointingDefault;
+        _13C = cNPCReactionDefault;
     }
 
     inline void setDefaults2() {
-        _130 = "Spin";
-        _134 = "Trampled";
-        _138 = "Pointing";
+        _130 = cNPCSpinDefault;
+        _134 = cNPCTrampledDefault;
+        _138 = cNPCPointingDefault;
     }
 
     inline void setTalkAction(const char* pActionName) {

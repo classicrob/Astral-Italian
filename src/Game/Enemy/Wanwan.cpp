@@ -80,12 +80,12 @@ void Wanwan::init(const JMapInfoIter& rIter) {
         MR::getJMapInfoArg6NoInit(rIter, &mHideAtStart);
     }
     mScaleParam = new AnimScaleParam();
-    mScaleParam->_0 = 0.5f;
-    mScaleParam->_4 = 0.85f;
-    mScaleParam->_10 = 8.0f;
-    mScaleParam->_14 = 0.95f;
-    mScaleParam->_18 = 0.05f;
-    mScaleParam->_1C = 2.1f;
+    mScaleParam->mSpringStrength = 0.5f;
+    mScaleParam->mVelocityDamping = 0.85f;
+    mScaleParam->mDpdVibrationTime = 8.0f;
+    mScaleParam->mDpdVibrationBase = 0.95f;
+    mScaleParam->mDpdVibrationAmplitude = 0.05f;
+    mScaleParam->mDpdVibrationFrequency = 2.1f;
     mScaleCtrl = new AnimScaleController(mScaleParam);
     initNerve(&NrvWanwan::WanwanNrvAppear::sInstance, 0);
     makeActorDead();

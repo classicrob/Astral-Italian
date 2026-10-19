@@ -296,7 +296,7 @@ bool Nigero::isWalkNerve() const {
 void Nigero::recvLostTarget() {
     if (mHoldSensor != nullptr) {
         MR::getSensorHost(mHoldSensor)->mPosition.set(mPosition);
-        MR::setVelocity(MR::getSensorHost(mHoldSensor), mGravity * 0.0f);
+        MR::setVelocity(MR::getSensorHost(mHoldSensor), mGravity * -30.0f);
         MR::sendArbitraryMsg(0x8D, mHoldSensor, getSensor("Body"));
         mHoldSensor = nullptr;
     }

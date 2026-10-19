@@ -187,7 +187,7 @@ void SandyMini::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 // NONMATCHING: register numbers of the two ps_mul operands.
 void SandyMini::calcAndSetBaseMtx() {
     TVec3f scale;
-    mulScaleMini(&mScaleController->_C.x, &mScale.x, &scale.x);
+    mulScaleMini(&mScaleController->mScale.x, &mScale.x, &scale.x);
     MR::setBaseScale(this, scale);
     MR::setBaseTRMtx(this, mQuat);
 }

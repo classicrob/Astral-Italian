@@ -602,7 +602,7 @@ void MechanicKoopaMini::updateHitSensor(HitSensor* sensor) {
     f32 rate = MR::calcNerveRate(this, 5, 15);
     f32 maximum = 350.0f * rate;
     f32 distance = 0.0f;
-    if (frontDist < distance) {}
+    if (frontDist < distance) distance = 0.0f;
     else if (frontDist > maximum) distance = maximum;
     else distance = frontDist;
     MR::getSensorPos2(sensor)->set(mPosition);

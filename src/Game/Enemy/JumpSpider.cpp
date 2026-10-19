@@ -135,6 +135,7 @@ void JumpSpider::control() {
     }
 }
 
+// NONMATCHING: Equivalent nerve guards use different boolean-result registers.
 bool JumpSpider::isEatable() const {
     bool ret = true;
     if (isNerve(GET_NERVE(JumpSpider, HostTypeNrvEaten)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampFall)) ||
@@ -144,6 +145,7 @@ bool JumpSpider::isEatable() const {
     return ret;
 }
 
+// NONMATCHING: Equivalent nerve guards use different boolean-result registers.
 bool JumpSpider::isStarPointerBindable() const {
     bool ret = true;
     if (isNerve(GET_NERVE(JumpSpider, HostTypeNrvEaten)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampFall)) ||
@@ -389,7 +391,7 @@ void JumpSpider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         return;
     }
 
-    if (pSender != getSensor("body")) {
+    if (pSender != getSensor("Body")) {
         return;
     }
 
@@ -407,7 +409,7 @@ void JumpSpider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             return;
         }
 
-        if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "body"), 0.25f)) {
+        if (MR::isPlayerExistUp(this, MR::getSensorRadius(this, "Body"), 0.25f)) {
             MR::sendMsgPush(pReceiver, pSender);
             return;
         }

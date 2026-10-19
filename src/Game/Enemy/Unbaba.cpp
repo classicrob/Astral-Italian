@@ -185,12 +185,7 @@ void Unbaba::control() {
     MR::addTransMtxLocal(mVolumeMatrix.toMtxPtr(), sParam1);
     MR::preScaleMtx(mVolumeMatrix.toMtxPtr(), sParam0 * 10.0f);
     const GXColor color = {0x8C, 0x28, 0x00, 0x87};
-    Color8 drawColor;
-    drawColor.r = color.r;
-    drawColor.g = color.g;
-    drawColor.b = color.b;
-    drawColor.a = color.a;
-    mVolumeDrawer->setColor(drawColor);
+    mVolumeDrawer->setColor(Color8(color.r, color.g, color.b, color.a));
     mVolumeDrawer->setDrawPasses(4);
     mVolumeDrawer->setScale(sParam2);
     bool scaleUp = false;
@@ -214,14 +209,15 @@ void Unbaba::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
 }
 
-// NONMATCHING: the target keeps one extra unreachable `b` after the attack-result test (dead jump the compiler folds here)
 void Unbaba::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender)) {
         if (MR::isSensorPlayerOrRide(pReceiver)) {
             if (MR::sendMsgEnemyAttackFireStrong(pReceiver, pSender)) {
                 return;
             }
+            return;
         }
+        return;
     } else if (MR::isSensorEnemy(pSender)) {
         if (MR::isSensorEnemy(pReceiver) || MR::isSensorMapObj(pReceiver)) {
             if (MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender)) {
@@ -258,7 +254,7 @@ bool Unbaba::updateUnbabaRise() {
     MR::clamp01(&this->mRiseProgress);
     f32 t = calcUnbabaHeightCurve(this->mRiseProgress, gUnbabaInitialRiseSlope, sRiseTime1, 1.1f, sRiseSlope1, 0.85f, 0.3f);
     this->mHeight = this->mDistance * t + -2500.0f * this->mScale.x;
-    return 1.0f == this->mRiseProgress;
+    return sOne == this->mRiseProgress;
 }
 
 // NONMATCHING: float-load scheduling and product register assignment differ.

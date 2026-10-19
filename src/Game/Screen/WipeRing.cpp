@@ -222,6 +222,7 @@ void WipeRing::appearWithColor() {
     mIsCenterOnPlayerOnce = false;
 }
 
+// NONMATCHING: equivalent green-star tests use different boolean temporaries and return-block layout.
 void WipeRing::setColor() {
     MR::startAnim(this, ::sColorAnimName, 1);
     bool green = false;

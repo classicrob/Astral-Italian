@@ -103,6 +103,8 @@ void FireRing::initBalls(const JMapInfoIter& rIter) {
     }
 }
 
+#pragma push
+#pragma opt_propagation off
 void FireRing::calcBallPositions() {
     TVec3f up;
     TVec3f side;
@@ -128,7 +130,8 @@ void FireRing::calcBallPositions() {
             sinVal = JMath::sSinCosTable.table[(s32)(degreeToTableIndex * angle) & tableIndexMask].a1;
         }
 
-        TVec3f offset = side * cosVal + up * (mRadius * sinVal);
+        TVec3f offset;
+        offset = side * cosVal + up * (mRadius * sinVal);
         TVec3f ballPos = mPosition + offset;
         MR::setPosition(mBalls[i], ballPos);
 
@@ -145,6 +148,8 @@ void FireRing::calcBallPositions() {
         }
     }
 }
+
+#pragma pop
 
 bool FireRing::isAnyBallBinding() const {
     for (s32 i = 0; i < mBallCount; i++) {

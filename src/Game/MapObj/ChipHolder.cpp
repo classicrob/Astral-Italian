@@ -40,11 +40,9 @@ void MR::createChipHolder(s32 chipType) {
     createSceneObj(0x6B /* SceneObj_ChipHolder */);
 }
 
-// NONMATCHING: target calls the unnamed 4-byte fn_80284860 on the found group (empty ChipGroup method, not in Petari)
 void MR::updateChipCounterUIRange(s32 chipType, ChipBase* pChip, s32 groupId) {
     ChipGroup* group = getChipHolder(chipType)->findChipGroup(groupId);
-    (void)group;
-    (void)pChip;
+    updateChipGroupUIRange(group, pChip);
 }
 
 ChipHolder* MR::getChipHolder(s32 chipType) {

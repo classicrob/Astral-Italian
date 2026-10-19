@@ -111,7 +111,7 @@ void PowerStarEventKeeper::initStarInfoTableAfterPlacement() {
                 star->kill();
             } else if (info->mHasNoAppearObj) {
                 PowerStar* star = PowerStarFunction::findPowerStar(starID);
-                if (star->_174) {
+                if (star->mIsUseAwakeSwitch) {
                     star->kill();
                 }
                 if (star->mIsGreenStar) {

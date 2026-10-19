@@ -371,7 +371,7 @@ bool Takobo::tryStartSpinHit(u32 msg, HitSensor* pSensor2, HitSensor* pSensor3) 
     if (!isDamaging()) {
         startBrkDamage();
         MR::zeroVelocity(this);
-        MR::fn_80034820(this);
+        MR::startBlowHitReaction(this);
         setNerve(&NrvTakobo::TakoboNrvSpinHit::sInstance);
         mSpinHitController->startWithoutStopScene(this, *MR::getSensorPos(pSensor2), *MR::getSensorPos(pSensor3));
         ScoreAttackFunction::scoreByAttack(this, msg, 0);

@@ -20,10 +20,10 @@ namespace NrvSandyStateDemoDown {
 };  // namespace NrvSandyStateDemoDown
 
 // 80100EA0
-// NONMATCHING: ActorStateBase<Sandy> ctor is expanded inline in the target for this class.
 SandyStateDemoDown::SandyStateDemoDown(Sandy* pSandy) : ActorStateBase< Sandy >("State:\203_\203E\203\223", pSandy), mPowerStar(nullptr) {
     initNerve(&NrvSandyStateDemoDown::SandyStateDemoDownNrvStart::sInstance, 0);
-    mPowerStar = MR::createPowerStarDemoModel(mHost, "\203f\203\202\227p\203p\203\217\201[\203X\203^\201[", mHost->getBaseMtx());
+    Sandy* host = mHost;
+    mPowerStar = MR::createPowerStarDemoModel(host, "\203f\203\202\227p\203p\203\217\201[\203X\203^\201[", host->getBaseMtx());
     MR::registerDemoSimpleCastAll(mPowerStar);
     MR::invalidateClipping(mPowerStar);
     mPowerStar->makeActorDead();

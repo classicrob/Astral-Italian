@@ -58,7 +58,7 @@ void MorphItemObjNeo::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, getMorphModelName(getPowerUp()), false);
 
     initHitSensor(1);
-    MR::addHitSensor(this, "Body", 0x4A /* ATYPE_MORPH_ITEM */, 4, 80.0f, TVec3f(0.0f, 60.0f, 0.0f));
+    MR::addHitSensor(this, "Body", ATYPE_MORPH_ITEM, 4, 80.0f, TVec3f(0.0f, 60.0f, 0.0f));
 
     MR::initStarPointerTargetAtPos(this, 80.0f, &mPosition, TVec3f(0.0f, 60.0f, 0.0f));
 

@@ -560,7 +560,7 @@ void PlantSlider::exeWait() {
 }
 
 PlantSliderPoint::PlantSliderPoint(const TVec3f& pPos, const TVec3f& pUp, const TVec3f& pAxis, f32 thickness)
-    : PlantPoint(pPos, pUp, thickness), mBasePos(pPos), mVelocity(0.0f, 0.0f, 0.0f), mTargetPos(pPos) {
+    : PlantPoint(pPos, pUp, thickness, pAxis), mBasePos(pPos), mVelocity(0.0f, 0.0f, 0.0f), mTargetPos(pPos) {
 }
 
 #pragma dont_inline on

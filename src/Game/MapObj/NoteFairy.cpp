@@ -20,12 +20,12 @@ namespace NrvNoteFairy {
 };  // namespace NrvNoteFairy
 
 NoteFairy::NoteFairy(const char* pName) : LiveActor(pName) {
-    _8C.x = 0.0f;
-    _8C.y = 0.0f;
-    _8C.z = 0.0f;
-    _98.x = 0.0f;
-    _98.y = 0.0f;
-    _98.z = 0.0f;
+    mOriginPos.x = 0.0f;
+    mOriginPos.y = 0.0f;
+    mOriginPos.z = 0.0f;
+    mDemoAppearPos.x = 0.0f;
+    mDemoAppearPos.y = 0.0f;
+    mDemoAppearPos.z = 0.0f;
     mAppearanceSpeed = 13.0f;
     mTimeLimit = 20;
     mMelodyNoteNum = 0;
@@ -37,11 +37,11 @@ NoteFairy::NoteFairy(const char* pName) : LiveActor(pName) {
     mLastGotNote = nullptr;
     mAppearanceType = -1;
     _CC = false;
-    _CD = false;
+    mIsDirectBloom = false;
     mHasDemo = false;
-    _CF = false;
-    _D0 = false;
-    _D1 = false;
+    mIsStageBgmFade = false;
+    mIsSilentRiddle = false;
+    mIsRailPointPlacement = false;
     mPowerStarSpawnType = -1;
     mCameraInfo = nullptr;
 }
@@ -64,11 +64,11 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
         _CC = 1;
         break;
     case 5:
-        _CD = 1;
+        mIsDirectBloom = 1;
         break;
     case 6:
-        _CD = 1;
-        _D0 = 1;
+        mIsDirectBloom = 1;
+        mIsSilentRiddle = 1;
         break;
     }
 
@@ -78,9 +78,9 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg6WithInit(rIter, &arg6);
 
     if (arg6 > 0) {
-        _CF = false;
+        mIsStageBgmFade = false;
     } else {
-        _CF = true;
+        mIsStageBgmFade = true;
     }
 
     s32 powerStarType = 0;
@@ -98,7 +98,7 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
         }
     }
 
-    _8C.set(mPosition);
+    mOriginPos.set(mPosition);
     mTimeLimit *= 60;
     mHasDemo = MR::tryRegisterDemoCast(this, rIter);
     initRailRider(rIter);
@@ -134,7 +134,7 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
                 mNoteCoord = railArg;
             }
 
-            _D1 = true;
+            mIsRailPointPlacement = true;
         } else {
             if (mSong < 0) {
                 mMelodyNoteNum = MR::getRailTotalLength(this) / mNoteCoord;
@@ -150,7 +150,7 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < mMelodyNoteNum; i++) {
         TVec3f stack_24;
 
-        if (_D1) {
+        if (mIsRailPointPlacement) {
             MR::calcRailPointPos(&stack_24, this, i);
         } else {
             stack_24.set(MR::getRailPos(this));
@@ -171,9 +171,9 @@ void NoteFairy::init(const JMapInfoIter& rIter) {
     stack_18.x *= -800.0f;
     stack_18.y *= -800.0f;
     stack_18.z *= -800.0f;
-    _98.x = stack_18.x + mPosition.x;
-    _98.y = (0.5f * mPosition.y) + (0.5f * MR::getRailPos(this).y);
-    _98.z = stack_18.z + mPosition.z;
+    mDemoAppearPos.x = stack_18.x + mPosition.x;
+    mDemoAppearPos.y = (0.5f * mPosition.y) + (0.5f * MR::getRailPos(this).y);
+    mDemoAppearPos.z = stack_18.z + mPosition.z;
     MR::needStageSwitchReadAppear(this, rIter);
     MR::initUseStageSwitchWriteA(this, rIter);
     MR::initUseStageSwitchReadB(this, rIter);
@@ -191,7 +191,7 @@ void NoteFairy::control() {
 }
 
 void NoteFairy::kill() {
-    if (_CF) {
+    if (mIsStageBgmFade) {
         MR::moveVolumeStageBGMForNoteFairy(1.0f, 120);
     }
 
@@ -212,13 +212,13 @@ void NoteFairy::exeHide() {
     }
 
     if (MR::isOnSwitchAppear(this)) {
-        if (!_D0) {
+        if (!mIsSilentRiddle) {
             MR::startActionSound(this, "SyReadRiddleS", -1, -1, -1);
         }
 
         MR::invalidateClipping(this);
 
-        if (_CF) {
+        if (mIsStageBgmFade) {
             MR::moveVolumeStageBGMForNoteFairy(0.0f, 30);
         }
 
@@ -247,7 +247,7 @@ void NoteFairy::exeStartAppearDemo() {
     }
 
     if (MR::isStep(this, 30)) {
-        TVec3f stack_8 = _8C - *MR::getPlayerPos();
+        TVec3f stack_8 = mOriginPos - *MR::getPlayerPos();
         MR::setPlayerFrontVec(stack_8, 1);
         enterDemoAppear(GET_NERVE(NoteFairy, NoteFairyNrvDemoAppear), true);
     }
@@ -260,7 +260,7 @@ void NoteFairy::exeRailMoveStart() {
         mPosition = MR::getRailPos(this);
     }
 
-    if (_CD) {
+    if (mIsDirectBloom) {
         setNerve(GET_NERVE(NoteFairy, NoteFairyNrvAppearNoteBloom));
     } else if (MR::isStep(this, 0)) {
         enterDemoAppear(GET_NERVE(NoteFairy, NoteFairyNrvAppearNoteBloom), false);
@@ -274,16 +274,16 @@ void NoteFairy::exeDemoAppear() {
 
     if (MR::isLessEqualStep(this, 60)) {
         f32 ease = MR::getEaseOutValue(getNerveStep() / 60.0f, 0.0f, 1.0f, 1.0f);
-        mPosition.x = (_8C.x * (1.0f - ease)) + (_98.x * ease);
-        mPosition.y = (((_8C.y * (1.0f - ease)) + (_98.y * ease)) - (300.0f * MR::sinDegree(180.0f * ease)));
-        mPosition.z = (_8C.z * (1.0f - ease)) + (_98.z * ease);
+        mPosition.x = (mOriginPos.x * (1.0f - ease)) + (mDemoAppearPos.x * ease);
+        mPosition.y = (((mOriginPos.y * (1.0f - ease)) + (mDemoAppearPos.y * ease)) - (300.0f * MR::sinDegree(180.0f * ease)));
+        mPosition.z = (mOriginPos.z * (1.0f - ease)) + (mDemoAppearPos.z * ease);
     }
 
     if (MR::isGreaterStep(this, 70)) {
         f32 ease = MR::getEaseInValue((getNerveStep() - 70) / 60.0f, 0.0f, 1.0f, 1.0f);
-        mPosition.x = (_98.x * (1.0f - ease)) + (ease * MR::getRailPos(this).x);
-        mPosition.y = _98.y - (MR::sinDegree(90.0f * ease) * (_98.y - MR::getRailPos(this).y));
-        mPosition.z = (_98.z * (1.0f - ease)) + (ease * MR::getRailPos(this).z);
+        mPosition.x = (mDemoAppearPos.x * (1.0f - ease)) + (ease * MR::getRailPos(this).x);
+        mPosition.y = mDemoAppearPos.y - (MR::sinDegree(90.0f * ease) * (mDemoAppearPos.y - MR::getRailPos(this).y));
+        mPosition.z = (mDemoAppearPos.z * (1.0f - ease)) + (ease * MR::getRailPos(this).z);
     }
 
     MR::startActionSound(this, "OjLvFlowerFairyMove", -1, -1, -1);
@@ -300,7 +300,7 @@ void NoteFairy::exeAppearNoteBloom() {
         MR::declareNoteNumMaxAndMelodyToCounter(this, mMelodyNoteNum, mSong, mNoteCoord);
     }
 
-    if (!_CC && !_CD && MR::isStep(this, 60) && mAppearanceType != -1) {
+    if (!_CC && !mIsDirectBloom && MR::isStep(this, 60) && mAppearanceType != -1) {
         MR::endDemo(this, "出現");
         MR::endActorCamera(this, mCameraInfo, false);
     }
@@ -311,7 +311,7 @@ void NoteFairy::exeAppearNoteBloom() {
 
     while (_B0 < mMelodyNoteNum && MR::getRailCoord(this) >= getNoteCoord(_B0)) {
         mNoteArray[_B0]->appear();
-        mNoteArray[_B0]->_AC = 5.0f * _B0;
+        mNoteArray[_B0]->mBrkFrame = 5.0f * _B0;
 
         if (MR::isLessStep(this, 60) && mAppearanceType != -1) {
             MR::requestMovementOn(mNoteArray[_B0]);
@@ -339,7 +339,7 @@ void NoteFairy::exeAppearNote() {
 
         for (s32 i = 0; i < mMelodyNoteNum; i++) {
             mNoteArray[i]->appear();
-            mNoteArray[i]->_AC = 5.0f * i;
+            mNoteArray[i]->mBrkFrame = 5.0f * i;
         }
 
         setNerve(GET_NERVE(NoteFairy, NoteFairyNrvEndWait));
@@ -395,7 +395,7 @@ void NoteFairy::exeSuccess() {
             MR::requestAppearPowerStar(this, mLastGotNote->mPosition);
             break;
         case 0:
-            MR::requestAppearPowerStar(this, _8C);
+            MR::requestAppearPowerStar(this, mOriginPos);
             break;
         }
 
@@ -431,7 +431,7 @@ void NoteFairy::setLastGotNote(Note* pNote) {
 }
 
 f32 NoteFairy::getNoteCoord(s32 val) {
-    if (_D1) {
+    if (mIsRailPointPlacement) {
         return MR::getRailPointCoord(this, val);
     }
 

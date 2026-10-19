@@ -59,6 +59,7 @@ public:
 class LuckyDice : public DiceBase {
 public:
     LuckyDice(const char* pName);
+    virtual ~LuckyDice();
     virtual const char* getModelName();
     virtual void initItems(const JMapInfoIter&);
     virtual void setAnimFrame();

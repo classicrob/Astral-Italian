@@ -31,8 +31,8 @@ public:
     void setLastGotNote(Note*);
     f32 getNoteCoord(s32);
 
-    /* 0x8C */ TVec3f _8C;
-    /* 0x98 */ TVec3f _98;
+    /* 0x8C */ TVec3f mOriginPos;
+    /* 0x98 */ TVec3f mDemoAppearPos;
     /* 0xA4 */ f32 mAppearanceSpeed;
     /* 0xA8 */ s32 mTimeLimit;
     /* 0xAC */ s32 mMelodyNoteNum;
@@ -44,11 +44,11 @@ public:
     /* 0xC4 */ Note* mLastGotNote;
     /* 0xC8 */ s32 mAppearanceType;
     /* 0xCC */ bool _CC;
-    /* 0xCD */ bool _CD;
+    /* 0xCD */ bool mIsDirectBloom;
     /* 0xCE */ bool mHasDemo;
-    /* 0xCF */ bool _CF;
-    /* 0xD0 */ bool _D0;
-    /* 0xD1 */ bool _D1;
+    /* 0xCF */ bool mIsStageBgmFade;
+    /* 0xD0 */ bool mIsSilentRiddle;
+    /* 0xD1 */ bool mIsRailPointPlacement;
     /* 0xD4 */ s32 mPowerStarSpawnType;
     /* 0xD8 */ ActorCameraInfo* mCameraInfo;
 };

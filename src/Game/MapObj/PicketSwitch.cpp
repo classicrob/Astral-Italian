@@ -23,7 +23,7 @@ void PicketSwitch::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, pName, false);
     MR::connectToSceneMapObjDecorationStrongLight(this);
     initHitSensor(1);
-    MR::addBodyMessageSensor(this, 0x49 /* ATYPE_SWITCH */);
+    MR::addBodyMessageSensor(this, ATYPE_SWITCH);
     MR::initCollisionPartsAutoEqualScale(this, pName, getSensor(0), MR::getJointMtx(this, "Picket"));
     initEffectKeeper(0, nullptr, false);
     initSound(4, "PicketSwitch", nullptr, TVec3f(0.0f));
@@ -63,7 +63,7 @@ void PicketSwitch::exeLastDrop() {
 
 bool PicketSwitch::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgPlayerHipDropFloor(msg)) {
-        if (MR::isSensorType(pReceiver, 0x49 /* ATYPE_SWITCH */)) {
+        if (MR::isSensorType(pReceiver, ATYPE_SWITCH)) {
             if (isNerve(GET_NERVE(PicketSwitch, PicketSwitchNrvWait))) {
                 setNerve(GET_NERVE(PicketSwitch, PicketSwitchNrvLastDrop));
                 return true;

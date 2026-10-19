@@ -622,9 +622,9 @@ void JetTurtle::exeThrowing() {
                     MR::sendArbitraryMsg(7, MR::getBindedPlaneSensor(this, i), getSensor("Body"));
                 }
 
-                if (MR::isBindedWall(this) && MR::isWallCodeRebound((const Triangle*)((u8*)mBinder + 0xCC))) {
+                if (MR::isBindedWall(this) && MR::isWallCodeRebound(&mBinder->mWallInfo.mParentTriangle)) {
                     bound();
-                } else if (MR::isBindedRoof(this) && MR::isWallCodeRebound((const Triangle*)((u8*)mBinder + 0x15C))) {
+                } else if (MR::isBindedRoof(this) && MR::isWallCodeRebound(&mBinder->mRoofInfo.mParentTriangle)) {
                     bound();
                 } else {
                     MR::shakeCameraWeak();
@@ -640,7 +640,7 @@ void JetTurtle::exeThrowing() {
                     return;
                 }
 
-                if (MR::isWallCodeRebound((const Triangle*)((u8*)mBinder + 0x3C))) {
+                if (MR::isWallCodeRebound(&mBinder->mGroundInfo.mParentTriangle)) {
                     bound();
                 }
             }

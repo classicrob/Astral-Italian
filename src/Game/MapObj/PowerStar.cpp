@@ -35,11 +35,6 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-void fn_8005BBE0(bool);
-}
-
 class DemoObj : public LiveActor {};
 
 const GXColor lightColor[] = {
@@ -141,8 +136,8 @@ namespace NrvPowerStar {
 PowerStar::PowerStar(const char* pName)
     : LiveActor(pName), mPowerStarId(-1), mIsInDemo(false), mAppearPosition(gZeroVec), mInitRotation(gZeroVec), mInitPosition(gZeroVec),
       mPowerStarModelObj(nullptr), mPeachModel(nullptr), mTicoBabyModel(nullptr), mSupportTicoModel(nullptr), _12C(false), _12D(false), mColor(0),
-      mIsGrandStar(false), _136(false), _137(false), _138(false), mCameraInfo(nullptr), mCameraActor(nullptr), _174(false) {
-    _B8.identity();
+      mIsGrandStar(false), _136(false), _137(false), mIsBaseFromAppearPoint(false), mCameraInfo(nullptr), mAppearPoint(nullptr), mIsUseAwakeSwitch(false) {
+    mPostureMtx.identity();
     mBaseMtx.identity();
     _144.identity();
 }
@@ -158,7 +153,7 @@ void PowerStar::init(const JMapInfoIter& rIter) {
         initSensorGrandStar();
     } else {
         initHitSensor(1);
-        MR::addHitSensor(this, "Body", 0x61 /* ATYPE_POWER_STAR_BIND */, 8, 75.0f, TVec3f(0.0f, 0.0f, 0.0f));
+        MR::addHitSensor(this, "Body", ATYPE_POWER_STAR_BIND, 8, 75.0f, TVec3f(0.0f, 0.0f, 0.0f));
     }
 
     initShadow(rIter);
@@ -177,7 +172,7 @@ void PowerStar::init(const JMapInfoIter& rIter) {
     if (mPowerStarId == -1) {
         if (mIsInDemo) {
             makeActorDead();
-        } else if (_174) {
+        } else if (mIsUseAwakeSwitch) {
             makeActorDead();
         } else {
             makeActorAppeared();
@@ -224,8 +219,8 @@ void PowerStar::setDemoAppearPos(const TVec3f& rVec) {
     bool isGroupExist = MR::getGroupFromArray(this);
 
     if (isGroupExist) {
-        mCameraActor = getNearestAppearPoint(rVec);
-        mAppearPosition.set(mCameraActor->mPosition);
+        mAppearPoint = getNearestAppearPoint(rVec);
+        mAppearPosition.set(mAppearPoint->mPosition);
     }
 
     mPosition.set(rVec);
@@ -343,7 +338,7 @@ void PowerStar::calcAndSetBaseMtx() {
     // FIXME
     mtx.makeRotate(TVec3f(0.0f, 1.0f, 0.0f), MR::toRadian(mRotation.y));
 
-    mtx2.concat(_B8, mtx);
+    mtx2.concat(mPostureMtx, mtx);
     mtx2.setTrans(mPosition);
     MR::setBaseTRMtx(this, mtx2);
 }
@@ -362,7 +357,7 @@ bool PowerStar::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     }
 
     if (MR::isMsgAutoRushBegin(msg) && isNerve(GET_NERVE(PowerStar, PowerStarNrvWait)) && MR::getPlayerLife() > 0) {
-        fn_8005BBE0(false);
+        MR::stopAllSe(false);
         MR::stopSoundPlayer("SE_PV_BURN_RUN", 0);
         MR::stopSoundPlayer("SE_PV_NEEDLE_DAMAGE_RUN", 0);
         MR::startActionSound(this, "SyStarGet", -1, -1, -1);
@@ -396,10 +391,10 @@ void PowerStar::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mPowerStarId);
     MR::getJMapInfoArg1NoInit(rIter, &_136);
     MR::getJMapInfoArg2NoInit(rIter, &_137);
-    MR::getJMapInfoArg4NoInit(rIter, &_138);
+    MR::getJMapInfoArg4NoInit(rIter, &mIsBaseFromAppearPoint);
 
     if (!mIsGreenStar) {
-        _174 = MR::useStageSwitchAwake(this, rIter);
+        mIsUseAwakeSwitch = MR::useStageSwitchAwake(this, rIter);
     }
 
     MR::registerPowerStar(this, mPowerStarId);
@@ -473,22 +468,22 @@ void PowerStar::initSensorGrandStar() {
     initHitSensor(6);
     TVec3f body1Offs = TVec3f(0.0f, 100.0f, 0.0f);
     const char* body1Name = "body1";
-    MR::addHitSensorMtx(this, body1Name, 0x61 /* ATYPE_POWER_STAR_BIND */, 8, 60.0f, getBaseMtx(), body1Offs);
+    MR::addHitSensorMtx(this, body1Name, ATYPE_POWER_STAR_BIND, 8, 60.0f, getBaseMtx(), body1Offs);
     TVec3f body2Offs = TVec3f(-95.0f, 35.0f, 0.0f);
     const char* body2Name = "body2";
-    MR::addHitSensorMtx(this, body2Name, 0x61 /* ATYPE_POWER_STAR_BIND */, 8, 60.0f, getBaseMtx(), body2Offs);
+    MR::addHitSensorMtx(this, body2Name, ATYPE_POWER_STAR_BIND, 8, 60.0f, getBaseMtx(), body2Offs);
     TVec3f body3Offs = TVec3f(-55.0f, -75.0f, 0.0f);
     const char* body3Name = "body3";
-    MR::addHitSensorMtx(this, body3Name, 0x61 /* ATYPE_POWER_STAR_BIND */, 8, 60.0f, getBaseMtx(), body3Offs);
+    MR::addHitSensorMtx(this, body3Name, ATYPE_POWER_STAR_BIND, 8, 60.0f, getBaseMtx(), body3Offs);
     TVec3f body4Offs = TVec3f(55.0f, -75.0f, 0.0f);
     const char* body4Name = "body4";
-    MR::addHitSensorMtx(this, body4Name, 0x61 /* ATYPE_POWER_STAR_BIND */, 8, 60.0f, getBaseMtx(), body4Offs);
+    MR::addHitSensorMtx(this, body4Name, ATYPE_POWER_STAR_BIND, 8, 60.0f, getBaseMtx(), body4Offs);
     TVec3f body5Offs = TVec3f(95.0f, 35.0f, 0.0f);
     const char* body5Name = "body5";
-    MR::addHitSensorMtx(this, body5Name, 0x61 /* ATYPE_POWER_STAR_BIND */, 8, 60.0f, getBaseMtx(), body5Offs);
+    MR::addHitSensorMtx(this, body5Name, ATYPE_POWER_STAR_BIND, 8, 60.0f, getBaseMtx(), body5Offs);
     TVec3f body6Offs = TVec3f(0.0f, 0.0f, 0.0f);
     const char* body6Name = "body6";
-    MR::addHitSensorMtx(this, body6Name, 0x61 /* ATYPE_POWER_STAR_BIND */, 8, 80.0f, getBaseMtx(), body6Offs);
+    MR::addHitSensorMtx(this, body6Name, ATYPE_POWER_STAR_BIND, 8, 80.0f, getBaseMtx(), body6Offs);
 }
 
 void PowerStar::initShadow(const JMapInfoIter& rIter) {
@@ -514,15 +509,15 @@ void PowerStar::initPosture() {
 
         TVec3f up = -mGravity;
         if (!MR::isSameDirection(up, zDir)) {
-            MR::makeMtxUpFront(&_B8, up, zDir);
+            MR::makeMtxUpFront(&mPostureMtx, up, zDir);
         } else {
-            MR::makeMtxUpNoSupport(&_B8, up);
+            MR::makeMtxUpNoSupport(&mPostureMtx, up);
         }
     } else {
-        _B8.set(mtx);
+        mPostureMtx.set(mtx);
     }
 
-    _B8.zeroTrans();
+    mPostureMtx.zeroTrans();
     mRotation.y = 0.0f;
 }
 
@@ -577,19 +572,19 @@ PowerStarAppearPoint* PowerStar::getNearestAppearPoint(const TVec3f& rPos) const
 }
 
 LiveActor* PowerStar::getAppearCameraActor() {
-    if (mCameraActor == nullptr) {
+    if (mAppearPoint == nullptr) {
         return this;
     }
 
-    return mCameraActor;
+    return mAppearPoint;
 }
 
 ActorCameraInfo* PowerStar::getAppearCameraInfo() const {
-    if (mCameraActor == nullptr) {
+    if (mAppearPoint == nullptr) {
         return mCameraInfo;
     }
 
-    return mCameraActor->mCameraInfo;
+    return mAppearPoint->mCameraInfo;
 }
 
 void PowerStar::requestAppearOrWait() {
@@ -632,7 +627,7 @@ void PowerStar::calcAppearDemoRiseTrans(TVec3f* pOutTrans, f32 a2) const {
         vec.x = 0.0f;
         vec.y = a2;
         vec.z = 0.0f;
-        _B8.mult(vec, *pOutTrans);
+        mPostureMtx.mult(vec, *pOutTrans);
     }
 
     pOutTrans->add(mInitPosition);
@@ -652,7 +647,7 @@ void PowerStar::applyAppearDemoRiseTrans(const TVec3f& rRiseTrans, f32 minHeight
 
     TVec3f zVec(0.0f, 0.0f, 0.0f);
     zVec.y = MR::sin(step * PI) * val2;
-    _B8.mult(zVec, zVec);
+    mPostureMtx.mult(zVec, zVec);
     mPosition.add(zVec);
 }
 
@@ -688,11 +683,11 @@ void PowerStar::processWait(f32 val) {
 
 void PowerStar::calcStageClearDemoMtx() {
     if (!MR::tryFindLinkNamePos(this, "スターゲットデモ座標", (MtxPtr)&mBaseMtx)) {
-        if (_138) {
-            MR::makeMtxTR((MtxPtr)&mBaseMtx, mCameraActor);
+        if (mIsBaseFromAppearPoint) {
+            MR::makeMtxTR((MtxPtr)&mBaseMtx, mAppearPoint);
             mBaseMtx.zeroTrans();
         } else {
-            mBaseMtx.set(_B8);
+            mBaseMtx.set(mPostureMtx);
         }
 
         mBaseMtx.setTrans(mPosition);

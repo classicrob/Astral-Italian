@@ -31,7 +31,7 @@ public:
     virtual void exeCatch();
     virtual bool tryStartTicoHold();
     virtual bool tryEndTicoHold();
-    virtual void attachSupportTico();
+    virtual bool attachSupportTico();
     virtual void exeCatchNerve();
 
     void appearPop();

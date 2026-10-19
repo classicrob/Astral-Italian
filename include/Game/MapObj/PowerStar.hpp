@@ -73,7 +73,7 @@ public:
     /* 0x098 */ TVec3f mAppearPosition;
     /* 0x0A4 */ TVec3f mInitRotation;
     /* 0x0B0 */ TVec3f mInitPosition;
-    /* 0x0BC */ TPos3f _B8;
+    /* 0x0BC */ TPos3f mPostureMtx;
     /* 0x0EC */ TPos3f mBaseMtx;
     /* 0x11C */ ModelObj* mPowerStarModelObj;
     /* 0x120 */ LiveActor* mPeachModel;
@@ -90,9 +90,9 @@ public:
     /* 0x135 */ bool mIsGreenStar;
     /* 0x136 */ bool _136;
     /* 0x137 */ bool _137;
-    /* 0x138 */ bool _138;
+    /* 0x138 */ bool mIsBaseFromAppearPoint;
     /* 0x13C */ ActorCameraInfo* mCameraInfo;
-    /* 0x140 */ PowerStarAppearPoint* mCameraActor;
+    /* 0x140 */ PowerStarAppearPoint* mAppearPoint;
     /* 0x144 */ TMtx34f _144;
-    /* 0x174 */ bool _174;
+    /* 0x174 */ bool mIsUseAwakeSwitch;
 };

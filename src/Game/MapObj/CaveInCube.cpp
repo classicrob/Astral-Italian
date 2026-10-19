@@ -43,7 +43,7 @@ void CaveInCube::initRotate() {
     mRotMtx.mMtx[0][3] = mPosition.x;
     mRotMtx.mMtx[1][3] = mPosition.y;
     mRotMtx.mMtx[2][3] = mPosition.z;
-    mRotVecs = static_cast< TVec3f* >(operator new(0x18));
+    mRotVecs = static_cast< TVec3f* >(operator new(2 * sizeof(TVec3f)));
     TVec3f v0(0.5f * (100.0f * -mScale.x), 0.5f * (100.0f * -mScale.y), 0.5f * (100.0f * -mScale.z));
     TVec3f v1(0.5f * (100.0f * mScale.x), 0.5f * (100.0f * mScale.y), 0.5f * (100.0f * mScale.z));
     TVec3f* pVecs = mRotVecs;
@@ -83,12 +83,16 @@ void CaveInCube::initDebris() {
 
 bool CaveInCube::getUnusedDebris(u32 kind, CaveInParts** ppOut) {
     CaveInParts** pArr = nullptr;
-    if (kind == 0) {
+    switch (kind) {
+    case 0:
         pArr = mDebris0;
-    } else if (kind == 1) {
+        break;
+    case 1:
         pArr = mDebris1;
-    } else if (kind == 2) {
+        break;
+    case 2:
         pArr = mDebris2;
+        break;
     }
 
     for (s32 i = 0; i < 20; i++) {

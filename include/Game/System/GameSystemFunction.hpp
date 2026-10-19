@@ -62,3 +62,4 @@ namespace GameSystemFunction {
     void restartSceneController();
     bool isDisplayStrapRemineder();
 };  // namespace GameSystemFunction
+

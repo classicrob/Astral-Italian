@@ -1,5 +1,7 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrRobot.hpp"
+#include "Game/MapObj/StarPieceGroup.hpp"
+#include "Game/MapObj/StarPiece.hpp"
 #include "Game/Enemy/HomingKiller.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/FixedPosition.hpp"
@@ -173,7 +175,7 @@ void KoopaJrRobotFunction::attachBodyToHead(KoopaJrRobot* pHost) {
 }
 
 void KoopaJrRobotFunction::showStarPieces(KoopaJrRobot* pHost) {
-    KoopaJrRobotStarPieceGroup* pGroup = pHost->mStarPieceGroup;
+    StarPieceGroup* pGroup = pHost->mStarPieceGroup;
     for (s32 i = 0; i < pGroup->mNumPieces; i++) {
         LiveActor* pPiece = pGroup->mPieces[i];
         MR::showModelAndEffects(pPiece);
@@ -182,7 +184,7 @@ void KoopaJrRobotFunction::showStarPieces(KoopaJrRobot* pHost) {
 }
 
 void KoopaJrRobotFunction::hideStarPieces(KoopaJrRobot* pHost) {
-    KoopaJrRobotStarPieceGroup* pGroup = pHost->mStarPieceGroup;
+    StarPieceGroup* pGroup = pHost->mStarPieceGroup;
     for (s32 i = 0; i < pGroup->mNumPieces; i++) {
         LiveActor* pPiece = pGroup->mPieces[i];
         MR::hideModelAndEffects(pPiece);

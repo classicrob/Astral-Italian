@@ -31,15 +31,8 @@ ChipCounter::ChipCounter(const char* pName, s32 type) : LayoutActor(pName, true)
 void ChipCounter::init(const JMapInfoIter& rIter) {
     MR::connectToSceneLayout(this);
 
-    switch (mType) {
-    case ChipBase::Type_Blue:
-        initLayoutManager("BlueChipCounter", 2);
-
-        break;
-    case ChipBase::Type_Yellow:
+    if (mType == ChipBase::Type_Yellow) {
         initLayoutManager("YellowChipCounter", 2);
-
-        break;
     }
 
     initNerve(GET_NERVE(ChipCounter, ChipCounterNrvHide));

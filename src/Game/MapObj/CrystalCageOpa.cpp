@@ -1,3 +1,4 @@
+#include "Game/MapObj/CrystalCage.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/MapObj/CrystalCageOpa.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -8,8 +9,6 @@
 #include "math_types.hpp"
 
 
-// PLACEHOLDER(objects): extern "C" declaration of a target symbol with a non-C++ name (relocs must match); resolve when the symbol is renamed in symbols.txt
-extern "C" void exeFall__11CrystalCageFv(LiveActor*);
 
 
 namespace NrvCrystalCageOpa {
@@ -26,7 +25,7 @@ namespace NrvCrystalCage {
 };  // namespace NrvCrystalCage
 
 void NrvCrystalCage::CrystalCageNrvFall::execute(Spine* pSpine) const {
-    exeFall__11CrystalCageFv(reinterpret_cast<LiveActor*>(pSpine->mExecutor));
+    static_cast<CrystalCage*>(pSpine->mExecutor)->exeFall();
 }
 
 CrystalCageOpa::CrystalCageOpa(const char* pName)

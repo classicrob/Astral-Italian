@@ -15,18 +15,18 @@ namespace NrvWaterPressureBullet {
 };  // namespace NrvWaterPressureBullet
 
 WaterPressureBullet::WaterPressureBullet(const char* pName) : LiveActor(pName) {
-    _8C.x = 0.0f;
-    _8C.y = 0.0f;
-    _8C.z = 0.0f;
-    _98.x = 0.0f;
-    _98.y = 0.0f;
-    _98.z = 0.0f;
-    _A4 = 0;
-    _A8 = 0.0f;
+    mFrontDir.x = 0.0f;
+    mFrontDir.y = 0.0f;
+    mFrontDir.z = 0.0f;
+    mSideDir.x = 0.0f;
+    mSideDir.y = 0.0f;
+    mSideDir.z = 0.0f;
+    mShooterActor = 0;
+    mSpeed = 0.0f;
     mHostActor = nullptr;
-    _B0 = false;
-    _B1 = false;
-    _B2 = false;
+    mIsNoGravity = false;
+    mCanSlideOnGround = false;
+    mIsLongLived = false;
     mCameraInfo = nullptr;
 }
 
@@ -81,7 +81,7 @@ void WaterPressureBullet::control() {
             stack_8.set(*getVelocity());
         }
 
-        MR::turnVecToVecCosOnPlane(&_8C, stack_8, _98, MR::cosDegree(2.5f));
+        MR::turnVecToVecCosOnPlane(&mFrontDir, stack_8, mSideDir, MR::cosDegree(2.5f));
         mParamScale->calcHostVelocity();
     }
 }
@@ -89,28 +89,28 @@ void WaterPressureBullet::control() {
 
 void WaterPressureBullet::calcAndSetBaseMtx() {
     TPos3f pos;
-    MR::makeMtxFrontSidePos(&pos, _8C, _98, mPosition);
+    MR::makeMtxFrontSidePos(&pos, mFrontDir, mSideDir, mPosition);
     MR::setBaseTRMtx(this, pos);
 }
 
 void WaterPressureBullet::shotWaterBullet(LiveActor* pActor, const TPos3f& rPos, f32 a3, bool a4, bool a5, bool a6, ActorCameraInfo** pInfo) {
-    _A8 = a3;
-    _A4 = pActor;
-    _B0 = a4;
-    _B1 = a5;
-    _B2 = a6;
+    mSpeed = a3;
+    mShooterActor = pActor;
+    mIsNoGravity = a4;
+    mCanSlideOnGround = a5;
+    mIsLongLived = a6;
     mCameraInfo = pInfo;
-    rPos.getZDir(_8C);
-    mVelocity.scale(_A8, _8C);
+    rPos.getZDir(mFrontDir);
+    mVelocity.scale(mSpeed, mFrontDir);
     rPos.getTrans(mPosition);
-    rPos.getXDir(_98);
+    rPos.getXDir(mSideDir);
     mRotation.zero();
     makeActorAppeared();
     MR::validateHitSensors(this);
     MR::invalidateClipping(this);
     MR::setShadowDropLength(this, nullptr, 1500.0f);
 
-    if (!_B0) {
+    if (!mIsNoGravity) {
         MR::onCalcGravity(this);
     }
 
@@ -139,11 +139,11 @@ void WaterPressureBullet::exeFly() {
         MR::startActionSound(this, "OjLvWPressBubbleSus");
     }
 
-    if (!_B0) {
+    if (!mIsNoGravity) {
         mParamScale->calcHostVelocity(mGravity, mVelocity, 0.4f);
     }
 
-    if (MR::isPadSwing(WPAD_CHAN0) && isBound() && !_B2) {
+    if (MR::isPadSwing(WPAD_CHAN0) && isBound() && !mIsLongLived) {
         MR::startLevelSoundPlayer("TwistStart", -1, -1);
         MR::tryRumblePadMiddle(this, WPAD_CHAN0);
         setNerve(GET_NERVE(WaterPressureBullet, WaterPressureBulletNrvSpinKill));
@@ -157,7 +157,7 @@ void WaterPressureBullet::exeFly() {
     }
 
     if (v2) {
-        if (_B1 && isBound() && MR::isBindedGroundSand(this)) {
+        if (mCanSlideOnGround && isBound() && MR::isBindedGroundSand(this)) {
             const TVec3f& vel = mVelocity;
             const TVec3f& grav = mGravity;
             mVelocity.scaleAdd(-grav.dot(vel), grav, vel);
@@ -167,7 +167,7 @@ void WaterPressureBullet::exeFly() {
         }
     }
 
-    if (!_B2 && mParamScale->isGreaterEqualStep(180) || _B2 && mParamScale->isGreaterEqualStep(300)) {
+    if (!mIsLongLived && mParamScale->isGreaterEqualStep(180) || mIsLongLived && mParamScale->isGreaterEqualStep(300)) {
         kill();
     }
 }
@@ -241,8 +241,8 @@ bool WaterPressureBullet::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor
 }
 
 bool WaterPressureBullet::startHostCamera() const {
-    if (_A4 != nullptr && mCameraInfo != nullptr) {
-        MR::startActorCameraNoTarget(_A4, *mCameraInfo, -1);
+    if (mShooterActor != nullptr && mCameraInfo != nullptr) {
+        MR::startActorCameraNoTarget(mShooterActor, *mCameraInfo, -1);
         return true;
     }
 
@@ -250,8 +250,8 @@ bool WaterPressureBullet::startHostCamera() const {
 }
 
 bool WaterPressureBullet::endHostCamera() const {
-    if (_A4 != nullptr && mCameraInfo != nullptr) {
-        MR::endActorCamera(_A4, *mCameraInfo, true, -1);
+    if (mShooterActor != nullptr && mCameraInfo != nullptr) {
+        MR::endActorCamera(mShooterActor, *mCameraInfo, true, -1);
         return true;
     }
 
@@ -267,7 +267,7 @@ bool WaterPressureBullet::inviteMario(HitSensor* pSensor) {
             MR::calcGravity(this);
         }
         if (MR::isNearAngleDegree(mVelocity, mGravity, 60.0f)) {
-            if (_B1) {
+            if (mCanSlideOnGround) {
                 mVelocity.killElement(mVelocity, mGravity);
             } else {
                 kill();

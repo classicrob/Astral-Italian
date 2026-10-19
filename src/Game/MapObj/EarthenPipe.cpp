@@ -1,3 +1,5 @@
+#include "Game/Util/PlayerUtil.hpp"
+#include "Game/Util/BgmUtil.hpp"
 #include "Game/MapObj/EarthenPipe.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
@@ -5,16 +7,6 @@
 #include "Game/Util.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 
-// PLACEHOLDER(objects): fades or changes BGM on pipe entry; resolve when core names fn_8001B430
-extern "C" void fn_8001B430(s32, s32);
-// PLACEHOLDER(objects): restores BGM on pipe exit; resolve when core names fn_8001B510
-extern "C" void fn_8001B510(s32, s32);
-// PLACEHOLDER(objects): prepares rescued Tico for pipe travel; resolve when core names fn_8005FFC0
-extern "C" void fn_8005FFC0();
-// PLACEHOLDER(objects): launches rescued Tico at the pipe matrix; resolve when core names fn_8005FFD0
-extern "C" void fn_8005FFD0(MtxPtr);
-// PLACEHOLDER(objects): sets player post-launch timer; resolve when core names fn_8004FF80
-extern "C" void fn_8004FF80(s32);
 
 namespace NrvEarthenPipe {
     NEW_NERVE(EarthenPipeNrvWait, EarthenPipe, Wait);
@@ -289,12 +281,12 @@ void EarthenPipe::exePlayerIn() {
             if (MR::getPlayingStageBgmId() && !MR::isEqualString(MR::getPlayingStageBgmId(), mTargetPipe->mSavedBgmId))
                 MR::stopStageBGM(60);
         } else if (mTargetPipe->mMusicChangeIdx != 10000) {
-            fn_8001B430(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
+            MR::fadeOutStageBGMForIndex(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
         }
     }
     if (MR::isBckStoppedPlayer() && !MR::isPlayerDead()) {
         mPlayerMtx.setInline(mTargetPipe->getBaseMtx());
-        fn_8005FFC0();
+        MR::pauseRescuedStrayTicoFollow();
         if (isLaunchMode()) {
             if (mPipeMode == 4) MR::appearCoinAgainstGravity(this, mPosition, 3);
             if (mPipeMode == 5) MR::appearStarPiece(this, mPosition, 8, 10.0f, 40.0f, false);
@@ -315,7 +307,7 @@ void EarthenPipe::exeTargetPipeShowUp() {
 
     if (!mTargetPipe->isNerveShowUp()) {
         mPlayerMtx.setInline(mTargetPipe->getBaseMtx());
-        fn_8005FFC0();
+        MR::pauseRescuedStrayTicoFollow();
         MR::showPlayer();
         setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvPlayerOut));
     }
@@ -331,7 +323,7 @@ void EarthenPipe::exePlayerOut() {
                 if (mTargetPipe->mSavedBgmState >= 0) MR::setStageBGMState(mTargetPipe->mSavedBgmState, 0);
             }
         } else if (mTargetPipe->mMusicChangeIdx != 10000) {
-            fn_8001B510(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
+            MR::startStageBGMForIndex(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
         }
     }
     if (MR::isBckStoppedPlayer()) launchPlayer(false);
@@ -340,7 +332,7 @@ void EarthenPipe::exePlayerOut() {
 void EarthenPipe::exeLaunch() {
     if (MR::isStep(this, 22)) {
         MR::startActionSound(this, "DmDokanWarp", -1, -1, -1);
-        fn_8001B510(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
+        MR::startStageBGMForIndex(mTargetPipe->mMusicChangeIdx, mTargetPipe->mMusicState);
         launchPlayer(true);
     }
 }
@@ -487,7 +479,7 @@ void EarthenPipe::calcTrans(f32 a1) {
 
 void EarthenPipe::launchPlayer(bool quick) {
     MtxPtr baseMtx = mTargetPipe->getBaseMtx();
-    fn_8005FFD0(baseMtx);
+    MR::launchRescuedStrayTicoFromMtx(baseMtx);
     TVec3f front(baseMtx[0][2], baseMtx[1][2], baseMtx[2][2]);
     TVec3f horizontal(front);
     TVec3f vertical(baseMtx[0][1], baseMtx[1][1], baseMtx[2][1]);
@@ -501,7 +493,7 @@ void EarthenPipe::launchPlayer(bool quick) {
     else MR::startBckPlayer("EarthenPipeJump", nullptr);
     MR::setPlayerFrontTargetVec(front, 1);
     MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, velocity);
-    fn_8004FF80(5);
+    MR::setPlayerFootState(5);
     mHostActor = nullptr;
     mTargetPipe->tryHideDown();
     if (!_194 && MR::isValidSwitchB(this)) MR::onSwitchB(this);

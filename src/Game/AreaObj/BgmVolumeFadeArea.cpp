@@ -1,6 +1,11 @@
 #include "Game/AreaObj/BgmVolumeFadeArea.hpp"
 #include "Game/Util.hpp"
 
+namespace {
+    const volatile f32 sDefaultVolumePercent = 0.0f;
+}
+
+
 BgmVolumeFadeArea::BgmVolumeFadeArea(const char* pName) : AreaObj(pName) {
     mIsInsideApplied = false;
     mIsOutsideApplied = true;
@@ -41,14 +46,9 @@ s32 BgmVolumeFadeArea::getFadeTime() const {
     return mObjArg0;
 }
 
-// NONMATCHING: the negative-arg default is the runtime global lbl_807E2FC0 (sbss2), not a literal.
 f32 BgmVolumeFadeArea::getVolume() const {
-    f32 volume;
     if (mObjArg1 < 0) {
-        volume = 100.0f;
-    } else {
-        volume = mObjArg1;
+        return sDefaultVolumePercent / 100.0f;
     }
-
-    return volume / 100.0f;
+    return mObjArg1 / 100.0f;
 }

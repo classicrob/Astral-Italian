@@ -81,16 +81,15 @@ public:
 
 #pragma push
 #pragma fp_contract off
-// NONMATCHING: non-fused Hermite arithmetic uses different floating-point registers and scheduling.
 template <typename T>
-inline T JMAHermiteInterpolation(T value, T start, T startValue, T startTangent, T end, T endValue, T endTangent) {
+NO_INLINE T JMAHermiteInterpolation(T value, T start, T startValue, T startTangent, T end, T endValue, T endTangent) {
     T distance = value - start;
     T span = end - start;
+    T difference = startValue - endValue;
     T t = distance / span;
     T square = t * t;
     T twiceT = t + t;
     T blend = square - t;
-    T difference = startValue - endValue;
     T weight = twiceT * blend - square;
     T tangent = startTangent * blend + startTangent;
     T interpolated = weight * difference + startValue;

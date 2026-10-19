@@ -29,7 +29,7 @@ namespace NrvSunakazeKunTrap {
 };  // namespace NrvSunakazeKunTrap
 
 SunakazeKunTrap::SunakazeKunTrap(LiveActor* pHost, const TVec3f& rParam2)
-    : ModelObj("スナカゼ用トラップ", "SunakazeKunTrap", nullptr, -2, -2, -2, false), mHost(pHost), _94(rParam2) {
+    : ModelObj("スナカゼ用トラップ", "SunakazeKunTrap", nullptr, -2, -2, -2, false), mHost(pHost), mTrapOffset(rParam2) {
 }
 
 void SunakazeKunTrap::init(const JMapInfoIter& rIter) {
@@ -43,7 +43,7 @@ void SunakazeKunTrap::init(const JMapInfoIter& rIter) {
 
     MR::setShadowDropDirection(this, nullptr, up);
     MR::setShadowDropLength(this, nullptr, 500.0f);
-    PSMTXMultVec(mHost->getBaseMtx(), &_94, &mPosition);
+    PSMTXMultVec(mHost->getBaseMtx(), &mTrapOffset, &mPosition);
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(SunakazeKunTrap, SunakazeKunTrapNrvTrap));
     makeActorAppeared();
@@ -52,8 +52,8 @@ void SunakazeKunTrap::init(const JMapInfoIter& rIter) {
 void SunakazeKunTrap::exeTrap() {
     TVec3f axis = TVec3f(0.0f, 1.0f, 0.0f);
 
-    MR::rotateVecDegree(&_94, axis, ::sTrapRotateSpeed);
-    PSMTXMultVec(mHost->getBaseMtx(), &_94, &mPosition);
+    MR::rotateVecDegree(&mTrapOffset, axis, ::sTrapRotateSpeed);
+    PSMTXMultVec(mHost->getBaseMtx(), &mTrapOffset, &mPosition);
     f32 value = MR::getEaseInValue(getNerveStep() % 100, 0.5f, 1.0f, 30.0f);
     f32 angle = MR::sinDegree(getNerveStep() * 5.0f);
 
@@ -78,8 +78,8 @@ namespace NrvSandstorm {
 };  // namespace NrvSandstorm
 
 Sandstorm::Sandstorm(const char* pName)
-    : LiveActor(pName), _8C(), mBindActor(), _94(0.0f, 0.0f, 1.0f), _A0(0.0f, 0.0f, 0.0f), mType(), mSpiralRot(), mSpiralRadius(), _B8(), _BC(),
-      _C0(), _C4(), _C8(), _CC(), mSensorHeight(), mSizeUpRate(), mSensorMin(), mStepStorm(), mStepAdjust(), mStepFix(), mStepEnd(), mBindHeight(),
+    : LiveActor(pName), mCameraInfo(), mBindActor(), mFrontDir(0.0f, 0.0f, 1.0f), mRailClipCenter(0.0f, 0.0f, 0.0f), mType(), mSpiralRot(), mSpiralRadius(), mSpiralAngle(), mCurRadius(),
+      mAdjustStartRadius(), mCurHeight(), mStepCount(), mBindStepOffset(), mSensorHeight(), mSizeUpRate(), mSensorMin(), mStepStorm(), mStepAdjust(), mStepFix(), mStepEnd(), mBindHeight(),
       mTrapModel() {
 }
 
@@ -118,7 +118,7 @@ void Sandstorm::init(const JMapInfoIter& rIter) {
     MR::setShadowVolumeStartDropOffset(this, nullptr, -100.0f);
     MR::setShadowDropLength(this, nullptr, 300.0f);
     MR::calcGravity(this);
-    MR::initActorCamera(this, rIter, &_8C);
+    MR::initActorCamera(this, rIter, &mCameraInfo);
 
     bool useTrapModel = false;
     MR::getJMapInfoArg0NoInit(rIter, &useTrapModel);
@@ -136,15 +136,15 @@ void Sandstorm::init(const JMapInfoIter& rIter) {
     initRailRider(rIter);
     MR::moveCoordAndTransToNearestRailPos(this);
 
-    _94.set(MR::getRailDirection(this));
+    mFrontDir.set(MR::getRailDirection(this));
 
     f32 boundingRadius;
     MR::calcModelBoundingRadius(&boundingRadius, this);
 
     f32 railBoundingRadius;
-    MR::calcRailClippingInfo(&_A0, &railBoundingRadius, this, 100.0f, 500.0f);
+    MR::calcRailClippingInfo(&mRailClipCenter, &railBoundingRadius, this, 100.0f, 500.0f);
 
-    MR::setClippingTypeSphere(this, boundingRadius + railBoundingRadius, &_A0);
+    MR::setClippingTypeSphere(this, boundingRadius + railBoundingRadius, &mRailClipCenter);
     MR::setGroupClipping(this, rIter, 8);
     MR::initUseStageSwitchWriteA(this, rIter);
 
@@ -179,7 +179,7 @@ void Sandstorm::exeWait() {
         MR::startAction(this, "Wait");
     }
 
-    MR::turnDirectionToPlayerDegree(this, &_94, ::sTurnRate);
+    MR::turnDirectionToPlayerDegree(this, &mFrontDir, ::sTurnRate);
     tryNonActive();
 }
 
@@ -200,7 +200,7 @@ void Sandstorm::exeStorm() {
 
 void Sandstorm::exeStormAdjust() {
     if (MR::isFirstStep(this)) {
-        _C0 = _BC;
+        mAdjustStartRadius = mCurRadius;
     }
 
     MR::tryRumblePadVeryWeak(this, 0);
@@ -276,7 +276,7 @@ void Sandstorm::calcAndSetBaseMtx() {
     vec.negate();
 
     TPos3f mtx;
-    MR::calcMtxFromGravityAndZAxis(&mtx, this, vec, _94);
+    MR::calcMtxFromGravityAndZAxis(&mtx, this, vec, mFrontDir);
     MR::setBaseTRMtx(this, mtx);
 }
 
@@ -334,7 +334,7 @@ bool Sandstorm::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
 
 bool Sandstorm::receiveMsgEnemyAttack(u32 msg, HitSensor*, HitSensor* receiver) {
     if (mBindActor != nullptr && MR::isEqualSensor(receiver, this, "binder")) {
-        MR::endActorCamera(this, _8C, true, -1);
+        MR::endActorCamera(this, mCameraInfo, true, -1);
         MR::endBindAndPlayerDamageMsg(this, msg);
         mBindActor = nullptr;
         setNerve(GET_NERVE(Sandstorm, SandstormNrvStormEnd));
@@ -437,7 +437,7 @@ void Sandstorm::updateBindActorMtx() {
     f32 dVar9;
     TVec3f* pPosition;
 
-    if (_C8 < 10) {
+    if (mStepCount < 10) {
         pPosition = &mPosition;
         TVec3f toPlayerCenter;
         toPlayerCenter.sub(*MR::getPlayerCenterPos(), *pPosition);
@@ -449,16 +449,16 @@ void Sandstorm::updateBindActorMtx() {
         vec.killElement(toPlayerCenter, up);
 
         f32 len = vec.length();
-        f32 rate = _C8 / 10.0f;
-        dVar9 = MR::getLinerValue(rate, len, _BC, 1.0f);
+        f32 rate = mStepCount / 10.0f;
+        dVar9 = MR::getLinerValue(rate, len, mCurRadius, 1.0f);
     } else {
-        dVar9 = _BC;
+        dVar9 = mCurRadius;
     }
 
     TVec3f vec;
-    vec.x = dVar9 * MR::cos(_B8);
-    vec.y = _C4;
-    vec.z = dVar9 * MR::sin(_B8);
+    vec.x = dVar9 * MR::cos(mSpiralAngle);
+    vec.y = mCurHeight;
+    vec.z = dVar9 * MR::sin(mSpiralAngle);
 
     bool isSunakaze = isSunakazeKun();
 
@@ -495,27 +495,27 @@ void Sandstorm::endBind() {
     mBindActor = nullptr;
 
     MR::validateClipping(this);
-    MR::endActorCamera(this, _8C, true);
+    MR::endActorCamera(this, mCameraInfo, true);
 }
 
 void Sandstorm::updateSpiral() {
-    f32 x = _CC / mStepStorm;
+    f32 x = mBindStepOffset / mStepStorm;
     f32 value1 = MR::getLinerValue(x, 0.0f, mSpiralRadius, 1.0f);
     f32 value2 = MR::getLinerValue(x, 0.0f, mBindHeight, 1.0f);
     f32 dVar9 = MR::toRadian(-mSpiralRot * x);
 
-    if (_C8 <= mStepStorm) {
-        f32 x = static_cast< f32 >(_C8) / mStepStorm;
+    if (mStepCount <= mStepStorm) {
+        f32 x = static_cast< f32 >(mStepCount) / mStepStorm;
 
-        _BC = MR::getLinerValue(x, value1, mSpiralRadius, 1.0f);
-        _C4 = MR::getLinerValue(x, value2, mBindHeight, 1.0f);
+        mCurRadius = MR::getLinerValue(x, value1, mSpiralRadius, 1.0f);
+        mCurHeight = MR::getLinerValue(x, value2, mBindHeight, 1.0f);
     } else {
-        _BC = MR::getLinerValue(static_cast< f32 >(_C8 - mStepStorm) / mStepAdjust, _C0, 0.0f, 1.0f);
-        _C4 = mBindHeight;
+        mCurRadius = MR::getLinerValue(static_cast< f32 >(mStepCount - mStepStorm) / mStepAdjust, mAdjustStartRadius, 0.0f, 1.0f);
+        mCurHeight = mBindHeight;
     }
 
-    _B8 = dVar9 + MR::toRadian(-mSpiralRot * _C8);
-    _C8++;
+    mSpiralAngle = dVar9 + MR::toRadian(-mSpiralRot * mStepCount);
+    mStepCount++;
 }
 
 bool Sandstorm::tryStartBind(HitSensor* pSensor) {
@@ -535,24 +535,24 @@ bool Sandstorm::tryStartBind(HitSensor* pSensor) {
 
     MR::tryRumblePadStrong(this, 0);
     MR::shakeCameraNormal();
-    MR::startActorCameraTargetSelf(this, _8C);
+    MR::startActorCameraTargetSelf(this, mCameraInfo);
     MR::resetPlayerStatus();
     MR::startBckPlayer("StormIn");
     MR::startSoundPlayer("PvUpset", -1, -1);
     MR::invalidateClipping(this);
 
-    _B8 = 0.0f;
-    _BC = 0.0f;
-    _C0 = 0.0f;
-    _C4 = 0.0f;
-    _C8 = 0;
+    mSpiralAngle = 0.0f;
+    mCurRadius = 0.0f;
+    mAdjustStartRadius = 0.0f;
+    mCurHeight = 0.0f;
+    mStepCount = 0;
 
     TVec3f toBindActor;
     toBindActor.sub(mBindActor->mPosition, mPosition);
     TVec3f up;
     MR::calcUpVec(&up, this);
 
-    _CC = mStepStorm * toBindActor.dot(up) / mBindHeight;
+    mBindStepOffset = mStepStorm * toBindActor.dot(up) / mBindHeight;
 
     return true;
 }

@@ -9,8 +9,6 @@
 #include <cstdio>
 #include <new>
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80222A80, declared extern "C" so the reloc name matches; resolve when fn_80222A80 gets its real name in symbols.txt
-extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
 
 static const char* sSoundName = "PlaySound";
 
@@ -99,6 +97,6 @@ void SoundEmitterCube::movement() {
 
     if (isValid()) {
         mSoundObj->update();
-        fn_80222A80(mSoundObj, sSoundName, -1, -1, -1);
+        mSoundObj->startLevelSound(sSoundName, -1, -1, -1);
     }
 }

@@ -2,6 +2,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/ActorStateDemoAppearance.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/System/GameDataFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
@@ -22,7 +23,7 @@ namespace NrvTicoCoin {
     NEW_NERVE(TicoCoinNrvDisappear, TicoCoin, Disappear);
 }  // namespace NrvTicoCoin
 
-TicoCoin::TicoCoin(const char* pName) : LiveActor(pName), _90(0.0f, 0.0f, 0.0f) {
+TicoCoin::TicoCoin(const char* pName) : LiveActor(pName), mClippingCenter(0.0f, 0.0f, 0.0f) {
 }
 
 void TicoCoin::init(const JMapInfoIter& rIter) {
@@ -51,7 +52,7 @@ void TicoCoin::init(const JMapInfoIter& rIter) {
 }
 
 void TicoCoin::initAfterPlacement() {
-    MR::setClippingRangeIncludeShadow(this, &_90, 300.0f);
+    MR::setClippingRangeIncludeShadow(this, &mClippingCenter, 300.0f);
 }
 
 void TicoCoin::makeActorAppeared() {
@@ -98,7 +99,7 @@ void TicoCoin::exeCollect() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Get");
         MR::hideModel(this);
-        // TODO: ScoreAttackFunction::score1000Points(this)
+        ScoreAttackFunction::score1000Points(this);
         if (MR::isProductGameScene()) {
             GameSequenceFunction::collectTicoCoinInStage();
         }

@@ -451,10 +451,10 @@ void Rock::initSensor() {
 
     if (mRockType == NormalRock) {
         initHitSensor(2);
-        sensorType = 0x2F /* ATYPE_ROCK */;
+        sensorType = ATYPE_ROCK;
     } else {
         initHitSensor(1);
-        sensorType = 0x30 /* ATYPE_WANWAN */;
+        sensorType = ATYPE_WANWAN;
     }
 
     MR::addHitSensor(this, "Body", sensorType, 16, ::cSensorRadius * (mRockType == WanwanRollingMini ? 0.3f : mScale.x), TVec3f(0.0f, 0.0f, 0.0f));

@@ -481,6 +481,7 @@ Game/AreaObj/BgmChangeArea.cpp:
 
 Game/AreaObj/BgmVolumeFadeArea.cpp:
 	.text       start:0x80071E70 end:0x800720C0
+	.sbss2      start:0x807E2FC0 end:0x807E2FC4
 
 Game/AreaObj/BloomArea.cpp:
 	.text       start:0x800720C0 end:0x80072270
@@ -1084,13 +1085,9 @@ Game/Boss/Dodoryu.cpp:
 	.data       start:0x80672488 end:0x80672710
 
 Game/Boss/DodoryuStateBase.cpp:
-	.text       start:0x800BE5C0 end:0x800BF800
-	.data       start:0x80672710 end:0x806728C0
-
-Game/Boss/DodoryuDemo.cpp:
-	.text       start:0x800BF800 end:0x800BFA30
+	.text       start:0x800BE5C0 end:0x800BFA30
 	.ctors      start:0x80643E58 end:0x80643E5C
-	.data       start:0x806728C0 end:0x80672C60
+	.data       start:0x80672710 end:0x80672C60
 
 Game/Boss/DodoryuHill.cpp:
 	.text       start:0x800BFA30 end:0x800BFBA0
@@ -4916,21 +4913,17 @@ Game/MapObj/ItemBlock.cpp:
 	.ctors      start:0x80644448 end:0x8064444C
 
 Game/MapObj/ItemCollectionPlanetWall.cpp:
-	.text       start:0x802B2C80 end:0x802B3330
+	.text       start:0x802B2C80 end:0x802B2FB0
 	.ctors      start:0x8064444C end:0x80644450
 
-Game/MapObj/DiceBase.cpp:
-	.text       start:0x802B3330 end:0x802B4860
-
 Game/MapObj/ItemDice.cpp:
-	.text       start:0x802B4860 end:0x802B5510
-
-Game/MapObj/LuckyDice.cpp:
-	.text       start:0x802B5510 end:0x802B5880
+	.text       start:0x802B2FB0 end:0x802B5800
 	.ctors      start:0x80644450 end:0x80644454
+	.data       start:0x806A2E28 end:0x806A3328
+	.sbss       start:0x807D3CE8 end:0x807D3CF8
 
 Game/MapObj/ItemDrill.cpp:
-	.text       start:0x802B5880 end:0x802B8A30
+	.text       start:0x802B5800 end:0x802B8A30
 	.ctors      start:0x80644454 end:0x80644458
 
 Game/MapObj/ItemRoomDoor.cpp:
@@ -5172,7 +5165,7 @@ Game/MapObj/PlacementObj.cpp:
 	.text       start:0x802DAEF0 end:0x802DB510
 
 Game/MapObj/PlantGroup.cpp:
-	.text       start:0x802DB560 end:0x802DE0C0
+	.text       start:0x802DB510 end:0x802DE0C0
 	.ctors      start:0x80644514 end:0x80644518
 	.data       start:0x806A81C8 end:0x806A82F8
 

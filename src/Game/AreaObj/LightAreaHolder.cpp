@@ -35,7 +35,6 @@ bool LightAreaHolder::tryFindLightID(const TVec3f& rArea, ZoneLightID* pLightID)
 }
 
 void LightAreaHolder::initAfterPlacement() {
-    sort();
 }
 
 void LightAreaHolder::sort() {

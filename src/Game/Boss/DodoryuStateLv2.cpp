@@ -207,8 +207,8 @@ void DodoryuStateLv2::exeChaseAppearStart() {
     if (MR::isFirstStep(this)) {
         startAnim(mChaseParam->mAnimSetChaseAppearStart);
         mHost->startHill();
-        MR::startActionSound(mHost, "SE_BM_DODORYU_APPEAR_HEAD", -1, -1, -1);
-        MR::startActionSound(mHost, "SE_BV_DODORYU_APPEAR_2", -1, -1, -1);
+        MR::startActionSound(mHost, "BmDodoryuAppearHead", -1, -1, -1);
+        MR::startActionSound(mHost, "BvDodoryuAppear2", -1, -1, -1);
         shiftChaseExposingBust();
         mHost->validateStarPieceSensor();
     }
@@ -509,10 +509,10 @@ void DodoryuStateLv2::exeChaseMoreStart() {
         mHost->mVelocity.set(toPlayer * (1000.0f / MR::getBckCtrl(mHost)->getEnd()));
     }
 
-    MR::startActionSound(mHost, "SE_BV_LV_DODORYU_COUNTER", -1, -1, -1);
+    MR::startActionSound(mHost, "BvLvDodoryuCounter", -1, -1, -1);
 
     if (MR::isStep(this, ::sChaseMoreStartDiveSoundStep)) {
-        MR::startActionSound(mHost, "SE_BM_DODORYU_HIDE_HEAD", -1, -1, -1);
+        MR::startActionSound(mHost, "BmDodoryuHideHead", -1, -1, -1);
     }
 
     keepVerticalizedVelocity();
@@ -538,12 +538,12 @@ void DodoryuStateLv2::exeChaseMore() {
         mHost->startHill();
         shiftChaseInAnger();
         MR::shakeCameraInfinity(this, 0.2f, 2.0f);
-        MR::startActionSound(mHost, "SE_BM_DODORYU_APPEAR_HEAD", -1, -1, -1);
+        MR::startActionSound(mHost, "BmDodoryuAppearHead", -1, -1, -1);
     }
 
-    MR::startActionSound(mHost, "SE_BM_LV_DODORYU_ANGRY", -1, -1, -1);
+    MR::startActionSound(mHost, "BmLvDodoryuAngry", -1, -1, -1);
     MR::startActionSound(mHost, "BmLvDodoryuMoveGround", -1, -1, -1);
-    MR::startActionSound(mHost, "SE_BV_LV_DODORYU_ELBOW_ANG", -1, -1, -1);
+    MR::startActionSound(mHost, "BvLvDodoryuElbowAng", -1, -1, -1);
     mHost->tryRumblePad();
 
     if (!mIsChaseMoreBrake) {

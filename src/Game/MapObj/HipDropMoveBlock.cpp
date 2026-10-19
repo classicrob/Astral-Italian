@@ -135,11 +135,11 @@ bool HipDropMoveBlock::isValidSensorHost(HitSensor* pSensor) {
 }
 
 void HipDropMoveBlock::control() {
-    mPosition.set(mMoveFunction->mPos);
+    mPosition.set(mMoveFunction->mPosition);
 }
 
 void HipDropMoveBlock::calcAndSetBaseMtx() {
-    MR::setBaseTRMtx(this, *reinterpret_cast<const TQuat4f*>(&mMoveFunction->mQuat));
+    MR::setBaseTRMtx(this, mMoveFunction->mRotation);
 }
 
 bool HipDropMoveBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -215,8 +215,8 @@ void HipDropMoveBlock::exeMove() {
 
     MR::startActionSoundAuto(this, "Moving", -1, -1, -1);
     if (mMoveFunction->update()) {
-        bool bMove = (mMoveFunction->isEndStep() && mMoveFunction->mFlag74) ||
-                     (mMoveFunction->isStartStep() && !mMoveFunction->mFlag74);
+        bool bMove = (mMoveFunction->isEndStep() && mMoveFunction->mForward) ||
+                     (mMoveFunction->isStartStep() && !mMoveFunction->mForward);
         if (bMove) {
             if (MR::isValidSwitchA(this) && !mFlag96) {
                 MR::onSwitchA(this);

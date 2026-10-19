@@ -315,9 +315,9 @@ bool OtaKing::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver)
 
 void OtaKing::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    MR::useStageSwitchWriteA(this, rIter);
-    MR::useStageSwitchWriteB(this, rIter);
-    MR::useStageSwitchWriteDead(this, rIter);
+    MR::initUseStageSwitchWriteA(this, rIter);
+    MR::initUseStageSwitchWriteB(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
 
     bool arg1 = false;
     MR::getJMapInfoArg1NoInit(rIter, &arg1);
@@ -774,8 +774,8 @@ void OtaKing::exeAppearDemo() {
 
         if (mIsLv2) {
             MR::forceToFrameCinemaFrame();
-            MR::endStartPosCamera();
         }
+        MR::endStartPosCamera();
     }
 
     if (MR::isStep(this, 1)) {

@@ -142,7 +142,7 @@ void InfernoMarioManekuri::exeTrampleDown() {
     if(MR::isActionEnd(mModel)) { MR::tryHitReactionDead(mHost);kill(); }
 }
 void InfernoMarioManekuri::exeBlowDownPlayer() {
-    if(MR::isFirstStep(this)) { MR::fn_80034820(mHost);MR::showModel(mModel);MR::startAction(mModel,"BlowDown");MR::hideModelAndOnCalcAnim(mHost); }
+    if(MR::isFirstStep(this)) { MR::startBlowHitReaction(mHost);MR::showModel(mModel);MR::startAction(mModel,"BlowDown");MR::hideModelAndOnCalcAnim(mHost); }
     if(MR::isGreaterStep(this,5)&&MR::isBindedWall(mHost)) {
         InfernoMario* host=mHost;
         MR::sendMsgEnemyAttackExplosionToBindedSensor(host,host->getSensor("Body"));
@@ -152,7 +152,7 @@ void InfernoMarioManekuri::exeBlowDownPlayer() {
     if(MR::isGreaterStep(this,180)) { MR::tryHitReactionDead(mHost);kill(); }
 }
 void InfernoMarioManekuri::exeBlowDownEnemy() {
-    if(MR::isFirstStep(this)) { MR::fn_80034820(mHost);MR::showModel(mModel);MR::startAction(mModel,"BlowDown");MR::hideModelAndOnCalcAnim(mHost); }
+    if(MR::isFirstStep(this)) { MR::startBlowHitReaction(mHost);MR::showModel(mModel);MR::startAction(mModel,"BlowDown");MR::hideModelAndOnCalcAnim(mHost); }
     MR::attenuateVelocity(mHost,0.9f);
     if(MR::isGreaterStep(this,15)) { MR::tryHitReactionDead(mHost);kill(); }
 }

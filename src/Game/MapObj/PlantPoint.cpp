@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_COPY_NOINLINE
 #include "Game/MapObj/PlantPoint.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
@@ -5,8 +6,8 @@
 #include <JSystem/JGeometry/TVec.hpp>
 #include <revolution/mtx.h>
 
-PlantPoint::PlantPoint(const TVec3f& pPosition, const TVec3f& pUp, f32 thickness)
-    : mPosition(pPosition.x, pPosition.y, pPosition.z), mSide(1.0f, 0.0f, 0.0f), mUp(pUp), mFront(0.0f, 0.0f, 1.0f), mThickness(thickness) {
+PlantPoint::PlantPoint(const TVec3f& pPosition, const TVec3f& pUp, f32 thickness, const TVec3f& side)
+    : mPosition(pPosition.x, pPosition.y, pPosition.z), mSide(side), mUp(pUp), mFront(0.0f, 0.0f, 1.0f), mThickness(thickness) {
     TVec3f front = mSide.cross(mUp);
 
     if (MR::isNearZero(front)) {

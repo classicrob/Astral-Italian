@@ -64,8 +64,8 @@ private:
     /* 0x98 */ WalkerStateBindStarPointer* mBindStarPointer;
     /* 0x9C */ JointControlDelegator< PunchingKinoko >* mDelegator;
     /* 0xA0 */ s32 mCameraNo;
-    /* 0xA4 */ TVec3f _A4;
-    /* 0xB0 */ TVec3f _B0;
+    /* 0xA4 */ TVec3f mCameraPos;
+    /* 0xB0 */ TVec3f mUpDir;
     /* 0xBC */ s32 mStarPointerHitCoolDown;
     /* 0xC0 */ bool _C0;
     /* 0xC4 */ s32 mInvincibleHitCoolDown;

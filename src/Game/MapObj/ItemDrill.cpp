@@ -1,4 +1,6 @@
 #pragma auto_inline off
+#include "Game/Util/PlayerUtil.hpp"
+#include "Game/Util/MapUtil.hpp"
 #include "Game/MapObj/ItemDrill.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -14,13 +16,16 @@
 #include "JSystem/JMath/JMath.hpp"
 
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80038FB0, declared extern "C" so the reloc name matches; resolve when fn_80038FB0 gets its real name in symbols.txt
-extern "C" CollisionParts* fn_80038FB0(const TVec3f*, const TVec3f*);
-// PLACEHOLDER(objects): unnamed target symbol fn_80050380, declared extern "C" so the reloc name matches; resolve when fn_80050380 gets its real name in symbols.txt
-extern "C" bool fn_80050380();
-// PLACEHOLDER(objects): unnamed target symbol fn_802B5800, declared extern "C" so the reloc name matches; resolve when fn_802B5800 gets its real name in symbols.txt
-extern "C" void fn_802B5800(TMtx34f*, const TVec3f*, const TVec3f*, TVec3f*);
-
+namespace {
+    void makeDrillMtx(TPos3f* pMtx, const TVec3f& rUp, const TVec3f& rFront, const TVec3f& rPosition) {
+        if (MR::isSameDirection(rUp, rFront, 0.01f)) {
+            MR::makeMtxUpNoSupport(pMtx, rUp);
+        } else {
+            MR::makeMtxUpFront(pMtx, rUp, rFront);
+        }
+        pMtx->setTrans(rPosition);
+    }
+}
 
 namespace NrvItemDrill {
     // Wait and Appear have their own bodies in SMG2 (no exeWait / exeAppear symbols).
@@ -341,7 +346,7 @@ bool ItemDrill::startDrill() {
     JGeometry::negateInternal(reinterpret_cast< const f32* >(&gravity), reinterpret_cast< f32* >(&gravity));
 
     MR::getPlayerFrontVec(&front);
-    fn_802B5800(&mMtx12C, &gravity, &front, &playerPos);
+    makeDrillMtx(&mMtx12C, gravity, front, playerPos);
 
     bool isAdjusted = mLimitPos->adjustPositionByCollision(playerPos, nullptr);
     mUnk20C = -1;
@@ -408,7 +413,7 @@ bool ItemDrill::checkDrillStart() {
         normal.set(*mTriangle->getFaceNormal());
         TVec3f zdir;
         mMtx12C.getZDir(zdir);
-        fn_802B5800(&mMtx1A8, &normal, &zdir, &hit);
+        makeDrillMtx(&mMtx1A8, normal, zdir, hit);
 
         if (mIsArg0) {
             JMath::gekko_ps_copy12(&mMtx15C, &mMtx1A8);
@@ -446,7 +451,7 @@ bool ItemDrill::tryAlignToTriangle(Triangle* pTri, const TVec3f& rDir) {
             normal.set(*pTri->getFaceNormal());
             TVec3f zdir;
             mMtx12C.getZDir(zdir);
-            fn_802B5800(&mMtx1D8, &normal, &zdir, &hit);
+            makeDrillMtx(&mMtx1D8, normal, zdir, hit);
             JMath::gekko_ps_copy12(&mMtx15C, &mMtx12C);
             mMtx15C.setTrans(hit);
             return true;
@@ -819,7 +824,7 @@ void ItemDrill::exeDrillDiveLoop() {
         }
 
         if (!MR::isInPlaneModeCube(mPosition)) {
-            appearDrillHoleFromArea1(reinterpret_cast< const TPos3f* >(&mMtx1A8));
+            appearDrillHoleFromArea1(&mMtx1A8);
         }
 
         MR::emitEffect(this, "Dive");
@@ -904,7 +909,7 @@ void ItemDrill::exeDrillDiveEnd() {
         MR::setSensorRadius(this, "Player", 150.0f);
         endCamera();
         if (!MR::isInPlaneModeCube(mPosition)) {
-            appearDrillHoleFromArea2(reinterpret_cast< const TPos3f* >(&mMtx1D8));
+            appearDrillHoleFromArea2(&mMtx1D8);
         }
     }
 
@@ -914,7 +919,7 @@ void ItemDrill::exeDrillDiveEnd() {
     }
 
     if (MR::isActionEnd(this)) {
-        MR::launchRescuedStrayTico(*reinterpret_cast< const TPos3f* >(&mMtx1D8));
+        MR::launchRescuedStrayTico(*&mMtx1D8);
         TVec3f up;
         mBaseTRMtx.getYDir(up);
         MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, up);
@@ -1037,13 +1042,13 @@ ItemDrillMovementLimitPos::ItemDrillMovementLimitPos(const char* pName) : LiveAc
 }
 
 void ItemDrillMovementLimitPos::init(const JMapInfoIter&) {
-    mCollisionPartsFilter = MR::createCollisionPartsFilterDelegator(ItemDrill::isTargetCollisionParts);
+    mCollisionPartsFilter = static_cast<CollisionPartsFilterBase*>(MR::createCollisionPartsFilterDelegator(ItemDrill::isTargetCollisionParts));
     makeActorDead();
 }
 
 void ItemDrillMovementLimitPos::initAfterPlacement() {
     MR::calcGravity(this);
-    mCollisionParts = fn_80038FB0(&mPosition, &mGravity);
+    mCollisionParts = MR::findMoveLimitCollision(mPosition, mGravity);
 }
 
 bool ItemDrillMovementLimitPos::adjustPositionByCollision(const TVec3f& rPos, const TVec3f* pDir) {
@@ -1076,7 +1081,7 @@ void ItemDrillMovementLimitPos::control() {
 // NONMATCHING: stack layout matches; negate() stays an out-of-line negateInternal call (target inlines ps_neg), tail bool is materialized (cror/mfcr) instead of bge/li, fmuls operand order.
 bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3f& rPos, const TVec3f* pDir) {
     u32 count = Collision::checkStrikeBallToMapWithThickness(rPos, 130.0f, 140.0f,
-                                                             reinterpret_cast< const CollisionPartsFilterBase* >(mCollisionPartsFilter), nullptr);
+                                                             mCollisionPartsFilter, nullptr);
     if (count == 0) {
         return false;
     }

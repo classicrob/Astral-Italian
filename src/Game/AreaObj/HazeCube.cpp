@@ -6,7 +6,7 @@ namespace {
     static const f32 sDefaultDistance = 1000.0f;
 };  // namespace
 
-HazeCube::HazeCube(s32 formType, const char* pName) : AreaObj(formType, pName), mDistance(::sDefaultDistance) {
+HazeCube::HazeCube(int formType, const char* pName) : AreaObj(formType, pName), mDistance(::sDefaultDistance) {
 }
 
 void HazeCube::init(const JMapInfoIter& rIter) {

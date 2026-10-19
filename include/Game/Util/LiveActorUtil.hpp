@@ -112,7 +112,7 @@ namespace MR {
     // TODO: Need J3DGXColor
     // void initDLMakerMatColor0(LiveActor* pActor, const char* pMaterialName, const J3DGXColor* pMatColor);
     void initDLMakerChangeTex(LiveActor* pActor, const char* pTexName);
-    void initDLMakerTexMtx(LiveActor* pActor, const char* pTexName);
+    void initDLMakerTexGenNum(LiveActor* pActor, const s8* pTexGenNum);
     ProjmapEffectMtxSetter* initDLMakerProjmapEffectMtxSetter(LiveActor* pActor);
     void setFogColor(LiveActor* pActor, const GXColor& rColor);
     void setFogType(LiveActor* pActor, u8 type);
@@ -378,7 +378,7 @@ namespace MR {
     HitSensor* getBodySensor(LiveActor* pActor);
     void setBodySensorType(LiveActor* pActor, u32 sensorType);
     // LiveActorUtil (enemies lane, callees named by address; lead renames symbols)
-    void fn_80034820(LiveActor*);
+    void startBlowHitReaction(LiveActor*);
     void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
     bool isInPlaneModeCube(const TVec3f&);
     // LiveActorUtil (creation) (enemies lane, callees named by address; lead renames symbols)
@@ -466,3 +466,4 @@ namespace MR {
 namespace MR {
     void restrictVelocityToPlaneModeArea(TVec3f*, const TVec3f&);
 }
+

@@ -11,7 +11,7 @@ namespace NrvSpaceShipStep {
     NEW_NERVE(SpaceShipStepNrvBreak, SpaceShipStep, Break);
 };  // namespace NrvSpaceShipStep
 
-SpaceShipStep::SpaceShipStep(const char* pName) : MapObjActor(pName), _C4(0.0f, 0.0f, 0.0f), _D0(), _D4() {
+SpaceShipStep::SpaceShipStep(const char* pName) : MapObjActor(pName), mRailClipCenter(0.0f, 0.0f, 0.0f), mOutOfViewTimer(), mHasLeftView(), mResetEnabled(true) {
 }
 
 void SpaceShipStep::init(const JMapInfoIter& rIter) {
@@ -28,7 +28,10 @@ void SpaceShipStep::init(const JMapInfoIter& rIter) {
     initialize(rIter, info);
     f32 radius = 0.0f;
     MR::calcModelBoundingRadius(&radius, this);
-    MR::initAndSetRailClipping(&_C4, this, 100.0f, radius);
+    MR::initAndSetRailClipping(&mRailClipCenter, this, 100.0f, radius);
+    bool disableReset = false;
+    MR::getJMapInfoArg3NoInit(rIter, &disableReset);
+    mResetEnabled = !disableReset;
 }
 
 void SpaceShipStep::exeWait() {
@@ -73,7 +76,9 @@ void SpaceShipStep::exeBreak() {
 
 void SpaceShipStep::control() {
     MapObjActor::control();
-    updateResetToInitPosCheck();
+    if (mResetEnabled) {
+        updateResetToInitPosCheck();
+    }
 }
 
 bool SpaceShipStep::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -90,14 +95,14 @@ bool SpaceShipStep::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor
 }
 
 void SpaceShipStep::updateResetToInitPosCheck() {
-    if (!_D4) {
-        _D4 = MR::isJudgedToClipFrustum(mPosition, 700.0f) == false;
+    if (!mHasLeftView) {
+        mHasLeftView = MR::isJudgedToClipFrustum(mPosition, 700.0f) == false;
     } else {
         if (isNerve(GET_NERVE(SpaceShipStep, SpaceShipStepNrvWait)) || !MR::isJudgedToClipFrustum(mPosition, 700.0f)) {
-            _D0 = 0;
+            mOutOfViewTimer = 0;
         } else {
-            if (_D0 < 240) {
-                _D0++;
+            if (mOutOfViewTimer < 240) {
+                mOutOfViewTimer++;
             } else {
                 MapObjActorUtil::resetRailMoverToInitPos(this);
 
@@ -112,8 +117,8 @@ void SpaceShipStep::updateResetToInitPosCheck() {
                     setNerve(GET_NERVE(SpaceShipStep, SpaceShipStepNrvMove));
                 }
 
-                _D0 = 0;
-                _D4 = 0;
+                mOutOfViewTimer = 0;
+                mHasLeftView = 0;
             }
         }
     }

@@ -17,10 +17,7 @@
 #include <JSystem/JMath.hpp>
 #include <cmath>
 
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-void fn_803F5E20(f32*);
-}
+void clampSliderStick(f32*);
 
 #define sNameBroken "\x89\xf3\x82\xea\x83\x82\x83""f\x83\x8b"
 #define sNameEffect "\x83G\x83t\x83""F\x83N\x83g\x83\x82\x83""f\x83\x8b"
@@ -150,8 +147,8 @@ bool RollingRock::calcStickDir(TVec3f* pDst) {
     f32 xy[2];
     xy[0] = stickX * sStickScale;
     xy[1] = stickY * sStickScale;
-    fn_803F5E20(&xy[0]);
-    fn_803F5E20(&xy[1]);
+    clampSliderStick(&xy[0]);
+    clampSliderStick(&xy[1]);
     f32 len = JGeometry::TUtil< f32 >::sqrt(xy[0] * xy[0] + xy[1] * xy[1]);
     if (len < sStickMin) {
         return false;
@@ -234,6 +231,7 @@ RollingRockStateParent::RollingRockStateParent(RollingRock* pHost)
     MR::initActorState(this, mRollState, &NrvRollingRockStateParent::RollingRockStateParentNrvRoll::sInstance, nullptr);
 }
 
+// NONMATCHING: the empty intermediate base destructor retains one redundant null check.
 RollingRockStateParent::~RollingRockStateParent() {
 }
 
@@ -370,9 +368,11 @@ bool RollingRockStateParent::tryEndRush() {
     return true;
 }
 
+#pragma dont_inline on
 bool RollingRockStateParent::isRockModeEnd() const {
     return !MR::isPlayerElementModeRock();
 }
+#pragma dont_inline reset
 
 void RollingRockStateParent::exeWait() {
     if (MR::isFirstStep(this)) {

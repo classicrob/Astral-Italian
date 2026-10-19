@@ -11,7 +11,6 @@ public:
     SnowMan(const char*);
 
     virtual void init(const JMapInfoIter&);
-    virtual void kill();
     virtual void control();
     virtual void calcAndSetBaseMtx();
     virtual void attackSensor(HitSensor*, HitSensor*);

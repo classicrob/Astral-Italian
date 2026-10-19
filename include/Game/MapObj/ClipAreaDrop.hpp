@@ -21,7 +21,7 @@ public:
     void startHold();
 
     void exeWait();
-    void exeHold();
+    void exeHold() NO_INLINE;
 
     /* 0xC4 */ const char* mShapeName;
     /* 0xC8 */ ClipAreaShapeSphere* mShapeSphere;

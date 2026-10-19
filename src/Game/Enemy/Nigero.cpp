@@ -482,7 +482,7 @@ void Nigero::exeSwoon() {
 void Nigero::exeDead() {
     if (MR::isFirstStep(this)) {
         MR::stopScene(5);
-        MR::fn_80034820(this);
+        MR::startBlowHitReaction(this);
     }
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
     MR::addVelocityToGravityOrGround(this, 1.2f);

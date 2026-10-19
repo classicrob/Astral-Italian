@@ -1,5 +1,6 @@
 #include "Game/Util/PlayerUtil.hpp"
 #pragma auto_inline off
+#include "Game/Util/LiveActorUtil.hpp"
 #include "Game/MapObj/RollingWater.hpp"
 #include "Game/MapObj/RollingWaterCreator.hpp"
 #include "Game/Enemy/SupportTicoStop.hpp"
@@ -322,8 +323,7 @@ void RollingWater::exeRush() {
     }
 
     f32 rate = MR::calcNerveEaseOutRate(this, 60);
-    TVec3f zero(0.0f, 0.0f, 0.0f);
-    MR::vecBlend(&mBlendVec, mBlendVec, zero, rate);
+    MR::vecBlend(&mBlendVec, mBlendVec, TVec3f(0.0f, 0.0f, 0.0f), rate);
     TVec3f center(mPosition);
     center += mBlendVec;
     mCenterVec.set(center);

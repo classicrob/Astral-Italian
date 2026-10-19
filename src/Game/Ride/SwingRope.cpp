@@ -120,8 +120,7 @@ void SwingRope::init(const JMapInfoIter& rIter) {
     MR::addHitSensorCallbackBinder(this, "bind", 8, 200.0f);
     MR::addHitSensorCallbackRide(this, "Body", 8, 150.0f);
 
-    TVec3f soundOffset(0.0f);
-    initSound(4, "SwingRope", nullptr, soundOffset);
+    initSound(4, "SwingRope", nullptr, TVec3f(0.0f));
 
     MR::setClippingTypeSphere(this, mRopeLength);
 
@@ -813,7 +812,7 @@ SwingRopeGroup::SwingRopeGroup(const char* pName) : NameObj(pName) {
     mTexture = nullptr;
     mTexture = new JUTTexture(MR::loadTexFromArc("SwingRope.arc", "SwingRope.bti", nullptr), 0);
 
-    MR::registerPreDrawFunction(MR::Functor(this, &SwingRopeGroup::initDraw), MR::DrawType_SwingRope);
+    MR::registerPreDrawFunction(MR::FunctorV0M<const SwingRopeGroup*, void (SwingRopeGroup::*)() const>(this, &SwingRopeGroup::initDraw), MR::DrawType_SwingRope);
 }
 
 void SwingRopeGroup::initDraw() const {

@@ -237,7 +237,7 @@ void PoltaBattleLv2::endStagger() {
 
 void PoltaBattleLv2::exeDamageCore() {
     if (MR::isFirstStep(this)) {
-        MR::startActionSound(getHost(), "SySVsBossLastHit", -1, -1, -1);
+        MR::startActionSound(getHost(), "SyVsBossLastHit", -1, -1, -1);
         MR::startActionSound(getHost(), "BvPoltaDamageLast", -1, -1, -1);
         MR::startActionSound(getHost(), "BmPoltaLastDamage", -1, -1, -1);
         MR::stopStageBGM(60);

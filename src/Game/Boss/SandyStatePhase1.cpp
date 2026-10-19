@@ -1,3 +1,4 @@
+#define ACTOR_STATE_BASE_CTOR_NOINLINE
 #include "Game/Boss/Sandy.hpp"
 // SMG2: MR::appearCoinPop returns bool (ObjUtil.hpp declares it void), declare the real one here.
 #define appearCoinPop appearCoinPopUnused

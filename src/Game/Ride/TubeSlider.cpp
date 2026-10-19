@@ -21,10 +21,6 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80051940, declared extern "C" so the reloc name matches; resolve when fn_80051940 gets its real name in symbols.txt
-extern "C" void fn_80051940();
-// PLACEHOLDER(objects): unnamed target symbol fn_80051910, declared extern "C" so the reloc name matches; resolve when fn_80051910 gets its real name in symbols.txt
-extern "C" void fn_80051910();
 
 namespace {
     extern const f32 sCeilingReflectRate;
@@ -153,7 +149,7 @@ void TubeSlider::exeRideAir() {
     }
 
     if (isReachedGoal) {
-        fn_80051940();
+        MR::stopPlayerBlink();
         MR::endActorCameraProgrammable(this, -1, true);
         MR::endBindAndPlayerJump(this, mJumpVelocity, 0);
         MR::invalidateShadow(this, nullptr);
@@ -288,13 +284,13 @@ void TubeSlider::exeRideLand() {
 
     if (tryPlayerJump(true)) {
         if (isDamaging)
-            fn_80051940();
+            MR::stopPlayerBlink();
     } else if (updateOnGround()) {
         if (isDamaging)
-            fn_80051940();
+            MR::stopPlayerBlink();
     } else if (MR::isActionEnd(mRider)) {
         if (isDamaging)
-            fn_80051940();
+            MR::stopPlayerBlink();
         setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRide));
     }
 }
@@ -361,7 +357,7 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             else if (isNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamage)))
                 setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideDamageLand));
             else {
-                fn_80051940();
+                MR::stopPlayerBlink();
                 setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideLand));
             }
 
@@ -375,7 +371,7 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             MR::tryRumblePadMiddle(this, 0);
             MR::shakeCameraNormal();
             mJumpVelocity.sub(scratch2.scaleInline(dotB).scaleInline(1.0f + sCeilingReflectRate));
-            fn_80051940();
+            MR::stopPlayerBlink();
             setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSlamCeiling));
             return;
         }
@@ -384,7 +380,7 @@ void TubeSlider::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
             MR::shakeCameraNormal();
             f32 along = mJumpVelocity.dot(_98);
             mJumpVelocity.sub(_98.scaleInline(along).scaleInline(1.0f + sWallReflectRate));
-            fn_80051940();
+            MR::stopPlayerBlink();
             setNerve(GET_NERVE(TubeSlider, TubeSliderNrvRideSlamWall));
             return;
         }
@@ -497,7 +493,7 @@ bool TubeSlider::tryEndSlide() {
     vec3.scale(20.0f);
     vec3.add(TVec3f(0.0f, 1.0f, 0.0f) * 10.0f);
     MR::startBckPlayerJ("チューブスライダージャンプ");
-    fn_80051940();
+    MR::stopPlayerBlink();
     MR::endActorCameraProgrammable(this, -1, true);
     MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, vec3);
     MR::invalidateShadow(this, nullptr);
@@ -552,7 +548,7 @@ bool TubeSlider::tryPlayerFall() {
 }
 
 void TubeSlider::damagePlayer() {
-    fn_80051910();
+    MR::startPlayerBlink();
     MR::decrementPlayerSwimLife();
     MR::tryRumblePadMiddle(this, 0);
     MR::startLevelSoundPlayer("DamageS", -1, -1);

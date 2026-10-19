@@ -147,7 +147,7 @@ void DinoPackunVs2::exeDownDemo() {
     }
 
     if (MR::updateActorState(this, mDemo)) {
-        return;
+        mParent->kill();
     }
 }
 

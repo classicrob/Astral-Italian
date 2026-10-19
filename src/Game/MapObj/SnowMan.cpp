@@ -59,13 +59,6 @@ void SnowMan::control() {
     mAnimScaleCtrl->updateNerve();
 }
 
-void SnowMan::kill() {
-    if (MR::isValidSwitchDead(this)) {
-        MR::onSwitchDead(this);
-    }
-    LiveActor::kill();
-}
-
 void SnowMan::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     TVec3f scale = mAnimScaleCtrl->mScale * mScale;

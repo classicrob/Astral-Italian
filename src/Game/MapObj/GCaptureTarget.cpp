@@ -150,7 +150,7 @@ void GCaptureTarget::exeAppear() {
         emitNerveEffect();
         MR::showModel(this);
         MR::startAction(this, "Appear");
-        MR::startActionSound(this, "SE_OJ_GCAPTURE_APPEAR", -1, -1, -1);
+        MR::startActionSound(this, "OjGcaptureAppear", -1, -1, -1);
     }
 
     if (MR::isActionEnd(this)) {
@@ -234,7 +234,7 @@ void GCaptureTarget::exeHitPointer() {
         }
 
         MR::noticeInTouchableRange();
-        MR::startActionSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT", -1, -1, -1);
+        MR::startActionSound(this, "OjLvMagicPntGPoint", -1, -1, -1);
 
         mStarAnimSpeed += 0.2f;
         if (mStarAnimSpeed > 1.0f) {
@@ -257,13 +257,13 @@ void GCaptureTarget::exeActive() {
     if (MR::isFirstStep(this)) {
         emitNerveEffect();
         MR::startAction(this, "React");
-        MR::startActionSound(this, "SE_OJ_MAGIC_PNT_G_ON", -1, -1, -1);
+        MR::startActionSound(this, "OjMagicPntGOn", -1, -1, -1);
         MR::setBrkFrameAndStop(this, 1.0f);
     }
 
     MR::noticeInTouchableRange();
-    MR::startActionSound(this, "SE_OJ_LV_MAGIC_PNT_G_PULL", MR::calcDistanceToPlayer(this), -1, -1);
-    MR::startActionSound(this, "SE_OJ_LV_MAGIC_PNT_G_POINT", -1, -1, -1);
+    MR::startActionSound(this, "OjLvMagicPntGPull", MR::calcDistanceToPlayer(this), -1, -1);
+    MR::startActionSound(this, "OjLvMagicPntGPoint", -1, -1, -1);
 }
 
 void GCaptureTarget::decidedTarget() {

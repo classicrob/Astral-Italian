@@ -585,6 +585,10 @@ void MapObjActor::calcAndSetBaseMtx() {
     }
 }
 
+bool MapPartsFunction::isWorking() const {
+    return true;
+}
+
 void MapObjActor::startClipped() {
     LiveActor::startClipped();
     tryDeleteWaitEffect();
@@ -712,6 +716,9 @@ void MapObjActor::startMapPartsFunctions() {
 
 void MapObjActor::endMapPartsFunctions() {
     MapObjActorUtil::endAllMapPartsFunctions(this);
+}
+
+void MapPartsFunction::start() {
 }
 
 void MapObjActor::pauseMapPartsFunctions() {
@@ -941,3 +948,4 @@ void MapObjActorUtil::appearBloomModel(MapObjActor* pActor) {
     snprintf(buf, sizeof(buf), "%sBloom", pActor->mObjectName);
     MR::tryStartAllAnim(pActor->mBloomModel, buf);
 }
+

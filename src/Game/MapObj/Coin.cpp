@@ -708,7 +708,7 @@ void Coin::calcRebouond() {
             int what = (100.0f * dot) / 30.0f;
 
             if (what > 7) {
-                MR::startActionSound(this, "SE_OJ_COIN_BOUND", what, -1, -1);
+                MR::startActionSound(this, "OjCoinBound", what, -1, -1);
             }
 
             vel = 0.75f;

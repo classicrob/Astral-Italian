@@ -119,7 +119,7 @@ void DinoPackunVs1::exeDownDemo() {
     }
 
     if (MR::updateActorState(this, mDemo)) {
-        return;
+        mParent->kill();
     }
 }
 

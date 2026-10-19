@@ -19,14 +19,14 @@ namespace MR {
     void fn_804224F0();
     void fn_80422520();
     void fn_80422550();
-    void fn_80422580();
+    void resetYoshiTongueTarget();
     bool fn_804225C0();
     void startDashYoshiMode();
     bool isPlayerElementModeYoshiDash();
     bool isPlayerElementModeYoshiLight();
     bool fn_80422710();
     void resetYoshiTongueForDemo();
-    bool fn_80422880(u32);
+    bool isMsgYoshiAutoEatQuery(u32);
     bool isMsgDashYoshiAttack(u32);
     void emitYoshiGetEffect();
     MtxPtr getYoshiMouthMtx();

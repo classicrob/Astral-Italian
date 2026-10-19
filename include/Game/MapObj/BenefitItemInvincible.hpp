@@ -12,6 +12,7 @@ public:
     virtual void exeCatch();
     virtual void initEscape();
     virtual void doEscape();
+    virtual bool attachSupportTico();
 
     /* 0x154 */ u16 _13A;
     /* 0x158 */ TVec3f mUpAxis;

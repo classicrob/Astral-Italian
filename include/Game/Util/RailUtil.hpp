@@ -24,7 +24,7 @@ namespace MR {
     void moveCoordAndFollowTrans(LiveActor*, f32);
 #endif
     void moveCoordAndFollowTrans(LiveActor*);
-    void moveCoordAndFollowTransXZ(LiveActor*);
+    void moveCoordAndFollowTransXZ(LiveActor*, f32);
     void moveCoordToStartPos(LiveActor*);
     void moveCoordAndTransToStartPos(LiveActor*);
     void moveCoordToEndPos(LiveActor*);

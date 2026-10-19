@@ -35,7 +35,7 @@ PlantLeaf::PlantLeaf(f32 leafCoord, const TVec3f& rPosition, const TVec3f& rGrow
 }
 
 PlantLeafDrawInit::PlantLeafDrawInit(const char* pName) : LiveActor(pName), mMaterial(), mShape(), mShapeDraw() {
-    MR::registerPreDrawFunction(MR::Functor(this, &PlantLeafDrawInit::initDraw), MR::DrawType_Plant);
+    MR::registerPreDrawFunction(MR::FunctorV0M<const PlantLeafDrawInit*, void (PlantLeafDrawInit::*)() const>(this, &PlantLeafDrawInit::initDraw), MR::DrawType_Plant);
 
     MR::initActor(this, "PlantLeaf", false);
     J3DModelData* pModelData = MR::getJ3DModelData(this);

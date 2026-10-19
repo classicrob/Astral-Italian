@@ -55,7 +55,7 @@ void HipDropMoveBlockSwitch::calcAnim() {
     mCollisionParts->setMtx(mtx);
 }
 
-// NONMATCHING: target copy-constructs trans out of line and assigns mPosition inline (psq); ours inlines the copy-ctor and calls operator= out of line.
+// NONMATCHING: the vector copy constructor is inlined and mPosition uses scalar stores; target outlines the constructor and uses paired-single stores.
 void HipDropMoveBlockSwitch::calcAndSetBaseMtx() {
     TVec3f pos(0.0f);
     mBaseMtx.mult(mOffset, pos);
@@ -66,14 +66,8 @@ void HipDropMoveBlockSwitch::calcAndSetBaseMtx() {
     MR::makeMtxRotate(rot, mRotate);
     PSMTXConcat(rot, mBaseMtx, mtx);
 
-    TVec3f trans(pos);
-    HipDropMoveBlock* pBlock = mMoveBlock;
-    trans.x += pBlock->mPosition.x;
-    trans.y += pBlock->mPosition.y;
-    trans.z += pBlock->mPosition.z;
-    mPosition = trans;
-
-    MR::setMtxTrans(mtx, mPosition.x, mPosition.y, trans.z);
+    mPosition.set(pos + mMoveBlock->mPosition);
+    MR::setMtxTrans(mtx, mPosition.x, mPosition.y, mPosition.z);
     MR::setBaseTRMtx(this, mtx);
 }
 

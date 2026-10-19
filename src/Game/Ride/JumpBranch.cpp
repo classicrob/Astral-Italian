@@ -98,10 +98,10 @@ void JumpBranch::updateHitSensor(HitSensor* pSensor) {
     }
 
     f32 xOffs = mSide.x * sensorPos;
-    pSensor->mPosition.x = xOffs + mPosition.x;
-    pSensor->mPosition.y = mPosition.y;
+    MR::getSensorPos2(pSensor)->x = xOffs + mPosition.x;
+    MR::getSensorPos2(pSensor)->y = mPosition.y;
     f32 zOffs = mSide.z * sensorPos;
-    pSensor->mPosition.z = zOffs + mPosition.z;
+    MR::getSensorPos2(pSensor)->z = zOffs + mPosition.z;
 }
 
 bool JumpBranch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -110,14 +110,14 @@ bool JumpBranch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
             return false;
         }
 
-        TVec3f posDiff(pSender->mHost->mPosition);
-        posDiff.sub(pReceiver->mPosition);
+        TVec3f posDiff(MR::getSensorHost(pSender)->mPosition);
+        posDiff.sub(*MR::getSensorPos(pReceiver));
 
         if (MR::abs(posDiff.dot(mFront)) > ::sDistanceStartBindZ) {
             return false;
         }
 
-        mRider = pSender->mHost;
+        mRider = MR::getSensorHost(pSender);
 
         TVec3f playerFront;
         MR::getPlayerFrontVec(&playerFront);
@@ -128,7 +128,7 @@ bool JumpBranch::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
             mSwingReverse = false;
         }
 
-        TVec3f diff = pSender->mPosition - pReceiver->mPosition;
+        TVec3f diff = *MR::getSensorPos(pSender) - *MR::getSensorPos(pReceiver);
 
         f32 dotUp = mUp.dot(diff);
         f32 dotFront = mFront.dot(diff);

@@ -24,6 +24,6 @@ void AudioEffectArea::movement() {
     if (isInVolume(*MR::getPlayerPos())) {
         MR::setAudioEffectType(mEffectType, _40, 0);
     } else {
-        MR::fn_8005ADA0();
+        MR::resetAudioEffect();
     }
 }

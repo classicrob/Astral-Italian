@@ -20,10 +20,10 @@ namespace NrvNote {
 
 Note::Note(const char* pName, const TVec3f& rRailDirection, NoteFairy* pParent) : LiveActor(pName) {
     mParentFairy = pParent;
-    _90.set(0.0f);
+    mOriginPos.set(0.0f);
     mRailDirection = rRailDirection;
     mCounter = 0;
-    _AC = 0.0f;
+    mBrkFrame = 0.0f;
     mIsCountdown = false;
     mFlashCtrl = nullptr;
 }
@@ -31,7 +31,7 @@ Note::Note(const char* pName, const TVec3f& rRailDirection, NoteFairy* pParent) 
 // NONMATCHING: TVec3f(0.0f) temp inlined (target calls __ct__TVec3<f>Ff out of line) and new FlashingCtrl is 0x24 vs 0x28 (shared FlashingCtrl.hpp)
 void Note::init(const JMapInfoIter& rIter) {
     MR::createSceneObj(SceneObj_NoteGroup);
-    _90.set(mPosition);
+    mOriginPos.set(mPosition);
     MR::initActor(this, "Note", false);
     MR::connectToSceneNoSilhouettedMapObjStrongLight(this);
     initHitSensor(1);
@@ -70,7 +70,7 @@ void Note::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::startBrk(this, "Note");
         f32 framemax = MR::getBrkFrameMax(this, "Note");
-        MR::setBrkFrame(this, MR::repeat(_AC, 0.0f, framemax));
+        MR::setBrkFrame(this, MR::repeat(mBrkFrame, 0.0f, framemax));
     }
 
     if (mIsCountdown) {

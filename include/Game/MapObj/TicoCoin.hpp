@@ -22,5 +22,5 @@ public:
 
     bool isCollectedInStage() const;
 
-    /* 0x90 */ TVec3f _90;
+    /* 0x90 */ TVec3f mClippingCenter;
 };

@@ -29,7 +29,6 @@ public:
     virtual void init(const JMapInfoIter& rIter);
     virtual void makeActorDead();
     virtual void makeActorAppeared();
-    virtual void startClipped();
 
     /* 0x90 */ s32 mNumEffects;
     /* 0x94 */ FluffWindEffect** mEffects;

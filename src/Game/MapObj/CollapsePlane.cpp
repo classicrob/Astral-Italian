@@ -86,6 +86,9 @@ void CollapsePlane::exeDPDStop() {
 }
 
 void CollapsePlane::exeEnd() {
+    if (MR::isFirstStep(this) && MR::isValidSwitchDead(this)) {
+        MR::onSwitchDead(this);
+    }
 }
 
 void CollapsePlane::calcAndSetBaseMtx() {
@@ -96,7 +99,7 @@ void CollapsePlane::calcAndSetBaseMtx() {
     }
 
     if (MR::isInitializeStateEnd()) {
-        MR::setBaseScale(this, mScaleController->mScale * mScale);
+        MR::updateBaseScale(this, mScaleController);
     }
 }
 

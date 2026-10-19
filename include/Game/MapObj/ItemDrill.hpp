@@ -6,6 +6,7 @@
 #include <JSystem/JGeometry/TVec.hpp>
 
 class ActorCameraInfo;
+class CollisionPartsFilterBase;
 class CameraTargetMtx;
 class HitSensor;
 class ItemDrillMovementLimitPos;
@@ -70,8 +71,8 @@ public:
     /* 0x194 */ Triangle* mTriangle;
     /* 0x198 */ CameraTargetMtx* mCameraTargetMtx;
     /* 0x19C */ TVec3f mEffectTrans;
-    /* 0x1A8 */ TMtx34f mMtx1A8;
-    /* 0x1D8 */ TMtx34f mMtx1D8;
+    /* 0x1A8 */ TPos3f mMtx1A8;
+    /* 0x1D8 */ TPos3f mMtx1D8;
     /* 0x208 */ ItemDrillMovementLimitPos* mLimitPos;
     /* 0x20C */ s32 mUnk20C;
     /* 0x210 */ HitSensor* mUnk210;
@@ -95,5 +96,5 @@ public:
     bool checkMapStrikePushback(TVec3f*, const TVec3f&, const TVec3f*);
 
     /* 0x090 */ CollisionParts* mCollisionParts;
-    /* 0x094 */ void* mCollisionPartsFilter;
+    /* 0x094 */ CollisionPartsFilterBase* mCollisionPartsFilter;
 };

@@ -40,7 +40,7 @@ bool TwoLegsStateWalkDamage::isDamageable() {
 }
 
 s32 TwoLegsStateWalkDamage::getDamageSide() {
-    return (mWalkCount + 1) / 2;
+    return mWalkCount + 1 >= 2;
 }
 
 bool TwoLegsStateWalkDamage::tryAttackStrong(HitSensor* pSender, HitSensor* pReceiver) {
@@ -194,6 +194,7 @@ void TwoLegs::startActionLR(const char* pName) {
     MR::startAction(this, buf);
 }
 
+#pragma dont_inline on
 void TwoLegs::startActionUp() {
     MR::startAction(this, "Up");
     mIsUp = true;
@@ -203,6 +204,8 @@ void TwoLegs::startActionDown() {
     MR::startAction(this, "Down");
     mIsUp = false;
 }
+
+#pragma dont_inline off
 
 bool TwoLegs::isPhase0() const {
     return mPhase == 0;
@@ -270,8 +273,9 @@ void TwoLegs::toggleSide() {
 }
 
 void TwoLegs::jointTrackOn() {
-    mJointCtrl->mTrack = true;
-    mJointCtrl->mReturn = true;
+    TwoLegsJointCtrl* pCtrl = mJointCtrl;
+    pCtrl->mTrack = true;
+    pCtrl->mReturn = true;
 }
 
 void TwoLegs::jointTrackOnReturn() {
@@ -281,8 +285,9 @@ void TwoLegs::jointTrackOnReturn() {
 }
 
 void TwoLegs::jointTrackOff() {
-    mJointCtrl->mTrack = false;
-    mJointCtrl->mReturn = false;
+    TwoLegsJointCtrl* pCtrl = mJointCtrl;
+    pCtrl->mTrack = false;
+    pCtrl->mReturn = false;
 }
 
 void TwoLegs::jointSpinOn() {

@@ -1,5 +1,6 @@
 #define JGEOMETRY_VEC3_MUL_NOINLINE
 
+#include "Game/Util/LiveActorUtil.hpp"
 #include "Game/MapObj/SnowBall.hpp"
 #include "Game/MapObj/ClipAreaDropHolder.hpp"
 #include "Game/MapObj/SnowStep.hpp"
@@ -8,12 +9,6 @@
 #include "Game/Util.hpp"
 
 // Unnamed SMG2 helpers used by this unit (owned by other units).
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-void fn_80034820(LiveActor*);
-}
-
-
 // ---- nerves (sinit order: Hide, Break, Thaw, Blow, Roll, Fall, Wait) ----
 
 class SnowBallNrvHide : public Nerve {
@@ -429,7 +424,7 @@ void SnowBall::exeRoll() {
 void SnowBall::exeBlow() {
     if (MR::isFirstStep(this)) {
         MR::tryStartActionNotPlaying(this, "Move");
-        fn_80034820(this);
+        MR::startBlowHitReaction(this);
     }
     bool bindHit = MR::sendMsgEnemyAttackToBindedSensor(this, getSensor("Body"));
     if (MR::sendMsgEnemyAttackRollToBindedSensor(this, getSensor("Body")) && !bindHit) {

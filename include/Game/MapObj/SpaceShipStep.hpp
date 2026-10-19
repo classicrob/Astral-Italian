@@ -29,7 +29,8 @@ public:
     void exeBreak();
     void updateResetToInitPosCheck();
 
-    TVec3f _C4;
-    s32 _D0;
-    bool _D4;
+    /* 0xD0 */ TVec3f mRailClipCenter;
+    /* 0xDC */ s32 mOutOfViewTimer;
+    /* 0xE0 */ bool mHasLeftView;
+    /* 0xE1 */ bool mResetEnabled;
 };

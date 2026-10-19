@@ -8,13 +8,6 @@
 #include "Game/Util/RailUtil.hpp"
 #include <algorithm>
 
-// PLACEHOLDER(objects): forces the leading .sdata2 pool order [0.0f, 2.0f] that the target has but plain first-use order does not give
-// (the target pools these ahead of the TU's own literals: probably the .sdata2 of header-inline bodies the original TU compiled whose text the linker deduped;
-// function order already matches the target); resolve when those inline bodies are identified
-void MapPartsRailGuideDrawer_FORCE_MATCH_SDATA2() {
-    (void)0.0f;
-    (void)2.0f;
-}
 
 namespace NrvMapPartsRailGuideDrawer {
     NEW_NERVE(HostTypeHideAll, MapPartsRailGuideDrawer, HideAll);

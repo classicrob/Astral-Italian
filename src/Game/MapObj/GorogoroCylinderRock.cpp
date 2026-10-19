@@ -114,7 +114,6 @@ void GorogoroCylinderRock::init(const JMapInfoIter& rIter) {
     MR::setShadowDropPositionMtxPtr(this, "Under", mShadowMtx.mMtx, sCylinderRockUnderShadowOffset);
 }
 
-// NONMATCHING: target inlines the TPos3f paired-single copy of mBaseTRMtx into mtx (gekko_ps_copy12 stays out of line under auto_inline off)
 void GorogoroCylinderRock::calcAndSetBaseMtx() {
     TPos3f mtx;
     mtx.identity();
@@ -124,7 +123,7 @@ void GorogoroCylinderRock::calcAndSetBaseMtx() {
     MR::isNearZero(cross, 0.001f);
     mBaseTRMtx.setTrans(mPosition);
     mShadowMtx.setTrans(mPosition);
-    mtx = mBaseTRMtx;
+    mtx.setInline(mBaseTRMtx);
     MR::rotateMtxLocalZ(mtx.mMtx, 3.1415927f * mRotation.z / 180.0f);
     MR::setBaseTRMtx(this, mtx);
 }
@@ -172,7 +171,7 @@ void GorogoroCylinderRock::updateRoll() {
         MR::moveCoordAndTransToStartPos(this);
         MR::resetPosition(this);
     } else {
-        MR::moveCoordAndFollowTransXZ(this);
+        MR::moveCoordAndFollowTransXZ(this, mRailSpeed);
     }
 
     mRailPointNo = MR::getCurrentRailPointNo(this);

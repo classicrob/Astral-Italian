@@ -43,10 +43,11 @@ void Tsukidashikun::init(const JMapInfoIter& rIter) {
     info.setupGroupClipping(8);
     info.setupNerve(GET_NERVE(Tsukidashikun, TsukidashikunNrvRelax));
     initialize(rIter, info);
+    MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
     MR::initLightCtrl(this);
     MR::getJMapInfoArg0NoInit(rIter, &mMoveSpeed);
     MR::getJMapInfoArg1NoInit(rIter, &mWaitTimer);
-    MR::moveCoordToNearestPos(this, mPosition);
+    MR::moveCoordAndTransToNearestRailPos(this);
 }
 
 void Tsukidashikun::exeRelax() {
@@ -129,7 +130,7 @@ void Tsukidashikun::connectToScene(const MapObjActorInitInfo& rInfo) {
 }
 
 void Tsukidashikun::initCaseUseSwitchB(const MapObjActorInitInfo& rInfo) {
-    MR::listenStageSwitchOnB(this, MR::Functor(this, &Tsukidashikun::startMove));
+    MR::listenStageSwitchOnB(this, MR::Functor_Inline(this, &Tsukidashikun::startMove));
 }
 
 void Tsukidashikun::initCaseNoUseSwitchB(const MapObjActorInitInfo& rInfo) {

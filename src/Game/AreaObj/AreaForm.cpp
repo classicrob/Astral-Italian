@@ -130,7 +130,17 @@ void AreaFormCube::calcWorldMtx(TPos3f* pPos) const {
     }
 }
 
-AreaFormSphere::AreaFormSphere() : mTranslation(0.0f), mRadius(0.0f), mUp(0.0f, 1.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f) {
+AreaFormSphere::AreaFormSphere() {
+    mTranslation.x = 0.0f;
+    mTranslation.y = 0.0f;
+    mTranslation.z = 0.0f;
+    mRadius = 0.0f;
+    mUp.x = 0.0f;
+    mUp.y = 1.0f;
+    mUp.z = 0.0f;
+    mFront.x = 0.0f;
+    mFront.y = 0.0f;
+    mFront.z = 1.0f;
 }
 
 void AreaFormSphere::init(const JMapInfoIter& rIter) {

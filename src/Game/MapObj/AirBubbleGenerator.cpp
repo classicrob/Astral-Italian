@@ -51,6 +51,7 @@ void AirBubbleGenerator::exeWait() {
     }
 }
 
+// NONMATCHING: the vector sum uses a volatile register instead of a saved register; calls and arithmetic agree.
 void AirBubbleGenerator::exeGenerate() {
     TVec3f axisY;
 

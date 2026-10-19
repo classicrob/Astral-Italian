@@ -122,11 +122,11 @@ DinoPackunBabyShell::DinoPackunBabyShell(LiveActor* pHost, const char* pName, co
 
 inline PartsModel::~PartsModel() {}
 
-// NONMATCHING: string-address lifetime and register allocation differ.
 void DinoPackunBabyShell::init(const JMapInfoIter& rIter) {
     PartsModel::init(rIter);
     mModelMtx.set(getBaseMtx());
-    mModel = new BreakModel(this, "シェル壊れ", "DinoPackunBabyShellBreak", mModelMtx, "Break");
+    const char* modelName = "シェル壊れ";
+    mModel = new BreakModel(this, modelName, "DinoPackunBabyShellBreak", mModelMtx, "Break");
     mModel->initWithoutIter();
 }
 

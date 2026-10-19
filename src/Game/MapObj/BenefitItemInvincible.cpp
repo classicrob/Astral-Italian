@@ -122,3 +122,7 @@ void BenefitItemInvincible::doEscape() {
 BenefitItemInvincible::~BenefitItemInvincible() {
 }
 
+
+bool BenefitItemInvincible::attachSupportTico() {
+    return false;
+}

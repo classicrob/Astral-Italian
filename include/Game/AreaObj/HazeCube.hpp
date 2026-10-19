@@ -4,7 +4,7 @@
 
 class HazeCube : public AreaObj {
 public:
-    HazeCube(s32, const char*);
+    HazeCube(int, const char*);
 
     virtual void init(const JMapInfoIter&);
     virtual bool isInVolume(const TVec3f&) const;

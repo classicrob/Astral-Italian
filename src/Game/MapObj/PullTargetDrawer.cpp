@@ -270,16 +270,16 @@ void PullTargetDrawer::updateCollisionValid() {
 // Target inlines the matrix copy; the current shared helper also changes temporary layout.
 void PullTargetDrawer::pushPlayerFromBridge() {
     TPos3f jointMtx(MR::getJointMtx(this, "PullTargetPos"));
-    TPos3f inv;
-    inv.set(jointMtx);
+    TPos3f inv(jointMtx);
     inv.invert(inv);
     TVec3f local(*MR::getPlayerCenterPos());
     inv.mult(local, local);
-    if (local.z <= 0.0f && __fabsf(local.x) <= 370.0f && __fabsf(local.y) <= 215.0f) {
-        local.z = 0.0f;
-        jointMtx.mult(local, local);
-        MR::pushPlayer(local - *MR::getPlayerCenterPos());
-    }
+    if (local.z > 0.0f) return;
+    if (__fabsf(local.x) > 370.0f) return;
+    if (__fabsf(local.y) > 215.0f) return;
+    local.z = 0.0f;
+    jointMtx.mult(local, local);
+    MR::pushPlayer(local - *MR::getPlayerCenterPos());
 }
 
 template class JointControlDelegator< PullTargetDrawer >;

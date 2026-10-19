@@ -22,9 +22,9 @@ public:
 
 private:
     /* 0x90 */ StarPiece** mStarPieceArray;
-    /* 0x94 */ f32* _90;
-    /* 0x98 */ s32 _94;
-    /* 0x9C */ u32 _98;
+    /* 0x94 */ f32* mPieceRailCoords;
+    /* 0x98 */ s32 mPieceNum;
+    /* 0x9C */ u32 mNextPieceIdx;
     /* 0xA0 */ u32 _9C;
-    /* 0xA4 */ f32 _A0;
+    /* 0xA4 */ f32 mMoveSpeed;
 };

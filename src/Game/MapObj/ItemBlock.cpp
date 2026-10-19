@@ -10,6 +10,7 @@ namespace {
     static const s32 hNumTimerLastPiece = 11;
     static const f32 hLastBonusSplashRangeH = 10.0f;
     static const f32 hPointLightOffsetY = 100.0f;
+    static const f32 hShadowClippingMargin = 200.0f;
     static const f32 hBrightness = 0.998646f;
 };  // namespace
 
@@ -122,7 +123,7 @@ void ItemBlock::checkKind(const JMapInfoIter& rIter) {
 }
 
 void ItemBlock::initAfterPlacement() {
-    MR::setClippingRangeIncludeShadow(this, &mClippingRange, 0.0f);
+    MR::setClippingRangeIncludeShadow(this, &mClippingRange, ::hShadowClippingMargin);
 }
 
 void ItemBlock::makeActorAppeared() {
@@ -146,6 +147,7 @@ void ItemBlock::kill() {
     LiveActor::kill();
 }
 
+// NONMATCHING: point-light vector temporaries use different registers and stack slots.
 void ItemBlock::control() {
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);
@@ -154,7 +156,7 @@ void ItemBlock::control() {
     MR::requestPointLight(this, mPosition + offset, ::hPointLight, ::hBrightness, -1);
 
     if (mCalcShadow) {
-        MR::setClippingRangeIncludeShadow(this, &mClippingRange, 0.0f);
+        MR::setClippingRangeIncludeShadow(this, &mClippingRange, ::hShadowClippingMargin);
     }
 }
 

@@ -66,33 +66,33 @@ public:
     }
 
     inline bool isRockSensor(HitSensor* pSensor) const {
-        return MR::isSensorType(pSensor, 0x2F /* ATYPE_ROCK */) || MR::isSensorType(pSensor, 0x30 /* ATYPE_WANWAN */);
+        return MR::isSensorType(pSensor, ATYPE_ROCK) || MR::isSensorType(pSensor, ATYPE_WANWAN);
     }
 
-    /* 0x8C */ RockCreator* mCreator;
-    /* 0x90 */ Type mRockType;
-    /* 0x94 */ ModelObj* mBreakModel;
-    /* 0x98 */ f32 mMoveSpeed;
-    /* 0x9C */ bool mBreakModelOnRailGoal;
-    /* 0x9D */ bool mSlowDownOnAttack;
-    /* 0xA0 */ TVec3f mAppearPos;
-    /* 0xAC */ f32 mRadius;
-    /* 0xB0 */ f32 mRotateSpeed;
-    /* 0xB4 */ TPos3f mBaseMtx;
-    /* 0xE4 */ TVec3f mFallVelocity;
-    /* 0xF0 */ f32 mGravityRate;
-    /* 0xF4 */ s32 mCurrentRailPoint;
-    /* 0xF8 */ TVec3f mPrevPos;
-    /* 0x104 */ TVec3f mFront;
-    /* 0x110 */ u32 mAirTime;
-    /* 0x114 */ bool mIsNormalGravity;
-    /* 0x118 */ s32 mWanwanVoiceTimer;
-    /* 0x11C */ s32 mFreezeTime;
-    /* 0x120 */ TVec3f mFreezePos;
-    /* 0x12C */ const Nerve* mUnfreezeNerve;
-    /* 0x130 */ s32 mInvalidBindTime;
-    /* 0x134 */ s32 mAppearTime;
-    /* 0x138 */ f32 mAppearAngle;
-    /* 0x13C */ s32 mRollSoundTimer;
-    /* 0x140 */ s32 mSlowDownTimer;
+    /* 0x90 */ RockCreator* mCreator;
+    /* 0x94 */ Type mRockType;
+    /* 0x98 */ ModelObj* mBreakModel;
+    /* 0x9C */ f32 mMoveSpeed;
+    /* 0xA0 */ bool mBreakModelOnRailGoal;
+    /* 0xA1 */ bool mSlowDownOnAttack;
+    /* 0xA4 */ TVec3f mAppearPos;
+    /* 0xB0 */ f32 mRadius;
+    /* 0xB4 */ f32 mRotateSpeed;
+    /* 0xB8 */ TPos3f mBaseMtx;
+    /* 0xE8 */ TVec3f mFallVelocity;
+    /* 0xF4 */ f32 mGravityRate;
+    /* 0xF8 */ s32 mCurrentRailPoint;
+    /* 0xFC */ TVec3f mPrevPos;
+    /* 0x108 */ TVec3f mFront;
+    /* 0x114 */ u32 mAirTime;
+    /* 0x118 */ bool mIsNormalGravity;
+    /* 0x11C */ s32 mWanwanVoiceTimer;
+    /* 0x120 */ s32 mFreezeTime;
+    /* 0x124 */ TVec3f mFreezePos;
+    /* 0x130 */ const Nerve* mUnfreezeNerve;
+    /* 0x134 */ s32 mInvalidBindTime;
+    /* 0x138 */ s32 mAppearTime;
+    /* 0x13C */ f32 mAppearAngle;
+    /* 0x140 */ s32 mRollSoundTimer;
+    /* 0x144 */ s32 mSlowDownTimer;
 };

@@ -56,7 +56,7 @@ void Garigari::init(const JMapInfoIter& rIter) {
     if (MR::isConnectedWithRail(rIter)) {
         mRailMover = new MapPartsRailMover(this);
         mRailMover->init(rIter);
-        fn_80332BB0(mRailMover);
+        mRailMover->clearSensorName();
         mRailMover->setStopTypeStopAtEnd();
         MR::initAndSetRailClipping(&mUnk9C, this, 100.0f, 500.0f);
         if (hasGravity) {
@@ -129,7 +129,7 @@ void Garigari::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         } else if (MR::isSensorEnemy(pReceiver)) {
             if (isNerve(&NrvGarigari::GarigariNrvRotate::sInstance)) {
                 if (MR::sendMsgToEnemyAttackBlow(pReceiver, pSender)) {
-                    MR::fn_80034820(this);
+                    MR::startBlowHitReaction(this);
                     return;
                 }
                 return;

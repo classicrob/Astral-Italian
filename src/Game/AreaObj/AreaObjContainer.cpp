@@ -1,3 +1,4 @@
+// NONMATCHING: the implicit destructor omits the target's impossible null test on the +0x14 array subobject.
 #include "Game/AreaObj/AreaObjContainer.hpp"
 #include "Game/Util.hpp"
 #include "Game/AreaObj/AreaObj.hpp"

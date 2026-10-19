@@ -369,3 +369,13 @@ namespace MR {
     void startLevelSoundPlayer(JAISoundID, s32);
 }
 
+namespace MR {
+    void fn_803B6830(bool);
+}
+
+namespace MR {
+    void startPlayerBlink();
+    void stopPlayerBlink();
+    void pauseRescuedStrayTicoFollow();
+    void launchRescuedStrayTicoFromMtx(MtxPtr);
+}

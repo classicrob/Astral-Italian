@@ -7,9 +7,6 @@
 #include <cstdio>
 #include <new>
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80222AC0, declared extern "C" so the reloc name matches; resolve when fn_80222AC0 gets its real name in symbols.txt
-extern "C" void* fn_80222AC0(void*, const char*);
-extern "C" void fn_80222A80(void*, const char*, s32, s32, s32);
 
 static const char* sSoundName = "PlaySound";
 
@@ -34,11 +31,9 @@ void SoundPlayArea::init(const JMapInfoIter& rIter) {
     snprintf(name, 0x100, "SoundPlayArea%d", mObjArg0);
 
     mSoundObj = new ActionSoundKeeper(4, name, &mCenter);
-    void* sound = mSoundObj;
-
-    sound = fn_80222AC0(sound, sSoundName);
+    ActionSoundInfo* sound = mSoundObj->getSoundInfo(sSoundName);
     if (sound) {
-        _55 = reinterpret_cast< ActionSoundInfo* >(sound)->fn_80220830();
+        _55 = sound->fn_80220830();
     }
 
     MR::connectToSceneAreaObj(this);
@@ -56,7 +51,7 @@ void SoundPlayArea::movement() {
                 mIsSoundStarted = true;
             }
         } else {
-            fn_80222A80(mSoundObj, sSoundName, -1, -1, -1);
+            mSoundObj->startLevelSound(sSoundName, -1, -1, -1);
         }
     } else {
         mIsSoundStarted = false;

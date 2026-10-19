@@ -5,18 +5,13 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include <revolution.h>
+#include "Game/MapObj/RepeatBlockNrv.hpp"
 
-// Functions of RepeatBlockAtom / RepeatBlockHead (Game/MapObj/RepeatBlockHead) that are not named yet.
-extern "C" {
-void fn_802EC450(RepeatBlockAtom*, RepeatBlock*, s32);
-void fn_802EC4E0(RepeatBlockAtom*, RepeatBlock*, s32);
-void fn_802EC590(LiveActor*);
-}
 
 
 
 namespace NrvRepeatBlock {
-    NEW_NERVE(RepeatBlockNrvWait, RepeatBlock, Wait);
+    RepeatBlockNrvWait RepeatBlockNrvWait::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(RepeatBlockNrvMove, RepeatBlock, Move);
     NEW_NERVE(RepeatBlockNrvStop, RepeatBlock, Stop);
 
@@ -29,38 +24,13 @@ namespace NrvRepeatBlock {
     };
     RepeatBlockNrvEnd RepeatBlockNrvEnd::sInstance ATTRIBUTE_WEAK;
 
-    class RepeatBlockNrvAtomA : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const {
-            fn_802EC590(reinterpret_cast< LiveActor* >(pSpine->mExecutor));
-        }
-        static RepeatBlockNrvAtomA sInstance;
-    };
+
     RepeatBlockNrvAtomA RepeatBlockNrvAtomA::sInstance ATTRIBUTE_WEAK;
 
-    class RepeatBlockNrvAtomWait : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const {
-            LiveActor* pActor = reinterpret_cast< LiveActor* >(pSpine->mExecutor);
-            if (MR::isFirstStep(pActor)) {
-                MR::startAction(pActor, "Wait");
-            }
-        }
-        static RepeatBlockNrvAtomWait sInstance;
-    };
+
     RepeatBlockNrvAtomWait RepeatBlockNrvAtomWait::sInstance ATTRIBUTE_WEAK;
 
-    class RepeatBlockNrvAtomDisappear : public Nerve {
-    public:
-        virtual void execute(Spine* pSpine) const {
-            LiveActor* pActor = reinterpret_cast< LiveActor* >(pSpine->mExecutor);
-            f32 rate = MR::getBtkRate(pActor);
-            if (rate + MR::getBtkFrame(pActor) <= 0.0f) {
-                pActor->kill();
-            }
-        }
-        static RepeatBlockNrvAtomDisappear sInstance;
-    };
+
     RepeatBlockNrvAtomDisappear RepeatBlockNrvAtomDisappear::sInstance ATTRIBUTE_WEAK;
 
     NEW_NERVE(RepeatBlockNrvTailAppear, RepeatBlockTail, Appear);
@@ -162,11 +132,11 @@ void RepeatBlockTail::forEachAtom(s32 dir, s32 idx, void (RepeatBlockTail::*pFun
 
 void RepeatBlockTail::appearAtom(RepeatBlockAtom* pAtom) {
     pAtom->appear();
-    fn_802EC450(pAtom, mParent, mAppearDir);
+    pAtom->startAppear(mParent, mAppearDir);
 }
 
 void RepeatBlockTail::startAtom(RepeatBlockAtom* pAtom) {
-    fn_802EC4E0(pAtom, mParent, mMoveDir);
+    pAtom->startDisappear(mParent, mMoveDir);
 }
 
 s32 RepeatBlockTail::calcAppearNum(s32 dir) const {

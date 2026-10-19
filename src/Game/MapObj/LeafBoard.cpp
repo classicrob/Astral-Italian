@@ -1,13 +1,11 @@
 #pragma auto_inline off
 
+#include "Game/Util/ActorMovementUtil.hpp"
 #include "Game/MapObj/LeafBoard.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/WaterInfo.hpp"
 #include "Game/Util.hpp"
 
-// SMG2 target calls the symbol scaleVelocity__2MRFP9LiveActorf with (actor, const TVec3f&) and reads the f32 result in f1.
-// The name does not match the C++ signature, so declare it extern "C" to get the same reloc name.
-extern "C" f32 scaleVelocity__2MRFP9LiveActorf(LiveActor*, const TVec3f*);
 
 namespace MR {
 // NONMATCHING: the offset and copied probe occupy opposite stack slots from the target.
@@ -158,7 +156,7 @@ void LeafBoard::updateMoveSound() {
 void LeafBoard::reboundFromWall() {
     if (MR::isBindedWall(this)) {
         TVec3f normal = -MR::getWallNormal(this);
-        f32 speed = scaleVelocity__2MRFP9LiveActorf(this, &normal);
+        f32 speed = MR::calcVelocityDot(this, normal);
         if (speed > 5.0f) {
             MR::startAction(this, "Reaction");
             // Shift-JIS "ぶつかり" (bump) hit reaction

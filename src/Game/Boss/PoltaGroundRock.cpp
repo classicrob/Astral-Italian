@@ -139,8 +139,8 @@ void PoltaGroundRock::exeWait() {
     if (MR::isFirstStep(this)) {
         mPosition.set(_A4);
         MR::emitEffect(this, "Rock");
-        MR::attachSupportTicoToTarget(this);
     }
+    MR::attachSupportTicoToTarget(this);
 }
 
 void PoltaGroundRock::exeBreak() {

@@ -341,13 +341,14 @@ bool CrystalCage::isDisplayModelId(s32 id) {
 }
 
 bool CrystalCage::hasPowerStarId() {
-    if (mPowerStarState == -1) {
+    switch (mPowerStarState) {
+    case -1:
+        return false;
+    case 0:
+        return true;
+    default:
         return false;
     }
-    if (mPowerStarState == 0) {
-        return false;
-    }
-    return true;
 }
 
 void CrystalCage::exeFall() {

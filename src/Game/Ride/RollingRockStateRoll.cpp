@@ -16,12 +16,6 @@
 #include <JSystem/JMath.hpp>
 #include <cmath>
 
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-void fn_8004FFA0();
-void fn_8004FFB0();
-}
-
 #define sNameRollState "\x8a\xe2\x83}\x83\x8a\x83I\x83S\x83\x8d\x83S\x83\x8d\x8f\xf3\x91\xd4"
 #define sNameCameraTarget "\x83J\x83\x81\x83\x89\x83^\x81[\x83Q\x83""b\x83g(Rock)"
 #define sRumblePushReflect "\x89\x9f\x82\xb3\x82\xea\x94\xbd\x8e\xcb"
@@ -90,7 +84,7 @@ void RollingRockStateRoll::appear() {
     mSpeed = 0.0f;
     mHost->appearBlur();
     mHost->appearBreakStart();
-    fn_8004FFA0();
+    MR::setPlayerRollingOn();
     if (MR::isValidSwitchA(mHost)) {
         MR::onSwitchA(mHost);
     }
@@ -103,7 +97,7 @@ void RollingRockStateRoll::kill() {
         MR::deleteEffect(mHost, "Move");
         MR::forceDeleteEffect(mHost, "MoveBlur");
         mHost->appearBreakEnd();
-        fn_8004FFB0();
+        MR::setPlayerRollingOff();
         MR::offBind(mHost);
         MR::invalidateHitSensors(mHost);
         if (MR::isValidSwitchA(mHost)) {
@@ -515,13 +509,13 @@ void RollingRockStateRoll::changeState(s32 type) {
     }
     case 5:
     case 3:
-        if (MR::isNearZero(*pVel, 0.001f)) {
+        if (MR::isNearZero(pHost->mVelocity, 0.001f)) {
             pVel->set((-pHost->mGravity).scaleInline(18.0f));
         } else {
             TVec3f up;
             up.negate(pHost->mGravity);
             TVec3f side;
-            MR::vecKillElement(*pVel, up, &side);
+            MR::vecKillElement(pHost->mVelocity, up, &side);
             MR::normalizeOrZero(&side);
             side.negate();
             pVel->set((side.scaleInline(sReflectSideRate) + up.scaleInline(1.0f - sReflectSideRate)).scaleInline(18.0f));
@@ -578,7 +572,8 @@ void RollingRockStateRoll::exeStart() {
     MR::setBinderRadius(pHost, MR::calcNerveValue(this, 20, sBinderRadiusMin, sBinderRadiusMax));
     turnByStickStart();
     if (MR::isBindedGround(mHost) && MR::isGreaterStep(this, 5)) {
-        if (MR::isLessEqualStep(this, (s32)sBinderRadiusMin)) {
+        f32 binderRadiusMin = sBinderRadiusMin;
+        if (MR::isLessEqualStep(this, (s32)binderRadiusMin)) {
             MR::setBinderRadius(mHost, sBinderRadiusMax);
         }
         setNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAppear::sInstance);

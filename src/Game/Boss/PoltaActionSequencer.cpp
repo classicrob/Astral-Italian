@@ -122,5 +122,7 @@ void PoltaActionSequencer::exeDownDemo() {
         mCurrentAction = mActionDemo;
         mActionDemo->startDownDemo();
     }
-    MR::updateActorState(this, mActionDemo);
+    if (MR::updateActorState(this, mActionDemo)) {
+        mPoltaPtr->kill();
+    }
 }

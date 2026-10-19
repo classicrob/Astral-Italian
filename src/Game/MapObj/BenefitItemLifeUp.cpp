@@ -1,4 +1,5 @@
 #include "Game/MapObj/BenefitItemLifeUp.hpp"
+#include "Game/NPC/ScoreAttackCounter.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/EffectUtil.hpp"
@@ -13,34 +14,7 @@ BenefitItemLifeUp::BenefitItemLifeUp(const char* pName) : BenefitItemObj(pName, 
 }
 
 void BenefitItemLifeUp::exeCatch() {
-    MR::hideModel(this);
-
-    MR::changePlayerItemStatus(0xA);
-
-    runEfx("Get");
-
-    kill();
+    MR::changePlayerItemLifeUp();
+    ScoreAttackFunction::score1000Points(this);
 }
 
-void BenefitItemLifeUp::initModelAndEfx() {
-    initModelManagerWithAnm(mModelName, nullptr, false);
-    initEffectKeeper(5, "BenefitItemObj", false);
-
-    initBinder(50.0f, 50.0f, 0);
-    initHitSensor(1);
-    MR::addHitSensorMapObj(this, "body", 4, 50.0f, TVec3f(0.0f, 50.0f, 0.0f));
-}
-
-void BenefitItemLifeUp::runEfx(const char* pName) {
-    char str[0x40];
-    strcpy(str, pName);
-    strcat(str, "LifeUp");
-    MR::emitEffect(this, str);
-}
-
-void BenefitItemLifeUp::stopEfx(const char* pName) {
-    char str[0x40];
-    strcpy(str, pName);
-    strcat(str, "LifeUp");
-    MR::emitEffect(this, str);
-}

@@ -113,9 +113,7 @@ void RestartObj::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
     mConnector->connect();
     MR::calcUpVec(&mGravity, this);
-    mGravity.x = -mGravity.x;
-    mGravity.y = -mGravity.y;
-    mGravity.z = -mGravity.z;
+    mGravity.negate();
 }
 
 void RestartObj::updateHitSensor(HitSensor* pSensor) {
@@ -153,7 +151,7 @@ bool RestartObj::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     if (!MR::isEqualSensor(pReceiver, this, "Spin")) {
         return false;
     }
-    if (isNerve(GET_NERVE(RestartObj, RestartObjNrvCollect)) || !isNerve(GET_NERVE(RestartObj, RestartObjNrvShake))) {
+    if (isNerve(GET_NERVE(RestartObj, RestartObjNrvCollect)) || isNerve(GET_NERVE(RestartObj, RestartObjNrvShake))) {
         return false;
     }
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {

@@ -70,7 +70,7 @@ void SimpleClipPartsObj::init(const JMapInfoIter& rrIter) {
     MapObjActor::initialize(rrIter, info);
     _D0 = MR::isExistCollisionResource(this, mObjectName);
     if (_D0) {
-        MR::setSensorType(this, "body", 0x43 /* ATYPE_CLIP_FIELD_MAP_PARTS */);
+        MR::setSensorType(this, "body", ATYPE_CLIP_FIELD_MAP_PARTS);
     }
 }
 

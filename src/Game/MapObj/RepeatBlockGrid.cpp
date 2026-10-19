@@ -34,7 +34,7 @@ void RepeatBlockGrid::calcWorldCellPos(TVec3f* pDst, const RepeatBlockCell& rCel
     mMtx.mult(*pDst, *pDst);
 }
 
-// Target inlines paired-single addition; shared vector headers currently outline add.
+// NONMATCHING: vector add remains outlined; scalar conversion spill order differs.
 void RepeatBlockGrid::calcCell(RepeatBlockCell* pCell, const TVec3f& rPos) const {
     TVec3f pos(rPos);
     TVec3f half(mCellSize);
@@ -45,9 +45,12 @@ void RepeatBlockGrid::calcCell(RepeatBlockCell* pCell, const TVec3f& rPos) const
     pos.x /= mCellSize.x;
     pos.y /= mCellSize.y;
     pos.z /= mCellSize.z;
-    pCell->mX = pos.x;
-    pCell->mY = pos.y;
-    pCell->mZ = pos.z;
+    s16 x = pos.x;
+    s16 y = pos.y;
+    s16 z = pos.z;
+    pCell->mX = x;
+    pCell->mY = y;
+    pCell->mZ = z;
     if (pos.x < 0.0f) {
         pCell->mX--;
     }
@@ -163,7 +166,7 @@ void RepeatBlockHistory::connect() {
         pNode->mNeighbor[i] = -1;
         pNode->mDistance[i] = 10000;
     }
-    for (s32 i = 0; i < mCount; i++) {
+    for (u32 i = 0; i < mCount; i++) {
         if (i != mHead) {
             REPEAT_BLOCK_CELL_SUB(diff, mNodes[i].mCell, pNode->mCell);
             RepeatBlockCell sgn = RepeatBlockCell::sign(diff);

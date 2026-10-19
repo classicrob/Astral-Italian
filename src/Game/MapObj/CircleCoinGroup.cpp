@@ -1,15 +1,19 @@
 #include "Game/MapObj/CircleCoinGroup.hpp"
+#include "Game/MapObj/PlacementCircleObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/JMath/JMATrigonometric.hpp>
 
 CircleCoinGroup::CircleCoinGroup(const char* pName) : CoinGroup(pName) {
+    mPlacementCircleObj = nullptr;
     mCoinRadius = 200.0f;
 }
 
 void CircleCoinGroup::initCoinArray(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg2NoInit(rIter, &mCoinRadius);
     MR::initDefaultPos(this, rIter);
+    mPlacementCircleObj = new PlacementCircleObj;
+    mPlacementCircleObj->init(rIter);
 }
 
 #pragma push

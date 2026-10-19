@@ -111,20 +111,20 @@ public:
     void setHostInfo(StarPieceHostInfo*);
     bool isNerveToPlayerEnd();
 
-    TVec3f mFront;
+    /* 0x90 */ TVec3f mFront;
 
-    f32 mTargetTurnRate;
-    f32 mTargetSpeedRate;
-    f32 mParabolaA;
-    f32 mParabolaB;
-    TVec3f mThrowStartPos;
-    TVec3f mThrowEndPos;  // Reused as the player-relative offset while spin-drained.
+    /* 0x9C */ f32 mTargetTurnRate;
+    /* 0xA0 */ f32 mTargetSpeedRate;
+    /* 0xA4 */ f32 mParabolaA;
+    /* 0xA8 */ f32 mParabolaB;
+    /* 0xAC */ TVec3f mThrowStartPos;
+    /* 0xB8 */ TVec3f mThrowEndPos;  // Reused as the player-relative offset while spin-drained.
 
     /* 0xC4 */ TriangleFilterDelegator< StarPiece >* mThrowTriangleFilter;
     /* 0xC8 */ HitSensor* mTargetSensor;
-    s32 mGettableEffectTimer;
+    /* 0xCC */ s32 mGettableEffectTimer;
     /* 0xD0 */ s32 mGettableDelayCounter;
-    s32 mPointerCollectDelay;  // new in SMG2, init -1
+    /* 0xD4 */ s32 mPointerCollectDelay;  // new in SMG2, init -1
     /* 0xD8 */ s32 mFallKillTimer;
 
     /* 0xDC */ J3DGXColor mColor;
@@ -132,9 +132,9 @@ public:
     /* 0xE0 */ GroupType mGroupType;
     /* 0xE4 */ StarPieceHostInfo* mHostInfo;
     /* 0xE8 */ StarPieceReceiverInfo* mReceiverInfo;
-    /* 0XE4 */ s32 mNumGift;
+    /* 0xEC */ s32 mNumGift;
 
-    struct {
+    /* 0xF0 */ struct {
         bool isGoToPlayer : 1;
         // Collection enabled by group switch A. Legacy name retained for StarPieceMother.
         bool _1 : 1;
@@ -147,5 +147,5 @@ public:
         // used in IsEffectLight
         bool isLightEffect : 1;
         bool isLaunched : 1;
-    } /* 0XE8 */ mFlags;
+    } mFlags;
 };

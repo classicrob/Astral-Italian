@@ -61,7 +61,7 @@ void PetitPorter::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(PetitPorter, PetitPorterNrvWait), 0);
 
     MR::createSceneObj(0x6D);
-    PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D));
+    PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(SceneObj_PetitPorterMediator));
     pMediator->registerPorter(this, nullptr, nullptr, rIter);
 
     mCameraTargetMtx = new CameraTargetMtx("\203J\203\201\203\211\203^\201[\203Q\203b\203g\203_\203~\201[");
@@ -374,7 +374,7 @@ void PetitPorterWarpPoint::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::makeMtxTR(mBaseMtx, this);
     MR::createSceneObj(0x6D);
-    PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D));
+    PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(SceneObj_PetitPorterMediator));
     pMediator->registerPorter(nullptr, nullptr, this, rIter);
     makeActorDead();
 }
@@ -391,7 +391,7 @@ void PetitPorterExitPoint::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::makeMtxTR(mBaseMtx, this);
     MR::createSceneObj(0x6D);
-    PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D));
+    PetitPorterMediator* pMediator = reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(SceneObj_PetitPorterMediator));
     pMediator->registerPorter(nullptr, this, nullptr, rIter);
     makeActorDead();
 }
@@ -472,7 +472,7 @@ bool PetitPorterMediator::isAnyPorterDemo() const {
 
 bool PetitPorterFunction::isDemo() {
     if (MR::isExistSceneObj(0x6D)) {
-        return reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(0x6D))->isAnyPorterDemo();
+        return reinterpret_cast<PetitPorterMediator*>(MR::getSceneObjHolder()->getObj(SceneObj_PetitPorterMediator))->isAnyPorterDemo();
     }
     return false;
 }

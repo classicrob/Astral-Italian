@@ -27,7 +27,7 @@ namespace NrvKoopaJrCastleHead { KoopaJrCastleHeadNrvH KoopaJrCastleHeadNrvH::sI
 
 KoopaJrCastleHead::KoopaJrCastleHead(LiveActor* pHost, const char* pName) : PartsModel(pHost, pName, "KoopaJrCastleHead", 0, 0x13, false) {
     mCannonJointCtrl = nullptr;
-    mForceJointCallback = true;
+    mIsJointCallbackDisabled = true;
     PSMTXIdentity(mCannonMtx);
 }
 
@@ -47,7 +47,7 @@ void KoopaJrCastleHead::init(const JMapInfoIter& rIter) {
     MR::startAction(this, "Wait");
     makeActorAppeared();
     MR::invalidateHitSensor(this, "Panic");
-    mForceJointCallback = false;
+    mIsJointCallbackDisabled = false;
 }
 
 // fn_800D55B0: forwards an attack-sensor pair to the host unless the actor is in its C nerve.
@@ -273,7 +273,7 @@ void KoopaJrCastleHead::calcAndSetBaseMtx() {
 // fn_800D5F50: writes the head's pose matrix from the given matrix's translation (idle head only).
 // NONMATCHING: joint concat order and setMtxTrans argument shape inferred from the m2c read only
 bool KoopaJrCastleHead::calcJointCannon(TPos3f* pMtx, const JointControllerInfo&) {
-    if (!mForceJointCallback && isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
+    if (mIsJointCallbackDisabled || isNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvC::sInstance)) {
         return false;
     }
     TPos3f mtx;

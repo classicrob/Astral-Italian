@@ -1,3 +1,4 @@
+#include "Game/Util/ObjUtil.hpp"
 #include "Game/MapObj/StarPieceFlowerController.hpp"
 #include "Game/MapObj/StarPieceFlower.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -13,8 +14,6 @@ namespace MR {
     bool getJMapInfoArg0NoInit(const JMapInfoIter&, bool*);
 };  // namespace MR
 
-// PLACEHOLDER(objects): unnamed target symbol fn_8004DB60, declared extern "C" so the reloc name matches; resolve when fn_8004DB60 gets its real name in symbols.txt
-extern "C" void fn_8004DB60(LiveActor*, TVec3f*, TVec3f*, f32, s32, s32, s32, s32);
 
 
 namespace NrvStarPieceFlower {
@@ -124,7 +123,7 @@ void StarPieceFlower::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     TVec3f back = mGravity * speed;
     push -= back;
 
-    fn_8004DB60(this, &mPosition, &push, 0.0f, 1, 0, 0, 1);
+    MR::appearStarPieceToVelocity(this, mPosition, push, 1, 0, 0, 1, 0.0f);
     MR::tryHitReaction(this, "\203X\203^\201[\203s\201[\203X\225\372\217o");
     MR::invalidateHitSensor(this, "Body");
     setNerve(&NrvStarPieceFlower::StarPieceFlowerNrvOpen::sInstance);

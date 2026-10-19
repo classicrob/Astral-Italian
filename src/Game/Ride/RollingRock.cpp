@@ -63,6 +63,7 @@ void RollingRock::kill() {
     LiveActor::kill();
 }
 
+// NONMATCHING: vector-sum temporary uses different registers; fields, conditions and call sequence agree.
 void RollingRock::calcAnim() {
     LiveActor::calcAnim();
     TVec3f off(0.0f);

@@ -150,7 +150,7 @@ void KoopaJrCastle::exeBattle() {
     if (MR::updateActorState(this)) {
         TVec3f pos(mPosition - mGravity * 1600.0f);
         MR::requestAppearPowerStar(this, pos);
-        TVec3f cam(mStartPos + mGravity * -100.0f);
+        TVec3f cam(mStartPos + mGravity * -1000.0f);
         mCameraPos = cam;
         mCapsule->kill();
         mHead->kill();
@@ -183,6 +183,6 @@ MtxPtr KoopaJrCastle::getBaseMtx() const {
     return const_cast< TPos3f& >(mBaseMtx).toMtxPtr();
 }
 
-KoopaJrCastleAccessor::KoopaJrCastleAccessor() : NameObj("\x83N\x83""b\x83pJr\x83L\x83\x83\x83""b\x83X\x83\x8b\x83""A\x83N\x83Z\x83T"), mCastle(nullptr) {}
+KoopaJrCastleAccessor::KoopaJrCastleAccessor() : NameObj("クッパJrキャッスルアクセス"), mCastle(nullptr) {}
 
 KoopaJrCastleAccessor::~KoopaJrCastleAccessor() {}

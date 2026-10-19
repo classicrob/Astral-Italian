@@ -96,6 +96,7 @@ public:
 
 class MapObjActorUtil {
 public:
+    static void setupProjmapMtx(MapObjActorInitInfo*, bool, bool);
     static void startAllMapPartsFunctions(const MapObjActor* pActor);
     static void endAllMapPartsFunctions(const MapObjActor* pActor);
     static void pauseAllMapPartsFunctions(const MapObjActor* pActor);

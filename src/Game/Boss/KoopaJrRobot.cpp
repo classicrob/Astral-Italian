@@ -1,5 +1,6 @@
 #pragma auto_inline off
 #include "Game/Boss/KoopaJrRobot.hpp"
+#include "Game/MapObj/StarPieceGroup.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/LiveActor/ActorCameraInfo.hpp"
@@ -237,7 +238,7 @@ void KoopaJrRobot::initChildren(const JMapInfoIter& rIter) {
         const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
         if (MR::isEqualString(pName, "StarPieceGroup")) {
-            mStarPieceGroup = reinterpret_cast< KoopaJrRobotStarPieceGroup* >(NameObjFactory::initChildObj(rIter, i));
+            mStarPieceGroup = static_cast< StarPieceGroup* >(NameObjFactory::initChildObj(rIter, i));
         } else {
             mChildren.mArray[mChildren.mCount++] = NameObjFactory::initChildObj(rIter, i);
         }

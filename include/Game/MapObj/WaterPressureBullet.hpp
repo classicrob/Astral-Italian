@@ -28,11 +28,11 @@ public:
     }
 
     bool isNotBoundInline() const {
-        return _B2 && !isBound();
+        return mIsLongLived && !isBound();
     }
 
     bool isNotBound() {
-        return isNotBoundInline() || !_B2;
+        return isNotBoundInline() || !mIsLongLived;
     }
 
     void exeFly();
@@ -42,14 +42,14 @@ public:
     bool inviteMario(HitSensor*);
     void updateSuffererMtx();
 
-    /* 0x90 */ TVec3f _8C;
-    /* 0x9C */ TVec3f _98;
-    /* 0xA8 */ LiveActor* _A4;
-    /* 0xAC */ f32 _A8;
+    /* 0x90 */ TVec3f mFrontDir;
+    /* 0x9C */ TVec3f mSideDir;
+    /* 0xA8 */ LiveActor* mShooterActor;
+    /* 0xAC */ f32 mSpeed;
     /* 0xB0 */ LiveActor* mHostActor;
-    /* 0xB4 */ bool _B0;
-    /* 0xB5 */ bool _B1;
-    /* 0xB6 */ bool _B2;
+    /* 0xB4 */ bool mIsNoGravity;
+    /* 0xB5 */ bool mCanSlideOnGround;
+    /* 0xB6 */ bool mIsLongLived;
     /* 0xB7 */ u8 _B3;
     /* 0xB8 */ ActorStateParamScale* mParamScale;
     /* 0xBC */ ActorCameraInfo** mCameraInfo;

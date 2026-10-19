@@ -10,7 +10,7 @@
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/ScreenUtil.hpp"
-#include "Game/Util/SequenceUtil.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
 namespace {
@@ -36,12 +36,12 @@ void DodoryuStateWait::exeWait() {
         mHost->startHill();
         mHost->shiftMoveStateRail(8.0f);
 
-        if (MR::isStageSuddenDeathDodoryu() && MR::hasRetryGalaxySequence()) {
+        if (MR::isStageSuddenDeathDodoryu() && GameSequenceFunction::isResultMiss()) {
             MR::forceCloseWipeCircle();
         }
     }
 
-    MR::startActionSound(mHost, "SE_BM_LV_DODORYU_MOVE_U_SHALLOW", -1, -1, -1);
+    MR::startActionSound(mHost, "BmLvDodoryuMoveUShallow", -1, -1, -1);
 
     if (mHost->mBattleStarted && !MR::isPlayerInRush()) {
         mNextStateCounter++;
@@ -50,7 +50,7 @@ void DodoryuStateWait::exeWait() {
     }
 
     if (mNextStateCounter > 30) {
-        if (MR::isStageSuddenDeathDodoryu() && MR::hasRetryGalaxySequence()) {
+        if (MR::isStageSuddenDeathDodoryu() && GameSequenceFunction::isResultMiss()) {
             MR::openWipeCircle();
         }
 

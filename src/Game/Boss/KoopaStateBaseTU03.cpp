@@ -61,17 +61,17 @@ void KoopaStateDamage::exeDamage() {
         }
         MR::startAction(mHost, pAction);
         MR::sendMsgKoopaBB();
-    }
-    if (mIsFinal) {
-        if (mParam == 0) {
-            MR::startActionSound(mHost, "PgDamageToPowerUp", -1, -1, -1);
+        if (mIsFinal) {
+            if (mParam == 0) {
+                MR::startActionSound(mHost, "PgDamageToPowerUp", -1, -1, -1);
+            } else {
+                MR::startActionSound(mHost, "PgDown", -1, -1, -1);
+            }
+        } else if (static_cast< u32 >(mDamageType) <= 1) {
+            MR::startActionSound(mHost, "PgDamageBelowNAbove", -1, -1, -1);
         } else {
-            MR::startActionSound(mHost, "PgDown", -1, -1, -1);
+            MR::startActionSound(mHost, "PgDamageLeftNRight", -1, -1, -1);
         }
-    } else if (static_cast< u32 >(mDamageType) <= 1) {
-        MR::startActionSound(mHost, "PgDamageBelowNAbove", -1, -1, -1);
-    } else {
-        MR::startActionSound(mHost, "PgDamageLeftNRight", -1, -1, -1);
     }
     if (mIsFinal) {
         if (MR::isGreaterStep(this, 30)) {

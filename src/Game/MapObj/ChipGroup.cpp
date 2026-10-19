@@ -101,7 +101,7 @@ void ChipGroup::registerChip(ChipBase* pChip) {
     updateUIRange();
 }
 
-void updateChipGroupUIRange(ChipGroup* pGroup) {
+void updateChipGroupUIRange(ChipGroup* pGroup, ChipBase*) {
     pGroup->updateUIRange();
 }
 

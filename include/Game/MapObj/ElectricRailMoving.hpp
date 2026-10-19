@@ -50,7 +50,7 @@ public:
     void exeFreeze();
     void exeDisappear();
     void exeDisappeared();
-    void exeWait();
+    void exeWait() NO_INLINE;
 
     /* 0x8C */ s32 mSegmentNum;
     /* 0x90 */ f32 mMovementSpeed;

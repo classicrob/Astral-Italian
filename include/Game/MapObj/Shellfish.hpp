@@ -24,11 +24,9 @@ public:
     void exeClose();
     void exeShock();
     void exeDPDOpen();
-    void endDPDOpen();
     void initItem(const JMapInfoIter&);
     void initCoin(const JMapInfoIter&) NO_INLINE;
     void initYellowChip(const JMapInfoIter&);
-    void initBlueChip(const JMapInfoIter&);
     void initKinokoOneUp(const JMapInfoIter&);
     void startBindItem();
     void endBindItem();

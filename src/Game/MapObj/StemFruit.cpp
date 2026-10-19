@@ -492,7 +492,7 @@ bool StemFruitChild::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
             return true;
         }
         if (mParent->getParam()->mFlag11 != 0) {
-            if (MR::fn_80422880(msg)) {
+            if (MR::isMsgYoshiAutoEatQuery(msg)) {
                 return true;
             }
             if (MR::isMsgYoshiAutoEatStart(msg)) {

@@ -209,7 +209,7 @@ public:
     void exe800D5D20();
     /* 0xA0 */ JointController* mCannonJointCtrl;
     /* 0xA4 */ Mtx mCannonMtx;
-    /* 0xD4 */ bool mForceJointCallback;
+    /* 0xD4 */ bool mIsJointCallbackDisabled;
 };
 
 class KoopaJrCastleCapsule : public PartsModel {

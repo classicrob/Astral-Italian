@@ -31,11 +31,11 @@ TwoLegsBullet::TwoLegsBullet(TwoLegs* pHost, const char* pName) : LiveActor(pNam
     mFront.set(0.0f, 0.0f, 1.0f);
     mSide.set(1.0f, 0.0f, 0.0f);
     mShadowDir.set(0.0f, -1.0f, 0.0f);
-    mMtx.identity();
     mHill = nullptr;
-    mHillDir.zero();
+    mHillDir.set(0.0f, 1.0f, 0.0f);
     mScaleCtrl = nullptr;
     mStateBind = nullptr;
+    mMtx.identity();
 }
 
 TwoLegsBullet::~TwoLegsBullet() {}
@@ -92,6 +92,7 @@ void TwoLegsBullet::control() {
     mScaleCtrl->updateNerve();
 }
 
+// NONMATCHING: the two vector temporaries occupy reversed stack slots.
 void TwoLegsBullet::calcAndSetBaseMtx() {
     TPos3f mtx;
     MR::makeMtxFrontSidePos(&mtx, mFront, mSide, mPosition);
@@ -101,6 +102,8 @@ void TwoLegsBullet::calcAndSetBaseMtx() {
         TVec3f pos;
         JMAVECScaleAdd(up, mPosition, pos, 300.0f);
         MR::makeMtxFrontUpPos(&mMtx, mFront, up, pos);
+    } else {
+        mMtx.set(mtx);
     }
     MR::updateBaseScale(this, mScaleCtrl);
 }
@@ -258,8 +261,9 @@ void TwoLegsBullet::exeMove() {
         MR::startAction(this, "HorinoBoss");
         MR::emitEffect(this, "MoveBoss");
         MR::emitEffect(this, "Shoot");
+        const char* effectName = "Underground";
         mHill->appear();
-        MR::emitEffect(this, "Underground");
+        MR::emitEffect(this, effectName);
     }
     calcPosAhead(12.0f);
     MR::tryRumblePadVeryWeak(this, 0);
@@ -292,12 +296,16 @@ void TwoLegsBullet::exeStop() {
     MR::setNerveAtStep(this, &NrvTwoLegsBullet::TwoLegsBulletNrvRise::sInstance, 45);
 }
 
+#pragma push
+#pragma dont_inline on
 void TwoLegsBullet::exeWalk() {
     MR::moveCoordAndFollowTrans(this, 8.0f);
     turnToward(MR::getRailDirection(this), mSide, 4.0f);
     MR::startActionSound(this, "BulletMoveGoundAS", -1, -1, -1);
     tryStartPointBind();
 }
+
+#pragma pop
 
 void TwoLegsBullet::exeReflect() {
     if (MR::isFirstStep(this)) {
@@ -315,8 +323,9 @@ void TwoLegsBullet::exeReflect() {
 
 void TwoLegsBullet::exeRise() {
     if (MR::isFirstStep(this)) {
+        const char* effectName = "GroundBoss";
         mHill->appear();
-        MR::emitEffect(this, "GroundBoss");
+        MR::emitEffect(this, effectName);
     }
     f32 value = MR::calcNerveEaseInValue(this, 30, 0.0f, 8.0f);
     MR::moveCoordAndFollowTrans(this, value);

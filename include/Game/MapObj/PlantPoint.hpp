@@ -4,7 +4,7 @@
 
 class PlantPoint {
 public:
-    PlantPoint(const TVec3f&, const TVec3f&, f32);
+    PlantPoint(const TVec3f&, const TVec3f&, f32, const TVec3f& side = TVec3f(1.0f, 0.0f, 0.0f));
 
     virtual void setAxisAndPos(const TVec3f&, const TVec3f&, const TVec3f&, const TVec3f&);
 

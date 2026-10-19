@@ -15,9 +15,9 @@ public:
     void exePlaySound();
     void exeStandBy();
 
-    /* 0x90 */ s32 _8C;
-    /* 0x94 */ s32 _94;
-    /* 0x98 */ bool _98;
-    /* 0x99 */ bool _99;
-    /* 0x9A */ bool _9A;
+    /* 0x90 */ s32 mSoundIndex;
+    /* 0x94 */ s32 mRailTargetMode;
+    /* 0x98 */ bool mHasDemo;
+    /* 0x99 */ bool mIsStoryBookDemo;
+    /* 0x9A */ bool mIsRepeat;
 };

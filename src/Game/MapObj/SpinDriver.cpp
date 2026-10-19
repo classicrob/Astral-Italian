@@ -83,10 +83,10 @@ namespace NrvSpinDriver {
 };  // namespace NrvSpinDriver
 
 SpinDriver::SpinDriver(const char* pName)
-    : LiveActor(pName), _8C(), mShootPath(), mSpinDriverCamera(), _98(0, 0, 0, 1), _A8(0, 0, 0, 1), _B8(0, 0, 0), _C4(0, 0, 0), _D0(0, 0, 1),
-      _DC(0, 0, 0), _E8(0, 1, 0), _F4(0, 0, 0), _104(), _100(40.0f), _108(), _10C(0, 0, 0), _11C(), _120(-1.0f), _124(300), _128(-1), _12C(240),
-      _130(270), _134(), _138(true), _13C(), _140(), _141(true), _142() {
-    _SMG2Mtx.identity();
+    : LiveActor(pName), mBindActor(), mShootPath(), mSpinDriverCamera(), mBindStartQuat(0, 0, 0, 1), mBindQuat(0, 0, 0, 1), mBindPos(0, 0, 0), mBindVelocity(0, 0, 0), mFrontDir(0, 0, 1),
+      mSideDir(0, 0, 0), mUpDir(0, 1, 0), mBindStartPos(0, 0, 0), mRotateYAngle(), mJumpSpeed(40.0f), mRotateYSpeed(), mShadowCenter(0, 0, 0), mBindRate(), mShadowLength(-1.0f), mShootFrames(300), mFlyLoopFrame(-1), mFlyEndFrame(240),
+      mFallFrame(270), mInitPoseParam(), mIsCaptureEnabled(true), mRushTimer(), mIsRushActive(), mIsCaptureArmed(true), mIsSilentAppear() {
+    mFollowMtx.identity();
 }
 
 void SpinDriver::init(const JMapInfoIter& rIter) {
@@ -109,7 +109,7 @@ void SpinDriver::init(const JMapInfoIter& rIter) {
     mGravity.set(gravityVector);
 
     initHitSensor(1);
-    MR::addHitSensor(this, "Body", 0x5E /* ATYPE_SPIN_DRIVER_BIND */, 16, 300.0f, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensor(this, "Body", ATYPE_SPIN_DRIVER_BIND, 16, 300.0f, TVec3f(0.0f, 0.0f, 0.0f));
 
     initEffectKeeper(0, nullptr, false);
 
@@ -125,8 +125,8 @@ void SpinDriver::init(const JMapInfoIter& rIter) {
 
     MR::setClippingFar200m(this);
 
-    MR::makeMtxTR(_SMG2Mtx, this);
-    MR::addBaseMatrixFollowTarget(this, rIter, &_SMG2Mtx,
+    MR::makeMtxTR(mFollowMtx, this);
+    MR::addBaseMatrixFollowTarget(this, rIter, &mFollowMtx,
         MR::createBaseMatrixFollowValidateDelegator(this, &SpinDriver::isValidFollow));
 
     if (MR::useStageSwitchSyncAppear(this, rIter)) {
@@ -137,29 +137,29 @@ void SpinDriver::init(const JMapInfoIter& rIter) {
 }
 
 void SpinDriver::initAfterPlacement() {
-    SpinDriverUtil::setShadowAndClipping(this, &_10C, _120, 300.0f, &_118);
+    SpinDriverUtil::setShadowAndClipping(this, &mShadowCenter, mShadowLength, 300.0f, &mClippingRadius);
 }
 
 void SpinDriver::initParamFromJMapInfo(const JMapInfoIter& rIter) {
     if (mShootPath == nullptr) {
-        MR::getJMapInfoArg0NoInit(rIter, &_100);
+        MR::getJMapInfoArg0NoInit(rIter, &mJumpSpeed);
     } else {
-        MR::getJMapInfoArg0NoInit(rIter, &_124);
+        MR::getJMapInfoArg0NoInit(rIter, &mShootFrames);
     }
 
-    _120 = -1.0f;
-    MR::getJMapInfoArg1NoInit(rIter, &_120);
+    mShadowLength = -1.0f;
+    MR::getJMapInfoArg1NoInit(rIter, &mShadowLength);
 
     s32 arg2 = 0;
 
     if (MR::getJMapInfoArg2NoInit(rIter, &arg2)) {
-        _138 = arg2 != 0;
+        mIsCaptureEnabled = arg2 != 0;
     }
 
     s32 arg4 = 0;
 
     if (MR::getJMapInfoArg4NoInit(rIter, &arg4)) {
-        _142 = !(arg4 - 1);
+        mIsSilentAppear = !(arg4 - 1);
     }
 }
 
@@ -167,15 +167,15 @@ void SpinDriver::initShootPath(const JMapInfoIter& rIter) {
     if (MR::isConnectedWithRail(rIter)) {
         mShootPath = new SpinDriverShootPath();
 
-        _134 = 0.0f;
-        MR::getJMapInfoArg5NoInit(rIter, &_134);
+        mInitPoseParam = 0.0f;
+        MR::getJMapInfoArg5NoInit(rIter, &mInitPoseParam);
 
         mShootPath->initUsingParabolic(rIter, mPosition);
-        mShootPath->calcInitPose(&_E8, &_D0, &_DC, _134);
+        mShootPath->calcInitPose(&mUpDir, &mFrontDir, &mSideDir, mInitPoseParam);
     } else {
         TPos3f rotateMtx;
         MR::makeMtxRotate(rotateMtx, mRotation);
-        rotateMtx.getXYZDir(_DC, _E8, _D0);
+        rotateMtx.getXYZDir(mSideDir, mUpDir, mFrontDir);
     }
 }
 
@@ -205,7 +205,7 @@ void SpinDriver::makeActorAppeared() {
 }
 
 void SpinDriver::makeActorDead() {
-    if (_8C != nullptr) {
+    if (mBindActor != nullptr) {
         cancelBind();
     }
 
@@ -213,29 +213,29 @@ void SpinDriver::makeActorDead() {
 }
 
 void SpinDriver::control() {
-    if (!_141 && mPosition.squared(*MR::getPlayerPos()) > 122500.0f) {
-        _141 = true;
+    if (!mIsCaptureArmed && mPosition.squared(*MR::getPlayerPos()) > 122500.0f) {
+        mIsCaptureArmed = true;
     }
 
-    if (_13C > 0) {
-        _13C--;
+    if (mRushTimer > 0) {
+        mRushTimer--;
     }
 
-    _140 = _13C > 0;
+    mIsRushActive = mRushTimer > 0;
 
-    _104 += _108;
-    _104 = MR::repeat(_104, -MR::pi(), 2 * MR::pi());
+    mRotateYAngle += mRotateYSpeed;
+    mRotateYAngle = MR::repeat(mRotateYAngle, -MR::pi(), 2 * MR::pi());
 
-    _108 *= 0.95f;
+    mRotateYSpeed *= 0.95f;
 }
 
 void SpinDriver::calcAndSetBaseMtx() {
     TPos3f baseMtx;
-    MR::makeMtxUpFrontPos(&baseMtx, _E8, _D0, mPosition);
+    MR::makeMtxUpFrontPos(&baseMtx, mUpDir, mFrontDir, mPosition);
 
     TPos3f yMtx;
     yMtx.identity();
-    yMtx.setEulerY(_104);
+    yMtx.setEulerY(mRotateYAngle);
 
     baseMtx.concat(baseMtx, yMtx);
     MR::setBaseTRMtx(this, baseMtx);
@@ -243,12 +243,12 @@ void SpinDriver::calcAndSetBaseMtx() {
 
 bool SpinDriver::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgIsRushTakeOver(msg)) {
-        _13C = 60;
+        mRushTimer = 60;
         return canBind(pSender);
     }
 
     if (MR::isMsgAutoRushBegin(msg)) {
-        _13C = 60;
+        mRushTimer = 60;
 
         if (startBind(pSender)) {
             return true;
@@ -260,8 +260,8 @@ bool SpinDriver::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
             return false;
         }
 
-        if (_8C != nullptr) {
-            _8C = nullptr;
+        if (mBindActor != nullptr) {
+            mBindActor = nullptr;
 
             cancelCamera();
 
@@ -269,15 +269,15 @@ bool SpinDriver::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiv
         }
     }
 
-    if (MR::isMsgRushForceCancel(msg) && _8C != nullptr) {
-        _8C = nullptr;
+    if (MR::isMsgRushForceCancel(msg) && mBindActor != nullptr) {
+        mBindActor = nullptr;
 
         cancelCamera();
 
         return true;
     }
 
-    if (MR::isMsgUpdateBaseMtx(msg) && _8C != nullptr) {
+    if (MR::isMsgUpdateBaseMtx(msg) && mBindActor != nullptr) {
         calcBindActorMatrix();
         return true;
     }
@@ -304,10 +304,10 @@ bool SpinDriver::tryStartShoot() {
 }
 
 bool SpinDriver::tryEndCapture() {
-    if (MR::isGreaterStep(this, 40) && _B8.distance(mPosition) < 15.0f) {
+    if (MR::isGreaterStep(this, 40) && mBindPos.distance(mPosition) < 15.0f) {
         cancelBind();
 
-        _141 = 0;
+        mIsCaptureArmed = 0;
 
         setNerve(GET_NERVE(SpinDriver, SpinDriverNrvWait));
 
@@ -327,10 +327,10 @@ bool SpinDriver::tryShoot() {
 }
 
 bool SpinDriver::tryEndShoot() {
-    if (mShootPath == nullptr || MR::isGreaterStep(this, _124)) {
-        MR::endBindAndSpinDriverJump(this, _C4);
+    if (mShootPath == nullptr || MR::isGreaterStep(this, mShootFrames)) {
+        MR::endBindAndSpinDriverJump(this, mBindVelocity);
 
-        _8C = 0;
+        mBindActor = 0;
 
         endCamera();
 
@@ -343,7 +343,7 @@ bool SpinDriver::tryEndShoot() {
 }
 
 bool SpinDriver::tryForceCancel() {
-    if (_8C == nullptr) {
+    if (mBindActor == nullptr) {
         setNerve(GET_NERVE(SpinDriver, SpinDriverNrvCoolDown));
         return true;
     }
@@ -383,23 +383,23 @@ void SpinDriver::exeNonActive() {
     bool isSwingOr2P = MR::isPadSwing(WPAD_CHAN0) || MR::isPlayerPointedBy2POnTriggerButton();
 
     if (isSwingOr2P) {
-        _108 += 0.05f;
+        mRotateYSpeed += 0.05f;
 
-        if (_108 > 0.15f) {
-            _108 = 0.15f;
+        if (mRotateYSpeed > 0.15f) {
+            mRotateYSpeed = 0.15f;
         }
     }
 }
 
 void SpinDriver::exeAppear() {
     if (MR::isFirstStep(this)) {
-        if (!_142) {
+        if (!mIsSilentAppear) {
             MR::startActionSound(this, "SySpinDriverAppear");
             MR::startActionSound(this, "OjSpinDrvAppear");
         }
 
         MR::startAction(this, "Appear");
-        mSpinDriverCamera->startAppearCamera(this, _E8, _D0, mPosition);
+        mSpinDriverCamera->startAppearCamera(this, mUpDir, mFrontDir, mPosition);
     }
 
     if (MR::isActionEnd(this) && MR::isGreaterStep(this, mSpinDriverCamera->getAppearCameraFrames())) {
@@ -423,15 +423,15 @@ void SpinDriver::exeWait() {
     bool isSwingOr2P = MR::isPadSwing(WPAD_CHAN0) || MR::isPlayerPointedBy2POnTriggerButton();
 
     if (isSwingOr2P) {
-        _108 += 0.05f;
+        mRotateYSpeed += 0.05f;
     }
 
-    if (_13C > 0) {
-        _108 += 0.008f;
+    if (mRushTimer > 0) {
+        mRotateYSpeed += 0.008f;
 
         MR::startActionSound(this, "OjLvSpinDrvShine");
 
-        if (!_140) {
+        if (!mIsRushActive) {
             MR::emitEffect(this, "SpinDriverLight");
             MR::startCSSound("CS_SPIN_BIND", nullptr, 0, 0, 1.0f);
         }
@@ -462,15 +462,15 @@ void SpinDriver::exeCapture() {
 
     moveBindPosToCenter();
 
-    _11C = MR::calcNerveRate(this, 40);
+    mBindRate = MR::calcNerveRate(this, 40);
 
-    updateBindActorMatrix(_11C);
+    updateBindActorMatrix(mBindRate);
 
-    _108 += 0.008f;
+    mRotateYSpeed += 0.008f;
 
     MR::tryRumblePadWeak(this, WPAD_CHAN0);
 
-    _13C = 60;
+    mRushTimer = 60;
 
     if (!tryStartShoot() && tryEndCapture()) {
         return;
@@ -483,7 +483,7 @@ void SpinDriver::exeShootStart() {
     }
 
     if (MR::isFirstStep(this)) {
-        _F4 = _B8;
+        mBindStartPos = mBindPos;
 
         MR::deleteEffect(this, "SpinDriverLight");
         MR::emitEffect(this, "SpinDriverStart");
@@ -511,11 +511,11 @@ void SpinDriver::exeShootStart() {
     vec50.set(mPosition - upVec * 200.0f * (1.0f - val));
 
     f32 val2 = MR::clamp(2.0f * progress, 0.0f, 1.0f);
-    _B8.set(_F4 * (1.0f - val2) + vec50 * val2);
+    mBindPos.set(mBindStartPos * (1.0f - val2) + vec50 * val2);
 
-    updateBindActorMatrix(val2 + _11C * (1.0f - val2));
+    updateBindActorMatrix(val2 + mBindRate * (1.0f - val2));
 
-    _108 += 0.04f;
+    mRotateYSpeed += 0.04f;
 
     MR::tryRumblePadMiddle(this, 0);
 
@@ -564,23 +564,23 @@ void SpinDriver::exeShoot() {
 
         calcParabolicBindPose();
 
-        if (MR::isStep(this, _128)) {
+        if (MR::isStep(this, mFlyLoopFrame)) {
             MR::startBckPlayer("SpaceFlyShort", "SpinDriverFlyLoop");
         }
 
-        if (MR::isStep(this, _12C)) {
+        if (MR::isStep(this, mFlyEndFrame)) {
             MR::startBckPlayer("SpaceFlyEnd", "SpinDriverFlyEnd");
         }
 
-        if (MR::isLessStep(this, _130)) {
+        if (MR::isLessStep(this, mFallFrame)) {
             MR::startLevelSoundPlayer("SE_PM_LV_SPIN_DRV_FLY", -1);
         }
 
-        if (MR::isStep(this, _130)) {
+        if (MR::isStep(this, mFallFrame)) {
             MR::startBckPlayer("Fall", "SpinDriverFall");
         }
     } else {
-        _C4 = _E8 * _100;
+        mBindVelocity = mUpDir * mJumpSpeed;
     }
 
     if (tryEndShoot()) {
@@ -621,89 +621,89 @@ bool SpinDriver::startBind(HitSensor* pSensor) {
 
         setNerve(GET_NERVE(SpinDriver, SpinDriverNrvShootStart));
     } else {
-        if (_138 && _141 && mPosition.squared(*MR::getSensorPos(pSensor)) < 57600.0f) {
+        if (mIsCaptureEnabled && mIsCaptureArmed && mPosition.squared(*MR::getSensorPos(pSensor)) < 57600.0f) {
             setNerve(GET_NERVE(SpinDriver, SpinDriverNrvCapture));
         } else {
             return false;
         }
     }
 
-    _8C = MR::getSensorHost(pSensor);
-    _B8 = _8C->mPosition;
+    mBindActor = MR::getSensorHost(pSensor);
+    mBindPos = mBindActor->mPosition;
 
-    _C4 = *MR::getPlayerLastMove();
+    mBindVelocity = *MR::getPlayerLastMove();
 
-    f32 mag = _C4.length();
+    f32 mag = mBindVelocity.length();
 
     if (mag > 40.0f) {
-        _C4 *= 40.0f / mag;
+        mBindVelocity *= 40.0f / mag;
     }
 
-    _11C = 0.0f;
+    mBindRate = 0.0f;
 
     TRot3f rotation;
-    rotation.set(_8C->getBaseMtx());
-    rotation.getQuat(_98);
+    rotation.set(mBindActor->getBaseMtx());
+    rotation.getQuat(mBindStartQuat);
 
-    _A8 = _98;
+    mBindQuat = mBindStartQuat;
 
-    ::cSpaceFlyStartFrame = MR::getBckFrameMax(_8C, "SpaceFlyStart");
-    ::cSpaceFlyEndFrame = MR::getBckFrameMax(_8C, "SpaceFlyEnd");
+    ::cSpaceFlyStartFrame = MR::getBckFrameMax(mBindActor, "SpaceFlyStart");
+    ::cSpaceFlyEndFrame = MR::getBckFrameMax(mBindActor, "SpaceFlyEnd");
 
     MR::invalidateClipping(this);
     return true;
 }
 
 void SpinDriver::cancelBind() {
-    if (_8C != nullptr) {
-        MR::endBindAndPlayerJump(this, _C4, 0);
+    if (mBindActor != nullptr) {
+        MR::endBindAndPlayerJump(this, mBindVelocity, 0);
 
-        _8C = nullptr;
+        mBindActor = nullptr;
 
         endCamera();
     }
 }
 
 void SpinDriver::updateBindPosition() {
-    f32 progress = static_cast< f32 >(getNerveStep()) / _124;
+    f32 progress = static_cast< f32 >(getNerveStep()) / mShootFrames;
 
-    TVec3f oldPos(_B8);
+    TVec3f oldPos(mBindPos);
 
     TVec3f position;
     mShootPath->calcPosition(&position, progress);
 
-    _B8 = position;
-    _C4 = position - oldPos;
+    mBindPos = position;
+    mBindVelocity = position - oldPos;
 }
 
 void SpinDriver::moveBindPosToCenter() {
-    _B8 += _C4;
+    mBindPos += mBindVelocity;
 
     f32 mag;
-    TVec3f dir(mPosition - _B8);
+    TVec3f dir(mPosition - mBindPos);
     MR::separateScalarAndDirection(&mag, &dir, dir);
 
-    _C4 += dir * 1.5f * (mag / 120.0f);
-    _C4.x *= 0.8f;
-    _C4.y *= 0.8f;
-    _C4.z *= 0.8f;
+    mBindVelocity += dir * 1.5f * (mag / 120.0f);
+    mBindVelocity.x *= 0.8f;
+    mBindVelocity.y *= 0.8f;
+    mBindVelocity.z *= 0.8f;
 }
 
 void SpinDriver::updateBindActorMatrix(f32 a1) {
     TPos3f makeMtx;
-    MR::makeMtxUpFrontPos(&makeMtx, _E8, _D0, mPosition);
+    MR::makeMtxUpFrontPos(&makeMtx, mUpDir, mFrontDir, mPosition);
 
     TQuat4f quat;
     makeMtx.getQuat(quat);
 
-    _A8.slerp(_98, quat, a1);
-    PSMTXCopy(makeMtx.toMtxPtr(), _SMG2Mtx);
+    mBindQuat.slerp(mBindStartQuat, quat, a1);
+    PSMTXCopy(makeMtx.toMtxPtr(), mFollowMtx);
 }
 
 void SpinDriver::calcBindActorMatrix() {
     TPos3f baseMtx;
-    baseMtx.setQT(_A8, _B8);
-    LiveActor* actor = _8C;
+    baseMtx.setQT(mBindQuat, mBindPos);
+    LiveActor* actor = mBindActor;
 
     if (strcmp(actor->mName, "マリオアクター") == 0) {
         MR::setPlayerBaseMtx(baseMtx.toMtxPtr());
@@ -713,18 +713,18 @@ void SpinDriver::calcBindActorMatrix() {
 }
 
 void SpinDriver::calcParabolicBindPose() {
-    if (!MR::isNearZero(_C4)) {
+    if (!MR::isNearZero(mBindVelocity)) {
         TVec3f direction;
-        MR::normalize(_C4, &direction);
+        MR::normalize(mBindVelocity, &direction);
 
-        if (_124 > 0) {
-            f32 rate = MR::calcNerveRate(this, _124);
-            rate = MR::normalize(rate, static_cast< f32 >(_12C) / _124, static_cast< f32 >(_130) / _124);
+        if (mShootFrames > 0) {
+            f32 rate = MR::calcNerveRate(this, mShootFrames);
+            rate = MR::normalize(rate, static_cast< f32 >(mFlyEndFrame) / mShootFrames, static_cast< f32 >(mFallFrame) / mShootFrames);
 
             if (rate > 0.0f) {
                 TQuat4f rotation;
                 const f32 angle = PI * rate;
-                rotation.setRotate(_DC, angle);
+                rotation.setRotate(mSideDir, angle);
                 rotation.rotate(direction);
             }
         }
@@ -735,35 +735,35 @@ void SpinDriver::calcParabolicBindPose() {
 
 void SpinDriver::turnBindHead(const TVec3f& rVec, f32 f1) {
     TVec3f yDir;
-    _A8.getYDir(yDir);
+    mBindQuat.getYDir(yDir);
 
     TQuat4f q;
     q.setRotate(yDir, rVec, f1);
-    _A8.mult(q);
-    _A8.normalize();
+    mBindQuat.mult(q);
+    mBindQuat.normalize();
 }
 
 void SpinDriver::calcShootMotionTime() {
-    if (_124 < ::cSpaceFlyEndFrame + 20) {
-        _128 = -1;
-        _12C = 0;
-        _130 = _124;
+    if (mShootFrames < ::cSpaceFlyEndFrame + 20) {
+        mFlyLoopFrame = -1;
+        mFlyEndFrame = 0;
+        mFallFrame = mShootFrames;
     } else {
-        _12C = _124 - (::cSpaceFlyEndFrame + 20);
-        _130 = _124 - 20;
-        _128 = _12C / 5;
+        mFlyEndFrame = mShootFrames - (::cSpaceFlyEndFrame + 20);
+        mFallFrame = mShootFrames - 20;
+        mFlyLoopFrame = mFlyEndFrame / 5;
     }
 }
 
 void SpinDriver::startCamera() {
     if (mSpinDriverCamera != nullptr) {
-        mSpinDriverCamera->start(_E8, _D0, mPosition);
+        mSpinDriverCamera->start(mUpDir, mFrontDir, mPosition);
     }
 }
 
 void SpinDriver::updateCamera() {
     if (mSpinDriverCamera != nullptr) {
-        mSpinDriverCamera->update(_C4, _B8);
+        mSpinDriverCamera->update(mBindVelocity, mBindPos);
     }
 }
 
@@ -794,7 +794,7 @@ bool SpinDriver::canBind(HitSensor* pSensor) const {
         return true;
     }
 
-    if (_138 && _141 && mPosition.squared(*MR::getSensorPos(pSensor)) < 57600.0f) {
+    if (mIsCaptureEnabled && mIsCaptureArmed && mPosition.squared(*MR::getSensorPos(pSensor)) < 57600.0f) {
         return true;
     }
 

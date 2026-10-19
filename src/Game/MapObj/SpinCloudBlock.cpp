@@ -7,8 +7,6 @@
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): unnamed SpringValue helper (0x80068E40, 0x20 bytes); resolve when fn_80068E40 gets its real name in symbols.txt
-extern "C" void fn_80068E40(SpringValue*, f32);
 
 namespace MR {
     void getAreaFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
@@ -122,7 +120,7 @@ void SpinCloudBlock::control() {
         mHitTimer--;
     }
     mSpring->update();
-    fn_80068E40(mSpring, 60.0f);
+    mSpring->clampValueMax(60.0f);
     if (!MR::isNearZero(mSwayVel, 0.001f)) {
         MR::restrictVelocityToPlaneModeArea(&mSwayVel, mPosition);
         mPosition.add(mSwayVel);

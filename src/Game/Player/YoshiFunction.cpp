@@ -122,7 +122,7 @@ namespace MR {
     void fn_80422550() {
         getMarioHolder()->getMarioActor()->fn_803B9830()->fn_8041B9C0();
     }
-    void fn_80422580() {
+    void resetYoshiTongueTarget() {
         if (!getMarioHolder()->getMarioActor()->fn_803B9840()) return;
         getMarioHolder()->getMarioActor()->fn_803B9810()->fn_8041FE00();
     }
@@ -207,7 +207,7 @@ namespace MR {
     bool isMsgYoshiAutoEatEnd(u32 msg) {
         return msg==0x100;
     }
-    bool fn_80422880(u32 msg) {
+    bool isMsgYoshiAutoEatQuery(u32 msg) {
         return msg==0xfd;
     }
     bool fn_80422890(u32 msg) {

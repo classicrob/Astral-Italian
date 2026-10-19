@@ -11,6 +11,7 @@ public:
     f32 update();
 
     void reset();
+    void clampValueMax(f32);
 
     f32 mRestValue;
     f32 mSpringValue;

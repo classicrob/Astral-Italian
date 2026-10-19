@@ -11,7 +11,7 @@
 // SMG2-only unit (Bowser Jr. robot boss). Class names are provisional (see report).
 class ActorCameraInfo;
 class BreakModel;
-class KoopaJrRobotStarPieceGroup;
+class StarPieceGroup;
 class KoopaJrRobot;
 class KoopaJrRobotSeq;
 class KoopaJrRobotPart;
@@ -361,14 +361,6 @@ public:
     /* 0xE4 */ f32 mBeamRadius;
 };
 
-// StarPieceGroup child layout (array at 0x90, count at 0x9C)
-class KoopaJrRobotStarPieceGroup : public LiveActor {
-public:
-    /* 0x90 */ LiveActor** mPieces;
-    /* 0x94 */ u8 _94[8];
-    /* 0x9C */ s32 mNumPieces;
-};
-
 namespace KoopaJrRobotFunction {
     s32 getStarPieceCountPerPart();
     const char* getDemoName();
@@ -427,7 +419,7 @@ public:
     /* 0xBC */ LiveActor* mCollisionC;
     /* 0xC0 */ LiveActor* mHandL;
     /* 0xC4 */ LiveActor* mHandR;
-    /* 0xC8 */ KoopaJrRobotStarPieceGroup* mStarPieceGroup;
+    /* 0xC8 */ StarPieceGroup* mStarPieceGroup;
     /* 0xCC */ KoopaJrRobotChildren mChildren;
     /* 0xD8 */ KoopaJrRobotStateA* mStateA;
     /* 0xDC */ KoopaJrRobotStateB* mStateB;

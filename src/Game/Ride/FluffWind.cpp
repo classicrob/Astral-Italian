@@ -81,10 +81,6 @@ void FluffWindEffect::startClipped() {
 FluffWind::FluffWind(const char* pName) : LiveActor(pName), mNumEffects(), mEffects() {
 }
 
-void FluffWind::startClipped() {
-    LiveActor::startClipped();
-}
-
 void FluffWind::makeActorAppeared() {
     for (s32 i = 0; i < mNumEffects; i++) {
         mEffects[i]->makeActorAppeared();

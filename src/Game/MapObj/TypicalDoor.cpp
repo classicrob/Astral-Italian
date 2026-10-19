@@ -75,13 +75,6 @@ void TypicalDoor::exeClose() {
     if (MR::isFirstStep(this)) {
         MR::tryStartAllAnim(this, "Close");
 
-        if (MR::StageEffect::isExistStageEffectSeData(mObjectName)) {
-            const char* stopSe = MR::StageEffect::getStopSe(mObjectName);
-
-            if (stopSe != nullptr) {
-                MR::startSound(this, stopSe);
-            }
-        }
     }
 
     if (MR::isStep(this, 0)) {
@@ -99,13 +92,6 @@ void TypicalDoor::exeOpen() {
     if (MR::isFirstStep(this)) {
         MR::tryStartAllAnim(this, "Open");
 
-        if (MR::StageEffect::isExistStageEffectSeData(mObjectName)) {
-            const char* startSe = MR::StageEffect::getStartSe(mObjectName);
-
-            if (startSe != nullptr) {
-                MR::startSound(this, startSe);
-            }
-        }
     }
 
     if (MR::isStep(this, ::sCollisionChangeTimeOpen)) {
@@ -139,7 +125,6 @@ void DarknessRoomDoor::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
     _CC = arg0 != -1;
     TypicalDoor::init(rIter);
-    MR::useStageSwitchReadA(this, rIter);
 }
 
 void DarknessRoomDoor::control() {

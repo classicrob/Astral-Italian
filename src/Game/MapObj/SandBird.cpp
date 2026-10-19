@@ -1,3 +1,4 @@
+#include "Game/Util/SceneUtil.hpp"
 #include "Game/MapObj/SandBird.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"
@@ -5,8 +6,6 @@
 #include "Game/MapObj/SandBirdParts.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): fn_800578F0(iter, index) returns the child object name (wraps MR::getChildObjName); resolve when core names fn_800578F0
-extern "C" const char* fn_800578F0(const JMapInfoIter&, s32);
 
 
 // Nerve executor the target inlines into Nrv::execute (defined before the NEW_NERVE block).
@@ -38,7 +37,7 @@ void SandBird::init(const JMapInfoIter& rIter) {
     if (childNum > 0) {
         mPartsGroup = new DeriveActorGroup<SandBirdParts>("\x83\x70\x81\x5B\x83\x63\x8A\xC7\x97\x9D", childNum);
         for (s32 i = 0; i < childNum; i++) {
-            SandBirdParts* pPart = new SandBirdParts(fn_800578F0(rIter, i), this, getSensor(nullptr));
+            SandBirdParts* pPart = new SandBirdParts(MR::getChildObjJapaneseName(rIter, i), this, getSensor(nullptr));
             MR::initChildObj(pPart, rIter, i);
             mPartsGroup->registerActor(pPart);
         }

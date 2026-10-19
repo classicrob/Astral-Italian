@@ -1,37 +1,12 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/MapObj/MoveBlockFunction.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
 class CollisionParts;
 class HipDropMoveBlock;
 class HipDropMoveBlockSwitch;
-
-/// Move path / state helper owned by the MoveBlockFunction unit. Layout as far as HipDropMoveBlock uses it.
-class MoveBlockFunction {
-public:
-    MoveBlockFunction();
-    virtual ~MoveBlockFunction();
-    virtual void init(const JMapInfoIter&);
-
-    void setMoveVec(const TVec3f&);
-    void setReturnStep(s32);
-    void setMoveStep(s32);
-    void calcMoveVec(TVec3f*) const;
-    void setForward(bool);
-    bool update();
-    bool isEndStep() const;
-    bool isStartStep() const;
-    bool canMove(bool) const;
-
-    /* 0x04 */ u8 _04[0x10];
-    /* 0x14 */ TQuat4f mQuat;  // (x, y, z) is read as a TVec3f offset by HipDropMoveBlockSwitch::calcAndSetBaseMtx
-    /* 0x24 */ u8 _24[0x10];
-    /* 0x34 */ TVec3f mPos;
-    /* 0x40 */ u8 _40[0x34];
-    /* 0x74 */ bool mFlag74;
-    /* 0x75 */ u8 _75[0x3];
-};
 
 /// Per-switch CSV placement (rows "Offset" and "Rotate").
 struct HipDropMoveBlockSwitchParam {

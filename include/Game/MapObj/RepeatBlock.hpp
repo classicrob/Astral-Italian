@@ -120,6 +120,10 @@ public:
     RepeatBlockAtom(RepeatBlock*);
     virtual ~RepeatBlockAtom();
     virtual void appear();
+
+    void startAppear(RepeatBlock*, s32 direction);
+    void startDisappear(RepeatBlock*, s32 direction);
+    void exeAppear();
 };
 
 class RepeatBlockTail : public RepeatBlockHead {

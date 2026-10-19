@@ -195,7 +195,7 @@ void DodoryuStateLv1::exeDamage() {
 
     updatePop();
     MR::startActionSound(mHost, "BmLvDodoryuSwoon", -1, -1, -1);
-    MR::startActionSound(mHost, "SE_BV_LV_DODORYU_SWOON", -1, -1, -1);
+    MR::startActionSound(mHost, "BvLvDodoryuSwoon", -1, -1, -1);
 
     if (MR::isGreaterEqualStep(this, ::sSwoonTerm)) {
         setNerve(GET_NERVE_ANON(DodoryuStateLv1NrvDive));
@@ -458,8 +458,8 @@ void DodoryuStateLv1::startAnimAppear() {
     MR::startAction(mHost, "OpeningAppear");
     MR::startBtk(mHost, "OpeningAppear");
     mHost->startLeadHillBck("Appear");
-    MR::startActionSound(mHost, "SE_BM_DODORYU_APPEAR_HEAD", -1, -1, -1);
-    MR::startActionSound(mHost, "SE_BV_DODORYU_APPEAR_1", -1, -1, -1);
+    MR::startActionSound(mHost, "BmDodoryuAppearHead", -1, -1, -1);
+    MR::startActionSound(mHost, "BvDodoryuAppear1", -1, -1, -1);
 }
 
 void DodoryuStateLv1::startAnimWalk() {

@@ -19,8 +19,8 @@ DinoPackunDemoPosition::DinoPackunDemoPosition(const char* pName) : LiveActor(pN
 
 void DinoPackunDemoPosition::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-    initNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoPositionNrvOpeningDemo));
     MR::initActor(this, rIter, "DinoPackunDemoPosition", false);
+    initNerve(GET_NERVE(DinoPackunDemo, DinoPackunDemoPositionNrvOpeningDemo));
     MR::invalidateClipping(this);
     makeActorDead();
 }

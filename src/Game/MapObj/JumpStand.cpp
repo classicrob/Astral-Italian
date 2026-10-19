@@ -65,11 +65,11 @@ void JumpStand::exeTrampleBound() {
 
     if (MR::isStep(this, 5)) {
         if (mIsMarioJumpingHigh) {
-            MR::startActionSound(this, "SE_OJ_JUMP_STAND_BOUND_M", -1, -1, -1);
-            MR::startLevelSoundPlayer("SE_PV_JUMP_L", -1, -1);
+            MR::startActionSound(this, "OjJumpStandBoundM", -1, -1, -1);
+            MR::startLevelSoundPlayer("JumpLV", -1, -1);
         } else {
-            MR::startActionSound(this, "SE_OJ_JUMP_STAND_BOUND_S", -1, -1, -1);
-            MR::startLevelSoundPlayer("SE_PV_JUMP_M", -1, -1);
+            MR::startActionSound(this, "OjJumpStandBoundS", -1, -1, -1);
+            MR::startLevelSoundPlayer("JumpMV", -1, -1);
         }
 
         if (mIsMarioJumpingHigh) {
@@ -95,7 +95,7 @@ void JumpStand::exeHipDropBound() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "BoundHipDrop");
         MR::stopSound(mBindedActor, "SE_PM_HIPDROP", 0);
-        MR::startActionSound(this, "SE_OJ_JUMP_STAND_LAND_L", -1, -1, -1);
+        MR::startActionSound(this, "OjJumpStandLandL", -1, -1, -1);
     }
 
     if (MR::isLessStep(this, 15) && mBindedActor != nullptr) {
@@ -106,8 +106,8 @@ void JumpStand::exeHipDropBound() {
     }
 
     if (MR::isStep(this, 15)) {
-        MR::startActionSound(this, "SE_OJ_JUMP_STAND_BOUND_L", -1, -1, -1);
-        MR::startLevelSoundPlayer("SE_PV_JUMP_JOY", -1, -1);
+        MR::startActionSound(this, "OjJumpStandBoundL", -1, -1, -1);
+        MR::startPlayerSoundForYoshiMode("JumpObj", "JumpObj", -1);
         endBindAndShootUp(43.0f, Jump_High);
     }
 
@@ -206,7 +206,7 @@ bool JumpStand::tryToStartBind(HitSensor* pSensor) {
     MR::tryRumblePadMiddle(this, WPAD_CHAN0);
     MR::invalidateCollisionParts(this);
     MR::invalidateClipping(this);
-    mBindedActor = pSensor->mHost;
+    mBindedActor = MR::getSensorHost(pSensor);
     MR::offBind(mBindedActor);
     return true;
 }

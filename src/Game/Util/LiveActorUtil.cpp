@@ -906,8 +906,10 @@ namespace MR {
         }
     }
 
-    void initDLMakerTexMtx(LiveActor* pActor, const char* pName) {
-        pActor->mModelManager->mDisplayListMaker->addTexMtxCtrl(pName);
+    void initDLMakerTexGenNum(LiveActor* pActor, const s8* pTexGenNum) {
+        // PLACEHOLDER(core): DisplayListMaker::addTexMtxCtrl/TexMtxCtrl still have the SMG1 material-name API; SMG2's takes the
+        // texgen-count pointer (TexMtxCtrl stores it and updateMaterial calls TexGenBlock::setTexGenNum); resolve when core fixes TexMtxCtrl
+        pActor->mModelManager->mDisplayListMaker->addTexMtxCtrl(reinterpret_cast< const char* >(pTexGenNum));
     }
 
     ProjmapEffectMtxSetter* initDLMakerProjmapEffectMtxSetter(LiveActor* pActor) {
@@ -1044,7 +1046,7 @@ namespace MR {
         }
     }
 
-    void fn_80034820(LiveActor* pActor) {
+    void startBlowHitReaction(LiveActor* pActor) {
         const char* pName = "吹き飛びヒット";
         ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
         if (pCtrl != nullptr) {

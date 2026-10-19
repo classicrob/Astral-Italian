@@ -28,6 +28,7 @@ public:
     virtual void control() {
     }
 
+    void clearSensorName();
     bool sendMsgToHost(u32 msg);
     f32 getSpeed() const;
     void initNerve(const Nerve* pNerve);

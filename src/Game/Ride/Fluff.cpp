@@ -1,3 +1,4 @@
+#include "Game/Util/MapUtil.hpp"
 #include "Game/Ride/Fluff.hpp"
 #include "Game/Camera/CameraTargetMtx.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
@@ -67,8 +68,6 @@ Fluff::Fluff(const char* pName)
     mBaseMtx.identity();
 }
 
-// PLACEHOLDER(objects): binder wall check (not ground/roof, wall-code no-action); resolve when core names fn_80039560
-extern "C" bool fn_80039560(const LiveActor*);
 
 void Fluff::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
@@ -472,7 +471,7 @@ bool Fluff::updateRide() {
         return true;
     }
 
-    if (MR::isBinded(this) && !fn_80039560(this)) {
+    if (MR::isBinded(this) && !MR::isBindedWallNoActionWithoutGroundOrRoof(this)) {
         endBind(0.0f, false, 0);
         return true;
     }

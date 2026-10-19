@@ -6,11 +6,9 @@ DepthOfFieldArea::DepthOfFieldArea(const char* pName) : ImageEffectArea(IMAGE_EF
 }
 
 void DepthOfFieldArea::init(const JMapInfoIter& rIter) {
-    AreaObj::init(rIter);
-
-    mIsPlayerSync = mObjArg0 > 0;
-
+    ImageEffectArea::init(rIter);
     MR::createDepthOfFieldBlur();
+    mIsPlayerSync = mObjArg0 > 0;
 }
 
 f32 DepthOfFieldArea::getIntensity() const {

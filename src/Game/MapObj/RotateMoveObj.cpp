@@ -7,8 +7,6 @@
 #include "Game/MapObj/StageEffectDataTable.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(objects): fn_802CC2E0 is an unnamed 4-byte thunk (b setupProjmapMtx(bool, bool)) that the target calls directly; resolve when the thunk gets its name in symbols.txt
-extern "C" void fn_802CC2E0(MapObjActorInitInfo*, bool, bool);
 
 namespace NrvRotateMoveObj {
     NEW_NERVE(HostTypeWaitForPlayerOn, RotateMoveObj, WaitForPlayerOn);
@@ -29,7 +27,7 @@ void RotateMoveObj::init(const JMapInfoIter& rIter) {
     MapObjActorUtil::setupInitInfoTypical(&info, mObjectName);
 
     if (MR::isEqualSubString(mObjectName, "MagmaSliceRotateStep")) {
-        fn_802CC2E0(&info, false, false);
+        MapObjActorUtil::setupProjmapMtx(&info, false, false);
     }
 
     initialize(rIter, info);

@@ -32,10 +32,10 @@ public:
     void exeFlyUp();
 
     /* 0x90 */ NoteFairy* mParentFairy;  ///< The parent NoteFairy that this note was spawned from.
-    /* 0x94 */ TVec3f _90;
+    /* 0x94 */ TVec3f mOriginPos;
     /* 0xA0 */ TVec3f mRailDirection;
     /* 0xAC */ int mCounter;  ///< The amount of steps it takes for the note to disappear.
-    /* 0xB0 */ f32 _AC;
+    /* 0xB0 */ f32 mBrkFrame;
     /* 0xB4 */ bool mIsCountdown;
     /* 0xB8 */ FlashingCtrl* mFlashCtrl;  // A pointer to the FlashingCtrl instance that handles the "fading away" effects.
     /* 0xBC */ u32 _BC;

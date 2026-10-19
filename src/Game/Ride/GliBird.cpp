@@ -1,4 +1,6 @@
 #pragma auto_inline off
+#include "Game/System/GameSystemFunction.hpp"
+#include "Game/LiveActor/FallDeath.hpp"
 #include "Game/LiveActor/ActorParam.hpp"
 #include "Game/Ride/GliBird.hpp"
 #include "Game/Camera/CameraTargetMtx.hpp"
@@ -17,15 +19,6 @@
 #include "Game/Util/SupportPlayUtil.hpp"
 #include <revolution/wpad.h>
 
-// Unnamed SMG2 helpers (plain C symbols).
-// PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
-extern "C" {
-    s32 fn_804B8960();
-    void fn_8004F030();
-    void fn_80051910();
-    void fn_80051940();
-    LiveActor* fn_80235370(void*, LiveActor*, const char*, f32, const f32*);
-}
 
 namespace {
     extern const f32 sGlideSpeedMin;
@@ -131,10 +124,7 @@ void GliBird::init(const JMapInfoIter& rIter) {
     mBirdBreakModel = createBreakModel(this, mWaterMtx);
     mPlayerBreakModel = createBreakModel(this, mPlayerDeadMtx);
 
-    LiveActor* pDeadBody = static_cast< LiveActor* >(operator new(0x98));
-    if (pDeadBody != nullptr) {
-        pDeadBody = fn_80235370(pDeadBody, this, "グライバード死亡挙動", 30.0f, mParam->mDeadGravity);
-    }
+    FallDeath* pDeadBody = new FallDeath(this, "グライバード死亡挙動", 30.0f, mParam->mDeadGravity);
     mDeadBody = pDeadBody;
     mDeadBody->initWithoutIter();
 
@@ -186,7 +176,7 @@ void GliBird::movement() {
 
 // NONMATCHING: vector temporary placement and scalar expression scheduling differ; alpha helper is misnamed in target metadata.
 void GliBird::control() {
-    if (fn_804B8960() != 0) {
+    if (GameSystemFunction::isControllerLeaveTimeElapsed() != 0) {
         mNoRumble = true;
     } else {
         mNoRumble = false;
@@ -198,7 +188,7 @@ void GliBird::control() {
         mDamageTimer--;
 
         if (mDamageTimer == 0) {
-            fn_80051940();
+            MR::stopPlayerBlink();
         }
     }
 
@@ -622,7 +612,7 @@ void GliBird::damage(bool isFire) {
         if (MR::isPlayerLifeOne()) {
             setNerve(GET_NERVE(GliBird, GliBirdNrvDeadDamage));
         } else {
-            fn_80051910();
+            MR::startPlayerBlink();
             setNerve(GET_NERVE(GliBird, GliBirdNrvDamage));
         }
 

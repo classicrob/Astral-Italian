@@ -118,7 +118,6 @@ bool PlantStalk::updateGrowUp() {
     }
 
     mGrownPlantPoints = mStalkLength / ::sInterval;
-    (void)static_cast< f32 >(mGrownPlantPoints);
     mGrownPlantPoints = MR::clamp(mGrownPlantPoints, 2, mNumPlantPoints);
 
     TVec3f stalkPos;
@@ -243,7 +242,7 @@ void PlantStalk::drawGrowUp() const {
 
 PlantStalkDrawInit::PlantStalkDrawInit(const char* pName) : NameObj(pName) {
     mTexture = nullptr;
-    mTexture = new JUTTexture(MR::loadTexFromArc("Plant.arc", "PlantStalk.bti"), 0);
+    mTexture = new JUTTexture(MR::loadTexFromArc("Plant.arc", "PlantStalk.bti", nullptr), 0);
 
     MR::registerPreDrawFunction(MR::FunctorV0M< const PlantStalkDrawInit*, void (PlantStalkDrawInit::*)() const >(this, &PlantStalkDrawInit::initDraw), MR::DrawType_PlantStalk);
 }

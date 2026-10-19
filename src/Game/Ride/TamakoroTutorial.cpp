@@ -352,6 +352,7 @@ bool TamakoroTutorial::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSe
     return false;
 }
 
+// NONMATCHING: vector-sum address uses a volatile register instead of a saved register; arithmetic, fields and calls agree.
 void TamakoroTutorial::updateHitSensor(HitSensor* pSensor) {
     TVec3f upVec;
     MR::calcUpVec(&upVec, this);

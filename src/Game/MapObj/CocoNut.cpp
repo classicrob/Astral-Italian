@@ -353,7 +353,7 @@ void CocoNut::initMapToolInfo(const JMapInfoIter& rIter) {
 
 void CocoNut::initSensor() {
     initHitSensor(2);
-    MR::addHitSensor(this, "body", 0x1B /* ATYPE_COCO_NUT */, 16, 65.0f * mScale.x, TVec3f(0.0f, 0.0f, 0.0f));
+    MR::addHitSensor(this, "Body", 0x1B /* ATYPE_COCO_NUT */, 16, 65.0f * mScale.x, TVec3f(0.0f, 0.0f, 0.0f));
     MR::addHitSensor(this, "eye", 0x7A /* ATYPE_EYE */, 16, 2000.0f * mScale.x, TVec3f(0.0f, 0.0f, 0.0f));
 }
 
@@ -800,7 +800,7 @@ bool CocoNut::sendMsgToBindedSensor() {
 
 bool CocoNut::sendMsgEnemyAttackToBindedSensor(HitSensor* pSensor) {
     if (_13C) {
-        return MR::sendMsgEnemyAttack(pSensor, getSensor("body"));
+        return MR::sendMsgEnemyAttack(pSensor, getSensor("Body"));
     }
 
     return false;
@@ -809,7 +809,7 @@ bool CocoNut::sendMsgEnemyAttackToBindedSensor(HitSensor* pSensor) {
 bool CocoNut::isValidReceiveMsg(const HitSensor* pSensor) const {
     return (isNerve(GET_NERVE(CocoNut, CocoNutNrvWait)) || isNerve(GET_NERVE(CocoNut, CocoNutNrvWaitOnBind)) ||
             isNerve(GET_NERVE(CocoNut, CocoNutNrvMove))) &&
-           pSensor == getSensor("body");
+           pSensor == getSensor("Body");
 }
 
 void CocoNut::statusToHide() {
@@ -841,7 +841,7 @@ void CocoNut::emitEffectSpinHit(const HitSensor* pOtherSensor, const HitSensor* 
 }
 
 bool CocoNut::isContactWithOtherCocoNut() const {
-    HitSensor* body = getSensor("body");
+    HitSensor* body = getSensor("Body");
 
     for (int i = 0; i < body->mSensorCount; i++) {
         if (body->mSensors[i]->isType(0x1B /* ATYPE_COCO_NUT */)) {

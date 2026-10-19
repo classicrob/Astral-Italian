@@ -589,7 +589,7 @@ void PlantGroup::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 
         if (MR::isSensorPlayerOrRide(pReceiver) || MR::isSensorNpc(pReceiver)) {
             touchType = 1;
-        } else if (MR::sendArbitraryMsg(0xF5 /* ACTMES_PLANT_GROUP_EMIT_ITEM */, pReceiver, pSender)) {
+        } else if (MR::sendArbitraryMsg(ACTMES_PLANT_GROUP_EMIT_ITEM, pReceiver, pSender)) {
             touchType = 1;
         }
 
@@ -666,16 +666,14 @@ void PlantMember::appear() {
     }
 }
 
-// PLACEHOLDER(objects): JMAHermiteInterpolation<f32>(t, x0, y0, d0, x1, y1, d1); resolve when core names fn_802DB510
-extern "C" f32 fn_802DB510(f32, f32, f32, f32, f32, f32, f32);
 
 #define PLANT_APPEAR_SCALE(dst, t)                                                                                                         \
     if ((t) <= 0.75f) {                                                                                                                       \
-        dst = fn_802DB510(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
+        dst = JMAHermiteInterpolation<f32>(t, 0.0f, 0.0f, 3.0f, 0.75f, 1.0f, -0.9f);                                                               \
     } else if ((t) <= 0.92f) {                                                                                                                \
-        dst = fn_802DB510(t, 0.75f, 1.0f, -0.9f, 0.92f, 1.0f, 0.55f);                                                             \
+        dst = JMAHermiteInterpolation<f32>(t, 0.75f, 1.0f, -0.9f, 0.92f, 1.0f, 0.55f);                                                             \
     } else {                                                                                                                                  \
-        dst = fn_802DB510(t, 0.92f, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
+        dst = JMAHermiteInterpolation<f32>(t, 0.92f, 1.0f, 0.55f, 1.0f, 1.0f, 0.0f);                                                               \
     }
 
 // NONMATCHING: target hoists the 0.92 Hermite threshold into f31 (5 saved FPRs); ours reloads it (3 saved FPRs)

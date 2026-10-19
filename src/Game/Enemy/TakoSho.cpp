@@ -403,7 +403,7 @@ bool TakoSho::tryStartSpinHit(u32 msg, HitSensor* pSensor2, HitSensor* pSensor3)
     if (!isDamaging()) {
         startBrkDamage();
         MR::zeroVelocity(this);
-        MR::fn_80034820(this);
+        MR::startBlowHitReaction(this);
         setNerve(&NrvTakoSho::TakoShoNrvSpinHit::sInstance);
         const TVec3f& pos3 = *MR::getSensorPos(pSensor3);
         mSpinHitController->startWithoutStopScene(this, *MR::getSensorPos(pSensor2), pos3);

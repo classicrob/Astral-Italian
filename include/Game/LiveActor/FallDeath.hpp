@@ -8,6 +8,8 @@ public:
     FallDeath(const char* pName) : LiveActor(pName) {
     }
 
+    FallDeath(LiveActor*, const char*, f32, const f32*);
+
     virtual ~FallDeath();
     virtual void init(const JMapInfoIter&);
 

@@ -33,7 +33,7 @@ public:
     void setNerveWait();
 
     /* 0xD0 */ TVec3f _D0;
-    /* 0xDC */ u8 _DC;
+    /* 0xDC */ u8 mWasRailMoverWorking;
 };
 
 class RailMoveObjPress : public RailMoveObj {
@@ -122,7 +122,7 @@ public:
     virtual void move();
     virtual void doAtEndPoint();
 
-    /* 0xDD */ u8 _DD;
+    /* 0xDD */ u8 mIsWarpEffectStarted;
 };
 
 class RailMoveObjShakeCamera : public RailMoveObj {
@@ -172,7 +172,7 @@ public:
     virtual void initAfterPlacement();
     virtual void updateProjmapMtx();
 
-    /* 0xE0 */ TVec3f _E0;
-    /* 0xEC */ f32 _EC;
+    /* 0xE0 */ TVec3f mGroundPos;
+    /* 0xEC */ f32 mGroundDistance;
     /* 0xF0 */ f32 _F0;
 };

@@ -37,8 +37,8 @@ void SpringStep::setSpringBaseValue(f32 val) {
 }
 
 MapPartsFloatingForce::MapPartsFloatingForce(LiveActor* pActor)
-    : MapPartsFunction(pActor, "浮力"), mSpringStep(), mObjectName(), _20(), mRotateAngle(), mRotateSpeed(), _3C(10.0f), mRotateAccelType(), _30(gZeroVec),
-      mUpDirection(0.0f, 1.0f, 0.0f), _48(), _4C() {
+    : MapPartsFunction(pActor, "浮力"), mSpringStep(), mObjectName(), mMaxOffset(), mRotateAngle(), mRotateSpeed(), mReturnMargin(10.0f), mRotateAccelType(), mBasePos(gZeroVec),
+      mUpDirection(0.0f, 1.0f, 0.0f), mCurOffset(), mVerticalSpeed() {
 }
 
 void MapPartsFloatingForce::init(const JMapInfoIter& rIter) {
@@ -61,7 +61,7 @@ void MapPartsFloatingForce::setObjectName(const char* pName) {
 void MapPartsFloatingForce::initForNormalMotion(const JMapInfoIter& rIter) {
     s32 conditionType = 0;
     MR::getMapPartsArgMoveConditionType(&conditionType, rIter);
-    _20 = conditionType;
+    mMaxOffset = conditionType;
     MR::getMapPartsArgRotateSpeed(&mRotateSpeed, rIter);
     MR::getMapPartsArgRotateAngle(&mRotateAngle, rIter);
 }
@@ -69,7 +69,7 @@ void MapPartsFloatingForce::initForNormalMotion(const JMapInfoIter& rIter) {
 void MapPartsFloatingForce::initForSpringMotion(const JMapInfoIter& rIter) {
     s32 conditionType = 0;
     MR::getMapPartsArgMoveConditionType(&conditionType, rIter);
-    _20 = conditionType;
+    mMaxOffset = conditionType;
     f32 rotateSpeed = 0.0f;
     MR::getMapPartsArgRotateSpeed(&rotateSpeed, rIter);
     rotateSpeed *= 0.001f;
@@ -78,12 +78,12 @@ void MapPartsFloatingForce::initForSpringMotion(const JMapInfoIter& rIter) {
     rotateAngle *= 0.001f;
     s32 rotateAxis = 0;
     MR::getMapPartsArgRotateAxis(&rotateAxis, rIter);
-    _5C = 0.1f * rotateAxis;
+    mSpringKick = 0.1f * rotateAxis;
     mSpringStep = new SpringStep(-conditionType, rotateSpeed, rotateAngle);
 }
 
 void MapPartsFloatingForce::start() {
-    _30.set(mHost->mPosition);
+    mBasePos.set(mHost->mPosition);
     TPos3f baseMtx;
     baseMtx.set(mHost->getBaseMtx());
     baseMtx.getYDir(mUpDirection);
@@ -95,24 +95,24 @@ void MapPartsFloatingForce::start() {
 
 void MapPartsFloatingForce::updateVelocity() {
     if (MR::isOnPlayer(MR::getBodySensor(mHost))) {
-        if (_20 <= _48) {
-            _4C = MR::converge< f32 >(_4C, 0.0f, 0.05f);
+        if (mMaxOffset <= mCurOffset) {
+            mVerticalSpeed = MR::converge< f32 >(mVerticalSpeed, 0.0f, 0.05f);
         } else {
-            _4C = _4C + (0.0001f * mRotateSpeed);
+            mVerticalSpeed = mVerticalSpeed + (0.0001f * mRotateSpeed);
         }
     } else {
-        if (_48 <= 0.0f) {
-            if (!MR::isNearZero(_4C, 0.001f)) {
+        if (mCurOffset <= 0.0f) {
+            if (!MR::isNearZero(mVerticalSpeed, 0.001f)) {
                 MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUpEnd", -1, -1, -1);
-                _4C = 0.0f;
+                mVerticalSpeed = 0.0f;
             }
         } else {
-            _4C = _4C - (0.0001f * mRotateAngle);
+            mVerticalSpeed = mVerticalSpeed - (0.0001f * mRotateAngle);
         }
     }
 
-    _4C *= 0.98f;
-    _4C = MR::clamp(_4C, -50.0f, 50.0f);
+    mVerticalSpeed *= 0.98f;
+    mVerticalSpeed = MR::clamp(mVerticalSpeed, -50.0f, 50.0f);
 }
 
 void MapPartsFloatingForce::updateVelocitySpring() {
@@ -126,9 +126,9 @@ void MapPartsFloatingForce::updateVelocitySpring() {
         velocity *= 3.0f;
     }
 
-    _50.set(mUpDirection * velocity);
-    if (MR::isNearZero(_50)) {
-        _50.zero();
+    mMoveVelocity.set(mUpDirection * velocity);
+    if (MR::isNearZero(mMoveVelocity)) {
+        mMoveVelocity.zero();
     }
 
     mSpringStep->mSpringValue->update();
@@ -173,7 +173,7 @@ bool MapPartsFloatingForce::tryReturn() {
 
 void MapPartsFloatingForce::exeWait() {
     if (isFirstStep()) {
-        _48 = 0.0f;
+        mCurOffset = 0.0f;
     }
 
     if (mRotateAccelType == 1) {
@@ -183,50 +183,50 @@ void MapPartsFloatingForce::exeWait() {
 
 void MapPartsFloatingForce::exeMove() {
     updateVelocity();
-    _50.set(-mUpDirection * _4C);
-    _48 += _4C;
-    _48 = MR::clamp(_48, 0.0f, _20);
+    mMoveVelocity.set(-mUpDirection * mVerticalSpeed);
+    mCurOffset += mVerticalSpeed;
+    mCurOffset = MR::clamp(mCurOffset, 0.0f, mMaxOffset);
     LiveActor* pHost = mHost;
-    MR::setPosition(pHost, _30 - mUpDirection * _48);
+    MR::setPosition(pHost, mBasePos - mUpDirection * mCurOffset);
 
-    if (mRotateAccelType == 2 && _20 <= _48) {
+    if (mRotateAccelType == 2 && mMaxOffset <= mCurOffset) {
         MR::tryRumblePadWeak(this, 0);
         setNerve(GET_NERVE(MapPartsFloatingForce, HostTypeMoveEnd));
     }
 
     if (mObjectName != nullptr) {
-        if (_4C > 0.1f) {
-            MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveDown", static_cast< s32 >(1000.0f * __fabsf(_4C)), -1, -1);
-        } else if (_4C < -0.1f) {
-            MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUp", static_cast< s32 >(1000.0f * __fabsf(_4C)), -1, -1);
+        if (mVerticalSpeed > 0.1f) {
+            MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveDown", static_cast< s32 >(1000.0f * __fabsf(mVerticalSpeed)), -1, -1);
+        } else if (mVerticalSpeed < -0.1f) {
+            MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUp", static_cast< s32 >(1000.0f * __fabsf(mVerticalSpeed)), -1, -1);
         }
     }
 }
 
 void MapPartsFloatingForce::exeMoveSpring() {
     if (isFirstStep()) {
-        mSpringStep->setSpringBaseValue(-_20);
-        mSpringStep->addSpringVelocity(-_5C);
+        mSpringStep->setSpringBaseValue(-mMaxOffset);
+        mSpringStep->addSpringVelocity(-mSpringKick);
     }
 
     updateVelocitySpring();
-    mHost->mVelocity.set(_50);
+    mHost->mVelocity.set(mMoveVelocity);
     tryReturn();
 }
 
 void MapPartsFloatingForce::exeMoveReturn() {
     if (isFirstStep()) {
-        mSpringStep->setSpringBaseValue((mHost->mPosition - _30).length());
+        mSpringStep->setSpringBaseValue((mHost->mPosition - mBasePos).length());
     }
 
     updateVelocitySpring();
-    mHost->mVelocity.set(_50);
-    if (mObjectName != nullptr && 0.1f != _4C) {
-        MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUp", static_cast< s32 >(1000.0f * __fabsf(_4C)), -1, -1);
+    mHost->mVelocity.set(mMoveVelocity);
+    if (mObjectName != nullptr && 0.1f != mVerticalSpeed) {
+        MR::startActionSoundAuto(mHost, "MapPartsFloaterMoveUp", static_cast< s32 >(1000.0f * __fabsf(mVerticalSpeed)), -1, -1);
     }
 
-    if (MR::isNearZero(_30 - mHost->mPosition) && MR::isNearZero(_50)) {
-        MR::setPosition(mHost, _30);
+    if (MR::isNearZero(mBasePos - mHost->mPosition) && MR::isNearZero(mMoveVelocity)) {
+        MR::setPosition(mHost, mBasePos);
         setNerve(GET_NERVE(MapPartsFloatingForce, HostTypeWait));
     } else {
         tryOn();
@@ -235,27 +235,27 @@ void MapPartsFloatingForce::exeMoveReturn() {
 
 void MapPartsFloatingForce::exeMoveEnd() {
     if (MR::isOnPlayer(MR::getBodySensor(mHost))) {
-        if (_20 - _3C > _48) {
-            _4C = 0.0f;
-            _50 = mUpDirection * _4C;
-            _48 = _20 - _3C;
-            _4C = MR::converge< f32 >(_4C, 0.0f, 0.05f);
+        if (mMaxOffset - mReturnMargin > mCurOffset) {
+            mVerticalSpeed = 0.0f;
+            mMoveVelocity = mUpDirection * mVerticalSpeed;
+            mCurOffset = mMaxOffset - mReturnMargin;
+            mVerticalSpeed = MR::converge< f32 >(mVerticalSpeed, 0.0f, 0.05f);
         } else {
-            _4C = -_3C / 5.0f;
+            mVerticalSpeed = -mReturnMargin / 5.0f;
         }
     } else {
-        _4C = 0.0f;
-        _50 = mUpDirection * _4C;
+        mVerticalSpeed = 0.0f;
+        mMoveVelocity = mUpDirection * mVerticalSpeed;
         setNerve(GET_NERVE(MapPartsFloatingForce, HostTypeMove));
     }
 
-    _4C *= 0.98f;
-    _4C = MR::clamp(_4C, -50.0f, 50.0f);
-    _50.set(-mUpDirection * _4C);
-    _48 += _4C;
-    _48 = MR::clamp(_48, 0.0f, _20);
+    mVerticalSpeed *= 0.98f;
+    mVerticalSpeed = MR::clamp(mVerticalSpeed, -50.0f, 50.0f);
+    mMoveVelocity.set(-mUpDirection * mVerticalSpeed);
+    mCurOffset += mVerticalSpeed;
+    mCurOffset = MR::clamp(mCurOffset, 0.0f, mMaxOffset);
     LiveActor* pHost = mHost;
-    MR::setPosition(pHost, _30 - mUpDirection * _48);
+    MR::setPosition(pHost, mBasePos - mUpDirection * mCurOffset);
 }
 
 MapPartsFloatingForce::~MapPartsFloatingForce() {

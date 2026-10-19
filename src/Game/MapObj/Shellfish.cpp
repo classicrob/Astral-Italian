@@ -3,7 +3,6 @@
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/BenefitItemOneUp.hpp"
-#include "Game/MapObj/BlueChip.hpp"
 #include "Game/MapObj/Coin.hpp"
 #include "Game/MapObj/YellowChip.hpp"
 #include "Game/Util.hpp"
@@ -35,7 +34,7 @@ namespace NrvShellfish {
     NEW_NERVE(ShellfishNrvCloseSignal, Shellfish, CloseSignal);
     NEW_NERVE(ShellfishNrvClose, Shellfish, Close);
     NEW_NERVE(ShellfishNrvShock, Shellfish, Shock);
-    NEW_NERVE_ONEND(ShellfishNrvDPDOpen, Shellfish, DPDOpen, DPDOpen);
+    NEW_NERVE(ShellfishNrvDPDOpen, Shellfish, DPDOpen);
 };  // namespace NrvShellfish
 
 Shellfish::Shellfish(const char* pName)
@@ -185,10 +184,6 @@ void Shellfish::exeDPDOpen() {
     MR::updateActorStateAndNextNerve(this, GET_NERVE(Shellfish, ShellfishNrvOpenWait));
 }
 
-void Shellfish::endDPDOpen() {
-    mStarPointerState->kill();
-}
-
 // NONMATCHING: target inlines the TVec3<f>(f,f,f) ctor for `direction`; ours is written member-wise (instruction order differs).
 void Shellfish::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayer(pReceiver)) {
@@ -255,9 +250,6 @@ void Shellfish::initItem(const JMapInfoIter& rIter) {
     case 1:
         initYellowChip(rIter);
         break;
-    case 2:
-        initBlueChip(rIter);
-        break;
     case 3:
         initKinokoOneUp(rIter);
         break;
@@ -277,16 +269,6 @@ void Shellfish::initYellowChip(const JMapInfoIter& rIter) {
     s32 groupId;
     MR::getJMapInfoArg0WithInit(rIter, &groupId);
     YellowChip* chip = new YellowChip("イエローチップ");
-    chip->setHost(this);
-    chip->setGroupID(groupId);
-    mItem = chip;
-    chip->initWithoutIter();
-}
-
-void Shellfish::initBlueChip(const JMapInfoIter& rIter) {
-    s32 groupId;
-    MR::getJMapInfoArg0WithInit(rIter, &groupId);
-    BlueChip* chip = new BlueChip("ブルーチップ");
     chip->setHost(this);
     chip->setGroupID(groupId);
     mItem = chip;

@@ -9,8 +9,6 @@
 #include "math_types.hpp"
 #include <revolution/types.h>
 
-// PLACEHOLDER(objects): unnamed target symbol fn_80068E40, declared extern "C" so the reloc name matches; resolve when fn_80068E40 gets its real name in symbols.txt
-extern "C" void fn_80068E40(SpringValue*, f32);
 
 namespace NrvCloudStep {
     class CloudStepNrvWait : public Nerve {
@@ -58,7 +56,7 @@ void CloudStep::control() {
     if (mBounceTimer > 0) {
         mBounceTimer--;
         mSpring->update();
-        fn_80068E40(mSpring, 60.0f);
+        mSpring->clampValueMax(60.0f);
     }
 }
 

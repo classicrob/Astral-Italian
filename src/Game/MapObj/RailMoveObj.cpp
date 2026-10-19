@@ -35,11 +35,11 @@ namespace NrvRailMoveObj {
 };  // namespace NrvRailMoveObj
 
 RailMoveObj::RailMoveObj(const char* pName) : MapObjActor(pName), _D0(gZeroVec) {
-    _DC = 0;
+    mWasRailMoverWorking = 0;
 }
 
 RailMoveObj::RailMoveObj(const char* pName, const char* pObjName) : MapObjActor(pName, pObjName), _D0(gZeroVec) {
-    _DC = 0;
+    mWasRailMoverWorking = 0;
 }
 
 void RailMoveObj::init(const JMapInfoIter& rIter) {
@@ -209,11 +209,11 @@ void RailMoveObj::exeMove() {
         startMapPartsFunctions();
     }
 
-    if (!_DC && MapObjActorUtil::isRailMoverWorking(this)) {
+    if (!mWasRailMoverWorking && MapObjActorUtil::isRailMoverWorking(this)) {
         startMoveInner();
     }
 
-    _DC = MapObjActorUtil::isRailMoverWorking(this);
+    mWasRailMoverWorking = MapObjActorUtil::isRailMoverWorking(this);
     move();
 
     if (mRailMover->isReachedEnd()) {
@@ -417,11 +417,11 @@ void RailMoveObjSwitchWarpEnd::startMoveInner() {
 
 void RailMoveObjSwitchWarpEnd::move() {
     if (!mRailMover->isStarting()) {
-        if (!_DD) {
+        if (!mIsWarpEffectStarted) {
             MR::StageEffect::rumblePadStart(this, mObjectName);
             MR::StageEffect::shakeStartCamera(this, mObjectName);
             MR::StageEffect::shakeCameraMoving(this, mObjectName);
-            _DD = 1;
+            mIsWarpEffectStarted = 1;
         }
 
         if (MapObjActorUtil::isRailMoverWorking(this)) {
@@ -504,10 +504,10 @@ void RailMoveWithReverseAnimObj::doAtEndPoint() {
 }
 
 RailMoveLavaProjmapObj::RailMoveLavaProjmapObj(const char* pName) : RailMoveObj(pName) {
-    _E0.x = 0.0f;
-    _E0.y = 0.0f;
-    _E0.z = 0.0f;
-    _EC = 0.0f;
+    mGroundPos.x = 0.0f;
+    mGroundPos.y = 0.0f;
+    mGroundPos.z = 0.0f;
+    mGroundDistance = 0.0f;
     _F0 = 0.0f;
 }
 
@@ -518,20 +518,20 @@ void RailMoveLavaProjmapObj::initAfterPlacement() {
     TVec3f gravity(mGravity);
     gravity *= 1000.0f;
 
-    if (!MR::getFirstPolyOnLineToMapExceptActor(&_E0, 0, mPosition, gravity, this)) {
-        MR::calcMapGroundUpper(&_E0, this);
+    if (!MR::getFirstPolyOnLineToMapExceptActor(&mGroundPos, 0, mPosition, gravity, this)) {
+        MR::calcMapGroundUpper(&mGroundPos, this);
     }
 
-    _EC = PSVECDistance(&mPosition, &_E0);
+    mGroundDistance = PSVECDistance(&mPosition, &mGroundPos);
 
     TVec3f diff(mPosition);
-    diff -= _E0;
+    diff -= mGroundPos;
     if (diff.dot(mGravity) < 0.0f) {
-        _EC *= -1.0f;
+        mGroundDistance *= -1.0f;
     }
 
     if (mMatrixSetter) {
-        TVec3f offset(0.0f, _EC, 0.0f);
+        TVec3f offset(0.0f, mGroundDistance, 0.0f);
         mMatrixSetter->updateMtxUseBaseMtxWithLocalOffset(offset);
     }
 }

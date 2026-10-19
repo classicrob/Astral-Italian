@@ -18,7 +18,7 @@ namespace NrvStarPieceMother {
     NEW_NERVE(HostTypeNrvWait, StarPieceMother, Wait);
 };  // namespace NrvStarPieceMother
 
-StarPieceMother::StarPieceMother(const char* pName) : LiveActor(pName), mStarPieceArray(), _90(), _94(6), _98(), _9C(), _A0(10.0f) {
+StarPieceMother::StarPieceMother(const char* pName) : LiveActor(pName), mStarPieceArray(), mPieceRailCoords(), mPieceNum(6), mNextPieceIdx(), _9C(), mMoveSpeed(10.0f) {
 }
 
 void StarPieceMother::init(const JMapInfoIter& rIter) {
@@ -53,13 +53,13 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
     s32 arg = -1;
     MR::getJMapInfoArg0NoInit(rIter, &arg);
     if (arg != -1) {
-        _94 = arg;
+        mPieceNum = arg;
     }
 
-    mStarPieceArray = new StarPiece*[_94];
-    _90 = new f32[_94];
+    mStarPieceArray = new StarPiece*[mPieceNum];
+    mPieceRailCoords = new f32[mPieceNum];
 
-    for (u32 idx = 0; idx < _94; idx++) {
+    for (u32 idx = 0; idx < mPieceNum; idx++) {
         mStarPieceArray[idx] = new StarPiece("スターピースマザーピース");
         mStarPieceArray[idx]->initAndSetFloatingFromGroup(rIter);
         mStarPieceArray[idx]->makeActorDead();
@@ -85,7 +85,7 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
         arg = -1;
         MR::getJMapInfoArg2NoInit(rIter, &arg);
         if (arg != -1 && arg != 0) {
-            _A0 = static_cast< f32 >(arg);
+            mMoveSpeed = static_cast< f32 >(arg);
         }
 
         makeActorDead();
@@ -114,13 +114,13 @@ void StarPieceMother::exeMoveOnRail() {
     }
 
     MR::startActionSound(this, "OjLvStarPieceMoMv");
-    MR::moveCoordAndFollowTrans(this, _A0);
+    MR::moveCoordAndFollowTrans(this, mMoveSpeed);
 
     f32 railCoord = MR::getRailCoord(this);  // Necessary to match
-    if (_90[_98] <= railCoord) {
-        mStarPieceArray[_98]->appear();
+    if (mPieceRailCoords[mNextPieceIdx] <= railCoord) {
+        mStarPieceArray[mNextPieceIdx]->appear();
         MR::startActionSound(this, "OjStarPieceBurst");
-        _98++;
+        mNextPieceIdx++;
     }
 
     if (MR::isRailReachedGoal(this)) {
@@ -132,32 +132,32 @@ void StarPieceMother::placementPieceOnRail(f32 distance) {
     TVec3f railPos;
     MR::calcRailPosAtCoord(&railPos, this, distance);
     mStarPieceArray[0]->mPosition.set(railPos);
-    _90[0] = distance;
+    mPieceRailCoords[0] = distance;
 
     f32 step;
     f32 difference = MR::getRailTotalLength(this) - distance;
-    if (1 < _94) {
-        step = 1.0f / (_94 - 1.0f);
+    if (1 < mPieceNum) {
+        step = 1.0f / (mPieceNum - 1.0f);
         step *= difference;
     }
 
-    for (int idx = 1; idx < _94; idx++) {
+    for (int idx = 1; idx < mPieceNum; idx++) {
         distance += step;
         f32 value = distance >= difference ? difference : distance;
         MR::calcRailPosAtCoord(&railPos, this, value);
         mStarPieceArray[idx]->mPosition.set(railPos);
-        _90[idx] = value;
+        mPieceRailCoords[idx] = value;
     }
 }
 
 void StarPieceMother::onSwitchA() {
-    for (u32 idx = 0; idx < _94; idx++) {
+    for (u32 idx = 0; idx < mPieceNum; idx++) {
         mStarPieceArray[idx]->mFlags._1 = true;
     }
 }
 
 void StarPieceMother::offSwitchA() {
-    for (u32 idx = 0; idx < _94; idx++) {
+    for (u32 idx = 0; idx < mPieceNum; idx++) {
         mStarPieceArray[idx]->mFlags._1 = false;
     }
 }
@@ -169,10 +169,14 @@ void StarPieceMother::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+// NONMATCHING: extra saved register for the by-value direction copy and loop stack slots.
 void StarPieceMother::emitStarPieces() {
-    for (u32 idx = 0; idx < _94; idx++) {
+    for (u32 idx = 0; idx < mPieceNum; idx++) {
         TVec3f position;
-        position.set(*MR::getPlayerCenterPos());
+        const TVec3f* playerPos = MR::getPlayerCenterPos();
+        position.x = playerPos->x;
+        position.y = playerPos->y;
+        position.z = playerPos->z;
         position.sub(mPosition);
         MR::normalizeOrZero(&position);
         MR::addRandomVector(&position, position, ::hAddRandomVectorValue);

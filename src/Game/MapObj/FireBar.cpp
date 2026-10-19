@@ -1,3 +1,4 @@
+#include "Game/Util/SceneUtil.hpp"
 #include "Game/MapObj/FireBar.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -9,8 +10,6 @@
 #include "Game/Util.hpp"
 #include <JSystem/JMath/JMath.hpp>
 
-// PLACEHOLDER(objects): unnamed core helper (child-object name by index, sits right after getChildObjName 0x80057880); resolve when core names fn_800578F0
-extern "C" const char* fn_800578F0(const JMapInfoIter&, s32);
 
 namespace NrvFireBar {
     NEW_NERVE(FireBarNrvA, FireBarBall, NerveA);
@@ -191,14 +190,14 @@ void FireBar::init(const JMapInfoIter& rIter) {
     s32 numChildObj = MR::getChildObjNum(rIter);
     if (numChildObj > 0) {
         mUnk98 = new TPos3f();
-        mUnk98->identity();
+        PSMTXIdentity(mUnk98->toMtxPtr());
     }
 
     for (s32 i = 0; i < numChildObj; i++) {
         const char* pChildName = nullptr;
         MR::getChildObjName(&pChildName, rIter, i);
 
-        PartsModel* pParts = new PartsModel(this, fn_800578F0(rIter, i), pChildName, mUnk98->mMtx, -1, false);
+        PartsModel* pParts = new PartsModel(this, MR::getChildObjJapaneseName(rIter, i), pChildName, mUnk98->mMtx, -1, false);
         pParts->initWithoutIter();
     }
 

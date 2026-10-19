@@ -1,4 +1,8 @@
+#include "Game/GameAudio/AudStageBgmWrap.hpp"
 #include "Game/AreaObj/BgmChangeArea.hpp"
+#include "Game/AudioLib/AudWrap.hpp"
+#include "Game/AudioLib/AudBgm.hpp"
+#include "Game/AudioLib/AudBgmMgr.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/BgmUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
@@ -7,16 +11,15 @@
 #include "Game/Util/SoundUtil.hpp"
 
 // Stage BGM lookups by scenario/stage name (target symbols are unnamed fn_ helpers).
-// PLACEHOLDER(objects): unnamed target symbol fn_8008A150, declared extern "C" so the reloc name matches; resolve when fn_8008A150 gets its real name in symbols.txt
-extern "C" s32 fn_8008A150(const char*, s32, s32);
-// PLACEHOLDER(objects): unnamed target symbol fn_8008A1A0, declared extern "C" so the reloc name matches; resolve when fn_8008A1A0 gets its real name in symbols.txt
-extern "C" s32 fn_8008A1A0(const char*, s32);
 
+#pragma push
+#pragma dont_inline on
 namespace MR {
     bool isStageTwisterTowerGalaxy() {
         return isEqualStageName("TwisterTowerGalaxy");
     }
 };  // namespace MR
+#pragma pop
 
 BgmChangeArea::BgmChangeArea(const char* pName) : AreaObj(pName) {
     mIsBgmApplied = false;
@@ -31,11 +34,11 @@ void BgmChangeArea::init(const JMapInfoIter& rIter) {
         s32 arg1 = mObjArg1;
         if (arg1 >= 0) {
             s32 scenario = MR::getCurrentScenarioNo();
-            fn_8008A150(MR::getCurrentStageName(), scenario, arg1);
+            AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg1);
         }
         s32 arg2 = mObjArg2;
         if (arg2 >= 0) {
-            fn_8008A1A0(MR::getCurrentStageName(), arg2);
+            AudStageBgmWrap::getStageBgmVolumeIDAtIndex(MR::getCurrentStageName(), arg2);
         }
         break;
     }
@@ -43,14 +46,14 @@ void BgmChangeArea::init(const JMapInfoIter& rIter) {
         s32 arg2 = mObjArg2;
         if (arg2 >= 0) {
             s32 scenario = MR::getCurrentScenarioNo();
-            fn_8008A150(MR::getCurrentStageName(), scenario, arg2);
+            AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg2);
         }
         break;
     }
     case 2: {
         s32 arg1 = mObjArg1;
         if (arg1 >= 0) {
-            fn_8008A1A0(MR::getCurrentStageName(), arg1);
+            AudStageBgmWrap::getStageBgmVolumeIDAtIndex(MR::getCurrentStageName(), arg1);
         }
         break;
     }
@@ -59,81 +62,113 @@ void BgmChangeArea::init(const JMapInfoIter& rIter) {
     MR::connectToSceneAreaObj(this);
 }
 
-// NONMATCHING: movement() is a behavioural port; the target's BGM id/fade paths
-// (AudWrap vtable calls and fn_8008A150/fn_8008A1A0 result checks) are not reproduced exactly.
+// NONMATCHING: argument and BGM-id locals use different registers; conditions and calls agree.
 void BgmChangeArea::movement() {
     if (!isValid()) {
         return;
     }
-
     if (MR::isCubeBgmChangeInvalid()) {
         return;
     }
-
     if (MR::isPowerStarGetDemoActive()) {
         invalidate();
         return;
     }
-
-    if (MR::isPlayingStageBgmID(0x200) || MR::isPlayingStageBgmID(0x201)) {
+    if (MR::isPlayingStageBgmID(0x02000000)) {
         invalidate();
         return;
     }
-
+    if (MR::isPlayingStageBgmID(0x02000001)) {
+        invalidate();
+        return;
+    }
     if (MR::isPlayerDead()) {
         invalidate();
         return;
     }
-
     if (MR::isStageTwisterTowerGalaxy() && isValidSwitchB() && isOnSwitchB()) {
         invalidate();
         return;
     }
-
     if (MR::isStageStateScenarioOpeningCamera()) {
         return;
     }
-
-    if (!isInVolume(*MR::getPlayerPos())) {
-        if (mObjArg4 == 0 && mIsBgmApplied) {
-            MR::startCurrentStageBGM(true);
+    if (isInVolume(*MR::getPlayerPos())) {
+        if (mIsBgmApplied) {
+            return;
         }
-        mIsBgmApplied = false;
-        return;
-    }
-
-    if (mIsBgmApplied) {
-        return;
-    }
-
-    switch (mObjArg0) {
-    case 0:
-        if (mObjArg1 < 0) {
-            MR::startCurrentStageBGM(true);
-        } else {
-            s32 scenario = MR::getCurrentScenarioNo();
-            fn_8008A150(MR::getCurrentStageName(), scenario, mObjArg1);
-        }
-        break;
-    case 1:
-        if (mObjArg3 != 1 && MR::isGalaxyCometEvent()) {
+        s32 arg1 = mObjArg1;
+        s32 arg2 = mObjArg2;
+        switch (mObjArg0) {
+        case 0:
+            if (arg1 < 0) {
+                MR::startCurrentStageBGM(true);
+            } else {
+                s32 scenario = MR::getCurrentScenarioNo();
+                u32 bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg1);
+                if (bgmId != 0xFFFFFFFF) {
+                    if (AudWrap::getBgmMgr()->mCurrentBGM[AudBgmMgr::BgmType_Stage] == bgmId && MR::isPlayingStageBgm()) {
+                        break;
+                    }
+                    AudWrap::startStageBgm(bgmId, false, -1);
+                }
+                if (arg2 >= 0) {
+                    s32 muteState = AudStageBgmWrap::getStageBgmVolumeIDAtIndex(MR::getCurrentStageName(), arg2);
+                    if (muteState >= 0) {
+                        AudBgm* bgm = AudWrap::getStageBgm();
+                        if (bgm) {
+                            bgm->changeTrackMuteState(muteState, 0);
+                        }
+                    }
+                }
+            }
+            break;
+        case 1:
+            if (mObjArg3 != 1 && MR::isGalaxyCometEvent()) {
+                break;
+            }
+            if (arg1 < 0) {
+                arg1 = 90;
+            }
+            if (arg2 >= 0) {
+                s32 scenario = MR::getCurrentScenarioNo();
+                u32 bgmId = AudStageBgmWrap::getStageBgmIDAtIndex(MR::getCurrentStageName(), scenario, arg2);
+                if (bgmId != 0xFFFFFFFF) {
+                    if (AudWrap::getBgmMgr()->mCurrentBGM[AudBgmMgr::BgmType_Stage] == bgmId && MR::isPlayingStageBgm()) {
+                        break;
+                    }
+                    AudWrap::setNextIdStageBgm(bgmId);
+                }
+            }
+            MR::stopStageBGM(arg1);
+            break;
+        case 2:
+            if (arg1 < 0) {
+                AudBgm* bgm = AudWrap::getStageBgm();
+                if (bgm) {
+                    bgm->changeTrackMuteState(0, getFadeTime());
+                }
+            } else {
+                s32 muteState = AudStageBgmWrap::getStageBgmVolumeIDAtIndex(MR::getCurrentStageName(), arg1);
+                if (muteState >= 0) {
+                    AudBgm* bgm = AudWrap::getStageBgm();
+                    if (bgm) {
+                        bgm->changeTrackMuteState(muteState, getFadeTime());
+                    }
+                }
+            }
             break;
         }
-        if (mObjArg2 >= 0) {
-            s32 scenario = MR::getCurrentScenarioNo();
-            fn_8008A150(MR::getCurrentStageName(), scenario, mObjArg2);
-        } else {
-            MR::stopStageBGM(getFadeTime());
+        mIsBgmApplied = true;
+    } else {
+        if (mObjArg4 == 0 && mIsBgmApplied) {
+            AudBgm* bgm = AudWrap::getStageBgm();
+            if (bgm) {
+                bgm->changeTrackMuteState(0, getFadeTime());
+            }
         }
-        break;
-    case 2:
-        if (mObjArg1 >= 0) {
-            fn_8008A1A0(MR::getCurrentStageName(), mObjArg1);
-        }
-        break;
+        mIsBgmApplied = false;
     }
-
-    mIsBgmApplied = true;
 }
 
 s32 BgmChangeArea::getFadeTime() const {

@@ -490,7 +490,7 @@ namespace MR {
         MR::getSceneObj< AudEffectDirector >(0x12)->setEffectType(param1, param2, param3);
     }
 
-    void fn_8005ADA0() {
+    void resetAudioEffect() {
         MR::getSceneObj< AudEffectDirector >(0x12)->restoreEffectType();
     }
 

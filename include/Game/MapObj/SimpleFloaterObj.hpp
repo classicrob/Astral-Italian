@@ -12,10 +12,10 @@ public:
 
     void exeWait();
     inline bool isVelocityClose() {
-        return _90->_50.length() < 0.3f;
+        return mFloatingForce->mMoveVelocity.length() < 0.3f;
     }
 
-    const char* _8C;
-    MapPartsFloatingForce* _90;
-    TVec3f _94;
+    const char* mObjectName;
+    MapPartsFloatingForce* mFloatingForce;
+    TVec3f mEffectPos;
 };

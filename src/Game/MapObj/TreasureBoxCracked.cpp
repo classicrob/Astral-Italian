@@ -195,7 +195,7 @@ bool TreasureBoxCracked::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitS
     }
 
     if (MR::isMsgToEnemyAttackBlow(msg) && mOpenCondition == 3) {
-        MR::fn_80034820(this);
+        MR::startBlowHitReaction(this);
         makeOpen();
         return true;
     }

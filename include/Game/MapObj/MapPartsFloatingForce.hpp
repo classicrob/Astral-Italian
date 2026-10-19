@@ -39,17 +39,17 @@ public:
     void exeMoveReturn();
     void exeMoveEnd();
 
-    /* 0x18 */ SpringStep* mSpringStep;
-    /* 0x1C */ const char* mObjectName;
-    /* 0x20 */ f32 _20;
-    /* 0x24 */ f32 mRotateAngle;
-    /* 0x28 */ f32 mRotateSpeed;
-    /* 0x3C */ f32 _3C;  // SMG2 (field comments below are Petari offsets; SMG2 = +0x14 or +0x18)
-    /* 0x2C */ s32 mRotateAccelType;
-    /* 0x30 */ TVec3f _30;
-    /* 0x3C */ TVec3f mUpDirection;
-    /* 0x48 */ f32 _48;
-    /* 0x4C */ f32 _4C;
-    /* 0x50 */ TVec3f _50;
-    /* 0x5C */ f32 _5C;
+    /* 0x28 */ SpringStep* mSpringStep;
+    /* 0x2C */ const char* mObjectName;
+    /* 0x30 */ f32 mMaxOffset;
+    /* 0x34 */ f32 mRotateAngle;
+    /* 0x38 */ f32 mRotateSpeed;
+    /* 0x3C */ f32 mReturnMargin;
+    /* 0x40 */ s32 mRotateAccelType;
+    /* 0x44 */ TVec3f mBasePos;
+    /* 0x50 */ TVec3f mUpDirection;
+    /* 0x5C */ f32 mCurOffset;
+    /* 0x60 */ f32 mVerticalSpeed;
+    /* 0x64 */ TVec3f mMoveVelocity;
+    /* 0x70 */ f32 mSpringKick;
 };

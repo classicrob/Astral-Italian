@@ -387,11 +387,14 @@ enum {
     ATYPE_PLAYER_AUTO_JUMP = 0x23,
     ATYPE_PUKUPUKU = 0x27,
     ATYPE_SAMBO_BODY = 0x2a,  // votes: 1
+    ATYPE_ROCK = 0x2f,
+    ATYPE_WANWAN = 0x30,
     ATYPE_ENEMY_END = 0x3e,  // votes: 1
     ATYPE_MAPOBJ_START = 0x3f,  // votes: 1
     ATYPE_MAP_OBJ = 0x40,
     ATYPE_MAP_OBJ_SIMPLE = 0x41,
     ATYPE_MAP_OBJ_MOVE_COLLISION = 0x42,  // votes: 1
+    ATYPE_CLIP_FIELD_MAP_PARTS = 0x43,
     ATYPE_COIN = 0x44,
     ATYPE_COIN_RED = 0x45,  // votes: 1
     ATYPE_STAR_PIECE = 0x46,

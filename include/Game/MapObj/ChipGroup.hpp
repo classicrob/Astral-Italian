@@ -57,3 +57,5 @@ public:
 
     virtual ~YellowChipGroup();
 };
+
+void updateChipGroupUIRange(ChipGroup*, ChipBase*);

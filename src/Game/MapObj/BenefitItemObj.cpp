@@ -547,8 +547,8 @@ bool BenefitItemObj::tryEndTicoHold() {
     return false;
 }
 
-void BenefitItemObj::attachSupportTico() {
-    MR::attachSupportTicoToTarget(this);
+bool BenefitItemObj::attachSupportTico() {
+    return MR::attachSupportTicoToTarget(this);
 }
 
 void BenefitItemObj::setNerveShoot() {

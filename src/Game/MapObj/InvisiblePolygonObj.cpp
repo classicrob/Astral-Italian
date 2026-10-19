@@ -20,12 +20,7 @@ void InvisiblePolygonObj::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     MR::setClippingTypeSphere(this, MR::getCollisionBoundingSphereRange(this));
 
-    if (MR::useStageSwitchReadAppear(this, rIter)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void InvisiblePolygonObj::initBaseMtx() {

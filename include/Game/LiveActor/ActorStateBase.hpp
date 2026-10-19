@@ -32,7 +32,12 @@ public:
 template < typename T >
 class ActorStateBase : public ActorStateBaseInterface {
 public:
-    inline ActorStateBase(const char* pName, T* pHost) : ActorStateBaseInterface(pName), mHost(pHost) {
+#ifdef ACTOR_STATE_BASE_CTOR_NOINLINE
+    ActorStateBase(const char* pName, T* pHost) NO_INLINE :
+#else
+    inline ActorStateBase(const char* pName, T* pHost) :
+#endif
+        ActorStateBaseInterface(pName), mHost(pHost) {
     }
 
     T* getHost() const {

@@ -15,7 +15,8 @@ TwoLegsStateDamage::TwoLegsStateDamage(TwoLegs* pHost) : ActorStateBase< TwoLegs
 TwoLegsStateDamage::~TwoLegsStateDamage() {}
 
 void TwoLegsStateDamage::init() {
-    MR::declareStarPiece(mHost, (TwoLegs::getPhaseNum() - 1) * 12);
+    TwoLegs* host = mHost;
+    MR::declareStarPiece(host, (host->getPhaseNum() - 1) * 12);
     initNerve(&NrvTwoLegsStateDamage::TwoLegsStateDamageNrvDamage::sInstance, 0);
 }
 

@@ -473,8 +473,7 @@ SandyHand::SandyHand(Sandy* pSandy, bool isLeft, SandyBallHolder* pHolder, Fixed
 void SandyHand::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "SandyHand", mIsRight);
     if (mIsRight) {
-        // PLACEHOLDER(objects): target passes its hand-type byte at 0xA2; resolve the SMG2 core prototype before removing this cast.
-        MR::initDLMakerTexMtx(this, reinterpret_cast< const char* >(&mHandType));
+        MR::initDLMakerTexGenNum(this, &mHandType);
         MR::newDifferedDLBuffer(this);
         mScale.x *= -1.0f;
     }

@@ -1,6 +1,7 @@
 #pragma auto_inline off
 #define JGEOMETRY_VEC3_WMR_OUTLINE
 
+#include "Game/Util/YoshiUtil.hpp"
 #include "Game/MapObj/BalloonFruit.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
@@ -47,12 +48,6 @@ namespace MR {
 }
 
 // Unnamed SMG2 helpers, C linkage so the target reloc names match.
-// PLACEHOLDER(objects): extern "C" declaration of a target symbol with a non-C++ name (relocs must match); resolve when the symbol is renamed in symbols.txt
-extern "C" void fn_802730E0_unused();
-// PLACEHOLDER(objects): unnamed target symbol fn_80422580, declared extern "C" so the reloc name matches; resolve when fn_80422580 gets its real name in symbols.txt
-extern "C" void fn_80422580();
-// PLACEHOLDER(objects): unnamed target symbol fn_80422880, declared extern "C" so the reloc name matches; resolve when fn_80422880 gets its real name in symbols.txt
-extern "C" s32 fn_80422880(u32 msg);
 
 namespace { extern const f32 sSpinDegrees; }
 
@@ -345,7 +340,7 @@ bool BalloonFruit::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
         return true;
     }
     if (isNerveNoYoshiEat()) {
-        if (fn_80422880(msg)) {
+        if (MR::isMsgYoshiAutoEatQuery(msg)) {
             return true;
         }
         if (MR::isMsgYoshiAutoEatStart(msg)) {
@@ -366,14 +361,14 @@ bool BalloonFruit::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
         if (MR::isMsgYoshiReleaseEaten(msg)) {
             MR::hideModel(this);
             MR::startActionSoundPlayer("Swallow", -1, -1);
-            fn_80422580();
+            MR::resetYoshiTongueTarget();
             setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvHide));
             return true;
         }
         if (MR::isMsgYoshiAutoEatEnd(msg)) {
             MR::hideModel(this);
             MR::startActionSoundPlayer("Swallow", -1, -1);
-            fn_80422580();
+            MR::resetYoshiTongueTarget();
             setNerve(GET_NERVE(BalloonFruit, BalloonFruitNrvHide));
             return true;
         }

@@ -77,4 +77,3 @@ public:
 };
 
 // SMG2 unnamed helper at 0x80332BB0 (MapPartsFunction.cpp), named by address; used by Garigari init.
-void fn_80332BB0(MapPartsRailMover*);

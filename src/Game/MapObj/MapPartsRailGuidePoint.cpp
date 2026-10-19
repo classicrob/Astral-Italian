@@ -17,9 +17,9 @@ MapPartsRailGuidePoint::MapPartsRailGuidePoint(const LiveActor* pActor, const ch
 }
 
 MapPartsRailGuidePoint::MapPartsRailGuidePoint(const LiveActor* pActor, const char* pName, int a3, bool a4) : LiveActor("レイル点") {
-    _90 = a4;
     _8C = 0.0f;
-    initModelManagerWithAnm(pName, 0, false);
+    _90 = a4;
+    MR::initActor(this, pName, false);
     MR::calcRailPointPos(&mPosition, pActor, a3);
     _8C = MR::getRailPointCoord(pActor, a3);
 }

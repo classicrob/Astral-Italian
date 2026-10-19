@@ -79,8 +79,7 @@ namespace MR {
 #pragma dont_inline reset
 
     // Target passes the leftover f1 straight into moveCoord (the mangled name has no float parameter)
-    void moveCoordAndFollowTransXZ(LiveActor* pActor) {
-        f32 speed;
+    void moveCoordAndFollowTransXZ(LiveActor* pActor, f32 speed) {
         moveCoord(pActor, speed);
         moveTransXZToCurrentRailPos(pActor);
     }

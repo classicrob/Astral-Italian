@@ -233,3 +233,7 @@ void MapObjActorUtil::setupInitInfoSeesaw(MapObjActorInitInfo* pInitInfo, const 
         pInitInfo->mSeesaw1AxisRotatorRadius = radius;
     }
 }
+
+void MapObjActorUtil::setupProjmapMtx(MapObjActorInitInfo* pInfo, bool enabled, bool useBaseMtx) {
+    pInfo->setupProjmapMtx(enabled, useBaseMtx);
+}

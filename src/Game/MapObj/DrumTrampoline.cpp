@@ -46,7 +46,7 @@ void DrumTrampoline::control() {
     f32 vDist = MR::clamp(MR::calcDistanceToPlayerVGravity(this) - 1000.0f, 0.0f, 100000.0f);
     f32 hDist = MR::calcDistanceToPlayerH(this);
     if (mIsBounce) {
-        if (!(hDist <= 700.0f * mScale.x) && !(vDist <= 1700.0f)) {
+        if (hDist <= 700.0f * mScale.x && vDist <= 1700.0f) {
             s32 pitch = (s32)MR::clamp(1000.0f * (1.0f - vDist / 1700.0f), 0.0f, 1000.0f);
             s32 vol = (s32)MR::clamp(1000.0f * (1.0f / mScale.x) - 80.0f, 0.0f, 1000.0f);
             MR::startActionSound(this, "JumpLv", pitch, vol, -1);
@@ -92,7 +92,7 @@ bool DrumTrampoline::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRe
 
 bool DrumTrampoline::tryGetGroundNormal(TVec3f* pNormal, LiveActor* pActor, HitSensor* pSensor) {
     if (MR::sendMsgToGroundSensor(0xD5, pSensor)) {
-        *pNormal = MR::getGroundNormal(pActor);
+        pNormal->set(MR::getGroundNormal(pActor));
         return true;
     }
     return false;

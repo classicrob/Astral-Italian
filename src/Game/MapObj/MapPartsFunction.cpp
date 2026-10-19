@@ -41,6 +41,10 @@ f32 MapPartsFunction::getSpeed() const {
     return 1.0f;
 }
 
+void MapPartsFunction::clearSensorName() {
+    mSensorName = nullptr;
+}
+
 void MapPartsFunction::initNerve(const Nerve* pNerve) {
     mSpine = new Spine(this, pNerve);
 }

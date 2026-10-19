@@ -16,7 +16,7 @@ public:
 
 private:
     /* 0x90 */ LiveActor* mHost;
-    /* 0x94 */ TVec3f _94;
+    /* 0x94 */ TVec3f mTrapOffset;
 };
 
 class Sandstorm : public LiveActor {
@@ -62,26 +62,26 @@ public:
     void exeStormEnd();
 
 private:
-    /* 0x8C */ ActorCameraInfo* _8C;
-    /* 0x90 */ LiveActor* mBindActor;
-    /* 0x94 */ TVec3f _94;
-    /* 0xA0 */ TVec3f _A0;
-    /* 0xAC */ s32 mType;
-    /* 0xB0 */ f32 mSpiralRot;
-    /* 0xB4 */ f32 mSpiralRadius;
-    /* 0xB8 */ f32 _B8;
-    /* 0xBC */ f32 _BC;
-    /* 0xC0 */ f32 _C0;
-    /* 0xC4 */ f32 _C4;
-    /* 0xC8 */ s32 _C8;
-    /* 0xCC */ f32 _CC;
-    /* 0xD0 */ f32 mSensorHeight;
-    /* 0xD4 */ f32 mSizeUpRate;
-    /* 0xD8 */ f32 mSensorMin;
-    /* 0xDC */ s32 mStepStorm;
-    /* 0xE0 */ s32 mStepAdjust;
-    /* 0xE4 */ s32 mStepFix;
-    /* 0xE8 */ s32 mStepEnd;
-    /* 0xEC */ f32 mBindHeight;
-    /* 0xF0 */ SunakazeKunTrap** mTrapModel;
+    /* 0x90 */ ActorCameraInfo* mCameraInfo;
+    /* 0x94 */ LiveActor* mBindActor;
+    /* 0x98 */ TVec3f mFrontDir;
+    /* 0xA4 */ TVec3f mRailClipCenter;
+    /* 0xB0 */ s32 mType;
+    /* 0xB4 */ f32 mSpiralRot;
+    /* 0xB8 */ f32 mSpiralRadius;
+    /* 0xBC */ f32 mSpiralAngle;
+    /* 0xC0 */ f32 mCurRadius;
+    /* 0xC4 */ f32 mAdjustStartRadius;
+    /* 0xC8 */ f32 mCurHeight;
+    /* 0xCC */ s32 mStepCount;
+    /* 0xD0 */ f32 mBindStepOffset;
+    /* 0xD4 */ f32 mSensorHeight;
+    /* 0xD8 */ f32 mSizeUpRate;
+    /* 0xDC */ f32 mSensorMin;
+    /* 0xE0 */ s32 mStepStorm;
+    /* 0xE4 */ s32 mStepAdjust;
+    /* 0xE8 */ s32 mStepFix;
+    /* 0xEC */ s32 mStepEnd;
+    /* 0xF0 */ f32 mBindHeight;
+    /* 0xF4 */ SunakazeKunTrap** mTrapModel;
 };

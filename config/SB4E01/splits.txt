@@ -4578,6 +4578,7 @@ Game/MapObj/AssemblyBlock.cpp:
 Game/MapObj/BalloonFruit.cpp:
 	.text       start:0x80271F60 end:0x802733F0
 	.ctors      start:0x806442FC end:0x80644300
+	.data       start:0x8069B798 end:0x8069B920
 
 Game/MapObj/BallOpener.cpp:
 	.text       start:0x802733F0 end:0x80273D80
@@ -5100,6 +5101,8 @@ Game/MapObj/ItemRoomDoor.cpp:
 Game/MapObj/JetTurtle.cpp:
 	.text       start:0x802B8FF0 end:0x802BBDD0
 	.ctors      start:0x8064445C end:0x80644460
+	.rodata     start:0x806494D8 end:0x80649508
+	.data       start:0x806A37C8 end:0x806A3C68
 	.sbss       start:0x807D3D48 end:0x807D3D50
 
 Game/MapObj/JumpHole.cpp:
@@ -5210,6 +5213,7 @@ Game/MapObj/MarioFacePlanet.cpp:
 Game/MapObj/MarioFacePlanetPrevious.cpp:
 	.text       start:0x802C78B0 end:0x802C7D90
 	.ctors      start:0x806444BC end:0x806444C0
+	.data       start:0x806A5600 end:0x806A5720
 
 Game/MapObj/MarioFaceShipAttentionConversationExecutor.cpp:
 	.text       start:0x802C7D90 end:0x802C8BE0
@@ -5292,6 +5296,7 @@ Game/MapObj/MorphItemRock.cpp:
 
 Game/MapObj/MoveBlockFunction.cpp:
 	.text       start:0x802D48C0 end:0x802D4DA0
+	.data       start:0x806A7178 end:0x806A71B8
 
 Game/MapObj/MysteryMountainPlanet.cpp:
 	.text       start:0x802D4DA0 end:0x802D5110
@@ -5450,6 +5455,7 @@ Game/MapObj/RepeatBlock.cpp:
 Game/MapObj/RepeatBlockGrid.cpp:
 	.text       start:0x802EE990 end:0x802F0C90
 	.ctors      start:0x80644554 end:0x80644558
+	.data       start:0x806AABC0 end:0x806AAC18
 
 Game/MapObj/RepeatTimerSwitchingBlock.cpp:
 	.text       start:0x802F0C90 end:0x802F1700
@@ -5494,6 +5500,7 @@ Game/MapObj/RollingWaterCreator.cpp:
 Game/MapObj/RotateHammerPressure.cpp:
 	.text       start:0x802F73D0 end:0x802F7B00
 	.ctors      start:0x8064457C end:0x80644580
+	.data       start:0x806AB7B0 end:0x806AB880
 
 Game/MapObj/RotateMoveObj.cpp:
 	.text       start:0x802F7B00 end:0x802F80E0
@@ -5507,6 +5514,7 @@ Game/MapObj/RotateSeesawTrampoline.cpp:
 Game/MapObj/SandBird.cpp:
 	.text       start:0x802F83D0 end:0x802F8F60
 	.ctors      start:0x80644588 end:0x8064458C
+	.data       start:0x806ABAB0 end:0x806ABBC0
 
 Game/MapObj/SandBirdParts.cpp:
 	.text       start:0x802F8F60 end:0x802F99F0
@@ -5672,6 +5680,9 @@ Game/MapObj/StarPieceCluster.cpp:
 Game/MapObj/StarPieceClusterRock.cpp:
 	.text       start:0x803150F0 end:0x80315680
 	.ctors      start:0x806445F0 end:0x806445F4
+	.data       start:0x806AEE78 end:0x806AEF40
+	.sbss       start:0x807D44E0 end:0x807D44E8
+	.sdata2     start:0x807DE9D0 end:0x807DE9E8
 
 Game/MapObj/StarPieceDirector.cpp:
 	.text       start:0x80315680 end:0x80317250
@@ -5850,6 +5861,8 @@ Game/MapObj/WoodBox.cpp:
 
 Game/MapObj/WoodLogBridge.cpp:
 	.text       start:0x8032B2D0 end:0x8032CA30
+	.rodata     start:0x806498D8 end:0x806498E0
+	.data       start:0x806B1CC8 end:0x806B1E30
 
 Game/MapObj/WorldMapAccessPanel.cpp:
 	.text       start:0x8032CA30 end:0x8032DA60
@@ -5866,6 +5879,7 @@ Game/MapObj/YoshiBlock.cpp:
 Game/MapObj/YoshiCapture.cpp:
 	.text       start:0x8032EDE0 end:0x8032F720
 	.ctors      start:0x80644664 end:0x80644668
+	.data       start:0x806B2228 end:0x806B2300
 
 Game/MapObj/YoshiFruit.cpp:
 	.text       start:0x8032F720 end:0x8032F830
@@ -6873,7 +6887,7 @@ Game/Player/MarioSkate.cpp:
 
 Game/Player/MarioSlider.cpp:
 	.text       start:0x803F56D0 end:0x803F62E0
-	.data       start:0x806DDF60 end:0x806DDFA8
+	.data       start:0x806DDF18 end:0x806DDFA8
 
 Game/Player/MarioMagic.cpp:
 	.text       start:0x803F62E0 end:0x803F65B0
@@ -6914,9 +6928,9 @@ Game/Player/MarioTalk.cpp:
 Game/Player/MarioTeresa.cpp:
 	.text       start:0x80403F90 end:0x80405E40
 	.rodata     start:0x8064BEB8 end:0x8064BEC0
-	.data       start:0x806DEB20 end:0x806DEBD0
-	.sdata      start:0x807D0098 end:0x807D00A0
-	.sdata2     start:0x807E0400 end:0x807E0490
+	.data       start:0x806DEB20 end:0x806DECC8
+	.sdata      start:0x807D0098 end:0x807D00A8
+	.sdata2     start:0x807E0400 end:0x807E0498
 
 Game/Player/MarioPosHolder.cpp:
 	.text       start:0x80405E40 end:0x80406390

@@ -7,19 +7,9 @@
 #include "Game/Player/MarioConst.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-bool Mario::isSliderFloor() const {
-    return _960 == 9;
-}
 
-bool Mario::checkSliderMode() const {
-    if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMovementStates.mLowWord >> 30) & 1U)) {
-        if (isSliderFloor()) {
-            return true;
-        }
-    }
 
-    return false;
-}
+
 
 MarioSlider::MarioSlider(MarioActor* pActor) : MarioState(pActor, MarioStatus_Slider) {
     _14.x = 0.0f;
@@ -93,25 +83,7 @@ void MarioSlider::calcWallHit() {
     }
 }
 
-void Mario::startSlider() {
-    if (!isStatusActive(mSlider->mStatusId)) {
-        if (((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
-            if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
-                mDrawStates.mWord |= 0x00000800U;
-                playSound("尻ドロップ着地");
-                playSound("声尻ドロップ着地");
-                playEffectRT("属性尻ドロップ", _368, mPosHolder->mPos);
-                startPadVib("最強");
-                startCamVib(0);
-                MR::removeAllClingingKarikari();
-            }
-        }
 
-        stopWalk();
-        stopJump();
-        changeStatus(mSlider);
-    }
-}
 
 bool MarioSlider::start() {
     _14 = getPlayer()->_16C;

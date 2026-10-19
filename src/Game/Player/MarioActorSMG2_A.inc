@@ -1093,7 +1093,7 @@ void MarioActor::fn_803C2030() {
 
 
 void MarioActor::fn_803C2320() {
-    reinterpret_cast<s32&>(this->_37C) = reinterpret_cast<s32&>(this->_37C) + 1;
+    this->_37C += 1;
     if (this->_EF6 != 0) {
         this->_EF6 -= 1;
     }
@@ -1107,7 +1107,7 @@ void MarioActor::fn_803C2320() {
         this->mAnimationDelayE28 -= 1;
     }
     if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) != 0) {
-        reinterpret_cast<s32&>(this->mRushAnimationDelay1054) -= 1;
+        this->mRushAnimationDelay1054 -= 1;
         if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
             this->_480 = 1;
             this->mMarioAnim->fn_803DDF60();
@@ -1308,7 +1308,7 @@ bool MarioActor::fn_803C33D0() {
 
 void MarioActor::fn_803C34F0() {
     if (reinterpret_cast<s32&>(this->_92C) != 0) {
-        reinterpret_cast<s32&>(this->_92C) -= 1;
+        this->_92C -= 1;
         if (reinterpret_cast<s32&>(this->_92C) == 0) {
             this->decreaseLifeByOne();
             this->fn_803D9740();
@@ -1835,9 +1835,9 @@ void MarioActor::fn_803C5AB0(MtxPtr mtx) {
     } else if (!((this->mMario->mMovementStates.mHighWord >> (3)) & 1)) {
         this->_3B0 = 1.0f;
     }
-    s32 t = reinterpret_cast<s32&>(this->_398);
+    u32 t = this->_398;
     if (t != 0) {
-        reinterpret_cast<s32&>(this->_398) = t - 1;
+        this->_398 = t - 1;
     }
 }
 

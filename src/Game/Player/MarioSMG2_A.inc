@@ -1193,15 +1193,14 @@ void Mario::fn_803882A0() {
     }
     if (!((this->mMovementStates.mHighWord >> 29) & 1)) {
         for (u32 i = 0; i < this->_578; i++) {
-            Triangle* tri = this->_57C[i];
             TVec3f clipped;
-            if (MR::vecKillElement(this->mVelocity, *tri->getNormal(0), &clipped) < 0.0f) {
+            if (MR::vecKillElement(this->mVelocity, *this->_57C[i]->getNormal(0), &clipped) < 0.0f) {
                 this->mVelocity = clipped;
                 if (!((this->mFlags20.mWord >> 18) & 1)) {
                     TVec3f projected;
-                    f32 depth = MR::vecKillElement(this->mJumpVec, *tri->getNormal(0), &projected);
+                    f32 depth = MR::vecKillElement(this->mJumpVec, *this->_57C[i]->getNormal(0), &projected);
                     if (depth <= 0.0f) {
-                        TVec3f normal(*tri->getNormal(0));
+                        TVec3f normal(*this->_57C[i]->getNormal(0));
                         normal *= depth;
                         TVec3f half(normal);
                         half *= 0.5f;
@@ -1211,22 +1210,22 @@ void Mario::fn_803882A0() {
                     }
                 } else if (MR::diffAngleAbs(*getGravityVec(), this->mJumpVec) < 0.10471976f) {
                     TVec3f tangent;
-                    MR::vecKillElement(*tri->getNormal(0), *getGravityVec(), &tangent);
+                    MR::vecKillElement(*this->_57C[i]->getNormal(0), *getGravityVec(), &tangent);
                     f32 length = PSVECMag(&this->mJumpVec);
                     MR::normalizeOrZero(&tangent);
                     this->mJumpVec += tangent;
                     this->mJumpVec.setLength(length);
                 }
                 if (rising) {
-                    if (tri->getNormal(0)->dot(*getGravityVec()) > 0.707f) {
-                        mActor->sendMsgUpperPunch(tri->mSensor);
+                    if (this->_57C[i]->getNormal(0)->dot(*getGravityVec()) > 0.707f) {
+                        mActor->sendMsgUpperPunch(this->_57C[i]->mSensor);
                     }
                 }
                 if (isPlayerModeBee() && mActor->mBeeWallWalk == 0) {
-                    const char* code = MR::getWallCodeString(tri);
+                    const char* code = MR::getWallCodeString(this->_57C[i]);
                     if (code && strcmp(code, "Fur") == 0) {
                         Triangle hitTriangle;
-                        TVec3f negativeNormal(-*tri->getNormal(0));
+                        TVec3f negativeNormal(-*this->_57C[i]->getNormal(0));
                         TVec3f ray(negativeNormal);
                         ray *= 300.0f;
                         TVec3f hitPos;

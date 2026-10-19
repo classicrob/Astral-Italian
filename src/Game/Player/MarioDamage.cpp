@@ -603,8 +603,8 @@ void MarioFireDance::impactEffect() {
             MR::startActionSound(mActor->getYoshi(), "DamageFire", -1, -1, -1);
         } else {
             playSound("声炎ダメージ");
-            playSound("炎ダメージ");
         }
+        playSound("炎ダメージ");
         if (mActor->_1B4) {
             playEffect("炎ダメージ青煙");
         } else {
@@ -617,8 +617,8 @@ void MarioFireDance::impactEffect() {
             MR::startActionSound(mActor->getYoshi(), "DamageFire", -1, -1, -1);
         } else {
             playSound("声針ダメージ");
-            playSound("針ダメージ");
         }
+        playSound("針ダメージ");
         break;
     }
 }

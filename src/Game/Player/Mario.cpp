@@ -3076,7 +3076,7 @@ void Mario::checkAllWall(const TVec3f& rPosition, f32 radius) {
             delta.setLength(radius - distance);
             f32 penetration = -delta.dot(*mFrontWallTriangle->getNormal(0));
             f32 amount = 2.0f;
-            if (penetration <= amount) amount = 0.0f;
+            if (!(penetration > amount)) amount = 0.0f;
             TVec3f pushVec(*mFrontWallTriangle->getNormal(0));
             pushVec.scale(amount);
             push(pushVec);
@@ -5336,10 +5336,10 @@ void Mario::checkEnforceMoveInner() {
             f32 verticalLimit = ((getMovementStates().mLowWord >> 30) & 1U) ? 0.0f : mVerticalSpeed;
 
             if (mVelocity.dot(_368) < 0.0f) {
-                f32 element = MR::vecKillElement(mVelocity, _368, &mVelocity);
-                f32 v8 = element;
-
                 if (!((mMovementStates.mLowWord >> 30) & 1U)) {
+                    f32 element = MR::vecKillElement(mVelocity, _368, &mVelocity);
+                    f32 v8 = element;
+
                     if (element < 0.0f) {
                         if (-element > mVerticalSpeed) {
                             v8 = -mVerticalSpeed;
@@ -6455,6 +6455,10 @@ void Mario::checkHang() {
     }
 
     if (getPlayerMode() == PlayerMode_Teresa) {
+        return;
+    }
+
+    if (isPlayerModeYoshi()) {
         return;
     }
 

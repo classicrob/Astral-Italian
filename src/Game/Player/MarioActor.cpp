@@ -667,7 +667,7 @@ void MarioActor::changeGameOverAnimation() {
     }
 
     if (MR::getKarikariClingNum() && ((mMario->getMovementStates().mLowWord >> 30) & 1U)) {
-        animation = 4;
+        animation = 0;
     }
 
     if (_39D == 2) {

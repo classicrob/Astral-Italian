@@ -827,7 +827,7 @@ bool Mario::fn_803B18C0() {
     if (mActor->_482 || mActor->_481) actorBusy = true;
     if (actorBusy) return false;
     if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestRush()) return false;
-    if (!(getPlayer()->mMovementStates.mLowWord >> 31) && !((getPlayer()->mMovementStates.mLowWord >> 30) & 1)) return false;
+    if ((getPlayer()->mMovementStates.mLowWord >> 31) || !((getPlayer()->mMovementStates.mLowWord >> 30) & 1)) return false;
     if (getPlayer()->isStatusActive(6)) return false;
     if (getPlayer()->isStatusActive(5)) return false;
     if (getPlayer()->isStatusActive(0x1A)) return false;
@@ -1296,7 +1296,7 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
     }
     f32 offset = 0.0f;
     MR::isNearZero(this->mAirGravityVec, 0.001f);
-    f32 angle = this->marioAcos(-this->mAirGravityVec.dot(*tri.getNormal(0)));
+    f32 angle = this->marioAcos(-this->mAirGravityVec.dot(*pTri->getNormal(0)));
     if (angle < 1.5707964f && angle != 0.0f) {
         offset = this->_4E0 / (JMASinRadian(angle) / JMACosRadian(angle));
     }

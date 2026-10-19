@@ -296,7 +296,7 @@ bool MarioActor::fn_803CB1A0(u16 mode) {
     } else if (mode == 7) {
         this->_3DC = 0xE10;
         MR::startStageBGM("BGM_FLYING_A", false);
-    } else {
+    } else if (mode != 0) {
         this->playEffect("アイテム再ゲット");
     }
     return true;

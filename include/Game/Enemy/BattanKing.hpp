@@ -79,7 +79,7 @@ public:
     /* 0x9C */ TMtx34f mMtxBreak;
     /* 0xCC */ VolumeDrawer** mVolumeDrawers;
     /* 0xD0 */ TVec3f mShake;
-    /* 0xDC */ TMtx34f* mVolumeMtxs;
+    /* 0xDC */ TPos3f* mVolumeMtxs;
     /* 0xE0 */ VolumeDrawer* mEarthquakeDrawer;
     /* 0xE4 */ TMtx34f mEarthquakeMtx;
     /* 0x114 */ TMtx34f mMtxFx;

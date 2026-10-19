@@ -8870,6 +8870,9 @@ Game/NWC24/NWC24System.cpp:
 Game/NWC24/ReceiverTagMail.cpp:
 	.text       start:0x80500820 end:0x80500A10
 
+Game/NWC24/UTF16Util.cpp:
+	.text       start:0x80500A10 end:0x80500A50
+
 Game/NWC24/WiiMessageBoardMailSenderState.cpp:
 	.text       start:0x80500A50 end:0x80500F60
 	.ctors      start:0x80644AF4 end:0x80644AF8

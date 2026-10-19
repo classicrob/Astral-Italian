@@ -2823,6 +2823,7 @@ config.libs = [
             Object(NonMatching, "Game/NWC24/NWC24SendThread.cpp"),
             Object(NonMatching, "Game/NWC24/NWC24System.cpp"),
             Object(NonMatching, "Game/NWC24/ReceiverTagMail.cpp"),
+            Object(NonMatching, "Game/NWC24/UTF16Util.cpp"),
             Object(NonMatching, "Game/NWC24/WiiMessageBoardMailSenderState.cpp"),
         ],
     ),

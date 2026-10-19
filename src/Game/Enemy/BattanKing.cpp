@@ -150,10 +150,10 @@ BattanKing::BattanKing(const char* pName) : LiveActor(pName) {
     mShake.z = 0.0f;
     mVolumeMtxs = NULL;
     mEarthquakeDrawer = NULL;
-    mPattanHolder = NULL;
     mCameraInfo = NULL;
     mTalkStateA = NULL;
     mTalkStateB = NULL;
+    mPattanHolder = NULL;
     mFront.x = 0.0f;
     mFront.y = 0.0f;
     mFront.z = 1.0f;
@@ -181,27 +181,21 @@ void BattanKing::init(const JMapInfoIter& rIter) {
     mCollisionPresses = new BattanKingCollisionPress*[5];
     for (s32 i = 0; i < 5; i++) {
         const CollisionPartsInfo& info = sCollisionPartsInfo[i];
-        BattanKingCollision* pCollision = new BattanKingCollision(this, info.mActorName, info.mPartsName, NULL,
-                                                                  MR::getJointMtx(this, info.mJointName), 0x1E);
-        mCollisions[i] = pCollision;
-        pCollision->initWithoutIter();
+        mCollisions[i] = new BattanKingCollision(this, info.mActorName, info.mPartsName, NULL, MR::getJointMtx(this, info.mJointName), 0x1E);
+        mCollisions[i]->initWithoutIter();
 
-        BattanKingCollisionPress* pPress = new BattanKingCollisionPress(this, info.mActorName, info.mPartsName, NULL,
-                                                                        MR::getJointMtx(this, info.mJointName), 0x1E);
-        mCollisionPresses[i] = pPress;
-        pPress->initWithoutIter();
+        mCollisionPresses[i] = new BattanKingCollisionPress(this, info.mActorName, info.mPartsName, NULL, MR::getJointMtx(this, info.mJointName), 0x1E);
+        mCollisionPresses[i]->initWithoutIter();
     }
 
-    // Result of this allocation is not stored in the target.
-    new u8[0x160];
-    mVolumeMtxs = new TMtx34f[7];
+    mVolumeMtxs = new TPos3f[7];
 
     mVolumeDrawers = new VolumeDrawer*[7];
     mVolumeDrawers[0] = MR::createVolumeDrawer("Body", "VolumeBox", mVolumeMtxs[0]);
     mVolumeDrawers[1] = MR::createVolumeDrawer("ArmL", "VolumeBox", mVolumeMtxs[1]);
     mVolumeDrawers[2] = MR::createVolumeDrawer("ArmR", "VolumeBox", mVolumeMtxs[2]);
     mVolumeDrawers[3] = MR::createVolumeDrawer("HandL", "VolumeCylinder", mVolumeMtxs[3]);
-    mVolumeDrawers[4] = MR::createVolumeDrawer("HandR", "VolumeBox", mVolumeMtxs[4]);
+    mVolumeDrawers[4] = MR::createVolumeDrawer("HandR", "VolumeCylinder", mVolumeMtxs[4]);
     mVolumeDrawers[5] = MR::createVolumeDrawer("LegL", "VolumeBox", mVolumeMtxs[5]);
     mVolumeDrawers[6] = MR::createVolumeDrawer("LegR", "VolumeBox", mVolumeMtxs[6]);
     mEarthquakeDrawer = MR::createVolumeDrawer("地震範囲描画", "VolumeBox", mEarthquakeMtx);
@@ -213,7 +207,7 @@ void BattanKing::init(const JMapInfoIter& rIter) {
         pPattan->initWithoutIter();
         pHolder->registerActor(pPattan);
     }
-    pHolder->makeAllDead();
+    mPattanHolder->makeAllDead();
 
     mBreakModel = new BreakModel(this, "バッタンキング(Break)", "BattanKingBreak", getBaseMtx(), "Break");
     mBreakModel->initWithoutIter();
@@ -226,7 +220,8 @@ void BattanKing::init(const JMapInfoIter& rIter) {
 
     mCameraInfo = new ActorCameraInfo(rIter);
 
-    MR::setBinderCollisionPartsFilter(this, new CollisionPartsFilterDelegator< BattanKing >(this, &BattanKing::isInvalidCollisionParts));
+    CollisionPartsFilterDelegator< BattanKing >::DelegateFilter partsFilter = &BattanKing::isInvalidCollisionParts;
+    MR::setBinderCollisionPartsFilter(this, new CollisionPartsFilterDelegator< BattanKing >(this, partsFilter));
 
     MR::tryRegisterNamePosLinkObj(this, rIter, "バッタンキング基準位置");
     MR::tryRegisterNamePosLinkObj(this, rIter, "マリオ位置");
@@ -242,8 +237,8 @@ void BattanKing::init(const JMapInfoIter& rIter) {
     MR::declarePowerStar(this);
     MR::makeMtxTR(mMtxFollow, this);
 
-    MR::addBaseMatrixFollowTarget(this, rIter, &mMtxFollow,
-                                  new BaseMatrixFollowValidateDelegator<BattanKing>(this, &BattanKing::isValidCollisionState));
+    BaseMatrixFollowValidateDelegator<BattanKing>::Func validate = &BattanKing::isValidCollisionState;
+    MR::addBaseMatrixFollowTarget(this, rIter, &mMtxFollow, new BaseMatrixFollowValidateDelegator<BattanKing>(this, validate));
 
     initNerve(&NrvBattanKing::BattanKingNrvWaitStand::sInstance, 2);
 
@@ -481,7 +476,7 @@ void BattanKing::exeDamage() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Damage"); updateCollisionPartsFootState();
         PSMTXCopy(MR::getJointMtx(this, "Root"), mMtxBreak.mMtx);
-        TVec3f offset(BattanKingVec::sDropPoint938); offset.z += -300.0f;
+        TVec3f offset(BattanKingVec::sDropPoint938); f32 back = 300.0f; offset.z += -back;
         MR::addTransMtxLocal(mMtxBreak.mMtx,offset);
         TVec3f position; MR::extractMtxTrans(mMtxBreak.mMtx,&position); MR::emitItemBossDamageAtPos(this,&position);
     }

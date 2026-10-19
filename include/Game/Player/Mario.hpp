@@ -153,8 +153,8 @@ public:
     void fn_803A10D0(s32 arg);
     void fn_803A11A0(TVec3f* arg);
     void fn_803A1240(f32* a, f32* b);
-    void fn_803A1330(s32* arg1);
-    void fn_803A1600(s32* arg1);
+    void fn_803A1330(u8* arg1);
+    void fn_803A1600(u8* arg1);
     f32 fn_803A1800();
     bool fn_803A1920();
     bool fn_803A19C0();

@@ -1729,7 +1729,7 @@ void Mario::fn_803A0BE0() {
     this->fn_803A2CC0();
     this->mMovementStates.mHighWord = (this->mMovementStates.mHighWord & ~0x400u) | ((this->isSkatableFloor() << 10) & 0x400u);
     this->fn_803A2CF0();
-    s32 sp8 = this->fn_803A2D10();
+    u8 sp8 = this->fn_803A2D10();
     this->fn_803A2D50();
     if (this->fn_803A2D80() == 0 && this->fn_803A3030() == 0 && this->fn_803A3130() == 0) {
         this->checkTornado();
@@ -1906,7 +1906,7 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
     }
 }
 
-void Mario::fn_803A1330(s32* arg1) {
+void Mario::fn_803A1330(u8* arg1) {
     f32 alignment = this->_214.dot(this->_22C);
     if (this->_3D2 != 0) {
         alignment = this->_3E4.dot(this->_22C);
@@ -1960,7 +1960,7 @@ void Mario::fn_803A1330(s32* arg1) {
     }
 }
 
-void Mario::fn_803A1600(s32* arg1) {
+void Mario::fn_803A1600(u8* arg1) {
     u16 timer = this->_3D0;
     if (timer != 0) {
         if (timer == static_cast<u16>(this->mActor->mConst->getTable()->mTurnSlipTime)) {

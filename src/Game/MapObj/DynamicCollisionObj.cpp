@@ -154,8 +154,16 @@ void DynamicCollisionObj::createCollision() {
     u16* u16array = reinterpret_cast<u16*>(reinterpret_cast<u8*>(mKCLFile->mPrisms) + prismSize);
     mKCLFile->mOctree = u16array;
 
+#ifdef GALAXY_NATIVE
+    // Octree root word: leaf flag (bit 31) with the list 2 bytes on, read as one s32 by
+    // searchBlock. Natively the words are host order, so store the word itself; writing the
+    // Wii's two u16 halves would read back as 0x00028000 on little-endian (a child offset).
+    // The list's first entry (u16array[1]) is skipped by the walkers.
+    *reinterpret_cast< s32* >(u16array) = static_cast< s32 >(0x80000002);
+#else
     u16array[0] = 0x8000;
     u16array[1] = 2;
+#endif
 
     s32 count = v;
     for (s32 i = 0; i <= v; i++) {
@@ -165,6 +173,10 @@ void DynamicCollisionObj::createCollision() {
     mKCLFile->mThickness = 40.f;
     mKCLFile->mBlockXShift = -1;
     mKCLFile->mBlockXYShift = -1;
+#ifdef GALAXY_NATIVE
+    // The sections are separate allocations, so the count is explicit (KCLFile::mTriangleNum).
+    mKCLFile->mTriangleNum = v;
+#endif
     updateCollisionHeader();
     updateTriangle();
 

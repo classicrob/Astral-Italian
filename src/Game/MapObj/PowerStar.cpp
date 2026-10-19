@@ -33,6 +33,11 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SequenceUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/NativeActorObserve.hpp"
+#ifdef GALAXY_NATIVE
+#include <petari/milestone.hpp>
+#include <petari/progress_hook.hpp>
+#endif
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
@@ -318,6 +323,20 @@ void PowerStar::emitColorEffect(LiveActor* pActor, const char* pName, s32 color,
 }
 
 void PowerStar::control() {
+#ifdef GALAXY_NATIVE
+    {
+        s32 state = 0;
+        if (isNerve(GET_NERVE(PowerStar, PowerStarNrvWait))) {
+            state = 1;
+        } else if (isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoRise)) || isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoMove)) ||
+                   isNerve(GET_NERVE(PowerStar, PowerStarNrvAppearDemoKoopa))) {
+            state = 2;
+        } else if (isNerve(GET_NERVE(PowerStar, PowerStarNrvStageClearDemo))) {
+            state = 3;
+        }
+        MR::Native::publishActor("PowerStar", mPosition, -mGravity, state, state == 1 ? PETARI_ACTOR_READY : 0u);
+    }
+#endif
     if (!isNerve(GET_NERVE(PowerStar, PowerStarNrvWaitStartAppear))) {
         TVec3f jointPos;
 

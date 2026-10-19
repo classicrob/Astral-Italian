@@ -7,6 +7,9 @@
 #include "Game/Util/MapPartsUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include <algorithm>
+#ifdef GALAXY_NATIVE
+#include <petari/game_compat.hpp>
+#endif
 
 
 namespace NrvMapPartsRailGuideDrawer {

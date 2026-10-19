@@ -4,13 +4,6 @@
 #include "Game/Util.hpp"
 #include <JSystem/JUtility/JUTTexture.hpp>
 
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CameraCover_FORCE_MATCH_SDATA2() {
-    (void)JGeometry::TUtil< f32 >::PI();
-    (void)60.0f;
-    (void)180.0f;
-}
-
 namespace {
     const f32 sAngleThreshold = (JGeometry::TUtil< f32 >::PI() * 60.0f) / 180.0f;
 };  // namespace

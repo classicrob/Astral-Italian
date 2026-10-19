@@ -4,15 +4,6 @@
 #include "Game/Camera/CameraLocalUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CameraTowerPos_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)MR::pi();
-    (void)2.0f;
-}
-
 namespace {
     static const f32 sAttenuation = 0.05f;
 };  // namespace

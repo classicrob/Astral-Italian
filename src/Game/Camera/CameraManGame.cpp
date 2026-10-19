@@ -21,14 +21,6 @@
 #include "Game/Util/SceneUtil.hpp"
 #include <cstring>
 
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CameraManGame_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)MR::pi();
-    (void)2.0f;
-}
-
 namespace {
     static const f32 sMinDistance = 300.0f;
     const char* sThruCamName = "デフォルトカメラ";

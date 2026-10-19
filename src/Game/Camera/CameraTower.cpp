@@ -6,15 +6,6 @@
 #include "Game/Camera/CameraTargetObj.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CameraTower_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)(MR::pi() / 2.0f);
-    (void)(-MR::pi() / 2.0f);
-}
-
 namespace {
     static const f32 sAttenuation = 0.05f;
     static const f32 sRoundAddition = 0.08f;

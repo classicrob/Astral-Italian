@@ -8,16 +8,6 @@
 #include "Game/Util/MathUtil.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
 
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CameraMedianPlanet_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)MR::epsilon();
-    (void)MR::pi();
-}
-
-
 namespace {
     static const f32 sAngleConstrainRate = 0.2f;
     static const f32 sPartialRate = 0.5f;
@@ -85,11 +75,6 @@ void CameraMedianPlanet::constrainDipAngle(TVec3f* pPos) {
     targetMtx.mult(*pPos, *pPos);
 }
 
-
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CameraMedianPlanet_FORCE_MATCH_SDATA2_2() {
-    (void)(0.1f / 15.0f);
-}
 
 void CameraMedianPlanet::makeTargetMtx(TPos3f* pMtx) {
     pMtx->setXDir(CameraLocalUtil::getTarget(this)->getSideVec());

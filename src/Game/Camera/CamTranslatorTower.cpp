@@ -2,13 +2,6 @@
 #include "Game/Camera/CameraParamChunk.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CamTranslatorTower_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.5f;
-    (void)MR::pi();
-}
-
 void CamTranslatorTower::setParam(const CameraParamChunk* pChunk) {
     CameraGeneralParam* general = pChunk->mGeneralParam;
 

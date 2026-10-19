@@ -15,15 +15,6 @@ namespace {
     static const f32 sPlayerRadius = 75.0f;
 };  // namespace
 
-// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
-void CamKarikariEffector_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    f32 f3 = MR::epsilon();
-    (void)0.5f;
-    f32 f5 = MR::pi();
-}
-
 CamKarikariEffector::CamKarikariEffector() : mCounter(0) {
 }
 

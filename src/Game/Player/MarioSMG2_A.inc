@@ -746,11 +746,10 @@ void Mario::fn_803A20E0(f32 rate, s32 arg) {
 }
 
 void Mario::fn_803A1BB0() {
-    if (this->_3D0 == 0) {
-        return;
+    if (this->_3D0 != 0) {
+        this->mFlags14.mLowWord &= 0xFFF7FFFF;
+        this->mMovementStates.mLowWord &= 0xEFFFFFFF;
     }
-    this->mFlags14.mLowWord &= 0xFFF7FFFF;
-    this->mMovementStates.mLowWord &= 0xEFFFFFFF;
     f32 d = MR::diffAngleAbs(this->_214, this->_22C);
     if (MR::isInRange(d, 0.0f, 0.707f)) {
         TVec3f s;

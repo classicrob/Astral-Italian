@@ -815,7 +815,7 @@ void MarioSwim::decideEffect(bool isReset) {
         case 1:
             if (mSurfaceOffset > -10.0f) {
                 TVec3f projected;
-                MR::vecKillElement(mActor->_2AC - mSurfaceNorm, mSurfacePos, &projected);
+                MR::vecKillElement(mActor->mCapPosition - mSurfaceNorm, mSurfacePos, &projected);
 
                 const TVec3f& lastMove = mActor->getLastMove();
 
@@ -836,7 +836,7 @@ void MarioSwim::decideEffect(bool isReset) {
 
     if (mEffectState <= 1 && !fn_804026A0()) {
         TVec3f projected;
-        MR::vecKillElement(mActor->_2AC - mSurfaceNorm, mSurfacePos, &projected);
+        MR::vecKillElement(mActor->mCapPosition - mSurfaceNorm, mSurfacePos, &projected);
 
         const TVec3f& lastMove = mActor->getLastMove();
 

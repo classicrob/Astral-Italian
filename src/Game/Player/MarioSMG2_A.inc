@@ -1576,28 +1576,28 @@ void Mario::fn_8039A600() {
         constants = mActor->mConst;
         f32 f1 = constants->mTable[constants->mCurrentTable]->mSlipUpSpdRatio;
         f32 f29 = f1 + f2 * (1.0f - f1);
-        this->addVelocity(FLD<TVec3f>(this, 0x2D4), f29);
+        this->addVelocity(this->mJumpVec, f29);
         f32 f30 = this->fn_8039AA40();
         f32 f31 = this->fn_8039A810();
-        TVec3f sp20(FLD<TVec3f>(this->mActor, 0x594));
+        TVec3f sp20(this->mActor->mAppliedGravityVec);
         sp20 *= f31;
         TVec3f sp2C(sp20);
         sp2C *= f30;
         TVec3f sp38(sp2C);
         sp38 *= f29;
-        FLD<TVec3f>(this, 0x2D4) += sp38;
+        this->mJumpVec += sp38;
         this->moveWallSlide(1.0f);
         return;
     }
     if (!((t >> 30) & 1)) {
-        this->addVelocity(FLD<TVec3f>(this, 0x2D4));
+        this->addVelocity(this->mJumpVec);
         f32 f31 = this->fn_8039AA40();
         f32 f30 = this->fn_8039A810();
-        TVec3f sp8(FLD<TVec3f>(this->mActor, 0x594));
+        TVec3f sp8(this->mActor->mAppliedGravityVec);
         sp8 *= f30;
         TVec3f sp14(sp8);
         sp14 *= f31;
-        FLD<TVec3f>(this, 0x2D4) += sp14;
+        this->mJumpVec += sp14;
     }
 }
 

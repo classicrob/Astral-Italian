@@ -898,8 +898,8 @@ void DLchanger::addDL(J3DModelX* m) {
 }
 
 
-void MarioActor::fn_803C0E60() {
-    if (this->fn_803D9430()) {
+void MarioActor::drawSilhouette() const {
+    if (this->isSilhouetteVisible()) {
         J3DModelX* m = mSimpleModelF08;
         m->setDrawView(1);
         m->mDisplayListMask = 0;
@@ -2234,6 +2234,6 @@ void MarioActor::movement() {
     _935 = false;
     mMario->_2D0 = 0.0f;
     mFrontHistory->update();
-    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->mRideModelVisible = fn_803D9430() != 0;
+    if (mMario->isPlayerModeYoshi()) mYoshiHolder->mYoshi->mRideModelVisible = isSilhouetteVisible() != 0;
     mSensorSlots108C->fn_803DAB90();
 }

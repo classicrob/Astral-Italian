@@ -633,7 +633,7 @@ void Mario::doExtraServices() {
             }
 
             if (MR::vecKillElement(stack_8, mAirGravityVec, &stack_20) > 28000.0f) {
-                if (mVerticalSpeed > 2499.0f || mActor->isInZeroGravitySpot()) {
+                if (mVerticalSpeed > 2499.0f || mActor->fn_803B93E0()) {
                     mActor->forceKill(0);
                 }
             }
@@ -2771,7 +2771,7 @@ f32 Mario::calcDistToCeilOnPress() {
 f32 Mario::calcDistToCeilHead() {
     Triangle triangle;
     TVec3f hitPos;
-    TVec3f start = mActor->_2AC - mFrontVec * 40.0f;
+    TVec3f start = mActor->mCapPosition - mFrontVec * 40.0f;
 
     if (MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, -getAirGravityVec() * 80.0f)) {
         *getTmpPolygon() = triangle;
@@ -4374,9 +4374,9 @@ void Mario::updateCubeCode() {
         }
     }
 
-    if (MR::getAreaObj("FallsCube", mActor->_2AC) != nullptr) {
+    if (MR::getAreaObj("FallsCube", mActor->mCapPosition) != nullptr) {
         touchWater();
-        playEffectRTZ("水壁ヒット", mHeadVec, mActor->_2AC);
+        playEffectRTZ("水壁ヒット", mHeadVec, mActor->mCapPosition);
     }
 
     if (MR::getAreaObj("HeavySteeringCube", mPosHolder->mPos) != nullptr) {
@@ -13193,7 +13193,7 @@ void Mario::updateOnimasu() {
                 bool insideY = MR::isInRange(localPosition.y, -320.0f, 320.0f);
                 bool insideZ = MR::isInRange(localPosition.z, -320.0f, 320.0f);
                 if (insideY && insideZ) {
-                    mActor->_3B4 = axisX;
+                    mActor->mRushFront6E8 = axisX;
                     mActor->setPress(0, 0);
                 } else {
                     if (insideZ) {
@@ -13215,7 +13215,7 @@ void Mario::updateOnimasu() {
                 bool insideX = MR::isInRange(localPosition.x, -320.0f, 320.0f);
                 bool insideZ = MR::isInRange(localPosition.z, -320.0f, 320.0f);
                 if (insideX && insideZ) {
-                    mActor->_3B4 = axisY;
+                    mActor->mRushFront6E8 = axisY;
                     if (gravityY < 0.0f) {
                         mActor->setPress(0, 0);
                     }
@@ -13239,7 +13239,7 @@ void Mario::updateOnimasu() {
                 bool insideX = MR::isInRange(localPosition.x, -320.0f, 320.0f);
                 bool insideY = MR::isInRange(localPosition.y, -320.0f, 320.0f);
                 if (insideX && insideY) {
-                    mActor->_3B4 = axisZ;
+                    mActor->mRushFront6E8 = axisZ;
                     mActor->setPress(0, 0);
                 } else {
                     if (insideY) {
@@ -15585,7 +15585,7 @@ bool Mario::isEnableStickWall() {
         return false;
     }
 
-    TVec3f position(mActor->_2AC);
+    TVec3f position(mActor->mCapPosition);
     f32 distance = 120.0f;
     if (((mMovementStates.mLowWord >> 6) & 1U)) {
         distance = -120.0f;

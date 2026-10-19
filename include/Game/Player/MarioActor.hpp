@@ -181,7 +181,6 @@ public:
     void fn_803BFC90(s32 a);
     void fn_803BFCE0();
     void fn_803BFE50();
-    void fn_803C0E60();
     void fn_803C1940();
     void fn_803C1AF0(TVec3f* a, TVec3f* b);
     bool fn_803C1C60();
@@ -287,7 +286,7 @@ public:
     void fn_803D8E30(TVec3f* v);
     void fn_803D9170(TVec3f* v);
     bool fn_803D9370(void* tri, TVec3f* v);
-    bool fn_803D9430();
+    bool isSilhouetteVisible() const;
     void fn_803D95E0();
     virtual void startMovement();
     virtual void endMovement();
@@ -518,7 +517,6 @@ public:
     bool checkBeeFloorStick(TVec3f&);
     void syncJumpBeeStickMode();
     void updateBeeModeGravity(TVec3f&);
-    bool isInZeroGravitySpot() const;
     void updateGravityVec(bool, bool);
     bool checkBeeCeilStick(TVec3f&);
     void updateBeeStickMode(TVec3f&);
@@ -892,7 +890,7 @@ public:
     /* 0x5DC */ TVec3f mBinderDirection5DC;
     /* 0x5E8 */ TVec3f mPreviousPosition;
     /* 0x5F4 */ TVec3f _240;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x600 */ union { TVec3f _24C; TVec3f mCapPosition; TVec3f _2AC; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x600 */ TVec3f mCapPosition;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x60C */ TVec3f mVector60C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x618 */ TVec3f _270;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x624 */ TVec3f _27C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -935,7 +933,7 @@ public:
     /* 0x6E4 */ bool _3C0;
     /* 0x6E5 */ bool _3C1;
     /* 0x6E6 */ u8 _pad6E6[0x2];
-    /* 0x6E8 */ union { TVec3f _3B4; TVec3f mRushFront6E8; };  // SMG2 offset inh-gap  // SMG2 offset inh  // SMG2 offset inh
+    /* 0x6E8 */ TVec3f mRushFront6E8;  // SMG2 offset inh-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6F4 */ u16 _3D0;
     /* 0x6F6 */ u16 _3D2;
     /* 0x6F8 */ u16 mPlayerMode;

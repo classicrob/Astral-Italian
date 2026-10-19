@@ -1153,7 +1153,7 @@ void MarioActor::updateRealMtx() {
         mBodyDownDirection = -mMario->mHeadVec;
     }
 
-    _2AC = stack_44;
+    mCapPosition = stack_44;
 }
 
 
@@ -1339,18 +1339,18 @@ void MarioActor::scaleMtx(MtxPtr pRawMtx) {
     pMtx->getXDir(i);
     pMtx->getYDir(j);
     pMtx->getZDir(k);
-    f32 elementX = MR::vecKillElement(i, _3B4, &i);
-    f32 elementY = MR::vecKillElement(j, _3B4, &j);
-    f32 elementZ = MR::vecKillElement(k, _3B4, &k);
+    f32 elementX = MR::vecKillElement(i, mRushFront6E8, &i);
+    f32 elementY = MR::vecKillElement(j, mRushFront6E8, &j);
+    f32 elementZ = MR::vecKillElement(k, mRushFront6E8, &k);
     elementZ *= _3B0;
     elementX *= _3B0;
     elementY *= _3B0;
     i.scale(scalar);
     j.scale(scalar);
     k.scale(scalar);
-    i += _3B4 * elementX;
-    j += _3B4 * elementY;
-    k += _3B4 * elementZ;
+    i += mRushFront6E8 * elementX;
+    j += mRushFront6E8 * elementY;
+    k += mRushFront6E8 * elementZ;
     pRawMtx[0][0] = i.x;
     pRawMtx[1][0] = i.y;
     pRawMtx[2][0] = i.z;
@@ -1934,7 +1934,7 @@ void MarioActor::calcHeadPos() {
     TMtx34f mtx;
     const char* pName = "CapPosition";
     getRealMtx(mtx, pName);
-    MR::extractMtxTrans(mtx, &_2AC);
+    MR::extractMtxTrans(mtx, &mCapPosition);
 }
 
 
@@ -4229,9 +4229,6 @@ void MarioActor::updateBeeModeGravity(TVec3f& rVec) {
 }
 
 
-bool MarioActor::isInZeroGravitySpot() const {
-    return MR::isNearZero(_24C);
-}
 
 
 // NONMATCHING: Equivalent normalization of the gravity helper boolean return.
@@ -4281,6 +4278,7 @@ bool MarioActor::checkBeeCeilStick(TVec3f& rVec) {
 }
 
 
+// NONMATCHING: Equivalent Mario pointer reload and pooled string addresses.
 void MarioActor::updateBeeStickMode(TVec3f& rGravity) {
     if (mBeeWallWalk != 0) {
         bool detach = false;
@@ -4346,7 +4344,7 @@ void MarioActor::updateBeeStickMode(TVec3f& rGravity) {
             mMario->_408 = mConst->getTable()->mBeeGravityPowerTime;
             mMario->_3BC = mConst->getTable()->mBeeAirWalkInhibitTime - 5;
             mMario->push(*mMario->_45C->getNormal(0) * 100.0f);
-            mMario->cutVecElementFromJumpVec(_24C);
+            mMario->cutVecElementFromJumpVec(mPreviousGravityVec);
             return;
         }
 
@@ -7047,7 +7045,7 @@ HitSensor* MarioActor::getNearestJumpTarget() const {
         f32 centerDistance;
         f32 distance = (position - mPosition).length();
         centerDistance = (position - _240).length();
-        f32 headDistance = (position - _2AC).length();
+        f32 headDistance = (position - mCapPosition).length();
         if (distance > centerDistance) {
             distance = centerDistance;
         }
@@ -7895,57 +7893,6 @@ void MarioActor::calcViewFootPrint() {
     }
 }
 
-
-void MarioActor::drawSilhouette() const {
-    bool hidden = _482 || _483 || _481;
-    if (hidden) {
-        return;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Sukekiyo)) {
-        return;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_Bury)) {
-        if (!MR::isExistMapCollision(mCameraPosition, mPosition - mCameraPosition)) {
-            return;
-        }
-
-        if (!MR::isExistMapCollision(mCameraPosition, _2AC - mCameraPosition)) {
-            return;
-        }
-    }
-
-    if (mMario->mSinkTimer) {
-        return;
-    }
-
-    if (mPlayerMode == PlayerMode_Teresa) {
-        return;
-    }
-
-    if (mMario->isStatusActive(MarioStatus_FpView) && _1A1) {
-        return;
-    }
-
-    if (_EA4) {
-        return;
-    }
-
-    if (_934) {
-        return;
-    }
-
-    J3DModelX* pModel = mSimpleModelF08;
-    pModel->setDrawView(1);
-    pModel->mDisplayListMask = 0;
-    pModel->mDisplayListMask |= (1U << 3);
-    pModel->directDraw(nullptr);
-    pModel->mDisplayListMask &= ~(1U << 3);
-    GXSetAlphaUpdate(GX_TRUE);
-    GXSetColorUpdate(GX_TRUE);
-    GXSetDstAlpha(GX_TRUE, 0);
-}
 
 // ---- MarioActorSpecialDraw.cpp ----
 

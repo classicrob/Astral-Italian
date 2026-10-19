@@ -658,7 +658,7 @@ void MarioAnimator::setHoming() {
     }
 
     if (hasTarget) {
-        TVec3f toTarget = targetPos - mActor->_24C;
+        TVec3f toTarget = targetPos - mActor->mCapPosition;
 
         Mario* player = getPlayer();
         angleH = MR::vecKillElement(toTarget, player->_1FC, &toTarget);

@@ -1840,7 +1840,7 @@ bool MarioActor::fn_803D9370(void* tri, TVec3f* v) {
     return v->dot(d) > 0.0f;
 }
 
-bool MarioActor::fn_803D9430() {
+bool MarioActor::isSilhouetteVisible() const {
     if (this->isAllHidden()) {
         return false;
     }
@@ -1853,18 +1853,18 @@ bool MarioActor::fn_803D9430() {
         if (!this->mMario->fn_803B2880(mCameraPosition, a)) {
             return false;
         }
-        TVec3f b(F(TVec3f, 0x600));
+        TVec3f b(mCapPosition);
         b -= mCameraPosition;
         if (!this->mMario->fn_803B2880(mCameraPosition, b)) {
             return false;
         }
     }
-    u8 t = FP(this->mMario, u8, 0x72D);
+    u8 t = mMario->mSinkTimer;
     if (t > 0x40) {
         return false;
     }
     if (t != 0) {
-        TVec3f c(F(TVec3f, 0x600));
+        TVec3f c(mCapPosition);
         c -= mCameraPosition;
         if (!this->mMario->fn_803B2880(mCameraPosition, c)) {
             return false;
@@ -1873,14 +1873,14 @@ bool MarioActor::fn_803D9430() {
     if (mPlayerMode == 6) {
         return false;
     }
-    if (this->mMario->isStatusActive(0x12) && F(u8, 0x1A5) != 0) {
+    if (this->mMario->isStatusActive(0x12) && mFirstPersonDrawHidden1A5 != 0) {
         return false;
     }
-    if (F(u8, 0x4E0) != 0) {
+    if (_EA4 != 0) {
         return false;
     }
     bool r = false;
-    if (F(s32, 0xE28) == 0 && (F(u8, 0xE24) == 0 || F(u8, 0xE25) == 1)) {
+    if (mAnimationDelayE28 == 0 && (_934 == 0 || _7E2 == 1)) {
         r = true;
     }
     return r;

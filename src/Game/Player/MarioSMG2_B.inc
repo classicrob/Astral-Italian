@@ -1201,20 +1201,20 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
     TVec3f start;
     TVec3f dir;
     if (((this->mMovementStates.mLowWord >> 23) & 1) && this->mFrontWallTriangle != nullptr) {
-        pOutPos->set(FLD<TVec3f>(this, 0x4E4));
-        start = FLD<TVec3f>(this->mActor, 0x5F4);
+        pOutPos->set(this->_4E8);
+        start = this->mActor->_240;
         *pOutTri = *this->mFrontWallTriangle;
         return true;
     }
     if (this->isPlayerModeYoshi()) {
-        TVec3f up(FLD<TVec3f>(this, 0x208));
+        TVec3f up(this->mFrontVec);
         up.scale(115.0f);
         dir = up;
-    } else if (((this->mMovementStates.mLowWord >> 16) & 1) && !MR::isNearZero(FLD<TVec3f>(this, 0x328).dot(*this->getGravityVec()), 0.001f)) {
-        MR::vecKillElement(FLD<TVec3f>(this, 0x328), *this->getGravityVec(), &dir);
+    } else if (((this->mMovementStates.mLowWord >> 16) & 1) && !MR::isNearZero(this->_328.dot(*this->getGravityVec()), 0.001f)) {
+        MR::vecKillElement(this->_328, *this->getGravityVec(), &dir);
         dir.setLength(200.0f);
     } else {
-        TVec3f up(FLD<TVec3f>(this, 0x208));
+        TVec3f up(this->mFrontVec);
         up.scale(100.0f);
         dir = up;
     }
@@ -1226,61 +1226,61 @@ bool Mario::fn_803B3040(TVec3f* pOutPos, Triangle* pOutTri) {
     if (!this->fn_803B2770(pOutPos, pOutTri, start, dir)) {
         return false;
     }
-    MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
-    if (__fabs(FLD<TVec3f>(this, 0x1D8).dot(*pOutTri->getNormal(0))) >= 0.1f) {
+    MR::isNearZero(this->mAirGravityVec, 0.001f);
+    if (__fabs(this->mAirGravityVec.dot(*pOutTri->getNormal(0))) >= 0.1f) {
         return false;
     }
     TVec3f diff(*pOutPos);
     diff -= start;
-    this->_4E4 = diff.dot(FLD<TVec3f>(this, 0x208));
+    this->_4E4 = diff.dot(this->mFrontVec);
     return true;
 }
 
 // NONMATCHING: register allocation / constant pool labels
 void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
     Triangle tri;
-    TVec3f up(FLD<TVec3f>(this, 0x208));
+    TVec3f up(this->mFrontVec);
     up.scale(20.0f);
-    MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
-    TVec3f back(FLD<TVec3f>(this, 0x1D8));
+    MR::isNearZero(this->mAirGravityVec, 0.001f);
+    TVec3f back(this->mAirGravityVec);
     back.scale(200.0f);
     TVec3f p(rPos);
     p -= back;
     TVec3f start(p);
     start += up;
-    MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
-    TVec3f dir(FLD<TVec3f>(this, 0x1D8));
+    MR::isNearZero(this->mAirGravityVec, 0.001f);
+    TVec3f dir(this->mAirGravityVec);
     dir.scale(210.0f);
     TVec3f hit;
     if (!this->fn_803B2B50(start, dir, &hit, &tri)) {
         this->_4E0 = 400.0f;
         return;
     }
-    MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
-    if (FLD<TVec3f>(this, 0x1D8).dot(*tri.getNormal(0)) > -0.9f) {
+    MR::isNearZero(this->mAirGravityVec, 0.001f);
+    if (this->mAirGravityVec.dot(*tri.getNormal(0)) > -0.9f) {
         this->_4E0 = 400.0f;
         return;
     }
-    MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
+    MR::isNearZero(this->mAirGravityVec, 0.001f);
     TVec3f diff(rPos);
     diff -= hit;
-    f32 dist = diff.dot(FLD<TVec3f>(this, 0x1D8));
+    f32 dist = diff.dot(this->mAirGravityVec);
     this->_4E0 = dist;
     if (dist > 0.0f) {
         this->mMovementStates.mLowWord |= 0x400;
     }
     f32 offset = 0.0f;
-    MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
-    f32 angle = this->marioAcos(-FLD<TVec3f>(this, 0x1D8).dot(*tri.getNormal(0)));
+    MR::isNearZero(this->mAirGravityVec, 0.001f);
+    f32 angle = this->marioAcos(-this->mAirGravityVec.dot(*tri.getNormal(0)));
     if (angle < 1.5707964f && angle != 0.0f) {
         offset = this->_4E0 / (JMASinRadian(angle) / JMACosRadian(angle));
     }
     TVec3f savedHit(hit);
-    TVec3f lift(FLD<TVec3f>(this, 0x208));
+    TVec3f lift(this->mFrontVec);
     lift.scale(15.0f + offset);
     hit -= lift;
-    MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
-    TVec3f inward(FLD<TVec3f>(this, 0x1D8));
+    MR::isNearZero(this->mAirGravityVec, 0.001f);
+    TVec3f inward(this->mAirGravityVec);
     inward.scale(5.0f);
     TVec3f rayStart(hit);
     rayStart -= inward;
@@ -1291,8 +1291,8 @@ void Mario::fn_803B3280(const TVec3f& rPos, Triangle* pTri) {
         *this->_47C = tri;
         return;
     }
-    FLD<TVec3f>(this, 0x4A0) = hit;
-    if (!((this->mMovementStates.mLowWord >> 30) & 1) || this->calcAngleD(FLD<TVec3f>(this, 0x368)) < 25.0f) {
+    this->_4A4 = hit;
+    if (!((this->mMovementStates.mLowWord >> 30) & 1) || this->calcAngleD(this->_368) < 25.0f) {
         this->mMovementStates.mHighWord |= 0x40;
     }
     *this->_47C = tri;
@@ -1308,7 +1308,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
     if (count != 0) {
         for (u32 i = 0; i < count; i++) {
             const HitInfo* pInfo = this->fn_803B2AA0(i);
-            if (((this->mMovementStates.mHighWord >> 8) & 1) && __fabs(pInfo->mParentTriangle.getNormal(0)->dot(FLD<TVec3f>(this, 0x694))) > ref) {
+            if (((this->mMovementStates.mHighWord >> 8) & 1) && __fabs(pInfo->mParentTriangle.getNormal(0)->dot(this->mSwimSideVec694)) > ref) {
                 continue;
             }
             f32 angle = this->calcAngleD(*pInfo->mParentTriangle.getNormal(0));
@@ -1322,7 +1322,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
             }
         }
         if ((this->mMovementStates.mLowWord >> 30) & 1) {
-            ref = this->calcAngleD(FLD<TVec3f>(this, 0x368));
+            ref = this->calcAngleD(this->_368);
             if (ref < minAngle) {
                 minAngle = ref;
             }
@@ -1334,9 +1334,9 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
         if (range < 60.0f && range > 5.0f && maxAngle < 80.0f) {
             this->mDrawStates.mWord |= 0x10000;
             if (maxAngle > ref) {
-                FLD<TVec3f>(this, 0x380) = *this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0);
+                this->_380 = *this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0);
             } else if (minAngle < ref) {
-                FLD<TVec3f>(this, 0x380) = *this->fn_803B2AA0(minIdx)->mParentTriangle.getNormal(0);
+                this->_380 = *this->fn_803B2AA0(minIdx)->mParentTriangle.getNormal(0);
             }
         }
         if (((this->mMovementStates.mLowWord >> 30) & 1) && maxAngle > 60.0f && maxAngle != ref && maxAngle < 80.0f) {
@@ -1345,14 +1345,14 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
             toPos -= hitPos;
             if (!MR::normalizeOrZero(&toPos)) {
                 this->mDrawStates.mWord |= 0x100;
-                MR::isNearZero(FLD<TVec3f>(this, 0x1D8), 0.001f);
+                MR::isNearZero(this->mAirGravityVec, 0.001f);
                 TVec3f side;
-                PSVECCrossProduct(this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0), &FLD<TVec3f>(this, 0x1D8), &side);
+                PSVECCrossProduct(this->fn_803B2AA0(maxIdx)->mParentTriangle.getNormal(0), &this->mAirGravityVec, &side);
                 MR::normalize(&side);
                 TVec3f front;
-                PSVECCrossProduct(&FLD<TVec3f>(this, 0x368), &side, &front);
+                PSVECCrossProduct(&this->_368, &side, &front);
                 MR::normalize(&front);
-                FLD<TVec3f>(this, 0x2C4) = front;
+                this->_2C4 = front;
             }
         }
     }
@@ -1372,7 +1372,7 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
     pPos->set(base);
     if (this->isStatusActive(2)) {
         this->mActor->calcHeadPos();
-        pPos->set(this->mActor->_2AC);
+        pPos->set(this->mActor->mCapPosition);
         if (this->mDamage->_18 == 0) {
             *pHeight = 50.0f;
         }
@@ -1381,13 +1381,13 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
         this->mActor->calcHeadPos();
         TVec3f side(this->_16C);
         side.scale(2.0f);
-        TVec3f head(this->mActor->_2AC);
+        TVec3f head(this->mActor->mCapPosition);
         head += side;
         pPos->set(head);
     }
     if (this->getPlayerMode() == 4 && !((this->getPlayer()->mMovementStates.mHighWord >> 28) & 1) && !((this->getPlayer()->mMovementStates.mLowWord >> 21) & 1) &&
         !this->isStatusActive(28) && !this->isStatusActive(21) && !this->isStatusActive(27) && this->mActor->mBeeWallWalk == 0) {
-        pPos->set(this->mActor->_2AC);
+        pPos->set(this->mActor->mCapPosition);
     }
     if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(this->mActor->fn_803B9830()->mRideModelActor)) {
         MarioMtxPos mtx;

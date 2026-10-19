@@ -109,6 +109,7 @@ add_library(petari_input STATIC
     remap.cpp
     point_move.cpp
     remote_model.cpp
+    smg2_extensions.cpp
     skip.cpp
     wpad_host.cpp
     ${PETARI_KPAD_SOURCE})
@@ -164,6 +165,10 @@ if(BUILD_TESTING)
         target_compile_definitions(petari_input_tests PRIVATE PETARI_INPUT_TEST_SDL3=1)
     endif()
     add_test(NAME native_input COMMAND petari_input_tests)
+
+    add_executable(petari_smg2_sdk_tests ${PETARI_REPO_ROOT}/native/tests/smg2_sdk_tests.cpp)
+    target_link_libraries(petari_smg2_sdk_tests PRIVATE petari_input)
+    add_test(NAME native_smg2_sdk COMMAND petari_smg2_sdk_tests)
 
     # Remapping from the Home menu: capture, conflicts, the Home guard, controls.txt.
     add_executable(petari_input_remap_tests ${PETARI_REPO_ROOT}/native/tests/input_remap_tests.cpp)

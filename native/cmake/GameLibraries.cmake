@@ -5,9 +5,14 @@ list(FILTER PETARI_RUNTIME_LIBRARY_SOURCES EXCLUDE REGEX "/JSystem/(JKernel|JMat
 list(FILTER PETARI_RUNTIME_LIBRARY_SOURCES EXCLUDE REGEX "/JASSeqReader\\.cpp$")
 list(FILTER PETARI_RUNTIME_LIBRARY_SOURCES EXCLUDE REGEX "/JSU(List|InputStream|FileStream)\\.cpp$")
 list(FILTER PETARI_RUNTIME_LIBRARY_SOURCES EXCLUDE REGEX "/JUT(NameTab|NativeResource|Assert)\\.cpp$")
-add_library(petari_game_libraries STATIC EXCLUDE_FROM_ALL ${PETARI_RUNTIME_LIBRARY_SOURCES}
+file(GLOB PETARI_LIBMS_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/libms/*.c")
+add_library(petari_game_libraries STATIC EXCLUDE_FROM_ALL ${PETARI_RUNTIME_LIBRARY_SOURCES} ${PETARI_LIBMS_SOURCES}
     "${CMAKE_SOURCE_DIR}/native/gx/particle_overrides.cpp")
 petari_encode_target_sources(petari_game_libraries)
+foreach(_petari_libms_source IN LISTS PETARI_LIBMS_SOURCES)
+    file(RELATIVE_PATH _petari_libms_relative "${CMAKE_SOURCE_DIR}" "${_petari_libms_source}")
+    set_source_files_properties("${PETARI_LEGACY_ROOT}/${_petari_libms_relative}" PROPERTIES LANGUAGE CXX)
+endforeach()
 target_compile_options(petari_game_libraries PRIVATE -fno-rtti)
 target_link_libraries(petari_game_libraries PUBLIC petari_j3d petari_input petari_platform)
 

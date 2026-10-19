@@ -395,6 +395,8 @@ def process_file(rel, base, theirs, tree, index):
                 entry["kind"] = "clean" if ours == base else "adapted"
                 acc = merged
         rec["groups"].append(entry)
+    if acc != ours and "\r\n" in ours:
+        acc = acc.replace("\r\n", "\n").replace("\n", "\r\n")  # keep the SMG2 file's CRLF line endings
     finish(rec, acc != ours)
     return rec, (acc if acc != ours else None)
 
@@ -457,14 +459,11 @@ def relocate(rec, base, theirs, files_state, line_index):
                 entry["reason"] = f"context matches {len(hits)} places"
                 continue
             path, (s0, s1) = hits[0]
-            cur = lines_of(files_state[path])
-            body, pos = [], i1
-            for tag, a1, a2, b1, b2 in g:
-                body += base_lines[pos:a1] + theirs_lines[b1:b2]
-                pos = a2
-            body += base_lines[pos:i2]
-            repl = "".join(pre + body + post)
-            new = "".join(cur[:s0]) + repl + "".join(cur[s1:])
+            new = splice(lines_of(files_state[path]), s0, max(0, i1 - ctx), min(len(base_lines), i2 + ctx),
+                         base_lines, theirs_lines, g)
+            if new is None:
+                entry["reason"] = "could not splice"
+                break
             if not wii_equal(entry["wii"], new, files_state[path]):
                 entry["reason"] = "relocation changed the Wii side"
                 break
@@ -482,21 +481,66 @@ def patch_by_context(text, base_lines, theirs_lines, g):
     i1, i2 = g[0][1], g[-1][2]
     lines = lines_of(text)
     for ctx in (3, 2, 1, 0):
-        pre, post = base_lines[max(0, i1 - ctx):i1], base_lines[i2:i2 + ctx]
-        key = [k for k in (norm_line(l) for l in pre + base_lines[i1:i2] + post) if k]
+        lo, hi = max(0, i1 - ctx), min(len(base_lines), i2 + ctx)
+        key = [k for k in (norm_line(l) for l in base_lines[lo:hi]) if k]
         if len(key) < 2 and not (key and ctx == 0 and len(key[0]) >= 40):
             continue
         hits = find_block(lines, key)
         if len(hits) != 1:
             continue
-        s0, s1 = hits[0]
-        body, pos = [], i1
-        for tag, a1, a2, b1, b2 in g:
-            body += base_lines[pos:a1] + theirs_lines[b1:b2]
-            pos = a2
-        body += base_lines[pos:i2]
-        return "".join(lines[:s0]) + "".join(pre + body + post) + "".join(lines[s1:])
+        return splice(lines, hits[0][0], lo, hi, base_lines, theirs_lines, g)
     return None
+
+
+def splice(lines, s0, lo, hi, base_lines, theirs_lines, g):
+    """Apply group g's changes to the SMG2 lines that match base_lines[lo:hi] (starting at s0), keeping
+    the SMG2 lines themselves (comments, indentation, blank lines) and re-indenting inserted lines."""
+    # Map every non-blank Petari line in the window to its SMG2 line (find_block guarantees the order).
+    mapping, j = {}, s0
+    for i in range(lo, hi):
+        if not norm_line(base_lines[i]):
+            continue
+        while not norm_line(lines[j]):
+            j += 1
+        mapping[i] = j
+        j += 1
+
+    def indent(l):
+        return l[:len(l) - len(l.lstrip(" \t"))]
+
+    def reindent(new, petari_ref, smg2_ref):
+        pi, si = indent(petari_ref), indent(smg2_ref)
+        out = []
+        for l in new:
+            if l.lstrip().startswith("#") or not l.strip():
+                out.append(l)
+            elif l.startswith(pi):
+                out.append(si + l[len(pi):])
+            else:
+                out.append(l)
+        return out
+
+    edits = []  # (start, end, new lines) in SMG2 indices
+    for tag, a1, a2, b1, b2 in g:
+        mapped = [mapping[i] for i in range(a1, a2) if i in mapping]
+        ref = next((i for i in list(range(a1, a2)) + list(range(a1 - 1, lo - 1, -1)) + list(range(a2, hi))
+                    if i in mapping), None)
+        if ref is None:
+            return None
+        new = reindent(theirs_lines[b1:b2], base_lines[ref], lines[mapping[ref]])
+        if mapped:
+            start, end = mapped[0], mapped[-1] + 1
+        elif a1 > lo and (a1 - 1) in mapping:
+            start = end = mapping[a1 - 1] + 1  # directly after the previous code line, as in Petari
+        else:
+            nxt = next((mapping[i] for i in range(a1, hi) if i in mapping), None)
+            if nxt is None:
+                return None
+            start = end = nxt
+        edits.append((start, end, new))
+    for start, end, new in sorted(edits, key=lambda e: e[0], reverse=True):
+        lines = lines[:start] + new + lines[end:]
+    return "".join(lines)
 
 
 def norm_line(l):
@@ -535,7 +579,14 @@ def main():
     files, merged_files, added, todo = [], {}, [], []
     for line in status.splitlines():
         st, rel = line.split("\t", 1)
-        if args.only and not any(rel.startswith(o) for o in args.only):
+        selected = not args.only or any(rel.startswith(o) for o in args.only)
+        if not selected:
+            # Still learn Wii-side aliases from every file, so --only runs classify rewrites the same way.
+            if st in ("A", "M") and Path(rel).suffix in SOURCE_EXTS:
+                text = MACRO_RE.sub(MACRO_TO, decode(git(args.macio, "show", f"{args.head}:{rel}")))
+                old = decode(git(args.macio, "show", f"{args.base}:{rel}")) if st == "M" else None
+                if not FEATURE_RE.search(rel):
+                    learn_aliases(wii_side(text) or "", wii_side(old) if old else None)
             continue
         if st == "A":
             kind = "deferred-feature" if FEATURE_RE.search(rel) else (

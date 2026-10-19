@@ -36,14 +36,20 @@ extern "C" int petari_present_take_readback(const void* copy, unsigned char* rgb
 #include <petari/unlocked_save.hpp>
 #include <petari/pipeline_startup.hpp>
 #include <petari/mods.hpp>
+#ifdef PETARI_EDITOR_UI
 #include <petari/editor/terrain/bake.hpp>
+#endif
+#ifdef PETARI_EDITOR_UI
 #include <petari/editor/import_assets.hpp>
+#endif
 #include <petari/platform/mod_folder.hpp>
 #include <petari/platform/mod_galaxy.hpp>
 #include <petari/progress.hpp>
 #include <petari/camera_input.h>
 #include <petari/camera_settings.hpp>
+#ifdef PETARI_EDITOR_UI
 #include <petari/editor/edit_api.hpp>
+#endif
 #include <petari/editor_pick.hpp>
 #include <petari/editor_settings.hpp>
 #include <petari/efb_dump_mark.hpp>
@@ -428,6 +434,7 @@ App::FrameStats::Phase framePhaseForPipelines() {
             }
         }
     }
+#ifdef PETARI_EDITOR_UI
     // Level editor test driver (PETARI_EDITOR_TEST=N, with the LevelEditor mod on, e.g.
     // PETARI_MODS=LevelEditor): after N gameplay frames, tap the editor key (retried until the game
     // takes it), orbit, zoom toward the centre, pan, frame Mario, and leave.
@@ -785,6 +792,7 @@ App::FrameStats::Phase framePhaseForPipelines() {
             }
         }
     }
+#endif
     static long gameplayFrames = 0;
     if (period > 1 && gameplay) {
         ++gameplayFrames;
@@ -796,7 +804,9 @@ App::FrameStats::Phase framePhaseForPipelines() {
             std::fprintf(stderr, "[mods-test] shoot press at gameplay frame %ld\n", gameplayFrames);
         }
     }
+#ifdef PETARI_EDITOR_UI
     App::editorM4Smoke(gameplay);  // M4: opt-in SDL regression driver.
+#endif
     return phase;
 }
 
@@ -843,6 +853,7 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "petari: mods: %s\n", error.c_str());
         return 1;
     }
+#ifdef PETARI_EDITOR_UI
     // Terrain brushes in patch mods (docs/dev/level-editor/TECH.md 6.5): the mod loader bakes them into
     // planets, unless the level editor is on, which keeps them as rows to edit (shown live; the save
     // bakes or patches them).
@@ -853,6 +864,7 @@ int main(int argc, char** argv) {
             PetariEditor::Imports::registerPatchBuilder();  // M6 import: neutral assets become native planets.
         }
     }
+#endif
     if (!App::Host::preparePlatform(paths, &error)) {
         std::fprintf(stderr, "petari: %s\n", error.c_str());
         return 1;

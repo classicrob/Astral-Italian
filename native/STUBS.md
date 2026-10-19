@@ -25,6 +25,27 @@ when `include/Game/System/CutsceneSkip.hpp` exists. The imported SMG1
 `J3DModelX::Flags` regression was removed because SMG2 has no such nested type;
 SMG2 raw movement/draw words have their own checks in the native bitfield test.
 
+## SMG2 SDK extension adapters (link preview)
+
+`native/input/smg2_extensions.cpp` supplies SMG2's additional KPAD dependencies.
+The imported `KPADInit`/`KPADRead` entry points forward to SMG2's real
+`KPADInitEx(nullptr, 0)` / `KPADiRead(..., nullptr, FALSE)` implementations.
+The native keyboard/mouse controller exposes no MotionPlus or Balance Board:
+`KMPLSIsInit` returns false and `WPADiGetMplsStatus` reports disabled on valid
+channels. They do not produce synthetic MotionPlus samples or board weights.
+
+The following unsupported calls issue `OSPanic` naming the function and abort:
+`KMPLSSetKpadRingBuffer`, `KMPLSSetSamplingCallback`, `KMPLSRead`,
+`WBCSetupCalibration`, `WBCGetCalibrationStatus`, `WBCGetBatteryLevel`, `WBCRead`,
+`WBCSetZEROPoint`, `WBCGetTGCWeight`, `WPADiControlMpls`, and `WPADControlBLC`.
+These are P2 stubs; any game path reaching one needs an implementation before
+that path can work. `native_smg2_sdk` checks absent-device queries and loud failure.
+
+`WPADSetCallbackByKPAD` records KPAD's callback ownership and the normal WPAD
+callback setters warn before overwriting it, matching the SDK's diagnostic role.
+The `native_smg2_sdk` test also initializes the real SMG2 KPAD and reads native
+Nunchuk reports without invoking unsupported extension operations.
+
 ## Imported SMG1 inventory
 
 Native replacements that return a fixed value, do nothing, or stand in for Wii

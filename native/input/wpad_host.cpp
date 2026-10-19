@@ -130,6 +130,7 @@ WPADFree gFree = nullptr;
 // The thread that called WPADInit (KPADInit's caller): the only thread that
 // writes KPAD's calibration.
 std::thread::id gKpadThread;
+bool gCallbackByKpad = false;
 
 // Host requests, applied at the next report tick.
 std::atomic<bool> gWantConnected[kChannels] = {true, false, false, false};
@@ -1128,6 +1129,7 @@ void resetForTesting() {
         gAlloc = nullptr;
         gFree = nullptr;
         gKpadThread = std::thread::id();
+        gCallbackByKpad = false;
         for (int i = 0; i < kChannels; ++i) {
             gWantConnected[i] = i == 0;
             gWantNunchuk[i] = true;
@@ -1208,9 +1210,17 @@ s32 WPADProbe(s32 chan, u32* type) {
     return readiness(ch);
 }
 
+void WPADSetCallbackByKPAD(BOOL enabled) {
+    Interrupts guard;
+    gCallbackByKpad = enabled != FALSE;
+}
+
 WPADSamplingCallback WPADSetSamplingCallback(s32 chan, WPADSamplingCallback callback) {
     Interrupts guard;
     Channel& ch = channel("WPADSetSamplingCallback", chan);
+    if (gCallbackByKpad) {
+        OSReport("WPADSetSamplingCallback: overwriting KPAD's callback; use KPADSetSamplingCallback.\n");
+    }
     const WPADSamplingCallback previous = ch.samplingCallback;
     ch.samplingCallback = callback;
     return previous;
@@ -1219,6 +1229,9 @@ WPADSamplingCallback WPADSetSamplingCallback(s32 chan, WPADSamplingCallback call
 WPADConnectCallback WPADSetConnectCallback(s32 chan, WPADConnectCallback callback) {
     Interrupts guard;
     Channel& ch = channel("WPADSetConnectCallback", chan);
+    if (gCallbackByKpad) {
+        OSReport("WPADSetConnectCallback: overwriting KPAD's callback; use KPADSetConnectCallback.\n");
+    }
     const WPADConnectCallback previous = ch.connectCallback;
     ch.connectCallback = callback;
     return previous;

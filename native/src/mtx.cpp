@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstring>
 
+extern const Vec gZeroVec = {0.0f, 0.0f, 0.0f};
+
 void PSVECAdd(const Vec* a, const Vec* b, Vec* out) {
     *out = {a->x + b->x, a->y + b->y, a->z + b->z};
 }

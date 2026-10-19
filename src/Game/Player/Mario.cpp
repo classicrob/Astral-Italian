@@ -423,6 +423,7 @@ Mario::Mario(MarioActor* pActor)
 
     initSound();
     mAirWalkRecoverySoundArmed = 0;
+    mJumpFallTimer = 0;
 
     _97C = 0;
 
@@ -15351,7 +15352,7 @@ void Mario::updateOnSand() {
 
 void Mario::updateOnPoison() {
     if (((mMovementStates.mLowWord >> 30) & 1U)) {
-        if (checkCurrentFloorCodeSevere(18)) {
+        if (_960 == 18) {
             if (mPoisonTimer == 0) {
                 mActor->decLife(0);
                 playSound("毒沼ダメージ");

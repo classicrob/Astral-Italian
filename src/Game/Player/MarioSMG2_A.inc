@@ -496,7 +496,7 @@ void Mario::fn_803A2860() {
 void Mario::fn_803A2720() {
     if ((this->getPlayer()->mFlags14.mLowWord >> 13) & 1) {
         f32 d = MR::diffAngleAbs(this->mFrontVec, this->_22C);
-        f32 c = MR::clamp(d / 3.1415927f, 0.0f, 1.0f);
+        f32 c = MR::clamp(1.0f - (3.1415927f - d) / 3.1415927f, 0.0f, 1.0f);
         this->mWalkSpeed = this->mWalkSpeed * (1.0f - 0.1f * c);
     }
 }
@@ -868,7 +868,7 @@ void Mario::fn_803A22D0(f32 x, s32 arg) {
             this->fn_803A2420();
             this->fn_803A2450(&sp8);
         }
-    } else if ((this->mFlags14.mLowWord >> 13) & 1) {
+    } else if ((this->mFlags14.mLowWord >> 19) & 1) {
         this->fn_803A24C0(&sp8);
     } else {
         f32 d = MR::diffAngleAbs(this->mFrontVec, this->_22C);

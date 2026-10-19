@@ -2613,7 +2613,14 @@ void Mario::createAtField(bool force, f32 radius) {
                 }
 
                 const TVec3f* normal = triangle->getNormal(0);
-                f32 angle = _95C->getCode(triangle) == CollisionFloorCode_NoSlip ? 60.0f : 45.0f;
+                s32 code = _95C->getCode(triangle);
+                // 0x27 "PressAndNoSlip", 0x2B "SnowAndNoSlip" (SMG2 floor codes, CollisionCode.cpp table; no enumerators yet)
+                f32 angle;
+                if (code == CollisionFloorCode_NoSlip || code == 0x27 || code == 0x2B) {
+                    angle = 60.0f;
+                } else {
+                    angle = 45.0f;
+                }
 
                 if (((mMovementStates.mHighWord >> 8) & 1U)) {
                     if (!MR::isSameMtx(*triangle->getBaseMtx(), *triangle->getPrevBaseMtx()) && mGroundPolygon->mSensor != triangle->mSensor) {
@@ -15659,11 +15666,10 @@ bool Mario::isEnableStickWall() {
     case PlayerMode_Teresa:
         return false;
     case PlayerMode_Foo:
-        if (isStatusActive(MarioStatus_Foo)) {
-            return false;
-        }
-
-        break;
+        isStatusActive(MarioStatus_Foo);
+        return false;
+    case 0xA:
+        return false;
     }
 
     if (mWall->isCancel()) {

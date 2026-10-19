@@ -587,10 +587,10 @@ bool Mario::fn_803A1050() {
 void Mario::fn_803A0D90(TVec3f* arg) {
     if (MR::isNearZero(this->_328, 0.001f)) {
         this->_328 = this->mFrontVec;
-        *arg = this->_328;
-        this->calcShadowDir(this->_328, &this->_22C);
-        this->_40C = 10;
     }
+    *arg = this->_328;
+    this->calcShadowDir(this->_328, &this->_22C);
+    this->_40C = 10;
 }
 
 

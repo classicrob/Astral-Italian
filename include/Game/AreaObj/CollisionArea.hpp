@@ -17,11 +17,10 @@ public:
     void invalidate();
     void validate();
 
-    /* 0x120 */ u8 _120[4];
-    /* 0x124 */ AreaForm* mForm;
-    /* 0x128 */ MtxPtr _128;
-    /* 0x12C */ TVec3f _12C;
-    /* 0x138 */ f32 _138;
+    /* 0x128 */ AreaForm* mForm;
+    /* 0x12C */ MtxPtr _128;
+    /* 0x130 */ TVec3f _12C;
+    /* 0x13C */ f32 _138;
 };
 
 class CollisionArea : public AreaObj {

@@ -12,6 +12,12 @@ public:
         inline TriangleIndexing() {
         }
 
+        inline void set(u16 a, u16 b, u16 c) {
+            mIndex[0] = a;
+            mIndex[1] = b;
+            mIndex[2] = c;
+        }
+
         u16 mIndex[3];
     };
 
@@ -27,16 +33,17 @@ public:
     void updateCollisionHeader();
     void createCollision();
 
-    /* 0x8C */ KCLFile* mKCLFile;
-    /* 0x90 */ CollisionParts* mParts;
-    /* 0x94 */ u16 _94;
-    /* 0x96 */ u16 mPositionNum;
-    /* 0x98 */ TVec3f* mPositions;
-    /* 0x9C */ TVec3f* _9C;
-    /* 0xA0 */ TriangleIndexing* mIndices;
-    /* 0xA4 */ u32 _A4;
-    /* 0xA8 */ u32 _A8;
-    /* 0xAC */ u32 _AC;
-    /* 0xB0 */ u8 _B0[0x6C];
-    /* 0x11C */ u32 _11C;
+    /* 0x90 */ KCLFile* mKCLFile;
+    /* 0x94 */ CollisionParts* mParts;
+    /* 0x98 */ u16 _94;
+    /* 0x9A */ u16 mPositionNum;
+    /* 0x9C */ TVec3f* mPositions;
+    /* 0xA0 */ TVec3f* _9C;
+    /* 0xA4 */ TriangleIndexing* mIndices;
+    /* 0xA8 */ u32 _A4;
+    /* 0xAC */ u32 _A8;
+    /* 0xB0 */ u32 _AC;
+    /* 0xB4 */ u8 _B0[0x6C];
+    /* 0x120 */ u32 _11C;
+    /* 0x124 */ u32 _124;  // SMG2
 };

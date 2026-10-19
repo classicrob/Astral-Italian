@@ -6,19 +6,13 @@
 #include "Game/Util.hpp"
 #include <new>
 
-DynamicCollisionObj::DynamicCollisionObj(const char* pName) : LiveActor(pName) {
-    _A4 = 0;
-    _9C = 0;
-    _11C = 0;
-    _A8 = 0;
-    _AC = 0;
-}
+DynamicCollisionObj::DynamicCollisionObj(const char* pName)
+    : LiveActor(pName), mKCLFile(nullptr), mParts(nullptr), _94(0), mPositionNum(0), mPositions(nullptr), _9C(nullptr),
+      mIndices(nullptr), _A4(0), _A8(0), _AC(0) {}
 
 void DynamicCollisionObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::connectToScene(this, MR::MovementType_Enemy, MR::CalcAnimType_Enemy, MR::DrawBufferType_None, MR::DrawType_FlexibleSphere);
-
-    mKCLFile = nullptr;
 }
 
 void DynamicCollisionObj::syncCollision() {
@@ -28,9 +22,8 @@ void DynamicCollisionObj::syncCollision() {
     mParts->updateBoundingSphereRange(mScale);
 }
 
+// NONMATCHING: regalloc only; the target recomputes i * sizeof(TVec3f) for mPos[i] instead of reusing the _9C[i] offset
 void DynamicCollisionObj::updateTriangle() {
-    s32 nrmidxa, nrmidxb, nrmidxc;
-    s32 prismidx;
     s32 normalidx = 0;
 
     for (u16 i = 0; i < _94; i++) {
@@ -65,28 +58,26 @@ void DynamicCollisionObj::updateTriangle() {
         MR::normalizeOrZero(&cross4);
 
         mKCLFile->mPos[i] = Vertex1;
-        mKCLFile->mNorms[normalidx + 0] = cross;
-        nrmidxa = normalidx + 1;
-        mKCLFile->mNorms[nrmidxa] = cross2;
-        nrmidxb = normalidx + 2;
-        mKCLFile->mNorms[nrmidxb] = cross3;
-        nrmidxc = normalidx + 3;
-        mKCLFile->mNorms[nrmidxc] = cross4;
+        mKCLFile->mNorms[(u16)normalidx] = cross;
+        s32 edge0 = (u16)normalidx + 1;
+        mKCLFile->mNorms[edge0] = cross2;
+        s32 edge1 = (u16)normalidx + 2;
+        mKCLFile->mNorms[edge1] = cross3;
+        s32 edge2 = (u16)normalidx + 3;
+        mKCLFile->mNorms[edge2] = cross4;
 
-        prismidx = i + 1;
-        KC_PrismData* prism = &mKCLFile->mPrisms[prismidx];
+        s32 attr = i + 1;
+        KC_PrismData* prism = &mKCLFile->mPrisms[attr];
         MR::vecKillElement(SaveForLater, c, &SaveForLater);
 
         prism->mHeight = SaveForLater.length();
         prism->mPositionIndex = i;
-        u16 nrmidx = normalidx;
-        prism->mNormalIndex = nrmidx;
-        nrmidx += 4;
-        prism->mEdgeIndices[0] = nrmidxa;
-        prism->mEdgeIndices[1] = nrmidxb;
-        prism->mEdgeIndices[2] = nrmidxc;
-        prism->mAttribute = prismidx;
-        normalidx = nrmidx;
+        prism->mNormalIndex = normalidx;
+        normalidx += 4;
+        prism->mEdgeIndices[0] = edge0;
+        prism->mEdgeIndices[1] = edge1;
+        prism->mEdgeIndices[2] = edge2;
+        prism->mAttribute = attr;
     }
 }
 
@@ -149,18 +140,18 @@ void DynamicCollisionObj::updateCollisionHeader() {
     this->mKCLFile->mMin = min;
 }
 
-void DynamicCollisionObj_FORCE_MATCH(TVec2f* pDst, const TVec2f& rA) {
-    new (pDst) TVec2f(rA);
-    new (pDst + 1) TVec2f(rA);
-}
-
 void DynamicCollisionObj::createCollision() {
     s32 v = _94;
+    u32 posSize = v * sizeof(TVec3f);
+    u32 normSize = v * (4 * sizeof(TVec3f));
+    u32 octSize = (v + 3) * sizeof(u16);
+    u32 prismSize = (v + 1) * sizeof(KC_PrismData);
+    u8* buf = new (4) u8[prismSize + posSize + (octSize + normSize)];
     mKCLFile = new KCLFile();
-    mKCLFile->mPos = new TVec3f[v];
-    mKCLFile->mNorms = new TVec3f[v * 4];
-    mKCLFile->mPrisms = new KC_PrismData[(v + 1) * 1];
-    u16* u16array = new (4) u16[v + 3];
+    mKCLFile->mPos = reinterpret_cast<TVec3f*>(buf);
+    mKCLFile->mNorms = reinterpret_cast<TVec3f*>(reinterpret_cast<u8*>(mKCLFile->mPos) + posSize);
+    mKCLFile->mPrisms = reinterpret_cast<KC_PrismData*>(reinterpret_cast<u8*>(mKCLFile->mNorms) + normSize);
+    u16* u16array = reinterpret_cast<u16*>(reinterpret_cast<u8*>(mKCLFile->mPrisms) + prismSize);
     mKCLFile->mOctree = u16array;
 
     u16array[0] = 0x8000;

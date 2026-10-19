@@ -19,8 +19,6 @@ public:
     virtual void kill();
     virtual bool receiveOtherMsg(u32, HitSensor*, HitSensor*);
 
-    // SMG2: DynamicCollisionObj is 0x124 bytes here (header is 0x120), the owner pointer sits at 0x128.
-    u8 _120[0x4];
     /* 0x128 */ YoshiBlock* mYoshiBlock;
 };
 

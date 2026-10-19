@@ -1,0 +1,10 @@
+tracked placeholders: 12 {'core': 11, 'enemies': 1}
+untracked: extern-C fn_ decls 0, '#if 1' pins 3
+untracked forcing helpers: 240 (per lane: {'astra': 46, 'core': 92, 'enemies': 18, 'objects': 78, 'unknown': 6})
+untracked emitted forcing candidates by lane:
+  astra: {"likely_forcing_bytes": 1308, "likely_forcing_functions": 46, "likely_forcing_objects": 0, "missing_object_config": 13, "source_files_not_present": 1, "source_newer_than_object": 189, "source_only_functions": 372, "source_only_objects": 59, "units": 279}
+  core: {"likely_forcing_bytes": 2500, "likely_forcing_functions": 92, "likely_forcing_objects": 0, "missing_object_config": 41, "source_files_not_present": 22, "source_newer_than_object": 469, "source_only_functions": 633, "source_only_objects": 124, "units": 687}
+  enemies: {"likely_forcing_bytes": 272, "likely_forcing_functions": 18, "likely_forcing_objects": 0, "missing_object_config": 38, "source_files_not_present": 1, "source_newer_than_object": 122, "source_only_functions": 349, "source_only_objects": 39, "units": 135}
+  objects: {"likely_forcing_bytes": 3192, "likely_forcing_functions": 78, "likely_forcing_objects": 0, "missing_object_config": 122, "source_files_not_present": 11, "source_newer_than_object": 365, "source_only_functions": 598, "source_only_objects": 125, "units": 440}
+  unknown: {"likely_forcing_bytes": 480, "likely_forcing_functions": 6, "likely_forcing_objects": 0, "missing_object_config": 1508, "source_files_not_present": 368, "source_newer_than_object": 42, "source_only_functions": 1726, "source_only_objects": 869, "units": 562}
+inventory unresolved: 0; source-only entries remain advisory

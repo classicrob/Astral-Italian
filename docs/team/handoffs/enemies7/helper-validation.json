@@ -1,0 +1,15 @@
+{
+  "tests": 180,
+  "current_derived_rows": 140,
+  "after_sync_pass": 134,
+  "supplemental_pass": 6,
+  "failures": 0,
+  "demoted_stale_enemies_rows": 12,
+  "benign_sha256": {
+    "astra.txt": "24c83ea89a33bd74209eb150cca9681218b1dce8764749ec7e3b71e3d374c6d5",
+    "enemies.txt": "14b60a0a7f77e7f5923ba7039ea7f6bb7c0043ec5eae4ddc175e0ab472eb8fa0",
+    "core.txt": "30432802deee42be11471d464319783ad1675993d13367f10909686e06e8131e",
+    "README.txt": "af336f8cc0bb3ce02fac28ad19dc78e67c62ff25cfa39561137078100671223f",
+    "objects.txt": "f589eb7d59efed877e93c09b5eb7b59241fb1302c68632ee6eab66d6a36da832"
+  }
+}

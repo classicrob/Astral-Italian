@@ -1,0 +1,74 @@
+[
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "updateShootMotion__15ScenarioStarterFv  # proof: rdclass.py Game/Demo/ScenarioStarter: a: 63 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 7 full pool spans and relocation identities checked",
+    "name": "updateShootMotion__15ScenarioStarterFv",
+    "unit": "Game/Demo/ScenarioStarter"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "exeCreateConfirm__12FileSelectorFv  # proof: rdclass.py Game/Map/FileSelector: a: 58 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 4 full pool spans and relocation identities checked",
+    "name": "exeCreateConfirm__12FileSelectorFv",
+    "unit": "Game/Map/FileSelector"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "exeDeleteConfirm__12FileSelectorFv  # proof: rdclass.py Game/Map/FileSelector: a: 58 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 4 full pool spans and relocation identities checked",
+    "name": "exeDeleteConfirm__12FileSelectorFv",
+    "unit": "Game/Map/FileSelector"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "playSelectedME__12FileSelectorFv  # proof: rdclass.py Game/Map/FileSelector: a: 34 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 4 full pool spans and relocation identities checked",
+    "name": "playSelectedME__12FileSelectorFv",
+    "unit": "Game/Map/FileSelector"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "exeMiiConfirm__12FileSelectorFv  # proof: rdclass.py Game/Map/FileSelector: a: 102 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 5 full pool spans and relocation identities checked",
+    "name": "exeMiiConfirm__12FileSelectorFv",
+    "unit": "Game/Map/FileSelector"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "updatePointingGuidanceSelect__12FileSelectorFv  # proof: rdclass.py Game/Map/FileSelector: a: 59 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 4 full pool spans and relocation identities checked",
+    "name": "updatePointingGuidanceSelect__12FileSelectorFv",
+    "unit": "Game/Map/FileSelector"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "animeFunc__9CaretakerFUl  # proof: rdclass.py Game/NPC/CareTaker: a: 25 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 3 full pool spans and relocation identities checked",
+    "name": "animeFunc__9CaretakerFUl",
+    "unit": "Game/NPC/CareTaker"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "exePreTalk__9CaretakerFv  # proof: rdclass.py Game/NPC/CareTaker: a: 58 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 3 full pool spans and relocation identities checked",
+    "name": "exePreTalk__9CaretakerFv",
+    "unit": "Game/NPC/CareTaker"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "exeReaction__9CaretakerFv  # proof: rdclass.py Game/NPC/CareTaker: a: 71 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 6 full pool spans and relocation identities checked",
+    "name": "exeReaction__9CaretakerFv",
+    "unit": "Game/NPC/CareTaker"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "exeStartEnd__11PichanRacerFv  # proof: rdclass.py Game/NPC/PichanRacer: a: 78 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 3 full pool spans and relocation identities checked",
+    "name": "exeStartEnd__11PichanRacerFv",
+    "unit": "Game/NPC/PichanRacer"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "exeEat__16TicoStateEatCoinFv  # proof: rdclass.py Game/NPC/TicoStateEatCoin: a: 158 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 8 full pool spans and relocation identities checked",
+    "name": "exeEat__16TicoStateEatCoinFv",
+    "unit": "Game/NPC/TicoStateEatCoin"
+  },
+  {
+    "file": "/Users/roberthaisfield/MacioGalaxy2-team/benign/enemies.txt",
+    "line": "isAllAnimStopped__10RaceLayoutFv  # proof: rdclass.py Game/Screen/RaceLayout: a: 40 instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal; 4 full pool spans and relocation identities checked",
+    "name": "isAllAnimStopped__10RaceLayoutFv",
+    "unit": "Game/Screen/RaceLayout"
+  }
+]

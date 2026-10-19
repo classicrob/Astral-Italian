@@ -1,0 +1,81 @@
+{
+  "all_function_raw_bodies_equal": true,
+  "all_allocated_effective_relocations_equal": true,
+  "all_allocated_sections_equal": [
+    ".text",
+    ".data",
+    ".sdata2",
+    ".text",
+    ".text"
+  ],
+  "functions": [
+    {
+      "name": "start__9MarioFlowFv",
+      "size": 352,
+      "sha256": "2ac59885e2d7dec35edda9177ff926b8229d39e3df2b7a8b94db9d73cba1cc01"
+    },
+    {
+      "name": "__ml__Q29JGeometry8TVec3<f>CFf",
+      "size": 48,
+      "sha256": "5e3ece3232e8b01d8d5d7e819724122b5194d75f7435d8ebea2573919d1d2519"
+    },
+    {
+      "name": "__as__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+      "size": 20,
+      "sha256": "e38140ed4deebf23d85ff931565da3b2183895de7d2b0c7d01ae492921b59261"
+    },
+    {
+      "name": "__apl__Q29JGeometry8TVec3<f>FRCQ29JGeometry8TVec3<f>",
+      "size": 36,
+      "sha256": "eb77b64c8647ff63d8fbda86df110d5560260c65a03a226cf5f99830e822bed0"
+    },
+    {
+      "name": "update__9MarioFlowFv",
+      "size": 580,
+      "sha256": "9b1e09e6d5de6e6f4d7e8ba7ea6c41a7a41016b82c02af1302a4ad748b39a8fb"
+    },
+    {
+      "name": "close__9MarioFlowFv",
+      "size": 88,
+      "sha256": "6e548f6a48315f55e1ae8107c0e9d130f6a746e463291cc831752dd2b087b47e"
+    },
+    {
+      "name": "__ct__9MarioFlowFP10MarioActor",
+      "size": 92,
+      "sha256": "2761c8fc4c2c633c46da6f31cd15020941b54155cea18d901f5082f815d70bb4"
+    },
+    {
+      "name": "draw3D__10MarioStateCFv",
+      "size": 4,
+      "sha256": "f332ea5b5437103cbb6f1508679da89eec9288ad775c96c439a17fccabe3de8e"
+    },
+    {
+      "name": "hitPoly__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+      "size": 4,
+      "sha256": "f332ea5b5437103cbb6f1508679da89eec9288ad775c96c439a17fccabe3de8e"
+    },
+    {
+      "name": "hitWall__10MarioStateFRCQ29JGeometry8TVec3<f>P9HitSensor",
+      "size": 4,
+      "sha256": "f332ea5b5437103cbb6f1508679da89eec9288ad775c96c439a17fccabe3de8e"
+    },
+    {
+      "name": "keep__10MarioStateFv",
+      "size": 8,
+      "sha256": "2bf7a94759a252fd0d2af700ff876c19ab13998fb28ac5b0db3c70cdbc9ef8d6"
+    },
+    {
+      "name": "notice__10MarioStateFv",
+      "size": 8,
+      "sha256": "d4e9e7520ef19698837e384bfe1708ac4b91fcf26b16ec098ec21c1e344ad3db"
+    },
+    {
+      "name": "init__10MarioStateFv",
+      "size": 4,
+      "sha256": "f332ea5b5437103cbb6f1508679da89eec9288ad775c96c439a17fccabe3de8e"
+    }
+  ],
+  "source_sha256": "753b59d29ac85bafc5bff196f9e654ffe7e1be420af3f2210e1bceee7f976660",
+  "header_sha256": "f6d22180ad8f364b9961db3e4b1e5445c86bfbe1216526ef3eebb9a53d5c5519",
+  "object_sha256": "84f6cd676f0af837a0a8db2a48cd8db865e27b506723bfc72939eefa229f1f28"
+}

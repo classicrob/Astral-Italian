@@ -1,0 +1,102 @@
+[
+  {
+    "unit": "Game/Enemy/ActorActionSoundKeeper",
+    "strict": 12,
+    "total": 12,
+    "nonmatching": []
+  },
+  {
+    "unit": "Game/Enemy/ActionSound",
+    "strict": 15,
+    "total": 17,
+    "nonmatching": [
+      "applyRateToSound__11ActionSoundFf",
+      "applyPitchVolumeArgs__11ActionSoundFll"
+    ]
+  },
+  {
+    "unit": "Game/Effect/SyncBckEffectInfo",
+    "strict": 4,
+    "total": 5,
+    "nonmatching": [
+      "isExistSyncBckDeleteFrame__Q22MR6EffectFPC17SyncBckEffectInfo"
+    ]
+  },
+  {
+    "unit": "Game/Effect/MultiEmitter",
+    "strict": 38,
+    "total": 44,
+    "nonmatching": [
+      "__ct__12MultiEmitterFPCcPCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>PCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "__ct__12MultiEmitterFPCcPA4_fRCQ29JGeometry8TVec3<f>",
+      "__ct__12MultiEmitterFPCcPA4_fPCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>",
+      "__ct__12MultiEmitterFPCc",
+      "initSyncBck__12MultiEmitterFP12XanimePlayerPCclf",
+      "setGlobalRotationDegree__12MultiEmitterFRCQ29JGeometry8TVec3<f>l"
+    ]
+  },
+  {
+    "unit": "Game/Enemy/AnimStampController",
+    "strict": 11,
+    "total": 11,
+    "nonmatching": []
+  },
+  {
+    "unit": "Game/Map/KCollision",
+    "strict": 17,
+    "total": 31,
+    "nonmatching": [
+      "__ct__16KCollisionServerFv",
+      "calcFarthestVertexDistance__16KCollisionServerFv",
+      "checkPoint__16KCollisionServerFP4FxyzfPf",
+      "checkArea3D__16KCollisionServerFP4FxyzP4FxyzPP12KC_PrismDataUl",
+      "checkSphere__16KCollisionServerFP4FxyzffUlPP12KC_PrismDataPfPUc",
+      "checkSphereWithThickness__16KCollisionServerFP4FxyzffUlPP12KC_PrismDataPfPUcf",
+      "checkArrow__16KCollisionServerCFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PfPUcPUlPP12KC_PrismDataUl",
+      "KCHitSphere__16KCollisionServerFP12KC_PrismDataP4FxyzffPfPUc",
+      "KCHitSphereWithThickness__16KCollisionServerFP12KC_PrismDataP4FxyzffPfPUcf",
+      "isNearParallelNormal__16KCollisionServerCFPC12KC_PrismData",
+      "__eq__Q29JGeometry8TVec3<f>CFRCQ29JGeometry8TVec3<f>",
+      "KCHitArrow__16KCollisionServerCFP12KC_PrismDataRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PfPUc",
+      "__dv__Q29JGeometry8TVec3<f>CFf",
+      "getPos__16KCollisionServerCFPC12KC_PrismDatai"
+    ]
+  },
+  {
+    "unit": "Game/Speaker/SpkSystem",
+    "strict": 16,
+    "total": 17,
+    "nonmatching": [
+      "__sinit_\\SpkSystem_cpp"
+    ]
+  },
+  {
+    "unit": "Game/AudioLib/AudInstListMgr",
+    "strict": 35,
+    "total": 40,
+    "nonmatching": [
+      "isLoadDone__15AudInstWaveSlotFP14JAUSectionHeap",
+      "isRequestLoadDone__15AudInstWaveSlotFP14JAUSectionHeap",
+      "requestInstList__14AudInstListMgrFPC8JMapInfo",
+      "requestSoundWaves__14AudInstListMgrF10JAISoundIDb",
+      "requestActionSounds__14AudInstListMgrFPC15ActionSoundDatab"
+    ]
+  },
+  {
+    "unit": "JSystem/JAudio2/JASBasicInst",
+    "strict": 14,
+    "total": 15,
+    "nonmatching": [
+      "__ct__12JASBasicInstFv"
+    ]
+  },
+  {
+    "unit": "JSystem/JAudio2/JASDrumSet",
+    "strict": 10,
+    "total": 12,
+    "nonmatching": [
+      "getParam__10JASDrumSetCFiiP12JASInstParam",
+      "__ct__Q210JASDrumSet5TPercFv"
+    ]
+  }
+]

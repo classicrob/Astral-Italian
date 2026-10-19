@@ -484,7 +484,7 @@ void LayoutManager::calcAnimWithoutLocationAdjust(const nw4r::lyt::DrawInfo& rDr
             TVec3f pos;
             MR::extractMtxTrans(pPane->mGlbMtx, &pos);
             mtx.setTrans(pos);
-            PSMTXCopy(mPaneInfoList[i].mMtxRef, mtx);
+            PSMTXCopy(mtx, mPaneInfoList[i].mMtxRef);
 
             if (MR::isScreen16Per9()) {
                 mPaneInfoList[i].mMtxRef[0][3] *= 1.3355263f;

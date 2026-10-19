@@ -53,7 +53,7 @@ void ParticleDrawExecutor::draw2D() const {
         GXSetProjection(projection, GX_ORTHOGRAPHIC);
         GXSetCullMode(GX_CULL_NONE);
         GXSetZMode(GX_FALSE, GX_NEVER, GX_FALSE);
-        C_MTXLightOrtho(drawInfo.mPrjMtx, height, -height, -width, width, 0.5f, 0.5f, 0.5f, 0.5f);
+        C_MTXLightOrtho(drawInfo.mPrjMtx, -height, height, -width, width, 0.5f, 0.5f, 0.5f, 0.5f);
         mHost->mEmitterManager->draw(&drawInfo, 6);
         GXSetClipMode(GX_CLIP_ENABLE);
         mHost->mEmitterManager->draw(&drawInfo, 7);

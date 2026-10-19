@@ -560,7 +560,7 @@ inline void MogucchiSpike::attackSensor(HitSensor* pSender, HitSensor* pReceiver
 
 bool MogucchiSpike::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceReflect(msg)) {
-        return MR::sendMsgStarPieceAttack(pSender, pReceiver);
+        return MR::sendMsgStarPieceAttack(pReceiver, pSender);
     }
     return false;
 }

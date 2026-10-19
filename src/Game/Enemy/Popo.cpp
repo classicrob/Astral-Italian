@@ -601,7 +601,7 @@ bool Popo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
                 }
             }
         } else {
-            TVec3f dir = *MR::getSensorPos(pSender) - *MR::getSensorPos(pReceiver);
+            TVec3f dir = *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender);
             if (MR::normalizeOrZero(&dir)) {
                 MR::getPlayerFrontVec(&dir);
             }
@@ -615,7 +615,7 @@ bool Popo::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRecei
 bool Popo::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (isNerve(&NrvPopo::PopoNrvTouch::sInstance)) {
         if (MR::isMsgPlayerKick(msg)) {
-            TVec3f dir = *MR::getSensorPos(pSender) - *MR::getSensorPos(pReceiver);
+            TVec3f dir = *MR::getSensorPos(pReceiver) - *MR::getSensorPos(pSender);
             if (MR::normalizeOrZero(&dir)) {
                 TVec3f neg = -mFrontVec;
                 dir = neg;

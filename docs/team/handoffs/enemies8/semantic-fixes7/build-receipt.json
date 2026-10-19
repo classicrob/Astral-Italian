@@ -1,0 +1,20 @@
+{
+  "first_gate_commit": "ec4a62d661b35b8e3bd6c6a4c8ba2a233cb99d14",
+  "base_commit": "39ec4744bfda06b101ad990adfea3644b65a407d",
+  "actual_nj_exit": 0,
+  "dol_sha1": "7d79810889824edd01c4ff02624713060a69818c",
+  "source_objects": {
+    "build/SB4E01/src/Game/AudioLib/AudSystem.o": "fdb069531418c1f49f83f0f8f7df1d524fe2e502021a9ff4b1adc62e4e910977",
+    "build/SB4E01/src/Game/Effect/ParticleDrawExecutor.o": "312b2fe606bdf72244034192eedf91879b9ff197d3cd44b0da065ebbbb9b6d79",
+    "build/SB4E01/src/Game/Enemy/MogucchiShooter.o": "6ea308cab92172f9b1c5610b69b67fcd5bc78028312a770f73a1e87c9ce597b5",
+    "build/SB4E01/src/Game/Enemy/Popo.o": "4cfacd87ce8b88500671ee0f331c1f7d78e0882ebe425e06fdcb4dedf07e1908",
+    "build/SB4E01/src/Game/Screen/LayoutManager.o": "be527eec3e49ff43c00e8c4505af03ce96429a386905d2f7e21571b262deb917",
+    "build/SB4E01/src/Game/Screen/SuddenDeathMeter.o": "a86583b5a3b5cd2d4549d597e05f49ecd48c36eefcf2942f4ffb4389c0e1c188"
+  },
+  "final_rebase_guard_pending": false,
+  "final_base_commit": "c40345a55650d41643d7178afe517612a68bad4d",
+  "final_rebased_code_commit": "a59da78c3655fc1f2f7c08422d7dda0722fd3db1",
+  "final_rebase_nj_exit": 0,
+  "final_guard_matched_code_gain": 1608,
+  "final_guard_unit_drops": 0
+}

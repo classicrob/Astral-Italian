@@ -1,0 +1,21 @@
+{
+  "expected_isolated_code_gain": 1608,
+  "behavior_rows": 7,
+  "source_files": 6,
+  "source_sha256": {
+    "src/Game/AudioLib/AudSystem.cpp": "f178f915d2ff5e857fe635d52650c5f793bd6012b2ce4989cb6fd8c595c538a9",
+    "src/Game/Effect/ParticleDrawExecutor.cpp": "2cf401a8080b36873d24e12dd6783e5afe398f681343827206a3c290fd31134b",
+    "src/Game/Enemy/MogucchiShooter.cpp": "615df837f7536a8bc95d15ef49dda1c09c16109a57082301069c2b182dbd91db",
+    "src/Game/Enemy/Popo.cpp": "4e6f6a04c3ae4ae4714393162ba6dce06c9ba17bc6ecc1cf71c738b304522341",
+    "src/Game/Screen/SuddenDeathMeter.cpp": "9e3974b96b4008b29d384b59c427ffdeb62e6d391d5bacbed837580724e84b20",
+    "src/Game/Screen/LayoutManager.cpp": "b9acf1fc92cdde607194407d72d0d0277980b3941e3834ad22d2cb428496b1b8"
+  },
+  "review_dispositions": {
+    "concrete": 7,
+    "private_shape": 39,
+    "qualified_unknown": 137,
+    "unreviewed": 0
+  },
+  "evidence_archive_sha256": "5f06b3c709e4c30182f575d474e5cc54a026e348f67774599e422408f5ab6e1e",
+  "server_evidence_mirror": "/Users/roberthaisfield/MacioGalaxy2-team/scratch-enemies/sol8/semantic-fixes7-mirror"
+}

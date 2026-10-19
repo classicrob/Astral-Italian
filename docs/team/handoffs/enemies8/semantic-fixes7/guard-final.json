@@ -1,0 +1,39 @@
+{
+  "before_sha256": "ac25fd35430a0c8d0e37bc78875464c126ddddbeca9c190a87d2ea5c99fd5001",
+  "after_sha256": "2074fd5c0cb5d32fa5ea3a68d8b17026b647bb002664e5e0be5b9f52fdf84c3e",
+  "units": 3480,
+  "old_exact_functions_preserved": 47788,
+  "drops": [],
+  "changed_unit_measures": [
+    [
+      "main/Game/Enemy/MogucchiShooter",
+      "matched_code",
+      5140,
+      5228,
+      88
+    ],
+    [
+      "main/Game/Enemy/Popo",
+      "matched_code",
+      7168,
+      8200,
+      1032
+    ],
+    [
+      "main/Game/Screen/LayoutManager",
+      "matched_code",
+      7136,
+      7476,
+      340
+    ],
+    [
+      "main/Game/Screen/SuddenDeathMeter",
+      "matched_code",
+      2624,
+      2772,
+      148
+    ]
+  ],
+  "matched_code_gain": 1608,
+  "matched_data_gain": 0
+}

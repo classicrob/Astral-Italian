@@ -850,9 +850,9 @@ void Mario::fn_803A2180() {
     } else {
         if (this->mTargetWalkSpeedIndex != 0) {
             this->stopAnimation("その場足踏み", (const char*)nullptr);
-            if (this->isAnimationRun("その場足踏み上半身")) {
-                this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
-            }
+        }
+        if (this->isAnimationRun("その場足踏み上半身")) {
+            this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
         }
     }
 }
@@ -1114,12 +1114,14 @@ void Mario::fn_8039A1C0() {
 void Mario::fn_803A0ED0(TVec3f* arg1, s32 arg2) {
     if (this->fn_803A0FF0()) {
         *arg1 = this->_328;
+        return;
     }
     this->calcMoveDir(this->mStickPos.x, this->mStickPos.y, arg1, true);
     this->calcShadowDir(*arg1, &this->_22C);
     this->calcShadowDir(this->mFrontVec, &this->_214);
     if (this->fn_803A1050()) {
         this->fn_803A10D0(arg2);
+        return;
     }
     if (arg2 == 0) {
         this->setFrontVecKeepUp(this->_22C);

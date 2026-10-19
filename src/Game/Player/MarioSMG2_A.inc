@@ -543,7 +543,7 @@ bool Mario::fn_80394550(const TVec3f* arg) {
         if (this->isStatusActive(6)) {
             this->mSwim->fn_803F7C00();
         } else {
-            MarioConstTable* e = marioCurTableEntry(this);
+            MarioConstTable* e = this->mActor->mConst->getTable();
             this->mDamage->setVecSize(e->mJumpDistLargeDamage, e->mJumpHeightLargeDamage);
             this->playSound("投げられ", -1);
         }
@@ -648,7 +648,7 @@ void Mario::fn_803A27A0(TVec3f* arg) {
     if (MR::diffAngleAbs(this->mFrontVec, this->_22C) < 2.5f) {
         return;
     }
-    if (this->_3D4 != marioCurTableEntry(this)->mWeakTurnTime) {
+    if (this->_3D4 != this->mActor->mConst->getTable()->mWeakTurnTime) {
         return;
     }
     if ((this->mDrawStates.mWord >> 18) & 1) {
@@ -727,7 +727,7 @@ void Mario::fn_803A1C90() {
             }
         }
     } else {
-        const MarioConstTable* table = marioCurTableEntry(this);
+        const MarioConstTable* table = this->mActor->mConst->getTable();
         u16 v = this->_3D4;
         if (v < table->mWeakTurnTime) {
             this->_3D4 = v + 1;
@@ -1162,7 +1162,7 @@ f32 Mario::fn_803A1800() {
     return mActor->mConst->getTable()->mTurnAngleSpeed2;
 }
 
-// NONMATCHING: the reset/timer chain is approximated from the draft
+// NONMATCHING: string relocation identities; complete payloads match target.
 void Mario::fn_8039A480() {
     if (this->_430 == 8) {
         if (this->checkTrgZ()) {
@@ -1170,7 +1170,7 @@ void Mario::fn_8039A480() {
             this->cancelTornadoJump();
             this->stopAnimation((const char*)nullptr, (const char*)nullptr);
             this->changeAnimationInterpoleFrame(1);
-            this->mMovementStates.mHighWord |= 0x800000;
+            this->mDrawStates.mWord |= 0x800000;
             this->playSound("声小ジャンプ", -1);
             if (this->_42A != 0) {
                 this->playEffect("スピンライト消去");

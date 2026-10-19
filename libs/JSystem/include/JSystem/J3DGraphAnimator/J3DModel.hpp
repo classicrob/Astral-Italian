@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "JSystem/J3DGraphAnimator/J3DSkinDeform.hpp"
 #include "JSystem/J3DGraphAnimator/J3DVtxShader.hpp"
+#include "JSystem/JGeometry/TMatrix.hpp"
 #include "JSystem/J3DGraphBase/J3DPacket.hpp"
 #include "JSystem/J3DGraphBase/J3DVertex.hpp"
 #include <revolution.h>
@@ -89,11 +90,11 @@ public:
     }
 
     Mtx& getBaseTRMtx() {
-        return mBaseTransformMtx;
+        return mBaseTransformMtx.mMtx;
     }
 
     void setBaseTRMtx(Mtx m) {
-        PSMTXCopy(m, mBaseTransformMtx);
+        PSMTXCopy(m, mBaseTransformMtx.mMtx);
     }
 
     u32 getMtxCalcMode() {
@@ -176,7 +177,7 @@ public:
     /* 0x10 */ J3DCalcCallBack mCalcCallBack;
     /* 0x14 */ uintptr_t mUserArea;
     /* 0x18 */ Vec mBaseScale;
-    /* 0x24 */ Mtx mBaseTransformMtx;
+    /* 0x24 */ TPos3f mBaseTransformMtx;  // native port: typed storage (JSystem declares Mtx); same 0x30 float layout
     /* 0x54 */ Mtx mInternalView;
     /* 0x84 */ J3DMtxBuffer* mMtxBuffer;
     /* 0x88 */ J3DVertexBuffer mVertexBuffer;

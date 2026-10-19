@@ -804,18 +804,18 @@ namespace MR {
     }
 
     void setBaseTRMtx(LiveActor* pActor, MtxPtr pMtx) {
-        PSMTXCopy(pMtx, (MtxPtr)&getJ3DModel(pActor)->mBaseTransformMtx);
+        PSMTXCopy(pMtx, getJ3DModel(pActor)->mBaseTransformMtx.mMtx);
     }
 
     void setBaseTRMtx(LiveActor* pActor, const TPos3f& rMtx) {
-        PSMTXCopy((MtxPtr)rMtx.mMtx, (MtxPtr)&getJ3DModel(pActor)->mBaseTransformMtx);
+        PSMTXCopy((MtxPtr)rMtx.mMtx, getJ3DModel(pActor)->mBaseTransformMtx.mMtx);
     }
 
     void setBaseTRMtx(LiveActor* pActor, const TQuat4f& rQuat) {
         TPos3f mtx;
         mtx.setQT(rQuat, pActor->mPosition);
 
-        PSMTXCopy((MtxPtr)mtx.mMtx, (MtxPtr)&getJ3DModel(pActor)->mBaseTransformMtx);
+        PSMTXCopy((MtxPtr)mtx.mMtx, getJ3DModel(pActor)->mBaseTransformMtx.mMtx);
     }
 
     void setBaseTRMtx(LiveActor* pActor, ActorPoseTQ* pPose) {

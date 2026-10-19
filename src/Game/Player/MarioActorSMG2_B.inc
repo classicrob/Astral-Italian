@@ -638,10 +638,13 @@ bool MarioActor::fn_803CD000() {
     if (this->mMario->isDamaging()) {
         return false;
     }
-    if (mActionTable1080->isActionOk("カメ持ち")) {
-        return static_cast<s32>(_468) == 0;
+    if (!mActionTable1080->isActionOk("カメ持ち")) {
+        return false;
     }
-    return false;
+    if (_468 != 0) {
+        return false;
+    }
+    return true;
 }
 
 bool MarioActor::fn_803CD0A0() {
@@ -1374,7 +1377,7 @@ void MarioActor::fn_803D5A00(u32 idx) {
     }
 }
 
-// NONMATCHING: inline matrix-column access replaces the target direction-helper calls; frame and register allocation differ.
+// NONMATCHING: saved-register allocation and 0.1/0.9 blend load scheduling only.
 void MarioActor::fn_803D32F0() {
     mWallShadow574->mActive = 0;
     if (this->mGroundReflectionEFC || this->mWaterReflectionEF8 || this->mSphereReflectionEF9) {
@@ -1440,45 +1443,26 @@ void MarioActor::fn_803D32F0() {
     J3DModel* mdl = mAllModel->getJ3DModel();
     J3DModelX* mx = mSimpleModelF08;
     PSMTXCopy(mdl->getBaseTRMtx(), mx->getBaseTRMtx());
-    MtxPtr rot = mx->getBaseTRMtx();
-    TVec3f x, y, z;
-    {
-        f32 vz = rot[2][0];
-        f32 vy = rot[1][0];
-        f32 vx = rot[0][0];
-        x.set<f32>(vx, vy, vz);
-    }
+    TPos3f& rot = mx->mBaseTransformMtx;
+    TVec3f x;
+    rot.getXDir(x);
     MR::vecKillElement(x, nrm, &x);
-    {
-        f32 vz = rot[2][1];
-        f32 vy = rot[1][1];
-        f32 vx = rot[0][1];
-        y.set<f32>(vx, vy, vz);
-    }
+    TVec3f y;
+    rot.getYDir(y);
     MR::vecKillElement(y, nrm, &y);
-    {
-        f32 vz = rot[2][2];
-        f32 vy = rot[1][2];
-        f32 vx = rot[0][2];
-        z.set<f32>(vx, vy, vz);
-    }
+    TVec3f z;
+    rot.getZDir(z);
     MR::vecKillElement(z, nrm, &z);
-    rot[0][0] = x.x;
-    rot[1][0] = x.y;
-    rot[2][0] = x.z;
-    rot[0][1] = y.x;
-    rot[1][1] = y.y;
-    rot[2][1] = y.z;
-    rot[0][2] = z.x;
-    rot[1][2] = z.y;
-    rot[2][2] = z.z;
+    rot.setXDir(x);
+    rot.setYDir(y);
+    rot.setZDir(z);
     const TVec3f* gravity = this->mMario->getGravityVec();
     TVec3f perp;
     MR::vecKillElement(this->mPosition - hit, *gravity, &perp);
     f32 dist = perp.length();
     TVec3f trans = this->mPosition + nrm * (10.0f + dist);
-    MR::setMtxTrans(rot, trans.x, trans.y, trans.z);
-    PSMTXConcat(rot, mReflectionBaseMtx264.mMtx, rot);
+    MR::setMtxTrans(rot.toMtxPtr(), trans.x, trans.y, trans.z);
+    PSMTXConcat(rot.toMtxPtr(), mReflectionBaseMtx264.mMtx, rot.toMtxPtr());
     mx->viewCalcRef(3, mdl);
     mWallShadow574->mActive = 1;
 }

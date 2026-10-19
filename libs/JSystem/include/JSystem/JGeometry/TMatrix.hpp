@@ -394,7 +394,11 @@ namespace JGeometry {
             rDestZ.set< f32 >(zx, zy, zz);
         }
 
-        void setXDir(const TVec3f& rSrc) {
+        void setXDir(const TVec3f& rSrc)
+#ifdef JGEOMETRY_OUTLINE_MATRIX_SET_DIRECTION
+            NO_INLINE
+#endif
+        {
             this->mMtx[0][0] = rSrc.x;
             this->mMtx[1][0] = rSrc.y;
             this->mMtx[2][0] = rSrc.z;
@@ -406,7 +410,11 @@ namespace JGeometry {
             this->mMtx[2][0] = z;
         }
 
-        void setYDir(const TVec3f& rSrc) {
+        void setYDir(const TVec3f& rSrc)
+#ifdef JGEOMETRY_OUTLINE_MATRIX_SET_DIRECTION
+            NO_INLINE
+#endif
+        {
             this->mMtx[0][1] = rSrc.x;
             this->mMtx[1][1] = rSrc.y;
             this->mMtx[2][1] = rSrc.z;
@@ -418,7 +426,11 @@ namespace JGeometry {
             this->mMtx[2][1] = z;
         }
 
-        void setZDir(const TVec3f& rSrc) {
+        void setZDir(const TVec3f& rSrc)
+#ifdef JGEOMETRY_OUTLINE_MATRIX_SET_DIRECTION
+            NO_INLINE
+#endif
+        {
             this->mMtx[0][2] = rSrc.x;
             this->mMtx[1][2] = rSrc.y;
             this->mMtx[2][2] = rSrc.z;

@@ -245,7 +245,7 @@ void J3DModel::calcAnmMtx() {
     if (checkFlag(J3DMdlFlag_UseDefaultJ3D)) {
         getModelData()->getJointTree().calc(mMtxBuffer, j3dDefaultScale, j3dDefaultMtx);
     } else {
-        getModelData()->getJointTree().calc(mMtxBuffer, mBaseScale, mBaseTransformMtx);
+        getModelData()->getJointTree().calc(mMtxBuffer, mBaseScale, mBaseTransformMtx.mMtx);
     }
 }
 
@@ -342,24 +342,24 @@ void J3DModel::viewCalc() {
 
     if (getModelData()->checkFlag(0x10)) {
         if (getMtxCalcMode() == 2) {
-            J3DCalcViewBaseMtx(j3dSys.getViewMtx(), mBaseScale, mBaseTransformMtx, (MtxPtr)&mInternalView);
+            J3DCalcViewBaseMtx(j3dSys.getViewMtx(), mBaseScale, mBaseTransformMtx.mMtx, (MtxPtr)&mInternalView);
         }
     } else if (isCpuSkinningOn()) {
         if (getMtxCalcMode() == 2) {
-            J3DCalcViewBaseMtx(j3dSys.getViewMtx(), mBaseScale, mBaseTransformMtx, (MtxPtr)&mInternalView);
+            J3DCalcViewBaseMtx(j3dSys.getViewMtx(), mBaseScale, mBaseTransformMtx.mMtx, (MtxPtr)&mInternalView);
         }
     } else if (checkFlag(J3DMdlFlag_SkinPosCpu)) {
-        mMtxBuffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx);
+        mMtxBuffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx.mMtx);
         calcNrmMtx();
         calcBumpMtx();
         DCStoreRangeNoSync(getDrawMtxPtr(), mModelData->getDrawMtxNum() * sizeof(Mtx));
         DCStoreRange(getNrmMtxPtr(), mModelData->getDrawMtxNum() * sizeof(Mtx33));
     } else if (checkFlag(J3DMdlFlag_SkinNrmCpu)) {
-        mMtxBuffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx);
+        mMtxBuffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx.mMtx);
         calcBBoardMtx();
         DCStoreRange(getDrawMtxPtr(), mModelData->getDrawMtxNum() * sizeof(Mtx));
     } else {
-        mMtxBuffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx);
+        mMtxBuffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx.mMtx);
         calcNrmMtx();
         calcBBoardMtx();
         calcBumpMtx();

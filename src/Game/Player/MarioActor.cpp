@@ -1,4 +1,5 @@
 #define XJOINT_TRANSFORM_SCALE_NOINLINE
+#define JGEOMETRY_OUTLINE_MATRIX_SET_DIRECTION  // SMG2: TRotation3 setX/Y/ZDir(const TVec3f&) out of line in this TU
 #include "Game/NPC/EventDirector.hpp"
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE  // SMG2: negateInternal/sub out of line in this TU
 #define MARIO_ACTOR_DEFINE_NERVES  // SMG2: NrvMarioActor instances live only in this TU
@@ -942,6 +943,7 @@ bool MarioActor::doRush() {
 
 
 void MarioActor::updateSwingTimer() {
+    // NONMATCHING: GXColor conversion stack copy and pooled literal relocations.
     if (_934) {
         stopSpinTicoEffect(false);
         return;
@@ -955,7 +957,7 @@ void MarioActor::updateSwingTimer() {
         Color8 color(80, 128, 200, 0);
         _1AA = 15;
         _1AC = 0.75f;
-        mSwimFogColor = color;
+        mSwimFogColor = static_cast<GXColor>(color);
         mSwimFogDisabled = true;
     }
     if (_946) {
@@ -5797,19 +5799,23 @@ void MarioActor::updateControllerSwing() {
         _EF8 = 0;
     }
 
-    u8 F20 = mFlag100E;
-    _F00 = false;
-
-    bool isCorePadSwing = !mMario->isSwimming() ? MR::isCorePadSwing(0) : MR::isCorePadSwingTrigger(0);
-    mFlag100E = isCorePadSwing;
+    const u8 previousSwing = mFlag100E;
+    if (mMario->isSwimming()) {
+        mFlag100E = MR::isCorePadSwingTrigger(0);
+    } else {
+        mFlag100E = MR::isCorePadSwing(0);
+    }
 
     if (_F1C != 0) {
         _F1C--;
-    } else if (isCorePadSwing && F20 == 0) {
+        _F00 = false;
+    } else if (mFlag100E && previousSwing == 0) {
         _F00 = true;
+    } else {
+        _F00 = false;
     }
 
-    if (isCorePadSwing && _946 > 10 && _F1C < 8) {
+    if (mFlag100E && _946 > 10 && _F1C < 8) {
         _F1C = 8;
     }
 }
@@ -5821,19 +5827,19 @@ void MarioActor::updateControllerSwingLeft() {
         _F04 = 0;
     }
 
-    u8 F21 = mFlag100F;
-    _F0C = false;
-
-    bool isSubPadSwing = MR::isSubPadSwing(0);
-    mFlag100F = isSubPadSwing;
+    const u8 previousSwing = mFlag100F;
+    mFlag100F = MR::isSubPadSwing(0);
 
     if (_F1E != 0) {
         _F1E--;
-    } else if (isSubPadSwing && !F21) {
+        _F0C = false;
+    } else if (mFlag100F && previousSwing == 0) {
         _F0C = true;
+    } else {
+        _F0C = false;
     }
 
-    if (isSubPadSwing && _946 > 10 && _F1E < 8) {
+    if (mFlag100F && _946 > 10 && _F1E < 8) {
         _F1E = 8;
     }
 }
@@ -6367,7 +6373,7 @@ bool MarioActor::trySpinPunch() {
 
 
 void MarioActor::printHitMark(HitSensor* pSensor) {
-    TVec3f vec(pSensor->mPosition - _240);
+    TVec3f vec(*MR::getSensorPos(pSensor) - _240);
     vec.setLength(200.0f);
     playEffectTrans("パンチヒット", _240 + vec);
 }
@@ -7773,32 +7779,26 @@ void MarioActor::drawShadow() const {
 
 
 
-// NONMATCHING: native-safe raw matrix column access, register allocation and pooled literals.
+// NONMATCHING: pooled string literal label only.
 void MarioActor::calcViewSilhouetteModel() {
     J3DModelX* pModel = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
     J3DModelX* pSimple = mSimpleModelF08;
     TVec3f direction(mPosition - mCameraPosition);
     MR::normalizeOrZero(&direction);
     PSMTXCopy(pModel->getBaseTRMtx(), pSimple->getBaseTRMtx());
-    MtxPtr matrix = pSimple->getBaseTRMtx();
+    TPos3f& matrix = pSimple->mBaseTransformMtx;
     TVec3f x;
-    x.set<f32>(matrix[0][0], matrix[1][0], matrix[2][0]);
+    matrix.getXDir(x);
     MR::vecKillElement(x, direction, &x);
     TVec3f y;
-    y.set<f32>(matrix[0][1], matrix[1][1], matrix[2][1]);
+    matrix.getYDir(y);
     MR::vecKillElement(y, direction, &y);
     TVec3f z;
-    z.set<f32>(matrix[0][2], matrix[1][2], matrix[2][2]);
+    matrix.getZDir(z);
     MR::vecKillElement(z, direction, &z);
-    matrix[0][0] = x.x;
-    matrix[1][0] = x.y;
-    matrix[2][0] = x.z;
-    matrix[0][1] = y.x;
-    matrix[1][1] = y.y;
-    matrix[2][1] = y.z;
-    matrix[0][2] = z.x;
-    matrix[1][2] = z.y;
-    matrix[2][2] = z.z;
+    matrix.setXDir(x);
+    matrix.setYDir(y);
+    matrix.setZDir(z);
     TVec3f root;
     TVec3f translation;
     if (_EA4) {
@@ -7812,8 +7812,8 @@ void MarioActor::calcViewSilhouetteModel() {
         translation = mPosition;
     }
 
-    MR::setMtxTrans(matrix, translation.x, translation.y, translation.z);
-    PSMTXConcat(matrix, mReflectionBaseMtx264.mMtx, matrix);
+    MR::setMtxTrans(matrix.toMtxPtr(), translation.x, translation.y, translation.z);
+    PSMTXConcat(matrix.toMtxPtr(), mReflectionBaseMtx264.mMtx, matrix.toMtxPtr());
     pSimple->viewCalcRef(1, pModel);
 }
 
@@ -8909,7 +8909,8 @@ void MarioActor::flushCoinPull() {
 
 
 bool MarioActor::tryCoinPullOne(HitSensor* pSensor) NO_INLINE {
-    tryPullTrans(&pSensor->mHost->mVelocity, pSensor->mPosition);
+    LiveActor* host = MR::getSensorHost(pSensor);
+    tryPullTrans(&host->mVelocity, *MR::getSensorPos(pSensor));
 
     return pSensor->receiveMessage(ACTMES_ITEM_PULL, getSensor("Body"));
 }

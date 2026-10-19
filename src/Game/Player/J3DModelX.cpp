@@ -34,7 +34,7 @@ void J3DModelX::viewCalc2() {
     J3DMtxBuffer2* buffer = static_cast< J3DMtxBuffer2* >(mMtxBuffer);
     buffer->swapDrawMtx();
     buffer->swapNrmMtx();
-    buffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx);
+    buffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx.mMtx);
     buffer->calcNrmMtx2();
 
     calcBBoardMtx();
@@ -62,7 +62,7 @@ void J3DModelX::viewCalc3(u32 view, MtxPtr mtx) {
     if (mtx) {
         buffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, reinterpret_cast< const Mtx& >(mtx));
     } else {
-        buffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx);
+        buffer->calcDrawMtx(getMtxCalcMode(), mBaseScale, mBaseTransformMtx.mMtx);
     }
 
     if (!(view & 1)) {
@@ -79,7 +79,7 @@ void J3DModelX::viewCalc3(u32 view, MtxPtr mtx) {
 void J3DModelX::viewCalcRef(u32 view, J3DModel* model) {
     J3DMtxBuffer2* buffer = static_cast< J3DMtxBuffer2* >(mMtxBuffer);
     buffer->rotationMtx(*mExtraMtxBuffer[view + _DC]);
-    buffer->calcDrawMtx2(getMtxCalcMode(), mBaseScale, mBaseTransformMtx, model->getMtxBuffer());
+    buffer->calcDrawMtx2(getMtxCalcMode(), mBaseScale, mBaseTransformMtx.mMtx, model->getMtxBuffer());
     DCStoreRangeNoSync(getDrawMtxPtr(), mModelData->getDrawMtxNum() * sizeof(Mtx));
     prepareShapePackets();
 }
@@ -87,7 +87,7 @@ void J3DModelX::viewCalcRef(u32 view, J3DModel* model) {
 void J3DModelX::viewCalcRefPos(u32 view, J3DModel* model, const TVec3f& pos, const TVec3f& normal) {
     J3DMtxBuffer2* buffer = static_cast< J3DMtxBuffer2* >(mMtxBuffer);
     buffer->rotationMtx(*mExtraMtxBuffer[view + _DC]);
-    buffer->calcDrawMtx3(getMtxCalcMode(), mBaseScale, mBaseTransformMtx, model->getMtxBuffer(), pos, normal);
+    buffer->calcDrawMtx3(getMtxCalcMode(), mBaseScale, mBaseTransformMtx.mMtx, model->getMtxBuffer(), pos, normal);
     DCStoreRangeNoSync(getDrawMtxPtr(), mModelData->getDrawMtxNum() * sizeof(Mtx));
     prepareShapePackets();
 }

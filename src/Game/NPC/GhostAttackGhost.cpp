@@ -124,7 +124,7 @@ void GhostAttackGhost::calcAndSetBaseMtx() {
         mHandJointCtrl->registerCallBack();
         mHeadJointCtrl->registerCallBack();
     }
-    MtxPtr modelMtx = MR::getJ3DModel(this)->mBaseTransformMtx;
+    MtxPtr modelMtx = MR::getJ3DModel(this)->mBaseTransformMtx.mMtx;
     TPos3f mtx(&mRaceDataReader->mBaseMtx);
     if (MR::isEqualSubString(getCurrentAnimationName(), "チューブスライダー")) {
         TVec3f front(mMovementDelta);

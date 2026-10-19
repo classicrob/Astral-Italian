@@ -1228,12 +1228,15 @@ void MarioActor::fn_803C2AA0() {
 }
 
 void MarioActor::fn_803C2B50() {
-    if (_934 != 0 && mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, "ハチ回復")) {
-        u32 i = 0;
-        do {
-            this->mMario->incAirWalkTimer();
-            i++;
-        } while (i < 4);
+    if (_934 != 0) {
+        const char* effect = "ハチ回復";
+        if (mActionTable1080->testEffect(MR::getSensorHost(_924)->mName, effect)) {
+            u32 i = 0;
+            do {
+                this->mMario->incAirWalkTimer();
+                i++;
+            } while (i < 4);
+        }
     }
 }
 
@@ -1961,11 +1964,7 @@ void MarioActor::fn_803BBFD0(const char* name) {
         return;
     }
     char buf[0x80];
-    const char* prefix = "";
-    if (this->mMario->isPlayerModeYoshi()) {
-        prefix = "Yoshi";
-    }
-    snprintf(buf, 0x80, "%s%s", prefix, name);
+    snprintf(buf, 0x80, "%s%s", this->mMario->isPlayerModeYoshi() ? "Yoshi" : "", name);
     if (MR::getResourceHolder(this)->mBtpResTable->isExistRes(buf)) {
         J3DAnmTexPattern* r = static_cast<J3DAnmTexPattern*>(MR::getResourceHolder(this)->mBtpResTable->getRes(buf));
         mEyeRes = r;

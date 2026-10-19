@@ -177,7 +177,7 @@ bool MarioWarp::start() {
     }
 
     if (!_44) {
-        getPlayer()->mMovementStates._2B = true;
+        getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
     }
 
     if (isPlayerModeYoshi()) {
@@ -191,8 +191,8 @@ bool MarioWarp::start() {
 // NONMATCHING: ignored addTrans tag setup and string pool offsets.
 bool MarioWarp::update() {
     if (!_44) {
-        getPlayer()->mMovementStates._2B = true;
-        getPlayer()->mMovementStates._22 = true;
+        getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
+        getPlayer()->mMovementStates.mHighWord |= 0x20000000U;
     }
 
     clearVelocity();
@@ -302,8 +302,8 @@ bool MarioWarp::update() {
 
 
 bool MarioWarp::close() {
-    getPlayer()->mMovementStates._1 = true;
-    getPlayer()->mMovementStates.jumping = false;
+    getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
+    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
     Mario* player = getPlayer();
     player->_420 = 16;
     stopAnimation(nullptr);
@@ -365,9 +365,9 @@ bool MarioWarp::close() {
             mActor->_A6E = 0;
         }
 
-        getPlayer()->mMovementStates._1 = false;
-        getPlayer()->mMovementStates.jumping = true;
-        getPlayer()->mMovementStates._2B = true;
+        getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+        getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+        getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
         getPlayer()->_402 = 0;
         getPlayer()->mJumpVec = TVec3f(0.0f, 0.0f, 0.0f);
         changeAnimation("落下");
@@ -392,9 +392,9 @@ bool MarioWarp::close() {
     }
 
     if (getPlayerMode() != 6) {
-        getPlayer()->mMovementStates._22 = true;
+        getPlayer()->mMovementStates.mHighWord |= 0x20000000U;
     } else {
-        getPlayer()->mMovementStates._22 = false;
+        getPlayer()->mMovementStates.mHighWord &= 0xDFFFFFFFU;
     }
 
     _4C = nullptr;

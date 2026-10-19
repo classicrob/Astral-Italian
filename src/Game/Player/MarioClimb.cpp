@@ -43,7 +43,7 @@ bool MarioClimb::start() {
 bool MarioClimb::close() {
     getPlayer()->mWalkSpeed = getStickP();
 
-    if (getPlayer()->getMovementStates()._1) {
+    if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
         stopAnimation("匍匐前進", "基本");
     } else {
         stopAnimation("匍匐前進", "落下");

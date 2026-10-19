@@ -30,7 +30,7 @@ namespace MarioAccess {
     }
 
     bool isOnActor(const LiveActor* pActor) {
-        if (getPlayerActor()->getMario()->_1C._13) {
+        if (((getPlayerActor()->getMario()->mFlags20.mWord >> 12) & 1U)) {
             Triangle* marioGroundPolygon = getPlayerActor()->getMario()->mGroundPolygon;
             if (marioGroundPolygon->isValid()) {
                 return marioGroundPolygon->mSensor->mHost == pActor;
@@ -39,7 +39,7 @@ namespace MarioAccess {
             return false;
         }
 
-        if (getPlayerActor()->getMario()->_1C._14 || (getPlayerActor()->IsMarioSwimming() && getPlayerActor()->getMovementStates()._2)) {
+        if (((getPlayerActor()->getMario()->mFlags20.mWord >> 11) & 1U) || (getPlayerActor()->IsMarioSwimming() && ((getPlayerActor()->getMovementStates().mLowWord >> 29) & 1U))) {
             Triangle* marioTri = getPlayerActor()->getMario()->_45C;
             if (!marioTri->isValid()) {
                 return false;
@@ -60,11 +60,11 @@ namespace MarioAccess {
             return MR::isOnGround(getPlayerActor()->_924->mHost);
         }
 
-        return getPlayerActor()->getMovementStates()._1;
+        return ((getPlayerActor()->getMovementStates().mLowWord >> 30) & 1U);
     }
 
     bool isHipDropFalling() {
-        if (getPlayerActor()->getMovementStates().jumping && getPlayerActor()->getMovementStates()._B && !getPlayerActor()->getMovementStates()._1 &&
+        if (((getPlayerActor()->getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31) && ((getPlayerActor()->getMovementStates().mLowWord >> 20) & 1U) && !((getPlayerActor()->getMovementStates().mLowWord >> 30) & 1U) &&
             !getPlayerActor()->isJumpRising()) {
             return true;
         }
@@ -73,7 +73,7 @@ namespace MarioAccess {
     }
 
     bool isHipDropLand() {
-        return getPlayerActor()->getDrawStates()._14;
+        return ((getPlayerActor()->getDrawStates().mWord >> 11) & 1U);
     }
 
     bool isSwingAction() {
@@ -81,7 +81,7 @@ namespace MarioAccess {
             return false;
         }
 
-        if (getPlayerActor()->getMovementStates()._F) {
+        if (((getPlayerActor()->getMovementStates().mLowWord >> 16) & 1U)) {
             return true;
         }
 
@@ -93,7 +93,7 @@ namespace MarioAccess {
     }
 
     bool isSquat() {
-        return getPlayerActor()->getMovementStates()._A && getPlayerActor()->getMovementStates()._1;
+        return ((getPlayerActor()->getMovementStates().mLowWord >> 21) & 1U) && ((getPlayerActor()->getMovementStates().mLowWord >> 30) & 1U);
     }
 
     bool isParalyzing() {
@@ -113,11 +113,11 @@ namespace MarioAccess {
             return true;
         }
 
-        return getPlayerActor()->getMario()->_10._21;
+        return ((getPlayerActor()->getMario()->mFlags14.mHighWord >> 30) & 1U);
     }
 
     bool isNeedBrakingCamera() {
-        return getPlayerActor()->getMario()->_1C._9;
+        return ((getPlayerActor()->getMario()->mFlags20.mWord >> 22) & 1U);
     }
 
     CubeCameraArea* getCameraCubeCode() {
@@ -134,7 +134,7 @@ namespace MarioAccess {
 
     Triangle* getGroundingPolygon(u32) {
         if (isSwimming()) {
-            if (getPlayerActor()->getMovementStates()._2) {
+            if (((getPlayerActor()->getMovementStates().mLowWord >> 29) & 1U)) {
                 return getPlayerActor()->getMario()->_45C;
             }
 
@@ -153,7 +153,7 @@ namespace MarioAccess {
     }
 
     Triangle* getShadowingPolygon() {
-        if (getPlayerActor()->getMovementStates()._2) {
+        if (((getPlayerActor()->getMovementStates().mLowWord >> 29) & 1U)) {
             return getPlayerActor()->getMario()->_45C;
         }
 
@@ -204,13 +204,13 @@ namespace MarioAccess {
     }
 
     void forceJump(const TVec3f& rVec, u32) {
-        getPlayerActor()->getMario()->mMovementStates._21 = true;
+        getPlayerActor()->getMario()->mMovementStates.mHighWord |= 0x40000000U;
         getPlayerActor()->getMario()->cancelSquatMode();
         getPlayerActor()->getMario()->tryForceJumpDelay(rVec);
     }
 
     void freeJump(const TVec3f& rVec, u32) {
-        getPlayerActor()->getMario()->mMovementStates._21 = true;
+        getPlayerActor()->getMario()->mMovementStates.mHighWord |= 0x40000000U;
         getPlayerActor()->getMario()->cancelSquatMode();
         getPlayerActor()->getMario()->tryFreeJumpDelay(rVec);
     }
@@ -261,7 +261,7 @@ namespace MarioAccess {
             *pOut = getPlayerActor()->getMario()->mHeadVec;
             return;
         }
-        if (getPlayerActor()->getMario()->mMovementStates_HIGH_WORD & 0x100) {
+        if (getPlayerActor()->getMario()->mMovementStates.mHighWord & 0x100) {
             if (getPlayerActor()->getMario()->isSwimming()) {
                 getPlayerActor()->getMario()->mSwim->fn_80400A40(pOut);
                 return;
@@ -278,7 +278,7 @@ namespace MarioAccess {
         MR::setPosition(getPlayerActor(), rTrans);
         getPlayerActor()->getMario()->mPosHolder->fn_80405F90(rTrans);
 
-        if (getPlayerActor()->getMovementStates()._37) {
+        if (((getPlayerActor()->getMovementStates().mHighWord >> 8) & 1U)) {
             getPlayerActor()->getMario()->_688 = rTrans;
         }
 
@@ -499,11 +499,11 @@ namespace MarioAccess {
 
         if (getPlayerActor()->getMario()->isStatusActive(MarioStatus_13) || getPlayerActor()->mPlayerMode == PlayerMode_Hopper) {
             MR::offPlayerControl();
-            getPlayerActor()->getMario()->_10._20 = true;
+            getPlayerActor()->getMario()->mFlags14.mHighWord |= 0x80000000U;
             return;
         }
 
-        getPlayerActor()->getMario()->_10._20 = false;
+        getPlayerActor()->getMario()->mFlags14.mHighWord &= 0x7FFFFFFFU;
 
         if (getPlayerActor()->_934) {
             getPlayerActor()->_924->receiveMessage(ACTMES_RUSH_CANCEL, getPlayerActor()->getSensor("Body"));
@@ -696,7 +696,7 @@ namespace MarioAccess {
 
     void endRemoteDemo(const RushEndInfo* pEndInfo) {
         if (getPlayerActor()->getMario()->isStatusActive(MarioStatus_13) || getPlayerActor()->getMario()->isStatusActive(MarioStatus_Talk) ||
-            getPlayerActor()->getMario()->_10._20 || !getPlayerActor()->_EA4) {
+            ((getPlayerActor()->getMario()->mFlags14.mHighWord >> 31) & 1U) || !getPlayerActor()->_EA4) {
             getPlayerActor()->_3C0 = false;
             return;
         }
@@ -752,7 +752,7 @@ namespace MarioAccess {
             getPlayerActor()->setPlayerMode(PlayerMode_Invincible, true, true);
             break;
         case 9:
-            getPlayerActor()->getMario()->mMovementStates._F = true;
+            getPlayerActor()->getMario()->mMovementStates.mLowWord |= 0x00010000U;
             getPlayerActor()->getMario()->_544 = 3;
             break;
         case 10:
@@ -833,7 +833,7 @@ namespace MarioAccess {
     void fn_803B6830(bool) {
         if (getPlayerActor()->getMario()->isStatusActive(0x13)
             || getPlayerActor()->getMario()->isStatusActive(0x22)
-            || (getPlayerActor()->getMario()->_10_HIGH_WORD & 0x80000000)
+            || (getPlayerActor()->getMario()->mFlags14.mHighWord & 0x80000000)
             || !getPlayerActor()->_EA4) {
             MR::onPlayerControl(false);
             return;
@@ -883,7 +883,7 @@ namespace MarioAccess {
         return getPlayerActor()->getMario()->_72C;
     }
 
-    void fn_803B72A0() { getPlayerActor()->getMario()->mMovementStates_HIGH_WORD &= ~0x20000000; }
+    void fn_803B72A0() { getPlayerActor()->getMario()->mMovementStates.mHighWord &= ~0x20000000; }
 }
 
 namespace MarioAccess {

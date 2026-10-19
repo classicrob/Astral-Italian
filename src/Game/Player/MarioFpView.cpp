@@ -14,11 +14,11 @@ namespace {
 };  // namespace
 
 bool Mario::isDisableStayHere() const {
-    if (getMovementStates().jumping) {
+    if (((getMovementStates().mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         return true;
     }
 
-    if (!getMovementStates()._1) {
+    if (!((getMovementStates().mLowWord >> 30) & 1U)) {
         return true;
     }
 
@@ -26,7 +26,7 @@ bool Mario::isDisableStayHere() const {
         return true;
     }
 
-    if (getMovementStates()._A) {
+    if (((getMovementStates().mLowWord >> 21) & 1U)) {
         return true;
     }
 
@@ -34,7 +34,7 @@ bool Mario::isDisableStayHere() const {
         return true;
     }
 
-    if (getMovementStates()._1B) {
+    if (((getMovementStates().mLowWord >> 4) & 1U)) {
         return true;
     }
 
@@ -42,7 +42,7 @@ bool Mario::isDisableStayHere() const {
         return true;
     }
 
-    if (getPlayer()->getMovementStates()._23) {
+    if (((getPlayer()->getMovementStates().mHighWord >> 28) & 1U)) {
         return true;
     }
 
@@ -54,7 +54,7 @@ bool Mario::isDisableStayHere() const {
         return true;
     }
 
-    if (_10.debugMode) {
+    if (((mFlags14.mLowWord & Mario::MovementStates::DebugMode) >> 9)) {
         return true;
     }
 
@@ -66,11 +66,11 @@ bool Mario::isDisableStayHere() const {
         return true;
     }
 
-    if (getDrawStates()._B) {
+    if (((getDrawStates().mWord >> 20) & 1U)) {
         return true;
     }
 
-    if (getMovementStates()._18) {
+    if (((getMovementStates().mLowWord >> 7) & 1U)) {
         return true;
     }
 
@@ -94,15 +94,15 @@ bool Mario::isDisableStayHere() const {
         return true;
     }
 
-    if (getMovementStates()._37) {
+    if (((getMovementStates().mHighWord >> 8) & 1U)) {
         return true;
     }
 
-    if (getMovementStates()._3A) {
+    if (((getMovementStates().mHighWord >> 5) & 1U)) {
         return true;
     }
 
-    if (_10._15) {
+    if (((mFlags14.mLowWord >> 10) & 1U)) {
         return true;
     }
 

@@ -11,7 +11,7 @@
 
 bool Mario::checkWallJumpCode() {
     if (checkWallFloorCode(11) || checkWallFloorCode(6) || checkWallFloorCode(34) || checkWallFloorCode(7) || checkWallFloorCode(8)) {
-        if (mMovementStates._1 || isAnimationRun(_728)) {
+        if (((mMovementStates.mLowWord >> 30) & 1U) || isAnimationRun(_728)) {
             stopWalk();
             push(getWallNorm() * 10.0f);
             tryPushToVelocity();
@@ -53,7 +53,7 @@ bool Mario::doSideStep() {
     if (mActor->_468) {
         return false;
     }
-    if (_1C._5) {
+    if (((mFlags20.mWord >> 26) & 1U)) {
         return false;
     }
     if (_72C < 200.0f) {
@@ -76,7 +76,7 @@ bool Mario::doSideStep() {
     if (_960 == 2) {
         return false;
     }
-    if (!getPlayer()->mMovementStates._8) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
         return false;
     }
     const Triangle* wall = getPlayer()->getWallPolygon();
@@ -112,13 +112,13 @@ bool MarioSideStep::close() {
 
 // NONMATCHING: equivalent vector-helper inlining, saved registers, and string-pool materialization.
 bool MarioSideStep::update() {
-    if (!getPlayer()->mMovementStates._8) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
         return false;
     }
-    if (getPlayer()->_1C._5) {
+    if (((getPlayer()->mFlags20.mWord >> 26) & 1U)) {
         return false;
     }
-    if (getPlayer()->mDrawStates._A) {
+    if (((getPlayer()->mDrawStates.mWord >> 21) & 1U)) {
         return false;
     }
     if (MR::isNormalTalking()) {
@@ -154,7 +154,7 @@ bool MarioSideStep::update() {
             if (forward > 0.707f) {
                 getPlayer()->setFrontVecKeepUp(getPlayer()->getWallNorm());
             }
-            getPlayer()->mMovementStates._8 = false;
+            getPlayer()->mMovementStates.mLowWord &= 0xFF7FFFFFU;
             return false;
         } else {
             side *= (1.0f + 0.25f * forward) * getStickP();
@@ -182,7 +182,7 @@ bool MarioSideStep::update() {
         }
         return false;
     }
-    if (!getPlayer()->mMovementStates._1) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
         getPlayer()->keepDistFrontWall();
         getPlayer()->tryDrop();
         return false;

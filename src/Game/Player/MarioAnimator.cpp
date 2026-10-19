@@ -192,7 +192,7 @@ void MarioAnimator::stageInCheck() {
 }
 
 void MarioAnimator::throwCheck() {
-    if (mActor->_38C == 0 && getPlayer()->MarioModule::getStickP() && !getPlayer()->mMovementStates.jumping) {
+    if (mActor->_38C == 0 && getPlayer()->MarioModule::getStickP() && !((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
     }
 }
@@ -220,7 +220,7 @@ void MarioAnimator::throwClose() {
 }
 
 void MarioAnimator::squatSpinCheck() {
-    if (!getPlayer()->mMovementStates._A && getFrame() >= 40.0f) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 21) & 1U) && getFrame() >= 40.0f) {
         getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
     }
 }
@@ -824,10 +824,10 @@ f32 MarioAnimator::getUpperFrame() const {
 }
 
 void MarioAnimator::setWalkMode() {
-    if (!getPlayer()->mMovementStates._F && getPlayer()->mMovementStates._10 && !getPlayer()->mMovementStates._A && 0.0f == getPlayer()->_8F0 &&
+    if (!((getPlayer()->mMovementStates.mLowWord >> 16) & 1U) && ((getPlayer()->mMovementStates.mLowWord >> 15) & 1U) && !((getPlayer()->mMovementStates.mLowWord >> 21) & 1U) && 0.0f == getPlayer()->_8F0 &&
         static_cast< u8 >(getPlayer()->checkStickFrontBack()) == 2) {
         if (!getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Magic) && !getPlayer()->MarioModule::isStatusActiveID(MarioStatus_Skate)) {
-            if (getPlayer()->mMovementStates._35) {
+            if (((getPlayer()->mMovementStates.mHighWord >> 10) & 1U)) {
                 change("ブレーキ滑り床");
             } else {
                 change("ブレーキ");
@@ -840,7 +840,7 @@ void MarioAnimator::setWalkMode() {
         mXanimePlayer->stopAnimation("ブレーキ滑り床");
     }
 
-    if (getPlayer()->mMovementStates._4 && !getPlayer()->mMovementStates._23) {
+    if (((getPlayer()->mMovementStates.mLowWord >> 27) & 1U) && !((getPlayer()->mMovementStates.mHighWord >> 28) & 1U)) {
         getPlayer();
     }
 }
@@ -991,7 +991,7 @@ void MarioAnimator::updateJointRumble() {
 
     f32 hipRot = 0.7f * ((f32)_74 / 60.0f);
 
-    if (getPlayer()->mMovementStates._1 && !getPlayer()->mMovementStates._37 && getPlayer()->mTargetWalkSpeedIndex == 0 &&
+    if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) && !((getPlayer()->mMovementStates.mHighWord >> 8) & 1U) && getPlayer()->mTargetWalkSpeedIndex == 0 &&
         getPlayer()->calcAngleD(getPlayer()->_368) > 5.0f) {
         TVec3f dir;
         Mario* playerVec = getPlayer();
@@ -1126,7 +1126,7 @@ bool MarioAnimator::isMirrorAnimation() {
     }
 
     // Check if walling (player mMovementStates._37 bit check)
-    if (getPlayer()->mMovementStates._37) {
+    if (((getPlayer()->mMovementStates.mHighWord >> 8) & 1U)) {
         if (isAnimationRun("ブレーキ") || isAnimationRun("ターンブレーキ") || isAnimationRun("ターンジャンプ")) {
             if (!_10C) {
                 f32 frontDot = camDir.dot(getPlayer()->mFrontVec);
@@ -1205,7 +1205,7 @@ void MarioAnimator::changePickupAnimation(const HitSensor* pSensor) {
                 getPlayer()->MarioModule::playEffect("ひろいクイック");
                 mActor->clearNullAnimation(-3);
                 getPlayer()->MarioModule::startPadVib(2);
-            } else if (getPlayer()->mMovementStates.jumping && !getPlayer()->mMovementStates._B) {
+            } else if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
                 getPlayer()->MarioModule::changeAnimation("ひろい空中");
                 mActor->clearNullAnimation(-3);
                 getPlayer()->stopWalk();
@@ -1506,7 +1506,7 @@ f32 MarioAnimator::fn_803DD530() {
 void MarioAnimator::fn_803E0A60() {
     if (mXanimePlayer->isAnimationRunSimple()) {
         if (!mActor->_EA4 && !mActor->_3C0) {
-            if (!getPlayer()->mMovementStates._22 && !mActor->_934 && getPlayer()->mMovementStates._1) {
+            if (!((getPlayer()->mMovementStates.mHighWord >> 29) & 1U) && !mActor->_934 && ((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
                 getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
             }
         }
@@ -1518,7 +1518,7 @@ void MarioAnimator::fn_803E0AF0() {
     getPlayer()->_71D = getPlayer()->mTargetWalkSpeedIndex;
     if (isWalkOrWaitingMotion() || isAnimationRun("しゃがみ基本")) _14 = walkStateTable[getPlayer()->mTargetWalkSpeedIndex];
     else _15 = 0xFF;
-    if (getPlayer()->mDrawStates._A) { fn_803E0C20(); return; }
+    if (((getPlayer()->mDrawStates.mWord >> 21) & 1U)) { fn_803E0C20(); return; }
     fn_803E0D30();
     if (isCancelableAnimationRun()) { fn_803E0DC0(); return; }
     if (fn_803E1110()) { fn_803E1160(); return; }
@@ -1536,9 +1536,9 @@ void MarioAnimator::fn_803E0C20() {
 }
 
 void MarioAnimator::fn_803E0C90() {
-    if (getPlayer()->mMovementStates._B) {
-        getPlayer()->mMovementStates.jumping = false;
-        getPlayer()->mMovementStates._B = false;
+    if (((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
+        getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+        getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
         getPlayer()->MarioModule::stopAnimation(nullptr, "基本");
     }
 }
@@ -1549,7 +1549,7 @@ void MarioAnimator::fn_803E0CE0() {
 
 void MarioAnimator::fn_803E0D30() {
     if (isAnimationRun("崖ふんばり")) {
-        if (!getPlayer()->mMovementStates._1) {
+        if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             getPlayer()->MarioModule::stopAnimation("崖ふんばり", "落下");
             getPlayer()->_414 = 15;
         } else getPlayer()->MarioModule::stopAnimation("崖ふんばり", static_cast<const char*>(nullptr));
@@ -1559,7 +1559,7 @@ void MarioAnimator::fn_803E0D30() {
 void MarioAnimator::fn_803E0DC0() {
     getPlayer()->decideWalkSpeed();
     if (getPlayer()->mTargetWalkSpeedIndex != 0) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
-    if (getPlayer()->mMovementStates._A) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
+    if (((getPlayer()->mMovementStates.mLowWord >> 21) & 1U)) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
 }
 
 void MarioAnimator::fn_803E0E90() {
@@ -1596,9 +1596,9 @@ void MarioAnimator::fn_803E1060() {
 
 // NONMATCHING: equivalent short-circuit branch layout.
 bool MarioAnimator::fn_803E1110() const {
-    if (!getPlayer()->mMovementStates._A) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 21) & 1U)) {
         bool squat = false;
-        if (getPlayer()->_20._A && !getPlayer()->mMovementStates.jumping && getPlayer()->mMovementStates._1 == 1) squat = true;
+        if (((getPlayer()->mFlags24.mLowWord >> 21) & 1U) && !((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && ((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) == 1) squat = true;
         if (!squat) return false;
         return true;
     }
@@ -1606,14 +1606,14 @@ bool MarioAnimator::fn_803E1110() const {
 }
 
 void MarioAnimator::fn_803E1160() {
-    if (!getPlayer()->mMovementStates._23) {
+    if (!((getPlayer()->mMovementStates.mHighWord >> 28) & 1U)) {
         getPlayer()->fn_803ACC40();
         if (_14 != _15) { fn_803E0E90(); fn_803E0F40(); }
         _15 = _14;
     }
 }
 
-bool MarioAnimator::fn_803E11D0() const { return getPlayer()->mMovementStates._34; }
+bool MarioAnimator::fn_803E11D0() const { return ((getPlayer()->mMovementStates.mHighWord >> 11) & 1U); }
 void MarioAnimator::fn_803E11F0() { getPlayer()->decideWalkSpeed(); getPlayer()->decideOnIceAnimation(); }
 
 void MarioAnimator::fn_803E1230() {
@@ -1629,7 +1629,7 @@ void MarioAnimator::fn_803E12B0() {
         getPlayer()->decideWalkSpeed();
         getPlayer()->checkWallPush();
     } else {
-        if (getPlayer()->mMovementStates.turning || getPlayer()->mMovementStates._4) getPlayer()->decideWalkSpeed();
+        if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Turning) >> 28) || ((getPlayer()->mMovementStates.mLowWord >> 27) & 1U)) getPlayer()->decideWalkSpeed();
         else if (!isAnimationRun("ハード着地")) {
             if (isAnimationRun("がんばり走り")) {
                 if (getPlayer()->_8F0 < 1.0f) getPlayer()->MarioModule::stopAnimation(nullptr, static_cast<const char*>(nullptr));
@@ -1824,7 +1824,7 @@ void MarioAnimator::fn_803DE880() {
         }
         _16=2;
     }
-    if (mActor->mMario->_10._F) {forceSetBlendWeight(weights);mActor->mMario->_10._F=false;}
+    if (((mActor->mMario->mFlags14.mLowWord >> 16) & 1U)) {forceSetBlendWeight(weights);mActor->mMario->mFlags14.mLowWord &= 0xFFFEFFFFU;}
     else setBlendWeight(weights,mActor->mConst->getTable()->mSlopeAnimBlendRatio);
     _78=4;
 }
@@ -1845,7 +1845,7 @@ void MarioAnimator::fn_803DDD80(const HitSensor* sensor) {
     if (host && MR::isEqualString(MR::getSensorHost(sensor)->mName,"アイテムドリル")) {
         mActor->_494=mActor->mDrillFixedPosition788;
         Mario* player=mActor->mMario;
-        if (player->mMovementStates.jumping && !player->mMovementStates._B) {
+        if (((player->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((player->mMovementStates.mLowWord >> 20) & 1U)) {
             player->fn_803B4630("ドリルひろいクイック");mActor->mMario->stopWalk();return;
         }
         player->fn_803B45E0("ドリルひろい","CarryDrillStart");mActor->mMario->stopWalk();return;
@@ -1863,7 +1863,7 @@ void MarioAnimator::fn_803DDD80(const HitSensor* sensor) {
                 mActor->mMario->fn_803B4670("ひろいクイック");mActor->playEffect("ひろいクイック");mActor->mMario->startPadVib(2);return;
             }
             Mario* player=mActor->mMario;
-            if (player->mMovementStates.jumping && !player->mMovementStates._B) {
+            if (((player->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((player->mMovementStates.mLowWord >> 20) & 1U)) {
                 player->fn_803B4630("ひろい空中");mActor->mMario->stopWalk();return;
             }
             player->fn_803B45E0("ひろい","CarryStart");mActor->mMario->stopWalk();return;

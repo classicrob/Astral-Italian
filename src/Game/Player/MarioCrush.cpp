@@ -9,7 +9,7 @@ MarioCrush::MarioCrush(MarioActor* pActor) : MarioState(pActor, MarioStatus_Crus
 }
 
 bool MarioCrush::close() {
-    getPlayer()->mMovementStates._3C = true;
+    getPlayer()->mMovementStates.mHighWord |= 0x00000008U;
     MR::setScale(mActor, 1.0f);
     stopAnimation("しびれ");
     getPlayer()->set41E(120);
@@ -21,7 +21,7 @@ bool MarioCrush::start() {
     startPadVib("マリオ[しびれ]");
     playSound("声しびれ");
 
-    getPlayer()->mMovementStates._3C = true;
+    getPlayer()->mMovementStates.mHighWord |= 0x00000008U;
     MR::setScale(mActor, 1.0f, 0.2f, 1.0f);
     startPadVib(3);
 
@@ -49,13 +49,13 @@ bool MarioCrush::update() {
 
         _12 = 1;
 
-        if (!getPlayer()->getMovementStates()._1) {
+        if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
             mTimer = 10;
         } else {
             mTimer = 30;
         }
 
-        if (getPlayer()->getMovementStates()._1) {
+        if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
             changeAnimation("しびれ回復");
         }
     }

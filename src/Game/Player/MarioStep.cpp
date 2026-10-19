@@ -12,15 +12,15 @@
 #include <revolution/mtx.h>
 
 void Mario::checkStep() {
-    if (mMovementStates.jumping) {
+    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         return;
     }
 
-    if (mMovementStates._A) {
+    if (((mMovementStates.mLowWord >> 21) & 1U)) {
         return;
     }
 
-    if (!mMovementStates._1) {
+    if (!((mMovementStates.mLowWord >> 30) & 1U)) {
         return;
     }
 
@@ -66,7 +66,7 @@ void Mario::checkStep() {
         return;
     }
 
-    if (mDrawStates._C) {
+    if (((mDrawStates.mWord >> 19) & 1U)) {
         return;
     }
 
@@ -74,7 +74,7 @@ void Mario::checkStep() {
         return;
     }
 
-    if (_4D8->isValid() && !mMovementStates._8 && mMovementStates._1) {
+    if (_4D8->isValid() && !((mMovementStates.mLowWord >> 23) & 1U) && ((mMovementStates.mLowWord >> 30) & 1U)) {
         const f32 frontDot = mFrontVec.dot(*_4D8->getNormal(0));
         TVec3f horizontal;
         MR::vecKillElement(_50C - mPosHolder->mPos, -*getGravityVec(), &horizontal);
@@ -93,11 +93,11 @@ void Mario::checkStep() {
         return;
     }
 
-    if (!mMovementStates._15) {
+    if (!((mMovementStates.mLowWord >> 10) & 1U)) {
         return;
     }
 
-    if (!mMovementStates._39) {
+    if (!((mMovementStates.mHighWord >> 6) & 1U)) {
         return;
     }
 
@@ -165,7 +165,7 @@ void Mario::startStep(const TVec3f& rVec) {
     mVelocity.z = zero;
     mVelocity.y = zero;
     mVelocity.x = zero;
-    mMovementStates._10 = false;
+    mMovementStates.mLowWord &= 0xFFFF7FFFU;
 }
 
 MarioStep::MarioStep(MarioActor* pActor) : MarioState(pActor, MarioStatus_Step) {
@@ -197,7 +197,7 @@ bool MarioStep::update() {
     if (mActor->isRequestJump()) {
         getPlayer()->tryJump();
         return false;
-    } else if (getPlayer()->mMovementStates.jumping) {
+    } else if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         return false;
     }
 

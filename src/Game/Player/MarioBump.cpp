@@ -7,12 +7,12 @@
 #include "Game/Util/MathUtil.hpp"
 
 void Mario::checkBump() {
-    if (!mMovementStates.jumping && !mMovementStates._A && mMovementStates._1) {
+    if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 21) & 1U) && ((mMovementStates.mLowWord >> 30) & 1U)) {
         if (!isStatusActive(MarioStatus_Hang) && !isStatusActive(MarioStatus_Wall) && !isStatusActive(MarioStatus_Swim) &&
             !isStatusActive(MarioStatus_Climb)) {
             if (!isDamaging() && getPlayerMode() != 5 && !isSwimming()) {
                 if (isStickOn()) {
-                    if (!_750 && (mMovementStates._23 == 0)) {
+                    if (!_750 && (((mMovementStates.mHighWord >> 28) & 1U) == 0)) {
                         if (_4DC->isValid()) {
                             const char* floor = MR::getFloorCodeString(_4DC);
 
@@ -52,7 +52,7 @@ void Mario::startBump(const TVec3f& rVec) {
     changeStatus(mBump);
     mVelocity.zero();
     _3D0 = 0;
-    mMovementStates._10 = 0;
+    mMovementStates.mLowWord &= 0xFFFF7FFFU;
     _790 = -(*_4DC->getNormal(0));
     TVec3f v19;
     MR::vecKillElement(-(*_4DC->getNormal(0)), mSideVec, &v19);

@@ -110,11 +110,11 @@ bool MarioSkate::start() {
 
 bool MarioSkate::update() {
     f32 speed;
-    if (!getPlayer()->mMovementStates._1 || getPlayer()->mMovementStates.jumping) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) || ((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         return false;
     }
 
-    if (checkTrgA() || getPlayer()->mMovementStates._38) {
+    if (checkTrgA() || ((getPlayer()->mMovementStates.mHighWord >> 7) & 1U)) {
         exitJump();
         return false;
     }
@@ -129,8 +129,8 @@ bool MarioSkate::update() {
         return !isAnimationTerminate(nullptr);
     }
 
-    if (getPlayer()->mMovementStates._10) {
-        getPlayer()->mMovementStates._10 = false;
+    if (((getPlayer()->mMovementStates.mLowWord >> 15) & 1U)) {
+        getPlayer()->mMovementStates.mLowWord &= 0xFFFF7FFFU;
         getPlayer()->_3D2 = 0;
     }
 
@@ -307,7 +307,7 @@ bool MarioSkate::close() {
             velocity += getGravityVec() * vertical;
             getPlayer()->setJumpVec(velocity);
         }
-    } else if (getPlayer()->mMovementStates._1) {
+    } else if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
         stopAnimation(nullptr, "基本");
     } else {
         stopAnimation(nullptr, "落下");

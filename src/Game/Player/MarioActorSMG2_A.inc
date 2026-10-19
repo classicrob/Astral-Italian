@@ -691,7 +691,7 @@ void MarioActor::initMember() {
     mTimedCommonEffects = nullptr;
     mMaterialEffectsFC8 = nullptr;
     mWaterColumn = nullptr;
-    F(TVec3f, 0xFD0).zero();
+    mVectorFD0.zero();
     F(TVec3f, 0xFDC).zero();
     F(u16, 0x260) = 0;
     PSMTXIdentity(F(TMtx34f, 0x264).toMtxPtr());
@@ -759,7 +759,7 @@ void MarioActor::initMember() {
     F(u8, 0x1051) = 0;
     F(u8, 0x1052) = 0;
     mPunchTriangle106C = nullptr;
-    F(u8, 0x1070) = 0;
+    mLifeDecreasedThisFrame = 0;
     F(u8, 0x1064) = 0;
     F(u8, 0x1066) = 0;
     F(u8, 0x1067) = 0;
@@ -2226,7 +2226,7 @@ void MarioActor::movement() {
     _46C = nullptr;
     ++_378;
     _1E1 = false;
-    F(u8, 0x1070) = 0;
+    mLifeDecreasedThisFrame = 0;
     F(f32, 0x79C) = 0.7853981852531433f;
     mNearestUnderSensor798 = nullptr;
     PSMTXCopy(F(TMtx34f, 0x224).toMtxPtr(), F(TMtx34f, 0x1F4).toMtxPtr());
@@ -2236,8 +2236,8 @@ void MarioActor::movement() {
     mMarioAnim->fn_803DFB70();
     LiveActor::movement();
     fn_803C1940();
-    if (mMario->mDrawStates_WORD & 0x20) {
-        mMario->mDrawStates_WORD &= ~0x20;
+    if (mMario->mDrawStates.mWord & 0x20) {
+        mMario->mDrawStates.mWord &= ~0x20;
         mMarioAnim->update();
     }
     mMario->recordRelativePosition();

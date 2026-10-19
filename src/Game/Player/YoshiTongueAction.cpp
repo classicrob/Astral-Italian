@@ -587,9 +587,9 @@ void YoshiTongueAction::fn_8041F0E0() {
         fn_80420780();
         mStartPosition = mYoshi->mPosition;
     }
-    mPlayer->mMovementStates_LOW_WORD &= 0xBFFFFFFF;
-    mPlayer->mMovementStates_LOW_WORD &= 0xFFDFFFFF;
-    mPlayer->mMovementStates_LOW_WORD |= 0x80000000;
+    mPlayer->mMovementStates.mLowWord &= 0xBFFFFFFF;
+    mPlayer->mMovementStates.mLowWord &= 0xFFDFFFFF;
+    mPlayer->mMovementStates.mLowWord |= 0x80000000;
     TVec3f position(mYoshi->mPosition);
     TVec3f target;
     mTarget->calcCurrentTargetPosition(&target);
@@ -933,7 +933,7 @@ void YoshiTongueAction::fn_804210B0() {
     TVec3f planar;
     JMathInlineVEC::PSVECSubtract(&jump, &vertical, &planar);
     mPlayer->clearVelocity();
-    mPlayer->mMovementStates_HIGH_WORD |= 0x40000000;
+    mPlayer->mMovementStates.mHighWord |= 0x40000000;
     mPlayer->tryForceJumpDelay(jump);
     mPlayer->changeAnimation("フックジャンプ", static_cast<const char*>(nullptr));
 }
@@ -1162,7 +1162,7 @@ bool YoshiTongueAction::fn_80421240() {
     fn_80421830(&start);
     TVec3f direction(target);
     JMathInlineVEC::PSVECSubtract(&direction, &start, &direction);
-    if ((mPlayer->mMovementStates_LOW_WORD >> 30) & 1) {
+    if ((mPlayer->mMovementStates.mLowWord >> 30) & 1) {
         const TVec3f& gravity = mPlayer->mActor->getGravityVec();
         JMAVECScaleAdd(&gravity, &direction, &direction, -gravity.dot(direction));
     }

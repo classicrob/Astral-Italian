@@ -31,11 +31,11 @@ bool Mario::doFrontStep() {
         return false;
     }
 
-    if (_1C._5) {
+    if (((mFlags20.mWord >> 26) & 1U)) {
         return false;
     }
 
-    if (mMovementStates.jumping) {
+    if (((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         return false;
     }
 
@@ -92,7 +92,7 @@ MarioFrontStep::MarioFrontStep(MarioActor* pActor) : MarioState(pActor, MarioSta
 bool MarioFrontStep::update() {
     getPlayer()->stopWalk();
 
-    if (getPlayer()->_1C._5) {
+    if (((getPlayer()->mFlags20.mWord >> 26) & 1U)) {
         return false;
     }
 
@@ -137,7 +137,7 @@ bool MarioFrontStep::update() {
         return false;
     }
 
-    if (!getPlayer()->getMovementStates()._1) {
+    if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
         getPlayer()->tryDrop();
         return false;
     }

@@ -84,10 +84,10 @@ bool MarioDamage::start() {
     }
 
     startPadVib(3);
-    getPlayer()->mMovementStates._1 = false;
-    getPlayer()->mMovementStates.jumping = true;
-    getPlayer()->mMovementStates._B = false;
-    getPlayer()->mMovementStates._3E = 0;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mHighWord &= 0xFFFFFFFCU;
     _1C += -mActor->mAppliedGravityVec * mActor->getConst().getTable()->mJumpHeightDamage;
     getPlayer()->mJumpVec = _1C;
     addVelocity(_1C);
@@ -162,7 +162,7 @@ bool MarioDamage::fn_803E48F0() {
             this->changeAnimation(this->_28);
         }
 
-        if (this->getPlayer()->_1C._0) {
+        if (((this->getPlayer()->mFlags20.mWord >> 31) & 1U)) {
             f32 vertical = MR::vecKillElement(this->_1C, this->getAirGravityVec(), &this->_1C);
             this->_1C.x *= 0.95f;
             this->_1C.y *= 0.95f;
@@ -171,17 +171,17 @@ bool MarioDamage::fn_803E48F0() {
         }
     }
 
-    if (this->getPlayer()->mMovementStates._1) {
+    if (((this->getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
         if (this->getPlayer()->mVerticalSpeed > 30.0f &&
             mActor->mActionTable1080->testEffect(MR::getSensorHost(this->getSensor(this->getGroundPolygon()))->mName, "ダメージ中跳ねる")) {
             Mario* player = this->getPlayer();
             this->_1C += player->_368 * 20.0f;
-            this->getPlayer()->mMovementStates._1 = false;
-            this->getPlayer()->mMovementStates.jumping = true;
+            this->getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+            this->getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
             return true;
         }
 
-        this->getPlayer()->mMovementStates.jumping = false;
+        this->getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
         this->playSound("吹っ飛び倒れ");
         this->playEffect("共通ダメージ着地");
         MR::vecKillElement(this->_1C, this->mActor->mAppliedGravityVec, &this->_1C);
@@ -207,8 +207,8 @@ bool MarioDamage::fn_803E48F0() {
 }
 
 bool MarioDamage::fn_803E4BF0() {
-    if (!this->getPlayer()->mMovementStates._1) {
-        this->getPlayer()->mMovementStates.jumping = true;
+    if (!((this->getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
+        this->getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
         this->_18 = 0;
         return true;
     }
@@ -232,8 +232,8 @@ bool MarioDamage::fn_803E4BF0() {
 }
 
 bool MarioDamage::fn_803E4D00() {
-    if (!this->getPlayer()->mMovementStates._1) {
-        this->getPlayer()->mMovementStates.jumping = true;
+    if (!((this->getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
+        this->getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
         this->_18 = 0;
         return true;
     }
@@ -406,7 +406,7 @@ bool MarioFireRun::start() {
     _14 = 0;
     stopAnimationUpper(nullptr);
     changeAnimation("ファイアラン前兆");
-    if (!getPlayer()->mMovementStates._1) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
         _18 = -mActor->getConst().getTable()->mFireRunFirstJump;
     } else {
         _18 = 0.0f;
@@ -435,7 +435,7 @@ bool MarioFireRun::move() {
 bool MarioFireRun::update() {
     switch (_14) {
     case 0:
-        if (!getPlayer()->mMovementStates._1) {
+        if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             getPlayer()->mJumpVec = getAirGravityVec() * _18;
             addVelocity(getAirGravityVec() * _18);
             _18 += mActor->getConst().getTable()->mFireRunGravity;
@@ -464,7 +464,7 @@ bool MarioFireRun::update() {
         break;
     case 1:
         playSound("炎ダメージ炎上中");
-        if (!getPlayer()->mMovementStates._1) {
+        if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             _14 = 2;
             _12 += mActor->getConst().getTable()->mFireRunTimer3;
         }
@@ -485,7 +485,7 @@ bool MarioFireRun::update() {
             return false;
         }
 
-        if (!getPlayer()->mMovementStates._1) {
+        if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             getPlayer()->mJumpVec = getAirGravityVec() * _18;
             addVelocity(getAirGravityVec() * _18);
             _18 += mActor->getConst().getTable()->mFireRunGravity;
@@ -534,7 +534,7 @@ bool MarioFireRun::close() {
         mActor->forceGameOver();
     }
 
-    if (getPlayer()->mMovementStates.jumping) {
+    if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         stopAnimation("炎のランナー", "落下");
     } else {
         stopAnimation("炎のランナー", "基本");
@@ -572,7 +572,7 @@ bool MarioFireDance::start() {
     MR::vecKillElement(player->mJumpVec, getAirGravityVec(), &_14);
     _24 = 0;
     _26 = 0;
-    if (getPlayer()->mDrawStates._10) {
+    if (((getPlayer()->mDrawStates.mWord >> 15) & 1U)) {
         _20 *= 0.25f;
         _14 = getPlayer()->getWallNorm() * mActor->getConst().getTable()->mFireDanceFirstJump * 0.5f;
         getPlayer()->setFrontVecKeepUp(getPlayer()->getWallNorm());
@@ -592,7 +592,7 @@ bool MarioFireDance::start() {
 
 void MarioFireDance::impact() {
     changeAnimation("ファイアダンス");
-    if (!getPlayer()->mDrawStates._10) {
+    if (!((getPlayer()->mDrawStates.mWord >> 15) & 1U)) {
         if (_14.length() > 2.0f * mActor->getConst().getTable()->mFireDanceMoveSpeed) {
             _14.setLength(2.0f * mActor->getConst().getTable()->mFireDanceMoveSpeed);
         }
@@ -600,8 +600,8 @@ void MarioFireDance::impact() {
         _14.setLength(0.5f * _14.length());
     }
 
-    getPlayer()->mMovementStates._1 = false;
-    getPlayer()->mMovementStates.jumping = true;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
     _2C = 30;
 }
 
@@ -658,7 +658,7 @@ bool MarioFireDance::update() {
         _2C--;
     }
 
-    if (getPlayer()->mMovementStates._1 && !getPlayer()->isRising() && !_2C) {
+    if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) && !getPlayer()->isRising() && !_2C) {
         if (getPlayer()->_960 != 0x81 && getPlayer()->_960 != CollisionFloorCode_DamageFire && getPlayer()->_960 != CollisionFloorCode_Needle &&
             !mActor->mFlag1064) {
             if (_28 == 1) {

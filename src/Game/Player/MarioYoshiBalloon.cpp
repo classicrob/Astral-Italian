@@ -30,9 +30,9 @@ MarioYoshiBalloon::MarioYoshiBalloon(MarioActor* actor) : MarioState(actor, Mari
 }
 
 bool MarioYoshiBalloon::start() {
-    getPlayer()->mMovementStates._1 = false;
-    getPlayer()->mMovementStates.jumping = true;
-    getPlayer()->mMovementStates._B = false;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
     MR::getGameSceneLayoutHolder()->changeLifeMeterModeWater();
     mWind.z = 0.0f;
     mWind.y = 0.0f;
@@ -144,7 +144,7 @@ void MarioYoshiBalloon::fn_80415030() {
     mWind += wind * 0.15f;
     addVelocity(wind * 0.5f);
     if (PSVECMag(mWind) > 0.2f) {
-        getPlayer()->mDrawStates._1F = true;
+        getPlayer()->mDrawStates.mWord |= 0x00000001U;
     }
 }
 

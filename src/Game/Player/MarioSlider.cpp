@@ -12,7 +12,7 @@ bool Mario::isSliderFloor() const {
 }
 
 bool Mario::checkSliderMode() const {
-    if (!mMovementStates.jumping && mMovementStates._1) {
+    if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && ((mMovementStates.mLowWord >> 30) & 1U)) {
         if (isSliderFloor()) {
             return true;
         }
@@ -61,7 +61,7 @@ bool MarioSlider::postureCtrl(MtxPtr) {
 }
 
 void MarioSlider::calcWallHit() {
-    if (getPlayer()->mMovementStates._1A) {
+    if (((getPlayer()->mMovementStates.mLowWord >> 5) & 1U)) {
         TVec3f stack_50(_14);
         f32 sideDot = MR::vecKillElement(stack_50, *getPlayer()->mSideWallTriangle->getNormal(0), &stack_50);
 
@@ -74,7 +74,7 @@ void MarioSlider::calcWallHit() {
         }
     }
 
-    if (getPlayer()->mMovementStates._8) {
+    if (((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
         TVec3f stack_44(_14);
         f32 frontDot = MR::vecKillElement(stack_44, *getPlayer()->mFrontWallTriangle->getNormal(0), &stack_44);
 
@@ -95,9 +95,9 @@ void MarioSlider::calcWallHit() {
 
 void Mario::startSlider() {
     if (!isStatusActive(mSlider->mStatusId)) {
-        if (getPlayer()->mMovementStates._B) {
-            if (getPlayer()->mMovementStates.jumping) {
-                mDrawStates._14 = true;
+        if (((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
+            if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
+                mDrawStates.mWord |= 0x00000800U;
                 playSound("尻ドロップ着地");
                 playSound("声尻ドロップ着地");
                 playEffectRT("属性尻ドロップ", _368, mPosHolder->mPos);
@@ -130,7 +130,7 @@ bool MarioSlider::start() {
 // NONMATCHING: temporary stack slots, GPR allocation and repeated integer-abs CSE.
 bool MarioSlider::update() {
     if (!getPlayer()->checkSliderMode()) {
-        if (getPlayer()->mMovementStates._1 != 0) {
+        if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) != 0) {
             if (isSlipPolygon(getGroundPolygon())) {
                 Mario* player = getPlayer();
                 player->_8F8 = _14;
@@ -227,7 +227,7 @@ bool MarioSlider::update() {
 bool MarioSlider::close() {
     if (getPlayer()->isSwimming()) {
         stopAnimation("スライダー尻");
-    } else if (getPlayer()->mMovementStates.jumping) {
+    } else if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         stopAnimation("スライダー尻", "落下");
     } else {
         stopAnimation("スライダー尻", "基本");

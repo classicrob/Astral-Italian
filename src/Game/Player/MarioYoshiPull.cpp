@@ -19,7 +19,7 @@ bool MarioYoshiPull::close() {
     return true;
 }
 bool MarioYoshiPull::update() {
-    if(!getPlayer()->mMovementStates._1) return false;
+    if(!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) return false;
     mTimer++;
     switch(mPhase) {
     case 0:return exePull();

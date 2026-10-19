@@ -25,8 +25,8 @@ bool Mario::blown(const TVec3f& rVec) {
 
     mBlown->vecKillActor240(rVec);
 
-    mMovementStates._2C = true;
-    mMovementStates._A = false;
+    mMovementStates.mHighWord |= 0x00080000U;
+    mMovementStates.mLowWord &= 0xFFDFFFFFU;
     _430 = 3;
 
     return true;
@@ -52,9 +52,9 @@ bool MarioBlown::start() {
 
     playEffectTrans("壁ヒット", getPlayer()->getWallPos());
 
-    getPlayer()->mMovementStates._1 = false;
-    getPlayer()->mMovementStates.jumping = true;
-    getPlayer()->mMovementStates._B = false;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
 
     _18 += -mActor->mAppliedGravityVec * mActor->getConst().getTable()->mJumpHeightBlown;
     getPlayer()->setJumpVec(_18);
@@ -90,7 +90,7 @@ bool MarioBlown::close() {
     getPlayer()->unlockGroundCheck(this);
 
     if (!_24) {
-        getPlayer()->mMovementStates._36 = false;
+        getPlayer()->mMovementStates.mHighWord &= 0xFFFFFDFFU;
     }
 
     return true;
@@ -106,15 +106,15 @@ void MarioBlown::applyAirVelocity() {
 // NONMATCHING: equivalent boolean result materialization.
 bool MarioBlown::isGrounded() {
     bool grounded = true;
-    if (!getPlayer()->mMovementStates._1 && !MR::isNearZero(getPlayer()->mVerticalSpeed)) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U) && !MR::isNearZero(getPlayer()->mVerticalSpeed)) {
         grounded = false;
     }
     return grounded;
 }
 
 void MarioBlown::land() {
-    getPlayer()->mMovementStates.jumping = false;
-    getPlayer()->mMovementStates._D = true;
+    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowWord |= 0x00040000U;
 }
 
 void MarioBlown::applyGroundVelocity() {
@@ -146,11 +146,11 @@ bool MarioBlown::updateAir() {
         }
     }
     if (isGrounded()) {
-        if (getPlayer()->mMovementStates._1) {
+        if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             land();
         }
         if (getPlayer()->damagePolygonCheck(getPlayer()->getGroundPolygon())) {
-            getPlayer()->_1C._16 = true;
+            getPlayer()->mFlags20.mWord |= 0x00000200U;
             _24 = true;
             return false;
         }

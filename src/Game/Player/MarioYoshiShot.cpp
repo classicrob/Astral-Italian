@@ -16,9 +16,9 @@ bool MarioYoshiShot::start() {
     const TVec3f& gravity=getAirGravityVec();
     JMAVECScaleAdd(&gravity,&direction,&direction,-gravity.dot(direction));
     if(!MR::normalizeOrZero(&direction)) getPlayer()->setFrontVecKeepUp(direction);
-    getPlayer()->mMovementStates._1=false;
-    getPlayer()->mMovementStates.jumping=true;
-    getPlayer()->mMovementStates._B=false;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
     clearVelocity();
     getPlayer()->mWalkSpeed=0.0f;
     mShotVelocity.set<f32>(-getAirGravityVec()*15.0f);
@@ -37,9 +37,9 @@ bool MarioYoshiShot::close() {
 bool MarioYoshiShot::update() {
     if(!mActor->fn_803B97F0()->fn_8040F490("ヨッシーショット")) return false;
     if(mTimer<5) {
-        getPlayer()->mMovementStates._1=false;
-        getPlayer()->mMovementStates.jumping=true;
-    } else if(getPlayer()->mMovementStates._1==1) return false;
+        getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+        getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    } else if(((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)==1) return false;
     TVec3f gravityStep = getAirGravityVec()*0.8f;
     mShotVelocity.add(gravityStep);
     TVec3f velocity(mShotVelocity);

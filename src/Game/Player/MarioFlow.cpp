@@ -25,10 +25,10 @@ bool MarioFlow::start() {
     changeAnimationNonStop("中ダメージ");
     startPadVib(2);
 
-    getPlayer()->mMovementStates._1 = false;
-    getPlayer()->mMovementStates.jumping = true;
-    getPlayer()->mMovementStates._B = false;
-    getPlayer()->mMovementStates._2B = true;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
+    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mHighWord |= 0x00100000U;
 
     _18 = getFrontVec() * mActor->mConst->getTable()->mJumpDistFlow;
     _18 += -mActor->_240 * mActor->mConst->getTable()->mJumpHeightFlow;
@@ -60,8 +60,8 @@ bool MarioFlow::update() {
             return false;
         }
 
-        if (getPlayer()->getMovementStates()._1) {
-            getPlayer()->mMovementStates.jumping = false;
+        if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
+            getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
 
             changeAnimation("中ダメージ着地");
 
@@ -75,8 +75,8 @@ bool MarioFlow::update() {
         }
         break;
     case 1:
-        if (getPlayer()->getMovementStates()._1 == false) {
-            getPlayer()->mMovementStates.jumping = true;
+        if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U) == false) {
+            getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
             _14 = 0;
         } else {
             addVelocity(_18);

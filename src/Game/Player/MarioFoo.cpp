@@ -143,8 +143,8 @@ bool MarioFoo::start() {
     MR::normalize(&_30);
 
     stopAnimationUpper(nullptr);
-    getPlayer()->mMovementStates._1 = false;
-    getPlayer()->mMovementStates._A = false;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord &= 0xFFDFFFFFU;
     _18 = 0;
     if (checkLvlA()) {
         _12 = 1;
@@ -178,7 +178,7 @@ bool MarioFoo::update() {
 
     _3C = -getGravityVec();
     jet();
-    if (getPlayer()->_1C._9) {
+    if (((getPlayer()->mFlags20.mWord >> 22) & 1U)) {
         if (_6B0) {
             _6B0--;
         }
@@ -279,7 +279,7 @@ bool MarioFoo::update() {
         blend *= 0.5f;
     }
 
-    if (getPlayer()->_1C._9) {
+    if (((getPlayer()->mFlags20.mWord >> 22) & 1U)) {
         targetAngle = 1.0471976f;
         if (getStickY() > 0.1f) {
             f32 ratio = 1.1f * (getStickY() - 0.1f);
@@ -413,11 +413,11 @@ bool MarioFoo::close() {
     case 3:
         changeAnimation("フーファイター解除");
         getPlayer()->mJumpVec = TVec3f(0.0f, 0.0f, 0.0f);
-        getPlayer()->_10._21 = true;
+        getPlayer()->mFlags14.mHighWord |= 0x40000000U;
         break;
     }
 
-    if (getPlayer()->mMovementStates.jumping) {
+    if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         changeAnimation(nullptr, "落下");
     } else {
         changeAnimation(nullptr, "基本");
@@ -430,7 +430,7 @@ bool MarioFoo::close() {
     getPlayer()->unlockGroundCheck(this);
     mActor->_F44 = true;
     _54 = 0.0f;
-    getPlayer()->_10._7 = true;
+    getPlayer()->mFlags14.mLowWord |= 0x01000000U;
     return true;
 }
 
@@ -467,7 +467,7 @@ void MarioFoo::jet() {
         }
 
         _AE = 1;
-        getPlayer()->_1C._9 = true;
+        getPlayer()->mFlags20.mWord |= 0x00400000U;
     } else if (_14 < 8) {
         _AC++;
         _28 = 0.0f;
@@ -684,7 +684,7 @@ void MarioFoo::draw3D() const {
     TVec3f nextLeftEdge[2];
     TVec3f nextRightEdge[2];
 
-    if (getPlayer()->_1C._9) {
+    if (((getPlayer()->mFlags20.mWord >> 22) & 1U)) {
         TDDraw::setup(1, 1, 0);
         MR::ddSetVtxFormat(2);
         MR::ddLightingOff();

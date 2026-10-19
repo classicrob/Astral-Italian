@@ -46,7 +46,7 @@ bool MarioFreeze::update() {
         mFreezeTimer--;
 
         if (_18 != 0) {
-            if (getPlayer()->getMovementStates()._1) {
+            if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
                 addVelocity(getFrontVec(), -1.0f);
             }
         } else if (mFreezeTimer < 120 && mActor->mHealth != 0 && mActor->isRequestSpin()) {
@@ -75,19 +75,19 @@ bool MarioFreeze::update() {
             }
         } else {
             _18 = 1;
-            if (!getPlayer()->getMovementStates()._1) {
+            if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
                 mFreezeTimer = 10;
             } else {
                 mFreezeTimer = 20;
             }
 
             if (mActor->mHealth == 0) {
-                if (!getPlayer()->getMovementStates()._1) {
+                if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
                     mActor->forceGameOverNonStop();
                 } else {
                     mActor->forceGameOver();
                 }
-            } else if (getPlayer()->getMovementStates()._1) {
+            } else if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
                 changeAnimation("氷結解除");
                 playSound("氷ダメージ終了");
                 mActor->hideFreezeModel();
@@ -97,19 +97,19 @@ bool MarioFreeze::update() {
     }
 
     if (mFreezeTimer < 150) {
-        if (!getPlayer()->getMovementStates()._1 || _14 < 0.0f) {
+        if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U) || _14 < 0.0f) {
             getPlayer()->setJumpVec(getGravityVec() * _14);
             addVelocity(getGravityVec() * _14);
             _14 += 1.5f;
             if (_14 < 0.0f) {
-                getPlayer()->mMovementStates._1 = false;
+                getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
             }
         } else if (_14 > 0.0f) {
             if (_14 < 8.0f) {
                 _14 = 0.0f;
             } else {
                 _14 = 0.4f * -_14;
-                getPlayer()->mMovementStates._1 = false;
+                getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
                 getPlayer()->setJumpVec(getGravityVec() * _14);
             }
         }

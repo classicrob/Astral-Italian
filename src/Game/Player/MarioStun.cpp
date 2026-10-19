@@ -31,13 +31,13 @@ bool MarioStun::update() {
         }
 
         _12 = 1;
-        if (!getPlayer()->mMovementStates._1) {
+        if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             _14 = 0xa;
         } else {
             _14 = 0x1e;
         }
 
-        if (getPlayer()->mMovementStates._1) {
+        if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             changeAnimation("しびれ回復");
         }
     }

@@ -22,7 +22,7 @@ bool Mario::doFlipJump(const TVec3f& rVec) {
     changeAnimation("壁はじき");
 
     stopPunch();
-    mMovementStates._2B = true;
+    mMovementStates.mHighWord |= 0x00100000U;
     _430 = 3;
     startPadVib(2);
 
@@ -107,7 +107,7 @@ bool MarioFlip::update() {
         _24 += _28;
         _28 *= 0.97f;
         playSound("はねとばされ");
-        if (!getPlayer()->mMovementStates._1) {
+        if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             return false;
         }
 
@@ -141,7 +141,7 @@ bool MarioFlip::update() {
 
     _24 = MR::normalizeAngleAbs(_24);
     setYangleOffset(_24);
-    if (getPlayer()->mMovementStates._8 || getPlayer()->mMovementStates._1A || getPlayer()->mMovementStates._19) {
+    if (((getPlayer()->mMovementStates.mLowWord >> 23) & 1U) || ((getPlayer()->mMovementStates.mLowWord >> 5) & 1U) || ((getPlayer()->mMovementStates.mLowWord >> 6) & 1U)) {
         TVec3f normal(getPlayer()->getWallNorm());
         TVec3f tangent;
         f32 incoming = MR::vecKillElement(_18, normal, &tangent);
@@ -174,7 +174,7 @@ bool Mario::doFlipRot(const TVec3f& rVec) {
         return false;
     }
 
-    if (mMovementStates._1B) {
+    if (((mMovementStates.mLowWord >> 4) & 1U)) {
         return false;
     }
 
@@ -202,7 +202,7 @@ bool Mario::doFlipLarge(const TVec3f& rVec) {
         return false;
     }
 
-    if (mMovementStates._1B) {
+    if (((mMovementStates.mLowWord >> 4) & 1U)) {
         return false;
     }
 
@@ -245,7 +245,7 @@ bool MarioFlip::close() {
     stopAnimation("はねとばされ終了");
 
     if (mActor->mHealth == 0) {
-        if (!getPlayer()->getMovementStates()._1) {
+        if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
             mActor->forceGameOverNonStop();
         } else {
             mActor->forceGameOver();

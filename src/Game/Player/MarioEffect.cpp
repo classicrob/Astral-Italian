@@ -135,7 +135,7 @@ void MarioEffect::playSwingEffect() {
         }
     }
 
-    if (!getPlayer()->mMovementStates._1) {
+    if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
         if (!(getPlayer()->mVerticalSpeed < 50.0f)) {
             return;
         }
@@ -147,7 +147,7 @@ void MarioEffect::playSwingEffect() {
 
 void MarioEffect::doCubeEffect() {
     Mario* mario = getPlayer();
-    if (mario->mMovementStates.debugMode) {
+    if (((mario->mMovementStates.mLowWord & Mario::MovementStates::DebugMode) >> 9)) {
         return;
     }
 
@@ -180,9 +180,9 @@ void MarioEffect::doCubeEffect() {
         _18 = 0;
     }
 
-    if (getPlayer()->_10._1) {
+    if (((getPlayer()->mFlags14.mLowWord >> 30) & 1U)) {
         playSwingEffect();
-        getPlayer()->_10._1 = 0;
+        getPlayer()->mFlags14.mLowWord &= 0xBFFFFFFFU;
     }
 }
 

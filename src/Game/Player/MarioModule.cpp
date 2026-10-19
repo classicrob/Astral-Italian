@@ -19,7 +19,7 @@ void MarioModule_FORCE_EMIT_STRING() {
 }
 
 bool MarioModule::isInputDisable() const {
-    if (mActor->mMario->mMovementStates._22) {
+    if (((mActor->mMario->mMovementStates.mHighWord >> 29) & 1U)) {
         return true;
     }
     if (mActor->mMario->isStatusActive(MarioStatus_FpView)) {
@@ -249,7 +249,7 @@ bool MarioModule::calcWorldPadDir(TVec3f* pDest, f32 a2, f32 a3, bool a4) {
     if (MR::isNearZero(a2) && MR::isNearZero(a3)) {
         return false;
     }
-    if (!mActor->mMario->_10._11) {
+    if (!((mActor->mMario->mFlags14.mLowWord >> 14) & 1U)) {
         if (MR::abs(a3) > mActor->mConst->getTable()->mStickMarginYstart) {
             if (MR::abs(a2) < mActor->mConst->getTable()->mStickMarginX) {
                 a2 = 0.0f;
@@ -472,12 +472,12 @@ bool MarioModule::checkSquat(bool a1) {
             return false;
         }
     }
-    if (mActor->mMario->mMovementStates._23) {
+    if (((mActor->mMario->mMovementStates.mHighWord >> 28) & 1U)) {
         return false;
     }
-    if (mActor->mMario->mMovementStates._21) {
+    if (((mActor->mMario->mMovementStates.mHighWord >> 30) & 1U)) {
         if (!mActor->checkButtonType(9, false)) {
-            mActor->mMario->mMovementStates._21 = 0;
+            mActor->mMario->mMovementStates.mHighWord &= 0xBFFFFFFFU;
         }
         return false;
     }
@@ -497,7 +497,7 @@ const Triangle* MarioModule::getGroundPolygon() const {
 
 bool MarioModule::isOnSlipGround() const {
     Mario* pMario = mActor->mMario;
-    if (pMario->mMovementStates._1 && pMario->isSlipPolygon(pMario->mGroundPolygon)) {
+    if (((pMario->mMovementStates.mLowWord >> 30) & 1U) && pMario->isSlipPolygon(pMario->mGroundPolygon)) {
         return true;
     }
     return false;

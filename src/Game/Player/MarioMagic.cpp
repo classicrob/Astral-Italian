@@ -20,9 +20,9 @@ void Mario::stopPunch() {
 }
 
 void Mario::startMagic() {
-    if (!mMovementStates.jumping) {
+    if (!((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         if (!mActor->_468) {
-            if (!mMovementStates._23) {
+            if (!((mMovementStates.mHighWord >> 28) & 1U)) {
                 if (!isStatusActive(MarioStatus_Slider)) {
                     if (isSkatableFloor()) {
                         doSkate();
@@ -30,7 +30,7 @@ void Mario::startMagic() {
                         clearSlope();
                         changeStatus(mMagic);
                         stopAnimationUpper(nullptr);
-                        _10._1 = 1;
+                        mFlags14.mLowWord |= 0x40000000U;
                     }
                 }
             }
@@ -94,7 +94,7 @@ bool MarioMagic::update() {
         playEffect("スピンライト消去");
     }
 
-    if (getPlayer()->mMovementStates.jumping) {
+    if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         getPlayer()->procJump(false);
     } else {
         getPlayer()->fn_803A0BE0();

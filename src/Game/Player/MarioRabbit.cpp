@@ -43,7 +43,7 @@ bool MarioRabbit::start() {
     Mario* player = getPlayer();
     MR::vecKillElement(player->mJumpVec, getAirGravityVec(), &_18);
     _5C = getFrontVec();
-    if (_26 || getPlayer()->mMovementStates.jumping) {
+    if (_26 || ((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         _6A = 1;
         return true;
     }
@@ -52,7 +52,7 @@ bool MarioRabbit::start() {
     _14 = -mActor->getConst().getTable()->mRabbitFirstJump;
     _26 = 0;
     _2A = 0;
-    if (getPlayer()->mDrawStates._10) {
+    if (((getPlayer()->mDrawStates.mWord >> 15) & 1U)) {
         _14 *= 0.25f;
         _18 = getPlayer()->getWallNorm() * mActor->getConst().getTable()->mRabbitFirstJump * 0.5f;
         getPlayer()->setFrontVecKeepUp(getPlayer()->getWallNorm());
@@ -82,7 +82,7 @@ void MarioRabbit::forceJump() {
 }
 
 void MarioRabbit::impact() {
-    if (!getPlayer()->mDrawStates._10) {
+    if (!((getPlayer()->mDrawStates.mWord >> 15) & 1U)) {
         if (_18.length() > 2.0f * mActor->getConst().getTable()->mRabbitMoveSpeed) {
             _18.setLength(2.0f * mActor->getConst().getTable()->mRabbitMoveSpeed);
         }
@@ -91,14 +91,14 @@ void MarioRabbit::impact() {
     }
 
     getPlayer()->stopJump();
-    getPlayer()->mMovementStates._1 = false;
-    getPlayer()->mMovementStates.jumping = true;
+    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
+    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
     getPlayer()->initJumpParam();
     Mario* player = getPlayer();
     player->_42A = 0;
     player->_430 = 0;
-    getPlayer()->mMovementStates._22 = false;
-    getPlayer()->mMovementStates._2B = false;
+    getPlayer()->mMovementStates.mHighWord &= 0xDFFFFFFFU;
+    getPlayer()->mMovementStates.mHighWord &= 0xFFEFFFFFU;
     if (_28) {
         switch (_68) {
         case 0:
@@ -140,17 +140,17 @@ bool MarioRabbit::update() {
         return false;
     }
 
-    getPlayer()->mMovementStates._30 = false;
+    getPlayer()->mMovementStates.mHighWord &= 0xFFFF7FFFU;
     getPlayer()->checkWallStick();
     if (_69) {
         _69--;
     }
 
-    if (!getPlayer()->mMovementStates.jumping && !getPlayer()->mMovementStates._1) {
-        getPlayer()->mMovementStates._1 = true;
+    if (!((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
+        getPlayer()->mMovementStates.mLowWord |= 0x40000000U;
     }
 
-    if (getPlayer()->mMovementStates._1) {
+    if (((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
         if (_6A) {
             playSound("ホッパー跳ね返り");
             _6A = 0;
@@ -169,8 +169,8 @@ bool MarioRabbit::update() {
 
             _28 = 0;
             _27 = 0;
-            if (!getPlayer()->mMovementStates._B) {
-                getPlayer()->mMovementStates.jumping = false;
+            if (!((getPlayer()->mMovementStates.mLowWord >> 20) & 1U)) {
+                getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
             }
 
             startPadVib(1UL);
@@ -303,7 +303,7 @@ bool MarioRabbit::update() {
 
 bool MarioRabbit::close() {
     stopAnimation(nullptr);
-    if (getPlayer()->mMovementStates.jumping) {
+    if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31)) {
         stopAnimation(nullptr, "落下");
     } else {
         stopAnimation(nullptr, "基本");

@@ -40,7 +40,7 @@ bool MarioWait::checkStart() {
 bool MarioWait::checkCancel() {
     switch (getPlayer()->_960) { case 27: case 28: return true; }
     if (getStickP() != 0.0f || checkLvlA() || checkLvlZ() || mActor->isRequestRush()) return true;
-    if (getPlayer()->mMovementStates.jumping && getPlayerMode() != PlayerMode_Teresa) return true;
+    if (((getPlayer()->mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && getPlayerMode() != PlayerMode_Teresa) return true;
     if (getPlayer()->isStatusActive(6)) return true;
     if (getPlayer()->isStatusActive(5)) return true;
     if (getPlayer()->isStatusActive(0x1A)) return true;
@@ -52,10 +52,10 @@ bool MarioWait::checkCancel() {
     if (getPlayer()->isStatusActive(0x11)) return true;
     if (getPlayer()->isStatusActive(0x22)) return true;
     if (mActor->mBeeWallWalk) return true;
-    if (getPlayer()->_1C._5) return true;
-    if (getPlayer()->mMovementStates._23) return true;
-    if (getPlayer()->mMovementStates._A) return true;
-    if (getPlayer()->mDrawStates.mIsUnderwater) return true;
+    if (((getPlayer()->mFlags20.mWord >> 26) & 1U)) return true;
+    if (((getPlayer()->mMovementStates.mHighWord >> 28) & 1U)) return true;
+    if (((getPlayer()->mMovementStates.mLowWord >> 21) & 1U)) return true;
+    if (((getPlayer()->mDrawStates.mWord & Mario::DrawStates::Underwater) >> 13)) return true;
     if (!MR::isNearZero(getPlayer()->_184, 0.001f)) return true;
     if (mActor->_480) return true;
     HitSensor* sensor;
@@ -96,11 +96,11 @@ bool MarioWait::update() {
         cancel = true;
     }
 
-    if (getPlayer()->_1C._5) {
+    if (((getPlayer()->mFlags20.mWord >> 26) & 1U)) {
         cancel = true;
     }
 
-    if (getPlayerMode() != PlayerMode_Teresa && !getPlayer()->mMovementStates._1) {
+    if (getPlayerMode() != PlayerMode_Teresa && !((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
         cancel = true;
     }
 

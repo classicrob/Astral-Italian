@@ -37,7 +37,7 @@ bool MarioParalyze::start() {
 bool MarioParalyze::update() {
     if (mTimer != 0) {
         mTimer--;
-        if (_12 != 0 && getPlayer()->getMovementStates()._1) {
+        if (_12 != 0 && ((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
             addVelocity(getFrontVec(), -3.0f);
         }
     }
@@ -49,19 +49,19 @@ bool MarioParalyze::update() {
 
         _12 = 1;
 
-        if (!getPlayer()->getMovementStates()._1) {
+        if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
             mTimer = 10;
         } else {
             mTimer = 30;
         }
 
-        if (getPlayer()->getMovementStates()._1) {
+        if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
             changeAnimation("電気ダメージ終了");
             playSound("声電気ダメージ終了");
         }
 
         if (mActor->mHealth == 0) {
-            if (!getPlayer()->mMovementStates._1) {
+            if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
                 mActor->forceGameOverNonStop();
             } else {
                 mActor->forceGameOver();
@@ -76,7 +76,7 @@ bool MarioParalyze::update() {
 
 bool MarioParalyze::close() {
     if (mActor->mHealth == 0) {
-        if (!getPlayer()->mMovementStates._1) {
+        if (!((getPlayer()->mMovementStates.mLowWord >> 30) & 1U)) {
             mActor->forceGameOverNonStop();
         } else {
             mActor->forceGameOver();
@@ -90,7 +90,7 @@ bool MarioParalyze::close() {
 
     _16 = 120;
 
-    if (!getPlayer()->isStatusActive(MarioStatus_Swim) && !getPlayer()->getMovementStates()._1) {
+    if (!getPlayer()->isStatusActive(MarioStatus_Swim) && !((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
         getPlayer()->tryFreeJump(getFrontVec() * -10.0f, true);
     }
 

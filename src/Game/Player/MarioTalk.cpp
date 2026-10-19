@@ -26,7 +26,7 @@ bool MarioTalk::update() {
         if (!MR::normalizeOrZero(&vec)) {
             getPlayer()->setFrontVecKeepUp(vec, static_cast< u32 >(16));
 
-            if (!getPlayer()->getMovementStates()._37) {
+            if (!((getPlayer()->getMovementStates().mHighWord >> 8) & 1U)) {
                 getPlayer()->setLastNonFixMoveVec(vec);
             } else if (isPlayerModeTeresa()) {
                 MR::vecKillElement(vec, getCamDirZ(), &vec);
@@ -47,7 +47,7 @@ bool MarioTalk::notice() {
 }
 
 bool MarioTalk::close() {
-    if (getPlayer()->getMovementStates()._37) {
+    if (((getPlayer()->getMovementStates().mHighWord >> 8) & 1U)) {
         getPlayer()->setFrontVecKeepUp(getPlayer()->_334);
     }
 

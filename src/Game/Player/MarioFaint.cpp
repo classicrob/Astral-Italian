@@ -11,7 +11,7 @@
 
 
 bool Mario::doFlipWeak(const TVec3f& rVec) {
-    if (mMovementStates._1B) {
+    if (((mMovementStates.mLowWord >> 4) & 1U)) {
         return false;
     }
 
@@ -47,11 +47,11 @@ bool Mario::faint(const TVec3f& rVec) {
     mActor->damageDropThrowMemoSensor();
 
     if (getCurrentStatus() != MarioStatus_Faint) {
-        mMovementStates._27 = true;
+        mMovementStates.mHighWord |= 0x01000000U;
         return true;
     }
 
-    return mMovementStates._27;
+    return ((mMovementStates.mHighWord >> 24) & 1U);
 }
 
 MarioFaint::MarioFaint(MarioActor* pActor) : MarioState(pActor, MarioStatus_Faint), mTimer(), _14(), _16() {
@@ -86,7 +86,7 @@ bool MarioFaint::update() {
 
         break;
     case 1:
-        if (!getPlayer()->getMovementStates()._1) {
+        if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
             return false;
         }
 
@@ -112,8 +112,8 @@ bool MarioFaint::update() {
 bool MarioFaint::start() {
     mTimer = 0;
     _16 = 0;
-    getPlayer()->mMovementStates._B = false;
-    getPlayer()->mMovementStates.jumping = false;
+    getPlayer()->mMovementStates.mLowWord &= 0xFFEFFFFFU;
+    getPlayer()->mMovementStates.mLowWord &= ~Mario::MovementStates::Jumping;
 
     if (_18.dot(getPlayer()->mFrontVec) > 0.0f) {
         getPlayer()->setFrontVecKeepUp(_18);
@@ -144,7 +144,7 @@ bool MarioFaint::start() {
         mActor->fn_803B94E0();
 
         if (mActor->mHealth == 0) {
-            if (!getPlayer()->getMovementStates()._1) {
+            if (!((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
                 mActor->forceGameOverNonStop();
             } else {
                 mActor->forceGameOver();
@@ -160,7 +160,7 @@ bool MarioFaint::start() {
 }
 
 bool MarioFaint::close() {
-    if (getPlayer()->getMovementStates()._1) {
+    if (((getPlayer()->getMovementStates().mLowWord >> 30) & 1U)) {
         stopAnimation("後方小ダメージ");
         stopAnimation("前方小ダメージ", "基本");
     }

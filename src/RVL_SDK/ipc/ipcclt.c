@@ -246,7 +246,7 @@ IOSError IPCCltReInit(void) {
     IOSError ret = 0;
     void* bufferLo;
 
-    i = ROUNDUP(32 * ROUNDUP(sizeof(IOSRpcRequest)));
+    i = 0x1000;
     bufferLo = IPCGetBufferLo();
 
     if ((void*)((u8*)bufferLo + i) > IPCGetBufferHi()) {

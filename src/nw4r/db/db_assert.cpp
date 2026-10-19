@@ -65,8 +65,8 @@ namespace nw4r {
             (void)OSDisableInterrupts();
             (void)OSDisableScheduler();
 
-            (void)VISetPostRetraceCallback(NULL);
             (void)VISetPreRetraceCallback(NULL);
+            (void)VISetPostRetraceCallback(NULL);
 
             ShowStack_(stackPointer);
 

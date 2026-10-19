@@ -589,7 +589,6 @@ s32 WPADWriteExtensionRegister(s32 chan, void* data, u16 length, u8 extension, u
 
 void WPADiCopyOut(s32);
 void WPADiExcludeButton(s32);
-s32 WPADiGetStatus(s32);
 
 void __WPADShutdown(void);
 void __WPADReconnect(BOOL);

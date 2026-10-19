@@ -607,6 +607,7 @@ namespace nw4r {
 
             void Reset() {
                 Set(nullptr, 0);
+                mbDisable = false;
             }
 
             void Set(AnimTransform* pTrans, u16 idx) {

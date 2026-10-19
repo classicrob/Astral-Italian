@@ -177,39 +177,6 @@ namespace nw4r {
                 }
             }
 
-            inline bool IsBindAnimation(Pane* pPane, AnimTransform* pAnimTrans) {
-#if 1
-
-                (void)pPane;
-                (void)pAnimTrans;
-
-#else
-
-                if (pPane->FindAnimationLinkSelf(pAnimTrans)) {
-                    return true;
-                }
-
-#endif
-
-                return false;
-            }
-
-            inline bool IsBindAnimation(Material* pMaterial, AnimTransform* pAnimTrans) {
-#if 1
-
-                (void)pMaterial;
-                (void)pAnimTrans;
-
-#else
-
-                if (pMaterial->FindAnimationLink(pAnimTrans)) {
-                    return true;
-                }
-
-#endif
-
-                return false;
-            }
 
         }
 
@@ -268,20 +235,16 @@ namespace nw4r {
                 const res::AnimationContent& animCont = *detail::ConvertOffsToPtr< res::AnimationContent >(mpRes, animContOffsets[i]);
                 if (animCont.type == ANIMCONTENTTYPE_PANE) {
                     if (Pane* const pFindPane = pPane->FindPaneByName(animCont.name, recursive)) {
-                        if (!IsBindAnimation(pFindPane, this)) {
-                            pCrAnimLink = Bind(pFindPane, pCrAnimLink, i, enable);
-                            if (!pCrAnimLink) {
-                                break;
-                            }
+                        pCrAnimLink = Bind(pFindPane, pCrAnimLink, i, enable);
+                        if (!pCrAnimLink) {
+                            break;
                         }
                     }
                 } else {
                     if (Material* const pFindMat = pPane->FindMaterialByName(animCont.name, recursive)) {
-                        if (!IsBindAnimation(pFindMat, this)) {
-                            pCrAnimLink = Bind(pFindMat, pCrAnimLink, i, enable);
-                            if (!pCrAnimLink) {
-                                break;
-                            }
+                        pCrAnimLink = Bind(pFindMat, pCrAnimLink, i, enable);
+                        if (!pCrAnimLink) {
+                            break;
                         }
                     }
                 }
@@ -296,11 +259,9 @@ namespace nw4r {
                 const res::AnimationContent& animCont = *detail::ConvertOffsToPtr< res::AnimationContent >(mpRes, animContOffsets[i]);
                 if (animCont.type == ANIMCONTENTTYPE_MATERIAL) {
                     if (detail::EqualsMaterialName(pMaterial->GetName(), animCont.name)) {
-                        if (!IsBindAnimation(pMaterial, this)) {
-                            pCrAnimLink = Bind(pMaterial, pCrAnimLink, i, enable);
-                            if (!pCrAnimLink) {
-                                break;
-                            }
+                        pCrAnimLink = Bind(pMaterial, pCrAnimLink, i, enable);
+                        if (!pCrAnimLink) {
+                            break;
                         }
                     }
                 }

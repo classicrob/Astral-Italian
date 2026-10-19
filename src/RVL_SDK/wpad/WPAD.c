@@ -162,7 +162,7 @@ BOOL OnShutdown(BOOL final, u32 event) {
     return FALSE;
 }
 
-s32 WPADiGetStatus(s32 chan) {
+static s32 WPADiGetStatus(s32 chan) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     BOOL enable;
     s32 status;
@@ -1068,10 +1068,6 @@ u8 WPADGetSensorBarPosition() {
 static void setupCallback(s32 chan, s32 result) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
 
-    if (result == WPAD_ERR_NO_CONTROLLER) {
-        return;
-    }
-
     if (result == WPAD_ERR_NONE) {
         p_wpd->setup = TRUE;
 
@@ -1357,6 +1353,7 @@ u32 WPADGetDataFormat(s32 chan) {
     return fmt;
 }
 
+// NONMATCHING: compiler merges return paths and retains the result in a saved register.
 s32 WPADSetDataFormat(s32 chan, u32 fmt) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     s32 ret;
@@ -1381,6 +1378,7 @@ s32 WPADSetDataFormat(s32 chan, u32 fmt) {
             } else {
                 enable = OSDisableInterrupts();
                 p_wpd->dataFormat = fmt;
+                p_wpd->dpdExtendedReportMask = 0;
                 OSRestoreInterrupts(enable);
                 ret = WPAD_ERR_NONE;
             }
@@ -1923,8 +1921,16 @@ s32 WPADSendStreamData(s32 chan, void* p_buf, u16 len) {
     return WPAD_ERR_NONE;
 }
 
+// NONMATCHING: target uses an address label for the same sensitivity byte.
 u8 WPADGetDpdSensitivity() {
-    return _dpdSensitivity;
+    BOOL enable;
+    u8 sensitivity;
+
+    enable = OSDisableInterrupts();
+    sensitivity = _dpdSensitivity;
+    OSRestoreInterrupts(enable);
+
+    return sensitivity;
 }
 
 BOOL WPADIsDpdEnabled(s32 chan) {
@@ -1941,6 +1947,7 @@ BOOL WPADIsDpdEnabled(s32 chan) {
 static void __dpdCb(s32 chan, s32 result) {
     WPADControlBlock* p_wpd = _wpdcb[chan];
     p_wpd->dpdFormat = p_wpd->dpdCommand;
+    p_wpd->dpdChangePending = 0;
     p_wpd->infos.dpd = (p_wpd->dpdCommand == 0) ? FALSE : TRUE;
 }
 
@@ -1956,6 +1963,7 @@ BOOL WPADiSendEnableDPD(WPADCmdQueue* queue, BOOL enable, WPADCallback callback)
     return WPADiPushCommand(queue, cmd);
 }
 
+// NONMATCHING: sensitivity/config-table symbol identities differ; instruction words agree.
 s32 WPADControlDpd(s32 chan, u32 command, WPADCallback callback) {
     BOOL enable;
     BOOL dpd;
@@ -2010,6 +2018,7 @@ s32 WPADControlDpd(s32 chan, u32 command, WPADCallback callback) {
 
             if (WPADiIsAvailableCmdQueue(&p_wpd->cmdq, 8)) {
                 p_wpd->dpdCommand = (u8)command;
+                p_wpd->dpdChangePending = 1;
 
                 WPADiSendEnableDPD(&p_wpd->cmdq, TRUE, NULL);
                 WPADiSendDPDCSB(&p_wpd->cmdq, TRUE, NULL);

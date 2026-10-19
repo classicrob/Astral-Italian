@@ -1755,7 +1755,7 @@ static void KPADiSamplingCallback(s32 chan) {
     }
     uwp = idx >= KPAD_INTERNAL_RING_LENGTH ? &kp->externalRingBuf[idx - KPAD_INTERNAL_RING_LENGTH] : &kp->uniRingBuf[idx];
     WPADRead(chan, &uwp->u);
-    uwp->fmt = (u8)WPADiGetStatus(chan);
+    uwp->fmt = (u8)WPADGetDataFormat(chan);
     kp->bufIdx = idx + 1;
     if (kp->bufCount < KPAD_INTERNAL_RING_LENGTH + kp->externalRingLength) {
         ++kp->bufCount;

@@ -8,6 +8,7 @@
 #include "revolution/bte.h"
 #include "revolution/os.h"
 #include "revolution/sc.h"
+#include "revolution/nand.h"
 #include "revolution/wpad.h"
 #include "revolution/wud.h"
 
@@ -42,6 +43,8 @@ u8 _scFlush;
 BD_ADDR_PTR _dev_handle_to_bda[WUD_MAX_DEV_ENTRY];
 u16 _dev_handle_queue_size[WUD_MAX_DEV_ENTRY];
 u16 _dev_handle_notack_num[WUD_MAX_DEV_ENTRY];
+
+static u8 _nandBusy;
 
 static u8 _discNumResps;
 static s8 _discRssi;
@@ -308,6 +311,50 @@ static u8 WUDiDelaySearch() {
     }
 
     return 29;
+}
+
+void __wudOpenWiiFitCallback(s32 result, NANDCommandBlock* block) {
+#pragma unused(block)
+    if (_wcb.syncState != 0) {
+        _wcb.syncState = result == 0 ? 101 : WUD_STATE_SYNC_SC_FLUSH;
+    }
+    if (_wcb.deleteState != 0) {
+        _wcb.deleteState = result == 0 ? 101 : WUD_STATE_DELETE_CLEANUP_SETTING;
+    }
+    _nandBusy = 0;
+}
+
+void __wudSeekWiiFitCallback(s32 result, NANDCommandBlock* block) {
+#pragma unused(block)
+    if (_wcb.syncState != 0) {
+        _wcb.syncState = result == 0x4AF18 ? 102 : WUD_STATE_SYNC_SC_FLUSH;
+    }
+    if (_wcb.deleteState != 0) {
+        _wcb.deleteState = result == 0x4AF18 ? 102 : WUD_STATE_DELETE_CLEANUP_SETTING;
+    }
+    _nandBusy = 0;
+}
+
+void __wudUpdateWiiFitCallback(s32 result, NANDCommandBlock* block) {
+#pragma unused(block)
+    if (_wcb.syncState != 0) {
+        _wcb.syncState = result == 132 ? 103 : WUD_STATE_SYNC_SC_FLUSH;
+    }
+    if (_wcb.deleteState != 0) {
+        _wcb.deleteState = result == 132 ? 103 : WUD_STATE_DELETE_CLEANUP_SETTING;
+    }
+    _nandBusy = 0;
+}
+
+void __wudCloseWiiFitCallback(s32 result, NANDCommandBlock* block) {
+#pragma unused(result, block)
+    if (_wcb.syncState != 0) {
+        _wcb.syncState = WUD_STATE_SYNC_SC_FLUSH;
+    }
+    if (_wcb.deleteState != 0) {
+        _wcb.deleteState = WUD_STATE_DELETE_CLEANUP_SETTING;
+    }
+    _nandBusy = 0;
 }
 
 static u8 WUDiIsSyncDisabled(void) {
@@ -3214,7 +3261,6 @@ WUDDevInfo* WUDiGetRemoveWbcDevice() {
 WUDDevInfo* WUDiGetDiscoverDevice(void) {
     return &_work;
 }
-// NONMATCHING: handle-table relocation identity differs; all instruction words match.
 void WUDSetDeviceHistory(s32 channel, const u8* address) {
     if (address == NULL) {
         memset(&_scArray.info[channel + 10], 0, sizeof(SCBtDeviceInfoSingle));
@@ -3238,6 +3284,7 @@ void WUDUpdateSCSetting(void) {
     }
 }
 
+// NONMATCHING: handle-table relocation identity differs; all instruction words match.
 void WUDiSetDevAddrForHandle(u8 handle, BD_ADDR_PTR address) {
     _dev_handle_to_bda[handle] = address;
 }
@@ -3250,4 +3297,156 @@ void WUDiSetQueueSizeForHandle(u8 handle, u16 size) {
 }
 void WUDiSetNotAckNumForHandle(u8 handle, u16 size) {
     _dev_handle_notack_num[handle] = size;
+}
+
+// RPHealth.dat's pairing record is copied independently of the read workarea.
+// The checksum covers 16-bit words; byte fields below are used only after memcpy.
+typedef struct WUDWiiFitPairingRecord {
+    BD_ADDR address;
+    LINK_KEY linkKey;
+    u8 name[64];
+    u8 reserved[42];
+} WUDWiiFitPairingRecord;
+
+typedef struct WUDWiiFitPairingData {
+    WUDWiiFitPairingRecord record;
+    u32 checksum;
+} WUDWiiFitPairingData;
+
+typedef struct WUDWiiFitWorkArea {
+    u16 payload[0x4AF18 / sizeof(u16)];
+    u16 pairingWords[sizeof(WUDWiiFitPairingRecord) / sizeof(u16)];
+    u32 checksum;
+    u8 reserved[0x4B000 - 0x4AF9C];
+} WUDWiiFitWorkArea;
+
+// The linked DOL has no setter/allocation/free for this optional workarea.
+// Preserve the real null-initialized slot and the target's null/alignment assert.
+WUDWiiFitWorkArea* _wiiFitWork;
+static u32 _wiiFitChecksum;
+static s32 _nandState;
+static WUDWiiFitPairingData _wiiFitPairingData ATTRIBUTE_ALIGN(32);
+static NANDFileInfo _wiiFitFileInfo;
+static NANDCommandBlock _wiiFitCommandBlock;
+
+void __wudNandResultCallback(s32 result, NANDCommandBlock* block) {
+#pragma unused(block)
+    s32 state = _nandState;
+    _nandBusy = 0;
+    switch (state) {
+    case 1:
+        _nandState = result == 0 ? state + 1 : 255;
+        break;
+    case 2:
+        _nandState = result == 0 ? state + 1 : 5;
+        break;
+    case 3:
+        _nandState = result == 0x4B000 ? state + 1 : 5;
+        break;
+    default:
+        _nandState = 6;
+        break;
+    }
+}
+
+void __wudNandFlushCallback(u32 result) {
+#pragma unused(result)
+    _nandBusy = 0;
+    _nandState++;
+}
+
+// NONMATCHING: independent BSS object placement and literal-address lifetimes change
+// saved GPRs/instruction scheduling; calls, byte extents, state transitions and
+// ordered 16-bit checksum operations agree with the target. Two source forms.
+u8 __wudGetDevInfoFromWiiFit(void) {
+    u8 nextState = 3;
+    u8 zero[16] = {0};
+    u32 checksum;
+    u32 sum;
+    u16 inverse;
+    u32 i;
+    const u16* word;
+
+    if (_nandBusy) {
+        return 3;
+    }
+    if (_wiiFitWork == NULL || ((uintptr_t)_wiiFitWork & 31) != 0) {
+        OSPanic("WUD.c", 2745,
+                "Error: the workarea for synchronizing WBC pairing information is not allocated.\n");
+    }
+
+    switch (_nandState) {
+    case 0:
+        _nandState = NANDInit() == 0 ? 1 : 255;
+        break;
+    case 1:
+        if (SCGetProductGameRegion() == 0) {
+            _nandBusy = 1;
+            _wiiFitChecksum = 0;
+            NANDOpenAsync("/title/00010004/52464e4a/data/RPHealth.dat", &_wiiFitFileInfo,
+                          NAND_ACCESS_READ, __wudNandResultCallback, &_wiiFitCommandBlock);
+        } else {
+            _nandState = 6;
+        }
+        break;
+    case 2:
+        _nandBusy = 1;
+        NANDSeekAsync(&_wiiFitFileInfo, 0, 0, __wudNandResultCallback, &_wiiFitCommandBlock);
+        break;
+    case 3:
+        _nandBusy = 1;
+        NANDReadAsync(&_wiiFitFileInfo, _wiiFitWork, sizeof(WUDWiiFitWorkArea),
+                      __wudNandResultCallback, &_wiiFitCommandBlock);
+        break;
+    case 4:
+        memcpy(&_wiiFitPairingData.record, _wiiFitWork->pairingWords, sizeof(WUDWiiFitPairingRecord));
+        memcpy(&checksum, &_wiiFitWork->checksum, sizeof(checksum));
+        sum = 0;
+        inverse = 0;
+        word = _wiiFitWork->payload;
+        for (i = 0; i < sizeof(_wiiFitWork->payload) / sizeof(u16); i++) {
+            sum += *word;
+            inverse += ~*word++;
+        }
+        _wiiFitChecksum = (sum << 16) | inverse;
+        sum = _wiiFitChecksum >> 16;
+        inverse = _wiiFitChecksum;
+        word = _wiiFitWork->pairingWords;
+        for (i = 0; i < sizeof(_wiiFitWork->pairingWords) / sizeof(u16); i++) {
+            sum += *word;
+            inverse += ~*word++;
+        }
+        if (checksum != ((sum << 16) | inverse)) {
+            _nandState = 5;
+            break;
+        }
+        if (memcmp(_wiiFitPairingData.record.address, zero, sizeof(BD_ADDR)) == 0) {
+            _nandState = 5;
+            break;
+        }
+        if (memcmp(OSGetAppGamename(), "RFNJ", 4) != 0 &&
+            memcmp(_wiiFitPairingData.record.linkKey, zero, sizeof(LINK_KEY)) == 0) {
+            _nandState = 5;
+            break;
+        }
+        memset(_wiiFitWork, 0, sizeof(WUDWiiFitWorkArea));
+        memset(&_scArray, 0, sizeof(_scArray));
+        SCGetBtDeviceInfoArray(&_scArray);
+        memcpy(_scArray.info[14].bd_addr, _wiiFitPairingData.record.address, sizeof(BD_ADDR));
+        memcpy(_scArray.info[14].bd_name, _wiiFitPairingData.record.name, sizeof(_wiiFitPairingData.record.name));
+        // This SC record embeds the key after the controller name's first 20 bytes.
+        memcpy(&_scArray.info[14].bd_name[20], _wiiFitPairingData.record.linkKey, sizeof(LINK_KEY));
+        SCSetBtDeviceInfoArray(&_scArray);
+        _nandBusy = 1;
+        SCFlushAsync(__wudNandFlushCallback);
+        break;
+    case 5:
+        _nandBusy = 1;
+        NANDCloseAsync(&_wiiFitFileInfo, __wudNandResultCallback, &_wiiFitCommandBlock);
+        break;
+    default:
+        nextState = 4;
+        break;
+    }
+    return nextState;
 }

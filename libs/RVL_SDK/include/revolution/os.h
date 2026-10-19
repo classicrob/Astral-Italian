@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <stdint.h>
 #include "revolution/types.h"
+#include "revolution/os/OSClock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,22 +13,7 @@ extern "C" {
 #define OSHalt(msg) OSPanic(__FILE__, __LINE__, msg)
 
 #ifdef __MWERKS__
-u32 __OSBusClock : (0x8000 << 16 | 0x00F8);
 u32 __MEM2End : (0x8000 << 16 | 0x3128);
-#else
-u32 __OSBusClock = 0x800000F8;
-u32 __MEM2End = 0x80003128;
-#endif
-
-#define OS_BUS_CLOCK __OSBusClock
-#ifndef OS_CORE_CLOCK
-#define OS_CORE_CLOCK 729000000u
-#endif
-#ifndef OS_BUS_CLOCK
-#define OS_BUS_CLOCK 243000000u
-#endif
-#ifndef OS_TIMER_CLOCK
-#define OS_TIMER_CLOCK (OS_BUS_CLOCK / 4)
 #endif
 
 #define OSNanosecondsToTicks(nsec) (((nsec) * (OS_TIMER_CLOCK / 125000)) / 8000)

@@ -92,8 +92,8 @@ void* JUTException::run() {
 
     while (true) {
         OSReceiveMessage(&sMessageQueue, &msg, OS_MESSAGE_BLOCK);
-        VISetPostRetraceCallback(nullptr);
         VISetPreRetraceCallback(nullptr);
+        VISetPostRetraceCallback(nullptr);
 
         CallbackObject* obj = static_cast< CallbackObject* >(msg);
         JUTExceptionUserCallback callback = obj->callback;
@@ -506,8 +506,8 @@ void JUTException::printContext(u16 error, OSContext* context, u32 dsisr, u32 da
         return;
     }
 
-    VISetPostRetraceCallback(nullptr);
     VISetPreRetraceCallback(nullptr);
+    VISetPostRetraceCallback(nullptr);
     VISetBlack(FALSE);
     VIFlush();
 

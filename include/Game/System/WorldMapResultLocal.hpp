@@ -60,8 +60,7 @@ struct WorldMapResultEdge {
     s32 mFrom;
     s32 mTo;
     s32 mStep;
-    u8 mReverse;
-    u8 _D[3];
+    u8 mReverse;  // trailing 3 bytes are padding (member-wise copies stop at 0xC)
 };
 
 /// Helper object (0x404 bytes) of the route-open state; its count lives at 0x400.

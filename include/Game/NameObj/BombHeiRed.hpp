@@ -9,6 +9,7 @@ class JointControllerInfo;
 class BombHeiRed : public NPCActor {
 public:
     BombHeiRed(const char*);
+    virtual ~BombHeiRed();
 
     virtual void init(const JMapInfoIter&);
     virtual void calcAndSetBaseMtx();

@@ -164,7 +164,7 @@ void DynamicJointCtrl::init() {
 
     mCtrlNodes = new DynamicJointCtrlNode*[_8];
     TVec3f previousPos(rootMtx[0][3], rootMtx[1][3], rootMtx[2][3] + 30.0f);
-    f32 length = 100.0f;
+    f32 length = 0.0f;
 
     for (s32 i = 0; i < _8; i++) {
         if (i < _8 - 1) {

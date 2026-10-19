@@ -204,7 +204,7 @@ void BellyDragonUtil::calcJointGroundMtx(BellyDragon* pHost, TPos3f* pOut, const
         sp78.getZDir(sp50);
         sp68.scale(lbl_807D7848);
     }
-    sp44.set(sp78.mMtx[0][3], sp78.mMtx[1][3], sp78.mMtx[2][3]);
+    sp44.set< f32 >(sp78.mMtx[0][3], sp78.mMtx[1][3], sp78.mMtx[2][3]);
     TVec3f sp38(lbl_807D7844, lbl_807D7848, lbl_807D7844);
     MR::calcGravityVector(pHost, sp44, &sp38, NULL, 0);
     TVec3f sp2C(lbl_807D7844);

@@ -15,8 +15,8 @@ ActorJointCtrl::ActorJointCtrl(LiveActor* pActor) {
     _11 = 0;
 
     mJointCtrlKeeper = DynamicJointCtrlKeeper::tryCreate(pActor);
-    mFaceJointCtrl = FaceJointCtrlKeeper::tryCreate(pActor);
-    mJointCtrlHolder = ActorJoint::createIKJointCtrlHolder(pActor);
+    mFaceJointCtrl = FaceJointCtrlKeeper::tryCreate(mActor);
+    mJointCtrlHolder = ActorJoint::createIKJointCtrlHolder(mActor);
 
     if (mJointCtrlHolder) {
         _11 = 1;

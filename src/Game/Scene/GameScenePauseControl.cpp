@@ -7,8 +7,8 @@
 #include "Game/System/PauseButtonCheckerInGame.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
-namespace {
-    NEW_NERVE(GameScenePauseControlNormal, GameScenePauseControl, Normal);
+namespace NrvGameScenePauseControl {
+    NEW_NERVE(GameScenePauseControlNrvNormal, GameScenePauseControl, Normal);
 };  // namespace
 
 GameScenePauseControl::GameScenePauseControl(GameScene* pScene) : NerveExecutor("GameSceneポーズ制御") {
@@ -16,7 +16,7 @@ GameScenePauseControl::GameScenePauseControl(GameScene* pScene) : NerveExecutor(
     mPauseChecker = nullptr;
     mPauseMenuOff = false;
     mPauseMenuNerve = nullptr;
-    initNerve(GET_NERVE_ANON(GameScenePauseControlNormal));
+    initNerve(&NrvGameScenePauseControl::GameScenePauseControlNrvNormal::sInstance);
     mPauseChecker = new PauseButtonCheckerInGame();
 }
 

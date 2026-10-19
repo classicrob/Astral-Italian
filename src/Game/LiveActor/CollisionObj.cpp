@@ -1,8 +1,12 @@
 #include "Game/LiveActor/CollisionObj.hpp"
+#include "Game/LiveActor/DemoObj.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
+
+DemoObj::~DemoObj() {}
+CollisionObj::~CollisionObj() {}
 
 CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArcName, HitSensor* pSensor, MtxPtr pBaseMtx, int drawType)
     : LiveActor(pName), mBaseMtx(nullptr) {

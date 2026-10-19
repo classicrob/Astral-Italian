@@ -523,8 +523,8 @@ namespace MR {
     // NONMATCHING: equivalent bool lowering
     bool isSensorPlayerOrYoshi(const HitSensor* pSensor) {
         bool result = true;
-        if (!pSensor->isType(1)) {
-            if (!pSensor->isType(5)) {
+        if (pSensor->isType(1) == 0) {
+            if (pSensor->isType(5) == 0) {
                 result = false;
             }
         }

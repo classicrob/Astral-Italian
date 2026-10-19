@@ -1,5 +1,12 @@
 #include "Game/NameObj/NameObjListExecutor.hpp"
+#include "Game/System/DrawBufferGroup.hpp"
 #include "Game/Scene/SceneFunction.hpp"
+
+DrawBufferGroup::~DrawBufferGroup() {}
+
+template MR::AssignableArray<DrawBufferGroup*>::~AssignableArray();
+template MR::AssignableArray<DrawBufferGroup>::~AssignableArray();
+template MR::AssignableArray<DrawBufferExecuter*>::~AssignableArray();
 
 NameObjListExecutor::NameObjListExecutor() : mBufferHolder(), mMovementList(), mCalcAnimList(), mDrawList() {
 }

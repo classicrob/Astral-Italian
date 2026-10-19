@@ -16,6 +16,18 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
+#include <JSystem/J3DGraphBase/J3DMatBlock.hpp>
+
+template void TVec3f::operator*=(f32);
+
+namespace MR {
+    const char* selectNPCTalkAction(NPCActor* pActor) {
+        if (pActor->mParam._1 && !pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10)) {
+            return pActor->mParam._20;
+        }
+        return pActor->mParam._1C;
+    }
+}
 
 #include "Game/LiveActor/LodCtrl.hpp"
 #include "Game/LiveActor/PartsModel.hpp"

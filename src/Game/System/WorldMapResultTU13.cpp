@@ -18,7 +18,7 @@ WorldMapResultStateGalaxyMap::WorldMapResultStateGalaxyMap(WorldMapOwner* pHost)
 
 void WorldMapResultStateGalaxyMap::init() {
     initNerve(GET_NERVE(WorldMapResultStateGalaxyMap, WorldMapResultStateGalaxyMapStart), 0);
-    WorldMapResultWorld* pController = mHost->getMainLayout()->getWorld();
+    WorldMapResultWorld* pController = static_cast< GrandGalaxyMap* >(mHost->mMainLayout)->getWorld();
     mInt10 = mHost->getCamera()->mCurrent;
     mInt14 = GrandGalaxyMap::findWorldNode(pController, mHost->getWorldId());
     mIsDead = true;

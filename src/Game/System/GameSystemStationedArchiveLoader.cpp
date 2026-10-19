@@ -336,38 +336,3 @@ bool GameSystemStationedArchiveLoader::tryCreateAndAddOtherArchives() {
     return StationedArchiveLoader::createAndAddResourcesFromTable(cond, start, start + 20);
 }
 
-// These condition virtuals lie in the adjacent original text split.
-bool ConditionIfIsNotPlayer1st::isExecute(const MR::StationedFileInfo* info) const {
-    switch (info->mLoadType) {
-    case 2:
-    case 3:
-    case 4:
-    case 6:
-    case 8:
-        return false;
-    default:
-        return true;
-    }
-}
-
-JKRHeap* ConditionIfIsNotPlayer1st::getProperHeap(const MR::StationedFileInfo*) const {
-    return nullptr;
-}
-
-bool ConditionIfIsNotPlayer::isExecute(const MR::StationedFileInfo* info) const {
-    switch (info->mLoadType) {
-    case 0:
-    case 1:
-    case 3:
-    case 4:
-    case 5:
-    case 7:
-        return false;
-    default:
-        return true;
-    }
-}
-
-JKRHeap* ConditionIfIsNotPlayer::getProperHeap(const MR::StationedFileInfo*) const {
-    return nullptr;
-}

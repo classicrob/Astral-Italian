@@ -11,6 +11,10 @@ namespace NrvFallDeath {
     }
 };  // namespace NrvFallDeath
 
+FallDeath::FallDeath(LiveActor*, const char* pName, f32 radius, const f32* pFallAccel) : LiveActor(pName), mFallAccel(pFallAccel) {
+    initBinder(radius, radius, 0);
+}
+
 FallDeath::~FallDeath() {
 }
 

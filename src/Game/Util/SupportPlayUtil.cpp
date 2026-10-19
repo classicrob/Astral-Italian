@@ -2,6 +2,8 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/MapObj/SupportPlayDirector.hpp"
 #include "Game/NPC/SupportTico.hpp"
+#include "Game/MapObj/CollectTicoHolder.hpp"
+#include "Game/MapObj/PlayerFollowPass.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/Util.hpp"
 
@@ -138,5 +140,17 @@ namespace MR {
 
     bool sendMsgSupportTicoSpin(HitSensor* pSender, HitSensor* pReceiver) {
         return MR::sendArbitraryMsg(0x13, pSender, pReceiver);
+    }
+
+    void pauseRescuedStrayTicoFollow() {
+        pausePlayerFollowPass();
+    }
+
+    void launchRescuedStrayTicoFromMtx(MtxPtr pMtx) {
+        resumePlayerFollowPass();
+        clearPlayerFollowPass();
+        TPos3f mtx;
+        mtx.set(pMtx);
+        launchRescuedStrayTico(mtx);
     }
 };  // namespace MR

@@ -644,7 +644,7 @@ const JMapInfo* MR::tryCreateStageCsvParser(const char* pStage, const char* pSuf
         }
 
         snprintf(archive, 0x100, "/StageData/%s/%s%s.arc", pStage, pStage, pSuffix);
-        if (!MR::isFileExist(archive, false)) {
+        if (!MR::isFileExistOnDisc(archive, false)) {
             return nullptr;
         }
 
@@ -1078,11 +1078,11 @@ bool MR::tryRumblePadWeakAndVeryWeak(const void* pHost, s32 channel) {
         return false;
     }
 
-    if (WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "弱") ||
-        WPadFunction::getWPadRumble(channel)->hasRumblePattern(pHost, "弱")) {
-        return true;
+    if (!WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "弱") &&
+        !WPadFunction::getWPadRumble(channel)->hasRumblePattern(pHost, "弱")) {
+        return WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "微弱");
     }
-    return WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "微弱");
+    return true;
 }
 
 bool MR::tryRumbleDefaultHit(const void* pParam1, s32 channel) {

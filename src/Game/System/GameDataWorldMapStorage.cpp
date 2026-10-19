@@ -56,6 +56,6 @@ void GameDataWorldMapStorage::setPointFlag(s32 index, s32 bit, bool isOn) {
     if (isOn) {
         flag = flag | (u8)(1 << bit);
     } else {
-        flag = flag & (u8)~(1 << bit);
+        flag = flag & (u8)~(u8)(1 << bit);
     }
 }

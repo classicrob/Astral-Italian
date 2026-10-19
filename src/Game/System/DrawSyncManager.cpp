@@ -192,3 +192,8 @@ void DrawSyncManager::pushBreakPoint() {
         OSSendMessage(&mQueue, pWrite, OS_MESSAGE_BLOCK);
     }
 }
+
+void DrawSyncManager::clearSceneCallbacks() {
+    mHighTokenCount = 0;
+    for (u32 i = 3; i < 5; i++) mTokenRanges[i].mCallback = nullptr;
+}

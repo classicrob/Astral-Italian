@@ -19,7 +19,8 @@ bool MessageSystem::getSystemMessageDirect(TalkMessageInfo* pMessageInfo, const 
 bool MessageSystem::getGameMessageDirect(TalkMessageInfo* pMessageInfo, const char* pMessageId) {
     for (s32 i = 0; i < MR::getGameSystemObjHolder()->mMessageHolder->mGameMessageNum; i++) {
         MessageData* pData = MR::getGameSystemObjHolder()->mMessageHolder->mGameMessageDatas[i];
-        if (pData != nullptr && pData->getMessageDirect(pMessageInfo, pMessageId)) {
+        bool found = pData != nullptr ? pData->getMessageDirect(pMessageInfo, pMessageId) : false;
+        if (found) {
             return true;
         }
     }
@@ -41,11 +42,10 @@ bool MessageSystem::isExistMessage(const char* pMessageId, const MessageData* pD
     }
 
     bool isFound = LMS_GetTextByLabel(pData->mMessageHandle, pMessageId) != nullptr;
-    if (isFound) {
-        return true;
+    if (!isFound) {
+        isFound = pData->findEntryNodeIndex(pMessageId) >= 0;
     }
-
-    return pData->findEntryNodeIndex(pMessageId) >= 0;
+    return isFound;
 }
 
 bool MessageSystem::isExistGameMessage(const char* pMessageId) {

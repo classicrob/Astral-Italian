@@ -65,3 +65,5 @@ JKRExpHeap* PlayerHeapHolder::createHeap(u32 size, JKRHeap* pParent) {
 
     return JKRExpHeap::create(size, pParent, true);
 }
+
+ConditionUsePlayerHeap::~ConditionUsePlayerHeap() {}

@@ -175,12 +175,19 @@ namespace MR {
         makeFileNameConsideringLanguage(pDst, size, pFilePath, true);
     }
 
-    void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath, bool) {
+    // NONMATCHING: the false branch passes its known-false boolean register instead of loading zero.
+    void makeFileNameConsideringLanguage(char* pDst, u32 size, const char* pFilePath, bool checkLocalized) {
         char prefix[256];
         snprintf(prefix, sizeof(prefix), "/LocalizeData/%s", getCurrentLanguagePrefix());
         addFilePrefix(pDst, size, pFilePath, prefix);
 
-        if (!isFileExist(pDst, false)) {
+        bool exists;
+        if (checkLocalized) {
+            exists = isFileExist(pDst, false);
+        } else {
+            exists = isFileExist(pDst, checkLocalized);
+        }
+        if (!exists) {
             snprintf(pDst, size, "%s", pFilePath);
         }
     }

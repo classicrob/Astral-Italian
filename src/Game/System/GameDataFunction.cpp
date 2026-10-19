@@ -401,9 +401,7 @@ namespace GameDataFunction {
 
     // NONMATCHING: regalloc; equivalent null-argument branch arrangement.
     u32 getBestScoreAttackCurrentStage(const char* pStageName) {
-        if (pStageName == nullptr) {
-            pStageName = MR::getCurrentStageName();
-        }
+        pStageName = pStageName != nullptr ? pStageName : MR::getCurrentStageName();
 
         char eventFlagName[0x80];
         snprintf(eventFlagName, sizeof(eventFlagName), "\203x\203X\203g\203X\203R\203A[%s]", pStageName);

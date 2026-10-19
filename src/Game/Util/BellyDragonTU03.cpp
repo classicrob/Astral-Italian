@@ -22,7 +22,7 @@ BellyDragonFireGround::BellyDragonFireGround() : LiveActor(lbl_8066CE68), mBloom
 }
 
 void BellyDragonFireGround::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, lbl_8066CE68 + 0x14, NULL, false);
+    MR::initActor(this, rIter, lbl_8066CE68 + 0x14, false);
     mBloom = (LiveActor*)MR::createDemoObj(lbl_8066CE68 + 0x2C, lbl_8066CE68 + 0x40, getBaseMtx());
     mBloom->makeActorDead();
     initNerve(&NrvBellyDragonFireGround::BellyDragonFireGroundNrvAppear::sInstance, 0);

@@ -125,3 +125,8 @@ s32 GameDataPlayerStatus::addStockedCoinNum(int num) {
 
     return MR::clamp(static_cast< s32 >(mPlayerLeft), 0, 99) - oldPlayerLeft;
 }
+
+void GameDataPlayerStatus::resetPlayerLeft() {
+    mUnknown14 = mPlayerLeft;
+    mPlayerLeft = 4;
+}

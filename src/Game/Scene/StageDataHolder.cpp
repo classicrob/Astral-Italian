@@ -229,14 +229,13 @@ JMapInfoIter StageDataHolder::getGeneralPosInfoFromDataIndex(int idx_) const {
     for (MR::BothDirList< JMapInfo >::iterator it = mGeneralPosObjs.begin(); !it.isEnd(); it++) {
         const JMapInfo* pInfo = &*it;
         const JMapData* curData = pInfo->mData;
-        bool isValid = curData;
-        int curIdx = isValid ? curData->mNumEntries : 0;
+        int curIdx = curData ? curData->mNumEntries : 0;
 
         if (idx < curIdx) {
             return JMapInfoIter(pInfo, idx);
         }
 
-        curIdx = isValid ? curData->mNumEntries : 0;
+        curIdx = curData ? curData->mNumEntries : 0;
 
         idx -= curIdx;
     }
@@ -494,14 +493,13 @@ JMapInfoIter StageDataHolder::getStartJMapInfoIterFromStartDataIndex(int idx_) c
     for (MR::BothDirList< JMapInfo >::iterator it = mStartObjs.begin(); !it.isEnd(); it++) {
         const JMapInfo* pInfo = &*it;
         const JMapData* curData = pInfo->mData;
-        bool isValid = curData;
-        int curIdx = isValid ? curData->mNumEntries : 0;
+        int curIdx = curData ? curData->mNumEntries : 0;
 
         if (idx < curIdx) {
             return JMapInfoIter(pInfo, idx);
         }
 
-        curIdx = isValid ? curData->mNumEntries : 0;
+        curIdx = curData ? curData->mNumEntries : 0;
 
         idx -= curIdx;
     }

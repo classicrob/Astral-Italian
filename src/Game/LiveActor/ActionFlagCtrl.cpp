@@ -11,6 +11,8 @@
 extern char lbl_80694810[];
 extern const char* lbl_807CFA18;
 
+ActionFlagSensorInfo::ActionFlagSensorInfo() : mName(nullptr), mFlag(0), mStartFrame(-1), mEndFrame(-1) {}
+
 ActionFlagCtrl* ActionFlagCtrl::tryCreate(LiveActor* pHost) {
     if (MR::isExistFileInArc(MR::getResourceHolder(pHost), lbl_80694810, lbl_807CFA18)) {
         ActionFlagCtrl* pCtrl = new ActionFlagCtrl(pHost);

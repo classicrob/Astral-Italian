@@ -35,7 +35,7 @@ public:
     s32 getClearedPowerStarNum() const;
     bool addStarPieceNum(s32);
     s32 getClearedStarPieceNum() const;
-    void addCoinNum(s32);
+    bool addCoinNum(s32);
     s32 getClearedCoinNum() const;
     bool incPurpleCoinNum();
     s32 getPurpleCoinNum() const;

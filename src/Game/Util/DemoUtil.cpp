@@ -1,5 +1,8 @@
 #include <cstdio>
 
+#include <JSystem/JGeometry/TVec.hpp>
+template TVec3f::TVec3();
+
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/ActorAnimUtil.hpp"
 #include "Game/Util/ActorCameraUtil.hpp"

@@ -79,34 +79,35 @@ void ResourceHolder::newBckCtrl() {
 }
 
 void ResourceHolder::backupInitMaterialData() {
-    if (mModelResTable->mCount == 0 || mBackupMaterialData != nullptr) return;
-    const J3DModelData* modelData = static_cast<J3DModelData*>(mModelResTable->getRes(mName));
-    u16 numMaterials = modelData->getMaterialNum();
-    mBackupMaterialData = new (MR::getSceneHeapGDDR3(), 0) Mtx44[numMaterials * 8];
-    for (u16 i = 0; i < numMaterials; i++) {
-        J3DMaterial* material = modelData->getMaterialNodePointer(i);
-        for (u32 j = 0; j < 8; j++) {
-            u32 index = i * 8 + j;
-            J3DTexMtx* texMtx = material->getTexGenBlock()->getTexMtx(j);
-            if (texMtx) PSMTX44Copy(texMtx->getTexMtxInfo().mEffectMtx, mBackupMaterialData[index]);
-            else PSMTX44Identity(mBackupMaterialData[index]);
+    if (mModelResTable->mCount != 0 && mBackupMaterialData == nullptr) {
+        const J3DModelData* modelData = static_cast<J3DModelData*>(mModelResTable->getRes(mName));
+        u16 numMaterials = modelData->getMaterialNum();
+        mBackupMaterialData = new (MR::getSceneHeapGDDR3(), 0) Mtx44[numMaterials * 8];
+        for (u16 i = 0; i < numMaterials; i++) {
+            J3DMaterial* material = modelData->getMaterialNodePointer(i);
+            for (u32 j = 0; j < 8; j++) {
+                u32 index = i * 8 + j;
+                J3DTexMtx* texMtx = material->getTexGenBlock()->getTexMtx(j);
+                if (texMtx) PSMTX44Copy(texMtx->getTexMtxInfo().mEffectMtx, mBackupMaterialData[index]);
+                else PSMTX44Identity(mBackupMaterialData[index]);
+            }
         }
     }
 }
 
-// NONMATCHING: regalloc and equivalent guard ordering
 void ResourceHolder::restoreInitMaterialData() {
-    if (mModelResTable->mCount == 0 || mBackupMaterialData == nullptr) return;
-    const J3DModelData* modelData = static_cast<J3DModelData*>(mModelResTable->getRes(mName));
-    u16 numMaterials = modelData->getMaterialNum();
-    for (u16 i = 0; i < numMaterials; i++) {
-        J3DMaterial* material = modelData->getMaterialNodePointer(i);
-        for (u32 j = 0; j < 8; j++) {
-            J3DTexMtx* texMtx = material->getTexGenBlock()->getTexMtx(j);
-            if (texMtx) texMtx->getTexMtxInfo().setEffectMtx(mBackupMaterialData[i * 8 + j]);
+    if (mModelResTable->mCount != 0 && mBackupMaterialData != nullptr) {
+        const J3DModelData* modelData = static_cast<J3DModelData*>(mModelResTable->getRes(mName));
+        u16 numMaterials = modelData->getMaterialNum();
+        for (u16 i = 0; i < numMaterials; i++) {
+            J3DMaterial* material = modelData->getMaterialNodePointer(i);
+            for (u32 j = 0; j < 8; j++) {
+                J3DTexMtx* texMtx = material->getTexGenBlock()->getTexMtx(j);
+                if (texMtx) texMtx->getTexMtxInfo().setEffectMtx(mBackupMaterialData[i * 8 + j]);
+            }
         }
+        mBackupMaterialData = nullptr;
     }
-    mBackupMaterialData = nullptr;
 }
 
 Mtx44& ResourceHolder::getInitEffectMtx(int materialIndex, int mtxIndex) const {

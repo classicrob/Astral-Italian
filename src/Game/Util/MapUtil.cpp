@@ -489,7 +489,7 @@ namespace MR {
         if (hit) {
             HitInfo* pHit = getCollisionDirector()->getCategoryKeeper(0)->getStrikeInfo(0);
             if (pNormal) {
-                pNormal->set(*pHit->mParentTriangle.getFaceNormal());
+                *pNormal = *pHit->mParentTriangle.getFaceNormal();
             }
 
             if (ppSensor) {

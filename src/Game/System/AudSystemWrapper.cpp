@@ -174,15 +174,15 @@ void AudSystemWrapper::setStageResourceLoading(bool flag) {
     if (mAudSystem) mAudSystem->mInstListMgr->loadRequestedWaves(flag, true);
 }
 
-// NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 void AudSystemWrapper::loadScenarioWaveData(const char* scene, const char* stage, s32 scenario, bool flag) {
-    if (!mAudSystem || !mAudSystem->mSceneMgr) return;
-    mAudSystem->mSceneMgr->loadScenarioResource(scene, stage, scenario);
-    AudInstListMgr* mgr = mAudSystem->mInstListMgr;
-    if (GameSequenceFunction::isGreenStarEventOnly()) mgr->requestWave(0x34, 30, false);
-    mgr->loadRequestedWaves(flag, true);
-    mgr->resetStageWaveSlots();
-    mgr->_281C = false;
+    if (mAudSystem && mAudSystem->mSceneMgr) {
+        mAudSystem->mSceneMgr->loadScenarioResource(scene, stage, scenario);
+        AudInstListMgr* mgr = mAudSystem->mInstListMgr;
+        if (GameSequenceFunction::isGreenStarEventOnly()) mgr->requestWave(0x34, 30, false);
+        mgr->loadRequestedWaves(flag, true);
+        mgr->resetStageWaveSlots();
+        mgr->_281C = false;
+    }
 }
 
 bool AudSystemWrapper::isLoadDoneScenarioWaveData() const {

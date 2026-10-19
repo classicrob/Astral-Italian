@@ -1955,6 +1955,7 @@ config.libs = [
             Object(NonMatching, "Game/System/WorldMapResultTU24.cpp"),
             Object(NonMatching, "Game/System/GameDataSomeScenarioAccessor.cpp"),
             Object(NonMatching, "Game/System/GameSequenceNameEntryTable.cpp"),
+            Object(NonMatching, "Game/System/GameEventFlag.cpp"),
         ],
     ),
     GameLib(
@@ -2062,12 +2063,14 @@ config.libs = [
             Object(NonMatching, "Game/Util/Collision.cpp"),
             Object(NonMatching, "Game/Util/IKJoint2.cpp"),
             Object(NonMatching, "Game/Util/MaterialAnmPlayerBase.cpp"),
-            Object(NonMatching, "Game/Util/PadDataReader.cpp"),
             Object(NonMatching, "Game/Util/PadRecorder.cpp"),
             Object(NonMatching, "Game/Util/ResourceShare.cpp"),
             Object(NonMatching, "Game/Util/TDDraw.cpp"),
             Object(NonMatching, "Game/Util/DiceMover.cpp"),
             Object(NonMatching, "Game/Util/BellyDragonWeakPoint.cpp"),
+            Object(NonMatching, "Game/Util/DelegatingHeap.cpp"),
+            Object(NonMatching, "Game/Util/ActorSoundUtil.cpp"),
+            Object(NonMatching, "Game/Util/ChildObjUtil.cpp"),
         ],
     ),
     GameLib(

@@ -56,22 +56,22 @@ void* LayoutHolder::GetResource(u32 resourceKind, const char* pName, u32* pResou
 }
 
 nw4r::ut::Font* LayoutHolder::GetFont(const char* pName) {
-    if (!MR::strcasecmp(pName, "MessageFont26.brfnt")) {
+    if (MR::strcasecmp(pName, "MessageFont26.brfnt") == 0) {
         return MR::getFontOnCurrentLanguage();
     }
-    if (!MR::strcasecmp(pName, "MenuFont64.brfnt")) {
+    if (MR::strcasecmp(pName, "MenuFont64.brfnt") == 0) {
         return MR::getMenuFontNW4R();
     }
-    if (!MR::strcasecmp(pName, "NumberFont.brfnt")) {
+    if (MR::strcasecmp(pName, "NumberFont.brfnt") == 0) {
         return MR::getNumberFontNW4R();
     }
-    if (!MR::strcasecmp(pName, "PictureFont.brfnt")) {
+    if (MR::strcasecmp(pName, "PictureFont.brfnt") == 0) {
         return MR::getPictureFontNW4R();
     }
-    if (!MR::strcasecmp(pName, "MenuFont96.brfnt")) {
+    if (MR::strcasecmp(pName, "MenuFont96.brfnt") == 0) {
         return MR::getMenuFont96NW4R();
     }
-    if (!MR::strcasecmp(pName, "StaffFont18.brfnt")) {
+    if (MR::strcasecmp(pName, "StaffFont18.brfnt") == 0) {
         return MR::getStaffFontNW4R();
     }
     return MR::getFontOnCurrentLanguage();

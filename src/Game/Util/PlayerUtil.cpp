@@ -86,7 +86,7 @@ namespace MR {
     }
 
     TVec3f* getPlayerCenterPos() {
-        return &MarioAccess::getPlayerActor()->_2A0;
+        return &MarioAccess::getPlayerActor()->_240;
     }
 
     void getPlayerTakePos(TVec3f* pPos) {

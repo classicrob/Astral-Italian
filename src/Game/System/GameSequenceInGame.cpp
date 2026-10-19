@@ -37,11 +37,11 @@ void GameSequenceInGame::init() {
     initNerve(GET_NERVE_DIRECT(NrvGameSequenceInGame, GameSequenceInGameNrvMarioFace), 4);
 
     mMarioFace = new GameSequenceMarioFaceShip(this);
-    MR::initActorState(this, mMarioFace, GET_NERVE_DIRECT(NrvGameSequenceInGame, GameSequenceInGameNrvMarioFace), "GameSequenceMarioFaceShip");
+    MR::initActorState(this, mMarioFace, GET_NERVE_DIRECT(NrvGameSequenceInGame, GameSequenceInGameNrvMarioFace), "MarioFace");
     mWorldMap = new GameSequenceWorldMap(this);
-    MR::initActorState(this, mWorldMap, GET_NERVE_DIRECT(NrvGameSequenceInGame, GameSequenceInGameNrvWorldMap), "GameSequenceWorldMap");
+    MR::initActorState(this, mWorldMap, GET_NERVE_DIRECT(NrvGameSequenceInGame, GameSequenceInGameNrvWorldMap), "WorldMap");
     mInStage = new GameSequenceInStage(this);
-    MR::initActorState(this, mInStage, GET_NERVE_DIRECT(NrvGameSequenceInGame, GameSequenceInGameNrvInStage), "GameSequenceInStage");
+    MR::initActorState(this, mInStage, GET_NERVE_DIRECT(NrvGameSequenceInGame, GameSequenceInGameNrvInStage), "InStage");
 }
 
 void GameSequenceInGame::appear() {

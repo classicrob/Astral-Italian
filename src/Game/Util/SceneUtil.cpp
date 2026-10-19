@@ -150,7 +150,7 @@ namespace MR {
     }
 
     bool isBeginScenarioStarter() {
-        if (GameSequenceFunction::hasRetryGalaxySequence()) {
+        if (GameSequenceFunction::hasRetryGalaxySequence() == 0) {
             return false;
         }
 
@@ -225,8 +225,13 @@ namespace MR {
     }
 
     bool isStageMarioFaceShipOrWorldMap() {
-        return isEqualStageName("MarioFaceShipGalaxy") ||
-               isStageWorldMap();
+        bool result = true;
+        if (isEqualStageName("MarioFaceShipGalaxy") == 0) {
+            if (isStageWorldMap() == 0) {
+                result = false;
+            }
+        }
+        return result;
     }
 
     // NONMATCHING: same literal-pool sharing difference as isStageStoryBook

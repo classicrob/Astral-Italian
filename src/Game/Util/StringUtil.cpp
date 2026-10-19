@@ -286,8 +286,10 @@ namespace MR {
         if (*pStr != 0xE) {
             return false;
         }
-        s32 group = MessageEditorMessageTag(pStr + 1).getGroup();
-        s32 tag = MessageEditorMessageTag(pStr + 1).getTag();
+        MessageEditorMessageTag groupTag(pStr + 1);
+        u32 group = groupTag.getGroup();
+        MessageEditorMessageTag tagTag(pStr + 1);
+        u32 tag = tagTag.getTag();
         return group == 1 && tag == 1;
     }
 

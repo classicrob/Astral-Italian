@@ -2,6 +2,10 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 
+bool CollisionPartsFilterSensorType::isInvalidParts(const CollisionParts* pParts) const {
+    return pParts->mHitSensor->isType(mSensorType);
+}
+
 bool CollisionPartsFilterSensor::isInvalidParts(const CollisionParts* pParts) const {
     return pParts->mHitSensor == mSensor;
 }

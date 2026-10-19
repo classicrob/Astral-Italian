@@ -352,3 +352,10 @@ namespace GameSystemFunction {
     }
 
 };  // namespace GameSystemFunction
+
+namespace MR {
+    bool isHomeButtonMenuActiveOrPreparing() {
+        HomeButtonLayout* pLayout = SingletonHolder<GameSystem>::get()->mHomeButtonLayout;
+        return pLayout != nullptr ? pLayout->isActiveOrPreparing() : false;
+    }
+}

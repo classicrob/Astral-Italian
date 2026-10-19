@@ -84,6 +84,7 @@ public:
 class ConditionUsePlayerHeap : public StationedArchiveLoader::Condition {
 public:
     ConditionUsePlayerHeap();
+    virtual ~ConditionUsePlayerHeap();
 
     virtual bool isExecute(const MR::StationedFileInfo*) const;
     virtual JKRHeap* getProperHeap(const MR::StationedFileInfo*) const;

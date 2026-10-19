@@ -48,10 +48,10 @@ void BellyDragonState::exeWait() {
     bool isReady = BellyDragonUtil::tryStartDemo(mHost, mStateName, false);
     if (isReady) {
         MR::overlayWithPreviousScreen(2);
-        if (mIsDeleteEffect && (u8)BellyDragonUtil::isLv2(mHost)) {
+        if (mIsDeleteEffect && BellyDragonUtil::isLv2(mHost)) {
             BellyDragonUtil::setWeakPointsWaitC(mHost);
         }
-        if ((u8)BellyDragonUtil::isLv2(mHost)) {
+        if (BellyDragonUtil::isLv2(mHost)) {
             BellyDragonUtil::killPodObjects(mHost);
         }
         setNerve(&NrvBellyDragonState::BellyDragonStateNrvPlay::sInstance);
@@ -63,11 +63,11 @@ void BellyDragonState::exePlay() {
         BellyDragonUtil::appearJawHill(mHost);
         BellyDragonUtil::startPodFlame(mHost);
     }
-    if ((u8)BellyDragonUtil::isLv2(mHost) && mIsOverlay && MR::isStep(this, 0xD7)) {
+    if (BellyDragonUtil::isLv2(mHost) && mIsOverlay && MR::isStep(this, 0xD7)) {
         BellyDragonUtil::appearFireGround(mHost);
     }
     if (mIsDeleteEffect && MR::isStep(this, 0x21C)) {
-        if ((u8)BellyDragonUtil::isLv2(mHost)) {
+        if (BellyDragonUtil::isLv2(mHost)) {
             for (s32 i = 0; i < 0x20; i++) {
                 char name[0x40];
                 snprintf(name, 0x40, "FireBody%02d", i);

@@ -33,7 +33,7 @@ void BellyDragon::init(const JMapInfoIter& rIter) {
     mIsLv2 = MR::isObjectName(rIter, lbl_8066C858);
     MR::initDefaultPos(this, rIter);
     MR::makeMtxTR(mBaseMtx.mMtx, this);
-    mFront.set(mBaseMtx.mMtx[0][2], mBaseMtx.mMtx[1][2], mBaseMtx.mMtx[2][2]);
+    mFront.set< f32 >(mBaseMtx.mMtx[0][2], mBaseMtx.mMtx[1][2], mBaseMtx.mMtx[2][2]);
     MR::initActor(this, rIter, false);
 
     mJointCtrl = new ActorJointCtrl(this);

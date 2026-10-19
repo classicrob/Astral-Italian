@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MI_NOINLINE
 #include <revolution.h>
 #include "Game/Util.hpp"
 
@@ -18,6 +19,8 @@
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include <cstdio>
+
+template TVec3f TVec3f::operator-(const TVec3f&) const;
 
 void MapPartsUtil_FORCE_MATCH_SDATA2() {
     0.0f;
@@ -142,16 +145,7 @@ namespace MR {
             setClippingTypeSphere(pActor, radius);
         }
 
-        setGroupClipping(pActor, rIter, 64);
-        s32 farClip = -1;
-        MR::getJMapInfoArgNoInit(rIter, "FarClip", &farClip);
-        if (farClip != -1) {
-            if (farClip == 0) {
-                setClippingFarMax(pActor);
-            } else {
-                setClippingFar(pActor, farClip);
-            }
-        }
+        setGroupClipping(pActor, rIter, 128);
     }
 
 

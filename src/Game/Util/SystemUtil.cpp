@@ -61,13 +61,14 @@ void MR::offUseVFilter() {
 }
 
 namespace MR {
-    // fn_80060750 / fn_80060760: duplicates of onUseVFilter / offUseVFilter used by the LogoScene call sites
+    // fn_80060750 / fn_80060760: set MainLoopFramework::mUseAlpha (+0x18), not mUseVFilter (+0x19); used by the LogoScene call sites.
+    // The symbol names (onUseVFilterDirect) are historical; the lead may rename to onUseAlpha/offUseAlpha.
     void onUseVFilterDirect() {
-        MainLoopFramework::sManager->mUseVFilter = true;
+        MainLoopFramework::sManager->mUseAlpha = true;
     }
 
     void offUseVFilterDirect() {
-        MainLoopFramework::sManager->mUseVFilter = false;
+        MainLoopFramework::sManager->mUseAlpha = false;
     }
 };  // namespace MR
 

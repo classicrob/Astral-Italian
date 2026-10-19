@@ -390,9 +390,7 @@ void GameSequenceMarioFaceShipEvent::clearFlags() {
 void GameSequenceMarioFaceShipEvent::finishEvents() {
     if (GameSequenceFunction::isClearedGrandStarVsKoopaLv3GalaxyAtResult()) {
         GameSequenceFunction::setWorldMapCurrentNode(0);
-        u8 worldId = GameDataFunction::getCurrentWorldId();
-        worldId++;
-        GameSequenceFunction::requestChangeStageWorldMapMoveToWorld(worldId);
+        GameSequenceFunction::requestChangeStageWorldMapMoveToWorld(GameDataFunction::getCurrentWorldId() + 1);
         clearFlags();
         kill();
         GameSequenceFunction::resetPlayResultInStage();

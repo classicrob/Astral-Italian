@@ -66,9 +66,8 @@ void GameSequenceEnding::appear() {
     mIsNormalEnding = false;
     mIs120PowerStarsEnding = false;
     if (GameSequenceFunction::isCollectedAll120PowerStars() != 0) {
-        bool is120 = MR::isOnGameEventFlag120PowerStarsEnding();
-        mIs120PowerStarsEnding = !is120;
-        if (!is120) {
+        mIs120PowerStarsEnding = !MR::isOnGameEventFlag120PowerStarsEnding();
+        if (mIs120PowerStarsEnding) {
             GameDataFunction::setCurrentWorldId(1);
         }
         GameDataFunction::onGameEventFlag("スター120個エンディング実行");

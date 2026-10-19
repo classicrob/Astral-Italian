@@ -18,4 +18,5 @@ namespace MR {
 
 namespace MR {
     void resetPointLight();
+    void requestPointLightPlayer(const LiveActor*, TVec3f, Color8, f32, s32, f32);
 }

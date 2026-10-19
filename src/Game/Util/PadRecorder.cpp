@@ -1,11 +1,45 @@
 #include "Game/Util/PadRecorder.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSystemObjHolder.hpp"
+#include "Game/System/WPadHolder.hpp"
+#include "Game/Util/SingletonHolder.hpp"
+#include "Game/Util/GamePadUtil.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include <revolution/os.h>
 
 
 namespace {
     const s32 cStatusSize = 0xF0;
+    bool sIsReplayPrepared;
+
+    PadRecorder* getPadRec() NO_INLINE {
+        return SingletonHolder<GameSystem>::get()->mObjHolder->mPadRecorder;
+    }
+}
+
+namespace MR {
+    void readPadData(int channel, WPadReadDataInfo* pInfo) {
+        if (channel > 1) return;
+        KPADStatus* pBuffer = pInfo->getReadBuffer();
+        s32 count = getPadRec()->replayFrame(channel, pBuffer);
+        if (count != -1) pInfo->mValidStatusCount = count;
+    }
+    bool isPadRecorderStopped() { return getPadRec()->mState == 0; }
+    bool isPadRecorderReading() { return getPadRec()->mState == 2; }
+    bool prepareReplay(const char* pData, u32 size) {
+        sIsReplayPrepared = true;
+        getPadRec()->prepareReplay(pData, size);
+        return true;
+    }
+    bool startReplayPad() {
+        sIsReplayPrepared = false;
+        return getPadRec()->startReplay();
+    }
+    void stopReplayPad() { getPadRec()->stopReplay(); }
+    bool isRequestedStopReplayPad() {
+        return GameSequenceFunction::isPadMode() ? testHBMKPadTrigger(0, 0x10) : false;
+    }
 }
 
 PadRecorder::PadRecorder() : NameObj("パッドレコーダー") {
@@ -179,3 +213,38 @@ void PadRecorder::readUserFile() {
     mReader->read(GameSequenceFunction::getClearedSaveTempBuffer(size), size);
     GameSequenceFunction::loadSaveTempBufferAsGameData();
 }
+
+PadDataReader::PadDataReader() {
+    mData = nullptr;
+    mSize = 0;
+    mPos = nullptr;
+}
+
+void PadDataReader::setData(const char* pData, u32 size) {
+    mData = reinterpret_cast< const u8* >(pData);
+    mSize = size;
+    mPos = reinterpret_cast< const u8* >(pData);
+}
+
+bool PadDataReader::open() {
+    return true;
+}
+
+u32 PadDataReader::read(void* pDst, u32 size) {
+    u8* pOut = static_cast< u8* >(pDst);
+    u32 n = 0;
+
+    while (mPos < &mData[mSize] && n < size) {
+        n++;
+        *pOut++ = *mPos;
+        mPos++;
+    }
+
+    return n;
+}
+
+bool PadDataReader::close() {
+    return true;
+}
+
+PadRecorder::~PadRecorder() {}

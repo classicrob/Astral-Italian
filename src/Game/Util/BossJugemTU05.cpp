@@ -74,22 +74,22 @@ void BossJugemStateThrowAll::exeMove() {
     }
 }
 
-// NONMATCHING: instruction/register scheduling differs from the target
 void BossJugemStateThrowAll::exeThrowOne() {
     if (MR::isFirstStep(this)) {
-        mThrowOne->mSpeed = 64.0f + mSpeedBonus;
-        mThrowOne->mAngle = 20.0f;
+        BossJugemStateThrowOne* pThrow = mThrowOne;
+        pThrow->mSpeed = 64.0f + mSpeedBonus;
+        pThrow->mAngle = 20.0f;
     }
     if (MR::updateActorState(this)) {
         setNerve(&NrvBossJugemStateThrowAll::BossJugemStateThrowAllNrvChance::sInstance);
     }
 }
 
-// NONMATCHING: instruction/register scheduling differs from the target
 void BossJugemStateThrowAll::exeThrowTwo() {
     if (MR::isFirstStep(this)) {
-        mThrowTwo->mSpeed = 64.0f + mSpeedBonus;
-        mThrowTwo->mAngle = 20.0f;
+        BossJugemStateThrowTwo* pThrow = mThrowTwo;
+        pThrow->mSpeed = 64.0f + mSpeedBonus;
+        pThrow->mAngle = 20.0f;
     }
     if (MR::updateActorState(this)) {
         if (mHost->getRemainTogezoNum() > 0) {

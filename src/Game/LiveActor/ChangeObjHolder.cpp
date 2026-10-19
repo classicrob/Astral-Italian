@@ -4,14 +4,24 @@
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
-// PLACEHOLDER(core): fn_8022F750 is an unnamed SMG2 helper in another TU; resolve when renamed in symbols.txt
-bool fn_8022F750(ChangeObj* pSlot, ChangeObj* pObj, s32 zoneId, s32 linkId);
+bool ChangeObjPair::tryRegister(ChangeObj* pObj, s32 zoneId, s32 linkId) {
+    if (mZoneId != zoneId) return false;
+    if (linkId == mFirstLinkId) {
+        mFirst = pObj;
+        return true;
+    }
+    if (linkId == mSecondLinkId) {
+        mSecond = pObj;
+        return true;
+    }
+    return false;
+}
 
 ChangeObjHolder::ChangeObjHolder(const char* pName) : NameObj(pName) {
     mChangeObjs = nullptr;
     mCapacity = 0;
     mCount = 0;
-    mChangeObjs = new ChangeObj*[0x40];
+    mChangeObjs = new ChangeObjPair*[0x40];
     mCapacity = 0x40;
 }
 
@@ -28,7 +38,7 @@ void ChangeObjHolder::registerChangeObj(ChangeObj* pObj, const JMapInfoIter& rIt
     MR::getJMapInfoLinkID(rIter, &linkId);
 
     for (s32 i = 0; i < mCount; i++) {
-        if (fn_8022F750(mChangeObjs[i], pObj, zoneId, linkId)) {
+        if (mChangeObjs[i]->tryRegister(pObj, zoneId, linkId)) {
             break;
         }
     }

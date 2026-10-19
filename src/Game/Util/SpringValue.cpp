@@ -30,3 +30,7 @@ f32 SpringValue::update() {
     mVelocity *= mDamping;
     return mSpringValue;
 }
+
+void SpringValue::clampValueMax(f32 value) {
+    mSpringValue = mSpringValue >= value ? value : mSpringValue;
+}

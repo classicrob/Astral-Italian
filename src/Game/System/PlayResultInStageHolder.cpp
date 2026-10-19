@@ -148,8 +148,9 @@ s32 PlayResultInStageHolder::getClearedStarPieceNum() const {
     return MR::clamp(mClearedStarPieceNum, 0, 999);
 }
 
-void PlayResultInStageHolder::addCoinNum(s32 num) {
+bool PlayResultInStageHolder::addCoinNum(s32 num) {
     mClearedCoinNum = MR::clamp(mClearedCoinNum + num, 0, 999);
+    return false;
 }
 
 s32 PlayResultInStageHolder::getClearedCoinNum() const {

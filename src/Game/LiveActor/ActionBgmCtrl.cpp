@@ -29,6 +29,10 @@ namespace {
     }
 }  // namespace
 
+ActionBgmInfo::ActionBgmInfo()
+    : mBckName(nullptr), mBckStartFrame(0.0f), mBgmName(nullptr), mBgmStateNo(-1), mIsBgmStop(false), mBgmFadeStep(60),
+      mStageName(nullptr), mStageScenarioNo(-1), mIsBckMatch(false), mIsUpdated(false) {}
+
 ActionBgmCtrl* ActionBgmCtrl::tryCreate(const ModelManager* pModelManager) {
     if (MR::isExistFileInArc(pModelManager->getResourceHolder(), "%s.bcsv", sFileName)) {
         return new ActionBgmCtrl(pModelManager);

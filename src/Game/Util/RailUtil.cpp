@@ -387,9 +387,10 @@ namespace MR {
     }
 
     f32 calcRailSpeedEaseAtEnds(const LiveActor* pActor, f32 speed, f32 minSpeed, f32 range) {
-        f32 result = speed;
-        // NONMATCHING: branch layout (target: beq to the ease block, b to the epilogue)
-        if (!pActor->mRailRider->isLoop()) {
+        f32 result;
+        if (pActor->mRailRider->isLoop()) {
+            result = speed;
+        } else {
             f32 distance = calcDistanceToNearestRailEnd(pActor);
             result = getInterpolateValue(normalize(distance, 0.0f, range), minSpeed, speed);
         }

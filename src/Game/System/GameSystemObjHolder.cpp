@@ -1,4 +1,5 @@
 #include "Game/System/GameSystemObjHolder.hpp"
+#include "Game/System/GameSystem.hpp"
 #include "Game/System/ResourceCsvGroupHolder.hpp"
 #include "JSystem/JKernel/JKRSolidHeap.hpp"
 #include <cstdio>
@@ -191,4 +192,10 @@ void GameSystemObjHolder::initDisplay() {
 
     VISetTrapFilter(VI_TRUE);
     VISetTrapFilter(VI_FALSE);
+}
+
+namespace MR {
+    GameSystemObjHolder* getGameSystemObjHolder() {
+        return SingletonHolder<GameSystem>::get()->mObjHolder;
+    }
 }

@@ -99,3 +99,27 @@ void StationedArchiveLoader::loadScenarioData(JKRHeap* pHeap) {
 
     DVDCloseDir(&dir);
 }
+
+// NONMATCHING: regalloc (table pointer and count registers).
+bool StationedArchiveLoader::createAndAddResourcesFromTable(const Condition& rCondition, s32 start, s32 end) {
+    const MR::StationedFileInfo* pInfo = MR::getStationedFileInfoTable();
+    s32 count = 0;
+    for (; pInfo->mArchive != nullptr; pInfo++) {
+        if (!rCondition.isExecute(pInfo)) continue;
+        if (++count <= start) continue;
+        if (count > end) return false;
+        switch (pInfo->mLoadType) {
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+            SingletonHolder<ResourceHolderManager>::get()->createAndAddStationed(pInfo->mArchive);
+            break;
+        case 7:
+        case 8:
+            SingletonHolder<ResourceHolderManager>::get()->createAndAddLayoutHolderStationed(pInfo->mArchive);
+            break;
+        }
+    }
+    return true;
+}

@@ -1,6 +1,8 @@
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/System/HeapMemoryWatcher.hpp"
+#include "Game/System/GameSystemDataHolder.hpp"
+#include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/MutexHolder.hpp"
 #include "Game/Util/SingletonHolder.hpp"
 #include <JSystem/JAudio2/JASMutex.hpp>
@@ -10,6 +12,23 @@
 #include <cstdio>
 
 namespace MR {
+    bool tryGetHeapSizeExceptEntry(u32* pSize, const char* pHeapName, const char* pStage) {
+        const JMapInfo* pTable = GameSystemDataFunction::getHeapSizeExcept();
+        if (isExistElement(pTable, "GalaxyName", pStage)) {
+            s32 size;
+            getCsvDataS32ByElement(&size, pTable, "GalaxyName", pStage, pHeapName);
+            if (size > 0) {
+                *pSize = size;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool existsWorldMapHeapGalaxy(const char* pStage) {
+        return isExistElement(GameSystemDataFunction::getWorldMapHeapGalaxy(), "GalaxyName", pStage);
+    }
+
     CurrentHeapRestorer::CurrentHeapRestorer(JKRHeap* pHeap) {
         _0 = JKRHeap::sCurrentHeap;
         OSLockMutex(&MR::MutexHolder< 1 >::sMutex);

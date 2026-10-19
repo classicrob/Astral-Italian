@@ -217,17 +217,17 @@ namespace MR {
     }
 
     void calcVecFromPlayerHorizon(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pDir) {
-        PSVECSubtract(&pActor->mPosition, MR::getPlayerPos(), pOut);
+        JMathInlineVEC::PSVECSubtract(&pActor->mPosition, MR::getPlayerPos(), pOut);
         MR::vecKillElement(*pOut, pDir != nullptr ? *pDir : pActor->mGravity, pOut);
     }
 
     void calcVecToTarget(TVec3f* pOut, LiveActor* pActor, const TVec3f* pTargetPos) {
-        PSVECSubtract(pTargetPos, &pActor->mPosition, pOut);
+        JMathInlineVEC::PSVECSubtract(pTargetPos, &pActor->mPosition, pOut);
     }
 
     void calcDirToTarget(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pTargetPos) {
         pOut->set(*pTargetPos);
-        PSVECSubtract(pOut, &pActor->mPosition, pOut);
+        JMathInlineVEC::PSVECSubtract(pOut, &pActor->mPosition, pOut);
         MR::normalizeOrZero(pOut);
     }
 
@@ -269,7 +269,7 @@ namespace MR {
 
     void calcGravityCrossDirToPlayer(TVec3f* pOut, LiveActor* pActor) {
         TVec3f toPlayer(*MR::getPlayerPos());
-        PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
+        JMathInlineVEC::PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
 
         TVec3f cross;
         PSVECCrossProduct(&pActor->mGravity, &toPlayer, &cross);
@@ -1000,7 +1000,7 @@ namespace MR {
         TVec3f gravityScaled(gravity);
         gravityScaled.scale(coefGravity);
         TVec3f start(pActor->mPosition);
-        PSVECSubtract(&start, &gravityScaled, &start);
+        JMathInlineVEC::PSVECSubtract(&start, &gravityScaled, &start);
 
         TVec3f hit(0.0f, 0.0f, 0.0f);
         TVec3f dirScaled(gravity);
@@ -1147,7 +1147,7 @@ namespace MR {
         TVec3f dirScaled(*pDir);
         dirScaled.scale(dirCoef);
         TVec3f vel(dirScaled);
-        PSVECSubtract(&vel, &gravity, &vel);
+        JMathInlineVEC::PSVECSubtract(&vel, &gravity, &vel);
         pActor->mVelocity.set(vel);
     }
 
@@ -1160,7 +1160,7 @@ namespace MR {
         TVec3f dirScaled(*pDir);
         dirScaled.scale(dirCoef);
         TVec3f vel(dirScaled);
-        PSVECSubtract(&vel, &gravity, &vel);
+        JMathInlineVEC::PSVECSubtract(&vel, &gravity, &vel);
         pActor->mVelocity.add(vel);
     }
 
@@ -1224,7 +1224,7 @@ namespace MR {
 
         TVec3f scaled(dir);
         scaled.scale(proj);
-        PSVECSubtract(&pActor->mVelocity, &scaled, &pActor->mVelocity);
+        JMathInlineVEC::PSVECSubtract(&pActor->mVelocity, &scaled, &pActor->mVelocity);
         return true;
     }
 
@@ -1313,7 +1313,7 @@ namespace MR {
 
     void turnDirectionToPlayer(const LiveActor* pActor, TVec3f* pOut, f32 cosAngle) {
         TVec3f toPlayer(*MR::getPlayerPos());
-        PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
+        JMathInlineVEC::PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
         turnVecToVecCosOnPlane(pOut, toPlayer, pActor->mGravity, cosAngle);
     }
 
@@ -1473,7 +1473,7 @@ namespace MR {
 
     void addVelocityAwayFromTargetOnGround(LiveActor* pActor, const TVec3f& rTarget, f32 speed) {
         TVec3f diff(pActor->mPosition);
-        PSVECSubtract(&diff, &rTarget, &diff);
+        JMathInlineVEC::PSVECSubtract(&diff, &rTarget, &diff);
 
         TVec3f vel;
         MR::calcVelocityMoveToDirection(&vel, pActor, diff, speed);
@@ -1503,7 +1503,7 @@ namespace MR {
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void calcVelocityMoveToTarget3D(TVec3f* pDst, LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
         TVec3f diff(rTarget);
-        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
 
         TVec3f normal;
         MR::normalizeOrZero(&normal, diff);
@@ -1530,7 +1530,7 @@ namespace MR {
 
     void addVelocityMoveToTarget3D(LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
         TVec3f diff(rTarget);
-        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
         MR::normalizeOrZero(&diff);
 
         TVec3f scaled(diff);
@@ -1540,7 +1540,7 @@ namespace MR {
 
     void addVelocityMoveToTarget3D(LiveActor* pActor, const TVec3f& rTarget, f32 a, f32 b, f32 c, f32 d) {
         TVec3f dir(rTarget);
-        PSVECSubtract(&dir, &pActor->mPosition, &dir);
+        JMathInlineVEC::PSVECSubtract(&dir, &pActor->mPosition, &dir);
 
         f32 scalar;
         MR::separateScalarAndDirection(&scalar, &dir, dir);
@@ -1580,7 +1580,7 @@ namespace MR {
 #pragma dont_inline on
     void fn_80013880(LiveActor* pActor, TVec3f* pOut, const f32* pParam) {
         TVec3f toPlayer(*MR::getPlayerPos());
-        PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
+        JMathInlineVEC::PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
 
         TVec3f turned(*pOut);
         turnVecToVecCosOnPlane(&turned, toPlayer, pActor->mGravity, cosDegree(pParam[3]));
@@ -1679,7 +1679,7 @@ namespace MR {
 
     f32 calcDistanceHorizontal(const LiveActor* pActor, const TVec3f& rPos) {
         TVec3f diff(rPos);
-        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
         vecKillElement(diff, pActor->mGravity, &diff);
         return PSVECMag(&diff);
     }
@@ -1691,7 +1691,7 @@ namespace MR {
         }
 
         TVec3f diff(*getPlayerPos());
-        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
         TVec3f vertical;
         vertical.scale(pActor->mGravity.dot(diff), pActor->mGravity);
         return PSVECMag(&vertical);
@@ -1712,22 +1712,22 @@ namespace MR {
     }
 
     void calcVecToPlayer(TVec3f* pVec, const LiveActor* pActor) {
-        PSVECSubtract(getPlayerPos(), &pActor->mPosition, pVec);
+        JMathInlineVEC::PSVECSubtract(getPlayerPos(), &pActor->mPosition, pVec);
     }
 
     void calcVecToPlayerHorizon(TVec3f* pVec, const LiveActor* pActor, const TVec3f* pGravity) {
-        PSVECSubtract(getPlayerPos(), &pActor->mPosition, pVec);
+        JMathInlineVEC::PSVECSubtract(getPlayerPos(), &pActor->mPosition, pVec);
         vecKillElement(*pVec, pGravity ? *pGravity : pActor->mGravity, pVec);
     }
 
     void calcVecToTargetHorizon(TVec3f* pVec, const LiveActor* pActor, const TVec3f* pTarget, const TVec3f* pGravity) {
-        PSVECSubtract(pTarget, &pActor->mPosition, pVec);
+        JMathInlineVEC::PSVECSubtract(pTarget, &pActor->mPosition, pVec);
         vecKillElement(*pVec, pGravity ? *pGravity : pActor->mGravity, pVec);
     }
 
     void calcDirToPlayer(TVec3f* pDir, const LiveActor* pActor) {
         pDir->set(*getPlayerPos());
-        PSVECSubtract(pDir, &pActor->mPosition, pDir);
+        JMathInlineVEC::PSVECSubtract(pDir, &pActor->mPosition, pDir);
         normalizeOrZero(pDir);
     }
 
@@ -1766,7 +1766,7 @@ namespace MR {
 
     void addVelocityMoveToTargetHorizon(LiveActor* pActor, const TVec3f& rTarget, f32 speed) {
         TVec3f diff(rTarget);
-        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
         TVec3f vel;
         calcVelocityMoveToDirectionHorizon(&vel, pActor, diff, speed);
         pActor->mVelocity.add(vel);
@@ -1774,7 +1774,7 @@ namespace MR {
 
     void addVelocityMoveToTargetHorizon(LiveActor* pActor, const TVec3f& rTarget, f32 speed, f32 f2, f32 f3, f32 f4) {
         TVec3f diff(rTarget);
-        PSVECSubtract(&diff, &pActor->mPosition, &diff);
+        JMathInlineVEC::PSVECSubtract(&diff, &pActor->mPosition, &diff);
         TVec3f vel;
         calcVelocityMoveToDirectionHorizon(&vel, pActor, diff, speed, f2, f3, f4);
         pActor->mVelocity.add(vel);

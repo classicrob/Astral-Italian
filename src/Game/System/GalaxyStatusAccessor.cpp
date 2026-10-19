@@ -117,7 +117,13 @@ bool GalaxyStatusAccessor::isGreenStar(s32 scenario) const {
 
 // NONMATCHING: regalloc; boolean temporary register differs.
 bool GalaxyStatusAccessor::isNotNormalStar(s32 scenario) const {
-    return mScenarioData->isPowerStarTypeHidden(scenario) || mScenarioData->isPowerStarTypeGreen(scenario);
+    bool result = true;
+    if (mScenarioData->isPowerStarTypeHidden(scenario) == 0) {
+        if (mScenarioData->isPowerStarTypeGreen(scenario) == 0) {
+            result = false;
+        }
+    }
+    return result;
 }
 
 bool GalaxyStatusAccessor::isGrandStar(s32 scenario) const {

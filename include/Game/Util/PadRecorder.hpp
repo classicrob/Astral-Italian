@@ -45,6 +45,7 @@ class WPadReadDataInfo;
 class PadRecorder : public NameObj {
 public:
     PadRecorder();
+    virtual ~PadRecorder();
 
     void parsePacketHeader(u32*, u32*, s32*, u32);
     void prepareReplay(const char*, u32);
@@ -73,7 +74,7 @@ public:
 };
 
 namespace MR {
-    void prepareReplay(const char*, u32);
+    bool prepareReplay(const char*, u32);
     bool startReplayPad();
     void readPadData(int, WPadReadDataInfo*);
     bool isPadRecorderStopped();

@@ -7,6 +7,7 @@
 #include "Game/AudioLib/AudSoundNameConverter.hpp"
 #include "Game/AudioLib/AudSpeakerWrap.hpp"
 #include "Game/AudioLib/AudSystem.hpp"
+#include "Game/AudioLib/AudSeLifeTable.hpp"
 #include "Game/AudioLib/AudWrap.hpp"
 #include "Game/AudioLib/CSSoundNameConverter.hpp"
 #include "Game/GameAudio/AudBgmConductor.hpp"
@@ -598,4 +599,16 @@ namespace MR {
     }
 
 
+    // NONMATCHING: target preserves the unused boolean argument across getSystem().
+    void stopAllSe(bool) {
+        AudWrap::getSystem()->stopAllSe();
+    }
+
+    void stopSeCategories(u32 categories) {
+        AudWrap::getSystem()->stopSeCategories(categories);
+    }
+
+    AudSeLifeEntry* fn_8005BC60(s32 limit) {
+        return AudWrap::getSystem()->mSeLifeTable->allocEntry(limit);
+    }
 };  // namespace MR

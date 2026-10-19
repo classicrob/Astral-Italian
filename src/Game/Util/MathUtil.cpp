@@ -855,7 +855,7 @@ namespace MR {
 
     void func_8003DEF0(f32* radial, f32* axial, const TVec3f* origin, const TVec3f* position, TVec3f* axis) {
         TVec3f delta(*position);
-        PSVECSubtract(&delta, origin, &delta);
+        JMathInlineVEC::PSVECSubtract(&delta, origin, &delta);
         TVec3f normal;
         normal.set(*axis);
         if (normalizeOrZero(&normal)) {

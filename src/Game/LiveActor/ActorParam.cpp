@@ -12,6 +12,10 @@ namespace {
     const char* sFileName = "ActorParam";
 }  // namespace
 
+ActorParamEntry::ActorParamEntry() : mName(nullptr), mType(-1) {
+    mValue.mS32 = 0;
+}
+
 ActorParam* ActorParam::tryCreate(LiveActor* pActor) {
     ResourceHolder* pHolder = MR::getResourceHolder(pActor);
     if (pHolder == NULL) {

@@ -8,9 +8,6 @@ DemoObj::DemoObj(const char* pName, MtxPtr pMtx) : LiveActor(pName), mMtx(pMtx) 
     }
 }
 
-DemoObj::~DemoObj() {
-}
-
 void DemoObj::init(const JMapInfoIter&) {
     makeActorAppeared();
 }

@@ -39,7 +39,7 @@ namespace MR {
     /// @param pStr1 The pointer to the left-hand null-terminated character string.
     /// @param pStr2 The pointer to the right-hand null-terminated character string.
     /// @return `true` if the strings are equivalent, `false` otherwise.
-    bool isEqualString(const char* pStr1, const char* pStr2);
+    bool isEqualString(const char* pStr1, const char* pStr2) NO_INLINE;
 
     /// @brief Determines if two character strings are equivalent without regard to case sensitivity.
     /// @param pStr1 The pointer to the left-hand null-terminated character string.

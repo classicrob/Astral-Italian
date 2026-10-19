@@ -268,9 +268,7 @@ void WorldMapOwner::endDemo() {
 // NONMATCHING: regalloc
 void WorldMapOwner::setRocketFrontUpPos(const TVec3f& front, const TVec3f& up, const TVec3f& pos) {
     MiniPlayerRocket* rocket = mContext->mCamera->mRocket;
-    if (MR::isSameDirection(front, up, 0.01f)) return;
-    TVec3f opposite = -up;
-    if (MR::isSameDirection(front, opposite, 0.01f)) return;
+    if (MR::isSameDirection(front, up, 0.01f) || MR::isSameDirection(front, -up, 0.01f)) return;
     Mtx mtx;
     reinterpret_cast<TMtx34f*>(mtx)->identity();
     MR::makeMtxUpFrontPos(reinterpret_cast<TPos3f*>(mtx), up, front, pos);

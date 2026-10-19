@@ -10,7 +10,7 @@ void* getActorParamJumpPtr(const ActorParam*, const char*);
 
 namespace {
     const s32 sDefaultS32 = 0;
-    const f32 sDefaultF32Block[2] = {0.0f, 0.0f};
+    const f32 sDefaultF32 = 0.0f;
     const f32 sDefaultMoveBlock[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const f32 sDefaultSightBlock[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const f32 sDefaultJumpBlock[2] = {0.0f, 0.0f};
@@ -32,7 +32,7 @@ namespace MR {
             return static_cast< const f32* >(getActorParamF32Ptr(pActor->mActionKeeper->mActorParam, pName));
         }
 
-        return sDefaultF32Block;
+        return &sDefaultF32;
     }
 
     const s32* getActorParamS32(const LiveActor* pActor, const char* pName) {

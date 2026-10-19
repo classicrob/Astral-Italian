@@ -962,8 +962,8 @@ namespace GameSequenceFunction {
     // NONMATCHING: branch layout of the two-flag test (same logic)
     bool isCollectTicoCoinSaved() {
         bool result = true;
-        if (!IN_STAGE_HOLDER->mIsPurpleCoinFull) {
-            if (!IN_STAGE_HOLDER->mIsCollectTicoCoinSaved) {
+        if (IN_STAGE_HOLDER->mIsPurpleCoinFull == 0) {
+            if (IN_STAGE_HOLDER->mIsCollectTicoCoinSaved == 0) {
                 result = false;
             }
         }

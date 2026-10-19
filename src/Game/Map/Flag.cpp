@@ -226,6 +226,7 @@ void Flag::movement() {
 #pragma push
 #pragma opt_propagation off
 #pragma opt_loop_invariants off
+// NONMATCHING: explicit RNG temporaries preserve the DOL draw order on native compilers; vector constructors inline.
 void Flag::updateFlag() {
     PSVECCrossProduct(&mSide, &mUp, &mFront);
     if (MR::isNearZero(mFront)) {
@@ -302,7 +303,9 @@ void Flag::updateFlag() {
             // Add random wind accel at single point
             s32 pointV = MR::getRandom(0, mNumPointsV);
             s32 pointU = MR::getRandom(0, mNumPointsU);
-            TVec3f wind(MR::getRandom(-1.0f, 1.0f), 0.0f, MR::getRandom(-1.0f, 1.0f));
+            f32 windZ = MR::getRandom(-1.0f, 1.0f);
+            f32 windX = MR::getRandom(-1.0f, 1.0f);
+            TVec3f wind(windX, 0.0f, windZ);
             MR::vecKillElement(wind, mUp, &wind);
             wind.scale(MR::getRandom(mRandomWindAccelMin, mRandomWindAccelMax));
             mFixPoints[pointV].mPoints[pointU]->addAccel(wind);
@@ -314,7 +317,9 @@ void Flag::updateFlag() {
     } else {
         // Add random wind accel across whole flag
         for (s32 idxV = 0; idxV < mNumPointsV; idxV++) {
-            TVec3f wind(MR::getRandom(-1.0f, 1.0f), 0.0f, MR::getRandom(-1.0f, 1.0f));
+            f32 windZ = MR::getRandom(-1.0f, 1.0f);
+            f32 windX = MR::getRandom(-1.0f, 1.0f);
+            TVec3f wind(windX, 0.0f, windZ);
             wind.scale(MR::getRandom(mRandomWindAccelMin, mRandomWindAccelMax));
             mFixPoints[idxV].mPoints[0]->addAccel(wind);
         }

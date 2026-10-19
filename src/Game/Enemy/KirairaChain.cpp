@@ -94,6 +94,7 @@ void KirairaChain::initPoints() {
     }
 }
 
+// NONMATCHING: explicit RNG temporaries preserve the DOL draw order on native compilers; FPR homes differ.
 void KirairaChain::control() {
     if (mAccelTimer <= 0) {
         mAccelPointIdx = MR::getRandom(0L, mPointCount - 1);
@@ -103,7 +104,10 @@ void KirairaChain::control() {
             mAccelTimer = MR::getRandom(5L, 10L);
         }
 
-        mAccel.set< f32 >(MR::getRandom(-0.3f, 0.3f), MR::getRandom(-0.3f, 0.3f), MR::getRandom(-0.3f, 0.3f));
+        f32 accelZ = MR::getRandom(-0.3f, 0.3f);
+        f32 accelY = MR::getRandom(-0.3f, 0.3f);
+        f32 accelX = MR::getRandom(-0.3f, 0.3f);
+        mAccel.set< f32 >(accelX, accelY, accelZ);
     }
 
     mAccelTimer--;

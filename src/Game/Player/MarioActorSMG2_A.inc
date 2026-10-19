@@ -1640,6 +1640,7 @@ bool MarioActor::fn_803C4FB0() {
 
 #define CT(off) FP(((void**)F(void*, 0x590))[FP(F(void*, 0x590), u32, 0xC)], f32, off)
 
+// NONMATCHING: saved-register allocation, stack slots and equivalent scheduling.
 void MarioActor::fn_803C5090(MtxPtr mtx) {
     F(TVec3f, 0xED0) = FP(this->mMario, TVec3f, 0x1D8);
     f32 k = CT(0x69C);
@@ -1729,7 +1730,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
         F(TVec3f, 0x684).setLength(CT(0x6A0));
     }
     f32 sc = CT(0x6A4);
-    if (FP(this->mMario, s32, 0x714) == 0 && !this->isJumping()) {
+    if (mMario->mTargetWalkSpeedIndex == 0 && !this->isJumping()) {
         sc = CT(0x6AC);
     }
     F(TVec3f, 0x684).scale(sc);
@@ -1741,7 +1742,7 @@ void MarioActor::fn_803C5090(MtxPtr mtx) {
     } else {
         MR::makeMtxUpFront((TPos3f*)mtx, FP(this->mMario, TVec3f, 0x1F0), FP(this->mMario, TVec3f, 0x208));
     }
-    if (FP(this->mMario, u8, 0x714) > 2 || this->isJumping()) {
+    if (mMario->mTargetWalkSpeedIndex > 2 || this->isJumping()) {
         f32 inv = 1.0f - CT(0x6B0);
         TVec3f s8(F(TVec3f, 0x66C));
         s8 -= this->mPosition;

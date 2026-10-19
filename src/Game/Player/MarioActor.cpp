@@ -248,12 +248,12 @@ namespace MarioAccess {
         return MR::getMarioHolder()->getMarioActor()->fn_803BECC0();
     }
 
-    u32 fn_803B7370() {
+    const JUTTexture* fn_803B7370() {
         if (!MR::isExistSceneObj(0x15)) return 0;
         if (MR::getMarioHolder()->mActor == nullptr) return 0;
         MarioActor* actor = MR::getMarioHolder()->getMarioActor();
         if (actor != nullptr && actor->mCollisionShadow580 != nullptr) {
-            return actor->mCollisionShadow580->mStatus308;
+            return actor->mCollisionShadow580->mTexture308;
         }
         return 0;
     }

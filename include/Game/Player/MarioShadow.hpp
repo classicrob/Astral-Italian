@@ -61,7 +61,7 @@ public:
     /* 0x2F0 */ TVec3f _2F0;
     /* 0x2FC */ u16 _2FC;
     /* 0x2FE */ u16 _2FE;
-    /* 0x300 */ union { JUTTexture* _300; u32 mStatus308; };
+    /* 0x300 */ union { JUTTexture* _300; const JUTTexture* mTexture308; };
     /* 0x304 */ u8 _304;
     /* 0x305 */ bool _305;
     /* 0x306 */ u8 _306;

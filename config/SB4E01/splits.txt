@@ -6384,6 +6384,9 @@ Game/Player/MarioActor.cpp:
 Game/Player/CloudMarioHat.cpp:
 	.text       start:0x803D9A80 end:0x803DAAE0
 	.ctors      start:0x806447CC end:0x806447D0
+	.rodata     start:0x8064BD70 end:0x8064BDA8
+	.data       start:0x806C7588 end:0x806C76C0
+	.sdata2     start:0x807DFDA0 end:0x807DFDC8
 
 Game/Player/MarioSensorSlots.cpp:
 	.text       start:0x803DAAE0 end:0x803DAC20

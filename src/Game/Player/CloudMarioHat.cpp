@@ -24,6 +24,7 @@ namespace {
     const s32 sSpringPairs[][2] = {{0,1}, {1,2}, {2,3}, {3,4}};
     struct HatJointInfo { const char* name; s32 spring; };
     const HatJointInfo sJoints[] = {{"Cap1",1}, {"Cap2",2}, {"Cap3",3}};
+    JointControlDelegator<CloudMarioHat>::func sCalcJoint = &CloudMarioHat::calcJoint;
 }
 
 CloudMarioHat::CloudMarioHat(const char* name) : LiveActor(name), _90(0), _91(0) {}
@@ -98,6 +99,7 @@ void CloudMarioHat::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
 }
 
+// NONMATCHING: callback/table register choices and pooled-data relocations.
 void CloudMarioHat::initDynamics() {
     mHatMatrix.identity();
     mPoints = new CloudHatPoint*[5];
@@ -107,13 +109,14 @@ void CloudMarioHat::initDynamics() {
     mControllers = new JointController*[3];
     mJoints = new J3DJoint*[3];
     for (u32 i = 0; i < 3; ++i) {
-        JointController* controller = new JointControlDelegator<CloudMarioHat>(this, &CloudMarioHat::calcJoint, nullptr);
-        MR::setJointControllerParam(controller, this, sJoints[i].name);
+        const char* name = sJoints[i].name;
+        JointController* controller = MR::createJointDelegatorWithNullChildFunc<CloudMarioHat>(this, sCalcJoint, name);
         mControllers[i] = controller;
-        mJoints[i] = MR::getJoint(this, sJoints[i].name);
+        mJoints[i] = MR::getJoint(this, name);
     }
 }
 
+// NONMATCHING: point-table address CSE and GPR allocation.
 void CloudMarioHat::resetDynamics() {
     MarioMtxPos matrix(mHatMatrix);
     for (u32 i = 0; i < 5; ++i) {
@@ -206,12 +209,14 @@ CloudHatSpring::CloudHatSpring(TPos3f* matrix, CloudHatPoint* start, CloudHatPoi
     mPreviousDirection.z = 0.0f;
 }
 
+// NONMATCHING: vector temporary stack placement and redundant single rounding.
 void CloudHatSpring::update(const TVec3f& acceleration) {
     MarioMtxPos matrix(mMatrix);
     TVec3f rest(mRestOffset);
     matrix.fn_804096E0(&rest);
+    const TVec3f* startPosition = &mStart->mPosition;
     TVec3f difference(mEnd->mPosition);
-    difference.sub(mStart->mPosition);
+    difference.sub(*startPosition);
     PSVECMag(&difference);
     TVec3f direction(difference);
     if (MR::normalizeOrZero(&direction)) direction = mPreviousDirection;
@@ -231,12 +236,14 @@ void CloudHatSpring::update(const TVec3f& acceleration) {
     }
     mEnd->mAcceleration.add(acceleration);
     mEnd->update();
-    f32 projection = direction.dot(mEnd->mVelocity);
+    CloudHatPoint* velocityPoint = mEnd;
+    f32 projection = direction.dot(velocityPoint->mVelocity);
     TVec3f normalVelocity(direction);
     normalVelocity.scale(projection);
-    mEnd->mVelocity.sub(normalVelocity);
-    TVec3f predicted(mEnd->mPosition);
-    predicted.add(mEnd->mVelocity);
+    velocityPoint->mVelocity.sub(normalVelocity);
+    CloudHatPoint* predictedPoint = mEnd;
+    TVec3f predicted(predictedPoint->mPosition);
+    predicted.add(predictedPoint->mVelocity);
     TVec3f relative(predicted);
     relative.sub(mAnchor);
     f32 planeDistance = mDirection.dot(relative);
@@ -246,18 +253,21 @@ void CloudHatSpring::update(const TVec3f& acceleration) {
         mEnd->mVelocity.sub(correction);
     }
     mEnd->mPosition.add(mEnd->mVelocity);
+    const TVec3f* offsetStart = &mStart->mPosition;
     TVec3f offset(mEnd->mPosition);
-    offset.sub(mStart->mPosition);
+    offset.sub(*offsetStart);
     MR::normalize(&offset);
     offset.scale(mLength);
+    CloudHatPoint* finalPoint = mEnd;
     TVec3f position(mStart->mPosition);
     position.add(offset);
-    mEnd->mPosition.set<f32>(position);
+    finalPoint->mPosition.set<f32>(position);
 }
 
 void CloudHatSpring::reset() {
+    const TVec3f* startPosition = &mStart->mPosition;
     TVec3f difference(mEnd->mPosition);
-    difference.sub(mStart->mPosition);
+    difference.sub(*startPosition);
     mLength = PSVECMag(&difference);
     mPreviousDirection = difference;
     MR::normalize(&mPreviousDirection);

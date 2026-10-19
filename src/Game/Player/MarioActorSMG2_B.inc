@@ -163,6 +163,7 @@ void MarioActor::fn_803CA860(TVec3f& v) {
     F(u8, 0x1053) = 0;
 }
 
+// NONMATCHING: saved registers, stack slots and equivalent reuse of the 70.0f scalar.
 void MarioActor::fn_803CAA00() {
     f32 len = 70.0f;
     Mario* m = this->mMario;
@@ -182,15 +183,17 @@ void MarioActor::fn_803CAA00() {
         t.scale(len);
         F(TVec3f, 0x60C) = t;
     } else if (BITAT(m, 0x18, 0x1C) || F(u8, 0xE24) != 0) {
-        TVec3f t = -F(TVec3f, 0x594);
+        TVec3f neg = -F(TVec3f, 0x594);
+        TVec3f t(neg);
         t.scale(70.0f);
-        if (F(u16, 0x664) != 0 || FP(m, f32, 0) == 59.0f) {
+        if (F(u16, 0x664) != 0 || mMario->calcPolygonAngleD(mMario->mGroundPolygon) >= 59.0f) {
             MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.1f);
         } else {
             MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.5f);
         }
     } else {
-        TVec3f t = -F(TVec3f, 0x594);
+        TVec3f neg = -F(TVec3f, 0x594);
+        TVec3f t(neg);
         t.scale(70.0f);
         MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.1f);
     }

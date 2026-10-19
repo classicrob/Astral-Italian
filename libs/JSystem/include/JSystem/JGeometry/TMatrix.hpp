@@ -314,21 +314,33 @@ namespace JGeometry {
             this->mMtx[2][2] = 1.0f;
         };
 
-        void getXDir(TVec3f& rDest) const {
+        void getXDir(TVec3f& rDest) const 
+#ifdef JGEOMETRY_OUTLINE_MATRIX_DIRECTION
+            NO_INLINE
+#endif
+        {
             f32 z = this->mMtx[2][0];
             f32 y = this->mMtx[1][0];
             f32 x = this->mMtx[0][0];
             rDest.set< f32 >(x, y, z);
         };
 
-        void getYDir(TVec3f& rDest) const {
+        void getYDir(TVec3f& rDest) const 
+#ifdef JGEOMETRY_OUTLINE_MATRIX_DIRECTION
+            NO_INLINE
+#endif
+        {
             f32 z = this->mMtx[2][1];
             f32 y = this->mMtx[1][1];
             f32 x = this->mMtx[0][1];
             rDest.set< f32 >(x, y, z);
         };
 
-        void getZDir(TVec3f& rDest) const {
+        void getZDir(TVec3f& rDest) const 
+#ifdef JGEOMETRY_OUTLINE_MATRIX_DIRECTION
+            NO_INLINE
+#endif
+        {
             f32 z = this->mMtx[2][2];
             f32 y = this->mMtx[1][2];
             f32 x = this->mMtx[0][2];
@@ -747,7 +759,11 @@ namespace JGeometry {
             JMath::gekko_ps_copy12(this, rSrc);
         }
 
-        void getTrans(TVec3f& rDest) const {
+        void getTrans(TVec3f& rDest) const 
+#ifdef JGEOMETRY_OUTLINE_MATRIX_POSITION
+            NO_INLINE
+#endif
+        {
             f32 z = this->mMtx[2][3];
             f32 y = this->mMtx[1][3];
             f32 x = this->mMtx[0][3];
@@ -761,7 +777,11 @@ namespace JGeometry {
             rDest.set< f32 >(x, y, z);
         }
 
-        void setTrans(const TVec3f& rSrc) {
+        void setTrans(const TVec3f& rSrc) 
+#ifdef JGEOMETRY_OUTLINE_MATRIX_POSITION
+            NO_INLINE
+#endif
+        {
             this->mMtx[0][3] = rSrc.x;
             this->mMtx[1][3] = rSrc.y;
             this->mMtx[2][3] = rSrc.z;
@@ -773,7 +793,11 @@ namespace JGeometry {
             this->mMtx[2][3] = z;
         }
 
-        void zeroTrans() {
+        void zeroTrans()
+#if defined(JGEOMETRY_OUTLINE_MATRIX_POSITION) || defined(JGEOMETRY_OUTLINE_MATRIX_ZERO_TRANS)
+            NO_INLINE
+#endif
+        {
             this->mMtx[0][3] = 0.0f;
             this->mMtx[1][3] = 0.0f;
             this->mMtx[2][3] = 0.0f;

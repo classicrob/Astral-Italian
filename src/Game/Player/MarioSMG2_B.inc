@@ -1420,81 +1420,97 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
     return n;
 }
 
-// NONMATCHING: skid/splash dust by speed band; the two animator-frame branches are approximated from the draft
+// NONMATCHING: stack allocation, cached animation frame and literal pool ordering.
 void Mario::fn_803AD5B0() {
-    Mario* m = reinterpret_cast<Mario*>(this);
-    if (m->mTargetWalkSpeedIndex != 0) {
-        u32 dm = FLD<u32>(m, 0x1C);
-        if (((dm >> 13) & 1) || ((dm >> 12) & 1)) {
-            if (FLD<f32>(m, 0x738) < 160.0f) {
-                if (this->isPlayerModeYoshi()) {
-                    if (m->mPrevAnimFrame > this->getAnimator()->fn_803DD460()) {
-                        u8 idx = m->mTargetWalkSpeedIndex;
-                        if (idx >= 2) {
-                            if (idx < 6) {
-                                this->playSound("水はね", -1);
-                                this->playEffect("水はね左");
+    if (mTargetWalkSpeedIndex != 0) {
+        if (((mDrawStates_WORD >> 13) & 1) || ((mDrawStates_WORD >> 12) & 1)) {
+            if (_738 < 160.0f) {
+                if (isPlayerModeYoshi()) {
+                    f32 previousFrame = mPrevAnimFrame;
+                    if (previousFrame > getAnimator()->getFrame() ||
+                        (previousFrame < 30.0f && getAnimator()->getFrame() >= 30.0f)) {
+                        u8 index = mTargetWalkSpeedIndex;
+                        if (index >= 2) {
+                            if (index < 6) {
+                                playSound("水跳ね左足小", -1);
+                                playEffect("水はね弱");
                             } else {
-                                this->playSound("水跳ね左足", -1);
-                                this->playEffect("水跳ね左足小");
+                                playSound("水跳ね左足", -1);
+                                playEffect("水はね");
                             }
                         }
-                        f32 t = FLD<f32>(m, 0x738);
-                        TVec3f sp98(FLD<TVec3f>(m, 0x368));
-                        sp98 *= t;
-                        TVec3f spB0(m->mGroundPos);
-                        spB0 += sp98;
-                        this->playEffectSRT("水波紋", 0.2f, FLD<TVec3f>(m, 0x73C), spB0);
+                        f32 depth = _738;
+                        TVec3f height(_368);
+                        height *= depth;
+                        TVec3f position(mGroundPos);
+                        position += height;
+                        playEffectSRT("水波紋", 0.2f, _73C, position);
                     }
                 } else {
-                    if (m->mPrevAnimFrame > this->getAnimator()->fn_803DD460()) {
-                        u8 idx = m->mTargetWalkSpeedIndex;
-                        if (idx >= 2) {
-                            if (idx < 6) {
-                                this->playSound("水跳ね右足", -1);
-                                this->playEffect("水はね右弱");
+                    if (mPrevAnimFrame > getAnimator()->getFrame()) {
+                        u8 index = mTargetWalkSpeedIndex;
+                        if (index >= 2) {
+                            if (index < 6) {
+                                playSound("水跳ね左足小", -1);
+                                playEffect("水はね左弱");
                             } else {
-                                this->playSound("水跳ね右足", -1);
-                                this->playEffect("水はね右");
+                                playSound("水跳ね左足", -1);
+                                playEffect("水はね左");
                             }
                         }
-                        f32 t = FLD<f32>(m, 0x738);
-                        TVec3f sp74(FLD<TVec3f>(m, 0x368));
-                        sp74 *= t;
-                        TVec3f sp80(FLD<TVec3f>(m, 0x208));
-                        sp80 *= 20.0f;
-                        TVec3f sp8C(m->mGroundPos);
-                        sp8C -= sp80;
-                        TVec3f sp98(sp8C);
-                        sp98 += sp74;
-                        this->playEffectSRT("水波紋", 0.2f, FLD<TVec3f>(m, 0x73C), sp98);
+                        f32 depth = _738;
+                        TVec3f height(_368);
+                        height *= depth;
+                        TVec3f side(mSideVec);
+                        side *= 20.0f;
+                        TVec3f offset(mGroundPos);
+                        offset -= side;
+                        TVec3f position(offset);
+                        position += height;
+                        playEffectSRT("水波紋", 0.2f, _73C, position);
                     }
-                    if (m->mPrevAnimFrame < 30.0f) {
-                        if (this->getAnimator()->fn_803DD460() == 30.0f) {
-                            u8 idx = m->mTargetWalkSpeedIndex;
-                            if (idx >= 2) {
-                                if (idx < 6) {
-                                    this->playSound("水跳ね左足", -1);
-                                    this->playEffect("水はね左弱");
+                    if (mPrevAnimFrame < 30.0f) {
+                        if (getAnimator()->getFrame() >= 30.0f) {
+                            u8 index = mTargetWalkSpeedIndex;
+                            if (index >= 2) {
+                                if (index < 6) {
+                                    playSound("水跳ね右足小", -1);
+                                    playEffect("水はね右弱");
                                 } else {
-                                    this->playSound("水跳ね左足", -1);
-                                    this->playEffect("水はね左");
+                                    playSound("水跳ね右足", -1);
+                                    playEffect("水はね右");
                                 }
                             }
-                            f32 t = FLD<f32>(m, 0x738);
-                            TVec3f sp44(FLD<TVec3f>(m, 0x368));
-                            sp44 *= t;
-                            TVec3f sp50(FLD<TVec3f>(m, 0x208));
-                            sp50 *= 20.0f;
-                            TVec3f sp5C(m->mGroundPos);
-                            sp5C += sp50;
-                            TVec3f sp68(sp5C);
-                            sp68 += sp44;
-                            this->playEffectSRT("水波紋", 0.2f, FLD<TVec3f>(m, 0x73C), sp68);
+                            f32 depth = _738;
+                            TVec3f height(_368);
+                            height *= depth;
+                            TVec3f side(mSideVec);
+                            side *= 20.0f;
+                            TVec3f offset(mGroundPos);
+                            offset += side;
+                            TVec3f position(offset);
+                            position += height;
+                            playEffectSRT("水波紋", 0.2f, _73C, position);
                         }
                     }
                 }
             }
+        }
+    } else if ((mDrawStates_WORD >> 13) & 1) {
+        f32 depth = _738;
+        if (depth < 160.0f && (mActor->_37C & 0x3F) == 0) {
+            TVec3f height(_368);
+            height *= depth;
+            f32 randomOffset = MR::getRandom() - 0.5f;
+            TVec3f side(mSideVec);
+            side *= randomOffset;
+            TVec3f scaledSide(side);
+            scaledSide *= 20.0f;
+            TVec3f offset(mShadowPos);
+            offset += scaledSide;
+            TVec3f position(offset);
+            position += height;
+            playEffectSRT("水波紋", 0.2f, _73C, position);
         }
     }
 }

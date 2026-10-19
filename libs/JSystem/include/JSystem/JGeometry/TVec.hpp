@@ -990,7 +990,11 @@ namespace JGeometry {
             z = h00 * rP0.z + h01 * rP1.z + h10 * rV0.z + h11 * rV1.z;
         }
 
-        f32 angle(const TVec3& rB) const {
+        f32 angle(const TVec3& rB) const
+#ifdef JGEOMETRY_VEC3_ANGLE_NOINLINE
+            NO_INLINE
+#endif
+        {
             f32 crossPart = cross(rB).length();
             f32 dotPart = dot(rB);
             return __fabsf(JMAATan2(crossPart, dotPart));

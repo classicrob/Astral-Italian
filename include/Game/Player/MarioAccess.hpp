@@ -8,6 +8,7 @@ class BckCtrlData;
 class CubeCameraArea;
 class HitSensor;
 class LiveActor;
+class JUTTexture;
 class MarioActor;
 class RushEndInfo;
 class Triangle;
@@ -44,7 +45,7 @@ namespace MarioAccess {
     f32 fn_803B7240();                   // PLACEHOLDER(core): isConfrontDeath ? const : actor 0x724
     void fn_803B72A0();                  // PLACEHOLDER(core): clear flag bits in actor 0x584 block
     void fn_803B59A0();                  // PLACEHOLDER(core): swim/life decrement
-    u32 fn_803B7370();
+    const JUTTexture* fn_803B7370();
     LiveActor* getPlayerOrYoshiActor();
     bool isPowerupTransforming();
     void prepareForPositionReset();

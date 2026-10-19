@@ -88,6 +88,7 @@ bool MarioFrontStep::start() {
 MarioFrontStep::MarioFrontStep(MarioActor* pActor) : MarioState(pActor, MarioStatus_FrontStep) {
 }
 
+// NONMATCHING: vector temporary stack slots and scalar literal labels.
 bool MarioFrontStep::update() {
     getPlayer()->stopWalk();
 
@@ -96,8 +97,11 @@ bool MarioFrontStep::update() {
     }
 
     MarioActor* pMario = mActor;
-    TVec3f* vec = &pMario->_2A0;
-    if (!MR::isExistMapCollision(*vec, getFrontVec() * 200.0f)) {
+    TVec3f collisionOffset(getFrontVec());
+    collisionOffset.x *= 200.0f;
+    collisionOffset.y *= 200.0f;
+    collisionOffset.z *= 200.0f;
+    if (!getPlayer()->fn_803B2880(pMario->_240, collisionOffset)) {
         return false;
     }
 
@@ -125,7 +129,11 @@ bool MarioFrontStep::update() {
     }
 
     if (mActor->isRequestRush()) {
-        getPlayer()->tryWallPunch();
+        if (isPlayerModeFire()) {
+            mActor->updateFireSpin();
+        } else {
+            getPlayer()->tryWallPunch();
+        }
         return false;
     }
 

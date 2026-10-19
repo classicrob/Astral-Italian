@@ -1,3 +1,5 @@
+#define JGEOMETRY_VEC3_WMR_OUTLINE
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Player/Yoshi.hpp"
 #include "Game/Player/MarioHolder.hpp"
 #include "Game/Player/YoshiArrow.hpp"
@@ -39,7 +41,6 @@ bool YoshiTongueTarget::fn_8041C170()const{return mTargets[mIndex].mType==2||mTa
 bool YoshiTongueTarget::fn_8041C1B0()const{return mTargets[mIndex].mType==2;}
 bool YoshiTongueTarget::fn_8041C1E0()const{return mTargets[mIndex].mType==4;}
 bool YoshiTongueTarget::fn_8041C210()const{return mTargets[mIndex].mType==5;}
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiTongueTarget::fn_8041C240(TVec3f* out)const {
     MtxPtr source=fn_8041C4C0();
     if(!source)out->set<f32>(mTargets[mIndex].mActor->mPosition);
@@ -49,20 +50,34 @@ void YoshiTongueTarget::fn_8041C240(TVec3f* out)const {
     else if(mTargets[mIndex].mActor->getBaseMtx()){
         TPos3f matrix;matrix.set(mTargets[mIndex].mActor->getBaseMtx());matrix.getXDir(x);matrix.getYDir(y);matrix.getZDir(z);
     }else{TPos3f matrix;MR::makeMtxTR(matrix.toMtxPtr(),mTargets[mIndex].mActor);matrix.getXDir(x);matrix.getYDir(y);matrix.getZDir(z);}
-    x.scale(mTargets[mIndex].mOffset.x);y.scale(mTargets[mIndex].mOffset.y);z.scale(mTargets[mIndex].mOffset.z);out->add(x+y+z);
+    const TVec3f& offset = mTargets[mIndex].mOffset;
+    x.scale(offset.x);y.scale(offset.y);z.scale(offset.z);out->add(x+y+z);
 }
 void YoshiTongueTarget::fn_8041C440(TVec3f* out)const {
     MtxPtr matrix=mTargets[mIndex].mActor->getBaseMtx();out->set<f32>(matrix[0][2],matrix[1][2],matrix[2][2]);
 }
 LiveActor* YoshiTongueTarget::fn_8041C4A0()const{return mTargets[mIndex].mActor;}
 MtxPtr YoshiTongueTarget::fn_8041C4C0()const{return mTargets[mIndex].mMtx;}
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-bool YoshiTongueTarget::fn_8041C4E0(u32 message){return mTargets[mIndex].mActor->receiveMessage(message,mSensor,MR::getMessageSensor());}
+bool YoshiTongueTarget::fn_8041C4E0(u32 message){
+    LiveActor* actor = mTargets[mIndex].mActor;
+    HitSensor* sensor = MR::getMessageSensor();
+    return actor->receiveMessage(message,mSensor,sensor);
+}
 
-YoshiLockOnTargetDesc::YoshiLockOnTargetDesc():mActor(nullptr),mMtx(nullptr),mOffset(0.0f,0.0f,0.0f),mType(0){}
+YoshiLockOnTargetDesc::YoshiLockOnTargetDesc():mActor(nullptr),mMtx(nullptr){
+    mOffset.x = 0.0f;
+    mOffset.y = 0.0f;
+    mOffset.z = 0.0f;
+    mType = 0;
+}
 void* YoshiHolder::fn_8041B6F0(){return mYoshi->mTongue;}
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-void YoshiHolder::fn_8041B820(LiveActor* egg){mEggs[mCount++]=static_cast<YoshiEgg*>(egg);}
+// NONMATCHING: index and array pointer registers are swapped.
+void YoshiHolder::fn_8041B820(LiveActor* egg){
+    s32 index = mCount;
+    YoshiEgg** eggs = mEggs;
+    mCount = index + 1;
+    eggs[index] = static_cast<YoshiEgg*>(egg);
+}
 void YoshiHolder::fn_8041B840(LiveActor* egg){_34=false;for(s32 i=0;i<mCount;++i)if(mEggs[i]!=egg)mEggs[i]->fn_80416FC0();}
 void YoshiHolder::fn_8041B8B0(LiveActor* egg){_34=true;for(s32 i=0;i<mCount;++i)if(mEggs[i]!=egg)mEggs[i]->fn_80416F60();}
 void YoshiHolder::fn_8041B920(){if(mCurrentEgg){mCurrentEgg->fn_80416D30();mCurrentEgg=nullptr;}}
@@ -71,8 +86,11 @@ void YoshiHolder::fn_8041B9C0(){if(mCurrentEgg){mCurrentEgg->fn_80416EE0();mCurr
 void YoshiHolder::fn_8041BA10(){mFruitCounter->increment();}
 void YoshiHolder::fn_8041BAE0(){mCountdown=60;}
 void YoshiHolder::fn_8041BAF0(){mCountdown=0;}
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-void YoshiHolder::fn_8041BB00(){if(mCountdown>0){--mCountdown;MR::startActionSound(mYoshi,"Flutter",-1,-1,-1);}}
+// NONMATCHING: only verified sound string relocation labels differ.
+void YoshiHolder::fn_8041BB00(){
+    if (mCountdown > 0) --mCountdown;
+    MR::startActionSound(mYoshi,"Flutter",-1,-1,-1);
+}
 bool YoshiHolder::fn_8041BB30()const{return mCountdown>0;}
 f32 YoshiHolder::fn_8041BB50()const{return mCountdown/60.0f;}
 void YoshiHolder::fn_8041BB90(){mTimer=38;}
@@ -84,7 +102,7 @@ namespace YoshiParam {
 s32 fn_8041BD40(){return 0;}s32 fn_8041BD50(){return 1;}s32 fn_8041BD60(){return 1;}s32 fn_8041BD70(){return 0;}
 f32 fn_8041BD80(){return 26.0f;}f32 fn_8041BD90(){return 3.5f;}f32 fn_8041BDA0(){return 13.0f;}f32 fn_8041BDB0(){return .65f;}
 f32 fn_8041BDC0(){return 60.0f;}f32 fn_8041BDD0(){return 40.0f;}f32 fn_8041BDE0(){return .999f;}s32 fn_8041BDF0(){return 30;}
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
+// NONMATCHING: gravity temporary address lifetime, stack slots and registers differ.
 void fn_8041BE00(TVec3f* out){const TVec3f& gravity=*MR::getPlayerGravity();TVec3f gravityPart=gravity*40.0f;const TVec3f& velocity=*MR::getPlayerVelocity();TVec3f velocityPart=velocity*2.0f;TVec3f result(velocityPart);result.sub(gravityPart);out->x=result.x;out->y=result.y;out->z=result.z;}
 }
 namespace MR {bool isPlayerInRushOrDemoOrTalk(){return isPlayerInRush()||isDemoActive()||isSystemTalking();}}
@@ -109,15 +127,15 @@ void YoshiHolder::fn_8041B700(LiveActor* actor){
         MR::initShadowFromCSVWithInitShadowVolumeSphere(mRideModelActor,"Shadow");MR::offCalcAnim(mRideModelActor);MR::onCalcGravity(mRideModelActor);
     }
 }
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 void YoshiHolder::fn_8041BA20(MtxPtr matrix,LiveActor* egg){
     mCurrentEgg=static_cast<YoshiEgg*>(egg);
-    MR::setPosition(mYoshi,TVec3f(matrix[0][3],matrix[1][3],matrix[2][3]));
+    Yoshi* yoshi = mYoshi;
+    MR::setPosition(yoshi,TVec3f(matrix[0][3],matrix[1][3],matrix[2][3]));
     MR::setPosition(mYoshi->mTongue,mYoshi->mPosition);
     mYoshi->fn_8040F630(*reinterpret_cast<TPos3f*>(matrix));
     mYoshi->appear();mYoshi->mTongue->appear();MR::showModel(mYoshi);MR::showModel(mYoshi->mTongue);_38=sAppearValue;
 }
-// NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
+// NONMATCHING: only verified scale literal relocation labels differ.
 void YoshiHolder::fn_8041BBF0(const TVec3f& position,const TVec3f& up,const TVec3f& front){
     TVec3f x,y;PSVECCrossProduct(&front,&up,&x);
     if(MR::normalizeOrZero(&x)){TVec3f fallback(front.z,front.x,front.y);PSVECCrossProduct(&front,&fallback,&x);MR::normalize(&x);}

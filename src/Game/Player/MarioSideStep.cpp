@@ -5,6 +5,7 @@
 #include "Game/Player/MarioActor.hpp"
 #include "Game/Player/MarioWall.hpp"
 #include "Game/Util/DemoUtil.hpp"
+#include "Game/Util/ActorSensorUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 
@@ -109,6 +110,7 @@ bool MarioSideStep::close() {
     return true;
 }
 
+// NONMATCHING: equivalent vector-helper inlining, saved registers, and string-pool materialization.
 bool MarioSideStep::update() {
     if (!getPlayer()->mMovementStates._8) {
         return false;
@@ -143,6 +145,11 @@ bool MarioSideStep::update() {
                 playSound("声壁押し");
             }
             changeAnimation("壁押し", 0UL);
+            const Triangle* wall = getPlayer()->getWallPolygon();
+            if (wall) {
+                HitSensor* wallSensor = wall->mSensor;
+                MR::sendArbitraryMsg(0xB1, wallSensor, mActor->getSensor("Body"));
+            }
         } else if (forward > 0.0f) {
             if (forward > 0.707f) {
                 getPlayer()->setFrontVecKeepUp(getPlayer()->getWallNorm());
@@ -168,7 +175,11 @@ bool MarioSideStep::update() {
         return false;
     }
     if (mActor->isRequestRush()) {
-        getPlayer()->tryWallPunch();
+        if (isPlayerModeFire()) {
+            mActor->updateFireSpin();
+        } else {
+            getPlayer()->tryWallPunch();
+        }
         return false;
     }
     if (!getPlayer()->mMovementStates._1) {

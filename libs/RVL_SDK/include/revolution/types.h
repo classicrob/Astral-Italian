@@ -1,6 +1,17 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#ifdef GALAXY_NATIVE
+#include <stdint.h>
+typedef int8_t s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+#else
 typedef signed char s8;
 typedef signed short s16;
 #ifdef __MWERKS__
@@ -17,6 +28,7 @@ typedef unsigned long u32;
 typedef __UINT32_TYPE__ u32;
 #endif
 typedef unsigned long long u64;
+#endif
 
 typedef volatile u8 vu8;
 typedef volatile u16 vu16;
@@ -42,13 +54,13 @@ typedef int BOOL;
 #endif
 #endif
 
-#ifndef nullptr
+#if !defined(nullptr) && !defined(GALAXY_NATIVE)
 #ifdef __cplusplus
 #define nullptr 0
 #endif
 #endif
 
-#ifndef override
+#if !defined(override) && !defined(GALAXY_NATIVE)
 #ifdef __cplusplus
 #define override
 #endif
@@ -81,19 +93,19 @@ typedef int BOOL;
 #define NO_INLINE
 #endif
 
-#if __MWERKS__
+#if defined(__MWERKS__) || defined(GALAXY_NATIVE)
 #define ATTRIBUTE_ALIGN(num) __attribute__((aligned(num)))
 #else
 #define ATTRIBUTE_ALIGN(num)
 #endif
 
-#if __MWERKS__
+#if defined(__MWERKS__) || defined(GALAXY_NATIVE)
 #define ATTRIBUTE_PACKED __attribute__((packed))
 #else
 #define ATTRIBUTE_PACKED
 #endif
 
-#if __MWERKS__
+#if defined(__MWERKS__) || defined(GALAXY_NATIVE)
 #define ATTRIBUTE_WEAK __attribute__((weak))
 #else
 #define ATTRIBUTE_WEAK
@@ -108,7 +120,11 @@ typedef int BOOL;
 #endif
 
 #define ROUND_UP(x, align) (((x) + (align) - 1) & (-(align)))
+#ifdef GALAXY_NATIVE
+#define ROUND_UP_PTR(x, align) ((void*)(((uintptr_t)(x) + (uintptr_t)(align) - 1) & ~((uintptr_t)(align) - 1)))
+#else
 #define ROUND_UP_PTR(x, align) ((void*)((((u32)(x)) + (align) - 1) & (~((align) - 1))))
+#endif
 
 #define ALIGN_PREV(X, N) ((X) & ~((N) - 1))
 #define ALIGN_NEXT(X, N) ALIGN_PREV(((X) + (N) - 1), N)
@@ -138,12 +154,18 @@ typedef int BOOL;
 /* just some common intrinsics */
 
 #ifndef __MWERKS__
+#if defined(GALAXY_NATIVE) && defined(__cplusplus)
+extern "C" {
+#endif
 f32 __frsqrte(f32);
 u32 __cntlzw(u32);
 s32 __abs(s32);
 f32 __fabsf(f32);
 f64 __fabs(f64);
 void* __memcpy(void*, const void*, int);
+#if defined(GALAXY_NATIVE) && defined(__cplusplus)
+}
+#endif
 #endif
 
 #endif  // TYPES_H

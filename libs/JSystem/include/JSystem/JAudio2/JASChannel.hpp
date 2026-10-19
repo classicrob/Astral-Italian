@@ -73,11 +73,19 @@ public:
 
     union MixConfig {
         u16 whole;
+#ifdef GALAXY_NATIVE
+        struct {
+            u16 lower1 : 4;
+            u16 lower0 : 4;
+            u16 upper : 8;
+        };
+#else
         struct {
             u8 upper : 8;
             u8 lower0 : 4;
             u8 lower1 : 4;
         };
+#endif
     };
 
     JASChannel(Callback, void*);

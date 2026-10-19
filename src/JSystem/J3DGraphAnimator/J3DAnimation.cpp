@@ -1262,6 +1262,12 @@ void J3DAnmTevRegKey::getTevColorReg(u16 index, GXColorS10* pColor) const {
             OSf32tos16(&col, &pColor->a);
         }
     }
+#ifdef GALAXY_NATIVE
+    if (petari_generic_world_grey_animation(this)) {  // Generic world mod: animated colours lose their hue
+        const s16 grey = static_cast< s16 >((pColor->r * 299 + pColor->g * 587 + pColor->b * 114) / 1000);
+        pColor->r = pColor->g = pColor->b = grey;
+    }
+#endif
 }
 
 void J3DAnmTevRegKey::getTevKonstReg(u16 index, GXColor* pColor) const {
@@ -1339,6 +1345,12 @@ void J3DAnmTevRegKey::getTevKonstReg(u16 index, GXColor* pColor) const {
             OSf32tou8(&col, &pColor->a);
         }
     }
+#ifdef GALAXY_NATIVE
+    if (petari_generic_world_grey_animation(this)) {  // Generic world mod: animated colours lose their hue
+        const u8 grey = static_cast< u8 >((pColor->r * 299 + pColor->g * 587 + pColor->b * 114) / 1000);
+        pColor->r = pColor->g = pColor->b = grey;
+    }
+#endif
 }
 
 void J3DAnmTevRegKey::searchUpdateMaterialID(J3DMaterialTable* pMatTable) {

@@ -78,6 +78,18 @@ public:
 
     /* 0x00 */ union {
         u32 mComposite;
+#ifdef GALAXY_NATIVE
+        struct {
+            u16 waveID;
+            union {
+                u16 value;
+                struct {
+                    u8 groupID;
+                    u8 sectionID;
+                } parts;
+            } type;
+        } info;
+#else
         struct {
             union {
                 u16 value;
@@ -88,6 +100,7 @@ public:
             } type;
             u16 waveID;
         } info;
+#endif
     } mID;
 };
 
@@ -318,8 +331,16 @@ struct JAISoundFader {
 template < typename T >
 struct JAISoundStrategy {
     virtual ~JAISoundStrategy() {};
+#ifdef GALAXY_NATIVE
+    // The base calc/mix have no definition in the source; only subclasses that
+    // override both (AudSeStrategy) are instantiated, so natively they are pure
+    // virtual to emit the base vtable.
+    virtual void calc(T*) = 0;
+    virtual void mix(T*, JASSoundParams*) = 0;
+#else
     virtual void calc(T*);
     virtual void mix(T*, JASSoundParams*);
+#endif
 };
 
 template < typename T >

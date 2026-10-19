@@ -1,6 +1,12 @@
 #include "nw4r/ut/CharWriter.h"
 #include "nw4r/ut/Font.h"
 #include <revolution/gx/GXVert.h>
+#ifdef GALAXY_NATIVE
+#include <petari/generic_grey.hpp>  // the Generic world mod: drawn colours without hue (a no-op while it is off)
+#define PETARI_GREY_RGBA(c) petari_generic_world_grey_rgba(static_cast< u32 >(c))
+#else
+#define PETARI_GREY_RGBA(c) (c)
+#endif
 
 namespace {
     void SetupGXCommon() {

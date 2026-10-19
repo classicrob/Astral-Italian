@@ -10,6 +10,60 @@
 #include "JSystem/JSupport/JSupport.hpp"
 #include "JSystem/JUtility/JUTNameTab.hpp"
 #include <stdint.h>
+#ifdef GALAXY_NATIVE
+#include <petari/host_image_heap.hpp>
+#include <petari/j3d_model.hpp>
+#include <revolution/os.h>
+
+namespace {
+    PetariNative::J3D::HostImageHeapResolver sHostImageHeapResolver = NULL;
+}  // namespace
+
+void PetariNative::J3D::setHostImageHeapResolver(HostImageHeapResolver resolver) {
+    sHostImageHeapResolver = resolver;
+}
+
+JKRHeap* PetariNative::J3D::resolveHostImageHeap(const void* pSource) {
+    return sHostImageHeapResolver != NULL ? sHostImageHeapResolver(pSource) : NULL;
+}
+
+namespace {
+    // Model files are big-endian. Natively the loaders work on a host-layout image (see
+    // petari/j3d_model.hpp): big-endian files are converted into a copy allocated on the
+    // heap petari/host_image_heap.hpp resolves for the source, by default the current JKR
+    // heap, where the model data built from it is also allocated. The copy must live as long
+    // as that model data. The archive resource itself is not modified.
+    // Host images (already converted) are used as they are. Returns NULL for a malformed file.
+    const void* getHostModelImage(const void* pData) {
+        if (pData == NULL) {
+            return NULL;
+        }
+
+        switch (PetariNative::J3D::classifyModelImage(pData)) {
+        case PetariNative::J3D::ModelImageKind::Host:
+        case PetariNative::J3D::ModelImageKind::NotJ3D:
+            return pData;
+        case PetariNative::J3D::ModelImageKind::BigEndian:
+            break;
+        }
+
+        const u32 size = PetariNative::J3D::modelFileSize(pData);
+        JKRHeap* pHeap = PetariNative::J3D::resolveHostImageHeap(pData);
+        u8* pImage = pHeap != NULL ? new (pHeap, 0x20) u8[size] : new (0x20) u8[size];
+        if (pImage == NULL) {
+            return NULL;
+        }
+
+        const char* pError = PetariNative::J3D::makeHostModelImage(pData, size, pImage);
+        if (pError != NULL) {
+            OSReport("J3DModelLoader: rejected model file: %s\n", pError);
+            delete[] pImage;
+            return NULL;
+        }
+        return pImage;
+    }
+}  // namespace
+#endif
 
 J3DModelLoader::J3DModelLoader()
     : mpModelData(NULL), mpMaterialTable(NULL), mpShapeBlock(NULL), mpMaterialBlock(NULL), mpModelHierarchy(NULL), field_0x18(0), mEnvelopeSize(0) {
@@ -17,6 +71,9 @@ J3DModelLoader::J3DModelLoader()
 }
 
 J3DModelData* J3DModelLoaderDataBase::load(void const* i_data, u32 i_flags) {
+#ifdef GALAXY_NATIVE
+    i_data = getHostModelImage(i_data);
+#endif
     if (i_data == NULL) {
         return NULL;
     }
@@ -35,6 +92,9 @@ J3DModelData* J3DModelLoaderDataBase::load(void const* i_data, u32 i_flags) {
 }
 
 J3DMaterialTable* J3DModelLoaderDataBase::loadMaterialTable(const void* data) {
+#ifdef GALAXY_NATIVE
+    data = getHostModelImage(data);
+#endif
     if (data == NULL) {
         return NULL;
     }
@@ -46,6 +106,9 @@ J3DMaterialTable* J3DModelLoaderDataBase::loadMaterialTable(const void* data) {
 }
 
 J3DModelData* J3DModelLoaderDataBase::loadBinaryDisplayList(const void* data, u32 flags) {
+#ifdef GALAXY_NATIVE
+    data = getHostModelImage(data);
+#endif
     if (data == NULL) {
         return NULL;
     }
@@ -280,6 +343,12 @@ void J3DModelLoader::readVertex(J3DVertexBlock const* i_block) {
     for (int i = 0; i < 8; i++) {
         vertex_data.mVtxTexCoordArray[i] = JSUConvertOffsetToPtr< void >(i_block, i_block->mpVtxTexCoordArray[i]);
     }
+#ifdef GALAXY_NATIVE
+    // Exact array spans (pos, nrm, nbt, clr0, clr1, tex0-7) for native GX array setup.
+    for (int i = 0; i < 13; i++) {
+        vertex_data.mNativeArrayBytes[i] = PetariNative::J3D::hostVertexArrayBytes(i_block, i);
+    }
+#endif
 
     _GXCompType nrm_type = getFmtType(vertex_data.mVtxAttrFmtList, GX_VA_NRM);
     u32 nrm_size = nrm_type == GX_F32 ? 12 : 6;

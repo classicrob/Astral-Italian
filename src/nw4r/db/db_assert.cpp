@@ -4,6 +4,14 @@
 #include "nw4r/db/mapFile.h"
 #include <va_list.h>
 
+#ifdef GALAXY_NATIVE
+#include <dlfcn.h>
+#include <execinfo.h>
+#define NW4R_DB_WEAK __attribute__((weak))
+#else
+#define NW4R_DB_WEAK __declspec(weak)
+#endif
+
 namespace nw4r {
     namespace db {
         static u32 sWarningTime = 0;
@@ -56,12 +64,14 @@ namespace nw4r {
             return;
         }
 
-        __declspec(weak) void VPanic(const char* file, int line, const char* fmt, va_list vlist, bool halt) {
+        NW4R_DB_WEAK void VPanic(const char* file, int line, const char* fmt, va_list vlist, bool halt) {
+#ifndef GALAXY_NATIVE
             register u32 stackPointer;
             asm {
         mr  stackPointer, r1
             }
             stackPointer = *((u32*)stackPointer);
+#endif
             (void)OSDisableInterrupts();
             (void)OSDisableScheduler();
 
@@ -87,7 +97,7 @@ namespace nw4r {
             }
         }
 
-        __declspec(weak) void Panic(const char* file, int line, const char* fmt, ...) {
+        NW4R_DB_WEAK void Panic(const char* file, int line, const char* fmt, ...) {
             va_list vlist;
             va_start(vlist, fmt);
             nw4r::db::VPanic(file, line, fmt, vlist, true);

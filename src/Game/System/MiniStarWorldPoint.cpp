@@ -20,7 +20,7 @@ MiniStarWorldPoint::MiniStarWorldPoint(WorldMapResultWorld* pWorld, s32 pointInd
     mLayout = nullptr;
 }
 
-static void setupCrownLayout(MiniStarWorldPoint* pPoint);
+static void setupCrownLayout(MiniStarWorldPoint* pPoint) NO_INLINE;
 
 void MiniStarWorldPoint::init(const JMapInfoIter& rIter) {
     char name[0x80];
@@ -37,8 +37,7 @@ void MiniStarWorldPoint::init(const JMapInfoIter& rIter) {
     makeActorAppeared();
 }
 
-#pragma dont_inline on
-// NONMATCHING: stack temporaries (iterator/accessor slots, makeAccessor result copied to a second slot) differ; instruction set otherwise matches
+#pragma auto_inline on
 // Builds the crown/completion layout of the star road node and shows the crown matching the world's progress.
 static void setupCrownLayout(MiniStarWorldPoint* pPoint) {
     LayoutActor* pLayout = new SimpleFollowActorLayout(pPoint, "コンプリートアイコン", "MapGalaxyState", TVec3f(0.0f), 1, -1);
@@ -80,7 +79,7 @@ static void setupCrownLayout(MiniStarWorldPoint* pPoint) {
     pPoint->mLayout->kill();
 }
 
-#pragma dont_inline reset
+#pragma auto_inline off
 
 void MiniStarWorldPoint::makeActorAppeared() {
     if (mWorld->hasOpenLineNoAlpha(mPointIndex)) {

@@ -120,7 +120,3 @@ namespace MR {
         }
     }
 };  // namespace MR
-
-void DirectDrawUtil_FORCE_MATCH(const TVec3f& rNormal) {
-    GXNormal3f32(rNormal.x, rNormal.y, rNormal.z);
-}

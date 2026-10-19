@@ -43,9 +43,6 @@ public:
     void onDrawXluAll();
     void offDrawXluAll();
 
-    // TODO: see .cpp
-    void dummy(s32);
-
     /* 0x00 */ MR::AssignableArray< DrawBufferGroup > mBufferGroups;
     /* 0x08 */ ExecutorList mExecuteLists[5];
     /* 0x44 */ bool mTableInitialized;

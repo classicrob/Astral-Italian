@@ -95,10 +95,7 @@ namespace {
 
 };  // namespace
 
-void ScreenUtil_FORCE_MATCH_SDATA2() {
-    (void)0.87f;
-    (void)0.844f;
-}
+
 namespace MR {
 
 

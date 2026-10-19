@@ -5,6 +5,7 @@
 #define JGEOMETRY_VEC3_UNARY_NEG_NOINLINE
 #define JGEOMETRY_OUTLINE_MATRIX_DIRECTION
 #define JGEOMETRY_VEC3_VEC_COPY_NOINLINE
+#define JGEOMETRY_VEC3_ASSIGN_NOINLINE
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Camera/CameraAnim.hpp"
 #include "Game/Camera/CameraCalc.hpp"

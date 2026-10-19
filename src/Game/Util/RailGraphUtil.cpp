@@ -58,6 +58,7 @@ namespace MR {
         return pGraph;
     }
 
+    // PLACEHOLDER(core): removal drops the target RailGraphIter copy constructor and changes createRailGraphIter; resolve when canonical copy-constructor emission is recovered
     void RailGraphUtil_FORCE_EMIT(const RailGraphIter& rIter) {
         RailGraphIter copy(rIter);
     }

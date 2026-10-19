@@ -525,7 +525,11 @@ namespace JGeometry {
             return *reinterpret_cast< const TVec2< f32 >* >(this);
         }
 
+#ifdef JGEOMETRY_VEC3_ASSIGN_NOINLINE
+        void operator=(const TVec3& vec) NO_INLINE {
+#else
         void operator=(const TVec3& vec) {
+#endif
 #ifdef __MWERKS__
             const register Vec* v_a = &vec;
             register Vec* v_b = this;

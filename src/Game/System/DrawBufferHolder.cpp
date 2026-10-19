@@ -108,11 +108,7 @@ void DrawBufferHolder::drawXlu(s32 drawBufferType) const {
     mBufferGroups[drawBufferType].drawXlu();
 }
 
-void DrawBufferHolder::dummy(s32 drawBufferType) {
-    // TODO: This SHOULD NOT be here, this is only here because for_each and Vector<>.end are emitted in this file for DrawBufferGroups,
-    // indicating some stripped function uses them. (Check Debug symbols for candidates)
-    std::for_each(mExecuteLists[drawBufferType].begin(), mExecuteLists[drawBufferType].end(), std::mem_func(&DrawBufferGroup::entry));
-}
+
 
 ExecutorList& DrawBufferHolder::getExecuteList(s32 drawBufferType) {
     s32 listId = mBufferGroups[drawBufferType].mDrawCameraType;

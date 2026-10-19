@@ -995,6 +995,7 @@ namespace {
     }
 };  // namespace
 
+// PLACEHOLDER(core): removal changes calcMovingDirectionAlongRail inlining; resolve when canonical vector assignment emission preserves that body
 void RailUtil_FORCE_MATCH(TVec3f* pDst, const TVec3f& rSrc) {
     *pDst = rSrc;
 }

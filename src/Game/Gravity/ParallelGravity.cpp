@@ -3,6 +3,7 @@
 #include "Inline.hpp"
 #include <JSystem/JMath.hpp>
 
+// PLACEHOLDER(core): removal changes calcOwnGravityVector inlining; resolve when canonical vector negation emission preserves that body
 void ParallelGravity_FORCE_MATCH(const TVec3f& rVector) {
     TVec3f negated = -rVector;
 }

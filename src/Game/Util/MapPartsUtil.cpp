@@ -22,16 +22,9 @@
 
 template TVec3f TVec3f::operator-(const TVec3f&) const;
 
-void MapPartsUtil_FORCE_MATCH_SDATA2() {
-    0.0f;
-    0.5f;
-}
 
-void MapPartsUtil_DUMMY() {
-    TVec3f a(0.0f, 0.0f, 0.0f);
-    TVec3f b;
-    a.sub(b);
-}
+
+
 
 namespace {
     const char* cFollowJointName = "Move";
@@ -163,11 +156,11 @@ namespace MR {
         if (!rIter.getValue(pKey, &value)) {
             return false;
         }
-        if (value == -1) {
-            return false;
+        if (value != -1) {
+            *pValue = value;
+            return true;
         }
-        *pValue = value;
-        return true;
+        return false;
     }
 
     bool getJMapInfoArgNoInit(const JMapInfoIter& rIter, const char* pKey, f32* pValue) {

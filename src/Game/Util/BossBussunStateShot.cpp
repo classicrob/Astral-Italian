@@ -26,22 +26,25 @@ void BossBussunStateShot::appear() {
     mShotCount = mShotCountMax;
 }
 
-// NONMATCHING: regalloc
+// NONMATCHING: stack slots
 void BossBussunStateShot::exeShotSign() {
     if (MR::isFirstStep(this)) {
         MR::startAction(mHost, "ShotSign");
     }
     if (mHost->isPlayerAttackable()) {
-        mHost->mTargetPos.set(*MR::getPlayerPos());
+        TVec3f* pTargetPos = &mHost->mTargetPos;
+        pTargetPos->set(*MR::getPlayerPos());
         f32 dist = MR::calcDistanceToPlayerH(mHost);
         TVec3f* pPlayerMove = MR::getPlayerLastMove();
+        TVec3f* pGravity = &mHost->mGravity;
         TVec3f killed;
-        JMAVECScaleAdd(&mHost->mGravity, pPlayerMove, &killed, -mHost->mGravity.dot(*pPlayerMove));
-        TVec3f lead = killed * (dist / 3.0f);
-        mHost->mTargetPos.add(lead);
+        JMAVECScaleAdd(pGravity, pPlayerMove, &killed, -pGravity->dot(*pPlayerMove));
+        TVec3f* pLeadTarget = &mHost->mTargetPos;
+        TVec3f lead = killed * (dist / 60.0f);
+        pLeadTarget->add(lead);
     }
     TVec3f target(mHost->mTargetPos);
-    MR::turnDirectionToTargetDegreeHorizon(mHost, &mHost->mFrontDir, target, 60.0f);
+    MR::turnDirectionToTargetDegreeHorizon(mHost, &mHost->mFrontDir, target, 3.0f);
     mHost->updateVelocityOnGround();
     if (MR::isActionEnd(mHost)) {
         setNerve(GET_NERVE(BossBussunStateShot, BossBussunStateShotNrvShot));

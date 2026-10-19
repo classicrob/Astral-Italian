@@ -25,7 +25,7 @@ namespace NrvGameSequenceWorldMap {
     GameSequenceWorldMapNrvEnd GameSequenceWorldMapNrvEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvGameSequenceWorldMap
 
-GameSequenceWorldMap::GameSequenceWorldMap(GameSequenceInGame* pHost) : ActorStateBase< GameSequenceInGame >("GameSequenceWorldMap", pHost), mPlayResultHolder(nullptr), mNameObj(nullptr) {
+GameSequenceWorldMap::GameSequenceWorldMap(GameSequenceInGame* pHost) : ActorStateBase< GameSequenceInGame >("[シーケンス]ワールドマップ", pHost), mPlayResultHolder(nullptr), mNameObj(nullptr) {
     mPlayResultHolder = new PlayResultWorldMapHolder();
     mNameObj = new NameObj("\x83\x8f\x81[\x83\x8b\x83h\x83}\x83""b\x83v\x83""f\x83\x82\x8aJ\x8en\x8e\xd2");
 }

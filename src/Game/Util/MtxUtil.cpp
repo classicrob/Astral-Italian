@@ -961,6 +961,7 @@ namespace MR {
     }
 };  // namespace MR
 
+// PLACEHOLDER(core): removal changes blendMtx inlining; resolve when canonical geometry emission preserves blendMtx
 void MtxUtil_FORCE_MATCH(TVec3f* pA, TVec3f* pB, TRot3f* pMtx) {
     *pA = *pA + *pB;
     pMtx->getEuler(*pA);

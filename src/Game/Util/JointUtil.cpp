@@ -196,6 +196,7 @@ namespace MR {
     }
 };  // namespace MR
 
+// PLACEHOLDER(core): removal drops the target SMatrix34C::set body and changes copyJointScale; resolve when canonical matrix-set emission is recovered
 void JointUtil_FORCE_MATCH(TMtx34f* pMtx, const Mtx pSrc) {
     pMtx->set(pSrc);
 }

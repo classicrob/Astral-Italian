@@ -9,10 +9,7 @@ namespace {
     const f32 sModelScale = 100.0f;
 };  // namespace
 
-void ShadowVolumeOvalPole_FORCE_MATCH_SDATA2() {
-    1.0f;
-    0.0f;
-}
+
 
 ShadowVolumeOvalPole::~ShadowVolumeOvalPole() {
 }

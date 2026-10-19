@@ -8,6 +8,7 @@
 #include "Game/Util/SceneUtil.hpp"
 #include <cstring>
 
+// PLACEHOLDER(core): removal changes getScenarioDataIter inlining; resolve when canonical JMapInfoIter template emission preserves that body
 void ScenarioDataParser_DUMMY() {
     s32 a;
     JMapInfoIter iter(nullptr, 0);

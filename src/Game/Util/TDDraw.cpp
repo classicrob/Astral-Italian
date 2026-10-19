@@ -21,18 +21,7 @@ namespace {
 };  // namespace
 
 namespace TDDraw {
-    void DirectDraw_FORCE_MATCH_SDATA2() {
-        1.0f;
-        0.0f;
-        0.5f;
-        -1.0f;
-        3.1415927f;
-        2.0f;
-        6.2831855f;
-        0.001f;
-        -30.0f;
-        16777215.0f;
-    }
+
 
     void setViewMtx(MtxPtr pMtx) {
         PSMTXCopy(pMtx, ::mViewMtx);
@@ -694,11 +683,13 @@ namespace TDDraw {
 
 };  // namespace TDDraw
 
+// PLACEHOLDER(core): removal changes sphere drawing or cameraInit2D inlining; resolve when canonical out-of-line geometry emission preserves those bodies
 void DirectDraw_FORCE_MATCH(TPos3f* pMtx, TVec3f* pVec) {
     pMtx->getTrans(*pVec);
     pMtx->setTrans(*pVec);
 }
 
+// PLACEHOLDER(core): removal changes sphere drawing or cameraInit2D inlining; resolve when canonical out-of-line geometry emission preserves those bodies
 void DirectDraw_FORCE_MATCH_CTOR(int x, int y, int z) {
     TVec3f v(x, y, z);
 }

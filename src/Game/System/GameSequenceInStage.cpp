@@ -37,7 +37,7 @@ namespace NrvGameSequenceInStage {
     GameSequenceInStageNrvEnd GameSequenceInStageNrvEnd::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvGameSequenceInStage
 
-GameSequenceInStage::GameSequenceInStage(GameSequenceInGame* pHost) : ActorStateBase< GameSequenceInGame >("GameSequenceInStage", pHost),
+GameSequenceInStage::GameSequenceInStage(GameSequenceInGame* pHost) : ActorStateBase< GameSequenceInGame >("[シーケンス]ステージ中", pHost),
     mPlayResultHolder(nullptr), mPlayerMissLeft(nullptr), mIsRetry(false), mIsKillReady(false) {
     mPlayResultHolder = new PlayResultInStageHolder();
 }

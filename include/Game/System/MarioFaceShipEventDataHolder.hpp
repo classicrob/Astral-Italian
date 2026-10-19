@@ -20,7 +20,7 @@ struct MarioFaceShipEventCast {
 // One event row (MarioFaceShipEventData.csv), 0x34 bytes.
 struct MarioFaceShipEventInfo {
     MarioFaceShipEventInfo()
-        : mEventType("スイッチのみ"), mKind("シナリオ"), mName1("IslandFleetGalaxy"), mName2("IslandFleetGalaxy"), mReturnType(""),
+        : mEventType("スイッチのみ"), mKind("シナリオ"), mName1("IslandFleetGalaxy"), mName2("IslandFleetGalaxy"), mReturnType("下"),
           mStarId1(-1), mStarId2(-1), mThreshold(-1), mWatchedEventNo(-1), mSwitchId(-1), mObjId(-1) {
         mCast = 0;
         mUseTimeKeepDemo = 0;

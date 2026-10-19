@@ -39,15 +39,7 @@
 #include <cstdarg>
 #include <revolution/sc.h>
 
-void Overwrite_FORCE_MATCH_SDATA2() {
-    (void)-2607.5945f;
-    (void)2607.5945f;
-    (void)0.333333f;
-    (void)0.57735f;
-    (void)0.001f;
-    (void)25.0f;
-    (void)0.01f;
-}
+
 
 namespace {
     const u8 sUnitMask[] = {0x80, 0x40, 0x20, 0x10, 8, 4, 2, 1};

@@ -254,7 +254,7 @@ void NANDErrorSequence::exeLessBlockOrInodeConfirm() {
     }
 
     if (isSelectedYes) {
-        setNerve(GET_NERVE_ANON(NANDErrorSequenceGoWiiMenu));
+        setNerve(GET_NERVE_ANON(NANDErrorSequenceShutdown));
     } else {
         setNerve(GET_NERVE_ANON(NANDErrorSequenceNoSaveConfirmLessBlockOrInode));
     }

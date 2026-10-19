@@ -22,14 +22,11 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-extern "C" {
-    extern const char* const lbl_807E1688;
-    extern const char* const lbl_807E168C;
-    extern const char* const lbl_807E1690;
-}
-
 namespace {
     const char* const cStarPaneName[] = {"Star1", "Star2", "Star3", "Star4", "Star5", "Star6"};
+    const char* const cNewPaneName = "New";
+    const char* const cNewGreenPaneName = "NewStar";
+    const char* const cNewCometPaneName = "NewComet";
     const char* const cQuestionPaneName[] = {
         "NewGreenComet1",
         "NewGreenComet2",
@@ -55,6 +52,10 @@ namespace {
 };  // namespace
 
 namespace {
+    inline bool hasScenarioClearTime(const char* stage, s32 scenario) {
+        return GameDataFunction::getScenarioClearTime(stage, scenario) != 0;
+    }
+
     inline s32 getHiddenScenarioNum() {
         s32 normalNum = MR::getCurrentStageNormalScenarioNum();
         return MR::getCurrentStagePowerStarNum() - normalNum;
@@ -131,17 +132,17 @@ void ScenarioSelectLayout::init(const JMapInfoIter& rIter) {
     MR::createAndAddPaneCtrl(this, "RaceTime", 1);
     MR::setFollowPos(&mRaceTimeFollowPos, this, "RaceTime");
     MR::setFollowTypeAdd(this, "RaceTime");
-    MR::createAndAddPaneCtrl(this, lbl_807E1688, 1);
-    MR::createAndAddPaneCtrl(this, lbl_807E168C, 1);
-    MR::createAndAddPaneCtrl(this, lbl_807E1690, 1);
+    MR::createAndAddPaneCtrl(this, cNewPaneName, 1);
+    MR::createAndAddPaneCtrl(this, cNewGreenPaneName, 1);
+    MR::createAndAddPaneCtrl(this, cNewCometPaneName, 1);
     for (s32 i = 0; i < ARRAY_SIZE(mQuestionPane); i++) MR::createAndAddPaneCtrl(this, cQuestionPaneName[i], 1);
     MR::createAndAddPaneCtrl(this, "Mario", 1);
     MR::createAndAddPaneCtrl(this, "CometAppear", 2);
     MR::setFollowPos(&mStarTopFollowPos, this, "StarTop");
     MR::setFollowTypeAdd(this, "StarTop");
-    MR::setFollowPos(&mNewTextFollowPos, this, lbl_807E1688);
-    MR::setFollowPos(&mNewGreenTextFollowPos, this, lbl_807E168C);
-    MR::setFollowPos(&mNewCometFollowPos, this, lbl_807E1690);
+    MR::setFollowPos(&mNewTextFollowPos, this, cNewPaneName);
+    MR::setFollowPos(&mNewGreenTextFollowPos, this, cNewGreenPaneName);
+    MR::setFollowPos(&mNewCometFollowPos, this, cNewCometPaneName);
     for (s32 i = 0; i < ARRAY_SIZE(mQuestionPane); i++) MR::setFollowPos(&mQuestionPane[i], this, cQuestionPaneName[i]);
     MR::setFollowPos(&mMarioPaneFollowPos, this, "Mario");
     initPointingTarget(6);
@@ -187,9 +188,9 @@ void ScenarioSelectLayout::appear() {
     MR::hidePaneRecursive(this, "Scenario");
     setPlayerLeft();
     LayoutActor::appear();
-    MR::hidePaneRecursive(this, lbl_807E1688);
-    MR::hidePaneRecursive(this, lbl_807E168C);
-    MR::hidePaneRecursive(this, lbl_807E1690);
+    MR::hidePaneRecursive(this, cNewPaneName);
+    MR::hidePaneRecursive(this, cNewGreenPaneName);
+    MR::hidePaneRecursive(this, cNewCometPaneName);
     for (s32 i = 0; i < ARRAY_SIZE(::cQuestionPaneName); i++) {
         MR::hidePaneRecursive(this, ::cQuestionPaneName[i]);
     }
@@ -345,7 +346,6 @@ void ScenarioSelectLayout::updateScenarioText() {
     }
 }
 
-// NONMATCHING: boolean conversion instruction sequence and string pooling differ.
 void ScenarioSelectLayout::fadeInText() {
     const char* stage = MR::getCurrentStageName();
     mScenarioTextFadingOut = 0;
@@ -354,7 +354,7 @@ void ScenarioSelectLayout::fadeInText() {
     MR::showPaneRecursive(this, "Scenario");
     MR::startPaneAnim(this, "Scenario", "SelectIn", 0);
     MR::startPaneAnim(this, "BestTime", "SelectIn", 0);
-    if (GameDataFunction::getScenarioClearTime(stage, mSelectedScenarioNo) != 0) {
+    if (hasScenarioClearTime(stage, mSelectedScenarioNo)) {
         wchar_t clearTime[16];
         MR::makeClearTimeString(clearTime, GameDataFunction::getScenarioClearTime(stage, mSelectedScenarioNo));
         MR::setTextBoxMessageRecursive(this, "ShaBCounter", clearTime);
@@ -375,7 +375,7 @@ void ScenarioSelectLayout::fadeInText() {
             MR::setTextBoxNumberRecursive(this, "ShaRCounter", GameDataFunction::getBestScoreAttackCurrentStage(stage));
             MR::setTextBoxGameMessageRecursive(this, "RTime", "ScenarioSelect_HighScore");
         }
-        if (GameDataFunction::getScenarioClearTime(stage, mSelectedScenarioNo) != 0) mRaceTimeFollowPos.zero();
+        if (hasScenarioClearTime(stage, mSelectedScenarioNo)) mRaceTimeFollowPos.zero();
         else mRaceTimeFollowPos.set(0.0f, 27.0f);
         return;
     }
@@ -383,12 +383,11 @@ void ScenarioSelectLayout::fadeInText() {
     MR::clearTextBoxMessageRecursive(this, "ShaRCounter");
 }
 
-// NONMATCHING: boolean conversion instruction sequence and string pooling differ.
 void ScenarioSelectLayout::fadeOutText() {
     const char* stage = MR::getCurrentStageName();
     mScenarioTextFadingOut = 1;
     MR::startPaneAnim(this, "Scenario", "SelectOut", 0);
-    if (GameDataFunction::getScenarioClearTime(stage, mDisplayedScenarioNo) != 0) MR::startPaneAnim(this, "BestTime", "SelectOut", 0);
+    if (hasScenarioClearTime(stage, mDisplayedScenarioNo)) MR::startPaneAnim(this, "BestTime", "SelectOut", 0);
     if (isCurrentStageRaceComplete(mDisplayedScenarioNo) || isCurrentStageScoreAttackComplete(mDisplayedScenarioNo)) MR::startPaneAnim(this, "RaceTime", "SelectOut", 0);
 }
 
@@ -436,8 +435,8 @@ ScenarioSelectStar* ScenarioSelectLayout::getSelectedStar() const {
 
 // NONMATCHING: register allocation and floating-point instruction scheduling differ.
 void ScenarioSelectLayout::calcWorldPositionFromScreenPos(TVec3f* pWorldPos, const TVec2f& rScreenPos, f32 depth) const {
-    f32 fovy = mCameraContext->getFovy() * (PI / 180.0f);
     f32 height = static_cast< s32 >(JUTVideo::getManager()->getEfbHeight());
+    f32 fovy = mCameraContext->getFovy() * (PI / 180.0f);
     f32 focalLength = (height * 0.5f) / MR::tan(fovy * 0.5f);
     f32 distance;
 
@@ -505,17 +504,17 @@ void ScenarioSelectLayout::appearAllStar(s32 normalScenarioCompleteNum, s32 extr
                 appearStar(starIndex, i, 0);
                 appearedNew = true;
                 if (MR::makeCurrentGalaxyStatusAccessor().isValidComet(i)) {
-                    MR::showPaneRecursive(this, lbl_807E1690);
+                    MR::showPaneRecursive(this, cNewCometPaneName);
                     MR::copyPaneTrans(&mNewCometFollowPos, this, ::cStarPaneName[starIndex]);
                 } else {
-                    MR::showPaneRecursive(this, lbl_807E1688);
+                    MR::showPaneRecursive(this, cNewPaneName);
                     MR::copyPaneTrans(&mNewTextFollowPos, this, ::cStarPaneName[starIndex]);
                 }
                 starIndex++;
             }
         } else if (MR::hasAllNormalPowerStarWithoutComet(stageName) && accessor.isOpenScenario(i)) {
             s32 hidden = MR::getPlacedHiddenStarScenarioNo(stageName, i) - 1;
-            MR::showPaneRecursive(this, lbl_807E168C);
+            MR::showPaneRecursive(this, cNewGreenPaneName);
             MR::copyPaneTrans(&mNewGreenTextFollowPos, this, ::cStarPaneName[hidden]);
         }
     }
@@ -585,9 +584,9 @@ void ScenarioSelectLayout::setPlayerLeft() {
 }
 
 void ScenarioSelectLayout::startAnimAllNewPane(const char* pAnimName) {
-    MR::startPaneAnim(this, lbl_807E1688, pAnimName, 0);
-    MR::startPaneAnim(this, lbl_807E168C, pAnimName, 0);
-    MR::startPaneAnim(this, lbl_807E1690, pAnimName, 0);
+    MR::startPaneAnim(this, cNewPaneName, pAnimName, 0);
+    MR::startPaneAnim(this, cNewGreenPaneName, pAnimName, 0);
+    MR::startPaneAnim(this, cNewCometPaneName, pAnimName, 0);
 
     for (s32 i = 0; i < ARRAY_SIZE(::cQuestionPaneName); i++) {
         MR::startPaneAnim(this, ::cQuestionPaneName[i], pAnimName, 0);
@@ -595,9 +594,9 @@ void ScenarioSelectLayout::startAnimAllNewPane(const char* pAnimName) {
 }
 
 void ScenarioSelectLayout::setAnimRateAllNewPane(f32 rate) {
-    MR::setPaneAnimRate(this, lbl_807E1688, rate, 0);
-    MR::setPaneAnimRate(this, lbl_807E168C, rate, 0);
-    MR::setPaneAnimRate(this, lbl_807E1690, rate, 0);
+    MR::setPaneAnimRate(this, cNewPaneName, rate, 0);
+    MR::setPaneAnimRate(this, cNewGreenPaneName, rate, 0);
+    MR::setPaneAnimRate(this, cNewCometPaneName, rate, 0);
 
     for (s32 i = 0; i < ARRAY_SIZE(::cQuestionPaneName); i++) {
         MR::setPaneAnimRate(this, ::cQuestionPaneName[i], rate, 0);

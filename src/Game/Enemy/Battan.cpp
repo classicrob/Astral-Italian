@@ -386,8 +386,12 @@ bool Battan::fn_8015AB40() const {
 // NONMATCHING: dead call-result compare/branch retention and temporary vector stack allocation.
 void Battan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isEqualSensor(pSender, this, "HandL") || MR::isEqualSensor(pSender, this, "HandR")) {
-        if ((MR::isSensorPlayerOrYoshiOrRide(pReceiver) || MR::isSensorEnemy(pReceiver)) && !MR::sendMsgPush(pReceiver, pSender)) {
-            return;
+        if (MR::isSensorPlayerOrYoshiOrRide(pReceiver) || MR::isSensorEnemy(pReceiver)) {
+            if (MR::sendMsgPush(pReceiver, pSender)) {
+                return;
+            } else {
+                return;
+            }
         }
         return;
     } else if (MR::isEqualSensor(pSender, this, "Push")) {

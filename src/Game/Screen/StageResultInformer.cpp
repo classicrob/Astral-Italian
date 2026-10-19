@@ -9,30 +9,36 @@
 #include "Game/System/WorldMapResultCommand.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 
-extern const char cMessageCompleteGold[] = "System_ResultGalaxyCompleteGold";
-extern const char cMessageCompleteSilver[] = "System_ResultGalaxyCompleteSilver";
-extern const char cBgmComplete[] = "BGM_JG_GALAXY_COMPLETE";
-extern const char cBgmNewGalaxy[] = "BGM_JG_NEW_GALAXY";
-
 namespace {
-    const char cCompleteMailMessage[] = "WiiMessage_AllComplete";
-    const char cCompleteMailImage[] = "AllCompleteImage.bin";
-    const char cCompleteMailFlag[] = "コンプリートメール送信";
     const char cMessagePowerStar[] = "System_ResultGetPowerStar";
-    const char cMessageBronzeStar[] = "System_ResultGetBronzeStar";
-    const char cMessageGrandStar[] = "System_ResultGetGrandStar";
     const char cMessageHiddenStar[] = "System_ResultGetHiddenStar";
     const char cMessageGreenStar[] = "System_ResultGetGreenStar";
+    const char cMessageBronzeStar[] = "System_ResultGetBronzeStar";
+    const char cMessageGrandStar[] = "System_ResultGetGrandStar";
     const char cMessageMedal[] = "System_ResultGetCometMedal";
-    const char cMedalNum[] = "ShaMedalNum";
-    const char cMessageBestTime[] = "System_ResultUpdateBestTime";
-    const char cBestClearTime[] = "BClearTime";
+}
 
-    const char cPanePlayResult[] = "PlayResult";
-    const char cPaneClearTime[] = "ClearTime";
+extern const char cMessageCompleteGold[] = "System_ResultGalaxyCompleteGold";
+extern const char cMessageCompleteSilver[] = "System_ResultGalaxyCompleteSilver";
+extern const char cMessageGhostAppear[] = "System_ResultGhostAppear";
+
+namespace {
     const char cMessageStarPiece[] = "System_ResultGetStarPiece";
     const char cMessageCoin[] = "System_ResultGetCoin";
+    const char cMessageBestTime[] = "System_ResultUpdateBestTime";
+    const char cPanePlayResult[] = "PlayResult";
+    const char cPaneClearTime[] = "ClearTime";
+    const char cNamePowerStarNum[] = "ShaStarNum";
+    const char cNameStarPieceLeft[] = "ShaTPieceLNum";
+    const char cNameStarPieceRight[] = "ShaTPieceRNum";
+    const char cNameCoinLeft[] = "ShaTCoinLNum";
+    const char cNameCoinRight[] = "ShaTCoinRNum";
+    const char cMedalNum[] = "ShaMedalNum";
+    const char cBestClearTime[] = "BClearTime";
+    const char cCompleteMailFlag[] = "コンプリートメール送信";
+}
 
+namespace {
     bool tryDecideResult() {
         if (MR::testSystemPadTriggerDecide()) {
             MR::startSystemSE("SE_SY_TALK_OK");
@@ -40,7 +46,6 @@ namespace {
         }
         return false;
     }
-    const char cNamePowerStarNum[] = "ShaStarNum";
 }
 
 DisplayInformationForResult::DisplayInformationForResult(StageResultInformer* host)
@@ -48,117 +53,8 @@ DisplayInformationForResult::DisplayInformationForResult(StageResultInformer* ho
     initNerve(&NrvDisplayInformationForResult::DisplayInformationForResultNrvIdle::sInstance);
 }
 
-StageResultInformer::StageResultInformer()
-    : LayoutActor("リザルト画面", true), mInformationDisplayer(0), mIconAButton(0), mClearedStarPieceNum(0),
-      _30(false), mOneUpLayout(0), mCoinOneUps(0), mResultPaneVisible(false) {
-    mInformationDisplayer = new DisplayInformationForResult(this);
-}
-
-void StageResultInformer::kill() {
-    LayoutActor::kill();
-    mIconAButton->kill();
-}
-
-void StageResultInformer::exeCountUpPowerStar() {
-    if (MR::isFirstStep(this)) {
-        MR::setTextBoxNumberRecursive(this, cNamePowerStarNum, GameDataFunction::calcCurrentPowerStarNum());
-        MR::startAnim(this, "Flash", 0);
-        MR::startSystemSE("SE_SY_RESULT_POW_STAR_INC");
-        MR::emitEffect(this, "ResultStarCounter");
-    }
-
-    if (MR::testSystemPadTriggerDecide()) {
-        _30 = true;
-    }
-
-    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetPowerStar::sInstance, 0);
-}
-
-void StageResultInformer::exeDisplayGetPowerStar() {
-    if (MR::isFirstStep(this)) {
-        mIconAButton->openWithoutMessage();
-    }
-
-    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearGetPowerStar::sInstance)) {
-        return;
-    }
-}
-
-bool StageResultInformer::tryWaitSystemPadTriggerDecide(const Nerve* pNerve) {
-    if (MR::testSystemPadTriggerDecide() || _30) {
-        _30 = false;
-
-        setNerve(pNerve);
-        MR::startSystemSE("SE_SY_TALK_OK");
-
-        return true;
-    }
-
-    return false;
-}
-
-bool StageResultInformer::tryWaitIntervalBeforeKeyWait(const Nerve* pNerve, int step) {
-    if (MR::testSystemPadTriggerDecide()) {
-        _30 = true;
-    }
-
-    if (MR::isStep(this, step)) {
-        setNerve(pNerve);
-
-        return true;
-    }
-
-    return false;
-}
-
-void StageResultInformer::updateStarPieceCount() {
-    s32 count = mClearedStarPieceNum;
-    MR::setTextBoxNumberRecursive(this, "ShaTPieceLNum", count);
-    MR::setTextBoxNumberRecursive(this, "ShaTPieceRNum", GameDataFunction::getStockedStarPieceNum() - mClearedStarPieceNum);
-}
-
-void StageResultInformer::updateCoinCount() {
-    s32 count = mClearedStarPieceNum;
-    MR::setTextBoxNumberRecursive(this, "ShaTCoinLNum", count);
-    MR::setTextBoxNumberRecursive(this, "ShaTCoinRNum", GameDataFunction::getStockedCoinNum() - mClearedStarPieceNum);
-}
-
-void StageResultInformer::hideCounterPanes() {
-    MR::hidePane(this, "TotalStar");
-    MR::hidePane(this, "TotalMedal");
-    MR::hidePane(this, "TotalPiece");
-    MR::hidePane(this, "TotalCoin");
-    MR::hidePane(this, "BClearTime");
-}
-
-void StageResultInformer::exeCountUpGetCometMedal() {
-    MR::isFirstStep(this);
-    if (MR::testSystemPadTriggerDecide()) {
-        _30 = true;
-    }
-    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetCometMedal::sInstance, 0);
-}
-
-void StageResultInformer::exeDisplayGetCometMedal() {
-    if (MR::isFirstStep(this)) {
-        mIconAButton->openWithoutMessage();
-    }
-    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCometMedal::sInstance)) {
-        return;
-    }
-}
-
-void StageResultInformer::exeDisplayBestTime() {
-    if (MR::isFirstStep(this)) {
-        mIconAButton->openWithoutMessage();
-    }
-    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearBestTime::sInstance)) {
-        return;
-    }
-}
-
-
-StageResultInformer::~StageResultInformer() {}
+char cBgmComplete[] = "BGM_JG_GALAXY_COMPLETE";
+char cBgmNewGalaxy[] = "BGM_JG_NEW_GALAXY";
 
 #pragma pool_data off
 void DisplayInformationForResult::exeAppear() {
@@ -173,8 +69,13 @@ void DisplayInformationForResult::exeAppear() {
     }
     if (MR::isDeadInformationMessage()) setNerve(&NrvDisplayInformationForResult::DisplayInformationForResultNrvIdle::sInstance);
 }
-
 #pragma pool_data reset
+
+StageResultInformer::StageResultInformer()
+    : LayoutActor("リザルト画面", true), mInformationDisplayer(0), mIconAButton(0), mClearedStarPieceNum(0),
+      _30(false), mOneUpLayout(0), mCoinOneUps(0), mResultPaneVisible(false) {
+    mInformationDisplayer = new DisplayInformationForResult(this);
+}
 
 void StageResultInformer::init(const JMapInfoIter&) {
     MR::connectToSceneLayout(this);
@@ -202,12 +103,108 @@ void StageResultInformer::appear() {
     setNerve(&NrvStageResultInformer::StageResultInformerNrvAppearGetPowerStar::sInstance);
 }
 
+void StageResultInformer::kill() {
+    LayoutActor::kill();
+    mIconAButton->kill();
+}
+
+// NONMATCHING: literal-pool and star-ID register allocation.
+void StageResultInformer::exeAppearGetPowerStar() {
+    if (MR::isFirstStep(this)) {
+        MR::showLayout(this);
+        hideCounterPanes();
+        MR::showPane(this, "TotalStar");
+        MR::startPaneAnim(this, cPanePlayResult, "Appear", 0);
+        MR::startPaneAnim(this, cPaneClearTime, "Appear", 0);
+        GalaxyStatusAccessor galaxy = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
+        s32 starId = GameSequenceFunction::getClearedPowerStarId();
+        const char* message;
+        if (galaxy.isOwnBronzeStar(starId)) message = cMessageBronzeStar;
+        else if (galaxy.isGrandStar(starId)) message = cMessageGrandStar;
+        else if (galaxy.isHiddenStar(starId)) message = cMessageHiddenStar;
+        else {
+            bool green = galaxy.isGreenStar(starId);
+            message = cMessagePowerStar;
+            if (green) message = cMessageGreenStar;
+        }
+        MR::setTextBoxGameMessageRecursive(this, "Result", message);
+        MR::startAnim(this, "Line", 1);
+        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
+        MR::setTextBoxArgStringRecursive(this, "Result", MR::getGalaxyNameOnCurrentLanguage(GameSequenceFunction::getClearedStageName()), 0);
+        starId = GameSequenceFunction::getClearedPowerStarId();
+        MR::setTextBoxArgStringRecursive(this, "Result", MR::getScenarioNameOnCurrentLanguage(GameSequenceFunction::getClearedStageName(), starId), 1);
+        s32 stars;
+        if (GameSequenceFunction::hasResultPowerStar()) stars = GameDataFunction::calcCurrentPowerStarNum() - 1;
+        else stars = GameDataFunction::calcCurrentPowerStarNum();
+        MR::setTextBoxNumberRecursive(this, cNamePowerStarNum, stars);
+        MR::startSubBGM("BGM_JG_RETURN_HOME", false);
+    }
+    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvWaitBeforeCountUpPowerStar::sInstance, 0);
+}
+
+void StageResultInformer::exeCountUpPowerStar() {
+    if (MR::isFirstStep(this)) {
+        MR::setTextBoxNumberRecursive(this, cNamePowerStarNum, GameDataFunction::calcCurrentPowerStarNum());
+        MR::startAnim(this, "Flash", 0);
+        MR::startSystemSE("SE_SY_RESULT_POW_STAR_INC");
+        MR::emitEffect(this, "ResultStarCounter");
+    }
+
+    if (MR::testSystemPadTriggerDecide()) {
+        _30 = true;
+    }
+
+    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetPowerStar::sInstance, 0);
+}
+
+void StageResultInformer::exeDisplayGetPowerStar() {
+    if (MR::isFirstStep(this)) {
+        mIconAButton->openWithoutMessage();
+    }
+
+    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearGetPowerStar::sInstance)) {
+        return;
+    }
+}
+
 void StageResultInformer::exeDisappearGetPowerStar() {
     if (MR::isFirstStep(this)) {
         endResultPane();
         mIconAButton->term();
     }
     if (MR::isPaneAnimStopped(this, cPanePlayResult, 0)) decideNextNerve();
+}
+
+void StageResultInformer::exeAppearGetCometMedal() {
+    if (MR::isFirstStep(this)) {
+        MR::showLayout(this);
+        hideCounterPanes();
+        MR::showPane(this, "TotalMedal");
+        MR::startPaneAnim(this, cPanePlayResult, "Appear", 0);
+        MR::setTextBoxGameMessageRecursive(this, "Result", cMessageMedal);
+        MR::startAnim(this, "Line", 1);
+        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
+        MR::setTextBoxNumberRecursive(this, cMedalNum, GameDataFunction::calcTicoCoinNum());
+        MR::startSubBGM("BGM_JG_HIGH_SCORE", false);
+    }
+    MR::setNerveAtPaneAnimStopped(this, cPanePlayResult, &NrvStageResultInformer::StageResultInformerNrvWaitBeforeCountUpCometMedal::sInstance, 0);
+}
+
+void StageResultInformer::exeCountUpGetCometMedal() {
+    MR::isFirstStep(this);
+    if (MR::testSystemPadTriggerDecide()) {
+        _30 = true;
+    }
+    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvDisplayGetCometMedal::sInstance, 0);
+}
+
+void StageResultInformer::exeDisplayGetCometMedal() {
+    if (MR::isFirstStep(this)) {
+        mIconAButton->openWithoutMessage();
+    }
+    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCometMedal::sInstance)) {
+        return;
+    }
 }
 
 void StageResultInformer::exeDisappearGetCometMedal() {
@@ -217,6 +214,16 @@ void StageResultInformer::exeDisappearGetCometMedal() {
     }
     if (MR::isPaneAnimStopped(this, cPanePlayResult, 0)) decideNextNerve();
 }
+
+#pragma pool_data off
+void StageResultInformer::exeComplete() {
+    GalaxyStatusAccessor galaxy = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
+    bool complete = galaxy.isCompletedNoGreen();
+    const char* message = cMessageCompleteSilver;
+    if (complete) message = cMessageCompleteGold;
+    tryShowAndKeyWaitInformationWindow(message, 0);
+}
+#pragma pool_data reset
 
 void StageResultInformer::exeAppearGetStarPiece() {
     if (MR::isFirstStep(this)) {
@@ -296,221 +303,6 @@ void StageResultInformer::exeAppearGetCoin() {
     }
 }
 
-void StageResultInformer::exeShowGalaxyMap() {
-    if (MR::isFirstStep(this)) updateCoinCount();
-    if (tryDecideResult()) setNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCoin::sInstance);
-}
-
-void StageResultInformer::exeDisappearGetCoin() {
-    if (MR::isFirstStep(this)) {
-        endResultPane();
-        if (mIconAButton->isOpen()) mIconAButton->term();
-        mOneUpLayout->kill();
-        MR::forceSyncCoinCounter();
-    }
-    if (MR::isPaneAnimStopped(this, cPanePlayResult, 0)) decideNextNerve();
-}
-
-void StageResultInformer::exeDisappearBestTime() {
-    if (MR::isFirstStep(this)) {
-        endResultPane();
-        MR::startAnimAndSetFrameAndStop(this, "BestTime", 0.0f, 2);
-        mIconAButton->term();
-    }
-    if (MR::isPaneAnimStopped(this, cPanePlayResult, 0)) decideNextNerve();
-}
-
-bool StageResultInformer::tryShowAndKeyWaitInformationWindow(const char* message, const wchar_t* replace) {
-    if (MR::isFirstStep(this)) {
-        DisplayInformationForResult* info = mInformationDisplayer;
-        info->mMessageId = message;
-        info->mReplaceString = replace;
-        info->setNerve(&NrvDisplayInformationForResult::DisplayInformationForResultNrvAppear::sInstance);
-    }
-    mInformationDisplayer->updateNerve();
-    bool notIdle = !mInformationDisplayer->isNerve(&NrvDisplayInformationForResult::DisplayInformationForResultNrvIdle::sInstance);
-    if (!notIdle) {
-        decideNextNerve();
-        return true;
-    }
-    return false;
-}
-
-void StageResultInformer::decideNextNerve() {
-    _30 = false;
-    const Nerve* next = getNextNerve();
-    if (next) setNerve(next);
-    else kill();
-}
-
-void StageResultInformer::endResultPane() {
-    MR::startPaneAnim(this, cPanePlayResult, "End", 0);
-    const Nerve* next = getNextNerve();
-    if (next == &NrvStageResultInformer::StageResultInformerNrvAppearGetCometMedal::sInstance ||
-        next == &NrvStageResultInformer::StageResultInformerNrvComplete::sInstance ||
-        next == &NrvStageResultInformer::StageResultInformerNrvGhostAppear::sInstance ||
-        next == &NrvStageResultInformer::StageResultInformerNrvAppearGetStarPiece::sInstance ||
-        next == &NrvStageResultInformer::StageResultInformerNrvAppearGetCoin::sInstance ||
-        next == &NrvStageResultInformer::StageResultInformerNrvAppearBestTime::sInstance) return;
-    {
-        MR::startPaneAnim(this, cPaneClearTime, "End", 0);
-        mResultPaneVisible = false;
-    }
-}
-
-bool StageResultInformer::isCompleted() const {
-    GalaxyStatusAccessor galaxy = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
-    if (!GameSequenceFunction::hasResultPowerStar() && !GameSequenceFunction::isResultNotifyTicoCoin() && !GameSequenceFunction::isResultStarNotGreen()) return false;
-    bool complete;
-    if (galaxy.isCompletedNoGreen()) complete = true;
-    else {
-        complete = false;
-        if (galaxy.isCompletedWithGreen() && !galaxy.isGreenStar(GameSequenceFunction::getClearedPowerStarId())) complete = true;
-    }
-    return complete;
-}
-
-#pragma pool_data off
-void StageResultInformer::exeComplete() {
-    GalaxyStatusAccessor galaxy = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
-    bool complete = galaxy.isCompletedNoGreen();
-    const char* message = cMessageCompleteSilver;
-    if (complete) message = cMessageCompleteGold;
-    tryShowAndKeyWaitInformationWindow(message, 0);
-}
-
-#pragma pool_data reset
-
-bool StageResultInformer::shouldShowCoinOneUp() {
-    if (GameSequenceFunction::getResultCoinOneUpCount() <= mCoinOneUps) return false;
-    if ((GameDataFunction::getStockedCoinNum() - mClearedStarPieceNum) % 100 > 0) return false;
-    s32 stocked = GameDataFunction::getStockedCoinNum();
-    stocked -= GameSequenceFunction::getResultCoinOneUpCount() * 100;
-    return stocked < GameDataFunction::getStockedCoinNum() - mClearedStarPieceNum;
-}
-
-void StageResultInformer::exeHideClearTime() {
-    if (MR::isFirstStep(this)) {
-        mResultPaneVisible = false;
-        MR::startPaneAnim(this, cPaneClearTime, "End", 0);
-    }
-    if (MR::isPaneAnimStopped(this, cPaneClearTime, 0)) decideNextNerve();
-}
-
-// NONMATCHING: cumulative state flags use different callee-saved registers.
-const Nerve* StageResultInformer::getNextNerve() const {
-    bool afterStar = isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetPowerStar::sInstance);
-    bool afterMedal = false;
-    if (afterStar || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCometMedal::sInstance)) afterMedal = true;
-    bool afterComplete = false;
-    if (afterMedal || isNerve(&NrvStageResultInformer::StageResultInformerNrvComplete::sInstance)) afterComplete = true;
-    bool afterGhost = false;
-    if (afterComplete || isNerve(&NrvStageResultInformer::StageResultInformerNrvGhostAppear::sInstance)) afterGhost = true;
-    bool afterPiece = false;
-    if (afterGhost || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetStarPiece::sInstance)) afterPiece = true;
-    bool afterCoin = false;
-    if (afterPiece || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCoin::sInstance)) afterCoin = true;
-    bool afterBestTime = false;
-    if (afterCoin || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearBestTime::sInstance)) afterBestTime = true;
-    bool afterClearTime = false;
-    if (afterBestTime || isNerve(&NrvStageResultInformer::StageResultInformerNrvHideClearTime::sInstance)) afterClearTime = true;
-    bool afterMail = false;
-    if (afterClearTime || isNerve(&NrvStageResultInformer::StageResultInformerNrvSendCompleteMail::sInstance)) afterMail = true;
-    bool afterMapStart = false;
-    if (afterMail || isNerve(&NrvStageResultInformer::StageResultInformerNrvMapStart::sInstance)) afterMapStart = true;
-    bool afterRoute = false;
-    if (afterMapStart || isNerve(&NrvStageResultInformer::StageResultInformerNrvRouteOpen::sInstance)) afterRoute = true;
-    bool afterComet = false;
-    if (afterRoute || isNerve(&NrvStageResultInformer::StageResultInformerNrvCometAppear::sInstance)) afterComet = true;
-    if (afterStar && GameSequenceFunction::isResultNotifyTicoCoin()) return &NrvStageResultInformer::StageResultInformerNrvAppearGetCometMedal::sInstance;
-    if (afterMedal && isCompleted()) return &NrvStageResultInformer::StageResultInformerNrvComplete::sInstance;
-    if (afterComplete && GameSequenceFunction::isResultUnlockGhostLuigi()) return &NrvStageResultInformer::StageResultInformerNrvGhostAppear::sInstance;
-    if (afterGhost && GameSequenceFunction::getClearedStarPieceNum() > 0) return &NrvStageResultInformer::StageResultInformerNrvAppearGetStarPiece::sInstance;
-    if (afterPiece && GameSequenceFunction::getClearedCoinNum() > 0) return &NrvStageResultInformer::StageResultInformerNrvAppearGetCoin::sInstance;
-    if (afterCoin && GameSequenceFunction::isResultNewBestTime()) return &NrvStageResultInformer::StageResultInformerNrvAppearBestTime::sInstance;
-    if (afterBestTime && mResultPaneVisible) return &NrvStageResultInformer::StageResultInformerNrvHideClearTime::sInstance;
-    if (afterClearTime) {
-        bool sendMail;
-        if (GameDataFunction::isOnGameEventFlag("コンプリートメール送信")) sendMail = false;
-        else {
-            s32 maximum = GameDataFunction::getPowerStarNumMax();
-            sendMail = maximum <= GameDataFunction::calcCurrentPowerStarNum();
-        }
-        if (sendMail) return &NrvStageResultInformer::StageResultInformerNrvSendCompleteMail::sInstance;
-    }
-    if (!MR::isStageMarioFaceShipNormal()) return 0;
-    if (afterMail && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryStartResultMapStart()) return &NrvStageResultInformer::StageResultInformerNrvMapStart::sInstance;
-    if (afterMapStart && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryRouteOpen()) return &NrvStageResultInformer::StageResultInformerNrvRouteOpen::sInstance;
-    if (afterRoute && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryCometAppear()) return &NrvStageResultInformer::StageResultInformerNrvCometAppear::sInstance;
-    if (afterComet && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryStartResultMapEnd()) return &NrvStageResultInformer::StageResultInformerNrvMapEnd::sInstance;
-    return 0;
-}
-
-void StageResultInformer::exeAppearGetCometMedal() {
-    if (MR::isFirstStep(this)) {
-        MR::showLayout(this);
-        hideCounterPanes();
-        MR::showPane(this, "TotalMedal");
-        MR::startPaneAnim(this, cPanePlayResult, "Appear", 0);
-        MR::setTextBoxGameMessageRecursive(this, "Result", cMessageMedal);
-        MR::startAnim(this, "Line", 1);
-        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
-        MR::setTextBoxNumberRecursive(this, cMedalNum, GameDataFunction::calcTicoCoinNum());
-        MR::startSubBGM("BGM_JG_HIGH_SCORE", false);
-    }
-    MR::setNerveAtPaneAnimStopped(this, cPanePlayResult, &NrvStageResultInformer::StageResultInformerNrvWaitBeforeCountUpCometMedal::sInstance, 0);
-}
-
-void StageResultInformer::exeAppearBestTime() {
-    if (MR::isFirstStep(this)) {
-        MR::showLayout(this);
-        MR::startPaneAnim(this, cPanePlayResult, "Appear", 0);
-        MR::startAnim(this, "BestTime", 2);
-        hideCounterPanes();
-        MR::showPane(this, "BClearTime");
-        MR::setTextBoxGameMessageRecursive(this, "Result", cMessageBestTime);
-        MR::startAnim(this, "Line", 1);
-        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
-        MR::updateClearTimeTextBox(this, cBestClearTime, GameSequenceFunction::getResultBestTime());
-        MR::startSubBGM("BGM_SMG2_JG_TIME", false);
-    }
-    MR::setNerveAtPaneAnimStopped(this, cPanePlayResult, &NrvStageResultInformer::StageResultInformerNrvWaitBeforeDisplayBestTime::sInstance, 0);
-}
-
-// NONMATCHING: literal-pool and star-ID register allocation.
-void StageResultInformer::exeAppearGetPowerStar() {
-    if (MR::isFirstStep(this)) {
-        MR::showLayout(this);
-        hideCounterPanes();
-        MR::showPane(this, "TotalStar");
-        MR::startPaneAnim(this, cPanePlayResult, "Appear", 0);
-        MR::startPaneAnim(this, cPaneClearTime, "Appear", 0);
-        GalaxyStatusAccessor galaxy = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
-        s32 starId = GameSequenceFunction::getClearedPowerStarId();
-        const char* message;
-        if (galaxy.isOwnBronzeStar(starId)) message = cMessageBronzeStar;
-        else if (galaxy.isGrandStar(starId)) message = cMessageGrandStar;
-        else if (galaxy.isHiddenStar(starId)) message = cMessageHiddenStar;
-        else {
-            bool green = galaxy.isGreenStar(starId);
-            message = cMessagePowerStar;
-            if (green) message = cMessageGreenStar;
-        }
-        MR::setTextBoxGameMessageRecursive(this, "Result", message);
-        MR::startAnim(this, "Line", 1);
-        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
-        MR::setTextBoxArgStringRecursive(this, "Result", MR::getGalaxyNameOnCurrentLanguage(GameSequenceFunction::getClearedStageName()), 0);
-        starId = GameSequenceFunction::getClearedPowerStarId();
-        MR::setTextBoxArgStringRecursive(this, "Result", MR::getScenarioNameOnCurrentLanguage(GameSequenceFunction::getClearedStageName(), starId), 1);
-        s32 stars;
-        if (GameSequenceFunction::hasResultPowerStar()) stars = GameDataFunction::calcCurrentPowerStarNum() - 1;
-        else stars = GameDataFunction::calcCurrentPowerStarNum();
-        MR::setTextBoxNumberRecursive(this, cNamePowerStarNum, stars);
-        MR::startSubBGM("BGM_JG_RETURN_HOME", false);
-    }
-    MR::setNerveAtAnimStopped(this, &NrvStageResultInformer::StageResultInformerNrvWaitBeforeCountUpPowerStar::sInstance, 0);
-}
-
 void StageResultInformer::exeDisplayGetCoin() {
     if (MR::isFirstStep(this)) MR::emitEffect(this, "ResultCoinCounter");
     --mClearedStarPieceNum;
@@ -573,12 +365,73 @@ void StageResultInformer::exeWaitBeforeDisappearGetCoin() {
     }
 }
 
+void StageResultInformer::exeShowGalaxyMap() {
+    if (MR::isFirstStep(this)) updateCoinCount();
+    if (tryDecideResult()) setNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCoin::sInstance);
+}
+
+void StageResultInformer::exeDisappearGetCoin() {
+    if (MR::isFirstStep(this)) {
+        endResultPane();
+        if (mIconAButton->isOpen()) mIconAButton->term();
+        mOneUpLayout->kill();
+        MR::forceSyncCoinCounter();
+    }
+    if (MR::isPaneAnimStopped(this, cPanePlayResult, 0)) decideNextNerve();
+}
+
+void StageResultInformer::exeAppearBestTime() {
+    if (MR::isFirstStep(this)) {
+        MR::showLayout(this);
+        MR::startPaneAnim(this, cPanePlayResult, "Appear", 0);
+        MR::startAnim(this, "BestTime", 2);
+        hideCounterPanes();
+        MR::showPane(this, "BClearTime");
+        MR::setTextBoxGameMessageRecursive(this, "Result", cMessageBestTime);
+        MR::startAnim(this, "Line", 1);
+        MR::setAnimFrameAndStopAdjustTextHeight(this, "Result", 1);
+        MR::updateClearTimeTextBox(this, cBestClearTime, GameSequenceFunction::getResultBestTime());
+        MR::startSubBGM("BGM_SMG2_JG_TIME", false);
+    }
+    MR::setNerveAtPaneAnimStopped(this, cPanePlayResult, &NrvStageResultInformer::StageResultInformerNrvWaitBeforeDisplayBestTime::sInstance, 0);
+}
+
+void StageResultInformer::exeDisplayBestTime() {
+    if (MR::isFirstStep(this)) {
+        mIconAButton->openWithoutMessage();
+    }
+    if (tryWaitSystemPadTriggerDecide(&NrvStageResultInformer::StageResultInformerNrvDisappearBestTime::sInstance)) {
+        return;
+    }
+}
+
+void StageResultInformer::exeDisappearBestTime() {
+    if (MR::isFirstStep(this)) {
+        endResultPane();
+        MR::startAnimAndSetFrameAndStop(this, "BestTime", 0.0f, 2);
+        mIconAButton->term();
+    }
+    if (MR::isPaneAnimStopped(this, cPanePlayResult, 0)) decideNextNerve();
+}
+
+void StageResultInformer::exeHideClearTime() {
+    if (MR::isFirstStep(this)) {
+        mResultPaneVisible = false;
+        MR::startPaneAnim(this, cPaneClearTime, "End", 0);
+    }
+    if (MR::isPaneAnimStopped(this, cPaneClearTime, 0)) decideNextNerve();
+}
+
+namespace {
+    char cCompleteMailMessage[] = "WiiMessage_AllComplete";
+    char cCompleteMailImage[] = "AllCompleteImage.bin";
+}
+
 #pragma pool_data off
 void StageResultInformer::exeSendCompleteMail() {
     if (MR::isFirstStep(this)) MR::requestWiiMessageBoardMailSend(cCompleteMailMessage, cCompleteMailImage, cCompleteMailFlag);
     if (MR::updateWiiMessageBoardMailSenderState()) decideNextNerve();
 }
-
 #pragma pool_data reset
 
 void StageResultInformer::exeMapStart() {
@@ -590,6 +443,162 @@ void StageResultInformer::exeMapEnd() {
     MR::getSceneObj<WorldMapResultCommand>(0x34)->updateController();
     if (MR::getSceneObj<WorldMapResultCommand>(0x34)->isStateDead()) decideNextNerve();
 }
+
+// NONMATCHING: cumulative state flags use different callee-saved registers.
+const Nerve* StageResultInformer::getNextNerve() const {
+    bool afterStar = isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetPowerStar::sInstance);
+    bool afterMedal = false;
+    if (afterStar || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCometMedal::sInstance)) afterMedal = true;
+    bool afterComplete = false;
+    if (afterMedal || isNerve(&NrvStageResultInformer::StageResultInformerNrvComplete::sInstance)) afterComplete = true;
+    bool afterGhost = false;
+    if (afterComplete || isNerve(&NrvStageResultInformer::StageResultInformerNrvGhostAppear::sInstance)) afterGhost = true;
+    bool afterPiece = false;
+    if (afterGhost || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetStarPiece::sInstance)) afterPiece = true;
+    bool afterCoin = false;
+    if (afterPiece || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearGetCoin::sInstance)) afterCoin = true;
+    bool afterBestTime = false;
+    if (afterCoin || isNerve(&NrvStageResultInformer::StageResultInformerNrvDisappearBestTime::sInstance)) afterBestTime = true;
+    bool afterClearTime = false;
+    if (afterBestTime || isNerve(&NrvStageResultInformer::StageResultInformerNrvHideClearTime::sInstance)) afterClearTime = true;
+    bool afterMail = false;
+    if (afterClearTime || isNerve(&NrvStageResultInformer::StageResultInformerNrvSendCompleteMail::sInstance)) afterMail = true;
+    bool afterMapStart = false;
+    if (afterMail || isNerve(&NrvStageResultInformer::StageResultInformerNrvMapStart::sInstance)) afterMapStart = true;
+    bool afterRoute = false;
+    if (afterMapStart || isNerve(&NrvStageResultInformer::StageResultInformerNrvRouteOpen::sInstance)) afterRoute = true;
+    bool afterComet = false;
+    if (afterRoute || isNerve(&NrvStageResultInformer::StageResultInformerNrvCometAppear::sInstance)) afterComet = true;
+    if (afterStar && GameSequenceFunction::isResultNotifyTicoCoin()) return &NrvStageResultInformer::StageResultInformerNrvAppearGetCometMedal::sInstance;
+    if (afterMedal && isCompleted()) return &NrvStageResultInformer::StageResultInformerNrvComplete::sInstance;
+    if (afterComplete && GameSequenceFunction::isResultUnlockGhostLuigi()) return &NrvStageResultInformer::StageResultInformerNrvGhostAppear::sInstance;
+    if (afterGhost && GameSequenceFunction::getClearedStarPieceNum() > 0) return &NrvStageResultInformer::StageResultInformerNrvAppearGetStarPiece::sInstance;
+    if (afterPiece && GameSequenceFunction::getClearedCoinNum() > 0) return &NrvStageResultInformer::StageResultInformerNrvAppearGetCoin::sInstance;
+    if (afterCoin && GameSequenceFunction::isResultNewBestTime()) return &NrvStageResultInformer::StageResultInformerNrvAppearBestTime::sInstance;
+    if (afterBestTime && mResultPaneVisible) return &NrvStageResultInformer::StageResultInformerNrvHideClearTime::sInstance;
+    if (afterClearTime) {
+        bool sendMail;
+        if (GameDataFunction::isOnGameEventFlag(cCompleteMailFlag)) sendMail = false;
+        else {
+            s32 maximum = GameDataFunction::getPowerStarNumMax();
+            sendMail = maximum <= GameDataFunction::calcCurrentPowerStarNum();
+        }
+        if (sendMail) return &NrvStageResultInformer::StageResultInformerNrvSendCompleteMail::sInstance;
+    }
+    if (!MR::isStageMarioFaceShipNormal()) return 0;
+    if (afterMail && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryStartResultMapStart()) return &NrvStageResultInformer::StageResultInformerNrvMapStart::sInstance;
+    if (afterMapStart && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryRouteOpen()) return &NrvStageResultInformer::StageResultInformerNrvRouteOpen::sInstance;
+    if (afterRoute && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryCometAppear()) return &NrvStageResultInformer::StageResultInformerNrvCometAppear::sInstance;
+    if (afterComet && MR::getSceneObj<WorldMapResultCommand>(0x34)->tryStartResultMapEnd()) return &NrvStageResultInformer::StageResultInformerNrvMapEnd::sInstance;
+    return 0;
+}
+
+void StageResultInformer::decideNextNerve() {
+    _30 = false;
+    const Nerve* next = getNextNerve();
+    if (next) setNerve(next);
+    else kill();
+}
+
+bool StageResultInformer::tryWaitSystemPadTriggerDecide(const Nerve* pNerve) {
+    if (MR::testSystemPadTriggerDecide() || _30) {
+        _30 = false;
+
+        setNerve(pNerve);
+        MR::startSystemSE("SE_SY_TALK_OK");
+
+        return true;
+    }
+
+    return false;
+}
+
+bool StageResultInformer::tryWaitIntervalBeforeKeyWait(const Nerve* pNerve, int step) {
+    if (MR::testSystemPadTriggerDecide()) {
+        _30 = true;
+    }
+
+    if (MR::isStep(this, step)) {
+        setNerve(pNerve);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool StageResultInformer::tryShowAndKeyWaitInformationWindow(const char* message, const wchar_t* replace) {
+    if (MR::isFirstStep(this)) {
+        DisplayInformationForResult* info = mInformationDisplayer;
+        info->mMessageId = message;
+        info->mReplaceString = replace;
+        info->setNerve(&NrvDisplayInformationForResult::DisplayInformationForResultNrvAppear::sInstance);
+    }
+    mInformationDisplayer->updateNerve();
+    bool notIdle = !mInformationDisplayer->isNerve(&NrvDisplayInformationForResult::DisplayInformationForResultNrvIdle::sInstance);
+    if (!notIdle) {
+        decideNextNerve();
+        return true;
+    }
+    return false;
+}
+
+void StageResultInformer::updateStarPieceCount() {
+    s32 count = mClearedStarPieceNum;
+    MR::setTextBoxNumberRecursive(this, cNameStarPieceLeft, count);
+    MR::setTextBoxNumberRecursive(this, cNameStarPieceRight, GameDataFunction::getStockedStarPieceNum() - mClearedStarPieceNum);
+}
+
+void StageResultInformer::updateCoinCount() {
+    s32 count = mClearedStarPieceNum;
+    MR::setTextBoxNumberRecursive(this, cNameCoinLeft, count);
+    MR::setTextBoxNumberRecursive(this, cNameCoinRight, GameDataFunction::getStockedCoinNum() - mClearedStarPieceNum);
+}
+
+bool StageResultInformer::shouldShowCoinOneUp() {
+    if (GameSequenceFunction::getResultCoinOneUpCount() <= mCoinOneUps) return false;
+    if ((GameDataFunction::getStockedCoinNum() - mClearedStarPieceNum) % 100 > 0) return false;
+    s32 stocked = GameDataFunction::getStockedCoinNum();
+    stocked -= GameSequenceFunction::getResultCoinOneUpCount() * 100;
+    return stocked < GameDataFunction::getStockedCoinNum() - mClearedStarPieceNum;
+}
+
+void StageResultInformer::hideCounterPanes() {
+    MR::hidePane(this, "TotalStar");
+    MR::hidePane(this, "TotalMedal");
+    MR::hidePane(this, "TotalPiece");
+    MR::hidePane(this, "TotalCoin");
+    MR::hidePane(this, "BClearTime");
+}
+
+void StageResultInformer::endResultPane() {
+    MR::startPaneAnim(this, cPanePlayResult, "End", 0);
+    const Nerve* next = getNextNerve();
+    if (next == &NrvStageResultInformer::StageResultInformerNrvAppearGetCometMedal::sInstance ||
+        next == &NrvStageResultInformer::StageResultInformerNrvComplete::sInstance ||
+        next == &NrvStageResultInformer::StageResultInformerNrvGhostAppear::sInstance ||
+        next == &NrvStageResultInformer::StageResultInformerNrvAppearGetStarPiece::sInstance ||
+        next == &NrvStageResultInformer::StageResultInformerNrvAppearGetCoin::sInstance ||
+        next == &NrvStageResultInformer::StageResultInformerNrvAppearBestTime::sInstance) return;
+    {
+        MR::startPaneAnim(this, cPaneClearTime, "End", 0);
+        mResultPaneVisible = false;
+    }
+}
+
+bool StageResultInformer::isCompleted() const {
+    GalaxyStatusAccessor galaxy = MR::makeGalaxyStatusAccessor(GameSequenceFunction::getClearedStageName());
+    if (!GameSequenceFunction::hasResultPowerStar() && !GameSequenceFunction::isResultNotifyTicoCoin() && !GameSequenceFunction::isResultStarNotGreen()) return false;
+    bool complete;
+    if (galaxy.isCompletedNoGreen()) complete = true;
+    else {
+        complete = false;
+        if (galaxy.isCompletedWithGreen() && !galaxy.isGreenStar(GameSequenceFunction::getClearedPowerStarId())) complete = true;
+    }
+    return complete;
+}
+
+StageResultInformer::~StageResultInformer() {}
 
 namespace NrvStageResultInformer {
     StageResultInformerNrvAppearGetPowerStar StageResultInformerNrvAppearGetPowerStar::sInstance;

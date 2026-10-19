@@ -15,7 +15,7 @@
 #include <nw4r/lyt/textBox.h>
 #include <nw4r/ut/TextWriterBase.h>
 
-extern "C" int swprintf(wchar_t*, size_t, const wchar_t*, ...);
+#include <wstring.h>
 
 namespace {
     const f32 mRubyBaseLineOffset = 3.0f;
@@ -127,7 +127,7 @@ CustomTagProcessor::Impl::GroupFunctionInfo CustomTagProcessor::Impl::sGroupFunc
     {5, &CustomTagProcessor::exeLocalizeGroup},
     {6, &CustomTagProcessor::exeNumberGroup},
     {7, &CustomTagProcessor::exeStringGroup},
-    {255, &CustomTagProcessor::exeSystemGroup},
+    {0, &CustomTagProcessor::exeSystemGroup},
     {10, &CustomTagProcessor::exeFontGroup},
 
 
@@ -150,7 +150,7 @@ CustomTagProcessor::Impl::GroupFunctionInfo* CustomTagProcessor::Impl::findGroup
 namespace nw4r {
     namespace ut {
         template <>
-        f32 TextWriterBase<wchar_t>::GetCharSpaceValidated() const {
+        inline f32 TextWriterBase<wchar_t>::GetCharSpaceValidated() const {
             (void)((((reinterpret_cast<u32>(this) & 0xFF000000) == 0x80000000) ||
                   ((reinterpret_cast<u32>(this) & 0xFF800000) == 0x81000000) ||
                   ((reinterpret_cast<u32>(this) & 0xF8000000) == 0x90000000) ||

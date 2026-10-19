@@ -315,10 +315,8 @@ bool HammerBros::isAliveNerve() const {
 }
 
 bool HammerBros::isStarPointerBindable() const {
-    if (isNerve(NRV(Wait)) || isNerve(NRV(Interval)) || isNerve(NRV(Jump)) || isNerve(NRV(Attack))) {
-        return true;
-    }
-    if (isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B080()) {
+    if (isNerve(NRV(Wait)) || isNerve(NRV(Interval)) || isNerve(NRV(Jump)) || isNerve(NRV(Attack)) ||
+        (isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B080())) {
         return true;
     }
     if (isNerve(NRV(Guard)) && MR::isGreaterStep(this, 60)) {
@@ -409,13 +407,13 @@ bool HammerBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 bool HammerBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
-    bool ok = isNormalNerve();
-    if (!ok) {
+    if (!isNormalNerve()) {
+        bool ok = false;
         if ((isNerve(NRV(Swoon)) && mStateSwoon->fn_8018B000()) || isNerve(NRV(FreezeSwoon))) {
             ok = true;
         }
         if (!ok && !isNerve(NRV(FreezeSwoon))) {
-            return false;
+            goto failure;
         }
     }
     if (isNormalNerve()) {
@@ -427,6 +425,8 @@ bool HammerBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
     setNerve(NRV(Swoon));
     killHeldProjectile();
     return true;
+failure:
+    return false;
 }
 
 bool HammerBros::tryStomp() {
@@ -516,14 +516,27 @@ void HammerBros::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 attacking = true;
             }
             if (attacking && !MR::isPlayerHipDropFalling()) {
-                MR::sendMsgEnemyAttack(pReceiver, pSender);
+                if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+                    return;
+                } else {
+                    return;
+                }
             } else if (!isNerve(NRV(SwoonPressDown)) && !isNerve(NRV(StandPressDown))) {
-                MR::sendMsgPush(pReceiver, pSender);
+                if (MR::sendMsgPush(pReceiver, pSender)) {
+                    return;
+                } else {
+                    return;
+                }
+                return;
             }
+            return;
         }
+        return;
     } else if (MR::isSensorYoshi(pReceiver)) {
         if (!isNerve(NRV(SwoonPressDown)) && !isNerve(NRV(StandPressDown))) {
-            MR::sendMsgPush(pReceiver, pSender);
+            if (MR::sendMsgPush(pReceiver, pSender)) {
+                return;
+            }
         }
     }
 }

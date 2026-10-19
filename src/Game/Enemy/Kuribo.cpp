@@ -204,7 +204,6 @@ void Kuribo::kill() {
     LiveActor::kill();
 }
 
-// NONMATCHING: MWCC folds the explicit early-return branch after tryPointBind.
 void Kuribo::control() {
     mScaleController->updateNerve();
     if (_C4) {
@@ -222,12 +221,10 @@ void Kuribo::control() {
     }
 
     if (!tryDead()) {
-        switch (tryPointBind()) {
-        case false:
+        if (tryPointBind()) {
+            return;
+        } else {
             if (fn_801BAF60()) YoshiFunction::tryYoshiEat(mYoshiLockOn);
-            break;
-        default:
-            break;
         }
     }
 }

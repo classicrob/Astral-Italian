@@ -56,7 +56,7 @@ void BombHeiLauncher::init(const JMapInfoIter& rIter) {
 
     initHitSensor(2);
     MR::addBodyMessageSensorEnemy(this);
-    MR::initCollisionParts(this, "BombHeiLauncher", getSensor("body"), nullptr);
+    MR::initCollisionParts(this, "BombHeiLauncher", getSensor("Body"), nullptr);
     MR::onCalcGravity(this);
 
     initNerve(GET_NERVE(BombHeiLauncher, HostTypeNrvStop));

@@ -315,6 +315,7 @@ void BombHei::exeWait() {
 #pragma global_optimizer on
 
 // NONMATCHING: target keeps `mCountdown > 0 && mCountdown < 120` as two compares; CW merges them into one unsigned range check
+#pragma global_optimizer off
 void BombHei::exeWalk() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Walk");
@@ -347,6 +348,7 @@ void BombHei::exeWalk() {
         }
     }
 }
+#pragma global_optimizer on
 
 
 #pragma global_optimizer off

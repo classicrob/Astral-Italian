@@ -45,7 +45,6 @@ void KarikariDirector::removeAllClingingKarikari() {
         Karikari* karikari = mClingingKarikari[idx];
         if (karikari != nullptr) {
             karikari->tryHipDropRelease();
-            fn_801B0DB0(karikari);
         }
     }
 }

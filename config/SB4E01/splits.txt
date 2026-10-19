@@ -7253,7 +7253,7 @@ Game/Screen/CustomTagProcessor.cpp:
 	.text       start:0x80466460 end:0x8046AB40
 	.ctors      start:0x806448B8 end:0x806448BC
 	.rodata     start:0x8064C9A8 end:0x8064C9B8
-	.data       start:0x806F22A0 end:0x806F250C
+	.data       start:0x806F22A0 end:0x806F2E70
 	.sdata      start:0x807D01B0 end:0x807D01B8
 	.sdata2     start:0x807E1318 end:0x807E1340
 
@@ -7608,8 +7608,11 @@ Game/Screen/SaveIcon.cpp:
 Game/Screen/ScenarioSelectLayout.cpp:
 	.text       start:0x8048D070 end:0x8048F920
 	.ctors      start:0x80644954 end:0x80644958
-	.rodata     start:0x8064CAF0 end:0x8064CB14
-	.data       start:0x806F7010 end:0x806F70E8
+	.rodata     start:0x8064CAF0 end:0x8064CB58
+	.data       start:0x806F6C68 end:0x806F70E8
+	.sdata      start:0x807D0278 end:0x807D027C
+	.sbss       start:0x807D57B0 end:0x807D57D8
+	.sdata2     start:0x807E167C end:0x807E16C0
 
 Game/Screen/ScenarioTitle.cpp:
 	.text       start:0x8048F920 end:0x8048FC40

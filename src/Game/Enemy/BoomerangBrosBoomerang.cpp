@@ -232,7 +232,7 @@ void BoomerangBrosBoomerang::exeThrownBack() {
     }
 }
 
-// NONMATCHING: instruction scheduling of the p1 stores, the empty-if branch layout and one register choice.
+// NONMATCHING: instruction scheduling of the p1 stores and one register choice.
 void BoomerangBrosBoomerang::calcPath(TVec3f* pOut, f32 t) {
     f32 rate;
     f32 split = 0.45f;
@@ -245,10 +245,10 @@ void BoomerangBrosBoomerang::calcPath(TVec3f* pOut, f32 t) {
         m0 = sCurveTangentA;
         m1 = sCurveTangentB;
     } else {
-        rate = 1.0f;
-        if (split >= rate) {
+        if (split >= 1.0f) {
+            rate = 1.0f;
         } else {
-            rate -= (t - split) / (rate - split);
+            rate = 1.0f - (t - split) / (1.0f - split);
         }
         m0 = sCurveTangentC;
         m1 = -sCurveTangentB;

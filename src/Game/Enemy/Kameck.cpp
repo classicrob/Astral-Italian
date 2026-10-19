@@ -564,7 +564,7 @@ void Kameck::exeHide() {
 
 void Kameck::fn_801A5C60() {
     if (MR::isFirstStep(this)) {
-        MR::startAction(this, "AttackWait");
+        MR::startAction(this, "Wait");
         MR::invalidateClipping(this);
     }
     MR::turnDirectionToTarget(this, &mFrontVec, *MR::getPlayerPos(), ::sTurnPlayerLimit);

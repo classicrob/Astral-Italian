@@ -152,14 +152,16 @@ void PauseMenu::control() {
     if (_38 != nullptr) _38->update();
 }
 
-// NONMATCHING: local buffer size and pointer register allocation differ.
+// NONMATCHING: buffer and output pointer register allocation differ.
 void PauseMenu::updateStarPane() {
     if (isInvalidBackMarioFaceShipOrWorldMap()) return;
     if (isRestrictedStage()) return;
     GalaxyStatusAccessor accessor = MR::makeCurrentGalaxyStatusAccessor();
-    wchar_t buffer[70];
+    wchar_t storage[42];
+    wchar_t* end;
+    wchar_t* buffer = storage;
     if (!mNoPowerStars) {
-        wchar_t* end = buffer + MR::makeGalaxyCompletionMark(buffer, 70, accessor.getName(), false);
+        end = buffer + MR::makeGalaxyCompletionMark(buffer, 70, accessor.getName(), false);
         MR::makeGalaxyStarList(end, 70 - (end - buffer), accessor.getName(), false, false);
     } else MR::addPictureFontCode(buffer, 0x6E);
     MR::setTextBoxMessageRecursive(this, "ShaStars", buffer);
@@ -194,6 +196,15 @@ void PauseMenu::forceToWaitAllButton() {
     if (_38 != nullptr) {
         _38->forceToWait();
     }
+}
+
+void PauseMenu::restartSelecting() {
+    startPaneAnimWithoutButton("Appear");
+    _20->appear();
+    if (_24) _24->appear();
+    if (_38) _38->appear();
+    setNerve(GET_NERVE(PauseMenu, PauseMenuNrvSelecting));
+    mSelectedResult = 0;
 }
 
 void PauseMenu::exeSelecting() {
@@ -324,14 +335,6 @@ void PauseMenu::exeAllStarList() {
     }
 }
 
-void PauseMenu::restartSelecting() {
-    startPaneAnimWithoutButton("Appear");
-    _20->appear();
-    if (_24) _24->appear();
-    if (_38) _38->appear();
-    setNerve(GET_NERVE(PauseMenu, PauseMenuNrvSelecting));
-    mSelectedResult = 0;
-}
 
 void PauseMenu::registerPointer() {
     if (StarPointerUtil::beginMovePositionRegistration(this, true)) {

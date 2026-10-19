@@ -161,8 +161,8 @@ bool BrosProjectileBase::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor*
 void BrosProjectileBase::exeEaten() {
     TPos3f mtx;
     MR::fn_80422350(&mtx);
-    mPosition.set(mtx[0][2], mtx[1][2], mtx[2][2]);
-    mFront.set(mtx[0][1], mtx[1][1], mtx[2][1]);
+    mPosition.set<f32>(mtx[0][2], mtx[1][2], mtx[2][2]);
+    mFront.set<f32>(mtx[0][1], mtx[1][1], mtx[2][1]);
 }
 
 BrosProjectileBase::~BrosProjectileBase() {

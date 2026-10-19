@@ -568,7 +568,11 @@ namespace JGeometry {
             return ret;
         }
 
+#ifdef JGEOMETRY_VEC3_APL_OUTLINE
+        void operator+=(const TVec3& op) NO_INLINE {
+#else
         void operator+=(const TVec3& op) {
+#endif
             add(op);
         }
 

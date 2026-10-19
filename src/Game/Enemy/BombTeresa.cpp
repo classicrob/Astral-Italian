@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_APL_OUTLINE
 #define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/Enemy/BombTeresa.hpp"
 #include "Game/Util.hpp"

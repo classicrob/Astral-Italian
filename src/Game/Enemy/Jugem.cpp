@@ -723,7 +723,9 @@ void Jugem::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayerOrRide(pReceiver) && fn_8019D1D0()) {
             if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
                 fn_8019D5B0();
+                return;
             }
+            return;
         } else if ((!MR::isSensorEnemy(pReceiver) && !MR::isSensorMapObj(pReceiver) && !MR::isSensorYoshi(pReceiver)) ||
                    !MR::sendMsgPushAndKillVelocityToTarget(this, pReceiver, pSender)) {
             if (MR::isSensorPlayerOrRide(pReceiver) && MR::isPlayerDamaging()) {
@@ -1102,12 +1104,12 @@ void Jugem::fn_8019DFE0(TVec3f* pOut, s32 index) {
     TVec3f dir(pos);
     dir -= ref;
     MR::vecKillElement(dir, grav, &dir);
-    if (!MR::normalizeOrZero(&dir)) {
+    if (MR::normalizeOrZero(&dir)) {
         TVec3f toMe(mPosition);
         toMe -= pos;
         dir = toMe;
         MR::vecKillElement(dir, grav, &dir);
-        if (!MR::normalizeOrZero(&dir)) {
+        if (MR::normalizeOrZero(&dir)) {
             dir = mFrontVec;
             MR::normalizeOrZero(&dir);
         }

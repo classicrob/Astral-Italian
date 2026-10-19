@@ -307,7 +307,9 @@ void Grapyon::calcAndSetBaseMtx() {
 void Grapyon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!MR::isSensorPlayerOrRide(pReceiver)) {
         if (!isNerve(NRV(Down))) {
-            if (!MR::sendMsgPush(pReceiver, pSender)) {
+            if (MR::sendMsgPush(pReceiver, pSender)) {
+                return;
+            } else {
                 return;
             }
         }
@@ -320,6 +322,7 @@ void Grapyon::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 }
             } else {
                 MR::sendMsgPush(pReceiver, pSender);
+                return;
             }
             return;
         } else if (MR::isSensorEnemyAttack(pSender)) {

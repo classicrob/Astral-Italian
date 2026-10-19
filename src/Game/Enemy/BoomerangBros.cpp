@@ -475,14 +475,27 @@ void BoomerangBros::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 attacking = true;
             }
             if (attacking && !MR::isPlayerHipDropFalling()) {
-                MR::sendMsgEnemyAttack(pReceiver, pSender);
+                if (MR::sendMsgEnemyAttack(pReceiver, pSender)) {
+                    return;
+                } else {
+                    return;
+                }
             } else if (!isNerve(BNRV(SwoonPressDown)) && !isNerve(BNRV(StandPressDown))) {
-                MR::sendMsgPush(pReceiver, pSender);
+                if (MR::sendMsgPush(pReceiver, pSender)) {
+                    return;
+                } else {
+                    return;
+                }
+                return;
             }
+            return;
         }
+        return;
     } else if (MR::isSensorYoshi(pReceiver)) {
         if (!isNerve(BNRV(SwoonPressDown)) && !isNerve(BNRV(StandPressDown))) {
-            MR::sendMsgPush(pReceiver, pSender);
+            if (MR::sendMsgPush(pReceiver, pSender)) {
+                return;
+            }
         }
     }
 }
@@ -547,10 +560,12 @@ bool BoomerangBros::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor
     if (MR::isMsgEnemyAttack(msg)) {
         for (s32 i = 0; i < 5; i++) {
             if (MR::getSensorHost(pSender) == mProjectiles[i] && MR::getSensorHost(pSender) != mHeld) {
-                if (isCatchNerve() && mStateAttack->tryCatch() && static_cast<BoomerangBrosBoomerang*>(mProjectiles[i])->isReturning()) {
-                    mHeld = mProjectiles[i];
-                    mHeld->attachToBros(this);
-                    MR::startActionSound(this, "CatchBoomerang", -1, -1, -1);
+                if (isCatchNerve()) {
+                    if (mStateAttack->tryCatch() && static_cast<BoomerangBrosBoomerang*>(mProjectiles[i])->isReturning()) {
+                        mHeld = mProjectiles[i];
+                        mHeld->attachToBros(this);
+                        MR::startActionSound(this, "CatchBoomerang", -1, -1, -1);
+                    }
                     return true;
                 }
                 if ((isNerve(BNRV(FreezeStand)) || isNerve(BNRV(FreezeSwoon))) && static_cast<BoomerangBrosBoomerang*>(mProjectiles[i])->isReturning()) {

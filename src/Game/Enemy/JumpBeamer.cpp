@@ -418,13 +418,13 @@ void JumpBeamer::exeInter() {
 // SMG2 unnamed bind-star-pointer exe (fn_801A0860).
 void JumpBeamer::fn_801A0860() {
     if (getParamScale(this)->isFirstStep()) {
-        MR::fn_8000A320(this->mHeadModel);
-        MR::fn_8000A320(this);
+        MR::stopAllAnim(this->mHeadModel);
+        MR::stopAllAnim(this);
     }
 
     if (MR::updateActorState(this)) {
-        MR::fn_8000A400(this->mHeadModel);
-        MR::fn_8000A400(this);
+        MR::resumeAllAnim(this->mHeadModel);
+        MR::resumeAllAnim(this);
         this->setNerve(GET_NERVE(JumpBeamer, JumpBeamerNrvHopWait));
     }
 }

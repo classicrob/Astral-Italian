@@ -262,6 +262,7 @@ void HanachanBigParts::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
                 MR::sendMsgPush(pReceiver, pSender);
             } else {
                 MR::sendMsgPush(pReceiver, pSender);
+                return;
             }
             return;
         }

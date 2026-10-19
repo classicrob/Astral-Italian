@@ -164,3 +164,5 @@ namespace NrvStageResultInformer { class StageResultInformerNrvCountUpPowerStar 
 namespace NrvStageResultInformer { class StageResultInformerNrvCountUpGetCometMedal : public Nerve { public: StageResultInformerNrvCountUpGetCometMedal(); static StageResultInformerNrvCountUpGetCometMedal sInstance; virtual void execute(Spine*) const; }; }
 
 namespace NrvStageResultInformer { class StageResultInformerNrvDisplayBestTime : public Nerve { public: StageResultInformerNrvDisplayBestTime(); static StageResultInformerNrvDisplayBestTime sInstance; virtual void execute(Spine*) const; }; }
+
+extern const char cMessageGhostAppear[];

@@ -83,7 +83,7 @@ namespace NrvStageResultInformer {
     void StageResultInformerNrvGhostAppear::execute(Spine* spine) const {
         StageResultInformer* actor = static_cast<StageResultInformer*>(spine->mExecutor);
         const wchar_t* galaxyName = MR::getGalaxyNameOnCurrentLanguage(GameSequenceFunction::getClearedStageName());
-        actor->tryShowAndKeyWaitInformationWindow("System_ResultGhostAppear", galaxyName);
+        actor->tryShowAndKeyWaitInformationWindow(cMessageGhostAppear, galaxyName);
     }
 
     void StageResultInformerNrvComplete::execute(Spine* spine) const {

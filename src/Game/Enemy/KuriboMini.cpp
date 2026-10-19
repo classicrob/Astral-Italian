@@ -492,7 +492,6 @@ void KuriboMini::exeBindStarPointer() {
 
 
 
-// NONMATCHING: MWCC folds the explicit early-return branch after the trampoline probe.
 void KuriboMini::exeAttackSuccess() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Hit");
@@ -501,14 +500,12 @@ void KuriboMini::exeAttackSuccess() {
     calcPassiveMovement();
 
     if (!tryDeadMap() && !tryPointBind()) {
-        switch (fn_801BDAA0()) {
-        case false:
+        if (fn_801BDAA0()) {
+            return;
+        } else {
             if (MR::isGreaterStep(this, 60)) {
                 setNerve(GET_NERVE(KuriboMini, KuriboMiniNrvWander));
             }
-            break;
-        default:
-            break;
         }
     }
 }

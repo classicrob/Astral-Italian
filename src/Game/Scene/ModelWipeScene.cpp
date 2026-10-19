@@ -29,12 +29,6 @@ namespace {
     Vec sOrigin;
 }
 
-J3DDrawBuffer* ModelWipeScene::createDrawBuffer() {
-    J3DDrawBuffer* buffer = new J3DDrawBuffer(0x20);
-    buffer->mSortMode = 5;
-    return buffer;
-}
-
 ModelWipeScene::ModelWipeScene()
     : Scene("モデルワイプシーン"), mDrawBufferOpa(nullptr), mDrawBufferXlu(nullptr), mCamera(nullptr),
       mGroup(new NameObjGroup("処理グループ", 0x40)), mIsForward(false), mIsPendingEnd(false),

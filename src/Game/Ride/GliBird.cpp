@@ -884,7 +884,7 @@ bool GliBird::updateCollision() {
     f32 depth = 0.0f;
     bool isWater = false;
     bool isFire = false;
-    s32 isHit = MR::fn_80038770(&hitPos, &hitNormal, &pHitSensor, pos, &isWater, &isFire, radius);
+    s32 isHit = MR::calcMapHitByBall(&hitPos, &hitNormal, &pHitSensor, pos, &isWater, &isFire, radius);
 
     if (isHit) {
         depth = hitPos.y - (pos.y - radius);
@@ -1020,11 +1020,11 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
         MR::startAction(this, "GliBirdGlideDead");
         MR::startBckPlayer("GliBirdGlideDead", nullptr);
         MR::tryDeleteEffect(this, "NearWater");
-        MR::fn_800126F0(this, &mFront, pBirdUpFront);
+        MR::setVelocityDirectionAndJump(this, &mFront, pBirdUpFront);
         TVec3f birdSide = mSide * *pBirdSide;
         MR::addVelocity(this, birdSide);
         mDeadBody->mGravity.set(mGravity);
-        MR::fn_800126F0(mDeadBody, &mFront, pPlayerUpFront);
+        MR::setVelocityDirectionAndJump(mDeadBody, &mFront, pPlayerUpFront);
         TVec3f playerSide = mSide * *pPlayerSide;
         MR::addVelocity(mDeadBody, playerSide);
         mCameraTarget->setMtx(mPlayerDeadMtx);

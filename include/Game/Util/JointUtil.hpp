@@ -57,5 +57,5 @@ namespace MR {
 };  // namespace MR
 
 namespace MR {
-    void fn_8002D5C0(TVec3f*, const TVec3f&, const LiveActor*, const char*);
+    void calcJointWorldPos(TVec3f*, const TVec3f&, const LiveActor*, const char*);
 }

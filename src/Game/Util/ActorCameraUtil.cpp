@@ -8,7 +8,7 @@
 #include <cstdio>
 
 namespace {
-    void createActorCameraName(char* pName, u32 nameSize, const LiveActor* pActor, const ActorCameraInfo* pInfo) {
+    void createActorCameraName(char* pName, u32 nameSize, const NameObj* pActor, const ActorCameraInfo* pInfo) {
         if (pInfo->mCameraSetID & 0x8000) {
             snprintf(pName, nameSize, "%s共通%03d", pActor->getName(), pInfo->mCameraSetID - 0x8000);
         } else {
@@ -16,7 +16,7 @@ namespace {
         }
     }
 
-    void createMultiActorCameraName(char* pName, u32 nameSize, const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pEventName) {
+    void createMultiActorCameraName(char* pName, u32 nameSize, const NameObj* pActor, const ActorCameraInfo* pInfo, const char* pEventName) {
         if (pInfo->mCameraSetID & 0x8000) {
             snprintf(pName, nameSize, "%s共通%s%03d", pActor->getName(), pEventName, pInfo->mCameraSetID - 0x8000);
         } else {
@@ -54,7 +54,7 @@ namespace MR {
         return initMultiActorCameraNoInit(pActor, (*ppInfo), pEventName);
     }
 
-    bool initMultiActorCameraNoInit(const LiveActor* pActor, ActorCameraInfo* pInfo, const char* pEventName) {
+    bool initMultiActorCameraNoInit(const NameObj* pActor, ActorCameraInfo* pInfo, const char* pEventName) {
         if (pInfo->mCameraSetID < 0) {
             return false;
         }
@@ -131,7 +131,7 @@ namespace MR {
         return startMultiActorCameraTargetOther(pActor, pInfo, pEventName, targetArg, frame);
     }
 
-    bool startMultiActorCameraTargetOther(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pEventName,
+    bool startMultiActorCameraTargetOther(const NameObj* pActor, const ActorCameraInfo* pInfo, const char* pEventName,
                                           const CameraTargetArg& rTargetArg, s32 frame) {
         if (pInfo->mCameraSetID >= 0) {
             char name[256];

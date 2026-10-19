@@ -93,7 +93,7 @@ namespace GameDataFunction {
     void setCurrentWorldId(u8);
 };  // namespace GameDataFunction
 
-namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u32 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }
+namespace GameDataFunction { s32 getFaceShipEventGrandStarNo(); u16 getStageClearsAfterRepeatedMissCount(); void setStageClearsAfterRepeatedMissCount(u16); void incStageClearsAfterRepeatedMissCount(); }
 
 namespace GameDataFunction {
     void setOnPostmanImportantLetterRead(s32);
@@ -160,7 +160,7 @@ namespace GameDataFunction {
     void tryAddFaceShipEventNo(s32);                   // SMG2 fn_804D4100 (provisional name)
     s32 getFaceShipEventGrandStarNo();                 // SMG2 fn_804D4180
     void setStageClearsAfterRepeatedMissCount(u16);    // SMG2 fn_804D42B0
-    u32 getStageClearsAfterRepeatedMissCount();        // SMG2 fn_804D4280
+    u16 getStageClearsAfterRepeatedMissCount();        // SMG2 fn_804D4280
     void incStageClearsAfterRepeatedMissCount();       // SMG2 fn_804D42F0
     void setUserName(const wchar_t*);
     bool hasCurrentUserMiiId();                        // SMG2 fn_804D43C0 (provisional name)

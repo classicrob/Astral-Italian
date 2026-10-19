@@ -107,6 +107,14 @@ void NameObjListExecutor::entryDrawBufferMirror() {
     mBufferHolder->entry(MR::CameraType_Mirror);
 }
 
+void NameObjListExecutor::entryDrawBufferWorldMapBig() {
+    mBufferHolder->entry(MR::CameraType_WorldMapBig);
+}
+
+void NameObjListExecutor::entryDrawBufferWorldMapSmall() {
+    mBufferHolder->entry(MR::CameraType_WorldMapSmall);
+}
+
 void NameObjListExecutor::drawOpa(int drawBufferType) {
     mBufferHolder->drawOpa(drawBufferType);
 }

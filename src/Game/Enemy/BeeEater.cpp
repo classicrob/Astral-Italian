@@ -291,15 +291,15 @@ void BeeEater::updateBeeEaterHover() {
         MR::tryStartActionNotPlaying(this, "Wait");
         MR::validateClipping(this);
     }
-    MR::fn_80010CB0(this, mUpVec, 1.0f);
-    MR::fn_80010E30(this, mBasePos, 0.0f, 2.0f, 100.0f, 200.0f);
+    MR::addVelocityMoveToDirection3D(this, mUpVec, 1.0f);
+    MR::addVelocityMoveToTarget3D(this, mBasePos, 0.0f, 2.0f, 100.0f, 200.0f);
     MR::attenuateVelocity(this, 0.85f);
     MR::turnQuatXDirRad(&mRot, mRot, mSideVec, 0.03490658476948738f);
     if (isPlayerInBeeEaterAimRange()) {
         if (isPlayerBehindBeeEaterRotation()) {
             mTargetVec.set(mUpVec);
         } else {
-            MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
+            MR::calcDirToTarget(&mTargetVec, this, MR::getPlayerCenterPos());
         }
     }
     MR::turnQuatYDirRad(&mRot, mRot, mTargetVec, 0.03490658476948738f);
@@ -353,14 +353,14 @@ void BeeEater::exeBeeEaterAttackSign() {
     }
     if (MR::isLessEqualStep(this, 80)) {
         if (isPlayerInBeeEaterAimRange()) {
-            MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
+            MR::calcDirToTarget(&mTargetVec, this, MR::getPlayerCenterPos());
             MR::turnQuatYDirRad(&mRot, mRot, mTargetVec, 0.008726646192371845f);
         }
         TVec3f retreat(mTargetVec);
         retreat.scale(-0.5f);
         MR::addVelocity(this, retreat);
-        MR::fn_80010CB0(this, mUpVec, 1.0f);
-        MR::fn_80010E30(this, mBasePos, 0.0f, 2.0f, 100.0f, 400.0f);
+        MR::addVelocityMoveToDirection3D(this, mUpVec, 1.0f);
+        MR::addVelocityMoveToTarget3D(this, mBasePos, 0.0f, 2.0f, 100.0f, 400.0f);
         MR::attenuateVelocity(this, 0.85f);
     } else {
         MR::zeroVelocity(this);
@@ -399,7 +399,7 @@ void BeeEater::exeBeeEaterAttackEnd() {
             if (isPlayerBehindBeeEaterRotation()) {
                 mTargetVec.set(mUpVec);
             } else {
-                MR::fn_8000E960(&mTargetVec, this, MR::getPlayerCenterPos());
+                MR::calcDirToTarget(&mTargetVec, this, MR::getPlayerCenterPos());
             }
         }
     }

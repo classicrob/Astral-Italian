@@ -9,7 +9,7 @@ void BarrelGravity::updateMtx(const TPos3f& rMtx) {
     f32 ux = mLocalUpDirection.x;
     f32 uy = mLocalUpDirection.y;
     f32 uz = mLocalUpDirection.z;
-    mUpDirection.set(uz * rMtx.mMtx[0][2] + (ux * rMtx.mMtx[0][0] + uy * rMtx.mMtx[0][1]),
+    mUpDirection.set<f32>(uz * rMtx.mMtx[0][2] + (ux * rMtx.mMtx[0][0] + uy * rMtx.mMtx[0][1]),
                      uz * rMtx.mMtx[1][2] + (ux * rMtx.mMtx[1][0] + uy * rMtx.mMtx[1][1]),
                      uz * rMtx.mMtx[2][2] + (ux * rMtx.mMtx[2][0] + uy * rMtx.mMtx[2][1]));
 

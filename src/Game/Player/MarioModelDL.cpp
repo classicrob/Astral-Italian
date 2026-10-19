@@ -16,7 +16,7 @@ MarioModelDL::MarioModelDL(LiveActor* actor, const char* material, const char* t
     mDisplayLists = nullptr;
     mModel = static_cast<J3DModelX*>(MR::getJ3DModel(actor));
     mMaterialIndex = MR::getMaterialNo(MR::getJ3DModelData(actor), material);
-    s32 textureIndex = MR::fn_80043AB0(actor, texture);
+    s32 textureIndex = MR::getTextureIndex(actor, texture);
     mDisplayLists = new DLholder[4];
     for (s32 i = 0; i < 4; ++i) {
         DLholder* holder = &mDisplayLists[i];

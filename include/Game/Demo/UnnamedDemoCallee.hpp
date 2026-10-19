@@ -14,7 +14,7 @@ class ActorCameraInfo;
 namespace UnnamedDemoCallee {
     // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
     void fn_8001BFE0();
-    void fn_80011F80(f32, f32);
+    void setPositionToMapGround(f32, f32);
     void fn_80020110(LiveActor*, const char*, s32);
     s32 fn_801476E0();
     s32 fn_80147730();

@@ -19,7 +19,7 @@ bool Mario::fn_803A3130() {
 }
 
 void Mario::fn_803A96D0(f32 arg1) {
-    MR::fn_8005A7F0(this->mActor, arg1);
+    MR::skipBas(this->mActor, arg1);
 }
 
 bool Mario::fn_803AA2C0() {
@@ -268,7 +268,7 @@ f32 Mario::fn_803B3870() {
 }
 
 bool Mario::fn_803B3E90() {
-    HitSensor* pSensor = MR::fn_80038D20(this->mGroundPolygon);
+    HitSensor* pSensor = MR::getSensor(this->mGroundPolygon);
     if (pSensor != nullptr) {
         LiveActor* pHost = MR::getSensorHost(pSensor);
         if (pHost != nullptr) {
@@ -851,28 +851,28 @@ void Mario::fn_803B2610() {
 
 bool Mario::fn_803B2770(TVec3f* pOut, Triangle* pTri, const TVec3f& rStart, const TVec3f& rDir) {
     if (fn_803B2950()) {
-        return MR::fn_80037E80(pOut, pTri, rStart, rDir);
+        return MR::getFirstPolyOnLineToDashYoshiStepAndMap(pOut, pTri, rStart, rDir);
     }
     return MR::getFirstPolyOnLineToMap(pOut, pTri, rStart, rDir);
 }
 
 bool Mario::fn_803B27F0(TVec3f* pOut, Triangle* pTri, const TVec3f& rStart, const TVec3f& rDir, const CollisionPartsFilterBase* pPartsFilter, const TriangleFilterBase* pTriFilter) {
     if (fn_803B2950()) {
-        return MR::fn_80038060(pOut, pTri, rStart, rDir, pPartsFilter, pTriFilter);
+        return MR::getFirstPolyOnLineToDashYoshiStepAndMap(pOut, pTri, rStart, rDir, pPartsFilter, pTriFilter);
     }
     return MR::getFirstPolyOnLineToMap(pOut, pTri, rStart, rDir, pPartsFilter, pTriFilter);
 }
 
 bool Mario::fn_803B2880(const TVec3f& rStart, const TVec3f& rEnd) {
     if (fn_803B2950()) {
-        return MR::fn_800382E0(rStart, rEnd);
+        return MR::isExistDashYoshiStepAndMapCollision(rStart, rEnd);
     }
     return MR::isExistMapCollision(rStart, rEnd);
 }
 
 bool Mario::fn_803B28E0(const TVec3f& rStart, const TVec3f& rEnd, const LiveActor* pActor) {
     if (fn_803B2950()) {
-        return MR::fn_800384C0(rStart, rEnd, pActor);
+        return MR::isExistDashYoshiStepAndMapCollisionExceptActor(rStart, rEnd, pActor);
     }
     return MR::isExistMapCollisionExceptActor(rStart, rEnd, pActor);
 }
@@ -901,21 +901,21 @@ s32 Mario::fn_803B2A20(const TVec3f& rPos, f32 radius, f32 thickness) {
 
 const HitInfo* Mario::fn_803B2AA0(u32 idx) {
     if (fn_803B2950()) {
-        return Collision::fn_8003B110(idx);
+        return Collision::getStrikeInfoDashYoshiStepAndMap(idx);
     }
     return Collision::getStrikeInfoMap(idx);
 }
 
 bool Mario::fn_803B2AF0(const TVec3f& rPos, HitInfo* pInfo) {
     if (fn_803B2950()) {
-        return MR::fn_800386E0(rPos, pInfo);
+        return MR::checkStrikePointToDashYoshiStepAndMap(rPos, pInfo);
     }
     return MR::checkStrikePointToMap(rPos, pInfo);
 }
 
 bool Mario::fn_803B2B50(const TVec3f& rStart, const TVec3f& rEnd, TVec3f* pOut, Triangle* pTri) {
     if (fn_803B2950()) {
-        return MR::fn_8003A720(rStart, rEnd, pOut, pTri);
+        return MR::getFirstPolyOnLineBFastToDashYoshiStepAndMap(rStart, rEnd, pOut, pTri);
     }
     return MR::getFirstPolyOnLineBFast(rStart, rEnd, pOut, pTri);
 }

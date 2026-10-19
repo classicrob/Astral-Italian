@@ -38,8 +38,6 @@ public:
     WPad* getWPad(s32);
     static void setConnectCallback();
 
-    // PLACEHOLDER(core): Petari-only, SMG2 has no WPadHolder::resetPad; resolve when GameSystemSceneController (MR::resetWPad caller) is ported from the target
-    void resetPad();
 
     /* 0x04 */ WPad* mPad[2];
     /* 0x0C */ WPadReadDataInfo* mRawReadDataInfoArray;
@@ -54,8 +52,4 @@ namespace MR {
     void setWPadHolderModeGame();
     u32 getHBMKPadData(HBMKPadData*, s32);
 
-    // PLACEHOLDER(core): Petari-only, absent from SMG2; resolve when GameSystemSceneController is ported from the target
-    void resetWPad();
-    // PLACEHOLDER(core): Petari-only, absent from SMG2; resolve when GameSystemFunction::setAutoSleepTimeWiiRemote is ported from the target
-    void setAutoSleepTimeWiiRemote(bool);
 };  // namespace MR

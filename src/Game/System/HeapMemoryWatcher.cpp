@@ -126,7 +126,7 @@ void HeapMemoryWatcher::destroyFileCache() {
     ::destroyHeapAndSetNULL(reinterpret_cast< JKRHeap** >(&mFileCacheHeap));
 }
 
-void HeapMemoryWatcher::fn_804BCD50() {
+void HeapMemoryWatcher::freeAllFileCache() {
     mFileCacheDelegateHeap->freeAll();
 }
 

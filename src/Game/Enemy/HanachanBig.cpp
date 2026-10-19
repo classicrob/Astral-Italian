@@ -307,7 +307,7 @@ void HanachanBigParts::control() {
 
 #pragma auto_inline off
 void HanachanBigParts::calcAndSetBaseMtx() {
-    MR::fn_8000F880(this, &mRailDirection);
+    MR::calcAndSetBaseMtxFromFrontAndGravity(this, &mRailDirection);
     TVec3f scale;
     scale.mul(mHost->mScaleController->mScale, mScale);
     scale.mul(scale, mScaleController->mScale);

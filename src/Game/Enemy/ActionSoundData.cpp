@@ -16,7 +16,7 @@ namespace {
 }
 
 ActionSoundData* createActionSoundData(const char* name) {
-    const ResourceCsvGroupInfo* range = MR::getGameSystemObjHolder3C()->fn_804CC650(name);
+    const ResourceCsvGroupInfo* range = MR::getGameSystemObjHolder3C()->findGroup(name);
     if (!range || range->mCount <= 0) return nullptr;
     return new ActionSoundData(name, range);
 }
@@ -52,7 +52,7 @@ const char* getArchivePath() {
 }
 
 void AudInstListMgr::fn_802204A0(const char* name, bool async) {
-    const ResourceCsvGroupInfo* range = MR::getGameSystemObjHolder3C()->fn_804CC650(name);
+    const ResourceCsvGroupInfo* range = MR::getGameSystemObjHolder3C()->findGroup(name);
     JMapInfo csv;
     csv.attach(MR::mountArchive(sArchivePath, nullptr, false)->getResource(sTablePath));
     s32 count = range->mCount;

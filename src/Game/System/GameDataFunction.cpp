@@ -650,7 +650,7 @@ namespace GameDataFunction {
         getCurrentGameEventValueChecker()->setValue("\212\347\230f\220\257\203C\203x\203\223\203g\203O\203\211\203\223\203h\203X\203^\201[\224\324\215\206", 0);
     }
 
-    u32 getStageClearsAfterRepeatedMissCount() {
+    u16 getStageClearsAfterRepeatedMissCount() {
         return getCurrentGameEventValueChecker()->getValue("\210\352\222\350\220\224\216\200\226S\214\343\202\314\203X\203e\201[\203W\203N\203\212\203A\211\361\220\224");
     }
 
@@ -659,7 +659,7 @@ namespace GameDataFunction {
     }
 
     void incStageClearsAfterRepeatedMissCount() {
-        u32 count = getCurrentGameEventValueChecker()->getValue("\210\352\222\350\220\224\216\200\226S\214\343\202\314\203X\203e\201[\203W\203N\203\212\203A\211\361\220\224");
+        u16 count = getCurrentGameEventValueChecker()->getValue("\210\352\222\350\220\224\216\200\226S\214\343\202\314\203X\203e\201[\203W\203N\203\212\203A\211\361\220\224");
         getCurrentGameEventValueChecker()->setValue("\210\352\222\350\220\224\216\200\226S\214\343\202\314\203X\203e\201[\203W\203N\203\212\203A\211\361\220\224", static_cast< u16 >(count + 1));
     }
 

@@ -251,7 +251,7 @@ void Yukkina::exeJump() {
     MR::attenuateVelocity(this, 0.99f);
     TVec3f toPlayer;
     MR::calcVecToPlayerH(&toPlayer, this, NULL);
-    MR::fn_800104F0(&mPoseQuat, this, &toPlayer, 0.2f, 0.1f);
+    MR::blendQuatFromGravityAndFront(&mPoseQuat, this, &toPlayer, 0.2f, 0.1f);
     if (MR::isGreaterStep(this, 10) && MR::isBindedGround(this)) {
         MR::zeroVelocity(this);
         setNerve(&NrvYukkina::YukkinaNrvJumpWait::sInstance);
@@ -264,7 +264,7 @@ void Yukkina::exeJumpWait() {
     }
     TVec3f toPlayer;
     MR::calcVecToPlayerH(&toPlayer, this, NULL);
-    MR::fn_800104F0(&mPoseQuat, this, &toPlayer, 0.2f, 0.1f);
+    MR::blendQuatFromGravityAndFront(&mPoseQuat, this, &toPlayer, 0.2f, 0.1f);
     if (MR::isGreaterStep(this, 0x50)) {
         setNerve(&NrvYukkina::YukkinaNrvWaitTurn::sInstance);
     }

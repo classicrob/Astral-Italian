@@ -1,6 +1,7 @@
 #include "Game/Scene/NrvLogoScene.hpp"
 #include "Game/Scene/LogoScene.hpp"
 #include "Game/Screen/SimpleLayout.hpp"
+#include "Game/Scene/ModelWipeScene.hpp"
 #include <JSystem/J3DGraphBase/J3DDrawBuffer.hpp>
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GameSystemFunction.hpp"
@@ -62,8 +63,8 @@ namespace NrvLogoScene {
     }
 };  // namespace NrvLogoScene
 
-// NONMATCHING: target is `__nw(0x24)` + initialize() + allocBuffer(0x20) with no J3DDrawBuffer ctor call; ours runs the ctor
-J3DDrawBuffer* createLogoSceneDrawBuffer() {
+// NONMATCHING: extra null check + initialize() call sequence after `new` (ours 80%; target has one null test)
+J3DDrawBuffer* ModelWipeScene::createDrawBuffer() {
     J3DDrawBuffer* pBuffer = new J3DDrawBuffer;
     if (pBuffer) {
         pBuffer->initialize();

@@ -129,7 +129,7 @@ void Patakuri::init(const JMapInfoIter& rIter) {
 
 void Patakuri::control() {
     mScaleCtrl->updateNerve();
-    MR::fn_800104F0(&mQuat, this, &mFront, 0.05f, 0.2f);
+    MR::blendQuatFromGravityAndFront(&mQuat, this, &mFront, 0.05f, 0.2f);
 
     if (isNerve(&PatakuriNrvHitStep::sInstance) == false) {
         if (isNerve(&PatakuriNrvDead::sInstance) == false) {
@@ -268,7 +268,7 @@ void Patakuri::exeRail() {
     }
 
     f32 speed = 1.0f;
-    f32 coord = MR::fn_80052E20(this) - 30.0f;
+    f32 coord = MR::getRailRemainingLength(this) - 30.0f;
     f32 railLen = MR::getRailTotalLength(this);
     if (railLen - coord < 200.0f) {
         coord = (MR::getRailTotalLength(this) - 30.0f) - coord;
@@ -279,7 +279,7 @@ void Patakuri::exeRail() {
     }
 
     if (!MR::isSameDirection(MR::getRailDirection(this), mGravity, 0.1f)) {
-        if (MR::fn_80052E20(this) - 30.0f < 100.0f) {
+        if (MR::getRailRemainingLength(this) - 30.0f < 100.0f) {
             MR::turnVecToVecDegree(&mFront, mFront, -MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));
         } else {
             MR::turnVecToVecDegree(&mFront, mFront, MR::getRailDirection(this), 3.0f, TVec3f(0, 1, 0));

@@ -219,7 +219,7 @@ void KaninaYoshiState::calcShotPosition(TVec3f* out, f32 progress) {
         tangent1 = -sPeakTangent;
     }
     HermiteSpline curve(start, tangent0, end, tangent1);
-    curve.fn_80066D40(out, rate);
+    curve.calcPosition(out, rate);
 }
 
 // NONMATCHING: vector difference and scale clamping use different scheduling.

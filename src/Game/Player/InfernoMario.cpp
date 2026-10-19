@@ -52,7 +52,7 @@ void InfernoMario::init(const JMapInfoIter& iter) {
         makeActorDead();
     }
 }
-void InfernoMario::draw() const { if (!MR::isDead(this)) MR::fn_800222A0(this); }
+void InfernoMario::draw() const { if (!MR::isDead(this)) MR::drawModelAlphaShadow(this); }
 void InfernoMario::makeActorAppeared() { LiveActor::makeActorAppeared(); MR::emitEffect(this,"Shadow"); }
 void InfernoMario::kill() { if(!MR::isDead(this)) MR::tryHitReactionDead(this); LiveActor::kill(); }
 void InfernoMario::fn_80381670() { setNerve(&NrvInfernoMario::InfernoMarioNrvAppearance::sInstance); appear(); }

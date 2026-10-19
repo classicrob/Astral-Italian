@@ -216,16 +216,16 @@ namespace MR {
         pFromPlayerHVec->scale(-1.0f);
     }
 
-    void fn_8000E5E0(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pDir) {
+    void calcVecFromPlayerHorizon(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pDir) {
         PSVECSubtract(&pActor->mPosition, MR::getPlayerPos(), pOut);
         MR::vecKillElement(*pOut, pDir != nullptr ? *pDir : pActor->mGravity, pOut);
     }
 
-    void fn_8000E650(TVec3f* pOut, LiveActor* pActor, const TVec3f* pTargetPos) {
+    void calcVecToTarget(TVec3f* pOut, LiveActor* pActor, const TVec3f* pTargetPos) {
         PSVECSubtract(pTargetPos, &pActor->mPosition, pOut);
     }
 
-    void fn_8000E960(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pTargetPos) {
+    void calcDirToTarget(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pTargetPos) {
         pOut->set(*pTargetPos);
         PSVECSubtract(pOut, &pActor->mPosition, pOut);
         MR::normalizeOrZero(pOut);
@@ -250,7 +250,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
-    f32 fn_8000E760(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pOffset, f32 scaleA, f32 scaleB) {
+    f32 calcNearestPointToPlayerOnSideLine(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pOffset, f32 scaleA, f32 scaleB) {
         TVec3f side;
         calcSideVec(&side, pActor);
 
@@ -267,7 +267,7 @@ namespace MR {
         return MR::calcPerpendicFootToLineInside(pOut, *MR::getPlayerPos(), lineA, lineB);
     }
 
-    void fn_8000EAB0(TVec3f* pOut, LiveActor* pActor) {
+    void calcGravityCrossDirToPlayer(TVec3f* pOut, LiveActor* pActor) {
         TVec3f toPlayer(*MR::getPlayerPos());
         PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
 
@@ -430,7 +430,7 @@ namespace MR {
         MR::makeMtxTransRotateY(pMtx, pActor->mPosition.x, pActor->mPosition.y, pActor->mPosition.z, pActor->mRotation.y);
     }
 
-    void fn_8000F5D0(TVec3f* pA, TVec3f* pB, const TPos3f* pMtx) {
+    void calcFrontVecIfParallelToUp(TVec3f* pA, TVec3f* pB, const TPos3f* pMtx) {
         TVec3f cross;
         PSVECCrossProduct(pB, pA, &cross);
 
@@ -440,7 +440,7 @@ namespace MR {
         }
     }
 
-    void fn_8000F650(TVec3f* pA, TVec3f* pB, const TPos3f* pMtx) {
+    void calcUpVecIfParallelToFront(TVec3f* pA, TVec3f* pB, const TPos3f* pMtx) {
         TVec3f cross;
         PSVECCrossProduct(pA, pB, &cross);
 
@@ -470,7 +470,7 @@ namespace MR {
             pos.getZDir(zDir);
         }
 
-        fn_8000F5D0(&yDir, &zDir, &pos);
+        calcFrontVecIfParallelToUp(&yDir, &zDir, &pos);
 
         makeMtxUpFrontPos(pResult, yDir, zDir, pActor->mPosition);
     }
@@ -482,12 +482,12 @@ namespace MR {
         setBaseTRMtx(pActor, stack_8);
     }
 
-    void fn_8000F880(LiveActor* pActor, TVec3f* pFront) {
+    void calcAndSetBaseMtxFromFrontAndGravity(LiveActor* pActor, TVec3f* pFront) {
         TVec3f negGravity;
         JGeometry::negateInternal(&pActor->mGravity.x, &negGravity.x);
 
         MtxPtr mtx = pActor->getBaseMtx();
-        fn_8000F650(pFront, &negGravity, (const TPos3f*)mtx);
+        calcUpVecIfParallelToFront(pFront, &negGravity, (const TPos3f*)mtx);
 
         TPos3f baseMtx;
         baseMtx.identity();
@@ -495,11 +495,11 @@ namespace MR {
         MR::setBaseTRMtx(pActor, baseMtx);
     }
 
-    void fn_8000F910(LiveActor* pActor, TVec3f* pFront, TVec3f* pUp) {
+    void calcAndSetBaseMtxFromFrontAndUp(LiveActor* pActor, TVec3f* pFront, TVec3f* pUp) {
         TVec3f up(*pUp);
 
         MtxPtr mtx = pActor->getBaseMtx();
-        fn_8000F650(pFront, &up, (const TPos3f*)mtx);
+        calcUpVecIfParallelToFront(pFront, &up, (const TPos3f*)mtx);
 
         TPos3f baseMtx;
         baseMtx.identity();
@@ -507,11 +507,11 @@ namespace MR {
         MR::setBaseTRMtx(pActor, baseMtx);
     }
 
-    void fn_8000F9A0(LiveActor* pActor, TVec3f* pUp, const TVec3f* pFront) {
+    void calcAndSetBaseMtxFromUpAndFront(LiveActor* pActor, TVec3f* pUp, const TVec3f* pFront) {
         TVec3f front(*pFront);
 
         MtxPtr mtx = pActor->getBaseMtx();
-        fn_8000F5D0(pUp, &front, (const TPos3f*)mtx);
+        calcFrontVecIfParallelToUp(pUp, &front, (const TPos3f*)mtx);
 
         TPos3f baseMtx;
         baseMtx.identity();
@@ -519,10 +519,10 @@ namespace MR {
         MR::setBaseTRMtx(pActor, baseMtx);
     }
 
-    void fn_8000FA30(LiveActor* pActor, const TVec3f* pFront) {
+    void calcAndSetBaseMtxFromFront(LiveActor* pActor, const TVec3f* pFront) {
         TVec3f up;
         MR::calcUpVec(&up, pActor);
-        fn_8000F9A0(pActor, &up, pFront);
+        calcAndSetBaseMtxFromUpAndFront(pActor, &up, pFront);
     }
 
     void calcActorAxis(TVec3f* pAxisX, TVec3f* pAxisY, TVec3f* pAxisZ, const LiveActor* pActor) {
@@ -986,7 +986,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc/stack (stack slot order only)
-    void fn_80011F80(LiveActor* pActor, f32 a1, f32 a2) {
+    void setPositionToMapGround(LiveActor* pActor, f32 a1, f32 a2) {
         f32 coefDir = a2;
         f32 coefGravity = a1;
         if (a1 < 0.0f) {
@@ -1139,7 +1139,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc/stack (stack slot order only)
-    void fn_800126F0(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
+    void setVelocityDirectionAndJump(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
         f32 gravCoef = pCoef[1];
         TVec3f gravity(pActor->mGravity);
         gravity.scale(gravCoef);
@@ -1152,7 +1152,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc/stack (stack slot order only)
-    void fn_800127A0(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
+    void addVelocityDirectionAndJump(LiveActor* pActor, const TVec3f* pDir, const f32* pCoef) {
         f32 gravCoef = pCoef[1];
         TVec3f gravity(pActor->mGravity);
         gravity.scale(gravCoef);
@@ -1197,7 +1197,7 @@ namespace MR {
     }
 
 #pragma dont_inline on
-    void fn_80012B80(LiveActor* pActor, f32 a2, f32 a3, HitSensor* pSensor1, HitSensor* pSensor2, s32 a6) {
+    void addVelocitySeparateHV(LiveActor* pActor, f32 a2, f32 a3, HitSensor* pSensor1, HitSensor* pSensor2, s32 a6) {
         addVelocitySeparateHV(pActor, pSensor1, pSensor2, a2, a3);
     }
 
@@ -1214,7 +1214,7 @@ namespace MR {
         setVelocitySeparateHV(pActor, pSensor2->mPosition - pSensor1->mPosition, a4, a5);
     }
 
-    bool fn_80012BA0(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2, f32 a4) {
+    bool reboundVelocityFromSensor(LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2, f32 a4) {
         TVec3f dir;
         MR::calcSensorDirectionNormalize(&dir, pSensor2, pSensor1);
         f32 proj = (1.0f + a4) * pActor->mVelocity.dot(dir);
@@ -1269,7 +1269,7 @@ namespace MR {
         return calcVelocityAreaMoveOnGround(pA1, pActor) || calcVelocityRailMoveOnGround(pA1, pActor);
     }
 
-    void fn_80012EB0(LiveActor* pActor, TVec3f* pDst, f32 angle) {
+    void rotateDirectionGravityRadian(LiveActor* pActor, TVec3f* pDst, f32 angle) {
         MR::rotateVecRadian(pDst, pActor->mGravity, angle);
         TVec3f& rGravity = pActor->mGravity;
         JMAVECScaleAdd(&rGravity, pDst, pDst, -rGravity.dot(*pDst));
@@ -1278,7 +1278,7 @@ namespace MR {
     }
 
     void rotateDirectionGravityDegree(const LiveActor* pActor, TVec3f* pA2, f32 angle) {
-        fn_80012EB0(const_cast<LiveActor*>(pActor), pA2, PI_180 * angle);
+        rotateDirectionGravityRadian(const_cast<LiveActor*>(pActor), pA2, PI_180 * angle);
     }
 
     void turnDirection(const LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4) {
@@ -1311,7 +1311,7 @@ namespace MR {
         return turnVecToVecCosOnPlane(pA2, stack_8, isBindedGround(pActor) ? getGroundNormal(pActor) : (pActor->mGravity), a4);
     }
 
-    void fn_80013220(const LiveActor* pActor, TVec3f* pOut, f32 cosAngle) {
+    void turnDirectionToPlayer(const LiveActor* pActor, TVec3f* pOut, f32 cosAngle) {
         TVec3f toPlayer(*MR::getPlayerPos());
         PSVECSubtract(&toPlayer, &pActor->mPosition, &toPlayer);
         turnVecToVecCosOnPlane(pOut, toPlayer, pActor->mGravity, cosAngle);
@@ -1412,13 +1412,13 @@ namespace MR {
         MR::setRotationFromQuat(pActor, quat);
     }
 
-    void fn_80010130(ActorPoseTQ* pPose, const LiveActor* pActor) {
+    void initActorPoseFromRotation(ActorPoseTQ* pPose, const LiveActor* pActor) {
         MR::makeQuatRotateDegree(pPose, pActor->mRotation);
         pPose->getZDir(pPose->mFront);
         pPose->getZDir(pPose->mFront);
     }
 
-    void fn_80010180(TQuat4f* pQuat, LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
+    void makeQuatFromGravityAndSensorDirection(TQuat4f* pQuat, LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
         TVec3f sensorNormal(0.0f);
         MR::calcSensorHorizonNormalize(&sensorNormal, pActor->mGravity, pSensor1, pSensor2);
 
@@ -1428,8 +1428,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
-    void fn_80010200(TQuat4f* pQuat, TQuat4f* pNormalQuat, LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
-        TVec3f* pNormal = reinterpret_cast< TVec3f* >(pNormalQuat);
+    void makeQuatFromGravityAndSensorDirection(TQuat4f* pQuat, TVec3f* pNormal, LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
         MR::calcSensorHorizonNormalize(pNormal, pActor->mGravity, pSensor1, pSensor2);
 
         TVec3f negGravity;
@@ -1437,7 +1436,7 @@ namespace MR {
         MR::makeQuatUpFront(pQuat, negGravity, *pNormal);
     }
 
-    void fn_80010270(TQuat4f* pQuat, TVec3f* pVec, LiveActor* pActor) {
+    void makeQuatFromGravityAndPlayerDirection(TQuat4f* pQuat, TVec3f* pVec, LiveActor* pActor) {
         MR::calcVecToTargetPosH(pVec, pActor, *MR::getPlayerPos(), nullptr);
 
         TVec3f negGravity;
@@ -1452,13 +1451,13 @@ namespace MR {
         pPose->getZDir(pPose->mFront);
     }
 
-    void fn_800104F0(TQuat4f* pQuat, LiveActor* pActor, TVec3f* pFront, f32 blendUp, f32 blendFront) {
+    void blendQuatFromGravityAndFront(TQuat4f* pQuat, LiveActor* pActor, TVec3f* pFront, f32 blendUp, f32 blendFront) {
         TVec3f negGravity;
         JGeometry::negateInternal(&pActor->mGravity.x, &negGravity.x);
         MR::blendQuatUpFront(pQuat, negGravity, *pFront, blendUp, blendFront);
     }
 
-    void fn_80010600(ActorPoseTQ* pPose, LiveActor* pActor, f32 blendUp, f32 blendFront) {
+    void blendActorPoseFromGroundAndFront(ActorPoseTQ* pPose, LiveActor* pActor, f32 blendUp, f32 blendFront) {
         TVec3f negGravity;
         const TVec3f* pUp;
 
@@ -1472,7 +1471,7 @@ namespace MR {
         MR::blendQuatUpFront(pPose, *pUp, pPose->mFront, blendUp, blendFront);
     }
 
-    void fn_80011180(LiveActor* pActor, const TVec3f& rTarget, f32 speed) {
+    void addVelocityAwayFromTargetOnGround(LiveActor* pActor, const TVec3f& rTarget, f32 speed) {
         TVec3f diff(pActor->mPosition);
         PSVECSubtract(&diff, &rTarget, &diff);
 
@@ -1482,7 +1481,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
-    f32 fn_80012450(const LiveActor* pActor) {
+    f32 calcHorizontalSpeed(const LiveActor* pActor) {
         const TVec3f& rGravity = pActor->mGravity;
         const TVec3f& rVelocity = pActor->mVelocity;
         f32 dot = rGravity.dot(rVelocity);
@@ -1492,7 +1491,7 @@ namespace MR {
         return PSVECMag(&tmp);
     }
 
-    void fn_80010910(TVec3f* pDst, const TVec3f& rDir, f32 scale) {
+    void calcDirectionWithLength(TVec3f* pDst, const TVec3f& rDir, f32 scale) {
         TVec3f normal;
         MR::normalizeOrZero(&normal, rDir);
 
@@ -1502,7 +1501,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
-    void fn_80010AD0(TVec3f* pDst, LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
+    void calcVelocityMoveToTarget3D(TVec3f* pDst, LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
         TVec3f diff(rTarget);
         PSVECSubtract(&diff, &pActor->mPosition, &diff);
 
@@ -1514,7 +1513,7 @@ namespace MR {
         pDst->set(scaled);
     }
 
-    void fn_80010CB0(LiveActor* pActor, const TVec3f& rDir, f32 scale) {
+    void addVelocityMoveToDirection3D(LiveActor* pActor, const TVec3f& rDir, f32 scale) {
         TVec3f normal;
         MR::normalizeOrZero(&normal, rDir);
 
@@ -1523,13 +1522,13 @@ namespace MR {
         pActor->mVelocity.add(scaled);
     }
 
-    void fn_80010D10(LiveActor* pActor, const TVec3f& rDir, f32 speed) {
+    void addVelocityMoveToDirectionHorizon(LiveActor* pActor, const TVec3f& rDir, f32 speed) {
         TVec3f vel;
         MR::calcVelocityMoveToDirectionHorizon(&vel, pActor, rDir, speed);
         pActor->mVelocity.add(vel);
     }
 
-    void fn_80010DB0(LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
+    void addVelocityMoveToTarget3D(LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
         TVec3f diff(rTarget);
         PSVECSubtract(&diff, &pActor->mPosition, &diff);
         MR::normalizeOrZero(&diff);
@@ -1539,7 +1538,7 @@ namespace MR {
         pActor->mVelocity.add(scaled);
     }
 
-    void fn_80010E30(LiveActor* pActor, const TVec3f& rTarget, f32 a, f32 b, f32 c, f32 d) {
+    void addVelocityMoveToTarget3D(LiveActor* pActor, const TVec3f& rTarget, f32 a, f32 b, f32 c, f32 d) {
         TVec3f dir(rTarget);
         PSVECSubtract(&dir, &pActor->mPosition, &dir);
 
@@ -1572,7 +1571,7 @@ namespace MR {
         moveAndTurnToDirection(pActor, pA2, stack_8, a3, a4, a5, a6);
     }
 
-    void fn_800137F0(LiveActor* pActor, TVec3f* pOut, bool* pFlag, f32 a1, f32 a2, f32 a3, f32 a4, f32 a5) {
+    void moveAndTurnAlongRail(LiveActor* pActor, TVec3f* pOut, bool* pFlag, f32 a1, f32 a2, f32 a3, f32 a4, f32 a5) {
         TVec3f dir;
         MR::calcMovingDirectionAlongRailH(pActor, &dir, pActor->mPosition, a1, pFlag);
         moveAndTurnToDirection(pActor, pOut, dir, a2, a3, a4, a5);
@@ -1590,7 +1589,7 @@ namespace MR {
         TVec3f dir(*pOut);
         vecKillElement(dir, pActor->mGravity, &dir);
         normalize(&dir);
-        fn_80010CB0(pActor, dir, pParam[0]);
+        addVelocityMoveToDirection3D(pActor, dir, pParam[0]);
         addVelocityToGravity(pActor, pParam[1]);
         pActor->mVelocity.scale(pParam[2]);
         reboundVelocityFromEachCollision(pActor, -1.0f, 0.0f, 0.0f, 0.0f);

@@ -195,7 +195,7 @@ void DinoPackunBabyBattle::exeAttackJumpSign() {
 
 void DinoPackunBabyBattle::exeAttackJump() {
     if (MR::isFirstStep(this)) {
-        MR::fn_800127A0(mHost, &mHost->mFront, mChaseJumpSpeed);
+        MR::addVelocityDirectionAndJump(mHost, &mHost->mFront, mChaseJumpSpeed);
     }
     if (mHost->updateJumpState(this)) {
         MR::tryHitReaction(mHost, "追いかけジャンプ着地");
@@ -285,7 +285,7 @@ void DinoPackunBabyBattle::exeEscapeTurnStart() {
 
 void DinoPackunBabyBattle::exeDown() {
     if (MR::isFirstStep(this)) {
-        MR::fn_800126F0(mHost, &mHost->mFront, mDownSpeed);
+        MR::setVelocityDirectionAndJump(mHost, &mHost->mFront, mDownSpeed);
     }
     MR::updateActorState(this);
     if (!mIsFirstHalf) {

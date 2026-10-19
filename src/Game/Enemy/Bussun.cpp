@@ -87,7 +87,7 @@ void Bussun::kill() {
 
 void Bussun::calcAndSetBaseMtx() {
     LiveActor::calcAndSetBaseMtx();
-    MR::fn_8000F910(this, &mFront, &mUp);
+    MR::calcAndSetBaseMtxFromFrontAndUp(this, &mFront, &mUp);
     MR::updateBaseScale(this, mAnimScaleCtrl);
 }
 

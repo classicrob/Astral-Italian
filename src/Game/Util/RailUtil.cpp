@@ -348,7 +348,7 @@ namespace MR {
         return calcDifferenceRailCoord(pActor, getRailCoord(pActor), coord);
     }
 
-    void fn_80052450(LiveActor* pActor, f32 speed, f32 minSpeed, f32 range) {
+    void moveCoordAndFollowTransEaseInOutAndReverse(LiveActor* pActor, f32 speed, f32 minSpeed, f32 range) {
         f32 easedSpeed = calcRailSpeedEaseAtEnds(pActor, speed, minSpeed, range);
         moveCoordAndFollowTrans(pActor, easedSpeed);
         if (!pActor->mRailRider->isLoop() && pActor->mRailRider->isReachedGoal()) {
@@ -361,7 +361,7 @@ namespace MR {
         return calcDifferenceRailCoord(pActor, currentCoord, coord) >= 0.0f;
     }
 
-    f32 fn_80052E20(const LiveActor* pActor) {
+    f32 getRailRemainingLength(const LiveActor* pActor) {
         RailRider* railRider = pActor->mRailRider;
         if (railRider->mIsNotReverse) {
             f32 coord = railRider->mCoord;
@@ -425,7 +425,7 @@ namespace MR {
     }
 
     // NONMATCHING: regalloc
-    void fn_800531B0(TVec3f* pDir, LiveActor* pActor, f32 offset) {
+    void calcRailDirectionAtOffset(TVec3f* pDir, LiveActor* pActor, f32 offset) {
         RailRider* railRider = pActor->mRailRider;
         f32 coord;
         if (railRider->mIsNotReverse) {

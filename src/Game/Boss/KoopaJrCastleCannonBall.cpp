@@ -111,9 +111,9 @@ void KoopaJrCastleCannonBall::exe800D1830() {
     TVec3f origin(ahead);
     JMathInlineVEC::PSVECSubtract(&origin, &halfGravity, &origin);
     TVec3f hitPos(0.0f);
-    if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, origin, mGravity * length) && MR::fn_80038D20(nullptr)) {
+    if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, origin, mGravity * length) && MR::getSensor(nullptr)) {
         HitSensor* sensor = getSensor(nullptr);
-        if (MR::sendMsgEnemyAttackElectric(MR::fn_80038D20(nullptr), sensor)) {
+        if (MR::sendMsgEnemyAttackElectric(MR::getSensor(nullptr), sensor)) {
             MR::tryHitReaction(this, reaction);
             MR::emitEffect(this, effect);
             MR::startActionSound(this, "EmElecbublletBreak", -1, -1, -1);

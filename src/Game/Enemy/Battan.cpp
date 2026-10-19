@@ -249,7 +249,7 @@ void Battan::control() {
 }
 
 void Battan::calcAndSetBaseMtx() {
-    MR::fn_8000F880(this, &mFront);
+    MR::calcAndSetBaseMtxFromFrontAndGravity(this, &mFront);
 }
 
 void Battan::calcAnim() {
@@ -707,7 +707,7 @@ void Battan::exeBattanHalfTurn() {
     }
     if (!mTicoStop->tryAttachTouch()) {
         TVec3f target(0.0f, 0.0f, 1.0f);
-        MR::fn_800531B0(&target, this, 0.1f);
+        MR::calcRailDirectionAtOffset(&target, this, 0.1f);
         if (!MR::isRailGoingToEnd(this)) {
             target = -target;
         }

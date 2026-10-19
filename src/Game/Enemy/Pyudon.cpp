@@ -564,7 +564,7 @@ void Pyudon::updateVelocityToTarget(f32 farg0, f32 farg1) {
     f32 length = horizontal.length();
     MR::addVelocityKeepHeight(this, mTargetPos, farg1, 100.0f);
     f32 limit = 100.0f;
-    MR::fn_80010CB0(this, horizontal, farg0 * MR::normalizeAbs(length, -limit, limit));
+    MR::addVelocityMoveToDirection3D(this, horizontal, farg0 * MR::normalizeAbs(length, -limit, limit));
     MR::reboundVelocityFromCollision(this, 0.0f, 0.0f, 1.0f);
 }
 

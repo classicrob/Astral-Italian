@@ -81,7 +81,7 @@ void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     bool isPlayerBelow = mHost->mGravity.dot(*MR::getPlayerGravity()) > 0.0f;
     bool isNear = isNearHeight(80.0f);
     TVec3f toPlayer;
-    MR::fn_8000E5E0(&toPlayer, mHost, &mUpVec);
+    MR::calcVecFromPlayerHorizon(&toPlayer, mHost, &mUpVec);
     f32 dist = PSVECMag(&toPlayer);
     f32 angle;
     if (isPlayerBelow) {
@@ -304,7 +304,7 @@ void BossBussunShot::exeFly() {
         TVec3f vel = mMoveDir * 30.0f;
         MR::setVelocity(this, vel);
     }
-    MR::fn_80010D10(this, mMoveDir, 1.0f);
+    MR::addVelocityMoveToDirectionHorizon(this, mMoveDir, 1.0f);
     if (!MR::isBindedGround(this)) {
         MR::addVelocityToGravity(this, 1.2f);
     }
@@ -340,7 +340,7 @@ void BossBussunShot::exeHold() {
         MR::offBind(this);
     }
     TVec3f dir;
-    MR::fn_8000E960(&dir, this, &mHoldPos);
+    MR::calcDirToTarget(&dir, this, &mHoldPos);
     f32 prevDist = MR::calcDistance(this, mHoldPos);
     TVec3f accel = dir * 3.0f;
     mHoldVel.add(accel);
@@ -353,7 +353,7 @@ void BossBussunShot::exeHold() {
     if (limit < dist) {
         f32 over = dist - limit;
         TVec3f dir2;
-        MR::fn_8000E960(&dir2, this, &mHoldPos);
+        MR::calcDirToTarget(&dir2, this, &mHoldPos);
         TVec3f push = dir2 * over;
         mHoldVel.add(push);
         TVec3f move = dir2 * over;

@@ -69,7 +69,7 @@ void UnbabaSlim::init(const JMapInfoIter& rIter) {
         mRotateSpeed = 90.0f;
     }
     makeActorAppeared();
-    MR::fn_80008890(this, "UnbabaSlim");
+    MR::startActionAtRandomFrame(this, "UnbabaSlim");
 }
 
 // NONMATCHING: same inlined TVec3 operator- pointer-register residue as Unbaba::control (regalloc only)

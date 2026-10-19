@@ -146,7 +146,7 @@ void ItemDrill::init(const JMapInfoIter& rIter) {
 
 void ItemDrill::draw() const {
     if (!MR::isDead(this) && !MR::isClipped(this) && isTakenByPlayer()) {
-        MR::fn_800222A0(this);
+        MR::drawModelAlphaShadow(this);
     }
 }
 
@@ -807,7 +807,7 @@ void ItemDrill::exeDrillDiveLoop() {
         }
 
         HitSensor* pBody = getSensor("Body");
-        if (MR::sendMsgDrillAttack(MR::fn_80038D20(mTriangle), pBody)) {
+        if (MR::sendMsgDrillAttack(MR::getSensor(mTriangle), pBody)) {
             TVec3f up;
             mBaseTRMtx.getYDir(up);
             MR::endBindAndPlayerForceWeakGravityJumpInputOff(this, up);

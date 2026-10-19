@@ -26,7 +26,7 @@ WorldMapResultStateStart::~WorldMapResultStateStart() {
 }
 
 inline void WorldMapResultStateStart::exeWait() {
-    if (fn_80059100()) {
+    if (MR::isSystemWipeBlank()) {
         setNerve(GET_NERVE(WorldMapResultStateStart, WorldMapResultStateStartEnd));
     } else {
         MR::setSeVolumeSetLevel(12, 30);

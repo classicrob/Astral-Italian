@@ -33,10 +33,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include <cstdio>
 
-extern "C" {
-    bool fn_80059100();
-}
-
 class WorldMapResultCommand;
 class WorldMapOwner;
 

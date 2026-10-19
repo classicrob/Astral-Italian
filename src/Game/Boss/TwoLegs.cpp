@@ -373,7 +373,7 @@ void TwoLegs::calcAndSetBaseMtx() {
             up.set(dir);
         }
     }
-    MR::fn_8000F910(this, &mBodyDir->mFront, &up);
+    MR::calcAndSetBaseMtxFromFrontAndUp(this, &mBodyDir->mFront, &up);
 }
 
 void TwoLegs::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

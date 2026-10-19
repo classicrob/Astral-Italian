@@ -6,7 +6,7 @@ class LiveActor;
 
 namespace MR {
     void drawScreenAlphaShadow(s32, bool, bool);
-    void fn_800222A0(const LiveActor*);
+    void drawModelAlphaShadow(const LiveActor*);
     void setupDrawForNW4RLayout(f32);
 };
 

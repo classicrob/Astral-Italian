@@ -273,4 +273,31 @@ namespace MR {
     void makeCometMessageID(char* pDst, u32 bufferSize, const char* pCometName) {
         snprintf(pDst, bufferSize, "CometName_%s", pCometName);
     }
+    bool isStoryBookPageKindA(const char* name, s32 zone) {
+        TalkMessageInfo info;
+        MessageData* data = MessageSystem::getSceneMessageData(name, zone);
+        if (MessageSystem::getMessageDirect(&info, name, data)) {
+            return info.mBalloonType == 5;
+        }
+        return false;
+    }
+
+    bool isStoryBookPageKindB(const char* name, s32 zone) {
+        TalkMessageInfo info;
+        MessageData* data = MessageSystem::getSceneMessageData(name, zone);
+        if (MessageSystem::getMessageDirect(&info, name, data)) {
+            return info.mBalloonType == 6;
+        }
+        return false;
+    }
+
+    bool isStoryBookPageKindC(const char* name, s32 zone) {
+        TalkMessageInfo info;
+        MessageData* data = MessageSystem::getSceneMessageData(name, zone);
+        if (MessageSystem::getMessageDirect(&info, name, data)) {
+            return info.mBalloonType == 7;
+        }
+        return false;
+    }
+
 };  // namespace MR

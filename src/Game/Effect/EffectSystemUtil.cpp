@@ -130,7 +130,7 @@ namespace MR {
         }
 
         int getAutoEffectNum(const char* pName) {
-            const ResourceCsvGroupInfo* pInfo = MR::getGameSystemObjHolder3C()->fn_804CC650(pName);
+            const ResourceCsvGroupInfo* pInfo = MR::getGameSystemObjHolder3C()->findGroup(pName);
 
             if (pInfo == nullptr) {
                 return 0;

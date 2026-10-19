@@ -224,7 +224,7 @@ void LavaBubble::launchBubble() {
     } else {
         dir.set(mUp);
     }
-    MR::fn_80010910(&vel, dir, launchSpeed);
+    MR::calcDirectionWithLength(&vel, dir, launchSpeed);
     mVelocity.set(vel);
     MR::invalidateClipping(this);
 }

@@ -81,7 +81,7 @@ void DanceFlower::kill() {
 
 void DanceFlower::control() {
     mAnimScaleCtrl->updateNerve();
-    MR::fn_80010600(mPose, this, 0.05f, 0.5f);
+    MR::blendActorPoseFromGroundAndFront(mPose, this, 0.05f, 0.5f);
     if (this->isEatableNerve()) {
         YoshiFunction::tryYoshiEat(mYoshiLockOn);
     }
@@ -211,7 +211,7 @@ void DanceFlower::startBlowDownReaction(HitSensor* pSender, HitSensor* pReceiver
     pose->mFront.y = dir.y;
     pose->mFront.z = dir.z;
     MR::setVelocityBlowAttack(this, pSender, pReceiver, 30.0f, 30.0f, 4);
-    MR::fn_80034760(this, pSender, pReceiver);
+    MR::tryHitReactionBlowBetweenSensors(this, pSender, pReceiver);
     setNerve(GET_DANCEFLOWER_NERVE(DanceFlowerNrvBlowDown));
     MR::invalidateHitSensors(this);
 }

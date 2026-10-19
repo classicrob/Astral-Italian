@@ -126,7 +126,7 @@ namespace MR {
         }
     }
 
-    void setBgmMgr954(s32 param1) {
+    void setStageBGMVolumeDownDelay(s32 param1) {
         AudWrap::getBgmMgr()->_954 = param1;
     }
 

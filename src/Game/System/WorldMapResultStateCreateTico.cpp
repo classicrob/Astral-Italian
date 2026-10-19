@@ -24,7 +24,7 @@ void WorldMapResultStateCreateTico::exeClose() {
         MR::closeSystemWipeMario(-1);
     }
 
-    if (fn_80059100()) {
+    if (MR::isSystemWipeBlank()) {
         setNerve(GET_NERVE(WorldMapResultStateCreateTico, WorldMapResultStateCreateTicoOpen));
     }
 }
@@ -96,7 +96,7 @@ void WorldMapResultStateCreateTico::exeCloseEnd() {
         MR::closeSystemWipeMario(-1);
     }
 
-    if (fn_80059100()) {
+    if (MR::isSystemWipeBlank()) {
         setNerve(GET_NERVE(WorldMapResultStateCreateTico, WorldMapResultStateCreateTicoEnd));
     }
 }

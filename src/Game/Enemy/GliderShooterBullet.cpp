@@ -86,7 +86,7 @@ void GliderShooterBullet::startClipped() {
 }
 
 void GliderShooterBullet::calcAndSetBaseMtx() {
-    MR::fn_8000F880(this, &mUnk90);
+    MR::calcAndSetBaseMtxFromFrontAndGravity(this, &mUnk90);
 }
 
 void GliderShooterBullet::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

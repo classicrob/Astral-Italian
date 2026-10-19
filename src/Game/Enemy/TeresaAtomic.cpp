@@ -57,7 +57,7 @@ void TeresaAtomic::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, false);
     if (MR::isConnectedWithRail(rIter)) {
         MR::moveCoordAndTransToStartPos(this);
-        MR::fn_800531B0(&mFrontVec, this, 100.0f);
+        MR::calcRailDirectionAtOffset(&mFrontVec, this, 100.0f);
     } else {
         MR::calcFrontVec(&mFrontVec, this);
     }
@@ -263,7 +263,7 @@ void TeresaAtomic::exeChase() {
     }
     if (MR::isExistRail(this)) {
         TVec3f front;
-        MR::fn_800531B0(&front, this, 100.0f);
+        MR::calcRailDirectionAtOffset(&front, this, 100.0f);
         MR::turnDirectionDegree(this, &mFrontVec, front, 4.0f);
         MR::moveCoordAndFollowTrans(this, mSpeed);
         TVec3f offset = mGravity * -900.0f;

@@ -114,5 +114,5 @@ public:
 
     virtual void updateMaterial(J3DMaterial*) override;
 
-    /* 0x0C */ const char* mTexGenCount;
+    /* 0x0C */ const char* mCullMode;  // points at a GXCullMode byte; applied in updateMaterial
 };

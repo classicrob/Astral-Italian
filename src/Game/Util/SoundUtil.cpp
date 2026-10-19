@@ -78,7 +78,7 @@ namespace MR {
         pSoundObject->process();
     }
 
-    void fn_8005A6E0(LiveActor* pActor, const char* pName, bool param3, bool param4, f32 param5, f32 param6) {
+    void startBasWithUpdateFoot(LiveActor* pActor, const char* pName, bool param3, bool param4, f32 param5, f32 param6) {
         startBas(pActor, pName, param3, param5, param6, param4);
     }
 
@@ -107,7 +107,7 @@ namespace MR {
         return false;
     }
 
-    void fn_8005A7F0(LiveActor* pActor, f32 param2) {
+    void skipBas(LiveActor* pActor, f32 param2) {
         getActorSoundObject(pActor)->skip(param2);
     }
 
@@ -123,7 +123,7 @@ namespace MR {
         return AudWrap::getSystemSeObject()->startLevelSoundParam(id, param2, param3);
     }
 
-    JAISoundHandle* fn_8005AF70(JAISoundID id, s32 param2, s32 param3, s32 param4) {
+    JAISoundHandle* startSystemLevelSE(JAISoundID id, s32 param2, s32 param3, s32 param4) {
         return startSoundObjectLevelParam(AudWrap::getSystemSeObject(), id, param2, param3, param4);
     }
 
@@ -151,7 +151,7 @@ namespace MR {
         return AudWrap::getAtmosphereSeObject()->startSoundParam(id, param2, param3);
     }
 
-    JAISoundHandle* fn_8005B100(JAISoundID id, s32 param2, s32 param3) {
+    JAISoundHandle* startAtmosphereLevelSE(JAISoundID id, s32 param2, s32 param3) {
         return AudWrap::getAtmosphereSeObject()->startLevelSoundParam(id, param2, param3);
     }
 
@@ -494,7 +494,7 @@ namespace MR {
         MR::getSceneObj< AudEffectDirector >(0x12)->restoreEffectType();
     }
 
-    JAISoundID fn_8005ADD0(const char* pName) {
+    JAISoundID getSoundID(const char* pName) {
         return AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
     }
 
@@ -502,7 +502,7 @@ namespace MR {
         AudWrap::getSystem()->setSeVolumeSetLevel(3, 30, 2);
     }
 
-    void fn_8005AE10(LiveActor* pActor) {
+    void addActorToSoundObjHolder(LiveActor* pActor) {
         getActorSoundObject(pActor)->addToSoundObjHolder();
     }
 

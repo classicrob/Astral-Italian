@@ -2710,7 +2710,7 @@ f32 Mario::calcDistToCeil(bool saveSensor) {
     TVec3f hitPos;
     bool hit;
     if (fn_803B2950()) {
-        hit = MR::fn_80037E80(&hitPos, &triangle, start, ray);
+        hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, start, ray);
     } else {
         hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, start, ray);
     }
@@ -2799,7 +2799,7 @@ f32 Mario::calcDistWidth() {
         direction *= 100.0f;
         bool hit;
         if (fn_803B2950()) {
-            hit = MR::fn_80037E80(&hitPos, &triangle, _4E8, direction);
+            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, _4E8, direction);
         } else {
             hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4E8, direction);
         }
@@ -2814,7 +2814,7 @@ f32 Mario::calcDistWidth() {
         direction *= 100.0f;
         bool hit;
         if (fn_803B2950()) {
-            hit = MR::fn_80037E80(&hitPos, &triangle, _4F4, direction);
+            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, _4F4, direction);
         } else {
             hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4F4, direction);
         }
@@ -2829,7 +2829,7 @@ f32 Mario::calcDistWidth() {
         direction *= 100.0f;
         bool hit;
         if (fn_803B2950()) {
-            hit = MR::fn_80037E80(&hitPos, &triangle, _500, direction);
+            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, _500, direction);
         } else {
             hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _500, direction);
         }
@@ -9982,7 +9982,7 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
     firstOrigin -= firstOffset;
     TVec3f ceilingPos;
     bool ceilingHit;
-    if (fn_803B2950()) ceilingHit = MR::fn_80037E80(&ceilingPos, &ceiling, firstOrigin, firstRay);
+    if (fn_803B2950()) ceilingHit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&ceilingPos, &ceiling, firstOrigin, firstRay);
     else ceilingHit = MR::getFirstPolyOnLineToMap(&ceilingPos, &ceiling, firstOrigin, firstRay);
     if (!ceilingHit) return false;
     TVec3f ceilingDelta(ceilingPos);
@@ -9999,7 +9999,7 @@ bool Mario::checkVerticalPress(bool atCurrentPosition) {
     secondOrigin -= secondOffset;
     TVec3f floorPos;
     bool floorHit;
-    if (fn_803B2950()) floorHit = MR::fn_80037E80(&floorPos, &floor, secondOrigin, secondRay);
+    if (fn_803B2950()) floorHit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&floorPos, &floor, secondOrigin, secondRay);
     else floorHit = MR::getFirstPolyOnLineToMap(&floorPos, &floor, secondOrigin, secondRay);
     if (floorHit) {
         if (ceiling.mSensor != floor.mSensor && (fn_803B2E10(&ceiling) || MR::isSensorPressObj(floor.mSensor))) {
@@ -11024,7 +11024,7 @@ bool Mario::checkGroundOnSlope() {
     TVec3f origin(mPosHolder->mPos - *getGravityVec() * 30.0f);
     TVec3f queryDirection(*getGravityVec() * distance);
     if (fn_803B2950()) {
-        hit = MR::fn_8003A720(origin, queryDirection, &hitPosition, &ground);
+        hit = MR::getFirstPolyOnLineBFastToDashYoshiStepAndMap(origin, queryDirection, &hitPosition, &ground);
     } else {
         hit = MR::getFirstPolyOnLineBFast(origin, queryDirection, &hitPosition, &ground);
     }

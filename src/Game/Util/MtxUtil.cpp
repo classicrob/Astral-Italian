@@ -665,7 +665,7 @@ namespace MR {
         rotateMtxMoment(pMtx, *pMtx, rMoment);
     }
 
-    void fn_80046A70(MtxPtr pDst, MtxPtr pA, MtxPtr pB) {
+    void concatMtxKeepSecondTranslation(MtxPtr pDst, MtxPtr pA, MtxPtr pB) {
         TVec3f trans(pB[0][3], pB[1][3], pB[2][3]);
         pB[0][3] = 0.0f;
         pB[1][3] = 0.0f;

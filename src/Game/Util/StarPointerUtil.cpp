@@ -836,7 +836,7 @@ namespace MR {
 
 
 
-    void fn_8005E430(LiveActor* pActor) {
+    void startStarPointerModeCommandStream(LiveActor* pActor) {
         ::getStarPointerOnOffController()->incModeCounter(pActor, StarPointerMode_CommandStream);
     }
 
@@ -862,14 +862,11 @@ namespace MR {
         ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_BlueStarReady);
     }
 
-    void fn_8005E5B0(void* pRequester) {
-        ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_CommandStream);
-    }
-
-
     void requestStarPointerModeCommandStream(void* pRequester) {
         ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_CommandStream);
     }
+
+
 
     bool isStarPointerModeBlueStarReady() {
         return ::getStarPointerOnOffController()->compareMode(StarPointerMode_BlueStarReady);

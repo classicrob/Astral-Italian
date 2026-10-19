@@ -55,7 +55,6 @@ namespace MR {
     MtxPtr tmpMtxRotZDeg(f32);
     void orderRotateMtx(s16, const TVec3f&, MtxPtr);
     void inverseConcatMtx(MtxPtr, MtxPtr, TMtx34f*);
-    // Provisional name for the unnamed SMG2 function fn_8000F880 (used by MiniMeister::calcAndSetBaseMtx).
     void calcTalkBaseMtx(f32* pScale);
 };  // namespace MR
 
@@ -117,5 +116,5 @@ namespace MR {
 };  // namespace MR
 
 namespace MR {
-    void fn_80046A70(MtxPtr, MtxPtr, MtxPtr);
+    void concatMtxKeepSecondTranslation(MtxPtr, MtxPtr, MtxPtr);
 }

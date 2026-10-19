@@ -155,7 +155,7 @@ void Foomin::updateRailSpeed() {
     if (MR::isExistRail(this)) {
         s32 speed = this->mArg1;
         f32 rate = 0.009999999776482582f * (f32)speed;
-        MR::fn_80052450(this, rate, 0.20000000298023224f * rate, 100.0f);
+        MR::moveCoordAndFollowTransEaseInOutAndReverse(this, rate, 0.20000000298023224f * rate, 100.0f);
     }
 }
 

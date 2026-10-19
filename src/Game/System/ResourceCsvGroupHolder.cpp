@@ -30,7 +30,7 @@ const char* getEffectArchivePath(){
     return path;
 }
 // NONMATCHING: register allocation in the linear search.
-const ResourceCsvGroupInfo* ResourceCsvGroupHolder::fn_804CC650(const char* name) const {
+const ResourceCsvGroupInfo* ResourceCsvGroupHolder::findGroup(const char* name) const {
     for(s32 i=0;i<mCount;++i){const ResourceCsvGroupInfo* group=&mGroups[i];if(MR::isEqualStringCase(group->mName,name))return group;}
     return NULL;
 }
@@ -57,7 +57,7 @@ void ResourceCsvGroupHolder::initAutoEffectGroups(){
         const char* name=NULL;
         MR::getCsvDataStr(&name,mAutoEffectCsv,"GroupName",i);
         if(name[0]=='\0')continue;
-        ResourceCsvGroupInfo* group=const_cast<ResourceCsvGroupInfo*>(fn_804CC650(name));
+        ResourceCsvGroupInfo* group=const_cast<ResourceCsvGroupInfo*>(findGroup(name));
         if(group==NULL){group=&mGroups[mCount];group->mName=name;group->_C=1;++mCount;}
         else ++group->_C;
         if(group->_C==1)group->_10=i;

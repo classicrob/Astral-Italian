@@ -1022,27 +1022,11 @@ namespace MR {
         }
     }
 
-    void fn_80034760(LiveActor* pActor, HitSensor* pSender, HitSensor* pReceiver) {
-        const char* pName = "吹き飛びヒット";
-        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
-        if (pCtrl != nullptr) {
-            pCtrl->reactToHit(pName, nullptr, pSender, pReceiver);
-        }
-    }
-
     void tryHitReactionBlow(const LiveActor* pActor, const TVec3f* pPos) {
         const char* pName = "吹き飛びヒット";
         ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
         if (pCtrl != nullptr) {
             pCtrl->reactToHit(pName, pPos, nullptr, nullptr);
-        }
-    }
-
-    void tryHitReactionBlow(LiveActor* pActor) {
-        const char* pName = "吹き飛びヒット";
-        ActorHitReactionCtrl* pCtrl = getHitReactionCtrl(pActor);
-        if (pCtrl != nullptr) {
-            pCtrl->reactToHit(pName, nullptr, nullptr, nullptr);
         }
     }
 
@@ -1358,7 +1342,7 @@ namespace MR {
         }
     }
 
-    void fn_800328A0(LiveActor* pActor, const char* pName, const BckCtrlData& rBck) {
+    void reflectBckCtrlDataToAllAnim(LiveActor* pActor, const char* pName, const BckCtrlData& rBck) {
         reflectBckCtrlData(pActor, rBck);
 
         J3DFrameCtrl* pCtrls[5];
@@ -2304,8 +2288,7 @@ namespace MR {
     }
 
     void forceClearFootPrint(LiveActor* pActor) {
-        // PLACEHOLDER(core): the footprint handle is a pointer stored in a long (MR::createFootPrintHandle); resolve when FootPrint.cpp takes FootPrint* (64-bit port)
-        reinterpret_cast< FootPrint* >(pActor->mActionKeeper->mFootPrintCtrl->mHandle)->clearForce();
+        pActor->mActionKeeper->mFootPrintCtrl->mHandle->clearForce();
     }
 
     LiveActor* getLinkedActor(const JMapLinkInfo* pLink) {

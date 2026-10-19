@@ -141,7 +141,7 @@ void JellyfishElectric::exeWait() {
         } else {
             if (mIsDanger && !MR::isBckPlaying(this, "DangerWait")) {
                 MR::startAction(this, "DangerWait");
-                MR::fn_8005A6E0(this, "DangerBrk", false, true, 0.0f, 0.0f);
+                MR::startBasWithUpdateFoot(this, "DangerBrk", false, true, 0.0f, 0.0f);
             }
         }
     }
@@ -157,7 +157,7 @@ void JellyfishElectric::exeDamage() {
 
     if (MR::isActionEnd(this)) {
         MR::startAction(this, "DangerWait");
-        MR::fn_8005A6E0(this, "DangerBrk", false, true, 0.0f, 0.0f);
+        MR::startBasWithUpdateFoot(this, "DangerBrk", false, true, 0.0f, 0.0f);
         setNerve(GET_NERVE(JellyfishElectric, JellyfishElectricNrvWait));
     }
 }

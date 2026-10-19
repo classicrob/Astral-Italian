@@ -86,7 +86,7 @@ void GrandGalaxyMapStateMove::exeMove() {
     GrandGalaxyMap::getNodePosition(&target, mHost, mTo);
     if (isLast) {
         TVec3f accel(0.0f);
-        MR::fn_80010AD0(&accel, pRocket, target, mAccel);
+        MR::calcVelocityMoveToTarget3D(&accel, pRocket, target, mAccel);
         mVelocity.add(accel);
         mVelocity.scale(mFriction);
         mPos.add(mVelocity);
@@ -95,7 +95,7 @@ void GrandGalaxyMapStateMove::exeMove() {
         pRocket->setMoveDirection(mVelocity);
         pRocket->mPosition = goal * rate + mPos * (1.0f - rate);
     } else {
-        MR::fn_80010DB0(pRocket, target, mAccel);
+        MR::addVelocityMoveToTarget3D(pRocket, target, mAccel);
         MR::attenuateVelocity(pRocket, mFriction);
         MR::restrictVelocity(pRocket, mMaxSpeed);
         pRocket->setMoveDirection(pRocket->mVelocity);

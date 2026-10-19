@@ -15,6 +15,7 @@ public:
     void requestPauseMenuOff();
     void exeNormal();
     bool tryStartPauseMenu();
+    void startPauseMenu();
 
     /* 0x08 */ GameScene* mScene;
     /* 0x0C */ PauseButtonCheckerInGame* mPauseChecker;

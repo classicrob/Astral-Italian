@@ -311,7 +311,7 @@ void Togezo::exeWalkOnRail() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Walk");
     }
-    MR::fn_800137F0(this, &mFrontVec, nullptr, 600.0f, hRunParam._0, hRunParam._4, hRunParam._8, hRunParam._C);
+    MR::moveAndTurnAlongRail(this, &mFrontVec, nullptr, 600.0f, hRunParam._0, hRunParam._4, hRunParam._8, hRunParam._C);
     tryAttack();
 }
 
@@ -1067,7 +1067,7 @@ void calcDiagonalRailDirectionFacingCamera(TVec3f* pDst, const LiveActor* pActor
     TVec3f toCam(0.0f);
     TVec3f railDir(0.0f);
     TVec3f up(0.0f, 1.0f, 0.0f);
-    MR::fn_8000E960(&toCam, pActor, &camPos);
+    MR::calcDirToTarget(&toCam, pActor, &camPos);
     MR::calcRailDirection(&railDir, pActor);
     if (!MR::isRailGoingToEnd(pActor)) {
         TVec3f neg = -railDir;

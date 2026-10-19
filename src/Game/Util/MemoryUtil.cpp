@@ -103,7 +103,7 @@ namespace MR {
         pHeap->adjustSize();
     }
 
-    u32 fn_80040EA0(u32 value) {
+    bool getHighBit(u32 value) {
         return value >> 31;
     }
 

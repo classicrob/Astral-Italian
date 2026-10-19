@@ -11,7 +11,7 @@ class HitSensor;
 class LiveActor;
 
 namespace MR {
-    void fn_80010E30(LiveActor*, const TVec3f&, f32, f32, f32, f32);
+    void addVelocityMoveToTarget3D(LiveActor*, const TVec3f&, f32, f32, f32, f32);
     void killVelocityVertical(LiveActor*);
     void killVelocityHorizon(LiveActor*);
     void setQuatUpNoSupport(LiveActor*, const TVec3f&);
@@ -49,8 +49,6 @@ namespace MR {
     void calcPositionUpOffset(TVec3f*, const LiveActor*, f32);
     void calcVecToPlayerH(TVec3f*, const LiveActor*, const TVec3f*);
     void calcVecFromPlayerH(TVec3f*, const LiveActor*, const TVec3f*);
-    // PLACEHOLDER(core): SMG2 has only the 3-arg form; resolve when Kanina.cpp (enemies) passes nullptr as 3rd arg
-    void calcVecFromPlayerH(TVec3f*, const LiveActor*);
     void calcVecToTargetPosH(TVec3f*, const LiveActor*, const TVec3f&, const TVec3f*);
     void calcVecFromTargetPosH(TVec3f*, const LiveActor*, const TVec3f&, const TVec3f*);
     bool isFaceToTargetDegree(const LiveActor*, const TVec3f&, const TVec3f&, f32);
@@ -187,33 +185,33 @@ namespace MR {
         return velH;
     }
     // ActorMovementUtil (enemies lane, callees named by address; lead renames symbols)
-    void fn_80012B80(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
-    void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f*);
-    void fn_8000E5E0(TVec3f*, const LiveActor*, const TVec3f*);
-    f32 fn_8000E760(TVec3f*, const LiveActor*, const TVec3f*, f32, f32);
-    NO_INLINE void fn_8000F5D0(TVec3f*, TVec3f*, const TPos3f*);
-    void fn_8000F650(TVec3f*, TVec3f*, const TPos3f*);
-    void fn_8000FA30(LiveActor*, const TVec3f*);
-    void fn_80010CB0(LiveActor*, const TVec3f&, f32);
-    void fn_8000F880(LiveActor*, TVec3f*);
-    void fn_80010600(ActorPoseTQ*, LiveActor*, f32, f32);
-    void fn_800137F0(LiveActor*, TVec3f*, bool*, f32, f32, f32, f32, f32);
+    void addVelocitySeparateHV(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
+    void calcDirToTarget(TVec3f*, const LiveActor*, const TVec3f*);
+    void calcVecFromPlayerHorizon(TVec3f*, const LiveActor*, const TVec3f*);
+    f32 calcNearestPointToPlayerOnSideLine(TVec3f*, const LiveActor*, const TVec3f*, f32, f32);
+    NO_INLINE void calcFrontVecIfParallelToUp(TVec3f*, TVec3f*, const TPos3f*);
+    void calcUpVecIfParallelToFront(TVec3f*, TVec3f*, const TPos3f*);
+    void calcAndSetBaseMtxFromFront(LiveActor*, const TVec3f*);
+    void addVelocityMoveToDirection3D(LiveActor*, const TVec3f&, f32);
+    void calcAndSetBaseMtxFromFrontAndGravity(LiveActor*, TVec3f*);
+    void blendActorPoseFromGroundAndFront(ActorPoseTQ*, LiveActor*, f32, f32);
+    void moveAndTurnAlongRail(LiveActor*, TVec3f*, bool*, f32, f32, f32, f32, f32);
     void fn_80013880(LiveActor*, TVec3f*, const f32*);
-    void fn_80013220(const LiveActor*, TVec3f*, f32);
-    void fn_80010DB0(LiveActor*, const TVec3f&, f32);
-    void fn_80010E30(LiveActor*, const TVec3f&, f32, f32, f32, f32);
-    void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
-    void fn_800127A0(LiveActor*, const TVec3f*, const f32*);
-    bool fn_80012BA0(LiveActor*, HitSensor*, HitSensor*, f32);
-    NO_INLINE void fn_80012EB0(LiveActor*, TVec3f*, f32);
-    f32 fn_80012450(const LiveActor*);
-    void fn_80011F80(LiveActor*, f32, f32);
-    void fn_80011180(LiveActor*, const TVec3f&, f32);
-    void fn_80010200(TQuat4f*, TVec3f*, LiveActor*, HitSensor*, HitSensor*);  // 2nd arg: front vector out (asm)
-    void fn_8000F9A0(LiveActor*, TVec3f*, const TVec3f*);
-    void fn_8000F910(LiveActor*, TVec3f*, TVec3f*);
-    void fn_8000EAB0(TVec3f*, LiveActor*);
-    void fn_8000E650(TVec3f*, LiveActor*, const TVec3f*);
+    void turnDirectionToPlayer(const LiveActor*, TVec3f*, f32);
+    void addVelocityMoveToTarget3D(LiveActor*, const TVec3f&, f32);
+    void addVelocityMoveToTarget3D(LiveActor*, const TVec3f&, f32, f32, f32, f32);
+    void setVelocityDirectionAndJump(LiveActor*, const TVec3f*, const f32*);
+    void addVelocityDirectionAndJump(LiveActor*, const TVec3f*, const f32*);
+    bool reboundVelocityFromSensor(LiveActor*, HitSensor*, HitSensor*, f32);
+    NO_INLINE void rotateDirectionGravityRadian(LiveActor*, TVec3f*, f32);
+    f32 calcHorizontalSpeed(const LiveActor*);
+    void setPositionToMapGround(LiveActor*, f32, f32);
+    void addVelocityAwayFromTargetOnGround(LiveActor*, const TVec3f&, f32);
+    void makeQuatFromGravityAndSensorDirection(TQuat4f*, TVec3f*, LiveActor*, HitSensor*, HitSensor*);  // 2nd arg: front vector out (asm)
+    void calcAndSetBaseMtxFromUpAndFront(LiveActor*, TVec3f*, const TVec3f*);
+    void calcAndSetBaseMtxFromFrontAndUp(LiveActor*, TVec3f*, TVec3f*);
+    void calcGravityCrossDirToPlayer(TVec3f*, LiveActor*);
+    void calcVecToTarget(TVec3f*, LiveActor*, const TVec3f*);
 };  // namespace MR
 
 
@@ -232,13 +230,13 @@ namespace MR {
     f32 calcGravitySpeedAbs(const LiveActor*);
     void calcRotate(LiveActor*, const TVec3f&, f32);
     // SMG2 unnamed helpers used by the MameMuimui family (named by address; lead renames the symbols).
-    void fn_80010180(TQuat4f*, LiveActor*, HitSensor*, HitSensor*);
-    void fn_80010130(ActorPoseTQ*, const LiveActor*);
-    void fn_80010AD0(TVec3f*, LiveActor*, const TVec3f&, f32);
-    void fn_80010D10(LiveActor*, const TVec3f&, f32);
-    void fn_80010270(TQuat4f*, TVec3f*, LiveActor*);
-    void fn_800104F0(TQuat4f*, LiveActor*, TVec3f*, f32, f32);
-    void fn_80010910(TVec3f* pDst, const TVec3f& rDir, f32 scale);  // pDst = normalizeOrZero(rDir) * scale
+    void makeQuatFromGravityAndSensorDirection(TQuat4f*, LiveActor*, HitSensor*, HitSensor*);
+    void initActorPoseFromRotation(ActorPoseTQ*, const LiveActor*);
+    void calcVelocityMoveToTarget3D(TVec3f*, LiveActor*, const TVec3f&, f32);
+    void addVelocityMoveToDirectionHorizon(LiveActor*, const TVec3f&, f32);
+    void makeQuatFromGravityAndPlayerDirection(TQuat4f*, TVec3f*, LiveActor*);
+    void blendQuatFromGravityAndFront(TQuat4f*, LiveActor*, TVec3f*, f32, f32);
+    void calcDirectionWithLength(TVec3f* pDst, const TVec3f& rDir, f32 scale);  // pDst = normalizeOrZero(rDir) * scale
     bool fn_80422290();
 };  // namespace MR
 
@@ -257,7 +255,7 @@ namespace MR {
     void fn_80014670(LiveActor*);
 }
 
-namespace MR { void fn_8000FA30(LiveActor*, const TVec3f*); }
+namespace MR { void calcAndSetBaseMtxFromFront(LiveActor*, const TVec3f*); }
 namespace MR {
     void setRotationFromQuat(LiveActor*, const TQuat4f&);
 }

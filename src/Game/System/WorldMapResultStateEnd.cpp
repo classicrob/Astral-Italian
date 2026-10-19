@@ -34,7 +34,7 @@ WorldMapResultStateEnd::~WorldMapResultStateEnd() {
 
 
 inline void WorldMapResultStateEnd::exeWait() {
-    if (fn_80059100()) {
+    if (MR::isSystemWipeBlank()) {
         setNerve(GET_NERVE(WorldMapResultStateEnd, WorldMapResultStateEndEnd));
     } else {
         MR::setSeVolumeSetLevel(12, 30);

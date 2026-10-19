@@ -287,7 +287,7 @@ void Grapyon::exeBlowDown() {
 
 void Grapyon::calcAndSetBaseMtx() {
     MR::updateBaseScale(this, mAnimScaleCtrl);
-    MR::fn_8000F9A0(this, &mUp, &mFront);
+    MR::calcAndSetBaseMtxFromUpAndFront(this, &mUp, &mFront);
     MR::calcFrontVec(&mFront, this);
     MtxPtr pHeadMtx = MR::getJointMtx(this, "Head");
     TVec3f headPos(pHeadMtx[0][3], pHeadMtx[1][3], pHeadMtx[2][3]);

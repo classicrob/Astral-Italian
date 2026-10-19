@@ -400,7 +400,7 @@ void StringSpider::shortenString(f32 a1) {
 void StringSpider::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mPoseQuat);
     MR::updateBaseScale(this, mScaleController);
-    MR::fn_8002D5C0(&mString->mEndPos, TVec3f(-80.0f, 0.0f, 0.0f), this, "Hip");
+    MR::calcJointWorldPos(&mString->mEndPos, TVec3f(-80.0f, 0.0f, 0.0f), this, "Hip");
     mString->calcAndSetBaseMtx();
 }
 

@@ -36,7 +36,7 @@ void YoshiSilhouette::calcAnim() {
     }
 }
 void YoshiSilhouette::calcViewAndEntry() {}
-void YoshiSilhouette::draw() const { if(!mHidden) MR::fn_800222A0(this); }
+void YoshiSilhouette::draw() const { if(!mHidden) MR::drawModelAlphaShadow(this); }
 bool YoshiSilhouette::checkHidden() {
     if(MR::isDead(this) || MR::isDead(mHost) || MR::isClipped(mHost) || MR::isHiddenModel(mHost)) {
         if(!mHidden) {

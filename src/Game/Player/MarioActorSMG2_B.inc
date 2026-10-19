@@ -508,7 +508,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         F(u16, 0x700) = 0;
         this->resetCondition();
         this->setPunchHitTimer(0);
-        MR::fn_8005E430(this);
+        MR::startStarPointerModeCommandStream(this);
         break;
     }
     case 12:

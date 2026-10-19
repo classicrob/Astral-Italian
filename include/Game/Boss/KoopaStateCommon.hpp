@@ -7,6 +7,6 @@ class LiveActor;
 class Nerve;
 
 
-#include "Game/Util/ActorMovementUtil.hpp"  // MR::fn_80010CB0 (mVelocity += dir * f)
+#include "Game/Util/ActorMovementUtil.hpp"  // MR::addVelocityMoveToDirection3D (mVelocity += dir * f)
 
 class JMapInfoIter;

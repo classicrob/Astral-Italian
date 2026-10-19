@@ -20,8 +20,7 @@ public:
     void start(const char*);
     void stop();
     bool isPlaying(const char*) const;
-    // PLACEHOLDER(core): unnamed fn_80069450 (AnmPlayerBase unit): stores the float 1.0 (lbl_807D7290) to frame-ctrl+0xC (resume rate); resolve when named
-    void fn_80069450();
+    void resume();
     bool isStop() const NO_INLINE {
         return mAnmRes == nullptr || static_cast< s32 >(mFrameCtrl.checkState(1)) == 1 || mFrameCtrl.getRate() == 0.0f;
     }
@@ -29,8 +28,7 @@ public:
     /* 0x4 */ J3DAnmBase* mAnmRes;
     /* 0x8 */ const ResTable* mResTable;
     /* 0xC */ J3DFrameCtrl mFrameCtrl;
-    // PLACEHOLDER(core): SMG2 AnmPlayerBase flag at 0x20 (0 in ctor, set to 1 by start(), update() skips frame advance when nonzero); semantics unconfirmed, resolve when its other writers are found
-    /* 0x20 */ bool _20;
+    /* 0x20 */ bool mIsUpdateSkipped;
 };
 
 class MaterialAnmPlayerBase : public AnmPlayerBase {

@@ -39,7 +39,7 @@ void StarPieceScatter::scatter(const TVec3f& position,const TVec3f& up,f32 rando
     appear();
 }
 void StarPieceScatter::exeScatter(){
-    MR::fn_80010CB0(this,TVec3f(0.f,-1.f,0.f),5.f);
+    MR::addVelocityMoveToDirection3D(this,TVec3f(0.f,-1.f,0.f),5.f);
     if(MR::isGreaterEqualStep(this,60))kill();
 }
 StarPieceScatter::~StarPieceScatter(){}

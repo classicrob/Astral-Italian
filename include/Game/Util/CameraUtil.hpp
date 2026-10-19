@@ -10,7 +10,7 @@ class NameObj;
 class JMapInfoIter;
 
 namespace MR {
-    bool fn_8001E6A0();
+    bool isCameraInterpolationStateReady();
     f32 convertDepthForProjection(f32, f32, f32, f32, f32);
     bool isGlobalEventCameraActive(const char*);
     bool calcScreenPosition(TVec2f*, const TVec3f&);

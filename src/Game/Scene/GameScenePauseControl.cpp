@@ -5,6 +5,7 @@
 #include "Game/Scene/GameScene.hpp"
 #include "Game/Screen/GamePauseSequence.hpp"
 #include "Game/System/PauseButtonCheckerInGame.hpp"
+#include "Game/Util/SceneUtil.hpp"
 
 namespace {
     NEW_NERVE(GameScenePauseControlNormal, GameScenePauseControl, Normal);
@@ -39,23 +40,32 @@ void GameScenePauseControl::exeNormal() {
 }
 
 bool GameScenePauseControl::tryStartPauseMenu() {
-    if (mScene->isPermitToPauseMenu()) {
-        mPauseChecker->update();
+    if (!mScene->permitsStartPauseMenu()) {
+        return false;
+    }
 
-        if (mPauseChecker->isPermitToMinusPause()) {
-            mScene->mPauseSeq->startPause(GamePauseSequence::ActivePause);
-            mScene->setNerve(mPauseMenuNerve);
-            return true;
-        }
+    mPauseChecker->update();
 
-        if (mPauseChecker->isPermitToPlusPause()) {
-            mScene->mPauseSeq->startPause(GamePauseSequence::ActivePause);
-            mScene->setNerve(mPauseMenuNerve);
-            return true;
-        }
+    if (MR::isStageDisablePauseMenu()) {
+        return false;
+    }
+
+    if (mPauseChecker->isPermitToMinusPause()) {
+        startPauseMenu();
+        return true;
+    }
+
+    if (mPauseChecker->isPermitToPlusPause()) {
+        startPauseMenu();
+        return true;
     }
 
     return false;
+}
+
+void GameScenePauseControl::startPauseMenu() {
+    mScene->mPauseSeq->startPause(GamePauseSequence::ActivePause);
+    mScene->setNerve(mPauseMenuNerve);
 }
 
 GameScenePauseControl::~GameScenePauseControl() {

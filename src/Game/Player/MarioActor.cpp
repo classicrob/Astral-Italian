@@ -436,7 +436,7 @@ void MarioActor::init(const JMapInfoIter& rInfo) {
     } else {
         initSound(16, "Mario", nullptr, TVec3f(0.0f));
     }
-    MR::fn_8005AE10(this);
+    MR::addActorToSoundObjHolder(this);
     initParts();
     fn_803BFB30();
     _33C = mPosition;

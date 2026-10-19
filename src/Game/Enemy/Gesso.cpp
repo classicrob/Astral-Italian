@@ -347,7 +347,7 @@ void Gesso::exeComeBack() {
         } else {
             MR::turnDirectionToTargetDegree(this, &mFront, *MR::getPlayerPos(), 1.5f);
             TVec3f stack_14;
-            MR::fn_8000E960(&stack_14, this, &mHomePos);
+            MR::calcDirToTarget(&stack_14, this, &mHomePos);
             mVelocity.scale(3.0f, stack_14);
             if (MR::isNear(this, mHomePos, 100.0f)) {
                 setNerve(GET_NERVE(Gesso, GessoNrvWait));

@@ -29,8 +29,17 @@ namespace MR {
     }
 
 
-    MtxPtr getJointMtx(const LiveActor* pActor, int idx) {
+    MtxPtr getJointMtx(const LiveActor* pActor, const char* pName) {
+        s32 index = getJointIndex(pActor, pName);
+        return getJ3DModel(pActor)->mMtxBuffer->mpAnmMtx[index];
+    }
+
+    MtxPtr getJointMtx(const LiveActor* pActor, s32 idx) {
         return MR::getJ3DModel(pActor)->mMtxBuffer->mpAnmMtx[idx];
+    }
+
+    void calcJointWorldPos(TVec3f* pDst, const TVec3f& rLocalPos, const LiveActor* pActor, const char* pJointName) {
+        PSMTXMultVec(getJointMtx(pActor, pJointName), &rLocalPos, pDst);
     }
 
     u16 getJointIndex(const LiveActor* pActor, const char* pName) NO_INLINE {

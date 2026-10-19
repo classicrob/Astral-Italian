@@ -209,7 +209,7 @@ void MogucchiShooter::endClipped() {
 
 void MogucchiShooter::calcAndSetBaseMtx() {
     mJointCtrl->registerCallBack();
-    MR::fn_8000F880(this, &mAimDirection);
+    MR::calcAndSetBaseMtxFromFrontAndGravity(this, &mAimDirection);
 }
 
 void MogucchiShooter::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

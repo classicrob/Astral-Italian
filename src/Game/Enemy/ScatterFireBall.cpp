@@ -159,7 +159,7 @@ bool ScatterFireBall::tryExplodeOnContact() {
         Triangle triangle;
         TVec3f direction(mGravity);
         direction.scale(300.0f);
-        MR::fn_80038020(&pos, &triangle, mPosition, direction, 24);
+        MR::getFirstPolyOnLineToMapWithSensorType(&pos, &triangle, mPosition, direction, 24);
         mLava->landAt(pos);
         kill();
         return true;

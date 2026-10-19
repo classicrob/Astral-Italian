@@ -228,34 +228,34 @@ void ModelManager::stopBva() {
 void ModelManager::resumeBtk() {
     if (mBtkPlayer->mAnmRes != nullptr && mBtkPlayer->isStop()) {
         mDisplayListMaker->onCurFlagBtk(mBtkPlayer->mAnmRes, "");
-        mBtkPlayer->fn_80069450();
+        mBtkPlayer->resume();
     }
 }
 
 void ModelManager::resumeBrk() {
     if (mBrkPlayer->mAnmRes != nullptr && mBrkPlayer->isStop()) {
         mDisplayListMaker->onCurFlagBrk(mBrkPlayer->mAnmRes, "");
-        mBrkPlayer->fn_80069450();
+        mBrkPlayer->resume();
     }
 }
 
 void ModelManager::resumeBtp() {
     if (mBtpPlayer->mAnmRes != nullptr && mBtpPlayer->isStop()) {
         mDisplayListMaker->onCurFlagBtp(mBtpPlayer->mAnmRes, "");
-        mBtpPlayer->fn_80069450();
+        mBtpPlayer->resume();
     }
 }
 
 void ModelManager::resumeBpk() {
     if (mBpkPlayer->mAnmRes != nullptr && mBpkPlayer->isStop()) {
         mDisplayListMaker->onCurFlagBpk(mBpkPlayer->mAnmRes, "");
-        mBpkPlayer->fn_80069450();
+        mBpkPlayer->resume();
     }
 }
 
 void ModelManager::resumeBva() {
     if (mBvaPlayer->mAnmRes != nullptr && mBvaPlayer->isStop()) {
-        mBvaPlayer->fn_80069450();
+        mBvaPlayer->resume();
     }
 }
 

@@ -171,7 +171,7 @@ namespace MR {
         }
     }
 
-    void fn_80008890(LiveActor* pActor, const char* pName) {
+    void startActionAtRandomFrame(LiveActor* pActor, const char* pName) {
         startAction(pActor, pName);
         f32 frame = 0.0f;
         if (isBckPlayingIfExist(pActor, pName)) {

@@ -64,7 +64,7 @@ void MiniMeister::makeActorDead() {
 }
 
 void MiniMeister::calcAndSetBaseMtx() {
-    MR::fn_8000F880(this, &mFront);
+    MR::calcAndSetBaseMtxFromFrontAndGravity(this, &mFront);
 }
 
 void MiniMeister::control() {

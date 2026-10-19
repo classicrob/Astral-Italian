@@ -91,7 +91,7 @@ void MarioPosHolder::fn_804062A0() {
     TVec3f hitPos;
     Triangle triangle;
     if (MR::isPlayerElementModeYoshi()) {
-        if (!MR::fn_80037E80(&hitPos, &triangle, top, mPos - top)) {
+        if (!MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &triangle, top, mPos - top)) {
             return;
         }
     } else {

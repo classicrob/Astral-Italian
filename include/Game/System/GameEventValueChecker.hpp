@@ -17,7 +17,7 @@ public:
     virtual s32 deserialize(const u8*, u32);
     virtual void initializeData();
 
-    u32 getValue(const char*) const;
+    u16 getValue(const char*) const;
     void setValue(const char*, u16);
 
     /// @brief Reads a 32-bit value stored as the "<name>/hi" and "<name>/lo" 16-bit entries.

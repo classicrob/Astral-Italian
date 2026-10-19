@@ -74,7 +74,7 @@ void FireRingBall::movement() {
 void FireRingBall::control() {}
 
 void FireRingBall::calcAndSetBaseMtx() {
-    MR::fn_8000F910(this, &mUp, &mFront);
+    MR::calcAndSetBaseMtxFromFrontAndUp(this, &mUp, &mFront);
 }
 
 void FireRingBall::setFrontAndUp(const TVec3f& rFront, const TVec3f& rUp) {

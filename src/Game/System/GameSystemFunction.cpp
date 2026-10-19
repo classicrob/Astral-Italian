@@ -351,7 +351,4 @@ namespace GameSystemFunction {
         }
     }
 
-    void setAutoSleepTimeWiiRemote(bool isLongAutoSleep) {
-        MR::setAutoSleepTimeWiiRemote(isLongAutoSleep);
-    }
 };  // namespace GameSystemFunction

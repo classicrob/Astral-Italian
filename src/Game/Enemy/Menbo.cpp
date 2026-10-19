@@ -122,7 +122,7 @@ void Menbo::initAfterPlacement() {
     pos.sub(offset);
     ray *= groundDist;
     CollisionParts* parts;
-    if (MR::fn_80037E40(static_cast<TVec3f*>(nullptr), &triangle, pos, ray)) {
+    if (MR::getFirstPolyOnLineToMoveLimit(static_cast<TVec3f*>(nullptr), &triangle, pos, ray)) {
         parts = triangle.mParts;
     } else if (MR::getFirstPolyOnLineToMap(nullptr, &triangle, pos, ray)) {
         CollisionParts* same = nullptr;
@@ -360,7 +360,7 @@ void Menbo::exeAttack() {
         JMAVECScaleAdd(&mUp, &front, &front, -mUp.dot(front));
         MR::normalize(&front);
         mVelocity.scale(front.dot(mVelocity), front);
-        MR::fn_80010CB0(this, front, 27.0f);
+        MR::addVelocityMoveToDirection3D(this, front, 27.0f);
     }
 }
 
@@ -759,7 +759,7 @@ void Menbo::accelerateMenboForward(f32 rate) {
         JMAVECScaleAdd(&mUp, &front, &front, -mUp.dot(front));
         MR::normalize(&front);
         mVelocity.scale(front.dot(mVelocity), front);
-        MR::fn_80010CB0(this, front, cooled);
+        MR::addVelocityMoveToDirection3D(this, front, cooled);
     }
 }
 
@@ -819,7 +819,7 @@ bool Menbo::isMenboFarFromHome() const {
 
 bool Menbo::isMenboFacingAwayFromHome(f32 angle) {
     TVec3f dir(0.0f);
-    MR::fn_8000E960(&dir, this, &mBasePos);
+    MR::calcDirToTarget(&dir, this, &mBasePos);
     f32 limit = MR::cosDegree(angle);
     return dir.dot(mFront) < limit;
 }
@@ -837,7 +837,7 @@ bool Menbo::isGroundIceEdge() {
     TVec3f origin = mPosition + s;
     TVec3f ray = up;
     ray *= -(cProbeAbove - cProbeBelow);
-    return MR::fn_80038570(&origin, &ray);
+    return MR::isFirstPolyOnLineToMapIce(&origin, &ray);
 }
 #pragma dont_inline off
 

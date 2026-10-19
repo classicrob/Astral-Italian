@@ -381,7 +381,7 @@ void Terebo::updateOnRail() {
 bool Terebo::moveOnRailAndCheckNextPoint() {
     f32 speed = mRailSpeed;
     s32 prevNo = MR::getNextRailPointNo(this);
-    MR::fn_80052450(this, speed, 0.2f * speed, 100.0f);
+    MR::moveCoordAndFollowTransEaseInOutAndReverse(this, speed, 0.2f * speed, 100.0f);
     s32 nextNo = MR::getNextRailPointNo(this);
     TVec3f dir(MR::getRailDirection(this));
     if (!MR::isSameDirection(dir, mGravity, 0.01f)) {

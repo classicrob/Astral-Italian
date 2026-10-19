@@ -423,7 +423,7 @@ s32 PukupukuWaterSurface::probeSurfaceBelow() {
     pos.add(offset);
     TVec3f direction(up);
     direction.scale(-(sWaterProbeTop - sWaterProbeBottom));
-    return MR::fn_80038570(&pos, &direction);
+    return MR::isFirstPolyOnLineToMapIce(&pos, &direction);
 }
 
 #pragma dont_inline on

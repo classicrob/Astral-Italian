@@ -6,9 +6,9 @@ class HitSensor;
 class LiveActor;
 
 namespace MR {
-    void fn_8005E5B0(void*);
+    void requestStarPointerModeCommandStream(void*);
     void initStarPointerTarget(LiveActor*, f32, const TVec3f& = TVec3f(0.0f));
-    void fn_8005E430(LiveActor*);  // SMG2-only (original name unknown; by address)
+    void startStarPointerModeCommandStream(LiveActor*);
 
     void initStarPointerTargetAtJoint(LiveActor*, const char*, f32, const TVec3f&);
     f32 calcPointRadius2D(const TVec3f&, f32);

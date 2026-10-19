@@ -355,7 +355,7 @@ bool Kabokuri::requestHipDropped() {
 bool Kabokuri::requestHitAttacked(HitSensor* pSender, HitSensor* pReceived) {
     if (isEnableTrampled()) {
         MR::setVelocityBlowAttack(this, pSender, pReceived, ::sHitAttackedAccelH, ::sHitAttackedAccelV, 4);
-        MR::fn_80034760(this, pSender, pReceived);
+        MR::tryHitReactionBlowBetweenSensors(this, pSender, pReceived);
         setNerve(GET_NERVE(Kabokuri, KabokuriNrvHitAttacked));
         MR::invalidateHitSensors(this);
         return true;

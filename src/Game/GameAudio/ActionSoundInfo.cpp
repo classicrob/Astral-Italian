@@ -61,7 +61,7 @@ void ActionSoundInfo::fn_802207A0() {
     case 5:
     case 10:
     case 11:
-        mSoundId = MR::fn_8005ADD0(mSoundLabel);
+        mSoundId = MR::getSoundID(mSoundLabel);
         break;
     case 6:
     case 7:
@@ -69,7 +69,7 @@ void ActionSoundInfo::fn_802207A0() {
         break;
     case 8:
     case 9:
-        mSoundId = MR::fn_80042230(mSoundLabel);
+        mSoundId = MR::getMEID(mSoundLabel);
         break;
     }
 }

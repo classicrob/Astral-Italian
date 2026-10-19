@@ -8,8 +8,8 @@ public:
     BringEnemy(const char*);
     virtual ~BringEnemy();
 
-    void init(JMapInfoIter&);
-    virtual bool receiveMessage(u32, HitSensor*, HitSensor*);
+    void init(const JMapInfoIter&);
+    virtual void attackSensor(HitSensor*, HitSensor*);
 
     void exeBring();
     void exeWait();

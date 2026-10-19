@@ -83,7 +83,6 @@ public:
     static bool isDecideTrigger() NO_INLINE;
     bool tryDecide(s32 node) NO_INLINE;
     WorldMapResultWorld* getWorld() const NO_INLINE;
-    // PLACEHOLDER(core): opaque layout object of the unsplit WorldMap* code (0x804DF2B0..0x804E31D0); resolve when that class is written
     GrandGalaxyMap* getMainLayout() const NO_INLINE;
     static bool isPressedA() NO_INLINE;
     static bool isStickTilted() NO_INLINE;

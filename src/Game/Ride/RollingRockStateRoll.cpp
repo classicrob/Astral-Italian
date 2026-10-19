@@ -130,7 +130,7 @@ bool RollingRockStateRoll::receiveMsgPush(HitSensor* pSender, HitSensor* pReceiv
     if (!MR::isEqualSensor(pReceiver, mHost, "Body")) {
         return false;
     }
-    if (MR::fn_80012BA0(mHost, pReceiver, pSender, 0.7f)) {
+    if (MR::reboundVelocityFromSensor(mHost, pReceiver, pSender, 0.7f)) {
         if (isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvMove::sInstance) ||
             isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAccel::sInstance) ||
             isNerve(&NrvRollingRockStateRoll::RollingRockStateRollNrvAccel::sInstance) ||
@@ -635,7 +635,7 @@ void RollingRockStateRoll::exeAccel() {
         MR::startLevelSoundPlayer("RockAccel", -1, -1);
         MR::tryHitReaction(mHost, sRumbleAccel);
         TVec3f vel(mHost->mVelocity);
-        MR::fn_80010D10(mHost, vel, mTurnRate);
+        MR::addVelocityMoveToDirectionHorizon(mHost, vel, mTurnRate);
         mHost->appearBlur();
         mDashStep -= 100;
         if (mDashStep <= 0) {

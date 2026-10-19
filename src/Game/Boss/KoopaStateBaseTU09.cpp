@@ -122,7 +122,7 @@ void KoopaStateFireAttack::moveAroundArena(f32 speed) {
     MR::calcUpVec(&up, mHost);
     JMAVECScaleAdd(&toActor, &up, &up, -toActor.dot(up));
     MR::normalizeOrZero(&up);
-    MR::fn_80010CB0(mHost, up, 4.5f * speed);
+    MR::addVelocityMoveToDirection3D(mHost, up, 4.5f * speed);
     MR::turnVecToPlane(&mHost->mVelocity, mHost->mVelocity, toActor);
     MR::attenuateVelocity(mHost, 0.95f);
 }

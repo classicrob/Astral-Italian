@@ -18,7 +18,7 @@ class JAISoundHandle;
 namespace MR {
     JAISoundHandle* startSoundPlayerById(s32, s32, s32);
     JAISoundHandle* startLevelSoundPlayerById(s32, s32);
-    bool fn_8004FFF0();
+    bool isPlayerFootprintBlocked();
     void enablePlayerResourceYoshi();
     bool fn_80050020();
     bool isCreatePlayerResourceTornado();

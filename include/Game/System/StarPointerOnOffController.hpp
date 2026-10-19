@@ -11,8 +11,7 @@ enum StarPointerModeEnum {
     StarPointerMode_Title = 4,
     StarPointerMode_FileSelect = 5,
     StarPointerMode_ScenarioSelectScene = 6,
-    // PLACEHOLDER(core): SMG2 value unknown (never compared in target isStarPointer2PTransparencyMode); 7 is now PauseMenu, 21 is the only free slot; resolve when the updateMode jump table is decoded
-    StarPointerMode_PictureBook = 21,
+    StarPointerMode_PictureBook = 21,  // startStarPointerModePictureBook loads 0x15 (8005E48C).
     StarPointerMode_PauseMenu = 7,
     StarPointerMode_1PInvalid2PValid = 14,
     StarPointerMode_MarioLauncher = 16,

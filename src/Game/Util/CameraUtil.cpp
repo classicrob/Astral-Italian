@@ -612,7 +612,7 @@ namespace MR {
         return ret;
     }
 
-    bool fn_8001E6A0() {
+    bool isCameraInterpolationStateReady() {
         return getCameraDirector()->isInterpolationStateReady();
     }
 

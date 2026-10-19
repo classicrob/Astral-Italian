@@ -88,7 +88,7 @@ namespace Collision {
         return MR::getCollisionDirector()->getCategoryKeeper(4)->getStrikeInfo(index);
     }
 
-    const HitInfo* fn_8003B110(u32 index) {
+    const HitInfo* getStrikeInfoDashYoshiStepAndMap(u32 index) {
         if (getStrikeInfoNumCategory(4) > index) {
             return MR::getCollisionDirector()->getCategoryKeeper(4)->getStrikeInfo(index);
         }

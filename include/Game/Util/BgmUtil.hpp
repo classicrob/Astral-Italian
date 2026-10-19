@@ -58,8 +58,7 @@ namespace MR {
 
     void clearBgmQueue();
 
-    // PLACEHOLDER(core): fn_* names from the BgmUtil asm; semantic names not yet known.
-    void setBgmMgr954(s32);
+    void setStageBGMVolumeDownDelay(s32);
     void resetStageBGMInterrupted();
     void setStageBGMVolumeState(s32, u32, f32);
     void getStageBgmJMapArgs(s32*, s32*, const JMapInfoIter&);

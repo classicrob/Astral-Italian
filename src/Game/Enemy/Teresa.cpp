@@ -1025,7 +1025,7 @@ void Teresa::addDriftVelocity() {
         mVelocity.add(v4);
     }
 
-    MR::fn_80011180(this, *MR::getPlayerPos(), -1.25f);
+    MR::addVelocityAwayFromTargetOnGround(this, *MR::getPlayerPos(), -1.25f);
 }
 
 void Teresa::updateDriftAnimScale() {

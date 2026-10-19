@@ -39,7 +39,7 @@ namespace MR {
 
         // NONMATCHING: equivalent count-selection branch is materialized with a mask; register allocation differs.
         AutoEffectGroup* createAutoEffectGroup(const char* pName) {
-            const ResourceCsvGroupInfo* range = getGameSystemObjHolder3C()->fn_804CC650(pName);
+            const ResourceCsvGroupInfo* range = getGameSystemObjHolder3C()->findGroup(pName);
             if (range == nullptr || static_cast<s32>(range->_C) <= 0) return nullptr;
             s32 count = range != nullptr ? range->_C : 0;
             AutoEffectGroup* group = new AutoEffectGroup(pName, count);

@@ -104,7 +104,7 @@ bool MameMuimui::tryBlowAttack(HitSensor* pSender, HitSensor* pReceiver) {
     if (canBeAttacked() == false) {
         return false;
     }
-    MR::fn_80010180(&mQuat, this, pReceiver, pSender);
+    MR::makeQuatFromGravityAndSensorDirection(&mQuat, this, pReceiver, pSender);
     MR::setVelocityBlowAttack(this, pSender, pReceiver, 50.0f, 45.0f, 4);
     setNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvBlow));
     return true;
@@ -157,7 +157,7 @@ void MameMuimui::init(const JMapInfoIter& rIter) {
 void MameMuimui::appear() {
     MR::setRotation(this, 0.0f);
     MR::setScale(this, 1.0f);
-    MR::fn_80010270(&mQuat, &mFront, this);
+    MR::makeQuatFromGravityAndPlayerDirection(&mQuat, &mFront, this);
     LiveActor::appear();
     MR::invalidateHitSensors(this);
 }
@@ -281,7 +281,7 @@ void MameMuimui::exeAppear() {
         MR::startAction(this, "Appear");
     }
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, 3.0f);
-    MR::fn_800104F0(&mQuat, this, &mFront, 0.2f, 0.2f);
+    MR::blendQuatFromGravityAndFront(&mQuat, this, &mFront, 0.2f, 0.2f);
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isActionEnd(this)) {
         setNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvWait));
@@ -293,7 +293,7 @@ void MameMuimui::exeWait() {
         MR::startAction(this, "Wait");
     }
     MR::turnDirectionToPlayerDegreeHorizon(this, &mFront, 3.0f);
-    MR::fn_800104F0(&mQuat, this, &mFront, 0.2f, 0.2f);
+    MR::blendQuatFromGravityAndFront(&mQuat, this, &mFront, 0.2f, 0.2f);
     YoshiFunction::tryYoshiEat(mYoshiLockOn);
     if (MR::isGreaterStep(this, mWaitTime)) {
         setNerve(GET_MAMEMUIMUI_NERVE(MameMuimuiNrvHide));

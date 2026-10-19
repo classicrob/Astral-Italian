@@ -16,8 +16,8 @@ class LiveActor;
 class ActionSoundData;
 
 namespace MR {
-    JAISoundHandle* fn_8005AF70(JAISoundID, s32, s32, s32);
-    JAISoundHandle* fn_8005B100(JAISoundID, s32, s32);
+    JAISoundHandle* startSystemLevelSE(JAISoundID, s32, s32, s32);
+    JAISoundHandle* startAtmosphereLevelSE(JAISoundID, s32, s32);
     void startCSSound(s32, const char*, s32, s32, f32);
     void startCSSoundAfterPlayed(s32, s32);
     void fn_800422F0(u32);
@@ -27,7 +27,7 @@ namespace MR {
     // SMG2-only (original names unknown; named by address)
     void startPlayFireMorphBGM();
     void fn_8001C280();
-    void fn_8005A7F0(LiveActor*, f32);
+    void skipBas(LiveActor*, f32);
     AudSeLifeEntry* fn_8005BC60(s32);
 
     void setAudioSystemField9A0(s32);
@@ -155,7 +155,7 @@ namespace MR {
     JAISoundHandle* startEventBGM(s32);
     JAISoundHandle* startAfterBossBGM();
     // SoundUtil (enemies lane, callees named by address; lead renames symbols)
-    void fn_8005A6E0(LiveActor*, const char*, bool, bool, f32, f32);
+    void startBasWithUpdateFoot(LiveActor*, const char*, bool, bool, f32, f32);
 };  // namespace MR
 
 namespace MR {
@@ -183,9 +183,8 @@ namespace MR {
 
 namespace MR {
     u32 getCSSoundID(const char*);
-    JAISoundID fn_8005ADD0(const char*);
-    // PLACEHOLDER(core): unnamed in auto_03_80041BE0 (wraps AudMeNameConverter::getMeID); resolve when named
-    u32 fn_80042230(const char*);
+    JAISoundID getSoundID(const char*);
+    u32 getMEID(const char*);
 }
 
 namespace MR {
@@ -197,11 +196,8 @@ namespace MR {
     // SoundUtil helpers, callees named by address (lead renames symbols)
     bool isDestroySceneKeepAllSound();
     void offDestroySceneKeepAllSound();
-    // PLACEHOLDER(core): fn_8022CE70 = actor->mSoundHolder->mainSoundObj (0 if no holder); resolve when renamed
     AudAnmSoundObject* getActorSoundObject(const LiveActor*);
-    // PLACEHOLDER(core): fn_8022CE90 = count of child sound objects; resolve when renamed
     s32 getActorSoundObjectCount(const LiveActor*);
-    // PLACEHOLDER(core): fn_8022CEC0 = i-th child sound object; resolve when renamed
     AudSoundObject* getActorSoundObjectAt(const LiveActor*, s32);
     JAISoundHandle* startSoundObjectParam(AudSoundObject*, JAISoundID, s32, s32);
 };  // namespace MR
@@ -216,6 +212,6 @@ namespace MR {
 namespace MR {
     void startPlayerSoundForYoshiMode(const char*, const char*, s32);
 }
-namespace MR { void fn_8005AE10(LiveActor*); }
+namespace MR { void addActorToSoundObjHolder(LiveActor*); }
 
 namespace MR { void stopAllSe(bool); }

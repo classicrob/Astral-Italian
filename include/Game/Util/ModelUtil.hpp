@@ -68,7 +68,7 @@ namespace MR {
     ResTIMG* getResTIMG(const LiveActor*, int);
     JUTTexture* getTextue(ResourceHolder*, const char*);
     const char* getTextureName(const LiveActor*, int);
-    s32 fn_80043AB0(const LiveActor*, const char*);
+    s32 getTextureIndex(const LiveActor*, const char*);
     int findPosNrmMtxIndexFromModel(J3DModelData*, u16);
     int findPosNrmMtxIndexFromShape(J3DShape*, u16);
     void copyJointAnimation(J3DModel*, J3DModel*);

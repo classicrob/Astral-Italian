@@ -339,7 +339,7 @@ bool BossBussun::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* 
     if (MR::isMsgPlayerHipDrop(msg)) {
         if (isEnableDamage() && mGravity.dot(*MR::getPlayerGravity()) < 0.0f && checkSensorPlayerInFront(pReceiver, pSender)) {
             mHitCount--;
-            MR::fn_80034760(this, pSender, pReceiver);
+            MR::tryHitReactionBlowBetweenSensors(this, pSender, pReceiver);
             setNerve(&NrvBossBussun::BossBussunNrvDamage::sInstance);
             return true;
         }

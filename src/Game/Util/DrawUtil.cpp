@@ -320,7 +320,7 @@ namespace MR {
         }
     }
 
-    void fn_800222A0(const LiveActor* actor) {
+    void drawModelAlphaShadow(const LiveActor* actor) {
         drawModelAlphaShadow(getJ3DModel(actor));
     }
 

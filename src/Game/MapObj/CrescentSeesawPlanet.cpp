@@ -44,7 +44,7 @@ void CrescentSeesawPlanet::calcAndSetBaseMtx() {
     initial.set(mInitialMtx);
     TVec3f angles = mAxis * mAngle;
     MR::makeMtxRotate(rotation, angles);
-    MR::fn_80046A70(getBaseMtx(), rotation, initial);
+    MR::concatMtxKeepSecondTranslation(getBaseMtx(), rotation, initial);
 }
 // NONMATCHING: scalar register allocation and component-load scheduling differ.
 void CrescentSeesawPlanet::move() {

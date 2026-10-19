@@ -711,7 +711,7 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
     getNodePosition(&goal, this, pCamera->mPathFrom);
     if (arrived) {
         TVec3f accel(0.0f);
-        MR::fn_80010AD0(&accel, pRocket, goal, pCamera->mAccel);
+        MR::calcVelocityMoveToTarget3D(&accel, pRocket, goal, pCamera->mAccel);
         pCamera->mVelocity.add(accel);
         pCamera->mVelocity.scale(pCamera->mFriction);
         pCamera->mTargetA.add(pCamera->mVelocity);
@@ -726,7 +726,7 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
 
         pRocket->mPosition = c * rate + pCamera->mTargetA * (1.0f - rate);
     } else {
-        MR::fn_80010DB0(pRocket, goal, pCamera->mAccel);
+        MR::addVelocityMoveToTarget3D(pRocket, goal, pCamera->mAccel);
         MR::attenuateVelocity(pRocket, pCamera->mFriction);
         MR::restrictVelocity(pRocket, pCamera->mMaxSpeed);
         pRocket->setMoveDirection(pRocket->mVelocity);
@@ -800,8 +800,7 @@ TalkMessageCtrl* WorldMapOwner::createMeisterTalk(const char* pName) {
 void WorldMapOwner::initCameraSetup(const char* pSuffix) {
     char buffer[0x100];
     snprintf(buffer, 0x100, "World%02d%s", mContext->mWorldId, pSuffix);
-    // PLACEHOLDER(core): the util is named for a LiveActor but the target passes the owner (a NameObj); resolve when the util's real parameter type is confirmed
-    MR::initMultiActorCameraNoInit(reinterpret_cast< const LiveActor* >(this), getCamera()->mCameraInfo, buffer);
+    MR::initMultiActorCameraNoInit(this, getCamera()->mCameraInfo, buffer);
 }
 
 void WorldMapOwner::initCameraNodeNames() {
@@ -822,8 +821,7 @@ void WorldMapOwner::startCameraTargetOther(const char* pSuffix, s32 frames) {
     snprintf(buffer, 0x100, "World%02d%s", mContext->mWorldId, pSuffix);
     LiveActor* pTarget = getCamera()->mCameraTarget;
     ActorCameraInfo* pInfo = getCamera()->mCameraInfo;
-    // PLACEHOLDER(core): see initCameraSetup
-    MR::startMultiActorCameraTargetOther(reinterpret_cast< const LiveActor* >(this), pInfo, buffer, CameraTargetArg(pTarget), frames);
+    MR::startMultiActorCameraTargetOther(this, pInfo, buffer, CameraTargetArg(pTarget), frames);
 }
 
 void WorldMapOwner::startNodeCamera(s32 node, s32 step) {

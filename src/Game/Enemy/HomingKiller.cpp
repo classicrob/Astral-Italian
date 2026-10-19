@@ -929,7 +929,7 @@ void HomingKiller::calcFrontVecToTarget(TVec3f* pFront) const {
     MR::normalize(&playerUp);
     playerUp.scale(mType == Type_Torpedo ? ::cChaseTargetHeightTorpedo : ::cChaseTargetHeight);
     targetPos.add(*MR::getPlayerPos(), playerUp);
-    MR::fn_8000E960(pFront, this, &targetPos);
+    MR::calcDirToTarget(pFront, this, &targetPos);
 }
 
 bool HomingKiller::isValidShowModel() const {

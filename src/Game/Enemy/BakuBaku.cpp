@@ -95,7 +95,7 @@ bool BakuBaku::isAttackable() const {
 
 void BakuBaku::control() {
     mAnimScaleCtrl->updateNerve();
-    MR::fn_80010600(mPose, this, 0.05f, 0.5f);
+    MR::blendActorPoseFromGroundAndFront(mPose, this, 0.05f, 0.5f);
     if (this->isMoveTurnOrSuccessNerve() && mStarPointBind->tryStartPointBind()) {
         setNerve(GET_BAKUBAKU_NERVE(BakuBakuNrvFreeze));
     }
@@ -153,7 +153,7 @@ void BakuBaku::playBiteOrEatSound() {
 
 void BakuBaku::updateBakuRailMove() {
     if (MR::isFirstStep(this)) {
-        MR::fn_80008890(this, "Move");
+        MR::startActionAtRandomFrame(this, "Move");
     }
     playBiteOrEatSound();
     MR::moveCoordAndFollowTrans(this, mMoveLimit);
@@ -165,7 +165,7 @@ void BakuBaku::updateBakuRailMove() {
 }
 
 void BakuBaku::updateFreeMove() {
-    if (MR::isFirstStep(this)) MR::fn_80008890(this, "Move");
+    if (MR::isFirstStep(this)) MR::startActionAtRandomFrame(this, "Move");
     playBiteOrEatSound();
     MR::turnDirectionToPlayerDegree(this, &mPose->mFront, 1.0f);
     MR::addVelocityMoveToDirection(this, mPose->mFront, 0.6f);

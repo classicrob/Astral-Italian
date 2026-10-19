@@ -177,7 +177,7 @@ bool NokonokoLandBig::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSen
         TVec3f up(0.0f);
         MR::calcUpVec(&up, this);
         TVec3f dir(0.0f);
-        MR::fn_8000E650(&dir, this, MR::getSensorPos(pSender));
+        MR::calcVecToTarget(&dir, this, MR::getSensorPos(pSender));
         f32 d = up.dot(dir);
         f32 range = 20.0f;
         if (d < -range || d > 0.0f) {

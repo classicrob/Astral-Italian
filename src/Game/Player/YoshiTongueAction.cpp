@@ -1054,7 +1054,7 @@ void YoshiTongueAction::fn_8041DFD0() {
         mYoshi->fn_8040EF30();
     }
     if (mYoshi->fn_8040F5B0("口を閉じる") && mYoshi->fn_8040F5F0()) mYoshi->fn_8040EE70(nullptr);
-    MR::fn_8005E5B0(this);
+    MR::requestStarPointerModeCommandStream(this);
     if (MR::testCorePadTriggerB(0)) {
         if (isPopoSticking()) {
             tryReactStickingPopo();

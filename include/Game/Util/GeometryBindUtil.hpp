@@ -52,7 +52,7 @@ public:
     /* 0x24 */ bool mIsBound;
 };
 
-/// Cubic Hermite spline through two points (SMG2-only; fn_80066D40 lives in the BindCone unit, named by address).
+/// Cubic Hermite spline through two points.
 /// Used by BoomerangBrosBoomerang. Evaluated as P0*h00 + P1*h01 + M0*h10 + M1*h11 at parameter t.
 class HermiteSpline {
 public:
@@ -63,7 +63,7 @@ public:
         mM1 = rM1;
     }
     virtual ~HermiteSpline() {}
-    void fn_80066D40(TVec3f* pOut, f32 t) const;
+    void calcPosition(TVec3f* pOut, f32 t) const;
 
     /* 0x04 */ TVec3f mP0;
     /* 0x10 */ TVec3f mP1;

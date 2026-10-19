@@ -360,7 +360,7 @@ void PackunPetit::kill() {
 }
 
 void PackunPetit::calcAndSetBaseMtx() {
-    MR::fn_8000FA30(this, &mFront);
+    MR::calcAndSetBaseMtxFromFront(this, &mFront);
     MR::updateBaseScale(this, mScaleController);
 }
 

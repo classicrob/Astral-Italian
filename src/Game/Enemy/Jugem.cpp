@@ -82,7 +82,7 @@ static void moveJugemKeepingHeight(LiveActor* pActor, const TVec3f& rTarget, boo
     f32 mag = PSVECMag(&toTarget);
     MR::normalizeOrZero(&toTarget);
     f32 clamped = MR::normalize(mag, 50.0f, maxDist);
-    MR::fn_80010CB0(pActor, toTarget, rate * clamped);
+    MR::addVelocityMoveToDirection3D(pActor, toTarget, rate * clamped);
     if (MR::reboundVelocityFromCollision(pActor, 0.0f, 0.0f, 1.0f)) {
         MR::addVelocityToGravity(pActor, -cReboundGravity);
     } else if (useShadow) {

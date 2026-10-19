@@ -25,7 +25,7 @@ public:
     void resetGameHeapGDDR3() NO_INLINE;
     void destroyWorldMapHeap();
     void destroyFileCache();
-    void fn_804BCD50();
+    void freeAllFileCache();
     void destroySceneHeap();
     static void createRootHeap();
     void createHeaps();

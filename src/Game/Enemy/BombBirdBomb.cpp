@@ -125,7 +125,7 @@ bool BombBirdBomb::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor
     }
 
     if (MR::isMsgSupportTicoSpin(msg) && mSpinCooldown == 0 && !isNerve(GET_NERVE(BombBirdBomb, HostTypeNrvExplosion))) {
-        MR::fn_80012B80(this, 18.0f, 18.0f, pSender, pReceiver, 4);
+        MR::addVelocitySeparateHV(this, 18.0f, 18.0f, pSender, pReceiver, 4);
         mSpinCooldown = 30;
         setNerve(GET_NERVE(BombBirdBomb, HostTypeNrvWait));
         return true;

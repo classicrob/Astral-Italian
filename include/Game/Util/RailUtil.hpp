@@ -87,7 +87,7 @@ namespace MR {
     s32 getCurrentRailPointNo(const LiveActor*);
     s32 getNextRailPointNo(const LiveActor*);
     f32 getRailTotalLength(const LiveActor*);
-    f32 fn_80052E20(const LiveActor*);  // rail coord measured in the travel direction: mIsNotReverse ? total - coord : coord
+    f32 getRailRemainingLength(const LiveActor*);  // rail coord measured in the travel direction: mIsNotReverse ? total - coord : coord
     f32 getRailPartLength(const LiveActor*, int);
     f32 getRailPointCoord(const LiveActor*, int);
     const TVec3f& getRailPos(const LiveActor*);
@@ -147,8 +147,8 @@ namespace MR {
     bool getNextRailPointArg7NoInit(const LiveActor*, f32*);
     bool getNextRailPointArg2WithInit(const LiveActor*, bool*);
     // RailUtil (enemies lane, callees named by address; lead renames symbols)
-    void fn_800531B0(TVec3f*, LiveActor*, f32);
-    void fn_80052450(LiveActor*, f32, f32, f32);
+    void calcRailDirectionAtOffset(TVec3f*, LiveActor*, f32);
+    void moveCoordAndFollowTransEaseInOutAndReverse(LiveActor*, f32, f32, f32);
 };  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

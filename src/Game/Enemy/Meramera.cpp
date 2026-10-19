@@ -852,7 +852,7 @@ void Meramera::exeChaseTurn() {
 
 void Meramera::exeDamage() {
     if (MR::isFirstStep(this)) {
-        MR::fn_80013220(this, &mFront, -1.0f);
+        MR::turnDirectionToPlayer(this, &mFront, -1.0f);
 
         if (mElementType == ElementType_Ice) {
             MR::startActionSound(this, "EmIcemeraBlowCold");
@@ -910,7 +910,7 @@ void Meramera::exeRunaway() {
 
     if (MR::isGreaterStep(this, 70)) {
         if (MR::isBindedGround(this)) {
-            f32 scalar = MR::fn_80012450(this);
+            f32 scalar = MR::calcHorizontalSpeed(this);
 
             if (scalar < 3.0f) {
                 mRunawayTimer--;
@@ -995,7 +995,7 @@ void Meramera::exeSink() {
         MR::makeMtxUpNoSupportPos(&mFallEffectMtx, -mGravity, mPosition);
     }
 
-    MR::fn_80013220(this, &mFront, -1.0f);
+    MR::turnDirectionToPlayer(this, &mFront, -1.0f);
 
     if (MR::isGreaterStep(this, 50)) {
         setNerve(GET_NERVE(Meramera, MerameraNrvFloat));
@@ -1013,7 +1013,7 @@ void Meramera::exeFloat() {
     MR::attenuateVelocity(this, 0.94f);
     MR::reboundVelocityFromCollision(this);
 
-    MR::fn_80013220(this, &mFront, -1.0f);
+    MR::turnDirectionToPlayer(this, &mFront, -1.0f);
 
     if (MR::isGreaterStep(this, 30)) {
         setNerve(GET_NERVE(Meramera, MerameraNrvIgnition));
@@ -1086,7 +1086,7 @@ void Meramera::exeDown() {
         MR::stopScene(::sDownStopFrame);
         MR::startActionSound(this, "EmMerameraStomped");
         MR::zeroVelocity(this);
-        MR::fn_80010CB0(this, mFront, -0.0f);
+        MR::addVelocityMoveToDirection3D(this, mFront, -0.0f);
         MR::addVelocityToGravity(this, -25.0f);
     }
 
@@ -1176,7 +1176,7 @@ void Meramera::addMovingAccel(const TVec3f& rVec, f32 velocityAccel, f32 gravity
         }
     }
 
-    MR::fn_80010CB0(this, mFront, velocityAccel);
+    MR::addVelocityMoveToDirection3D(this, mFront, velocityAccel);
 }
 
 void Meramera::addRunawayJumpPower() {

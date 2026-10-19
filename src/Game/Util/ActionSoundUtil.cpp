@@ -7,7 +7,7 @@ namespace MR {
     }
 
     // Does any code reference this? Assuming it's a copy for now...
-    const ActorActionSoundKeeper* fn_80008370(const LiveActor* pActor) NO_INLINE {
+    const ActorActionSoundKeeper* getActorActionSoundKeeper(const LiveActor* pActor) NO_INLINE {
         const ActorSoundHolder* soundHolder = pActor->mSoundHolder;
         return soundHolder != nullptr ? soundHolder->mActionSoundKeeper : nullptr;
     }

@@ -184,7 +184,7 @@ void Popo::exeWalk() {
     if (MR::normalizeOrZero(&toMouth)) {
         toMouth = mFrontVec;
     }
-    MR::fn_80010CB0(this, toMouth, 0.8f);
+    MR::addVelocityMoveToDirection3D(this, toMouth, 0.8f);
     if (MR::isShadowProjected(this, nullptr)) {
         TVec3f shadowPos;
         MR::getShadowProjectionPos(this, nullptr, &shadowPos);
@@ -222,7 +222,7 @@ void Popo::exeEscape() {
     }
     calcFloatVelocity();
     MR::turnDirectionFromPlayerDegreeHorizon(this, &mFrontVec, 5.0f);
-    MR::fn_80010CB0(this, mFrontVec, 0.8f);
+    MR::addVelocityMoveToDirection3D(this, mFrontVec, 0.8f);
     calcTurnVelocity(0.95f);
     YoshiFunction::tryYoshiLick(mYoshiLockOn);
 }

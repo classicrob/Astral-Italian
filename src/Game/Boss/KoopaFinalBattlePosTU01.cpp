@@ -1,3 +1,4 @@
+#include "Game/Util/JointUtil.hpp"
 #pragma auto_inline off
 #include "Game/Boss/KoopaBattle.hpp"
 #include "Game/Boss/KoopaBattleAccessor.hpp"
@@ -171,7 +172,7 @@ namespace MR {
         MR::calcUpVec(&up, pBattle);
         JMAVECScaleAdd(&toActor, &up, &up, -toActor.dot(up));
         MR::normalizeOrZero(&up);
-        MR::fn_80010CB0(pBattle, up, 5.5f * speed);
+        MR::addVelocityMoveToDirection3D(pBattle, up, 5.5f * speed);
         MR::turnVecToPlane(&pBattle->mVelocity, pBattle->mVelocity, toActor);
         MR::attenuateVelocity(pBattle, 0.95f);
         return angle < limit;
@@ -278,7 +279,7 @@ namespace MR {
     void calcKoopaBattleFacePos(TVec3f* pDst) {
         KoopaBattle* pBattle = getKoopaBattle();
         if (pBattle != nullptr && pDst != nullptr) {
-            MR::fn_8002D5C0(pDst, sFaceOffset, pBattle, "Face");
+            MR::calcJointWorldPos(pDst, sFaceOffset, pBattle, "Face");
         }
     }
 

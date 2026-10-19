@@ -98,7 +98,7 @@ void Gorogoro::calcAndSetBaseMtx() {
 }
 
 void Gorogoro::control() {
-    MR::fn_8000E760(&mSensorFollowPos, this, &mPosition, -mRollSpeed, mRollSpeed);
+    MR::calcNearestPointToPlayerOnSideLine(&mSensorFollowPos, this, &mPosition, -mRollSpeed, mRollSpeed);
 }
 
 // NONMATCHING: target inlines TVec3f::add on the reflect position as paired-single ops; ours calls the out-of-line add

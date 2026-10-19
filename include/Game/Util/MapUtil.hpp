@@ -113,25 +113,22 @@ namespace MR {
     const Triangle* getCameraPolyFast(const TVec3f&, const TVec3f&, const HitSensor*);
     bool getFirstPolyOnLineBFast(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
 
-    // SMG2 DashYoshi-step variants of the map queries (unnamed in the target; named by address)
-    bool fn_80037E80(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
-    bool fn_80038060(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
-    // SMG2 fn_80038020 (address-named; symbol fn_80038020__2MRF..Ul): sensor-type line hit
-    bool fn_80038020(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, u32);
-    // SMG2 fn_80038770 (address-named; symbol fn_80038770__2MRF..PbPbf): ball-hit helper shared with Ride/GliBird.cpp
-    s32 fn_80038770(TVec3f*, TVec3f*, HitSensor**, const TVec3f&, bool*, bool*, f32);
-    // SMG2 fn_80038870 (address-named; symbol fn_80038870__2MRF..PbPbf): ray-cast helper (same decl as BellyDragonTU02.cpp)
-    s32 fn_80038870(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
-    bool fn_800382E0(const TVec3f&, const TVec3f&);
-    bool fn_800384C0(const TVec3f&, const TVec3f&, const LiveActor*);
-    bool fn_800386E0(const TVec3f&, HitInfo*);
-    bool fn_8003A720(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
-    HitSensor* fn_80038D20(const Triangle*);
+    // SMG2 DashYoshi-step variants of the map queries.
+    bool getFirstPolyOnLineToDashYoshiStepAndMap(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
+    bool getFirstPolyOnLineToDashYoshiStepAndMap(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
+    bool getFirstPolyOnLineToMapWithSensorType(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, u32);
+    s32 calcMapHitByBall(TVec3f*, TVec3f*, HitSensor**, const TVec3f&, bool*, bool*, f32);
+    s32 calcMapHitAlongDirection(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
+    bool isExistDashYoshiStepAndMapCollision(const TVec3f&, const TVec3f&);
+    bool isExistDashYoshiStepAndMapCollisionExceptActor(const TVec3f&, const TVec3f&, const LiveActor*);
+    bool checkStrikePointToDashYoshiStepAndMap(const TVec3f&, HitInfo*);
+    bool getFirstPolyOnLineBFastToDashYoshiStepAndMap(const TVec3f&, const TVec3f&, TVec3f*, Triangle*);
+    HitSensor* getSensor(const Triangle*);
     // MapUtil (enemies lane, callees named by address; lead renames symbols)
-    bool fn_80037E40(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
-    bool fn_80038570(const TVec3f*, const TVec3f*);
-    bool fn_8008DDC0(MtxPtr, const TVec3f*, f32, f32);
-    bool fn_8008E060(const TPos3f*, const TVec3f*);
+    bool getFirstPolyOnLineToMoveLimit(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
+    bool isFirstPolyOnLineToMapIce(const TVec3f*, const TVec3f*);
+    bool isPlayerInCollisionCylinder(MtxPtr, const TVec3f*, f32, f32);
+    bool isPlayerInCollisionBox(const TPos3f*, const TVec3f*);
 };  // namespace MR
 
 namespace Collision {
@@ -147,7 +144,7 @@ namespace Collision {
     const HitInfo* getStrikeInfoMap(u32);
     s32 checkStrikeBallToDashYoshiStepAndMap(const TVec3f&, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     s32 checkStrikeBallToDashYoshiStepAndMapWithThickness(const TVec3f&, f32, f32, const CollisionPartsFilterBase*, const TriangleFilterBase*);
-    const HitInfo* fn_8003B110(u32);  // SMG2 DashYoshi-step variant of getStrikeInfoMap (unnamed; by address)
+    const HitInfo* getStrikeInfoDashYoshiStepAndMap(u32);
     s32 checkStrikePointToDashYoshiStepAndMap(const TVec3f&, HitInfo*);
     u32 getStrikeInfoNumMap();
 };  // namespace Collision

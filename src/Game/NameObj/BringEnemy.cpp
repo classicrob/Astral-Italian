@@ -22,7 +22,7 @@ namespace NrvBringEnemy {
 BringEnemy::BringEnemy(const char* pName) : LiveActor(pName), mTargetEnemy(NULL), mChildren(NULL), mChildNum(0), mBringLimit(0), mBroughtNum(0), mEnemyType(0) {
 }
 
-void BringEnemy::init(JMapInfoIter& rIter) {
+void BringEnemy::init(const JMapInfoIter& rIter) {
     MR::connectToSceneNpcMovement(this);
     MR::initDefaultPos(this, rIter);
 
@@ -98,11 +98,9 @@ f32 BringEnemy::calcNearestEnemy(TVec3f* pVec, const LiveActor* pActor) {
     LiveActor* pNearest = NULL;
 
     for (s32 i = 0; i < mChildNum; i++) {
-        LiveActor* pGroup = mChildGroups[i];
-        if (pGroup != NULL) {
-            s32 groupNum = *(s32*)((u8*)pGroup + 0x90);
-            for (s32 j = 0; j < groupNum; j++) {
-                LiveActor* pChild = static_cast< BegomanLauncher* >(pGroup)->getLaunchedBegoman(j);
+        if (mChildGroups[i] != NULL) {
+            for (s32 j = 0; j < static_cast< BegomanLauncher* >(mChildGroups[i])->mBegomanCount; j++) {
+                LiveActor* pChild = static_cast< BegomanLauncher* >(mChildGroups[i])->getLaunchedBegoman(j);
                 if (pChild != NULL && !MR::isDead(pChild)) {
                     f32 dist = MR::calcDistance(pActor, pChild);
                     if (dist < minDist) {
@@ -139,7 +137,7 @@ s32 BringEnemy::getEnemyType() const {
     return mEnemyType;
 }
 
-bool BringEnemy::receiveMessage(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+void BringEnemy::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     for (s32 i = 0; i < mChildNum; i++) {
         LiveActor* pGroup = mChildGroups[i];
         if (pGroup != NULL) {
@@ -155,7 +153,6 @@ bool BringEnemy::receiveMessage(u32 msg, HitSensor* pSender, HitSensor* pReceive
         }
     }
 
-    // SMG2 falls off the end here (no return statement in the target)
 }
 
 BringEnemy::~BringEnemy() {

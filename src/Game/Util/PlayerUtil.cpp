@@ -217,7 +217,6 @@ namespace MR {
         MarioAccess::changeAnimationE(pName, param2);
     }
 
-    // PLACEHOLDER(core): name by behavior; BVA start with BckCtrlData reflection
     bool startPlayerBvaWithCtrl(const char* pName, const BckCtrlData& rCtrlData) {
         if (!startBvaIfExist(MarioAccess::getPlayerActor(), pName)) {
             return false;
@@ -478,7 +477,7 @@ namespace MR {
         return MarioAccess::fn_803B4E40();
     }
 
-    // PLACEHOLDER(core): alias of MR::isPlayerSwingActionStart (tail call); resolve when owner decides
+    // Separate SMG2 entrypoint that forwards to the same swing-start predicate.
     bool isPlayerSwingActionStartNow() {
         return isPlayerSwingActionStart();
     }
@@ -838,7 +837,6 @@ namespace MR {
         MarioAccess::hide(true);
     }
 
-    // PLACEHOLDER(core): name by behavior; MarioAccess::hide(true)
     void hidePlayerDeleteEffect() {
         MarioAccess::hide(true);
     }

@@ -1255,7 +1255,7 @@ void Mario::fn_803882A0() {
                         const TVec3f& origin = FLD<TVec3f>(mActor, 0x5F4);
                         bool hit;
                         if (fn_803B2950()) {
-                            hit = MR::fn_80037E80(&hitPos, &hitTriangle, origin, ray);
+                            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(&hitPos, &hitTriangle, origin, ray);
                         } else {
                             hit = MR::getFirstPolyOnLineToMap(&hitPos, &hitTriangle, origin, ray);
                         }
@@ -2265,7 +2265,7 @@ f32 Mario::decideInertia(f32 speed) {
 void Mario::fixHeadFrontVecByGravity() {
     TVec3f groundNormal(_368);
     MR::diffAngleAbs(mActor->mCameraBasisZ, mActor->mPostureReference1044);
-    if (MR::fn_8001E6A0() && isStickOn()) {
+    if (MR::isCameraInterpolationStateReady() && isStickOn()) {
         if (_60D != 1) _60D = 1;
         mDrawStates.mWord |= 0x40000;
         mFlags14.mLowWord |= 0x200000;

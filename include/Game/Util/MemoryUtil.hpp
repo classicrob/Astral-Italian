@@ -38,8 +38,8 @@ namespace MR {
     bool existsWorldMapHeapGalaxy(const char*);
     bool tryGetHeapSizeExceptForGalaxy(u32*, const char*, const char*, const char*, s32);
     bool isUseWorldMapHeapForGalaxy(const char*, const char*, s32);
-    // SMG2 fn_80040EA0 (address-named; symbol fn_80040EA0__2MRFUl; u32 >> 31, used by KCollisionServer::isBinaryInitialized)
-    u32 fn_80040EA0(u32);
+    // Extracts the initialization flag in a KCollision binary header.
+    bool getHighBit(u32);
 
     template < int N >
     class JKRHeapAllocator;

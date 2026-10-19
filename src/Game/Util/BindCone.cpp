@@ -174,7 +174,7 @@ namespace MR {
 #pragma push
 #pragma dont_inline on
 #endif
-void HermiteSpline::fn_80066D40(TVec3f* pOut, f32 t) const {
+void HermiteSpline::calcPosition(TVec3f* pOut, f32 t) const {
     f32 t2 = t * t;
     f32 t3 = t2 * t;
     TVec3f position = mP0 * (1.0f + (2.0f * t3 - 3.0f * t2)) + mM0 * (t + (t3 - 2.0f * t2)) +

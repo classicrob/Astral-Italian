@@ -848,7 +848,7 @@ void Wanwan::exeMoveToGoal() {
     }
     MR::startActionSound(this, "MoveToGoal", -1, -1, -1);
     TVec3f dir;
-    MR::fn_8000E960(&dir, this, &mGoalPos);
+    MR::calcDirToTarget(&dir, this, &mGoalPos);
     TVec3f v(dir);
     v.scale(2.8f);
     JMathInlineVEC::PSVECAdd(&mVelocity, &v, &mVelocity);

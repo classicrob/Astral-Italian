@@ -254,7 +254,7 @@ void BoomerangBrosBoomerang::calcPath(TVec3f* pOut, f32 t) {
         m1 = -sCurveTangentB;
     }
     HermiteSpline curve(p0, m0, p1, m1);
-    curve.fn_80066D40(pOut, rate);
+    curve.calcPosition(pOut, rate);
 }
 
 bool BoomerangBrosBoomerang::isReturning() const {

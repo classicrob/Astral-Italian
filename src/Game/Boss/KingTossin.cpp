@@ -695,7 +695,7 @@ void KingTossin::exeDownRecover() {
             MR::startAction(this, "DownRecover");
         }
 
-        MR::fn_8000E960(&mMoveDir, this, &getTargetPos());
+        MR::calcDirToTarget(&mMoveDir, this, &getTargetPos());
     }
 
     MR::moveAndTurnToDirection(this, &mFront, mMoveDir, sStopParam._0, sStopParam._4, sStopParam._8, sStopParam._C);
@@ -754,7 +754,7 @@ void KingTossin::exeRunRail() {
         MR::startAction(this, "Run");
     }
 
-    MR::fn_800137F0(this, &mFront, nullptr, 1000.0f, sRunRailParam._0, sRunRailParam._4, sRunRailParam._8, sRunRailParam._C);
+    MR::moveAndTurnAlongRail(this, &mFront, nullptr, 1000.0f, sRunRailParam._0, sRunRailParam._4, sRunRailParam._8, sRunRailParam._C);
 }
 
 void KingTossin::exeRollingStart() {

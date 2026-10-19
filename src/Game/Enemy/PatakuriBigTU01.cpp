@@ -149,7 +149,7 @@ void PatakuriBig::makeActorAppeared() {
 // NONMATCHING: epilogue restore order (lwz r31 before lwz r0)
 void PatakuriBig::control() {
     mScaleCtrl->updateNerve();
-    MR::fn_800104F0(&mQuat, this, &mFront, 0.05f, 0.2f);
+    MR::blendQuatFromGravityAndFront(&mQuat, this, &mFront, 0.05f, 0.2f);
     tryStartBigBindStar();
 }
 
@@ -241,7 +241,7 @@ void PatakuriBig::exeBigRail() {
     }
 
     f32 speed = 1.0f;
-    f32 coord = MR::fn_80052E20(this) - 30.0f;
+    f32 coord = MR::getRailRemainingLength(this) - 30.0f;
     f32 railLen = MR::getRailTotalLength(this);
     if (railLen - coord < 200.0f) {
         coord = (MR::getRailTotalLength(this) - 30.0f) - coord;
@@ -252,7 +252,7 @@ void PatakuriBig::exeBigRail() {
     }
 
     if (!MR::isSameDirection(MR::getRailDirection(this), mGravity, 0.1f)) {
-        if (MR::fn_80052E20(this) - 30.0f < 100.0f) {
+        if (MR::getRailRemainingLength(this) - 30.0f < 100.0f) {
             TVec3f revDir = -MR::getRailDirection(this);
             MR::turnVecToVecDegree(&mFront, mFront, revDir, 3.0f, TVec3f(0, 1, 0));
         } else {

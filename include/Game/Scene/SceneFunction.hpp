@@ -241,6 +241,8 @@ namespace MR {
         /* 0x00 */ CameraType_3D,
         /* 0x01 */ CameraType_2D,
         /* 0x02 */ CameraType_Mirror,
+        /* 0x03 */ CameraType_WorldMapBig,
+        /* 0x04 */ CameraType_WorldMapSmall,
     };
 };  // namespace MR
 

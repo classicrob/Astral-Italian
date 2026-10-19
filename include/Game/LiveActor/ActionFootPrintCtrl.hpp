@@ -3,6 +3,7 @@
 #include <revolution/types.h>
 
 class LiveActor;
+class FootPrint;
 
 // One row of the ActionFootPrintCtrl csv (0x10 bytes). Its ctor is compiled in the ActionFlagCtrl TU in the target.
 class ActionFootPrintInfo {
@@ -28,7 +29,7 @@ public:
 
     /* 0x00 */ LiveActor* mActor;
     /* 0x04 */ const char* mPlayingBckName;
-    /* 0x08 */ s32 mHandle;
+    /* 0x08 */ FootPrint* mHandle;
     /* 0x0C */ s32 mInfoNum;
     /* 0x10 */ ActionFootPrintInfo* mInfos;
 };

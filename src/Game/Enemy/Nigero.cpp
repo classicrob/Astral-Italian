@@ -122,7 +122,7 @@ bool Nigero::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRec
         return true;
     }
     if (MR::isMsgPlayerHitAll(msg)) {
-        MR::fn_80010200(&mRotate, &mFront, this, pReceiver, pSender);
+        MR::makeQuatFromGravityAndSensorDirection(&mRotate, &mFront, this, pReceiver, pSender);
         MR::setVelocitySeparateHV(this, pSender, pReceiver, 30.0f, 30.0f);
         MR::startAction(this, "BlowDown");
         setNerve(NRV(Dead));
@@ -307,7 +307,7 @@ void Nigero::recvStarPieceEnd() {
         MR::getSensorHost(mHoldSensor)->mPosition.set(mPosition);
         MR::zeroVelocity(MR::getSensorHost(mHoldSensor));
         TVec3f up;
-        MR::fn_8000EAB0(&up, this);
+        MR::calcGravityCrossDirToPlayer(&up, this);
         if (mFront.dot(up) > 0.0f) {
             up.negate();
         }

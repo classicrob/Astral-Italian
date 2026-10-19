@@ -191,13 +191,13 @@ namespace {
 
 namespace MR {
     // NONMATCHING: regalloc and stack layout
-    s32 createFootPrintHandle(LiveActor* actor) {
+    FootPrint* createFootPrintHandle(LiveActor* actor) {
         ResTIMG* texture = MR::getTexFromArc(sFootPrintTexture, actor);
         JMapInfo* csv = MR::tryCreateCsvParser(actor, "%s.bcsv", sFootPrintControl);
         if (!csv) {
             FootPrint* print = new FootPrint("ダミー足跡", 32);
             print->setTexture(texture);
-            return reinterpret_cast<s32>(print);
+            return print;
         }
         s32 count = 32;
         f32 sideOffset = 0.0f;
@@ -219,29 +219,29 @@ namespace MR {
         print->_30 = sideSize;
         print->_34 = frontSize;
         print->mMinPrintDistance = distanceMin;
-        return reinterpret_cast<s32>(print);
+        return print;
     }
 
     // NONMATCHING: regalloc and load scheduling
-    bool addFootPrintOnGround(s32 handle, LiveActor* actor, const TVec3f* pos, const TVec3f* front, bool right, f32 distance) {
+    bool addFootPrintOnGround(FootPrint* handle, LiveActor* actor, const TVec3f* pos, const TVec3f* front, bool right, f32 distance) {
         TVec3f groundPos(0.0f);
         TVec3f normal;
         normal.negate(actor->mGravity);
         TVec3f ray = normal * distance;
         if (MR::getFirstPolyNormalOnLineToMap(&normal, *pos, ray, &groundPos, nullptr)) {
-            reinterpret_cast<FootPrint*>(handle)->addPrint(groundPos, *front, normal, right);
+            handle->addPrint(groundPos, *front, normal, right);
             return true;
         }
         return false;
     }
 
-    void addFootPrintToPos(s32 handle, LiveActor* actor, const TVec3f* pos, bool right, f32 distance) {
+    void addFootPrintToPos(FootPrint* handle, LiveActor* actor, const TVec3f* pos, bool right, f32 distance) {
         TVec3f front(0.0f, 0.0f, 1.0f);
         MR::calcFrontVec(&front, actor);
         addFootPrintOnGround(handle, actor, pos, &front, right, distance);
     }
 
-    void addFootPrintToJoint(s32 handle, LiveActor* actor, const char* joint, bool right, f32 distance) {
+    void addFootPrintToJoint(FootPrint* handle, LiveActor* actor, const char* joint, bool right, f32 distance) {
         MtxPtr matrix = MR::getJointMtx(actor, joint);
         TVec3f front(matrix[0][0], matrix[1][0], matrix[2][0]);
         TVec3f pos(matrix[0][3], matrix[1][3], matrix[2][3]);

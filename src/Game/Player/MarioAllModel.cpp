@@ -112,7 +112,7 @@ void MarioAllModel::fn_803E7B80() { fn_803E7880(mPreviousModel); }
 
 J3DModel* MarioAllModel::getJ3DModel() const { return mModels[mCurrentModel]; }
 
-void MarioAllModel::fn_803E7BB0(MarioActor* actor) { mEyeLidTextureIndex = MR::fn_80043AB0(actor, sMarioEyeLidTexture); }
+void MarioAllModel::fn_803E7BB0(MarioActor* actor) { mEyeLidTextureIndex = MR::getTextureIndex(actor, sMarioEyeLidTexture); }
 
 void MarioAllModel::fn_803E7BF0(u32 index) {
     if (mModelDLs[mCurrentModel] != nullptr) mModelDLs[mCurrentModel]->setDisplayList(index);

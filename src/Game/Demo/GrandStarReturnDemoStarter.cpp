@@ -162,7 +162,7 @@ void GrandStarReturnDemoStarter::exeRushToCore() {
         MR::pauseTimeKeepDemo(this);
         MR::appearInformationMessageUp(cGateOpenMessage, true);
         MR::startSubBGM("BGM_JG_APPEAR_PLANET", false);
-        MR::setBgmMgr954(90);
+        MR::setStageBGMVolumeDownDelay(90);
         setNerve(GET_NERVE(GrandStarReturnDemoStarter, GrandStarReturnDemoStarterNrvWaitInformation));
     }
 }

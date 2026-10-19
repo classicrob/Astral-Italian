@@ -24,8 +24,8 @@ JAISoundHandle* playSoundByTypeWithVolume(AudSoundObject* object, s32 type, u32 
     JAISoundHandle* handle = nullptr;
     switch (type) {
     case 1: handle = MR::startSoundObjectLevelParam(object, JAISoundID(id), pitch, velocity, volume); break;
-    case 3: handle = MR::fn_8005AF70(JAISoundID(id), pitch, velocity, volume); break;
-    case 5: handle = MR::fn_8005B100(JAISoundID(id), pitch, velocity); break;
+    case 3: handle = MR::startSystemLevelSE(JAISoundID(id), pitch, velocity, volume); break;
+    case 5: handle = MR::startAtmosphereLevelSE(JAISoundID(id), pitch, velocity); break;
     case 7: MR::startCSSoundAfterPlayed(id, 0); break;
     case 11: handle = MR::startLevelSoundPlayerById(id, pitch); break;
     }

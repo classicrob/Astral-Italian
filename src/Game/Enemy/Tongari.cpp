@@ -93,7 +93,7 @@ void Tongari::control() {
 }
 
 void Tongari::calcAndSetBaseMtx() {
-    MR::fn_8000F910(this, &mFront, &mUp);
+    MR::calcAndSetBaseMtxFromFrontAndUp(this, &mFront, &mUp);
     if (mCollisionParts != nullptr) {
         mMtx.setInline(getBaseMtx());
         MR::preScaleMtx(mMtx, 0.95f);

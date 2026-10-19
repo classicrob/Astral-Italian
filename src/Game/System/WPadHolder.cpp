@@ -177,15 +177,6 @@ void WPadHolder::readPadData() {
     }
 }
 
-// PLACEHOLDER(core): Petari-only; resolve when GameSystemSceneController is ported from the target
-void WPadHolder::resetPad() {
-    KPADReset();
-
-    for (u32 i = 0; i < ARRAY_SIZE(mPad); i++) {
-        mPad[i]->resetPad();
-    }
-}
-
 namespace {
     WPadHolder* getWPadHolder() NO_INLINE {
         return SingletonHolder< GameSystem >::get()->mObjHolder->mWPadHolder;
@@ -195,13 +186,6 @@ namespace {
 namespace MR {
     WPad* getWPad(s32 channel) {
         return ::getWPadHolder()->getWPad(channel);
-    }
-
-    void resetWPad() {
-        WPadHolder* pWPadHolder;
-
-        pWPadHolder = ::getWPadHolder();
-        pWPadHolder->resetPad();
     }
 
     void setWPadHolderModeHomeButton() {
@@ -238,11 +222,6 @@ namespace MR {
         return type;
     }
 
-    void setAutoSleepTimeWiiRemote(bool isLongAutoSleep) {
-        u8 minute = isLongAutoSleep ? 15 : 5;
-
-        WPADSetAutoSleepTime(minute);
-    }
 };  // namespace MR
 
 namespace MR {

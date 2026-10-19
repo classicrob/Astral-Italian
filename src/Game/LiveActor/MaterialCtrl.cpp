@@ -240,11 +240,12 @@ void MarioShadowProjmapMtxSetter::update() {
     mProjmapMtxSetter->update();
 }
 
-TexMtxCtrl::TexMtxCtrl(J3DModelData* modelData, const char* count) : MaterialCtrl(modelData, nullptr), mTexGenCount(count) {
+TexMtxCtrl::TexMtxCtrl(J3DModelData* modelData, const char* pCullMode) : MaterialCtrl(modelData, nullptr), mCullMode(pCullMode) {
 }
 
+// SMG2: despite the (SMG1) class name, this re-applies a cull mode byte to every material's colour block.
 void TexMtxCtrl::updateMaterial(J3DMaterial* material) {
-    material->mTexGenBlock->setTexGenNum(static_cast<u8>(*mTexGenCount));
+    material->mColorBlock->setCullMode(static_cast<u8>(*mCullMode));
 }
 
 void MaterialCtrl::updateMaterial(J3DMaterial* pMaterial) {

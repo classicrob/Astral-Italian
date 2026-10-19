@@ -111,7 +111,7 @@ void PrepareKoopaFinalDemoObj::exeStopShake() {
 
 // NONMATCHING: FP/register load scheduling
 void PrepareKoopaFinalDemoObj::initAfterPlacement() {
-    MR::fn_80011F80(this, lbl_807D9818, lbl_807D9818);
+    MR::setPositionToMapGround(this, lbl_807D9818, lbl_807D9818);
     mKoopaSign->mPosition.set(mPosition);
     mTalkActor->mPosition.set(mPosition);
     JGeometry::TMatrix34< JGeometry::SMatrix34C< f32 > > mtx;

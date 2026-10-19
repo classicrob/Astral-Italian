@@ -12,11 +12,12 @@ class CameraTargetArg;
 class CameraTargetMtx;
 class JMapInfoIter;
 class LiveActor;
+class NameObj;
 class ResourceHolder;
 
 namespace {
-    void createActorCameraName(char* pDest, u32 size, const LiveActor* pActor, const ActorCameraInfo* pCameraInfo);
-    void createMultiActorCameraName(char* pDest, u32 size, const LiveActor* pActor, const ActorCameraInfo* pCameraInfo, const char* pClassifier);
+    void createActorCameraName(char* pDest, u32 size, const NameObj* pActor, const ActorCameraInfo* pCameraInfo);
+    void createMultiActorCameraName(char* pDest, u32 size, const NameObj* pActor, const ActorCameraInfo* pCameraInfo, const char* pClassifier);
 };  // namespace
 
 namespace MR {
@@ -25,7 +26,7 @@ namespace MR {
     bool createActorCameraInfoIfExist(const JMapInfoIter& rIter, ActorCameraInfo** pInfoDest);
     bool initActorCamera(const LiveActor* pActor, const JMapInfoIter& rIter, ActorCameraInfo** pInfoDest);
     bool initMultiActorCamera(const LiveActor* pActor, const JMapInfoIter& rIter, ActorCameraInfo** pInfoDest, const char* pName);
-    bool initMultiActorCameraNoInit(const LiveActor* pActor, ActorCameraInfo* pInfo, const char* pClassifier);
+    bool initMultiActorCameraNoInit(const NameObj* pActor, ActorCameraInfo* pInfo, const char* pClassifier);
     void initActorCameraProgrammable(const LiveActor* pActor);
 
     bool startActorCameraNoTarget(const LiveActor* pActor, const ActorCameraInfo* pInfo, s32 = -1);
@@ -38,7 +39,7 @@ namespace MR {
     bool startMultiActorCameraTargetSelf(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pClassifier, s32 = -1);
     bool startMultiActorCameraTargetMtx(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pClassifier, CameraTargetMtx* pTargetMtx,
                                         s32);
-    bool startMultiActorCameraTargetOther(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pClassifier,
+    bool startMultiActorCameraTargetOther(const NameObj* pActor, const ActorCameraInfo* pInfo, const char* pClassifier,
                                           const CameraTargetArg& rTargetArg, s32);
     void startAnimCameraTargetPlayer(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pAnimCameraName, s32, bool, f32);
     void startAnimCameraTargetSelf(const LiveActor* pActor, const ActorCameraInfo* pInfo, const char* pAnimCameraName, s32, bool, f32);
@@ -76,5 +77,5 @@ namespace MR {
 
 
 namespace MR {
-    bool startMultiActorCameraTargetOther(const LiveActor*, const ActorCameraInfo*, const char*, const CameraTargetArg&, s32 = -1);
+    bool startMultiActorCameraTargetOther(const NameObj*, const ActorCameraInfo*, const char*, const CameraTargetArg&, s32 = -1);
 };  // namespace MR

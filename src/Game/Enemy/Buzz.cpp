@@ -159,7 +159,7 @@ void Buzz::exeWait() {
     MR::fn_80014360(&sp8, this, 30.0f);
     MR::turnDirectionDegree(this, &mFront, sp8, 2.0f);
     if (MR::isExistRail(this)) {
-        MR::fn_80052450(this, mSpeed, 0.2f * mSpeed, 100.0f);
+        MR::moveCoordAndFollowTransEaseInOutAndReverse(this, mSpeed, 0.2f * mSpeed, 100.0f);
     }
 }
 

@@ -26,7 +26,7 @@ ActorParam* ActorParam::tryCreate(LiveActor* pActor) {
 }
 
 // Looks up a row by name. Returns NULL if no row has that name.
-ActorParamEntry* findActorParamEntry(const ActorParam* pParam, const char* pName) {
+ActorParamEntry* findEntry(const ActorParam* pParam, const char* pName) {
     for (s32 i = 0; i < pParam->mEntryNum; i++) {
         ActorParamEntry* pEntry = &pParam->mEntries[i];
         if (MR::isEqualString(pEntry->mName, pName)) {
@@ -46,7 +46,7 @@ namespace {
 
 // Accessors: return the value slot of the named row, or a zeroed default if the row is missing.
 void* getActorParamValuePtr(const ActorParam* pParam, const char* pName) {
-    ActorParamEntry* pEntry = findActorParamEntry(pParam, pName);
+    ActorParamEntry* pEntry = findEntry(pParam, pName);
     if (pEntry != NULL) {
         return &pEntry->mValue;
     }
@@ -54,7 +54,7 @@ void* getActorParamValuePtr(const ActorParam* pParam, const char* pName) {
 }
 
 void* getActorParamS32Ptr(const ActorParam* pParam, const char* pName) {
-    ActorParamEntry* pEntry = findActorParamEntry(pParam, pName);
+    ActorParamEntry* pEntry = findEntry(pParam, pName);
     if (pEntry != NULL) {
         return &pEntry->mValue;
     }
@@ -62,7 +62,7 @@ void* getActorParamS32Ptr(const ActorParam* pParam, const char* pName) {
 }
 
 void* getActorParamBlockPtr(const ActorParam* pParam, const char* pName) {
-    ActorParamEntry* pEntry = findActorParamEntry(pParam, pName);
+    ActorParamEntry* pEntry = findEntry(pParam, pName);
     if (pEntry != NULL) {
         return pEntry->mValue.mPtr;
     }
@@ -70,7 +70,7 @@ void* getActorParamBlockPtr(const ActorParam* pParam, const char* pName) {
 }
 
 void* getActorParamF32Ptr(const ActorParam* pParam, const char* pName) {
-    ActorParamEntry* pEntry = findActorParamEntry(pParam, pName);
+    ActorParamEntry* pEntry = findEntry(pParam, pName);
     if (pEntry != NULL) {
         return &pEntry->mValue;
     }
@@ -85,7 +85,7 @@ namespace {
 
 // Block accessors for the move / jump / sight rows (target symbols fn_8022C670, fn_8022C6B0, fn_8022C6F0).
 void* getActorParamMovePtr(const ActorParam* pParam, const char* pName) {
-    ActorParamEntry* pEntry = findActorParamEntry(pParam, pName);
+    ActorParamEntry* pEntry = findEntry(pParam, pName);
     if (pEntry != NULL) {
         return pEntry->mValue.mPtr;
     }
@@ -93,7 +93,7 @@ void* getActorParamMovePtr(const ActorParam* pParam, const char* pName) {
 }
 
 void* getActorParamJumpPtr(const ActorParam* pParam, const char* pName) {
-    ActorParamEntry* pEntry = findActorParamEntry(pParam, pName);
+    ActorParamEntry* pEntry = findEntry(pParam, pName);
     if (pEntry != NULL) {
         return pEntry->mValue.mPtr;
     }
@@ -101,7 +101,7 @@ void* getActorParamJumpPtr(const ActorParam* pParam, const char* pName) {
 }
 
 void* getActorParamSightPtr(const ActorParam* pParam, const char* pName) {
-    ActorParamEntry* pEntry = findActorParamEntry(pParam, pName);
+    ActorParamEntry* pEntry = findEntry(pParam, pName);
     if (pEntry != NULL) {
         return pEntry->mValue.mPtr;
     }

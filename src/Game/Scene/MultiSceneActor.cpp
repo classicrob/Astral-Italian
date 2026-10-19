@@ -158,9 +158,8 @@ namespace MultiScene {
     }
 
     bool startBckIfExist(MultiSceneActor* pActor, const char* pBckName) {
-        ModelManager* pModelManager = pActor->getModelManager();
-        if (pModelManager != nullptr && pModelManager->mXanimePlayer != nullptr && pModelManager->mXanimePlayer->isExistAnimation(pBckName)) {
-            pModelManager->startBck(pBckName, nullptr);
+        if (pActor->getModelManager() != nullptr && pActor->getModelManager()->mXanimePlayer != nullptr && pActor->getModelManager()->mXanimePlayer->isExistAnimation(pBckName)) {
+            pActor->getModelManager()->startBck(pBckName, nullptr);
             return true;
         }
 

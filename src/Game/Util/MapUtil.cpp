@@ -258,7 +258,7 @@ namespace MR {
         return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, nullptr, nullptr, 0);
     }
 
-    bool fn_80037E40(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection) {
+    bool getFirstPolyOnLineToMoveLimit(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection) {
         return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, nullptr, nullptr, 3);
     }
 
@@ -275,7 +275,7 @@ namespace MR {
         return ::getFirstPolyOnLineCategoryExceptSensor(pPos, pTriangle, rStart, rDirection, pSensor, 0);
     }
 
-    bool fn_80037E80(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection) {
+    bool getFirstPolyOnLineToDashYoshiStepAndMap(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection) {
         Triangle triangleA;
         Triangle triangleB;
         TVec3f posA;
@@ -326,8 +326,7 @@ namespace MR {
         return true;
     }
 
-    // SMG2 fn_80038020 (address-named; symbol fn_80038020__2MRF..Ul): sensor-type line query via getFirstPolyOnLineCategoryWithSensorType
-    bool fn_80038020(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection, u32 sensorType) {
+    bool getFirstPolyOnLineToMapWithSensorType(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection, u32 sensorType) {
         return ::getFirstPolyOnLineCategoryWithSensorType(pPos, pTriangle, rStart, rDirection, sensorType, 0);
     }
 
@@ -347,7 +346,7 @@ namespace MR {
         return ::getFirstPolyOnLineCategory(pPos, pTriangle, rStart, rDirection, pTriangleFilter, pPartsFilter, 0);
     }
 
-    bool fn_80038060(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection, const CollisionPartsFilterBase* pPartsFilter,
+    bool getFirstPolyOnLineToDashYoshiStepAndMap(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection, const CollisionPartsFilterBase* pPartsFilter,
                      const TriangleFilterBase* pTriangleFilter) {
         Triangle triangleA;
         Triangle triangleB;
@@ -398,7 +397,7 @@ namespace MR {
         return getCollisionDirector()->getCategoryKeeper(0)->checkStrikeLine(rParam1, rParam2, 1, nullptr, nullptr) != 0;
     }
 
-    bool fn_800382E0(const TVec3f& rStart, const TVec3f& rDirection) {
+    bool isExistDashYoshiStepAndMapCollision(const TVec3f& rStart, const TVec3f& rDirection) {
         bool hit = getCollisionDirector()->getCategoryKeeper(4)->checkStrikeLine(rStart, rDirection, 1, nullptr, nullptr) != 0;
         if (hit) {
             return true;
@@ -421,7 +420,7 @@ namespace MR {
         return getCollisionDirector()->getCategoryKeeper(0)->checkStrikeLine(rStart, rDirection, 1, &filter, nullptr) != 0;
     }
 
-    bool fn_800384C0(const TVec3f& rStart, const TVec3f& rDirection, const LiveActor* pActor) {
+    bool isExistDashYoshiStepAndMapCollisionExceptActor(const TVec3f& rStart, const TVec3f& rDirection, const LiveActor* pActor) {
         CollisionPartsFilterActor filter(pActor);
         bool hit = getCollisionDirector()->getCategoryKeeper(4)->checkStrikeLine(rStart, rDirection, 1, &filter, nullptr) != 0;
         if (hit) {
@@ -431,7 +430,7 @@ namespace MR {
         return getCollisionDirector()->getCategoryKeeper(0)->checkStrikeLine(rStart, rDirection, 1, &filter, nullptr) != 0;
     }
 
-    bool fn_80038570(const TVec3f* pStart, const TVec3f* pDirection) {
+    bool isFirstPolyOnLineToMapIce(const TVec3f* pStart, const TVec3f* pDirection) {
         Triangle triangle;
         TVec3f pos(0.0f);
         if (::getFirstPolyOnLineCategory(&pos, &triangle, *pStart, *pDirection, nullptr, nullptr, 0)) {
@@ -452,7 +451,7 @@ namespace MR {
         return getCollisionDirector()->getCategoryKeeper(0)->checkStrikePoint(rPos, pHit, &filter, nullptr) != 0;
     }
 
-    bool fn_800386E0(const TVec3f& rPoint, HitInfo* pHit) {
+    bool checkStrikePointToDashYoshiStepAndMap(const TVec3f& rPoint, HitInfo* pHit) {
         return Collision::checkStrikePointToDashYoshiStepAndMap(rPoint, pHit);
     }
 
@@ -462,8 +461,7 @@ namespace MR {
 
 
 
-    // SMG2 fn_80038770 (address-named; symbol fn_80038770__2MRF..PbPbf): ball-hit helper shared with Ride/GliBird.cpp
-    s32 fn_80038770(TVec3f* pHitPos, TVec3f* pHitNormal, HitSensor** ppSensor, const TVec3f& rPos, bool* pIsWater, bool* pIsFire, f32 radius) {
+    s32 calcMapHitByBall(TVec3f* pHitPos, TVec3f* pHitNormal, HitSensor** ppSensor, const TVec3f& rPos, bool* pIsWater, bool* pIsFire, f32 radius) {
         if (getCollisionDirector()->getCategoryKeeper(0)->checkStrikeBall(rPos, radius, false, nullptr, nullptr) == 0) {
             return 0;
         }
@@ -483,8 +481,7 @@ namespace MR {
         return 1;
     }
 
-    // SMG2 fn_80038870 (address-named; symbol fn_80038870__2MRF..PbPbf): ray-cast helper (same decl as BellyDragonTU02.cpp)
-    s32 fn_80038870(const TVec3f& rPos, TVec3f* pPos, const TVec3f& rDirection, TVec3f* pNormal, HitSensor** ppSensor, bool* pIsWater, bool* pIsFire,
+    s32 calcMapHitAlongDirection(const TVec3f& rPos, TVec3f* pPos, const TVec3f& rDirection, TVec3f* pNormal, HitSensor** ppSensor, bool* pIsWater, bool* pIsFire,
                     f32 length) {
         TVec3f direction(rDirection);
         direction.scale(length);
@@ -578,7 +575,7 @@ namespace MR {
         return isFallNextMove(rPos, rVelocity, rGravity, forwardDistance, upperDistance, lowerDistance, &filter);
     }
 
-    HitSensor* fn_80038D20(const Triangle* pTriangle) {
+    HitSensor* getSensor(const Triangle* pTriangle) {
         if (pTriangle && pTriangle->isValid()) {
             return pTriangle->mSensor;
         }
@@ -1090,7 +1087,7 @@ namespace MR {
         return false;
     }
     // NONMATCHING: register and temporary scheduling.
-    bool fn_8003A720(const TVec3f& rStart, const TVec3f& rDirection, TVec3f* pPos, Triangle* pTriangle) {
+    bool getFirstPolyOnLineBFastToDashYoshiStepAndMap(const TVec3f& rStart, const TVec3f& rDirection, TVec3f* pPos, Triangle* pTriangle) {
         Triangle triangle;
         f32 remaining = rDirection.length();
         TVec3f direction(rDirection);
@@ -1115,7 +1112,7 @@ namespace MR {
                     }
                     TVec3f backPos(dashPos - *dashTriangle.getNormal(0) * 5.0f);
                     TVec3f normal(*dashTriangle.getNormal(0) * 35.0f);
-                    if (fn_800382E0(backPos, normal)) {
+                    if (isExistDashYoshiStepAndMapCollision(backPos, normal)) {
                         continue;
                     }
                 }
@@ -1133,7 +1130,7 @@ namespace MR {
                     }
                     TVec3f backPos(mapPos - *mapTriangle.getNormal(0) * 5.0f);
                     TVec3f normal(*mapTriangle.getNormal(0) * 35.0f);
-                    if (fn_800382E0(backPos, normal)) {
+                    if (isExistDashYoshiStepAndMapCollision(backPos, normal)) {
                         continue;
                     }
                 }

@@ -353,19 +353,19 @@ void StarPointerOnOffController::updateMode() {
                 case StarPointerMode_FileSelect:
                     setupFileSelect();
                     break;
-                case StarPointerMode_PictureBook:
+                case StarPointerMode_PauseMenu:
                     setupPictureBook();
                     break;
-                case StarPointerMode_PauseMenu:
+                case StarPointerMode_ChooseYesNo:
                     setupPauseMenu();
                     break;
                 case StarPointerMode_Demo:
                     setupDemo();
                     break;
-                case StarPointerMode_1PInvalid2PValid:
+                case StarPointerMode_DemoWithStarPointer:
                     setup1PInvalid2PValid();
                     break;
-                case StarPointerMode_MarioLauncher:
+                case StarPointerMode_DemoWithHandPointerFinger:
                     setupMarioLauncher();
                     break;
                 case StarPointerMode_DemoMarioDeath:
@@ -374,7 +374,7 @@ void StarPointerOnOffController::updateMode() {
                 case StarPointerMode_PowerStarGetDemo:
                     setupPowerStarGetDemo();
                     break;
-                case StarPointerMode_ChooseYesNo:
+                case StarPointerMode_1PInvalid2PValid:
                     setupChooseYesNo();
                     break;
                 case StarPointerMode_ScenarioSelectScene:
@@ -383,7 +383,7 @@ void StarPointerOnOffController::updateMode() {
                 case StarPointerMode_SphereSelectorFinger:
                     setupSphereSelectorFinger();
                     break;
-                case StarPointerMode_DemoWithHandPointerFinger:
+                case StarPointerMode_MarioLauncher:
                     setupDemoWithHandPointerFinger();
                     break;
                 case StarPointerMode_BlueStar:
@@ -407,7 +407,7 @@ void StarPointerOnOffController::updateMode() {
                 case StarPointerMode_CommandStream:
                     setupCommandStream();
                     break;
-                case StarPointerMode_DemoWithStarPointer:
+                case StarPointerMode_PictureBook:
                     setupDemoWithStarPointer();
                     break;
                 }

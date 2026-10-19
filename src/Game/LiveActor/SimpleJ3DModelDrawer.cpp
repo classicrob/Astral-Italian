@@ -1,5 +1,6 @@
 #include "Game/LiveActor/SimpleJ3DModelDrawer.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 
@@ -9,10 +10,11 @@ SimpleJ3DModelDrawer::SimpleJ3DModelDrawer(NameObj* pObj, const char* pName, con
     mShapeDraw = nullptr;
 
     if (drawType >= 0) {
-        MR::registerPreDrawFunction(MR::Functor(this, &SimpleJ3DModelDrawer::initDraw), drawType);
+        MR::FunctorV0M< const SimpleJ3DModelDrawer*, void (SimpleJ3DModelDrawer::*)() const > functor(this, &SimpleJ3DModelDrawer::initDraw);
+        MR::registerPreDrawFunction(functor, drawType);
     }
 
-    initModelManagerWithAnm(pModelName, nullptr, false);
+    MR::initActor(this, pModelName, false);
     mMaterial = MR::getMaterial(this, 0);
     mShape = mMaterial->getShape();
     mShapeDraw = mShape->getShapeDraw(0);

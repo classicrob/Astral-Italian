@@ -41,7 +41,7 @@ void Garigari::init(const JMapInfoIter& rIter) {
         MR::calcGravity(this);
         MR::initActorPoseTQ(mPose, this);
     } else {
-        MR::fn_80010130(mPose, this);
+        MR::initActorPoseFromRotation(mPose, this);
         f32 x = mPose->x;
         f32 y = mPose->y;
         f32 z = mPose->z;

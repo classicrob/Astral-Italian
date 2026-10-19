@@ -651,7 +651,7 @@ void TakoHei::exePursue() {
     bool isFarPlayer = false;
 
     if (MR::isNearPlayer(this, 700.0f)) {
-        MR::fn_80011180(this, *MR::getPlayerPos(), ::sPursueAccel);
+        MR::addVelocityAwayFromTargetOnGround(this, *MR::getPlayerPos(), ::sPursueAccel);
     } else {
         MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), ::sPursueAccel);
         isFarPlayer = true;

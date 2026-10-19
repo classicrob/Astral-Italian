@@ -37,7 +37,7 @@ class TriangleFilterBase;
 class ProjmapEffectMtxSetter;
 
 namespace MR {
-    void fn_800328A0(LiveActor*, const char*, const BckCtrlData&);
+    void reflectBckCtrlDataToAllAnim(LiveActor*, const char*, const BckCtrlData&);
     void tryHitReactionDead(const LiveActor*);
     void tryHitReactionBreak(const LiveActor*);
     void tryHitReactionAppear(const LiveActor*);
@@ -379,7 +379,7 @@ namespace MR {
     void setBodySensorType(LiveActor* pActor, u32 sensorType);
     // LiveActorUtil (enemies lane, callees named by address; lead renames symbols)
     void startBlowHitReaction(LiveActor*);
-    void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
+    void tryHitReactionBlowBetweenSensors(LiveActor*, HitSensor*, HitSensor*);
     bool isInPlaneModeCube(const TVec3f&);
     // LiveActorUtil (creation) (enemies lane, callees named by address; lead renames symbols)
     NameObj* fn_80105820(LiveActor*, s32, const char*, f32);

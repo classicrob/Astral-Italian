@@ -257,7 +257,7 @@ void Pattan::tryPattanJump() {
 }
 
 void Pattan::calcAndSetBaseMtx() {
-    MR::fn_8000F880(this, &mFront);
+    MR::calcAndSetBaseMtxFromFrontAndGravity(this, &mFront);
 }
 
 void Pattan::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {

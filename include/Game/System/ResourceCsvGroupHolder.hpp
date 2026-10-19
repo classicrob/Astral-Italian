@@ -13,7 +13,7 @@ class ResourceCsvGroupHolder {
 public:
     ResourceCsvGroupHolder();
     void reset();
-    const ResourceCsvGroupInfo* fn_804CC650(const char*) const;
+    const ResourceCsvGroupInfo* findGroup(const char*) const;
     void initActionSoundGroups();
     void initAutoEffectGroups();
     s32 mCount;

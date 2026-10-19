@@ -124,7 +124,7 @@ void BakuBaku::exeMove() {
     else updateFreeMove();
     f32 scale = mScale.x;
     if (PSVECDistance(&mPosition, &mAnchorPos) > 140.0f * scale &&
-    MR::fn_802861E0(mPosition, 120.0f * scale, 5, 250, 300)) mAnchorPos.set(mPosition);
+    MR::appearClipAreaDrop(mPosition, 120.0f * scale, 5, 250, 300)) mAnchorPos.set(mPosition);
 }
 
 void BakuBaku::exeSuccess() {

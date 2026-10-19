@@ -166,12 +166,12 @@ void NeedlePlant::exeEatPull() {
         mRotation.y = -1.5707964f;
         mRotation.z = 0.0f;
     } else if (m20 + 1.0f <= 3.8147e-06f) {
-        mRotation.x = JMath::sAtanTable.atan2_(mtx.mMtx[0][1], mtx.mMtx[1][1]);
+        mRotation.x = JMath::sAtanTable.atan2_(mtx.mMtx[1][1], mtx.mMtx[0][1]);
         mRotation.y = 1.5707964f;
         mRotation.z = 0.0f;
     } else {
-        mRotation.x = JMath::sAtanTable.atan2_(mtx.mMtx[2][1], mtx.mMtx[2][2]);
-        mRotation.z = JMath::sAtanTable.atan2_(mtx.mMtx[1][0], mtx.mMtx[0][0]);
+        mRotation.x = JMath::sAtanTable.atan2_(mtx.mMtx[2][2], mtx.mMtx[2][1]);
+        mRotation.z = JMath::sAtanTable.atan2_(mtx.mMtx[0][0], mtx.mMtx[1][0]);
         mRotation.y = JGeometry::TUtil<f32>::asin(-mtx.mMtx[2][0]);
     }
 

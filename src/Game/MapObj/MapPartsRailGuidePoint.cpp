@@ -12,7 +12,7 @@ namespace {
 MapPartsRailGuidePoint::MapPartsRailGuidePoint(const LiveActor* pActor, const char* pName, f32 a3, bool a4) : LiveActor("レイル点") {
     _8C = a3;
     _90 = a4;
-    initModelManagerWithAnm(pName, 0, false);
+    MR::initActor(this, pName, false);
     MR::calcRailPosAtCoord(&mPosition, pActor, _8C);
 }
 

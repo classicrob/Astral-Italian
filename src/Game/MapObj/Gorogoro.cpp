@@ -199,7 +199,7 @@ void Gorogoro::doRailMove() {
         mRailMover->movement();
         if (mRailMover->isWorking()) {
             MR::setPosition(this, mSavedPos);
-            mSavedPos = mRailMover->_28;
+            mSavedPos = mRailMover->mPosition;
             mRailMover->tryResetPositionRepeat();
             MR::startActionSound(this, "Move", -1, -1, -1);
         }

@@ -40,7 +40,7 @@ public:
 
     /* 0x14 */ Spine* mSpine;
     /* 0x18 */ LiveActor* mHost;
-    /* 0x1C */ bool mIsActive;
-    /* 0x20 */ f32 mParamScale;         // SMG2, init 1.0f
-    /* 0x24 */ const char* mSensorName;  // SMG2, init "Body"
+    /* 0x1C */ bool mIsActive;  // Enables spine updates and control().
+    /* 0x20 */ f32 mParamScale;  // Speed multiplier while the host's Param switch is on.
+    /* 0x24 */ const char* mSensorName;  // Host message sensor; null disables sendMsgToHost().
 };

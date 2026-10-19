@@ -23,9 +23,8 @@ namespace NrvCandlestand {
             Candlestand* actor = reinterpret_cast< Candlestand* >(pSpine->mExecutor);
             if (MR::isFirstStep(actor)) {
                 actor->emitEffectFire();
+                actor->setNerve(GET_NERVE(Candlestand, HostTypeBurn));
             }
-
-            actor->setNerve(GET_NERVE(Candlestand, HostTypeBurn));
         };
         static HostTypeEmit sInstance;
     };
@@ -72,10 +71,7 @@ void Candlestand::init(const JMapInfoIter& rIter) {
     MapObjActorUtil::setupInitInfoSimpleMapObj(&info);
     info.setupHitSensor();
 
-    TVec3f sensorOffset;
-    sensorOffset.y = ::getParam(mObjectName)->mSensorHeight;
-    sensorOffset.x = 0.0f;
-    sensorOffset.z = 0.0f;
+    TVec3f sensorOffset(0.0f, ::getParam(mObjectName)->mSensorHeight, 0.0f);
 
     f32 sensorRange = ::getParam(mObjectName)->mSensorRange;
     info.setupHitSensorParam(8, sensorRange, sensorOffset);
@@ -103,17 +99,19 @@ void Candlestand::init(const JMapInfoIter& rIter) {
 
     if (mItem == 0) {
         MR::declareStarPiece(this, 1);
-        MR::initStarPointerTarget(this, 150.0f, TVec3f(0.0f, 150.0f, 0.0f));
     }
+
+    MR::initStarPointerTarget(this, 150.0f, TVec3f(0.0f, 150.0f, 0.0f));
 
     if (::getParam(mObjectName)->mCanUseSwitch) {
         if (MR::isValidSwitchA(this)) {
             setNerve(GET_NERVE(Candlestand, HostTypeWaitFire));
         } else {
             setNerve(GET_NERVE(Candlestand, HostTypeEmit));
-            MR::registerDemoSimpleCastAll(this);
         }
     }
+
+    MR::registerDemoSimpleCastAll(this);
 
     mSpinPtclCb = new SpinPullParticleCallBack();
 }

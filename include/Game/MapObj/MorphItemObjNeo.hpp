@@ -189,3 +189,7 @@ namespace NrvMorphItemObjNeo {
     };
     MorphItemObjNeoNrvHide MorphItemObjNeoNrvHide::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvMorphItemObjNeo
+
+namespace MR {
+    void enablePlayerResourceMorph(const JMapInfoIter&);
+}

@@ -175,7 +175,7 @@ void Garigari::exeRotate() {
         TVec3f sp14(MR::getRailDirection(this));
         alignUpToRail();
         mRailMover->movement();
-        MR::setPosition(this, mRailMover->_28);
+        MR::setPosition(this, mRailMover->mPosition);
         if (MR::isRailReachedGoal(this)) {
             f32 speed = MR::getRailCoordSpeed(this);
             TVec3f sp8(sp14);

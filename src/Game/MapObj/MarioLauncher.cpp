@@ -128,12 +128,12 @@ void MarioLauncher::init(const JMapInfoIter& rIter) {
 
     MR::startAction(this, "Wait");
 
-    if (MR::useStageSwitchReadA(this, rIter)) {
+    if (MR::initUseStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &MarioLauncher::onSwitchA), MR::Functor(this, &MarioLauncher::offSwitchA));
         MR::invalidateHitSensors(this);
     }
 
-    if (MR::useStageSwitchWriteB(this, rIter)) {
+    if (MR::initUseStageSwitchWriteB(this, rIter)) {
     }
 
     MR::setBindTriangleFilter(mShell, MR::createTriangleFilterDelegator(this, &MarioLauncher::isBreak));

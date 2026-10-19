@@ -62,7 +62,7 @@ public:
     /* 0x194 */ s32 mMusicState;
     /* 0x198 */ const char* mSavedBgmId;
     /* 0x19C */ s32 mSavedBgmState;
-    /* 0x1A0 */ bool _194;
+    /* 0x1A0 */ bool mIsRabbitRunawayWait;  // set by ACTMES 0xF2 (RUNAWAY_RABBIT_WAIT), cleared by 0xF3
     /* 0x1A4 */ PartsModel* mPipeStreamModel;
     /* 0x1A8 */ bool mIsPipeStreamShown;
     /* 0x1AC */ ActorCameraInfo* mCameraInfo;
@@ -73,8 +73,8 @@ public:
     EarthenPipeMediator();
 
     struct Entry {
-        /* 0x0 */ EarthenPipe* _0;
-        /* 0x4 */ EarthenPipe* _4;
+        /* 0x0 */ EarthenPipe* mFirstPipe;
+        /* 0x4 */ EarthenPipe* mSecondPipe;
         /* 0x8 */ s32 mPipeID;
     };
 

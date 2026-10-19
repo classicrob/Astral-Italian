@@ -81,12 +81,12 @@ void ElectricRailPoint::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
-ElectricRailSeparator::ElectricRailSeparator() : _0(gZeroVec), mSide(gZeroVec), mUp(gZeroVec), mFront(gZeroVec), _30(gZeroVec) {
+ElectricRailSeparator::ElectricRailSeparator() : mPos(gZeroVec), mSide(gZeroVec), mUp(gZeroVec), mFront(gZeroVec), mGravity(gZeroVec) {
 }
 
 void ElectricRailSeparator::setup(const TVec3f& rVec1, const TVec3f& rVec2, const TVec3f& rVec3) {
-    _30.set(rVec3);
-    _0.set(rVec1);
+    mGravity.set(rVec3);
+    mPos.set(rVec1);
     mFront.set(rVec2);
 
     mFront.negate();
@@ -151,9 +151,9 @@ void ElectricRailShadowDrawer::drawShadowVolumeShape(ElectricRailSeparator* pSep
 
         vec3C.scale(20.0f, separator->mSide);
 
-        vec48.scale(300.0f, separator->_30);
+        vec48.scale(300.0f, separator->mGravity);
 
-        vec24.sub(separator->_0, vec3C);
+        vec24.sub(separator->mPos, vec3C);
 
         vec30.add(vec24, vec48);
 
@@ -166,9 +166,9 @@ void ElectricRailShadowDrawer::drawShadowVolumeShape(ElectricRailSeparator* pSep
 
         vec3C.scale(20.0f, separator->mSide);
 
-        vec48.scale(300.0f, separator->_30);
+        vec48.scale(300.0f, separator->mGravity);
 
-        vec24.add(separator->_0, vec3C);
+        vec24.add(separator->mPos, vec3C);
 
         vec30.add(vec24, vec48);
 
@@ -178,9 +178,9 @@ void ElectricRailShadowDrawer::drawShadowVolumeShape(ElectricRailSeparator* pSep
 
     vec3C.scale(20.0f, pSeparator->mSide);
 
-    vec48.scale(300.0f, pSeparator->_30);
+    vec48.scale(300.0f, pSeparator->mGravity);
 
-    vec24.sub(pSeparator->_0, vec3C);
+    vec24.sub(pSeparator->mPos, vec3C);
 
     vec30.add(vec24, vec48);
 
@@ -194,9 +194,9 @@ void ElectricRailShadowDrawer::drawShadowVolumeShape(ElectricRailSeparator* pSep
 
         vec3C.scale(20.0f, separator->mSide);
 
-        vec24.add(separator->_0, vec3C);
+        vec24.add(separator->mPos, vec3C);
 
-        vec30.sub(separator->_0, vec3C);
+        vec30.sub(separator->mPos, vec3C);
 
         GDPosition3f32(vec24.x, vec24.y, vec24.z);
         GDPosition3f32(vec30.x, vec30.y, vec30.z);
@@ -209,12 +209,12 @@ void ElectricRailShadowDrawer::drawShadowVolumeShape(ElectricRailSeparator* pSep
 
         vec3C.scale(20.0f, separator->mSide);
 
-        vec48.scale(300.0f, separator->_30);
+        vec48.scale(300.0f, separator->mGravity);
 
-        vec24.add(separator->_0, vec3C);
+        vec24.add(separator->mPos, vec3C);
         vec24.add(vec24, vec48);
 
-        vec30.sub(separator->_0, vec3C);
+        vec30.sub(separator->mPos, vec3C);
         vec30.add(vec30, vec48);
 
         GDPosition3f32(vec24.x, vec24.y, vec24.z);
@@ -225,8 +225,8 @@ void ElectricRailShadowDrawer::drawShadowVolumeShape(ElectricRailSeparator* pSep
 }
 
 ElectricRail::ElectricRail(const char* name)
-    : LiveActor(name), mPoints(), mPointCount(), _94(), mSeparators(), mSeparatorCount(), mDisplayListBuffer(), mDisplayListSize(), mRailHeight(1),
-      mEaseIn(30.0f), mShadowDrawer(), mIsCalcGravity(), _B9() {
+    : LiveActor(name), mPoints(), mPointCount(), mSensorPos(), mSeparators(), mSeparatorCount(), mDisplayListBuffer(), mDisplayListSize(), mRailHeight(1),
+      mEaseIn(30.0f), mShadowDrawer(), mIsCalcGravity(), mIsKoopaBeam() {
 }
 
 void ElectricRail::init(const JMapInfoIter& rIter) {
@@ -249,7 +249,7 @@ void ElectricRail::init(const JMapInfoIter& rIter) {
         MR::calcDropShadowVector(this, mPosition, &mGravity, nullptr, 0);
     }
 
-    MR::getJMapInfoArg5NoInit(rIter, &_B9);
+    MR::getJMapInfoArg5NoInit(rIter, &mIsKoopaBeam);
     initSensor();
 
     MR::setClippingFar200m(this);
@@ -258,7 +258,7 @@ void ElectricRail::init(const JMapInfoIter& rIter) {
     initSeparators();
     initDisplayList();
     initShadow(rIter);
-    initSound(4, "ElectricRail", _94, TVec3f(0.0f));
+    initSound(4, "ElectricRail", mSensorPos, TVec3f(0.0f));
 
     if (MR::tryRegisterDemoCast(this, rIter)) {
         for (s32 i = 0; i < mPointCount; i++) {
@@ -351,10 +351,10 @@ void ElectricRail::initMapToolInfo(const JMapInfoIter& rIter) {
 void ElectricRail::initSensor() {
     initHitSensor(mRailHeight);
 
-    _94 = new TVec3f[mRailHeight];
+    mSensorPos = new TVec3f[mRailHeight];
 
     for (s32 i = 0; i < mRailHeight; i++) {
-        MR::addHitSensorPosMapObj(this, ::cSensorNameTable[i], 8, ElectricRailFunction::getHitSensorRadius(), &_94[i], TVec3f(0.0f, 0.0f, 0.0f));
+        MR::addHitSensorPosMapObj(this, ::cSensorNameTable[i], 8, ElectricRailFunction::getHitSensorRadius(), &mSensorPos[i], TVec3f(0.0f, 0.0f, 0.0f));
     }
 
     updateHitSensorPos();
@@ -497,7 +497,7 @@ void ElectricRail::drawPlane(f32 a1, f32 a2, f32 a3, f32 a4) const {
 
         for (s32 j = 0; j < mSeparatorCount; j++) {
             ElectricRailSeparator* s = &mSeparators[j];
-            TVec3f v21(s->_0);
+            TVec3f v21(s->mPos);
 
             f32 v15 = 0.5f * j;
 
@@ -529,7 +529,7 @@ void ElectricRail::drawPlaneGX(f32 a1, f32 a2, f32 a3, f32 a4) const {
 
         for (s32 j = 0; j < mSeparatorCount; j++) {
             ElectricRailSeparator* s = &mSeparators[j];
-            TVec3f v21(s->_0);
+            TVec3f v21(s->mPos);
             f32 v15 = 0.5f * j;
 
             pUp = &s->mUp;
@@ -601,14 +601,14 @@ void ElectricRail::initShadow(const JMapInfoIter& rIter) {
 }
 
 void ElectricRail::updateHitSensorPos() {
-    MR::calcNearestRailPos(_94, this, *MR::getPlayerCenterPos());
+    MR::calcNearestRailPos(mSensorPos, this, *MR::getPlayerCenterPos());
 
     if (mRailHeight > 1) {
         TVec3f gravity;
-        calcGravity(&gravity, *_94);
+        calcGravity(&gravity, *mSensorPos);
         gravity.scale(-100.0f);
         for (s32 i = 1; i < mRailHeight; i++) {
-            _94[i].add(_94[i - 1], gravity);
+            mSensorPos[i].add(mSensorPos[i - 1], gravity);
         }
     }
 
@@ -621,9 +621,9 @@ void ElectricRail::updateHitSensorPos() {
     for (s32 i = 0; i < mRailHeight; i++) {
         MR::setSensorRadius(MR::getSensorWithIndex(this, i), radius);
     }
-    if (MR::isInTowerModeCylinder(_94[0], nullptr, nullptr, nullptr)) {
+    if (MR::isInTowerModeCylinder(mSensorPos[0], nullptr, nullptr, nullptr)) {
         for (s32 i = 0; i < mRailHeight; i++) {
-            MR::fn_800143D0(&_94[i]);
+            MR::fn_800143D0(&mSensorPos[i]);
         }
     }
 }
@@ -655,7 +655,7 @@ void ElectricRail::exeDisappear() {
 
 void ElectricRail::exeWait() {
     updateHitSensorPos();
-    if (_B9) {
+    if (mIsKoopaBeam) {
         MR::startActionSound(this, "KoopaBeam", -1, -1, -1);
     } else {
         MR::startActionSound(this, "OjLvElecRailHam", -1, -1, -1);

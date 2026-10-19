@@ -124,7 +124,7 @@ void FireBarBall::endClipped() {
 FireBar::FireBar(const char* pName) : LiveActor(pName) {
     mFireBalls = nullptr;
     mFireBallCount = 5;
-    mUnk98 = 0;
+    mChildBaseMtx = 0;
     mFrontVec.x = 0.0f;
     mFrontVec.y = 0.0f;
     mFrontVec.z = 1.0f;
@@ -132,8 +132,8 @@ FireBar::FireBar(const char* pName) : LiveActor(pName) {
     mStickCount = 1;
     mStickDistance = 140.0f;
     mIsStopped = false;
-    mUnkB5 = false;
-    mUnkB8 = 150.0f;
+    mIsSpherical = false;
+    mSphericalSpeed = 150.0f;
 }
 
 void FireBar::init(const JMapInfoIter& rIter) {
@@ -142,7 +142,7 @@ void FireBar::init(const JMapInfoIter& rIter) {
     const char* pObjName = nullptr;
     MR::getObjectName(&pObjName, rIter);
     if (MR::isEqualString(pObjName, "FireBarSpherical")) {
-        mUnkB5 = true;
+        mIsSpherical = true;
     }
 
     f32 shadowDropDist = 100.0f;
@@ -189,15 +189,15 @@ void FireBar::init(const JMapInfoIter& rIter) {
 
     s32 numChildObj = MR::getChildObjNum(rIter);
     if (numChildObj > 0) {
-        mUnk98 = new TPos3f();
-        PSMTXIdentity(mUnk98->toMtxPtr());
+        mChildBaseMtx = new TPos3f();
+        PSMTXIdentity(mChildBaseMtx->toMtxPtr());
     }
 
     for (s32 i = 0; i < numChildObj; i++) {
         const char* pChildName = nullptr;
         MR::getChildObjName(&pChildName, rIter, i);
 
-        PartsModel* pParts = new PartsModel(this, MR::getChildObjJapaneseName(rIter, i), pChildName, mUnk98->mMtx, -1, false);
+        PartsModel* pParts = new PartsModel(this, MR::getChildObjJapaneseName(rIter, i), pChildName, mChildBaseMtx->mMtx, -1, false);
         pParts->initWithoutIter();
     }
 
@@ -281,7 +281,7 @@ void FireBar::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
 }
 
 void FireBar::updateHitSensor(HitSensor* pSensor) {
-    if (mUnkB5) {
+    if (mIsSpherical) {
         setSensorToNearestFireBall(pSensor);
         return;
     }
@@ -391,12 +391,12 @@ void FireBar::fixFireBarBall() {
             final_pos.scaleAdd(mStickDistance, norm, mPosition);
             final_pos.scaleAdd(50.0f, up_vec, final_pos);
             prev.set(scaled);
-        } else if (mUnkB5) {
+        } else if (mIsSpherical) {
             TVec3f up_vec;
             MR::calcUpVec(&up_vec, this);
             TVec3f cross;
             PSVECCrossProduct(&up_vec, &prev, &cross);
-            MR::rotateVecDegree(&prev, cross, mUnkB8 / 100.0f);
+            MR::rotateVecDegree(&prev, cross, mSphericalSpeed / 100.0f);
             final_pos.add(prev);
         } else {
             final_pos.add(scaled);
@@ -405,9 +405,9 @@ void FireBar::fixFireBarBall() {
         MR::setPosition(mFireBalls[i], final_pos);
     }
 
-    if (mUnk98 != nullptr) {
+    if (mChildBaseMtx != nullptr) {
         TVec3f up_vec(0.0f);
         MR::calcUpVec(&up_vec, this);
-        MR::makeMtxFrontUpPos(mUnk98, mFrontVec, up_vec, mPosition);
+        MR::makeMtxFrontUpPos(mChildBaseMtx, mFrontVec, up_vec, mPosition);
     }
 }

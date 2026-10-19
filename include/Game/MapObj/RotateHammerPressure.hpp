@@ -1,20 +1,18 @@
 #pragma once
 #include "Game/MapObj/RotateMoveObj.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
+class CollisionParts;
+
 class RotateHammerPressure : public RotateMoveObj {
 public:
     RotateHammerPressure(const char*);
     virtual ~RotateHammerPressure();
     virtual void init(const JMapInfoIter&);
     virtual void control();
-    TPos3f mMatrices[4];
-    f32 _190;
-    f32 _194;
-    f32 _198;
-    f32 _19C;
-    f32 _1A0;
-    f32 _1A4;
-    bool _1A8;
-    bool _1A9;
-    s32 _1AC;
+    /* 0xD0 */ TPos3f mMatrices[4];
+    /* 0x190 */ TVec3f mUpDir;
+    /* 0x19C */ TVec3f mSideDir;
+    /* 0x1A8 */ bool _1A8;
+    /* 0x1A9 */ bool _1A9;
+    /* 0x1AC */ CollisionParts* mPushCollision;
 };

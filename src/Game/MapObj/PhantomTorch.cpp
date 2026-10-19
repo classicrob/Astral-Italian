@@ -207,6 +207,7 @@ void PhantomTorch::exeWait() {
 void PhantomTorch::exeAttack() {
     if (MR::isStep(this, 30)) {
         setNerve(GET_NERVE(PhantomTorch, HostTypeWait));
+        return;
     } else if (MR::isEqualString(mParticle, "PhantomBonfire")) {
         MR::startActionSound(this, "OjLvBonfireBurn");
     } else {

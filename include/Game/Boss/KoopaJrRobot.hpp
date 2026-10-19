@@ -60,7 +60,6 @@ class KoopaJrRobotStateAttack : public KoopaJrRobotStateBase {
 public:
     KoopaJrRobotStateAttack(KoopaJrRobot*, s32);  // fn_800DE6F0
     virtual ~KoopaJrRobotStateAttack();
-    virtual bool receiveMsgEnemyAttack(u32, HitSensor*, HitSensor*);
     virtual void appear();                         // fn_800DE7C0
     virtual void kill();                           // fn_800DE840
 

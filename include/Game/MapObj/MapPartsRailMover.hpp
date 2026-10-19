@@ -61,19 +61,18 @@ public:
     /* 0x2C */ s32 mMoveConditionType;
     /* 0x30 */ s32 mMoveStopType;
     /* 0x34 */ s32 mSignMotionType;
-    /* 0x38 */ TVec3f _28;  // Petari _28 (current position)
-    /* 0x44 */ TVec3f _44;  // SMG2
-    /* 0x50 */ f32 _34;
+    /* 0x38 */ TVec3f mPosition;  // Current rail position, including any remaining snap offset.
+    /* 0x44 */ TVec3f mSnapOffset;  // Placement position minus the initial rail position.
+    /* 0x50 */ f32 mInitialRailCoord;
     /* 0x54 */ s32 mStopTime;
     /* 0x58 */ f32 mSpeed;
     /* 0x5C */ s32 mAccelTime;
     /* 0x60 */ f32 mAcceleration;
-    /* 0x64 */ f32 _48;
-    /* 0x68 */ s32 _68;  // SMG2
-    /* 0x6C */ s32 _6C;  // SMG2
-    /* 0x70 */ bool _70;  // SMG2
-    /* 0x74 */ s32 _74;  // SMG2, init -1
-    /* 0x78 */ bool _78;  // SMG2
+    /* 0x64 */ f32 mSignMotionRailCoord;
+    /* 0x68 */ s32 mSnapDuration;  // MoveSnap duration in movement frames.
+    /* 0x6C */ s32 mSnapFramesRemaining;
+    /* 0x70 */ bool mHasRepeated;  // Set on repeat restart; no reader is currently known.
+    /* 0x74 */ s32 mSignMotionTimeOverride;  // -1 uses MapParts::getMoveStartSignalTimeForRail().
+    /* 0x78 */ bool mDisableSignMotionAnimation;  // Use rail-coordinate shake instead of RailMoveSign animation.
 };
 
-// SMG2 unnamed helper at 0x80332BB0 (MapPartsFunction.cpp), named by address; used by Garigari init.

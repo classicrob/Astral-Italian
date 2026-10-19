@@ -395,7 +395,7 @@ void RailMoveShadowDropYObj::control() {
 bool RailMoveObjSwitchWarpEnd::tryStartMove() {
     if (MR::isValidSwitchA(this) && MR::isOnSwitchA(this)) {
         mRailMover->moveToEndPos();
-        MR::setPosition(this, mRailMover->_28);
+        MR::setPosition(this, mRailMover->mPosition);
         MR::onSwitchDead(this);
         setNerve(GET_NERVE(RailMoveObj, HostTypeDone));
         return true;

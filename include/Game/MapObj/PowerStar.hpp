@@ -81,11 +81,7 @@ public:
     /* 0x128 */ LiveActor* mSupportTicoModel;
     /* 0x12C */ bool _12C;
     /* 0x12D */ bool _12D;
-    // this isn't what they wrote but oh well
-    union {
-        /* 0x130 */ vs32 mColor_v;
-        /* 0x130 */ s32 mColor;
-    };
+    /* 0x130 */ s32 mColor;
     /* 0x134 */ volatile bool mIsGrandStar;
     /* 0x135 */ bool mIsGreenStar;
     /* 0x136 */ bool _136;

@@ -1,6 +1,7 @@
 #pragma auto_inline off
 #include "Game/MapObj/MorphItemObjNeo.hpp"
 #include "Game/MapObj/MapPartsRailMover.hpp"
+#include "Game/Player/MarioHolder.hpp"
 #include "Game/Util.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/Camera/CameraTargetMtx.hpp"
@@ -39,6 +40,26 @@ static inline TVec3f makeZeroVec() {
     v.setAll< f32 >(0.0f);
     return v;
 }
+
+namespace MR {
+    void enablePlayerResourceMorph(const JMapInfoIter& rIter) {
+        if (MR::isEqualObjectName(rIter, "MorphItemNeoHopper")) {
+            MR::enablePlayerResourceHopper();
+        } else if (MR::isEqualObjectName(rIter, "MorphItemNeoBee")) {
+            MR::enablePlayerResourceBee();
+        } else if (MR::isEqualObjectName(rIter, "MorphItemNeoTeresa")) {
+            MR::enablePlayerResourceTeresa();
+        } else if (MR::isEqualObjectName(rIter, "MorphItemNeoFire")) {
+            MR::enablePlayerResourceFire();
+        } else if (MR::isEqualObjectName(rIter, "MorphItemNeoIce")) {
+            MR::enablePlayerResourceIce();
+        } else if (MR::isEqualObjectName(rIter, "BenefitItemInvincible")) {
+            MR::enablePlayerResourceInvincible();
+        } else if (MR::isEqualObjectName(rIter, "MorphItemRock")) {
+            MR::enablePlayerResourceRock();
+        }
+    }
+}  // namespace MR
 
 MorphItemObjNeo::MorphItemObjNeo(const char* pName)
     : LiveActor(pName), mAppearMode(0), mAppearFrames(0), mIsUseSwitch(true), mIsFloating(false), _92(false), mCameraMode(0), mRotateMode(0), _95(0),
@@ -640,15 +661,15 @@ void MorphItemObjNeo::updateRailMover() {
 
         if (mRailMover->isWorking() && isNerve(GET_NERVE(MorphItemObjNeo, MorphItemObjNeoNrvWait))) {
             if (mContainerModel != nullptr) {
-                MR::setPosition(mContainerModel, mRailMover->_28);
+                MR::setPosition(mContainerModel, mRailMover->mPosition);
             }
 
             mRailMover->tryResetPositionRepeat();
 
-            MR::setSensorPos(this, "Body", mRailMover->_28);
+            MR::setSensorPos(this, "Body", mRailMover->mPosition);
 
             if (mContainerModel != nullptr) {
-                MR::setShadowDropPosition(mContainerModel, "Body", mRailMover->_28);
+                MR::setShadowDropPosition(mContainerModel, "Body", mRailMover->mPosition);
             }
         }
     }

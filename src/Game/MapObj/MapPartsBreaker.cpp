@@ -28,7 +28,7 @@ void MapPartsBreaker::exeReactToTornado() {
             setNerve(GET_NERVE(MapPartsBreaker, HostTypeBreak));
         } else {
             mHost->mVelocity.zero();
-            mHost->mPosition.set(_1C);
+            MR::setPosition(mHost, _1C);
             _28.x = 0.0f;
             _28.y = 1.0f;
             _28.z = 0.0f;

@@ -11,7 +11,7 @@ static const TVec3f sRotateHammerPressureOffsets[4] = {
 };
 
 RotateHammerPressure::RotateHammerPressure(const char* name)
-    : RotateMoveObj(name), _190(0.0f), _194(0.0f), _198(0.0f), _19C(0.0f), _1A0(0.0f), _1A4(0.0f), _1A8(false), _1A9(false), _1AC(0) {
+    : RotateMoveObj(name), mUpDir(0.0f, 0.0f, 0.0f), mSideDir(0.0f, 0.0f, 0.0f), _1A8(false), _1A9(false), mPushCollision(nullptr) {
     PSMTXIdentity(mMatrices[0]);
     PSMTXIdentity(mMatrices[1]);
     PSMTXIdentity(mMatrices[2]);
@@ -35,17 +35,17 @@ namespace JGeometry {
 
 void RotateHammerPressure::init(const JMapInfoIter& rIter) {
     RotateMoveObj::init(rIter);
-    MR::calcUpVec(&(*reinterpret_cast<TVec3f*>(&_190)), this);
-    MR::calcSideVec(&(*reinterpret_cast<TVec3f*>(&_19C)), this);
+    MR::calcUpVec(&mUpDir, this);
+    MR::calcSideVec(&mSideDir, this);
     s32 shadowLength = -1;
     MR::getJMapInfoArg2NoInit(rIter, &shadowLength);
-    MR::setShadowDropDirection(this, "UpShadow", -(*reinterpret_cast<TVec3f*>(&_190)));
-    MR::setShadowDropDirection(this, "SideShadow", (*reinterpret_cast<TVec3f*>(&_19C)));
+    MR::setShadowDropDirection(this, "UpShadow", -mUpDir);
+    MR::setShadowDropDirection(this, "SideShadow", mSideDir);
     MR::setShadowDropPositionMtxPtr(this, "UpShadow", mMatrices[1], TVec3f(0.0f, 0.0f, 0.0f));
     MR::setShadowDropPositionMtxPtr(this, "SideShadow", mMatrices[2], TVec3f(0.0f, 0.0f, 0.0f));
     MR::getJMapInfoArg3NoInit(rIter, &_1A9);
-    (*reinterpret_cast<CollisionParts**>(&_1AC)) = MR::createCollisionPartsFromLiveActor(this, "PushCollision", getSensor("Body"), static_cast<MR::CollisionScaleType>(2));
-    MR::validateCollisionParts((*reinterpret_cast<CollisionParts**>(&_1AC)));
+    mPushCollision = MR::createCollisionPartsFromLiveActor(this, "PushCollision", getSensor("Body"), static_cast<MR::CollisionScaleType>(2));
+    MR::validateCollisionParts(mPushCollision);
     if (shadowLength != -1) {
         _1A8 = true;
         MR::invalidateShadow(this, "UpShadow");
@@ -64,11 +64,11 @@ void RotateHammerPressure::control() {
         TVec3f upOffset;
         PSMTXMultVecSR(mMatrices[0], &offsets[1], &sideOffset);
         PSMTXMultVecSR(mMatrices[0], &offsets[0], &upOffset);
-        MR::setShadowProjection(this, "UpShadow", mPosition + upOffset, -(*reinterpret_cast<TVec3f*>(&_190)), true);
-        MR::setShadowProjection(this, "SideShadow", mPosition + sideOffset, (*reinterpret_cast<TVec3f*>(&_19C)), true);
+        MR::setShadowProjection(this, "UpShadow", mPosition + upOffset, -mUpDir, true);
+        MR::setShadowProjection(this, "SideShadow", mPosition + sideOffset, mSideDir, true);
         TVec3f up;
         MR::calcUpVec(&up, this);
-        f32 angle = 57.29578f * MR::diffAngleAbs((*reinterpret_cast<TVec3f*>(&_190)), up);
+        f32 angle = 57.29578f * MR::diffAngleAbs(mUpDir, up);
         if (angle < 40.0f) {
             MR::invalidateShadow(this, "UpShadow");
         } else {
@@ -110,7 +110,7 @@ void RotateHammerPressure::control() {
     TVec3f pos(0.0f);
     mtx.getTrans(pos);
     MR::setMtxTrans(collisionMtx, pos.x, pos.y, pos.z);
-    (*reinterpret_cast<CollisionParts**>(&_1AC))->setMtx(collisionMtx);
+    mPushCollision->setMtx(collisionMtx);
 }
 
 RotateHammerPressure::~RotateHammerPressure() {

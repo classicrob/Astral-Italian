@@ -1,3 +1,4 @@
+#include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/MapObj/MapPartsRailRotator.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -153,10 +154,10 @@ void MapPartsRailRotator::updateRotateMtx(AxisType axis, f32 angle) {
 void MapPartsRailRotator::exeRotate() {
     if (isFirstStep()) {
         updateHostRotateMtx();
-        MR::startLevelSound(mHost, "RailRotatorRotateStart", -1, -1, -1);
+        MR::startActionSoundAuto(mHost, "RailRotatorRotateStart", -1, -1, -1);
     }
 
-    MR::startLevelSound(mHost, "RailRotatorRotateLoop", -1, -1, -1);
+    MR::startActionSoundAuto(mHost, "RailRotatorRotateLoop", -1, -1, -1);
     mAngle += mRotateSpeed * getSpeed();
 
     if (isReachedTargetAngle()) {

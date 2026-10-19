@@ -46,8 +46,8 @@ void CloudStep::init(const JMapInfoIter& rIter) {
     MR::useStageSwitchAwake(this, rIter);
     if (MR::initUseStageSwitchReadB(this, rIter)) {
         setNerve(&NrvCloudStep::CloudStepNrvWait::sInstance);
+        MR::listenStageSwitchOnOffB(this, MR::Functor(this, &CloudStep::startAppear), MR::Functor(this, &CloudStep::startDisappear));
     }
-    MR::listenStageSwitchOnOffB(this, MR::Functor(this, &CloudStep::startAppear), MR::Functor(this, &CloudStep::startDisappear));
     MR::useStageSwitchSyncAppear(this, rIter);
     MR::startAction(this, "Wait");
 }
@@ -55,9 +55,9 @@ void CloudStep::init(const JMapInfoIter& rIter) {
 void CloudStep::control() {
     if (mBounceTimer > 0) {
         mBounceTimer--;
-        mSpring->update();
-        mSpring->clampValueMax(60.0f);
     }
+    mSpring->update();
+    mSpring->clampValueMax(60.0f);
 }
 
 void CloudStep::calcAndSetBaseMtx() {
@@ -108,8 +108,8 @@ bool CloudStep::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
 void CloudStep::exeAppear() {
     if (mRailMover != nullptr) {
         mRailMover->movement();
+        MR::setPosition(this, mRailMover->mPosition);
     }
-    MR::setPosition(this, mRailMover->_28);
 }
 
 void CloudStep::exeDisappear() {

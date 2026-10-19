@@ -14,6 +14,6 @@ public:
 namespace MR {
     NameObj* createClipAreaDropHolder();
     ClipAreaDrop* getDeadClipAreaDrop();
-    bool fn_802861E0(const TVec3f&, f32, s32, s32, s32);
+    bool appearClipAreaDrop(const TVec3f&, f32, s32, s32, s32);
     ClipAreaDrop* appearClipAreaDrop(const TVec3f&, f32);
 };  // namespace MR

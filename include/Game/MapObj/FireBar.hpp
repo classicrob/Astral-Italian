@@ -45,12 +45,12 @@ public:
 
     /* 0x90 */ FireBarBall** mFireBalls;
     /* 0x94 */ s32 mFireBallCount;
-    /* 0x98 */ TPos3f* mUnk98;
+    /* 0x98 */ TPos3f* mChildBaseMtx;
     /* 0x9C */ TVec3f mFrontVec;
     /* 0xA8 */ f32 mFireBarSpeed;
     /* 0xAC */ s32 mStickCount;
     /* 0xB0 */ f32 mStickDistance;
     /* 0xB4 */ bool mIsStopped;
-    /* 0xB5 */ bool mUnkB5;
-    /* 0xB8 */ f32 mUnkB8;
+    /* 0xB5 */ bool mIsSpherical;  // object name FireBarSpherical
+    /* 0xB8 */ f32 mSphericalSpeed;
 };

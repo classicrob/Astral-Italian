@@ -596,7 +596,7 @@ Game/AreaObj/YoshiEatGuidanceArea.cpp:
 	.text       start:0x80077390 end:0x80077500
 
 Game/AudioLib/AudSystem.cpp:
-	.text       start:0x80077560 end:0x8007BE50
+	.text       start:0x80077500 end:0x8007BE50
 	.ctors      start:0x80643D38 end:0x80643D3C
 	.rodata     start:0x80645798 end:0x806457A8
 	.data       start:0x8066B340 end:0x8066B520
@@ -1054,7 +1054,7 @@ Game/Boss/DinoPackunVs2.cpp:
 	.sbss       start:0x807D1338 end:0x807D1340
 
 Game/Boss/DinoPackunBaby.cpp:
-	.text       start:0x800B78F0 end:0x800B81E0
+	.text       start:0x800B7880 end:0x800B81E0
 	.ctors      start:0x80643E44 end:0x80643E48
 
 Game/Boss/DinoPackunBabyHelpers.cpp:
@@ -4488,7 +4488,7 @@ Game/MapObj/BloomFlower.cpp:
 	.ctors      start:0x80644328 end:0x8064432C
 
 Game/MapObj/BlueStarCupsulePlanet.cpp:
-	.text       start:0x8027B270 end:0x8027C170
+	.text       start:0x8027B270 end:0x8027C1C0
 	.ctors      start:0x8064432C end:0x80644330
 	.data       start:0x8069C8C8 end:0x8069C9F8
 
@@ -4565,7 +4565,7 @@ Game/MapObj/ClipAreaDrop.cpp:
 	.data       start:0x8069DB30 end:0x8069DBC8
 
 Game/MapObj/ClipAreaDropHolder.cpp:
-	.text       start:0x80285FF0 end:0x802861E0
+	.text       start:0x80285FF0 end:0x802862F0
 
 Game/MapObj/ClipAreaHolder.cpp:
 	.text       start:0x802862F0 end:0x80286620
@@ -4816,7 +4816,7 @@ Game/MapObj/GCaptureRibbon.cpp:
 	.data       start:0x806A14B8 end:0x806A1528
 
 Game/MapObj/GCaptureTarget.cpp:
-	.text       start:0x802A8250 end:0x802A90F0
+	.text       start:0x802A8250 end:0x802A9150
 	.ctors      start:0x806443F4 end:0x806443F8
 	.data       start:0x806A1638 end:0x806A1778
 
@@ -5112,7 +5112,7 @@ Game/MapObj/MorphItemCollection.cpp:
 	.sbss       start:0x807D3FC0 end:0x807D3FC4
 
 Game/MapObj/MorphItemObjNeo.cpp:
-	.text       start:0x802D20D0 end:0x802D45A0
+	.text       start:0x802D1FD0 end:0x802D45A0
 	.ctors      start:0x806444EC end:0x806444F0
 	.sbss       start:0x807D3FC8 end:0x807D3FE0
 
@@ -5201,7 +5201,7 @@ Game/MapObj/PressureBase.cpp:
 	.ctors      start:0x8064451C end:0x80644520
 
 Game/MapObj/PullTargetBridge.cpp:
-	.text       start:0x802E31D0 end:0x802E3BE0
+	.text       start:0x802E31B0 end:0x802E3BE0
 	.ctors      start:0x80644520 end:0x80644524
 
 Game/MapObj/PullTargetDrawer.cpp:

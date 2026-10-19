@@ -31,12 +31,12 @@ void LavaSeparateWaterfall::init(const JMapInfoIter& iter) {
     mLeftMover = new MapPartsRailMover(mLeftRail);
     mLeftMover->init(iter);
     mLeftMover->setSignMotionTypeShake();
-    mLeftMover->_78 = true;
+    mLeftMover->mDisableSignMotionAnimation = true;
     mRightRail = MR::createRailObj("右溶岩レール", this, iter, 1);
     mRightMover = new MapPartsRailMover(mRightRail);
     mRightMover->init(iter);
     mRightMover->setSignMotionTypeShake();
-    mRightMover->_78 = true;
+    mRightMover->mDisableSignMotionAnimation = true;
     MR::useStageSwitchAwake(this, iter);
     mLeftRail->initSound(4, "LavaSeparateWaterfallA", 0, TVec3f(0.0f));
     mRightRail->initSound(4, "LavaSeparateWaterfallB", 0, TVec3f(0.0f));
@@ -82,6 +82,6 @@ void LavaSeparateWaterfall::exeMove() {
         }
     }
 }
-bool LavaSeparateWaterfall::calcLeftMtx(TPos3f* mtx, const JointControllerInfo&) { MR::setMtxTrans(mtx->toMtxPtr(), mLeftMover->_28.x, mLeftMover->_28.y, mLeftMover->_28.z); return true; }
-bool LavaSeparateWaterfall::calcRightMtx(TPos3f* mtx, const JointControllerInfo&) { MR::setMtxTrans(mtx->toMtxPtr(), mRightMover->_28.x, mRightMover->_28.y, mRightMover->_28.z); return true; }
+bool LavaSeparateWaterfall::calcLeftMtx(TPos3f* mtx, const JointControllerInfo&) { MR::setMtxTrans(mtx->toMtxPtr(), mLeftMover->mPosition.x, mLeftMover->mPosition.y, mLeftMover->mPosition.z); return true; }
+bool LavaSeparateWaterfall::calcRightMtx(TPos3f* mtx, const JointControllerInfo&) { MR::setMtxTrans(mtx->toMtxPtr(), mRightMover->mPosition.x, mRightMover->mPosition.y, mRightMover->mPosition.z); return true; }
 LavaSeparateWaterfall::~LavaSeparateWaterfall() {}

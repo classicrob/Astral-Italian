@@ -91,7 +91,7 @@ void ClipAreaMovable::updateMatrix() {
     mtx.identity();
 
     if (mMapPartsRailMover != nullptr) {
-        MR::setPosition(this, mMapPartsRailMover->_28);
+        MR::setPosition(this, mMapPartsRailMover->mPosition);
     }
 
     if (mMapPartsRotator != nullptr) {

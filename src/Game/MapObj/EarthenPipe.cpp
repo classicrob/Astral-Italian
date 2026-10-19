@@ -45,7 +45,7 @@ EarthenPipe::EarthenPipe(const char* pName) : LiveActor(pName) {
     mMusicState = -1;
     mSavedBgmId = nullptr;
     mSavedBgmState = -1;
-    _194 = 0;
+    mIsRabbitRunawayWait = 0;
     mPipeStreamModel = nullptr;
     mIsPipeStreamShown = 0;
     mCameraInfo = nullptr;
@@ -447,10 +447,10 @@ bool EarthenPipe::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRecei
         return true;
     }
     if (msg == 0xF2 /* ACTMES_HEAVENSDOOR_RUNAWAY_RABBIT_WAIT */) {
-        _194 = true;
+        mIsRabbitRunawayWait = true;
     }
     if (msg == 0xF3 /* ACTMES_HEAVENSDOOR_RUNAWAY_RABBIT_START */) {
-        _194 = false;
+        mIsRabbitRunawayWait = false;
         return true;
     }
     if (MR::isMsgRushForceCancel(msg)) {
@@ -496,7 +496,7 @@ void EarthenPipe::launchPlayer(bool quick) {
     MR::setPlayerFootState(5);
     mHostActor = nullptr;
     mTargetPipe->tryHideDown();
-    if (!_194 && MR::isValidSwitchB(this)) MR::onSwitchB(this);
+    if (!mIsRabbitRunawayWait && MR::isValidSwitchB(this)) MR::onSwitchB(this);
     setNerve(GET_NERVE(EarthenPipe, EarthenPipeNrvInvalid));
 }
 
@@ -512,8 +512,8 @@ EarthenPipeMediator::EarthenPipeMediator() : NameObj("土管仲介者") {
     mPipeEntries = new Entry[0x20];
 
     for (s32 i = 0; i < 32; i++) {
-        mPipeEntries[i]._0 = nullptr;
-        mPipeEntries[i]._4 = nullptr;
+        mPipeEntries[i].mFirstPipe = nullptr;
+        mPipeEntries[i].mSecondPipe = nullptr;
         mPipeEntries[i].mPipeID = -1;
     }
 }
@@ -526,15 +526,15 @@ void EarthenPipeMediator::entry(EarthenPipe* pPipe, const JMapInfoIter& rIter) {
         EarthenPipeMediator::Entry* entry = &mPipeEntries[i];
 
         if (pipeID == entry->mPipeID) {
-            entry->_4 = pPipe;
-            entry->_0->mTargetPipe = pPipe;
-            entry->_4->mTargetPipe = entry->_0;
+            entry->mSecondPipe = pPipe;
+            entry->mFirstPipe->mTargetPipe = pPipe;
+            entry->mSecondPipe->mTargetPipe = entry->mFirstPipe;
             return;
         }
     }
 
     EarthenPipeMediator::Entry* entry = &mPipeEntries[mNumEntries];
-    entry->_0 = pPipe;
+    entry->mFirstPipe = pPipe;
     entry->mPipeID = pipeID;
     mNumEntries++;
 }

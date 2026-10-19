@@ -133,7 +133,7 @@ void GeneralMapParts::control() {
         }
 
         if (isRailMoving) {
-            mPosition.set(mRailMover->_28);
+            mPosition.set(mRailMover->mPosition);
         }
     }
 }

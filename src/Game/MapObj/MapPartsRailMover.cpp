@@ -22,18 +22,18 @@ namespace NrvMapPartsRailMover {
 };  // namespace NrvMapPartsRailMover
 
 MapPartsRailMover::MapPartsRailMover(LiveActor* pActor)
-    : MapPartsFunction(pActor, "レイル移動"), mRailPointPassChecker(), mMoveConditionType(), mMoveStopType(1), mSignMotionType(), _28(gZeroVec), _44(gZeroVec) {
-    _34 = 0.0f;
+    : MapPartsFunction(pActor, "レイル移動"), mRailPointPassChecker(), mMoveConditionType(), mMoveStopType(1), mSignMotionType(), mPosition(gZeroVec), mSnapOffset(gZeroVec) {
+    mInitialRailCoord = 0.0f;
     mStopTime = 0;
     mSpeed = 0.0f;
     mAccelTime = 0;
     mAcceleration = 0.0f;
-    _48 = 0.0f;
-    _68 = 0;
-    _6C = 0;
-    _70 = false;
-    _74 = -1;
-    _78 = false;
+    mSignMotionRailCoord = 0.0f;
+    mSnapDuration = 0;
+    mSnapFramesRemaining = 0;
+    mHasRepeated = false;
+    mSignMotionTimeOverride = -1;
+    mDisableSignMotionAnimation = false;
 }
 
 // NONMATCHING: GPR allocation and paired-single subtraction scheduling in snap setup.
@@ -55,23 +55,23 @@ void MapPartsRailMover::init(const JMapInfoIter& rIter) {
         MR::moveCoordAndTransToRailStartPoint(mHost);
     }
 
-    _68 = 0;
-    MR::getMapPartsArgMoveSnap(&_68, mHost);
-    if (_68 > 0) {
-        _6C = _68;
+    mSnapDuration = 0;
+    MR::getMapPartsArgMoveSnap(&mSnapDuration, mHost);
+    if (mSnapDuration > 0) {
+        mSnapFramesRemaining = mSnapDuration;
         LiveActor* host = mHost;
         TVec3f offset(originalPosition);
         offset -= host->mPosition;
-        _44 = offset;
+        mSnapOffset = offset;
         MR::setPosition(mHost, originalPosition);
     }
     updatePosition();
-    _34 = MR::getRailCoord(mHost);
+    mInitialRailCoord = MR::getRailCoord(mHost);
     mRailPointPassChecker = new MapPartsRailPointPassChecker(mHost);
     mRailPointPassChecker->init(rIter);
     const char* objectName = nullptr;
     MR::getObjectName(&objectName, rIter);
-    if (MR::isEqualString(objectName, "FallDownWall") || MR::isEqualString(objectName, "RailMoveDisappearStep")) _74 = 50;
+    if (MR::isEqualString(objectName, "FallDownWall") || MR::isEqualString(objectName, "RailMoveDisappearStep")) mSignMotionTimeOverride = 50;
     initNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
 }
 
@@ -136,8 +136,8 @@ bool MapPartsRailMover::receiveMsg(u32 msg) {
 }
 
 void MapPartsRailMover::moveToInitPos() {
-    if (!MR::isNearZero(_34 - MR::getRailCoord(mHost))) {
-        MR::setRailCoord(mHost, _34);
+    if (!MR::isNearZero(mInitialRailCoord - MR::getRailCoord(mHost))) {
+        MR::setRailCoord(mHost, mInitialRailCoord);
         updatePosition();
         if (!MR::isRailGoingToEnd(mHost)) {
             MR::reverseRailDirection(mHost);
@@ -150,7 +150,7 @@ void MapPartsRailMover::startWithSignalMotion() {
 }
 
 void MapPartsRailMover::cancelSignalMotion() {
-    MR::setRailCoord(mHost, _48);
+    MR::setRailCoord(mHost, mSignMotionRailCoord);
     updatePosition();
     setNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
 }
@@ -174,7 +174,7 @@ bool MapPartsRailMover::tryResetPositionRepeat() {
 
 void MapPartsRailMover::resetToInitPos() {
     moveToInitPos();
-    MR::resetPosition(mHost, _28);
+    MR::resetPosition(mHost, mPosition);
     setNerve(GET_NERVE(MapPartsRailMover, HostTypeWait));
 }
 
@@ -403,7 +403,7 @@ void MapPartsRailMover::restartAtEnd() {
             setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
         }
     } else if (mMoveStopType == 2) {
-        _70 = true;
+        mHasRepeated = true;
         MR::moveCoordToStartPos(mHost);
         updatePosition();
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
@@ -434,7 +434,7 @@ void MapPartsRailMover::exeMove() {
         mSpeed += mAcceleration;
     }
 
-    if (_6C > 0) --_6C;
+    if (mSnapFramesRemaining > 0) --mSnapFramesRemaining;
     LiveActor* host = mHost;
     f32 speed = getSpeed();
     MR::moveCoord(host, mSpeed * speed);
@@ -444,14 +444,14 @@ void MapPartsRailMover::exeMove() {
 void MapPartsRailMover::exeMoveStart() {
     if (isFirstStep()) {
         MR::startActionSoundAuto(mHost, "RailMoverSignStart", -1, -1, -1);
-        _48 = MR::getRailCoord(mHost);
+        mSignMotionRailCoord = MR::getRailCoord(mHost);
         if (MR::isExistCollisionParts(mHost)) MR::offUpdateCollisionParts(mHost);
-        if (!_78) MR::tryStartAllAnim(mHost, "RailMoveSign");
+        if (!mDisableSignMotionAnimation) MR::tryStartAllAnim(mHost, "RailMoveSign");
     }
     MR::startActionSoundAuto(mHost, "RailMoverSignLoop", -1, -1, -1);
-    if (!_78 && MR::fn_80008F00(mHost, "RailMoveSign")) {
+    if (!mDisableSignMotionAnimation && MR::fn_80008F00(mHost, "RailMoveSign")) {
         if (MR::isActionEnd(mHost)) {
-            MR::setRailCoord(mHost, _48);
+            MR::setRailCoord(mHost, mSignMotionRailCoord);
             if (MR::isExistCollisionParts(mHost)) MR::onUpdateCollisionParts(mHost);
             updatePosition();
             setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
@@ -471,12 +471,12 @@ void MapPartsRailMover::exeMoveStart() {
         v3 *= -1.0f;
     }
 
-    MR::setRailCoord(mHost, _48 + (7.0f * (v3 * ((getStep() % 3)))));
+    MR::setRailCoord(mHost, mSignMotionRailCoord + (7.0f * (v3 * ((getStep() % 3)))));
     updatePosition();
     s32 signalTime = MapParts::getMoveStartSignalTimeForRail();
-    if (_74 != -1) signalTime = _74;
+    if (mSignMotionTimeOverride != -1) signalTime = mSignMotionTimeOverride;
     if (isStep(signalTime)) {
-        MR::setRailCoord(mHost, _48);
+        MR::setRailCoord(mHost, mSignMotionRailCoord);
         if (MR::isExistCollisionParts(mHost)) MR::onUpdateCollisionParts(mHost);
         updatePosition();
         setNerve(GET_NERVE(MapPartsRailMover, HostTypeMove));
@@ -589,17 +589,17 @@ void MapPartsRailMover::moveToEndPos() {
 // NONMATCHING: the two vector temporaries and their FPR values use reversed slots/registers.
 void MapPartsRailMover::updatePosition() {
     const TVec3f& pos = MR::getRailPos(mHost);
-    _28.x = pos.x;
-    _28.y = pos.y;
-    _28.z = pos.z;
-    if (_6C > 0) {
-        f32 total = _68;
-        f32 remaining = _6C;
-        TVec3f offset(_44);
+    mPosition.x = pos.x;
+    mPosition.y = pos.y;
+    mPosition.z = pos.z;
+    if (mSnapFramesRemaining > 0) {
+        f32 total = mSnapDuration;
+        f32 remaining = mSnapFramesRemaining;
+        TVec3f offset(mSnapOffset);
         offset.scale(remaining);
         TVec3f scaled(offset);
         scaled.scale(1.0f / total);
-        _28 += scaled;
+        mPosition += scaled;
     }
 }
 #pragma auto_inline reset

@@ -210,7 +210,7 @@ void ChipBase::control() {
 
     if (mRailMover != nullptr) {
         mRailMover->movement();
-        MR::setPosition(this, mRailMover->_28);
+        MR::setPosition(this, mRailMover->mPosition);
         MR::setClippingRangeIncludeShadow(this, &mClippingRange, 100.0f);
     }
 }

@@ -427,9 +427,9 @@ void PowerStar::initModel(const JMapInfoIter& rIter) {
     mInitRotation.set(mRotation);
 
     if (mIsGrandStar) {
-        ::setupColorGrandStar(this, mColor_v == 4, mColor_v);
+        ::setupColorGrandStar(this, static_cast<const volatile s32&>(mColor) == 4, static_cast<const volatile s32&>(mColor));
     } else {
-        ::setupColor(this, mColor_v == 4, mColor_v);
+        ::setupColor(this, static_cast<const volatile s32&>(mColor) == 4, static_cast<const volatile s32&>(mColor));
     }
 
     if (mIsGrandStar) {
@@ -437,13 +437,13 @@ void PowerStar::initModel(const JMapInfoIter& rIter) {
         const char* pName = "グランドスターデモモデル";
 
         mPowerStarModelObj = MR::createModelObjIndirectMapObj(pName, mIsGrandStar ? "GrandStar" : "PowerStar", pMtx);
-        ::setupColorGrandStar(mPowerStarModelObj, mColor_v == 4, mColor_v);
+        ::setupColorGrandStar(mPowerStarModelObj, static_cast<const volatile s32&>(mColor) == 4, static_cast<const volatile s32&>(mColor));
     } else {
         MtxPtr pMtx = (MtxPtr)&mBaseMtx;
         const char* pName = "パワースターデモモデル";
 
         mPowerStarModelObj = MR::createModelObjNoSilhouettedMapObj(pName, mIsGrandStar ? "GrandStar" : "PowerStar", pMtx);
-        ::setupColor(mPowerStarModelObj, mColor_v == 4, mColor_v);
+        ::setupColor(mPowerStarModelObj, static_cast<const volatile s32&>(mColor) == 4, static_cast<const volatile s32&>(mColor));
     }
 
     MR::invalidateClipping(mPowerStarModelObj);
@@ -521,7 +521,7 @@ void PowerStar::initPosture() {
     mRotation.y = 0.0f;
 }
 
-// NONMATCHING: literal-pool load order for mColor_v vs "Light" pool base (lwz/lis scheduling); same class of diff in exeWait and exeStageClearDemo
+// NONMATCHING: literal-pool load order for mColor vs "Light" pool base (lwz/lis scheduling); same class of diff in exeWait and exeStageClearDemo
 void PowerStar::startAppearDemoCommon() {
     MR::showModelIfHidden(this);
 
@@ -534,7 +534,7 @@ void PowerStar::startAppearDemoCommon() {
     MR::startActorCameraTargetOther(getAppearCameraActor(), getAppearCameraInfo(), CameraTargetArg(this), 0);
     mPosition.set(mInitPosition);
     char buf[0x40];
-    MR::emitEffect(this, ::makeBronzeName(buf, sizeof(buf), "Light", mColor_v, mIsGrandStar));
+    MR::emitEffect(this, ::makeBronzeName(buf, sizeof(buf), "Light", static_cast<const volatile s32&>(mColor), mIsGrandStar));
 }
 
 void PowerStar::endAppearDemo() {
@@ -788,14 +788,14 @@ void PowerStar::exeAppearDemoBossLatter() {
     }
 }
 
-// NONMATCHING: lwz of mColor_v scheduled after the "Light" pool lis in target; ours loads it first (scheduling, tried hoisting)
+// NONMATCHING: lwz of mColor scheduled after the "Light" pool lis in target; ours loads it first (scheduling, tried hoisting)
 void PowerStar::exeWait() {
     if (MR::isFirstStep(this)) {
         MR::validateClipping(this);
         MR::validateHitSensors(this);
         char buf[0x40];
         const char* pName = "Light";
-        MR::emitEffect(this, ::makeColorName(buf, sizeof(buf), pName, mColor_v, mIsGrandStar));
+        MR::emitEffect(this, ::makeColorName(buf, sizeof(buf), pName, static_cast<const volatile s32&>(mColor), mIsGrandStar));
     }
 
     processWait(mIsGrandStar ? 2.0f : 3.0f);
@@ -823,7 +823,7 @@ void PowerStar::exeStageClearDemo() {
         calcStageClearDemoMtx();
 
         char buf[0x40];
-        MR::forceDeleteEffect(this, ::makeColorName(buf, sizeof(buf), "Light", mColor_v, mIsGrandStar));
+        MR::forceDeleteEffect(this, ::makeColorName(buf, sizeof(buf), "Light", static_cast<const volatile s32&>(mColor), mIsGrandStar));
         MR::hideModelIfShown(this);
         MR::startBckPlayer(getStarGetAnimCameraName(), nullptr);
         ::appearAndStartAction(mPowerStarModelObj, getStarGetAnimCameraName());

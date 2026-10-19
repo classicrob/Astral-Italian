@@ -124,7 +124,7 @@ void BlueStarCupsulePlanet::updatePose() {
             if (MR::isEqualString(mName, "UFOBlueStarCupsule")) {
                 MR::startActionSound(this, "OjLvUfoBlueStarMove");
             }
-            MR::setPosition(this, mRailMover->_28);
+            MR::setPosition(this, mRailMover->mPosition);
         }
     }
 

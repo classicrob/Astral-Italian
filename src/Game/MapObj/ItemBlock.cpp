@@ -90,15 +90,13 @@ void ItemBlock::checkKind(const JMapInfoIter& rIter) {
         MR::declareCoin(this, 10);
     } else if (MR::isEqualString(name, "SplashCoinBlock")) {
         mKind = 2;
-        mItemCount = itemCount;
-        MR::declareCoin(this, itemCount);
+        MR::declareCoin(this, mItemCount = itemCount);
     } else if (MR::isEqualString(name, "TimerPieceBlock")) {
         mKind = 3;
         MR::declareStarPiece(this, 20);
     } else if (MR::isEqualString(name, "SplashPieceBlock")) {
         mKind = 4;
-        mItemCount = itemCount;
-        MR::declareStarPiece(this, itemCount);
+        MR::declareStarPiece(this, mItemCount = itemCount);
     } else if (MR::isEqualString(name, "CoinBlock2D")) {
         mKind = 6;
         mItemCount = 1;
@@ -166,7 +164,7 @@ bool ItemBlock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
         return true;
     }
 
-    if (isNerve(GET_NERVE(ItemBlock, ItemBlockNrvStandby)) || (isNerve(GET_NERVE(ItemBlock, ItemBlockNrvWait)) && MR::isMsgSupportTicoSpin(msg))) {
+    if ((isNerve(GET_NERVE(ItemBlock, ItemBlockNrvStandby)) || isNerve(GET_NERVE(ItemBlock, ItemBlockNrvWait))) && MR::isMsgSupportTicoSpin(msg)) {
         if (mCooldownTimer == 0 && tryStartJumpPunch()) {
             mCooldownTimer = 40;
         }
@@ -243,8 +241,9 @@ void ItemBlock::exeAppearItem() {
         if (!mTimer) {
             MR::forceDeleteEffect(this, "Glow");
             MR::startAction(this, "Bomb");
-            MR::startActionSound(this, "Punched");
         }
+
+        MR::startActionSound(this, "Punched");
 
         MR::invalidateClipping(this);
     }
@@ -268,10 +267,9 @@ void ItemBlock::exeAppearItem() {
                 MR::hopStarPiece(this, position, -gravVec);
             }
 
-            MR::startActionSound(this, "SyItemAppear");
             break;
-        case 2:
         default:
+            MR::startActionSound(this, "SyItemAppear");
             break;
         }
     }

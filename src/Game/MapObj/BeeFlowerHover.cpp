@@ -156,7 +156,7 @@ void BeeFlowerHover::control() {
     if (mRailMover != nullptr) {
         mRailMover->movement();
         mRailPosture->movement();
-        MR::setPosition(this, mRailMover->_28);
+        MR::setPosition(this, mRailMover->mPosition);
     }
 }
 

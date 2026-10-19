@@ -25,15 +25,15 @@ namespace NrvElectricRailMoving {
 };  // namespace NrvElectricRailMoving
 
 ElectricRailMovingPoint::ElectricRailMovingPoint(const char* pName) : LiveActor(pName) {
-    _8C = 1;
-    _8D = 1;
+    mHasShadow = 1;
+    mIsActive = 1;
 }
 
 void ElectricRailMovingPoint::init(const JMapInfoIter& rIter) {
     MR::initActor(this, "ElectricRailPoint", false);
     MR::connectToSceneMapObjDecoration(this);
 
-    if (_8C) {
+    if (mHasShadow) {
         MR::initShadowVolumeSphere(this, 35.0f);
         MR::onCalcGravity(this);
     }
@@ -62,7 +62,7 @@ void ElectricRailMovingPoint::control() {
 
 void ElectricRailMovingPoint::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayer(pReceiver)) {
-        if (_8D) {
+        if (mIsActive) {
             MR::sendMsgEnemyAttackElectric(pReceiver, pSender);
         } else {
             MR::sendMsgPush(pReceiver, pSender);
@@ -71,9 +71,9 @@ void ElectricRailMovingPoint::attackSensor(HitSensor* pSender, HitSensor* pRecei
 }
 
 ElectricRailMoving::ElectricRailMoving(const char* pName)
-    : LiveActor(pName), mSegmentNum(10), mMovementSpeed(10.0f), mSegmentLength(500.0f), mStackHeight(1), _CC(0x80), mSensorOffsets(), _DC(), _E0(),
-      _E4(), _E8(), _EC(), _F0(30.0f) {
-    _9C.identity();
+    : LiveActor(pName), mSegmentNum(10), mMovementSpeed(10.0f), mSegmentLength(500.0f), mStackHeight(1), mAlpha(0x80), mSensorOffsets(), mDisplayListBuffer(), mDisplayListSize(),
+      mRailPosCount(), mRailPositions(), mScrollCoord(), mEaseIn(30.0f) {
+    mTexMtx.identity();
 }
 
 void ElectricRailMoving::init(const JMapInfoIter& rIter) {
@@ -96,14 +96,14 @@ void ElectricRailMoving::init(const JMapInfoIter& rIter) {
 void ElectricRailMoving::draw() const {
     if (MR::isValidDraw(this)) {
         GXSetTexCoordGen2(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_TEX0, 0x21, 0, 0x7D);
-        GXLoadTexMtxImm(_9C, 0x21, GX_MTX2x4);
-        GXSetTevColor(GX_TEVREG1, Color8(0xFF, 0xFF, 0xFF, _CC));
+        GXLoadTexMtxImm(mTexMtx, 0x21, GX_MTX2x4);
+        GXSetTevColor(GX_TEVREG1, Color8(0xFF, 0xFF, 0xFF, mAlpha));
 
         if (isNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvWait)) ||
             isNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvFreeze))) {
-            GXCallDisplayList(_DC, _E0);
+            GXCallDisplayList(mDisplayListBuffer, mDisplayListSize);
         } else {
-            drawRailGX(_F0);
+            drawRailGX(mEaseIn);
         }
     }
 }
@@ -177,29 +177,29 @@ void ElectricRailMoving::initRail(const JMapInfoIter& rIter) {
         mSegmentLength = MR::getRailTotalLength(this) / (2 * mSegmentNum);
     }
 
-    _E4 = static_cast< s32 >(MR::getRailTotalLength(this) / 100.0f) + 2;
-    _E8 = new TVec3f[_E4];
+    mRailPosCount = static_cast< s32 >(MR::getRailTotalLength(this) / 100.0f) + 2;
+    mRailPositions = new TVec3f[mRailPosCount];
 
-    for (s32 i = 0; i < _E4; i++) {
+    for (s32 i = 0; i < mRailPosCount; i++) {
         f32 totalLength = MR::getRailTotalLength(this);
         f32 len = 100.0f * i >= totalLength ? totalLength : 100.0f * i;
 
-        MR::calcRailPosAtCoord(&_E8[i], this, len);
+        MR::calcRailPosAtCoord(&mRailPositions[i], this, len);
     }
 }
 
 void ElectricRailMoving::initPoints() {
-    _D8 = 2 * mSegmentNum;
+    mMovingPointCount = 2 * mSegmentNum;
 
     if (!MR::isLoopRail(this)) {
-        _D8 += 2;
+        mMovingPointCount += 2;
     }
 
-    _D8 *= mStackHeight;
-    mMovingPoints = new ElectricRailMovingPoint[_D8];
+    mMovingPointCount *= mStackHeight;
+    mMovingPoints = new ElectricRailMovingPoint[mMovingPointCount];
 
     if (!MR::isLoopRail(this)) {
-        u32 v4 = _D8 - 2 * mStackHeight;
+        u32 v4 = mMovingPointCount - 2 * mStackHeight;
         TVec3f startPos, endPos;
         MR::calcRailStartPointPos(&startPos, this);
         MR::calcRailEndPointPos(&endPos, this);
@@ -237,9 +237,9 @@ void ElectricRailMoving::initPoints() {
     s32 v14 = 0;
     s32 v15 = 0;
 
-    while (v14 < _D8) {
+    while (v14 < mMovingPointCount) {
         if (v14 % (2 * mStackHeight) >= 2) {
-            mMovingPoints[v15]._8C = 0;
+            mMovingPoints[v15].mHasShadow = 0;
         }
 
         mMovingPoints[v15].initWithoutIter();
@@ -250,18 +250,18 @@ void ElectricRailMoving::initPoints() {
 
 void ElectricRailMoving::initDisplayList() {
     MR::ProhibitSchedulerAndInterrupts interrupt(false);
-    _E0 = ElectricRailFunction::calcDisplayListSize(20, _E4 * 4 * mStackHeight);
-    _DC = new (32) u8[_E0];
+    mDisplayListSize = ElectricRailFunction::calcDisplayListSize(20, mRailPosCount * 4 * mStackHeight);
+    mDisplayListBuffer = new (32) u8[mDisplayListSize];
 
     GDLObj dl;
-    GDInitGDLObj(&dl, _DC, _E0);
+    GDInitGDLObj(&dl, mDisplayListBuffer, mDisplayListSize);
     __GDCurrentDL = &dl;
 
     drawPlane(30.0f, 30.0f, -30.0f, -30.0f);
     drawPlane(-30.0f, 30.0f, 30.0f, -30.0f);
     GDPadCurr32();
-    _E0 = dl.ptr - dl.start;
-    DCStoreRange(_DC, _E0);
+    mDisplayListSize = dl.ptr - dl.start;
+    DCStoreRange(mDisplayListBuffer, mDisplayListSize);
 }
 
 void ElectricRailMoving::drawRailGX(f32 a1) const {
@@ -271,7 +271,7 @@ void ElectricRailMoving::drawRailGX(f32 a1) const {
 
 void ElectricRailMoving::drawPlane(f32 a2, f32 a3, f32 a4, f32 a5) const {
     for (s32 i = 0; i < mStackHeight; i++) {
-        u32 vertexFormat = (2 * _E4) & 0xFFFE;
+        u32 vertexFormat = (2 * mRailPosCount) & 0xFFFE;
 
         GDOverflowCheck(1);
         *__GDCurrentDL->ptr++ = 0x98;
@@ -280,7 +280,7 @@ void ElectricRailMoving::drawPlane(f32 a2, f32 a3, f32 a4, f32 a5) const {
         *__GDCurrentDL->ptr++ = vertexFormat >> 8;
         *__GDCurrentDL->ptr++ = vertexFormat;
 
-        for (s32 j = 0; j < _E4; j++) {
+        for (s32 j = 0; j < mRailPosCount; j++) {
             setVertexAttribute(j, i, a2, a3, a4, a5, GDPosition3f32, GDTexCoord2f32);
         }
     }
@@ -288,9 +288,9 @@ void ElectricRailMoving::drawPlane(f32 a2, f32 a3, f32 a4, f32 a5) const {
 
 void ElectricRailMoving::drawPlaneGX(f32 a1, f32 a2, f32 a3, f32 a4) const {
     for (s32 i = 0; i < mStackHeight; i++) {
-        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, _E4 * 2);
+        GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, mRailPosCount * 2);
 
-        for (s32 j = 0; j < _E4; j++) {
+        for (s32 j = 0; j < mRailPosCount; j++) {
             setVertexAttribute(j, i, a1, a2, a3, a4, GXPosition3f32, GXTexCoord2f32);
         }
     }
@@ -307,7 +307,7 @@ void ElectricRailMoving::setVertexAttribute(int a2, int a3, f32 a4, f32 a5, f32 
 
     f32 texCoord = 0.25f * railLength / 100.0f;
     TVec3f position;
-    position.set(_E8[a2]);
+    position.set(mRailPositions[a2]);
     TVec3f railDirection;
     TVec3f gravity;
 
@@ -388,7 +388,7 @@ namespace {
         segmentLength = railTotalLength / segmentNum;
         reachedEnd = false;
         pointIndex = 0;
-        railCoord = pActor->_EC;
+        railCoord = pActor->mScrollCoord;
 
         TVec3f stackPosition;
         TVec3f gravity;
@@ -451,13 +451,13 @@ void ElectricRailMoving::updatePointPosAndModel() {
     if (!MR::isLoopRail(this)) {
         if (updated) {
             for (s32 i = 0; i < 2 * mStackHeight; i++) {
-                ElectricRailMovingPoint* point = &mMovingPoints[_D8 - 1 - i];
+                ElectricRailMovingPoint* point = &mMovingPoints[mMovingPointCount - 1 - i];
                 MR::showModelIfHidden(point);
                 MR::validateHitSensors(point);
             }
         } else {
             for (s32 i = 0; i < 2 * mStackHeight; i++) {
-                ElectricRailMovingPoint* point = &mMovingPoints[_D8 - 1 - i];
+                ElectricRailMovingPoint* point = &mMovingPoints[mMovingPointCount - 1 - i];
                 MR::hideModelIfShown(point);
                 MR::invalidateHitSensors(point);
             }
@@ -466,7 +466,7 @@ void ElectricRailMoving::updatePointPosAndModel() {
 }
 
 bool ElectricRailMoving::isValidCoord(f32 coord) const {
-    f32 repeated = getRepeatedCoord(coord - _EC);
+    f32 repeated = getRepeatedCoord(coord - mScrollCoord);
     f32 interval = MR::getRailTotalLength(this) / mSegmentNum;
     f32 offset = MR::mod(repeated, interval);
     return interval - mSegmentLength < offset;
@@ -482,24 +482,24 @@ void ElectricRailMoving::calcPointPos(TVec3f* pOutPos, f32 c) const {
     f32 v6 = MR::mod(c, 100.0f);
     f32 v7 = 100.0f;
 
-    if ((_E4 - 3) < v5) {
+    if ((mRailPosCount - 3) < v5) {
         v7 = (MR::getRailTotalLength(this) - (100.0f * v5));
     }
 
-    pOutPos->lerp(_E8[v5], _E8[v5 + 1], (v6 / v7));
+    pOutPos->lerp(mRailPositions[v5], mRailPositions[v5 + 1], (v6 / v7));
 }
 
 #pragma push
 #pragma global_optimizer off
 void ElectricRailMoving::move(f32 speed) {
-    _EC = getRepeatedCoord(_EC + speed);
+    mScrollCoord = getRepeatedCoord(mScrollCoord + speed);
 
     f32 scale = (100.0f * mSegmentNum) / (0.25f * MR::getRailTotalLength(this));
 
-    _9C.identity();
+    mTexMtx.identity();
 
-    _9C.mMtx[0][0] = scale;
-    _9C.mMtx[0][3] = -((0.25f * (scale * _EC)) / 100.0f);
+    mTexMtx.mMtx[0][0] = scale;
+    mTexMtx.mMtx[0][3] = -((0.25f * (scale * mScrollCoord)) / 100.0f);
     f32 railTotalLength2 = MR::getRailTotalLength(this);
     f32 segmentLength = railTotalLength2 / mSegmentNum;
     f32 angle = (-TWO_PI * mSegmentLength) / segmentLength;
@@ -516,7 +516,7 @@ void ElectricRailMoving::move(f32 speed) {
         c = static_cast< s32 >(value);
     }
 
-    _CC = c;
+    mAlpha = c;
 
     updatePointPosAndModel();
 }
@@ -527,13 +527,13 @@ void ElectricRailMoving::exeDisappear() {
         MR::startActionSound(this, "OjElecRailVanish", -1, -1, -1);
         MR::invalidateHitSensors(this);
 
-        for (s32 i = 0; i < _D8; i++) {
-            mMovingPoints[i]._8D = 0;
+        for (s32 i = 0; i < mMovingPointCount; i++) {
+            mMovingPoints[i].mIsActive = 0;
         }
     }
 
     move(mMovementSpeed);
-    _F0 = MR::calcNerveEaseInValue(this, 20, 30.0f, 0.0f);
+    mEaseIn = MR::calcNerveEaseInValue(this, 20, 30.0f, 0.0f);
 
     if (MR::isStep(this, 20)) {
         setNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvDisappeared));
@@ -548,7 +548,7 @@ void ElectricRailMoving::exeDisappeared() {
 
 bool ElectricRailMoving::tryFreeze() {
     bool frozen = false;
-    for (s32 i = 0; i < _D8; i++) {
+    for (s32 i = 0; i < mMovingPointCount; i++) {
         if (MR::isStarPointerPointing2PAttachTarget(&mMovingPoints[i])) {
             MR::tryEmitEffect(&mMovingPoints[i], "PointerTouch");
             setNerve(GET_NERVE(ElectricRailMoving, ElectricRailMovingNrvFreeze));

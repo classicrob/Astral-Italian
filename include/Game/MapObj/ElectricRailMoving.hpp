@@ -15,8 +15,8 @@ public:
     virtual void control();
     virtual void attackSensor(HitSensor*, HitSensor*);
 
-    u8 _8C;
-    u8 _8D;
+    /* 0x90 */ bool mHasShadow;
+    /* 0x91 */ bool mIsActive;
 };
 
 class ElectricRailMoving : public LiveActor {
@@ -52,24 +52,24 @@ public:
     void exeDisappeared();
     void exeWait() NO_INLINE;
 
-    /* 0x8C */ s32 mSegmentNum;
-    /* 0x90 */ f32 mMovementSpeed;
-    /* 0x94 */ f32 mSegmentLength;
-    /* 0x98 */ s32 mStackHeight;
-    TPos3f _9C;
-    u8 _CC;
+    /* 0x90 */ s32 mSegmentNum;
+    /* 0x94 */ f32 mMovementSpeed;
+    /* 0x98 */ f32 mSegmentLength;
+    /* 0x9C */ s32 mStackHeight;
+    /* 0xA0 */ TPos3f mTexMtx;
+    /* 0xD0 */ u8 mAlpha;
     u8 _CD;
     u8 _CE;
     u8 _CF;
-    /* 0xD0 */ TVec3f* mSensorOffsets;
-    /* 0xD4 */ ElectricRailMovingPoint* mMovingPoints;
-    s32 _D8;
-    void* _DC;
-    u32 _E0;
-    s32 _E4;
-    TVec3f* _E8;
-    f32 _EC;
-    f32 _F0;
+    /* 0xD4 */ TVec3f* mSensorOffsets;
+    /* 0xD8 */ ElectricRailMovingPoint* mMovingPoints;
+    /* 0xDC */ s32 mMovingPointCount;
+    /* 0xE0 */ void* mDisplayListBuffer;
+    /* 0xE4 */ u32 mDisplayListSize;
+    /* 0xE8 */ s32 mRailPosCount;
+    /* 0xEC */ TVec3f* mRailPositions;
+    /* 0xF0 */ f32 mScrollCoord;
+    /* 0xF4 */ f32 mEaseIn;
 };
 
 namespace ElectricRailFunction {

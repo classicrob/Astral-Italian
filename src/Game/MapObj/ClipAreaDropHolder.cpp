@@ -40,4 +40,18 @@ namespace MR {
 
         return pClipAreaDrop;
     }
+    bool appearClipAreaDrop(const TVec3f& rPos, f32 baseSize, s32 extendsEndTime, s32 shrinkStartTime, s32 shrinkEndTime) {
+        ClipAreaDrop* pClipAreaDrop = getDeadClipAreaDrop();
+
+        if (pClipAreaDrop == nullptr) {
+            return false;
+        }
+
+        MR::setPosition(pClipAreaDrop, rPos);
+        pClipAreaDrop->setBaseSize(baseSize);
+        pClipAreaDrop->setExtendsEndTime(extendsEndTime);
+        pClipAreaDrop->setShrinkTime(shrinkStartTime, shrinkEndTime);
+        pClipAreaDrop->appear();
+        return true;
+    }
 };  // namespace MR

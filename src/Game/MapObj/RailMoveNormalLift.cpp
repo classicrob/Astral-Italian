@@ -23,7 +23,7 @@ void RailMoveNormalLift::exeMove() {
     if (mRailMover) {
         mRailMover->movement();
         if (mRailMover->isWorking()) {
-            MR::setPosition(this,mRailMover->_28);
+            MR::setPosition(this,mRailMover->mPosition);
             mRailMover->tryResetPositionRepeat();
         }
     }

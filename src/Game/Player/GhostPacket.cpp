@@ -1,4 +1,5 @@
 #include "Game/Player/GhostPacket.hpp"
+#include "Game/Player/GhostPacketWire.hpp"
 #include "Game/Player/GhostPacketData.hpp"
 #include "Game/Player/GhostPlayer.hpp"
 #include <cstring>
@@ -28,18 +29,18 @@ u8 GhostPacket::read(GhostPacketData* output) {
     mCurOffs = 0;
     read(&frameIndex, 1);
     read(&length, 1);
-    read(reinterpret_cast<u8*>(&flags), 2);
+    GhostPacketWire::readU16(*this, flags);
     output->mUpdateFlags = flags;
     if (flags & 1) {
         TVec3s position;
-        read(reinterpret_cast<u8*>(&position.x), 2);
-        read(reinterpret_cast<u8*>(&position.y), 2);
-        read(reinterpret_cast<u8*>(&position.z), 2);
+        GhostPacketWire::readS16(*this, position.x);
+        GhostPacketWire::readS16(*this, position.y);
+        GhostPacketWire::readS16(*this, position.z);
         MR::convToFloat(position, -2, &output->mPosition);
     } else if (flags & 0x4000) {
-        read(reinterpret_cast<u8*>(&output->mPosition.x), 4);
-        read(reinterpret_cast<u8*>(&output->mPosition.y), 4);
-        read(reinterpret_cast<u8*>(&output->mPosition.z), 4);
+        GhostPacketWire::readF32(*this, output->mPosition.x);
+        GhostPacketWire::readF32(*this, output->mPosition.y);
+        GhostPacketWire::readF32(*this, output->mPosition.z);
     }
     if (flags & 0x800) {
         TVec3Sc velocity;
@@ -71,10 +72,10 @@ u8 GhostPacket::read(GhostPacketData* output) {
         MR::convToFloatRotation(&output->mRotation.z, value);
     }
     if (flags & 0x10) read(&output->mActionName);
-    if (flags & 0x2000) read(reinterpret_cast<u8*>(&output->mActionHash), 4);
+    if (flags & 0x2000) GhostPacketWire::readU32(*this, output->mActionHash);
     if (flags & 0x20) {
         s16 value;
-        read(reinterpret_cast<u8*>(&value), 2);
+        GhostPacketWire::readS16(*this, value);
         MR::convToFloat(value, 5, &output->mBckFrame);
     }
     if (flags & 0x1000) {

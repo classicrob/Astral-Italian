@@ -37,6 +37,10 @@ while read -r h m f; do
     touch -t "$(date -r "$m" +%Y%m%d%H%M.%S)" "$f"
   fi
 done < "$stamps"
+# Never trust the worktree's mtimes for the branch's OWN changes (2026-10-19: a cp -p restore left hooked
+# sources older than their objects, so ninja skipped them and a broken landing passed): touch every file this
+# branch changes so it is really recompiled. Files only changed by main keep the restored mtimes above.
+git diff --name-only main...HEAD -- src include libs | while read -r f; do [ -f "$f" ] && touch "$f"; done
 tools/team/nj.sh >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
 git -C "$main" merge --ff-only -q "$branch"
 # cache the report of the exact main we just built, so lanes can use it as a regression baseline

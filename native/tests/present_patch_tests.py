@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Tests for native/gx/patch_aurora_present.py against the pinned Aurora sources.
+
+usage: present_patch_tests.py AURORA_DIR NATIVE_GX_DIR
+
+- GXFrameBuffer.cpp and aurora.cpp patch; aurora.cpp also on top of
+  patch_aurora_allocations.py output, which root runs first.
+- Re-running on unchanged input leaves the output untouched (build stamps).
+- Changed anchors fail loudly instead of producing a half-patched file.
+"""
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+checks = 0
+
+
+def check(condition, label):
+    global checks
+    checks += 1
+    if not condition:
+        print(f'FAIL: {label}', file=sys.stderr)
+        sys.exit(1)
+
+
+def run(script, source, output):
+    return subprocess.run([sys.executable, str(script), str(source), str(output)], capture_output=True, text=True)
+
+
+def main():
+    aurora, gx = Path(sys.argv[1]), Path(sys.argv[2])
+    present = gx / 'patch_aurora_present.py'
+    allocations = gx / 'patch_aurora_allocations.py'
+    framebuffer = aurora / 'lib/dolphin/gx/GXFrameBuffer.cpp'
+    core = aurora / 'lib/aurora.cpp'
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        out = tmp / 'fb/GXFrameBuffer.cpp'
+        check(run(present, framebuffer, out).returncode == 0, 'GXFrameBuffer.cpp patches')
+        text = out.read_text()
+        check('void GXCopyDisp(void* dest, GXBool clear) {}' not in text, 'GXCopyDisp is no longer empty')
+        check('void GXSetCopyClamp(GXFBClamp clamp)' in text, 'GXSetCopyClamp defined')
+        check(text.count('GX_AURORA_LOAD_COPY_DEST') == 2, 'display and texture copies both load a destination')
+        check('u32 GXSetDispCopyYScale(f32 vscale) { return 0; }' not in text, 'Y scale returns the line count')
+        before = out.stat().st_mtime_ns
+        os.utime(out, ns=(before - 10**9, before - 10**9))
+        stamped = out.stat().st_mtime_ns
+        check(run(present, framebuffer, out).returncode == 0 and out.stat().st_mtime_ns == stamped,
+              'unchanged output is not rewritten')
+
+        out = tmp / 'core/aurora.cpp'
+        check(run(present, core, out).returncode == 0, 'aurora.cpp patches')
+        text = out.read_text()
+        check('petari_present::take()' in text and 'petari_present::bind_image' in text
+              and 'petari_present::draw_dim' in text, 'present hooks in aurora_end_frame')
+        check(text.count('pass.Draw(3);') == core.read_text().count('pass.Draw(3);'),
+              'the same draws, now conditional')
+
+        alloc = tmp / 'alloc/aurora.cpp'
+        check(run(allocations, core, alloc).returncode == 0, 'allocation patch runs first')
+        both = tmp / 'both/aurora.cpp'
+        check(run(present, alloc, both).returncode == 0, 'present patch composes after the allocation patch')
+        text = both.read_text()
+        check('PetariNative::HostAllocationScope petariHostAllocations;' in text
+              and 'petari_present::take()' in text, 'both patches present')
+
+        window = aurora / 'lib/window.cpp'
+        wout = tmp / 'window/window.cpp'
+        check(run(present, window, wout).returncode == 0, 'window.cpp patches')
+        text = wout.read_text()
+        check('petari_present_content_aspect(&aspectW, &aspectH)' in text and
+              'extern "C" int petari_present_content_aspect' in text,
+              'the EFB takes the displayed aspect while XFBs are presented')
+        check(text.index('petari_present_content_aspect(&aspectW') < text.index('if (g_frameBufferAspectFit) {'),
+              'the display aspect applies before any logical aspect fit')
+        brokenWindow = tmp / 'brokenwindow/window.cpp'
+        brokenWindow.parent.mkdir()
+        brokenWindow.write_text(window.read_text().replace('  if (g_frameBufferAspectFit) {\n', '  if (fit) {\n'))
+        result = run(present, brokenWindow, tmp / 'brokenwindow-out/window.cpp')
+        check(result.returncode != 0 and 'anchor mismatch' in result.stderr + result.stdout,
+              'a moved window.cpp anchor fails')
+
+        check('PresentStats::acquiringFrame = petariProbeFrame;' in both.read_text(),
+              'drawable acquisition is tagged with the frame for the present statistics')
+        gpu = aurora / 'lib/webgpu/gpu.cpp'
+        gout = tmp / 'gpu/gpu.cpp'
+        check(run(present, gpu, gout).returncode == 0, 'gpu.cpp patches')
+        text = gout.read_text()
+        check('PETARI_PRESENT_MODE' in text and 'PresentStats::setMode(' in text
+              and text.index('auto presentMode = select_present_mode') < text.index('PETARI_PRESENT_MODE'),
+              'PETARI_PRESENT_MODE overrides the mode Aurora selects')
+        brokenGpu = tmp / 'brokengpu/gpu.cpp'
+        brokenGpu.parent.mkdir()
+        brokenGpu.write_text(gpu.read_text().replace('auto presentMode = select_present_mode(', 'auto mode = select_present_mode('))
+        result = run(present, brokenGpu, tmp / 'brokengpu-out/gpu.cpp')
+        check(result.returncode != 0 and 'anchor mismatch' in result.stderr + result.stdout, 'a moved gpu.cpp anchor fails')
+
+        fb = (tmp / 'fb/GXFrameBuffer.cpp').read_text()
+        check('traceCopy("display"' in fb and 'traceCopy("texture"' in fb and 'PETARI_TRACE_BOOT' in fb,
+              'copy sizes are traced (opt-in)')
+
+        broken = tmp / 'broken/GXFrameBuffer.cpp'
+        broken.parent.mkdir()
+        broken.write_text(framebuffer.read_text().replace('void GXCopyDisp(void* dest, GXBool clear) {}', ''))
+        result = run(present, broken, tmp / 'broken-out/GXFrameBuffer.cpp')
+        check(result.returncode != 0 and 'anchor mismatch' in result.stderr + result.stdout,
+              'a moved anchor fails')
+        check(not (tmp / 'broken-out/GXFrameBuffer.cpp').exists(), 'no half-patched output')
+        other = tmp / 'other.cpp'
+        other.write_text('')
+        check(run(present, other, tmp / 'x.cpp').returncode != 0, 'unknown sources are refused')
+    print(f'native present patch tests passed ({checks} checks)')
+
+
+if __name__ == '__main__':
+    main()

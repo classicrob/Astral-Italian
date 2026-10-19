@@ -1,0 +1,1490 @@
+// Native WPAD: the SDK's Wii Remote API for virtual remotes. Replaces
+// src/RVL_SDK/wpad (and the WUD/BTE Bluetooth stack under it). The SDK's
+// KPAD.c runs unchanged on top.
+//
+// Every 5 ms a report tick runs with interrupts disabled, as WPAD's
+// Bluetooth receive path does on the Wii:
+// 1. host requests (connect, disconnect, Nunchuk) are applied;
+// 2. connection and extension changes complete, calling the connect and
+//    extension callbacks;
+// 3. one queued command completes (DPD, data format, LED, speaker, status),
+//    calling its callback;
+// 4. a queued speaker packet is delivered;
+// 5. the channel's report is built and the sampling callback runs (KPAD's
+//    KPADiSamplingCallback, which calls WPADRead).
+// 6. activity keeps the screen from dimming, as WPADiCheckContInputs does on
+//    the Wii (see noteActivity).
+
+#include <revolution/kpad.h>
+#include <revolution/os.h>
+#include <revolution/sc.h>
+#include <revolution/vi.h>
+#include <revolution/wpad.h>
+
+#include <algorithm>
+#include <chrono>
+#include <atomic>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iterator>
+#include <mutex>
+#include <thread>
+
+#include "petari/host_allocation.hpp"
+#include "petari/input.hpp"
+#include "petari/input_remap.hpp"
+#include "petari/latency_probe.hpp"
+#include "petari/editor_settings.hpp"
+#include "petari/camera_settings.hpp"
+#include "remote_model.hpp"
+
+namespace PetariNative::Input {
+namespace {
+
+using Detail::Report;
+
+static_assert(WPAD_BUTTON_A == 0x0800 && WPAD_BUTTON_B == 0x0400 && WPAD_BUTTON_PLUS == 0x0010 &&
+              WPAD_BUTTON_MINUS == 0x1000 && WPAD_BUTTON_HOME == 0x8000 && WPAD_BUTTON_1 == 0x0200 &&
+              WPAD_BUTTON_2 == 0x0100 && WPAD_BUTTON_UP == 0x0008 && WPAD_BUTTON_DOWN == 0x0004 &&
+              WPAD_BUTTON_LEFT == 0x0001 && WPAD_BUTTON_RIGHT == 0x0002 && WPAD_BUTTON_C == 0x4000 &&
+              WPAD_BUTTON_Z == 0x2000,
+              "remote_model.cpp button bits");
+
+constexpr int kChannels = WPAD_MAX_CONTROLLERS;
+constexpr int kCommandCapacity = WPAD_COMMAND_CMD_MAX_LEN;
+// Reports between a remote becoming available and its connect callback: the
+// Bluetooth reconnection time. The game registers its callbacks after
+// KPADInit, so the connection must not complete inside WPADInit.
+constexpr int kConnectReports = 40;
+// Reports between the connection and the extension being identified.
+constexpr int kExtensionReports = 4;
+constexpr u16 kNunchukButtons = WPAD_BUTTON_C | WPAD_BUTTON_Z;
+constexpr u16 kDotSize = 3;
+// kp_obj_interval / 0.383864, KPAD's dist_vv1 before its first reset.
+constexpr float kDefaultDistanceFactor = 0.2f / 0.383864f;
+
+enum class CommandKind : u8 { Dpd, DataFormat, Info, Led, SpeakerOn, SpeakerOff, SpeakerMute, SpeakerUnmute, SpeakerPlay, Disconnect };
+
+struct Command {
+    CommandKind kind;
+    u32 argument;
+    WPADCallback callback;
+    WPADInfo* info;
+};
+
+union ReportBuffer {
+    WPADStatus core;
+    WPADFSStatus fs;
+    WPADCLStatus cl;
+    WPADStatusEx ex;
+};
+
+struct Channel {
+    bool connected = false;
+    int connectCountdown = -1;
+    bool poweredOff = false;  // after WPADDisconnect, until an input reconnects it
+    bool extensionPresent = false;
+    int extensionCountdown = -1;
+    u8 devType = WPAD_DEV_NOT_FOUND;
+    u32 dataFormat = WPAD_FMT_CORE;
+    u8 dpdCommand = 0;
+    bool dpdEnabled = false;
+    bool motor = false;
+    bool speakerEnabled = false;
+    bool speakerMuted = true;
+    bool speakerPlaying = false;
+    u8 led = 0;
+    bool infoLocked = false;
+    WPADConnectCallback connectCallback = nullptr;
+    WPADExtensionCallback extensionCallback = nullptr;
+    WPADSamplingCallback samplingCallback = nullptr;
+    Command commands[kCommandCapacity];
+    int commandHead = 0;
+    int commandCount = 0;
+    ReportBuffer report{};
+    u8 stream[20];
+    u16 streamLength = 0;
+    bool streamPending = false;
+    // KPAD's pointer calibration as of the KPAD thread's last WPADProbe
+    // (see snapshotCalibration). No dots until the first one.
+    Detail::PointerCalibration calibration = {0.0f, 0.0f, 0.0f, 0.0f};
+};
+
+// Device and SDK state: guarded by the interrupt lock.
+Channel gChannels[kChannels];
+bool gInitialized = false;
+OSAlarm gAlarm;
+bool gAlarmRunning = false;
+u8 gSensorBarPosition = WPAD_SENSOR_BAR_POS_BOTTOM;
+u8 gDpdSensitivity = 3;
+u8 gSpeakerVolume = 0x58;
+bool gMotorEnabled = true;
+u8 gAutoSleepMinutes = 0;
+WPADAlloc gAlloc = nullptr;
+WPADFree gFree = nullptr;
+// The thread that called WPADInit (KPADInit's caller): the only thread that
+// writes KPAD's calibration.
+std::thread::id gKpadThread;
+
+// Host requests, applied at the next report tick.
+std::atomic<bool> gWantConnected[kChannels] = {true, false, false, false};
+std::atomic<bool> gWantNunchuk[kChannels] = {true, true, true, true};
+std::atomic<bool> gRumble[kChannels] = {};
+std::atomic<Clock> gClock{Clock::Alarm};
+// A host input event (any key, including unbound keys and OS repeats, a mouse
+// button, mouse motion) since the last report tick.
+std::atomic<bool> gHostActivity{false};
+// The previous report of channel 0, for the change test (interrupt lock).
+Report gLastReport;
+
+// Host input: guarded by gHostMutex. Lock order: interrupt lock, then
+// gHostMutex; host event functions take only gHostMutex.
+std::mutex gHostMutex;
+SpeakerSink gSpeakerSink = nullptr;
+void* gSpeakerUser = nullptr;
+
+Detail::RemoteModel& model() {
+    static Detail::RemoteModel* instance = [] {
+        HostAllocationScope scope;
+        return new Detail::RemoteModel();
+    }();
+    return *instance;
+}
+
+[[noreturn]] void misuse(const char* function, const char* message) {
+    std::fprintf(stderr, "%s: %s\n", function, message);
+    std::fflush(stderr);
+    std::abort();
+}
+
+Channel& channel(const char* function, s32 chan) {
+    if (chan < 0 || chan >= kChannels) {
+        misuse(function, "channel out of range");
+    }
+    return gChannels[chan];
+}
+
+class Interrupts {
+public:
+    Interrupts() : mEnabled(OSDisableInterrupts()) {}
+    ~Interrupts() { OSRestoreInterrupts(mEnabled); }
+    Interrupts(const Interrupts&) = delete;
+    Interrupts& operator=(const Interrupts&) = delete;
+
+private:
+    BOOL mEnabled;
+};
+
+bool isCoreFormat(u32 fmt) {
+    return fmt == WPAD_FMT_CORE || fmt == WPAD_FMT_CORE_ACC || fmt == WPAD_FMT_CORE_ACC_DPD;
+}
+bool isFsFormat(u32 fmt) {
+    return fmt == WPAD_FMT_FREESTYLE || fmt == WPAD_FMT_FREESTYLE_ACC || fmt == WPAD_FMT_FREESTYLE_ACC_DPD;
+}
+bool isClFormat(u32 fmt) {
+    return fmt == WPAD_FMT_CLASSIC || fmt == WPAD_FMT_CLASSIC_ACC || fmt == WPAD_FMT_CLASSIC_ACC_DPD;
+}
+bool hasAcc(u32 fmt) {
+    return fmt != WPAD_FMT_CORE && fmt != WPAD_FMT_FREESTYLE && fmt != WPAD_FMT_CLASSIC;
+}
+bool hasDpd(u32 fmt) {
+    return fmt == WPAD_FMT_CORE_ACC_DPD || fmt == WPAD_FMT_FREESTYLE_ACC_DPD || fmt == WPAD_FMT_CLASSIC_ACC_DPD ||
+           fmt == WPAD_FMT_CORE_ACC_DPD_FULL;
+}
+size_t formatSize(u32 fmt) {
+    if (isCoreFormat(fmt)) {
+        return sizeof(WPADStatus);
+    }
+    if (isFsFormat(fmt)) {
+        return sizeof(WPADFSStatus);
+    }
+    if (isClFormat(fmt)) {
+        return sizeof(WPADCLStatus);
+    }
+    return sizeof(WPADStatusEx);
+}
+
+s16 accCounts(float g, int unit) {
+    const long counts = std::lround(g * unit);
+    return static_cast<s16>(std::clamp(counts, -511L, 511L));
+}
+
+// Result of an operation that needs a remote. A virtual remote is set up as
+// soon as it connects, so WPAD_ERR_BUSY for "still being set up" never arises.
+s32 readiness(const Channel& ch) {
+    return ch.connected ? WPAD_ERR_NONE : WPAD_ERR_NO_CONTROLLER;
+}
+
+bool pushCommand(Channel& ch, CommandKind kind, u32 argument, WPADCallback callback, WPADInfo* info = nullptr) {
+    if (ch.commandCount >= kCommandCapacity) {
+        return false;
+    }
+    Command& command = ch.commands[(ch.commandHead + ch.commandCount) % kCommandCapacity];
+    command = {kind, argument, callback, info};
+    ++ch.commandCount;
+    return true;
+}
+
+void fillInfo(const Channel& ch, WPADInfo* info) {
+    if (info == nullptr) {
+        return;
+    }
+    info->dpd = ch.dpdEnabled;
+    info->speaker = ch.speakerEnabled;
+    info->attach = ch.extensionPresent;
+    info->lowBat = FALSE;
+    info->nearempty = FALSE;
+    info->battery = WPAD_BATTERY_LEVEL_MAX;  // a keyboard and mouse have no battery to run down
+    info->led = ch.led;
+    info->protocol = 0;
+    info->firmware = 0;
+}
+
+void resetDevice(Channel& ch) {
+    ch.devType = WPAD_DEV_NOT_FOUND;
+    ch.dataFormat = WPAD_FMT_CORE;
+    ch.dpdCommand = 0;
+    ch.dpdEnabled = false;
+    ch.motor = false;
+    ch.speakerEnabled = false;
+    ch.speakerMuted = true;
+    ch.speakerPlaying = false;
+    ch.infoLocked = false;
+    ch.streamPending = false;
+    ch.extensionCountdown = -1;
+    std::memset(&ch.report, 0, sizeof(ch.report));
+}
+
+void disconnect(s32 chan, Channel& ch) {
+    // Commands still queued fail as they do when a remote drops.
+    Command pending[kCommandCapacity];
+    const int count = ch.commandCount;
+    for (int i = 0; i < count; ++i) {
+        pending[i] = ch.commands[(ch.commandHead + i) % kCommandCapacity];
+    }
+    ch.commandCount = 0;
+    ch.connected = false;
+    resetDevice(ch);
+    gRumble[chan] = false;
+    for (int i = 0; i < count; ++i) {
+        if (pending[i].callback != nullptr) {
+            pending[i].callback(chan, WPAD_ERR_NO_CONTROLLER);
+        }
+    }
+    if (ch.connectCallback != nullptr) {
+        ch.connectCallback(chan, WPAD_ERR_NO_CONTROLLER);
+    }
+}
+
+void completeCommand(s32 chan, Channel& ch) {
+    if (ch.commandCount == 0) {
+        return;
+    }
+    const Command command = ch.commands[ch.commandHead];
+    ch.commandHead = (ch.commandHead + 1) % kCommandCapacity;
+    --ch.commandCount;
+
+    switch (command.kind) {
+    case CommandKind::Dpd:
+        ch.dpdEnabled = command.argument != 0;
+        break;
+    case CommandKind::DataFormat:
+        break;  // the format took effect when requested, as in the SDK
+    case CommandKind::Info:
+        fillInfo(ch, command.info);
+        ch.infoLocked = false;
+        break;
+    case CommandKind::Led:
+        ch.led = static_cast<u8>(command.argument);
+        break;
+    case CommandKind::SpeakerOn:
+        ch.speakerEnabled = true;
+        ch.speakerMuted = false;
+        ch.speakerPlaying = false;
+        break;
+    case CommandKind::SpeakerOff:
+        ch.speakerEnabled = false;
+        ch.speakerPlaying = false;
+        break;
+    case CommandKind::SpeakerMute:
+        ch.speakerMuted = true;
+        break;
+    case CommandKind::SpeakerUnmute:
+        ch.speakerMuted = false;
+        break;
+    case CommandKind::SpeakerPlay:
+        ch.speakerPlaying = true;
+        break;
+    case CommandKind::Disconnect:
+        if (command.callback != nullptr) {
+            command.callback(chan, WPAD_ERR_NONE);
+        }
+        ch.poweredOff = true;
+        disconnect(chan, ch);
+        return;
+    }
+    if (command.callback != nullptr) {
+        command.callback(chan, WPAD_ERR_NONE);
+    }
+}
+
+void buildReport(Channel& ch, const Report& input) {
+    const u32 fmt = ch.dataFormat;
+    ReportBuffer& r = ch.report;
+    std::memset(&r, 0, sizeof(r));
+    const bool nunchuk = ch.devType == WPAD_DEV_FREESTYLE;
+
+    u16 buttons = input.buttons;
+    if ((buttons & WPAD_BUTTON_A) != 0) {
+        LatencyProbe::noteReport();
+    }
+    if (!(nunchuk && isFsFormat(fmt))) {
+        buttons &= static_cast<u16>(~kNunchukButtons);
+    }
+    r.core.button = buttons;
+    if (hasAcc(fmt)) {
+        // KPAD: acc.x = -accX, acc.y = -accZ, acc.z = accY (read_kpad_acc).
+        r.core.accX = accCounts(-input.acc[0], Detail::kCoreGravityCounts);
+        r.core.accY = accCounts(input.acc[2], Detail::kCoreGravityCounts);
+        r.core.accZ = accCounts(-input.acc[1], Detail::kCoreGravityCounts);
+    }
+    if (hasDpd(fmt) && ch.dpdEnabled) {
+        for (int i = 0; i < input.dotCount; ++i) {
+            r.core.obj[i].x = input.dots[i].x;
+            r.core.obj[i].y = input.dots[i].y;
+            r.core.obj[i].size = kDotSize;
+            r.core.obj[i].traceId = static_cast<u8>(i);
+        }
+    }
+    r.core.dev = ch.devType;
+    r.core.err = WPAD_ERR_NONE;
+    if (nunchuk && isFsFormat(fmt)) {
+        if (hasAcc(fmt)) {
+            r.fs.fsAccX = accCounts(-input.nunchukAcc[0], Detail::kNunchukGravityCounts);
+            r.fs.fsAccY = accCounts(input.nunchukAcc[2], Detail::kNunchukGravityCounts);
+            r.fs.fsAccZ = accCounts(-input.nunchukAcc[1], Detail::kNunchukGravityCounts);
+        }
+        r.fs.fsStickX = input.stickX;
+        r.fs.fsStickY = input.stickY;
+    }
+}
+
+// KPAD owns the pointer calibration in inside_kpads, and the KPAD thread
+// changes it without the interrupt lock (KPADInit after WPADInit has started
+// the reports; KPADSetSensorHeight). Reading it in the report tick would race
+// with those writes. KPADRead calls WPADProbe on that thread with interrupts
+// disabled every frame, so the calibration is copied there, in order with the
+// writes, and the tick reads the copy under the same lock. A change reaches
+// the reports at the next KPADRead, before KPAD next uses the dots.
+// Game reads of the remote (WPADProbe from KPADRead, once a frame), for the
+// shake's hold (RemoteModel::setGameReads).
+std::atomic<std::uint64_t> gGameReads{0};
+// True on a thread while it runs the report tick: KPAD's sampling callback
+// probes from there too, and that is not the game reading (the test clock runs
+// the tick on the game's own thread).
+thread_local bool gInReportTick = false;
+
+void snapshotCalibration(s32 chan, Channel& ch) {
+    if (std::this_thread::get_id() != gKpadThread) {
+        return;  // the report tick (KPAD's sampling callback) or another thread
+    }
+    if (chan == 0 && !gInReportTick) {
+        gGameReads.fetch_add(1, std::memory_order_relaxed);
+    }
+    const KPADInsideStatus& kp = inside_kpads[chan];
+    Detail::PointerCalibration c;
+    c.centerX = kp.center_org.x;
+    c.centerY = kp.center_org.y;
+    c.dpdToPosScale = kp.dpd2pos_scale;
+    c.distanceFactor = kp.dist_vv1 > 0.0f ? kp.dist_vv1 : kDefaultDistanceFactor;
+    ch.calibration = c;
+}
+
+bool sameReport(const Report& a, const Report& b) {
+    if (a.buttons != b.buttons || a.stickX != b.stickX || a.stickY != b.stickY || a.dotCount != b.dotCount) {
+        return false;
+    }
+    for (int i = 0; i < 3; ++i) {
+        if (a.acc[i] != b.acc[i] || a.nunchukAcc[i] != b.nunchukAcc[i]) {
+            return false;
+        }
+    }
+    for (int i = 0; i < a.dotCount; ++i) {
+        if (a.dots[i].x != b.dots[i].x || a.dots[i].y != b.dots[i].y) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// The screen saver. On the Wii, WPADiCheckContInputs compares each report
+// with the previous one and, on any change, calls __VIResetRFIdle, so VI
+// never dims while the remote is in use. Here a changed report of the virtual
+// remote does the same, and so does any host input event, which also covers
+// keys the bindings do not use and mouse motion over the letterbox bars.
+// VIResetDimmingCount takes effect at the next retrace.
+void noteActivity(const Report& report) {
+    const bool changed = !sameReport(report, gLastReport);
+    gLastReport = report;
+    if (gHostActivity.exchange(false) || changed) {
+        VIResetDimmingCount();
+    }
+}
+
+void tickChannel(s32 chan) {
+    Channel& ch = gChannels[chan];
+    struct TickScope {
+        TickScope() { gInReportTick = true; }
+        ~TickScope() { gInReportTick = false; }
+    } tickScope;
+
+    Report input;
+    SpeakerSink sink = nullptr;
+    void* sinkUser = nullptr;
+    bool activity = false;
+    {
+        std::lock_guard<std::mutex> lock(gHostMutex);
+        sink = gSpeakerSink;
+        sinkUser = gSpeakerUser;
+        if (chan == 0) {
+            model().setGameReads(gGameReads.load(std::memory_order_relaxed));
+            input = model().nextReport(ch.calibration);
+            activity = model().takeActivity();
+        }
+    }
+
+    if (chan == 0) {
+        noteActivity(input);
+    }
+
+    if (activity && ch.poweredOff) {
+        ch.poweredOff = false;  // pressing a button turns a remote back on
+    }
+    const bool want = gWantConnected[chan] && !ch.poweredOff;
+    if (!want && (ch.connected || ch.connectCountdown >= 0)) {
+        ch.connectCountdown = -1;
+        if (ch.connected) {
+            disconnect(chan, ch);
+        }
+    } else if (want && !ch.connected && ch.connectCountdown < 0) {
+        ch.connectCountdown = kConnectReports;
+    }
+
+    if (ch.connectCountdown >= 0 && --ch.connectCountdown < 0) {
+        resetDevice(ch);
+        ch.connected = true;
+        ch.devType = WPAD_DEV_CORE;
+        ch.extensionPresent = false;
+        if (ch.connectCallback != nullptr) {
+            ch.connectCallback(chan, WPAD_ERR_NONE);
+        }
+    }
+    if (!ch.connected) {
+        return;
+    }
+
+    if (gWantNunchuk[chan] != ch.extensionPresent && ch.extensionCountdown < 0) {
+        ch.extensionCountdown = kExtensionReports;
+    }
+    if (ch.extensionCountdown >= 0 && --ch.extensionCountdown < 0) {
+        ch.extensionPresent = gWantNunchuk[chan];
+        ch.devType = ch.extensionPresent ? WPAD_DEV_FREESTYLE : WPAD_DEV_CORE;
+        if (ch.extensionCallback != nullptr) {
+            ch.extensionCallback(chan, ch.devType);
+        }
+        if (!ch.connected) {
+            return;
+        }
+    }
+
+    completeCommand(chan, ch);
+    if (!ch.connected) {
+        return;
+    }
+
+    if (ch.streamPending) {
+        ch.streamPending = false;
+        if (sink != nullptr && ch.speakerEnabled && ch.speakerPlaying && !ch.speakerMuted) {
+            sink(chan, ch.stream, ch.streamLength, sinkUser);
+        }
+    }
+
+    buildReport(ch, input);
+    if (ch.samplingCallback != nullptr) {
+        ch.samplingCallback(chan);
+    }
+}
+
+void tick() {
+    for (s32 chan = 0; chan < kChannels; ++chan) {
+        tickChannel(chan);
+    }
+}
+
+void alarmHandler(OSAlarm*, OSContext*) {
+    tick();
+}
+
+}  // namespace
+
+// --- Host API ---
+
+BoundState boundState() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    return model().boundState();
+}
+
+void setBindings(const Bindings& value) {
+    HostAllocationScope scope;
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().setBindings(value);
+}
+
+Bindings bindings() {
+    HostAllocationScope scope;
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    return model().bindings();
+}
+
+void setSettings(const Settings& value) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().setSettings(value);
+}
+
+Settings settings() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    return model().settings();
+}
+
+namespace {
+constexpr Action kModActions[] = {Action::ModCollectStarBits, Action::ModShootEnemy, Action::ModCappyThrow};
+std::atomic<int> gModPresses[std::size(kModActions)];
+
+// Latency probe (petari/latency_probe.hpp): a down edge of an input bound to A
+// or Start. Caller holds gHostMutex.
+void notePressForProbe(Binding input) {
+    if (!LatencyProbe::enabled()) return;
+    for (const Action action : {Action::A, Action::Start}) {
+        const auto& bound = model().bindings().inputs(action);
+        if (std::find(bound.begin(), bound.end(), input) != bound.end()) {
+            LatencyProbe::notePress();
+            return;
+        }
+    }
+}
+
+// Counts a down edge of an input bound to a mod action. Caller holds gHostMutex.
+void countModPress(Binding input) {
+    for (std::size_t i = 0; i < std::size(kModActions); ++i) {
+        const auto& bound = model().bindings().inputs(kModActions[i]);
+        if (std::find(bound.begin(), bound.end(), input) != bound.end()) {
+            gModPresses[i].fetch_add(1, std::memory_order_relaxed);
+        }
+    }
+}
+}  // namespace
+
+namespace {
+// Odyssey camera mod (petari/camera_settings.hpp), by binding: CameraOrbitHold,
+// CameraZoomIn/Out, D-pad left/right (Q/E, arrows) for yaw, NunchukC (C) to
+// recentre. Caller holds gHostMutex.
+enum CameraHeld { OrbitHold, YawLeft, YawRight, ZoomIn, ZoomOut, OrbitLeft, OrbitRight, PitchUp, PitchDown, CameraHeldCount };
+constexpr Action kCameraActions[CameraHeldCount] = {Action::CameraOrbitHold, Action::DpadLeft, Action::DpadRight,
+                                                    Action::CameraZoomIn, Action::CameraZoomOut, Action::CameraOrbitLeft,
+                                                    Action::CameraOrbitRight, Action::CameraPitchUp, Action::CameraPitchDown};
+int gCameraHeld[CameraHeldCount] = {};  // inputs currently down per action
+bool gHaveMouse = false;
+float gMouseX = 0.0f, gMouseY = 0.0f;
+float gRightX = 0.0f, gRightY = 0.0f;
+
+bool boundTo(Action action, Binding input) {
+    const auto& bound = model().bindings().inputs(action);
+    return std::find(bound.begin(), bound.end(), input) != bound.end();
+}
+
+void cameraInput(Binding input, bool down) {
+    if (!CameraSettings::enabled()) return;
+    for (int i = 0; i < CameraHeldCount; ++i) {
+        if (boundTo(kCameraActions[i], input)) gCameraHeld[i] = std::max(0, gCameraHeld[i] + (down ? 1 : -1));
+    }
+    const bool right = gCameraHeld[YawRight] > 0 || gCameraHeld[OrbitRight] > 0;
+    const bool left = gCameraHeld[YawLeft] > 0 || gCameraHeld[OrbitLeft] > 0;
+    CameraSettings::yawHold((right ? 1 : 0) - (left ? 1 : 0));
+    CameraSettings::pitchHold((gCameraHeld[PitchUp] > 0 ? 1 : 0) - (gCameraHeld[PitchDown] > 0 ? 1 : 0));
+    CameraSettings::zoomHold((gCameraHeld[ZoomOut] > 0 ? 1 : 0) - (gCameraHeld[ZoomIn] > 0 ? 1 : 0));
+    if (down && boundTo(Action::NunchukC, input)) CameraSettings::recenter();
+}
+
+void releaseCameraInput() {
+    for (int& held : gCameraHeld) held = 0;
+    gRightX = gRightY = 0.0f;
+    CameraSettings::resetInput();
+}
+
+// Photo mode (docs/dev/ODYSSEY_CAMERA.md): from a PhotoMode press until the game
+// leaves photo mode, every input flies the free camera and the game gets none.
+// Moves by the stick bindings (WASD), up A (Space), down NunchukZ (Shift); looks
+// by the camera orbit and D-pad bindings (IJKL, Q/E, arrows), any mouse button
+// drag, trackpad scroll and the right stick; FOV by the zoom bindings, wheel
+// and pinch; TiltHold (Tab) fast, Walk (Alt) slow; PhotoShot (O) or Start
+// (Return) saves a screenshot; PhotoMode again or Plus (Escape) leaves.
+enum PhotoHeld {
+    MoveFwd, MoveBack, MoveLeft, MoveRight, MoveUp, MoveDown, LookLeft, LookRight, LookUp, LookDown,
+    FovNarrow, FovWide, Fast, Slow, PhotoHeldCount
+};
+int gPhotoHeld[PhotoHeldCount] = {};
+int gPhotoMouseButtons = 0;
+float gLeftX = 0.0f, gLeftY = 0.0f;
+bool gGameReleased = false;  // the game's held inputs were released for this capture
+
+bool photoBound(PhotoHeld held, Binding input) {
+    switch (held) {
+    case MoveFwd: return boundTo(Action::StickUp, input);
+    case MoveBack: return boundTo(Action::StickDown, input);
+    case MoveLeft: return boundTo(Action::StickLeft, input);
+    case MoveRight: return boundTo(Action::StickRight, input);
+    case MoveUp: return boundTo(Action::A, input);
+    case MoveDown: return boundTo(Action::NunchukZ, input);
+    case LookLeft: return boundTo(Action::CameraOrbitLeft, input) || boundTo(Action::DpadLeft, input);
+    case LookRight: return boundTo(Action::CameraOrbitRight, input) || boundTo(Action::DpadRight, input);
+    case LookUp: return boundTo(Action::CameraPitchUp, input) || boundTo(Action::DpadUp, input);
+    case LookDown: return boundTo(Action::CameraPitchDown, input) || boundTo(Action::DpadDown, input);
+    case FovNarrow: return boundTo(Action::CameraZoomIn, input);
+    case FovWide: return boundTo(Action::CameraZoomOut, input);
+    case Fast: return boundTo(Action::TiltHold, input);
+    case Slow: return boundTo(Action::Walk, input);
+    default: return false;
+    }
+}
+
+void publishPhotoHolds() {
+    auto axis = [](int plus, int minus) { return static_cast<float>((gPhotoHeld[plus] > 0 ? 1 : 0) - (gPhotoHeld[minus] > 0 ? 1 : 0)); };
+    CameraSettings::photoMove(axis(MoveRight, MoveLeft), axis(MoveFwd, MoveBack), axis(MoveUp, MoveDown));
+    const float lookX = std::clamp(axis(LookRight, LookLeft) + gRightX, -1.0f, 1.0f);
+    const float lookY = std::clamp(axis(LookUp, LookDown) - gRightY, -1.0f, 1.0f);
+    CameraSettings::photoLookHold(lookX, lookY);
+    CameraSettings::photoStick(gLeftX, -gLeftY);
+    CameraSettings::photoFovHold(static_cast<int>(axis(FovWide, FovNarrow)));
+    CameraSettings::photoSpeed(gPhotoHeld[Fast] > 0, gPhotoHeld[Slow] > 0);
+}
+
+void releasePhotoInput() {
+    for (int& held : gPhotoHeld) held = 0;
+    gPhotoMouseButtons = 0;
+    gLeftX = gLeftY = 0.0f;
+    CameraSettings::resetPhotoInput();
+}
+
+// True when the input went to photo mode (and must not reach the game).
+bool photoInput(Binding input, bool down, bool repeat) {
+    if (!CameraSettings::photoEnabled()) return false;
+    if (down && !repeat && boundTo(Action::PhotoMode, input)) CameraSettings::photoToggle();
+    if (!CameraSettings::photoCapturing()) {
+        if (gGameReleased) {
+            gGameReleased = false;
+            releasePhotoInput();
+        }
+        return false;
+    }
+    if (!gGameReleased) {
+        // Entering: whatever the game saw held is let go, as on a focus loss.
+        model().focusChanged(false);
+        model().focusChanged(true);
+        gGameReleased = true;
+    }
+    if (repeat) return true;
+    for (int i = 0; i < PhotoHeldCount; ++i) {
+        if (photoBound(static_cast<PhotoHeld>(i), input)) gPhotoHeld[i] = std::max(0, gPhotoHeld[i] + (down ? 1 : -1));
+    }
+    if (input.device == Binding::Device::Mouse) gPhotoMouseButtons = std::max(0, gPhotoMouseButtons + (down ? 1 : -1));
+    if (down && (boundTo(Action::PhotoShot, input) || boundTo(Action::Start, input))) CameraSettings::photoShot();
+    if (down && boundTo(Action::Plus, input)) CameraSettings::photoLeave();
+    publishPhotoHolds();
+    return true;
+}
+// The level editor (docs/dev/level-editor/UX.md section 3), only while the Mods page's
+// "Level editor" is on. A short tap of LevelEditor (Tab) with nothing else pressed toggles
+// Edit mode; a hold stays the game's (Tab also tilts the remote). From the toggle until the
+// game leaves Edit mode the game gets no input: the editor's panels and camera read Dear
+// ImGui's (the editor UI), and pinch goes to the editor camera here.
+constexpr auto kEditorTap = std::chrono::milliseconds(250);
+std::chrono::steady_clock::time_point gEditorTapStart{};
+bool gEditorTapArmed = false;
+bool gEditorGameReleased = false;
+
+// True when the input went to the editor (and must not reach the game).
+bool editorInput(Binding input, bool down, bool repeat) {
+    if (!EditorSettings::enabled()) {
+        gEditorTapArmed = false;
+        return false;
+    }
+    if (!repeat) {
+        if (boundTo(Action::LevelEditor, input)) {
+            if (down) {
+                gEditorTapStart = std::chrono::steady_clock::now();
+                gEditorTapArmed = true;
+            } else if (gEditorTapArmed) {
+                gEditorTapArmed = false;
+                if (std::chrono::steady_clock::now() - gEditorTapStart < kEditorTap) {
+                    // While a field is being typed in, the UI commits it first and toggles after.
+                    if (EditorSettings::active() && EditorSettings::typing()) {
+                        EditorSettings::deferToggle();
+                    } else {
+                        EditorSettings::toggle();
+                    }
+                }
+            }
+        } else if (down) {
+            gEditorTapArmed = false;  // something else pressed: a hold (tilt and move), not a tap
+        }
+    }
+    if (!EditorSettings::capturing()) {
+        gEditorGameReleased = false;
+        return false;
+    }
+    if (!gEditorGameReleased) {
+        // Entering: whatever the game saw held is let go, as on a focus loss.
+        model().focusChanged(false);
+        model().focusChanged(true);
+        releaseCameraInput();
+        gEditorGameReleased = true;
+    }
+    return true;
+}
+
+bool editorCapturing() {
+    return EditorSettings::enabled() && EditorSettings::capturing();
+}
+
+}  // namespace
+
+int takeActionPresses(Action action) {
+    for (std::size_t i = 0; i < std::size(kModActions); ++i) {
+        if (kModActions[i] == action) {
+            return gModPresses[i].exchange(0, std::memory_order_relaxed);
+        }
+    }
+    return 0;
+}
+
+void injectActionPress(Action action) {
+    for (std::size_t i = 0; i < std::size(kModActions); ++i) {
+        if (kModActions[i] == action) {
+            gModPresses[i].fetch_add(1, std::memory_order_relaxed);
+        }
+    }
+}
+
+bool actionHeld(Action action) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    return model().actionHeld(action);
+}
+
+namespace {
+std::mutex gMenuScrollMutex;
+float gMenuRows = 0.0f;  // accumulated rows, + toward the top
+int gMenuPages = 0;
+constexpr KeyCode kPageUp = 75, kPageDown = 78;  // USB HID usages
+}  // namespace
+
+namespace {
+// Capture for the Home menu's remapping (input_remap.hpp). Guarded by gHostMutex.
+CaptureState gCapture = CaptureState::Idle;
+Binding gCaptured;
+bool gSwallowRelease = false;  // the captured press's release is not sent to the game either
+Binding gSwallowed;
+
+// True if the event belongs to a capture and must not reach the game. Caller holds gHostMutex.
+bool captureEvent(Binding input, bool down, bool repeat) {
+    if (gSwallowRelease && input == gSwallowed) {
+        if (!down) gSwallowRelease = false;
+        return true;  // its release, or OS repeats while it is held
+    }
+    if (gCapture != CaptureState::Waiting || !down) {
+        return false;  // releases of inputs held before the capture still reach the game
+    }
+    gSwallowRelease = true;
+    gSwallowed = input;
+    if (repeat) {
+        return true;
+    }
+    if (input.device == Binding::Device::Key && input.code == Key::Escape) {
+        gCapture = CaptureState::Cancelled;
+    } else {
+        gCapture = CaptureState::Captured;
+        gCaptured = input;
+    }
+    return true;
+}
+}  // namespace
+
+void beginCapture() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    gCapture = CaptureState::Waiting;
+}
+
+void cancelCapture() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    if (gCapture == CaptureState::Waiting) gCapture = CaptureState::Idle;
+}
+
+CaptureState captureState(Binding* input) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    const CaptureState state = gCapture;
+    if (state == CaptureState::Captured && input != nullptr) *input = gCaptured;
+    if (state == CaptureState::Captured || state == CaptureState::Cancelled) gCapture = CaptureState::Idle;
+    return state;
+}
+
+static std::atomic<std::uint8_t> gLastDevice{static_cast<std::uint8_t>(Binding::Device::Key)};
+static void noteDevice(Binding::Device device) { gLastDevice.store(static_cast<std::uint8_t>(device), std::memory_order_relaxed); }
+
+Binding::Device lastDevice() { return static_cast<Binding::Device>(gLastDevice.load(std::memory_order_relaxed)); }
+
+void keyEvent(KeyCode code, bool down, bool repeat) {
+    gHostActivity = true;
+    if (down) noteDevice(Binding::Device::Key);
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    if (captureEvent(Binding::key(code), down, repeat)) return;
+    if (down && (code == kPageUp || code == kPageDown)) {
+        std::lock_guard<std::mutex> pages(gMenuScrollMutex);
+        gMenuPages = std::clamp(gMenuPages + (code == kPageDown ? 1 : -1), -20, 20);
+    }
+    if (down && !repeat) {
+        countModPress(Binding::key(code));
+        notePressForProbe(Binding::key(code));
+    }
+    if (editorInput(Binding::key(code), down, repeat)) return;
+    if (photoInput(Binding::key(code), down, repeat)) return;
+    if (!repeat) cameraInput(Binding::key(code), down);
+    model().keyEvent(code, down, repeat);
+}
+
+void mouseButtonEvent(MouseButton button, bool down) {
+    gHostActivity = true;
+    if (down) noteDevice(Binding::Device::Mouse);
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    if (captureEvent(Binding::mouse(button), down, false)) return;
+    if (down) {
+        countModPress(Binding::mouse(button));
+        notePressForProbe(Binding::mouse(button));
+    }
+    if (editorInput(Binding::mouse(button), down, false)) return;
+    if (photoInput(Binding::mouse(button), down, false)) return;
+    cameraInput(Binding::mouse(button), down);
+    model().mouseButtonEvent(button, down);
+}
+
+void padButtonEvent(PadButton button, bool down) {
+    gHostActivity = true;
+    if (down) noteDevice(Binding::Device::Pad);
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    if (captureEvent(Binding::pad(button), down, false)) return;
+    if (down) {
+        countModPress(Binding::pad(button));
+        notePressForProbe(Binding::pad(button));
+    }
+    if (editorInput(Binding::pad(button), down, false)) return;
+    if (photoInput(Binding::pad(button), down, false)) return;
+    cameraInput(Binding::pad(button), down);
+    model().padButtonEvent(button, down);
+}
+
+void padAxisEvent(PadAxis axis, float value) {
+    // A resting stick's noise is not activity; a deliberate push is.
+    if (std::fabs(value) > 0.25f) {
+        gHostActivity = true;
+        noteDevice(Binding::Device::Pad);
+    }
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    if (editorCapturing()) return;
+    if (CameraSettings::photoEnabled() && CameraSettings::photoCapturing()) {
+        if (axis == PadAxis::RightX || axis == PadAxis::RightY) (axis == PadAxis::RightX ? gRightX : gRightY) = value;
+        if (axis == PadAxis::LeftX || axis == PadAxis::LeftY) (axis == PadAxis::LeftX ? gLeftX : gLeftY) = value;
+        publishPhotoHolds();
+        return;
+    }
+    if (CameraSettings::enabled() && (axis == PadAxis::RightX || axis == PadAxis::RightY)) {
+        // The right stick orbits the camera instead of moving the Star Pointer.
+        (axis == PadAxis::RightX ? gRightX : gRightY) = value;
+        CameraSettings::stick(gRightX, -gRightY);
+        model().padAxisEvent(axis, 0.0f);
+        return;
+    }
+    model().padAxisEvent(axis, value);
+}
+
+void padDisconnected() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().padDisconnected();
+}
+
+void mouseMoved(float x, float y) {
+    gHostActivity = true;
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    if (editorCapturing()) {
+        gMouseX = x;
+        gMouseY = y;
+        gHaveMouse = true;
+        return;
+    }
+    if (CameraSettings::photoEnabled() && CameraSettings::photoCapturing()) {
+        // Any mouse button held: drag to look (0.15 degrees per point).
+        if (gHaveMouse && gPhotoMouseButtons > 0) CameraSettings::photoLook((x - gMouseX) * 0.15f, -(y - gMouseY) * 0.15f);
+        gMouseX = x;
+        gMouseY = y;
+        gHaveMouse = true;
+        return;
+    }
+    const bool drag = CameraSettings::enabled() && gCameraHeld[OrbitHold] > 0 && gHaveMouse;
+    if (drag) CameraSettings::mouseDrag(x - gMouseX, y - gMouseY);
+    gMouseX = x;
+    gMouseY = y;
+    gHaveMouse = true;
+    if (drag) return;  // the pointer stays put while the hold-to-orbit input is down
+    model().mouseMoved(x, y);
+}
+
+void mouseWheel(float x, float y) {
+    if (editorCapturing()) return;  // the editor reads scrolling from Dear ImGui (with its modifiers)
+    if (CameraSettings::photoEnabled() && CameraSettings::photoCapturing()) {
+        // Trackpad scroll looks; wheel notches change the field of view (up: narrower).
+        const bool precise = x != 0.0f || y != std::round(y);
+        if (precise) {
+            CameraSettings::photoLook(-x * 3.0f, y * 3.0f);
+        } else {
+            CameraSettings::photoFov(-y);
+        }
+        return;
+    }
+    if (!CameraSettings::enabled()) return;
+    // Wheel clicks arrive as whole notches; trackpads and Magic Mouse scroll precisely.
+    const bool precise = x != 0.0f || y != std::round(y);
+    const auto mode = CameraSettings::scrollMode();
+    if (mode == CameraSettings::ScrollMode::Orbit || (mode == CameraSettings::ScrollMode::Auto && precise)) {
+        CameraSettings::scrollOrbit(x, y);
+    } else {
+        CameraSettings::zoomSteps(-y);  // wheel up: closer
+    }
+}
+
+void menuWheel(float y) {
+    const bool precise = y != std::round(y);
+    std::lock_guard<std::mutex> lock(gMenuScrollMutex);
+    gMenuRows = std::clamp(gMenuRows + (precise ? y * 0.5f : y * 3.0f), -100.0f, 100.0f);
+}
+
+MenuScroll takeMenuScroll() {
+    std::lock_guard<std::mutex> lock(gMenuScrollMutex);
+    MenuScroll scroll;
+    scroll.rows = static_cast<int>(gMenuRows);  // toward zero: the fraction carries over
+    gMenuRows -= static_cast<float>(scroll.rows);
+    scroll.pages = gMenuPages;
+    gMenuPages = 0;
+    return scroll;
+}
+
+void pinch(float scale) {
+    if (editorCapturing()) {
+        // Spread zooms the editor camera toward the cursor, about one step per 10%.
+        if (scale > 0.0f) EditorSettings::dolly(std::log(scale) / std::log(1.1f));
+        return;
+    }
+    if (CameraSettings::photoEnabled() && CameraSettings::photoCapturing() && scale > 0.0f) {
+        CameraSettings::photoFov(-std::log(scale) / std::log(1.1f));
+        return;
+    }
+    if (!CameraSettings::enabled() || !(scale > 0.0f)) return;
+    // Spread (scale > 1) zooms in, about one wheel notch per 10%.
+    CameraSettings::zoomSteps(-std::log(scale) / std::log(1.1f));
+}
+
+void mouseLeft() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().mouseLeft();
+}
+
+void setViewport(const Viewport& viewport) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().setViewport(viewport);
+}
+
+void focusChanged(bool focused) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    if (!focused) {
+        releaseCameraInput();
+        releasePhotoInput();
+    }
+    model().focusChanged(focused);
+}
+
+void setPosture(Posture value) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().setPosture(value);
+}
+
+Posture posture() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    return model().posture();
+}
+
+void titlePromptShown() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().titlePromptShown();
+}
+
+bool titlePromptActive() {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    return model().titlePromptActive();
+}
+
+void motionControlShown(Steering steering) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model().motionControlShown(steering);
+}
+
+void setConnected(int chan, bool connected) {
+    if (chan < 0 || chan >= kChannels) {
+        misuse("setConnected", "channel out of range");
+    }
+    gWantConnected[chan] = connected;
+    if (connected) {
+        Interrupts guard;
+        gChannels[chan].poweredOff = false;
+    }
+}
+
+void setNunchukAttached(int chan, bool attached) {
+    if (chan < 0 || chan >= kChannels) {
+        misuse("setNunchukAttached", "channel out of range");
+    }
+    gWantNunchuk[chan] = attached;
+}
+
+bool rumbleActive(int chan) {
+    return chan >= 0 && chan < kChannels && gRumble[chan];
+}
+
+void setSpeakerSink(SpeakerSink sink, void* user) {
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    gSpeakerSink = sink;
+    gSpeakerUser = user;
+}
+
+void setClock(Clock clock) {
+    Interrupts guard;
+    if (gInitialized) {
+        misuse("setClock", "select the clock before WPADInit");
+    }
+    gClock = clock;
+}
+
+void pumpReports(int count) {
+    Interrupts guard;
+    if (!gInitialized) {
+        misuse("pumpReports", "WPADInit has not run");
+    }
+    if (gClock != Clock::Manual) {
+        misuse("pumpReports", "the report clock is not Clock::Manual");
+    }
+    for (int i = 0; i < count; ++i) {
+        tick();
+    }
+}
+
+void resetForTesting() {
+    noteDevice(Binding::Device::Key);
+    {
+        std::lock_guard<std::mutex> lock(gHostMutex);
+        gCapture = CaptureState::Idle;
+        gSwallowRelease = false;
+        std::lock_guard<std::mutex> scroll(gMenuScrollMutex);
+        gMenuRows = 0.0f;
+        gMenuPages = 0;
+    }
+    {
+        Interrupts guard;
+        if (gAlarmRunning) {
+            OSCancelAlarm(&gAlarm);
+            gAlarmRunning = false;
+        }
+        for (Channel& ch : gChannels) {
+            ch = Channel{};
+        }
+        gInitialized = false;
+        for (auto& presses : gModPresses) {
+            presses.store(0, std::memory_order_relaxed);
+        }
+        gSensorBarPosition = WPAD_SENSOR_BAR_POS_BOTTOM;
+        gDpdSensitivity = 3;
+        gSpeakerVolume = 0x58;
+        gMotorEnabled = true;
+        gAutoSleepMinutes = 0;
+        gAlloc = nullptr;
+        gFree = nullptr;
+        gKpadThread = std::thread::id();
+        for (int i = 0; i < kChannels; ++i) {
+            gWantConnected[i] = i == 0;
+            gWantNunchuk[i] = true;
+            gRumble[i] = false;
+        }
+        gClock = Clock::Alarm;
+        gHostActivity = false;
+        gLastReport = Report();
+    }
+    HostAllocationScope scope;
+    std::lock_guard<std::mutex> lock(gHostMutex);
+    model() = Detail::RemoteModel();
+    gSpeakerSink = nullptr;
+    gSpeakerUser = nullptr;
+}
+
+}  // namespace PetariNative::Input
+
+using namespace PetariNative::Input;
+
+// --- SDK API ---
+
+extern "C" {
+
+void WPADInit(void) {
+    Interrupts guard;
+    if (gInitialized) {
+        return;
+    }
+    gInitialized = true;
+    gKpadThread = std::this_thread::get_id();
+    gSensorBarPosition = SCGetWpadSensorBarPosition();
+    gDpdSensitivity = static_cast<u8>(SCGetBtDpdSensibility());
+    gSpeakerVolume = SCGetWpadSpeakerVolume();
+    gMotorEnabled = SCGetWpadMotorMode() != 0;
+    if (gClock == Clock::Alarm) {
+        const OSTime period = OSMillisecondsToTicks(5);
+        OSCreateAlarm(&gAlarm);
+        OSSetPeriodicAlarm(&gAlarm, OSGetTime() + period, period, alarmHandler);
+        gAlarmRunning = true;
+    }
+}
+
+s32 WPADGetStatus(void) {
+    Interrupts guard;
+    return gInitialized ? WPAD_STATE_SETUP : WPAD_STATE_DISABLED;
+}
+
+void WPADRegisterAllocator(WPADAlloc alloc, WPADFree free) {
+    Interrupts guard;
+    gAlloc = alloc;
+    gFree = free;
+}
+
+// The Wii's allocator serves the Bluetooth stack's device records. The host
+// needs none.
+u32 WPADGetWorkMemorySize(void) {
+    return 0;
+}
+
+u8 WPADGetSensorBarPosition(void) {
+    Interrupts guard;
+    return gSensorBarPosition;
+}
+
+u8 WPADGetDpdSensitivity(void) {
+    Interrupts guard;
+    return gDpdSensitivity;
+}
+
+s32 WPADProbe(s32 chan, u32* type) {
+    Interrupts guard;
+    Channel& ch = channel("WPADProbe", chan);
+    snapshotCalibration(chan, ch);
+    if (type != nullptr) {
+        *type = ch.devType;
+    }
+    return readiness(ch);
+}
+
+WPADSamplingCallback WPADSetSamplingCallback(s32 chan, WPADSamplingCallback callback) {
+    Interrupts guard;
+    Channel& ch = channel("WPADSetSamplingCallback", chan);
+    const WPADSamplingCallback previous = ch.samplingCallback;
+    ch.samplingCallback = callback;
+    return previous;
+}
+
+WPADConnectCallback WPADSetConnectCallback(s32 chan, WPADConnectCallback callback) {
+    Interrupts guard;
+    Channel& ch = channel("WPADSetConnectCallback", chan);
+    const WPADConnectCallback previous = ch.connectCallback;
+    ch.connectCallback = callback;
+    return previous;
+}
+
+WPADExtensionCallback WPADSetExtensionCallback(s32 chan, WPADExtensionCallback callback) {
+    Interrupts guard;
+    Channel& ch = channel("WPADSetExtensionCallback", chan);
+    const WPADExtensionCallback previous = ch.extensionCallback;
+    ch.extensionCallback = callback;
+    return previous;
+}
+
+u32 WPADGetDataFormat(s32 chan) {
+    Interrupts guard;
+    return channel("WPADGetDataFormat", chan).dataFormat;
+}
+
+s32 WPADSetDataFormat(s32 chan, u32 fmt) {
+    Interrupts guard;
+    Channel& ch = channel("WPADSetDataFormat", chan);
+    s32 result = readiness(ch);
+    if (result == WPAD_ERR_NONE && ch.dataFormat != fmt) {
+        if (fmt > WPAD_FMT_CORE_ACC_DPD_FULL) {
+            misuse("WPADSetDataFormat", "unknown data format");
+        }
+        if (pushCommand(ch, CommandKind::DataFormat, fmt, nullptr)) {
+            ch.dataFormat = fmt;
+        } else {
+            result = WPAD_ERR_BUSY;
+        }
+    }
+    return result;
+}
+
+void WPADRead(s32 chan, void* status) {
+    Interrupts guard;
+    const Channel& ch = channel("WPADRead", chan);
+    const size_t size = formatSize(ch.dataFormat);
+    if (ch.connected) {
+        std::memcpy(status, &ch.report, size);
+        if (chan == 0 && (ch.report.core.button & WPAD_BUTTON_A) != 0) {
+            PetariNative::LatencyProbe::noteRead(PetariNative::LatencyProbe::frame.load(std::memory_order_relaxed));
+        }
+    } else {
+        std::memset(status, 0, size);
+        static_cast<WPADStatus*>(status)->err = WPAD_ERR_NO_CONTROLLER;
+    }
+}
+
+void WPADGetAccGravityUnit(s32 chan, u32 type, WPADAcc* acc) {
+    Interrupts guard;
+    channel("WPADGetAccGravityUnit", chan);
+    if (acc == nullptr) {
+        return;
+    }
+    switch (type) {
+    case WPAD_DEV_CORE:
+        acc->x = acc->y = acc->z = PetariNative::Input::Detail::kCoreGravityCounts;
+        break;
+    case WPAD_DEV_FREESTYLE:
+        acc->x = acc->y = acc->z = PetariNative::Input::Detail::kNunchukGravityCounts;
+        break;
+    }
+}
+
+BOOL WPADIsDpdEnabled(s32 chan) {
+    Interrupts guard;
+    return channel("WPADIsDpdEnabled", chan).dpdEnabled;
+}
+
+s32 WPADControlDpd(s32 chan, u32 command, WPADCallback callback) {
+    s32 result;
+    {
+        Interrupts guard;
+        Channel& ch = channel("WPADControlDpd", chan);
+        result = readiness(ch);
+        if (result == WPAD_ERR_NONE && (command == 0 ? ch.dpdEnabled : command != ch.dpdCommand)) {
+            if (pushCommand(ch, CommandKind::Dpd, command, callback)) {
+                ch.dpdCommand = static_cast<u8>(command);
+                return WPAD_ERR_NONE;
+            }
+            result = WPAD_ERR_BUSY;
+        }
+    }
+    if (callback != nullptr) {
+        callback(chan, result);
+    }
+    return result;
+}
+
+s32 WPADGetInfoAsync(s32 chan, WPADInfo* info, WPADCallback callback) {
+    s32 result;
+    {
+        Interrupts guard;
+        Channel& ch = channel("WPADGetInfoAsync", chan);
+        result = readiness(ch);
+        if (result == WPAD_ERR_NONE) {
+            if (!ch.infoLocked && pushCommand(ch, CommandKind::Info, 0, callback, info)) {
+                ch.infoLocked = true;
+                return WPAD_ERR_NONE;
+            }
+            result = WPAD_ERR_BUSY;
+        }
+    }
+    if (callback != nullptr) {
+        callback(chan, result);
+    }
+    return result;
+}
+
+s32 WPADControlLed(s32 chan, u8 pattern, WPADCallback callback) {
+    s32 result;
+    {
+        Interrupts guard;
+        Channel& ch = channel("WPADControlLed", chan);
+        result = readiness(ch);
+        if (result == WPAD_ERR_NONE) {
+            if (pushCommand(ch, CommandKind::Led, pattern, callback)) {
+                return WPAD_ERR_NONE;
+            }
+            result = WPAD_ERR_BUSY;
+        }
+    }
+    if (callback != nullptr) {
+        callback(chan, result);
+    }
+    return result;
+}
+
+void WPADControlMotor(s32 chan, u32 command) {
+    Interrupts guard;
+    Channel& ch = channel("WPADControlMotor", chan);
+    if (!ch.connected) {
+        return;
+    }
+    if (!gMotorEnabled && (command != WPAD_MOTOR_STOP || !ch.motor)) {
+        return;
+    }
+    ch.motor = command != WPAD_MOTOR_STOP;
+    gRumble[chan] = ch.motor;
+}
+
+void WPADEnableMotor(BOOL enable) {
+    Interrupts guard;
+    gMotorEnabled = enable != FALSE;
+}
+
+BOOL WPADIsMotorEnabled(void) {
+    Interrupts guard;
+    return gMotorEnabled;
+}
+
+void WPADDisconnect(s32 chan) {
+    Interrupts guard;
+    Channel& ch = channel("WPADDisconnect", chan);
+    if (ch.connected) {
+        // The SDK turns the LEDs off, then closes the link.
+        pushCommand(ch, CommandKind::Disconnect, 0, nullptr);
+    }
+}
+
+// Remotes turn themselves off after this many idle minutes on the Wii. A
+// keyboard and mouse stay connected; the setting is kept but has no effect.
+void WPADSetAutoSleepTime(u8 minute) {
+    Interrupts guard;
+    gAutoSleepMinutes = minute;
+}
+
+BOOL WPADIsSpeakerEnabled(s32 chan) {
+    Interrupts guard;
+    return channel("WPADIsSpeakerEnabled", chan).speakerEnabled;
+}
+
+s32 WPADControlSpeaker(s32 chan, u32 command, WPADCallback callback) {
+    s32 result;
+    {
+        Interrupts guard;
+        Channel& ch = channel("WPADControlSpeaker", chan);
+        result = readiness(ch);
+        if (result == WPAD_ERR_NONE) {
+            CommandKind kind;
+            bool queue = true;
+            switch (command) {
+            case 0:
+                kind = CommandKind::SpeakerOff;
+                queue = ch.speakerEnabled;
+                break;
+            case 1:
+            case 5:
+                kind = CommandKind::SpeakerOn;
+                break;
+            case 2:
+                kind = CommandKind::SpeakerMute;
+                break;
+            case 3:
+                kind = CommandKind::SpeakerUnmute;
+                break;
+            case 4:
+                kind = CommandKind::SpeakerPlay;
+                break;
+            default:
+                queue = false;  // the SDK ignores other commands and reports success
+                kind = CommandKind::SpeakerOff;
+                break;
+            }
+            if (queue) {
+                if (pushCommand(ch, kind, 0, callback)) {
+                    return WPAD_ERR_NONE;
+                }
+                result = WPAD_ERR_BUSY;
+            }
+        }
+    }
+    if (callback != nullptr) {
+        callback(chan, result);
+    }
+    return result;
+}
+
+u8 WPADGetSpeakerVolume(void) {
+    Interrupts guard;
+    return gSpeakerVolume;
+}
+
+void WPADSetSpeakerVolume(u8 volume) {
+    Interrupts guard;
+    gSpeakerVolume = std::min<u8>(volume, 127);
+}
+
+// Mii data stored in a Wii Remote's memory (RFL_Controller.c). A keyboard
+// and mouse have no such memory: nothing can be read from it, so the read is
+// refused at once as an invalid request and no callback follows. RFL then
+// ends the controller load with RFLErrcode_Controllerfail.
+s32 WPADReadFaceData(s32 chan, void* dst, u32 size, u32 src, WPADCallback callback) {
+    Interrupts guard;
+    const Channel& ch = channel("WPADReadFaceData", chan);
+    (void)dst;
+    (void)size;
+    (void)src;
+    (void)callback;
+    if (!ch.connected) {
+        return WPAD_ERR_NO_CONTROLLER;
+    }
+    return WPAD_ERR_INVALID;
+}
+
+BOOL WPADCanSendStreamData(s32 chan) {
+    Interrupts guard;
+    const Channel& ch = channel("WPADCanSendStreamData", chan);
+    return ch.connected && !ch.streamPending && ch.commandCount < kCommandCapacity - 3;
+}
+
+s32 WPADSendStreamData(s32 chan, void* buffer, u16 length) {
+    Interrupts guard;
+    Channel& ch = channel("WPADSendStreamData", chan);
+    if (!ch.connected) {
+        return WPAD_ERR_NO_CONTROLLER;
+    }
+    if (length > sizeof(ch.stream)) {
+        misuse("WPADSendStreamData", "a speaker packet holds at most 20 bytes");
+    }
+    if (ch.streamPending || ch.commandCount >= kCommandCapacity - 3) {
+        return WPAD_ERR_BUSY;
+    }
+    std::memcpy(ch.stream, buffer, length);
+    ch.streamLength = length;
+    ch.streamPending = true;
+    return WPAD_ERR_NONE;
+}
+
+}  // extern "C"

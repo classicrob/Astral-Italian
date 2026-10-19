@@ -33,3 +33,6 @@ compile_commands.json
 # Miscellaneous
 /*.txt
 *.exe
+
+# Native port build entrypoint
+!/CMakeLists.txt

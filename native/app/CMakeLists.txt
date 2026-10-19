@@ -1,0 +1,187 @@
+# The native application: entry point, platform start-up, and the frame seam
+# (petari/app.hpp, docs/dev/INTEGRATION_PLAN.md).
+#
+# Root integration: add_subdirectory(native/app) after native/gx, native/input,
+# native/home_menu and native/audio. It defines:
+#   petari_milestone     petari/milestone.hpp; link it into the game library that
+#                        compiles src/Game/Map/FileSelector.cpp (plain C, no deps)
+#   petari_app_smoke     the smoke script (smoke.hpp), no SDK or Aurora headers
+#   petari_app_platform  platform start-up and exit (SDK headers, no Aurora)
+#   petari_app_host      frame seam and window events (Aurora/SDL headers, no SDK)
+#   petari              the executable; root links the game libraries, the
+#                        renderer (petari_vi_bridge and its presentation hooks)
+#                        and the GX sync bridge into it.
+# Standalone (seam tests only, no Aurora library):
+#   cmake -S native/app -B build/app && cmake --build build/app && ctest --test-dir build/app
+cmake_minimum_required(VERSION 3.25)
+
+set(_petari_app_standalone OFF)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(_petari_app_standalone ON)
+    project(PetariNativeApp LANGUAGES CXX)
+    if(APPLE AND NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES arm64 CACHE STRING "Target architecture" FORCE)
+    endif()
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    option(PETARI_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
+    include(CTest)
+endif()
+
+get_filename_component(PETARI_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+
+add_library(petari_milestone STATIC milestone.cpp actor_observe.cpp)
+target_include_directories(petari_milestone PUBLIC ${PETARI_REPO_ROOT}/native/include)
+target_compile_features(petari_milestone PUBLIC cxx_std_17)
+add_library(petari_app_smoke STATIC smoke.cpp smoke_stage.cpp smoke_mechanics.cpp smoke_goodegg.cpp smoke_soak.cpp smoke_domes.cpp smoke_domes_routes.cpp smoke_domes_verified_routes.cpp smoke_replay.cpp smoke_movement.cpp)
+target_compile_features(petari_app_smoke PUBLIC cxx_std_17)
+# petari/efb_dump_mark.hpp only (header-only; no SDK or Aurora headers).
+target_include_directories(petari_app_smoke PUBLIC ${PETARI_REPO_ROOT}/native/include)
+
+if(NOT _petari_app_standalone)
+    add_library(petari_app_platform STATIC platform_host.cpp smoke_game.cpp collision_probe.cpp skip_probe.cpp point_probe.cpp figure_probe.cpp input_script_probe.cpp frame_phase.cpp soak_telemetry.cpp progress_observe.cpp)
+    target_link_libraries(petari_app_platform PUBLIC petari_native_config petari_boot
+        petari_platform_os petari_platform_vi petari_platform_dvd petari_platform_nand petari_platform_sc
+        petari_audio_sdl petari_host_runtime petari_app_smoke petari_milestone)
+
+    add_library(petari_app_host STATIC frame_seam.cpp frame_stats.cpp spike_profiler.cpp input_events.cpp pipeline_startup.cpp)
+    target_include_directories(petari_app_host PUBLIC ${PETARI_REPO_ROOT}/native/include)
+    # Deliberately not petari_native_config: no SDK include paths next to Aurora's.
+    target_link_libraries(petari_app_host PUBLIC aurora::core petari_input_sdl3 petari_home_menu_imgui
+        petari_host_runtime petari_app_smoke)
+
+    add_executable(petari MACOSX_BUNDLE app_main.cpp editor_m4_smoke.cpp smoke_storage.cpp pipeline_cache_dir.cpp latency_report.cpp display_link.cpp)
+    target_link_libraries(petari PRIVATE petari_app_host petari_app_platform aurora::core aurora::main SQLite::SQLite3)
+    # A real bundle identity: macOS uses it for the Dock/menu name, window state,
+    # permissions and app identification. User data stays at the explicit path in app_main.
+    # The product is MacioGalaxy: the Dock and menu-bar name (CFBundleName, CFBundleDisplayName) and the window title.
+    # The executable, the .app file name and the bundle identifier stay "Petari": scripts, locks and the saved
+    # window state depend on them (see Info.plist.in).
+    set_target_properties(petari PROPERTIES OUTPUT_NAME "Petari"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "dev.petari.Petari"
+        MACOSX_BUNDLE_BUNDLE_NAME "MacioGalaxy"
+        MACOSX_BUNDLE_BUNDLE_VERSION "0.1.0"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "0.1.0"
+        MACOSX_BUNDLE_INFO_STRING "MacioGalaxy: native Super Mario Galaxy for macOS")
+    set(PETARI_PIPELINE_STAGE_SEEDS "${CMAKE_SOURCE_DIR}/build/pipeline-seeds" CACHE PATH
+        "Offline-generated per-stage Aurora configuration manifests")
+    # Clones start from the tracked pack (native/data/pipeline-seeds.v*.xz). Locally generated seeds (no
+    # .seedpack.json marker) and edited expansions are never overwritten; a missing or bad pack only warns.
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    file(GLOB _petari_seed_packs CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/native/data/pipeline-seeds.v*.xz")
+    if(Python3_Interpreter_FOUND AND _petari_seed_packs)
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_petari_seed_packs})
+        execute_process(
+            COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tools/seedpack.py" ensure
+                --pack-dir "${CMAKE_SOURCE_DIR}/native/data" --out "${PETARI_PIPELINE_STAGE_SEEDS}"
+            RESULT_VARIABLE _petari_seedpack_result OUTPUT_VARIABLE _petari_seedpack_output
+            ERROR_VARIABLE _petari_seedpack_output)
+        string(STRIP "${_petari_seedpack_output}" _petari_seedpack_output)
+        message(STATUS "${_petari_seedpack_output}")
+        if(NOT _petari_seedpack_result EQUAL 0)
+            message(WARNING "pipeline seeds: seedpack.py failed (${_petari_seedpack_result}); continuing without the pack")
+        endif()
+    endif()
+    if(IS_DIRECTORY "${PETARI_PIPELINE_STAGE_SEEDS}")
+        file(GLOB _petari_stage_seeds CONFIGURE_DEPENDS
+            "${PETARI_PIPELINE_STAGE_SEEDS}/*.db" "${PETARI_PIPELINE_STAGE_SEEDS}/*.json")
+        list(FILTER _petari_stage_seeds EXCLUDE REGEX "/\\.seedpack\\.json$")
+        foreach(_seed IN LISTS _petari_stage_seeds)
+            get_filename_component(_seed_name "${_seed}" NAME)
+            set(_bundled_seed "${CMAKE_CURRENT_BINARY_DIR}/pipeline-seeds/${_seed_name}")
+            configure_file("${_seed}" "${_bundled_seed}" COPYONLY)
+            target_sources(petari PRIVATE "${_bundled_seed}")
+            set_source_files_properties("${_bundled_seed}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources/pipeline-seeds)
+        endforeach()
+    endif()
+    set(PETARI_PIPELINE_SEED "" CACHE FILEPATH "Explicit curated Aurora pipeline-config seed (not Dawn cache)")
+    if(PETARI_PIPELINE_SEED)
+        if(NOT EXISTS "${PETARI_PIPELINE_SEED}")
+            message(FATAL_ERROR "PETARI_PIPELINE_SEED does not exist: ${PETARI_PIPELINE_SEED}")
+        endif()
+        configure_file("${PETARI_PIPELINE_SEED}" "${CMAKE_CURRENT_BINARY_DIR}/initial_pipeline_cache.db" COPYONLY)
+        target_sources(petari PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/initial_pipeline_cache.db")
+        set_source_files_properties("${CMAKE_CURRENT_BINARY_DIR}/initial_pipeline_cache.db" PROPERTIES
+            MACOSX_PACKAGE_LOCATION Resources)
+    endif()
+else()
+    set(PETARI_AURORA_INCLUDE_DIR "${PETARI_REPO_ROOT}/../aurora-reference/include" CACHE PATH "Aurora headers")
+    set(PETARI_SDL3_INCLUDE_DIR "${PETARI_REPO_ROOT}/build/aurora/_deps/sdl-src/include" CACHE PATH "SDL3 headers")
+    if(PETARI_SANITIZERS)
+        add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+        add_link_options(-fsanitize=address,undefined)
+    endif()
+endif()
+
+if(BUILD_TESTING)
+    if(NOT _petari_app_standalone)
+        add_executable(petari_app_smoke_storage_tests ${PETARI_REPO_ROOT}/native/tests/app_smoke_storage_tests.cpp smoke_storage.cpp)
+        target_link_libraries(petari_app_smoke_storage_tests PRIVATE SQLite::SQLite3)
+        add_test(NAME native_app_smoke_storage COMMAND petari_app_smoke_storage_tests)
+    endif()
+    add_executable(petari_app_launch_stage_tests ${PETARI_REPO_ROOT}/native/tests/app_launch_stage_tests.cpp
+        ${PETARI_REPO_ROOT}/native/home_menu/launch_stage.cpp ${PETARI_REPO_ROOT}/native/platform/dvd/mod_galaxy.cpp)
+    target_include_directories(petari_app_launch_stage_tests PRIVATE ${PETARI_REPO_ROOT}/native/home_menu/include
+        ${PETARI_REPO_ROOT}/native/platform/include)
+    add_test(NAME native_app_launch_stage COMMAND petari_app_launch_stage_tests)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    add_test(NAME native_stage_sweep_parallel COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/stage_sweep_parallel_tests.py")
+    add_test(NAME native_perf_bench_tool COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/perf_bench_tests.py")
+    add_test(NAME native_observatory_fixture COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/test_fixture_tests.py")
+    add_test(NAME native_unlocked_save COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/unlocked_save_tests.py")
+    add_test(NAME native_stage_edit COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/stage_edit_tests.py")
+    add_test(NAME native_smoke_observe_safety COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/smoke_observe_safety_tests.py")
+    add_test(NAME native_route_record COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/route_record_tests.py")
+    add_test(NAME native_test_server_tool COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tools/test_server_tests.py")
+    add_test(NAME native_dome_tour_tools COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/dome_tour_tool_tests.py")
+    add_test(NAME native_movement_baseline COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/movement_baseline_tests.py")
+    add_test(NAME native_talk_branch_data COMMAND "${Python3_EXECUTABLE}" "${PETARI_REPO_ROOT}/native/tests/talk_branch_data_tests.py")
+    add_executable(petari_app_smoke_domes_tests ${PETARI_REPO_ROOT}/native/tests/app_smoke_domes_tests.cpp)
+    target_link_libraries(petari_app_smoke_domes_tests PRIVATE petari_app_smoke)
+    add_test(NAME native_app_smoke_domes COMMAND petari_app_smoke_domes_tests)
+    # The seam against recording fakes of Aurora, SDL and the app's other units.
+    add_executable(petari_app_seam_tests ${PETARI_REPO_ROOT}/native/tests/app_seam_tests.cpp frame_seam.cpp frame_stats.cpp spike_profiler.cpp)
+    target_link_libraries(petari_app_seam_tests PRIVATE petari_app_smoke)
+    target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
+    if(_petari_app_standalone)
+        target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_AURORA_INCLUDE_DIR} ${PETARI_SDL3_INCLUDE_DIR})
+    else()
+        target_include_directories(petari_app_seam_tests PRIVATE
+            $<TARGET_PROPERTY:aurora::core,INTERFACE_INCLUDE_DIRECTORIES>)
+    endif()
+    add_test(NAME native_app_seam COMMAND petari_app_seam_tests)
+
+    # Present-interval summary and off-cadence math (petari/present_stats.hpp).
+    add_executable(petari_present_stats_tests ${PETARI_REPO_ROOT}/native/tests/present_stats_tests.cpp)
+    target_include_directories(petari_present_stats_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
+    add_test(NAME native_present_stats COMMAND petari_present_stats_tests)
+    add_executable(petari_present_pacing_tests ${PETARI_REPO_ROOT}/native/tests/present_pacing_tests.cpp)
+    target_include_directories(petari_present_pacing_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
+    target_compile_features(petari_present_pacing_tests PRIVATE cxx_std_20)
+    add_test(NAME native_present_pacing COMMAND petari_present_pacing_tests)
+
+    # Physical input is counted separately from the smoke driver's injected input.
+    add_executable(petari_app_input_events_tests ${PETARI_REPO_ROOT}/native/tests/app_input_events_tests.cpp
+        input_events.cpp ${PETARI_REPO_ROOT}/native/input/bindings.cpp ${PETARI_REPO_ROOT}/native/input/remap.cpp)
+    target_include_directories(petari_app_input_events_tests PRIVATE ${PETARI_REPO_ROOT}/native/include
+        ${PETARI_REPO_ROOT}/native/input/include)
+    if(_petari_app_standalone)
+        target_include_directories(petari_app_input_events_tests PRIVATE ${PETARI_SDL3_INCLUDE_DIR})
+    else()
+        target_include_directories(petari_app_input_events_tests PRIVATE
+            $<TARGET_PROPERTY:aurora::core,INTERFACE_INCLUDE_DIRECTORIES>)
+    endif()
+    add_test(NAME native_app_input_events COMMAND petari_app_input_events_tests)
+
+    # The smoke script's decisions and the milestone history, without the game.
+    add_executable(petari_app_smoke_tests ${PETARI_REPO_ROOT}/native/tests/app_smoke_tests.cpp)
+    target_include_directories(petari_app_smoke_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
+    target_link_libraries(petari_app_smoke_tests PRIVATE petari_app_smoke petari_milestone)
+    add_test(NAME native_app_smoke COMMAND petari_app_smoke_tests)
+
+    # The stage script (smoke_stage.hpp) against a fake world.
+    add_executable(petari_app_smoke_stage_tests ${PETARI_REPO_ROOT}/native/tests/app_smoke_stage_tests.cpp)
+    target_link_libraries(petari_app_smoke_stage_tests PRIVATE petari_app_smoke)
+    add_test(NAME native_app_smoke_stage COMMAND petari_app_smoke_stage_tests)
+endif()

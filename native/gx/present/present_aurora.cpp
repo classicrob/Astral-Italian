@@ -1,0 +1,798 @@
+// Aurora side of XFB presentation (README.md in this directory). Compiled
+// with Aurora's lib/ on the quote include path; no SDK headers.
+
+#include "present_aurora.hpp"
+
+#include "gfx/render_worker.hpp"
+#include "gx/gx.hpp"
+#include "webgpu/gpu.hpp"
+#include "window.hpp"
+
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <chrono>
+#include <cmath>
+#include <mutex>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <thread>
+#include <vector>
+
+#include <petari/editor_view.hpp>
+#include <petari/efb_dump_mark.hpp>
+#include <petari/host_allocation.hpp>
+#include <petari/png_write.hpp>
+#include <petari/screenshot.hpp>
+
+#include "present.h"
+
+namespace petari_present {
+namespace {
+
+// VI dimming darkens the picture. The Wii's exact level is not documented in
+// the SDK; this is an approximation (README.md).
+constexpr float kDimOpacity = 0.5f;
+
+bool gEnabled = false;
+// The EFB's aspect, read by the patched window size (any thread).
+std::atomic<bool> gAspectEnabled{false};
+std::atomic<unsigned> gAspectWidth{4};
+std::atomic<unsigned> gAspectHeight{3};
+
+// Keeps the EFB's aspect at the displayed image's; a change resizes the frame
+// buffer (deferred by Aurora to the next frame boundary).
+void setContentAspect(unsigned width, unsigned height) {
+  if (width == 0 || height == 0) {
+    width = 4;
+    height = 3;
+  }
+  const bool widthChanged = gAspectWidth.exchange(width) != width;
+  const bool heightChanged = gAspectHeight.exchange(height) != height;
+  if ((widthChanged || heightChanged) && gAspectEnabled.load()) {
+    aurora::window::request_frame_buffer_resize();
+  }
+}
+PetariPresentVideo gVideo{};
+const void* gMissingXfb = nullptr;  // last XFB reported without a display copy
+
+// The editor's docked viewport, in window points (petari_present_set_content_area).
+// Written on the main thread; the size is read by get_window_size on any thread.
+struct ContentArea {
+  bool set = false;
+  float x = 0.f, y = 0.f, width = 0.f, height = 0.f;
+};
+ContentArea gArea;
+std::atomic<bool> gAreaSet{false};
+std::atomic<unsigned> gAreaPixelWidth{0};
+std::atomic<unsigned> gAreaPixelHeight{0};
+// A size change resizes the EFB once the size has held still this long.
+constexpr auto kAreaSettle = std::chrono::milliseconds(150);
+bool gAreaResizePending = false;
+std::chrono::steady_clock::time_point gAreaChanged;
+
+bool gFreeAspect = false;
+
+// The image's aspect: the content area's while the editor renders at its shape, else VI's.
+// Also tells the game's camera (petari/editor_view.hpp).
+void effectiveAspect(unsigned* width, unsigned* height) {
+  const bool free = gFreeAspect && gAreaSet.load() && gAreaPixelWidth.load() != 0 && gAreaPixelHeight.load() != 0;
+  if (free) {
+    *width = gAreaPixelWidth.load();
+    *height = gAreaPixelHeight.load();
+  }
+  PetariNative::EditorView::gAspect.store(free ? static_cast<float>(*width) / static_cast<float>(*height) : 0.0f,
+                                          std::memory_order_relaxed);
+}
+
+void requestAreaResizeIfSettled() {
+  if (gAreaResizePending && std::chrono::steady_clock::now() - gAreaChanged >= kAreaSettle) {
+    gAreaResizePending = false;
+    aurora::window::request_frame_buffer_resize();
+  }
+}
+
+// 1x1 black with kDimOpacity alpha (premultiplied), for draw_dim.
+wgpu::Texture gDimTexture;
+wgpu::TextureView gDimView;
+
+// PETARI_TRACE_BOOT: the sizes along the presentation path, logged when they
+// change: the drawable (surface), the EFB render target, the latched XFB's
+// copy texture, and the viewport it is drawn into. A scale of 1.00 means the
+// XFB is shown pixel for pixel; below 1 it is shrunk, above 1 enlarged.
+bool traceSizes() {
+  static const bool enabled = [] {
+    const char* value = std::getenv("PETARI_TRACE_BOOT");
+    return value != nullptr && value[0] != '\0' && value[0] != '0';
+  }();
+  return enabled;
+}
+
+void traceFrame(const Frame& frame) {
+  using namespace aurora::webgpu;
+  struct Sizes {
+    uint32_t surfaceW, surfaceH, efbW, efbH, xfbW, xfbH, viewW, viewH, aspectW, aspectH;
+    bool operator==(const Sizes& o) const {
+      return surfaceW == o.surfaceW && surfaceH == o.surfaceH && efbW == o.efbW && efbH == o.efbH && xfbW == o.xfbW &&
+             xfbH == o.xfbH && viewW == o.viewW && viewH == o.viewH && aspectW == o.aspectW && aspectH == o.aspectH;
+    }
+  };
+  static Sizes last{};
+  const uint32_t surfaceW = g_graphicsConfig.surfaceConfiguration.width;
+  const uint32_t surfaceH = g_graphicsConfig.surfaceConfiguration.height;
+  const Viewport viewport = calculate_present_viewport(surfaceW, surfaceH, frame.aspectWidth, frame.aspectHeight);
+  const AuroraWindowSize window = aurora::window::get_window_size();
+  const Sizes sizes{surfaceW,
+                    surfaceH,
+                    window.fb_width,
+                    window.fb_height,
+                    frame.xfb ? frame.xfb->size.width : 0,
+                    frame.xfb ? frame.xfb->size.height : 0,
+                    static_cast<uint32_t>(viewport.width),
+                    static_cast<uint32_t>(viewport.height),
+                    frame.aspectWidth,
+                    frame.aspectHeight};
+  if (sizes == last || sizes.xfbW == 0) {
+    return;
+  }
+  last = sizes;
+  std::fprintf(stderr,
+               "Petari present: surface %ux%u, EFB %ux%u, XFB texture %ux%u, viewport %ux%u (%u:%u), scale %.2f x %.2f\n",
+               sizes.surfaceW, sizes.surfaceH, sizes.efbW, sizes.efbH, sizes.xfbW, sizes.xfbH, sizes.viewW, sizes.viewH,
+               sizes.aspectW, sizes.aspectH, static_cast<double>(viewport.width) / sizes.xfbW,
+               static_cast<double>(viewport.height) / sizes.xfbH);
+}
+
+aurora::webgpu::TextureWithSampler xfb_source(const aurora::gfx::TextureRef& ref) {
+  return {
+      .texture = ref.texture,
+      .view = ref.sampleTextureView,
+      .size = ref.size,
+      .format = ref.format,
+      .sampler = aurora::webgpu::present_source().sampler,
+  };
+}
+
+
+// --- Opt-in dump of the presented image (PETARI_XFB_DUMP=<dir>), free when unset. -------------
+// Reads the XFB display copy VI latched (the final frame, unlike the mid-frame EFB snapshots)
+// and writes <dir>/<label>-<frame since mark>.png every PETARI_XFB_DUMP_EVERY (default 20)
+// presented frames, for up to PETARI_XFB_DUMP_SPAN (default 400) frames after each phase mark
+// (petari/efb_dump_mark.hpp) whose label is in PETARI_XFB_DUMP_LABELS (default "idle,walk,jump").
+// The readback runs on the render worker, in order after the display copy, and blocks it briefly.
+// A listed label matches a mark whose label starts with it ("dome-select" matches "dome-select-EggStarGalaxy").
+bool labelListed(const std::string& list, const char* label) {
+  size_t at = 0;
+  const std::string mark = label;
+  while (at <= list.size()) {
+    const size_t comma = std::min(list.find(',', at), list.size());
+    const std::string token = list.substr(at, comma - at);
+    if (!token.empty() && mark.compare(0, token.size(), token) == 0) return true;
+    at = comma + 1;
+  }
+  return false;
+}
+
+struct XfbDumpConfig {
+  std::string dir, labels = "idle,walk,jump";
+  unsigned long every = 20, span = 400;
+  bool enabled = false;
+};
+const XfbDumpConfig& xfbDumpConfig() {
+  static const XfbDumpConfig config = [] {
+    XfbDumpConfig c;
+    if (const char* dir = std::getenv("PETARI_XFB_DUMP"); dir && *dir) {
+      c.dir = dir;
+      c.enabled = true;
+      if (const char* v = std::getenv("PETARI_XFB_DUMP_LABELS")) c.labels = v;
+      if (const char* v = std::getenv("PETARI_XFB_DUMP_EVERY")) c.every = std::max(1ul, std::strtoul(v, nullptr, 10));
+      if (const char* v = std::getenv("PETARI_XFB_DUMP_SPAN")) c.span = std::strtoul(v, nullptr, 10);
+    }
+    return c;
+  }();
+  return config;
+}
+
+constexpr const char* kXfbShader = R"(
+@group(0) @binding(0) var src: texture_2d<f32>;
+@group(0) @binding(1) var<storage, read_write> rgb: array<u32>;
+@compute @workgroup_size(8, 8, 1)
+fn main(@builtin(global_invocation_id) id: vec3u) {
+  let size = textureDimensions(src);
+  if (id.x >= size.x || id.y >= size.y) { return; }
+  let c = vec3u(round(clamp(textureLoad(src, vec2i(id.xy), 0).rgb, vec3f(0), vec3f(1)) * 255.0));
+  rgb[id.y * size.x + id.x] = (c.r << 16u) | (c.g << 8u) | c.b;
+}
+)";
+
+constexpr const char* kRgbaShader = R"(
+@group(0) @binding(0) var src: texture_2d<f32>;
+@group(0) @binding(1) var<storage, read_write> rgba: array<u32>;
+@compute @workgroup_size(8, 8, 1)
+fn main(@builtin(global_invocation_id) id: vec3u) {
+  let size = textureDimensions(src);
+  if (id.x >= size.x || id.y >= size.y) { return; }
+  let c = vec4u(round(clamp(textureLoad(src, vec2i(id.xy), 0), vec4f(0), vec4f(1)) * 255.0));
+  rgba[id.y * size.x + id.x] = (c.a << 24u) | (c.b << 16u) | (c.g << 8u) | c.r;
+}
+)";
+
+// The editor's thumbnails: requested copies (main thread) and finished images (any thread).
+struct Readback {
+  std::vector<unsigned char> rgba;
+  uint32_t width = 0, height = 0;
+};
+std::vector<std::pair<const void*, int>> gReadbackRequests;  // copy address, frames left to find it
+std::mutex gReadbackMutex;
+std::vector<std::pair<const void*, Readback>> gReadbackDone;
+
+// Render worker: an RGBA8 copy texture to straight RGBA bytes; the key colour becomes transparent.
+bool readRgba(const aurora::gfx::TextureHandle& texture, Readback& out, const void* copy) {
+  PetariNative::HostAllocationScope host;
+  using aurora::webgpu::g_device;
+  using aurora::webgpu::g_queue;
+  out.width = texture->size.width;
+  out.height = texture->size.height;
+  const uint64_t bytes = uint64_t(out.width) * out.height * 4;
+  static wgpu::ComputePipeline* pipeline = nullptr;
+  if (!pipeline) {
+    const wgpu::ShaderSourceWGSL wgsl{wgpu::ShaderSourceWGSL::Init{.code = kRgbaShader}};
+    const wgpu::ShaderModuleDescriptor moduleDesc{.nextInChain = &wgsl, .label = "Petari editor thumbnail"};
+    const auto module = g_device.CreateShaderModule(&moduleDesc);
+    const wgpu::ComputePipelineDescriptor pipelineDesc{
+        .label = "Petari editor thumbnail", .compute = wgpu::ComputeState{.module = module, .entryPoint = "main"}};
+    pipeline = new wgpu::ComputePipeline(g_device.CreateComputePipeline(&pipelineDesc));
+  }
+  const wgpu::BufferDescriptor storageDesc{
+      .label = "Petari thumbnail storage", .usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc, .size = bytes};
+  const auto storage = g_device.CreateBuffer(&storageDesc);
+  const wgpu::BufferDescriptor readDesc{
+      .label = "Petari thumbnail readback", .usage = wgpu::BufferUsage::MapRead | wgpu::BufferUsage::CopyDst, .size = bytes};
+  const auto readback = g_device.CreateBuffer(&readDesc);
+  const std::array entries{wgpu::BindGroupEntry{.binding = 0, .textureView = texture->sampleTextureView},
+                           wgpu::BindGroupEntry{.binding = 1, .buffer = storage, .size = bytes}};
+  const wgpu::BindGroupDescriptor bindDesc{
+      .label = "Petari thumbnail", .layout = pipeline->GetBindGroupLayout(0), .entryCount = entries.size(), .entries = entries.data()};
+  const auto binding = g_device.CreateBindGroup(&bindDesc);
+  const auto encoder = g_device.CreateCommandEncoder();
+  const auto pass = encoder.BeginComputePass();
+  pass.SetPipeline(*pipeline);
+  pass.SetBindGroup(0, binding);
+  pass.DispatchWorkgroups((out.width + 7) / 8, (out.height + 7) / 8);
+  pass.End();
+  encoder.CopyBufferToBuffer(storage, 0, readback, 0, bytes);
+  const auto commands = encoder.Finish();
+  g_queue.Submit(1, &commands);
+  std::atomic<int> state{0};
+  readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,
+                    [&state](wgpu::MapAsyncStatus status, wgpu::StringView) { state = status == wgpu::MapAsyncStatus::Success ? 1 : -1; });
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (state == 0 && std::chrono::steady_clock::now() < deadline) {
+    aurora::webgpu::g_instance.ProcessEvents();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  if (state != 1) return false;
+  const auto* data = static_cast<const unsigned char*>(readback.GetConstMappedRange(0, bytes));
+  out.rgba.assign(data, data + bytes);
+  readback.Unmap();
+  // Development: PETARI_EDITOR_THUMB_DUMP=<dir> writes each copy as read, before keying.
+  if (const char* dir = std::getenv("PETARI_EDITOR_THUMB_DUMP"); dir && *dir) {
+    static int serial = 0;
+    std::vector<unsigned char> rgb;
+    for (size_t i = 0; i + 3 < out.rgba.size(); i += 4) rgb.insert(rgb.end(), {out.rgba[i], out.rgba[i + 1], out.rgba[i + 2]});
+    PetariNative::writePngRgb(std::string(dir) + "/thumb-" + std::to_string(serial++) + "-" + std::to_string(reinterpret_cast<uintptr_t>(copy) & 0xffffff) + ".png", out.width, out.height, rgb.data());
+  }
+  for (size_t i = 0; i + 3 < out.rgba.size(); i += 4) {
+    // The key colour (and its near neighbours, from filtering at the edges) is the background.
+    if (out.rgba[i] > 240 && out.rgba[i + 1] < 16 && out.rgba[i + 2] > 240) {
+      out.rgba[i] = out.rgba[i + 1] = out.rgba[i + 2] = out.rgba[i + 3] = 0;
+    } else {
+      out.rgba[i + 3] = 255;
+    }
+  }
+  return true;
+}
+
+// Main thread, in take(): requested copies the GPU has made are read back on the render worker.
+void serviceReadbacks() {
+  if (gReadbackRequests.empty()) return;
+  const auto& copies = aurora::gx::g_gxState.copyTextures;
+  for (size_t i = 0; i < gReadbackRequests.size();) {
+    auto& [address, framesLeft] = gReadbackRequests[i];
+    const auto it = copies.find(address);
+    if (it != copies.end() && it->second) {
+      aurora::gfx::render_worker::enqueue_work([address = address, texture = it->second.handle] {
+        Readback result;
+        if (readRgba(texture, result, address)) {
+          std::lock_guard<std::mutex> lock(gReadbackMutex);
+          gReadbackDone.emplace_back(address, std::move(result));
+        }
+      });
+      gReadbackRequests.erase(gReadbackRequests.begin() + static_cast<long>(i));
+    } else if (--framesLeft <= 0) {
+      gReadbackRequests.erase(gReadbackRequests.begin() + static_cast<long>(i));
+    } else {
+      i++;
+    }
+  }
+}
+
+bool readXfb(const aurora::gfx::TextureHandle& xfb, std::vector<unsigned char>& rgb, uint32_t& width, uint32_t& height) {
+  PetariNative::HostAllocationScope host;
+  using aurora::webgpu::g_device;
+  using aurora::webgpu::g_queue;
+  width = xfb->size.width;
+  height = xfb->size.height;
+  const uint64_t bytes = uint64_t(width) * height * 4;
+  static wgpu::ComputePipeline* pipeline = nullptr;
+  if (!pipeline) {
+    const wgpu::ShaderSourceWGSL wgsl{wgpu::ShaderSourceWGSL::Init{.code = kXfbShader}};
+    const wgpu::ShaderModuleDescriptor moduleDesc{.nextInChain = &wgsl, .label = "Petari XFB dump"};
+    const auto module = g_device.CreateShaderModule(&moduleDesc);
+    const wgpu::ComputePipelineDescriptor pipelineDesc{
+        .label = "Petari XFB dump", .compute = wgpu::ComputeState{.module = module, .entryPoint = "main"}};
+    pipeline = new wgpu::ComputePipeline(g_device.CreateComputePipeline(&pipelineDesc));
+  }
+  const wgpu::BufferDescriptor storageDesc{
+      .label = "Petari XFB dump storage", .usage = wgpu::BufferUsage::Storage | wgpu::BufferUsage::CopySrc, .size = bytes};
+  const auto storage = g_device.CreateBuffer(&storageDesc);
+  const wgpu::BufferDescriptor readDesc{
+      .label = "Petari XFB dump readback", .usage = wgpu::BufferUsage::MapRead | wgpu::BufferUsage::CopyDst, .size = bytes};
+  const auto readback = g_device.CreateBuffer(&readDesc);
+  const std::array entries{wgpu::BindGroupEntry{.binding = 0, .textureView = xfb->sampleTextureView},
+                           wgpu::BindGroupEntry{.binding = 1, .buffer = storage, .size = bytes}};
+  const wgpu::BindGroupDescriptor bindDesc{
+      .label = "Petari XFB dump", .layout = pipeline->GetBindGroupLayout(0), .entryCount = entries.size(), .entries = entries.data()};
+  const auto binding = g_device.CreateBindGroup(&bindDesc);
+  const auto encoder = g_device.CreateCommandEncoder();
+  const auto pass = encoder.BeginComputePass();
+  pass.SetPipeline(*pipeline);
+  pass.SetBindGroup(0, binding);
+  pass.DispatchWorkgroups((width + 7) / 8, (height + 7) / 8);
+  pass.End();
+  encoder.CopyBufferToBuffer(storage, 0, readback, 0, bytes);
+  const auto commands = encoder.Finish();
+  g_queue.Submit(1, &commands);
+  std::atomic<int> state{0};
+  readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,
+                    [&state](wgpu::MapAsyncStatus status, wgpu::StringView) { state = status == wgpu::MapAsyncStatus::Success ? 1 : -1; });
+  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (state == 0 && std::chrono::steady_clock::now() < deadline) {
+    aurora::webgpu::g_instance.ProcessEvents();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  if (state != 1) {
+    std::fprintf(stderr, "Petari XFB dump: readback failed\n");
+    return false;
+  }
+  const auto* data = static_cast<const uint32_t*>(readback.GetConstMappedRange(0, bytes));
+  rgb.clear();
+  rgb.reserve(size_t(width) * height * 3);
+  for (size_t i = 0; i < size_t(width) * height; ++i) {
+    rgb.push_back(static_cast<unsigned char>(data[i] >> 16));
+    rgb.push_back(static_cast<unsigned char>(data[i] >> 8));
+    rgb.push_back(static_cast<unsigned char>(data[i]));
+  }
+  readback.Unmap();
+  return true;
+}
+
+void dumpXfb(aurora::gfx::TextureHandle xfb, std::string path) {
+  std::vector<unsigned char> rgb;
+  uint32_t width = 0, height = 0;
+  if (readXfb(xfb, rgb, width, height)) PetariNative::writePngRgb(path, width, height, rgb.data());
+}
+
+
+// --- Opt-in dump of the final window image (PETARI_SURFACE_DUMP=<dir>), free when unset. ------
+// Unlike PETARI_XFB_DUMP (the game's frame only) this includes everything drawn over it: the Home menu,
+// progress badges and other ImGui overlays. Same schedule as the XFB dump: PETARI_SURFACE_DUMP_EVERY frames
+// (default 20), up to _SPAN frames (default 400) after each phase mark whose label is in _LABELS (default
+// "idle,walk,jump,dome-ready,dome-select"). Files: <dir>/surface-<label>-<index>.png.
+struct SurfaceDumpConfig {
+  std::string dir, labels = "idle,walk,jump,dome-ready,dome-select";
+  unsigned long every = 20, span = 400;
+  bool enabled = false;
+};
+const SurfaceDumpConfig& surfaceDumpConfig() {
+  static const SurfaceDumpConfig config = [] {
+    SurfaceDumpConfig c;
+    if (const char* dir = std::getenv("PETARI_SURFACE_DUMP"); dir && *dir) {
+      c.dir = dir;
+      c.enabled = true;
+      if (const char* v = std::getenv("PETARI_SURFACE_DUMP_LABELS")) c.labels = v;
+      if (const char* v = std::getenv("PETARI_SURFACE_DUMP_EVERY")) c.every = std::max(1ul, std::strtoul(v, nullptr, 10));
+      if (const char* v = std::getenv("PETARI_SURFACE_DUMP_SPAN")) c.span = std::strtoul(v, nullptr, 10);
+    }
+    return c;
+  }();
+  return config;
+}
+
+// PETARI_XFB_HASH=<file>: one line per presented frame, "<index> <black|xfb> <dim> <hash>" (FNV-1a 64 of the
+// RGB image), for the first PETARI_XFB_HASH_FRAMES (default 6000) frames. Compares presentation modes
+// without storing images. Lines may be out of order; sort by index.
+struct HashConfig {
+  std::string path;
+  uint64_t frames = 6000;
+  bool enabled = false;
+};
+const HashConfig& hashConfig() {
+  static const HashConfig config = [] {
+    HashConfig c;
+    if (const char* p = std::getenv("PETARI_XFB_HASH"); p && *p) {
+      c.path = p;
+      c.enabled = true;
+      if (const char* v = std::getenv("PETARI_XFB_HASH_FRAMES")) c.frames = std::strtoull(v, nullptr, 10);
+    }
+    return c;
+  }();
+  return config;
+}
+std::mutex gHashMutex;
+void hashLine(uint64_t index, const char* kind, float dim, uint64_t hash) {
+  std::lock_guard<std::mutex> lock(gHashMutex);
+  if (std::FILE* file = std::fopen(hashConfig().path.c_str(), "a")) {
+    std::fprintf(file, "%llu %s %.3f %016llx\n", static_cast<unsigned long long>(index), kind, static_cast<double>(dim),
+                 static_cast<unsigned long long>(hash));
+    std::fclose(file);
+  }
+}
+void hashFrame(uint64_t index, const Frame& frame) {
+  if (frame.black || !frame.xfb) {
+    hashLine(index, "black", frame.dimOpacity, 0);
+    return;
+  }
+  aurora::gfx::render_worker::enqueue_work([index, xfb = frame.xfb, dim = frame.dimOpacity] {
+    std::vector<unsigned char> rgb;
+    uint32_t width = 0, height = 0;
+    uint64_t hash = 14695981039346656037ULL;
+    if (readXfb(xfb, rgb, width, height)) {
+      for (unsigned char c : rgb) hash = (hash ^ c) * 1099511628211ULL;
+    }
+    hashLine(index, "xfb", dim, hash);
+  });
+}
+
+// Main thread, once per presented frame with an XFB.
+void maybeDumpXfb(const aurora::gfx::TextureHandle& xfb) {
+  // Photo mode's screenshot (petari/screenshot.hpp): this frame, once.
+  if (PetariNative::Screenshot::pending.load(std::memory_order_acquire)) {
+    std::string path = PetariNative::Screenshot::path;
+    PetariNative::Screenshot::pending.store(false, std::memory_order_release);
+    aurora::gfx::render_worker::enqueue_work([xfb, path = std::move(path)] {
+      std::vector<unsigned char> rgb;
+      uint32_t width = 0, height = 0;
+      bool ok = readXfb(xfb, rgb, width, height);
+      if (ok) {
+        PetariNative::writePngRgb(path, width, height, rgb.data());
+        std::FILE* written = std::fopen(path.c_str(), "rb");
+        ok = written != nullptr;
+        if (written) std::fclose(written);
+      }
+      std::fprintf(stderr, "[photo] screenshot %s: %s (%ux%u)\n", ok ? "saved" : "FAILED", path.c_str(), width, height);
+    });
+  }
+  const auto& config = xfbDumpConfig();
+  if (!config.enabled) return;
+  static uint64_t seenMark = 0, sinceMark = 0;
+  static const char* label = "none";
+  static bool directoryMade = false;
+  const auto counter = PetariNative::EfbDump::markCounter.load(std::memory_order_acquire);
+  if (counter != seenMark) {
+    seenMark = counter;
+    sinceMark = 0;
+    label = PetariNative::EfbDump::markLabel.load(std::memory_order_acquire);
+  }
+  const auto index = sinceMark++;
+  if (index >= config.span || index % config.every != 0) return;
+  if (!labelListed(config.labels, label)) return;
+  if (!directoryMade) {
+    if (std::system(("mkdir -p '" + config.dir + "'").c_str()) != 0) return;
+    directoryMade = true;
+  }
+  auto path = config.dir + "/xfb-" + label + "-" + std::to_string(index) + ".png";
+  aurora::gfx::render_worker::enqueue_work([xfb, path = std::move(path)] { dumpXfb(xfb, path); });
+}
+
+}  // namespace
+
+Frame takeImpl() noexcept {
+  Frame frame;
+  if (!gEnabled) {
+    return frame;
+  }
+  frame.active = true;
+  frame.aspectWidth = gVideo.aspectWidth != 0 ? gVideo.aspectWidth : 4;
+  frame.aspectHeight = gVideo.aspectHeight != 0 ? gVideo.aspectHeight : 3;
+  effectiveAspect(&frame.aspectWidth, &frame.aspectHeight);
+  if (!gVideo.configured || gVideo.black || gVideo.xfb == nullptr) {
+    return frame;
+  }
+  const auto& copies = aurora::gx::g_gxState.copyTextures;
+  const auto it = copies.find(gVideo.xfb);
+  if (it == copies.end() || !it->second) {
+    // An XFB the GPU never copied to (for example one written by the CPU)
+    // cannot be shown.
+    if (gMissingXfb != gVideo.xfb) {
+      gMissingXfb = gVideo.xfb;
+      std::fprintf(stderr, "Petari present: XFB %p has no display copy; showing black\n", gVideo.xfb);
+    }
+    return frame;
+  }
+  frame.black = false;
+  frame.xfb = it->second.handle;
+  maybeDumpXfb(frame.xfb);
+  frame.dimOpacity = gVideo.dimmed ? kDimOpacity : 0.0f;
+  if (traceSizes()) {
+    traceFrame(frame);
+  }
+  return frame;
+}
+
+Frame take() noexcept {
+  requestAreaResizeIfSettled();
+  serviceReadbacks();
+  Frame frame = takeImpl();
+  if (frame.active && hashConfig().enabled) {
+    static uint64_t presented = 0;
+    const uint64_t index = presented++;
+    if (index < hashConfig().frames) hashFrame(index, frame);
+  }
+  return frame;
+}
+
+void surface_dump_prepare() noexcept {
+  const auto& config = surfaceDumpConfig();
+  static bool done = false;
+  if (!config.enabled || done) return;
+  done = true;
+  // The surface is created render-only; reconfigure once with copy-source usage so it can be read back.
+  using namespace aurora::webgpu;
+  g_graphicsConfig.surfaceConfiguration.usage |= wgpu::TextureUsage::CopySrc;
+  auto configuration = g_graphicsConfig.surfaceConfiguration;
+  configuration.device = g_device;
+  g_surface.Configure(&configuration);
+}
+
+std::function<void()> surface_dump_encode(const wgpu::CommandEncoder& encoder, const wgpu::Texture& texture) noexcept {
+  const auto& config = surfaceDumpConfig();
+  if (!config.enabled || !texture) return {};
+  static uint64_t seenMark = 0, sinceMark = 0;
+  static const char* label = "none";
+  static bool directoryMade = false;
+  const auto counter = PetariNative::EfbDump::markCounter.load(std::memory_order_acquire);
+  if (counter != seenMark) {
+    seenMark = counter;
+    sinceMark = 0;
+    label = PetariNative::EfbDump::markLabel.load(std::memory_order_acquire);
+  }
+  const auto index = sinceMark++;
+  if (index >= config.span || index % config.every != 0) return {};
+  if (!labelListed(config.labels, label)) return {};
+  if (!directoryMade) {
+    if (std::system(("mkdir -p '" + config.dir + "'").c_str()) != 0) return {};
+    directoryMade = true;
+  }
+  if (!(texture.GetUsage() & wgpu::TextureUsage::CopySrc)) return {};
+  PetariNative::HostAllocationScope host;
+  const uint32_t width = texture.GetWidth(), height = texture.GetHeight();
+  const bool bgra = texture.GetFormat() == wgpu::TextureFormat::BGRA8Unorm;
+  const uint32_t rowBytes = (width * 4 + 255) / 256 * 256;
+  const uint64_t bytes = uint64_t(rowBytes) * height;
+  const wgpu::BufferDescriptor readDesc{
+      .label = "Petari surface dump", .usage = wgpu::BufferUsage::MapRead | wgpu::BufferUsage::CopyDst, .size = bytes};
+  const auto readback = aurora::webgpu::g_device.CreateBuffer(&readDesc);
+  const wgpu::TexelCopyTextureInfo source{.texture = texture};
+  const wgpu::TexelCopyBufferInfo destination{.layout = {.bytesPerRow = rowBytes, .rowsPerImage = height}, .buffer = readback};
+  const wgpu::Extent3D extent{width, height, 1};
+  encoder.CopyTextureToBuffer(&source, &destination, &extent);
+  auto path = config.dir + "/surface-" + label + "-" + std::to_string(index) + ".png";
+  return [readback, bytes, width, height, rowBytes, bgra, path = std::move(path)] {
+    PetariNative::HostAllocationScope scope;
+    std::atomic<int> state{0};
+    readback.MapAsync(wgpu::MapMode::Read, 0, bytes, wgpu::CallbackMode::AllowSpontaneous,
+                      [&state](wgpu::MapAsyncStatus status, wgpu::StringView) { state = status == wgpu::MapAsyncStatus::Success ? 1 : -1; });
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (state == 0 && std::chrono::steady_clock::now() < deadline) {
+      aurora::webgpu::g_instance.ProcessEvents();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    if (state != 1) {
+      std::fprintf(stderr, "Petari surface dump: readback failed for %s\n", path.c_str());
+      return;
+    }
+    const auto* data = static_cast<const unsigned char*>(readback.GetConstMappedRange(0, bytes));
+    std::vector<unsigned char> rgb;
+    rgb.reserve(size_t(width) * height * 3);
+    for (uint32_t y = 0; y < height; ++y) {
+      const unsigned char* row = data + size_t(y) * rowBytes;
+      for (uint32_t x = 0; x < width; ++x) {
+        rgb.push_back(row[x * 4 + (bgra ? 2 : 0)]);
+        rgb.push_back(row[x * 4 + 1]);
+        rgb.push_back(row[x * 4 + (bgra ? 0 : 2)]);
+      }
+    }
+    readback.Unmap();
+    PetariNative::writePngRgb(path, width, height, rgb.data());
+  };
+}
+
+bool bind_image(const Frame& frame, wgpu::BindGroup& out) noexcept {
+  if (frame.black || !frame.xfb) {
+    return false;
+  }
+  out = aurora::webgpu::create_copy_bind_group(xfb_source(*frame.xfb));
+  return true;
+}
+
+void draw_dim(const wgpu::RenderPassEncoder& pass, const Frame& frame) noexcept {
+  using namespace aurora::webgpu;
+  if (!gDimTexture) {
+    const wgpu::TextureDescriptor descriptor{
+        .label = "Petari VI dimming",
+        .usage = wgpu::TextureUsage::TextureBinding | wgpu::TextureUsage::CopyDst,
+        .dimension = wgpu::TextureDimension::e2D,
+        .size = {1, 1, 1},
+        .format = wgpu::TextureFormat::RGBA8Unorm,
+    };
+    gDimTexture = g_device.CreateTexture(&descriptor);
+    gDimView = gDimTexture.CreateView();
+    const uint8_t pixel[4] = {0, 0, 0, static_cast<uint8_t>(kDimOpacity * 255.0f + 0.5f)};
+    const wgpu::TexelCopyTextureInfo destination{.texture = gDimTexture};
+    const wgpu::TexelCopyBufferLayout layout{.bytesPerRow = 4, .rowsPerImage = 1};
+    const wgpu::Extent3D size{1, 1, 1};
+    g_queue.WriteTexture(&destination, pixel, sizeof(pixel), &layout, &size);
+  }
+  (void)frame;
+  const TextureWithSampler source{
+      .texture = gDimTexture,
+      .view = gDimView,
+      .size = {1, 1, 1},
+      .format = wgpu::TextureFormat::RGBA8Unorm,
+      .sampler = present_source().sampler,
+  };
+  pass.SetPipeline(g_CopyPremultipliedAlphaPipeline);
+  pass.SetBindGroup(0, create_copy_bind_group(source), 0, nullptr);
+  pass.Draw(3);
+}
+
+aurora::webgpu::Viewport present_viewport(uint32_t surfaceWidth, uint32_t surfaceHeight, uint32_t contentWidth,
+                                          uint32_t contentHeight) noexcept {
+  using aurora::webgpu::calculate_present_viewport;
+  if (!gArea.set) {
+    return calculate_present_viewport(surfaceWidth, surfaceHeight, contentWidth, contentHeight);
+  }
+  // Window points to drawable pixels.
+  const AuroraWindowSize window = aurora::window::get_window_size();
+  if (window.width == 0 || window.height == 0) {
+    return calculate_present_viewport(surfaceWidth, surfaceHeight, contentWidth, contentHeight);
+  }
+  const float sx = static_cast<float>(surfaceWidth) / static_cast<float>(window.width);
+  const float sy = static_cast<float>(surfaceHeight) / static_cast<float>(window.height);
+  const float left = std::clamp(gArea.x * sx, 0.f, static_cast<float>(surfaceWidth));
+  const float top = std::clamp(gArea.y * sy, 0.f, static_cast<float>(surfaceHeight));
+  const auto width = static_cast<uint32_t>(std::clamp(gArea.width * sx, 1.f, static_cast<float>(surfaceWidth) - left));
+  const auto height = static_cast<uint32_t>(std::clamp(gArea.height * sy, 1.f, static_cast<float>(surfaceHeight) - top));
+  auto viewport = calculate_present_viewport(width, height, contentWidth, contentHeight);
+  viewport.left += std::floor(left);
+  viewport.top += std::floor(top);
+  return viewport;
+}
+
+}  // namespace petari_present
+
+extern "C" {
+
+void petari_present_enable(void) {
+  petari_present::gEnabled = true;
+  if (!petari_present::gAspectEnabled.exchange(true)) {
+    aurora::window::request_frame_buffer_resize();
+  }
+}
+
+int petari_present_content_aspect(unsigned* width, unsigned* height) {
+  if (!petari_present::gAspectEnabled.load()) {
+    return 0;
+  }
+  *width = petari_present::gAspectWidth.load();
+  *height = petari_present::gAspectHeight.load();
+  if (petari_present::gFreeAspect && petari_present::gAreaSet.load()) {
+    const unsigned w = petari_present::gAreaPixelWidth.load(), h = petari_present::gAreaPixelHeight.load();
+    if (w != 0 && h != 0) {
+      *width = w;
+      *height = h;
+    }
+  }
+  return 1;
+}
+
+void petari_present_set_video(const PetariPresentVideo* video) {
+  petari_present::gVideo = *video;
+  petari_present::setContentAspect(video->aspectWidth, video->aspectHeight);
+}
+
+void petari_present_set_content_area(float x, float y, float width, float height) {
+  using namespace petari_present;
+  const bool set = width > 0.f && height > 0.f;
+  const bool sizeChanged = set != gArea.set || (set && (std::fabs(width - gArea.width) >= 0.5f ||
+                                                        std::fabs(height - gArea.height) >= 0.5f));
+  gArea = set ? ContentArea{true, x, y, width, height} : ContentArea{};
+  if (!sizeChanged) {
+    return;
+  }
+  const AuroraWindowSize window = aurora::window::get_window_size();
+  const float scale = window.width != 0 ? static_cast<float>(window.native_fb_width) / static_cast<float>(window.width) : 1.f;
+  gAreaPixelWidth.store(set ? static_cast<unsigned>(std::lround(width * scale)) : 0u);
+  gAreaPixelHeight.store(set ? static_cast<unsigned>(std::lround(height * scale)) : 0u);
+  gAreaSet.store(set);
+  gAreaResizePending = true;
+  gAreaChanged = std::chrono::steady_clock::now();
+}
+
+void petari_present_request_readback(const void* copy) {
+  PetariNative::HostAllocationScope host;
+  petari_present::gReadbackRequests.emplace_back(copy, 8);
+}
+
+int petari_present_take_readback(const void* copy, unsigned char* rgba, unsigned capacity, unsigned* width, unsigned* height) {
+  using namespace petari_present;
+  std::lock_guard<std::mutex> lock(gReadbackMutex);
+  for (size_t i = 0; i < gReadbackDone.size(); i++) {
+    if (gReadbackDone[i].first != copy) continue;
+    const Readback& r = gReadbackDone[i].second;
+    *width = r.width;
+    *height = r.height;
+    if (rgba == nullptr || capacity < r.rgba.size()) return -1;  // too small: the size is reported, the image kept
+    std::memcpy(rgba, r.rgba.data(), r.rgba.size());
+    gReadbackDone.erase(gReadbackDone.begin() + static_cast<long>(i));
+    return 1;
+  }
+  return 0;
+}
+
+void petari_present_set_free_aspect(int enabled) {
+  using namespace petari_present;
+  if (gFreeAspect != (enabled != 0)) {
+    gFreeAspect = enabled != 0;
+    gAreaResizePending = true;  // the EFB changes shape
+    gAreaChanged = std::chrono::steady_clock::time_point{};
+  }
+}
+
+int petari_present_content_area_pixels(unsigned* width, unsigned* height) {
+  using namespace petari_present;
+  if (!gAreaSet.load()) {
+    return 0;
+  }
+  *width = gAreaPixelWidth.load();
+  *height = gAreaPixelHeight.load();
+  return *width != 0 && *height != 0;
+}
+
+int petari_present_image_rect(float* x, float* y, float* width, float* height) {
+  using namespace aurora::webgpu;
+  const uint32_t surfaceWidth = g_graphicsConfig.surfaceConfiguration.width;
+  const uint32_t surfaceHeight = g_graphicsConfig.surfaceConfiguration.height;
+  const auto& video = petari_present::gVideo;
+  unsigned aspectWidth = video.aspectWidth != 0 ? video.aspectWidth : 4;
+  unsigned aspectHeight = video.aspectHeight != 0 ? video.aspectHeight : 3;
+  petari_present::effectiveAspect(&aspectWidth, &aspectHeight);
+  const Viewport viewport = petari_present::present_viewport(surfaceWidth, surfaceHeight, aspectWidth, aspectHeight);
+  const AuroraWindowSize window = aurora::window::get_window_size();
+  if (viewport.width <= 0.f || viewport.height <= 0.f || window.native_fb_width == 0 || window.native_fb_height == 0) {
+    return 0;
+  }
+  // Surface pixels to window points.
+  const float sx = static_cast<float>(window.width) / static_cast<float>(window.native_fb_width);
+  const float sy = static_cast<float>(window.height) / static_cast<float>(window.native_fb_height);
+  *x = viewport.left * sx;
+  *y = viewport.top * sy;
+  *width = viewport.width * sx;
+  *height = viewport.height * sy;
+  return 1;
+}
+
+}  // extern "C"

@@ -1,0 +1,227 @@
+# Whole-game stage sweep
+
+Unattended crash/hang/heap/shader/perf coverage for every galaxy and mission.
+
+**Synthetic entry.** A run loads a saved file and the game's own after-loading
+galaxy move (`GalaxyMoveArgument` type 6, `StorySequenceExecutor::
+overwriteGalaxyNameAfterLoading`) goes to the requested stage and scenario
+instead of the observatory, with the scenario set as `ScenarioSelectScene::
+trySetCurrentScenarioNo` would (hidden stars placed in their host scenario).
+Only the observatory fixture's post-tutorial flags are applied; other galaxies'
+stars, comets and unlock flags are unchanged. A PASS says the stage loads and
+runs under basic input. It makes no claim about progression, how a player
+reaches the stage, or completing the mission.
+
+## Pieces
+
+- `--test-fixture stage` (native/app/app_main.cpp) with `PETARI_STAGE=<Stage>`
+  and `PETARI_SCENARIO=<n>`: requires an explicit `--user` whose
+  `.petari-test-fixture` contains `stage` (never the normal user directory),
+  and a `StageData/<Stage>/<Stage>Scenario.arc` on the disc. Create one with
+  `native/tools/create_observatory_fixture.py --kind stage`.
+- `PETARI_SMOKE=stage` (native/app/smoke_stage.hpp): the reload script through
+  title and file select, then load → ready → idle, four walks, jump, spin,
+  camera left/right, pause/paused-stick/resume, `PETARI_STAGE_IDLE_FRAMES`
+  (600) idle frames. Movement and camera checks are warnings, not verdicts.
+  Requires `--test-fixture stage`. Tests: `native_app_smoke_stage`.
+- `native/tools/stage_sweep.py`: enumerates stages and scenarios from the disc
+  (scenariodata.bcsv; domes from AstroDome placement layers A–F and the hidden
+  galaxies' `Appear<Galaxy>` flags), runs each with a per-run alarm, and
+  classifies the log and exit status.
+
+## Running
+
+```sh
+python3 native/tools/stage_sweep.py list --domes 1,2 --scenarios 1-3
+python3 native/tools/stage_sweep.py run --domes 1,2 --scenarios 1-3 --name batch1
+python3 native/tools/stage_sweep.py run --stages HoneyBeeKingdomGalaxy --scenarios 2 --name repro --rerun
+python3 native/tools/stage_sweep.py reanalyze --name batch1   # re-parse logs with the current parser
+```
+
+Each sweep freezes a private copy of the app bundle (`<sweep>/app/`, sha256 in
+`app.json` and every result) so concurrent rebuilds of `build/macos-gx` cannot
+mix binaries into one sweep; `--refreeze-app` takes a new copy. Every run
+starts from a fresh fixture user directory (NAND copied from `--source`) plus a
+one-time SQLite snapshot of `--pipeline-cache-from`'s pipeline/Dawn caches
+(`--cold` for none), so first-use shader counts are comparable across runs.
+Bundled seeds come from the frozen app. `--seed-dir` snapshots an explicit alternative.
+
+Output: `build/stage-sweep/<name>/runs/<Stage>-s<n>/{app.log,frames.csv,
+result.json,command.txt,user/Crashes}`, and `results.json`, `results.csv`,
+`summary.md` for the sweep. Existing results are skipped unless `--rerun`. A
+run whose app could not be executed writes `infra.json` (no result) and stops
+the sweep.
+
+## Outcomes
+
+| Outcome | Meaning |
+| --- | --- |
+| PASS / PASS_WARN | driver PASS, exit 0; PASS_WARN when a movement/camera check warned |
+| PASS_RENDER_ERRORS | PASS, but renderer error lines or failed pipeline compiles in the log |
+| CRASH / HEAP | crash report (signal, last panic, top frames); HEAP when a native heap allocation failed |
+| HANG / SHUTDOWN_HANG | watchdog exit 124 (no frame for the stall limit; stacks sampled into `user/Crashes`) / 125 |
+| TIMEOUT | the per-run alarm fired |
+| NOT_READY, DIED, LEFT_STAGE, PAUSE_FAIL, ENTRY_FAIL, BOOT_FAIL, PLAYER_VANISHED, FRAME_LIMIT, FAIL | driver FAIL, by reason |
+| MISSING_ASSET | the seam failed a PASS because layout/sound lookups missed; the `[layout]`/`[sound] missing` pairs are listed |
+| NON_GAMEPLAY | a stage with no gameplay by design (EpilogueDemoStage, the ending movie) loaded and ran to the ready limit without a crash; not a pass |
+| BLOCKED | a system prompt appeared |
+| ASSISTED | physical gameplay input during the run |
+
+Per run the summary also reports load-to-ready seconds, gameplay frame times
+(ready → end: p50/p95/p99/max, frames over 20.85 ms), first-use pipeline
+configs attributed to the stage (and how many the seed manifest did not
+cover), blocking pipeline resolves (count and worst ms), and heap headroom
+after the stage's scene initialization (`[heap]` reports).
+
+## Placement warps and race probes
+
+`--env PETARI_STAGE_WARP=x,y,z` requests one synthetic warp after readiness.
+The native hook also accepts `name:<GeneralPos>` for a loaded named position.
+These runs do not validate walking to the destination.
+
+`--warp-placement 'NAME[:FIELD=integer][@index]'` resolves the position from
+placement or GeneralPos data in the root zone, filtering layers by the selected scenario.
+For GeneralPos, the selector may be its PosName (for example `ゴーストデモマリオ位置`).
+It rejects missing or ambiguous matches unless a zero-based index is given.
+It records the archive, table path, row, scenario mask and coordinates in
+`runs/<stage>-s<n>/warp-placement.json`. Subzone transforms are not supported;
+subzone-local coordinates are never silently used as world coordinates.
+Explicit warp/environment runs cannot reuse an ordinary baseline result.
+
+Cosmic Mario appears when a SwitchCube sets the GhostPlayer's SW_APPEAR.
+The active trigger selectors for scenario 4 are listed below. Honeyhive and
+Gold Leaf additionally require Mario to be grounded (Obj_arg2=0), so an area
+origin alone does not provide a safe grounded spawn. The Honeyhive origin
+probe fell below terrain and died before triggering the race. `ゴーストデモマリオ位置` resolves the authored
+Mario demo position in all three stages; this is also a candidate warp target.
+Honeyhive, Freezeflame and Gold Leaf race activation was observed in the rows-v1/v2
+probes (full 663-frame intro followed by control release). All idle race probes
+ended DIED and are excluded from PASS-only cache merging. Each new run must still establish its own activation evidence.
+
+
+| Stage | Selector |
+| --- | --- |
+| HoneyBeeKingdomGalaxy | `SwitchCube:SW_A=12@0` |
+| IceVolcanoGalaxy | `SwitchCube:SW_A=4@0` |
+| ReverseKingdomGalaxy | `SwitchCube:SW_A=7@0` |
+
+Example (synthetic race-trigger entry, live verification required):
+
+```sh
+python3 native/tools/stage_sweep.py run --stages HoneyBeeKingdomGalaxy --scenarios 4 --name honey-race --warp-placement 'ゴーストデモマリオ位置' --idle-frames 3600 --env PETARI_STAGE_PROBE=1
+```
+
+A stage PASS before the race starts is not race coverage. A DIED result after
+losing a race remains DIED, even if it demonstrates survival beyond an earlier
+renderer crash. Record actual race start/end evidence and elapsed duration.
+Every sweep enables `PETARI_AUDIO_DIAG=1`; summaries retain underrun frames,
+replayed blocks and DSP holds, with AUDIO-CHOPPY above one hold per second.
+
+## Background automation
+
+Smoke scripts and explicit test fixtures default to `PETARI_SMOKE_BACKGROUND=1`.
+The app requests no activation, uses an accessory application with a nonfocusable background window, ignores
+physical keyboard/mouse/controller/touch input before Aurora sees it, and keeps
+driver input logically focused. VI and audio continue normally; startup pacing
+uses the precise delay even without focus. The ASSISTED check remains unchanged.
+Frame CSV still records actual lack of window focus; it is not forged as focused.
+`result.json` records `background_smoke` from the app's startup marker. Background
+performance still requires absence of competing apps/builds and live validation.
+
+Set `PETARI_SMOKE_BACKGROUND=0` explicitly for human-controlled fixture playtests
+or visible foreground diagnostics; physical input and ASSISTED detection then
+behave as before. An ordinary non-fixture, non-smoke launch stays interactive.
+
+Background validation: `build/stage-sweep/background-live-v3` passed EggStar s1
+with all 1,457 measured frames unfocused, 0 physical assistance and fault-free
+audio. The external System Events monitor never reported Petari frontmost.
+LaunchServices (and a fresh NSWorkspace query) can nevertheless report Petari as
+frontmost while System Events reports the user's app; this is a known observer
+discrepancy. Use System Events together with actual window-focus and input
+telemetry for this check, not LaunchServices alone. The extra monitor makes this
+run instrumentation evidence rather than a timing baseline.
+
+## Concurrent functional runs
+
+`--jobs 1..3` schedules bounded scenarios concurrently. Run timing/audio
+measurements with `--jobs 1` on an otherwise idle machine, one app at a time,
+with no concurrent builds. Parallel batches and detected overlaps are marked as not
+performance evidence; no gameplay verdict is relaxed. Results publish atomically.
+
+Background mode now also requests a never-shown window and gain-zero SDL output.
+The full JAudio2/DSP/DMA pipeline, producer ring and physical device callback
+remain active, so muted output does not bypass audio diagnostics.
+
+Single-instance validation: `build/stage-sweep/isolation-hidden-v2` passed EggStar
+s1 on executable SHA256 `03845df64fe896be879bf49a818506c14fe9ddd28cd104319522fa436bf298d7`.
+There were 110 on-screen window inventories with zero visible windows and no
+observer errors, 1,457 gameplay frames, 4,371 EFB captures, zero physical
+assistance and zero renderer errors. Audio diagnostics covered 56.3 seconds with
+zero underruns, replayed blocks or DSP holds. Open Metal and Dawn cache files
+were confined to the fixture cache; both SQLite databases passed integrity checks.
+
+This instrumented functional run averaged 17.97 ms per gameplay frame (55.6 fps),
+with p99 43.55 ms. Compared with an earlier visible background run on a different
+binary, increases were mainly game work and draw completion waits; drawable
+acquisition and presentation remained small. This does not establish that hidden
+windows cause the slowdown. Three-instance validation remains pending.
+
+Background storage uses `<user>/cache` (or `PETARI_CACHE_DIR`). Exclusive directory
+locks reject concurrent reuse of a fixture or cache. Dawn and pipeline SQLite
+seeds are read-only snapshots. The native Metal cache uses a unique Darwin
+namespace linked to `<cache>/metal`, seeded by independent copies/APFS clones
+of the warm shared cache; no changes are copied back. TMPDIR uses `<cache>/tmp`; frameworks using Darwin temporary paths get a
+separate, OS-managed namespace with the same unique suffix. The sweep preserves captured pipeline configurations at the
+existing `user/pipeline_cache.db` location and normally removes disposable
+Dawn/Metal caches after the app exits; `--keep-user` retains them for inspection.
+
+NAND, settings and crash/hang reports already use the explicit fixture directory.
+Each scenario has its own log and frame CSV. Inherited soak/spike diagnostic
+paths are redirected to that scenario. Explicit additional diagnostic outputs
+must likewise be unique. Tracy is disabled in the current native build.
+
+## Pipeline policy, shader seed, contention
+
+- `--pipeline-policy blocking|default` (default `blocking`) sets `PETARI_PIPELINE_POLICY`.
+  The app's own default skips draws whose pipeline is uncompiled after ~6 ms and gates
+  stages for 1.5 s; skipped draws can hide renderer failures, so coverage evidence
+  (EFB captures, first-use/uncovered counts, blocking resolves) uses blocking.
+  `default` is for functional pass/fail only. The policy the app reported is stored in
+  `results.json` as `shaders.pipeline_policy`.
+- Canonical shader seed: `build/shader-seed/<app sha[:16]>/{seed.json,metal/dev.petari.Petari}`.
+  `run --publish-shader-seed` publishes the first clean PASS run's private Metal cache;
+  later runs on the same build get `PETARI_SHADER_SEED_DIR` and each instance APFS-clones it
+  (read-only source, private writes). The app re-checks `seed.json.exe_sha256` against its own
+  executable; a missing/stale seed logs `PETARI SMOKE SHADER SEED: canonical unusable` and
+  falls back to cloning the shared Darwin cache. `shaders.compile_*` fields record compile queue
+  and build time and cache-hit count (builds under 20 ms).
+- `PETARI_SMOKE_QOS=1` (opt-in, background mode) declares NSProcessInfo user-initiated + latency-critical
+  activity and user-interactive thread QoS (`PETARI SMOKE QOS:` line). The on/off A/B showed no benefit
+  once machine load was controlled (hidden-run slowness was load, not App Nap), so it is off by default.
+- A runner timeout while `--jobs>1` or another Petari app was running is `INFRA_TIMEOUT`
+  (shared-machine contention, not a game failure; rerun quiet). A single quiet timeout stays `TIMEOUT`.
+
+## Warm shader seed for any live run (`warm_seed.py`)
+
+A fresh `--user` dir starts with no `dawn_cache.db`/`pipeline_cache.db` and the build has no Metal cache, so a run
+recompiles its pipelines (about 940 slow compiles, MTLCompilerService pinned) before it plays. `native/tools/warm_seed.py`
+publishes `build/shader-seed/<app sha16>/` (Metal + both databases, warmed on Good Egg, Ocean Ring, Koopa Battle 1 and the
+observatory; about 10 min, one publisher at a time, automatic on first use after a rebuild) and clones the databases into
+a run's user dir (copy-on-write, so runs stay isolated):
+
+```sh
+eval $(native/tools/warm_seed.py env --app <Petari binary>)                  # exports PETARI_SHADER_SEED_DIR (publishes if missing)
+native/tools/warm_seed.py prepare --app <Petari binary> --user <user dir>    # clone the warm databases in
+```
+
+Measured (Good Egg, one class, same build): slow compiles 939 -> 376, compile build time 306 s -> 90 s, longest compile
+queue 82 s -> 29 s, launch to first frame 168 s -> 56-63 s (the cold figure included contention from other runs).
+`class_sweep.py` uses it by default (`--no-warm-seed` to compare).
+
+## Frame-time benchmark (`perf_bench.py`)
+
+Timing evidence for the 60 fps work uses `native/tools/perf_bench.py`, not this sweep. It runs the same stage
+smoke, but with a quiet lock, a visible, focused window, a fixed private Metal cache path, and warm (team cache, APFS-cloned
+per run) or `--cold` shader caches, plus interleaved A/B with a noise estimate. See its `--help`.
+Metal cache entries written by background runs did not hit in foreground runs (2026-10-17), so warm numbers from
+background sweeps are not "warm" in the player's sense.

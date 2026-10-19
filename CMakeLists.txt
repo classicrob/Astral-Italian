@@ -1,0 +1,231 @@
+cmake_minimum_required(VERSION 3.25)
+project(MacioGalaxy2Native LANGUAGES C CXX ASM)
+
+if(APPLE AND NOT CMAKE_OSX_ARCHITECTURES)
+    set(CMAKE_OSX_ARCHITECTURES arm64 CACHE STRING "Target architecture" FORCE)
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Undo a BUILD_TESTING override left behind by a configure that failed inside native/gx.
+if(DEFINED CACHE{_PETARI_BUILD_TESTING_SAVED})
+    set(BUILD_TESTING "${_PETARI_BUILD_TESTING_SAVED}" CACHE BOOL "Build tests" FORCE)
+endif()
+option(PETARI_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
+include(native/cmake/LegacySources.cmake)
+
+add_library(petari_native_config INTERFACE)
+target_compile_definitions(petari_native_config INTERFACE GALAXY_NATIVE=1)
+target_include_directories(petari_native_config INTERFACE
+    "${PETARI_LEGACY_ROOT}/include"
+    "${PETARI_LEGACY_ROOT}/libs/RVL_SDK/include"
+    "${PETARI_LEGACY_ROOT}/libs/JSystem/include"
+    "${PETARI_LEGACY_ROOT}/libs/nw4r/include"
+    "${PETARI_LEGACY_ROOT}/libs/libms/include"
+    native/include include libs/RVL_SDK/include libs/JSystem/include libs/nw4r/include libs/libms/include)
+add_dependencies(petari_native_config petari_legacy_sources)
+target_compile_options(petari_native_config INTERFACE
+    -fno-strict-aliasing -ffp-contract=off -fcheck-new -Werror=return-type -Wno-register)
+if(PETARI_SANITIZERS)
+    target_compile_options(petari_native_config INTERFACE
+        -fsanitize=address,undefined -fno-omit-frame-pointer)
+    target_link_options(petari_native_config INTERFACE -fsanitize=address,undefined)
+endif()
+
+add_library(petari_core STATIC
+    native/src/mtx.cpp
+    native/src/intrinsics.cpp
+    src/JSystem/JAudio2/JASSeqReader.cpp
+    src/RVL_SDK/mtx/mtx.c
+    src/RVL_SDK/mtx/mtx44.c
+    src/RVL_SDK/mtx/quat.c
+    src/RVL_SDK/mtx/vec.c
+    src/JSystem/JMath/random.cpp
+    src/JSystem/JMath/JMath.cpp
+    src/JSystem/JMath/JMATrigonometric.cpp
+    src/Game/LiveActor/Nerve.cpp
+    src/Game/LiveActor/Spine.cpp
+    src/Game/LiveActor/ActorStateKeeper.cpp
+    src/Game/System/NerveExecutor.cpp)
+petari_encode_target_sources(petari_core)
+set_source_files_properties(
+    "${PETARI_LEGACY_ROOT}/src/RVL_SDK/mtx/mtx.c"
+    "${PETARI_LEGACY_ROOT}/src/RVL_SDK/mtx/quat.c"
+    "${PETARI_LEGACY_ROOT}/src/RVL_SDK/mtx/vec.c"
+    PROPERTIES LANGUAGE CXX)
+target_link_libraries(petari_core PUBLIC petari_native_config)
+
+file(GLOB_RECURSE PETARI_GAME_SOURCES CONFIGURE_DEPENDS src/Game/*.cpp)
+add_library(petari_game_objects OBJECT EXCLUDE_FROM_ALL ${PETARI_GAME_SOURCES})
+petari_encode_target_sources(petari_game_objects)
+# SMG1 BCSVInclude_native.S is absent in SMG2; embedded tables need a native adapter.
+target_include_directories(petari_game_objects PRIVATE "${CMAKE_SOURCE_DIR}")
+target_link_libraries(petari_game_objects PRIVATE petari_native_config)
+target_include_directories(petari_game_objects PRIVATE "${PETARI_LEGACY_ROOT}/libs/RVLFaceLib/include" libs/RVLFaceLib/include)
+target_compile_options(petari_game_objects PRIVATE -Wno-inconsistent-missing-override -fno-rtti)
+
+include(CTest)
+add_library(petari_host_runtime STATIC native/src/host_allocation.cpp native/src/asset_diagnostics.cpp native/text/utf16.cpp)
+target_link_libraries(petari_host_runtime PUBLIC petari_native_config)
+add_library(petari_memory STATIC native/memory/address_api.cpp native/memory/arena.cpp src/RVL_SDK/os/OSAlloc.c)
+petari_encode_target_sources(petari_memory)
+set_source_files_properties("${PETARI_LEGACY_ROOT}/src/RVL_SDK/os/OSAlloc.c" PROPERTIES LANGUAGE CXX)
+target_link_libraries(petari_memory PUBLIC petari_native_config petari_host_runtime)
+add_subdirectory(native/platform)
+add_subdirectory(native/memory/sdk_mem)
+add_subdirectory(native/input)
+add_subdirectory(native/resource/rfl)
+add_library(petari_boot STATIC native/memory/boot.cpp)
+target_link_libraries(petari_boot PUBLIC petari_memory petari_platform_os petari_platform_sc)
+add_library(petari_heaps STATIC
+    src/JSystem/JKernel/JKRHeap.cpp src/JSystem/JKernel/JKRExpHeap.cpp
+    src/JSystem/JKernel/JKRDisposer.cpp src/JSystem/JSupport/JSUList.cpp
+    src/JSystem/JKernel/JKRSolidHeap.cpp src/JSystem/JKernel/JKRUnitHeap.cpp
+    native/memory/unit_overrides.cpp native/memory/heap_overrides.cpp)
+petari_encode_target_sources(petari_heaps)
+target_link_libraries(petari_heaps PUBLIC petari_boot)
+file(GLOB PETARI_KERNEL_SOURCES CONFIGURE_DEPENDS src/JSystem/JKernel/*.cpp)
+list(FILTER PETARI_KERNEL_SOURCES EXCLUDE REGEX "/JKR(Heap|ExpHeap|Disposer|SolidHeap|UnitHeap)\\.cpp$")
+add_library(petari_kernel STATIC ${PETARI_KERNEL_SOURCES}
+    src/JSystem/JSupport/JSUInputStream.cpp src/JSystem/JSupport/JSUFileStream.cpp
+    native/memory/aram_overrides.cpp native/memory/stream_overrides.cpp)
+petari_encode_target_sources(petari_kernel)
+target_link_libraries(petari_kernel PUBLIC petari_heaps petari_platform)
+# Host format readers do not depend on the SDK ARC hooks. Keep them buildable
+# while the original ARC API waits for the native ABI transfer.
+add_library(petari_resource_formats STATIC
+    native/resource/jpa_resource.cpp native/resource/j3d_animation.cpp
+    native/resource/kcl_collision.cpp native/resource/j3d_model.cpp
+    native/resource/archive.cpp native/resource/u8_archive.cpp)
+target_include_directories(petari_resource_formats PUBLIC native/resource)
+target_link_libraries(petari_resource_formats PUBLIC petari_native_config petari_host_runtime)
+add_library(petari_resources STATIC src/RVL_SDK/arc/arc.c)
+petari_encode_target_sources(petari_resources)
+set_source_files_properties("${PETARI_LEGACY_ROOT}/src/RVL_SDK/arc/arc.c" PROPERTIES LANGUAGE CXX)
+target_include_directories(petari_resources PUBLIC native/resource)
+target_link_libraries(petari_resources PUBLIC petari_resource_formats)
+add_executable(petari_asset_check native/resource/check_assets.cpp)
+target_link_libraries(petari_asset_check PRIVATE petari_resources)
+if(BUILD_TESTING)
+    add_executable(petari_jpa_tests native/tests/jpa_tests.cpp)
+    target_link_libraries(petari_jpa_tests PRIVATE petari_resource_formats)
+    add_test(NAME native_jpa COMMAND petari_jpa_tests)
+    add_executable(petari_core_tests native/tests/core_tests.cpp)
+    target_link_libraries(petari_core_tests PRIVATE petari_core)
+    add_test(NAME native_core COMMAND petari_core_tests)
+    add_executable(petari_light_function_tests native/tests/light_function_tests.cpp src/Game/Map/LightFunction.cpp)
+    petari_encode_target_sources(petari_light_function_tests)
+    target_link_libraries(petari_light_function_tests PRIVATE petari_native_config)
+    # Match the optimized actor-light stack layout used by the regression's poison.
+    target_compile_options(petari_light_function_tests PRIVATE -O3 -fno-sanitize=address)
+    target_link_options(petari_light_function_tests PRIVATE -Wl,-dead_strip)
+    add_test(NAME native_light_function COMMAND petari_light_function_tests)
+    # petari_nw4r_resource_tests deferred: SMG1 native helper sources are absent in SMG2.
+
+    add_executable(petari_kcl_tests native/tests/kcl_tests.cpp)
+    target_link_libraries(petari_kcl_tests PRIVATE petari_resource_formats)
+    add_test(NAME native_kcl COMMAND petari_kcl_tests)
+    add_executable(petari_j3d_animation_tests native/tests/j3d_animation_tests.cpp)
+    target_link_libraries(petari_j3d_animation_tests PRIVATE petari_resource_formats)
+    add_test(NAME native_j3d_animations COMMAND petari_j3d_animation_tests)
+    add_executable(petari_canm_tests native/tests/canm_tests.cpp)
+    target_link_libraries(petari_canm_tests PRIVATE petari_resource_formats)
+    add_test(NAME native_canm COMMAND petari_canm_tests)
+    add_executable(petari_bitfield_tests native/tests/bitfield_layout_tests.cpp src/Game/Player/RushEndInfo.cpp)
+    petari_encode_target_sources(petari_bitfield_tests)
+    target_link_libraries(petari_bitfield_tests PRIVATE petari_native_config)
+    add_test(NAME native_bitfields COMMAND petari_bitfield_tests)
+    add_executable(petari_j3d_model_tests native/tests/j3d_model_tests.cpp)
+    target_link_libraries(petari_j3d_model_tests PRIVATE petari_resource_formats)
+    add_test(NAME native_j3d_models COMMAND petari_j3d_model_tests)
+    add_executable(petari_resource_tests native/tests/resource_tests.cpp)
+    target_link_libraries(petari_resource_tests PRIVATE petari_resources)
+    add_test(NAME native_resources COMMAND petari_resource_tests)
+    # petari_library_tests deferred: SMG1 native helper sources are absent in SMG2.
+
+    add_executable(petari_memory_tests native/tests/memory_tests.cpp)
+    target_link_libraries(petari_memory_tests PRIVATE petari_memory)
+    add_test(NAME native_memory COMMAND petari_memory_tests)
+    add_executable(petari_heap_tests native/tests/heap_tests.cpp native/tests/heap_diagnostics.cpp)
+    target_link_libraries(petari_heap_tests PRIVATE petari_heaps)
+    add_test(NAME native_heaps COMMAND petari_heap_tests)
+    # petari_jkr_archive_tests deferred: SMG1 native helper sources are absent in SMG2.
+
+    add_executable(petari_jmap_tests native/tests/jmap_tests.cpp src/Game/Util/JMapInfo.cpp src/JSystem/JGadget/hashcode.cpp)
+    petari_encode_target_sources(petari_jmap_tests)
+    target_link_libraries(petari_jmap_tests PRIVATE petari_resource_formats)
+    add_test(NAME native_jmap COMMAND petari_jmap_tests)
+    # petari_message_tests deferred: SMG1 native helper sources are absent in SMG2.
+
+    if(EXISTS "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files")
+        add_test(NAME native_jpa_assets COMMAND petari_jpa_tests --assets "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files")
+        add_test(NAME native_j3d_animation_assets COMMAND petari_j3d_animation_tests --assets "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files")
+        add_test(NAME native_canm_assets COMMAND petari_canm_tests --assets "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files")
+        add_test(NAME native_kcl_assets COMMAND petari_kcl_tests --assets "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files")
+        add_test(NAME native_j3d_model_assets COMMAND petari_j3d_model_tests --assets "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files")
+        add_test(NAME native_jmap_assets COMMAND petari_jmap_tests --assets "${CMAKE_SOURCE_DIR}/build/game-data/SB4E01/files")
+        set_tests_properties(native_jmap_assets PROPERTIES ENVIRONMENT "PETARI_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
+    endif()
+    add_executable(petari_game_compat_tests native/tests/game_compat_tests.cpp src/Game/Util/HashUtil.cpp)
+    petari_encode_target_sources(petari_game_compat_tests)
+    target_link_libraries(petari_game_compat_tests PRIVATE petari_native_config)
+    target_compile_options(petari_game_compat_tests PRIVATE -Wno-deprecated-declarations)
+    add_test(NAME native_game_compat COMMAND petari_game_compat_tests)
+    add_test(NAME native_source_encoding COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/native/tests/source_encoding_tests.py")
+    # SMG1 pipeline seed packs were deliberately not imported.
+
+endif()
+
+option(PETARI_BUILD_GX_PROBE "Build the native GX/Metal integration probe (downloads Aurora dependencies)" OFF)
+if(PETARI_BUILD_GX_PROBE)
+    # Aurora's extern forces BUILD_TESTING OFF in the cache. Keep the saved value in the
+    # cache too, so a configure that fails inside native/gx is repaired by the next one.
+    set(_PETARI_BUILD_TESTING_SAVED "${BUILD_TESTING}" CACHE INTERNAL "")
+    # native/gx registers its tests under this name (BUILD_TESTING is OFF inside it).
+    set(_petari_build_testing "${BUILD_TESTING}")
+    add_subdirectory(native/gx)
+    set(BUILD_TESTING "${_PETARI_BUILD_TESTING_SAVED}" CACHE BOOL "Build tests" FORCE)
+    unset(_PETARI_BUILD_TESTING_SAVED CACHE)
+endif()
+
+add_subdirectory(native/home_menu)
+# Editor deferred for the SMG2 port.
+target_link_libraries(petari_game_objects PRIVATE petari_home_menu)
+if(TARGET petari_link_check)
+    target_link_libraries(petari_link_check PRIVATE petari_home_menu petari_sdk_mem)
+endif()
+
+if(PETARI_BUILD_GX_PROBE)
+    add_subdirectory(native/resource/rfl/render)
+    add_subdirectory(native/movie)
+    target_link_libraries(petari_sdk_helpers PUBLIC petari_movie)
+    add_subdirectory(native/app EXCLUDE_FROM_ALL)
+    # The player app itself belongs in `all`: its libraries are built by other targets, so without this a plain
+    # `cmake --build` reported everything built but left a stale Petari.app (it needed `--target petari`).
+    # The rest of native/app (its test executables) stays out of `all`; see petari_tests below.
+    if(TARGET petari)
+        set_target_properties(petari PROPERTIES EXCLUDE_FROM_ALL FALSE)
+    endif()
+    # native/app (and a few tests) stay out of `all`: `--target petari_tests`
+    # builds every test executable registered with ctest that `all` skips.
+    add_custom_target(petari_tests)
+    foreach(_petari_test petari_j3d_material_anm_tests petari_app_smoke_storage_tests petari_app_smoke_domes_tests
+            petari_app_seam_tests petari_app_input_events_tests petari_app_smoke_tests petari_app_smoke_stage_tests
+            petari_app_launch_stage_tests
+            # Asset tests (registered only when build/game-data exists), also EXCLUDE_FROM_ALL:
+            petari_j3d_load_tests petari_j3d_anim_load_tests petari_jpa_load_tests petari_game_data_tests
+            petari_host_image_heap_tests petari_file_cache_heap_tests petari_file_cache_demand_tests
+            petari_speaker_tests petari_aud_chord_tests petari_jaudio_resource_tests)
+        if(TARGET ${_petari_test})
+            add_dependencies(petari_tests ${_petari_test})
+        endif()
+    endforeach()
+    target_link_libraries(petari_game_objects PRIVATE petari_milestone)
+    target_link_libraries(petari_app_platform PUBLIC petari_present)
+    target_link_libraries(petari_link_check PRIVATE petari_app_host petari_app_platform petari_rfl)
+    target_sources(petari PRIVATE native/gx/legacy_commands.cpp native/gx/texture_cache.cpp)
+    target_link_libraries(petari PRIVATE petari_game_objects petari_game_libraries petari_sdk_helpers
+        petari_home_menu petari_sdk_mem petari_rfl petari_vi_bridge petari_gx_sync_bridge)
+    target_link_options(petari PRIVATE -Wl,-dead_strip)
+endif()

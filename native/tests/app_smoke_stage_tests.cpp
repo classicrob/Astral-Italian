@@ -1,0 +1,320 @@
+// The stage smoke script (native/app/smoke_stage.hpp) against a small fake
+// world: Mario moves with the held stick keys, jumps on A, the pause menu
+// opens after a 12-frame Plus hold and closes on the next Plus press.
+
+#include "../app/smoke_stage.hpp"
+#include "petari/home_menu.hpp"
+
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+#include <string>
+
+using namespace PetariNative::App::Smoke;
+
+namespace PetariNative::HomeMenu {
+// The stage script's Home tour asks the published menu view for the focused item (smoke_stage.cpp);
+// the fake menu is always on "Back".
+View publishedView() {
+    View view;
+    view.visible = true;
+    view.itemCount = 1;
+    view.items[0].label = "Back";
+    view.items[0].focused = true;
+    return view;
+}
+}  // namespace PetariNative::HomeMenu
+
+namespace {
+
+int gFailures = 0;
+
+void expect(bool condition, const std::string& what) {
+    if (!condition) {
+        std::fprintf(stderr, "FAIL: %s\n", what.c_str());
+        ++gFailures;
+    }
+}
+
+struct World {
+    std::string stage = "EggStarGalaxy";
+    int selected = 2, placed = 2;
+    bool held[11] = {};
+    unsigned long plusHeld = 0;
+    bool paused = false, pauseHandled = false;
+    float x = 0, y = 0, z = 0, vy = 0;
+    unsigned long frame = 0;
+    unsigned long loadFrames = 30;
+    bool dieAt = false;
+    unsigned long dieFrame = 0;
+    bool promptAt = false;
+    unsigned long physicalAt = 0;
+    bool noMove = false;
+    // A demo for this many frames after the first warp (a warp into a boss trigger).
+    unsigned long demoAfterWarp = 0, demoUntil = 0;
+    std::vector<unsigned long> warpFrames;
+    // Player control off (a scripted intro) from lockFrom for lockFrames frames (0: never ends).
+    unsigned long lockFrom = 0, lockFrames = 0;
+    bool locked() const { return lockFrom != 0 && frame >= lockFrom && (lockFrames == 0 || frame < lockFrom + lockFrames); }
+    // Camera: D-pad left/right turn the view 45 degrees where the camera allows
+    // rotation; the game sees the trigger unless presses are lost.
+    enum class Camera { Rotates, Fixed, InputLost } camera = Camera::Rotates;
+    float yaw = 0.0f;
+    bool leftTrigger = false, rightTrigger = false;
+    std::vector<std::string> pending;
+
+    Observation observe() {
+        ++frame;
+        Observation o;
+        o.scene = "Game";
+        o.stage = stage;
+        o.scenario = placed;
+        o.selectedScenario = selected;
+        o.sceneReady = frame > loadFrames;
+        if (frame == 1) o.milestones.push_back("FileSelector.DemoStartWait");
+        o.milestones.insert(o.milestones.end(), pending.begin(), pending.end());
+        pending.clear();
+        o.playerValid = o.sceneReady;
+        o.playerX = x;
+        o.playerY = y;
+        o.playerZ = z;
+        o.playerOnGround = y <= 0.0f;
+        o.demoActive = frame < demoUntil;
+        o.pausePermitted = !paused && !o.demoActive;
+        o.playerDead = dieAt && frame >= dieFrame;
+        if (promptAt && frame == loadFrames + 100) o.prompts.push_back({"System_Test", 2});
+        if (physicalAt != 0 && frame >= physicalAt) o.physical.gameplay = 1;
+        o.playerOffControl = locked();
+        o.camZx = std::sin(yaw);
+        o.camZz = std::cos(yaw);
+        o.padLeftTrigger = leftTrigger;
+        o.padRightTrigger = rightTrigger;
+        o.camRoundLeft = o.camRoundRight = camera == Camera::Rotates;
+        if ((leftTrigger || rightTrigger) && camera == Camera::Rotates) yaw += leftTrigger ? 0.785f : -0.785f;
+        leftTrigger = rightTrigger = false;
+        return o;
+    }
+    unsigned long warps = 0;
+    void apply(const Step& step) {
+        if (step.warp) {
+            ++warps;
+            warpFrames.push_back(frame);
+            if (warps == 1 && demoAfterWarp != 0) demoUntil = frame + demoAfterWarp;
+            x = step.warpX;
+            y = step.warpY;
+            z = step.warpZ;
+        }
+        for (const Press& p : step.presses) {
+            const int b = static_cast<int>(p.button);
+            if (b == static_cast<int>(Button::Plus) && p.down && paused) {
+                paused = false;
+                pending.push_back("PauseMenu.Close");
+            }
+            if (b == static_cast<int>(Button::A) && p.down && y <= 0.0f && !paused) vy = 20.0f;
+            if (p.down && camera != Camera::InputLost && !held[b]) {
+                leftTrigger = leftTrigger || b == static_cast<int>(Button::CameraLeft);
+                rightTrigger = rightTrigger || b == static_cast<int>(Button::CameraRight);
+            }
+            held[b] = p.down;
+        }
+        plusHeld = held[static_cast<int>(Button::Plus)] ? plusHeld + 1 : 0;
+        if (plusHeld == 12 && !paused) {
+            paused = true;
+            pending.push_back("PauseMenu.Open");
+        }
+        if (paused || noMove || locked()) return;
+        const float speed = 5.0f;
+        if (held[static_cast<int>(Button::StickUp)]) z += speed;
+        if (held[static_cast<int>(Button::StickDown)]) z -= speed;
+        if (held[static_cast<int>(Button::StickRight)]) x += speed;
+        if (held[static_cast<int>(Button::StickLeft)]) x -= speed;
+        if (vy != 0.0f || y > 0.0f) {
+            y += vy;
+            vy -= 1.0f;
+            if (y <= 0.0f) {
+                y = 0.0f;
+                vy = 0.0f;
+            }
+        }
+    }
+};
+
+std::vector<std::string> gLog;
+
+StageDriver run(World& world, StageConfig config = {"EggStarGalaxy", 2, 100}) {
+    StageDriver driver(20000, config);
+    gLog.clear();
+    for (int i = 0; i < 20000 && driver.result() == Result::Running; ++i) {
+        world.apply(driver.step(world.observe()));
+        gLog.insert(gLog.end(), driver.log().begin(), driver.log().end());
+    }
+    return driver;
+}
+
+// The logged detail of a stage check ("stage check <name>: <status> <detail>").
+std::string checkLine(const std::string& name) {
+    for (const std::string& line : gLog) {
+        if (line.rfind("stage check " + name + ":", 0) == 0) return line;
+    }
+    return "<no " + name + " check>";
+}
+
+}  // namespace
+
+int main() {
+    {
+        World world;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Pass, "happy path passes: " + driver.reason());
+        expect(driver.reason().find("walks responsive 4/4") != std::string::npos, "all walks responsive: " + driver.reason());
+        expect(!world.paused, "pause closed at the end");
+    }
+    {
+        World world;
+        world.noMove = true;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Pass, "unresponsive stick is a warning, not a failure: " + driver.reason());
+        expect(driver.reason().find("walks responsive 0/4") != std::string::npos, "walk count reported: " + driver.reason());
+    }
+    {
+        World world;
+        world.stage = "AstroGalaxy";
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Fail && driver.reason().find("entry was not applied") != std::string::npos,
+               "wrong stage fails: " + driver.reason());
+    }
+    {
+        World world;
+        world.selected = 1;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Fail && driver.reason().find("scenario mismatch") != std::string::npos,
+               "wrong scenario fails: " + driver.reason());
+    }
+    {
+        World world;
+        world.dieAt = true;
+        world.dieFrame = 400;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Fail && driver.reason().find("died:") != std::string::npos,
+               "death fails with died: " + driver.reason());
+    }
+    {
+        World world;
+        world.promptAt = true;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Blocked, "a system prompt blocks: " + driver.reason());
+    }
+    {
+        World world;
+        world.physicalAt = 300;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Assisted, "physical input makes it assisted: " + driver.reason());
+    }
+    {
+        World world;
+        world.loadFrames = 100000;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Fail && driver.reason().find("not ready:") != std::string::npos,
+               "load timeout fails: " + driver.reason());
+    }
+    // Camera checks say why a view did not turn.
+    {
+        World world;
+        run(world);
+        expect(checkLine("camera_left").find(": ok view turned 45") != std::string::npos,
+               "rotating camera: ok (" + checkLine("camera_left") + ")");
+    }
+    {
+        World world;
+        world.camera = World::Camera::Fixed;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Pass, "fixed camera still passes: " + driver.reason());
+        expect(checkLine("camera_right").find(": warn view turned 0.0 degrees; fixed camera") != std::string::npos,
+               "fixed camera: warn, explained (" + checkLine("camera_right") + ")");
+    }
+    {
+        World world;
+        world.camera = World::Camera::InputLost;
+        run(world);
+        expect(checkLine("camera_left").find(": warn view turned 0.0 degrees; INPUT: the game never saw") != std::string::npos,
+               "lost press: warn, blamed on input (" + checkLine("camera_left") + ")");
+    }
+    {
+        // A race intro takes control away during the walks: the driver waits, then redoes the step.
+        World world;
+        world.lockFrom = 300;
+        world.lockFrames = 600;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Pass && driver.reason().find("walks responsive 4/4") != std::string::npos,
+               "a temporary player lock is waited out: " + driver.reason());
+    }
+    {
+        World world;
+        world.lockFrom = 300;
+        const StageDriver driver = run(world);
+        expect(driver.result() == Result::Fail && driver.reason().find("soft lock") != std::string::npos,
+               "a permanent player lock is a soft lock: " + driver.reason());
+    }
+    {
+        // PETARI_STAGE_WARP: one warp after gameplay is ready, then the checks run from there.
+        World world;
+        StageConfig config{"EggStarGalaxy", 2, 100};
+        config.warp = true;
+        config.warpX = 1000.0f;
+        config.warpZ = -500.0f;
+        const StageDriver driver = run(world, config);
+        expect(driver.result() == Result::Pass, "a warped run passes: " + driver.reason());
+        expect(world.warps == 1, "the warp is requested exactly once: " + std::to_string(world.warps));
+    }
+    {
+        // PETARI_STAGE_WARP "a;b;c": a chain of warps 90 frames apart, ending at the last.
+        World world;
+        StageConfig config{"EggStarGalaxy", 2, 100};
+        config.warp = true;
+        config.warpX = 1000.0f;
+        config.moreWarps = {{2000.0f, 0.0f, 0.0f}, {3000.0f, 0.0f, -500.0f}};
+        const StageDriver driver = run(world, config);
+        expect(driver.result() == Result::Pass, "a chained warp run passes: " + driver.reason());
+        expect(world.warps == 3, "each warp of the chain is requested once: " + std::to_string(world.warps));
+    }
+    {
+        // A demo started by the first warp: the next warp waits until gameplay is back.
+        World world;
+        world.demoAfterWarp = 300;
+        StageConfig config{"EggStarGalaxy", 2, 100};
+        config.warp = true;
+        config.warpX = 1000.0f;
+        config.moreWarps = {{2000.0f, 0.0f, 0.0f}};
+        const StageDriver driver = run(world, config);
+        expect(driver.result() == Result::Pass, "a chain through a demo passes: " + driver.reason());
+        expect(world.warps == 2 && world.warpFrames[1] >= world.warpFrames[0] + 300,
+               "the second warp waits for the demo to end: " + std::to_string(world.warps) + " warps");
+    }
+    {
+        MechanicRun bee(*findMechanic("bee"));
+        Observation o;
+        o.playerValid = true;
+        o.playerMode = 0;
+        o.gravityY = -1;
+        o.camXx = 1;
+        o.camZz = 1;
+        o.playerX = -15750;
+        o.playerY = 12350;
+        o.playerZ = -1000;
+        bool spun = false;
+        for (unsigned long frame = 1; frame <= 60; ++frame) {
+            Step step;
+            expect(bee.step(o, frame, step) == Result::Running, "proximity alone cannot pass bee mechanics");
+            for (const auto& press : step.presses) if (press.button == Button::Spin && press.down) spun = true;
+        }
+        expect(spun, "bee route spins to break the mushroom crystal");
+        o.demoActive = true;
+        Step demo;
+        bee.step(o, 61, demo);
+        bool released = false;
+        for (const auto& press : demo.presses) if (press.button == Button::Spin && !press.down) released = true;
+        expect(released, "a power-up demo releases the spin pulse");
+    }
+    if (gFailures == 0) std::puts("app smoke stage tests passed");
+    return gFailures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+}

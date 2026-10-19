@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Compile-check native game sources; this does not measure runtime completeness."""
+import argparse
+import concurrent.futures
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import subprocess
+from encode_legacy_sources import prepare
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT,
+                        help="Source tree to audit (defaults to this checkout)")
+    parser.add_argument("--compiler", default="clang++")
+    parser.add_argument("--jobs", type=int, default=min(os.cpu_count() or 1, 6))
+    parser.add_argument("--output", type=Path, default=Path("build/native-audit.json"))
+    parser.add_argument("paths", nargs="*", default=["src/Game"])
+    args = parser.parse_args()
+    if args.jobs < 1:
+        parser.error("--jobs must be positive")
+    root = args.root.resolve()
+    output = args.output if args.output.is_absolute() else root / args.output
+    encoded_root = root / "build/audit-sjis"
+    started_at = datetime.now(timezone.utc).isoformat()
+    prepare(root, encoded_root)
+    sources = set()
+    for path in args.paths:
+        path = (root / path).resolve()
+        if not path.exists() or not path.is_relative_to(root):
+            parser.error(f"source path must exist within --root: {path}")
+        sources.update(path.rglob("*.cpp") if path.is_dir() else [path])
+    command = [args.compiler, "-std=c++17", "-DGALAXY_NATIVE=1", "-fsyntax-only",
+               "-Wno-register", "-Wno-inconsistent-missing-override", "-Werror=return-type",
+               "-ferror-limit=5", "-fno-color-diagnostics", "-fno-rtti"]
+    for path in ["native/include", "native/home_menu/include", "include", "libs/JSystem/include", "libs/RVL_SDK/include",
+                 "libs/nw4r/include", "libs/RVLFaceLib/include", "libs/libms/include"]:
+        include_root = root
+        if path.startswith("native/") and not (root / path).exists():
+            include_root = ROOT
+        if not path.startswith("native/"):
+            command += ["-I", str(encoded_root / path)]
+        command += ["-I", str(include_root / path)]
+
+    def compile_source(path):
+        encoded = encoded_root / path.relative_to(root)
+        result = subprocess.run(command + [str(encoded if encoded.exists() else path)], cwd=root, text=True, capture_output=True)
+        return {"source": str(path.relative_to(root)), "passed": result.returncode == 0,
+                "diagnostics": result.stderr}
+
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        for result in pool.map(compile_source, sorted(sources)):
+            results.append(result)
+            if len(results) % 100 == 0:
+                print(f"Checked {len(results)}/{len(sources)}", flush=True)
+    passed = sum(r["passed"] for r in results)
+    report = {"checked": len(results), "passed": passed, "failed": len(results) - passed,
+              "root": str(root), "paths": args.paths, "started_at": started_at,
+              "finished_at": datetime.now(timezone.utc).isoformat(),
+              "command": command, "results": results}
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(report, indent=2) + "\n")
+    print(f"{passed}/{len(results)} compile checks passed; report: {output}")
+    return 0 if passed == len(results) else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

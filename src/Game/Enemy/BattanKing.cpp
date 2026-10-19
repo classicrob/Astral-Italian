@@ -202,7 +202,7 @@ void BattanKing::init(const JMapInfoIter& rIter) {
 
     PattanHolder* pHolder = new PattanHolder("パタン保持", 10);
     mPattanHolder = pHolder;
-    for (s32 i = 0; i < pHolder->mMaxCount; i++) {
+    for (s32 i = 0; i < pHolder->mObjNumMax; i++) {
         Pattan* pPattan = new Pattan("パタン");
         pPattan->initWithoutIter();
         pHolder->registerActor(pPattan);
@@ -322,7 +322,7 @@ void BattanKing::control() {
             MR::noticePlayerDashChance();
         }
 
-        for (s32 i = 0; i < mPattanHolder->mObjectCount; i++) {
+        for (s32 i = 0; i < mPattanHolder->mObjNum; i++) {
             Pattan* pPattan = static_cast< Pattan* >(mPattanHolder->getActor(i));
             if (!MR::isDead(pPattan)) {
                 pPattan->tryPattanJump();

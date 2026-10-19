@@ -10,11 +10,11 @@ void BombHeiRed::init(const JMapInfoIter& rIter) {
     mParam._18 = "Turn";
     mParam._1C = "Talk";
     mParam._20 = "Turn";
-    _130 = cNPCSpinDefault;
-    _134 = cNPCTrampledDefault;
-    _138 = cNPCPointingDefault;
-    _13C = cNPCReactionDefault;
-    _12C = 450.0f;
+    mSpinAction = cNPCSpinDefault;
+    mTrampledAction = cNPCTrampledDefault;
+    mPointingAction = cNPCPointingDefault;
+    mReactionAction = cNPCReactionDefault;
+    mSpinAttackRange = 450.0f;
 
     initialize(rIter, caps, "BombHeiRed", nullptr, nullptr);
 

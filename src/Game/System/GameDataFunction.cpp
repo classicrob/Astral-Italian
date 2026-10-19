@@ -676,7 +676,7 @@ namespace GameDataFunction {
         return getSaveDataHandleSequence()->getCurrentUserFile()->getMiiId(miiId);
     }
 
-    u8 getSysConfigFileEncouragedPal16() {
+    bool getSysConfigFileEncouragedPal16() {
         return getSaveDataHandleSequence()->getSysConfigFile()->mChunk->mEncouragedPal16;
     }
 

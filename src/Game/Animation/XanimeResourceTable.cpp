@@ -300,7 +300,7 @@ const XanimeGroupInfo* XanimeResourceTable::getGroupInfo(const char* pPath, Xani
 
 u32 XanimeResourceTable::getIndexFromHash(u32 hash) const {
     if (mSortTable != nullptr) {
-        u32 index;
+        uintptr_t index;
         if (mSortTable->search(hash, &index)) {
             return index;
         }
@@ -316,7 +316,7 @@ u32 XanimeResourceTable::getGroupIndex(const char* pTarget) const {
     case 0:
         return -1;
     case 1:
-        u32 position = -1;
+        uintptr_t position = -1;
         if (mSortTable->search(hash, &position)) {
             return position;
         }

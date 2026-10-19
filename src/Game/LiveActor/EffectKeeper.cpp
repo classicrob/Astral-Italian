@@ -172,10 +172,10 @@ MultiEmitter* EffectKeeper::getEmitter(const char* pParam1, s32 floorCode) const
     }
 
     if (_18 != nullptr && _18->mHasBeenSorted) {
-        u32 result = 0;
+        MultiEmitter* result = nullptr;
 
-        if (_18->search(pParam1, &result)) {
-            return reinterpret_cast< MultiEmitter* >(result);
+        if (_18->searchPtr(pParam1, &result)) {
+            return result;
         }
         return nullptr;
     }
@@ -368,11 +368,11 @@ void EffectKeeper::registMultiEmitter(MultiEmitter* pEmitter, const char* pParam
         pEmitter->setName(pParam3);
 
         if (_18 != nullptr) {
-            _18->add(pParam3, reinterpret_cast< u32 >(pEmitter), 0);
+            _18->addPtr(pParam3, pEmitter, false);
         }
     } else {
         if (_18 != nullptr) {
-            _18->add(pParam2, reinterpret_cast< u32 >(pEmitter), 0);
+            _18->addPtr(pParam2, pEmitter, false);
         }
     }
 

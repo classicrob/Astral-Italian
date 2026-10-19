@@ -5,6 +5,8 @@
 class JMapInfo;
 class TalkMessageInfo;
 class TalkNode;
+struct MsbtInfo;
+struct MsbfInfo;
 
 struct MessageInfoBlock {
     /* 0x0 */ u32 mMagic;
@@ -43,7 +45,7 @@ public:
     s32 findEntryNodeIndex(const char*) const;                      // SMG2 fn_804C2A80
     void* getNodeBranchPtr(u32) const;                              // SMG2 fn_804C2AA0
     void* getNodeDataPtr(u32) const;                                // SMG2 fn_804C2AC0
-    u16 getFlowNodeIndex() const;                                   // SMG2 fn_804C2AE0
+    u16 getFlowNodeIndex(const TalkNode*) const;                                   // SMG2 fn_804C2AE0
     TalkNode* findNode(const char*) const;
     TalkNode* getNode(u32) const;
     TalkNode* getBranchNode(u32) const;
@@ -51,8 +53,8 @@ public:
     u8* getMessageInfoTool(int) const;
     s32 findMessageIndex(const char*) const;
 
-    /* 0x00 */ void* mMessageHandle;
-    /* 0x04 */ void* mFlowHandle;
+    /* 0x00 */ MsbtInfo* mMessageHandle;
+    /* 0x04 */ MsbfInfo* mFlowHandle;
 };
 
 class MessageHolder {

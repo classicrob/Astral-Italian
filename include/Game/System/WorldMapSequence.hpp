@@ -8,10 +8,3 @@ public:
     bool isGalaxyMap() const;
     u8 mData[0x20];
 };
-
-class WorldMapMainLayout {
-public:
-    WorldMapMainLayout(WorldMapOwner*);
-    void init(bool);
-    u8 mData[0x18];
-};

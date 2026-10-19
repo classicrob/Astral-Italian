@@ -1,3 +1,4 @@
+#include "Game/System/GrandGalaxyMap.hpp"
 #include "Game/System/MiniPartsActors.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -11,10 +12,6 @@ namespace MR {
 
 // PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
 extern "C" {
-    void fn_804E17D0(void*);
-    void fn_804E17E0(void*);
-    void fn_804E1930(void*, s32);
-    void fn_804E17F0(void*);
     void fn_804F33F0(TVec3f*, const TVec3f*, const TVec3f*, s32, s32);
 }
 
@@ -63,10 +60,10 @@ void WorldMapResultStateGreenStarDemo::init() {
 void WorldMapResultStateGreenStarDemo::appear() {
     mIsDead = false;
     setNerve(GET_NERVE(WorldMapResultStateGreenStarDemo, WorldMapResultStateGreenStarDemoStart));
-    fn_804E17D0(mHost->getMainLayout());
-    fn_804E17F0(mHost->getMainLayout());
+    mHost->getMainLayout()->activate();
+    mHost->getMainLayout()->killRoutes();
     mHost->finishWorld();
-    fn_804E1930(mHost->getMainLayout(), 0);
+    mHost->getMainLayout()->warpRocketToNode(0);
     mHost->changeRocketActionBck("Wait");
     mHost->hideRocket();
     MR::startGlobalEventCameraNoTarget(sCameraName, 0);
@@ -114,7 +111,7 @@ void WorldMapResultStateGreenStarDemo::exeStart() {
         MR::closeWipeFade(60);
     }
     if (MR::isWipeBlank()) {
-        fn_804E17E0(mHost->getMainLayout());
+        mHost->getMainLayout()->deactivate();
         mHost->prepareWorld();
         mHost->warpRocketToNode(0);
         mHost->showRocket();

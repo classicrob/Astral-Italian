@@ -1,3 +1,4 @@
+#include "Game/System/GrandGalaxyMap.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -6,14 +7,6 @@
 #include "Game/System/WorldMapResultStateGalaxyMap.hpp"
 
 extern "C" {
-    void fn_804E17D0(void*);
-    void fn_804E17E0(void*);
-    void fn_804E1930(void*, s32);
-    void* fn_804DFD30(void*);
-    s32 fn_804DFD50(void*, s32);
-    s32 fn_804DFE70(void*);
-    s32 fn_804DFE80(void*);
-    void fn_804DFCC0(void*);
     bool fn_80059330();
 }
 
@@ -28,18 +21,18 @@ WorldMapResultStateGalaxyMap::WorldMapResultStateGalaxyMap(WorldMapOwner* pHost)
 
 void WorldMapResultStateGalaxyMap::init() {
     initNerve(GET_NERVE(WorldMapResultStateGalaxyMap, WorldMapResultStateGalaxyMapStart), 0);
-    void* pController = fn_804DFD30(mHost->mMainLayout);
+    WorldMapResultWorld* pController = mHost->getMainLayout()->getWorld();
     mInt10 = mHost->getCamera()->mCurrent;
-    mInt14 = fn_804DFD50(pController, mHost->getWorldId());
+    mInt14 = GrandGalaxyMap::findWorldNode(pController, mHost->getWorldId());
     mIsDead = true;
 }
 
 void WorldMapResultStateGalaxyMap::appear() {
     mIsDead = false;
     mInt10 = mHost->getCamera()->mCurrent;
-    fn_804E1930(mHost->getMainLayout(), mInt14);
+    mHost->getMainLayout()->warpRocketToNode(mInt14);
     MR::tryForceDeleteEffectAll(mHost->getRocket());
-    fn_804E17D0(mHost->getMainLayout());
+    mHost->getMainLayout()->activate();
     mHost->finishWorld();
     setNerve(GET_NERVE(WorldMapResultStateGalaxyMap, WorldMapResultStateGalaxyMapStart));
 }
@@ -49,7 +42,7 @@ void WorldMapResultStateGalaxyMap::kill() {
 }
 
 void WorldMapResultStateGalaxyMap::control() {
-    fn_804DFCC0(mHost->getMainLayout());
+    mHost->getMainLayout()->update();
 }
 
 WorldMapResultStateGalaxyMap::~WorldMapResultStateGalaxyMap() {
@@ -57,14 +50,14 @@ WorldMapResultStateGalaxyMap::~WorldMapResultStateGalaxyMap() {
 
 void WorldMapResultStateGalaxyMap::exeStart() {
     MR::setStageBGMStateBit(0x100);
-    if (fn_804DFE70(mHost->getMainLayout()) != 0) {
+    if (mHost->getMainLayout()->isWorldWarp() != 0) {
         setNerve(GET_NERVE(WorldMapResultStateGalaxyMap, WorldMapResultStateGalaxyMapWait));
     }
 }
 
 void WorldMapResultStateGalaxyMap::exeWait() {
-    if (fn_804DFE80(mHost->getMainLayout()) != 0) {
-        fn_804E17E0(mHost->getMainLayout());
+    if (mHost->getMainLayout()->isWorldWarpEnd() != 0) {
+        mHost->getMainLayout()->deactivate();
         mHost->prepareWorld();
         mInt14 = mHost->getCamera()->mCurrent;
         mHost->warpRocketToNode(mInt10);

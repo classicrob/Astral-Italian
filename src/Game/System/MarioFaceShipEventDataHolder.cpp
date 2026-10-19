@@ -543,12 +543,12 @@ bool MessageData::getMessageDirect(TalkMessageInfo* pInfo, const char* pLabel) c
     if (mMessageHandle == nullptr) {
         return false;
     }
-    u8* pText = LMS_GetTextByLabel(mMessageHandle, pLabel);
+    const wchar_t* pText = LMS_GetTextByLabel(mMessageHandle, pLabel);
     if (pText == nullptr) {
         return false;
     }
-    pInfo->_0 = pText;
-    LMSAttribute* pAttr = LMS_GetAttribute(mMessageHandle, LMS_GetTextIndexByLabel(mMessageHandle, pLabel));
+    pInfo->_0 = reinterpret_cast<u8*>(const_cast<wchar_t*>(pText));
+    MsbtAttribute* pAttr = LMS_GetAttribute(mMessageHandle, LMS_GetTextIndexByLabel(mMessageHandle, pLabel));
     pInfo->_6 = pAttr->_0;
     pInfo->mCameraType = pAttr->_1;
     pInfo->mTalkType = pAttr->_2;
@@ -560,12 +560,12 @@ bool MessageData::getMessageDirect(TalkMessageInfo* pInfo, const char* pLabel) c
 }
 
 bool MessageData::getMessageByIndex(TalkMessageInfo* pInfo, s32 index) const {
-    u8* pText = LMS_GetText(mMessageHandle, index);
+    const wchar_t* pText = LMS_GetText(mMessageHandle, index);
     if (pText == nullptr) {
         return false;
     }
-    pInfo->_0 = pText;
-    LMSAttribute* pAttr = LMS_GetAttribute(mMessageHandle, index);
+    pInfo->_0 = reinterpret_cast<u8*>(const_cast<wchar_t*>(pText));
+    MsbtAttribute* pAttr = LMS_GetAttribute(mMessageHandle, index);
     pInfo->_6 = pAttr->_0;
     pInfo->mCameraType = pAttr->_1;
     pInfo->mTalkType = pAttr->_2;
@@ -597,9 +597,9 @@ void* MessageData::getNodeDataPtr(u32 index) const {
     return nullptr;
 }
 
-u16 MessageData::getFlowNodeIndex() const {
+u16 MessageData::getFlowNodeIndex(const TalkNode* pNode) const {
     if (mFlowHandle != nullptr) {
-        return LMS_GetFlowNodeIndex(mFlowHandle);
+        return LMS_GetFlowNodeIndex(mFlowHandle, reinterpret_cast<const MsbfNode*>(pNode));
     }
     return 0;
 }
@@ -609,7 +609,7 @@ MessageHolder::MessageHolder() {
     mGameMessageDatas = nullptr;
     mSceneCommonMessageDatas = nullptr;
     mZoneMessageDatas = nullptr;
-    LMS_SetMemFuncs(allocLMSMemory, freeLMSMemory, allocLMSMemory);
+    LMS_SetMemFuncs(allocLMSMemory, freeLMSMemory);
 }
 
 void MessageHolder::initSystemData() {

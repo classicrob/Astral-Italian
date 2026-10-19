@@ -32,17 +32,17 @@ public:
     void requestPreviousEnd();
     void requestNextEnd();
 
-    void setIconState(s32, s32);
+    void setIconState(s32, const char*);
     void setIconDefaultPanes(s32);
     void setIconNewPanes(s32);
-    void setIconCometPanes(s32, bool, bool, bool, bool, bool);
+    void setIconCometPanes(s32, bool, s32, bool, bool, bool);
     void setIconEventPane(s32, const char*);
     void setIconActor(s32, GrandGalaxyMapGalaxy*);
     void setIconIndex(s32, s32);
     void sortEntries();
     void updatePointing();
     bool isPointingBoxBase();
-    s32 getSelectedIconState();
+    const char* getSelectedIconState();
 
     void exeWait();
     void exeHide();

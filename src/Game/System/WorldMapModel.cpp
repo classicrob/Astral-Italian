@@ -3,6 +3,7 @@
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapSequence.hpp"
+#include "Game/System/GrandGalaxyMap.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/MiniMeister.hpp"
@@ -113,8 +114,8 @@ void WorldMapOwner::init(const JMapInfoIter&) {
     mContext = new WorldMapOwnerContext;
     s32 node = GameSequenceFunction::getWorldMapCurrentNode();
     mContext->init(GameDataFunction::getCurrentWorldId(), node);
-    mMainLayout = new WorldMapMainLayout(this);
-    static_cast<WorldMapMainLayout*>(mMainLayout)->init(after);
+    mMainLayout = new GrandGalaxyMap(this);
+    static_cast<GrandGalaxyMap*>(mMainLayout)->init(after);
     mSequence = new WorldMapSequence(this);
     mSequence->init(after);
     if (GameSequenceFunction::isWorldMapAfterFileSelect()) GameSequenceFunction::clearWorldMapAfterFileSelect();

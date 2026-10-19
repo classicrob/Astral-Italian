@@ -72,14 +72,14 @@ void GalaxyStatusIcon::setNewPanes() {
     setEventPane(-1);
 }
 
-// fn_80472D60: (isMedal, isComet, isGreen, isCrown1, isCrown2) select which pane anims play
-void GalaxyStatusIcon::setCometPanes(bool isMedal, bool isComet, bool isGreen, bool isCrown1, bool isCrown2) {
+// fn_80472D60: (isMedal, starCount, isGreen, isCrown1, isCrown2) select which pane anims play
+void GalaxyStatusIcon::setCometPanes(bool isMedal, s32 starCount, bool isGreen, bool isCrown1, bool isCrown2) {
     mIsEnabled = true;
     mIsPointable = true;
     mIsGreen = isGreen;
     MR::startPaneAnim(this, "Unknown", "Hide", 0);
     MR::startPaneAnim(this, "New", "Hide", 0);
-    if (isComet) {
+    if (starCount) {
         MR::startPaneAnim(this, "Comet", "Comet", 0);
     } else if (isGreen) {
         MR::startPaneAnim(this, "Comet", "GreenComet", 0);

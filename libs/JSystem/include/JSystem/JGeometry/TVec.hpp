@@ -392,6 +392,13 @@ namespace JGeometry {
 #define JGEOMETRY_WMR_NOINLINE
 #endif
 
+// Keep operators inline while copy/add/scale remain outlined in opted-in world-map units.
+#if defined(JGEOMETRY_VEC3_WMR_OUTLINE) && !defined(JGEOMETRY_VEC3_WMR_INLINE_OPS)
+#define JGEOMETRY_WMR_OP_NOINLINE NO_INLINE
+#else
+#define JGEOMETRY_WMR_OP_NOINLINE
+#endif
+
     template <>
     struct TVec3< f32 > : public Vec {
 #ifdef __MWERKS__
@@ -562,7 +569,7 @@ namespace JGeometry {
 #endif
         }
 
-        TVec3 operator+(const TVec3& op) const JGEOMETRY_WMR_NOINLINE {
+        TVec3 operator+(const TVec3& op) const JGEOMETRY_WMR_OP_NOINLINE {
             TVec3 ret(*this);
             ret += op;
             return ret;
@@ -617,7 +624,7 @@ namespace JGeometry {
 #ifdef JGEOMETRY_VEC3_MUL_NOINLINE
         TVec3 operator*(f32 scalar) const NO_INLINE {
 #else
-        TVec3 operator*(f32 scalar) const JGEOMETRY_WMR_NOINLINE {
+        TVec3 operator*(f32 scalar) const JGEOMETRY_WMR_OP_NOINLINE {
 #endif
             TVec3 ret(*this);
             ret *= scalar;
@@ -1434,3 +1441,5 @@ typedef JGeometry::TVec4< f32 > TVec4f;
 typedef JGeometry::TQuat4< f32 > TQuat4f;
 
 #undef JGEOMETRY_WMR_NOINLINE
+
+#undef JGEOMETRY_WMR_OP_NOINLINE

@@ -86,8 +86,8 @@ WorldMapResultWorld* WorldMapOwner::getWorld() const {
     return mContext->mWorld;
 }
 
-void* WorldMapOwner::getMainLayout() const {
-    return mMainLayout;
+GrandGalaxyMap* WorldMapOwner::getMainLayout() const {
+    return static_cast<GrandGalaxyMap*>(mMainLayout);
 }
 
 bool WorldMapOwner::isPressedA() {

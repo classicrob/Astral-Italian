@@ -83,11 +83,11 @@ void GrandGalaxyMapInfo::requestNextEnd() {
     if (!MR::isDead(this)) setNerve(&NrvGrandGalaxyMapInfo::NextEnd::sInstance);
 }
 
-void GrandGalaxyMapInfo::setIconState(s32 slot, s32 state) { mEntries[slot]->icon->mState = state; }
+void GrandGalaxyMapInfo::setIconState(s32 slot, const char* state) { mEntries[slot]->icon->mState = state; }
 void GrandGalaxyMapInfo::setIconDefaultPanes(s32 slot) { mEntries[slot]->icon->setDefaultPanes(); }
 void GrandGalaxyMapInfo::setIconNewPanes(s32 slot) { mEntries[slot]->icon->setNewPanes(); }
-void GrandGalaxyMapInfo::setIconCometPanes(s32 slot, bool medal, bool comet, bool green, bool crown1, bool crown2) {
-    mEntries[slot]->icon->setCometPanes(medal, comet, green, crown1, crown2);
+void GrandGalaxyMapInfo::setIconCometPanes(s32 slot, bool medal, s32 starCount, bool green, bool crown1, bool crown2) {
+    mEntries[slot]->icon->setCometPanes(medal, starCount, green, crown1, crown2);
 }
 void GrandGalaxyMapInfo::setIconActor(s32 slot, GrandGalaxyMapGalaxy* actor) { mEntries[slot]->actor = actor; }
 void GrandGalaxyMapInfo::setIconIndex(s32 slot, s32 index) { mEntries[slot]->index = index; }
@@ -128,7 +128,7 @@ void GrandGalaxyMapInfo::exeNextEnd() {
 }
 
 // NONMATCHING: the equivalent early-return blocks are emitted in reverse order.
-s32 GrandGalaxyMapInfo::getSelectedIconState() {
+const char* GrandGalaxyMapInfo::getSelectedIconState() {
     if (!mSelectedIcon) return 0;
     return mSelectedIcon->mState;
 }

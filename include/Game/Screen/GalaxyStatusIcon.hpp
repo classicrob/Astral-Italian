@@ -16,7 +16,7 @@ public:
     void hideAllPanes();
     void setDefaultPanes();
     void setNewPanes();
-    void setCometPanes(bool, bool, bool, bool, bool);
+    void setCometPanes(bool, s32, bool, bool, bool);
     void setEventPane(s32);
     void startCometHideAnim();
     void startCometAppear();
@@ -24,7 +24,7 @@ public:
     bool isPointingBox();
     void showForTime();
 
-    /* 0x2C */ s32 mState;
+    /* 0x2C */ const char* mState;
     /* 0x30 */ bool mIsGreen;
     /* 0x31 */ bool mIsAppearing;
     /* 0x32 */ bool mIsEnabled;

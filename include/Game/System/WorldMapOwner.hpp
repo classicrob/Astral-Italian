@@ -43,6 +43,7 @@ struct WorldMapOwnerContext {
 // PLACEHOLDER(core): `WorldMapOwner` is a descriptive name. It is the 0x20-byte NameObj "ワールドマップ" (ctor 0x804E7BC0, created by 0x804E7C20 together with the
 // WorldMapModel scenery) that owns WorldMapSequence and is the host of all WorldMapSequence states; NOT WorldMapResultCommand (a different NameObj, 0x804EE9C0).
 // Resolve when its real class name is known
+class GrandGalaxyMap;
 class WorldMapOwner : public NameObj {
 public:
     WorldMapOwner();
@@ -82,7 +83,7 @@ public:
     bool tryDecide(s32 node) NO_INLINE;
     WorldMapResultWorld* getWorld() const NO_INLINE;
     // PLACEHOLDER(core): opaque layout object of the unsplit WorldMap* code (0x804DF2B0..0x804E31D0); resolve when that class is written
-    void* getMainLayout() const NO_INLINE;
+    GrandGalaxyMap* getMainLayout() const NO_INLINE;
     static bool isPressedA() NO_INLINE;
     static bool isStickTilted() NO_INLINE;
     bool tryStartStarCheckEvent(WorldMapResultStatePointEvent* pState, s32 node) NO_INLINE;

@@ -368,6 +368,3 @@ namespace MR {
     void startLevelSoundPlayer(JAISoundID, s32);
 }
 
-namespace MR {
-    void fn_803B6830(bool);
-}

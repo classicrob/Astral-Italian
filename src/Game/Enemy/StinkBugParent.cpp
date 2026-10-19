@@ -1,4 +1,5 @@
 #include "Game/Enemy/StinkBugParent.hpp"
+#include "Game/Player/MarioAccess.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Map/CollisionParts.hpp"
@@ -362,7 +363,7 @@ void StinkBugParent::exeDemoAnger() {
         MR::findNamePos("子連れカメムシデモ後ポイント", &v1, nullptr);
         MR::turnDirectionToTargetUseGroundNormalDegree(this, &mFront, v1, 180.0f);
         if (MR::isDemoEndWaitCameraInterpolating()) {
-            MR::fn_803B6830(false);
+            MarioAccess::fn_803B6830(false);
         }
     }
 

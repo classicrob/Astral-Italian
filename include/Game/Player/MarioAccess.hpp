@@ -24,7 +24,7 @@ namespace MarioAccess {
     void fn_803B71E0();
     void fn_803B7210();
     void fn_803B6090();
-    void fn_803B6830();
+    void fn_803B6830(bool);
     void fn_803B7070(s32);
     void fn_803B70E0();
     bool fn_803B71B0();

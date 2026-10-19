@@ -830,7 +830,7 @@ namespace MarioAccess {
     void fn_803B6090() { getPlayerActor()->fn_803BE6D0(); }
 
     // NONMATCHING: equivalent bit test and sensor-selection branch order.
-    void fn_803B6830() {
+    void fn_803B6830(bool) {
         if (getPlayerActor()->getMario()->isStatusActive(0x13)
             || getPlayerActor()->getMario()->isStatusActive(0x22)
             || (getPlayerActor()->getMario()->_10_HIGH_WORD & 0x80000000)

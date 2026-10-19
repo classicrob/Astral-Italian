@@ -5,7 +5,7 @@ class ActionSoundData;
 class ActionSoundInfo {
 public:
     ActionSoundInfo(JMapInfoIter, const ActionSoundData*);
-    void setDefault();
+    void setDefault(const ActionSoundData*);
     void fn_802207A0();
     bool fn_80220830() const;
     const char* getSoundLabel();

@@ -5,8 +5,8 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <JSystem/JAudio2/JAISound.hpp>
 
-ActionSoundInfo::ActionSoundInfo(JMapInfoIter iter, const ActionSoundData*) {
-    setDefault();
+ActionSoundInfo::ActionSoundInfo(JMapInfoIter iter, const ActionSoundData* pDefaultData) {
+    setDefault(pDefaultData);
     mTriggerType = iter.getValueS32("TriggerType");
     mName = iter.getValueString("TriggerName");
     mSoundType = iter.getValueS32("SoundType");
@@ -32,7 +32,7 @@ ActionSoundInfo::ActionSoundInfo(JMapInfoIter iter, const ActionSoundData*) {
     }
 }
 
-void ActionSoundInfo::setDefault() {
+void ActionSoundInfo::setDefault(const ActionSoundData*) {
     mTriggerType = -1;
     mName = nullptr;
     mSoundType = -1;

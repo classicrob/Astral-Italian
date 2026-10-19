@@ -186,8 +186,9 @@ void WaterPlant::initPlantAfterPlacement() {
             f32 randomBounds = mAreaRadius;
             TVec3f* currentPlantPos = &mPlantDataArray[i].mPosition;
             for (int j = 0; j < ::sPlantAddTime; j++) {
+                const f32 randomZ = MR::getRandom(-randomBounds, randomBounds) + mPosition.z;
                 currentPlantPos->set< f32 >(MR::getRandom(-randomBounds, randomBounds) + mPosition.x, mPosition.y,
-                                            MR::getRandom(-randomBounds, randomBounds) + mPosition.z);
+                                            randomZ);
 
                 MR::calcGravity(this, *currentPlantPos);
                 TVec3f offset(mGravity);

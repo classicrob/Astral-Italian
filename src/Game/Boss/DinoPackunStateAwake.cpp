@@ -24,7 +24,7 @@ void DinoPackunStateAwake::kill() {
 
 void DinoPackunStateAwake::exeFind() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(getHost(), "Find");
+        MR::startAction(getHost(), "Find");
         MR::startActionSound(getHost(), "BvDPakkunFind");
         MR::startActionSound(getHost(), "BmDPakkunSlaver");
     }

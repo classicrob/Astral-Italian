@@ -96,7 +96,7 @@ bool DinoPackunBattleEggVs2::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSen
 
 void DinoPackunBattleEggVs2::exeTurn() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(getHost(), "EggWalk");
+        MR::startAction(getHost(), "EggWalk");
         MR::startActionSound(getHost(), "BvDPakkunEggWalk");
         MR::startActionSound(getHost(), "BmDPakkunLaver");
     }
@@ -110,7 +110,7 @@ void DinoPackunBattleEggVs2::exeTurn() {
 
 void DinoPackunBattleEggVs2::exeWalk() {
     if (MR::isFirstStep(this)) {
-        MR::startBck(getHost(), "EggWalk");
+        MR::startAction(getHost(), "EggWalk");
         getHost()->mTail->_C = 1.5f;
     }
 

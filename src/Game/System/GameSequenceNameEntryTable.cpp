@@ -19,7 +19,7 @@ void GameSequenceNameEntry::set(const char* pName, s32 zoneId, s32 linkId) {
 }
 
 bool GameSequenceNameEntry::operator==(const GameSequenceNameEntry& rOther) const {
-    return (rOther.mValue & 0x7FFF) == (mValue & 0x7FFF) && rOther.mZoneId == mZoneId && rOther.mLinkId == mLinkId;
+    return (u32)(rOther.mValue & 0x7FFF) == (u32)(mValue & 0x7FFF) && rOther.mZoneId == mZoneId && rOther.mLinkId == mLinkId;
 }
 
 #pragma dont_inline on

@@ -201,6 +201,14 @@ namespace MR {
         }
     }
 
+    void moveStageBGMTrackVolume(s32 param1, f32 param2, u32 param3) {
+        AudBgm* pStageBgm = AudWrap::getStageBgm();
+
+        if (pStageBgm != nullptr) {
+            pStageBgm->moveTrackVolume(param2, param1, param3);
+        }
+    }
+
     // fn_8001B2A0
     void setStageBGMVolumeState(s32 param1, u32 param2, f32 param3) {
         AudBgm* pStageBgm = AudWrap::getStageBgm();
@@ -247,7 +255,7 @@ namespace MR {
         getJMapInfoArg5NoInit(rIter, pArg5);
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001B430); used by EarthenPipe.
+    // was fn_8001B430
     void fadeOutStageBGMForIndex(s32 index, s32 volumeIndex) {
         if (index < 0) {
             return;
@@ -280,7 +288,7 @@ namespace MR {
         }
     }
 
-    // PLACEHOLDER(core): semantic name unknown (fn_8001B510); used by EarthenPipe.
+    // was fn_8001B510
     void startStageBGMForIndex(s32 index, s32 volumeIndex) {
         if (index < 0) {
             return;

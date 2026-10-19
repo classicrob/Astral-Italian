@@ -13,6 +13,9 @@ public:
     void setScale(const TVec3f& rScale);
     void setScaleUpRate(s32 frames);
     void setScaleDownRate(s32 frames);
+    virtual void init(const JMapInfoIter&) override;
+    virtual void draw() const override;
+    void preScaleDrawPass(s32) const;
     virtual void control();
     bool isShowVolume() const;
     virtual void calcAndSetBaseMtx();

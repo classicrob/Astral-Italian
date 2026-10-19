@@ -1,5 +1,8 @@
 #include "Game/LiveActor/VolumeDrawer.hpp"
 #include "Game/Util/DrawUtil.hpp"
+#include "Game/Util/CameraUtil.hpp"
+#include "Game/Util/ModelUtil.hpp"
+#include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ActorInitUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
@@ -24,6 +27,10 @@ VolumeDrawer::VolumeDrawer(const char* pName, const char* pArcName, f32 (*pMtx)[
     MR::initActor(this, pArcName, false);
     MR::connectToScene(this, 0x2A, 0xB, -1, drawType);
     MR::invalidateClipping(this);
+}
+
+void VolumeDrawer::init(const JMapInfoIter&) {
+    makeActorAppeared();
 }
 
 void VolumeDrawer::setHost(const LiveActor* pHost) {
@@ -58,6 +65,76 @@ void VolumeDrawer::setScaleDownRate(s32 frames) {
         return;
     }
     mScaleStep = -1.0f / (f32)frames;
+}
+
+void VolumeDrawer::preScaleDrawPass(s32 pass) const {
+    f32 mtx[3][4];
+    PSMTXConcat(MR::getCameraViewMtx(), getBaseMtx(), mtx);
+
+    TVec3f scale(mScale);
+    f32 passF = (f32)pass;
+    scale.x *= passF;
+    scale.y *= passF;
+    scale.z *= passF;
+
+    TVec3f diff(1.0f);
+    diff.x -= scale.x;
+    diff.y -= scale.y;
+    diff.z -= scale.z;
+
+    TVec3f out;
+    out.x = LiveActor::mScale.x * diff.x;
+    out.y = LiveActor::mScale.y * diff.y;
+    out.z = LiveActor::mScale.z * diff.z;
+
+    MR::preScaleMtx(mtx, out);
+    GXLoadPosMtxImm(mtx, 0);
+}
+
+void VolumeDrawer::draw() const {
+    if (mScaleRate <= 0.0f) {
+        return;
+    }
+
+    MR::loadProjectionMtx();
+
+    u8 alpha = (u8)(s32)((f32)mColor.a * mScaleRate);
+    Color8 color(mColor.r, mColor.g, mColor.b, alpha);
+    GXColor shapeColor = reinterpret_cast< GXColor& >(color);
+
+    for (s32 i = 0; i < mDrawPasses; i++) {
+        preScaleDrawPass(i);
+        GXSetCurrentMtx(0);
+        GXSetColorUpdate(0);
+        GXSetAlphaUpdate(1);
+        GXSetDstAlpha(1, 0);
+        GXSetCullMode(GX_CULL_NONE);
+        GXSetTevColor(GX_TEVREG1, shapeColor);
+        if (i == 0) {
+            GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
+        }
+
+        GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ZERO, GX_LO_COPY);
+        MR::drawSimpleModel(MR::getJ3DModelData(this));
+
+        GXSetDstAlpha(0, 0);
+        GXSetZMode(GX_TRUE, GX_GEQUAL, GX_FALSE);
+        GXSetCullMode(GX_CULL_FRONT);
+        GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ZERO, GX_LO_COPY);
+        MR::drawSimpleModel(MR::getJ3DModelData(this));
+
+        GXSetCullMode(GX_CULL_BACK);
+        GXSetBlendMode(GX_BM_SUBTRACT, GX_BL_ZERO, GX_BL_ZERO, GX_LO_COPY);
+        MR::drawSimpleModel(MR::getJ3DModelData(this));
+
+        GXSetTevColor(GX_TEVREG1, shapeColor);
+        GXSetCullMode(GX_CULL_NONE);
+        GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_COPY);
+        GXSetColorUpdate(1);
+        GXSetDstAlpha(1, 0);
+        GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);
+        MR::drawSimpleModel(MR::getJ3DModelData(this));
+    }
 }
 
 void VolumeDrawer::control() {

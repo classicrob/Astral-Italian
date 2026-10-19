@@ -50,6 +50,7 @@ namespace DemoFunction {
     bool isDemoPartActiveFunction(const char*);
     s32 getDemoPartStepFunction(const char*);
     s32 getDemoPartTotalStepFunction(const char*);
+    bool isMainPartLastStep() NO_INLINE;
     bool isDemoLastPartLastStep();
     bool isDemoSuspendOrLastPartLastStep();
     const char* getCurrentDemoPartNameMain(const char*);
@@ -79,7 +80,7 @@ namespace DemoFunction {
     void registerDemoTalkMessageCtrlDirect(LiveActor*, TalkMessageCtrl*, const char*);
     void setDemoTalkMessageCtrlDirect(const LiveActor*, TalkMessageCtrl*, const char*);
 
-    ResourceHolder* loadDemoArchive();
+    ResourceHolder** loadDemoArchive();
 
     s32 createSheetParser(const DemoExecutor*, const char*, JMapInfo**);
 

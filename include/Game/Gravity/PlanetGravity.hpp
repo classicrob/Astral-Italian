@@ -47,7 +47,8 @@ public:
     /* 0x1C */ s32 mGravityPower;  // gravity power type
     /* 0x20 */ bool mActivated;    // corresponding GlobalGravityObj has switch activated?
     /* 0x21 */ bool mIsInverse;    // invert gravity vector?
-    /* 0x22 */ bool mValidFollower;
-    /* 0x23 */ bool mIsRegistered;  // is registered by PlanetGravityManager?
-    /* 0x24 */ bool mAppeared;      // corresponding GlobalGravityObj has appeared?
+    /* 0x22 */ bool mIsZeroGravity;  // SMG2: calcGravity returns a zero vector (PlaneZero*GravityCreator set this)
+    /* 0x23 */ bool mValidFollower;
+    /* 0x24 */ bool mIsRegistered;  // is registered by PlanetGravityManager?
+    /* 0x25 */ bool mAppeared;      // corresponding GlobalGravityObj has appeared?
 };

@@ -26,10 +26,12 @@ namespace MR {
         pActor->mPosition.z = pActor->mRailRider->mCurPos.z;
     }
 
+#pragma dont_inline on
     void moveCoord(LiveActor* pActor, f32 speed) {
-        setRailCoordSpeed(pActor, speed);
-        moveRailRider(pActor);
+        pActor->mRailRider->setSpeed(__fabsf(speed));
+        pActor->mRailRider->move();
     }
+#pragma dont_inline reset
 
     void moveCoordAndTransToRailPoint(LiveActor* pActor, s32 index) {
         moveCoordToRailPoint(pActor, index);
@@ -68,9 +70,18 @@ namespace MR {
         moveTransToCurrentRailPos(pActor);
     }
 
+#pragma dont_inline on
     void moveCoordAndFollowTrans(LiveActor* pActor) {
-        moveRailRider(pActor);
-        moveTransToCurrentRailPos(pActor);
+        pActor->mRailRider->move();
+        setPosition(pActor, pActor->mRailRider->mCurPos);
+    }
+#pragma dont_inline reset
+
+    // Target passes the leftover f1 straight into moveCoord (the mangled name has no float parameter)
+    void moveCoordAndFollowTransXZ(LiveActor* pActor) {
+        f32 speed;
+        moveCoord(pActor, speed);
+        moveTransXZToCurrentRailPos(pActor);
     }
 
     void moveCoordToStartPos(LiveActor* pActor) {
@@ -349,6 +360,14 @@ namespace MR {
         return calcDifferenceRailCoord(pActor, currentCoord, coord) >= 0.0f;
     }
 
+    f32 fn_80052E20(const LiveActor* pActor) {
+        RailRider* railRider = pActor->mRailRider;
+        if (railRider->mIsNotReverse) {
+            return railRider->getTotalLength() - railRider->mCoord;
+        }
+        return railRider->mCoord;
+    }
+
     f32 calcDistanceToNearestRailEnd(const LiveActor* pActor) {
         f32 coord = pActor->mRailRider->mCoord;
         return MR::min(coord, pActor->mRailRider->getTotalLength() - coord);
@@ -400,6 +419,23 @@ namespace MR {
     }
 
     void calcRailDirectionAtCoord(TVec3f* pDir, const LiveActor* pActor, f32 coord) {
+        pActor->mRailRider->calcDirectionAtCoord(pDir, coord);
+    }
+
+    void fn_800531B0(TVec3f* pDir, LiveActor* pActor, f32 offset) {
+        RailRider* railRider = pActor->mRailRider;
+        f32 coord;
+        if (railRider->mIsNotReverse) {
+            coord = railRider->mCoord + offset;
+        } else {
+            coord = railRider->mCoord - offset;
+        }
+
+        if (railRider->isLoop()) {
+            coord = MR::repeat(coord, 0.0f, pActor->mRailRider->getTotalLength());
+        } else {
+            coord = MR::clamp(coord, 0.0f, pActor->mRailRider->getTotalLength());
+        }
         pActor->mRailRider->calcDirectionAtCoord(pDir, coord);
     }
 
@@ -621,9 +657,15 @@ namespace MR {
 
     bool isRailReachedNearNextPoint(const LiveActor* pActor, f32 range) {
         f32 coord = getRailPointCoord(pActor, getNextRailPointNo(pActor));
-        if (isRailGoingToEnd(pActor)) {
+        if (pActor->mRailRider->mIsNotReverse) {
+            if (pActor->mRailRider->mCurPoint > getNextRailPointNo(pActor)) {
+                return getRailTotalLength(pActor) - getRailCoord(pActor) < range;
+            }
             return coord - getRailCoord(pActor) < range;
         } else {
+            if (getNextRailPointNo(pActor) > pActor->mRailRider->mCurPoint) {
+                return getRailCoord(pActor) - getRailTotalLength(pActor) < range;
+            }
             return getRailCoord(pActor) - coord < range;
         }
     }

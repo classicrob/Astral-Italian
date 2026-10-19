@@ -25,6 +25,7 @@ public:
 
     f32 getAnimationFrame() const;
     void setAnimationFrame(f32);
+    bool isExistAnimation(const char*) const;
     void init();
     void stopAnimation();
     void stopAnimation(const char*);

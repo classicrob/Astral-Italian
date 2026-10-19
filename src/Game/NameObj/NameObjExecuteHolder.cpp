@@ -19,8 +19,8 @@ NameObjExecuteInfo::NameObjExecuteInfo()
 }
 
 void NameObjExecuteInfo::setConnectInfo(NameObj* pObj, int movementType, int calcAnimType, int drawBufferType, int drawType) {
-    _4 = 2;
     mExecutedObj = pObj;
+    _4 = 2;
     _5 = 2;
     mMovementType = movementType;
     mCalcAnimType = calcAnimType;

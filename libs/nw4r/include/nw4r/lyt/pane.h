@@ -105,18 +105,30 @@ namespace nw4r {
                 return mChildList;
             }
 
+#ifdef NW4R_DEBUG_OUTLINE  // opt-in per TU (LayoutUtil)
+            void SetInfluencedAlpha(bool influenced) NO_INLINE {
+                mFlag = (mFlag & ~2) | (static_cast<u8>(influenced) << 1);
+            }
+#else
             void SetInfluencedAlpha(bool influenced) {
                 detail::SetBit(&mFlag, 1, influenced);
             }
+#endif
 
             void SetSRTElement(u32 idx, f32 value) {
                 f32* srtAry = &mTranslate.x;
                 srtAry[idx] = value;
             }
 
+#ifdef NW4R_DEBUG_OUTLINE  // opt-in per TU (LayoutUtil)
+            void SetVisible(bool visible) NO_INLINE {
+                mFlag = (mFlag & ~1) | static_cast<u8>(visible);
+            }
+#else
             void SetVisible(bool visible) {
                 detail::SetBit(&mFlag, 0, visible);
             }
+#endif
 
             bool IsVisible() const {
                 return detail::TestBit(mFlag, 0);

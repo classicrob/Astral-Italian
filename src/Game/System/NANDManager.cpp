@@ -37,8 +37,8 @@ const char* NANDRequestInfo::setMove(const char* pPath, const char* pDestDir) {
 const char* NANDRequestInfo::setWriteSeq(const char* pName, const void* pBuf, u32 fsBlock, u8 permission, u8 attr) {
     init();
 
-    mWriteBuf = pBuf;
     mType = 2;
+    mWriteBuf = pBuf;
     mFsBlock = fsBlock;
     mPermission = permission;
     mAttribute = attr;
@@ -50,8 +50,8 @@ const char* NANDRequestInfo::setWriteSeq(const char* pName, const void* pBuf, u3
 const char* NANDRequestInfo::setReadSeq(const char* pName, void* pBuf, u32 fsBlock, u32* pLength) {
     init();
 
-    mReadBuf = pBuf;
     mType = 3;
+    mReadBuf = pBuf;
     mFsBlock = fsBlock;
     mReadLength = pLength;
     snprintf(mPath, sizeof(mPath), "%s", pName);
@@ -62,8 +62,8 @@ const char* NANDRequestInfo::setReadSeq(const char* pName, void* pBuf, u32 fsBlo
 NANDRequestInfo* NANDRequestInfo::setCheck(u32 fsBlock, u32 inode, u32* pAnswer) {
     init();
 
-    mFsBlock = fsBlock;
     mType = 4;
+    mFsBlock = fsBlock;
     mInode = inode;
     mCheckAnswer = pAnswer;
 

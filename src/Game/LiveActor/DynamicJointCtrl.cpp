@@ -5,7 +5,6 @@
 template const bool JMapInfo::getValue< f32 >(int, const char*, f32*) const;
 
 namespace {
-    DynamicJointCtrlParam sDefaultParam = {0.3f, 0.98f, 0.01f, 45.0f, -1};
     const s32 sDefaultCtrlTime = 10;
     const char* sTextOutFileName = "DynamicJointCtrl";
 
@@ -17,6 +16,10 @@ namespace {
         }
     }
 };  // namespace
+
+DynamicJointCtrlParam::DynamicJointCtrlParam()
+    : mGravity(0.3f), mFriction(0.98f), mAccelRatetoBckPos(0.01f), mBendMaxDegree(45.0f),
+      mCtrlJointNumMax(-1), mSupportJointName(nullptr), mIsFixRoot(false) {}
 
 JointCtrlRate::JointCtrlRate() : _0(1.0f), _4(), _8(-1), _C(-1) {
 }
@@ -149,8 +152,9 @@ DynamicJointCtrl::DynamicJointCtrl(LiveActor* pActor, const char* pName, const D
     : mActor(pActor), mName(pName), _8(), mCtrlNodes(), mParams(pParam), mControlRate(new JointCtrlRate) {
 }
 
+// NONMATCHING: regalloc and PMF temporary stack order
 void DynamicJointCtrl::init() {
-    MR::getJointMtx(mActor, mName);
+    MtxPtr rootMtx = MR::getJointMtx(mActor, mName);
     J3DJoint* joint = MR::getJoint(mActor, mName);
     if (mParams->mCtrlJointNumMax > 0) {
         _8 = mParams->mCtrlJointNumMax;
@@ -159,30 +163,24 @@ void DynamicJointCtrl::init() {
     }
 
     mCtrlNodes = new DynamicJointCtrlNode*[_8];
-    TVec3f previousPos(0.0f, 0.0f, 0.0f);
+    TVec3f previousPos(rootMtx[0][3], rootMtx[1][3], rootMtx[2][3] + 30.0f);
     f32 length = 100.0f;
 
     for (s32 i = 0; i < _8; i++) {
-        MtxPtr mtx = nullptr;
         if (i < _8 - 1) {
-            mtx = MR::getJointMtx(mActor, joint->getJntNo());
-        }
-
-        if (i < _8 - 1) {
+            LiveActor* actor = mActor;
+            MtxPtr mtx = MR::getJointMtx(actor, joint->getJntNo());
             TVec3f pos(mtx[0][3], mtx[1][3], mtx[2][3]);
-            if (i > 0) {
-                length = pos.distance(previousPos);
-            }
-
+            length = pos.distance(previousPos);
             previousPos.set(pos);
-        }
-
-        mCtrlNodes[i] = new DynamicJointCtrlNode(this, mtx, length);
-        if (i < _8 - 1) {
-            const char* name = MR::getJointName(mActor, joint->getJntNo());
-            mCtrlNodes[i]->mJointController =
-                MR::createJointDelegator< DynamicJointCtrlNode >(mCtrlNodes[i], mActor, &DynamicJointCtrlNode::updateJointMtxCallBack, nullptr, name);
-            joint = joint->mChild;
+            DynamicJointCtrlNode* node = new DynamicJointCtrlNode(this, mtx, length);
+            const char* name = MR::getJointName(actor, joint->getJntNo());
+            node->mJointController = MR::createJointDelegator<DynamicJointCtrlNode>(node, actor, &DynamicJointCtrlNode::updateJointMtxCallBack, nullptr, name);
+            mCtrlNodes[i] = node;
+            if (i == 0 && mParams->mSupportJointName) joint = MR::getJoint(mActor, mParams->mSupportJointName);
+            else joint = joint->mChild;
+        } else {
+            mCtrlNodes[i] = new DynamicJointCtrlNode(this, nullptr, length);
         }
     }
 
@@ -212,9 +210,17 @@ void DynamicJointCtrl::reset() {
 }
 
 void DynamicJointCtrl::setCallBackFunction() {
-    for (s32 i = 0; i < _8 - 1; i++) {
+    s32 start = 0;
+    if (mParams->mIsFixRoot) start = 1;
+    for (s32 i = start; i < _8 - 1; i++) {
         mCtrlNodes[i]->mJointController->registerCallBack();
     }
+}
+
+DynamicJointCtrlKeeper* DynamicJointCtrlKeeper::tryCreate(LiveActor* actor) {
+    const ResourceHolder* holder = MR::getResourceHolder(actor);
+    if (!MR::isExistFileInArc(holder, "%s.bcsv", sTextOutFileName)) return nullptr;
+    return new DynamicJointCtrlKeeper(actor);
 }
 
 DynamicJointCtrlKeeper::DynamicJointCtrlKeeper(LiveActor* pActor) : mActor(pActor), _4(), mControls() {
@@ -229,7 +235,6 @@ DynamicJointCtrlKeeper::DynamicJointCtrlKeeper(LiveActor* pActor) : mActor(pActo
 
     for (s32 i = 0; i < _4; i++) {
         DynamicJointCtrlParam* param = new DynamicJointCtrlParam;
-        *param = ::sDefaultParam;
         const char* name = nullptr;
         csv->getValue(i, "JointName", &name);
         csv->getValue(i, "Gravity", &param->mGravity);
@@ -237,6 +242,10 @@ DynamicJointCtrlKeeper::DynamicJointCtrlKeeper(LiveActor* pActor) : mActor(pActo
         csv->getValue(i, "AccelRateToBckPos", &param->mAccelRatetoBckPos);
         csv->getValue(i, "BendMaxDegree", &param->mBendMaxDegree);
         csv->getValue(i, "CtrlJointNumMax", &param->mCtrlJointNumMax);
+        MR::getCsvDataStrOrNULL(&param->mSupportJointName, csv, "SupportJointName00", i);
+        const char* fixRoot = nullptr;
+        MR::getCsvDataStr(&fixRoot, csv, "IsFixRoot", i);
+        if (*fixRoot == 'o') param->mIsFixRoot = true;
         mControls[i] = new DynamicJointCtrl(pActor, name, param);
         mControls[i]->init();
     }
@@ -254,12 +263,12 @@ void DynamicJointCtrlKeeper::setCallBackFunction() {
     }
 }
 
-void DynamicJointCtrlKeeper::startCtrl(const char* pName, s32 time) {
-    findJointCtrl(pName)->mControlRate->startCtrl(time);
+void DynamicJointCtrlKeeper::startCtrl(s32 time) {
+    for (s32 i = 0; i < _4; i++) mControls[i]->mControlRate->startCtrl(time);
 }
 
-void DynamicJointCtrlKeeper::endCtrl(const char* pName, s32 time) {
-    findJointCtrl(pName)->mControlRate->endCtrl(time);
+void DynamicJointCtrlKeeper::endCtrl(s32 time) {
+    for (s32 i = 0; i < _4; i++) mControls[i]->mControlRate->endCtrl(time);
 }
 
 void DynamicJointCtrlKeeper::reset() {

@@ -148,7 +148,7 @@ s32 MarioFacePlanetSwitch::checkMarkerInScene() {
     return MR::getSceneObj<MarioFacePlanetSwitch>(0x93)->checkMarkerElement();
 }
 
-u8 MarioFacePlanetSwitch::isDoneInScene() {
+bool MarioFacePlanetSwitch::isDoneInScene() {
     if (!MR::isExistSceneObj(0x93)) {
         return 0;
     }

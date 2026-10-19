@@ -97,9 +97,7 @@ namespace {
 };  // namespace
 
 GameSequenceMarioFaceShipEvent::GameSequenceMarioFaceShipEvent(GameSequenceMarioFaceShip* pHost)
-    : ActorStateBase< GameSequenceMarioFaceShip >("[シーケンス]マリオ顔惑星イベント", pHost) {
-    mDemoStarter = nullptr;
-    mCurrentIndex = -1;
+    : ActorStateBase< GameSequenceMarioFaceShip >("[シーケンス]マリオ顔惑星イベント", pHost), mDemoStarter(nullptr), mCurrentIndex(-1) {
     mDemoStarter = new NameObj("顔惑星デモ開始者");
 }
 
@@ -111,6 +109,7 @@ void GameSequenceMarioFaceShipEvent::init() {
     initNerve(&GameSequenceMarioFaceShipEventNrvResultDemo::sInstance, 0);
 }
 
+// NONMATCHING: regalloc
 void GameSequenceMarioFaceShipEvent::appear() {
     bool isGrandStarVsKoopa = false;
     mIsDead = false;
@@ -126,7 +125,7 @@ void GameSequenceMarioFaceShipEvent::appear() {
     } else if (isGrandStarVsKoopa) {
         MR::forceCloseWipeCircle();
     } else {
-        MR::openSystemWipeCircleAtPlayer(-1);
+        MR::openSystemWipeCircleOnPlayer(-1);
     }
 
     if (GameSequenceFunction::isFaceShipFlag1C()) {
@@ -163,6 +162,7 @@ bool GameSequenceMarioFaceShipEvent::isEmpty() {
     return list.mNum > 0;
 }
 
+// NONMATCHING: regalloc
 void GameSequenceMarioFaceShipEvent::makeResultEventList(MarioFaceShipEventList& rList) {
     rList.mNum = 0;
     for (s32 i = 0; i < MarioFaceShipEventDataHolder::calcAllTalkNum(); i++) {
@@ -377,15 +377,16 @@ void GameSequenceMarioFaceShipEvent::clearFlags() {
         GameDataFunction::onGameEventFlag("スター120個エンディング後デモ");
     }
     if (GameSequenceFunction::hasStageResultSequence()) {
-        if (MR::isCometExplainPendingWithStarGalaxy()) {
+        if (MR::isAnyGalaxyAvailableWithStars()) {
             GameDataFunction::onGameEventFlag("コメット解説");
         }
-        if (MR::isWorld3NormalStarsGatheredForFaceShip()) {
+        if (MR::isPowerStarNumWorld3Enough()) {
             GameDataFunction::startLuigiIntrusion();
         }
     }
 }
 
+// NONMATCHING: regalloc
 void GameSequenceMarioFaceShipEvent::finishEvents() {
     if (GameSequenceFunction::isClearedGrandStarVsKoopaLv3GalaxyAtResult()) {
         GameSequenceFunction::setWorldMapCurrentNode(0);
@@ -538,6 +539,7 @@ void GameSequenceMarioFaceShipEvent::exeSave() {
     }
 }
 
+// NONMATCHING: regalloc
 void GameSequenceMarioFaceShipEvent::exeStartDemo() {
     if (MR::isFirstStep(this)) {
         bool isStartFlow = false;
@@ -569,9 +571,7 @@ void GameSequenceMarioFaceShipEvent::exeStartDemo() {
 }
 
 void MarioFaceShipEventList::add(const MarioFaceShipEventEntry& rEntry) {
-    mEntries[mNum].mDemoName = rEntry.mDemoName;
-    mEntries[mNum].mTalkIndex = rEntry.mTalkIndex;
-    mNum++;
+    static_cast<MarioFaceShipEventEntry&>(mEntries[mNum++]) = rEntry;
 }
 
 GameSequenceMarioFaceShipEvent::~GameSequenceMarioFaceShipEvent() {

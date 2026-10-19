@@ -15,6 +15,7 @@ public:
 class DemoPlayerKeeper {
 public:
     DemoPlayerKeeper(const DemoExecutor*);
+    const DemoPlayerInfo* findPlayerInfo(const char*) const;
     void start();
     void update();
     bool isExistPosName() const;

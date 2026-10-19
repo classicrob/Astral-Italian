@@ -44,11 +44,11 @@
 #include <cstring>
 
 extern XanimeGroupInfo yoshiAnimationGroups[];
-extern XanimeAuxInfo yoshiAnimationAux[];
-extern XanimeOfsInfo yoshiAnimationOffsets[];
-extern XanimeBckTable yoshiAnimationBckTable[];
-extern XanimeBckTable2 yoshiAnimationBckTable2[];
-extern XanimeBckTable3 yoshiAnimationBckTable3[];
+extern XanimeOfsInfo yoshiAnimationAux[];
+extern XanimeBckTable1 yoshiAnimationOffsets[];
+extern XanimeBckTable2 yoshiAnimationBckTable[];
+extern XanimeBckTable3 yoshiAnimationBckTable2[];
+extern XanimeBckTable4 yoshiAnimationBckTable3[];
 
 namespace NrvYoshi {
     class YoshiNrv80413840 : public Nerve {

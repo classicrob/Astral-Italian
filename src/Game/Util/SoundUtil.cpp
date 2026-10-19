@@ -79,11 +79,10 @@ namespace MR {
     }
 
     void fn_8005A6E0(LiveActor* pActor, const char* pName, bool param3, bool param4, f32 param5, f32 param6) {
-        startBas(pActor, pName, param3, param5, param6);
+        startBas(pActor, pName, param3, param5, param6, param4);
     }
 
-    // NONMATCHING: target also reads r6 (2nd bool) and conditionally calls getMapSoundCodeFoot (pure, result unused); callers pass 5 args
-    bool startBas(const LiveActor* pActor, const char* pName, bool param3, f32 param4, f32 param5) {
+    bool startBas(const LiveActor* pActor, const char* pName, bool param3, f32 param4, f32 param5, bool updateFoot) {
         if (pActor->mSoundHolder == nullptr) {
             return false;
         }
@@ -93,6 +92,10 @@ namespace MR {
 
         if (pName != nullptr && pResourceHolder->mBasResTable->isExistRes(pName)) {
             pSoundAnimation = static_cast< JAUSoundAnimation* >(pResourceHolder->mBasResTable->getRes(pName));
+        }
+
+        if (updateFoot) {
+            getMapSoundCodeFoot(pActor);
         }
 
         if (pSoundAnimation != nullptr) {
@@ -146,6 +149,10 @@ namespace MR {
 
     JAISoundHandle* startAtmosphereSE(JAISoundID id, s32 param2, s32 param3) {
         return AudWrap::getAtmosphereSeObject()->startSoundParam(id, param2, param3);
+    }
+
+    JAISoundHandle* fn_8005B100(JAISoundID id, s32 param2, s32 param3) {
+        return AudWrap::getAtmosphereSeObject()->startLevelSoundParam(id, param2, param3);
     }
 
     JAISoundHandle* startSoundObject(AudSoundObject* pSoundObject, const char* pName) {
@@ -457,6 +464,10 @@ namespace MR {
         AudWrap::getSystem()->recoverSeVolumeSet(param1);
     }
 
+    void setSeVolumeSetLevel(s32 param1, s32 param2) {
+        AudWrap::getSystem()->setSeVolumeSetLevel(param1, param2, 2);
+    }
+
     void setSoundField9A4(bool param1) {
         AudWrap::getSystem()->setField9A4(param1);
     }
@@ -475,6 +486,10 @@ namespace MR {
 
     JAISoundID fn_8005ADD0(const char* pName) {
         return AudSingletonHolder< AudSoundNameConverter >::get()->getSoundID(pName);
+    }
+
+    void setSeVolumeSetLevelForMenu() {
+        AudWrap::getSystem()->setSeVolumeSetLevel(3, 30, 2);
     }
 
     void fn_8005AE10(LiveActor* pActor) {
@@ -522,6 +537,7 @@ namespace MR {
     }
 
     void startDPDFreezeLevelSound(const LiveActor* pActor) {
+        startLevelSound(pActor, "SE_SV_LV_SUPPORTTICO_PREVT_ENEMY");
         startLevelSound(pActor, "SE_EM_LV_DPD_POINT");
     }
 
@@ -532,7 +548,7 @@ namespace MR {
             startSystemSE("SE_SY_2P_ASSIST_JUMP");
         }
 
-        startCSSound2P("CS_DPD_JUMP", nullptr);
+        startCSSound2P("CS_DPD_JUMP", nullptr, 0, 1.0f);
     }
 
     void start2PJumpAssistJustSound() {
@@ -542,7 +558,7 @@ namespace MR {
             startSystemSE("SE_SY_2P_ASSIST_JUMP_L");
         }
 
-        startCSSound2P("CS_DPD_JUMP_HIGH", nullptr);
+        startCSSound2P("CS_DPD_JUMP_HIGH", nullptr, 0, 1.0f);
     }
 
     void start2PAttackAssistSound() {
@@ -552,7 +568,7 @@ namespace MR {
             startSystemSE("SE_SY_2P_ASSIST_ATTACK");
         }
 
-        startCSSound2P("CS_DPD_PUNCH", nullptr);
+        startCSSound2P("CS_DPD_PUNCH", nullptr, 0, 1.0f);
     }
 
     void limitedStarPieceHitSound() {

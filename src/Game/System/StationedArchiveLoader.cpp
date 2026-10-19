@@ -7,10 +7,6 @@
 #include "Game/Util/SingletonHolder.hpp"
 #include <JSystem/JKernel/JKRExpHeap.hpp>
 
-namespace MR {
-    void loadToMainRAM(const char*, u8*, JKRHeap*, int);
-};  // namespace MR
-
 StationedArchiveLoader::Condition::~Condition() {
 }
 

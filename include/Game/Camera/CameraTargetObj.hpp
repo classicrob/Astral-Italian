@@ -135,7 +135,6 @@ public:
     }
 
     virtual Triangle* getGroundTriangle() const;
-    CubeCameraArea* getCubeCameraArea() const;
 
     /* 0x14 */ const LiveActor* mActor;
     /* 0x18 */ TVec3f mUp;
@@ -173,7 +172,6 @@ public:
     virtual GravityInfo* getGravityInfo() const;
     virtual bool isDebugMode() const;
     virtual TPos3f* getMapBaseMtx() const;
-    CubeCameraArea* getCubeCameraArea() const;
 
     /* 0x10 */ const MarioActor* mActor;
     /* 0x14 */ TVec3f mSide;
@@ -181,7 +179,7 @@ public:
     /* 0x2C */ TVec3f mFront;
     /* 0x38 */ TVec3f mGravity;
     /* 0x44 */ TVec3f mGroundPos;
-    /* 0x50 */ CubeCameraArea* mCameraArea;
+    /* 0x54 */ u32 _54;  // never written by the target ctor/movement
     /* 0x54 */ Triangle* mGroundTriangle;
     /* 0x58 */ u16 mPlayerMovementTimer;
     /* 0x5A */ bool mIsPlayerMoving;

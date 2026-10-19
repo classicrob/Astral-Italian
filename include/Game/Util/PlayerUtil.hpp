@@ -363,7 +363,7 @@ namespace MR {
     void calcPlayerKillDiffVec(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&);
     void calcPlayerKillVecOnPlane(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&, const TVec3f&);
     void calcPlayerScaledVec(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&, f32);
-    void resetPlayerEndState();
+    const JUTTexture* getPlayerShadowTexture();
     void startSoundPlayer(JAISoundID, s32, s32);
     void startLevelSoundPlayer(JAISoundID, s32);
 }

@@ -28,9 +28,9 @@ public:
 
     static void notifyApplySatisfied();
     static s32 checkMarkerInScene();
-    static u8 isDoneInScene();
+    static bool isDoneInScene();
 
     /* 0x14 */ s32 mElementNum;
     /* 0x18 */ MarioFacePlanetSwitchElement** mElements;
-    /* 0x1C */ u8 mIsDone;
+    /* 0x1C */ bool mIsDone;
 };

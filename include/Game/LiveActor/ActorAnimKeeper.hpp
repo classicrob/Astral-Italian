@@ -5,12 +5,14 @@
 class LiveActor;
 
 struct ActorAnimDataInfo {
+    ActorAnimDataInfo() NO_INLINE;
     /* 0x0 */ const char* mName;
     /* 0x4 */ f32 mStartFrame;
     /* 0x8 */ u8 mIsKeepAnim;
 };
 
 struct ActorAnimKeeperInfo {
+    ActorAnimKeeperInfo() NO_INLINE;
     /* 0x00 */ const char* mName;
     /* 0x04 */ ActorAnimDataInfo mBckInfo;
     /* 0x10 */ ActorAnimDataInfo mBtkInfo;
@@ -26,7 +28,8 @@ public:
 
     bool start(const char*);
     void update();
-    bool isPlaying(const char*) const;
+    bool trySetAllFrame(f32);
+    const char* getCurrentAnimName() const;
     bool isExistAnim(const char*);  // SMG2 callee of fn_80008F00 (symbol isExistAnim__15ActorAnimKeeperFPCc)
     bool isAnyAnimPlaying(const char*);  // SMG2 callee of isAnyAnimPlaying (symbol isAnyAnimPlaying__15ActorAnimKeeperFPCc)
     bool initAnimData();

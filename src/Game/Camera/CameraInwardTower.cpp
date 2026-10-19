@@ -29,8 +29,8 @@ void CameraInwardTower::reset() {
     CameraLocalUtil::setWatchUpVec(this, CameraLocalUtil::getWatchUpVec(mCameraMan));
     mVPan->reset();
     mPos.set(CameraLocalUtil::getPos(this));
-    mIsResetting = false;
     mAngleY = 0.0f;
+    mIsResetting = false;
 }
 
 CameraTargetObj* CameraInwardTower::calc() {

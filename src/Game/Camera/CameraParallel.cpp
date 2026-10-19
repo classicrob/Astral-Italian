@@ -4,6 +4,7 @@
 #include "Game/Camera/CameraHeightArrange.hpp"
 #include "Game/Camera/CameraLocalUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
+#include <cmath>
 
 namespace {
     static const f32 sDistance = 3000.0f;
@@ -12,14 +13,13 @@ namespace {
 };  // namespace
 
 CameraParallel::CameraParallel(const char* pName)
-    : Camera(pName), mAngleX(), mAngleY(), mDist(::sDistance), mIsEnableValid(), mIsRounding(), mRoundTarget(), mRoundAngle(), mRoundAddition(),
-      _CC() {
+    : Camera(pName), mAngleX(), mAngleY(), mDist(::sDistance), mIsEnableValid(), mRoundIndex(0) {
     createVPanObj();
-    for (s32 i = 0; i < 7; i++) {
-        _62[i] = false;
-        _70[i] = 0.0f;
-        _90[i] = 0.0f;
-        _B0[i] = 0.0f;
+    for (s32 i = 0; i < 8; i++) {
+        mIsRounding[i] = false;
+        mRoundTarget[i] = 0.0f;
+        mRoundAngle[i] = 0.0f;
+        mRoundAddition[i] = 0.0f;
     }
 }
 
@@ -28,10 +28,10 @@ void CameraParallel::reset() {
     mVPan->calcWatchPos(nullptr);
     calcIdealPose();
     mVPan->reset();
-    mIsRounding = false;
-    mRoundTarget = 0.0f;
-    mRoundAngle = 0.0f;
-    mRoundAddition = ::sRoundAddition;
+    mIsRounding[0] = false;
+    mRoundTarget[0] = 0.0f;
+    mRoundAngle[0] = 0.0f;
+    mRoundAddition[0] = ::sRoundAddition;
 }
 
 CameraTargetObj* CameraParallel::calc() {
@@ -75,7 +75,7 @@ void CameraParallel::calcIdealPose() {
 
     f32 length, angleX, angleY;
     MR::crossToPolar(TVec3f(0.0f, 0.0f, 0.0f), pos, &length, &angleX, &angleY);
-    angleY += mRoundAngle;
+    angleY += mRoundAngle[mRoundIndex];
     MR::polarToCross(TVec3f(0.0f, 0.0f, 0.0f), &pos, length, angleX, angleY);
 
     mZoneMatrix.mult33(pos);
@@ -93,18 +93,18 @@ void CameraParallel::calcRound() {
         return;
     }
 
-    if (mIsRounding) {
-        if (mRoundTarget > mRoundAngle) {
-            mRoundAngle += ::sRoundAddition;
-            if (mRoundAngle >= mRoundTarget) {
-                mRoundAngle = mRoundTarget;
-                mIsRounding = false;
+    if (mIsRounding[mRoundIndex]) {
+        if (mRoundTarget[mRoundIndex] > mRoundAngle[mRoundIndex]) {
+            mRoundAngle[mRoundIndex] += ::sRoundAddition;
+            if (mRoundAngle[mRoundIndex] >= mRoundTarget[mRoundIndex]) {
+                mRoundAngle[mRoundIndex] = mRoundTarget[mRoundIndex];
+                mIsRounding[mRoundIndex] = false;
             }
         } else {
-            mRoundAngle -= ::sRoundAddition;
-            if (mRoundAngle <= mRoundTarget) {
-                mRoundAngle = mRoundTarget;
-                mIsRounding = false;
+            mRoundAngle[mRoundIndex] -= ::sRoundAddition;
+            if (mRoundAngle[mRoundIndex] <= mRoundTarget[mRoundIndex]) {
+                mRoundAngle[mRoundIndex] = mRoundTarget[mRoundIndex];
+                mIsRounding[mRoundIndex] = false;
             }
         }
         return;
@@ -112,38 +112,54 @@ void CameraParallel::calcRound() {
 
     f32 roundInterval = MR::toRadian(360.0f / ::sRoundDiv);
 
-    if (CameraLocalUtil::testCameraPadTriggerReset()) {
-        mRoundTarget = 0.0f;
-        mIsRounding = true;
-        mRoundAddition = ::sRoundAddition * 2.0f;
+    if (CameraLocalUtil::testCameraPadTriggerReset(true)) {
+        mRoundTarget[mRoundIndex] = 0.0f;
+        mIsRounding[mRoundIndex] = true;
+        mRoundAddition[mRoundIndex] = ::sRoundAddition * 2.0f;
         return;
     }
 
-    if (CameraLocalUtil::testCameraPadTriggerRoundLeft()) {
-        s32 divNum = (mRoundAngle < 0.0f ? -1 : 1) * (s32)(((roundInterval / 2) + MR::abs(mRoundAngle)) / roundInterval) - 1;
+    if (testRoundLeft()) {
+        s32 divNum = (mRoundAngle[mRoundIndex] < 0.0f ? -1 : 1) * (s32)(((roundInterval / 2) + MR::abs(mRoundAngle[mRoundIndex])) / roundInterval) - 1;
 
         if (divNum < -::sRoundDiv / 2) {
             divNum += ::sRoundDiv;
-            mRoundAngle += MR::pi() * 2.0f;
+            mRoundAngle[mRoundIndex] += MR::pi() * 2.0f;
         }
 
-        mRoundTarget = divNum * roundInterval;
-        mIsRounding = true;
-        mRoundAddition = ::sRoundAddition;
+        mRoundTarget[mRoundIndex] = divNum * roundInterval;
+        mIsRounding[mRoundIndex] = true;
+        mRoundAddition[mRoundIndex] = ::sRoundAddition;
         return;
     }
 
-    if (CameraLocalUtil::testCameraPadTriggerRoundRight()) {
-        s32 divNum = (mRoundAngle < 0.0f ? -1 : 1) * (s32)(((roundInterval / 2) + MR::abs(mRoundAngle)) / roundInterval) + 1;
+    if (testRoundRight()) {
+        s32 divNum = (mRoundAngle[mRoundIndex] < 0.0f ? -1 : 1) * (s32)(((roundInterval / 2) + MR::abs(mRoundAngle[mRoundIndex])) / roundInterval) + 1;
 
         if (divNum > ::sRoundDiv / 2) {
             divNum -= ::sRoundDiv;
-            mRoundAngle -= MR::pi() * 2.0f;
+            mRoundAngle[mRoundIndex] -= MR::pi() * 2.0f;
         }
 
-        mRoundTarget = divNum * roundInterval;
-        mIsRounding = true;
-        mRoundAddition = ::sRoundAddition;
+        mRoundTarget[mRoundIndex] = divNum * roundInterval;
+        mIsRounding[mRoundIndex] = true;
+        mRoundAddition[mRoundIndex] = ::sRoundAddition;
         return;
     }
+}
+
+bool CameraParallel::isRoundControlReversed() const {
+    f32 roll = CameraLocalUtil::getRoll(this);
+    roll = -MR::pi() + static_cast<f32>(fmod(2.0f * MR::pi() + (roll - -MR::pi()), static_cast<f64>(2.0f * MR::pi())));
+    return roll < -MR::pi() / 2.0f || roll > MR::pi() / 2.0f;
+}
+
+bool CameraParallel::testRoundLeft() const {
+    if (isRoundControlReversed()) return CameraLocalUtil::testCameraPadTriggerRoundRight();
+    return CameraLocalUtil::testCameraPadTriggerRoundLeft();
+}
+
+bool CameraParallel::testRoundRight() const {
+    if (isRoundControlReversed()) return CameraLocalUtil::testCameraPadTriggerRoundLeft();
+    return CameraLocalUtil::testCameraPadTriggerRoundRight();
 }

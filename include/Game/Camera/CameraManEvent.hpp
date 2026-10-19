@@ -8,6 +8,7 @@ class CameraHolder;
 class CameraParamChunk;
 class CameraParamChunkEvent;
 class CameraParamChunkHolder;
+class CameraParamChunkID;
 
 #define NR_FIFO_ITEMS 2
 
@@ -48,14 +49,15 @@ public:
     virtual bool isZeroFrameMoveOff() const;
     virtual bool isCorrectingErpPositionOff() const;
 
-    void start(s32, const char*, const CameraTargetArg&, s32);
-    void end(s32, const char*, s32);
-    bool isEventActive(s32, const char*) const;
+    void start(const CameraParamChunkID&, const CameraTargetArg&, s32);
+    void end(const CameraParamChunkID&, s32);
+    bool isEventActive(const CameraParamChunkID&) const;
     bool isActive() const;
     bool doesNextChunkHaveInterpolation() const;
-    u32 getAnimCameraFrame(s32, const char*) const;
-    void pauseOnAnimCamera(s32, const char*);
-    void pauseOffAnimCamera(s32, const char*);
+    u32 getAnimCameraFrame(const CameraParamChunkID&) const;
+    void pauseOnAnimCamera(const CameraParamChunkID&);
+    void pauseOffAnimCamera(const CameraParamChunkID&);
+    void setAnimCameraFrame(const CameraParamChunkID&, f32);
     void updateChunkFIFO();
     void applyChunk();
     void checkReset(ChunkFIFOItem*);
@@ -64,7 +66,7 @@ public:
     void setVPanParam();
     void resetCameraIfRequested();
     void setSafePose();
-    CameraParamChunkEvent* findChunk(s32, const char*) const NO_INLINE;
+    CameraParamChunkEvent* findChunk(const CameraParamChunkID&) const NO_INLINE;
     void requestChunk(CameraParamChunkEvent*, EPriority, const CameraTargetArg&, s32);
     bool cleanChunkFIFO(CameraParamChunk*);
     bool isChunkFIFOEmpty() const;
@@ -73,7 +75,7 @@ public:
     void sendFinishInterpolateFrame(CameraParamChunkEvent*, s32);
     s32 searchPriority(CameraParamChunk*) const;
     bool isInFIFO(CameraParamChunk*) const;
-    bool isAnimCameraEnd(s32, const char*) const;
+    bool isAnimCameraEnd(const CameraParamChunkID&) const;
 
     /* 0x48 */ CameraHolder* mHolder;
     /* 0x4C */ CameraParamChunkHolder* mChunkHolder;

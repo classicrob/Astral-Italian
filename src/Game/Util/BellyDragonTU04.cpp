@@ -21,14 +21,6 @@
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util.hpp"
 
-extern "C" const char lbl_8066CF90[];
-extern "C" const char lbl_8066CF98[];
-extern "C" const char lbl_8066CFC0[];
-extern "C" const char lbl_8066CFF0[];
-extern "C" const char lbl_8066D004[];
-extern "C" const char lbl_8066D018[];
-extern "C" const char lbl_8066D024[];
-extern "C" const char lbl_807CF4E8[];
 extern "C" const f32 lbl_807D7828;
 extern "C" const f32 lbl_807D782C;
 extern "C" const f32 lbl_807D7830;
@@ -72,7 +64,7 @@ namespace NrvBellyDragonPodActor {
 };  // namespace NrvBellyDragonPodActor
 
 // Group-B actor (0xC4 bytes). Host at 0x90, base matrix at 0x94.
-BellyDragonPodActor::BellyDragonPodActor(BellyDragon* pHost) : LiveActor(lbl_8066CFF0), mHost(pHost) {
+BellyDragonPodActor::BellyDragonPodActor(BellyDragon* pHost) : LiveActor("隕石（ドラゴン）"), mHost(pHost) {
     mBaseMtx.identity();
 }
 
@@ -91,6 +83,7 @@ s32 BellyDragonUtil::updateArmState(NerveExecutor* pArm, BellyDragon* pHost) {
     return result;
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BellyDragonUtil::syncToHead(BellyDragon* pHost, LiveActor*) {
     MR::onBind(pHost);
     BellyDragonBodyPart* pBody = pHost->mBody->mHead;
@@ -107,6 +100,7 @@ void BellyDragonUtil::syncToHead(BellyDragon* pHost, LiveActor*) {
     pHost->mBody->unfreeze();
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BellyDragonUtil::setBodyPartMtx(BellyDragonBodyPart* pObj, const f32 (*mtx)[4]) {
     ((TPos3f*)((u8*)pObj + 0xA8))->set(mtx);
     ((TVec3f*)((u8*)pObj + 0x14))->set< f32 >(*(f32*)((u8*)pObj + 0xB4), *(f32*)((u8*)pObj + 0xC4), *(f32*)((u8*)pObj + 0xD4));
@@ -118,20 +112,21 @@ void BellyDragonUtil::updateFront(BellyDragon* pHost, f32 rate) {
 
 void BellyDragonUtil::pullBindedByFront(BellyDragon* pHost, const f32* pArg) {
     MR::fn_80013880(pHost, &pHost->mFront, pArg);
-    MR::sendMsgEnemyAttackToBindedSensor(pHost, pHost->getSensor(lbl_8066CF90));
+    MR::sendMsgEnemyAttackToBindedSensor(pHost, pHost->getSensor("Message"));
 }
 
 void BellyDragonUtil::pushBindedByFront(BellyDragon* pHost, f32 farg0, f32 farg1) {
     TVec3f sp8 = pHost->mFront * farg0;
     MR::addVelocity(pHost, sp8);
     MR::attenuateVelocity(pHost, farg1);
-    MR::sendMsgEnemyAttackToBindedSensor(pHost, pHost->getSensor(lbl_8066CF90));
+    MR::sendMsgEnemyAttackToBindedSensor(pHost, pHost->getSensor("Message"));
 }
 
 void BellyDragonUtil::startBodyBindB(BellyDragon* pHost) {
     pHost->mBody->startBindB();
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BellyDragonUtil::calcGroundHillMtx(TPos3f* pOut, NameObj* pObj, const f32 (*mtx)[4], f32 farg0) {
     TVec3f sp5C(mtx[0][0], mtx[1][0], mtx[2][0]);
     TVec3f sp50(mtx[0][2], mtx[1][2], mtx[2][2]);
@@ -185,6 +180,7 @@ void BellyDragonUtil::killPodObjects(BellyDragon* pHost) {
     pHost->mPod->killAll();
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BellyDragonUtil::killWeakPoints(BellyDragon* pHost) {
     s32 count = BODY_COUNT(pHost->mBody);
     for (s32 i = 0; i < count; i++) {
@@ -203,7 +199,7 @@ void BellyDragonUtil::appearFireGroundShort(BellyDragon* pHost) {
     pHost->mPod->appearFireGround(1, NULL);
 }
 
-void BellyDragonUtil::appearFireGroundAt(BellyDragon* pHost, const TVec3f* pVec) {
+NO_INLINE void BellyDragonUtil::appearFireGroundAt(BellyDragon* pHost, const TVec3f* pVec) {
     pHost->mPod->appearFireGround(0, pVec);
 }
 
@@ -230,6 +226,7 @@ bool BellyDragonUtil::isSensorWeakPoint(HitSensor* pSensor) {
     return MR::isSensorType(pSensor, 0x39);
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 s32 BellyDragonUtil::isEnoughWeakPointsBroken(BellyDragon* pHost, s32 flag) {
     if (isAttackNerve(pHost)) {
         return 0;
@@ -286,7 +283,7 @@ void BellyDragonUtil::resetPodFlame(BellyDragon* pHost) {
 }
 
 HitSensor* BellyDragonUtil::getBodySensor(LiveActor* pActor) {
-    return pActor->getSensor(lbl_8066CF90);
+    return pActor->getSensor("Message");
 }
 
 void BellyDragonUtil::initPodAnimCamera(BellyDragon* pHost, const char* pName) {
@@ -294,6 +291,7 @@ void BellyDragonUtil::initPodAnimCamera(BellyDragon* pHost, const char* pName) {
     MR::initAnimCamera(pHost, pPod->mCameraInfo, pName);
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BellyDragonUtil::setupDemoPose(BellyDragon* pHost, const char* pName) {
     BellyDragonPod* pPod = pHost->mPod;
     pHost->mBaseMtx.set(pPod->mHostMtx.mMtx);
@@ -307,12 +305,13 @@ void BellyDragonUtil::setupDemoPose(BellyDragon* pHost, const char* pName) {
     MR::calcAnimDirect(pHost);
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     if (!MR::tryStartDemoMarioPuppetable(pHost, pName)) {
         return 0;
     }
-    MR::setPlayerPos(lbl_8066CF98);
-    MR::startBckPlayer(lbl_8066CFC0, NULL);
+    MR::setPlayerPos("プレイヤーデモ位置（ベリードラゴン戦）");
+    MR::startBckPlayer("BattleWait", NULL);
     BellyDragonUtil::setupDemoPose(pHost, pName);
     BellyDragonPod* pPod = pHost->mPod;
     TVec3f sp28(pPod->mHostMtx.mMtx[0][3], pPod->mHostMtx.mMtx[1][3], pPod->mHostMtx.mMtx[2][3]);
@@ -337,12 +336,11 @@ s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     return 1;
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 s32 BellyDragonUtil::updateDemo(BellyDragon* pHost, const char* pName, bool useFirst, const f32* pTime, f32 farg0) {
-    BellyDragonPod* pPod = pHost->mPod;
-    LiveActor* pDeco = pPod->mDecoration;
-    ((void (*)(void*, const char*))(*(void***)pDeco)[5])(pDeco, pName);
-    ((void (*)(void*))(*(void***)pDeco)[7])(pDeco);
-    const f32 (*mtx)[4] = MR::getJointMtx(pDeco, (s32)0);
+    pHost->mPod->mDecoration->movement();
+    pHost->mPod->mDecoration->calcAnim();
+    const f32 (*mtx)[4] = MR::getJointMtx(pHost->mPod->mDecoration, (s32)0);
     TVec3f sp44(mtx[0][2], mtx[1][2], mtx[2][2]);
     TVec3f sp38(mtx[0][3], mtx[1][3], mtx[2][3]);
     pHost->mFront.set(sp44);
@@ -350,18 +348,18 @@ s32 BellyDragonUtil::updateDemo(BellyDragon* pHost, const char* pName, bool useF
     pHost->updateFrontVec(farg0);
     s32 found;
     if (useFirst) {
-        found = MR::tryEndDemoAndAnimCamera(pHost, pPod->mCameraInfo, pName, 0);
+        found = MR::tryEndDemoAndAnimCamera(pHost, pHost->mPod->mCameraInfo, pName, 0);
     } else {
-        found = MR::endDemoAndAnimCameraIfActionEnd(pHost, pPod->mCameraInfo, pName, 0);
+        found = MR::endDemoAndAnimCameraIfActionEnd(pHost, pHost->mPod->mCameraInfo, pName, 0);
     }
     if (found != 0) {
         if (MR::isDemoEndWaitCameraInterpolating()) {
             pHost->mBody->forceDeleteEffects();
         }
         char name[0x100];
-        snprintf(name, 0x100, lbl_8066CF90 + 0x3C, pName);
+        snprintf(name, 0x100, "%sSkip", pName);
         BellyDragonUtil::setupDemoPose(pHost, name);
-        const f32 (*mtxB)[4] = MR::getJointMtx(pHost, lbl_8066CF90 + 0x44);
+        const f32 (*mtxB)[4] = MR::getJointMtx(pHost, "Head");
         TVec3f sp2C(-mtxB[0][0], -mtxB[1][0], -mtxB[2][0]);
         TVec3f sp20(mtxB[0][1], mtxB[1][1], mtxB[2][1]);
         TVec3f sp14(mtxB[0][2], mtxB[1][2], mtxB[2][2]);
@@ -381,14 +379,14 @@ s32 BellyDragonUtil::updateDemo(BellyDragon* pHost, const char* pName, bool useF
         mm.mMtx[2][3] = sp8.z;
         BellyDragonUtil::setBodyPartMtx(pHost->mBody->mHead, mm.mMtx);
         BellyDragonUtil::syncToHead(pHost, NULL);
-        MR::startAction(pHost, lbl_8066CF90 + 0x4C);
+        MR::startAction(pHost, "FlyWaitNoInterpole");
         return 1;
     }
     return 0;
 }
 
 void BellyDragonPodActor::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, lbl_8066D004, false);
+    MR::initActor(this, rIter, "BellyDragonMeteor", false);
     initNerve(&NrvBellyDragonPodActor::BellyDragonPodActorNrvWait::sInstance, 0);
     makeActorDead();
 }
@@ -398,19 +396,20 @@ void BellyDragonPodActor::appear() {
     setNerve(&NrvBellyDragonPodActor::BellyDragonPodActorNrvWait::sInstance);
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BellyDragonPodActor::exeWait() {
     MR::isFirstStep(this);
     MR::addVelocityToGravity(this, lbl_807D7838);
     MR::attenuateVelocity(this, lbl_807D783C);
     if (MR::isBinded(this)) {
         BellyDragonUtil::appearFireGroundAt(mHost, &mPosition);
-        MR::tryHitReaction(this, lbl_8066D018);
-        MR::startActionSound(this, lbl_807CF4E8, -1, -1, -1);
+        MR::tryHitReaction(this, "地面衝突");
+        MR::startActionSound(this, "Gnd", -1, -1, -1);
         kill();
         return;
     }
     if (MR::isGreaterStep(this, 0x5A)) {
-        MR::startActionSound(this, lbl_8066D024, -1, -1, -1);
+        MR::startActionSound(this, "Fall", -1, -1, -1);
     }
     if (MR::isGreaterEqualStep(this, 0x384)) {
         MR::tryHitReactionBreak(this);

@@ -1,4 +1,6 @@
 #include "Game/Util/NPCUtil.hpp"
+#include "Game/System/GameDataFunction.hpp"
+#include "Game/System/MarioFacePlanetSwitch.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -37,6 +39,10 @@ namespace {
     static s32 sStarAppearSeStepPenguinCoach = 95;
     static s32 sStarAppearSeStepTeresaRacer = 89;
     static s32 sStarAppearSeStepTrickRabbit = 22;
+    static s32 sStarAppearSeStepScoreAttackMan = 117;
+    static s32 sStarAppearSeStepMoc = 105;
+    static s32 sStarAppearSeStepPichan = 117;
+    static s32 sStarAppearSeStepPichanRacer = 117;
 };  // namespace
 
 namespace NrvTakeOutStar {
@@ -157,7 +163,7 @@ namespace MR {
         TPos3f mtx;
         makeMtxUpFrontPos(&mtx, rUp, rFront, rPos);
         pActor->setBaseMtx(mtx);
-        pActor->mPosition.set(rPos);
+        setPosition(pActor, rPos);
         resetPosition(pActor);
         onCalcShadowOneTimeAll(pActor);
     }
@@ -251,7 +257,7 @@ namespace MR {
         if (!isNullOrEmptyString(pModelName) && isNPCItemFileExist(pModelName) && isExistJoint(pActor, pJointName)) {
             pGoods = createPartsModelNpcAndFix(pActor, "グッズ", pModelName, pJointName);
             pGoods->appear();
-            if (getLightNumMax(pGoods) > 0) {
+            if (getLightNumMax(pGoods) > 0 && pGoods->mLightCtrl == nullptr) {
                 initLightCtrl(pGoods);
             }
         }
@@ -340,23 +346,31 @@ namespace MR {
         }
     }
 
+    // NONMATCHING: equivalent turning/short-talk boolean materialization and branch arrangement
     bool tryStartTalkAction(NPCActor* pActor) {
-        const char* pAction;
-        if (isTalkTalking(pActor->mMsgCtrl)) {
-            if (pActor->mParam._1 && !pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10)) {
-                pAction = pActor->mParam._20;
-            } else {
-                pAction = pActor->mParam._1C;
+        TalkMessageCtrl* talk = pActor->mMsgCtrl;
+        const char* action = nullptr;
+        if (isTalkStart(talk)) {
+            action = selectNPCTalkAction(pActor);
+        } else if (isTalkTalking(talk)) {
+            bool select = isShortTalk(talk);
+            if (!select) {
+                bool turning = false;
+                if (!isNullOrEmptyString(pActor->mParam._20)) {
+                    turning = !isAnyAnimPlaying(pActor, pActor->mParam._1C) && isAnyAnimPlaying(pActor, pActor->mParam._20);
+                }
+                select = turning || isBckOneTimeAndStopped(pActor);
+            }
+            if (select) {
+                action = selectNPCTalkAction(pActor);
+            } else if (pActor->mParam._1) {
+                pActor->turnToPlayer(pActor->mParam._8, pActor->mParam._C, pActor->mParam._10);
             }
         } else {
             return tryStartTurnAction(pActor);
         }
-
-        if (!isNullOrEmptyString(pAction)) {
-            return tryStartAction(pActor, pAction);
-        }
-
-        return false;
+        if (isNullOrEmptyString(action)) return false;
+        return tryStartActionNotPlaying(pActor, action);
     }
 
     bool tryStartMoveTalkAction(NPCActor* pActor) {
@@ -477,14 +491,15 @@ namespace MR {
             } else {
                 bool spin = pActor->isSpinAttackedStart();
                 if (spin) {
-                    started = tryStartAction(pActor, pAction);
+                    started = tryStartActionNotPlaying(pActor, pAction);
                 } else if (pActor->_E4) {
-                    if (!(pActor->_134 && isActionStart(pActor, pActor->_134)) && !(pActor->_13C && isActionStart(pActor, pActor->_13C)) &&
-                        !(pActor->_130 && isActionStart(pActor, pActor->_130))) {
+                    if (!(pActor->_134 && isAnyAnimPlaying(pActor, pActor->_134)) && !(pActor->_13C && isAnyAnimPlaying(pActor, pActor->_13C)) &&
+                        !(pActor->_130 && isAnyAnimPlaying(pActor, pActor->_130))) {
                         bool pointing = pActor->isPointingStart();
                         if (pointing) {
-                            started = tryStartAction(pActor, pAction);
+                            started = tryStartActionNotPlaying(pActor, pAction);
                         } else if (isActionLoopedOrStopped(pActor)) {
+                            stopBck(pActor);
                             startAction(pActor, pAction);
                         }
                     }
@@ -588,6 +603,18 @@ namespace MR {
         return true;
     }
 
+    void updateNPCGoodsAnimation(NPCActor* actor) {
+        if (actor->_94) updateNPCGoodsAnimation(actor, actor->_94);
+    }
+
+    void updateNPCGoodsAnimation(const LiveActor* actor, LiveActor* goods) {
+        const char* name = getPlayingBckName(actor);
+        if (checkPassBckFrame(actor, 0.0f)) {
+            if (tryStartAllAnim(goods, name)) showModelIfHidden(goods);
+            else hideModelAndOnCalcAnimIfShown(goods);
+        }
+    }
+
     f32 calcFloatOffset(const NPCActor* pActor, f32 currentOffset, f32 maxOffset) {
         TalkMessageCtrl* pTalk = pActor->mMsgCtrl;
         currentOffset -= 0.5f;
@@ -613,8 +640,24 @@ namespace MR {
         up.scale(offset);
         pActor->mPosition.add(up);
         pActor->NPCActor::calcAndSetBaseMtx();
-        pActor->mPosition.set(pos);
+        setPosition(pActor, pos);
     }
+    bool branchFuncGameProgress(u32 branch) {
+        switch (branch) {
+        case 0: return GameDataFunction::calcLastEnteredWorldNo() > 1;
+        case 1: return GameDataFunction::calcLastEnteredWorldNo() > 2;
+        case 2: return GameDataFunction::isOnGameEventFlagCometExplain();
+        case 3: return GameDataFunction::calcLastEnteredWorldNo() > 3;
+        case 4: return GameDataFunction::calcLastEnteredWorldNo() > 4;
+        case 5: return GameDataFunction::calcLastEnteredWorldNo() > 5;
+        case 6: return GameDataFunction::calcLastEnteredWorldNo() > 6;
+        case 7: return isOnGameEventFlag120PowerStarsEnding();
+        case 8: return getPowerStarNum() >= 120;
+        case 9: return MarioFacePlanetSwitch::isDoneInScene();
+        default: return false;
+        }
+    }
+
 };  // namespace MR
 
 TakeOutStar::TakeOutStar(NPCActor* pActor, const char* pActionName, const char* pAnimName, const Nerve* pNerve, const Nerve* pReturnNerve)
@@ -645,7 +688,9 @@ bool TakeOutStar::isLastStep() {
 
 void TakeOutStar::exeAnim() {
     if (MR::isFirstStep(this)) {
-        if (mNerve != nullptr) {
+        if (mReturnNerve) {
+            if (mNerve) mActor->setNerve(mNerve);
+        } else if (mNerve) {
             mActor->pushNerve(mNerve);
         } else {
             mActor->tryPushNullNerve();
@@ -662,23 +707,36 @@ void TakeOutStar::exeAnim() {
 
     if (MR::isEqualString(mAnimName, "TakeOutStarCaretaker")) {
         step = ::sStarAppearSeStepCaretaker;
+    } else if (MR::isEqualString(mAnimName, "TakeOutStarCaretakerHunter")) {
+        step = ::sStarAppearSeStepCaretaker;
     } else if (MR::isEqualString(mAnimName, "TakeOutStarTeresaRacer")) {
         step = ::sStarAppearSeStepTeresaRacer;
     } else if (MR::isEqualString(mAnimName, "TakeOutStarPenguinCoach")) {
         step = ::sStarAppearSeStepPenguinCoach;
     } else if (MR::isEqualString(mAnimName, "TakeOutStarTrickRabbit")) {
         step = ::sStarAppearSeStepTrickRabbit;
+    } else if (MR::isEqualString(mAnimName, "TakeOutStarScoreAttackMan")) {
+        step = ::sStarAppearSeStepScoreAttackMan;
+    } else if (MR::isEqualString(mAnimName, "TakeOutStarMoc")) {
+        step = ::sStarAppearSeStepMoc;
+    } else if (MR::isEqualString(mAnimName, "TakeOutStarPichan")) {
+        step = ::sStarAppearSeStepPichan;
+    } else if (MR::isEqualString(mAnimName, "TakeOutStarPichanRacer")) {
+        step = ::sStarAppearSeStepPichanRacer;
     }
 
     if (MR::isGreaterStep(this, step)) {
         if (MR::isInWater(mStarModel, TVec3f(0.0f, 0.0f, 0.0f))) {
-            MR::startActionSound(mStarModel, "OjLvPowStarExistW");
+            MR::startLevelSound(mStarModel, "SE_OJ_LV_POW_STAR_EXIST_W", -1, -1, -1);
         } else {
-            MR::startActionSound(mStarModel, "OjLvPowStarExist");
+            MR::startLevelSound(mStarModel, "SE_OJ_LV_POW_STAR_EXIST", -1, -1, -1);
         }
     }
 
-    if (MR::isAnyAnimOneTimeAndStopped(mActor, mActionName)) {
+    if (MR::isBckOneTimeAndStopped(mActor)) {
+        setNerve(GET_NERVE(TakeOutStar, TakeOutStarNrvDemo));
+    }
+    if (!MR::isExistBck(mActor, mActionName)) {
         setNerve(GET_NERVE(TakeOutStar, TakeOutStarNrvDemo));
     }
 }
@@ -689,6 +747,7 @@ void TakeOutStar::exeDemo() {
         MR::extractMtxTrans(MR::getJointMtx(mStarModel, "PowerStar"), &trans);
         MR::appearPowerStarContinueCurrentDemo(mActor, trans);
         mStarModel->kill();
+        MR::overlayWithPreviousScreen(2);
     }
 
     if (MR::isEndPowerStarAppearDemo(mActor)) {

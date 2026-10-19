@@ -588,7 +588,7 @@ const char* XanimePlayer::getNameStringPointer(const char* pName) const {
 }
 
 bool XanimePlayer::checkPass(f32 arg) const {
-    if (!_88) {
+    if (!_89) {
         return _20->checkPass(arg);
     }
 

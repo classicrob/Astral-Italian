@@ -24,8 +24,8 @@ namespace MR {
     bool isScreen16Per9();
     void onUseVFilter();
     void offUseVFilter();
-    void onUseVFilterDirect();  // SMG2 fn_80060750; PLACEHOLDER(core4)
-    void offUseVFilterDirect();  // SMG2 fn_80060760; PLACEHOLDER(core4)
+    void onUseVFilterDirect();  // SMG2 fn_80060750
+    void offUseVFilterDirect();  // SMG2 fn_80060760
 }  // namespace MR
 
 // Merged from Petari (core lane): declarations missing here

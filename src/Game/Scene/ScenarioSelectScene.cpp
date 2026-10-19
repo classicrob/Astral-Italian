@@ -22,9 +22,29 @@
 
 namespace NrvScenarioSelectScene {
     NEW_NERVE(ScenarioSelectSceneNrvDeactive, ScenarioSelectScene, Deactive);
-    NEW_NERVE(ScenarioSelectSceneNrvInvalidScenarioSelect, ScenarioSelectScene, InvalidScenarioSelect);
-    NEW_NERVE(ScenarioSelectSceneNrvWaitStartScenarioSelect, ScenarioSelectScene, WaitStartScenarioSelect);
+    // Target execute is empty (blr): no exeInvalidScenarioSelect exists in the binary
+    class ScenarioSelectSceneNrvInvalidScenarioSelect : public Nerve {
+    public:
+        virtual void execute(Spine*) const {
+        }
+        static ScenarioSelectSceneNrvInvalidScenarioSelect sInstance;
+    };
+    ScenarioSelectSceneNrvInvalidScenarioSelect ScenarioSelectSceneNrvInvalidScenarioSelect::sInstance ATTRIBUTE_WEAK;
+
     NEW_NERVE(ScenarioSelectSceneNrvStartScenarioSelect, ScenarioSelectScene, StartScenarioSelect);
+
+    // Target inlines exeWaitStartScenarioSelect into execute
+    class ScenarioSelectSceneNrvWaitStartScenarioSelect : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            ScenarioSelectScene* actor = reinterpret_cast< ScenarioSelectScene* >(pSpine->mExecutor);
+            if (!MR::isSystemWipeActive()) {
+                actor->setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvStartScenarioSelect));
+            }
+        }
+        static ScenarioSelectSceneNrvWaitStartScenarioSelect sInstance;
+    };
+    ScenarioSelectSceneNrvWaitStartScenarioSelect ScenarioSelectSceneNrvWaitStartScenarioSelect::sInstance ATTRIBUTE_WEAK;
     NEW_NERVE(ScenarioSelectSceneNrvWaitScenarioSelect, ScenarioSelectScene, WaitScenarioSelect);
     NEW_NERVE(ScenarioSelectSceneNrvWaitResumeInitializeThread, ScenarioSelectScene, WaitResumeInitializeThread);
     NEW_NERVE(ScenarioSelectSceneNrvWaitInitializeEnd, ScenarioSelectScene, WaitInitializeEnd);
@@ -312,7 +332,8 @@ void ScenarioSelectScene::exeWaitResumeInitializeThreadIfRequestedReset() {
     }
 }
 
-// NONMATCHING (not restored): trySetCurrentScenarioNo needs GalaxyStatusAccessor::isHiddenStar (not declared in shared header)
+// NONMATCHING (not restored): trySetCurrentScenarioNo reads ScenarioSelectLayout u8 at +0x34 and calls
+// GalaxyStatusAccessor::isNotNormalStar; our ScenarioSelectLayout header has no such field (mSelectionLocked at 0x28).
 
 // Local prototypes: defined in src/System, not declared in their headers
 namespace GameSequenceFunction {

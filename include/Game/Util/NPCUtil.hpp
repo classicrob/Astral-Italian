@@ -15,6 +15,8 @@ class TalkMessageCtrl;
 namespace MR {
     bool isMarioFaceShipNpc(const LiveActor*, s32);
     void updateNPCGoodsAnimation(NPCActor*);
+    void updateNPCGoodsAnimation(const LiveActor*, LiveActor*) NO_INLINE;
+    const char* selectNPCTalkAction(NPCActor*) NO_INLINE;
     void registerMeisterToAttentionConversation(Meister*, const JMapInfoIter&);
     void registerMeisterToNormalConversation(Meister*, const JMapInfoIter&);
     void registerMarioFaceShipNpc(LiveActor*, const JMapInfoIter&);

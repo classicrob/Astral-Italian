@@ -47,7 +47,7 @@ void GeneralMapParts::init(const JMapInfoIter& rIter) {
         appear();
     }
 
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
 }
 
 void GeneralMapParts::initAfterPlacement() {

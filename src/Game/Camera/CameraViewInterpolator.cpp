@@ -10,20 +10,23 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/TriangleFilter.hpp"
 
-void CameraViewInterpolator_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)2.0f;
-    (void)MR::epsilon();
-    (void)-1.0f;
-    (void)0.5f;
-    (void)3.0f;
+#include <cmath>
+
+namespace MR {
+    template <> f32 sqrt<f32>(f32) NO_INLINE;
+}
+namespace CameraInterpolationUtil {
+    void getRotationAxisAndAngle(const TPos3f&, TVec3f*, f32*) NO_INLINE;
 }
 
 namespace {
     static const f32 sCollisionBallRadius = 10000.0f;
     static const f32 sCollisionThroughDistance = 3400.0f;
     static const f32 sNearZ = 100.0f;
+    f32 sMaxSwitchAngle;
+    s32 sMaxSwitchAngleTimer;
+    f32 sMaxRotationDifference;
+    s32 sMaxRotationDifferenceTimer;
 };  // namespace
 
 CameraViewInterpolator::CameraViewInterpolator()
@@ -43,6 +46,7 @@ void CameraViewInterpolator::updateCameraMtx(MtxPtr pMtx, const TVec3f& rPos, co
 
     updateCalcState(pCameraObj);
     interpolateCameraSwitching(pMtx, rPos, fovy);
+    updateRotationDifference(targetMtx);
 
     if (!mIsRepulsionOff && translateByRepulsion()) {
         lookAtCenter();
@@ -240,6 +244,7 @@ void CameraViewInterpolator::reduceOscillation() {
     mFovy = mFovy * 0.9f + mTargetFovy * 0.1f;
 }
 
+// NONMATCHING: regalloc
 void CameraViewInterpolator::updateCalcState(const CameraTargetObj* pTargetObj) {
     switch (mCalcState) {
     case CalcState_Ready: {
@@ -248,7 +253,9 @@ void CameraViewInterpolator::updateCalcState(const CameraTargetObj* pTargetObj) 
             break;
         }
 
-        mTargetPosition += pTargetObj->getLastMove();
+        if (mIsTargetOffsetOn) {
+            mTargetPosition += pTargetObj->getLastMove();
+        }
         if (mIsCorrectErpPositionOn) {
             TVec3f targetPos;
             mTargetMtx.getTrans(targetPos);
@@ -273,6 +280,7 @@ void CameraViewInterpolator::updateCalcState(const CameraTargetObj* pTargetObj) 
 }
 
 void CameraViewInterpolator::interpolateCameraSwitching(MtxPtr pMtx, const TVec3f& rPos, f32 fovy) {
+    updateRotationState(pMtx);
     if (mInterpolateTime == 0) {
         mTargetPosition.set(rPos);
         mTargetMtx.set(pMtx);
@@ -343,9 +351,10 @@ void CameraViewInterpolator::checkNearlyEnd(MtxPtr pMtx) {
     mtxDiff.invert(mtxDiff);
     mtxDiff.concat(newMtx, mtxDiff);
 
-    // FIXME
     TVec3f rotAxis;
-    if (mtxDiff.getRotate(rotAxis) > 1.0f) {
+    f32 angle;
+    CameraInterpolationUtil::getRotationAxisAndAngle(mtxDiff, &rotAxis, &angle);
+    if (angle > 1.0f) {
         mIsInterpolatingNearlyEnd = false;
         return;
     }
@@ -365,4 +374,69 @@ bool CameraViewInterpolator::translateByRepulsion() {
     TVec3f repulsion = pArea->getRepulsion(pos);
     mTargetMtx.setTrans(pos + repulsion);
     return true;
+}
+
+void CameraInterpolationUtil::getRotationAxisAndAngle(const TPos3f& mtx, TVec3f* axis, f32* angle) {
+    TQuat4f quat;
+    mtx.getQuat(quat);
+    f32 squared = reinterpret_cast<const TVec3f*>(&quat)->squared();
+    if (squared <= MR::epsilon()) {
+        *angle = 0.0f;
+        axis->zero();
+    } else {
+        axis->scale(JGeometry::TUtil<f32>::inv_sqrt(squared), *reinterpret_cast<const TVec3f*>(&quat));
+        *angle = 2.0f * JGeometry::TUtil<f32>::acos(quat.w);
+    }
+}
+
+void CameraViewInterpolator::updateRotationState(MtxPtr matrix) {
+    TPos3f next(matrix);
+    TPos3f diff = mTargetMtx;
+    diff.invert(diff);
+    diff.concat(next);
+    TVec3f axis;
+    f32 angle;
+    CameraInterpolationUtil::getRotationAxisAndAngle(diff, &axis, &angle);
+    angle = -3.1415927f + static_cast<f32>(fmod(6.2831855f + (angle - -3.1415927f), static_cast<f64>(6.2831855f)));
+    angle = MR::abs(angle);
+    _C0 = angle > 1.2217306f;
+    if (sMaxSwitchAngleTimer > 0) {
+        if (--sMaxSwitchAngleTimer == 0) {
+            sMaxSwitchAngle = 0.0f;
+        }
+    }
+    if (sMaxSwitchAngle < angle) {
+        sMaxSwitchAngle = angle;
+        sMaxSwitchAngleTimer = 90;
+    }
+}
+
+void CameraViewInterpolator::updateRotationDifference(MtxPtr matrix) {
+    TPos3f previous(matrix);
+    TQuat4f previousQuat;
+    previous.getQuat(previousQuat);
+    TQuat4f current;
+    mTargetMtx.getQuat(current);
+    f32 squared = PSQUATDotProduct(&current, &current);
+    if (squared <= MR::epsilon()) {
+        current.set<f32>(0.0f, 0.0f, 0.0f, 1.0f);
+    } else {
+        current.x = -current.x / squared;
+        current.y = -current.y / squared;
+        current.z = -current.z / squared;
+        current.w = current.w / squared;
+    }
+    PSQUATMultiply(&current, &previousQuat, &current);
+    const TVec3f& vector = *reinterpret_cast<const TVec3f*>(&current);
+    f32 angle = 2.0f * JMAAsinRadian(MR::sqrt(vector.squared()));
+    _C1 = angle > 0.034906585f;
+    if (sMaxRotationDifferenceTimer > 0) {
+        if (--sMaxRotationDifferenceTimer == 0) {
+            sMaxRotationDifference = 0.0f;
+        }
+    }
+    if (sMaxRotationDifference < angle) {
+        sMaxRotationDifference = angle;
+        sMaxRotationDifferenceTimer = 90;
+    }
 }

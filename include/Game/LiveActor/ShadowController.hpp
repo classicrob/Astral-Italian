@@ -69,6 +69,7 @@ public:
     void setGroupName(const char*);
     void setDropPosPtr(const TVec3f*);
     void setDropPosMtxPtr(MtxPtr, const TVec3f&);
+    void setLocalRotate(const TVec3f&);
     void setDropPosFix(const TVec3f&);
     void setDropDirPtr(const TVec3f*);
     void setProjectionPtr(const TVec3f*, const TVec3f*);

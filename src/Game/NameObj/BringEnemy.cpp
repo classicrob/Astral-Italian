@@ -13,22 +13,13 @@
 #include "Game/Map/StageSwitch.hpp"
 
 
-// Child type names (strings at lbl_806B7AF8), in the order the target compares them.
-namespace {
-    const char* sTypeNameA = "BringEnemyA";
-    const char* sTypeNameB = "BringEnemyB";
-    const char* sTypeNameC = "BringEnemyC";
-}  // namespace
-
 namespace NrvBringEnemy {
     // Declaration order matches the sInstance init order in __sinit: Wait first, then Bring.
     NEW_NERVE(BringEnemyNrvWait, BringEnemy, Wait);
     NEW_NERVE(BringEnemyNrvBring, BringEnemy, Bring);
 }  // namespace NrvBringEnemy
 
-BringEnemy::BringEnemy(const char* pName) : LiveActor(pName), mTargetEnemy(NULL), mChildren(NULL), mChildGroups(NULL), mChildNum(0), mBroughtNum(0) {
-    mBringLimit = 0;
-    mEnemyType = 0;
+BringEnemy::BringEnemy(const char* pName) : LiveActor(pName), mTargetEnemy(NULL), mChildren(NULL), mChildNum(0), mBringLimit(0), mBroughtNum(0), mEnemyType(0) {
 }
 
 void BringEnemy::init(JMapInfoIter& rIter) {
@@ -45,10 +36,11 @@ void BringEnemy::init(JMapInfoIter& rIter) {
         const char* pName = NULL;
         MR::getChildObjName(&pName, rIter, i);
 
-        if (MR::isEqualString(pName, sTypeNameA)) {
+        if (MR::isEqualString(pName, "Kuribo")) {
             mChildren[i] = (LiveActor*)NameObjFactory::initChildObj(rIter, i);
             mEnemyType = 1;
-        } else if (MR::isEqualString(pName, sTypeNameB) || MR::isEqualString(pName, sTypeNameC)) {
+        } else if (MR::isEqualString(pName, "BegomanLauncher") || MR::isEqualString(pName, "BegomanBabyLauncher") ||
+                   MR::isEqualString(pName, "TogeBegomanLauncher")) {
             mChildren[i] = (LiveActor*)NameObjFactory::initChildObj(rIter, i);
             mChildGroups[i] = mChildren[i];
             mEnemyType = 2;
@@ -57,7 +49,6 @@ void BringEnemy::init(JMapInfoIter& rIter) {
         }
     }
 
-    mBringLimit = 1;
     s32 limit = 1;
     MR::getJMapInfoArg0NoInit(rIter, &limit);
     if (limit >= 0) {
@@ -66,12 +57,14 @@ void BringEnemy::init(JMapInfoIter& rIter) {
 
     initHitSensor(1);
     TVec3f offset(0.0f, 0.0f, 0.0f);
-    MR::addHitSensorEnemy(this, "BringEnemy", 0x10, (f32)0xAA, offset);
+    s32 radius = 0xAA;
+    MR::addHitSensorEnemy(this, "Search", 0x10, (f32)radius, offset);
 
     initNerve(&NrvBringEnemy::BringEnemyNrvWait::sInstance, 0);
 
     MR::initUseStageSwitchWriteA(this, rIter);
     MR::useStageSwitchSyncAppear(this, rIter);
+    MR::invalidateClipping(this);
 }
 
 void BringEnemy::exeWait() {
@@ -96,7 +89,7 @@ void BringEnemy::exeBring() {
             MR::onSwitchA(this);
         }
 
-        makeActorDead();
+        kill();
     }
 }
 
@@ -162,7 +155,7 @@ bool BringEnemy::receiveMessage(u32 msg, HitSensor* pSender, HitSensor* pReceive
         }
     }
 
-    return LiveActor::receiveMessage(msg, pSender, pReceiver);
+    // SMG2 falls off the end here (no return statement in the target)
 }
 
 BringEnemy::~BringEnemy() {

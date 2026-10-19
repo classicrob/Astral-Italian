@@ -4,6 +4,8 @@
 #include "Game/NameObj/NameObj.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 
+class Camera;
+class CameraParamChunk;
 class CameraCover;
 class CameraDirector;
 class CameraHolder;
@@ -88,6 +90,13 @@ public:
     void registerCameraCode(u32);
     void termCameraCodeCollection();
     void declareEvent(s32, const char*);
+    bool isInterpolationStateReady() const;
+    CameraParamChunk* getCurrentGameCameraChunk() const;
+    bool setCameraParamId(const char*, const char*);
+    void declareGlobalEvent(s32, const char*);
+    void startGlobalEvent(s32, const char*, const CameraTargetArg&, s32);
+    void endGlobalEvent(s32, const char*, bool, s32);
+    void setAnimCameraFrame(s32, const char*, f32);
     void started();
     void setTargetActor(const LiveActor*);
     void setTargetPlayer(const MarioActor*);

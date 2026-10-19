@@ -88,6 +88,8 @@ public:
     };
 
     static MessageData* getSceneMessageData(const char*, s32);
+    static bool isExistGameMessage(const char*);
+    static bool isExistSceneMessage(const char*);
     static bool isExistMessage(const char*, const MessageData*);
     static TalkNode* findNode(const char*, const MessageData*);
     static TalkNode* getNode(u32, const MessageData*);

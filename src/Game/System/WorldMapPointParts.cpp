@@ -36,10 +36,13 @@ void WorldMapResultRoute::addEdge(s32 from, s32 to) {
     mCount++;
 }
 
+// NONMATCHING: regalloc
 void WorldMapResultRoute::subtract(WorldMapResultRoute* pOther) {
     for (s32 i = 0; i < pOther->mCount; i++) {
+        s32 from = pOther->mEdges[i].mFrom;
+        s32 to = pOther->mEdges[i].mTo;
         for (s32 j = 0; j < mCount; j++) {
-            if (pOther->mEdges[i].mFrom == mEdges[j].mFrom && pOther->mEdges[i].mTo == mEdges[j].mTo) {
+            if (from == mEdges[j].mFrom && to == mEdges[j].mTo) {
                 mCount--;
                 mEdges[j] = mEdges[mCount];
             }
@@ -96,6 +99,7 @@ static TVec3f sPartsOffset(0.0f, 300.0f, 300.0f);
 
 PointPartsHolder::PointPartsHolder(WorldMapResultWorld* pWorld) : mWorld(pWorld), mParts(nullptr), mNum(0), mUnkC(0) {}
 
+// NONMATCHING: regalloc
 void PointPartsHolder::init() {
     JMapInfo* pCsv = mWorld->createParser(sPointPartsCsv);
     if (pCsv != nullptr) {
@@ -150,6 +154,7 @@ void PointPartsHolder::init() {
     }
 }
 
+// NONMATCHING: regalloc
 bool PointPartsHolder::getWorldWarp(s32 pointIndex, PartsWarpInfo* pOut) {
     PointPart* pPart = find(pointIndex);
     if (pPart == nullptr) {
@@ -164,6 +169,7 @@ bool PointPartsHolder::getWorldWarp(s32 pointIndex, PartsWarpInfo* pOut) {
     return true;
 }
 
+// NONMATCHING: regalloc
 bool PointPartsHolder::getStarRoadWarp(s32 pointIndex, PartsWarpInfo* pOut) {
     PointPart* pPart = find(pointIndex);
     if (pPart == nullptr) {
@@ -325,6 +331,7 @@ bool PointPartsHolder::isAnyStarCheckPointPending() {
     return false;
 }
 
+// NONMATCHING: regalloc
 bool PointPartsHolder::isWarpOpen(s32 pointIndex) {
     PointPart* pPart = find(pointIndex);
     if (pPart == nullptr) {

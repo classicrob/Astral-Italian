@@ -35,6 +35,18 @@ namespace nw4r {
 
         struct VEC2 : public _VEC2 {
         public:
+#ifdef NW4R_DEBUG_OUTLINE  // opt-in per TU (LayoutUtil): target calls these out of line there
+            VEC2& operator=(const VEC2& other)
+#ifdef NW4R_DEBUG_OUTLINE
+                NO_INLINE
+#endif
+            {
+                x = other.x;
+                y = other.y;
+                return *this;
+            }
+#endif
+
             VEC2() {
             }
 

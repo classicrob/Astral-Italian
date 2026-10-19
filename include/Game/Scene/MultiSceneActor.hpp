@@ -9,6 +9,7 @@ class MultiSceneEffectKeeper;
 class Nerve;
 class Spine;
 
+class ResourceHolder;
 class MultiSceneActor : public NameObj {
 public:
     MultiSceneActor(const char*, const char*, const f32 (*)[4], bool);
@@ -41,6 +42,7 @@ public:
 };
 
 namespace MultiScene {
+    ResourceHolder* getResourceHolder(MultiSceneActor*);
     void startBck(MultiSceneActor*, const char*);
     void startBtk(MultiSceneActor*, const char*);
     void startBrk(MultiSceneActor*, const char*);
@@ -48,11 +50,11 @@ namespace MultiScene {
     void setBckFrameAndStop(MultiSceneActor*, f32);
     void startBtp(MultiSceneActor*, const char*);
     void startBva(MultiSceneActor*, const char*);
-    void startBckIfExist(MultiSceneActor*, const char*);
-    void startBtkIfExist(MultiSceneActor*, const char*);
-    void startBrkIfExist(MultiSceneActor*, const char*);
-    void startBtpIfExist(MultiSceneActor*, const char*);
-    void startBvaIfExist(MultiSceneActor*, const char*);
+    bool startBckIfExist(MultiSceneActor*, const char*);
+    bool startBtkIfExist(MultiSceneActor*, const char*);
+    bool startBrkIfExist(MultiSceneActor*, const char*);
+    bool startBtpIfExist(MultiSceneActor*, const char*);
+    bool startBvaIfExist(MultiSceneActor*, const char*);
     void setBtpFrameAndStop(MultiSceneActor*, f32);
     void setBvaFrameAndStop(MultiSceneActor*, f32);
     bool isBckStopped(MultiSceneActor*);

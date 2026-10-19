@@ -64,6 +64,7 @@ public:
     /* 0x9C */ HipDropMoveBlockSwitch** mSwitches;
     /* 0xA0 */ HipDropMoveBlockSwitchParam** mSwitchParams;
     /* 0xA4 */ HipDropMoveBlockSwitch* mActiveSwitch;
+    /* 0xA8 */ u8 _A8[0xC];  // SMG2 allocation extends to 0xB4; no accesses recovered yet.
 };
 
 class HipDropMoveBlockSwitch : public LiveActor {

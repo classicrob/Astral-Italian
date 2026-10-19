@@ -79,7 +79,7 @@ RaceManager::RaceManager()
 void RaceManager::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
 
-    mLayout = new RaceLayout("レース管理用レイアウト");
+    mLayout = new RaceLayout("レース用レイアウト");
     mLayout->init(rIter);
     mStartCountdown = new StartCountdownLayout();
     mStartCountdown->init(rIter);

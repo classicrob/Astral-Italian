@@ -18,7 +18,7 @@ class AudSoundNameConverter : public AudSingletonHolder< AudSoundNameConverter >
 public:
     AudSoundNameConverter();
 
-    JAISoundID getSoundID(const char*) const;
+    JAISoundID getSoundID(const char*);  // non-const in the target (symbol getSoundID__21AudSoundNameConverterFPiPCc, rename pending)
     JAISoundID getSoundID(const char*, u32) const;
     s32 getSoundNameID(const JAISoundID&) const;  // PLACEHOLDER(core): fn_80086160 (name lookup via JAUSoundNameTable), name unknown
     void init() NO_INLINE;

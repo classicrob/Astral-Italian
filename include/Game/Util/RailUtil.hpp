@@ -79,7 +79,7 @@ namespace MR {
     s32 getCurrentRailPointNo(const LiveActor*);
     s32 getNextRailPointNo(const LiveActor*);
     f32 getRailTotalLength(const LiveActor*);
-    f32 fn_80052E20(const LiveActor*);  // rail coord measured in the travel direction: reversed ? total - coord : coord
+    f32 fn_80052E20(const LiveActor*);  // rail coord measured in the travel direction: mIsNotReverse ? total - coord : coord
     f32 getRailPartLength(const LiveActor*, int);
     f32 getRailPointCoord(const LiveActor*, int);
     const TVec3f& getRailPos(const LiveActor*);

@@ -11,6 +11,7 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 
 namespace {
     static TVec3f sZeroVec(0.0f, 0.0f, 0.0f);
@@ -75,16 +76,12 @@ const TVec3f& CameraTargetActor::getGravityVector() const {
     }
 }
 
-CubeCameraArea* CameraTargetActor::getCubeCameraArea() const {
-    return nullptr;
-}
-
 Triangle* CameraTargetActor::getGroundTriangle() const {
     return nullptr;
 }
 
 CameraTargetPlayer::CameraTargetPlayer(const char* pName)
-    : CameraTargetObj(pName), mGravity(0.0f, -1.0f, 0.0f), mGroundPos(0.0f, 0.0f, 0.0f), mCameraArea(), mGroundTriangle(), mPlayerMovementTimer(),
+    : CameraTargetObj(pName), mGravity(0.0f, -1.0f, 0.0f), mGroundPos(0.0f, 0.0f, 0.0f), mGroundTriangle(), mPlayerMovementTimer(),
       mIsPlayerMoving(true) {
 }
 
@@ -93,7 +90,7 @@ void CameraTargetPlayer::movement() {
         return;
     }
 
-    if (MR::isPlayerInBind()) {
+    if (MR::isPlayerInRush() || MR::isPlayerRecovering()) {
         TPos3f mtx;
         mtx.set(MR::getPlayerBaseMtx());
         mtx.getXDir(mSide);
@@ -112,13 +109,6 @@ void CameraTargetPlayer::movement() {
     }
 
     mGroundPos.set(*mActor->getShadowPos());
-
-    CubeCameraArea* area = MR::getCameraCube();
-    if (area != nullptr) {
-        mCameraArea = area;
-    } else {
-        mCameraArea = nullptr;
-    }
 
     mGroundTriangle = MR::getPlayerGroundingPolygon();
 
@@ -209,10 +199,6 @@ bool CameraTargetPlayer::isCameraStateOn(u32 status) const {
     return mActor->isCameraStateOn((SPECIAL_STATUS_FOR_CAMERA)status);
 }
 
-CubeCameraArea* CameraTargetPlayer::getCubeCameraArea() const {
-    return mCameraArea;
-}
-
 Triangle* CameraTargetPlayer::getGroundTriangle() const {
     return mGroundTriangle;
 }
@@ -245,4 +231,14 @@ void CameraTargetDemoActor::setTargetMtx(MtxPtr pNewTargetMtx) {
 
 bool CameraTargetPlayer::isYoshiMode() const {
     return MR::isPlayerElementModeYoshi();
+}
+
+bool CameraTargetPlayer::isYoshiLightMode() const {
+    bool result = false;
+
+    if (MR::isPlayerElementModeYoshi() && MR::fn_80422150()) {
+        result = true;
+    }
+
+    return result;
 }

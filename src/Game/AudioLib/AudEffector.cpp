@@ -8,7 +8,7 @@ JASDsp::FxlineConfig_ AudEffector::mFxLine[] = {
     {1, 0, 0, 0x0000, 1, 0x7000, 0, 64, {0, 0x1000, 0, 0, 0, 0, 0x3FFF, 0}},
 };
 
-AudEffector::AudEffector() : mFxSend(), mCutoff(0x7F), mSpecialFx() {
+AudEffector::AudEffector() : mFxSend(), mCutoff(0x7F), mSpecialFx(-1) {
     for (u8 i = 0; i < 4; i++) {
         mFxLines[i] = nullptr;
     }

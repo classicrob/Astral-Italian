@@ -405,8 +405,10 @@ namespace MR {
 
 
 
+    // NONMATCHING: target calls getTextureNum out-of-line (ours inlines it; pragma would also un-inline the J3D getters)
     s32 fn_80043AB0(const LiveActor* pActor, const char* pName) {
-        for (u16 i = 0; i < getTextureNum(pActor); i++) {
+        u16 textureNum = getTextureNum(pActor);
+        for (u16 i = 0; i < textureNum; i++) {
             if (isEqualString(getJ3DModelData(pActor)->getTextureName()->getName(i), pName)) {
                 return i;
             }

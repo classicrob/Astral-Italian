@@ -2,6 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/System/FileLoader.hpp"
 #include "Game/System/FileRipper.hpp"
+#include "Game/Scene/StageFileLoader.hpp"
 #include "Game/System/Language.hpp"
 #include "Game/System/ResourceHolderManager.hpp"
 #include "Game/Util/MemoryUtil.hpp"
@@ -47,17 +48,27 @@ namespace MR {
         return DVDConvertPathToEntrynum(filePath);
     }
 
-    void* loadToMainRAM(const char* pFilePath, u8* pDst, JKRHeap* pHeap, JKRDvdRipper::EAllocDirection allocDir) {
-        loadAsyncToMainRAM(pFilePath, pDst, pHeap, allocDir);
-
-        return receiveFile(pFilePath);
+    bool isFileExistOnDisc(const char* path, bool language) {
+        return isFileExist(path, language);
     }
 
-    inline void loadAsyncToMainRAM(const char* pFilePath, u8* pDst, JKRHeap* pHeap, JKRDvdRipper::EAllocDirection allocDir) {
-        char filePath[256];
-        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath);
+    void makeDemoArchiveFileName(char* dst, u32 size, const char* stage) {
+        StageFileLoader::makeStageArchivePath(dst, size, stage, "Demo");
+    }
 
-        SingletonHolder< FileLoader >::get()->requestLoadToMainRAM(filePath, pDst, pHeap, allocDir, false);
+    void* loadToMainRAM(const char* path, u8* dst, JKRHeap* heap, int direction) {
+        char loadPath[256];
+        makeFileNameConsideringLanguage(loadPath, sizeof(loadPath), path, false);
+        SingletonHolder<FileLoader>::get()->requestLoadToMainRAM(loadPath, dst, heap, static_cast<JKRDvdRipper::EAllocDirection>(direction), false);
+        char receivePath[256];
+        makeFileNameConsideringLanguage(receivePath, sizeof(receivePath), path, false);
+        return SingletonHolder<FileLoader>::get()->receiveFile(receivePath);
+    }
+
+    void loadAsyncToMainRAM(const char* path, u8* dst, JKRHeap* heap, JKRDvdRipper::EAllocDirection direction) {
+        char filePath[256];
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), path, false);
+        SingletonHolder<FileLoader>::get()->requestLoadToMainRAM(filePath, dst, heap, direction, false);
     }
 
     JKRMemArchive* mountArchive(const char* pFilePath, JKRHeap* pHeap, bool) {
@@ -73,6 +84,12 @@ namespace MR {
     }
 
 
+
+    void mountAsyncArchive(const char* path, JKRHeap* heap, bool, bool tail) {
+        char filePath[256];
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), path, false);
+        SingletonHolder<FileLoader>::get()->requestMountArchive(filePath, heap, static_cast<JKRDvdRipper::EAllocDirection>(tail), false);
+    }
 
     void* receiveFile(const char* pFilePath) {
         char filePath[256];
@@ -103,12 +120,27 @@ namespace MR {
         SingletonHolder< FileLoader >::get()->getMountedArchiveAndHeap(filePath, ppArchive, ppHeap);
     }
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01)
-    inline void removeFile(const char* pFilePath) {
-        SingletonHolder< FileLoader >::get()->removeFile(pFilePath);
+    void* getResourceFromMountedArchive(const char* path, const char* resource) {
+        JKRArchive* archive = nullptr;
+        JKRHeap* heap = nullptr;
+        char filePath[256];
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), path, false);
+        SingletonHolder<FileLoader>::get()->getMountedArchiveAndHeap(filePath, &archive, &heap);
+        return archive->getResource(resource);
     }
-#endif
 
+    bool isExistResourceInMountedArchive(const char* path, const char* resource) {
+        JKRArchive* archive = nullptr;
+        JKRHeap* heap = nullptr;
+        char filePath[256];
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), path, false);
+        SingletonHolder<FileLoader>::get()->getMountedArchiveAndHeap(filePath, &archive, &heap);
+        return archive->getResource(resource) != nullptr;
+    }
+
+    void removeFileConsideringLanguage(const char* path) {
+        SingletonHolder<FileLoader>::get()->removeFile(path);
+    }
 
     void removeResourceAndFileHolderIfIsEqualHeap(JKRHeap* pHeap) {
         SingletonHolder< ResourceHolderManager >::get()->removeIfIsEqualHeap(pHeap);
@@ -153,22 +185,17 @@ namespace MR {
         }
     }
 
-    bool makeObjectArchiveFileName(char* pDst, u32 size, const char* pFileName) {
-        snprintf(pDst, size, "/ObjectData/%s", pFileName);
-
-        if (isFileExist(pDst, true)) {
-            return true;
-        }
-
-        snprintf(pDst, size, "/MapPartsData/%s", pFileName);
-
-        if (isFileExist(pDst, false)) {
-            return true;
-        }
-
-        snprintf(pDst, size, "%s", pFileName);
-
-        return isFileExist(pDst, true);
+    bool makeObjectArchiveFileName(char* dst, u32 size, const char* file) {
+        snprintf(dst, size, "/ObjectData/%s", file);
+        if (isFileExist(dst, true)) return true;
+        snprintf(dst, size, "/LightData/%s", file);
+        if (isFileExist(dst, true)) return true;
+        snprintf(dst, size, "/DemoData/%s", file);
+        if (isFileExist(dst, true)) return true;
+        snprintf(dst, size, "/MapPartsData/%s", file);
+        if (isFileExist(dst, false)) return true;
+        snprintf(dst, size, "%s", file);
+        return isFileExist(dst, false);
     }
 
     inline bool makeObjectArchiveFileNameFromPrefix(char* pDst, u32 size, const char* pFilePrefix, bool) {
@@ -205,10 +232,7 @@ namespace MR {
         snprintf(fileName, sizeof(fileName), "%s%s.arc", pFilePrefix, pAspectSuffix);
         bool isExistAspectArc = makeLayoutArchiveFileName(pDst, size, fileName);
 
-        snprintf(fileName, sizeof(fileName), "%sReplace.arc", pFilePrefix);
-        bool isExistReplaceArc = makeLayoutArchiveFileName(pDst, size, fileName);
-
-        bool fileFound = isExistArc || isExistAspectArc || isExistReplaceArc;
+        bool fileFound = isExistArc || isExistAspectArc;
 
         if (!fileFound && !fallback) {
             return false;
@@ -217,8 +241,7 @@ namespace MR {
         if (isExistAspectArc) {
             pAspectSuffix = isScreen16Per9() ? "16x9" : "4x3";
             snprintf(fileName, sizeof(fileName), "%s%s.arc", pFilePrefix, pAspectSuffix);
-        } else if (isExistReplaceArc) {
-            snprintf(fileName, sizeof(fileName), "%sReplace.arc", pFilePrefix);
+
         } else {
             snprintf(fileName, sizeof(fileName), "%s.arc", pFilePrefix);
         }

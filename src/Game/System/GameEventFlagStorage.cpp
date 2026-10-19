@@ -28,10 +28,6 @@ s32 GameEventFlagStorage::serialize(u8* pData, u32 size) const {
     JSUMemoryOutputStream stream(pData, size);
 
     for (GameEventFlagIter iter = GameEventFlagTable::getBeginIter(); !iter.isEnd(); iter.goNext()) {
-        if ((iter.getFlag()->mSaveFlag & 0x1) != 0) {
-            continue;
-        }
-
         GameEventFlagAccessor accessor(iter.getFlag());
         u16 hash = MR::getHashCode(accessor.getName()) & 0x7FFF;
         u16 data = hash | (mFlagBitArray->isOn(GameEventFlagTable::getIndex(iter.getFlag())) ? 0x8000 : 0);

@@ -15,7 +15,7 @@ namespace MR {
     void killVelocityVertical(LiveActor*);
     void killVelocityHorizon(LiveActor*);
     void setQuatUpNoSupport(LiveActor*, const TVec3f&);
-    f32 normalizeAngleDegree(f32);
+    NO_INLINE f32 normalizeAngleDegree(f32);
     void calcDirToPlayer(TVec3f*, const LiveActor*);
     void calcVecToTargetHorizon(TVec3f*, const LiveActor*, const TVec3f*, const TVec3f*);
     void calcVecToPlayerHorizon(TVec3f*, const LiveActor*, const TVec3f*);
@@ -45,7 +45,7 @@ namespace MR {
     bool isNearPlayerHorizontal(const LiveActor*, f32);
     void calcFrontVec(TVec3f*, const LiveActor*);
     void calcUpVec(TVec3f*, const LiveActor*);
-    void calcSideVec(TVec3f*, const LiveActor*);
+    NO_INLINE void calcSideVec(TVec3f*, const LiveActor*);
     void calcPositionUpOffset(TVec3f*, const LiveActor*, f32);
     void calcVecToPlayerH(TVec3f*, const LiveActor*, const TVec3f*);
     void calcVecFromPlayerH(TVec3f*, const LiveActor*, const TVec3f*);
@@ -92,7 +92,7 @@ namespace MR {
     void resetPosition(LiveActor*);
     void resetPosition(LiveActor*, const TVec3f&);
     void resetPosition(LiveActor*, const char*);
-    bool makeMtxOnMapCollision(TPos3f*, LiveActor*, f32);
+    bool makeMtxOnMapCollision(TPos3f*, LiveActor*, f32, f32);
     void calcVelocityMoveToDirectionHorizon(TVec3f*, const LiveActor*, const TVec3f&, f32) NO_INLINE;
     void calcVelocityMoveToDirectionHorizon(TVec3f*, const LiveActor*, const TVec3f&, f32, f32, f32, f32) NO_INLINE;
     void calcVelocityMoveToDirection(TVec3f*, const LiveActor*, const TVec3f&, f32);
@@ -132,7 +132,7 @@ namespace MR {
     bool isVelocityGreaterEqual(const LiveActor*, f32);
     void setVelocity(LiveActor*, const TVec3f&);
     void addVelocity(LiveActor*, const TVec3f&);
-    void scaleVelocity(LiveActor*, f32);
+    f32 calcVelocityDot(const LiveActor*, const TVec3f&);
     f32 calcVelocityLength(const LiveActor*);
     f32 calcGravitySpeed(const LiveActor*);
     void applyVelocityDampAndGravity(LiveActor*, f32 gravity, f32 groundDampH, f32 airDampH, f32 dampVUp, f32 velHMin);
@@ -190,8 +190,8 @@ namespace MR {
     void fn_80012B80(LiveActor*, f32, f32, HitSensor*, HitSensor*, s32);
     void fn_8000E960(TVec3f*, const LiveActor*, const TVec3f*);
     void fn_8000E5E0(TVec3f*, const LiveActor*, const TVec3f*);
-    void fn_8000E760(TVec3f*, const LiveActor*, const TVec3f&, f32, f32);
-    void fn_8000F5D0(TVec3f*, TVec3f*, const TPos3f*);
+    f32 fn_8000E760(TVec3f*, const LiveActor*, const TVec3f*, f32, f32);
+    NO_INLINE void fn_8000F5D0(TVec3f*, TVec3f*, const TPos3f*);
     void fn_8000F650(TVec3f*, TVec3f*, const TPos3f*);
     void fn_8000FA30(LiveActor*, const TVec3f*);
     void fn_80010CB0(LiveActor*, const TVec3f&, f32);
@@ -205,7 +205,7 @@ namespace MR {
     void fn_800126F0(LiveActor*, const TVec3f*, const f32*);
     void fn_800127A0(LiveActor*, const TVec3f*, const f32*);
     bool fn_80012BA0(LiveActor*, HitSensor*, HitSensor*, f32);
-    void fn_80012EB0(LiveActor*, TVec3f*, f32);
+    NO_INLINE void fn_80012EB0(LiveActor*, TVec3f*, f32);
     f32 fn_80012450(const LiveActor*);
     void fn_80011F80(LiveActor*, f32, f32);
     void fn_80011180(LiveActor*, const TVec3f&, f32);
@@ -263,7 +263,7 @@ namespace MR {
 }
 
 namespace MR {
-    f32 fn_8000E760(TVec3f*, const LiveActor*, const TVec3f*, f32, f32);
+
 }
 
 namespace MR { void fn_800143D0(TVec3f*); }

@@ -6,7 +6,7 @@ class HitSensor;
 namespace DiceMoverUtil {
     void normalizeComponents(f32*, f32*, f32*);
     void crossComponents(f32*, f32*, f32*, f32, f32, f32, f32, f32, f32);
-    f32 averageNormalComponents(f32*, f32*, f32*, const f32*, const f32*, const f32*);
+    f32 averageNormalComponents(f32*, f32*, f32*, f32*, f32*, f32*);
     void expandBounds(TVec3f*, TVec3f*, const TVec3f&);
 }
 struct DiceMoverPoint { TVec3f mPosition; f32 mRadius; };

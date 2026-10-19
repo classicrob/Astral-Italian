@@ -36,14 +36,6 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <cstring>
 
-void CameraDirector_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)2.0f;
-    (void)MR::pi();
-}
-
 namespace {
     // static const s32 sDefaultBlendFrame =
     static const s32 sSubjectivePosInterpolateFrame = 0;
@@ -202,6 +194,10 @@ void CameraDirector::calcPose() {
         mViewInterpolator->mIsCollisionOff = true;
     }
 
+    if (getCurrentCameraMan()->isUnknownOff()) {
+        mViewInterpolator->mIsTargetOffsetOn = false;
+    }
+
     if (getCurrentCameraMan()->isCorrectingErpPositionOff()) {
         mViewInterpolator->mIsCorrectErpPositionOn = false;
     }
@@ -338,12 +334,16 @@ void CameraDirector::startEvent(s32 zoneID, const char* pName, const CameraTarge
         push(mCameraManEvent);
     }
 
-    mCameraManEvent->start(zoneID, pName, rTargetArg, frame);
+    CameraParamChunkID_Tmp chunkID;
+    chunkID.createEventID(zoneID, pName);
+    mCameraManEvent->start(chunkID, rTargetArg, frame);
 }
 
 void CameraDirector::endEvent(s32 zoneID, const char* pName, bool resetView, s32 frame) {
     if (getCurrentCameraMan() == mCameraManEvent) {
-        mCameraManEvent->end(zoneID, pName, frame);
+        CameraParamChunkID_Tmp chunkID;
+        chunkID.createEventID(zoneID, pName);
+        mCameraManEvent->end(chunkID, frame);
 
         if (!mCameraManEvent->isActive()) {
             pop();
@@ -423,6 +423,11 @@ void CameraDirector::declareEvent(s32 zoneID, const char* pName) {
     mChunkHolder->createChunk(chunkID, nullptr);
 }
 
+// PLACEHOLDER(core): flag names are unknown; resolve after CameraViewInterpolator C0/C1 state is named.
+bool CameraDirector::isInterpolationStateReady() const {
+    return mViewInterpolator->_C0 && mViewInterpolator->_C1;
+}
+
 void CameraDirector::started() {
     mIsStartCameraActive = false;
     mCameraManGame->endStartPosCamera();
@@ -475,9 +480,19 @@ bool CameraDirector::isEnableToReset() const {
     return getCurrentCameraMan()->isEnableToReset();
 }
 
+CameraParamChunk* CameraDirector::getCurrentGameCameraChunk() const {
+    CameraManGame* pMan = mCameraManGame;
+    if (getCurrentCameraMan() != pMan) {
+        return nullptr;
+    }
+    return pMan->mChunk;
+}
+
 bool CameraDirector::isEventCameraActive(s32 zoneID, const char* pName) const {
     if (getCurrentCameraMan() == mCameraManEvent) {
-        return mCameraManEvent->isEventActive(zoneID, pName);
+        CameraParamChunkID_Tmp chunkID;
+        chunkID.createEventID(zoneID, pName);
+        return mCameraManEvent->isEventActive(chunkID);
     }
 
     return false;
@@ -485,6 +500,24 @@ bool CameraDirector::isEventCameraActive(s32 zoneID, const char* pName) const {
 
 bool CameraDirector::isEventCameraActive() const {
     return getCurrentCameraMan() == mCameraManEvent;
+}
+
+bool CameraDirector::setCameraParamId(const char* pFirst, const char* pLast) {
+    return mChunkHolder->setCameraParamId(pFirst, pLast);
+}
+
+void CameraDirector::declareGlobalEvent(s32 zoneID, const char* pName) {
+    CameraParamChunkID_Tmp chunkID;
+    chunkID.createGlobalEventID(zoneID, pName);
+    mChunkHolder->createChunk(chunkID, nullptr);
+}
+
+void CameraDirector::startGlobalEvent(s32 zoneID, const char* pName, const CameraTargetArg& rArg, s32 frame) {
+    startEvent(CameraParamChunkIDFunction::getGlobalZoneID(zoneID), pName, rArg, frame);
+}
+
+void CameraDirector::endGlobalEvent(s32 zoneID, const char* pName, bool resetView, s32 frame) {
+    endEvent(CameraParamChunkIDFunction::getGlobalZoneID(zoneID), pName, resetView, frame);
 }
 
 void CameraDirector::startStartPosCamera(bool interpolate) {
@@ -598,7 +631,9 @@ void CameraDirector::endSubjectiveCamera(s32 camType) {
 
 bool CameraDirector::isAnimCameraEnd(s32 zoneID, const char* pName) const {
     if (getCurrentCameraMan() == mCameraManEvent) {
-        return mCameraManEvent->isAnimCameraEnd(zoneID, pName);
+        CameraParamChunkID_Tmp chunkID;
+        chunkID.createEventID(zoneID, pName);
+        return mCameraManEvent->isAnimCameraEnd(chunkID);
     }
 
     return true;
@@ -606,23 +641,37 @@ bool CameraDirector::isAnimCameraEnd(s32 zoneID, const char* pName) const {
 
 u32 CameraDirector::getAnimCameraFrame(s32 zoneID, const char* pName) const {
     if (getCurrentCameraMan() == mCameraManEvent) {
-        return mCameraManEvent->getAnimCameraFrame(zoneID, pName);
+        CameraParamChunkID_Tmp chunkID;
+        chunkID.createEventID(zoneID, pName);
+        return mCameraManEvent->getAnimCameraFrame(chunkID);
     }
 
     return 0;
 }
 
-// getAnimCameraCurrentFrame
+void CameraDirector::setAnimCameraFrame(s32 zoneID, const char* pName, f32 frame) {
+    if (getCurrentCameraMan() == mCameraManEvent) {
+        CameraParamChunkID_Tmp chunkID;
+        chunkID.createEventID(zoneID, pName);
+        mCameraManEvent->setAnimCameraFrame(chunkID, frame);
+    }
+}
+
+
 
 void CameraDirector::pauseOnAnimCamera(s32 zoneID, const char* pName) {
     if (getCurrentCameraMan() == mCameraManEvent) {
-        mCameraManEvent->pauseOnAnimCamera(zoneID, pName);
+        CameraParamChunkID_Tmp chunkID;
+        chunkID.createEventID(zoneID, pName);
+        mCameraManEvent->pauseOnAnimCamera(chunkID);
     }
 }
 
 void CameraDirector::pauseOffAnimCamera(s32 zoneID, const char* pName) {
     if (getCurrentCameraMan() == mCameraManEvent) {
-        mCameraManEvent->pauseOffAnimCamera(zoneID, pName);
+        CameraParamChunkID_Tmp chunkID;
+        chunkID.createEventID(zoneID, pName);
+        mCameraManEvent->pauseOffAnimCamera(chunkID);
     }
 }
 
@@ -654,16 +703,17 @@ void CameraDirector::createTalkCamera() {
     }
 }
 
+// NONMATCHING: equivalent branch folding and register liveness.
 void CameraDirector::controlCameraSE() {
     mIsCameraNG = false;
 
-    if (MR::isPlayerDead()) {
+    if (MR::isPlayerDead() || MR::isStageStoryBook()) {
         return;
     }
 
     if (mIsSubjectiveCamera) {
         if (MR::testCorePadTriggerLeft(WPAD_CHAN0) || MR::testCorePadTriggerRight(WPAD_CHAN0) || MR::testFpViewStartTrigger()) {
-            if (isPlayableCameraSE(false)) {
+            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
                 MR::startSystemSE("SE_SY_CAMERA_NG");
                 mIsCameraNG = true;
             }
@@ -679,7 +729,7 @@ void CameraDirector::controlCameraSE() {
                 MR::startSystemSE("SE_SY_CAMERA_MOVE");
             }
         } else {
-            if (isPlayableCameraSE(false)) {
+            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
                 MR::startSystemSE("SE_SY_CAMERA_NG");
                 mIsCameraNG = true;
             }
@@ -693,30 +743,30 @@ void CameraDirector::controlCameraSE() {
                 MR::startSystemSE("SE_SY_CAMERA_MOVE");
             }
         } else {
-            if (isPlayableCameraSE(false)) {
+            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
                 MR::startSystemSE("SE_SY_CAMERA_NG");
                 mIsCameraNG = true;
             }
         }
     }
 
-    if (CameraLocalUtil::testCameraPadTriggerReset()) {
+    if (CameraLocalUtil::testCameraPadTriggerReset(false)) {
         if (isEnableToReset()) {
             if (isPlayableCameraSE(false)) {
                 MR::startSystemSE("SE_SY_CAMERA_RESET");
                 MR::startSystemSE("SE_SY_CAMERA_MOVE");
             }
         } else {
-            if (isPlayableCameraSE(false)) {
+            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
                 MR::startSystemSE("SE_SY_CAMERA_NG");
                 mIsCameraNG = true;
             }
         }
     }
 
-    if (MR::isPlayerInBind()) {
+    if (MR::isPlayerInRush() || MR::isPlayerRecovering()) {
         if (MR::testFpViewStartTrigger()) {
-            if (isPlayableCameraSE(false)) {
+            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
                 MR::startSystemSE("SE_SY_CAMERA_NG");
                 mIsCameraNG = true;
             }
@@ -724,7 +774,7 @@ void CameraDirector::controlCameraSE() {
     }
 
     if (MR::testCorePadTriggerDown(WPAD_CHAN0)) {
-        if (isPlayableCameraSE(false)) {
+        if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
             MR::startSystemSE("SE_SY_CAMERA_NG");
             mIsCameraNG = true;
         }
@@ -791,19 +841,19 @@ bool CameraDirector::isPlayableCameraSE(bool checkSubjective) {
         return false;
     }
 
-    if (MR::isEqualStageName("FileSelect")) {
-        return false;
-    }
-
-    if (MR::isEqualStageName("EpilogueDemoStage")) {
-        return false;
-    }
-
     if (checkSubjective && mIsSubjectiveCamera) {
         return false;
     }
-
-    return true;
+    if (MR::isStageFileSelect()) {
+        return false;
+    }
+    if (MR::isStageStaffRoll()) {
+        return false;
+    }
+    if (MR::isStageWorldMap()) {
+        return false;
+    }
+    return !MR::isStageStoryBook();
 }
 
 void CameraDirector::resetCameraMan() {

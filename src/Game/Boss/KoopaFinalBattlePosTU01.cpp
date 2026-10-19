@@ -197,7 +197,7 @@ namespace MR {
     void resetKoopaBattleDemo(KoopaBattle* pBattle) {
         pBattle->mJointCtrl->endFaceCtrl(0);
         s32 frame;
-        pBattle->mJointCtrl->endDynamicCtrl(nullptr, frame);
+        pBattle->mJointCtrl->endDynamicCtrl(frame);
         MR::showModel(pBattle);
         MR::showPlayer();
         MR::resetPlayerStatus();
@@ -293,8 +293,8 @@ namespace MR {
         pBattle->mJointCtrl->endFaceCtrl(no);
     }
 
-    void startKoopaBattleDynamicCtrl(KoopaBattle* pBattle, const char* pName, s32 frame) {
-        pBattle->mJointCtrl->startDynamicCtrl(pName, frame);
+    void startKoopaBattleDynamicCtrl(KoopaBattle* pBattle, s32 frame) {
+        pBattle->mJointCtrl->startDynamicCtrl(frame);
     }
 
     void setKoopaBattleVolumeScaleUpRate(KoopaBattle* pBattle, s32 rate) {

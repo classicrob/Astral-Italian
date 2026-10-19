@@ -17,6 +17,5 @@ FallDeath::~FallDeath() {
 void FallDeath::init(const JMapInfoIter& rIter) {
     initNerve(&NrvFallDeath::FallDeathNrvFall::sInstance, 0);
     MR::invalidateClipping(this);
-    // vtable 0x30 slot (SMG2)
-    appear();
+    makeActorAppeared();
 }

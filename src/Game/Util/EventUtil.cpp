@@ -495,11 +495,6 @@ namespace MR {
 
 
 
-    inline s32 getPowerStarNumToOpenGalaxy(const char* pGalaxyName) {
-        return GameDataConst::getPowerStarNumToOpenGalaxy(pGalaxyName);
-    }
-
-
     bool isOnGameEventFlagPowerStarSuccess(const char* pGalaxyName, s32 starId) {
         return GameDataFunction::hasPowerStar(pGalaxyName, starId);
     }

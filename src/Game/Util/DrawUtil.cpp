@@ -1,4 +1,6 @@
 #include "Game/Util/DrawUtil.hpp"
+#include "Game/Map/ShadowColorSetter.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util.hpp"
 #include "Game/Scene/GameSceneFunction.hpp"
 #include "Game/Screen/ScreenAlphaCapture.hpp"
@@ -32,16 +34,7 @@ static u8 sTexImgObj[] ATTRIBUTE_ALIGN(32) = {0,    0xFF, 0,    0xFF, 0,    0xFF
 static bool sIsReinitTextureCache = true;
 static GXTexCacheSize sReinitTextureCacheSize = GX_TEXCACHE_128K;
 
-void DrawUtil_FORCE_MATCH_SDATA2() {
-    (void)-10000.0f;
-    (void)10000.0f;
-    (void)608.0f;
-    (void)-1000.0f;
-    (void)1000.0f;
-    (void)-0.5f;
-    (void)-30000.0f;
-    (void)30000.0f;
-}
+
 
 namespace {
     GXTexObj clear_z_tobj;
@@ -106,12 +99,16 @@ namespace MR {
         GXSetScissor(0, 0, width, height);
     }
 
+    s32 getFrameBufferWidth() {
+        return JUTVideo::getManager()->getFbWidth();
+    }
+
     void loadProjectionMtxFor2D() {
         J2DOrthoGraphSimple orthoGraph;
         orthoGraph.setPort();
     }
 
-    void setupDrawForNW4RLayout(f32 scale, bool) {
+    void setupDrawForNW4RLayout(f32 scale) {
         f32 height = MR::getScreenHeight();
         f32 width = 608.0f;
         f32 halfWidth = width / 2.0f;
@@ -151,11 +148,7 @@ namespace MR {
         GXInitTexObjLOD(&::clear_z_tobj, GX_NEAR, GX_NEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
         GXLoadTexObj(&::clear_z_tobj, GX_TEXMAP0);
         GXSetNumTevStages(1);
-        GXColor tev0;
-        tev0.r = 0;
-        tev0.g = 0;
-        tev0.b = 0;
-        tev0.a = 0;
+        Color8 tev0(0);
         GXSetTevColor(GX_TEVREG0, tev0);
         GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR_NULL);
         GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO, GX_CC_C0);
@@ -261,6 +254,7 @@ namespace MR {
         GXSetZCompLoc(GX_FALSE);
         GXSetCullMode(GX_CULL_NONE);
         GXSetDither(GX_FALSE);
+        GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
         GXSetNumTexGens(0);
         GXSetNumTevStages(1);
         GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR_NULL);
@@ -326,9 +320,45 @@ namespace MR {
         }
     }
 
+    void fn_800222A0(const LiveActor* actor) {
+        drawModelAlphaShadow(getJ3DModel(actor));
+    }
+
+    void drawModelAlphaShadow(J3DModel* model) {
+        J3DShape::resetVcdVatCache();
+        model->getModelData()->getShapeNodePointer(0)->loadPreDrawSetting();
+        GXSetAlphaCompare(GX_ALWAYS, 0, GX_AOP_OR, GX_ALWAYS, 0);
+        GXSetZMode(GX_TRUE, GX_GEQUAL, GX_FALSE);
+        GXSetNumTexGens(0);
+        GXSetNumChans(1);
+        GXSetNumTevStages(1);
+        GXSetNumIndStages(0);
+        GXSetCullMode(GX_CULL_BACK);
+        GXSetTevDirect(GX_TEVSTAGE0);
+        GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_REG, GX_LIGHT_NULL, GX_DF_CLAMP, GX_AF_NONE);
+        GXSetBlendMode(GX_BM_NONE, GX_BL_ONE, GX_BL_ZERO, GX_LO_CLEAR);
+        GXSetColorUpdate(GX_FALSE);
+        GXSetAlphaUpdate(GX_TRUE);
+        GXSetDither(GX_FALSE);
+        GXSetDstAlpha(GX_TRUE, 0x90);
+        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ADDHALF, GX_CS_DIVIDE_2, GX_TRUE, GX_TEVPREV);
+        GXSetTevSwapMode(GX_TEVSTAGE0, GX_TEV_SWAP0, GX_TEV_SWAP0);
+        u16 count = model->getModelData()->getShapeNum();
+        for (u16 i = 0; i < count; i++) model->getShapePacket(i)->drawFast();
+        GXSetColorUpdate(GX_TRUE);
+        GXSetAlphaUpdate(GX_TRUE);
+        GXSetDstAlpha(GX_TRUE, 0);
+        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    }
+
     void fillSilhouetteColor() {
-        MR::captureScreenAlpha(0);
-        MR::loadScreenAlphaTexture(0, GX_TEXMAP0);
+        drawScreenAlphaShadow(0, true, true);
+    }
+
+    void drawScreenAlphaShadow(s32 index, bool capture, bool threshold) {
+        if (capture) MR::captureScreenAlpha(index);
+        MR::loadScreenAlphaTexture(index, GX_TEXMAP0);
         Mtx44 projMtx;
         C_MTXOrtho(projMtx, 0.0f, MR::getScreenHeight(), 0.0f, MR::getScreenWidth(), -1.0f, 1.0f);
         GXSetProjection(projMtx, GX_ORTHOGRAPHIC);
@@ -354,8 +384,13 @@ namespace MR {
         GXSetTevColorOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
         GXSetTevKColor(GX_KCOLOR0, Color8(0, 0, 0, 1));
         GXSetTevKAlphaSel(GX_TEVSTAGE0, GX_TEV_KASEL_K0_A);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_TEXA, GX_CA_KONST, GX_CA_A0, GX_CA_ZERO);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_COMP_RGB8_GT, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        if (threshold) {
+            GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_TEXA, GX_CA_KONST, GX_CA_A0, GX_CA_ZERO);
+            GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_COMP_RGB8_GT, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        } else {
+            GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_TEXA, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO);
+            GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
+        }
         GXSetAlphaCompare(GX_GREATER, 0, GX_AOP_AND, GX_ALWAYS, 0);
         GXSetZMode(GX_TRUE, GX_ALWAYS, GX_FALSE);
         GXSetZCompLoc(GX_FALSE);
@@ -365,7 +400,7 @@ namespace MR {
         GXSetAlphaUpdate(GX_TRUE);
         GXSetDstAlpha(GX_TRUE, 0);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_NOOP);
-        GXSetTevColor(GX_TEVREG0, Color8(0x00000080));
+        GXSetTevColor(GX_TEVREG0, calcShadowColor(0x80));
 
         GXBegin(GX_TRIANGLESTRIP, GX_VTXFMT0, 4);
         {
@@ -391,6 +426,10 @@ namespace MR {
     }
 
 
+
+    const JUTTexture* getMarioShadowTexForDisplayList() {
+        return getPlayerShadowTexture();
+    }
 
     const TVec3f& getMarioShadowVec() {
         return mShadowVec;
@@ -432,9 +471,12 @@ namespace MR {
 
 };  // namespace MR
 
+// NONMATCHING: floating add-zero optimization and box temporary pointer scheduling
 J2DOrthoGraphSimple::J2DOrthoGraphSimple() : J2DOrthoGraph(0.0f, 0.0f, MR::getFrameBufferWidth(), ::getScreenHeightInline(), -30000.0f, 30000.0f) {
-    TBox2f bounds(0.0f, 0.0f, MR::getScreenWidth(), MR::getScreenHeight());
-    setOrtho(0.0f, 0.0f, bounds.getWidth(), bounds.getHeight(), -30000.0f, 30000.0f);
+    f32 height = MR::getScreenHeight();
+    f32 width = MR::getScreenWidth();
+    TBox2f bounds(0.0f, 0.0f, 0.0f + width, 0.0f + height);
+    setOrtho(bounds, -30000.0f, 30000.0f);
 }
 
 void J2DOrthoGraphSimple::setPort() {

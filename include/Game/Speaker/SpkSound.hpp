@@ -31,6 +31,7 @@ public:
 
     void setRelease(s32);
     void setFadeOut(s32);
+    void setFadeTarget(s32, f32);
     f32 calc(bool&);
 
     /* 0x00 */ f32 mReleaseVolume;
@@ -61,6 +62,7 @@ public:
     void attachHandle(SpkSoundHandle*);
     void releaseHandle();
     bool start(s32, s32);
+    bool start(s32, s32, s32);
     void unlock();
     bool setWaveData(s32);
     bool decrement40();
@@ -93,6 +95,7 @@ public:
     bool update(s32);
     bool updateEachSound(s32);
     void freeDeadSound(s32);
+    void stopEachSound(s32, s32);
     void framework();
 
     f32 getBaseVolume() const {

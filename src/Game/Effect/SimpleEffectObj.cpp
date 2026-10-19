@@ -29,6 +29,7 @@ namespace {
         {"Steam", nullptr, "SE_OJ_LV_HD_STEAM", -1, nullptr, 0},
         {"IcicleRockLight", nullptr, "SE_OJ_LV_ICICLE_ROCK_LIGHT", -1, nullptr, 0},
         {"UFOKinokoLandingBlackSmoke", nullptr, "SE_OJ_LV_UFO_KINOKO_SMOKE", -1, nullptr, 0},
+        {"BigTreeLeafSplash", nullptr, nullptr, 1, "強", 0},
     };
 
     const s_effectDataTable* findDataElement(const char* pString) {

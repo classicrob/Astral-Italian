@@ -13,6 +13,20 @@ namespace nw4r {
             Rect(f32 l, f32 t, f32 r, f32 b) : left(l), top(t), right(r), bottom(b) {
             }
 
+#ifdef NW4R_DEBUG_OUTLINE  // opt-in per TU (LayoutUtil): target calls these out of line there
+            Rect& operator=(const Rect& other)
+#ifdef NW4R_DEBUG_OUTLINE
+                NO_INLINE
+#endif
+            {
+                left = other.left;
+                top = other.top;
+                right = other.right;
+                bottom = other.bottom;
+                return *this;
+            }
+#endif
+
             ~Rect() {
             }
 

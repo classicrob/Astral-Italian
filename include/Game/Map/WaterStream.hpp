@@ -35,7 +35,7 @@ public:
     /* 0xB4 */ TVec3f mClipMax;
     /* 0xC0 */ TVec3f mBoxMin;
     /* 0xCC */ TVec3f mBoxMax;
-    /* 0xD8 */ u8 mPadD8[0xC];
+    /* 0xD8 */ TVec3f mClippingCenter;
     /* 0xE4 */ TVec3f mSoundPos1;
     /* 0xF0 */ AudSoundObject* mSound1;
     /* 0xF4 */ TVec3f mSoundPos2;

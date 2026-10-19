@@ -26,6 +26,8 @@ public:
     void interpolateCameraSwitching(MtxPtr, const TVec3f&, f32);
     void checkNearlyEnd(MtxPtr);
     bool translateByRepulsion();
+    void updateRotationState(MtxPtr) NO_INLINE;
+    void updateRotationDifference(MtxPtr) NO_INLINE;
 
     void resetGravity() {
         TVec3f grav(0.0f, -1.0f, 0.0f);
@@ -57,4 +59,5 @@ public:
     /* 0xB0 */ bool mIsCollided;
     /* 0xB4 */ TVec3f mLErpOffset;  // TODO: is this name correct?
     /* 0xC0 */ bool _C0;
+    /* 0xC1 */ bool _C1;
 };

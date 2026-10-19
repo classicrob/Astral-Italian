@@ -4,11 +4,7 @@
 #include "Game/Camera/CameraTargetObj.hpp"
 #include "Game/Player/MarioActor.hpp"
 
-CameraTargetArg::CameraTargetArg(const LiveActor* pLiveActor) {
-    mLiveActor = pLiveActor;
-    mTargetObj = nullptr;
-    mTargetMtx = nullptr;
-    mMarioActor = nullptr;
+CameraTargetArg::CameraTargetArg(const LiveActor* pLiveActor) : mTargetObj(), mTargetMtx(), mLiveActor(pLiveActor), mMarioActor() {
 }
 
 void CameraTargetArg::setTarget() const {

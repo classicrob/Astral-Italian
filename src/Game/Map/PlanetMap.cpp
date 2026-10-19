@@ -92,11 +92,11 @@ void PlanetMap::init(const JMapInfoIter& rIter) {
             jointMTX = MR::getJointMtx(this, ::cFollowJointName);
         }
 
-        MR::initCollisionParts(this, mModelName, getSensor("body"), jointMTX);
+        MR::initCollisionParts(this, mModelName, getSensor("Body"), jointMTX);
     }
 
-    MR::tryCreateCollisionMoveLimit(this, getSensor("body"));
-    MR::tryCreateCollisionWaterSurface(this, getSensor("body"));
+    MR::tryCreateCollisionMoveLimit(this, getSensor("Body"));
+    MR::tryCreateCollisionWaterSurface(this, getSensor("Body"));
     initSound(4, mModelName, nullptr, TVec3f(0.0f));
 
     if (MR::isExistAnim(this, mModelName)) {
@@ -286,7 +286,7 @@ bool PeachCastleNightPlanet::tryEmitMyEffect() {
 
     for (s32 i = 0; i < num; i++) {
         char buf[64];
-        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        snprintf(buf, sizeof(buf), "%s%02d", pModelName, i);
         MR::emitEffectWithParticleCallBack(this, buf, mFireCallBack);
     }
 
@@ -298,7 +298,7 @@ void PlanetMapFunction::verifyEffects(LiveActor* pActor, s32* pNum, const char* 
 
     for (s32 i = 0; i < maxNum; i++) {
         char buf[64];
-        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        snprintf(buf, sizeof(buf), "%s%02d", pModelName, i);
 
         if (!MR::isRegisteredEffect(pActor, buf)) {
             break;
@@ -319,7 +319,7 @@ bool PlanetMapFunction::tryEmitEffects(LiveActor* pActor, const char* pModelName
 
     for (s32 i = 0; i < num; i++) {
         char buf[64];
-        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        snprintf(buf, sizeof(buf), "%s%02d", pModelName, i);
         MR::emitEffect(pActor, buf);
     }
 
@@ -333,7 +333,7 @@ bool PlanetMapFunction::tryDeleteEffects(LiveActor* pActor, const char* pModelNa
 
     for (s32 i = 0; i < num; i++) {
         char buf[64];
-        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        snprintf(buf, sizeof(buf), "%s%02d", pModelName, i);
         MR::tryDeleteEffect(pActor, buf);
     }
 
@@ -347,7 +347,7 @@ bool PlanetMapFunction::tryForceDeleteEffects(LiveActor* pActor, const char* pMo
 
     for (s32 i = 0; i < num; i++) {
         char buf[64];
-        snprintf(buf, sizeof(buf), "%s%d", pModelName, i);
+        snprintf(buf, sizeof(buf), "%s%02d", pModelName, i);
         MR::tryForceDeleteEffect(pActor, buf);
     }
 

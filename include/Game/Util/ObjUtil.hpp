@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/Util/Functor.hpp"
+#include <va_list.h>
 #include "Game/Util/JMapInfo.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
@@ -138,7 +139,7 @@ namespace MR {
     JMapInfo* tryCreateCsvParser(const LiveActor* pActor, const char* pPathFormat, ...);
     JMapInfo* tryCreateCsvParser(const char* pArcName, const char* pPathFormat, ...);
 
-    const JMapInfo* tryCreateStageCsvParser(const char* pStageName, const char* pArcName, const char* pPathFormat, ...);
+    const JMapInfo* tryCreateStageCsvParser(const char* pStageName, const char* pArcName, const char* pPathFormat, va_list list) NO_INLINE;
     const JMapInfo* tryCreateStageZoneInfoCsvParser(const char* pPathFormat, ...);
     const JMapInfo* tryCreateStageUseResourceCsvParser(const char* pStageName, const char* pPathFormat, ...);
 
@@ -150,7 +151,6 @@ namespace MR {
     void getCsvDataStr(const char** pDest, const JMapInfo* pCsvData, const char* pItemName, s32 dataRow);
     void getCsvDataStrOrNULL(const char** pDest, const JMapInfo* pCsvData, const char* pItemName, s32 dataRow);
     void getCsvDataS32(s32* pDest, const JMapInfo* pCsvData, const char* pItemName, s32 dataRow);
-    void getCsvDataU32(s32* pDest, const JMapInfo* pCsvData, const char* pItemName, s32 dataRow);
     void getCsvDataS16(s16* pDest, const JMapInfo* pCsvData, const char* pItemName, s32 dataRow);
     void getCsvDataU8(u8* pDest, const JMapInfo* pCsvData, const char* pItemName, s32 dataRow);
     void getCsvDataF32(f32* pDest, const JMapInfo* pCsvData, const char* pItemName, s32 dataRow);
@@ -175,6 +175,8 @@ namespace MR {
                                         const char* pElementName);
     // more csv functions...
 
+    JMapInfoIter getCsvDataStrByElement(const char**, const JMapInfo*, const char*, u32, const char*);
+    JMapInfoIter getCsvDataU32ByElement(u32*, const JMapInfo*, const char*, const char*, const char*);
     void declarePowerStar(const NameObj* pHost);
     void declarePowerStar(const NameObj* pHost, s32 powerStarId);
     void declarePowerStarCoin100();
@@ -227,7 +229,7 @@ namespace MR {
     bool tryRumblePadVeryStrong(const void* pHost, s32 wiimote);
     bool tryRumblePadStrong(const void* pHost, s32 wiimote);
     // Provisional names for unnamed SMG2 functions fn_8004DB60 and fn_8004F2F0 (used by ActorItemGenerator).
-    void appearStarPieceToVelocity(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rVelocity, s32 numItems, s32, s32, s32, f32);
+    bool appearStarPieceToVelocity(const NameObj* pHost, const TVec3f& rPosition, const TVec3f& rVelocity, s32 numItems, bool, bool, bool, f32);
     void getPlayerVelocity(TVec3f* pDest);
     bool tryRumblePadMiddle(const void* pHost, s32 wiimote);
     bool tryRumblePadWeak(const void* pHost, s32 wiimote);
@@ -294,6 +296,7 @@ namespace MR {
     const ResTIMG* loadTexFromArc(const char*, const char*);
     const ResTIMG* loadTexFromArc(const char*, const char*, ResTIMG*);
     JUTTexture* loadTexFromArc(LiveActor*, const char*, const char*);
+    JUTTexture* loadTexFromArc(LiveActor*, const char*);
     bool isStageStateScenarioOpeningCamera();
     bool isStageStatePowerStarAppeared();
     void appearCoinFix(const NameObj*, const TVec3f&, s32);

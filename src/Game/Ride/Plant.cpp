@@ -149,9 +149,8 @@ void Plant::init(const JMapInfoIter& pMapInfoIter) {
     }
 }
 
-// NONMATCHING: target loads an extra dead float (f2) before the tail call to makeMtxOnMapCollision; ours passes only the 3 args.
 void Plant::initAfterPlacement() {
-    MR::makeMtxOnMapCollision(&mSeedMtx, mSeedPartsModel, 1000.0f);
+    MR::makeMtxOnMapCollision(&mSeedMtx, mSeedPartsModel, 1000.0f, 100.0f);
 }
 
 void Plant::appear() {

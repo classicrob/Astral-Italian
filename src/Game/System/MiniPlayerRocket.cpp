@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/MiniRoutePoint.hpp"
 #include "Game/System/MiniStarCheckPoint.hpp"
@@ -9,11 +10,6 @@
 #include "Game/LiveActor/LiveActorGroup.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
-
-// PLACEHOLDER(core): scattered star piece actor (0xA0 bytes, vtable 0x806AF770, ctor fn_8031B1F0 in unit auto_03_8031B1F0); resolve when that unit is named
-extern "C" void* fn_8031B1F0(void* pMem, const char* pName);
-// PLACEHOLDER(core): scatter helper in unit auto_03_8031B1F0 (fn_8031B370); resolve when that unit is named
-extern "C" void fn_8031B370(LiveActor* pStar, const TVec3f* pPos, const TVec3f* pUp, f32 speed, f32 range);
 
 namespace {
     class ScatteredStarPieceGroup : public LiveActorGroup {
@@ -47,10 +43,7 @@ void MiniPlayerRocket::init(const JMapInfoIter& rIter) {
     mStarPieces = new ScatteredStarPieceGroup("ばら撒きスターピースグループ", 10);
     mStarPieces->initWithoutIter();
     for (s32 i = 0; i < 10; i++) {
-        LiveActor* pPiece = static_cast<LiveActor*>(::operator new(0xA0));
-        if (pPiece != nullptr) {
-            pPiece = static_cast<LiveActor*>(fn_8031B1F0(pPiece, "ばら撒きスターピース[ダメージ用]"));
-        }
+        LiveActor* pPiece = new ScatteredStarPiece("ばら撒きスターピース[ダメージ用]");
         pPiece->initWithoutIter();
         mStarPieces->registerActor(pPiece);
     }
@@ -181,7 +174,7 @@ void MiniPlayerRocket::updateAction() {
     }
 }
 
-// NONMATCHING: TVec3f ctor is inlined here, the original calls it out of line
+// NONMATCHING: regalloc; constructor argument scheduling
 void MiniPlayerRocket::updateMove() {
     if (mWaitCount > 0) {
         mWaitCount--;
@@ -193,7 +186,7 @@ void MiniPlayerRocket::updateMove() {
     mMoveSpeed = 0.25f;
 }
 
-// NONMATCHING: TVec3f::set is inlined here, the original calls it out of line
+// NONMATCHING: regalloc; vector temporary stack allocation
 void MiniPlayerRocket::updateRotation(const TVec3f& rDir, f32 blendRate) {
     if (MR::isNearZero(rDir, 0.001f)) {
         return;
@@ -207,7 +200,7 @@ void MiniPlayerRocket::updateRotation(const TVec3f& rDir, f32 blendRate) {
 
     // Z axis of the current rotation
     TVec3f front;
-    front.set(2.0f * (quat.x * quat.z) + 2.0f * (quat.w * quat.y),
+    front.set<f32>(2.0f * (quat.x * quat.z) + 2.0f * (quat.w * quat.y),
               2.0f * (quat.y * quat.z) - 2.0f * (quat.w * quat.x),
               1.0f - 2.0f * (quat.x * quat.x) - 2.0f * (quat.y * quat.y));
 
@@ -304,7 +297,7 @@ bool MiniPlayerRocket::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* p
     return false;
 }
 
-// NONMATCHING: TVec3f ctor is inlined here, the original calls it out of line; regalloc
+// NONMATCHING: regalloc; constructor argument scheduling
 bool MiniPlayerRocket::updateStarPieceScatter(s32 count) {
     s32 num = count;
     if (count < 0) {
@@ -319,7 +312,7 @@ bool MiniPlayerRocket::updateStarPieceScatter(s32 count) {
         LiveActor* pPiece = mStarPieces->getActor(i);
         if (MR::isDead(pPiece)) {
             TVec3f up(0.0f, 1.0f, 0.0f);
-            fn_8031B370(pPiece, &mPosition, &up, 5.0f, 100.0f);
+            static_cast< ScatteredStarPiece* >(pPiece)->scatter(mPosition, up, 5.0f, 100.0f);
             num--;
         }
 
@@ -356,6 +349,7 @@ MiniRoutePoint::MiniRoutePoint() : LiveActor("中継点") {
 
 MiniRoutePoint::~MiniRoutePoint() {}
 
+// NONMATCHING: regalloc
 void MiniRoutePoint::init(const JMapInfoIter&) {
     MR::initActor(this, "MiniRoutePoint", false);
     MR::setClippingFarMax(this);
@@ -411,6 +405,7 @@ void MiniRoutePoint::setPosition(const TVec3f& rPos) {
     MR::setPosition(mShadow, shadowPos);
 }
 
+// NONMATCHING: regalloc
 void MiniRoutePoint::setReachable(bool isReachable) {
     if (isReachable) {
         MR::startAction(this, "Open");

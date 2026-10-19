@@ -36,7 +36,7 @@ void WaterFortressRain::exeRain() {
         MR::forceDeleteEffect(this, "RainSlow");
     }
 
-    if (MR::isOnTimeStopScreenEffect()) {
+    if (MR::isTimeStopScreenEffectActive()) {
         setNerve(GET_NERVE(WaterFortressRain, WaterFortressRainNrvRainSlow));
     }
 }
@@ -47,7 +47,7 @@ void WaterFortressRain::exeRainSlow() {
         MR::deleteEffect(this, "Rain");
     }
 
-    if (!MR::isOnTimeStopScreenEffect()) {
+    if (!MR::isTimeStopScreenEffectActive()) {
         setNerve(GET_NERVE(WaterFortressRain, WaterFortressRainNrvRain));
     }
 }

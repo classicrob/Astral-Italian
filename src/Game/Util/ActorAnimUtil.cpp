@@ -5,6 +5,8 @@
 #include "Game/Animation/XanimePlayer.hpp"
 #include "Game/AudioLib/AudAnmSoundObject.hpp"
 #include "Game/LiveActor/ActorAnimKeeper.hpp"
+#include "Game/LiveActor/ActorActionKeeper.hpp"
+#include "Game/LiveActor/ActorSoundHolder.hpp"
 #include "Game/LiveActor/ActorLightCtrl.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/ClippingActorHolder.hpp"
@@ -44,6 +46,9 @@ namespace {
             keeper->changeBck();
         }
     }
+    void resetSoundSyncBck(const LiveActor* pActor) NO_INLINE {
+        if (pActor->mSoundHolder) pActor->mSoundHolder->resetSyncBck();
+    }
 };  // namespace
 
 namespace MR {
@@ -77,7 +82,12 @@ namespace MR {
             return getResourceHolder(pActor)->mMotionResTable->mCount != 0;
         }
 
-        return getResourceHolder(pActor)->mMotionResTable->isExistRes(pName);
+        ModelManager* manager = pActor->mModelManager;
+        if (manager) {
+            XanimePlayer* player = manager->mXanimePlayer;
+            if (player && player->isExistAnimation(pName)) return true;
+        }
+        return false;
     }
 
     bool isExistBtk(const LiveActor* pActor, const char* pName) {
@@ -151,43 +161,81 @@ namespace MR {
         return isStarted;
     }
 
-    bool isActionEnd(const LiveActor* pActor) {
-        return pActor->mModelManager->isBckStopped();
+    void startAction(const LiveActor* pActor, const char* pName) {
+        if (pActor->mSoundHolder) {
+            pActor->mSoundHolder->startAction(pName);
+            pActor->mSoundHolder->resetSyncBck();
+        }
+        if (!pActor->mActionKeeper || !pActor->mActionKeeper->startAction(pName)) {
+            startAnimIfExistAll(pActor, pName);
+        }
+    }
+
+    void fn_80008890(LiveActor* pActor, const char* pName) {
+        startAction(pActor, pName);
+        f32 frame = 0.0f;
+        if (isBckPlayingIfExist(pActor, pName)) {
+            s16 end = pActor->mModelManager->getBckCtrl()->getEnd();
+            frame = static_cast<s32>(end * getRandom());
+        }
+        else if (isBtkPlayingIfExist(pActor, pName)) {
+            s16 end = pActor->mModelManager->getBtkCtrl()->getEnd();
+            frame = static_cast<s32>(end * getRandom());
+        }
+        else if (isBrkPlayingIfExist(pActor, pName)) {
+            s16 end = pActor->mModelManager->getBrkCtrl()->getEnd();
+            frame = static_cast<s32>(end * getRandom());
+        }
+        else if (isBtpPlayingIfExist(pActor, pName)) {
+            s16 end = pActor->mModelManager->getBtpCtrl()->getEnd();
+            frame = static_cast<s32>(end * getRandom());
+        }
+        else if (isBpkPlayingIfExist(pActor, pName)) {
+            s16 end = pActor->mModelManager->getBpkCtrl()->getEnd();
+            frame = static_cast<s32>(end * getRandom());
+        }
+        else if (isBvaPlayingIfExist(pActor, pName)) {
+            s16 end = pActor->mModelManager->getBvaCtrl()->getEnd();
+            frame = static_cast<s32>(end * getRandom());
+        }
+        if (pActor->mActionKeeper && pActor->mActionKeeper->mAnimKeeper &&
+            pActor->mActionKeeper->mAnimKeeper->trySetAllFrame(frame)) return;
+        if (isBckPlayingIfExist(pActor, pName)) setBckFrame(pActor, frame);
+        if (isBtkPlayingIfExist(pActor, pName)) pActor->mModelManager->getBtkCtrl()->setFrame(frame);
+        if (isBrkPlayingIfExist(pActor, pName)) pActor->mModelManager->getBrkCtrl()->setFrame(frame);
+        if (isBtpPlayingIfExist(pActor, pName)) pActor->mModelManager->getBtpCtrl()->setFrame(frame);
+        if (isBpkPlayingIfExist(pActor, pName)) pActor->mModelManager->getBpkCtrl()->setFrame(frame);
+        if (isBvaPlayingIfExist(pActor, pName)) pActor->mModelManager->getBvaCtrl()->setFrame(frame);
+    }
+
+    bool tryStartActionNotPlaying(const LiveActor* pActor, const char* pName) {
+        if (!isAnyAnimPlaying(pActor, pName)) {
+            startAction(pActor, pName);
+            return true;
+        }
+        return false;
     }
 
     bool tryStartAllAnim(const LiveActor* pActor, const char* pName) {
-        bool started = false;
+        if (!isExistAnimInKeeper(pActor, pName)) return false;
+        startAction(pActor, pName);
+        return true;
+    }
 
-        if (startBckIfExist(pActor, pName)) {
-            started = true;
-        }
-
-        if (startBtkIfExist(pActor, pName)) {
-            started = true;
-        }
-
-        if (startBrkIfExist(pActor, pName)) {
-            started = true;
-        }
-
-        if (startBpkIfExist(pActor, pName)) {
-            started = true;
-        }
-
-        if (startBtpIfExist(pActor, pName)) {
-            started = true;
-        }
-
-        if (startBvaIfExist(pActor, pName)) {
-            started = true;
-        }
-
-        return started;
+    bool isActionEnd(const LiveActor* pActor) {
+        if (isExistBck(pActor, nullptr)) return pActor->mModelManager->isBckStopped();
+        if (isExistBtk(pActor, nullptr)) return pActor->mModelManager->isBtkStopped();
+        if (isExistBrk(pActor, nullptr)) return pActor->mModelManager->isBrkStopped();
+        if (isExistBpk(pActor, nullptr)) return pActor->mModelManager->isBpkStopped();
+        if (isExistBtp(pActor, nullptr)) return pActor->mModelManager->isBtpStopped();
+        if (isExistBva(pActor, nullptr)) return pActor->mModelManager->isBvaStopped();
+        return false;
     }
 
     void startBck(const LiveActor* pActor, const char* pBckName, const char* pBrkName) {
         pActor->mModelManager->startBck(pBckName, pBrkName);
         ::changeBckForEffectKeeper(pActor);
+        ::resetSoundSyncBck(pActor);
         startBas(pActor, pBckName, false, 0.0f, 0.0f);
     }
 
@@ -195,21 +243,24 @@ namespace MR {
         pActor->mModelManager->startBckWithInterpole(pBckName, interpole);
         startBas(pActor, pBckName, false, 0.0f, 0.0f);
         ::changeBckForEffectKeeper(pActor);
+        ::resetSoundSyncBck(pActor);
     }
 
     void startBckNoInterpole(const LiveActor* pActor, const char* pBckName) {
         pActor->mModelManager->startBckWithInterpole(pBckName, 0);
         startBas(pActor, pBckName, false, 0.0f, 0.0f);
         ::changeBckForEffectKeeper(pActor);
+        ::resetSoundSyncBck(pActor);
     }
 
     void startBckAtFirstStep(const LiveActor* pActor, const char* pBckName) {
-        if (!isStep(pActor, 0)) {
+        if (!isFirstStep(pActor)) {
             return;
         }
 
         pActor->mModelManager->startBck(pBckName, nullptr);
         ::changeBckForEffectKeeper(pActor);
+        ::resetSoundSyncBck(pActor);
         startBas(pActor, pBckName, false, 0.0f, 0.0f);
     }
 
@@ -217,6 +268,7 @@ namespace MR {
         if (!isBckPlaying(pActor->mModelManager->mXanimePlayer, pBckName)) {
             pActor->mModelManager->startBck(pBckName, pBrkName);
             ::changeBckForEffectKeeper(pActor);
+        ::resetSoundSyncBck(pActor);
             startBas(pActor, pBckName, false, 0.0f, 0.0f);
             return true;
         }
@@ -238,7 +290,7 @@ namespace MR {
 
     void setAllAnimFrame(const LiveActor* pActor, const char* pName, f32 frame) {
         if (isExistBck(pActor, pName)) {
-            pActor->mModelManager->getBckCtrl()->setFrame(frame);
+            setBckFrame(pActor, frame);
         }
 
         if (isExistBtk(pActor, pName)) {
@@ -310,14 +362,15 @@ namespace MR {
         }
 
         if (isExistBva(pActor, pName)) {
-            setBrkFrame(pActor, pActor->mModelManager->getBvaCtrl()->getEnd());
+            setBvaFrame(pActor, pActor->mModelManager->getBvaCtrl()->getEnd());
         }
     }
 
+    // NONMATCHING: register allocation and redundant initial null materialization
     bool isAnyAnimPlaying(const LiveActor* pActor, const char* pName) {
         ActorAnimKeeper* pAnimKeeper = nullptr;
         if (pActor->mActionKeeper != nullptr) {
-            pAnimKeeper = *reinterpret_cast< ActorAnimKeeper** >(reinterpret_cast< u8* >(pActor->mActionKeeper) + 0x4);
+            pAnimKeeper = pActor->mActionKeeper->mAnimKeeper;
         }
 
         if (pAnimKeeper == nullptr) {
@@ -351,10 +404,10 @@ namespace MR {
         return pAnimKeeper->isAnyAnimPlaying(pName);
     }
 
-    // PLACEHOLDER(core4): SMG2 fn_80008F00; reads the ActorAnimKeeper at ActorActionKeeper+0x4 (layout not mapped yet)
+    // NONMATCHING: equivalent fallback/keeper tail-branch order
     bool isExistAnimInKeeper(const LiveActor* pActor, const char* pName) {
         if (pActor->mActionKeeper != nullptr) {
-            ActorAnimKeeper* pAnimKeeper = *reinterpret_cast< ActorAnimKeeper** >(reinterpret_cast< u8* >(pActor->mActionKeeper) + 0x4);
+            ActorAnimKeeper* pAnimKeeper = pActor->mActionKeeper->mAnimKeeper;
             if (pAnimKeeper != nullptr) {
                 return pAnimKeeper->isExistAnim(pName);
             }
@@ -491,8 +544,20 @@ namespace MR {
         }
     }
 
+    void resumeAllAnim(LiveActor* pActor) {
+        if (pActor->mModelManager) {
+            if (getPlayingBckName(pActor)) pActor->mModelManager->getBckCtrl()->setRate(1.0f);
+            if (isExistBva(pActor, nullptr)) pActor->mModelManager->resumeBva();
+            if (isExistBpk(pActor, nullptr)) pActor->mModelManager->resumeBpk();
+            if (isExistBtp(pActor, nullptr)) pActor->mModelManager->resumeBtp();
+            if (isExistBrk(pActor, nullptr)) pActor->mModelManager->resumeBrk();
+            if (isExistBtk(pActor, nullptr)) pActor->mModelManager->resumeBtk();
+        }
+    }
+
     void setBckFrameAtRandom(const LiveActor* pActor) {
-        s32 randomFrame = pActor->mModelManager->getBckCtrl()->getEnd() * MR::getRandom();
+        s16 end = pActor->mModelManager->getBckCtrl()->getEnd();
+        s32 randomFrame = end * MR::getRandom();
 
         setBckFrame(pActor, randomFrame);
     }
@@ -504,7 +569,7 @@ namespace MR {
     }
 
     void setBckFrameAndStop(const LiveActor* pActor, f32 frame) {
-        pActor->mModelManager->getBckCtrl()->setFrame(frame);
+        setBckFrame(pActor, frame);
         pActor->mModelManager->getBckCtrl()->setRate(0.0f);
     }
 
@@ -533,8 +598,8 @@ namespace MR {
         pActor->mModelManager->getBvaCtrl()->setRate(0.0f);
     }
 
-    void startBckAndSetFrameAndStop(const LiveActor* pActor, const char* pBckName, f32 frame) {
-        startBck(pActor, pBckName, nullptr);
+    void startBckAndSetFrameAndStop(const LiveActor* pActor, const char* pBckName, f32 frame, const char* pInterpole) {
+        startBck(pActor, pBckName, pInterpole);
         setBckFrame(pActor, frame);
         pActor->mModelManager->getBckCtrl()->setRate(0.0f);
     }
@@ -590,9 +655,10 @@ namespace MR {
     }
 
     bool startBckIfExist(const LiveActor* pActor, const char* pBckName) {
-        if (getResourceHolder(pActor)->mMotionResTable->isExistRes(pBckName)) {
+        if (pActor->mModelManager && pActor->mModelManager->mXanimePlayer && pActor->mModelManager->mXanimePlayer->isExistAnimation(pBckName)) {
             pActor->mModelManager->startBck(pBckName, nullptr);
             ::changeBckForEffectKeeper(pActor);
+        ::resetSoundSyncBck(pActor);
             startBas(pActor, pBckName, false, 0.0f, 0.0f);
             return true;
         }
@@ -723,6 +789,10 @@ namespace MR {
 
     void setBckFrame(const LiveActor* pActor, f32 frame) {
         pActor->mModelManager->getBckCtrl()->setFrame(frame);
+        XanimePlayer* player = pActor->mModelManager->mXanimePlayer;
+        player->_84 = player->_20->mFrame;
+        if (pActor->mEffectKeeper) pActor->mEffectKeeper->resetSyncBckFrame();
+        if (pActor->mSoundHolder) pActor->mSoundHolder->resetSyncBckFrame();
     }
 
     void setBtkFrame(const LiveActor* pActor, f32 frame) {

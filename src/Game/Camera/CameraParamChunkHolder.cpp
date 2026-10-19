@@ -8,6 +8,8 @@
 #include "Game/Util/SceneUtil.hpp"
 #include <JSystem/JKernel/JKRHeap.hpp>
 #include <cstring>
+#include <cstdio>
+#include "Game/Util/ObjUtil.hpp"
 
 #define CHUNK_CAPACITY 0x400
 
@@ -71,8 +73,23 @@ void CameraParamChunkHolder::sort() {
 
 void CameraParamChunkHolder::loadCameraParameters() {
     for (s32 i = 0; i < MR::getZoneNum(); i++) {
-        loadFile(i);
+        void* data;
+        s32 size;
+        MR::getStageCameraData(&data, &size, i);
+        if (size) loadFile(i, data);
     }
+    for (s32 i = 0; i < mExtra->getFileCount(); i++) loadGlobalFile(i);
+}
+
+bool CameraParamChunkHolder::setCameraParamId(const char* archive, const char* file) {
+    return mExtra->setNames(archive, file);
+}
+
+void CameraParamChunkHolder::loadGlobalFile(s32 index) {
+    char path[0x80];
+    snprintf(path, sizeof(path), "%s.bcam", mExtra->mFileName);
+    void* data = MR::loadTexFromArcHelper(mExtra->mArchiveName, path, nullptr);
+    loadFile(CameraParamChunkIDFunction::getGlobalZoneID(index), data);
 }
 
 bool CameraParamChunkHolder::isNewAttribute(const CameraParamChunkID& rID) {
@@ -124,12 +141,7 @@ CameraParamChunk* CameraParamChunkHolder::findChunk(s32 zoneID, const char* pNam
     return nullptr;
 }
 
-void CameraParamChunkHolder::loadFile(s32 zoneID) {
-    void* data;
-    s32 local44;
-    MR::getStageCameraData(&data, &local44, zoneID);
-
-    if (local44 != 0) {
+void CameraParamChunkHolder::loadFile(s32 zoneID, const void* data) {
         DotCamReaderInBin reader = DotCamReaderInBin(data);
         mCameraVersion = reader.mVersion;
 
@@ -150,7 +162,6 @@ void CameraParamChunkHolder::loadFile(s32 zoneID) {
                 reader.nextToChunk();
             }
         }
-    }
 }
 
 void CameraParamChunkHolder::arrangeChunk(CameraParamChunk* pChunk) {
@@ -307,4 +318,15 @@ void CameraParamChunkHolder::arrangeChunk(CameraParamChunk* pChunk) {
             pChunk->mGeneralParam->mNum1 = 1;
         }
     }
+}
+
+bool CameraParamChunkHolderExtra::setNames(const char* archive, const char* file) {
+    mArchiveName = archive;
+    if (!file) mFileName = archive;
+    else mFileName = file;
+    return false;
+}
+
+s32 CameraParamChunkHolderExtra::getFileCount() const {
+    return mArchiveName != nullptr;
 }

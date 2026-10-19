@@ -67,6 +67,9 @@ void LogoScene::draw() const {
     MR::drawInit();
 
     GXColor color;
+    color.r = 0;
+    color.g = 0;
+    color.b = 0;
     color.a = 255;
 
     MR::fillScreen(color);

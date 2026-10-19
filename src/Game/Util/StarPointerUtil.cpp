@@ -147,10 +147,8 @@ namespace MR {
     }
 
     void onStarPointerSceneOut() {
-        ::getStarPointerLayout(WPAD_CHAN0)->forceEndCommandStream();
-        ::getStarPointerLayout(WPAD_CHAN1)->forceEndCommandStream();
         ::getStarPointerDirector()->invalidate();
-        setStarPointerModeBase();
+        ::getStarPointerOnOffController()->setStateToBase(nullptr);
         WPadFunction::getWPadRumble(WPAD_CHAN0)->stop();
         WPadFunction::getWPadRumble(WPAD_CHAN1)->stop();
     }
@@ -622,7 +620,8 @@ namespace MR {
         StarPointerInput* controller = ::getStarPointerController(channel);
         TVec3f camPos = MR::getCamPos();
         const TVec2f& posA = controller->getScreenPosition();
-        const TVec2f& posB = posA.subInline(controller->getScreenVelocity());
+        TVec2f posB = posA;
+        posB.sub(controller->getScreenVelocity());
         TVec3f toPointA, toPointB;
         MR::calcWorldPositionFromScreen(&toPointA, posA, -1.0f);
         MR::calcWorldPositionFromScreen(&toPointB, posB, -1.0f);
@@ -659,10 +658,11 @@ namespace MR {
         return true;
     }
 
+    // NONMATCHING: MR::tan is inline in MathUtil.hpp; target calls the out-of-line tan__2MRFf (auto_03_8001C190)
     f32 calcPointRadius2D(const TVec3f& rPosition, f32 radius) {
         f32 fovyRad = MR::toRadian(MR::getFovy());
         f32 tan = MR::tan(fovyRad * 0.5f);
-        f32 focalDist = (static_cast< s32 >(JUTVideo::getManager()->getEfbHeight()) * 0.5f) / tan;
+        f32 focalDist = (static_cast< s32 >(MR::getScreenHeight()) * 0.5f) / tan;
 
         TVec3f viewPos;
         MR::getCameraViewMtx().mult(rPosition, viewPos);
@@ -849,6 +849,10 @@ namespace MR {
         ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_BlueStarReady);
     }
 
+    void fn_8005E5B0(void* pRequester) {
+        ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_CommandStream);
+    }
+
 
     void requestStarPointerModeCommandStream(void* pRequester) {
         ::getStarPointerOnOffController()->requestMode(pRequester, StarPointerMode_CommandStream);
@@ -1023,3 +1027,43 @@ namespace MR {
     }
 
 };  // namespace MR
+
+const TVec2f& StarPointerController::getScreenPosition() const {
+    return mPastInfo.mPos;
+}
+
+const TVec2f& StarPointerController::getScreenVelocity() const {
+    return mScreenVel;
+}
+
+const TVec3f& StarPointerController::getWorldVelocity() const {
+    return mWorldVel;
+}
+
+f32 StarPointerController::getScreenSpeed() const {
+    return mScreenSpeed;
+}
+
+f32 StarPointerController::getViewDistanceZ() const {
+    return mPastInfo.mViewDistZ;
+}
+
+s32 StarPointerController::getPastPointCount() const {
+    return mPastPointNum;
+}
+
+s32 StarPointerController::getNextPastPointCount() const {
+    return mNextPastPointNum;
+}
+
+const TVec2f& StarPointerController::getPastPosition(s32 index) const {
+    return mPastPosition[index];
+}
+
+const TVec2f& StarPointerController::getNextPastPosition(s32 index) const {
+    return mNextPastPosition[index];
+}
+
+const TVec3f& StarPointerController::getWorldPosition() const {
+    return mWorldPos;
+}

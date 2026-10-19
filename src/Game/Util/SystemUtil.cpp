@@ -61,7 +61,7 @@ void MR::offUseVFilter() {
 }
 
 namespace MR {
-    // PLACEHOLDER(core4): SMG2 fn_80060750 / fn_80060760 are duplicates of onUseVFilter / offUseVFilter at other addresses (LogoScene call sites); rename when the owner is identified
+    // fn_80060750 / fn_80060760: duplicates of onUseVFilter / offUseVFilter used by the LogoScene call sites
     void onUseVFilterDirect() {
         MainLoopFramework::sManager->mUseVFilter = true;
     }

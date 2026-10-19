@@ -18,6 +18,8 @@ class DemoTimeKeeper {
 public:
     DemoTimeKeeper(const DemoExecutor* pExecutor);
 
+    bool isTalkWaitUserInput() const;
+    bool isLastPart(bool) const;
     void start();
     void update();
     void end();

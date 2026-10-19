@@ -54,8 +54,7 @@ void KoopaStateLastBattle::appear() {
     MR::killKoopaDemoChamber();
     MR::killKoopaBattlePlanet();
     MR::setKoopaBattleNo2();
-    s32 unusedArg;
-    MR::startKoopaBattleDynamicCtrl(mHost, (const char*)-1, unusedArg);
+    MR::startKoopaBattleDynamicCtrl(mHost, -1);
     MR::setKoopaBattleVolumeScaleDownRate(mHost, 0);
     MR::validateCollisionParts(mHost);
     TQuat4f quat;

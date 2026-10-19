@@ -16,16 +16,55 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-namespace MR {
+namespace ActorShadow {
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    void initShadowFromCSV(LiveActor* actor, const char* name, bool useSphere) {
+        JMapInfo* csv = nullptr;
+        if (MR::getResourceHolder(actor))
+            csv = MR::tryCreateCsvParser(MR::getResourceHolder(actor), "%s.bcsv", name);
+        if (!csv) {
+            if (useSphere)
+                MR::initShadowVolumeSphere(actor, 100.0f);
+            return;
+        }
+        MR::initShadowControllerList(actor, csv->getNumEntries());
+        JMapInfoIter begin(csv, 0);
+        JMapInfoIter iter(begin);
+        while (iter.isValid()) {
+            addShadowFromCSV(actor, iter);
+            ++iter.mIndex;
+        }
+    }
+}
 
-    void initShadowSurfaceCircle(LiveActor* pActor, f32 radius) {
-        pActor->initShadowControllerList(1);
-        addShadowSurfaceCircle(pActor, "水面丸影", radius);
+namespace MR {
+    void initShadowFromCSVWithInitShadowVolumeSphere(LiveActor* actor, const char* name) {
+        ActorShadow::initShadowFromCSV(actor, name, true);
+    }
+    void initShadowFromCSVWithoutInitShadowVolumeSphere(LiveActor* actor, const char* name) {
+        ActorShadow::initShadowFromCSV(actor, name, false);
+    }
+    void initShadowControllerList(LiveActor* actor, u32 count) {
+        actor->initShadowControllerList(count);
     }
 
+
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    void initShadowSurfaceCircle(LiveActor* pActor, f32 radius) {
+        pActor->initShadowControllerList(1);
+        ShadowController* ctrl = ActorShadow::createShadowControllerSuefaceParam(pActor, "水面丸影");
+        ShadowSurfaceCircle* shadow = new ShadowSurfaceCircle();
+        ctrl->setShadowDrawer(shadow);
+        shadow->setRadius(radius);
+    }
+
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void initShadowVolumeSphere(LiveActor* pActor, f32 radius) {
         pActor->initShadowControllerList(1);
-        addShadowVolumeSphere(pActor, "ボリューム影(球)", radius);
+        ShadowController* ctrl = ActorShadow::createShadowControllerVolumeParam(pActor, "ボリューム影(球)");
+        ShadowVolumeSphere* shadow = new ShadowVolumeSphere();
+        ctrl->setShadowDrawer(shadow);
+        shadow->setRadius(radius);
     }
 
     void initShadowVolumeOval(LiveActor* pActor, const TVec3f& rSize) {
@@ -85,12 +124,13 @@ namespace MR {
     }
 
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void addShadowVolumeFlatModel(LiveActor* pActor, const char* pName1, const char* pName2, MtxPtr pMtx) {
         ShadowController* pController = ActorShadow::createShadowControllerVolumeParam(pActor, pName1);
         ShadowVolumeFlatModel* pModel = new ShadowVolumeFlatModel(pName2);
         pController->setShadowDrawer(pModel);
         pController->offCalcCollision();
-        pModel->setBaseMatrixPtr(pMtx);
+        pController->setDropPosMtxPtr(pMtx, TVec3f(0.0f, 0.0f, 0.0f));
     }
 
 
@@ -121,6 +161,12 @@ namespace MR {
 
     void setShadowDropPosition(LiveActor* pActor, const char* pName, const TVec3f& rPos) {
         ActorShadow::getShadowController(pActor, pName)->setDropPosFix(rPos);
+    }
+
+    void setShadowDropDirectionPtrAll(LiveActor* actor, const TVec3f* dir) {
+        u32 count = ActorShadow::getShadowControllerCount(actor);
+        for (u32 i = 0; i < count; ++i)
+            ActorShadow::getShadowController(actor, i)->setDropDirPtr(dir);
     }
 
     void setShadowDropDirection(LiveActor* pActor, const char* pName, const TVec3f& rDir) {
@@ -239,6 +285,8 @@ namespace MR {
 
     void excludeCalcShadowToMyCollision(LiveActor* pActor, const char* pName) {
         CollisionParts* pCollisionParts = pActor->mCollisionParts;
+        if (!pCollisionParts)
+            return;
 
         if (pName != nullptr) {
             excludeCalcShadowToCollision(pActor, pName, pCollisionParts);
@@ -380,6 +428,7 @@ namespace MR {
         }
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     bool calcClippingRangeIncludeShadow(TVec3f* pVecOutput, f32* pF32Output, const LiveActor* pActor, f32 a4) {
         TVec3f projectionPos;
 
@@ -403,6 +452,10 @@ namespace MR {
         } else {
             setClippingTypeSphere(pActor, a3);
         }
+    }
+
+    bool isExistShadows(const LiveActor* actor) {
+        return ActorShadow::getShadowControllerCount(actor) != 0;
     }
 
     bool isShadowProjected(const LiveActor* pActor, const char* pName) {
@@ -498,7 +551,10 @@ namespace {
 };  // namespace
 
 namespace ActorShadow {
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     u32 getShadowControllerCount(const LiveActor* pActor) {
+        if (!pActor->mShadowControllerList)
+            return 0;
         return pActor->mShadowControllerList->getControllerCount();
     }
 
@@ -515,7 +571,7 @@ namespace ActorShadow {
             return false;
         }
 
-        return getShadowController(pActor, pName) != nullptr;
+        return pActor->mShadowControllerList->getController(pName) != nullptr;
     }
 
     ShadowController* createShadowControllerVolumeParam(LiveActor* pActor, const char* pName) {
@@ -692,6 +748,7 @@ namespace ActorShadow {
         return pShadow;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     ShadowVolumeFlatModel* createShadowVolumeFlatModelFromCSV(LiveActor* pActor, const JMapInfoIter& rIter) {
         ShadowVolumeFlatModel* pShadow = ::createShadowDrawer< ShadowVolumeFlatModel >(pActor, rIter, false);
         setUpShadowVolumeFromCSV(pShadow, rIter);
@@ -703,6 +760,7 @@ namespace ActorShadow {
         return pShadow;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     ShadowVolumeLine* createShadowVolumeLineFromCSV(LiveActor* pActor, const JMapInfoIter& rIter) {
         ShadowVolumeLine* pShadow = ::createShadowDrawer< ShadowVolumeLine >(pActor, rIter, false);
         setUpShadowVolumeFromCSV(pShadow, rIter);
@@ -728,6 +786,7 @@ namespace ActorShadow {
         return pShadow;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void setUpShadowControlBaseMtxFromCSV(ShadowController* pCtrl, LiveActor* pActor, const JMapInfoIter& rIter) {
         TVec3f dropOffset;
 
@@ -740,22 +799,22 @@ namespace ActorShadow {
         if (getJointNameFromCSV(&pJointName, rIter)) {
             if (MR::isEqualString(pJointName, "::ACTOR_TRANS")) {
                 pCtrl->setDropPosPtr(&pActor->mPosition);
-                return;
+                goto rotate;
             }
 
             if (MR::isEqualString(pJointName, "::BASE_MATRIX")) {
                 pCtrl->setDropPosMtxPtr(pActor->getBaseMtx(), dropOffset);
-                return;
+                goto rotate;
             }
 
             if (MR::isEqualString(pJointName, "::FIX_POSITION")) {
                 pCtrl->setDropPosFix(pActor->mPosition);
-                return;
+                goto rotate;
             }
 
             if (MR::isEqualString(pJointName, "::OTHER_TRANS")) {
                 pCtrl->setDropPosPtr(&pActor->mPosition);
-                return;
+                goto rotate;
             }
 
             if (MR::isEqualString(pJointName, "::OTHER_MATRIX")) {
@@ -766,6 +825,11 @@ namespace ActorShadow {
         } else {
             pCtrl->setDropPosPtr(&pActor->mPosition);
         }
+    rotate:
+        TVec3f localRotate;
+        if (!MR::getJMapInfoV3f(rIter, "LocalRotate", &localRotate))
+            localRotate.zero();
+        pCtrl->setLocalRotate(localRotate);
     }
 
     void setUpShadowControlFromCSV(ShadowController* pController, LiveActor* pActor, const JMapInfoIter& rIter) {
@@ -849,6 +913,7 @@ namespace ActorShadow {
         }
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void setUpShadowVolumeFromCSV(ShadowVolumeDrawer* pDrawer, const JMapInfoIter& rIter) {
         f32 volumeStart = 100.0f;
         f32 volumeEnd = 100.0f;

@@ -32,9 +32,8 @@ namespace DemoStartRequestUtil {
     void requestMovementOn(const DemoStartInfo*);
     bool isEmpty(const DemoStartInfo*);
     bool startDemoExecutorIfExist(const DemoStartInfo&);
-    // PLACEHOLDER(core4): fn_8013B030 / fn_8013ADF0 are unnamed; declared from their DemoUtil call sites, resolve when DemoStartRequestUtil.cpp names them
     bool requestStartDemo(NameObj*, const char*, s32, DemoStartInfo::DemoType, DemoStartInfo::CinemaFrameType, DemoStartInfo::StarPointerType,
-                          DemoStartInfo::DeleteEffectType);  // fn_8013B030
+                          DemoStartInfo::DeleteEffectType);
     bool requestStartDemo(NerveExecutor*, NameObj*, const char*, const Nerve*, const Nerve*, s32, DemoStartInfo::DemoType,
-                          DemoStartInfo::CinemaFrameType, DemoStartInfo::StarPointerType, DemoStartInfo::DeleteEffectType);  // fn_8013ADF0
+                          DemoStartInfo::CinemaFrameType, DemoStartInfo::StarPointerType, DemoStartInfo::DeleteEffectType);
 };  // namespace DemoStartRequestUtil

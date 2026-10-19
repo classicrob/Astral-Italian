@@ -23,46 +23,39 @@ namespace NrvModelWipeScene {
     NEW_NERVE(End, ModelWipeScene, End);
 }  // namespace NrvModelWipeScene
 
+namespace {
+    Vec cEye = {0.0f, 0.0f, 3000.0f};
+    Vec cUp = {0.0f, 1.0f, 0.0f};
+    Vec sOrigin;
+}
+
+J3DDrawBuffer* ModelWipeScene::createDrawBuffer() {
+    J3DDrawBuffer* buffer = new J3DDrawBuffer(0x20);
+    buffer->mSortMode = 5;
+    return buffer;
+}
+
 ModelWipeScene::ModelWipeScene()
-    : Scene("モデルワイプシーン"), mDrawBufferOpa(nullptr), mDrawBufferXlu(nullptr), mCamera(nullptr), mGroup(nullptr), mIsForward(false),
-      mIsPendingEnd(false), mCurrentActor(nullptr), mCloudActor(nullptr), mGalaxyActor(nullptr), mSpaceActor(nullptr) {
-    mGroup = new NameObjGroup("処理グループ", 0x40);
+    : Scene("モデルワイプシーン"), mDrawBufferOpa(nullptr), mDrawBufferXlu(nullptr), mCamera(nullptr),
+      mGroup(new NameObjGroup("処理グループ", 0x40)), mIsForward(false), mIsPendingEnd(false),
+      mCurrentActor(nullptr), mCloudActor(nullptr), mGalaxyActor(nullptr) {
     initNerve(&NrvModelWipeScene::Hide::sInstance, 0);
 }
 
 ModelWipeScene::~ModelWipeScene() {}
 
+// NONMATCHING: regalloc and constant-pool ordering
 void ModelWipeScene::init() {
     mDrawBufferOpa = createDrawBuffer();
     mDrawBufferXlu = createDrawBuffer();
 
     mCamera = new CameraContext();
 
-    // Look from (0, 0, 3000) at the origin with up = +Y.
-    TVec3f lookAt(0.0f, 0.0f, 0.0f);
-    TVec3f eye(0.0f, 0.0f, 3000.0f);
-    TVec3f up(0.0f, 1.0f, 0.0f);
-
-    TVec3f zAxis;
-    PSVECSubtract(&lookAt, &eye, &zAxis);
-    PSVECNormalize(&zAxis, &zAxis);
-    zAxis.x = -zAxis.x;
-    zAxis.y = -zAxis.y;
-    zAxis.z = -zAxis.z;
-
-    TVec3f xAxis;
-    PSVECCrossProduct(&up, &zAxis, &xAxis);
-    TVec3f yAxis;
-    PSVECCrossProduct(&zAxis, &xAxis, &yAxis);
-    PSVECNormalize(&xAxis, &xAxis);
-    PSVECNormalize(&yAxis, &yAxis);
-
     TPos3f viewMtx;
-    viewMtx.set(xAxis.x, xAxis.y, xAxis.z, -(eye.x * xAxis.x + eye.y * xAxis.y + eye.z * xAxis.z), yAxis.x, yAxis.y, yAxis.z,
-                -(eye.x * yAxis.x + eye.y * yAxis.y + eye.z * yAxis.z), zAxis.x, zAxis.y, zAxis.z,
-                -(eye.x * zAxis.x + eye.y * zAxis.y + eye.z * zAxis.z));
-
-    mCamera->setViewMtx(viewMtx, false, false, lookAt);
+    viewMtx.setPositionFromLookAt(TVec3f(cEye), TVec3f(cUp), TVec3f(sOrigin));
+    TVec3f offset;
+    offset.x = offset.y = offset.z = 0.0f;
+    mCamera->setViewMtx(viewMtx, false, false, offset);
 
     mCloudActor = new MultiSceneActor("雲ワイプ", "WipeModelCloud", mCamera->mProjection, false);
     mCloudActor->initWithoutIter();
@@ -142,11 +135,12 @@ void ModelWipeScene::setCurrentActor(MultiSceneActor* pActor) {
     pActor->appear();
 
     const char* pName = mIsForward ? "Start" : "OutStart";
-    MultiScene::startBckIfExist(mCurrentActor, pName);
-    MultiScene::startBtkIfExist(mCurrentActor, pName);
-    MultiScene::startBrkIfExist(mCurrentActor, pName);
-    MultiScene::startBtpIfExist(mCurrentActor, pName);
-    MultiScene::startBvaIfExist(mCurrentActor, pName);
+    MultiSceneActor* actor = mCurrentActor;
+    MultiScene::startBckIfExist(actor, pName);
+    MultiScene::startBtkIfExist(actor, pName);
+    MultiScene::startBrkIfExist(actor, pName);
+    MultiScene::startBtpIfExist(actor, pName);
+    MultiScene::startBvaIfExist(actor, pName);
 }
 
 void ModelWipeScene::startCloudWipeForward() {
@@ -213,11 +207,12 @@ bool ModelWipeScene::tryEnd() {
         setNerve(&NrvModelWipeScene::End::sInstance);
 
         const char* pName = mIsForward ? "End" : "OutEnd";
-        MultiScene::startBckIfExist(mCurrentActor, pName);
-        MultiScene::startBtkIfExist(mCurrentActor, pName);
-        MultiScene::startBrkIfExist(mCurrentActor, pName);
-        MultiScene::startBtpIfExist(mCurrentActor, pName);
-        MultiScene::startBvaIfExist(mCurrentActor, pName);
+        MultiSceneActor* actor = mCurrentActor;
+        MultiScene::startBckIfExist(actor, pName);
+        MultiScene::startBtkIfExist(actor, pName);
+        MultiScene::startBrkIfExist(actor, pName);
+        MultiScene::startBtpIfExist(actor, pName);
+        MultiScene::startBvaIfExist(actor, pName);
         return true;
     }
     return false;
@@ -242,11 +237,12 @@ bool ModelWipeScene::isHidden() const {
 void ModelWipeScene::exeStart() {
     if (MultiScene::isBckStopped(mCurrentActor)) {
         const char* pName = mIsForward ? "Loop" : "OutLoop";
-        MultiScene::startBckIfExist(mCurrentActor, pName);
-        MultiScene::startBtkIfExist(mCurrentActor, pName);
-        MultiScene::startBrkIfExist(mCurrentActor, pName);
-        MultiScene::startBtpIfExist(mCurrentActor, pName);
-        MultiScene::startBvaIfExist(mCurrentActor, pName);
+        MultiSceneActor* actor = mCurrentActor;
+        MultiScene::startBckIfExist(actor, pName);
+        MultiScene::startBtkIfExist(actor, pName);
+        MultiScene::startBrkIfExist(actor, pName);
+        MultiScene::startBtpIfExist(actor, pName);
+        MultiScene::startBvaIfExist(actor, pName);
         setNerve(&NrvModelWipeScene::Wait::sInstance);
     }
 }

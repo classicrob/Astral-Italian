@@ -198,7 +198,7 @@ void MultiEmitter::setContinueBckEnd(bool continueAnimEnd) {
 }
 
 void MultiEmitter::onCreateSyncClipping() {
-    turnFlagOn(JPAEmtrStts_FirstEmit);
+    turnFlagOn(JPAEmtrStts_RateStepEmit);
 }
 
 void MultiEmitter::onForceDeleteSyncClipping() {
@@ -278,8 +278,9 @@ void MultiEmitter::allocateEmitter(const char* pName) {
             if (pName[i] == ' ' || pName[i] == '\0') {
                 name[nameLength] = '\0';
                 u16 index;
-                MR::Effect::isExistInResource(&index, name);
-                indices.push_back(index);
+                if (MR::Effect::isExistInResource(&index, name)) {
+                    indices.push_back(index);
+                }
                 nameLength = 0;
                 MR::zeroMemory(name, sizeof(name));
             } else {
@@ -287,6 +288,10 @@ void MultiEmitter::allocateEmitter(const char* pName) {
                 nameLength++;
             }
         }
+    }
+
+    if (indices.size() == 0) {
+        return;
     }
 
     mEmitters.init(indices.size());

@@ -22,8 +22,8 @@ bool DrawBufferHolder::isBufferGroupEmpty(s32 drawBufferType) const {
 void DrawBufferHolder::initTable(const DrawBufferInitialTable* pInitialTable, s32 numGroups) {
     mBufferGroups.init(numGroups);
 
-    s32 cameraTypeCounts[3];
-    MR::zeroMemory(cameraTypeCounts, 3 * sizeof(s32));
+    s32 cameraTypeCounts[5];
+    MR::zeroMemory(cameraTypeCounts, 5 * sizeof(s32));
 
     const DrawBufferInitialTable* entry;
     for (s32 idx = 0; entry = &pInitialTable[idx], entry->mDrawBufferType != -1; idx++) {
@@ -37,7 +37,7 @@ void DrawBufferHolder::initTable(const DrawBufferInitialTable* pInitialTable, s3
 
     s32* pCounts = cameraTypeCounts;
 
-    for (s32 idx = 0; idx < 3; idx++) {
+    for (s32 idx = 0; idx < 5; idx++) {
         if (pCounts[idx] > 0) {
             mExecuteLists[idx].init(pCounts[idx]);
         }

@@ -33,7 +33,6 @@ public:
     void exeTurnEnd();
     void exeWaitDemo();
     void capture();
-    bool registerDemo();
     /* 0x90 */ AreaObj* mArea;
     /* 0x94 */ StoryBookText* mText;
     /* 0x98 */ JUTTexture* mCurrentTexture;
@@ -45,6 +44,7 @@ public:
 };
 namespace MR {
     void stopStoryBookDemoCasts();
+    bool registerStoryBookDemoCast(LiveActor*);
     void requestMovementOnStoryBook();
     void startStoryBookText(bool);
     void waitStoryBookDemo();

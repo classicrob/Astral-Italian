@@ -398,7 +398,7 @@ namespace BellyDragonUtil {
     void killWeakPoints(BellyDragon*);                           // was fn_80093810
     void appearFireGround(BellyDragon*);                         // was fn_800938A0
     void appearFireGroundShort(BellyDragon*);                    // was fn_800938B0
-    void appearFireGroundAt(BellyDragon*, const TVec3f*);        // was fn_800938C0
+    NO_INLINE void appearFireGroundAt(BellyDragon*, const TVec3f*);        // was fn_800938C0
     void killFireGrounds(BellyDragon*);                          // was fn_800938D0
     void appearPodSparks(BellyDragon*, s32);                     // was fn_800938E0
     s32 getAttackableWeakPointNum(BellyDragon*);                 // was fn_800938F0

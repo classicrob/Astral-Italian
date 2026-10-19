@@ -15,7 +15,7 @@ MultiSceneEffectKeeper::MultiSceneEffectKeeper(const char*, ModelManager* pModel
         mResName = pModelManager->getModelResourceHolder()->getModelName();
     }
 
-    s32 num = a3 + MR::getParticleResourceHolder()->getAutoEffectNum(mResName);
+    s32 num = a3 + MR::Effect::getAutoEffectNum(mResName);
     mEmitter.init(num);
 }
 

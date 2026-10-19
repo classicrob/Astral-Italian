@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Map/WaterStream.hpp"
 
 #include "Game/AudioLib/AudSoundObject.hpp"
@@ -71,13 +72,14 @@ bool WaterStream::isInWater(const TVec3f& rPos) const {
         TVec3f toPos = rPos - nearest;
         TVec3f gravity;
         MR::calcGravityVector(this, rPos, &gravity, NULL, 0);
-        if (PSVECDotProduct(&toPos, &gravity) < 0.0f) {
+        if (toPos.dot(gravity) < 0.0f) {
             return false;
         }
     }
     return true;
 }
 
+// NONMATCHING: regalloc; temporary stack allocation and FP scheduling
 bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, WaterInfo* pInfo) const {
     TVec3f nearest;
     TVec3f nearestDir;
@@ -85,13 +87,13 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     f32 width = mWidth * calcCurrentWidthRate(nearestRate);
 
     TVec3f flow;
-    calcStreamVec(rPos, nearest, nearestRate, nearestDir, width, &flow);
-    pInfo->mStreamVec = flow;
+    calcStreamVec(rPos, nearest, nearestRate, TVec3f(nearestDir), width, &flow);
+    pInfo->mStreamVec.set(flow);
     pInfo->mWaveHeight = calcWaveHeight(rPos, nearestRate, &pInfo->mSurfaceNormal);
 
-    TVec3f toPos = rPos - nearest;
-    TVec3f zeroVec;
-    f32 depth = MR::vecKillElement(toPos, zeroVec, &toPos);
+    TVec3f toPos(rPos);
+    toPos.sub(nearest);
+    f32 depth = MR::vecKillElement(toPos, -rGravity, &toPos);
     if (mIsReversed) {
         width *= 2.0f;
     }
@@ -110,31 +112,33 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     TVec3f invGravity;
     MR::calcGravityVector(this, rPos, &gravity, NULL, 0);
     invGravity = -gravity;
-    pInfo->mSurfaceNormal = invGravity;
+    pInfo->mSurfaceNormal.set(invGravity);
 
     TVec3f scaled = rGravity;
     scaled.scale(pInfo->mCamWaterDepth);
-    TVec3f surf = rPos - scaled;
-    pInfo->mSurfacePos = surf;
+    TVec3f surf(rPos);
+    surf.sub(scaled);
+    pInfo->mSurfacePos.set(surf);
 
-    TVec3f dist = rPos;
-    if (MR::isNearZero(dist - nearest, 0.001f)) {
+    TVec3f dist(rPos);
+    dist.sub(nearest);
+    if (MR::isNearZero(dist, 0.001f)) {
         pInfo->mEdgeDistance = width;
         TVec3f edge = rGravity;
         edge.scale(width);
         edge.add(nearest);
-        pInfo->mEdgePos = edge;
+        pInfo->mEdgePos.set(edge);
     } else {
-        TVec3f dir;
-        MR::normalizeOrZero(&dir, dist - nearest);
-        dir.scale(width);
-        dir.add(nearest);
-        pInfo->mEdgeDistance = PSVECDistance(&dir, &rPos);
-        pInfo->mEdgePos = dir;
+        MR::normalize(&dist);
+        dist.scale(width);
+        dist.add(nearest);
+        pInfo->mEdgeDistance = PSVECDistance(&dist, &rPos);
+        pInfo->mEdgePos.set(dist);
     }
     return true;
 }
 
+// NONMATCHING: regalloc
 f32 WaterStream::calcNearestPos(const TVec3f& rPos, TVec3f* pPos, TVec3f* pDir, TVec3f* pSide) const {
     f32 coord = MR::calcNearestRailCoord(this, rPos);
     MR::calcRailPosAtCoord(pPos, this, coord);
@@ -142,18 +146,18 @@ f32 WaterStream::calcNearestPos(const TVec3f& rPos, TVec3f* pPos, TVec3f* pDir, 
         TVec3f railPos;
         TVec3f railDir;
         MR::calcRailPosAndDirectionAtCoord(&railPos, &railDir, this, coord);
-        TVec3f up(0.0f, 1.0f, 0.0f);
+        TVec3f up(0.0f, -1.0f, 0.0f);
         MR::calcGravityVector(this, railPos, &up, NULL, 0);
-        TVec3f railDirCopy(MR::getRailDirection(this));
+        TVec3f invUp = -up;
         TVec3f cross;
-        PSVECCrossProduct(&railDirCopy, &up, &cross);
+        PSVECCrossProduct(&MR::getRailDirection(this), &invUp, &cross);
         f32 halfWidth = mWidth * calcCurrentWidthRate(coord);
         TVec3f offsetA = cross;
         offsetA.scale(-halfWidth);
-        offsetA.add(rPos);
+        offsetA.add(*pPos);
         TVec3f offsetB = cross;
         offsetB.scale(halfWidth);
-        offsetB.add(rPos);
+        offsetB.add(*pPos);
         MR::calcPerpendicFootToLineInside(pSide, rPos, offsetA, offsetB);
     }
     if (pDir != NULL) {
@@ -164,8 +168,9 @@ f32 WaterStream::calcNearestPos(const TVec3f& rPos, TVec3f* pPos, TVec3f* pDir, 
 
 f32 WaterStream::calcWaveHeight(const TVec3f& rPos, f32 rate, TVec3f* pNormal) const {
     TVec3f up(0.0f, -1.0f, 0.0f);
-    if (MR::isNearZero(MR::calcGravityVector(this, rPos, &up, NULL, 0), 0.001f)) {
-        pNormal->set(0.0f, -1.0f, 0.0f);
+    MR::calcGravityVector(this, rPos, &up, NULL, 0);
+    if (MR::isNearZero(up, 0.001f)) {
+        pNormal->set<f32>(0.0f, -1.0f, 0.0f);
     } else {
         TVec3f inv = -up;
         pNormal->set(inv);
@@ -187,12 +192,12 @@ void WaterStream::movement() {
     TVec3f camNearest;
     calcNearestPos(MR::getCameraWatchPos(), &camNearest, NULL, &mSoundPos1);
     MR::startSoundObjectLevel(mSound1, "SE_AT_LV_OCEAN_RING", -1);
-    // NONMATCHING: the draft calls an unnamed vtable slot (+0x8) of the sound object here.
+    mSound1->process();
 
     TVec3f camPos = MR::getCamPos();
     calcNearestPos(camPos, &camNearest, NULL, &mSoundPos2);
     MR::startSoundObjectLevel(mSound2, "SE_AT_LV_OCEAN_RING_SUB", -1);
-    // NONMATCHING: same unnamed vtable call as above for mSound2.
+    mSound2->process();
 }
 
 f32 WaterStream::calcCurrentWidthRate(f32 rate) const {
@@ -228,25 +233,25 @@ f32 WaterStream::calcCurrentFlowSpeedRate(f32 rate) const {
 }
 
 void WaterStream::calcClippingBox() {
-    // NONMATCHING: the loop's min/max selection is approximated (the draft's compare is unreadable).
     f32 result = 1200.0f;
-    s32 count = MR::getRailPointNum(this);
-    for (s32 i = 0; i < count; i++) {
+    for (s32 i = 0; i < MR::getRailPointNum(this); i++) {
         f32 val = 0.0f;
         MR::getRailPointArg1NoInit(this, i, &val);
-        f32 scaled = 100.0f * val;
-        if (scaled < result) {
-            result = scaled;
-        }
+        result = MR::max(100.0f * val, result);
     }
-
     MR::calcBoundingBox(this, reinterpret_cast<TBox3f*>(&mBoxMin), 200.0f);
-    TVec3f ext(result, result, result);
-    mBoxMin -= ext;
-    mBoxMax += ext;
-    mClipMin = mBoxMin;
-    mClipMax = mBoxMax;
-    TVec3f pad(5000.0f, 5000.0f, 5000.0f);
-    mClipMin -= pad;
-    mClipMax += pad;
+    TVec3f ext(result);
+    mBoxMin.sub(ext);
+    mBoxMax.add(ext);
+    mClipMin.set(mBoxMin);
+    mClipMax.set(mBoxMax);
+    TVec3f pad(5000.0f);
+    mClipMin.sub(pad);
+    mClipMax.add(pad);
+    TVec3f width(mWidth);
+    mBoxMin.sub(width);
+    mBoxMax.add(width);
+    JMAVECLerp(&mBoxMax, &mBoxMin, &mClippingCenter, 0.5f);
+    MR::setClippingTypeSphere(this, 100.0f + PSVECDistance(&mClippingCenter, &mBoxMin), &mClippingCenter);
+    MR::setClippingFarMax(this);
 }

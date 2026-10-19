@@ -63,7 +63,7 @@ namespace CameraLocalUtil {
     bool tryCameraReset();
     bool tryCameraResetTrigger();
     bool testCameraPadButtonReset();
-    bool testCameraPadTriggerReset();
+    bool testCameraPadTriggerReset(bool allowRolling = true);
     bool testCameraPadTriggerRoundLeft();
     bool testCameraPadTriggerRoundRight();
     void slerpCamera(TQuat4f*, const TQuat4f&, const TQuat4f&, f32, bool);

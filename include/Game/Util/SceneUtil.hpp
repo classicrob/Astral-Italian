@@ -75,7 +75,7 @@ namespace MR {
     bool isStagePlayStarChance(s32);
     bool isTimerSwitchingPlatformGalaxyPowerStarAppeared();  // was fn_80056EB0
     bool isStageEpilogueDemo();
-    bool isStageStaffRoll();
+    bool isStageStaffRoll() NO_INLINE;
     bool isBeginScenarioStarter();
     bool isStageSuddenDeathDodoryu();
     void setInitializeStatePlacementPlayer();
@@ -131,8 +131,6 @@ namespace MR {
     bool isStageBossParade();
     bool isStageDimensionBigCastle(const char*);
     bool isStagePurpleCoinsMoreThan100(const char*);
-    bool isStageTimerSwitchingPlatformPowerStarAppeared();
-    bool isStageScenarioEventOpen(const char*, s32);
     bool isBigTreeOrCloudGardenPowerStarSuccess();
     bool isStageGlider();
     bool isStageSpecialSceneGalaxy();

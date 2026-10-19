@@ -1,4 +1,13 @@
 #include "Game/Util/FootPrint.hpp"
+#include "Game/LiveActor/LiveActor.hpp"
+#include "Game/Util/JMapUtil.hpp"
+#include "Game/Util/JointUtil.hpp"
+#include "Game/Util/MapUtil.hpp"
+#include "Game/Util/ModelUtil.hpp"
+#include "Game/Util/ActorMovementUtil.hpp"
+#include "Game/Util/LiveActorUtil.hpp"
+#include <cstdio>
+#include <cstring>
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/Util/Color.hpp"
 #include "Game/Util/DirectDraw.hpp"
@@ -172,4 +181,70 @@ void FootPrint::invalidate(u32 index) {
 
 bool FootPrint::isValid(u32 index) const {
     return mPrints[index % mPrintMaxNum].mIsValid != false;
+}
+
+namespace {
+    const char* sFootPrintControl = "FootPrintCtrl";
+    const char* sFootPrintSuffix = "の足跡";
+    const char* sFootPrintTexture = "FootPrint.bti";
+}
+
+namespace MR {
+    // NONMATCHING: regalloc and stack layout
+    s32 createFootPrintHandle(LiveActor* actor) {
+        ResTIMG* texture = MR::getTexFromArc(sFootPrintTexture, actor);
+        JMapInfo* csv = MR::tryCreateCsvParser(actor, "%s.bcsv", sFootPrintControl);
+        if (!csv) {
+            FootPrint* print = new FootPrint("ダミー足跡", 32);
+            print->setTexture(texture);
+            return reinterpret_cast<s32>(print);
+        }
+        s32 count = 32;
+        f32 sideOffset = 0.0f;
+        f32 sideSize = 100.0f;
+        f32 frontSize = 100.0f;
+        f32 distanceMin = 10.0f;
+        MR::getCsvDataS32(&count, csv, "FootNumMax", 0);
+        MR::getCsvDataF32(&sideOffset, csv, "SideOffset", 0);
+        MR::getCsvDataF32(&sideSize, csv, "SideSize", 0);
+        MR::getCsvDataF32(&frontSize, csv, "FrontSize", 0);
+        MR::getCsvDataF32(&distanceMin, csv, "DistanceMin", 0);
+        u32 suffixLength = strlen(sFootPrintSuffix);
+        u32 length = strlen(actor->mName) + suffixLength + 1;
+        char* name = new char[length];
+        snprintf(name, length, "%s%s", actor->mName, sFootPrintSuffix);
+        FootPrint* print = new FootPrint(name, count);
+        print->setTexture(texture);
+        print->_2C = sideOffset;
+        print->_30 = sideSize;
+        print->_34 = frontSize;
+        print->mMinPrintDistance = distanceMin;
+        return reinterpret_cast<s32>(print);
+    }
+
+    // NONMATCHING: regalloc and load scheduling
+    bool addFootPrintOnGround(s32 handle, LiveActor* actor, const TVec3f* pos, const TVec3f* front, bool right, f32 distance) {
+        TVec3f groundPos(0.0f);
+        TVec3f normal;
+        normal.negate(actor->mGravity);
+        TVec3f ray = normal * distance;
+        if (MR::getFirstPolyNormalOnLineToMap(&normal, *pos, ray, &groundPos, nullptr)) {
+            reinterpret_cast<FootPrint*>(handle)->addPrint(groundPos, *front, normal, right);
+            return true;
+        }
+        return false;
+    }
+
+    void addFootPrintToPos(s32 handle, LiveActor* actor, const TVec3f* pos, bool right, f32 distance) {
+        TVec3f front(0.0f, 0.0f, 1.0f);
+        MR::calcFrontVec(&front, actor);
+        addFootPrintOnGround(handle, actor, pos, &front, right, distance);
+    }
+
+    void addFootPrintToJoint(s32 handle, LiveActor* actor, const char* joint, bool right, f32 distance) {
+        MtxPtr matrix = MR::getJointMtx(actor, joint);
+        TVec3f front(matrix[0][0], matrix[1][0], matrix[2][0]);
+        TVec3f pos(matrix[0][3], matrix[1][3], matrix[2][3]);
+        addFootPrintOnGround(handle, actor, &pos, &front, right, distance);
+    }
 }

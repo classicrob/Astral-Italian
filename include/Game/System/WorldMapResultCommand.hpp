@@ -67,3 +67,5 @@ public:
     /* 0x24 */ LiveActor* mRocket;
     /* 0x28 */ LiveActor* mActor;
 };
+
+bool setWorldMapResultActor(LiveActor*);

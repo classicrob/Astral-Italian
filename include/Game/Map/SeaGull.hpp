@@ -42,8 +42,14 @@ public:
     virtual ~SeaGullGroup();
     virtual void init(const JMapInfoIter& rIter);
 
+    virtual void makeActorAppeared();
+    virtual void makeActorDead();
+
     TVec3f* updatePosInfo(s32* pPointIndex, bool isReverse) const;
 
     /* 0x8C */ s32 mPointCount;
-    /* 0x90 */ TVec3f* mPoints;
+    /* 0x94 */ TVec3f* mPoints;
+    /* 0x98 */ s32 mBirdCount;
+    /* 0x9C */ SeaGull** mBirds;
+    /* 0xA0 */ bool mIsMarioFace;
 };

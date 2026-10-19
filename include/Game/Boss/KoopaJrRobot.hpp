@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include "Game/LiveActor/ShadowVolumeQuakeWave.hpp"
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/LiveActor/ActorStateBase.hpp"
 #include "Game/System/NerveExecutor.hpp"
@@ -492,15 +493,6 @@ public:
 
     /* 0x90 */ FixedPosition* mFixedPosition;
     /* 0x94 */ ProjmapEffectMtxSetter* mMtxSetter;
-};
-
-class ShadowVolumeQuakeWave {
-public:
-    ShadowVolumeQuakeWave(LiveActor*);
-    /* 0x00 */ u8 _0[0x2C];
-    /* 0x2C */ f32 _2C;
-    /* 0x30 */ f32 _30;
-    /* 0x34 */ u8 _34[4];
 };
 
 // TU18: "KoopaQuakeWaveVertical" actor

@@ -19,7 +19,7 @@ public:
     void init(const TPos3f&, HitSensor*, const void*, const void*, s32, bool);
     void addToBelongZone();
     void removeFromBelongZone();
-    void resetBelongZone();  // PLACEHOLDER(core): asm fn_8024A060 (Map/CollisionParts.s); rename fn_8024A060 -> resetBelongZone when Map/CollisionParts is ported
+    void resetBelongZone();  // was fn_8024A060
     void initWithAutoEqualScale(const TPos3f&, HitSensor*, const void*, const void*, s32, bool);
     void initWithNotUsingScale(const TPos3f&, HitSensor*, const void*, const void*, s32, bool);
     void resetAllMtx(const TPos3f&);

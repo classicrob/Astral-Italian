@@ -1,11 +1,44 @@
 #include "Game/System/SysConfigFile.hpp"
 #include "Game/System/BinaryDataContentAccessor.hpp"
 #include "Game/Util/MemoryUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
 
-SysConfigChunk::SysConfigChunk() : mHeaderSerializer(nullptr) {
-    initHeaderSerializer();
+void SysConfigCounters::reset() {
+    mBankedStarPiece = 0;
+    mMaxBankedStarPiece = 0;
+    mSharedPlayerLeft = 0;
+    mPlayerLeftHash = 0;
+}
+
+void SysConfigCounters::copyFrom(const SysConfigCounters& other) {
+    mBankedStarPiece = other.mBankedStarPiece;
+    mMaxBankedStarPiece = other.mMaxBankedStarPiece;
+    mSharedPlayerLeft = other.mSharedPlayerLeft;
+    mPlayerLeftHash = other.mPlayerLeftHash;
+}
+
+SysConfigChunk::SysConfigChunk() : mBackupCounters(nullptr), mCurrentCounters(nullptr), mHeaderSerializer(nullptr) {
+    initializeHeaderSerializer();
+    mBackupCounters = new SysConfigCounters;
+    mCurrentCounters = new SysConfigCounters;
     initializeData();
 }
+
+s32 SysConfigChunk::getSharedPlayerLeft() const { return MR::clamp(static_cast<s32>(mCurrentCounters->mSharedPlayerLeft), 0L, 99L); }
+void SysConfigChunk::setSharedPlayerLeft(s32 value, u16 hash) {
+    mCurrentCounters->mSharedPlayerLeft = MR::clamp(value, 0L, 99L);
+    mCurrentCounters->mPlayerLeftHash = hash;
+}
+s32 SysConfigChunk::getBankedStarPieceNum() const { return MR::clamp(static_cast<s32>(mCurrentCounters->mBankedStarPiece), 0L, 9999L); }
+void SysConfigChunk::setBankedStarPieceNum(s32 value) {
+    mCurrentCounters->mBankedStarPiece = MR::clamp(value, 0L, 9999L);
+    if (mCurrentCounters->mMaxBankedStarPiece < mCurrentCounters->mBankedStarPiece)
+        mCurrentCounters->mMaxBankedStarPiece = mCurrentCounters->mBankedStarPiece;
+}
+s32 SysConfigChunk::getMaxBankedStarPieceNum() const { return MR::clamp(static_cast<s32>(mCurrentCounters->mMaxBankedStarPiece), 0L, 9999L); }
+void SysConfigChunk::backupCounters() { mBackupCounters->copyFrom(*mCurrentCounters); }
+void SysConfigChunk::restoreCounters() { mCurrentCounters->copyFrom(*mBackupCounters); }
+void SysConfigChunk::resetCounters() { mBackupCounters->reset(); mCurrentCounters->reset(); }
 
 u32 SysConfigChunk::makeHeaderHashCode() const {
     return 0x3;
@@ -15,46 +48,63 @@ u32 SysConfigChunk::getSignature() const {
     return 'SYSC';
 }
 
-s32 SysConfigChunk::deserialize(const u8* pBuffer, u32 size) {
-    s32 result;
-    const char* pName;
-
-    BinaryDataContentAccessor accessor = BinaryDataContentAccessor(const_cast< u8* >(pBuffer));
+// NONMATCHING: regalloc and argument scheduling
+s32 SysConfigChunk::deserialize(const u8* buffer, u32 size) {
+    BinaryDataContentAccessor accessor(const_cast<u8*>(buffer));
     u32 headerSize = accessor.getHeaderSize();
-    u8* pData = const_cast< u8* >(pBuffer) + headerSize;
-
-    pName = "mTimeAnnounced";
-    mTimeAnnounced = *static_cast< OSTime* >(accessor.getPointer(pName, pData));
-
-    pName = "mTimeSent";
-    mTimeSent = *static_cast< OSTime* >(accessor.getPointer(pName, pData));
-
-    pName = "mSentBytes";
-    mSentBytes = *static_cast< u32* >(accessor.getPointer(pName, pData));
-
-    s32 newSize = headerSize + mHeaderSerializer->getDataSize();
-
-    result = 3;
-
-    if (newSize <= size) {
-        result = 0;
+    u8* data = const_cast<u8*>(buffer) + headerSize;
+    {
+        u8* value = static_cast<u8*>(accessor.getPointer("mIsEncouragePal60", data));
+        mEncouragedPal16 = value ? *value : 0;
     }
-
+    {
+        OSTime* value = static_cast<OSTime*>(accessor.getPointer("mTimeSent", data));
+        mTimeSent = value ? *value : 0;
+    }
+    {
+        u32* value = static_cast<u32*>(accessor.getPointer("mSentBytes", data));
+        mSentBytes = value ? *value : 0;
+    }
+    {
+        u16* value = static_cast<u16*>(accessor.getPointer("mBankStarPieceNum", data));
+        mBackupCounters->mBankedStarPiece = value ? *value : 0;
+    }
+    {
+        u16* value = static_cast<u16*>(accessor.getPointer("mBankStarPieceMax", data));
+        mBackupCounters->mMaxBankedStarPiece = value ? *value : 0;
+    }
+    {
+        u8* value = static_cast<u8*>(accessor.getPointer("mGiftedPlayerLeft", data));
+        mBackupCounters->mSharedPlayerLeft = value ? *value : 0;
+    }
+    {
+        u16* value = static_cast<u16*>(accessor.getPointer("mGiftedFileNameHash", data));
+        mBackupCounters->mPlayerLeftHash = value ? *value : 1;
+    }
+    mCurrentCounters->copyFrom(*mBackupCounters);
+    u32 newSize = headerSize + mHeaderSerializer->getDataSize();
+    s32 result = 3;
+    if (newSize <= size) result = 0;
     return result;
 }
 
 void SysConfigChunk::initializeData() {
-    mTimeAnnounced = 0;
+    mEncouragedPal16 = false;
     mTimeSent = 0;
     mSentBytes = 0;
+    mBackupCounters->reset();
+    mCurrentCounters->reset();
 }
 
-void SysConfigChunk::initHeaderSerializer() {
-    mHeaderSerializer = new BinaryDataContentHeaderSerializer(new u8[32], 32);
-
-    mHeaderSerializer->addAttribute("mTimeAnnounced", sizeof(mTimeAnnounced));
-    mHeaderSerializer->addAttribute("mTimeSent", sizeof(mTimeSent));
-    mHeaderSerializer->addAttribute("mSentBytes", sizeof(mSentBytes));
+void SysConfigChunk::initializeHeaderSerializer() {
+    mHeaderSerializer = new BinaryDataContentHeaderSerializer(new u8[64], 64);
+    mHeaderSerializer->addAttribute("mIsEncouragePal60", sizeof(u8));
+    mHeaderSerializer->addAttribute("mTimeSent", sizeof(OSTime));
+    mHeaderSerializer->addAttribute("mSentBytes", sizeof(u32));
+    mHeaderSerializer->addAttribute("mBankStarPieceNum", sizeof(u16));
+    mHeaderSerializer->addAttribute("mBankStarPieceMax", sizeof(u16));
+    mHeaderSerializer->addAttribute("mGiftedPlayerLeft", sizeof(u8));
+    mHeaderSerializer->addAttribute("mGiftedFileNameHash", sizeof(u16));
     mHeaderSerializer->flush();
 }
 
@@ -99,28 +149,40 @@ void SysConfigFile::loadFromDataBinary(const u8* pBuffer, u32 size) {
     mChunkHolder->loadFromFileBinary(pBuffer, size);
 }
 
-s32 SysConfigChunk::serialize(u8* pBuffer, u32 size) const {
-    void* pSrcBuffer = mHeaderSerializer->mStream.mBuffer;
-    const char* pName;
-
-    MR::copyMemory(pBuffer, pSrcBuffer, mHeaderSerializer->getHeaderSize());
-
+// NONMATCHING: regalloc and argument scheduling
+s32 SysConfigChunk::serialize(u8* buffer, u32) const {
+    void* header = mHeaderSerializer->mStream.mBuffer;
+    MR::copyMemory(buffer, header, mHeaderSerializer->getHeaderSize());
     u32 headerSize = mHeaderSerializer->getHeaderSize();
-    BinaryDataContentAccessor accessor = BinaryDataContentAccessor(static_cast< u8* >(mHeaderSerializer->mStream.mBuffer));
-    u8* pData = pBuffer + headerSize;
-
-    pName = "mTimeAnnounced";
-    OSTime* pTimeAnnounced = static_cast< OSTime* >(accessor.getPointer(pName, pData));
-
-    pName = "mTimeSent";
-    OSTime* pTimeSent = static_cast< OSTime* >(accessor.getPointer(pName, pData));
-
-    pName = "mSentBytes";
-    u32* pSentBytes = static_cast< u32* >(accessor.getPointer(pName, pData));
-
-    *pTimeAnnounced = mTimeAnnounced;
-    *pTimeSent = mTimeSent;
-    *pSentBytes = mSentBytes;
-
+    BinaryDataContentAccessor accessor(static_cast<u8*>(mHeaderSerializer->mStream.mBuffer));
+    u8* data = buffer + headerSize;
+    {
+        u8 value = mEncouragedPal16;
+        *static_cast<u8*>(accessor.getPointer("mIsEncouragePal60", data)) = value;
+    }
+    {
+        OSTime value = mTimeSent;
+        *static_cast<OSTime*>(accessor.getPointer("mTimeSent", data)) = value;
+    }
+    {
+        u32 value = mSentBytes;
+        *static_cast<u32*>(accessor.getPointer("mSentBytes", data)) = value;
+    }
+    {
+        u16 value = mBackupCounters->mBankedStarPiece;
+        *static_cast<u16*>(accessor.getPointer("mBankStarPieceNum", data)) = value;
+    }
+    {
+        u16 value = mBackupCounters->mMaxBankedStarPiece;
+        *static_cast<u16*>(accessor.getPointer("mBankStarPieceMax", data)) = value;
+    }
+    {
+        u8 value = mBackupCounters->mSharedPlayerLeft;
+        *static_cast<u8*>(accessor.getPointer("mGiftedPlayerLeft", data)) = value;
+    }
+    {
+        u16 value = mBackupCounters->mPlayerLeftHash;
+        *static_cast<u16*>(accessor.getPointer("mGiftedFileNameHash", data)) = value;
+    }
     return headerSize + mHeaderSerializer->getDataSize();
 }

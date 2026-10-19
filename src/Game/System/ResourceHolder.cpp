@@ -7,6 +7,7 @@
 #include <JSystem/J3DGraphBase/J3DMaterial.hpp>
 #include <JSystem/J3DGraphLoader/J3DAnmLoader.hpp>
 #include <JSystem/J3DGraphLoader/J3DModelLoader.hpp>
+#include <JSystem/JKernel/JKRSolidHeap.hpp>
 #include <cstdio>
 #include <cstring>
 #include <revolution.h>
@@ -75,6 +76,37 @@ void ResourceHolder::newMaterialAnmBuffer(J3DModelData* pModelData) {
 void ResourceHolder::newBckCtrl() {
     MR::CurrentHeapRestorer heap(mHeap);
     mBckCtrl = new BckCtrl(this, mArchive->mLoaderName);
+}
+
+void ResourceHolder::backupInitMaterialData() {
+    if (mModelResTable->mCount == 0 || mBackupMaterialData != nullptr) return;
+    const J3DModelData* modelData = static_cast<J3DModelData*>(mModelResTable->getRes(mName));
+    u16 numMaterials = modelData->getMaterialNum();
+    mBackupMaterialData = new (MR::getSceneHeapGDDR3(), 0) Mtx44[numMaterials * 8];
+    for (u16 i = 0; i < numMaterials; i++) {
+        J3DMaterial* material = modelData->getMaterialNodePointer(i);
+        for (u32 j = 0; j < 8; j++) {
+            u32 index = i * 8 + j;
+            J3DTexMtx* texMtx = material->getTexGenBlock()->getTexMtx(j);
+            if (texMtx) PSMTX44Copy(texMtx->getTexMtxInfo().mEffectMtx, mBackupMaterialData[index]);
+            else PSMTX44Identity(mBackupMaterialData[index]);
+        }
+    }
+}
+
+// NONMATCHING: regalloc and equivalent guard ordering
+void ResourceHolder::restoreInitMaterialData() {
+    if (mModelResTable->mCount == 0 || mBackupMaterialData == nullptr) return;
+    const J3DModelData* modelData = static_cast<J3DModelData*>(mModelResTable->getRes(mName));
+    u16 numMaterials = modelData->getMaterialNum();
+    for (u16 i = 0; i < numMaterials; i++) {
+        J3DMaterial* material = modelData->getMaterialNodePointer(i);
+        for (u32 j = 0; j < 8; j++) {
+            J3DTexMtx* texMtx = material->getTexGenBlock()->getTexMtx(j);
+            if (texMtx) texMtx->getTexMtxInfo().setEffectMtx(mBackupMaterialData[i * 8 + j]);
+        }
+    }
+    mBackupMaterialData = nullptr;
 }
 
 Mtx44& ResourceHolder::getInitEffectMtx(int materialIndex, int mtxIndex) const {
@@ -197,10 +229,6 @@ ResFileInfo* ResourceHolder::createAndRegisterObject(const char* pName, void* pD
         return mMotionResTable->add(pName, pData == nullptr ? nullptr : J3DAnmLoaderDataBase::load(pData), true);
     }
 
-    if (strstr(pName, ".bca") != nullptr) {
-        return mMotionResTable->add(pName, J3DAnmLoaderDataBase::load(pData), true);
-    }
-
     if (strstr(pName, ".bas") != nullptr) {
         return mBasResTable->add(pName, pData, true);
     }
@@ -239,21 +267,4 @@ ResFileInfo* ResourceHolder::createAndRegisterObject(const char* pName, void* pD
     }
 
     return mFileInfoTable->add(pName, pData, false);
-}
-
-void ResourceHolder::backupInitMaterialData(const J3DModelData* pModelData) {
-    u16 numMaterials = pModelData->getMaterialNum();
-    mBackupMaterialData = new Mtx44[numMaterials * 8];
-
-    for (u16 matIdx = 0; matIdx < numMaterials; matIdx++) {
-        J3DMaterial* material = pModelData->getMaterialNodePointer(matIdx);
-        for (u32 mtxIdx = 0; mtxIdx < 8; mtxIdx++) {
-            J3DTexMtx* texMtx = material->getTexGenBlock()->getTexMtx(mtxIdx);
-            if (texMtx != nullptr) {
-                PSMTX44Copy(texMtx->getTexMtxInfo().mEffectMtx, mBackupMaterialData[matIdx * 8 + mtxIdx]);
-            } else {
-                PSMTX44Identity(mBackupMaterialData[matIdx * 8 + mtxIdx]);
-            }
-        }
-    }
 }

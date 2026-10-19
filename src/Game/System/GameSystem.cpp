@@ -80,7 +80,7 @@ GameSystem::GameSystem()
 }
 
 void GameSystem::init() {
-    JKRAram::create(0xE00000, 0xFFFFFFFF, 8, 7, 3);
+    JKRAram::create(0xDB0000, 0xFFFFFFFF, 8, 7, 3);
     mObjHolder = new GameSystemObjHolder();
     mFontHolder = new GameSystemFontHolder();
     mFontHolder->createFontFromEmbeddedData();

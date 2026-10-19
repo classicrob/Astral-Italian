@@ -40,14 +40,14 @@ void CameraManEvent::calc() {
     setSafePose();
 }
 
-void CameraManEvent::start(s32 zoneID, const char* pName, const CameraTargetArg& rTargetArg, s32 frame) {
-    CameraParamChunkEvent* chunk = findChunk(zoneID, pName);
+void CameraManEvent::start(const CameraParamChunkID& rID, const CameraTargetArg& rTargetArg, s32 frame) {
+    CameraParamChunkEvent* chunk = findChunk(rID);
     requestChunk(chunk, static_cast< EPriority >(chunk->mEvPriority), rTargetArg, frame);
     rTargetArg.setTarget();
 }
 
-void CameraManEvent::end(s32 zoneID, const char* pName, s32 frame) {
-    CameraParamChunkEvent* chunk = findChunk(zoneID, pName);
+void CameraManEvent::end(const CameraParamChunkID& rID, s32 frame) {
+    CameraParamChunkEvent* chunk = findChunk(rID);
     searchPriority(chunk);
 
     if (cleanChunkFIFO(chunk)) {
@@ -60,12 +60,9 @@ void CameraManEvent::end(s32 zoneID, const char* pName, s32 frame) {
     }
 }
 
-bool CameraManEvent::isEventActive(s32 zoneID, const char* pName) const {
+bool CameraManEvent::isEventActive(const CameraParamChunkID& rID) const {
     if (mCamera != nullptr) {
-        CameraParamChunkID_Tmp chunkID = CameraParamChunkID_Tmp();
-        chunkID.createEventID(zoneID, pName);
-
-        CameraParamChunkEvent* chunk = reinterpret_cast< CameraParamChunkEvent* >(mChunkHolder->getChunk(chunkID));
+        CameraParamChunkEvent* chunk = reinterpret_cast< CameraParamChunkEvent* >(mChunkHolder->getChunk(rID));
 
         // Nice loop, probably they wanted i--
         for (s32 i = NR_FIFO_ITEMS - 1; i >= 0; i++) {
@@ -143,25 +140,25 @@ bool CameraManEvent::isCorrectingErpPositionOff() const {
     return mCamera != nullptr && mCamera->isCorrectingErpPositionOff();
 }
 
-u32 CameraManEvent::getAnimCameraFrame(s32 zoneID, const char* pName) const {
+u32 CameraManEvent::getAnimCameraFrame(const CameraParamChunkID& rID) const {
     mHolder->getIndexOf("CAM_TYPE_ANIM");
-    CameraParamChunkEvent* chunk = findChunk(zoneID, pName);
+    CameraParamChunkEvent* chunk = findChunk(rID);
 
     return reinterpret_cast< CamTranslatorAnim* >(mHolder->getTranslator(chunk->mCameraTypeIndex))->getAnimFrame(chunk);
 }
 
-void CameraManEvent::pauseOnAnimCamera(s32 zoneID, const char* pName) {
+void CameraManEvent::pauseOnAnimCamera(const CameraParamChunkID& rID) {
     mHolder->getIndexOf("CAM_TYPE_ANIM");
-    CameraParamChunkEvent* chunk = findChunk(zoneID, pName);
+    CameraParamChunkEvent* chunk = findChunk(rID);
 
     if (chunk == mChunk && mCamera != nullptr) {
         reinterpret_cast< CameraAnim* >(mCamera)->mIsPaused = true;
     }
 }
 
-void CameraManEvent::pauseOffAnimCamera(s32 zoneID, const char* pName) {
+void CameraManEvent::pauseOffAnimCamera(const CameraParamChunkID& rID) {
     mHolder->getIndexOf("CAM_TYPE_ANIM");
-    CameraParamChunkEvent* chunk = findChunk(zoneID, pName);
+    CameraParamChunkEvent* chunk = findChunk(rID);
 
     if (chunk == mChunk && mCamera != nullptr) {
         reinterpret_cast< CameraAnim* >(mCamera)->mIsPaused = false;
@@ -315,11 +312,8 @@ void CameraManEvent::setSafePose() {
     CameraLocalUtil::setRoll(this, CameraLocalUtil::getRoll(mCamera));
 }
 
-CameraParamChunkEvent* CameraManEvent::findChunk(s32 zoneID, const char* pName) const {
-    CameraParamChunkID_Tmp chunkID = CameraParamChunkID_Tmp();
-    chunkID.createEventID(zoneID, pName);
-
-    return reinterpret_cast< CameraParamChunkEvent* >(mChunkHolder->getChunk(chunkID));
+CameraParamChunkEvent* CameraManEvent::findChunk(const CameraParamChunkID& rID) const {
+    return reinterpret_cast< CameraParamChunkEvent* >(mChunkHolder->getChunk(rID));
 }
 
 void CameraManEvent::requestChunk(CameraParamChunkEvent* pChunk, EPriority priority, const CameraTargetArg& rArg, s32 frame) {
@@ -453,9 +447,9 @@ void CameraManEvent::notifyDeactivate() {
 CameraManEvent::~CameraManEvent() {
 }
 
-bool CameraManEvent::isAnimCameraEnd(s32 zoneID, const char* pName) const {
+bool CameraManEvent::isAnimCameraEnd(const CameraParamChunkID& rID) const {
     mHolder->getIndexOf("CAM_TYPE_ANIM");
-    CameraParamChunkEvent* chunk = findChunk(zoneID, pName);
+    CameraParamChunkEvent* chunk = findChunk(rID);
 
     if (isInFIFO(chunk)) {
         if (chunk == mChunk) {

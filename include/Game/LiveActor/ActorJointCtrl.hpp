@@ -12,8 +12,8 @@ class ActorJointCtrl {
 public:
     ActorJointCtrl(LiveActor*);
 
-    void startDynamicCtrl(const char*, s32);
-    void endDynamicCtrl(const char*, s32);
+    void startDynamicCtrl(s32);
+    void endDynamicCtrl(s32);
     void resetDynamicCtrl();
     void startFaceCtrl(s32);
     void endFaceCtrl(s32);

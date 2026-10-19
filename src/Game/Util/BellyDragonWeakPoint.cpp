@@ -31,7 +31,7 @@ namespace NrvBellyDragonWeakPoint {
 };  // namespace NrvBellyDragonWeakPoint
 
 // PLACEHOLDER(core): weak-point nerve instances are named by their vtable/setNerve use (lbl_807D0F60..70, lbl_8066D618..658); resolve when the BellyDragon nerve names are confirmed in symbols.txt
-BellyDragonWeakPoint::BellyDragonWeakPoint(HitSensor* pSensor, BellyDragonBodyPart* pPart) : LiveActor("胴体（ドラゴン）") {
+BellyDragonWeakPoint::BellyDragonWeakPoint(HitSensor* pSensor, BellyDragonBodyPart* pPart) : LiveActor("弱点（ドラゴン）") {
     mSensor = pSensor;
     mPart = pPart;
     mMtx.identity();
@@ -122,7 +122,7 @@ bool BellyDragonWeakPoint::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, H
     }
 
     if (MR::isMsgPlayerSpinAttackOrSupportTico(msg) && isAttackable() && MR::sendArbitraryMsg(msg, mSensor, pReceiver)) {
-        MR::tryHitReactionBetweenSensors(this, "胴体スピンヒット", pSender, pReceiver);
+        MR::tryHitReactionBetweenSensors(this, "弱点スピンヒット", pSender, pReceiver);
         mPart->mWeakPoint = NULL;
         MR::hideModel(this);
         MR::invalidateHitSensors(this);

@@ -9,11 +9,13 @@ class JKRHeap;
 
 // SMG2-only helper owned by the holder (8 bytes, two words zeroed by an inlined ctor)
 struct CameraParamChunkHolderExtra {
-    CameraParamChunkHolderExtra() : _0(0), _4(0) {
+    CameraParamChunkHolderExtra() : mArchiveName(nullptr), mFileName(nullptr) {
     }
 
-    /* 0x0 */ s32 _0;
-    /* 0x4 */ s32 _4;
+    bool setNames(const char*, const char*) NO_INLINE;
+    s32 getFileCount() const NO_INLINE;
+    /* 0x0 */ const char* mArchiveName;
+    /* 0x4 */ const char* mFileName;
 };
 
 class CameraParamChunkHolder : public NameObj {
@@ -23,12 +25,14 @@ public:
 
     CameraParamChunk* createChunk(const CameraParamChunkID&, JKRHeap*);
     CameraParamChunk* getChunk(const CameraParamChunkID&);
+    bool setCameraParamId(const char*, const char*);
     void sort();
     void loadCameraParameters();
     bool isNewAttribute(const CameraParamChunkID&);
     CameraParamChunk* findChunk(const CameraParamChunkID&);
     CameraParamChunk* findChunk(s32, const char*);
-    void loadFile(s32);
+    void loadFile(s32, const void*);
+    void loadGlobalFile(s32);
     void arrangeChunk(CameraParamChunk*);
 
     /* 0x0C */ CameraHolder* mCameraHolder;

@@ -4,9 +4,12 @@
 
 class ActorCameraInfo;
 class DemoTitleAnimSub;
+class DemoTitleAnim;
 
 // One CSV row of EntryActorList (0x14 bytes). Filled by MR::getCsvDataStr* in DemoTitleAnim::createSubs.
 struct DemoTitleAnimParam {
+    DemoTitleAnimParam();  // was fn_8013CF30 (constructor has no source yet)
+
     /* 0x00 */ const char* mArcName;
     /* 0x04 */ const char* mJointName;
     /* 0x08 */ const char* mActionName;
@@ -22,6 +25,21 @@ public:
     virtual void loopSub();
     virtual void selectSub();
     virtual void endSub();
+};
+
+// Sub-actor kinds created by DemoTitleAnim::createSubs (constructors have no source yet; 0x9C bytes each).
+class DemoTitleAnimPlayer : public DemoTitleAnimSub {
+public:
+    DemoTitleAnimPlayer(DemoTitleAnim*, DemoTitleAnimParam*);  // was fn_8013CC80
+
+    u8 _90[0xC];
+};
+
+class DemoTitleAnimModel : public DemoTitleAnimSub {
+public:
+    DemoTitleAnimModel(DemoTitleAnim*, DemoTitleAnimParam*);  // was fn_8013CA10
+
+    u8 _90[0xC];
 };
 
 class DemoTitleAnim : public LiveActor {

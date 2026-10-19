@@ -784,7 +784,7 @@ XanimeBckTable2 teresaAnime2[] = {
 // NONMATCHING: only shared string-pool offsets differ.
 void MarioTeresaModel::initAnimation() {
     _C = 0.0f;
-    mResource = new XanimeResourceTable(MR::getResourceHolder(mActor), teresaAnimeTable, nullptr, nullptr, &teresaAnime2[0].mParent, nullptr, nullptr, nullptr);
+    mResource = new XanimeResourceTable(MR::getResourceHolder(mActor), teresaAnimeTable, nullptr, nullptr, teresaAnime2, nullptr, nullptr, nullptr);
     mPlayer = new XanimePlayer(MR::getJ3DModel(mActor), mResource);
     mPlayer->setDefaultAnimation("基本");
     mPlayer->changeAnimationBck("基本");

@@ -47,7 +47,7 @@ namespace {
     }
 };  // namespace
 
-GameSequenceTitle::GameSequenceTitle(GameSequence* pHost) : ActorStateBase< GameSequence >("[シーケンス]タイトル〜ファイルセレクト", pHost) {
+GameSequenceTitle::GameSequenceTitle(GameSequence* pHost) : ActorStateBase< GameSequence >("[シーケンス]タイトル～ファイルセレクト", pHost) {
 }
 
 GameSequenceTitle::~GameSequenceTitle() {

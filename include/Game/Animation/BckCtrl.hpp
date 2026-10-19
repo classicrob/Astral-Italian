@@ -19,14 +19,13 @@ public:
     /* 0x0A */ s16 mRepeatFrame;
     /* 0x0C */ s16 mInterpole;
     /* 0x0E */ u8 mLoopMode;
-    /* 0x0F */ u16 _F;
-    /* 0x11 */ u8 _11;
+    /* 0x0F */ u8 _F[3];  // 3-byte tail: the target's operator= copies it as lhz 0xF + lbz 0x11
 };
 
 class BckCtrlFunction {
 public:
     static void reflectBckCtrlData(const BckCtrlData&, XanimePlayer*);
-    // PLACEHOLDER(core): asm fn_80069CD0 (auto_03_80069CD0_text.s): copies BckCtrlData fields into a J3DFrameCtrl; rename fn_80069CD0 -> this when owner unit is ported
+    // was fn_80069CD0
     static void reflectBckCtrlDataToFrameCtrl(const BckCtrlData&, J3DFrameCtrl*);
 };
 

@@ -2,6 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/Map/CollisionCategorizedKeeper.hpp"
 #include "Game/Map/CollisionDirector.hpp"
+#include "Game/Map/CollisionParts.hpp"
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include <algorithm>
@@ -95,7 +96,7 @@ const TVec3f Binder::bind(const TVec3f& rVelocity) {
     TVec3f result;
 
     if (_1EC._2 && mExCollisionParts) {
-        MR::getCollisionDirector()->getCategoryKeeper(0)->addToGlobal(mExCollisionParts);
+        Collision::addToGlobal(mExCollisionParts);
     }
 
     if (mOffsetVec) {
@@ -165,7 +166,7 @@ const TVec3f Binder::bind(const TVec3f& rVelocity) {
     }
 
     if (_1EC._2 && mExCollisionParts) {
-        MR::getCollisionDirector()->getCategoryKeeper(0)->removeFromGlobal(mExCollisionParts);
+        Collision::removeToGlobal(mExCollisionParts);
     }
 
     return result;

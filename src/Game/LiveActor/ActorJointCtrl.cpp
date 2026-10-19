@@ -21,11 +21,11 @@ ActorJointCtrl::ActorJointCtrl(LiveActor* pActor) {
     }
 }
 
-void ActorJointCtrl::startDynamicCtrl(const char* pName, s32 val) {
-    mJointCtrlKeeper->startCtrl(pName, val);
+void ActorJointCtrl::startDynamicCtrl(s32 val) {
+    mJointCtrlKeeper->startCtrl(val);
 }
-void ActorJointCtrl::endDynamicCtrl(const char* pName, s32 val) {
-    mJointCtrlKeeper->endCtrl(pName, val);
+void ActorJointCtrl::endDynamicCtrl(s32 val) {
+    mJointCtrlKeeper->endCtrl(val);
 }
 
 void ActorJointCtrl::resetDynamicCtrl() {

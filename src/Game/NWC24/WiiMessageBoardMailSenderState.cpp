@@ -91,7 +91,7 @@ void WiiMessageBoardMailSenderState::exeEnd() {
 WiiMessageBoardMailSenderState::~WiiMessageBoardMailSenderState() {
 }
 
-WiiMessageBoardMailSender::WiiMessageBoardMailSender() : NameObj("WiiMessageBoardMailSender") {
+WiiMessageBoardMailSender::WiiMessageBoardMailSender() : NameObj("Wii伝言板メール送信者") {
     mState = new WiiMessageBoardMailSenderState();
 }
 

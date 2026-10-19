@@ -30,7 +30,7 @@ void CameraCover::movement() {
     if (isCameraHopping()) {
         if (!_3C) {
             MR::startToCaptureScreen("Camera");
-            CategoryList::execute((MR::DrawType)0x2E);
+            CategoryList::execute(MR::DrawType_CaptureScreenCamera);
             _3C = _44 + 1;
         }
     }

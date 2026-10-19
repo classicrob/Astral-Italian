@@ -7,17 +7,13 @@
 #include "Game/Map/OceanBowl.hpp"
 #include "Game/Map/OceanRing.hpp"
 #include "Game/Map/OceanSphere.hpp"
+#include "Game/Map/WaterStream.hpp"
 #include "Game/Map/WaterAreaHolder.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 
-void AreaObjUtil_FORCE_MATCH(TVec3f* pVec, const TVec3f& rOther) {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    *pVec += rOther;
-}
+
 
 namespace MR {
     bool isAreaFormCube(const AreaObj* pArea) {
@@ -33,7 +29,7 @@ namespace MR {
     }
 
     AreaObjMgr* getAreaObjManager(const char* pMgrName) {
-        return MR::getAreaObjContainer()->getManager(pMgrName);
+        return MR::getAreaObjContainer()->getManager2(pMgrName);
     }
 
     AreaObj* getAreaObj(const char* pAreaName, const TVec3f& rVec) {
@@ -41,11 +37,16 @@ namespace MR {
     }
 
     AreaObj* getAreaObjAtPlayerPos(const char* pAreaName) {
-        return MR::getAreaObjContainer()->getAreaObj(pAreaName, *MR::getPlayerPos());
+        AreaObjContainer* container = MR::getAreaObjContainer();
+        return container->getAreaObj(pAreaName, *MR::getPlayerPos());
     }
 
     bool isInAreaObj(const char* pAreaName, const TVec3f& rVec) {
         return MR::getAreaObjContainer()->getAreaObj(pAreaName, rVec);
+    }
+
+    bool isExistAreaObj(const char* name) {
+        return getAreaObjContainer()->isExistAreaObj(name);
     }
 
     s32 getAreaObjArg(const AreaObj* pObj, s32 which) {
@@ -73,18 +74,10 @@ namespace MR {
 
 #pragma push
 #pragma opt_propagation off
+    // NONMATCHING: equivalent switch dispatch lowering
     bool getWaterAreaInfo(WaterInfo* pInfo, const TVec3f& rPos, const TVec3f& rGravity, bool skipConnectedArea) {
-        if (pInfo->mOceanBowl != nullptr) {
-            return pInfo->mOceanBowl->calcWaterInfo(rPos, rGravity, pInfo);
-        }
-
-        if (pInfo->mOceanRing != nullptr) {
-            return pInfo->mOceanRing->calcWaterInfo(rPos, rGravity, pInfo);
-        }
-
-        if (pInfo->mOceanSphere != nullptr) {
-            return pInfo->mOceanSphere->calcWaterInfo(rPos, rGravity, pInfo);
-        }
+        if (pInfo->mOceanSphere) return pInfo->mOceanSphere->calcWaterInfo(rPos, rGravity, pInfo);
+        if (pInfo->mWaterStream) return pInfo->mWaterStream->calcWaterInfo(rPos, rGravity, pInfo);
 
         const WaterArea* pArea = pInfo->mWaterArea;
         f32 depth;
@@ -221,6 +214,109 @@ namespace MR {
         }
 
         return pInfo->mWaterArea->mFormType != AreaForm::Type_Cube1 && pInfo->mWaterArea->mFormType != AreaForm::Type_Cube2;
+    }
+
+    bool intersectsWaterAreaInfo(const WaterInfo* a, const WaterInfo* b) {
+        if (a->mWaterArea) return a->mWaterArea == b->mWaterArea;
+        if (a->mOceanBowl) return a->mOceanBowl == b->mOceanBowl;
+        if (a->mOceanRing) return a->mOceanRing == b->mOceanRing;
+        if (a->mOceanSphere) return a->mOceanSphere == b->mOceanSphere;
+        if (a->mWaterStream) return a->mWaterStream == b->mWaterStream;
+        return false;
+    }
+
+    bool func_80062020(const WaterInfo* info, TVec3f* a, TVec3f* b) {
+        if (hasNoWaterAreaCube(info)) return true;
+        const WaterArea* area = info->mWaterArea;
+        if (static_cast<u32>(area->mFormType) <= 1) {
+            TVec3f start;
+            TVec3f end;
+            area->getForm<AreaFormCube>()->calcLocalPos(&start, *a);
+            area->getForm<AreaFormCube>()->calcLocalPos(&end, *b);
+            const AreaFormCube* cube = area->getForm<AreaFormCube>();
+            if (end.y == start.y) return false;
+            f32 rate = (cube->mBounding.f.y - start.y) / (end.y - start.y);
+            if (rate < 0.0f || rate > 1.0f) return false;
+            TVec3f delta(end);
+            delta -= start;
+            TVec3f scaled(delta);
+            scaled.scale(rate);
+            TVec3f hit(scaled);
+            hit += start;
+            return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
+                   hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
+        }
+        return true;
+    }
+
+    bool func_800621A0(const WaterInfo* info, TVec3f* a, TVec3f* b) {
+        if (hasNoWaterAreaCube(info)) return false;
+        const WaterArea* area = info->mWaterArea;
+        if (static_cast<u32>(area->mFormType) <= 1) {
+            TVec3f start;
+            TVec3f end;
+            area->getForm<AreaFormCube>()->calcLocalPos(&start, *a);
+            area->getForm<AreaFormCube>()->calcLocalPos(&end, *b);
+            const AreaFormCube* cube = area->getForm<AreaFormCube>();
+            if (end.y == start.y) return false;
+            f32 rate = (cube->mBounding.i.y - start.y) / (end.y - start.y);
+            if (rate < 0.0f || rate > 1.0f) return false;
+            TVec3f delta(end);
+            delta -= start;
+            TVec3f scaled(delta);
+            scaled.scale(rate);
+            TVec3f hit(scaled);
+            hit += start;
+            return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
+                   hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
+        }
+        return false;
+    }
+
+    bool func_80062320(const WaterArea* area, TVec3f* a, TVec3f* b) {
+        if (static_cast<u32>(area->mFormType) <= 1) {
+            TVec3f start;
+            TVec3f end;
+            area->getForm<AreaFormCube>()->calcLocalPos(&start, *a);
+            area->getForm<AreaFormCube>()->calcLocalRotate(&end, *b);
+            normalize(&end);
+            const AreaFormCube* cube = area->getForm<AreaFormCube>();
+            TVec3f up(0.0f, 1.0f, 0.0f);
+            f32 dot = up.dot(end);
+            if (0.0f == dot) return false;
+            f32 rate = (cube->mBounding.f.y - start.y) / dot;
+            if (rate < 0.0f) return false;
+            TVec3f scaled(end);
+            scaled.scale(rate);
+            TVec3f hit(start);
+            hit += scaled;
+            return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
+                   hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
+        }
+        return true;
+    }
+
+    bool func_80062480(const WaterArea* area, TVec3f* a, TVec3f* b) {
+        if (static_cast<u32>(area->mFormType) <= 1) {
+            TVec3f start;
+            TVec3f end;
+            area->getForm<AreaFormCube>()->calcLocalPos(&start, *a);
+            area->getForm<AreaFormCube>()->calcLocalRotate(&end, *b);
+            normalize(&end);
+            const AreaFormCube* cube = area->getForm<AreaFormCube>();
+            TVec3f up(0.0f, 1.0f, 0.0f);
+            f32 dot = up.dot(end);
+            if (0.0f == dot) return false;
+            f32 rate = (cube->mBounding.i.y - start.y) / dot;
+            if (rate < 0.0f) return false;
+            TVec3f scaled(end);
+            scaled.scale(rate);
+            TVec3f hit(start);
+            hit += scaled;
+            return hit.x <= cube->mBounding.f.x && hit.x >= cube->mBounding.i.x &&
+                   hit.z <= cube->mBounding.f.z && hit.z >= cube->mBounding.i.z;
+        }
+        return false;
     }
 
     bool calcWhirlPoolAccelInfo(const TVec3f& rVec, TVec3f* pVec) {

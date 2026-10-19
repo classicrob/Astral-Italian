@@ -126,3 +126,13 @@ public:
 namespace MR {
     void makeArchiveListUFOKinokoUnderConstruction(NameObjArchiveListCollector*, const JMapInfoIter&);
 };  // namespace MR
+
+class SimpleMapObjWithEffect : public SimpleMapObj {
+public:
+    SimpleMapObjWithEffect(const char* name) : SimpleMapObj(name) {}
+    virtual ~SimpleMapObjWithEffect();
+    virtual void init(const JMapInfoIter&);
+    virtual void control();
+    bool tryEmitWaitEffect();
+    bool tryDeleteWaitEffect();
+};

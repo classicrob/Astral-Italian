@@ -92,7 +92,7 @@ namespace MR {
     void stopSound(const LiveActor* pActor, JAISoundID id, u32 param3 = 0);
     void setSeVersion(const LiveActor*, u32);
     void releaseSoundHandle(const LiveActor*, const char*);
-    bool startBas(const LiveActor*, const char*, bool, f32, f32);
+    bool startBas(const LiveActor*, const char*, bool, f32, f32, bool updateFoot = true);
     void actorSoundMovement(LiveActor*);
     void addJointToSeKeeper(AudSeKeeper*, const char*, const char*);
     void startLevelSoundSeKeeper(AudSeKeeper*, const char*, const char*);

@@ -3,6 +3,9 @@
 #include <JSystem/JKernel/JKRMemArchive.hpp>
 
 namespace MR {
+    void* loadToMainRAM(const char*, u8*, JKRHeap*, int);
+    bool isFileExistOnDisc(const char*, bool);
+    void makeDemoArchiveFileName(char*, u32, const char*);
     /// @brief Determines if a file exists within the disc file system.
     /// @param[in] pFilePath A pointer to the null-terminated absolute path of the file.
     /// @param[in] considerLanguage Determines if the file is localized.

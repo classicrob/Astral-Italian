@@ -1,3 +1,5 @@
+#define NW4R_DEBUG
+#define NW4R_DEBUG_OUTLINE
 #include "Game/Util/LayoutUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Effect/MultiEmitter.hpp"
@@ -34,11 +36,7 @@ template nw4r::lyt::PaneList::Iterator nw4r::ut::LinkList< nw4r::lyt::Pane, 4 >:
 
 extern "C" int vswprintf(wchar_t*, size_t, const wchar_t*, va_list);
 
-void LayoutUtil_FORCE_MATCH_SDATA2() {
-    (void)255.0f;
-    (void)0.75f;
-    (void)4.0f;
-}
+
 
 namespace {
     void setInfluencedAlphaToChild(nw4r::lyt::Pane* pPane) {
@@ -67,6 +65,15 @@ namespace {
         }
     }
 
+    bool isExistPaneRecursive(const nw4r::lyt::Pane* pane, const char* name) NO_INLINE {
+        if (MR::isEqualString(pane->mName, name)) return true;
+        const nw4r::lyt::PaneList& children = pane->GetChildList();
+        for (nw4r::lyt::PaneList::ConstIterator it = children.GetBeginIter(); it != children.GetEndIter(); ++it) {
+            if (isExistPaneRecursive(&*it, name)) return true;
+        }
+        return false;
+    }
+
     void initFrameCtrlReverse(J3DFrameCtrl* pFrameCtrl) {
         pFrameCtrl->setAttribute(pFrameCtrl->EMode_RESET);
         pFrameCtrl->setRate(-pFrameCtrl->mRate);
@@ -90,7 +97,7 @@ namespace {
                     pRect->left = rect.left;
                 }
 
-                if (rect.top < pRect->top) {
+                if (rect.top > pRect->top) {
                     pRect->top = rect.top;
                 }
 
@@ -98,7 +105,7 @@ namespace {
                     pRect->right = rect.right;
                 }
 
-                if (rect.bottom > pRect->bottom) {
+                if (rect.bottom < pRect->bottom) {
                     pRect->bottom = rect.bottom;
                 }
             } else {
@@ -156,9 +163,8 @@ bool MR::isExistPaneCtrl(LayoutActor* pActor, const char* pPaneName) {
     return pActor->getLayoutManager()->isExistPaneCtrl(pPaneName);
 }
 
-// NONMATCHING: target calls the nw4r pane-search helper fn_8002E080 directly; FindPaneByName does the same walk
 bool MR::isExistPane(const LayoutActor* pActor, const char* pPaneName) {
-    return pActor->getLayoutManager()->getPane(nullptr)->FindPaneByName(pPaneName, true) != nullptr;
+    return ::isExistPaneRecursive(pActor->getLayoutManager()->getPane(nullptr), pPaneName);
 }
 
 
@@ -170,7 +176,8 @@ void MR::setInfluencedAlphaToChild(const LayoutActor* pActor) {
 void MR::setLayoutAlphaFloat(const LayoutActor* pActor, f32 alpha) {
     f32 alphaFloat = clamp(alpha, 0.0f, 1.0f);
 
-    setLayoutAlpha(pActor, alphaFloat * 255.0f);
+    nw4r::lyt::Pane* pane = pActor->getLayoutManager()->getPane(nullptr);
+    pane->mAlpha = 255.0f * alphaFloat;
 }
 
 
@@ -338,7 +345,6 @@ void MR::copyPaneScale(TVec2f* pScale, const LayoutActor* pActor, const char* pP
 }
 
 
-// NONMATCHING: target calls the out-of-line VEC2 operator= (bl __as__), ours copies inline
 void MR::setPaneScale(const LayoutActor* pActor, const char* pPaneName, f32 x, f32 y) {
     nw4r::math::VEC2 scale(x, y);
     pActor->getLayoutManager()->getPane(pPaneName)->mScale = scale;
@@ -375,7 +381,7 @@ void MR::setLayoutScalePosAtPaneScaleTransIfExecCalcAnim(LayoutActor* pActor, co
 }
 
 nw4r::lyt::TexMap* MR::createLytTexMap(const char* pArcName, const char* pTextureName) {
-    JUTTexture texture(loadTexFromArc(pArcName, pTextureName), 0);
+    JUTTexture texture(loadTexFromArc(pArcName, pTextureName, nullptr), 0);
 
     return new nw4r::lyt::TexMap(texture.getTexObj());
 }
@@ -638,6 +644,7 @@ f32 MR::calcNerveEaseInValue(const LayoutActor* pActor, s32 stepMin, s32 stepMax
     return getEaseInValue(calcNerveRate(pActor, stepMin, stepMax), valueMin, valueMax, 1.0f);
 }
 
+// NONMATCHING: equivalent early rate-default branch arrangement
 f32 MR::calcNerveEaseOutValue(const LayoutActor* pActor, s32 stepMax, f32 valueStart, f32 valueEnd) {
     f32 rate = 1.0f;
     if (stepMax > 0) {
@@ -835,11 +842,4 @@ IconAButton* MR::createAndSetupIconAButton(LayoutActor* pActor, bool connectToSc
     iconAButton->setFollowActorPane(pActor, "AButtonPosition");
 
     return iconAButton;
-}
-
-
-void LayoutUtil_FORCE_MATCH(nw4r::lyt::Pane* pPane, J2DPicture* pPicture) {
-    pPane->SetInfluencedAlpha(true);
-    pPicture->J2DPicture::draw(0.0f, 0.0f, static_cast< u8 >(0), false, false, false);
-    pPicture->J2DPicture::draw(0.0f, 0.0f, static_cast< u8 >(1), false, false, false);
 }

@@ -59,7 +59,7 @@ void ViewGroupCtrl::update() {
         return;
     }
 
-    for (s32 i = 0; i < mMaxViewGroupId; i++) {
+    for (s32 i = 1; i < mMaxViewGroupId; i++) {
         entry = &mViewGroupData[i];
         entry->_0 = false;
         entry->_1 = false;

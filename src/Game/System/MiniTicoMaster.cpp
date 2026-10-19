@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/System/MiniTicoMaster.hpp"
 #include "Game/System/MiniWorldMapMark.hpp"
 #include "Game/System/GalaxyWorldMapInfo.hpp"
@@ -46,8 +47,31 @@ namespace {
     TVec3f sShadowOffset(0.0f, -250.0f, 0.0f);
 };  // namespace
 
+// NONMATCHING: regalloc
+MiniTicoMaster::MiniTicoMaster(WorldMapResultWorld* world, s32 partsIndex, s32* count, s32 pointIndex, s32 nextPoint)
+    : LiveActor("ミニチコ（ルート大工）") {
+    mUnk90 = world;
+    mUnk94 = count;
+    mUnk98 = 0;
+    mUnk9C = 0;
+    mUnkA0 = partsIndex;
+    mModelA = nullptr;
+    mModelB = nullptr;
+    mChild = nullptr;
+    mTalkCtrl = nullptr;
+    mShadow = nullptr;
+    mUnkA4 = pointIndex;
+    mUnkA8 = nextPoint;
+    mUnk9C = GameDataFunction::getTicoFatStarPieceAlmsFromWorld(world->getWorldId(), mUnkA0);
+    mUnk98 = MR::max(*mUnk94 - mUnk9C, 0);
+    if (mUnk9C < *mUnk94) {
+        mUnk90->setLinkProgressFull(mUnkA4, mUnkA8);
+    }
+}
+
 MiniTicoMaster::~MiniTicoMaster() {}
 
+// NONMATCHING: regalloc
 void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     TVec3f base(mUnk90->getNode(mUnkA4)->mPos);
     TVec3f pos = base + sPlanetOffset;
@@ -55,8 +79,8 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
 
     MR::initActor(this, rIter, "MiniTicoMaster", false);
 
-    mModelA = WorldMapFunction::createPartsModel(this, "左手", "MiniTicoMaster", "StarPieceL");
-    mModelB = WorldMapFunction::createPartsModel(this, "右手", "MiniTicoMaster", "StarPieceR");
+    mModelA = WorldMapFunction::createPartsModel(this, "左手", "TicoFatGoodsStarPiece", "StarPieceL");
+    mModelB = WorldMapFunction::createPartsModel(this, "右手", "TicoFatGoodsStarPiece", "StarPieceR");
     MR::setScale(mModelA, 11.0f);
     MR::setScale(mModelB, 11.0f);
     MR::setBpkFrame(mModelA, 0.0f);
@@ -71,17 +95,17 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
         MR::initStarPointerTarget(this, 800.0f, pointerOffset);
     }
 
-    mShadow = new MiniGalaxyShadow(this, "MiniGalaxyShadow", "影");
+    mShadow = new MiniGalaxyShadow(this, "影", "MiniGalaxyShadow");
 
     mTalkCtrl = MR::createTalkCtrlDirect(this, "WorldMapEventTicoRequestStarPiece", TVec3f(0.0f, 0.0f, 0.0f), nullptr);
     MR::setMessageArg(mTalkCtrl, mUnk98);
     MR::setMessageBalloonFollowOffset(mTalkCtrl, sTalkOffset);
     MR::onRootNodeAutomatic(mTalkCtrl);
 
-    mChild = new MiniWorldMapMark(this, "MiniTicoMasterChild");
+    mChild = new MiniWorldMapMark(this, "MiniTicoMasterMark");
 
-    initWithoutIter();
-    MR::setPosition(mChild, pos);
+    mChild->initWithoutIter();
+    MR::setPosition(mChild, base);
     TVec3f childScale(1.0f, 1.0f, 1.0f);
     MR::setScale(mChild, childScale);
     initNerve(&NrvMiniTicoMaster::MiniTicoMasterNrvWait::sInstance, 0);
@@ -114,10 +138,28 @@ void MiniTicoMaster::makeActorDead() {
     mShadow->makeActorDead();
 }
 
-// NONMATCHING: only the first call is reconstructed. The rest (joint matrix column lengths via
-// fn_80046D50, hand scaling and positioning, shadow placement) uses paired-single ops in the target.
+// NONMATCHING: regalloc
 void MiniTicoMaster::control() {
     WorldMapFunction::returnScale(this, 0.05f, 1.0f);
+    TPos3f joint;
+    TPos3f scaleMtx;
+    MR::separateMtxScale(joint.toMtxPtr(), scaleMtx.toMtxPtr(), MR::getJointMtx(this, "Center"));
+    TVec3f scale;
+    scale.x = JGeometry::TUtil<f32>::sqrt(scaleMtx.mMtx[0][0] * scaleMtx.mMtx[0][0] + scaleMtx.mMtx[1][0] * scaleMtx.mMtx[1][0] + scaleMtx.mMtx[2][0] * scaleMtx.mMtx[2][0]);
+    scale.y = JGeometry::TUtil<f32>::sqrt(scaleMtx.mMtx[0][1] * scaleMtx.mMtx[0][1] + scaleMtx.mMtx[1][1] * scaleMtx.mMtx[1][1] + scaleMtx.mMtx[2][1] * scaleMtx.mMtx[2][1]);
+    scale.z = JGeometry::TUtil<f32>::sqrt(scaleMtx.mMtx[0][2] * scaleMtx.mMtx[0][2] + scaleMtx.mMtx[1][2] * scaleMtx.mMtx[1][2] + scaleMtx.mMtx[2][2] * scaleMtx.mMtx[2][2]);
+    TVec3f pos;
+    pos.set<f32>(joint.mMtx[0][3], joint.mMtx[1][3], joint.mMtx[2][3]);
+    MR::setScale(mModelA, (scale * 11.0f) * mScale.y);
+    MR::setScale(mModelB, (scale * 11.0f) * mScale.y);
+    TVec3f groundPos(pos.x, mPosition.y, pos.z);
+    if ((mPosition - groundPos).length() < 2000.0f) {
+        MR::setPosition(mShadow, TVec3f(pos.x, mPosition.y, pos.z) + sShadowOffset);
+        MR::setScale(mShadow, scale);
+        MR::showModel(mShadow);
+    } else {
+        MR::hideModel(mShadow);
+    }
 }
 
 bool MiniTicoMaster::isFull() const {
@@ -137,6 +179,7 @@ void MiniTicoMaster::exeGoMarioPlanet() {
     }
 }
 
+// NONMATCHING: regalloc
 void MiniTicoMaster::setPosOnRoute(f32 t) {
     TVec3f a = mUnk90->getNode(mUnkA4)->mPos;
     TVec3f b = mUnk90->getNode(mUnkA8)->mPos;

@@ -102,20 +102,9 @@ public:
 
 class XanimeResourceTable {
 public:
-    XanimeResourceTable(
-
-        ResourceHolder*,
-
-        XanimeGroupInfo*, XanimeAuxInfo*, XanimeOfsInfo*,
-
-        XanimeBckTable*, XanimeBckTable2*, XanimeBckTable3*,
-
-        XanimeSwapTable*);
-
+    XanimeResourceTable(ResourceHolder*, XanimeGroupInfo*, XanimeOfsInfo*, XanimeBckTable1*, XanimeBckTable2*, XanimeBckTable3*, XanimeBckTable4*, XanimeSwapTable*);
     XanimeResourceTable(ResourceHolder*);
-
-    u32 initGroupInfo(ResourceHolder*, XanimeGroupInfo*, XanimeAuxInfo*, XanimeOfsInfo*, XanimeBckTable*, XanimeBckTable2*, XanimeBckTable3*,
-                      XanimeSwapTable*);
+    u32 initGroupInfo(ResourceHolder*, XanimeGroupInfo*, XanimeOfsInfo*, XanimeBckTable1*, XanimeBckTable2*, XanimeBckTable3*, XanimeBckTable4*, XanimeSwapTable*);
 
     const XanimeGroupInfo* getGroupInfo(const char*) const;
     const XanimeGroupInfo* getGroupInfo(const char*, XanimeDirectory*) const;

@@ -39,6 +39,7 @@ namespace MR {
     void extractMtxZDir(MtxPtr, TVec3f*);
     void extractMtxXYZDir(MtxPtr, TVec3f*, TVec3f*, TVec3f*);
     void extractMtxTrans(MtxPtr, TVec3f*);
+    void separateMtxScale(MtxPtr rotation, MtxPtr scale, MtxPtr source);
 
     template < typename T >
     f32 sqrt(f32);
@@ -80,6 +81,7 @@ namespace MR {
     void blendMtxRotateSlerp(MtxPtr, MtxPtr, f32, MtxPtr);
     void blendMtx(MtxPtr, MtxPtr, f32, MtxPtr);
     void makeMtxWithoutScale(TPos3f*, const TPos3f&);
+    void makeSRTFromMtxPtr(TVec3f*, TVec3f*, TVec3f*, MtxPtr, bool);
     void makeRTFromMtxPtr(TVec3f*, TVec3f*, MtxPtr, bool);
     void makeSRTFromMtxPtr(TVec3f*, TVec3f*, TVec3f*, MtxPtr, bool);
     void orthogonalize(TPos3f*);

@@ -46,4 +46,17 @@ class SoundSyncSky : public Sky {
 public:
     SoundSyncSky(const char*);
     virtual ~SoundSyncSky();
+    virtual void updateWait();
+    bool tryStartBeatAction() NO_INLINE;
+};
+
+class WorldMapSky : public Sky {
+public:
+    WorldMapSky(const char*);
+    virtual ~WorldMapSky();
+    virtual void appear();
+    virtual void getModelName(const char**, const JMapInfoIter&);
+    virtual void calcAndSetBaseMtx();
+    virtual void initModel(const char*);
+    ProjmapEffectMtxSetter* mProjmapEffectMtxSetter;
 };

@@ -106,12 +106,12 @@ void Flag::init(const JMapInfoIter& rIter) {
         } else if (MR::isEqualString(mObjName, "FlagPeachCastleB")) {
             mNumPointsV = 5;
             mNumPointsU = 5;
-            mPointIntervalU = 500.0f / mNumPointsU;
+            mPointIntervalU = 850.0f / mNumPointsU;
             mPointIntervalV = 400.0f / (mNumPointsV - 1);
         } else if (MR::isEqualString(mObjName, "FlagPeachCastleC")) {
             mNumPointsV = 5;
             mNumPointsU = 5;
-            mPointIntervalU = 500.0f / mNumPointsU;
+            mPointIntervalU = 850.0f / mNumPointsU;
             mPointIntervalV = 400.0f / (mNumPointsV - 1);
         } else if (MR::isEqualString(mObjName, "FlagRaceA")) {
             mDisableSound = true;
@@ -165,14 +165,9 @@ void Flag::init(const JMapInfoIter& rIter) {
     }
 
     if (mObjName != nullptr) {
-        // MR::loadTexFromArc(const char*) is Petari-only; build the names inline (see NOTES: LiveActor overload not in src).
-        char arcName[256];
-        snprintf(arcName, sizeof(arcName), "%s.arc", mObjName);
-        char texName[256];
-        snprintf(texName, sizeof(texName), "%s.bti", mObjName);
-        mTexture = new JUTTexture(MR::loadTexFromArc(arcName, texName), 0);
+        mTexture = MR::loadTexFromArc(this, mObjName);
     } else {
-        mTexture = new JUTTexture(MR::loadTexFromArc("Flag.arc", "Flag.bti"), 0);
+        mTexture = MR::loadTexFromArc(this, "Flag.arc", "Flag.bti");
     }
 
     initSound(4, "Flag", nullptr, TVec3f(0.0f));
@@ -189,12 +184,15 @@ void Flag::init(const JMapInfoIter& rIter) {
         }
     }
 
+    MR::setGroupClipping(this, rIter, 16);
+    updateFlag();
     if (MR::tryRegisterDemoCast(this, rIter)) {
         makeActorDead();
     } else {
         MR::registerDemoSimpleCastAll(this);
         makeActorAppeared();
     }
+    MR::useStageSwitchAwake(this, rIter);
 }
 
 void Flag::appear() {

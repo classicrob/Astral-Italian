@@ -9,8 +9,8 @@ void GlobalGravityObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     mGravityCreator->createFromJMap(rIter);
 
-    MR::useStageSwitchReadA(this, rIter);
-    MR::useStageSwitchReadB(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadB(this, rIter);
 
     if (MR::isValidSwitchA(this) || MR::isValidSwitchB(this)) {
         MR::connectToSceneMapObjMovement(this);
@@ -21,7 +21,7 @@ void GlobalGravityObj::init(const JMapInfoIter& rIter) {
     MR::addBaseMatrixFollowerGravity(this, rIter);
 
     makeActorAppeared();
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
 }
 
 void GlobalGravityObj::makeActorAppeared() {

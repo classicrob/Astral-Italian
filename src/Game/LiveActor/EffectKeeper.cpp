@@ -14,10 +14,6 @@
 #include <algorithm>
 #include <cstdio>
 
-void EffectKeeper_FORCE_MATCH_SDATA2() {
-    0.0f;
-}
-
 namespace {
     const char* cAttributeEffectTag = "Attr";
 };  // namespace
@@ -42,17 +38,17 @@ namespace {
 };  // namespace
 
 EffectKeeper::EffectKeeper(const char* pParam1, ResourceHolder* pParam2, int param3, const char* pParam4)
-    : _0(pParam1), _4(pParam2), _8(pParam4), _C(), _18(), _1C(), _20(), mBinder(), _28(), _2C(), _30() {
-    if (_8 == nullptr && _4 != nullptr) {
-        _8 = _4->getModelName();
+    : _0(pParam1), mResourceName(pParam4), mResourceHolder(pParam2), _C(), _18(), _1C(), _20(), mBinder(), _28(), _2C(), _30() {
+    if (mResourceName == nullptr && mResourceHolder != nullptr) {
+        mResourceName = mResourceHolder->mName;
     }
 
-    _C.init(MR::Effect::getAutoEffectNum(_8) + param3);
+    _C.init(MR::Effect::getAutoEffectNum(mResourceName) + param3);
 }
 
 void EffectKeeper::init(LiveActor* pActor) {
-    if (_8 != nullptr) {
-        MR::Effect::registerAutoEffectInfoGroup(this, pActor, _8);
+    if (mResourceName != nullptr && _C.capacity() > 0) {
+        MR::Effect::registerAutoEffectInfoGroup(this, pActor, mResourceName);
     }
 }
 
@@ -70,7 +66,7 @@ namespace {
         position.add(-direction * distance);
 
         Triangle triangle;
-        if (!MR::getFirstPolyOnLineToMap(&intersection, &triangle, position, direction)) {
+        if (!MR::getFirstPolyOnLineToMap(&intersection, &triangle, position, direction * 2.0f * distance)) {
             return -1;
         }
 
@@ -127,14 +123,14 @@ void EffectKeeper::registerSyncBckEffect(XanimePlayer* pParam1, const char* pPar
         _20 = new SyncBckEffectChecker(pParam1, 0);
     }
 
-    MultiEmitter* emitter = getEmitter(pParam2);
+    MultiEmitter* emitter = getEmitter(pParam2, _28);
 
     emitter->initSyncBck(pParam1, pParam3, param4, param5);
     emitter->onDeleteSyncBck(param7, param6);
 }
 
 MultiEmitter* EffectKeeper::createEmitter(const char* pParam1) {
-    MultiEmitter* emitter = getEmitter(pParam1);
+    MultiEmitter* emitter = getEmitter(pParam1, _28);
 
     emitter->createEmitter();
 
@@ -142,11 +138,11 @@ MultiEmitter* EffectKeeper::createEmitter(const char* pParam1) {
 }
 
 void EffectKeeper::deleteEmitter(const char* pParam1) {
-    getEmitter(pParam1)->deleteEmitter();
+    getEmitter(pParam1, _28)->deleteEmitter();
 }
 
 void EffectKeeper::forceDeleteEmitter(const char* pParam1) {
-    getEmitter(pParam1)->forceDeleteEmitter();
+    getEmitter(pParam1, _28)->forceDeleteEmitter();
 }
 
 void EffectKeeper::deleteEmitterAll() {
@@ -157,11 +153,15 @@ void EffectKeeper::forceDeleteEmitterAll() {
     std::for_each(_C.begin(), _C.end(), std::mem_func(&MultiEmitter::forceDeleteEmitter));
 }
 
-MultiEmitter* EffectKeeper::getEmitter(const char* pParam1) const {
+MultiEmitter* EffectKeeper::getEmitter(const char* pName) {
+    return getEmitter(pName, _28);
+}
+
+MultiEmitter* EffectKeeper::getEmitter(const char* pParam1, s32 floorCode) const {
     char buf[256];
 
     if (_30 && !MR::isEqualSubString(pParam1, ::cAttributeEffectTag) && isTypeAttributeEffect(pParam1)) {
-        const char* attributeName = MR::Effect::getEffectAttributeName(_28);
+        const char* attributeName = MR::Effect::getEffectAttributeName(floorCode);
         snprintf(buf, sizeof(buf), "%s%s%s", pParam1, ::cAttributeEffectTag, attributeName);
 
         if (!isRegisteredEmitter(buf)) {
@@ -177,6 +177,7 @@ MultiEmitter* EffectKeeper::getEmitter(const char* pParam1) const {
         if (_18->search(pParam1, &result)) {
             return reinterpret_cast< MultiEmitter* >(result);
         }
+        return nullptr;
     }
 
     u16 name = MR::getHashCode(pParam1);
@@ -190,6 +191,10 @@ MultiEmitter* EffectKeeper::getEmitter(const char* pParam1) const {
     return nullptr;
 }
 
+MultiEmitter* EffectKeeper::getEmitter(const char* pName) const {
+    return getEmitter(pName, _28);
+}
+
 MultiEmitter* EffectKeeper::getEmitter(s32 index) const {
     return _C[index];
 }
@@ -199,7 +204,7 @@ void EffectKeeper::changeEffectName(const char* pParam1, const char* pName) {
         _18->swap(pParam1, pName);
     }
 
-    getEmitter(pParam1)->setName(pName);
+    getEmitter(pParam1, _28)->setName(pName);
 }
 
 void EffectKeeper::update() {
@@ -237,7 +242,7 @@ void EffectKeeper::syncEffectBck(MultiEmitter* pEmitter) {
             char buf[256];
             ::makeAttibuteEffectBaseName(buf, sizeof(buf), ::getMultiEmitterName(pEmitter));
 
-            emitter = getEmitter(buf);
+            emitter = getEmitter(buf, _28);
         }
 
         if (b1) {
@@ -278,7 +283,7 @@ void EffectKeeper::updateAttributeEffect() {
             char buf[256];
             ::makeAttibuteEffectBaseName(buf, sizeof(buf), ::getMultiEmitterName(*it));
 
-            getEmitter(buf)->createEmitter();
+            getEmitter(buf, _28)->createEmitter();
         }
     }
 
@@ -303,6 +308,12 @@ void EffectKeeper::changeBck() {
     }
 }
 
+void EffectKeeper::resetSyncBckFrame() {
+    if (_20 != nullptr) {
+        _20->fn_8006F1F0();
+    }
+}
+
 void EffectKeeper::onDraw() {
     std::for_each(_C.begin(), _C.end(),
                   std::binder2nd< std::mem_fun1_t< void, MultiEmitter, s32 >, s32 >(std::mem_func(&MultiEmitter::playDrawParticle), -1));
@@ -311,6 +322,16 @@ void EffectKeeper::onDraw() {
 void EffectKeeper::offDraw() {
     std::for_each(_C.begin(), _C.end(),
                   std::binder2nd< std::mem_fun1_t< void, MultiEmitter, s32 >, s32 >(std::mem_func(&MultiEmitter::stopDrawParticle), -1));
+}
+
+void EffectKeeper::onCalcEmitter() {
+    std::for_each(_C.begin(), _C.end(),
+                  std::binder2nd< std::mem_fun1_t< void, MultiEmitter, s32 >, s32 >(std::mem_func(&MultiEmitter::playCalcEmitter), -1));
+}
+
+void EffectKeeper::offCalcEmitter() {
+    std::for_each(_C.begin(), _C.end(),
+                  std::binder2nd< std::mem_fun1_t< void, MultiEmitter, s32 >, s32 >(std::mem_func(&MultiEmitter::stopCalcEmitter), -1));
 }
 
 void EffectKeeper::enableSort() {
@@ -388,6 +409,7 @@ void EffectKeeper::updateFloorCode(const Triangle* pTriangle) {
     _28 = MR::getFloorCodeIndex(pTriangle->getAttributes());
 }
 
+// NONMATCHING: equivalent pointer-load scheduling.
 bool EffectKeeper::isTypeAttributeEffect(const char* pParam1) const {
     char buf[256];
     snprintf(buf, sizeof(buf), "%s%s", pParam1, ::cAttributeEffectTag);

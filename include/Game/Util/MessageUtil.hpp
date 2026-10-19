@@ -7,7 +7,7 @@ namespace MR {
     s32 makeGalaxyStarList(wchar_t*, s32, const char*, bool, bool);
     const wchar_t* getWorldNameOnCurrentLanguage(s32);
     s32 makeMessageID(char*, u32, const char*, s32);
-    const wchar_t* getGameMessageDirect(const char*);
+    const wchar_t* getGameMessageDirect(const char*) NO_INLINE;
     void getLayoutMessageID(char*, const char*, const char*);
 };
 

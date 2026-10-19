@@ -61,7 +61,7 @@ void PhantomTorch::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     makeActorAppeared();
     MR::useStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
 
     if (MR::useStageSwitchReadAppear(this, rIter)) {
         MR::listenStageSwitchOnOffAppear(this, MR::Functor(this, &PhantomTorch::makeActorAppeared), MR::Functor(this, &PhantomTorch::makeActorDead));

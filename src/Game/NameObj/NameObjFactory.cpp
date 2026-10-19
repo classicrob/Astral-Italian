@@ -2,6 +2,31 @@
 // NameObjFactory::createNameObj<T> is `new T(pName)`. To keep this TU independent of ~480 class headers, each T
 // is declared here with only its constructor and its exact SMG2 size (from the target `li r3, size`).
 #include <revolution/types.h>
+#include "Game/NameObj/NameObjFactory.hpp"
+#include "Game/Map/ProductMapCreator.hpp"
+#include "Game/Util/SceneUtil.hpp"
+#include "Game/Util/StringUtil.hpp"
+#include "Game/AreaObj/HazeCube.hpp"
+#include "Game/AreaObj/WarpCube.hpp"
+#include "Game/MapObj/WarpPod.hpp"
+#include "Game/MapObj/Togepin.hpp"
+#include "Game/MapObj/BenefitItemOneUp.hpp"
+#include "Game/MapObj/MorphItemObjNeo.hpp"
+#include "Game/MapObj/SimpleMapObj.hpp"
+#include "Game/MapObj/AnmModelObj.hpp"
+#include "Game/MapObj/RotateMoveObj.hpp"
+#include "Game/MapObj/WireCoverCage.hpp"
+#include "Game/MapObj/RailMoveObjGenerator.hpp"
+#include "Game/MapObj/PoleObstacleParts.hpp"
+#include "Game/MapObj/RotateSeesawTrampoline.hpp"
+#include "Game/MapObj/DashFruit.hpp"
+#include "Game/MapObj/YoshiFruit.hpp"
+#include "Game/Effect/EffectObjR500F50.hpp"
+#include "Game/Effect/EffectObj50x50x10SyncClipping.hpp"
+#include "Game/Effect/EffectObj20x20x10SyncClipping.hpp"
+#include "Game/Effect/EffectObjR1000F50.hpp"
+#include "Game/Effect/EffectObj10x10x10SyncClipping.hpp"
+
 #include "Game/Effect/CaveStream.hpp"
 #include "Game/Demo/KoopaAssaultFallObj.hpp"
 #include "Game/Demo/DemoEndStartPosCameraSetter.hpp"
@@ -46,7 +71,6 @@ class SwitchArea { public: SwitchArea(const char*); u8 _[0x50]; };
 class ViewGroupCtrlArea { public: ViewGroupCtrlArea(const char*); u8 _[0x48]; };
 class WaterArea { public: WaterArea(const char*); u8 _[0x48]; };
 class YoshiEatGuidanceArea { public: YoshiEatGuidanceArea(const char*); u8 _[0x48]; };
-class AreaObj { public: AreaObj(const char*); AreaObj(int, const char*); u8 _[0x48]; };
 class CubeCameraArea { public: CubeCameraArea(const char*); u8 _[0x50]; };
 class LightArea { public: LightArea(const char*); u8 _[0x4c]; };
 class SceneChangeArea { public: SceneChangeArea(const char*); u8 _[0x48]; };
@@ -310,13 +334,11 @@ class SpinCloudBlock { public: SpinCloudBlock(const char*); u8 _[0xd4]; };
 class SpinCloudItem { public: SpinCloudItem(const char*); u8 _[0x90]; };
 class SupportFlushPoint { public: SupportFlushPoint(const char*); u8 _[0x94]; };
 class TimeAttackClock { public: TimeAttackClock(const char*); u8 _[0xf8]; };
-class TogepinScorer { public: TogepinScorer(const char*); u8 _[0xa8]; };
 class Tsukidashikun { public: Tsukidashikun(const char*); u8 _[0xd8]; };
 class WaterPressure { public: WaterPressure(const char*); u8 _[0xd0]; };
 class WoodBox { public: WoodBox(const char*); u8 _[0xe0]; };
 class WoodLogBridge { public: WoodLogBridge(const char*); u8 _[0xfc]; };
 class Candlestand { public: Candlestand(const char*); u8 _[0xe0]; };
-class SimpleMapObj { public: SimpleMapObj(const char*); u8 _[0xd0]; };
 class CoconutTreeLeafGroup { public: CoconutTreeLeafGroup(const char*); u8 _[0xa8]; };
 class ItemBlock { public: ItemBlock(const char*); u8 _[0xb0]; };
 class CrystalCage { public: CrystalCage(const char*); u8 _[0x128]; };
@@ -324,7 +346,6 @@ class CrystalCageOpa { public: CrystalCageOpa(const char*); u8 _[0xa8]; };
 class PlantGroup { public: PlantGroup(const char*); u8 _[0xdc]; };
 class ExterminationSwitch { public: ExterminationSwitch(const char*); u8 _[0xa4]; };
 class GemCageS { public: GemCageS(const char*); u8 _[0x9c]; };
-class AnmModelSwitchMove { public: AnmModelSwitchMove(const char*); u8 _[0xdc]; };
 class RailMoveObj { public: RailMoveObj(const char*); u8 _[0xe0]; };
 class SimpleBreakableObj { public: SimpleBreakableObj(const char*); u8 _[0xf4]; };
 class KoopaJrRobotBreakableStep { public: KoopaJrRobotBreakableStep(const char*); u8 _[0x90]; };
@@ -347,7 +368,6 @@ class StarPieceFlower { public: StarPieceFlower(const char*); u8 _[0xa8]; };
 class TreasureSpot { public: TreasureSpot(const char*); u8 _[0xd4]; };
 class SimpleClipPartsObj { public: SimpleClipPartsObj(const char*); u8 _[0xd4]; };
 class DarknessRoomDoor { public: DarknessRoomDoor(const char*); u8 _[0xdc]; };
-class SimpleSeesawObj { public: SimpleSeesawObj(const char*); u8 _[0x100]; };
 class ManholeCover { public: ManholeCover(const char*); u8 _[0x98]; };
 class LavaFloater { public: LavaFloater(const char*); u8 _[0xb4]; };
 class RailRotateMoveObj { public: RailRotateMoveObj(const char*); u8 _[0xe0]; };
@@ -469,6 +489,9 @@ class SoundEmitterCube { public: SoundEmitterCube(int, const char*); u8 _[0x58];
 class SoundEmitterSphere { public: SoundEmitterSphere(int, const char*); u8 _[0x58]; };
 class SoundEmitterCubeWorldMapSync { public: SoundEmitterCubeWorldMapSync(int, const char*); u8 _[0x58]; };
 
+inline AnmModelSwitchMoveEndKill::AnmModelSwitchMoveEndKill(const char* name) : AnmModelSwitchMove(name) {}
+inline DashFruit::DashFruit(const char* name) : StemFruit(name) {}
+
 namespace NameObjFactory {
     template < typename T >
     NameObj* createNameObj(const char* pName) {
@@ -494,12 +517,48 @@ namespace NameObjFactory {
     NameObj* createBaseOriginCylinder(const char* pName) {
         return reinterpret_cast< NameObj* >(new T(3, pName));
     }
+    template <> NameObj* createNameObj<Togepin>(const char* name) { return new Togepin(name, nullptr); }
+    template <> NameObj* createNameObj<PoleObstacleParts>(const char* name) { return new PoleObstacleParts(name, 0, nullptr); }
+    template <> NameObj* createNameObj<MorphItemNeoBee>(const char*) { return new MorphItemNeoBee("ハチオブジェ"); }
+    template <> NameObj* createNameObj<MorphItemNeoFire>(const char*) { return new MorphItemNeoFire("ファイアオブジェ"); }
+    template <> NameObj* createNameObj<MorphItemNeoHopper>(const char*) { return new MorphItemNeoHopper("ホッパーオブジェ"); }
+    template <> NameObj* createNameObj<MorphItemNeoTeresa>(const char*) { return new MorphItemNeoTeresa("テレサオブジェ"); }
 };  // namespace NameObjFactory
 
 typedef NameObj* (*FactoryCreateFunc)(const char*);
 
 // References that instantiate every creator (the real table also carries names/archives).
 extern const FactoryCreateFunc cFactoryCreateFuncs[] = {
+    NameObjFactory::createBaseOriginCube< HazeCube >,
+    NameObjFactory::createBaseOriginCube< WarpCube >,
+    NameObjFactory::createNameObj< WarpPod >,
+    NameObjFactory::createNameObj< Togepin >,
+    NameObjFactory::createNameObj< BenefitItemOneUp >,
+    NameObjFactory::createNameObj< MorphItemNeoBee >,
+    NameObjFactory::createNameObj< MorphItemNeoFire >,
+    NameObjFactory::createNameObj< MorphItemNeoHopper >,
+    NameObjFactory::createNameObj< MorphItemNeoTeresa >,
+    NameObjFactory::createNameObj< SimpleEnvironmentObj >,
+    NameObjFactory::createNameObj< SimpleMapObjPush >,
+    NameObjFactory::createNameObj< AnmModelSwitchMoveEndKill >,
+    NameObjFactory::createNameObj< RotateMoveObj >,
+    NameObjFactory::createNameObj< SimpleMapObjFarMax >,
+    NameObjFactory::createNameObj< SimpleTextureSwitchChangeObj >,
+    NameObjFactory::createNameObj< GlaringLight >,
+    NameObjFactory::createNameObj< AnmModelSwitchMoveInvalidateCollision >,
+    NameObjFactory::createNameObj< WireCoverCage >,
+    NameObjFactory::createNameObj< KoopaJrLv2LiftGenerator >,
+    NameObjFactory::createNameObj< PoleObstacleParts >,
+    NameObjFactory::createNameObj< RotateSeesawTrampoline >,
+    NameObjFactory::createNameObj< EffectObjR500F50 >,
+    NameObjFactory::createNameObj< EffectObj50x50x10SyncClipping >,
+    NameObjFactory::createNameObj< EffectObj20x20x10SyncClipping >,
+    NameObjFactory::createNameObj< EffectObjR1000F50 >,
+    NameObjFactory::createNameObj< EffectObj10x10x10SyncClipping >,
+    NameObjFactory::createNameObj< DashFruit >,
+    NameObjFactory::createNameObj< YoshiFruit >,
+    NameObjFactory::createNameObj< YoshiFruitBig >,
+
     NameObjFactory::createNameObj< AudioEffectArea >,
     NameObjFactory::createNameObj< BgmChangeArea >,
     NameObjFactory::createNameObj< BgmVolumeFadeArea >,
@@ -959,3 +1018,46 @@ extern const FactoryCreateFunc cFactoryCreateFuncs[] = {
     NameObjFactory::createBaseOriginCylinder< AreaObj >,
     NameObjFactory::createBaseOriginCube< SoundEmitterCubeWorldMapSync >,
 };
+
+namespace NameObjFactory {
+    extern const Name2CreateFunc cCreateTable[977];
+    struct PostCreationEntry {
+        const char* mName;
+        void (*mFunction)(const JMapInfoIter&);
+    };
+    extern const PostCreationEntry cPostCreationTable[27];
+
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    CreatorFuncPtr getCreator(const char* name) {
+        if (PlanetMapCreatorFunction::isRegisteredObj(name))
+            return PlanetMapCreatorFunction::getPlanetMapCreator(name);
+        if (MR::hasProductMapCreator(name))
+            return MR::getProductMapCreator(name);
+        const Name2CreateFunc* entry = cCreateTable;
+        for (; entry != cCreateTable + 977; ++entry) {
+            if (entry->mName && MR::isEqualStringCase(entry->mName, name))
+                break;
+        }
+        if (entry == cCreateTable + 977)
+            entry = nullptr;
+        if (entry == nullptr)
+            return nullptr;
+        return entry->mCreateFunc;
+    }
+
+    void callPostCreation(const char* name, const JMapInfoIter& iter) {
+        for (const PostCreationEntry* entry = cPostCreationTable; entry != cPostCreationTable + 27; ++entry) {
+            if (MR::isEqualString(entry->mName, name))
+                entry->mFunction(iter);
+        }
+    }
+
+    NameObj* initChildObj(const JMapInfoIter& iter, int index) {
+        const char* name = nullptr;
+        MR::getChildObjName(&name, iter, index);
+        CreatorFuncPtr creator = getCreator(name);
+        NameObj* child = creator(MR::getJapaneseObjectName(name));
+        MR::initChildObj(child, iter, index);
+        return child;
+    }
+}

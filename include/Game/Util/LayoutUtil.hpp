@@ -57,7 +57,7 @@ namespace MR {
     void setAnimFrameAndStopAtEnd(LayoutActor*, u32);
     void setAnimFrameAndStopAdjustTextWidth(LayoutActor*, const char*, u32);
     void setAnimFrameAndStopAdjustTextHeight(LayoutActor*, const char*, u32);
-    void setPaneAnimFrameAndStop(LayoutActor*, const char*, f32, u32);
+    void setPaneAnimFrameAndStop(LayoutActor*, const char*, f32, u32) NO_INLINE;
     void setPaneAnimFrameAndStopAtEnd(LayoutActor*, const char*, u32);
     void setAnimFrame(LayoutActor*, f32, u32);
     void setPaneAnimFrame(LayoutActor*, const char*, f32, u32);

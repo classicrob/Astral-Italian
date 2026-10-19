@@ -48,7 +48,7 @@ namespace MR {
     void setBvaFrameAndStop(const LiveActor*, f32);
     void setBckFrameEndAndStop(const LiveActor*);
     void setBrkFrameEndAndStop(const LiveActor*);
-    void startBckAndSetFrameAndStop(const LiveActor*, const char*, f32);
+    void startBckAndSetFrameAndStop(const LiveActor*, const char*, f32, const char* = nullptr);
     void startBtkAndSetFrameAndStop(const LiveActor*, const char*, f32);
     void startBrkAndSetFrameAndStop(const LiveActor*, const char*, f32);
     void startBtpAndSetFrameAndStop(const LiveActor*, const char*, f32);
@@ -120,7 +120,7 @@ namespace MR {
     void copyBckBlendWeights(f32*, u32, const LiveActor*);
     bool setBckTrackWeight(const LiveActor*, u32, f32);
     bool isAnyAnimPlaying(const LiveActor*, const char*);
-    bool isExistAnimInKeeper(const LiveActor*, const char*);  // SMG2 fn_80008F00; PLACEHOLDER(core4)
+    bool isExistAnimInKeeper(const LiveActor*, const char*);  // was fn_80008F00
     bool startAnimIfExistAll(const LiveActor*, const char*);  // SMG2 fn_80008740
     void changeTrackWeights(const LiveActor*, const f32*);  // SMG2 fn_80009570
     void setTrackWeights(const LiveActor*, f32, f32, f32);  // SMG2 fn_800095D0

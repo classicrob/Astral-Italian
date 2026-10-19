@@ -80,7 +80,7 @@ void MatColorCtrl::updateMaterial(J3DMaterial* pMaterial) {
     pMaterial->mColorBlock->setMatColor(mColorChoice, mColor);
 }
 
-ViewProjmapEffectMtxSetter::ViewProjmapEffectMtxSetter(J3DModelData* pModelData) : MaterialCtrl(nullptr, nullptr), mMatricies(), mNumMatricies() {
+ViewProjmapEffectMtxSetter::ViewProjmapEffectMtxSetter(J3DModelData* pModelData, const f32 (*baseMtx)[4]) : MaterialCtrl(nullptr, nullptr), mMatricies(), mNumMatricies(), mBaseMtx(baseMtx) {
     J3DTexMtxInfo* matrices[64];
     for (u16 i = 0; i < pModelData->mMaterialTable.getMaterialNum(); i++) {
         J3DMaterial* material = pModelData->mMaterialTable.getMaterialNodePointer(i);
@@ -240,22 +240,11 @@ void MarioShadowProjmapMtxSetter::update() {
     mProjmapMtxSetter->update();
 }
 
-TexMtxCtrl::TexMtxCtrl(J3DModelData* pModelData, const char* pMaterialName) : MaterialCtrl(pModelData, pMaterialName) {
-    for (u32 i = 0; i < 8; i++) {
-        mMatricies[i] = nullptr;
-    }
+TexMtxCtrl::TexMtxCtrl(J3DModelData* modelData, const char* count) : MaterialCtrl(modelData, nullptr), mTexGenCount(count) {
 }
 
-void TexMtxCtrl::setTexMtx(u32 index, J3DTexMtx* pTexMtx) {
-    mMatricies[index] = pTexMtx;
-}
-
-void TexMtxCtrl::updateMaterial(J3DMaterial* pMaterial) {
-    for (u32 i = 0; i < 8; i++) {
-        if (mMatricies[i]) {
-            pMaterial->mTexGenBlock->setTexMtx(i, mMatricies[i]);
-        }
-    }
+void TexMtxCtrl::updateMaterial(J3DMaterial* material) {
+    material->mTexGenBlock->setTexGenNum(static_cast<u8>(*mTexGenCount));
 }
 
 void MaterialCtrl::updateMaterial(J3DMaterial* pMaterial) {

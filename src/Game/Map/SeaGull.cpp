@@ -1,4 +1,5 @@
 #include "Game/Map/SeaGull.hpp"
+#include "Game/System/GameDataFunction.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
@@ -21,6 +22,7 @@ SeaGull::SeaGull(SeaGullGroup* pGroup)
       mGlideTimer(), mLiftTimer(), mChirpTimer() {
 }
 
+// NONMATCHING: regalloc
 void SeaGull::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::calcActorAxis(&mSide, &mBankedUp, &mFront, this);
@@ -58,6 +60,7 @@ void SeaGull::init(const JMapInfoIter& rIter) {
     initSound(4, "SeaGull", nullptr, TVec3f(0.0f));
     mChirpTimer = MR::getRandom(60L, 480L);
     MR::invalidateClipping(this);
+    MR::registerDemoSimpleCastAll(this);
     makeActorAppeared();
 }
 
@@ -131,6 +134,10 @@ void SeaGull::control() {
     if (mTargetUpdateTimer <= 0) {
         mTargetPosition = mSeaGullGroup->updatePosInfo(&mPointIndex, mIsReverse);
         mTargetUpdateTimer = 0xB4;
+    }
+
+    if (_SMG2_90) {
+        return;
     }
 
     if (mChirpTimer <= 0) {
@@ -216,12 +223,18 @@ void SeaGull::calcAndSetBaseMtx() {
     MR::setBaseTRMtx(this, mtx);
 }
 
-SeaGullGroup::SeaGullGroup(const char* pName) : LiveActor(pName), mPointCount(), mPoints() {
+SeaGullGroup::SeaGullGroup(const char* pName) : LiveActor(pName), mPointCount(), mPoints(), mBirdCount(), mBirds(), mIsMarioFace() {
 }
 
+// NONMATCHING: regalloc
 void SeaGullGroup::init(const JMapInfoIter& rIter) {
-    s32 birdCount = 10;
-    MR::getJMapInfoArg0NoInit(rIter, &birdCount);
+    const char* objectName = nullptr;
+    MR::getObjectName(&objectName, rIter);
+    mIsMarioFace = MR::isEqualString(objectName, "SeaGullGroupMarioFace");
+    mBirdCount = 10;
+    MR::getJMapInfoArg0NoInit(rIter, &mBirdCount);
+    bool noChirp = false;
+    MR::getJMapInfoArg1NoInit(rIter, &noChirp);
     initRailRider(rIter);
     mPosition.set(MR::getRailPos(this));
     mPointCount = static_cast< s32 >(MR::getRailTotalLength(this) / 500.0f) + 1;
@@ -232,13 +245,43 @@ void SeaGullGroup::init(const JMapInfoIter& rIter) {
         MR::calcRailPosAtCoord(&mPoints[i], this, interval * i);
     }
 
-    for (s32 i = 0; i < birdCount; i++) {
+    mBirds = new SeaGull*[mBirdCount];
+    for (s32 i = 0; i < mBirdCount; i++) {
         SeaGull* pSeaGull = new SeaGull(this);
+        if (noChirp) {
+            pSeaGull->_SMG2_90 = true;
+        }
         pSeaGull->init(rIter);
+        mBirds[i] = pSeaGull;
     }
 
     MR::invalidateClipping(this);
-    makeActorAppeared();
+    if (!mIsMarioFace) {
+        MR::useStageSwitchSyncAppear(this, rIter);
+    } else {
+        makeActorAppeared();
+    }
+    if (mIsMarioFace) {
+        s32 world = GameDataFunction::getCurrentWorldId();
+        bool enabled = world == 1 || world == 2 || world == 7;
+        if (!enabled) {
+            makeActorDead();
+        }
+    }
+}
+
+void SeaGullGroup::makeActorAppeared() {
+    LiveActor::makeActorAppeared();
+    for (s32 i = 0; i < mBirdCount; i++) {
+        mBirds[i]->makeActorAppeared();
+    }
+}
+
+void SeaGullGroup::makeActorDead() {
+    LiveActor::makeActorDead();
+    for (s32 i = 0; i < mBirdCount; i++) {
+        mBirds[i]->makeActorDead();
+    }
 }
 
 TVec3f* SeaGullGroup::updatePosInfo(s32* pPointIndex, bool isReverse) const {

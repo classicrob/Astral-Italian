@@ -337,6 +337,38 @@ namespace MR {
         pDst->setXYZDir(axisX, axisY, axisZ);
     }
 
+    void makeSRTFromMtxPtr(TVec3f* pOutTrans, TVec3f* pOutRot, TVec3f* pOutScale, MtxPtr pSrc, bool toDegree) {
+        TVec3f scale;
+        scale.x = JGeometry::TUtil< f32 >::sqrt(pSrc[0][0] * pSrc[0][0] + pSrc[1][0] * pSrc[1][0] + pSrc[2][0] * pSrc[2][0]);
+        scale.y = JGeometry::TUtil< f32 >::sqrt(pSrc[0][1] * pSrc[0][1] + pSrc[1][1] * pSrc[1][1] + pSrc[2][1] * pSrc[2][1]);
+        scale.z = JGeometry::TUtil< f32 >::sqrt(pSrc[0][2] * pSrc[0][2] + pSrc[1][2] * pSrc[1][2] + pSrc[2][2] * pSrc[2][2]);
+
+        TPos3f scaleMtx;
+        scaleMtx.identity();
+        f32 invZ = JMath::fastReciprocal(scale.z);
+        f32 invY = JMath::fastReciprocal(scale.y);
+        f32 invX = JMath::fastReciprocal(scale.x);
+        scaleMtx.setScale(invX, invY, invZ);
+
+        TPos3f rotMtx;
+        rotMtx.concat(*reinterpret_cast< TPos3f* >(pSrc), scaleMtx);
+
+        if (pOutTrans != nullptr) {
+            rotMtx.getTrans(*pOutTrans);
+        }
+
+        if (pOutRot != nullptr) {
+            rotMtx.getEuler(*pOutRot);
+            if (toDegree) {
+                pOutRot->set(*pOutRot * 57.295780181884766f);
+            }
+        }
+
+        if (pOutScale != nullptr) {
+            pOutScale->set(scale);
+        }
+    }
+
     void makeRTFromMtxPtr(TVec3f* pOutTrans, TVec3f* pOutRot, MtxPtr pSrc, bool toDegree) {
         TPos3f* pMtx = reinterpret_cast< TPos3f* >(pSrc);
         if (pOutTrans != nullptr) {
@@ -631,6 +663,17 @@ namespace MR {
         rotateMtxMoment(pMtx, *pMtx, rMoment);
     }
 
+    void fn_80046A70(MtxPtr pDst, MtxPtr pA, MtxPtr pB) {
+        TVec3f trans(pB[0][3], pB[1][3], pB[2][3]);
+        pB[0][3] = 0.0f;
+        pB[1][3] = 0.0f;
+        pB[2][3] = 0.0f;
+        PSMTXConcat(pA, pB, pDst);
+        pDst[0][3] = trans.x;
+        pDst[1][3] = trans.y;
+        pDst[2][3] = trans.z;
+    }
+
     void setMtxTrans(MtxPtr pMtx, f32 x, f32 y, f32 z) {
         pMtx[0][3] = x;
         pMtx[1][3] = y;
@@ -695,6 +738,30 @@ namespace MR {
         pOut->x = pMtx[0][3];
         pOut->y = pMtx[1][3];
         pOut->z = pMtx[2][3];
+    }
+
+    void separateMtxScale(MtxPtr rotation, MtxPtr scale, MtxPtr source) {
+        f32 sumX = source[0][0] * source[0][0] + source[1][0] * source[1][0] + source[2][0] * source[2][0];
+        f32 sumY = source[0][1] * source[0][1] + source[1][1] * source[1][1] + source[2][1] * source[2][1];
+        f32 sumZ = source[0][2] * source[0][2] + source[1][2] * source[1][2] + source[2][2] * source[2][2];
+
+        f32 sz = MR::sqrt< f32 >(sumZ);
+        f32 sy = MR::sqrt< f32 >(sumY);
+        f32 sx = MR::sqrt< f32 >(sumX);
+        PSMTXScale(scale, sx, sy, sz);
+
+        f32 invZ = isNearZero(scale[2][2], 0.001f) ? 0.0f : 1.0f / scale[2][2];
+        f32 invY = isNearZero(scale[1][1], 0.001f) ? 0.0f : 1.0f / scale[1][1];
+        f32 invX = isNearZero(scale[0][0], 0.001f) ? 0.0f : 1.0f / scale[0][0];
+
+        f32 invScale[3][4];
+        PSMTXScale(invScale, invX, invY, invZ);
+        PSMTXConcat(source, invScale, rotation);
+    }
+
+    template <>
+    f32 sqrt< f32 >(f32 x) {
+        return fastSqrtf(x);
     }
 
     bool isSameMtx(MtxPtr pMtxA, MtxPtr pMtxB) {

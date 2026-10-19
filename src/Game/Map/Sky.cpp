@@ -11,6 +11,12 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
+#include "Game/Util/ActorAnimUtil.hpp"
+#include "Game/Util/EffectUtil.hpp"
+#include "Game/Util/ModelUtil.hpp"
+#include "Game/RhythmLib/AudRhythmTiming.hpp"
+#include "Game/System/GameDataFunction.hpp"
+#include "Game/System/WorldMapResultCommand.hpp"
 
 namespace {
     const char* cChangeAnimName = "Change";
@@ -35,9 +41,8 @@ void Sky::init(const JMapInfoIter& rIter) {
 
     initModel(objName);
     MR::connectToSceneSky(this);
-    MR::useStageSwitchReadA(this, rIter);
-    MR::useStageSwitchReadB(this, rIter);
-    MR::useStageSwitchReadAppear(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchReadB(this, rIter);
 
     if (MR::isEqualString(objName, "SummerSky")) {
         mSpaceInner = new SpaceInner("内側宇宙");
@@ -49,7 +54,7 @@ void Sky::init(const JMapInfoIter& rIter) {
     }
 
     s32 arg0 = -1;
-    MR::getJMapInfoArg0NoInit(rIter, &arg0);
+    if (MR::isValidInfo(rIter)) MR::getJMapInfoArg0NoInit(rIter, &arg0);
 
     if (arg0 == 0) {
         mReflectionModel = new MirrorReflectionModel(this, "鏡内モデル", objName, getBaseMtx());
@@ -66,12 +71,8 @@ void Sky::init(const JMapInfoIter& rIter) {
     MR::registerDemoSimpleCastAll(this);
     initNerve(GET_NERVE(Sky, HostTypeWait));
 
-    if (MR::isValidSwitchAppear(this)) {
-        MR::syncStageSwitchAppear(this);
-        makeActorDead();
-    } else {
-        makeActorAppeared();
-    }
+    MR::useStageSwitchAwake(this, rIter);
+    MR::useStageSwitchSyncAppear(this, rIter);
 }
 
 void Sky::calcAnim() {
@@ -147,3 +148,46 @@ void ProjectionMapSky::initModel(const char* pName) {
     MR::newDifferedDLBuffer(this);
     mProjmapEffectMtxSetter->updateMtxUseBaseMtx();
 }
+
+SoundSyncSky::SoundSyncSky(const char* name) : Sky(name) {}
+void SoundSyncSky::updateWait() { tryStartBeatAction(); }
+bool SoundSyncSky::tryStartBeatAction() {
+    if (!AudRhythmWrap::isBeatTiming(8, 7.94f)) return false;
+    MR::startAction(this, "Appear");
+    return true;
+}
+
+namespace {
+    const char* cWorldMapSkyModels[] = {nullptr, "WorldMap01Sky", "WorldMap02Sky", "WorldMap03Sky", "WorldMap04Sky", "WorldMap05Sky", "WorldMap06Sky", "WorldMap07Sky"};
+    const char* cWorldMapSkySoundModels[] = {"WorldMap06Sky"};
+}
+
+WorldMapSky::WorldMapSky(const char* name) : Sky(name), mProjmapEffectMtxSetter(nullptr) {}
+void WorldMapSky::appear() {
+    LiveActor::appear();
+    if (MR::isRegisteredEffect(this, MR::getModelResName(this))) MR::emitEffect(this, MR::getModelResName(this));
+}
+void WorldMapSky::getModelName(const char** out, const JMapInfoIter&) {
+    *out = cWorldMapSkyModels[GameDataFunction::getCurrentWorldId()];
+}
+void WorldMapSky::calcAndSetBaseMtx() {
+    LiveActor::calcAndSetBaseMtx();
+    if (mProjmapEffectMtxSetter) mProjmapEffectMtxSetter->updateMtxUseBaseMtx();
+}
+void WorldMapSky::initModel(const char* name) {
+    MR::initActor(this, name, true);
+    if (MR::isExistProjMapTexMtx(this)) {
+        mProjmapEffectMtxSetter = MR::initDLMakerProjmapEffectMtxSetter(this);
+        MR::newDifferedDLBuffer(this);
+        mProjmapEffectMtxSetter->updateMtxUseBaseMtx();
+    } else if (MR::isExistBrk(this, name) || MR::isExistBtk(this, name)) {
+        MR::newDifferedDLBuffer(this);
+    }
+    if (MR::isExistString(name, cWorldMapSkySoundModels, 1)) initSound(4, nullptr, nullptr, TVec3f(0.0f));
+    initEffectKeeper(0, nullptr, false);
+    setWorldMapResultActor(this);
+    appear();
+}
+
+SoundSyncSky::~SoundSyncSky() {}
+WorldMapSky::~WorldMapSky() {}

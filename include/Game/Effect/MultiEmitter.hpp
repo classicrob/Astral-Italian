@@ -75,7 +75,7 @@ public:
     void setGlobalSRTMatrix(const Mtx, s32);
     void setGlobalPrmColor(u8, u8, u8, s32);
     void setGlobalEnvColor(u8, u8, u8, s32);
-    void setLocalScale(const TVec3f&, s32);
+    void setGlobalAlpha(u8, s32);  // was setLocalScale(const TVec3f&, s32) in symbols.txt: the target stores a u8 into mGlobalPrmClr.a (+0xBB)
     void setDirectionalSpeed(f32, s32);
     void setRate(f32, s32);
     void stopCalcEmitter(s32);

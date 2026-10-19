@@ -21,7 +21,7 @@ namespace {
     GameSequenceSystemStartNrvStart GameSequenceSystemStartNrvStart::sInstance ATTRIBUTE_WEAK;
 };  // namespace
 
-GameSequenceSystemStart::GameSequenceSystemStart(GameSequence* pHost) : ActorStateBase< GameSequence >("[シーケンス]起動〜ロゴ", pHost) {
+GameSequenceSystemStart::GameSequenceSystemStart(GameSequence* pHost) : ActorStateBase< GameSequence >("[シーケンス]起動～ロゴ", pHost) {
 }
 
 GameSequenceSystemStart::~GameSequenceSystemStart() {

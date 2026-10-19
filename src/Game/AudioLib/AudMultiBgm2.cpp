@@ -290,7 +290,7 @@ bool AudMultiBgm::isPaused() const {
 
 JAISoundID AudMultiBgm::getSoundID() const {
     if (!mHandle.isSoundAttached()) {
-        return 0;
+        return JAISoundID(-1);
     }
 
     return mHandle->getID();

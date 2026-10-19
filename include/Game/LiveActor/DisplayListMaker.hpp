@@ -3,6 +3,7 @@
 #include "Game/Util/Array.hpp"
 #include <revolution/types.h>
 
+class ResTIMG;
 class FogCtrl;
 class J3DAnmBase;
 class J3DGXColor;
@@ -49,6 +50,7 @@ public:
     ViewProjmapEffectMtxSetter* addViewProjmapEffectMtxSetter();
     MarioShadowProjmapMtxSetter* addMarioShadowProjmapMtxSetter();
     void checkTexture();
+    bool replaceTexture(const char*, const ResTIMG*) NO_INLINE;
     static bool isExistDiffMaterial(const J3DModelData*);
 
     /* 0x00 */ MR::Vector< MR::AssignableArray< MaterialCtrl* > > mMaterialCtrl;

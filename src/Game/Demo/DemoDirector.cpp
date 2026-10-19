@@ -20,7 +20,7 @@
 #include "Game/Util/StarPointerUtil.hpp"
 
 DemoDirector::DemoDirector(const char* pName)
-    : NameObj(pName), mIsActive(), mExecutor(), _14(), _18(), _20(new DemoSimpleCastHolder(512, 64, 128)), mResourceHolder(),
+    : NameObj(pName), mIsActive(), _13(), mExecutor(), _14(), _18(), _20(new DemoSimpleCastHolder(512, 64, 128)), mResourceHolder(),
       mStartRequestHolder(new DemoStartRequestHolder()), _2C(), _30(), _34(-1), _38(true) {
     MR::connectToScene(this, MR::MovementType_DemoDirector, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);
 
@@ -57,6 +57,31 @@ void DemoDirector::movement() {
 
 
 
+
+void DemoDirector::endDemo(NameObj* pParam1, const char* pParam2, bool param3) {
+    if (DemoStartRequestUtil::isExistStartDemoRequest(mStartRequestHolder)) {
+        MR::sendMsgToAllLiveActor(ACTMES_END_DEMO, nullptr);
+
+        mExecutor = nullptr;
+
+        doDemoEndRequest();
+        startDemoRequested();
+    } else if (param3 && !MR::isCameraInterpolatingNearlyEnd() && _34 != 3) {
+        _14 = true;
+
+        MR::sendMsgToAllLiveActor(ACTMES_END_DEMO, nullptr);
+
+        mExecutor = nullptr;
+
+        MR::getSceneObj< SceneNameObjMovementController >(SceneObj_SceneNameObjMovementController)->requestStopSceneOverwrite(pParam1);
+    } else {
+        MR::sendMsgToAllLiveActor(ACTMES_END_DEMO, nullptr);
+
+        mExecutor = nullptr;
+
+        doDemoEndRequest();
+    }
+}
 
 const char* DemoDirector::getCurrentDemoName() const {
     if (mIsActive) {

@@ -24,6 +24,8 @@ public:
     /// @param rIter The reference to an iterator over a `JMapInfo`.
     virtual void init(const JMapInfoIter& rIter);
 
+    AreaObjMgr* getManager2(const char*) const;
+    bool isExistAreaObj(const char*) const;
     AreaObjMgr* getManager(const char*) const;
     AreaObj* getAreaObj(const char*, const TVec3f&) const;
 

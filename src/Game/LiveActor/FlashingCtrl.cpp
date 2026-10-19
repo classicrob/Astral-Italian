@@ -76,7 +76,7 @@ void FlashingCtrl::updateFlashing() {
             MR::offEntryDrawBuffer(mActor);
 
             if (mIsOffPhase) {
-                MR::startActionSound(mActor, "Blink");
+                MR::startActionSoundAuto(mActor, "Blink");
                 mIsOffPhase = false;
             }
         } else {

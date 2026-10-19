@@ -30,7 +30,8 @@ public:
     void mount(JKRArchive*, char*);
 
     ResFileInfo* createAndRegisterObject(const char*, void*);
-    void backupInitMaterialData(const J3DModelData*);
+    void backupInitMaterialData();
+    void restoreInitMaterialData();
 
     // bool checkCorrectMotionsAndModel(J3DModelData*, const char*) const;
 

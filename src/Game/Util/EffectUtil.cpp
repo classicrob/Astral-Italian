@@ -36,7 +36,8 @@ namespace MR {
     }
 
     MultiEmitter* getEffect(const LiveActor* pActor, const char* pEffectName) {
-        return ::getEffectKeeper(pActor)->getEmitter(pEffectName);
+        const EffectKeeper* pKeeper = ::getEffectKeeper(pActor);
+        return pKeeper->getEmitter(pEffectName);
     }
 
     MultiEmitter* getEffect(const LayoutActor* pActor, const char* pEffectName) {
@@ -163,8 +164,8 @@ namespace MR {
         getEffect(pActor, pEffectName)->setBaseScale(scale);
     }
 
-    void setEffectLocalScale(LiveActor* pActor, const char* pEffectName, const TVec3f& rScaleVec) {
-        getEffect(pActor, pEffectName)->setLocalScale(rScaleVec, -1);
+    void setEffectAlpha(LiveActor* pActor, const char* pEffectName, u8 alpha) {
+        getEffect(pActor, pEffectName)->setGlobalAlpha(alpha, -1);
     }
 
     void setEffectColor(LiveActor* pActor, const char* pEffectName, u8 colorPrm1, u8 colorPrm2, u8 colorPrm3, u8 colorEnv1, u8 colorEnv2,

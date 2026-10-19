@@ -35,5 +35,4 @@ namespace NrvTimeStopScreenEffect {
 namespace MR {
     bool isTimeStopScreenEffectActive();
     JUTTexture* getTimeStopScreenCaptureTexture();
-    bool isOnTimeStopScreenEffect();
 }

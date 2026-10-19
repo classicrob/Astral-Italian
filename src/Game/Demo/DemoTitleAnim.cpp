@@ -4,12 +4,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-// Constructed in an unsplit area (fn_ names); called directly, not through `new`.
-extern "C" DemoTitleAnimParam* fn_8013CF30(DemoTitleAnimParam*);
-extern "C" DemoTitleAnimSub* fn_8013CA10(DemoTitleAnimSub*, DemoTitleAnim*, DemoTitleAnimParam*);
-extern "C" DemoTitleAnimSub* fn_8013CC80(DemoTitleAnimSub*, DemoTitleAnim*, DemoTitleAnimParam*);
-
 namespace {
     const char* sEntryActorList = "EntryActorList";
 };  // namespace
@@ -126,10 +120,7 @@ void DemoTitleAnim::createSubs() {
     }
     mSubs = new DemoTitleAnimSub*[mSubCount];
     for (s32 i = 0; i < mSubCount; i++) {
-        DemoTitleAnimParam* param = static_cast<DemoTitleAnimParam*>(::operator new(0x14));
-        if (param != nullptr) {
-            param = fn_8013CF30(param);
-        }
+        DemoTitleAnimParam* param = new DemoTitleAnimParam();
         MR::getCsvDataStr(&param->mArcName, csv, "ArciveName", i);
         MR::getCsvDataStrOrNULL(&param->mJointName, csv, "JointName", i);
         MR::getCsvDataStrOrNULL(&param->mActionName, csv, "ActionName", i);
@@ -138,15 +129,9 @@ void DemoTitleAnim::createSubs() {
 
         DemoTitleAnimSub* sub;
         if (MR::isEqualString(param->mArcName, "Player")) {
-            sub = static_cast<DemoTitleAnimSub*>(::operator new(0x9C));
-            if (sub != nullptr) {
-                sub = fn_8013CC80(sub, this, param);
-            }
+            sub = new DemoTitleAnimPlayer(this, param);
         } else {
-            sub = static_cast<DemoTitleAnimSub*>(::operator new(0x9C));
-            if (sub != nullptr) {
-                sub = fn_8013CA10(sub, this, param);
-            }
+            sub = new DemoTitleAnimModel(this, param);
         }
         mSubs[i] = sub;
         mSubs[i]->initWithoutIter();

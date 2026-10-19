@@ -50,20 +50,16 @@ void NWC24Messenger::draw() const {
     mSendState->draw();
 }
 
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
-void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const wchar_t* pAltName, const u8* pPicture, u32 pictureSize, bool isBG)
-#elif (VERSION == RMGK01)
-void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const wchar_t* pAltName, const u8* pPicture, u32 pictureSize, bool isBG,
-                          bool isMsgLedPattern, u16 tag, u8 delayHours)
-#endif
-{
+void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const wchar_t* pAltName, const u8* pPicture, u32 pictureSize, s32 mode,
+                          bool isMsgLedPattern, u16 tag, u8 delayHours) {
     if (_1C) {
         return;
     }
 
-    NWC24MessengerSub::SendTask* pTask;
+    NWC24MessengerSub::SendTask* pTask = nullptr;
 
-    if (isBG) {
+    switch (mode) {
+    case 2: {
         int i;
 
         for (i = 0; i < BACKGROUND_TASK_NUM; i++) {
@@ -73,17 +69,25 @@ void NWC24Messenger::send(const char* pTaskName, const wchar_t* pMessage, const 
         }
 
         pTask = &mBackgroundTaskArray[i];
-    } else {
+        break;
+    }
+    case 0:
+    case 1:
         pTask = mForegroundTask;
+        break;
     }
 
     if (pTask != nullptr) {
         pTask->_0 = true;
-        pTask->mIsBG = isBG;
+        pTask->mIsBG = mode == 2;
         pTask->_2 = false;
+        pTask->mIsMsgLedPattern = isMsgLedPattern;
+        pTask->mIsSilent = mode == 1;
         pTask->mRetryNo = 0;
         pTask->mErr = NWC24_OK;
         pTask->mErrCode = 0;
+        pTask->mTag = tag;
+        pTask->mDelayHours = delayHours;
         pTask->mTaskName = pTaskName;
         pTask->mMessage = pMessage;
         pTask->mAltName = pAltName;
@@ -155,12 +159,12 @@ void NWC24Messenger::reset() {
 }
 
 NWC24MessengerSub::SendTask* NWC24Messenger::findTask(const char* pTaskName) const {
-    if (MR::isEqualString(mForegroundTask->mTaskName, pTaskName) && mForegroundTask->_0) {
+    if (mForegroundTask->mTaskName && MR::isEqualString(mForegroundTask->mTaskName, pTaskName) && mForegroundTask->_0) {
         return mForegroundTask;
     }
 
     for (int i = 0; i < BACKGROUND_TASK_NUM; i++) {
-        if (MR::isEqualString(mBackgroundTaskArray[i].mTaskName, pTaskName) && mBackgroundTaskArray[i]._0) {
+        if (mBackgroundTaskArray[i].mTaskName && MR::isEqualString(mBackgroundTaskArray[i].mTaskName, pTaskName) && mBackgroundTaskArray[i]._0) {
             return &mBackgroundTaskArray[i];
         }
     }
@@ -282,7 +286,7 @@ namespace NWC24MessengerSub {
         }
 
         if (!mTask->mIsBG) {
-            if (mTask->mRetryNo > 0 && isEndSysInfoMini()) {
+            if (!mTask->mIsSilent && mTask->mRetryNo > 0 && isEndSysInfoMini()) {
                 const char* pMessageId = "WiiMessageSending";
 
                 if (mMiniWindow != nullptr) {
@@ -404,7 +408,23 @@ namespace NWC24MessengerSub {
     }
 
 
+    void SendState::exeUpdateLimitFG() {
+        if (MR::isFirstStep(this)) {
+            MR::updateWiiMailSentSize(mTask->mSentSize);
+            GameSequenceFunction::startWaitSaveDataSequence();
+        }
+        if (!GameSequenceFunction::isActiveSaveDataHandleSequence()) {
+            doneTask();
+            setNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
+        }
+    }
+
     void SendState::exeRetryErrorFG() {
+        if (mTask->mIsSilent) {
+            doneTask();
+            setNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
+            return;
+        }
         if (MR::isFirstStep(this)) {
             const char* pMessageId = "WC24_04";
 
@@ -420,6 +440,11 @@ namespace NWC24MessengerSub {
     }
 
     void SendState::exeOpenErrorFG() {
+        if (mTask->mIsSilent) {
+            doneTask();
+            setNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
+            return;
+        }
         if (MR::isFirstStep(this)) {
             switch (mTask->mErr) {
             case NWC24_ERR_BROKEN:
@@ -456,6 +481,11 @@ namespace NWC24MessengerSub {
     }
 
     void SendState::exeSendFatalErrorFG() {
+        if (mTask->mIsSilent) {
+            doneTask();
+            setNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
+            return;
+        }
         if (MR::isFirstStep(this)) {
             const char* pMessageId;
 
@@ -500,6 +530,11 @@ namespace NWC24MessengerSub {
     }
 
     void SendState::exeCloseErrorFG() {
+        if (mTask->mIsSilent) {
+            doneTask();
+            setNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
+            return;
+        }
         if (MR::isFirstStep(this)) {
             const char* pMessageId;
 
@@ -534,6 +569,11 @@ namespace NWC24MessengerSub {
     }
 
     void SendState::exeSendFullErrorFG() {
+        if (mTask->mIsSilent) {
+            doneTask();
+            setNerve(GET_NERVE_GLOBAL(SendStateNrvWait));
+            return;
+        }
         if (MR::isFirstStep(this)) {
             const char* pMessageId;
 
@@ -676,25 +716,18 @@ namespace NWC24MessengerSub {
 };  // namespace NWC24MessengerSub
 
 namespace MR {
-#if (VERSION == RMGJ01 || VERSION == RMGE01 || VERSION == RMGP01 || VERSION == RMGP01)
-
-
-#elif (VERSION == RMGK01)
-
     SendMailObj::SendMailObj(const char* pTaskName)
-        : mTaskName(pTaskName), mMessage(), mSenderID(), mImage(), mImageSize(), mIsBG(true), mIsLed(true), mTag(), mDelay() {
+        : mTaskName(pTaskName), mMessage(), mSenderID(), mImage(), mImageSize(), mSendMode(0), mIsLed(true), mTag(), mDelay() {
     }
 
-
-
-
-
-
-
-
-
-
-#endif
+    void SendMailObj::setMessageDirect(const wchar_t* message) { mMessage = message; }
+    void SendMailObj::setSenderID(const char* sender) { mSenderID = MR::getMailSender(sender); }
+    void SendMailObj::setImage(const u8* image, u32 size) { mImage = image; mImageSize = size; }
+    void SendMailObj::setSilent() { mSendMode = 1; }
+    void SendMailObj::setLedOff() { mIsLed = false; }
+    void SendMailObj::send() {
+        ::getNWC24Messenger()->send(mTaskName, mMessage, mSenderID, mImage, mImageSize, mSendMode, mIsLed, mTag, mDelay);
+    }
 
     void termMail(const char* pTaskName) {
         ::getNWC24Messenger()->term(pTaskName);

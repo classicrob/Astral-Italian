@@ -44,8 +44,10 @@ namespace MR {
     void fillScreen(const GXColor&);
     void setupShadowVolumeDraw();
     void drawSimpleModel(J3DModelData*);
+    void drawModelAlphaShadow(J3DModel*) NO_INLINE;
     void fillSilhouetteColor();
     const JUTTexture* getMarioShadowTex();
+    const JUTTexture* getMarioShadowTexForDisplayList();
     const JUTTexture* getMarioShadowTexForLoad();
     const TVec3f& getMarioShadowVec();
     void setMarioShadowTex(const JUTTexture*);

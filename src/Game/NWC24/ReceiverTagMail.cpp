@@ -32,9 +32,9 @@ void ReceiverTagMail::send(const char* pMessageId, const u8* pImage, u32 imageSi
     mail.setMessageDirect(mMessage);
     mail.setSenderID(mSenderID);
     mail.setImage(pImage, imageSize);
-    mail.setBGEnable();
+    mail.setSilent();
     if (!backgroundEnabled) {
-        mail.setBGDisable();
+        mail.setLedOff();
     }
     mail.send();
     _18 = 0;

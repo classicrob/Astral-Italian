@@ -104,7 +104,7 @@ void SuperSpinDriver::init(const JMapInfoIter& rIter) {
         MR::listenStageSwitchOnOffB(this, MR::Functor(this, &SuperSpinDriver::requestShow), MR::Functor(this, &SuperSpinDriver::requestHide));
     }
 
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
     initAppearState(rIter);
 }
 

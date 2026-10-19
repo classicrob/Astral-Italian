@@ -97,7 +97,7 @@ bool WorldMapOwner::isPressedA() {
 bool WorldMapOwner::isStickTilted() {
     f32 x = MR::getPlayerStickX();
     f32 y = MR::getPlayerStickY();
-    return x * x + y * y > 0.49f;
+    return x * x + y * y > 0.7f * 0.7f;
 }
 
 bool WorldMapOwner::tryStartStarCheckEvent(WorldMapResultStatePointEvent* pState, s32 node) {
@@ -710,7 +710,7 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
     getNodePosition(&goal, this, pCamera->mPathFrom);
     if (arrived) {
         TVec3f accel(0.0f);
-        MR::calcVelocityMoveToTarget(&accel, pRocket, goal, pCamera->mAccel);
+        MR::fn_80010AD0(&accel, pRocket, goal, pCamera->mAccel);
         pCamera->mVelocity.add(accel);
         pCamera->mVelocity.scale(pCamera->mFriction);
         pCamera->mTargetA.add(pCamera->mVelocity);
@@ -725,7 +725,7 @@ bool WorldMapOwner::updateCameraMove(s32 flag) {
 
         pRocket->mPosition = c * rate + pCamera->mTargetA * (1.0f - rate);
     } else {
-        MR::addVelocityMoveToTarget(pRocket, goal, pCamera->mAccel);
+        MR::fn_80010DB0(pRocket, goal, pCamera->mAccel);
         MR::attenuateVelocity(pRocket, pCamera->mFriction);
         MR::restrictVelocity(pRocket, pCamera->mMaxSpeed);
         pRocket->setMoveDirection(pRocket->mVelocity);

@@ -1,4 +1,5 @@
 #include "Game/Util/MathUtil.hpp"
+#include <JSystem/J2DGraph/J2DPicture.hpp>
 #include "Game/Util/MtxUtil.hpp"
 #include <revolution.h>
 #include "Game/System/GameSystem.hpp"
@@ -10,6 +11,7 @@ namespace {
 };
 
 namespace MR {
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void initAcosTable() {
         gAcosTable = new f32[0x100];
         u32 i = 0;
@@ -19,7 +21,7 @@ namespace MR {
             if (v7 > 1.0) {
                 v7 = 1.0;
             }
-            gAcosTable[i++] = acos(v7);
+            gAcosTable[i++] = ::acos(v7);
         } while (i < 0x100);
     }
 
@@ -254,8 +256,9 @@ namespace MR {
         return JGeometry::TUtil< f32 >::clamp(normalize(x, min, max), 0.0f, 1.0f);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void turnVecRandomAroundAxis(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rAxis, f32 min, f32 max) {
-        f32 degree = fmod(min + (max - min) * getRandom(), 360.0f);
+        f32 degree = repeat(min + (max - min) * getRandom(), 0.0f, 360.0f);
         TPos3f mtx;
         mtx.identity();
         mtx.setRotate(rAxis, 0.017453292f * degree);
@@ -263,9 +266,10 @@ namespace MR {
     }
 
     // PLACEHOLDER(core): SMG2 fn_80040750 (unnamed); resolve when renamed in symbols.txt
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcYawDegreeXZ(const TVec3f& rVec) {
         if (rVec.z == 0.0f) {
-            if (rVec.x == 0.0f) {
+            if (rVec.x >= 0.0f) {
                 return 90.0f;
             }
             return -90.0f;
@@ -329,6 +333,7 @@ namespace MR {
         }
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcPerpendicFootToLine(TVec3f* pDst, const TVec3f& rPos, const TVec3f& rPointA, const TVec3f& rPointB) {
         TVec3f offset = rPointB - rPointA;
         f32 ratio = rPos.dot(offset) - rPointA.dot(offset);
@@ -339,6 +344,7 @@ namespace MR {
         return ratio;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcPerpendicFootToLineInside(TVec3f* pDst, const TVec3f& rPos, const TVec3f& rPointA, const TVec3f& rPointB) {
         TVec3f offset = rPointB - rPointA;
         f32 ratio = rPos.dot(offset) - rPointA.dot(offset);
@@ -350,6 +356,7 @@ namespace MR {
         return ratio;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     bool checkHitSegmentSphere(const TVec3f& rSpherePos, const TVec3f& rPointA, const TVec3f& rPointB, f32 radius, TVec3f* pDir) {
         TVec3f pos = rSpherePos;
         TVec3f segment = rPointB;
@@ -393,6 +400,7 @@ namespace MR {
         return false;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     bool checkHitSemilinePlane(TVec3f* pHitPos, const TVec3f& rPos, const TVec3f& rDir, const TVec3f& rPlanePos, const TVec3f& rPlaneNorm) {
         f32 dot = rDir.dot(rPlaneNorm);
         TVec3f offset = rPlanePos - rPos;
@@ -407,6 +415,7 @@ namespace MR {
         return true;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     bool calcReboundVelocity(TVec3f* pVel, const TVec3f& rNormal, f32 reboundRate) {
         f32 dot = pVel->dot(rNormal);
         if (dot < 0.0f) {
@@ -420,6 +429,7 @@ namespace MR {
         return false;
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     bool calcReboundVelocity(TVec3f* pVel, const TVec3f& rNormal, f32 reboundRateV, f32 reboundRateH) {
         f32 dot = pVel->dot(rNormal);
         if (dot < 0.0f) {
@@ -666,6 +676,7 @@ namespace MR {
     }
 
     // unsure if these labels are correct
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void turnQuatXDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f xDir;
         rSrc.getXDir(xDir);
@@ -684,6 +695,7 @@ namespace MR {
         pDst->normalize();
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void turnQuatYDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f yDir;
         rSrc.getYDir(yDir);
@@ -702,6 +714,7 @@ namespace MR {
         pDst->normalize();
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void turnQuatZDirRate(TQuat4f* pDst, const TQuat4f& rSrc, const TVec3f& rTo, f32 rate) {
         TVec3f zDir;
         rSrc.getZDir(zDir);
@@ -731,6 +744,16 @@ namespace MR {
 
         return 0.0f;
     }
+}
+
+void J2DPicture::swap(f32& a, f32& b) {
+    f32 value = a;
+    a = b;
+    b = value;
+}
+
+namespace MR {
+
 
     void floatToFixed16(TVec3s* pDst, const TVec3f& rPSrc, u8 q) {
         f32 scale = 1 << q;
@@ -818,6 +841,23 @@ namespace MR {
 
             return true;
         }
+    }
+
+    void func_8003DEF0(f32* radial, f32* axial, const TVec3f* origin, const TVec3f* position, TVec3f* axis) {
+        TVec3f delta(*position);
+        PSVECSubtract(&delta, origin, &delta);
+        TVec3f normal;
+        normal.set(*axis);
+        if (normalizeOrZero(&normal)) {
+            *axial = 0.0f;
+            *radial = PSVECMag(&delta);
+        }
+        f32 height = delta.dot(normal);
+        *axial = height;
+        TVec3f projection(normal);
+        projection.scale(-height);
+        delta.add(projection);
+        *radial = PSVECMag(&delta);
     }
 
     // one unlabled function goes here
@@ -985,17 +1025,20 @@ namespace MR {
     }
 
     bool turnVecToVecCosOnPlane(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo, const TVec3f& rAxis, f32 cosAngle) {
-        TVec3f planarTo = rTo.killElement(rAxis);
+        TVec3f planarTo;
+        JMAVECScaleAdd(&rAxis, &rTo, &planarTo, -rAxis.dot(rTo));
         normalizeOrZero(&planarTo);
-        if (!MR::isNearZero(planarTo)) {
-            if (cosAngle > -1.0f) {
-                return turnVecToVecCos(pDst, rFrom, planarTo, cosAngle, rAxis);
-            }
-
+        TVec3f planarFrom;
+        JMAVECScaleAdd(&rAxis, &rFrom, &planarFrom, -rAxis.dot(rFrom));
+        normalizeOrZero(&planarFrom);
+        if (isNearZero(planarFrom, 0.001f))
+            planarFrom = -planarTo;
+        if (!isNearZero(planarTo, 0.001f)) {
+            if (cosAngle > -1.0f)
+                return turnVecToVecCos(pDst, planarFrom, planarTo, cosAngle, rAxis, 0.02f);
             pDst->set(planarTo);
             return true;
         }
-
         return false;
     }
 
@@ -1053,6 +1096,7 @@ namespace MR {
         pMoment->set(moment);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     bool calcReflectionVector(TVec3f* pDir, const TVec3f& rNorm, f32 rate, f32 cosAngleMin) {
         f32 dot = rNorm.dot(*pDir);
         if (dot < -cosAngleMin) {
@@ -1363,6 +1407,7 @@ namespace MR {
         pDst->a = getInterpolateValue(t, rStart.a, rEnd.a);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 turnVecToPlane(TVec3f* pDst, const TVec3f& rSrc, const TVec3f& rNorm) {
         TVec3f vec = rSrc;
         f32 length = rSrc.length();
@@ -1704,6 +1749,7 @@ namespace MR {
         PSMTXMultVec(rot, &rAxis, pOut);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 getFootPoint(const TVec3f& rPointA, const TVec3f& rPointB, const TVec3f& rPos, TVec3f* pDst) {
         TVec3f segment = rPointB - rPointA;
         f32 length = segment.length();

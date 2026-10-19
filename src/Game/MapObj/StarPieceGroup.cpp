@@ -113,7 +113,7 @@ void StarPieceGroup::init(const JMapInfoIter& rIter) {
     }
 
     MR::useStageSwitchReadAppear(this, rIter);
-    MR::useStageSwitchSleep(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
 
     if (MR::useStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnOffA(this, MR::Functor(this, &StarPieceGroup::onSwitchA), MR::Functor(this, &StarPieceGroup::offSwitchA));

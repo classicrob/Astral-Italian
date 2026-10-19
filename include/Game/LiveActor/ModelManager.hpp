@@ -36,6 +36,11 @@ public:
     void startBtp(const char*);
     void startBpk(const char*);
     void startBva(const char*);
+    void resumeBtk();
+    void resumeBrk();
+    void resumeBtp();
+    void resumeBpk();
+    void resumeBva();
     void stopBtk();
     void stopBrk();
     void stopBtp();

@@ -46,6 +46,20 @@ void SpkSoundVolume::setFadeOut(s32 fadeOut) {
     mFadeOutVolume = 1.0f;
 }
 
+void SpkSoundVolume::setFadeTarget(s32 frames, f32 target) {
+    BOOL enabled = OSDisableInterrupts();
+    f32 current = mFadeVolume;
+    f32 diff = target - current;
+    if (frames > 0) {
+        mFadeRate = diff / (f32)frames;
+    } else {
+        mFadeRate = diff;
+    }
+
+    mFadeTarget = target;
+    OSRestoreInterrupts(enabled);
+}
+
 f32 SpkSoundVolume::calc(bool& kill) {
     kill = false;
     if (mReleaseRate != 0.0f) {
@@ -197,6 +211,17 @@ bool SpkSound::start(s32 padChannel, s32 waveID) {
     return true;
 }
 
+bool SpkSound::start(s32 padChannel, s32 waveID, s32 param) {
+    mPadChannel = padChannel;
+    _40 = param;
+    if (!setWaveData(waveID)) {
+        return false;
+    }
+
+    mState = State_LOCK;
+    return true;
+}
+
 void SpkSound::unlock() {
     if (mState != State_LOCK) {
         return;
@@ -309,6 +334,16 @@ void SpkSoundHolder::freeDeadSound(s32 padChannel) {
         }
         sound = next;
     }
+}
+
+void SpkSoundHolder::stopEachSound(s32 padChannel, s32 stopTime) {
+    BOOL enabled = OSDisableInterrupts();
+    for (JSULink< SpkSound >* pLink = mSoundList[padChannel].getFirst(); pLink != nullptr; pLink = pLink->getNext()) {
+        if (pLink->getObject() != nullptr) {
+            pLink->getObject()->stop(stopTime);
+        }
+    }
+    OSRestoreInterrupts(enabled);
 }
 
 void SpkSoundHolder::framework() {

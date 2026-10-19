@@ -28,14 +28,12 @@ CollisionObj::CollisionObj(LiveActor* pHost, const char* pName, const char* pArc
 }
 
 void CollisionObj::init(const JMapInfoIter& rIter) {
-    // vtable slot 0x30 tail call (SMG2)
-    LiveActor::init(rIter);
+    makeActorAppeared();
 }
 
 void CollisionObj::movement() {
     LiveActor::movement();
-    // vtable slot 0x1C (SMG2)
-    calcAndSetBaseMtx();
+    calcAnim();
 }
 
 MtxPtr CollisionObj::getBaseMtx() const {

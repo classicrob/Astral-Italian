@@ -1,4 +1,5 @@
 #include "Game/Camera/CameraLocalUtil.hpp"
+#include "Game/Ride/RollingRock.hpp"
 #include "Game/Camera/Camera.hpp"
 #include "Game/Camera/CameraDirector.hpp"
 #include "Game/Camera/CameraMan.hpp"
@@ -277,11 +278,12 @@ namespace CameraLocalUtil {
         return MR::testSubPadButtonC(WPAD_CHAN0);
     }
 
-    bool testCameraPadTriggerReset() {
+    bool testCameraPadTriggerReset(bool allowRolling) {
         if (getCameraDirector()->isSubjectiveCamera()) {
             return false;
         }
 
+        if (RollingRock::isPlayerRolling() && allowRolling) return true;
         return MR::testSubPadTriggerC(WPAD_CHAN0);
     }
 

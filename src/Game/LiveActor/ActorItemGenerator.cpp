@@ -20,20 +20,20 @@ struct ActorItemTableEntry {
 };
 
 const ActorItemTableEntry sItemTable[6] = {
-    {"\x82\xC8\x82\xB5", "", 0, 0},
-    {"\x83\x52\x83\x43\x83\x93\x78\x82\x50", "Coinx1", 1, 1},
-    {"\x83\x58\x83\x5E\x81\x5B\x83\x73\x81\x5B\x83\x58\x78\x82\x50", "StarPiecex1", 2, 1},
-    {"\x83\x58\x83\x5E\x81\x5B\x83\x73\x81\x5B\x83\x58\x78\x82\x52", "StarPiecex3", 2, 3},
-    {"\x83\x58\x83\x5E\x81\x5B\x83\x73\x81\x5B\x83\x58\x78\x82\x55", "StarPiecex6", 2, 6},
-    {"\x83\x58\x83\x5E\x81\x5B\x83\x73\x81\x5B\x83\x58\x78\x82\x50\x82\x4F", "StarPiecex10", 2, 10},
+    {"なし", "", 0, 0},
+    {"コインx１", "Coinx1", 1, 1},
+    {"スターピースx１", "StarPiecex1", 2, 1},
+    {"スターピースx３", "StarPiecex3", 2, 3},
+    {"スターピースx６", "StarPiecex6", 2, 6},
+    {"スターピースx１０", "StarPiecex10", 2, 10},
 };
 
 const char* sGeneratorPrefix = "ItemGenerator";
 const char* sEmptyName = "";
-const char* sNameA = "\x83\x71\x83\x62\x83\x67";
-const char* sNameB = "\x93\xA5\x82\xDD";
-const char* sNameC = "\x83\x88\x83\x62\x83\x56\x81\x5B\x90\x48\x82\xD7\x82\xE9";
-const char* sNameD = "\x83\x7B\x83\x58\x83\x5F\x83\x81\x81\x5B\x83\x57";
+const char* sNameA = "ヒット";
+const char* sNameB = "踏み";
+const char* sNameC = "ヨッシー食べる";
+const char* sNameD = "ボスダメージ";
 
 // fn_8022B920: the ItemGenerator of an actor (ActorActionKeeper::mItemGenerator at +0x14).
 ActorItemGenerator* getItemGenerator(LiveActor* pActor) {
@@ -47,15 +47,8 @@ ActorItemGenerator* getItemGenerator(LiveActor* pActor) {
     return NULL;
 }
 
-// fn_8022B950
-void emitItemOf(LiveActor* pActor, const char* pName) {
-    ActorItemGenerator* pGen = getItemGenerator(pActor);
-    if (pGen != NULL) {
-        pGen->emitItem(pName);
-    }
-}
-
 // fn_8022B990
+void appearItemOfToVelocity(LiveActor*, const char*, const TVec3f*, const TVec3f*) NO_INLINE;
 void appearItemOfToVelocity(LiveActor* pActor, const char* pName, const TVec3f* pPos, const TVec3f* pVel) {
     ActorItemGenerator* pGen = getItemGenerator(pActor);
     if (pGen != NULL) {
@@ -71,9 +64,8 @@ void appearItemOfToVelocity(LiveActor* pActor, const char* pName, const TVec3f* 
 ActorItemGeneratorEntry::ActorItemGeneratorEntry() : mName(NULL), mJointName(NULL), mTableIndex(0), mCount(1), mIsEnabled(true) {}
 
 ActorItemGenerator::ActorItemGenerator(LiveActor* pActor, const char* pName) : mActor(pActor), mEntries(NULL), mEntryNum(0) {
-    if (loadEntries(pName)) {
-        declareItems();
-    }
+    if (!loadEntries(pName)) return;
+    declareItems();
 }
 
 // Tries to create the generator for pActor/pName, returns NULL if the csv does not exist.
@@ -89,6 +81,7 @@ ActorItemGenerator* ActorItemGenerator::tryCreate(LiveActor* pActor, const char*
     return NULL;
 }
 
+// NONMATCHING: regalloc, string-pool order and equivalent loop branches
 // fn_8022B200
 bool ActorItemGenerator::loadEntries(const char* pName) {
     ResourceHolder* pHolder = MR::getResourceHolder(mActor);
@@ -212,9 +205,7 @@ void ActorItemGenerator::emitItemAtPosAndDir(const char* pName, const TVec3f* pP
         }
 
         TVec3f dir;
-        dir.x = -mActor->mGravity.x;
-        dir.y = -mActor->mGravity.y;
-        dir.z = -mActor->mGravity.z;
+        dir.negate(mActor->mGravity);
         if (pDir != NULL) {
             dir.set(*pDir);
         }
@@ -277,9 +268,8 @@ void ActorItemGenerator::appearItemToVelocity(ActorItemGeneratorEntry* pEntry, c
     switch (pTable->mKind) {
     case 1: {
         TVec3f vel;
-        vel.x = pVel->x * 0.6f;
-        vel.y = pVel->y * 0.6f;
-        vel.z = pVel->z * 0.6f;
+        vel = *pVel;
+        vel.scale(0.6f);
         MR::appearCoinToVelocity(mActor, *pPos, vel, pTable->mValue);
         break;
     }
@@ -290,51 +280,61 @@ void ActorItemGenerator::appearItemToVelocity(ActorItemGeneratorEntry* pEntry, c
 }
 
 namespace MR {
+    void emitItem(LiveActor* actor, const char* name) {
+        ActorItemGenerator* generator = getItemGenerator(actor);
+        if (generator) generator->emitItem(name);
+    }
+
     void emitItemHit(LiveActor* pActor) {
-        emitItemOf(pActor, sNameA);
+        MR::emitItem(pActor, sNameA);
     }
 
     void emitItemHitAtPos(LiveActor* pActor, const TVec3f* pPos) {
+        const char* name = sNameA;
         ActorItemGenerator* pGen = getItemGenerator(pActor);
         if (pGen != NULL) {
-            pGen->emitItemAtPos(sNameA, pPos);
+            pGen->emitItemAtPos(name, pPos);
         }
     }
 
     void emitItemStomp(LiveActor* pActor) {
+        const char* name = sNameB;
         ActorItemGenerator* pGen = getItemGenerator(pActor);
         if (pGen != NULL) {
-            pGen->emitItem(sNameB);
+            pGen->emitItem(name);
         }
     }
 
     void emitItemYoshiEat(LiveActor* pActor) {
+        const char* name = sNameC;
         ActorItemGenerator* pGen = getItemGenerator(pActor);
         if (pGen != NULL) {
-            pGen->emitItem(sNameC);
+            pGen->emitItem(name);
         }
     }
 
     void appearItemYoshiEatToPlayer(LiveActor* pActor) {
         TVec3f vel;
-        MR::getPlayerVelocity(&vel);
+        MR::calcYoshiEatItemVelocity(&vel);
         const TVec3f* pPos = MR::getPlayerCenterPos();
         appearItemOfToVelocity(pActor, sNameC, pPos, &vel);
     }
 
     void emitItemBossDamage(LiveActor* pActor) {
+        const char* name = sNameD;
         ActorItemGenerator* pGen = getItemGenerator(pActor);
         if (pGen != NULL) {
-            pGen->emitItemAtPosAndDir(sNameD, NULL, NULL);
+            pGen->emitItemAtPosAndDir(name, NULL, NULL);
         }
     }
 
     void emitItemBossDamageAtPos(LiveActor* pActor, const TVec3f* pPos) {
         TVec3f dir(0.0f, -1.0f, 0.0f);
         MR::calcGravityVector(pActor, *pPos, &dir, NULL, 0);
+        const char* name = sNameD;
         ActorItemGenerator* pGen = getItemGenerator(pActor);
         if (pGen != NULL) {
-            pGen->emitItemAtPosAndDir(sNameD, pPos, &dir);
+            pGen->emitItemAtPosAndDir(name, pPos, &dir);
         }
     }
 

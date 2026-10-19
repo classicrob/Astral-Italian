@@ -4,6 +4,36 @@
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 
+template <>
+template <>
+void JGeometry::TVec3<f32>::setAll<f32>(f32 value) {
+    x = value;
+    y = value;
+    z = value;
+}
+
+void DiceMoverUtil::normalizeComponents(f32* x, f32* y, f32* z) {
+    f32 inverseLength = 1.0f / MR::sqrt<f32>((*x * *x + *y * *y) + *z * *z);
+    *x *= inverseLength;
+    *y *= inverseLength;
+    *z *= inverseLength;
+}
+
+void DiceMoverUtil::crossComponents(f32* x, f32* y, f32* z, f32 ax, f32 ay, f32 az, f32 bx, f32 by, f32 bz) {
+    *x = ay * bz - az * by;
+    *y = az * bx - ax * bz;
+    *z = ax * by - ay * bx;
+}
+
+f32 DiceMoverUtil::averageNormalComponents(f32* x, f32* y, f32* z, f32* nx, f32* ny, f32* nz) {
+    f32 length = MR::sqrt<f32>((*nx * *nx + *ny * *ny) + *nz * *nz);
+    f32 inverseLength = 1.0f / length;
+    *x = 0.5f * (*x + inverseLength * *nx);
+    *y = 0.5f * (*y + inverseLength * *ny);
+    *z = 0.5f * (*z + inverseLength * *nz);
+    return length;
+}
+
 namespace {
     typedef char DiceMoverSizeCheck[sizeof(DiceMover) == 0xF0 ? 1 : -1];
     typedef char DiceMoverAccumulatorSizeCheck[sizeof(DiceMoverAccumulator) == 0x60 ? 1 : -1];

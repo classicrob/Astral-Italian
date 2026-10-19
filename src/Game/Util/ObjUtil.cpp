@@ -1,3 +1,5 @@
+#pragma auto_inline off
+#define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include "Game/Util/FileUtil.hpp"
@@ -52,12 +54,7 @@
 #include <cstdio>
 #include <va_list.h>
 
-void ObjUtil_FORCE_MATCH_SDATA2() {
-    (void)57.2957802f;
-    (void)15.0f;
-    (void)100.0f;
-    (void)1000.0f;
-}
+
 
 namespace {
     static const TVec3f sDefaultPlayerPos = TVec3f(0, 0, 0);
@@ -533,7 +530,7 @@ ResourceHolder* MR::createAndAddResourceHolder(const char* pResource) {
 
 
 ResourceHolder* MR::createAndAddResourceHolderStationed(const char* pResource) {
-    return SingletonHolder< ResourceHolderManager >::get()->createAndAddStationed(pResource);
+    return SingletonHolder< ResourceHolderManager >::get()->createAndAddRawData(pResource);
 }
 
 ResTIMG* MR::loadTexFromArcHelper(const char* pArchive, const char* pFile, void* pHolderOut) {
@@ -582,6 +579,9 @@ namespace {
     JMapInfo* tryCreateCsvParserLocal(const ResourceHolder* pHolder, const char* pArchive, va_list pFormat) NO_INLINE {
         char buf[0x100];
         vsnprintf(buf, sizeof(buf), pArchive, pFormat);
+        if (!MR::isEqualSubString(buf, ".bcsv")) {
+            snprintf(buf, sizeof(buf), "%s.bcsv", buf);
+        }
 
         if (!pHolder->mFileInfoTable->isExistRes(buf)) {
             return nullptr;
@@ -602,7 +602,12 @@ JMapInfo* MR::createCsvParser(const ResourceHolder* pHolder, const char* pFormat
 }
 
 JMapInfo* MR::createCsvParser(const char* pArchive, const char* pFormat, ...) {
-    ResourceHolder* pResourceHolder = SingletonHolder< ResourceHolderManager >::get()->createAndAdd(pArchive, nullptr);
+    ResourceHolder* pResourceHolder;
+    if (pArchive[0] == '/') {
+        pResourceHolder = SingletonHolder<ResourceHolderManager>::get()->createAndAddRawData(pArchive);
+    } else {
+        pResourceHolder = MR::createAndAddResourceHolder(pArchive);
+    }
 
     return MR::createCsvParser(pResourceHolder, pFormat);
 }
@@ -629,8 +634,8 @@ JMapInfo* MR::createCsvParserFromFile(const char* pArchive, const char* pFormat,
     return ::tryCreateCsvParserLocal(pResourceHolder, pFormat, list);
 }
 
-namespace {
-    const JMapInfo* tryCreateStageCsvParserLocal(const char* pStage, const char* pSuffix, const char* pFormat, va_list list) NO_INLINE {
+// NONMATCHING: equivalent common null-result branch arrangement
+const JMapInfo* MR::tryCreateStageCsvParser(const char* pStage, const char* pSuffix, const char* pFormat, va_list list) {
         char fileName[0x100];
         char archive[0x100];
         vsnprintf(fileName, 0x100, pFormat, list);
@@ -652,30 +657,21 @@ namespace {
         JMapInfo* pInfo = new JMapInfo();
         pInfo->attach(pEntry);
         return pInfo;
-    }
-};  // namespace
-
-// NONMATCHING: target passes a va_list through the variadic slot and has no reg-save prologue; this routes through the local helper
-const JMapInfo* MR::tryCreateStageCsvParser(const char* pStage, const char* pSuffix, const char* pFormat, ...) {
-    va_list list;
-    va_start(list, pFormat);
-
-    return ::tryCreateStageCsvParserLocal(pStage, pSuffix, pFormat, list);
 }
 
-// NONMATCHING: routes through the local helper (target bl's the global tryCreateStageCsvParser with a va_list)
 const JMapInfo* MR::tryCreateStageZoneInfoCsvParser(const char* pFormat, ...) {
     va_list list;
     va_start(list, pFormat);
 
-    return ::tryCreateStageCsvParserLocal(MR::getCurrentStageName(), "ZoneInfo", pFormat, list);
+    const char* suffix = "ZoneInfo";
+    return MR::tryCreateStageCsvParser(MR::getCurrentStageName(), suffix, pFormat, list);
 }
 
 const JMapInfo* MR::tryCreateStageUseResourceCsvParser(const char* pStage, const char* pFormat, ...) {
     va_list list;
     va_start(list, pFormat);
 
-    return ::tryCreateStageCsvParserLocal(pStage, "UseResource", pFormat, list);
+    return MR::tryCreateStageCsvParser(pStage, "UseResource", pFormat, list);
 }
 
 s32 MR::getCsvDataElementNum(const JMapInfo* pMapInfo) {
@@ -699,9 +695,11 @@ void MR::getCsvDataS32(s32* pOut, const JMapInfo* pMapInfo, const char* pKey, s3
     pMapInfo->getValue< s32 >(idx, pKey, pOut);
 }
 
-// NONMATCHING: target body reads arg1 as the JMapInfo `this` (searchItemInfo/getValueFast on r3); signature kept from symbols.txt
-void MR::getCsvDataU32(s32* pOut, const JMapInfo* pMapInfo, const char* pKey, s32 idx) {
-    pMapInfo->getValue< u32 >(idx, pKey, reinterpret_cast< u32* >(pOut));
+template <>
+const bool JMapInfo::getValue<u32>(int idx, const char* pKey, u32* pOut) const {
+    s32 item = searchItemInfo(pKey);
+    if (item < 0) return false;
+    return getValueFast(idx, item, pOut);
 }
 
 void MR::getCsvDataS16(s16* pOut, const JMapInfo* pMapInfo, const char* pKey, s32 idx) {
@@ -750,10 +748,64 @@ bool MR::hasCsvItem(const JMapInfo* pMapInfo, const char* pItemName) {
     return pMapInfo->searchItemInfo(pItemName) >= 0;
 }
 
-// NONMATCHING: findElement<const char*> is inlined here (strcmp), target calls the out-of-line template instance
+template <>
+JMapInfoIter JMapInfo::findElement<s32>(const char* key, s32 search, int start) const NO_INLINE {
+    s32 value;
+    for (int i = start; i < getNumEntries(); i++) {
+        getValue<s32>(i, key, &value);
+        if (value == search) return JMapInfoIter(this, i);
+    }
+    return end();
+}
+
+template <>
+JMapInfoIter JMapInfo::findElement<u32>(const char* key, u32 search, int start) const NO_INLINE {
+    u32 value;
+    for (int i = start; i < getNumEntries(); i++) {
+        getValue<u32>(i, key, &value);
+        if (value == search) return JMapInfoIter(this, i);
+    }
+    return end();
+}
+
 bool MR::isExistElement(const JMapInfo* pMapInfo, const char* pKey, const char* pValue) {
     JMapInfoIter iter = pMapInfo->findElement< const char* >(pKey, pValue, 0);
-    return !(iter == pMapInfo->end());
+    return !(pMapInfo->end() == iter);
+}
+
+JMapInfoIter MR::getCsvDataStrByElement(const char** pOut, const JMapInfo* pInfo, const char* pKey, const char* value, const char* pColumn) {
+    JMapInfoIter iter = pInfo->findElement<const char*>(pKey, value, 0);
+    if (pInfo->end() == iter) return iter;
+    iter.getValue<const char*>(pColumn, pOut);
+    return iter;
+}
+
+JMapInfoIter MR::getCsvDataStrByElement(const char** pOut, const JMapInfo* pInfo, const char* pKey, s32 value, const char* pColumn) {
+    JMapInfoIter iter = pInfo->findElement<s32>(pKey, value, 0);
+    if (pInfo->end() == iter) return iter;
+    iter.getValue<const char*>(pColumn, pOut);
+    return iter;
+}
+
+JMapInfoIter MR::getCsvDataStrByElement(const char** pOut, const JMapInfo* pInfo, const char* pKey, u32 value, const char* pColumn) {
+    JMapInfoIter iter = pInfo->findElement<u32>(pKey, value, 0);
+    if (pInfo->end() == iter) return iter;
+    iter.getValue<const char*>(pColumn, pOut);
+    return iter;
+}
+
+JMapInfoIter MR::getCsvDataS32ByElement(s32* pOut, const JMapInfo* pInfo, const char* pKey, const char* value, const char* pColumn) {
+    JMapInfoIter iter = pInfo->findElement<const char*>(pKey, value, 0);
+    if (pInfo->end() == iter) return iter;
+    iter.getValue<s32>(pColumn, pOut);
+    return iter;
+}
+
+JMapInfoIter MR::getCsvDataU32ByElement(u32* pOut, const JMapInfo* pInfo, const char* pKey, const char* value, const char* pColumn) {
+    JMapInfoIter iter = pInfo->findElement<const char*>(pKey, value, 0);
+    if (pInfo->end() == iter) return iter;
+    iter.getValue<u32>(pColumn, pOut);
+    return iter;
 }
 
 bool MR::isStageStateScenarioOpeningCamera() {
@@ -785,7 +837,13 @@ void MR::appearPowerStarWithoutDemo(const NameObj* pObj) {
 }
 
 void MR::requestAppearPowerStar(const NameObj* pObj) {
-    appearEventPowerStar(pObj->getName(), -1, nullptr, false, false, false);
+    TVec3f pos(0.0f);
+    const char* name = "パワースター出現位置";
+    if (getNamePosHolder()->find(name, &pos, nullptr)) {
+        appearEventPowerStar(pObj->getName(), -1, &pos, false, false, false);
+    } else {
+        appearEventPowerStar(pObj->getName(), -1, nullptr, false, false, false);
+    }
 }
 
 void MR::requestAppearPowerStar(const NameObj* pObj, const TVec3f& rParam2) {
@@ -804,6 +862,10 @@ void MR::requestAppearPowerStar(const NameObj* pObj, const LiveActor* pActor, f3
     appearEventPowerStar(pObj->getName(), -1, &baseMtxY, false, false, false);
 }
 
+void MR::requestAppearPowerStarFromBelow(const NameObj* pObj) {
+    appearEventPowerStar(pObj->getName(), -1, nullptr, false, false, true);
+}
+
 void MR::requestAppearPowerStarCoin100() {
     appearEventPowerStar("１００枚コイン", -1, nullptr, false, false, false);
 }
@@ -813,7 +875,12 @@ bool MR::isEndPowerStarAppearDemo(const NameObj* pObj) {
 }
 
 ModelObj* MR::createPowerStarDemoModel(const NameObj* pObj, const char* pName, MtxPtr pMtx) {
-    ModelObj* pPowerStarDemoModel = createModelObjNoSilhouettedMapObjStrongLight(pName, "PowerStar", pMtx);
+    ModelObj* pPowerStarDemoModel;
+    if (isProductGameScene() && isGrandStarInCurrentStageWithDeclarer(pObj->getName(), -1)) {
+        pPowerStarDemoModel = createModelObjIndirectMapObj(pName, "GrandStar", pMtx);
+    } else {
+        pPowerStarDemoModel = createModelObjNoSilhouettedMapObjStrongLight(pName, "PowerStar", pMtx);
+    }
 
     PowerStar::setupColor(pPowerStarDemoModel, pObj, -1);
 
@@ -894,6 +961,10 @@ bool MR::appearStarPieceToDirection(const NameObj* pObj, const TVec3f& rVec1, co
     return getStarPieceDirector()->appearPieceToDirection(pObj, rVec1, rVec2, a1, f1, f2, false, a2);
 }
 
+bool MR::appearStarPieceToVelocity(const NameObj* pHost, const TVec3f& pos, const TVec3f& velocity, s32 count, bool a, bool b, bool c, f32 angle) {
+    return getStarPieceDirector()->appearPieceToDirectionRandom(pHost, pos, velocity, count, angle, a, b, c);
+}
+
 void MR::initStarPieceGetCSSound() {
     StarPieceDirector* pDirector = getStarPieceDirector();
 
@@ -913,6 +984,7 @@ BenefitItemOneUp* MR::createKinokoOneUp() {
 }
 
 
+// NONMATCHING: floating register allocation and matrix load ordering
 void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
     TPos3f mtx(pMtx);
     MtxPtr m = mtx.toMtxPtr();
@@ -928,8 +1000,8 @@ void MR::appearKinokoOneUp(BenefitItemObj* pKinoko, MtxPtr pMtx) {
         angle.z = 0.0f;
     } else {
         angle.x = JMath::sAtanTable.atan2_(m[2][1], m[2][2]);
-        angle.y = JGeometry::TUtil< f32 >::asin(-m[2][0]);
         angle.z = JMath::sAtanTable.atan2_(m[1][0], m[0][0]);
+        angle.y = JGeometry::TUtil< f32 >::asin(-m[2][0]);
     }
 
     TVec3f rot(angle);
@@ -1000,19 +1072,16 @@ bool MR::tryRumblePadVeryWeak(const void* pParam1, s32 channel) {
     return WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pParam1, "微弱");
 }
 
+// NONMATCHING: equivalent shared true-return block arrangement
 bool MR::tryRumblePadWeakAndVeryWeak(const void* pHost, s32 channel) {
     if (WPadFunction::getWPadRumble(channel)->hasRumblePattern(pHost, "微弱")) {
         return false;
     }
 
-    if (WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "弱")) {
+    if (WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "弱") ||
+        WPadFunction::getWPadRumble(channel)->hasRumblePattern(pHost, "弱")) {
         return true;
     }
-
-    if (WPadFunction::getWPadRumble(channel)->hasRumblePattern(pHost, "弱")) {
-        return true;
-    }
-
     return WPadFunction::getWPadRumble(channel)->vibratePatternIfNotExist(pHost, "微弱");
 }
 
@@ -1074,13 +1143,14 @@ bool MR::tryRegisterNamePosLinkObj(const NameObj* pLinkedObj, const JMapInfoIter
 }
 
 bool MR::findNamePos(const char* pName, MtxPtr pMtx) {
-    return MR::tryFindLinkNamePos(nullptr, pName, pMtx);
+    return MR::tryFindNamePos(pName, pMtx);
 }
 
 bool MR::findNamePos(const char* pName, TVec3f* pPosition, TVec3f* pRotation) {
-    return getNamePosHolder()->find(nullptr, pName, pPosition, pRotation);
+    return getNamePosHolder()->find(pName, pPosition, pRotation);
 }
 
+// NONMATCHING: vector temporary stack slots and register allocation
 void MR::findNamePosOnGround(const char* pName, MtxPtr pMtx) {
     Triangle triangle;
     TPos3f mtx;
@@ -1088,12 +1158,18 @@ void MR::findNamePosOnGround(const char* pName, MtxPtr pMtx) {
     TVec3f position;
     TVec3f gravity;
     TVec3f front;
-    findNamePos(pName, mtx.toMtxPtr());
+    tryFindNamePos(pName, mtx.toMtxPtr());
     mtx.getTrans(position);
     mtx.getZDir(front);
     calcGravityVector(nullptr, position, &gravity, nullptr, 0);
 
-    if (getFirstPolyOnLineToMap(&hitPos, &triangle, position - gravity * 100.0f, gravity * 1000.0f)) {
+    TVec3f offset(gravity);
+    offset.scale(100.0f);
+    TVec3f start(position);
+    start -= offset;
+    TVec3f ray(gravity);
+    ray.scale(1000.0f);
+    if (getFirstPolyOnLineToMap(&hitPos, &triangle, start, ray)) {
         makeMtxUpFrontPos(&mtx, -gravity, front, hitPos);
     }
 
@@ -1101,11 +1177,17 @@ void MR::findNamePosOnGround(const char* pName, MtxPtr pMtx) {
 }
 
 bool MR::tryFindNamePos(const char* pName, MtxPtr pMtx) {
-    return MR::tryFindLinkNamePos(nullptr, pName, pMtx);
+    TVec3f position(0.0f, 0.0f, 0.0f);
+    TVec3f rotation(0.0f, 0.0f, 0.0f);
+    if (getNamePosHolder()->find(pName, &position, &rotation)) {
+        makeMtxTR(pMtx, position, rotation);
+        return true;
+    }
+    return false;
 }
 
 bool MR::tryFindNamePos(const char* pName, TVec3f* pParam2, TVec3f* pParam3) {
-    return MR::tryFindLinkNamePos(nullptr, pName, pParam2, pParam3);
+    return getNamePosHolder()->find(pName, pParam2, pParam3);
 }
 
 void MR::findLinkNamePos(const NameObj* pObj, const char* pName, MtxPtr pMtx) {
@@ -1139,9 +1221,7 @@ bool LiveActor::receiveMsgPush(HitSensor*, HitSensor*) {
 void LiveActor::updateHitSensor(HitSensor*) {
 }
 
-void ObjUtil_FORCE_MATCH(TVec3f* pOut, const TVec3f& rVec) {
-    pOut->add(rVec);
-}
+
 
 void MR::getCsvDataStr(const char** pOut, const JMapInfo* pMapInfo, const char* pKey, s32 idx) {
     pMapInfo->getValue< const char* >(idx, pKey, pOut);

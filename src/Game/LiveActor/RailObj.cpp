@@ -24,8 +24,7 @@ void RailObj::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg7WithInit(rIter, &mArg7);
     initRailRider(rIter);
     MR::invalidateClipping(this);
-    // virtual call at vtable 0x38 (SMG2)
-    makeActorAppeared();
+    makeActorDead();
 }
 
 RailObj::~RailObj() {

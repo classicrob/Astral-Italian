@@ -5,6 +5,9 @@
 #include "Game/Util/JointUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
+#include "Game/System/ResourceHolder.hpp"
+#include "Game/System/ResourceInfo.hpp"
+#include "Game/Animation/XanimePlayer.hpp"
 #include <JSystem/J3DGraphAnimator/J3DAnimation.hpp>
 #include <JSystem/J3DGraphAnimator/J3DModel.hpp>
 
@@ -114,6 +117,15 @@ s32 MultiSceneActor::getNerveStep() const {
 }
 
 namespace MultiScene {
+    ResourceHolder* getResourceHolder(MultiSceneActor* pActor) {
+        ModelManager* pModelManager = pActor->getModelManager();
+        if (pModelManager != nullptr) {
+            return pModelManager->getResourceHolder();
+        }
+
+        return nullptr;
+    }
+
     void startBck(MultiSceneActor* pActor, const char* pBckName) {
         pActor->getModelManager()->startBck(pBckName, nullptr);
     }
@@ -122,12 +134,73 @@ namespace MultiScene {
         pActor->getModelManager()->startBtk(pBtkName);
     }
 
+    void startBrk(MultiSceneActor* pActor, const char* pBrkName) {
+        pActor->getModelManager()->startBrk(pBrkName);
+    }
+
     void startBtp(MultiSceneActor* pActor, const char* pBtpName) {
         pActor->getModelManager()->startBtp(pBtpName);
     }
 
     void startBva(MultiSceneActor* pActor, const char* pBvaName) {
         pActor->getModelManager()->startBva(pBvaName);
+    }
+
+    void setBckFrameAndStop(MultiSceneActor* pActor, f32 frame) {
+        // NOTE: the target body drives the BTK frame control (see report: name/body mismatch)
+        pActor->getModelManager()->getBtkCtrl()->setFrame(frame);
+        pActor->getModelManager()->getBtkCtrl()->setRate(0.0f);
+    }
+
+    void setBrkFrameAndStop(MultiSceneActor* pActor, f32 frame) {
+        pActor->getModelManager()->getBrkCtrl()->setFrame(frame);
+        pActor->getModelManager()->getBrkCtrl()->setRate(0.0f);
+    }
+
+    bool startBckIfExist(MultiSceneActor* pActor, const char* pBckName) {
+        ModelManager* pModelManager = pActor->getModelManager();
+        if (pModelManager != nullptr && pModelManager->mXanimePlayer != nullptr && pModelManager->mXanimePlayer->isExistAnimation(pBckName)) {
+            pModelManager->startBck(pBckName, nullptr);
+            return true;
+        }
+
+        return false;
+    }
+
+    bool startBtkIfExist(MultiSceneActor* pActor, const char* pBtkName) {
+        if (getResourceHolder(pActor)->mBtkResTable->isExistRes(pBtkName)) {
+            pActor->getModelManager()->startBtk(pBtkName);
+            return true;
+        }
+
+        return false;
+    }
+
+    bool startBrkIfExist(MultiSceneActor* pActor, const char* pBrkName) {
+        if (getResourceHolder(pActor)->mBrkResTable->isExistRes(pBrkName)) {
+            pActor->getModelManager()->startBrk(pBrkName);
+            return true;
+        }
+
+        return false;
+    }
+
+    bool startBtpIfExist(MultiSceneActor* pActor, const char* pBtpName) {
+        if (getResourceHolder(pActor)->mBtpResTable->isExistRes(pBtpName)) {
+            pActor->getModelManager()->startBtp(pBtpName);
+            return true;
+        }
+
+        return false;
+    }
+
+    bool startBvaIfExist(MultiSceneActor* pActor, const char* pBvaName) {
+        if (getResourceHolder(pActor)->mBvaResTable->isExistRes(pBvaName)) {
+            pActor->getModelManager()->startBva(pBvaName);
+            return true;
+        }
+
+        return false;
     }
 
     void setBtpFrameAndStop(MultiSceneActor* pActor, f32 frame) {
@@ -142,6 +215,10 @@ namespace MultiScene {
 
     bool isBckStopped(MultiSceneActor* pActor) {
         return pActor->getModelManager()->isBckStopped();
+    }
+
+    bool isBckEnd(const MultiSceneActor* pActor) {
+        return (pActor->getModelManager()->getBckCtrl()->getState() & 0x2) != 0;
     }
 
     bool isStep(const MultiSceneActor* pActor, s32 step) {

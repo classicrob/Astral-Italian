@@ -131,8 +131,7 @@ void KoopaBattleStage::start(bool pFlag) {
 void KoopaBattleStage::appear() {
     mSequenceIndex = 0;
     MR::killKoopaDemoChamber();
-    s32 unusedArg;
-    MR::startKoopaBattleDynamicCtrl(getHost(), (const char*)-1, unusedArg);
+    MR::startKoopaBattleDynamicCtrl(getHost(), -1);
     MR::setKoopaBattleNo0();
     MR::validateCollisionParts(getHost());
     mIsDead = false;

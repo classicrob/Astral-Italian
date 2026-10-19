@@ -32,7 +32,7 @@ public:
 
     void init();
     bool getWorldWarp(s32 pointIndex, PartsWarpInfo* pOut);
-    bool getStarRoadWarp(s32 pointIndex, PartsWarpInfo* pOut);
+    bool getStarRoadWarp(s32 pointIndex, PartsWarpInfo* pOut) NO_INLINE;
     s32 getWarpTarget(s32 pointIndex);
     s32 getPipeTarget(s32 pointIndex);
     s32 getPipeOtherEnd(s32 pointIndex);

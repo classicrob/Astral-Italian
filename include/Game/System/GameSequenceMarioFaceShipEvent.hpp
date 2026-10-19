@@ -22,7 +22,7 @@ struct MarioFaceShipEventSlot : public MarioFaceShipEventEntry {
 // Queue of up to four events (0x24 bytes).
 class MarioFaceShipEventList {
 public:
-    MarioFaceShipEventList();  // fn_804B4B30
+    MarioFaceShipEventList() NO_INLINE;  // fn_804B4B30
     void add(const MarioFaceShipEventEntry&) NO_INLINE;  // fn_804B5C10
 
     /* 0x00 */ MarioFaceShipEventSlot mEntries[4];

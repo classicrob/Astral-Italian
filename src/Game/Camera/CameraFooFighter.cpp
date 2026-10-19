@@ -19,8 +19,8 @@ CameraFooFighter::CameraFooFighter(const char* pName)
 }
 
 void CameraFooFighter::reset() {
-    mCollideCount = 0;
     mAngleXRate = mAngleXRateMin;
+    mCollideCount = 0;
     mTargetLastMoveDir.zero();
 
     CameraLocalUtil::setWatchPos(this, CameraLocalUtil::getWatchPos(mCameraMan));

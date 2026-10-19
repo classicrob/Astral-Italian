@@ -17,6 +17,7 @@ public:
     void createGroupID(s32, const char*, u32, u32);
     void createOtherID(s32, const char*);
     void createEventID(s32, const char*);
+    void createGlobalEventID(s32, const char*);
     void createStartID(s32, u16);
 
     /* 0x04 */ s32 mZoneID;
@@ -34,3 +35,7 @@ public:
 
     /* 0x0C */ char mBuffer[0x100];
 };
+
+namespace CameraParamChunkIDFunction {
+    s32 getGlobalZoneID(s32);
+}

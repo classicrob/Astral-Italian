@@ -172,6 +172,7 @@ void WaterPlant::initPlant() {
 WaterPlant::PlantData::PlantData() {
 }
 
+// NONMATCHING: regalloc
 void WaterPlant::initPlantAfterPlacement() {
     s32 index = 0;
     TPos3f mtx;
@@ -185,10 +186,14 @@ void WaterPlant::initPlantAfterPlacement() {
             f32 randomBounds = mAreaRadius;
             TVec3f* currentPlantPos = &mPlantDataArray[i].mPosition;
             for (int j = 0; j < ::sPlantAddTime; j++) {
-                currentPlantPos->set< f32 >(MR::getRandom(-randomBounds, randomBounds) + mPosition.x, 500.0f + mPosition.y,
+                currentPlantPos->set< f32 >(MR::getRandom(-randomBounds, randomBounds) + mPosition.x, mPosition.y,
                                             MR::getRandom(-randomBounds, randomBounds) + mPosition.z);
 
-                if (MR::calcMapGround(*currentPlantPos, currentPlantPos, 1000.0f)) {
+                MR::calcGravity(this, *currentPlantPos);
+                TVec3f offset(mGravity);
+                offset.scale(500.0f);
+                currentPlantPos->sub(offset);
+                if (MR::calcMapHitAlongDirection(*currentPlantPos, currentPlantPos, mGravity, nullptr, nullptr, nullptr, nullptr, 1000.0f)) {
                     break;
                 }
             }
@@ -270,12 +275,12 @@ WaterPlantDrawInit::WaterPlantDrawInit()
     : NameObj("水草の描画初期化"), mAngleOffset(), mSwingPosTable(), mPlantATex(), mPlantBTex(), mPlantCTex(), mPlantDTex() {
     MR::connectToScene(this, MR::MovementType_MapObj, -1, -1, -1);
 
-    mPlantATex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantA.bti"), nullptr);
-    mPlantBTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantB.bti"), nullptr);
-    mPlantCTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantC.bti"), nullptr);
-    mPlantDTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantD.bti"), nullptr);
+    mPlantATex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantA.bti", nullptr), nullptr);
+    mPlantBTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantB.bti", nullptr), nullptr);
+    mPlantCTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantC.bti", nullptr), nullptr);
+    mPlantDTex = new JUTTexture(MR::loadTexFromArc("WaterPlant.arc", "WaterPlantD.bti", nullptr), nullptr);
 
-    MR::registerPreDrawFunction(MR::Functor(this, &WaterPlantDrawInit::initDraw), MR::DrawType_WaterPlant);
+    MR::registerPreDrawFunction(MR::FunctorV0M<const WaterPlantDrawInit*, void (WaterPlantDrawInit::*)() const>(this, &WaterPlantDrawInit::initDraw), MR::DrawType_WaterPlant);
 
     mSwingPosTable = new f32[::sSwingPosTableSize];
     updateSwingPos();

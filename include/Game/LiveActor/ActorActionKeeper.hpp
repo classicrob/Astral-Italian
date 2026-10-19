@@ -3,6 +3,7 @@
 #include <revolution.h>
 
 class ActorHitReactionCtrl;
+class ActorAnimKeeper;
 class ActorItemGenerator;
 class FootPrint;
 
@@ -15,12 +16,13 @@ public:
 
 class ActorActionKeeper {
 public:
+    bool startAction(const char*);
     void initFlagCtrl();
     void updateAnimKeeper();
     void update();
 
     /* 0x00 */ u8 mUnk00[4];
-    /* 0x04 */ s32 mActionIndex;
+    /* 0x04 */ ActorAnimKeeper* mAnimKeeper;
     /* 0x08 */ u8 mUnk08[8];
     /* 0x10 */ ActorHitReactionCtrl* mHitReactionCtrl;
     /* 0x14 */ ActorItemGenerator* mItemGenerator;

@@ -68,7 +68,7 @@ bool DemoTimeKeeper::isDemoEnd() const {
         return true;
     }
 
-    if (mSubPartInfos->mTotalStep >= mCurrentStep && mNumPartInfos == _18) {
+    if (mSubPartInfos->mTotalStep <= mCurrentStep && mNumPartInfos <= _18) {
         return true;
     }
 

@@ -234,19 +234,19 @@ void MarioAnimator::walkinClose() {
 #pragma dont_inline off
 #pragma auto_inline on
 extern XanimeBckTable4 quadAnimeTable[];
-extern XanimeBckTable3 tripleAnimeTable[];
-extern XanimeBckTable2 doubleAnimeTable[];
-extern XanimeBckTable1 singleAnimeTable[];
+extern XanimeBckTable4 tripleAnimeTable[];
+extern XanimeBckTable3 doubleAnimeTable[];
+extern XanimeBckTable2 singleAnimeTable[];
 extern XanimeGroupInfo marioAnimeTable[];
-extern XanimeAuxInfo marioAnimeAuxTable[];
-extern XanimeOfsInfo marioAnimeOfsTable[];
+extern XanimeOfsInfo marioAnimeAuxTable[];
+extern XanimeBckTable1 marioAnimeOfsTable[];
 extern XanimeSwapTable luigiAnimeSwapTable[];
 extern XanimeGroupInfo marioRideAnimeTable[];
-extern XanimeAuxInfo marioRideAnimeAuxTable[];
-extern XanimeOfsInfo marioRideAnimeOfsTable[];
-extern XanimeBckTable1 marioRideSingleAnimeTable[];
-extern XanimeBckTable2 marioRideDoubleAnimeTable[];
-extern XanimeBckTable3 marioRideTripleAnimeTable[];
+extern XanimeOfsInfo marioRideAnimeAuxTable[];
+extern XanimeBckTable1 marioRideAnimeOfsTable[];
+extern XanimeBckTable2 marioRideSingleAnimeTable[];
+extern XanimeBckTable3 marioRideDoubleAnimeTable[];
+extern XanimeBckTable4 marioRideTripleAnimeTable[];
 
 MarioAnimator::MarioAnimator(MarioActor* pActor) : mActor(pActor), mExtraAnimationEnabled(false) {
     init();
@@ -271,7 +271,7 @@ void MarioAnimator::init() {
     }
 
     mResourceTable = new XanimeResourceTable(MR::getResourceHolder(mActor), marioAnimeTable, marioAnimeAuxTable, marioAnimeOfsTable,
-                                             reinterpret_cast< XanimeBckTable* >(singleAnimeTable), doubleAnimeTable, tripleAnimeTable,
+                                             singleAnimeTable, doubleAnimeTable, tripleAnimeTable,
                                              luigiAnimations);
 
     _15 = 0;
@@ -318,7 +318,7 @@ void MarioAnimator::init() {
     mXanimePlayerUpper->changeAnimationBck("基本");
     mXanimePlayerUpper->mCore->shareJointTransform(mXanimePlayer->mCore);
     XanimeResourceTable* rideResources = new XanimeResourceTable(MR::getResourceHolder(mActor), marioRideAnimeTable,
-        marioRideAnimeAuxTable, marioRideAnimeOfsTable, reinterpret_cast<XanimeBckTable*>(marioRideSingleAnimeTable),
+        marioRideAnimeAuxTable, marioRideAnimeOfsTable, marioRideSingleAnimeTable,
         marioRideDoubleAnimeTable, marioRideTripleAnimeTable, nullptr);
     mXanimePlayerExtra = new XanimePlayer(MR::getJ3DModel(mActor), rideResources);
     mXanimePlayerExtra->setDefaultAnimation("基本");

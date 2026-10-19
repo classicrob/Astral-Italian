@@ -44,12 +44,13 @@ public:
 
 class ViewProjmapEffectMtxSetter : public MaterialCtrl {
 public:
-    ViewProjmapEffectMtxSetter(J3DModelData*);
+    ViewProjmapEffectMtxSetter(J3DModelData*, const f32 (*)[4]);
 
     virtual void update() override;
 
     /* 0x0C */ J3DTexMtxInfo** mMatricies;
     /* 0x10 */ s32 mNumMatricies;
+    /* 0x14 */ const f32 (*mBaseMtx)[4];
 };
 
 class ProjmapEffectMtxSetter : public MaterialCtrl {
@@ -111,8 +112,7 @@ class TexMtxCtrl : public MaterialCtrl {
 public:
     TexMtxCtrl(J3DModelData*, const char*);
 
-    void setTexMtx(u32, J3DTexMtx*);
     virtual void updateMaterial(J3DMaterial*) override;
 
-    /* 0x0C */ J3DTexMtx* mMatricies[8];
+    /* 0x0C */ const char* mTexGenCount;
 };

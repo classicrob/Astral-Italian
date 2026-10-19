@@ -249,21 +249,22 @@ namespace MR {
         pFromTargetHVec->scale(-1.0f);
     }
 
-    void fn_8000E760(TVec3f* pOut, const LiveActor* pActor, const TVec3f& rOffset, f32 scaleA, f32 scaleB) {
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    f32 fn_8000E760(TVec3f* pOut, const LiveActor* pActor, const TVec3f* pOffset, f32 scaleA, f32 scaleB) {
         TVec3f side;
         calcSideVec(&side, pActor);
 
         TVec3f sideA(side);
         sideA.scale(scaleA);
-        TVec3f lineA(rOffset);
+        TVec3f lineA(*pOffset);
         lineA.add(sideA);
 
         TVec3f sideB(side);
         sideB.scale(scaleB);
-        TVec3f lineB(rOffset);
+        TVec3f lineB(*pOffset);
         lineB.add(sideB);
 
-        MR::calcPerpendicFootToLineInside(pOut, *MR::getPlayerPos(), lineA, lineB);
+        return MR::calcPerpendicFootToLineInside(pOut, *MR::getPlayerPos(), lineA, lineB);
     }
 
     void fn_8000EAB0(TVec3f* pOut, LiveActor* pActor) {
@@ -469,11 +470,7 @@ namespace MR {
             pos.getZDir(zDir);
         }
 
-        xDir.cross(zDir, yDir);
-        if (isNearZero(xDir)) {
-            pos.getXDir(xDir2);
-            zDir.cross(xDir2, yDir);
-        }
+        fn_8000F5D0(&yDir, &zDir, &pos);
 
         makeMtxUpFrontPos(pResult, yDir, zDir, pActor->mPosition);
     }
@@ -638,6 +635,7 @@ namespace MR {
                              frontVecBlendRate);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void resetPosition(LiveActor* pActor) {
         MR::clearHitSensors(pActor);
 
@@ -658,30 +656,37 @@ namespace MR {
         MR::requestCalcActorShadowAppear(pActor);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void resetPosition(LiveActor* pActor, const TVec3f& rPosition) {
         MR::setPosition(pActor, rPosition);
 
         MR::resetPosition(pActor);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void resetPosition(LiveActor* pActor, const char* pA2) {
         TVec3f pos(0.0f, 0.0f, 0.0f);
         TVec3f rot(0.0f, 0.0f, 0.0f);
         MR::findNamePos(pA2, &pos, &rot);
 
-        pActor->mPosition.set(pos);
-        pActor->mRotation.set(rot);
+        MR::setPosition(pActor, pos);
+        MR::setRotation(pActor, rot);
 
         MR::resetPosition(pActor);
     }
 
-    bool makeMtxOnMapCollision(TPos3f* pMtx, LiveActor* pActor, f32 length) {
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+    bool makeMtxOnMapCollision(TPos3f* pMtx, LiveActor* pActor, f32 length, f32 offset) {
         calcGravity(pActor);
         TVec3f direction(pActor->mGravity);
-        direction.scale(length);
+        direction.scale(length + offset);
         TVec3f normal = -pActor->mGravity;
         TVec3f position(pActor->mPosition);
-        if (!getFirstPolyNormalOnLineToMap(&normal, pActor->mPosition, direction, &position, nullptr)) {
+        TVec3f shift(pActor->mGravity);
+        shift.scale(-offset);
+        TVec3f start(pActor->mPosition);
+        start.add(shift);
+        if (!getFirstPolyNormalOnLineToMap(&normal, start, direction, &position, nullptr)) {
             return false;
         }
 
@@ -1080,8 +1085,8 @@ namespace MR {
         pActor->mVelocity.add(rVelocity);
     }
 
-    void scaleVelocity(LiveActor* pActor, f32 scale) {
-        pActor->mVelocity.scale(scale);
+    f32 calcVelocityDot(const LiveActor* pActor, const TVec3f& direction) {
+        return pActor->mVelocity.dot(direction);
     }
 
     f32 calcVelocityLength(const LiveActor* pActor) {
@@ -1273,7 +1278,7 @@ namespace MR {
     }
 
     void rotateDirectionGravityDegree(const LiveActor* pActor, TVec3f* pA2, f32 angle) {
-        rotateVecRadian(pA2, (pActor->mGravity), PI_180 * angle);
+        fn_80012EB0(const_cast<LiveActor*>(pActor), pA2, PI_180 * angle);
     }
 
     void turnDirection(const LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4) {
@@ -1387,13 +1392,17 @@ namespace MR {
         normalize(pA2);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void setRotationFromQuat(LiveActor* pActor, const TQuat4f& rQuat) {
         rQuat.getEuler(pActor->mRotation);
 
         const f32 k = 57.295780181884766f;
-        f32 z = MR::normalizeAngleDegree(pActor->mRotation.z * k);
-        f32 y = MR::normalizeAngleDegree(pActor->mRotation.y * k);
-        f32 x = MR::normalizeAngleDegree(pActor->mRotation.x * k);
+        f32 zDegree = pActor->mRotation.z * k;
+        f32 yDegree = pActor->mRotation.y * k;
+        f32 xDegree = pActor->mRotation.x * k;
+        f32 z = MR::normalizeAngleDegree(zDegree);
+        f32 y = MR::normalizeAngleDegree(yDegree);
+        f32 x = MR::normalizeAngleDegree(xDegree);
         MR::setRotation(pActor, x, y, z);
     }
 
@@ -1418,6 +1427,7 @@ namespace MR {
         MR::makeQuatUpFront(pQuat, negGravity, sensorNormal);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void fn_80010200(TQuat4f* pQuat, TQuat4f* pNormalQuat, LiveActor* pActor, HitSensor* pSensor1, HitSensor* pSensor2) {
         TVec3f* pNormal = reinterpret_cast< TVec3f* >(pNormalQuat);
         MR::calcSensorHorizonNormalize(pNormal, pActor->mGravity, pSensor1, pSensor2);
@@ -1471,6 +1481,7 @@ namespace MR {
         pActor->mVelocity.add(vel);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 fn_80012450(const LiveActor* pActor) {
         const TVec3f& rGravity = pActor->mGravity;
         const TVec3f& rVelocity = pActor->mVelocity;
@@ -1490,6 +1501,7 @@ namespace MR {
         pDst->set(scaled);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void fn_80010AD0(TVec3f* pDst, LiveActor* pActor, const TVec3f& rTarget, f32 scale) {
         TVec3f diff(rTarget);
         PSVECSubtract(&diff, &pActor->mPosition, &diff);
@@ -1544,9 +1556,10 @@ namespace MR {
         TVec3f stack_8;
         calcVelocityMoveToDirection(&stack_8, pActor, *pA2, a4);
         pActor->mVelocity.add(stack_8);
+        if (!isBindedGround(pActor))
+            addVelocityToGravity(pActor, a5);
         pActor->mVelocity.scale(a6);
-        reboundVelocityFromCollision(pActor, 0.0f, 0.0f, 1.0f);
-        addVelocityToGravityOrGround(pActor, a5);
+        reboundVelocityFromEachCollision(pActor, -1.0f, 0.0f, 0.0f, 0.0f);
     }
 
     void moveAndTurnToTarget(LiveActor* pActor, TVec3f* pA2, const TVec3f& rA3, f32 a4, f32 a5, f32 a6, f32 a7) {
@@ -1603,6 +1616,7 @@ namespace MR {
 };  // namespace MR
 
 namespace MR {
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void calcRotate(LiveActor* pActor, const TVec3f& rA2, f32 a3) {
         TPos3f stack_44;
         TVec3f stack_38;
@@ -1627,7 +1641,7 @@ namespace MR {
 
         DO_ROTATE(stack_44, &stack_14, a3);
 
-        pActor->mRotation.set< f32 >(stack_14.x * _180_PI, stack_14.y * _180_PI, stack_14.z * _180_PI);
+        MR::setRotation(pActor, stack_14.x * _180_PI, stack_14.y * _180_PI, stack_14.z * _180_PI);
     }
 
     void moveAndTurnToDirection(LiveActor* pActor, const TVec3f& rA2, f32 a3, f32 a4, f32 a5, f32 a6) {
@@ -1671,6 +1685,7 @@ namespace MR {
         return PSVECMag(&diff);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcDistanceToPlayerVGravity(const LiveActor* pActor) {
         if (isExistSceneObj(SceneObj_MarioHolder) == nullptr) {
             return 3.4028235e38f;
@@ -1730,9 +1745,10 @@ namespace MR {
 
     // NONMATCHING: regalloc (constant load order)
     f32 normalizeAngleDegree(f32 angle) NO_INLINE {
-        return 0.0f + static_cast< f32 >(fmod(360.0f + (angle - 0.0f), 360.0));
+        return MR::repeat(angle, 0.0f, 360.0f);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     void killVelocityVertical(LiveActor* pActor) {
         TVec3f& rVelocity = pActor->mVelocity;
         const TVec3f& rGravity = pActor->mGravity;
@@ -1744,6 +1760,7 @@ namespace MR {
         pActor->mVelocity.scale(rGravity.dot(pActor->mVelocity), rGravity);
     }
 
+    // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcGravitySpeedAbs(const LiveActor* pActor) {
         return fabs(pActor->mGravity.dot(pActor->mVelocity));
     }

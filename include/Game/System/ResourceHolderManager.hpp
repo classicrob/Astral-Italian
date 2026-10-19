@@ -45,6 +45,7 @@ public:
     ResourceHolderManager();
 
     ResourceHolder* createAndAdd(const char*, JKRHeap*);
+    ResourceHolder* createAndAddRawData(const char*);
     ResourceHolder* createAndAddStationed(const char*);
     LayoutHolder* createAndAddLayoutHolder(const char*, JKRHeap*);
     LayoutHolder* createAndAddLayoutHolderStationed(const char*);

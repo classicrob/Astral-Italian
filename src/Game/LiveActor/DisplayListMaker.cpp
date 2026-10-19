@@ -8,10 +8,9 @@
 #include <JSystem/J3DGraphBase/J3DMaterial.hpp>
 #include <JSystem/J3DGraphBase/J3DSys.hpp>
 #include <algorithm>
-
-void DisplayListMaker_FORCE_MATCH_INLINE(J3DTexture* pTexture, const ResTIMG& rTexture) {
-    pTexture->setResTIMG(0, rTexture);
-}
+#include "Game/Util/MutexHolder.hpp"
+#include "Game/Screen/TimeStopScreenEffect.hpp"
+#include "Game/Util/DrawUtil.hpp"
 
 DisplayListMaker::DisplayListMaker(J3DModel* pModel, const f32 (*pArr)[4], const ResourceHolder* pResHolder)
     : mModel(pModel), mFogCtrl(), _1C(pArr), mResHolder(pResHolder) {
@@ -27,12 +26,14 @@ void DisplayListMaker::update() {
     std::for_each(mMaterialCtrl.begin(), mMaterialCtrl.end(), std::mem_fun(&MaterialCtrl::update));
 }
 
+// NONMATCHING: regalloc and material-pointer reload scheduling
 void DisplayListMaker::diff() {
     for (u16 i = 0; i < mModel->getModelData()->getMaterialNum(); i++) {
         if (mCurFlag[i]) {
-            MR::ProhibitSchedulerAndInterrupts prohibit(false);
+            OSLockMutex(&MR::MutexHolder<0>::sMutex);
             j3dSys.setMatPacket(mModel->getMatPacket(i));
             mModel->getModelData()->getMaterialNodePointer(i)->diff(getDiffFlag(i));
+            OSUnlockMutex(&MR::MutexHolder<0>::sMutex);
         }
     }
 }
@@ -88,12 +89,12 @@ MatColorCtrl* DisplayListMaker::addMatColorCtrl(const char* pName, u32 color, co
 TexMtxCtrl* DisplayListMaker::addTexMtxCtrl(const char* pName) {
     TexMtxCtrl* ctrl = new TexMtxCtrl(mModel->mModelData, pName);
     push(ctrl);
-    s16 materialNo = MR::getMaterialNo(mModel->mModelData, pName);
-    onBothFlag(materialNo, 0x200);
+    onBothFlagAll(0x02000000);
     return ctrl;
 }
 
 ProjmapEffectMtxSetter* DisplayListMaker::addProjmapEffectMtxSetter() {
+    const_cast<ResourceHolder*>(mResHolder)->backupInitMaterialData();
     ProjmapEffectMtxSetter* setter = new ProjmapEffectMtxSetter(mModel, mResHolder);
     push(setter);
     return setter;
@@ -110,7 +111,7 @@ void DisplayListMaker::offCurFlagBpk(const J3DAnmBase* pAnm) {
 }
 
 void DisplayListMaker::onCurFlagBtp(const J3DAnmBase* pAnm, const char* pName) {
-    MR::onDiffFlagBtp(mCurFlag, static_cast< const J3DAnmTexPattern* >(pAnm), pName);
+    MR::onDiffFlagBtp(mCurFlag, static_cast< const J3DAnmTexPattern* >(pAnm), mResHolder->mName, pName);
 }
 
 void DisplayListMaker::offCurFlagBtp(const J3DAnmBase* pAnm) {
@@ -118,7 +119,7 @@ void DisplayListMaker::offCurFlagBtp(const J3DAnmBase* pAnm) {
 }
 
 void DisplayListMaker::onCurFlagBtk(const J3DAnmBase* pAnm, const char* pName) {
-    MR::onDiffFlagBtk(mCurFlag, static_cast< const J3DAnmTextureSRTKey* >(pAnm), pName);
+    MR::onDiffFlagBtk(mCurFlag, static_cast< const J3DAnmTextureSRTKey* >(pAnm), mResHolder->mName, pName);
 }
 
 void DisplayListMaker::offCurFlagBtk(const J3DAnmBase* pAnm) {
@@ -126,7 +127,7 @@ void DisplayListMaker::offCurFlagBtk(const J3DAnmBase* pAnm) {
 }
 
 void DisplayListMaker::onCurFlagBrk(const J3DAnmBase* pAnm, const char* pName) {
-    MR::onDiffFlagBrk(mCurFlag, static_cast< const J3DAnmTevRegKey* >(pAnm), pName);
+    MR::onDiffFlagBrk(mCurFlag, static_cast< const J3DAnmTevRegKey* >(pAnm), mResHolder->mName, pName);
 }
 
 void DisplayListMaker::offCurFlagBrk(const J3DAnmBase* pAnm) {
@@ -175,61 +176,48 @@ void DisplayListMaker::checkViewProjmapEffectMtx() {
 }
 
 ViewProjmapEffectMtxSetter* DisplayListMaker::addViewProjmapEffectMtxSetter() {
-    ViewProjmapEffectMtxSetter* setter = new ViewProjmapEffectMtxSetter(mModel->getModelData());
+    ViewProjmapEffectMtxSetter* setter = new ViewProjmapEffectMtxSetter(mModel->getModelData(), _1C);
     push(setter);
     return setter;
 }
 
 MarioShadowProjmapMtxSetter* DisplayListMaker::addMarioShadowProjmapMtxSetter() {
+    const_cast<ResourceHolder*>(mResHolder)->backupInitMaterialData();
     MarioShadowProjmapMtxSetter* setter = new MarioShadowProjmapMtxSetter(mModel, mResHolder);
     push(setter);
     return setter;
 }
 
 void DisplayListMaker::onCurFlagBpk(const J3DAnmBase* pAnm, const char* pName) {
-    MR::onDiffFlagBpk(mCurFlag, static_cast< const J3DAnmColorKey* >(pAnm), pName);
+    MR::onDiffFlagBpk(mCurFlag, static_cast< const J3DAnmColorKey* >(pAnm), mResHolder->mName, pName);
+}
+
+bool DisplayListMaker::replaceTexture(const char* name, const ResTIMG* texture) {
+    bool found = false;
+    for (u16 i = 0; i < mModel->getModelData()->getTexture()->getNum(); i++) {
+        if (MR::isEqualString(mModel->getModelData()->getTextureName()->getName(i), name)) {
+            for (u16 j = 0; j < mModel->getModelData()->getMaterialNum(); j++) {
+                if (MR::isUseTex(mModel->getModelData()->getMaterialNodePointer(j), i)) onBothFlag(j, 0x04020000);
+            }
+            mModel->getModelData()->getTexture()->setResTIMG(i, *texture);
+            found = true;
+        }
+    }
+    return found;
 }
 
 void DisplayListMaker::checkTexture() {
-    bool hasShadowSetter = false;
-    for (u16 i = 0; i < mModel->getModelData()->getTexture()->getNum(); i++) {
-        const char* name = mModel->getModelData()->getTextureName()->getName(i);
-        if (MR::isEqualString(name, "IndDummy")) {
-            for (u16 j = 0; j < mModel->getModelData()->getMaterialNum(); j++) {
-                if (MR::isUseTex(mModel->getModelData()->getMaterialNodePointer(j), i)) {
-                    onBothFlag(j, 0x4020000);
-                }
-            }
-
-            mModel->getModelData()->getTexture()->setResTIMG(i, *MR::getScreenResTIMG());
-        }
-
-        if (MR::isEqualString(name, "ShadowProjDummy")) {
-            for (u16 j = 0; j < mModel->getModelData()->getMaterialNum(); j++) {
-                if (MR::isUseTex(mModel->getModelData()->getMaterialNodePointer(j), i)) {
-                    onBothFlag(j, 0x4020000);
-                }
-            }
-
-            const JUTTexture* texture = MR::getMarioShadowTex();
-            mModel->getModelData()->getTexture()->setResTIMG(i, *texture->getTexInfo());
-
-            if (!hasShadowSetter) {
-                addMarioShadowProjmapMtxSetter();
-                hasShadowSetter = true;
-            }
-        }
-    }
+    replaceTexture("IndDummy", MR::getScreenResTIMG());
+    replaceTexture("ScreenDummy", MR::getScreenResTIMG());
+    const JUTTexture* timeStop = MR::getTimeStopScreenCaptureTexture();
+    if (timeStop) replaceTexture("GrayDummy", timeStop->getTexInfo());
+    const JUTTexture* shadow = MR::getMarioShadowTexForDisplayList();
+    if (shadow && replaceTexture("ShadowProjDummy", shadow->getTexInfo())) addMarioShadowProjmapMtxSetter();
 }
 
 bool DisplayListMaker::isExistDiffMaterial(const J3DModelData* pModelData) {
-    if (pModelData->getTextureName()->getIndex("IndDummy") != -1) {
-        return true;
-    }
-
-    if (pModelData->getTextureName()->getIndex("ShadowDummy") != -1) {
-        return true;
-    }
+    if (pModelData->getTextureName()->getIndex("IndDummy") != -1 || pModelData->getTextureName()->getIndex("ScreenDummy") != -1) return true;
+    if (pModelData->getTextureName()->getIndex("ShadowDummy") != -1) return true;
 
     for (u16 i = 0; i < pModelData->getMaterialNum(); i++) {
         if (!MR::isNormalTexMtx(pModelData->getMaterialNodePointer(i))) {

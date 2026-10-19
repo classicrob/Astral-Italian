@@ -1,4 +1,7 @@
 #include "Game/Util/MessageUtil.hpp"
+#include "Game/System/GalaxyStatusAccessor.hpp"
+#include "Game/Util/JMapUtil.hpp"
+#include <cstring>
 #include "Game/Map/RaceManager.hpp"
 #include "Game/NPC/TalkMessageInfo.hpp"
 #include "Game/Screen/MessageTagSkipTagProcessor.hpp"
@@ -19,12 +22,13 @@ namespace MR {
         return reinterpret_cast< wchar_t* >(messageInfo._0);
     }
 
+    // NONMATCHING: equivalent null-return branch arrangement
     const wchar_t* getGameMessageDirect(const char* pMessageId) {
         TalkMessageInfo messageInfo = TalkMessageInfo();
 
-        MessageSystem::getGameMessageDirect(&messageInfo, pMessageId);
-
-        return reinterpret_cast< wchar_t* >(messageInfo._0);
+        const wchar_t* text = nullptr;
+        if (MessageSystem::getGameMessageDirect(&messageInfo, pMessageId)) text = reinterpret_cast<wchar_t*>(messageInfo._0);
+        return text;
     }
 
     const wchar_t* getLayoutMessageDirect(const char* pMessageId) {
@@ -33,6 +37,14 @@ namespace MR {
         MessageSystem::getLayoutMessageDirect(&messageInfo, pMessageId);
 
         return reinterpret_cast< wchar_t* >(messageInfo._0);
+    }
+
+    const wchar_t* getSceneMessageDirect(const char* name, s32 zone) {
+        TalkMessageInfo info;
+        MessageData* data = MessageSystem::getSceneMessageData(name, zone);
+        MessageSystem::getMessageDirect(&info, name, data);
+        const wchar_t* text = reinterpret_cast<const wchar_t*>(info._0);
+        return text ? text : L"メッセージ未登録";
     }
 
     const wchar_t* getCurrentGalaxyNameOnCurrentLanguage() {
@@ -44,17 +56,40 @@ namespace MR {
     }
 
     const wchar_t* getCurrentScenarioNameOnCurrentLanguage() {
-        s32 selectedScenarioNo = getCurrentSelectedScenarioNo();
-        s32 scenarioNo = selectedScenarioNo != -1 ? selectedScenarioNo : getCurrentScenarioNo();
-
-        return getScenarioNameOnCurrentLanguage(getCurrentStageName(), scenarioNo);
+        s32 scenario = getCurrentOrSelectedScenarioNo();
+        return getScenarioNameOnCurrentLanguage(getCurrentStageName(), scenario);
     }
 
-    bool isExistGameMessage(const char* pMessageId) {
-        TalkMessageInfo messageInfo = TalkMessageInfo();
+    const wchar_t* getWorldNameOnCurrentLanguage(s32 world) {
+        char id[MESSAGE_ID_BUFFER_SIZE];
+        snprintf(id, sizeof(id), "GalaxyName_WorldMap%02dGalaxy", world);
+        return getGameMessageDirect(id);
+    }
 
-        return MessageSystem::getGameMessageDirect(&messageInfo, pMessageId) &&
-               getStringLengthWithMessageTag(reinterpret_cast< wchar_t* >(messageInfo._0)) != 0;
+    bool isExistGameMessage(const char* id) {
+        return MessageSystem::isExistGameMessage(id);
+    }
+
+    bool isExistSceneMessage(const char* id) {
+        return MessageSystem::isExistSceneMessage(id);
+    }
+
+    s32 makeMessageID(char* out, u32 size, const char* name, s32 id) {
+        return snprintf(out, size, "%s%03d", name, id);
+    }
+
+    bool isExistSceneMessage(const char* name, const JMapInfoIter& iter, bool addId) {
+        char id[MESSAGE_ID_BUFFER_SIZE];
+        if (addId) {
+            s32 index = -1;
+            getJMapInfoMessageID(iter, &index);
+            if (index == -1) return false;
+            snprintf(id, sizeof(id), "%s%03d", name, index);
+        } else {
+            strncpy(id, name, sizeof(id));
+        }
+        MessageData* data = MessageSystem::getSceneMessageData(id, getPlacedZoneId(iter));
+        return MessageSystem::isExistMessage(id, data);
     }
 
     const wchar_t* getMessageLine(wchar_t* pDst, u32 capacity, const wchar_t* pMessage, u32 line) {
@@ -65,7 +100,7 @@ namespace MR {
                 break;
             }
 
-            if (*pMessage == 0x1A) {
+            if (*pMessage == 0xE) {
                 pMessage++;
                 MessageEditorMessageTag tag(pMessage);
                 pMessage += tag.getSkipLength();
@@ -83,7 +118,7 @@ namespace MR {
         }
 
         for (u32 count = 0; count < capacity; count++) {
-            if (*pMessage == 0x1A) {
+            if (*pMessage == 0xE) {
                 *pDst++ = *pMessage++;
                 MessageEditorMessageTag tag(pMessage);
 
@@ -114,7 +149,7 @@ namespace MR {
         s32 count = 1;
 
         while (*pMessage != 0) {
-            if (*pMessage == 0x1A) {
+            if (*pMessage == 0xE) {
                 pMessage++;
                 MessageEditorMessageTag tag(pMessage);
                 pMessage += tag.getSkipLength();
@@ -142,7 +177,7 @@ namespace MR {
         s32 count = 0;
 
         while (*pMessage != 0) {
-            if (*pMessage == 0x1A) {
+            if (*pMessage == 0xE) {
                 pMessage++;
                 MessageEditorMessageTag tag(pMessage);
                 pMessage += tag.getSkipLength();
@@ -154,15 +189,13 @@ namespace MR {
                 } else if (tag.getGroup() == 5) {
                     count += 3;
                 }
-#if (VERSION == RMGK01)
-                else if (tag.getGroup() == 11) {
-                    count += 2;
-                }
-#endif
+
                 else if (tag.getGroup() == 7) {
                     count += countMessageChar(*reinterpret_cast< const wchar_t* const* >(tag.getParamPtr(0)));
                 } else if (tag.isGroupTagId(1, 1)) {
                     break;
+                } else if (tag.getGroup() == 10) {
+                    count += tag.getParam16(0);
                 }
             } else {
                 pMessage++;
@@ -186,7 +219,7 @@ namespace MR {
 
     const wchar_t* getNextMessagePage(const wchar_t* pMessage) {
         while (*pMessage != 0) {
-            if (*pMessage == 0x1A) {
+            if (*pMessage == 0xE) {
                 pMessage++;
                 MessageEditorMessageTag tag(pMessage);
                 pMessage += tag.getSkipLength();
@@ -220,11 +253,17 @@ namespace MR {
         return getGameMessageDirect(messageId);
     }
 
-    const wchar_t* getScenarioNameOnCurrentLanguage(const char* pGalaxyName, s32 scenarioNo) {
-        char messageId[MESSAGE_ID_BUFFER_SIZE];
-        snprintf(messageId, sizeof(messageId), "ScenarioName_%s%d", pGalaxyName, scenarioNo);
-
-        return getGameMessageDirect(messageId);
+    const wchar_t* getScenarioNameOnCurrentLanguage(const char* galaxy, s32 scenario) {
+        char id[MESSAGE_ID_BUFFER_SIZE];
+        if (isValidStageName(galaxy)) {
+            GalaxyStatusAccessor accessor = makeGalaxyStatusAccessor(galaxy);
+            if (accessor.isGreenStar(scenario)) {
+                snprintf(id, sizeof(id), "ScenarioName_GreenStar%d", scenario - accessor.getPowerStarNum() / 2);
+                return getGameMessageDirect(id);
+            }
+        }
+        snprintf(id, sizeof(id), "ScenarioName_%s%d", galaxy, scenario);
+        return getGameMessageDirect(id);
     }
 
     void getLayoutMessageID(char* pDst, const char* pSuperMessageId, const char* pSubMessageId) {

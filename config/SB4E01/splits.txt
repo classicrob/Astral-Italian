@@ -2160,7 +2160,7 @@ Game/Camera/CameraTwistedPassage.cpp:
 	.sdata2     start:0x807D9630 end:0x807D9650
 
 Game/Camera/CameraViewInterpolator.cpp:
-	.text       start:0x8012FBB0 end:0x80130A60
+	.text       start:0x8012FBB0 end:0x80130D30
 	.rodata     start:0x80647CB8 end:0x80647CC0
 	.data       start:0x8067E7E8 end:0x8067E800
 	.sdata2     start:0x807D9664 end:0x807D96AC
@@ -3642,7 +3642,7 @@ Game/Gravity/WireGravity.cpp:
 	.data       start:0x806946A0 end:0x806946B0
 
 Game/LiveActor/ActorAnimKeeper.cpp:
-	.text       start:0x802283B0 end:0x80228D20
+	.text       start:0x80228320 end:0x80228D20
 	.data       start:0x806946B0 end:0x80694700
 	.sdata      start:0x807CF9F0 end:0x807CFA10
 
@@ -3790,7 +3790,7 @@ Game/LiveActor/EffectKeeper.cpp:
 	.sdata2     start:0x807DC430 end:0x807DC440
 
 Game/LiveActor/FaceJointCtrl.cpp:
-	.text       start:0x802347B0 end:0x80235370
+	.text       start:0x80234660 end:0x80235370
 	.data       start:0x80695110 end:0x80695128
 
 Game/LiveActor/FallDeath.cpp:
@@ -4224,7 +4224,7 @@ Game/Map/AnmModelSwitchMove.cpp:
 	.text       start:0x80261ED0 end:0x80261FD0
 
 Game/Map/ProductMapCreator.cpp:
-	.text       start:0x80262DB0 end:0x802630D0
+	.text       start:0x80261FD0 end:0x802630D0
 	.rodata     start:0x80648EF8 end:0x80649070
 	.data       start:0x8069957C end:0x80699598
 	.sdata2     start:0x807DC954 end:0x807DC95C
@@ -4254,7 +4254,7 @@ Game/Map/QuakeEffectGenerator.cpp:
 	.sdata2     start:0x807DC978 end:0x807DC980
 
 Game/Map/RaceManager.cpp:
-	.text       start:0x802638C0 end:0x80265800
+	.text       start:0x802638C0 end:0x80265810
 	.ctors      start:0x806442C4 end:0x806442C8
 	.rodata     start:0x80649070 end:0x80649088
 	.data       start:0x806999F8 end:0x80699C90
@@ -7173,10 +7173,10 @@ Game/Ride/TubeSliderJumpStep.cpp:
 	.ctors      start:0x8064486C end:0x80644870
 
 Game/Ride/TubeSliderObjCreator.cpp:
-	.text       start:0x80451040 end:0x80451390
+	.text       start:0x80451040 end:0x80451340
 
 Game/Scene/GameScene.cpp:
-	.text       start:0x80451390 end:0x80452A70
+	.text       start:0x80451340 end:0x80452A70
 	.ctors      start:0x80644870 end:0x80644874
 	.data       start:0x806EF920 end:0x806EFAE8
 	.sbss       start:0x807D5308 end:0x807D5328
@@ -8853,7 +8853,7 @@ Game/NWC24/NWC24System.cpp:
 	.sdata      start:0x807D05B0 end:0x807D05B8
 
 Game/NWC24/ReceiverTagMail.cpp:
-	.text       start:0x80500880 end:0x80500A10
+	.text       start:0x80500820 end:0x80500A10
 
 Game/NWC24/WiiMessageBoardMailSenderState.cpp:
 	.text       start:0x80500A50 end:0x80500F60

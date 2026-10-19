@@ -31,6 +31,8 @@ public:
     void forceDeleteEmitter(const char*);
     void deleteEmitterAll();
     void forceDeleteEmitterAll();
+    MultiEmitter* getEmitter(const char*);
+    MultiEmitter* getEmitter(const char*, s32) const NO_INLINE;
     MultiEmitter* getEmitter(const char*) const;
     MultiEmitter* getEmitter(s32) const;
     void changeEffectName(const char*, const char*);
@@ -42,6 +44,9 @@ public:
     void playEmitterOffClipped();
     void clear();
     void changeBck();
+    void resetSyncBckFrame();
+    void onCalcEmitter();
+    void offCalcEmitter();
     void onDraw();
     void offDraw();
     void enableSort();
@@ -54,8 +59,8 @@ public:
     bool isTypeAttributeEffect(const char*) const;
 
     /* 0x00 */ const char* _0;
-    /* 0x04 */ ResourceHolder* _4;  // mResourceHolder
-    /* 0x08 */ const char* _8;      // mResourceName
+    /* 0x04 */ const char* mResourceName;
+    /* 0x08 */ ResourceHolder* mResourceHolder;
     /* 0x0C */ MR::Vector< MR::AssignableArray< MultiEmitter* > > _C;
     /* 0x18 */ HashSortTable* _18;
     /* 0x1C */ u32 _1C;

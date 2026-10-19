@@ -19,7 +19,6 @@ namespace NameObjFactory {
     struct Name2CreateFunc {
         /* 0x0 */ const char* mName;
         /* 0x4 */ CreatorFuncPtr mCreateFunc;
-        /* 0x8 */ const char* mArchiveName;
     };
 
     struct Name2Archive {

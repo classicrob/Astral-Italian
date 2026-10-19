@@ -7,6 +7,9 @@ class BinaryDataChunkHolder;
 class BinaryDataContentHeaderSerializer;
 
 struct SysConfigCounters {
+    SysConfigCounters() { reset(); }
+    void reset() NO_INLINE;
+    void copyFrom(const SysConfigCounters&) NO_INLINE;
     u16 mBankedStarPiece;
     u16 mMaxBankedStarPiece;
     u8 mSharedPlayerLeft;
@@ -26,7 +29,7 @@ public:
     virtual s32 deserialize(const u8*, u32);
     virtual void initializeData();
 
-    void initHeaderSerializer();
+    void initializeHeaderSerializer();
 
     s32 getSharedPlayerLeft() const;
     void setSharedPlayerLeft(s32, u16);
@@ -37,7 +40,7 @@ public:
     void restoreCounters();
     void resetCounters();
 
-    /* 0x04 */ bool mEncouragedPal16;
+    /* 0x04 */ u8 mEncouragedPal16;
     union {
         /* 0x08 */ OSTime mTimeSent;
         /* 0x08 */ OSTime mTimeAnnounced; // old source alias; SMG2 stores only one time

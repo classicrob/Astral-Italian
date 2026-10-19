@@ -69,7 +69,7 @@ void StoryBookDemo::init(const JMapInfoIter& iter) {
     MR::newDifferedDLBuffer(this);
     mText = new StoryBookText;
     mText->initWithoutIter();
-    registerDemo();
+    MR::registerStoryBookDemoCast(this);
     if (MR::isScreen16Per9()) MR::startBtkAndSetFrameAndStop(this, "Ratio", 0.0f);
     else MR::startBtkAndSetFrameAndStop(this, "Ratio", 1.0f);
     MR::startAction(this, "StartPage");
@@ -287,17 +287,17 @@ void StoryBookDemo::capture() {
     }
 }
 // NONMATCHING: regalloc
-bool StoryBookDemo::registerDemo() {
+bool MR::registerStoryBookDemoCast(LiveActor* pActor) {
     JMapInfoIter iter(0, -1);
-    bool registered = (0 | MR::tryRegisterDemoCast(this, "ピーチからの手紙", iter)) != 0;
-    registered |= MR::tryRegisterDemoCast(this, "ベビチコ出会い", iter);
-    registered |= MR::tryRegisterDemoCast(this, "ピーチ誘拐", iter);
-    registered |= MR::tryRegisterDemoCast(this, "スピンドライバ初出", iter);
-    registered |= MR::tryRegisterDemoCast(this, "クッパ最終戦突入", iter);
-    registered |= MR::tryRegisterDemoCast(this, "ノーマルエンディング１", iter);
-    registered |= MR::tryRegisterDemoCast(this, "ノーマルエンディング２", iter);
-    registered |= MR::tryRegisterDemoCast(this, "ノーマルエンディング３", iter);
-    registered |= MR::tryRegisterDemoCast(this, "ノーマルエンディング４", iter);
+    bool registered = (0 | MR::tryRegisterDemoCast(pActor, "ピーチからの手紙", iter)) != 0;
+    registered |= MR::tryRegisterDemoCast(pActor, "ベビチコ出会い", iter);
+    registered |= MR::tryRegisterDemoCast(pActor, "ピーチ誘拐", iter);
+    registered |= MR::tryRegisterDemoCast(pActor, "スピンドライバ初出", iter);
+    registered |= MR::tryRegisterDemoCast(pActor, "クッパ最終戦突入", iter);
+    registered |= MR::tryRegisterDemoCast(pActor, "ノーマルエンディング１", iter);
+    registered |= MR::tryRegisterDemoCast(pActor, "ノーマルエンディング２", iter);
+    registered |= MR::tryRegisterDemoCast(pActor, "ノーマルエンディング３", iter);
+    registered |= MR::tryRegisterDemoCast(pActor, "ノーマルエンディング４", iter);
     return registered;
 }
 void MR::stopStoryBookDemoCasts() {

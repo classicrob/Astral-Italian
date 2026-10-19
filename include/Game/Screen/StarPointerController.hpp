@@ -32,16 +32,16 @@ public:
 
     f32 calcViewDistanceZ(const TVec3f&, MtxPtr);
 
-    virtual const TVec2f& getScreenPosition() const { return mPastInfo.mPos; }
-    virtual const TVec2f& getScreenVelocity() const { return mScreenVel; }
-    virtual const TVec3f& getWorldVelocity() const { return mWorldVel; }
-    virtual f32 getScreenSpeed() const { return mScreenSpeed; }
-    virtual f32 getViewDistanceZ() const { return mPastInfo.mViewDistZ; }
-    virtual s32 getPastPointCount() const { return mPastPointNum; }
-    virtual s32 getNextPastPointCount() const { return mNextPastPointNum; }
-    virtual const TVec2f& getPastPosition(s32 index) const { return mPastPosition[index]; }
-    virtual const TVec2f& getNextPastPosition(s32 index) const { return mNextPastPosition[index]; }
-    virtual const TVec3f& getWorldPosition() const { return mWorldPos; }
+    virtual const TVec2f& getScreenPosition() const;
+    virtual const TVec2f& getScreenVelocity() const;
+    virtual const TVec3f& getWorldVelocity() const;
+    virtual f32 getScreenSpeed() const;
+    virtual f32 getViewDistanceZ() const;
+    virtual s32 getPastPointCount() const;
+    virtual s32 getNextPastPointCount() const;
+    virtual const TVec2f& getPastPosition(s32 index) const;
+    virtual const TVec2f& getNextPastPosition(s32 index) const;
+    virtual const TVec3f& getWorldPosition() const;
     virtual bool isInScreen() const { return mPastInfo.mInScreen; }
     virtual bool isOutScreenLong() const;
 

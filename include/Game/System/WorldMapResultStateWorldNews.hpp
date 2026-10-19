@@ -3,6 +3,7 @@
 #include "Game/System/WorldMapResultLocal.hpp"
 
 class TalkMessageCtrl;
+class WorldMapArrow;
 
 namespace NrvWorldMapResultStateWorldNews {
     WMR_NERVE_DECL(WorldMapResultStateWorldNewsWait);
@@ -13,5 +14,5 @@ namespace NrvWorldMapResultStateWorldNews {
 };  // namespace NrvWorldMapResultStateWorldNews
 
 /// World-news state ("State[ワールドニュース]"): talk controls for the stage news, one per entry.
-WMR_OWNER_STATE_DECL(WorldMapResultStateWorldNews, virtual void control(); bool eventFunc(u32); bool checkStep(); void setIndexFlag(); bool isIndexInRange() const; void nextTalkNerve(); void exeStart(); void exeTalk(); void exeEnd(); void exeSave(); void startNextTalk();
-               /* 0x10 */ s32 mIndex; /* 0x14 */ TalkMessageCtrl** mTalkCtrls; /* 0x18 */ u8 _18[0xC]; /* 0x24 */ void* mPanel; /* 0x28 */ u8 _28[8];  /* WorldMapSequence::init allocates 0x30 bytes */);
+WMR_OWNER_STATE_DECL(WorldMapResultStateWorldNews, bool eventFunc(u32); bool checkStep(); void setIndexFlag() NO_INLINE; bool isIndexInRange() const NO_INLINE; void nextTalkNerve(); void exeStart(); void exeTalk(); void exeEnd(); void exeSave(); void startNextTalk();
+               /* 0x10 */ s32 mIndex; /* 0x14 */ TalkMessageCtrl** mTalkCtrls; /* 0x18 */ u8 _18[0xC]; /* 0x24 */ WorldMapArrow* mPanel; /* 0x28 */ u8 _28[8];  /* WorldMapSequence::init allocates 0x30 bytes */);

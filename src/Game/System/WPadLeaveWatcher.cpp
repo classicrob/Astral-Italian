@@ -11,7 +11,7 @@ namespace {
     static bool sIsCheckSubAccel = true;
     static bool sIsCheckButton = true;
     static bool sIsCheckStick = true;
-    static const s32 sLeaveLongTime = 3600;
+    static const s32 sLeaveLongTime = 1800;
 };  // namespace
 
 WPadLeaveWatcher::WPadLeaveWatcher(WPad* pPad) : mPad(pPad), mStep(), mIsSuspend() {

@@ -1034,9 +1034,9 @@ namespace MR {
         return MarioAccess::getPlayerActor()->_B7C;
     }
 
-    // PLACEHOLDER(core): name by behavior; tail-calls MarioAccess::fn_803B7370 (unit auto_03_803B7340)
-    void resetPlayerEndState() {
-        MarioAccess::fn_803B7370();
+    // Mario's shadow texture (CollisionShadow+0x308; DisplayListMaker draws it).
+    const JUTTexture* getPlayerShadowTexture() {
+        return MarioAccess::fn_803B7370();
     }
 
     u16 getPlayerMovementTimer() {

@@ -11,17 +11,23 @@
 
 class TalkMessageCtrl;
 
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" {
-    void* fn_804A88E0();
-}
-
 extern const char* lbl_807039D8[12];
 extern TVec2f lbl_8072BB30;
 extern char lbl_807038E0[];
 
-/// Talk-callback object of the world-news state: the state's member function, as registered with the talk ctrls.
-typedef TalkMessageFuncM< WorldMapResultStateWorldNews*, bool (WorldMapResultStateWorldNews::*)(u32) > WorldMapResultNewsTalkFunc;
+template <>
+class TalkMessageFuncM<WorldMapResultStateWorldNews*, bool (WorldMapResultStateWorldNews::*)(u32)> : public TalkMessageFuncBase {
+public:
+    typedef bool (WorldMapResultStateWorldNews::*Callback)(u32);
+    TalkMessageFuncM(WorldMapResultStateWorldNews* caller, Callback callee) : mCaller(caller), mCallee(callee) {}
+    TalkMessageFuncM(const TalkMessageFuncM&) NO_INLINE;
+    virtual bool operator()(u32 arg) const { return (mCaller->*mCallee)(arg); }
+    virtual TalkMessageFuncM* clone() const { return new TalkMessageFuncM(*this); }
+    virtual TalkMessageFuncM* clone(JKRHeap* heap) const { return new (heap, 0) TalkMessageFuncM(*this); }
+    WorldMapResultStateWorldNews* mCaller;
+    Callback mCallee;
+};
+typedef TalkMessageFuncM<WorldMapResultStateWorldNews*, bool (WorldMapResultStateWorldNews::*)(u32)> WorldMapResultNewsTalkFunc;
 
 WorldMapResultStateWorldNews::WorldMapResultStateWorldNews(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ワールドニュース]", pHost) {
     mIndex = -1;
@@ -35,147 +41,149 @@ void WorldMapResultStateWorldNews::init() {
         mTalkCtrls[i] = mHost->createMeisterTalk(lbl_807039D8[i]);
         MR::registerEventFunc(mTalkCtrls[i], WorldMapResultNewsTalkFunc(this, &WorldMapResultStateWorldNews::eventFunc));
     }
-    mPanel = fn_804A88E0();
-    void** pVtable = *reinterpret_cast< void*** >(mPanel);
-    reinterpret_cast< void (*)(void*) >(pVtable[0x30 / 4])(mPanel);
+    mPanel = new WorldMapArrow();
+    mPanel->kill();
     mIsDead = true;
 }
 
 void WorldMapResultStateWorldNews::appear() {
     mIsDead = false;
-    void** pVtable = *reinterpret_cast< void*** >(mPanel);
-    reinterpret_cast< void (*)(void*) >(pVtable[0x30 / 4])(mPanel);
+    mPanel->kill();
     mHost->startDemo();
     setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsWait));
 }
 
 void WorldMapResultStateWorldNews::kill() {
     mHost->endDemo();
-    reinterpret_cast< WorldMapArrow* >(mPanel)->disappear();
+    mPanel->disappear();
     mIsDead = true;
 }
 
+// NONMATCHING: regalloc; equivalent signed range comparison lowering
 bool WorldMapResultStateWorldNews::isIndexInRange() const {
-    if (mIndex >= 1 && mIndex <= 5) {
-        return true;
+    if (mIndex < 1) {
+        return false;
     }
-    return false;
-}
-
-void WorldMapResultStateWorldNews::control() {
+    if (mIndex > 5) {
+        return false;
+    }
+    return true;
 }
 
 bool WorldMapResultStateWorldNews::eventFunc(u32) {
-    reinterpret_cast< WorldMapArrow* >(mPanel)->start(mHost->findGalaxyByName("YosshiHomeGalaxy"), 60);
+    mPanel->start(mHost->findGalaxyByName("YosshiHomeGalaxy"), 60);
     return true;
 }
 
 bool WorldMapResultStateWorldNews::checkStep() {
+    const char* flags = lbl_807038E0;
     s32 stage = mHost->getWorldId();
-    if (mHost->isWorldEventFlagOff() != 0) {
-        switch (stage) {
-        case 1:
+    if (mHost->isWorldEventFlagOff()) {
+        if (stage == 1) {
             mIndex = 0;
             return true;
-        case 2:
+        }
+        if (stage == 2) {
             mIndex = 1;
             return true;
-        case 3:
+        }
+        if (stage == 3) {
             mIndex = 2;
             return true;
-        case 4:
+        }
+        if (stage == 4) {
             mIndex = 3;
             return true;
-        case 5:
+        }
+        if (stage == 5) {
             mIndex = 4;
             return true;
-        case 6:
+        }
+        if (stage == 6) {
             mIndex = 5;
             return true;
-        case 7:
+        }
+        if (stage == 7) {
             mIndex = 6;
             return true;
         }
-        return false;
     }
-    if (mHost->isAllNeededForGrandGalaxy() != 0) {
-        switch (stage) {
-        case 2:
-            if (!GameDataFunction::isOnGameEventFlag(lbl_807038E0 + 0x134)) {
-                mIndex = 7;
-                return true;
-            }
-            break;
-        case 3:
-            if (!GameDataFunction::isOnGameEventFlag(lbl_807038E0 + 0x150)) {
-                mIndex = 8;
-                return true;
-            }
-            break;
-        case 4:
-        case 5:
-        case 6:
-            if (!GameDataFunction::isOnGameEventFlag(lbl_807038E0 + 0x16C)) {
-                mIndex = 9;
-                return true;
-            }
-            if (stage == 5 && !GameDataFunction::isOnGameEventFlag(lbl_807038E0 + 0x188)) {
-                mIndex = 10;
-                return true;
-            }
-            if (stage == 6 && !GameDataFunction::isOnGameEventFlag(lbl_807038E0 + 0x1A4)) {
-                mIndex = 11;
-                return true;
-            }
-            break;
+    if (mHost->isAllNeededForGrandGalaxy()) {
+        if (stage == 2 && !GameDataFunction::isOnGameEventFlag(flags + 0x134)) {
+            mIndex = 7;
+            return true;
+        }
+        if (stage == 3 && !GameDataFunction::isOnGameEventFlag(flags + 0x150)) {
+            mIndex = 8;
+            return true;
+        }
+        if (stage == 4 && !GameDataFunction::isOnGameEventFlag(flags + 0x16C)) {
+            mIndex = 9;
+            return true;
+        }
+        if (stage == 5 && !GameDataFunction::isOnGameEventFlag(flags + 0x188)) {
+            mIndex = 10;
+            return true;
+        }
+        if (stage == 6 && !GameDataFunction::isOnGameEventFlag(flags + 0x1A4)) {
+            mIndex = 11;
+            return true;
         }
     }
     return false;
 }
 
 void WorldMapResultStateWorldNews::setIndexFlag() {
-    switch (mIndex) {
-    case 0:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x1C0);
-        break;
-    case 1:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x1D4);
-        break;
-    case 2:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x1E8);
-        break;
-    case 3:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x1FC);
-        break;
-    case 4:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x210);
-        break;
-    case 5:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x224);
-        break;
-    case 6:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x238);
-        break;
-    case 7:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x134);
-        break;
-    case 8:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x150);
-        break;
-    case 9:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x16C);
-        break;
-    case 10:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x188);
-        break;
-    case 11:
-        GameDataFunction::onGameEventFlag(lbl_807038E0 + 0x1A4);
-        break;
+    const char* flags = lbl_807038E0;
+    if (mIndex == 0) {
+        GameDataFunction::onGameEventFlag(flags + 0x1C0);
+    }
+    if (mIndex == 1) {
+        GameDataFunction::onGameEventFlag(flags + 0x1D4);
+    }
+    if (mIndex == 2) {
+        GameDataFunction::onGameEventFlag(flags + 0x1E8);
+    }
+    if (mIndex == 3) {
+        GameDataFunction::onGameEventFlag(flags + 0x1FC);
+    }
+    if (mIndex == 4) {
+        GameDataFunction::onGameEventFlag(flags + 0x210);
+    }
+    if (mIndex == 5) {
+        GameDataFunction::onGameEventFlag(flags + 0x224);
+    }
+    if (mIndex == 6) {
+        GameDataFunction::onGameEventFlag(flags + 0x238);
+    }
+    if (mIndex == 7) {
+        GameDataFunction::onGameEventFlag(flags + 0x134);
+    }
+    if (mIndex == 8) {
+        GameDataFunction::onGameEventFlag(flags + 0x150);
+    }
+    if (mIndex == 9) {
+        GameDataFunction::onGameEventFlag(flags + 0x16C);
+    }
+    if (mIndex == 10) {
+        GameDataFunction::onGameEventFlag(flags + 0x188);
+    }
+    if (mIndex == 11) {
+        GameDataFunction::onGameEventFlag(flags + 0x1A4);
     }
 }
 
+// NONMATCHING: regalloc; equivalent range branch folding
 void WorldMapResultStateWorldNews::nextTalkNerve() {
-    if (mIndex >= 0 && mIndex <= 11) {
+    if (mIndex == 0) {
+        setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));
+        return;
+    }
+    if (mIndex >= 0 && mIndex <= 6) {
+        setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));
+        return;
+    }
+    if (mIndex >= 7 && mIndex <= 11) {
         setNerve(GET_NERVE(WorldMapResultStateWorldNews, WorldMapResultStateWorldNewsTalk));
         return;
     }
@@ -228,21 +236,20 @@ void WorldMapResultStateWorldNews::exeEnd() {
 
 void WorldMapResultStateWorldNews::exeSave() {
     if (MR::isFirstStep(this)) {
-        GameSequenceFunction::startGameDataSaveSequence(false, false, false);
+        GameSequenceFunction::startGameDataSaveSequence(true, false, false);
     }
     if (!GameSequenceFunction::isActiveSaveDataHandleSequence()) {
         kill();
     }
 }
 
+WorldMapResultNewsTalkFunc::TalkMessageFuncM(const WorldMapResultNewsTalkFunc& other)
+    : mCaller(other.mCaller), mCallee(other.mCallee) {}
+
 WorldMapResultStateWorldNews::~WorldMapResultStateWorldNews() {
 }
 
 namespace NrvWorldMapResultStateWorldNews {
-    WMR_NERVE_DEF(WorldMapResultStateWorldNewsSave, WorldMapResultStateWorldNews, Save);
-    WMR_NERVE_DEF(WorldMapResultStateWorldNewsEnd, WorldMapResultStateWorldNews, End);
-    WMR_NERVE_DEF(WorldMapResultStateWorldNewsTalk, WorldMapResultStateWorldNews, Talk);
-    WMR_NERVE_DEF(WorldMapResultStateWorldNewsStart, WorldMapResultStateWorldNews, Start);
     void WorldMapResultStateWorldNewsWait::execute(Spine* pSpine) const {
         WorldMapResultStateWorldNews* pState = reinterpret_cast< WorldMapResultStateWorldNews* >(pSpine->mExecutor);
         if (MR::isGreaterEqualStep(pState, 60)) {
@@ -250,4 +257,10 @@ namespace NrvWorldMapResultStateWorldNews {
         }
     }
     WorldMapResultStateWorldNewsWait WorldMapResultStateWorldNewsWait::sInstance ATTRIBUTE_WEAK;
+    WMR_NERVE_DEF(WorldMapResultStateWorldNewsStart, WorldMapResultStateWorldNews, Start);
+    WMR_NERVE_DEF(WorldMapResultStateWorldNewsTalk, WorldMapResultStateWorldNews, Talk);
+    WMR_NERVE_DEF(WorldMapResultStateWorldNewsEnd, WorldMapResultStateWorldNews, End);
+    WMR_NERVE_DEF(WorldMapResultStateWorldNewsSave, WorldMapResultStateWorldNews, Save);
 };  // namespace NrvWorldMapResultStateWorldNews
+
+TVec2f lbl_8072BB30(82.0f, 48.0f);

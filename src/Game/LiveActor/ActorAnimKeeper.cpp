@@ -10,26 +10,24 @@ namespace {
     const char* sFileName = "ActorAnimCtrl";
 };  // namespace
 
-ActorAnimKeeper::ActorAnimKeeper(LiveActor* pActor) : mActor(pActor), mNumInfo(), mInfoArray(), mCurrentInfo() {
-    if (!initAnimData()) {
-        return;
-    }
-    start("デフォルト");
+ActorAnimDataInfo::ActorAnimDataInfo() : mName(nullptr), mStartFrame(-1.0f), mIsKeepAnim(0) {
+}
+
+ActorAnimKeeperInfo::ActorAnimKeeperInfo() : mName(nullptr) {
 }
 
 ActorAnimKeeper* ActorAnimKeeper::tryCreate(LiveActor* pActor) {
     const ResourceHolder* pResourceHolder = MR::getResourceHolder(pActor);
-
-    if (!MR::isExistFileInArc(pResourceHolder, "%s.bcsv", ::sFileName)) {
-        return nullptr;
-    }
 
     if (pResourceHolder->mMotionResTable->mCount == 0 && pResourceHolder->mBtkResTable->mCount == 0 && pResourceHolder->mBrkResTable->mCount == 0 &&
         pResourceHolder->mBpkResTable->mCount == 0 && pResourceHolder->mBtpResTable->mCount == 0 && pResourceHolder->mBvaResTable->mCount == 0) {
         return nullptr;
     }
 
-    return new ActorAnimKeeper(pActor);
+    if (MR::isExistFileInArc(pResourceHolder, "%s.bcsv", ::sFileName)) {
+        return new ActorAnimKeeper(pActor);
+    }
+    return nullptr;
 }
 
 namespace {
@@ -58,7 +56,7 @@ bool ActorAnimKeeper::start(const char* pName) {
 
     if (MR::isBckExist(mActor, BckName) && (!info->mBckInfo.mIsKeepAnim || !MR::isBckPlaying(mActor, BckName))) {
         if (MR::isEqualStringCase(BckName, info->mName)) {
-            MR::startAction(mActor, BckName);
+            MR::startBck(mActor, BckName, nullptr);
         } else {
             MR::startBck(mActor, BckName, info->mName);
         }
@@ -90,14 +88,65 @@ bool ActorAnimKeeper::start(const char* pName) {
 void ActorAnimKeeper::update() {
 }
 
-bool ActorAnimKeeper::isPlaying(const char* pName) const {
-    ActorAnimKeeperInfo* info = findAnimInfo(pName);
-
-    if (info != nullptr) {
-        return MR::isBckPlaying(mActor, ::getAnimName(info, info->mBckInfo));
+bool ActorAnimKeeper::trySetAllFrame(f32 frame) {
+    if (mCurrentInfo == nullptr) {
+        return false;
     }
+    if (MR::isBckPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBckInfo))) {
+        MR::setBckFrame(mActor, frame);
+    }
+    if (MR::isBtkPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBtkInfo))) {
+        MR::setBtkFrame(mActor, frame);
+    }
+    if (MR::isBrkPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBrkInfo))) {
+        MR::setBrkFrame(mActor, frame);
+    }
+    if (MR::isBpkPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBpkInfo))) {
+        MR::setBpkFrame(mActor, frame);
+    }
+    if (MR::isBtpPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBtpInfo))) {
+        MR::setBtpFrame(mActor, frame);
+    }
+    if (MR::isBvaPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBvaInfo))) {
+        MR::setBvaFrame(mActor, frame);
+    }
+    return true;
+}
 
-    return MR::isBckPlaying(mActor, pName);
+bool ActorAnimKeeper::isExistAnim(const char* pName) {
+    if (findAnimInfo(pName) != nullptr) {
+        return true;
+    }
+    return MR::isExistAnim(mActor, pName);
+}
+
+// NONMATCHING: load/compare scheduling in prologue.
+bool ActorAnimKeeper::isAnyAnimPlaying(const char* pName) {
+    if (mCurrentInfo != nullptr) {
+        if (!MR::isEqualStringCase(mCurrentInfo->mName, pName)) {
+            return false;
+        }
+        const char* pBck = ::getAnimName(mCurrentInfo, mCurrentInfo->mBckInfo);
+        if (MR::isExistBck(mActor, pBck)) {
+            return MR::isBckPlaying(mActor, pBck);
+        }
+        if (MR::isBtkPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBtkInfo)) ||
+            MR::isBrkPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBrkInfo)) ||
+            MR::isBpkPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBpkInfo)) ||
+            MR::isBtpPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBtpInfo)) ||
+            MR::isBvaPlayingIfExist(mActor, ::getAnimName(mCurrentInfo, mCurrentInfo->mBvaInfo))) {
+            return true;
+        }
+        return false;
+    }
+    return MR::isPlayingAnim(mActor, pName);
+}
+
+const char* ActorAnimKeeper::getCurrentAnimName() const {
+    if (mCurrentInfo != nullptr) {
+        return mCurrentInfo->mName;
+    }
+    return nullptr;
 }
 
 namespace {
@@ -114,13 +163,14 @@ namespace {
     }
 };  // namespace
 
+ActorAnimKeeper::ActorAnimKeeper(LiveActor* pActor) : mActor(pActor), mNumInfo(), mInfoArray(), mCurrentInfo() {
+    MR::getResourceHolder(pActor);
+    initAnimData();
+}
+
 bool ActorAnimKeeper::initAnimData() {
     const ResourceHolder* pResourceHolder = MR::getResourceHolder(mActor);
     JMapInfo* csvParser = MR::tryCreateCsvParser(pResourceHolder, "%s.bcsv", ::sFileName);
-
-    if (csvParser == nullptr) {
-        return false;
-    }
 
     s32 numInfo = 0;
     if (csvParser != nullptr) {
@@ -128,11 +178,10 @@ bool ActorAnimKeeper::initAnimData() {
     }
     mNumInfo = numInfo;
 
-    ActorAnimKeeperInfo* infoArray = new ActorAnimKeeperInfo[mNumInfo];
-    mInfoArray = infoArray;
+    mInfoArray = new ActorAnimKeeperInfo[mNumInfo];
 
     for (int i = 0; i < mNumInfo; i++) {
-        ActorAnimKeeperInfo* currentInfo = &infoArray[i];
+        ActorAnimKeeperInfo* currentInfo = &mInfoArray[i];
         MR::getCsvDataStr(&currentInfo->mName, csvParser, "ActorAnimName", i);
         ::getCsvDataAnimData(&currentInfo->mBckInfo, "Bck", csvParser, i);
         ::getCsvDataAnimData(&currentInfo->mBtkInfo, "Btk", csvParser, i);

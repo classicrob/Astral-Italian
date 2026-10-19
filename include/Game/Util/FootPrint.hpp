@@ -70,6 +70,7 @@ public:
 class LiveActor;
 
 namespace MR {
+    bool addFootPrintOnGround(s32, LiveActor*, const TVec3f*, const TVec3f*, bool, f32) NO_INLINE;
     s32 createFootPrintHandle(LiveActor* pActor);                                                        // fn_80026620
     void addFootPrintToPos(s32 handle, LiveActor* pActor, const TVec3f* pPos, bool isRight, f32 scale);   // fn_800268B0
     void addFootPrintToJoint(s32 handle, LiveActor* pActor, const char* pJointName, bool isRight, f32 scale);  // fn_80026940

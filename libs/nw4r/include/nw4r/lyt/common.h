@@ -111,7 +111,11 @@ namespace nw4r {
             }
 
             inline void SetVerticalPosition(u8* pVar, u8 newVal) {
+#ifdef NW4R_DEBUG_OUTLINE  // LayoutUtil target asserts with line 236
+                NW4R_ASSERT_AT(236, newVal < VERTICALPOSITION_MAX);
+#else
                 NW4R_ASSERT_AT(261, newVal < VERTICALPOSITION_MAX);
+#endif
                 *pVar = u8(newVal * 3 + GetHorizontalPosition(*pVar));
             }
 

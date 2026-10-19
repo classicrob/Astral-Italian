@@ -39,7 +39,7 @@ namespace MR {
     void calcKoopaBattleFacePos(TVec3f*);
     void startKoopaBattleFaceCtrl(KoopaBattle*, s32);
     void endKoopaBattleFaceCtrl(KoopaBattle*, s32);
-    void startKoopaBattleDynamicCtrl(KoopaBattle*, const char*, s32);
+    void startKoopaBattleDynamicCtrl(KoopaBattle*, s32);
     void setKoopaBattleVolumeScaleUpRate(KoopaBattle*, s32);
     void setKoopaBattleVolumeScaleDownRate(KoopaBattle*, s32);
     void appearKoopaBattlePlanet();

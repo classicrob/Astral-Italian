@@ -16,7 +16,7 @@ void RepeatTimerSwitch::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mTimeLimit);
     MR::getJMapInfoArg1NoInit(rIter, &mTimeOffset);
     mStageSwitchCtrl = MR::createStageSwitchCtrl(this, rIter);
-    mSound = new ActionSoundKeeper(4, "RepeatTimerSwitch", NULL);
+    mSound = new ActionSoundKeeper(4, "RepeartTimerSwitch", NULL);
 }
 
 void RepeatTimerSwitch::movement() {

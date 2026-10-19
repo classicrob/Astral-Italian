@@ -22,11 +22,14 @@ public:
 };
 
 struct DynamicJointCtrlParam {
+    DynamicJointCtrlParam();
     /* 0x00 */ f32 mGravity;
     /* 0x04 */ f32 mFriction;
     /* 0x08 */ f32 mAccelRatetoBckPos;
     /* 0x0C */ f32 mBendMaxDegree;
     /* 0x10 */ s32 mCtrlJointNumMax;
+    /* 0x14 */ const char* mSupportJointName;
+    /* 0x18 */ bool mIsFixRoot;
 };
 
 class DynamicJointCtrlNode;
@@ -69,11 +72,12 @@ public:
 class DynamicJointCtrlKeeper {
 public:
     DynamicJointCtrlKeeper(LiveActor*);
+    static DynamicJointCtrlKeeper* tryCreate(LiveActor*);
 
     void update();
     void setCallBackFunction();
-    void startCtrl(const char*, s32);
-    void endCtrl(const char*, s32);
+    void startCtrl(s32);
+    void endCtrl(s32);
     void reset();
     DynamicJointCtrl* findJointCtrl(const char*);
 

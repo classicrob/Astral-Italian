@@ -149,11 +149,6 @@ namespace {
         return 0x40;
     }
 
-    inline JMapInfoIter getInitFunction(const char** value, const JMapInfo* info, const char* name) ALWAYS_INLINE {
-        JMapInfoIter iter = MR::getCsvDataStrByElement(value, info, "InitFunction", name, "Data");
-        return iter;
-    }
-
     inline s32 getConnectionIdx(const char* pName) ALWAYS_INLINE {
         for (u32 i = 0; i < 0x31; i++) {
             const MR::ObjConnection* c = &cConnections[i];
@@ -223,7 +218,7 @@ namespace MR {
         return makeInitActorCsvParser(a1, pSubFile) != nullptr;
     }
 
-    // NONMATCHING: stack frame 0x80 larger than SMG2 (extra local region not identified); JMapInfoIter temporaries from getCsvDataStrByElement are not kept on the stack
+    // NONMATCHING: regalloc and stack layout for JMapInfoIter temporaries
     /* https://decomp.me/scratch/xGEnY */
     bool initActor(LiveActor* pActor, const JMapInfoIter& rIter, const char* pArchiveName, const char* a4, const char* a5, bool a6) {
         bool flag = false;
@@ -294,9 +289,9 @@ namespace MR {
                 }
             }
 
-            if (MR::isDataEnable(info, "Binder\0")) {
+            if (MR::isDataEnable(info, "Binder")) {
                 const char* binder = nullptr;
-                const JMapInfoIter& iter = getInitFunction(&binder, info, "Binder");
+                const JMapInfoIter& iter = MR::getCsvDataStrByElement(&binder, info, "InitFunction", "Binder", "Data");
                 f32 param00 = 0.0f;
                 iter.getValue< f32 >("Param00F32", &param00);
                 f32 param01 = 0.0f;
@@ -313,7 +308,7 @@ namespace MR {
             }
 
             const char* effect = nullptr;
-            const JMapInfoIter& effectIter = getInitFunction(&effect, info, "Effect");
+            const JMapInfoIter& effectIter = MR::getCsvDataStrByElement(&effect, info, "InitFunction", "Effect", "Data");
             if (*effect) {
                 s32 count = 0;
                 effectIter.getValue< s32 >("Param00Int", &count);
@@ -321,7 +316,7 @@ namespace MR {
             }
 
             const char* sound = nullptr;
-            const JMapInfoIter& soundIter = getInitFunction(&sound, info, "Sound");
+            const JMapInfoIter& soundIter = MR::getCsvDataStrByElement(&sound, info, "InitFunction", "Sound", "Data");
             if (*sound && *sound != 'x') {
                 const char* soundName = nullptr;
                 if (*sound != 'o') {
@@ -348,10 +343,10 @@ namespace MR {
             }
 
             const char* clipping = nullptr;
-            const JMapInfoIter& clippingIter = getInitFunction(&clipping, info, "Clipping");
+            const JMapInfoIter& clippingIter = MR::getCsvDataStrByElement(&clipping, info, "InitFunction", "Clipping", "Data");
             f32 clippingRadius = 0.0f;
             clippingIter.getValue< f32 >("Param00F32", &clippingRadius);
-            if (clippingRadius > 0.0f) {
+            if (!(clippingRadius <= 0.0f)) {
                 MR::setClippingTypeSphere(pActor, clippingRadius);
                 if (MR::isEqualString(clipping, "FarMax")) {
                     MR::setClippingFarMax(pActor);
@@ -360,7 +355,7 @@ namespace MR {
 
             if (MR::isDataEnable(info, "GroupClipping")) {
                 const char* groupClipping = nullptr;
-                const JMapInfoIter& groupIter = getInitFunction(&groupClipping, info, "GroupClipping");
+                const JMapInfoIter& groupIter = MR::getCsvDataStrByElement(&groupClipping, info, "InitFunction", "GroupClipping", "Data");
                 s32 param00Int = 0;
                 groupIter.getValue< s32 >("Param00Int", &param00Int);
 
@@ -377,7 +372,7 @@ namespace MR {
 
             if (MR::isDataEnable(info, "StarPointer")) {
                 const char* starPointer = nullptr;
-                const JMapInfoIter& iter = getInitFunction(&starPointer, info, "StarPointer");
+                const JMapInfoIter& iter = MR::getCsvDataStrByElement(&starPointer, info, "InitFunction", "StarPointer", "Data");
                 f32 param00 = 0.0f;
                 iter.getValue< f32 >("Param00F32", &param00);
                 TVec3f vec(0.0f);

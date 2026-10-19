@@ -33,6 +33,7 @@ void BossBussunSequencer::endCamera() {
     MR::endActorCameraProgrammable(mHost, -1, true);
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BossBussunSequencer::updateCamera() {
     TVec3f rotA;
     TVec3f rotB;
@@ -74,6 +75,7 @@ void BossBussunSequencer::updateCamera() {
     MR::setProgrammableCameraParam(mHost, blendPos, eye, mCamUp);
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BossBussunSequencer::calcFrameAxes(TVec3f* pOutA, TVec3f* pOutB) {
     bool isPlayerBelow = mHost->mGravity.dot(*MR::getPlayerGravity()) > 0.0f;
     bool isNear = isNearHeight(80.0f);
@@ -199,7 +201,7 @@ namespace NrvBossBussunShot {
 };  // namespace NrvBossBussunShot
 
 BossBussunShot::BossBussunShot(const char* pName)
-    : LiveActor(pName), mAnimScale(nullptr), mBindState(nullptr), mHoldSensor(nullptr), mJointCtrl(nullptr), mQuatA(0.0f, 0.0f, 0.0f, 1.0f),
+    : LiveActor(pName), mBindState(nullptr), mHoldSensor(nullptr), mJointCtrl(nullptr), mQuatA(0.0f, 0.0f, 0.0f, 1.0f),
       mQuatB(0.0f, 0.0f, 0.0f, 1.0f), _C0(0.0f, 0.0f, 0.0f), mHoldPos(0.0f, 0.0f, 0.0f), mHoldVel(0.0f, 0.0f, 0.0f), _F0(20), mGroundTimer(0),
       mStep(0) {
 }
@@ -294,6 +296,7 @@ void BossBussunShot::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
 void BossBussunShot::exeFly() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Shot");

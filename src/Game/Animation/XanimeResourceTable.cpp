@@ -31,6 +31,42 @@ XanimeResourceTable::XanimeResourceTable(ResourceHolder* pArg) {
     _1C.mBckTableVariant = 1;
 }
 
+XanimeResourceTable::XanimeResourceTable(ResourceHolder* pResourceHolder, XanimeGroupInfo* pGroupInfo,
+                                         XanimeOfsInfo* pOfsInfo, XanimeBckTable1* pBckTable1, XanimeBckTable2* pBckTable2,
+                                         XanimeBckTable3* pBckTable3, XanimeBckTable4* pBckTable4, XanimeSwapTable* pSwapTable) {
+    init();
+    _0 = 1;
+    mGroupInfos = pGroupInfo;
+    mResourceHolder = pResourceHolder;
+    mMaxGroupInfoTableSize = 1;
+    mAmountOfGroupInfos = initGroupInfo(pResourceHolder, pGroupInfo, pOfsInfo, pBckTable1, pBckTable2, pBckTable3, pBckTable4, pSwapTable);
+    createSortTable();
+
+    mBckTables = reinterpret_cast< XanimeBckTable1* >(pBckTable1);
+
+    int i = 0;
+    while (mBckTables != nullptr) {
+        if (mBckTables[i].mParent.mAnimationName[0] == '\0') {
+            break;
+        }
+
+        mBckTables[i].mAnimationHash = MR::getHashCode(mBckTables[i].mParent.mAnimationName);
+        mBckTables[i].mFileHash = MR::getHashCode(mBckTables[i].mFileName);
+
+        i++;
+    }
+
+    mAmountOfBckTables = i;
+
+    _1C.init();
+    _1C.mRate = 1.0f;
+    _1C.mParent.mAnimationName = "non-group";
+    _1C._8 = 1;
+    _1C.mBckTableVariant = 1;
+    mSimpleGroupInfos = new XanimeGroupInfo[0];
+    mAmountOfSimpleGroupInfos = 0;
+}
+
 void XanimeResourceTable::init() {
     _0 = 0;
     mMaxGroupInfoTableSize = 0;
@@ -43,6 +79,131 @@ void XanimeResourceTable::init() {
     mResourceHolder = nullptr;
     mSortTable = nullptr;
     mSwapTable = nullptr;
+}
+
+u32 XanimeResourceTable::initGroupInfo(ResourceHolder* pResourceHolder, XanimeGroupInfo* pInfo,  XanimeOfsInfo* pOfsInfo,
+                                       XanimeBckTable1* pBckTable1, XanimeBckTable2* pBckTable2, XanimeBckTable3* pBckTable3,
+                                       XanimeBckTable4* pBckTable4, XanimeSwapTable* pSwapTable) {
+    mSwapTable = pSwapTable;
+    int i = 0;
+    u8 maxTableSize = 1;
+    while (true) {
+        XanimeGroupInfo* entry = &pInfo[i];
+        if (entry->mParent.mAnimationName[0] == '\0') {
+            break;
+        }
+
+        for (int j = 0; j < ARRAY_SIZE(entry->_20); j++) {
+            entry->_20[j] = nullptr;
+            entry->mWeights[j] = 0.0f;
+        }
+
+        entry->_40 = MR::getHashCode(entry->mParent.mAnimationName);
+
+        XanimeBckTable* bckTables[4];
+        bckTables[3] = reinterpret_cast< XanimeBckTable* >(pBckTable1);
+        bckTables[2] = reinterpret_cast< XanimeBckTable* >(pBckTable2);
+        bckTables[1] = reinterpret_cast< XanimeBckTable* >(pBckTable3);
+        bckTables[0] = reinterpret_cast< XanimeBckTable* >(pBckTable4);
+
+        entry->mBckTableVariant = 0;
+
+        const char* firstFilename = nullptr;
+        if (search(&bckTables[3], entry->mParent.mAnimationName, sizeof(XanimeBckTable1))) {
+            entry->mBckTableVariant = 1;
+
+            entry->mWeights[0] = 1.0f;
+
+            pResourceHolder->mMotionResTable->findFileInfo(reinterpret_cast< XanimeBckTable1* >(bckTables[3])->mFileName);
+
+            entry->_20[0] = findResMotion(reinterpret_cast< XanimeBckTable1* >(bckTables[3])->mFileName);
+
+            firstFilename = reinterpret_cast< XanimeBckTable1* >(bckTables[3])->mFileName;
+        } else if (search(&bckTables[2], entry->mParent.mAnimationName, sizeof(XanimeBckTable2))) {
+            if (maxTableSize < 2) {
+                maxTableSize = 2;
+            }
+
+            entry->mBckTableVariant = 2;
+
+            entry->_20[0] = findResMotion(reinterpret_cast< XanimeBckTable2* >(bckTables[2])->mEntries[0].mFileName);
+            entry->mWeights[0] = reinterpret_cast< XanimeBckTable2* >(bckTables[2])->mEntries[0]._4;
+
+            entry->_20[1] = findResMotion(reinterpret_cast< XanimeBckTable2* >(bckTables[2])->mEntries[1].mFileName);
+            entry->mWeights[1] = reinterpret_cast< XanimeBckTable2* >(bckTables[2])->mEntries[1]._4;
+
+            firstFilename = reinterpret_cast< XanimeBckTable2* >(bckTables[2])->mEntries[0].mFileName;
+        } else if (search(&bckTables[1], entry->mParent.mAnimationName, sizeof(XanimeBckTable3))) {
+            if (maxTableSize < 3) {
+                maxTableSize = 3;
+            }
+
+            entry->mBckTableVariant = 3;
+
+            entry->_20[0] = findResMotion(reinterpret_cast< XanimeBckTable3* >(bckTables[1])->mEntries[0].mFileName);
+            entry->mWeights[0] = reinterpret_cast< XanimeBckTable3* >(bckTables[1])->mEntries[0]._4;
+
+            entry->_20[1] = findResMotion(reinterpret_cast< XanimeBckTable3* >(bckTables[1])->mEntries[1].mFileName);
+            entry->mWeights[1] = reinterpret_cast< XanimeBckTable3* >(bckTables[1])->mEntries[1]._4;
+
+            entry->_20[2] = findResMotion(reinterpret_cast< XanimeBckTable3* >(bckTables[1])->mEntries[2].mFileName);
+            entry->mWeights[2] = reinterpret_cast< XanimeBckTable3* >(bckTables[1])->mEntries[2]._4;
+
+            firstFilename = reinterpret_cast< XanimeBckTable3* >(bckTables[1])->mEntries[0].mFileName;
+        } else if (search(&bckTables[0], entry->mParent.mAnimationName, sizeof(XanimeBckTable4))) {
+            if (maxTableSize < 4) {
+                maxTableSize = 4;
+            }
+
+            entry->mBckTableVariant = 4;
+
+            entry->_20[0] = findResMotion(reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[0].mFileName);
+            entry->mWeights[0] = reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[0]._4;
+
+            entry->_20[1] = findResMotion(reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[1].mFileName);
+            entry->mWeights[1] = reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[1]._4;
+
+            entry->_20[2] = findResMotion(reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[2].mFileName);
+            entry->mWeights[2] = reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[2]._4;
+
+            entry->_20[3] = findResMotion(reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[3].mFileName);
+            entry->mWeights[3] = reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[3]._4;
+
+            firstFilename = reinterpret_cast< XanimeBckTable4* >(bckTables[0])->mEntries[0].mFileName;
+        }
+
+        entry->mBckName = firstFilename;
+
+        entry->mStart = 0.0f;
+        if (entry->_20[0] == nullptr) {
+            entry->mEnd = 0.0f;
+            entry->mLoop = 0.0f;
+            entry->mAttribute = 0;
+        } else {
+            entry->mAttribute = static_cast< u8* >(entry->_20[0])[4];
+            entry->mLoop = 0.0f;
+            entry->mEnd = static_cast< f32 >(reinterpret_cast< const s16* >(entry->_20[0])[3]);
+        }
+
+        XanimeBckTable* ofsTables[1];
+        ofsTables[0] = reinterpret_cast< XanimeBckTable* >(pOfsInfo);
+
+        if (search(ofsTables, entry->mParent.mAnimationName, sizeof(XanimeOfsInfo))) {
+            if (reinterpret_cast<XanimeOfsInfo*>(ofsTables[0])->_4 >= 0.0f)
+                entry->mStart = reinterpret_cast< XanimeOfsInfo* >(ofsTables[0])->_4;
+            if (reinterpret_cast<XanimeOfsInfo*>(ofsTables[0])->_C >= 0.0f)
+                entry->mLoop = reinterpret_cast< XanimeOfsInfo* >(ofsTables[0])->_C;
+            if (reinterpret_cast<XanimeOfsInfo*>(ofsTables[0])->_8 >= 0.0f)
+                entry->mEnd = reinterpret_cast< XanimeOfsInfo* >(ofsTables[0])->_8;
+            entry->mAttribute = reinterpret_cast< XanimeOfsInfo* >(ofsTables[0])->_10;
+        }
+
+        i++;
+    }
+
+    mMaxGroupInfoTableSize = maxTableSize;
+
+    return i;
 }
 
 const XanimeGroupInfo* XanimeResourceTable::getGroupInfo(const char* pArg) const {
@@ -63,8 +224,6 @@ const XanimeGroupInfo* XanimeResourceTable::getGroupInfo(const char* pArg) const
 
         return &mGroupInfos[groupIndex];
 
-    case 2:
-        return getGroupInfo(pArg, mDirectories);
     }
 
     return nullptr;
@@ -157,7 +316,7 @@ u32 XanimeResourceTable::getGroupIndex(const char* pTarget) const {
     case 0:
         return -1;
     case 1:
-        u32 position;
+        u32 position = -1;
         if (mSortTable->search(hash, &position)) {
             return position;
         }

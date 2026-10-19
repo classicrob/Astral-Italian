@@ -11,6 +11,7 @@ PlanetGravity::PlanetGravity() {
     mGravityPower = GRAVITY_POWER_NORMAL;
     mActivated = true;
     mIsInverse = false;
+    mIsZeroGravity = false;
     mValidFollower = true;
     mIsRegistered = false;
     mAppeared = true;
@@ -47,6 +48,10 @@ bool PlanetGravity::calcGravity(TVec3f* pDest, const TVec3f& rPosition) const {
     // Invert vector if necessary
     if (mIsInverse) {
         gravity = -gravity;
+    }
+
+    if (mIsZeroGravity) {
+        gravity.set< f32 >(0.0f, 0.0f, 0.0f);
     }
 
     // Set result vector

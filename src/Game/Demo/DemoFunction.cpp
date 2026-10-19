@@ -1,4 +1,8 @@
 #include "Game/Demo/DemoFunction.hpp"
+#include "Game/Demo/DemoActionKeeper.hpp"
+#include "Game/Demo/DemoPlayerKeeper.hpp"
+#include "Game/Util/FileUtil.hpp"
+#include "Game/Util/MapPartsUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Demo/DemoCastGroup.hpp"
 #include "Game/Demo/DemoCastGroupHolder.hpp"
@@ -23,6 +27,19 @@ namespace DemoFunction {
 
     DemoCastGroupHolder* getDemoCastSubGroupHolder() {
         return getDemoDirector()->mCastSubGroupHolder;
+    }
+
+    bool isDemoActionAnimRegistered(const LiveActor* actor) {
+        DemoActionKeeper* keeper = getDemoDirector()->mExecutor->mActionKeeper;
+        DemoActionInfo* info = keeper->findInfo(actor, getCurrentDemoPartNameMain(nullptr));
+        return !MR::isNullOrEmptyString(info ? info->mAnimName : nullptr);
+    }
+
+    bool isDemoPlayerAnimRegistered() {
+        DemoPlayerKeeper* keeper = getDemoDirector()->mExecutor->mPlayerKeeper;
+        const DemoPlayerInfo* info = keeper->findPlayerInfo(getCurrentDemoPartNameMain(nullptr));
+        if (info) return !MR::isNullOrEmptyString(info->mBckName);
+        return false;
     }
 
     void registerDemoSimpleCastAllFunction(LiveActor* pActor) {
@@ -111,6 +128,17 @@ namespace DemoFunction {
         return nullptr;
     }
 
+    bool isStoryBookActionActive() {
+        if (!MR::isExistSceneObj(0x89)) return false;
+        LiveActor* actor = MR::getSceneObj<LiveActor>(0x89);
+        DemoExecutor* executor = getDemoDirector()->mExecutor;
+        if (!executor) return false;
+        if (executor->_SMG2_3CC) return false;
+        DemoActionKeeper* keeper = executor->mActionKeeper;
+        DemoActionInfo* info = keeper->findInfo(actor, getCurrentDemoPartNameMain(nullptr));
+        return info ? info->mActionType == 19 : false;
+    }
+
     bool isDemoCast(const DemoExecutor* pExecutor, const LiveActor* pActor) {
         return DemoExecutorFunction::isRegisteredDemoCast(pExecutor, pActor);
     }
@@ -129,9 +157,11 @@ namespace {
         return DemoFunction::getDemoDirector()->mExecutor->mSubPartKeeper;
     }
 
+    // NONMATCHING: equivalent null-guard block ordering and regalloc
     bool isCurrentMainPart(const char* pPartName) NO_INLINE {
         DemoTimeKeeper* timeKeeper = getCurrentTimeKeeper();
-        return MR::isEqualString(pPartName, timeKeeper->mSubPartInfos[0].mPartName);
+        if (!timeKeeper->mSubPartInfos) return false;
+        return MR::isEqualString(pPartName, ::getCurrentTimeKeeper()->mSubPartInfos->mPartName);
     }
 };  // namespace
 
@@ -163,17 +193,27 @@ namespace DemoFunction {
         }
     }
 
+    // NONMATCHING: regalloc and equivalent equality operand order
+    bool isDemoSubPartActiveFunction(const char* name) {
+        if (name) return MR::isEqualString(name, ::getCurrentTimeKeeper()->mMainPartInfos->mPartName);
+        DemoTimePartInfo* current = ::getCurrentTimeKeeper()->mMainPartInfos;
+        return current == ::getCurrentTimeKeeper()->mSubPartInfos;
+    }
+
+    bool isDemoSubPartLastStep() {
+        return ::getCurrentTimeKeeper()->isLastPart(false);
+    }
+
     bool isDemoLastPartLastStep() {
-        if (!MR::isTimeKeepDemoActive()) {
-            return false;
-        }
-        s32 total = ::getCurrentTimeKeeper()->mSubPartInfos[0].mTotalStep;
-        s32 current = ::getCurrentTimeKeeper()->mCurrentStep;
-        if (current != total - 1) {
-            return false;
-        } else {
-            return ::getCurrentTimeKeeper()->isPartLast();
-        }
+        if (isMainPartLastStep()) return MR::isDemoSubPartLastStep();
+        return false;
+    }
+
+    bool isMainPartLastStep() {
+        if (!MR::isTimeKeepDemoActive()) return false;
+        s32 step = ::getCurrentTimeKeeper()->mCurrentStep;
+        if (step == -1) return false;
+        return step == ::getCurrentTimeKeeper()->mSubPartInfos->mTotalStep - 1;
     }
 
     bool isDemoSuspendOrLastPartLastStep() {
@@ -192,13 +232,24 @@ namespace DemoFunction {
     }
 
     const char* getCurrentDemoPartNameMain(const char* pDemoName) {
-        DemoExecutor* executor = findDemoExecutor(pDemoName);
+        DemoExecutor* executor = pDemoName ? findDemoExecutor(pDemoName) : getDemoDirector()->mExecutor;
         if (executor == nullptr) {
             return nullptr;
         }
         DemoTimePartInfo* part = &executor->mTimeKeeper->mSubPartInfos[0];
         if (part != nullptr) {
             return part->mPartName;
+        }
+        return nullptr;
+    }
+
+    const char* getCurrentDemoPartNameSub(const char* name) {
+        DemoExecutor* executor = name ? findDemoExecutor(name) : getDemoDirector()->mExecutor;
+        if (!executor) return nullptr;
+        DemoSubPartKeeper* keeper = executor->mSubPartKeeper;
+        for (s32 i = 0; i < keeper->mNumSubPartInfos; i++) {
+            DemoSubPartInfo* info = &keeper->mSubPartInfos[i];
+            if (keeper->isDemoPartActive(info->mSubPartName)) return info->mSubPartName;
         }
         return nullptr;
     }
@@ -307,24 +358,30 @@ namespace DemoFunction {
         DemoExecutorFunction::setDemoTalkMessageCtrl(executor, pActor, pTalkCtrl);
     }
 
-    ResourceHolder* loadDemoArchive() {
-        char buf[0x100];
-        snprintf(buf, sizeof(buf), "DemoSheet.arc");
-        return MR::createAndAddResourceHolder(buf);
+    ResourceHolder** loadDemoArchive() {
+        ResourceHolder** holders = new ResourceHolder*[MR::getZoneNum()];
+        for (s32 i = 0; i < MR::getZoneNum(); i++) {
+            char path[0x100];
+            MR::makeDemoArchiveFileName(path, sizeof(path), MR::getZoneNameFromZoneId(i));
+            if (MR::isFileExistOnDisc(path, false)) holders[i] = MR::createAndAddResourceHolderStationed(path);
+            else holders[i] = nullptr;
+        }
+        return holders;
     }
 
-    s32 createSheetParser(const DemoExecutor* pExecutor, const char* pNameSuffix, JMapInfo** pMap) {
-        const char* sheet_name = pExecutor->mSheetName;
-        JMapInfo* map = MR::tryCreateCsvParser(getDemoDirector()->mResourceHolder, "Demo%s%s.bcsv", sheet_name, pNameSuffix);
-        *pMap = map;
-        if (map != nullptr) {
-            const JMapData* data = map->mData;
-            if (data != nullptr) {
-                return data->mNumEntries;
-            }
-            return 0;
-        }
-        return 0;
+    // NONMATCHING: regalloc and load scheduling
+    s32 createSheetParser(const DemoExecutor* executor, const char* suffix, JMapInfo** out) {
+        if (!getDemoDirector()->getDemoResourceHolder(executor->mLinkInfo.mZoneID)) return 0;
+        const char* sheet = executor->mSheetName;
+        JMapInfo* map = MR::tryCreateCsvParser(getDemoDirector()->getDemoResourceHolder(executor->mLinkInfo.mZoneID), "Demo%s%s.bcsv", sheet, suffix);
+        *out = map;
+        if (map) return map->getNumEntries();
+        return map ? map->getNumEntries() : 0;
+    }
+
+    bool isTalkWaitUserInputFunction(const char*) {
+        DemoExecutor* executor = getDemoDirector()->mExecutor;
+        return executor ? executor->mTimeKeeper->isTalkWaitUserInput() : false;
     }
 
     bool isDemoPartTalk(const char* pDemoName) {

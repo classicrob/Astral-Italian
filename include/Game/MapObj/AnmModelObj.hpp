@@ -105,3 +105,10 @@ public:
     virtual void onDone();
     void checkForReverse();
 };
+
+class AnmModelSwitchMoveInvalidateCollision : public AnmModelSwitchMove {
+public:
+    AnmModelSwitchMoveInvalidateCollision(const char* name) : AnmModelSwitchMove(name) {}
+    virtual ~AnmModelSwitchMoveInvalidateCollision();
+    virtual bool isInvalidateCollision() const;
+};

@@ -29,7 +29,7 @@ namespace {
     void setTalkAnimCtrlInterpole(LiveActor* pActor, s32 interpole) {
         DemoExecutor* executor = DemoFunction::findDemoExecutorActive(pActor);
         for (s32 i = 0; i < executor->mTalkAnimCtrl.size(); i++) {
-            executor->mTalkAnimCtrl[i]->_38 = interpole;
+            executor->mTalkAnimCtrl[i]->_34 = interpole;
         }
     }
 };  // namespace

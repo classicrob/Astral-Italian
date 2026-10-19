@@ -20,6 +20,7 @@ class ShadowVolumeOvalPole;
 class ShadowVolumeSphere;
 
 namespace ActorShadow {
+    NO_INLINE void initShadowFromCSV(LiveActor*, const char*, bool);
     NO_INLINE u32 getShadowControllerCount(const LiveActor*);
     NO_INLINE ShadowController* getShadowController(const LiveActor*, u32);
     NO_INLINE ShadowController* getShadowController(const LiveActor*, const char*);

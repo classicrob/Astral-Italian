@@ -1,4 +1,6 @@
 #include "Game/Effect/EffectSystemUtil.hpp"
+#include "Game/System/ResourceCsvGroupHolder.hpp"
+#include "Game/Util/SystemUtil.hpp"
 #include "Game/Effect/AutoEffectGroupHolder.hpp"
 #include "Game/Effect/AutoEffectInfo.hpp"
 #include "Game/Effect/EffectSystem.hpp"
@@ -120,7 +122,13 @@ namespace MR {
         }
 
         int getAutoEffectNum(const char* pName) {
-            return getParticleResourceHolder()->getAutoEffectNum(pName);
+            const ResourceCsvGroupInfo* pInfo = MR::getGameSystemObjHolder3C()->fn_804CC650(pName);
+
+            if (pInfo == nullptr) {
+                return 0;
+            }
+
+            return pInfo->_C;
         }
 
         JMapInfo* getAutoEffectListBinary() {
@@ -128,13 +136,18 @@ namespace MR {
         }
 
         void setupMultiEmitter(EffectKeeper* pKeeper, const ModelManager* pModelManager, const AutoEffectInfo* pInfo) {
-            MultiEmitter* pEmitter = pKeeper->getEmitter(pInfo->getName());
+            // the target resolves the emitter through the const overload and the parent through the non-const one
+            MultiEmitter* pEmitter = static_cast< const EffectKeeper* >(pKeeper)->getEmitter(pInfo->getName());
             setupMultiEmitterSyncBck(pKeeper, pModelManager, pInfo);
             ::setupMultiEmitter(pEmitter, pInfo);
             pEmitter->scanParticleEmitter(getEffectSystem());
 
             if (pInfo->mParentName != nullptr) {
-                pKeeper->getEmitter(pInfo->mParentName)->addChildEmitter(pEmitter);
+                MultiEmitter* pParent = pKeeper->getEmitter(pInfo->mParentName);
+
+                if (pParent != nullptr) {
+                    pParent->addChildEmitter(pEmitter);
+                }
             }
         }
 
@@ -143,7 +156,7 @@ namespace MR {
                 return;
             }
 
-            MultiEmitter* pEmitter = pKeeper->getEmitter(pInfo->getName());
+            MultiEmitter* pEmitter = static_cast< const EffectKeeper* >(pKeeper)->getEmitter(pInfo->getName());
             if (!hasStringSpace(pInfo->mAnimName)) {
                 const char* pAnimName = pInfo->mAnimName;
                 initEffectSyncBck(pKeeper, pModelManager, pInfo->getName(), pAnimName, 1, pInfo->mStartFrame, pInfo->mEndFrame, false);

@@ -10,7 +10,7 @@ class LiveActor;
 namespace MR {
     void initShadowFromCSVWithInitShadowVolumeSphere(LiveActor* pActor, const char* pShadowName);
     void initShadowFromCSVWithoutInitShadowVolumeSphere(LiveActor* pActor, const char* pShadowName);
-    void initShadowControllerList(LiveActor* pActor, u32 shadowCount);
+    NO_INLINE void initShadowControllerList(LiveActor* pActor, u32 shadowCount);
 
     void addShadowVolumeOval(LiveActor* pActor, const char* pShadowName, const TVec3f& rSize, MtxPtr pDropPosMtx);
     void addShadowVolumeCylinder(LiveActor* pActor, const char* pShadowName, f32 radius);
@@ -18,10 +18,10 @@ namespace MR {
     void addShadowVolumeBox(LiveActor* pActor, const char* pShadowName, const TVec3f& rSize, MtxPtr pDropPosMtx);
     void addShadowVolumeLine(LiveActor* pActor, const char* pShadowName, LiveActor* pStartActor, const char* pStartShadowName, f32 fromWidth,
                              LiveActor* pEndActor, const char* pEndShadowName, f32 toWidth);
-    void addShadowVolumeFlatModel(LiveActor* pActor, const char* pShadowName, const char* pShadowModelName, MtxPtr pDropPosMtx);
+    NO_INLINE void addShadowVolumeFlatModel(LiveActor* pActor, const char* pShadowName, const char* pShadowModelName, MtxPtr pDropPosMtx);
 
     void initShadowSurfaceCircle(LiveActor* pActor, f32 radius);
-    void initShadowVolumeSphere(LiveActor* pActor, f32 radius);
+    NO_INLINE void initShadowVolumeSphere(LiveActor* pActor, f32 radius);
     void initShadowVolumeOval(LiveActor* pActor, const TVec3f& rSize);
     void initShadowVolumeCylinder(LiveActor* pActor, f32 radius);
     void initShadowVolumeFlatModel(LiveActor* pActor, const char* pShadowModelName, MtxPtr pDropPosMtx);

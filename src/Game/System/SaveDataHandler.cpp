@@ -18,7 +18,7 @@ namespace {
 
     const char cSaveFileName[] = "GameData.bin";
     const char cBannerFileName[] = "banner.bin";
-    const SaveFileSpec cSaveFileSpecTable[] = {{"mario", 0xF80}, {"luigi", 0xF80}, {"config", 0x60}};
+    const SaveFileSpec cSaveFileSpecTable[] = {{"user", 0xF80}, {"config", 0x60}};
     const SaveFileSpec cSaveFileSpecSystem = {"sysconf", 0x80};
 };  // namespace
 
@@ -50,7 +50,7 @@ void SaveDataHandler::update() {
 }
 
 void SaveDataHandler::requestCheckEnableToCreate() {
-    MR::addRequestToNANDManager(mNANDRequestInfo->setCheck(5, 2, &_10));
+    MR::addRequestToNANDManager(mNANDRequestInfo->setCheck(3, 2, &_10));
 
     setNerve(GET_NERVE_ANON(SaveDataHandlerProcessing));
 }

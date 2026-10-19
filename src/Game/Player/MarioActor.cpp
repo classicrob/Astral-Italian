@@ -5785,11 +5785,11 @@ void MarioActor::updateControllerSwing() {
         _EF8 = 0;
     }
 
-    bool F20 = _F20;
+    u8 F20 = mFlag100E;
     _F00 = false;
 
     bool isCorePadSwing = !mMario->isSwimming() ? MR::isCorePadSwing(0) : MR::isCorePadSwingTrigger(0);
-    _F20 = isCorePadSwing;
+    mFlag100E = isCorePadSwing;
 
     if (_F1C != 0) {
         _F1C--;
@@ -5809,11 +5809,11 @@ void MarioActor::updateControllerSwingLeft() {
         _F04 = 0;
     }
 
-    bool F21 = _F21;
+    u8 F21 = mFlag100F;
     _F0C = false;
 
     bool isSubPadSwing = MR::isSubPadSwing(0);
-    _F21 = isSubPadSwing;
+    mFlag100F = isSubPadSwing;
 
     if (_F1E != 0) {
         _F1E--;
@@ -6138,7 +6138,7 @@ void MarioActor::updateFairyStar() {
     bool enabled = true;
     if (mActionTable1080->selectAction("スピン回復エフェクト") != 1)
         enabled = false;
-    if (_94C && enabled) {
+    if (_948 && enabled) {
         if (MR::isDead(_994)) {
             _994->appear();
             _994->mRotation.set(0.0f, 0.0f, 0.0f);
@@ -10433,7 +10433,6 @@ bool MarioActor::checkEffectWaterColumn() {
 void MarioActor::stopSpinTicoEffect(bool force) {
     _948 = 0;
     _94C = 0;
-    _94E = 0;
     _946 = 0;
 
     if (force) {

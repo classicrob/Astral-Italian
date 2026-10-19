@@ -4,6 +4,7 @@ Only constant, file-backed, read-only reaches are supported. This supplies
 additional evidence to rdchecked's string-base guard, never a standalone proof.
 """
 import collections
+import hashlib
 from pathlib import Path
 import re
 import struct
@@ -74,9 +75,17 @@ class PoolELF:
         return data[offset:end].decode('utf-8')
 
 
+class PoolCatalog(dict):
+    pass
+
+
 def pool_catalog(path):
-    result = {}
+    result = PoolCatalog()
+    result.extents = collections.defaultdict(set)
     for line in Path(path).read_text().splitlines():
+        obj = re.match(r'\S+ = \.\w+:0x([0-9A-Fa-f]+);.*type:object.*size:0x([0-9A-Fa-f]+)', line)
+        if obj and int(obj[2], 16):
+            result.extents[int(obj[1], 16)].add(int(obj[2], 16))
         match = re.match(r'(\S+) = \.\w+:0x([0-9A-Fa-f]+);', line)
         if match:
             name, address = match[1], int(match[2], 16)
@@ -88,9 +97,10 @@ def pool_catalog(path):
 
 
 class PoolComparator:
-    def __init__(self, read_target, elf, catalog, target_origins, source_origins):
+    def __init__(self, read_target, elf, catalog, target_origins, source_origins, target_extents=None):
         self.read_target, self.elf, self.catalog = read_target, elf, catalog
         self.target_origins, self.source_origins = target_origins, source_origins
+        self.target_extents = getattr(catalog, 'extents', {}) if target_extents is None else target_extents
         self.cache, self.active, self.evidence = set(), set(), []
 
     def source(self, sec, offset, size):
@@ -134,7 +144,7 @@ class PoolComparator:
             if width not in (1, 2, 4, 8):
                 raise PoolUnproved('unsupported pool load width')
             start, size = offset, width
-        self.compare(delta + start, sec, start, size, {sec: delta})
+        self.compare(delta + start, sec, start, size, {sec: delta}, width is None)
         # A loaded internal pointer retains its pool provenance for later reaches.
         if width is not None:
             rels = [(roff, rel) for (rsec, roff), rel in self.elf.relocations.items()
@@ -144,12 +154,20 @@ class PoolComparator:
                     return ('opaque-pointer', None)
                 _, (kind, symbol, addend) = rels[0]
                 name, value, _, symsec = symbol
-                if name not in self.catalog and symsec == sec:
-                    return (token, value + addend - source_base)
+                if 0 < symsec < len(self.elf.data) and self.elf.names[symsec] in ('.data', '.rodata', '.sdata', '.sdata2'):
+                    raw = self.read_target(target_base + displacement, 4)
+                    if raw is None or len(raw) != 4:
+                        raise PoolUnproved('loaded pool pointer is not DOL-backed')
+                    destination = struct.unpack('>I', raw)[0]
+                    source_destination = value + addend
+                    pointer_token = f'POOLPTR[{symsec}:{source_destination:x}:{destination:x}]'
+                    self.target_origins[pointer_token] = {destination}
+                    self.source_origins[pointer_token] = {(self.elf.names[symsec], source_destination)}
+                    return (pointer_token, 0)
         return None
 
-    def compare(self, address, sec, offset, size, section_deltas):
-        key = (address, sec, offset, size, tuple(sorted(section_deltas.items())))
+    def compare(self, address, sec, offset, size, section_deltas, full_object=False):
+        key = (address, sec, offset, size, tuple(sorted(section_deltas.items())), full_object)
         if key in self.cache or key in self.active:
             return
         if len(self.active) >= 32:
@@ -158,6 +176,21 @@ class PoolComparator:
         target = self.read_target(address, size)
         if target is None or len(target) != size:
             raise PoolUnproved('pool reference is not DOL-backed')
+        if full_object:
+            end = source.find(0)
+            string = (end > 0 and all(32 <= b < 127 or b >= 128 for b in source[:end])
+                      and not any(source[end:]))
+            if not string:
+                extents = set(self.target_extents.get(address, ()))
+                if len(extents) != 1:
+                    raise PoolUnproved('missing/ambiguous complete target pool object extent')
+                target_size = next(iter(extents))
+                if target_size < size:
+                    raise PoolUnproved('target pool object is shorter than source object')
+                if target_size > size:
+                    padding = self.read_target(address + size, target_size - size)
+                    if padding is None or len(padding) != target_size - size or any(padding):
+                        raise PoolUnproved('target pool object extra tail is not zero padding')
         self.active.add(key)
         relocated = []
         try:
@@ -179,16 +212,22 @@ class PoolComparator:
                     raise PoolUnproved('different pool relocation identity: ' + name)
                 struct.pack_into('>I', source, roff - offset, expected)
                 relocated.append((roff, name, addend, expected))
-                if internal:
+                defined_data = (0 < symsec < len(self.elf.data) and
+                                self.elf.names[symsec] in ('.data', '.rodata', '.sdata', '.sdata2'))
+                if internal or defined_data:
                     objstart, objsize = self.extent(symsec, value + addend)
-                    self.compare(section_deltas[symsec] + objstart, symsec, objstart,
-                                 objsize, section_deltas)
+                    pointee_delta = expected - (value + addend)
+                    pointee_deltas = {**section_deltas, symsec: pointee_delta}
+                    self.compare(pointee_delta + objstart, symsec, objstart,
+                                 objsize, pointee_deltas, True)
             if bytes(source) != target:
                 raise PoolUnproved('different referenced pool bytes')
             self.cache.add(key)
             self.evidence.append({'target_address': hex(address), 'source_section': self.elf.names[sec],
                                   'source_offset': offset, 'size': size,
-                                  'resolved_relocations': relocated})
+                                  'resolved_relocations': relocated,
+                                  'target_sha256': hashlib.sha256(target).hexdigest(),
+                                  'source_relocated_sha256': hashlib.sha256(source).hexdigest()})
         finally:
             self.active.remove(key)
 

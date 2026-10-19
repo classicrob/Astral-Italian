@@ -14,6 +14,7 @@ ROOT = os.getcwd()
 sys.path.insert(0, f"{ROOT}/tools/team")
 import sg  # noqa
 from rdchecked import checked_equal, checked_equal_mem, checked_literal_bases, machine_lines
+from rdpool import PoolELF, PoolComparator, pool_catalog, read_pool_dol
 
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 if '--rows' in sys.argv: args.remove(sys.argv[sys.argv.index('--rows') + 1])
@@ -280,6 +281,8 @@ def rebind_equal(L, R):
 
 benign, real = [], []
 checked_evidence = []
+pool_checks = {}
+pool_symbols = pool_catalog(f"{ROOT}/config/SB4E01/symbols.txt")
 for unit, fns in sorted(rows.items()):
     u = unit[len('Game/'):] if False else unit
     d = None
@@ -341,15 +344,22 @@ for unit, fns in sorted(rows.items()):
             if side == 'L' and n in taddr and taddr[n][0] in DS:
                 sec, a = taddr[n]
                 st = cstr(rd(a + add, 256)) if sec != '.bss' else None
-                if st: return t.replace(n, 'STR[' + st.hex() + ']', 1)
+                if st:
+                    token = 'STR[' + st.hex() + ']'
+                    pool_origins['L'][token].add(a + add)
+                    return t.replace(n, token, 1)
                 base = splits.get(unit, {}).get(sec)
                 if base is not None: return t.replace(n, f'{sec}+{a - base + add:#x}', 1)
             if side == 'R' and n in oo and oo[n][0] in DS:
                 sec, a = oo[n]
                 st = cstr(secblob(obj, sec)[a + add:a + add + 256]) if sec not in ('.bss', '.sbss') else None
-                if st: return t.replace(n, 'STR[' + st.hex() + ']', 1)
+                if st:
+                    token = 'STR[' + st.hex() + ']'
+                    pool_origins['R'][token].add((sec, a + add))
+                    return t.replace(n, token, 1)
                 return t.replace(n, f'{sec}+{a + add:#x}', 1)
             return t
+        pool_origins = {'L': collections.defaultdict(set), 'R': collections.defaultdict(set)}
         unresolved_literals.clear()
         la = [litonly(dfmt(i, 'L'), tval) for i in L['instructions']]
         ra = [litonly(dfmt(i, 'R'), oval) for i in R['instructions']]
@@ -362,6 +372,17 @@ for unit, fns in sorted(rows.items()):
         lc = machine_lines(L['instructions'], la)
         rc = machine_lines(R['instructions'], ra)
         safe, reason = checked_literal_bases(lc, rc)
+        verify_pool = None
+        if not safe:
+            try:
+                comparator = PoolComparator(lambda address, size: read_pool_dol(dol, address, size),
+                                            PoolELF(obj), pool_symbols, pool_origins['L'], pool_origins['R'])
+                verify_pool = comparator.verify
+                safe, reason = checked_literal_bases(lc, rc, verify_pool)
+                if safe:
+                    pool_checks[(unit, f)] = comparator.evidence
+            except (ValueError, OSError, IndexError, KeyError, struct.error) as error:
+                safe, reason = False, str(error)
         if not safe:
             real.append((unit, f, 'unverified string-base pool reach: ' + reason))
             continue
@@ -374,10 +395,10 @@ for unit, fns in sorted(rows.items()):
         # objdiff inserts alignment placeholders; they are not machine instructions.
         lc = machine_lines(L['instructions'], la)
         rc = machine_lines(R['instructions'], ra)
-        ok3, why3 = checked_equal(lc, rc)
+        ok3, why3 = checked_equal(lc, rc, verify_pool)
         mem_proof = False
         if not ok3 and '--mem' in sys.argv:
-            ok3, why3 = checked_equal_mem(lc, rc)
+            ok3, why3 = checked_equal_mem(lc, rc, verify_pool)
             mem_proof = ok3
         if ok3:
             proof_class = 'c-checked+mem' if mem_proof else 'c-checked'
@@ -395,11 +416,14 @@ for unit, fns in sorted(rows.items()):
             dl = list((cl - cr).elements())[:2]; dr = list((cr - cl).elements())[:2]
             real.append((unit, f, f'target-only {dl} ours-only {dr}'))
 
+benign = [(u, f, p + (f'; {len(pool_checks[(u, f)])} full pool spans and relocation identities checked' if (u, f) in pool_checks else '')) for u, f, p in benign]
 lines = [f'{f}  # proof: {p.split(": ", 1)[0]}: rdclass {u}: {p.split(": ", 1)[1]}' if p.startswith(('c-checked: ', 'c-checked+mem: ')) else f'{f}  # proof: rdclass.py {u}: {p}' for u, f, p in benign]
 if out:
     with open(out, 'w') as fh: fh.write('\n'.join(lines) + '\n')
     import json
     with open(out + '.c-checked.json', 'w') as fh: json.dump(checked_evidence, fh, indent=2)
+    with open(out + '.pool.json', 'w') as fh:
+        json.dump([{'unit': u, 'name': f, 'spans': pool_checks[(u, f)]} for u, f, _ in benign if (u, f) in pool_checks], fh, indent=2)
 print(f'benign {len(benign)}  real {len(real)}')
 print('classes ' + str(dict(collections.Counter(p.split(':', 1)[0] for _, _, p in benign))))
 for u, f, p in real: print(f'REAL {u} {f}: {p}')

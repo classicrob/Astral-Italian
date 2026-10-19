@@ -27,6 +27,7 @@ public:
     bool isActive() const NO_INLINE;
     void setResetOperationApplicationReset();
     void setResetOperationReturnToMenu();
+    void requestShutdown(bool);
     void requestReset(bool);
     void requestGoWiiMenu(bool);
     void notifyCheckDiskResult(bool);

@@ -69,7 +69,7 @@ void MiniStarCheckPoint::init(const JMapInfoIter& rIter) {
     MR::setMessageArg(mTalkCtrl, mStarNum);
     MR::setMessageBalloonFollowOffset(mTalkCtrl, sTalkBalloonOffset);
 
-    if (mPointerTarget == nullptr) {
+    if (mStarPointerTarget == nullptr) {
         TVec3f pointerOffset;
         pointerOffset.set(0.0f, 0.0f, 0.0f);
         MR::initStarPointerTarget(this, 800.0f, pointerOffset);

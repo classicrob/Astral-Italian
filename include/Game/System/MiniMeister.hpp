@@ -4,18 +4,13 @@
 
 class JMapInfoIter;
 
-// Object that MiniMeister holds at +0xA4; its +0x50 is the LiveActor the meister talks for.
-class MiniMeisterOwner {
-public:
-    /* 0x00 */ u8 mPad[0x50];
-    /* 0x50 */ LiveActor* mTalkActor;
-};
+class WorldMapCameraHolder;
 
 // Talking mini-meister on the world map (SMG2 only).
 class MiniMeister : public LiveActor {
 public:
     MiniMeister();
-    MiniMeister(MiniMeisterOwner*);
+    MiniMeister(WorldMapCameraHolder*);
     virtual ~MiniMeister();
     virtual void init(const JMapInfoIter&);
     virtual void appear();
@@ -41,9 +36,7 @@ public:
     void exeTalkEnd();
     void exeDisappear();
 
-    /* 0x90 */ f32 mUnk90;
-    /* 0x94 */ f32 mUnk94;
-    /* 0x98 */ f32 mUnk98;
+    /* 0x90 */ TVec3f mFront;
     /* 0x9C */ TVec2f mScreenPos;
-    /* 0xA4 */ MiniMeisterOwner* mOwner;
+    /* 0xA4 */ WorldMapCameraHolder* mOwner;
 };

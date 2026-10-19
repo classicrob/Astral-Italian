@@ -89,7 +89,7 @@ void MiniTicoMaster::init(const JMapInfoIter& rIter) {
     MR::registerDemoSimpleCastAll(mModelB);
     MR::registerDemoSimpleCastAll(this);
 
-    if (mPointerTarget == nullptr) {
+    if (mStarPointerTarget == nullptr) {
         TVec3f pointerOffset;
         pointerOffset.set(0.0f, 0.0f, 0.0f);
         MR::initStarPointerTarget(this, 800.0f, pointerOffset);

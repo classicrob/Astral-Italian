@@ -41,10 +41,7 @@ public:
     void resetCounters();
 
     /* 0x04 */ u8 mEncouragedPal16;
-    union {
-        /* 0x08 */ OSTime mTimeSent;
-        /* 0x08 */ OSTime mTimeAnnounced; // old source alias; SMG2 stores only one time
-    };
+    /* 0x08 */ OSTime mTimeSent;  // serialized as "mTimeSent"
     /* 0x10 */ u32 mSentBytes;
     /* 0x14 */ SysConfigCounters* mBackupCounters;
     /* 0x18 */ SysConfigCounters* mCurrentCounters;

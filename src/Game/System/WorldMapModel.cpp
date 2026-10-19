@@ -93,7 +93,7 @@ void WorldMapOwnerContext::init(s32 world, s32 node) {
     mCamera = new WorldMapCameraHolder;
     mCamera->init(node);
     mWorld->updatePaths(node);
-    mMeister = new MiniMeister(reinterpret_cast<MiniMeisterOwner*>(mCamera));
+    mMeister = new MiniMeister(mCamera);
     mMeister->initWithoutIter();
     mLayouts->initInfo();
 }

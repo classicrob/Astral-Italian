@@ -14,7 +14,7 @@ namespace GameDataFunction {
     void resetSysConfigCounters();
     bool hasBronzeStar(const char*, s32);
     bool existsGameEventFlagOpenScenario(const char*, s32);
-    bool getSysConfigFileEncouragedPal16();
+    u8 getSysConfigFileEncouragedPal16();
     void setSysConfigFileEncouragedPal16();
     u32 getScenarioClearTime(const char*, s32);
     u32 getBestScoreAttackCurrentStage(const char* pStageName = nullptr);  // SMG2 symbol FPCc (core h10)
@@ -164,7 +164,5 @@ namespace GameDataFunction {
     void incStageClearsAfterRepeatedMissCount();       // SMG2 fn_804D42F0
     void setUserName(const wchar_t*);
     bool hasCurrentUserMiiId();                        // SMG2 fn_804D43C0 (provisional name)
-    bool getSysConfigFileEncouragedPal16();
-    void setSysConfigFileEncouragedPal16();
     void setSysConfigFileTimeSent(OSTime);
 };  // namespace GameDataFunction

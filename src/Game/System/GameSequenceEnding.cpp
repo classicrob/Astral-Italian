@@ -24,11 +24,13 @@
 #include "Game/Util/ScreenUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-extern const char* lbl_807D03C0;
-extern const char* lbl_807D03C4;
-extern const char* lbl_807D03C8;
+static const char* sNormalEndingMessages[] = {"InformationSpecialWorld"};
+static const char* s120StarEndingMessages[] = {"InformationGreenStar"};
+static const char* sNormalEndingMailFlag = "ノーマルエンディングメール送信";
 
 namespace {
+    NEW_NERVE(GameSequenceEndingNrvInit, GameSequenceEnding, Init);
+    NEW_NERVE(GameSequenceEndingNrvWipeClose, GameSequenceEnding, WipeClose);
     class GameSequenceEndingNrvBlank : public Nerve {
     public:
         virtual void execute(Spine*) const {
@@ -38,8 +40,6 @@ namespace {
     };
     GameSequenceEndingNrvBlank GameSequenceEndingNrvBlank::sInstance ATTRIBUTE_WEAK;
 
-    NEW_NERVE(GameSequenceEndingNrvInit, GameSequenceEnding, Init);
-    NEW_NERVE(GameSequenceEndingNrvWipeClose, GameSequenceEnding, WipeClose);
     NEW_NERVE(GameSequenceEndingNrvDemoMessage, GameSequenceEnding, DemoMessage);
     NEW_NERVE(GameSequenceEndingNrvMessage, GameSequenceEnding, Message);
     NEW_NERVE(GameSequenceEndingNrvMessageWait, GameSequenceEnding, MessageWait);
@@ -47,12 +47,9 @@ namespace {
     NEW_NERVE(GameSequenceEndingNrvSaveSequence, GameSequenceEnding, SaveSequence);
 };  // namespace
 
-GameSequenceEnding::GameSequenceEnding(GameSequence* pHost) : ActorStateBase< GameSequence >("\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O", pHost) {
-    mNameObj = new NameObj("\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O\x83""f\x83\x82\x8aJ\x8en\x8e\xd2");
-    mMessage = nullptr;
-    mMessageIndex = 0;
-    mIsNormalEnding = false;
-    mIs120PowerStarsEnding = false;
+GameSequenceEnding::GameSequenceEnding(GameSequence* pHost) : ActorStateBase< GameSequence >("[シーケンス]エンディング", pHost),
+      mNameObj(nullptr), mMessage(nullptr), mMessageIndex(0), mIsNormalEnding(false), mIs120PowerStarsEnding(false) {
+    mNameObj = new NameObj("エンディングデモ開始者");
 }
 
 GameSequenceEnding::~GameSequenceEnding() {
@@ -74,10 +71,10 @@ void GameSequenceEnding::appear() {
         if (!is120) {
             GameDataFunction::setCurrentWorldId(1);
         }
-        GameDataFunction::onGameEventFlag("\x83X\x83^\x81[\x83g120\x8c\xc2\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O\x8e\xc0\x8ds");
+        GameDataFunction::onGameEventFlag("スター120個エンディング実行");
     } else {
         mIsNormalEnding = !MR::isOnGameEventFlagNormalEnding();
-        GameDataFunction::onGameEventFlag("\x83m\x81[\x83}\x83\x8b\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O\x8e\xc0\x8ds");
+        GameDataFunction::onGameEventFlag("ノーマルエンディング実行");
     }
 }
 
@@ -93,19 +90,20 @@ void GameSequenceEnding::startDemoMessage() {
     setNerve(GET_NERVE_ANON(GameSequenceEndingNrvDemoMessage));
 }
 
+// NONMATCHING: regalloc; demo argument loads scheduled across the same nerve selection.
 void GameSequenceEnding::requestSaveDemo() {
     GameSystemFunction::setPermissionToCheckWiiRemoteConnect(true);
     const Nerve* pNerve = GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence);
     if (mIsNormalEnding) {
         pNerve = GET_NERVE_ANON(GameSequenceEndingNrvMessage);
     }
-    MR::requestStartDemo(this, mNameObj, "\x83Z\x81[\x83u", pNerve, nullptr);
+    MR::requestStartDemo(this, mNameObj, "セーブ", pNerve, nullptr);
 }
 
 void GameSequenceEnding::initAfterResourceLoaded() {
     mMessage = new InformationMessage(false);
     mMessage->initWithoutIter();
-    *reinterpret_cast< s32* >(reinterpret_cast< u8* >(mMessage) + 0x30) = 1;  // mWindowType (private in the header)
+    mMessage->setWindowType(1);
 }
 
 void GameSequenceEnding::draw() const {
@@ -131,7 +129,7 @@ bool GameSequenceEnding::updateMessage() {
 
 void GameSequenceEnding::exeInit() {
     if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
-        MR::tryStartDemoMarioPuppetableSystemFlags(mNameObj, "\x83m\x81[\x83}\x83\x8b\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O\x82P");
+        MR::tryStartDemoMarioPuppetableSystemFlags(mNameObj, "ノーマルエンディング１");
         MR::forceCloseSystemWipeWhiteFade();
     }
 }
@@ -147,21 +145,22 @@ void GameSequenceEnding::exeWipeClose() {
     }
 }
 
+// NONMATCHING: regalloc; demo argument loads scheduled across the same nerve selection.
 void GameSequenceEnding::exeDemoMessage() {
     if (GameSequenceFunction::isGameSequenceWipeStarted() != 0) {
-        MR::tryStartTimeKeepDemoMarioPuppetable(mNameObj, "\x83R\x83\x93\x83v\x83\x8a\x81[\x83g\x83G\x83\x93\x83""f\x83""B\x83\x93\x83O", nullptr);
+        MR::tryStartTimeKeepDemoMarioPuppetable(mNameObj, "コンプリートエンディング", nullptr);
         const Nerve* pNerve = GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence);
         if (mIs120PowerStarsEnding) {
             pNerve = GET_NERVE_ANON(GameSequenceEndingNrvMessageNext);
         }
-        MR::requestStartDemo(this, mNameObj, "\x83Z\x81[\x83u", pNerve, nullptr);
+        MR::requestStartDemo(this, mNameObj, "セーブ", pNerve, nullptr);
     }
 }
 
 void GameSequenceEnding::exeMessage() {
     if (MR::isFirstStep(this)) {
         MR::startSubBGM("BGM_JG_NEW_GALAXY", false);
-        mMessage->setMessage(lbl_807D03C0);
+        mMessage->setMessage(sNormalEndingMessages[mMessageIndex]);
         mMessage->setAButtonPos();
     }
     if (updateMessage()) {
@@ -170,7 +169,7 @@ void GameSequenceEnding::exeMessage() {
             setNerve(GET_NERVE_ANON(GameSequenceEndingNrvMessage));
             return;
         }
-        if (GameDataFunction::isOnGameEventFlag(lbl_807D03C8)) {
+        if (GameDataFunction::isOnGameEventFlag(sNormalEndingMailFlag)) {
             setNerve(GET_NERVE_ANON(GameSequenceEndingNrvSaveSequence));
             return;
         }
@@ -180,7 +179,7 @@ void GameSequenceEnding::exeMessage() {
 
 void GameSequenceEnding::exeMessageWait() {
     if (MR::isFirstStep(this)) {
-        MR::requestWiiMessageBoardMailSend("WiiMessage_NormalEnding", "NormalEndingImage.bin", lbl_807D03C8);
+        MR::requestWiiMessageBoardMailSend("WiiMessage_NormalEnding", "NormalEndingImage.bin", sNormalEndingMailFlag);
     }
     LayoutActor* pWindow = MR::getWiiMessageBoardMailSenderWindow();
     bool isEnd = MR::updateWiiMessageBoardMailSenderState();
@@ -193,7 +192,7 @@ void GameSequenceEnding::exeMessageWait() {
 
 void GameSequenceEnding::exeMessageNext() {
     if (MR::isFirstStep(this)) {
-        mMessage->setMessage(lbl_807D03C4);
+        mMessage->setMessage(s120StarEndingMessages[mMessageIndex]);
         mMessage->setAButtonPos();
         MR::startSubBGM("BGM_SMG2_JG_GREENSTAR1", false);
     }

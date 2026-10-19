@@ -20,8 +20,7 @@ void RockCreator::init(const JMapInfoIter& rIter) {
     initRailRider(rIter);
     initNerve(GET_NERVE(RockCreator, RockCreatorNrvActive));
 
-    MR::needStageSwitchReadAppear(this, rIter);
-    MR::syncStageSwitchAppear(this);
+    MR::syncStageSwitchAppearAndSync(this, rIter);
 
     if (MR::useStageSwitchReadA(this, rIter)) {
         MR::listenStageSwitchOnA(this, MR::Functor(this, &RockCreator::invalidate));

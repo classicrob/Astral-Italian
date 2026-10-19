@@ -110,7 +110,7 @@ void LiveActor::initSound(s32 count, const char* name, const TVec3f* position, c
 // LiveActor::initActorCollisionParts
 
 void LiveActor::initStageSwitch(const JMapInfoIter& rIter) {
-    mSwitchCtrl = MR::createStageSwitchCtrl(this, rIter);
+    mStageSwitchCtrl = MR::createStageSwitchCtrl(this, rIter);
 }
 
 // LiveActor::initActorStarPointerTarget
@@ -155,7 +155,7 @@ void LiveActor::kill() {
     makeActorDead();
 
     // SMG2: the switch-dead flag sits at +0x10 of StageSwitchCtrl (not named in our header).
-    if (mSwitchCtrl != nullptr && mSwitchCtrl->isValidSwitchDead() && *reinterpret_cast< bool* >(reinterpret_cast< u8* >(mSwitchCtrl) + 0x10)) {
+    if (mStageSwitchCtrl != nullptr && mStageSwitchCtrl->isValidSwitchDead() && *reinterpret_cast< bool* >(reinterpret_cast< u8* >(mStageSwitchCtrl) + 0x10)) {
         MR::onSwitchDead(this);
     }
 }

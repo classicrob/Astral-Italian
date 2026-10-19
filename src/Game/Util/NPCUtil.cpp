@@ -257,7 +257,7 @@ namespace MR {
         if (!isNullOrEmptyString(pModelName) && isNPCItemFileExist(pModelName) && isExistJoint(pActor, pJointName)) {
             pGoods = createPartsModelNpcAndFix(pActor, "グッズ", pModelName, pJointName);
             pGoods->appear();
-            if (getLightNumMax(pGoods) > 0 && pGoods->mLightCtrl == nullptr) {
+            if (getLightNumMax(pGoods) > 0 && pGoods->mActorLightCtrl == nullptr) {
                 initLightCtrl(pGoods);
             }
         }

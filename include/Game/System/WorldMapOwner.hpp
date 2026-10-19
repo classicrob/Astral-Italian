@@ -20,6 +20,7 @@ class MiniPlayerRocket;
 class WorldMapResultMapData;
 class WorldMapResultRoute;
 class WorldMapResultStatePointEvent;
+class WorldMapResultStateWorldWarp;
 class WorldMapResultStateTicoRouteCreate;
 class TalkMessageCtrl;
 class MiniTicoMaster;
@@ -99,8 +100,8 @@ public:
     bool tryStickWarp() NO_INLINE;
     bool tryApplyNextNode() NO_INLINE;
     bool tryStartTicoRoute(WorldMapResultStateTicoRouteCreate* pState, s32 node) NO_INLINE;
-    bool tryWorldWarpFromStick(PartsWarpInfo* pInfo) NO_INLINE;
-    bool tryWorldWarpFromNext(PartsWarpInfo* pInfo) NO_INLINE;
+    bool tryWorldWarpFromStick(WorldMapResultStateWorldWarp* pInfo) NO_INLINE;
+    bool tryWorldWarpFromNext(WorldMapResultStateWorldWarp* pInfo) NO_INLINE;
     bool isAllNeededForGrandGalaxy() NO_INLINE;
     bool updateParts() NO_INLINE;
     s32 updatePointing() NO_INLINE;

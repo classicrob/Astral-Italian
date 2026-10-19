@@ -2,6 +2,7 @@
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/LiveActor/ModelManager.hpp"
 #include "Game/System/ResourceHolder.hpp"
+#include "Game/LiveActor/ActorReactionHelper.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/JMapInfo.hpp"
 #include "Game/Util/ObjUtil.hpp"
@@ -11,22 +12,15 @@
 namespace {
     const char* sFileName = "ActorHitReactionCtrl";
 
-    // Camera shake names are Shift-JIS: 強震 / 震 / 中震 / 中 / 中弱 / 弱 / 強弱.
-    const char* sShakeVeryStrong = "\x8d\xc5\x8b\xad";
-    const char* sShakeStrong = "\x8b\xad";
-    const char* sShakeNormalStrong = "\x92\x86\x8b\xad";
-    const char* sShakeNormal = "\x92\x86";
-    const char* sShakeNormalWeak = "\x92\x86\x8e\xe3";
-    const char* sShakeWeak = "\x8e\xe3";
-    const char* sShakeVeryWeak = "\x8d\xc5\x8e\xe3";
 }  // namespace
 
 ActorHitReactionCtrl* ActorHitReactionCtrl::tryCreate(LiveActor* pActor) {
-    if (MR::getResourceHolder(pActor) == NULL) {
+    ResourceHolder* pHolder = MR::getResourceHolder(pActor);
+    if (pHolder == NULL) {
         return NULL;
     }
 
-    if (MR::isExistFileInArc(MR::getResourceHolder(pActor), "%s.bcsv", sFileName)) {
+    if (MR::isExistFileInArc(pHolder, "%s.bcsv", sFileName)) {
         return new ActorHitReactionCtrl(pActor);
     }
 
@@ -57,45 +51,10 @@ ActorHitReactionCtrl::ActorHitReactionCtrl(LiveActor* pActor) : mActor(pActor), 
 
         const char* pFlag = NULL;
         MR::getCsvDataStr(&pFlag, pCsv, "IsStopSceneForHitEffect", i);
-        if (pFlag != NULL && pFlag[0] == 'o') {
+        if (pFlag[0] == 'o') {
             pEntry->mIsStopSceneForHitEffect = true;
         }
     }
-}
-
-// Tries to rumble the pad with the named pattern. Returns false if there is no name.
-static bool tryRumblePadPattern(const ActorHitReactionCtrl* pCtrl, const char* pName) {
-    if (pName == NULL) {
-        return false;
-    }
-
-    MR::tryRumblePad(pCtrl, pName, 0);
-    return true;
-}
-
-// Shakes the camera with the strength named by pName. Returns false if there is no name.
-static bool tryCameraShakeByName(const char* pName) {
-    if (pName == NULL) {
-        return false;
-    }
-
-    if (MR::isEqualStringCase(pName, sShakeVeryStrong)) {
-        MR::shakeCameraVeryStrong();
-    } else if (MR::isEqualStringCase(pName, sShakeStrong)) {
-        MR::shakeCameraStrong();
-    } else if (MR::isEqualStringCase(pName, sShakeNormalStrong)) {
-        MR::shakeCameraNormalStrong();
-    } else if (MR::isEqualStringCase(pName, sShakeNormal)) {
-        MR::shakeCameraNormal();
-    } else if (MR::isEqualStringCase(pName, sShakeNormalWeak)) {
-        MR::shakeCameraNormalWeak();
-    } else if (MR::isEqualStringCase(pName, sShakeWeak)) {
-        MR::shakeCameraWeak();
-    } else if (MR::isEqualStringCase(pName, sShakeVeryWeak)) {
-        MR::shakeCameraVeryWeak();
-    }
-
-    return true;
 }
 
 void ActorHitReactionCtrl::reactToHit(const char* pReactionName, const TVec3f* pPos, const HitSensor* pSensorA,
@@ -120,8 +79,8 @@ void ActorHitReactionCtrl::reactToHit(const char* pReactionName, const TVec3f* p
             MR::startActionSound(mActor, pEntry->mSoundName, -1, -1, -1);
         }
 
-        tryRumblePadPattern(this, pEntry->mPadRumbleName);
-        tryCameraShakeByName(pEntry->mCameraShakeName);
+        tryRumblePadByName(this, pEntry->mPadRumbleName);
+        tryShakeCameraByName(pEntry->mCameraShakeName);
 
         if (pEntry->mStopSceneFrame > 0) {
             if (pEntry->mIsStopSceneForHitEffect) {

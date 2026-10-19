@@ -1,3 +1,4 @@
+#define JMAPIDINFO_TRIVIAL_COPY
 #include "Game/LiveActor/ClippingActorInfo.hpp"
 #include "Game/LiveActor/ClippingJudge.hpp"
 #include "Game/LiveActor/LiveActor.hpp"

@@ -15,6 +15,7 @@
 #include "Game/LiveActor/BreakModel.hpp"
 #include "Game/LiveActor/DemoObj.hpp"
 #include "Game/LiveActor/RailObj.hpp"
+#include "Game/LiveActor/ActionFootPrintCtrl.hpp"
 #include "Game/Util/FootPrint.hpp"
 #include "Game/Util/JMapLinkInfo.hpp"
 #include "Game/LiveActor/DisplayListMaker.hpp"
@@ -125,6 +126,7 @@ namespace {
         }
     }
 
+#pragma dont_inline on
     void calcCollisionMtx(TPos3f* pMtx, const LiveActor* pActor, const CollisionParts* pParts) NO_INLINE {
         pMtx->set(pActor->getBaseMtx());
 
@@ -139,6 +141,7 @@ namespace {
         pMtx->mMtx[2][1] *= scale;
         pMtx->mMtx[2][2] *= scale;
     }
+#pragma dont_inline reset
 
     bool isShowModel(LiveActor* pActor) NO_INLINE {
         return !pActor->mFlags.mIsNoEntryDrawBuffer;
@@ -1987,7 +1990,7 @@ namespace MR {
         }
 
         pParts->_CC = true;
-        pParts->_CE = true;
+        pParts->_CD = true;
     }
 
     void invalidateCollisionParts(LiveActor* pActor) {
@@ -2040,7 +2043,7 @@ namespace MR {
             validateCollisionParts(pActor);
         }
 
-        pActor->mCollisionParts->_CD = false;
+        pActor->mCollisionParts->_CE = false;
     }
 
     void resetCollisionPartsBelongZone(LiveActor* pActor) {
@@ -2295,7 +2298,8 @@ namespace MR {
     }
 
     void forceClearFootPrint(LiveActor* pActor) {
-        pActor->mActionKeeper->mFootPrintHolder->mFootPrint->clearForce();
+        // PLACEHOLDER(core): the footprint handle is a pointer stored in a long (MR::createFootPrintHandle); resolve when FootPrint.cpp takes FootPrint* (64-bit port)
+        reinterpret_cast< FootPrint* >(pActor->mActionKeeper->mFootPrintCtrl->mHandle)->clearForce();
     }
 
     LiveActor* getLinkedActor(const JMapLinkInfo* pLink) {

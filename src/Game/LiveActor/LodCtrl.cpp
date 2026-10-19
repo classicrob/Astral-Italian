@@ -43,7 +43,7 @@ void LodCtrl::offSyncShadowHost() {
 
 void LodCtrl::appear() {
     MR::showModel(mHighModel);
-    mActorLightCtrl = mHighModel->mLightCtrl;
+    mActorLightCtrl = mHighModel->mActorLightCtrl;
 
     if (mMiddleModel != nullptr && !MR::isDead(mMiddleModel)) {
         mMiddleModel->makeActorDead();
@@ -189,10 +189,10 @@ void LodCtrl::setFarClipping(f32 farClip) {
 void LodCtrl::showHighModel() {
     if (MR::isHiddenModel(mHighModel)) {
         if (mActorLightCtrl != nullptr) {
-            mHighModel->mLightCtrl->copy(mActorLightCtrl);
+            mHighModel->mActorLightCtrl->copy(mActorLightCtrl);
         }
 
-        mActorLightCtrl = mHighModel->mLightCtrl;
+        mActorLightCtrl = mHighModel->mActorLightCtrl;
         MR::showModel(mHighModel);
     } else {
         if (mMiddleModel != nullptr && !MR::isDead(mMiddleModel)) {
@@ -210,10 +210,10 @@ void LodCtrl::showHighModel() {
 void LodCtrl::showMiddleModel() {
     if (MR::isDead(mMiddleModel)) {
         if (mActorLightCtrl != nullptr) {
-            mMiddleModel->mLightCtrl->copy(mActorLightCtrl);
+            mMiddleModel->mActorLightCtrl->copy(mActorLightCtrl);
         }
 
-        mActorLightCtrl = mMiddleModel->mLightCtrl;
+        mActorLightCtrl = mMiddleModel->mActorLightCtrl;
         mMiddleModel->makeActorAppeared();
         MR::calcAnimDirect(mHighModel);
     } else {
@@ -232,10 +232,10 @@ void LodCtrl::showMiddleModel() {
 void LodCtrl::showLowModel() {
     if (MR::isDead(mLowModel)) {
         if (mActorLightCtrl != nullptr) {
-            mLowModel->mLightCtrl->copy(mActorLightCtrl);
+            mLowModel->mActorLightCtrl->copy(mActorLightCtrl);
         }
 
-        mActorLightCtrl = mLowModel->mLightCtrl;
+        mActorLightCtrl = mLowModel->mActorLightCtrl;
         mLowModel->makeActorAppeared();
         MR::calcAnimDirect(mHighModel);
     } else {
@@ -328,11 +328,11 @@ void LodCtrl::syncJointAnimation() {
 }
 
 void LodCtrl::initLightCtrl() {
-    if (mMiddleModel != nullptr && mMiddleModel->mLightCtrl == nullptr) {
+    if (mMiddleModel != nullptr && mMiddleModel->mActorLightCtrl == nullptr) {
         MR::initLightCtrl(mMiddleModel);
     }
 
-    if (mLowModel != nullptr && mLowModel->mLightCtrl == nullptr) {
+    if (mLowModel != nullptr && mLowModel->mActorLightCtrl == nullptr) {
         MR::initLightCtrl(mLowModel);
     }
 }

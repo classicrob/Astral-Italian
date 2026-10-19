@@ -41,10 +41,7 @@ void MiniStarWorldPoint::init(const JMapInfoIter& rIter) {
 // NONMATCHING: stack temporaries (iterator/accessor slots, makeAccessor result copied to a second slot) differ; instruction set otherwise matches
 // Builds the crown/completion layout of the star road node and shows the crown matching the world's progress.
 static void setupCrownLayout(MiniStarWorldPoint* pPoint) {
-    LayoutActor* pLayout = (LayoutActor*)::operator new(0x3C);
-    if (pLayout != nullptr) {
-        pLayout = new (pLayout) SimpleFollowActorLayout(pPoint, "コンプリートアイコン", "MapGalaxyState", TVec3f(0.0f), 1, -1);
-    }
+    LayoutActor* pLayout = new SimpleFollowActorLayout(pPoint, "コンプリートアイコン", "MapGalaxyState", TVec3f(0.0f), 1, -1);
     pPoint->mLayout = pLayout;
     MR::registerDemoSimpleCastAll(pLayout);
     MR::hidePaneRecursive(pPoint->mLayout, "MapGalaxyState");
@@ -54,7 +51,7 @@ static void setupCrownLayout(MiniStarWorldPoint* pPoint) {
     s32 flagB = 1;
     ScenarioDataIter iter = MR::makeBeginScenarioDataIter();
     while (!iter.isEnd()) {
-        GalaxyStatusAccessor accessor(iter.makeAccessor());
+        GalaxyStatusAccessor accessor = iter.makeAccessor();
         if (accessor.getWorldNo() == pPoint->mTargetWorld) {
             if (!accessor.isCompletedWithGreen()) {
                 flagA = 0;

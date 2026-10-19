@@ -979,12 +979,10 @@ namespace GameSequenceFunction {
     // NONMATCHING: range check folded into one unsigned compare instead of two signed compares (same logic)
     bool hasGrandStarOfCurrentWorld() {
         s32 worldId = GameDataFunction::getCurrentWorldId();
-        if (worldId >= 1) {
-            if (worldId <= 6) {
-                return GameDataFunction::hasGrandStar(worldId);
-            }
+        if (worldId < 1 || worldId > 6) {
+            return false;
         }
-        return false;
+        return GameDataFunction::hasGrandStar(worldId);
     }
 
     bool isGreenStarEventOnly() {

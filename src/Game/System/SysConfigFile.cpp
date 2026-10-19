@@ -116,13 +116,13 @@ SysConfigFile::SysConfigFile() : mChunk(nullptr), mChunkHolder(nullptr) {
 }
 
 OSTime SysConfigFile::getTimeAnnounced() {
-    return mChunk->mTimeAnnounced;
+    return mChunk->mTimeSent;
 }
 
 void SysConfigFile::updateTimeAnnounced() {
     SysConfigChunk* pChunk = mChunk;
 
-    pChunk->mTimeAnnounced = OSGetTime();
+    pChunk->mTimeSent = OSGetTime();
 }
 
 OSTime SysConfigFile::getTimeSent() {

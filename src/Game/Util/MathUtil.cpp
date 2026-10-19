@@ -265,7 +265,6 @@ namespace MR {
         mtx.mult(rSrc, *pDst);
     }
 
-    // PLACEHOLDER(core): SMG2 fn_80040750 (unnamed); resolve when renamed in symbols.txt
     // NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
     f32 calcYawDegreeXZ(const TVec3f& rVec) {
         if (rVec.z == 0.0f) {
@@ -283,7 +282,7 @@ namespace MR {
     }
 
     void calcDirectionVec(TVec3f* pDst, const TVec3f& rFrom, const TVec3f& rTo) {
-        PSVECSubtract(&rTo, &rFrom, pDst);
+        JMathInlineVEC::PSVECSubtract(&rTo, &rFrom, pDst);
         PSVECNormalize(pDst, pDst);
     }
 

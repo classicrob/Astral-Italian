@@ -1,4 +1,5 @@
 #include "Game/Gravity.hpp"
+#include "Game/Gravity/BarrelGravity.hpp"
 #include "Game/Util.hpp"
 
 GravityCreator::GravityCreator() {
@@ -32,6 +33,32 @@ PlanetGravity* GravityCreator::createFromJMap(const JMapInfoIter& rIter) {
     }
 
     return instance;
+}
+
+PlanetGravity* BarrelGravityCreator::createInstance() {
+    mGravityInstance = new BarrelGravity();
+    return mGravityInstance;
+}
+
+void BarrelGravityCreator::settingFromSRT(const TVec3f& rTrans, const TVec3f& rRotate, const TVec3f& rScale) {
+    TPos3f mtx;
+    MR::makeMtxTR(mtx.toMtxPtr(), rTrans, rRotate);
+
+    TVec3f upVec;
+    mtx.getYDir(upVec);
+
+    mGravityInstance->setLocalPosition(rTrans);
+    mGravityInstance->setUpDirection(upVec);
+    mGravityInstance->setRadius(1000.0f * rScale.y);
+}
+
+void BarrelGravityCreator::settingFromJMapArgs(s32 arg0, s32 arg1, s32 arg2) {
+    mGravityInstance->setUnusedArg0(arg0);
+    mGravityInstance->setInwardsThreshold(arg1);
+}
+
+PlanetGravity* BarrelGravityCreator::getGravity() {
+    return mGravityInstance;
 }
 
 PlanetGravity* CubeGravityCreator::createInstance() {
@@ -297,6 +324,24 @@ void PlaneInCylinderGravityCreator::settingFromSRT(const TVec3f& rTrans, const T
 void PlaneInCylinderGravityCreator::settingFromJMapArgs(s32 arg0, s32 arg1, s32 arg2) {
     // Obj_arg0 = base distance
     mGravityInstance->setBaseDistance(arg0);
+}
+
+PlanetGravity* PlaneZeroGravityCreator::createInstance() {
+    PlanetGravity* pGravity = PlaneGravityCreator::createInstance();
+    pGravity->mIsZeroGravity = true;
+    return pGravity;
+}
+
+PlanetGravity* PlaneZeroInBoxGravityCreator::createInstance() {
+    PlanetGravity* pGravity = PlaneInBoxGravityCreator::createInstance();
+    pGravity->mIsZeroGravity = true;
+    return pGravity;
+}
+
+PlanetGravity* PlaneZeroInCylinderGravityCreator::createInstance() {
+    PlanetGravity* pGravity = PlaneInCylinderGravityCreator::createInstance();
+    pGravity->mIsZeroGravity = true;
+    return pGravity;
 }
 
 PlanetGravity* PointGravityCreator::createInstance() {

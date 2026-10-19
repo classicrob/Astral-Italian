@@ -170,7 +170,7 @@ void FurDrawer::setupMaterial(DynamicFurParam* pParam) const {
 
     GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_TEXMTX0, GX_FALSE, GX_PTIDENTITY);
     GXSetTexCoordGen2(GX_TEXCOORD1, GX_TG_MTX2x4, GX_TG_TEX0, GX_TEXMTX1, GX_FALSE, GX_PTIDENTITY);
-    GXSetClipMode(GX_CLIP_DISABLE);
+    GXSetClipMode(GX_CLIP_ENABLE);
 
     if (pLight) {
         u8 numChans = 1;

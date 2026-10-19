@@ -2,6 +2,7 @@
 #define JGEOMETRY_VEC3_MI_NOINLINE
 #define JGEOMETRY_VEC3_MUL_NOINLINE
 #include "Game/System/MiniMeister.hpp"
+#include "Game/System/WorldMapCameraHolder.hpp"
 
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
@@ -23,7 +24,11 @@ namespace NrvMiniMeister {
     NEW_NERVE(MiniMeisterNrvDisappear, MiniMeister, Disappear);
 };  // namespace NrvMiniMeister
 
-MiniMeister::MiniMeister(MiniMeisterOwner* pOwner) : LiveActor("ミニマイスター"), mUnk90(0.0f), mUnk94(0.0f), mUnk98(1.0f), mScreenPos(sTalkScreenPos) {
+// NONMATCHING: regalloc; front-vector stores scheduled after screen-position member construction.
+MiniMeister::MiniMeister(WorldMapCameraHolder* pOwner) : LiveActor("ミニマイスター"), mFront(), mScreenPos(sTalkScreenPos) {
+    mFront.x = 0.0f;
+    mFront.y = 0.0f;
+    mFront.z = 1.0f;
     mOwner = pOwner;
 }
 
@@ -42,9 +47,7 @@ void MiniMeister::init(const JMapInfoIter& rIter) {
 
 void MiniMeister::appear() {
     LiveActor::appear();
-    mUnk90 = 0.0f;
-    mUnk94 = 0.0f;
-    mUnk98 = 1.0f;
+    mFront.set(0.0f, 0.0f, 1.0f);
     mScreenPos.set(sTalkScreenPos);
     setNerve(&NrvMiniMeister::MiniMeisterNrvTalkStart::sInstance);
 }
@@ -61,7 +64,7 @@ void MiniMeister::makeActorDead() {
 }
 
 void MiniMeister::calcAndSetBaseMtx() {
-    MR::fn_8000F880(this, reinterpret_cast<TVec3f*>(&mUnk90));
+    MR::fn_8000F880(this, &mFront);
 }
 
 void MiniMeister::control() {
@@ -122,7 +125,7 @@ void MiniMeister::calcPositionFromCamera(const TVec3f& rPos) {
         TVec3f negative;
         negative.negate(direction);
         if (!MR::isSameDirection(negative, mGravity, 0.01f)) {
-            reinterpret_cast<TVec3f*>(&mUnk90)->set<f32>(direction);
+            mFront.set<f32>(direction);
         }
     }
 }
@@ -136,7 +139,7 @@ void MiniMeister::updateTalkScreenPos(f32 ratio) {
     TVec3f worldPos;
     MR::calcWorldPositionFromCenterScreen(&worldPos, screen, (875.0f * MR::tan(0.3926991f)) / halfTan);
     TVec3f anchor;
-    anchor.set<f32>(mOwner->mTalkActor->mPosition + sTalkOffset);
+    anchor.set<f32>(mOwner->mRocket->mPosition + sTalkOffset);
     TVec2f anchorScreen;
     MR::calcScreenPosition(&anchorScreen, anchor);
     TVec2f worldScreen;
@@ -241,8 +244,8 @@ void MiniMeister::exeTalkEnd() {
     f32 ease = MR::getEaseInValue(rate, 0.0f, 1.0f, 1.0f);
     updateTalkScreenPos(1.0f - ease);
     if (MR::isGreaterEqualStep(this, 30)) {
-        MR::tryRumblePadMiddle(mOwner->mTalkActor, 0);
-        static_cast<MiniPlayerRocket*>(mOwner->mTalkActor)->startBounce();
+        MR::tryRumblePadMiddle(mOwner->mRocket, 0);
+        static_cast<MiniPlayerRocket*>(mOwner->mRocket)->startBounce();
         setNerve(&NrvMiniMeister::MiniMeisterNrvDisappear::sInstance);
     }
 }

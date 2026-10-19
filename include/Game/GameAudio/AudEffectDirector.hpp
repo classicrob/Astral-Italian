@@ -10,6 +10,7 @@ public:
     virtual void movement();
 
     void setEffectType(s32, s32, s32);
+    void restoreEffectType();
     void setAudioEffectParam(s32);
     void playEffectSound(s32) NO_INLINE;
 

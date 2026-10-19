@@ -2460,7 +2460,7 @@ bool Yoshi::fn_80411550(){
     TVec3f center,axis;f32 radius;if(!MR::isInTowerModeCylinder(mPosition,&center,&axis,&radius))return false;
     bool inAir=false;if(isNerve(&NrvYoshi::YoshiNrv804138A0::sInstance)||isNerve(&NrvYoshi::YoshiNrv804138B0::sInstance))inAir=true;
     if(inAir)setNerve(&NrvYoshi::YoshiNrv80413990::sInstance);
-    TVec3f position;MR::fn_80051760(&position,mPosition,center,axis,radius);MR::setPosition(this,position);MR::fn_80051680(&_18C,mPosition,center,axis);return true;
+    TVec3f position;MR::calcPlayerScaledVec(&position,mPosition,center,axis,radius);MR::setPosition(this,position);MR::calcPlayerKillDiffVec(&_18C,mPosition,center,axis);return true;
 }
 void Yoshi::fn_804117F0(){if(mSupportSpinTimer>0){--mSupportSpinTimer;return;}if(fn_80411860()&&MR::isStarPointerPointing2PAttachTarget(this))setNerve(&NrvYoshi::YoshiNrv804139F0::sInstance);}
 namespace {template<class T> inline const Nerve* getYoshiNerve(){return &T::sInstance;}}

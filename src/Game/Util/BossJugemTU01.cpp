@@ -148,7 +148,7 @@ void BossJugemStateDash::exeDash() {
     TVec3f probeB = pHost->mPosition + pHost->mFrontVec * 0.0f;
     if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, probeA, mHost->mGravity * 800.0f * 1.5f) ||
         MR::getFirstPolyOnLineToMap(&hitPos, nullptr, probeB, mHost->mGravity * 800.0f * 1.5f)) {
-        MR::emitEffect(mHost->mCloud, "DashGroundSpark");
+        MR::tryEmitEffect(mHost->mCloud, "DashGroundSpark");
     } else {
         MR::tryDeleteEffect(mHost->mCloud, "DashGroundSpark");
     }

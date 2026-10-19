@@ -19,8 +19,6 @@ namespace NrvGravityLightRoad {
     NEW_NERVE(GravityLightRoadNrvDisappear, GravityLightRoad, Disappear);
 };  // namespace NrvGravityLightRoad
 
-// PLACEHOLDER(objects): fn_800514B0 (TQuat4f*, TVec3f*) is an unnamed MR helper called when the fall begins; resolve when named
-extern "C" void fn_800514B0(TQuat4f*, TVec3f*);
 
 GravityLightRoad::GravityLightRoad(const char* pName) : LiveActor(pName) {
     mFallVec.x = 0.0f;
@@ -139,7 +137,7 @@ bool GravityLightRoad::receiveOtherMsg(u32 msg, HitSensor* pReceiver, HitSensor*
     }
 
     if (MR::isMsgUpdateBaseMtx(msg) && isPlayerFall()) {
-        MR::fn_800513C0(&mQuat, &mFallVec);
+        MR::setPlayerQuatAndPos(&mQuat, &mFallVec);
         return true;
     }
 
@@ -186,7 +184,7 @@ bool GravityLightRoad::tryPlayerFall() {
 
     MR::startBckPlayer("Fall", nullptr);
     MR::invalidateClipping(this);
-    fn_800514B0(&mQuat, &mFallVec);
+    MR::getPlayerQuatAndPos(&mQuat, &mFallVec);
     setNerve(GET_NERVE(GravityLightRoad, GravityLightRoadNrvPlayerFall));
     return true;
 }

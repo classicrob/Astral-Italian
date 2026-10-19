@@ -68,7 +68,7 @@ void MarioFaceShipAttentionConversationDirector::initAfterPlacement() {
             pParam = mParams[i];
             MR::registerMarioFaceShipNpcGroup(pParam->mActorGroup, pParam->mCast);
             bool found = false;
-            for (s32 j = 0; j < pParam->mActorGroup->mObjectCount; j++) {
+            for (s32 j = 0; j < pParam->mActorGroup->mObjNum; j++) {
                 if (pParam->mActorGroup->getActor(j) == pParam->mTargetActor) {
                     found = true;
                 }

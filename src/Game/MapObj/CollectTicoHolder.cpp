@@ -12,7 +12,7 @@ void registerCollectTico(CollectTico* actor) {
 void launchRescuedStrayTico(const TPos3f& mtx) {
     if (MR::isExistSceneObj(SceneObj_CollectTicoHolder)) {
         CollectTicoHolder* holder = MR::getSceneObj<CollectTicoHolder*>(SceneObj_CollectTicoHolder);
-        s32 count = holder->mObjectCount;
+        s32 count = holder->mObjNum;
         for (s32 i = 0; i < count; ++i) static_cast<CollectTico*>(holder->getActor(i))->launch(mtx);
     }
 }

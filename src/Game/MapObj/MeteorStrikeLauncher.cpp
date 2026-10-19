@@ -30,8 +30,7 @@ void MeteorStrikeLauncher::init(const JMapInfoIter& rIter) {
 
     initNerve(GET_NERVE(MeteorStrikeLauncher, MeteorStrikeLauncherNrvCreate));
 
-    MR::needStageSwitchReadAppear(this, rIter);
-    MR::syncStageSwitchAppear(this);
+    MR::syncStageSwitchAppearAndSync(this, rIter);
 
     if (mIsMeteorStrike && mIsValidMultiMeteor) {
         f32 speed = MeteorStrike::getSpeed(rIter);
@@ -76,8 +75,6 @@ void MeteorStrikeLauncher::kill() {
 
 void MeteorStrikeLauncher::initMapToolInfo(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
-
-    MR::syncStageSwitchAppearAndSync(this, rIter);
 
     if (MR::getJMapInfoArg1NoInit(rIter, &mIntervalStep)) {
         mIntervalStep *= 60;

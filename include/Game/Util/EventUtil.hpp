@@ -140,7 +140,7 @@ namespace MR {
     void startGalaxyCometEvent();
     void endGalaxyCometEvent();
     bool isGalaxyCometEvent();
-    void stopGalaxyCometEvent();  // PLACEHOLDER(core): name inferred from symbol order (0x80024F50 between isGalaxyCometEvent and getGalaxyStarTotalNum); confirm
+    void stopGalaxyCometEvent();  // symbol stopGalaxyCometEvent__2MRFv (0x80024F50)
 
     // various unknown functions
 

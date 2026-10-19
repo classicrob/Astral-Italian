@@ -105,7 +105,7 @@ void GalaxyWorldMapInfo::init(const JMapInfoIter& rIter) {
     MR::setClippingFarMax(this);
     MR::setClippingTypeSphereContainsModelBoundingBox(this, 1000.0f);
 
-    if (mPointerTarget == nullptr) {
+    if (mStarPointerTarget == nullptr) {
         MR::initStarPointerTarget(this, 2000.0f, TVec3f(0.0f, 0.0f));
     }
 

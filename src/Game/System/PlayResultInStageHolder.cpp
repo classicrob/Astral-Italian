@@ -11,46 +11,27 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("\x83v\x83\x8c\x83""C\x8c\x8b\x89\xca\x95\xdb\x8e\x9d[\x83X\x83""e\x81[\x83W\x92\x86]") {
-    mIsStageResult = false;
-    mHasPowerStar = false;
-    mIsNotGreenStar = false;
-    mClearedPowerStarNum = -1;
-    mClearedStarPieceNum = 0;
-    mStarPieceAdded = 0;
-    mClearedCoinNum = 0;
-    mCoinAdded = 0;
-    mPurpleCoinNum = 0;
-    mIsPurpleCoinFull = false;
-    mIsCollectTicoCoinSaved = false;
-    mIsTicoCoinSaved = false;
-    mPlayTime = 0;
-    mIsNewBestTime = false;
-    mRestartMarioNo = new JMapIdInfo();
-    mMissCount = 0;
-    mHasRetryGalaxy = true;
-    mIsPowerStarAppeared = false;
-    mIsLuigiIntruding = false;
-    mPlayerHealth = 3;
-    mCoinOneUpNum = 0;
-    mIsUnlockGhostLuigi = false;
-    mPadMode = 0;
-    mIsSuperDreamer = false;
-    mNewStageList.mBase = nullptr;
-    mNewStageList.mCapacity = 0;
-    mNewStageList.mCount = 0;
-    mResultStageList.mBase = nullptr;
-    mResultStageList.mCapacity = 0;
-    mResultStageList.mCount = 0;
-
+PlayResultInStageHolder::PlayResultInStageHolder() : NameObj("プレイ結果保持[ステージ中]"),
+    mIsStageResult(false), mHasPowerStar(false), mIsNotGreenStar(false),
+     mClearedPowerStarNum(-1), mClearedStarPieceNum(0), mStarPieceAdded(0), mClearedCoinNum(0), mCoinAdded(0), mPurpleCoinNum(0),
+     mIsPurpleCoinFull(false), mIsCollectTicoCoinSaved(false), mIsTicoCoinSaved(false), mPlayTime(0), mIsNewBestTime(false), mRestartMarioNo(nullptr),
+     mMissCount(0), mHasRetryGalaxy(true), mIsPowerStarAppeared(false), mIsLuigiIntruding(false), mPlayerHealth(3),
+     mCoinOneUpNum(0), mIsUnlockGhostLuigi(false), mPadMode(0), mIsSuperDreamer(false) {
+    MR::zeroMemory(mStageName, sizeof(mStageName));
+    JMapIdInfo* restart = new JMapIdInfo();
+    if (restart != nullptr) {
+        restart->_0 = -1;
+        restart->mZoneID = -1;
+    }
+    mRestartMarioNo = restart;
     mNewStageList.mBase = new PlayResultStageEntry[0x40];
     mNewStageList.mCapacity = 0x40;
     mResultStageList.mBase = new PlayResultStageEntry[0x40];
     mResultStageList.mCapacity = 0x40;
 
-    reset();
 }
 
+// NONMATCHING: regalloc; target retains redundant null checks for embedded list members.
 PlayResultInStageHolder::~PlayResultInStageHolder() {
 }
 
@@ -74,7 +55,7 @@ void PlayResultInStageHolder::reset() {
     mMissCount = 0;
     mHasRetryGalaxy = true;
     mIsPowerStarAppeared = false;
-    mIsLuigiIntruding = GameDataFunction::isOnGameEventFlag("\x82\xc5\x82\xb5\x82\xe1\x82\xce\x82\xe8\x83\x8b\x83""C\x81[\x83W\x8fo\x8c\xbb\x92\x86");
+    mIsLuigiIntruding = GameDataFunction::isOnGameEventFlag("でしゃばりルイージ出現中");
     mPlayerHealth = 3;
     mCoinOneUpNum = 0;
     mIsUnlockGhostLuigi = false;
@@ -88,7 +69,7 @@ void PlayResultInStageHolder::reset() {
         GalaxyStatusAccessor accessor = iter.makeAccessor();
         const char* pName = accessor.getName();
         PlayResultStageEntry entry;
-        entry.mValue = reinterpret_cast< u32 >(pName);
+        entry.mStageName = pName;
         entry.mFlag = MR::getGalaxyStarTotalNum(pName) != 0;
         mNewStageList.add(entry);
         iter.goNext();
@@ -155,13 +136,12 @@ s32 PlayResultInStageHolder::getClearedPowerStarNum() const {
 
 bool PlayResultInStageHolder::addStarPieceNum(s32 num) {
     mClearedStarPieceNum = MR::clamp(mClearedStarPieceNum + num, 0, 999);
-    if (mStarPieceAdded + 100 > mClearedStarPieceNum) {
-        mIsPowerStarAppeared = true;
-        return false;
+    bool added = false;
+    if (mStarPieceAdded + 100 <= mClearedStarPieceNum) {
+        added = true;
+        mStarPieceAdded += 100;
     }
-
-    mStarPieceAdded += 100;
-    return true;
+    return added;
 }
 
 s32 PlayResultInStageHolder::getClearedStarPieceNum() const {
@@ -197,10 +177,10 @@ void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
         if (pEntry->mFlag) {
             continue;
         }
-        const char* pName = reinterpret_cast< const char* >(pEntry->mValue);
+        const char* pName = pEntry->mStageName;
         if (MR::getGalaxyStarTotalNum(pName) != 0) {
             PlayResultStageEntry added;
-            added.mValue = pEntry->mValue;
+            added.mStageName = pName;
             added.mFlag = true;
             pHolder->mResultStageList.add(added);
         }
@@ -210,7 +190,7 @@ void PlayResultInStageHolder::updateNewlyOpenedGalaxies() {
 bool PlayResultInStageHolder::isNewlyOpenedGalaxy(const char* pName) const {
     const PlayResultInStageHolder* pHolder = this;
     for (s32 i = 0; i < pHolder->mResultStageList.mCount; i++) {
-        if (MR::isEqualString(reinterpret_cast< const char* >(pHolder->mResultStageList.mBase[i].mValue), pName)) {
+        if (MR::isEqualString(pHolder->mResultStageList.mBase[i].mStageName, pName)) {
             return true;
         }
     }
@@ -229,7 +209,7 @@ void PlayResultInStageHolder::clearAfterMiss() {
 void PlayResultInStageHolder::clearForRetry() {
     PlayResultInStageHolder* pHolder = this;
     s32 padMode = pHolder->mPadMode;
-    pHolder->mStarPieceAdded = 0;
+    pHolder->mClearedCoinNum = 0;
     pHolder->mCoinAdded = 0;
     pHolder->mHasRetryGalaxy = false;
     pHolder->mPlayerHealth = 3;
@@ -269,10 +249,11 @@ void PlayResultInStageHolder::clearPadMode() {
     mPadMode = 0;
 }
 
+// NONMATCHING: regalloc; same element copy and count increment, indexed store selection differs.
 void PlayResultStageList::add(const PlayResultStageEntry& rEntry) {
     PlayResultStageEntry* pDst = &mBase[mCount];
     mCount++;
-    pDst->mValue = rEntry.mValue;
+    pDst->mStageName = rEntry.mStageName;
     pDst->mFlag = rEntry.mFlag;
 }
 
@@ -283,7 +264,7 @@ PlayResultStageList::~PlayResultStageList() {
 }
 
 PlayResultStageEntry::PlayResultStageEntry() {
-    mValue = 0;
+    mStageName = 0;
     mFlag = false;
 }
 

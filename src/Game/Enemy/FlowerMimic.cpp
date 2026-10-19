@@ -1,3 +1,4 @@
+#include "Game/Util/PlayerUtil.hpp"
 #define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/Enemy/FlowerMimic.hpp"
 #include "Game/Util.hpp"
@@ -167,7 +168,7 @@ bool FlowerMimic::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
     }
     if (MR::isMsgAutoRushBegin(msg)) {
         if (isNerve(&FlowerMimicNrvAttack::sInstance)) {
-            MR::fn_800514B0(&mQuat, &mOffset);
+            MR::getPlayerQuatAndPos(&mQuat, &mOffset);
             mPrevOffset.set(mOffset);
             MR::calcPositionUpOffset(&mOffset, this, -75.0f);
             setNerve(&FlowerMimicNrvEat::sInstance);
@@ -175,7 +176,7 @@ bool FlowerMimic::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
         }
     }
     if (MR::isMsgUpdateBaseMtx(msg)) {
-        MR::fn_800513C0(&mQuat, &mOffset);
+        MR::setPlayerQuatAndPos(&mQuat, &mOffset);
         return true;
     }
     return false;

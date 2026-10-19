@@ -526,7 +526,8 @@ namespace MR {
             stopSeCategories(0x1e);
         }
 
-        if (isDemoEndWaitCameraInterpolating() ? isDemoEndWaitCinemaFrameStopped() : param3) {
+        if ((!isDemoEndWaitCameraInterpolating() && param3) ||
+            (isDemoEndWaitCameraInterpolating() && isDemoEndWaitCinemaFrameStopped())) {
             DemoFunction::getDemoDirector()->endDemo(pActor, pName, false);
 
             char buf[0x80];
@@ -545,16 +546,8 @@ namespace MR {
     }
 
     bool endDemoAndSetAlreadyDone(LiveActor* pActor, const char* pName) {
-        bool canEnd = false;
-        if (isDemoEndWaitCameraInterpolating()) {
-            if (isDemoEndWaitCinemaFrameStopped()) {
-                canEnd = true;
-            }
-        } else if (DemoFunction::isDemoLastPartLastStep()) {
-            canEnd = true;
-        }
-
-        if (canEnd) {
+        if ((!isDemoEndWaitCameraInterpolating() && DemoFunction::isDemoLastPartLastStep()) ||
+            (isDemoEndWaitCameraInterpolating() && isDemoEndWaitCinemaFrameStopped())) {
             DemoExecutor* executor = DemoFunction::getDemoDirector()->mExecutor;
             if (executor != nullptr) {
                 executor->skip();
@@ -592,6 +585,7 @@ namespace MR {
         return false;
     }
 
+    // NONMATCHING: regalloc and equivalent flag/branch lowering
     bool tryStartDemoEndWaitCameraInterpolating(LiveActor* pActor, const char* pName) {
         if (isSystemTalking()) {
             return false;
@@ -601,39 +595,28 @@ namespace MR {
             return false;
         }
 
-        if (!testCorePadTriggerA(0)) {
-            return false;
-        }
-
-        if (isDemoEndWaitCameraInterpolating()) {
+        if (!testCorePadTriggerA(0) || isDemoEndWaitCameraInterpolating()) {
             return false;
         }
 
         char buf[0x80];
         snprintf(buf, 0x80, "%s%s", pActor->mName, pName != nullptr ? pName : "");
 
-        bool isDone = isOnAlreadyDoneFlag(buf);
-        if (!isDone) {
-            if (hasPowerStarInCurrentStageWithDeclarer(pActor->mName, -1)) {
-                isDone = true;
-            } else if (isStageBossParade() && hasPowerStarInCurrentStage(getCurrentScenarioNo())) {
-                isDone = true;
-            }
+        bool isDone;
+        if (isOnAlreadyDoneFlag(buf)) isDone = true;
+        else if (hasPowerStarInCurrentStageWithDeclarer(pActor->mName, -1)) isDone = true;
+        else if (isStageBossParade() && hasPowerStarInCurrentStage(getCurrentScenarioNo())) isDone = true;
+        else isDone = false;
+        if (isDone) {
+            DemoFunction::getDemoDirector()->_13 = true;
+            tryFrameToBlankCinemaFrame();
+            return true;
         }
-
-        if (!isDone) {
-            return false;
-        }
-
-        // PLACEHOLDER(core): DemoDirector byte 0x13 (bool) is not in DemoDirector.hpp; resolve when the layout is mapped.
-        *reinterpret_cast< bool* >(reinterpret_cast< u8* >(DemoFunction::getDemoDirector()) + 0x13) = true;
-        tryFrameToBlankCinemaFrame();
-        return true;
+        return false;
     }
 
     bool isDemoEndWaitCameraInterpolating() {
-        // PLACEHOLDER(core): DemoDirector byte 0x13 (bool) is not in DemoDirector.hpp; resolve when the layout is mapped.
-        return *reinterpret_cast< bool* >(reinterpret_cast< u8* >(DemoFunction::getDemoDirector()) + 0x13);
+        return DemoFunction::getDemoDirector()->_13;
     }
 
     bool isDemoEndWaitCinemaFrameStopped() {
@@ -682,7 +665,7 @@ namespace MR {
     }
 
     void initDemoSheetTalkAnim(LiveActor* pActor, const JMapInfoIter& rIter, const char* pName1, const char* pName2, TalkMessageCtrl* pTalkCtrl,
-                               TVec3f rPos, MtxPtr pMtx) {
+                               const TVec3f& rPos, MtxPtr pMtx) {
         tryInitDemoSheetTalkAnim(pActor, rIter, pName1, pName2, pTalkCtrl, rPos, pMtx);
     }
 
@@ -693,7 +676,7 @@ namespace MR {
     }
 
     bool tryInitDemoSheetTalkAnim(LiveActor* pActor, const JMapInfoIter& rIter, const char* pParam3, const char* pParam4,
-                                  TalkMessageCtrl* pTalkCtrl, TVec3f rPos, MtxPtr pMtx) {
+                                  TalkMessageCtrl* pTalkCtrl, const TVec3f& rPos, MtxPtr pMtx) {
         if (tryRegisterDemoCast(pActor, pParam3, rIter)) {
             if (pTalkCtrl == nullptr) {
                 pTalkCtrl = MR::createTalkCtrl(pActor, rIter, pParam4, rPos, pMtx);

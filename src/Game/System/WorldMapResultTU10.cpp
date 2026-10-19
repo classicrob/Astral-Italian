@@ -3,11 +3,7 @@
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapResultStateKoopaCastle.hpp"
-
-// PLACEHOLDER(core): unnamed SMG2 callee (no symbol name yet); resolve when its owner names it
-extern "C" {
-    void fn_8001C030(s32);
-}
+#include "Game/Util/BgmUtil.hpp"
 
 namespace MR {
     void startSystemWipeCircleWithCaptureScreen(s32);
@@ -28,7 +24,7 @@ void WorldMapResultStateKoopaCastle::appear() {
 
 void WorldMapResultStateKoopaCastle::exeWait() {
     if (MR::isFirstStep(this)) {
-        fn_8001C030(0x1E);
+        MR::stopStageAndSubBGM(0x1E);
     }
 
     if (MR::isStep(this, 0x1E)) {

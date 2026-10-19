@@ -24,7 +24,7 @@ public:
     void update();
     void updateRumbleAndInfoChecker();
     WPadRumble* getRumbleInstance() const;
-    void startLeaveWatcher();
+    bool startLeaveWatcher();
     void stopLeaveWatcher();
     void restartLeaveWatcher();
     s32 getBattery() const;

@@ -106,6 +106,7 @@ namespace MR {
         pMtx[2][3] = tz;
     }
 
+    // NONMATCHING: regalloc
     void rotateMtxLocalX(MtxPtr pMtx, f32 rad) {
         f32 cosAngle = JMACosRadian(rad);
         f32 sinAngle = JMASinRadian(rad);
@@ -140,6 +141,7 @@ namespace MR {
         pMtx[2][2] = b2;
     }
 
+    // NONMATCHING: regalloc
     void rotateMtxLocalZ(MtxPtr pMtx, f32 rad) {
         f32 cosAngle = JMACosRadian(rad);
         f32 sinAngle = JMASinRadian(rad);
@@ -740,6 +742,7 @@ namespace MR {
         pOut->z = pMtx[2][3];
     }
 
+    // NONMATCHING: regalloc and equivalent vector inlining
     void separateMtxScale(MtxPtr rotation, MtxPtr scale, MtxPtr source) {
         f32 sumX = source[0][0] * source[0][0] + source[1][0] * source[1][0] + source[2][0] * source[2][0];
         f32 sumY = source[0][1] * source[0][1] + source[1][1] * source[1][1] + source[2][1] * source[2][1];

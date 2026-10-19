@@ -1485,7 +1485,7 @@ void Mario::writeBackPhyisicalVector() {
     fn_80388150();
     if ((_10_LOW_WORD >> 12) & 1) {
         TVec3f pos;
-        MR::fn_80051760(&pos, mPosHolder->mPos, _6F4, _700, _718);
+        MR::calcPlayerScaledVec(&pos, mPosHolder->mPos, _6F4, _700, _718);
         const TVec3f& oldPos = mPosHolder->mPos;
         TVec3f delta(pos);
         delta.sub(oldPos);

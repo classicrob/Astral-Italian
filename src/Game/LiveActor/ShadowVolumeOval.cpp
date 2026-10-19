@@ -16,13 +16,15 @@ bool ShadowVolumeOval::isDraw() const {
 }
 
 void ShadowVolumeOval::loadModelDrawMtx() const {
-    MtxPtr dropMtx;
     ShadowController* controller = getController();
-    dropMtx = controller->_18;
     TVec3f direction;
     controller->getDropDir(&direction);
 
     TVec3f size(mSize / 100.0f);
+    if (controller->isFollowHostScale()) {
+        size *= controller->getHost()->mScale;
+    }
+
     if (size.x <= 0.01f) {
         size.x = 0.01f;
     }
@@ -35,12 +37,8 @@ void ShadowVolumeOval::loadModelDrawMtx() const {
         size.z = 0.01f;
     }
 
-    if (controller->isFollowHostScale()) {
-        size *= controller->getHost()->mScale;
-    }
-
     TPos3f scaledMtx;
-    scaledMtx.set(dropMtx);
+    controller->calcBaseMtx(&scaledMtx);
     scaledMtx.setTrans(TVec3f(0.0f, 0.0f, 0.0f));
     MR::preScaleMtx(scaledMtx, size);
 

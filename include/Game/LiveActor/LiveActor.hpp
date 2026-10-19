@@ -114,21 +114,9 @@ public:
     EffectKeeper* mEffectKeeper;        // 0x68
     ActorSoundHolder* mSoundHolder;     // 0x6C
     LiveActorFlag mFlags;               // 0x70
-    union {
-        ShadowControllerList* mShadowList;  // 0x7C
-        ShadowControllerList* mShadowControllerList;
-    };
-    CollisionParts* mCollisionParts;    // 0x80
-    union {
-        StageSwitchCtrl* mSwitchCtrl;  // 0x84
-        StageSwitchCtrl* mStageSwitchCtrl;
-    };
-    union {
-        StarPointerTarget* mPointerTarget;  // 0x88
-        StarPointerTarget* mStarPointerTarget;
-    };
-    union {
-        ActorLightCtrl* mLightCtrl;  // 0x8C
-        ActorLightCtrl* mActorLightCtrl;
-    };
+    ShadowControllerList* mShadowControllerList;  // 0x7C
+    CollisionParts* mCollisionParts;              // 0x80
+    StageSwitchCtrl* mStageSwitchCtrl;            // 0x84
+    StarPointerTarget* mStarPointerTarget;        // 0x88
+    ActorLightCtrl* mActorLightCtrl;              // 0x8C
 };

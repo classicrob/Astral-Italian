@@ -32,9 +32,7 @@ void ShadowSurfaceOval::setSize(const TVec3f& pSize) {
 }
 
 void ShadowSurfaceOval::draw() const {
-    MtxPtr baseMtx;
     ShadowController* controller = getController();
-    baseMtx = controller->_18;
 
     if (!controller->isProjected() || !controller->isDraw()) {
         return;
@@ -50,7 +48,7 @@ void ShadowSurfaceOval::draw() const {
     controller->getProjectionNormal(&normal);
     GXSetChanMatColor(GX_COLOR0A0, mColor);
     TPos3f mtx;
-    mtx.setInline(baseMtx);
+    controller->calcBaseMtx(&mtx);
     MR::preScaleMtx(mtx, size);
     MR::flattenMtx(mtx, normal);
     mtx.setTrans(pos);

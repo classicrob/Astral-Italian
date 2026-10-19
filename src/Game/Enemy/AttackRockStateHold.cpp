@@ -1,3 +1,4 @@
+#include "Game/Util/PlayerUtil.hpp"
 // SMG2 calls TVec3 operator+/operator*/add/scale out of line in this TU (appear); the define does that.
 #define JGEOMETRY_VEC3_WMR_OUTLINE
 #include "Game/Enemy/AttackRock.hpp"
@@ -39,7 +40,7 @@ void AttackRockRide::setHostZDir(const TVec3f* pVec) {
 
 // NONMATCHING: Only stack temporary slot offsets differ (calls, operands and registers match).
 void AttackRockRide::initRush() {
-    MR::fn_800514B0(&mQuat0, &mRidePos);
+    MR::getPlayerQuatAndPos(&mQuat0, &mRidePos);
     TVec3f tmp(*MR::getPlayerLastMove());
     tmp.scale(0.9f);
     this->mPlayerMove.set(tmp);
@@ -126,7 +127,7 @@ bool AttackRockRide::tryReceiveRideMsg(u32 msg, HitSensor* pSender, HitSensor* p
         return true;
     }
     if (MR::isMsgUpdateBaseMtx(msg) && this->mIsRush) {
-        MR::fn_800513C0(&this->mQuat0, &this->mRidePos);
+        MR::setPlayerQuatAndPos(&this->mQuat0, &this->mRidePos);
         return true;
     }
     if (MR::isMsgRushCancel(msg)) {

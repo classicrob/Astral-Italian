@@ -7,7 +7,7 @@
 #include "Game/System/WorldMapResultStatePointEvent.hpp"
 #include "Game/Util/TalkUtil.hpp"
 
-extern s32 lbl_807E3158;
+s32 sPointEventRouteSetupStep = 0;
 
 /// Camera name of the point-event demo ("ワールドマップカメラ").
 static const char* sCameraName = "ワールドマップカメラ";
@@ -35,6 +35,7 @@ namespace NrvWorldMapResultStatePointEvent {
     WMR_NERVE_DECL(WorldMapResultStatePointEventEnd);
 };  // namespace NrvWorldMapResultStatePointEvent
 
+// NONMATCHING: regalloc; primitive/vector initialization scheduling.
 WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapOwner* pHost) : ActorStateBase< WorldMapOwner >("State[ポイントイベント]", pHost) {
     mIsDead = true;
     mRoute = NULL;
@@ -50,14 +51,15 @@ WorldMapResultStatePointEvent::WorldMapResultStatePointEvent(WorldMapOwner* pHos
     mTalkCtrls = NULL;
 }
 
+// NONMATCHING: regalloc; same camera/talk/route calls and constants, saved registers and temporary placement differ.
 void WorldMapResultStatePointEvent::init() {
     initNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventStart), 0);
-    MR::declareEventCameraProgrammable(sCameraName);
     mHost->declareCamera("イベント（スターチェックポイント：スター足りない）");
+    MR::declareEventCameraProgrammable(sCameraName);
     mTalkCtrls = new TalkMessageCtrl*[3];
-    TVec3f zero(0.0f, 0.0f, 0.0f);
     for (s32 i = 0; i < 3; i++) {
         if (sTalkNames[i] != NULL) {
+            TVec3f zero(0.0f, 0.0f, 0.0f);
             mTalkCtrls[i] = MR::createTalkCtrlDirect(mHost->getMeister(), sTalkNames[i], zero, NULL);
         }
     }
@@ -69,7 +71,7 @@ void WorldMapResultStatePointEvent::appear() {
     mIsDead = false;
     mCount = 0;
     mHost->changeRocketAction("Wait");
-    mPos = *mHost->getRocketPosition();
+    mPos.set(*mHost->getRocketPosition());
     mHost->startDemo();
     MR::hidePlayer();
     if ((u32)mIndex <= 1U) {
@@ -77,11 +79,11 @@ void WorldMapResultStatePointEvent::appear() {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventStart));
     } else if (mIndex == 2) {
         setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventEaseIn));
+        const TVec3f* galaxyOffset = WorldMapFunction::getRocketOffsetGalaxy();
         TVec3f sp8(mPos);
-        sp8 = sp8 - *WorldMapFunction::getRocketOffsetGalaxy();
-        TVec3f sp14;
-        sp14 = sp8 + *WorldMapFunction::getRocketOffsetPoint();
-        mOffset = sp14;
+        sp8 -= *galaxyOffset;
+        TVec3f sp14 = sp8 + *WorldMapFunction::getRocketOffsetPoint();
+        mOffset.set(sp14);
     }
     GameSequenceFunction::setWorldMapCurrentNode(mHost->getCurrentNode());
 }
@@ -173,7 +175,7 @@ void WorldMapResultStatePointEvent::exeEaseIn() {
 }
 
 void WorldMapResultStatePointEvent::exeEvent() {
-    if (MR::isStep(this, lbl_807E3158)) {
+    if (MR::isStep(this, sPointEventRouteSetupStep)) {
         mHost->setupRouteOpen(mRoute);
     }
     if (MR::isGreaterEqualStep(this, 0xF0)) {
@@ -246,23 +248,8 @@ WorldMapResultStatePointEvent::~WorldMapResultStatePointEvent() {
 }
 
 namespace NrvWorldMapResultStatePointEvent {
-    WMR_NERVE_DEF(WorldMapResultStatePointEventEnd, WorldMapResultStatePointEvent, End);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventMessage, WorldMapResultStatePointEvent, Message);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventWaitExtend, WorldMapResultStatePointEvent, WaitExtend);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventExtend, WorldMapResultStatePointEvent, Extend);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventEvent, WorldMapResultStatePointEvent, Event);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventEaseIn, WorldMapResultStatePointEvent, EaseIn);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventFade, WorldMapResultStatePointEvent, Fade);
-    void WorldMapResultStatePointEventWaitFade::execute(Spine* pSpine) const {
-        WorldMapResultStatePointEvent* pState = reinterpret_cast< WorldMapResultStatePointEvent* >(pSpine->mExecutor);
-        if (MR::isGreaterEqualStep(pState, 10)) {
-            pState->setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventFade));
-        }
-    }
-    WorldMapResultStatePointEventWaitFade WorldMapResultStatePointEventWaitFade::sInstance ATTRIBUTE_WEAK;
-    WMR_NERVE_DEF(WorldMapResultStatePointEventTalkEnd, WorldMapResultStatePointEvent, TalkEnd);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventTalk, WorldMapResultStatePointEvent, Talk);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventTalkStart, WorldMapResultStatePointEvent, TalkStart);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventStart, WorldMapResultStatePointEvent, Start);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventMove, WorldMapResultStatePointEvent, Move);
     void WorldMapResultStatePointEventWait::execute(Spine* pSpine) const {
         WorldMapResultStatePointEvent* pState = reinterpret_cast< WorldMapResultStatePointEvent* >(pSpine->mExecutor);
         if (MR::isGreaterEqualStep(pState, 5)) {
@@ -270,8 +257,23 @@ namespace NrvWorldMapResultStatePointEvent {
         }
     }
     WorldMapResultStatePointEventWait WorldMapResultStatePointEventWait::sInstance ATTRIBUTE_WEAK;
-    WMR_NERVE_DEF(WorldMapResultStatePointEventMove, WorldMapResultStatePointEvent, Move);
-    WMR_NERVE_DEF(WorldMapResultStatePointEventStart, WorldMapResultStatePointEvent, Start);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventTalkStart, WorldMapResultStatePointEvent, TalkStart);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventTalk, WorldMapResultStatePointEvent, Talk);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventTalkEnd, WorldMapResultStatePointEvent, TalkEnd);
+    void WorldMapResultStatePointEventWaitFade::execute(Spine* pSpine) const {
+        WorldMapResultStatePointEvent* pState = reinterpret_cast< WorldMapResultStatePointEvent* >(pSpine->mExecutor);
+        if (MR::isGreaterEqualStep(pState, 10)) {
+            pState->setNerve(GET_NERVE(WorldMapResultStatePointEvent, WorldMapResultStatePointEventFade));
+        }
+    }
+    WorldMapResultStatePointEventWaitFade WorldMapResultStatePointEventWaitFade::sInstance ATTRIBUTE_WEAK;
+    WMR_NERVE_DEF(WorldMapResultStatePointEventFade, WorldMapResultStatePointEvent, Fade);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventEaseIn, WorldMapResultStatePointEvent, EaseIn);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventEvent, WorldMapResultStatePointEvent, Event);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventExtend, WorldMapResultStatePointEvent, Extend);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventWaitExtend, WorldMapResultStatePointEvent, WaitExtend);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventMessage, WorldMapResultStatePointEvent, Message);
+    WMR_NERVE_DEF(WorldMapResultStatePointEventEnd, WorldMapResultStatePointEvent, End);
 };  // namespace NrvWorldMapResultStatePointEvent
 
 TVec3f sPointEventOffset(-800.0f, -1000.0f, 1000.0f);

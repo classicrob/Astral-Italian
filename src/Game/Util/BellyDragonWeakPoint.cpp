@@ -30,7 +30,6 @@ namespace NrvBellyDragonWeakPoint {
     BellyDragonWeakPointNrvDamage BellyDragonWeakPointNrvDamage::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvBellyDragonWeakPoint
 
-// PLACEHOLDER(core): weak-point nerve instances are named by their vtable/setNerve use (lbl_807D0F60..70, lbl_8066D618..658); resolve when the BellyDragon nerve names are confirmed in symbols.txt
 BellyDragonWeakPoint::BellyDragonWeakPoint(HitSensor* pSensor, BellyDragonBodyPart* pPart) : LiveActor("弱点（ドラゴン）") {
     mSensor = pSensor;
     mPart = pPart;

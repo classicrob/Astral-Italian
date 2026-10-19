@@ -1,5 +1,8 @@
 #include "Game/System/GameSystemObjHolder.hpp"
+#include "Game/System/ResourceCsvGroupHolder.hpp"
+#include "JSystem/JKernel/JKRSolidHeap.hpp"
 #include <cstdio>
+#include "Game/Util/PadRecorder.hpp"
 #include "JSystem/JKernel/JKRHeap.hpp"
 #include "Game/Util.hpp"
 #include "Game/Effect/ParticleResourceHolder.hpp"
@@ -48,6 +51,15 @@ void GameSystemObjHolder::initAfterStationedResourceLoaded() {
     MR::createStarPointerLayout();
 }
 
+void GameSystemObjHolder::createStationedObjects() {
+    SingletonHolder<NameObjRegister>::get()->setCurrentHolder(mObjHolder);
+    _3C = new ResourceCsvGroupHolder();
+    JKRSolidHeap* heap = JKRSolidHeap::create(0x200000, MR::getCurrentHeap(), false);
+    MR::CurrentHeapRestorer restorer(heap);
+    mParticleResHolder = new ParticleResourceHolder("/ParticleData/Effect.arc");
+    heap->adjustSize();
+}
+
 void GameSystemObjHolder::initMessageResource() {
     JKRArchive* pArchive = nullptr;
     JKRHeap* pHeap = nullptr;
@@ -55,15 +67,15 @@ void GameSystemObjHolder::initMessageResource() {
 
     char systemMessagePath[128];
     const char* languagePrefix = MR::getCurrentLanguagePrefix();
-    snprintf(systemMessagePath, sizeof(systemMessagePath), "/%s/MessageData/System.arc", languagePrefix);
+    snprintf(systemMessagePath, sizeof(systemMessagePath), "/LocalizeData/%s/MessageData/EmbeddedMessage.arc", languagePrefix);
 
     void* pSystemMessageArchive = MR::decompressFileFromArchive(pArchive, systemMessagePath, nullptr, 0);
-    MR::createAndAddArchive(pSystemMessageArchive, pHeap, "/Memory/SystemMessage.arc");
+    MR::createAndAddArchive(pSystemMessageArchive, pHeap, "EmbeddedMessage.arc");
 
     void* pErrorMessageWindowArchive = MR::decompressFileFromArchive(pArchive, "/LayoutData/ErrorMessageWindow.arc", pHeap, 32);
-    MR::createAndAddArchive(pErrorMessageWindowArchive, pHeap, "/Memory/ErrorMessageWindow.arc");
+    MR::createAndAddArchive(pErrorMessageWindowArchive, pHeap, "ErrorMessageWindow.arc");
 
-    MR::createAndAddLayoutHolderRawData("/Memory/ErrorMessageWindow.arc");
+    MR::createAndAddLayoutHolderRawData("ErrorMessageWindow.arc");
 
     mMessageHolder = new MessageHolder();
     mMessageHolder->initSystemData();
@@ -77,6 +89,7 @@ void GameSystemObjHolder::init() {
     mFunctionAsyncExecutor = new FunctionAsyncExecutor();
     initGameController();
     initDisplay();
+    mPadRecorder = new PadRecorder();
 }
 
 void GameSystemObjHolder::createAudioSystem() {
@@ -120,7 +133,6 @@ GXRenderModeObj* GameSystemObjHolder::getRenderModeObj() const {
 
 void GameSystemObjHolder::initDvd() {
     JKRHeap::initializeDisposerMutex();
-    JKRMemArchive archive;
 
     JKRFileLoader::initializeVolumeList();
     SingletonHolder< FileLoader >::init();

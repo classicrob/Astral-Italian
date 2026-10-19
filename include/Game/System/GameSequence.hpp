@@ -123,7 +123,7 @@ public:
 
     /* 0x10 */ NameObj* mNameObj;
     /* 0x14 */ InformationMessage* mMessage;
-    /* 0x18 */ s32 mMessageIndex;
+    /* 0x18 */ u32 mMessageIndex;
     /* 0x1C */ bool mIsNormalEnding;
     /* 0x1D */ bool mIs120PowerStarsEnding;
 };

@@ -1,12 +1,7 @@
 #include "Game/System/WorldMapOwner.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapResultStateGrandGalaxyOpen.hpp"
-
-// PLACEHOLDER(core): unnamed SMG2 callees (no symbol name yet); resolve when their owners name them
-extern "C" {
-    void fn_80059270();
-    void* fn_80059330();
-}
+#include "Game/Util/ScreenUtil.hpp"
 
 namespace MR {
     f32 getEaseInValue(f32, f32, f32, f32);
@@ -27,7 +22,7 @@ void WorldMapResultStateGrandGalaxyOpen::init() {
 void WorldMapResultStateGrandGalaxyOpen::appear() {
     mIsDead = false;
     mFovy = MR::getFovy();
-    fn_80059270();
+    MR::startGalaxyWipeBackward();
     setNerve(GET_NERVE(WorldMapResultStateGrandGalaxyOpen, WorldMapResultStateGrandGalaxyOpenWait));
 }
 
@@ -49,7 +44,7 @@ void WorldMapResultStateGrandGalaxyOpen::exeWait() {
     MR::setFovy(v);
 
     if (MR::isGreaterEqualStep(this, 0x1E)) {
-        if (fn_80059330() != NULL) {
+        if (MR::tryEndModelWipe()) {
             MR::setFovy(mFovy);
             kill();
         }

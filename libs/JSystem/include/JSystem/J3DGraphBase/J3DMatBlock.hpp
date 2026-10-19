@@ -679,9 +679,13 @@ public:
     virtual void setTevColor(u32, J3DGXColorS10) {
     }
 
+#ifdef J3D_TEVBLOCK_BASE_GETTERS_OUTLINE
+    virtual J3DGXColorS10* getTevColor(u32);
+#else
     virtual J3DGXColorS10* getTevColor(u32) {
         return nullptr;
     }
+#endif
 
     virtual void setTevKColor(u32, J3DGXColor const*) {
     }
@@ -689,9 +693,13 @@ public:
     virtual void setTevKColor(u32, J3DGXColor) {
     }
 
+#ifdef J3D_TEVBLOCK_BASE_GETTERS_OUTLINE
+    virtual J3DGXColor* getTevKColor(u32);
+#else
     virtual J3DGXColor* getTevKColor(u32) {
         return nullptr;
     }
+#endif
 
     virtual void setTevKColorSel(u32, u8 const*) {
     }

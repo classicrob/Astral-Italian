@@ -326,7 +326,7 @@ namespace MR {
         return true;
     }
 
-    // PLACEHOLDER(core): unnamed sensor-type line query (wrapper of getFirstPolyOnLineCategoryWithSensorType); resolve when its owner names it
+    // SMG2 fn_80038020 (address-named; symbol fn_80038020__2MRF..Ul): sensor-type line query via getFirstPolyOnLineCategoryWithSensorType
     bool fn_80038020(TVec3f* pPos, Triangle* pTriangle, const TVec3f& rStart, const TVec3f& rDirection, u32 sensorType) {
         return ::getFirstPolyOnLineCategoryWithSensorType(pPos, pTriangle, rStart, rDirection, sensorType, 0);
     }
@@ -462,7 +462,7 @@ namespace MR {
 
 
 
-    // PLACEHOLDER(core): unnamed ball-hit helper shared with Ride/GliBird.cpp; resolve when its owner names it
+    // SMG2 fn_80038770 (address-named; symbol fn_80038770__2MRF..PbPbf): ball-hit helper shared with Ride/GliBird.cpp
     s32 fn_80038770(TVec3f* pHitPos, TVec3f* pHitNormal, HitSensor** ppSensor, const TVec3f& rPos, bool* pIsWater, bool* pIsFire, f32 radius) {
         if (getCollisionDirector()->getCategoryKeeper(0)->checkStrikeBall(rPos, radius, false, nullptr, nullptr) == 0) {
             return 0;
@@ -483,7 +483,7 @@ namespace MR {
         return 1;
     }
 
-    // PLACEHOLDER(core): unnamed ray-cast helper (same decl as BellyDragonTU02.cpp); resolve when its owner names it
+    // SMG2 fn_80038870 (address-named; symbol fn_80038870__2MRF..PbPbf): ray-cast helper (same decl as BellyDragonTU02.cpp)
     s32 fn_80038870(const TVec3f& rPos, TVec3f* pPos, const TVec3f& rDirection, TVec3f* pNormal, HitSensor** ppSensor, bool* pIsWater, bool* pIsFire,
                     f32 length) {
         TVec3f direction(rDirection);

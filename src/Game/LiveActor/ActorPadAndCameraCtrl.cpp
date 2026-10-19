@@ -1,5 +1,6 @@
 #include "Game/LiveActor/ActorPadAndCameraCtrl.hpp"
 #include "Game/Util.hpp"
+#include "Game/LiveActor/ActorReactionHelper.hpp"
 #include "Game/LiveActor/ModelManager.hpp"
 #include "Game/System/ResourceHolder.hpp"
 #include "Game/Util/JMapInfo.hpp"
@@ -10,9 +11,6 @@
 
 namespace {
     const char* sFileName = "PadAndCameraCtrl";
-    // sDefaultDistanceNear
-    // sDefaultDistanceFar
-    const f32 sDefaultDistanceInvalid = 3000.0f;
 };  // namespace
 
 ActorPadAndCameraCtrl::ActorPadAndCameraCtrl(const ModelManager* pModelManager, const TVec3f* pPosition)
@@ -22,25 +20,18 @@ ActorPadAndCameraCtrl::ActorPadAndCameraCtrl(const ModelManager* pModelManager, 
         return;
     }
 
-    s32 count = 0;
-    if (parser) {
-        count = MR::getCsvDataElementNum(parser);
-    }
-
-    mInfoNum = count;
-    ActorPadAndCameraCtrlInfo* infoArray = new ActorPadAndCameraCtrlInfo[mInfoNum];
-    mInfo = infoArray;
+    mInfoNum = MR::getCsvDataElementNum(parser);
+    mInfo = new ActorPadAndCameraCtrlInfo[mInfoNum];
     for (s32 i = 0; i < mInfoNum; i++) {
-        ActorPadAndCameraCtrlInfo* info = &infoArray[i];
-        MR::getCsvDataStr(&info->mBckName, parser, "BckName", i);
+        ActorPadAndCameraCtrlInfo* info = &mInfo[i];
+        MR::getCsvDataStrOrNULL(&info->mBckName, parser, "BckName", i);
         MR::getCsvDataF32(&info->mStartFrame, parser, "StartFrame", i);
         MR::getCsvDataF32(&info->mEndFrame, parser, "EndFrame", i);
         MR::getCsvDataStrOrNULL(&info->mPadRumbleName, parser, "PadRumbleName", i);
         MR::getCsvDataStrOrNULL(&info->mCameraShakeName, parser, "CameraShakeName", i);
         MR::getCsvDataF32(&info->mDistanceNear, parser, "DistanceNear", i);
         MR::getCsvDataF32(&info->mDistanceFar, parser, "DistanceFar", i);
-        info->mDistanceInvalid = ::sDefaultDistanceInvalid;
-        parser->getValue(i, "DistanceInvalid", &info->mDistanceInvalid);
+        MR::getCsvDataF32(&info->mDistanceInvalid, parser, "DistanceInvalid", i);
         MR::getCsvDataStrOrNULL(&info->mPadRumbleNameMiddle, parser, "PadRumbleNameMiddle", i);
         MR::getCsvDataStrOrNULL(&info->mPadRumbleNameFar, parser, "PadRumbleNameFar", i);
         MR::getCsvDataStrOrNULL(&info->mCameraShakeNameMiddle, parser, "CameraShakeNameMiddle", i);
@@ -52,15 +43,15 @@ ActorPadAndCameraCtrl::ActorPadAndCameraCtrl(const ModelManager* pModelManager, 
 
 ActorPadAndCameraCtrl* ActorPadAndCameraCtrl::tryCreate(const ModelManager* pModelManager, const TVec3f* pPosition) {
     const ResourceHolder* resourceHolder = pModelManager->getResourceHolder();
-    if (!MR::isExistFileInArc(resourceHolder, "%s.bcsv", ::sFileName)) {
-        return nullptr;
-    }
-
     if (resourceHolder->mMotionResTable->mCount == 0) {
         return nullptr;
     }
 
-    return new ActorPadAndCameraCtrl(pModelManager, pPosition);
+    if (MR::isExistFileInArc(resourceHolder, "%s.bcsv", ::sFileName)) {
+        return new ActorPadAndCameraCtrl(pModelManager, pPosition);
+    }
+
+    return nullptr;
 }
 
 void ActorPadAndCameraCtrl::update() {
@@ -107,28 +98,6 @@ void ActorPadAndCameraCtrl::updateInfoBck() {
 }
 
 namespace {
-    void tryUpdateCameraShake(const char* pName) {
-        if (!pName) {
-            return;
-        }
-
-        if (MR::isEqualStringCase(pName, "最強")) {
-            MR::shakeCameraVeryStrong();
-        } else if (MR::isEqualStringCase(pName, "強")) {
-            MR::shakeCameraStrong();
-        } else if (MR::isEqualStringCase(pName, "中強")) {
-            MR::shakeCameraNormalStrong();
-        } else if (MR::isEqualStringCase(pName, "中")) {
-            MR::shakeCameraNormal();
-        } else if (MR::isEqualStringCase(pName, "中弱")) {
-            MR::shakeCameraNormalWeak();
-        } else if (MR::isEqualStringCase(pName, "弱")) {
-            MR::shakeCameraWeak();
-        } else if (MR::isEqualStringCase(pName, "最弱")) {
-            MR::shakeCameraVeryWeak();
-        }
-    }
-
     bool isDistanceExistAndFar(f32 distance, f32 threshold) {
         if (threshold < 0.0f) {
             return false;
@@ -140,24 +109,18 @@ namespace {
 
 void ActorPadAndCameraCtrl::updatePadAndCamera(const ActorPadAndCameraCtrlInfo* pInfo) {
     f32 distance = MR::getPlayerPos()->distance(*_4);
-    ::isDistanceExistAndFar(distance, pInfo->mDistanceInvalid);
+    if (::isDistanceExistAndFar(distance, pInfo->mDistanceInvalid)) {
+        return;
+    }
+
     if (::isDistanceExistAndFar(distance, pInfo->mDistanceFar)) {
-        if (pInfo->mPadRumbleNameFar) {
-            MR::tryRumblePad(this, pInfo->mPadRumbleNameFar, 0);
-        }
-
-        ::tryUpdateCameraShake(pInfo->mCameraShakeNameFar);
+        tryRumblePadByName(this, pInfo->mPadRumbleNameFar);
+        tryShakeCameraByName(pInfo->mCameraShakeNameFar);
     } else if (::isDistanceExistAndFar(distance, pInfo->mDistanceNear)) {
-        if (pInfo->mPadRumbleNameMiddle) {
-            MR::tryRumblePad(this, pInfo->mPadRumbleNameMiddle, 0);
-        }
-
-        ::tryUpdateCameraShake(pInfo->mCameraShakeNameMiddle);
+        tryRumblePadByName(this, pInfo->mPadRumbleNameMiddle);
+        tryShakeCameraByName(pInfo->mCameraShakeNameMiddle);
     } else {
-        if (pInfo->mPadRumbleName) {
-            MR::tryRumblePad(this, pInfo->mPadRumbleName, 0);
-        }
-
-        ::tryUpdateCameraShake(pInfo->mCameraShakeName);
+        tryRumblePadByName(this, pInfo->mPadRumbleName);
+        tryShakeCameraByName(pInfo->mCameraShakeName);
     }
 }

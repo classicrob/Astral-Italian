@@ -390,7 +390,7 @@ void RollingRockStateRoll::updatePoseNoMoment() {
 }
 
 void RollingRockStateRoll::setPlayerPose() {
-    MR::fn_800513C0(&mHost->mQuat, &mHost->mPosition);
+    MR::setPlayerQuatAndPos(&mHost->mQuat, &mHost->mPosition);
 }
 
 void RollingRockStateRoll::updateStep() {

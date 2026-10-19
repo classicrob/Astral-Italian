@@ -188,7 +188,7 @@ bool SupportTico::tryAttachToTarget(const LiveActor* pActor) {
     if (mHoldSensor != nullptr) {
         return false;
     }
-    StarPointerTarget* pTarget = pActor->mPointerTarget;
+    StarPointerTarget* pTarget = pActor->mStarPointerTarget;
     if (pTarget == nullptr) {
         return false;
     }
@@ -202,7 +202,7 @@ bool SupportTico::tryAttachToTarget(const LiveActor* pActor) {
             return false;
         }
         bool found = false;
-        s32 num = mAttachGroup->mObjectCount;
+        s32 num = mAttachGroup->mObjNum;
         for (s32 i = 0; i < num; i++) {
             if (mAttachGroup->getActor(i) == pActor) {
                 found = true;
@@ -230,7 +230,7 @@ bool SupportTico::calcTargetPos(TVec3f* pOut) {
         pOut->set(mPosition);
         return false;
     }
-    StarPointerTarget* pTarget = mTarget->mPointerTarget;
+    StarPointerTarget* pTarget = mTarget->mStarPointerTarget;
     TVec3f pos;
     pTarget->calcPosition(&pos);
     TVec3f dir(*MR::getPlayerCenterPos());
@@ -247,7 +247,7 @@ bool SupportTico::calcTargetPos(TVec3f* pOut) {
 }
 
 LiveActor* SupportTico::findNearestTarget() {
-    s32 num = mAttachGroup->mObjectCount;
+    s32 num = mAttachGroup->mObjNum;
     if (num == 0) {
         return nullptr;
     }

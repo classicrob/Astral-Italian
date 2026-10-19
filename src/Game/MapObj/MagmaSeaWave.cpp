@@ -29,7 +29,7 @@ void MagmaSeaWave::init(const JMapInfoIter& iter) {
     initNerve(&NrvMagmaSeaWave::MagmaSeaWaveNrvMove::sInstance);
     makeActorAppeared();
     mDrawer->makeActorAppeared();
-    MR::fn_8005B860(this, &mSensorPosition);
+    MR::setSoundPositionPtr(this, &mSensorPosition);
 }
 // NONMATCHING: component-load scheduling differs around the vector set call.
 void MagmaSeaWave::control() {

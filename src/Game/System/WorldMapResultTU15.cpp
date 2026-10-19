@@ -16,7 +16,7 @@ namespace MR {
 
 
 
-extern s32 lbl_807E3148;
+s32 sFirstCometAppearStep = 0;
 
 /// Camera vectors of the demo (8 entries, constructed in declaration order).
 extern TVec3f sCameraTable[8];
@@ -121,7 +121,7 @@ void WorldMapResultStateGreenStarDemo::exeShower() {
         MR::startGlobalEventCameraNoTarget(sCameraName, 0);
         MR::openWipeFade(60);
     }
-    s32 steps[7] = {lbl_807E3148, 40, 70, 150, 210, 290, 360};
+    s32 steps[7] = {sFirstCometAppearStep, 40, 70, 150, 210, 290, 360};
     for (s32 i = 0; i < 7; i++) {
         if (MR::isStep(this, steps[i])) {
             mCounts[i]->setComet(true);

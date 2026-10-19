@@ -1394,7 +1394,7 @@ public:
         };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset guess
         struct { u8 _padPunch1054[0x18]; const Triangle* mPunchTriangle106C; };
         struct { u8 _padFront1054[0x24]; MarioFrontHistory* mFrontHistory; };
-        struct { u8 _padInput1054[0x10]; u8 mFlag1064; u8 _padFlag1065; bool mInputDisabled1066; bool mBlinkRequested1067; };
+        struct { u8 _padInput1054[0x10]; u8 mFlag1064; u8 _padFlag1065; bool mInputDisabled1066; bool mBlinkRequested1067; u8 _padLife1068[8]; bool mLifeDecreasedThisFrame; };
         struct { u8 _padCondition1054[0x34]; MarioActorConditionGroup* mConditionGroup; };
         struct { u8 _padScreenBlur1054[0x20]; MarioScreenBlur* mScreenBlur1074; u8 _padSlots1078[0x14]; MarioSensorSlots* mSensorSlots108C; MarioHairAndHatModel* mHairAndHat1090; };
         struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; MarioActionTable* mActionTable1080; MarioScreenStrip* mScreenStrip1084; };

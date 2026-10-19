@@ -1,3 +1,4 @@
+#define JMAPIDINFO_TRIVIAL_COPY
 #include "Game/Util/JMapIdInfo.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/JMapUtil.hpp"

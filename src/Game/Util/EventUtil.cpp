@@ -459,7 +459,7 @@ namespace MR {
     }
 
     bool isAlreadyVisitedCurrentStageAndScenario() {
-        return GameDataFunction::isOnGalaxyScenarioFlagAlreadyVisited(MR::getCurrentStageName(), MR::getCurrentScenarioNo());
+        return GameDataFunction::isOnGalaxyScenarioFlagAlreadyVisited(MR::getCurrentStageName(), MR::getCurrentOrSelectedScenarioNo());
     }
 
 

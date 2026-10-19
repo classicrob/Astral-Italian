@@ -148,7 +148,7 @@ void StarPieceTrackingPiece::calcLaunchVelocity() {
 
 // NONMATCHING: loop register allocation and conversion scheduling differ.
 void StarPieceTracking::appear(const TVec3f& position, const TVec3f& up, const TVec3f& side, const TVec3f& front, f32 angle, f32 speed, f32 height, f32 distance) {
-    s32 count = mObjectCount;
+    s32 count = mObjNum;
     TVec3f upVector(up);
     f32 interval;
     if (MR::isNearZero(360.0f - angle, 0.001f)) interval = angle / static_cast<f32>(count);

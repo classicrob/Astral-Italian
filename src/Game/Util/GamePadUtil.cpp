@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_COPY_NOINLINE
 #include "Game/Util/GamePadUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/System/WPad.hpp"
@@ -10,11 +11,6 @@
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/VectorUtil.hpp"
-
-void GamePadUtil_FORCE_MATCH_SDATA2() {
-    (void)-2607.59448f;
-    (void)2607.59448f;
-}
 
 namespace MR {
     void getCorePadPointingPosBasedOnScreen(TVec2f* pPos, s32 channel) {
@@ -149,6 +145,10 @@ namespace MR {
         return MR::getWPad(channel)->mButton->testTriggerHome();
     }
 
+    bool testHBMKPadTriggerHome(s32 channel) {
+        return MR::testHBMKPadTrigger(channel, 0x8000);
+    }
+
     bool testSubPadTriggerC(s32 channel) {
         return MR::getWPad(channel)->mButton->testTriggerC();
     }
@@ -157,6 +157,10 @@ namespace MR {
         return MR::getWPad(channel)->mButton->testTriggerZ();
     }
 
+
+    bool testCorePadOnlyMinus(s32 channel) {
+        return MR::getWPad(channel)->mButton->testButtonOnlyMinus();
+    }
 
     bool isCorePadSwing(s32 channel) {
         return MR::getWPad(channel)->mCorePadSwing->mIsSwing;
@@ -208,8 +212,26 @@ namespace MR {
         return testCorePadTriggerB(WPAD_CHAN0) != false;
     }
 
+    // NONMATCHING: equivalent stick-trigger getter inlining
+    bool testSystemTriggerRight() {
+        bool result = true;
+        if (!testCorePadTriggerRight(0) && !testSubPadStickTriggerRight(0)) result = false;
+        return result;
+    }
+
+    // NONMATCHING: equivalent stick-trigger getter inlining
+    bool testSystemTriggerLeft() {
+        bool result = true;
+        if (!testCorePadTriggerLeft(0) && !testSubPadStickTriggerLeft(0)) result = false;
+        return result;
+    }
+
     bool testDPDMenuPadDecideTrigger() {
         return testCorePadTriggerA(WPAD_CHAN0);
+    }
+
+    bool testPlayer1TriggerA() {
+        return testCorePadButtonA(0);
     }
 
     bool testFpViewStartTrigger() {
@@ -289,24 +311,21 @@ namespace MR {
         return MR::abs(x) + MR::abs(y) > 0.0f;
     }
 
+    // NONMATCHING: equivalent vector-add inlining
     void calcWorldStickDirectionXZ(f32* pDirX, f32* pDirZ, s32 channel) {
-        TPos3f mtx;
-        mtx.set(getCameraInvViewMtx());
-        TVec3f side;
-        mtx.getXDir(side);
+        TVec3f side = getCamXdir();
         side.y = 0.0f;
         normalizeOrZero(&side);
-        TVec3f front;
-        mtx.getZDir(front);
+        TVec3f front = getCamYdir();
         front.y = 0.0f;
         normalizeOrZero(&front);
-        front.scale(-1.0f);
 
         f32 x = getSubPadStickX(channel);
         f32 y = getSubPadStickY(channel);
         side.scale(x);
         front.scale(y);
-        TVec3f direction = side + front;
+        TVec3f direction(side);
+        direction.add(front);
         normalizeOrZero(&direction);
         *pDirX = direction.x;
         *pDirZ = direction.z;
@@ -343,8 +362,6 @@ namespace MR {
 
 
 
-void GamePadUtil_FORCE_MATCH(const TVec3f& rFirst, const TVec3f& rSecond, TVec3f* pOut) {
-    TVec3f value(rFirst);
-    value.add(rSecond);
-    *pOut = value;
+WPadRumble* WPadFunction::getWPadRumble(s32 channel) {
+    return MR::getWPad(channel)->getRumbleInstance();
 }

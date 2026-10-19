@@ -1,12 +1,12 @@
+#define JMAPIDINFO_TRIVIAL_COPY
 #include "Game/LiveActor/LiveActorGroupArray.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/JMapIdInfo.hpp"
+#include <algorithm>
 #include <cstdio>
 
-// nonmatching
-// NONMATCHING: JMapIdInfo has a user-declared copy ctor, so MR::createJMapIdInfoFromGroupId returns via memory (target returns in r3:r4); needs header fix
 MsgSharedGroup::MsgSharedGroup(const char* pName, s32 maxActor, const JMapInfoIter& rIter) : LiveActorGroup(pName, maxActor) {
     mIdInfo = nullptr;
     mMsg = -1;
@@ -34,7 +34,7 @@ void MsgSharedGroup::movement() {
     NameObj::movement();
 
     if (mMsg != 0xFFFFFFFF) {
-        for (s32 i = 0; i < mObjectCount; i++) {
+        for (s32 i = 0; i < mObjNum; i++) {
             HitSensor* sensor = getActor(i)->getSensor(mSensorName);
             sensor->receiveMessage(mMsg, mSensor);
         }
@@ -89,37 +89,46 @@ MsgSharedGroup* LiveActorGroupArray::createGroup(const JMapInfoIter& rIter, cons
     return group;
 }
 
-// NONMATCHING: JMapIdInfo user copy ctor forces sret return (target uses r3:r4); loop shape also differs (find_if-style bool flag)
-MsgSharedGroup* LiveActorGroupArray::findGroup(const JMapInfoIter& rIter) const {
-    JMapIdInfo idInfo = MR::createJMapIdInfoFromGroupId(rIter);
-    MsgSharedGroup* const* it = mGroups;
-    MsgSharedGroup* const* end = mGroups + mNumUsedGroups;
-
-    for (; it != end; ++it) {
-        if (*(*it)->mIdInfo == idInfo) {
-            break;
+namespace {
+    struct IsGroupIdEqual {
+        IsGroupIdEqual(const JMapIdInfo& rInfo) : mInfo(rInfo) {
         }
-    }
 
-    if (it != end) {
+        bool operator()(const MsgSharedGroup* pGroup) const {
+            return *pGroup->mIdInfo == mInfo;
+        }
+
+        JMapIdInfo mInfo;
+    };
+
+    struct HasActor {
+        HasActor(const LiveActor* pActor) : mActor(pActor) {
+        }
+
+        bool operator()(const MsgSharedGroup* pGroup) const {
+            return pGroup->hasActor(mActor);
+        }
+
+        const LiveActor* mActor;
+    };
+}  // namespace
+
+// NONMATCHING: stack copies of the find_if functor (target copies it twice by value) and loop registers
+MsgSharedGroup* LiveActorGroupArray::findGroup(const JMapInfoIter& rIter) const {
+    MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, IsGroupIdEqual(MR::createJMapIdInfoFromGroupId(rIter)));
+
+    if (it != mGroups + mNumUsedGroups) {
         return *it;
     }
 
     return nullptr;
 }
 
-// NONMATCHING: outer loop shape differs (target nests a flagged inner getActor loop, ours breaks directly)
+// NONMATCHING: stack copies of the find_if functor and loop registers
 MsgSharedGroup* LiveActorGroupArray::findGroup(const LiveActor* pActor) const {
-    MsgSharedGroup* const* it = mGroups;
-    MsgSharedGroup* const* end = mGroups + mNumUsedGroups;
+    MsgSharedGroup* const* it = std::find_if(mGroups, mGroups + mNumUsedGroups, HasActor(pActor));
 
-    for (; it != end; ++it) {
-        if ((*it)->hasActor(pActor)) {
-            break;
-        }
-    }
-
-    if (it != end) {
+    if (it != mGroups + mNumUsedGroups) {
         return *it;
     }
 

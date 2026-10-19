@@ -1,3 +1,4 @@
+#include "Game/Util/PlayerUtil.hpp"
 #pragma auto_inline off
 #include "Game/MapObj/RollingWater.hpp"
 #include "Game/MapObj/RollingWaterCreator.hpp"
@@ -6,8 +7,6 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "JSystem/JMath/JMATrigonometric.hpp"
 
-// PLACEHOLDER(objects): unnamed target symbol fn_800514B0, declared extern "C" so the reloc name matches; resolve when fn_800514B0 gets its real name in symbols.txt
-extern "C" void fn_800514B0(TQuat4f*, const TVec3f*);
 
 namespace NrvRollingWater {
     NEW_NERVE(Wait, RollingWater, Wait);
@@ -147,7 +146,7 @@ bool RollingWater::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
     if (MR::isMsgAutoRushBegin(msg) && isNerveRide()) {
         f32 dist = MR::calcDistance(pSender, pReceiver, nullptr);
         if (dist <= 30.0f + 125.0f * mRadius) {
-            fn_800514B0(&mQuatRail, &mCenterVec);
+            MR::getPlayerQuatAndPos(&mQuatRail, &mCenterVec);
             TVec3f diff = mCenterVec - mPosition;
             mBlendVec.set(diff);
             setNerve(GET_NERVE(RollingWater, Rush));
@@ -165,7 +164,7 @@ bool RollingWater::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRece
     }
 
     if (MR::isMsgUpdateBaseMtx(msg)) {
-        MR::fn_800513C0(&mQuatRail, &mCenterVec);
+        MR::setPlayerQuatAndPos(&mQuatRail, &mCenterVec);
         return true;
     }
 

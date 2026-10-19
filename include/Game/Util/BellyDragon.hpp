@@ -79,7 +79,7 @@ public:
     BellyDragonArmFire(BellyDragon*, u8);
     void attackSensor(HitSensor*, HitSensor*);  // was fn_80096220
 
-    u8 _0C[0x18];
+    u8 _09[0x1B];  // base ends at 0x09; target places mIsEnd at 0x24
     /* 0x24 */ bool mIsEnd;
     u8 _25[0x23];
 };

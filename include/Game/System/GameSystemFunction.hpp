@@ -1,6 +1,10 @@
 #pragma once
 
 namespace GameSystemFunction {
+    bool isPlayerArchiveMario();
+    void requestShutdown(bool);
+    void clearAudioStageWaveResources();
+    bool isControllerLeaveTimeElapsed();
     void loadAudioResource();
     void loadAudio2ndWaveData();
     bool isLoadedAudio2ndWaveData();

@@ -28,11 +28,11 @@ void SupportPlayDirector::movement() {
 void SupportPlayDirector::registerActor(LiveActor* actor) { if (!mGroup->isFull()) mGroup->registerActor(actor); }
 bool SupportPlayDirector::isActive() const { return mActiveCount > 0; }
 void SupportPlayDirector::sendMsgGroupStart() {
-    s32 count = mGroup->mObjectCount;
+    s32 count = mGroup->mObjNum;
     for (s32 i = 0; i < count; ++i) MR::sendMsgSupportPlayGroupStart(mGroup->getActor(i));
 }
 void SupportPlayDirector::sendMsgGroupStop() {
-    s32 count = mGroup->mObjectCount;
+    s32 count = mGroup->mObjNum;
     for (s32 i = 0; i < count; ++i) MR::sendMsgSupportPlayGroupStop(mGroup->getActor(i));
 }
 void SupportPlayDirector::updateGuidance() {

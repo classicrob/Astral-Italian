@@ -2,44 +2,44 @@
 #include "Game/Util/ObjUtil.hpp"
 
 NameObjGroup::NameObjGroup(const char* pGroupName, int maxCount) : NameObj(pGroupName) {
-    mMaxCount = 0;
-    mObjectCount = 0;
-    mObjects = 0;
+    mObjNumMax = 0;
+    mObjNum = 0;
+    mObjArray = 0;
     initObjArray(maxCount);
 }
 
 NameObjGroup::~NameObjGroup() {
-    delete[] mObjects;
+    delete[] mObjArray;
 }
 
 void NameObjGroup::registerObj(NameObj* pObj) {
-    mObjects[mObjectCount] = pObj;
-    mObjectCount++;
+    mObjArray[mObjNum] = pObj;
+    mObjNum++;
 }
 
 void NameObjGroup::clear() {
-    for (s32 i = 0; i < mMaxCount; i++) {
-        mObjects[i] = nullptr;
+    for (s32 i = 0; i < mObjNumMax; i++) {
+        mObjArray[i] = nullptr;
     }
 
-    mObjectCount = 0;
+    mObjNum = 0;
 }
 
 bool NameObjGroup::isFull() const {
-    return mObjectCount == mMaxCount;
+    return mObjNum == mObjNumMax;
 }
 
 void NameObjGroup::pauseOffAll() const {
-    for (s32 i = 0; i < mObjectCount; i++) {
-        MR::requestMovementOn(mObjects[i]);
+    for (s32 i = 0; i < mObjNum; i++) {
+        MR::requestMovementOn(mObjArray[i]);
     }
 }
 
 void NameObjGroup::initObjArray(int maxCount) {
-    mMaxCount = maxCount;
-    mObjects = new NameObj*[maxCount];
+    mObjNumMax = maxCount;
+    mObjArray = new NameObj*[maxCount];
 
-    for (s32 i = 0; i < mMaxCount; i++) {
-        mObjects[i] = 0;
+    for (s32 i = 0; i < mObjNumMax; i++) {
+        mObjArray[i] = 0;
     }
 }

@@ -43,7 +43,7 @@ void GliderBalloon::init(const JMapInfoIter& iter) {
     MR::declareStarPiece(this, mPieceCount);
     mPieces = new StarPieceTracking("スターピース", mPieceCount);
     StarPieceTracking* group = mPieces;
-    for (s32 i = 0; i < group->mMaxCount; ++i) {
+    for (s32 i = 0; i < group->mObjNumMax; ++i) {
         StarPieceTrackingPiece* piece = new StarPieceTrackingPiece("追尾スターピース");
         piece->initWithoutIter();
         group->registerActor(piece);

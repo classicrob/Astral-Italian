@@ -18,6 +18,8 @@ struct PointPart {
 };
 
 /// Warp info filled for the callers (the warp parameters sit at 0x10).
+class WorldMapResultStateWorldWarp;
+
 struct PartsWarpInfo {
     u8 _0[0x10];
     s32 mParam0;
@@ -31,7 +33,7 @@ public:
     PointPartsHolder(WorldMapResultWorld* pWorld);
 
     void init();
-    bool getWorldWarp(s32 pointIndex, PartsWarpInfo* pOut);
+    bool getWorldWarp(s32 pointIndex, WorldMapResultStateWorldWarp* pOut);
     bool getStarRoadWarp(s32 pointIndex, PartsWarpInfo* pOut) NO_INLINE;
     s32 getWarpTarget(s32 pointIndex);
     s32 getPipeTarget(s32 pointIndex);

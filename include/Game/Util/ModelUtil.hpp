@@ -55,7 +55,11 @@ namespace MR {
     bool isExistEffectTexMtx(LiveActor*);
     bool isExistProjMapTexMtx(J3DModelData*);
     bool isExistProjMapTexMtx(LiveActor*);
+#ifdef MODELUTIL_OUTLINE_TEXTURE_COUNT
+    u16 getTextureNum(const LiveActor*) NO_INLINE;
+#else
     u16 getTextureNum(const LiveActor*);
+#endif
     u16 getMaterialNum(const LiveActor*);
     bool isUseTexMtxEnvMap(J3DMaterial*);
     bool isUseTexMtxProjMap(J3DMaterial*);

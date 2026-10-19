@@ -41,6 +41,7 @@ public:
     /// @brief Determines if the Minus (-) Button is pressed.
     /// @return `true` if the Minus (-) Button is pressed, `false` otherwise.
     bool testButtonMinus() const;
+    bool testButtonOnlyMinus() const;
 
     /// @brief Determines if the Plus (+) Button is pressed.
     /// @return `true` if the Plus (+) Button is pressed, `false` otherwise.

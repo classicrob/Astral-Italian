@@ -90,6 +90,9 @@ namespace JGeometry {
         }
 
         template < typename A >
+#ifdef JGEOMETRY_VEC2_CTOR_NOINLINE
+        NO_INLINE
+#endif
         TVec2(A _x, A _y) {
             x = _x;
             y = _y;
@@ -170,6 +173,9 @@ namespace JGeometry {
             return dot(*this) <= JGeometry::TUtil< f32 >::epsilon();
         }
 
+#ifdef JGEOMETRY_VEC2_SUB_NOINLINE
+        NO_INLINE
+#endif
         void sub(const TVec2< T >& rOther) {
             x = x - rOther.x;
             y = y - rOther.y;
@@ -1065,6 +1071,9 @@ namespace JGeometry {
         }
 
         template < typename A >
+#ifdef JGEOMETRY_VEC4_CTOR_NOINLINE
+        NO_INLINE
+#endif
         TVec4(A _x, A _y, A _z, A _h) {
             x = _x;
             y = _y;

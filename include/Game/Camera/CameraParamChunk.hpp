@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #include "Game/Camera/CameraParamString.hpp"
 #include <JSystem/JGeometry/TVec.hpp>
 
@@ -22,7 +24,7 @@ public:
     /* 0x1C */ TVec3f mUp;
     /* 0x28 */ f32 mAngleA;
     /* 0x2C */ f32 mAngleB;
-    /* 0x30 */ s32 mNum1;
+    /* 0x30 */ intptr_t mNum1;
     /* 0x34 */ s32 mNum2;
     /* 0x38 */ CameraParamString mString;
 };

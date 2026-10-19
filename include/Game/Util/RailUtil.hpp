@@ -18,7 +18,11 @@ namespace MR {
     s32 moveCoordAndFollowTransAndCheckPassPointNo(LiveActor*);
     void moveCoordToRailPoint(LiveActor*, s32);
     void moveCoordToNearestPos(LiveActor*, const TVec3f&);
+#ifdef RAILUTIL_OUTLINE_FOLLOW_AND_END
+    void moveCoordAndFollowTrans(LiveActor*, f32) NO_INLINE;
+#else
     void moveCoordAndFollowTrans(LiveActor*, f32);
+#endif
     void moveCoordAndFollowTrans(LiveActor*);
     void moveCoordAndFollowTransXZ(LiveActor*);
     void moveCoordToStartPos(LiveActor*);
@@ -68,7 +72,11 @@ namespace MR {
     void calcRailRandomPointPos(TVec3f*, const LiveActor*, int);
     void calcRailStartPointPos(TVec3f*, const LiveActor*);
     void calcRailEndPointPos(TVec3f*, const LiveActor*);
+#ifdef RAILUTIL_OUTLINE_FOLLOW_AND_END
+    void calcRailEndPointDirection(TVec3f*, const LiveActor*) NO_INLINE;
+#else
     void calcRailEndPointDirection(TVec3f*, const LiveActor*);
+#endif
     void calcRailStartPointPosAndDirection(TVec3f*, TVec3f*, const LiveActor*);
     void calcRailEndPointPosAndDirection(TVec3f*, TVec3f*, const LiveActor*);
     void calcDistanceToNextRailPoint(const LiveActor*, f32*);

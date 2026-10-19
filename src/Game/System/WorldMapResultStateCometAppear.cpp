@@ -1,4 +1,5 @@
 #include "Game/System/WorldMapFunction.hpp"
+#include "Game/Screen/MapGalaxyLayouts.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 WorldMapResultStateCometAppear::WorldMapResultStateCometAppear(WorldMapResultCommand* pHost)
@@ -6,13 +7,14 @@ WorldMapResultStateCometAppear::WorldMapResultStateCometAppear(WorldMapResultCom
       mCurrent(0), mFrom(0.0f, 0.0f, 0.0f), mTo(0.0f, 0.0f, 100.0f) {
 }
 
+// NONMATCHING: regalloc; target retains redundant null check for embedded owned array.
 WorldMapResultStateCometAppear::~WorldMapResultStateCometAppear() {
 }
 
 void WorldMapResultStateCometAppear::init() {
-    mLayout = new WorldMapResultCometLayout(0x50);
+    mLayout = new MapGalaxyInfo(0x50);
     mLayout->initWithoutIter();
-    mLayout->mFlag = 0;
+    mLayout->mPlaySound = 0;
     mLayout->kill();
     mComet = new MiniComet("デモ用コメット");
     mComet->initWithoutIter();
@@ -85,7 +87,7 @@ void WorldMapResultStateCometAppear::kill() {
     mIsDead = true;
 }
 
-bool WorldMapResultStateCometAppear::isXXX() const {
+bool WorldMapResultStateCometAppear::hasComets() const {
     return mNum > 0;
 }
 
@@ -167,7 +169,7 @@ void WorldMapResultStateCometAppear::exeMove() {
     }
 
     if (MR::isGreaterEqualStep(this, 90)) {
-        mLayout->setComet(getCurrentComet(), 4);
+        mLayout->showGalaxy(getCurrentComet(), 4);
     }
 
     if (MR::isGreaterEqualStep(this, 150)) {
@@ -198,7 +200,7 @@ void WorldMapResultStateCometAppear::exeMessage() {
         MR::startSubBGM("BGM_SMG2_JG_COMET", false);
     }
 
-    mLayout->setComet(getCurrentComet(), 4);
+    mLayout->showGalaxy(getCurrentComet(), 4);
 
     if (!MR::isLessEqualStep(this, 12) && MR::isDeadInformationMessage()) {
         setNerve(GET_NERVE(WorldMapResultStateCometAppear, WorldMapResultStateCometAppearEnd));
@@ -206,7 +208,7 @@ void WorldMapResultStateCometAppear::exeMessage() {
 }
 
 void WorldMapResultStateCometAppear::exeEnd() {
-    mLayout->setComet(getCurrentComet(), 30);
+    mLayout->showGalaxy(getCurrentComet(), 30);
 
     if (MR::isStep(this, 12)) {
         mIsDead = true;
@@ -215,11 +217,11 @@ void WorldMapResultStateCometAppear::exeEnd() {
 
 namespace NrvWorldMapResultStateCometAppear {
     WMR_NERVE_DEF(WorldMapResultStateCometAppearWait, WorldMapResultStateCometAppear, Wait);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearClose, WorldMapResultStateCometAppear, End);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearOpen, WorldMapResultStateCometAppear, Message);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearAppearComet, WorldMapResultStateCometAppear, Zoom);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearClose, WorldMapResultStateCometAppear, Close);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearOpen, WorldMapResultStateCometAppear, Open);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearAppearComet, WorldMapResultStateCometAppear, AppearComet);
     WMR_NERVE_DEF(WorldMapResultStateCometAppearMove, WorldMapResultStateCometAppear, Move);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearZoom, WorldMapResultStateCometAppear, AppearComet);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearMessage, WorldMapResultStateCometAppear, Open);
-    WMR_NERVE_DEF(WorldMapResultStateCometAppearEnd, WorldMapResultStateCometAppear, Close);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearZoom, WorldMapResultStateCometAppear, Zoom);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearMessage, WorldMapResultStateCometAppear, Message);
+    WMR_NERVE_DEF(WorldMapResultStateCometAppearEnd, WorldMapResultStateCometAppear, End);
 };  // namespace NrvWorldMapResultStateCometAppear

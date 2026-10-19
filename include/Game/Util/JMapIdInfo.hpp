@@ -11,7 +11,10 @@ public:
 
     // SMG2 has out-of-line copies of the copy ctor and operator= that a few TUs call (bl). Define
     // JMAPIDINFO_NOINLINE_COPY / JMAPIDINFO_NOINLINE_ASSIGN before the includes of such a TU.
-#ifdef JMAPIDINFO_NOINLINE_COPY
+#if defined(JMAPIDINFO_TRIVIAL_COPY)
+    // No user-declared copy ctor: the class stays trivially copyable, so MWCC returns it in r3:r4 (like the target's
+    // MR::createJMapIdInfoFromGroupId) instead of through a hidden sret pointer.
+#elif defined(JMAPIDINFO_NOINLINE_COPY)
     JMapIdInfo(const JMapIdInfo& rInfo);
 #else
     JMapIdInfo(const JMapIdInfo& rInfo) __attribute__((forceinline)) {

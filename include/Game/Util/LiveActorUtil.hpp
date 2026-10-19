@@ -380,9 +380,6 @@ namespace MR {
     // LiveActorUtil (enemies lane, callees named by address; lead renames symbols)
     void fn_80034820(LiveActor*);
     void fn_80034760(LiveActor*, HitSensor*, HitSensor*);
-    // PLACEHOLDER(enemies): fn_800514B0, fn_800513C0 (unnamed core helpers used by FlowerMimic); resolve when their owner unit names them. Signatures inferred from the callers.
-    void fn_800514B0(TQuat4f*, TVec3f*);
-    void fn_800513C0(TQuat4f*, TVec3f*);
     bool isInPlaneModeCube(const TVec3f&);
     // LiveActorUtil (creation) (enemies lane, callees named by address; lead renames symbols)
     NameObj* fn_80105820(LiveActor*, s32, const char*, f32);

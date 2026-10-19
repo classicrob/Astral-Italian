@@ -506,6 +506,9 @@ namespace MR {
     /// @brief Computes the tangent of a number, in radians.
     /// @param x The number of radians to evaluate.
     /// @return The ratio of the length of the opposite to that of the adjacent.
+#ifdef MR_TAN_NOINLINE
+    NO_INLINE
+#endif
     inline f32 tan(f32 x) {
         return JMASinRadian(x) / JMACosRadian(x);
     }
@@ -724,6 +727,4 @@ namespace MR {
 }
 
 namespace MR {
-    void fn_80051680(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&);
-    void fn_80051760(TVec3f*, const TVec3f&, const TVec3f&, const TVec3f&, f32);
 }

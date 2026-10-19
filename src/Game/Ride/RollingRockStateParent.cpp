@@ -19,8 +19,6 @@
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
 bool fn_80050350();
-void fn_800513C0(const TQuat4f*, const TVec3f*);
-void fn_800514B0(const TQuat4f*, TVec3f*, LiveActor*);
 void* fn_80114940(void*);
 void fn_803F5E20(f32*);
 }
@@ -348,7 +346,7 @@ bool RollingRockStateParent::tryStartRoll() {
 
 void RollingRockStateParent::followPlayer() {
     TVec3f pos;
-    fn_800514B0(&mHost->mQuat, &pos, mHost);
+    MR::getPlayerQuatAndPos(&mHost->mQuat, &pos);
     TVec3f up;
     up.negate(*MR::getPlayerGravity());
     TVec3f off(up);
@@ -401,7 +399,7 @@ void RollingRockStateParent::endRoll() {
         TVec3f pos(mHost->mPosition);
         TQuat4f quat(mHost->mQuat);
         MR::blendQuatFromGroundAndFront(&quat, mHost, mHost->mFront, sBlendRate, sBlendRate);
-        fn_800513C0(&quat, &pos);
+        MR::setPlayerQuatAndPos(&quat, &pos);
     }
 }
 

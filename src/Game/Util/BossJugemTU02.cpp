@@ -48,7 +48,7 @@ void BossJugemStateMove::exeMove() {
     s32 delay = 10;
     if (getNerveStep() - delay >= 0.0f) {
         LiveActor* pHost = mHost;
-        MR::setRailCoord(pHost, MR::getEaseOutValue(getNerveStep() - delay, mRailStart, target, moveFrames));
+        MR::setRailCoord(pHost, MR::getEaseOutValue(static_cast<f32>(getNerveStep()) - delay, mRailStart, target, moveFrames));
         MR::moveTransToCurrentRailPos(mHost);
     }
     bool reachedGoal = false;

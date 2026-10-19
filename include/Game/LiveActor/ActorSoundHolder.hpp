@@ -10,10 +10,14 @@ class LiveActor;
 class ActorSoundHolder {
 public:
     ActorSoundHolder(LiveActor*, s32, const char*, const TVec3f*, const TVec3f&);
-    /* 0x00 */ u8 _0[4];
+    /* 0x00 */ AudAnmSoundObject* mSoundObject;
     /* 0x04 */ ActorActionSoundKeeper* mActionSoundKeeper;
 
-    /* 0x08 */ u8 mUnk08[0xC];
+    /* 0x08 */ TVec3f* mPosition;
+    /* 0x0C */ MtxPtr mPositionMtx;
+    /* 0x10 */ const TVec3f* mLocalPosition;
+
+    bool setSoundPositionPtr(TVec3f*);
 
     void resetSyncBck();
     void resetSyncBckFrame();

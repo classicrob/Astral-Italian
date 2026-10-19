@@ -10,7 +10,6 @@
 #include "Game/Util/ScreenUtil.hpp"
 
 extern "C" {
-    s32 fn_80059330();
     void fn_804B4220(void*, s32);
 };
 
@@ -63,7 +62,7 @@ void GameSequenceWorldMap::exeClose() {
 }
 
 void GameSequenceWorldMap::exeWait() {
-    if (fn_80059330() != 0) {
+    if (MR::tryEndModelWipe()) {
         setNerve(GET_NERVE_DIRECT(NrvGameSequenceWorldMap, GameSequenceWorldMapNrvEnd));
     }
 }

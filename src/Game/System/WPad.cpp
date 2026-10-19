@@ -64,8 +64,8 @@ WPadRumble* WPad::getRumbleInstance() const {
     return _18->getRumbleInstance();
 }
 
-void WPad::startLeaveWatcher() {
-    mLeaveWatcher->start();
+bool WPad::startLeaveWatcher() {
+    return mLeaveWatcher->start();
 }
 
 void WPad::stopLeaveWatcher() {

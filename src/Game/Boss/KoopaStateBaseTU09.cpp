@@ -18,7 +18,7 @@ KoopaStateFireAttack::KoopaStateFireAttack(KoopaBattle* pHost)
     : ActorStateBase< KoopaBattle >("クッパ炎アタック", pHost), mFireBalls(nullptr), mFireCount(1), mIsLoopStarted(false) {
     DeriveActorGroup< KoopaFireBall >* pGroup = new DeriveActorGroup< KoopaFireBall >("火炎管理", 32);
     mFireBalls = pGroup;
-    for (s32 i = 0; i < pGroup->mMaxCount; i++) {
+    for (s32 i = 0; i < pGroup->mObjNumMax; i++) {
         KoopaFireBall* pBall = new KoopaFireBall("クッパ火炎");
         pBall->initWithoutIter();
         pGroup->registerActor(pBall);

@@ -2,6 +2,7 @@
 #include "Game/System/MiniRouteLine.hpp"
 #include "Game/System/WorldMapCameraHolder.hpp"
 #include "Game/System/WorldMapPointParts.hpp"
+#include "Game/System/WorldMapResultStateWorldWarp.hpp"
 #include "Game/System/WorldMapPointMarks.hpp"
 #include "Game/System/MiniPartsActors.hpp"
 #include "Game/System/MiniPlayerRocket.hpp"
@@ -155,7 +156,7 @@ void PointPartsHolder::init() {
 }
 
 // NONMATCHING: regalloc
-bool PointPartsHolder::getWorldWarp(s32 pointIndex, PartsWarpInfo* pOut) {
+bool PointPartsHolder::getWorldWarp(s32 pointIndex, WorldMapResultStateWorldWarp* pOut) {
     PointPart* pPart = find(pointIndex);
     if (pPart == nullptr) {
         return false;
@@ -163,9 +164,9 @@ bool PointPartsHolder::getWorldWarp(s32 pointIndex, PartsWarpInfo* pOut) {
     if (!isWorldWarpPoint(pPart->mType)) {
         return false;
     }
-    pOut->mParam0 = pPart->mParam0;
-    pOut->mParam1 = pPart->mParam1;
-    pOut->mPointIndex = pointIndex;
+    pOut->mInt10 = pPart->mParam0;
+    pOut->mInt14 = pPart->mParam1;
+    pOut->mInt18 = pointIndex;
     return true;
 }
 

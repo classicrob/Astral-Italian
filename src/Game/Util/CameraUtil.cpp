@@ -1,3 +1,7 @@
+#define MR_TAN_NOINLINE
+#define JGEOMETRY_VEC2_CTOR_NOINLINE
+#define JGEOMETRY_VEC4_CTOR_NOINLINE
+#define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
 #define JGEOMETRY_VEC3_UNARY_NEG_NOINLINE
 #define JGEOMETRY_OUTLINE_MATRIX_DIRECTION
 #define JGEOMETRY_VEC3_VEC_COPY_NOINLINE
@@ -323,7 +327,7 @@ namespace MR {
         if (chunk != nullptr) {
             chunk->setCameraType("CAM_TYPE_ANIM", getCameraDirector()->mHolder);
             CameraGeneralParam* param = chunk->mGeneralParam;
-            chunk->mGeneralParam->mNum1 = reinterpret_cast< s32 >(pAnimData);
+            chunk->mGeneralParam->mNum1 = reinterpret_cast< intptr_t >(pAnimData);
             chunk->mGeneralParam->mDist = 1.0f;
             chunk->getGeneralParam()->mNum2 &= 0x80000000;
             chunk->getGeneralParam()->mNum2 |= CameraAnim::getAnimFrame(reinterpret_cast< u8* >(pAnimData));
@@ -504,6 +508,10 @@ namespace MR {
             chunk->mExParam.mFovy = fovy;
             chunk->setUseFovy(true);
         }
+    }
+
+    void disableGlobalEventCameraCollision(const char* pName) {
+        MR::getCameraDirector()->getEventParameter(0, pName)->setCollisionOff(true);
     }
 
     u32 getEventCameraFrames(const ActorCameraInfo* pInfo, const char* pEventName) {

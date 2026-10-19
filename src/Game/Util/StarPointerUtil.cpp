@@ -1,3 +1,7 @@
+#define MR_TAN_NOINLINE
+#define JGEOMETRY_VEC2_CTOR_NOINLINE
+#define JGEOMETRY_VEC2_SUB_NOINLINE
+#define JGEOMETRY_VEC3_COPY_NOINLINE
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
@@ -593,26 +597,31 @@ namespace MR {
         pointRay.sub(camPos);
         MR::normalize(&pointRay);
 
-        if (MR::checkHitSemilinePlane(pPos, camPos, pointRay, rPlaneBasePos, rPlaneNorm) == true) {
+        TVec3f camNorm = -MR::getCamZdir();
+        TVec3f planeNorm(rPlaneNorm);
+        if (camNorm.dot(rPlaneNorm) < 0.0f) {
+            planeNorm.set(-rPlaneNorm);
+        }
+        if (MR::checkHitSemilinePlane(pPos, camPos, pointRay, rPlaneBasePos, planeNorm) == true) {
             return true;
         }
 
-        TVec3f camNorm = -MR::getCamZdir();
+        TVec3f backOffset(camNorm);
+        backOffset.scale(-50000.0f);
+        TVec3f fallbackPlanePos(camPos);
+        fallbackPlanePos.add(backOffset);
         TVec3f forceIntersectPos;
-        MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, rPlaneBasePos, camNorm);
+        MR::checkHitSemilinePlane(&forceIntersectPos, camPos, pointRay, fallbackPlanePos, camNorm);
 
         TVec3f forceNorm;
-        TVec3f checkDir = rPlaneBasePos;
+        TVec3f checkDir(rPlaneBasePos);
         checkDir.sub(forceIntersectPos);
-
-        if (checkDir.dot(rPlaneNorm) < 0.0f) {
-            forceNorm = -rPlaneNorm;
+        if (checkDir.dot(planeNorm) < 0.0f) {
+            forceNorm = -planeNorm;
         } else {
-            forceNorm = rPlaneNorm;
+            forceNorm = planeNorm;
         }
-
-        MR::checkHitSemilinePlane(pPos, forceIntersectPos, forceNorm, rPlaneBasePos, rPlaneNorm);
-
+        MR::checkHitSemilinePlane(pPos, forceIntersectPos, forceNorm, rPlaneBasePos, planeNorm);
         return true;
     }
 
@@ -649,9 +658,13 @@ namespace MR {
 
         TVec3f planePosA, planePosB;
         planePosA.set(camPos);
-        planePosA.add(toPointA * distA);
+        TVec3f offsetA(toPointA);
+        offsetA.scale(distA);
+        planePosA.add(offsetA);
         planePosB.set(camPos);
-        planePosB.add(toPointB * distB);
+        TVec3f offsetB(toPointB);
+        offsetB.scale(distB);
+        planePosB.add(offsetB);
         pDir->set(planePosA);
         pDir->sub(planePosB);
         MR::normalizeOrZero(pDir);
@@ -903,7 +916,7 @@ namespace StarPointerUtil {
     }
 
     namespace {
-        TVec2f sDefaultButtonOffset;
+        TVec2f sDefaultButtonOffset(60.0f, 20.0f);
     }
 
     TVec2f* getDefaultButtonOffsetVec2() {
@@ -1008,7 +1021,6 @@ namespace MR {
                ::getStarPointerOnOffController()->compareMode(StarPointerMode_ScenarioSelectScene) ||
                ::getStarPointerOnOffController()->compareMode(StarPointerMode_PauseMenu) ||
                ::getStarPointerOnOffController()->compareMode(StarPointerMode_ChooseYesNo) ||
-               ::getStarPointerOnOffController()->compareMode(StarPointerMode_PictureBook) ||
                ::getStarPointerOnOffController()->compareMode(StarPointerMode_SphereSelectorFinger) ||
                ::getStarPointerOnOffController()->compareMode(StarPointerMode_SaveLoad) ||
                ::getStarPointerOnOffController()->compareMode(StarPointerMode_StarPieceTarget) ||

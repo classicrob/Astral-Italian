@@ -1,4 +1,5 @@
 #include "Game/System/WorldMapOwner.hpp"
+#include "Game/System/WorldMapResultStateWorldWarp.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapResultStatePointEvent.hpp"
 #include "Game/System/WorldMapResultStateTicoRouteCreate.hpp"
@@ -301,7 +302,7 @@ bool WorldMapOwner::tryStartTicoRoute(WorldMapResultStateTicoRouteCreate* pState
     return false;
 }
 
-bool WorldMapOwner::tryWorldWarpFromStick(PartsWarpInfo* pInfo) {
+bool WorldMapOwner::tryWorldWarpFromStick(WorldMapResultStateWorldWarp* pInfo) {
     s32 stick = findStickTarget(0.7f);
     if (stick >= 0) {
         return getPointParts()->getWorldWarp(stick, pInfo);
@@ -310,7 +311,7 @@ bool WorldMapOwner::tryWorldWarpFromStick(PartsWarpInfo* pInfo) {
     return false;
 }
 
-bool WorldMapOwner::tryWorldWarpFromNext(PartsWarpInfo* pInfo) {
+bool WorldMapOwner::tryWorldWarpFromNext(WorldMapResultStateWorldWarp* pInfo) {
     WorldMapCameraHolder* pCamera = getCamera();
     if (pCamera->mHasNext) {
         return getPointParts()->getWorldWarp(pCamera->mNext, pInfo);

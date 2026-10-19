@@ -1,3 +1,4 @@
+#define JMAPIDINFO_TRIVIAL_COPY
 #include "Game/LiveActor/ClippingGroupHolder.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ClippingActorInfo.hpp"

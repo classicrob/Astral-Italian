@@ -6,15 +6,12 @@
 #include "Game/Util/FixedPosition.hpp"
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
+#include "Game/Util/ActorInitUtil.hpp"
 
 PartsModel::PartsModel(LiveActor* pActor, const char* pName, const char* pModelName, MtxPtr pMtx, int drawBufferType, bool a6)
     : LiveActor(pName), mHost(pActor), mFixedPos(), mMtx(pMtx), mCalcOwnMatrix(true), mCheckHiddenHost(), mIsDead() {
-    if (drawBufferType < 0) {
-        drawBufferType = MR::DrawBufferType_MapObj;
-    }
-
-    if (mMtx != nullptr) {
-        mPosition.set< f32 >(mMtx[0][3], mMtx[1][3], mMtx[2][3]);
+    if (pMtx != nullptr) {
+        mPosition.set< f32 >(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
     } else {
         mPosition.set(pActor->mPosition);
     }
@@ -22,23 +19,31 @@ PartsModel::PartsModel(LiveActor* pActor, const char* pName, const char* pModelN
     mRotation.set(pActor->mRotation);
     mScale.set(pActor->mScale);
 
-    initModelManagerWithAnm(pModelName, nullptr, a6);
-
-    u32 movementType = MR::MovementType_EnemyDecoration;
-    u32 calcAnimType = MR::CalcAnimType_MapObjDecoration;
-
-    if (drawBufferType == MR::DrawBufferType_PlayerDecoration || drawBufferType == MR::DrawBufferType_CrystalBox ||
-        drawBufferType == MR::DrawBufferType_UNK_0x17) {
-        movementType = MR::MovementType_PlayerDecoration;
-        calcAnimType = MR::CalcAnimType_PlayerDecoration;
+    if (pModelName == nullptr) {
+        return;
     }
 
-    if (drawBufferType == MR::DrawBufferType_NPC || drawBufferType == MR::DrawBufferType_IndirectNpc) {
-        movementType = MR::MovementType_NPC;
-        calcAnimType = MR::CalcAnimType_NPC;
-    }
+    if (!MR::initActor(this, pModelName, a6)) {
+        if (drawBufferType < 0) {
+            drawBufferType = MR::DrawBufferType_MapObj;
+        }
 
-    MR::connectToScene(this, movementType, calcAnimType, drawBufferType, MR::DrawType_None);
+        u32 movementType = MR::MovementType_EnemyDecoration;
+        u32 calcAnimType = MR::CalcAnimType_MapObjDecoration;
+
+        if (drawBufferType == MR::DrawBufferType_PlayerDecoration || drawBufferType == MR::DrawBufferType_CrystalBox ||
+            drawBufferType == MR::DrawBufferType_UNK_0x17) {
+            movementType = MR::MovementType_PlayerDecoration;
+            calcAnimType = MR::CalcAnimType_PlayerDecoration;
+        }
+
+        if (drawBufferType == MR::DrawBufferType_NPC || drawBufferType == MR::DrawBufferType_IndirectNpc) {
+            movementType = MR::MovementType_NPC;
+            calcAnimType = MR::CalcAnimType_NPC;
+        }
+
+        MR::connectToScene(this, movementType, calcAnimType, drawBufferType, MR::DrawType_None);
+    }
 }
 
 void PartsModel::makeActorAppeared() {
@@ -59,13 +64,11 @@ void PartsModel::init(const JMapInfoIter& rIter) {
     }
 
     if (!mSoundHolder) {
-        initSound(8, "PartsModel", nullptr, TVec3f(0.0f));
+        initSound(8, nullptr, nullptr, TVec3f(0.0f));
     }
 
     MR::invalidateClipping(this);
     makeActorAppeared();
-
-    mIsDead = false;
 }
 
 void PartsModel::movement() {

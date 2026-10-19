@@ -20,8 +20,6 @@ extern "C" HitSensor* fn_80038D20(const Triangle*);
 extern "C" void fn_800222A0(const LiveActor*);
 // PLACEHOLDER(objects): unnamed target symbol fn_80038FB0, declared extern "C" so the reloc name matches; resolve when fn_80038FB0 gets its real name in symbols.txt
 extern "C" CollisionParts* fn_80038FB0(const TVec3f*, const TVec3f*);
-// PLACEHOLDER(objects): unnamed target symbol fn_80050380, declared extern "C" so the reloc name matches; resolve when fn_80050380 gets its real name in symbols.txt
-extern "C" bool fn_80050380();
 // PLACEHOLDER(objects): unnamed target symbol fn_8004FF70, declared extern "C" so the reloc name matches; resolve when fn_8004FF70 gets its real name in symbols.txt
 extern "C" void fn_8004FF70();
 // PLACEHOLDER(objects): unnamed target symbol fn_802B5800, declared extern "C" so the reloc name matches; resolve when fn_802B5800 gets its real name in symbols.txt
@@ -302,7 +300,7 @@ bool ItemDrill::receiveMsgItemGet(HitSensor* pReceiver, HitSensor* pSender) {
         return false;
     }
     bool isBusy = false;
-    if (fn_80050380() || MR::isPlayerInRush() || MR::isPlayerRecovering()) {
+    if (MR::isPlayerLifeDecreasedThisFrame() || MR::isPlayerInRush() || MR::isPlayerRecovering()) {
         isBusy = true;
     }
     if (isBusy) {

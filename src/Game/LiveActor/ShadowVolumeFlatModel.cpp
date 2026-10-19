@@ -7,17 +7,13 @@
 #include <JSystem/J3DGraphAnimator/J3DModelData.hpp>
 
 ShadowVolumeFlatModel::ShadowVolumeFlatModel(const char* pModelName)
-    : ShadowVolumeModel("板状シャドウボリューム描画"), mBaseMtx(), mRootDrawMtxIndex(-1), mDropDrawMtxIndex(-1) {
+    : ShadowVolumeModel("板状シャドウボリューム描画"), mRootDrawMtxIndex(-1), mDropDrawMtxIndex(-1) {
     initVolumeModel(pModelName);
     initJointDrawMtxResister();
 }
 
 ShadowVolumeFlatModel::ShadowVolumeFlatModel()
-    : ShadowVolumeModel("板状シャドウボリューム描画"), mBaseMtx(), mRootDrawMtxIndex(-1), mDropDrawMtxIndex(-1) {
-}
-
-void ShadowVolumeFlatModel::setBaseMatrixPtr(MtxPtr pMtx) {
-    mBaseMtx = pMtx;
+    : ShadowVolumeModel("板状シャドウボリューム描画"), mRootDrawMtxIndex(-1), mDropDrawMtxIndex(-1) {
 }
 
 void ShadowVolumeFlatModel::initModel(const char* pModelName) {
@@ -41,41 +37,43 @@ void ShadowVolumeFlatModel::draw() const {
 
 void ShadowVolumeFlatModel::loadModelDrawMtx() const {
     ShadowController* controller = getController();
-    TPos3f rootMtx;
-    TPos3f dropMtx;
     TVec3f displacement;
     controller->getDropDir(&displacement);
     displacement.scale(calcBaseDropLength());
-    calcRootJoint(&rootMtx, displacement);
+
+    TPos3f rootMtx;
+    controller->calcBaseMtx(&rootMtx);
+    TVec3f dropPos;
+    calcBaseDropPosition(&dropPos);
+    rootMtx.setTrans(dropPos);
+    TPos3f dropMtx;
+    dropMtx.set(rootMtx);
+
+    TVec3f rootUp;
+    rootMtx.getYDir(rootUp);
+    if (rootUp.dot(displacement) >= 0.0f) {
+        MR::addTransMtx(rootMtx, displacement);
+    }
+
     if (controller->isFollowHostScale()) {
         MR::preScaleMtx(rootMtx, controller->getHost()->mScale);
     }
 
     PSMTXConcat(MR::getCameraViewMtx(), rootMtx, rootMtx);
     GXLoadPosMtxImm(rootMtx, mRootDrawMtxIndex);
-    calcDropJoint(&dropMtx, displacement);
+
+    TVec3f dropUp;
+    dropMtx.getYDir(dropUp);
+    if (dropUp.dot(displacement) < 0.0f) {
+        MR::addTransMtx(dropMtx, displacement);
+    }
+
     if (controller->isFollowHostScale()) {
         MR::preScaleMtx(dropMtx, controller->getHost()->mScale);
     }
 
     PSMTXConcat(MR::getCameraViewMtx(), dropMtx, dropMtx);
     GXLoadPosMtxImm(dropMtx, mDropDrawMtxIndex);
-}
-
-void ShadowVolumeFlatModel::calcRootJoint(TPos3f* pMtx, const TVec3f& rDisplacement) const {
-    pMtx->set(mBaseMtx);
-    TVec3f up(mBaseMtx[0][1], mBaseMtx[1][1], mBaseMtx[2][1]);
-    if (up.dot(rDisplacement) >= 0.0f) {
-        MR::addTransMtx(*pMtx, rDisplacement);
-    }
-}
-
-void ShadowVolumeFlatModel::calcDropJoint(TPos3f* pMtx, const TVec3f& rDisplacement) const {
-    pMtx->set(mBaseMtx);
-    TVec3f up(mBaseMtx[0][1], mBaseMtx[1][1], mBaseMtx[2][1]);
-    if (up.dot(rDisplacement) < 0.0f) {
-        MR::addTransMtx(*pMtx, rDisplacement);
-    }
 }
 
 ShadowVolumeFlatModel::~ShadowVolumeFlatModel() {

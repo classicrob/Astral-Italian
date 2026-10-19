@@ -6,21 +6,20 @@ void BombHeiRed::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("BombHeiRed");
     caps.setDefault();
 
-    // PLACEHOLDER(core): NPCActor's header types 0x100-0x140 differently (the target stores motion names and 450.0f here); resolve when the NPCActor layout is fixed
-    u8* pSelf = reinterpret_cast< u8* >(this);
-    *reinterpret_cast< const char** >(pSelf + 0x100) = "Wait";
-    *reinterpret_cast< const char** >(pSelf + 0x104) = "Turn";
-    *reinterpret_cast< const char** >(pSelf + 0x108) = "Talk";
-    *reinterpret_cast< const char** >(pSelf + 0x10C) = "Turn";
-    *reinterpret_cast< const char** >(pSelf + 0x134) = "Spin";
-    *reinterpret_cast< const char** >(pSelf + 0x138) = "Trampled";
-    *reinterpret_cast< const char** >(pSelf + 0x13C) = "Pointing";
-    *reinterpret_cast< const char** >(pSelf + 0x140) = "Reaction";
-    *reinterpret_cast< f32* >(pSelf + 0x130) = 450.0f;
+    mParam._14 = "Wait";
+    mParam._18 = "Turn";
+    mParam._1C = "Talk";
+    mParam._20 = "Turn";
+    _130 = cNPCSpinDefault;
+    _134 = cNPCTrampledDefault;
+    _138 = cNPCPointingDefault;
+    _13C = cNPCReactionDefault;
+    _12C = 450.0f;
 
     initialize(rIter, caps, "BombHeiRed", nullptr, nullptr);
 
-    JointControlDelegator< BombHeiRed >* pController = new JointControlDelegator< BombHeiRed >(this, &BombHeiRed::calcZenmaiRotation, nullptr);
+    bool (BombHeiRed::*pCalcFunc)(TPos3f*, const JointControllerInfo&) = &BombHeiRed::calcZenmaiRotation;
+    JointControlDelegator< BombHeiRed >* pController = new JointControlDelegator< BombHeiRed >(this, pCalcFunc, nullptr);
     MR::setJointControllerParam(pController, this, "Zenmai");
     mJointController = pController;
 

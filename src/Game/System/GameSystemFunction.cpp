@@ -1,4 +1,7 @@
 #include "Game/System/GameSystemFunction.hpp"
+#include "Game/AudioLib/AudWrap.hpp"
+#include "Game/AudioLib/AudSceneMgr.hpp"
+#include "Game/AudioLib/AudInstListMgr.hpp"
 #include "Game/Util.hpp"
 #include "Game/NameObj/NameObjRegister.hpp"
 #include "Game/Scene/LogoScene.hpp"
@@ -42,12 +45,40 @@ namespace {
 };  // namespace
 
 namespace GameSystemFunction {
+    void loadAudioResource() {
+        ::getAudSystemWrapper()->requestWaveResource();
+    }
+
     void loadAudioStaticWaveData() {
         ::getAudSystemWrapper()->loadStaticWaveData();
     }
 
     bool isLoadedAudioStaticWaveData() {
         return ::getAudSystemWrapper()->isLoadDoneStaticWaveData();
+    }
+
+    void loadAudio2ndWaveData() {
+        AudWrap::getSceneMgr()->loadStaticResource2nd();
+    }
+
+    bool isLoadedAudio2ndWaveData() {
+        return AudWrap::getSceneMgr()->isLoadDoneStaticResource2nd();
+    }
+
+    void initAudioRhythm() {
+        AudWrap::getInstListMgr()->resetStageWaveSlots();
+    }
+
+    void initAudioSystem() {
+        ::getAudSystemWrapper()->finishStageResourceLoading();
+    }
+
+    void loadAudioStageUseResource() {
+        ::getAudSystemWrapper()->loadStageUseResources();
+    }
+
+    void createStationedGameSystemObjects() {
+        SingletonHolder<GameSystem>::get()->mObjHolder->createStationedObjects();
     }
 
     void initAfterStationedResourceLoaded() {
@@ -80,8 +111,16 @@ namespace GameSystemFunction {
         return !isExecuteLoadSystemArchive;
     }
 
+    bool isDisplayStrapRemineder() {
+        return MR::isEqualSceneName("Logo") && ::getLogoScene() != nullptr && ::getLogoScene()->isDisplayStrapRemineder();
+    }
+
     bool requestChangeArchivePlayer(bool isPlayerMario) {
         return SingletonHolder< GameSystem >::get()->mStationedArchiveLoader->requestChangeArchivePlayer(isPlayerMario);
+    }
+
+    bool isPlayerArchiveMario() {
+        return SingletonHolder<GameSystem>::get()->mStationedArchiveLoader->isDataMario();
     }
 
     bool isEndChangeArchivePlayer() {
@@ -126,6 +165,10 @@ namespace GameSystemFunction {
 
     void requestGoWiiMenu(bool param1) {
         SingletonHolder< GameSystemResetAndPowerProcess >::get()->requestGoWiiMenu(param1);
+    }
+
+    void requestShutdown(bool fade) {
+        SingletonHolder<GameSystemResetAndPowerProcess>::get()->requestShutdown(fade);
     }
 
     void forceToDeactivateHomeButtonLayout() {
@@ -188,22 +231,17 @@ namespace GameSystemFunction {
         ::getAudSystemWrapper()->resumeReset();
     }
 
-    void stopControllerLeaveWatcher() {
-        for (s32 chan = WPAD_CHAN0; chan < WPAD_CHAN0 + MR::getWPadMaxCount(); chan++) {
-            MR::getWPad(chan)->stopLeaveWatcher();
-        }
+    void clearAudioStageWaveResources() {
+        ::getAudSystemWrapper()->clearStageWaveResources();
     }
 
-    void startControllerLeaveWatcher() {
-        for (s32 chan = WPAD_CHAN0; chan < WPAD_CHAN0 + MR::getWPadMaxCount(); chan++) {
-            MR::getWPad(chan)->startLeaveWatcher();
+    bool isControllerLeaveTimeElapsed() {
+        for (u32 chan = 0; chan < MR::getWPadMaxCount(); chan++) {
+            if (!MR::getWPad(chan)->startLeaveWatcher()) {
+                return false;
+            }
         }
-    }
-
-    void restartControllerLeaveWatcher() {
-        for (s32 chan = WPAD_CHAN0; chan < WPAD_CHAN0 + MR::getWPadMaxCount(); chan++) {
-            MR::getWPad(chan)->restartLeaveWatcher();
-        }
+        return true;
     }
 
     void setPadConnectCallback() {
@@ -217,8 +255,8 @@ namespace GameSystemFunction {
         }
     }
 
-    void setAutoSleepTimeWiiRemote(bool isLongAutoSleep) {
-        MR::setAutoSleepTimeWiiRemote(isLongAutoSleep);
+    void setPermissionToCheckWiiRemoteConnect(bool permission) {
+        SingletonHolder<GameSystem>::get()->mErrorWatcher->setPermissionUpdateWiiRemoteStatus(permission);
     }
 
     bool setPermissionToCheckWiiRemoteConnectAndScreenDimming(bool permission) {
@@ -279,14 +317,41 @@ namespace GameSystemFunction {
     }
 
     bool isPreparedFadeinSystem() {
-        return SingletonHolder< GameSystem >::get()->isPreparedReset() && SingletonHolder< GameSystem >::get()->mSceneController->isPreparedReset();
+        return SingletonHolder< GameSystem >::get()->isPreparedReset() && SingletonHolder< GameSystem >::get()->mSceneController->isPreparedReset() &&
+               ::getAudSystemWrapper()->isLoadDoneSystemWaves();
     }
 
     void restartSceneController() {
         SingletonHolder< GameSystem >::get()->mSceneController->restartGameAfterResetting();
     }
 
-    bool isDisplayStrapRemineder() {
-        return MR::isEqualSceneName("Logo") && ::getLogoScene() != nullptr && ::getLogoScene()->isDisplayStrapRemineder();
+    bool isHomeButtonMenuActive() {
+        HomeButtonLayout* layout = SingletonHolder<GameSystem>::get()->mHomeButtonLayout;
+        if (layout != nullptr) {
+            return layout->isActive();
+        }
+        return false;
+    }
+
+    void stopControllerLeaveWatcher() {
+        for (s32 chan = WPAD_CHAN0; chan < WPAD_CHAN0 + MR::getWPadMaxCount(); chan++) {
+            MR::getWPad(chan)->stopLeaveWatcher();
+        }
+    }
+
+    void startControllerLeaveWatcher() {
+        for (s32 chan = WPAD_CHAN0; chan < WPAD_CHAN0 + MR::getWPadMaxCount(); chan++) {
+            MR::getWPad(chan)->startLeaveWatcher();
+        }
+    }
+
+    void restartControllerLeaveWatcher() {
+        for (s32 chan = WPAD_CHAN0; chan < WPAD_CHAN0 + MR::getWPadMaxCount(); chan++) {
+            MR::getWPad(chan)->restartLeaveWatcher();
+        }
+    }
+
+    void setAutoSleepTimeWiiRemote(bool isLongAutoSleep) {
+        MR::setAutoSleepTimeWiiRemote(isLongAutoSleep);
     }
 };  // namespace GameSystemFunction

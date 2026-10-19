@@ -93,7 +93,7 @@ void BellyDragon::emitFireBodyEffects() {
     char name[0x40];
     for (s32 i = 0; i < 0x20; i++) {
         snprintf(name, 0x40, "FireBody%02d", i);
-        MR::emitEffect(this, name);
+        MR::tryEmitEffect(this, name);
     }
 }
 

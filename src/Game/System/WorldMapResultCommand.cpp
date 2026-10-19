@@ -1,4 +1,5 @@
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/Scene/SceneFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 
 namespace NrvWorldMapResultController {
@@ -68,32 +69,32 @@ void WorldMapResultDraw::movement() {
     if (mWorld != nullptr) {
         TVec3f up(0.0f, 1.0f, 0.0f);
         MR::setProgrammableCameraParam(sResultCameraName, mTarget, mEye, up, true);
-        mWorld->fn_EF190();
-        fn_80457F80();
+        mWorld->startAllPointingAnim();
+        MR::movementWorldMapBig();
     }
 }
 
 void WorldMapResultDraw::calcAnim() {
     if (mWorld != nullptr) {
-        fn_80458060(this);
+        MR::calcAnimWorldMapBig();
     }
 }
 
 void WorldMapResultDraw::calcViewAndEntry() {
     if (mWorld != nullptr) {
-        fn_804581E0(this);
+        MR::entryWorldMapBig();
     }
 }
 
 void WorldMapResultDraw::draw() const {
     if (mWorld != nullptr) {
-        fn_80458860();
+        SceneFunction::executeDrawAfterImageEffect();
         MR::reinitGX();
         MR::clearZBuffer();
         MR::loadProjectionMtx();
         MR::loadViewMtx();
-        fn_80458890();
-        fn_804588D0();
+        MR::drawWorldMapBig();
+        MR::drawWorldMapMiniEffects();
     }
 }
 
@@ -359,7 +360,7 @@ bool WorldMapResultController::tryRouteOpen() {
 }
 
 bool WorldMapResultController::tryCometAppear() {
-    if (mCometAppear->isXXX()) {
+    if (mCometAppear->hasComets()) {
         setNerve(GET_NERVE(WorldMapResultController, WorldMapResultControllerCometAppear));
         return true;
     }

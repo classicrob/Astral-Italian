@@ -5,10 +5,7 @@
 #include "Game/Effect/EffectSystem.hpp"
 #include "Game/Effect/ParticleCalcExecutor.hpp"
 #include "Game/System/WorldMapResultStateGalaxyMap.hpp"
-
-extern "C" {
-    bool fn_80059330();
-}
+#include "Game/Util/ScreenUtil.hpp"
 
 static ParticleCalcExecutor* getGalaxyMapCalc() {
     return *reinterpret_cast< ParticleCalcExecutor** >(reinterpret_cast< u8* >(MR::getEffectSystem()) + 0x20);
@@ -71,7 +68,7 @@ void WorldMapResultStateGalaxyMap::exeEnd() {
         getGalaxyMapCalc()->movementNormal();
     }
 
-    if (MR::isGreaterEqualStep(this, 6) && fn_80059330()) {
+    if (MR::isGreaterEqualStep(this, 6) && MR::tryEndModelWipe()) {
         kill();
     }
 }

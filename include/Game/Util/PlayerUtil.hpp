@@ -16,8 +16,8 @@ class XanimeResourceTable;
 
 class JAISoundHandle;
 namespace MR {
-    JAISoundHandle* fn_80050D10(s32, s32, s32);
-    JAISoundHandle* fn_80050E60(s32, s32);
+    JAISoundHandle* startSoundPlayerById(s32, s32, s32);
+    JAISoundHandle* startLevelSoundPlayerById(s32, s32);
     bool fn_8004FFF0();
     void enablePlayerResourceYoshi();
     bool fn_80050020();
@@ -189,6 +189,7 @@ namespace MR {
     void tryPlayerKillTakingActor();
     bool isPlayerCarrySensorType(u32);
     bool isPlayerCarryAny();
+    bool isPlayerLifeDecreasedThisFrame();
     LiveActor* getPlayerCarrySensorHost();
 
     void startSoundPlayer(const char*, s32, s32);
@@ -255,7 +256,7 @@ namespace MR {
 
     bool changePlayerAnimAndStartBvaIfExist(const char*);
     // PlayerUtil (enemies lane, callees named by address; lead renames symbols)
-    bool fn_800515E0();
+    void fn_800515E0();
     // PlayerUtil (enemies lane, callees named by address; lead renames symbols)
     void calcYoshiTongueTipMtx(TPos3f*);
     void fn_80422190();
@@ -274,7 +275,7 @@ namespace MR {
     void forceKillPlayerByGhostRace();
     void setPlayerWalkingResist(f32);
     bool checkPlayerActionTrigger();
-    f32 getPlayerShadowHeight();
+    void forceGameOverPlayerBySink();
     bool isPlayerElementMode(s32);
     bool isPlayerSkating();
     void changePlayerAnimationAndBva(const char*);

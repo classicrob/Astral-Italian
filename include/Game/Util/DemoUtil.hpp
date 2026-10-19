@@ -67,11 +67,11 @@ namespace MR {
     bool requestStartDemoRegisteredMarioPuppetable(LiveActor*, const Nerve*, const Nerve*, const char*);
     void endDemoWaitCameraInterpolating(NameObj*, const char*);
     void initDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*);
-    void initDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*, TVec3f, MtxPtr);
+    void initDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*, const TVec3f&, MtxPtr);
     void initDemoSheetTalkAnimWithMessageName(LiveActor*, const JMapInfoIter&, const char*, const char*, const char*);
     void initDemoSheetTalkAnimFunctor(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*, const MR::FunctorBase&);
     bool tryInitDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*);
-    bool tryInitDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*, TVec3f, MtxPtr);
+    bool tryInitDemoSheetTalkAnim(LiveActor*, const JMapInfoIter&, const char*, const char*, TalkMessageCtrl*, const TVec3f&, MtxPtr);
     void startTimeKeepDemo(NameObj*, const char*, const char*);
     void startTimeKeepDemoMarioPuppetable(NameObj*, const char*, const char*);
     bool isDemoExist(const char*);

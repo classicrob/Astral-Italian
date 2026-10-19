@@ -285,7 +285,7 @@ namespace MR {
                 if (*light) {
                     MR::initLightCtrl(pActor);
                     int idx = getLightIDIdx(light);
-                    pActor->mLightCtrl->setLightType(idx);
+                    pActor->mActorLightCtrl->setLightType(idx);
                 }
             }
 

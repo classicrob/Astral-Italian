@@ -83,6 +83,7 @@ BaseMatrixFollowTargetHolder::BaseMatrixFollowTargetHolder(const char* pName, s3
     mTargets.init(targetCapacity);
     mFollowers.init(followerCapacity);
     MR::connectToSceneMapObjMovement(this);
+    MR::registerDemoSimpleCastAll(this);
 }
 
 template MR::Vector< MR::AssignableArray< BaseMatrixFollowTarget* > >::~Vector();

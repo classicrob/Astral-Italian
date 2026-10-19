@@ -98,7 +98,7 @@ namespace MR {
     void startLevelSoundSeKeeper(AudSeKeeper*, const char*, const char*);
     bool hasME();
     void startSystemME(const char*);
-    s32 getMapSoundCodeFoot(const LiveActor*);
+    void updateMapSoundCodeFoot(const LiveActor*);
     void setMapSondCodeGravity(const LiveActor*, s32);
     void startTalkSound(u8, const LiveActor*);
     void startRemixSound(s32, s32, f32);
@@ -206,15 +206,10 @@ namespace MR {
 };  // namespace MR
 
 namespace MR {
-    // PLACEHOLDER(core): unnamed callees of SoundUtil; resolve when renamed
-    void fn_80080130(AudAnmSoundObject*, f32);     // AudAnmSoundObject method (0x254 bytes)
-    void fn_80221920(AudEffectDirector*);          // AudEffectDirector method: setEffectType(field 0x20, 0, 0)
-    void fn_8007CC40(AudSoundObject*);             // AudSoundObjHolder::add wrapper
-    bool fn_8022CDC0(ActorSoundHolder*);           // ActorSoundHolder method (0x3C bytes)
 };  // namespace MR
 
 namespace MR {
-    bool fn_8005B860(const LiveActor*, const TVec3f*);
+    bool setSoundPositionPtr(const LiveActor*, TVec3f*);
 }
 
 namespace MR {

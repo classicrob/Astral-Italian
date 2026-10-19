@@ -1,6 +1,7 @@
 #define JGEOMETRY_VEC3_WMR_OUTLINE
 #define JGEOMETRY_VEC3_SET_NOINLINE
 #include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/MiniPlayerRocket.hpp"
 #include "Game/System/WorldMapFunction.hpp"
 #include "Game/System/WorldMapResultLocal.hpp"
 #include "Game/System/WorldMapOwner.hpp"
@@ -741,22 +742,6 @@ namespace NrvWorldMapSequence {
     WMS_NERVE_DECL(WorldMapSequenceNoMove);
 };  // namespace NrvWorldMapSequence
 
-/// Stands for the owner's actor: only its virtual slot at vtable offset 0x30 is used.
-class SlotActor {
-public:
-    virtual ~SlotActor();
-    virtual void slot1();
-    virtual void slot2();
-    virtual void slot3();
-    virtual void slot4();
-    virtual void slot5();
-    virtual void slot6();
-    virtual void slot7();
-    virtual void slot8();
-    virtual void slot9();
-    virtual void slot10();
-};
-
 class WorldMapSequence : public NerveExecutor {
 public:
     WorldMapSequence(void*);
@@ -818,9 +803,9 @@ void WorldMapSequence::init(bool startAtMap) {
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(mStateGalaxyMap), &NrvWorldMapSequence::WorldMapSequenceGalaxyMap::sInstance, "GalaxyMap");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateGrandGalaxyEnd(mOwner)), &NrvWorldMapSequence::WorldMapSequenceGalaxyMapExit::sInstance, "GalaxyMapExit");
     MR::initActorState(this, static_cast< ActorStateBaseInterface* >(new WorldMapResultStateGreenStarDemo(mOwner)), &NrvWorldMapSequence::WorldMapSequenceGreenStarDemo::sInstance, "GreenStarDemo");
-    u8* pBase = reinterpret_cast< u8* >(mOwner->getCamera());
-    mOwner->warpRocketToNode(*reinterpret_cast< s32* >(pBase + 0x3C));
-    reinterpret_cast< SlotActor* >(*reinterpret_cast< void** >(pBase + 0x50))->slot10();
+    WorldMapCameraHolder* camera = mOwner->getCamera();
+    mOwner->warpRocketToNode(camera->mCurrent);
+    camera->mRocket->makeActorAppeared();
     MR::startStarPointerModeSphereSelectorOnReaction(this);
     mOwner->startNodeCamera(-1, 0);
 
@@ -866,8 +851,7 @@ void WorldMapSequence::exePointMove() {
             return;
         }
 
-        // PLACEHOLDER(core): the world-warp state is handed to the owner as PartsWarpInfo* (the target's ABI); resolve when the WorldWarp state class and its PartsWarpInfo view are written
-        if (mOwner->tryWorldWarpFromNext(reinterpret_cast< PartsWarpInfo* >(mStateWorldWarp))) {
+        if (mOwner->tryWorldWarpFromNext(mStateWorldWarp)) {
             setNerve(&NrvWorldMapSequence::WorldMapSequenceWorldWarp::sInstance);
             return;
         }
@@ -931,11 +915,9 @@ bool WorldMapSequence::isGalaxyMap() const {
 }
 
 bool WorldMapSequence::updatePoint(bool canAct) {
-    u8* pBase = reinterpret_cast< u8* >(mOwner->getCamera());
-    LiveActor* pActor = *reinterpret_cast< LiveActor** >(pBase + 0x50);
+    LiveActor* pActor = mOwner->getCamera()->mRocket;
 
-    // PLACEHOLDER(core): the world-warp state is handed to the owner as PartsWarpInfo* (the target's ABI); resolve when the WorldWarp state class and its PartsWarpInfo view are written
-    if (mOwner->tryWorldWarpFromStick(reinterpret_cast< PartsWarpInfo* >(mStateWorldWarp))) {
+    if (mOwner->tryWorldWarpFromStick(mStateWorldWarp)) {
         setNerve(&NrvWorldMapSequence::WorldMapSequenceWorldWarp::sInstance);
         return true;
     }

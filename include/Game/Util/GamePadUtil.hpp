@@ -113,3 +113,10 @@ namespace MR {
 namespace MR {
     bool testCorePadOnlyMinus(s32);
 }
+
+namespace MR {
+    bool testHBMKPadTrigger(s32, u32);
+    bool testSystemTriggerRight();
+    bool testSystemTriggerLeft();
+    bool testPlayer1TriggerA();
+}

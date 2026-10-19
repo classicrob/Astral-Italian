@@ -164,41 +164,33 @@ public:
 
     virtual PlanetGravity* getGravity();
     virtual PlanetGravity* createInstance();
+    virtual void settingFromSRT(const TVec3f& rTrans, const TVec3f& rRotate, const TVec3f& rScale);
+    virtual void settingFromJMapArgs(s32 arg0, s32 arg1, s32 arg2);
 
     /* 0x4 */ BarrelGravity* mGravityInstance;
 };
 
-// PLACEHOLDER(core): zero-gravity creators are only constructed by GlobalGravityObj.cpp here; their member
-// and virtual layout is inferred from the vtables. Resolve when the PlaneZero*GravityCreator units are sourced.
-class PlaneZeroGravityCreator : public GravityCreator {
+// Zero-gravity variants: the plane creators with PlanetGravity::mIsZeroGravity set on the created gravity.
+class PlaneZeroGravityCreator : public PlaneGravityCreator {
 public:
-    inline PlaneZeroGravityCreator() : GravityCreator(), mGravityInstance(nullptr) {
+    inline PlaneZeroGravityCreator() : PlaneGravityCreator() {
     }
 
-    virtual PlanetGravity* getGravity();
     virtual PlanetGravity* createInstance();
-
-    /* 0x4 */ PlanetGravity* mGravityInstance;
 };
 
-class PlaneZeroInBoxGravityCreator : public GravityCreator {
+class PlaneZeroInBoxGravityCreator : public PlaneInBoxGravityCreator {
 public:
-    inline PlaneZeroInBoxGravityCreator() : GravityCreator(), mGravityInstance(nullptr) {
+    inline PlaneZeroInBoxGravityCreator() : PlaneInBoxGravityCreator() {
     }
 
-    virtual PlanetGravity* getGravity();
     virtual PlanetGravity* createInstance();
-
-    /* 0x4 */ PlanetGravity* mGravityInstance;
 };
 
-class PlaneZeroInCylinderGravityCreator : public GravityCreator {
+class PlaneZeroInCylinderGravityCreator : public PlaneInCylinderGravityCreator {
 public:
-    inline PlaneZeroInCylinderGravityCreator() : GravityCreator(), mGravityInstance(nullptr) {
+    inline PlaneZeroInCylinderGravityCreator() : PlaneInCylinderGravityCreator() {
     }
 
-    virtual PlanetGravity* getGravity();
     virtual PlanetGravity* createInstance();
-
-    /* 0x4 */ PlanetGravity* mGravityInstance;
 };

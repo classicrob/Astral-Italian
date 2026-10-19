@@ -15,7 +15,7 @@ JAISoundHandle* playSoundByType(AudSoundObject* object, s32 type, u32 id, s32 pi
     case 4: handle = MR::startAtmosphereSE(JAISoundID(id), pitch, velocity); break;
     case 6: MR::startCSSound(id, nullptr, -1, 0, 1.0f); break;
     case 8: MR::fn_800422F0(id); break;
-    case 10: handle = MR::fn_80050D10(id, pitch, -1); break;
+    case 10: handle = MR::startSoundPlayerById(id, pitch, -1); break;
     }
     return handle;
 }
@@ -27,7 +27,7 @@ JAISoundHandle* playSoundByTypeWithVolume(AudSoundObject* object, s32 type, u32 
     case 3: handle = MR::fn_8005AF70(JAISoundID(id), pitch, velocity, volume); break;
     case 5: handle = MR::fn_8005B100(JAISoundID(id), pitch, velocity); break;
     case 7: MR::startCSSoundAfterPlayed(id, 0); break;
-    case 11: handle = MR::fn_80050E60(id, pitch); break;
+    case 11: handle = MR::startLevelSoundPlayerById(id, pitch); break;
     }
     return handle;
 }

@@ -172,10 +172,10 @@ MultiEmitter* EffectKeeper::getEmitter(const char* pParam1, s32 floorCode) const
     }
 
     if (_18 != nullptr && _18->mHasBeenSorted) {
-        MultiEmitter* result = nullptr;
+        uintptr_t result = 0;
 
-        if (_18->searchPtr(pParam1, &result)) {
-            return result;
+        if (_18->search(pParam1, &result)) {
+            return reinterpret_cast< MultiEmitter* >(result);
         }
         return nullptr;
     }

@@ -190,14 +190,14 @@ namespace MR {
     void createPostOutline();
     void createDestroyCounter(s32 maximum);
     void activateDestroyCounter();
-    void setDestroyCounterCount(s32 count);        // PLACEHOLDER(core): name guessed (stores DestroyCounter+0x34 = mCount)
+    void setDestroyCounterCount(s32 count);        // stores DestroyCounter+0x34 = mCount
     void appearDestroyCounter();
     void killDestroyCounter();
     void showScoreAttackResults();                 //
     void hideScoreAttackLayouts();
     void showScoreAttackLayouts();
     void killAllScoreResults();
-    // ModelWipeScene wrappers. PLACEHOLDER(core): MR names guessed from the ModelWipeScene methods they forward to.
+    // ModelWipeScene wrappers.
     void startCloudWipeForward();
     void startCloudWipeBackward();
     void startGalaxyWipeForward();
@@ -205,7 +205,7 @@ namespace MR {
     void startSpaceWipeForward();
     void startSpaceWipeBackward();
     void requestEndModelWipe();
-    void tryEndModelWipe();
+    bool tryEndModelWipe();
     void forceHideModelWipe();
     bool isHideOrEndModelWipe();
     bool isHiddenModelWipe();

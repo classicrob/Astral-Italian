@@ -62,7 +62,7 @@ namespace MR {
         }
 
         AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
-        getMapSoundCodeFoot(pActor);
+        updateMapSoundCodeFoot(pActor);
         pSoundHolder->update();
 
         if (pActor->mModelManager != nullptr) {
@@ -95,7 +95,7 @@ namespace MR {
         }
 
         if (updateFoot) {
-            getMapSoundCodeFoot(pActor);
+            updateMapSoundCodeFoot(pActor);
         }
 
         if (pSoundAnimation != nullptr) {
@@ -108,7 +108,7 @@ namespace MR {
     }
 
     void fn_8005A7F0(LiveActor* pActor, f32 param2) {
-        fn_80080130(getActorSoundObject(pActor), param2);
+        getActorSoundObject(pActor)->skip(param2);
     }
 
     JAISoundHandle* startSystemSE(JAISoundID id, s32 param2, s32 param3) {
@@ -207,7 +207,7 @@ namespace MR {
 
     // NONMATCHING: target calls non-const getSoundID__21AudSoundNameConverterFPiPCc, ours CFPCc (const decl); 1-2% residual
     JAISoundHandle* startSound(const LiveActor* pActor, const char* pName, s32 param3, s32 param4) {
-        getMapSoundCodeFoot(pActor);
+        updateMapSoundCodeFoot(pActor);
 
         if (param3 != -1) {
             AudAnmSoundObject* pSoundObject = getActorSoundObject(pActor);
@@ -224,7 +224,7 @@ namespace MR {
 
     // NONMATCHING: regalloc (id temp stored after the object call in target)
     JAISoundHandle* startSound(const LiveActor* pActor, JAISoundID id, s32 param3, s32 param4) {
-        getMapSoundCodeFoot(pActor);
+        updateMapSoundCodeFoot(pActor);
 
         if (param3 != -1) {
             return getActorSoundObject(pActor)->startSoundParam(id, param3, param4);
@@ -234,7 +234,7 @@ namespace MR {
     }
 
     JAISoundHandle* startLevelSound(const LiveActor* pActor, const char* pName, s32 param3, s32 param4, s32 param5) {
-        getMapSoundCodeFoot(pActor);
+        updateMapSoundCodeFoot(pActor);
 
         if (param3 != -1) {
             return startSoundObjectLevelParam(getActorSoundObject(pActor), pName, param3, param4, param5);
@@ -244,7 +244,7 @@ namespace MR {
     }
 
     JAISoundHandle* startLevelSound(const LiveActor* pActor, JAISoundID id, s32 param3, s32 param4, s32 param5) {
-        getMapSoundCodeFoot(pActor);
+        updateMapSoundCodeFoot(pActor);
 
         if (param3 != -1) {
             return startSoundObjectLevelParam(getActorSoundObject(pActor), id, param3, param4, param5);
@@ -269,6 +269,7 @@ namespace MR {
         }
     }
 
+    // NONMATCHING: regalloc and stack temporaries
     void stopSound(const LiveActor* pActor, JAISoundID id, u32 param3) {
         getActorSoundObject(pActor)->stopSound(id, param3);
 
@@ -299,8 +300,8 @@ namespace MR {
         }
     }
 
-    bool fn_8005B860(const LiveActor* pActor, const TVec3f*) {
-        return fn_8022CDC0(pActor->mSoundHolder);
+    bool setSoundPositionPtr(const LiveActor* pActor, TVec3f* pPosition) {
+        return pActor->mSoundHolder->setSoundPositionPtr(pPosition);
     }
 
 
@@ -335,7 +336,7 @@ namespace MR {
         AudWrap::getSystemMeObject()->startMe(id);
     }
 
-    s32 getMapSoundCodeFoot(const LiveActor* pActor) {
+    inline s32 calcFootSoundCode(const LiveActor* pActor) {
         const Binder* pBinder = pActor->mBinder;
         if (pBinder == nullptr) {
             return -1;
@@ -366,6 +367,15 @@ namespace MR {
         }
 
         return -1;
+    }
+
+    void updateMapSoundCodeFoot(const LiveActor* pActor) {
+        s32 code = calcFootSoundCode(pActor);
+        getActorSoundObject(pActor)->setMapCode(code);
+        s32 count = getActorSoundObjectCount(pActor);
+        for (s32 i = 0; i < count; i++) {
+            getActorSoundObjectAt(pActor, i)->setMapCode(code);
+        }
     }
 
     void setMapSondCodeGravity(const LiveActor* pActor, s32 code) {
@@ -432,7 +442,7 @@ namespace MR {
     void submitTrigSE() {
         AudSystem* pSystem = AudWrap::getSystem();
 
-        pSystem->_82B = 1;
+        pSystem->_82B = 0;
     }
 
 
@@ -481,7 +491,7 @@ namespace MR {
     }
 
     void fn_8005ADA0() {
-        fn_80221920(MR::getSceneObj< AudEffectDirector >(0x12));
+        MR::getSceneObj< AudEffectDirector >(0x12)->restoreEffectType();
     }
 
     JAISoundID fn_8005ADD0(const char* pName) {
@@ -493,7 +503,7 @@ namespace MR {
     }
 
     void fn_8005AE10(LiveActor* pActor) {
-        fn_8007CC40(getActorSoundObject(pActor));
+        getActorSoundObject(pActor)->addToSoundObjHolder();
     }
 
 

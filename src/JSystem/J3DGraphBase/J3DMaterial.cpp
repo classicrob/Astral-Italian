@@ -233,23 +233,6 @@ void J3DMaterial::patch() {
     j3dSys.getMatPacket()->endPatch();
 }
 
-void J3DMaterial::diff(u32 diffFlags) {
-    if (j3dSys.getMatPacket()->isEnabled_Diff()) {
-        j3dSys.getMatPacket()->beginDiff();
-
-        mTevBlock->diff(diffFlags);
-        mIndBlock->diff(diffFlags);
-        mPEBlock->diff(diffFlags);
-        if (diffFlags & J3DDiffFlag_KonstColor) {
-            J3DGDSetGenMode_3Param(mTexGenBlock->getTexGenNum(), mTevBlock->getTevStageNum(), mIndBlock->getIndTexStageNum());
-            J3DGDSetNumTexGens(mTexGenBlock->getTexGenNum());
-        }
-        mTexGenBlock->diff(diffFlags);
-        mColorBlock->diff(diffFlags);
-
-        j3dSys.getMatPacket()->endDiff();
-    }
-}
 
 void J3DMaterial::calc(f32 const (*param_0)[4]) {
     if (j3dSys.checkFlag(0x40000000)) {

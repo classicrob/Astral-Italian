@@ -21,7 +21,6 @@
 // PLACEHOLDER(objects): extern "C" block of unnamed/odd target symbols (relocs must match); resolve when they get real names in symbols.txt
 extern "C" {
     s32 fn_804B8960();
-    void fn_8004F030();
     void fn_8004FE50();
     void fn_80051910();
     void fn_80051940();
@@ -48,7 +47,7 @@ namespace {
 
 inline void GliBird::exeDeadLava() {
     if (MR::isStep(this, 90)) {
-        fn_8004F030();
+        MR::forceGameOverPlayerBySink();
     }
 }
 
@@ -458,7 +457,7 @@ void GliBird::exeDeadWater() {
     }
 
     if (MR::isStep(this, 90)) {
-        fn_8004F030();
+        MR::forceGameOverPlayerBySink();
     }
 }
 
@@ -1109,7 +1108,7 @@ void GliBird::exeDeadCommon(const f32* pBirdUpFront, const f32* pBirdSide, const
     }
 
     if (MR::isStep(this, 90)) {
-        fn_8004F030();
+        MR::forceGameOverPlayerBySink();
     }
 }
 

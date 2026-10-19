@@ -46,11 +46,11 @@ namespace MR {
     // NONMATCHING: equivalent selected-scenario guard branch arrangement
     s32 getCurrentOrSelectedScenarioNo() {
         s32 selectedScenarioNo = SingletonHolder< GameSystem >::get()->mSceneController->getCurrentSelectedScenarioNo();
-        if (selectedScenarioNo == -1) {
-            return SingletonHolder< GameSystem >::get()->mSceneController->getCurrentScenarioNo();
+        if (selectedScenarioNo != -1) {
+            return selectedScenarioNo;
         }
 
-        return selectedScenarioNo;
+        return SingletonHolder< GameSystem >::get()->mSceneController->getCurrentScenarioNo();
     }
 
     void setCurrentScenarioNo(s32 scenarioNo, s32 selectedScenarioNo) {

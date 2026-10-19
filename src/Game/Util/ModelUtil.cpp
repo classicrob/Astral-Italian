@@ -1,3 +1,5 @@
+#define MODELUTIL_OUTLINE_TEXTURE_COUNT
+#define J3D_TEVBLOCK_BASE_GETTERS_OUTLINE
 #include "Game/Util/ModelUtil.hpp"
 #include "Game/Animation/XanimePlayer.hpp"
 #include "Game/Animation/XanimeResource.hpp"
@@ -9,6 +11,14 @@
 #include "Game/Util.hpp"
 #include <JSystem/J3DGraphAnimator/J3DJoint.hpp>
 #include <cstdio>
+
+J3DGXColorS10* J3DTevBlock::getTevColor(u32) {
+    return nullptr;
+}
+
+J3DGXColor* J3DTevBlock::getTevKColor(u32) {
+    return nullptr;
+}
 
 namespace {
 #pragma dont_inline on
@@ -161,11 +171,6 @@ namespace MR {
         pActor->mModelManager->updateDL(true);
     }
 
-    void ModelUtil_FORCE_MATCH_TEVCOLOR() {
-        J3DTevBlock* block;
-        block->getTevColor(1);
-        block->getTevKColor(1);
-    }
 
     bool isEnvelope(J3DMaterial* pMaterial) {
         return pMaterial->getShape()->mHasPNMTXIdx;
@@ -630,7 +635,10 @@ namespace MR {
             MR::isEqualString(pChar, "BeeLuigi") || MR::isEqualString(pChar, "HopperMario") || MR::isEqualString(pChar, "HopperLuigi") ||
             MR::isEqualString(pChar, "BoneMario") || MR::isEqualString(pChar, "BoneLuigi") || MR::isEqualString(pChar, "SearchLightCone") ||
             strstr(pChar, "FlexibleSphere") || strstr(pChar, "FlexibleSandPlanetParts") || MR::isEqualString(pChar, "ScaleDownRelayPlanet") ||
-            MR::isEqualString(pChar, "GhostMario") || MR::isEqualString(pChar, "GhostLuigi") || MR::isEqualString(pChar, "Koura")) {
+            MR::isEqualString(pChar, "GhostMario") || MR::isEqualString(pChar, "GhostLuigi") || MR::isEqualString(pChar, "InfernoMario") || MR::isEqualString(pChar, "Koura") ||
+            MR::isEqualString(pChar, "YoshiHandL") || MR::isEqualString(pChar, "YoshiHandR") ||
+            MR::isEqualString(pChar, "CloudMario") || MR::isEqualString(pChar, "CloudLuigi") ||
+            MR::isEqualString(pChar, "RockMario") || MR::isEqualString(pChar, "RockLuigi")) {
             OSLockMutex(&MR::MutexHolder< 0 >::sMutex);
             newModel = static_cast< J3DModel* >(new J3DModelX(modelData, mdlFlag, 1));
             OSUnlockMutex(&MR::MutexHolder< 0 >::sMutex);

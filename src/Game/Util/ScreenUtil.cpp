@@ -217,7 +217,7 @@ namespace MR {
         ::getSystemWipeHolder()->wipe(nullptr, frame);
     }
 
-    void openSystemWipeCircleOnPlayer(s32 frame) {  // PLACEHOLDER(core): name guessed
+    void openSystemWipeCircleOnPlayer(s32 frame) {
         openSystemWipeCircle(frame);
         ::getSystemWipeHolder()->setWipeRingCenterOnPlayer();
     }
@@ -289,11 +289,11 @@ namespace MR {
         return ::getSystemWipeHolder()->isWipeIn() || ::getSystemWipeHolder()->isWipeOut();
     }
 
-    bool isSystemWipeBlank() {  // PLACEHOLDER(core): name guessed
+    bool isSystemWipeBlank() {
         return ::getSystemWipeHolder()->isClose();
     }
 
-    bool isSystemWipeOpen() {  // PLACEHOLDER(core): name guessed
+    bool isSystemWipeOpen() {
         return ::getSystemWipeHolder()->isOpen();
     }
 
@@ -316,47 +316,47 @@ namespace MR {
         ::getSystemWipeHolder()->setWipeRingCenter(rCenterPos);
     }
 
-    void startCloudWipeForward() {  // PLACEHOLDER(core): MR name guessed
+    void startCloudWipeForward() {
         getModelWipeScene()->startCloudWipeForward();
     }
 
-    void startCloudWipeBackward() {  // PLACEHOLDER(core): MR name guessed
+    void startCloudWipeBackward() {
         getModelWipeScene()->startCloudWipeBackward();
     }
 
-    void startGalaxyWipeForward() {  // PLACEHOLDER(core): MR name guessed
+    void startGalaxyWipeForward() {
         getModelWipeScene()->startGalaxyWipeForward();
     }
 
-    void startGalaxyWipeBackward() {  // PLACEHOLDER(core): MR name guessed
+    void startGalaxyWipeBackward() {
         getModelWipeScene()->startGalaxyWipeBackward();
     }
 
-    void startSpaceWipeForward() {  // PLACEHOLDER(core): MR name guessed
+    void startSpaceWipeForward() {
         getModelWipeScene()->startSpaceWipeForward();
     }
 
-    void startSpaceWipeBackward() {  // PLACEHOLDER(core): MR name guessed
+    void startSpaceWipeBackward() {
         getModelWipeScene()->startSpaceWipeBackward();
     }
 
-    void requestEndModelWipe() {  // PLACEHOLDER(core): MR name guessed
+    void requestEndModelWipe() {
         getModelWipeScene()->requestEnd();
     }
 
-    void tryEndModelWipe() {  // PLACEHOLDER(core): MR name guessed
-        getModelWipeScene()->tryEnd();
+    bool tryEndModelWipe() {
+        return getModelWipeScene()->tryEnd();
     }
 
-    void forceHideModelWipe() {  // PLACEHOLDER(core): MR name guessed
+    void forceHideModelWipe() {
         getModelWipeScene()->forceHide();
     }
 
-    bool isHideOrEndModelWipe() {  // PLACEHOLDER(core): MR name guessed
+    bool isHideOrEndModelWipe() {
         return getModelWipeScene()->isHideOrEnd();
     }
 
-    bool isHiddenModelWipe() {  // PLACEHOLDER(core): MR name guessed
+    bool isHiddenModelWipe() {
         return getModelWipeScene()->isHidden();
     }
 
@@ -681,7 +681,7 @@ namespace MR {
         getGameSceneLayoutHolder()->getDestroyCounter()->activate();
     }
 
-    void setDestroyCounterCount(s32 count) {  // PLACEHOLDER(core): name guessed
+    void setDestroyCounterCount(s32 count) {
         getGameSceneLayoutHolder()->getDestroyCounter()->mCount = count;
     }
 
@@ -698,7 +698,7 @@ namespace MR {
         killAllScoreResults();
     }
 
-    void showScoreAttackResults() {  // PLACEHOLDER(core): name guessed
+    void showScoreAttackResults() {
         showScoreAttackLayouts();
     }
 

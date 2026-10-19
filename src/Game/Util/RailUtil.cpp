@@ -1,3 +1,4 @@
+#define RAILUTIL_OUTLINE_FOLLOW_AND_END
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActor.hpp"
@@ -288,6 +289,7 @@ namespace MR {
 };  // namespace MR
 
 namespace {
+    // NONMATCHING: equivalent min/max inlining
     void updateBoundingBox(const RailRider* pRailRider, TBox3f* pBox) {
         TVec3f pos(pRailRider->mCurPos);
 
@@ -363,7 +365,8 @@ namespace MR {
     f32 fn_80052E20(const LiveActor* pActor) {
         RailRider* railRider = pActor->mRailRider;
         if (railRider->mIsNotReverse) {
-            return railRider->getTotalLength() - railRider->mCoord;
+            f32 coord = railRider->mCoord;
+            return railRider->getTotalLength() - coord;
         }
         return railRider->mCoord;
     }
@@ -422,6 +425,7 @@ namespace MR {
         pActor->mRailRider->calcDirectionAtCoord(pDir, coord);
     }
 
+    // NONMATCHING: regalloc
     void fn_800531B0(TVec3f* pDir, LiveActor* pActor, f32 offset) {
         RailRider* railRider = pActor->mRailRider;
         f32 coord;
@@ -471,7 +475,7 @@ namespace MR {
 
     void calcRailStartPointPosAndDirection(TVec3f* pPos, TVec3f* pDir, const LiveActor* pActor) {
         calcRailStartPointPos(pPos, pActor);
-        calcRailStartPointDirection(pDir, pActor);
+        pActor->mRailRider->calcDirectionAtCoord(pDir, 0.0f);
     }
 
     void calcRailEndPointPosAndDirection(TVec3f* pPos, TVec3f* pDir, const LiveActor* pActor) {

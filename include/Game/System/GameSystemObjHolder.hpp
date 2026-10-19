@@ -25,6 +25,7 @@ public:
     GameSystemObjHolder();
 
     void initAfterStationedResourceLoaded();
+    void createStationedObjects();
     void initMessageResource();
     void init();
     void createAudioSystem();

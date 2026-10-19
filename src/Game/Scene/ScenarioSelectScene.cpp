@@ -31,24 +31,25 @@ namespace NrvScenarioSelectScene {
     };
     ScenarioSelectSceneNrvInvalidScenarioSelect ScenarioSelectSceneNrvInvalidScenarioSelect::sInstance ATTRIBUTE_WEAK;
 
-    NEW_NERVE(ScenarioSelectSceneNrvStartScenarioSelect, ScenarioSelectScene, StartScenarioSelect);
 
     // Target inlines exeWaitStartScenarioSelect into execute
     class ScenarioSelectSceneNrvWaitStartScenarioSelect : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
+        virtual void execute(Spine* pSpine) const;
+        static ScenarioSelectSceneNrvWaitStartScenarioSelect sInstance;
+    };
+    ScenarioSelectSceneNrvWaitStartScenarioSelect ScenarioSelectSceneNrvWaitStartScenarioSelect::sInstance ATTRIBUTE_WEAK;
+    NEW_NERVE(ScenarioSelectSceneNrvStartScenarioSelect, ScenarioSelectScene, StartScenarioSelect);
+    void ScenarioSelectSceneNrvWaitStartScenarioSelect::execute(Spine* pSpine) const {
             ScenarioSelectScene* actor = reinterpret_cast< ScenarioSelectScene* >(pSpine->mExecutor);
             if (!MR::isSystemWipeActive()) {
                 actor->setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvStartScenarioSelect));
             }
         }
-        static ScenarioSelectSceneNrvWaitStartScenarioSelect sInstance;
-    };
-    ScenarioSelectSceneNrvWaitStartScenarioSelect ScenarioSelectSceneNrvWaitStartScenarioSelect::sInstance ATTRIBUTE_WEAK;
+
     NEW_NERVE(ScenarioSelectSceneNrvWaitScenarioSelect, ScenarioSelectScene, WaitScenarioSelect);
     NEW_NERVE(ScenarioSelectSceneNrvWaitResumeInitializeThread, ScenarioSelectScene, WaitResumeInitializeThread);
     NEW_NERVE(ScenarioSelectSceneNrvWaitInitializeEnd, ScenarioSelectScene, WaitInitializeEnd);
-    NEW_NERVE(ScenarioSelectSceneNrvWaitDisappearLayout, ScenarioSelectScene, WaitDisappearLayout);
     NEW_NERVE(ScenarioSelectSceneNrvWaitResumeInitializeThreadIfRequestedReset, ScenarioSelectScene, WaitResumeInitializeThreadIfRequestedReset);
     NEW_NERVE(ScenarioSelectSceneNrvWaitResumeInitializeThreadIfCanceledSelect, ScenarioSelectScene, WaitResumeInitializeThreadIfCanceledSelect);
 };  // namespace NrvScenarioSelectScene
@@ -176,15 +177,7 @@ bool ScenarioSelectScene::isExecForeground() const {
 }
 
 bool ScenarioSelectScene::isScenarioSelecting() const {
-    bool ret = false;
-
-    if (isExecForeground()) {
-        if (!isNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvWaitDisappearLayout))) {
-            ret = true;
-        }
-    }
-
-    return ret;
+    return isExecForeground();
 }
 
 void ScenarioSelectScene::validateScenarioSelect() {
@@ -209,7 +202,6 @@ void ScenarioSelectScene::requestReset(bool waitForInitialize) {
     _28 = 1;
     suspend();
     if (isNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvDeactive)) ||
-        isNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvWaitDisappearLayout)) ||
         isNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvWaitInitializeEnd))) {
         _28 = 0;
         setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvDeactive));
@@ -266,13 +258,7 @@ void ScenarioSelectScene::exeDeactive() {
 
 void ScenarioSelectScene::exeStartScenarioSelect() {
     if (MR::isFirstStep(this)) {
-        bool isSpecificStage = MR::isStageKoopaVs3() || MR::isEqualStageName("HeavensDoorGalaxy");
-
-        if (isSpecificStage) {
-            MR::openSystemWipeFade();
-        } else {
-            MR::openSystemWipeWhiteFade();
-        }
+        MR::openSystemWipeWhiteFade();
 
         mCinemaFrame->forceToFrame();
         mScenarioLayout->appear();
@@ -315,7 +301,10 @@ void ScenarioSelectScene::exeWaitInitializeEnd() {
             MR::Effect::forceDeleteAllEmitters(mEffectSystem);
             setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvDeactive));
         } else if (mScenarioLayout->isReadyToDisappear()) {
-            setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvWaitDisappearLayout));
+            mCinemaFrame->forceToScreen();
+            mScenarioLayout->kill();
+            MR::Effect::forceDeleteAllEmitters(mEffectSystem);
+            setNerve(GET_NERVE(ScenarioSelectScene, ScenarioSelectSceneNrvDeactive));
         }
     }
 }
@@ -332,8 +321,22 @@ void ScenarioSelectScene::exeWaitResumeInitializeThreadIfRequestedReset() {
     }
 }
 
-// NONMATCHING (not restored): trySetCurrentScenarioNo reads ScenarioSelectLayout u8 at +0x34 and calls
-// GalaxyStatusAccessor::isNotNormalStar; our ScenarioSelectLayout header has no such field (mSelectionLocked at 0x28).
+// NONMATCHING: equivalent branch layout of the selection-locked guard; all calls and arguments match.
+bool ScenarioSelectScene::trySetCurrentScenarioNo() const {
+    if (!mScenarioLayout->mSelectionLocked) {
+        return false;
+    }
+    if (!MR::isScenarioDecided()) {
+        s32 selected = mScenarioLayout->getSelectedScenarioNo();
+        s32 placed = selected;
+        GalaxyStatusAccessor accessor = MR::makeCurrentGalaxyStatusAccessor();
+        if (accessor.isNotNormalStar(selected)) {
+            placed = MR::getPlacedHiddenStarScenarioNo(MR::getCurrentStageName(), selected);
+        }
+        MR::setCurrentScenarioNo(placed, selected);
+    }
+    return true;
+}
 
 // Local prototypes: defined in src/System, not declared in their headers
 namespace GameSequenceFunction {
@@ -347,7 +350,7 @@ void ScenarioSelectScene::exeWaitResumeInitializeThreadIfCanceledSelect() {
     if (MR::isDead(mScenarioLayout)) {
         if (::tryResumeInitializeThread()) {
             GameSystemFunction::resetCurrentScenarioNo();
-            GameSequenceFunction::requestCancelScenarioSelect();
+            GameSequenceFunction::setInStageKillReady();
             suspend();
             _16 = 1;
             MR::Effect::forceDeleteAllEmitters(mEffectSystem);

@@ -226,6 +226,7 @@ namespace {
     };
 };  // namespace
 
+// NONMATCHING: regalloc; equivalent array loops, pooled strings, and local reference slots.
 StageDataArchiveHolder::StageDataArchiveHolder(const char* pStageName) : mMapArchive(), mSoundArchive(), mDesignArchive(), mZoneInfoArchive(), mUseResourceArchive(), mGhostArchive() {
     mMapArchive = mountArchive(pStageName, "Map");
     mSoundArchive = mountArchive(pStageName, "Sound");

@@ -8,7 +8,7 @@ class JMapIdInfo;
 struct PlayResultStageEntry {
     PlayResultStageEntry();  // fn_804C8D40
 
-    /* 0x0 */ u32 mValue;
+    /* 0x0 */ const char* mStageName;
     /* 0x4 */ bool mFlag;
 };
 

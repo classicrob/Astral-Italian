@@ -43,7 +43,7 @@ namespace MR {
 
     inline s32 convertPathToEntrynumConsideringLanguage(const char* pFilePath) {
         char filePath[256];
-        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath);
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath, false);
 
         return DVDConvertPathToEntrynum(filePath);
     }
@@ -93,14 +93,14 @@ namespace MR {
 
     void* receiveFile(const char* pFilePath) {
         char filePath[256];
-        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath);
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath, false);
 
         return SingletonHolder< FileLoader >::get()->receiveFile(filePath);
     }
 
     JKRMemArchive* receiveArchive(const char* pFilePath) {
         char filePath[256];
-        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath);
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath, false);
 
         return SingletonHolder< FileLoader >::get()->receiveArchive(filePath);
     }
@@ -115,7 +115,7 @@ namespace MR {
 
     void getMountedArchiveAndHeap(const char* pFilePath, JKRArchive** ppArchive, JKRHeap** ppHeap) {
         char filePath[256];
-        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath);
+        makeFileNameConsideringLanguage(filePath, sizeof(filePath), pFilePath, false);
 
         SingletonHolder< FileLoader >::get()->getMountedArchiveAndHeap(filePath, ppArchive, ppHeap);
     }

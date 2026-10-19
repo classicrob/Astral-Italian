@@ -5,7 +5,7 @@
 #include "Game/Util/SceneUtil.hpp"
 
 RailRider::RailRider(const JMapInfoIter& rIter)
-    : mBezierRail(), mCoord(), mSpeed(), mIsNotReverse(true), mCurPos(0.0f), mCurDirection(1.0f, 0.0f, 0.0f), mStartPos(0.0f), mEndPos(0.0f) {
+    : mBezierRail(), mCoord(), mSpeed(), mIsNotReverse(true), mCurPos(0.0f, 0.0f, 0.0f), mCurDirection(1.0f, 0.0f, 0.0f), mStartPos(0.0f, 0.0f, 0.0f), mEndPos(0.0f, 0.0f, 0.0f) {
     const JMapInfo* info = nullptr;
     JMapInfoIter iter;
     MR::getRailInfo(&iter, &info, rIter);
@@ -13,7 +13,7 @@ RailRider::RailRider(const JMapInfoIter& rIter)
 }
 
 RailRider::RailRider(s32 a1, s32 a2)
-    : mBezierRail(), mCoord(), mSpeed(), mIsNotReverse(true), mCurPos(0.0f), mCurDirection(1.0f, 0.0f, 0.0f), mStartPos(0.0f), mEndPos(0.0f) {
+    : mBezierRail(), mCoord(), mSpeed(), mIsNotReverse(true), mCurPos(0.0f, 0.0f, 0.0f), mCurDirection(1.0f, 0.0f, 0.0f), mStartPos(0.0f, 0.0f, 0.0f), mEndPos(0.0f, 0.0f, 0.0f) {
     const JMapInfo* info = nullptr;
     JMapInfoIter iter;
     MR::getCameraRailInfo(&iter, &info, a1, a2);

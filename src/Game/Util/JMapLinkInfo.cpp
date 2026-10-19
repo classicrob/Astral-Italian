@@ -10,8 +10,8 @@ namespace {
     s32 getInfoType(const JMapInfo* pInfo) {
         const char* pName = pInfo->getName();
 
-        for (s32 i = 0; i < 3; i++) {
-            if (MR::isEqualString(pName, sInfoNameTable[i])) {
+        for (s32 i = 0; i < 2; i++) {
+            if (MR::isEqualStringCase(pName, sInfoNameTable[i])) {
                 return i;
             }
         }

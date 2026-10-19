@@ -39,30 +39,13 @@ extern "C" {
 
 class WorldMapResultCommand;
 class WorldMapOwner;
-extern "C" {
-    void fn_80458060(NameObj*);
-    void fn_804581E0(NameObj*);
-    void fn_80457F80();
-    void fn_80458860();
-    void fn_80458890();
-    void fn_804588D0();
-}
+
 
 class WorldMapResultCommand;
 class LayoutActor;
 class WorldMapResultWorld;
 
-/// Layout used by the comet-appear state (0x44 bytes).
-class WorldMapResultCometLayout : public LayoutActor {
-public:
-    WorldMapResultCometLayout(s32);
-
-    void setComet(const char*, s32);
-
-    u8 _2C[0x14];
-    u8 mFlag;
-    u8 _41[3];
-};
+class MapGalaxyInfo;
 
 /// Demo comet shown on the map (0x94 bytes).
 class MiniComet : public LiveActor {
@@ -108,10 +91,7 @@ struct WorldMapResultNode {
     WorldMapResultNode();
 
     TVec3f mPos;
-    union {
-        u8 _C[4];
-        s32 mLayer;
-    };
+    s32 mLayer;
     u8 mIsHidden;
     u8 mFlag11;
     u8 mIsValid;
@@ -168,7 +148,7 @@ public:
     void prepare();
     void finish();
     void disappear();
-    void fn_EF190() NO_INLINE {
+    void startAllPointingAnim() NO_INLINE {
         mWorldData->startAllPointingAnim();
     }
 
@@ -346,13 +326,13 @@ WMR_STATE_DECL(WorldMapResultStateRouteOpen, virtual void control(); bool isXXX(
                    }
                } void exeExtend(); void exeWaitNext(); void exeMessage(); void exeEnd();
                WorldMapResultRoute* mRoute; s32 mCount; s32 mWorldId;);
-WMR_STATE_DECL(WorldMapResultStateCometAppear, bool isXXX() const NO_INLINE; const char* getCurrentComet() const NO_INLINE; void setupComet();
+WMR_STATE_DECL(WorldMapResultStateCometAppear, bool hasComets() const NO_INLINE; const char* getCurrentComet() const NO_INLINE; void setupComet();
                void exeWait() {
                    if (!MR::isSystemWipeActive()) {
                        setNerve(GET_NERVE(WorldMapResultStateCometAppear, WorldMapResultStateCometAppearAppearComet));
                    }
                } void exeClose(); void exeOpen(); void exeAppearComet(); void exeMove(); void exeZoom(); void exeMessage(); void exeEnd();
-               bool mDone; WorldMapResultCometLayout* mLayout; s32 _18; MiniComet* mComet; MR::AssignableArray< const char* > mNames; s32 mNum;
+               bool mDone; MapGalaxyInfo* mLayout; s32 _18; MiniComet* mComet; MR::AssignableArray< const char* > mNames; s32 mNum;
                u32 mCurrent; TVec3f mFrom; TVec3f mTo;);
 WMR_STATE_DECL(WorldMapResultStateCreateTico,
                void exeWhiteWait() {

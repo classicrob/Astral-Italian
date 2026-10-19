@@ -116,11 +116,11 @@ namespace MR {
     // SMG2 DashYoshi-step variants of the map queries (unnamed in the target; named by address)
     bool fn_80037E80(TVec3f*, Triangle*, const TVec3f&, const TVec3f&);
     bool fn_80038060(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
-    // PLACEHOLDER(core): unnamed sensor-type line hit (wrapper of getFirstPolyOnLineCategoryWithSensorType); resolve when its owner names it
+    // SMG2 fn_80038020 (address-named; symbol fn_80038020__2MRF..Ul): sensor-type line hit
     bool fn_80038020(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, u32);
-    // PLACEHOLDER(core): unnamed ball-hit helper shared with Ride/GliBird.cpp; resolve when its owner names it
+    // SMG2 fn_80038770 (address-named; symbol fn_80038770__2MRF..PbPbf): ball-hit helper shared with Ride/GliBird.cpp
     s32 fn_80038770(TVec3f*, TVec3f*, HitSensor**, const TVec3f&, bool*, bool*, f32);
-    // PLACEHOLDER(core): unnamed ray-cast helper (same decl as BellyDragonTU02.cpp); resolve when its owner names it
+    // SMG2 fn_80038870 (address-named; symbol fn_80038870__2MRF..PbPbf): ray-cast helper (same decl as BellyDragonTU02.cpp)
     s32 fn_80038870(const TVec3f&, TVec3f*, const TVec3f&, TVec3f*, HitSensor**, bool*, bool*, f32);
     bool fn_800382E0(const TVec3f&, const TVec3f&);
     bool fn_800384C0(const TVec3f&, const TVec3f&, const LiveActor*);

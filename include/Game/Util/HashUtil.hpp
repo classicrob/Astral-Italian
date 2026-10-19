@@ -28,15 +28,23 @@ public:
         return add(hash, reinterpret_cast< uintptr_t >(pPayload));
     }
 
-    // Writes the found pointer straight into *ppOut (same store the original code did through a u32*).
+    // Like search(): *ppOut (must be non-null) becomes the found pointer, or nullptr when not found. Aliasing-safe (goes
+    // through a uintptr_t local). Where the original stored into an initialised local, use `uintptr_t v = 0; search(name, &v)`
+    // + reinterpret_cast<T*>(v) instead to keep the Wii code identical.
     template < typename T >
     bool searchPtr(const char* pName, T** ppOut) {
-        return search(pName, reinterpret_cast< uintptr_t* >(ppOut));
+        uintptr_t payload;
+        bool found = search(pName, &payload);
+        *ppOut = reinterpret_cast< T* >(payload);
+        return found;
     }
 
     template < typename T >
     bool searchPtr(u32 hash, T** ppOut) {
-        return search(hash, reinterpret_cast< uintptr_t* >(ppOut));
+        uintptr_t payload;
+        bool found = search(hash, &payload);
+        *ppOut = reinterpret_cast< T* >(payload);
+        return found;
     }
 
     /* 0x00 */ bool mHasBeenSorted;  // layout copied from Petari, not yet verified against SB4E01 (ctor is 0x7C)

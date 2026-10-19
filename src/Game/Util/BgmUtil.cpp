@@ -268,24 +268,16 @@ namespace MR {
             return;
         }
 
-        if (AudWrap::getBgmMgr()->mCurrentBGM[0] == id) {
-            if (volumeIndex < 0) {
-                return;
-            }
-
-            s32 volumeID = AudStageBgmWrap::getStageBgmVolumeIDAtIndex(getCurrentStageName(), volumeIndex);
+        if (AudWrap::getBgmMgr()->mCurrentBGM[0] != id) {
             AudBgm* pStageBgm = AudWrap::getStageBgm();
-
-            if (pStageBgm != nullptr) {
-                pStageBgm->changeTrackMuteState(volumeID, 0xF0);
-            }
-        } else {
-            AudBgm* pStageBgm = AudWrap::getStageBgm();
-
-            if (pStageBgm != nullptr) {
-                pStageBgm->stop(60);
-            }
+            if (pStageBgm != nullptr) pStageBgm->stop(60);
+            return;
         }
+        if (volumeIndex < 0) return;
+        s32 volumeID = AudStageBgmWrap::getStageBgmVolumeIDAtIndex(getCurrentStageName(), volumeIndex);
+        if (volumeID < 0) return;
+        AudBgm* pStageBgm = AudWrap::getStageBgm();
+        if (pStageBgm != nullptr) pStageBgm->changeTrackMuteState(volumeID, 0xF0);
     }
 
     // was fn_8001B510
@@ -310,6 +302,7 @@ namespace MR {
         }
 
         s32 volumeID = AudStageBgmWrap::getStageBgmVolumeIDAtIndex(getCurrentStageName(), volumeIndex);
+        if (volumeID < 0) return;
         AudBgm* pStageBgm = AudWrap::getStageBgm();
 
         if (pStageBgm != nullptr) {
@@ -430,9 +423,8 @@ namespace MR {
             pStageBgm->stop(10);
         }
 
-        // PLACEHOLDER(core): AudSceneMgr bytes 0x0C/0x0D not named in AudSceneMgr.hpp
-        *(reinterpret_cast< u8* >(AudWrap::getSceneMgr()) + 0xD) = 1;
-        *(reinterpret_cast< u8* >(AudWrap::getSceneMgr()) + 0xC) = 1;
+        AudWrap::getSceneMgr()->_1D = true;
+        AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
     }
 
     void startBossRushBGM() {
@@ -455,7 +447,7 @@ namespace MR {
 
     // NONMATCHING: regalloc/order (target keeps the string base in r31 and hoists the sceneMgr store).
     JAISoundHandle* startStarChanceBGM(bool param1) {
-        *(reinterpret_cast< u8* >(AudWrap::getSceneMgr()) + 0xC) = 1;
+        AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
         clearBgmQueue();
 
         if (isPlayerDead()) {
@@ -519,11 +511,12 @@ namespace MR {
         }
     }
 
+#pragma dont_inline on
     bool isFirstGrandStarReturnBGMStage() {
         return isEqualString(GameSequenceFunction::getClearedStageName(), "VsKoopaJrLv1Galaxy");
     }
 
-    // NONMATCHING: MWCC inlines isFirstGrandStarReturnBGMStage here; the target keeps it as a call.
+#pragma dont_inline reset
     const char* getGrandStarReturnBGMName() {
         if (isFirstGrandStarReturnBGMStage()) {
             return "STM_SMG2_FIRST_ASTRO";
@@ -574,12 +567,11 @@ namespace MR {
 
     // NONMATCHING: regalloc/order (target hoists li r31,1 above the getSceneMgr call).
     void setCubeBgmChangeInvalid() {
-        // PLACEHOLDER(core): AudSceneMgr byte 0x0C not named in AudSceneMgr.hpp (AudSceneMgr.hpp _1D is 0x1D)
-        *(reinterpret_cast< u8* >(AudWrap::getSceneMgr()) + 0xC) = 1;
+        AudWrap::getSceneMgr()->mIsNewPlayerMode = true;
     }
 
     bool isCubeBgmChangeInvalid() {
-        return *reinterpret_cast< bool* >(reinterpret_cast< u8* >(AudWrap::getSceneMgr()) + 0xC);
+        return AudWrap::getSceneMgr()->mIsNewPlayerMode;
     }
 
     void clearBgmQueue() {

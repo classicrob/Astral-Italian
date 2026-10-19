@@ -33,6 +33,10 @@ ResourceHolder* ResourceHolderManager::createAndAdd(const char* pArcName, JKRHea
     return createAndAddInner(pArcName, MR::makeObjectArchiveFileName, startCreateResourceHolderOnMainThread)->mResourceHolder;
 }
 
+ResourceHolder* ResourceHolderManager::createAndAddRawData(const char* name) {
+    return createAndAddInner(name, nullptr, startCreateResourceHolderOnMainThread)->mResourceHolder;
+}
+
 ResourceHolder* ResourceHolderManager::createAndAddStationed(const char* pParam1) {
     return createAndAddInnerStationed(pParam1, &ResourceHolderManager::createResourceHolder)->mResourceHolder;
 }
@@ -85,6 +89,14 @@ void ResourceHolderManager::removeIfIsEqualHeap(JKRHeap* pHeap) {
     }
 }
 
+void ResourceHolderManager::clearResourceHolderSceneData() {
+    for (ResourceHolderManagerName2Resource* entry = mResourceArray.begin(); entry != mResourceArray.end(); entry++) {
+        if (entry->mResourceHolder != nullptr) {
+            entry->mResourceHolder->restoreInitMaterialData();
+        }
+    }
+}
+
 void ResourceHolderManager::startCreateResourceHolderOnMainThread(const char* pParam1, CreateResourceHolderArgs* pArgs) {
     MR::startFunctionAsyncExecuteOnMainThread(MR::Functor(SingletonHolder< ResourceHolderManager >::get(), createResourceHolder, pParam1, pArgs),
                                               pParam1);
@@ -97,17 +109,22 @@ void ResourceHolderManager::startCreateLayoutHolderOnMainThread(const char* pPar
 
 ResourceHolderManagerName2Resource* ResourceHolderManager::createAndAddInner(const char* pArcName,
                                                                              MakeArchiveFileNameFuncPtr pMakeArchiveFileNameFunc, FuncPtrB pParam3) {
-    ResourceHolderManagerName2Resource* pName2Resource = find(pArcName);
+    ResourceHolderManagerName2Resource* pName2Resource = find(pMakeArchiveFileNameFunc != nullptr ? pArcName : MR::getBasename(pArcName));
 
     if (pName2Resource != nullptr) {
         return pName2Resource;
     }
 
     char archivePath[128];
-    (*pMakeArchiveFileNameFunc)(archivePath, sizeof(archivePath), pArcName);
+    if (pMakeArchiveFileNameFunc != nullptr) {
+        (*pMakeArchiveFileNameFunc)(archivePath, sizeof(archivePath), pArcName);
+    } else {
+        MR::copyString(archivePath, pArcName, sizeof(archivePath));
+        MR::isFileExistOnDisc(archivePath, false);
+    }
 
     if (MR::receiveArchive(archivePath) == nullptr) {
-        MR::mountArchive(archivePath, MR::getCurrentHeap(), true);
+        MR::mountArchive(archivePath, MR::getFileCacheHeap(), true);
     }
 
     CreateResourceHolderArgs args = CreateResourceHolderArgs();

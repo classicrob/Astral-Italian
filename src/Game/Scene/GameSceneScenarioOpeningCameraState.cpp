@@ -1,5 +1,9 @@
 #include "Game/Scene/GameSceneScenarioOpeningCameraState.hpp"
 #include "Game/AudioLib/AudSystem.hpp"
+#include "Game/GameAudio/AudStageBgmTable.hpp"
+#include "Game/Demo/ScenarioStarter.hpp"
+#include "Game/NameObj/NameObjFinder.hpp"
+#include "Game/Util/BgmUtil.hpp"
 #include "Game/AudioLib/AudWrap.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Screen/ScenarioTitle.hpp"
@@ -14,14 +18,14 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
-namespace {
-    NEW_NERVE(GameSceneScenarioOpeningCameraStateWait, GameSceneScenarioOpeningCameraState, Wait);
-    NEW_NERVE(GameSceneScenarioOpeningCameraStatePlay, GameSceneScenarioOpeningCameraState, Play);
+namespace NrvGameSceneScenarioOpeningCameraState {
+    NEW_NERVE(GameSceneScenarioOpeningCameraStateNrvWait, GameSceneScenarioOpeningCameraState, Wait);
+    NEW_NERVE(GameSceneScenarioOpeningCameraStateNrvPlay, GameSceneScenarioOpeningCameraState, Play);
 };  // namespace
 
 GameSceneScenarioOpeningCameraState::GameSceneScenarioOpeningCameraState() : NerveExecutor("シナリオ開始カメラ再生") {
     mBaseMtx.identity();
-    initNerve(GET_NERVE_ANON(GameSceneScenarioOpeningCameraStatePlay));
+    initNerve(GET_NERVE(GameSceneScenarioOpeningCameraState, GameSceneScenarioOpeningCameraStateNrvPlay));
     mScenarioTitle = new ScenarioTitle();
     mScenarioTitle->initWithoutIter();
     mScenarioTitle->kill();
@@ -32,7 +36,7 @@ void GameSceneScenarioOpeningCameraState::update() {
 }
 
 bool GameSceneScenarioOpeningCameraState::isDone() const {
-    return isNerve(GET_NERVE_ANON(GameSceneScenarioOpeningCameraStateWait));
+    return isNerve(GET_NERVE(GameSceneScenarioOpeningCameraState, GameSceneScenarioOpeningCameraStateNrvWait));
 }
 
 void GameSceneScenarioOpeningCameraState::start() {
@@ -42,24 +46,40 @@ void GameSceneScenarioOpeningCameraState::start() {
     MR::startStarPointerModeDemo(this);
     MR::forceOpenWipeFade();
     MR::forceToFrameCinemaFrame();
-    MR::startStageBGM("BGM_START_DEMO", false);
+    MR::startSubBGM("BGM_JG_START_CAMERA_DEMO", false);
+    if (AudStageBgmTable::isFirstVisitStart(MR::getCurrentStageName(), MR::getCurrentScenarioNo())) {
+        s32 scenario = MR::getCurrentScenarioNo();
+        const char* stage = MR::getCurrentStageName();
+        // The target passes the scene controller in the ignored first argument.
+        MR::startStageBGMFromStageName(reinterpret_cast<const char*>(MR::getCurrentGameSystemSceneController()), stage, scenario, false, true);
+    }
     PSMTXCopy(MR::getPlayerBaseMtx(), mBaseMtx);
 
     TVec3f namePos;
 
-    if (MR::tryFindNamePos("スタートカメラマリオ座標", &namePos, nullptr)) {
-        MR::setPlayerPos("スタートカメラマリオ座標");
+    if (MR::tryFindNamePos("オープニングカメラマリオ座標", &namePos, nullptr)) {
+        MR::setPlayerPos("オープニングカメラマリオ座標");
+    } else {
+        ScenarioStarter* starter = static_cast<ScenarioStarter*>(NameObjFinder::find("シナリオスターター"));
+        if (starter != nullptr) {
+            TVec3f pos;
+            starter->getStartPos(&pos);
+            MR::setPlayerPos(pos);
+        }
     }
 }
 
 void GameSceneScenarioOpeningCameraState::end() {
-    MR::stopStageBGM(10);
+    MR::stopSeCategories(30);
+    MR::stopSubBGM(10);
     MR::playSceneForScenarioOpeningCamera();
     MR::showPlayer();
     MR::endStartAnimCamera();
     MR::endStarPointerMode(this);
     mScenarioTitle->kill();
-    MR::setPlayerBaseMtx(mBaseMtx);
+    if (NameObjFinder::find("シナリオスターター") == nullptr) {
+        MR::setPlayerBaseMtx(mBaseMtx);
+    }
 }
 
 void GameSceneScenarioOpeningCameraState::exeWait() {
@@ -69,13 +89,15 @@ void GameSceneScenarioOpeningCameraState::exePlay() {
     if (MR::isFirstStep(this)) {
         mScenarioTitle->start();
         MR::deactivateDefaultGameLayout();
+        MR::killDestroyCounter();
         start();
     }
 
     if (trySkipTrigger()) {
         end();
         MR::forceToBlankCinemaFrame();
-        setNerve(GET_NERVE_ANON(GameSceneScenarioOpeningCameraStateWait));
+        MR::forceOpenSystemWipeFade();
+        setNerve(GET_NERVE(GameSceneScenarioOpeningCameraState, GameSceneScenarioOpeningCameraStateNrvWait));
     } else {
         if (MR::isStep(this, MR::getStartAnimCameraFrame() - 60)) {
             MR::tryFrameToBlankCinemaFrame();
@@ -88,7 +110,7 @@ void GameSceneScenarioOpeningCameraState::exePlay() {
 
         if (MR::isStartAnimCameraEnd() && MR::isStopCinemaFrame()) {
             end();
-            setNerve(GET_NERVE_ANON(GameSceneScenarioOpeningCameraStateWait));
+            setNerve(GET_NERVE(GameSceneScenarioOpeningCameraState, GameSceneScenarioOpeningCameraStateNrvWait));
         }
     }
 }

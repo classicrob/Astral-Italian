@@ -66,29 +66,32 @@ void WPadStick::update() {
     mTrigger = flag & ~flagPrev;
     mRelease = flagPrev & ~flag;
 
-    if (mStick.y == 0.0f) {
-        mIsTriggerUp = false;
-        mIsTriggerDown = false;
-        mIsHoldUp = false;
-        mIsHoldDown = false;
-    } else if (mStick.y > 0.0f) {
-        if (mIsHoldUp) {
-            mIsTriggerUp = false;
-        } else {
+    if (mHold & STICK_FLAG_UP) {
+        if (mUpRepeatFrame == 0) {
             mIsTriggerUp = true;
-        }
-
-        mIsHoldUp = true;
-        mIsHoldDown = false;
-    } else {
-        if (mIsHoldDown) {
-            mIsTriggerDown = false;
+        } else if (mUpRepeatFrame - 25 > 0 && (mUpRepeatFrame - 25) % 5 == 0) {
+            mIsTriggerUp = true;
         } else {
-            mIsTriggerDown = true;
+            mIsTriggerUp = false;
         }
+        mUpRepeatFrame++;
+    } else {
+        mUpRepeatFrame = 0;
+        mIsTriggerUp = false;
+    }
 
-        mIsHoldDown = true;
-        mIsHoldUp = false;
+    if (mHold & STICK_FLAG_DOWN) {
+        if (mDownRepeatFrame == 0) {
+            mIsTriggerDown = true;
+        } else if (mDownRepeatFrame - 25 > 0 && (mDownRepeatFrame - 25) % 5 == 0) {
+            mIsTriggerDown = true;
+        } else {
+            mIsTriggerDown = false;
+        }
+        mDownRepeatFrame++;
+    } else {
+        mDownRepeatFrame = 0;
+        mIsTriggerDown = false;
     }
 }
 

@@ -1,4 +1,5 @@
 #include "Game/Util/PlayerUtil.hpp"
+#include "Game/Animation/XanimeResource.hpp"
 #include "Game/Util.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -29,6 +30,14 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/Util/SupportPlayUtil.hpp"
 
+extern XanimeGroupInfo playerGhostAnimeGroups[];
+extern XanimeOfsInfo playerGhostAnimeOffsets[];
+extern XanimeBckTable1 playerGhostSingleAnimes[];
+extern XanimeBckTable2 playerGhostDoubleAnimes[];
+extern XanimeBckTable3 playerGhostTripleAnimes[];
+extern XanimeBckTable4 playerGhostQuadAnimes[];
+extern XanimeSwapTable playerGhostLuigiSwap[];
+
 namespace MR {
     bool isOnGroundPlayer() {
         return MarioAccess::isOnGround(0);
@@ -47,8 +56,8 @@ namespace MR {
         return MarioAccess::forceKill(5, 0);
     }
 
-    f32 getPlayerShadowHeight() {
-        return MarioAccess::fn_803B57A0();
+    void forceGameOverPlayerBySink() {
+        MarioAccess::forceGameOverSink();
     }
 
 
@@ -219,11 +228,11 @@ namespace MR {
     }
 
     bool isBckStoppedPlayer() {
-        return MR::isActionEnd(MarioAccess::getPlayerActor());
+        return MR::isActionEnd(MarioAccess::getPlayerOrYoshiActor());
     }
 
     bool isBckOneTimeAndStoppedPlayer() {
-        return MR::isBckOneTimeAndStopped(MarioAccess::getPlayerActor());
+        return MR::isBckOneTimeAndStopped(MarioAccess::getPlayerOrYoshiActor());
     }
 
 
@@ -271,6 +280,15 @@ namespace MR {
 
     XanimeResourceTable* getPlayerXanimeResource() {
         return MarioAccess::getPlayerActor()->getResourceTable();
+    }
+
+    // NONMATCHING: external animation-table address materialization; target table identities verified
+    XanimeResourceTable* createPlayerXanimeResource(bool isLuigi) {
+        XanimeSwapTable* swap = nullptr;
+        if (isLuigi) swap = playerGhostLuigiSwap;
+        return new XanimeResourceTable(MR::getResourceHolder(MarioAccess::getPlayerActor()), playerGhostAnimeGroups,
+                                      playerGhostAnimeOffsets, playerGhostSingleAnimes, playerGhostDoubleAnimes,
+                                      playerGhostTripleAnimes, playerGhostQuadAnimes, swap);
     }
 
     void jumpPlayer(const TVec3f& rParam1) {
@@ -761,18 +779,15 @@ namespace MR {
         MarioAccess::killTakingActor();
     }
 
-    bool isPlayerCarrySensorType(u32 param1) {
-        if (MarioAccess::getTakingSensor() != nullptr) {
-            if (param1 == 0) {
-                return true;
-            }
-
-            return MarioAccess::getTakingSensor()->isType(param1);
-        }
-
-        return false;
+    bool isPlayerCarrySensorType(u32 type) {
+        if (MarioAccess::getTakingSensor() == nullptr) return false;
+        if (type == 0) return true;
+        return MarioAccess::getTakingSensor()->isType(type);
     }
 
+    bool isPlayerLifeDecreasedThisFrame() {
+        return MarioAccess::getPlayerActor()->mLifeDecreasedThisFrame;
+    }
 
     bool isPlayerCarryAny() {
         return MarioAccess::getPlayerActor()->_468 != 0;
@@ -795,8 +810,16 @@ namespace MR {
         MR::startSound(MarioAccess::getPlayerActor(), id, param2, param3);
     }
 
+    JAISoundHandle* startSoundPlayerById(s32 id, s32 pitch, s32 velocity) {
+        return MR::startSound(MarioAccess::getPlayerActor(), JAISoundID(id), pitch, velocity);
+    }
+
     void startLevelSoundPlayer(const char* pName, s32 param1) {
         MR::startLevelSound(MarioAccess::getPlayerActor(), pName, param1);
+    }
+
+    JAISoundHandle* startLevelSoundPlayerById(s32 id, s32 pitch) {
+        return MR::startLevelSound(MarioAccess::getPlayerActor(), JAISoundID(id), pitch, -1, -1);
     }
 
     void stopSoundPlayer(const char* pName, u32 param1) {
@@ -919,10 +942,32 @@ namespace MR {
         MarioAccess::setBaseMtx(pMtx);
     }
 
-    // PLACEHOLDER(core): name by behavior; builds base mtx from quat + pos
+    // NONMATCHING: regalloc and matrix-store scheduling; all 12 ordered float expressions proven equal in sol-i/quat-proof.txt
     void setPlayerQuatAndPos(TQuat4f* pQuat, TVec3f* pPos) {
         TPos3f mtx;
-        mtx.setQT(*pQuat, *pPos);
+        f32 y2 = 2.0f * pQuat->y;
+        f32 x2 = 2.0f * pQuat->x;
+        f32 z2 = 2.0f * pQuat->z;
+        f32 yy = y2 * pQuat->y;
+        f32 xx = x2 * pQuat->x;
+        f32 w2 = 2.0f * pQuat->w;
+        mtx.setTrans(*pPos);
+        f32 zz = z2 * pQuat->z;
+        mtx.mMtx[1][1] = 1.0f - xx - zz;
+        mtx.mMtx[0][0] = 1.0f - yy - zz;
+        f32 xy = x2 * pQuat->y;
+        f32 xz = x2 * pQuat->z;
+        f32 wz = w2 * pQuat->z;
+        mtx.mMtx[2][2] = 1.0f - xx - yy;
+        f32 wy = w2 * pQuat->y;
+        mtx.mMtx[0][1] = xy - wz;
+        mtx.mMtx[0][2] = xz + wy;
+        mtx.mMtx[1][0] = xy + wz;
+        mtx.mMtx[2][0] = xz - wy;
+        f32 yz = y2 * pQuat->z;
+        f32 wx = w2 * pQuat->x;
+        mtx.mMtx[1][2] = yz - wx;
+        mtx.mMtx[2][1] = yz + wx;
         MarioAccess::setBaseMtx(mtx.toMtxPtr());
     }
 
@@ -930,7 +975,6 @@ namespace MR {
         return MarioAccess::getBaseMtx();
     }
 
-    // PLACEHOLDER(core): name by behavior; reads base mtx quat and player pos
     void getPlayerQuatAndPos(TQuat4f* pQuat, TVec3f* pPos) {
         TPos3f mtx;
         mtx.set(MarioAccess::getBaseMtx());
@@ -957,6 +1001,10 @@ namespace MR {
 
 
 
+
+    void fn_800515E0() {
+        MarioAccess::fn_803B5020(30);
+    }
 
     void calcPlayerJointMtx(TPos3f* pMtx, const char* pName) {
         pMtx->set(MarioAccess::getJointMtx(pName));
@@ -995,14 +1043,12 @@ namespace MR {
         MarioAccess::calcWorldPadDir(pDir, param2, param3);
     }
 
-    // PLACEHOLDER(core): name by behavior; dst = (a - b) with rUp killed, normalized
     void calcPlayerKillDiffVec(TVec3f* pDst, const TVec3f& rA, const TVec3f& rB, const TVec3f& rUp) {
         pDst->set(rA - rB);
         vecKillElement(*pDst, rUp, pDst);
         normalizeOrZero(pDst);
     }
 
-    // PLACEHOLDER(core): name by behavior; dst = killElement(vec, normalize(killElement(a - b, normal)))
     void calcPlayerKillVecOnPlane(TVec3f* pDst, const TVec3f& rVec, const TVec3f& rA, const TVec3f& rB, const TVec3f& rNormal) {
         TVec3f tmp;
         tmp.set(rA - rB);
@@ -1011,18 +1057,19 @@ namespace MR {
         vecKillElement(rVec, tmp, pDst);
     }
 
-    // PLACEHOLDER(core): name by behavior; dst = B + (A - B killed by C normalized, scaled by 'scale' + C * scale)
+    // Keep the normal displacement; clamp the planar radius to scale - 200.
+    // NONMATCHING: regalloc and stack layout; normal projection and float cutoff audited
     void calcPlayerScaledVec(TVec3f* pDst, const TVec3f& rA, const TVec3f& rB, const TVec3f& rC, f32 scale) {
         TVec3f tmp = rA - rB;
-        vecKillElement(tmp, rC, &tmp);
+        f32 normalDistance = vecKillElement(tmp, rC, &tmp);
 
-        f32 len2 = tmp.x * tmp.x + tmp.y * tmp.y + tmp.z * tmp.z;
-        if (len2 > 3.8146973e-06f) {
+        f32 len2 = tmp.squared();
+        if (!(len2 <= 3.8146973e-06f)) {
             tmp.scale(JGeometry::TUtil<f32>::inv_sqrt(len2) * (scale - 200.0f));
         }
 
         TVec3f add(rC);
-        add.scale(scale);
+        add.scale(normalDistance);
         tmp += add;
 
         TVec3f result(rB);

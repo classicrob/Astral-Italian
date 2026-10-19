@@ -126,7 +126,7 @@ void BossJugem::control() {
     updateCameraTarget();
     mTogezoMgr->updateAll();
     if (isAngrySmoke()) {
-        MR::emitEffect(this, "AngrySmoke");
+        MR::tryEmitEffect(this, "AngrySmoke");
     } else if (!isNerve(&NrvBossJugem::BossJugemNrvSleep::sInstance)) {
         MR::tryDeleteEffect(this, "AngrySmoke");
     }

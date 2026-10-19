@@ -1,6 +1,7 @@
 #include "Game/Util/StringUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Screen/ReplaceTagProcessor.hpp"
+#include "Game/Screen/MessageTagSkipTagProcessor.hpp"
 #include "Game/Util/EventUtil.hpp"
 #include "Game/Util/MessageUtil.hpp"
 #include <cctype>
@@ -54,6 +55,12 @@ namespace MR {
         ReplaceTagFunction::ReplaceArgs(pDst, size, pMessage, hour, minute);
     }
 
+    void makePlayTimeString(wchar_t* pDst, s32 size, u32 time) {
+        const wchar_t* pMessage = MR::getGameMessageDirect("System_Time002");
+        s32 minutes = time / FRAME_PER_MIN;
+        ReplaceTagFunction::ReplaceArgs(pDst, size, pMessage, time / FRAME_PER_HOUR, minutes % SEC_PER_MIN);
+    }
+
     void makeClearTimeString(wchar_t* pDst, u32 frame) {
         s32 minute;
         s32 second;
@@ -74,6 +81,21 @@ namespace MR {
         const wchar_t* pMessage = MR::getGameMessageDirect("System_Time000");
 
         ReplaceTagFunction::ReplaceArgs(pDst, 9, pMessage, 0, minute, second, centisecond);
+    }
+
+    void makeHoursMinuteSecondString(wchar_t* pDst, u32 frame) {
+        s32 hour, minute, second;
+        if (frame >= 1000U * FRAME_PER_HOUR) {
+            hour = 999;
+            minute = 59;
+            second = 59;
+        } else {
+            hour = frame / FRAME_PER_HOUR;
+            minute = (frame % FRAME_PER_HOUR) / FRAME_PER_MIN;
+            second = (frame % FRAME_PER_MIN) / FRAME_PER_SEC;
+        }
+        const wchar_t* pMessage = MR::getGameMessageDirect("System_Time003");
+        ReplaceTagFunction::ReplaceArgs(pDst, 10, pMessage, hour, minute, second);
     }
 
     void makeMinuteAndSecondString(wchar_t* pDst, u32 frame) {
@@ -104,7 +126,9 @@ namespace MR {
             return pDirSeparator;
         }
 
-        *pExtSeparator = '\0';
+        if (pExtSeparator != nullptr) {
+            *pExtSeparator = '\0';
+        }
 
         return pDirSeparator;
     }
@@ -259,34 +283,29 @@ namespace MR {
     }
 
     bool isMessageEditorNextTag(const wchar_t* pStr) {
-        const Tag* pTag = reinterpret_cast< const Tag* >(pStr);
-        u8 v1 = pTag->_3;
-        wchar_t v2 = pTag->mBuffer[0];
-
-        return v1 == 1 && v2 == 1;
+        if (*pStr != 0xE) {
+            return false;
+        }
+        s32 group = MessageEditorMessageTag(pStr + 1).getGroup();
+        s32 tag = MessageEditorMessageTag(pStr + 1).getTag();
+        return group == 1 && tag == 1;
     }
 
     int getStringLengthWithMessageTag(const wchar_t* pMessage) {
         int length = 0;
-
-        while (*pMessage != '\0') {
-            if (*pMessage == 0x1A) {
+        while (*pMessage != 0) {
+            if (*pMessage == 0xE) {
                 if (isMessageEditorNextTag(pMessage)) {
                     break;
                 }
-
-                u16 dataSize = reinterpret_cast< const Tag* >(pMessage)->mDataSize;
-
-                pMessage += dataSize / sizeof(u16);
-                length += dataSize / sizeof(u16);
-                pMessage--;
-                length--;
+                MessageEditorMessageTag tag(pMessage + 1);
+                u32 skip = static_cast<u16>(tag.mMessage[2]) / sizeof(u16) + 3;
+                pMessage += skip;
+                length += skip;
             }
-
             pMessage++;
             length++;
         }
-
         return length;
     }
 

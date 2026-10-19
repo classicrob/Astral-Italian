@@ -33,8 +33,7 @@ void StarPieceMother::init(const JMapInfoIter& rIter) {
     } else {
         initRailRider(rIter);
         MR::moveCoordAndTransToRailStartPoint(this);
-        MR::needStageSwitchReadAppear(this, rIter);
-        MR::syncStageSwitchAppear(this);
+        MR::syncStageSwitchAppearAndSync(this, rIter);
     }
 
     MR::useStageSwitchWriteDead(this, rIter);

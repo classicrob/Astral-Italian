@@ -606,13 +606,13 @@ void Mario::fn_803A6BE0() {
     }
 }
 
-// NONMATCHING: timer decay and slope handling approximated
+// NONMATCHING: register allocation.
 void Mario::fn_803A7540() {
     if (!((this->mMovementStates.mHighWord >> 28) & 1)) {
-        FLD<TVec3f>(this, 0x1A8) = FLD<TVec3f>(this, 0x160);
+        this->_1A8 = this->mVelocity;
         this->_3C2 = 0;
         this->_280 = 0.0f;
-        FLD<TVec3f>(this, 0x284).zero();
+        this->_284.zero();
     } else {
         this->_3C2 += 1;
     }
@@ -622,53 +622,60 @@ void Mario::fn_803A7540() {
     if (((this->mMovementStates.mLowWord >> 30) & 1) && ((this->mMovementStates.mLowWord >> 31) == 0)) {
         if (this->isEnableSlopeMove()) {
             this->slopeMove();
+        } else {
+            this->clearSlope();
         }
-        this->clearSlope();
     }
 }
 
-// NONMATCHING: yoshi morph-trigger gate approximated
+// NONMATCHING: flag lowering.
 void Mario::fn_803B0E60() {
-    Mario* m = reinterpret_cast<Mario*>(this);
     if (this->isPlayerModeYoshi() && YoshiParam::fn_8041BD60() != 0) {
         if (this->mActor->fn_803B9810()->fn_8041F910() != 0 && this->checkTrgA() && this->checkLvlZ()) {
-            m->fn_803B0EF0();
-            FLD<u8>(m, 0xA91) = 1;
+            this->fn_803B0EF0();
+            this->mStateFlags._1 = true;
         }
     }
 }
 
-// NONMATCHING: yoshi mount/dismount setup approximated; vector math simplified
+// NONMATCHING: temporary/register allocation.
 void Mario::fn_803B0EF0() {
-    Mario* m = reinterpret_cast<Mario*>(this);
     if (this->isPlayerModeYoshi()) {
         this->mMorphResetTimer = 0;
-        m->mMovementStates.mHighWord |= 0x40000;
+        this->getPlayer()->mMovementStates.mHighWord |= 0x40000000U;
+        this->getPlayer()->mMovementStates.mLowWord &= 0xFFDFFFFFU;
         this->mActor->mMarioAnim->fn_803DF9D0();
         this->mActor->fn_803B9810()->fn_8041FD00();
-        TVec3f sp68(*m->getGravityVec());
-        sp68 *= -m->mVelocity.dot(*m->getGravityVec());
+        const TVec3f* gravity = this->getGravityVec();
+        TVec3f sp68;
+        JMAVECScaleAdd(gravity, &this->mVelocity, &sp68, -gravity->dot(this->mVelocity));
         TVec3f sp5C;
-        PSVECCrossProduct(&m->mSideVec, &sp68, &sp5C);
-        MR::normalizeOrZero(&sp5C);
-        sp5C *= YoshiParam::fn_8041BD90();
-        TVec3f sp2C(*m->getGravityVec());
+        PSVECCrossProduct(this->getGravityVec(), &this->mSideVec, &sp5C);
+        if (!MR::normalizeOrZero(&sp5C)) {
+            sp5C *= YoshiParam::fn_8041BD90();
+        }
+        MarioActor* actor = this->mActor;
+        TVec3f sp2C(*this->getGravityVec());
         sp2C *= 20.0f;
         TVec3f sp38(sp68);
         sp38 += sp5C;
         TVec3f sp44(sp38);
         sp44 += sp2C;
-        this->mActor->fn_803B97F0()->fn_8040CCD0(sp44);
+        actor->fn_803B97F0()->fn_8040CCD0(sp44);
         f32 t31 = YoshiParam::fn_8041BD80();
-        TVec3f sp8(*m->getGravityVec());
+        TVec3f sp8(*this->getGravityVec());
         sp8 *= t31;
         TVec3f sp14(sp68);
         sp14 -= sp5C;
         TVec3f sp20(sp14);
         sp20 -= sp8;
-        FLD<TVec3f>(m, 0x304) = sp20;
-        this->changeAnimation("飛び込み準備", "基本");
+        this->mMovementStates.mHighWord |= 0x40000U;
+        this->_304 = sp20;
+        this->changeAnimation("ヨッシー離脱ジャンプ", "落下");
         this->mActor->setPlayerMode(0, true, true);
+        TVec3f jointPosition;
+        MR::copyJointPos(this->mActor->fn_803B97F0(), "MarioPos", &jointPosition);
+        MR::setPlayerPos(jointPosition);
     }
 }
 
@@ -1024,23 +1031,21 @@ void Mario::fn_803B4280() {
     }
 }
 
-// NONMATCHING: knock-back on steep normals approximated
+// NONMATCHING: register allocation and flag lowering.
 void Mario::fn_803B44F0(TVec3f* arg1) {
-    Mario* m = reinterpret_cast<Mario*>(this);
     TVec3f sp14(*arg1);
     MR::normalizeOrZero(&sp14);
     if (this->calcAngleD(sp14) > 45.0f) {
         TVec3f sp8(*arg1);
         sp8 *= 0.2f;
-        m->blown(sp8);
-        FLD<u16>(m, 0x402) = 0;
-        FLD<u16>(m, 0x428) = 0x3C;
-        FLD<u32>(m, 0x10) = (FLD<u32>(m, 0x10) | 0x100000) & 0xFFFFFFFC;
-    }
-    if (FLD<TVec3f>(m, 0x1FC).dot(*arg1) < 0.0f) {
-        FLD<u32>(m, 0xC) |= 0x40000000;
-        FLD<TVec3f>(m, 0x2D4).zero();
-        this->changeAnimation("空中一回転", (const char*)nullptr);
+        this->blown(sp8);
+        this->_402 = 0;
+        this->_428 = 0x3C;
+        this->mMovementStates.mHighWord = (this->mMovementStates.mHighWord | 0x100000U) & 0xFFFFFFFCU;
+    } else if (this->_1FC.dot(*arg1) < 0.0f) {
+        this->mMovementStates.mLowWord |= 0x40000000U;
+        this->mJumpVec.zero();
+        this->changeAnimation("空中一回転", static_cast<const char*>(nullptr));
     }
 }
 

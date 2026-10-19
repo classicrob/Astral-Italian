@@ -2841,26 +2841,51 @@ void Mario::fixTransBetweenWall(const TVec3f& rFirst, const TVec3f& rSecond) {
 }
 
 
+// NONMATCHING: stack-slot allocation.
 f32 Mario::calcDistWidth() {
     Triangle triangle;
     TVec3f hitPos;
 
     if (mMovementStates._8) {
-        if (MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4E8, *mFrontWallTriangle->getNormal(0) * 100.0f)) {
+        TVec3f direction(*mFrontWallTriangle->getNormal(0));
+        direction *= 100.0f;
+        bool hit;
+        if (fn_803B2950()) {
+            hit = MR::fn_80037E80(&hitPos, &triangle, _4E8, direction);
+        } else {
+            hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4E8, direction);
+        }
+        if (hit) {
             fixTransBetweenWall(hitPos, _4E8);
             return (hitPos - _4E8).length();
         }
     }
 
     if (mMovementStates._19) {
-        if (MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4F4, *mBackWallTriangle->getNormal(0) * 100.0f)) {
+        TVec3f direction(*mBackWallTriangle->getNormal(0));
+        direction *= 100.0f;
+        bool hit;
+        if (fn_803B2950()) {
+            hit = MR::fn_80037E80(&hitPos, &triangle, _4F4, direction);
+        } else {
+            hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _4F4, direction);
+        }
+        if (hit) {
             fixTransBetweenWall(hitPos, _4F4);
             return (hitPos - _4F4).length();
         }
     }
 
     if (mMovementStates._1A) {
-        if (MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _500, *mSideWallTriangle->getNormal(0) * 100.0f)) {
+        TVec3f direction(*mSideWallTriangle->getNormal(0));
+        direction *= 100.0f;
+        bool hit;
+        if (fn_803B2950()) {
+            hit = MR::fn_80037E80(&hitPos, &triangle, _500, direction);
+        } else {
+            hit = MR::getFirstPolyOnLineToMap(&hitPos, &triangle, _500, direction);
+        }
+        if (hit) {
             fixTransBetweenWall(hitPos, _500);
             return (hitPos - _500).length();
         }
@@ -2869,7 +2894,7 @@ f32 Mario::calcDistWidth() {
     TVec3f center = mPosHolder->mPos + mHeadVec * 80.0f;
     TVec3f firstPos;
     TVec3f secondPos;
-    u32 count = Collision::checkStrikeBallToMap(center, 30.0f, nullptr, nullptr);
+    u32 count = fn_803B29B0(center, 30.0f);
 
     if (count < 2) {
         return 100.0f;
@@ -2878,11 +2903,11 @@ f32 Mario::calcDistWidth() {
     f32 width = 100.0f;
 
     for (u32 i = 0; i < count; i++) {
-        const HitInfo* first = Collision::getStrikeInfoMap(i);
+        const HitInfo* first = fn_803B2AA0(i);
         TVec3f firstNormal(*first->mParentTriangle.getNormal(0));
 
         for (u32 j = i + 1; j < count; j++) {
-            const HitInfo* second = Collision::getStrikeInfoMap(j);
+            const HitInfo* second = fn_803B2AA0(j);
             TVec3f secondNormal(*second->mParentTriangle.getNormal(0));
 
             if (firstNormal.dot(secondNormal) >= -0.707f) {
@@ -4329,8 +4354,8 @@ CubeCameraArea* Mario::getCameraCubeCode() const {
 }
 
 
+// NONMATCHING: literal pool offsets; all string arguments verified.
 void Mario::updateCubeCode() {
-    AreaObj* tower;
     AreaObj* raster;
     s32 first;
     CubeCameraArea* camera;
@@ -4359,21 +4384,16 @@ void Mario::updateCubeCode() {
     }
 
     MR::tryToUpdatePlayerRestartIdInfo(mPosHolder->mPos);
-    AreaObj* pullBack = MR::getAreaObj("PullBackCube", mPosHolder->mPos);
-
-    if (pullBack == nullptr) {
-        pullBack = MR::getAreaObj("PullBackCylinder", mPosHolder->mPos);
-
-        if (pullBack != nullptr && MR::getAreaObjArg(pullBack, 0) != 1) {
-            TVec3f position;
-            TVec3f up;
-            MR::calcCylinderPos(&position, pullBack);
-            MR::calcCylinderUpVec(&up, pullBack);
-            MarioRecovery* recovery = mRecovery;
-            recovery->_4C = position;
-            recovery->_58 = up;
-            recovery->_12 = true;
-        }
+    AreaObj* pullBack = MR::getAreaObj("PullBack", mPosHolder->mPos);
+    if (pullBack != nullptr && MR::isAreaFormCylinder(pullBack) && MR::getAreaObjArg(pullBack, 0) != 1) {
+        TVec3f position;
+        TVec3f up;
+        MR::calcCylinderPos(&position, pullBack);
+        MR::calcCylinderUpVec(&up, pullBack);
+        MarioRecovery* recovery = mRecovery;
+        recovery->_4C = position;
+        recovery->_58 = up;
+        recovery->_12 = true;
     }
 
     if (pullBack != nullptr) {
@@ -4386,17 +4406,9 @@ void Mario::updateCubeCode() {
         _10._6 = true;
     }
 
-    _10._13 = false;
-    tower = MR::getAreaObj("TowerModeCylinder", mPosHolder->mPos);
+    _10._13 = MR::isInTowerModeCylinder(mPosHolder->mPos, &_6F4, &_700, &_718);
 
-    if (tower != nullptr) {
-        _10._13 = true;
-        MR::calcCylinderCenterPos(&_6F4, tower);
-        MR::calcCylinderUpVec(&_700, tower);
-        _718 = MR::getCylinderRadius(tower);
-    }
-
-    if (MR::getAreaObj("ForbidTriangleJumpCube", mPosHolder->mPos) != nullptr) {
+    if (MR::getAreaObj("ForbidTriangleJump", mPosHolder->mPos) != nullptr) {
         mDrawStates._3 = true;
     }
 
@@ -4423,11 +4435,11 @@ void Mario::updateCubeCode() {
         _10._12 = false;
     }
 
-    if (MR::getAreaObj("DashChargeCylinder", mPosHolder->mPos) != nullptr) {
+    if (MR::getAreaObj("DashChargeArea", mPosHolder->mPos) != nullptr) {
         _434 = mActor->getConst().getTable()->mItemDashTimer;
     }
 
-    raster = MR::getAreaObj("RasterScrollCube", mPosHolder->mPos);
+    raster = MR::getAreaObj("RasterScrollArea", mPosHolder->mPos);
 
     if (raster != nullptr) {
         first = MR::getAreaObjArg(raster, 0);
@@ -4440,7 +4452,7 @@ void Mario::updateCubeCode() {
     }
 
     if (!isStatusActive(MarioStatus_DarkDamage)) {
-        if (MR::getAreaObj("DarkMatterCube", mPosHolder->mPos) != nullptr) {
+        if (MR::getAreaObj("DarkMatterArea", mPosHolder->mPos) != nullptr || _960 == 41 || checkWallFloorCode(41)) {
             mActor->forceKill(4);
         }
 

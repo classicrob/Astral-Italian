@@ -115,18 +115,21 @@ void J3DMtxBuffer2::calcDrawMtx2(u32 mode, const Vec& scale, const Mtx& base, J3
     }
 }
 
+// NONMATCHING: temporary-address and count GPR allocation; scalar-pool relocations.
+#pragma push
+#pragma opt_loop_invariants off
+#pragma opt_common_subs off
 void J3DMtxBuffer2::calcDrawMtx3(u32 mode, const Vec& scale, const Mtx& base, J3DMtxBuffer* buffer, const TVec3f& pos, const TVec3f& normal) {
     Mtx viewBase;
     J3DCalcViewBaseMtx(j3dSys.getViewMtx(), scale, base, viewBase);
     u16 count = mJointTree->getDrawFullWgtMtxNum();
 
+    Mtx jointMtx;
+    TPos3f orientation;
+    Mtx flatten;
+    TVec3f trans;
+    TVec3f planar;
     for (u16 i = 0; i < count; i++) {
-        Mtx jointMtx;
-        TPos3f orientation;
-        Mtx flatten;
-        TVec3f trans;
-        TVec3f planar;
-
         MR::extractMtxTrans(buffer->getAnmMtx(mJointTree->getDrawMtxIndex(i)), &trans);
         MR::vecKillElement(trans - pos, normal, &planar);
         trans = pos + planar;
@@ -143,6 +146,8 @@ void J3DMtxBuffer2::calcDrawMtx3(u32 mode, const Vec& scale, const Mtx& base, J3
         PSMTXConcat(viewBase, jointMtx, *getDrawMtx(i));
     }
 }
+
+#pragma pop
 
 void J3DModelX::directDraw(J3DModel* model) {
     j3dSys.setModel(this);

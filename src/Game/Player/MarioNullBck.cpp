@@ -11,9 +11,11 @@ MarioNullBck::MarioNullBck(const char* pName) : LiveActor(pName) {
 MarioNullBck::~MarioNullBck() {
 }
 
+// NONMATCHING: model and action literal relocation labels.
 void MarioNullBck::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, "MarioDummyItem", false);
+    MR::initActor(this, "MarioDummyItem", false);
     MR::startAction(this, "PickUpBall");
+    MR::invalidateClipping(this);
     makeActorDead();
 }
 
@@ -26,6 +28,7 @@ void MarioNullBck::getLastPos(TVec3f* pDest) {
     MR::copyJointPos(this, "DummyItem", pDest);
 }
 
+// NONMATCHING: scalar and joint-name relocation labels.
 bool MarioNullBck::getFramePos(f32 a1, TVec3f* a2, TVec3f* a3) {
     bool ret = false;
     if (MR::isDead(this)) {
@@ -35,7 +38,7 @@ bool MarioNullBck::getFramePos(f32 a1, TVec3f* a2, TVec3f* a3) {
         a1 = MR::getBckCtrl(this)->getEnd() - 0.01f;
         ret = true;
     }
-    if ((f32)_8C >= a1) {
+    if ((f32)_8C > a1) {
         ret = true;
         a1 = MR::getBckCtrl(this)->getEnd();
     }
@@ -44,7 +47,8 @@ bool MarioNullBck::getFramePos(f32 a1, TVec3f* a2, TVec3f* a3) {
     MR::setBckRate(this, 0.0f);
     MR::updateModelManager(this);
     MR::calcAnimModelManager(this);
-    MR::copyJointPos(this, "DummyItem", a2);
-    MR::makeRTFromMtxPtr(a2, a3, MR::getJointMtx(this, "DummyPoly"), true);
+    TMtx34f jointMtx;
+    jointMtx.setInline(MR::getJointMtx(this, "DummyItem"));
+    MR::makeSRTFromMtxPtr(a2, a3, nullptr, jointMtx.toMtxPtr(), true);
     return ret;
 }

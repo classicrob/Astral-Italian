@@ -821,14 +821,14 @@ public:
     /* 0x114 */ TMtx34f _E0C;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     /* 0x144 */ TMtx34f _legacyDDC;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     union {
-        struct { u8 _pad174[0x24]; u8* mDL[2]; u32 _pad1A0; };
+        struct { u8 _pad174[0x24]; u8* mDL[2]; union { u32 _pad1A0; u32 mCurrentDLSize1A0; }; };
         /* 0x174 */ TMtx34f _legacyDAC;  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
     };
         };
         DLchanger* mBlurDisplayLists[64];
         DLchanger* _94[64];
     };
-    union { u16 _F40; struct { u8 mCurrDL; u8 _pad1A5; }; };
+    union { u16 _F40; struct { u8 mCurrDL; union { u8 _pad1A5; u8 mFirstPersonDrawHidden1A5; }; }; };
     /* 0x1A6 */ u8 _pad1A6;
     /* 0x1A7 */ u8 _1A1;  // SMG2 offset guess  // SMG2 offset guess  // SMG2 offset inh
     /* 0x1A8 */ f32 _1A4;  // SMG2 offset guess-gap

@@ -6586,7 +6586,7 @@ Game/Player/MarioSlider.cpp:
 
 Game/Player/MarioMagic.cpp:
 	.text       start:0x803F62E0 end:0x803F65B0
-	.data       start:0x806DE048 end:0x806DE090
+	.data       start:0x806DDFA8 end:0x806DE090
 
 Game/Player/MarioState.cpp:
 	.text       start:0x803F65B0 end:0x803F6740

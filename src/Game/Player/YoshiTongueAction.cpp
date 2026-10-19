@@ -383,8 +383,6 @@ void YoshiTongueAction::fn_80420AC0(TVec3f* output, const TVec3f& target, const 
     output->set(position);
 }
 
-#pragma push
-#pragma dont_inline on
 void YoshiTongueAction::fn_80420C30(TVec3f* position, const TVec3f& target, const TVec3f& gravity, f32 angle) const {
     TVec3f center;
     mTarget->fn_8041C240(&center);
@@ -403,8 +401,8 @@ void YoshiTongueAction::fn_80420C30(TVec3f* position, const TVec3f& target, cons
     result += offset;
     position->set(result);
 }
-#pragma pop
 
+// NONMATCHING: temporary stack slots, quaternion copy instruction widths and argument scheduling differ.
 void YoshiTongueAction::fn_80420D20(const TVec3f& position, const TVec3f& target, const TVec3f& gravity, f32 progress) {
     TPos3f original;
     original.set(mYoshi->getBaseMtx());
@@ -796,6 +794,7 @@ void YoshiTongueAction::fn_804217B0() { mPlayer->mActor->_pad1052 = false; }
 void YoshiTongueAction::fn_804217D0() {
     if (MR::isEqualString(mTarget->fn_8041C4A0()->mName, "ホーミングキラー")) MR::emitEffect(mYoshi, "KeepMouthKiller");
 }
+// NONMATCHING: positive countdown is tested directly instead of materializing a boolean.
 bool YoshiTongueAction::fn_80421880() const {
     bool canEat = false;
     if (mYoshi->mDashTimer <= 0 && !mYoshi->fn_8040F070()) canEat = true;
@@ -1137,6 +1136,7 @@ void NrvYoshiTongueAction::State18::execute(Spine* spine) const {
     if (MR::isFirstStep(action)) MR::startStarPointerModePictureBook(action);
 }
 
+// NONMATCHING: redundant ori r3,r3,0 before boolean normalization is omitted.
 bool YoshiTongueAction::fn_80421210() const {
     return mPlayer->fn_803EF000() != 0;
 }

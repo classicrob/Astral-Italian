@@ -252,7 +252,7 @@ public:
     bool fn_803B2880(const TVec3f&, const TVec3f&);
     bool fn_803B28E0(const TVec3f&, const TVec3f&, const LiveActor*);
     s32 fn_803B2950();
-    s32 fn_803B29B0(const TVec3f&, f32);
+    s32 fn_803B29B0(const TVec3f&, f32) NO_INLINE;
     s32 fn_803B2A20(const TVec3f&, f32, f32) NO_INLINE;
     const HitInfo* fn_803B2AA0(u32);
     bool fn_803B2AF0(const TVec3f&, HitInfo*);

@@ -2,6 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/Player/MarioActor.hpp"
 #include "Game/Player/MarioModule.hpp"
+#include "Game/Player/Yoshi.hpp"
 
 void Mario::stopPunch() {
     if (isStatusActive(MarioStatus_Magic)) {
@@ -41,18 +42,32 @@ MarioMagic::MarioMagic(MarioActor* pActor) : MarioState(pActor, MarioStatus_Magi
     _12 = 0;
 }
 
+// NONMATCHING: literal pool placement only.
 bool MarioMagic::start() {
-    changeAnimation("地上ひねり");
+    if (isPlayerModeCloud()) {
+        changeAnimation("雲スピン");
+    } else {
+        changeAnimation("地上ひねり");
+    }
     stopEffect("パンチブラー左");
     stopEffect("パンチブラー右");
-    playEffect("共通地上スピン");
-    playSound("声スピン");
+    if (getPlayer()->_960 == 0x25) {
+        playEffect("芝生スピン");
+    } else {
+        playEffect("共通地上スピン");
+    }
     playSound("スピンジャンプ");
+    if (getPlayer()->isPlayerModeYoshi()) {
+        MR::startActionSound(mActor->fn_803B97F0(), "HeadShake", -1, -1, -1);
+    } else {
+        playSound("声スピン");
+    }
     startPadVib(2);
     _12 = 0;
     return true;
 }
 
+// NONMATCHING: literal pool placement only.
 bool MarioMagic::close() {
     stopEffect("スピンライト");
 
@@ -63,11 +78,12 @@ bool MarioMagic::close() {
     return true;
 }
 
+// NONMATCHING: literal pool placement only.
 bool MarioMagic::update() {
     if (mActor->isRequestJump()) {
         getPlayer()->tryJump();
         return false;
-    } else if (!isAnimationRun("地上ひねり")) {
+    } else if (!isAnimationRun("地上ひねり") && !isAnimationRun("雲スピン")) {
         return false;
     }
 
@@ -81,7 +97,7 @@ bool MarioMagic::update() {
     if (getPlayer()->mMovementStates.jumping) {
         getPlayer()->procJump(false);
     } else {
-        getPlayer()->mainMove();
+        getPlayer()->fn_803A0BE0();
     }
 
     getPlayer()->updateWalkSpeed();

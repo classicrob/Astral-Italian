@@ -49,24 +49,32 @@ bool InfernoMarioManekuri::receiveMsgPlayerAttack(u32 msg,HitSensor* sender,HitS
 bool InfernoMarioManekuri::receiveMsgEnemyAttack(u32 msg,HitSensor* sender,HitSensor* receiver) { if(MR::isMsgToEnemyAttackBlow(msg)) return blowDownEnemy(sender,receiver);return false; }
 bool InfernoMarioManekuri::receiveOtherMsg(u32,HitSensor*,HitSensor*) { return false; }
 bool InfernoMarioManekuri::trample(u32 msg,HitSensor* sensor) {
-    if(!canDamage()) return false;
-    mModel->appear();MR::zeroVelocity(mHost);ScoreAttackFunction::scoreByAttack(mHost,msg,sensor);
-    setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvTrampleDown::sInstance);return true;
+    if (canDamage()) {
+        mModel->appear();MR::zeroVelocity(mHost);ScoreAttackFunction::scoreByAttack(mHost,msg,sensor);
+        setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvTrampleDown::sInstance);return true;
+    }
+    return false;
 }
 bool InfernoMarioManekuri::blowDownPlayer(HitSensor* sender,HitSensor* receiver) {
-    if(!canDamage()) return false;
-    mCombo=1;ScoreAttackFunction::scoreCombo(mHost,0);mModel->appear();
-    MR::setVelocityBlowAttack(mHost, sender, receiver, 40.0f, 0.0f, 4);
-    MR::calcSensorHorizonNormalize(&mFront,mHost->mGravity,receiver,sender);
-    MR::makeQuatUpFront(&mHost->mCurrentQuat,-mHost->mGravity,mFront);
-    setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvBlowDownPlayer::sInstance);MR::onBind(mHost);MR::onCalcGravity(mHost);return true;
+    if (canDamage()) {
+        mCombo=1;ScoreAttackFunction::scoreCombo(mHost,0);mModel->appear();
+        MR::setVelocityBlowAttack(mHost, sender, receiver, 40.0f, 0.0f, 4);
+        MR::calcSensorHorizonNormalize(&mFront,mHost->mGravity,receiver,sender);
+        InfernoMario* host = mHost;
+        MR::makeQuatUpFront(&host->mCurrentQuat,-host->mGravity,mFront);
+        setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvBlowDownPlayer::sInstance);MR::onBind(mHost);MR::onCalcGravity(mHost);return true;
+    }
+    return false;
 }
 bool InfernoMarioManekuri::blowDownEnemy(HitSensor* sender,HitSensor* receiver) {
-    if(!canDamage()) return false;
-    mModel->appear();MR::setVelocityJump(mHost,40.0f);
-    MR::calcSensorHorizonNormalize(&mFront,mHost->mGravity,receiver,sender);
-    MR::makeQuatUpFront(&mHost->mCurrentQuat,-mHost->mGravity,mFront);
-    setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvBlowDownEnemy::sInstance);MR::calcGravity(mHost);return true;
+    if (canDamage()) {
+        mModel->appear();MR::setVelocityJump(mHost,40.0f);
+        MR::calcSensorHorizonNormalize(&mFront,mHost->mGravity,receiver,sender);
+        InfernoMario* host = mHost;
+        MR::makeQuatUpFront(&host->mCurrentQuat,-host->mGravity,mFront);
+        setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvBlowDownEnemy::sInstance);MR::calcGravity(mHost);return true;
+    }
+    return false;
 }
 bool InfernoMarioManekuri::startFrame(s32 frame) {
     mFrame=frame;mHost->setFrameDelay(frame);mHost->readPacket(mFrame);MR::resetPosition(mHost);MR::invalidateClipping(mHost);
@@ -85,6 +93,7 @@ bool InfernoMarioManekuri::isNerveBlowDownPlayer() const { return isNerve(&NrvIn
 bool InfernoMarioManekuri::isJumping() const { return isNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvJump::sInstance); }
 bool InfernoMarioManekuri::canDamage() const { return isNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvFollow::sInstance); }
 void InfernoMarioManekuri::control() {}
+// NONMATCHING: epilogue register-load order and verified literal labels differ.
 void InfernoMarioManekuri::exeWait() {
     if(MR::isFirstStep(this)) { MR::validateClipping(mHost);MR::startAction(mModel,"Wait");mModel->makeActorAppeared();MR::hideModelAndOnCalcAnim(mHost);MR::onBind(mHost); }
     if(!MR::isBindedGround(mHost)) MR::addVelocityToGravity(mHost,1.0f);
@@ -107,20 +116,19 @@ void InfernoMarioManekuri::exeFollowStart() {
         MR::offShadowVisibleSyncHostAll(mModel);MR::validateShadowAll(mModel);MR::offBind(mHost);
     }
     MR::turnDirectionToPlayerDegreeHorizon(mHost,&mFront,6.0f);MR::blendQuatFromGroundAndFront(&mHost->mCurrentQuat,mHost,mFront,0.2f,0.2f);
-    MR::vecBlend(&mHost->mPosition,mStartPos,mEndPos,MR::calcNerveEaseInOutRate(this,mFrame));
+    TVec3f* position = &mHost->mPosition;
+    MR::vecBlend(position,mStartPos,mEndPos,MR::calcNerveEaseInOutRate(this,mFrame));
     if(MR::isGreaterEqualStep(this,mFrame)) { MR::onShadowVisibleSyncHostAll(mModel);mHost->readTransform(mFrame);setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvJump::sInstance); }
 }
+// NONMATCHING: vector temporary address lifetime, registers and instruction scheduling differ.
 void InfernoMarioManekuri::exeJump() {
     if(MR::isFirstStep(this)) { MR::startAction(mHost,"Jump");MR::showModel(mHost);MR::tryHitReaction(mHost,"変身完了");mStartPos.set(mHost->mPosition); }
     f32 height=150.0f*MR::calcNerveParabolaValue(this,30);
-    TVec3f offset(mHost->mGravity);
-    offset *= -height;
-    TVec3f position(mStartPos);
-    position += offset;
-    MR::setPosition(mHost,position);
+    MR::setPosition(mHost, mStartPos + mHost->mGravity.scaleInline(-height));
     mFrame++;
     if(MR::isGreaterStep(this,30)) setNerve(&NrvInfernoMarioManekuri::InfernoMarioManekuriNrvFollow::sInstance);
 }
+// NONMATCHING: temporary register choice and verified literal labels differ.
 void InfernoMarioManekuri::exeFollow() {
     if(MR::isFirstStep(this)) mModel->makeActorDead();
     MR::startActionSound(mHost,"BmLvGhostMarioAmbient",-1,-1,-1);mHost->readPacket(mFrame);

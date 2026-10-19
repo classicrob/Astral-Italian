@@ -3509,6 +3509,7 @@ void MarioActor::calcViewAndEntry() {
 }
 
 
+// NONMATCHING: compiler merges equivalent Face0 branches; verified pooled string addresses.
 void MarioActor::drawMarioModel() const {
     if (isAllHidden()) {
         return;
@@ -3527,18 +3528,17 @@ void MarioActor::drawMarioModel() const {
         }
     }
 
-    switch (mCurrModel) {
+    switch (mAllModel->mCurrentModel) {
     case 3:
         return;
     default:
         break;
     }
 
-    drawSpinInhibit();
     drawSphereMask();
     bool res = drawDarkMask();
 
-    J3DModelX* model = mModels[mCurrModel];
+    J3DModelX* model = static_cast<J3DModelX*>(mAllModel->getJ3DModel());
 
     if (res) {
         model->mFlags._10 = true;
@@ -3547,7 +3547,7 @@ void MarioActor::drawMarioModel() const {
     if (!mFlags.mIsNoEntryDrawBuffer) {
         model->mFlags._1C = false;
         if (mMario->isStatusActive(MarioStatus_FpView)) {
-            if (_1A1) {
+            if (mFirstPersonDrawHidden1A5) {
                 return;
             }
 
@@ -3557,10 +3557,10 @@ void MarioActor::drawMarioModel() const {
             MR::showJoint(model, "HandL0");
             MR::showJoint(model, "Face0");
         } else {
-            if (mCurrModel == 4) {
+            if (mAllModel->mCurrentModel == 4) {
                 model->setDynamicDL(nullptr, 0);
             } else {
-                model->setDynamicDL(mDL[mCurrDL], mDLSize);
+                model->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
             }
         }
 
@@ -3577,14 +3577,18 @@ void MarioActor::drawMarioModel() const {
     if (mMario->isStatusActive(MarioStatus_FpView)) {
         MR::hideJoint(model, "HandR0");
         MR::hideJoint(model, "HandL0");
-        MR::hideJoint(model, "Face0");
+        if (mAllModel->mCurrentModel >= 7) {
+            MR::hideJoint(model, "Face0");
+        } else {
+            MR::hideJoint(model, "Face0");
+        }
     }
 
     drawHand();
 
-    if (!MR::isHiddenModel(_A5C)) {
-        J3DModelX* cool = static_cast< J3DModelX* >(MR::getJ3DModel(_A5C));
-        cool->setDynamicDL(mDL[mCurrDL], mDLSize);
+    if (!MR::isHiddenModel(mModelF38)) {
+        J3DModelX* cool = static_cast< J3DModelX* >(MR::getJ3DModel(mModelF38));
+        cool->setDynamicDL(mDL[mCurrDL], mCurrentDLSize1A0);
         cool->directDraw(nullptr);
     }
 
@@ -5744,19 +5748,25 @@ namespace {
 };
   // namespace
 
+// NONMATCHING: equivalent flag test instruction and verified pooled literal addresses.
 bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width, f32 height) {
+    TVec3f offset(rOffset);
+    if (mMario->_10_LOW_WORD & (1U << 25)) {
+        f32 depth = MR::vecKillElement(offset, mCameraBasisZ, &offset);
+        if (depth >= 250.0f || depth <= -250.0f) return false;
+    }
     TVec3f radial;
-    f32 axial = MR::vecKillElement(rOffset, _4C4, &radial);
+    f32 axial = MR::vecKillElement(offset, _4C4, &radial);
     if (axial > -radius) {
         f32 radialPenetration = radius + width - radial.length();
         f32 axialPenetration = radius + height - axial;
         if (radialPenetration > 0.0f && axialPenetration > 0.0f) {
             if (radialPenetration > 0.0f) {
-                getDummySensor(this)->mPosition.set(_2A0 + _4C4 * axial);
+                getDummySensor(this)->mPosition.set(_240 + _4C4 * axial);
                 getSensor("dummy")->mRadius = width;
             } else {
                 HitSensor* dummy = getSensor("dummy");
-                dummy->mPosition.set(_2A0 + radial);
+                dummy->mPosition.set(_240 + radial);
                 getSensor("dummy")->mRadius = height;
             }
 
@@ -5768,7 +5778,7 @@ bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width,
         return false;
     }
 
-    axial = MR::vecKillElement(rOffset, _4B8, &radial);
+    axial = MR::vecKillElement(offset, _4B8, &radial);
     if (axial < -radius) {
         return false;
     }
@@ -5777,11 +5787,11 @@ bool MarioActor::cylinderPushCheck(const TVec3f& rOffset, f32 radius, f32 width,
     f32 axialPenetration = radius + height - axial;
     if (radialPenetration > 0.0f && axialPenetration > 0.0f) {
         if (radialPenetration > 0.0f) {
-            getDummySensor(this)->mPosition.set(_2A0 + _4B8 * axial);
+            getDummySensor(this)->mPosition.set(_240 + _4B8 * axial);
             getSensor("dummy")->mRadius = width;
         } else {
             HitSensor* dummy = getSensor("dummy");
-            dummy->mPosition.set(_2A0 + radial);
+            dummy->mPosition.set(_240 + radial);
             getSensor("dummy")->mRadius = height;
         }
 

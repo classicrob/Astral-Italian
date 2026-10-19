@@ -81,6 +81,7 @@ namespace MR {
     void blendMtx(MtxPtr, MtxPtr, f32, MtxPtr);
     void makeMtxWithoutScale(TPos3f*, const TPos3f&);
     void makeRTFromMtxPtr(TVec3f*, TVec3f*, MtxPtr, bool);
+    void makeSRTFromMtxPtr(TVec3f*, TVec3f*, TVec3f*, MtxPtr, bool);
     void orthogonalize(TPos3f*);
     void turnMtxToXDirRate(TPos3f*, const TVec3f&, f32);
     void turnMtxToXDirDegree(TPos3f*, const TVec3f&, f32);

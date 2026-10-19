@@ -59,7 +59,10 @@ void RotateHammerPressure::init(const JMapInfoIter& rIter) {
 void RotateHammerPressure::control() {
     const TVec3f* offsets = sRotateHammerPressureOffsets;
     MapObjActor::control();
-    if (!_1A8) {
+    if (_1A8) {
+        return;
+    }
+    {
         TVec3f sideOffset;
         TVec3f upOffset;
         PSMTXMultVecSR(mMatrices[0], &offsets[1], &sideOffset);

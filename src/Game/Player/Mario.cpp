@@ -10406,6 +10406,8 @@ bool Mario::checkSidePress() {
     return false;
 }
 
+#pragma opt_propagation on
+
 // ---- MarioRabbit.cpp ----
 
 void Mario::startRabbitMode() {

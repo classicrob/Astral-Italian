@@ -279,9 +279,8 @@ namespace MR {
         getCameraDirector()->startGlobalEvent(id, name, target, frames);
     }
 
-    // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
-    void endEventCameraById(s32 id, const char* name, s32 reset, s32 frames) {
-        getCameraDirector()->endGlobalEvent(id, name, reset, frames);
+    void endEventCameraById(s32 id, const char* name, bool resetView, s32 frames) {
+        getCameraDirector()->endGlobalEvent(id, name, resetView, frames);
     }
 
     void declareGlobalEventCamera(const char* pEventName) {

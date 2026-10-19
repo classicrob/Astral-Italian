@@ -60,7 +60,7 @@ void WorldMapResultStateEnterHome::appear() {
 }
 
 void WorldMapResultStateEnterHome::kill() {
-    mHost->endCamera("接近（ホーム）", 0, -1);
+    mHost->endCamera("接近（ホーム）", false, -1);
     mIsDead = true;
 }
 
@@ -137,7 +137,7 @@ void WorldMapResultStateEnterHome::exeEnter() {
 void WorldMapResultStateEnterHome::exeExit() {
     if (MR::isFirstStep(this)) {
         MR::setImageEffectControlAuto();
-        mHost->endCamera("接近（ホーム）", 0, -1);
+        mHost->endCamera("接近（ホーム）", false, -1);
         mHost->startNodeCamera(-1, -1);
         MR::startActionSound(mHost->getRocket(), "ZoomOutShip", -1, -1, -1);
     }

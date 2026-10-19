@@ -29,7 +29,7 @@ namespace MR {
     void disableGlobalEventCameraCollision(const char*);
     void declareEventCameraById(s32 cameraId, const char*);
     void startEventCameraById(s32 cameraId, const char*, const CameraTargetArg&, s32);
-    void endEventCameraById(s32 cameraId, const char*, s32, s32);
+    void endEventCameraById(s32 cameraId, const char*, bool resetView, s32 frames);
     void declareEventCameraProgrammable(const char*);
     void startEventCamera(const ActorCameraInfo*, const char*, const CameraTargetArg&, s32 = -1);
     void startEventCameraAnim(const ActorCameraInfo*, const char*, const CameraTargetArg&, s32, f32, bool = false);

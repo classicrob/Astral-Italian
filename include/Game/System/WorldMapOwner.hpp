@@ -155,7 +155,7 @@ public:
     void declareCamera(const char* pName);
     void startCamera(const char* pName, s32 frames) NO_INLINE;
     void startCameraAtCurrent(const char* pName, s32 frames) NO_INLINE;
-    void endCamera(const char* pName, s32 a, s32 b) NO_INLINE;
+    void endCamera(const char* pName, bool resetView, s32 frames) NO_INLINE;
     void disappearWorld() NO_INLINE;
     void setupRouteOpen(WorldMapResultRoute* pRoute) NO_INLINE;
     void startRouteCamera(WorldMapResultRoute* pRoute, const char* pCameraName) NO_INLINE;

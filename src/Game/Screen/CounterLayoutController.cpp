@@ -65,7 +65,7 @@ void CounterLayoutController::kill() {
     killAllCoounter();
 }
 
-void CounterLayoutController::forceAppear(bool) {
+void CounterLayoutController::forceAppear() {
     if (!MR::isStageMarioFaceShipOrWorldMap() && GameSequenceFunction::isPadModeSuperDreamer()) {
         return;
     }

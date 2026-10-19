@@ -870,10 +870,10 @@ void WorldMapOwner::startCameraAtCurrent(const char* pName, s32 frames) {
     MR::startEventCameraById(id, buffer, CameraTargetArg(pTarget), frames);
 }
 
-void WorldMapOwner::endCamera(const char* pName, s32 a, s32 b) {
+void WorldMapOwner::endCamera(const char* pName, bool resetView, s32 frames) {
     char buffer[0x100];
     snprintf(buffer, 0x100, "%s", pName);
-    MR::endEventCameraById(getCamera()->mCameraId, buffer, a, b);
+    MR::endEventCameraById(getCamera()->mCameraId, buffer, resetView, frames);
 }
 
 void WorldMapOwner::disappearWorld() {

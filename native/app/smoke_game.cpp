@@ -48,7 +48,7 @@ bool warpPlayer(const Step& step) {
     if (!step.warpName.empty()) {
         MR::setPlayerPos(step.warpName.c_str());
     } else {
-        MR::setPlayerPosAndWait(TVec3f(step.warpX, step.warpY, step.warpZ));
+        MR::setPlayerPosAndWait(TVec3f(step.warpX, step.warpY, step.warpZ), true);
     }
     return true;
 }

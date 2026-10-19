@@ -236,6 +236,9 @@ bool aurora_begin_frame() {
 void aurora_end_frame() {
     hostCall("end");
 }
+bool SDL_SetWindowFullscreen(SDL_Window*, bool) {
+    return true;
+}
 bool SDL_GetWindowSize(SDL_Window*, int* w, int* h) {
     *w = windowWidth;
     *h = windowHeight;

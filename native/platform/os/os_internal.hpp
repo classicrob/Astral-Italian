@@ -20,6 +20,8 @@
 
 #include <revolution/os.h>
 
+extern "C" void OSSetAlarmTag(OSAlarm* alarm, u32 tag);
+
 namespace PetariNative::Platform::OS {
 
 std::mutex& interruptMutex();

@@ -147,15 +147,15 @@ static void testHashSortTable() {
     check(!table.searchPtr("Koopa", &pMissing) && pMissing == nullptr, "searchPtr miss clears the output");
 
     HashSortTable::Value raw = 0;
-    check(table.searchValue(MR::getHashCode("Peach"), &raw) && raw == reinterpret_cast< HashSortTable::Value >(&objs[3]),
-          "searchValue by hash");
+    check(table.search(MR::getHashCode("Peach"), &raw) && raw == reinterpret_cast< HashSortTable::Value >(&objs[3]),
+          "search by hash");
 
     HashSortTable indices(4);
     indices.add("b", 2, false);
     indices.add("a", 1, false);
     indices.add("c", 3, false);
     indices.sort();
-    u32 index = 0;
+    uintptr_t index = 0;
     check(indices.search("a", &index) && index == 1, "index payload search");
     check(indices.search("c", &index) && index == 3, "index payload search after sort");
     check(!indices.search("zz", &index) && index == 0, "index search miss clears the output");

@@ -1,9 +1,7 @@
-// Bitfield layout regression tests for game structs whose bitfields are also used through
-// numeric masks. MWCC (the Wii compiler) allocates bitfields from the most significant bit
-// of each unit; the native headers declare those fields in reverse so every numeric view
-// matches the Wii. Each check sets one field and compares the word with the Wii mask.
-// Links src/Game/Player/RushEndInfo.cpp; the other game headers are used header-only.
-#include "Game/Player/J3DModelX.hpp"
+// Regression checks for game flags that also have numeric-mask views. SMG2's
+// movement/draw states are raw words; remaining bitfields must retain the Wii
+// compiler's most-significant-bit ordering on the native little-endian build.
+// Links src/Game/Player/RushEndInfo.cpp; other game headers are used header-only.
 #include "Game/Player/Mario.hpp"
 #include "Game/Player/MarioActor.hpp"
 #include "Game/Player/RushEndInfo.hpp"
@@ -31,23 +29,13 @@ static void testMovementStates() {
     std::memset(&states, 0, sizeof(states));
     check(word(states, 0) == 0 && word(states, 1) == 0, "MovementStates zero-initializes");
 
-    states.jumping = true;  // field _0: bit 31 of word 0 (srwi rX, rX, 31)
-    check(word(states, 0) == 0x80000000 && word(states, 1) == 0, "jumping is bit 31");
-    states.jumping = false;
-    states._A = true;  // extrwi rX, rX, 1, 10
-    check(word(states, 0) == (1u << (31 - 10)), "_A is bit 21");
-    states._A = false;
-    states._1F = true;
-    check(word(states, 0) == 1, "_1F is bit 0");
-    states._1F = false;
-    states._20 = true;
-    check(word(states, 0) == 0 && word(states, 1) == 0x80000000, "_20 is bit 31 of word 1");
-    states._20 = false;
-    states._23 = true;  // extrwi rX, rX, 1, 3
-    check(word(states, 1) == (1u << (31 - 3)), "_23 is bit 28 of word 1");
-    states._23 = false;
-    states._3E = 3;  // clrrwi rX, rX, 2
-    check(word(states, 1) == 3, "_3E is the low two bits of word 1");
+    states.mLowWord = Mario::MovementStates::Jumping;
+    check(word(states, 0) == 0x80000000 && word(states, 1) == 0, "Jumping is bit 31 of the low word");
+    states.mLowWord = Mario::MovementStates::Turning | Mario::MovementStates::DebugMode;
+    check(word(states, 0) == 0x10000200, "Turning and DebugMode masks retain their numeric view");
+    states.mLowWord = Mario::MovementStates::DigitalJump;
+    states.mHighWord = 0x80000000;
+    check(word(states, 0) == 2 && word(states, 1) == 0x80000000, "movement words retain their order");
 }
 
 static void testDrawStates() {
@@ -55,37 +43,11 @@ static void testDrawStates() {
     Mario::DrawStates states;
     std::memset(&states, 0, sizeof(states));
 
-    // Mario sets _1C_WORD |= 0x00100000 / 0x2000 and reads the fields back.
-    u32 value = 0x00100000;
+    states.mWord = Mario::DrawStates::Underwater;
+    check(word(states) == 0x2000, "Underwater is bit 13");
+    u32 value = 0x00102000;
     std::memcpy(&states, &value, sizeof(value));
-    check(states._B && !states._A && !states._C, "0x00100000 is field _B");
-    value = 0x2000;
-    std::memcpy(&states, &value, sizeof(value));
-    check(states.mIsUnderwater && !states._11 && !states._13, "0x2000 is field 0x12 (mIsUnderwater)");
-    std::memset(&states, 0, sizeof(states));
-    states._0 = true;
-    check(word(states) == 0x80000000, "_0 is bit 31");
-    states._0 = false;
-    states._1F = true;
-    check(word(states) == 1, "_1F is bit 0");
-}
-
-static void testJ3DModelXFlags() {
-    static_assert(sizeof(J3DModelX::Flags) == 4, "J3DModelX::Flags is one word");
-    J3DModelX::Flags flags;
-    std::memset(&flags, 0xFF, sizeof(flags));
-    flags.clear();
-    check(word(flags) == 0, "clear() zeroes every flag");
-
-    // J3DModelX::drawShapePacket calls display list i when (word & (1 << i)).
-    flags._1C = true;
-    check(word(flags) == (1u << 3), "_1C selects display list 3");
-    flags._1C = false;
-    flags._10 = true;
-    check(word(flags) == (1u << 15), "_10 selects display list 15");
-    flags._10 = false;
-    flags._0 = true;
-    check(word(flags) == 0x80000000, "_0 is bit 31");
+    check((states.mWord & Mario::DrawStates::Underwater) != 0, "numeric draw state preserves Underwater");
 }
 
 static void testRushEndInfo() {
@@ -119,7 +81,6 @@ static void testMarioEffectFlags() {
 int main() {
     testMovementStates();
     testDrawStates();
-    testJ3DModelXFlags();
     testRushEndInfo();
     testMarioEffectFlags();
 

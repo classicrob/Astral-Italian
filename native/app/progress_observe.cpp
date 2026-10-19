@@ -8,6 +8,8 @@
 #include "Game/Player/MarioHolder.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
 #include "Game/System/GameSystem.hpp"
+#include "Game/System/GameSequenceFunction.hpp"
+#include "Game/System/GameSequenceDirector.hpp"
 #include "Game/System/GameSystemSceneController.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/EventUtil.hpp"
@@ -15,7 +17,6 @@
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SingletonHolder.hpp"
 
-#include <petari/editor/runtime.hpp>
 #include <petari/host_allocation.hpp>
 #include <petari/milestone.hpp>
 #include <petari/progress.hpp>
@@ -47,14 +48,15 @@ void observeProgressFrame() {
         else if (std::strcmp(name, "PauseMenu.Close") == 0) gPaused = false;
     }
 
-    if (PetariEditor::Runtime::progressIsolated()) return;
 
     Progress::FrameState state;
     GameSystem* pGameSystem = SingletonHolder< GameSystem >::get();
     const GameSystemSceneController* pController = pGameSystem != nullptr ? pGameSystem->mSceneController : nullptr;
     if (pController != nullptr && pController->mScene != nullptr && pController->isSceneInitializeState(SceneInitializeState_End) &&
         std::strcmp(pController->mCurrSceneControlInfo.mScene, "Game") == 0 && MR::isExistSceneObj(SceneObj_MarioHolder) &&
-        MR::isExistSceneObj(SceneObj_DemoDirector) && MR::isExistSceneObj(SceneObj_ScenePlayingResult)) {
+        MR::isExistSceneObj(SceneObj_DemoDirector) && pGameSystem->mSequenceDirector != nullptr &&
+        pGameSystem->mSequenceDirector->mGameSequence != nullptr &&
+        GameSequenceFunction::getGameSequenceInGame() != nullptr && GameSequenceFunction::getPlayResultInStageHolder() != nullptr) {
         const MarioHolder* pHolder = MR::getSceneObj< MarioHolder >(SceneObj_MarioHolder);
         const MarioActor* pMario = pHolder != nullptr ? pHolder->getMarioActor() : nullptr;
         if (Smoke::canObservePlayer(pMario)) {
@@ -77,7 +79,6 @@ void observeProgressFrame() {
 }  // namespace PetariNative::App
 
 extern "C" void petari_progress_star_get(int mission, int grand) {
-    if (PetariEditor::Runtime::progressIsolated()) return;
     PetariNative::HostAllocationScope host;
     PetariNative::Progress::starGet(mission, grand != 0);
 }

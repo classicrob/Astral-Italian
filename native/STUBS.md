@@ -18,7 +18,12 @@ These systems have original game sources but no validated SMG2 native integratio
 | SMG2 stage catalogue, scenarios and smoke routes | `src/Game/System`, `src/Game/Scene`, `src/Game/Map` | P2; imported SMG1 fixtures need replacement |
 
 **Editor deferred:** `native/editor` was deliberately not imported; editor build
-targets and game links are removed from the SMG2 CMake skeleton.
+targets and game links are removed from the SMG2 CMake skeleton. Native progress
+and startup code no longer call editor runtime or patch-builder functions.
+The SMG1 cutscene-skip probe is also deferred (P3): it is compiled and called only
+when `include/Game/System/CutsceneSkip.hpp` exists. The imported SMG1
+`J3DModelX::Flags` regression was removed because SMG2 has no such nested type;
+SMG2 raw movement/draw words have their own checks in the native bitfield test.
 
 ## Imported SMG1 inventory
 

@@ -39,12 +39,18 @@ target_compile_features(petari_app_smoke PUBLIC cxx_std_17)
 target_include_directories(petari_app_smoke PUBLIC ${PETARI_REPO_ROOT}/native/include)
 
 if(NOT _petari_app_standalone)
-    add_library(petari_app_platform STATIC platform_host.cpp smoke_game.cpp collision_probe.cpp skip_probe.cpp point_probe.cpp figure_probe.cpp input_script_probe.cpp frame_phase.cpp soak_telemetry.cpp progress_observe.cpp)
+    add_library(petari_app_platform STATIC platform_host.cpp smoke_game.cpp collision_probe.cpp point_probe.cpp figure_probe.cpp input_script_probe.cpp frame_phase.cpp soak_telemetry.cpp progress_observe.cpp)
     target_link_libraries(petari_app_platform PUBLIC petari_native_config petari_boot
         petari_platform_os petari_platform_vi petari_platform_dvd petari_platform_nand petari_platform_sc
         petari_audio_sdl petari_host_runtime petari_app_smoke petari_milestone)
 
     add_library(petari_app_host STATIC frame_seam.cpp frame_stats.cpp spike_profiler.cpp input_events.cpp pipeline_startup.cpp)
+    # The donor cutscene-skip feature is deferred in SMG2. Keep the frame seam
+    # buildable until the game's feature header and implementation are ported.
+    if(EXISTS "${PETARI_REPO_ROOT}/include/Game/System/CutsceneSkip.hpp")
+        target_sources(petari_app_platform PRIVATE skip_probe.cpp)
+        target_compile_definitions(petari_app_host PRIVATE PETARI_HAS_CUTSCENE_SKIP=1)
+    endif()
     target_include_directories(petari_app_host PUBLIC ${PETARI_REPO_ROOT}/native/include)
     # Deliberately not petari_native_config: no SDK include paths next to Aurora's.
     target_link_libraries(petari_app_host PUBLIC aurora::core petari_input_sdl3 petari_home_menu_imgui
@@ -143,6 +149,7 @@ if(BUILD_TESTING)
     # The seam against recording fakes of Aurora, SDL and the app's other units.
     add_executable(petari_app_seam_tests ${PETARI_REPO_ROOT}/native/tests/app_seam_tests.cpp frame_seam.cpp frame_stats.cpp spike_profiler.cpp)
     target_link_libraries(petari_app_seam_tests PRIVATE petari_app_smoke)
+    target_compile_definitions(petari_app_seam_tests PRIVATE PETARI_HAS_CUTSCENE_SKIP=1)
     target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_REPO_ROOT}/native/include)
     if(_petari_app_standalone)
         target_include_directories(petari_app_seam_tests PRIVATE ${PETARI_AURORA_INCLUDE_DIR} ${PETARI_SDL3_INCLUDE_DIR})

@@ -63,12 +63,15 @@ class ClassifyAuditTests(unittest.TestCase):
             path = Path(directory) / "audit.json"
             path.write_text(json.dumps(report))
             reports, results = read_reports([path])
-            markdown = render(reports, results, overlay=results)
+            overlay = {**results, "src/nw4r/lyt/New.cpp": {"source": "src/nw4r/lyt/New.cpp", "passed": True}}
+            markdown = render(reports, results, overlay=overlay)
             self.assertIn("| src/Game/Util | core | 2 | 1 | 1 |", markdown)
             self.assertIn("| src/Game/MapObj | objects | 1 | 0 | 1 |", markdown)
             self.assertIn("| src/RVL_SDK | m1 | 0 | 0 | 0 |", markdown)
             self.assertIn("| 1 | 2 | include/Common.h:5 |", markdown)
             self.assertIn("With transferred hooks", markdown)
+            self.assertIn("With hooks top 3 first-error classes", markdown)
+            self.assertIn("| src/nw4r/lyt | m1 | 0 | 0 | 0 | — | 1/1 |", markdown)
             with self.assertRaisesRegex(ValueError, "duplicate source"):
                 read_reports([path, path])
 

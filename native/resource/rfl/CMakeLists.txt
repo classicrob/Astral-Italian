@@ -114,7 +114,7 @@ target_compile_features(petari_rfl_native PUBLIC cxx_std_17)
 # It includes the generated RVLFaceLib header copies.
 add_dependencies(petari_rfl_native petari_legacy_sources)
 
-# The whole library, compiled as C as on the Wii. The game links it with
+# The transferred native helpers use C++ SDK headers. The game links it with
 # the SDK MEM heap, the native NAND (petari_platform_nand), and the GX bridge.
 set(PETARI_RFL_SOURCES
     RFL_Controller.c RFL_DataUtility.c RFL_Database.c RFL_DefaultDatabase.c RFL_Format.c
@@ -123,6 +123,10 @@ set(PETARI_RFL_SOURCES
 list(TRANSFORM PETARI_RFL_SOURCES PREPEND "${PETARI_REPO_ROOT}/src/RVLFaceLib/")
 add_library(petari_rfl STATIC ${PETARI_RFL_SOURCES})
 petari_encode_target_sources(petari_rfl)
+foreach(_petari_rfl_source IN LISTS PETARI_RFL_SOURCES)
+    file(RELATIVE_PATH _petari_rfl_relative "${PETARI_REPO_ROOT}" "${_petari_rfl_source}")
+    set_source_files_properties("${PETARI_LEGACY_ROOT}/${_petari_rfl_relative}" PROPERTIES LANGUAGE CXX)
+endforeach()
 target_link_libraries(petari_rfl PUBLIC petari_rfl_native petari_platform_nand petari_platform_os petari_core)
 target_compile_options(petari_rfl PRIVATE -Wno-missing-declarations -Wno-nonportable-include-path)
 
@@ -131,7 +135,7 @@ target_compile_options(petari_rfl PRIVATE -Wno-missing-declarations -Wno-nonport
 target_link_libraries(petari_rfl PUBLIC petari_sdk_mem)
 
 if(BUILD_TESTING)
-    # RFL's own record conversion and validation (C, as on the Wii); dead
+    # RFL's native record conversion and validation; dead
     # stripping drops their NAND, heap, and GX dependencies.
     set(PETARI_RFL_TEST_SOURCES
         ${PETARI_REPO_ROOT}/src/RVLFaceLib/RFL_DefaultDatabase.c

@@ -125,6 +125,9 @@ def render(reports, results, overlay=None):
     groups = defaultdict(list)
     for source, result in results.items():
         groups[group_for(source)].append(result)
+    if overlay is not None:
+        for source in overlay:
+            groups.setdefault(group_for(source), [])
     for report in reports:
         for path in report.get("paths", []):
             if len(Path(path).parts) == 2:
@@ -135,6 +138,7 @@ def render(reports, results, overlay=None):
     headings = ["Directory", "Lane", "Checked", "Passing", "Failing", "Top 3 first-error classes"]
     if overlay is not None:
         headings.append("With transferred hooks (passing/checked)")
+        headings.append("With hooks top 3 first-error classes")
     lines += ["| " + " | ".join(headings) + " |", "| " + " | ".join("---" for _ in headings) + " |"]
     for group, entries in sorted(groups.items()):
         passing = sum(r["passed"] for r in entries)
@@ -144,6 +148,8 @@ def render(reports, results, overlay=None):
         if overlay is not None:
             matches = [r for s, r in overlay.items() if group_for(s) == group]
             row.append(f"{sum(r['passed'] for r in matches)}/{len(matches)}")
+            hooked_classes = Counter(r["first_error"]["class"] for r in matches if not r["passed"])
+            row.append("; ".join(f"{name}: {count}" for name, count in hooked_classes.most_common(3)) or "—")
         lines.append("| " + " | ".join(cell(v) for v in row) + " |")
     failures = [r["first_error"] for r in results.values() if not r["passed"]]
     roots = Counter((e["location"], e["message"], e["class"]) for e in failures)

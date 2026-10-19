@@ -60,7 +60,7 @@ static void checkU8() {
     ARCHandle handle{};
     check(ARCInitHandle(bytes.data(), &handle), "Native SDK U8 initialization failed");
     ARCFileInfo file{};
-    check(ARCOpen(&handle, "/DIR/one.bin", &file) && ARCGetLength(&file) == 3 &&
+    check(ARCFastOpen(&handle, ARCConvertPathToEntrynum(&handle, "/DIR/one.bin"), &file) && ARCGetLength(&file) == 3 &&
           std::memcmp(ARCGetStartAddrInMem(&file), "one", 3) == 0, "SDK ARC file lookup failed");
     check(ARCConvertPathToEntrynum(&handle, "/dir/../dir/./two.bin") == 3, "SDK ARC relative path components failed");
     check(ARCConvertPathToEntrynum(&handle, "/dir/one.bin/") == -1, "SDK ARC file accepted as directory");

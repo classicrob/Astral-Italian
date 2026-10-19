@@ -16,6 +16,9 @@
 //    the Wii (see noteActivity).
 
 #include <revolution/kpad.h>
+#include <revolution/kpad/KPADInternal.h>
+
+extern KPADInsideStatus inside_kpads[4];
 #include <revolution/os.h>
 #include <revolution/sc.h>
 #include <revolution/vi.h>

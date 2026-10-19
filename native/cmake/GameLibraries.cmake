@@ -20,12 +20,10 @@ target_link_libraries(petari_link_check PRIVATE petari_game_objects petari_game_
 target_link_options(petari_link_check PRIVATE -Wl,-dead_strip -Wl,-u,_petari_game_main)
 
 add_library(petari_sdk_helpers STATIC
-    "${CMAKE_SOURCE_DIR}/src/RVL_SDK/wenc/wenc.c"
-    "${CMAKE_SOURCE_DIR}/src/Game/Screen/THPDraw.c")
+    "${CMAKE_SOURCE_DIR}/src/RVL_SDK/wenc/wenc.c")
 petari_encode_target_sources(petari_sdk_helpers)
 set_source_files_properties(
     "${PETARI_LEGACY_ROOT}/src/RVL_SDK/wenc/wenc.c"
-    "${PETARI_LEGACY_ROOT}/src/Game/Screen/THPDraw.c"
     PROPERTIES LANGUAGE CXX)
 target_link_libraries(petari_sdk_helpers PUBLIC petari_native_config aurora::thp)
 target_link_libraries(petari_link_check PRIVATE petari_sdk_helpers)

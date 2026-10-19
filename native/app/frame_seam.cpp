@@ -795,10 +795,14 @@ extern "C" void petari_host_frame_seam(void) {
     observeProgressFrame();
     // Game state is readable here, before the CPU is released.
     recordFrame(entry, gTiming.probe != nullptr ? gTiming.probe() : FrameStats::Phase::Gameplay);
+#ifdef PETARI_HAS_CUTSCENE_SKIP
     const bool probeHoldsA = Smoke::skipProbeFrame();
     if (float u = 0.0f, v = 0.0f; Smoke::skipProbeAnswerPointer(&u, &v)) {
         Events::movePointer(gLastImage.x + u * gLastImage.width, gLastImage.y + v * gLastImage.height);
     }
+#else
+    const bool probeHoldsA = false;
+#endif
     const Smoke::PointProbeStep point = Smoke::pointProbeFrame();
     if (point.pointer) {
         Events::movePointer(gLastImage.x + point.u * gLastImage.width, gLastImage.y + point.v * gLastImage.height);

@@ -2561,13 +2561,13 @@ void Mario::createAtField(bool force, f32 radius) {
         TVec3f center = mPosHolder->mPos - getAirGravityVec() * offset * (i + 1);
 
         if (force && ((mMovementStates.mLowWord >> 16) & 1U) && _544 > 1) {
-            hits = Collision::checkStrikeBallToMap(center, checkRadius, nullptr, nullptr);
+            hits = fn_803B29B0(center, checkRadius);
         } else {
-            hits = Collision::checkStrikeBallToMapWithThickness(center, checkRadius, checkRadius, nullptr, nullptr);
+            hits = fn_803B2A20(center, checkRadius, checkRadius);
         }
 
         for (u32 j = 0; j < hits; j++) {
-            const HitInfo* hit = Collision::getStrikeInfoMap(j);
+            const HitInfo* hit = fn_803B2AA0(j);
             const Triangle* triangle = &hit->mParentTriangle;
 
             if (force && ((mMovementStates.mLowWord >> 16) & 1U) && _544 > 1) {
@@ -6440,7 +6440,7 @@ void Mario::checkHang() {
             return;
         }
 
-        if (!MR::isExistMapCollision(_4A4 - mFrontVec * 50.0f - getAirGravityVec() * 5.0f, mFrontVec * 60.0f)) {
+        if (!fn_803B2880(_4A4 - mFrontVec * 50.0f - getAirGravityVec() * 5.0f, mFrontVec * 60.0f)) {
             u8 started = 1;
             if (isAnimationRun("落下")) {
                 started = 0;
@@ -6509,7 +6509,7 @@ void Mario::checkHang() {
 
         MR::vecKillElement(normal, getAirGravityVec(), &normal);
         MR::normalizeOrZero(&normal);
-        if (!MR::isExistMapCollision(position - direction * 50.0f - getAirGravityVec() * 5.0f, direction * 60.0f)) {
+        if (!fn_803B2880(position - direction * 50.0f - getAirGravityVec() * 5.0f, direction * 60.0f)) {
             changeStatus(mHang);
             mVelocity.zero();
             stopWalk();
@@ -6568,7 +6568,7 @@ void Mario::checkHang() {
 
         MR::vecKillElement(normal, getAirGravityVec(), &normal);
         MR::normalizeOrZero(&normal);
-        if (!MR::isExistMapCollision(position - direction * 50.0f - getAirGravityVec() * 5.0f, direction * 60.0f)) {
+        if (!fn_803B2880(position - direction * 50.0f - getAirGravityVec() * 5.0f, direction * 60.0f)) {
             changeStatus(mHang);
             mVelocity.zero();
             stopWalk();
@@ -15040,10 +15040,13 @@ void Mario::decideWalkAnimation() {
 #pragma dont_inline reset
 
 void Mario::doBrakingAnimation() {
+    if (!isAnimationRun("歩行制動ブレーキ")) {
+        playSound("ターンブレーキ", -1);
+    }
     changeAnimation("歩行制動ブレーキ", 1);
-    getAnimator()->getXanimePlayer()->mFrameCtrl->mAttribute = 1;
+    getAnimator()->setAnimationFrameCtrlAttribute(1);
     if (gIsLuigi) {
-        getAnimator()->getXanimePlayer()->changeSpeed(0.5f);
+        getAnimator()->setSpeed(0.5f);
     }
 
     playEffect("共通ブレーキ");
@@ -15137,10 +15140,10 @@ void Mario::decideOnIceAnimation() {
         if (mWalkSpeed > 0.7f) {
             switch (mIceAnimFoot) {
             case 0:
-                getAnimator()->getXanimePlayer()->changeTrackAnimation(2, "氷上力行左");
+                getAnimator()->changeTrackAnim(2, "氷上力行左");
                 break;
             default:
-                getAnimator()->getXanimePlayer()->changeTrackAnimation(2, "氷上力行右");
+                getAnimator()->changeTrackAnim(2, "氷上力行右");
             }
         }
     }
@@ -15649,7 +15652,7 @@ bool Mario::isEnableStickWall() {
         distance = -120.0f;
     }
 
-    if (!MR::isExistMapCollision(position, mFrontVec * distance)) {
+    if (!fn_803B2880(position, mFrontVec * distance)) {
         return false;
     }
 

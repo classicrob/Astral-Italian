@@ -135,8 +135,6 @@ public:
     void walkinClose();
 
     // SMG2-only (original names unknown; named by address)
-    void fn_803DC1B0(const char*);
-    void fn_803DC330();
     f32 fn_803DD170(const char*, f32);
     f32 fn_803DD460();
     f32 fn_803DD530();
@@ -154,7 +152,6 @@ public:
     void fn_803DF2D0();
     void fn_803DF8E0();
     void fn_803DF9D0();
-    bool fn_803DCB80();
     XanimePlayer* fn_803DFBF0() const;
 
     inline void f1(const char* name) {

@@ -268,8 +268,8 @@ void MarioActor::fn_803CAD10(const char* name, const char* b, const BckCtrlData*
                 }
             }
             this->fn_803BBFD0(name);
-            this->mMarioAnim->fn_803DC330();
-            this->mMarioAnim->fn_803DC1B0(name);
+            this->mMarioAnim->closeCallback();
+            this->mMarioAnim->entryCallback(name);
         }
     }
 }
@@ -1761,6 +1761,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
                         return;
                     }
                     this->mPosition = hit;
+                    this->mMario->mPosHolder->fn_80405F90(this->mPosition);
                     this->mMario->stopJump();
                     this->mMario->changeAnimation("基本", "落下");
                     this->mMario->updateGroundInfo();

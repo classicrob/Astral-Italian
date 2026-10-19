@@ -1984,7 +1984,7 @@ void MarioActor::fn_803BC5C0() {
     Mario* m = this->mMario;
     if (!((m->mMovementStates.mLowWord >> (0x15)) & 1) && m->getCurrentStatus() == 0) {
         Mario* m2 = this->mMario;
-        if (((m2->mMovementStates.mLowWord >> (0x1E)) & 1) && (m2)->_960 == 0x20 && this->mMarioAnim->fn_803DCB80()) {
+        if (((m2->mMovementStates.mLowWord >> (0x1E)) & 1) && (m2)->_960 == 0x20 && this->mMarioAnim->isAnimationStop()) {
             this->mMarioAnim->fn_803DF0F0();
             this->_B96 = 2;
         }
@@ -1996,7 +1996,7 @@ void MarioActor::fn_803BC5C0() {
         this->updateTeresaAnimation();
         break;
     case 4:
-        if (this->mBeeWallWalk != 0 && !this->isJumping() && this->mMarioAnim->fn_803DCB80()) {
+        if (this->mBeeWallWalk != 0 && !this->isJumping() && this->mMarioAnim->isAnimationStop()) {
             this->mMarioAnim->fn_803DF1B0();
         }
         break;
@@ -2008,7 +2008,7 @@ void MarioActor::fn_803BC5C0() {
     if (t != 0) {
         u8 n = t - 1;
         this->_B96 = n;
-        if (n == 0 && ((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1) && this->mMarioAnim->fn_803DCB80()) {
+        if (n == 0 && ((this->mMario->mMovementStates.mLowWord >> (0x1E)) & 1) && this->mMarioAnim->isAnimationStop()) {
             this->mMarioAnim->fn_803DF2D0();
         }
     }

@@ -75,8 +75,8 @@ void BellyDragonFireGround::exeDisappear() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, lbl_8066CEE4);
         MR::startAction(mBloom, lbl_8066CEE4);
+        MR::startActionSound(this, lbl_8066CEE4, -1, -1, -1);
     }
-    MR::startActionSound(this, lbl_8066CEE4, -1, -1, -1);
     if (MR::isActionEnd(this)) {
         kill();
     }

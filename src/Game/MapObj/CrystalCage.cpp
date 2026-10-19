@@ -18,7 +18,7 @@ namespace NrvCrystalCage {
 CrystalCage::CrystalCage(const char* pName)
     : LiveActor(pName), mCrystalCageType(0), mBreakObj(nullptr), mRemainingHits(1), mHitCooldown(0), mRumbleCalc(nullptr), mHitDir(0.0f, 0.0f, 1.0f), mBasePos(gZeroVec),
       mBodySensorPos(gZeroVec), mDisplayModel(nullptr), mGroundPos(gZeroVec), mIsKillIfClipped(0), mPowerStarId(-1), mIsBreakObjVisible(false),
-      mPowerStarState(0), mHasBinding(false), mIsInPlaneModeCube(false), mIsFallType(false), mBinderOffset(gZeroVec) {
+      mPowerStarState(-1), mHasBinding(false), mIsInPlaneModeCube(false), mIsFallType(false), mBinderOffset(gZeroVec) {
     mBaseMtx.identity();
 }
 

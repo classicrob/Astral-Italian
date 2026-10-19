@@ -28,7 +28,7 @@ namespace NrvArrowSwitch {
 };  // namespace NrvArrowSwitch
 
 ArrowSwitch::ArrowSwitch(const char* pName)
-    : LiveActor(pName), mRotAngle(), mRotYTargetIndex(), mRotSpeed(), mSwitchType(-1), mLockAfterRotate(), mIsRotPlus(true), _A5(), mIsPunch() {
+    : LiveActor(pName), mRotAngle(), mRotYTargetIndex(), mRotSpeed(), mSwitchType(-1), mLockAfterRotate(-1), mIsRotPlus(true), _A5(), mIsPunch() {
 }
 
 void ArrowSwitch::init(const JMapInfoIter& rIter) {

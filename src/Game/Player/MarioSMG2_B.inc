@@ -306,34 +306,36 @@ bool Mario::fn_803B4850(const HitSensor* pSensor) const {
 
 
 
-// NONMATCHING: jump-end and punch-landing gate chain approximated from the draft
 s32 Mario::fn_803A2D80() {
-    if ((FLD<u32>(this, 0x10) >> 5) & 1) {
+    if ((this->_10_LOW_WORD >> 5) & 1) {
         this->tryJump();
         if (this->isAnimationRun("その場足踏み上半身")) {
             this->stopAnimationUpper((const char*)nullptr, (const char*)nullptr);
         }
-        FLD<u32>(this, 0x420) = 0;
-        FLD<TVec3f>(this, 0x184) = FLD<TVec3f>(this, 0x184);
-        FLD<u32>(this, 0x10) &= 0xFFFFFFDF;
+        this->_420 = 0;
+        this->mJumpVec = this->_184;
+        this->_10_LOW_WORD &= 0xFFFFFFDF;
+        return 1;
     }
-    if (this->mActor->isRequestJump() == false && !((FLD<u32>(this, 0x1C) >> 21) & 1) && !((FLD<u32>(this, 0x10) >> 7) & 1)) {
+    if (!this->mActor->isRequestJump() && !((this->_1C_WORD >> 21) & 1) && !((this->mMovementStates_HIGH_WORD >> 7) & 1)) {
+        return 0;
     }
-    if (((FLD<u32>(this, 0xC) >> 21) & 1) && this->calcDistToCeil(false) < 160.0f) {
-        this->mActor->sendMsgUpperPunch(FLD<HitSensor*>(this, 0x730));
+    if (((this->mMovementStates_LOW_WORD >> 21) & 1) && this->calcDistToCeil(false) < 160.0f) {
+        this->mActor->sendMsgUpperPunch(this->_730);
         this->changeAnimation("しゃがみアッパー", (const char*)nullptr);
+        return 0;
     }
     if (this->isStatusActive(0x1F)) {
         this->mSkate->fn_803F4AF0();
         this->closeStatus(this->mSkate);
+        return 0;
     }
-    if (FLD<u32>(this, 0x436) != 0) {
-        if (FLD<f32>(this, 0x1C8) == 0.5f) {
-            this->fn_803A2EF0();
-        }
+    if (this->_436 != 0 && this->mStickPos.z >= 0.5f) {
+        this->fn_803A2EF0();
+        return 0;
     }
     this->fn_803A2FC0();
-    return 0;
+    return 1;
 }
 
 void Mario::fn_803A2EF0() {

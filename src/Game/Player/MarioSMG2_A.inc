@@ -48,16 +48,14 @@ void Mario::fn_803885F0() {
     if (!((this->mMovementStates_HIGH_WORD >> 29) & 1)) {
         f32 temp_f31 = 0.0f;
         u32 var_r29 = 0U;
-        s32 var_r31 = 0;
-        while (var_r29 < (u32)FLD<u32>(this, 0x570)) {
-            Triangle* tri = FLD<Triangle*>(this, 0x574 + var_r31);
+        while (var_r29 < this->_578) {
+            Triangle* tri = this->_57C[var_r29];
             TVec3f sp8;
             if (MR::vecKillElement(this->mVelocity, *tri->getNormal(0), &sp8) < temp_f31) {
                 this->mVelocity = sp8;
                 this->mSwim->fn_803F7C20(tri->getNormal(0));
             }
             var_r29 += 1;
-            var_r31 += 4;
         }
     }
 }
@@ -309,14 +307,11 @@ s32 Mario::fn_803A2D10() {
 }
 
 void Mario::fn_803A1F80() {
-    f32 temp_f1 = FLD<f32>(this, 0x1C8);
-    void* table = FLD<void*>(this->mActor, 0x590);
-    u32 n = FLD<u32>(table, 12);
-    void* ent = *reinterpret_cast<void**>(reinterpret_cast<u8*>(table) + n * 4);
-    if (temp_f1 >= FLD<f32>(ent, 0x2C8)) {
-        return;
+    f32 temp_f1 = this->mStickPos.z;
+    const MarioConstTable* ent = this->mActor->mConst->getTable();
+    if (temp_f1 < ent->mTurnSlipNeutral) {
+        this->mMovementStates_LOW_WORD |= 0x8000;
     }
-    this->mMovementStates_LOW_WORD |= 0x8000;
 }
 
 void Mario::fn_803A2CC0() {
@@ -354,11 +349,8 @@ void Mario::fn_8039A460() {
     }
 }
 
-// mActor->table(+0x590)[count(+0xC)]: the current entry used by several SMG2 helpers below
-static inline void* marioCurTableEntry(Mario* self) {
-    void* table = FLD<void*>(self->mActor, 0x590);
-    u32 n = FLD<u32>(table, 12);
-    return *reinterpret_cast<void**>(reinterpret_cast<u8*>(table) + n * 4);
+static inline MarioConstTable* marioCurTableEntry(Mario* self) {
+    return self->mActor->mConst->getTable();
 }
 
 
@@ -1217,11 +1209,11 @@ void Mario::fn_803882A0() {
         rising = 1;
     }
     if (mActor->_334 != 0) {
-        FLD<u32>(this, 0x570) = 0;
+        this->_578 = 0;
     }
     if (!((FLD<u32>(this, 0x10) >> 29) & 1)) {
-        for (u32 i = 0; i < FLD<u32>(this, 0x570); i++) {
-            Triangle* tri = FLD<Triangle*>(this, 0x574 + i * 4);
+        for (u32 i = 0; i < this->_578; i++) {
+            Triangle* tri = this->_57C[i];
             TVec3f clipped;
             if (MR::vecKillElement(FLD<TVec3f>(this, 0x160), *tri->getNormal(0), &clipped) < 0.0f) {
                 FLD<TVec3f>(this, 0x160) = clipped;

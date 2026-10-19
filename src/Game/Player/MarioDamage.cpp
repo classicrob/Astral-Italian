@@ -582,7 +582,7 @@ bool MarioFireDance::start() {
 
     _28 = 0;
     impact();
-    if (!*((u8*)getPlayer() + 0xa79)) {
+    if (!getPlayer()->mCometFireDanceArea) {
         impactEffect();
     }
     startPadVib(3);

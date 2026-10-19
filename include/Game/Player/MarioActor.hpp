@@ -29,6 +29,8 @@ class MarioAnimator;
 class MarioActorConditionGroup;
 class MarioFrontHistory;
 class MarioScreenStrip;
+class MarioScreenBlur;
+class MarioSensorSlots;
 class MarioConst;
 class MarioEffect;
 class CollectCounter;
@@ -106,7 +108,6 @@ public:
     const TVec3f& fn_803B8520();
     u32 fn_803B89E0();
     bool fn_803B8A80();
-    s32 fn_803B8DE0();
     u8* fn_803B8FE0();
     u8* fn_803B9020();
     void fn_803B9270();
@@ -1130,7 +1131,7 @@ public:
     /* 0x780 */ union { TVec3f _300; struct { FixedPosition* mCarryFixedPosition780; FixedPosition* mTurnipFixedPosition784; FixedPosition* mDrillFixedPosition788; }; };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
     /* 0x78C */ FixedPosition* mSearchLightThrowPos;  // SMG2 offset guess-gap
     /* 0x790 */ HitSensor* _4A4;  // used in calcAnimInMovement()
-    /* 0x794 */ u32 _3A0;
+    /* 0x794 */ union { u32 _3A0; HitSensor* mSensor794; };
     union { struct {
     union {
         struct {
@@ -1419,6 +1420,7 @@ public:
         struct { u8 _padFront1054[0x24]; MarioFrontHistory* mFrontHistory; };
         struct { u8 _padInput1054[0x10]; u8 mFlag1064; u8 _padFlag1065; bool mInputDisabled1066; bool mBlinkRequested1067; };
         struct { u8 _padCondition1054[0x34]; MarioActorConditionGroup* mConditionGroup; };
+        struct { u8 _padScreenBlur1054[0x20]; MarioScreenBlur* mScreenBlur1074; u8 _padSlots1078[0x14]; MarioSensorSlots* mSensorSlots108C; MarioHairAndHatModel* mHairAndHat1090; };
         struct { u8 _pad1054[0x28]; MarioInputConfig* mInputConfig; MarioActionTable* mActionTable1080; MarioScreenStrip* mScreenStrip1084; };
         u32 mRushAnimationDelay1054;
         struct { u8 _padCarry1054[4]; TVec3f mCarryAnimationPosition1058; };

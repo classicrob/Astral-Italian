@@ -381,7 +381,7 @@ Mario::Mario(MarioActor* pActor) : MarioModule(pActor) {
     _8D8 = nullptr;
     _8D4 = nullptr;
 
-    _A38 = 0;
+    mTornadoCenterSensor = nullptr;
     _A68 = 0;
 
     _5FC = 0;
@@ -7478,14 +7478,14 @@ void Mario::tryTornadoJump() {
 
 void Mario::startTornadoCentering(HitSensor* pSensor) {
     pushTask(reinterpret_cast< Task >(&Mario::taskOnTornadoCentering), 0x400);
-    _A38 = reinterpret_cast< u32 >(pSensor);
+    mTornadoCenterSensor = pSensor;
     _A34 = 0x1E;
 }
 
 
 bool Mario::taskOnTornadoCentering(u32 a1) {
     if (_A34 != 0) {
-        TVec3f sensorOffset(reinterpret_cast< HitSensor* >(_A38)->mHost->mPosition - mPosHolder->mPos);
+        TVec3f sensorOffset(mTornadoCenterSensor->mHost->mPosition - mPosHolder->mPos);
         MR::vecKillElement(sensorOffset, *getGravityVec(), &sensorOffset);
 
         f32 mag = sensorOffset.length();

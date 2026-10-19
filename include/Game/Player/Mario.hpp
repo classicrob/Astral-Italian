@@ -1236,7 +1236,7 @@ public:
     /* 0xA0C */ u32 _A08[11];  // SMG2 offset inh  // SMG2 offset inh
     /* 0xA38 */ u16 _A34;
     /* 0xA3A */ u8 _padA3A[0x2];
-    /* 0xA3C */ u32 _A38;
+    /* 0xA3C */ HitSensor* mTornadoCenterSensor;
     /* 0xA40 */ u16 _A3C;
     /* 0xA42 */ u8 _padA42[0x2];
     /* 0xA44 */ TVec3f _A40;  // SMG2 offset inh  // SMG2 offset inh

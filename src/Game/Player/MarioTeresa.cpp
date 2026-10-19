@@ -441,9 +441,7 @@ bool MarioTeresa::start() {
     changeAnimation("落下", "落下");
 
     if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
-        // raw Mario+0x5F8 flag, see close()
-        u32* flags = reinterpret_cast< u32* >(reinterpret_cast< u8* >(getPlayer()) + 0x5F8);
-        *flags |= 1;
+        getPlayer()->mCometRestrictions |= 1u;
     }
     _5C = 0;
 

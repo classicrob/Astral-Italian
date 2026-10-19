@@ -1741,7 +1741,11 @@ bool MarioActor::isNeedDamageFog() const {
         return false;
     }
 
-    return mMario->getDamageAfterTimer() != 0;
+    if (mMario->getDamageAfterTimer() != 0) {
+        return true;
+    }
+
+    return mBlinkRequested1067;
 }
 
 
@@ -2431,7 +2435,7 @@ void MarioActor::updateForCamera() {
 void MarioActor::bodyClap() {
     for (u32 i = 0; i < _7DC; i++) {
         TVec3f stack_14(mTornadoSensors[i]->mPosition);
-        TVec3f stack_8(stack_14 - _2A0);
+        TVec3f stack_8(stack_14 - _240);
         if (stack_8.length() < 100.0f) {
             mTornadoSensors[i]->receiveMessage(ACTMES_ITEM_GET, getSensor("Body"));
         }
@@ -4863,7 +4867,7 @@ f32 MarioActor::getFaceLookHeight(const char* pName) const {
 
 // ---- MarioActorMorph.cpp ----
 
-bool MarioActor::fn_803CB0B0() {
+bool MarioActor::fn_803CB0B0() const {
     bool allowed = false;
     if (!mMario->isPlayerModeYoshi() || mMario->isStatusActive(0x27) || mYoshiHolder->mTongueAction->fn_8041FAA0()) allowed = true;
     return allowed;
@@ -5542,6 +5546,10 @@ bool MarioActor::isRequestRush() const {
     }
 
     if (mPlayerMode == 5) {
+        return false;
+    }
+
+    if (!fn_803CB0B0()) {
         return false;
     }
 

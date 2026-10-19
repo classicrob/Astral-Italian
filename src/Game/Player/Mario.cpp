@@ -422,6 +422,7 @@ Mario::Mario(MarioActor* pActor)
     mSwimSideVec694 = mNormal2D;
 
     initSound();
+    mAirWalkRecoverySoundArmed = 0;
 
     _97C = 0;
 
@@ -3319,6 +3320,13 @@ void Mario::updateFloorCode() {
             _41C = 15;
         }
     }
+    _A80 = _A7F;
+    _A7F = 0;
+    if (isPlayerModeYoshi() && _960 == 32) {
+        _960 = 0;
+        _A7F = 1;
+    }
+
 }
 
 
@@ -9083,8 +9091,12 @@ void Mario::incAirWalkTimer() {
     const u16 nextLimit = mActor->getConst().getTable()->mAirWalkTime;
 
     if (nextTimer >= nextLimit) {
-        playSound("ハチ体力完全回復");
+        if (mAirWalkRecoverySoundArmed != 0) {
+            playSound("ハチ体力完全回復");
+        }
+        mAirWalkRecoverySoundArmed = 0;
     } else {
+        mAirWalkRecoverySoundArmed = 1;
         playSound("ハチ体力回復");
     }
 }

@@ -1139,7 +1139,8 @@ public:
     /* 0xA80 */ u8 _A80;
     /* 0xA81 */ u8 _padA81[3];
     /* 0xA84 */ MarioMoveInfoA84* mMoveInfoA84;
-    /* 0xA88 */ u32 _A88;
+    /* 0xA88 */ u8 mAirWalkRecoverySoundArmed;
+    /* 0xA89 */ u8 _padA89[3];
     /* 0xA8C */ s32 mJumpFallTimer;
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93;

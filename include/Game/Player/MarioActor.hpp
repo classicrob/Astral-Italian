@@ -564,7 +564,7 @@ public:
     void killAllFireBall();
     void calcAnimPlayerMode();
     void calcAnimHorrorBone();
-    bool fn_803CB0B0();                                   // SMG2: Yoshi tongue-action check (symbol is misnamed resetPlayerModeOnDamage)
+    bool fn_803CB0B0() const;                             // SMG2: Yoshi tongue-action check
     bool fn_803DB380(const char*, const char*) const;     // SMG2-only (by address), same table family as isActionOk
     void shootFireBall();
     void showFreezeModel();

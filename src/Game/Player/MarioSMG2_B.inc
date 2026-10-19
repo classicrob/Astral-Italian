@@ -702,6 +702,9 @@ void Mario::fn_803B1100() {
         this->mMovementStates.mHighWord |= 0x40000000;
         this->mActor->mMarioAnim->fn_803DF9D0();
         this->mActor->fn_803B9810()->fn_8041FD80();
+        TVec3f position;
+        MR::copyJointPos(this->mActor->fn_803B97F0(), "MarioPos", &position);
+        MR::setPlayerPos(position);
     }
 }
 
@@ -709,12 +712,14 @@ void Mario::fn_803B1100() {
 void Mario::fn_803B1180() {
     if (this->isPlayerModeYoshi()) {
         this->mActor->fn_803B9810()->fn_8041FD00();
-        TVec3f sp44(*this->getGravityVec());
-        sp44 *= -this->mVelocity.dot(*this->getGravityVec());
+        const TVec3f* gravity = this->getGravityVec();
+        TVec3f sp44;
+        JMAVECScaleAdd(gravity, &this->mVelocity, &sp44, -gravity->dot(this->mVelocity));
         TVec3f sp38;
-        PSVECCrossProduct(&this->mSideVec, &sp44, &sp38);
-        MR::normalizeOrZero(&sp38);
-        sp38 *= YoshiParam::fn_8041BD90();
+        PSVECCrossProduct(this->getGravityVec(), &this->mSideVec, &sp38);
+        if (!MR::normalizeOrZero(&sp38)) {
+            sp38 *= YoshiParam::fn_8041BD90();
+        }
         TVec3f sp8(*this->getGravityVec());
         sp8 *= 20.0f;
         TVec3f sp14(sp44);
@@ -723,6 +728,9 @@ void Mario::fn_803B1180() {
         sp20 += sp8;
         this->mActor->fn_803B97F0()->fn_8040CCD0(sp20);
         this->mActor->mMarioAnim->fn_803DF9D0();
+        TVec3f position;
+        MR::copyJointPos(this->mActor->fn_803B97F0(), "MarioPos", &position);
+        MR::setPlayerPos(position);
     }
 }
 

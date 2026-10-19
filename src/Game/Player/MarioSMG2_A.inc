@@ -836,8 +836,8 @@ s32 Mario::fn_803A1E60(f32 f) {
 
 // NONMATCHING: branch shape of the 0x3D4 == 0 block approximated
 void Mario::fn_803A1FF0(f32 x, s32 arg) {
-    if ((this->mMovementStates.mHighWord >> 28) & 1) {
-        this->fn_803A1AC0();
+    this->fn_803A1AC0();
+    if ((this->mMovementStates.mLowWord >> 28) & 1) {
         this->fn_803A1C90();
         x *= this->fn_803A1DB0();
     } else {
@@ -846,18 +846,15 @@ void Mario::fn_803A1FF0(f32 x, s32 arg) {
             this->_244.zero();
             PSVECCrossProduct(&this->_214, &this->_22C, &this->_3D8);
             x *= 0.01f;
-            this->_238 = this->_22C;
-            f32 k = 0.3f;
-            if ((this->mDrawStates.mWord >> 18) & 1) {
-                if (this->fn_803A2270()) {
-                    k = 0.1f;
-                }
-            }
-            x *= k;
         }
+        this->_238 = this->_22C;
+    }
+    if ((this->mDrawStates.mWord >> 19) & 1) {
+        x *= this->fn_803A2270() ? 0.1f : 0.3f;
     }
     this->fn_803A22D0(x, arg);
 }
+
 
 void Mario::fn_803A2180() {
     if (this->_750 != 0 && this->mTargetWalkSpeedIndex == 0 && this->isEnableTurn()) {

@@ -254,7 +254,9 @@ bool Unbaba::updateUnbabaRise() {
     this->mRiseProgress += sOne / sRiseTime;
     MR::clamp01(&this->mRiseProgress);
     f32 t = calcUnbabaHeightCurve(this->mRiseProgress, gUnbabaInitialRiseSlope, sRiseTime1, 1.1f, sRiseSlope1, 0.85f, 0.3f);
-    this->mHeight = this->mDistance * t + -2500.0f * this->mScale.x;
+    f32 height = this->mDistance * t;
+    height += -2500.0f * this->mScale.x;
+    this->mHeight = height;
     return sOne == this->mRiseProgress;
 }
 
@@ -264,7 +266,9 @@ bool Unbaba::updateUnbabaSink() {
     this->mRiseProgress -= sOne / f32(frames);
     MR::clamp01(&this->mRiseProgress);
     f32 t = calcUnbabaHeightCurve(this->mRiseProgress, 3.0f, 0.75f, 1.0f, -0.9f, 0.92f, 0.55f);
-    this->mHeight = this->mDistance * t + -2500.0f * this->mScale.x;
+    f32 height = this->mDistance * t;
+    height += -2500.0f * this->mScale.x;
+    this->mHeight = height;
     return 0.0f == this->mRiseProgress;
 }
 

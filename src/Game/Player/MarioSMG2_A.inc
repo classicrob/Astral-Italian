@@ -636,7 +636,7 @@ void Mario::fn_8039AB50() {
     }
     TVec3f sp32;
     f32 old = MR::vecKillElement(this->mJumpVec, *this->getGravityVec(), &sp32);
-    f32 limit = this->fn_8039AC10();
+    f32 limit = this->getMaxDropSpeed();
     if (old >= limit) {
         TVec3f sp8(*this->getGravityVec());
         sp8 *= limit;
@@ -677,7 +677,7 @@ void Mario::fn_803A27A0(TVec3f* arg) {
     this->mFlags14.mLowWord |= 0x80000;
 }
 
-f32 Mario::fn_8039AC10() {
+f32 Mario::getMaxDropSpeed() {
     if (this->getPlayerMode() == 4 && !this->isRising()) {
         return this->mActor->mConst->getTable()->mMaxDropSpeed[4];
     }
@@ -1576,7 +1576,7 @@ void Mario::fn_8039A600() {
         f32 f29 = f1 + f2 * (1.0f - f1);
         this->addVelocity(this->mJumpVec, f29);
         f32 f30 = this->fn_8039AA40();
-        f32 f31 = this->fn_8039A810();
+        f32 f31 = this->calcJumpGravity();
         TVec3f sp20(this->mActor->mAppliedGravityVec);
         sp20 *= f31;
         TVec3f sp2C(sp20);
@@ -1590,7 +1590,7 @@ void Mario::fn_8039A600() {
     if (!((t >> 30) & 1)) {
         this->addVelocity(this->mJumpVec);
         f32 f31 = this->fn_8039AA40();
-        f32 f30 = this->fn_8039A810();
+        f32 f30 = this->calcJumpGravity();
         TVec3f sp8(this->mActor->mAppliedGravityVec);
         sp8 *= f30;
         TVec3f sp14(sp8);
@@ -1667,7 +1667,7 @@ bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& 
 }
 
 // NONMATCHING: explicit typed mode14 storage dispatch, register allocation and boolean lowering.
-f32 Mario::fn_8039A810() {
+f32 Mario::calcJumpGravity() {
     u16 timer = this->_76C;
     if (timer != 0) {
         MarioConstTable* entry = this->mActor->mConst->getTable();

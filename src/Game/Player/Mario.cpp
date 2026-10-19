@@ -7033,7 +7033,7 @@ void Mario::tryJump() {
     f32 ratio = 1.0f;
     if (fn_803EF7C0() == 0x20) ratio = mActor->mConst->getTable()->mMudFloorJumpWeakRatio;
     if ((mFlags20.mWord >> 20) & 1) ratio = 0.9f;
-    f32 height = fn_803B1BA0();
+    f32 height = getJumpHeight();
     TVec3f negativeGravity(-mActor->mAppliedGravityVec);
     TVec3f scaled(negativeGravity);
     scaled *= height;
@@ -7152,7 +7152,7 @@ bool Mario::tryTurnJump() {
         mJumpVec = -horizontal * turnJumpFrontSpeed;
     }
 
-    const f32 jumpHeight = fn_803B1BA0();
+    const f32 jumpHeight = getJumpHeight();
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     mFlags14.mLowWord &= 0xFFFFFEFFU;

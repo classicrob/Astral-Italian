@@ -200,7 +200,7 @@ bool Mario::fn_803B1B70() const {
 
 
 // Ordinary jump callers establish modes 0..6 or8 before this query.
-f32 Mario::fn_803B1BA0() {
+f32 Mario::getJumpHeight() {
     if (this->isPlayerModeCloud() && this->_430 == 0) {
         return 24.0f;
     }

@@ -135,10 +135,10 @@ public:
     void fn_8039A480();
     void fn_8039A5B0();
     void fn_8039A600();
-    f32 fn_8039A810();
+    f32 calcJumpGravity();
     f32 fn_8039AA40();
     void fn_8039AB50();
-    f32 fn_8039AC10();
+    f32 getMaxDropSpeed();
     void fn_8039ACE0();
     f32 fn_8039ADC0();
     void fn_8039CFD0();
@@ -238,7 +238,7 @@ public:
     bool fn_803B18C0();
     void fn_803B1B20();
     bool fn_803B1B70() const;
-    f32 fn_803B1BA0();
+    f32 getJumpHeight();
     bool fn_803B1C10();
     f32 fn_803B1CA0();
     f32 fn_803B1D00();

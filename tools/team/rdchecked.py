@@ -16,6 +16,9 @@ CLOBBER = tuple([f'r{i}' for i in [0, *range(3, 13)]] +
 # Always include r4, conservatively accommodating a 64-bit result.
 OBSERVE = tuple(['r1', 'r2', 'r3', 'r4', 'r13', 'f1', 'lr', 'cr2', 'cr3', 'cr4'] +
                 [f'r{i}' for i in range(14, 32)] + [f'f{i}' for i in range(14, 32)])
+# Audited no-argument scene accessor: getSceneObjHolder(), getObj(0x8b),
+# then lwz r3,0x14(r3). Incoming argument registers do not reach its results.
+STRING_RETURN_ALIAS_INPUTS = {'getCastle__21KoopaJrCastleFunctionFv': ()}
 COMMUTATIVE = {'add', 'mullw', 'and', 'or', 'xor'}
 PURE = {
     'li': (1, 0), 'lis': (1, 0),
@@ -300,7 +303,8 @@ def reject_derived_string_bases(lines, verify_pool=None):
                 if state:
                     raise Unproved('string base crosses unknown runtime helper')
             else:
-                returned = frozenset().union(*(state.get(r, frozenset()) for r in ARGS))
+                alias_inputs = STRING_RETURN_ALIAS_INPUTS.get(args[0], ARGS) if op == 'bl' and args else ARGS
+                returned = frozenset().union(*(state.get(r, frozenset()) for r in alias_inputs))
                 for r in CLOBBER:
                     state.pop(r, None)
                 if returned:

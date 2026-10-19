@@ -483,6 +483,7 @@ void MarioAnimator::update() {
     }
 }
 
+// NONMATCHING: saved-register assignment and reuse of the unchanged animation-state byte.
 void MarioAnimator::updateWalkBas(const char* pAnimName, f32 speed) {
     bool shouldStart = false;
 
@@ -1317,17 +1318,17 @@ bool MarioAnimator::isFrameCtrlAttribute(u32 attribute) const { return mXanimePl
 
 // NONMATCHING: equivalent null-return block ordering.
 XanimePlayer* MarioAnimator::getYoshiAnimationPlayer() const {
-    if (!mActor->fn_803B97F0()) {
-        return nullptr;
-    }
-    return mActor->fn_803B97F0()->mXanimePlayer;
+    XanimePlayer* result;
+    if (!mActor->fn_803B97F0()) result = nullptr;
+    else result = mActor->fn_803B97F0()->mXanimePlayer;
+    return result;
 }
 // NONMATCHING: equivalent null-return block ordering.
 XanimePlayer* MarioAnimator::getYoshiUpperAnimationPlayer() const {
-    if (!mActor->fn_803B97F0()) {
-        return nullptr;
-    }
-    return mActor->fn_803B97F0()->mXanimePlayerUpper;
+    XanimePlayer* result;
+    if (!mActor->fn_803B97F0()) result = nullptr;
+    else result = mActor->fn_803B97F0()->mXanimePlayerUpper;
+    return result;
 }
 f32 XanimePlayer::getAnimationFrame() const {
     if (isTerminate()) return mFrameCtrl->mEnd;

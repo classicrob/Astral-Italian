@@ -561,6 +561,26 @@ class StringPoolReachSafetyTests(unittest.TestCase):
     def test_real_overwrite_kills_base(self):
         self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; li r31, 0; lwz r3, 8(r31); blr', True)
 
+    def test_call_return_copy_overwrites_preserved_base(self):
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; bl unrelated; mr r31, r3; lwz r3, 0x44(r31); blr', True)
+
+    def test_untainted_definitions_kill_previous_string_base(self):
+        for definition in ('lis r31, 0', 'mr r31, r29', 'or r31, r29, r29',
+                           'addi r31, r29, 8', 'lwz r31, 0(r29)', 'mflr r31'):
+            self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; '+definition+'; lwz r3, 0x44(r31); blr', True)
+
+    def test_get_castle_return_does_not_alias_stale_string_argument(self):
+        self.guard('lis r4, STR[53616d65]@ha; addi r4, r4, STR[53616d65]@l; bl startBtkKeepFrame__26KoopaJrCastleStateBodyMoveFPCc; bl getCastle__21KoopaJrCastleFunctionFv; mr r31, r3; lwz r3, 0x44(r31); blr', True)
+
+    def test_get_castle_keeps_nonvolatile_string_base_taint(self):
+        self.guard('lis r31, STR[53616d65]@ha; addi r31, r31, STR[53616d65]@l; bl getCastle__21KoopaJrCastleFunctionFv; lwz r3, 0x44(r31); blr')
+
+    def test_other_noarg_named_callees_have_no_alias_exemption(self):
+        self.guard('lis r4, STR[53616d65]@ha; addi r4, r4, STR[53616d65]@l; bl getCastle__5OtherFv; mr r31, r3; lwz r3, 0x44(r31); blr')
+
+    def test_moved_call_return_alias_still_fails_closed(self):
+        self.guard('lis r3, STR[53616d65]@ha; addi r3, r3, STR[53616d65]@l; bl strchr; mr r31, r3; lwz r3, 0x44(r31); blr')
+
     def test_plain_string_argument_is_allowed(self):
         self.guard('lis r4, STR[53616d65]@ha; addi r4, r4, STR[53616d65]@l; bl strcmp; blr', True)
 

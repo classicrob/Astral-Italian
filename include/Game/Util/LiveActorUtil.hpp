@@ -112,7 +112,7 @@ namespace MR {
     // TODO: Need J3DGXColor
     // void initDLMakerMatColor0(LiveActor* pActor, const char* pMaterialName, const J3DGXColor* pMatColor);
     void initDLMakerChangeTex(LiveActor* pActor, const char* pTexName);
-    void initDLMakerTexGenNum(LiveActor* pActor, const s8* pTexGenNum);
+    void initDLMakerCullMode(LiveActor* pActor, const char* pCullMode);
     ProjmapEffectMtxSetter* initDLMakerProjmapEffectMtxSetter(LiveActor* pActor);
     void setFogColor(LiveActor* pActor, const GXColor& rColor);
     void setFogType(LiveActor* pActor, u8 type);

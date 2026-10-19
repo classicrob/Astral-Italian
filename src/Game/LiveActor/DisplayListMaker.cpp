@@ -86,8 +86,8 @@ MatColorCtrl* DisplayListMaker::addMatColorCtrl(const char* pName, u32 color, co
     return ctrl;
 }
 
-TexMtxCtrl* DisplayListMaker::addTexMtxCtrl(const char* pName) {
-    TexMtxCtrl* ctrl = new TexMtxCtrl(mModel->mModelData, pName);
+TexMtxCtrl* DisplayListMaker::addTexMtxCtrl(const char* pCullMode) {
+    TexMtxCtrl* ctrl = new TexMtxCtrl(mModel->mModelData, pCullMode);
     push(ctrl);
     onBothFlagAll(0x02000000);
     return ctrl;

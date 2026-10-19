@@ -19,7 +19,7 @@ public:
     virtual void kill();
     virtual void control();
 
-    void forceAppear(bool);
+    void forceAppear();
     void setHPMeter(MarioMeter*);
     void requestedTicoEat(bool);
     static bool isInvalidSystemStateShowCounter();

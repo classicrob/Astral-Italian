@@ -31,7 +31,7 @@ public:
     u32 getDiffFlag(s32) const;
     FogCtrl* addFogCtrl(bool);
     MatColorCtrl* addMatColorCtrl(const char*, u32, const J3DGXColor*);
-    TexMtxCtrl* addTexMtxCtrl(const char*);
+    TexMtxCtrl* addTexMtxCtrl(const char* pCullMode);
     ProjmapEffectMtxSetter* addProjmapEffectMtxSetter();
     MirrorReflectionMtxSetter* addMirrorReflectionMtxSetter();
     void onCurFlagBpk(const J3DAnmBase*, const char*);

@@ -144,7 +144,7 @@ public:
     /* 0x9C */ SandyBall* mBall;
     /* 0xA0 */ bool mIsRight;
     /* 0xA1 */ bool mIsThrower;
-    /* 0xA2 */ s8 mHandType;
+    /* 0xA2 */ char mCullMode;
     /* 0xA4 */ s32 mWaitStep;
     /* 0xA8 */ s32 mThrowCount;
     /* 0xAC */ s32 mBallType;

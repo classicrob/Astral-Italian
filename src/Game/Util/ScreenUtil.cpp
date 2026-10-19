@@ -516,10 +516,9 @@ namespace MR {
         return getGameSceneLayoutHolder()->mIsActiveDefaultGameLayout;
     }
 
-// NONMATCHING: target never sets the bool argument register (r4) before forceAppear(bool); the C form here passes false
     void forceAppearDefaultGameLayout() {
         getGameSceneLayoutHolder()->activateDefaultGameLayout();
-        getGameSceneLayoutHolder()->mCounterLayoutCtrl->forceAppear(false);
+        getGameSceneLayoutHolder()->mCounterLayoutCtrl->forceAppear();
     }
 
     void hideWorldMapInfoLayout() {

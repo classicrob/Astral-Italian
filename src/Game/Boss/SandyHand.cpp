@@ -451,8 +451,8 @@ namespace NrvSandyHand {
 static f32 sThrowRate = 1.0f;
 static TVec3f sHandBallOffset(140.0f, -120.0f, 5.0f);
 
-static inline s8 getHandType(bool isLeft) {
-    s8 type = 1;
+static inline char getCullMode(bool isLeft) {
+    char type = 1;
     if (isLeft) {
         type = 2;
     }
@@ -463,7 +463,7 @@ static inline s8 getHandType(bool isLeft) {
 // NONMATCHING: register allocation in the ctor init list.
 SandyHand::SandyHand(Sandy* pSandy, bool isLeft, SandyBallHolder* pHolder, FixedPosition* pFixedPos)
     : LiveActor(isLeft ? "\203T\203\223\203f\203B\201[\202\314\215\266\216\350" : "\203T\203\223\203f\203B\201[\202\314\211E\216\350"), mSandy(pSandy),
-      mHolder(pHolder), mFixedPos(pFixedPos), mBall(nullptr), mIsRight(!isLeft), mIsThrower(isLeft), mHandType(getHandType(isLeft)), mWaitStep(30),
+      mHolder(pHolder), mFixedPos(pFixedPos), mBall(nullptr), mIsRight(!isLeft), mIsThrower(isLeft), mCullMode(getCullMode(isLeft)), mWaitStep(30),
       mThrowCount(0), mBallType(2), mPrevNerve(nullptr), _B4(0), mScaleController(nullptr), mScaleParam(nullptr) {
 }
 
@@ -471,7 +471,7 @@ SandyHand::SandyHand(Sandy* pSandy, bool isLeft, SandyBallHolder* pHolder, Fixed
 void SandyHand::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "SandyHand", mIsRight);
     if (mIsRight) {
-        MR::initDLMakerTexGenNum(this, &mHandType);
+        MR::initDLMakerCullMode(this, &mCullMode);
         MR::newDifferedDLBuffer(this);
         mScale.x *= -1.0f;
     }

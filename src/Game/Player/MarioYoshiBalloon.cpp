@@ -119,49 +119,6 @@ bool MarioYoshiBalloon::fn_80414580() {
     return true;
 }
 
-// NONMATCHING: temporary vector stack slots.
-void MarioYoshiBalloon::fn_80414B90(const TVec3f& vertical) {
-    TVec3f lift;
-    if (checkLvlA()) {
-        lift = -getAirGravityVec() * 0.7f;
-        mAir -= 0.0015f;
-    } else {
-        lift = -getAirGravityVec() * 7.0f;
-        mAir -= 0.003f;
-    }
-    addVelocity(vertical * 0.95f + lift * 0.05f);
-}
-
-void MarioYoshiBalloon::fn_80415030() {
-    TVec3f wind;
-    f32 strength;
-    BigFanFunction::calcWindInfo(&wind, mActor->_240, &strength);
-    strength = MR::clamp(strength, 0.0f, 10.0f);
-    wind.scale(strength);
-    mWind.x *= 0.94f;
-    mWind.y *= 0.94f;
-    mWind.z *= 0.94f;
-    mWind += wind * 0.15f;
-    addVelocity(wind * 0.5f);
-    if (PSVECMag(mWind) > 0.2f) {
-        getPlayer()->mDrawStates.mWord |= 0x00000001U;
-    }
-}
-
-// NONMATCHING: zero byte store uses a saved GPR instead of r0.
-void MarioYoshiBalloon::fn_80415330() {
-    if (getPlayer()->_A72) {
-        fn_80415390(5);
-        getPlayer()->_A72 = 0;
-    }
-}
-
-void MarioYoshiBalloon::fn_80415390(s32 animation) {
-    if ((mAnimation != 0 || animation == 1) && (mAnimation != 1 || animation != 4)) {
-        mRequestedAnimation = animation;
-    }
-}
-
 // NONMATCHING: initial state loads and comparison operand order.
 void MarioYoshiBalloon::fn_80414730() {
     if (mRequestedAnimation != mAnimation) {
@@ -241,7 +198,20 @@ void MarioYoshiBalloon::fn_80414730() {
     mAnimationFrame++;
 }
 
-// NONMATCHING: temporary stack slots, GPR allocation and commuted multiply operands.
+// NONMATCHING: temporary vector stack slots.
+void MarioYoshiBalloon::fn_80414B90(const TVec3f& vertical) {
+    TVec3f lift;
+    if (checkLvlA()) {
+        lift = -getAirGravityVec() * 0.7f;
+        mAir -= 0.0015f;
+    } else {
+        lift = -getAirGravityVec() * 7.0f;
+        mAir -= 0.003f;
+    }
+    addVelocity(vertical * 0.95f + lift * 0.05f);
+}
+
+// NONMATCHING: temporary stack slots, GPR allocation and multiply-result register.
 void MarioYoshiBalloon::fn_80414CD0() {
     const TVec3f& pad = getWorldPadDir();
     const TVec3f& gravity = getAirGravityVec();
@@ -289,12 +259,30 @@ void MarioYoshiBalloon::fn_80414CD0() {
     MR::normalizeOrZero(&velocity);
     f32 alignment = adjusted.dot(-velocity);
     if (alignment < 0.0f) alignment = 0.0f;
-    f32 speed = PSVECMag(newVelocity) * 0.125f;
+    f32 speed = PSVECMag(newVelocity);
+    speed *= 0.125f;
     if (speed > 1.0f) speed = 1.0f;
     TQuat4f tilt;
-    tilt.setRotate(axis, speed * (alignment * -0.34906584f));
+    alignment *= -0.34906584f;
+    tilt.setRotate(axis, speed * alignment);
     tilt.transform(adjusted);
     getPlayer()->setFrontVecKeepSide(adjusted);
+}
+
+void MarioYoshiBalloon::fn_80415030() {
+    TVec3f wind;
+    f32 strength;
+    BigFanFunction::calcWindInfo(&wind, mActor->_240, &strength);
+    strength = MR::clamp(strength, 0.0f, 10.0f);
+    wind.scale(strength);
+    mWind.x *= 0.94f;
+    mWind.y *= 0.94f;
+    mWind.z *= 0.94f;
+    mWind += wind * 0.15f;
+    addVelocity(wind * 0.5f);
+    if (PSVECMag(mWind) > 0.2f) {
+        getPlayer()->mDrawStates.mWord |= 0x00000001U;
+    }
 }
 
 // NONMATCHING: temporary vector stack slots.
@@ -322,6 +310,20 @@ void MarioYoshiBalloon::fn_80415150() {
         clearVelocity();
         addVelocity(velocity);
         fn_80415390(4);
+    }
+}
+
+// NONMATCHING: zero byte store uses a saved GPR instead of r0.
+void MarioYoshiBalloon::fn_80415330() {
+    if (getPlayer()->_A72) {
+        fn_80415390(5);
+        getPlayer()->_A72 = 0;
+    }
+}
+
+void MarioYoshiBalloon::fn_80415390(s32 animation) {
+    if ((mAnimation != 0 || animation == 1) && (mAnimation != 1 || animation != 4)) {
+        mRequestedAnimation = animation;
     }
 }
 

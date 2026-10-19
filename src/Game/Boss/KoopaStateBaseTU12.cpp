@@ -201,11 +201,10 @@ void KoopaStateLastChase::nextPattern() {
     mPatternIdx = 0;
 }
 
-// NONMATCHING: FPR allocation only (the target keeps 3500.0f in f3 and the summed z in f1; ours f2/f3)
+// NONMATCHING: local FPR allocation differs after preserving the constant-first addition.
 bool KoopaStateLastChase::calcTargetPos(TVec3f* pDst, const TVec3f& rSrc, s32 idx) {
     s32 num = mPatternNum;
-    f32 z = MR::calcKoopaBattleFrontDot(rSrc);
-    z += 3500.0f;
+    f32 z = 3500.0f + MR::calcKoopaBattleFrontDot(rSrc);
     bool res = false;
     s32 i = (num + idx) % num;
     TVec3f local;

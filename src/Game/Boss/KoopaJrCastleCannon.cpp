@@ -216,9 +216,10 @@ KoopaJrCastleCannonBall* KoopaJrCastleCannon::findDeadBall() {
     return nullptr;
 }
 
-// NONMATCHING: constant/operand register order of the 0.02 add differs (fadds operands swapped)
+// NONMATCHING: scalar literal relocations differ; the addition keeps the target operand order.
 void KoopaJrCastleCannon::updateGauge() {
-    f32 temp = 0.02f + mAimRate;
+    f32 temp = mAimRate;
+    temp += 0.02f;
     mAimRate = temp;
     mAimRate = MR::clamp(temp, 0.0f, 0.55f);
 }

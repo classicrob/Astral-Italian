@@ -258,7 +258,7 @@ void KoopaJrCastleFireBar::createChildren() {
     updateChildPositions();
 }
 
-// NONMATCHING: one vector-scale multiply uses reversed floating-point operand registers.
+// NONMATCHING: scalar temporary FPR differs; spacing/half/scale grouping and operand order match.
 void KoopaJrCastleFireBar::updateChildPositions() {
     TVec3f dir;
     dir.scale(sFireBarSpacing * sFireBarScale, mFront);
@@ -273,7 +273,9 @@ void KoopaJrCastleFireBar::updateChildPositions() {
             TVec3f unit;
             MR::normalize(&unit, dir);
             JMAVECScaleAdd(&unit, &mPosition, &cur, mInnerRadius);
-            JMAVECScaleAdd(&up, &cur, &cur, sFireBarSpacing * sFireBarHalf * sFireBarScale);
+            f32 halfSpacing = sFireBarSpacing * sFireBarHalf;
+            halfSpacing *= sFireBarScale;
+            JMAVECScaleAdd(&up, &cur, &cur, halfSpacing);
         } else {
             JMathInlineVEC::PSVECAdd(&cur, &dir, &cur);
         }

@@ -1,4 +1,5 @@
 #include "Game/LiveActor/ClippingJudge.hpp"
+#include "Game/Camera/CameraContext.hpp"
 #include "Game/LiveActor/ClippingDirector.hpp"
 #include "Game/Util.hpp"
 
@@ -46,7 +47,7 @@ void ClippingJudge::calcViewingVolume(THex3f* pVolume, f32 farClip) {
         nearClip = 100.0f;
     }
 
-    f32 aspect = MR::getAspect();
+    f32 aspect = CameraContext::getScreenScale();
     f32 fovy = MR::getFovy();
     TPos3f cameraMtx;
     cameraMtx.setPositionFromLookAt(MR::getCameraViewMtx());

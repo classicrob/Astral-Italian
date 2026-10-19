@@ -741,14 +741,14 @@ bool Mario::fn_803A1920() {
     return !this->_250.epsilonEquals(stick, 0.000003814697265625f);
 }
 
-void Mario::fn_803A20E0(s32 arg) {
+void Mario::fn_803A20E0(f32 rate, s32 arg) {
     if (FLD<u16>(this, 0x3D0) == 0) {
         TVec3f sp8;
-        if (!MR::vecBlendSphere(&sp8, FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), 0.0f)) {
+        if (!MR::vecBlendSphere(&sp8, FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), rate)) {
             MR::vecRotAxis(FLD<TVec3f>(this, 0x214), FLD<TVec3f>(this, 0x22C), this->mHeadVec, &sp8, 0.3926991f);
-            if (arg == 0) {
-                this->setFrontVecKeepUp(sp8);
-            }
+        }
+        if (arg == 0) {
+            this->setFrontVecKeepUp(sp8);
         }
     }
     this->_10_LOW_WORD &= 0xFFF7FFFF;
@@ -1528,19 +1528,20 @@ void Mario::fn_80399E60(TVec3f* stick) {
     }
 }
 
-// NONMATCHING: the air-gravity effect placement is approximated from the draft
+// NONMATCHING: temporary allocation and register scheduling.
 void Mario::fn_8039A2A0() {
     f32 d = this->calcDistToCeil(false);
-    if (d != 160.0f) {
+    if (!(d >= 160.0f)) {
         f32 g = this->cutGravityElementFromJumpVec(true);
-        MR::isNearZero(FLD<TVec3f>(this, 0x1E4), 0.001f);
-        TVec3f sp20(FLD<TVec3f>(this, 0x1E4));
+        MR::isNearZero(mAirGravityVec, 0.001f);
+        TVec3f sp20(mAirGravityVec);
         sp20 *= d;
         TVec3f sp2C(this->mPosHolder->mPos);
         sp2C -= sp20;
         this->playEffectTrans("天井ヒット", sp2C);
         f32 f31 = (FLD<u32>(this, 0x42C) == 6 || FLD<u32>(this, 0x42C) == 4) ? 0.9f : 0.6f;
-        TVec3f sp8(FLD<TVec3f>(this, 0x1E4));
+        MR::isNearZero(mAirGravityVec, 0.001f);
+        TVec3f sp8(mAirGravityVec);
         sp8 *= g;
         TVec3f sp14(sp8);
         sp14 *= f31;
@@ -1710,7 +1711,7 @@ void Mario::fn_803A02F0(s32 keepSlip, s32 hard, s32 blend) {
     } else fn_803A0490(hard, blend);
 }
 
-// NONMATCHING: the state dispatch chain is recovered from the draft; ordering of the sub-states is approximate
+// NONMATCHING: temporary allocation and register scheduling.
 void Mario::fn_803A0BE0() {
     this->fn_803A2CC0();
     FLD<u32>(this, 0x10) = (FLD<u32>(this, 0x10) & ~0x400u) | ((this->isSkatableFloor() << 10) & 0x400u);
@@ -1719,10 +1720,12 @@ void Mario::fn_803A0BE0() {
     this->fn_803A2D50();
     if (this->fn_803A2D80() == 0 && this->fn_803A3030() == 0 && this->fn_803A3130() == 0) {
         this->checkTornado();
-        s32 var_r31 = 0;
-        f32 t31 = FLD<f32>(this, 0x1C4);
+        this->fixPositionInTower();
         TVec3f spC;
-        if (MR::isNearZero(spC, 0.001f) && MR::isNearZero(t31, 0.001f)) {
+        MR::setNan(spC);
+        s32 var_r31 = 0;
+        f32 t31 = mStickPos.y;
+        if (MR::isNearZero(mStickPos.x, 0.001f) && MR::isNearZero(t31, 0.001f)) {
             var_r31 = 1;
         }
         if (var_r31 != 0) {
@@ -1735,11 +1738,11 @@ void Mario::fn_803A0BE0() {
         this->calcShadowDir(this->mFrontVec, &FLD<TVec3f>(this, 0x214));
         this->fn_803A1330(&sp8);
         this->fn_803A1600(&sp8);
-        this->fn_803A1800();
+        f32 rate = this->fn_803A1800();
         if (!((FLD<u32>(this, 0xC) >> 27) & 1)) {
-            this->fn_803A1FF0(0.0f, sp8);
+            this->fn_803A1FF0(rate, sp8);
         } else {
-            this->fn_803A20E0(sp8);
+            this->fn_803A20E0(rate, sp8);
         }
         this->fn_803A2180();
         this->fn_803A28D0(&spC);

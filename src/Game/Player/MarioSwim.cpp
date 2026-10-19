@@ -3562,7 +3562,7 @@ void MarioSwim::fn_803F8F60(f32) {
         TVec3f direction;
         JMAVECScaleAdd(mUpVec, pad, direction, -mUpVec.dot(pad));
         const TVec3f& pad2 = getWorldPadDir();
-        const TVec3f& normal = getPlayer()->_6A0;
+        const TVec3f& normal = getPlayer()->mSwimSideVec694;
         TVec3f flat;
         JMAVECScaleAdd(normal, pad2, flat, -normal.dot(pad2));
         MR::normalizeOrZero(&flat);

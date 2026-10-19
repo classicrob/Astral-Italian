@@ -156,29 +156,29 @@ void Mario::fn_803B14E0() {
 
 void Mario::fn_803B1720() {
     if (this->getCurrentStatus() != 0x26 && (this->mMovementStates_LOW_WORD >> 30 & 1)) {
-        this->changeStatus(this->_7B4);
+        this->changeStatus(this->mYoshiPull);
         this->stopWalk();
     }
 }
 
 void Mario::fn_803B1780() {
     if (this->getCurrentStatus() == 0x26) {
-        this->_7B4->fn_804090C0();
+        this->mYoshiPull->fn_804090C0();
     }
 }
 
 void Mario::fn_803B17C0() {
     if (this->getCurrentStatus() == 0x26) {
-        this->closeStatus(this->_7B4);
+        this->closeStatus(this->mYoshiPull);
     }
 }
 
 void Mario::fn_803B1800() {
     if (this->getCurrentStatus() == 0x27) {
-        *reinterpret_cast<f32*>(reinterpret_cast<u8*>(this->_7B8) + 0x14) = 1.0f;
+        this->mYoshiBalloon->mAir = 1.0f;
         return;
     }
-    this->changeStatus(this->_7B8);
+    this->changeStatus(this->mYoshiBalloon);
 }
 
 bool Mario::fn_803B1850() const {
@@ -187,14 +187,14 @@ bool Mario::fn_803B1850() const {
 
 void Mario::fn_803B1880() {
     if (this->getCurrentStatus() != 0x28) {
-        this->changeStatus(this->_7BC);
+        this->changeStatus(this->mYoshiShot);
     }
 }
 
 
 void Mario::fn_803B1B20() {
     if (this->fn_803B1B70()) {
-        this->closeStatus(this->_7C0);
+        this->closeStatus(this->mYoshiDash);
     }
 }
 
@@ -251,10 +251,10 @@ bool Mario::fn_803B1D60() {
 }
 
 bool Mario::fn_803B26C0() {
-    if (this->isPlayerModeHopper() && this->_A6C[0xC] != 0) {
+    if (this->isPlayerModeHopper() && this->mCometHopperApplied != 0) {
         return true;
     }
-    if (this->isPlayerModeInvincible() && this->_A6C[0xD] != 0) {
+    if (this->isPlayerModeInvincible() && this->mCometRainbowApplied != 0) {
         return true;
     }
     return false;
@@ -817,7 +817,7 @@ bool Mario::fn_803B18C0() {
     if ((getPlayer()->mMovementStates_HIGH_WORD >> 28) & 1) return false;
     if ((getPlayer()->mMovementStates_LOW_WORD >> 21) & 1) return false;
     if (mTargetWalkSpeedIndex != 0) return false;
-    changeStatus(_7C0);
+    changeStatus(mYoshiDash);
     return true;
 }
 
@@ -1179,10 +1179,13 @@ void Mario::fn_803B38B0(const HitInfo* hit, const TVec3f* center) {
     }
 }
 
-// NONMATCHING: the remaining B-range helpers are approximated; sg reports these as unmatched
+// NONMATCHING: temporary allocation and register scheduling.
 f32 Mario::fn_803B2CC0(TVec3f* arg1) {
+    if (((_10_LOW_WORD >> 12) & 1) && ((mMovementStates_LOW_WORD >> 20) & 1)) {
+        return 1.0f;
+    }
     if (arg1->dot(this->mHeadVec) < 0.0f) {
-        s32 t = FLD<s32>(this->mActor, 0x664);
+        u16 t = FLD<u16>(this->mActor, 0x664);
         if (t != 0) {
             f32 t3 = (f32)t / 15.0f;
             return t3 * FLD<f32>(marioCurTableEntry(this), 0x7BC) + (1.0f - t3) * FLD<f32>(marioCurTableEntry(this), 0x7B8);
@@ -1195,7 +1198,7 @@ f32 Mario::fn_803B2CC0(TVec3f* arg1) {
     if (this->mTargetWalkSpeedIndex <= 2) {
         return FLD<f32>(marioCurTableEntry(this), 0x7C0);
     }
-    return 0.0f;
+    return 1.0f;
 }
 
 // NONMATCHING: register allocation / constant pool labels

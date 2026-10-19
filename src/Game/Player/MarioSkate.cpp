@@ -124,7 +124,7 @@ bool MarioSkate::update() {
     }
 
     if (!_1A) {
-        getPlayer()->mainMove();
+        getPlayer()->fn_803A0BE0();
     } else {
         return !isAnimationTerminate(nullptr);
     }

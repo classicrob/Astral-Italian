@@ -90,7 +90,7 @@ public:
 
     template < typename T >
     void addEventSequence(const char* pName) {
-        mHashTable->add(pName, reinterpret_cast< u32 >(new T()), false);
+        mHashTable->addPtr(pName, static_cast< EventSequence* >(new T()), false);
     }
 
 private:

@@ -201,7 +201,7 @@ bool MarioStep::update() {
         return false;
     }
 
-    getPlayer()->mainMove();
+    getPlayer()->fn_803A0BE0();
     clearVelocity();
 
     f32 _278 = getPlayer()->mWalkSpeed;

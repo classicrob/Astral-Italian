@@ -64,13 +64,13 @@ s32 MarioNameMatrix::findIndex(const char* row, const char* column) const {
 }
 
 s32 MarioNameMatrix::findRow(const char* name) const {
-    u32 index;
-    if (mRowHash->search(name, &index)) return index;
+    uintptr_t index;
+    if (mRowHash->search(name, &index)) return static_cast<s32>(index);
     return -1;
 }
 
 s32 MarioNameMatrix::findColumn(const char* name) const {
-    u32 index;
-    if (mColumnHash->search(name, &index)) return index;
+    uintptr_t index;
+    if (mColumnHash->search(name, &index)) return static_cast<s32>(index);
     return -1;
 }

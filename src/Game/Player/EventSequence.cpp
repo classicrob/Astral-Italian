@@ -45,11 +45,11 @@ void EventSequencer::movement() {
 }
 
 void EventSequencer::startEvent(const char* pName) {
-    EventSequence* sequence;
-    if (mHashTable->search(pName, reinterpret_cast< u32* >(&sequence))) {
-        mSequence = sequence;
+    uintptr_t payload;
+    if (mHashTable->search(pName, &payload)) {
+        mSequence = reinterpret_cast< EventSequence* >(payload);
         mSequenceFrame = 0;
-        sequence->clearFlag();
+        reinterpret_cast< EventSequence* >(payload)->clearFlag();
     }
 }
 

@@ -281,7 +281,7 @@ MarioActionHash::MarioActionHash() {
 
 // NONMATCHING: fallback mode and player-stride temporaries exchange r5/r6.
 bool MarioActionHash::fn_803DB650(const char** result, const char* name, u16 player, u16 mode) {
-    u32 index;
+    uintptr_t index;
     if (!mTable->search(name, &index))
         return false;
 

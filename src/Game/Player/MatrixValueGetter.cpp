@@ -14,7 +14,7 @@ MatrixValueGetter::MatrixValueGetter(const char* name, MatrixValueTable* values)
 }
 
 bool MatrixValueGetter::getValue(const char* name, f32* value) const {
-    u32 index;
+    uintptr_t index;
     if (!_10->search(name, &index)) {
         return false;
     }

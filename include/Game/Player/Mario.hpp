@@ -169,7 +169,7 @@ public:
     void fn_803A1F80();
     void fn_803A1FC0();
     void fn_803A1FF0(f32 x, s32 arg);
-    void fn_803A20E0(s32 arg);
+    void fn_803A20E0(f32 rate, s32 arg);
     void fn_803A2180();
     bool fn_803A2270();
     void fn_803A22D0(f32 x, s32 arg);
@@ -345,7 +345,6 @@ public:
     void writeBackPhyisicalVector();
     void update();
     void updateLookOfs();
-    void actionMain();
     void touchWater();
 
     bool isBlendWaitGround() const NO_INLINE;
@@ -487,7 +486,6 @@ public:
     bool taskOnWallRising(u32);
     void incAirWalkTimer();
 
-    void mainMove();
     bool isEnableTurn();
     void recordTurnSlipAngle();
     f32 decideInertia(f32);
@@ -505,8 +503,6 @@ public:
     void calcShadowDir2D(const TVec3f&, TVec3f*);
     void stick2Dadjust(f32&, f32&);
     void set2Dmode(bool);
-    void beforeJumping2D();
-    void afterLanding2D();
     void clear2DStick();
 
     void set25Dmode(const AreaObj*);
@@ -853,7 +849,8 @@ public:
         _41E = val;
     }
 
-    /* 0x008 */ union { u8 _pad8[0x4]; bool mDashWallSoundPlayed; };
+    /* 0x008 */ bool mDashWallSoundPlayed;
+    /* 0x009 */ u8 _pad9[3];
     union {
         /* 0x00C */ MovementStates mMovementStates;
         struct {
@@ -1095,20 +1092,11 @@ public:
     /* 0x670 */ TVec3f _67C;
     /* 0x67C */ TVec3f _688;
     /* 0x688 */ TVec3f _694;
-    union {
-        /* 0x694 */ TVec3f mSwimSideVec694;
-        /* 0x694 */ TVec3f _6A0;
-        struct { u8 _padInit694[0xC]; u32 mInitValue6A0; };
-        struct {
-    /* 0x694 */ u8 _6AC;
-    /* 0x695 */ u8 _6AD;
-    /* 0x696 */ u8 _pad696[0x2];
-    /* 0x698 */ TVec3f _628;  // SMG2: moved (guess); 0x630.. is the 2D block
+    /* 0x694 */ TVec3f mSwimSideVec694;
+    /* 0x6A0 */ u32 mInitValue6A0;
     /* 0x6A4 */ u8 mAxisMode6A4;
     /* 0x6A5 */ u8 mCandidateAxisMode6A5;
     /* 0x6A6 */ u8 _padAxis6A6[2];
-        };
-    };
     /* 0x6A8 */ TVec3f _6B0;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6B4 */ TVec3f _6BC;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x6C0 */ TVec2f _6C8;
@@ -1161,10 +1149,10 @@ public:
     /* 0x7A8 */ MarioFrontStep* mFrontStep;
     /* 0x7AC */ MarioSkate* mSkate;
     /* 0x7B0 */ MarioTalk* mTalk;
-    /* 0x7B4 */ union { MarioYoshiPull* mYoshiPull; MarioYoshiPull* _7B4; };
-    /* 0x7B8 */ union { MarioYoshiBalloon* mYoshiBalloon; MarioState* _7B8; };
-    /* 0x7BC */ union { MarioYoshiShot* mYoshiShot; MarioState* _7BC; };
-    /* 0x7C0 */ union { MarioYoshiDash* mYoshiDash; MarioState* _7C0; };
+    /* 0x7B4 */ MarioYoshiPull* mYoshiPull;
+    /* 0x7B8 */ MarioYoshiBalloon* mYoshiBalloon;
+    /* 0x7BC */ MarioYoshiShot* mYoshiShot;
+    /* 0x7C0 */ MarioYoshiDash* mYoshiDash;
     /* 0x7C4 */ MarioDamage* mDamage;
     /* 0x7C8 */ TVec3f _7C4;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x7D4 */ u16 _7D0;  // SMG2 offset inh
@@ -1197,13 +1185,7 @@ public:
     /* 0x8A0 */ MarioFpView* mFpView;
     /* 0x8A4 */ MarioMove* mMove;  // SMG2 offset inh  // SMG2 offset inh
     /* 0x8A8 */ TVec3f _8A4;  // SMG2 offset inh  // SMG2 offset inh
-    union {  // SMG2 offset inh  // SMG2 offset inh
-        struct {  // SMG2 offset inh  // SMG2 offset inh
-            /* 0x8B4 */ TVec3f _8B0;  // SMG2 offset inh  // SMG2 offset inh
-            /* 0x8C0 */ TVec3f _8BC;  // SMG2 offset inh  // SMG2 offset inh
-        };  // SMG2 offset inh  // SMG2 offset inh
-        /* 0x8B4 */ TVec3f mRelativeWallPos[2];  // SMG2 offset inh  // SMG2 offset inh
-    };  // SMG2 offset inh  // SMG2 offset inh
+    /* 0x8B4 */ TVec3f mRelativeWallPos[2];
     /* 0x8CC */ Triangle* _8C8;
     /* 0x8D0 */ Triangle* _8CC[2];
     /* 0x8D8 */ HitSensor* _8D4;
@@ -1246,7 +1228,24 @@ public:
     /* 0xA5C */ TVec3f _A58;  // SMG2 offset inh  // SMG2 offset inh
     /* 0xA68 */ f32 _A64;
     /* 0xA6C */ HitSensor* _A68;  // SMG2 offset guess
-    /* 0xA70 */ union { struct { u8 _padJumpA70[0x1C]; s32 mJumpFallTimer; }; u8 _A6C[0x20]; struct { u8 _padMoveInfoA70[0x14]; MarioMoveInfoA84* mMoveInfoA84; }; struct { u8 _padA70[4]; u32 mDashWallCooldown; bool mCometNoSpinArea; bool mCometFireDanceArea; bool mCometRainbowArea; bool mCometHopperArea; bool mCometHopperApplied; bool mCometRainbowApplied; }; };  // animations  // SMG2 offset guess  // SMG2 offset guess
+    /* 0xA70 */ u8 _A70;
+    /* 0xA71 */ u8 _A71;
+    /* 0xA72 */ u8 _A72;
+    /* 0xA73 */ u8 _padA73;
+    /* 0xA74 */ u32 mDashWallCooldown;
+    /* 0xA78 */ bool mCometNoSpinArea;
+    /* 0xA79 */ bool mCometFireDanceArea;
+    /* 0xA7A */ bool mCometRainbowArea;
+    /* 0xA7B */ bool mCometHopperArea;
+    /* 0xA7C */ bool mCometHopperApplied;
+    /* 0xA7D */ bool mCometRainbowApplied;
+    /* 0xA7E */ u8 _A7E;
+    /* 0xA7F */ u8 _A7F;
+    /* 0xA80 */ u8 _A80;
+    /* 0xA81 */ u8 _padA81[3];
+    /* 0xA84 */ MarioMoveInfoA84* mMoveInfoA84;
+    /* 0xA88 */ u32 _A88;
+    /* 0xA8C */ s32 mJumpFallTimer;
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93[9];
 };

@@ -1079,13 +1079,7 @@ bool MarioActor::fn_803CFCA0(HitSensor* s) {
     return true;
 }
 
-s32 MarioActor::fn_803CFE30(HitSensor* s) {
-    u32 t = FP(s, u32, 0);
-    if (t - 0x62 <= 3 || t - 0x5E <= 1 || t == 0x5C) {
-        return 1;
-    }
-    return mActionTable1080->testEffect(MR::getSensorHost(s)->mName, "乗換センサ");
-}
+
 
 
 // NONMATCHING: sensor-loop register allocation and verified constant-pool addresses.
@@ -1097,7 +1091,7 @@ HitSensor* MarioActor::fn_803D0CE0(s32 a) {
     HitSensor* res = nullptr;
     for (u32 i = 0; i < _930; ++i) {
         HitSensor* cur = _7E4[i];
-        if (fn_803CFE30(cur) || (a != 0 && !MR::isSensorAutoRush(cur))) {
+        if (isFixJumpRushSensor(cur) || (a != 0 && !MR::isSensorAutoRush(cur))) {
             continue;
         }
         if (getCarrySensor() != nullptr) {

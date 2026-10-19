@@ -47,7 +47,7 @@ bool MarioYoshiBalloon::start() {
     static_cast<YoshiLockOnManager*>(mActor->fn_803B9820())->mSuspended = true;
     mFirstJet = true;
     MR::startActionSound(mActor->fn_803B9830()->mRideModelActor, "Swell", -1, -1, -1);
-    getPlayer()->_A6C[2] = 0;
+    getPlayer()->_A72 = 0;
     return true;
 }
 
@@ -150,9 +150,9 @@ void MarioYoshiBalloon::fn_80415030() {
 
 // NONMATCHING: zero byte store uses a saved GPR instead of r0.
 void MarioYoshiBalloon::fn_80415330() {
-    if (getPlayer()->_A6C[2]) {
+    if (getPlayer()->_A72) {
         fn_80415390(5);
-        getPlayer()->_A6C[2] = 0;
+        getPlayer()->_A72 = 0;
     }
 }
 

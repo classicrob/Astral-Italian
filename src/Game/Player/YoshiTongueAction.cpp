@@ -1088,7 +1088,7 @@ void YoshiTongueAction::fn_8041E150() {
         if (actor) fn_80420230(actor);
         if (_2D) MR::tryRumblePadMiddle(this, 0);
         MR::stopScene(8);
-        mPlayer->_A6C[2] = true;
+        mPlayer->_A72 = true;
     }
 }
 void YoshiTongueAction::fn_8041E470() {

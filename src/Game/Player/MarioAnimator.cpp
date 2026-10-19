@@ -87,9 +87,9 @@ void MarioAnimator::initCallbackTable() {
 void MarioAnimator::entryCallback(const char* pName) {
     mCallbackEnded = false;
     closeCallback();
-    u32 index;
+    uintptr_t index;
     if (mCallbackTable->search(pName, &index)) {
-        mCallbackId = index;
+        mCallbackId = static_cast<s32>(index);
         if (marioCallbackTable[mCallbackId].mEntry != nullptr) {
             (this->*marioCallbackTable[mCallbackId].mEntry)();
         }

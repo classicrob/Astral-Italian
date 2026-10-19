@@ -559,13 +559,13 @@ void MarioActor::initMember() {
         mPulledSensors7C0[i] = nullptr;
     }
     F(u8, 0x9C0) = 0;
-    F(f32, 0x9C4) = 0.0f;
-    F(f32, 0x9C8) = 0.0f;
+    mSpinRadius = 0.0f;
+    mSpinHeight = 0.0f;
     for (s32 i = 0; i < 128; i++) {
-        FP(this, f32, 0x9CC + i * 4) = 0.0f;
+        mSpinNoise[i] = 0.0f;
     }
     for (s32 i = 0; i < 64; i++) {
-        _6DC[i] = nullptr;
+        mTornadoSensors[i] = nullptr;
     }
     F(u16, 0xCCC) = 0;
     F(u16, 0xCCE) = 0;
@@ -626,7 +626,7 @@ void MarioActor::initMember() {
     mModelEF4 = nullptr;
     F(u8, 0xEFD) = 0;
     mAllModel = new MarioAllModel(this);
-    F(u32, 0xF04) = 0;
+    mSimpleModelActorF04 = nullptr;
     mSimpleModelF08 = nullptr;
     F(TVec3f, 0xF0C).zero();
     F(u8, 0xF18) = 0;
@@ -689,7 +689,7 @@ void MarioActor::initMember() {
     F(u16, 0xFC0) = 0;
     F(u16, 0xFC2) = 0;
     mTimedCommonEffects = nullptr;
-    _B64 = nullptr;
+    mMaterialEffectsFC8 = nullptr;
     mWaterColumn = nullptr;
     F(TVec3f, 0xFD0).zero();
     F(TVec3f, 0xFDC).zero();

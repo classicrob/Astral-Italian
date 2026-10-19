@@ -163,10 +163,11 @@ struct MarioConstTable {
     /* 0x27A */ u16 mDashAfterTime;  // SMG2 offset guess
     /* 0x27C */ u16 mAutoBdashTime;  // SMG2 offset guess
     /* 0x27E */ u16 mSlowStartTime;  // SMG2 offset guess
-    /* 0x280 */ f32 mStartSpinAnimeRatio;  // SMG2 offset guess
-    /* 0x284 */ union { f32 mSlopeAnimeRatio; f32 mStartSpinAnimeRatioSMG2; };
-    /* 0x288 */ union { f32 mSlopeSpinAnimeRatio; f32 mSlopeAnimeRatioSMG2; };
-    /* 0x28C */ union { u8 _pad28C[0x4]; f32 mSlopeSpinAnimeRatioSMG2; };
+    /* 0x280 */ u16 _280;
+    /* 0x282 */ u16 _282;
+    /* 0x284 */ f32 mStartSpinAnimeRatio;
+    /* 0x288 */ f32 mSlopeAnimeRatio;
+    /* 0x28C */ f32 mSlopeSpinAnimeRatio;
     /* 0x290 */ f32 mItemDashRatio;
     /* 0x294 */ u16 mItemDashTimer;  // SMG2 offset inh
     /* 0x296 */ u8 _pad296[0x2];
@@ -532,13 +533,9 @@ struct MarioConstTable {
     /* 0x78A */ u16 mTornadoHoldTime;  // SMG2 offset guess
     /* 0x78C */ u16 mMetalHoldTime;  // SMG2 offset guess
     /* 0x78E */ u16 mFireModeTime;  // SMG2 offset guess
-    union {
-        struct {
-            /* 0x790 */ u16 mIceModeTime;
-            /* 0x792 */ u8 _pad792[0x6];
-        };
-        struct { u8 _pad790[4]; u32 mDrillCarryAnimationDelay794; };
-    };
+    /* 0x790 */ u16 mIceModeTime;
+    /* 0x792 */ u8 _pad792[0x2];
+    /* 0x794 */ u32 mDrillCarryAnimationDelay794;
     /* 0x798 */ f32 mHeadAngleFixMargin;
     /* 0x79C */ f32 mFrontAngleFixMargin;
     /* 0x7A0 */ u16 mCameraHeadRotationTimer;  // SMG2 offset inh

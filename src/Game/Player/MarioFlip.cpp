@@ -7,48 +7,6 @@
 #include "Game/Player/MarioState.hpp"
 #include "Game/Util/MathUtil.hpp"
 
-bool Mario::doFlipJump(const TVec3f& rVec) {
-    // FIXME: regswap
-    if (isAnimationRun("壁はじき")) {
-        return false;
-    }
-
-    stopWalk();
-    TVec3f vec(rVec);
-    vec.setLength(mActor->mConst->getTable()->mWallSpinFlipGround);
-    vec -= getGravityVec()->scaleInline(mActor->mConst->getTable()->mWallSpinHopGround);
-    tryForcePowerJump(vec, true);
-
-    changeAnimation("壁はじき");
-
-    stopPunch();
-    mMovementStates.mHighWord |= 0x00100000U;
-    _430 = 3;
-    startPadVib(2);
-
-    return true;
-}
-
-bool Mario::doFlipBackRoll(const TVec3f& rVec) {
-    TVec3f vec20;
-    MR::vecKillElement(rVec, getAirGravityVec(), &vec20);
-
-    if (doFlipLarge(vec20)) {
-        checkDamage();
-        changeAnimationNonStop("後転ふっとび");
-
-        mDamage->setStrings("後転ふっとび空中", "後転ふっとび着地");
-
-        TVec3f vec28;
-        MR::vecKillElement(rVec, getAirGravityVec(), &vec28);
-        setFrontVecKeepUp(-vec28, static_cast< u32 >(12l));
-
-        return true;
-    }
-
-    return false;
-}
-
 bool MarioFlip::start() {
     _12 = 0;
     _14 = 0;
@@ -166,47 +124,6 @@ bool MarioFlip::update() {
     }
 
     return true;
-}
-
-bool Mario::doFlipRot(const TVec3f& rVec) {
-    getCurrentStatus();
-    if (getCurrentStatus() == MarioStatus_FireDamage) {
-        return false;
-    }
-
-    if (((mMovementStates.mLowWord >> 4) & 1U)) {
-        return false;
-    }
-
-    mFlip->setVec(rVec);
-
-    stopJump();
-    stopWalk();
-    forceStopTornado();
-
-    changeStatus(mFlip);
-
-    return true;
-}
-
-bool Mario::doFlipLarge(const TVec3f& rVec) {
-    if (getCurrentStatus() == MarioStatus_Damage) {
-        return false;
-    }
-
-    if (getCurrentStatus() == MarioStatus_Flip) {
-        return false;
-    }
-
-    if (getCurrentStatus() == MarioStatus_FireDamage) {
-        return false;
-    }
-
-    if (((mMovementStates.mLowWord >> 4) & 1U)) {
-        return false;
-    }
-
-    return flipLarge(rVec);
 }
 
 MarioFlip::MarioFlip(MarioActor* pActor) : MarioState(pActor, MarioStatus_Flip), _12(), _14() {

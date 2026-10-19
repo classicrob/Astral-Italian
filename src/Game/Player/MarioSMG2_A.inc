@@ -697,17 +697,21 @@ bool Mario::fn_8039A100() {
 
 void Mario::fn_803A10D0(s32 arg) {
     MarioConstTable* e = marioCurTableEntry(this);
-    u32 dur = this->mActor->mBeeWallWalk == 0 ? 30 : e->mStandingTurnTime;
+    u32 dur = e->mStandingTurnTime;
+    if (this->mActor->mBeeWallWalk != 0) {
+        dur = 30;
+    }
     if (arg == 0) {
         this->setFrontVecKeepUp(this->_22C, dur);
-        if (this->isEnableTurn()) {
-            this->changeAnimation("その場足踏み", (const char*)nullptr);
-            if (!this->isAnimationRun("カリカリ限界") && !this->isPlayerModeYoshi()) {
-                this->fn_803EEC20("その場足踏み上半身", 0);
-            }
+    }
+    if (this->isEnableTurn()) {
+        this->changeAnimation("その場足踏み", (const char*)nullptr);
+        if (!this->isAnimationRun("カリカリ限界") && !this->isPlayerModeYoshi()) {
+            this->fn_803EEC20("その場足踏み上半身", 0);
         }
     }
 }
+
 
 void Mario::fn_803A1C90() {
     TVec3f sp8;

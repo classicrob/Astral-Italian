@@ -14544,15 +14544,12 @@ void Mario::startJumpDropSlide(const HitSensor* pSensor) {
     _A64 = pSensor->mRadius;
     _70C = getAirGravityVec();
 
-    bool changeSlideAnimation = !isPlayerModeHopper();
-    if (changeSlideAnimation) {
-        if (dot > sHopperJumpSlideDotMin) {
-            f32 frontDot = mFrontVec.dot(slideDir);
-            if (frontDot > sZero) {
-                changeAnimation("ジャンプ順滑り");
-            } else {
-                changeAnimation("ジャンプ逆滑り");
-            }
+    if (mActor->_468 == 0 && !isPlayerModeHopper() && dot > sHopperJumpSlideDotMin) {
+        f32 frontDot = mFrontVec.dot(slideDir);
+        if (frontDot > sZero) {
+            changeAnimation("ジャンプ順滑り");
+        } else {
+            changeAnimation("ジャンプ逆滑り");
         }
     }
 

@@ -6023,7 +6023,7 @@ void MarioActor::updateTakingPosition() {
 }
 
 const HitSensor* MarioActor::getCarrySensor() const {
-    if (_468 == nullptr) {
+    if (_468 == 0) {
         return nullptr;
     }
 

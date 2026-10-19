@@ -1868,7 +1868,7 @@ void MarioActor::fn_803C5B30(MtxPtr mtx) {
         } else {
             this->_3B0 = 0.2f + ((0.8f * (f32)(0xF - cnt)) / 15.0f);
         }
-        s32 t = reinterpret_cast<s32&>(this->_398);
+        u32 t = this->_398;
         if (t != 0) {
             this->_3B0 = this->_3B0 + 0.02f * (f32)t;
             return;
@@ -1892,7 +1892,7 @@ void MarioActor::fn_803C5B30(MtxPtr mtx) {
         } else {
             this->_3B0 = 0.2f + ((0.8f * (f32)(0xF - cnt)) / 15.0f);
         }
-        s32 t = reinterpret_cast<s32&>(this->_398);
+        u32 t = this->_398;
         if (t != 0) {
             this->_3B0 = this->_3B0 + 0.02f * (f32)t;
             return;
@@ -1900,7 +1900,7 @@ void MarioActor::fn_803C5B30(MtxPtr mtx) {
         break;
     }
     case 4:
-        this->_3B0 = 0.2f + ((0.8f * (160.0f * (1.0f - JMACosRadian(0.5f * (((f32)reinterpret_cast<s32&>(this->_390) / 120.0f) * 3.1415927f))))) / 160.0f);
+        this->_3B0 = 0.2f + ((0.8f * (160.0f * (1.0f - JMACosRadian(0.5f * (((f32)this->_390 / 120.0f) * 3.1415927f))))) / 160.0f);
         break;
     }
 }

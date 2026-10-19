@@ -2579,10 +2579,14 @@ Game/Enemy/AttackRockFinal.cpp:
 	.ctors      start:0x80644074 end:0x80644078
 	.data       start:0x80682468 end:0x806825D8
 
+Game/Enemy/AttackRockRide.cpp:
+	.text       start:0x801528E0 end:0x80152F70
+	.data       start:0x806825D8 end:0x806825F0
+
 Game/Enemy/AttackRockStateHold.cpp:
-	.text       start:0x801528E0 end:0x80153A00
+	.text       start:0x80152F70 end:0x80153A00
 	.ctors      start:0x80644078 end:0x8064407C
-	.data       start:0x806825D8 end:0x806826E0
+	.data       start:0x806825F0 end:0x806826E0
 
 Game/Enemy/AttackRockStateFall.cpp:
 	.text       start:0x80153A00 end:0x801545D0
@@ -3004,8 +3008,16 @@ Game/Enemy/KameckBeam.cpp:
 	.sdata2     start:0x807DAAA0 end:0x807DAAB0
 
 Game/Enemy/KameckBeamHolder.cpp:
-	.text       start:0x801A7BE0 end:0x801A83A0
-	.data       start:0x8068A0D0 end:0x8068A2F8
+	.text       start:0x801A7BE0 end:0x801A7E60
+	.data       start:0x8068A0D0 end:0x8068A138
+
+Game/Enemy/KameckBeamKuriboMini.cpp:
+	.text       start:0x801A7E60 end:0x801A8100
+	.data       start:0x8068A138 end:0x8068A218
+
+Game/Enemy/KameckBeamMeramera.cpp:
+	.text       start:0x801A8100 end:0x801A83A0
+	.data       start:0x8068A218 end:0x8068A2F8
 
 Game/Enemy/KameckFireBall.cpp:
 	.text       start:0x801A83A0 end:0x801A8C20

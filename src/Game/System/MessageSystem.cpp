@@ -98,7 +98,7 @@ TalkNode* MessageSystem::getBranchTrueNode(const TalkNode* pNode, const MessageD
         return nullptr;
     }
 
-    u16 flowIndex = pData->getFlowNodeIndex();
+    u16 flowIndex = pData->getFlowNodeIndex(pNode);
     u16 branchIndex = *reinterpret_cast< u16* >(pData->getNodeBranchPtr(flowIndex));
     return getNode(branchIndex, pData);
 }
@@ -108,7 +108,7 @@ TalkNode* MessageSystem::getBranchFalseNode(const TalkNode* pNode, const Message
         return nullptr;
     }
 
-    u16 flowIndex = pData->getFlowNodeIndex();
+    u16 flowIndex = pData->getFlowNodeIndex(pNode);
     u16 branchIndex = *reinterpret_cast< u16* >(reinterpret_cast< u8* >(pData->getNodeBranchPtr(flowIndex)) + 2);
     return getNode(branchIndex, pData);
 }

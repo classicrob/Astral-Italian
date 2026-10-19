@@ -1918,7 +1918,7 @@ config.libs = [
             Object(NonMatching, "Game/System/GrandGalaxyMapStateWorldWarp.cpp"),
             Object(NonMatching, "Game/System/ResourceCsvGroupHolder.cpp"),
             Object(NonMatching, "Game/System/MarioFaceShipEventDataHolder.cpp", extra_cflags=["-i libs/libms/include"]),
-            Object(NonMatching, "Game/System/MessageSystem.cpp"),
+            Object(NonMatching, "Game/System/MessageSystem.cpp", extra_cflags=["-i libs/libms/include"]),
             Object(NonMatching, "Game/System/MiniComet.cpp"),
             Object(NonMatching, "Game/System/MiniEarthenPipe.cpp"),
             Object(NonMatching, "Game/System/MiniGreenComet.cpp"),

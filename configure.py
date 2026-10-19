@@ -2809,6 +2809,8 @@ config.libs = [
         "Player",
         [
             Object(NonMatching, "Game/Player/CloudMarioHat.cpp"),
+            Object(NonMatching, "Game/Player/MarioSensorSlots.cpp"),
+            Object(NonMatching, "Game/Player/MarioInputConfig.cpp"),
             Object(NonMatching, "Game/Player/DrawAdaptor.cpp"),
             Object(NonMatching, "Game/Player/FireMarioBall.cpp"),
             Object(NonMatching, "Game/Player/FloorCode.cpp"),

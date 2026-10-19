@@ -13,7 +13,7 @@ public:
     virtual bool update();
 
     bool calcFirstVector();
-    void updateJump();
+    void updateJump() NO_INLINE;
 
     /* 0x11 */ u8 _11;
     /* 0x12 */ u8 _12;

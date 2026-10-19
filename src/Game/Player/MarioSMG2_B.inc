@@ -1009,16 +1009,24 @@ void Mario::fn_803B44F0(TVec3f* arg1) {
 }
 
 // NONMATCHING: head-vector collision/normal rotation approximated from the draft
-void Mario::fn_803B1DE0(TVec3f* arg1) {
-    TVec3f sp20(this->mHeadVec);
-    MR::normalizeOrZero(&sp20);
-    TVec3f sp14(*arg1);
-    MR::normalizeOrZero(&sp14);
-    if (this->mHeadVec.dot(*arg1) > -0.9f) {
-        TVec3f sp8;
-        PSVECCrossProduct(&this->mHeadVec, arg1, &sp8);
-        MR::isNearZero(sp8, 0.001f);
+// NONMATCHING: independent FP load/register allocation.
+bool Mario::fn_803B1DE0(TVec3f* up) {
+    TVec3f head(mHeadVec);
+    MR::normalizeOrZero(&head);
+    TVec3f direction(*up);
+    MR::normalizeOrZero(&direction);
+    if (mHeadVec.dot(*up) > -0.9f) {
+        TVec3f axis;
+        PSVECCrossProduct(&mHeadVec, up, &axis);
+        if (MR::isNearZero(axis, 0.001f)) {
+            f32 front = MR::abs(up->dot(mFrontVec));
+            if (MR::abs(up->dot(mSideVec)) < front) return false;
+        } else {
+            f32 side = MR::abs(axis.dot(mSideVec));
+            if (MR::abs(axis.dot(mFrontVec)) < side) return false;
+        }
     }
+    return true;
 }
 
 void Mario::fn_803B1EF0(TVec3f* up, f32 rate) {

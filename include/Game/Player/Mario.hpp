@@ -238,7 +238,7 @@ public:
     f32 fn_803B1CA0();
     f32 fn_803B1D00();
     bool fn_803B1D60();
-    void fn_803B1DE0(TVec3f* arg1);
+    bool fn_803B1DE0(TVec3f* arg1);
     void fn_803B1EF0(TVec3f* arg1, f32 fself);
     void fn_803B23E0(const TVec3f*, const TVec3f*, f32);
     bool fn_803B2470();

@@ -1376,16 +1376,16 @@ void Mario::fn_80388DB0() {
 
 // NONMATCHING: the two-stage neighbourhood test is approximated (returns the matched-triangle flag)
 
-// NONMATCHING: sound selection by yoshi/state approximated from the m2c draft
-void Mario::fn_8038C620(s32 arg3) {
-    if (FLD<u32>(this, 0xA91) != 0) {
-        MR::startLevelSoundPlayer("JumpFromYoshi", -1, arg3);
-    } else if (FLD<u32>(this, 0xA90) != 0) {
+// NONMATCHING: independent loads and register scheduling; unused legacy argument.
+void Mario::fn_8038C620(s32) {
+    if (FLD<u8>(this, 0xA91) != 0) {
+        MR::startLevelSoundPlayer("JumpFromYoshi", -1, -1);
+    } else if (FLD<u8>(this, 0xA90) != 0) {
         if (this->isPlayerModeYoshi()) {
             if (FLD<s32>(this->mActor->fn_803B97F0(), 0x134) > 0) {
-                MR::startActionSound(reinterpret_cast<const LiveActor*>(this->mActor->fn_803B97F0()), "DashJump", -1, -1, -1);
+                MR::startActionSound(this->mActor->fn_803B97F0(), "DashJump", -1, -1, -1);
             } else {
-                MR::startActionSound(reinterpret_cast<const LiveActor*>(this->mActor->fn_803B97F0()), "JumpS", -1, -1, -1);
+                MR::startActionSound(this->mActor->fn_803B97F0(), "JumpS", -1, -1, -1);
             }
         } else {
             this->playSound("声小ジャンプ", -1);
@@ -1413,8 +1413,8 @@ void Mario::fn_8038C620(s32 arg3) {
         } else {
             FLD<s32>(this, 0xA98) = 0x226;
         }
-        if (PSVECMag(&FLD<TVec3f>(this, 0x160)) == 2.0f && this->isAnimationRun("口に含む") && this->isAnimationRun("基本")) {
-            if (this->getAnimator()->fn_803DF0E0() == 2.5f) {
+        if (PSVECMag(&FLD<TVec3f>(this, 0x160)) >= 2.0f && this->isAnimationRun("口に含む") && this->isAnimationRun("基本")) {
+            if (this->getAnimator()->fn_803DF0E0() >= 2.5f) {
                 MR::startActionSoundPlayer("RunMouthFull", -1, -1);
             }
         }
@@ -2223,4 +2223,82 @@ f32 Mario::decideInertia(f32 speed) {
     if (_3FC != 0) _3FC--;
     if (fn_803EF7C0() == 32 && mWalkSpeed > 0.4f) inertia *= 0.5f;
     return inertia;
+}
+
+// NONMATCHING: independent load scheduling and temporary/register allocation.
+void Mario::fixHeadFrontVecByGravity() {
+    TVec3f groundNormal(_368);
+    MR::diffAngleAbs(mActor->mCameraBasisZ, mActor->mPostureReference1044);
+    if (MR::fn_8001E6A0() && isStickOn()) {
+        if (_60D != 1) _60D = 1;
+        mDrawStates_WORD |= 0x40000;
+        _10_LOW_WORD |= 0x200000;
+        _40E = 0;
+    }
+    if (_3D0 != 0 || _3D2 != 0) mDrawStates_WORD &= 0xFFFBFFFF;
+    if (!_60D && mActor->mAxisRotationDisabled6A0 != 0) mDrawStates_WORD &= 0xFFFBFFFF;
+    if (MR::isInAreaObj("PlayerSideRetainOffArea", getTrans())) mDrawStates_WORD &= 0xFFFBFFFF;
+    if ((isStatusActive(30) || isStatusActive(29)) && _60D) _60D = 0;
+    TVec3f previousHead(mHeadVec);
+    TVec3f up(-*getGravityVec());
+    MR::normalize(&up);
+    if (mHeadVec.dot(up) < -0.9f && (mMovementStates_LOW_WORD >> 31)) FLD<u8>(this, 0xA71) = 1;
+    else if ((mMovementStates_LOW_WORD >> 30) & 1) FLD<u8>(this, 0xA71) = 0;
+    f32 rate = fn_803B2CC0(&up);
+    if (_60D && mTargetWalkSpeedIndex != 0 && (((mMovementStates_LOW_WORD >> 30) & 1) || !(mMovementStates_LOW_WORD >> 31))) {
+        if (!((mDrawStates_WORD >> 18) & 1) || !fn_803B2BD0()) {
+            fn_803B23E0(&up, &mSideVec, rate);
+            fixFrontVecFromUpSide();
+            _29C = groundNormal;
+            _290 = mSideVec;
+        }
+    } else {
+        if (FLD<u8>(this, 0xA71) != 0) {
+            fn_803B1EF0(&up, rate);
+            setFrontVecKeepUp(mFrontVec);
+        } else if (fn_803B1DE0(&up)) {
+            fn_803B23E0(&up, &mFrontVec, rate);
+            setFrontVecKeepUp(mFrontVec);
+        } else {
+            fn_803B23E0(&up, &mSideVec, rate);
+            fixFrontVecFromUpSide();
+        }
+        MarioConst* constants = mActor->mConst;
+        MarioConstTable* table = constants->mTable[constants->mCurrentTable];
+        if (MR::diffAngleAbs(_43C, mFrontVec) < FLD<f32>(table, 0x79C)) setFrontVec(_43C);
+        constants = mActor->mConst;
+        table = constants->mTable[constants->mCurrentTable];
+        if (MR::diffAngleAbs(mHeadVec, previousHead) < FLD<f32>(table, 0x798)) {
+            mHeadVec = previousHead;
+            MR::normalize(&mHeadVec);
+        }
+        if (fn_803B2470()) {
+            mSideVec = _290;
+            MR::normalize(&mSideVec);
+            f32 angle = marioAcos(groundNormal.dot(_29C));
+            TVec3f axis;
+            PSVECCrossProduct(&_29C, &groundNormal, &axis);
+            MR::normalizeOrZero(&axis);
+            if (MR::isNearZero(axis, 0.001f) || MR::isNearZero(_29C + groundNormal, 0.001f) || MR::isNearZero(_29C - groundNormal, 0.001f)) {
+                if (_60D != 1) _60D = 1;
+            } else {
+                if (!MR::isNearZero(axis, 0.001f)) {
+                    TMtx34f rotation;
+                    PSMTXRotAxisRad(rotation, axis, angle);
+                    PSMTXMultVec(rotation, mSideVec, mSideVec);
+                    _29C = groundNormal;
+                    _290 = mSideVec;
+                }
+                if (_60D != 0) _60D = 0;
+            }
+            fixFrontVecFromUpSide();
+            return;
+        }
+        TVec3f axis;
+        PSVECCrossProduct(&groundNormal, &_22C, &axis);
+        MR::normalizeOrZero(&axis);
+        if (!MR::isNearZero(axis, 0.001f)) _290 = axis;
+        else _290 = mSideVec;
+        if (_60D != 0) _60D = 0;
+    }
 }

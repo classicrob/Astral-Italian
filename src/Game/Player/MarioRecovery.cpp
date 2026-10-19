@@ -60,6 +60,7 @@ MarioRecovery::MarioRecovery(MarioActor* actor) : MarioState(actor, MarioStatus_
     _88 = 0;
 }
 
+// NONMATCHING: ignored addTrans tag setup and register scheduling.
 bool MarioRecovery::calcFirstVector() {
     _40 = getTrans();
     MarioActor* actor = mActor;
@@ -115,6 +116,7 @@ bool MarioRecovery::calcFirstVector() {
     return true;
 }
 
+// NONMATCHING: ignored addTrans tag setup.
 void MarioRecovery::updateJump() {
     Mtx rotation;
     PSMTXRotAxisRad(rotation, &_64, _7C);
@@ -186,6 +188,7 @@ bool MarioRecovery::start() {
     return true;
 }
 
+// NONMATCHING: ignored addTrans tag setup and string pool offsets.
 bool MarioRecovery::update() {
     clearVelocity();
     switch (_1A) {
@@ -228,7 +231,7 @@ bool MarioRecovery::update() {
         updateJump();
         bool passed = false;
         bool distant = true;
-        TVec3f shadow(getShadowPos());
+        TVec3f shadow(fn_803EF5B0());
         TVec3f shadowOffset(shadow - _34);
         TVec3f initialOffset(_40 - _34);
         if (MR::isNearZero(shadowOffset)) {

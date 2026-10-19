@@ -15,11 +15,11 @@
 namespace {
     struct HatPointInfo { const char* joint; TVec3f offset; };
     HatPointInfo sPoints[] = {
-        {"AllRoot", TVec3f(0.0f, 0.0f, 0.0f)},
+        {"AllRoot", TVec3f(0.0f, 30.0f, -8.0f)},
         {"Cap1", TVec3f(0.0f, 0.0f, 0.0f)},
         {"Cap2", TVec3f(0.0f, 0.0f, 0.0f)},
         {"Cap3", TVec3f(0.0f, 0.0f, 0.0f)},
-        {"Cap3", TVec3f(0.0f, 0.0f, 0.0f)}
+        {"Cap3", TVec3f(0.0f, 0.0f, -20.0f)}
     };
     const s32 sSpringPairs[][2] = {{0,1}, {1,2}, {2,3}, {3,4}};
     struct HatJointInfo { const char* name; s32 spring; };

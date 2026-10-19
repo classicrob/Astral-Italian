@@ -474,47 +474,69 @@ void MarioTeresa::checkWind() {
     }
 }
 
+// NONMATCHING: register allocation, stack temporaries and literal-pool layout.
 void MarioTeresa::checkWallCeilReflect() {
-    MarioParts* actor;
     TVec3f normal;
     TVec3f wallNormal;
-    bool hit = false;
+    bool ceiling = false;
     if (getPlayer()->calcDistToCeil(false) < 200.0f) {
         normal = getPlayer()->_3B0;
-        hit = true;
+        ceiling = true;
     }
 
-    if (!hit) {
-        hit = getPlayer()->getHitWallNorm(&wallNormal);
+    bool wall = false;
+    if (!ceiling && getPlayer()->getHitWallNorm(&wallNormal)) {
+        wall = true;
         normal = wallNormal;
     }
 
-    if (hit) {
-        f32 speed = MR::vecKillElement(_34, normal, &_34);
-        if (speed < 0.0f) {
-            _34 += normal * -speed;
+    bool reflected = false;
+    if (!ceiling && !wall && _78) {
+        TVec3f combined(_6C);
+        combined += _60;
+        if (!MR::normalizeOrZero(&combined)) {
+            reflected = true;
+            normal = combined;
+        }
+    }
+    _78 = 0;
+    _60.zero();
+    _6C.zero();
+
+    if (ceiling || wall || reflected) {
+        if (_5C) {
+            _5C--;
+            getPlayer()->addTrans(normal * 10.0f, nullptr);
         } else {
-            _34 += normal * speed * 1.5f;
+            f32 speed = MR::vecKillElement(_34, normal, &_34);
+            if (speed < 0.0f) {
+                if (speed > -5.0f) {
+                    _34 += normal * 5.0f;
+                } else {
+                    _34 += normal * -speed;
+                }
+            } else {
+                _34 += normal * speed * 1.5f;
+            }
+            _5C = 30;
+            if (!_42) {
+                playSound("テレサ壁反射");
+                playSound("声壁反射");
+                mActor->changeTeresaAnimation("hit", -1);
+                MarioActor* actor = mActor;
+                const TVec3f& wallNormal = getPlayer()->getWallNorm();
+                actor->fn_803BB510(getPlayer()->getWallPos(), wallNormal);
+                mActor->_946 = 10;
+                _46 = mActor->getConst().getTable()->mTeresaWallReflectTime;
+                _14.zero();
+                getPlayer()->_418 = 0;
+            }
         }
-
-        if (!_42) {
-            playSound("テレサ壁反射");
-            playSound("声壁反射");
-            mActor->changeTeresaAnimation("hit", -1);
-            actor = mActor->_9A4;
-            MR::emitEffectHit(actor, getPlayer()->getWallPos(), getPlayer()->getWallNorm(), "WallHit");
-            mActor->_946 = 10;
-            _46 = mActor->getConst().getTable()->mTeresaWallReflectTime;
-            _14.zero();
-            Mario* player = getPlayer();
-            player->_418 = 0;
-        }
-
         _42++;
         return;
     }
-
     _42 = 0;
+    _5C = 0;
 }
 
 void MarioTeresa::procAirControl() {

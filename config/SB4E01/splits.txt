@@ -6376,7 +6376,14 @@ Game/Player/MarioActor.cpp:
 	.sdata2     start:0x807DFBD8 end:0x807DFCD0
 
 Game/Player/CloudMarioHat.cpp:
-	.text       start:0x803D9A80 end:0x803DAA10
+	.text       start:0x803D9A80 end:0x803DAAE0
+	.ctors      start:0x806447CC end:0x806447D0
+
+Game/Player/MarioSensorSlots.cpp:
+	.text       start:0x803DAAE0 end:0x803DAC20
+
+Game/Player/MarioInputConfig.cpp:
+	.text       start:0x803DAC20 end:0x803DAC50
 
 Game/Player/MarioActorConditionGroup.cpp:
 	.text       start:0x803DAC50 end:0x803DB270
@@ -6522,7 +6529,7 @@ Game/Player/MarioRabbit.cpp:
 	.sdata2     start:0x807E00D0 end:0x807E0100
 
 Game/Player/MarioRecovery.cpp:
-	.text       start:0x803F10E0 end:0x803F1B70
+	.text       start:0x803F0E40 end:0x803F1B70
 	.data       start:0x806DDB98 end:0x806DDBE0
 
 Game/Player/MarioSearchLight.cpp:

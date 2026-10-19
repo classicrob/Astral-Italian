@@ -1553,8 +1553,9 @@ void MarioActor::fn_803D8400(TVec2f* a, TVec2f* b) const {
     TDDraw::drawFillBox(*a, *b, 0);
 }
 
+// NONMATCHING: Equivalent model/material saved-register allocation.
 s32 MarioActor::fn_803D8490() const {
-    TDDraw::setup(1, 1, 0);
+    TDDraw::setup(0, 1, 1);
     J3DModelX* m = static_cast<J3DModelX*>(MR::getJ3DModel(mSearchLight));
     J3DMaterial* mat = m->getModelData()->getMaterialNodePointer(0);
     if (!m->simpleDrawSetup(mat)) {

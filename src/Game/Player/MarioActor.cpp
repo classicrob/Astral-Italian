@@ -858,10 +858,9 @@ void MarioActor::updateBehavior() {
 
 
 void MarioActor::updateBindRatio() {
-    // FIXME: wrong stack
-    if (!_934 && !MR::isNearZero(_978 - mVector60C)) {
+    if (!_934 && !MR::isNearZero(_978 - mLastMove)) {
         f32 mag = _978.length();
-        if (mag / (_978 - mVector60C).length() < 2.0f) {
+        if (mag / (_978 - mLastMove).length() < 2.0f) {
             _984 += 0.1f;
         } else {
             _984 -= 0.01f;

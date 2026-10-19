@@ -1444,8 +1444,8 @@ void MarioActor::fn_803C4020() {
     if (this->mTransforming != 0) {
         MR::endDemo(this, "マリオ変身");
         this->mTransforming = 0;
-        MR::releaseAnimFrame(this);
     }
+    MR::releaseAnimFrame(this);
     this->_3DE = 1;
     switch (mPlayerMode) {
     case 4:

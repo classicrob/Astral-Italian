@@ -749,7 +749,7 @@ void MarioActor::initMember() {
     mPunchTriangle106C = nullptr;
     mLifeDecreasedThisFrame = 0;
     this->mFlag1064 = 0;
-    this->mInputDisabled1066 = 0;
+    this->mReflectionSuppressed = 0;
     this->mBlinkRequested1067 = 0;
 }
 

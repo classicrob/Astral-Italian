@@ -1153,7 +1153,7 @@ public:
     /* 0x1058 */ TVec3f mCarryAnimationPosition1058;
     /* 0x1064 */ u8 mFlag1064;
     /* 0x1065 */ u8 mWasInMorphLimitArea1065;
-    /* 0x1066 */ bool mInputDisabled1066;
+    /* 0x1066 */ bool mReflectionSuppressed;
     /* 0x1067 */ bool mBlinkRequested1067;
     /* 0x1068 */ u8 _pad1068[4];
     /* 0x106C */ const Triangle* mPunchTriangle106C;

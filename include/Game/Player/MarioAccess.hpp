@@ -13,22 +13,22 @@ class RushEndInfo;
 class Triangle;
 
 namespace MarioAccess {
-    bool fn_803B4E40();
-    u32 fn_803B5970();
-    void fn_803B59A0();
+    bool isInJumpAction();
+    u32 getLife();
+    void decrementLife();
     void concatWithJointMtx(TPos3f*, const char*);
-    bool fn_803B5FE0();
-    void fn_803B6010();
-    void fn_803B6050(s32);
-    void fn_803B7170(TVec3f*);
-    void fn_803B71E0();
-    void fn_803B7210();
-    void fn_803B6090();
+    bool isVisible();
+    void enableSilhouetteDuringRush();
+    void setSilhouetteHiddenFrames(s32);
+    void calcYoshiEatItemVelocity(TVec3f*);
+    void disableReflection();
+    void enableReflection();
+    void clearFootprints();
     void fn_803B6830(bool);
-    void fn_803B7070(s32);
-    void fn_803B70E0();
-    bool fn_803B71B0();
-    f32 fn_803B7240();
+    void extendBeeAirWalk(s32);
+    void killAllFireBall();
+    bool isDefaultModel();
+    f32 getCeilingDistance();
     void fn_803B72A0();
 
     f32 fn_803B57A0();  // SMG2-only (original name unknown; by address)
@@ -56,7 +56,7 @@ namespace MarioAccess {
     Triangle* getShadowingPolygon();
     void forceGameOverSink();
     void forceKill(u32, u32);
-    void fn_803B5020(s32);
+    void tryPressAgainstCeiling(s32);
     bool isDisableFpView();
     bool isFpViewChangingFailure();
     void stopFpView();
@@ -112,7 +112,7 @@ namespace MarioAccess {
     void addVelocityFromArea(const TVec3f&);
     bool isOnWaterSurface();
     void calcWorldPadDir(TVec3f*, f32, f32);
-    bool fn_803B72E0();
+    bool isRushingWithRestrictedYoshiJointControl();
     MarioActor* getPlayerActor();
     void validateSensor();
     void incOxygen(u32);

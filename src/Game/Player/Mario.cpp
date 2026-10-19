@@ -7336,7 +7336,7 @@ void Mario::tryBackJump() {
     const f32 backSpeed = mActor->getConst().getTable()->mSquatJumpBackSpeed;
     mJumpVec = -getAirFrontVec() * backSpeed;
 
-    const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
+    const f32 jumpHeight = getJumpHeight();
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     mFlags14.mLowWord &= 0xFFFFFEFFU;
@@ -7349,13 +7349,19 @@ void Mario::tryBackJump() {
     procJump(true);
     changeAnimation("しゃがみジャンプ", "落下");
     playSound("後ジャンプ");
-    playSound("声後ジャンプ");
     playSound("ジャンプ踏切");
     playEffect("共通ハイジャンプ");
+    if (isPlayerModeYoshi()) {
+        MR::startActionSound(mActor->fn_803B97F0(), "JumpHigh", -1, -1, -1);
+    } else {
+        playSound("声後ジャンプ");
+    }
 
     if (mSwim->checkUnderWaterFull(-mFrontVec) > 500.0f && mStickPos.z == 0.0f) {
         changeAnimationNonStop("後方飛び込みジャンプ");
-        playSound("声高飛び込み");
+        if (!isPlayerModeYoshi()) {
+            playSound("声高飛び込み");
+        }
         playSound("ジャンプ踏切");
     }
 
@@ -7378,15 +7384,19 @@ void Mario::tryTornadoJump() {
 
     mJumpVec = mFrontVec * frontSpeed * tornadoSpeed;
 
-    const f32 jumpHeight = mActor->getConst().getTable()->mJumpHeight[_430];
+    const f32 jumpHeight = getJumpHeight();
     mJumpVec += -mActor->mAppliedGravityVec * jumpHeight;
 
     mMovementStates.mLowWord &= 0xFFFDFFFFU;
     mMovementStates.mLowWord |= 0x00010000U;
     procJump(true);
     changeAnimation("ジャンプ", "落下");
-    playSound("声スピン");
     playSound("トルネードジャンプ");
+    if (isPlayerModeYoshi()) {
+        MR::startActionSound(mActor->fn_803B97F0(), "HeadShake", -1, -1, -1);
+    } else {
+        playSound("声スピン");
+    }
 
     mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
     _3D0 = 0;
@@ -7641,7 +7651,6 @@ void Mario::tryFreeJump(const TVec3f& rVec, bool a2) {
     _344 = mSideVec;
     procJump(false);
     changeAnimation(nullptr, "落下");
-    startPadVib(2);
     mRabbit->forceJump();
     return;
 }

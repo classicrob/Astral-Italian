@@ -168,7 +168,7 @@ namespace MarioAccess {
         getPlayerActor()->forceKill(type);
     }
 
-    void fn_803B5020(s32 value) {
+    void tryPressAgainstCeiling(s32 value) {
         getPlayerActor()->fn_803BEB10(value);
     }
 
@@ -611,7 +611,7 @@ namespace MarioAccess {
         getPlayerActor()->getMario()->calcWorldPadDir(pOut, f1, f2, false);
     }
 
-    bool fn_803B72E0() {
+    bool isRushingWithRestrictedYoshiJointControl() {
         return getPlayerActor()->fn_803BEBE0();
     }
 
@@ -777,7 +777,7 @@ namespace MarioAccess {
     bool isRecovering() { return getPlayerActor()->getMario()->isStatusActive(0x13); }
     bool isHanging() { return getPlayerActor()->getMario()->isStateHanging(); }
 
-    bool fn_803B4E40() {
+    bool isInJumpAction() {
         bool result = false;
         if (getPlayerActor()->isJumping() && getPlayerActor()->getMario()->_430 == 5) result = true;
         return result;
@@ -796,9 +796,9 @@ namespace MarioAccess {
         return getPlayerActor()->getMario()->mWalkSpeed;
     }
 
-    u32 fn_803B5970() { return getPlayerActor()->mHealth; }
+    u32 getLife() { return getPlayerActor()->mHealth; }
 
-    void fn_803B59A0() {
+    void decrementLife() {
         if (getPlayerActor()->getMario()->isSwimming()) {
             getPlayerActor()->getMario()->mSwim->decLife();
             return;
@@ -820,8 +820,8 @@ namespace MarioAccess {
         getPlayerActor()->updateFace();
     }
 
-    bool fn_803B5FE0() { return !getPlayerActor()->_482; }
-    void fn_803B6090() { getPlayerActor()->fn_803BE6D0(); }
+    bool isVisible() { return !getPlayerActor()->_482; }
+    void clearFootprints() { getPlayerActor()->fn_803BE6D0(); }
 
     // NONMATCHING: equivalent bit test and sensor-selection branch order.
     void fn_803B6830(bool) {
@@ -853,13 +853,13 @@ namespace MarioAccess {
     void changePlayerModeCloud() { getPlayerActor()->setPlayerMode(0xC, true, true); }
     void changePlayerModeRock() { getPlayerActor()->setPlayerMode(0xD, true, true); }
 
-    void fn_803B7070(s32 frames) {
+    void extendBeeAirWalk(s32 frames) {
         if (getPlayerActor()->mPlayerMode == 4) {
             for (s32 i = 0; i < frames; i++) getPlayerActor()->getMario()->incAirWalkTimer();
         }
     }
 
-    void fn_803B70E0() { getPlayerActor()->killAllFireBall(); }
+    void killAllFireBall() { getPlayerActor()->killAllFireBall(); }
 
     bool isPowerupTransforming() {
         MarioActor* actor = getPlayerActor();
@@ -869,9 +869,9 @@ namespace MarioAccess {
     }
 
     void prepareForPositionReset() { getPlayerActor()->fn_803BE6F0(); }
-    bool fn_803B71B0() { return getPlayerActor()->fn_803BE800(); }
+    bool isDefaultModel() { return getPlayerActor()->fn_803BE800(); }
 
-    f32 fn_803B7240() {
+    f32 getCeilingDistance() {
         if (isConfrontDeath()) return 200.0f;
         if (!getPlayerActor()->isEnableNerveChange()) return 200.0f;
         return getPlayerActor()->getMario()->_72C;
@@ -882,13 +882,13 @@ namespace MarioAccess {
 
 namespace MarioAccess {
     bool isBury() { return getPlayerActor()->getMario()->isStateBury(); }
-    void fn_803B6010() {
+    void enableSilhouetteDuringRush() {
         MarioActor* actor = getPlayerActor();
         actor->_7E2 = 1;
         actor->mAnimationDelayE28 = 0;
     }
-    void fn_803B6050(s32 frames) { getPlayerActor()->mAnimationDelayE28 = frames; }
-    void fn_803B7170(TVec3f* velocity) { YoshiParam::fn_8041BE00(velocity); }
-    void fn_803B71E0() { getPlayerActor()->mInputDisabled1066 = true; }
-    void fn_803B7210() { getPlayerActor()->mInputDisabled1066 = false; }
+    void setSilhouetteHiddenFrames(s32 frames) { getPlayerActor()->mAnimationDelayE28 = frames; }
+    void calcYoshiEatItemVelocity(TVec3f* velocity) { YoshiParam::fn_8041BE00(velocity); }
+    void disableReflection() { getPlayerActor()->mReflectionSuppressed = true; }
+    void enableReflection() { getPlayerActor()->mReflectionSuppressed = false; }
 }

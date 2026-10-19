@@ -78,7 +78,7 @@ namespace MR {
     }
 
     TVec3f* getPlayerPos() {
-        if (!MarioAccess::fn_803B5FE0() && isCurrentRushActor("岩マリオ")) {
+        if (!MarioAccess::isVisible() && isCurrentRushActor("岩マリオ")) {
             return &getCurrentRushActor()->mPosition;
         }
 
@@ -125,14 +125,14 @@ namespace MR {
         return MarioAccess::getPlayerActor()->mPlayerMode == (s16)6 ? 100.0f : 60.0f;
     }
 
-    // Yoshi-eat item launch velocity (MarioAccess::fn_803B7170 -> fn_8041BE00: velocity * 2 - gravity * 40); caller ActorItemGenerator
+    // Yoshi-eat item launch velocity (MarioAccess::calcYoshiEatItemVelocity -> fn_8041BE00: velocity * 2 - gravity * 40); caller ActorItemGenerator
     void calcYoshiEatItemVelocity(TVec3f* pOut) {
-        MarioAccess::fn_803B7170(pOut);
+        MarioAccess::calcYoshiEatItemVelocity(pOut);
     }
 
     // original name unknown; named by behaviour: returns the cached ceiling distance, or a fixed value during confront-death or disabled nerve changes.
     f32 getPlayerCeilingDistance() {
-        return MarioAccess::fn_803B7240();
+        return MarioAccess::getCeilingDistance();
     }
 
     void clearPlayerMovementFlag20000000() {
@@ -428,16 +428,16 @@ namespace MR {
     }
 
     s32 getPlayerLife() {
-        return MarioAccess::fn_803B5970();
+        return MarioAccess::getLife();
     }
 
     bool isPlayerLifeOne() {
-        return MarioAccess::fn_803B5970() == 1;
+        return MarioAccess::getLife() == 1;
     }
 
     // original name unknown; named by behaviour: decrements swim life, otherwise requests a life decrement with timer 20.
     void decrementPlayerSwimLife() {
-        MarioAccess::fn_803B59A0();
+        MarioAccess::decrementLife();
     }
 
     void incPlayerLife(u32 add) {
@@ -465,7 +465,7 @@ namespace MR {
     }
 
     void extendPlayerBeeAirWalk(s32 param1) {
-        MarioAccess::fn_803B7070(param1);
+        MarioAccess::extendBeeAirWalk(param1);
     }
 
     bool isPlayerSwingAction() {
@@ -474,7 +474,7 @@ namespace MR {
 
     // original name unknown; named by behaviour: tests jumping and Mario jump action 5.
     bool isPlayerInJumpAction() {
-        return MarioAccess::fn_803B4E40();
+        return MarioAccess::isInJumpAction();
     }
 
     // Separate SMG2 entrypoint that forwards to the same swing-start predicate.
@@ -500,27 +500,27 @@ namespace MR {
 
     // original name unknown; named by behaviour: sets the rush silhouette override and clears its hidden-frame timer.
     void enablePlayerSilhouetteDuringRush() {
-        MarioAccess::fn_803B6010();
+        MarioAccess::enableSilhouetteDuringRush();
     }
 
     // original name unknown; named by behaviour: sets the countdown that suppresses silhouette visibility.
     void setPlayerSilhouetteHiddenFrames(s32 pParam1) {
-        MarioAccess::fn_803B6050(pParam1);
+        MarioAccess::setSilhouetteHiddenFrames(pParam1);
     }
 
     // original name unknown; named by behaviour: clears the actor footprint emitter if present.
     void clearPlayerFootprints() {
-        MarioAccess::fn_803B6090();
+        MarioAccess::clearFootprints();
     }
 
     // original name unknown; named by behaviour: sets the flag that skips reflection drawing and view updates.
     void disablePlayerReflection() {
-        MarioAccess::fn_803B71E0();
+        MarioAccess::disableReflection();
     }
 
     // original name unknown; named by behaviour: clears the flag that skips reflection drawing and view updates.
     void enablePlayerReflection() {
-        MarioAccess::fn_803B7210();
+        MarioAccess::enableReflection();
     }
 
     bool isPlayerFlying() {
@@ -850,7 +850,7 @@ namespace MR {
     }
 
     bool isPlayerVisible() {
-        return MarioAccess::fn_803B5FE0();
+        return MarioAccess::isVisible();
     }
 
     void setPlayerSpot(f32 param1, u32 param2) {
@@ -993,7 +993,7 @@ namespace MR {
     }
 
     void killPlayerFireBalls() {
-        MarioAccess::fn_803B70E0();
+        MarioAccess::killAllFireBall();
     }
 
 
@@ -1001,7 +1001,7 @@ namespace MR {
 
 
     void fn_800515E0() {
-        MarioAccess::fn_803B5020(30);
+        MarioAccess::tryPressAgainstCeiling(30);
     }
 
     void calcPlayerJointMtx(TPos3f* pMtx, const char* pName) {
@@ -1110,7 +1110,7 @@ namespace MR {
 
     // original name unknown; named by behaviour: compares the selected Mario model with MarioAllModel::getJ3DModel().
     bool isPlayerDefaultModel() {
-        return MarioAccess::fn_803B71B0();
+        return MarioAccess::isDefaultModel();
     }
 
     bool isPlayerRecovering() {
@@ -1126,7 +1126,7 @@ namespace MR {
     }
 
     bool fn_80050020() {
-        return MarioAccess::fn_803B72E0();
+        return MarioAccess::isRushingWithRestrictedYoshiJointControl();
     }
 
     void changePlayerModeBee() {

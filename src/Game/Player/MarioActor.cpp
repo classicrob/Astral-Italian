@@ -1701,7 +1701,7 @@ bool MarioActor::isPunching() const {
         return true;
     }
 
-    if (mMario->mSwim->check7Aand7C()) {
+    if (mMario->mSwim->fn_803FE9F0()) {
         return true;
     }
 
@@ -3309,7 +3309,7 @@ void MarioActor::calcViewAndEntry() {
     if (mMario->isStatusActive(MarioStatus_FpView)) calc1stPersonView();
     else calcFogLighting();
     mAllModel->fn_803E7BF0(mEyeTextureFrameF9A);
-    if (!mInputDisabled1066 && (mGroundReflectionEFC || mWaterReflectionEF8 || mSphereReflectionEF9)) calcViewReflectionModel();
+    if (!mReflectionSuppressed && (mGroundReflectionEFC || mWaterReflectionEF8 || mSphereReflectionEF9)) calcViewReflectionModel();
     else { mFlagF18 = 0; mFlagF19 = 0; }
     calcViewSearchLight();
     if (mModelF1C) mModelF1C->updateMtx(mHandLJointMatrix.toMtxPtr());
@@ -3593,7 +3593,7 @@ void MarioActor::drawReflectModel() const {
         return;
     }
 
-    if (mInputDisabled1066) return;
+    if (mReflectionSuppressed) return;
     if (!mWaterReflectionEF8 && !mSphereReflectionEF9 && !mGroundReflectionEFC) return;
     if (mSphereReflectionEF9 && mFlagF18 < 2) return;
     if (mWaterReflectionEF8 && mFlagF19 < 2) return;

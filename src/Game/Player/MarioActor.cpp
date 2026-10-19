@@ -1244,7 +1244,7 @@ bool MarioActor::doPressing() {
         return false;
     }
 
-    switch (_39C) {
+    switch (mCounter6C8) {
     case 0:
         if (!mMario->checkVerticalPress(false)) {
             if (--_390 == 0x1e && !mHealth && isEnableNerveChange()) {
@@ -1281,7 +1281,7 @@ bool MarioActor::doPressing() {
         break;
     }
 
-    if (_39C != 1) {
+    if (static_cast<s32>(mCounter6C8) != 1) {
         careMovingObject();
     }
 

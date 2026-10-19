@@ -7,7 +7,7 @@
 #include <revolution/mtx.h>
 
 ModelHolder::ModelHolder(const char* pName, bool b) : LiveActor(pName) {
-    initModelManagerWithAnm(pName, nullptr, b);
+    MR::initActor(this, pName, b);
     MR::invalidateClipping(this);
     kill();
 }

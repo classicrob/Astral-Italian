@@ -1,7 +1,5 @@
 #include "Game/Util/PlayerUtil.hpp"
 // SMG2-only MarioActor functions (part A), written from the asm. Included at the end of MarioActor.cpp (unity TU).
-// PLACEHOLDER(enemies): field access by raw offset (`F(T, off)`) because the MarioActor header offsets are partly guesses; resolve when the class layout is recovered and the fields are named
-#define F(T, off) (*(T*)((u8*)this + (off)))
 #define FP(p, T, off) (*(T*)((u8*)(p) + (off)))
 
 
@@ -41,7 +39,7 @@ bool MarioActor::fn_803B93E0() {
 
 void MarioActor::fn_803B94E0() {
     Mario* m = this->mMario;
-    if (FP(m, u8, 0xA7B) == 0) {
+    if (m->mCometHopperArea == 0) {
         if (((m)->mMovementStates.mLowWord >> 0x10) & 1) {
             m->forceStopTornado();
         }
@@ -989,7 +987,7 @@ void MarioActor::fn_803C1AF0(TVec3f* a, TVec3f* b) {
 }
 
 bool MarioActor::fn_803C1C60() {
-    if (F(u8, 0x514) == 0) {
+    if (this->mSuperKinokoCollected == 0) {
         return false;
     }
     if (!MR::tryStartDemoWithoutCinemaFrame(this, "マリオスーパー化")) {
@@ -1081,7 +1079,7 @@ void MarioActor::fn_803C2010() {
 
 void MarioActor::fn_803C2030() {
     if (this->_EA4 == 0) {
-        if (F(s8, 0x51E) == 0) {
+        if (this->_F44 == 0) {
             MR::offBind(this);
         } else {
             MR::onBind(this);
@@ -1244,7 +1242,7 @@ bool MarioActor::fn_803C3260() {
     if (this->mMario->isAnimationRun("壁はじき")) {
         return false;
     }
-    if (this->isJumping() && FP(this->mMario, s32, 0x424) != 0) {
+    if (this->isJumping() && this->mMario->_428 != 0) {
         return false;
     }
     if (mPlayerMode == 9) {
@@ -1268,7 +1266,7 @@ bool MarioActor::fn_803C3260() {
     if (this->mMario->isStatusActive(2)) {
         return false;
     }
-    if (F(u8, 0x6E4) != 0) {
+    if (this->_3C0 != 0) {
         return false;
     }
     if (this->_EA4 != 0) {
@@ -1278,7 +1276,7 @@ bool MarioActor::fn_803C3260() {
     if (BITAT(m, 0x1C, 0x13)) {
         return false;
     }
-    return FP(m, s32, 0xA78) == 0;
+    return m->mCometNoSpinArea == 0;
 }
 
 bool MarioActor::fn_803C33D0() {
@@ -1556,7 +1554,7 @@ void MarioActor::calcAnimPlayerMode() {
 void MarioActor::calcAnimHorrorBone() {
     if (MR::isGalaxyHorrorCometAppearInCurrentStage()) {
         Mario* m = this->mMario;
-        if (FP(m, s32, 0x5F8) != 0) {
+        if (reinterpret_cast<s32&>(m->mCometRestrictions) != 0) {
             if ((mAllModel)->mCurrentModel == 6) {
                 mAllModel->fn_803E7B80();
                 this->playEffect("ホラーマリオ解除");
@@ -1594,7 +1592,7 @@ void MarioActor::calcAnimHorrorBone() {
 
 bool MarioActor::fn_803C4F70() {
     bool r = false;
-    if (this->_EA5 == 0 && this->_EA4 != 0 && F(u8, 0x4E2) != 0) {
+    if (this->_EA5 == 0 && this->_EA4 != 0 && this->_EA6 != 0) {
         r = true;
     }
     return r;
@@ -2006,7 +2004,7 @@ void MarioActor::fn_803BC5C0() {
         }
         break;
     default:
-        FP(this->mMario, s16, 0x414) = 0;
+        reinterpret_cast<s16&>(this->mMario->_418) = 0;
         break;
     }
     u8 t = this->_B96;
@@ -2108,7 +2106,7 @@ void MarioActor::initRockMario() {
 
 void MarioActor::fn_803C8AA0() {
     J3DModelX* m = (J3DModelX*)mAllModel->getJ3DModel();
-    if (F(u8, 0x73) == 0) {
+    if (this->mFlags.mIsNoCalcView == 0) {
         m->viewCalc3(0, nullptr);
         Mtx inv1, inv2;
         PSMTXInverse(mJointTransform294.mMtx, inv1);
@@ -2118,11 +2116,11 @@ void MarioActor::fn_803C8AA0() {
 }
 
 void J3DModelX::swapDrawBuffer(u32 a) {
-    if (FP(this, u8, 0xDC) == a) {
-        FP(this, u8, 0xDC) = 0;
+    if (this->_DC == a) {
+        this->_DC = 0;
         return;
     }
-    FP(this, u8, 0xDC) = (u8)a;
+    this->_DC = (u8)a;
 }
 
 

@@ -10,6 +10,7 @@
 #include "Game/Map/HitInfo.hpp"
 #include "Game/Player/MarioAbyssDamage.hpp"
 #include "Game/Player/MarioActor.hpp"
+#include "Game/Player/MarioActorHelpers.hpp"
 #include "Game/Player/MarioAnimator.hpp"
 #include "Game/Player/MarioBlown.hpp"
 #include "Game/Player/MarioBump.hpp"
@@ -109,6 +110,7 @@
 #include "Game/Animation/XanimeResource.hpp"
 #include "Game/LiveActor/ModelManager.hpp"
 #include "Game/MapObj/BigFanHolder.hpp"
+#include "Game/MapObj/SpinCloudBlock.hpp"
 #include "Game/Player/MarioParts.hpp"
 #include "Game/Util/StringUtil.hpp"
 #include <JSystem/JMath/JMath.hpp>
@@ -1271,6 +1273,10 @@ void Mario::setTrans(const TVec3f& rShift, const char* pA2) {
 
 
 bool Mario::isEnableRush() const {
+    if (isStatusActive(MarioStatus_FireDance) && isPlayerModeCloud() && !MR::isSpinCloudBlockGroupEmpty()) {
+        return true;
+    }
+
     if (isHanging()) {
         return false;
     }
@@ -1446,6 +1452,7 @@ bool Mario::isForceStopRush() const {
         case 15:
         case 16:
         case 24:
+        case 41:
         case 129:
             return true;
         }
@@ -1968,8 +1975,13 @@ const TVec3f* Mario::getGravityVec() const {
 
 
 void Mario::touchWater() {
-    if (mActor->isActionOk("水解除") && mMorphResetTimer == 0) {
-        mMorphResetTimer = 10;
+    if (mActor->mActionTable1080->isActionOk("水解除")) {
+        if (isPlayerModeHopper() && mCometHopperArea) {
+            return;
+        }
+        if (mMorphResetTimer == 0) {
+            mMorphResetTimer = 10;
+        }
     }
 }
 

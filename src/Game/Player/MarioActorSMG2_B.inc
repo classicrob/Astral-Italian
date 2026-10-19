@@ -1,5 +1,5 @@
 // SMG2-only MarioActor functions (part B, fn_803CA000 and up), written from the asm. Included at the end of MarioActor.cpp (unity TU).
-// Uses the F()/FP()/BITAT()/CT() helpers defined in MarioActorSMG2_A.inc.
+// Uses the BITAT()/CT() helpers defined in MarioActorSMG2_A.inc.
 
 
 void MarioActor::fn_803CA1F0() {
@@ -499,7 +499,7 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         mYoshiHolder->_10->mSensor = this->getSensor("Body");
         this->mMarioAnim->fn_803DF8E0();
         this->rushDropThrowMemoSensor();
-        if (FP(mYoshiHolder->mYoshi, u8, 0x131) != 0) {
+        if (mYoshiHolder->mYoshi->mMountedBySpin != 0) {
             this->mMario->changeAnimation("ヨッシースピン乗車", "基本");
         } else {
             this->mMario->changeAnimation("ヨッシー乗車", "基本");
@@ -880,7 +880,7 @@ void MarioActor::fn_803CE9D0(HitSensor* s) {
     if (reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
         _494->calc();
         TVec3f t, r;
-        FP(_494, TPos3f, 0x1C).getTrans(t);
+        _494->mMtx.getTrans(t);
         _494->copyRotate(&r);
         if (s != nullptr) {
             if (this->fn_803CEE50()) {
@@ -927,7 +927,7 @@ void MarioActor::fn_803CEBC0() {
             if (_934 == 0 && reinterpret_cast<s32&>(this->mRushAnimationDelay1054) == 0) {
                 _494->calc();
                 TVec3f t;
-                FP(_494, TPos3f, 0x1C).getTrans(t);
+                _494->mMtx.getTrans(t);
                 TVec3f p(t);
                 p += mVelocity;
                 MR::getSensorHost(cs)->mPosition = p;
@@ -937,7 +937,7 @@ void MarioActor::fn_803CEBC0() {
             if (cs->isType(0x48) || cs->isType(0x12) || cs->isType(0x13) || cs->isType(0x1D)) {
                 _494->calc();
                 TVec3f t;
-                FP(_494, TPos3f, 0x1C).getTrans(t);
+                _494->mMtx.getTrans(t);
                 TVec3f p(t);
                 p += mVelocity;
                 MR::getSensorHost(cs)->mPosition = p;
@@ -1234,7 +1234,7 @@ void MarioActor::fn_803D1830(HitSensor* s) {
     (s)->mRadius = this->fn_803D18D0();
     this->fn_803D1940();
     bool r = false;
-    if (FP(s, u8, 0x21) != 0 && FP(s, u8, 0x20) != 0) {
+    if (s->mValidByHost != 0 && s->mValidBySystem != 0) {
         r = true;
     }
     if (r) {
@@ -1378,7 +1378,7 @@ void MarioActor::fn_803D5A00(u32 idx) {
 void MarioActor::fn_803D32F0() {
     mWallShadow574->mActive = 0;
     if (this->mGroundReflectionEFC == 0 && this->mWaterReflectionEF8 == 0) {
-        if (F(u8, 0xEF9) != 0) {
+        if (this->mSphereReflectionEF9 != 0) {
             return;
         }
         if (this->mBeeWallWalk == 0) {
@@ -1756,8 +1756,8 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
             TVec3f d(hit);
             d -= this->mPosition;
             if (this->mMario->getGravityVec()->dot(d) != -5.0f) {
-                void* h = *(void**)tri;
-                if (h != nullptr && FP(h, s32, 0xD4) == 0) {
+                CollisionParts* h = tri->mParts;
+                if (h != nullptr && h->mStationaryFrames == 0) {
                     if (((this->mMario)->mMovementStates.mHighWord & 3) == 1) {
                         return;
                     }
@@ -1793,7 +1793,7 @@ void MarioActor::fn_803D8E30(TVec3f* v) {
             (this->mMario)->mJumpVec.zero();
             (this->mMario)->_148.zero();
             Mario* m = this->mMario;
-            if (FP(m, s32, 0x5FC) == 0 && (BITAT(m, 0x1C, 1) || BITAT(m, 0x34, 1))) {
+            if (m->_5FC == nullptr && (BITAT(m, 0x1C, 1) || BITAT(m, 0x34, 1))) {
                 TVec3f nv(*v);
                 MR::normalizeOrZero(&nv);
                 mPressNormal6D8 = nv;
@@ -1824,7 +1824,7 @@ void MarioActor::fn_803D9170(TVec3f* v) {
                 f32 d = tri->getNormal(0)->dot(*v);
                 if (d < zero) {
                     hit = 1;
-                } else if (FP(this->mMario, s32, 0x5FC) != 0) {
+                } else if (this->mMario->_5FC != nullptr) {
                     if (!MR::isWallCodeNoAction(tri) && !this->mMario->isOnimasuBinderPressSkip()) {
                         mPressNormal6D8 = (this->mMario)->_368;
                         (this->mMario)->mFlags14.mLowWord &= 0xFFFFFFFB;
@@ -1848,15 +1848,16 @@ void MarioActor::fn_803D9170(TVec3f* v) {
 }
 
 bool MarioActor::fn_803D9370(void* tri, TVec3f* v) {
+    CollisionParts* parts = static_cast<CollisionParts*>(tri);
     if (tri == nullptr) {
         return false;
     }
-    if (FP(tri, s32, 0xD4) != 0) {
+    if (parts->mStationaryFrames != 0) {
         return false;
     }
     TVec3f a, b;
-    PSMTXMultVec(FP(tri, Mtx, 0x64), (Vec*)&(this->mMario)->mShadowPos, (Vec*)&a);
-    PSMTXMultVec(FP(tri, Mtx, 0x94), (Vec*)&a, (Vec*)&b);
+    PSMTXMultVec(parts->mInvBaseMatrix.mMtx, (Vec*)&(this->mMario)->mShadowPos, (Vec*)&a);
+    PSMTXMultVec(parts->mPrevBaseMatrix.mMtx, (Vec*)&a, (Vec*)&b);
     TVec3f d((this->mMario)->mShadowPos);
     d -= b;
     return v->dot(d) > 0.0f;

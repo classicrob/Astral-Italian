@@ -14,8 +14,8 @@ namespace MR {
     bool fn_80422290();
     bool fn_804222D0();
     bool fn_80422310();
-    void fn_80422350(TPos3f*);
-    f32 fn_80422390();
+    void calcYoshiTongueTipMtx(TPos3f*);
+    f32 getYoshiTongueScale();
     void fn_804224F0();
     void fn_80422520();
     void fn_80422550();
@@ -28,17 +28,17 @@ namespace MR {
     void resetYoshiTongueForDemo();
     bool fn_80422880(u32);
     bool isMsgDashYoshiAttack(u32);
-    void fn_804228B0();
+    void emitYoshiGetEffect();
     MtxPtr getYoshiMouthMtx();
     void incYoshiFruitEaten();
 
     void fn_804223C0(const JMapInfoIter&);
-    void fn_80422400(LiveActor*);
+    void addYoshiEgg(LiveActor*);
     void fn_80422440(LiveActor*);
     void fn_80422480(LiveActor*);
     bool fn_804224C0();
-    const TVec3f& fn_804226B0();
-    const TVec3f& fn_804226E0();
+    const TVec3f& getYoshiPosition();
+    const TVec3f& getYoshiRotation();
     void fn_80422790(MtxPtr, LiveActor*);
     bool isMsgYoshiAutoEatStart(u32);
     bool isMsgYoshiAutoEatEnd(u32);

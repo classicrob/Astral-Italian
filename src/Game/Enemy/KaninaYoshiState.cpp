@@ -1,12 +1,12 @@
 #pragma auto_inline off
 #include "Game/Enemy/KaninaYoshiState.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Enemy/Kanina.hpp"
 #include "Game/LiveActor/DemoObj.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/ActionSoundUtil.hpp"
 #include "Game/Util/GeometryBindUtil.hpp"
-#include "Game/Util/PlayerUtil.hpp"
 
 namespace NrvKaninaYoshiState {
     NEW_NERVE(KaninaYoshiStateNrvWait, KaninaYoshiState, Wait);
@@ -147,7 +147,7 @@ bool KaninaYoshiState::isYoshiNerve() const {
 // NONMATCHING: Euler extraction and vector construction use different temporary slots.
 void KaninaYoshiState::followYoshiMouth() {
     TPos3f mtx;
-    MR::fn_80422350(&mtx);
+    MR::calcYoshiTongueTipMtx(&mtx);
     mHost->mPosition.set<f32>(mtx.mMtx[0][3], mtx.mMtx[1][3], mtx.mMtx[2][3]);
     mtx.getEuler(mHost->mRotation);
     MR::setRotation(mHost, mHost->mRotation * 57.29578f);

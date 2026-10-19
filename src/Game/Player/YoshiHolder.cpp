@@ -17,10 +17,10 @@
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 YoshiTongueTarget::YoshiTongueTarget(YoshiLockOnManager* manager)
     : mCapacity(0), mCount(0), mIndex(0), mTargets(nullptr), mManager(manager), mSensor(nullptr) {
-    mCapacity = manager->fn_8041A010();
+    mCapacity = manager->getTargetCapacity();
     mTargets = new YoshiLockOnTargetDesc[mCapacity];
 }
-void YoshiTongueTarget::fn_8041BFD0() { mCount=mManager->fn_8041A020(mTargets,mCapacity);mIndex=0; }
+void YoshiTongueTarget::fn_8041BFD0() { mCount=mManager->takeActiveTargets(mTargets,mCapacity);mIndex=0; }
 bool YoshiTongueTarget::fn_8041C020() {return fn_8041C4E0(0xF8);}
 bool YoshiTongueTarget::fn_8041C030() {return fn_8041C4E0(0xF9);}
 void YoshiTongueTarget::fn_8041C040() {fn_8041C4E0(0xFB);}
@@ -34,13 +34,13 @@ bool YoshiTongueTarget::fn_8041C0C0()const{return mCount-mIndex>1;}
 bool YoshiTongueTarget::fn_8041C0E0()const{return mIndex<mCount;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
 bool YoshiTongueTarget::fn_8041C100()const{return mIndex<mCount-1;}
-bool YoshiTongueTarget::fn_8041C120()const{return mTargets[mIndex].mType==0;}
-bool YoshiTongueTarget::fn_8041C140()const{return mTargets[mIndex].mType==1;}
+bool YoshiTongueTarget::fn_8041C120()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Eat;}
+bool YoshiTongueTarget::fn_8041C140()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Lick;}
 // NONMATCHING: Equivalent inline helpers, register allocation, or instruction scheduling.
-bool YoshiTongueTarget::fn_8041C170()const{return mTargets[mIndex].mType==2||mTargets[mIndex].mType==3;}
-bool YoshiTongueTarget::fn_8041C1B0()const{return mTargets[mIndex].mType==2;}
-bool YoshiTongueTarget::fn_8041C1E0()const{return mTargets[mIndex].mType==4;}
-bool YoshiTongueTarget::fn_8041C210()const{return mTargets[mIndex].mType==5;}
+bool YoshiTongueTarget::fn_8041C170()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Capture||mTargets[mIndex].mType==YoshiLockOnTargetType::CaptureAlternate;}
+bool YoshiTongueTarget::fn_8041C1B0()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Capture;}
+bool YoshiTongueTarget::fn_8041C1E0()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Pull;}
+bool YoshiTongueTarget::fn_8041C210()const{return mTargets[mIndex].mType==YoshiLockOnTargetType::Projectile;}
 void YoshiTongueTarget::fn_8041C240(TVec3f* out)const {
     MtxPtr source=fn_8041C4C0();
     if(!source)out->set<f32>(mTargets[mIndex].mActor->mPosition);

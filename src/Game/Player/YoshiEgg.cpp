@@ -180,7 +180,7 @@ void YoshiEgg::init(const JMapInfoIter& iter) {
 }
 
 void YoshiEgg::initAfterPlacement() {
-    MR::fn_80422400(this);
+    MR::addYoshiEgg(this);
     if (MR::isExistActorCamera(mCameraInfo)) {
         mCameraFrames = MR::getActorCameraFrames(this, mCameraInfo);
         if (mCameraFrames == 0) mCameraFrames = 120;
@@ -399,8 +399,8 @@ bool YoshiEgg::fn_804172C0() const {
     return inactive;
 }
 void YoshiEgg::fn_80417370() {
-    MR::setPosition(this, MR::fn_804226B0());
-    TVec3f rotation(MR::fn_804226E0());
+    MR::setPosition(this, MR::getYoshiPosition());
+    TVec3f rotation(MR::getYoshiRotation());
     rotation.scale(57.2957763671875f);
     MR::setRotation(this, rotation);
 }

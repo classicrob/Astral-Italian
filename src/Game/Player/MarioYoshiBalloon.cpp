@@ -15,7 +15,7 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
-MarioYoshiBalloon::MarioYoshiBalloon(MarioActor* actor) : MarioState(actor, 0x27) {
+MarioYoshiBalloon::MarioYoshiBalloon(MarioActor* actor) : MarioState(actor, MarioStatus_YoshiBalloon) {
     mAir = 1.0f;
     mRequestedState = 0;
     mState = 0;
@@ -44,7 +44,7 @@ bool MarioYoshiBalloon::start() {
     mRequestedAnimation = 0;
     mAnimation = 0;
     mAnimationFrame = 0;
-    static_cast<YoshiLockOnManager*>(mActor->fn_803B9820())->_1D = true;
+    static_cast<YoshiLockOnManager*>(mActor->fn_803B9820())->mSuspended = true;
     mFirstJet = true;
     MR::startActionSound(mActor->fn_803B9830()->mRideModelActor, "Swell", -1, -1, -1);
     getPlayer()->_A6C[2] = 0;
@@ -58,7 +58,7 @@ bool MarioYoshiBalloon::close() {
     mActor->fn_803B97F0()->fn_8040EFB0();
     setJumpVec(fn_803EF300());
     mActor->fn_803B9810()->fn_8041FE80();
-    static_cast<YoshiLockOnManager*>(mActor->fn_803B9820())->_1D = false;
+    static_cast<YoshiLockOnManager*>(mActor->fn_803B9820())->mSuspended = false;
     mActor->fn_803B97F0()->fn_8040CC00();
     mActor->fn_803B9830()->mRideModelActor->kill();
     mActor->mMarioAnim->disableExtraAnimation();

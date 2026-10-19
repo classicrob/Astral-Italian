@@ -1,4 +1,5 @@
 #include "Game/Enemy/Togezo.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -14,7 +15,6 @@
 #include "Game/Util/MapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
-#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include <JSystem/JGeometry/TMatrix.hpp>
 #include "Game/LiveActor/ActorItemGenerator.hpp"
@@ -888,7 +888,7 @@ void Togezo::moveAndTurn(const MR::ActorMoveParam& rParam, const TVec3f& rDir) {
 
 void Togezo::calcYoshiDirection() {
     TPos3f mtx;
-    MR::fn_80422350(&mtx);
+    MR::calcYoshiTongueTipMtx(&mtx);
     f32 tz = mtx.mMtx[2][3];
     f32 ty = mtx.mMtx[1][3];
     f32 tx = mtx.mMtx[0][3];

@@ -5,7 +5,7 @@
 #include "Game/Player/YoshiTongueAction.hpp"
 #include "Game/Util.hpp"
 #include <JSystem/JMath/JMath.hpp>
-MarioYoshiShot::MarioYoshiShot(MarioActor* actor) : MarioState(actor,0x28),mShotVelocity(0.0f,0.0f,0.0f) {}
+MarioYoshiShot::MarioYoshiShot(MarioActor* actor) : MarioState(actor, MarioStatus_YoshiShot),mShotVelocity(0.0f,0.0f,0.0f) {}
 // NONMATCHING: zero float hoisting adds a saved FP register and stack space.
 bool MarioYoshiShot::start() {
     changeAnimation("ヨッシーショット",static_cast<const char*>(nullptr));

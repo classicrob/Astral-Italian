@@ -41,6 +41,10 @@ enum MarioStatus {
     /* 0x21 */ MarioStatus_Teresa,
     /* 0x22 */ MarioStatus_Talk,
     /* 0x23 */ MarioStatus_DarkDamage,
+    /* 0x26 */ MarioStatus_YoshiPull = 0x26,
+    /* 0x27 */ MarioStatus_YoshiBalloon,
+    /* 0x28 */ MarioStatus_YoshiShot,
+    /* 0x29 */ MarioStatus_YoshiDash,
 };
 
 enum MarioStateMsg {

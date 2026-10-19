@@ -1,6 +1,7 @@
 #pragma auto_inline off
 
 #include "Game/MapObj/JetTurtle.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -889,7 +890,7 @@ bool JetTurtle::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
     if (isNerve(GET_NERVE(JetTurtle, JetTurtleNrvEaten))) {
         if (MR::isMsgYoshiReleaseEaten(msg)) {
             TPos3f mtx;
-            MR::fn_80422350(&mtx);
+            MR::calcYoshiTongueTipMtx(&mtx);
             mtx.getTrans(mPosition);
             MR::getPlayerThrowVec(&_9C);
             _C0.set(mPosition);

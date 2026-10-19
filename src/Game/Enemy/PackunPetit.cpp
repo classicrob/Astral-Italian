@@ -1,5 +1,6 @@
 #pragma auto_inline off
 #include "Game/Enemy/PackunPetit.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
 #include "Game/NPC/ScoreAttackCounter.hpp"
@@ -22,7 +23,6 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
-#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include "JSystem/JGeometry/TVec.hpp"
@@ -321,20 +321,20 @@ void PackunPetit::fn_801E31E0() {
         MR::invalidateHitSensor(this, "attack");
         mBlownModel->makeActorAppeared();
         TPos3f yoshi;
-        MR::fn_80422350(&yoshi);
+        MR::calcYoshiTongueTipMtx(&yoshi);
         yoshi.invert(yoshi);
         TPos3f head;
         head = *reinterpret_cast<const TPos3f*>(MR::getJointMtx(this, "Head"));
-        f32 scale = MR::fn_80422390();
+        f32 scale = MR::getYoshiTongueScale();
         fn_801E4320(head, scale);
         mPullMtx.concat(yoshi, head);
     }
     if (MR::isGreaterStep(this, 0)) {
         TPos3f yoshi;
-        MR::fn_80422350(&yoshi);
+        MR::calcYoshiTongueTipMtx(&yoshi);
         TPos3f mtx;
         mtx.concat(yoshi, mPullMtx);
-        f32 scale = MR::fn_80422390();
+        f32 scale = MR::getYoshiTongueScale();
         fn_801E4320(mtx, scale);
     }
     if (MR::isStep(this, 1)) MR::startAction(this, "Blow");

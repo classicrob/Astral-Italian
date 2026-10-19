@@ -257,7 +257,7 @@ namespace MR {
     // PlayerUtil (enemies lane, callees named by address; lead renames symbols)
     bool fn_800515E0();
     // PlayerUtil (enemies lane, callees named by address; lead renames symbols)
-    void fn_80422350(TPos3f*);
+    void calcYoshiTongueTipMtx(TPos3f*);
     void fn_80422190();
     void fn_80422210();
     bool fn_80421D10();
@@ -324,7 +324,7 @@ namespace MR {
     void preparePlayerForPositionReset();
 }
 
-namespace MR { bool fn_804222D0(); f32 fn_80422390(); }
+namespace MR { bool fn_804222D0(); f32 getYoshiTongueScale(); }
 namespace MR { void requestPlayerMovementOnDuringDemo(); }
 
 namespace MR { void setPlayerPosAndWait(const char*, bool); }

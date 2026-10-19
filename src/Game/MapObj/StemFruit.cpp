@@ -2,14 +2,13 @@
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
 #pragma auto_inline off
 #include "Game/MapObj/StemFruit.hpp"
+#include "Game/Util/YoshiUtil.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 #include "Game/Util/FixedPosition.hpp"
 
 // PLACEHOLDER(objects): fn_80422310 (0x40 bytes, no args, MR Yoshi helper); resolve when core names fn_80422310
 extern "C" bool fn_80422310();
-// PLACEHOLDER(objects): fn_804228B0 (0x40 bytes, no args, MR Yoshi helper); resolve when core names fn_804228B0
-extern "C" void fn_804228B0();
 // PLACEHOLDER(objects): fn_80422880 (msg == 253 test, Yoshi message); resolve when core names fn_80422880
 extern "C" bool fn_80422880(u32 msg);
 
@@ -310,7 +309,7 @@ StemFruitChild::StemFruitChild(StemFruit* pParent, const JMapInfoIter& rIter) : 
 
     TVec3f zeroLock;
     zeroLock.setAll<f32>(0.0f);
-    mYoshiLockOn = MR::createYoshiLockOnTarget(this, nullptr, zeroLock);
+    mYoshiLockOn = MR::createYoshiLockOnTarget(this, static_cast<MtxPtr>(nullptr), zeroLock);
     MR::offCalcGravity(this);
     mGravity.set(pParent->mGravity);
 
@@ -555,7 +554,7 @@ void StemFruitChild::updateSensorOffset() {
     mParent->onGetSwitch();
     MR::startActionSoundAuto(mParent, "EatEnd", -1, -1, -1);
     if (mParent->getParam()->mEffectName == nullptr || !MR::tryEmitEffect(this, mParent->getParam()->mEffectName)) {
-        fn_804228B0();
+        MR::emitYoshiGetEffect();
     }
     kill();
 }

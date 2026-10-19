@@ -1,4 +1,5 @@
 #include "Game/Enemy/HomingKiller.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Scene/SceneFunction.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -19,7 +20,6 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MtxUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
-#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 #include "Game/LiveActor/ActorItemGenerator.hpp"
@@ -1256,7 +1256,7 @@ void HomingKiller::exeEaten() {
     }
 
     TPos3f mtx;
-    MR::fn_80422350(&mtx);
+    MR::calcYoshiTongueTipMtx(&mtx);
     mtx.getTrans(mPosition);
     mtx.getZDir(mFront);
     mFront.negate();
@@ -1283,7 +1283,7 @@ void HomingKiller::exeShot() {
         mMoveTime = 0;
 
         TPos3f mtx;
-        MR::fn_80422350(&mtx);
+        MR::calcYoshiTongueTipMtx(&mtx);
         mtx.getTrans(mPosition);
         MR::getPlayerThrowVec(&mFront);
         TVec3f negGravity;

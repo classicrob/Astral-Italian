@@ -10,6 +10,7 @@
 #include "Game/Animation/BtpPlayer.hpp"
 #include "Game/Camera/CameraTargetArg.hpp"
 #include "Game/Enemy/KarikariDirector.hpp"
+#include "Game/Enemy/Popo.hpp"
 #include "Game/Gravity/GravityInfo.hpp"
 #include "Game/LiveActor/Binder.hpp"
 #include "Game/LiveActor/HitSensor.hpp"
@@ -150,7 +151,7 @@ static const s32 ACTMES_ATTACKDROP = 0x25;  // Petari value, SMG2 unverified
 static const s32 ACTMES_BILLIARDJUMP = 0x2E;  // Petari value, SMG2 unverified
 static const s32 ACTMES_ENEMY_ATTACK_EXTRA_DAMAGE = 0x5F;  // Petari value, SMG2 unverified
 static const s32 ACTMES_ENEMY_ATTACK_FIREBACK = 0x57;  // Petari value, SMG2 unverified
-static const s32 ACTMES_ENEMY_ATTACK_FLIP_VERYWEAK = 0x4C;  // Petari value, SMG2 unverified
+static const s32 ACTMES_ENEMY_ATTACK_FLIP_VERYWEAK = 0x5A;
 static const s32 ACTMES_ENEMY_ATTACK_HEATBEAM = 0x5B;  // Petari value, SMG2 unverified
 static const s32 ACTMES_FORCE_KILL = 0x71;  // Petari value, SMG2 unverified
 static const s32 ACTMES_GROUP_SHOW = 0x6B;  // Petari value, SMG2 unverified
@@ -656,10 +657,7 @@ void MarioActor::getFrontHistoryVec(TVec3f* out) {
     mFrontHistory->getFront(out);
 }
 
-// PLACEHOLDER(astra): legacy animation wrapper for unreviewed SMG1 callers; remove when Actor callers use canonical Animator or Module APIs.
-void MarioActor::changeAnimation(const char* pName, const char* pNewName) {
-    mMario->changeAnimation(pName, pNewName);
-}
+
 
 
 void MarioActor::changeAnimationNonStop(const char* pName) {
@@ -1996,6 +1994,7 @@ bool MarioActor::isDebugMode() const {
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::jumpHop() {
     // https://decomp.me/scratch/d3cJS
     if (!isJumping()) {
@@ -2005,7 +2004,7 @@ void MarioActor::jumpHop() {
     if (!mMario->isRising()) {
         mMario->cutGravityElementFromJumpVec(true);
 
-        mMario->mJumpVec += -_240 * getConst().getTable()->mClapJumpBonusFalling;
+        mMario->mJumpVec += -mAppliedGravityVec * getConst().getTable()->mClapJumpBonusFalling;
     } else {
         f32 val = -mMario->cutGravityElementFromJumpVec(true);
         if (val < getConst().getTable()->mHopLimit) {
@@ -2015,14 +2014,14 @@ void MarioActor::jumpHop() {
             }
         }
 
-        mMario->mJumpVec += -_240 * val;
+        mMario->mJumpVec += -mAppliedGravityVec * val;
     }
 
     if (mMario->_430 == 5) {
         mMario->_430 = 0;
         mMario->mMovementStates._A = false;
 
-        changeAnimation(nullptr, "落下");
+        mMario->changeAnimation(nullptr, "落下");
     }
 
     if (mMario->_430 == 11) {
@@ -2676,6 +2675,7 @@ bool MarioActor::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* p
 }
 
 
+// NONMATCHING: equivalent message switch lowering and string address scheduling.
 bool MarioActor::tryAttackMsg(u32 msg, const HitSensor* pSensor, bool* pHandled) {
     if (pHandled != nullptr) {
         *pHandled = true;
@@ -2684,32 +2684,32 @@ bool MarioActor::tryAttackMsg(u32 msg, const HitSensor* pSensor, bool* pHandled)
     switch (msg) {
     case ACTMES_ENEMY_ATTACK_FLIP_VERYWEAK:
         if (getMovementStates()._1 && !isAnimationRun(nullptr)) {
-            changeAnimation("ノーダメージ");
+            mMario->changeAnimation("ノーダメージ");
         }
 
         return true;
 
-    case ACTMES_ENEMY_ATTACK_FIREBACK:
-    case ACTMES_ENEMY_ATTACK_FIRERUN:
-    case ACTMES_ENEMY_ATTACK_FIRERUN_STRONG:
-        if (selectDamageFireColor(pSensor->mHost->mName)) {
+    case 0x65:
+    case 0x66:
+    case 0x67:
+        if (mActionTable1080->testEffect(MR::getSensorHost(pSensor)->mName, "青い炎エフェクト")) {
             _1B4 = true;
         } else {
             _1B4 = false;
         }
 
-        mMario->doFireObjHitWithInitialDamage();
+        mMario->fn_803949E0();
 
         return true;
 
-    case ACTMES_ENEMY_ATTACK_ELECTRIC:
-    case ACTMES_ENEMY_ATTACK_HEATBEAM:
+    case 0x68:
+    case 0x69:
         return mMario->doParalyze();
 
-    case ACTMES_ENEMY_ATTACK_FREEZE:
+    case 0x6B:
         return mMario->doFreeze();
 
-    case ACTMES_ENEMY_ATTACK_CRUSH:
+    case 0x6C:
         return mMario->requestCrush();
 
     default:
@@ -5858,21 +5858,23 @@ void MarioActor::attackOrPushPolygons() {
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 bool MarioActor::sendMsgUpperPunch(HitSensor* pSensor) {
     if (!mActionTable1080->isActionOk("アッパーパンチ")) {
         return false;
     }
-
-    if (pSensor != nullptr && !MR::isDead(pSensor->mHost) && pSensor->receiveMessage(ACTMES_PLAYER_UPPER_PUNCH, getSensor("body"))) {
-        playSound("声蹴り", -1);
-
-        if (!mMario->isSwimming()) {
-            changeAnimation("アッパーパンチ");
+    if (pSensor && !MR::isDead(MR::getSensorHost(pSensor)) &&
+        pSensor->receiveMessage(5, getSensor("Body"))) {
+        if (mMario->isPlayerModeYoshi()) {
+            MR::startActionSound(mYoshiHolder->mYoshi, "Hit", -1, -1, -1);
+        } else {
+            mMario->playSound("声蹴り", -1);
         }
-
+        if (!mMario->isSwimming()) {
+            mMario->changeAnimation("アッパーパンチ");
+        }
         return true;
     }
-
     return false;
 }
 
@@ -6707,10 +6709,11 @@ bool MarioActor::isEnableSpinPunch() {
 }
 
 
+// NONMATCHING: Mario receiver reloads and verified pooled literal addresses.
 bool MarioActor::trySpinPunch() {
     bool out = true;
     if (getMovementStates().jumping) {
-        changeAnimation("空パンチ");
+        mMario->changeAnimation("空パンチ");
         setPunchHitTimer(15);
         mMario->mWalkSpeed = 0.0f;
     } else if (isEnableSpinPunch()) {
@@ -6720,7 +6723,7 @@ bool MarioActor::trySpinPunch() {
 
         if (getMovementStates()._A) {
             if (mMario->calcDistToCeil(false) > 160.0f) {
-                changeAnimation("サマーソルト");
+                mMario->changeAnimation("サマーソルト");
                 playSound("スピンジャンプ", -1);
                 playSound("声スピン", -1);
             } else {
@@ -6738,6 +6741,7 @@ bool MarioActor::trySpinPunch() {
     tryReleaseBombTeresa();
     _950 = false;
 
+    fn_801EFB00();
     return out;
 }
 
@@ -6900,6 +6904,7 @@ bool MarioActor::sendBodyAttack(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: verified pooled literal addresses only.
 void MarioActor::doFreezeAttack() {
     if (isAnimationRun("アイスひねり空中")) {
         return;
@@ -6907,7 +6912,7 @@ void MarioActor::doFreezeAttack() {
 
     if (isJumping()) {
         if (mMario->_430 != 13) {
-            changeAnimation("アイスひねり空中");
+            mMario->changeAnimation("アイスひねり空中");
             playSound("スピンジャンプ", -1);
             playSound("声スピン", -1);
 
@@ -6931,7 +6936,7 @@ void MarioActor::doFreezeAttack() {
         playSound("声パンチ", -1);
     }
 
-    changeAnimation("アイスひねり");
+    mMario->changeAnimation("アイスひねり");
 }
 
 // ---- MarioActorRush.cpp ----
@@ -7361,24 +7366,6 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
     }
 }
 
-
-bool MarioActor::takeSensor(HitSensor* pSensor) {
-    if (_424) {
-        return false;
-    }
-
-    if (_468) {
-        return false;
-    }
-
-    changeAnimation("カブ抜き");
-    changeNullAnimation("PullOut", -1);
-    _424 = pSensor;
-    memorizeSensorThrow(pSensor);
-    _480 = 1;
-    _38C = 60;
-    return true;
-}
 
 // ---- MarioActorRushMsg.cpp ----
 
@@ -7826,6 +7813,7 @@ void MarioActor::doTrampleJump(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: verified string and member-function-pointer pool addresses only.
 void MarioActor::trampleJump(f32 normal, f32 extra) {
     if (mMario->isStatusActive(MarioStatus_Foo)) {
         return;
@@ -7855,11 +7843,11 @@ void MarioActor::trampleJump(f32 normal, f32 extra) {
         if (!mMario->mMovementStates._A) {
             _988++;
             if (_988 == 1) {
-                changeAnimation("ジャンプふみ1");
+                mMario->changeAnimation("ジャンプふみ1");
             } else if (_988 == 2) {
-                changeAnimation("ジャンプふみ2");
+                mMario->changeAnimation("ジャンプふみ2");
             } else if (_988 >= 3) {
-                changeAnimation("ジャンプふみ3");
+                mMario->changeAnimation("ジャンプふみ3");
                 _988 = 0;
             }
         }
@@ -7867,15 +7855,19 @@ void MarioActor::trampleJump(f32 normal, f32 extra) {
         stopAnimation(nullptr);
         switch (mMario->mRabbit->_68) {
         case 0:
-            changeAnimation("ホッパーふみジャンプA");
+            mMario->changeAnimation("ホッパーふみジャンプA");
             break;
         case 1:
-            changeAnimation("ホッパーふみジャンプB");
+            mMario->changeAnimation("ホッパーふみジャンプB");
             break;
         }
     }
 
-    playSound("声踏み", -1);
+    if (mMario->isPlayerModeYoshi()) {
+        MR::startActionSound(mYoshiHolder->mYoshi, "Stomp", -1, -1, -1);
+    } else {
+        mMario->playSound("声踏み", -1);
+    }
     playEffect("ふみつぶし");
     mMario->startPadVib(0UL);
     mMario->mMovementStates._2F = false;
@@ -10017,6 +10009,7 @@ void MarioActor::tryTornadoPull(HitSensor* pSensor) {
 }
 
 
+// NONMATCHING: redundant Mario receiver reload and verified pooled literal addresses.
 void MarioActor::tryReleaseBombTeresa() {
     if (_B94 == 0) {
         return;
@@ -10032,7 +10025,7 @@ void MarioActor::tryReleaseBombTeresa() {
         mMario->_420 = 25;
     }
 
-    changeAnimation("ハンマー投げリリース");
+    mMario->changeAnimation("ハンマー投げリリース");
 }
 
 // ---- MarioActorWipe.cpp ----

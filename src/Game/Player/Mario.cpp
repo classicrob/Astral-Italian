@@ -115,6 +115,9 @@
 #include "Game/Player/Yoshi.hpp"
 #include "Game/Player/MarioMtxPos.hpp"
 #include "Game/Player/MarioYoshiPull.hpp"
+#include "Game/Player/MarioYoshiBalloon.hpp"
+#include "Game/Player/MarioYoshiShot.hpp"
+#include "Game/Player/MarioYoshiDash.hpp"
 #include "Game/Player/MarioAllModel.hpp"
 #include "Game/AudioLib/AudLifeAlertCounter.hpp"
 
@@ -450,6 +453,10 @@ Mario::Mario(MarioActor* pActor) : MarioModule(pActor) {
     mWarp = new MarioWarp(mActor);
     mTeresa = new MarioTeresa(mActor);
     mTalk = new MarioTalk(mActor);
+    mYoshiPull = new MarioYoshiPull(mActor);
+    mYoshiBalloon = new MarioYoshiBalloon(mActor);
+    mYoshiShot = new MarioYoshiShot(mActor);
+    mYoshiDash = new MarioYoshiDash(mActor);
     mMove = new MarioMove(mActor);
 
     initTask();
@@ -6180,7 +6187,7 @@ namespace {
   // namespace
 
 void Mario::tryStartFoo() {
-    if (MR::getAreaObj("CelestrialSphere", getTrans()) || !mFoo->_48) {
+    if (MR::getAreaObj("CelestrialArea", getTrans()) || !mFoo->_48) {
         changeStatus(mFoo);
         mFoo->setStartSpeed(mActor->getConst().getTable()->mSwimFrontMaxSpeed);
     }

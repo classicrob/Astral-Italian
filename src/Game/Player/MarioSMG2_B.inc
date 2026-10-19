@@ -336,21 +336,21 @@ s32 Mario::fn_803A2D80() {
     return 0;
 }
 
-// NONMATCHING: sound selection approximated from the draft
 void Mario::fn_803A2EF0() {
     if (this->checkSquat(false)) {
-        FLD<u32>(this, 0x436) = 0;
+        this->_436 = 0;
         this->mWalkSpeed = 5.0f;
-        FLD<u16>(this, 0x434) = 0xB4;
-        this->playSound("声物ジャンプ", -1);
-        this->playSound("ダッシュ加速強成功", -1);
+        this->_434 = 0xB4;
         this->playSound("スペシャルダッシュ強", -1);
+        this->playSound("ダッシュ加速強成功", -1);
+        this->playSound("声物ジャンプ", -1);
+        return;
     }
-    FLD<u32>(this, 0x436) = 0;
+    this->_436 = 0;
     this->mWalkSpeed = 2.0f;
-    FLD<u16>(this, 0x434) = 0x3C;
+    this->_434 = 0x3C;
     this->playSound("スペシャルダッシュ弱", -1);
-    this->playSound("ダッシュ加速強成功", -1);
+    this->playSound("声物ジャンプ", -1);
 }
 
 // NONMATCHING: drop/wall-slide counter gating approximated

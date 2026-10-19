@@ -325,7 +325,6 @@ public:
     void initAfterOpeningDemo();
     void calcBaseFrontVec(const TVec3f&);
     void playSound(const char*, s32);
-    void changeAnimation(const char*, const char* = nullptr);
     void getFrontHistoryVec(TVec3f*);
     void changeAnimationNonStop(const char*);
     void changeAnimationUpper(const char*);
@@ -490,7 +489,6 @@ public:
     bool isLandEffectRushSensor(const HitSensor*) const;
     void beginRush(HitSensor*);
 
-    bool takeSensor(HitSensor*);
 
     // Defined in MarioActorPunch
     bool isEnableSpinPunch();

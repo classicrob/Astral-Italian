@@ -196,15 +196,15 @@ void YoshiTongueAction::fn_8041DF40() {
     if (!isNerve(&NrvYoshiTongueAction::State8::sInstance) && !isNerve(&NrvYoshiTongueAction::State9::sInstance)) MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
 }
 
-void YoshiLockOnManager::fn_8041E120(LiveActor* actor) {
+void YoshiLockOnManager::startLockOn(LiveActor* actor) {
     mContextActive = true;
-    _1D = false;
+    mSuspended = false;
     mContextActor = actor;
 }
-void YoshiLockOnManager::fn_8041E140() {
+void YoshiLockOnManager::endLockOn() {
     mContextActive = false;
-    _1E = false;
-    fn_8041A0B0();
+    mHasUpdated = false;
+    clearActiveTargets();
 }
 
 bool YoshiTongueAction::fn_8041F8A0() const { return isNerve(&NrvYoshiTongueAction::State13::sInstance); }
@@ -274,7 +274,7 @@ bool YoshiTongueAction::fn_8041FC60() {
 bool YoshiTongueAction::fn_8041FCD0() { setNerve(&NrvYoshiTongueAction::State0::sInstance); return true; }
 bool YoshiTongueAction::fn_8041FD00() {
     fn_804214C0();
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E140();
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
     mYoshi->fn_8040EE70(nullptr);
     mYoshi->mHeadCtrl->fn_8041AB50(1);
     mYoshi->fn_8040EF30();
@@ -284,7 +284,7 @@ bool YoshiTongueAction::fn_8041FD00() {
 }
 bool YoshiTongueAction::fn_8041FD80() {
     fn_804214C0();
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E140();
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
     mYoshi->fn_8040EE70(nullptr);
     mYoshi->mHeadCtrl->fn_8041AB50(1);
     mYoshi->fn_8040EF30();
@@ -304,7 +304,7 @@ bool YoshiTongueAction::fn_8041FE00() {
 bool YoshiTongueAction::fn_8041FE80() { setNerve(&NrvYoshiTongueAction::State0::sInstance); return true; }
 void YoshiTongueAction::fn_8041FEB0() {
     fn_804214C0();
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E120(mYoshi);
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
     mYoshi->fn_8040EE70(nullptr);
     mYoshi->mHeadCtrl->fn_8041AB50(1);
     mYoshi->fn_8040EF30();
@@ -323,11 +323,11 @@ void YoshiTongueAction::fn_8041FF80() {
     mYoshi->mHeadCtrl->fn_8041AB50(1);
     mYoshi->fn_8040EF30();
     MR::tryDeleteEffect(mYoshi, "KeepMouthKiller");
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E140();
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
     setNerve(&NrvYoshiTongueAction::State18::sInstance);
 }
 void YoshiTongueAction::fn_80420000() {
-    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E120(mYoshi);
+    static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
     setNerve(&NrvYoshiTongueAction::State0::sInstance);
 }
 void YoshiTongueAction::fn_80420050() {
@@ -1049,7 +1049,7 @@ bool YoshiTongueAction::fn_804216C0() const {
 
 void YoshiTongueAction::fn_8041DFD0() {
     if (MR::isFirstStep(this)) {
-        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E120(mYoshi);
+        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->startLockOn(mYoshi);
         mYoshi->mHeadCtrl->fn_8041AB50(1);
         mYoshi->fn_8040EF30();
     }
@@ -1061,7 +1061,7 @@ void YoshiTongueAction::fn_8041DFD0() {
             return;
         }
         mTarget->fn_8041BFD0();
-        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E140();
+        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
         if (mTarget->fn_8041C0E0()) {
             setNerve(&NrvYoshiTongueAction::State2::sInstance);
             mTongue->fn_8041CB30(false);
@@ -1073,7 +1073,7 @@ void YoshiTongueAction::fn_8041DFD0() {
     TVec3f position;
     fn_80421830(&position);
     if (fn_804202B0(position)) {
-        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->fn_8041E140();
+        static_cast<YoshiLockOnManager*>(MR::getMarioHolder()->getMarioActor()->fn_803B9820())->endLockOn();
         setNerve(&NrvYoshiTongueAction::State16::sInstance);
     }
 }

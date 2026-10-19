@@ -4,7 +4,7 @@
 #include "Game/Player/Yoshi.hpp"
 #include "Game/Player/YoshiTongueAction.hpp"
 #include "Game/Util.hpp"
-MarioYoshiPull::MarioYoshiPull(MarioActor* actor) : MarioState(actor,0x26),mPhase(0),mTimer(0) {}
+MarioYoshiPull::MarioYoshiPull(MarioActor* actor) : MarioState(actor, MarioStatus_YoshiPull),mPhase(0),mTimer(0) {}
 bool MarioYoshiPull::start() {
     changeAnimation("ヨッシー引っ張り",static_cast<const char*>(nullptr));
     mActor->setBlendMtxTimer(10);

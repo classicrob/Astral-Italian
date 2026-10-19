@@ -145,13 +145,13 @@ void MarioActor::fn_803CA860(TVec3f& v) {
     } else {
         Mario* m = this->mMario;
         if (!BITAT(m, 0xC, 0x1E)) {
-            v.set(F(TVec3f, 0x594));
+            v.set(mAppliedGravityVec);
         } else {
             TVec3f n = -FP(m, TVec3f, 0x368);
             v.set(n);
         }
     }
-    if (this->mMario->isPlayerModeYoshi() && FP(F(YoshiHolder*, 0xEE4)->mYoshi, s32, 0x134) > 0 && F(u8, 0x1053) == 0) {
+    if (this->mMario->isPlayerModeYoshi() && FP(mYoshiHolder->mYoshi, s32, 0x134) > 0 && F(u8, 0x1053) == 0) {
         WaterInfo info;
         MR::getWaterAreaObj(&info, this->mPosition);
         if (BITAT(this->mMario, 0xC, 0x1E) && !info.isInWater()) {
@@ -182,7 +182,7 @@ void MarioActor::fn_803CAA00() {
         t.scale(len);
         F(TVec3f, 0x60C) = t;
     } else if (BITAT(m, 0x18, 0x1C) || F(u8, 0xE24) != 0) {
-        TVec3f neg = -F(TVec3f, 0x594);
+        TVec3f neg = -mAppliedGravityVec;
         TVec3f t(neg);
         t.scale(70.0f);
         if (F(u16, 0x664) != 0 || mMario->calcPolygonAngleD(mMario->mGroundPolygon) >= 59.0f) {
@@ -191,7 +191,7 @@ void MarioActor::fn_803CAA00() {
             MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.5f);
         }
     } else {
-        TVec3f neg = -F(TVec3f, 0x594);
+        TVec3f neg = -mAppliedGravityVec;
         TVec3f t(neg);
         t.scale(70.0f);
         MR::vecBlend(&F(TVec3f, 0x60C), F(TVec3f, 0x60C), t, 0.1f);
@@ -218,8 +218,8 @@ void MarioActor::fn_803CAA00() {
             b.scale(80.0f);
             TVec3f c2(b);
             c2 -= a;
-            f32 k = MR::vecKillElement(c2, F(TVec3f, 0x594), &c2);
-            TVec3f push(F(TVec3f, 0x594));
+            f32 k = MR::vecKillElement(c2, mAppliedGravityVec, &c2);
+            TVec3f push(mAppliedGravityVec);
             push.scale(k);
             this->mMario->push2(push);
             F(TVec3f, 0x654) = FP(this->mMario, TVec3f, 0x1F0);
@@ -239,7 +239,7 @@ void MarioActor::fn_803CAD10(const char* name, const char* b, const BckCtrlData*
         char buf[0x80];
         LiveActor* actor = this;
         if (this->mMario->isPlayerModeYoshi()) {
-            actor = F(YoshiHolder*, 0xEE4)->mYoshi;
+            actor = mYoshiHolder->mYoshi;
             snprintf(buf, 0x80, "Yoshi%s", name);
         } else if (this->mMario->isPlayerModeTeresa()) {
             actor = mTeresaModel->mActor;
@@ -276,7 +276,7 @@ void MarioActor::fn_803CAD10(const char* name, const char* b, const BckCtrlData*
 }
 
 bool MarioActor::fn_803CB1A0(u16 mode) {
-    if (F(u16, 0x6F8) != mode) {
+    if (mPlayerMode != mode) {
         return false;
     }
     if (mode == 1) {
@@ -304,7 +304,7 @@ bool MarioActor::fn_803CB1A0(u16 mode) {
 }
 
 void MarioActor::fn_803CB2E0(u16 newMode) {
-    switch (F(u16, 0x6F8)) {
+    switch (mPlayerMode) {
     case 5:
         this->mMario->endRabbitMode();
         MR::startBtp(this, "ColorChange");
@@ -358,7 +358,7 @@ void MarioActor::fn_803CB2E0(u16 newMode) {
             FP(F(void*, 0x590), u32, 0xC) = 0;
         }
         MR::endStarPointerMode(this);
-        if (!F(YoshiHolder*, 0xEE4)->mYoshi->fn_8040F0E0()) {
+        if (!mYoshiHolder->mYoshi->fn_8040F0E0()) {
             this->mMario->fn_803B1180();
         }
         break;
@@ -367,7 +367,7 @@ void MarioActor::fn_803CB2E0(u16 newMode) {
         this->stopEffect("雲マリオ頭煙");
         break;
     }
-    F(u16, 0x6FA) = F(u16, 0x6F8);
+    F(u16, 0x6FA) = mPlayerMode;
 }
 
 namespace MR {
@@ -379,7 +379,7 @@ namespace MR {
 }
 
 void MarioActor::fn_803CB510(u16 mode, bool a) {
-    F(u16, 0x6F8) = mode;
+    mPlayerMode = mode;
     this->fn_803BA070();
     HitSensor* s = F(HitSensor*, 0x790);
     if (s != nullptr) {
@@ -489,16 +489,16 @@ void MarioActor::fn_803CB510(u16 mode, bool a) {
         break;
     case 10: {
         FP(F(void*, 0x590), u32, 0xC) = 2;
-        LiveActor* ya = F(YoshiHolder*, 0xEE4)->mYoshi;
+        LiveActor* ya = mYoshiHolder->mYoshi;
         MR::setPlayerPos(ya->mPosition);
         MtxPtr bm = ya->getBaseMtx();
         TVec3f front(bm[0][2], bm[1][2], bm[2][2]);
         MR::setPlayerFrontVec(front, 1);
-        F(YoshiHolder*, 0xEE4)->mTongueAction->fn_8041FCD0();
-        FP(F(YoshiHolder*, 0xEE4)->_10, HitSensor*, 0x14) = this->getSensor("Body");
+        mYoshiHolder->mTongueAction->fn_8041FCD0();
+        FP(mYoshiHolder->_10, HitSensor*, 0x14) = this->getSensor("Body");
         this->mMarioAnim->fn_803DF8E0();
         this->rushDropThrowMemoSensor();
-        if (FP(F(YoshiHolder*, 0xEE4)->mYoshi, u8, 0x131) != 0) {
+        if (FP(mYoshiHolder->mYoshi, u8, 0x131) != 0) {
             this->mMario->changeAnimation("ヨッシースピン乗車", "基本");
         } else {
             this->mMario->changeAnimation("ヨッシー乗車", "基本");
@@ -541,7 +541,7 @@ void MarioActor::fn_803CBB30(bool b) {
     if (F(u16, 0x6FC) == 0 || F(u16, 0x6FA) == 0) {
         F(u8, 0x515) = 1;
     } else {
-        if (F(u16, 0x6F8) == 0xA) {
+        if (mPlayerMode == 0xA) {
             F(u16, 0x6FC) = 0x13;
             this->mMario->clearVelocity();
             FP(this->mMario, f32, 0x278) = 0.0f;
@@ -572,7 +572,7 @@ void MarioActor::fn_803CBB30(bool b) {
 }
 
 void MarioActor::fn_803CBC50() {
-    if (F(u16, 0x6F8) == 2) {
+    if (mPlayerMode == 2) {
         MR::adjustSandyBossFireMorphBGM(F(u16, 0x700), CTU(0x78E));
     }
     u16 t = F(u16, 0x700);
@@ -882,7 +882,7 @@ void MarioActor::fn_803CE9D0(HitSensor* s) {
         F(FixedPosition*, 0x77C)->copyRotate(&r);
         if (s != nullptr) {
             if (this->fn_803CEE50()) {
-                F(MarioAnimator*, 0x588)->updateTakingAnimation(s);
+                mMarioAnim->updateTakingAnimation(s);
             }
             MR::getSensorHost(s)->mPosition = t;
             MR::getSensorHost(s)->mRotation = r;
@@ -1040,7 +1040,7 @@ void MarioActor::updateFireSpin() {
         FP(this->mMario, u16, 0x428) += 1;
         f32 k = this->mMario->cutGravityElementFromJumpVec(true);
         FP(this->mMario, TVec3f, 0x2D4).scale(0.5f);
-        TVec3f g(F(TVec3f, 0x594));
+        TVec3f g(mAppliedGravityVec);
         g.scale(k);
         FP(this->mMario, TVec3f, 0x2D4) += g;
     }
@@ -1444,7 +1444,7 @@ void MarioActor::fn_803D32F0() {
                     this->updateRandomTexture(FP(F(void*, 0x574), f32, 0x1C));
                     TVec3f nrm(axis);
                     MR::normalizeOrZero(&nrm);
-                    J3DModel* mdl = F(MarioAllModel*, 0xF00)->getJ3DModel();
+                    J3DModel* mdl = mAllModel->getJ3DModel();
                     J3DModelX* mx = F(J3DModelX*, 0xF08);
                     PSMTXCopy(FP(mdl, Mtx, 0x24), FP(mx, Mtx, 0x24));
                     TPos3f* rot = (TPos3f*)((u8*)mx + 0x24);
@@ -1644,8 +1644,8 @@ void MarioActor::fn_803D8A30(s32 a, TVec3f& v) {
 
 void MarioActor::fn_803D8A70(s32 mode) {
     u16 t = F(u16, 0x6FC);
-    if (t != 0 && F(u16, 0x6F8) == 0) {
-        if (mode != F(u16, 0x6F8) && F(u16, 0x6FA) == 6) {
+    if (t != 0 && mPlayerMode == 0) {
+        if (mode != mPlayerMode && F(u16, 0x6FA) == 6) {
             if (t > 0x1A) {
                 (mTeresaModel->mActor)->appear();
             }
@@ -1872,7 +1872,7 @@ bool MarioActor::fn_803D9430() {
             return false;
         }
     }
-    if (F(u16, 0x6F8) == 6) {
+    if (mPlayerMode == 6) {
         return false;
     }
     if (this->mMario->isStatusActive(0x12) && F(u8, 0x1A5) != 0) {
@@ -1902,13 +1902,13 @@ void MarioActor::fn_803D95E0() {
 
 void MarioActor::fn_803D9670() {
     if (this->mMario->isPlayerModeYoshi()) {
-        MR::requestMovementOn(F(YoshiHolder*, 0xEE4)->mYoshi);
+        MR::requestMovementOn(mYoshiHolder->mYoshi);
     }
 }
 
 void MarioActor::fn_803D96C0() {
     if (this->mMario->isPlayerModeYoshi()) {
-        MR::requestMovementOff(F(YoshiHolder*, 0xEE4)->mYoshi);
+        MR::requestMovementOff(mYoshiHolder->mYoshi);
     }
 }
 

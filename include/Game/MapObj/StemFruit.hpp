@@ -8,8 +8,8 @@ class FixedPosition;
 class YoshiLockOnTarget;
 
 namespace YoshiFunction {
-    void tryYoshiEat(YoshiLockOnTarget*);
-    void tryYoshiPull(YoshiLockOnTarget*);
+    bool tryYoshiEat(YoshiLockOnTarget*);
+    bool tryYoshiPull(YoshiLockOnTarget*);
     bool tryYoshiPushEat();
 }
 

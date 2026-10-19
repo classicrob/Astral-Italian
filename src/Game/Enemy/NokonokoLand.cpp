@@ -1,4 +1,5 @@
 #include "Game/Enemy/NokonokoLand.hpp"
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
 #include "Game/Enemy/WalkerStateBindStarPointer.hpp"
@@ -18,7 +19,6 @@
 #include "Game/Util/LiveActorUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/ObjUtil.hpp"
-#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/RailUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
@@ -127,7 +127,7 @@ void NokonokoLand::fn_801D5A90() {
         MR::hideModel(this);
         MR::deleteEffectAll(this);
         TPos3f mouthMtx;
-        MR::fn_80422350(&mouthMtx);
+        MR::calcYoshiTongueTipMtx(&mouthMtx);
         TVec3f pos;
         mouthMtx.getTrans(pos);
         TVec3f throwVec;
@@ -154,7 +154,7 @@ void NokonokoLand::fn_801D5B80() {
         MR::hideModel(this);
         MR::deleteEffectAll(this);
         TPos3f mouthMtx;
-        MR::fn_80422350(&mouthMtx);
+        MR::calcYoshiTongueTipMtx(&mouthMtx);
         TVec3f pos;
         mouthMtx.getTrans(pos);
         TVec3f throwVec;

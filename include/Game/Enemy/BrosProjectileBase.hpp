@@ -9,8 +9,8 @@ class YoshiLockOnTarget;
 class AnimScaleController;
 
 namespace YoshiFunction {
-    void tryYoshiProjectile(YoshiLockOnTarget*);
-    void tryYoshiEat(YoshiLockOnTarget*);
+    bool tryYoshiProjectile(YoshiLockOnTarget*);
+    bool tryYoshiEat(YoshiLockOnTarget*);
 };
 
 namespace MR {

@@ -165,5 +165,3 @@ void BrosProjectileBase::exeEaten() {
     mFront.set<f32>(mtx[0][1], mtx[1][1], mtx[2][1]);
 }
 
-BrosProjectileBase::~BrosProjectileBase() {
-}

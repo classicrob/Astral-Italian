@@ -13,7 +13,13 @@
 #include "Game/Screen/BombTimerLayout.hpp"
 #include "Game/Util.hpp"
 
+// PLACEHOLDER(enemies): shared 4-byte empty NPC goods strings at 807CFE90..9C, referenced by 11 NPC TUs
+// (CareTaker, HoneyBee, Kinopio*, Tico*, NPC*ParameterReader); resolve when their defining TU/name is identified.
+extern const char lbl_807CFE90[], lbl_807CFE94[], lbl_807CFE98[], lbl_807CFE9C[];
+
 namespace {
+    const char* sPlayerPrePosition = "タイムアタック前位置";
+    const char* sPlayerPostPosition = "タイムアタック後位置";
     static const s32 sTidyTimeLimit = 30;
     static const s32 sBgmStartStep = 166;
     // static const f32 sTalkRotateDegree = _;
@@ -67,21 +73,14 @@ void Caretaker::makeArchiveList(NameObjArchiveListCollector* pCollector, const J
     }
 }
 
-extern "C" {
-extern char lbl_806B7BD0[],lbl_806B7DF4[],lbl_806B7E14[],lbl_806B7E38[];
-extern const char* lbl_807CFE88;
-extern const char* lbl_807CFE8C;
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
-}
 // NONMATCHING: register allocation and member-pointer constant-table addressing differ.
 void Caretaker::init(const JMapInfoIter& rIter) {
     s32 arg0=-1;
     MR::getJMapInfoArg0NoInit(rIter,&arg0);
     mObjArg0=arg0;
-    const char* strings=lbl_806B7BD0;
-    NPCActorCaps caps(strings+0x60);
+    NPCActorCaps caps("Caretaker");
     NPCActorItem item;
-    item.mActor=strings+0x60;
+    item.mActor="Caretaker";
     item.mGoods0=lbl_807CFE9C;
     item.mGoodsJoint0=lbl_807CFE98;
     item.mGoods1=lbl_807CFE94;
@@ -89,20 +88,20 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     caps.setDefault();
     caps.mWaitNerve=GET_NERVE(Caretaker,CaretakerNrvTalk);
     caps.mReactionNerve=GET_NERVE(Caretaker,CaretakerNrvReaction);
-    initialize(rIter,caps,strings+0x60,nullptr,nullptr);
+    initialize(rIter,caps,"Caretaker",nullptr,nullptr);
     s32 arg3=0;
     MR::getJMapInfoArg3NoInit(rIter,&arg3);
     mBodyColorFrame=arg3;
-    MR::startBrk(this,strings+0x6C);
+    MR::startBrk(this,"BodyColor");
     MR::setBrkFrameAndStop(this,mBodyColorFrame);
-    _134=strings+0x78;
-    _130=strings+0x84;
-    _13C=strings+0x84;
-    _138=strings+0x90;
-    mParam._14=strings+0x9C;
-    mParam._18=strings+0x9C;
-    _11C=strings+0xB4;
-    _120=strings+0xA8;
+    _134="BTrampled";
+    _130="BSpinHit";
+    _13C="BSpinHit";
+    _138="BTalkHelp";
+    mParam._14="BWaitStand";
+    mParam._18="BWaitStand";
+    _11C="BWaitRun";
+    _120="BRunTalk";
     mParam._0=0;
     mParam._1=1;
     mParam._8=3.0f;
@@ -110,9 +109,9 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     _110=0.1f;
     _114=0.05f;
     _124=1;
-    MR::startBtk(this,strings+0xC0);
+    MR::startBtk(this,"Dirt");
     MR::setBtkFrameAndStop(this,0.0f);
-    MR::startBckNoInterpole(this,strings+0xC8);
+    MR::startBckNoInterpole(this,"Wait");
     s32 arg4=0;
     MR::getJMapInfoArg4NoInit(rIter,&arg4);
     mObjArg4=arg4;
@@ -124,20 +123,20 @@ void Caretaker::init(const JMapInfoIter& rIter) {
     }
     if(static_cast<u32>(mObjArg0)<=2) {
         MR::declarePowerStar(this);
-        if(mObjArg0==1) mTakeOutStar=new TakeOutStar(this,strings+0xD0,strings+0xD0,GET_NERVE(Caretaker,CaretakerNrvTakeOutStar),nullptr);
-        else mTakeOutStar=new TakeOutStar(this,strings+0xF0,strings+0xF0,GET_NERVE(Caretaker,CaretakerNrvTakeOutStar),nullptr);
+        if(mObjArg0==1) mTakeOutStar=new TakeOutStar(this,"TakeOutStarCaretakerFreeHand","TakeOutStarCaretakerFreeHand",GET_NERVE(Caretaker,CaretakerNrvTakeOutStar),nullptr);
+        else mTakeOutStar=new TakeOutStar(this,"TakeOutStarCaretaker","TakeOutStarCaretaker",GET_NERVE(Caretaker,CaretakerNrvTakeOutStar),nullptr);
     }
     if(mObjArg0==0) {
-        _130=strings+0x108;
-        _13C=strings+0x108;
-        _134=strings+0x110;
-        _138=strings+0x11C;
-        mParam._14=strings+0xC8;
-        mParam._18=strings+0xC8;
-        mParam._1C=strings+0x128;
-        mParam._20=strings+0x128;
-        _11C=strings+0x138;
-        _120=strings+0x138;
+        _130="SpinHit";
+        _13C="SpinHit";
+        _134="Trampled";
+        _138="TalkAngry";
+        mParam._14="Wait";
+        mParam._18="Wait";
+        mParam._1C="TalkNormal";
+        mParam._20="TalkNormal";
+        _11C="WaitRun";
+        _120="WaitRun";
         MR::getNPCItemData(&item,0);
         equipment(item,false);
         if(MR::isExistRail(this)) { MR::moveCoordAndFollowTrans(this); _C0.set(mPosition); }
@@ -150,7 +149,7 @@ void Caretaker::init(const JMapInfoIter& rIter) {
         mBombTimerLayout->initWithoutIter();
         mBombTimerLayout->setTimeLimit(mTidyTimeLimit*60);
         mBombTimerLayout->kill();
-        _168=MR::joinToGroupArray(this,rIter,strings+0x140,32);
+        _168=MR::joinToGroupArray(this,rIter,"ゴミ管理",32);
         MR::enablePlayerResourceFire();
         MR::createSceneObj(0x92);
         if(getMsgCtrl()) {
@@ -270,29 +269,61 @@ bool Caretaker::branchFuncStar(u32 msg) {
     }
 }
 
-// NONMATCHING: compiler folds equivalent signed range comparisons into unsigned interval checks.
+// NONMATCHING: saved-register/frame-pointer allocation differs; selector branches and signed range tests match.
+#pragma global_optimizer off
 bool Caretaker::branchFuncComet(u32 msg) {
     s32 purpleCoinNum = MR::getPurpleCoinNum();
-
-    switch (msg) {
-    case 0:
-        return purpleCoinNum == 0;
-    case 1:
-        { s32 result=0; if(purpleCoinNum >= 1 && purpleCoinNum < 50) result=1; return result; }
-    case 2:
-        { s32 result=0; if(purpleCoinNum >= 50 && purpleCoinNum < 80) result=1; return result; }
-    case 3:
-        { s32 result=0; if(purpleCoinNum >= 80 && purpleCoinNum < 90) result=1; return result; }
-    case 4:
-        { s32 result=0; if(purpleCoinNum >= 90 && purpleCoinNum < 95) result=1; return result; }
-    case 5:
-        { s32 result=0; if(purpleCoinNum >= 95 && purpleCoinNum < 100) result=1; return result; }
-    case 6:
-        return purpleCoinNum == 100;
-    default:
-        return false;
+    if (msg == 0) goto case0;
+    if (msg == 1) goto case1;
+    if (msg == 2) goto case2;
+    if (msg == 3) goto case3;
+    if (msg == 4) goto case4;
+    if (msg == 5) goto case5;
+    if (msg == 6) goto case6;
+    goto fallback;
+case0:
+    return purpleCoinNum == 0;
+case1: {
+    bool result = false;
+    if (purpleCoinNum >= 1 && purpleCoinNum < 50) {
+        result = true;
     }
+    return result;
 }
+case2: {
+    bool result = false;
+    if (purpleCoinNum >= 50 && purpleCoinNum < 80) {
+        result = true;
+    }
+    return result;
+}
+case3: {
+    bool result = false;
+    if (purpleCoinNum >= 80 && purpleCoinNum < 90) {
+        result = true;
+    }
+    return result;
+}
+case4: {
+    bool result = false;
+    if (purpleCoinNum >= 90 && purpleCoinNum < 95) {
+        result = true;
+    }
+    return result;
+}
+case5: {
+    bool result = false;
+    if (purpleCoinNum >= 95 && purpleCoinNum < 100) {
+        result = true;
+    }
+    return result;
+}
+case6:
+    return purpleCoinNum - 100 == 0;
+fallback:
+    return false;
+}
+#pragma global_optimizer on
 
 bool Caretaker::eventFuncComet(u32 msg) {
     if(msg==0) return mTakeOutStar->takeOut();
@@ -420,14 +451,13 @@ void Caretaker::exeWait() {
 }
 
 void Caretaker::exePreTalk() {
-    const char* strings=lbl_806B7BD0;
     turnToPlayer(mParam._8);
     if (!MR::tryTalkNearPlayerAtEnd(getMsgCtrl())) return;
     MR::setAudioSystemField9A0(90);
     if (MR::tryTalkSelectLeft(getMsgCtrl())) {
-        if (MR::tryStartDemoMarioPuppetableWithoutCinemaFrame(this,strings+0x224)) {
-            MR::startAction(this,strings+0xC8);
-            MR::startBckPlayer(strings+0x23C,nullptr);
+        if (MR::tryStartDemoMarioPuppetableWithoutCinemaFrame(this,"ゴミ掃除タイムアタック")) {
+            MR::startAction(this,"Wait");
+            MR::startBckPlayer("Watch",nullptr);
             setNerve(GET_NERVE(Caretaker,CaretakerNrvPreWipeOut));
             MR::startNPCTalkCamera(getMsgCtrl(),getBaseMtx(),1.0f,0);
         }
@@ -445,7 +475,7 @@ void Caretaker::exePreWipeOut() {
     if (MR::isWipeActive()) return;
     if (MR::isExistRail(this)) { MR::setRailCoordSpeed(this,0.0f); MR::setRailCoord(this,0.0f); }
     MR::setDefaultPose(this);
-    MR::setPlayerPosOnGroundAndWait(lbl_807CFE88,false);
+    MR::setPlayerPosOnGroundAndWait(sPlayerPrePosition,false);
     MR::endNPCTalkCamera(false,0);
     MR::callInvalidateClippingAllGroupMember(this);
     mBombTimerLayout->appear();
@@ -461,7 +491,7 @@ void Caretaker::exePreWipeIn() {
         MR::setExterminationWoodBoxFlag();
         MR::openWipeFade(-1);
         MR::changePlayerModeFire();
-        MR::startSubBGM(lbl_806B7E14,false);
+        MR::startSubBGM("BGM_MINIGAME_START",false);
         hide();
     }
     MR::setAudioSystemField9A0(90);
@@ -474,8 +504,8 @@ void Caretaker::exePreWait() {
         MR::endDemo(this, "ゴミ掃除タイムアタック");
         MR::offPlayerControl();
         MR::onSwitchB(this);
-        MR::setAudioSystemField9A0(0x5A);
     }
+    MR::setAudioSystemField9A0(0x5A);
 
     if (MR::isGreaterStep(this, ::sPreRaceWait)) {
         setNerve(GET_NERVE(Caretaker, CaretakerNrvCountDown));
@@ -486,7 +516,7 @@ void Caretaker::exeCountDown() {
     if(MR::isFirstStep(this)) mCountdown->appear();
     if(mCountdown->isStart()) {
         MR::changePlayerModeFire();
-        MR::startSubBGM(lbl_806B7E38,false);
+        MR::startSubBGM("BGM_FIRE_B",false);
         MR::onPlayerControl(true);
         setNerve(GET_NERVE(Caretaker,CaretakerNrvTidy));
     }
@@ -500,7 +530,7 @@ void Caretaker::exeTidy() {
     if(!MR::isPlayerDead()) MR::isPlayerConfrontDeath();
     if(MR::canStartDemo() && (mBombTimerLayout->isReadyToTimeUp() || MR::isOnSwitchA(this))) {
         if(MR::isOnSwitchA(this) && MR::isPlayerElementModeFire()) MR::changePlayerModeFire();
-        if(MR::tryStartDemoMarioPuppetableWithoutCinemaFrame(this,lbl_806B7DF4)) setNerve(GET_NERVE(Caretaker,CaretakerNrvTimeUp));
+        if(MR::tryStartDemoMarioPuppetableWithoutCinemaFrame(this,"ゴミ掃除タイムアタック")) setNerve(GET_NERVE(Caretaker,CaretakerNrvTimeUp));
     }
 }
 
@@ -536,7 +566,7 @@ void Caretaker::exePstWipeOut() {
     MR::callValidateClippingAllGroupMember(this);
     MR::Effect::forceDeleteAllEmitters(MR::getEffectSystem());
     MR::tryPlayerKillTakingActor();
-    MR::setPlayerPosOnGroundAndWait(lbl_807CFE8C,false);
+    MR::setPlayerPosOnGroundAndWait(sPlayerPostPosition,false);
     MR::startBckPlayer("Watch", nullptr);
 
     if (MR::isPlayerElementModeFire()) {

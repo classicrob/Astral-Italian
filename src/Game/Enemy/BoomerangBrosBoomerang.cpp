@@ -11,7 +11,7 @@ static TVec3f sCurveTangentA(0.0f, 0.0f, 0.0f);
 static TVec3f sCurveTangentB(0.0f, 0.0f, 0.0f);
 static TVec3f sCurveTangentC(0.0f, 0.0f, 2000.0f);
 
-BoomerangBrosBoomerang::BoomerangBrosBoomerang(const char* pName) : BrosProjectileBase(pName), _BC(10.0f), mStep(0), mBind(nullptr) {
+BoomerangBrosBoomerang::BoomerangBrosBoomerang(const char* pName) : BrosProjectileBase(pName), _BC(2000.0f), mStep(0), mBind(nullptr) {
 }
 
 namespace NrvBoomerangBrosBoomerang {

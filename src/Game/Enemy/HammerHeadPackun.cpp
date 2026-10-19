@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MI_NOINLINE
 #include "Game/Enemy/HammerHeadPackun.hpp"
 #include "Game/Util.hpp"
 #include "Game/NPC/ScoreAttackCounter.hpp"

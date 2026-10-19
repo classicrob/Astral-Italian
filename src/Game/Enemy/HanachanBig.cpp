@@ -249,7 +249,6 @@ void HanachanBigParts::init(const JMapInfoIter& rIter) {
     }
 }
 
-// NONMATCHING: target has one extra dead `b` to the epilogue (block layout)
 void HanachanBigParts::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender)) {
         if (MR::isSensorPlayerOrRide(pReceiver)) {

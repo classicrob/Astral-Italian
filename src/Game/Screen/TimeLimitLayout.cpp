@@ -69,6 +69,16 @@ bool TimeLimitLayout::isReadyToTimeUp() const {
     return !MR::isDead(this) && isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutTimeUpReady));
 }
 
+void TimeLimitLayout::addTimeLimit(s32 frames) {
+    mRemainingFrames += frames;
+    if (!isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutAppear))) MR::startAnim(this, "Wait", 0);
+    if (isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleUp)) || isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleKeep))) {
+        setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleDown));
+        return;
+    }
+    mScaleControl->setZero();
+}
+
 void TimeLimitLayout::resetFrame() {
     mRemainingFrames = mTimeLimit;
     MR::updateMinuteAndSecondTextBox(this, "Number", mRemainingFrames + 59);
@@ -83,15 +93,7 @@ void TimeLimitLayout::resetFrame() {
 
 void TimeLimitLayout::pause() { mIsSuspend = true; }
 void TimeLimitLayout::resume() { mIsSuspend = false; }
-void TimeLimitLayout::addTimeLimit(s32 frames) {
-    mRemainingFrames += frames;
-    if (!isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutAppear))) MR::startAnim(this, "Wait", 0);
-    if (isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleUp)) || isNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleKeep))) {
-        setNerve(GET_NERVE(TimeLimitLayout, TimeLimitLayoutScaleDown));
-        return;
-    }
-    mScaleControl->setZero();
-}
+
 // NONMATCHING: the compiler reuses the remaining-frame load instead of reloading it for the decrement.
 void TimeLimitLayout::updateTextBox() {
     if (mRemainingFrames == 0) return;

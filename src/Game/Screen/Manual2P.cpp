@@ -157,6 +157,11 @@ void Manual2P::exeScrollRightAfter() {
     }
 }
 
+void Manual2P::exePreviousPageOver() {
+    if (MR::isFirstStep(this)) MR::startAnim(this, "PreviousPageOver", 0);
+    if (MR::isAnimStopped(this, 0)) setNerve(MANUAL_NERVE(Manual2PNrvWait));
+}
+
 void Manual2P::exeScrollLeft() {
     if (MR::isFirstStep(this)) {
         MR::startAnim(this, "PageIn", 0);
@@ -185,6 +190,11 @@ void Manual2P::exeScrollLeftAfter() {
         mLeftPaneCtrl->forceToWait();
         setNerve(MANUAL_NERVE(Manual2PNrvWait));
     }
+}
+
+void Manual2P::exeNextPageOver() {
+    if (MR::isFirstStep(this)) MR::startAnim(this, "NextPageOver", 0);
+    if (MR::isAnimStopped(this, 0)) setNerve(MANUAL_NERVE(Manual2PNrvWait));
 }
 
 void Manual2P::exeDisappear() {
@@ -270,14 +280,8 @@ void Manual2P::reflectPageIndex() {
     }
 }
 
-void Manual2P::exePreviousPageOver() {
-    if (MR::isFirstStep(this)) MR::startAnim(this, "PreviousPageOver", 0);
-    if (MR::isAnimStopped(this, 0)) setNerve(MANUAL_NERVE(Manual2PNrvWait));
-}
-void Manual2P::exeNextPageOver() {
-    if (MR::isFirstStep(this)) MR::startAnim(this, "NextPageOver", 0);
-    if (MR::isAnimStopped(this, 0)) setNerve(MANUAL_NERVE(Manual2PNrvWait));
-}
+
+
 bool Manual2P::isLeftButtonWaiting() const {
     return !mLeftPaneCtrl->isHidden() && mLeftPaneCtrl->isWait() && !MR::isNewNerve(mLeftPaneCtrl);
 }

@@ -38,12 +38,12 @@ void BombHeiLauncher::init(const JMapInfoIter& rIter) {
             isBombHeiLauncher = false;
         }
 
-        if (MR::useStageSwitchReadA(this, rIter)) {
+        if (MR::initUseStageSwitchReadA(this, rIter)) {
             mIsActive = false;
             MR::listenStageSwitchOnOffA(this, MR::Functor(this, &BombHeiLauncher::onSwitchA), MR::Functor(this, &BombHeiLauncher::offSwitchA));
         }
 
-        MR::useStageSwitchSleep(this, rIter);
+        MR::useStageSwitchAwake(this, rIter);
     }
 
     MR::initActor(this, rIter, "BombHeiLauncher", false);

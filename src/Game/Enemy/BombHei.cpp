@@ -314,7 +314,7 @@ void BombHei::exeWait() {
 }
 #pragma global_optimizer on
 
-// NONMATCHING: target keeps `mCountdown > 0 && mCountdown < 120` as two compares; CW merges them into one unsigned range check
+// NONMATCHING: saved-register allocation differs.
 #pragma global_optimizer off
 void BombHei::exeWalk() {
     if (MR::isFirstStep(this)) {

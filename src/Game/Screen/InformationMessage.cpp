@@ -38,13 +38,7 @@ void InformationMessage::init(const JMapInfoIter& rIter) {
     initNerve(GET_NERVE(InformationMessage, InformationMessageNrvAppear));
 }
 
-const char* InformationMessage::getInfConfirmName() const {
-    if (mWindowType == 0) return "InfConfirmU";
-    if (mWindowType == 1) return "InfConfirmC";
-    const char* pane = "InfConfirmC";
-    if (mWindowType == 2) pane = "InfConfirmD";
-    return pane;
-}
+
 
 void InformationMessage::movement() {
     LayoutActor::movement();
@@ -89,6 +83,8 @@ void InformationMessage::appear() {
     LayoutActor::appear();
 }
 
+
+
 void InformationMessage::setAButtonPos() {
     appear();
     const char* pane;
@@ -108,6 +104,14 @@ void InformationMessage::disappear() {
     MR::startSystemSE("SE_SY_TALK_OK", -1, -1);
     MR::startCSSound("CS_CLICK_CLOSE", nullptr, 0, 0, 1.0f);
     setNerve(GET_NERVE(InformationMessage, InformationMessageNrvDisappear));
+}
+
+const char* InformationMessage::getInfConfirmName() const {
+    if (mWindowType == 0) return "InfConfirmU";
+    if (mWindowType == 1) return "InfConfirmC";
+    const char* pane = "InfConfirmC";
+    if (mWindowType == 2) pane = "InfConfirmD";
+    return pane;
 }
 
 void InformationMessage::setMessage(const char* pMessageId) {

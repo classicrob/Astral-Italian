@@ -22,7 +22,7 @@ class BrosProjectileBase : public LiveActor {
 public:
     BrosProjectileBase(const char*);
 
-    virtual ~BrosProjectileBase();
+    virtual ~BrosProjectileBase() {}
     virtual void init(const JMapInfoIter&);
     virtual void appear();
     virtual void control();

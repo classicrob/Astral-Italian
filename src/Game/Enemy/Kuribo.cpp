@@ -204,6 +204,7 @@ void Kuribo::kill() {
     LiveActor::kill();
 }
 
+// NONMATCHING: instruction-order residual with identical semantics: target uses beq body/b epilogue; MWCC folds it to bne epilogue.
 void Kuribo::control() {
     mScaleController->updateNerve();
     if (_C4) {

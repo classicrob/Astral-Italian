@@ -21,8 +21,8 @@ public:
     bool isLastPartEnd() const;
     s32 getCurrentPartIndex() const NO_INLINE;
     s32 getElapsedFrame() const;
-    bool isDemoCameraStartFinished() const;
-    bool isDemoCameraEndFinished() const;
+    bool isDemoCameraStartFinished() const NO_INLINE;
+    bool isDemoCameraEndFinished() const NO_INLINE;
     void exePrepareBgm();
     void exePart();
     void exePaneAppear();
@@ -45,7 +45,7 @@ public:
     s32 mPartCount;
     StaffRollPart** mCurrentPart;
     s32 mPartDuration;
-    s32 mStartFrame;
+    u32 mStartFrame;
     StaffRollDemoCamera* mDemoCamera;
 };
 

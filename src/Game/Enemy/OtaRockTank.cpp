@@ -1,3 +1,4 @@
+#define JGEOMETRY_VEC3_MI_NOINLINE
 #pragma auto_inline off
 #include "Game/Enemy/OtaRockTank.hpp"
 #include "Game/Util.hpp"
@@ -577,8 +578,7 @@ void OtaRockTank::exeDashStart() {
         MR::turnDirection(this, &mRailDirection, dir, 0.9989f);
         TVec3f p(0.0f);
         MR::calcRailPointPos(&p, this, 4);
-        TVec3f d(p);
-        d -= mPosition;
+        TVec3f d = p - mPosition;
         f32 rate = MR::calcNerveRate(this, 1200);
         mPosition.x += d.x * rate;
         mPosition.z += d.z * rate;

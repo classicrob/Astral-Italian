@@ -717,7 +717,6 @@ void Jugem::calcAndSetBaseMtx() {
     }
 }
 
-// NONMATCHING: equivalent fallthrough omits the target's redundant end branch
 void Jugem::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerve(JN(Dead))) {
         if (MR::isSensorEnemyAttack(pSender) && MR::isSensorPlayerOrRide(pReceiver) && fn_8019D1D0()) {

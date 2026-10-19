@@ -492,6 +492,7 @@ void KuriboMini::exeBindStarPointer() {
 
 
 
+// NONMATCHING: instruction-order residual with identical semantics: target uses beq body/b epilogue; MWCC folds it to bne epilogue.
 void KuriboMini::exeAttackSuccess() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "Hit");

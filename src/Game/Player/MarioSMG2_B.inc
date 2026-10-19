@@ -397,19 +397,13 @@ f32 Mario::fn_803A3780(f32 angle) {
 }
 
 bool Mario::fn_803A4210() {
-    if ((this->getPlayer()->mMovementStates.mLowWord >> 16) & 1) {
-        return false;
+    bool result = false;
+    if (!((this->getPlayer()->getMovementStates().mLowWord >> 16) & 1) && ((this->getPlayer()->getMovementStates().mLowWord >> 15) & 1)
+        && !((this->getPlayer()->getMovementStates().mLowWord >> 21) & 1) && this->_8F0 == 0.0f
+        && static_cast<u8>(this->checkStickFrontBack()) == 2) {
+        result = true;
     }
-    if (!((this->getPlayer()->mMovementStates.mLowWord >> 15) & 1)) {
-        return false;
-    }
-    if ((this->getPlayer()->mMovementStates.mLowWord >> 21) & 1) {
-        return false;
-    }
-    if (this->_8F0 != 0.0f) {
-        return false;
-    }
-    return static_cast<u8>(this->checkStickFrontBack()) == 2;
+    return result;
 }
 
 void Mario::startBas(const char* pName, bool loop, f32 startFrame, f32 speed) {

@@ -4192,7 +4192,7 @@ bool MarioActor::checkBeeFloorStick(TVec3f& rVec) {
 
 
 void MarioActor::syncJumpBeeStickMode() {
-    if (mBeeWallWalk != 0 && selectQuickResetBeeWallGravity(mMario->_45C->mSensor->mHost->mName)) {
+    if (mBeeWallWalk != 0 && selectQuickResetBeeWallGravity(MR::getSensorHost(mMario->_45C->mSensor)->mName)) {
         mBeeWallWalk = 0;
         _9F2 = 30;
     }

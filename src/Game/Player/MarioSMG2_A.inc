@@ -553,19 +553,12 @@ bool Mario::fn_80394550(const TVec3f* arg) {
 }
 
 bool Mario::fn_80390210(const Triangle* triangle) {
-    if (MR::isSensorPressObj(triangle->mSensor)) {
-        return true;
+    bool result = false;
+    if (MR::isSensorPressObj(triangle->mSensor) || this->_95C->getCode(triangle) == 0x1D || this->_95C->getCode(triangle) == 0x27
+        || this->fn_803902B0() || this->_960 == 0x1D || this->_960 == 0x27) {
+        result = true;
     }
-    if (this->_95C->getCode(triangle) == 0x1D) {
-        return true;
-    }
-    if (this->_95C->getCode(triangle) == 0x27) {
-        return true;
-    }
-    if (this->fn_803902B0()) {
-        return true;
-    }
-    return this->_960 == 0x1D || this->_960 == 0x27;
+    return result;
 }
 
 void Mario::fn_803A1A60(TVec3f* arg) {
@@ -679,21 +672,16 @@ f32 Mario::getMaxDropSpeed() {
 bool Mario::fn_8039A100() {
     if (this->_430 == 8 && this->_42A == 0) {
         u16 timer = this->_426;
-        if (timer != 0) {
-            return timer > this->mActor->mConst->getTable()->mTornadoBoostTimer - 16;
+        if (timer == 0 || timer > this->mActor->mConst->getTable()->mTornadoBoostTimer - 16) {
+            return true;
         }
+        return false;
+    }
+    if (((this->mMovementStates.mLowWord >> 12) & 1) || ((this->mMovementStates.mLowWord >> 17) & 1) || !this->isRising()
+        || this->_430 == 2) {
         return true;
     }
-    if ((this->mMovementStates.mLowWord >> 12) & 1) {
-        return true;
-    }
-    if ((this->mMovementStates.mLowWord >> 17) & 1) {
-        return true;
-    }
-    if (!this->isRising()) {
-        return true;
-    }
-    return this->_430 == 2;
+    return false;
 }
 
 void Mario::fn_803A10D0(s32 arg) {

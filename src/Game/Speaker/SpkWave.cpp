@@ -1,6 +1,7 @@
 #include "Game/Speaker/SpkWave.hpp"
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 #include <revolution/os.h>
+#include <stdint.h>
 
 SpkWave::SpkWave() : mResource(nullptr) {
 }
@@ -43,5 +44,6 @@ s16* SpkWave::getWave(s32 wave) const {
 }
 
 WaveData* SpkWave::getWaveData(s32 wave) const {
-    return (WaveData*)((u32)mResource + *(u32*)((u32)mResource + wave * 4 + 8));
+    return reinterpret_cast< WaveData* >(reinterpret_cast< uintptr_t >(mResource) +
+                                         *reinterpret_cast< u32* >(reinterpret_cast< uintptr_t >(mResource) + wave * 4 + 8));
 }

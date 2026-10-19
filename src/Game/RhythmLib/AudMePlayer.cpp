@@ -8,6 +8,7 @@
 #include "Game/RhythmLib/AudMePlayer.hpp"
 #include "Game/Util/MathUtil.hpp"
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
+#include <stdint.h>
 
 void AudMeHandle::releaseMe() {
     if (isMeAttached()) {
@@ -387,11 +388,14 @@ void AudMePlayingParamsHolder::setResource(void* pRes) {
 
     mNumEntries = numEntries;
 
-    const char** offsets = (const char**)((s32)pRes + namesOff);
-    mParams = (AudMePlayingParams*)((s32)pRes + entryOff);
+    u8* resource = static_cast< u8* >(pRes);
+    const char** offsets = reinterpret_cast< const char** >(resource + namesOff);
+    mParams = reinterpret_cast< AudMePlayingParams* >(resource + entryOff);
 
     for (u32 i = 0; i < numEntries; i++) {
-        offsets[i] += (s32)pRes;
+        uintptr_t address = reinterpret_cast< uintptr_t >(offsets[i]);
+        address += reinterpret_cast< uintptr_t >(pRes);
+        offsets[i] = reinterpret_cast< const char* >(address);
     }
 
     mNames = (const char**)offsets;

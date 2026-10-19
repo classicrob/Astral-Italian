@@ -3,9 +3,9 @@
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
 #include <JSystem/JKernel/JKRArchive.hpp>
 
-void AudScaleData::initScaleData(u32 base) {
-    up += base;
-    down += base;
+void AudScaleData::initScaleData(uintptr_t base) {
+    up = reinterpret_cast<u8*>(reinterpret_cast<uintptr_t>(up) + base);
+    down = reinterpret_cast<u8*>(reinterpret_cast<uintptr_t>(down) + base);
 }
 
 AudChordTable::AudChordTable() : mLoaded(false), mChordCount(0), mScaleCount(0), mChordPtr(nullptr), mScalePtr(nullptr) {
@@ -50,13 +50,13 @@ bool AudChordTable::setChordTableResource(void* pRes) {
     if (!alreadyRelocated) {
         // Relocate chord pointers
         for (s32 i = 0; i < mChordCount; i++) {
-            mChordPtr[i] = (AudChordData*)((u32)pRes + (u32)mChordPtr[i]);
+            mChordPtr[i] = reinterpret_cast<AudChordData*>(reinterpret_cast<uintptr_t>(pRes) + reinterpret_cast<uintptr_t>(mChordPtr[i]));
         }
 
         // Relocate scale pointers and init scale data
         for (s32 i = 0; i < mScaleCount; i++) {
-            mScalePtr[i] = (AudScaleData*)((u32)pRes + (u32)mScalePtr[i]);
-            mScalePtr[i]->initScaleData((u32)pRes);
+            mScalePtr[i] = reinterpret_cast<AudScaleData*>(reinterpret_cast<uintptr_t>(pRes) + reinterpret_cast<uintptr_t>(mScalePtr[i]));
+            mScalePtr[i]->initScaleData(reinterpret_cast<uintptr_t>(pRes));
         }
 
         *initialized = true;

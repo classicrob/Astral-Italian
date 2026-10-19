@@ -1,4 +1,5 @@
 #include "Game/Speaker/SpkTable.hpp"
+#include <stdint.h>
 
 SpkTable::SpkTable() {
     mInitialized = false;
@@ -10,7 +11,8 @@ SpkTable::SpkTable() {
 void SpkTable::setResource(void* pRes) {
     mInitialized = false;
 
-    s32* cursor = (s32*)pRes;
+    u8* resource = static_cast< u8* >(pRes);
+    s32* cursor = static_cast< s32* >(pRes);
 
     s32 resourceCount = *cursor++;
     s32 entryOff = *cursor++;
@@ -20,12 +22,12 @@ void SpkTable::setResource(void* pRes) {
 
     mResourceCount = resourceCount;
 
-    SpkParameters* entryOffset = (SpkParameters*)((s32)pRes + entryOff);
+    SpkParameters* entryOffset = reinterpret_cast< SpkParameters* >(resource + entryOff);
     mParameters = entryOffset;
-    const char** names = (const char**)((s32)pRes + dataOffsetsStartOff);
+    const char** names = reinterpret_cast< const char** >(resource + dataOffsetsStartOff);
     if (!isDataOffsetsInitialized) {
         for (s32 i = 0; i < mResourceCount; i++) {
-            names[i] += (s32)pRes;
+            names[i] += reinterpret_cast< uintptr_t >(resource);
         }
     }
 

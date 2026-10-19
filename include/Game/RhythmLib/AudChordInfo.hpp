@@ -2,6 +2,7 @@
 
 #include <JSystem/JAudio2/JASGlobal.hpp>
 #include <revolution.h>
+#include <stdint.h>
 
 class JKRArchive;
 
@@ -12,7 +13,7 @@ struct AudChordData {
 };
 
 struct AudScaleData {
-    void initScaleData(u32 base) NO_INLINE;
+    void initScaleData(uintptr_t base) NO_INLINE;
 
     /* 0x00 */ u8* up;
     /* 0x04 */ u8* down;

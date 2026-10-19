@@ -1,3 +1,6 @@
+#if defined(GALAXY_NATIVE) && defined(GALAXY_HEADLESS)
+#include <petari/headless.h>
+#endif
 #include "Game/System/MainLoopFramework.hpp"
 #include "Game/System/DrawSyncManager.hpp"
 #include "Game/Util/BothDirList.hpp"
@@ -467,6 +470,10 @@ void MainLoopFramework::setForOSResetSystem() {
 
 namespace {
     void waitForTick(u32 tickDuration, u16 retraceCount) {
+#if defined(GALAXY_NATIVE) && defined(GALAXY_HEADLESS)
+        petari_headless_wait_retrace();
+        return;
+#endif
         if (tickDuration) {
             static s64 nextTime;
             static s8 timeInitialized;

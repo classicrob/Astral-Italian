@@ -4,6 +4,11 @@
 #include "revolution/mtx.h"
 #include <cmath>
 #include <cstdio>
+#ifdef GALAXY_NATIVE
+#include <petari/kpad_replay.hpp>
+#include <petari/headless.h>
+extern "C" int petari_kpad_replay_hook_version(void) { return 1; }
+#endif
 
 static const char* __KPADVersion = "<< RVL_SDK - KPAD \trelease build: Dec 11 2009 15:58:25 (0x4302_145) >>";
 
@@ -1369,6 +1374,10 @@ static void KPADiMplsSamplingCallback(s32 chan, const KPADMPLSStatus* sample) {
 }
 
 s32 KPADReadEx(s32 chan, KPADStatus samplingBufs[], u32 length, s32* error) {
+#ifdef GALAXY_NATIVE
+    s32 replayReturn;
+    if (petari_kpad_replay_read(chan, samplingBufs, length, error, &replayReturn)) return replayReturn;
+#endif
     return KPADiRead(chan, samplingBufs, length, error, TRUE);
 }
 

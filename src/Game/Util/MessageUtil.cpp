@@ -19,7 +19,7 @@ namespace MR {
 
         MessageSystem::getSystemMessageDirect(&messageInfo, pMessageId);
 
-        return reinterpret_cast< wchar_t* >(messageInfo._0);
+        return reinterpret_cast< wchar_t* >(messageInfo.mMessageText);
     }
 
     // NONMATCHING: equivalent null-return branch arrangement
@@ -27,7 +27,7 @@ namespace MR {
         TalkMessageInfo messageInfo = TalkMessageInfo();
 
         const wchar_t* text = nullptr;
-        if (MessageSystem::getGameMessageDirect(&messageInfo, pMessageId)) text = reinterpret_cast<wchar_t*>(messageInfo._0);
+        if (MessageSystem::getGameMessageDirect(&messageInfo, pMessageId)) text = reinterpret_cast<wchar_t*>(messageInfo.mMessageText);
         return text;
     }
 
@@ -36,14 +36,14 @@ namespace MR {
 
         MessageSystem::getLayoutMessageDirect(&messageInfo, pMessageId);
 
-        return reinterpret_cast< wchar_t* >(messageInfo._0);
+        return reinterpret_cast< wchar_t* >(messageInfo.mMessageText);
     }
 
     const wchar_t* getSceneMessageDirect(const char* name, s32 zone) {
         TalkMessageInfo info;
         MessageData* data = MessageSystem::getSceneMessageData(name, zone);
         MessageSystem::getMessageDirect(&info, name, data);
-        const wchar_t* text = reinterpret_cast<const wchar_t*>(info._0);
+        const wchar_t* text = reinterpret_cast<const wchar_t*>(info.mMessageText);
         return text ? text : L"メッセージ未登録";
     }
 

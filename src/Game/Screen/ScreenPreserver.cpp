@@ -7,8 +7,8 @@
 #include "JSystem/JUtility/JUTVideo.hpp"
 
 ScreenPreserver::ScreenPreserver() : NameObj(""), mIsActive(false) {
-    for (s32 i = 0; i < ARRAY_SIZE(_D); i++) {
-        _D[i] = 0;
+    for (s32 i = 0; i < ARRAY_SIZE(mPadding); i++) {
+        mPadding[i] = 0;
     }
 }
 
@@ -16,7 +16,7 @@ void ScreenPreserver::captureIfAllow() {
     MR::captureScreenIfAllow("GameScreen");
 }
 
-// NONMATCHING: screen-size conversion temporaries and argument scheduling differ.
+// NONMATCHING: same s32 height conversion and shared 2^52 constant as target; residual is scheduling of the two size conversions against the pic.draw argument setup.
 void ScreenPreserver::draw() const {
     if (!mIsActive) {
         return;

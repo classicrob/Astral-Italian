@@ -46,29 +46,29 @@ bool TalkMessageHistory::search(u16 msgID) const {
     return false;
 }
 
-TalkNodeCtrl::TalkNodeCtrl() : _0(), mMessageName(), mCurrentNodeIdx(-1), mMessageInfo() {
+TalkNodeCtrl::TalkNodeCtrl() : mMessageData(), mMessageName(), mCurrentNodeIdx(-1), mMessageInfo() {
     mHistory.mCount = 0;
-    _38 = nullptr;
+    mStartNode = nullptr;
     mCurrentNode = nullptr;
     mFlowNode = nullptr;
     mNodeData = -1;
 }
 
 bool TalkNodeCtrl::createFlowNodeDirect(TalkMessageCtrl* ctrl, const JMapInfoIter& iter, const char* name, ActorCameraInfo** camera) {
-    if (!_0) {
-        _0 = MessageSystem::getSceneMessageData(name, ctrl->mHostActor->mLinkInfo.mZoneID);
-        if (!MessageSystem::isExistMessage(name, _0)) {
-            _0 = MessageSystem::getSceneMessageData(name, -1);
+    if (!mMessageData) {
+        mMessageData = MessageSystem::getSceneMessageData(name, ctrl->mHostActor->mLinkInfo.mZoneID);
+        if (!MessageSystem::isExistMessage(name, mMessageData)) {
+            mMessageData = MessageSystem::getSceneMessageData(name, -1);
         }
     }
-    TalkNode* node = MessageSystem::findNode(name, _0);
-    _38 = node;
+    TalkNode* node = MessageSystem::findNode(name, mMessageData);
+    mStartNode = node;
     mCurrentNode = node;
     mFlowNode = node;
     mMessageName = new char[strlen(name) + 1];
     MR::copyString(mMessageName, name, strlen(name) + 1);
     if (mCurrentNode) updateMessage();
-    else MessageSystem::getMessageDirect(&mMessageInfo, mMessageName, _0);
+    else MessageSystem::getMessageDirect(&mMessageInfo, mMessageName, mMessageData);
     if (!MR::isValidInfo(iter)) *camera = new ActorCameraInfo(0, ctrl->mHostActor->mLinkInfo.mZoneID);
     else *camera = new ActorCameraInfo(iter);
     RecursiveHelper helper;
@@ -83,9 +83,9 @@ bool TalkNodeCtrl::createFlowNodeDirect(TalkMessageCtrl* ctrl, const JMapInfoIte
 }
 
 void TalkNodeCtrl::resetFlowNode() {
-    if (mCurrentNode != _38) {
-        mCurrentNode = _38;
-        mFlowNode = _38;
+    if (mCurrentNode != mStartNode) {
+        mCurrentNode = mStartNode;
+        mFlowNode = mStartNode;
         updateMessage();
     }
 }
@@ -110,10 +110,10 @@ void TalkNodeCtrl::forwardFlowNode() {
 
     if (node->mNodeType == 1) {
         u16 idx = node->mNextIdx;
-        mCurrentNode = MessageSystem::getNode(idx, _0);
+        mCurrentNode = MessageSystem::getNode(idx, mMessageData);
     } else if (node->mNodeType == 3) {
         u16 idx = node->mIndex;
-        mCurrentNode = MessageSystem::getNode(idx, _0);
+        mCurrentNode = MessageSystem::getNode(idx, mMessageData);
     }
 
     updateMessage();
@@ -141,11 +141,11 @@ TalkNode* TalkNodeCtrl::getNextNode() const {
     TalkNode* node = mCurrentNode;
     if (!node) return nullptr;
     if (node->mNodeType == 1) {
-        if (node->mNextIdx != 0xFFFF) return MessageSystem::getNode(node->mNextIdx, _0);
+        if (node->mNextIdx != 0xFFFF) return MessageSystem::getNode(node->mNextIdx, mMessageData);
     } else if (node->mNodeType == 3) {
-        if (node->mIndex != 0xFFFF) return MessageSystem::getNode(node->mIndex, _0);
+        if (node->mIndex != 0xFFFF) return MessageSystem::getNode(node->mIndex, mMessageData);
     } else if (node->mNodeType == 4) {
-        if (node->mEventType != 0xFFFF) return MessageSystem::getNode(node->mEventType, _0);
+        if (node->mEventType != 0xFFFF) return MessageSystem::getNode(node->mEventType, mMessageData);
     }
     return nullptr;
 }
@@ -203,15 +203,15 @@ void TalkNodeCtrl::updateMessage() {
     }
     if (cur) {
         if (cur->mNodeType == 1) {
-            MessageSystem::getMessage(&mMessageInfo, cur, _0);
+            MessageSystem::getMessage(&mMessageInfo, cur, mMessageData);
             mCurrentNodeIdx = cur->mIndex;
             TalkNode* branch = getNextNodeBranch();
             if (branch) mNodeData = branch->mIndex;
             else mNodeData = -1;
-        } else mMessageInfo._0 = nullptr;
-    } else MessageSystem::getMessageDirect(&mMessageInfo, mMessageName, _0);
+        } else mMessageInfo.mMessageText = nullptr;
+    } else MessageSystem::getMessageDirect(&mMessageInfo, mMessageName, mMessageData);
     if (mMessageInfo.isAutoEventTalk() && (mHistory.search(mCurrentNodeIdx) ||
-        (mMessageInfo._B != -1 && GameDataFunction::isOnMessageAlreadyRead(mMessageInfo._B)))) {
+        (mMessageInfo.mAlreadyReadFlagId != -1 && GameDataFunction::isOnMessageAlreadyRead(mMessageInfo.mAlreadyReadFlagId)))) {
         mMessageInfo.mTalkType = 0;
     }
 }
@@ -225,19 +225,19 @@ void TalkNodeCtrl::readMessage() {
         mMessageInfo.mTalkType = 0;
     }
 
-    if (mMessageInfo._B != -1) {
-        GameDataFunction::setOnMessageAlreadyRead(mMessageInfo._B);
+    if (mMessageInfo.mAlreadyReadFlagId != -1) {
+        GameDataFunction::setOnMessageAlreadyRead(mMessageInfo.mAlreadyReadFlagId);
     }
 }
 
 const wchar_t* TalkNodeCtrl::getSubMessage() const {
     const TalkMessageInfo info = mMessageInfo;
 
-    if (*((wchar_t*)info._0) != 0x1A) {
+    if (*((wchar_t*)info.mMessageText) != 0x1A) {
         return nullptr;
     }
 
-    MessageEditorMessageTag messageTag = MessageEditorMessageTag((const wchar_t*)&info._0[2]);
+    MessageEditorMessageTag messageTag = MessageEditorMessageTag((const wchar_t*)&info.mMessageText[2]);
 
     if (((char*)messageTag.mMessage)[1] != 8 || messageTag.mMessage[1] != 0) {
         return nullptr;
@@ -247,7 +247,7 @@ const wchar_t* TalkNodeCtrl::getSubMessage() const {
     u16 param = messageTag.getParam32(0);
 
     if (MessageSystem::getSceneMessageData()->getMessage(&info2, 0, param)) {
-        return (const wchar_t*)info2._0;
+        return (const wchar_t*)info2.mMessageText;
     }
 
     return nullptr;
@@ -256,8 +256,8 @@ const wchar_t* TalkNodeCtrl::getSubMessage() const {
 void TalkNodeCtrl::forwardCurrentBranchNode(bool storeCurrent) {
     TalkNode* cur = mCurrentNode;
 
-    if (storeCurrent) mCurrentNode = MessageSystem::getBranchTrueNode(cur, _0);
-    else mCurrentNode = MessageSystem::getBranchFalseNode(cur, _0);
+    if (storeCurrent) mCurrentNode = MessageSystem::getBranchTrueNode(cur, mMessageData);
+    else mCurrentNode = MessageSystem::getBranchFalseNode(cur, mMessageData);
 
     updateMessage();
 }
@@ -271,7 +271,7 @@ bool TalkNodeCtrl::createFlowNode(TalkMessageCtrl* pMsgCtrl, const JMapInfoIter&
 
     char buf[0x100];
     MR::makeMessageID(buf, sizeof(buf), pName, msgID);
-    _0 = MessageSystem::getSceneMessageData(buf, pMsgCtrl->mHostActor->mLinkInfo.mZoneID);
+    mMessageData = MessageSystem::getSceneMessageData(buf, pMsgCtrl->mHostActor->mLinkInfo.mZoneID);
     return createFlowNodeDirect(pMsgCtrl, rIter, buf, pCameraInf);
 }
 

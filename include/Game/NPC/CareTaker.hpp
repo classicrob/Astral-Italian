@@ -22,7 +22,6 @@ public:
     virtual bool receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
     virtual bool receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
 
-    static void makeArchiveList(NameObjArchiveListCollector*, const JMapInfoIter&);
 
     bool branchFuncStar(u32);
     bool branchFuncComet(u32);
@@ -58,7 +57,7 @@ private:
     TakeOutStar* mTakeOutStar;
     ActorCameraInfo* mCameraInfo;
     BombTimerLayout* mBombTimerLayout;
-    LiveActorGroup* _168;
+    LiveActorGroup* mGarbageGroup;
     s32 mObjArg0;
     s32 mObjArg4;
     s32 mBodyColorFrame;

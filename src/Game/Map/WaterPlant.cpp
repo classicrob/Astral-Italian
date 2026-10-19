@@ -193,7 +193,7 @@ void WaterPlant::initPlantAfterPlacement() {
                 TVec3f offset(mGravity);
                 offset.scale(500.0f);
                 currentPlantPos->sub(offset);
-                if (MR::calcMapHitAlongDirection(*currentPlantPos, currentPlantPos, mGravity, nullptr, nullptr, nullptr, nullptr, 1000.0f)) {
+                if (MR::fn_80038870(*currentPlantPos, currentPlantPos, mGravity, nullptr, nullptr, nullptr, nullptr, 1000.0f)) {
                     break;
                 }
             }

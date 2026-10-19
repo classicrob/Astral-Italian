@@ -49,18 +49,18 @@ void MarioFacePlanetTakeOffDemoObj::exeWait() {
     }
 }
 
-// NONMATCHING: negation of the joint dir uses scalar fneg, target pairs x/y with ps_neg
 void MarioFacePlanetTakeOffDemoObj::exeDemo() {
     if (MR::isFirstStep(this)) {
         MR::setPlayerBaseMtx(getBaseMtx());
     }
     TVec3f dir;
     MR::extractMtxYDir(MR::getJointMtx(this, lbl_8067FCD0), &dir);
-    dir.x = -dir.x;
-    dir.y = -dir.y;
-    dir.z = -dir.z;
+    dir.negate();
     for (s32 i = 0; i < mCount; i++) {
-        mParts[i]->mGravity = dir;
+        LiveActor* pPart = mParts[i];
+        pPart->mGravity.x = dir.x;
+        pPart->mGravity.y = dir.y;
+        pPart->mGravity.z = dir.z;
     }
     if (MR::isDemoLastStep()) {
         MR::closeSystemWipeFadeWithCaptureScreen(0);

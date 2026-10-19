@@ -65,7 +65,7 @@ namespace MR {
 
         nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
-            nextStepTagProcessorRecursive(pActor, (*it).mName);
+            nextStepTagProcessorRecursive(pActor, it->mName);
         }
     }
 
@@ -86,7 +86,7 @@ namespace MR {
 
         nw4r::lyt::Pane* pPane = getPane(pActor, pPaneName);
         for (nw4r::lyt::PaneList::Iterator it = pPane->GetChildList().GetBeginIter(); it != pPane->GetChildList().GetEndIter(); ++it) {
-            isEnd &= isEndStepTagProcessorRecursive(pActor, (*it).mName, true);
+            isEnd &= isEndStepTagProcessorRecursive(pActor, it->mName, true);
         }
 
         return isEnd;

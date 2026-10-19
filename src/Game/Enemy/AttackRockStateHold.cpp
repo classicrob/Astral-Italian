@@ -1,6 +1,6 @@
-#include "Game/Util/PlayerUtil.hpp"
 // SMG2 calls TVec3 operator+/operator*/add/scale out of line in this TU (appear); the define does that.
 #define JGEOMETRY_VEC3_WMR_OUTLINE
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Enemy/AttackRock.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/BreakModel.hpp"

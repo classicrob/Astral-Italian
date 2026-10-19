@@ -157,7 +157,7 @@ void FileSelector::appear() {
 void FileSelector::kill() {
     mBackButton->kill();
     LiveActor::kill();
-    MarioAccess::endRemoteDemo(nullptr);
+    MarioAccess::fn_803B6830(false);
 }
 
 void FileSelector::callbackStart() {

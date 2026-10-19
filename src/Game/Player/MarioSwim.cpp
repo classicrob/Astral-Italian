@@ -1240,7 +1240,7 @@ bool MarioSwim::getWaterAreaInfo(WaterInfo* pInfo, const TVec3f& rPos, TVec2f* p
 
     if (pOutVec != nullptr) {
         pOutVec->x = -pInfo->mCamWaterDepth;
-        pOutVec->y = pInfo->_4;
+        pOutVec->y = pInfo->mBottomDepth;
     }
 
     if (mIsOnSurface) {
@@ -3305,11 +3305,11 @@ void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3
             info->mCamWaterDepth = -difference.dot(gravity);
         }
         if (flags & 2) {
-            f32 distance = 10.0f + info->_4;
+            f32 distance = 10.0f + info->mBottomDepth;
             TVec3f step(gravity * distance);
             TVec3f probe(position);
             probe.add(step);
-            f32 depth = info->_4;
+            f32 depth = info->mBottomDepth;
             TVec3f bottomStep(gravity * depth);
             TVec3f bottom(position);
             bottom.add(bottomStep);
@@ -3318,13 +3318,13 @@ void MarioSwim::fn_803FE4A0(WaterInfo* info, const TVec3f& position, const TVec3
             previous.clear();
             while (MR::getWaterAreaObj(&next, probe) && next.isInWater() && !MR::intersectsWaterAreaInfo(&previous, &next)) {
                 MR::getWaterAreaInfo(&next, probe, gravity, true);
-                bottom.set(probe + gravity * next._4);
+                bottom.set(probe + gravity * next.mBottomDepth);
                 probe.set(bottom + gravity * 10.0f);
                 previous = next;
             }
             TVec3f difference(bottom);
             difference.sub(position);
-            info->_4 = difference.dot(gravity);
+            info->mBottomDepth = difference.dot(gravity);
         }
     }
 }
@@ -3392,7 +3392,7 @@ void MarioSwim::fn_803FD140() {
         difference.sub(selectedPosition);
         f32 shift = difference.dot(-getPlayer()->getAirGravityVec());
         selected.mCamWaterDepth -= shift;
-        selected._4 += shift;
+        selected.mBottomDepth += shift;
         mPreviousWaterInfo = selected;
         mPreviousPos = selectedPosition;
     }
@@ -3455,7 +3455,7 @@ bool MarioSwim::fn_803FD5E0(s32) {
     }
     if (sPreviousSwimState != mSwimState) sPreviousSwimState = mSwimState;
     mWaterInfo = mPreviousWaterInfo;
-    mDistToFloor = mPreviousWaterInfo._4;
+    mDistToFloor = mPreviousWaterInfo.mBottomDepth;
     mWaterDepth = -mPreviousWaterInfo.mCamWaterDepth;
     mSurfacePos = mPreviousWaterInfo.mSurfaceNormal;
     mSurfaceNorm = mPreviousWaterInfo.mSurfacePos;

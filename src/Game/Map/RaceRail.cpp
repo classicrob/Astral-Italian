@@ -22,7 +22,7 @@ namespace {
 RaceRail::RaceRail(const char* pName) : NameObj(pName) {
 }
 
-PlayerRacer::PlayerRacer(const char* pName) : LiveActor(pName), _B4(0), _B8(0), mCameraInfo(), _C0(650.0f), _C4(false) {
+PlayerRacer::PlayerRacer(const char* pName) : LiveActor(pName), mReserved0(0), mReserved1(0), mCameraInfo(), mGoalRadius(650.0f), mHasReachedGoal(false) {
 }
 
 void PlayerRacer::appear() {
@@ -34,7 +34,7 @@ void PlayerRacer::init(const JMapInfoIter& rIter) {
     initRailRider(rIter);
     s32 radius = -1;
     MR::getRailArg7WithInit(this, &radius);
-    if (radius >= 0) _C0 = radius;
+    if (radius >= 0) mGoalRadius = radius;
     mCameraInfo = MR::createActorCameraInfo(rIter);
     MR::initActorCamera(this, rIter, &mCameraInfo);
 
@@ -49,7 +49,7 @@ void PlayerRacer::startRacer() {
 
 // NONMATCHING: register/stack scheduling or equivalent branch lowering; calls, values and fields audited.
 bool PlayerRacer::updateRacer(const RaceManager* pRaceManager) {
-    if (_C4) return true;
+    if (mHasReachedGoal) return true;
     PlayerRacer* racer = pRaceManager->mPlayerRacer;
     f32 railCoord = MR::calcNearestRailCoord(racer, *MR::getPlayerCenterPos());
     f32 railLength = MR::getRailTotalLength(pRaceManager->mPlayerRacer);
@@ -64,13 +64,13 @@ bool PlayerRacer::updateRacer(const RaceManager* pRaceManager) {
     if (MR::fabs(mRailCoord - railLength) < 1000.0f) {
         TVec3f end(0.0f, 0.0f, 0.0f);
         MR::calcRailEndPointPos(&end, this);
-        if (MR::calcDistanceToPlayer(end) < _C0 && pRaceManager->isGoal(this)) {
+        if (MR::calcDistanceToPlayer(end) < mGoalRadius && pRaceManager->isGoal(this)) {
             MR::tryRumblePadVeryStrong(this, WPAD_CHAN0);
-            _C4 = true;
+            mHasReachedGoal = true;
             return true;
         }
     }
-    if (!_C4 && mCurrPosition.z < endPos.z - 1000.0f) {
+    if (!mHasReachedGoal && mCurrPosition.z < endPos.z - 1000.0f) {
         MR::forceKillPlayerByAbyss();
         return false;
     }
@@ -101,7 +101,7 @@ void RaceRail::init(const JMapInfoIter& rIter) {
 
 void PlayerRacer::initRacer() {
     AbstractRacer::initRacer();
-    _C4 = false;
+    mHasReachedGoal = false;
     MR::startBckPlayer("Watch");
 }
 

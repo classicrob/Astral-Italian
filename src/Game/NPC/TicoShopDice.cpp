@@ -9,7 +9,6 @@
 #include "Game/LiveActor/PartsModel.hpp"
 #include "Game/Util.hpp"
 
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace NrvTicoShopDice {
     class EatCoin : public Nerve {
@@ -54,9 +53,7 @@ void TicoShopDice::init(const JMapInfoIter& iter) {
     initialize(iter, caps, "TicoShopDice", nullptr, nullptr);
     mPrice = 30;
     MR::getJMapInfoArg0NoInit(iter, &mPrice);
-    NPCActorItem item;
-    item.mActor="TicoShopDice"; item.mGoods0=lbl_807CFE9C; item.mGoodsJoint0=lbl_807CFE98;
-    item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
+    NPCActorItem item("TicoShopDice");
     MR::getNPCItemData(&item, 0);
     equipment(item, false);
     MR::startAction(mGoods0, "Shake");

@@ -3,9 +3,9 @@
 #include <JSystem/JGeometry/TVec.hpp>
 
 struct PowerStarInfo {
-    bool _0;
-    bool _1;
-    bool _2;
+    bool mIsExistInGalaxy;
+    bool mHasNoAppearObj;
+    bool mIsRequestedAppear;
     bool _3;
     const char* mDemoName;
 };

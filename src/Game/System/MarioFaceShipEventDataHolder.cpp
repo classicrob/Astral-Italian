@@ -549,15 +549,15 @@ bool MessageData::getMessageDirect(TalkMessageInfo* pInfo, const char* pLabel) c
     if (pText == nullptr) {
         return false;
     }
-    pInfo->_0 = reinterpret_cast<u8*>(const_cast<wchar_t*>(pText));
+    pInfo->mMessageText = reinterpret_cast<u8*>(const_cast<wchar_t*>(pText));
     MsbtAttribute* pAttr = LMS_GetAttribute(mMessageHandle, LMS_GetTextIndexByLabel(mMessageHandle, pLabel));
-    pInfo->_6 = pAttr->_0;
+    pInfo->mTalkSoundId = pAttr->_0;
     pInfo->mCameraType = pAttr->_1;
     pInfo->mTalkType = pAttr->_2;
     pInfo->mBalloonType = pAttr->_3;
     pInfo->mCameraSetID = pAttr->_4;
-    pInfo->_A = pAttr->_6;
-    pInfo->_B = pAttr->_7;
+    pInfo->mMessageAreaArg = pAttr->_6;
+    pInfo->mAlreadyReadFlagId = pAttr->_7;
     return true;
 }
 
@@ -566,15 +566,15 @@ bool MessageData::getMessageByIndex(TalkMessageInfo* pInfo, s32 index) const {
     if (pText == nullptr) {
         return false;
     }
-    pInfo->_0 = reinterpret_cast<u8*>(const_cast<wchar_t*>(pText));
+    pInfo->mMessageText = reinterpret_cast<u8*>(const_cast<wchar_t*>(pText));
     MsbtAttribute* pAttr = LMS_GetAttribute(mMessageHandle, index);
-    pInfo->_6 = pAttr->_0;
+    pInfo->mTalkSoundId = pAttr->_0;
     pInfo->mCameraType = pAttr->_1;
     pInfo->mTalkType = pAttr->_2;
     pInfo->mBalloonType = pAttr->_3;
     pInfo->mCameraSetID = pAttr->_4;
-    pInfo->_A = pAttr->_6;
-    pInfo->_B = pAttr->_7;
+    pInfo->mMessageAreaArg = pAttr->_6;
+    pInfo->mAlreadyReadFlagId = pAttr->_7;
     return true;
 }
 

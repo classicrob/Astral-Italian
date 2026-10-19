@@ -94,7 +94,10 @@ bool DemoTimeKeeper::isPartLast() const {
         return false;
     }
 
-    return _18 == mNumPartInfos - 1;
+    if (_18 == mNumPartInfos - 1) {
+        return true;
+    }
+    return false;
 }
 
 inline s32 DemoTimeKeeper::getPart(const char* pPartName) const {
@@ -120,9 +123,11 @@ bool DemoTimeKeeper::isTalkWaitUserInput() const {
     return mSubPartInfos->mWaitUserInputFlag;
 }
 
-// NONMATCHING: equivalent equality result is materialized without the target return branches.
 bool DemoTimeKeeper::isLastPart(bool checkPaused) const {
     if (mExecutor->mIsStoryBookStarting) return false;
     if (checkPaused && mIsPaused) return false;
-    return _18 == mNumPartInfos - 1;
+    if (_18 == mNumPartInfos - 1) {
+        return true;
+    }
+    return false;
 }

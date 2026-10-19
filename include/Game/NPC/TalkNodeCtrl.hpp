@@ -67,12 +67,12 @@ public:
     bool createFlowNode(TalkMessageCtrl*, const JMapInfoIter&, const char*, ActorCameraInfo**);
     void initNodeRecursive(TalkMessageCtrl*, const JMapInfoIter&, ActorCameraInfo*, RecursiveHelper*, s32*, s32*);
 
-    /* 0x00 */ MessageData* _0;
+    /* 0x00 */ MessageData* mMessageData;
     /* 0x04 */ char* mMessageName;
     /* 0x08 */ s32 mCurrentNodeIdx;
     /* 0x0C */ TalkMessageInfo mMessageInfo;
     /* 0x18 */ TalkMessageHistory mHistory;
-    /* 0x3C */ TalkNode* _38;
+    /* 0x3C */ TalkNode* mStartNode;
     /* 0x40 */ TalkNode* mCurrentNode;
     /* 0x44 */ TalkNode* mFlowNode;
     /* 0x48 */ s16 mNodeData;

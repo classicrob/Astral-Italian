@@ -62,7 +62,7 @@ void TicoShop::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &starPieceNeed);
     initStarPiece(starPieceNeed);
     initMessage("TicoShop000");
-    MR::setMessageArg(mMsgCtrl, _194);
+    MR::setMessageArg(mMsgCtrl, mRequiredStarPieceNum);
     MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc(this, &TicoShop::branchFunc));
     MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc(this, &TicoShop::eventFunc));
     MR::setDistanceToTalk(mMsgCtrl, 350.0f);

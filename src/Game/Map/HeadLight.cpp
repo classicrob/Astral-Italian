@@ -2,7 +2,7 @@
 #include "Game/Util.hpp"
 
 HeadLight::HeadLight(const char* pName) : LiveActor(pName), mColor(0xFF, 0xFF, 0xFF, 0xFF) {
-    mArg4 = 500;
+    mBrightnessLevel = 500;
 }
 
 void HeadLight::init(const JMapInfoIter& rIter) {
@@ -22,7 +22,7 @@ void HeadLight::init(const JMapInfoIter& rIter) {
     if (MR::getJMapInfoArg3NoInit(rIter, &arg)) {
         mColor.a = arg;
     }
-    MR::getJMapInfoArg4NoInit(rIter, &mArg4);
+    MR::getJMapInfoArg4NoInit(rIter, &mBrightnessLevel);
 
     MR::invalidateClipping(this);
     MR::initUseStageSwitchReadAppear(this, rIter);
@@ -54,7 +54,7 @@ void HeadLight::control() {
     TVec3f pos = (*MR::getPlayerPos() + upVec * 120.0f) + frontVec * 50.0f;
     mPosition = pos;
 
-    f32 intensity = MR::getLinerValueFromMinMax((f32)mArg4, 0.0f, 1000.0f, 0.97f, 1.0f);
+    f32 intensity = MR::getLinerValueFromMinMax((f32)mBrightnessLevel, 0.0f, 1000.0f, 0.97f, 1.0f);
     MR::requestPointLight(this, mPosition, mColor, intensity, -1, 15.0f);
 }
 

@@ -46,8 +46,8 @@ namespace {
 
 TicoEat::TicoEat(const char* pName) : Tico(pName) {
     _190 = 0;
-    _194 = 0;
-    _198 = 0;
+    mRequiredStarPieceNum = 0;
+    mRemainingStarPieceNum = 0;
 }
 
 void TicoEat::init(const JMapInfoIter& rIter) {
@@ -71,13 +71,13 @@ void TicoEat::control() {
 
 bool TicoEat::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceGift(msg)) {
-        if (_198 == _194) {
+        if (mRemainingStarPieceNum == mRequiredStarPieceNum) {
             MR::startAction(this, "Eat0Normal");
             MR::startBva(this, "Big0");
         }
 
-        f32 val = (0.66f * _194);
-        if (_198 == (s32)val) {
+        f32 val = (0.66f * mRequiredStarPieceNum);
+        if (mRemainingStarPieceNum == (s32)val) {
             f32 frame = MR::getBckFrame(this);
             MR::startAction(this, "Eat1Normal");
             MR::startBva(this, "Big1");
@@ -85,8 +85,8 @@ bool TicoEat::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             mScaleController->startHitReaction();
         }
 
-        val = (0.33f * _194);
-        if (_198 == (s32)val) {
+        val = (0.33f * mRequiredStarPieceNum);
+        if (mRemainingStarPieceNum == (s32)val) {
             f32 frame = MR::getBckFrame(this);
             MR::startAction(this, "Eat2Normal");
             MR::startBva(this, "Big2");
@@ -94,7 +94,7 @@ bool TicoEat::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
             mScaleController->startHitReaction();
         }
 
-        _198 -= MR::getStarPieceGiftCount(msg);
+        mRemainingStarPieceNum -= MR::getStarPieceGiftCount(msg);
         return true;
     }
 
@@ -102,14 +102,14 @@ bool TicoEat::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
 }
 
 void TicoEat::initStarPiece(s32 num) {
-    _194 = num;
-    _198 = num;
+    mRequiredStarPieceNum = num;
+    mRemainingStarPieceNum = num;
     MR::declareStarPieceReceiver(this, num);
 }
 
 void TicoEat::resetStarPiece() {
     MR::clearGotCountStarPieceReceiver(this);
-    _198 = _194;
+    mRemainingStarPieceNum = mRequiredStarPieceNum;
 }
 
 bool TicoEat::tryEat() {
@@ -126,7 +126,7 @@ bool TicoEat::tryEat() {
 }
 
 bool TicoEat::hasEnoughStarPiece() const {
-    return MR::getStarPieceNum() >= _194;
+    return MR::getStarPieceNum() >= mRequiredStarPieceNum;
 }
 
 bool TicoEat::eventFunc(u32 event) {
@@ -173,15 +173,15 @@ void TicoEat::exeEatNow() {
     if (MR::isFirstStep(this)) {
     }
 
-    if (_198 != 0 && MR::isIntervalStep(this, 3)) {
-        MR::giftStarPieceToTarget(getSensor("Mouth"), _194 / 100 + 1);
+    if (mRemainingStarPieceNum != 0 && MR::isIntervalStep(this, 3)) {
+        MR::giftStarPieceToTarget(getSensor("Mouth"), mRequiredStarPieceNum / 100 + 1);
     }
 
     MR::startActionSound(this, "SmLvTicofatAbsorb");
     MR::startActionSound(this, "SmLvTicofatEating");
     MR::startActionSound(this, "SmLvTicofatEating", 0);
 
-    if (_198 == 0) {
+    if (mRemainingStarPieceNum == 0) {
         popAndPushNerve(GET_NERVE(TicoEat, TicoEatNrvEatPst));
     }
 }

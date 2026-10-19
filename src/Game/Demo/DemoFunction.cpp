@@ -107,14 +107,15 @@ namespace DemoFunction {
     }
 
     DemoExecutor* findDemoExecutor(const LiveActor* pActor) {
-        DemoExecutor* executor;
+        DemoExecutor* pResult = nullptr;
         for (s32 i = 0; i < getDemoDirector()->_18->getObjNum(); i++) {
-            executor = static_cast< DemoExecutor* >(getDemoDirector()->_18->getCastGroup(i));
+            DemoExecutor* executor = static_cast< DemoExecutor* >(getDemoDirector()->_18->getCastGroup(i));
             if (DemoExecutorFunction::isRegisteredDemoCast(executor, pActor)) {
-                return executor;
+                pResult = executor;
+                break;
             }
         }
-        return nullptr;
+        return pResult;
     }
 
     DemoExecutor* findDemoExecutorActive(const LiveActor* pActor) {
@@ -157,11 +158,12 @@ namespace {
         return DemoFunction::getDemoDirector()->mExecutor->mSubPartKeeper;
     }
 
-    // NONMATCHING: equivalent null-guard block ordering and regalloc
     bool isCurrentMainPart(const char* pPartName) NO_INLINE {
-        DemoTimeKeeper* timeKeeper = getCurrentTimeKeeper();
-        if (!timeKeeper->mSubPartInfos) return false;
-        return MR::isEqualString(pPartName, ::getCurrentTimeKeeper()->mSubPartInfos->mPartName);
+        if (getCurrentTimeKeeper()->mSubPartInfos == nullptr) {
+            return false;
+        }
+        DemoTimeKeeper* pKeeper = ::getCurrentTimeKeeper();
+        return MR::isEqualString(pPartName, pKeeper->mSubPartInfos->mPartName);
     }
 };  // namespace
 
@@ -193,11 +195,13 @@ namespace DemoFunction {
         }
     }
 
-    // NONMATCHING: regalloc and equivalent equality operand order
     bool isDemoSubPartActiveFunction(const char* name) {
-        if (name) return MR::isEqualString(name, ::getCurrentTimeKeeper()->mMainPartInfos->mPartName);
+        if (name != nullptr) {
+            DemoTimeKeeper* pKeeper = ::getCurrentTimeKeeper();
+            return MR::isEqualString(name, pKeeper->mMainPartInfos->mPartName);
+        }
         DemoTimePartInfo* current = ::getCurrentTimeKeeper()->mMainPartInfos;
-        return current == ::getCurrentTimeKeeper()->mSubPartInfos;
+        return ::getCurrentTimeKeeper()->mSubPartInfos == current;
     }
 
     bool isDemoSubPartLastStep() {

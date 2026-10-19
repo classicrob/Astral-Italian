@@ -3,7 +3,10 @@
 #include <revolution/types.h>
 
 struct AudSeLifeEntry {
-    AudSeLifeEntry();  // fn_80085CF0
+    AudSeLifeEntry();
+    void start(s32 limit);  // fn_80085D10
+    void add(s32 frames);   // fn_80085D30, mLimit += frames
+    void reset();           // fn_80085D40
 
     /* 0x00 */ s32 mFrame;
     /* 0x04 */ s32 mLimit;
@@ -15,6 +18,7 @@ struct AudSeLifeEntry {
 class AudSeLifeTable {
 public:
     AudSeLifeTable();  // fn_80085D60
+    AudSeLifeEntry* allocEntry(s32 limit);  // fn_80085DE0: first unused slot (slot 0 if full)
     void update();     // fn_80085E50
 
     /* 0x00 */ AudSeLifeEntry* mEntries;

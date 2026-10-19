@@ -94,3 +94,8 @@ inline const char* DemoSoundKeeper::getName() const {
 }
 
 #include "Game/Demo/DemoSheetKeeperInfoHolder.hpp"
+
+#pragma dont_inline on
+template void MR::Vector< MR::AssignableArray< DemoSoundInfo > >::push_back(const DemoSoundInfo&);
+#pragma dont_inline reset
+

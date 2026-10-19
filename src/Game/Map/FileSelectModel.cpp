@@ -9,7 +9,7 @@ namespace {
     static const f32 sScale = 30.0f;
 };  // namespace
 
-FileSelectModel::FileSelectModel(const char* pModelName, MtxPtr pHostMtx, const char* pName) : LiveActor(pName), _8C(pHostMtx) {
+FileSelectModel::FileSelectModel(const char* pModelName, MtxPtr pHostMtx, const char* pName) : LiveActor(pName), mHostMtx(pHostMtx) {
     MR::initActor(this, pModelName, false);
     MR::connectToSceneNpc(this);
     initEffectKeeper(0, nullptr, false);
@@ -101,8 +101,8 @@ void FileSelectModel::exeBlink() {
 }
 
 void FileSelectModel::calcAndSetBaseMtx() {
-    mPosition.setTrans(_8C);
-    MR::setBaseTRMtx(this, _8C);
+    mPosition.setTrans(mHostMtx);
+    MR::setBaseTRMtx(this, mHostMtx);
 }
 
 namespace NrvFileSelectModel {

@@ -31,8 +31,8 @@ public:
     bool isGreaterEqualStepAndRandom(s32) const;
     bool isSameRailActor(const LiveActor*) const;
 
-    /* 0x8C */ TVec3f _8C;
-    /* 0x98 */ LiveActor* _98;
+    /* 0x8C */ TVec3f mFrontDir;
+    /* 0x98 */ LiveActor* mTalkPartner;
     /* 0x9C */ LodCtrl* mLodCtrl;
     /* 0xA4 */ TalkMessageCtrl* mMsgCtrl;
     /* 0xA8 */ bool mIsTalkForceAtEnd;

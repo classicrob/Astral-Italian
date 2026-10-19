@@ -16,19 +16,9 @@
 
 extern "C" int snprintf(char*, u32, const char*, ...);
 
-extern "C" char lbl_80680B80[];
-extern "C" char lbl_80680C40[];
-extern "C" char lbl_807D1E78[];
-extern "C" char lbl_807D1E7C[];
-extern "C" char lbl_807D1E80[];
-extern "C" char lbl_807D1E84[];
-extern "C" char lbl_807D1E88[];
-extern "C" char lbl_807D1E8C[];
-extern "C" char lbl_807D1E90[];
-extern "C" char lbl_807D1E94[];
-extern "C" const char* lbl_807D98B0;
-extern "C" const char* lbl_807D98B4;
-extern "C" const char* lbl_807D98B8;
+const char* const sPageTurnDemoName = "絵本ページめくり";
+const char* const sStartFadeDemoName = "スタッフロール開始フェード";
+const char* const sEndFadeDemoName = "スタッフロール終了フェード";
 
 namespace NrvStaffRollDemoObj {
     NEW_NERVE(StaffRollDemoObjNrvStart, StaffRollDemoObj, Start);
@@ -73,7 +63,7 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < childNum; i++) {
         const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
-        if (MR::isEqualString(pName, lbl_80680B80 + 0x4C)) {
+        if (MR::isEqualString(pName, "StaffRollSky")) {
             sky = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             break;
         }
@@ -85,7 +75,7 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < actorNum; i++) {
         const char* pName = nullptr;
         MR::getChildObjName(&pName, rIter, i);
-        if (MR::isEqualString(pName, lbl_80680B80 + 0x5C)) {
+        if (MR::isEqualString(pName, "StaffRollDecorateFaceShip")) {
             LiveActor* pActor = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             pActor->makeActorDead();
             f32 frame = static_cast< f32 >(mActorFill);
@@ -94,15 +84,15 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
             s32 idx = mActorFill;
             mActorFill = idx + 1;
             mActorArray.mArr[idx] = pActor;
-        } else if (MR::isEqualString(pName, lbl_80680B80 + 0x78)) {
+        } else if (MR::isEqualString(pName, "StaffRollDecorateComet")) {
             mChildB = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
-            const char* pAnim = lbl_80680B80 + 0x9C;
+            const char* pAnim = "CometNormal";
             if (MR::getCurrentScenarioNo() == 2) {
-                pAnim = lbl_80680B80 + 0x90;
+                pAnim = "CometGreen";
             }
             MR::startAction(mChildB, pAnim);
             mChildB->makeActorDead();
-        } else if (MR::isEqualString(pName, lbl_80680B80 + 0xA8)) {
+        } else if (MR::isEqualString(pName, "PeachCastleNightPlanet")) {
             mChildC = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
             mChildC->makeActorDead();
         }
@@ -112,7 +102,7 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
 void StaffRollDemoObj::exeStart() {
     if (MR::isFirstStep(this)) {
         MR::openWipeFade(0xB4);
-        MR::tryStartDemo(this, lbl_807D98B4);
+        MR::tryStartDemo(this, sStartFadeDemoName);
         MR::endStartPosCamera();
         MR::hidePlayer();
         MR::offPlayerControl();
@@ -121,7 +111,7 @@ void StaffRollDemoObj::exeStart() {
     }
     mRollA->update(false);
     if (MR::isGreaterEqualStep(this, 0xB4)) {
-        MR::endDemo(this, lbl_807D98B4);
+        MR::endDemo(this, sStartFadeDemoName);
         MR::hidePlayer();
         MR::offPlayerControl();
         // Target calls the LayoutActor vtable slot 0x2C here (appear); see NOTES.
@@ -138,7 +128,7 @@ void StaffRollDemoObj::setAndShowPlayer() {
     s32 found = 0;
     TPos3f position;
     for (s32 i = 0; i < frameMax; i++) {
-        snprintf(name, 0x100, lbl_80680C40, page, i);
+        snprintf(name, 0x100, "マリオ位置%02d空%02d", page, i);
         if (MR::tryFindNamePos(name, position) != 0) {
             mStep9C = i;
             found = 1;
@@ -146,7 +136,7 @@ void StaffRollDemoObj::setAndShowPlayer() {
         }
     }
     if (!found) {
-        snprintf(name, 0x100, lbl_80680C40, 0, 0);
+        snprintf(name, 0x100, "マリオ位置%02d空%02d", 0, 0);
         mStep9C = 0;
         mStep98 = 0;
         mStep9C = 0;
@@ -192,7 +182,7 @@ void StaffRollDemoObj::exeB() {
     if (mStaffRollObj->isCurrentPartEnd()) {
         MR::onSwitchA(this);
         mRollA->end();
-        MR::tryStartDemo(this, lbl_807D98B0);
+        MR::tryStartDemo(this, sPageTurnDemoName);
         for (LiveActor** actor = mActorArray.mArr; actor != mActorArray.mArr + mActorFill; actor++) {
             MR::requestMovementOn(*actor);
         }
@@ -208,7 +198,7 @@ void StaffRollDemoObj::exeC() {
     }
     if (mStaffRollObj->isCurrentPartEnd()) {
         MR::resetYoshiTongueForDemo();
-        MR::tryStartDemo(this, lbl_807D98B0);
+        MR::tryStartDemo(this, sPageTurnDemoName);
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvD));
     }
 }
@@ -256,7 +246,7 @@ void StaffRollDemoObj::exeF() {
     if (MR::isWipeBlank()) {
         MR::offSwitchA(this);
         mChildC->makeActorDead();
-        MR::tryStartDemo(this, lbl_807D98B8);
+        MR::tryStartDemo(this, sEndFadeDemoName);
         setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvG));
     }
     MR::setSeVolumeSetLevel(0xD, 0);
@@ -265,7 +255,7 @@ void StaffRollDemoObj::exeF() {
 // Nerve G: last step, request the next room.
 void StaffRollDemoObj::exeG() {
     if (MR::isGreaterEqualStep(this, 0x78)) {
-        MR::endDemo(this, lbl_807D98B8);
+        MR::endDemo(this, sEndFadeDemoName);
         GameSequenceFunction::requestChangeStageChildRoom();
     }
     MR::setSeVolumeSetLevel(0xD, 0);
@@ -275,7 +265,7 @@ void StaffRollDemoObj::exeG() {
 void NrvStaffRollDemoObj::StaffRollDemoObjNrvH::execute(Spine* pSpine) const {
     StaffRollDemoObj* pActor = reinterpret_cast< StaffRollDemoObj* >(pSpine->mExecutor);
     if (MR::isStoryBookTurnPageEnd() != 0) {
-        MR::endDemo(pActor, lbl_807D98B4);
+        MR::endDemo(pActor, sStartFadeDemoName);
         pActor->setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvC));
     }
 }

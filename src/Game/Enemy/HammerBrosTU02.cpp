@@ -4,11 +4,16 @@
 
 extern const volatile s32 gBrosAttackReleaseFrame;
 
-// PLACEHOLDER(enemies): target jump-frame ints use runtime loads from .sdata2; keep mutable until a non-folding
-// const spelling is found. The requested single attempt with late extern-const definitions still folded the loads.
-static s32 sHoldProjectileStep = 8;
-static s32 sSeekTargetStep = 6;
-static s32 sJumpFrames = 48;
+// Jump/attack tuning. The target keeps these as named .sdata2 objects (in this order: 6, 48, 0.13f, 8, 0.43f) and
+// reloads them at every use; every const spelling tried (plain, late extern definition, volatile) is folded by our
+// compiler, so the int uses compile to immediates (NONMATCHING in exeJumpStart; values and behaviour are identical).
+namespace {
+    const s32 sSeekTargetStep = 6;
+    const s32 sJumpFrames = 48;
+    const f32 sJumpTurnRate = 0.13f;
+    const s32 sHoldProjectileStep = 8;
+    const f32 sAttackTurnRate = 0.43f;
+}
 
 namespace {
     class NrvBrosStateJumpStart : public Nerve {
@@ -97,7 +102,8 @@ void BrosStateJump::appear() {
     mJumpVelocity = TVec3f(0.0f);
 }
 
-// NONMATCHING: stack slot order / scheduling of the int->float conversions; the target also keeps a dead
+// NONMATCHING: sJumpFrames/sSeekTargetStep/sHoldProjectileStep are reloaded from .sdata2 in the target (see top);
+// stack slot order / scheduling of the int->float conversions; the target also keeps a dead
 // `0.5f * angle` compare after the first sqrt (angle = diffAngleSigned) that has no visible source.
 void BrosStateJump::exeJumpStart() {
     if (MR::isFirstStep(this)) {
@@ -173,7 +179,7 @@ void BrosStateJump::exeJump() {
         MR::startAction(mHost, "Jump");
     }
     updateJump();
-    if (mStep >= 47) {
+    if (mStep >= sJumpFrames - 1) {
         setNerve(&sNrvJumpEnd);
     }
 }
@@ -243,7 +249,7 @@ void BrosStateJump::updateJump() {
     BrosBase* pHost = mHost;
     TVec3f toPlayer(0.0f);
     MR::calcVecToPlayerH(&toPlayer, pHost, &pHost->mGravity);
-    MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, 0.13f);
+    MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, sJumpTurnRate);
     mStep++;
 }
 
@@ -279,7 +285,7 @@ void HammerBrosStateAttack::exeAttack() {
         BrosBase* pHost = mHost;
         TVec3f toPlayer(0.0f);
         MR::calcVecToPlayerH(&toPlayer, pHost, &pHost->mGravity);
-        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, 0.43f);
+        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, sAttackTurnRate);
     }
     if (MR::getBckFrame(mHost) >= (f32)throwFrame) {
         BrosBase* pHost = mHost;
@@ -303,7 +309,7 @@ void HammerBrosStateAttack::exeAttackSecond() {
         BrosBase* pHost = mHost;
         TVec3f toPlayer(0.0f);
         MR::calcVecToPlayerH(&toPlayer, pHost, &pHost->mGravity);
-        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, 0.43f);
+        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, sAttackTurnRate);
     }
     if (MR::getBckFrame(mHost) >= (f32)gBrosAttackReleaseFrame) {
         if (MR::getBckFrame(mHost) < (f32)throwFrame) {
@@ -370,7 +376,7 @@ void BoomerangBrosStateAttack::exeAttack() {
         BrosBase* pHost = mHost;
         TVec3f toPlayer(0.0f);
         MR::calcVecToPlayerH(&toPlayer, pHost, &pHost->mGravity);
-        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, 0.43f);
+        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, sAttackTurnRate);
     }
     if (MR::getBckFrame(mHost) >= (f32)throwFrame) {
         BrosBase* pHost = mHost;
@@ -394,7 +400,7 @@ void BoomerangBrosStateAttack::exeAttackSecond() {
         BrosBase* pHost = mHost;
         TVec3f toPlayer(0.0f);
         MR::calcVecToPlayerH(&toPlayer, pHost, &pHost->mGravity);
-        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, 0.43f);
+        MR::vecBlendSphere(&pHost->mFront, pHost->mFront, toPlayer, sAttackTurnRate);
     }
     if (MR::getBckFrame(mHost) >= 0.0f) {
         if (MR::getBckFrame(mHost) < (f32)throwFrame) {

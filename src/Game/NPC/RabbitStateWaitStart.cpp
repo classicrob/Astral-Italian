@@ -30,7 +30,7 @@ namespace NrvRabbitStateWaitStart {
 };  // namespace NrvRabbitStateWaitStart
 
 RabbitStateWaitStart::RabbitStateWaitStart(LiveActor* pHost, TVec3f* mHostFrontVec, TalkMessageCtrl* pTalkCtrl)
-    : ActorStateBase("うさぎ会話待ち状態", pHost), mTalkActionName("Wait"), mHostFrontVec(mHostFrontVec), mTalkCtrl(pTalkCtrl), _1C(), _1D(true) {
+    : ActorStateBase("うさぎ会話待ち状態", pHost), mTalkActionName("Wait"), mHostFrontVec(mHostFrontVec), mTalkCtrl(pTalkCtrl), mIsKillOnTalkEnd(), mIsApplyGravity(true) {
 }
 
 void RabbitStateWaitStart::setTalkActionName(const char* pName) {
@@ -163,7 +163,7 @@ void RabbitStateWaitStart::exeWait() {
         MR::zeroVelocity(mHost);
     }
 
-    if (_1D) {
+    if (mIsApplyGravity) {
         if (MR::isExistBinder(mHost) && !MR::isBindedGround(mHost)) {
             MR::addVelocityToGravity(mHost, ::sGravityAccel);
         } else {
@@ -261,7 +261,7 @@ void RabbitStateWaitStart::exeTalk() {
     MR::turnDirectionToPlayerDegreeHorizon(mHost, mHostFrontVec, 30.0f);
 
     if (MR::tryTalkNearPlayerAtEnd(mTalkCtrl)) {
-        if (_1C) {
+        if (mIsKillOnTalkEnd) {
             kill();
         } else {
             setNerve(GET_NERVE(RabbitStateWaitStart, RabbitStateWaitStartNrvWait));

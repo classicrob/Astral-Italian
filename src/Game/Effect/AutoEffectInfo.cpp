@@ -2,7 +2,7 @@
 #include "Game/Util/JMapInfo.hpp"
 #include "Game/Util/StringUtil.hpp"
 
-extern "C" u32 strtoul(const char*, char**, int);
+#include <cstdlib>
 
 namespace {
     u32 str2Color(const char* pStr) NO_INLINE {
@@ -39,8 +39,8 @@ namespace {
 
 namespace {
     struct DrawOrderData {
-        /* 0x00 */ s32 _0;
-        /* 0x04 */ const char* _4;
+        /* 0x00 */ s32 mDrawOrder;
+        /* 0x04 */ const char* mName;
     };
 
     static const DrawOrderData sDrawOrderDataTable[] = {
@@ -50,8 +50,8 @@ namespace {
 
     s32 getDrawOrderData(const char* pDrawOrder) {
         for (u32 i = 0; i < ARRAY_SIZE(sDrawOrderDataTable); i++) {
-            if (MR::isEqualString(pDrawOrder, sDrawOrderDataTable[i]._4)) {
-                return sDrawOrderDataTable[i]._0;
+            if (MR::isEqualString(pDrawOrder, sDrawOrderDataTable[i].mName)) {
+                return sDrawOrderDataTable[i].mDrawOrder;
             }
         }
 

@@ -27,10 +27,10 @@ public:
     /* 0x90 */ bool mIsGravityBased;
     /* 0x91 */ bool mIsReversed;
     /* 0x94 */ f32 mWidth;
-    /* 0x98 */ f32 mUnk98;
-    /* 0x9C */ f32 mUnk9C;
+    /* 0x98 */ f32 mUnusedParam0;
+    /* 0x9C */ f32 mUnusedParam1;
     /* 0xA0 */ f32 mFlowSpeed;
-    /* 0xA4 */ f32 mUnkA4;
+    /* 0xA4 */ f32 mUnusedParam2;
     /* 0xA8 */ TVec3f mClipMin;
     /* 0xB4 */ TVec3f mClipMax;
     /* 0xC0 */ TVec3f mBoxMin;

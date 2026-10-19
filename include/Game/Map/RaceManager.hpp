@@ -54,7 +54,7 @@ public:
 
     virtual void initRacer() {
         mRailCoord = 0.0f;
-        _8 = 0.0f;
+        mUnusedRaceValue = 0.0f;
         mCurrPosition.zero();
         mPrevPosition.zero();
     }
@@ -72,7 +72,7 @@ public:
     }
 
     /* 0x04 */ f32 mRailCoord;
-    /* 0x08 */ f32 _8;
+    /* 0x08 */ f32 mUnusedRaceValue;
     /* 0x0C */ TVec3f mCurrPosition;
     /* 0x18 */ TVec3f mPrevPosition;
 };

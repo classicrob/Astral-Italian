@@ -96,7 +96,7 @@ namespace MR {
             TVec3f fromTop = localPos - top;
             TVec3f fromBottom(localPos);
             pInfo->mCamWaterDepth = MR::abs(MR::vecKillElement(fromTop, up, &fromTop));
-            pInfo->_4 = MR::abs(MR::vecKillElement(fromBottom, up, &fromBottom));
+            pInfo->mBottomDepth = MR::abs(MR::vecKillElement(fromBottom, up, &fromBottom));
             pInfo->mSurfacePos.set(top + fromTop);
             pArea->getForm< AreaFormCube >()->calcWorldMtx(&worldMtx);
             PSMTXMultVec(worldMtx, &pInfo->mSurfacePos, &pInfo->mSurfacePos);
@@ -128,7 +128,7 @@ namespace MR {
             theta *= 0.5f;
             f32 surfaceHeight = radius * MR::cos(theta);
             pInfo->mCamWaterDepth = surfaceHeight - height;
-            pInfo->_4 = surfaceHeight + height;
+            pInfo->mBottomDepth = surfaceHeight + height;
             TVec3f normal = rPos - center;
             MR::normalizeOrZero(&normal);
             pInfo->mSurfaceNormal.set(normal);
@@ -149,7 +149,7 @@ namespace MR {
                 TVec3f radial;
                 f32 height = MR::vecKillElement(rPos - center, up, &radial);
                 depth = pArea->getForm< AreaFormCylinder >()->mHeight - height;
-                pInfo->_4 = height;
+                pInfo->mBottomDepth = height;
                 pInfo->mCamWaterDepth = depth;
                 pInfo->mSurfacePos.set(rPos + up * depth);
             } else {
@@ -159,7 +159,7 @@ namespace MR {
                 f32 radius = pArea->getForm< AreaFormCylinder >()->mRadius;
                 depth = radius - distance;
                 pInfo->mCamWaterDepth = depth;
-                pInfo->_4 = radius + distance;
+                pInfo->mBottomDepth = radius + distance;
                 pInfo->mSurfacePos.set(rPos - rGravity * depth);
             }
 

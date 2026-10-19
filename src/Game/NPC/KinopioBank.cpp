@@ -14,7 +14,6 @@
 
 
 
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace NrvKinopioBank {
     class WaitSelect : public Nerve {
@@ -125,10 +124,7 @@ void KinopioBank::exeEnd() {
 void KinopioBank::createGoodsTables() {
     mGoodsA=new PartsModel*[6]; mGoodsB=new PartsModel*[6];
     for(s32 i=0;i<6;i++) {
-        NPCActorItem item;
-        item.mActor="KinopioBank";
-        item.mGoods0=lbl_807CFE9C; item.mGoodsJoint0=lbl_807CFE98;
-        item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
+        NPCActorItem item("KinopioBank");
         MR::getNPCItemData(&item,i);
         mGoodsA[i]=MR::createNPCGoods(this,item.mGoods0,item.mGoodsJoint0);
         mGoodsB[i]=MR::createNPCGoods(this,item.mGoods1,item.mGoodsJoint1);

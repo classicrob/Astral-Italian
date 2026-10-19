@@ -200,11 +200,7 @@ void Grapyon::exeLand() {
         MR::startAction(this, "Land");
         MR::startAction(mHead, "Land");
         MR::setBckFrame(this, 1.0f);
-        TVec3f offset = mUp * MR::getBinderRadius(this);
-        TVec3f offset2 = offset * 2.0f;
-        TVec3f newPos(mPosition);
-        newPos.add(offset2);
-        MR::setPosition(this, newPos);
+        MR::setPosition(this, mPosition + mUp * MR::getBinderRadius(this) * 2.0f);
         mScale = mDirection;
         MR::invalidateClipping(this);
     }

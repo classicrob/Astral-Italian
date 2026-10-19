@@ -121,7 +121,7 @@ bool Halo::isDistanceDisappear() const {
 
 void Halo::exeAppear() {
     if (isDistanceDisappear()) {
-        MR::startAllAnim(this, "Disappear");
+        MR::startAction(this, "Disappear");
         setNerve(GET_NERVE(Halo, HostTypeDisappear));
     }
 }

@@ -36,6 +36,7 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <cstring>
 
+// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
 void CameraDirector_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;

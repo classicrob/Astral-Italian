@@ -135,26 +135,22 @@ void JumpSpider::control() {
     }
 }
 
-// NONMATCHING: Equivalent nerve guards use different boolean-result registers.
 bool JumpSpider::isEatable() const {
-    bool ret = true;
     if (isNerve(GET_NERVE(JumpSpider, HostTypeNrvEaten)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampFall)) ||
         isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampDeath)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvHitBlow))) {
-        ret = false;
+        return false;
     }
-    return ret;
+    return true;
 }
 
-// NONMATCHING: Equivalent nerve guards use different boolean-result registers.
 bool JumpSpider::isStarPointerBindable() const {
-    bool ret = true;
     if (isNerve(GET_NERVE(JumpSpider, HostTypeNrvEaten)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampFall)) ||
         isNerve(GET_NERVE(JumpSpider, HostTypeNrvStampDeath)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvHitBlow)) ||
         isNerve(GET_NERVE(JumpSpider, HostTypeNrvDpdPointed)) || isNerve(GET_NERVE(JumpSpider, HostTypeNrvStarPieceHit)) ||
         isNerve(GET_NERVE(JumpSpider, HostTypeNrvStarPieceHitLand))) {
-        ret = false;
+        return false;
     }
-    return ret;
+    return true;
 }
 
 void JumpSpider::exeWait() {

@@ -88,9 +88,9 @@ public:
     /* 0x104 */ GXColor mTevReg1Front;
     /* 0x108 */ GXColor mTevReg1Back;
     /* 0x10C */ bool mUseDisplayList;
-    /* 0x10D */ u8 _109;
-    /* 0x10E */ u8 _10A;
-    /* 0x10F */ u8 _10B;
+    /* 0x10D */ u8 mReserved0;
+    /* 0x10E */ u8 mReserved1;
+    /* 0x10F */ u8 mReserved2;
     /* 0x110 */ u32 mDispListFaceLen;
     /* 0x114 */ u8* mDispListFace;
     /* 0x118 */ u32 mDispListBackLen;

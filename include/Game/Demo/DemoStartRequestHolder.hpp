@@ -28,7 +28,7 @@ public:
     /* 0x18 */ const char* mDemoName;
     /* 0x1C */ const char* _1C;
     /* 0x20 */ const Nerve* _20;
-    /* 0x24 */ u32 _24;
+    /* 0x24 */ s32 mSceneStopType;
     /* 0x28 */ DemoType mDemoType;
     /* 0x2C */ CinemaFrameType mFrameType;
     /* 0x30 */ StarPointerType mPointerType;

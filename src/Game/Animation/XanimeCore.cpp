@@ -15,6 +15,7 @@ TVec3f (TVec3f::* XanimeCore_FORCE_EMIT())(const TVec3f&) const {
     return &TVec3f::operator-;
 }
 
+
 void XanimeTrack::init() {
     mAnimation = nullptr;
     mWeight = 0.0f;
@@ -815,3 +816,4 @@ void XanimeCore::init(const Vec& rScale, const Mtx& rMtx) {
         break;
     }
 }
+

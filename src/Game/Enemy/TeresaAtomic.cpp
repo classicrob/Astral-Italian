@@ -155,6 +155,7 @@ void TeresaAtomic::calcAndSetBaseMtx() {
     MR::calcAndSetBaseTRMtxFromGravityAndZAxis(this, mFrontVec);
 }
 
+// NONMATCHING: same inlined TVec3 operator- pointer-register residue (&ret in callee-saved reg in the target).
 bool TeresaAtomic::isPlayerFacingTeresa() {
     TVec3f front;
     MR::getPlayerFrontVec(&front);

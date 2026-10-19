@@ -90,15 +90,14 @@ void AttackRockFinal::makeActorDead() {
     mIsOnPlayer = false;
 }
 
-// NONMATCHING: Vector temporary stack slots and GPR allocation differ.
 // NONMATCHING: Target keeps this/dir/toPlayer in r29/r30/r31 (out-of-line _savegpr_29 prologue); ours saves two registers and the copy temporary lifetimes differ.
 void AttackRockFinal::control() {
     TVec3f dir;
+    TVec3f zdir;
     MR::getKoopaBattleTargetPos(&dir);
     TVec3f toPlayer = mPosition - dir;
     MR::normalizeOrZero(&dir, toPlayer);
     MR::turnQuatZDirRate(&mQuatCC, mQuatCC, dir, 0.3f);
-    TVec3f zdir;
     mQuatCC.getZDir(zdir);
     mRide->setHostZDir(&zdir);
     mRide->updateRush();

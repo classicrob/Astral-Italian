@@ -7,7 +7,7 @@ class RailGraphNode {
 public:
     RailGraphNode();
 
-    TVec3f _0;
-    s32 _C;
-    u32 _10;
+    /* 0x00 */ TVec3f mPosition;
+    /* 0x0C */ s32 mFirstEdge;
+    /* 0x10 */ u32 mEdgeCount;
 };

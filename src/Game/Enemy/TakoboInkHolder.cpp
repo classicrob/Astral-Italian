@@ -1,7 +1,7 @@
 #include "Game/Util.hpp"
 #include "Game/Enemy/TakoboInkHolder.hpp"
 
-TakoboInkHolder::TakoboInkHolder(s32 numMax) : DeriveActorGroup< TakoboInk >("TakoboInkHolder", numMax) {
+TakoboInkHolder::TakoboInkHolder(s32 numMax) : DeriveActorGroup< TakoboInk >("タコボー墨管理", numMax) {
     for (s32 i = 0; i < numMax; i++) {
         TakoboInk* pInk = new TakoboInk("TakoHeiInk");
         pInk->initWithoutIter();

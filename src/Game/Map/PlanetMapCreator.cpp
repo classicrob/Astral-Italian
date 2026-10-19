@@ -65,7 +65,7 @@ namespace {
 
     static bool isDataForceLow(const PlanetMapData* pMapData) {
         for (int i = 0; i < 8; i++) {
-            if (!MR::isEqualString(pMapData->mForceScenarioData[i], "Low")) {
+            if (!MR::isEqualString(pMapData->mForceScenarioData[i], "")) {
                 return true;
             }
         }
@@ -254,7 +254,7 @@ bool PlanetMapCreator::isScenarioForceLow(const PlanetMapData* pData) const {
     snprintf(name, sizeof(name), "%s_%d", MR::getCurrentStageName(), MR::getCurrentScenarioNo());
 
     for (int i = 0; i < 8; i++) {
-        if (MR::isEqualString(pData->mForceScenarioData[i], "Low")) {
+        if (MR::isEqualString(pData->mForceScenarioData[i], "")) {
             return false;
         }
 

@@ -7,6 +7,7 @@
 #include "Game/Util/StarPointerUtil.hpp"
 #include <revolution/wpad.h>
 
+// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
 void CameraDPD_FORCE_MATCH_SDATA2() {
     (void)1.0f;
     (void)0.0f;

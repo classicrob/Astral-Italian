@@ -98,7 +98,6 @@ void FireBall::appearAndThrow(const TVec3f& rAppearPos, f32 speed, f32 angle) {
     appear();
 }
 
-// NONMATCHING: Color8 argument construction and temporary copies lower differently.
 void FireBall::control() {
     MR::requestPointLight(this, mPosition, color, 1.0f, -1);
 }
@@ -190,11 +189,11 @@ bool FireBall::tryToKill() {
     return false;
 }
 
-// NONMATCHING: equivalent vector addition remains an out-of-line JMath helper.
+// NONMATCHING: TVec3::add stays an out-of-line call here while the target inlines the paired-single add (inliner budget in this TU; same semantics).
 void FireBall::setVelocityToPlayer(f32 magnitude) {
     TVec3f target;
     target.scale(::cThrowOffsetY, mUp);
-    JMathInlineVEC::PSVECAdd(&target, MR::getPlayerPos(), &target);
+    target += *MR::getPlayerPos();
 
     TVec3f dir;
     dir.sub(target, mPosition);

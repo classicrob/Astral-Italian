@@ -13,5 +13,5 @@ public:
     void calcAndSetBaseMtx();
 
     /* 0x90 */ Color8 mColor;
-    /* 0x94 */ s32 mArg4;
+    /* 0x94 */ s32 mBrightnessLevel;
 };

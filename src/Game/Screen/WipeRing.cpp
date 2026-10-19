@@ -222,21 +222,17 @@ void WipeRing::appearWithColor() {
     mIsCenterOnPlayerOnce = false;
 }
 
-// NONMATCHING: equivalent green-star tests use different boolean temporaries and return-block layout.
+// NONMATCHING: target sinks `green = false` to the join and branches on each call result; ours materializes the bool across the calls (register/branch-shape residue only).
 void WipeRing::setColor() {
     MR::startAnim(this, ::sColorAnimName, 1);
     bool green = false;
     if (MR::isStageMarioFaceShip()) {
         if (GameSequenceFunction::hasStageResultSequence()) {
             s32 starId = GameSequenceFunction::getClearedPowerStarId();
-            if (MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), starId)) {
-                green = true;
-            }
+            green = MR::isPowerStarGreen(GameSequenceFunction::getClearedStageName(), starId);
         }
     } else {
-        if (MR::isPowerStarGreenInCurrentStage()) {
-            green = true;
-        }
+        green = MR::isPowerStarGreenInCurrentStage();
     }
     if (green) {
         MR::setAnimFrameAndStop(this, 1.0f, 1);

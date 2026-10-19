@@ -326,7 +326,7 @@ namespace MR {
             inline iterator() {
             }
 
-            iterator(T* head, T* tail);
+            iterator(T* head, T* tail, T* end);
 
             void operator++();
 
@@ -338,7 +338,7 @@ namespace MR {
         inline FixedRingBuffer() {
         }
 
-        FixedRingBuffer(T* pBuffer, T* pBuffer2) : mHead(pBuffer, pBuffer2), mEnd(pBuffer, pBuffer2), mCount(0) {
+        FixedRingBuffer(T* pBuffer, T* pBuffer2) : mHead(pBuffer, pBuffer2, pBuffer2 + S), mEnd(pBuffer, pBuffer2, pBuffer2 + S), mCount(0) {
         }
 
         void push_back(const T& val);

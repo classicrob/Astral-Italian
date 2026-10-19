@@ -255,7 +255,7 @@ bool OceanSphere::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     const f32 alongGravity = MR::vecKillElement(offset, -rGravity, &offset);
     const f32 height = radius * MR::cos(offset.length() / radius * MR::pi() / 2.0f);
     pInfo->mCamWaterDepth = height - alongGravity;
-    pInfo->_4 = height + alongGravity;
+    pInfo->mBottomDepth = height + alongGravity;
 
     TVec3f normal = rPos - rPosition;
     MR::normalizeOrZero(&normal);

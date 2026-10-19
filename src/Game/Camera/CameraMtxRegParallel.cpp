@@ -4,16 +4,18 @@
 #include "Game/Camera/CameraLocalUtil.hpp"
 #include "Game/Camera/CameraTargetObj.hpp"
 
-void CameraMtxRegParallel_FORCE_MATCH_SDATA2() {
-    (void)0.0f;
-    (void)(MR::pi() / 2.0f);
+namespace {
+    extern const f32 sHalfPi;
+    extern const f32 sDefaultDistance;
+    extern const f32 sMinimumDistance;
+    extern const f32 sWatchPointBlendRate;
 }
 
 CameraMtxRegParallel::~CameraMtxRegParallel() {
 }
 
 CameraMtxRegParallel::CameraMtxRegParallel(const char* pName)
-    : Camera(pName), mString(), mAngleX(), mAngleY(), mDist(1000.0f), mWPoint(0.0f, 0.0f, 0.0f) {
+    : Camera(pName), mString(), mAngleX(), mAngleY(), mDist(sDefaultDistance), mWPoint(0.0f, 0.0f, 0.0f) {
 }
 
 void CameraMtxRegParallel::reset() {
@@ -30,18 +32,18 @@ CamTranslatorBase* CameraMtxRegParallel::createTranslator() {
 }
 
 void CameraMtxRegParallel::calcIdealPose() {
-    if (mDist < 300.0f) {
-        mDist = 300.0f;
+    if (mDist < sMinimumDistance) {
+        mDist = sMinimumDistance;
     }
 
     TVec3f watchPoint;
-    CameraLocalUtil::makeWatchPoint(&watchPoint, this, CameraLocalUtil::getTarget(this), 0.1f / 15.0f);
+    CameraLocalUtil::makeWatchPoint(&watchPoint, this, CameraLocalUtil::getTarget(this), sWatchPointBlendRate);
 
     TPos3f mtx;
     mtx.set(CameraLocalUtil::getMtxReg(mString));
 
     TVec3f pos;
-    MR::polarToCross(TVec3f(0.0f, 0.0f, 0.0f), &pos, mDist, mAngleX, mAngleY - MR::pi() / 2.0f);
+    MR::polarToCross(TVec3f(0.0f, 0.0f, 0.0f), &pos, mDist, mAngleX, mAngleY - sHalfPi);
 
     mtx.mult33(pos);
     pos.add(watchPoint);
@@ -57,4 +59,11 @@ void CameraMtxRegParallel::calcIdealPose() {
     CameraLocalUtil::setPos(this, pos);
     CameraLocalUtil::setUpVec(this, up);
     CameraLocalUtil::setWatchUpVec(this, CameraLocalUtil::getTarget(this)->getUpVec());
+}
+
+namespace {
+    const f32 sHalfPi = 1.5707964f;
+    const f32 sDefaultDistance = 1000.0f;
+    const f32 sMinimumDistance = 300.0f;
+    const f32 sWatchPointBlendRate = 0.1f / 15.0f;
 }

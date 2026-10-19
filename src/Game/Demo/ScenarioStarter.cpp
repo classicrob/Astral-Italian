@@ -209,23 +209,36 @@ void ScenarioStarter::exeRailMoveCanceled() {
 }
 
 // NONMATCHING: regalloc
+namespace {
+    struct CameraException {
+        const char* stage;
+        s32 scenario;
+    };
+
+    const CameraException sCameraExceptions[] = {
+        {"DigMineGalaxy", 3},
+        {"VsKoopaJrLv1Galaxy", 2},
+        {"KoopaJrLv2Galaxy", 2},
+    };
+
+    inline bool isStartPosCameraEnabled(const char* pStage, s32 scenario) {
+        for (u32 i = 0; i < 3; i++) {
+            if (scenario == sCameraExceptions[i].scenario && MR::isEqualString(pStage, sCameraExceptions[i].stage)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}  // namespace
+
 void ScenarioStarter::exeShowWelcomeLayout() {
     if (MR::isFirstStep(this)) {
         MR::tryFrameToScreenCinemaFrame();
         GameSceneFunction::notifyEndScenarioStarter();
-        struct CameraException { const char* stage; s32 scenario; };
-        static const CameraException exceptions[] = {
-            {"DigMineGalaxy", 3}, {"VsKoopaJrLv1Galaxy", 2}, {"KoopaJrLv2Galaxy", 2},
-        };
-        const char* stage = MR::getCurrentStageName();
+        const char* pStage = MR::getCurrentStageName();
         s32 scenario = MR::getCurrentScenarioNo();
-        bool startCamera = true;
-        for (u32 i = 0; i < 3; i++) {
-            if (scenario == exceptions[i].scenario && MR::isEqualString(stage, exceptions[i].stage)) {
-                startCamera = false;
-                break;
-            }
-        }
+        bool startCamera = isStartPosCameraEnabled(pStage, scenario);
         if (startCamera) {
             MR::startStartPosCamera(!_124);
         }

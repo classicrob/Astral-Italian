@@ -10,7 +10,6 @@
 #include "Game/LiveActor/PartsModel.hpp"
 
 char sTicoFatCoinFlyAction[4] = "Fly";
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace NrvTicoFatCoin {
     NEW_NERVE(TicoFatCoinNrvWait, TicoFatCoin, Wait);
@@ -52,12 +51,7 @@ void TicoFatCoin::init(const JMapInfoIter& iter) {
     MR::getJMapInfoArg1NoInit(iter,&mRequiredCoins);
     mEatState = new TicoStateEatCoin(this,mRequiredCoins);
     MR::initActorState(this,mEatState,GET_NERVE(TicoFatCoin, TicoFatCoinNrvEat),"EatDemo");
-    NPCActorItem item;
-    item.mActor="TicoFatCoin";
-    item.mGoods0=lbl_807CFE9C;
-    item.mGoodsJoint0=lbl_807CFE98;
-    item.mGoods1=lbl_807CFE94;
-    item.mGoodsJoint1=lbl_807CFE90;
+    NPCActorItem item("TicoFatCoin");
     MR::getNPCItemData(&item,0);
     equipment(item,false);
     MR::startAction(mGoods0,"TicoFatGoodsCoinL");

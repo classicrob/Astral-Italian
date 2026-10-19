@@ -15,7 +15,6 @@
 
 
 
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace NrvKinopio {
     NEW_NERVE(KinopioNrvReaction, Kinopio, Reaction);
@@ -119,9 +118,7 @@ void Kinopio::init(const JMapInfoIter& rIter) {
         mLodCtrl->setDistanceToMiddleAndLow(::sDistanceLodMiddle, ::sDistanceLodLow);
     }
 
-    NPCActorItem item;
-    item.mActor="Kinopio"; item.mGoods0=lbl_807CFE9C; item.mGoodsJoint0=lbl_807CFE98;
-    item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
+    NPCActorItem item("Kinopio");
     MR::getNPCItemData(&item, mGoodsIndex);
     equipment(item, false);
     mScaleController = new AnimScaleController(&::sParam);

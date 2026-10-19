@@ -1,5 +1,5 @@
-#include "Game/Util/PlayerUtil.hpp"
 #define JGEOMETRY_VEC3_SET_NOINLINE
+#include "Game/Util/PlayerUtil.hpp"
 #include "Game/Enemy/FlowerMimic.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
@@ -83,6 +83,7 @@ void FlowerMimic::init(const JMapInfoIter& rIter) {
 }
 
 // NONMATCHING: register allocation only (target keeps the inlined operator+ operand addresses in callee-saved registers)
+// NONMATCHING: inlined TVec3 operator+ keeps &ret/&op in callee-saved regs (r31/r30) across the copy ctor in the target; ours rematerializes them in volatile regs (regalloc only).
 void FlowerMimic::control() {
     mScaleCtrl->updateNerve();
 
@@ -244,6 +245,7 @@ void FlowerMimic::exeMimicEat() {
 }
 
 // NONMATCHING: register allocation only (target keeps the inlined operator- operand addresses in callee-saved registers)
+// NONMATCHING: same inlined TVec3 operator-/operator+ pointer-register residue as control().
 void FlowerMimic::exeMimicEatEnd() {
     if (MR::isFirstStep(this)) {
         MR::startAction(this, "EatEnd");

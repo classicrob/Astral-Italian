@@ -1,3 +1,4 @@
+#define COLOR8_GX_CTOR_INLINE
 #include "Game/Enemy/ScatterFireBall.hpp"
 #include "Game/Enemy/ScatterFireBallLava.hpp"
 #include "Game/Enemy/AnimScaleController.hpp"
@@ -90,11 +91,10 @@ bool ScatterFireBall::tryKillLava() {
     return false;
 }
 
-// NONMATCHING: color argument copy temporaries, stack slots and saved-register allocation differ.
 void ScatterFireBall::control() {
     if (mNoHitTimer > 0) mNoHitTimer--;
-    const GXColor light = {255, 192, 0, 255};
-    MR::requestPointLight(this, mPosition, Color8(light.r, light.g, light.b, light.a), 1.0f, -1, -1.0f);
+    static const GXColor light = {255, 192, 0, 255};
+    MR::requestPointLight(this, mPosition, light, 1.0f, -1, -1.0f);
 }
 
 void ScatterFireBall::calcAndSetBaseMtx() {

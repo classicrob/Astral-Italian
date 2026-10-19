@@ -22,10 +22,6 @@
 
 
 
-extern const char lbl_807CFE90[1];
-extern const char lbl_807CFE94[1];
-extern const char lbl_807CFE98[1];
-extern const char lbl_807CFE9C[1];
 static const char* const sMarioPosName = "\203}\203\212\203I\210\312\222u[\227X\225\326\211\256\202\263\202\361\203C\203x\203\223\203g]";
 
 extern const volatile s32 gKinopioPostmanLetterStartDelay;
@@ -86,12 +82,7 @@ void KinopioPostman::init(const JMapInfoIter& rIter) {
     MR::startBrk(this, "ColorChange");
     MR::setBrkFrameAndStop(this, 2.0f);
 
-    NPCActorItem item;
-    item.mActor = "Kinopio";
-    item.mGoods0 = lbl_807CFE9C;
-    item.mGoodsJoint0 = lbl_807CFE98;
-    item.mGoods1 = lbl_807CFE94;
-    item.mGoodsJoint1 = lbl_807CFE90;
+    NPCActorItem item("Kinopio");
     MR::getNPCItemData(&item, 3);
     equipment(item, false);
     MR::onCalcGravity(this);

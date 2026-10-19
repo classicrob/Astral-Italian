@@ -1,3 +1,4 @@
+#define COLOR8_GX_CTOR_INLINE
 #include "Game/Enemy/ScatterFireBallLava.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/MapObj/ClipAreaDrop.hpp"
@@ -38,10 +39,9 @@ void ScatterFireBallLava::init(const JMapInfoIter& iter) {
     MR::hideModel(this);
 }
 
-// NONMATCHING: color argument copy temporaries and instruction scheduling differ.
 void ScatterFireBallLava::control() {
-    const GXColor light = {255, 192, 0, 255};
-    MR::requestPointLight(this, mPosition, Color8(light.r, light.g, light.b, light.a), 1.0f, -1, -1.0f);
+    static const GXColor light = {255, 192, 0, 255};
+    MR::requestPointLight(this, mPosition, light, 1.0f, -1, -1.0f);
 }
 
 void ScatterFireBallLava::kill() {

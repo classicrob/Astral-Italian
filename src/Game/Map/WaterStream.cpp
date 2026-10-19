@@ -10,10 +10,10 @@ WaterStream::WaterStream(const char* pName) : LiveActor(pName) {
     mIsGravityBased = true;
     mIsReversed = false;
     mWidth = 0.0f;
-    mUnk98 = 0.0f;
-    mUnk9C = 0.0f;
+    mUnusedParam0 = 0.0f;
+    mUnusedParam1 = 0.0f;
     mFlowSpeed = 80.0f;
-    mUnkA4 = 100.0f;
+    mUnusedParam2 = 100.0f;
     mClipMin.zero();
     mClipMax.zero();
     mBoxMin.zero();
@@ -36,7 +36,7 @@ void WaterStream::init(const JMapInfoIter& rIter) {
 
     mWidth = 1200.0f;
     mFlowSpeed = 50.0f;
-    mUnkA4 = 80.0f;
+    mUnusedParam2 = 80.0f;
     calcClippingBox();
     WaterAreaFunction::entryWaterStream(this);
 
@@ -105,7 +105,7 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     pInfo->mCamWaterDepth = -depth + edgeBase;
     {
         s32 index = (s32)(camDepth * 2607.5945f) & (JMath::TSinCosTable<14, f32>::LEN - 1);
-        pInfo->_4 = (width * JMath::sSinCosTable.table[index].b1) + depth;
+        pInfo->mBottomDepth = (width * JMath::sSinCosTable.table[index].b1) + depth;
     }
 
     TVec3f gravity = rGravity;

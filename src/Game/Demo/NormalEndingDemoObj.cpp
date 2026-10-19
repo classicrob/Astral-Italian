@@ -9,29 +9,77 @@
 #include "Game/Demo/DemoAstroPlanet.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/System/GalaxyWorldMapInfo.hpp"
+#include "Game/AreaObj/AreaObj.hpp"
+#include "Game/Util/AreaObjUtil.hpp"
 
-// Name table at lbl_80680070 (object/anim names); per-scene name pointers.
-extern "C" char lbl_80680070[];
-extern "C" char lbl_80680394[];
-extern "C" char lbl_806803A4[];
-extern "C" char lbl_806803B8[];
-extern "C" char lbl_806803C4[];
-const char* lbl_807CF730 = lbl_80680070 + 0x0;
-const char* lbl_807CF734 = lbl_80680070 + 0x18;
-const char* lbl_807CF738 = lbl_80680070 + 0x30;
-const char* lbl_807CF73C = lbl_80680070 + 0x48;
-const char* lbl_807CF740 = lbl_80680070 + 0x60;
-const char* lbl_807CF744 = lbl_80680070 + 0x70;
-const char* lbl_807CF748 = lbl_80680070 + 0x80;
-const char* lbl_807CF74C = lbl_80680070 + 0x90;
-const char* lbl_807CF750 = lbl_80680070 + 0xA0;
-extern "C" char lbl_807D1E0C[];
-extern "C" char lbl_807D1E08[];
-extern "C" char lbl_807D1E10[];
-extern "C" char lbl_807D1E14[];
-extern "C" char lbl_807D1E18[];
+const char* sNormalEndingDemoName1 = "ノーマルエンディング１";
+const char* sNormalEndingDemoName2 = "ノーマルエンディング２";
+const char* sNormalEndingDemoName3 = "ノーマルエンディング３";
+const char* sNormalEndingDemoName4 = "ノーマルエンディング４";
+const char* sNormalEndingPartName1 = "DemoEnding1st";
+const char* sNormalEndingPartName2 = "DemoEnding2nd";
+const char* sNormalEndingPartName3 = "DemoEnding3rd";
+const char* sNormalEndingPartName4 = "DemoEnding4th";
+const char* sNormalEndingBasePointName = "ノーマルエンディングデモ基準点";
+// PLACEHOLDER(enemies): the NormalEndingDemoObj nerve objects (.sbss 0x807D1E08..) belong to this TU's nerve tail, which the splits do not cover yet; resolve when they do
+class NormalEndingNerve : public Nerve {
+public:
+    virtual void execute(Spine* pSpine) const;
+};
+
+extern NormalEndingNerve lbl_807D1E0C;
+extern NormalEndingNerve lbl_807D1E08;
+extern NormalEndingNerve lbl_807D1E10;
+extern NormalEndingNerve lbl_807D1E14;
+extern NormalEndingNerve lbl_807D1E18;
 extern "C" f32 lbl_807D97FC;
 
+
+LiveActor* NormalEndingDemoObj::createDemoModel(const char* pName, const char* pModelName, MtxPtr pMtx) {
+    LiveActor* pActor = MR::createDemoObj(pName, pModelName, pMtx);
+    pActor->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
+    MR::invalidateClipping(pActor);
+    pActor->makeActorDead();
+    return pActor;
+}
+
+LiveActor* NormalEndingDemoObj::createDemoModel(const char* pName, const char* pModelName, const char* pFuncName, MtxPtr pMtx) {
+    LiveActor* pActor = MR::createDemoObj(pName, pModelName, pFuncName, pMtx);
+    pActor->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
+    MR::invalidateClipping(pActor);
+    pActor->makeActorDead();
+    return pActor;
+}
+
+LiveActor* NormalEndingDemoObj::createDemoModelWithAnimArc(const char* pName, const char* pModelName, const char* pAnimArcName, MtxPtr pMtx) {
+    LiveActor* pActor = MR::createDemoObjWithAnimArc(pName, pModelName, pAnimArcName, pMtx);
+    pActor->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
+    MR::invalidateClipping(pActor);
+    pActor->makeActorDead();
+    return pActor;
+}
+
+LiveActor* NormalEndingDemoObj::createDemoModel(const char* pName, const char* pModelName) {
+    LiveActor* pActor = MR::createDemoObj(pName, pModelName, nullptr);
+    pActor->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
+    MR::invalidateClipping(pActor);
+    pActor->makeActorDead();
+    return pActor;
+}
+
+void NormalEndingDemoObj::setEndingAreaIndex(s32 index) {
+    AreaObjMgr* pMgr = MR::getAreaObjManager("LightArea");
+
+    for (s32 i = 0; i < pMgr->getNumAreaObj(); i++) {
+        AreaObj* pArea = pMgr->getAreaObj(i);
+
+        if (index == pArea->mObjArg0) {
+            pArea->validate();
+        } else {
+            pArea->invalidate();
+        }
+    }
+}
 
 NormalEndingDemoObj::NormalEndingDemoObj(const char* pName) : LiveActor(pName), mField90(0), mActorA(nullptr), mActorB(nullptr), mActorC(nullptr), mStar(nullptr), mActorD(nullptr), mActorE(nullptr), mActorF(nullptr), mActorG(nullptr), mActorH(nullptr), mPlanet(nullptr), mActorI(nullptr), mActorJ(nullptr) {
 }
@@ -40,78 +88,78 @@ void NormalEndingDemoObj::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::connectToSceneMapObjMovement(this);
     MR::invalidateClipping(this);
-    MR::registerDemoCast(this, lbl_807CF730, rIter);
-    MR::registerDemoCast(this, lbl_807CF734, rIter);
-    MR::registerDemoCast(this, lbl_807CF738, rIter);
-    MR::registerDemoCast(this, lbl_807CF73C, rIter);
-    MR::registerDemoActionNerveDirect(this, reinterpret_cast< const Nerve* >(lbl_807D1E0C), lbl_807CF730, nullptr);
-    mActorI = createDemoModel(lbl_80680070 + 0xCC, lbl_80680070 + 0xE8);
-    MR::tryRegisterDemoCast(mActorI, lbl_807CF730, rIter);
-    MR::tryRegisterDemoCast(mActorI, lbl_807CF734, rIter);
-    MR::tryRegisterDemoCast(mActorI, lbl_807CF738, rIter);
-    MR::initTalkAnimDemoCast(mActorI, rIter, lbl_807CF73C, lbl_807CF74C);
-    mActorJ = createDemoModel(lbl_80680070 + 0xFC, lbl_80680070 + 0x118);
-    MR::initTalkAnimDemoCast(mActorJ, rIter, lbl_807CF730, lbl_807CF740);
-    MR::tryRegisterDemoCast(mActorJ, lbl_807CF734, rIter);
-    MR::initTalkAnimDemoCast(mActorJ, rIter, lbl_807CF738, lbl_807CF748);
-    MR::tryRegisterDemoCast(mActorJ, lbl_807CF73C, rIter);
-    mActorA = createDemoModelWithAnimArc(lbl_80680070 + 0x12C, lbl_80680070 + 0x13C, lbl_80680070 + 0x148, 0);
+    MR::registerDemoCast(this, sNormalEndingDemoName1, rIter);
+    MR::registerDemoCast(this, sNormalEndingDemoName2, rIter);
+    MR::registerDemoCast(this, sNormalEndingDemoName3, rIter);
+    MR::registerDemoCast(this, sNormalEndingDemoName4, rIter);
+    MR::registerDemoActionNerveDirect(this, &lbl_807D1E0C, sNormalEndingDemoName1, nullptr);
+    mActorI = createDemoModel("デモ用顔惑星ヌルオブジェ", "MarioShipTakeOff");
+    MR::tryRegisterDemoCast(mActorI, sNormalEndingDemoName1, rIter);
+    MR::tryRegisterDemoCast(mActorI, sNormalEndingDemoName2, rIter);
+    MR::tryRegisterDemoCast(mActorI, sNormalEndingDemoName3, rIter);
+    MR::initTalkAnimDemoCast(mActorI, rIter, sNormalEndingDemoName4, sNormalEndingPartName4);
+    mActorJ = createDemoModel("デモ用天文台ヌルオブジェ", "DemoAstroPlanetNull");
+    MR::initTalkAnimDemoCast(mActorJ, rIter, sNormalEndingDemoName1, sNormalEndingPartName1);
+    MR::tryRegisterDemoCast(mActorJ, sNormalEndingDemoName2, rIter);
+    MR::initTalkAnimDemoCast(mActorJ, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
+    MR::tryRegisterDemoCast(mActorJ, sNormalEndingDemoName4, rIter);
+    mActorA = createDemoModelWithAnimArc("デモ用ベビチコ", "TicoBaby", "TicoBabyAnim", 0);
     MR::initLightCtrl(mActorA);
-    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF730, lbl_807CF740);
-    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF734, lbl_807CF744);
-    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF738, lbl_807CF748);
-    MR::tryInitDemoSheetAnim(mActorA, rIter, lbl_807CF73C, lbl_807CF74C);
-    mActorB = createDemoModelWithAnimArc(lbl_80680070 + 0x158, lbl_80680070 + 0x168, lbl_80680070 + 0x170, 0);
-    MR::initTalkAnimDemoCast(mActorB, rIter, lbl_807CF730, lbl_807CF740);
-    MR::initTalkAnimDemoCast(mActorB, rIter, lbl_807CF734, lbl_807CF744);
-    MR::initTalkAnimDemoCast(mActorB, rIter, lbl_807CF738, lbl_807CF748);
-    MR::initTalkAnimDemoCast(mActorB, rIter, lbl_807CF73C, lbl_807CF74C);
-    mActorC = createDemoModel(lbl_80680070 + 0x18C, lbl_80680070 + 0x1A0, lbl_80680070 + 0x1A8, nullptr);
-    MR::initTalkAnimDemoCast(mActorC, rIter, lbl_807CF734, lbl_807CF744);
-    MR::initTalkAnimDemoCast(mActorC, rIter, lbl_807CF738, lbl_807CF748);
-    mStar = createDemoModel(lbl_80680070 + 0x1B8, lbl_80680070 + 0x1D0, lbl_80680070 + 0x1DC, nullptr);
-    MR::initTalkAnimDemoCast(mStar, rIter, lbl_807CF730, lbl_807CF740);
-    mActorD = createDemoModelWithAnimArc(lbl_80680070 + 0x1E4, lbl_80680070 + 0x1F8, lbl_80680070 + 0x200, 0);
-    MR::initTalkAnimDemoCast(mActorD, rIter, lbl_807CF734, lbl_807CF744);
-    MR::initTalkAnimDemoCast(mActorD, rIter, lbl_807CF738, lbl_807CF748);
-    MR::initTalkAnimDemoCast(mActorD, rIter, lbl_807CF73C, lbl_807CF74C);
-    mActorE = createDemoModel(lbl_80680070 + 0x220, lbl_80680070 + 0x230, lbl_80680070 + 0x1A8, MR::getJointMtx(mActorI, lbl_80680070 + 0xE8));
-    mActorF = createDemoModel(lbl_80680070 + 0x248, lbl_80680070 + 0x25C, nullptr);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, sNormalEndingDemoName1, sNormalEndingPartName1);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, sNormalEndingDemoName2, sNormalEndingPartName2);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
+    MR::tryInitDemoSheetAnim(mActorA, rIter, sNormalEndingDemoName4, sNormalEndingPartName4);
+    mActorB = createDemoModelWithAnimArc("デモ用ピーチ姫", "Peach", "PeachAnimPeachCastleGalaxy2", 0);
+    MR::initTalkAnimDemoCast(mActorB, rIter, sNormalEndingDemoName1, sNormalEndingPartName1);
+    MR::initTalkAnimDemoCast(mActorB, rIter, sNormalEndingDemoName2, sNormalEndingPartName2);
+    MR::initTalkAnimDemoCast(mActorB, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
+    MR::initTalkAnimDemoCast(mActorB, rIter, sNormalEndingDemoName4, sNormalEndingPartName4);
+    mActorC = createDemoModel("デモ用ロゼッタ", "Rosetta", "NormalEnding", nullptr);
+    MR::initTalkAnimDemoCast(mActorC, rIter, sNormalEndingDemoName2, sNormalEndingPartName2);
+    MR::initTalkAnimDemoCast(mActorC, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
+    mStar = createDemoModel("デモ用グランドスター", "GrandStar", "Demo", nullptr);
+    MR::initTalkAnimDemoCast(mStar, rIter, sNormalEndingDemoName1, sNormalEndingPartName1);
+    mActorD = createDemoModelWithAnimArc("デモ用マイスター", "Meister", "MeisterAnimPeachCastleGalaxy2", 0);
+    MR::initTalkAnimDemoCast(mActorD, rIter, sNormalEndingDemoName2, sNormalEndingPartName2);
+    MR::initTalkAnimDemoCast(mActorD, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
+    MR::initTalkAnimDemoCast(mActorD, rIter, sNormalEndingDemoName4, sNormalEndingPartName4);
+    mActorE = createDemoModel("デモ用顔惑星", "DemoMarioFaceShipPlanet", "NormalEnding", MR::getJointMtx(mActorI, "MarioShipTakeOff"));
+    mActorF = createDemoModel("デモ用顔惑星パネル", "WorldMapAccessPanel", nullptr);
     MR::registerDemoSimpleCastAll(mActorF);
-    MR::initTalkAnimDemoCast(mActorF, rIter, lbl_807CF73C, lbl_807CF74C);
-    mActorG = MR::createDemoObj(lbl_80680070 + 0x270, lbl_80680070 + 0x280, lbl_80680070 + 0x1DC, nullptr);
+    MR::initTalkAnimDemoCast(mActorF, rIter, sNormalEndingDemoName4, sNormalEndingPartName4);
+    mActorG = MR::createDemoObj("デモ用顔惑星舵", "MarioFaceShipRudder", "Demo", nullptr);
     MR::invalidateClipping(mActorG);
     mActorG->makeActorDead();
     MR::registerDemoSimpleCastAll(mActorG);
-    MR::initTalkAnimDemoCast(mActorG, rIter, lbl_807CF73C, lbl_807CF74C);
-    mActorH = createDemoModel(lbl_80680070 + 0x294, lbl_80680070 + 0x2A0, MR::getJointMtx(mActorJ, lbl_80680070 + 0x2B0));
-    MR::initTalkAnimDemoCast(mActorH, rIter, lbl_807CF730, lbl_807CF740);
-    MR::initTalkAnimDemoCast(mActorH, rIter, lbl_807CF738, lbl_807CF748);
-    mPlanet = new DemoAstroPlanet(lbl_80680070 + 0x2BC, MR::getJointMtx(mActorJ, lbl_80680070 + 0x2CC));
+    MR::initTalkAnimDemoCast(mActorG, rIter, sNormalEndingDemoName4, sNormalEndingPartName4);
+    mActorH = createDemoModel("デモ用彗星", "DemoAstroCocoon", MR::getJointMtx(mActorJ, "AstroCocoon"));
+    MR::initTalkAnimDemoCast(mActorH, rIter, sNormalEndingDemoName1, sNormalEndingPartName1);
+    MR::initTalkAnimDemoCast(mActorH, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
+    mPlanet = new DemoAstroPlanet("デモ用天文台", MR::getJointMtx(mActorJ, "AstroPlanet"));
     mPlanet->initWithoutIter();
     mPlanet->mLinkInfo.mZoneID = mLinkInfo.mZoneID;
     MR::invalidateClipping(mPlanet);
     mPlanet->makeActorDead();
     MR::registerDemoSimpleCastAll(mPlanet);
-    MR::initTalkAnimDemoCast(mPlanet, rIter, lbl_807CF730, lbl_807CF740);
-    MR::initTalkAnimDemoCast(mPlanet, rIter, lbl_807CF738, lbl_807CF748);
-    initNerve(reinterpret_cast< Nerve* >(lbl_807D1E08), 0);
+    MR::initTalkAnimDemoCast(mPlanet, rIter, sNormalEndingDemoName1, sNormalEndingPartName1);
+    MR::initTalkAnimDemoCast(mPlanet, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
+    initNerve(&lbl_807D1E08, 0);
     makeActorAppeared();
 }
 
 void NormalEndingDemoObj::initAfterPlacement() {
-    MR::resetPosition(mActorA, lbl_807CF750);
-    MR::resetPosition(mActorB, lbl_807CF750);
-    MR::resetPosition(mActorC, lbl_807CF750);
-    MR::resetPosition(mStar, lbl_807CF750);
-    MR::resetPosition(mActorD, lbl_807CF750);
-    MR::resetPosition(mActorE, lbl_807CF750);
-    MR::resetPosition(mActorF, lbl_807CF750);
-    MR::resetPosition(mActorG, lbl_807CF750);
-    MR::resetPosition(mActorH, lbl_807CF750);
-    MR::resetPosition(mPlanet, lbl_807CF750);
-    MR::resetPosition(mActorI, lbl_807CF750);
-    MR::resetPosition(mActorJ, lbl_807CF750);
+    MR::resetPosition(mActorA, sNormalEndingBasePointName);
+    MR::resetPosition(mActorB, sNormalEndingBasePointName);
+    MR::resetPosition(mActorC, sNormalEndingBasePointName);
+    MR::resetPosition(mStar, sNormalEndingBasePointName);
+    MR::resetPosition(mActorD, sNormalEndingBasePointName);
+    MR::resetPosition(mActorE, sNormalEndingBasePointName);
+    MR::resetPosition(mActorF, sNormalEndingBasePointName);
+    MR::resetPosition(mActorG, sNormalEndingBasePointName);
+    MR::resetPosition(mActorH, sNormalEndingBasePointName);
+    MR::resetPosition(mPlanet, sNormalEndingBasePointName);
+    MR::resetPosition(mActorI, sNormalEndingBasePointName);
+    MR::resetPosition(mActorJ, sNormalEndingBasePointName);
     setEndingAreaIndex(1);
     MR::endStartPosCamera();
 }
@@ -128,34 +176,34 @@ void NormalEndingDemoObj::exeA() {
         mActorD->makeActorAppeared();
         mActorE->makeActorAppeared();
         mActorF->makeActorAppeared();
-        MR::startAction(mActorF, lbl_80680070 + 0x2D8);
+        MR::startAction(mActorF, "DemoEndingWait");
         mActorG->makeActorAppeared();
-        MR::startAction(mActorG, lbl_80680070 + 0x2D8);
+        MR::startAction(mActorG, "DemoEndingWait");
         mActorJ->makeActorAppeared();
         mActorH->makeActorAppeared();
-        MR::startBtk(mActorH, lbl_80680070 + 0x2E8);
+        MR::startBtk(mActorH, "DemoEnding1stLoop");
         mPlanet->makeActorAppeared();
-        MR::startBtk(mPlanet, lbl_80680070 + 0x2E8);
-        MR::startBrk(mPlanet, lbl_80680070 + 0x2E8);
+        MR::startBtk(mPlanet, "DemoEnding1stLoop");
+        MR::startBrk(mPlanet, "DemoEnding1stLoop");
         mActorI->makeActorAppeared();
-        MR::startAction(mActorI, lbl_80680070 + 0x2D8);
+        MR::startAction(mActorI, "DemoEndingWait");
         setEndingAreaIndex(1);
         MR::openSystemWipeWhiteFade(0xB4);
     }
     PowerStar::requestPointLightAtResultSequence(mStar);
-    if (MR::isDemoActive(lbl_807CF730)) {
-        if (MR::isDemoPartStep(lbl_80680070 + 0x2FC, 0x1A2) && MR::isStoryBookTurningPage() != 0) {
+    if (MR::isDemoActive(sNormalEndingDemoName1)) {
+        if (MR::isDemoPartStep("マリオ顔惑星に帰還", 0x1A2) && MR::isStoryBookTurningPage() != 0) {
             setEndingAreaIndex(2);
         }
-        if (MR::isDemoPartStep(lbl_80680070 + 0x310, 0x104)) {
+        if (MR::isDemoPartStep("彗星が天文台に変化", 0x104)) {
             mPlanet->mIsRotating = true;
             setEndingAreaIndex(1);
         }
     }
     if (MR::isDemoLastStep()) {
         MR::pauseStoryBookTurnPage();
-        MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, lbl_807CF734, 0);
-        setNerve(reinterpret_cast< Nerve* >(lbl_807D1E10));
+        MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, sNormalEndingDemoName2, 0);
+        setNerve(&lbl_807D1E10);
     }
 }
 
@@ -163,15 +211,15 @@ void NormalEndingDemoObj::exeB() {
     if (MR::isFirstStep(this)) {
         mStar->makeActorDead();
     }
-    if (MR::isDemoActive(lbl_807CF734)) {
-        if (MR::isDemoPartStep(lbl_80680394, 0)) {
+    if (MR::isDemoActive(sNormalEndingDemoName2)) {
+        if (MR::isDemoPartStep("ロゼッタ出現", 0)) {
             setEndingAreaIndex(3);
         }
     }
     if (MR::isDemoLastStep()) {
         MR::pauseStoryBookTurnPage();
-        MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, lbl_807CF738, 0);
-        setNerve(reinterpret_cast< Nerve* >(lbl_807D1E14));
+        MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, sNormalEndingDemoName3, 0);
+        setNerve(&lbl_807D1E14);
     }
 }
 
@@ -179,31 +227,31 @@ void NormalEndingDemoObj::exeC() {
     if (MR::isFirstStep(this)) {
         mPlanet->mRotationY = lbl_807D97FC;
         mPlanet->mIsRotating = false;
-        MR::startBtk(mActorH, lbl_806803A4);
-        MR::startBtk(mPlanet, lbl_806803A4);
-        MR::startBrk(mPlanet, lbl_806803A4);
+        MR::startBtk(mActorH, "DemoEnding3rdLoop");
+        MR::startBtk(mPlanet, "DemoEnding3rdLoop");
+        MR::startBrk(mPlanet, "DemoEnding3rdLoop");
         setEndingAreaIndex(3);
     }
-    if (MR::isDemoActive(lbl_807CF738)) {
-        if (MR::isDemoPartStep(lbl_806803B8, 0x159)) {
+    if (MR::isDemoActive(sNormalEndingDemoName3)) {
+        if (MR::isDemoPartStep("チコ帰還", 0x159)) {
             setEndingAreaIndex(1);
         }
-        if (MR::isDemoPartStep(lbl_806803B8, 0x29D)) {
+        if (MR::isDemoPartStep("チコ帰還", 0x29D)) {
             setEndingAreaIndex(4);
         }
-        if (MR::isDemoPartStep(lbl_806803B8, 0x30B)) {
+        if (MR::isDemoPartStep("チコ帰還", 0x30B)) {
             setEndingAreaIndex(1);
         }
     }
     if (MR::isDemoLastStep()) {
         MR::pauseStoryBookTurnPage();
-        MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, lbl_807CF73C, 0);
-        setNerve(reinterpret_cast< Nerve* >(lbl_807D1E18));
+        MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, sNormalEndingDemoName4, 0);
+        setNerve(&lbl_807D1E18);
     }
 }
 
 void NormalEndingDemoObj::checkStaffRollStart() {
-    const char* part = lbl_806803C4;
+    const char* part = "マリオ惑星出発";
     if (MR::isDemoPartActive(part)) {
         if (MR::isDemoPartStep(part, MR::getDemoPartTotalStep(part) - 2)) {
             GameSequenceFunction::requestChangeStageStaffRoll();

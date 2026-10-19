@@ -46,7 +46,7 @@ namespace NrvTicoRail {
     NEW_NERVE(TicoRailNrvGoodBye, TicoRail, GoodBye);
 };  // namespace NrvTicoRail
 
-TicoRail::TicoRail(const char* pName) : LiveActor(pName), _8C(0.0f, 0.0f, 1.0f), _98(), mLodCtrl(), mMsgCtrl(), mIsTalkForceAtEnd() {
+TicoRail::TicoRail(const char* pName) : LiveActor(pName), mFrontDir(0.0f, 0.0f, 1.0f), mTalkPartner(), mLodCtrl(), mMsgCtrl(), mIsTalkForceAtEnd() {
 }
 
 void TicoRail::init(const JMapInfoIter& rIter) {
@@ -61,7 +61,7 @@ void TicoRail::init(const JMapInfoIter& rIter) {
     MR::initShadowFromCSVWithInitShadowVolumeSphere(this, "Shadow");
     initRailRider(rIter);
     MR::moveCoordAndTransToNearestRailPos(this);
-    _8C.set(MR::getRailDirection(this));
+    mFrontDir.set(MR::getRailDirection(this));
     mLodCtrl = MR::createLodCtrlNPC(this, rIter);
     s32 arg0 = 0;
     MR::getJMapInfoArg0NoInit(rIter, &arg0);
@@ -116,7 +116,7 @@ void TicoRail::exeLookAround() {
         rotate = ::sTurnRate;
     }
 
-    MR::rotateVecDegree(&_8C, up, rotate);
+    MR::rotateVecDegree(&mFrontDir, up, rotate);
 
     if (MR::isStep(this, 160)) {
         if (MR::getRandom(0l, 2l) != 0) {
@@ -137,7 +137,7 @@ void TicoRail::exeMoveSign() {
     }
 
     f32 rate = MR::calcNerveRate(this, MR::getBckFrameMax(this));
-    MR::vecBlend(&_8C, -MR::getRailDirection(this), MR::getRailDirection(this), rate);
+    MR::vecBlend(&mFrontDir, -MR::getRailDirection(this), MR::getRailDirection(this), rate);
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(TicoRail, TicoRailNrvMove));
@@ -150,7 +150,7 @@ void TicoRail::exeMove() {
     }
 
     MR::moveCoordAndFollowTrans(this, MR::calcNerveValue(this, 0, 200.0f, 15.0f));
-    _8C.set(MR::getRailDirection(this));
+    mFrontDir.set(MR::getRailDirection(this));
 
     if (isGreaterEqualStepAndRandom(::sStepForMove)) {
         setNerve(GET_NERVE(TicoRail, TicoRailNrvStop));
@@ -171,7 +171,7 @@ void TicoRail::exeStop() {
 
 void TicoRail::exeTalkStart() {
     TVec3f diff;
-    diff.sub(_98->mPosition, mPosition);
+    diff.sub(mTalkPartner->mPosition, mPosition);
     MR::normalize(&diff);
 
     if (MR::isFirstStep(this)) {
@@ -184,7 +184,7 @@ void TicoRail::exeTalkStart() {
     }
 
     MR::moveCoordAndFollowTrans(this, 2.0f);
-    MR::vecBlend(&_8C, MR::getRailDirection(this), diff, MR::calcNerveRate(this, MR::getBckFrameMax(this)));
+    MR::vecBlend(&mFrontDir, MR::getRailDirection(this), diff, MR::calcNerveRate(this, MR::getBckFrameMax(this)));
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(TicoRail, TicoRailNrvTalk));
@@ -215,7 +215,7 @@ void TicoRail::exeTalkCancel() {
     }
 
     MR::moveCoordAndFollowTrans(this, 15.0f);
-    _8C.set(MR::getRailDirection(this));
+    mFrontDir.set(MR::getRailDirection(this));
 
     if (MR::isActionEnd(this)) {
         setNerve(GET_NERVE(TicoRail, TicoRailNrvMove));
@@ -228,7 +228,7 @@ void TicoRail::exeGoodBye() {
 
         TVec3f v3(MR::getRailDirection(this));
 
-        if (_8C.dot(v3) > 0.0f) {
+        if (mFrontDir.dot(v3) > 0.0f) {
             MR::reverseRailDirection(this);
         }
     }
@@ -236,7 +236,7 @@ void TicoRail::exeGoodBye() {
     MR::moveCoordAndFollowTrans(this, ::sRailSpeedGoodBye);
 
     if (MR::isBckLooped(this)) {
-        _98 = nullptr;
+        mTalkPartner = nullptr;
         setNerve(GET_NERVE(TicoRail, TicoRailNrvMoveSign));
     }
 }
@@ -256,7 +256,7 @@ void TicoRail::kill() {
 
 void TicoRail::calcAndSetBaseMtx() {
     TPos3f mtx;
-    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, _8C);
+    MR::calcMtxFromGravityAndZAxis(&mtx, this, mGravity, mFrontDir);
     MR::setBaseTRMtx(this, mtx);
 }
 
@@ -292,7 +292,7 @@ void TicoRail::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
         }
 
         if (MR::sendArbitraryMsg(0xCA /* ACTMES_TICO_RAIL_TOUCH */, pReceiver, pSender)) {
-            _98 = pReceiver->mHost;
+            mTalkPartner = pReceiver->mHost;
             setNerve(GET_NERVE(TicoRail, TicoRailNrvTalkStart));
         } else if (!MR::isExistRail(pReceiver->mHost) || (MR::isRailGoingToEnd(this) != MR::isRailGoingToEnd(pReceiver->mHost))) {
             setNerve(GET_NERVE(TicoRail, TicoRailNrvTalkCancel));
@@ -324,7 +324,7 @@ bool TicoRail::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver
         return false;
     }
 
-    _98 = pSender->mHost;
+    mTalkPartner = pSender->mHost;
     setNerve(GET_NERVE(TicoRail, TicoRailNrvTalkStart));
 
     return true;

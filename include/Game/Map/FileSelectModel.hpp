@@ -26,7 +26,7 @@ public:
     void exeClose();
     void exeBlink();
 
-    MtxPtr _8C;
+    /* 0x90 */ MtxPtr mHostMtx;
 };
 
 namespace NrvFileSelectModel {

@@ -1,3 +1,4 @@
+#define COLOR8_GX_CTOR_INLINE
 #include "Game/Enemy/Unbaba.hpp"
 #include "Game/Util.hpp"
 #include "Game/Enemy/UnbabaSlim.hpp"
@@ -179,13 +180,13 @@ void Unbaba::exeRestart() {
     MR::startActionSound(this, "MagmaWait", -1, -1, -1);
 }
 
-// NONMATCHING: TVec3 sub/assign, matrix copy and Color8 init stay out-of-line in this TU while the target inlines them (paired-single code)
+// NONMATCHING: inlined TVec3 operator- keeps &tmp in a callee-saved reg across the copy ctor (r30/r29 shift in the target); regalloc only
 void Unbaba::control() {
     mVolumeMatrix.setInline(MR::getJointMtx(this, "Head"));
     MR::addTransMtxLocal(mVolumeMatrix.toMtxPtr(), sParam1);
     MR::preScaleMtx(mVolumeMatrix.toMtxPtr(), sParam0 * 10.0f);
-    const GXColor color = {0x8C, 0x28, 0x00, 0x87};
-    mVolumeDrawer->setColor(Color8(color.r, color.g, color.b, color.a));
+    static const GXColor color = {0x8C, 0x28, 0x00, 0x87};
+    mVolumeDrawer->setColor(color);
     mVolumeDrawer->setDrawPasses(4);
     mVolumeDrawer->setScale(sParam2);
     bool scaleUp = false;

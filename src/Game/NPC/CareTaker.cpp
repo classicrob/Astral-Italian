@@ -13,9 +13,6 @@
 #include "Game/Screen/BombTimerLayout.hpp"
 #include "Game/Util.hpp"
 
-// PLACEHOLDER(enemies): shared 4-byte empty NPC goods strings at 807CFE90..9C, referenced by 11 NPC TUs
-// (CareTaker, HoneyBee, Kinopio*, Tico*, NPC*ParameterReader); resolve when their defining TU/name is identified.
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace {
     const char* sPlayerPrePosition = "タイムアタック前位置";
@@ -53,38 +50,13 @@ namespace NrvCaretaker {
 Caretaker::Caretaker(const char* pName) : NPCActor(pName), mCountdown(nullptr), mBombTimerLayout(nullptr), mObjArg0(-1), mTidyTimeLimit(::sTidyTimeLimit), mResult(-1) {
 }
 
-void Caretaker::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
-    NPCActorItem item("Caretaker");
-
-    pCollector->addArchive("CaretakerMiddle");
-    pCollector->addArchive("CaretakerLow");
-
-    s32 arg0 = -1;
-    MR::getJMapInfoArg0NoInit(rIter, &arg0);
-
-    if (arg0 != 0) {
-        return;
-    }
-
-    pCollector->addArchive("BombTimer");
-
-    if (MR::getNPCItemData(&item, 0)) {
-        NPCActor::addArchive(pCollector, item);
-    }
-}
-
 // NONMATCHING: register allocation and member-pointer constant-table addressing differ.
 void Caretaker::init(const JMapInfoIter& rIter) {
     s32 arg0=-1;
     MR::getJMapInfoArg0NoInit(rIter,&arg0);
     mObjArg0=arg0;
     NPCActorCaps caps("Caretaker");
-    NPCActorItem item;
-    item.mActor="Caretaker";
-    item.mGoods0=lbl_807CFE9C;
-    item.mGoodsJoint0=lbl_807CFE98;
-    item.mGoods1=lbl_807CFE94;
-    item.mGoodsJoint1=lbl_807CFE90;
+    NPCActorItem item("Caretaker");
     caps.setDefault();
     caps.mWaitNerve=GET_NERVE(Caretaker,CaretakerNrvTalk);
     caps.mReactionNerve=GET_NERVE(Caretaker,CaretakerNrvReaction);
@@ -149,7 +121,7 @@ void Caretaker::init(const JMapInfoIter& rIter) {
         mBombTimerLayout->initWithoutIter();
         mBombTimerLayout->setTimeLimit(mTidyTimeLimit*60);
         mBombTimerLayout->kill();
-        _168=MR::joinToGroupArray(this,rIter,"ゴミ管理",32);
+        mGarbageGroup=MR::joinToGroupArray(this,rIter,"ゴミ管理",32);
         MR::enablePlayerResourceFire();
         MR::createSceneObj(0x92);
         if(getMsgCtrl()) {

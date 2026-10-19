@@ -225,6 +225,15 @@ void StoryBookDemo::exeCloseText() {
     }
 }
 // NONMATCHING: regalloc
+namespace {
+    inline bool isShortTurnPageDemo() {
+        if (MR::isDemoActive("ピーチ誘拐") && MR::isDemoSubPartLastStep()) {
+            return true;
+        }
+        return MR::isDemoActive("スピンドライバ初出");
+    }
+}  // namespace
+
 void StoryBookDemo::exeTurnStart() {
     if (MR::isFirstStep(this)) {
         DemoFunction::getDemoDirector()->movementOffAllCasts();
@@ -232,8 +241,7 @@ void StoryBookDemo::exeTurnStart() {
         if (MR::isEqualStageName("StaffRollGalaxy")) MR::startAction(this, "TurnPageChargeMore");
         else if (MR::isPauseTimeKeepDemo("ベビチコ出会い")) MR::startAction(this, "TurnPageCharge");
         else {
-            bool shortPage = (MR::isDemoActive("ピーチ誘拐") && MR::isDemoSubPartLastStep()) ? true : MR::isDemoActive("スピンドライバ初出");
-            if (shortPage) MR::startAction(this, "TurnPageShort");
+            if (isShortTurnPageDemo()) MR::startAction(this, "TurnPageShort");
             else MR::startAction(this, "TurnPage");
         }
         mCaptureRequested = true;

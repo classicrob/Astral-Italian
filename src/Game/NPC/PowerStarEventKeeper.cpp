@@ -84,17 +84,17 @@ void PowerStarEventKeeper::initStarInfoTable() {
     mInfoTbl = new PowerStarInfo[mPowerStarNum];
     for (s32 i = 0; i < mPowerStarNum; i++) {
         PowerStarInfo* info = &mInfoTbl[i + mStartScenario - 1];
-        info->_0 = false;
-        info->_1 = false;
-        info->_2 = false;
+        info->mIsExistInGalaxy = false;
+        info->mHasNoAppearObj = false;
+        info->mIsRequestedAppear = false;
         info->mDemoName = nullptr;
     }
     for (s32 starID = mStartScenario; starID <= mPowerStarNum; starID++) {
         if (MR::makeCurrentGalaxyStatusAccessor().isExistPowerStarAtScenario(MR::getCurrentScenarioNo(), starID)) {
-            mInfoTbl[u32(starID - 1)]._0 = true;
+            mInfoTbl[u32(starID - 1)].mIsExistInGalaxy = true;
         }
         if (MR::getAppearPowerStarObjName(starID) == nullptr) {
-            mInfoTbl[u32(starID - 1)]._1 = true;
+            mInfoTbl[u32(starID - 1)].mHasNoAppearObj = true;
         }
     }
 }
@@ -104,12 +104,12 @@ void PowerStarEventKeeper::initStarInfoTableAfterPlacement() {
     for (s32 i = 0; i < mPowerStarNum; i++) {
         s32 starID = i + mStartScenario;
         PowerStarInfo* info = &mInfoTbl[u32(starID - 1)];
-        if (info->_0) {
+        if (info->mIsExistInGalaxy) {
             if (info->mDemoName) {
                 PowerStar* star = PowerStarFunction::findPowerStar(starID);
                 star->mIsInDemo = true;
                 star->kill();
-            } else if (info->_1) {
+            } else if (info->mHasNoAppearObj) {
                 PowerStar* star = PowerStarFunction::findPowerStar(starID);
                 if (star->_174) {
                     star->kill();
@@ -135,7 +135,7 @@ void PowerStarEventKeeper::requestAppearPowerStar(const char* pName, s32 starID,
     if (starID < 0) {
         starID = findStarID(pName);
     }
-    mInfoTbl[u32(starID - 1)]._2 = true;
+    mInfoTbl[u32(starID - 1)].mIsRequestedAppear = true;
     if (withoutDemo) {
         EventFunction::getPowerStarHolder()->appearPowerStarWithoutDemo(starID);
     } else {

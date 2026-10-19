@@ -1,4 +1,4 @@
-// NONMATCHING: updateButton register allocation and stack layout; other residuals are literal aliases.
+// NONMATCHING: updateButton calls and constants match; target keeps three saved GPRs (r29-r31) with a 0x10-larger frame and different temporary slots (register/stack residue). Remaining prep/isSkipEventTalkBalloon residue is lbl_ vs @NNN literal naming only.
 #include "Game/NPC/TalkState.hpp"
 #include "Game/Scene/GameSceneFunction.hpp"
 #include "Game/System/GameSequenceFunction.hpp"
@@ -17,6 +17,12 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+
+bool TalkFunction::isSkipEventTalkBalloon() {
+    if(GameSceneFunction::isExecSuperDreamerTalk()) return false;
+    if(MR::isDemoActive("ベリードラゴンデモ（クッパＪｒ登場）")) return GameSequenceFunction::isPadMode2();
+    return false;
+}
 
 TalkState::TalkState() : mTalkCtrl(), mBalloon() {
 }
@@ -74,7 +80,7 @@ void TalkStateShort::open() {
     mBalloon->open(mTalkCtrl);
     LiveActor* actor = mTalkCtrl->mHostActor;
     TalkMessageInfo* info = TalkFunction::getMessageInfo(mTalkCtrl);
-    MR::startTalkSound(info->_6, actor);
+    MR::startTalkSound(info->mTalkSoundId, actor);
 }
 
 void TalkStateShort::clos() {
@@ -116,7 +122,7 @@ bool TalkStateEvent::talk(const TalkMessageCtrl* pArg1) {
     if(mTalkSoundDelay<12) ++mTalkSoundDelay;
     else if(mTalkSoundDelay==12) {
         TalkMessageInfo* info=TalkFunction::getMessageInfo(mTalkCtrl);
-        MR::startTalkSound(info->_6,mTalkCtrl->mHostActor);
+        MR::startTalkSound(info->mTalkSoundId,mTalkCtrl->mHostActor);
         ++mTalkSoundDelay;
     }
     if (MR::testCorePadButtonA(0)) {
@@ -210,7 +216,7 @@ bool TalkStateNormal::prep(const TalkMessageCtrl* pArg1) {
     } else if (!MR::testCorePadTriggerA(0)) {
         TalkMessageInfo* info = TalkFunction::getMessageInfo(mTalkCtrl);
         if (!mAButton->isOpen()) {
-            if (info->isBalloonSign() || info->_0==nullptr) {
+            if (info->isBalloonSign() || info->mMessageText==nullptr) {
                 mAButton->openWithRead();
             } else {
                 mAButton->openWithTalk();
@@ -293,10 +299,4 @@ TalkState* TalkStateHolder::getState(const TalkMessageCtrl* pArg1) {
     }
 
     return mTalk;
-}
-
-bool TalkFunction::isSkipEventTalkBalloon() {
-    if(GameSceneFunction::isExecSuperDreamerTalk()) return false;
-    if(MR::isDemoActive("ベリードラゴンデモ（クッパＪｒ登場）")) return GameSequenceFunction::isPadMode2();
-    return false;
 }

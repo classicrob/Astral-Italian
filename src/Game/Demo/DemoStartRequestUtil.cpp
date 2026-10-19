@@ -341,7 +341,7 @@ namespace DemoStartRequestUtil {
 
     void startDemo(const DemoStartInfo* pStartInfo) {
         NameObj* pStarter = getDemoStarter(*pStartInfo);
-        MR::getSceneNameObjMovementController()->requestStopSceneFor(MR::MovementControlType(pStartInfo->_24), pStarter);
+        MR::getSceneNameObjMovementController()->requestStopSceneFor(MR::MovementControlType(pStartInfo->mSceneStopType), pStarter);
 
         if (pStartInfo->mFrameType == DemoStartInfo::CinemaFrameType_0) {
             MR::tryScreenToFrameCinemaFrame();
@@ -380,7 +380,8 @@ namespace DemoStartRequestUtil {
             MR::pauseOffEffectAll(pStartInfo->_4);
         }
 
-        if (pStartInfo->_24 == 2 || pStartInfo->_24 == 3) {
+        bool isRemoteDemoEnd = pStartInfo->mSceneStopType == 2 || pStartInfo->mSceneStopType == 3;
+        if (isRemoteDemoEnd) {
             MarioAccess::readyRemoteDemo();
         }
 
@@ -412,7 +413,7 @@ namespace {
                                        DemoStartInfo::DeleteEffectType deleteEffectType) {
         pStartInfo->mDemoName = pDemoName;
         pStartInfo->mDemoType = demoType;
-        pStartInfo->_24 = a4;
+        pStartInfo->mSceneStopType = a4;
         pStartInfo->mFrameType = frameType;
         pStartInfo->mPointerType = pointerType;
         pStartInfo->mDeleteEffectType = deleteEffectType;
@@ -507,7 +508,7 @@ namespace DemoStartRequestUtil {
                 pStarter = DemoFunction::getDemoDirector()->mStartRequestHolder->mProxyObj;
             }
 
-            DemoFunction::getDemoDirector()->startDemoExecutor(pStarter, rStartInfo.mDemoName, rStartInfo._24, nullptr);
+            DemoFunction::getDemoDirector()->startDemoExecutor(pStarter, rStartInfo.mDemoName, rStartInfo.mSceneStopType, nullptr);
             return true;
         }
 

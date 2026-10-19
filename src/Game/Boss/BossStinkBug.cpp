@@ -343,7 +343,7 @@ void BossStinkBug::updateJointControl() {
             mLegGroundCheckers[i]->bringFriction(1.0f, 0.08f);
         }
 
-        dirGroundCheckToLegJoint.scale(mLegGroundCheckers[i]->_8C);
+        dirGroundCheckToLegJoint.scale(mLegGroundCheckers[i]->mFrictionRate);
         mLegGroundCheckers[i]->mVelocity.set(dirGroundCheckToLegJoint);
         mLegGroundCheckers[i]->movement();
         jointCtrl->setIKEndPosition(::sLegJointNameList[i], mLegGroundCheckers[i]->mPosition, mPoseBlendRate);

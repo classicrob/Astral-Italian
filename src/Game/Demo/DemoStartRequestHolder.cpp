@@ -14,7 +14,7 @@ DemoStartInfo::DemoStartInfo() {
     mDemoName = nullptr;
     _1C = nullptr;
     _20 = nullptr;
-    _24 = 0;
+    mSceneStopType = 0;
     mDemoType = DemoType_0;
     mFrameType = CinemaFrameType_0;
     mPointerType = StarPointerType_0;
@@ -31,7 +31,7 @@ DemoStartInfo& DemoStartInfo::operator=(const DemoStartInfo& rOther) {
     mDemoName = rOther.mDemoName;
     _1C = rOther._1C;
     _20 = rOther._20;
-    _24 = rOther._24;
+    mSceneStopType = rOther.mSceneStopType;
     mDemoType = rOther.mDemoType;
     mFrameType = rOther.mFrameType;
     mPointerType = rOther.mPointerType;
@@ -183,15 +183,15 @@ DemoStartRequestHolder::DemoStartRequestHolder() : mNumInfos(), mRequestBuffer(m
 }
 
 template <>
-MR::FixedRingBuffer< const DemoStartInfo*, 16 >::iterator::iterator(const DemoStartInfo** pHead, const DemoStartInfo** pTail) {
+MR::FixedRingBuffer< const DemoStartInfo*, 16 >::iterator::iterator(const DemoStartInfo** pHead, const DemoStartInfo** pTail, const DemoStartInfo** pEnd) {
     mHead = pHead;
     mTail = pTail;
-    mEnd = pTail + 16;
+    mEnd = pEnd;
 }
 
 template <>
 void MR::FixedRingBuffer< const DemoStartInfo*, 16 >::push_back(const DemoStartInfo* const& rValue) {
-    if ((u32)mCount >= 16) {
+    if ((u32)(mCount + 1) >= 16) {
         return;
     }
 

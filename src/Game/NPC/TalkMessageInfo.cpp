@@ -2,7 +2,7 @@
 #include "Game/Util.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 
-TalkMessageInfo::TalkMessageInfo() : _0(0), mCameraSetID(0), _6(0), mCameraType(2), mTalkType(0), mBalloonType(0), _A(-1), _B(-1) {
+TalkMessageInfo::TalkMessageInfo() : mMessageText(0), mCameraSetID(0), mTalkSoundId(0), mCameraType(2), mTalkType(0), mBalloonType(0), mMessageAreaArg(-1), mAlreadyReadFlagId(-1) {
 }
 
 bool TalkMessageInfo::isNormalTalk() const {

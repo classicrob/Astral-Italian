@@ -18,7 +18,6 @@
 #include "Game/Util/TalkUtil.hpp"
 
 extern const char cNPCTalkDefault[], cNPCTalkTurnDefault[];
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 
 namespace {
     static const s32 sFlyLectureWaitStep = 120;
@@ -37,19 +36,6 @@ namespace NrvHoneyBee {
 HoneyBee::HoneyBee(const char* pName) : NPCActor(pName), mCurrentRailPoint(-1), mArg0(), mFloatOffset() {
     mSmoothedCenterMtx.identity();
     mCenterPosition.zero();
-}
-
-void HoneyBee::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
-    const char* objName;
-    MR::getObjectName(&objName, rIter);
-    NPCActorItem npcItem = objName;
-
-    s32 arg0 = -1;
-    MR::getJMapInfoArg0NoInit(rIter, &arg0);
-
-    if (MR::getNPCItemData(&npcItem, arg0)) {
-        NPCActor::addArchive(pCollector, npcItem);
-    }
 }
 
 void HoneyBee::init(const JMapInfoIter& rIter) {
@@ -76,9 +62,7 @@ void HoneyBee::init(const JMapInfoIter& rIter) {
     case 5: mParam.setSingleAction("GatekeeperWait"); mUseReactionActions=true; break;
     }
     initialize(rIter,caps,"HoneyBee",nullptr,nullptr);
-    NPCActorItem item;
-    item.mActor="HoneyBee"; item.mGoods0=lbl_807CFE9C; item.mGoodsJoint0=lbl_807CFE98;
-    item.mGoods1=lbl_807CFE94; item.mGoodsJoint1=lbl_807CFE90;
+    NPCActorItem item = "HoneyBee";
     MR::getNPCItemData(&item,mArg0);
     equipment(item,false);
     MR::initFur(this);

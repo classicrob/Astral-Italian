@@ -124,9 +124,7 @@ void PrepareKoopaFinalDemoObj::initAfterPlacement() {
     offset.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
     JMAVECScaleAdd(&offset, &mPosition, &mFinalKoopa->mPosition, lbl_807D9820);
     mFinalKoopa->mPosition.y += lbl_807D9824;
-    mFinalKoopa->mRotation.x = lbl_807D9828;
-    mFinalKoopa->mRotation.y = lbl_807D982C;
-    mFinalKoopa->mRotation.z = lbl_807D9814;
+    mFinalKoopa->mRotation.set(lbl_807D9828, lbl_807D982C, lbl_807D9814);
 }
 
 // NONMATCHING: equivalent branch layout

@@ -21,8 +21,8 @@ public:
 
     RailGraphNode* mNodes;  // 0x0
     s32 mNodeCount;         // 0x4
-    u32 _8;
+    /* 0x08 */ u32 mUsedNodeCount;
     RailGraphEdge* mEdges;  // 0xC
     s32 mEdgeCount;         // 0x10
-    s32 _14;
+    /* 0x14 */ s32 mUsedEdgeCount;
 };

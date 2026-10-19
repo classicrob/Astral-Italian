@@ -2336,8 +2336,10 @@ Game/Demo/MeetKoopaDemoObj.cpp:
 	.sbss       start:0x807D1DE8 end:0x807D1E08
 
 Game/Demo/NormalEndingDemoObj.cpp:
-	.text       start:0x8013FEE0 end:0x80140A20
+	.text       start:0x8013FCC0 end:0x80140A20
+	.data       start:0x80680070 end:0x80680394
 	.sdata      start:0x807CF730 end:0x807CF758
+	.sbss       start:0x807D1E08 end:0x807D1E20
 
 Game/Demo/DemoAstroPlanet.cpp:
 	.text       start:0x80140A20 end:0x80140E50
@@ -5884,6 +5886,7 @@ Game/NPC/CareTaker.cpp:
 	.ctors      start:0x806446AC end:0x806446B0
 	.rodata     start:0x8064B8D8 end:0x8064B8E0
 	.data       start:0x806B7BD0 end:0x806B8010
+	.sdata      start:0x807CFE88 end:0x807CFEA0
 	.sdata2     start:0x807DF040 end:0x807DF060
 
 Game/NPC/CareTakerHunter.cpp:

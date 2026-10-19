@@ -32,7 +32,7 @@ public:
     virtual void executeType(const DemoSoundInfo* pInfo);
 
     void initActionSoundKeeper();
-    bool isPermitBgmChange();
+    bool isPermitBgmChange() NO_INLINE;
 
     /* 0x18 */ ActionSoundKeeper* mActionSoundKeeper;
 };

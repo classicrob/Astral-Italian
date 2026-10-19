@@ -42,7 +42,7 @@ void TicoStateEatCoin::control() { updateAbsorbSound(); mAbsorbSoundCooldown--; 
 bool TicoStateEatCoin::isComplete() const { return isNerve(&TicoStateEatCoinNrvComplete::sInstance); }
 
 #pragma dont_inline on
-// NONMATCHING: the host pointer lifetime and vector temporary stack slots differ.
+// NONMATCHING: calls and constants match; the getCamXdir and by-value direction temporaries sit in swapped stack slots and mActor is reloaded after the copy (register/stack residue).
 void TicoStateEatCoin::exeTurn() {
     if (MR::isFirstStep(this)) TicoStateEatCoinFunction::calcMouthPosition(&mMouthPosition, mActor);
     TVec3f cameraPosition(0.0f, 0.0f, 0.0f);

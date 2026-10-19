@@ -127,13 +127,11 @@ void DemoTitleAnim::createSubs() {
         MR::getCsvDataStrOrNULL(&param->mLoopActionName, csv, "LoopActionName", i);
         MR::getCsvDataStrOrNULL(&param->mSelectingActionName, csv, "SelectingActionName", i);
 
-        DemoTitleAnimSub* sub;
         if (MR::isEqualString(param->mArcName, "Player")) {
-            sub = new DemoTitleAnimPlayer(this, param);
+            mSubs[i] = new DemoTitleAnimPlayer(this, param);
         } else {
-            sub = new DemoTitleAnimModel(this, param);
+            mSubs[i] = new DemoTitleAnimModel(this, param);
         }
-        mSubs[i] = sub;
         mSubs[i]->initWithoutIter();
     }
 }

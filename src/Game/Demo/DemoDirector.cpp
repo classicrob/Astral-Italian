@@ -207,7 +207,7 @@ void DemoDirector::startDemoRequested() {
     DemoStartRequestUtil::startDemo(mStartRequestHolder);
     const DemoStartInfo* pInfo = mStartRequestHolder->getCurrentInfo();
     NameObj* pStarter = DemoStartRequestUtil::getDemoStarter(*pInfo);
-    startDemo(pStarter, pInfo->mDemoName, pInfo->mFrameType == DemoStartInfo::CinemaFrameType_0, pInfo->_24);
+    startDemo(pStarter, pInfo->mDemoName, pInfo->mFrameType == DemoStartInfo::CinemaFrameType_0, pInfo->mSceneStopType);
     DemoStartRequestUtil::popStartDemoRequest(mStartRequestHolder);
 }
 

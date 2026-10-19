@@ -20,7 +20,7 @@ public:
     }
 
     /* 0x00 */ f32 mCamWaterDepth;
-    /* 0x04 */ f32 _4;
+    /* 0x04 */ f32 mBottomDepth;
     /* 0x08 */ TVec3f mSurfacePos;
     /* 0x14 */ TVec3f mSurfaceNormal;
     /* 0x20 */ f32 mWaveHeight;
@@ -31,6 +31,5 @@ public:
     /* 0x44 */ const OceanBowl* mOceanBowl;
     /* 0x48 */ const OceanRing* mOceanRing;
     /* 0x4C */ const OceanSphere* mOceanSphere;
-    // PLACEHOLDER(core): name inferred from WaterAreaHolder::tryInOceanArea (stores WaterStream hit at 0x50); resolve when WaterStream fields are confirmed
     /* 0x50 */ const WaterStream* mWaterStream;
 };

@@ -68,7 +68,10 @@ void MarioFaceAfterGrandStarTakeOffDemoObj::exeDemo() {
     MR::extractMtxYDir(MR::getJointMtx(this, "MarioShipTakeOff"), &dir);
     dir.negate();
     for (s32 i = 0; i < mCount; i++) {
-        mParts[i]->mGravity.set(dir.x, dir.y, dir.z);
+        LiveActor* pPart = mParts[i];
+        pPart->mGravity.x = dir.x;
+        pPart->mGravity.y = dir.y;
+        pPart->mGravity.z = dir.z;
     }
     if (!MR::isDemoActive()) {
         kill();

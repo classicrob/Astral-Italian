@@ -167,7 +167,7 @@ void TrickRabbit::initState() {
     mRabbitStateWaitStart = new RabbitStateWaitStart(this, &mFrontDirection, mTalkMessageCtrl);
     mRabbitStateWaitStart->init();
     mRabbitStateWaitStart->setTalkActionName("StartEvent");
-    mRabbitStateWaitStart->_1C = true;
+    mRabbitStateWaitStart->mIsKillOnTalkEnd = true;
 }
 
 void TrickRabbit::control() {
@@ -500,7 +500,7 @@ bool TrickRabbit::tryEndPowerStarDemo() {
 void TrickRabbit::exeWaitStart() {
     if (MR::isFirstStep(this)) {
         mRabbitStateWaitStart->setTalkActionName("StartEvent");
-        mRabbitStateWaitStart->_1C = true;
+        mRabbitStateWaitStart->mIsKillOnTalkEnd = true;
     }
 
     if (MR::updateActorState(this, mRabbitStateWaitStart) && !tryStartDemoRunnaway()) {
@@ -790,7 +790,7 @@ void TrickRabbit::exeWaitPowerStarDemo() {
 void TrickRabbit::exeGiveUp() {
     if (MR::isFirstStep(this)) {
         mRabbitStateWaitStart->setTalkActionName("GiveUpTalk");
-        mRabbitStateWaitStart->_1C = false;
+        mRabbitStateWaitStart->mIsKillOnTalkEnd = false;
     }
 
     MR::updateActorState(this, mRabbitStateWaitStart);

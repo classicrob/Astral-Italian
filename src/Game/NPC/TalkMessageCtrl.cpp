@@ -43,8 +43,8 @@ TalkMessageCtrl::TalkMessageCtrl(LiveActor* pHost, const TVec3f& rArg2, MtxPtr p
 }
 
 bool TalkMessageCtrl::inMessageArea() const {
-    s8 messageInfoEnumByte = mNodeCtrl->mMessageInfo._A;
-    s32 messageInfoEnum = mNodeCtrl->mMessageInfo._A;
+    s8 messageInfoEnumByte = mNodeCtrl->mMessageInfo.mMessageAreaArg;
+    s32 messageInfoEnum = mNodeCtrl->mMessageInfo.mMessageAreaArg;
     s32 zoneID = mZoneID;
 
     if (messageInfoEnumByte < 0) {
@@ -436,7 +436,7 @@ TalkMessageInfo* TalkFunction::getMessageInfo(const TalkMessageCtrl* pCtrl) {
 }
 
 const wchar_t* TalkFunction::getMessage(const TalkMessageCtrl* pCtrl) {
-    return (const wchar_t*)pCtrl->mNodeCtrl->mMessageInfo._0;
+    return (const wchar_t*)pCtrl->mNodeCtrl->mMessageInfo.mMessageText;
 }
 
 const wchar_t* TalkFunction::getSubMessage(const TalkMessageCtrl* pCtrl) {

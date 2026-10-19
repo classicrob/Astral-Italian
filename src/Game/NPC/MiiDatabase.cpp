@@ -9,7 +9,7 @@ struct MiiDatabaseStoreData {
 };
 
 MiiDatabase::~MiiDatabase() {
-    delete[] _0;
+    delete[] mRawBuffer;
     delete mStoreData->mData;
     delete mStoreData;
 }

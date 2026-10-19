@@ -1,3 +1,4 @@
+#define COLOR8_GX_CTOR_INLINE
 #include "Game/Util.hpp"
 #include "Game/Enemy/UnbabaSlim.hpp"
 #include "Game/MapObj/MapPartsRotator.hpp"
@@ -71,7 +72,7 @@ void UnbabaSlim::init(const JMapInfoIter& rIter) {
     MR::fn_80008890(this, "UnbabaSlim");
 }
 
-// NONMATCHING: TVec3 sub/assign stay out-of-line in this TU while the target inlines them (paired-single code)
+// NONMATCHING: same inlined TVec3 operator- pointer-register residue as Unbaba::control (regalloc only)
 void UnbabaSlim::control() {
     if (!MR::isValidSwitchB(this) || MR::isOnSwitchB(this)) {
         if (mRotator != nullptr) mRotator->movement();
@@ -179,18 +180,13 @@ void UnbabaSlim::updateRotatingBaseMtx() {
     MR::setBaseTRMtx(this, mtx);
 }
 
-// NONMATCHING: matrix copy and Color8 init stay out-of-line in this TU while the target inlines them (paired-single copy)
+// NONMATCHING: sUnbabaVec base address is materialized before the getJointMtx call in the target (instruction order only)
 void UnbabaSlim::calcHeadDrawMtx() {
     mMtx.setInline(MR::getJointMtx(this, "Head"));
     MR::addTransMtxLocal(mMtx, sUnbabaVec[2]);
     MR::preScaleMtx(mMtx, sUnbabaVec[1] * 5.0f);
-    const GXColor color = {0x8C, 0x28, 0x00, 0x87};
-    Color8 drawColor;
-    drawColor.r = color.r;
-    drawColor.g = color.g;
-    drawColor.b = color.b;
-    drawColor.a = color.a;
-    mVolumeDrawer->setColor(drawColor);
+    static const GXColor color = {0x8C, 0x28, 0x00, 0x87};
+    mVolumeDrawer->setColor(color);
     mVolumeDrawer->setDrawPasses(2);
     mVolumeDrawer->setScale(sUnbabaVec[3]);
 }

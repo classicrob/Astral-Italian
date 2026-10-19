@@ -16,7 +16,6 @@
 extern const volatile s32 sStarPieceTicoEatSpeedStartStep;
 extern const volatile f32 sStarPieceTicoCameraEyeSide, sStarPieceTicoCameraTargetSide, sStarPieceTicoCameraTargetFront;
 
-extern const char lbl_807CFE90[4], lbl_807CFE94[4], lbl_807CFE98[4], lbl_807CFE9C[4];
 namespace { const char* sEventCamera = "デブチコカメラ"; }
 namespace NrvTicoFatStarPiece {
     NEW_NERVE(TicoFatStarPieceNrvReaction, TicoFatStarPiece, Reaction);
@@ -90,10 +89,7 @@ void TicoFatStarPiece::init(const JMapInfoIter& iter) {
     mParam._18 = mParam._14;
     mParam._1C = getActionName("Talk");
     mParam._20 = mParam._1C;
-    NPCActorItem item;
-    item.mActor = "TicoFatStarPiece";
-    item.mGoods0 = lbl_807CFE9C; item.mGoodsJoint0 = lbl_807CFE98;
-    item.mGoods1 = lbl_807CFE94; item.mGoodsJoint1 = lbl_807CFE90;
+    NPCActorItem item("TicoFatStarPiece");
     MR::getNPCItemData(&item, 0);
     equipment(item, false);
     MR::startAction(mGoods0, "TicoFatGoodsStarPiece");

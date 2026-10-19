@@ -136,6 +136,14 @@ void JUTDirectPrint::printSub(u16 position_x, u16 position_y, char const* format
     }
 
     int buffer_length = vsnprintf(buffer, ARRAY_SIZEU(buffer), format, args);
+#ifdef GALAXY_NATIVE
+    if (buffer_length < 0) {
+        return;
+    }
+    if (buffer_length >= static_cast< int >(sizeof(buffer))) {
+        buffer_length = sizeof(buffer) - 1;
+    }
+#endif
     u16 x = position_x;
     if (buffer_length > 0) {
         if (clear) {

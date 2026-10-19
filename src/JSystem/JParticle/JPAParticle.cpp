@@ -134,7 +134,14 @@ void JPABaseParticle::init_c(JPAEmitterWorkData* pWork, JPABaseParticle* pParent
     f32 pos_rndm = csp->getPosRndm();
 
     if (pos_rndm != 0.0f) {
+#ifdef GALAXY_NATIVE
+        const f32 z = emtr->mRndm.get_rndm_zh();
+        const f32 y = emtr->mRndm.get_rndm_zh();
+        const f32 x = emtr->mRndm.get_rndm_zh();
+        JGeometry::TVec3< f32 > rnd(x, y, z);
+#else
         JGeometry::TVec3< f32 > rnd(emtr->mRndm.get_rndm_zh(), emtr->mRndm.get_rndm_zh(), emtr->mRndm.get_rndm_zh());
+#endif
         rnd.setLength(pos_rndm * emtr->get_r_f());
         mLocalPosition.add(rnd);
     }
@@ -146,7 +153,14 @@ void JPABaseParticle::init_c(JPAEmitterWorkData* pWork, JPABaseParticle* pParent
     mOffsetPosition.set(pParent->mOffsetPosition);
 
     f32 base_speed = csp->getBaseVel() * (csp->getBaseVelRndm() * emtr->get_r_zp() + 1.0f);
+#ifdef GALAXY_NATIVE
+    const f32 base_vel_z = emtr->get_r_zp();
+    const f32 base_vel_y = emtr->get_r_zp();
+    const f32 base_vel_x = emtr->get_r_zp();
+    JGeometry::TVec3< f32 > base_vel(base_vel_x, base_vel_y, base_vel_z);
+#else
     JGeometry::TVec3< f32 > base_vel(emtr->get_r_zp(), emtr->get_r_zp(), emtr->get_r_zp());
+#endif
     base_vel.setLength(base_speed);
     mVelType1.scaleAdd(csp->getVelInhRate(), pParent->mVelType1, base_vel);
     mVelType0.scale(csp->getVelInhRate(), pParent->mVelType2);

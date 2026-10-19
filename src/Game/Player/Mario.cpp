@@ -2651,6 +2651,7 @@ void Mario::doSpinPunchAroundPolygons() {
 }
 
 
+// NONMATCHING: register allocation and masked flag insertion lowering.
 void Mario::checkMap() {
     calcShadowPos();
 
@@ -2671,10 +2672,6 @@ void Mario::checkMap() {
             mVerticalSpeed = (mShadowPos - mPosHolder->mPos).dot(gravity);
         }
 
-        if (!((mFlags24.mHighWord >> 9) & 1U)) {
-            _148.zero();
-        }
-
     } else {
         mVerticalSpeed = (mShadowPos - mPosHolder->mPos).dot(gravity);
     }
@@ -2685,7 +2682,7 @@ void Mario::checkMap() {
 
     if (((mMovementStates.mHighWord >> 28) & 1U) && calcAngleD(_368) >= 30.0f) {
         TVec3f start = mPosHolder->mPos + _368 * 100.0f;
-        { const u32 flagValue = static_cast<u32>(MR::getFirstPolyOnLineToMap(&_498, _460, start, -_904 * 150.0f)); u32& flags = mMovementStates.mHighWord; flags = (flags & 0xF7FFFFFFU) | ((flagValue & 1U) << 27); }
+        { const u32 flagValue = static_cast<u32>(fn_803B2770(&_498, _460, start, -_904 * 150.0f)); u32& flags = mMovementStates.mHighWord; flags = (flags & 0xF7FFFFFFU) | ((flagValue & 1U) << 27); }
     } else {
         mMovementStates.mHighWord &= 0xF7FFFFFFU;
     }
@@ -5206,66 +5203,6 @@ bool Mario::doParalyze() {
 
 // ---- MarioEffect.cpp ----
 
-struct MaterialEffectEntry {
-    union FlagWord {
-        u32 mWord;
-        struct {
-            u8 mByte0;
-            u8 mByte1;
-            u8 mByte2;
-            u8 mByte3;
-        };
-    };
-
-    /* 0x00 */ const char* mName;
-    /* 0x04 */ FlagWord mFlag;
-    /* 0x08 */ const char* mEffects[7];
-    /* 0x24 */ const char* mCurrent;
-    /* 0x28 */ MultiEmitter* mEmitter;
-};
-
-
-struct SmokeEffectEntry {
-    union FlagWord {
-        u32 mWord;
-        struct {
-            u8 mByte0;
-            u8 mByte1;
-            u8 mByte2;
-            u8 mByte3;
-        };
-    };
-
-    /* 0x00 */ const char* mName;
-    /* 0x04 */ FlagWord mType;
-    /* 0x08 */ f32 mScale;
-    /* 0x0C */ f32 mRate;
-    /* 0x10 */ FlagWord mFlags;
-    /* 0x14 */ u16 mInterval;
-    /* 0x16 */ u16 mTimer;
-    /* 0x18 */ u32 mHash;
-    /* 0x1C */ MultiEmitter* mEmitter;
-    /* 0x20 */ u8 mMaterial;
-    /* 0x21 */ u8 _21[3];
-};
-
-
-MaterialEffectEntry cMaterialEffectTable[] = {
-    {"属性尻ドロップ",
-     0x00000000,
-     {"HipDropSmoke", "HipDropWater", "HipDropFlower", "HipDropSand", "HipDropSnow", "MudCircle", "HoneyCircle"},
-     nullptr,
-     nullptr},
-    {"属性ハチ風", 0x03000000, {"Hovering", "HoveringWater", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering"}, nullptr, nullptr},
-    {"属性スピン", 0x00000000, {nullptr, "WaterSpin", "FlowerSpin", "SandSpin", "SnowSpin", "MudCircle", "HoneyCircle"}, nullptr, nullptr},
-    {"属性ステージイン",
-     0x00000000,
-     {"StageStartGroundSmoke", nullptr, nullptr, "StageStartGroundSand", nullptr, nullptr, nullptr},
-     nullptr,
-     nullptr},
-    {nullptr, 0, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, nullptr, nullptr}};
-
-
 namespace {
 
     void addMarioEffectAtJoint(LiveActor* pActor, const char* pEffectName, const char* pJointName, const char* pGroupName) NO_INLINE {
@@ -5274,29 +5211,6 @@ namespace {
     }
 
 };
-
-
-SmokeEffectEntry cSmokeTable[] = {{"共通着地普通", 0x08000000, 1.0f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通着地大", 0x03000000, 1.5f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁ジャンプ", 0x03000000, 1.0f, 1.0f, 0x00000300, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通砂煙レベル", 0x07000000, 0.65f, 1.0f, 0x00000000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁手擦り", 0x01000000, 0.35f, 1.0f, 0x02010000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁上昇", 0x01000000, 1.0f, 1.0f, 0x00000200, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ坂", 0x02000000, 0.35f, 1.0f, 0x00010000, 2, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ空転", 0x00000000, 1.0f, 1.0f, 0x00000000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ坂制動", 0x02000000, 0.5f, 1.0f, 0x00000000, 2, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁ヒット着地", 0x03000000, 1.0f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ダメージ着地", 0x03000000, 1.0f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通地上スピン", 0x03000000, 0.9f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ブレーキ", 0x02000000, 0.65f, 1.0f, 0x00010000, 15, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ハイジャンプ", 0x02000000, 0.65f, 1.0f, 0x00010000, 6, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ブラックホール", 0x01000000, 0.65f, 1.0f, 0x03030000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通引き戻し着地", 0x03000000, 1.2f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通水底接触", 0x01000000, 6.0f, 0.5f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通跳躍", 0x08000000, 1.0f, 1.0f, 0x00000C00, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ひこうき雲", 0x03000000, 0.3f, 0.2f, 0x00010000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ひこうきブースト", 0x00000000, 2.0f, 1.0f, 0x00000000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {nullptr, 0, 0.0f, 0.0f, 0, 0, 0, 0, nullptr, 0, {0, 0, 0}}};
 
 
 bool Mario::taskOnEffectCheck(u32 flags) {
@@ -14384,7 +14298,7 @@ bool Mario::taskOnHipDropSlide(u32 flags) {
 
 
 bool Mario::taskOnFreezeEnd(u32) {
-    return mActor->finalizeFreezeModel();
+    return mActor->fn_803BB5F0();
 }
 
 

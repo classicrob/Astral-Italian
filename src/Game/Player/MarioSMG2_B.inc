@@ -26,10 +26,6 @@ bool Mario::fn_803AA2C0() {
     return false;
 }
 
-void Mario::fn_803AC550() {
-    this->mActor->fn_803BB5F0();
-}
-
 bool Mario::fn_803AC810() {
     return this->mTeresa->isTeresaAccel();
 }

@@ -108,7 +108,6 @@ public:
     const TVec3f& fn_803B8520();
     u32 fn_803B89E0();
     bool fn_803B8A80();
-    u8* fn_803B8FE0();
     u8* fn_803B9020();
     void fn_803B9270();
     bool fn_803B93E0();
@@ -280,11 +279,10 @@ public:
     void fn_803D26F0();
     void fn_803D32F0();
     void fn_803D5A00(u32 idx);
-    void fn_803D8200();
-    void fn_803D82C0(TVec2f* a, TVec2f* b);
-    void fn_803D8400(TVec2f* a, TVec2f* b);
-    s32 fn_803D8490();
-    void fn_803D86B0(TVec2f* a, TVec2f* b);
+    void fn_803D82C0(TVec2f* a, TVec2f* b) const;
+    void fn_803D8400(TVec2f* a, TVec2f* b) const;
+    s32 fn_803D8490() const;
+    void fn_803D86B0(TVec2f* a, TVec2f* b) const;
     void fn_803D8A30(s32 a, TVec3f& v);
     void fn_803D8A70(s32 mode);
     bool fn_803D8B30(HitSensor* s);
@@ -294,8 +292,8 @@ public:
     bool fn_803D9370(void* tri, TVec3f* v);
     bool fn_803D9430();
     void fn_803D95E0();
-    void fn_803D9670();
-    void fn_803D96C0();
+    virtual void startMovement();
+    virtual void endMovement();
     void fn_803D9710();
     void fn_803D9730();
     void fn_803D9740();
@@ -543,7 +541,6 @@ public:
 
     // Defined in MarioActorPad
     void resetPadSwing();
-    bool isRequestHipDrop() const;
     bool isRequestRush() const;
     bool isRequestThrow() const;
     bool isRequestSpin() const;
@@ -997,7 +994,7 @@ public:
         struct { u8 _padGravity594[0xC]; TVec3f mPreviousGravityVec; };
     };
     /* 0x5AC */ TVec3f _258;  // SMG2 offset guess-gap
-    /* 0x5B8 */ union { TVec3f _1F0; TVec3f mRushVelocityBackup5B8; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x5B8 */ TVec3f mLastMove;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x5C4 */ TVec3f _1FC;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     union {
         struct {
@@ -1020,7 +1017,7 @@ public:
     /* 0x5E8 */ TVec3f mPreviousPosition;
     /* 0x5F4 */ TVec3f _240;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x600 */ union { TVec3f _24C; TVec3f mCapPosition; TVec3f _2AC; };  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x60C */ TVec3f mLastMove;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x60C */ TVec3f mVector60C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x618 */ TVec3f _270;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x624 */ TVec3f _27C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x630 */ TVec3f _288;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
@@ -1214,7 +1211,7 @@ public:
     /* 0xE85 */ u8 _padE85[0x3];
     /* 0xE88 */ LiveActor* _994;  // probably some subclass of LiveActor  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset guess
     /* 0xE8C */ MarioSearchLight* mSearchLight;  // SMG2 offset guess-gap
-    /* 0xE90 */ u8 _padE90[0x4];
+    /* 0xE90 */ u32 mSearchLightTimer;
     /* 0xE94 */ JetTurtleShadow* mJetTurtleShadowE94;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0xE98 */ union { MarioTeresaModel* mTeresaModel; XanimePlayer* _9B8; };  // SMG2 offset guess-gap
     /* 0xE9C */ union { XanimeResourceTable* _9BC; ModelHolder* mModelE9C; };  // SMG2 offset guess-gap  // SMG2 offset guess  // SMG2 offset inh
@@ -1350,7 +1347,7 @@ public:
     /* 0x101E */ u16 _F0E;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x1020 */ u32 _pad1020;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x1024 */ JetTurtleShadow* _9A0;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
-    /* 0x1028 */ u32 mSearchLightTimer;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
+    /* 0x1028 */ u32 _pad1028;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x102C */ u32 _pad102C;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
         };
         struct { u8 _padCamera1010[4]; TVec3f mCameraDirY1014; TVec3f mCameraDirX1020; };

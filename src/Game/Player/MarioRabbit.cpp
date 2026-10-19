@@ -219,7 +219,7 @@ bool MarioRabbit::update() {
             return true;
         }
 
-        if (mActor->isRequestHipDrop()) {
+        if (mActor->fn_803BDE10()) {
             if (getPlayer()->jumpToHipDrop()) {
                 _68 = 0;
             }

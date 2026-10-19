@@ -1475,7 +1475,7 @@ void MarioActor::fn_803D32F0() {
 }
 
 
-void MarioActor::fn_803D8200() {
+void MarioActor::drawSearchLight() const {
     TVec2f a, b;
     if (mSearchLight != nullptr && this->mMario->isStatusActive(6)) {
         if (!this->mMario->mSwim->fn_80400910()) {
@@ -1491,7 +1491,7 @@ void MarioActor::fn_803D8200() {
     }
 }
 
-void MarioActor::fn_803D82C0(TVec2f* a, TVec2f* b) {
+void MarioActor::fn_803D82C0(TVec2f* a, TVec2f* b) const {
     TVec3f thr;
     this->getThrowVec(&thr);
     TDDraw::project2D(a, this->mPosition);
@@ -1523,7 +1523,7 @@ void MarioActor::fn_803D82C0(TVec2f* a, TVec2f* b) {
     *b = hi + m2;
 }
 
-void MarioActor::fn_803D8400(TVec2f* a, TVec2f* b) {
+void MarioActor::fn_803D8400(TVec2f* a, TVec2f* b) const {
     TDDraw::setup(0, 0, 2);
     GXSetCullMode(GX_CULL_NONE);
     GXSetAlphaUpdate(GX_TRUE);
@@ -1533,10 +1533,10 @@ void MarioActor::fn_803D8400(TVec2f* a, TVec2f* b) {
     TDDraw::drawFillBox(*a, *b, 0);
 }
 
-s32 MarioActor::fn_803D8490() {
-    J3DModelX* m = (J3DModelX*)MR::getJ3DModel(F(LiveActor*, 0xE8C));
+s32 MarioActor::fn_803D8490() const {
     TDDraw::setup(1, 1, 0);
-    J3DMaterial* mat = **FP(FP(m, void*, 4), J3DMaterial***, 0x60);
+    J3DModelX* m = static_cast<J3DModelX*>(MR::getJ3DModel(mSearchLight));
+    J3DMaterial* mat = m->getModelData()->getMaterialNodePointer(0);
     if (!m->simpleDrawSetup(mat)) {
         return 0;
     }
@@ -1544,7 +1544,7 @@ s32 MarioActor::fn_803D8490() {
     GXSetAlphaUpdate(GX_TRUE);
     GXSetColorUpdate(GX_FALSE);
     GXSetDstAlpha(GX_FALSE, 0);
-    u32 t = F(u32, 0xE90);
+    u32 t = mSearchLightTimer;
     f32 f = 1.0f;
     if (t < 0x1E) {
         f = 0.0f;
@@ -1570,9 +1570,9 @@ s32 MarioActor::fn_803D8490() {
 }
 
 // NONMATCHING: registers, pooled color/bias addressing, equivalent color packing and redundant target branches.
-void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) {
+void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
     J3DModelX* m = static_cast<J3DModelX*>(MR::getJ3DModel(mSearchLight));
-    u32 t = F(u32, 0xE90);
+    u32 t = mSearchLightTimer;
     f32 f = 1.0f;
     J3DMaterial* mat = m->getModelData()->getMaterialNodePointer(0);
     if (t < 0x1E) {
@@ -1898,13 +1898,13 @@ void MarioActor::fn_803D95E0() {
     }
 }
 
-void MarioActor::fn_803D9670() {
+void MarioActor::startMovement() {
     if (this->mMario->isPlayerModeYoshi()) {
         MR::requestMovementOn(mYoshiHolder->mYoshi);
     }
 }
 
-void MarioActor::fn_803D96C0() {
+void MarioActor::endMovement() {
     if (this->mMario->isPlayerModeYoshi()) {
         MR::requestMovementOff(mYoshiHolder->mYoshi);
     }

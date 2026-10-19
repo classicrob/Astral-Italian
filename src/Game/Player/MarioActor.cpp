@@ -424,7 +424,7 @@ void MarioActor::init(const JMapInfoIter& rInfo) {
     initEffect();
     MR::invalidateClipping(this);
     fn_803BFAE0();
-    _1F0.zero();
+    mLastMove.zero();
     _1FC = mPosition;
     calcCenterPos();
     if (MR::isStageEpilogueDemo() || MR::isStageMarioFaceShipAfterGrandStar() || MR::isStageMarioFaceShipAfterFinalKoopa()) {
@@ -523,7 +523,7 @@ void MarioActor::init2(const TVec3f& rA, const TVec3f& rB, s32 initialAnimation)
     _336 = 0;
     _338 = 0;
 
-    mLastMove.zero();
+    mVector60C.zero();
     _270 = mPosition;
     calcCenterPos();
     initSound(0x10, "Mario", nullptr, TVec3f(0.0f));
@@ -992,9 +992,9 @@ void MarioActor::updateBehavior() {
 
 void MarioActor::updateBindRatio() {
     // FIXME: wrong stack
-    if (!_934 && !MR::isNearZero(_978 - mLastMove)) {
+    if (!_934 && !MR::isNearZero(_978 - mVector60C)) {
         f32 mag = _978.length();
-        if (mag / (_978 - mLastMove).length() < 2.0f) {
+        if (mag / (_978 - mVector60C).length() < 2.0f) {
             _984 += 0.1f;
         } else {
             _984 -= 0.01f;
@@ -2512,7 +2512,7 @@ void MarioActor::getUpVec(TVec3f* pVec) const {
 
 
 void MarioActor::getLastMove(TVec3f* pVec) const {
-    *pVec = _1F0;
+    *pVec = mLastMove;
 }
 
 
@@ -4102,7 +4102,7 @@ void MarioActor::exeGameOver() {
 
 void MarioActor::exeGameOverAbyss() {
     mVelocity = getLastMove() * 0.99f + mCamDirZ * 35.0f * 0.01f;
-    mLastMove = mVelocity;
+    mVector60C = mVelocity;
 
     if (!MR::isFirstStep(this)) {
         return;
@@ -5682,17 +5682,7 @@ void MarioActor::resetPadSwing() {
 }
 
 
-bool MarioActor::isRequestHipDrop() const {
-    if (_934 || _38C != 0) {
-        return false;
-    }
 
-    if (_935) {
-        return false;
-    }
-
-    return checkButtonType(_F0E, false);
-}
 
 
 bool MarioActor::isRequestRush() const {
@@ -7107,7 +7097,7 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
             }
 
             updateGravityVec(true, true);
-            mLastMove = mPreviousGravityVec * -70.0f;
+            mVector60C = mPreviousGravityVec * -70.0f;
             mAppliedGravityVec = mPreviousGravityVec;
             if (!MR::isNearZero(mAppliedGravityVec)) mMario->setGravityVec(mAppliedGravityVec);
         }
@@ -7125,9 +7115,9 @@ void MarioActor::endRush(const RushEndInfo* pInfo) {
         }
 
         if (launched) {
-            mRushVelocityBackup5B8 = mMario->mVelocity;
+            mLastMove = mMario->mVelocity;
         } else {
-            mMario->mVelocity = mRushVelocityBackup5B8;
+            mMario->mVelocity = mLastMove;
         }
 
         mMarioAnim->_15 = 0xFF;
@@ -7932,7 +7922,7 @@ void MarioActor::calcViewWallShadowModel() {
         return;
     }
 
-    _1F0 = position;
+    mLastMove = position;
     _1FC = *triangle.getNormal(0);
     if (!fading) {
         _208 = 0.9f * _208 + 0.1f * (position - _2A0).length();
@@ -9801,18 +9791,15 @@ void MarioActor::entryWallWalkMode(const TVec3f& position, const TVec3f& normal)
 // ---- MarioEffect.cpp ----
 
 struct MaterialEffectEntry {
-    union FlagWord {
-        u32 mWord;
-        struct {
-            u8 mByte0;
-            u8 mByte1;
-            u8 mByte2;
-            u8 mByte3;
-        };
+    struct Options {
+        u8 mSelectionOptions;
+        u8 mReserved1;
+        u8 mReserved2;
+        u8 mReserved3;
     };
 
     /* 0x00 */ const char* mName;
-    /* 0x04 */ FlagWord mFlag;
+    /* 0x04 */ Options mFlag;
     /* 0x08 */ const char* mEffects[8];
     /* 0x28 */ const char* mCurrent;
     /* 0x2C */ MultiEmitter* mEmitter;
@@ -9820,21 +9807,25 @@ struct MaterialEffectEntry {
 
 
 struct SmokeEffectEntry {
-    union FlagWord {
-        u32 mWord;
-        struct {
-            u8 mByte0;
-            u8 mByte1;
-            u8 mByte2;
-            u8 mByte3;
-        };
+    struct TypeCode {
+        u8 mCode;
+        u8 mReserved1;
+        u8 mReserved2;
+        u8 mReserved3;
+    };
+
+    struct Flags {
+        u8 mAttachment;
+        u8 mHostFollowFlags;
+        u8 mPlacementFlags;
+        u8 mReserved;
     };
 
     /* 0x00 */ const char* mName;
-    /* 0x04 */ FlagWord mType;
+    /* 0x04 */ TypeCode mType;
     /* 0x08 */ f32 mScale;
     /* 0x0C */ f32 mRate;
-    /* 0x10 */ FlagWord mFlags;
+    /* 0x10 */ Flags mFlags;
     /* 0x14 */ u16 mInterval;
     /* 0x16 */ u16 mTimer;
     /* 0x18 */ u32 mHash;
@@ -9846,18 +9837,18 @@ struct SmokeEffectEntry {
 
 MaterialEffectEntry cMaterialEffectTable[] = {
     {"属性尻ドロップ",
-     0x00000000,
+     {0, 0, 0, 0},
      {"HipDropSmoke", "HipDropWater", "HipDropFlower", "HipDropSand", "HipDropSnow", "MudCircle", "HoneyCircle", "MarioCloudLand"},
      nullptr,
      nullptr},
-    {"属性ハチ風", 0x03000000, {"Hovering", "HoveringWater", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering"}, nullptr, nullptr},
-    {"属性スピン", 0x00000000, {nullptr, "WaterSpin", "FlowerSpin", "SandSpin", "SnowSpin", "MudCircle", "HoneyCircle", nullptr}, nullptr, nullptr},
+    {"属性ハチ風", {3, 0, 0, 0}, {"Hovering", "HoveringWater", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering", "Hovering"}, nullptr, nullptr},
+    {"属性スピン", {0, 0, 0, 0}, {nullptr, "WaterSpin", "FlowerSpin", "SandSpin", "SnowSpin", "MudCircle", "HoneyCircle", nullptr}, nullptr, nullptr},
     {"属性ステージイン",
-     0x00000000,
+     {0, 0, 0, 0},
      {"StageStartGroundSmoke", nullptr, nullptr, "StageStartGroundSand", nullptr, nullptr, nullptr, "MarioCloudLand"},
      nullptr,
      nullptr},
-    {nullptr, 0, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, nullptr, nullptr}};
+    {nullptr, {0, 0, 0, 0}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, nullptr, nullptr}};
 
 
 namespace {
@@ -10014,7 +10005,7 @@ MultiEmitter* MarioActor::playMaterialEffect(const char* pName) {
     mMaterialEffectsFC8->search(pName, &payload);
     MaterialEffectEntry* entry = reinterpret_cast< MaterialEffectEntry* >(payload);
 
-    const s32 materialIndex = getFloorMaterialIndex(entry->mFlag.mByte0);
+    const s32 materialIndex = getFloorMaterialIndex(entry->mFlag.mSelectionOptions);
     if (materialIndex == -1) {
         return nullptr;
     }
@@ -10025,7 +10016,7 @@ MultiEmitter* MarioActor::playMaterialEffect(const char* pName) {
         return nullptr;
     }
 
-    if (entry->mFlag.mByte0 == 1) {
+    if (entry->mFlag.mSelectionOptions == 1) {
         const char* current = entry->mCurrent;
         if (current != nullptr && current == effectName) {
             return entry->mEmitter;
@@ -10070,27 +10061,26 @@ void MarioActor::stopMaterialEffect(const char* pName) {
 }
 
 
-SmokeEffectEntry cSmokeTable[] = {{"共通着地普通", 0x08000000, 1.0f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通着地大", 0x03000000, 1.5f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁ジャンプ", 0x03000000, 1.0f, 1.0f, 0x00000300, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通砂煙レベル", 0x07000000, 0.65f, 1.0f, 0x00000000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁手擦り", 0x01000000, 0.35f, 1.0f, 0x02010000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁上昇", 0x01000000, 1.0f, 1.0f, 0x00000200, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ坂", 0x02000000, 0.35f, 1.0f, 0x00010000, 2, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ空転", 0x00000000, 1.0f, 1.0f, 0x00000000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通スリップ坂制動", 0x02000000, 0.5f, 1.0f, 0x00000000, 2, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通壁ヒット着地", 0x03000000, 1.0f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ダメージ着地", 0x03000000, 1.0f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通地上スピン", 0x03000000, 0.9f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ブレーキ", 0x02000000, 0.65f, 1.0f, 0x00010000, 15, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ハイジャンプ", 0x02000000, 0.65f, 1.0f, 0x00010000, 6, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ブラックホール", 0x01000000, 0.65f, 1.0f, 0x03030000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通引き戻し着地", 0x03000000, 1.2f, 1.0f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通水底接触", 0x01000000, 6.0f, 0.5f, 0x00000400, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通跳躍", 0x08000000, 1.0f, 1.0f, 0x00000C00, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ひこうき雲", 0x03000000, 0.3f, 0.2f, 0x00010000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {"共通ひこうきブースト", 0x00000000, 2.0f, 1.0f, 0x00000000, 0, 0, 0, nullptr, 0, {0, 0, 0}},
-                                  {nullptr, 0, 0.0f, 0.0f, 0, 0, 0, 0, nullptr, 0, {0, 0, 0}}};
+SmokeEffectEntry cSmokeTable[] = {{"共通着地普通", {8, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通着地大", {3, 0, 0, 0}, 1.5f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁ジャンプ", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 3, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通砂煙レベル", {7, 0, 0, 0}, 0.65f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁手擦り", {1, 0, 0, 0}, 0.35f, 1.0f, {2, 1, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁上昇", {1, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 2, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通スリップ坂", {2, 0, 0, 0}, 0.35f, 1.0f, {0, 1, 0, 0}, 2, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通スリップ空転", {0, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通スリップ坂制動", {2, 0, 0, 0}, 0.5f, 1.0f, {0, 0, 0, 0}, 2, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通壁ヒット着地", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ダメージ着地", {3, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通地上スピン", {3, 0, 0, 0}, 0.9f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ブレーキ", {2, 0, 0, 0}, 0.65f, 1.0f, {0, 1, 0, 0}, 15, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ハイジャンプ", {2, 0, 0, 0}, 0.65f, 1.0f, {0, 1, 0, 0}, 6, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ブラックホール", {1, 0, 0, 0}, 0.65f, 1.0f, {3, 3, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通引き戻し着地", {3, 0, 0, 0}, 1.2f, 1.0f, {0, 0, 4, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通跳躍", {8, 0, 0, 0}, 1.0f, 1.0f, {0, 0, 12, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ひこうき雲", {3, 0, 0, 0}, 0.3f, 0.2f, {0, 1, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {"共通ひこうきブースト", {0, 0, 0, 0}, 2.0f, 1.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}},
+                                  {nullptr, {0, 0, 0, 0}, 0.0f, 0.0f, {0, 0, 0, 0}, 0, 0, 0, nullptr, 0, {0, 0, 0}}};
 
 
 // NONMATCHING: pooled literal offsets differ; instructions and material tables verified.
@@ -10114,7 +10104,7 @@ void MarioActor::initCommonEffect() {
         s32 variant = 0;
         s32 useFollow = 0;
 
-        switch (entry->mType.mByte0) {
+        switch (entry->mType.mCode) {
         case 6:
             useFollow = 1;
         case 0:
@@ -10143,7 +10133,7 @@ void MarioActor::initCommonEffect() {
         for (u32 materialIndex = 0; materialIndex < 8; materialIndex++) {
             sprintf(name, "%s", entry->mName);
 
-            const u8 flag2 = entry->mFlags.mByte2;
+            const u8 flag2 = entry->mFlags.mPlacementFlags;
             if ((flag2 & 0x8) && materialIndex != 1) {
                 continue;
             }
@@ -10180,7 +10170,7 @@ void MarioActor::initCommonEffect() {
                 const char* effectName = effectList[variant];
                 mEffectKeeper->registerEffectWithoutSRT(effectName, name + materialIndex);
             } else {
-                const u8 flag0 = entry->mFlags.mByte0;
+                const u8 flag0 = entry->mFlags.mAttachment;
                 switch (flag0) {
                 case 0: {
                     const char* effectName = effectList[variant];
@@ -10206,17 +10196,17 @@ void MarioActor::initCommonEffect() {
                 }
             }
 
-            if ((entry->mFlags.mByte1 & 0x1) != 0) {
+            if ((entry->mFlags.mHostFollowFlags & 0x1) != 0) {
                 MR::getEffect(this, name + materialIndex)->forceFollowOn();
             }
 
-            if ((entry->mFlags.mByte1 & 0x2) != 0) {
+            if ((entry->mFlags.mHostFollowFlags & 0x2) != 0) {
                 MR::getEffect(this, name + materialIndex)->forceScaleOn();
             }
         }
 
         entry->mTimer = 0;
-        switch (entry->mType.mByte0) {
+        switch (entry->mType.mCode) {
         case 5:
         case 2: {
             mTimedCommonEffects[mTimedCommonEffectCount] = entry;
@@ -10255,11 +10245,11 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
                 return nullptr;
             }
 
-            if ((entry->mFlags.mByte2 & 0x8) && materialIndex != 1) {
+            if ((entry->mFlags.mPlacementFlags & 0x8) && materialIndex != 1) {
                 return nullptr;
             }
 
-            switch (entry->mType.mByte0) {
+            switch (entry->mType.mCode) {
             case 1:
             case 2:
             case 4:
@@ -10287,7 +10277,7 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
                 s32 needsSRT = 0;
 
                 if (materialIndex == 0) {
-                    if (entry->mType.mByte0 >= 6) {
+                    if (entry->mType.mCode >= 6) {
                         const Triangle* tri = mMario->getGroundPolygon();
                         MtxPtr prevMtx = tri->getPrevBaseMtx()->toMtxPtr();
                         MtxPtr baseMtx = mMario->getGroundPolygon()->getBaseMtx()->toMtxPtr();
@@ -10309,7 +10299,7 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
                     }
                 } else {
                     if (needsSRT) {
-                        const u8 hostFlag = entry->mFlags.mByte1;
+                        const u8 hostFlag = entry->mFlags.mHostFollowFlags;
                         const TVec3f* hostPos = nullptr;
                         const TVec3f* hostRot = nullptr;
                         const TVec3f* hostScale = nullptr;
@@ -10333,7 +10323,7 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
                 }
             }
 
-            if (!(entry->mFlags.mByte1 & 0x2)) {
+            if (!(entry->mFlags.mHostFollowFlags & 0x2)) {
                 if (emitter != nullptr) {
                     emitter->setGlobalScale(entry->mScale, -1);
                 }
@@ -10343,7 +10333,7 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
                 emitter->setRate(entry->mRate, -1);
             }
 
-            if (entry->mFlags.mByte2 & 0x1) {
+            if (entry->mFlags.mPlacementFlags & 0x1) {
                 TVec3f dir(mMario->getWallNorm());
                 TPos3f mtx;
                 TVec3f rot;
@@ -10374,7 +10364,7 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
                 }
             }
 
-            if (entry->mFlags.mByte2 & 0x2) {
+            if (entry->mFlags.mPlacementFlags & 0x2) {
                 TVec3f trans(mMario->_4E8);
                 if (emitter != nullptr) {
                     emitter->setGlobalTranslation(trans, -1);
@@ -10385,7 +10375,7 @@ MultiEmitter* MarioActor::playCommonEffect(const char* pName) {
                 entry->mTimer = entry->mInterval;
             }
 
-            switch (entry->mType.mByte0) {
+            switch (entry->mType.mCode) {
             case 1:
             case 2:
             case 4:
@@ -11088,153 +11078,7 @@ void MarioActor::calcViewSearchLight() {
 }
 
 
-void MarioActor::drawSearchLight() const {
-    if (mSearchLight == nullptr) {
-        return;
-    }
 
-    if (!(mMario->isStatusActive(MarioStatus_Swim) && mMario->mSwim->fn_80400910())) {
-        return;
-    }
-
-    if (MR::isSystemTalking()) {
-        return;
-    }
-
-    if (mMario->mSwim->fn_80400930()) {
-        return;
-    }
-
-    TVec3f throwVec;
-    getThrowVec(&throwVec);
-
-    TVec2f screenPos1;
-    TDDraw::project2D(&screenPos1, mPosition);
-
-    TVec2f screenPos2;
-    TDDraw::project2D(&screenPos2, mPosition + throwVec * 10000.0f);
-
-    TVec2f minimum;
-    TVec2f maximum;
-    if (screenPos1.x >= screenPos2.x) {
-        minimum.x = screenPos2.x;
-        maximum.x = screenPos1.x;
-    } else {
-        minimum.x = screenPos1.x;
-        maximum.x = screenPos2.x;
-    }
-
-    if (screenPos1.y >= screenPos2.y) {
-        minimum.y = screenPos2.y;
-        maximum.y = screenPos1.y;
-    } else {
-        minimum.y = screenPos1.y;
-        maximum.y = screenPos2.y;
-    }
-
-    screenPos1 = minimum + TVec2f(-10.0f, -10.0f);
-    screenPos2 = maximum + TVec2f(10.0f, 10.0f);
-
-    TDDraw::setup(0, 0, 2);
-
-    GXSetCullMode(GX_CULL_NONE);
-    GXSetAlphaUpdate(GX_TRUE);
-    GXSetColorUpdate(GX_FALSE);
-    GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_NOOP);
-    GXSetDstAlpha(GX_TRUE, 0);
-
-    TDDraw::drawFillBox(screenPos1, screenPos2, 0);
-    TDDraw::setup(0, 1, 1);
-
-    J3DModelX* model = static_cast< J3DModelX* >(MR::getJ3DModel(mSearchLight));
-    J3DMaterial* const material = model->getModelData()->getMaterialNodePointer(0);
-    if (model->simpleDrawSetup(material)) {
-        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-        GXSetAlphaUpdate(GX_TRUE);
-        GXSetColorUpdate(GX_FALSE);
-        GXSetDstAlpha(GX_FALSE, 0);
-
-        // Gradually fade in the search light.
-        f32 lightBrightness = 1.0f;
-        if (mSearchLightTimer < 30) {
-            lightBrightness = 0.0f;
-        } else if (mSearchLightTimer < 180) {
-            lightBrightness = (mSearchLightTimer - 30) / 150.0f;
-        }
-
-        GXSetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD_NULL, GX_TEXMAP_NULL, GX_COLOR0A0);
-        GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_ZERO, GX_CA_ZERO, GX_CA_ZERO, GX_CA_A0);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-
-        GXColorS10 color = {255, 255, 255, (u8)(lightBrightness * mConst->getTable()->mSearchLightColor[3])};
-
-        GXSetTevColorS10(GX_TEVREG0, color);
-
-        // Render intersection of light cone with the scene by subtracting
-        // visible back faces from front faces.
-        GXSetBlendMode(GX_BM_BLEND, GX_BL_ONE, GX_BL_ONE, GX_LO_NOOP);
-        GXSetCullMode(GX_CULL_BACK);
-        model->setDrawView(0);
-        model->simpleDrawShape(material);
-
-        GXSetCullMode(GX_CULL_FRONT);
-        GXSetBlendMode(GX_BM_SUBTRACT, GX_BL_ONE, GX_BL_ONE, GX_LO_NOOP);
-        model->simpleDrawShape(material);
-
-        TDDraw::setup(0, 1, 2);
-        GXSetCullMode(GX_CULL_NONE);
-        GXSetAlphaUpdate(GX_TRUE);
-        GXSetColorUpdate(GX_TRUE);
-        GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_NOOP);
-        GXSetDstAlpha(GX_TRUE, 0);
-
-        u8* col = mConst->getTable()->mSearchLightColor;
-        TDDraw::drawFillBox(screenPos1, screenPos2, col[0] << 24 | col[1] << 16 | col[2] << 8);
-
-        GXSetDstAlpha(GX_FALSE, 0);
-        GXSetAlphaUpdate(GX_FALSE);
-
-        TDDraw::setup(0, 1, 1);
-        GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
-        GXSetAlphaCompare(GX_GREATER, 4, GX_AOP_AND, GX_ALWAYS, 0);
-        bool res = model->simpleDrawSetup(material);
-
-        GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_ONE, GX_LO_NOOP);
-        GXSetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-
-        // Colour of the light cone.
-        GXColorS10 searchLightCol = {255, 255, 255, (u8)(lightBrightness * mConst->getTable()->mSearchLightAlphaLevel)};
-        GXSetTevColorS10(GX_TEVREG0, searchLightCol);
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_KONST, GX_CA_ZERO, GX_CA_A0, GX_CA_RASA);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_SUB, GX_TB_ZERO, GX_CS_SCALE_1, GX_TRUE, GX_TEVPREV);
-
-        if (res) {
-            // Draw central light cone.
-            model->simpleDrawShape(material);
-        } else {
-            return;
-        }
-
-        GXSetTevAlphaIn(GX_TEVSTAGE0, GX_CA_A1, GX_CA_A0, GX_CA_RASA, GX_CA_ZERO);
-        GXSetTevAlphaOp(GX_TEVSTAGE0, GX_TEV_ADD, GX_TB_ZERO, GX_CS_DIVIDE_2, GX_TRUE, GX_TEVPREV);
-
-        // Draw soft falloff outside light cone.
-        for (u32 i = 0; i < ARRAY_SIZE(mConst->getTable()->mSearchLightBlurAlpha); i++) {
-            model->setDrawView(i + 1);
-
-            // Cone falloff colour.
-            GXColorS10 color3 = {255, 255, 255, (u8)(lightBrightness * mConst->getTable()->mSearchLightBlurAlpha[i])};
-            GXSetTevColorS10(GX_TEVREG0, color3);
-
-            // End cap falloff colour.
-            GXColorS10 endCapCol = {255, 255, 255, 4};
-            GXSetTevColorS10(GX_TEVREG1, endCapCol);
-
-            model->simpleDrawShape(material);
-        }
-    }
-}
 
 
 void MarioActor::getThrowVec(TVec3f* pVec) const {

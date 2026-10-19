@@ -31,10 +31,6 @@ bool MarioActor::fn_803B8A80() {
     return this->mMario->fn_80393C40();
 }
 
-u8* MarioActor::fn_803B8FE0() {
-    return (u8*)this + 0x5B8;
-}
-
 u8* MarioActor::fn_803B9020() {
     return (u8*)this + 0x63C;
 }
@@ -466,14 +462,14 @@ void MarioActor::initMember() {
     F(f32, 0x5AC) = 0.0f;
     F(f32, 0x5B0) = 0.0f;
     F(f32, 0x5B4) = 1.0f;
-    F(TVec3f, 0x5B8).zero();
+    mLastMove.zero();
     F(TVec3f, 0x5C4).zero();
     F(TVec3f, 0x5D0).zero();
     F(TVec3f, 0x5DC).zero();
     mPreviousPosition.zero();
     F(TVec3f, 0x5F4).zero();
     F(TVec3f, 0x600).zero();
-    mLastMove.zero();
+    mVector60C.zero();
     F(u16, 0x6D0) = 0;
     F(TVec3f, 0x618).zero();
     F(TVec3f, 0x624).zero();
@@ -547,7 +543,7 @@ void MarioActor::initMember() {
     F(u8, 0x76A) = 0;
     F(u8, 0x76B) = 0;
     mSearchLight = nullptr;
-    F(u32, 0xE90) = 0;
+    mSearchLightTimer = 0;
     mSearchLightThrowPos = nullptr;
     mNearestUnderSensor798 = nullptr;
     F(f32, 0x79C) = 0.0f;
@@ -1062,7 +1058,7 @@ void MarioActor::fn_803C1E80() {
     F(s16, 0xCCC) = 0;
     F(s32, 0xE20) = 0;
     F(TVec3f, 0x38).zero();
-    F(TVec3f, 0x5B8).zero();
+    mLastMove.zero();
     F(TVec3f, 0x5C4) = this->mPosition;
     if (this->fn_803C1F30()) {
         this->mMario->mPosHolder->fn_80405F90(this->mPosition);
@@ -1133,7 +1129,7 @@ void MarioActor::fn_803C2320() {
 void MarioActor::fn_803C23B0() {
     TVec3f d(this->mPosition);
     d -= F(TVec3f, 0x5C4);
-    F(TVec3f, 0x5B8) = d;
+    mLastMove = d;
     F(TVec3f, 0x5C4) = this->mPosition;
 }
 

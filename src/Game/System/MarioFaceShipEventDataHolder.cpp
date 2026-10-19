@@ -653,7 +653,7 @@ void MessageHolder::initSceneData() {
         const char* pZoneName = MR::getZoneNameFromZoneId(i);
         snprintf(zonePath, 0x100, "/MessageData/%s.arc", pZoneName);
         MR::makeFileNameConsideringLanguage(zoneArc, 0x100, zonePath);
-        if (!MR::isFileExist(zoneArc, true)) {
+        if (!MR::isFileExistOnDisc(zoneArc, true)) {
             mZoneMessageDatas[i] = nullptr;
         } else {
             snprintf(fileName, 0x100, "%s.msbt", pZoneName);

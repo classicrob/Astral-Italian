@@ -6,7 +6,7 @@ struct ResourceCsvGroupInfo {
     const char* mName;
     s32 mCount;
     s32 mStartIndex;
-    u32 _C; // AutoEffectList row count
+    s32 _C; // AutoEffectList row count
     u32 _10; // AutoEffectList first row; initially UINT_MAX
 };
 class ResourceCsvGroupHolder {

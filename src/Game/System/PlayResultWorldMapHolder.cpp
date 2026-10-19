@@ -40,7 +40,7 @@ bool PlayResultWorldMapHolder::isGalaxyFlag(s32 worldNo, s32 index) const {
 }
 
 void PlayResultWorldMapHolder::clearGalaxyFlags() {
-    for (s32 i = 0; i < 8; i++) {
+    for (u32 i = 0; i < 8; i++) {
         for (s32 j = 0; j < 0x40; j++) {
             mGalaxyFlags[i][j] = false;
         }

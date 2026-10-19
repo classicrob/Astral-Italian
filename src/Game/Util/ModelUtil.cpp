@@ -391,7 +391,7 @@ namespace MR {
         }
     }
 
-    u16 getTextureNum(const LiveActor* pActor) {
+    s32 getTextureNum(const LiveActor* pActor) {
         return getJ3DModelData(pActor)->getTexture()->getNum();
     }
 
@@ -410,10 +410,9 @@ namespace MR {
 
 
 
-    // NONMATCHING: target calls getTextureNum out-of-line (ours inlines it; pragma would also un-inline the J3D getters)
     s32 getTextureIndex(const LiveActor* pActor, const char* pName) {
-        u16 textureNum = getTextureNum(pActor);
-        for (u16 i = 0; i < textureNum; i++) {
+        s32 textureNum = getTextureNum(pActor);
+        for (s32 i = 0; i < textureNum; i++) {
             if (isEqualString(getJ3DModelData(pActor)->getTextureName()->getName(i), pName)) {
                 return i;
             }

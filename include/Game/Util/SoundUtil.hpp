@@ -11,7 +11,7 @@ class AudSeKeeper;
 class AudSoundObject;
 class JAISoundHandle;
 class JAISoundID;
-class AudLifeAlertCounter;
+struct AudSeLifeEntry;
 class LiveActor;
 class ActionSoundData;
 
@@ -28,7 +28,7 @@ namespace MR {
     void startPlayFireMorphBGM();
     void fn_8001C280();
     void fn_8005A7F0(LiveActor*, f32);
-    AudLifeAlertCounter* fn_8005BC60(s32);
+    AudSeLifeEntry* fn_8005BC60(s32);
 
     void setAudioSystemField9A0(s32);
     void startAppearPlanetJingle();

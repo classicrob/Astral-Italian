@@ -122,7 +122,7 @@
 #include "Game/Player/MarioYoshiShot.hpp"
 #include "Game/Player/MarioYoshiDash.hpp"
 #include "Game/Player/MarioAllModel.hpp"
-#include "Game/AudioLib/AudLifeAlertCounter.hpp"
+#include "Game/AudioLib/AudSeLifeTable.hpp"
 
 // ---- Mario.cpp ----
 

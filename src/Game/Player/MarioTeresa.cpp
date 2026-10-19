@@ -54,16 +54,6 @@ void MarioTeresa_FORCE_MATCH_SDATA2() {
     (void)-10.0f;
 }
 
-void Mario::startTeresaMode() {
-    _418 = 0;
-    _428 = 0;
-    getPlayer()->mMovementStates.mLowWord |= Mario::MovementStates::Jumping;
-    getPlayer()->mMovementStates.mLowWord &= 0xBFFFFFFFU;
-    getPlayer()->mMovementStates.mHighWord &= 0xDFFFFFFFU;
-    mJumpVec.zero();
-    changeStatus(mTeresa);
-}
-
 void MarioTeresa::updateDropFlag() {
     _58 = 0;
     if (_34.dot(getAirGravityVec()) > 1.0f) {
@@ -73,31 +63,6 @@ void MarioTeresa::updateDropFlag() {
             _58 = 1;
         }
     }
-}
-
-bool Mario::getHitWallNorm(TVec3f* pNormal) {
-    if (((getPlayer()->mMovementStates.mLowWord >> 23) & 1U)) {
-        if (!isThroughWall(mFrontWallTriangle)) {
-            *pNormal = *mFrontWallTriangle->getNormal(0);
-            return true;
-        }
-    } else if (((getPlayer()->mMovementStates.mLowWord >> 6) & 1U)) {
-        if (!isThroughWall(mBackWallTriangle)) {
-            *pNormal = *mBackWallTriangle->getNormal(0);
-            return true;
-        }
-    } else if (((getPlayer()->mMovementStates.mLowWord >> 5) & 1U) && !isThroughWall(mSideWallTriangle)) {
-        *pNormal = *mSideWallTriangle->getNormal(0);
-        return true;
-    }
-
-    return false;
-}
-
-void Mario::resetTeresaMode() {
-    mActor->_F44 = true;
-    _418 = 0;
-    mTeresa->resetTeresaMode();
 }
 
 void MarioTeresa::resetTeresaMode() {
@@ -410,22 +375,6 @@ void MarioTeresa::addTeresaHorizontalVelocity(const TVec3f& rVelocity) {
     }
 
     _34 = horizontal + getAirGravityVec() * vertical;
-}
-
-void Mario::doTeresaReflection(const TVec3f& rNormal, bool effect) {
-    mTeresa->doTeresaReflection(rNormal, effect);
-}
-
-void Mario::startTeresaDisappear() {
-    _418 = mActor->getConst().getTable()->mTeresaWallThroughTime;
-    playSound("テレサ消える");
-    playSound("声トルネード");
-    MR::startCSSound("CS_TERESA", nullptr, 0);
-    mTeresa->updateDropFlag();
-    resetSleepTimer();
-    if (_962 == 5 && mVerticalSpeed < 100.0f) {
-        mTeresa->_34 += getAirGravityVec() * 10.0f;
-    }
 }
 
 bool MarioTeresa::start() {

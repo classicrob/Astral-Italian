@@ -1373,26 +1373,26 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
     pPos->set(base);
     if (this->isStatusActive(2)) {
         this->mActor->calcHeadPos();
-        pPos->set(FLD<TVec3f>(this->mActor, 0x600));
-        if (FLD<u16>(FLD<void*>(this, 0x7C4), 0x18) == 0) {
+        pPos->set(this->mActor->_2AC);
+        if (this->mDamage->_18 == 0) {
             *pHeight = 50.0f;
         }
     }
     if ((this->mMovementStates.mHighWord & 3) != 0) {
         this->mActor->calcHeadPos();
-        TVec3f side(FLD<TVec3f>(this, 0x16C));
+        TVec3f side(this->_16C);
         side.scale(2.0f);
-        TVec3f head(FLD<TVec3f>(this->mActor, 0x600));
+        TVec3f head(this->mActor->_2AC);
         head += side;
         pPos->set(head);
     }
-    if (this->getPlayerMode() == 4 && !((FLD<u32>(this->getPlayer(), 0x10) >> 28) & 1) && !((FLD<u32>(this->getPlayer(), 0xC) >> 21) & 1) &&
-        !this->isStatusActive(28) && !this->isStatusActive(21) && !this->isStatusActive(27) && FLD<u8>(this->mActor, 0xECD) == 0) {
-        pPos->set(FLD<TVec3f>(this->mActor, 0x600));
+    if (this->getPlayerMode() == 4 && !((this->getPlayer()->mMovementStates.mHighWord >> 28) & 1) && !((this->getPlayer()->mMovementStates.mLowWord >> 21) & 1) &&
+        !this->isStatusActive(28) && !this->isStatusActive(21) && !this->isStatusActive(27) && this->mActor->mBeeWallWalk == 0) {
+        pPos->set(this->mActor->_2AC);
     }
-    if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(FLD<LiveActor*>(this->mActor->fn_803B9830(), 0x18))) {
+    if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(this->mActor->fn_803B9830()->mRideModelActor)) {
         MarioMtxPos mtx;
-        mtx.fn_80409700(MR::getJointMtx(FLD<LiveActor*>(this->mActor->fn_803B9830(), 0x18), "Center"));
+        mtx.fn_80409700(MR::getJointMtx(this->mActor->fn_803B9830()->mRideModelActor, "Center"));
         TVec3f yAxis;
         mtx.fn_80409680(&yAxis);
         TVec3f zAxis;
@@ -1408,7 +1408,7 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
         *pHeight = 80.0f;
     }
     if (this->isSwimming()) {
-        TVec3f swim(FLD<TVec3f>(this, 0x1F0));
+        TVec3f swim(this->mHeadVec);
         swim.scale(60.0f);
         TVec3f pos(this->mPosHolder->mPos);
         pos += swim;
@@ -1418,9 +1418,9 @@ void Mario::fn_803B3EE0(TVec3f* pPos, f32* pHeight) {
 
 // NONMATCHING: register allocation
 s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3f& rPos, f32 radius) {
-    s32 count = this->fn_803B29B0(rPos, radius);
+    u32 count = this->fn_803B29B0(rPos, radius);
     f32 limit;
-    if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(FLD<LiveActor*>(this->mActor->fn_803B9830(), 0x18))) {
+    if (this->isPlayerModeYoshi() && this->isStatusActive(39) && !MR::isDead(this->mActor->fn_803B9830()->mRideModelActor)) {
         limit = 0.707f;
     } else if ((this->mMovementStates.mLowWord >> 31) != 0) {
         limit = 0.0f;
@@ -1429,7 +1429,7 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
     }
     s32 n = 0;
     pOutVec->zero();
-    for (s32 i = 0; i < count; i++) {
+    for (u32 i = 0; i < count; i++) {
         const HitInfo* pInfo = this->fn_803B2AA0(i);
         const TVec3f* pNrm = pInfo->mParentTriangle.getNormal(0);
         if (MR::isThroughPolygon(&pInfo->mParentTriangle)) {

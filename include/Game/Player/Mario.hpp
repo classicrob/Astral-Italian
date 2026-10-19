@@ -73,7 +73,7 @@ struct MarioStrikeEntry {
 };
 
 /// @brief Three state flags embedded in Mario at +0xA90. Original name unknown.
-class AudLifeAlertCounter;
+struct AudSeLifeEntry;
 
 struct MarioFlags3 {
     void fn_8038C890();  // clear all
@@ -1143,7 +1143,7 @@ public:
     /* 0xA8C */ s32 mJumpFallTimer;
     /* 0xA90 */ MarioFlags3 mStateFlags;
     /* 0xA93 */ u8 _padA93;
-    /* 0xA94 */ AudLifeAlertCounter* mLifeAlertCounter;
+    /* 0xA94 */ AudSeLifeEntry* mLifeAlertCounter;
     /* 0xA98 */ u32 _A98;
 };
 

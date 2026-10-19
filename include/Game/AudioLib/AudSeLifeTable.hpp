@@ -3,10 +3,11 @@
 #include <revolution/types.h>
 
 struct AudSeLifeEntry {
-    AudSeLifeEntry();
-    void start(s32 limit);  // fn_80085D10
-    void add(s32 frames);   // fn_80085D30, mLimit += frames
-    void reset();           // fn_80085D40
+    AudSeLifeEntry() {}
+    void init();            // 0x80085CF0
+    void start(s32 limit);  // 0x80085D10
+    void add(s32 frames);   // 0x80085D30, mLimit += frames
+    void reset();           // 0x80085D40
 
     /* 0x00 */ s32 mFrame;
     /* 0x04 */ s32 mLimit;

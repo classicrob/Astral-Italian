@@ -192,16 +192,18 @@ void Mario::fn_803929A0() {
 
 bool Mario::fn_80393C40() {
     if (((u32)this->mFlags14.mLowWord >> 31) != 0) {
+        return true;
     }
     return (u32)(this->getCurrentStatus() - 8) <= 2U;
 }
 
 bool Mario::fn_803949E0() {
     if (this->isEnableAddDamage() == false) {
+        return false;
     }
     if (this->isStatusActive(6)) {
         this->mMovementStates.mLowWord |= 0x10;
-        FLD<TVec3f>(this, 0x7C4).zero();
+        this->_7C4.zero();
         return this->checkWaterDamage();
     }
     return this->doFireDanceWithInitialDamage(1);
@@ -209,19 +211,26 @@ bool Mario::fn_803949E0() {
 
 bool Mario::fn_80395310() {
     if (this->mMovementStates.mLowWord & 1) {
+        return false;
     }
     if (this->isInvincible() != 0) {
+        return false;
     }
     u32 temp_r3 = this->mMovementStates.mLowWord;
     if (((temp_r3 >> 31) != 0) || !((temp_r3 >> 30) & 1)) {
+        return false;
     }
     if (this->getCurrentStatus() == 0xE) {
+        return false;
     }
     if (this->getCurrentStatus() == 0xF) {
+        return false;
     }
     if (this->getCurrentStatus() == 8) {
+        return false;
     }
     if ((this->mMovementStates.mLowWord >> 4) & 1) {
+        return false;
     }
     this->mActor->fn_803B94E0();
     this->stopJump();
@@ -1060,19 +1069,19 @@ bool Mario::fn_8038AA30() {
 
 void Mario::fn_8038C540() {
     if (this->mStateFlags._2 != 0) {
-        AudLifeAlertCounter* p = this->mLifeAlertCounter;
-        if (p == nullptr || p->_9 == 0) {
+        AudSeLifeEntry* p = this->mLifeAlertCounter;
+        if (p == nullptr || p->mIsUsed == 0) {
             this->mLifeAlertCounter = MR::fn_8005BC60(0x258);
         }
         this->mLifeAlertCounter->add(1);
-        s32 count = this->mLifeAlertCounter->_0;
+        s32 count = this->mLifeAlertCounter->mFrame;
         s32 v = MR::clamp(0x1A4 - count, 0, 0x1A4);
         if (count % 74 == 5) {
             MR::startActionSound(this->mActor, "LifeAlertTrg", v, -1, -1);
         }
     } else {
-        AudLifeAlertCounter* p = this->mLifeAlertCounter;
-        if (p != nullptr && p->_9 != 0) {
+        AudSeLifeEntry* p = this->mLifeAlertCounter;
+        if (p != nullptr && p->mIsUsed != 0) {
             p->reset();
         }
     }
@@ -1104,12 +1113,11 @@ bool Mario::fn_8038CCF0() {
     return MR::isBckPlaying(this->mActor, "pulloutgraspend");
 }
 
-// NONMATCHING: timer and gate logic approximated
 void Mario::fn_8039A1C0() {
     if (this->isAnimationRun("ジャンプB")) {
         this->stopAnimation((const char*)nullptr, (const char*)nullptr);
     }
-    if (FLD<u8>(FLD<void*>(this, 0x888), 0x16E) == 0) {
+    if (this->mSwim->_1B2 == 0) {
         if (this->isAnimationRun("水泳スピン移動")) {
             this->stopAnimation((const char*)nullptr, (const char*)nullptr);
         }

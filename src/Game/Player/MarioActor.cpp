@@ -7814,6 +7814,7 @@ void MarioActor::calcViewSilhouetteModel() {
 }
 
 
+// NONMATCHING: equivalent fadds operand order.
 f32 MarioActor::calcCylinderToCenter(const AreaObj* pAreaObj, TVec3f* pVec) {
     TVec3f upVec;
     MR::calcCylinderUpVec(&upVec, pAreaObj);
@@ -7821,17 +7822,18 @@ f32 MarioActor::calcCylinderToCenter(const AreaObj* pAreaObj, TVec3f* pVec) {
     TVec3f centerPos;
     MR::calcCylinderCenterPos(&centerPos, pAreaObj);
 
-    MR::vecKillElement(centerPos - _2A0, upVec, pVec);
+    MR::vecKillElement(centerPos - _240, upVec, pVec);
 
+    MR::normalizeOrZero(pVec);
     if (MR::normalizeOrZero(pVec)) {
-        if (_208 >= 1000.0f) {
+        if (mWallShadow574->mDistance >= 1000.0f) {
             return -1.0f;
         }
 
-        _208 += 10.0f;
+        mWallShadow574->mDistance += 10.0f;
 
-        if (_208 >= 1000.0f) {
-            _208 = 1000.0f;
+        if (mWallShadow574->mDistance >= 1000.0f) {
+            mWallShadow574->mDistance = 1000.0f;
         }
 
         return -1.0f;
@@ -8368,9 +8370,7 @@ void MarioActor::drawScreenBlend() const {
         MR::drawFullScreenBlur(mMario->_97C->getBlurOffset());
     }
 
-    if (_1C6) {
-        MR::drawFullScreenBlur(_1C8, _1CC, _1D0, _1D1);
-    }
+    mScreenBlur1074->draw();
 
     if (mBeeWallWalk) {
         TVec2f position;
@@ -8509,54 +8509,7 @@ void MarioActor::drawWallShade(const TVec3f& rPosition, const TVec3f& rNormal, f
 #pragma pop
 
 
-void MarioActor::drawColdWaterDamage() const {
-    u32 next;
-    u32 stripHeight = 4;
-    GXTexObj textures[2];
-    GXDrawDone();
-    GXTexModeSync();
-    GXPixModeSync();
-    u16 width = MR::getFrameBufferWidth();
-    TDDraw::setup(1, 0, 2);
-    u16 current = 0;
-    GXInitTexObj(&textures[0], _1D8, width, 4, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXInitTexObj(&textures[1], _1DC, width, 4, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXSetLineWidth(6, GX_TO_ZERO);
-    GXSetTexCopyDst(width, 4, GX_TF_RGB565, GX_FALSE);
-    GXSetTexCopySrc(0, 0, width, 4);
-    GXCopyTex(_1D8, GX_FALSE);
-    f32 textureStep = 1.0f / static_cast< f32 >(stripHeight);
-    f32 frequency = 89.0f * MR::sin((TWO_PI * mMario->mSwim->mColdWaterDamageInterval) / 120.0f);
 
-    if (frequency > 0.0f) {
-        frequency = 0.0f;
-    }
-
-    for (u32 y = 0; y < MR::getScreenHeight(); y += 4) {
-        GXTexModeSync();
-        GXPixModeSync();
-        GXSetTexCopySrc(0, y + 4, width, 4);
-        next = 1 - current;
-        GXCopyTex(mRasterBuffers[next], GX_FALSE);
-        GXLoadTexObj(&textures[current], GX_TEXMAP0);
-        f32 v = 0.0f;
-
-        for (u32 row = y; row < y + 4; row++) {
-            f32 offset = 5.0f * MR::sin(2.0f * (((_37C + row * frequency) / MR::getScreenHeight()) * JGeometry::TUtil< f32 >::PI()));
-            GXBegin(GX_LINES, GX_VTXFMT0, 2);
-            GXPosition3f32(offset, row, 0.0f);
-            GXTexCoord2f32(0.0f, v);
-            GXPosition3f32(offset + MR::getScreenWidth(), row, 0.0f);
-            GXTexCoord2f32(1.0f, v);
-            GXEnd();
-            v += textureStep;
-        }
-
-        current = next;
-    }
-
-    GXDrawDone();
-}
 
 
 void MarioActor::setRasterScroll(s32 i1, s32 i2, s32 i3) {
@@ -8567,60 +8520,7 @@ void MarioActor::setRasterScroll(s32 i1, s32 i2, s32 i3) {
 
 
 
-void MarioActor::drawRasterScroll(f32 amplitude, s16 period, f32 wavelength) const {
-    if (wavelength == 0.0f) {
-        return;
-    }
 
-    if (period == 0) {
-        return;
-    }
-
-    u32 next;
-    u32 stripHeight = 4;
-    GXTexObj textures[2];
-    GXDrawDone();
-    GXTexModeSync();
-    GXPixModeSync();
-    u16 width = MR::getFrameBufferWidth();
-    TDDraw::setup(1, 0, 2);
-    u16 current = 0;
-    GXInitTexObj(&textures[0], _1D8, width, 4, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXInitTexObj(&textures[1], _1DC, width, 4, GX_TF_RGB565, GX_CLAMP, GX_CLAMP, GX_FALSE);
-    GXSetLineWidth(6, GX_TO_ZERO);
-    GXSetTexCopyDst(width, 4, GX_TF_RGB565, GX_FALSE);
-    GXSetTexCopySrc(0, 0, width, 4);
-    GXCopyTex(_1D8, GX_FALSE);
-    f32 textureStep = 1.0f / static_cast< f32 >(stripHeight);
-    f32 phase = (_37C * JMath::TAngleConstant_< f32 >::RADIAN_DEG360()) / period;
-    f32 spatialPhase = TWO_PI / wavelength;
-
-    for (u32 y = 0; y < MR::getScreenHeight(); y += 4) {
-        GXTexModeSync();
-        GXPixModeSync();
-        GXSetTexCopySrc(0, y + 4, width, 4);
-        next = 1 - current;
-        GXCopyTex(mRasterBuffers[next], GX_FALSE);
-        GXLoadTexObj(&textures[current], GX_TEXMAP0);
-        f32 v = 0.0f;
-
-        for (u32 row = y; row < y + 4; row++) {
-            f32 angle = MR::sin(spatialPhase * row) * JGeometry::TUtil< f32 >::PI();
-            f32 offset = amplitude * MR::sin(angle + phase);
-            GXBegin(GX_LINES, GX_VTXFMT0, 2);
-            GXPosition3f32(offset, row, 0.0f);
-            GXTexCoord2f32(0.0f, v);
-            GXPosition3f32(offset + MR::getScreenWidth(), row, 0.0f);
-            GXTexCoord2f32(1.0f, v);
-            GXEnd();
-            v += textureStep;
-        }
-
-        current = next;
-    }
-
-    GXDrawDone();
-}
 
 
 void MarioActor::drawMosaic() const {

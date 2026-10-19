@@ -1900,7 +1900,7 @@ namespace MR {
                                                            MtxPtr pBaseMtx, CollisionScaleType scaleType) {
         CollisionParts* parts = ::createCollisionParts(pResHolder, pName, pSensor, rMtx, scaleType, 0);
         if (pBaseMtx != nullptr) {
-            parts->_0 = reinterpret_cast<TPos3f*>(pBaseMtx);
+            parts->mFollowMtx = reinterpret_cast<TPos3f*>(pBaseMtx);
         }
         return parts;
     }

@@ -330,16 +330,16 @@ namespace MR { bool fn_804222D0(); f32 getYoshiTongueScale(); }
 namespace MR { void requestPlayerMovementOnDuringDemo(); }
 
 namespace MR {
-    // PLACEHOLDER(m1): clears Mario movement flag 0x20000000; resolve when Player owner recovers its meaning.
-    void fn_8004F310();
+    // original name unknown; named by behaviour: clears bit 0x20000000 in Mario movement high word (+0x10).
+    void clearPlayerMovementFlag20000000();
     void extendPlayerBeeAirWalk(s32);
 }
 
 namespace MR { void enablePlayerResourceCloud(); }
 
 namespace MR {
-    // PLACEHOLDER(m1): semantic name unknown; resolve after Mario flags 0x00300000 are identified.
-    void fn_8004FA20();
+    // original name unknown; named by behaviour: clears bits 0x00300000 in Mario flags14 high word (+0x18).
+    void clearPlayerStateFlags00300000();
 }
 
 namespace MR {

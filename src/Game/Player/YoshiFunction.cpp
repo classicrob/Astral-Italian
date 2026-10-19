@@ -210,7 +210,7 @@ namespace MR {
     bool isMsgYoshiAutoEatQuery(u32 msg) {
         return msg==0xfd;
     }
-    bool fn_80422890(u32 msg) {
+    bool isMsgYoshiAutoEatNoChewQuery(u32 msg) {
         return msg==0xfe;
     }
     bool isMsgDashYoshiAttack(u32 msg) {

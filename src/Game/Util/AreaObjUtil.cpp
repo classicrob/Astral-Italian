@@ -454,4 +454,55 @@ namespace MR {
     AreaObj* getCurrentAstroOverlookAreaObj() {
         return getAreaIn("AstroOverlookArea", *MR::getPlayerPos());
     }
+
+    void calcHemisphereFrontVec(TVec3f* pOut, const AreaObj* pArea, const TVec3f& rPos) {
+        TVec3f center(0.0f);
+        center.set(pArea->getForm<AreaFormBowl>()->mTranslation);
+        TVec3f dir(center);
+        dir -= rPos;
+        normalizeOrZero(pOut, dir);
+    }
+
+    bool isInPlaneModeCube(const TVec3f& rPos) {
+        return getAreaIn("PlaneModeCube", rPos) != NULL;
+    }
+
+    bool isInTowerModeCylinder(const TVec3f& rPos, TVec3f* pCenter, TVec3f* pUp, f32* pRadius) {
+        AreaObj* area = getAreaIn("TowerModeCylinder", rPos);
+        if (!area)
+            return false;
+        if (pCenter)
+            area->getForm<AreaFormCylinder>()->calcCenterPos(pCenter);
+        if (pUp)
+            area->getForm<AreaFormCylinder>()->calcUpVec(pUp);
+        if (pRadius)
+            *pRadius = area->getForm<AreaFormCylinder>()->mRadius;
+        return true;
+    }
+
+    void getAreaFrontVec(TVec3f* pOut, const AreaObj* pArea, const TVec3f& rPos) {
+        if (isAreaFormCube(pArea))
+            calcCubeAxisZ(pArea, pOut);
+        else if (pArea->mFormType == AreaForm::Type_Sphere) {
+            calcSphereFrontVec(pOut, pArea, rPos);
+            pOut->negate();
+        } else if (pArea->mFormType == AreaForm::Type_Cylinder) {
+            calcCylinderFrontVec(pOut, pArea, rPos);
+            pOut->negate();
+        } else if (pArea->mFormType == AreaForm::Type_Bowl) {
+            calcHemisphereFrontVec(pOut, pArea, rPos);
+            pOut->negate();
+        }
+    }
+
+    void getAreaCenterPos(TVec3f* pOut, const AreaObj* pArea) {
+        if (isAreaFormCube(pArea))
+            pArea->getForm<AreaFormCube>()->calcWorldPos(pOut);
+        else if (pArea->mFormType == AreaForm::Type_Sphere)
+            pArea->getForm<AreaFormSphere>()->calcPos(pOut);
+        else if (pArea->mFormType == AreaForm::Type_Cylinder)
+            pArea->getForm<AreaFormCylinder>()->calcCenterPos(pOut);
+        else if (pArea->mFormType == AreaForm::Type_Bowl)
+            pOut->set(pArea->getForm<AreaFormBowl>()->mTranslation);
+    }
 };  // namespace MR

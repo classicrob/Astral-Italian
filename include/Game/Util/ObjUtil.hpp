@@ -292,9 +292,9 @@ namespace MR {
     void onMovementOnOffGroup(const char*);
     void* loadResourceFromArc(const char*, const char*);
     bool isExistResourceInArc(const char*, const char*);
-    const ResTIMG* loadTexFromArc(const char*, const ResourceHolder*);
+    const ResTIMG* loadTexFromArc(const char*, ResourceHolder**);
     const ResTIMG* loadTexFromArc(const char*, const char*);
-    const ResTIMG* loadTexFromArc(const char*, const char*, ResTIMG*);
+    const ResTIMG* loadTexFromArc(const char*, const char*, ResourceHolder**);
     JUTTexture* loadTexFromArc(LiveActor*, const char*, const char*);
     JUTTexture* loadTexFromArc(LiveActor*, const char*);
     bool isStageStateScenarioOpeningCamera();

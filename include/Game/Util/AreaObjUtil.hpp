@@ -66,3 +66,9 @@ namespace MR {
 namespace MR {
     bool isInTowerModeCylinder(const TVec3f&, TVec3f*, TVec3f*, f32*);
 }
+
+namespace MR {
+    void calcHemisphereFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
+    bool isInPlaneModeCube(const TVec3f&);
+    void getAreaFrontVec(TVec3f*, const AreaObj*, const TVec3f&);
+}

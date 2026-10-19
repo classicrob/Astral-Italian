@@ -1,3 +1,3 @@
 #include "Game/NPC/NPCActor.hpp"
 
-NPCActor::~NPCActor() {}
+// NPCActor destructor is emitted with BombHeiRed (0x80343EA0).

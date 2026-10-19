@@ -66,7 +66,7 @@ void BeeJumpBall::attackSensor(HitSensor* sender, HitSensor* receiver) {
             MR::clampLength(&jump, jump, 30.0f);
             MR::restrictVelocityToPlaneModeArea(&jump, mPosition);
             MR::jumpPlayer(jump);
-            MR::fn_8004F310();
+            MR::clearPlayerMovementFlag20000000();
             MR::startBckPlayerJ("ハチボールジャンプ");
             MR::extendPlayerBeeAirWalk(20);
             setNerve(&NrvBeeJumpBall::BeeJumpBallNrvBound::sInstance);

@@ -304,7 +304,7 @@ void BellyDragonUtil::setupDemoPose(BellyDragon* pHost, const char* pName) {
     MR::calcAnimDirect(pHost);
 }
 
-// NONMATCHING: regalloc (inlining, scheduling, stack slots or equivalent branch layout).
+// NONMATCHING: stack layout and literal symbol names.
 s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     if (!MR::tryStartDemoMarioPuppetable(pHost, pName)) {
         return 0;
@@ -312,26 +312,26 @@ s32 BellyDragonUtil::tryStartDemo(BellyDragon* pHost, const char* pName, bool) {
     MR::setPlayerPos("プレイヤーデモ位置（ベリードラゴン戦）");
     MR::startBckPlayer("BattleWait", NULL);
     BellyDragonUtil::setupDemoPose(pHost, pName);
-    BellyDragonPod* pPod = pHost->mPod;
-    TVec3f sp28(pPod->mHostMtx.mMtx[0][3], pPod->mHostMtx.mMtx[1][3], pPod->mHostMtx.mMtx[2][3]);
-    MR::requestMovementOn(pPod->mDecoration);
-    MR::setPosition(pPod->mDecoration, sp28);
-    pPod->mDecoration->makeActorAppeared();
-    MR::startAction(pPod->mDecoration, pName);
-    MR::calcAnimDirect(pPod->mDecoration);
-    MR::offEntryDrawBuffer(pPod->mDecoration);
-    pHost->mBaseMtx.set(pPod->mHostMtx.mMtx);
-    TVec3f sp8(pPod->mHostMtx.mMtx[0][3], pPod->mHostMtx.mMtx[1][3], pPod->mHostMtx.mMtx[2][3]);
+    TVec3f sp28(pHost->mPod->mHostMtx.mMtx[0][3], pHost->mPod->mHostMtx.mMtx[1][3], pHost->mPod->mHostMtx.mMtx[2][3]);
+    MR::requestMovementOn(pHost->mPod->mDecoration);
+    MR::setPosition(pHost->mPod->mDecoration, sp28);
+    pHost->mPod->mDecoration->makeActorAppeared();
+    MR::startAction(pHost->mPod->mDecoration, pName);
+    MR::calcAnimDirect(pHost->mPod->mDecoration);
+    MR::offEntryDrawBuffer(pHost->mPod->mDecoration);
+    const TPos3f& hostMtx = pHost->mPod->mHostMtx;
+    pHost->mBaseMtx.set(hostMtx.mMtx);
+    TVec3f sp8(hostMtx.mMtx[0][3], hostMtx.mMtx[1][3], hostMtx.mMtx[2][3]);
     MR::setPosition(pHost, sp8);
     MR::zeroVelocity(pHost);
     pHost->mBody->end();
     BellyDragonBodyPart* pBody = pHost->mBody->mHead;
-    BellyDragonUtil::setBodyPartMtx(pBody, MR::getJointMtx(pPod->mDecoration, (s32)0));
-    pHost->mBaseMtx.set(MR::getJointMtx(pPod->mDecoration, (s32)0));
+    BellyDragonUtil::setBodyPartMtx(pBody, MR::getJointMtx(pHost->mPod->mDecoration, (s32)0));
+    pHost->mBaseMtx.set(MR::getJointMtx(pHost->mPod->mDecoration, (s32)0));
     MR::setPosition(pHost, pBody->mPosition);
-    ((TPos3f*)((u8*)pPod->mCameraTargetMtx + 0x14))->set(pPod->mHostMtx.mMtx);
-    CameraTargetArg targetArg;
-    MR::startAnimCameraTargetOther(pHost, pPod->mCameraInfo, pName, targetArg, 0, false, lbl_807D7828);
+    ((TPos3f*)((u8*)pHost->mPod->mCameraTargetMtx + 0x14))->set(pHost->mPod->mHostMtx.mMtx);
+    CameraTargetArg targetArg(pHost->mPod->mCameraTargetMtx);
+    MR::startAnimCameraTargetOther(pHost, pHost->mPod->mCameraInfo, pName, targetArg, 0, false, lbl_807D7828);
     return 1;
 }
 

@@ -2071,6 +2071,10 @@ config.libs = [
             Object(NonMatching, "Game/Util/DelegatingHeap.cpp"),
             Object(NonMatching, "Game/Util/ActorSoundUtil.cpp"),
             Object(NonMatching, "Game/Util/ChildObjUtil.cpp"),
+            Object(NonMatching, "Game/Util/BattanKingTalkState.cpp"),
+            Object(NonMatching, "Game/Util/BellyDragonArmFire.cpp"),
+            Object(NonMatching, "Game/Util/BellyDragonArmShot.cpp"),
+            Object(NonMatching, "Game/Util/BellyDragonArmWait.cpp"),
         ],
     ),
     GameLib(

@@ -2,6 +2,10 @@
 #include "Game/Util/JointController.hpp"
 #include "Game/Util/MtxUtil.hpp"
 
+BombHeiRed::BombHeiRed(const char* pName) : NPCActor(pName), mJointController(NULL), mZenmaiAngle(0.0f) {}
+
+NPCActor::~NPCActor() {}
+
 void BombHeiRed::init(const JMapInfoIter& rIter) {
     NPCActorCaps caps("BombHeiRed");
     caps.setDefault();
@@ -42,3 +46,7 @@ bool BombHeiRed::calcZenmaiRotation(TPos3f* pMtx, const JointControllerInfo&) {
     MR::rotateMtxLocalZDegree(pMtx->mMtx, mZenmaiAngle);
     return true;
 }
+
+BombHeiRed::~BombHeiRed() {}
+
+template class JointControlDelegator<BombHeiRed>;

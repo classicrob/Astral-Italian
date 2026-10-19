@@ -542,17 +542,17 @@ ResTIMG* MR::loadTexFromArcHelper(const char* pArchive, const char* pFile, void*
     return static_cast< ResTIMG* >(pHolder->mFileInfoTable->getRes(pFile));
 }
 
-const ResTIMG* MR::loadTexFromArc(const char* pArchive, const char* pFile, ResTIMG* pHolderOut) {
+const ResTIMG* MR::loadTexFromArc(const char* pArchive, const char* pFile, ResourceHolder** pHolderOut) {
     return MR::loadTexFromArcHelper(pArchive, pFile, pHolderOut);
 }
 
-const ResTIMG* MR::loadTexFromArc(const char* pName, const ResourceHolder* pHolder) {
+const ResTIMG* MR::loadTexFromArc(const char* pName, ResourceHolder** pHolder) {
     char archive[0x100];
     char file[0x100];
     snprintf(archive, 0x100, "%s.arc", pName);
     snprintf(file, 0x100, "%s.bti", pName);
 
-    return MR::loadTexFromArcHelper(archive, file, const_cast< ResourceHolder* >(pHolder));
+    return MR::loadTexFromArcHelper(archive, file, pHolder);
 }
 
 const ResTIMG* MR::getTextureResource(const ResourceHolder* pHolder, const char* pName) {

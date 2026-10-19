@@ -27,7 +27,7 @@ Game/Util/ActorCameraUtil.cpp:
 	.sdata2     start:0x807D6CD8 end:0x807D6CE0
 
 Game/Util/ActorInitUtil.cpp:
-	.text       start:0x8000BF70 end:0x8000D620
+	.text       start:0x8000BF70 end:0x8000D8C0
 	.rodata     start:0x80644BD0 end:0x80645110
 	.data       start:0x8065C7C8 end:0x8065CFB8
 	.sdata      start:0x807CF320 end:0x807CF330
@@ -250,7 +250,7 @@ Game/Util/ParabolicPath.cpp:
 	.sdata2     start:0x807D70D8 end:0x807D70E8
 
 Game/Util/PlayerUtil.cpp:
-	.text       start:0x8004EFA0 end:0x80051910
+	.text       start:0x8004EFA0 end:0x80051970
 	.data       start:0x80669070 end:0x80669148
 	.sdata      start:0x807CF410 end:0x807CF418
 	.sdata2     start:0x807D70E8 end:0x807D7108
@@ -321,14 +321,17 @@ Game/Util/TalkUtil.cpp:
 	.data       start:0x80669BA8 end:0x80669BB8
 
 Game/Util/AreaObjUtil.cpp:
-	.text       start:0x80061570 end:0x80062970
+	.text       start:0x80061570 end:0x80062C30
 	.rodata     start:0x80645290 end:0x80645298
-	.data       start:0x80669BB8 end:0x80669C3C
+	.data       start:0x80669BB8 end:0x80669C60
 	.sdata2     start:0x807D71C0 end:0x807D71E0
 
 Game/Util/BaseMatrixFollowTargetHolder.cpp:
 	.text       start:0x80062C30 end:0x80063510
 	.data       start:0x80669C60 end:0x80669CA0
+
+Game/Util/BothDirList.cpp:
+	.text       start:0x80063510 end:0x80063800
 
 Game/Util/CollisionPartsFilter.cpp:
 	.text       start:0x80063800 end:0x800638C0
@@ -781,10 +784,19 @@ Game/Enemy/BattanKing.cpp:
 	.sbss2      start:0x807E2FC8 end:0x807E2FD8
 
 Game/Util/BattanKingCollisionPress.cpp:
-	.text       start:0x8008D920 end:0x8008E790
+	.text       start:0x8008D920 end:0x8008E410
 	.ctors      start:0x80643D64 end:0x80643D68
 	.data       start:0x8066C690 end:0x8066C788
-	.sdata2     start:0x807D76B0 end:0x807D76C0
+	.bss        start:0x80728A48 end:0x80728A70
+	.sdata2     start:0x807D76B0 end:0x807D76D0
+
+Game/Util/BattanKingTalkState.cpp:
+	.text       start:0x8008E410 end:0x8008E8A0
+	.ctors      start:0x80643D68 end:0x80643D6C
+	.data       start:0x8066C788 end:0x8066C858
+	.bss        start:0x80728A70 end:0x80728A88
+	.sbss       start:0x807D0EB0 end:0x807D0EB8
+	.sdata2     start:0x807D76D0 end:0x807D76E8
 
 Game/Util/BellyDragon.cpp:
 	.text       start:0x8008E8A0 end:0x8008F380
@@ -815,8 +827,35 @@ Game/Util/BellyDragonTU05.cpp:
 	.ctors      start:0x80643D80 end:0x80643D84
 
 Game/Util/BellyDragonTU06.cpp:
-	.text       start:0x80095530 end:0x80095A40
+	.text       start:0x80095530 end:0x80096060
 	.ctors      start:0x80643D84 end:0x80643D88
+	.data       start:0x8066D210 end:0x8066D2B8
+	.sbss       start:0x807D0F20 end:0x807D0F28
+
+Game/Util/BellyDragonArmFire.cpp:
+	.text       start:0x80096060 end:0x80096960
+	.ctors      start:0x80643D88 end:0x80643D8C
+	.rodata     start:0x80646E20 end:0x80646EB0
+	.data       start:0x8066D2B8 end:0x8066D3A0
+	.sbss       start:0x807D0F28 end:0x807D0F40
+	.sdata2     start:0x807D7888 end:0x807D78C0
+
+Game/Util/BellyDragonArmShot.cpp:
+	.text       start:0x80096960 end:0x80097520
+	.ctors      start:0x80643D8C end:0x80643D90
+	.rodata     start:0x80646EB0 end:0x80646F38
+	.data       start:0x8066D3A0 end:0x8066D4F0
+	.sbss       start:0x807D0F40 end:0x807D0F58
+	.sdata2     start:0x807D78C0 end:0x807D7920
+	.sbss2      start:0x807E2FE8 end:0x807E2FF0
+
+Game/Util/BellyDragonArmWait.cpp:
+	.text       start:0x80097520 end:0x80097900
+	.ctors      start:0x80643D90 end:0x80643D94
+	.rodata     start:0x80646F38 end:0x80646F90
+	.data       start:0x8066D4F0 end:0x8066D550
+	.sbss       start:0x807D0F58 end:0x807D0F60
+	.sdata2     start:0x807D7920 end:0x807D7930
 
 Game/Util/BellyDragonWeakPoint.cpp:
 	.text       start:0x80097900 end:0x80097F50
@@ -5927,16 +5966,10 @@ Game/NameObj/NameObjListExecutor.cpp:
 Game/NameObj/NameObjRegister.cpp:
 	.text       start:0x80343E20 end:0x80343E50
 
-Game/NPC/NPCActor2.cpp:
-	.text       start:0x80343EA0 end:0x80343F00
-
 Game/NameObj/BombHeiRed.cpp:
-	.text       start:0x80343F00 end:0x80344130
-	.data       start:0x806B7A00 end:0x806B7A50
-	.sdata2     start:0x807DF02C end:0x807DF038
-
-Game/NameObj/JointControlDelegator.cpp:
-	.text       start:0x80344130 end:0x80344250
+	.text       start:0x80343E50 end:0x803442B0
+	.data       start:0x806B7A00 end:0x806B7AC8
+	.sdata2     start:0x807DF028 end:0x807DF038
 
 Game/NameObj/BringEnemy.cpp:
 	.text       start:0x803442B0 end:0x80344930

@@ -135,7 +135,7 @@ namespace MR {
         return MarioAccess::fn_803B7240();
     }
 
-    void fn_8004F310() {
+    void clearPlayerMovementFlag20000000() {
         MarioAccess::fn_803B72A0();
     }
 
@@ -310,7 +310,7 @@ namespace MR {
         MarioAccess::tornadoJumpMini();
     }
 
-    void fn_8004FA20() {
+    void clearPlayerStateFlags00300000() {
         MarioAccess::fn_803B51B0();
     }
 
@@ -1269,3 +1269,12 @@ namespace MR {
     }
 
 };  // namespace MR
+
+namespace MR {
+    void startPlayerBlink() {
+        MarioAccess::getPlayerActor()->fn_803D9710();
+    }
+    void stopPlayerBlink() {
+        MarioAccess::getPlayerActor()->fn_803D9730();
+    }
+}

@@ -68,7 +68,7 @@ bool LightFruit::receiveMsgPlayerAttack(u32 msg, HitSensor*, HitSensor*) {
 }
 bool LightFruit::receiveOtherMsg(u32 msg, HitSensor*, HitSensor*) {
     if (isEatable()) {
-        if (MR::fn_80422890(msg)) return true;
+        if (MR::isMsgYoshiAutoEatNoChewQuery(msg)) return true;
         if (MR::isMsgYoshiStartTongue(msg) || MR::isMsgYoshiAutoEatStart(msg)) {
             MR::invalidateClipping(this);
             setNerve(&NrvLightFruit::LightFruitNrvEaten::sInstance);

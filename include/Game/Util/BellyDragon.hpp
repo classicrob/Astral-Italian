@@ -22,6 +22,7 @@ class CameraTargetMtx;
 class LiveActorGroup;
 class ModelObj;
 class JointController;
+class BellyDragonMtxBlock;
 struct JointControllerInfo;
 class ModelObj;
 
@@ -32,6 +33,10 @@ public:
 
     virtual ~BellyDragonFire();
 
+    virtual void loadModelDrawMtx() const;
+    virtual void drawShape() const;
+    virtual bool isDraw() const;
+
     void addJointMtx(const char* pJointName);              // was fn_80095B00
     void appearModel();                                    // was fn_80095C30
     void killModel();                                      // was fn_80095C80
@@ -41,7 +46,7 @@ public:
     /* 0x24 */ ModelObj* mModelObj;
     /* 0x28 */ s32 mCount;
     /* 0x2C */ s32 mCurrent;
-    /* 0x30 */ s32* mIds;
+    /* 0x30 */ BellyDragonMtxBlock** mIds;
 };
 
 // Ground fire of the BellyDragon (地面炎). Owns a bloom child (DemoObj) at 0xC0 and a base matrix at 0x90.
@@ -64,32 +69,84 @@ public:
     /* 0xC0 */ LiveActor* mBloom;
 };
 
-// Wait / Fire / Shot sub-states of BellyDragonArm (constructors live in units without source yet).
-class BellyDragonArmWait : public ActorStateBaseInterface {
+// Jaw-attack, dive-attack and wandering sub-states. Each has its own static nerve initializer.
+class BellyDragonArmWait : public ActorStateBase<BellyDragon> {
 public:
     BellyDragonArmWait(BellyDragon*, u8);
-    void startAttack();   // was fn_80097690
-    void startDamage();   // was fn_800976A0
+    virtual ~BellyDragonArmWait();
+    virtual void init();
+    virtual void appear();
+    void startAttack();
+    void startDamage();
+    void exeMove();
+    void exeWait();
+    bool tryEnd();
 
-    u8 _0C[0x1C];
+    /* 0x10 */ s32 mMoveCount;
+    /* 0x14 */ const s32* mMoveTime;
+    /* 0x18 */ const f32* mMoveParam;
+    /* 0x1C */ const s32* mWaitTime;
+    /* 0x20 */ const f32* mWaitParam;
+    /* 0x24 */ const f32* mSightParam;
 };
 
-class BellyDragonArmFire : public ActorStateBaseInterface {
+class BellyDragonArmFire : public ActorStateBase<BellyDragon> {
 public:
     BellyDragonArmFire(BellyDragon*, u8);
-    void attackSensor(HitSensor*, HitSensor*);  // was fn_80096220
+    virtual ~BellyDragonArmFire();
+    virtual void init();
+    virtual void appear();
+    virtual void kill();
+    bool attackSensor(HitSensor*, HitSensor*);
+    void exeSign();
+    void exeDown();
+    void exeLand();
+    void exeUp();
+    void exeCancel();
+    bool tryPlayerDamage();
 
-    u8 _09[0x1B];  // base ends at 0x09; target places mIsEnd at 0x24
+    /* 0x10 */ bool mIsLv2;
+    /* 0x14 */ s32 mAttackCount;
+    /* 0x18 */ TVec3f mTargetPos;
     /* 0x24 */ bool mIsEnd;
-    u8 _25[0x23];
+    /* 0x28 */ const s32* mAttackNum;
+    /* 0x2C */ const s32* mSignTime;
+    /* 0x30 */ const f32* mSignParam;
+    /* 0x34 */ const s32* mAimTime;
+    /* 0x38 */ const f32* mDownParam;
+    /* 0x3C */ const f32* mLandParam;
+    /* 0x40 */ const s32* mUpTime;
+    /* 0x44 */ const f32* mUpParam;
 };
 
-class BellyDragonArmShot : public ActorStateBaseInterface {
+class BellyDragonArmShot : public ActorStateBase<BellyDragon> {
 public:
     BellyDragonArmShot(BellyDragon*, u8);
-    void attackSensor(HitSensor*, HitSensor*);  // was fn_80096B60
+    virtual ~BellyDragonArmShot();
+    virtual void init();
+    virtual void appear();
+    virtual void kill();
+    bool attackSensor(HitSensor*, HitSensor*);
+    void exeDown();
+    void exeUnderground();
+    void exeWait();
+    void exeFlyOut();
+    void exeEnd();
 
-    u8 _0C[0x4C];
+    /* 0x10 */ TVec3f mTargetPos;
+    /* 0x1C */ TVec3f mDiveDir;
+    /* 0x28 */ bool mIsLv2;
+    /* 0x2C */ const f32* mDownParam;
+    /* 0x30 */ const s32* mAimTime;
+    /* 0x34 */ const f32* mGravity;
+    /* 0x38 */ const s32* mDiveTime;
+    /* 0x3C */ const f32* mTurnRate;
+    /* 0x40 */ const f32* mUndergroundParam;
+    /* 0x44 */ const s32* mWaitTime;
+    /* 0x48 */ const f32* mFlyOutParam;
+    /* 0x4C */ const s32* mFlyOutTime;
+    /* 0x50 */ const s32* mEndTime;
+    /* 0x54 */ const f32* mEndParam;
 };
 
 // TU05: pod (camera + effect groups + decoration model). Plain class, no vtable; mHost is its first word.

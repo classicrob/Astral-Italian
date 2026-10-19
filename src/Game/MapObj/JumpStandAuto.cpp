@@ -47,5 +47,5 @@ void JumpStandAuto::jumpPlayer(f32 speed) {
     velocity -= mGravity * speed;
     MR::startBckPlayerJ("ジャンプB");
     MR::forceJumpPlayer(velocity);
-    MR::fn_8004FA20();
+    MR::clearPlayerStateFlags00300000();
 }

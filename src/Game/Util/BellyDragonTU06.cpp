@@ -3,8 +3,12 @@
 #include "Game/LiveActor/ShadowVolumeDrawer.hpp"
 #include "Game/LiveActor/ModelObj.hpp"
 #include "Game/Util.hpp"
+#include "Game/Util/JointController.hpp"
+#include <JSystem/J3DGraphAnimator/J3DModel.hpp>
+#include <JSystem/J3DGraphBase/J3DPacket.hpp>
+#include <JSystem/J3DGraphBase/J3DShape.hpp>
+#include <JSystem/J3DGraphBase/J3DSys.hpp>
 
-extern "C" void* __nwa__FUl(u32);
 extern "C" int snprintf(char*, unsigned long, const char*, ...);
 
 namespace JMath {
@@ -82,8 +86,6 @@ void BellyDragonState::exePlay() {
     }
 }
 
-// Cannot be expressed as a plain ctor on the shared base yet: the target calls ShadowVolumeDrawer(name)
-// first and then stores the decoration model + id table.
 BellyDragonFire::BellyDragonFire(const char* pName, const char* pModelName, MtxPtr pMtx, s32 count)
     : ShadowVolumeDrawer(pName) {
     mCount = count;
@@ -92,7 +94,7 @@ BellyDragonFire::BellyDragonFire(const char* pName, const char* pModelName, MtxP
     mIds = NULL;
     mModelObj = MR::createModelObjMapObjDecoration(pName, pModelName, pMtx);
     mModelObj->makeActorDead();
-    mIds = (s32*)__nwa__FUl(mCount * 4);
+    mIds = new BellyDragonMtxBlock*[mCount];
     for (s32 i = 0; i < mCount; i++) {
         mIds[i] = 0;
     }
@@ -101,26 +103,80 @@ BellyDragonFire::BellyDragonFire(const char* pName, const char* pModelName, MtxP
 BellyDragonFire::~BellyDragonFire() {
 }
 
-// Small POD-like block (0x38 bytes): type id at 0x0, TMtx34 at 0x4, trailing s32 at 0x34.
+// Joint name, local matrix and the callback that installs it during animation (0x38 bytes).
 class BellyDragonMtxBlock {
 public:
-    BellyDragonMtxBlock(s32 type);
-    s32 copyMtx(void* pDst);
+    BellyDragonMtxBlock(const char* pName);
+    bool copyMtx(TPos3f*, const JointControllerInfo&);
 
-    /* 0x00 */ s32 mType;
+    /* 0x00 */ const char* mJointName;
     /* 0x04 */ TPos3f mMtx;
-    /* 0x34 */ s32 mFlag;
+    /* 0x34 */ JointController* mController;
 };
 
-BellyDragonMtxBlock::BellyDragonMtxBlock(s32 type) {  // was fn_80095900
-    mType = type;
-    mFlag = 0;
+BellyDragonMtxBlock::BellyDragonMtxBlock(const char* pName) {  // was fn_80095900
+    mJointName = pName;
+    mController = NULL;
     mMtx.identity();
 }
 
 #pragma dont_inline on
-s32 BellyDragonMtxBlock::copyMtx(void* pDst) {  // was fn_80095940
+bool BellyDragonMtxBlock::copyMtx(TPos3f* pDst, const JointControllerInfo&) {  // was fn_80095940
     JMath::gekko_ps_copy12(pDst, &mMtx);
     return 1;
 }
 #pragma dont_inline reset
+
+void BellyDragonFire::addJointMtx(const char* pJointName) {
+    u16 jointIndex = MR::getJointIndex(mModelObj, pJointName);
+    const char* name = MR::getJointName(mModelObj, jointIndex);
+    BellyDragonMtxBlock* block = new BellyDragonMtxBlock(name);
+    block->mController = MR::createJointController<BellyDragonMtxBlock>(block, mModelObj, jointIndex, &BellyDragonMtxBlock::copyMtx, NULL);
+    mIds[mCurrent] = block;
+    ++mCurrent;
+}
+
+void BellyDragonFire::appearModel() {
+    if (MR::isDead(mModelObj))
+        mModelObj->makeActorAppeared();
+}
+
+void BellyDragonFire::killModel() {
+    if (!MR::isDead(mModelObj))
+        mModelObj->makeActorDead();
+}
+
+void BellyDragonFire::setJointMtx(const char* pJointName, const TPos3f* pMtx) {
+    for (s32 i = 0; i < mCurrent; ++i) {
+        if (MR::isEqualString(pJointName, mIds[i]->mJointName)) {
+            JMath::gekko_ps_copy12(&mIds[i]->mMtx, pMtx);
+            break;
+        }
+    }
+}
+
+void BellyDragonFire::registerCallBacks() {
+    for (s32 i = 0; i < mCurrent; ++i)
+        mIds[i]->mController->registerCallBack();
+    PSMTXCopy(MR::getCameraViewMtx(), j3dSys.mViewMtx);
+    mModelObj->calcAnim();
+    mModelObj->calcViewAndEntry();
+}
+
+void BellyDragonFire::loadModelDrawMtx() const {
+    MR::getJ3DModel(mModelObj)->getShapePacket(0)->getShape()->loadPreDrawSetting();
+}
+
+// NONMATCHING: redundant zero extension of the u16 material count returned by the callee.
+void BellyDragonFire::drawShape() const {
+    s32 materialNum = MR::getMaterialNum(mModelObj);
+    for (u16 i = 0; i < materialNum; ++i) {
+        J3DShapePacket* packet = MR::getJ3DModel(mModelObj)->getShapePacket(i);
+        if (!packet->getShape()->checkFlag(1))
+            packet->drawFast();
+    }
+}
+
+bool BellyDragonFire::isDraw() const {
+    return !MR::isDead(mModelObj);
+}

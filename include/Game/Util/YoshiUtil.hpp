@@ -42,8 +42,8 @@ namespace MR {
     void fn_80422790(MtxPtr, LiveActor*);
     bool isMsgYoshiAutoEatStart(u32);
     bool isMsgYoshiAutoEatEnd(u32);
-    // PLACEHOLDER(m1): predicate tests message 0xFE; resolve when Yoshi message semantics are recovered.
-    bool fn_80422890(u32);
+    // original name unknown; named by behaviour: tests the auto-eat query selecting completion without chewing (message 0xFE).
+    bool isMsgYoshiAutoEatNoChewQuery(u32);
     void createLightFruitClipArea();
     void startYoshiLightFruit();
     bool requestYoshiCaptureGuidance();  // returns bool (StarPointerUtil.cpp, asm)

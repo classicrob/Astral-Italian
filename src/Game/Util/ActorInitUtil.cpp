@@ -605,3 +605,23 @@ namespace MR {
         }
     }
 };  // namespace MR
+
+#include "Game/Util/ObjUtil.hpp"
+#include <JSystem/JUtility/JUTTexture.hpp>
+
+namespace MR {
+    JUTTexture* loadTexFromArc(LiveActor*, const char* pArchive, const char* pFile) {
+        ResourceHolder* holder = NULL;
+        const ResTIMG* image = loadTexFromArc(pArchive, pFile, &holder);
+        return new JUTTexture(image, 0);
+    }
+    JUTTexture* loadTexFromArc(LiveActor* pActor, const char* pName) {
+        ResourceHolder* holder = getResourceHolder(pActor);
+        const ResTIMG* image;
+        if (holder)
+            image = getTextureResource(holder, pName);
+        else
+            image = loadTexFromArc(pName, &holder);
+        return new JUTTexture(image, 0);
+    }
+}

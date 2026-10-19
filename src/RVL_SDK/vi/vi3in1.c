@@ -511,7 +511,7 @@ VIMacroVisionObj VIZeroACPType = {
 extern s32 __VISendI2CData(u8, u8 *, s32);
 extern void WaitMicroTime(s32);
 
-void __VISetYUVSEL(VIBool outsel) NO_INLINE {
+void __VISetYUVSEL(VIBool outsel) {
     u8 buffer[2];
     u32 tv;
 
@@ -738,6 +738,10 @@ void __VISetGammaImm(VIGammaObj *gamma) {
     WaitMicroTime(2);
 }
 
+void __VISetGamma1_0(void) {
+    __VISetGammaImm(&gammaSet[VI_GM_1_0]);
+}
+
 static VIGamma __gamma;
 void __VISetGamma(void) {
     __VISetGammaImm(&gammaSet[__gamma]);
@@ -874,4 +878,5 @@ void __VISetRevolutionModeSimple(void) {
     __VISetRGBOverDrive();
     __VISetTrapFilterImm(VI_DISABLE);
     __VISetGammaImm(&gammaSet[VI_GM_1_0]);
+    __gamma = 0;
 }

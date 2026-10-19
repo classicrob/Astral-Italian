@@ -63,9 +63,17 @@ typedef union KPADEXStatus {
     } bl;
 } KPADEXStatus;
 
-// MotionPlus data (SMG2 SDK; 0x3C bytes, member layout not recovered)
+// MotionPlus sample: angular velocity, integrated angle, then three direction axes.
+typedef struct KPADMPLSDirection {
+    Vec X;
+    Vec Y;
+    Vec Z;
+} KPADMPLSDirection;
+
 typedef struct KPADMPLSStatus {
-    u32 data[15];
+    Vec angularVelocity;
+    Vec angle;
+    KPADMPLSDirection direction;
 } KPADMPLSStatus;
 
 typedef struct KPADStatus {

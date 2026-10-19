@@ -54,7 +54,7 @@ static EXIControl Ecb[3];
 s32 __EXIProbeStartTime[2] : (OS_BASE_CACHED | 0x30C0);
 static u32 IDSerialPort1;
 
-static const char* __EXIVersion = "<< RVL_SDK - EXI \trelease build: Aug  8 2007 01:59:22 (0x4199_60831) >>";
+static const char* __EXIVersion = "<< RVL_SDK - EXI \trelease build: Dec 11 2009 15:55:59 (0x4302_145) >>";
 
 #define REG(chan, idx) (__EXIRegs[((chan) * 5) + (idx)])
 
@@ -112,6 +112,29 @@ static void CompleteTransfer(s32 chan) {
 
         exi->state &= ~3;
     }
+}
+
+u32 EXIClearInterrupts(s32 channel, BOOL exi, BOOL tc, BOOL ext) {
+    u32 cpr;
+    u32 prev;
+
+    prev = cpr = REG(channel, EXI_0CPR_IDX);
+    cpr &= 0x7F5;
+
+    if (exi) {
+        cpr |= 2;
+    }
+
+    if (tc) {
+        cpr |= 8;
+    }
+
+    if (ext) {
+        cpr |= 0x800;
+    }
+
+    REG(channel, EXI_0CPR_IDX) = cpr;
+    return prev;
 }
 
 BOOL EXIImm(s32 chan, void* buf, s32 len, u32 type, EXICallback callback) {
@@ -175,28 +198,6 @@ BOOL EXIImmEx(s32 chan, void* buf, s32 len, u32 mode) {
     return TRUE;
 }
 
-u32 EXIClearInterrupts(s32 channel, BOOL exi, BOOL tc, BOOL ext) {
-    u32 cpr;
-    u32 prev;
-
-    prev = cpr = REG(channel, EXI_0CPR_IDX);
-    cpr &= 0x7F5;
-
-    if (exi) {
-        cpr |= 2;
-    }
-
-    if (tc) {
-        cpr |= 8;
-    }
-
-    if (ext) {
-        cpr |= 0x800;
-    }
-
-    REG(channel, EXI_0CPR_IDX) = cpr;
-    return prev;
-}
 
 BOOL EXIDma(s32 channel, void *buffer, s32 length, u32 type, EXICallback cb) {
     EXIControl* exi = &Ecb[channel];

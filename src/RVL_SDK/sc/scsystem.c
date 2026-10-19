@@ -689,7 +689,7 @@ static BOOL SCFindIntegerItem(void* data, SCItemID id, SCType type) {
     return result;
 }
 
-BOOL SCReplaceIntegerItem(const void* data, SCItemID id, SCType type) NO_INLINE {
+static BOOL SCReplaceIntegerItem(const void* data, SCItemID id, SCType type) {
     SCItem item;
     BOOL result = FALSE;
     BOOL enabled = OSDisableInterrupts();

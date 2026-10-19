@@ -1079,11 +1079,7 @@ static void __ClearControlBlock(s32 chan) {
     WPADiClearQueue(&p_wpd->cmdq);
     WPADiClearQueue(&p_wpd->extq);
 
-    _wmb[chan].used = FALSE;
-    _wmb[chan].p_buf = NULL;
-    _wmb[chan].len = 0;
-    _wmb[chan].addr = 0;
-    _wmb[chan].callback = NULL;
+    WPADiClearMemoryControl(chan);
 
     _extCnt[chan] = 0;
     _rumbleCnt[chan] = 0;
@@ -1336,8 +1332,8 @@ static void WPADiConnCallback(WUDDevInfo* info, u8 open) {
 
             if (p_wpd->resultCallback) {
                 p_wpd->resultCallback(chan, WPAD_ERR_NO_CONTROLLER);
-            } else if (_wmb[chan].callback) {
-                _wmb[chan].callback(chan, WPAD_ERR_NO_CONTROLLER);
+            } else if (p_wpd->memoryControl.callback) {
+                p_wpd->memoryControl.callback(chan, WPAD_ERR_NO_CONTROLLER);
             }
             do {
                 isCmdExist = WPADiGetCommand(&p_wpd->cmdq, &cmd);
@@ -1401,6 +1397,17 @@ void WPADGetAccGravityUnit(s32 chan, u32 type, WPADAcc* acc) {
             acc->z = (s16)(p_wpd->extConf.fs.acc_1g.z - p_wpd->extConf.fs.acc_0g.z);
             break;
         }
+    }
+    OSRestoreInterrupts(enable);
+}
+
+void WPADiGetMplsCalibration(s32 chan, WPADMplsCalibration* low, WPADMplsCalibration* high) {
+    WPADControlBlock* p_wpd = _wpdcb[chan];
+    BOOL enable = OSDisableInterrupts();
+
+    if (low != NULL && high != NULL) {
+        *low = p_wpd->extConf.mplsCalibration[0];
+        *high = p_wpd->extConf.mplsCalibration[1];
     }
     OSRestoreInterrupts(enable);
 }
@@ -2266,24 +2273,24 @@ s32 WPADControlBLC(s32 chan, u8 command, WPADCallback callback) {
         switch (command) {
         case 0xAA:
             if (__CanPushCmdQueue(&p_wpd->cmdq, 4)) {
-                fn_805F8560(chan, data, 7, 0xA4, 0xF1, NULL);
-                fn_805F8560(chan, data, 1, 0xA4, 0xF1, NULL);
-                fn_805F8560(chan, data, 1, 0xA4, 0xF1, NULL);
-                fn_805F8560(chan, data, 1, 0xA4, 0xF1, callback);
+                WPADWriteExtensionRegister(chan, data, 7, 0xA4, 0xF1, NULL);
+                WPADWriteExtensionRegister(chan, data, 1, 0xA4, 0xF1, NULL);
+                WPADWriteExtensionRegister(chan, data, 1, 0xA4, 0xF1, NULL);
+                WPADWriteExtensionRegister(chan, data, 1, 0xA4, 0xF1, callback);
                 OSRestoreInterrupts(enable);
                 return WPAD_ERR_NONE;
             }
             result = WPAD_ERR_BUSY;
             break;
         case 0x55:
-            result = fn_805F8560(chan, data, 7, 0xA4, 0xF1, callback);
+            result = WPADWriteExtensionRegister(chan, data, 7, 0xA4, 0xF1, callback);
             if (result == WPAD_ERR_NONE) {
                 OSRestoreInterrupts(enable);
                 return WPAD_ERR_NONE;
             }
             break;
         case 0:
-            result = fn_805F8560(chan, data, 1, 0xA4, 0xF1, callback);
+            result = WPADWriteExtensionRegister(chan, data, 1, 0xA4, 0xF1, callback);
             if (result == WPAD_ERR_NONE) {
                 OSRestoreInterrupts(enable);
                 return WPAD_ERR_NONE;

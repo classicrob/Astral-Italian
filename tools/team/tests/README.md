@@ -22,3 +22,11 @@ clang++ -std=c++11 -O2 -fsanitize=undefined -fno-sanitize-recover=all \
 ```
 
 The full Wii build and per-unit matched-byte guard check that these address-width changes preserve the 32-bit target.
+
+Controller certificate integer helpers have an independent Python-integer reference test:
+
+```sh
+python3 tools/team/tests/lint_native.py
+```
+
+It compiles the actual source in optimized and UBSan modes and checks carries, borrows, zero normalization, shifts, input squares and in-place subtraction on a native host. Shift/multiply use separate output storage, matching the original controller callers. This test does not replace the original-PPC comparison used during recovery.

@@ -165,8 +165,9 @@ GXRenderModeObj GXPal524ProgAa = {
 static BOOL OnShutdown(BOOL final, u32 event);
 static OSShutdownFunctionInfo ShutdownFunctionInfo = {OnShutdown, 127};
 
+// NONMATCHING: explicit FALSE default adds one redundant zero load; target retains the incoming FALSE in r3.
 static BOOL OnShutdown(BOOL final, u32 event) {
-    BOOL retval;
+    BOOL retval = FALSE;
     static BOOL first = TRUE;
     static u32 count;
 
@@ -194,6 +195,7 @@ static BOOL OnShutdown(BOOL final, u32 event) {
         case 0:
         case 6:
         case 5:
+            __VISetGamma1_0();
             retval = TRUE;
             break;
         }

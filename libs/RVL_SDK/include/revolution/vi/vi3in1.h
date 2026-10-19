@@ -41,6 +41,8 @@ typedef enum _VIGamma {
 } VIGamma;
 
 void VISetTrapFilter(VIBool);
+void __VISetGamma1_0(void);
+void __VISetYUVSEL(VIBool);
 
 #ifdef __cplusplus
 }

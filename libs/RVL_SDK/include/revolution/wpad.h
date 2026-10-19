@@ -244,12 +244,17 @@ typedef struct WPADCLStatus {
     u8 clTriggerR;
 } WPADCLStatus;
 
-// MotionPlus report: only the shared prefix and extension-status byte are decoded here.
+// MotionPlus extension prefix is preserved when a report contains gyro data.
+typedef struct WPADMPExtension {
+    u8 data[12];
+} WPADMPExtension;
 typedef struct WPADMPStatus {
     WPADStatus core;
-    u8 extension[12];
-    u8 status;
-    u8 reserved[9];
+    WPADMPExtension extension;
+    /* 0x36 */ u8 status;
+    u8 reserved37;
+    /* 0x38 */ s16 rotation[3];
+    u8 reserved3E[2];
 } WPADMPStatus;
 
 // Balance-board and vendor analog reports share the 0x2A-byte core prefix.
@@ -360,6 +365,14 @@ typedef struct WPADExtConfig {
     u16 mplsCalibrationTag;
 } WPADExtConfig;
 
+typedef struct WPADMEMControlBlock {
+    BOOL used;
+    u8* p_buf;
+    u16 len;
+    u32 addr;
+    WPADCallback callback;
+} WPADMEMControlBlock;
+
 typedef struct WPADControlBlock {
     WPADMEMGameInfo gameInfo;
     s32 gameInfoErr[2];
@@ -401,8 +414,19 @@ typedef struct WPADControlBlock {
     BOOL setup;
     BOOL oldFw;
     OSThreadQueue threadq;
-    // PLACEHOLDER(m1): accessed extension state at 0x930..0x93E; resolve each flag/retry role from extension setup and report consumers.
-    u8 reservedControllerState[0xE];
+    // PLACEHOLDER(m1): 0x930..0x933 have no observed consumer; 0x93C is initialized to 0xFD only.
+    // Resolve these reserved bytes when a lifecycle consumer establishes their roles.
+    u8 reservedControllerPrefix[4];
+    u8 mplsControlBusy;
+    // Two-byte readback starting at extension register FE (FE mode, FF identity).
+    u8 mplsModeReadback[2];
+    u8 mplsControlRetries;
+    u8 mplsRequestedMode;
+    u8 mplsDiscardReports;
+    u8 mplsReinitPending;
+    u8 mplsPassthroughConfigBusy;
+    u8 reservedMplsState;
+    u8 mplsPassthroughConfigState;
     u8 certParamBytes;
     u8 certTransferRetries;
     u16 certWorkCount;
@@ -423,12 +447,11 @@ typedef struct WPADControlBlock {
     u16 diffCountDpd;
     u16 diffCountAcc;
     u16 diffCountfsAcc;
-    // PLACEHOLDER(m1): fourth diff/hysteresis category; resolve category from controller-change helper805E8140.
-    u16 reservedDiffCounter;
+    u16 diffCountMpls;
     u16 hystCountDpd;
     u16 hystCountAcc;
     u16 hystCountfsAcc;
-    u16 reservedHystCounter;
+    u16 hystCountMpls;
     OSTime cmdTimer;
     u8 cmdTimeoutAction;
     u8 isSetStickOrigin;
@@ -451,24 +474,36 @@ typedef struct WPADControlBlock {
     u8 extEnc;
     u8 pwrSave;
     u8 padding2;
-    // PLACEHOLDER(m1): accessed extension state at 0xB88..0xBAE; resolve through MotionPlus setup/report consumers.
-    u8 reservedExtensionState[0x26];
+    u8 extensionPreviousType;
+    u8 extensionReconnectPending;
+    s16 extensionReconnectTimer;
+    WPADMEMControlBlock memoryControl;
+    WPADCallback mplsControlCallback;
+    u8 mplsRegisterF3;
+    u8 certProbeResponse;
+    u8 dpdChangePending;
+    u8 dpdExtendedReportMask;
+    u32 mplsRegisterAddress;
+    u8 mplsControlState;
+    u8 mplsInitTicks;
     s8 certCachedValidity;
-    // PLACEHOLDER(m1): resolve bytes 0xBAF..0xBB2 through their extension-state consumers.
-    u8 reservedExtensionIdentity[3];
+    // PLACEHOLDER(m1): 0xBAF..0xBB0 have no observed consumer; resolve if extension identity parsing accesses them.
+    u8 reservedExtensionIdentity[2];
+    // Input byte 7 of the extension identity response; compared against 14 by certificate acceptance.
+    u8 extensionIdByte7;
     u16 certCachedCalibrationTag;
     u32 certCachedCalibrationCRC32;
-    // PLACEHOLDER(m1): target WPADInit stride 0xBE0; resolve tail through extension-state consumers before naming any accessed fields.
-    u8 reservedExtensionTail[0x28];
+    u8 extensionErrorCountdown;
+    s8 extensionDataError;
+    u8 extensionDataLength;
+    u8 extensionDataDeviceType;
+    // Selects TRN report parsing: zero disables change checks, values below 8 omit the final 2-bit field.
+    u8 trnFormatSelector;
+    u8 reservedReportState[3];
+    u8 extensionData[32];
 } WPADControlBlock;
 
-typedef struct WPADMEMControlBlock {
-    BOOL used;
-    u8* p_buf;
-    u16 len;
-    u32 addr;
-    WPADCallback callback;
-} WPADMEMControlBlock;
+
 
 void WPADRegisterAllocator(WPADAlloc, WPADFree);
 u32 WPADGetWorkMemorySize(void);
@@ -481,6 +516,7 @@ s32 WPADControlSpeaker(s32, u32, WPADCallback);
 u8 WPADGetSpeakerVolume(void);
 s32 WPADSendStreamData(s32, void*, u16);
 BOOL WPADCanSendStreamData(s32);
+void WPADiGetMplsCalibration(s32 chan, WPADMplsCalibration* low, WPADMplsCalibration* high);
 void WPADGetAccGravityUnit(s32 chan, u32 type, WPADAcc* acc);
 void WPADControlMotor(s32, u32);
 BOOL WPADStopSimpleSync(void);
@@ -518,8 +554,8 @@ BOOL WPADiSendSetReportType(WPADCmdQueue*, u32, BOOL, WPADCallback);
 BOOL WPADiSendWriteDataCmd(WPADCmdQueue*, u8, u32, WPADCallback);
 BOOL WPADiSendReadData(WPADCmdQueue*, void*, u16, u32, WPADCallback);
 BOOL WPADiSendWriteData(WPADCmdQueue*, void*, u16, u32, WPADCallback);
-// PLACEHOLDER(m1): resolve actual WPAD memory API name from SDK reference; target805F8560 body proves this six-argument typed register-write contract.
-s32 fn_805F8560(s32 chan, void* data, u16 length, u8 extension, u16 address, WPADCallback callback);
+// Descriptive name for the six-argument extension-register write API; historical SDK spelling unavailable.
+s32 WPADWriteExtensionRegister(s32 chan, void* data, u16 length, u8 extension, u16 address, WPADCallback callback);
 
 void WPADiCopyOut(s32);
 void WPADiExcludeButton(s32);
@@ -553,7 +589,7 @@ void WPADSetAutoSamplingBuf(s32, void*, u32);
 #define WPADStartMotor(chan) WPADControlMotor((chan), WPAD_MOTOR_RUMBLE)
 #define WPADStopMotor(chan) WPADControlMotor((chan), WPAD_MOTOR_STOP)
 
-extern WPADMEMControlBlock _wmb[WPAD_MAX_CONTROLLERS];
+void WPADiClearMemoryControl(s32 chan);
 extern WPADControlBlock* _wpdcb[WPAD_MAX_CONTROLLERS];
 
 #ifdef __cplusplus

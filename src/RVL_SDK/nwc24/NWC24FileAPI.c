@@ -357,6 +357,9 @@ NWC24Err NWC24FDeleteVF(const char* pPath) {
     s32 result;
 
     result = VFDeleteFile(pPath);
+    if (result == VF_ERROR_0002) {
+        return NWC24_OK;
+    }
     if (result != VF_OK) {
         return ConvertVfError(result, NWC24_ERR_FILE_OTHER);
     }

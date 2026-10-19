@@ -80,7 +80,7 @@ static void uusb_CloseDeviceCB(long result, void* p_data);
 static void uusb_ReadIntrDataCB(long result, void* p_data);
 static void uusb_ReadBulkDataCB(long result, void* p_data);
 static void uusb_issue_bulk_read(void);
-void uusb_issue_intr_read(void) NO_INLINE;
+static void uusb_issue_intr_read(void);
 static void uusb_WriteCtrlDataCB(long result, void* p_data);
 static void uusb_WriteBulkDataCB(long result, void* p_data);
 static long uusb_get_devId(int vid, int pid);
@@ -189,6 +189,8 @@ static void uusb_CloseDeviceCB(long result, void* p_data) {
         (*usb.cback)(4, result);
 }
 
+// NONMATCHING: Packet-header field stores and temporary registers are scheduled differently;
+// owned disjoint u16 fields, memcpy arguments, and the full remaining body agree with target.
 static void uusb_ReadIntrDataCB(long result, void* p_data) {
     unk4_t sp14 = 0;
     UINT32 len;
@@ -319,7 +321,7 @@ static void uusb_issue_bulk_read(void) {
     }
 }
 
-void uusb_issue_intr_read(void) {
+static void uusb_issue_intr_read(void) {
     HC_BT_HDR* p_buf = NULL;
     void* p_buffer = NULL;
     unk_t r28 = 0;
@@ -336,7 +338,7 @@ void uusb_issue_intr_read(void) {
 
     p_buf->offset = (UINT8*)p_buffer - (UINT8*)(p_buf + 1);
 
-    ret = IUSB_ReadIntrMsgAsync(usb.fd, usb.intrEndpoint1, GKI_get_buf_size(p_buf) - 0x28 - p_buf->offset, p_buffer, uusb_ReadIntrDataCB, p_buf);
+    ret = IUSB_WriteIntrMsgAsync(usb.fd, usb.intrEndpoint1, GKI_get_buf_size(p_buf) - 0x28 - p_buf->offset, p_buffer, uusb_ReadIntrDataCB, p_buf);
 
     if (ret != 0) {
         GKI_freebuf(p_buf);
@@ -517,6 +519,8 @@ void UUSB_Register(tUUSB* uusb) {
     wait4hci = TRUE;
 }
 
+// NONMATCHING: Packet initialization uses a different temporary register and instruction schedule;
+// complete initialization effects, transfer arguments, branches, and remaining instructions agree.
 void UUSB_Open(tUUSB* uusb, tUUSB_CBACK* cback) {
     /* Use efficient coding to avoid pipeline stalls */
     if (usb.state != 4)

@@ -598,6 +598,28 @@ void GXSetTexCoordScaleManually(GXTexCoordID coord, GXBool enable, u16 ss, u16 t
     }
 }
 
+void GXSetTexCoordCylWrap(GXTexCoordID coord, GXBool wrapS, GXBool wrapT) {
+    FAST_FLAG_SET(gx->suTs0[coord], wrapS, 17, 1);
+    FAST_FLAG_SET(gx->suTs1[coord], wrapT, 17, 1);
+
+    if (gx->tcsManEnab & (1 << coord)) {
+        GX_WRITE_RA_REG(gx->suTs0[coord]);
+        GX_WRITE_RA_REG(gx->suTs1[coord]);
+        BP_SENT();
+    }
+}
+
+void GXSetTexCoordBias(GXTexCoordID coord, GXBool sBias, GXBool tBias) {
+    FAST_FLAG_SET(gx->suTs0[coord], sBias, 16, 1);
+    FAST_FLAG_SET(gx->suTs1[coord], tBias, 16, 1);
+
+    if (gx->tcsManEnab & (1 << coord)) {
+        GX_WRITE_RA_REG(gx->suTs0[coord]);
+        GX_WRITE_RA_REG(gx->suTs1[coord]);
+        BP_SENT();
+    }
+}
+
 void __SetSURegs(u32 tmap, u32 tcoord) NO_INLINE {
     u32 w, h;
     GXBool s_bias, t_bias;

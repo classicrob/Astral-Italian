@@ -389,3 +389,12 @@ u32 MEMGetAllocatableSizeForExpHeapEx(MEMHeapHandle heap, int alignment) {
         return maxSize;
     }
 }
+
+u16 MEMSetGroupIDForExpHeap(MEMHeapHandle heap, u16 groupID) {
+    BOOL enabled = OSDisableInterrupts();
+    MEMiExpHeapHead* expHeap = (MEMiExpHeapHead*)(heap + 1);
+    u16 previous = expHeap->groupID;
+    expHeap->groupID = groupID;
+    OSRestoreInterrupts(enabled);
+    return previous;
+}

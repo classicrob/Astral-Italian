@@ -9,7 +9,8 @@ static volatile u32 __i2c_ident_first = 0;
 void WaitMicroTime(s32 usec) {
     OSTime t = __OSGetSystemTime();
 
-    while (OSTicksToMicroseconds(__OSGetSystemTime() - t) < usec);
+    // I2C delays use the fixed Wii time-base conversion (60.75 MHz).
+    while (((__OSGetSystemTime() - t) * 8) / 486 < usec);
 }
 
 static void VICheckI2C(void) {

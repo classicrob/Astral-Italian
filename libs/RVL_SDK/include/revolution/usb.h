@@ -46,6 +46,7 @@ typedef void (*USBCallbackFunc)(IOSError err, void* cbArg);
 typedef void (*USBIsoCallbackFunc)(IOSError err, IsoTransfer* xfer, void* cbArg);
 
 IOSError IUSB_ReadIntrMsgAsync(IOSFd fd, u32 ep, u32 buflen, char* buf, USBCallbackFunc cb, void* cbArg);
+IOSError IUSB_WriteIntrMsgAsync(IOSFd fd, u32 ep, u32 buflen, char* buf, USBCallbackFunc cb, void* cbArg);
 IOSError IUSB_WriteCtrlMsgAsync(IOSFd fd, u8 reqType, u8 request, u16 value, u16 index, u16 buflen, char* buf, USBCallbackFunc cb, void* cbArg);
 IOSError IUSB_WriteBlkMsgAsync(IOSFd fd, u32 ep, u32 buflen, char* buf, USBCallbackFunc cb, void* cbArg);
 IOSError IUSB_OpenDeviceIds(const char* did, u16 vid, u16 pid, IOSFd* fd);

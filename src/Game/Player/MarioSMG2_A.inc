@@ -1661,7 +1661,9 @@ f32 Mario::calcJumpGravity() {
         MarioConstTable* entry = this->mActor->mConst->getTable();
         f32 ratio = static_cast<f32>(timer) / static_cast<f32>(entry->mBeeGravityReviveTime);
         f32 multiplier = this->fn_8039ADC0();
-        return ((1.0f - ratio) + ratio * entry->mGravityAirWalk) * multiplier;
+        f32 gravity = (1.0f - ratio) + ratio * entry->mGravityAirWalk;
+        gravity *= multiplier;
+        return gravity;
     }
     if (this->_3CC != 0) {
         return this->mActor->mConst->getTable()->mGravityAirWalk;

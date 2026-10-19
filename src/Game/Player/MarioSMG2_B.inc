@@ -733,6 +733,7 @@ void Mario::fn_803B1180() {
     }
 }
 
+// NONMATCHING: saved-register and stack allocation, pooled animation strings.
 void Mario::fn_803B12B0() {
     if ((this->mMovementStates.mLowWord >> 20) & 1) {
         this->mFlags14.mHighWord &= 0xFFDFFFFF;
@@ -761,10 +762,12 @@ void Mario::fn_803B12B0() {
     this->mJumpVec -= lateral;
     this->mJumpVec *= 0.95f * this->mActor->fn_803B9A90();
     this->mJumpVec += lateral;
+    MarioActor* actor = mActor;
     f32 maxRiseSpeed = YoshiParam::fn_8041BDB0();
-    if (this->mActor->fn_803B9A90() < maxRiseSpeed) {
+    if (actor->fn_803B9A90() < maxRiseSpeed) {
+        actor = mActor;
         f32 maxSpeed = YoshiParam::fn_8041BDB0();
-        f32 riseSpeed = this->mActor->fn_803B9A90();
+        f32 riseSpeed = actor->fn_803B9A90();
         f32 ratio = (YoshiParam::fn_8041BDB0() - riseSpeed) / maxSpeed;
         f32 acceleration = YoshiParam::fn_8041BDA0();
         this->mJumpVec += -this->mActor->mAppliedGravityVec * ratio * acceleration;
@@ -1202,7 +1205,7 @@ void Mario::fn_803B38B0(const HitInfo* hit, const TVec3f* center) {
     }
 }
 
-// NONMATCHING: temporary allocation and register scheduling.
+// NONMATCHING: literal symbol identities; instruction words match after relocation masking.
 f32 Mario::fn_803B2CC0(TVec3f* arg1) {
     if (((mFlags14.mLowWord >> 12) & 1) && ((mMovementStates.mLowWord >> 20) & 1)) {
         return 1.0f;
@@ -1211,15 +1214,15 @@ f32 Mario::fn_803B2CC0(TVec3f* arg1) {
         u16 t = this->mActor->_334;
         if (t != 0) {
             f32 t3 = (f32)t / 15.0f;
-            return t3 * marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityM + (1.0f - t3) * marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityL;
+            return t3 * mActor->mConst->getTable()->mRotateHeadVecSpeedByGravityM + (1.0f - t3) * mActor->mConst->getTable()->mRotateHeadVecSpeedByGravityL;
         }
-        return marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityL;
+        return mActor->mConst->getTable()->mRotateHeadVecSpeedByGravityL;
     }
     if (arg1->dot(this->mHeadVec) < 0.99f) {
-        return marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityM;
+        return mActor->mConst->getTable()->mRotateHeadVecSpeedByGravityM;
     }
     if (this->mTargetWalkSpeedIndex <= 2) {
-        return marioCurTableEntry(this)->mRotateHeadVecSpeedByGravityS;
+        return mActor->mConst->getTable()->mRotateHeadVecSpeedByGravityS;
     }
     return 1.0f;
 }

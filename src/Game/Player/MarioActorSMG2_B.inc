@@ -1606,9 +1606,9 @@ void MarioActor::fn_803D86B0(TVec2f* a, TVec2f* b) const {
     GXSetBlendMode(GX_BM_BLEND, GX_BL_DSTALPHA, GX_BL_ONE, GX_LO_NOOP);
     GXSetDstAlpha(GX_TRUE, 0);
     const MarioConstTable* tbl = mConst->getTable();
-    u8 ca = tbl->mSearchLightColor[2];
-    u32 col = (((tbl->mSearchLightColor[0] << 0x18) & ~0xFF0000) | ((tbl->mSearchLightColor[1] << 0x10) & 0xFF0000));
-    col = (col & ~0xFF00) | ((ca << 8) & 0xFF00);
+    u32 col = static_cast<u32>(tbl->mSearchLightColor[0]) << 24;
+    col |= static_cast<u32>(tbl->mSearchLightColor[1]) << 16;
+    col |= static_cast<u32>(tbl->mSearchLightColor[2]) << 8;
     TDDraw::drawFillBox(*a, *b, col);
     GXSetDstAlpha(GX_FALSE, 0);
     GXSetAlphaUpdate(GX_FALSE);

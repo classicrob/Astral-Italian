@@ -18,9 +18,6 @@ extern const f32 cBodyHeight;
 extern const f32 cBodyCount;
 extern const f32 cOne;
 extern const f32 cHalf;
-extern const f32 cWanderWidth;
-extern const f32 cWanderHeightScale;
-extern const f32 cSegmentFraction;
 extern const f32 cStretchMin;
 __declspec(section ".sdata2") extern volatile s32 cWavePeriod;
 
@@ -310,7 +307,7 @@ void Nyoropon::exeFind() {
         MR::tryStartActionNotPlaying(mHead, "Wait");
     }
     updatePlayerTarget();
-    updateBodySegments(1.0f, 1.0f, 1.0f);
+    updateBodySegments(cOne, cOne, 1.0f);
     if (MR::isGreaterStep(this, 30) && MR::calcDistanceToPlayer(this) > 1100.0f) {
         setNerve(NRV(Wait));
     }
@@ -506,18 +503,18 @@ void Nyoropon::resetBodySegments() {
 
 // NONMATCHING: float register allocation and product scheduling differ
 void Nyoropon::updateWanderTarget() {
-    f32 half = cHalf * cWanderWidth;
+    f32 half = 300.0f * cHalf;
     TVec3f goal;
     goal.x = 0.0f;
-    goal.y = cWanderHeightScale * cBodyHeight;
+    goal.y = 1.3f * cBodyHeight;
     goal.z = 0.0f;
     s32 period = 500;
     f32 phase = 2.0f * (((f32)(((s32)(cHalf * period) + getNerveStep()) % period) / period) - cHalf);
     f32 wave;
     if (phase < 0.0f) {
-        wave = 1.0f + (2.0f * phase);
+        wave = cOne + (2.0f * phase);
     } else {
-        wave = 1.0f - (2.0f * phase);
+        wave = cOne - (2.0f * phase);
     }
     goal.x += half * wave;
     MR::vecBlend(&mTarget, mTarget, goal, 0.3f);
@@ -532,14 +529,14 @@ void Nyoropon::updatePlayerTarget() {
     if (local.y < 150.0f) {
         local.y = 150.0f;
     }
-    if (PSVECMag(&local) < 1.0f) {
+    if (PSVECMag(&local) < cOne) {
         local.y = 100.0f;
     }
     TVec3f diff(local);
     diff -= sTmpVec;
     f32 d = PSVECMag(&diff);
     if (d < 500.0f) {
-        if (d < 0.5f) {
+        if (d < cHalf) {
             local = mTarget;
         } else {
             MR::normalize(&diff);
@@ -573,7 +570,7 @@ void Nyoropon::updatePlayerTarget() {
 void Nyoropon::updateBodySegments(f32 pushA, f32 pushB, f32 ampScale) {
     mPrevVel = mVel;
     TVec3f head(mTarget);
-    f32 scale = cSegmentFraction * cBodyHeight * calcBodyStretchScale();
+    f32 scale = 0.16666667f * cBodyHeight * calcBodyStretchScale();
     mVel *= 0.92f;
     TVec3f d = head - mPoints[0];
     f32 dist = PSVECMag(&d);
@@ -614,7 +611,7 @@ void Nyoropon::updateBodySegments(f32 pushA, f32 pushB, f32 ampScale) {
         f32 bendRate = 1.0f - nb;
         MR::normalizeOrZero(&d2);
         TVec3f perp2(-d2.y, d2.x, 0.0f);
-        f32 bend = (1.0f - (cSegmentFraction * (f32)k2)) * (100.0f * bendRate);
+        f32 bend = (1.0f - (0.16666667f * (f32)k2)) * (100.0f * bendRate);
         f32 hh = (0.5f * m2) + (0.5f * bend);
         f32 sq = (scale * scale) - (hh * hh);
         f32 s = MR::fastSqrtf(sq);
@@ -657,7 +654,7 @@ void Nyoropon::updateBodySegments(f32 pushA, f32 pushB, f32 ampScale) {
 // NONMATCHING: vector array stack order, register allocation, and arithmetic scheduling differ
 void Nyoropon::updateBodyWaveMatrices(f32 ampScale) {
     TVec3f up(0.0f, 0.0f, 1.0f);
-    f32 segmentFraction = cSegmentFraction;
+    f32 segmentFraction = 0.16666667f;
     f32 step = cBodyHeight * segmentFraction;
     TVec3f d = mTarget - mPoints[0];
     f32 n = MR::clamp(MR::normalize(PSVECMag(&d), 0.0f, 200.0f), 0.0f, 1.0f);
@@ -762,9 +759,6 @@ const f32 cBodyHeight = 500.0f;
 const f32 cBodyCount = 7.0f;
 const f32 cOne = 1.0f;
 const f32 cHalf = 0.5f;
-const f32 cWanderWidth = 300.0f;
-const f32 cWanderHeightScale = 1.3f;
-const f32 cSegmentFraction = 0.16666667f;
 const f32 cStretchMin = 0.05f;
 __declspec(section ".sdata2") volatile s32 cWavePeriod = 180;
 

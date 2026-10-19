@@ -22,7 +22,7 @@ void LuigiTalkNpc::init(const JMapInfoIter& iter) {
     NPCActorCaps caps("LuigiTalkNpc");
     caps.setDefault();
     caps.mDropItemOnSupportTicoSpin=true;
-    mParam._14="Wait"; mParam._18="Turn"; mParam._1C="Talk"; mParam._20="Turn";
+    mParam._18="Turn"; mParam._14="Wait"; mParam._1C="Talk"; mParam._20="Turn";
     if(MR::isObjectName(iter,"LuigiIntrusively") && !MR::isExistMessageId(iter)) { caps.mUseDirectMessage=true; caps.mMessageId=sIntrusiveMessage; }
     mSpinAction = cNPCSpinDefault; mTrampledAction = cNPCTrampledDefault; mPointingAction = cNPCPointingDefault; mReactionAction = cNPCReactionDefault;
     initialize(iter,caps,"LuigiNPC",nullptr,nullptr);

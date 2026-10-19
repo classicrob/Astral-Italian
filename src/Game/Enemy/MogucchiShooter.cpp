@@ -153,8 +153,6 @@ void MogucchiShooter::init(const JMapInfoIter& rIter) {
     MR::setJointControllerParam(pJoint, this, jointName);
     mJointCtrl = pJoint;
     MogucchiSpike* spike = new MogucchiSpike(this, MR::getJointMtx(this, "Cockpit"));
-    spike->initWithoutIter();
-    spike->mCheckHiddenHost = true;
     mSpike = spike;
     mBreakModel = MR::createModelObjEnemy("壊れモデル", "GliderBazookaBreak", getBaseMtx());
     mBreakModel->makeActorDead();
@@ -576,6 +574,8 @@ namespace {
 inline MogucchiSpike::MogucchiSpike(LiveActor* pActor, MtxPtr pMtx)
     : PartsModel(pActor, "狙撃手", "MogucchiSpike", pMtx, 0x14, false) {
     mScaleCtrl = new AnimScaleController(nullptr);
+    initWithoutIter();
+    mCheckHiddenHost = true;
 }
 #pragma pool_strings reset
 

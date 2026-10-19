@@ -604,8 +604,8 @@ Game/AudioLib/AudSystem.cpp:
 	.text       start:0x80077500 end:0x8007BEA0
 	.ctors      start:0x80643D38 end:0x80643D3C
 	.rodata     start:0x80645798 end:0x806457A8
-	.data       start:0x8066B340 end:0x8066B520
-	.bss        start:0x80728788 end:0x807287C8
+	.data       start:0x8066B290 end:0x8066B520
+	.bss        start:0x80728758 end:0x807287C8
 	.sdata2     start:0x807D7390 end:0x807D7434
 
 Game/AudioLib/AudSystemVolumeController.cpp:
@@ -718,6 +718,7 @@ Game/AudioLib/AudSpeakerWrap.cpp:
 	.text       start:0x80086720 end:0x80086C20
 	.ctors      start:0x80643D58 end:0x80643D5C
 	.rodata     start:0x80646D80 end:0x80646DA0
+	.bss        start:0x80728850 end:0x807288D0
 	.sbss       start:0x807D0E50 end:0x807D0E58
 	.sdata2     start:0x807D75A8 end:0x807D75B0
 
@@ -2604,6 +2605,7 @@ Game/Enemy/Battan.cpp:
 	.text       start:0x801591F0 end:0x8015BA20
 	.ctors      start:0x80644090 end:0x80644094
 	.data       start:0x80682E90 end:0x80683208
+	.bss        start:0x80728EF8 end:0x80728FA0
 
 Game/Enemy/BeeEater.cpp:
 	.text       start:0x8015BA20 end:0x8015D1B0
@@ -2710,12 +2712,14 @@ Game/Enemy/BoomerangBros.cpp:
 	.text       start:0x80171AC0 end:0x80173A70
 	.ctors      start:0x806440C8 end:0x806440CC
 	.data       start:0x806854F8 end:0x80685740
+	.bss        start:0x80728FA0 end:0x80728FB8
 	.sdata2     start:0x807DA0BC end:0x807DA0F0
 
 Game/Enemy/BoomerangBrosBoomerang.cpp:
 	.text       start:0x80173A70 end:0x80174CC0
 	.ctors      start:0x806440CC end:0x806440D0
 	.data       start:0x80685740 end:0x806858C8
+	.bss        start:0x80728FB8 end:0x80728FE0
 
 Game/Enemy/Bussun.cpp:
 	.text       start:0x80174CC0 end:0x80175D60
@@ -2844,12 +2848,14 @@ Game/Enemy/HammerBros.cpp:
 	.text       start:0x80186BC0 end:0x80188930
 	.ctors      start:0x8064411C end:0x80644120
 	.data       start:0x80687268 end:0x80687510
+	.bss        start:0x80728FE0 end:0x80728FF8
 	.sdata2     start:0x807DA508 end:0x807DA50C
 
 Game/Enemy/HammerBrosHammer.cpp:
 	.text       start:0x80188930 end:0x80189850
 	.ctors      start:0x80644120 end:0x80644124
 	.data       start:0x80687510 end:0x80687640
+	.bss        start:0x80728FF8 end:0x80729008
 	.sdata2     start:0x807DA548 end:0x807DA570
 
 Game/Enemy/HammerBrosTU02.cpp:
@@ -3095,6 +3101,7 @@ Game/Enemy/KuriboMini.cpp:
 Game/Enemy/LavaBubble.cpp:
 	.text       start:0x801BE920 end:0x801BF480
 	.ctors      start:0x80644194 end:0x80644198
+	.data       start:0x8068BDE8 end:0x8068BEB0
 
 Game/Enemy/MameMuimui.cpp:
 	.text       start:0x801BF480 end:0x801C0580
@@ -3548,6 +3555,7 @@ Game/Enemy/WanwanCreator.cpp:
 Game/Enemy/WanwanSearch.cpp:
 	.text       start:0x8021E2C0 end:0x8021F080
 	.ctors      start:0x8064427C end:0x80644280
+	.data       start:0x80693F30 end:0x80694058
 
 Game/Enemy/ActorActionSoundKeeper.cpp:
 	.text       start:0x8021F080 end:0x8021F6F0
@@ -6011,13 +6019,14 @@ Game/NPC/KoopaNpc.cpp:
 Game/NPC/LuigiTalkNpc.cpp:
 	.text       start:0x80351120 end:0x80351B00
 	.ctors      start:0x806446DC end:0x806446E0
-	.data       start:0x806B9D04 end:0x806B9ED0
+	.data       start:0x806B9CF0 end:0x806B9ED0
 	.sdata      start:0x807CFED0 end:0x807CFEE0
 	.sdata2     start:0x807DF228 end:0x807DF238
 
 Game/NPC/MameMuimuiAttackMan.cpp:
 	.text       start:0x80351B00 end:0x80352200
 	.ctors      start:0x806446E0 end:0x806446E4
+	.data       start:0x806B9F20 end:0x806BA0C0
 
 Game/NPC/Meister.cpp:
 	.text       start:0x80352200 end:0x80352C90
@@ -6074,6 +6083,7 @@ Game/NPC/MiiFaceRecipe.cpp:
 Game/NPC/Moc.cpp:
 	.text       start:0x80355E90 end:0x803563D0
 	.ctors      start:0x806446FC end:0x80644700
+	.data       start:0x806BAF58 end:0x806BB090
 
 Game/NPC/Monte.cpp:
 	.text       start:0x803563D0 end:0x80356AA0
@@ -6130,6 +6140,7 @@ Game/NPC/PichanRacer.cpp:
 Game/NPC/PlayAttackMan.cpp:
 	.text       start:0x8035A720 end:0x8035AAA0
 	.ctors      start:0x8064471C end:0x80644720
+	.data       start:0x806BBF68 end:0x806BC0A8
 
 Game/NPC/PostmanEvent.cpp:
 	.text       start:0x8035AAA0 end:0x8035B9B0
@@ -7330,7 +7341,7 @@ Game/Screen/SimpleLayout2.cpp:
 Game/Screen/AllStarList.cpp:
 	.text       start:0x8045D500 end:0x8045E820
 	.ctors      start:0x8064488C end:0x80644890
-	.data       start:0x806F1630 end:0x806F16E8
+	.data       start:0x806F1470 end:0x806F16E8
 	.sdata      start:0x807D0178 end:0x807D0188
 
 Game/Screen/BackButton.cpp:
@@ -7517,7 +7528,7 @@ Game/Screen/GalaxyNamePlate.cpp:
 
 Game/Screen/GalaxyNamePlateDrawer.cpp:
 	.text       start:0x80470950 end:0x80471240
-	.data       start:0x806F3BDC end:0x806F3C08
+	.data       start:0x806F3BC0 end:0x806F3C08
 	.sdata      start:0x807D01E8 end:0x807D01F0
 
 Game/Screen/GamePauseSequence.cpp:
@@ -8898,7 +8909,8 @@ Game/NWC24/UTF16Util.cpp:
 Game/NWC24/WiiMessageBoardMailSenderState.cpp:
 	.text       start:0x80500A50 end:0x80500F60
 	.ctors      start:0x80644AF4 end:0x80644AF8
-	.data       start:0x80703ED8 end:0x80703F98
+	.data       start:0x80703ED8 end:0x80703FC8
+	.sbss       start:0x807D6100 end:0x807D6110
 
 JSystem/JKernel/JKRHeap.cpp:
 	.text       start:0x80500F60 end:0x805019F0 align:16

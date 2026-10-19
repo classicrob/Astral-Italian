@@ -418,7 +418,7 @@ s32 PukupukuWaterSurface::probeSurfaceBelow() {
     TVec3f up(0.0f);
     MR::calcUpVec(&up, this);
     TVec3f offset(up);
-    offset.scale(200.0f);
+    offset.scale(sWaterProbeTop);
     TVec3f pos(mPosition);
     pos.add(offset);
     TVec3f direction(up);

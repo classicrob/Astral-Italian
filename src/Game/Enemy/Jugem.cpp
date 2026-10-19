@@ -318,7 +318,7 @@ void Jugem::exeApproach() {
     }
     updateJugemMoveAnimation();
     TVec3f target(0.0f);
-    calcJugemFollowPosition(&target, 350.0f);
+    calcJugemFollowPosition(&target, cHeight);
     const TVec3f& rPlayer = *MR::getPlayerPos();
     TVec3f diff(target);
     diff -= rPlayer;
@@ -335,7 +335,7 @@ void Jugem::exeApproach() {
         e += a;
         target = e;
     }
-    moveJugemKeepingHeight(this, target, true, 0.7f, 0.3f, 600.0f, 200.0f, 350.0f);
+    moveJugemKeepingHeight(this, target, true, 0.7f, 0.3f, 600.0f, 200.0f, cHeight);
     turnJugemFrontToTarget(&mFrontVec, this, *MR::getPlayerPos(), 0.06f);
     TVec3f toTarget(target);
     toTarget -= mPosition;
@@ -1096,10 +1096,10 @@ void Jugem::calcJugemPickupPosition(TVec3f* pOut, s32 index) {
     MR::calcGravityVector(mChildObjs[index], pos, &grav, nullptr, 0);
     TVec3f up(-grav);
     TVec3f up2(up);
-    up2 *= 350.0f;
+    up2 *= cHeight;
     pos += up2;
     TVec3f ref(0.0f);
-    calcJugemFollowPosition(&ref, 350.0f);
+    calcJugemFollowPosition(&ref, cHeight);
     TVec3f dir(pos);
     dir -= ref;
     MR::vecKillElement(dir, grav, &dir);

@@ -98,7 +98,8 @@ void NWC24SendThread::initMsgSendStatus() {
     mMsgSendStatus.mDelayHours = 0;
 }
 
-// NONMATCHING: the LED-pattern call targets 0x8055E934 (symbols.txt names NWC24SetMsgLedPattern at 0x8055E868); lis/addi operand scheduling differs.
+// PLACEHOLDER(enemies): target calls the SDK LED-pattern validator at 0x8055E934;
+// resolve when the SDK owner supplies its declaration, definition, and target symbol name.
 NWC24Err NWC24SendThread::sendMessage(MsgSendStatus* pMsgSendStatus, u32* pMsgSize) {
     NWC24Err err;
     NWC24MsgObj msgObj;
@@ -118,7 +119,7 @@ NWC24Err NWC24SendThread::sendMessage(MsgSendStatus* pMsgSendStatus, u32* pMsgSi
     const u16* pAltName = pMsgSendStatus->mAltName;
 
     if (pAltName != nullptr) {
-        err = NWC24SetMsgAltName(&msgObj, pAltName, MR::strlenUTF16(pAltName));
+        err = NWC24SetMsgAltName(&msgObj, pAltName, MR::strlenUTF16(pAltName) + 1);
 
         if (err != NWC24_OK) {
             return err;
@@ -157,19 +158,19 @@ NWC24Err NWC24SendThread::sendMessage(MsgSendStatus* pMsgSendStatus, u32* pMsgSi
 
     if (pMsgSendStatus->mPicture != nullptr) {
         err = NWC24SetMsgAttached(&msgObj, reinterpret_cast< const char* >(pMsgSendStatus->mPicture), pMsgSendStatus->mPictureSize,
-                                  NWC24_IMG_WII_PICTURE);
+                                  NWC24_IMG_JPEG);
 
         if (err != NWC24_OK) {
             return err;
         }
     }
-                                      if (pMsgSendStatus->mIsMsgLedPattern) {
-                                          err = NWC24SetMsgLedPattern(&msgObj, NWC24_LED_APP_DEFAULT);
+    if (pMsgSendStatus->mIsMsgLedPattern) {
+        err = NWC24SetMsgLedPattern(&msgObj, NWC24_LED_APP_DEFAULT);
 
-                                          if (err != NWC24_OK) {
-                                              return err;
-                                          }
-                                      }
+        if (err != NWC24_OK) {
+            return err;
+        }
+    }
     err = NWC24SetMsgMBNoReply(&msgObj, true);
 
     if (err != NWC24_OK) {

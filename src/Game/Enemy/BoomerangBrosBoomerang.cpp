@@ -106,6 +106,11 @@ bool BoomerangBrosBoomerang::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender,
 }
 
 // NONMATCHING: the target pools the two clamp bounds as two separate 2000.0f literals; ours merges them (fmr).
+namespace {
+    extern const f32 sPathDistanceMin;
+    extern const f32 sPathDistanceMax;
+}
+
 void BoomerangBrosBoomerang::v70(const TVec3f& rPos, const TVec3f& rTarget) {
     mOwner = nullptr;
     MR::setPosition(this, rPos);
@@ -117,7 +122,7 @@ void BoomerangBrosBoomerang::v70(const TVec3f& rPos, const TVec3f& rTarget) {
     TVec3f diff = *MR::getPlayerPos() - rPos;
     MR::vecKillElement(diff, mGravity, &diff);
     mPathDistance = PSVECMag(&diff);
-    mPathDistance = MR::clamp(mPathDistance, 2000.0f, 2000.0f);
+    mPathDistance = MR::clamp(mPathDistance, sPathDistanceMin, sPathDistanceMax);
     MR::normalizeOrZero(&mFront, diff);
     mMtx.identity();
     MR::calcMtxFromGravityAndZAxis(&mMtx, this, mFront);
@@ -319,4 +324,9 @@ bool BoomerangBrosBoomerang::v90() {
 }
 
 BoomerangBrosBoomerang::~BoomerangBrosBoomerang() {
+}
+
+namespace {
+    const f32 sPathDistanceMin = 2000.0f;
+    const f32 sPathDistanceMax = 2000.0f;
 }

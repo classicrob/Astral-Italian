@@ -103,11 +103,11 @@ void Popo::init(const JMapInfoIter& rIter) {
 // NONMATCHING: stack slot order of expression temporaries
 void Popo::initAfterPlacement() {
     MR::calcGravity(this);
-    TVec3f start(mPosition - mGravity * 120.0f);
-    TVec3f line = mGravity * 120.0f * 2.0f;
+    TVec3f start(mPosition - mGravity * sFloatKeepHeight);
+    TVec3f line = mGravity * sFloatKeepHeight * 2.0f;
     TVec3f hitPos;
     if (MR::getFirstPolyOnLineToMap(&hitPos, nullptr, start, line)) {
-        TVec3f pos(hitPos - mGravity * 120.0f);
+        TVec3f pos(hitPos - mGravity * sFloatKeepHeight);
         MR::setPosition(this, pos);
     }
     MR::calcFrontVec(&mFrontVec, this);

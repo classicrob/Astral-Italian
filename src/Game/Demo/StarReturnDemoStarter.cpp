@@ -149,6 +149,16 @@ void StarReturnDemoStarter::tryStartStageResult() {
     }
 }
 
+void StarReturnDemoStarter::tryStartResultWait() {
+    if (MR::isBckOneTimeAndStoppedPlayer()) {
+        MR::startBckPlayer("ResultWait", nullptr);
+    }
+}
+
+const char* playerAnimName() {
+    return MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart";
+}
+
 void StarReturnDemoStarter::exeAppearWait() {
     if (MR::isFirstStep(this)) {
         MR::hidePlayer();
@@ -268,25 +278,21 @@ void StarReturnDemoStarter::exeLand() {
     if (MR::isBckStoppedPlayer()) {
         LiveActor* luma = mLuma;
         luma->appear();
-        MR::startAction(luma, MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
+        MR::startAction(luma, playerAnimName());
         setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvWait));
     }
 }
 
 void StarReturnDemoStarter::exeWait() {
     if (MR::isFirstStep(this)) {
-        MR::changePlayerAnimationAndBva(MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
+        MR::changePlayerAnimationAndBva(playerAnimName());
     }
-    if (MR::isBckOneTimeAndStoppedPlayer()) {
-        MR::startBckPlayer("ResultWait", nullptr);
-    }
+    tryStartResultWait();
     tryStartStageResult();
 }
 
 void StarReturnDemoStarter::exeStageResult() {
-    if (MR::isBckOneTimeAndStoppedPlayer()) {
-        MR::startBckPlayer("ResultWait", nullptr);
-    }
+    tryStartResultWait();
     if (MR::isDead(mStageResultInformer) && MR::isEqualStringCase(MR::getPlayerCurrentBckName(), "ResultWait")) {
         if (GameSequenceFunction::isMarioFaceShipEventEmpty() && !MR::isWipeBlank()) {
             setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFadeOut));

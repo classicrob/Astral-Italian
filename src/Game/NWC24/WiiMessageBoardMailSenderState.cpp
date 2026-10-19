@@ -27,7 +27,7 @@ WiiMessageBoardMailSenderState::WiiMessageBoardMailSenderState() : NerveExecutor
     mResName = NULL;
     mGameEventFlag = NULL;
 
-    mReceiverTagMail = new ReceiverTagMail("WiiMessage_Title", "WiiMessageImage.arc");
+    mReceiverTagMail = new ReceiverTagMail("Wii伝言板メール", "WiiMessage_Title");
 
     mResourceHolder = MR::createAndAddResourceHolder("WiiMessageImage.arc");
     mSysInfoWindow = MR::createSysInfoWindowMiniExecuteWithChildren();

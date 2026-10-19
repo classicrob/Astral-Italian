@@ -1079,7 +1079,7 @@ bool ItemDrillMovementLimitPos::adjustPositionByCollision(const TVec3f& rPos, co
 void ItemDrillMovementLimitPos::control() {
 }
 
-// NONMATCHING: vector negation is outlined; multiply operands and equivalent final-return blocks are reordered.
+// NONMATCHING: vector negation is outlined and temporary registers differ.
 bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3f& rPos, const TVec3f* pDir) {
     u32 count = Collision::checkStrikeBallToMapWithThickness(rPos, 130.0f, 140.0f,
                                                              mCollisionPartsFilter, nullptr);
@@ -1105,7 +1105,8 @@ bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3
             }
         }
 
-        f32 k = 1.1f * pInfo->mDistance;
+        f32 k = pInfo->mDistance;
+        k *= 1.1f;
         f32 vx = n.x * k;
         if (maxV.x < vx) {
             maxV.x = vx;

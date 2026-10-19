@@ -131,7 +131,8 @@ void ElectricRail2Point::exeMove() {
             if (static_cast<RailObj*>(pRail)->mArg0 == -1) {
                 s32 index = mCurIndex;
                 f32 total = MR::getRailTotalLength(pRail);
-                f32 coord = (total / (f32)mDivCount) * (f32)index;
+                f32 coord = total / (f32)mDivCount;
+                coord *= (f32)index;
                 if (!MR::isLoopRail(pRail)) {
                     if (!MR::isRailGoingToEnd(pRail)) {
                         coord = total - coord;

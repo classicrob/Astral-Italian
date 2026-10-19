@@ -23,7 +23,9 @@ if [ -n "$held_by_caller" ]; then trap 'rm -f "$stamps"' EXIT INT TERM HUP
 else trap 'rm -rf "$lock"; rm -f "$stamps"' EXIT INT TERM HUP; fi
 
 git diff --name-only main...HEAD | while read -r f; do
-  [ -f "$f" ] && echo "$(git hash-object "$f") $(stat -f %m "$f") $f" >> "$stamps"
+  if [ -f "$f" ]; then
+    echo "$(git hash-object "$f") $(stat -f %m "$f") $f" >> "$stamps"
+  fi
 done
 if ! git rebase main; then
   git rebase --abort
@@ -31,7 +33,9 @@ if ! git rebase main; then
   exit 1
 fi
 while read -r h m f; do
-  [ -f "$f" ] && [ "$(git hash-object "$f")" = "$h" ] && touch -t "$(date -r "$m" +%Y%m%d%H%M.%S)" "$f"
+  if [ -f "$f" ] && [ "$(git hash-object "$f")" = "$h" ]; then
+    touch -t "$(date -r "$m" +%Y%m%d%H%M.%S)" "$f"
+  fi
 done < "$stamps"
 tools/team/nj.sh >/dev/null || { echo "build/hash check failed after rebase; fix before landing" >&2; exit 1; }
 git -C "$main" merge --ff-only -q "$branch"

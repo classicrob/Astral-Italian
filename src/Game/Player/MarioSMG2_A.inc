@@ -313,7 +313,7 @@ bool Mario::fn_8039A430() {
 s32 Mario::fn_803A2D10() {
     s32 r = 0;
     if (!((this->mDrawStates.mWord >> 26) & 1) && !((this->mMovementStates.mHighWord >> 28) & 1)) {
-        if (FLD<s32>(this, 0x74C) != 0) {
+        if (this->_754 != 0) {
             r = 1;
         }
     }
@@ -635,17 +635,18 @@ bool Mario::fn_803A0E10() {
 }
 
 void Mario::fn_8039AB50() {
-    if (FLD<u16>(this, 0x42C) == 13 && !((this->mMovementStates.mHighWord >> 31) & 1)) {
-        TVec3f sp32;
-        f32 old = MR::vecKillElement(this->mJumpVec, *this->getGravityVec(), &sp32);
-        f32 d = this->fn_8039AC10();
-        if (!(old >= d)) {
-            TVec3f sp8(*this->getGravityVec());
-            sp8 *= d;
-            TVec3f sp20(sp8);
-            sp20 += sp32;
-            this->mJumpVec = sp20;
-        }
+    if (this->_430 == 13 && ((this->mMovementStates.mHighWord >> 31) & 1)) {
+        return;
+    }
+    TVec3f sp32;
+    f32 old = MR::vecKillElement(this->mJumpVec, *this->getGravityVec(), &sp32);
+    f32 limit = this->fn_8039AC10();
+    if (old >= limit) {
+        TVec3f sp8(*this->getGravityVec());
+        sp8 *= limit;
+        TVec3f sp20(sp8);
+        sp20 += sp32;
+        this->mJumpVec = sp20;
     }
 }
 
@@ -681,18 +682,18 @@ void Mario::fn_803A27A0(TVec3f* arg) {
 }
 
 f32 Mario::fn_8039AC10() {
-    void* e = marioCurTableEntry(this);
     if (this->getPlayerMode() == 4 && !this->isRising()) {
-        return FLD<f32>(e, 0x8C);
+        return this->mActor->mConst->getTable()->mMaxDropSpeed[4];
     }
-    if (FLD<u16>(this, 0x42C) == 11 && !this->isRising()) {
-        if (this->_3BE >= FLD<u16>(e, 0x138)) {
-            return FLD<f32>(e, 0x88);
+    if (this->_430 == 11 && !this->isRising()) {
+        MarioConstTable* entry = this->mActor->mConst->getTable();
+        if (this->_3BE >= entry->mTrampleBegomaOpenTime) {
+            return entry->mMaxDropSpeed[3];
         }
     }
-    void* e2 = marioCurTableEntry(this);
-    u8 lvl = this->mActor->getGravityLevel();
-    return FLD<f32>(e2, 0x7C + ((lvl << 2) & 0x3C));
+    MarioConstTable* entry = this->mActor->mConst->getTable();
+    u8 level = this->mActor->getGravityLevel();
+    return FLD<f32>(entry, 0x7C + ((level << 2) & 0x3FC));
 }
 
 bool Mario::fn_8039A100() {
@@ -1906,14 +1907,12 @@ void Mario::fn_803A0490(s32 arg1, s32 arg2) {
     }
 }
 
-// NONMATCHING: the wall-turn/brake gate chain is approximated; push/pop task calls are omitted
 void Mario::fn_803A1330(s32* arg1) {
-    f32 var_f31 = FLD<TVec3f>(this, 0x214).dot(FLD<TVec3f>(this, 0x22C));
+    f32 alignment = this->_214.dot(this->_22C);
     if (this->_3D2 != 0) {
-        var_f31 = FLD<TVec3f>(this, 0x3E4).dot(FLD<TVec3f>(this, 0x22C));
+        alignment = this->_3E4.dot(this->_22C);
     }
-    FLD<TVec3f>(this, 0x214).dot(FLD<TVec3f>(this, 0x22C));
-    if (this->fn_803A1E60(var_f31)) {
+    if (this->fn_803A1E60(this->_214.dot(this->_22C))) {
         this->recordTurnSlipAngle();
     } else {
         this->fn_803A1F60();
@@ -1929,34 +1928,32 @@ void Mario::fn_803A1330(s32* arg1) {
             *arg1 = 1;
         }
     } else {
-        u32 hi = this->mMovementStates.mHighWord;
-        if (!((hi >> 11) & 1)) {
-            u32 lo = this->mMovementStates.mLowWord;
-            if (!((lo >> 21) & 1) && ((lo >> 15) & 1) && !((lo >> 16) & 1) && !((hi >> 28) & 1) && !this->isStatusActive(0x1F)) {
-                if (var_f31 < JMACosRadian(FLD<f32>(marioCurTableEntry(this), 0x2C0)) && !((lo >> 27) & 1)) {
-                    if ((hi >> 10) & 1) {
-                        *arg1 = 1;
-                    }
-                    FLD<TVec3f>(this, 0x220) = FLD<TVec3f>(this, 0x3E4);
-                    if (*arg1 == 0) {
-                        TVec3f sp14;
-                        sp14 = -FLD<TVec3f>(this, 0x220);
-                        this->setFrontVecKeepUp(sp14);
-                    }
-                    if ((hi >> 10) & 1) {
-                        FLD<s16>(this, 0x3D0) = FLD<s16>(marioCurTableEntry(this), 0x2D6);
-                        this->mMovementStates.mLowWord |= 0x08000000;
-                        this->changeAnimation("ターンブレーキ滑り床", (const char*)nullptr);
-                        FLD<TVec3f>(this, 0x2B8) = FLD<TVec3f>(this, 0x1D8);
-                        this->stopWalk();
-                        FLD<s32>(this, 0x754) = 10;
-                    } else {
-                        FLD<s16>(this, 0x3D0) = FLD<s16>(marioCurTableEntry(this), 0x2D4);
-                        this->mMovementStates.mLowWord |= 0x08000000;
-                        this->mWalkSpeed = 0.0f;
-                        this->changeAnimation("ターンブレーキ", (const char*)nullptr);
-                        this->playEffect("共通ブレーキ");
-                    }
+        if (!((this->mMovementStates.mHighWord >> 11) & 1) &&
+            !((this->mMovementStates.mLowWord >> 21) & 1) && ((this->mMovementStates.mLowWord >> 15) & 1) &&
+            !((this->mMovementStates.mLowWord >> 16) & 1) && !((this->mMovementStates.mHighWord >> 28) & 1) && !this->isStatusActive(0x1F)) {
+            if (alignment < JMACosRadian(this->mActor->mConst->getTable()->mTurnSlipAngle) && !((this->mMovementStates.mLowWord >> 27) & 1)) {
+                if ((this->mMovementStates.mHighWord >> 10) & 1) {
+                    *arg1 = 1;
+                }
+                this->_220 = this->_3E4;
+                if (*arg1 == 0) {
+                    TVec3f front = -this->_220;
+                    this->setFrontVecKeepUp(front);
+                }
+                if ((this->mMovementStates.mHighWord >> 10) & 1) {
+                    this->_3D0 = static_cast<u16>(this->mActor->mConst->getTable()->mTurnSlipTimeB);
+                    this->mMovementStates.mLowWord |= 0x08000000;
+                    this->changeAnimation("ターンブレーキ滑り床", static_cast<const char*>(nullptr));
+                    this->_2B8 = this->mActor->getLastMove();
+                    this->stopWalk();
+                    this->_754 = 10;
+                    this->pushTask(&Mario::taskOnSlipTurn, 1);
+                } else {
+                    this->_3D0 = static_cast<u16>(this->mActor->mConst->getTable()->mTurnSlipTime);
+                    this->mMovementStates.mLowWord |= 0x08000000;
+                    this->mWalkSpeed = 0.0f;
+                    this->changeAnimation("ターンブレーキ", static_cast<const char*>(nullptr));
+                    this->playEffect("共通ブレーキ");
                 }
             }
         }
@@ -1964,45 +1961,43 @@ void Mario::fn_803A1330(s32* arg1) {
     }
 }
 
-// NONMATCHING: brake-end timer and the slide-end task are approximated
 void Mario::fn_803A1600(s32* arg1) {
-    s32 t = FLD<s16>(this, 0x3D0);
-    if (t != 0) {
-        if (t == FLD<s16>(marioCurTableEntry(this), 0x2D4)) {
+    u16 timer = this->_3D0;
+    if (timer != 0) {
+        if (timer == static_cast<u16>(this->mActor->mConst->getTable()->mTurnSlipTime)) {
             this->startPadVib(2);
         }
-        FLD<s16>(this, 0x3D0) = t - 1;
+        this->_3D0 -= 1;
         if (!((this->mMovementStates.mHighWord >> 10) & 1)) {
             this->mWalkSpeed = 0.0f;
         }
     }
-    if (FLD<s16>(this, 0x3D0) == 0) {
+    if (this->_3D0 == 0) {
         if ((this->mMovementStates.mLowWord >> 27) & 1) {
-            const TVec3f* g = this->getGravityVec();
-            if (MR::diffAngleAbsHorizontal(this->getWorldPadDir(), this->mFrontVec, *g) > 1.5707964f) {
-                this->stopAnimation("ブレーキ", (const char*)nullptr);
-                TVec3f sp2C;
-                sp2C = -this->mFrontVec;
-                this->setFrontVecKeepUp(sp2C);
+            const TVec3f* gravity = this->getGravityVec();
+            if (MR::diffAngleAbsHorizontal(this->getWorldPadDir(), this->mFrontVec, *gravity) > 1.5707964f) {
+                this->stopAnimation("ターンブレーキ", static_cast<const char*>(nullptr));
+                TVec3f front = -this->mFrontVec;
+                this->setFrontVecKeepUp(front);
                 this->mMovementStates.mLowWord &= 0xF7FFFFFF;
             }
-            if (this->isAnimationTerminate("ブレーキ")) {
-                this->stopAnimation("ブレーキ", (const char*)nullptr);
+            if (this->isAnimationTerminate("ターンブレーキ")) {
+                this->stopAnimation("ターンブレーキ", static_cast<const char*>(nullptr));
                 this->mMovementStates.mLowWord &= 0xF7FFFFFF;
-                if (FLD<f32>(this, 0x1C8) < 0.1f) {
+                if (this->mStickPos.z < 0.1f) {
                     this->stopWalk();
                 }
             }
         }
-        if (this->isAnimationRun("ターンブレーキ滑り床")) {
-            TVec3f sp14;
-            sp14 = -FLD<TVec3f>(this, 0x220);
-            this->setFrontVecKeepUp(sp14);
+        if (this->isActiveTask(&Mario::taskOnSlipTurn) && this->isAnimationRun("ターンブレーキ滑り床")) {
+            TVec3f front = -this->_220;
+            this->setFrontVecKeepUp(front);
             *arg1 = 1;
-            this->stopAnimation("ターンブレーキ滑り床", (const char*)nullptr);
-            FLD<f32>(this, 0x74C) = 0.0f;
-            FLD<s32>(this, 0x754) = 0;
+            this->stopAnimation("ターンブレーキ滑り床", static_cast<const char*>(nullptr));
+            this->_74C = 0.0f;
+            this->_754 = 0;
             this->mWalkSpeed = 0.0f;
+            this->popTask(&Mario::taskOnSlipTurn);
         }
     }
 }

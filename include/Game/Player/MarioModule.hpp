@@ -68,7 +68,7 @@ public:
     bool isMainAnimationRun(const char*) const;
     f32 getFrame() const;
     f32 getAnimationTrackWeight(u32);
-    TVec3f& fn_803EF570() const;
+    TVec3f& getCamPos() const;
     void changeAnimation(const char*, u32);
     bool isAnimationRun(const char*, u32);
     void stopAnimation(const char*, u32);
@@ -97,7 +97,6 @@ public:
     void playSound(const char*, s32 a2 = -1);
     void stopSound(const char*, u32);
     void startCamVib(u32);
-    TVec3f& getCamPos() const;
     TVec3f& getCamDirX() const;
     TVec3f& getCamDirY() const;
     TVec3f& getCamDirZ() const;

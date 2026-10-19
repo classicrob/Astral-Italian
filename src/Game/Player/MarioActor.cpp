@@ -351,7 +351,7 @@ MarioActor::MarioActor(const char* pName) : LiveActor(pName) {
     _EF6 = 0;
     _424 = nullptr;
     _4A4 = nullptr;
-    _3A0 = 0;
+    mSensor794 = nullptr;
     _6D0 = false;
     _EFC = 0;
     _EF8 = 0;
@@ -2116,27 +2116,27 @@ void MarioActor::forceGameOverSink() {
 
 
 void MarioActor::updateCameraInfo() {
-    _F74 = false;
+    mSwimSurfaceState1010 = false;
 
-    if (MR::diffAngleAbs(mCamDirZ, MR::getCamZdir()) >= PI / 6.0f) {
-        _F74 = true;
+    if (MR::diffAngleAbs(mCameraBasisZ, MR::getCamZdir()) >= PI / 6.0f) {
+        mSwimSurfaceState1010 = true;
     }
 
-    if ((mCamPos - MR::getCamPos()).length() > 500.0f) {
-        _F74 = true;
+    if ((mCameraDirY1014 - MR::getCamPos()).length() > 500.0f) {
+        mSwimSurfaceState1010 = true;
     }
 
-    if (_F74) {
+    if (mSwimSurfaceState1010) {
         mMario->changeAnimationInterpoleFrame(0);
         stopSpinTicoEffect(true);
         mBlendMtxTimer = 0;
     }
 
-    mCamPos = MR::getCamPos();
-    mCamDirX = MR::getCamXdir();
-    mCamDirY = MR::getCamYdir();
-    _FA8 = mCamDirZ;
-    mCamDirZ = MR::getCamZdir();
+    mCameraDirY1014 = MR::getCamPos();
+    mCameraBasisX = MR::getCamXdir();
+    mCameraBasisY = MR::getCamYdir();
+    mPostureReference1044 = mCameraBasisZ;
+    mCameraBasisZ = MR::getCamZdir();
 }
 
 
@@ -2426,21 +2426,21 @@ void MarioActor::updateForCamera() {
         return;
     }
 
-    if (!(_300 == mMario->mHeadVec)) {
-        _300 = mMario->mHeadVec;
-        _330 = mConst->getTable()->mCameraHeadRotationTimer;
+    if (!(_2A0 == mMario->mHeadVec)) {
+        _2A0 = mMario->mHeadVec;
+        mCounter660 = mConst->getTable()->mCameraHeadRotationTimer;
     }
 
-    if (_330 != 0) {
-        _330--;
+    if (mCounter660 != 0) {
+        mCounter660--;
 
-        if (!MR::vecBlendSphere(mUpVec, _300, &mUpVec, 1.0f - static_cast< f32 >(_330) / mConst->getTable()->mCameraHeadRotationTimer)) {
-            mUpVec = _300;
+        if (!MR::vecBlendSphere(_270, _2A0, &_270, 1.0f - static_cast< f32 >(mCounter660) / mConst->getTable()->mCameraHeadRotationTimer)) {
+            _270 = _2A0;
         }
     }
 
-    _2DC = mMario->mFrontVec;
-    _2E8 = mMario->mSideVec;
+    _27C = mMario->mFrontVec;
+    _288 = mMario->mSideVec;
 }
 
 // ---- MarioActorClap.cpp ----

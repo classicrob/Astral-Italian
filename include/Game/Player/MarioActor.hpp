@@ -1003,10 +1003,12 @@ public:
     /* 0x76C */ TVec3f mThrowProbePosition76C;  // SMG2 offset guess-gap  // SMG2 offset inh  // SMG2 offset inh
     /* 0x778 */ FixedPosition* _498;  // SMG2 offset guess-gap  // SMG2 offset guess-gap  // SMG2 offset inh
     /* 0x77C */ FixedPosition* _494;  // SMG2 offset guess-gap
-    /* 0x780 */ union { TVec3f _300; struct { FixedPosition* mCarryFixedPosition780; FixedPosition* mTurnipFixedPosition784; FixedPosition* mDrillFixedPosition788; }; };  // SMG2 offset guess-gap  // SMG2 offset inh-gap  // SMG2 offset inh
+    /* 0x780 */ FixedPosition* mCarryFixedPosition780;
+    /* 0x784 */ FixedPosition* mTurnipFixedPosition784;
+    /* 0x788 */ FixedPosition* mDrillFixedPosition788;
     /* 0x78C */ FixedPosition* mSearchLightThrowPos;  // SMG2 offset guess-gap
     /* 0x790 */ HitSensor* _4A4;  // used in calcAnimInMovement()
-    /* 0x794 */ union { u32 _3A0; HitSensor* mSensor794; };
+    /* 0x794 */ HitSensor* mSensor794;
     union { struct {
     union {
         struct {

@@ -351,27 +351,26 @@ void Mario::fn_803A2EF0() {
     this->playSound("声物ジャンプ", -1);
 }
 
-// NONMATCHING: drop/wall-slide counter gating approximated
 s32 Mario::fn_803A3030() {
     if (!((this->mMovementStates.mLowWord >> 30) & 1)) {
-        if (this->_3C0 != 0 && !((this->mMovementStates.mHighWord >> 28) & 1) && MR::isNearZero(FLD<TVec3f>(this, 0x8F8), 0.001f)) {
+        if (this->_3C0 != 0 && !((this->mMovementStates.mHighWord >> 28) & 1) && MR::isNearZero(this->_8F8, 0.001f)) {
             this->_3C0 -= 1;
+            return 0;
         }
-        if (FLD<u32>(this->mActor, 0x4E0) == 0) {
+        if (!this->mActor->_EA4) {
             this->tryDrop();
-            FLD<u32>(this, 0x420) = 0;
+            this->_420 = 0;
+            return 1;
         }
+        return 0;
     }
-    void* ent = marioCurTableEntry(this);
-    if (FLD<f32>(this, 0x1C8) < FLD<f32>(ent, 0x488)) {
+    MarioConstTable* entry = this->mActor->mConst->getTable();
+    if (this->mStickPos.z < entry->mWallBackHangStickPower) {
         this->_3C0 = 0;
     } else if ((this->mDrawStates.mWord >> 21) & 1) {
         this->_3C0 = 0;
-    } else {
-        u16 t = FLD<u16>(ent, 0x92);
-        if (this->_3C0 < t) {
-            this->_3C0 = t;
-        }
+    } else if (this->_3C0 < entry->mDropWaitTime) {
+        this->_3C0 = entry->mDropWaitTime;
     }
     return 0;
 }

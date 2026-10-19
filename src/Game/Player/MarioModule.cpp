@@ -380,10 +380,6 @@ void MarioModule::startCamVib(u32 strength) {
     }
 }
 
-TVec3f& MarioModule::getCamPos() const {
-    return mActor->mCamPos;
-}
-
 TVec3f& MarioModule::getCamDirX() const {
     return mActor->mCameraBasisX;
 }
@@ -616,7 +612,7 @@ bool MarioModule::isSlipPolygon(const Triangle* triangle) const {
     }
 }
 
-TVec3f& MarioModule::fn_803EF570() const { return mActor->mCameraDirY1014; }
+TVec3f& MarioModule::getCamPos() const { return mActor->mCameraDirY1014; }
 
 Triangle* MarioModule::fn_803EFA20() const {
     return mActor->mMario->mTmpPolygon;

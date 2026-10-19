@@ -1084,7 +1084,7 @@ void Mario::fn_8038C540() {
     }
 }
 
-bool Mario::fn_8038CCF0() {
+bool Mario::fn_8038CCF0() const {
     if (this->isPlayerModeTeresa()) {
         return false;
     }

@@ -367,7 +367,9 @@ void YoshiTongueAction::fn_80420AC0(TVec3f* output, const TVec3f& target, const 
     JMathInlineVEC::PSVECSubtract(&vertical, &planar, &vertical);
     f32 inverse = progress - 1.0f;
     f32 square = inverse * inverse;
-    f32 arc = 50.0f * (6.7f * (inverse * square + square));
+    f32 polynomial = inverse * square;
+    polynomial += square;
+    f32 arc = 50.0f * (6.7f * polynomial);
     vertical.scale(progress);
     TVec3f negativeGravity;
     JGeometry::negateInternal(&gravity.x, &negativeGravity.x);

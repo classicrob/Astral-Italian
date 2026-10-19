@@ -6169,6 +6169,10 @@ void MarioActor::update2D() {
         layoutHolder->setOxygenRatio((f32)mMario->mSwim->mOxygen / mConst->getTable()->mOxygenMax);
     }
 
+    if (mMario->isStatusActive(MarioStatus_YoshiBalloon)) {
+        layoutHolder->setOxygenRatio(mMario->mYoshiBalloon->mAir);
+    }
+
     if (_989 == 0) {
         _1B8->kill();
     }

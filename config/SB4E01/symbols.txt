@@ -32666,7 +32666,7 @@ getGravityVec__5MarioCFv = .text:0x8038C940; // type:function size:0x27C
 getAirGravityVec__5MarioCFv = .text:0x8038CBC0; // type:function size:0x38
 getAirFrontVec__5MarioCFv = .text:0x8038CC00; // type:function size:0x70
 touchWater__5MarioFv = .text:0x8038CC70; // type:function size:0x74
-fn_8038CCF0__5MarioFv = .text:0x8038CCF0; // type:function size:0x150
+fn_8038CCF0__5MarioCFv = .text:0x8038CCF0; // type:function size:0x150
 fn_8038CE40__5MarioFv = .text:0x8038CE40; // type:function size:0x44
 stick2DadjustGround__5MarioFRfRf = .text:0x8038CE90; // type:function size:0x360
 calcDir2D__5MarioFffPQ29JGeometry8TVec3<f> = .text:0x8038D1F0; // type:function size:0xC8
@@ -33117,7 +33117,7 @@ fn_803B2770__5MarioFPQ29JGeometry8TVec3<f>P8TriangleRCQ29JGeometry8TVec3<f>RCQ29
 fn_803B27F0__5MarioFPQ29JGeometry8TVec3<f>P8TriangleRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PC24CollisionPartsFilterBasePC18TriangleFilterBase = .text:0x803B27F0; // type:function size:0x8C
 fn_803B2880__5MarioFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f> = .text:0x803B2880; // type:function size:0x5C
 fn_803B28E0__5MarioFRCQ29JGeometry8TVec3<f>RCQ29JGeometry8TVec3<f>PC9LiveActor = .text:0x803B28E0; // type:function size:0x68
-fn_803B2950__5MarioFv = .text:0x803B2950; // type:function size:0x5C
+fn_803B2950__5MarioCFv = .text:0x803B2950; // type:function size:0x5C
 fn_803B29B0__5MarioFRCQ29JGeometry8TVec3<f>f = .text:0x803B29B0; // type:function size:0x6C
 fn_803B2A20__5MarioFRCQ29JGeometry8TVec3<f>ff = .text:0x803B2A20; // type:function size:0x80
 fn_803B2AA0__5MarioFUl = .text:0x803B2AA0; // type:function size:0x48

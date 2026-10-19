@@ -11023,14 +11023,24 @@ bool Mario::isUseSimpleGroundCheck() const {
     }
     if (calcAngleD(_368) > mActor->getConst().getTable()->mFlatAngle - 5.0f) {
         Triangle ground;
-        if (MR::getFirstPolyOnLineBFast(mPosHolder->mPos - *getGravityVec() * 30.0f, *getGravityVec() * 100.0f, nullptr, &ground)) {
+        TVec3f direction(*getGravityVec() * 100.0f);
+        TVec3f offset(*getGravityVec() * 30.0f);
+        TVec3f origin(mPosHolder->mPos);
+        origin -= offset;
+        bool hit;
+        if (fn_803B2950()) {
+            hit = MR::getFirstPolyOnLineToDashYoshiStepAndMap(nullptr, &ground, origin, direction);
+        } else {
+            hit = MR::getFirstPolyOnLineToMap(nullptr, &ground, origin, direction);
+        }
+        if (hit) {
             if (calcAngleD(*ground.getNormal(0)) < mActor->getConst().getTable()->mFlatAngle - 5.0f) {
                 return false;
             }
         }
         return true;
     }
-    getAnimator()->isLandingAnimationRun();
+    fn_8038CCF0();
     return false;
 }
 

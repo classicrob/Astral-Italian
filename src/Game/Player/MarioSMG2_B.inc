@@ -900,7 +900,7 @@ bool Mario::fn_803B28E0(const TVec3f& rStart, const TVec3f& rEnd, const LiveActo
     return MR::isExistMapCollisionExceptActor(rStart, rEnd, pActor);
 }
 
-s32 Mario::fn_803B2950() {
+s32 Mario::fn_803B2950() const {
     s32 var_r31 = 0;
     if (this->isPlayerModeYoshi() && this->mActor->fn_803B97F0()->mDashTimer > 0) {
         var_r31 = 1;

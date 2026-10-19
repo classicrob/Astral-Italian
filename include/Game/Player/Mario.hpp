@@ -107,7 +107,7 @@ public:
     void fn_8038B9F0();
     void fn_8038C540();
     void fn_8038C620(s32 arg3);
-    bool fn_8038CCF0();
+    bool fn_8038CCF0() const;
     void fn_8038CE40();
     void fn_8038E1A0(const HitInfo* hit, s32 arg2);
     bool fn_80390210(const Triangle* triangle);
@@ -255,7 +255,7 @@ public:
     bool fn_803B27F0(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, const CollisionPartsFilterBase*, const TriangleFilterBase*);
     bool fn_803B2880(const TVec3f&, const TVec3f&);
     bool fn_803B28E0(const TVec3f&, const TVec3f&, const LiveActor*);
-    s32 fn_803B2950();
+    s32 fn_803B2950() const;
     s32 fn_803B29B0(const TVec3f&, f32) NO_INLINE;
     s32 fn_803B2A20(const TVec3f&, f32, f32) NO_INLINE;
     const HitInfo* fn_803B2AA0(u32);

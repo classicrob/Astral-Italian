@@ -7,7 +7,7 @@ Unsupported c-checked opcodes, cyclic CFGs, uncertain aliasing and mismatches
 remain REAL. Literal bytes and referenced strings are resolved before proof.
 Run from the worktree root. --out writes mangled names and certificates.
 --mem additionally tries typed load reuse and bounded word/spill forwarding
-(c-checked+mem). The default proof dispatch is frozen v1.
+(c-checked+mem). The default proof dispatch is v1 with explicit FP/literal soundness guards.
 """
 import sys, os, re, struct, subprocess, collections
 ROOT = os.getcwd()
@@ -39,10 +39,25 @@ if ONLY: rows = collections.defaultdict(list, {u: f for u, f in rows.items() if 
 # target literal values from the DOL
 dol = open(f'{ROOT}/orig/SB4E01/sys/main.dol', 'rb').read()
 offs = struct.unpack('>18I', dol[0:72]); addrs = struct.unpack('>18I', dol[72:144]); sizes = struct.unpack('>18I', dol[144:216])
+def dol_bss_ranges(data):
+    start, size = struct.unpack_from('>II', data, 0xd8)
+    return [(start, start + size)] if size else []
+
+bss_ranges = dol_bss_ranges(dol)
 def rd(a, n):
-    for o, ad, s in zip(offs, addrs, sizes):
-        if ad <= a < ad + s: return dol[o + a - ad:o + a - ad + n]
-    return b'\0' * n  # bss
+    if n < 0:
+        return None
+    overlaps_file = False
+    for o, ad, size in zip(offs, addrs, sizes):
+        if size and ad <= a and a + n <= ad + size:
+            start = o + a - ad
+            return dol[start:start + n] if start + n <= len(dol) else None
+        overlaps_file |= bool(size and a < ad + size and a + n > ad)
+    if overlaps_file:
+        return None
+    if any(start <= a and a + n <= end for start, end in bss_ranges):
+        return bytes(n)
+    return None
 tsym = {}
 taddr = {}
 for l in open(f'{ROOT}/config/SB4E01/symbols.txt'):
@@ -55,6 +70,8 @@ for l in open(f'{ROOT}/config/SB4E01/splits.txt'):
     if l.strip().endswith('.cpp:'): _cu = l.strip()[:-5]; continue
     mm = re.match(r'\s+(\.\w+)\s+start:0x(\w+) end:0x(\w+)', l)
     if mm and _cu: splits[_cu][mm.group(1)] = int(mm.group(2), 16)
+    if mm and mm.group(1) in ('.bss', '.sbss', '.sbss2'):
+        bss_ranges.append((int(mm.group(2), 16), int(mm.group(3), 16)))
 
 def ooffs(obj):
     r = {}
@@ -161,7 +178,7 @@ def strict_equal(L, R):
     return True, ''
 
 REG = re.compile(r'[rf]\d+$')
-COMM = ('fadds', 'fadd', 'add', 'mullw', 'and', 'or', 'xor')  # fmul/fmuls/fmadd NOT commutative on Gekko (C operand precision)
+COMM = ('add', 'mullw', 'and', 'or', 'xor')  # FP source order also determines NaN payload selection.
 NODEF = ('st', 'cmp', 'b', 'mt', 'tw', 'dcb', 'icb', 'sync', 'isync', 'fcmp', 'psq_st')
 VOL = {'gr0', 'gr11', 'gr12', 'ff0', 'ff9', 'ff10', 'ff11', 'ff12', 'ff13'}
 def fixed(x):
@@ -251,11 +268,18 @@ for unit, fns in sorted(rows.items()):
         real.extend((unit, f, f'build failed: {err}') for f in fns); continue
     obj = f'build/SB4E01/src/{unit}.o'
     ov = osyms(obj); oo = ooffs(obj)
+    unresolved_literals = set()
     def tval(n):
-        if n in tsym: a, s = tsym[n]; return rd(a, min(s, 8))
-        return None
+        result = None
+        if n in tsym:
+            a, size = tsym[n]
+            result = rd(a, min(size, 8))
+        if result is None: unresolved_literals.add(('target', n))
+        return result
     def oval(n):
-        return ov[n][:8] if n in ov else None
+        result = ov[n][:8] if n in ov else None
+        if result is None: unresolved_literals.add(('ours', n))
+        return result
     left, right = d['left']['symbols'], d['right']['symbols']
     for f in fns:
         L = next((s for s in left if s['name'] == f), None)
@@ -293,8 +317,12 @@ for unit, fns in sorted(rows.items()):
                 if st: return t.replace(n, 'STR[' + st.hex() + ']', 1)
                 return t.replace(n, f'{sec}+{a + add:#x}', 1)
             return t
+        unresolved_literals.clear()
         la = [litonly(dfmt(i, 'L'), tval) for i in L['instructions']]
         ra = [litonly(dfmt(i, 'R'), oval) for i in R['instructions']]
+        if unresolved_literals:
+            real.append((unit, f, 'unresolved literal bytes: ' + str(sorted(unresolved_literals))))
+            continue
         ok, why = strict_equal(la, ra)
         if ok:
             benign.append((unit, f, f'a: {len(la)} instrs, same order, consistent bijective GPR/FPR/stack-slot mapping (ABI r3-r10/f1-f8 identical), literal values + referenced strings equal')); continue

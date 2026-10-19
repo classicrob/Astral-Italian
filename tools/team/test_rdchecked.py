@@ -379,5 +379,105 @@ class MemoryCheckedProofTests(unittest.TestCase):
     def test_effect_multiplicity(self):
         self.no('stw r4, 0(r3); stw r4, 0(r3); blr', 'stw r4, 0(r3); blr')
 
+class PairedLaneGuardTests(unittest.TestCase):
+    def rejected(self, text):
+        for checker in (checked_equal, checked_equal_mem):
+            ok, why = checker(asm(text), asm(text))
+            self.assertFalse(ok, (checker.__name__, why))
+            self.assertIn('PS0-only', why)
+
+    def accepted(self, text):
+        for checker in (checked_equal, checked_equal_mem):
+            ok, why = checker(asm(text), asm(text))
+            self.assertTrue(ok, (checker.__name__, why))
+
+    def test_fmr_pair_read(self):
+        self.rejected('fmr f0, f1; psq_st f0, 0(r3), 0, qr0; blr')
+
+    def test_lfd_pair_read(self):
+        self.rejected('lfd f0, 0(r3); psq_st f0, 0(r4), 0, qr0; blr')
+
+    def test_lfdu_pair_read(self):
+        self.rejected('lfdu f0, 8(r3); psq_st f0, 0(r4), 0, qr0; blr')
+
+    def test_eliminated_copy_chain(self):
+        self.rejected('fmr f0, f1; fmr f9, f0; psq_st f9, 0(r3), 0, qr0; blr')
+
+    def test_partial_write_on_one_predecessor(self):
+        self.rejected('cmpwi r3, 0; beq 0x10; fmr f0, f1; b 0x14; lfs f0, 0(r3); psq_st f0, 0(r4), 0, qr0; blr')
+
+    def test_complete_redefinition_on_all_paths(self):
+        self.accepted('cmpwi r3, 0; beq 0x10; fmr f0, f1; b 0x14; lfs f0, 0(r3); psq_l f0, 0(r3), 0, qr0; psq_st f0, 0(r4), 0, qr0; blr')
+
+    def test_lfs_full_redefinition(self):
+        self.accepted('fmr f0, f1; lfs f0, 0(r3); psq_st f0, 0(r4), 0, qr0; blr')
+
+    def test_psq_full_redefinition(self):
+        self.accepted('lfd f0, 0(r3); psq_l f0, 0(r3), 0, qr0; psq_st f0, 0(r4), 0, qr0; blr')
+
+
+class LiteralAndCommutativitySafetyTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import ast
+        import collections
+        import re
+        import struct
+        from pathlib import Path
+        path = Path(__file__).with_name('rdclass.py')
+        tree = ast.parse(path.read_text())
+        functions = {'rd', 'dol_bss_ranges', 'litonly', 'rebind_equal', 'fixed'}
+        constants = {'LIT', 'TOK', 'REG', 'COMM', 'NODEF', 'VOL'}
+        selected = [n for n in tree.body if
+                    isinstance(n, ast.FunctionDef) and n.name in functions or
+                    isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id in constants for t in n.targets)]
+        cls.api = {'re': re, 'struct': struct, 'collections': collections}
+        exec(compile(ast.Module(body=selected, type_ignores=[]), str(path), 'exec'), cls.api)
+
+    def test_fp_add_sources_are_ordered_in_rebind(self):
+        for op in ('fadd', 'fadds'):
+            ok, _ = self.api['rebind_equal']([f'{op} f1, f1, f9', 'blr'],
+                                            [f'{op} f1, f9, f1', 'blr'])
+            self.assertFalse(ok)
+            for checker in (checked_equal, checked_equal_mem):
+                self.assertFalse(checker([f'{op} f1, f1, f9', 'blr'],
+                                         [f'{op} f1, f9, f1', 'blr'])[0])
+
+    def test_integer_commutative_sources_remain_allowed(self):
+        self.assertTrue(self.api['rebind_equal'](['add r3, r3, r4', 'blr'],
+                                                ['add r3, r4, r3', 'blr'])[0])
+
+    def reader(self, ranges=()):
+        self.api.update(dol=b'abcdefghijklmnop', offs=[4], addrs=[0x1000], sizes=[8],
+                        bss_ranges=list(ranges))
+        return self.api['rd']
+
+    def test_unmapped_dol_address_is_unresolved(self):
+        rd = self.reader()
+        self.assertIsNone(rd(0x2000, 4))
+        self.assertEqual(self.api['litonly']('lfs f0, lbl_00002000@sda21', lambda _: rd(0x2000, 4)),
+                         'lfs f0, lbl_00002000@sda21')
+
+    def test_file_section_bytes_and_bounds(self):
+        rd = self.reader()
+        self.assertEqual(rd(0x1000, 4), b'efgh')
+        self.assertIsNone(rd(0x1006, 4))
+        self.api['dol'] = b'abcde'
+        self.assertIsNone(rd(0x1000, 4))
+
+    def test_known_bss_only_and_span_bounds(self):
+        rd = self.reader([(0x2000, 0x2010)])
+        self.assertEqual(rd(0x2000, 4), bytes(4))
+        self.assertIsNone(rd(0x1ffc, 4))
+        self.assertIsNone(rd(0x200e, 4))
+        self.assertIsNone(rd(0x2010, 4))
+
+    def test_dol_header_bss_range(self):
+        import struct
+        header = bytearray(0x100)
+        struct.pack_into('>II', header, 0xd8, 0x2000, 0x20)
+        self.assertEqual(self.api['dol_bss_ranges'](header), [(0x2000, 0x2020)])
+
+
 if __name__ == '__main__':
     unittest.main()

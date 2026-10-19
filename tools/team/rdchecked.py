@@ -202,10 +202,34 @@ def machine_lines(records, formatted):
     return [s for record, s in zip(records, formatted) if record.get('instruction') is not None]
 
 
+def reject_partial_paired_reads(graph):
+    """Scalar PS0 writes cannot stand in for a full paired-register value."""
+    outgoing = {}
+    for bi, (body, _) in enumerate(graph):
+        predecessors = [p for p in range(bi) if bi in graph[p][1]]
+        partial = set().union(*(outgoing[p] for p in predecessors)) if predecessors else set()
+        for d in body:
+            op = d['op']
+            paired = op.startswith(('psq_st', 'ps_'))
+            if paired and partial.intersection(d['use']):
+                raise Unproved('paired read after PS0-only definition: ' + op)
+            fdefs = {r for r in d['def'] if re.fullmatch(r'f\d+', r)}
+            if op in ('lfs', 'lfsu', 'psq_l', 'psq_lu'):
+                partial.difference_update(fdefs)
+            elif op in ('fmr', 'lfd', 'lfdu') or op.startswith('f'):
+                # Only known complete loads clear the conservative lane taint.
+                partial.update(fdefs)
+            elif d['kind'] == 'call':
+                partial.update(fdefs)
+        outgoing[bi] = partial
+
+
 def checked_equal(left, right):
     """Return proof only if both exact value/effect DAGs and live boundaries agree."""
     try:
         L, R = blocks(left), blocks(right)
+        reject_partial_paired_reads(L)
+        reject_partial_paired_reads(R)
         if len(L) != len(R):
             raise Unproved('block count')
         for (a, sa), (b, sb) in zip(L, R):
@@ -517,6 +541,8 @@ def checked_equal_mem(left, right):
     """Return proof only if both exact value/effect DAGs and live boundaries agree."""
     try:
         L, R = blocks_mem(left), blocks_mem(right)
+        reject_partial_paired_reads(L)
+        reject_partial_paired_reads(R)
         if len(L) != len(R):
             raise Unproved('block count')
         for (a, sa), (b, sb) in zip(L, R):

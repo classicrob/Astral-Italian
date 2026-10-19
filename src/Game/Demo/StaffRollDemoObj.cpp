@@ -14,7 +14,7 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
 
-extern "C" int snprintf(char*, u32, const char*, ...);
+#include <cstdio>
 
 const char* const sPageTurnDemoName = "絵本ページめくり";
 const char* const sStartFadeDemoName = "スタッフロール開始フェード";
@@ -86,9 +86,11 @@ void StaffRollDemoObj::initObjects(const JMapInfoIter& rIter) {
             mActorArray.mArr[idx] = pActor;
         } else if (MR::isEqualString(pName, "StaffRollDecorateComet")) {
             mChildB = static_cast< LiveActor* >(NameObjFactory::initChildObj(rIter, i));
-            const char* pAnim = "CometNormal";
+            const char* pAnim;
             if (MR::getCurrentScenarioNo() == 2) {
                 pAnim = "CometGreen";
+            } else {
+                pAnim = "CometNormal";
             }
             MR::startAction(mChildB, pAnim);
             mChildB->makeActorDead();

@@ -61,9 +61,9 @@ namespace NrvNyoropon {
 #define NRV(n) (&NrvNyoropon::NyoroponNrv##n::sInstance)
 
 Nyoropon::Nyoropon(const char* pName)
-    : LiveActor(pName), mJointCtrls(nullptr), mAnimScaleCtrl(nullptr), mBindStar(nullptr), mHead(nullptr), mFront(0.0f, 0.0f, 1.0f),
+    : LiveActor(pName), mJointCtrls(nullptr), mAnimScaleCtrl(nullptr), mBindStar(nullptr), mHead(nullptr), mFront(0.0f, 0.0f, cOne),
       mTarget(0.0f, 5.0f, 0.0f), mStretchRate(0.0f), mStretch(0.0f), mStretchGoal(0.0f), mStretchStart(0.0f), mVel(0.0f, 0.0f, 0.0f),
-      mPrevVel(0.0f, 0.0f, 0.0f), mAmp(1.0f), mFrame(0), mSavedNerve(nullptr), mInitialized(false), mIsAsleep(false) {
+      mPrevVel(0.0f, 0.0f, 0.0f), mAmp(cOne), mFrame(0), mSavedNerve(nullptr), mInitialized(false), mIsAsleep(false) {
     mMtxs = new TPos3f[7];
     mPoints = new TVec3f[7];
     mDirs = new TVec3f[7];

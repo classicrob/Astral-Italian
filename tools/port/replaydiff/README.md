@@ -13,6 +13,11 @@ qualification uses a separate official **Dolphin 2609a**, revision
 The app in `/Applications` is read-only. See `docs/port/REPLAY_DIFF.md` for the
 layout evidence, validation status, and remaining replay qualifications.
 
+M0 has two fresh-profile ARM64 JIT captures of 1800 loops through boot and file
+select with **byte-identical CSVs**. They do not qualify playable-galaxy physics,
+interpreter execution, filtered KPAD replay, or native equality. Private run
+locations and the exact result are recorded in the design document.
+
 ## Private files and launch
 
 Keep the user's disc, saves, caches, extracted data and screenshots of game

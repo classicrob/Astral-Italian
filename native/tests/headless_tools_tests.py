@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import copy
+import csv
 import importlib.util
 import io
 import json
 from pathlib import Path
 import struct
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -13,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("headless", ROOT / "native/tools/headless.py")
 headless = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(headless)
+gx_spec = importlib.util.spec_from_file_location("gx_noops", ROOT / "native/app/headless/gen_gx_noops.py")
+gx = importlib.util.module_from_spec(gx_spec)
+gx_spec.loader.exec_module(gx)
 
 
 class InterchangeTests(unittest.TestCase):
@@ -142,6 +147,97 @@ class InterchangeTests(unittest.TestCase):
         self.assertEqual(len(schema["columns"]), len(set(schema["columns"])))
         for field in ("frame", "scene", "stage", "scenario", "x", "x_bits", "vx", "front_x", "actor_up_x", "gx", "state_ids", "anim_name", "hp", "rng_seed", "actor_living"):
             self.assertIn(field, schema["columns"])
+
+    def test_launcher_requires_and_accepts_completion_marker(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "inputs.jsonl"
+            source.write_text("\n".join(json.dumps(r) for r in headless.generate(frames=1)) + "\n")
+            def completed(command):
+                columns = headless.trace_columns()
+                row = ["0" if name in ("frame", "scene_epoch", "scene_valid", "player_valid", "actor_count_valid", "rng_valid", "animation_valid") else "" for name in columns]
+                with (root / "native.csv").open("w", newline="") as out:
+                    writer = csv.writer(out)
+                    writer.writerow(columns)
+                    writer.writerow(row)
+                (root / "native.csv.complete").write_text("1\n")
+                (root / "native.csv.timing.csv").write_text("frame,vi_count,ticks\n0,1,123\n")
+                return 0
+            with patch.object(headless.subprocess, "call", side_effect=completed):
+                status = headless.main(["run", "--inputs", str(source), "--executable", str(root / "petari_headless"),
+                                       "--frames", "1", "--disc", str(root / "disc"), "--user", str(root / "user"),
+                                       "--trace", str(root / "native.csv"), "--epoch-ticks", "123"])
+            self.assertEqual(status, 0)
+            manifest = json.loads((root / "native.csv.manifest.json").read_text())
+            self.assertEqual(manifest["status"], "complete")
+            self.assertEqual(manifest["epoch_ticks"], 123)
+
+    def test_wrong_schema_or_frame_sequence_is_incomplete(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "trace.csv"
+            path.write_text("frame\n0\n")
+            self.assertFalse(headless.valid_trace(path, 1))
+            columns = headless.trace_columns()
+            with path.open("w", newline="") as out:
+                writer = csv.writer(out)
+                writer.writerow(columns)
+                row = ["0" if name in ("frame", "scene_epoch", "scene_valid", "player_valid", "actor_count_valid", "rng_valid", "animation_valid") else "" for name in columns]
+                writer.writerow(row)
+            self.assertTrue(headless.valid_trace(path, 1))
+            with path.open("a", newline="") as out:
+                row[0] = "2"
+                csv.writer(out).writerow(row)
+            self.assertFalse(headless.valid_trace(path, 2))
+
+    def test_timing_sidecar_rejects_gaps_and_backwards_time(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "timing.csv"
+            path.write_text("frame,vi_count,ticks\n0,1,1013512\n1,2,2027025\n")
+            self.assertTrue(headless.valid_timing(path, 2))
+            path.write_text("frame,vi_count,ticks\n0,1,1013512\n1,2,0\n")
+            self.assertFalse(headless.valid_timing(path, 2))
+            path.write_text("frame,vi_count,ticks\n0,1,1013512\n2,2,2027025\n")
+            self.assertFalse(headless.valid_timing(path, 2))
+
+    def test_native_schema_matches_current_dolphin_collector(self):
+        path = ROOT / "tools/port/replaydiff/dolphin_collect.py"
+        collector_spec = importlib.util.spec_from_file_location("headless_collector_contract", path)
+        collector = importlib.util.module_from_spec(collector_spec)
+        collector_spec.loader.exec_module(collector)
+        self.assertEqual(headless.trace_columns(), collector.COLUMNS)
+        self.assertEqual(json.loads((ROOT / "native/app/headless/trace_schema.json").read_text())["schema_version"], 1)
+
+    def test_symlink_cannot_put_artifacts_in_checkout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            link = Path(tmp) / "repo-link"
+            link.symlink_to(ROOT, target_is_directory=True)
+            with self.assertRaises(ValueError):
+                headless.outside_repo(link / "build/trace.csv")
+
+
+class NullGxGeneratorTests(unittest.TestCase):
+    def test_native_abi_extern_declaration_and_missing_newline(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "gx.h"
+            path.write_text("#ifdef GALAXY_NATIVE\nextern void GXSetArray(int, const void*, unsigned, unsigned char, bool);\n#else\nvoid GXSetArray(int, const void*, unsigned char);\n#endif\nvoid GXSetThing(int);\n// no final newline")
+            declared = gx.declarations(path.parent)
+            self.assertEqual(declared["GXSetArray"][1], "int, const void*, unsigned, unsigned char, bool")
+            self.assertIn("GXSetThing", declared)
+
+    def test_queries_panic_instead_of_returning_fake_data(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "gx.h").write_text("extern void GXSetThing(int);\nvoid GXGetThing(int*);\nunsigned GXQueryThing(void);\nvoid GXManual(int);\n")
+            manual = root / "manual.cpp"
+            manual.write_text("void GXManual(int) {}\n")
+            output = root / "noops.inc"
+            with patch.object(sys, "argv", ["gen_gx_noops.py", str(root), str(output), "--manual", str(manual)]):
+                gx.main()
+            generated = output.read_text()
+            self.assertIn("GXSetThing(int) { ++gCalls; }", generated)
+            self.assertIn('GXGetThing(int*) { unsupported("GXGetThing"); }', generated)
+            self.assertIn('GXQueryThing() { unsupported("GXQueryThing"); }', generated)
+            self.assertNotIn("GXManual", generated)
 
 
 if __name__ == "__main__":

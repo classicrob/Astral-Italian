@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Strict KPAD JSONL interchange, synthetic input generation, and headless launcher."""
 import argparse
+import csv
 import hashlib
 import json
 import math
@@ -24,6 +25,44 @@ def trace_columns():
         if kind == "FLOAT":
             columns.append(name + "_bits")
     return columns
+
+
+def valid_trace(path, frames):
+    try:
+        with path.open(newline="") as source:
+            rows = csv.reader(source, strict=True)
+            columns = trace_columns()
+            if next(rows, None) != columns:
+                return False
+            validity = [columns.index(key) for key in ("scene_valid", "player_valid", "actor_count_valid", "rng_valid", "animation_valid")]
+            reserved = [columns.index(key) for key in ("ticks", "vi_count")]
+            count = 0
+            for row in rows:
+                if len(row) != len(columns) or row[0] != str(count) or any(row[index] not in ("0", "1") for index in validity) or any(row[index] for index in reserved):
+                    return False
+                count += 1
+            return count == frames
+    except (OSError, ValueError, csv.Error):
+        return False
+
+
+def valid_timing(path, frames):
+    try:
+        with path.open(newline="") as source:
+            rows = csv.reader(source, strict=True)
+            if next(rows, None) != ["frame", "vi_count", "ticks"]:
+                return False
+            count, previous_tick = 0, -1
+            for row in rows:
+                if len(row) != 3 or row[0] != str(count) or any(str(int(value)) != value or int(value) < 0 for value in row):
+                    return False
+                if int(row[2]) < previous_tick:
+                    return False
+                previous_tick = int(row[2])
+                count += 1
+            return count == frames
+    except (OSError, ValueError, csv.Error):
+        return False
 
 
 def integer(value, low, high, name):
@@ -246,17 +285,20 @@ def main(argv=None):
     run.add_argument("--no-ftz", action="store_true")
     args = parser.parse_args(argv)
     if args.command == "schema":
-        print(json.dumps({"schema_version": 2, "columns": trace_columns()}, indent=2))
+        print(json.dumps({"schema_version": 1, "columns": trace_columns()}, indent=2))
         return 0
     if args.command == "generate":
         if args.idle < 0 or args.frames < args.idle + 2:
             raise ValueError("fixture must include idle frames, jump, and release")
-        with outside_repo(args.output).open("x") as out:
+        output = outside_repo(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with output.open("x") as out:
             for row in generate(args.frames, args.idle):
                 out.write(json.dumps(row, separators=(",", ":")) + "\n")
         return 0
     if args.command == "pack":
         source, output = outside_repo(args.input), outside_repo(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
         created = False
         try:
             with output.open("xb") as out:
@@ -270,7 +312,8 @@ def main(argv=None):
     disc, user, trace, source = (outside_repo(p) for p in (args.disc, args.user, args.trace, args.inputs))
     manifest_path = Path(str(trace) + ".manifest.json")
     marker = Path(str(trace) + ".complete")
-    if trace.exists() or manifest_path.exists() or marker.exists():
+    timing = Path(str(trace) + ".timing.csv")
+    if any(path.exists() or path.is_symlink() for path in (trace, manifest_path, marker, timing)):
         raise ValueError("refusing to overwrite an existing trace")
     user.mkdir(parents=True, exist_ok=True)
     if any(user.iterdir()):
@@ -291,15 +334,15 @@ def main(argv=None):
                 while chunk := contents.read(1024 * 1024):
                     result.update(chunk)
             return result.hexdigest()
-        manifest = {"schema_version": 2, "frames": args.frames, "epoch_ticks": args.epoch_ticks,
+        manifest = {"schema_version": 1, "frames": args.frames, "epoch_ticks": args.epoch_ticks,
                     "rate_numerator": args.rate_numerator, "rate_denominator": args.rate_denominator,
                     "fpcr_fz": not args.no_ftz, "input_sha256": digest(source), "columns": trace_columns(),
-                    "disc_root": str(disc), "status": "prepared", "command": command}
+                    "disc_root": str(disc), "status": "prepared", "command": command, "timing_csv": str(timing)}
         with manifest_path.open("x") as out:
             json.dump(manifest, out, indent=2)
             out.write("\n")
         status = subprocess.call(["lockf", "-k", str(lock), "nice", "-n", "10", *command])
-        complete = status == 0 and trace.is_file() and marker.is_file() and marker.read_text().strip() == str(args.frames)
+        complete = status == 0 and trace.is_file() and marker.is_file() and marker.read_text().strip() == str(args.frames) and valid_trace(trace, args.frames) and valid_timing(timing, args.frames)
         manifest.update(status="complete" if complete else "invalid", exit_status=status)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
         return 0 if complete else 2

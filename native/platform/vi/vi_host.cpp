@@ -19,6 +19,7 @@
 #include <pthread/qos.h>
 
 #include <chrono>
+#include <atomic>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
@@ -299,11 +300,12 @@ void setClock(Clock clock) {
     gClock = clock;
 }
 
-namespace { WaitDriver gWaitDriver; }
+namespace { WaitDriver gWaitDriver; std::atomic<bool> gHasWaitDriver{false}; }
 void setWaitDriver(const WaitDriver& driver) {
     OS::InterruptGuard guard;
     if (gInitialized) OS::fatal("VI wait driver must be chosen before VIInit()");
     gWaitDriver = driver;
+    gHasWaitDriver.store(driver.wait != nullptr, std::memory_order_release);
 }
 
 void signalRetrace() {
@@ -347,6 +349,7 @@ void shutdown() {
     gInitialized = false;
     gClock = Clock::Internal;
     gWaitDriver = {};
+    gHasWaitDriver.store(false, std::memory_order_release);
     gPending = gFlushed = gLatched = Pending{};
     gFlushFlag = false;
     gRetraceCount = 0;
@@ -422,7 +425,7 @@ void VIFlush(void) {
 void VIWaitForRetrace(void) {
     VIN::WaitDriver driver;
     u32 before = 0;
-    {
+    if (VIN::gHasWaitDriver.load(std::memory_order_acquire)) {
         OS::InterruptGuard guard;
         if (gClock == VIN::Clock::External) driver = VIN::gWaitDriver;
         before = gRetraceCount;

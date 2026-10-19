@@ -10,6 +10,7 @@ import json
 import math
 import os
 from pathlib import Path
+import plistlib
 import socket
 import struct
 import subprocess
@@ -125,7 +126,8 @@ class RSP:
             length = min(512, size - offset)
             reply = self.command(f"m{address + offset:x},{length:x}")
             if len(reply) != length * 2:
-                raise ObserverError(f"short/failed memory read {address + offset:#x}: {reply!r}")
+                code = reply if reply.startswith("E") and len(reply) <= 8 else "malformed/short reply"
+                raise ObserverError(f"memory read {address + offset:#x}, wanted {length} bytes: {code} ({len(reply)} chars)")
             try:
                 result += bytes.fromhex(reply)
             except ValueError as exc:
@@ -140,14 +142,24 @@ class Memory:
     def u32(self, address):
         return struct.unpack(">I", self.remote.read(address, 4))[0]
 
-    def pointer(self, address, nullable=False, alignment=4):
-        value = self.u32(address)
+    @staticmethod
+    def checked_pointer(value, address, nullable=False, alignment=4):
         if value == 0 and nullable:
             return 0
         if value % alignment or not (0x80000000 <= value < 0x81800000 or
                              0x90000000 <= value < 0x94000000):
             raise ObserverError(f"bad guest pointer at {address:#x}: {value:#x}")
         return value
+
+    def pointer(self, address, nullable=False, alignment=4):
+        return self.checked_pointer(self.u32(address), address, nullable, alignment)
+
+    def pointers(self, address, count):
+        for first in range(0, count, 1024):
+            length = min(1024, count - first)
+            block = self.remote.read(address + first * 4, length * 4)
+            for index, (value,) in enumerate(struct.iter_unpack(">I", block)):
+                yield self.checked_pointer(value, address + (first + index) * 4)
 
     def string(self, address, limit=64):
         data = self.remote.read(address, limit)
@@ -224,8 +236,7 @@ class Snapshot:
                 living = 0
                 if count:
                     array = m.pointer(all_actors + 0x1C)
-                    for i in range(count):
-                        actor = m.pointer(array + i * 4)
+                    for actor in m.pointers(array, count):
                         living += 1 - m.boolean(actor + 0x70)
                 row.update(actor_count_valid=1, actor_registered=count, actor_living=living)
             mario_holder = m.pointer(holder + 4 * 0x15, nullable=True)
@@ -336,9 +347,12 @@ def collect(args):
     process = None
     stream = None
     installed = False
+    step_installed = False
     remote = None
     log = (output / "run.log").open("w", buffering=1)
     try:
+        manifest.update(collector_sha256=sha256(__file__), python_version=sys.version.split()[0],
+                        columns_sha256=hashlib.sha256(",".join(COLUMNS).encode()).hexdigest())
         if args.dolphin:
             user = game_private_path(args.user)
             disc = game_private_path(args.disc)
@@ -360,11 +374,19 @@ def collect(args):
             manifest["rtc_epoch"] = config.getint("Core", "CustomRTCValue")
             manifest["game_save_present_at_start"] = (user / "Wii/title/00010000/53423445/data").exists()
             manifest.update(disc_sha256=sha256(disc), dolphin_sha256=sha256(dolphin))
+            bundle_info = dolphin.parent.parent / "Info.plist"
+            if bundle_info.exists():
+                with bundle_info.open("rb") as file:
+                    info = plistlib.load(file)
+                manifest.update(dolphin_version=info.get("CFBundleShortVersionString"),
+                                dolphin_revision=info.get("CFBundleLongVersionString"))
             for name in ("Dolphin.ini", "WiimoteNew.ini", "GFX.ini"):
                 path = user / "Config" / name
                 if path.exists():
                     (output / name).write_bytes(path.read_bytes())
-            command = [str(dolphin), "-u", str(user), "-b", "-e", str(disc)]
+            command = [str(dolphin), "-u", str(user), "-e", str(disc)]
+            if not args.gui:
+                command.append("-b")
             if args.movie:
                 movie = private_path(args.movie)
                 manifest["movie_sha256"] = sha256(movie)
@@ -431,12 +453,17 @@ def collect(args):
                         log.write(f"Non-GameSystem seam caller LR={lr:08x}; rejected={rejected}\n")
                     if rejected > 10000:
                         raise ObserverError("too many non-GameSystem seam callers")
-                # Step off the breakpoint with it removed: never count the step as a loop.
+                # A temporary execute breakpoint avoids the GUI's competing single-step state.
+                remote.ok(f"Z0,{SEAM + 4:x},4")
+                step_installed = True
                 remote.ok(f"z0,{SEAM:x},4")
                 installed = False
-                remote.stop("s")
-                if remote.reg(64) != SEAM + 4:
-                    raise ObserverError("step did not advance one seam instruction")
+                remote.stop("c")
+                next_pc = remote.reg(64)
+                if next_pc != SEAM + 4:
+                    raise ObserverError(f"step breakpoint expected {SEAM + 4:#x}, got {next_pc:#x}")
+                remote.ok(f"z0,{SEAM + 4:x},4")
+                step_installed = False
                 remote.ok(f"Z0,{SEAM:x},4")
                 installed = True
         if not any(span["context"][0] for span in manifest["scene_spans"]):
@@ -448,6 +475,11 @@ def collect(args):
         log.write(manifest["error"] + "\n")
         raise
     finally:
+        if remote and step_installed:
+            try:
+                remote.ok(f"z0,{SEAM + 4:x},4")
+            except Exception:
+                pass
         if remote and installed:
             try:
                 remote.ok(f"z0,{SEAM:x},4")
@@ -480,6 +512,7 @@ def main():
     capture.add_argument("--dolphin", help="executable; omit to attach to an already locked isolated run")
     capture.add_argument("--disc", default="~/MacioGalaxy2-gamedata/SB4E01.iso")
     capture.add_argument("--movie")
+    capture.add_argument("--gui", action="store_true", help="show the main UI for TAS recording/navigation")
     capture.add_argument("--output", required=True)
     capture.add_argument("--frames", type=int, default=600)
     capture.add_argument("--connect-timeout", type=float, default=600)

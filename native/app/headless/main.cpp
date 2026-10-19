@@ -34,7 +34,11 @@ namespace {
 class Driver {
 public:
     Driver(H::Replay& replay, H::Trace& trace, std::filesystem::path tracePath, unsigned numerator, unsigned denominator)
-        : mReplay(replay),mTrace(trace),mPath(std::move(tracePath)),mClock(numerator,denominator),mOwner(std::this_thread::get_id()),mThread([this]{worker();}) {}
+        : mReplay(replay),mTrace(trace),mPath(std::move(tracePath)),mTiming(mPath.string()+".timing.csv"),mClock(numerator,denominator),mOwner(std::this_thread::get_id()) {
+        mTiming << "frame,vi_count,ticks\n";
+        if (!mTiming) throw H::ReplayError("cannot create timing sidecar");
+        mThread=std::thread([this]{worker();});
+    }
     ~Driver() { { std::lock_guard<std::mutex> lock(mMutex); mStop=true; } mChanged.notify_all(); mThread.join(); }
     static s32 read(s32 channel,KPADStatus* buffer,u32 capacity,s32* error,void* user) {
         try {
@@ -49,9 +53,12 @@ public:
     }
     void frame() {
         PetariNative::HostAllocationScope host;
+        if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("frame seam ran on an unexpected thread");
         if (mAwaitingFrameWait) throw H::ReplayError("game loop advanced without the headless frame wait hook");
         auto state=H::observeGame();
-        state.integer("ticks",OSGetTime()); state.integer("vi_count",VIGetRetraceCount());
+        mTiming << mReplay.frame() << ',' << VIGetRetraceCount() << ',' << OSGetTime() << '\n';
+        mTiming.flush();
+        if (!mTiming) throw H::ReplayError("cannot write timing sidecar");
         mReplay.endFrame();
         mTrace.write(mReplay.frame()-1,state);
         mSawFrame=true; mAwaitingFrameWait=true;
@@ -69,8 +76,10 @@ public:
         }
     }
     void wait(bool frame) {
+        if (std::this_thread::get_id()!=mOwner) throw H::ReplayError("retrace wait ran on an unexpected thread");
         if (frame && !mAwaitingFrameWait) throw H::ReplayError("extra headless game-loop wait");
         const int released=petari_os_try_begin_host_blocking();
+        if (frame && !released) throw H::ReplayError("game-loop wait requires an interruptible OS thread");
         {
             std::unique_lock<std::mutex> lock(mMutex);
             mAdvance=frame || !mSawFrame; mRequest=true; mChanged.notify_all();
@@ -98,7 +107,7 @@ private:
             }
         } catch (const std::exception& e) { fail(e.what()); }
     }
-    H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; H::FrameClock mClock;
+    H::Replay& mReplay; H::Trace& mTrace; std::filesystem::path mPath; std::ofstream mTiming; H::FrameClock mClock;
     std::thread::id mOwner; std::mutex mMutex; std::condition_variable mChanged;
     bool mStop=false,mRequest=false,mAdvance=false,mSawFrame=false,mAwaitingFrameWait=false;
     std::thread mThread;
@@ -135,7 +144,8 @@ int main(int argc,char** argv) {
         }
         for (const char* key:{"--inputs","--disc","--user","--trace","--epoch-ticks"}) if (!args.count(key)) throw H::ReplayError(std::string("required argument: ")+key);
         const auto input=external(args.at("--inputs")),disc=external(args.at("--disc")),user=external(args.at("--user")),path=external(args.at("--trace"));
-        if (std::filesystem::exists(path) || std::filesystem::exists(path.string()+".complete")) throw H::ReplayError("refusing to overwrite trace artifacts");
+        for (const auto& output : {path, std::filesystem::path(path.string()+".complete"),std::filesystem::path(path.string()+".timing.csv")})
+            if (std::filesystem::exists(output) || std::filesystem::is_symlink(output)) throw H::ReplayError("refusing to overwrite trace artifacts");
         if (std::filesystem::exists(user) && !std::filesystem::is_empty(user)) throw H::ReplayError("--user must be a fresh isolated directory");
         std::filesystem::create_directories(user);
         std::ifstream source(input,std::ios::binary); if (!source) throw H::ReplayError("cannot open input tape");

@@ -62,14 +62,22 @@ int main() {
     float roundtrip=std::stof(state.fields.at("y"));check(!std::memcmp(&one,&roundtrip,4),"float32 round-trip decimal");
     rejects([&]{state.real("x",std::numeric_limits<float>::quiet_NaN());},"NaN trace fails");
     rejects([&]{state.text("invented","0");},"schema refuses unknown column");
-    std::ostringstream csv;Trace trace(csv);trace.write(0,state);trace.finish();
+    State row;
+    for (const char* validity : {"player_valid", "actor_count_valid", "rng_valid", "animation_valid"}) row.integer(validity,0);
+    row.integer("scene_valid",1);row.integer("scene_epoch",0);
+    row.text("scene","Game");row.text("stage","A,\"B");row.integer("scenario",1);row.integer("init_state",6);
+    std::ostringstream csv;Trace trace(csv);trace.write(0,row);trace.finish();
     check(csv.str().find("\"A,\"\"B\"")!=std::string::npos,"CSV escaping");
     rejects([&]{trace.write(2,state);},"trace cannot skip frames");
+    rejects([&]{std::ostringstream bad;Trace incomplete(bad);incomplete.write(0,State{});},"trace requires explicit validity");
 #if defined(__aarch64__)
     const bool original=FloatingPointMode::flushToZero();
     volatile float normal=std::numeric_limits<float>::min(),half=0.5f;
     {FloatingPointMode gradual(false);check(multiply(normal,half)>0,"gradual underflow switch");}
     {FloatingPointMode flush(true);check(multiply(normal,half)==0,"FPCR.FZ flushes a denormal product");
+     std::uint32_t smallBits=1;float small;std::memcpy(&small,&smallBits,4);state.real("z",small);
+     check(state.fields.at("z_bits")=="0x00000001" && state.fields.at("z")!="0","observer preserves stored denormals under gameplay FZ");
+     check(FloatingPointMode::flushToZero(),"observer restores gameplay FZ");
      bool inherited=false;std::thread child([&]{inherited=FloatingPointMode::flushToZero() && multiply(normal,half)==0;});child.join();check(inherited,"new pthread inherits FZ");}
     check(FloatingPointMode::flushToZero()==original,"FPCR policy restores caller state");
 #endif

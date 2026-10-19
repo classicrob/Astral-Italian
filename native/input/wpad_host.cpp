@@ -121,6 +121,7 @@ struct Channel {
 // Device and SDK state: guarded by the interrupt lock.
 Channel gChannels[kChannels];
 PetariNative::Input::KpadReplayHooks gReplayHooks;
+std::atomic<bool> gReplayActive{false};
 s32 gReplayProbeErrors[kChannels] = {WPAD_ERR_NO_CONTROLLER, WPAD_ERR_NO_CONTROLLER, WPAD_ERR_NO_CONTROLLER, WPAD_ERR_NO_CONTROLLER};
 bool gInitialized = false;
 OSAlarm gAlarm;
@@ -1124,6 +1125,7 @@ void resetForTesting() {
             ch = Channel{};
         }
         gInitialized = false;
+        gReplayActive.store(false, std::memory_order_release);
         gReplayHooks = {};
         for (auto& error : gReplayProbeErrors) error = WPAD_ERR_NO_CONTROLLER;
         for (auto& presses : gModPresses) {
@@ -1158,6 +1160,7 @@ void setKpadReplayHooks(const KpadReplayHooks& hooks) {
     Interrupts guard;
     if (gInitialized) misuse("setKpadReplayHooks", "install before WPADInit");
     gReplayHooks = hooks;
+    gReplayActive.store(hooks.read != nullptr, std::memory_order_release);
 }
 
 void replayConnection(s32 chan, s32 error, u32 device) {
@@ -1198,6 +1201,7 @@ void serviceReplayCommands() {
 using namespace PetariNative::Input;
 
 extern "C" BOOL petari_kpad_replay_read(s32 chan, KPADStatus* buffer, u32 capacity, s32* error, s32* returned) {
+    if (!gReplayActive.load(std::memory_order_acquire)) return FALSE;
     KpadReplayHooks hooks;
     { Interrupts guard; hooks = gReplayHooks; }
     if (!hooks.read) return FALSE;

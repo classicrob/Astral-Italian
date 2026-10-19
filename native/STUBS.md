@@ -48,6 +48,30 @@ connects the native Nunchuk but fails the first report assertion: KPAD's initial
 connection reset clears its buffered samples. Servicing that reset and reading
 subsequent reports still needs verification; startup is not yet a passing test.
 
+## Headless logic harness (P1/P2)
+
+`PETARI_BUILD_HEADLESS` selects `native/app/headless/gx_null.cpp`, without Aurora,
+SDL, a window, Metal or an audio output device. Shader/raster/texture draw-state
+entry points are intentional no-ops, generated from the native GX declarations;
+the exact preview inventory is in `native/app/headless/GX-NULL-API.md`. Unsupported
+query/readback entry points call `OSPanic` and abort instead of returning fake
+pixels or plausible output parameters. CPU projection, viewport/scissor,
+texture metadata/size, vertex formats, display-list capture/padding, direct
+FIFO bytes and platform token/draw-done callbacks have implementations.
+
+The null processor completes on submission and reports breakpoint callbacks
+immediately. It does not model GPU/FIFO stalls, command-state byte encodings,
+display-list GPU execution, EFB/depth feedback or token-time snapshots. Direct
+stream bytes, display-list payload bytes and discarded state calls are separate
+counters. A logic replay reaching unsupported render feedback is incomplete.
+
+Null audio still runs native AI/DSP/JAudio: the harness pulls and discards a
+fixed virtual sample budget, services/drains AI interrupts and opens no device.
+Fixed scheduling, original-DOL field mappings and repeated-run determinism have
+not been validated. See [HARNESS.md](HARNESS.md) for exclusions, source hook
+proposals, input/CSV contracts and the build queue. Only Python tests have run;
+C++ configuration/builds/tests are awaiting the lead's explicit go signal.
+
 ## Imported SMG1 inventory
 
 Native replacements that return a fixed value, do nothing, or stand in for Wii

@@ -111,6 +111,22 @@ class SnapshotTests(unittest.TestCase):
         self.ram.put(0x80005070, b"\x02")
         self.assertIn("nonboolean", self.observer.take(0)["observer_error"])
 
+    def test_actor_array_counts_live_members_and_rejects_null_entries(self):
+        self.player()
+        r = self.ram
+        r.word(0x80004100 + 4 * 0x39, 0x8000A000)
+        r.word(0x8000A014, 2)
+        r.word(0x8000A018, 2)
+        r.word(0x8000A01C, 0x8000B000)
+        r.word(0x8000B000, 0x8000C000)
+        r.word(0x8000B004, 0x8000D000)
+        r.put(0x8000D070, b"\x01")
+        row = self.observer.take(0)
+        self.assertEqual(row["observer_error"], "")
+        self.assertEqual((row["actor_registered"], row["actor_living"]), (2, 1))
+        r.word(0x8000B004, 0)
+        self.assertIn("bad guest pointer", self.observer.take(1)["observer_error"])
+
     def test_private_outputs_cannot_be_inside_repo(self):
         with self.assertRaises(ObserverError):
             private_path(str(REPO / "build/game-data/trace.csv"))
@@ -175,6 +191,14 @@ class ProtocolTests(unittest.TestCase):
     def test_read_error_is_not_decoded_as_guest_data(self):
         with self.assertRaises(ObserverError):
             self.exchange("E00", lambda r: r.read(0x80000000, 4))
+
+    def test_short_memory_reply_is_not_copied_into_error_log(self):
+        try:
+            self.exchange("abcdef", lambda r: r.read(0x80000000, 4))
+        except ObserverError as exc:
+            self.assertNotIn("abcdef", str(exc))
+        else:
+            self.fail("short memory reply was accepted")
 
     def test_unexpected_stop_signal_fails(self):
         with self.assertRaises(ObserverError):

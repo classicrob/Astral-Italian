@@ -1489,6 +1489,7 @@ const TVec3f Mario::getAirFrontVec() const {
 void Mario::initAfterConst() {
     MarioConst* pConst = mActor->mConst;
     _402 = pConst->getTable()->mAirWalkTime;
+    mPosHolder->fn_80405F90(mActor->mPosition);
     mShadowPos = mPosHolder->mPos;
     mGroundPos = mPosHolder->mPos;
     mMove->initAfter();

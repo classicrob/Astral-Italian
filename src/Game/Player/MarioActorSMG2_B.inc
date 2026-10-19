@@ -1298,7 +1298,7 @@ void MarioActor::fn_803D26F0() {
         this->fn_803CA1F0();
         this->mGroundReflectionEFC = 1;
         f32 v = (this->mMario)->mVerticalSpeed / 500.0f;
-        if (!(v >= 0.75f)) {
+        if (v >= 0.75f) {
             v = 0.75f;
         }
         s32 target = (s32)((f32)0x40U * (1.0f - v));

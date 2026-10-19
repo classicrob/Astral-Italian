@@ -74,6 +74,25 @@ namespace {
     }
 };  // namespace
 
+void PlanetMapCreator::makeSubModelName(const char** ppDst, const JMapInfo* pIter, s32 idx, const char* pKey, const char* pSuffix) {
+    s32 data;
+    MR::getCsvDataS32(&data, pIter, pKey, idx);
+
+    const char* pPlanetName;
+    MR::getCsvDataStr(&pPlanetName, pIter, "PlanetName", idx);
+
+    if (data != 0) {
+        s32 size = strlen(pPlanetName) + strlen(pSuffix) + 1;
+        char* buf = new char[size];
+        snprintf(buf, size, "%s%s", pPlanetName, pSuffix);
+
+        *ppDst = buf;
+    } else {
+        *ppDst = nullptr;
+    }
+}
+
+// FIXME: Scheduling issues
 const PlanetEntry PlanetMapCreator::sUniquePlanetCreateFuncTable[78] = {
     {"BendSwanpPlanet", createNameObj< BendSwanpPlanet >},
     {"BlueStarCupsulePlanet", createNameObj< BlueStarCupsulePlanet >},
@@ -155,25 +174,6 @@ const PlanetEntry PlanetMapCreator::sUniquePlanetCreateFuncTable[78] = {
     {"ZeroGravityRoomPlanet", createNameObj< PlanetMapFarClippable >},
 };
 
-void PlanetMapCreator::makeSubModelName(const char** ppDst, const JMapInfo* pIter, s32 idx, const char* pKey, const char* pSuffix) {
-    s32 data;
-    MR::getCsvDataS32(&data, pIter, pKey, idx);
-
-    const char* pPlanetName;
-    MR::getCsvDataStr(&pPlanetName, pIter, "PlanetName", idx);
-
-    if (data != 0) {
-        s32 size = strlen(pPlanetName) + strlen(pSuffix) + 1;
-        char* buf = new char[size];
-        snprintf(buf, size, "%s%s", pPlanetName, pSuffix);
-
-        *ppDst = buf;
-    } else {
-        *ppDst = nullptr;
-    }
-}
-
-// FIXME: Scheduling issues
 PlanetMapCreator::PlanetMapCreator(const char* pName) : NameObj(pName), mPlanetMapData() {
     JMapInfo* pIter = MR::createCsvParser(::sArcName, ::sFileName);
 

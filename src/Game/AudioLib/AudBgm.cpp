@@ -15,6 +15,8 @@
 #include <JSystem/JAudio2/JAISoundChild.hpp>
 #include <JSystem/JAudio2/JAISoundInfo.hpp>
 #include <JSystem/JAudio2/JASCriticalSection.hpp>
+#include "Game/RhythmLib/AudMePlayer.hpp"
+#include "Game/RhythmLib/AudMeTrack.hpp"
 
 AudBgm::AudBgm() : mVolumeController(), mPauseFrames(-1), mMuteStateIndex(0) {
 }
@@ -33,11 +35,13 @@ AudSingleBgm::AudSingleBgm() : AudBgm(), mHandle(), mSoundID(-1) {
 }
 
 void AudSingleBgm::init() {
+    AudBgm::reset();
     mSoundID.setAnonymous();
     initTrackController();
 }
 
 void AudSingleBgm::movement() {
+    updatePauseFrames();
     updateTrackControl();
     if (!mHandle.isSoundAttached()) {
         resetAuxVolume();
@@ -51,6 +55,7 @@ void AudSingleBgm::movement() {
 
 JAISoundHandle* AudSingleBgm::start(u32 soundID, bool lock) {
     JAISoundID id = soundID;
+    clearPauseFrames();
     mSoundID = soundID;
 
     if (mHandle.isSoundAttached()) {
@@ -66,7 +71,8 @@ JAISoundHandle* AudSingleBgm::start(u32 soundID, bool lock) {
         AudWrap::getSystem()->getSeqMgr().startSound(id, &mHandle, nullptr);
         if (mHandle.isSoundAttached()) {
             startTrackControl();
-            changeTrackMuteState(0, 0);
+            initTrackMuteState(mSoundID);
+            tryChangeTrackMuteState(0, 0);
         }
     }
 
@@ -202,15 +208,7 @@ void AudSingleBgm::changeTrackMuteState(s32 track, s32 time) {
     bool isRhythm = info->isRhythmBgm(mSoundID);
 
     const AudBgmSetting::MuteState* muteState = AudBgmSetting::getMuteState(mSoundID, track);
-    if (muteState == nullptr) {
-        for (s32 i = 0; i < mNumTracks; i++) {
-            if (i != 0 || !isRhythm) {
-                mTrackController[i].setMuteState(AudFader::FadeState_FadeIn, time, false);
-            }
-        }
-
-        return;
-    }
+    if (muteState == nullptr) return;
 
     for (s32 i = 0; i < mNumTracks; i++) {
         u8 state = muteState->mMuteStates[i / 2];
@@ -225,6 +223,7 @@ void AudSingleBgm::changeTrackMuteState(s32 track, s32 time) {
 
         mTrackController[i].setMuteState(state & 0x7, time, autoMute);
     }
+    mMuteStateIndex = track;
 }
 
 void AudSingleBgm::moveTrackVolume(f32 volume, s32 track, s32 time) {
@@ -264,6 +263,7 @@ AudMultiBgm::AudMultiBgm() : AudBgm(), mHandle(), mRhythmHandle(), mSyncState(),
 }
 
 void AudMultiBgm::init() {
+    AudBgm::reset();
     initTrackController();
     for (s32 i = 0; i < mNumFaders; i++) {
         mFader[i].set(1.0f, 0);
@@ -339,6 +339,7 @@ void AudMultiBgm::rejectFromSyncStream() {
 }
 
 void AudMultiBgm::movement() {
+    updatePauseFrames();
     updateSyncProcess();
     updateTrackControl();
 
@@ -439,28 +440,8 @@ void AudMultiBgm::changeTrackMuteState(s32 track, s32 time) {
         return;
     }
 
-    AudSoundInfo* info = AudWrap::getSoundInfo();
-    bool isRhythm = info->isRhythmBgm(soundID);
-
     const AudBgmSetting::MuteState* muteState = AudBgmSetting::getMuteState(soundID, track);
-    if (muteState == nullptr) {
-        for (s32 i = 0; i < mNumTracks; i++) {
-            if (i != 0 || !isRhythm) {
-                mTrackController[i].setMuteState(AudFader::FadeState_FadeIn, time, false);
-            }
-        }
-
-        return;
-    }
-
-    switch (soundID) {
-    case BGM_GALAXY_01:
-        if (track == 1) {
-            time *= 3;
-        }
-
-        break;
-    }
+    if (muteState == nullptr) return;
 
     for (s32 i = 0; i < mNumTracks; i++) {
         u8 state = muteState->mMuteStates[i / 2];
@@ -492,6 +473,7 @@ void AudMultiBgm::changeTrackMuteState(s32 track, s32 time) {
             AudWrap::getSystem()->getChordInfo()->loadChordInfo(extraChordNum, true);
         }
     }
+    mMuteStateIndex = track;
 }
 
 void AudMultiBgm::moveTrackVolume(f32 volume, s32 track, s32 time) {
@@ -534,7 +516,7 @@ bool AudMultiBgm::isPaused() const {
 
 JAISoundID AudMultiBgm::getSoundID() const {
     if (!mHandle.isSoundAttached()) {
-        return 0;
+        return JAISoundID(-1);
     }
 
     return mHandle->getID();
@@ -570,9 +552,7 @@ void AudMultiBgm::updateTrackControl() {
     }
 }
 
-JAISoundHandle* AudMultiBgm::prepare(u32 id) {
-    u32 bgmId = id & ~(0x01010000);
-
+JAISoundHandle* AudMultiBgm::prepare(u32 bgmId) {
     u32 seqID = AudWrap::getMultiBgmInfo()->getSeqIdForMultiBgm(bgmId);
     u32 streamID = AudWrap::getMultiBgmInfo()->getStreamIdForMultiBgm(bgmId);
 
@@ -585,11 +565,13 @@ JAISoundHandle* AudMultiBgm::prepare(u32 id) {
         }
 
         startTrackControl();
-        changeTrackMuteState(AudFader::FadeState_FadeOut, 0);
+        initTrackMuteState(mRhythmHandle->getID());
+        tryChangeTrackMuteState(0, 0);
     } else {
         return nullptr;
     }
 
+    clearPauseFrames();
     AudWrap::getSystem()->getStreamMgr().startSound(streamID, &mHandle, nullptr);
     if (mHandle.isSoundAttached()) {
         mHandle->lockWhenPrepared();
@@ -668,6 +650,7 @@ void AudMultiBgm::pauseSyncProcess() {
 }
 
 void AudMultiBgm::setStreamVolume(f32 volA, f32 volB) {
+    JASCriticalSection crit;
     mHandle->getChild(0)->getMoveParams()->moveVolume(volA, 0);
     mHandle->getChild(1)->getMoveParams()->moveVolume(volA, 0);
     mHandle->getChild(2)->getMoveParams()->moveVolume(volB, 0);
@@ -681,3 +664,8 @@ JAISoundID AudSingleBgm::getRhythmSoundID() const {
 bool AudSingleBgm::isAttached() const {
     return mHandle.isSoundAttached();
 }
+
+// NONMATCHING (data order only): the target's two init guards sit in reverse order in .sbss (AudMe at 0x..29).
+// The target's static initializer of this unit constructs the memory pools of AudMe and AudMeTrack.
+template JASMemPool< AudMe > JASPoolAllocObject< AudMe >::memPool_;
+template JASMemPool< AudMeTrack > JASPoolAllocObject< AudMeTrack >::memPool_;

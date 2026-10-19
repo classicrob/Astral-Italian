@@ -16,7 +16,7 @@
 #include <JSystem/JParticle/JPAEmitterManager.hpp>
 
 EffectSystem::EffectSystem(const char* pName, bool createAdaptors)
-    : NameObj(pName), mEmitterManager(), mDrawExec(), mCalcExec(), mGroupHolder(new AutoEffectGroupHolder()), _20(true) {
+    : NameObj(pName), mEmitterManager(), mDrawExec(), mCalcExec(), mGroupHolder(new AutoEffectGroupHolder()), mIsEmissionEnabled(true) {
     mDrawExec = new ParticleDrawExecutor(this, createAdaptors);
     mCalcExec = new ParticleCalcExecutor(this, createAdaptors);
 }
@@ -25,7 +25,7 @@ void EffectSystem::init(const JMapInfoIter& rIter) {
 }
 
 ParticleEmitter* EffectSystem::createEmitter(u16 resourceId, u8 groupId, u8 resourceManagerId) {
-    if (!_20) {
+    if (!mIsEmissionEnabled) {
         return nullptr;
     }
 

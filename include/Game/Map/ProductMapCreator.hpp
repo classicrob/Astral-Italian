@@ -3,6 +3,9 @@
 #include "Game/Map/PlanetMapCreator.hpp"
 
 class JMapInfo;
+class SimpleMapObj;
+class AnmModelSwitchMove;
+class AnmModelSwitchMoveEndKill;
 
 // One row of ProductMapObjDataTable.bcsv (ModelName -> ClassName).
 struct ProductMapEntry {
@@ -35,3 +38,7 @@ namespace MR {
     CreatorFuncPtr getProductMapCreator(const char*);
     bool hasProductMapCreator(const char*);
 };  // namespace MR
+
+template <> NameObj* ProductMapCreator::createNameObj<SimpleMapObj>(const char*);
+template <> NameObj* ProductMapCreator::createNameObj<AnmModelSwitchMove>(const char*);
+template <> NameObj* ProductMapCreator::createNameObj<AnmModelSwitchMoveEndKill>(const char*);

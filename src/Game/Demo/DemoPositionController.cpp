@@ -31,3 +31,10 @@ void DemoPositionController::endDemo(const char* pCameraName) {
     MR::endAnimCamera(this, pCameraInfo, pCameraName, -1, true);
     kill();
 }
+
+void DemoPositionController::setAnimCameraLastFrame(const char* pCameraName) {
+    MR::setAnimCameraLastFrame(this, pCameraInfo, pCameraName);
+}
+
+DemoPositionController::~DemoPositionController() {
+}

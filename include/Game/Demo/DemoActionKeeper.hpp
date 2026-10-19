@@ -29,7 +29,7 @@ public:
     /* 0x0C */ s32 mActionType;
     /* 0x10 */ const char* mPosName;
     /* 0x14 */ const char* mAnimName;
-    /* 0x18 */ s32 _18;
+    /* 0x18 */ s32 mMaxCastCount;
     /* 0x1C */ s32 mCastCount;
     /* 0x20 */ LiveActor** mCastList;
     /* 0x24 */ MR::FunctorBase** mFunctors;
@@ -57,5 +57,5 @@ public:
     /* 0x00 */ const DemoExecutor* mDemoExecutor;
     /* 0x04 */ s32 mNumInfos;
     /* 0x08 */ DemoActionInfo** mInfoArray;
-    /* 0x0C */ u8 _C;
+    /* 0x0C */ u8 mIsStoryBookStartPending;
 };

@@ -22,8 +22,8 @@ void Moc::init(const JMapInfoIter& iter) {
     mParam._14="Wait"; mParam._18="Turn"; mParam._1C="Talk"; mParam._20="Turn";
     mSpinAction = cNPCSpinDefault; mTrampledAction = cNPCTrampledDefault; mPointingAction = cNPCPointingDefault; mReactionAction = cNPCReactionDefault;
     mSpinAttackRange=450.0f;
-    MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&Moc::branchFunc));
-    MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&Moc::eventFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&Moc::eventFunc));
     ScenarioDataIter scenario=MR::makeBeginScenarioDataIter();
     bool complete=true;
     while(!scenario.isEnd()) {

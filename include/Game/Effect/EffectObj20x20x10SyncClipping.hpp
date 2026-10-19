@@ -7,6 +7,7 @@ public:
     EffectObj20x20x10SyncClipping(const char* pName) : SimpleEffectObj(pName) {
     }
 
+    virtual ~EffectObj20x20x10SyncClipping();
     virtual bool isSyncClipping() const;
     virtual TVec3f* getClippingCenterOffset() const;
     virtual f32 getFarClipDistance() const;

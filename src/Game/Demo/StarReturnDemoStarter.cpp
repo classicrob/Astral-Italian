@@ -65,7 +65,39 @@ StarReturnDemoStarter::StarReturnDemoStarter(const char* pName)
     mTransform.identity();
 }
 
+// NONMATCHING: regalloc and string pool order
+void StarReturnDemoStarter::init(const JMapInfoIter& rIter) {
+    MR::initDefaultPos(this, rIter);
+    MR::connectToSceneMapObjMovement(this);
+    MR::invalidateClipping(this);
+    mStageResultInformer = new StageResultInformer();
+    mStageResultInformer->initWithoutIter();
+    TPos3f* mtx = &mTransform;
+    bool grandStar = GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId());
+    mPowerStar = MR::createDemoObj("スターモデル", grandStar ? "GrandStar" : "PowerStar", "Demo", *mtx);
+    mPowerStar->kill();
+    mLuma = createSubModel("チコモデル", "SpinTico", false);
+    mReturnDemoRailMove = new ReturnDemoRailMove(this, mPowerStar, rIter,
+        GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()), &mTransform);
+    tryRegisterDemo("グランドスター帰還[２回目以降]", rIter);
+    tryRegisterDemo("パワースター帰還", rIter);
+    tryRegisterDemo("パワースター帰還[NPC紹介]", rIter);
+    tryRegisterDemo("パワースター帰還[アイテム惑星]", rIter);
+    tryRegisterDemo("パワースター帰還[初回]", rIter);
+    initNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvAppearWait), 0);
+    makeActorDead();
+}
 
+void StarReturnDemoStarter::appear() {
+    LiveActor::appear();
+    mReturnDemoRailMove->posToStart();
+    PowerStar::setupColorAtResultSequence(mPowerStar,
+        GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()));
+    if (MR::isDemoActive("天文ドームスター帰還")) {
+        MR::onDrawSpinDriverPathAtOpa();
+    }
+    setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvAppearWait));
+}
 
 void StarReturnDemoStarter::kill() {
     LiveActor::kill();
@@ -76,7 +108,6 @@ void StarReturnDemoStarter::kill() {
         MR::offDrawSpinDriverPathAtOpa();
     }
 }
-
 
 void StarReturnDemoStarter::control() {
     if (!isNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResultAfter))) {
@@ -106,8 +137,17 @@ void StarReturnDemoStarter::tryRegisterDemo(const char* pDemoName, const JMapInf
     }
 }
 
+void StarReturnDemoStarter::tryStartStageResult() {
+    if (MR::isDemoPartLastStep(::cDemoWaitPartName)) {
+        if (GameSequenceFunction::hasStageResultSequence()) {
+            mStageResultInformer->appear();
+            MR::requestMovementOn(mStageResultInformer);
+        }
 
-
+        MR::pauseTimeKeepDemo(this);
+        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResult));
+    }
+}
 
 void StarReturnDemoStarter::exeAppearWait() {
     if (MR::isFirstStep(this)) {
@@ -125,6 +165,24 @@ void StarReturnDemoStarter::exeAppearWait() {
     MR::setNerveAtStep(this, GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvMove), ::cDemoAppearWaitFrame);
 }
 
+void StarReturnDemoStarter::exeMove() {
+    if (MR::isFirstStep(this)) {
+        MR::showPlayer();
+        MR::showModel(mPowerStar);
+        mReturnDemoRailMove->start();
+    }
+    const char* part = cDemoMovePartName;
+    s32 step = MR::getDemoPartStep(part) - 44;
+    s32 total = MR::getDemoPartTotalStep(part) - 45;
+    mReturnDemoRailMove->update(step, total);
+    PowerStar::requestPointLightAtResultSequence(mPowerStar);
+    MR::startLevelSoundPlayer("SE_PM_LV_SPIN_DRV_FLY", -1);
+    if (MR::isDemoPartLastStep(part)) {
+        bool grandStar = GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId());
+        setNerve(grandStar ? static_cast< const Nerve* >(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFlyWaitGrandStar))
+                          : GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFlyWaitPowerStar));
+    }
+}
 
 void StarReturnDemoStarter::exeFlyWaitPowerStar() {
     if (MR::isFirstStep(this)) {
@@ -172,133 +230,6 @@ void StarReturnDemoStarter::exeFlyWaitGrandStar() {
     }
 }
 
-
-void StarReturnDemoStarter::exeLand() {
-    if (MR::isFirstStep(this)) {
-        MR::startBckPlayer("Land", nullptr);
-        MR::tryRumblePadMiddle(this, 0);
-    }
-    if (MR::isBckStoppedPlayer()) {
-        LiveActor* luma = mLuma;
-        luma->appear();
-        MR::startAction(luma, MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
-        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvWait));
-    }
-}
-
-void StarReturnDemoStarter::exeWait() {
-    if (MR::isFirstStep(this)) {
-        MR::changePlayerAnimationAndBva(MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
-    }
-    if (MR::isBckOneTimeAndStoppedPlayer()) {
-        MR::startBckPlayer("ResultWait", nullptr);
-    }
-    tryStartStageResult();
-}
-
-
-void StarReturnDemoStarter::exeFadeOut() {
-    if (MR::isFirstStep(this)) {
-        MR::closeWipeFade(::cFadeOutFrame);
-    }
-
-    if (!MR::isWipeActive()) {
-        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResultAfter));
-    }
-}
-
-void StarReturnDemoStarter::exeStageResultAfter() {
-    if (MR::isFirstStep(this)) {
-        mReturnDemoRailMove->offPathDraw();
-        MR::resumeTimeKeepDemo(this);
-        MR::startCurrentStageBGM(false);
-        MR::overlayWithPreviousScreen(3);
-        MR::endStartPosCamera();
-    }
-    if (!MR::isTimeKeepDemoActive()) {
-        kill();
-    }
-}
-
-void StarReturnDemoStarter::tryStartStageResult() {
-    if (MR::isDemoPartLastStep(::cDemoWaitPartName)) {
-        if (GameSequenceFunction::hasStageResultSequence()) {
-            mStageResultInformer->appear();
-            MR::requestMovementOn(mStageResultInformer);
-        }
-
-        MR::pauseTimeKeepDemo(this);
-        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResult));
-    }
-}
-
-
-void StarReturnDemoStarter::exeStageResult() {
-    if (MR::isBckOneTimeAndStoppedPlayer()) {
-        MR::startBckPlayer("ResultWait", nullptr);
-    }
-    if (MR::isDead(mStageResultInformer) && MR::isEqualStringCase(MR::getPlayerCurrentBckName(), "ResultWait")) {
-        if (GameSequenceFunction::isMarioFaceShipEventEmpty() && !MR::isWipeBlank()) {
-            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFadeOut));
-        } else {
-            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResultAfter));
-        }
-    }
-}
-
-// NONMATCHING: regalloc and string pool order
-void StarReturnDemoStarter::init(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::connectToSceneMapObjMovement(this);
-    MR::invalidateClipping(this);
-    mStageResultInformer = new StageResultInformer();
-    mStageResultInformer->initWithoutIter();
-    TPos3f* mtx = &mTransform;
-    bool grandStar = GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId());
-    mPowerStar = MR::createDemoObj("スターモデル", grandStar ? "GrandStar" : "PowerStar", "Demo", *mtx);
-    mPowerStar->kill();
-    mLuma = createSubModel("チコモデル", "SpinTico", false);
-    mReturnDemoRailMove = new ReturnDemoRailMove(this, mPowerStar, rIter,
-        GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()), &mTransform);
-    tryRegisterDemo("グランドスター帰還[２回目以降]", rIter);
-    tryRegisterDemo("パワースター帰還", rIter);
-    tryRegisterDemo("パワースター帰還[NPC紹介]", rIter);
-    tryRegisterDemo("パワースター帰還[アイテム惑星]", rIter);
-    tryRegisterDemo("パワースター帰還[初回]", rIter);
-    initNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvAppearWait), 0);
-    makeActorDead();
-}
-
-void StarReturnDemoStarter::appear() {
-    LiveActor::appear();
-    mReturnDemoRailMove->posToStart();
-    PowerStar::setupColorAtResultSequence(mPowerStar,
-        GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId()));
-    if (MR::isDemoActive("天文ドームスター帰還")) {
-        MR::onDrawSpinDriverPathAtOpa();
-    }
-    setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvAppearWait));
-}
-
-void StarReturnDemoStarter::exeMove() {
-    if (MR::isFirstStep(this)) {
-        MR::showPlayer();
-        MR::showModel(mPowerStar);
-        mReturnDemoRailMove->start();
-    }
-    const char* part = cDemoMovePartName;
-    s32 step = MR::getDemoPartStep(part) - 44;
-    s32 total = MR::getDemoPartTotalStep(part) - 45;
-    mReturnDemoRailMove->update(step, total);
-    PowerStar::requestPointLightAtResultSequence(mPowerStar);
-    MR::startLevelSoundPlayer("SE_PM_LV_SPIN_DRV_FLY", -1);
-    if (MR::isDemoPartLastStep(part)) {
-        bool grandStar = GameDataConst::isGrandStar(GameSequenceFunction::getClearedStageName(), GameSequenceFunction::getClearedPowerStarId());
-        setNerve(grandStar ? static_cast< const Nerve* >(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFlyWaitGrandStar))
-                          : GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFlyWaitPowerStar));
-    }
-}
-
 // NONMATCHING: vector operation scheduling
 void StarReturnDemoStarter::exeFall() {
     TVec3f pos;
@@ -327,6 +258,65 @@ void StarReturnDemoStarter::exeFall() {
     mTransform.mMtx[0][3] = pos.x;
     mTransform.mMtx[1][3] = pos.y;
     mTransform.mMtx[2][3] = pos.z;
+}
+
+void StarReturnDemoStarter::exeLand() {
+    if (MR::isFirstStep(this)) {
+        MR::startBckPlayer("Land", nullptr);
+        MR::tryRumblePadMiddle(this, 0);
+    }
+    if (MR::isBckStoppedPlayer()) {
+        LiveActor* luma = mLuma;
+        luma->appear();
+        MR::startAction(luma, MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
+        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvWait));
+    }
+}
+
+void StarReturnDemoStarter::exeWait() {
+    if (MR::isFirstStep(this)) {
+        MR::changePlayerAnimationAndBva(MR::isPlayerLuigi() ? "LuigiResultWaitStart" : "ResultWaitStart");
+    }
+    if (MR::isBckOneTimeAndStoppedPlayer()) {
+        MR::startBckPlayer("ResultWait", nullptr);
+    }
+    tryStartStageResult();
+}
+
+void StarReturnDemoStarter::exeStageResult() {
+    if (MR::isBckOneTimeAndStoppedPlayer()) {
+        MR::startBckPlayer("ResultWait", nullptr);
+    }
+    if (MR::isDead(mStageResultInformer) && MR::isEqualStringCase(MR::getPlayerCurrentBckName(), "ResultWait")) {
+        if (GameSequenceFunction::isMarioFaceShipEventEmpty() && !MR::isWipeBlank()) {
+            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvFadeOut));
+        } else {
+            setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResultAfter));
+        }
+    }
+}
+
+void StarReturnDemoStarter::exeFadeOut() {
+    if (MR::isFirstStep(this)) {
+        MR::closeWipeFade(::cFadeOutFrame);
+    }
+
+    if (!MR::isWipeActive()) {
+        setNerve(GET_NERVE(StarReturnDemoStarter, StarReturnDemoStarterNrvStageResultAfter));
+    }
+}
+
+void StarReturnDemoStarter::exeStageResultAfter() {
+    if (MR::isFirstStep(this)) {
+        mReturnDemoRailMove->offPathDraw();
+        MR::resumeTimeKeepDemo(this);
+        MR::startCurrentStageBGM(false);
+        MR::overlayWithPreviousScreen(3);
+        MR::endStartPosCamera();
+    }
+    if (!MR::isTimeKeepDemoActive()) {
+        kill();
+    }
 }
 
 StarReturnDemoStarter::~StarReturnDemoStarter() {}

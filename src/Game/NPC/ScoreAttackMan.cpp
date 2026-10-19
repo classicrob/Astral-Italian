@@ -52,9 +52,9 @@ void ScoreAttackMan::init(const JMapInfoIter& iter) {
     PlayAttackMan::initialize(this,iter,false);
     mRestartInfo=new JMapIdInfo(1,iter);
     initTalkCtrlDirect(iter,"ScoreAttackMan_ScoreAttack",TVec3f(0.0f,150.0f,0.0f),nullptr);
-    MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&ScoreAttackMan::branchFunc));
-    MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&ScoreAttackMan::eventFunc));
-    MR::registerAnimeFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&ScoreAttackMan::animeFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&ScoreAttackMan::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&ScoreAttackMan::eventFunc));
+    MR::registerAnimeFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&ScoreAttackMan::animeFunc));
     mTalkCtrl=MR::createTalkCtrlDirect(this,iter,"ScoreAttackMan_Call",TVec3f(0.0f,150.0f,0.0f),nullptr);
     mResetState=new ActorStatePlayerPosReset(this,"マリオ位置",false);
     MR::tryRegisterNamePosLinkObj(this,iter,"マリオ位置");

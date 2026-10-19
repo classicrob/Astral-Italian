@@ -95,11 +95,11 @@ namespace DemoFunction {
     }
 
     void registerDemoExecutor(DemoExecutor* pExecutor) {
-        getDemoDirector()->_18->registerObj(pExecutor);
+        getDemoDirector()->mCastGroupHolder->registerObj(pExecutor);
     }
 
     DemoExecutor* findDemoExecutor(const char* pDemoName) {
-        DemoCastGroup* group = getDemoDirector()->_18->findCastGroup(pDemoName);
+        DemoCastGroup* group = getDemoDirector()->mCastGroupHolder->findCastGroup(pDemoName);
         if (group == nullptr) {
             return nullptr;
         }
@@ -108,11 +108,10 @@ namespace DemoFunction {
 
     DemoExecutor* findDemoExecutor(const LiveActor* pActor) {
         DemoExecutor* pResult = nullptr;
-        for (s32 i = 0; i < getDemoDirector()->_18->getObjNum(); i++) {
-            DemoExecutor* executor = static_cast< DemoExecutor* >(getDemoDirector()->_18->getCastGroup(i));
+        for (s32 i = 0; i < getDemoDirector()->mCastGroupHolder->getObjNum(); i++) {
+            DemoExecutor* executor = static_cast< DemoExecutor* >(getDemoDirector()->mCastGroupHolder->getCastGroup(i));
             if (DemoExecutorFunction::isRegisteredDemoCast(executor, pActor)) {
                 pResult = executor;
-                break;
             }
         }
         return pResult;
@@ -120,8 +119,8 @@ namespace DemoFunction {
 
     DemoExecutor* findDemoExecutorActive(const LiveActor* pActor) {
         DemoExecutor* executor;
-        for (s32 i = 0; i < getDemoDirector()->_18->getObjNum(); i++) {
-            executor = static_cast< DemoExecutor* >(getDemoDirector()->_18->getCastGroup(i));
+        for (s32 i = 0; i < getDemoDirector()->mCastGroupHolder->getObjNum(); i++) {
+            executor = static_cast< DemoExecutor* >(getDemoDirector()->mCastGroupHolder->getCastGroup(i));
             if (DemoExecutorFunction::isRegisteredDemoCast(executor, pActor) && MR::isDemoActive(executor->mName)) {
                 return executor;
             }
@@ -265,7 +264,7 @@ namespace DemoFunction {
         if (!MR::isName(pActor, pActorName)) {
             return false;
         }
-        if (id >= 0 && MR::getDemoCastID(rIter) != id) {
+        if (id >= 0 && MR::getJMapInfoDemoCastID(rIter) != id) {
             return false;
         }
         return true;
@@ -375,9 +374,10 @@ namespace DemoFunction {
 
     // NONMATCHING: regalloc and load scheduling
     s32 createSheetParser(const DemoExecutor* executor, const char* suffix, JMapInfo** out) {
-        if (!getDemoDirector()->getDemoResourceHolder(executor->mLinkInfo.mZoneID)) return 0;
+        s32 zoneId = executor->mLinkInfo.mZoneID;
+        if (!getDemoDirector()->getDemoResourceHolder(zoneId)) return 0;
         const char* sheet = executor->mSheetName;
-        JMapInfo* map = MR::tryCreateCsvParser(getDemoDirector()->getDemoResourceHolder(executor->mLinkInfo.mZoneID), "Demo%s%s.bcsv", sheet, suffix);
+        JMapInfo* map = MR::tryCreateCsvParser(getDemoDirector()->getDemoResourceHolder(zoneId), "Demo%s%s.bcsv", sheet, suffix);
         *out = map;
         if (map) return map->getNumEntries();
         return map ? map->getNumEntries() : 0;

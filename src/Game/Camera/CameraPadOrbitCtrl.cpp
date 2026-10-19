@@ -65,12 +65,20 @@ void CameraPadOrbitCtrl::updateInput(const TVec3f& up, const TVec3f& front, cons
         mRotating = true;
     } else if (CameraLocalUtil::testCameraPadTriggerRoundLeft()) {
         TVec3f camUp = MR::getCamYdir();
-        mTargetAngle = camUp.dot(up) >= 0.0f ? -roundAngle : roundAngle;
+        if (camUp.dot(up) >= 0.0f) {
+            mTargetAngle = -roundAngle;
+        } else {
+            mTargetAngle = roundAngle;
+        }
         mAngle = 0.0f;
         mRotating = true;
     } else if (CameraLocalUtil::testCameraPadTriggerRoundRight()) {
         TVec3f camUp = MR::getCamYdir();
-        mTargetAngle = camUp.dot(up) >= 0.0f ? roundAngle : -roundAngle;
+        if (camUp.dot(up) >= 0.0f) {
+            mTargetAngle = roundAngle;
+        } else {
+            mTargetAngle = -roundAngle;
+        }
         mAngle = 0.0f;
         mRotating = true;
     }

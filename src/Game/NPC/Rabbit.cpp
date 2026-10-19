@@ -43,18 +43,6 @@ namespace NrvRabbit {
 Rabbit::Rabbit(const char* pName) : NPCActor(pName) {
 }
 
-Rabbit::~Rabbit() {
-}
-
-void Rabbit::makeActorAppeared() {
-    NPCActor::makeActorAppeared();
-    MR::emitEffect(this, "Light");
-}
-
-bool Rabbit::isReactionNerve() const {
-    return isNerve(GET_NERVE(Rabbit, RabbitNrvTalk));
-}
-
 // NONMATCHING: string pointer register allocation.
 void Rabbit::init(const JMapInfoIter& rIter) {
     const char* name;
@@ -97,6 +85,11 @@ void Rabbit::init(const JMapInfoIter& rIter) {
     }
 }
 
+void Rabbit::makeActorAppeared() {
+    NPCActor::makeActorAppeared();
+    MR::emitEffect(this, "Light");
+}
+
 void Rabbit::control() {
     if (mTrampledStart) {
         MR::startActionSound(this, "SmNpcTrampled");
@@ -104,6 +97,7 @@ void Rabbit::control() {
     }
     NPCActor::control();
 }
+
 // NONMATCHING: temporary vector stack slots exchanged.
 void Rabbit::exeAppear() {
     if (MR::isFirstStep(this)) {
@@ -140,6 +134,10 @@ void Rabbit::calcAndSetBaseMtx() {
     mPosition += mGravity * mJumpHeight;
     NPCActor::calcAndSetBaseMtx();
     mPosition = pos;
+}
+
+bool Rabbit::isReactionNerve() const {
+    return isNerve(GET_NERVE(Rabbit, RabbitNrvTalk));
 }
 
 void Rabbit::exeReaction() {
@@ -208,3 +206,5 @@ void Rabbit::exeJumpH() {
     }
 }
 
+Rabbit::~Rabbit() {
+}

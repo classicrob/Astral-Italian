@@ -30,9 +30,9 @@ void TogepinAttackMan::init(const JMapInfoIter& iter) {
     MR::onRootNodeAutomatic(mFoulTalkCtrl);
     MR::declarePowerStar(this);
     mTakeOutStar=new TakeOutStar(this,"TakeOutStar","TakeOutStarScoreAttackMan",&NrvTogepinAttackMan::TogepinAttackManNrvWait::sInstance,nullptr);
-    MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&TogepinAttackMan::branchFunc));
-    MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&TogepinAttackMan::eventFunc));
-    MR::registerAnimeFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&TogepinAttackMan::animeFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&TogepinAttackMan::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&TogepinAttackMan::eventFunc));
+    MR::registerAnimeFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&TogepinAttackMan::animeFunc));
     MR::invalidateClipping(this);
 }
 void TogepinAttackMan::control() {

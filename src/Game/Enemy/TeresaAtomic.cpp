@@ -249,7 +249,9 @@ void TeresaAtomic::exeWait() {
         return;
     }
     if (!this->tryBecomeShy() && !tryDead()) {
-        tryDisappear();
+        if (tryDisappear()) {
+            return;
+        }
     }
 }
 
@@ -274,7 +276,9 @@ void TeresaAtomic::exeChase() {
         MR::setVelocity(this, vel);
     }
     if (!this->tryBecomeShy() && !tryDead()) {
-        tryDisappear();
+        if (tryDisappear()) {
+            return;
+        }
     }
 }
 
@@ -298,7 +302,9 @@ void TeresaAtomic::exeShay() {
         return;
     }
     if (!tryDead()) {
-        tryDisappear();
+        if (tryDisappear()) {
+            return;
+        }
     }
 }
 
@@ -315,7 +321,9 @@ void TeresaAtomic::exeAggressive() {
         return;
     }
     if (!this->tryBecomeShy()) {
-        tryDead();
+        if (tryDead()) {
+            return;
+        }
     }
 }
 
@@ -331,7 +339,9 @@ void TeresaAtomic::exeLaugh() {
         setNerve(NRV(Wait));
         return;
     }
-    tryDead();
+    if (tryDead()) {
+        return;
+    }
 }
 
 void TeresaAtomic::exeDead() {

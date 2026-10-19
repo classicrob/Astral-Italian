@@ -1,6 +1,10 @@
 #include "Game/AudioLib/AudBgmSetting.hpp"
 #include "Game/AudioLib/AudMultiBgmInfo.hpp"
+#include "Game/AudioLib/AudSoundNameConverter.hpp"
 #include "Game/AudioLib/AudWrap.hpp"
+#include "Game/Util/FileUtil.hpp"
+#include "Game/Util/JMapInfo.hpp"
+#include <JSystem/JKernel/JKRArchive.hpp>
 
 namespace AudBgmSetting {
     const BgmSettingInfo cBgmSettingInfo[] = {
@@ -452,9 +456,50 @@ namespace AudBgmSetting {
     }
 }
 
-// NONMATCHING: equivalent search-loop layout
+namespace AudBgmSetting {
+    const char* sMultiBgmResourceName = "/AudioRes/Info/MultiBgmInfo.arc";
+    const char* sMultiBgmFileName = "MultiBgmInfo.bcsv";
+}
+
+AudMultiBgmInfo::AudMultiBgmInfo() {
+    mEntries = nullptr;
+    mNumEntries = 0;
+    mEntries = new AudMultiBgmEntry[100];
+}
+
+void AudMultiBgmInfo::load() {
+    JMapInfo info;
+    JKRMemArchive* archive = MR::receiveArchive(AudBgmSetting::sMultiBgmResourceName);
+    if (archive == nullptr) {
+        archive = MR::mountArchive(AudBgmSetting::sMultiBgmResourceName, nullptr, true);
+    }
+    info.attach(archive->getResource(AudBgmSetting::sMultiBgmFileName));
+    AudSoundNameConverter* converter = AudSoundNameConverter::get();
+    mNumEntries = 0;
+    for (JMapInfoIter it = info.begin(); it != info.end(); it.mIndex++) {
+        AudMultiBgmEntry* e = &mEntries[mNumEntries];
+        const char* multiName = it.fn_800896B0("MultiBgmName");
+        const char* bgmName = it.fn_800896B0("BgmName");
+        const char* streamName = it.fn_800896B0("StreamName");
+        e->mID = converter->getSoundID(multiName);
+        e->mSeqID = converter->getSoundID(bgmName);
+        e->mStreamID = converter->getSoundID(streamName);
+        e->mBeatMul = it.fn_80089850("BeatRatio");
+        e->mIntroBeats = it.fn_80089720("IntoBeat");
+        e->mLoopBeats = it.fn_80089720("LoopBeat");
+        e->mLoopStartSamples = it.fn_80089720("LoopStartSample");
+        e->mLoopEndSamples = it.fn_80089720("LoopEndSample");
+        mNumEntries++;
+    }
+}
+
+// NONMATCHING: target hoists mEntries load into the loop and indexes with lwzx (register/order only)
 AudMultiBgmEntry* AudMultiBgmInfo::findEntry(u32 id) {
-    for (s32 i = 0; i < mNumEntries; ++i) if (mEntries[i].mID == id) return &mEntries[i];
+    for (s32 i = 0; i < mNumEntries; i++) {
+        if (id == mEntries[i].mID) {
+            return &mEntries[i];
+        }
+    }
     return nullptr;
 }
 
@@ -487,7 +532,6 @@ u32 AudMultiBgmInfo::getLoopEndSamplesForMultiBgm(u32 id) {
 }
 
 namespace AudBgmSetting {
-    const char* sMultiBgmResourceName = "/AudioRes/Info/MultiBgmInfo.arc";
     const char* getMultiBgmResourceName() { return sMultiBgmResourceName; }
     void loadMultiBgmResource() { AudWrap::getMultiBgmInfo()->load(); }
     bool hasMuteState(JAISoundID id) {

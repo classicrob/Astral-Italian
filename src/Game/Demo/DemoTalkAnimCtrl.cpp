@@ -20,30 +20,30 @@
 #include "Game/Screen/InformationObserver.hpp"
 
 DemoTalkAnimCtrl::DemoTalkAnimCtrl(LiveActor* pActor, const char* a3, const char* a4)
-    : NerveExecutor(a3), mActor(pActor), _C(a3), _10(a4), _14(nullptr), _18(""), _1C(""), mCameraInfo(nullptr), _24(0), _28(0), _2C(0),
-      _30(true), _31(false), _32(false), _34(0), _38(0), _3C(0), _40(false), mHaveCamera(false), _42(false), mHaveBtk(false), mHaveBpk(false),
+    : NerveExecutor(a3), mActor(pActor), mDemoName(a3), mTargetPartName(a4), mCurrentPartName(nullptr), mAnimName(""), mCameraName(""), mCameraInfo(nullptr), mAnimFrame(0), mPartStep(0), mTotalStep(0),
+      mIsTargetPart(true), mIsTimeKeep(false), mIsWaitUserInput(false), mInterpole(0), mCameraStartFrame(0), mCameraEndFrame(0), mHaveDemoPlayerBck(false), mHaveCamera(false), mHaveBck(false), mHaveBtk(false), mHaveBpk(false),
       mHaveBtp(false), mHaveBrk(false), mHaveBva(false) {
 }
 
 void DemoTalkAnimCtrl::initForActor(const char* a1) {
-    _31 = false;
-    _30 = true;
+    mIsTimeKeep = false;
+    mIsTargetPart = true;
     mHaveCamera = false;
-    _40 = false;
-    _18 = a1;
-    _14 = nullptr;
-    _24 = 0;
-    _28 = 0;
-    _2C = 0;
-    _32 = false;
+    mHaveDemoPlayerBck = false;
+    mAnimName = a1;
+    mCurrentPartName = nullptr;
+    mAnimFrame = 0;
+    mPartStep = 0;
+    mTotalStep = 0;
+    mIsWaitUserInput = false;
     mCameraInfo = nullptr;
-    _1C = "";
-    _42 = MR::isExistBck(mActor, a1);
-    mHaveBtk = MR::isExistBtk(mActor, _18);
-    mHaveBpk = MR::isExistBpk(mActor, _18);
-    mHaveBtp = MR::isExistBtp(mActor, _18);
-    mHaveBrk = MR::isExistBrk(mActor, _18);
-    mHaveBva = MR::isExistBva(mActor, _18);
+    mCameraName = "";
+    mHaveBck = MR::isExistBck(mActor, a1);
+    mHaveBtk = MR::isExistBtk(mActor, mAnimName);
+    mHaveBpk = MR::isExistBpk(mActor, mAnimName);
+    mHaveBtp = MR::isExistBtp(mActor, mAnimName);
+    mHaveBrk = MR::isExistBrk(mActor, mAnimName);
+    mHaveBva = MR::isExistBva(mActor, mAnimName);
 }
 
 
@@ -51,79 +51,79 @@ void DemoTalkAnimCtrl::initForScene(const char* a1, const char* a2, const JMapIn
     char buf[0x100];
     snprintf(buf, sizeof(buf), "%s.canm", a2);
     initForActor(a1);
-    _31 = true;
-    _30 = _10 == nullptr;
+    mIsTimeKeep = true;
+    mIsTargetPart = mTargetPartName == nullptr;
     mHaveCamera = MR::getResourceHolder(mActor)->mFileInfoTable->isExistRes(buf);
-    _40 = MR::isExistBck(MR::getPlayerDemoActor(), a1);
+    mHaveDemoPlayerBck = MR::isExistBck(MR::getPlayerDemoActor(), a1);
     if (mHaveCamera) {
-        _1C = a2;
+        mCameraName = a2;
         mCameraInfo = MR::createActorCameraInfo(rIter);
-        MR::initAnimCamera(mActor, mCameraInfo, _1C);
+        MR::initAnimCamera(mActor, mCameraInfo, mCameraName);
     }
 }
 
 void DemoTalkAnimCtrl::startDemo() {
-    _14 = nullptr;
-    _24 = 0;
-    _28 = 0;
-    _2C = 0;
-    _32 = false;
-    if (mHaveCamera && _30) startCamera();
+    mCurrentPartName = nullptr;
+    mAnimFrame = 0;
+    mPartStep = 0;
+    mTotalStep = 0;
+    mIsWaitUserInput = false;
+    if (mHaveCamera && mIsTargetPart) startCamera();
 }
 
 bool DemoTalkAnimCtrl::updateDemo() {
-    if (!_30) return false;
+    if (!mIsTargetPart) return false;
     updateDemoPart();
-    if (_31 && _32) updatePause();
+    if (mIsTimeKeep && mIsWaitUserInput) updatePause();
     if (mHaveCamera) updateCamera();
     if (DemoFunction::isDemoSuspendOrLastPartLastStep()) {
         if (mHaveCamera) endCamera();
         return false;
     }
-    if (!DemoFunction::isPauseTimeKeepDemo(_C)) {
-        _2C++;
-        _28++;
+    if (!DemoFunction::isPauseTimeKeepDemo(mDemoName)) {
+        mTotalStep++;
+        mPartStep++;
     }
     return true;
 }
 
 void DemoTalkAnimCtrl::endDemo() {
-    if (mHaveCamera && _30) MR::endAnimCamera(mActor, mCameraInfo, _1C, 0, true);
+    if (mHaveCamera && mIsTargetPart) MR::endAnimCamera(mActor, mCameraInfo, mCameraName, 0, true);
 }
 
 void DemoTalkAnimCtrl::updateStoryBook() {
     updateDemo();
     startAnim();
-    MR::setAllAnimFrameAndStop(mActor, _18, _24);
-    if (MR::isStoryBookEndingDemoName(_C)) MR::stopAllAnim(mActor);
-    if (_40) {
+    MR::setAllAnimFrameAndStop(mActor, mAnimName, mAnimFrame);
+    if (MR::isStoryBookEndingDemoName(mDemoName)) MR::stopAllAnim(mActor);
+    if (mHaveDemoPlayerBck) {
         BckCtrlData data;
         data.mPlayFrame = 0;
-        data.mStartFrame = _24;
-        MR::startDemoBckPlayer(_18, data);
+        data.mStartFrame = mAnimFrame;
+        MR::startDemoBckPlayer(mAnimName, data);
     }
 }
 
 void DemoTalkAnimCtrl::pause() {
-    if (_31) DemoFunction::pauseTimeKeepDemo(_C);
+    if (mIsTimeKeep) DemoFunction::pauseTimeKeepDemo(mDemoName);
     if (mHaveCamera) {
         char buf[256];
-        snprintf(buf, sizeof(buf), "%s%s", mActor->mName, _1C);
+        snprintf(buf, sizeof(buf), "%s%s", mActor->mName, mCameraName);
         MR::pauseOnAnimCamera(mCameraInfo, buf);
     }
 }
 
 void DemoTalkAnimCtrl::resume() {
-    if (_31) DemoFunction::resumeTimeKeepDemo(_C);
+    if (mIsTimeKeep) DemoFunction::resumeTimeKeepDemo(mDemoName);
 }
 
 void DemoTalkAnimCtrl::startAnim() {
-    MR::startAction(mActor, _18);
-    if (MR::isStoryBookEndingDemoName(_C)) MR::resumeAllAnim(mActor);
+    MR::startAction(mActor, mAnimName);
+    if (MR::isStoryBookEndingDemoName(mDemoName)) MR::resumeAllAnim(mActor);
 }
 
 void DemoTalkAnimCtrl::startCamera() {
-    MR::startAnimCameraTargetSelf(mActor, mCameraInfo, _1C, _38, false, 1.0f);
+    MR::startAnimCameraTargetSelf(mActor, mCameraInfo, mCameraName, mCameraStartFrame, false, 1.0f);
 }
 
 void DemoTalkAnimCtrl::updateAnim(const BckCtrlData& rBck) {
@@ -152,20 +152,20 @@ void DemoTalkAnimCtrl::updateAnim(const BckCtrlData& rBck) {
 
 
 void DemoTalkAnimCtrl::updatePause() {
-    const char* name = MR::getCurrentDemoPartNameMain(_C);
-    if (DemoFunction::isPauseTimeKeepDemo(_C)) {
+    const char* name = MR::getCurrentDemoPartNameMain(mDemoName);
+    if (DemoFunction::isPauseTimeKeepDemo(mDemoName)) {
         if (!MR::isSystemTalking() && !InformationObserverFunction::isActive() && !MR::isStoryBookTextAppeared()) {
-            DemoFunction::resumeTimeKeepDemo(_C);
+            DemoFunction::resumeTimeKeepDemo(mDemoName);
         }
     } else if (MR::isDemoPartStep(name, MR::getDemoPartTotalStep(name) - 2)) {
-        DemoFunction::pauseTimeKeepDemo(_C);
+        DemoFunction::pauseTimeKeepDemo(mDemoName);
     }
 }
 
 void DemoTalkAnimCtrl::updateCamera() {
     char buf[0x100];
-    snprintf(buf, sizeof(buf), "%s%s", mActor->mName, _1C);
-    if (DemoFunction::isPauseTimeKeepDemo(_C)) {
+    snprintf(buf, sizeof(buf), "%s%s", mActor->mName, mCameraName);
+    if (DemoFunction::isPauseTimeKeepDemo(mDemoName)) {
         MR::pauseOnAnimCamera(mCameraInfo, buf);
     } else {
         MR::pauseOffAnimCamera(mCameraInfo, buf);
@@ -173,7 +173,7 @@ void DemoTalkAnimCtrl::updateCamera() {
 }
 
 void DemoTalkAnimCtrl::endCamera() {
-    MR::endAnimCamera(mActor, mCameraInfo, _1C, _3C, true);
+    MR::endAnimCamera(mActor, mCameraInfo, mCameraName, mCameraEndFrame, true);
 }
 
 namespace {
@@ -196,7 +196,7 @@ namespace {
 
 // NONMATCHING: regalloc
 void DemoTalkAnimCtrl::createBckCtrlData(BckCtrlData* data, s32 totalSteps) const {
-    s16 start = MR::max(_24 - 1, 0);
+    s16 start = MR::max(mAnimFrame - 1, 0);
     bool storyBook = DemoFunction::isStoryBookActionActive();
     u8 loop = 2;
     if (storyBook) loop = 0;
@@ -204,45 +204,45 @@ void DemoTalkAnimCtrl::createBckCtrlData(BckCtrlData* data, s32 totalSteps) cons
     data->mStartFrame = start + 1;
     data->mRepeatFrame = start + 1;
     bool extra = false;
-    if (MR::isDemoSubPartLastStep() || !_32) extra = true;
+    if (MR::isDemoSubPartLastStep() || !mIsWaitUserInput) extra = true;
     s16 end = start + totalSteps;
     if (extra) end = start + totalSteps + 1;
     data->mEndFrame = end;
-    data->mInterpole = _34;
-    if (_32) {
-        s32 step = calcDemoPartStep(_C, _14);
+    data->mInterpole = mInterpole;
+    if (mIsWaitUserInput) {
+        s32 step = calcDemoPartStep(mDemoName, mCurrentPartName);
         if (step > 0) data->mRepeatFrame = start + step;
     }
 }
 
 bool DemoTalkAnimCtrl::updateDemoPart() {
-    if (!_14) {
+    if (!mCurrentPartName) {
         startAnim();
-        _14 = "";
+        mCurrentPartName = "";
     }
-    const char* name = MR::getCurrentDemoPartNameMain(_C);
+    const char* name = MR::getCurrentDemoPartNameMain(mDemoName);
     bool first;
-    if (MR::isEqualString(_14, "")) first = MR::isDemoPartStep(name, 1);
+    if (MR::isEqualString(mCurrentPartName, "")) first = MR::isDemoPartStep(name, 1);
     else first = MR::isDemoPartFirstStep(name);
     if (!first) return false;
-    _32 = DemoFunction::isTalkWaitUserInputFunction(name);
-    _14 = name;
+    mIsWaitUserInput = DemoFunction::isTalkWaitUserInputFunction(name);
+    mCurrentPartName = name;
     BckCtrlData data;
     s32 steps = MR::getDemoPartTotalStep(name);
     createBckCtrlData(&data, steps);
-    if (_42 && !DemoFunction::isDemoActionAnimRegistered(mActor)) {
+    if (mHaveBck && !DemoFunction::isDemoActionAnimRegistered(mActor)) {
         startAnim();
         MR::reflectBckCtrlData(mActor, data);
     }
     updateAnim(data);
-    if (_40 && !DemoFunction::isDemoPlayerAnimRegistered()) MR::startDemoBckPlayer(_18, data);
-    _28 = 0;
-    _24 += steps;
+    if (mHaveDemoPlayerBck && !DemoFunction::isDemoPlayerAnimRegistered()) MR::startDemoBckPlayer(mAnimName, data);
+    mPartStep = 0;
+    mAnimFrame += steps;
     return true;
 }
 
 void DemoTalkAnimCtrl::setupStartDemoPart(const char* pPartName) {
-    if (_10 != nullptr) {
-        _30 = MR::isEqualStringCase(pPartName, _10);
+    if (mTargetPartName != nullptr) {
+        mIsTargetPart = MR::isEqualStringCase(pPartName, mTargetPartName);
     }
 }

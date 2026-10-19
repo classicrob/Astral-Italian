@@ -76,10 +76,10 @@ void AudBgmVolumeController::volDown(bool immediate) {
     mTimers[FADER_VOLDOWN] = 2;
 }
 
-void AudBgmVolumeController::volDownWithLevel(s32 level, bool keepIfActive) {
+void AudBgmVolumeController::volDownWithLevel(s32 level, bool forceUpdate) {
     static const FaderCtrl cLevel[3] = {{0.65f, 90, 60}, {0.0f, 8, 45}, {0.0f, 5, 30}};
 
-    if (mTimers[FADER_LEVEL] < 0 || !keepIfActive) {
+    if (mTimers[FADER_LEVEL] < 0 || forceUpdate) {
         mFaderCtrl[FADER_LEVEL] = cLevel[level];
         mFaders[FADER_LEVEL].set(mFaderCtrl[FADER_LEVEL].mVolume, mFaderCtrl[FADER_LEVEL].mTime);
     }

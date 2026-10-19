@@ -183,10 +183,10 @@ namespace MR {
                             } else {
                                 addEffectSyncBck(pEmitter, pModelManager, pAnimName);
                             }
-                        }
 
-                        nameLength = 0;
-                        zeroMemory(name, sizeof(name));
+                            nameLength = 0;
+                            zeroMemory(name, sizeof(name));
+                        }
                     } else {
                         name[nameLength] = pAnimNames[i];
                         nameLength++;

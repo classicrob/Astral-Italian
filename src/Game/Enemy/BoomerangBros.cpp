@@ -107,14 +107,6 @@ void BoomerangBros::kill() {
     LiveActor::kill();
 }
 
-const TVec3f& BoomerangBros::getHoldTrans() const {
-    return sHoldTrans;
-}
-
-const TVec3f& BoomerangBros::getHoldRotate() const {
-    return sHoldRotate;
-}
-
 void BoomerangBros::control() {
     mScaleCtrl->updateNerve();
     if (!isNerve(BNRV(Eaten))) {
@@ -136,6 +128,14 @@ void BoomerangBros::control() {
     } else {
         tryBindStarPointer();
     }
+}
+
+const TVec3f& BoomerangBros::getHoldTrans() const {
+    return sHoldTrans;
+}
+
+const TVec3f& BoomerangBros::getHoldRotate() const {
+    return sHoldRotate;
 }
 
 void BoomerangBros::exeWait() {
@@ -261,211 +261,6 @@ void BoomerangBros::exeGuard() {
         setNerve(BNRV(Wait));
     }
 }
-
-void BoomerangBros::updateVelocity2() {
-    if (!MR::isOnGround(this)) {
-        MR::addVelocityToGravity(this, 1.5f);
-    }
-    MR::attenuateVelocity(this, MR::isBindedGround(this) ? 0.94f : 0.98f);
-    if (MR::isBindedWall(this)) {
-        MR::calcReboundVelocity(&mVelocity, MR::getWallNormal(this), 0.2f, 0.7f);
-    }
-}
-
-bool BoomerangBros::isVulnerable() const {
-    bool r = false;
-    if (isNormalNerve() || (isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
-        r = true;
-    }
-    return r;
-}
-
-bool BoomerangBros::isNormalNerve() const {
-    bool r = false;
-    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || isNerve(BNRV(Attack)) || isNerve(BNRV(Guard)) || isNerve(BNRV(FreezeStand))) {
-        r = true;
-    }
-    return r;
-}
-
-bool BoomerangBros::isGuardable() const {
-    bool r;
-    if (isNerve(BNRV(Swoon))) {
-        r = false;
-    } else {
-        r = false;
-        if (isNormalNerve() || isNerve(BNRV(Guard))) {
-            r = true;
-        }
-    }
-    return r;
-}
-
-bool BoomerangBros::isCatchNerve() const {
-    bool r = false;
-    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || (isNerve(BNRV(Attack)) && mStateAttack->isAttackEnd()) || isNerve(BNRV(Guard))) {
-        r = true;
-    }
-    return r;
-}
-
-bool BoomerangBros::isAliveNerve() const {
-    bool r = false;
-    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || isNerve(BNRV(Attack)) || isNerve(BNRV(Swoon)) || isNerve(BNRV(Guard))) {
-        r = true;
-    }
-    return r;
-}
-
-bool BoomerangBros::isStarPointerBindable() const {
-    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || isNerve(BNRV(Attack)) ||
-        (isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonRecoveryComplete())) {
-        return true;
-    }
-    if (isNerve(BNRV(Guard)) && MR::isGreaterStep(this, 60)) {
-        return true;
-    }
-    return false;
-}
-
-bool BoomerangBros::tryExplosionDamage(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isVulnerable()) {
-        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 40.0f, 4);
-        setNerve(BNRV(BlowDown));
-        killHeldProjectile();
-        return true;
-    }
-    return false;
-}
-
-bool BoomerangBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
-    bool vuln = false;
-    if ((isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
-        vuln = true;
-    }
-    if (vuln) {
-        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 40.0f, 4);
-        MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
-        setNerve(BNRV(BlowDown));
-        killHeldProjectile();
-        return true;
-    }
-    return false;
-}
-
-bool BoomerangBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNormalNerve()) {
-        MR::setVelocityBlowAttack(this, pSender, pReceiver, 22.0f, sTongueAccel, 4);
-        MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
-        setNerve(BNRV(Swoon));
-        killHeldProjectile();
-        return true;
-    }
-    return false;
-}
-
-bool BoomerangBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
-    if (!isNormalNerve()) {
-        bool ok = false;
-        if ((isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
-            ok = true;
-        }
-        if (!ok && !isNerve(BNRV(FreezeSwoon))) {
-            goto fail;
-        }
-    }
-    if (isNormalNerve()) {
-        MR::setVelocityBlowAttack(this, pSender, pReceiver, 22.0f, sTongueAccel, 4);
-    } else {
-        MR::setVelocityBlowAttack(this, pSender, pReceiver, 0.0f, sTongueAccel, 4);
-    }
-    MR::tryHitReaction(this, "\x83\x60\x83\x52\x90\x81\x82\xc1\x94\xf2\x82\xd1");
-    setNerve(BNRV(Swoon));
-    killHeldProjectile();
-    return true;
-fail:
-    return false;
-}
-
-bool BoomerangBros::tryStomp() {
-    bool vuln = false;
-    if ((isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
-        vuln = true;
-    }
-    if (vuln) {
-        setNerve(BNRV(SwoonPressDown));
-        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
-        killHeldProjectile();
-        return true;
-    }
-    if (MR::isPlayerHipDropFalling() && isVulnerable()) {
-        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
-        setNerve(BNRV(StandPressDown));
-        killHeldProjectile();
-        return true;
-    }
-    if (isNormalNerve()) {
-        setNerve(BNRV(Swoon));
-        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
-        killHeldProjectile();
-        return true;
-    }
-    return false;
-}
-
-bool BoomerangBros::tryStarPieceReflect() {
-    if (isGuardable()) {
-        setNerve(BNRV(Guard));
-        killHeldProjectile();
-        MR::zeroVelocity(this);
-        return true;
-    }
-    return false;
-}
-
-bool BoomerangBros::tryYoshiTongue(HitSensor* pSender, HitSensor* pReceiver) {
-    if (isNormalNerve()) {
-        MR::addVelocityMoveToTargetHorizon(this, *MR::getPlayerPos(), 22.0f);
-        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
-        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
-        setNerve(BNRV(Swoon));
-        killHeldProjectile();
-        return false;
-    }
-    if (isAliveNerve()) {
-        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
-        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
-        setNerve(BNRV(Swoon));
-        killHeldProjectile();
-        return false;
-    }
-    return false;
-}
-
-bool BoomerangBros::tryBindStarPointer() {
-    if (isStarPointerBindable()) {
-        if (mBindStand->tryStartPointBind()) {
-            setNerve(BNRV(FreezeStand));
-            killHeldProjectile();
-            return true;
-        }
-        return false;
-    }
-    bool swoon = false;
-    if (isNerve(BNRV(Swoon)) && mStateSwoon->canBrosSwoonBindStarPointer()) {
-        swoon = true;
-    }
-    if (swoon) {
-        if (mBindSwoon->tryStartPointBind()) {
-            setNerve(BNRV(FreezeSwoon));
-            killHeldProjectile();
-            return true;
-        }
-        return false;
-    }
-    return false;
-}
-
 
 void BoomerangBros::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorEnemyAttack(pSender)) {
@@ -600,6 +395,211 @@ bool BoomerangBros::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pRec
     }
     if (MR::isMsgPlayerKick(msg)) {
         return tryKickDamage(pSender, pReceiver);
+    }
+    return false;
+}
+
+void BoomerangBros::updateVelocity2() {
+    if (!MR::isOnGround(this)) {
+        MR::addVelocityToGravity(this, 1.5f);
+    }
+    MR::attenuateVelocity(this, MR::isBindedGround(this) ? 0.94f : 0.98f);
+    if (MR::isBindedWall(this)) {
+        MR::calcReboundVelocity(&mVelocity, MR::getWallNormal(this), 0.2f, 0.7f);
+    }
+}
+
+bool BoomerangBros::isVulnerable() const {
+    bool r = false;
+    if (isNormalNerve() || (isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
+        r = true;
+    }
+    return r;
+}
+
+bool BoomerangBros::isNormalNerve() const {
+    bool r = false;
+    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || isNerve(BNRV(Attack)) || isNerve(BNRV(Guard)) || isNerve(BNRV(FreezeStand))) {
+        r = true;
+    }
+    return r;
+}
+
+bool BoomerangBros::isGuardable() const {
+    bool r;
+    if (isNerve(BNRV(Swoon))) {
+        r = false;
+    } else {
+        r = false;
+        if (isNormalNerve() || isNerve(BNRV(Guard))) {
+            r = true;
+        }
+    }
+    return r;
+}
+
+bool BoomerangBros::isCatchNerve() const {
+    bool r = false;
+    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || (isNerve(BNRV(Attack)) && mStateAttack->isAttackEnd()) || isNerve(BNRV(Guard))) {
+        r = true;
+    }
+    return r;
+}
+
+bool BoomerangBros::isAliveNerve() const {
+    bool r = false;
+    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || isNerve(BNRV(Attack)) || isNerve(BNRV(Swoon)) || isNerve(BNRV(Guard))) {
+        r = true;
+    }
+    return r;
+}
+
+bool BoomerangBros::isStarPointerBindable() const {
+    if (isNerve(BNRV(Wait)) || isNerve(BNRV(Interval)) || isNerve(BNRV(Jump)) || isNerve(BNRV(Attack)) ||
+        (isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonRecoveryComplete())) {
+        return true;
+    }
+    if (isNerve(BNRV(Guard)) && MR::isGreaterStep(this, 60)) {
+        return true;
+    }
+    return false;
+}
+
+bool BoomerangBros::tryExplosionDamage(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isVulnerable()) {
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 40.0f, 4);
+        setNerve(BNRV(BlowDown));
+        killHeldProjectile();
+        return true;
+    }
+    return false;
+}
+
+bool BoomerangBros::tryKickDamage(HitSensor* pSender, HitSensor* pReceiver) {
+    bool vuln = false;
+    if ((isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
+        vuln = true;
+    }
+    if (vuln) {
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 36.0f, 40.0f, 4);
+        MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
+        setNerve(BNRV(BlowDown));
+        killHeldProjectile();
+        return true;
+    }
+    return false;
+}
+
+bool BoomerangBros::tryHitDamage(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNormalNerve()) {
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 22.0f, sTongueAccel, 4);
+        MR::tryHitReaction(this, "\x90\x81\x82\xc1\x94\xf2\x82\xd1");
+        setNerve(BNRV(Swoon));
+        killHeldProjectile();
+        return true;
+    }
+    return false;
+}
+
+
+bool BoomerangBros::trySpinDamage(HitSensor* pSender, HitSensor* pReceiver) {
+    if (!isNormalNerve()) {
+        bool ok = false;
+        if ((isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
+            ok = true;
+        }
+        if (!ok && !isNerve(BNRV(FreezeSwoon))) {
+            goto fail;
+        }
+    }
+    if (isNormalNerve()) {
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 22.0f, sTongueAccel, 4);
+    } else {
+        MR::setVelocityBlowAttack(this, pSender, pReceiver, 0.0f, sTongueAccel, 4);
+    }
+    MR::tryHitReaction(this, "\x83\x60\x83\x52\x90\x81\x82\xc1\x94\xf2\x82\xd1");
+    setNerve(BNRV(Swoon));
+    killHeldProjectile();
+    return true;
+fail:
+    return false;
+}
+
+bool BoomerangBros::tryStomp() {
+    bool vuln = false;
+    if ((isNerve(BNRV(Swoon)) && mStateSwoon->isBrosSwoonVulnerable()) || isNerve(BNRV(FreezeSwoon))) {
+        vuln = true;
+    }
+    if (vuln) {
+        setNerve(BNRV(SwoonPressDown));
+        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
+        killHeldProjectile();
+        return true;
+    }
+    if (MR::isPlayerHipDropFalling() && isVulnerable()) {
+        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
+        setNerve(BNRV(StandPressDown));
+        killHeldProjectile();
+        return true;
+    }
+    if (isNormalNerve()) {
+        setNerve(BNRV(Swoon));
+        MR::tryHitReaction(this, "\x82\xc2\x82\xd4\x82\xea");
+        killHeldProjectile();
+        return true;
+    }
+    return false;
+}
+
+bool BoomerangBros::tryStarPieceReflect() {
+    if (isGuardable()) {
+        setNerve(BNRV(Guard));
+        killHeldProjectile();
+        MR::zeroVelocity(this);
+        return true;
+    }
+    return false;
+}
+
+bool BoomerangBros::tryYoshiTongue(HitSensor* pSender, HitSensor* pReceiver) {
+    if (isNormalNerve()) {
+        MR::addVelocityMoveToTargetHorizon(this, *MR::getPlayerPos(), 22.0f);
+        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
+        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
+        setNerve(BNRV(Swoon));
+        killHeldProjectile();
+        return false;
+    }
+    if (isAliveNerve()) {
+        MR::addVelocityMoveToTarget(this, *MR::getPlayerPos(), -sTongueAccel);
+        MR::tryHitReaction(this, "\x83\x88\x83\x62\x83\x56\x81\x5b\x90\xe3\x83\x71\x83\x62\x83\x67");
+        setNerve(BNRV(Swoon));
+        killHeldProjectile();
+        return false;
+    }
+    return false;
+}
+
+bool BoomerangBros::tryBindStarPointer() {
+    if (isStarPointerBindable()) {
+        if (mBindStand->tryStartPointBind()) {
+            setNerve(BNRV(FreezeStand));
+            killHeldProjectile();
+            return true;
+        }
+        return false;
+    }
+    bool swoon = false;
+    if (isNerve(BNRV(Swoon)) && mStateSwoon->canBrosSwoonBindStarPointer()) {
+        swoon = true;
+    }
+    if (swoon) {
+        if (mBindSwoon->tryStartPointBind()) {
+            setNerve(BNRV(FreezeSwoon));
+            killHeldProjectile();
+            return true;
+        }
+        return false;
     }
     return false;
 }

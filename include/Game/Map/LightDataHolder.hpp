@@ -11,10 +11,8 @@ struct LightInfo {
 
 struct LightInfoCoin {
     /* 0x00 */ LightInfo base;
-    struct {
-        /* 0x14 */ GXColor _14;
-        /* 0x18 */ f32 _18;
-    };
+    /* 0x14 */ GXColor mSpecularColor;
+    /* 0x18 */ f32 mShininess;
 };
 
 struct ActorLightInfo {

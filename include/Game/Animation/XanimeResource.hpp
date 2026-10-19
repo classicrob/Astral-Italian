@@ -33,7 +33,7 @@ public:
     /* 0x0C */ f32 mStart;
     /* 0x10 */ f32 mEnd;
     /* 0x14 */ f32 mLoop;
-   /* 0x18 */ s32 mAttribute;
+    /* 0x18 */ s32 mAttribute;
     /* 0x1C */ u8 mBckTableVariant;
     /* 0x1D */ u8 mReserved;
     /* 0x20 */ void* mAnimations[4];
@@ -64,7 +64,7 @@ class XanimeBckTable1 {
 public:
     /* 0x0 */ XanimeBckTable mParent;
     /* 0x4 */ const char* mFileName;
-    /* 0x40 */ u32 mAnimationHash;
+    /* 0x8 */ u32 mAnimationHash;
     /* 0xC */ u32 mFileHash;
 };
 
@@ -76,6 +76,8 @@ public:
 
 class XanimeBckTable3 {
 public:
+    void init();
+
     /* 0x0 */ XanimeBckTable mParent;
     /* 0x4 */ XanimeBckTableEntry mEntries[3];
 };
@@ -94,7 +96,7 @@ public:
     /* 0x08 */ XanimeOfsInfo* mUnusedOfsInfo;
 
     // Unreferenced members
-    /* 0x1D */ u8 mReserved[12];
+    /* 0x0C */ u8 mReserved[12];
 };
 
 class XanimeResourceTable {

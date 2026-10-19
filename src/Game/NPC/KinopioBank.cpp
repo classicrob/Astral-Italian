@@ -72,8 +72,8 @@ void KinopioBank::init(const JMapInfoIter& iter) {
     mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault; mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
     mSpinAttackRange=450.0f;
     initTalkCtrlDirect(iter,"KinopioBank",TVec3f(0.0f,150.0f,0.0f),nullptr);
-    MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&KinopioBank::branchFunc));
-    MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&KinopioBank::eventFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&KinopioBank::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&KinopioBank::eventFunc));
     mStarPieceBank=new StarPieceBank("銀行レイアウト");
     s32 count=GameDataFunction::getMaxBankedStarPieceNum();
     s32 bankIndex=0;

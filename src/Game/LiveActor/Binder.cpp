@@ -256,7 +256,7 @@ u32 Binder::storeCurrentHitInfo(HitInfo* pPlanes, u32 capacity, bool stopAtFirst
 
         pPlanes[count + mPlaneNum] = *Collision::getStrikeInfoMap(i);
         if (!stopAtFirstHit) {
-            pPlanes[i + mPlaneNum]._60 += ::hOverlapAddValue;
+            pPlanes[i + mPlaneNum].mDistance += ::hOverlapAddValue;
         }
 
         count++;
@@ -278,11 +278,11 @@ HitInfo& HitInfo::operator=(const HitInfo& rOther) {
     mParentTriangle.mPos[0] = rOther.mParentTriangle.mPos[0];
     mParentTriangle.mPos[1] = rOther.mParentTriangle.mPos[1];
     mParentTriangle.mPos[2] = rOther.mParentTriangle.mPos[2];
-    _60 = rOther._60;
-    _64 = rOther._64;
-    _70 = rOther._70;
-    _7C = rOther._7C;
-    _88 = rOther._88;
+    mDistance = rOther.mDistance;
+    mHitPos = rOther.mHitPos;
+    mQueryPos = rOther.mQueryPos;
+    mNormalMovement = rOther.mNormalMovement;
+    mCollisionType = rOther.mCollisionType;
     return *this;
 }
 
@@ -292,43 +292,43 @@ void Binder::obtainMomentFixReaction(HitInfo* pPlanes, u32 capacity, TVec3f* pRe
     for (u32 i = start; i < mPlaneNum; i++) {
         HitInfo& plane = pPlanes[i];
         TVec3f normal(*plane.mParentTriangle.getNormal(0));
-        f32 x = normal.x * plane._60;
+        f32 x = normal.x * plane.mDistance;
         if (positive.x < x) {
             positive.x = x;
         } else if (x < negative.x) {
             negative.x = x;
         }
 
-        f32 y = normal.y * plane._60;
+        f32 y = normal.y * plane.mDistance;
         if (positive.y < y) {
             positive.y = y;
         } else if (y < negative.y) {
             negative.y = y;
         }
 
-        f32 z = normal.z * plane._60;
+        f32 z = normal.z * plane.mDistance;
         if (positive.z < z) {
             positive.z = z;
         } else if (z < negative.z) {
             negative.z = z;
         }
 
-        if (_1EC._1 && !MR::isNearZero(plane._7C)) {
-            x = plane._7C.x;
+        if (_1EC._1 && !MR::isNearZero(plane.mNormalMovement)) {
+            x = plane.mNormalMovement.x;
             if (positive.x < x) {
                 positive.x = x;
             } else if (x < negative.x) {
                 negative.x = x;
             }
 
-            y = plane._7C.y;
+            y = plane.mNormalMovement.y;
             if (positive.y < y) {
                 positive.y = y;
             } else if (y < negative.y) {
                 negative.y = y;
             }
 
-            z = plane._7C.z;
+            z = plane.mNormalMovement.z;
             if (positive.z < z) {
                 positive.z = z;
             } else if (z < negative.z) {
@@ -345,19 +345,19 @@ void Binder::storeContactPlane(HitInfo* pPlanes, u32 capacity) {
     for (u32 i = 0; i < mPlaneNum; i++) {
         const TVec3f& normal = *pPlanes[i].mParentTriangle.getNormal(0);
         if (MR::isFloorPolygon(normal, *_14)) {
-            if (_C8 < pPlanes[i]._60) {
+            if (_C8 < pPlanes[i].mDistance) {
                 mGroundInfo = pPlanes[i];
-                _C8 = pPlanes[i]._60;
+                _C8 = pPlanes[i].mDistance;
             }
         } else if (MR::isWallPolygon(normal, *_14)) {
-            if (_158 < pPlanes[i]._60) {
+            if (_158 < pPlanes[i].mDistance) {
                 mWallInfo = pPlanes[i];
-                _158 = pPlanes[i]._60;
+                _158 = pPlanes[i].mDistance;
             }
         } else {
-            if (_1E8 < pPlanes[i]._60) {
+            if (_1E8 < pPlanes[i].mDistance) {
                 mRoofInfo = pPlanes[i];
-                _1E8 = pPlanes[i]._60;
+                _1E8 = pPlanes[i].mDistance;
             }
         }
     }

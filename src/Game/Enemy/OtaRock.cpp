@@ -39,48 +39,6 @@ namespace NrvOtaRock {
     OtaRockNrvOpeningDemo OtaRockNrvOpeningDemo::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvOtaRock
 
-void OtaRock::initOtaRockPlacement(const JMapInfoIter& rIter) {
-    MR::initDefaultPos(this, rIter);
-    MR::initUseStageSwitchReadA(this, rIter);
-    MR::initUseStageSwitchWriteDead(this, rIter);
-    MR::useStageSwitchAwake(this, rIter);
-    MR::getJMapInfoArg0NoInit(rIter, &this->mNoThrowCocoNut);
-    bool flag = false;
-    MR::getJMapInfoArg1NoInit(rIter, &flag);
-    if (flag) {
-        this->mThrowCocoNutCounter = 0;
-    }
-}
-
-void OtaRock::chooseWaitNerve() {
-    if (this->mNoThrowCocoNut) {
-        this->setNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
-    } else {
-        this->setNerve(GET_NERVE(OtaRock, OtaRockNrvHideWait));
-    }
-}
-
-
-void OtaRock::exeOtaRockOpeningDemo() {
-    if (MR::isFirstStep(this)) {
-        MR::startAction(this, "Wait");
-    }
-
-    this->updateBaseMtx();
-
-    if (!MR::isStageStateScenarioOpeningCamera()) {
-        this->chooseWaitNerve();
-    }
-}
-
-bool OtaRock::tryStartOpeningDemo() {
-    if (MR::isStageStateScenarioOpeningCamera()) {
-        this->setNerve(GET_NERVE(OtaRock, OtaRockNrvOpeningDemo));
-        return true;
-    }
-    return false;
-}
-
 OtaRock::OtaRock(const char* pName)
     : LiveActor(pName), mNoThrowCocoNut(false), mCocoNutArray(nullptr), mFireBallArray(nullptr), mFixedPosition(nullptr),
       mThrowCocoNutCounter(1), mWaitFrame(0), mBaseMtx(), mFront(0.0f, 0.0f, 1.0f), mAnimScaleController(nullptr) {
@@ -118,15 +76,6 @@ void OtaRock::kill() {
     LiveActor::kill();
 }
 
-void OtaRock::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
-    bool noCocoNut = false;
-    MR::getJMapInfoArg0NoInit(rIter, &noCocoNut);
-
-    if (!noCocoNut) {
-        pCollector->addArchive(CocoNut::getModelName());
-    }
-}
-
 void OtaRock::control() {
     mAnimScaleController->updateNerve();
 }
@@ -151,6 +100,7 @@ void OtaRock::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     }
 }
 
+
 bool OtaRock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isMsgStarPieceReflect(msg)) {
         mAnimScaleController->startHitReaction();
@@ -165,9 +115,31 @@ bool OtaRock::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pRe
     return true;
 }
 
+void OtaRock::makeArchiveList(NameObjArchiveListCollector* pCollector, const JMapInfoIter& rIter) {
+    bool noCocoNut = false;
+    MR::getJMapInfoArg0NoInit(rIter, &noCocoNut);
+
+    if (!noCocoNut) {
+        pCollector->addArchive(CocoNut::getModelName());
+    }
+}
+
 bool OtaRock::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     setNerve(GET_NERVE(OtaRock, OtaRockNrvDown));
     return true;
+}
+
+void OtaRock::initOtaRockPlacement(const JMapInfoIter& rIter) {
+    MR::initDefaultPos(this, rIter);
+    MR::initUseStageSwitchReadA(this, rIter);
+    MR::initUseStageSwitchWriteDead(this, rIter);
+    MR::useStageSwitchAwake(this, rIter);
+    MR::getJMapInfoArg0NoInit(rIter, &this->mNoThrowCocoNut);
+    bool flag = false;
+    MR::getJMapInfoArg1NoInit(rIter, &flag);
+    if (flag) {
+        this->mThrowCocoNutCounter = 0;
+    }
 }
 
 void OtaRock::initModel() {
@@ -250,14 +222,6 @@ s32 OtaRock::getDisappearedFireBallNum() const {
     return num;
 }
 
-bool OtaRock::isValidThrowCocoNut() const {
-    return getDisappearedCocoNutNum() > 0;
-}
-
-bool OtaRock::isValidThrowFireBall() const {
-    return getDisappearedFireBallNum() > 0;
-}
-
 void OtaRock::throwCocoNut() {
     CocoNutBall* pCocoNut = OtaRock::getDisappearedCocoNut();
     TVec3f fixedTrans;
@@ -290,6 +254,30 @@ bool OtaRock::tryToHide() {
         return true;
     }
     return false;
+}
+
+bool OtaRock::isValidThrowCocoNut() const {
+    return getDisappearedCocoNutNum() > 0;
+}
+
+bool OtaRock::isValidThrowFireBall() const {
+    return getDisappearedFireBallNum() > 0;
+}
+
+bool OtaRock::tryStartOpeningDemo() {
+    if (MR::isStageStateScenarioOpeningCamera()) {
+        this->setNerve(GET_NERVE(OtaRock, OtaRockNrvOpeningDemo));
+        return true;
+    }
+    return false;
+}
+
+void OtaRock::chooseWaitNerve() {
+    if (this->mNoThrowCocoNut) {
+        this->setNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
+    } else {
+        this->setNerve(GET_NERVE(OtaRock, OtaRockNrvHideWait));
+    }
 }
 
 void OtaRock::exeWait() {
@@ -419,6 +407,18 @@ void OtaRock::exeShow() {
     }
     updateBaseMtx();
     MR::setNerveAtBckStopped(this, GET_NERVE(OtaRock, OtaRockNrvWait));
+}
+
+void OtaRock::exeOtaRockOpeningDemo() {
+    if (MR::isFirstStep(this)) {
+        MR::startAction(this, "Wait");
+    }
+
+    this->updateBaseMtx();
+
+    if (!MR::isStageStateScenarioOpeningCamera()) {
+        this->chooseWaitNerve();
+    }
 }
 
 OtaRock::~OtaRock() {

@@ -939,23 +939,23 @@ void Mario::fn_803B2F20(const HitInfo* hit) {
     if (_4D8->isValid()) {
         TVec3f previous(_50C - mPosHolder->mPos);
         MR::vecKillElement(previous, *getGravityVec(), &previous);
-        TVec3f candidate(hit->_64 - mPosHolder->mPos);
+        TVec3f candidate(hit->mHitPos - mPosHolder->mPos);
         MR::vecKillElement(candidate, *getGravityVec(), &candidate);
         f32 previousDistance = previous.squared();
         if (candidate.squared() > previousDistance) return;
     }
     *_4D8 = hit->mParentTriangle;
-    _50C = hit->_64;
+    _50C = hit->mHitPos;
 }
 
 void Mario::fn_803B3AE0(const HitInfo* hit, const TVec3f* origin) {
     if (isPlayerModeTeresa()) {
-        TVec3f offset(hit->_64);
+        TVec3f offset(hit->mHitPos);
         offset -= *origin;
         if (hit->mParentTriangle.getNormal(0)->dot(offset) >= 0.0f) return;
     }
     *mSideWallTriangle = hit->mParentTriangle;
-    _500 = hit->_64;
+    _500 = hit->mHitPos;
     mMovementStates.mLowWord |= 0x20;
     if (hit->isCollisionAtCorner() || hit->isCollisionAtEdge()) mMovementStates.mHighWord |= 0x1000;
 }
@@ -972,12 +972,12 @@ void Mario::fn_803B3BB0(const HitInfo* hit, const TVec3f* origin) {
         }
     }
     if (isPlayerModeTeresa()) {
-        TVec3f offset(hit->_64);
+        TVec3f offset(hit->mHitPos);
         offset -= *origin;
         if (hit->mParentTriangle.getNormal(0)->dot(offset) >= 0.0f) return;
     }
     *mBackWallTriangle = hit->mParentTriangle;
-    _4F4 = hit->_64;
+    _4F4 = hit->mHitPos;
     mMovementStates.mLowWord |= 0x40;
 }
 
@@ -1151,8 +1151,8 @@ s32 Mario::fn_803B41F0() {
 // NONMATCHING: repeated flag loads and boolean materialization.
 void Mario::fn_803B38B0(const HitInfo* hit, const TVec3f* center) {
     *mFrontWallTriangle = hit->mParentTriangle;
-    _4E8 = hit->_64;
-    TVec3f direction(hit->_64);
+    _4E8 = hit->mHitPos;
+    TVec3f direction(hit->mHitPos);
     direction.sub(*center);
     MR::normalizeOrZero(&direction);
     f32 facing = direction.dot(*hit->mParentTriangle.getNormal(0));
@@ -1340,7 +1340,7 @@ void Mario::fn_803B35D0(const TVec3f& rPos, u32 count) {
             }
         }
         if (((this->mMovementStates.mLowWord >> 30) & 1) && maxAngle > 60.0f && maxAngle != ref && maxAngle < 80.0f) {
-            TVec3f hitPos(this->fn_803B2AA0(maxIdx)->_64);
+            TVec3f hitPos(this->fn_803B2AA0(maxIdx)->mHitPos);
             TVec3f toPos(rPos);
             toPos -= hitPos;
             if (!MR::normalizeOrZero(&toPos)) {
@@ -1441,7 +1441,7 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
             continue;
         }
         TVec3f rest;
-        f32 depth = pInfo->_60;
+        f32 depth = pInfo->mDistance;
         if (MR::vecKillElement(*pOutVec, *pNrm, &rest) >= depth) {
             continue;
         }
@@ -1451,8 +1451,8 @@ s32 Mario::fn_803B4300(TVec3f* pOutVec, MarioStrikeEntry* pOut, s32, const TVec3
         sum += push;
         *pOutVec = sum;
         pOut[n].mTriangle = pInfo->mParentTriangle;
-        pOut[n].mHitPos = pInfo->_64;
-        pOut[n].mDepth = pInfo->_60;
+        pOut[n].mHitPos = pInfo->mHitPos;
+        pOut[n].mDepth = pInfo->mDistance;
         n++;
     }
     return n;

@@ -11,6 +11,7 @@ class AwakeControllerHolder : public NameObj {
 public:
     /// @brief Creates a new `AwakeControllerHolder`.
     AwakeControllerHolder();
+    virtual ~AwakeControllerHolder();
 
     virtual void movement();
 

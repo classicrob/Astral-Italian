@@ -1,3 +1,4 @@
+#define JGEOMETRY_QUAT_TRANSFORM_NOINLINE
 #include "Game/Camera/CamKarikariEffector.hpp"
 #include "Game/Camera/CameraLocalUtil.hpp"
 #include "Game/Camera/CameraMan.hpp"
@@ -5,6 +6,8 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
+
+template void JGeometry::TQuat4<f32>::transform(const TVec3f&, TVec3f&) const;
 
 namespace {
     static const f32 sKarikariViewRate = 0.8f;

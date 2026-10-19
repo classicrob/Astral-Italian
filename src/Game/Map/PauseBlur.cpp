@@ -40,7 +40,7 @@ void drawBlurTexture(const PauseBlur* pBlur) {
 
     ImageEffectLocalUtil::setTextureMap(GX_TEXMAP1);
     ImageEffectLocalUtil::drawTexture(pBlur->mTexture2, pBlur->mHalfResolution * pBlur->mResolution, offset, 255,
-                                      ImageEffectLocalUtil::TexDrawType_0);
+                                      ImageEffectLocalUtil::TexDrawType_0, GX_TEXMAP1);
 
     ImageEffectLocalUtil::capture(pBlur->mTexture2, pBlur->mResolution, 0, GX_TF_RGB565, false, 0);
 

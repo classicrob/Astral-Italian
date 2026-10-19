@@ -21,7 +21,8 @@ namespace {
 };  // namespace
 
 ParticleDrawExecutor::ParticleDrawExecutor(const EffectSystem* pSystem, bool createAdaptors)
-    : mHost(pSystem), _4(), _8(), _C(), _10(), _14(), _18(), _1C(), _SMG2_20(), _20(true), _21() {
+    : mHost(pSystem), mDraw3DAdaptor(), mDraw2DAdaptor(), mDrawIndirectAdaptor(), mDrawAfterIndirectAdaptor(), mDraw2DModelAdaptor(),
+      mDrawBloomAdaptor(), mDrawAfterImageEffectAdaptor(), mDrawWorldMapAdaptor(), mIsDrawEnabled(true), _21() {
     if (createAdaptors) {
         initDrawAdaptor();
     }
@@ -37,7 +38,7 @@ void ParticleDrawExecutor::draw3D() const {
 
 // NONMATCHING: FP/register scheduling
 void ParticleDrawExecutor::draw2D() const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         TPos3f cameraMtx;
         cameraMtx.identity();
         JPADrawInfo drawInfo(cameraMtx.toMtxPtr());
@@ -61,7 +62,7 @@ void ParticleDrawExecutor::draw2D() const {
 }
 
 void ParticleDrawExecutor::drawIndirect() const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         JPADrawInfo drawInfo(j3dSys.getViewMtx(), MR::getFovy(), MR::getAspect());
         mHost->mEmitterManager->draw(&drawInfo, 2);
         GXSetClipMode(GX_CLIP_ENABLE);
@@ -73,7 +74,7 @@ void ParticleDrawExecutor::drawAfterIndirect() const {
 }
 
 void ParticleDrawExecutor::drawFor2DModel() const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         JPADrawInfo drawInfo(j3dSys.getViewMtx());
         mHost->mEmitterManager->draw(&drawInfo, 8);
         GXSetClipMode(GX_CLIP_ENABLE);
@@ -93,7 +94,7 @@ void ParticleDrawExecutor::drawForWorldMap() const {
 }
 
 void ParticleDrawExecutor::drawWithViewMtx3D(const TPos3f& rViewMtx) const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         JPADrawInfo drawInfo(rViewMtx);
         mHost->mEmitterManager->draw(&drawInfo, 0);
         GXSetClipMode(GX_CLIP_ENABLE);
@@ -103,7 +104,7 @@ void ParticleDrawExecutor::drawWithViewMtx3D(const TPos3f& rViewMtx) const {
 }
 
 void ParticleDrawExecutor::drawWithViewMtxAfterIndirect(const TPos3f& rViewMtx) const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         JPADrawInfo drawInfo(rViewMtx);
         mHost->mEmitterManager->draw(&drawInfo, 3);
         GXSetClipMode(GX_CLIP_ENABLE);
@@ -111,7 +112,7 @@ void ParticleDrawExecutor::drawWithViewMtxAfterIndirect(const TPos3f& rViewMtx) 
 }
 
 void ParticleDrawExecutor::drawWithViewMtxForBloomEffect(const TPos3f& rViewMtx) const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         JPADrawInfo drawInfo(rViewMtx);
         mHost->mEmitterManager->draw(&drawInfo, 4);
         GXSetClipMode(GX_CLIP_ENABLE);
@@ -119,7 +120,7 @@ void ParticleDrawExecutor::drawWithViewMtxForBloomEffect(const TPos3f& rViewMtx)
 }
 
 void ParticleDrawExecutor::drawWithViewMtxAfterImageEffect(const TPos3f& rViewMtx) const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         JPADrawInfo drawInfo(rViewMtx);
         mHost->mEmitterManager->draw(&drawInfo, 5);
         GXSetClipMode(GX_CLIP_ENABLE);
@@ -127,7 +128,7 @@ void ParticleDrawExecutor::drawWithViewMtxAfterImageEffect(const TPos3f& rViewMt
 }
 
 void ParticleDrawExecutor::drawWithViewMtxForWorldMap(const TPos3f& view) const {
-    if (_20) {
+    if (mIsDrawEnabled) {
         JPADrawInfo info(view);
         mHost->mEmitterManager->draw(&info, 9);
         GXSetClipMode(GX_CLIP_ENABLE);
@@ -135,29 +136,29 @@ void ParticleDrawExecutor::drawWithViewMtxForWorldMap(const TPos3f& view) const 
 }
 
 void ParticleDrawExecutor::initDrawAdaptor() {
-    _4 = new NameObjAdaptor("3Dパーティクル");
-    ::connectToSceneDrawAdaptor(_4, MR::Functor(this, &ParticleDrawExecutor::draw3D), MR::DrawType_EffectDraw3D);
+    mDraw3DAdaptor = new NameObjAdaptor("3Dパーティクル");
+    ::connectToSceneDrawAdaptor(mDraw3DAdaptor, MR::Functor(this, &ParticleDrawExecutor::draw3D), MR::DrawType_EffectDraw3D);
 
-    _8 = new NameObjAdaptor("2Dパーティクル");
-    ::connectToSceneDrawAdaptor(_8, MR::Functor(this, &ParticleDrawExecutor::draw2D), MR::DrawType_EffectDraw2D);
+    mDraw2DAdaptor = new NameObjAdaptor("2Dパーティクル");
+    ::connectToSceneDrawAdaptor(mDraw2DAdaptor, MR::Functor(this, &ParticleDrawExecutor::draw2D), MR::DrawType_EffectDraw2D);
 
-    _C = new NameObjAdaptor("インダイレクトパーティクル");
-    ::connectToSceneDrawAdaptor(_C, MR::Functor(this, &ParticleDrawExecutor::drawIndirect), MR::DrawType_EffectDrawIndirect);
+    mDrawIndirectAdaptor = new NameObjAdaptor("インダイレクトパーティクル");
+    ::connectToSceneDrawAdaptor(mDrawIndirectAdaptor, MR::Functor(this, &ParticleDrawExecutor::drawIndirect), MR::DrawType_EffectDrawIndirect);
 
-    _10 = new NameObjAdaptor("インダイレクト後パーティクル");
-    ::connectToSceneDrawAdaptor(_10, MR::Functor(this, &ParticleDrawExecutor::drawAfterIndirect), MR::DrawType_EffectDrawAfterIndirect);
+    mDrawAfterIndirectAdaptor = new NameObjAdaptor("インダイレクト後パーティクル");
+    ::connectToSceneDrawAdaptor(mDrawAfterIndirectAdaptor, MR::Functor(this, &ParticleDrawExecutor::drawAfterIndirect), MR::DrawType_EffectDrawAfterIndirect);
 
-    _14 = new NameObjAdaptor("2Dモデル用パーティクル");
-    ::connectToSceneDrawAdaptor(_14, MR::Functor(this, &ParticleDrawExecutor::drawFor2DModel), MR::DrawType_EffectDrawFor2DModel);
+    mDraw2DModelAdaptor = new NameObjAdaptor("2Dモデル用パーティクル");
+    ::connectToSceneDrawAdaptor(mDraw2DModelAdaptor, MR::Functor(this, &ParticleDrawExecutor::drawFor2DModel), MR::DrawType_EffectDrawFor2DModel);
 
-    _18 = new NameObjAdaptor("ブルーム用パーティクル");
-    ::connectToSceneDrawAdaptor(_18, MR::Functor(this, &ParticleDrawExecutor::drawForBloomEffect), MR::DrawType_EffectDrawForBloomEffect);
+    mDrawBloomAdaptor = new NameObjAdaptor("ブルーム用パーティクル");
+    ::connectToSceneDrawAdaptor(mDrawBloomAdaptor, MR::Functor(this, &ParticleDrawExecutor::drawForBloomEffect), MR::DrawType_EffectDrawForBloomEffect);
 
-    _1C = new NameObjAdaptor("イメージエフェクト後パーティクル");
-    ::connectToSceneDrawAdaptor(_1C, MR::Functor(this, &ParticleDrawExecutor::drawAfterImageEffect), MR::DrawType_EffectDrawAfterImageEffect);
+    mDrawAfterImageEffectAdaptor = new NameObjAdaptor("イメージエフェクト後パーティクル");
+    ::connectToSceneDrawAdaptor(mDrawAfterImageEffectAdaptor, MR::Functor(this, &ParticleDrawExecutor::drawAfterImageEffect), MR::DrawType_EffectDrawAfterImageEffect);
 
-    _SMG2_20 = new NameObjAdaptor("ワールドマップアイコン用パーティクル");
-    ::connectToSceneDrawAdaptor(_SMG2_20, MR::Functor(this, &ParticleDrawExecutor::drawForWorldMap), MR::DrawType_EffectDrawWorldMapMiniIcon);
+    mDrawWorldMapAdaptor = new NameObjAdaptor("ワールドマップアイコン用パーティクル");
+    ::connectToSceneDrawAdaptor(mDrawWorldMapAdaptor, MR::Functor(this, &ParticleDrawExecutor::drawForWorldMap), MR::DrawType_EffectDrawWorldMapMiniIcon);
 }
 
 void MR::FunctorV0F::operator()() const {

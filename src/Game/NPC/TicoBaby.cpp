@@ -2,28 +2,22 @@
 #include "Game/NPC/TicoBaby.hpp"
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
-extern const char* lbl_807CFF40;
+namespace {
+    const char* sTicoBabyDemoName = "ベビチコ出会い";
+}  // namespace
 extern s32 lbl_807E3108;
+
 namespace NrvTicoBaby {
-class TicoBabyNrvWait : public Nerve {
-public:
-    virtual void execute(Spine* spine) const { static_cast<TicoBaby*>(spine->mExecutor)->exeWait(); }
-    static TicoBabyNrvWait sInstance;
-};
-class TicoBabyNrvDemo : public Nerve {
-public:
-    virtual void execute(Spine* spine) const { static_cast<TicoBaby*>(spine->mExecutor)->exeDemo(); }
-    static TicoBabyNrvDemo sInstance;
-};
-TicoBabyNrvWait TicoBabyNrvWait::sInstance;
-TicoBabyNrvDemo TicoBabyNrvDemo::sInstance;
-}
+    NEW_NERVE(TicoBabyNrvWait, TicoBaby, Wait);
+    NEW_NERVE(TicoBabyNrvDemo, TicoBaby, Demo);
+}  // namespace NrvTicoBaby
+
 TicoBaby::TicoBaby(const char* name) : LiveActor(name) {}
 TicoBaby::~TicoBaby() {}
 void TicoBaby::init(const JMapInfoIter& iter) {
     MR::initActor(this,iter,"TicoBaby","TicoBabyAnim",nullptr,false);
-    MR::tryInitDemoSheetAnim(this,iter,lbl_807CFF40,"DemoMeetTicoBaby");
-    initNerve(&NrvTicoBaby::TicoBabyNrvWait::sInstance);
+    MR::tryInitDemoSheetAnim(this,iter,sTicoBabyDemoName,"DemoMeetTicoBaby");
+    initNerve(GET_NERVE_GLOBAL(NrvTicoBaby::TicoBabyNrvWait));
     makeActorAppeared();
     MR::startAction(this,"LieDown");
 }
@@ -33,10 +27,10 @@ void TicoBaby::exeWait() {
         MR::startAction(this,"LieDown");
     }
     MR::startSoundInPlayerDistance(this,"Shining",-1,-1,1000.0f);
-    if(MR::isDemoActive(lbl_807CFF40)) setNerve(&NrvTicoBaby::TicoBabyNrvDemo::sInstance);
+    if(MR::isDemoActive(sTicoBabyDemoName)) setNerve(GET_NERVE_GLOBAL(NrvTicoBaby::TicoBabyNrvDemo));
 }
 void TicoBaby::exeDemo() {
-    if(MR::isDemoActive(lbl_807CFF40) && !MR::isStoryBookDemoActive()) {
+    if(MR::isDemoActive(sTicoBabyDemoName) && !MR::isStoryBookDemoActive()) {
         if(MR::isDemoPartActive("マリオ驚き") && MR::getDemoPartStep("マリオ驚き")==lbl_807E3108) MR::startSubBGM("BGM_SMG2_EV_PROLO_03",false);
         if(MR::isDemoPartActive("チコ帽子の中へ") && MR::getDemoPartStep("チコ帽子の中へ")==114) MR::startSubBGM("BGM_SMG2_JG_MEETCHIKO",false);
     }

@@ -59,12 +59,12 @@ namespace NrvKameck {
     NEW_NERVE(KameckNrvBindStarPointer, Kameck, BindStarPointer);
     NEW_NERVE(KameckNrvDown, Kameck, Down);
     NEW_NERVE(KameckNrvPressDown, Kameck, PressDown);
-    class KameckNrvfn_801A6960 : public Nerve {
+    class KameckNrvYoshiTongue : public Nerve {
     public:
         virtual void execute(Spine*) const {}
-        static KameckNrvfn_801A6960 sInstance;
+        static KameckNrvYoshiTongue sInstance;
     };
-    KameckNrvfn_801A6960 KameckNrvfn_801A6960::sInstance ATTRIBUTE_WEAK;
+    KameckNrvYoshiTongue KameckNrvYoshiTongue::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvKameck
 
 Kameck::Kameck(const char* pName)
@@ -271,7 +271,7 @@ bool Kameck::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceiver) 
     }
 
     if (MR::isMsgYoshiStartTongue(msg)) {
-        setNerve(GET_NERVE(Kameck, KameckNrvfn_801A6960));
+        setNerve(GET_NERVE(Kameck, KameckNrvYoshiTongue));
         return true;
     }
 
@@ -759,7 +759,7 @@ bool Kameck::isEnableDown() const {
     }
 
     if (!(!isNerve(GET_NERVE(Kameck, KameckNrvNonActive)) && !isNerve(GET_NERVE(Kameck, KameckNrvDown)) &&
-          !isNerve(GET_NERVE(Kameck, KameckNrvPressDown)) && !isNerve(GET_NERVE(Kameck, KameckNrvfn_801A6960)))) {
+          !isNerve(GET_NERVE(Kameck, KameckNrvPressDown)) && !isNerve(GET_NERVE(Kameck, KameckNrvYoshiTongue)))) {
         return false;
     }
 

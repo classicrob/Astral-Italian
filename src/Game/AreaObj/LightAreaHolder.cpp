@@ -26,7 +26,7 @@ bool LightAreaHolder::tryFindLightID(const TVec3f& rArea, ZoneLightID* pLightID)
         if (pLightID->isTargetArea(pLightArea)) {
             return false;
         } else {
-            pLightID->_0 = pLightArea->mLinkInfo.mZoneID;
+            pLightID->mZoneID = pLightArea->mLinkInfo.mZoneID;
             pLightID->mLightID = pLightArea->mObjArg0;
 
             return true;

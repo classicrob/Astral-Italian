@@ -4,7 +4,7 @@
 #include "Game/Util/BaseMatrixFollowTargetHolder.hpp"
 #include "Game/Util/MapUtil.hpp"
 
-KoopaBattlePlanet::KoopaBattlePlanet(const char* pName) : PlanetMap(pName, nullptr) {}
+KoopaBattlePlanet::KoopaBattlePlanet(const char* pName) : PlanetMap(pName, nullptr), mChildGroup(nullptr) {}
 
 void KoopaBattlePlanet::init(const JMapInfoIter& rIter) {
     MR::createKoopaBattleAccessor();

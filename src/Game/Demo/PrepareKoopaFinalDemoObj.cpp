@@ -9,16 +9,10 @@
 #include "Game/System/GameSequenceFunction.hpp"
 #include "Game/Util/ActorMovementUtil.hpp"
 
-// Data table (demo object params, 0x18 bytes of names per object) and names.
-extern "C" f32 lbl_807D9810;
-extern "C" f32 lbl_807D9814;
-extern "C" f32 lbl_807D9818;
-extern "C" f32 lbl_807D981C;
-extern "C" f32 lbl_807D9820;
-extern "C" f32 lbl_807D9824;
-extern "C" f32 lbl_807D9828;
-extern "C" f32 lbl_807D982C;
-
+namespace {
+    const char* sDemoName = "クッパ最終戦突入";
+    const char* sDemoSheetName = "DemoKoopaCastle";
+};  // namespace
 
 namespace NrvPrepareKoopaFinalDemoObj {
     class PrepareKoopaFinalDemoObjNrvWait : public Nerve {
@@ -61,11 +55,11 @@ void PrepareKoopaFinalDemoObj::init(const JMapInfoIter& rIter) {
         MR::registerDemoActionFunctor(this, functor, nullptr);
     }
     mKoopaSign = MR::createDemoObjWithAnimArc("マイスター", "Meister", "MeisterAnim", "Demo", nullptr);
-    MR::tryInitDemoSheetAnim(mKoopaSign, rIter, "クッパ最終戦突入", "DemoKoopaCastle");
+    MR::tryInitDemoSheetAnim(mKoopaSign, rIter, sDemoName, sDemoSheetName);
     MR::invalidateClipping(mKoopaSign);
     mKoopaSign->makeActorAppeared();
     mTalkActor = MR::createDemoObjWithAnimArc("ベビチコ", "TicoBaby", "TicoBabyAnim", nullptr);
-    MR::initTalkAnimDemoCast(mTalkActor, rIter, "クッパ最終戦突入", "DemoKoopaCastle");
+    MR::initTalkAnimDemoCast(mTalkActor, rIter, sDemoName, sDemoSheetName);
     MR::invalidateClipping(mTalkActor);
     mTalkActor->makeActorAppeared();
     mFinalKoopa = MR::createDemoObj("クッパ城", "MiniVsKoopaLv3Galaxy", "Demo", nullptr);
@@ -83,7 +77,7 @@ void PrepareKoopaFinalDemoObj::exeStopShakeEnd() {
 
 void PrepareKoopaFinalDemoObj::exeShake() {
     if (MR::isFirstStep(this)) {
-        MR::shakeCameraInfinity(this, lbl_807D981C, lbl_807D9810);
+        MR::shakeCameraInfinity(this, 0.12f, 1.0f);
         MR::tryRumblePadMiddle(this, 0);
         return;
     }
@@ -111,26 +105,26 @@ void PrepareKoopaFinalDemoObj::exeStopShake() {
 
 // NONMATCHING: FP/register load scheduling
 void PrepareKoopaFinalDemoObj::initAfterPlacement() {
-    MR::setPositionToMapGround(this, lbl_807D9818, lbl_807D9818);
+    MR::setPositionToMapGround(this, -1.0f, -1.0f);
     mKoopaSign->mPosition.set(mPosition);
     mTalkActor->mPosition.set(mPosition);
     JGeometry::TMatrix34< JGeometry::SMatrix34C< f32 > > mtx;
     mtx.identity();
     MR::makeMtxRotate(mtx.mMtx, mRotation);
     TVec3f offset;
-    offset.x = lbl_807D9814;
-    offset.y = lbl_807D9814;
-    offset.z = lbl_807D9810;
+    offset.x = 0.0f;
+    offset.y = 0.0f;
+    offset.z = 1.0f;
     offset.set<f32>(mtx.mMtx[0][2], mtx.mMtx[1][2], mtx.mMtx[2][2]);
-    JMAVECScaleAdd(&offset, &mPosition, &mFinalKoopa->mPosition, lbl_807D9820);
-    mFinalKoopa->mPosition.y += lbl_807D9824;
-    mFinalKoopa->mRotation.set(lbl_807D9828, lbl_807D982C, lbl_807D9814);
+    JMAVECScaleAdd(&offset, &mPosition, &mFinalKoopa->mPosition, 28000.0f);
+    mFinalKoopa->mPosition.y += 5500.0f;
+    mFinalKoopa->mRotation.set(5.0f, 210.0f, 0.0f);
 }
 
 // NONMATCHING: equivalent branch layout
 void PrepareKoopaFinalDemoObj::control() {
     if (isNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvStopShakeEnd)) || isNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvShake))) {
-        if (!MR::isDemoActive("クッパ最終戦突入")) {
+        if (!MR::isDemoActive(sDemoName)) {
             setNerve(GET_NERVE(PrepareKoopaFinalDemoObj, PrepareKoopaFinalDemoObjNrvEnd));
             return;
         }

@@ -42,6 +42,7 @@ void CameraSubjective::reset() {
     mAngleVel.zero();
 }
 
+// NONMATCHING: saved registers and vector temporary addresses.
 CameraTargetObj* CameraSubjective::calc() {
     TVec2f accel(0.0f, 0.0f);
 

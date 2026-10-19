@@ -163,7 +163,7 @@ f32 MarioTeresa::checkHeight() {
         for (u32 i = 0; i < count; i++) {
             const HitInfo* hit = getPlayer()->fn_803B2AA0(i);
             TVec3f normal(*hit->mParentTriangle.getNormal(0));
-            TVec3f direction(hit->_64);
+            TVec3f direction(hit->mHitPos);
             direction.sub(direction, position);
             f32 distance = direction.length() - 110.0f;
             if (distance < 0.0f) {

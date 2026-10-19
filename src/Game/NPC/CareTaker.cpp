@@ -150,38 +150,18 @@ void Caretaker::kill() {
     }
 }
 
-
 void Caretaker::control() {
     NPCActor::control();
 }
 
-void Caretaker::hide() {
-    mLodCtrl->invalidate();
-    MR::hideModel(this);
-    MR::startAction(this, "HideWait");
-    MR::invalidateHitSensors(this);
+bool Caretaker::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
+    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
+        mSpinAttacked = 1;
 
-    if (mGoods0 != nullptr) {
-        MR::hideModel(mGoods0);
+        return false;
     }
 
-    if (mGoods1 != nullptr) {
-        MR::hideModel(mGoods1);
-    }
-}
-
-void Caretaker::show() {
-    MR::showModel(this);
-    MR::validateHitSensors(this);
-    mLodCtrl->validate();
-
-    if (mGoods0 != nullptr) {
-        MR::showModel(mGoods0);
-    }
-
-    if (mGoods1 != nullptr) {
-        MR::showModel(mGoods1);
-    }
+    return NPCActor::receiveMsgPlayerAttack(msg, pSender, pReceiver);
 }
 
 bool Caretaker::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -202,36 +182,6 @@ bool Caretaker::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return NPCActor::receiveMsgPlayerAttack(msg, pSender, pReceiver);
 }
 
-void Caretaker::exeTimeUp() {
-    if (MR::isFirstStep(this)) {
-        MR::killPlayerFireBalls();
-
-        if (MR::isOnSwitchA(this)) {
-            MR::startActionSound(this, "SyTotalComplete", -1, -1, -1);
-            MR::stopStageBGM(10);
-        } else {
-            MR::startActionSound(this, "TimeUp", -1, -1, -1);
-            MR::stopStageBGM(60);
-        }
-    }
-
-    MR::killPlayerFireBalls();
-
-    if (MR::isGreaterStep(this, 120)) {
-        setNerve(GET_NERVE(Caretaker, CaretakerNrvPstWipeOut));
-    }
-}
-
-bool Caretaker::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
-    if (MR::isMsgPlayerSpinAttackOrSupportTico(msg)) {
-        mSpinAttacked = 1;
-
-        return false;
-    }
-
-    return NPCActor::receiveMsgPlayerAttack(msg, pSender, pReceiver);
-}
-
 bool Caretaker::branchFuncStar(u32 msg) {
     switch (msg) {
     case 0:
@@ -243,6 +193,7 @@ bool Caretaker::branchFuncStar(u32 msg) {
 
 // NONMATCHING: saved-register/frame-pointer allocation differs; selector branches and signed range tests match.
 #pragma global_optimizer off
+
 bool Caretaker::branchFuncComet(u32 msg) {
     s32 purpleCoinNum = MR::getPurpleCoinNum();
     if (msg == 0) goto case0;
@@ -350,35 +301,33 @@ void Caretaker::setAnim(s32 anim) {
     }
 }
 
-void Caretaker::updateCounterSE() {
-    if (MR::isPlayerDead()) {
-        return;
+void Caretaker::hide() {
+    mLodCtrl->invalidate();
+    MR::hideModel(this);
+    MR::startAction(this, "HideWait");
+    MR::invalidateHitSensors(this);
+
+    if (mGoods0 != nullptr) {
+        MR::hideModel(mGoods0);
     }
 
-    if (MR::isPlayerConfrontDeath()) {
-        return;
-    }
-
-    u32 restTime = mBombTimerLayout->getRestTime();
-
-    if (restTime == 0) {
-        MR::startSystemSE("SE_SY_E3_TIMER_TIME_UP");
-    } else if (restTime <= 120) {
-        if (restTime % 60 == 0) {
-            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_4");
-        }
-    } else if (restTime <= 360) {
-        if (restTime % 60 == 0) {
-            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_2");
-        }
-    } else if (restTime <= mBombTimerLayout->mDangerTransFrame) {
-        if (restTime % 60 == 0) {
-            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_1");
-        }
+    if (mGoods1 != nullptr) {
+        MR::hideModel(mGoods1);
     }
 }
 
-void Caretaker::exeTakeOutStar() {
+void Caretaker::show() {
+    MR::showModel(this);
+    MR::validateHitSensors(this);
+    mLodCtrl->validate();
+
+    if (mGoods0 != nullptr) {
+        MR::showModel(mGoods0);
+    }
+
+    if (mGoods1 != nullptr) {
+        MR::showModel(mGoods1);
+    }
 }
 
 void Caretaker::exeReaction() {
@@ -405,11 +354,6 @@ void Caretaker::exeReaction() {
     if (MR::tryStartReactionAndPopNerve(this)) {
         return;
     }
-}
-
-void Caretaker::exeTalk() {
-    MR::tryTalkNearPlayerAndStartMoveTalkAction(this);
-    MR::tryStartReactionAndPushNerve(this, GET_NERVE(Caretaker, CaretakerNrvReaction));
 }
 
 void Caretaker::exeWait() {
@@ -506,6 +450,26 @@ void Caretaker::exeTidy() {
     }
 }
 
+void Caretaker::exeTimeUp() {
+    if (MR::isFirstStep(this)) {
+        MR::killPlayerFireBalls();
+
+        if (MR::isOnSwitchA(this)) {
+            MR::startActionSound(this, "SyTotalComplete", -1, -1, -1);
+            MR::stopStageBGM(10);
+        } else {
+            MR::startActionSound(this, "TimeUp", -1, -1, -1);
+            MR::stopStageBGM(60);
+        }
+    }
+
+    MR::killPlayerFireBalls();
+
+    if (MR::isGreaterStep(this, 120)) {
+        setNerve(GET_NERVE(Caretaker, CaretakerNrvPstWipeOut));
+    }
+}
+
 void Caretaker::exeRunaway() {
     if(MR::isPlayerInRush() || MR::isPlayerRecovering()) return;
     MR::offSwitchB(this);
@@ -561,12 +525,6 @@ void Caretaker::exePstWipeIn() {
     setNerve(GET_NERVE(Caretaker,CaretakerNrvPstWait));
 }
 
-void Caretaker::exePstWait() {
-    if (MR::isGreaterEqualStep(this, ::sPstRaceWait)) {
-        setNerve(GET_NERVE(Caretaker, CaretakerNrvPstTalk));
-    }
-}
-
 void Caretaker::exePstTalk() {
     if (!MR::tryTalkForceWithoutDemoMarioPuppetableAtEnd(mMsgCtrl)) {
         return;
@@ -580,6 +538,48 @@ void Caretaker::exePstTalk() {
         setNerve(GET_NERVE(Caretaker, CaretakerNrvAppearedStar));
     } else {
         setNerve(GET_NERVE(Caretaker, CaretakerNrvWait));
+    }
+}
+
+void Caretaker::updateCounterSE() {
+    if (MR::isPlayerDead()) {
+        return;
+    }
+
+    if (MR::isPlayerConfrontDeath()) {
+        return;
+    }
+
+    u32 restTime = mBombTimerLayout->getRestTime();
+
+    if (restTime == 0) {
+        MR::startSystemSE("SE_SY_E3_TIMER_TIME_UP");
+    } else if (restTime <= 120) {
+        if (restTime % 60 == 0) {
+            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_4");
+        }
+    } else if (restTime <= 360) {
+        if (restTime % 60 == 0) {
+            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_2");
+        }
+    } else if (restTime <= mBombTimerLayout->mDangerTransFrame) {
+        if (restTime % 60 == 0) {
+            MR::startSystemSE("SE_SY_E3_TIMER_COUNT_1");
+        }
+    }
+}
+
+void Caretaker::exeTakeOutStar() {
+}
+
+void Caretaker::exeTalk() {
+    MR::tryTalkNearPlayerAndStartMoveTalkAction(this);
+    MR::tryStartReactionAndPushNerve(this, GET_NERVE(Caretaker, CaretakerNrvReaction));
+}
+
+void Caretaker::exePstWait() {
+    if (MR::isGreaterEqualStep(this, ::sPstRaceWait)) {
+        setNerve(GET_NERVE(Caretaker, CaretakerNrvPstTalk));
     }
 }
 

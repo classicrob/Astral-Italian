@@ -25,6 +25,7 @@ void CameraDead::reset() {
     CameraLocalUtil::setWatchUpVec(this, CameraLocalUtil::getWatchUpVec(mCameraMan));
 }
 
+// NONMATCHING: vector temporary addresses and register allocation.
 CameraTargetObj* CameraDead::calc() {
     if (mDeadFrame <= mDeadTime) {
         TVec3f watchPoint;

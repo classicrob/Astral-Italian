@@ -61,13 +61,13 @@ CodeTable::CodeTable(u32 maxNum) {
     mNumCodes = 0;
     mMaxNumCodes = maxNum;
     mHashCodes = new u32[maxNum];
-    _C = new u32[maxNum];
+    mCodes = new u32[maxNum];
     mNames = new const char*[maxNum];
 }
 
 void CodeTable::add(const char* pName, u32 num) {
     mHashCodes[mNumCodes] = MR::getHashCode(pName);
-    _C[mNumCodes] = num;
+    mCodes[mNumCodes] = num;
     mNames[mNumCodes] = pName;
     mNumCodes++;
 }
@@ -132,7 +132,7 @@ const char* CollisionCode::getFloorCodeString(const Triangle& rTriangle) {
 
 const char* CodeTable::getString(u32 val) {
     for (s32 i = 0; i < mNumCodes; i++) {
-        if (val == _C[i]) {
+        if (val == mCodes[i]) {
             return mNames[i];
         }
     }
@@ -226,7 +226,7 @@ u32 CollisionCode::getCode(const JMapInfoIter& rIter, CodeTable* pCodeTable, con
 
             for (s32 i = 0; i < pCodeTable->mNumCodes; i++) {
                 if (hash == pCodeTable->mHashCodes[i]) {
-                    ret_code = pCodeTable->_C[i];
+                    ret_code = pCodeTable->mCodes[i];
                     break;
                 }
             }

@@ -124,15 +124,15 @@ s32 LightFunction::getDefaultStepInterpolate() {
 }
 
 void LightFunction::registerPlayerLightCtrl(const ActorLightCtrl* pCtrl) {
-    MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->_1C = pCtrl;
+    MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mPlayerLightCtrl = pCtrl;
 }
 
 void LightFunction::registerLightAreaHolder(LightAreaHolder* pHolder) {
-    MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->_C = pHolder;
+    MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mLightAreaHolder = pHolder;
 }
 
 bool LightFunction::tryFindNewAreaLightID(const TVec3f& rPos, ZoneLightID* pId) {
-    return MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->_C->tryFindLightID(rPos, pId);
+    return MR::getSceneObj< LightDirector >(SceneObj_LightDirector)->mLightAreaHolder->tryFindLightID(rPos, pId);
 }
 
 AreaLightInfo* LightFunction::getAreaLightInfo(const ZoneLightID& rId) {
@@ -219,8 +219,8 @@ void LightFunction::loadLightInfoCoin(const LightInfoCoin* pInfo) {
     ::loadLightInfoDiffuse(pInfo->base, GX_LIGHT0);
     TVec3f v7(0.0f, 0.0f, -1.0f);
     GXLightObj obj;
-    f32 v = pInfo->_18;
-    GXInitLightColor(&obj, GXColor(pInfo->_14));
+    f32 v = pInfo->mShininess;
+    GXInitLightColor(&obj, GXColor(pInfo->mSpecularColor));
     GXInitSpecularDir(&obj, v7.x, v7.y, v7.z);
     GXInitLightAttn(&obj, 0.0f, 0.0f, 1.0f, (v / 2.0f), 0.0f, (1.0f - (v / 2.0f)));
     GXLoadLightObjImm(&obj, GX_LIGHT3);

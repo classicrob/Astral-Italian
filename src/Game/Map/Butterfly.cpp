@@ -88,7 +88,7 @@ void Butterfly::init(const JMapInfoIter& rIter) {
     bodyOffset.x = 0.0f;
     bodyOffset.y = 0.0f;
     bodyOffset.z = 0.0f;
-    MR::addHitSensorMtxAnimal(this, "body", 8, ::sRadius, MR::getJointMtx(this, "buttBody"), bodyOffset);
+    MR::addHitSensorMtxAnimal(this, "Body", 8, ::sRadius, MR::getJointMtx(this, "buttBody"), bodyOffset);
     initBinder(::sRadius, 0.0f, 0);
     initSound(2, "Butterfly", nullptr, TVec3f(0.0f));
 

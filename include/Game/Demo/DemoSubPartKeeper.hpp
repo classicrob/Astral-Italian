@@ -12,7 +12,7 @@ public:
     /* 0x04 */ s32 mSubPartTotalStep;
     /* 0x08 */ const char* mMainPartName;
     /* 0x0C */ s32 mMainPartStep;
-    /* 0x10 */ s32 _10;
+    /* 0x10 */ s32 mRemainStep;
 };
 
 class DemoSubPartKeeper {

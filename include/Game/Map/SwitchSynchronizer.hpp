@@ -13,5 +13,5 @@ public:
     virtual void movement();
 
     StageSwitchCtrl* mSwitchCtrl;  // 0x14
-    bool _18;
+    bool mIsCheckSameSwitchState;
 };

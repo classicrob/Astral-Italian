@@ -12,11 +12,6 @@
 #include "Game/Util/NerveUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
 
-// PLACEHOLDER(enemies): createMailData is the unnamed SMG2 call in exeSend (holder->mArchive virtual slot 0x3C,
-// the mail-data build step); resolve when its owner names it and its virtual slot is declared.
-void* createMailData(ResourceHolder*, void*);
-
-
 namespace NrvWiiMessageBoardMailSenderState {
     // Nerve order follows the target's sInstances: 6100 sends, 6104 shows, 6108 is the end state.
     NEW_NERVE(WiiMessageBoardMailSenderStateNrvSend, WiiMessageBoardMailSenderState, Send);
@@ -24,7 +19,7 @@ namespace NrvWiiMessageBoardMailSenderState {
     NEW_NERVE(WiiMessageBoardMailSenderStateNrvEnd, WiiMessageBoardMailSenderState, End);
 }  // namespace NrvWiiMessageBoardMailSenderState
 
-WiiMessageBoardMailSenderState::WiiMessageBoardMailSenderState() : NerveExecutor("WiiMessageBoardMailSenderState") {
+WiiMessageBoardMailSenderState::WiiMessageBoardMailSenderState() : NerveExecutor("Wii伝言板メール送信ステート") {
     mReceiverTagMail = NULL;
     mResourceHolder = NULL;
     mSysInfoWindow = NULL;
@@ -54,9 +49,9 @@ void WiiMessageBoardMailSenderState::setup(const char* messageId, const char* pR
 void WiiMessageBoardMailSenderState::exeSend() {
     if (MR::isFirstStep(this)) {
         void* pSource = mResourceHolder->mArchive->getResource(mResName);
-        void* pData = createMailData(mResourceHolder, pSource);
+        u32 resourceSize = mResourceHolder->mArchive->getExpandedResSize(pSource);
         void* pRes = mResourceHolder->mFileInfoTable->getRes(mResName);
-        mReceiverTagMail->send(mMessageId, static_cast<const u8*>(pRes), reinterpret_cast<u32>(pData), false);
+        mReceiverTagMail->send(mMessageId, static_cast<const u8*>(pRes), resourceSize, false);
     }
 
     mReceiverTagMail->update();

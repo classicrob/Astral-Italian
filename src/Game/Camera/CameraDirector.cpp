@@ -36,6 +36,15 @@
 #include "Game/Util/SoundUtil.hpp"
 #include <cstring>
 
+// PLACEHOLDER(enemies): forces weak math helper and scalar-pool emission; resolve when the real user is sourced
+void CameraDirector_FORCE_MATCH_SDATA2() {
+    (void)1.0f;
+    (void)0.0f;
+    (void)0.5f;
+    (void)2.0f;
+    (void)MR::pi();
+}
+
 namespace {
     // static const s32 sDefaultBlendFrame =
     static const s32 sSubjectivePosInterpolateFrame = 0;
@@ -423,9 +432,8 @@ void CameraDirector::declareEvent(s32 zoneID, const char* pName) {
     mChunkHolder->createChunk(chunkID, nullptr);
 }
 
-// PLACEHOLDER(core): flag names are unknown; resolve after CameraViewInterpolator C0/C1 state is named.
 bool CameraDirector::isInterpolationStateReady() const {
-    return mViewInterpolator->_C0 && mViewInterpolator->_C1;
+    return mViewInterpolator->mIsOverSwitchAngle && mViewInterpolator->mIsOverRotationDifference;
 }
 
 void CameraDirector::started() {
@@ -713,8 +721,10 @@ void CameraDirector::controlCameraSE() {
 
     if (mIsSubjectiveCamera) {
         if (MR::testCorePadTriggerLeft(WPAD_CHAN0) || MR::testCorePadTriggerRight(WPAD_CHAN0) || MR::testFpViewStartTrigger()) {
-            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
-                MR::startSystemSE("SE_SY_CAMERA_NG");
+            if (isPlayableCameraSE(false)) {
+                if (!MR::isStageWorldMap()) {
+                    MR::startSystemSE("SE_SY_CAMERA_NG");
+                }
                 mIsCameraNG = true;
             }
         }
@@ -729,8 +739,10 @@ void CameraDirector::controlCameraSE() {
                 MR::startSystemSE("SE_SY_CAMERA_MOVE");
             }
         } else {
-            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
-                MR::startSystemSE("SE_SY_CAMERA_NG");
+            if (isPlayableCameraSE(false)) {
+                if (!MR::isStageWorldMap()) {
+                    MR::startSystemSE("SE_SY_CAMERA_NG");
+                }
                 mIsCameraNG = true;
             }
         }
@@ -743,8 +755,10 @@ void CameraDirector::controlCameraSE() {
                 MR::startSystemSE("SE_SY_CAMERA_MOVE");
             }
         } else {
-            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
-                MR::startSystemSE("SE_SY_CAMERA_NG");
+            if (isPlayableCameraSE(false)) {
+                if (!MR::isStageWorldMap()) {
+                    MR::startSystemSE("SE_SY_CAMERA_NG");
+                }
                 mIsCameraNG = true;
             }
         }
@@ -757,8 +771,10 @@ void CameraDirector::controlCameraSE() {
                 MR::startSystemSE("SE_SY_CAMERA_MOVE");
             }
         } else {
-            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
-                MR::startSystemSE("SE_SY_CAMERA_NG");
+            if (isPlayableCameraSE(false)) {
+                if (!MR::isStageWorldMap()) {
+                    MR::startSystemSE("SE_SY_CAMERA_NG");
+                }
                 mIsCameraNG = true;
             }
         }
@@ -766,16 +782,20 @@ void CameraDirector::controlCameraSE() {
 
     if (MR::isPlayerInRush() || MR::isPlayerRecovering()) {
         if (MR::testFpViewStartTrigger()) {
-            if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
-                MR::startSystemSE("SE_SY_CAMERA_NG");
+            if (isPlayableCameraSE(false)) {
+                if (!MR::isStageWorldMap()) {
+                    MR::startSystemSE("SE_SY_CAMERA_NG");
+                }
                 mIsCameraNG = true;
             }
         }
     }
 
     if (MR::testCorePadTriggerDown(WPAD_CHAN0)) {
-        if (isPlayableCameraSE(false) && !MR::isStageWorldMap()) {
-            MR::startSystemSE("SE_SY_CAMERA_NG");
+        if (isPlayableCameraSE(false)) {
+            if (!MR::isStageWorldMap()) {
+                MR::startSystemSE("SE_SY_CAMERA_NG");
+            }
             mIsCameraNG = true;
         }
     }

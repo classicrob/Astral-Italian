@@ -138,13 +138,9 @@ namespace MR {
 
 namespace MR {
     bool getJMapInfoArgNoInit(const JMapInfoIter& rIter, const char* pFieldName, s32*);
-    s32 getDemoGroupID(const JMapInfoIter& rIter);
-    s32 getDemoGroupLinkID(const JMapInfoIter& rIter);
     bool getRailId(const JMapInfoIter& rIter, s32*);
     bool isExistJMapArg(const JMapInfoIter& rIter);
     bool isExistStageSwitchSleep(const JMapInfoIter& rIter);
-    s32 getDemoCastID(const JMapInfoIter& rIter);
-    const char* getDemoName(const JMapInfoIter& rIter);
     const char* getDemoSheetName(const JMapInfoIter& rIter);
     bool getNextLinkRailID(const JMapInfoIter& rIter, s32*);
 };  // namespace MR

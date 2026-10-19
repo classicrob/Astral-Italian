@@ -41,6 +41,24 @@ namespace NrvKickStone {
 #define GET_KICKSTONE_NERVE(name) (&NrvKickStone::name::sInstance)
 
 
+bool KickStone::snapKickStoneToGround(TVec3f* pUp, KickStone* pStone, s32 useCurrentUp) {
+    MR::calcGravity(pStone);
+    TVec3f gravity(pStone->mGravity);
+    if (useCurrentUp) {
+        gravity.set(-*pUp);
+    }
+    TVec3f line = gravity * 300.0f;
+    TVec3f start = pStone->mPosition - gravity * 50.0f;
+    TVec3f hit(0.0f);
+    Triangle triangle;
+    if (MR::getFirstPolyOnLineToMapExceptActor(&hit, &triangle, start, line, pStone)) {
+        MR::setPosition(pStone, hit);
+        pUp->set(*triangle.getFaceNormal());
+        return true;
+    }
+    return false;
+}
+
 KickStone::KickStone(const char* pName) : LiveActor(pName) {
     mBreakModel = nullptr;
     mIsCoin = false;
@@ -113,6 +131,28 @@ void KickStone::calcAndSetBaseMtx() {
     }
 }
 
+void KickStone::exeRollTowardPlayer() {
+    if (MR::isFirstStep(this)) {
+        MR::calcGravity(this);
+        TVec3f velocity(0.0f);
+        TVec3f toPlayer(0.0f);
+        MR::calcVecToPlayerH(&toPlayer, this, nullptr);
+        PSVECCrossProduct(&mUp, &toPlayer, &mRollAxis);
+        if (MR::isNearZero(mRollAxis, 0.001f)) {
+            mRollAxis.set(mFront);
+        }
+        velocity = toPlayer * 4.0f - mGravity * 25.0f;
+        MR::setVelocity(this, velocity);
+    }
+    MR::rotateVecDegree(&mUp, mRollAxis, 4.0f);
+    MR::addVelocityToGravity(this, 1.4f);
+    if (!MR::isLessStep(this, 10) && (MR::isBinded(this) || MR::isStep(this, 120))) {
+        MR::zeroVelocity(this);
+        MR::tryHitReaction(this, "PullBreak");
+        setNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreakSub));
+    }
+}
+
 void KickStone::exeBreak() {
     if (MR::isFirstStep(this)) {
         MR::startActionSound(this, "Break", -1, -1, -1);
@@ -144,6 +184,17 @@ void KickStone::exeBreak() {
     setNerve(GET_KICKSTONE_NERVE(KickStoneNrvDead));
 }
 
+void KickStone::exeFallAfterRoll() {
+    if (!MR::isNoBind(this)) {
+        if (MR::isBinded(this)) {
+            MR::zeroVelocity(this);
+            MR::offBind(this);
+            return;
+        }
+        MR::addVelocityToGravity(this, 1.0f);
+    }
+}
+
 bool KickStone::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
     if (!isNerve(GET_KICKSTONE_NERVE(KickStoneNrvAttachTico)) && !isNerve(GET_KICKSTONE_NERVE(KickStoneNrvMoveRoll))) {
         return false;
@@ -161,6 +212,18 @@ bool KickStone::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* p
     }
 
     return false;
+}
+
+void NrvKickStone::KickStoneNrvAttachTico::execute(Spine* pSpine) const {
+    MR::attachSupportTicoToTarget(static_cast<LiveActor*>(pSpine->mExecutor));
+}
+
+void NrvKickStone::KickStoneNrvMoveRoll::execute(Spine* pSpine) const {
+    (static_cast<KickStone*>(pSpine->mExecutor))->exeRollTowardPlayer();
+}
+
+void NrvKickStone::KickStoneNrvDead::execute(Spine* pSpine) const {
+    (static_cast<KickStone*>(pSpine->mExecutor))->exeFallAfterRoll();
 }
 
 bool KickStone::receiveMsgEnemyAttack(u32 msg, HitSensor* pSender, HitSensor* pReceiver) {
@@ -201,67 +264,4 @@ bool KickStone::receiveOtherMsg(u32 msg, HitSensor* pSender, HitSensor* pReceive
 }
 
 KickStone::~KickStone() {
-}
-
-void NrvKickStone::KickStoneNrvAttachTico::execute(Spine* pSpine) const {
-    MR::attachSupportTicoToTarget(static_cast<LiveActor*>(pSpine->mExecutor));
-}
-
-void NrvKickStone::KickStoneNrvMoveRoll::execute(Spine* pSpine) const {
-    (static_cast<KickStone*>(pSpine->mExecutor))->exeRollTowardPlayer();
-}
-
-void NrvKickStone::KickStoneNrvDead::execute(Spine* pSpine) const {
-    (static_cast<KickStone*>(pSpine->mExecutor))->exeFallAfterRoll();
-}
-
-void KickStone::exeRollTowardPlayer() {
-    if (MR::isFirstStep(this)) {
-        MR::calcGravity(this);
-        TVec3f velocity(0.0f);
-        TVec3f toPlayer(0.0f);
-        MR::calcVecToPlayerH(&toPlayer, this, nullptr);
-        PSVECCrossProduct(&mUp, &toPlayer, &mRollAxis);
-        if (MR::isNearZero(mRollAxis, 0.001f)) {
-            mRollAxis.set(mFront);
-        }
-        velocity = toPlayer * 4.0f - mGravity * 25.0f;
-        MR::setVelocity(this, velocity);
-    }
-    MR::rotateVecDegree(&mUp, mRollAxis, 4.0f);
-    MR::addVelocityToGravity(this, 1.4f);
-    if (!MR::isLessStep(this, 10) && (MR::isBinded(this) || MR::isStep(this, 120))) {
-        MR::zeroVelocity(this);
-        MR::tryHitReaction(this, "PullBreak");
-        setNerve(GET_KICKSTONE_NERVE(KickStoneNrvBreakSub));
-    }
-}
-
-void KickStone::exeFallAfterRoll() {
-    if (!MR::isNoBind(this)) {
-        if (MR::isBinded(this)) {
-            MR::zeroVelocity(this);
-            MR::offBind(this);
-            return;
-        }
-        MR::addVelocityToGravity(this, 1.0f);
-    }
-}
-
-bool KickStone::snapKickStoneToGround(TVec3f* pUp, KickStone* pStone, s32 useCurrentUp) {
-    MR::calcGravity(pStone);
-    TVec3f gravity(pStone->mGravity);
-    if (useCurrentUp) {
-        gravity.set(-*pUp);
-    }
-    TVec3f line = gravity * 300.0f;
-    TVec3f start = pStone->mPosition - gravity * 50.0f;
-    TVec3f hit(0.0f);
-    Triangle triangle;
-    if (MR::getFirstPolyOnLineToMapExceptActor(&hit, &triangle, start, line, pStone)) {
-        MR::setPosition(pStone, hit);
-        pUp->set(*triangle.getFaceNormal());
-        return true;
-    }
-    return false;
 }

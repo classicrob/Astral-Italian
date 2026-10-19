@@ -7,13 +7,17 @@
 #include "Game/Demo/MarioFaceDemoParts.hpp"
 #include "Game/Demo/UnnamedDemoCallee.hpp"
 
-extern "C" char lbl_8067FCD0[];
-extern "C" char lbl_8067FCE4[];
-extern "C" const char* lbl_807CF718;
-extern "C" const char* lbl_807CF71C;
+namespace {
+    const char* sPartDemoName = "マリオ顔惑星発進デモ";
+    const char* sCameraName = "DemoMarioShipTakeOff";
 
-// Part table (entries at lbl_8067FC90, 0x10 bytes each).
-extern "C" const MarioFaceDemoParts::PartInfo lbl_8067FC90[];
+    MarioFaceDemoParts::PartInfo sParts[] = {
+        {"デモ用マリオ顔惑星", "DemoMarioFaceShipPlanet", nullptr, "MarioShipTakeOff"},
+        {"デモ用マイスター", "Meister", "MeisterAnim", nullptr},
+        {"デモ用発進パネル", "WorldMapAccessPanel", nullptr, nullptr},
+        {"デモ用舵", "MarioFaceShipRudder", nullptr, nullptr},
+    };
+};  // namespace
 
 namespace NrvMarioFacePlanetTakeOffDemoObj {
     NEW_NERVE(MarioFacePlanetTakeOffDemoObjNrvWait, MarioFacePlanetTakeOffDemoObj, Wait);
@@ -24,14 +28,14 @@ MarioFacePlanetTakeOffDemoObj::MarioFacePlanetTakeOffDemoObj(const char* pName) 
 }
 
 void MarioFacePlanetTakeOffDemoObj::init(const JMapInfoIter& rIter) {
-    MR::initActor(this, rIter, lbl_8067FCD0, false);
+    MR::initActor(this, rIter, "MarioShipTakeOff", false);
     mCameraInfo = MR::createActorCameraInfo(rIter);
-    MR::initAnimCamera(this, mCameraInfo, lbl_807CF71C);
+    MR::initAnimCamera(this, mCameraInfo, sCameraName);
     MR::tryRegisterDemoCast(this, rIter);
     mCount = 4;
     mParts = new LiveActor*[mCount];
     for (s32 i = 0; i < mCount; i++) {
-        mParts[i] = MarioFaceDemoParts::createPart(this, &lbl_8067FC90[i], lbl_807CF718, rIter);
+        mParts[i] = MarioFaceDemoParts::createPart(this, &sParts[i], sPartDemoName, rIter);
     }
     MR::invalidateClipping(this);
     initNerve(GET_NERVE(MarioFacePlanetTakeOffDemoObj, MarioFacePlanetTakeOffDemoObjNrvWait), 0);
@@ -39,7 +43,7 @@ void MarioFacePlanetTakeOffDemoObj::init(const JMapInfoIter& rIter) {
 }
 
 void MarioFacePlanetTakeOffDemoObj::exeWait() {
-    if (MR::tryStartTimeKeepDemoMarioPuppetable(this, lbl_807CF718, nullptr)) {
+    if (MR::tryStartTimeKeepDemoMarioPuppetable(this, sPartDemoName, nullptr)) {
         MR::setPlayerBaseMtx(getBaseMtx());
         setNerve(GET_NERVE(MarioFacePlanetTakeOffDemoObj, MarioFacePlanetTakeOffDemoObjNrvDemo));
         for (s32 i = 0; i < mCount; i++) {
@@ -54,7 +58,7 @@ void MarioFacePlanetTakeOffDemoObj::exeDemo() {
         MR::setPlayerBaseMtx(getBaseMtx());
     }
     TVec3f dir;
-    MR::extractMtxYDir(MR::getJointMtx(this, lbl_8067FCD0), &dir);
+    MR::extractMtxYDir(MR::getJointMtx(this, "MarioShipTakeOff"), &dir);
     dir.negate();
     for (s32 i = 0; i < mCount; i++) {
         LiveActor* pPart = mParts[i];
@@ -77,7 +81,7 @@ s32 MarioFaceDemoParts::getFixedPartCount() {
 }
 
 const MarioFaceDemoParts::PartInfo* MarioFaceDemoParts::getPartInfo(s32 index) {
-    return &lbl_8067FC90[index];
+    return &sParts[index];
 }
 
 LiveActor* MarioFaceDemoParts::createPart(LiveActor* pOwner, const PartInfo* pInfo, const char* pName, const JMapInfoIter& rIter) {
@@ -89,9 +93,9 @@ LiveActor* MarioFaceDemoParts::createPart(LiveActor* pOwner, const PartInfo* pIn
     }
     DemoObj* pActor;
     if (pInfo->mAnimArcName != nullptr) {
-        pActor = MR::createDemoObjWithAnimArc(pInfo->mObjName, pInfo->mArcName, pInfo->mAnimArcName, lbl_8067FCE4, mtx);
+        pActor = MR::createDemoObjWithAnimArc(pInfo->mObjName, pInfo->mArcName, pInfo->mAnimArcName, "Demo", mtx);
     } else {
-        pActor = MR::createDemoObj(pInfo->mObjName, pInfo->mArcName, lbl_8067FCE4, mtx);
+        pActor = MR::createDemoObj(pInfo->mObjName, pInfo->mArcName, "Demo", mtx);
     }
     pActor->makeActorDead();
     MR::invalidateClipping(pActor);

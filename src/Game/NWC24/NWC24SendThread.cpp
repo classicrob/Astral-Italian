@@ -118,7 +118,7 @@ NWC24Err NWC24SendThread::sendMessage(MsgSendStatus* pMsgSendStatus, u32* pMsgSi
     const u16* pAltName = pMsgSendStatus->mAltName;
 
     if (pAltName != nullptr) {
-        err = NWC24SetMsgAltName(&msgObj, pAltName, MR::strlenUTF16(pAltName) + 1);
+        err = NWC24SetMsgAltName(&msgObj, pAltName, MR::strlenUTF16(pAltName));
 
         if (err != NWC24_OK) {
             return err;

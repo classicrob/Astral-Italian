@@ -141,6 +141,7 @@ void CameraParamChunk::copy(const CameraParamChunk* pOther) {
     *mGeneralParam = *pOther->mGeneralParam;
 }
 
+// NONMATCHING: native-width num1 staging and equivalent u16 truncation lowering.
 void CameraParamChunk::load(DotCamReader* pReader, CameraHolder* pHolder) {
     const char* camType = "";
     pReader->getValueString("camtype", &camType);

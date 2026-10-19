@@ -34,13 +34,13 @@ public:
     HitInfo* getStrikeInfo(u32);
     CollisionZone* getZone(int);
 
-    /* 0x0C */ HitInfo* mHitInfoArray;
-    /* 0x10 */ s32 _10;
-    /* 0x14 */ s32 mPartsCount;
-    /* 0x18 */ MR::Vector< MR::FixedArray< CollisionZone*, 32 > > mZones;
-    /* 0x9C */ s32 mCategory;
-    /* 0xA0 */ bool mZonesInitialized;
-    /* 0xA1 */ bool mUpdateZoneBounds;
+    /* 0x14 */ HitInfo* mHitInfoArray;
+    /* 0x18 */ s32 mHitCount;
+    /* 0x1C */ s32 mPartsCount;
+    /* 0x20 */ MR::Vector< MR::FixedArray< CollisionZone*, 32 > > mZones;
+    /* 0xA4 */ s32 mCategory;
+    /* 0xA8 */ bool mZonesInitialized;
+    /* 0xA9 */ bool mUpdateZoneBounds;
 };
 
 class CollisionZone {

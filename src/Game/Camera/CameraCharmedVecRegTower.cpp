@@ -13,6 +13,7 @@ void CameraCharmedVecRegTower::reset() {
     CameraLocalUtil::setUpVecAndWatchUpVec(this, CameraLocalUtil::getUpVec(mCameraMan));
 }
 
+// NONMATCHING: saved registers and vector temporary addresses.
 CameraTargetObj* CameraCharmedVecRegTower::calc() {
     TVec3f watchOffset;
     CameraLocalUtil::makeWatchOffset(&watchOffset, this, CameraLocalUtil::getTarget(this), 0.1f / 15.0f);

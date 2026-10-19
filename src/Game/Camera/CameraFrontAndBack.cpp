@@ -28,6 +28,7 @@ CameraFrontAndBack::CameraFrontAndBack(const char* pName)
 void CameraFrontAndBack::reset() {
 }
 
+// NONMATCHING: vector temporary addresses and register allocation.
 CameraTargetObj* CameraFrontAndBack::calc() {
     TVec3f pos = CameraLocalUtil::getPos(this);
     TVec3f axis = mAxis;

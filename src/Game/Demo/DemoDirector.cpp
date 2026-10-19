@@ -23,12 +23,12 @@
 #include "Game/Util/StarPointerUtil.hpp"
 
 DemoDirector::DemoDirector(const char* pName)
-    : NameObj(pName), mIsActive(), _13(), mExecutor(), _14(), _18(), _20(new DemoSimpleCastHolder(512, 64, 128)), mResourceHolder(),
-      mStartRequestHolder(new DemoStartRequestHolder()), _2C(), _30(), _34(-1), _38(true) {
+    : NameObj(pName), mIsActive(), mUnused13(), mExecutor(), mIsEndPending(), mCastGroupHolder(), mSimpleCastHolder(new DemoSimpleCastHolder(512, 64, 128)), mResourceHolder(),
+      mStartRequestHolder(new DemoStartRequestHolder()), mStarterObj(), mDemoName(), mSceneStopType(-1), mIsCinemaFrame(true) {
     MR::connectToScene(this, MR::MovementType_DemoDirector, MR::CalcAnimType_None, MR::DrawBufferType_None, MR::DrawType_None);
 
-    _18 = new DemoCastGroupHolder();
-    _18->initWithoutIter();
+    mCastGroupHolder = new DemoCastGroupHolder();
+    mCastGroupHolder->initWithoutIter();
 
     mCastSubGroupHolder = new DemoCastGroupHolder();
     mCastSubGroupHolder->initWithoutIter();
@@ -37,7 +37,7 @@ DemoDirector::DemoDirector(const char* pName)
 }
 
 void DemoDirector::movement() {
-    if (mExecutor != nullptr && !_14) {
+    if (mExecutor != nullptr && !mIsEndPending) {
         mExecutor->movement();
     }
 
@@ -45,7 +45,7 @@ void DemoDirector::movement() {
         return;
     }
 
-    if (!_14) {
+    if (!mIsEndPending) {
         return;
     }
 
@@ -53,7 +53,7 @@ void DemoDirector::movement() {
         return;
     }
 
-    _14 = false;
+    mIsEndPending = false;
 
     doDemoEndRequest();
 
@@ -87,8 +87,8 @@ void DemoDirector::endDemo(NameObj* pParam1, const char* pParam2, bool param3) {
 
         doDemoEndRequest();
         startDemoRequested();
-    } else if (param3 && !MR::isCameraInterpolatingNearlyEnd() && _34 != 3) {
-        _14 = true;
+    } else if (param3 && !MR::isCameraInterpolatingNearlyEnd() && mSceneStopType != 3) {
+        mIsEndPending = true;
 
         MR::sendMsgToAllLiveActor(ACTMES_END_DEMO, nullptr);
 
@@ -106,7 +106,7 @@ void DemoDirector::endDemo(NameObj* pParam1, const char* pParam2, bool param3) {
 
 const char* DemoDirector::getCurrentDemoName() const {
     if (mIsActive) {
-        return _30;
+        return mDemoName;
     }
 
     return nullptr;
@@ -114,8 +114,8 @@ const char* DemoDirector::getCurrentDemoName() const {
 
 
 bool DemoDirector::isExistTimeKeepDemo(const char* pParam1) const {
-    for (int i = 0; i < _18->getObjNum(); i++) {
-        if (MR::isName(_18->getCastGroup(i), pParam1)) {
+    for (int i = 0; i < mCastGroupHolder->getObjNum(); i++) {
+        if (MR::isName(mCastGroupHolder->getCastGroup(i), pParam1)) {
             return true;
         }
     }
@@ -134,9 +134,9 @@ bool DemoDirector::registerDemoCast(LiveActor* pActor, const JMapInfoIter& rIter
         return false;
     }
 
-    JMapIdInfo idInfo = JMapIdInfo(MR::getDemoGroupID(rIter), rIter);
+    JMapIdInfo idInfo = JMapIdInfo(MR::getJMapInfoDemoGroupID(rIter), rIter);
 
-    if (_18->tryRegisterDemoActor(pActor, rIter, idInfo)) {
+    if (mCastGroupHolder->tryRegisterDemoActor(pActor, rIter, idInfo)) {
         return true;
     }
 
@@ -144,7 +144,7 @@ bool DemoDirector::registerDemoCast(LiveActor* pActor, const JMapInfoIter& rIter
 }
 
 bool DemoDirector::registerDemoCast(LiveActor* pActor, const char* pParam2, const JMapInfoIter& rIter) {
-    if (_18->tryRegisterDemoActor(pActor, pParam2, rIter)) {
+    if (mCastGroupHolder->tryRegisterDemoActor(pActor, pParam2, rIter)) {
         return true;
     }
 
@@ -152,23 +152,23 @@ bool DemoDirector::registerDemoCast(LiveActor* pActor, const char* pParam2, cons
 }
 
 void DemoDirector::registerDemoSimpleCast(LiveActor* pActor) {
-    _20->registerActor(pActor);
+    mSimpleCastHolder->registerActor(pActor);
 }
 
 void DemoDirector::registerDemoSimpleCast(LayoutActor* pActor) {
-    _20->registerActor(pActor);
+    mSimpleCastHolder->registerActor(pActor);
 }
 
 void DemoDirector::registerDemoSimpleCast(NameObj* pObj) {
-    _20->registerNameObj(pObj);
+    mSimpleCastHolder->registerNameObj(pObj);
 }
 
 void DemoDirector::movementOnAllCasts() {
-    _20->movementOnAllCasts();
+    mSimpleCastHolder->movementOnAllCasts();
 }
 
 void DemoDirector::movementOffAllCasts() {
-    _20->movementOffAllCasts();
+    mSimpleCastHolder->movementOffAllCasts();
 }
 
 ResourceHolder* DemoDirector::getDemoResourceHolder(s32 index) const {
@@ -190,14 +190,14 @@ bool DemoDirector::tryStartDemoRequested() {
 
 void DemoDirector::startDemo(NameObj* pObj, const char* pDemoName, bool isCinemaFrame, s32 type) {
     mIsActive = true;
-    _13 = false;
-    _2C = pObj;
-    _30 = pDemoName;
-    _34 = type;
-    _38 = isCinemaFrame;
+    mUnused13 = false;
+    mStarterObj = pObj;
+    mDemoName = pDemoName;
+    mSceneStopType = type;
+    mIsCinemaFrame = isCinemaFrame;
 
     if (!MR::isStoryBookDemoActive()) {
-        _20->movementOnAllCasts();
+        mSimpleCastHolder->movementOnAllCasts();
     }
 
     MR::initStarPieceGetCSSound();
@@ -212,7 +212,7 @@ void DemoDirector::startDemoRequested() {
 }
 
 void DemoDirector::doDemoEndRequest() {
-    MR::getSceneNameObjMovementController()->requestPlaySceneFor(static_cast< MR::MovementControlType >(_34), _2C);
+    MR::getSceneNameObjMovementController()->requestPlaySceneFor(static_cast< MR::MovementControlType >(mSceneStopType), mStarterObj);
 
     if (MR::isStoryBookTurnPaused()) {
         MR::stopStoryBookDemoCasts();
@@ -232,13 +232,13 @@ void DemoDirector::doDemoEndRequest() {
         MR::showCometTimer();
     }
 
-    MR::endStarPointerMode(_2C);
+    MR::endStarPointerMode(mStarterObj);
 
-    if (_38) {
+    if (mIsCinemaFrame) {
         MR::tryFrameToScreenCinemaFrame();
     }
 
-    if (static_cast< u32 >(_34 - 2) <= 1) {
+    if (static_cast< u32 >(mSceneStopType - 2) <= 1) {
         MarioAccess::fn_803B6830(false);
     }
 

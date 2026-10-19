@@ -608,7 +608,7 @@ namespace MR {
         else if (isStageBossParade() && hasPowerStarInCurrentStage(getCurrentScenarioNo())) isDone = true;
         else isDone = false;
         if (isDone) {
-            DemoFunction::getDemoDirector()->_13 = true;
+            DemoFunction::getDemoDirector()->mUnused13 = true;
             tryFrameToBlankCinemaFrame();
             return true;
         }
@@ -616,7 +616,7 @@ namespace MR {
     }
 
     bool isDemoEndWaitCameraInterpolating() {
-        return DemoFunction::getDemoDirector()->_13;
+        return DemoFunction::getDemoDirector()->mUnused13;
     }
 
     bool isDemoEndWaitCinemaFrameStopped() {

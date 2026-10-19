@@ -9,6 +9,7 @@ CameraObjParallel::CameraObjParallel(const char* pName) : Camera(pName), mAngleX
 void CameraObjParallel::reset() {
 }
 
+// NONMATCHING: saved registers and vector temporary addresses.
 CameraTargetObj* CameraObjParallel::calc() {
     TPos3f mtx;
     mtx.identity();

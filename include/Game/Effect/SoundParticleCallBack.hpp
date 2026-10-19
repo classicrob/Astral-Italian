@@ -8,6 +8,8 @@ class SoundParticleCallBack : public MultiEmitterParticleCallBack {
 public:
     SoundParticleCallBack(LiveActor* pHost, const char* pName, s32 id);
 
+    virtual ~SoundParticleCallBack();
+
     virtual void execute(JPABaseEmitter* pEmitter, JPABaseParticle* pParticle);
 
     LiveActor* mHost;

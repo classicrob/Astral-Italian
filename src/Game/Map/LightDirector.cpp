@@ -9,7 +9,7 @@
 #include "Game/Util/ObjUtil.hpp"
 
 LightDirector::LightDirector()
-    : NameObj("ライト指揮"), _C(), mDataHolder(), mZoneDataHolder(), mDefaultAreaLight(), _1C(), mPointCtrl(), mPointCtrlSub(), mResourceHolder(),
+    : NameObj("ライト指揮"), mLightAreaHolder(), mDataHolder(), mZoneDataHolder(), mDefaultAreaLight(), mPlayerLightCtrl(), mPointCtrl(), mPointCtrlSub(), mResourceHolder(),
       mZoneResourceHolders() {
 }
 
@@ -35,7 +35,7 @@ void LightDirector::initData() {
 }
 
 void LightDirector::loadLightPlayer() const {
-    _1C->loadLight();
+    mPlayerLightCtrl->loadLight();
     mPointCtrl->loadPointLight();
 }
 

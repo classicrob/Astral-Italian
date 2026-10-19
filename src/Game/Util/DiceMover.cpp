@@ -202,13 +202,13 @@ bool DiceMover::checkMapCollision(const TVec3f& point, HitInfo* info) {
         const HitSensor* except = mExceptSensor;
         TVec3f delta(point);
         delta.sub(previous);
-        if (except) hit = MR::getFirstPolyOnLineToMapExceptSensor(&info->_64, &info->mParentTriangle, previous, delta, except);
-        else hit = MR::getFirstPolyOnLineToMap(&info->_64, &info->mParentTriangle, previous, delta);
+        if (except) hit = MR::getFirstPolyOnLineToMapExceptSensor(&info->mHitPos, &info->mParentTriangle, previous, delta, except);
+        else hit = MR::getFirstPolyOnLineToMap(&info->mHitPos, &info->mParentTriangle, previous, delta);
         if (hit) {
-            info->_70 = previous + delta;
-            TVec3f penetration(info->_64);
-            penetration.sub(info->_70);
-            info->_60 = info->mParentTriangle.getNormal(0)->dot(penetration);
+            info->mQueryPos = previous + delta;
+            TVec3f penetration(info->mHitPos);
+            penetration.sub(info->mQueryPos);
+            info->mDistance = info->mParentTriangle.getNormal(0)->dot(penetration);
         }
         if (hit) return true;
     }
@@ -259,7 +259,7 @@ void DiceMover::collideWithMap() {
         calcCollisionPoint(&point, i);
         if (checkMapCollision(point, &info)) {
             onMapCollision(&info);
-            resolveCollision(&point, info.mParentTriangle.getNormal(0), info._60);
+            resolveCollision(&point, info.mParentTriangle.getNormal(0), info.mDistance);
             mCollided = true;
         }
     }
@@ -271,8 +271,8 @@ void DiceMover::collideWithMap() {
             if (MR::checkStrikeBallToMap(center, mPointArray->mPoints[i].mRadius)) {
                 for (u32 j = 0; j < Collision::getStrikeInfoNumMap(); ++j) {
                     const HitInfo* hit = Collision::getStrikeInfoMap(j);
-                    TVec3f surface(hit->_64 - *hit->mParentTriangle.getNormal(0) * hit->_60);
-                    resolveCollision(&surface, hit->mParentTriangle.getNormal(0), hit->_60);
+                    TVec3f surface(hit->mHitPos - *hit->mParentTriangle.getNormal(0) * hit->mDistance);
+                    resolveCollision(&surface, hit->mParentTriangle.getNormal(0), hit->mDistance);
                     mCollided = true;
                 }
             }

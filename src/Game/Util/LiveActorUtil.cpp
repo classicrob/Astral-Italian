@@ -582,8 +582,8 @@ namespace MR {
             const HitInfo* pGroundInfo = &binder->mGroundInfo;
             TVec3f roofPower;
             TVec3f groundPower;
-            pRoofInfo->mParentTriangle.calcForceMovePower(&roofPower, pRoofInfo->_64);
-            pGroundInfo->mParentTriangle.calcForceMovePower(&groundPower, pGroundInfo->_64);
+            pRoofInfo->mParentTriangle.calcForceMovePower(&roofPower, pRoofInfo->mHitPos);
+            pGroundInfo->mParentTriangle.calcForceMovePower(&groundPower, pGroundInfo->mHitPos);
 
             TVec3f diff(roofPower);
             diff.sub(groundPower);
@@ -611,7 +611,7 @@ namespace MR {
             }
 
             TVec3f forcePower;
-            pPlane->mParentTriangle.calcForceMovePower(&forcePower, pPlane->_64);
+            pPlane->mParentTriangle.calcForceMovePower(&forcePower, pPlane->mHitPos);
 
             for (s32 j = i + 1; j < planeNum; j++) {
                 const HitInfo* pOther = pActor->mBinder->getPlane(j);
@@ -624,10 +624,10 @@ namespace MR {
                 }
 
                 TVec3f otherPower;
-                pOther->mParentTriangle.calcForceMovePower(&otherPower, pOther->_64);
+                pOther->mParentTriangle.calcForceMovePower(&otherPower, pOther->mHitPos);
 
-                TVec3f posDiff(pPlane->_64);
-                posDiff.sub(pOther->_64);
+                TVec3f posDiff(pPlane->mHitPos);
+                posDiff.sub(pOther->mHitPos);
 
                 TVec3f powerDiff(otherPower);
                 powerDiff.sub(forcePower);
@@ -1550,18 +1550,18 @@ namespace MR {
         }
 
         if (isBindedRoof(pActor)) {
-            return pActor->mBinder->mRoofInfo._64;
+            return pActor->mBinder->mRoofInfo.mHitPos;
         }
 
         return getGroundHitPos(pActor);
     }
 
     const TVec3f& getGroundHitPos(const LiveActor* pActor) {
-        return pActor->mBinder->mGroundInfo._64;
+        return pActor->mBinder->mGroundInfo.mHitPos;
     }
 
     const TVec3f& getWallHitPos(const LiveActor* pActor) {
-        return pActor->mBinder->mWallInfo._64;
+        return pActor->mBinder->mWallInfo.mHitPos;
     }
 
 

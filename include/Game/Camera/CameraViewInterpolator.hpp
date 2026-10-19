@@ -58,6 +58,10 @@ public:
     /* 0xA4 */ TVec3f mGravity;
     /* 0xB0 */ bool mIsCollided;
     /* 0xB4 */ TVec3f mLErpOffset;  // TODO: is this name correct?
-    /* 0xC0 */ bool _C0;
-    /* 0xC1 */ bool _C1;
+    /* 0xC0 */ bool mIsOverSwitchAngle;
+    /* 0xC1 */ bool mIsOverRotationDifference;
 };
+
+namespace CameraInterpolationUtil {
+    void getRotationAxisAndAngle(const TPos3f&, TVec3f*, f32*) NO_INLINE;
+}

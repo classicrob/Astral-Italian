@@ -31,7 +31,7 @@ void DemoTitleAnim::init(const JMapInfoIter& rIter) {
     MR::initActor(this, rIter, "DemoTitleAnim", false);
     createSubs();
     mBgmStartStep = MR::getActorParamS32(this, "ＢＧＭ開始フレーム");
-    mTitleLogoStep = MR::getActorParamS32(this, "タイトルロゴ");
+    mTitleLogoStep = MR::getActorParamS32(this, "タイトルロゴ開始フレーム");
     mCameraInfo = new ActorCameraInfo(-1, 0);
     MR::initAnimCamera(this, mCameraInfo, "Start");
     MR::initAnimCamera(this, mCameraInfo, "Loop");
@@ -118,7 +118,7 @@ void DemoTitleAnim::createSubs() {
     if (mSubCount == 0) {
         return;
     }
-    mSubs = new DemoTitleAnimSub*[mSubCount];
+    mSubs = new DemoTitleAnimModel*[mSubCount];
     for (s32 i = 0; i < mSubCount; i++) {
         DemoTitleAnimParam* param = new DemoTitleAnimParam();
         MR::getCsvDataStr(&param->mArcName, csv, "ArciveName", i);

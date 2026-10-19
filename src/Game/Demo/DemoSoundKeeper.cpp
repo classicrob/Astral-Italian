@@ -51,7 +51,7 @@ void DemoSoundKeeper::update() {
 
 void DemoSoundKeeper::initActionSoundKeeper() {
     if (mActionSoundKeeper == nullptr) {
-        mActionSoundKeeper = new ActionSoundKeeper(4, mExecutor->mName, nullptr);
+        mActionSoundKeeper = new ActionSoundKeeper(4, mExecutor->mSheetName, nullptr);
     }
 }
 

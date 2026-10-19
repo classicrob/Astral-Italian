@@ -1104,7 +1104,7 @@ bool ItemDrillMovementLimitPos::checkMapStrikePushback(TVec3f* pOut, const TVec3
             }
         }
 
-        f32 k = 1.1f * pInfo->_60;
+        f32 k = 1.1f * pInfo->mDistance;
         f32 vx = n.x * k;
         if (maxV.x < vx) {
             maxV.x = vx;

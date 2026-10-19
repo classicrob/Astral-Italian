@@ -969,11 +969,11 @@ void YoshiGroundChecker::update() {
         mGroundHit.mParentTriangle.mPos[0] = ground.mParentTriangle.mPos[0];
         mGroundHit.mParentTriangle.mPos[1] = ground.mParentTriangle.mPos[1];
         mGroundHit.mParentTriangle.mPos[2] = ground.mParentTriangle.mPos[2];
-        mGroundHit._60 = ground._60;
-        mGroundHit._64 = ground._64;
-        mGroundHit._70 = ground._70;
-        mGroundHit._7C = ground._7C;
-        mGroundHit._88 = ground._88;
+        mGroundHit.mDistance = ground.mDistance;
+        mGroundHit.mHitPos = ground.mHitPos;
+        mGroundHit.mQueryPos = ground.mQueryPos;
+        mGroundHit.mNormalMovement = ground.mNormalMovement;
+        mGroundHit.mCollisionType = ground.mCollisionType;
         if (MR::isBindedGroundSlip(mActor)) {
             mSlipping = true;
         }

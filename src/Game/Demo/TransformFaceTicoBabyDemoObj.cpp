@@ -3,10 +3,7 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-// Demo name pointer (set up in another TU's sdata: "マリオ顔惑星変化").
-extern "C" const char* lbl_807CF780;
-
-// Function name for the demo cast (DemoMeetMeister); initialized in this TU's sdata.
+const char* sDemoName = "マリオ顔惑星変化";
 const char* sDemoFuncName = "DemoMeetMeister";
 
 namespace NrvTransformFaceTicoBabyDemoObj {
@@ -36,9 +33,9 @@ void TransformFaceTicoBabyDemoObj::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(this);
     initNerve(&NrvTransformFaceTicoBabyDemoObj::TransformFaceTicoBabyDemoObjNrvWait::sInstance, 0);
 
-    MR::tryRegisterDemoCast(this, lbl_807CF780, rIter);
+    MR::tryRegisterDemoCast(this, sDemoName, rIter);
     mDemoObj = MR::createDemoObjWithAnimArc("ベビチコ[顔惑星変化用]", "TicoBaby", "TicoBabyAnim", MR::getPlayerBaseMtx());
-    MR::tryInitDemoSheetAnim(mDemoObj, rIter, lbl_807CF780, sDemoFuncName);
+    MR::tryInitDemoSheetAnim(mDemoObj, rIter, sDemoName, sDemoFuncName);
     MR::invalidateClipping(mDemoObj);
     mDemoObj->makeActorDead();
     makeActorDead();
@@ -55,7 +52,7 @@ TransformFaceTicoBabyDemoObj::~TransformFaceTicoBabyDemoObj() {
 namespace NrvTransformFaceTicoBabyDemoObj {
     void TransformFaceTicoBabyDemoObjNrvWait::execute(Spine* pSpine) const {
         TransformFaceTicoBabyDemoObj* pActor = reinterpret_cast<TransformFaceTicoBabyDemoObj*>(pSpine->mExecutor);
-        if (!MR::isDemoActive(lbl_807CF780)) {
+        if (!MR::isDemoActive(sDemoName)) {
             pActor->kill();
         }
     }

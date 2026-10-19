@@ -17,12 +17,7 @@ namespace NrvStoryBookText {
 
     class StoryBookTextNrvWait : public Nerve {
     public:
-        virtual void execute(Spine* pSpine) const {
-            StoryBookText* actor = reinterpret_cast< StoryBookText* >(pSpine->mExecutor);
-            if (MR::isFirstStep(actor)) {
-                MR::startAnim(actor, "Wait", 0);
-            }
-        }
+        virtual void execute(Spine* pSpine) const;
         static StoryBookTextNrvWait sInstance;
     };
     StoryBookTextNrvWait StoryBookTextNrvWait::sInstance ATTRIBUTE_WEAK;
@@ -79,29 +74,6 @@ void StoryBookText::setMessageWithIcon(s32 msgNo) {
     MR::requestMovementOn(mIconAButton);
 }
 
-// NONMATCHING: register allocation / prologue (target keeps the table base and args in r28-r31)
-void StoryBookText::setMessage(const char* pMsgName, s32 msgNo) {
-    mMessage = MR::getSceneMessageDirect(pMsgName, msgNo);
-    MR::initTagProcessorRecursive(this, "StoryBookText", 2);
-    MR::setTextBoxMessageRecursive(this, "StoryBookText", mMessage);
-    MR::hidePaneRecursive(this, "StoryBookText");
-    MR::showPane(this, "StoryBookText");
-    if (MR::isStoryBookPageKindA(pMsgName, msgNo) != 0) {
-        const char* pPane = "TextD";
-        if (mHasIcon) {
-            pPane = "TextDDemo";
-        }
-        MR::showPaneRecursive(this, pPane);
-    } else if (MR::isStoryBookPageKindB(pMsgName, msgNo) != 0) {
-        MR::showPaneRecursive(this, "TextC");
-    } else if (MR::isStoryBookPageKindC(pMsgName, msgNo) != 0) {
-        MR::showPaneRecursive(this, "TextU");
-    }
-    MR::startAnimAndSetFrameAndStop(this, "WindowSize", (f32)MR::getTextLineNumMaxRecursive(this, "StoryBookText"), 1);
-    setNerve(&NrvStoryBookText::StoryBookTextNrvAppear::sInstance);
-    LayoutActor::appear();
-}
-
 void StoryBookText::requestClose() {
     setNerve(&NrvStoryBookText::StoryBookTextNrvClose::sInstance);
 }
@@ -156,6 +128,13 @@ void StoryBookText::exeAppear() {
     }
 }
 
+void NrvStoryBookText::StoryBookTextNrvWait::execute(Spine* pSpine) const {
+    StoryBookText* actor = static_cast< StoryBookText* >(pSpine->mExecutor);
+    if (MR::isFirstStep(actor)) {
+        MR::startAnim(actor, "Wait", 0);
+    }
+}
+
 void StoryBookText::exeClose() {
     if (MR::isFirstStep(this)) {
         if (mHasIcon) {
@@ -193,6 +172,25 @@ void StoryBookText::exeShowText() {
     if (MR::isAnimStopped(this, 0)) {
         setNerve(&NrvStoryBookText::StoryBookTextNrvWait::sInstance);
     }
+}
+
+// NONMATCHING: register allocation / prologue (target keeps the table base and args in r28-r31)
+void StoryBookText::setMessage(const char* pMsgName, s32 msgNo) {
+    mMessage = MR::getSceneMessageDirect(pMsgName, msgNo);
+    MR::initTagProcessorRecursive(this, "StoryBookText", 2);
+    MR::setTextBoxMessageRecursive(this, "StoryBookText", mMessage);
+    MR::hidePaneRecursive(this, "StoryBookText");
+    MR::showPane(this, "StoryBookText");
+    if (MR::isStoryBookPageKindA(pMsgName, msgNo) != 0) {
+        MR::showPaneRecursive(this, mHasIcon ? "TextDDemo" : "TextD");
+    } else if (MR::isStoryBookPageKindB(pMsgName, msgNo) != 0) {
+        MR::showPaneRecursive(this, "TextC");
+    } else if (MR::isStoryBookPageKindC(pMsgName, msgNo) != 0) {
+        MR::showPaneRecursive(this, "TextU");
+    }
+    MR::startAnimAndSetFrameAndStop(this, "WindowSize", (f32)MR::getTextLineNumMaxRecursive(this, "StoryBookText"), 1);
+    setNerve(&NrvStoryBookText::StoryBookTextNrvAppear::sInstance);
+    LayoutActor::appear();
 }
 
 StoryBookText::~StoryBookText() {}

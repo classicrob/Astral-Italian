@@ -98,6 +98,14 @@ void FireBall::appearAndThrow(const TVec3f& rAppearPos, f32 speed, f32 angle) {
     appear();
 }
 
+void FireBall::launchFireBallWithVelocity(const TVec3f& pos, const TVec3f& velocity) {
+    mPosition.set<f32>(pos);
+    MR::calcGravity(this);
+    mUp.negate(mGravity);
+    mVelocity.set<f32>(velocity);
+    appear();
+}
+
 void FireBall::control() {
     MR::requestPointLight(this, mPosition, color, 1.0f, -1);
 }
@@ -189,18 +197,6 @@ bool FireBall::tryToKill() {
     return false;
 }
 
-// NONMATCHING: TVec3::add stays an out-of-line call here while the target inlines the paired-single add (inliner budget in this TU; same semantics).
-void FireBall::setVelocityToPlayer(f32 magnitude) {
-    TVec3f target;
-    target.scale(::cThrowOffsetY, mUp);
-    target += *MR::getPlayerPos();
-
-    TVec3f dir;
-    dir.sub(target, mPosition);
-    MR::normalize(&dir);
-    mVelocity.scale(magnitude, dir);
-}
-
 void FireBall::calcReflectVelocity() {
     MR::getStarPointerWorldVelocityDirection(&mVelocity, *MR::getStarPointerLastPointedPort(this));
 
@@ -221,6 +217,26 @@ void FireBall::calcReflectVelocity() {
     }
 
     mVelocity.mult(::cReflectSpeed);
+}
+
+// NONMATCHING: TVec3::add stays an out-of-line call here while the target inlines the paired-single add (inliner budget in this TU; same semantics).
+void FireBall::setVelocityToPlayer(f32 magnitude) {
+    TVec3f target;
+    target.scale(::cThrowOffsetY, mUp);
+    target += *MR::getPlayerPos();
+
+    TVec3f dir;
+    dir.sub(target, mPosition);
+    MR::normalize(&dir);
+    mVelocity.scale(magnitude, dir);
+}
+
+void FireBall::randomizeReflectVelocity() {
+    if (MR::isNearZero(mReflectDir)) {
+        mReflectDir.set<f32>(mUp);
+    }
+    MR::turnVecRandomAroundAxis(&mVelocity, mUp, mReflectDir, -20.0f, 20.0f);
+    mVelocity *= 100.0f;
 }
 
 void FireBall::exeThrow() {
@@ -257,20 +273,4 @@ void FireBall::exeReflect() {
     if (!tryToKill() && MR::isStep(this, ::cReflectInvalidFrame)) {
         kill();
     }
-}
-
-void FireBall::launchFireBallWithVelocity(const TVec3f& pos, const TVec3f& velocity) {
-    mPosition.set<f32>(pos);
-    MR::calcGravity(this);
-    mUp.negate(mGravity);
-    mVelocity.set<f32>(velocity);
-    appear();
-}
-
-void FireBall::randomizeReflectVelocity() {
-    if (MR::isNearZero(mReflectDir)) {
-        mReflectDir.set<f32>(mUp);
-    }
-    MR::turnVecRandomAroundAxis(&mVelocity, mUp, mReflectDir, -20.0f, 20.0f);
-    mVelocity *= 100.0f;
 }

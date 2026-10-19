@@ -18,3 +18,6 @@ bool AwakeControlFunc::addAwakeControl(LiveActor* pActor, const JMapInfoIter& rI
     MR::getSceneObj<AwakeControllerHolder>(SceneObj_AwakeControllerHolder)->add(pActor, rIter, pListener);
     return true;
 }
+
+AwakeControllerHolder::~AwakeControllerHolder() {
+}

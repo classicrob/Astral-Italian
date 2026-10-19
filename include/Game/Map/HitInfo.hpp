@@ -52,10 +52,10 @@ public:
     bool isCollisionAtCorner() const;
 
     Triangle mParentTriangle;  // 0x0
-    f32 _60;
-    TVec3f _64;
-    TVec3f _70;
-    TVec3f _7C;
-    u8 _88;
-    u8 _89[3];
+    /* 0x60 */ f32 mDistance;
+    /* 0x64 */ TVec3f mHitPos;
+    /* 0x70 */ TVec3f mQueryPos;
+    /* 0x7C */ TVec3f mNormalMovement;
+    /* 0x88 */ u8 mCollisionType;
+    /* 0x89 */ u8 mReserved[3];
 };

@@ -61,9 +61,6 @@ Mogucchi::Mogucchi(const char* pName)
     mNewHolePos.identity();
 }
 
-Mogucchi::~Mogucchi() {
-}
-
 void Mogucchi::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::getJMapInfoArg0NoInit(rIter, &mMaxStrollSpeed);
@@ -133,15 +130,6 @@ void Mogucchi::control() {
     }
 
     updateReferenceMtx();
-}
-
-bool Mogucchi::checkHipDrop() const {
-    // !MR::isPlayerHipDropLand() will not match
-    if (MR::isPlayerHipDropLand() == false) {
-        return false;
-    }
-
-    return !(MR::calcDistanceToPlayer(this) > 800.0f);
 }
 
 void Mogucchi::exeStroll() {
@@ -260,10 +248,6 @@ void Mogucchi::exeDie() {
     }
 }
 
-void Mogucchi::endStroll() {
-    MR::deleteEffect(this, "PointerTouchManual");
-}
-
 void Mogucchi::attackSensor(HitSensor* pSender, HitSensor* pReceiver) {
     if (MR::isSensorPlayerOrRide(pReceiver) && (MR::isEqualSensor(pSender, this, "Body") || MR::isEqualSensor(pSender, this, "head"))) {
         bool isStroll = false;
@@ -298,6 +282,10 @@ bool Mogucchi::receiveMsgPlayerAttack(u32 msg, HitSensor* pSender, HitSensor* pR
     return receiveAttackByBodySensor(msg, pSender, pReceiver);
 }
 
+void Mogucchi::endStroll() {
+    MR::deleteEffect(this, "PointerTouchManual");
+}
+
 void Mogucchi::initSensor() {
     LiveActor::initHitSensor(3);
     MR::addHitSensorAtJointEnemy(this, "head", "Head", 32, 83.0f, TVec3f(::sHeadOffset));
@@ -323,37 +311,10 @@ void Mogucchi::createMogucchiHill() {
     hill->mReserveDistance = 100.0f;
 }
 
-void Mogucchi::updateStrollSpeed() {
-    if (!(mStrollSpeed < mMaxStrollSpeed)) {
-        return;
-    }
-
-    mStrollSpeed += 0.1f;
-    if (mStrollSpeed > mMaxStrollSpeed) {
-        mStrollSpeed = mMaxStrollSpeed;
-    }
-}
-
-void Mogucchi::reflectStarPointer2P() {
-    // "Weak"
-    if (MR::isStarPointerPointing2PAttachTarget(this)) {
-        if (!mIsStoppedByP2) {
-            mIsStoppedByP2 = true;
-            MR::startDPDHitSound();
-            MR::emitEffectWithScale(this, "PointerTouchManual", 1.4f, -1);
-        }
-
-        mStrollSpeed = 0.0f;
-        MR::startDPDFreezeLevelSound(this);
-        return;
-    }
-
-    if (!mIsStoppedByP2) {
-        return;
-    }
-
-    mIsStoppedByP2 = false;
-    MR::deleteEffect(this, "PointerTouchManual");
+void Mogucchi::createHole() {
+    // "Mogucchi hole"
+    mHole = new ModelObj("モグッチ穴", "MogucchiHole", mNewHolePos, MR::DrawBufferType_MapObjStrongLight, -2, -2, false);
+    mHole->initWithoutIter();
 }
 
 void Mogucchi::updatePosition() {
@@ -369,10 +330,28 @@ void Mogucchi::updatePosition() {
     }
 }
 
-void Mogucchi::createHole() {
-    // "Mogucchi hole"
-    mHole = new ModelObj("モグッチ穴", "MogucchiHole", mNewHolePos, MR::DrawBufferType_MapObjStrongLight, -2, -2, false);
-    mHole->initWithoutIter();
+void Mogucchi::makeEulerRotation() {
+    TPos3f mtx;
+    MR::makeMtxUpFront(&mtx, -mRailGravity, MR::getRailDirection(this));
+    mtx.getEulerXYZ(mRotation);
+    mRotation.mult(180.0f / PI);
+}
+
+void Mogucchi::updateReferenceMtx() {
+    TVec3f v1 = mRotation * (PI / 180.0f);
+
+    mNewHolePos.setRT(v1, mPosition);
+
+    MR::setPosition(mHole, mPosition);
+}
+
+bool Mogucchi::checkHipDrop() const {
+    // !MR::isPlayerHipDropLand() will not match
+    if (MR::isPlayerHipDropLand() == false) {
+        return false;
+    }
+
+    return !(MR::calcDistanceToPlayer(this) > 800.0f);
 }
 
 void Mogucchi::calcAttackDir(TVec3f* pDir, const TVec3f& rSenderPos, const TVec3f& rReceiverPos) const {
@@ -386,13 +365,6 @@ void Mogucchi::calcAttackDir(TVec3f* pDir, const TVec3f& rSenderPos, const TVec3
 
     pDir->add(-mRailGravity);
     MR::normalize(pDir);
-}
-
-void Mogucchi::makeEulerRotation() {
-    TPos3f mtx;
-    MR::makeMtxUpFront(&mtx, -mRailGravity, MR::getRailDirection(this));
-    mtx.getEulerXYZ(mRotation);
-    mRotation.mult(180.0f / PI);
 }
 
 void Mogucchi::calcScatterVec(const TVec3f& rStart, const TVec3f& rEnd) {
@@ -487,16 +459,44 @@ bool Mogucchi::receiveAttackByBodySensor(u32 msg, HitSensor* pSender, HitSensor*
     return false;
 }
 
-void Mogucchi::updateReferenceMtx() {
-    TVec3f v1 = mRotation * (PI / 180.0f);
+void Mogucchi::updateStrollSpeed() {
+    if (!(mStrollSpeed < mMaxStrollSpeed)) {
+        return;
+    }
 
-    mNewHolePos.setRT(v1, mPosition);
+    mStrollSpeed += 0.1f;
+    if (mStrollSpeed > mMaxStrollSpeed) {
+        mStrollSpeed = mMaxStrollSpeed;
+    }
+}
 
-    MR::setPosition(mHole, mPosition);
+void Mogucchi::reflectStarPointer2P() {
+    // "Weak"
+    if (MR::isStarPointerPointing2PAttachTarget(this)) {
+        if (!mIsStoppedByP2) {
+            mIsStoppedByP2 = true;
+            MR::startDPDHitSound();
+            MR::emitEffectWithScale(this, "PointerTouchManual", 1.4f, -1);
+        }
+
+        mStrollSpeed = 0.0f;
+        MR::startDPDFreezeLevelSound(this);
+        return;
+    }
+
+    if (!mIsStoppedByP2) {
+        return;
+    }
+
+    mIsStoppedByP2 = false;
+    MR::deleteEffect(this, "PointerTouchManual");
 }
 
 void Mogucchi::updateSpinCounterCooldown() {
     if (--mSpinCounterCooldown <= 0) {
         mSpinCounterCooldown = 0;
     }
+}
+
+Mogucchi::~Mogucchi() {
 }

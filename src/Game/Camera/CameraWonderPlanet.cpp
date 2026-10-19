@@ -45,6 +45,7 @@ void CameraWonderPlanet::reset() {
     mRotateFrame = 0;
 }
 
+// NONMATCHING: saved registers and vector temporary addresses.
 CameraTargetObj* CameraWonderPlanet::calc() {
     // FIXME
     TVec3f currWatchPos = CameraLocalUtil::getWatchPos(this);

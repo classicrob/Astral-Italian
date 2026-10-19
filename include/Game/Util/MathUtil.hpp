@@ -555,6 +555,9 @@ namespace MR {
     /// @brief Computes the tangent of a number, in degrees.
     /// @param x The number of degrees to evaluate.
     /// @return The ratio of the length of the opposite to that of the adjacent.
+#ifdef MR_TAN_DEGREE_NOINLINE
+    NO_INLINE
+#endif
     inline f32 tanDegree(f32 x) {
         return JMASinDegree(x) / JMACosDegree(x);
     }
@@ -703,6 +706,10 @@ namespace MR {
     T sqrt(T x) {
         return fastSqrtf(x);
     }
+
+#ifdef MR_SQRT_F32_OUTLINE
+    template <> f32 sqrt<f32>(f32) NO_INLINE;
+#endif
 
 };  // namespace MR
 

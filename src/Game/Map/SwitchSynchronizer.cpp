@@ -4,7 +4,7 @@
 
 SwitchSynchronizer::SwitchSynchronizer(const char* pName) : NameObj(pName) {
     mSwitchCtrl = nullptr;
-    _18 = true;
+    mIsCheckSameSwitchState = true;
 }
 
 void SwitchSynchronizer::init(const JMapInfoIter& rIter) {
@@ -14,7 +14,7 @@ void SwitchSynchronizer::init(const JMapInfoIter& rIter) {
 }
 
 void SwitchSynchronizer::movement() {
-    if (_18) {
+    if (mIsCheckSameSwitchState) {
         if (mSwitchCtrl->isOnSwitchA() && mSwitchCtrl->isOnSwitchB()) {
             mSwitchCtrl->offSwitchA();
             return;

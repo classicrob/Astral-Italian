@@ -25,7 +25,6 @@ public:
 class BckCtrlFunction {
 public:
     static void reflectBckCtrlData(const BckCtrlData&, XanimePlayer*);
-    // was fn_80069CD0
     static void reflectBckCtrlDataToFrameCtrl(const BckCtrlData&, J3DFrameCtrl*);
 };
 

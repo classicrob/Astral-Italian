@@ -156,6 +156,28 @@ inline f32 calcPlayRate(const J3DFrameCtrl& rCtrl, s32 playFrame, f32 baseRate =
     return baseRate * (static_cast< f32 >(rCtrl.getEnd() - rCtrl.getStart()) / playFrame);
 }
 
+// NONMATCHING: conversion stack slots, register allocation and instruction scheduling.
+void BckCtrlFunction::reflectBckCtrlDataToFrameCtrl(const BckCtrlData& rData, J3DFrameCtrl* pCtrl) {
+    const s16 startFrame = rData.mStartFrame;
+    const s16 playFrame = rData.mPlayFrame;
+    const u8 attribute = rData.mLoopMode;
+    const s16 repeatFrame = rData.mRepeatFrame;
+    const s16 endFrame = rData.mEndFrame;
+    pCtrl->mAttribute = attribute;
+    pCtrl->mStart = startFrame;
+    pCtrl->mLoop = repeatFrame;
+    pCtrl->mFrame = startFrame;
+    pCtrl->mEnd = endFrame;
+    pCtrl->mRate = 1.0f;
+    if (playFrame >= 0) {
+        f32 rate = 0.0f;
+        if (playFrame != 0) {
+            rate = pCtrl->getRate() * (static_cast<f32>(endFrame - startFrame) / playFrame);
+        }
+        pCtrl->mRate = rate;
+    }
+}
+
 void BckCtrlFunction::reflectBckCtrlData(const BckCtrlData& rData, XanimePlayer* pPlayer) {
     XanimeFrameCtrl* pFrameCtrl = pPlayer->getFrameCtrl();
 

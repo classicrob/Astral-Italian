@@ -21,19 +21,28 @@ const char* sNormalEndingPartName2 = "DemoEnding2nd";
 const char* sNormalEndingPartName3 = "DemoEnding3rd";
 const char* sNormalEndingPartName4 = "DemoEnding4th";
 const char* sNormalEndingBasePointName = "ノーマルエンディングデモ基準点";
-// PLACEHOLDER(enemies): the NormalEndingDemoObj nerve objects (.sbss 0x807D1E08..) belong to this TU's nerve tail, which the splits do not cover yet; resolve when they do
-class NormalEndingNerve : public Nerve {
-public:
-    virtual void execute(Spine* pSpine) const;
-};
+namespace NrvNormalEndingDemoObj {
+    class NormalEndingDemoObjNrvWait : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+        }
+        static NormalEndingDemoObjNrvWait sInstance;
+    };
+    NormalEndingDemoObjNrvWait NormalEndingDemoObjNrvWait::sInstance ATTRIBUTE_WEAK;
 
-extern NormalEndingNerve lbl_807D1E0C;
-extern NormalEndingNerve lbl_807D1E08;
-extern NormalEndingNerve lbl_807D1E10;
-extern NormalEndingNerve lbl_807D1E14;
-extern NormalEndingNerve lbl_807D1E18;
-extern "C" f32 lbl_807D97FC;
+    NEW_NERVE(NormalEndingDemoObjNrvA, NormalEndingDemoObj, A);
+    NEW_NERVE(NormalEndingDemoObjNrvB, NormalEndingDemoObj, B);
+    NEW_NERVE(NormalEndingDemoObjNrvC, NormalEndingDemoObj, C);
 
+    class NormalEndingDemoObjNrvStaffRoll : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            reinterpret_cast< NormalEndingDemoObj* >(pSpine->mExecutor)->checkStaffRollStart();
+        }
+        static NormalEndingDemoObjNrvStaffRoll sInstance;
+    };
+    NormalEndingDemoObjNrvStaffRoll NormalEndingDemoObjNrvStaffRoll::sInstance ATTRIBUTE_WEAK;
+};  // namespace NrvNormalEndingDemoObj
 
 LiveActor* NormalEndingDemoObj::createDemoModel(const char* pName, const char* pModelName, MtxPtr pMtx) {
     LiveActor* pActor = MR::createDemoObj(pName, pModelName, pMtx);
@@ -92,7 +101,7 @@ void NormalEndingDemoObj::init(const JMapInfoIter& rIter) {
     MR::registerDemoCast(this, sNormalEndingDemoName2, rIter);
     MR::registerDemoCast(this, sNormalEndingDemoName3, rIter);
     MR::registerDemoCast(this, sNormalEndingDemoName4, rIter);
-    MR::registerDemoActionNerveDirect(this, &lbl_807D1E0C, sNormalEndingDemoName1, nullptr);
+    MR::registerDemoActionNerveDirect(this, GET_NERVE(NormalEndingDemoObj, NormalEndingDemoObjNrvA), sNormalEndingDemoName1, nullptr);
     mActorI = createDemoModel("デモ用顔惑星ヌルオブジェ", "MarioShipTakeOff");
     MR::tryRegisterDemoCast(mActorI, sNormalEndingDemoName1, rIter);
     MR::tryRegisterDemoCast(mActorI, sNormalEndingDemoName2, rIter);
@@ -143,7 +152,7 @@ void NormalEndingDemoObj::init(const JMapInfoIter& rIter) {
     MR::registerDemoSimpleCastAll(mPlanet);
     MR::initTalkAnimDemoCast(mPlanet, rIter, sNormalEndingDemoName1, sNormalEndingPartName1);
     MR::initTalkAnimDemoCast(mPlanet, rIter, sNormalEndingDemoName3, sNormalEndingPartName3);
-    initNerve(&lbl_807D1E08, 0);
+    initNerve(GET_NERVE(NormalEndingDemoObj, NormalEndingDemoObjNrvWait), 0);
     makeActorAppeared();
 }
 
@@ -203,7 +212,7 @@ void NormalEndingDemoObj::exeA() {
     if (MR::isDemoLastStep()) {
         MR::pauseStoryBookTurnPage();
         MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, sNormalEndingDemoName2, 0);
-        setNerve(&lbl_807D1E10);
+        setNerve(GET_NERVE(NormalEndingDemoObj, NormalEndingDemoObjNrvB));
     }
 }
 
@@ -219,13 +228,13 @@ void NormalEndingDemoObj::exeB() {
     if (MR::isDemoLastStep()) {
         MR::pauseStoryBookTurnPage();
         MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, sNormalEndingDemoName3, 0);
-        setNerve(&lbl_807D1E14);
+        setNerve(GET_NERVE(NormalEndingDemoObj, NormalEndingDemoObjNrvC));
     }
 }
 
 void NormalEndingDemoObj::exeC() {
     if (MR::isFirstStep(this)) {
-        mPlanet->mRotationY = lbl_807D97FC;
+        mPlanet->mRotationY = 0.0f;
         mPlanet->mIsRotating = false;
         MR::startBtk(mActorH, "DemoEnding3rdLoop");
         MR::startBtk(mPlanet, "DemoEnding3rdLoop");
@@ -246,7 +255,7 @@ void NormalEndingDemoObj::exeC() {
     if (MR::isDemoLastStep()) {
         MR::pauseStoryBookTurnPage();
         MR::requestStartTimeKeepDemoMarioPuppetableWithoutCinemaFrame(this, sNormalEndingDemoName4, 0);
-        setNerve(&lbl_807D1E18);
+        setNerve(GET_NERVE(NormalEndingDemoObj, NormalEndingDemoObjNrvStaffRoll));
     }
 }
 
@@ -273,5 +282,57 @@ void NormalEndingDemoObj::kill() {
     LiveActor::kill();
 }
 
+DemoAstroPlanet::DemoAstroPlanet(const char* pName, MtxPtr pMtx)
+    : LiveActor(pName), mJointController(NULL), mBaseMtx(pMtx), mEaseTimer(0.0f), mRotationY(0.0f), mIsRotating(false) {
+    if (pMtx != NULL) {
+        mPosition.set(pMtx[0][3], pMtx[1][3], pMtx[2][3]);
+    }
+}
+
+void DemoAstroPlanet::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "DemoAstroPlanet", false);
+
+    JointControlDelegator< DemoAstroPlanet >::func calcFunc = &DemoAstroPlanet::calcJointMatrix;
+    JointControlDelegator< DemoAstroPlanet >* pDelegator = new JointControlDelegator< DemoAstroPlanet >(this, calcFunc, NULL);
+    MR::setJointControllerParam(pDelegator, this, "Model");
+    mJointController = pDelegator;
+
+    makeActorAppeared();
+}
+
+void DemoAstroPlanet::control() {
+    if (mIsRotating && !MR::isStoryBookDemoActive()) {
+        f32 ease = 1.0f;
+        s32 limit = 60;
+        if (mEaseTimer < (f32)limit) {
+            f32 t = MR::normalize(mEaseTimer, 0.0f, (f32)limit);
+            ease = MR::getEaseInValue(t, 0.0f, 1.0f, 1.0f);
+            mEaseTimer += 1.0f;
+        }
+
+        mRotationY += 0.05f * ease;
+        mRotationY = MR::repeatDegree(mRotationY);
+    }
+}
+
+void DemoAstroPlanet::calcAndSetBaseMtx() {
+    if (mBaseMtx != NULL) {
+        mPosition.set(mBaseMtx[0][3], mBaseMtx[1][3], mBaseMtx[2][3]);
+        MR::setBaseTRMtx(this, mBaseMtx);
+    } else {
+        LiveActor::calcAndSetBaseMtx();
+    }
+
+    mJointController->registerCallBack();
+}
+
+bool DemoAstroPlanet::calcJointMatrix(TPos3f* pMtx, const JointControllerInfo&) {
+    MR::rotateMtxLocalYDegree(pMtx->toMtxPtr(), mRotationY);
+    return true;
+}
+
 NormalEndingDemoObj::~NormalEndingDemoObj() {
+}
+
+DemoAstroPlanet::~DemoAstroPlanet() {
 }

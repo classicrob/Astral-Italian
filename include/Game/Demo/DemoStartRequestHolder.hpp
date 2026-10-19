@@ -19,15 +19,15 @@ public:
     DemoStartInfo();
     DemoStartInfo& operator=(const DemoStartInfo&);
 
-    /* 0x00 */ LiveActor* _0;
-    /* 0x04 */ LayoutActor* _4;
-    /* 0x08 */ NerveExecutor* _8;
-    /* 0x0C */ NameObj* _C;
-    /* 0x10 */ NameObj* _10;
+    /* 0x00 */ LiveActor* mLiveActor;
+    /* 0x04 */ LayoutActor* mLayoutActor;
+    /* 0x08 */ NerveExecutor* mNerveExecutor;
+    /* 0x0C */ NameObj* mNameObj;
+    /* 0x10 */ NameObj* mRelatedObj;
     /* 0x14 */ DemoExecutor* mDemoExecutor;
     /* 0x18 */ const char* mDemoName;
-    /* 0x1C */ const char* _1C;
-    /* 0x20 */ const Nerve* _20;
+    /* 0x1C */ const char* mSubName;
+    /* 0x20 */ const Nerve* mNerve;
     /* 0x24 */ s32 mSceneStopType;
     /* 0x28 */ DemoType mDemoType;
     /* 0x2C */ CinemaFrameType mFrameType;

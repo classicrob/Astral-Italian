@@ -81,8 +81,8 @@ void TicoShopDice::init(const JMapInfoIter& iter) {
     }
     initMessage(mUseCoins ? "TicoShopDiceCoin_Request" : "TicoShopDiceStarPiece_Request");
     MR::setMessageArg(mMsgCtrl, mPrice);
-    MR::registerBranchFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &TicoShopDice::branchFunc));
-    MR::registerEventFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &TicoShopDice::eventFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this, &TicoShopDice::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this, &TicoShopDice::eventFunc));
     MR::setDistanceToTalk(mMsgCtrl, 350.0f);
     if (mUseCoins) {
         mEatCoinState = new TicoStateEatCoin(this, mPrice);

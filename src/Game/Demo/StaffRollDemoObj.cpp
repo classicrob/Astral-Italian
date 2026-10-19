@@ -25,15 +25,15 @@ namespace NrvStaffRollDemoObj {
     NEW_NERVE(StaffRollDemoObjNrvB, StaffRollDemoObj, B);
     NEW_NERVE(StaffRollDemoObjNrvC, StaffRollDemoObj, C);
     NEW_NERVE(StaffRollDemoObjNrvD, StaffRollDemoObj, D);
+    NEW_NERVE(StaffRollDemoObjNrvE, StaffRollDemoObj, E);
+    NEW_NERVE(StaffRollDemoObjNrvF, StaffRollDemoObj, F);
+    NEW_NERVE(StaffRollDemoObjNrvG, StaffRollDemoObj, G);
     class StaffRollDemoObjNrvH : public Nerve {
     public:
         virtual void execute(Spine*) const;
         static StaffRollDemoObjNrvH sInstance;
     };
     StaffRollDemoObjNrvH StaffRollDemoObjNrvH::sInstance ATTRIBUTE_WEAK;
-    NEW_NERVE(StaffRollDemoObjNrvE, StaffRollDemoObj, E);
-    NEW_NERVE(StaffRollDemoObjNrvF, StaffRollDemoObj, F);
-    NEW_NERVE(StaffRollDemoObjNrvG, StaffRollDemoObj, G);
 };  // namespace NrvStaffRollDemoObj
 
 StaffRollDemoObj::StaffRollDemoObj(const char* pName) : LiveActor(pName), mStaffRollObj(nullptr), mChildA(nullptr), mStep98(0), mStep9C(0), mCameraInfo(nullptr), mActorArray(), mActorFill(0), mChildB(nullptr), mChildC(nullptr), mRollA(nullptr), mRollB(nullptr) {
@@ -193,7 +193,7 @@ void StaffRollDemoObj::exeB() {
 // Nerve C: the roll is shown; loops back to B until the roll is done.
 void StaffRollDemoObj::exeC() {
     if (mStaffRollObj->isLastPartEnd()) {
-        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvE));
+        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvF));
         return;
     }
     if (mStaffRollObj->isCurrentPartEnd()) {
@@ -220,7 +220,7 @@ void StaffRollDemoObj::exeD() {
         if (mStep98 == 8) {
             mChildC->makeActorAppeared();
         }
-        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvH));
+        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvE));
     }
 }
 
@@ -234,7 +234,7 @@ void StaffRollDemoObj::exeE() {
         MR::offPlayerControl();
     }
     if (mStaffRollObj->isEnd()) {
-        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvF));
+        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvG));
     }
 }
 
@@ -247,7 +247,7 @@ void StaffRollDemoObj::exeF() {
         MR::offSwitchA(this);
         mChildC->makeActorDead();
         MR::tryStartDemo(this, sEndFadeDemoName);
-        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvG));
+        setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvH));
     }
     MR::setSeVolumeSetLevel(0xD, 0);
 }
@@ -265,7 +265,7 @@ void StaffRollDemoObj::exeG() {
 void NrvStaffRollDemoObj::StaffRollDemoObjNrvH::execute(Spine* pSpine) const {
     StaffRollDemoObj* pActor = reinterpret_cast< StaffRollDemoObj* >(pSpine->mExecutor);
     if (MR::isStoryBookTurnPageEnd() != 0) {
-        MR::endDemo(pActor, sStartFadeDemoName);
+        MR::endDemo(pActor, sPageTurnDemoName);
         pActor->setNerve(GET_NERVE(StaffRollDemoObj, StaffRollDemoObjNrvC));
     }
 }

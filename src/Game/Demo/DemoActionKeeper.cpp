@@ -29,7 +29,7 @@ namespace {
     void setTalkAnimCtrlInterpole(LiveActor* pActor, s32 interpole) {
         DemoExecutor* executor = DemoFunction::findDemoExecutorActive(pActor);
         for (s32 i = 0; i < executor->mTalkAnimCtrl.size(); i++) {
-            executor->mTalkAnimCtrl[i]->_34 = interpole;
+            executor->mTalkAnimCtrl[i]->mInterpole = interpole;
         }
     }
 };  // namespace
@@ -41,15 +41,15 @@ DemoActionInfo::DemoActionInfo() {
     mActionType = 1;
     mPosName = nullptr;
     mAnimName = nullptr;
-    _18 = 128;
+    mMaxCastCount = 128;
     mCastCount = 0;
     mCastList = nullptr;
     mFunctors = nullptr;
     mNerves = nullptr;
     mCastList = new LiveActor*[128];
-    mFunctors = new MR::FunctorBase*[_18];
-    mNerves = new const Nerve*[_18];
-    for (s32 i = 0; i < _18; i++) {
+    mFunctors = new MR::FunctorBase*[mMaxCastCount];
+    mNerves = new const Nerve*[mMaxCastCount];
+    for (s32 i = 0; i < mMaxCastCount; i++) {
         mCastList[i] = nullptr;
         mFunctors[i] = nullptr;
         mNerves[i] = nullptr;
@@ -191,20 +191,20 @@ void DemoActionKeeper::start() {
                 mInfoArray[i]->executeActionFirst();
             }
         }
-        _C = 1;
+        mIsStoryBookStartPending = 1;
     }
 }
 
 void DemoActionKeeper::update() {
     if (mNumInfos > 0) {
-        if (_C) {
+        if (mIsStoryBookStartPending) {
             for (s32 i = 0; i < mNumInfos; i++) {
                 DemoActionInfo* info = mInfoArray[i];
                 if (MR::isDemoSubPartActive(info->mPartName)) {
                     mInfoArray[i]->executeStoryBookStart();
                 }
             }
-            _C = 0;
+            mIsStoryBookStartPending = 0;
         } else {
             updatePartActions(false);
         }
@@ -246,7 +246,7 @@ DemoActionKeeper::DemoActionKeeper(const DemoExecutor* pExector) {
     mDemoExecutor = pExector;
     mNumInfos = 0;
     mInfoArray = nullptr;
-    _C = 0;
+    mIsStoryBookStartPending = 0;
     JMapInfo* jmap = nullptr;
     mNumInfos = DemoFunction::createSheetParser(mDemoExecutor, "Action", &jmap);
     mInfoArray = new DemoActionInfo*[mNumInfos];

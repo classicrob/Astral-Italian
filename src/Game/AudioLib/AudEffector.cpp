@@ -1,4 +1,5 @@
 #include "Game/AudioLib/AudEffector.hpp"
+#include <JSystem/JAudio2/JAISound.hpp>
 #include <JSystem/JKernel/JKRHeap.hpp>
 
 JASDsp::FxlineConfig_ AudEffector::mFxLine[] = {
@@ -7,6 +8,10 @@ JASDsp::FxlineConfig_ AudEffector::mFxLine[] = {
     {1, 0, 0x0, 0, 5, 0, 0x0, 0x0, {0, 0, 0, 0, 0, 0, 0, 0}},
     {1, 0, 0x4, 0, 1, 0, 0x0, 0x0, {0, 0, 0, 0, 0, 0, 0, 0}},
 };
+
+// Pitch override applied by modifySoundPitch (the second float is unused).
+f32 sSpecialFxPitch = 0.5f;
+f32 sSpecialFxPitchUnused = 0.0f;
 
 namespace {
     // Second line configuration (selected by setFxLineType(1)).
@@ -62,6 +67,18 @@ void AudEffector::setCutoff(s32 cutoff) {
 
 void AudEffector::setSpecialFx(s32 specialFx) {
     mSpecialFx = specialFx;
+}
+
+void AudEffector::modifySoundPitch(JAISoundHandle* pHandle, f32* pPitch, u32*) {
+    if (pHandle != nullptr) {
+        JAISound* pSound = pHandle->mSound;
+        if (pSound != nullptr && mSpecialFx == 0) {
+            JAISoundID id = pSound->mSoundID;
+            if (id.fn_80089670()) {
+                *pPitch = sSpecialFxPitch;
+            }
+        }
+    }
 }
 
 void AudEffector::update() {}

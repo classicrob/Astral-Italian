@@ -15,6 +15,7 @@ void CameraBlackHole_FORCE_MATCH_SDATA2() {
 CameraBlackHole::CameraBlackHole(const char* pName) : Camera(pName), mFovy(1.0f), mRoll(), mWPoint(0.0f, 0.0f, 0.0f), mBasePos(0.0f, 0.0f, 0.0f) {
 }
 
+// NONMATCHING: vector temporary addresses and register allocation.
 void CameraBlackHole::reset() {
     mFovy = CameraLocalUtil::getFovy(mCameraMan);
     mRoll = CameraLocalUtil::getRoll(mCameraMan);

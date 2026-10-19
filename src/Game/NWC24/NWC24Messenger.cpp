@@ -287,7 +287,7 @@ namespace NWC24MessengerSub {
 
         if (!mTask->mIsBG) {
             if (!mTask->mIsSilent && mTask->mRetryNo > 0 && isEndSysInfoMini()) {
-                const char* pMessageId = "WiiMessageSending";
+                const char* pMessageId = "WiiMessage_Sending";
 
                 if (mMiniWindow != nullptr) {
                     mMiniWindow->appear(pMessageId, SysInfoWindow::Type_Blocking, SysInfoWindow::TextPos_Center, SysInfoWindow::MessageType_System);

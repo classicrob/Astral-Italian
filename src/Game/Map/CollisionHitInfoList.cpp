@@ -36,7 +36,7 @@ namespace {
                 if (remaining[i]) {
                     const HitInfo* candidate = query->getHit(i);
                     TVec3f delta(origin);
-                    delta.sub(candidate->_64);
+                    delta.sub(candidate->mHitPos);
                     const f32 distance = PSVECMag(&delta);
                     if (nearestDistance > distance) {
                         nearest = i;
@@ -47,11 +47,11 @@ namespace {
             const HitInfo* selected = query->getHit(nearest);
             HitInfo& dest = hits[output];
             dest.mParentTriangle = selected->mParentTriangle;
-            dest._60 = selected->_60;
-            dest._64 = selected->_64;
-            dest._70 = selected->_70;
-            dest._7C = selected->_7C;
-            dest._88 = selected->_88;
+            dest.mDistance = selected->mDistance;
+            dest.mHitPos = selected->mHitPos;
+            dest.mQueryPos = selected->mQueryPos;
+            dest.mNormalMovement = selected->mNormalMovement;
+            dest.mCollisionType = selected->mCollisionType;
             remaining[nearest] = 0;
         }
         return *count;
@@ -79,7 +79,7 @@ bool CollisionHitInfoList::getSortedPoly(TVec3f* position, Triangle* triangle, u
         *triangle = hit.mParentTriangle;
     }
     if (position) {
-        *position = hit._64;
+        *position = hit.mHitPos;
     }
     return true;
 }

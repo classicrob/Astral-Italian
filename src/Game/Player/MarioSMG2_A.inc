@@ -395,7 +395,7 @@ bool Mario::fn_80391260(const Triangle* triangle) {
 void Mario::fn_803912D0(const HitInfo* hit, const TVec3f& normal, const TVec3f& direction) {
     if (fn_80391330(hit, normal, direction)) {
         *_4DC = hit->mParentTriangle;
-        _518 = hit->_64;
+        _518 = hit->mHitPos;
     }
 }
 
@@ -1310,7 +1310,7 @@ void Mario::fn_803886B0() {
                         bestDot = facing;
                     }
                 }
-                const TVec3f& contact = mActor->mBinder->getPlane(bestIndex)->_64;
+                const TVec3f& contact = mActor->mBinder->getPlane(bestIndex)->mHitPos;
                 TVec3f delta(mPosHolder->mPos);
                 delta -= contact;
                 TVec3f correction;
@@ -1467,9 +1467,9 @@ void Mario::fn_8038E1A0(const HitInfo* hit, s32 inside) {
         TVec3f inward = -*normal;
         if (!(movement.dot(inward) < 0.707f)) {
             f32 approach = this->_16C.dot(*normal);
-            f32 depth = hit->_60;
+            f32 depth = hit->mDistance;
             if (!(MR::abs(approach) < depth) && !MR::isNearZero(depth, 1.01f)) {
-                TVec3f offset(hit->_64);
+                TVec3f offset(hit->mHitPos);
                 offset -= this->mPosHolder->mPos;
                 if (!(offset.dot(this->mHeadVec) < 0.0f)) {
                     TVec3f push(*normal);
@@ -1653,7 +1653,7 @@ void Mario::fn_8038A600() {
 // NONMATCHING: register allocation and position-reference load scheduling.
 bool Mario::fn_80391330(const HitInfo* hit, const TVec3f& normal, const TVec3f& direction) {
     f32 angle = 180.0f * (marioAcos(-getGravityVec()->dot(normal)) / 3.14159f);
-    TVec3f fromBase(hit->_64);
+    TVec3f fromBase(hit->mHitPos);
     fromBase.sub(mPosHolder->mPos);
     MR::normalizeOrZero(&fromBase);
     bool result = false;

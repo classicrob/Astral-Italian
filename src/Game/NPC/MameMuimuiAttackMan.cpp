@@ -34,9 +34,9 @@ void MameMuimuiAttackMan::init(const JMapInfoIter& iter) {
     if(mScorer) mScorer->registerEndCallback(MR::Functor_Inline(this,&MameMuimuiAttackMan::facePlayerAfterGame));
     MR::declarePowerStar(this);
     mTakeOutStar=new TakeOutStar(this,"TakeOutStar","TakeOutStarScoreAttackMan",&NrvMameMuimuiAttackMan::MameMuimuiAttackManNrvWait::sInstance,nullptr);
-    MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&MameMuimuiAttackMan::branchFunc));
-    MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&MameMuimuiAttackMan::eventFunc));
-    MR::registerAnimeFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&MameMuimuiAttackMan::animeFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&MameMuimuiAttackMan::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&MameMuimuiAttackMan::eventFunc));
+    MR::registerAnimeFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&MameMuimuiAttackMan::animeFunc));
 }
 void MameMuimuiAttackMan::facePlayerAfterGame() { tryPullNullNerve(); MR::turnPlayerToActor(this,180.0f); }
 bool MameMuimuiAttackMan::branchFunc(u32 id) {

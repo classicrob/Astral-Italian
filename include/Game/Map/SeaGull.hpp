@@ -18,21 +18,21 @@ public:
     void exeHoverRight();
     void updateHover();
 
-    bool _SMG2_90;  // SMG2 (offsets below are SMG1 values)
-    /* 0x8C */ SeaGullGroup* mSeaGullGroup;
-    /* 0x90 */ s32 mPointIndex;
-    /* 0x94 */ bool mIsReverse;
-    /* 0x98 */ s32 mTargetUpdateTimer;
-    /* 0x9C */ TVec3f* mTargetPosition;
-    /* 0xA0 */ TVec3f mUp;
-    /* 0xAC */ TVec3f mFront;
-    /* 0xB8 */ TVec3f mBankedUp;
-    /* 0xC4 */ TVec3f mSide;
-    /* 0xD0 */ s32 mHoverTimer;
-    /* 0xD4 */ f32 mBankAngle;
-    /* 0xD8 */ s32 mGlideTimer;
-    /* 0xDC */ s32 mLiftTimer;
-    /* 0xE0 */ s32 mChirpTimer;
+    /* 0x90 */ bool mSuppressChirp;
+    /* 0x94 */ SeaGullGroup* mSeaGullGroup;
+    /* 0x98 */ s32 mPointIndex;
+    /* 0x9C */ bool mIsReverse;
+    /* 0xA0 */ s32 mTargetUpdateTimer;
+    /* 0xA4 */ TVec3f* mTargetPosition;
+    /* 0xA8 */ TVec3f mUp;
+    /* 0xB4 */ TVec3f mFront;
+    /* 0xC0 */ TVec3f mBankedUp;
+    /* 0xCC */ TVec3f mSide;
+    /* 0xD8 */ s32 mHoverTimer;
+    /* 0xDC */ f32 mBankAngle;
+    /* 0xE0 */ s32 mGlideTimer;
+    /* 0xE4 */ s32 mLiftTimer;
+    /* 0xE8 */ s32 mChirpTimer;
 };
 
 class SeaGullGroup : public LiveActor {
@@ -47,7 +47,7 @@ public:
 
     TVec3f* updatePosInfo(s32* pPointIndex, bool isReverse) const;
 
-    /* 0x8C */ s32 mPointCount;
+    /* 0x90 */ s32 mPointCount;
     /* 0x94 */ TVec3f* mPoints;
     /* 0x98 */ s32 mBirdCount;
     /* 0x9C */ SeaGull** mBirds;

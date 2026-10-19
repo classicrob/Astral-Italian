@@ -22,7 +22,7 @@
 
 DemoExecutor::DemoExecutor(const char* pName)
     : DemoCastGroup(pName), mSheetName(), _SMG2_20(), mTimeKeeper(), mSubPartKeeper(), mPlayerKeeper(), mCameraKeeper(), mActionKeeper(), mWipeKeeper(),
-      mSoundKeeper(), mSheetKeeper(), _40(), _44(), _48(), _4C(-1), _50(), mActor(), mTalkAnimCtrl(), mTalkMessageCtrl(), mIsStoryBookStarting(), _SMG2_3CD() {
+      mSoundKeeper(), mSheetKeeper(), mStageSwitchCtrl(), mStarterObj(), mStartPartName(), mSceneStopType(-1), mUnused50(), mActor(), mTalkAnimCtrl(), mTalkMessageCtrl(), mIsStoryBookStarting(), _SMG2_3CD() {
 }
 
 void DemoExecutor::init(const JMapInfoIter& rIter) {
@@ -39,10 +39,10 @@ void DemoExecutor::init(const JMapInfoIter& rIter) {
     mSheetKeeper.push_back(mWipeKeeper);
     mSoundKeeper = new DemoSoundKeeper(this);
     mSheetKeeper.push_back(mSoundKeeper);
-    _40 = MR::createStageSwitchCtrl(this, rIter);
+    mStageSwitchCtrl = MR::createStageSwitchCtrl(this, rIter);
 
-    if (_40->isValidSwitchAppear()) {
-        MR::listenNameObjStageSwitchOnAppear(this, _40, MR::FunctorV0M<DemoExecutor*, void (DemoExecutor::*)()>(this, &DemoExecutor::startProperDemoSystem));
+    if (mStageSwitchCtrl->isValidSwitchAppear()) {
+        MR::listenNameObjStageSwitchOnAppear(this, mStageSwitchCtrl, MR::FunctorV0M<DemoExecutor*, void (DemoExecutor::*)()>(this, &DemoExecutor::startProperDemoSystem));
     }
 
     DemoFunction::registerDemoExecutor(this);
@@ -66,13 +66,13 @@ void DemoExecutor::movement() {
     mTimeKeeper->update();
     if (updateKeepers(false)) return;
     std::for_each(mTalkAnimCtrl.begin(), mTalkAnimCtrl.end(), std::mem_func(&DemoTalkAnimCtrl::updateDemo));
-    if (_SMG2_20) MR::tryEndDemoAndSetAlreadyDone(static_cast<LiveActor*>(_44), _48);
+    if (_SMG2_20) MR::tryEndDemoAndSetAlreadyDone(static_cast<LiveActor*>(mStarterObj), mStartPartName);
 }
 
 void DemoExecutor::start(NameObj* pParam1, const char* pParam2, s32 param3) {
-    _44 = pParam1;
-    _48 = pParam2;
-    _4C = param3;
+    mStarterObj = pParam1;
+    mStartPartName = pParam2;
+    mSceneStopType = param3;
 
     if (MR::isStoryBookDemoName(pParam2)) {
         MR::startStoryBookTurnPage();
@@ -316,11 +316,11 @@ void DemoSheetKeeperBase::end() {
 }
 
 void DemoExecutor::endDemoSystem() {
-    MR::endDemo(_44, _48);
-    _44 = nullptr;
-    _48 = nullptr;
-    _4C = -1;
-    if (_40->isValidSwitchDead()) _40->onSwitchDead();
+    MR::endDemo(mStarterObj, mStartPartName);
+    mStarterObj = nullptr;
+    mStartPartName = nullptr;
+    mSceneStopType = -1;
+    if (mStageSwitchCtrl->isValidSwitchDead()) mStageSwitchCtrl->onSwitchDead();
     std::for_each(mActor.begin(), mActor.end(), std::ptr_fun(MR::validateClipping));
     mActor.clear();
 }

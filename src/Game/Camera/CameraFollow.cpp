@@ -291,7 +291,7 @@ bool CameraFollow::checkAscent(TVec3f* pVec) const {
         return false;
     }
 
-    pVec->set(Collision::getStrikeInfoMap(0)->_64);
+    pVec->set(Collision::getStrikeInfoMap(0)->mHitPos);
     return true;
 }
 
@@ -322,7 +322,7 @@ bool CameraFollow::checkDescent(TVec3f* pVec) const {
         return false;
     }
 
-    pVec->set(Collision::getStrikeInfoMap(0)->_64);
+    pVec->set(Collision::getStrikeInfoMap(0)->mHitPos);
     return true;
 }
 

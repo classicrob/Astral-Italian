@@ -36,8 +36,8 @@ public:
     /* 0x04 */ DemoTimePartInfo* mMainPartInfos;
     /* 0x08 */ DemoTimePartInfo* mSubPartInfos;
     /* 0x0C */ s32 mNumPartInfos;
-    /* 0x10 */ s32 _10;
+    /* 0x10 */ s32 mPartStep;
     /* 0x14 */ s32 mCurrentStep;
-    /* 0x18 */ s32 _18;
+    /* 0x18 */ s32 mCurrentPartIndex;
     /* 0x1C */ bool mIsPaused;
 };

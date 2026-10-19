@@ -3,12 +3,12 @@
 #include "Game/LiveActor/LiveActor.hpp"
 
 class ActorCameraInfo;
-class DemoTitleAnimSub;
+class DemoTitleAnimModel;
 class DemoTitleAnim;
 
 // One CSV row of EntryActorList (0x14 bytes). Filled by MR::getCsvDataStr* in DemoTitleAnim::createSubs.
 struct DemoTitleAnimParam {
-    DemoTitleAnimParam();  // was fn_8013CF30 (constructor has no source yet)
+    DemoTitleAnimParam();
 
     /* 0x00 */ const char* mArcName;
     /* 0x04 */ const char* mJointName;
@@ -17,29 +17,36 @@ struct DemoTitleAnimParam {
     /* 0x10 */ const char* mSelectingActionName;
 };
 
-// LiveActor-derived sub-actor (0x9C bytes). The ctors live in an unsplit area (fn_8013CA10 / fn_8013CC80).
-// Only the four virtuals after LiveActor's table (slots 0x70..0x7C) are used here.
-class DemoTitleAnimSub : public LiveActor {
+// Sub-actor that plays an arc model (0x9C bytes). Sourced in DemoTitleAnimSub.cpp.
+class DemoTitleAnimModel : public LiveActor {
 public:
+    DemoTitleAnimModel(DemoTitleAnim*, DemoTitleAnimParam*);
+
+    virtual void init(const JMapInfoIter&);
+    virtual void calcAndSetBaseMtx();
     virtual void startSub();
     virtual void loopSub();
     virtual void selectSub();
     virtual void endSub();
+
+    void exeAction();
+
+    /* 0x90 */ DemoTitleAnim* mParent;
+    /* 0x94 */ DemoTitleAnimParam* mParam;
+    /* 0x98 */ MtxPtr mBaseMtx;
 };
 
-// Sub-actor kinds created by DemoTitleAnim::createSubs (constructors have no source yet; 0x9C bytes each).
-class DemoTitleAnimPlayer : public DemoTitleAnimSub {
+// Sub-actor that drives the player instead of a model.
+class DemoTitleAnimPlayer : public DemoTitleAnimModel {
 public:
-    DemoTitleAnimPlayer(DemoTitleAnim*, DemoTitleAnimParam*);  // was fn_8013CC80
+    DemoTitleAnimPlayer(DemoTitleAnim*, DemoTitleAnimParam*);
 
-    u8 _90[0xC];
-};
-
-class DemoTitleAnimModel : public DemoTitleAnimSub {
-public:
-    DemoTitleAnimModel(DemoTitleAnim*, DemoTitleAnimParam*);  // was fn_8013CA10
-
-    u8 _90[0xC];
+    virtual void init(const JMapInfoIter&);
+    virtual void control();
+    virtual void startSub();
+    virtual void loopSub();
+    virtual void selectSub();
+    virtual void endSub();
 };
 
 class DemoTitleAnim : public LiveActor {
@@ -61,7 +68,7 @@ public:
     void createSubs();
 
     /* 0x90 */ ActorCameraInfo* mCameraInfo;
-    /* 0x94 */ DemoTitleAnimSub** mSubs;
+    /* 0x94 */ DemoTitleAnimModel** mSubs;
     /* 0x98 */ s32 mSubCount;
     /* 0x9C */ const s32* mBgmStartStep;
     /* 0xA0 */ const s32* mTitleLogoStep;

@@ -8,7 +8,7 @@
 
 namespace {
     NO_INLINE u32 getStrikeInfoNumCategory(s32 category) {
-        return MR::getCollisionDirector()->getCategoryKeeper(category)->_10;
+        return MR::getCollisionDirector()->getCategoryKeeper(category)->mHitCount;
     }
 }  // namespace
 

@@ -62,9 +62,9 @@ void Pichan::init(const JMapInfoIter& iter) {
     mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
     mSpinAttackRange = 450.0f;
     initialize(iter, caps, "Pichan", nullptr, nullptr);
-    MR::registerEventFunc(mMsgCtrl, TalkMessageFunc(this, &Pichan::eventFunc));
-    MR::registerBranchFunc(mMsgCtrl, TalkMessageFunc(this, &Pichan::branchFunc));
-    MR::registerAnimeFunc(mMsgCtrl, TalkMessageFunc(this, &Pichan::animeFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc(this, &Pichan::eventFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc(this, &Pichan::branchFunc));
+    MR::registerAnimeFunc(getMsgCtrl(), TalkMessageFunc(this, &Pichan::animeFunc));
     bool hasStar = false;
     MR::getJMapInfoArg0NoInit(iter, &hasStar);
     if (hasStar) {

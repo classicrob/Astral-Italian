@@ -12,8 +12,8 @@ public:
     bool isTargetArea(const LightArea*) const;
     bool isOutOfArea() const;
 
-    /* 0x0 */ s32 _0;
-    /* 0x4 */ s32 mLightID;
+    /* 0x00 */ s32 mZoneID;
+    /* 0x04 */ s32 mLightID;
 };
 
 // I am assuming they called this "AreaInfo" because the debug map

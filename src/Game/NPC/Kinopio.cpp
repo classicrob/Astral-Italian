@@ -100,8 +100,8 @@ void Kinopio::init(const JMapInfoIter& rIter) {
     mMsgCtrl = MR::createTalkCtrl(this, rIter, "Kinopio", TVec3f(0.0f, 122.0f * ::sDefaultScale, 0.0f), nullptr);
     MR::setDistanceToTalk(mMsgCtrl, ::sDistancePlayerIsNear);
     MR::onRootNodeAutomatic(mMsgCtrl);
-    MR::registerEventFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &Kinopio::eventFunc));
-    MR::registerBranchFunc(mMsgCtrl, TalkMessageFunc_Inline(this, &Kinopio::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this, &Kinopio::eventFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this, &Kinopio::branchFunc));
     if (MR::isConnectedWithRail(rIter)) {
         MR::moveCoordAndTransToRailStartPoint(this);
         MR::onCalcShadow(this, nullptr);

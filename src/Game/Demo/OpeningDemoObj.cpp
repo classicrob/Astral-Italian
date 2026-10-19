@@ -10,13 +10,14 @@
 
 static const Vec sStarLocalPosition = {-2500.0f, -6250.0f, 0.0f};
 
-// Name tables in this unit's .data/.sdata (addresses from the target).
-extern "C" s32 lbl_80647D7C[];
-extern "C" s32 lbl_807CF758;
-extern "C" s32 lbl_807CF75C;
-extern "C" s32 lbl_807CF760;
-extern "C" f32 lbl_807D9808;
+namespace {
+    s32 sSkipEnableStep = 20;
+    s32 sShootingStarStartStep = 60;
+    s32 sShootingStarInterval = 90;
 
+    // Indexed by beat; -1 means no shooting star on that beat.
+    const s32 sShootingStarActions[9] = {1, 0, -1, 1, 2, -1, 0, -1, -1};
+};  // namespace
 
 namespace NrvOpeningDemoObj {
     NEW_NERVE(OpeningDemoObjNrvStart, OpeningDemoObj, Start);
@@ -61,16 +62,16 @@ void OpeningDemoObj::init(const JMapInfoIter& rIter) {
     mModelB->makeActorAppeared();
     mLayoutA = new SimpleLayout("プロローグテキスト", "PrologueText", 1, -1);
     MR::registerDemoSimpleCastAll(mLayoutA);
-    mLayoutA->appear();
+    mLayoutA->kill();
     mLayoutB = new SimpleLayout("ピーチの手紙", "PeachLetterMini", 1, -1);
     MR::registerDemoSimpleCastAll(mLayoutB);
-    mLayoutB->appear();
+    mLayoutB->kill();
     mModelC = MR::createModelObjMapObj("土管", "EarthenPipe", nullptr);
-    MR::setBrkFrameAndStop(mModelC, lbl_807D9808);
+    MR::setBrkFrameAndStop(mModelC, 0.0f);
     mModelC->mPosition.set(mPosition);
     mModelC->mRotation.set(mRotation);
     MR::tryRegisterDemoCast(mModelC, rIter);
-    mModelC->makeActorAppeared();
+    mModelC->makeActorDead();
     initNerve(GET_NERVE(OpeningDemoObj, OpeningDemoObjNrvStart), 0);
     MR::useStageSwitchSyncAppear(this, rIter);
 }
@@ -110,7 +111,7 @@ void OpeningDemoObj::exeMain() {
     if (isNerve(GET_NERVE(OpeningDemoObj, OpeningDemoObjNrvMain2))) {
         updateActionSound(getNerveStep());
     }
-    if (!MR::isLessStep(this, lbl_807CF758) && MR::testCorePadTriggerA(0)) {
+    if (!MR::isLessStep(this, sSkipEnableStep) && MR::testCorePadTriggerA(0)) {
         MR::startActionSound(mLayoutB, "SyTalkOk", -1, -1);
         MR::termStoryBookTextIcon();
         if (isNerve(GET_NERVE(OpeningDemoObj, OpeningDemoObjNrvMain1))) {
@@ -133,8 +134,8 @@ void OpeningDemoObj::exeTalk() {
         MR::startAnim(mLayoutA, "Prologue02", 0);
         MR::startStoryBookAppear();
     }
-    if (MR::isGreaterEqualStep(this, lbl_807CF75C)) {
-        updateActionSound(getNerveStep() - lbl_807CF75C);
+    if (MR::isGreaterEqualStep(this, sShootingStarStartStep)) {
+        updateActionSound(getNerveStep() - sShootingStarStartStep);
     }
     if (MR::isAnimStopped(mLayoutA, 0)) {
         MR::endStoryBookAppear();
@@ -197,9 +198,9 @@ OpeningDemoObj::~OpeningDemoObj() {
 
 // Plays the action sound / action animation for model A on a fixed beat.
 void OpeningDemoObj::updateActionSound(s32 step) {
-    if (MR::isDead(mModelA) && (step % lbl_807CF760) == 0) {
+    if (MR::isDead(mModelA) && (step % sShootingStarInterval) == 0) {
         mModelA->appear();
-        s32 action = lbl_80647D7C[(static_cast<u32>(step / lbl_807CF760) % 9)];
+        s32 action = sShootingStarActions[(static_cast<u32>(step / sShootingStarInterval) % 9)];
         if (action != -1) {
             char name[] = "PeachShootingStarA";
             s32 len = strlen(name);

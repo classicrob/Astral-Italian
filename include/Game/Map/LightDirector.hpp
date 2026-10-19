@@ -23,11 +23,11 @@ public:
     void loadPointLightSub() const;
     ResourceHolder* getZoneLightResourceHolder(const char* pZoneName) const;
 
-    /* 0x14 */ LightAreaHolder* _C;
+    /* 0x14 */ LightAreaHolder* mLightAreaHolder;
     /* 0x18 */ LightDataHolder* mDataHolder;
     /* 0x1C */ LightZoneDataHolder* mZoneDataHolder;
     /* 0x20 */ AreaLightInfo* mDefaultAreaLight;
-    /* 0x24 */ const ActorLightCtrl* _1C;
+    /* 0x24 */ const ActorLightCtrl* mPlayerLightCtrl;
     /* 0x28 */ LightPointCtrl* mPointCtrl;
     /* 0x2C */ LightPointCtrl* mPointCtrlSub;  // SMG2; MR::requestPointLight feeds both
     /* 0x30 */ ResourceHolder* mResourceHolder;

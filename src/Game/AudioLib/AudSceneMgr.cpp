@@ -9,6 +9,7 @@
 #include "Game/AudioLib/AudBgmSetting.hpp"
 #include "Game/GameAudio/ActionSoundSystem.hpp"
 #include "Game/System/ResourceHolder.hpp"
+#include "Game/System/ResourceCsvGroupHolder.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include "Game/Util/FileUtil.hpp"
 #include "Game/Util/SceneUtil.hpp"
@@ -17,6 +18,10 @@
 #include "Game/Speaker/SpkSystem.hpp"
 #include <JSystem/JAudio2/JAUSectionHeap.hpp>
 #include <JSystem/JKernel/JKRExpHeap.hpp>
+
+bool AudSceneSoundInfo::hasScenarioResource() const {
+    return mScenarioId >= 0;
+}
 
 namespace {
     static const AudSceneSoundInfo cSceneInfo[] = {
@@ -64,7 +69,7 @@ void AudSceneMgr::requestResource() {
     MR::mountArchive(AudStageUseResourceList::getFileSelectResourceName(), heap, true);
     MR::mountArchive(AudStageUseResourceList::getFaceShipResourceName(), heap, true);
     MR::mountArchive(AudStageUseResourceList::getPeachCastleResourceName(), heap, true);
-    MR::mountArchive(ResourceHolder::getEffectResourceName(), heap, true);
+    MR::mountArchive(getEffectArchivePath(), heap, true);
 }
 
 void AudSceneMgr::loadStaticResource() {
@@ -218,8 +223,4 @@ void AudSceneMgr::loadPlayerResource() {
         break;
     }
     }
-}
-
-bool AudSceneSoundInfo::hasScenarioResource() const {
-    return mScenarioId >= 0;
 }

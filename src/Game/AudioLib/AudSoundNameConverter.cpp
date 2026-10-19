@@ -137,3 +137,7 @@ u32 AudSoundNameConverter::getSoundNameTableNumItem_inSection(const JAUSoundName
 
     return numItems;
 }
+
+JAISoundID AudSoundNameConverter::fn_80086520(const char* pName) {
+    return get()->getSoundID(pName);
+}

@@ -5,15 +5,15 @@
 #include <revolution/types.h>
 
 DemoStartInfo::DemoStartInfo() {
-    _0 = nullptr;
-    _4 = nullptr;
-    _8 = nullptr;
-    _C = nullptr;
-    _10 = nullptr;
+    mLiveActor = nullptr;
+    mLayoutActor = nullptr;
+    mNerveExecutor = nullptr;
+    mNameObj = nullptr;
+    mRelatedObj = nullptr;
     mDemoExecutor = nullptr;
     mDemoName = nullptr;
-    _1C = nullptr;
-    _20 = nullptr;
+    mSubName = nullptr;
+    mNerve = nullptr;
     mSceneStopType = 0;
     mDemoType = DemoType_0;
     mFrameType = CinemaFrameType_0;
@@ -22,15 +22,15 @@ DemoStartInfo::DemoStartInfo() {
 }
 
 DemoStartInfo& DemoStartInfo::operator=(const DemoStartInfo& rOther) {
-    _0 = rOther._0;
-    _4 = rOther._4;
-    _8 = rOther._8;
-    _C = rOther._C;
-    _10 = rOther._10;
+    mLiveActor = rOther.mLiveActor;
+    mLayoutActor = rOther.mLayoutActor;
+    mNerveExecutor = rOther.mNerveExecutor;
+    mNameObj = rOther.mNameObj;
+    mRelatedObj = rOther.mRelatedObj;
     mDemoExecutor = rOther.mDemoExecutor;
     mDemoName = rOther.mDemoName;
-    _1C = rOther._1C;
-    _20 = rOther._20;
+    mSubName = rOther.mSubName;
+    mNerve = rOther.mNerve;
     mSceneStopType = rOther.mSceneStopType;
     mDemoType = rOther.mDemoType;
     mFrameType = rOther.mFrameType;
@@ -120,7 +120,7 @@ void DemoStartRequestHolder::registerStartDemoInfo(const DemoStartInfo& rInfo) {
 
 DemoStartInfo* DemoStartRequestHolder::find(const LiveActor* pActor, const char* pName) const {
     for (DemoStartInfo* const* pIter = mStartInfos; pIter != &mStartInfos[mNumInfos]; pIter++) {
-        if ((*pIter)->_0 == pActor && MR::isEqualString((*pIter)->mDemoName, pName)) {
+        if ((*pIter)->mLiveActor == pActor && MR::isEqualString((*pIter)->mDemoName, pName)) {
             return *pIter;
         }
     }
@@ -130,7 +130,7 @@ DemoStartInfo* DemoStartRequestHolder::find(const LiveActor* pActor, const char*
 
 DemoStartInfo* DemoStartRequestHolder::find(const LayoutActor* pActor, const char* pName) const {
     for (DemoStartInfo* const* pIter = mStartInfos; pIter != &mStartInfos[mNumInfos]; pIter++) {
-        if ((*pIter)->_4 == pActor && MR::isEqualString((*pIter)->mDemoName, pName)) {
+        if ((*pIter)->mLayoutActor == pActor && MR::isEqualString((*pIter)->mDemoName, pName)) {
             return *pIter;
         }
     }
@@ -140,7 +140,7 @@ DemoStartInfo* DemoStartRequestHolder::find(const LayoutActor* pActor, const cha
 
 DemoStartInfo* DemoStartRequestHolder::find(const NerveExecutor* pExecutor, const char* pName) const {
     for (DemoStartInfo* const* pIter = mStartInfos; pIter != &mStartInfos[mNumInfos]; pIter++) {
-        if ((*pIter)->_8 == pExecutor && MR::isEqualString((*pIter)->mDemoName, pName)) {
+        if ((*pIter)->mNerveExecutor == pExecutor && MR::isEqualString((*pIter)->mDemoName, pName)) {
             return *pIter;
         }
     }
@@ -150,7 +150,7 @@ DemoStartInfo* DemoStartRequestHolder::find(const NerveExecutor* pExecutor, cons
 
 DemoStartInfo* DemoStartRequestHolder::find(const NameObj* pObj, const char* pName) const {
     for (DemoStartInfo* const* pIter = mStartInfos; pIter != &mStartInfos[mNumInfos]; pIter++) {
-        if ((*pIter)->_C == pObj && MR::isEqualString((*pIter)->mDemoName, pName)) {
+        if ((*pIter)->mNameObj == pObj && MR::isEqualString((*pIter)->mDemoName, pName)) {
             return *pIter;
         }
     }

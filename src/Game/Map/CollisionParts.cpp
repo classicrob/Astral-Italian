@@ -261,8 +261,8 @@ bool CollisionParts::checkStrikePoint(HitInfo* pHitInfo, const TVec3f& rPos, con
     if (pHitInfo != nullptr) {
         pHitInfo->mParentTriangle.fillData(this, mServer->toIndex(prism), mHitSensor);
         f32 worldDistance = distance * inverseScale;
-        pHitInfo->_60 = worldDistance;
-        pHitInfo->_64 = rPos + *pHitInfo->mParentTriangle.getNormal(0) * worldDistance;
+        pHitInfo->mDistance = worldDistance;
+        pHitInfo->mHitPos = rPos + *pHitInfo->mParentTriangle.getNormal(0) * worldDistance;
     }
     return true;
 }
@@ -332,7 +332,7 @@ u32 CollisionParts::checkStrikeBallCore(HitInfo* pHitInfo, u32 maxHits, const TV
         HitInfo& hit = pHitInfo[hitCount];
         TVec3f position(rPos);
         calcCollidePosition(&position, *pPrisms[i], pClassifications[i]);
-        mBaseMatrix.mult(position, hit._64);
+        mBaseMatrix.mult(position, hit.mHitPos);
         hit.mParentTriangle.fillData(this, mServer->toIndex(pPrisms[i]), mHitSensor);
 
         if (pFilter != nullptr && pFilter->isInvalidTriangle(&hit.mParentTriangle)) {
@@ -343,11 +343,11 @@ u32 CollisionParts::checkStrikeBallCore(HitInfo* pHitInfo, u32 maxHits, const TV
             continue;
         }
 
-        hit._60 = inverseScale * pDistances[i];
-        hit._88 = pClassifications[i];
-        hit._7C.set(rMovement);
+        hit.mDistance = inverseScale * pDistances[i];
+        hit.mCollisionType = pClassifications[i];
+        hit.mNormalMovement.set(rMovement);
         normal = hit.mParentTriangle.getFaceNormal();
-        hit._7C.scale(normal->dot(hit._7C), *normal);
+        hit.mNormalMovement.scale(normal->dot(hit.mNormalMovement), *normal);
         hitCount++;
     }
 
@@ -377,15 +377,15 @@ u32 CollisionParts::checkStrikeBallWithThickness(HitInfo* pHitInfo, u32 maxHits,
         HitInfo& hit = pHitInfo[hitCount];
         TVec3f position(localPos);
         calcCollidePosition(&position, *prisms[i], classifications[i]);
-        mBaseMatrix.mult(position, hit._64);
+        mBaseMatrix.mult(position, hit.mHitPos);
         hit.mParentTriangle.fillData(this, mServer->toIndex(prisms[i]), mHitSensor);
 
         if (pFilter != nullptr && pFilter->isInvalidTriangle(&hit.mParentTriangle)) {
             continue;
         }
 
-        hit._60 = inverseScale * distances[i];
-        hit._88 = classifications[i];
+        hit.mDistance = inverseScale * distances[i];
+        hit.mCollisionType = classifications[i];
         hitCount++;
     }
 
@@ -473,9 +473,9 @@ u32 CollisionParts::checkStrikeLine(HitInfo* pHitInfo, u32 maxHits, const TVec3f
             continue;
         }
 
-        hit._60 = length * distances[i];
-        hit._64 = position;
-        hit._88 = classifications[i];
+        hit.mDistance = length * distances[i];
+        hit.mHitPos = position;
+        hit.mCollisionType = classifications[i];
         hitCount++;
     }
 

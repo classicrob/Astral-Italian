@@ -195,18 +195,18 @@ TPos3f* Triangle::getPrevBaseMtx() const {
     return &mParts->mPrevBaseMatrix;
 }
 
-HitInfo::HitInfo() : mParentTriangle(), _60(0.0f), _64(0, 0, 0), _70(0, 0, 0), _7C(0, 0, 0) {
-    _88 = 0;
+HitInfo::HitInfo() : mParentTriangle(), mDistance(0.0f), mHitPos(0, 0, 0), mQueryPos(0, 0, 0), mNormalMovement(0, 0, 0) {
+    mCollisionType = 0;
 }
 
 bool HitInfo::isCollisionAtFace() const {
-    return _88 == 1;
+    return mCollisionType == 1;
 }
 
 bool HitInfo::isCollisionAtEdge() const {
-    return _88 == 2 || _88 == 3 || _88 == 4;
+    return mCollisionType == 2 || mCollisionType == 3 || mCollisionType == 4;
 }
 
 bool HitInfo::isCollisionAtCorner() const {
-    return _88 == 5 || _88 == 6 || _88 == 7;
+    return mCollisionType == 5 || mCollisionType == 6 || mCollisionType == 7;
 }

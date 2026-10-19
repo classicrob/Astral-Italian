@@ -26,7 +26,7 @@ void LuigiTalkNpc::init(const JMapInfoIter& iter) {
     if(MR::isObjectName(iter,"LuigiIntrusively") && !MR::isExistMessageId(iter)) { caps.mUseDirectMessage=true; caps.mMessageId=sIntrusiveMessage; }
     mSpinAction = cNPCSpinDefault; mTrampledAction = cNPCTrampledDefault; mPointingAction = cNPCPointingDefault; mReactionAction = cNPCReactionDefault;
     initialize(iter,caps,"LuigiNPC",nullptr,nullptr);
-    MR::registerEventFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&LuigiTalkNpc::eventFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&LuigiTalkNpc::eventFunc));
     if(MR::tryRegisterDemoCast(this,iter) && MR::isDemoCast(this,sIntrusiveDemo)) {
         DemoFunction::registerDemoTalkMessageCtrlDirect(this,mMsgCtrl,sIntrusiveDemo);
         MR::registerDemoActionFunctorDirect(this,MR::Functor_Inline(this,&LuigiTalkNpc::pushTurnPlayer),sIntrusiveDemo,nullptr);
@@ -41,11 +41,11 @@ void LuigiTalkNpc::init(const JMapInfoIter& iter) {
         bool useCamera=false;
         MR::getJMapInfoArg7NoInit(iter,&useCamera);
         if(useCamera) MR::initTalkCamera(mMsgCtrl,iter);
-        MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&LuigiTalkNpc::branchFuncIntrusively));
+        MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&LuigiTalkNpc::branchFuncIntrusively));
         if(!MR::isProductGameScene() || GameSequenceFunction::isLuigiIntrusivelyAppear()) { makeActorAppeared(); GameDataFunction::onLuigiIntrusivelyAppear(); }
         else makeActorDead();
     } else {
-        MR::registerBranchFunc(mMsgCtrl,TalkMessageFunc_Inline(this,&LuigiTalkNpc::branchFuncTalkNpc));
+        MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc_Inline(this,&LuigiTalkNpc::branchFuncTalkNpc));
         MR::getJMapInfoArg0NoInit(iter,&mHideAfterIntrusiveUnlock);
         makeActorDead();
     }

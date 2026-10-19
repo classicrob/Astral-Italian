@@ -26,14 +26,14 @@ public:
     void initDrawAdaptor();
 
     /* 0x00 */ const EffectSystem* mHost;
-    /* 0x04 */ NameObjAdaptor* _4;
-    /* 0x08 */ NameObjAdaptor* _8;
-    /* 0x0C */ NameObjAdaptor* _C;
-    /* 0x10 */ NameObjAdaptor* _10;
-    /* 0x14 */ NameObjAdaptor* _14;
-    /* 0x18 */ NameObjAdaptor* _18;
-    /* 0x1C */ NameObjAdaptor* _1C;
-    /* 0x20 */ NameObjAdaptor* _SMG2_20;  // SMG2 (world-map draw adaptor?)
-    /* 0x24 */ bool _20;
+    /* 0x04 */ NameObjAdaptor* mDraw3DAdaptor;
+    /* 0x08 */ NameObjAdaptor* mDraw2DAdaptor;
+    /* 0x0C */ NameObjAdaptor* mDrawIndirectAdaptor;
+    /* 0x10 */ NameObjAdaptor* mDrawAfterIndirectAdaptor;
+    /* 0x14 */ NameObjAdaptor* mDraw2DModelAdaptor;
+    /* 0x18 */ NameObjAdaptor* mDrawBloomAdaptor;
+    /* 0x1C */ NameObjAdaptor* mDrawAfterImageEffectAdaptor;
+    /* 0x20 */ NameObjAdaptor* mDrawWorldMapAdaptor;
+    /* 0x24 */ bool mIsDrawEnabled;
     /* 0x25 */ bool _21;
 };

@@ -17,7 +17,7 @@ namespace NrvSeaGull {
 };  // namespace NrvSeaGull
 
 SeaGull::SeaGull(SeaGullGroup* pGroup)
-    : LiveActor("カモメ"), _SMG2_90(), mSeaGullGroup(pGroup), mPointIndex(), mIsReverse(), mTargetUpdateTimer(MR::getRandom(0L, 180L)), mTargetPosition(),
+    : LiveActor("カモメ"), mSuppressChirp(), mSeaGullGroup(pGroup), mPointIndex(), mIsReverse(), mTargetUpdateTimer(MR::getRandom(0L, 180L)), mTargetPosition(),
       mUp(0.0f, 1.0f, 0.0f), mFront(0.0f, 0.0f, 1.0f), mBankedUp(0.0f, 1.0f, 0.0f), mSide(1.0f, 0.0f, 0.0f), mHoverTimer(), mBankAngle(),
       mGlideTimer(), mLiftTimer(), mChirpTimer() {
 }
@@ -57,8 +57,10 @@ void SeaGull::init(const JMapInfoIter& rIter) {
     }
 
     initNerve(GET_NERVE(SeaGull, SeaGullNrvHoverFront));
-    initSound(4, "SeaGull", nullptr, TVec3f(0.0f));
-    mChirpTimer = MR::getRandom(60L, 480L);
+    if (!mSuppressChirp) {
+        initSound(4, "SeaGull", nullptr, TVec3f(0.0f));
+        mChirpTimer = MR::getRandom(60L, 480L);
+    }
     MR::invalidateClipping(this);
     MR::registerDemoSimpleCastAll(this);
     makeActorAppeared();
@@ -136,7 +138,7 @@ void SeaGull::control() {
         mTargetUpdateTimer = 0xB4;
     }
 
-    if (_SMG2_90) {
+    if (mSuppressChirp) {
         return;
     }
 
@@ -249,7 +251,7 @@ void SeaGullGroup::init(const JMapInfoIter& rIter) {
     for (s32 i = 0; i < mBirdCount; i++) {
         SeaGull* pSeaGull = new SeaGull(this);
         if (noChirp) {
-            pSeaGull->_SMG2_90 = true;
+            pSeaGull->mSuppressChirp = true;
         }
         pSeaGull->init(rIter);
         mBirds[i] = pSeaGull;

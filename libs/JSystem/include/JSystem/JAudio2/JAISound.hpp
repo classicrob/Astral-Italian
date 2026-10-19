@@ -44,6 +44,8 @@ public:
         mID.mComposite = -1;
     }
 
+    bool fn_80089670() const;  // SMG2 0x80089670 (weak, group ID is 5, 8 or 9)
+
     u8 getSectionID() const {
         return mID.info.type.parts.sectionID;
     }

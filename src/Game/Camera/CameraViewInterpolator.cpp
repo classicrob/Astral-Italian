@@ -1,3 +1,5 @@
+#define JGEOMETRY_ACOS_INLINE_LOOKUP
+#define MR_SQRT_F32_OUTLINE
 #include "Game/Camera/CameraViewInterpolator.hpp"
 #include "Game/AreaObj/AreaObj.hpp"
 #include "Game/AreaObj/CameraRepulsiveArea.hpp"
@@ -12,12 +14,7 @@
 
 #include <cmath>
 
-namespace MR {
-    template <> f32 sqrt<f32>(f32) NO_INLINE;
-}
-namespace CameraInterpolationUtil {
-    void getRotationAxisAndAngle(const TPos3f&, TVec3f*, f32*) NO_INLINE;
-}
+template f32 JGeometry::TUtil<f32>::acos(f32);
 
 namespace {
     static const f32 sCollisionBallRadius = 10000.0f;
@@ -34,7 +31,7 @@ CameraViewInterpolator::CameraViewInterpolator()
       mTargetPosition(0.0f, 0.0f, 0.0f), mRate(0.7f), mIsCollisionOff(), mIsRepulsionOff(), mTargetFovy(45.0f), mFovy(45.0f),
       mIsInterpolatingNearlyEnd(true), mIsInterpolating(), mIsCorrectErpPositionOn(true), mIsTargetOffsetOn(true), mCalcState(), mTargetObj(),
       mBinder(new Binder(nullptr, &mPosition, &mGravity, 100.0f, 0.0f, 64)), mPosition(0.0f, 0.0f, 0.0f), mGravity(0.0f, -1.0f, 0.0f),
-      mIsCollided(true), mLErpOffset(0.0f, 0.0f, 0.0f), _C0() {
+      mIsCollided(true), mLErpOffset(0.0f, 0.0f, 0.0f), mIsOverSwitchAngle() {
     mTargetMtx.identity();
     mMtx.identity();
     mBinder->setTriangleFilter(MR::createTriangleFilterFunc(MR::isCameraCodeThrough));
@@ -380,12 +377,12 @@ bool CameraViewInterpolator::translateByRepulsion() {
 void CameraInterpolationUtil::getRotationAxisAndAngle(const TPos3f& mtx, TVec3f* axis, f32* angle) {
     TQuat4f quat;
     mtx.getQuat(quat);
-    f32 squared = reinterpret_cast<const TVec3f*>(&quat)->squared();
+    f32 squared = quat.toTvec()->squared();
     if (squared <= MR::epsilon()) {
         *angle = 0.0f;
         axis->zero();
     } else {
-        axis->scale(JGeometry::TUtil<f32>::inv_sqrt(squared), *reinterpret_cast<const TVec3f*>(&quat));
+        axis->scale(JGeometry::TUtil<f32>::inv_sqrt(squared), *quat.toTvec());
         *angle = 2.0f * JGeometry::TUtil<f32>::acos(quat.w);
     }
 }
@@ -400,7 +397,7 @@ void CameraViewInterpolator::updateRotationState(MtxPtr matrix) {
     CameraInterpolationUtil::getRotationAxisAndAngle(diff, &axis, &angle);
     angle = -3.1415927f + static_cast<f32>(fmod(6.2831855f + (angle - -3.1415927f), static_cast<f64>(6.2831855f)));
     angle = MR::abs(angle);
-    _C0 = angle > 1.2217306f;
+    mIsOverSwitchAngle = angle > 1.2217306f;
     if (sMaxSwitchAngleTimer > 0) {
         if (--sMaxSwitchAngleTimer == 0) {
             sMaxSwitchAngle = 0.0f;
@@ -428,9 +425,9 @@ void CameraViewInterpolator::updateRotationDifference(MtxPtr matrix) {
         current.w = current.w / squared;
     }
     PSQUATMultiply(&current, &previousQuat, &current);
-    const TVec3f& vector = *reinterpret_cast<const TVec3f*>(&current);
+    const TVec3f& vector = *current.toTvec();
     f32 angle = 2.0f * JMAAsinRadian(MR::sqrt(vector.squared()));
-    _C1 = angle > 0.034906585f;
+    mIsOverRotationDifference = angle > 0.034906585f;
     if (sMaxRotationDifferenceTimer > 0) {
         if (--sMaxRotationDifferenceTimer == 0) {
             sMaxRotationDifference = 0.0f;

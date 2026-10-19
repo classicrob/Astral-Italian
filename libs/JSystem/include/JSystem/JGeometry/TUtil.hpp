@@ -62,7 +62,20 @@ namespace JGeometry {
         }
 
         static f32 acos(f32 val) NO_INLINE {
+#ifdef JGEOMETRY_ACOS_INLINE_LOOKUP
+            if (val >= 1.0f) {
+                return 0.0f;
+            }
+            if (val <= -1.0f) {
+                return 3.1415927f;
+            }
+            if (val < 0.0f) {
+                return 1.5707964f + JMath::sAsinAcosTable.mTable[(u32)(1023.5f * -val)];
+            }
+            return 1.5707964f - JMath::sAsinAcosTable.mTable[(u32)(1023.5f * val)];
+#else
             return JMath::sAsinAcosTable.acos_(val);
+#endif
         }
 
         static f32 PI() {

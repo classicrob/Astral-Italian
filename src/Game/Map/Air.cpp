@@ -12,6 +12,8 @@
 #include "Game/Util/ObjUtil.hpp"
 
 namespace NrvAir {
+    NEW_NERVE(HostTypeIn, Air, In);
+    NEW_NERVE(HostTypeOut, Air, Out);
     class HostTypeWait : public Nerve {
     public:
         virtual void execute(Spine*) const {
@@ -20,8 +22,6 @@ namespace NrvAir {
         static HostTypeWait sInstance;
     };
     HostTypeWait HostTypeWait::sInstance ATTRIBUTE_WEAK;
-    NEW_NERVE(HostTypeIn, Air, In);
-    NEW_NERVE(HostTypeOut, Air, Out);
 };  // namespace NrvAir
 
 Air::Air(const char* pName) : LiveActor(pName) {

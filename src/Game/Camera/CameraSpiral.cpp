@@ -15,6 +15,7 @@ void CameraSpiral::reset() {
 #pragma push
 #pragma opt_propagation off
 
+// NONMATCHING: equivalent easing switch dispatch and register allocation.
 CameraTargetObj* CameraSpiral::calc() {
     TVec3f watchPoint;
     CameraLocalUtil::makeWatchPoint(&watchPoint, this, CameraLocalUtil::getTarget(this), 0.1f / 15.0f);

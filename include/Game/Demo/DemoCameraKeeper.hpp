@@ -19,9 +19,9 @@ public:
     /* 0x10 */ s32 mAnimCameraStartFrame;
     /* 0x14 */ s32 mAnimCameraEndFrame;
     /* 0x18 */ u8 mIsContinuous;
-    /* 0x1C */ const char* _1C;
-    /* 0x20 */ ActorCameraInfo* _20;
-    /* 0x24 */ LiveActor* _24;
+    /* 0x1C */ const char* mEventCameraName;
+    /* 0x20 */ ActorCameraInfo* mCameraInfo;
+    /* 0x24 */ LiveActor* mTargetActor;
 };
 
 class DemoCameraKeeper {
@@ -40,8 +40,8 @@ public:
     void endCurrentCamera();
 
     /* 0x00 */ DemoExecutor* mExecutor;
-    /* 0x04 */ s32 _4;
-    /* 0x08 */ DemoCameraInfo* _8;
-    /* 0x0C */ s32 _C;
-    /* 0x10 */ const DemoCameraInfo* _10;
+    /* 0x04 */ s32 mInfoNum;
+    /* 0x08 */ DemoCameraInfo* mInfos;
+    /* 0x0C */ s32 mCurrentIndex;
+    /* 0x10 */ const DemoCameraInfo* mCurrentInfo;
 };

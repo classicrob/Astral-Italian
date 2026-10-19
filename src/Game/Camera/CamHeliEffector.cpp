@@ -19,6 +19,7 @@ void CamHeliEffector_FORCE_MATCH_SDATA2() {
 CamHeliEffector::CamHeliEffector() : _0(), _4() {
 }
 
+// NONMATCHING: vector temporary addresses and register allocation.
 void CamHeliEffector::update(CameraMan* pCamera) {
     if (!CameraLocalUtil::getTarget(pCamera)->isCameraStateOn(1)) {
         _0 = 0;

@@ -35,7 +35,7 @@ namespace {
     bool getFirstPolyOnLineCategoryWithSensorType(TVec3f*, Triangle*, const TVec3f&, const TVec3f&, u32, s32) NO_INLINE;
 
     u32 getStrikeInfoNumCategory(s32 category) {
-        return MR::getCollisionDirector()->getCategoryKeeper(category)->_10;
+        return MR::getCollisionDirector()->getCategoryKeeper(category)->mHitCount;
     }
 
     const HitInfo* getStrikeInfoCategory(s32 category, u32 index) {
@@ -60,9 +60,9 @@ namespace {
                 continue;
             }
 
-            if (minDistance > pHit->_60) {
+            if (minDistance > pHit->mDistance) {
                 nearest = i;
-                minDistance = pHit->_60;
+                minDistance = pHit->mDistance;
             }
         }
 
@@ -72,7 +72,7 @@ namespace {
 
         pHit = getStrikeInfoCategory(category, nearest);
         if (pPos) {
-            *pPos = pHit->_64;
+            *pPos = pHit->mHitPos;
         }
 
         if (pTriangle) {
@@ -467,7 +467,7 @@ namespace MR {
         }
 
         HitInfo* pHit = getCollisionDirector()->getCategoryKeeper(0)->getStrikeInfo(0);
-        pHitPos->set(pHit->_64);
+        pHitPos->set(pHit->mHitPos);
         pHitNormal->set(*pHit->mParentTriangle.getFaceNormal());
         *ppSensor = pHit->mParentTriangle.mSensor;
         if (pIsWater) {
@@ -536,7 +536,7 @@ namespace MR {
         HitInfo hit;
         pParts->checkStrikeLine(&hit, 1, start, direction, nullptr);
         CollisionPartsFilterSensor filter(pParts->mHitSensor);
-        return getFirstPolyOnLineCategory(pOut, nullptr, hit._64, direction, nullptr, &filter, 0);
+        return getFirstPolyOnLineCategory(pOut, nullptr, hit.mHitPos, direction, nullptr, &filter, 0);
     }
 
     bool isFallNextMove(const LiveActor* pActor, f32 param2, f32 param3, f32 param4, const TriangleFilterBase* pParam5) {

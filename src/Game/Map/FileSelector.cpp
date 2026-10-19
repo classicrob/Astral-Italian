@@ -27,10 +27,6 @@
 #include "Game/System/UserFile.hpp"
 #include "Game/Util/ActorSensorUtil.hpp"
 
-namespace MR {
-    void startSystemWipeCircleWithCaptureScreen(s32);
-}
-
 #include "Game/Util/CameraUtil.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/FileUtil.hpp"
@@ -225,6 +221,11 @@ void FileSelector::initUserFileArray() {
 void FileSelector::createCameraController() {
     mCameraController = new FileSelectCameraController("ファイルセレクトカメラ制御");
     mCameraController->initWithoutIter();
+}
+
+// The target retains the sky name after removal of the sky creation path.
+namespace FileSelectorData {
+    char sSkyActorName[] = "ファイルセレクト画面の空";
 }
 
 void FileSelector::createFileItems() {
@@ -801,6 +802,15 @@ void FileSelector::playSelectedME() {
     default:
         break;
     }
+}
+
+// The target also retains the five unused cancelled-selection music names.
+namespace FileSelectorData {
+    char sCancelME1[] = "ME_ASTRO_DOME_CALCEL1";
+    char sCancelME2[] = "ME_ASTRO_DOME_CALCEL2";
+    char sCancelME3[] = "ME_ASTRO_DOME_CALCEL3";
+    char sCancelME4[] = "ME_ASTRO_DOME_CALCEL4";
+    char sCancelME5[] = "ME_ASTRO_DOME_CALCEL5";
 }
 
 // NONMATCHING: register allocation in the smoothing step

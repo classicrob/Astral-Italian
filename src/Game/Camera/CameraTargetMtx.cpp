@@ -57,8 +57,8 @@ void CameraTargetMtx::movement() {
     mMatrix.getTrans(position);
 
     if (mInvalidLastMove) {
-        mInvalidLastMove = false;
         mLastMove.zero();
+        mInvalidLastMove = false;
     } else {
         mLastMove.sub(position, mPosition);
     }

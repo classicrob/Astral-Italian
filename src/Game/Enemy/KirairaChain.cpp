@@ -12,9 +12,6 @@
 #include "Game/Util/RailUtil.hpp"
 #include <JSystem/J3DGraphBase/J3DShapeDraw.hpp>
 
-KirairaChain::~KirairaChain() {
-}
-
 KirairaChain::KirairaChain(const LiveActor* pHost)
     : LiveActor("キライラの鎖"), mHost(pHost), mIsCut(), mCutPos(0.0f, 0.0f, 0.0f), mRailStart(0.0f, 0.0f, 0.0f), mRailEnd(0.0f, 0.0f, 0.0f),
       mFixPointTopDir(1.0f, 0.0f, 0.0f), mFixPointBottomDir(1.0f, 0.0f, 0.0f), mPointCount(), mPoints(), mUnusedPointCount(), mAccelPointIdx(),
@@ -67,6 +64,19 @@ KirairaChain::KirairaChain(const LiveActor* pHost)
     mFixPointBottomMtx.getXDir(mFixPointBottomDir);
 }
 
+void KirairaChain::init(const JMapInfoIter& rIter) {
+    MR::connectToScene(this, MR::MovementType_MapObj, -1, -1, 0x1a /* DrawType_KirairaChain */);
+    initPoints();
+
+    mModelDrawer = new SimpleJ3DModelDrawer(this, "キライラの鎖描画", "KirairaChain", -1);
+    mModelDrawer->initWithoutIter();
+
+    mFixPointTop = MR::createModelObjEnemy("キライラの固定点[Bottom]", "KirairaFixPointBottom", mFixPointBottomMtx.toMtxPtr());
+
+    mFixPointTop->appear();
+    makeActorAppeared();
+}
+
 void KirairaChain::initPoints() {
     mPoints = new SwingRopePoint*[mPointCount];
 
@@ -84,24 +94,21 @@ void KirairaChain::initPoints() {
     }
 }
 
-void KirairaChain::draw() const {
-    mModelDrawer->initDraw();
+void KirairaChain::control() {
+    if (mAccelTimer <= 0) {
+        mAccelPointIdx = MR::getRandom(0L, mPointCount - 1);
+        if (MR::isExistRail(mHost)) {
+            mAccelTimer = MR::getRandom(3L, 10L);
+        } else {
+            mAccelTimer = MR::getRandom(5L, 10L);
+        }
 
-    TPos3f mtx;
-    mtx.identity();
-
-    for (s32 i = 0; i < mPointCount; i++) {
-        SwingRopePoint* point = mPoints[i];
-
-        mtx.setXYZDir(point->mSide, point->mUp, point->mFront);
-
-        mtx.setTrans(point->mPosition);
-
-        PSMTXConcat(MR::getCameraViewMtx(), mtx, mtx);
-        GXLoadPosMtxImm(mtx, GX_PNMTX0);
-        GXLoadNrmMtxImm(mtx, GX_PNMTX0);
-        GXCallDisplayList(mModelDrawer->mShapeDraw->getDisplayList(), mModelDrawer->mShapeDraw->getDisplayListSize());
+        mAccel.set< f32 >(MR::getRandom(-0.3f, 0.3f), MR::getRandom(-0.3f, 0.3f), MR::getRandom(-0.3f, 0.3f));
     }
+
+    mAccelTimer--;
+    mPoints[mAccelPointIdx]->addAccel(mAccel);
+    updatePoints();
 }
 
 void KirairaChain::updatePoints() {
@@ -190,36 +197,6 @@ void KirairaChain::updatePoints() {
     }
 }
 
-void KirairaChain::control() {
-    if (mAccelTimer <= 0) {
-        mAccelPointIdx = MR::getRandom(0L, mPointCount - 1);
-        if (MR::isExistRail(mHost)) {
-            mAccelTimer = MR::getRandom(3L, 10L);
-        } else {
-            mAccelTimer = MR::getRandom(5L, 10L);
-        }
-
-        mAccel.set< f32 >(MR::getRandom(-0.3f, 0.3f), MR::getRandom(-0.3f, 0.3f), MR::getRandom(-0.3f, 0.3f));
-    }
-
-    mAccelTimer--;
-    mPoints[mAccelPointIdx]->addAccel(mAccel);
-    updatePoints();
-}
-
-void KirairaChain::init(const JMapInfoIter& rIter) {
-    MR::connectToScene(this, MR::MovementType_MapObj, -1, -1, 0x1a /* DrawType_KirairaChain */);
-    initPoints();
-
-    mModelDrawer = new SimpleJ3DModelDrawer(this, "キライラの鎖描画", "KirairaChain", -1);
-    mModelDrawer->initWithoutIter();
-
-    mFixPointTop = MR::createModelObjEnemy("キライラの固定点[Bottom]", "KirairaFixPointBottom", mFixPointBottomMtx.toMtxPtr());
-
-    mFixPointTop->appear();
-    makeActorAppeared();
-}
-
 void KirairaChain::restrictPointFromTop(s32 startIdx, s32 endIdx, const TVec3f& rPos, f32 radius) {
     mPoints[startIdx]->restrict(rPos, 40.0f, nullptr);
     mPoints[startIdx]->updatePos(radius);
@@ -266,4 +243,27 @@ void KirairaChain::restrictPointFromBottomAndCalcAxis(s32 startIdx, s32 endIdx, 
         mPoints[i]->restrict(mPoints[i + 1]->mPosition, 40.0f, nullptr);
         mPoints[i]->updatePosAndAxis(mPoints[i + 1]->mSide, radius);
     }
+}
+
+void KirairaChain::draw() const {
+    mModelDrawer->initDraw();
+
+    TPos3f mtx;
+    mtx.identity();
+
+    for (s32 i = 0; i < mPointCount; i++) {
+        SwingRopePoint* point = mPoints[i];
+
+        mtx.setXYZDir(point->mSide, point->mUp, point->mFront);
+
+        mtx.setTrans(point->mPosition);
+
+        PSMTXConcat(MR::getCameraViewMtx(), mtx, mtx);
+        GXLoadPosMtxImm(mtx, GX_PNMTX0);
+        GXLoadNrmMtxImm(mtx, GX_PNMTX0);
+        GXCallDisplayList(mModelDrawer->mShapeDraw->getDisplayList(), mModelDrawer->mShapeDraw->getDisplayListSize());
+    }
+}
+
+KirairaChain::~KirairaChain() {
 }

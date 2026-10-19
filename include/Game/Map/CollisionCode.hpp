@@ -129,6 +129,6 @@ public:
     u32 mNumCodes;     // 0x0
     u32 mMaxNumCodes;  // 0x4
     u32* mHashCodes;   // 0x8
-    u32* _C;
+    u32* mCodes;
     const char** mNames;  // 0x10
 };

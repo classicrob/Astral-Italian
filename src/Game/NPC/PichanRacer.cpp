@@ -23,10 +23,7 @@ namespace NrvPichanRacer {
     NEW_NERVE(PichanRacerNrvTalk, PichanRacer, Talk);
     class PichanRacerNrvStartWait : public Nerve {
     public:
-        virtual void execute(Spine* spine) const {
-            PichanRacer* actor = static_cast<PichanRacer*>(spine->mExecutor);
-            if (MR::isFirstStep(actor)) MR::startAction(actor, "GliBirdStartWait");
-        }
+        virtual void execute(Spine* spine) const;
         static PichanRacerNrvStartWait sInstance;
     };
     PichanRacerNrvStartWait PichanRacerNrvStartWait::sInstance ATTRIBUTE_WEAK;
@@ -74,8 +71,8 @@ void PichanRacer::init(const JMapInfoIter& iter) {
     mSpinAction=cNPCSpinDefault; mTrampledAction=cNPCTrampledDefault;
     mPointingAction=cNPCPointingDefault; mReactionAction=cNPCReactionDefault;
     mSpinAttackRange = 450.0f;
-    MR::registerBranchFunc(mMsgCtrl, TalkMessageFunc(this, &PichanRacer::branchFunc));
-    MR::registerEventFunc(mMsgCtrl, TalkMessageFunc(this, &PichanRacer::eventFunc));
+    MR::registerBranchFunc(getMsgCtrl(), TalkMessageFunc(this, &PichanRacer::branchFunc));
+    MR::registerEventFunc(getMsgCtrl(), TalkMessageFunc(this, &PichanRacer::eventFunc));
     MR::registerNamePosLinkObj(this, iter, cFinishPosition);
     s32 index = -1;
     MR::getJMapInfoArg7NoInit(iter, &index);
@@ -106,6 +103,11 @@ void PichanRacer::exeTalk() {
         setNerve(RACER_NERVE(Wait));
     }
 }
+void NrvPichanRacer::PichanRacerNrvStartWait::execute(Spine* spine) const {
+    PichanRacer* actor = static_cast<PichanRacer*>(spine->mExecutor);
+    if (MR::isFirstStep(actor)) MR::startAction(actor, "GliBirdStartWait");
+}
+
 void PichanRacer::exeStart() {
     if (MR::isFirstStep(this)) MR::startAction(this, "GliBirdStart");
     if (MR::isActionEnd(this)) setNerve(RACER_NERVE(StartEnd));

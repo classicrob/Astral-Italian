@@ -32,7 +32,7 @@ public:
     /* 0x14 */ ParticleDrawExecutor* mDrawExec;
     /* 0x18 */ ParticleCalcExecutor* mCalcExec;
     /* 0x1C */ AutoEffectGroupHolder* mGroupHolder;
-    /* 0x20 */ bool _20;
+    /* 0x20 */ bool mIsEmissionEnabled;
 };
 
 namespace MR {

@@ -126,7 +126,7 @@ void MultiEmitter::setHostMtx(MtxPtr pMtx) {
 }
 
 void MultiEmitter::setOffset(const TVec3f& rOffset) {
-    mCallBack->_18.set(rOffset);
+    mCallBack->mLocalOffset.set(rOffset);
 }
 
 void MultiEmitter::setBaseScale(f32 scale) {
@@ -281,9 +281,9 @@ void MultiEmitter::allocateEmitter(const char* pName) {
                 u16 index;
                 if (MR::Effect::isExistInResource(&index, name)) {
                     indices.push_back(index);
+                    nameLength = 0;
+                    MR::zeroMemory(name, sizeof(name));
                 }
-                nameLength = 0;
-                MR::zeroMemory(name, sizeof(name));
             } else {
                 name[nameLength] = pName[i];
                 nameLength++;

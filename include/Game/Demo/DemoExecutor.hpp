@@ -92,11 +92,11 @@ public:
     /* 0x02C */ DemoWipeKeeper* mWipeKeeper;
     /* 0x030 */ DemoSoundKeeper* mSoundKeeper;
     /* 0x034 */ MR::Vector< MR::FixedArray< DemoSheetKeeperBase*, 2 > > mSheetKeeper;
-    /* 0x040 */ StageSwitchCtrl* _40;
-    /* 0x044 */ NameObj* _44;
-    /* 0x048 */ const char* _48;
-    /* 0x04C */ s32 _4C;
-    /* 0x050 */ bool _50;
+    /* 0x040 */ StageSwitchCtrl* mStageSwitchCtrl;
+    /* 0x044 */ NameObj* mStarterObj;
+    /* 0x048 */ const char* mStartPartName;
+    /* 0x04C */ s32 mSceneStopType;
+    /* 0x050 */ bool mUnused50;
     /* 0x054 */ MR::Vector< MR::FixedArray< LiveActor*, 192 > > mActor;
     /* 0x358 */ MR::Vector< MR::FixedArray< DemoTalkAnimCtrl*, 8 > > mTalkAnimCtrl;
     /* 0x37C */ MR::Vector< MR::FixedArray< DemoTalkMessageCtrl, 8 > > mTalkMessageCtrl;

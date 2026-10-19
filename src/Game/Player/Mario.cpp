@@ -1626,7 +1626,7 @@ void Mario::update() {
 
 void Mario::updateGroundInfo() {
     checkMap();
-    if (isEnableCheckGround()) {
+    if (fn_803890B0()) {
         bool b1 = !((mMovementStates.mLowWord & Mario::MovementStates::Jumping) >> 31) && !((mMovementStates.mLowWord >> 30) & 1U);
 
         { const u32 flagValue = static_cast<u32>(checkGround()); u32& flags = mMovementStates.mLowWord; flags = (flags & 0xBFFFFFFFU) | ((flagValue & 1U) << 30); }
@@ -1654,6 +1654,7 @@ void Mario::updateGroundInfo() {
     updateCameraPolygon();
 
     if (((mMovementStates.mLowWord >> 30) & 1U)) {
+        mJumpFallTimer = 0;
         mMovementStates.mHighWord &= 0xFFBFFFFFU;
         if (_43A == 0 && isSlipPolygon(mGroundPolygon)) {
             mDrawStates.mWord |= 0x00080000U;
@@ -1669,10 +1670,15 @@ void Mario::updateGroundInfo() {
     updateOnSand();
     updateOnWater();
     updateOnPoison();
+
+    if (mHang != nullptr && ((mMovementStates.mLowWord >> 30) & 1U)) {
+        mHang->mHangTimer = 0;
+    }
 }
 
 
 bool Mario::postureCtrl(MtxPtr) {
+    // NONMATCHING: literal-pool placement.
     TVec3f vec1(_1FC);
     TVec3f vec2(mHeadVec);
     f32 blend;
@@ -1703,12 +1709,12 @@ bool Mario::postureCtrl(MtxPtr) {
 
     if (isStatusActive(MarioStatus_Wait)) {
         if (isAnimationRun("特殊ウエイト1A")) {
-            if (getAnimator()->getFrame() > 290.0f) {
+            if (getFrame() > 290.0f) {
                 blend = 1.0f;
-            } else if (getAnimator()->getFrame() > 260.0f) {
-                blend = 0.5f + 0.5f * ((getAnimator()->getFrame() - 260.0f) / 30.0f);
+            } else if (getFrame() > 260.0f) {
+                blend = 0.5f + 0.5f * ((getFrame() - 260.0f) / 30.0f);
             } else {
-                blend = 0.5f * (getAnimator()->getFrame() / 260.0f);
+                blend = 0.5f * (getFrame() / 260.0f);
             }
 
             MR::vecBlendSphere(vec2, -_374, &vec2, blend);
@@ -1738,6 +1744,10 @@ bool Mario::postureCtrl(MtxPtr) {
         TMtx34f mtx;
         PSMTXRotAxisRad(mtx, &mSideVec, 0.1f);
         PSMTXMultVecSR(mtx, vec1, &vec1);
+    }
+
+    if (isPlayerModeYoshi() && isNonFixHeadVec()) {
+        vec1 = mHeadVec;
     }
 
     if (!MR::normalizeOrZero(&vec1)) {
@@ -6385,7 +6395,7 @@ bool Mario::fixHangDir(const TVec3f& rPosition, TVec3f* pDirection) {
     MR::vecKillElement(horizontal, *getGravityVec(), &horizontal);
     MR::normalizeOrZero(&horizontal);
     Triangle pTriangle;
-    if (MR::getFirstPolyOnLineToMap(nullptr, &pTriangle, mPosHolder->mPos, horizontal * 150.0f)) {
+    if (fn_803B2770(nullptr, &pTriangle, mPosHolder->mPos, horizontal * 150.0f)) {
         *pDirection = -*pTriangle.getNormal(0);
         mHang->recordWallPolygon(&pTriangle);
         return true;
@@ -8590,7 +8600,7 @@ void Mario::doAirWalk() {
     if (_430 == 0xB || _430 == 8 || getPlayerMode() == 4 || getPlayerMode() == 6) {
         inhibitFrontAdjust = true;
     } else if (frontDot >= 0.0f) {
-        f32 frontReduction = mActor->getConst().getTable()->mJumpFrontReduction;
+        f32 frontReduction = fn_803B1D00();
         s16 reduceBegin = mActor->getConst().getTable()->mJumpFrontReductionBeginTime;
         if (_430 == 5) {
             frontReduction = mActor->getConst().getTable()->mSquatJumpFrontReduction;

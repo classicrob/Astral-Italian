@@ -1,10 +1,10 @@
 #include "revolution/dvd.h"
+#include "revolution/dvd/DVDInternal.h"
 #include "revolution/os.h"
 #include "revolution/os/OSBootInfo.h"
 #include <ctype.h>
 #include <locale.h>
 
-extern u32  __DVDLayoutFormat;
 
 typedef struct FSTEntry FSTEntry;
 
@@ -210,16 +210,27 @@ static u32 myStrncpy(char* dest, char* src, u32 maxlen) {
     return (maxlen - i);
 }
 
+// NONMATCHING: Two target alignment NOPs and copy-loop decrement scheduling differ.
 u32 entryToPath(u32 entry, char* path, u32 maxlen) {
     char* name;
     u32 loc;
+    u32 parent;
 
     if (entry == 0) {
         return 0;
     }
 
     name = FstStringStart + stringOff(entry);
-    loc = entryToPath(parentDir(entry), path, maxlen);
+    if (entryIsDir(entry)) {
+        parent = parentDir(entry);
+    } else {
+        for (parent = entry; parent != 0; parent--) {
+            if (entryIsDir(parent) && nextDir(parent) > entry) {
+                break;
+            }
+        }
+    }
+    loc = entryToPath(parent, path, maxlen);
 
     if (loc == maxlen) {
         return loc;

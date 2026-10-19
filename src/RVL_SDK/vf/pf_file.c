@@ -704,6 +704,9 @@ s32 VFiPFFILE_p_fread(PF_VOLUME* p_vol, u8* p_buf, u32 size, u32 count, PF_FILE*
 
 int VFiPFFILE_p_fwrite(PF_VOLUME* p_vol, u8* p_buf, u32 size, u32 count, PF_FILE* p_file, u32* p_count_written) {
     s32 err;
+    s32 cleanup_error;
+    PF_CURSOR save_cursor = {0};
+    PF_FAT_HINT save_hint = {0};
     PF_CACHE_PAGE* p_page;
     u32 append_size;
     u32 size_written;
@@ -754,6 +757,14 @@ int VFiPFFILE_p_fwrite(PF_VOLUME* p_vol, u8* p_buf, u32 size, u32 count, PF_FILE
                 p_file->p_sfd->dir_entry.file_size = base_pos + *p_count_written * size;
             else
                 p_file->p_sfd->dir_entry.file_size = base_size;
+            save_cursor = p_file->cursor;
+            save_hint = p_file->hint;
+            VFiPFFAT_SetHint(&p_file->p_sfd->ffd, &p_file->hint);
+            cleanup_error = VFiPFCLUSTER_FreeAppendCluster(p_file);
+            if (cleanup_error)
+                err = cleanup_error;
+            p_file->cursor = save_cursor;
+            p_file->hint = save_hint;
         }
         VFiPFFILE_Cursor_SetPosition(p_file, base_pos + *p_count_written * size);
     }

@@ -13,4 +13,6 @@ void VFiPFCLUSTER_InitLastAccessCluster(PF_FILE* p_file);
 
 s32 VFiPFCLUSTER_GetAppendSize(PF_FILE* p_file, u32* p_size);
 
+s32 VFiPFCLUSTER_FreeAppendCluster(PF_FILE* p_file);
+
 #endif  // PF_CLUSTER_H

@@ -1,6 +1,7 @@
 #include <cstdio>
 #include "private/flipper.h"
 #include "revolution/dvd.h"
+#include "revolution/dvd/DVDInternal.h"
 #include "revolution/os.h"
 #include "revolution/os/OSIpc.h"
 #include "revolution/ipc.h"
@@ -604,7 +605,6 @@ typedef void* (*AppGetEntryFunc)(void);
 
 typedef void (*AppInterfaceFunc)(AppInitFunc*, AppGetNextFunc*, AppGetEntryFunc*);
 
-extern u32 __DVDLayoutFormat;
 
 #define NEWAPPLOADER_DATE "2004/02/01"
 

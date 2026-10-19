@@ -1349,6 +1349,13 @@ s32 VFiPFFAT_TraceClustersChain(PF_FFD* p_ffd, u32 start_clst, u32 size, u32* p_
     }
 }
 
+s32 VFiPFFAT_WriteValueToSpecifiedCluster(PF_VOLUME* p_vol, u32 cluster, u32 value) {
+    s32 err = VFiPFFAT_WriteFATEntry(p_vol, cluster, value);
+    if (err)
+        return err;
+    return 0;
+}
+
 s32 VFiPFFAT_ReadValueToSpecifiedCluster(PF_VOLUME* p_vol, u32 cluster, u32* value) {
     int err;
 

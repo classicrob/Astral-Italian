@@ -1,4 +1,5 @@
 #include "revolution/vf/d_common.h"
+#include "revolution/vf/pdm_bpb.h"
 #include "revolution/vf/d_vf_sys.h"
 #include "revolution/vf/nand_drv.h"
 #include <stdint.h>

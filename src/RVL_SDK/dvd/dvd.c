@@ -1,5 +1,6 @@
 #include <cstring>
 #include "revolution/dvd.h"
+#include "revolution/dvd/DVDInternal.h"
 #include "revolution/os.h"
 #include "revolution/os/OSBootInfo.h"
 

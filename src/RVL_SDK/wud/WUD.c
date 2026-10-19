@@ -2052,7 +2052,7 @@ void WUDiInitSub() {
 void WUDiEnableStack(void) {
     WUDCB* p = &_wcb;
 
-    BTA_HhEnable(BTA_SEC_AUTHENTICATE, WUDHidHostCallback);
+    BTA_HhEnable(BTA_SEC_AUTHENTICATE, WUDiHidHostEventCallback);
 
     p->stackState = WUD_STATE_STACK_GET_STORED_LINK_KEY;
 
@@ -3209,4 +3209,22 @@ WUDDevInfo* WUDiGetRemoveWbcDevice() {
     OSRestoreInterrupts(enable);
 
     return p_info;
+}
+
+WUDDevInfo* WUDiGetDiscoverDevice(void) {
+    return &_work;
+}
+// NONMATCHING: handle-table relocation identity differs; all instruction words match.
+void WUDiSetDevAddrForHandle(u8 handle, BD_ADDR_PTR address) {
+    _dev_handle_to_bda[handle] = address;
+}
+// NONMATCHING: handle-table relocation identity differs; all instruction words match.
+BD_ADDR_PTR WUDiGetDevAddrForHandle(u8 handle) {
+    return _dev_handle_to_bda[handle];
+}
+void WUDiSetQueueSizeForHandle(u8 handle, u16 size) {
+    _dev_handle_queue_size[handle] = size;
+}
+void WUDiSetNotAckNumForHandle(u8 handle, u16 size) {
+    _dev_handle_notack_num[handle] = size;
 }

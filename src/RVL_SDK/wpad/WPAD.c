@@ -1,4 +1,5 @@
 #include "revolution/wpad.h"
+#include "revolution/wpad/lint.h"
 #include "revolution/wbc.h"
 #include "private/flipper.h"
 #include "revolution/dvd.h"
@@ -66,6 +67,7 @@ static u16 __WPAD_dpd_hyst_count_threshold = WPAD_DEFAULT_DPD_HYST_COUNT_THRESHO
 extern void DEBUGPrint(const char*, ...);
 
 static void __ClearControlBlock(s32 chan);
+void __wpadCertWork(s32 chan);
 static void setupCallback(s32 chan, s32 result);
 static void abortConnCallback(s32 chan, s32 result);
 static void firmwareCheckCallback(s32 chan, s32 result);
@@ -79,17 +81,19 @@ BOOL WPADiSendWriteData(WPADCmdQueue* queue, void* p_buf, u16 len, u32 addr, WPA
 BOOL WPADiSendReadData(WPADCmdQueue* queue, void* p_buf, u16 len, u32 addr, WPADCallback callback);
 void WPADiClearQueue(WPADCmdQueue* queue);
 
-void* noAlloc(u32 size) {
-    DEBUGPrint("No Alloc: Nothing to do!!!\n");
+void* __wpadNoAlloc(u32 size) {
     return NULL;
 }
 
-u8 noFree(void* ptr) {
-    DEBUGPrint("No Free: Nothing to do!!!\n");
+u8 __wpadNoFree(void* ptr) {
     return 0;
 }
 
 // Retail capability flags retain real storage loads; historical names for the last three are unverified.
+static BOOL _callbackByKPAD;
+
+void WPADSetCallbackByKPAD(BOOL enabled) { _callbackByKPAD = enabled; }
+
 BOOL _trnEnabled;
 BOOL WPADIsEnabledTRN(void) { return _trnEnabled; }
 BOOL _gtrEnabled;
@@ -142,7 +146,7 @@ BOOL OnShutdown(BOOL final, u32 event) {
                 switch (event) {
                 case 0:
                     DEBUGPrint("Deregister allocators because of fatal error.\n");
-                    WPADRegisterAllocator(noAlloc, noFree);
+                    WPADRegisterAllocator(__wpadNoAlloc, __wpadNoFree);
 
                 case 2:
                 case 3:
@@ -993,6 +997,8 @@ void WPADiManageHandler(OSAlarm*, OSContext*) {
         }
 
         _extCnt[chan] = (u8)((_extCnt[chan] == 5) ? _extCnt[chan] : _extCnt[chan] + 1);
+
+        __wpadCertWork(chan);
     }
 
     if (_afhCnt == 60000) {
@@ -1095,6 +1101,21 @@ static void __ClearControlBlock(s32 chan) {
     WPADiClearQueue(&p_wpd->cmdq);
     WPADiClearQueue(&p_wpd->extq);
 
+    p_wpd->certChallengeBit = -1;
+    p_wpd->certBusy = 0;
+    p_wpd->certState = -1;
+    p_wpd->certValidity = 0;
+    p_wpd->certWorkDelay = 3000;
+    p_wpd->certTransferRetries = 2;
+    p_wpd->certParamBytes = 0;
+    p_wpd->certParam = NULL;
+    memset(p_wpd->certParamX, 0, sizeof(p_wpd->certParamX));
+    memset(p_wpd->certParamY, 0, sizeof(p_wpd->certParamY));
+    memset(p_wpd->certWork, 0, sizeof(p_wpd->certWork));
+    p_wpd->certWork[0] = 1;
+    p_wpd->certParamY[0] = 1;
+    p_wpd->certParamX[0] = 1;
+
     WPADiClearMemoryControl(chan);
 
     _extCnt[chan] = 0;
@@ -1160,6 +1181,8 @@ void WPADiInitSub() {
     _scFlush = 0;
     _scSetting = 1;
     _afhChannel = -1;
+
+    _callbackByKPAD = FALSE;
 
     OSRegisterVersion(__WPADVersion);
     OSCreateAlarm(&_managerAlarm);
@@ -1468,30 +1491,32 @@ s32 WPADProbe(s32 chan, u32* type) {
     return status;
 }
 
+// NONMATCHING: warning-string relocation identities only; instruction words otherwise exact.
 WPADSamplingCallback WPADSetSamplingCallback(s32 chan, WPADSamplingCallback callback) {
-    WPADControlBlock* p_wpd;
+    WPADControlBlock* p_wpd = _wpdcb[chan];
     WPADSamplingCallback prev;
     BOOL enable;
-
-    DEBUGPrint("WPADSetSamplingCallback()\n");
-
+    if (_callbackByKPAD) {
+        OSReport("WARNING: Overwritten the callback needed by KPAD.\n");
+        OSReport("         Please call KPADSetSamplingCallback instead of WPADSetSamplingCallback.\n");
+    }
     enable = OSDisableInterrupts();
-    p_wpd = _wpdcb[chan];
     prev = p_wpd->sampleCallback;
     p_wpd->sampleCallback = callback;
     OSRestoreInterrupts(enable);
     return prev;
 }
 
+// NONMATCHING: warning-string relocation identities only; instruction words otherwise exact.
 WPADConnectCallback WPADSetConnectCallback(s32 chan, WPADConnectCallback callback) {
-    WPADControlBlock* p_wpd;
+    WPADControlBlock* p_wpd = _wpdcb[chan];
     WPADConnectCallback prev;
     BOOL enable;
-
-    DEBUGPrint("WPADSetConnectCallback()\n");
-
+    if (_callbackByKPAD) {
+        OSReport("WARNING: Overwritten the callback needed by KPAD.\n");
+        OSReport("         Please call KPADSetConnectCallback instead of WPADSetConnectCallback.\n");
+    }
     enable = OSDisableInterrupts();
-    p_wpd = _wpdcb[chan];
     prev = p_wpd->connectCallback;
     p_wpd->connectCallback = callback;
     OSRestoreInterrupts(enable);
@@ -2693,4 +2718,302 @@ s32 WPADiControlMpls(s32 chan, u8 mode, WPADCallback callback) {
     OSRestoreInterrupts(enabled);
     if (callback != NULL) callback(chan, result);
     return result;
+}
+
+// Actual 512-bit certificate modulus and challenge multiplier; word zero is the limb count.
+#define WPAD_CERT_MODULUS_INITIALIZER { \
+    16, 0xa3dc5f11, 0x1b2ec797, 0xac9657b8, 0xcbeb788d, 0x991ef8b8, \
+    0x70caa54e, 0x071ce896, 0x63252cd0, 0xfd8b6316, 0x9e835020, 0xbf9ed1ef, \
+    0x0f870932, 0xbc88b819, 0xaf2c02e5, 0x657bbfb9, 0x81194f1c, 0 \
+}
+static const u32 __wpadCertModulus[18] = WPAD_CERT_MODULUS_INITIALIZER;
+static const u32 __wpadCertMultiplier[18] = {
+    16, 0x99d2071a, 0x8d823a01, 0x4c50a978, 0xd8a5bfff, 0x4caf5ce8,
+    0x13a71cba, 0x6fcff21b, 0x8c5399bf, 0x8896982d, 0xcb6ec891, 0x6ba136da,
+    0x25b8f224, 0x8f0f42c0, 0x15ea9941, 0xfdd1903e, 0x1af308b6, 0
+};
+
+// NONMATCHING: two independent header stores are scheduled in a different order.
+void __wpadCertFailed(s32 chan) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    p_cb->certValidity = -1;
+    p_cb->certBusy = 0;
+    p_cb->certChallengeBit = -1;
+    p_cb->certState = -1;
+    p_cb->certWorkDelay = 0;
+    p_cb->certTransferRetries = 0;
+    p_cb->certWorkCount = 0;
+    memset(p_cb->certParamX, 0, sizeof(p_cb->certParamX));
+    memset(p_cb->certParamY, 0, sizeof(p_cb->certParamY));
+    memset(p_cb->certWork, 0, sizeof(p_cb->certWork));
+    p_cb->certWork[0] = p_cb->certParamY[0] = p_cb->certParamX[0] = 1;
+    p_cb->certParamBytes = 0;
+    p_cb->certCachedValidity = -1;
+    p_cb->devType = 252;
+    if (p_cb->extensionCallback != NULL) p_cb->extensionCallback(chan, 252);
+}
+
+void __wpadCertCalcModX(s32 chan) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    u32 shifted[66];
+    u32 start = (u32)OSGetTime();
+    s32 modulusBits = LINTMsb(__wpadCertModulus);
+    do {
+        s32 workBits = LINTMsb(p_cb->certWork);
+        if (workBits > modulusBits) {
+            LINTLshift(shifted, __wpadCertModulus, workBits - modulusBits - 1);
+            if (LINTCmp(p_cb->certWork, shifted) >= 0) {
+                LINTSub(p_cb->certWork, p_cb->certWork, shifted);
+            }
+        } else {
+            if (LINTCmp(p_cb->certWork, __wpadCertModulus) >= 0) {
+                LINTSub(p_cb->certWork, p_cb->certWork, __wpadCertModulus);
+            }
+            memcpy(p_cb->certParamX, p_cb->certWork, sizeof(p_cb->certParamX));
+            p_cb->certState = 9;
+        }
+    } while (OSTicksToMicroseconds((u32)OSGetTime() - start) < 80);
+    p_cb->certBusy = 0;
+    p_cb->certWorkDelay = 0;
+}
+
+void __wpadCertCalcModY(s32 chan) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    u32 shifted[66];
+    u32 start = (u32)OSGetTime();
+    s32 modulusBits = LINTMsb(__wpadCertModulus);
+    do {
+        s32 workBits = LINTMsb(p_cb->certWork);
+        if (workBits > modulusBits) {
+            LINTLshift(shifted, __wpadCertModulus, workBits - modulusBits - 1);
+            if (LINTCmp(p_cb->certWork, shifted) >= 0) {
+                LINTSub(p_cb->certWork, p_cb->certWork, shifted);
+            }
+        } else {
+            if (LINTCmp(p_cb->certWork, __wpadCertModulus) >= 0) {
+                LINTSub(p_cb->certWork, p_cb->certWork, __wpadCertModulus);
+            }
+            memcpy(p_cb->certParamY, p_cb->certWork, sizeof(p_cb->certParamY));
+            p_cb->certState = 11;
+        }
+    } while (OSTicksToMicroseconds((u32)OSGetTime() - start) < 80);
+    p_cb->certBusy = 0;
+    p_cb->certWorkDelay = 0;
+}
+
+void __wpadCertChallengeCallback(s32 chan, s32 result) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    p_cb->certBusy = 0;
+    if (result == WPAD_ERR_NONE) {
+        p_cb->certWorkDelay = p_cb->certChallengeBit == 0 ? 1000 : 9000;
+        p_cb->certState = 4;
+    } else if (p_cb->certTransferRetries++ != 0) {
+        p_cb->certWorkDelay = 0;
+        __wpadCertFailed(chan);
+    }
+}
+
+void __wpadCertProbeReadyCallback(s32 chan, s32 result) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    p_cb->certBusy = 0;
+    if (result == WPAD_ERR_NONE) {
+        p_cb->certWorkDelay = 0;
+        ++p_cb->certTransferRetries;
+        if (p_cb->certState == 0) {
+            if (p_cb->certProbeResponse <= 4) p_cb->certTransferRetries = 0;
+            if (p_cb->certProbeResponse <= 12) {
+                p_cb->certWorkDelay = 5500;
+                p_cb->certTransferRetries = 0;
+            }
+            if (p_cb->certProbeResponse == 14) {
+                p_cb->certState = 1;
+                p_cb->certTransferRetries = 0;
+            }
+        }
+        if (p_cb->certState == 4 && p_cb->certProbeResponse == 26) {
+            p_cb->certState = 5;
+            p_cb->certTransferRetries = 0;
+        }
+    } else {
+        p_cb->certWorkDelay = 1000;
+        p_cb->certTransferRetries += 4;
+    }
+    if (p_cb->certTransferRetries > 100) __wpadCertFailed(chan);
+}
+
+// NONMATCHING: register allocation and independent byte-load placement differ.
+void __wpadCertGetParamCallback(s32 chan, s32 result) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    p_cb->certBusy = 0;
+    if (result == WPAD_ERR_NONE) {
+        u32 i;
+        for (i = 0; i < p_cb->readLength / 4; ++i) {
+            const u8* bytes = &p_cb->readBuf[i * 4];
+            p_cb->certParam[p_cb->certParamBytes / 4 + i + 1] =
+                (u32)bytes[0] | ((u32)bytes[1] << 8) | ((u32)bytes[2] << 16) | ((u32)bytes[3] << 24);
+        }
+        p_cb->certTransferRetries = 0;
+        p_cb->certParamBytes += p_cb->readLength;
+        if (p_cb->certParamBytes < 64) {
+            p_cb->certWorkDelay = 0;
+        } else {
+            for (i = 0; i < 16; ++i) {
+                if (p_cb->certParam[i + 1] != 0) p_cb->certParam[0] = i + 1;
+            }
+        }
+    } else if (p_cb->certTransferRetries++ < 1) {
+        p_cb->certWorkDelay = 0;
+    } else {
+        __wpadCertFailed(chan);
+    }
+}
+
+// NONMATCHING: compiler removes a transient completion boolean; register/stack allocation differs.
+void __wpadCertVerifyParamY(s32 chan) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    if (p_cb->certParamBytes < 64) {
+        p_cb->certParam = p_cb->certWork;
+        WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
+            __wpadCertGetParamCallback);
+    } else {
+        u32 modulusMinusOne[18] = WPAD_CERT_MODULUS_INITIALIZER;
+        p_cb->certBusy = 0;
+        p_cb->certParamBytes = 0;
+        --modulusMinusOne[1];
+        if ((p_cb->certWork[0] > 1 || p_cb->certWork[1] > 1) &&
+            ((p_cb->certChallengeBit != 0 && LINTCmp(p_cb->certWork, __wpadCertModulus) == -1) ||
+             (p_cb->certChallengeBit == 0 && LINTCmp(p_cb->certWork, modulusMinusOne) == -1)) &&
+            LINTCmp(p_cb->certWork, p_cb->certParamY) == 0) {
+            memset(p_cb->certWork, 0, sizeof(p_cb->certWork));
+            p_cb->certWork[0] = 1;
+            p_cb->certState = 7;
+            p_cb->certWorkDelay = 0;
+        } else {
+            __wpadCertFailed(chan);
+        }
+    }
+}
+
+// NONMATCHING: compiler removes transient completion booleans and changes register/stack allocation.
+void __wpadCertWork(s32 chan) {
+    WPADControlBlock* p_cb = _wpdcb[chan];
+    if (p_cb->certValidity != 0 || p_cb->certState < 0 || !p_cb->infos.attach) return;
+    if (!p_cb->certBusy && p_cb->certWorkDelay-- < 0) {
+        p_cb->certBusy = 1;
+        switch (p_cb->certState) {
+        case 0:
+            WPADiSendReadData(&p_cb->extq, &p_cb->certProbeResponse, 1, 0x04a400f7,
+                __wpadCertProbeReadyCallback);
+            break;
+        case 1:
+            if (p_cb->certParamBytes < 64) {
+                p_cb->certParam = p_cb->certParamX;
+                WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
+                    __wpadCertGetParamCallback);
+            } else {
+                p_cb->certBusy = 0;
+                p_cb->certParamBytes = 0;
+                if ((p_cb->certParamX[0] > 1 || p_cb->certParamX[1] > 1) &&
+                    LINTCmp(p_cb->certParamX, __wpadCertModulus) == -1) {
+                    p_cb->certState = 2;
+                    p_cb->certWorkDelay = 500;
+                } else {
+                    __wpadCertFailed(chan);
+                }
+            }
+            break;
+        case 2:
+            if (p_cb->certParamBytes < 64) {
+                p_cb->certParam = p_cb->certWork;
+                WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
+                    __wpadCertGetParamCallback);
+            } else {
+                p_cb->certBusy = 0;
+                p_cb->certParamBytes = 0;
+                if ((p_cb->certWork[0] > 1 || p_cb->certWork[1] > 1) &&
+                    LINTCmp(p_cb->certWork, __wpadCertModulus) == -1 &&
+                    LINTCmp(p_cb->certWork, p_cb->certParamX) == 0) {
+                    memset(p_cb->certWork, 0, sizeof(p_cb->certWork));
+                    p_cb->certWork[0] = 1;
+                    p_cb->certChallengeBit = OSGetTick() & 1;
+                    p_cb->certState = 3;
+                    p_cb->certWorkDelay = 0;
+                } else {
+                    __wpadCertFailed(chan);
+                }
+            }
+            break;
+        case 3:
+            WPADiSendWriteDataCmd(&p_cb->extq, (u8)p_cb->certChallengeBit, 0x04a400f1,
+                __wpadCertChallengeCallback);
+            break;
+        case 4:
+            WPADiSendReadData(&p_cb->extq, &p_cb->certProbeResponse, 1, 0x04a400f7,
+                __wpadCertProbeReadyCallback);
+            break;
+        case 5:
+            if (p_cb->certParamBytes < 64) {
+                p_cb->certParam = p_cb->certParamY;
+                WPADiSendReadData(&p_cb->extq, p_cb->readBuf, 64, 0x04a40050 + p_cb->certParamBytes,
+                    __wpadCertGetParamCallback);
+            } else {
+                u32 modulusMinusOne[18] = WPAD_CERT_MODULUS_INITIALIZER;
+                p_cb->certBusy = 0;
+                p_cb->certParamBytes = 0;
+                        --modulusMinusOne[1];
+                if ((p_cb->certParamY[0] > 1 || p_cb->certParamY[1] > 1) &&
+                    ((p_cb->certChallengeBit != 0 && LINTCmp(p_cb->certParamY, __wpadCertModulus) == -1) ||
+                     (p_cb->certChallengeBit == 0 && LINTCmp(p_cb->certParamY, modulusMinusOne) == -1))) {
+                    p_cb->certWorkDelay = 500;
+                    p_cb->certState = 6;
+                } else {
+                    __wpadCertFailed(chan);
+                }
+            }
+            break;
+        case 6:
+            __wpadCertVerifyParamY(chan);
+            break;
+        case 7:
+            if (p_cb->certChallengeBit != 0) {
+                LINTMul(p_cb->certWork, p_cb->certParamX, __wpadCertMultiplier);
+            } else {
+                memcpy(p_cb->certWork, p_cb->certParamX, sizeof(p_cb->certParamX));
+            }
+            p_cb->certBusy = 0;
+            p_cb->certWorkDelay = 0;
+            p_cb->certState = 8;
+            break;
+        case 8:
+            __wpadCertCalcModX(chan);
+            break;
+        case 9:
+            LINTMul(p_cb->certWork, p_cb->certParamY, p_cb->certParamY);
+            p_cb->certBusy = 0;
+            p_cb->certWorkDelay = 0;
+            p_cb->certState = 10;
+            break;
+        case 10:
+            __wpadCertCalcModY(chan);
+            break;
+        case 11:
+            {
+                s32 comparison = LINTCmp(p_cb->certParamX, p_cb->certParamY);
+                p_cb->certBusy = 0;
+                p_cb->certWorkDelay = 0;
+                p_cb->certState = 12;
+                if (comparison == 0) {
+                    p_cb->certValidity = 1;
+                    p_cb->certCachedValidity = 1;
+                } else {
+                    __wpadCertFailed(chan);
+                }
+            }
+            break;
+        }
+    }
+    if (p_cb->certWorkCount++ > 60000) {
+        p_cb->certState = 120;
+        __wpadCertFailed(chan);
+    }
 }

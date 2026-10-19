@@ -57,4 +57,6 @@ s32 VFiPFFAT_ResetFFD(struct PF_FFD* p_ffd, u32* p_start_cluster);
 
 s32 VFiPFFAT_GetBeforeChain(struct PF_VOLUME* p_vol, u32 start_cluster, u32 lActive, u32* p_cluster);
 
+s32 VFiPFFAT_WriteValueToSpecifiedCluster(PF_VOLUME* p_vol, u32 cluster, u32 value);
+
 #endif  // PF_FAT_H

@@ -201,6 +201,12 @@ typedef struct WUDCB {
     s16 incomeCnt;
 } WUDCB;
 
+WUDDevInfo* WUDiGetDiscoverDevice(void);
+void WUDiSetDevAddrForHandle(u8 handle, BD_ADDR_PTR address);
+BD_ADDR_PTR WUDiGetDevAddrForHandle(u8 handle);
+void WUDiSetQueueSizeForHandle(u8 handle, u16 size);
+void WUDiSetNotAckNumForHandle(u8 handle, u16 size);
+
 extern WUDCB _wcb;
 extern WUDDevInfo _work;
 

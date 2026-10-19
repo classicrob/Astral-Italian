@@ -37,7 +37,7 @@ namespace nw4r {
             }
 
             template<typename CharT>
-            // NONMATCHING: character narrowing and spacing-state initialization are scheduled differently.
+            // NONMATCHING: character narrowing, spacing-state initialization and registers differ.
             int CalcLineRectImpl(ut::Rect* rect, ut::TextWriterBase<CharT>* writer, const CharT* str, int len, f32 width, bool* wrap) {
                 ut::PrintContext<CharT> context = {};
                 f32 x = 0.0f;
@@ -55,7 +55,8 @@ namespace nw4r {
                 int ch = reader.Next();
                 while (static_cast<const CharT*>(reader.GetCurrentPos()) - str <= len) {
                     if (ch < 0x20) {
-                        ut::Rect tagRect;
+                        // Preserve the running left edge for control codes that leave the rectangle unchanged.
+                        ut::Rect tagRect(x, 0.0f, 0.0f, 0.0f);
                         context.str = static_cast<const CharT*>(reader.GetCurrentPos());
                         context.flags = !charSpace;
                         writer->SetCursorX(x);
@@ -256,7 +257,7 @@ namespace nw4r {
             writer.SetCursor(textRect.left, -textRect.top);
             const f32 textWidth = textRect.GetWidth();
             const wchar_t* str = mTextBuf;
-            u16 len = mTextLen;
+            int len = mTextLen;
             while (len > 0) {
                 ut::Rect lineRect;
                 bool wrap;

@@ -95,7 +95,7 @@ namespace nw4r {
 
             void GetRBFrameSize(math::VEC2* pPoint, Size* pSize, const math::VEC2& rBase, const Size& rWindowSize,
                                 const WindowFrameSize& rFrameSize) {
-                *pPoint = math::VEC2(rBase.x + rFrameSize.l, rBase.y + (rFrameSize.b - rWindowSize.height));
+                *pPoint = math::VEC2(rBase.x + rFrameSize.l, rFrameSize.b + (rBase.y - rWindowSize.height));
 
                 pSize->width = rWindowSize.width - rFrameSize.l;
                 pSize->height = rFrameSize.b;
@@ -267,7 +267,7 @@ namespace nw4r {
                              useVtxColor ? mContent.vtxColors : NULL, alpha);
         }
 
-        // NONMATCHING: frame-position temporaries use different floating-point registers.
+        // NONMATCHING: zero literal pool offset differs; instruction words and literal payloads match.
         void Window::DrawFrame(const math::VEC2& basePt, const Frame& frame, const WindowFrameSize& frameSize, u8 alpha) {
             if (frame.pMaterial->GetTextureNum() == 0) {
                 return;
@@ -302,7 +302,7 @@ namespace nw4r {
             detail::DrawQuad(polPt, polSize, texCoordNum, texCds, bUseVtxCol ? vtxColors : 0, alpha);
         }
 
-        // NONMATCHING: frame-position temporaries use different floating-point registers.
+        // NONMATCHING: zero literal pool offset differs; instruction words and literal payloads match.
         void Window::DrawFrame4(const math::VEC2& basePt, const Frame* frames, const WindowFrameSize& frameSize, u8 alpha) {
             const u8 texCoordNum = 1;
 
@@ -345,7 +345,7 @@ namespace nw4r {
             }
         }
 
-        // NONMATCHING: frame-position loads and floating-point registers differ.
+        // NONMATCHING: zero literal pool offset differs; instruction words and literal payloads match.
         void Window::DrawFrame8(const math::VEC2& basePt, const Frame* frames, const WindowFrameSize& frameSize, u8 alpha) {
             const u8 texCoordNum = 1;
             ut::Color vtxColors[4];
@@ -392,7 +392,7 @@ namespace nw4r {
                 polSize = Size(frameSize.r, frameSize.b);
                 GetRBTexCoord(texCds[0], polSize, detail::GetTextureSize(frames[3].pMaterial, 0), frames[3].textureFlip);
                 detail::SetVertexFormat(bUseVtxCol, texCoordNum);
-                detail::DrawQuad(math::VEC2(basePt.x + mSize.width - frameSize.r, basePt.y + (frameSize.b - mSize.height)), polSize, texCoordNum,
+                detail::DrawQuad(math::VEC2(basePt.x + mSize.width - frameSize.r, frameSize.b + (basePt.y - mSize.height)), polSize, texCoordNum,
                                  texCds, bUseVtxCol ? vtxColors : 0, alpha);
             }
 
@@ -401,7 +401,7 @@ namespace nw4r {
                 polSize = Size(mSize.width - frameSize.l - frameSize.r, frameSize.b);
                 GetRBTexCoord(texCds[0], polSize, detail::GetTextureSize(frames[7].pMaterial, 0), frames[7].textureFlip);
                 detail::SetVertexFormat(bUseVtxCol, texCoordNum);
-                detail::DrawQuad(math::VEC2(basePt.x + frameSize.l, basePt.y + (frameSize.b - mSize.height)), polSize, texCoordNum, texCds,
+                detail::DrawQuad(math::VEC2(basePt.x + frameSize.l, frameSize.b + (basePt.y - mSize.height)), polSize, texCoordNum, texCds,
                                  bUseVtxCol ? vtxColors : 0, alpha);
             }
 
@@ -410,7 +410,7 @@ namespace nw4r {
                 polSize = Size(frameSize.l, frameSize.b);
                 GetLBTexCoord(texCds[0], polSize, detail::GetTextureSize(frames[2].pMaterial, 0), frames[2].textureFlip);
                 detail::SetVertexFormat(bUseVtxCol, texCoordNum);
-                detail::DrawQuad(math::VEC2(basePt.x, basePt.y + (frameSize.b - mSize.height)), polSize, texCoordNum, texCds,
+                detail::DrawQuad(math::VEC2(basePt.x, frameSize.b + (basePt.y - mSize.height)), polSize, texCoordNum, texCds,
                                  bUseVtxCol ? vtxColors : 0, alpha);
             }
 

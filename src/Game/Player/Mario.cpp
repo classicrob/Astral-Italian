@@ -9835,7 +9835,7 @@ void Mario::stick2Dadjust(f32& rStickX, f32& rStickY) {
         bool doSecondBlock = false;
 
         if ((angleMove < 0.5235988f || angleMove > 2.617994f || _610 != 0) && _611 == 0) {
-            if (_620 == 0.0f) {
+            if (mPrevious2DStickY == 0.0f) {
                 rStickY = 0.0f;
                 if (isMainY && MR::abs(stickXInput) > 0.3f) {
                     rStickX = mStickPos.z;
@@ -9848,7 +9848,7 @@ void Mario::stick2Dadjust(f32& rStickX, f32& rStickY) {
 
         } else {
             if (!(angleMove > 1.3962635f && angleMove < 1.7453294f) && _611 == 0) {
-            } else if (_610 == 0 && _61C == 0.0f) {
+            } else if (_610 == 0 && mPrevious2DStickX == 0.0f) {
                 rStickX = 0.0f;
                 if (isMainX && MR::abs(stickYInput) > 0.3f) {
                     rStickY = mStickPos.z;
@@ -9861,8 +9861,8 @@ void Mario::stick2Dadjust(f32& rStickX, f32& rStickY) {
         }
     }
 
-    _61C = rStickX;
-    _620 = rStickY;
+    mPrevious2DStickX = rStickX;
+    mPrevious2DStickY = rStickY;
     _610 = lockX;
     _611 = lockY;
 
@@ -9970,8 +9970,8 @@ void Mario::clear2DStick() {
     _611 = 0;
     _618 = 0.0f;
     _614 = 0.0f;
-    _620SMG2 = 0.0f;
-    _620 = 0.0f;
+    mPrevious2DStickY = 0.0f;
+    mPrevious2DStickX = 0.0f;
     _624 = false;
     _61C = 0.0f;
     if (_66C) {

@@ -970,8 +970,8 @@ public:
     /* 0x612 */ u8 _pad612[0x2];
     /* 0x614 */ f32 _614;
     /* 0x618 */ f32 _618;  // SMG2 offset vote-gap  // SMG2 offset vote-gap
-    /* 0x61C */ f32 _620;
-    /* 0x620 */ f32 _620SMG2;
+    /* 0x61C */ f32 mPrevious2DStickX;
+    /* 0x620 */ f32 mPrevious2DStickY;
     /* 0x624 */ bool _624;
     /* 0x625 */ u8 _pad625[0x3];
     /* 0x628 */ f32 _61C;

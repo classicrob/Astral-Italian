@@ -326,7 +326,7 @@ void SpinCloudBlock::calcWind() {
 
 void SpinCloudBlock::adjustOnPlayer() {
     if (MR::isActorOnPlayer(this)) {
-        f32 t = MR::getPlayerConfrontDeathParam();
+        f32 t = MR::getPlayerCeilingDistance();
         if (!(t >= 160.0f)) {
             f32 dot = mSwayVel.dot(mGravity);
             if (dot < 0.0f) {

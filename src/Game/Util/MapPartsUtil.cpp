@@ -40,11 +40,11 @@ namespace {
 
 namespace MR {
     HitSensor* getBodySensor(LiveActor* pActor) {
-        return pActor->getSensor("body");
+        return pActor->getSensor("Body");
     }
 
     void setBodySensorType(LiveActor* pActor, u32 type) {
-        pActor->getSensor("body")->setType(type);
+        pActor->getSensor("Body")->setType(type);
     }
 
 

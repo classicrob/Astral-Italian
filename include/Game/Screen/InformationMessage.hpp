@@ -33,7 +33,7 @@ public:
     void setWindowType(s32 windowType) {  // original name unknown; named by behaviour: selects the message window placement (0x30).
         mWindowType = windowType;
     }
-    void setAButtonPosFlag(bool isOn) {  // original name unknown; named by behaviour: sets the A-button position flag (0x35).
+    void setAButtonOpened(bool isOn) {  // original name unknown; named by behaviour: sets whether the A-button prompt has been opened (0x35).
         mIsAButtonOpened = isOn;
     }
 

@@ -215,9 +215,11 @@ GalaxyStatusAccessor ScenarioDataParser::makeAccessor(const char* pName) const {
 }
 
 namespace ScenarioDataFunction {
+#pragma dont_inline on
     ScenarioDataParser* getScenarioDataParser() {
-        return SingletonHolder<GameSystem>::get()->mSceneController->mScenarioParser;
+        return SingletonHolder<GameSystem>::sInstance->mSceneController->mScenarioParser;
     }
+#pragma dont_inline reset
 
     bool getCurrentCommonLayers(const char* pName) {
         const char* stageName = MR::getCurrentStageName();

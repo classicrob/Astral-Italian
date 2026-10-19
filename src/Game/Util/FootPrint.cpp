@@ -1,5 +1,6 @@
 #define JGEOMETRY_VEC3_SUB2_NOINLINE
 #include "Game/Util/FootPrint.hpp"
+
 #include "Game/LiveActor/LiveActor.hpp"
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/JointUtil.hpp"
@@ -254,4 +255,11 @@ namespace MR {
         TVec3f pos(matrix[0][3], matrix[1][3], matrix[2][3]);
         addFootPrintOnGround(handle, actor, &pos, &front, right, distance);
     }
+}
+
+// These base virtuals are empty in the target and are emitted in this unit.
+void NameObj::endMovement() {
+}
+
+void NameObj::startMovement() {
 }

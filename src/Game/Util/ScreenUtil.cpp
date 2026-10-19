@@ -598,7 +598,7 @@ namespace MR {
     }
 
     void disableCloseInformationMessage() {
-        getGameSceneLayoutHolder()->mInformationMessage->setAButtonPosFlag(false);
+        getGameSceneLayoutHolder()->mInformationMessage->setAButtonOpened(false);
     }
 
     bool isDeadInformationMessage() {

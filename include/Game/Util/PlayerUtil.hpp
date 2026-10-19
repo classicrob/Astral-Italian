@@ -346,7 +346,7 @@ namespace MR {
     void startDemoBckPlayer(const char*, const BckCtrlData&);
     // original name unknown; named by behaviour: Player access, animation, model, and movement helpers (see PlayerUtil.cpp).
     bool startPlayerBvaWithCtrl(const char*, const BckCtrlData&);
-    f32 getPlayerConfrontDeathParam();
+    f32 getPlayerCeilingDistance();
     void calcYoshiEatItemVelocity(TVec3f*);
     void decrementPlayerSwimLife();
     bool isPlayerInJumpAction();

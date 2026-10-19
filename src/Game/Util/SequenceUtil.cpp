@@ -13,9 +13,13 @@
 #include "Game/Util/SystemUtil.hpp"
 
 namespace MR {
+    bool isStageStateScenarioOpeningCamera() {
+        return GameSceneFunction::isExecScenarioOpeningCamera();
+    }
 
-
-
+    bool isStageStatePowerStarAppeared() {
+        return GameSequenceFunction::isResultPowerStarAppeared();
+    }
 
 
 

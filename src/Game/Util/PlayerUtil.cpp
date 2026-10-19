@@ -130,8 +130,8 @@ namespace MR {
         MarioAccess::fn_803B7170(pOut);
     }
 
-    // original name unknown; named by behaviour: returns Mario+0x724, or a fixed value during confront-death or disabled nerve changes.
-    f32 getPlayerConfrontDeathParam() {
+    // original name unknown; named by behaviour: returns the cached ceiling distance, or a fixed value during confront-death or disabled nerve changes.
+    f32 getPlayerCeilingDistance() {
         return MarioAccess::fn_803B7240();
     }
 

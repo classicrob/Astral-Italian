@@ -7,7 +7,7 @@
 
 DemoPositionController::DemoPositionController(const char* pName, const JMapInfoIter& rIter) : LiveActor("デモアクター位置"), pCameraInfo() {
     MR::initDefaultPos(this, rIter);
-    initModelManagerWithAnm(pName, nullptr, false);
+    MR::initActor(this, rIter, pName, false);
     pCameraInfo = new ActorCameraInfo(rIter);
     MR::invalidateClipping(this);
     makeActorDead();
@@ -21,6 +21,11 @@ void DemoPositionController::initAnimCamera(const char* pCameraName) {
     MR::initAnimCamera(this, this->pCameraInfo, pCameraName);
 }
 
+void DemoPositionController::startDemo(const char* pCameraName) {
+    appear();
+    MR::startAction(this, pCameraName);
+    MR::startAnimCameraTargetSelf(this, pCameraInfo, pCameraName, 0, false, 1.0f);
+}
 
 void DemoPositionController::endDemo(const char* pCameraName) {
     MR::endAnimCamera(this, pCameraInfo, pCameraName, -1, true);

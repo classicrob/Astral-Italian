@@ -1413,6 +1413,9 @@ namespace JGeometry {
             this->template set< f32 >(weight * a.x + ratio * b.x, weight * a.y + ratio * b.y, weight * a.z + ratio * b.z, weight * a.w + ratio * b.w);
         }
 
+#ifdef JGEOMETRY_QUAT_TRANSFORM_NOINLINE
+        NO_INLINE
+#endif
         void transform(const TVec3< T >& v, TVec3< T >& rDest) const {
             // transformation via hamiltonian multiplication of a unit quaternion
             // q*v*q`

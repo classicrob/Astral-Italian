@@ -81,12 +81,12 @@ public:
     bool isOnSwitchParam() const;
     bool isValidSwitchParam() const;
 
-    SwitchIdInfo* mSW_A;       // 0x00
-    SwitchIdInfo* mSW_B;       // 0x04
-    SwitchIdInfo* mSW_Appear;  // 0x08
-    SwitchIdInfo* mSW_Dead;    // 0x0C
-    bool _10;
-    SwitchIdInfo* mSW_Param;  // 0x14
+    /* 0x00 */ SwitchIdInfo* mSW_A;       // 0x00
+    /* 0x04 */ SwitchIdInfo* mSW_B;       // 0x04
+    /* 0x08 */ SwitchIdInfo* mSW_Appear;  // 0x08
+    /* 0x0C */ SwitchIdInfo* mSW_Dead;    // 0x0C
+    /* 0x10 */ bool mUsesAutoDeadSwitch;
+    /* 0x14 */ SwitchIdInfo* mSW_Param;  // 0x14
 };
 
 namespace StageSwitchFunction {

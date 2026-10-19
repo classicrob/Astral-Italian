@@ -23,9 +23,13 @@ void DotCamReaderInBin::nextToChunk() {
     }
 }
 
+#pragma push
+#pragma dont_inline on
 bool DotCamReaderInBin::getValueInt(const char* pName, s32* pOut) {
     return mMapIter.getValue< s32 >(pName, pOut);
 }
+
+#pragma pop
 
 bool DotCamReaderInBin::getValueFloat(const char* pName, f32* pOut) {
     return mMapIter.getValue< f32 >(pName, pOut);

@@ -14,6 +14,7 @@ public:
     void registerActor(LayoutActor*);
     void registerNameObj(NameObj*);
     void movementOnAllCasts();
+    void movementOffAllCasts();
 
 private:
     /* 0x00 */ MR::Vector< MR::AssignableArray< LiveActor* > > mLiveActors;

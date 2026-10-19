@@ -9,7 +9,7 @@ public:
     DotCamReader() {
     }
 
-    virtual ~DotCamReader();
+    virtual ~DotCamReader() {}
 
     virtual u32 getVersion() const = 0;
     virtual bool hasMoreChunk() const = 0;

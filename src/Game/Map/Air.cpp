@@ -25,8 +25,8 @@ namespace NrvAir {
 };  // namespace NrvAir
 
 Air::Air(const char* pName) : LiveActor(pName) {
-    _8C = 0;
-    _8D = 0;
+    mHasChanged = 0;
+    mWaitForOpeningCamera = 0;
     mDistance = 70.0f;
 }
 
@@ -41,7 +41,7 @@ void Air::init(const JMapInfoIter& rIter) {
     MR::getJMapInfoArg0NoInit(rIter, &mDistance);
     s32 arg_1 = -1;
     MR::getJMapInfoArg1NoInit(rIter, &arg_1);
-    _8D = arg_1 + 1;
+    mWaitForOpeningCamera = arg_1 + 1;
     s32 arg_2 = -1;
     MR::getJMapInfoArg2NoInit(rIter, &arg_2);
     bool isAlwaysVisible = arg_2 + 1;
@@ -120,13 +120,13 @@ bool Air::tryChange() {
         return false;
     }
 
-    if (_8C) {
+    if (mHasChanged) {
         return false;
     }
 
     if (MR::isOnSwitchA(this)) {
         MR::tryStartAllAnim(this, "Change");
-        _8C = 1;
+        mHasChanged = 1;
         return true;
     }
 
@@ -146,7 +146,7 @@ void Air::appearFadeOut() {
 }
 
 void Air::exeIn() {
-    bool isCameraNotEnd = _8D && !MR::isStartAnimCameraEnd();
+    bool isCameraNotEnd = mWaitForOpeningCamera && !MR::isStartAnimCameraEnd();
 
     if (!isCameraNotEnd) {
         tryChange();
@@ -159,7 +159,7 @@ void Air::exeIn() {
 }
 
 void Air::exeOut() {
-    bool flag = _8D && !MR::isStartAnimCameraEnd();
+    bool flag = mWaitForOpeningCamera && !MR::isStartAnimCameraEnd();
 
     if (!flag) {
         tryChange();

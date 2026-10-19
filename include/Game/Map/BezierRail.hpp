@@ -55,9 +55,9 @@ public:
     }
 
     bool mIsClosed;  // 0x0
-    u8 _1;
-    u8 _2;
-    u8 _3;
+    u8 mReserved1;
+    u8 mReserved2;
+    u8 mReserved3;
     s32 mPointNum;  // 0x4
     s32 mNumRailParts;  // 0x8
     RailPart* mRailParts;  // 0xC

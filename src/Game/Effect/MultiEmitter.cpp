@@ -15,7 +15,7 @@
 template JGeometry::TVec3< s16 >::TVec3(s16, s16, s16);
 
 MultiEmitter::MultiEmitter(const char* pName, const TVec3f* pScale, const TVec3f* pRotation, const TVec3f* pTranslation, const TVec3f& rVec)
-    : mEmitters(), mCallBack(), mParticleCallBack(), _24(), _28(), _2C(), _30(), mHash(), mFlags() {
+    : mEmitters(), mCallBack(), mParticleCallBack(), mSyncBckInfo(), mAutoEffectInfo(), mLightAffectValue(), _30(), mHash(), mFlags() {
     mCallBack = new MultiEmitterCallBack(this, pScale, pRotation, pTranslation, rVec);
     mParticleCallBack = new MultiEmitterParticleCallBack();
 
@@ -23,7 +23,7 @@ MultiEmitter::MultiEmitter(const char* pName, const TVec3f* pScale, const TVec3f
 }
 
 MultiEmitter::MultiEmitter(const char* pName, MtxPtr pMtx, const TVec3f& rVec)
-    : mEmitters(), mCallBack(), mParticleCallBack(), _24(), _28(), _2C(), _30(), mHash(), mFlags() {
+    : mEmitters(), mCallBack(), mParticleCallBack(), mSyncBckInfo(), mAutoEffectInfo(), mLightAffectValue(), _30(), mHash(), mFlags() {
     mCallBack = new MultiEmitterCallBack(this, pMtx, rVec);
     mParticleCallBack = new MultiEmitterParticleCallBack();
 
@@ -31,14 +31,14 @@ MultiEmitter::MultiEmitter(const char* pName, MtxPtr pMtx, const TVec3f& rVec)
 }
 
 MultiEmitter::MultiEmitter(const char* pName, MtxPtr pMtx, const TVec3f* pTranslation, const TVec3f& rVec)
-    : mEmitters(), mCallBack(), mParticleCallBack(), _24(), _28(), _2C(), _30(), mHash(), mFlags() {
+    : mEmitters(), mCallBack(), mParticleCallBack(), mSyncBckInfo(), mAutoEffectInfo(), mLightAffectValue(), _30(), mHash(), mFlags() {
     mCallBack = new MultiEmitterCallBack(this, pMtx, pTranslation, rVec);
     mParticleCallBack = new MultiEmitterParticleCallBack();
 
     allocateEmitter(pName);
 }
 
-MultiEmitter::MultiEmitter(const char* pName) : mEmitters(), mCallBack(), mParticleCallBack(), _24(), _28(), _2C(), _30(), mHash(), mFlags() {
+MultiEmitter::MultiEmitter(const char* pName) : mEmitters(), mCallBack(), mParticleCallBack(), mSyncBckInfo(), mAutoEffectInfo(), mLightAffectValue(), _30(), mHash(), mFlags() {
     mCallBack = new MultiEmitterCallBack(this, TVec3f(0.0f, 0.0f, 0.0f));
     mParticleCallBack = new MultiEmitterParticleCallBack();
 
@@ -181,20 +181,20 @@ void MultiEmitter::forceScaleOn() {
 }
 
 void MultiEmitter::initSyncBck(XanimePlayer* pPlayer, const char* pName, s32 capacity, f32 startFrame) {
-    _24 = new SyncBckEffectInfo(pPlayer, pName, capacity, 0.0f, -1.0f, false);
-    _24->mStartFrame = startFrame;
+    mSyncBckInfo = new SyncBckEffectInfo("エフェクト", pPlayer, 0, pName, capacity, 0.0f, -1.0f, false);
+    mSyncBckInfo->mStartFrame = startFrame;
 }
 
 void MultiEmitter::onDeleteSyncBck(bool deleteOnEnd, f32 endFrame) {
-    _24->mEndFrame = endFrame;
+    mSyncBckInfo->mEndFrame = endFrame;
 }
 
 void MultiEmitter::addSyncBck(const XanimePlayer* pPlayer, const char* pName) {
-    _24->addBck(pPlayer, pName);
+    mSyncBckInfo->addBck(pName, pPlayer, 0, "エフェクト");
 }
 
 void MultiEmitter::setContinueBckEnd(bool continueAnimEnd) {
-    _24->mContinueAnimEnd = continueAnimEnd;
+    mSyncBckInfo->mContinueAnimEnd = continueAnimEnd;
 }
 
 void MultiEmitter::onCreateSyncClipping() {
@@ -210,7 +210,7 @@ void MultiEmitter::stopEmitterOnClipped() {
         forceDeleteEmitter();
     } else if (isFlagOn(JPAEmtrStts_RateStepEmit)) {
         deleteEmitter();
-    } else if (_24 != nullptr) {
+    } else if (mSyncBckInfo != nullptr) {
         stopCalcEmitter(-1);
         stopDrawParticle(-1);
     }
@@ -225,10 +225,10 @@ void MultiEmitter::stopEmitterOnClipped() {
 
 void MultiEmitter::playEmitterOffClipped() {
     if (isFlagOn(JPAEmtrStts_FirstEmit)) {
-        if (_24 == nullptr) {
+        if (mSyncBckInfo == nullptr) {
             create(MR::getEffectSystem());
         }
-    } else if (_24 != nullptr) {
+    } else if (mSyncBckInfo != nullptr) {
         playCalcEmitter(-1);
         playDrawParticle(-1);
     }
@@ -261,6 +261,7 @@ void MultiEmitter::setGlobalRotationDegree(const TVec3f& rRotation, s32 idx) {
     setGlobalRotation(TVec3s(toS16(rRotation.x), toS16(rRotation.y), toS16(rRotation.z)), idx);
 }
 
+// NONMATCHING: equivalent buffer address reuse and instruction scheduling.
 void MultiEmitter::allocateEmitter(const char* pName) {
     MR::Vector< MR::FixedArray< u16, 32 > > indices;
     bool numbered = !MR::hasStringSpace(pName) && !MR::isDigitStringTail(pName, 2);
@@ -313,20 +314,28 @@ SingleEmitter* MultiEmitter::getValidEmitter(s32 idx, bool) {
     return nullptr;
 }
 
-void MultiEmitter::createOneTimeEmitter() {
+bool MultiEmitter::createOneTimeEmitter() {
+    bool created = false;
     for (SingleEmitter* pEmitter = mEmitters.begin(); pEmitter != mEmitters.end(); pEmitter++) {
         if (pEmitter->isOneTime()) {
-            MR::getEffectSystem()->createSingleEmitter(pEmitter, mCallBack, nullptr);
+            if (MR::getEffectSystem()->createSingleEmitter(pEmitter, mCallBack, nullptr)) {
+                created = true;
+            }
         }
     }
+    return created;
 }
 
-void MultiEmitter::createForeverEmitter() {
+bool MultiEmitter::createForeverEmitter() {
+    bool created = false;
     for (SingleEmitter* pEmitter = mEmitters.begin(); pEmitter != mEmitters.end(); pEmitter++) {
         if (!pEmitter->isOneTime()) {
-            MR::getEffectSystem()->createSingleEmitter(pEmitter, mCallBack, nullptr);
+            if (MR::getEffectSystem()->createSingleEmitter(pEmitter, mCallBack, nullptr)) {
+                created = true;
+            }
         }
     }
+    return created;
 }
 
 void SingleEmitter::setGroupID(u8 groupId) {

@@ -1,3 +1,5 @@
+// SMG2 keeps JMapIdInfo::operator== out of line in this unit.
+#define JMAPIDINFO_NOINLINE_EQ
 #include "Game/Demo/DemoCastGroup.hpp"
 #include "Game/Util.hpp"
 #include "Game/LiveActor/LiveActorGroup.hpp"

@@ -499,6 +499,9 @@ namespace MR {
     /// @brief Computes the sine of a number, in radians.
     /// @param x The number of radians to evaluate.
     /// @return The ratio of the length of the opposite to that of the hypotenuse.
+#ifdef MR_SIN_NOINLINE
+    NO_INLINE
+#endif
     inline f32 sin(f32 x) {
         return JMASinRadian(x);
     }

@@ -331,13 +331,6 @@ void Meramera::kill() {
     }
 }
 
-void Meramera::startClipped() {
-    LiveActor::startClipped();
-
-    MR::deleteEffectAll(this);
-
-    mAppearTimer = 0;
-}
 
 void Meramera::endClipped() {
     LiveActor::endClipped();

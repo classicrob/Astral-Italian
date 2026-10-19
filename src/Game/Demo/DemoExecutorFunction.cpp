@@ -67,15 +67,24 @@ namespace DemoExecutorFunction {
     }
 
     bool isRegisteredDemoActionAppear(const DemoExecutor* pExecutor, const LiveActor* pActor) {
-        return pExecutor->mActionKeeper->isRegisteredDemoActionAppear(pActor);
+        if (pExecutor != nullptr) {
+            return pExecutor->mActionKeeper->isRegisteredDemoActionAppear(pActor);
+        }
+        return false;
     }
 
     bool isRegisteredDemoActionFunctor(const DemoExecutor* pExecutor, const LiveActor* pActor) {
-        return pExecutor->mActionKeeper->isRegisteredDemoActionFunctor(pActor);
+        if (pExecutor != nullptr) {
+            return pExecutor->mActionKeeper->isRegisteredDemoActionFunctor(pActor);
+        }
+        return false;
     }
 
     bool isRegisteredDemoActionNerve(const DemoExecutor* pExecutor, const LiveActor* pActor) {
-        return pExecutor->mActionKeeper->isRegisteredDemoActionNerve(pActor);
+        if (pExecutor != nullptr) {
+            return pExecutor->mActionKeeper->isRegisteredDemoActionNerve(pActor);
+        }
+        return false;
     }
 
     bool tryCreateDemoTalkAnimCtrlForActor(DemoExecutor* pExecutor, LiveActor* pActor, const char* a3, const char* a4) {

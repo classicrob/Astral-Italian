@@ -108,14 +108,6 @@ void OtaRock::init(const JMapInfoIter& rIter) {
     }
 }
 
-void OtaRock::appear() {
-    LiveActor::appear();
-    if (mNoThrowCocoNut) {
-        setNerve(GET_NERVE(OtaRock, OtaRockNrvWait));
-    } else {
-        setNerve(GET_NERVE(OtaRock, OtaRockNrvHideWait));
-    }
-}
 
 void OtaRock::kill() {
     MR::emitEffect(this, "OtaRockDeath");

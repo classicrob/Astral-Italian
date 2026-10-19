@@ -33,3 +33,17 @@ void DemoSimpleCastHolder::movementOnAllCasts() {
         MR::requestMovementOn(*pNameObj);
     }
 }
+
+void DemoSimpleCastHolder::movementOffAllCasts() {
+    for (LiveActor** pActor = mLiveActors.begin(); pActor != mLiveActors.end(); pActor++) {
+        MR::requestMovementOff(*pActor);
+    }
+
+    for (LayoutActor** pActor = mLayoutActors.begin(); pActor != mLayoutActors.end(); pActor++) {
+        MR::requestMovementOff(*pActor);
+    }
+
+    for (NameObj** pNameObj = mNameObjs.begin(); pNameObj != mNameObjs.end(); pNameObj++) {
+        MR::requestMovementOff(*pNameObj);
+    }
+}

@@ -3,7 +3,7 @@
 #include "Game/Util/MathUtil.hpp"
 
 namespace {
-    static const f32 sThreshold = JGeometry::TUtil< f32 >::PI() / 180.0f;
+    static const f32 sThreshold = 0.6f * JGeometry::TUtil< f32 >::PI() / 180.0f;
 };  // namespace
 
 CameraRotChecker::CameraRotChecker() {
@@ -11,12 +11,22 @@ CameraRotChecker::CameraRotChecker() {
     mThreshold = ::sThreshold;
 }
 
+// NONMATCHING: intrinsic estimate materialization and equivalent branch/register scheduling.
 void CameraRotChecker::update() {
     TPos3f mtx;
     mtx.concat(MR::getCameraViewMtx(), mMtx);
 
-    TVec3f axis;
-    mIsRotatingHard = MR::abs(mtx.getRotate(axis)) > mThreshold;
+    TQuat4f rotation;
+    mtx.getQuat(rotation);
+    f32 vectorLength = rotation.toTvec()->squared();
+    if (vectorLength > 0.0f) {
+        f64 inverse = __frsqrte(vectorLength);
+        vectorLength *= inverse;
+        f32 correction = vectorLength * inverse;
+        correction = -(correction - 3.0f);
+        vectorLength = 0.5f * (correction * vectorLength);
+    }
+    mIsRotatingHard = MR::abs(2.0f * JMAAsinRadian(vectorLength)) > mThreshold;
 
     mMtx.set(MR::getCameraInvViewMtx());
 }

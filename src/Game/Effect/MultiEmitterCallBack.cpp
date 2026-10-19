@@ -177,7 +177,7 @@ void MultiEmitterCallBack::setScaleFromHostScale(JPABaseEmitter* pEmitter, const
 }
 
 void MultiEmitterCallBack::effectLight(JPABaseEmitter* pEmitter) {
-    if (MR::isNearZero(mEmitter->_2C)) {
+    if (MR::isNearZero(mEmitter->mLightAffectValue)) {
         return;
     }
 }
@@ -196,7 +196,7 @@ void MultiEmitterCallBack::followSRT(JPABaseEmitter* pEmitter, bool b2) {
 }
 
 void MultiEmitterCallBack::setColor(JPABaseEmitter* pEmitter) {
-    if (MR::isNearZero(mEmitter->_2C)) {
+    if (MR::isNearZero(mEmitter->mLightAffectValue)) {
         pEmitter->setGlobalPrmColor(mPrmColor.r, mPrmColor.g, mPrmColor.b);
         pEmitter->setGlobalEnvColor(mEnvColor.r, mEnvColor.g, mEnvColor.b);
         return;
@@ -214,10 +214,10 @@ void MultiEmitterCallBack::setColor(JPABaseEmitter* pEmitter) {
 
 void MultiEmitterCallBack::isFollowSRT(FlagSRT* pFlag, bool b2) const {
     if (b2) {
-        if (mEmitter->_28 != nullptr) {
-            pFlag->mScale = !((mEmitter->_28->mFlag & AutoEffectInfo::FLAG_AFFECT_TRANS) - AutoEffectInfo::FLAG_AFFECT_TRANS);
-            pFlag->mRotation = !((mEmitter->_28->mFlag & AutoEffectInfo::FLAG_AFFECT_ROTATE) - AutoEffectInfo::FLAG_AFFECT_ROTATE);
-            pFlag->mTranslation = !((mEmitter->_28->mFlag & AutoEffectInfo::FLAG_AFFECT_SCALE) - AutoEffectInfo::FLAG_AFFECT_SCALE);
+        if (mEmitter->mAutoEffectInfo != nullptr) {
+            pFlag->mScale = !((mEmitter->mAutoEffectInfo->mFlag & AutoEffectInfo::FLAG_AFFECT_TRANS) - AutoEffectInfo::FLAG_AFFECT_TRANS);
+            pFlag->mRotation = !((mEmitter->mAutoEffectInfo->mFlag & AutoEffectInfo::FLAG_AFFECT_ROTATE) - AutoEffectInfo::FLAG_AFFECT_ROTATE);
+            pFlag->mTranslation = !((mEmitter->mAutoEffectInfo->mFlag & AutoEffectInfo::FLAG_AFFECT_SCALE) - AutoEffectInfo::FLAG_AFFECT_SCALE);
         }
     } else {
         if ((mFlags & (FORCE_FOLLOW_OFF | RESET_FOLLOW_CURRENT)) != 0) {
@@ -225,10 +225,10 @@ void MultiEmitterCallBack::isFollowSRT(FlagSRT* pFlag, bool b2) const {
             return;
         }
 
-        if (mEmitter->_28 != nullptr) {
-            pFlag->mScale = !((mEmitter->_28->mFlag & AutoEffectInfo::FLAG_FOLLOW_TRANS) - AutoEffectInfo::FLAG_FOLLOW_TRANS);
-            pFlag->mRotation = !((mEmitter->_28->mFlag & AutoEffectInfo::FLAG_FOLLOW_ROTATE) - AutoEffectInfo::FLAG_FOLLOW_ROTATE);
-            pFlag->mTranslation = !((mEmitter->_28->mFlag & AutoEffectInfo::FLAG_FOLLOW_SCALE) - AutoEffectInfo::FLAG_FOLLOW_SCALE);
+        if (mEmitter->mAutoEffectInfo != nullptr) {
+            pFlag->mScale = !((mEmitter->mAutoEffectInfo->mFlag & AutoEffectInfo::FLAG_FOLLOW_TRANS) - AutoEffectInfo::FLAG_FOLLOW_TRANS);
+            pFlag->mRotation = !((mEmitter->mAutoEffectInfo->mFlag & AutoEffectInfo::FLAG_FOLLOW_ROTATE) - AutoEffectInfo::FLAG_FOLLOW_ROTATE);
+            pFlag->mTranslation = !((mEmitter->mAutoEffectInfo->mFlag & AutoEffectInfo::FLAG_FOLLOW_SCALE) - AutoEffectInfo::FLAG_FOLLOW_SCALE);
         }
     }
 

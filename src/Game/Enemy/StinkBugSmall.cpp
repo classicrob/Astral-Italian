@@ -35,7 +35,7 @@ namespace NrvStinkBugSmall {
     NEW_NERVE(StinkBugSmallNrvShake, StinkBugSmall, Shake);
     NEW_NERVE(StinkBugSmallNrvPanic, StinkBugSmall, Panic);
     NEW_NERVE(StinkBugSmallNrvRecover, StinkBugSmall, Recover);
-    NEW_NERVE_ONEND(StinkBugSmallNrvDPDSwoon, StinkBugSmall, DPDSwoon, DPDSwoon);
+    NEW_NERVE(StinkBugSmallNrvDPDSwoon, StinkBugSmall, DPDSwoon);
     NEW_NERVE(StinkBugSmallNrvForceFall, StinkBugSmall, ForceFall);
 };  // namespace NrvStinkBugSmall
 

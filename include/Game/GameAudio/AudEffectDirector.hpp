@@ -10,12 +10,11 @@ public:
     virtual void movement();
 
     void setEffectType(s32, s32, s32);
-    void restoreEffectType();
+    void restoreEffectType() NO_INLINE;
     void setAudioEffectParam(s32);
-    void playEffectSound(s32) NO_INLINE;
 
-    s32 _C;
-    s32 _10;
-    s32 _14;
-    s32 _18;
+    /* 0x14 */ s32 mEffectType;
+    /* 0x18 */ s32 mAppliedEffectType;
+    /* 0x1C */ s32 mPriority;
+    /* 0x20 */ s32 mSavedEffectType;
 };

@@ -76,7 +76,7 @@ bool EffectSystem::createSingleEmitter(SingleEmitter* pSingleEmitter, MultiEmitt
         pSingleEmitter->unlink();
     }
 
-    ParticleEmitter* pEmitter = createEmitter(pSingleEmitter->_4, pSingleEmitter->mGroupId, 0);
+    ParticleEmitter* pEmitter = createEmitter(pSingleEmitter->mResourceId, pSingleEmitter->mGroupId, 0);
 
     if (pEmitter != nullptr) {
         pSingleEmitter->link(pEmitter);

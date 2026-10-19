@@ -1,5 +1,6 @@
 #include "Game/Demo/DemoSoundKeeper.hpp"
 #include "Game/Demo/DemoFunction.hpp"
+#include "Game/GameAudio/ActionSoundKeeper.hpp"
 #include "Game/Util/DemoUtil.hpp"
 #include "Game/Util/EventUtil.hpp"
 #include "Game/Util/JMapInfo.hpp"
@@ -11,6 +12,7 @@
 DemoSoundInfo::DemoSoundInfo() : mPartName(), mBgm(""), mSystemSe(""), mActionSe(""), mReturnBgm(), mBgmWipeoutFrame(-1), mAllSoundStopFrame(-1) {
 }
 
+#pragma auto_inline off
 DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(pExecutor), mActionSoundKeeper() {
     JMapInfo* pMap = nullptr;
     const DemoExecutor* pSheetExecutor = mExecutor;
@@ -29,17 +31,25 @@ DemoSoundKeeper::DemoSoundKeeper(DemoExecutor* pExecutor) : DemoSheetKeeperBase(
             pMap->getValue(i, "AllSoundStopFrame", &info.mAllSoundStopFrame);
         }
         mInfo.push_back(info);
+        if (!MR::isNullOrEmptyString(info.mActionSe)) {
+            initActionSoundKeeper();
+        }
     }
 }
 
+#pragma auto_inline on
 void DemoSoundKeeper::update() {
     DemoSheetKeeperInfoHolder< DemoSoundInfo >::update();
+
+    if (mActionSoundKeeper != nullptr) {
+        mActionSoundKeeper->update();
+    }
 }
 
-void DemoSoundKeeper::addInfo(const char* pPartName) {
-    DemoSoundInfo info;
-    info.mPartName = pPartName;
-    mInfo.push_back(info);
+void DemoSoundKeeper::initActionSoundKeeper() {
+    if (mActionSoundKeeper == nullptr) {
+        mActionSoundKeeper = new ActionSoundKeeper(4, mExecutor->mName, nullptr);
+    }
 }
 
 void DemoSoundKeeper::executeType(const DemoSoundInfo* pInfo) {
@@ -59,17 +69,17 @@ void DemoSoundKeeper::executeType(const DemoSoundInfo* pInfo) {
         if (!MR::isNullOrEmptyString(pInfo->mSystemSe)) {
             MR::startSystemSE(pInfo->mSystemSe);
         }
+
+        if (!MR::isNullOrEmptyString(pInfo->mActionSe)) {
+            mActionSoundKeeper->startSound(pInfo->mActionSe, -1, -1);
+        }
     } else if (MR::isDemoPartLastStep(pInfo->mPartName) && pInfo->mReturnBgm && isPermitBgmChange()) {
         MR::startLastStageBGM();
     }
 }
 
 bool DemoSoundKeeper::isPermitBgmChange() {
-    if (MR::isGalaxyRedCometAppearInCurrentStage() || MR::isGalaxyBlackCometAppearInCurrentStage()) {
-        return false;
-    }
-
-    return true;
+    return !MR::isGalaxyCometEvent();
 }
 
 inline const char* DemoSoundKeeper::getTypeString() const {

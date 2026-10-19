@@ -55,7 +55,7 @@ namespace NrvGesso {
     NEW_NERVE(GessoNrvAttack, Gesso, Attack);
     NEW_NERVE(GessoNrvPunchDown, Gesso, PunchDown);
     NEW_NERVE(GessoNrvComeBack, Gesso, ComeBack);
-    NEW_NERVE_ONEND(GessoNrvDPDSwoon, Gesso, DPDSwoon, DPDSwoon);
+    NEW_NERVE(GessoNrvDPDSwoon, Gesso, DPDSwoon);
     NEW_NERVE(GessoNrvRotate, Gesso, Rotate);
 
 };  // namespace NrvGesso

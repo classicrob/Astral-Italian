@@ -38,7 +38,7 @@ namespace NrvBegomanBaby {
     NEW_NERVE(HostTypeNrvLaunchTurn, BegomanBaby, LaunchTurn);
     NEW_NERVE(HostTypeNrvInWater, BegomanBaby, InWater);
     NEW_NERVE(HostTypeNrvKeepDistance, BegomanBaby, KeepDistance);
-    NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, BegomanBaby, BindStarPointer, BindStarPointer);
+    NEW_NERVE(HostTypeNrvBindStarPointer, BegomanBaby, BindStarPointer);
 };  // namespace NrvBegomanBaby
 
 namespace {

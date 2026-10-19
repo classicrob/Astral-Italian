@@ -109,10 +109,8 @@ bool WaterStream::calcWaterInfo(const TVec3f& rPos, const TVec3f& rGravity, Wate
     }
 
     TVec3f gravity = rGravity;
-    TVec3f invGravity;
     MR::calcGravityVector(this, rPos, &gravity, NULL, 0);
-    invGravity = -gravity;
-    pInfo->mSurfaceNormal.set(invGravity);
+    pInfo->mSurfaceNormal.set(-gravity);
 
     TVec3f scaled = rGravity;
     scaled.scale(pInfo->mCamWaterDepth);

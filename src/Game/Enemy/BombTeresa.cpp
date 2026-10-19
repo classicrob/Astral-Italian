@@ -45,7 +45,7 @@ namespace NrvBombTeresa {
     NEW_NERVE(BombTeresaNrvDirectTackle, BombTeresa, DirectTackle);
     NEW_NERVE(BombTeresaNrvDrift, BombTeresa, Drift);
     NEW_NERVE(BombTeresaNrvDriftRelease, BombTeresa, DriftRelease);
-    NEW_NERVE_ONEND(BombTeresaNrvBindStarPointer, BombTeresa, BindStarPointer, BindStarPointer);
+    NEW_NERVE(BombTeresaNrvBindStarPointer, BombTeresa, BindStarPointer);
     NEW_NERVE(BombTeresaNrvExplosion, BombTeresa, Explosion);
     NEW_NERVE(BombTeresaNrvDisperse, BombTeresa, Disperse);
     NEW_NERVE(BombTeresaNrvShock, BombTeresa, Shock);

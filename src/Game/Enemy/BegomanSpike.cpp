@@ -42,7 +42,7 @@ namespace NrvBegomanSpike {
     NEW_NERVE(HostTypeNrvInWater, BegomanSpike, InWater);
     NEW_NERVE(HostTypeNrvKeepDistance, BegomanSpike, KeepDistance);
     NEW_NERVE(HostTypeNrvLaunch, BegomanSpike, Launch);
-    NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, BegomanSpike, BindStarPointer, BindStarPointer);
+    NEW_NERVE(HostTypeNrvBindStarPointer, BegomanSpike, BindStarPointer);
 };  // namespace NrvBegomanSpike
 
 namespace {

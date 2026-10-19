@@ -20,8 +20,8 @@ struct PlanetMapData {
 };
 
 struct UniqueEntry {
-    /* 0x00 */ const char* _0;
-    /* 0x04 */ const char* _4;
+    /* 0x00 */ const char* mKey;
+    /* 0x04 */ const char* mValue;
 };
 
 typedef NameObj* (*CreatorFuncPtr)(const char*);

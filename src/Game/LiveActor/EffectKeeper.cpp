@@ -20,7 +20,7 @@ namespace {
 
 namespace {
     const char* getMultiEmitterName(const MultiEmitter* pEmitter) {
-        return pEmitter->_28->getName();
+        return pEmitter->mAutoEffectInfo->getName();
     }
 
     bool makeAttibuteEffectBaseName(char* pDst, u32 size, const char* pSrc) {
@@ -227,7 +227,7 @@ void EffectKeeper::updateSyncBckEffect() {
 }
 
 void EffectKeeper::syncEffectBck(MultiEmitter* pEmitter) {
-    SyncBckEffectInfo* pInfo = pEmitter->_24;
+    SyncBckEffectInfo* pInfo = pEmitter->mSyncBckInfo;
 
     if (pInfo == 0) {
         return;
@@ -415,11 +415,11 @@ bool EffectKeeper::isTypeAttributeEffect(const char* pParam1) const {
     snprintf(buf, sizeof(buf), "%s%s", pParam1, ::cAttributeEffectTag);
 
     for (MultiEmitter* const* it = _C.begin(); it != _C.end(); it++) {
-        if ((*it)->_28 == nullptr) {
+        if ((*it)->mAutoEffectInfo == nullptr) {
             continue;
         }
 
-        if (MR::isEqualSubString((*it)->_28->getName(), buf)) {
+        if (MR::isEqualSubString((*it)->mAutoEffectInfo->getName(), buf)) {
             return true;
         }
     }

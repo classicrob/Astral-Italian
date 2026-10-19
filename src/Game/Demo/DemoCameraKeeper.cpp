@@ -77,6 +77,90 @@ DemoCameraKeeper::DemoCameraKeeper(DemoExecutor* pExecutor, const JMapInfoIter& 
     }
 }
 
+void DemoCameraKeeper::start() {
+    _C = 0;
+}
+
+void DemoCameraKeeper::update() {
+    if (_C < 0 || _4 <= _C) {
+        return;
+    }
+
+    for (s32 i = 0; i < _4; i++) {
+        executeType(&_8[i]);
+    }
+}
+
+void DemoCameraKeeper::end() {
+    endCurrentCamera();
+    _C = -1;
+}
+
+void DemoCameraKeeper::endForce() {
+    if (_10 != nullptr && _10->mAnimCameraName != nullptr) {
+        char animName[256];
+        MR::removeExtensionString(animName, sizeof(animName), _10->mAnimCameraName);
+        MR::endAnimCamera(_10->_24, _10->_20, animName, 0, true);
+    }
+
+    endCurrentCamera();
+    _C = -1;
+}
+
+void DemoCameraKeeper::initActorCamera(DemoCameraInfo* pInfo, const JMapInfoIter& rIter) {
+    pInfo->_20 = new ActorCameraInfo(-1, MR::getPlacedZoneId(rIter));
+    MR::declareEventCamera(pInfo->_20, pInfo->_1C);
+
+    if (pInfo->mAnimCameraName != nullptr) {
+        char animName[256];
+        DemoCameraFunction::makeAnimCameraName(animName, sizeof(animName), pInfo);
+        MR::initAnimCamera(pInfo->_24, pInfo->_20, animName);
+    }
+}
+
+void DemoCameraKeeper::executeType(const DemoCameraInfo* pInfo) {
+    if (MR::isDemoPartFirstStep(pInfo->mPartName)) {
+        endCurrentCamera();
+        _10 = pInfo;
+        executeFirst(pInfo);
+    } else if (MR::isDemoPartLastStep(pInfo->mPartName)) {
+        executeLast(_10);
+        _C++;
+    }
+}
+
+void DemoCameraKeeper::executeFirst(const DemoCameraInfo* pInfo) {
+    if (pInfo->_24 != nullptr) {
+        if (pInfo->mAnimCameraName != nullptr) {
+            char animName[256];
+            MR::removeExtensionString(animName, sizeof(animName), pInfo->mAnimCameraName);
+            MR::startAnimCameraTargetSelf(pInfo->_24, pInfo->_20, animName, pInfo->mAnimCameraStartFrame, false, 1.0f);
+        } else {
+            MR::startEventCamera(pInfo->_20, pInfo->_1C, CameraTargetArg(pInfo->_24), -1);
+        }
+    } else if (DemoCameraFunction::isCameraTargetMario(pInfo)) {
+        MR::startEventCameraTargetPlayer(pInfo->_20, pInfo->_1C, -1);
+    } else {
+        MR::startEventCameraNoTarget(pInfo->_20, pInfo->_1C, -1);
+    }
+}
+
+void DemoCameraKeeper::executeLast(const DemoCameraInfo* pInfo) {
+    if (pInfo->mAnimCameraName != nullptr) {
+        char animName[256];
+        MR::removeExtensionString(animName, sizeof(animName), pInfo->mAnimCameraName);
+        MR::endAnimCamera(pInfo->_24, pInfo->_20, animName, pInfo->mAnimCameraEndFrame, true);
+    }
+}
+
+void DemoCameraKeeper::endCurrentCamera() {
+    if (_10 != nullptr) {
+        MR::endEventCamera(_10->_20, _10->_1C, _10->mIsContinuous != 0, -1);
+    }
+
+    _10 = nullptr;
+}
+
 namespace {
     char sSheetName[] = "Camera";
 };  // namespace

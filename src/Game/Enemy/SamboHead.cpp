@@ -24,7 +24,7 @@ namespace NrvSamboHead {
     NEW_NERVE_ONEND(HostTypeNrvStampDeath, SamboHead, StampDeath, StampDeath);
     NEW_NERVE_ONEND(HostTypeNrvHitBlow, SamboHead, HitBlow, HitBlow);
     NEW_NERVE(HostTypeNrvBuryDeath, SamboHead, BuryDeath);
-    NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, SamboHead, BindStarPointer, BindStarPointer);
+    NEW_NERVE(HostTypeNrvBindStarPointer, SamboHead, BindStarPointer);
     NEW_NERVE(HostTypeNrvBindStarPointerEnd, SamboHead, BindStarPointerEnd);
 };  // namespace NrvSamboHead
 

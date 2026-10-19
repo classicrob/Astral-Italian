@@ -2,11 +2,11 @@
 #include "Game/Util.hpp"
 
 RailGraphEdge::RailGraphEdge() {
-    _4 = -1;
     mDistance = 0.0f;
-    _8 = -1;
-    _C = -1;
-    _10 = -1;
+    mNode0 = -1;
+    mNode1 = -1;
+    mNextEdge0 = -1;
+    mNextEdge1 = -1;
     mPointArg0 = -1;
     mPointArg1 = -1;
     mPointArg2 = -1;
@@ -18,21 +18,21 @@ RailGraphEdge::RailGraphEdge() {
 }
 
 void RailGraphEdge::clearConnectInfo() {
-    _4 = -1;
     mDistance = 0.0f;
-    _8 = -1;
-    _C = -1;
-    _10 = -1;
+    mNode0 = -1;
+    mNode1 = -1;
+    mNextEdge0 = -1;
+    mNextEdge1 = -1;
 }
 
 s32 RailGraphEdge::getNextNode(s32 a1) const {
-    s32 node = _4;
+    s32 node = mNode0;
 
     if (node == a1) {
-        return _8;
+        return mNode1;
     }
 
-    if (_8 != a1) {
+    if (mNode1 != a1) {
         return -1;
     }
 
@@ -40,22 +40,22 @@ s32 RailGraphEdge::getNextNode(s32 a1) const {
 }
 
 s32 RailGraphEdge::getNextEdge(s32 a1) const {
-    if (_4 == a1) {
-        return _C;
+    if (mNode0 == a1) {
+        return mNextEdge0;
     }
 
-    if (_8 == a1) {
-        return _10;
+    if (mNode1 == a1) {
+        return mNextEdge1;
     }
 
     return -1;
 }
 
 void RailGraphEdge::setNextEdge(s32 a1, s32 a2) {
-    if (_4 == a2) {
-        _C = a1;
-    } else if (_8 == a2) {
-        _10 = a1;
+    if (mNode0 == a2) {
+        mNextEdge0 = a1;
+    } else if (mNode1 == a2) {
+        mNextEdge1 = a1;
     }
 }
 

@@ -2,8 +2,6 @@
 #include "Game/Util/EffectUtil.hpp"
 #include "Game/Util/JMapUtil.hpp"
 #include "Game/Util/MathUtil.hpp"
-#include "Game/Util/SoundUtil.hpp"
-#include "Game/Util/StringUtil.hpp"
 
 namespace {
     static const s32 sLifeTime = 600;
@@ -44,11 +42,6 @@ void RandomEffectObj::control() {
     if (mSeStep >= 0) {
         mSeStep++;
 
-        if (MR::isEqualString(_8C, "FireworksA")) {
-            if (mSeStep == 40) {
-                MR::startSound(this, "SE_OJ_FIREWORK_SEA_EXPLODE");
-            }
-        }
     }
 
     mStep--;
@@ -59,9 +52,6 @@ void RandomEffectObj::control() {
 
     MR::emitEffect(this, _8C);
 
-    if (MR::isEqualString(_8C, "FireworksA")) {
-        MR::startSound(this, "SE_OJ_FIREWORK_SEA_SHOOT");
-    }
 
     mStep = MR::getRandom(mLifeTime - mRandWidth, mLifeTime + mRandWidth);
     mSeStep = 0;

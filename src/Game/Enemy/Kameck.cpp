@@ -56,7 +56,7 @@ namespace NrvKameck {
     NEW_NERVE(KameckNrvHit, Kameck, Hit);
     NEW_NERVE(KameckNrvMoveHide, Kameck, MoveHide);
     NEW_NERVE(KameckNrvMove, Kameck, Move);
-    NEW_NERVE_ONEND(KameckNrvBindStarPointer, Kameck, BindStarPointer, BindStarPointer);
+    NEW_NERVE(KameckNrvBindStarPointer, Kameck, BindStarPointer);
     NEW_NERVE(KameckNrvDown, Kameck, Down);
     NEW_NERVE(KameckNrvPressDown, Kameck, PressDown);
     class KameckNrvfn_801A6960 : public Nerve {

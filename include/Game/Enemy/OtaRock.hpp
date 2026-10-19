@@ -22,7 +22,6 @@ public:
 
     virtual ~OtaRock();
     virtual void init(const JMapInfoIter&);
-    virtual void appear();
     virtual void kill();
     virtual void control();
     virtual void calcAndSetBaseMtx();

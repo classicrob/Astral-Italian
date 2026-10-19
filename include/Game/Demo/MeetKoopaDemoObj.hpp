@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game/LiveActor/LiveActor.hpp"
+#include <JSystem/JGeometry/TMatrix.hpp>
 
 class TalkMessageCtrl;
 
@@ -8,6 +9,7 @@ class MeetKoopaDemoObj : public LiveActor {
 public:
     MeetKoopaDemoObj(const char*);
 
+    virtual ~MeetKoopaDemoObj();
     virtual void init(const JMapInfoIter&);
     virtual void kill();
 
@@ -23,5 +25,5 @@ public:
     /* 0x9C */ LiveActor* mTicoBaby;
     /* 0xA0 */ LiveActor** mFallObjs;
     /* 0xA4 */ TalkMessageCtrl* mTalkCtrl;
-    /* 0xA8 */ f32 mMtx[3][4];
+    /* 0xA8 */ TPos3f mMtx;
 };

@@ -148,7 +148,7 @@ namespace NrvUnizo {
     NEW_NERVE(UnizoNrvBreak, Unizo, Break);
     NEW_NERVE(UnizoNrvFireDown, Unizo, FireDown);
     NEW_NERVE(UnizoNrvJumpDown, Unizo, JumpDown);
-    NEW_NERVE_ONEND(UnizoNrvPointing, Unizo, Pointing, Pointing);
+    NEW_NERVE(UnizoNrvPointing, Unizo, Pointing);
 };  // namespace NrvUnizo
 
 Unizo::Unizo(const char* pName)

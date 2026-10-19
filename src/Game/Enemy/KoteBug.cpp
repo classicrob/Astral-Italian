@@ -77,7 +77,7 @@ namespace NrvKoteBug {
     NEW_NERVE(HostTypeNrvHitToPlayer, KoteBug, HitToPlayer);
     NEW_NERVE(HostTypeNrvBlow, KoteBug, Blow);
     NEW_NERVE(HostTypeNrvStampDeath, KoteBug, StampDeath);
-    NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, KoteBug, BindStarPointer, BindStarPointer);
+    NEW_NERVE(HostTypeNrvBindStarPointer, KoteBug, BindStarPointer);
     class HostTypeNrvEaten : public Nerve {
     public:
         virtual void execute(Spine*) const {}

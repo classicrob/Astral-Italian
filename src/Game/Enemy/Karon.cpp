@@ -71,7 +71,7 @@ namespace NrvKaron {
         static HostTypeNrvEaten sInstance;
     };
     HostTypeNrvEaten HostTypeNrvEaten::sInstance ATTRIBUTE_WEAK;
-    NEW_NERVE_ONEND(HostTypeNrvBindStarPointer, Karon, BindStarPointer, BindStarPointer);
+    NEW_NERVE(HostTypeNrvBindStarPointer, Karon, BindStarPointer);
 };  // namespace NrvKaron
 
 Karon::Karon(const char* pName) : LiveActor(pName) {

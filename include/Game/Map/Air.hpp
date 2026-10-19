@@ -19,9 +19,9 @@ public:
     void exeIn();
     void exeOut();
 
-    /* 0x8C */ u8 _8C;
-    /* 0x8D */ bool _8D;
-    /* 0x90 */ f32 mDistance;
+    /* 0x90 */ u8 mHasChanged;
+    /* 0x91 */ bool mWaitForOpeningCamera;
+    /* 0x94 */ f32 mDistance;
 };
 
 class AirFar100m : public Air {

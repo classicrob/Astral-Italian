@@ -213,7 +213,7 @@ void Fish::control() {
 void Fish::calcAndSetBaseMtx() {
     TPos3f mtx;
     mtx.identity();
-    MR::makeMtxFrontUp(&mtx, mFront, mGroup->mUp);
+    MR::makeMtxFrontUp(&mtx, mFront, -mGravity);
     mtx.setTrans(mPosition);
     MR::setBaseTRMtx(this, mtx);
 }

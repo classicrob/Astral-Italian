@@ -16,10 +16,10 @@ public:
 
     void operator=(const RailGraphEdge& rEdge) {
         mDistance = rEdge.mDistance;
-        _4 = rEdge._4;
-        _8 = rEdge._8;
-        _C = rEdge._C;
-        _10 = rEdge._10;
+        mNode0 = rEdge.mNode0;
+        mNode1 = rEdge.mNode1;
+        mNextEdge0 = rEdge.mNextEdge0;
+        mNextEdge1 = rEdge.mNextEdge1;
         mPointArg0 = rEdge.mPointArg0;
         mPointArg1 = rEdge.mPointArg1;
         mPointArg2 = rEdge.mPointArg2;
@@ -30,17 +30,17 @@ public:
         mPointArg7 = rEdge.mPointArg7;
     }
 
-    f32 mDistance;  // 0x0
-    s32 _4;
-    s32 _8;
-    s32 _C;
-    s32 _10;
-    s32 mPointArg0;  // 0x14
-    s32 mPointArg1;  // 0x18
-    s32 mPointArg2;  // 0x1C
-    s32 mPointArg3;  // 0x20
-    s32 mPointArg4;  // 0x24
-    s32 mPointArg5;  // 0x28
-    s32 mPointArg6;  // 0x2C
-    s32 mPointArg7;  // 0x30
+    /* 0x00 */ f32 mDistance;  // 0x0
+    /* 0x04 */ s32 mNode0;
+    /* 0x08 */ s32 mNode1;
+    /* 0x0C */ s32 mNextEdge0;
+    /* 0x10 */ s32 mNextEdge1;
+    /* 0x14 */ s32 mPointArg0;  // 0x14
+    /* 0x18 */ s32 mPointArg1;  // 0x18
+    /* 0x1C */ s32 mPointArg2;  // 0x1C
+    /* 0x20 */ s32 mPointArg3;  // 0x20
+    /* 0x24 */ s32 mPointArg4;  // 0x24
+    /* 0x28 */ s32 mPointArg5;  // 0x28
+    /* 0x2C */ s32 mPointArg6;  // 0x2C
+    /* 0x30 */ s32 mPointArg7;  // 0x30
 };

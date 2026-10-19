@@ -16,7 +16,6 @@ public:
     virtual void initAfterPlacement();
     virtual void makeActorAppeared();
     virtual void kill();
-    virtual void startClipped();
     virtual void endClipped();
     virtual void control();
     virtual void calcAndSetBaseMtx();

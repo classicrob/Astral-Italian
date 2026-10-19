@@ -8,13 +8,6 @@
 #include "Game/Util/MathUtil.hpp"
 #include <JSystem/JGeometry/TUtil.hpp>
 
-void CameraMedianPlanet_FORCE_MATCH_SDATA2() {
-    (void)1.0f;
-    (void)0.0f;
-    (void)0.5f;
-    (void)MR::epsilon();
-    (void)MR::pi();
-}
 
 namespace {
     static const f32 sAngleConstrainRate = 0.2f;
@@ -26,7 +19,7 @@ CameraMedianPlanet::~CameraMedianPlanet() {
 
 CameraMedianPlanet::CameraMedianPlanet(const char* pName)
     : Camera(pName), mString(), mDistMin(1200.0f), mDistMax(3000.0f), mAngleMin(MR::pi() / 4.0f), mPeepAngle(), mDist(2000.0f),
-      mAngleConstrainRate(::sAngleConstrainRate), mPartialRate(::sPartialRate), _74(0.0f), _78(0.0f) {
+      mAngleConstrainRate(::sAngleConstrainRate), mPartialRate(::sPartialRate), mRateDistMin(0.0f), mRateDistMax(0.0f) {
 }
 
 void CameraMedianPlanet::reset() {
@@ -83,9 +76,6 @@ void CameraMedianPlanet::constrainDipAngle(TVec3f* pPos) {
     targetMtx.mult(*pPos, *pPos);
 }
 
-void CameraMedianPlanet_FORCE_MATCH_SDATA2_2() {
-    (void)(0.1f / 15.0f);
-}
 
 void CameraMedianPlanet::makeTargetMtx(TPos3f* pMtx) {
     pMtx->setXDir(CameraLocalUtil::getTarget(this)->getSideVec());
@@ -144,7 +134,22 @@ f32 CameraMedianPlanet::getMaxRate() {
     if (rate < 0.0f) {
         rate = 0.0f;
     }
-    return rate;
+    f32 distanceRate;
+    if ((mRateDistMin == 0.0f && mRateDistMax == 0.0f) || mRateDistMin > mRateDistMax) {
+        distanceRate = rate;
+    } else {
+        const TVec3f& targetPos = CameraLocalUtil::getTarget(this)->getPosition();
+        f32 distance = PSVECDistance(&CameraLocalUtil::getVecReg(mString), &targetPos);
+        if (distance < mRateDistMin) {
+            distanceRate = 0.0f;
+        } else if (distance < mRateDistMax) {
+            distanceRate = MR::clamp((distance - mRateDistMin) / (mRateDistMax - mRateDistMin), 0.0f, 1.0f);
+        } else {
+            distanceRate = 1.0f;
+        }
+    }
+    f32 rateSquared = rate * rate;
+    return rate * rateSquared + distanceRate * (1.0f - rateSquared);
 }
 
 void CameraMedianPlanet::getRegisterUpVec(TVec3f* pUp) {

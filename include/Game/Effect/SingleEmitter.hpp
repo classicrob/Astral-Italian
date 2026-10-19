@@ -25,7 +25,7 @@ public:
     void setGroupID(u8);
 
     /* 0x0 */ ParticleEmitter* mEmitter;
-    /* 0x4 */ u16 _4;
+    /* 0x4 */ u16 mResourceId;
     /* 0x6 */ u8 mGroupId;
     /* 0x7 */ s8 mSpawn;
 };

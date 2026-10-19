@@ -127,3 +127,19 @@ void CameraParamChunkID::createStartID(s32 zoneID, u16 id) {
     strcpy(buffer2, &buffer[0]);
     mName = buffer2;
 }
+
+void CameraParamChunkID::createGlobalEventID(s32 zoneID, const char* pName) {
+    mZoneID = CameraParamChunkIDFunction::getGlobalZoneID(zoneID);
+    char buffer[0x100];
+    snprintf(buffer, sizeof(buffer), "e:%s", pName);
+    u32 length = strlen(buffer);
+    char* name = getBuffer(length + 1);
+    strcpy(name, buffer);
+    mName = name;
+}
+
+namespace CameraParamChunkIDFunction {
+    s32 getGlobalZoneID(s32 zoneID) {
+        return -2 - zoneID;
+    }
+}

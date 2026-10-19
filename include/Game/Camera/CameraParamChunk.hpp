@@ -18,6 +18,14 @@ public:
 
     CameraGeneralParam& operator=(const CameraGeneralParam&);
 
+    s16 getNum1HighS16() const {
+        return static_cast< s16 >(static_cast< u32 >(mNum1) >> 16);
+    }
+
+    s16 getNum1LowS16() const {
+        return static_cast< s16 >(static_cast< u32 >(mNum1));
+    }
+
     /* 0x00 */ f32 mDist;
     /* 0x04 */ TVec3f mAxis;
     /* 0x10 */ TVec3f mWPoint;

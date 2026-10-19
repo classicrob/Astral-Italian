@@ -29,7 +29,7 @@ namespace NrvJellyfishElectric {
     NEW_NERVE(JellyfishElectricNrvDeath, JellyfishElectric, Death);
     NEW_NERVE(JellyfishElectricNrvAttack, JellyfishElectric, Attack);
     NEW_NERVE(JellyfishElectricNrvRailGoal, JellyfishElectric, RailGoal);
-    NEW_NERVE_ONEND(JellyfishElectricNrvDPDSwoon, JellyfishElectric, DPDSwoon, DPDSwoon);
+    NEW_NERVE(JellyfishElectricNrvDPDSwoon, JellyfishElectric, DPDSwoon);
 
 };  // namespace NrvJellyfishElectric
 

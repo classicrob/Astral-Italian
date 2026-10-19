@@ -54,7 +54,7 @@ namespace NrvKabokuri {
     NEW_NERVE(KabokuriNrvAttacksuccess, Kabokuri, Attacksuccess);
     NEW_NERVE(KabokuriNrvTrampled, Kabokuri, Trampled);
     NEW_NERVE(KabokuriNrvStarPieceHitted, Kabokuri, StarPieceHitted);
-    NEW_NERVE_ONEND(KabokuriNrvBindStarPointer, Kabokuri, BindStarPointer, BindStarPointer);
+    NEW_NERVE(KabokuriNrvBindStarPointer, Kabokuri, BindStarPointer);
     NEW_NERVE(KabokuriNrvHitAttacked, Kabokuri, HitAttacked);
     NEW_NERVE(KabokuriNrvHipDropped, Kabokuri, HipDropped);
     NEW_NERVE(KabokuriNrvBreak, Kabokuri, Break);

@@ -4,6 +4,9 @@
 #include "Game/Demo/DemoExecutor.hpp"
 #include "Game/Demo/DemoFunction.hpp"
 #include "Game/Demo/DemoSimpleCastHolder.hpp"
+#include "Game/Demo/StoryBookDemo.hpp"
+#include "Game/NPC/EventDirector.hpp"
+#include "Game/Screen/PlayerActionGuidance.hpp"
 #include "Game/Demo/DemoStartRequestHolder.hpp"
 #include "Game/Demo/DemoStartRequestUtil.hpp"
 #include "Game/Player/MarioAccess.hpp"
@@ -53,6 +56,24 @@ void DemoDirector::movement() {
     _14 = false;
 
     doDemoEndRequest();
+
+    if (mIsActive) {
+        bool isGrandStarDemo;
+        if (MR::isDemoActive("グランドスター後発進デモ") || MR::isDemoActive("グランドスター帰還後（ワールド１）") ||
+            MR::isDemoActive("グランドスター帰還後（ワールド２）") || MR::isDemoActive("グランドスター帰還後（ワールド３）") ||
+            MR::isDemoActive("グランドスター帰還後（ワールド４）") || MR::isDemoActive("グランドスター帰還後（ワールド５）") ||
+            MR::isDemoActive("グランドスター帰還[ワールド２以降]") || MR::isDemoActive("グランドスター帰還") ||
+            MR::isDemoActive("クッパオープニングデモ") || MR::isDemoActive("クッパダウンデモ") || MR::isDemoActive("クッパ最終戦開始デモ") ||
+            MR::isDemoActive("クッパ最終戦終了デモ") || MR::isDemoActive("パワースター帰還[アイテム惑星]")) {
+            isGrandStarDemo = true;
+        } else {
+            isGrandStarDemo = false;
+        }
+
+        if (isGrandStarDemo) {
+            MR::setSeVolumeSetLevel(11, 20);
+        }
+    }
 }
 
 
@@ -142,6 +163,103 @@ void DemoDirector::registerDemoSimpleCast(NameObj* pObj) {
     _20->registerNameObj(pObj);
 }
 
+void DemoDirector::movementOnAllCasts() {
+    _20->movementOnAllCasts();
+}
 
+void DemoDirector::movementOffAllCasts() {
+    _20->movementOffAllCasts();
+}
 
+ResourceHolder* DemoDirector::getDemoResourceHolder(s32 index) const {
+    return mResourceHolder[index];
+}
 
+bool DemoDirector::tryStartDemoRequested() {
+    if (!mStartRequestHolder->isExistRequest()) {
+        return false;
+    }
+
+    if (!MR::canStartDemo()) {
+        return false;
+    }
+
+    startDemoRequested();
+    return true;
+}
+
+void DemoDirector::startDemo(NameObj* pObj, const char* pDemoName, bool isCinemaFrame, s32 type) {
+    mIsActive = true;
+    _13 = false;
+    _2C = pObj;
+    _30 = pDemoName;
+    _34 = type;
+    _38 = isCinemaFrame;
+
+    if (!MR::isStoryBookDemoActive()) {
+        _20->movementOnAllCasts();
+    }
+
+    MR::initStarPieceGetCSSound();
+}
+
+void DemoDirector::startDemoRequested() {
+    DemoStartRequestUtil::startDemo(mStartRequestHolder);
+    const DemoStartInfo* pInfo = mStartRequestHolder->getCurrentInfo();
+    NameObj* pStarter = DemoStartRequestUtil::getDemoStarter(*pInfo);
+    startDemo(pStarter, pInfo->mDemoName, pInfo->mFrameType == DemoStartInfo::CinemaFrameType_0, pInfo->_24);
+    DemoStartRequestUtil::popStartDemoRequest(mStartRequestHolder);
+}
+
+void DemoDirector::doDemoEndRequest() {
+    MR::getSceneNameObjMovementController()->requestPlaySceneFor(static_cast< MR::MovementControlType >(_34), _2C);
+
+    if (MR::isStoryBookTurnPaused()) {
+        MR::stopStoryBookDemoCasts();
+    }
+
+    MR::activateDefaultGameLayout();
+
+    if (MR::isExistSceneObj(SceneObj_ScoreAttackAccessor)) {
+        MR::showScoreAttackResults();
+    }
+
+    if (MR::isExistSceneObj(SceneObj_PlayerActionGuidance)) {
+        MR::showPlayerActionGuidance();
+    }
+
+    if (MR::isExistSceneObj(SceneObj_EventDirector)) {
+        MR::showCometTimer();
+    }
+
+    MR::endStarPointerMode(_2C);
+
+    if (_38) {
+        MR::tryFrameToScreenCinemaFrame();
+    }
+
+    if (static_cast< u32 >(_34 - 2) <= 1) {
+        MarioAccess::fn_803B6830(false);
+    }
+
+    mIsActive = false;
+}
+
+void DemoDirector::startDemoProgrammable(NameObj* pObj, const char* pDemoName, bool isCinemaFrame, s32 type) {
+    startDemo(pObj, pDemoName, isCinemaFrame, type);
+}
+
+void DemoDirector::startDemoTimeKeep(NameObj* pObj, const char* pDemoName, s32 type, bool isCinemaFrame, const char* pPartName) {
+    startDemo(pObj, pDemoName, isCinemaFrame, type);
+    startDemoExecutor(pObj, pDemoName, type, pPartName);
+}
+
+void DemoDirector::startDemoExecutor(NameObj* pObj, const char* pDemoName, s32 type, const char* pPartName) {
+    mExecutor = DemoFunction::findDemoExecutor(pDemoName);
+
+    if (pPartName != nullptr) {
+        mExecutor->startPart(pObj, pDemoName, pPartName, type);
+    } else {
+        mExecutor->start(pObj, pDemoName, type);
+    }
+}

@@ -4,13 +4,13 @@
 
 SingleEmitter::SingleEmitter() {
     mEmitter = nullptr;
-    _4 = 0;
+    mResourceId = 0;
     mGroupId = 0;
     mSpawn = SINGLE_EMITTER_UNDEF_SPAWN;
 }
 
 void SingleEmitter::init(u16 unk) {
-    _4 = unk;
+    mResourceId = unk;
 }
 
 void SingleEmitter::deleteEmitter() {
@@ -22,11 +22,11 @@ void SingleEmitter::deleteEmitter() {
 void SingleEmitter::scanParticleEmitter(EffectSystem* pSystem) {
     if (mSpawn == SINGLE_EMITTER_UNDEF_SPAWN) {
         if (gScanParticleResourcesByCreatingEmitter) {
-            ParticleEmitter* emitter = pSystem->createEmitter(_4, mGroupId, 0);
+            ParticleEmitter* emitter = pSystem->createEmitter(mResourceId, mGroupId, 0);
             mSpawn = emitter->isContinuousParticle() ? SINGLE_EMITTER_CONTINUOUS_SPAWN : SINGLE_EMITTER_ONE_TIME_SPAWN;
             pSystem->forceDeleteEmitter(emitter);
         } else {
-            mSpawn = pSystem->isContinuousEmitter(_4) ? SINGLE_EMITTER_CONTINUOUS_SPAWN : SINGLE_EMITTER_ONE_TIME_SPAWN;
+            mSpawn = pSystem->isContinuousEmitter(mResourceId) ? SINGLE_EMITTER_CONTINUOUS_SPAWN : SINGLE_EMITTER_ONE_TIME_SPAWN;
         }
     }
 }

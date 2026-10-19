@@ -29,7 +29,6 @@ void ParticleEmitter::setGlobalRotation(const TVec3s& rotation) {
     mEmitter->setGlobalRotation(rotation);
 }
 
-
 void MultiEmitter::setGlobalTranslation(const TVec3f& rTranslation, s32 idx) {
     if (idx == -1) {
         for (s32 i = 0; i < mEmitters.size(); i++) {
@@ -70,7 +69,6 @@ void ParticleEmitter::setGlobalScale(const TVec3f& scale) {
     mEmitter->setGlobalScale(scale);
 }
 
-
 void MultiEmitter::setGlobalSRTMatrix(const Mtx pMtx, s32 idx) {
     if (idx == -1) {
         for (s32 i = 0; i < mEmitters.size(); i++) {
@@ -93,9 +91,8 @@ void ParticleEmitter::setGlobalSRTMatrix(const Mtx matrix) {
     mEmitter->setGlobalSRTMatrix(matrix);
 }
 
-
 void MultiEmitter::setGlobalPrmColor(u8 r, u8 g, u8 b, s32 idx) {
-    bool b1 = !MR::isNearZero(_2C);
+    bool b1 = !MR::isNearZero(mLightAffectValue);
 
     if (idx == -1) {
         mCallBack->mPrmColor.set(r, g, b, -1);
@@ -119,14 +116,11 @@ void MultiEmitter::setGlobalPrmColor(u8 r, u8 g, u8 b, s32 idx) {
 }
 
 void ParticleEmitter::setGlobalPrmColor(u8 r, u8 g, u8 b) {
-    mEmitter->mGlobalPrmClr.r = r;
-    mEmitter->mGlobalPrmClr.g = g;
-    mEmitter->mGlobalPrmClr.b = b;
+    mEmitter->setGlobalPrmColor(r, g, b);
 }
 
-
 void MultiEmitter::setGlobalEnvColor(u8 r, u8 g, u8 b, s32 idx) {
-    bool b1 = !MR::isNearZero(_2C);
+    bool b1 = !MR::isNearZero(mLightAffectValue);
 
     if (idx == -1) {
         mCallBack->mEnvColor.set(r, g, b, -1);
@@ -150,11 +144,8 @@ void MultiEmitter::setGlobalEnvColor(u8 r, u8 g, u8 b, s32 idx) {
 }
 
 void ParticleEmitter::setGlobalEnvColor(u8 r, u8 g, u8 b) {
-    mEmitter->mGlobalEnvClr.r = r;
-    mEmitter->mGlobalEnvClr.g = g;
-    mEmitter->mGlobalEnvClr.b = b;
+    mEmitter->setGlobalEnvColor(r, g, b);
 }
-
 
 void MultiEmitter::setGlobalAlpha(u8 alpha, s32 idx) {
     if (idx == -1) {

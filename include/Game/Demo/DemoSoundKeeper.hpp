@@ -30,7 +30,7 @@ public:
 
     virtual void executeType(const DemoSoundInfo* pInfo);
 
-    void addInfo(const char* pPartName);
+    void initActionSoundKeeper();
     bool isPermitBgmChange();
 
     /* 0x18 */ ActionSoundKeeper* mActionSoundKeeper;

@@ -237,7 +237,7 @@ namespace MR {
             s32 count = keeper->_C.size();
             for (s32 i = 0; i < count; i++) {
                 MultiEmitter* emitter = keeper->getEmitter(i);
-                if (!emitter->_28->mJointName) emitter->setHostMtx(pMtx);
+                if (!emitter->mAutoEffectInfo->mJointName) emitter->setHostMtx(pMtx);
             }
         }
     }

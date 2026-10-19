@@ -65,8 +65,8 @@ public:
 
     void allocateEmitter(const char*);
     SingleEmitter* getValidEmitter(s32, bool);
-    void createOneTimeEmitter();
-    void createForeverEmitter();
+    bool createOneTimeEmitter();
+    bool createForeverEmitter();
 
     // In MultiEmitterAccess
     void setGlobalRotation(const TVec3s&, s32);
@@ -111,9 +111,9 @@ public:
     /* 0x08 */ MR::Vector< MR::FixedArray< MultiEmitter*, 4 > > mChildren;
     /* 0x1C */ MultiEmitterCallBack* mCallBack;
     /* 0x20 */ MultiEmitterParticleCallBack* mParticleCallBack;
-    /* 0x24 */ SyncBckEffectInfo* _24;
-    /* 0x28 */ const AutoEffectInfo* _28;
-    /* 0x2C */ f32 _2C;
+    /* 0x24 */ SyncBckEffectInfo* mSyncBckInfo;
+    /* 0x28 */ const AutoEffectInfo* mAutoEffectInfo;
+    /* 0x2C */ f32 mLightAffectValue;
     /* 0x30 */ f32 _30;
     /* 0x34 */ u16 mHash;
     /* 0x36 */ u8 mFlags;

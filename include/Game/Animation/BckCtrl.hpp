@@ -19,7 +19,7 @@ public:
     /* 0x0A */ s16 mRepeatFrame;
     /* 0x0C */ s16 mInterpole;
     /* 0x0E */ u8 mLoopMode;
-    /* 0x0F */ u8 _F[3];  // 3-byte tail: the target's operator= copies it as lhz 0xF + lbz 0x11
+    /* 0x0F */ u8 mReserved[3];  // 3-byte tail: the target's operator= copies it as lhz 0xF + lbz 0x11
 };
 
 class BckCtrlFunction {

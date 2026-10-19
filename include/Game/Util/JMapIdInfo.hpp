@@ -37,7 +37,11 @@ public:
     }
 #endif
 
+#ifdef JMAPIDINFO_NOINLINE_EQ
+    bool operator==(const JMapIdInfo& rhs) const NO_INLINE {
+#else
     bool operator==(const JMapIdInfo& rhs) const {
+#endif
         return _0 == rhs._0 && mZoneID == rhs.mZoneID;
     }
 

@@ -89,7 +89,7 @@ StageSwitchCtrl::StageSwitchCtrl(const JMapInfoIter& rIter) {
     mSW_B = nullptr;
     mSW_Appear = nullptr;
     mSW_Dead = nullptr;
-    _10 = false;
+    mUsesAutoDeadSwitch = false;
     mSW_Param = nullptr;
     mSW_A = StageSwitchFunction::createSwitchIdInfo("SW_A", rIter, true);
     mSW_B = StageSwitchFunction::createSwitchIdInfo("SW_B", rIter, true);

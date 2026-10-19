@@ -138,7 +138,7 @@ namespace MR {
 
     bool useStageSwitchWriteAutoDead(LiveActor* actor, const JMapInfoIter& iter) {
         bool used = useStageSwitchWriteDead(actor, iter);
-        if (actor->mStageSwitchCtrl) actor->mStageSwitchCtrl->_10 = true;
+        if (actor->mStageSwitchCtrl) actor->mStageSwitchCtrl->mUsesAutoDeadSwitch = true;
         return used;
     }
 
@@ -168,7 +168,7 @@ namespace MR {
 
     void needStageSwitchWriteAutoDead(LiveActor* actor, const JMapInfoIter& iter) {
         useStageSwitchWriteDead(actor, iter);
-        if (actor->mStageSwitchCtrl) actor->mStageSwitchCtrl->_10 = true;
+        if (actor->mStageSwitchCtrl) actor->mStageSwitchCtrl->mUsesAutoDeadSwitch = true;
     }
 
     bool isValidSwitchA(const LiveActor* pActor) {

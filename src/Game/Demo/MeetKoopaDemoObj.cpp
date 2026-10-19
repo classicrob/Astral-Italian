@@ -5,20 +5,32 @@
 #include "Game/LiveActor/Nerve.hpp"
 #include "Game/Util.hpp"
 
-// Nerve objects (sbss) and their vtables/ctors live in the unsplit area next to this unit.
-extern "C" s32 lbl_807D1DE8[1];
-extern "C" s32 lbl_807D1DEC[1];
-extern "C" s32 lbl_807D1DF0[1];
-extern "C" s32 lbl_807D1DF4[1];
-extern "C" s32 lbl_807D1DF8[1];
+#include "Game/Demo/KoopaAssaultFallObj.hpp"
+#include "Game/LiveActor/ModelObj.hpp"
+#include "Game/Util/TalkUtil.hpp"
+#include "Game/Util/MathUtil.hpp"
 
-// Target-side unnamed helpers.
-extern "C" LiveActor* __ct__19KoopaAssaultFallObjFPCc(LiveActor*, const char*);
-extern "C" void tryTalkTimeKeepDemoForceWithoutDemo__2MRFP15TalkMessageCtrl(TalkMessageCtrl*);
+// MeetKoopaDemoObj and KoopaAssaultFallObj are one translation unit in SMG2: the two destructors and the shared
+// static initializer (nerves of both classes, in this order) follow both classes' code.
+namespace NrvMeetKoopaDemoObj {
+    NEW_NERVE(MeetKoopaDemoObjNrvWait, MeetKoopaDemoObj, Wait);
+    NEW_NERVE(MeetKoopaDemoObjNrvFound, MeetKoopaDemoObj, Found);
+    NEW_NERVE(MeetKoopaDemoObjNrvFallObjects, MeetKoopaDemoObj, FallObjects);
+    NEW_NERVE(MeetKoopaDemoObjNrvWaitBack, MeetKoopaDemoObj, WaitBack);
+    NEW_NERVE(MeetKoopaDemoObjNrvDemo, MeetKoopaDemoObj, Demo);
+};  // namespace NrvMeetKoopaDemoObj
 
-namespace MR {
-    s32 getRandom(s32, s32);
-};
+// WaitBack has no symbol of its own in the target: its body is inlined into the nerve's execute.
+inline void MeetKoopaDemoObj::exeWaitBack() {
+    if (MR::isStep(this, 120)) {
+        setNerve(&NrvMeetKoopaDemoObj::MeetKoopaDemoObjNrvFound::sInstance);
+    }
+}
+
+namespace NrvKoopaAssaultFallObj {
+    NEW_NERVE(KoopaAssaultFallObjNrvFall, KoopaAssaultFallObj, Fall);
+    NEW_NERVE(KoopaAssaultFallObjNrvBreak, KoopaAssaultFallObj, Break);
+};  // namespace NrvKoopaAssaultFallObj
 
 namespace {
     // rodata table indexed by (nerve step / 30) (see exeWait)
@@ -27,50 +39,10 @@ namespace {
     const char* sPeachKidnapName = "ピーチ誘拐";
     const char* sDemoMeetKoopaName = "DemoMeetKoopa";
     const char* sPeachKidnapPosName = "ピーチ誘拐デモ基準点";
-
-    // Out-of-line stand-ins for the target's TVec3 ctor and set<f> calls.
-    TVec3f* makeVec3(TVec3f* pVec, f32 x, f32 y, f32 z) NO_INLINE;
-    TVec3f* makeVec3(TVec3f* pVec, f32 x, f32 y, f32 z) {
-        pVec->x = x;
-        pVec->y = y;
-        pVec->z = z;
-        return pVec;
-    }
-
-    void copyVec3(TVec3f* pDst, const TVec3f* pSrc) NO_INLINE;
-    void copyVec3(TVec3f* pDst, const TVec3f* pSrc) {
-        pDst->set(*pSrc);
-    }
-
-    struct Mtx34Copy {
-        f32 m[3][4];
-    };
-
-    // Struct copy of a 3x4 matrix (compiles to paired-single moves, as in the target).
-    void copyMtx34(f32 (*pDst)[4], const f32 (*pSrc)[4]) {
-        *reinterpret_cast<Mtx34Copy*>(pDst) = *reinterpret_cast<const Mtx34Copy*>(pSrc);
-    }
-
-    // Writes the 3x4 identity (target: JGeometry::TMatrix34::identity).
-    void identityMtx(f32 (*pMtx)[4]) NO_INLINE;
-    void identityMtx(f32 (*pMtx)[4]) {
-        pMtx[0][0] = 1.0f;
-        pMtx[0][1] = 0.0f;
-        pMtx[0][2] = 0.0f;
-        pMtx[0][3] = 0.0f;
-        pMtx[1][0] = 0.0f;
-        pMtx[1][1] = 1.0f;
-        pMtx[1][2] = 0.0f;
-        pMtx[1][3] = 0.0f;
-        pMtx[2][0] = 0.0f;
-        pMtx[2][1] = 0.0f;
-        pMtx[2][2] = 1.0f;
-        pMtx[2][3] = 0.0f;
-    }
 };  // namespace
 
 MeetKoopaDemoObj::MeetKoopaDemoObj(const char* pName) : LiveActor(pName), mKoopa(nullptr), mKoopaArm(nullptr), mPeach(nullptr), mTicoBaby(nullptr), mFallObjs(nullptr), mTalkCtrl(nullptr) {
-    identityMtx(mMtx);
+    mMtx.identity();
 }
 
 void MeetKoopaDemoObj::init(const JMapInfoIter& rIter) {
@@ -78,11 +50,11 @@ void MeetKoopaDemoObj::init(const JMapInfoIter& rIter) {
     MR::connectToSceneMapObjMovement(this);
     MR::invalidateClipping(this);
     if (MR::tryRegisterDemoCast(this, rIter)) {
-        MR::registerDemoActionNerve(this, reinterpret_cast<const Nerve*>(lbl_807D1DF8), nullptr);
+        MR::registerDemoActionNerve(this, &NrvMeetKoopaDemoObj::MeetKoopaDemoObjNrvDemo::sInstance, nullptr);
     }
 
     mKoopa = reinterpret_cast<LiveActor*>(MR::createDemoObj("デモ用クッパ", "DemoKoopa", static_cast<MtxPtr>(nullptr)));
-    copyVec3(&mKoopa->mPosition, &mPosition);
+    mKoopa->mPosition.set< f32 >(mPosition);
     MR::tryInitDemoSheetAnim(mKoopa, rIter, sPeachKidnapName, sDemoMeetKoopaName);
     MR::invalidateClipping(mKoopa);
     mKoopa->makeActorDead();
@@ -102,17 +74,12 @@ void MeetKoopaDemoObj::init(const JMapInfoIter& rIter) {
     MR::invalidateClipping(mTicoBaby);
     mTicoBaby->makeActorDead();
 
-    TVec3f talkPos;
-    mTalkCtrl = MR::createTalkCtrlDirect(mPeach, rIter, "StoryBook_MeetKoopa_PeachHelp", *makeVec3(&talkPos, 0.0f, 200.0f, 0.0f), mMtx);
-    initNerve(reinterpret_cast<const Nerve*>(lbl_807D1DE8), 0);
+    mTalkCtrl = MR::createTalkCtrlDirect(mPeach, rIter, "StoryBook_MeetKoopa_PeachHelp", TVec3f(0.0f, 200.0f, 0.0f), mMtx);
+    initNerve(&NrvMeetKoopaDemoObj::MeetKoopaDemoObjNrvWait::sInstance, 0);
 
     mFallObjs = new LiveActor*[5];
     for (s32 i = 0; i < 5; i++) {
-        LiveActor* obj = static_cast<LiveActor*>(::operator new(0xA0));
-        if (obj != nullptr) {
-            obj = __ct__19KoopaAssaultFallObjFPCc(obj, "クッパ襲撃落下オブジェ");
-        }
-        mFallObjs[i] = obj;
+        mFallObjs[i] = new KoopaAssaultFallObj("クッパ襲撃落下オブジェ");
         MR::initChildObj(mFallObjs[i], rIter, i);
     }
     MR::syncStageSwitchAppearAndSync(this, rIter);
@@ -141,7 +108,7 @@ void MeetKoopaDemoObj::exeWait() {
         }
     }
     if (MR::isOnSwitchA(this)) {
-        setNerve(reinterpret_cast<const Nerve*>(lbl_807D1DEC));
+        setNerve(&NrvMeetKoopaDemoObj::MeetKoopaDemoObjNrvFound::sInstance);
     }
 }
 
@@ -161,7 +128,7 @@ void MeetKoopaDemoObj::exeFound() {
         }
     }
     if (MR::checkPassBckFrame(mKoopa, 400.0f) || MR::checkPassBckFrame(mKoopa, 1400.0f)) {
-        setNerve(reinterpret_cast<const Nerve*>(lbl_807D1DF0));
+        setNerve(&NrvMeetKoopaDemoObj::MeetKoopaDemoObjNrvFallObjects::sInstance);
     }
 }
 
@@ -176,7 +143,7 @@ void MeetKoopaDemoObj::exeFallObjects() {
             }
         }
         if (MR::isStep(this, 240)) {
-            setNerve(reinterpret_cast<const Nerve*>(lbl_807D1DF4));
+            setNerve(&NrvMeetKoopaDemoObj::MeetKoopaDemoObjNrvWaitBack::sInstance);
         }
     }
 }
@@ -198,8 +165,85 @@ void MeetKoopaDemoObj::exeDemo() {
         MR::resetPosition(mTicoBaby, sPeachKidnapPosName);
     }
     if (MR::isDemoPartActive("ピーチ発見") && MR::isStoryBookDemoActive() == 0) {
-        copyMtx34(mMtx, MR::getJointMtx(mPeach, "All_Root"));
-        tryTalkTimeKeepDemoForceWithoutDemo__2MRFP15TalkMessageCtrl(mTalkCtrl);
+        JMath::gekko_ps_copy12(&mMtx, MR::getJointMtx(mPeach, "All_Root"));
+        MR::tryTalkTimeKeepDemoForceWithoutDemo(mTalkCtrl);
     }
     MR::requestStageBGMVolumeDown(0, 0);
+}
+
+KoopaAssaultFallObj::KoopaAssaultFallObj(const char* pName) : LiveActor(pName) {
+    mBasePos.set(0.0f, 0.0f, 0.0f);
+    mModel = nullptr;
+}
+
+void KoopaAssaultFallObj::init(const JMapInfoIter& rIter) {
+    MR::initActor(this, rIter, "CrystalCageS", "KoopaAssault", false);
+    mScale.set(2.0f, 2.0f, 2.0f);
+    mBasePos.set(mPosition);
+
+    TVec3f up(0.0f, 1.0f, 0.0f);
+    MR::calcUpVec(&up, this);
+    JMAVECScaleAdd(&up, &mBasePos, &mPosition, 6000.0f);
+
+    mModel = MR::createModelObjMapObjStrongLight("クッパ襲撃落下オブジェ壊れモデル", "CrystalCageSBreak", nullptr);
+    mModel->mPosition.set(mBasePos);
+    mModel->mRotation.set(mRotation);
+
+    initNerve(GET_NERVE(KoopaAssaultFallObj, KoopaAssaultFallObjNrvFall), 0);
+    makeActorDead();
+}
+
+void KoopaAssaultFallObj::appear() {
+    TVec3f up(0.0f, 1.0f, 0.0f);
+    MR::calcUpVec(&up, this);
+    JMAVECScaleAdd(&up, &mBasePos, &mPosition, 6000.0f);
+
+    LiveActor::appear();
+    MR::showModel(this);
+    MR::invalidateClipping(this);
+    setNerve(GET_NERVE(KoopaAssaultFallObj, KoopaAssaultFallObjNrvFall));
+}
+
+void KoopaAssaultFallObj::makeActorDead() {
+    mModel->makeActorDead();
+    LiveActor::makeActorDead();
+}
+
+void KoopaAssaultFallObj::exeFall() {
+    if (MR::isFirstStep(this)) {
+        MR::startActionSound(this, "FallStart", -1, -1, -1);
+        MR::emitEffect(this, "Blur");
+    }
+
+    TVec3f zero(0.0f, 0.0f, 0.0f);
+    TVec3f up(0.0f, 1.0f, 0.0f);
+    MR::calcUpVec(&up, this);
+    JMAVECScaleAdd(&up, &mBasePos, &zero, 6000.0f);
+    MR::vecBlend(&mPosition, zero, mBasePos, MR::calcNerveEaseInRate(this, 90));
+
+    if (MR::isStep(this, 90)) {
+        MR::deleteEffect(this, "Blur");
+        MR::tryHitReaction(this, "砕ける");
+        setNerve(GET_NERVE(KoopaAssaultFallObj, KoopaAssaultFallObjNrvBreak));
+    }
+}
+
+void KoopaAssaultFallObj::exeBreak() {
+    if (MR::isFirstStep(this)) {
+        MR::hideModel(this);
+        mModel->appear();
+        MR::invalidateClipping(mModel);
+        MR::startAction(mModel, "Break");
+    }
+
+    if (MR::isActionEnd(mModel)) {
+        MR::validateClipping(this);
+        kill();
+    }
+}
+
+MeetKoopaDemoObj::~MeetKoopaDemoObj() {
+}
+
+KoopaAssaultFallObj::~KoopaAssaultFallObj() {
 }

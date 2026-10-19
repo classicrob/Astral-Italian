@@ -44,7 +44,7 @@ namespace {
     }
 
     void setupMultiEmitter(MultiEmitter* pEmitter, const AutoEffectInfo* pInfo) {
-        pEmitter->_28 = pInfo;
+        pEmitter->mAutoEffectInfo = pInfo;
         pEmitter->setDrawOrder(pInfo->mDrawOrder);
         pEmitter->setOffset(pInfo->mOffset);
 
@@ -67,7 +67,7 @@ namespace {
         }
 
         if (!MR::isNearZero(pInfo->mLightAffectValue)) {
-            pEmitter->_2C = pInfo->mLightAffectValue;
+            pEmitter->mLightAffectValue = pInfo->mLightAffectValue;
         }
     }
 };  // namespace
@@ -113,11 +113,11 @@ namespace MR {
         }
 
         bool isEffect2D(const MultiEmitter* pEmitter) {
-            if (pEmitter->_28 == nullptr) {
+            if (pEmitter->mAutoEffectInfo == nullptr) {
                 return false;
             }
 
-            return pEmitter->_28->mDrawOrder == 6 || pEmitter->_28->mDrawOrder == 7;
+            return pEmitter->mAutoEffectInfo->mDrawOrder == 6 || pEmitter->mAutoEffectInfo->mDrawOrder == 7;
         }
 
         void initEffectSyncBck(EffectKeeper* pKeeper, const ModelManager* pModelManager, const char* pEffectName, const char* pAnimName,
@@ -177,11 +177,12 @@ namespace MR {
                     if (pAnimNames[i] == ' ' || pAnimNames[i] == '\0') {
                         name[nameLength] = '\0';
                         const char* pAnimName = nullptr;
-                        findBckNameStringInResource(&pAnimName, pModelManager->getResourceHolder(), name);
-                        if (pEmitter->_24 == nullptr) {
-                            initEffectSyncBck(pKeeper, pModelManager, pInfo->getName(), pAnimName, ::countAnimNames(pAnimNames), 0.0f, -1.0f, false);
-                        } else {
-                            addEffectSyncBck(pEmitter, pModelManager, pAnimName);
+                        if (findBckNameStringInResource(&pAnimName, pModelManager->getResourceHolder(), name)) {
+                            if (pEmitter->mSyncBckInfo == nullptr) {
+                                initEffectSyncBck(pKeeper, pModelManager, pInfo->getName(), pAnimName, ::countAnimNames(pAnimNames), 0.0f, -1.0f, false);
+                            } else {
+                                addEffectSyncBck(pEmitter, pModelManager, pAnimName);
+                            }
                         }
 
                         nameLength = 0;
@@ -306,6 +307,7 @@ namespace MR {
             case 23:
                 return "Water";
             case 13:
+            case 25:
             case 30:
                 return "Sand";
             case 5:
@@ -315,6 +317,9 @@ namespace MR {
             case 31:
             case 32:
                 return "Mud";
+            case 26:
+            case 43:
+                return "Snow";
             default:
                 return "Default";
             }

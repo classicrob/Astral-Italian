@@ -23,7 +23,7 @@ public:
     void calcWatchPos(TVec3f*);
     bool calcUpVec(TVec3f*, const TVec3f&, const TVec3f&);
 
-    void setParam(const char* pName, f32 distMin, f32 distMax, f32 angleMin, f32 constrainRate, f32 peepAngle, f32 dist, f32 partialRate) {
+    void setParam(const char* pName, f32 distMin, f32 distMax, f32 angleMin, f32 constrainRate, f32 peepAngle, f32 dist, f32 partialRate, f32 rateDistMin, f32 rateDistMax) {
         mString = pName;
         mDistMin = distMin;
         mDistMax = distMax;
@@ -32,6 +32,8 @@ public:
         mDist = dist;
         mAngleConstrainRate = constrainRate;
         mPartialRate = partialRate;
+        mRateDistMin = rateDistMin;
+        mRateDistMax = rateDistMax;
     }
 
     /* 0x54 */ const char* mString;
@@ -42,6 +44,6 @@ public:
     /* 0x68 */ f32 mDist;
     /* 0x6C */ f32 mAngleConstrainRate;
     /* 0x70 */ f32 mPartialRate;
-    /* 0x74 */ f32 _74;
-    /* 0x78 */ f32 _78;
+    /* 0x74 */ f32 mRateDistMin;
+    /* 0x78 */ f32 mRateDistMax;
 };

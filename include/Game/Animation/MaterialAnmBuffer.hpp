@@ -21,8 +21,8 @@ public:
     u16 getDifferedMaterialNum(const J3DModelData*) const;
     void attachMaterialAnmBuffer(J3DModelData*, bool);
 
-    /* 0x00 */ J3DMaterialAnm* _0;
-    /* 0x04 */ u32* _4;
+    /* 0x00 */ J3DMaterialAnm* mMaterialAnimations;
+    /* 0x04 */ u32* mDiffFlags;
 };
 
 namespace MR {

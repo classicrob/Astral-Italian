@@ -19,11 +19,12 @@ public:
     bool testRoundLeft() const NO_INLINE;
     bool testRoundRight() const NO_INLINE;
 
-    void setParam(const TVec2f& angle, f32 dist, bool enabled) {
+    void setParam(const TVec2f& angle, f32 dist, bool enabled, s32 roundIndex) {
         mAngleX = angle.x;
         mAngleY = angle.y;
         mDist = dist;
         mIsEnableValid = enabled;
+        mRoundIndex = roundIndex;
     }
 
     /* 0x54 */ f32 mAngleX;

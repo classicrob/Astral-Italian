@@ -23,23 +23,23 @@ void modifyDiffFlag(u32* pFlags, const T* pAnm, J3DDiffFlag flag, bool enable, c
 
 void modifyDiffFlagBrk(u32*, const J3DAnmTevRegKey*, bool, const char*, const char*);
 
-MaterialAnmBuffer::MaterialAnmBuffer(const ResourceHolder* pResourceHolder, J3DModelData* pModelData, bool useDiffFlag) : _0(), _4() {
+MaterialAnmBuffer::MaterialAnmBuffer(const ResourceHolder* pResourceHolder, J3DModelData* pModelData, bool useDiffFlag) : mMaterialAnimations(), mDiffFlags() {
     searchUpdateMaterialID(pResourceHolder, pModelData);
     u16 materialNum = pModelData->getMaterialNum();
 
     if (useDiffFlag) {
-        _4 = new u32[materialNum];
-        MR::zeroMemory(_4, sizeof(u32) * materialNum);
+        mDiffFlags = new u32[materialNum];
+        MR::zeroMemory(mDiffFlags, sizeof(u32) * materialNum);
         setDiffFlag(pResourceHolder);
     }
 
     u16 anmNum = getAllocMaterialAnmNum(pModelData, useDiffFlag);
-    _0 = new J3DMaterialAnm[anmNum];
+    mMaterialAnimations = new J3DMaterialAnm[anmNum];
     attachMaterialAnmBuffer(pModelData, useDiffFlag);
 }
 
 u32 MaterialAnmBuffer::getDiffFlag(s32 index) const {
-    return _4[index];
+    return mDiffFlags[index];
 }
 
 u16 MaterialAnmBuffer::getAllocMaterialAnmNum(J3DModelData* pModelData, bool useDiffFlag) const {
@@ -84,7 +84,7 @@ void MaterialAnmBuffer::setDiffFlag(const ResourceHolder* pResourceHolder) {
         pBpkName = pBpkTable->getResName(iBpk);
         const char* pResourceName = pResourceHolder->mName;
         const J3DAnmColorKey* pAnm = static_cast< J3DAnmColorKey* >(pBpkTable->getRes(iBpk));
-        MR::onDiffFlagBpk(_4, pAnm, pResourceName, pBpkName);
+        MR::onDiffFlagBpk(mDiffFlags, pAnm, pResourceName, pBpkName);
     }
 
     u32 iBtp;
@@ -94,7 +94,7 @@ void MaterialAnmBuffer::setDiffFlag(const ResourceHolder* pResourceHolder) {
         const char* pBtpName = pBtpTable->getResName(iBtp);
         const char* pResourceName = pResourceHolder->mName;
         const J3DAnmTexPattern* pAnm = static_cast< J3DAnmTexPattern* >(pBtpTable->getRes(iBtp));
-        MR::onDiffFlagBtp(_4, pAnm, pResourceName, pBtpName);
+        MR::onDiffFlagBtp(mDiffFlags, pAnm, pResourceName, pBtpName);
     }
 
     u32 iBtk;
@@ -104,7 +104,7 @@ void MaterialAnmBuffer::setDiffFlag(const ResourceHolder* pResourceHolder) {
         const char* pBtkName = pBtkTable->getResName(iBtk);
         const char* pResourceName = pResourceHolder->mName;
         const J3DAnmTextureSRTKey* pAnm = static_cast< J3DAnmTextureSRTKey* >(pBtkTable->getRes(iBtk));
-        MR::onDiffFlagBtk(_4, pAnm, pResourceName, pBtkName);
+        MR::onDiffFlagBtk(mDiffFlags, pAnm, pResourceName, pBtkName);
     }
 
     u32 iBrk;
@@ -114,7 +114,7 @@ void MaterialAnmBuffer::setDiffFlag(const ResourceHolder* pResourceHolder) {
         const char* pBrkName = pBrkTable->getResName(iBrk);
         const char* pResourceName = pResourceHolder->mName;
         const J3DAnmTevRegKey* pAnm = static_cast< J3DAnmTevRegKey* >(pBrkTable->getRes(iBrk));
-        MR::onDiffFlagBrk(_4, pAnm, pResourceName, pBrkName);
+        MR::onDiffFlagBrk(mDiffFlags, pAnm, pResourceName, pBrkName);
     }
 }
 
@@ -123,7 +123,7 @@ u16 MaterialAnmBuffer::getDifferedMaterialNum(const J3DModelData* pModelData) co
     u16 count = 0;
 
     for (u16 i = 0; i < materialNum; i++) {
-        if (_4[i] != 0) {
+        if (mDiffFlags[i] != 0) {
             count++;
         }
     }
@@ -135,8 +135,8 @@ void MaterialAnmBuffer::attachMaterialAnmBuffer(J3DModelData* pModelData, bool u
     u32 anmIndex = 0;
 
     for (u16 i = 0; i < pModelData->getMaterialNum(); i++) {
-        if (!useDiffFlag || _4[i] != 0) {
-            pModelData->getMaterialNodePointer(i)->mMaterialAnm = &_0[anmIndex];
+        if (!useDiffFlag || mDiffFlags[i] != 0) {
+            pModelData->getMaterialNodePointer(i)->mMaterialAnm = &mMaterialAnimations[anmIndex];
             anmIndex++;
         }
     }

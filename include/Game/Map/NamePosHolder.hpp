@@ -14,7 +14,7 @@ public:
     /* 0x04 */ TVec3f mPosition;          ///< The position of the NamePos.
     /* 0x10 */ TVec3f mRotation;         ///< The rotation of the NamePos.
     /* 0x1C */ JMapLinkInfo* mLinkInfo;  ///< The information to link this NamePos to other objects.
-    /* 0x20 */ const NameObj* _20;
+    /* 0x20 */ const NameObj* mLinkedObj;
 };
 
 /// @brief Class that contains the array of NamePosInfo instances.

@@ -1,3 +1,4 @@
+#define JGEOMETRY_QUAT_TRANSFORM_NOINLINE
 #include "Game/Camera/CameraLocalUtil.hpp"
 #include "Game/Ride/RollingRock.hpp"
 #include "Game/Camera/Camera.hpp"

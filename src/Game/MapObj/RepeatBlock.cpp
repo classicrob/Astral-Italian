@@ -618,7 +618,8 @@ bool RepeatBlock::checkShadowArea() {
         return false;
     }
     s32 arg = MR::getAreaObjArg(pArea, 0);
-    s32 dir = mShadowDrawer->mDirection;
+    s32 currentDirection = mShadowDrawer->mDirection;
+    s32 dir = 0;
     switch (arg) {
     case 0:
         dir = 0;
@@ -639,7 +640,7 @@ bool RepeatBlock::checkShadowArea() {
         dir = 5;
         break;
     }
-    if (dir == mShadowDrawer->mDirection) {
+    if (dir == currentDirection) {
         return false;
     }
     mShadowDrawer->setDirection(dir);

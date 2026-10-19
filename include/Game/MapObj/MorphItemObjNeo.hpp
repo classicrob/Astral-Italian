@@ -161,11 +161,41 @@ public:
 };
 
 namespace NrvMorphItemObjNeo {
-    NEW_NERVE(MorphItemObjNeoNrvWait, MorphItemObjNeo, Wait);
-    NEW_NERVE(MorphItemObjNeoNrvWait2, MorphItemObjNeo, Wait2);
-    NEW_NERVE(MorphItemObjNeoNrvAppear, MorphItemObjNeo, Appear);
-    NEW_NERVE(MorphItemObjNeoNrvSwitchAppear, MorphItemObjNeo, SwitchAppear);
-    NEW_NERVE(MorphItemObjNeoNrvFly, MorphItemObjNeo, Fly);
+    class MorphItemObjNeoNrvWait : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            reinterpret_cast< MorphItemObjNeo* >(pSpine->mExecutor)->exeWait();
+        }
+        static MorphItemObjNeoNrvWait sInstance;
+    };
+    class MorphItemObjNeoNrvWait2 : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            reinterpret_cast< MorphItemObjNeo* >(pSpine->mExecutor)->exeWait2();
+        }
+        static MorphItemObjNeoNrvWait2 sInstance;
+    };
+    class MorphItemObjNeoNrvAppear : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            reinterpret_cast< MorphItemObjNeo* >(pSpine->mExecutor)->exeAppear();
+        }
+        static MorphItemObjNeoNrvAppear sInstance;
+    };
+    class MorphItemObjNeoNrvSwitchAppear : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            reinterpret_cast< MorphItemObjNeo* >(pSpine->mExecutor)->exeSwitchAppear();
+        }
+        static MorphItemObjNeoNrvSwitchAppear sInstance;
+    };
+    class MorphItemObjNeoNrvFly : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            reinterpret_cast< MorphItemObjNeo* >(pSpine->mExecutor)->exeFly();
+        }
+        static MorphItemObjNeoNrvFly sInstance;
+    };
 
     class MorphItemObjNeoNrvDemo : public Nerve {
     public:
@@ -174,9 +204,14 @@ namespace NrvMorphItemObjNeo {
         }
         static MorphItemObjNeoNrvDemo sInstance;
     };
-    MorphItemObjNeoNrvDemo MorphItemObjNeoNrvDemo::sInstance ATTRIBUTE_WEAK;
 
-    NEW_NERVE(MorphItemObjNeoNrvFall, MorphItemObjNeo, Fall);
+    class MorphItemObjNeoNrvFall : public Nerve {
+    public:
+        virtual void execute(Spine* pSpine) const {
+            reinterpret_cast< MorphItemObjNeo* >(pSpine->mExecutor)->exeFall();
+        }
+        static MorphItemObjNeoNrvFall sInstance;
+    };
 
     class MorphItemObjNeoNrvHide : public Nerve {
     public:
@@ -187,7 +222,6 @@ namespace NrvMorphItemObjNeo {
         }
         static MorphItemObjNeoNrvHide sInstance;
     };
-    MorphItemObjNeoNrvHide MorphItemObjNeoNrvHide::sInstance ATTRIBUTE_WEAK;
 };  // namespace NrvMorphItemObjNeo
 
 namespace MR {

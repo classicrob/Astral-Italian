@@ -40,7 +40,8 @@ void GravityBgmCtrl::exeChangeBack() {
         if (!MR::isDemoActive() && !MR::isStageStateScenarioOpeningCamera() && !MR::isExecScenarioStarter())
             MR::startActionSound(this, "ChangeBack");
     }
-    if (!tryChange()) tryWait();
+    if (tryChange()) return;
+    if (tryWait()) return;
 }
 void GravityBgmCtrl::exeChange() {
     if (MR::isFirstStep(this)) {
@@ -48,7 +49,8 @@ void GravityBgmCtrl::exeChange() {
         if (!MR::isDemoActive() && !MR::isStageStateScenarioOpeningCamera() && !MR::isExecScenarioStarter())
             MR::startActionSound(this, "Change");
     }
-    if (!tryChangeBack()) tryWait();
+    if (tryChangeBack()) return;
+    if (tryWait()) return;
 }
 bool GravityBgmCtrl::tryChangeBack() {
     if (checkGravityDir(sNormalGravity)) {

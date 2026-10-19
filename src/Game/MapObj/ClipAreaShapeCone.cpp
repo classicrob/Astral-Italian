@@ -1,6 +1,6 @@
 #include "Game/MapObj/ClipAreaShape.hpp"
 #include "Game/Util/MtxUtil.hpp"
-// NONMATCHING: the shared vector multiply helper currently expands inline.
+// NONMATCHING: the matrix copy expands inline instead of calling SMatrix34C::set.
 void ClipAreaShapeCone::calcVolumeMatrix(TPos3f* output, const TPos3f& original, const TVec3f& scale) const {
     output->set(original);
     TVec3f dimensions;
@@ -14,6 +14,6 @@ void ClipAreaShapeCone::calcVolumeMatrix(TPos3f* output, const TPos3f& original,
         dimensions.z = -radius;
         MR::addTransMtxLocalY(output->toMtxPtr(), _C * scale.y);
     }
-    dimensions.mul(dimensions, scale);
+    mulScaleVec(dimensions, scale, dimensions);
     MR::preScaleMtx(output->toMtxPtr(), dimensions);
 }

@@ -30,6 +30,17 @@
 #include "Game/Util/SoundUtil.hpp"
 #include "Game/Util/StarPointerUtil.hpp"
 
+namespace NrvMorphItemObjNeo {
+    MorphItemObjNeoNrvWait MorphItemObjNeoNrvWait::sInstance ATTRIBUTE_WEAK;
+    MorphItemObjNeoNrvWait2 MorphItemObjNeoNrvWait2::sInstance ATTRIBUTE_WEAK;
+    MorphItemObjNeoNrvAppear MorphItemObjNeoNrvAppear::sInstance ATTRIBUTE_WEAK;
+    MorphItemObjNeoNrvSwitchAppear MorphItemObjNeoNrvSwitchAppear::sInstance ATTRIBUTE_WEAK;
+    MorphItemObjNeoNrvFly MorphItemObjNeoNrvFly::sInstance ATTRIBUTE_WEAK;
+    MorphItemObjNeoNrvDemo MorphItemObjNeoNrvDemo::sInstance ATTRIBUTE_WEAK;
+    MorphItemObjNeoNrvFall MorphItemObjNeoNrvFall::sInstance ATTRIBUTE_WEAK;
+    MorphItemObjNeoNrvHide MorphItemObjNeoNrvHide::sInstance ATTRIBUTE_WEAK;
+}  // namespace NrvMorphItemObjNeo
+
 namespace {
     const char* const cEffectKeeperName = "MorphItemObj";
     const char* const cSoundName = "MorphItemObjNeo";

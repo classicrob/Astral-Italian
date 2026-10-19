@@ -99,10 +99,10 @@ bool ClipAreaShapeCylinder::isInArea(const TVec3f& rVec) const {
 }
 
 void ClipAreaShapeCylinder::calcBaseScale(TVec3f* pOut) const {
-    pOut->set(mRadius / 500.0f, mHeight / 500.0f, mRadius / 500.0f);
+    pOut->set< f32 >(mRadius / 500.0f, mHeight / 500.0f, mRadius / 500.0f);
 }
 
-static void mulScaleVec(const TVec3f& rBase, const TVec3f& rScale, TVec3f& rOut) NO_INLINE {
+void mulScaleVec(const TVec3f& rBase, const TVec3f& rScale, TVec3f& rOut) NO_INLINE {
     JGeometry::mulInternal(&rBase.x, &rScale.x, &rOut.x);
 }
 

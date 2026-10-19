@@ -63,10 +63,12 @@ void LightFruitClipArea::control() {
     color.r = u8(255.0f * red); color.g = u8(255.0f * green); color.b = u8(255.0f * blue);
     MR::setFallOutFieldDrawEdgeColor(GXColor(color));
 }
+// NONMATCHING: the ordered radius sum stays in f2 instead of the target's f1.
 void LightFruitClipArea::exeAppear() {
     if (MR::isFirstStep(this)) { YoshiFunction::emitGlowEffect(); MR::startActionSound(this, "SyLightFruitGet"); }
     bool done = false;
-    f32 radius = mCylinder->mRadius + 15.0f;
+    f32 radius = mCylinder->mRadius;
+    radius += 15.0f;
     if (radius > 800.0f) { radius = 800.0f; done = true; }
     mCylinder->mRadius = radius;
     if (done) setNerve(&NrvLightFruitClipArea::LightFruitClipAreaNrvTimer::sInstance);

@@ -61,3 +61,5 @@ public:
     f32 mRadius; // 0x08
     f32 mHeight; // 0x0C
 };
+
+void mulScaleVec(const TVec3f& rBase, const TVec3f& rScale, TVec3f& rOut);

@@ -48,13 +48,22 @@ void CrescentSeesawPlanet::calcAndSetBaseMtx() {
 }
 // NONMATCHING: scalar register allocation and component-load scheduling differ.
 void CrescentSeesawPlanet::move() {
-    f32 speed = mAngularVelocity * 0.999f;
-    mAngularVelocity = speed + (mAngle * -0.0006f + speed * -0.012f);
+    f32 speed = mAngularVelocity;
+    speed *= 0.999f;
+    f32 acceleration = mAngle;
+    acceleration *= -0.0006f;
+    f32 damping = speed;
+    damping *= -0.012f;
+    acceleration += damping;
+    mAngularVelocity = speed + acceleration;
     if (MR::isOnPlayer(this)) {
         TVec3f side(0.0f), toPlayer(0.0f);
         side.set<f32>(mInitialMtx.mMtx[0][0], mInitialMtx.mMtx[1][0], mInitialMtx.mMtx[2][0]);
         MR::calcVecToPlayer(&toPlayer, this);
-        f32 force = 40.0f * ((side.dot(toPlayer) * 0.002f) / 10000.0f);
+        f32 force = side.dot(toPlayer);
+        force *= 0.002f;
+        force /= 10000.0f;
+        force = 40.0f * force;
         if (MR::isPlayerHipDropLand()) force *= 80.0f;
         mAngularVelocity -= force;
     }

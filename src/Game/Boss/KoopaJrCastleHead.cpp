@@ -229,8 +229,7 @@ void KoopaJrCastleHead::exeSpinSign() {
 }
 
 // fn_800D5D20: 'E' phase: eases the head's rest matrix back over the nerve step, with the burst sound.
-// NONMATCHING: rest-matrix and rotation axis not recovered (target passes an unset register to rotateVecDegree)
-// NONMATCHING: register/scheduling only (target keeps &_A4 in r31)
+// NONMATCHING: relocation annotations differ for the same consumed strings and constants.
 void KoopaJrCastleHead::exeSpin() {
     if (MR::isFirstStep(this)) {
         KoopaJrCastle* pCastle = KoopaJrCastleFunction::getCastle();
@@ -241,14 +240,21 @@ void KoopaJrCastleHead::exeSpin() {
     if (MR::isStep(this, 0x5A)) {
         MR::invalidateHitSensor(this, "Panic");
     }
+    MtxPtr cannonMtx = mCannonMtx;
     TVec3f pos;
-    pos.set< f32 >(mCannonMtx[0][3], mCannonMtx[1][3], mCannonMtx[2][3]);
+    f32 posZ = cannonMtx[2][3];
+    f32 posY = cannonMtx[1][3];
+    f32 posX = cannonMtx[0][3];
+    pos.set< f32 >(posX, posY, posZ);
     TVec3f side;
-    side.set< f32 >(mCannonMtx[0][0], mCannonMtx[1][0], mCannonMtx[2][0]);
+    f32 sideZ = cannonMtx[2][0];
+    f32 sideY = cannonMtx[1][0];
+    f32 sideX = cannonMtx[0][0];
+    side.set< f32 >(sideX, sideY, sideZ);
     f32 ease = MR::calcNerveEaseOutValue(this, 0x96, 25.0f, 0.0f);
     MR::rotateVecDegree(&side, mGravity, ease);
     TVec3f up = -mGravity;
-    MR::makeMtxSideUpPos(reinterpret_cast< TPos3f* >(&mCannonMtx), side, up, pos);
+    MR::makeMtxSideUpPos(reinterpret_cast< TPos3f* >(cannonMtx), side, up, pos);
     MR::startActionSound(this, "EmLvWaterbazStorm", static_cast<s32>(100.0f * ease / 25.0f), -1, -1);
     if (MR::isGreaterStep(this, 0x96)) {
         setNerve(&NrvKoopaJrCastleHead::KoopaJrCastleHeadNrvD::sInstance);

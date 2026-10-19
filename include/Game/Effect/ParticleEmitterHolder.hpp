@@ -13,6 +13,7 @@ public:
     void forceDeleteAllOneTimeEmitters();
     void forceDeleteAllEmitters();
     void requestMovementOnAllEmitters();
+    void requestMovementOffAllEmitters();
     ParticleEmitter* findAvailableParticleEmitter();
     void requestMovementOffAllLoopEmitters();
 

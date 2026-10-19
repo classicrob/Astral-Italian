@@ -29,6 +29,11 @@ AudTamakoroBgmCtrl::AudTamakoroBgmCtrl()
 }
 
 // NONMATCHING: equivalent table-search loop layout/regalloc
+enum {
+    TAMAKORO_BGM_ID = 0x1000009,
+    TAMAKORO_BGM_2_ID = 0x100000A,
+};
+
 void AudTamakoroBgmCtrl::init(const char* name) {
     mSteps = 0;
     const TamakoroBgmInfo* info = nullptr;
@@ -36,14 +41,14 @@ void AudTamakoroBgmCtrl::init(const char* name) {
         if (MR::isEqualString(sBgmInfo[i].mName, name)) { info = &sBgmInfo[i]; break; }
     }
     mInfo = info;
-    mTempoRateMin = info->mMinTempo / info->mBaseTempo;
-    mTempoRateMax = info->mMaxTempo / info->mBaseTempo;
-    mTempoRateVeryHigh = info->mVeryHighTempo / info->mBaseTempo;
-    mPitchRateNormal = ::pow(2.0, info->mPitchSemitones / 12.0f);
-    mPitchRateVeryHigh = ::pow(2.0, info->mVeryHighPitchSemitones / 12.0f);
-    mPitchFrames = info->mPitchRiseFrames;
-    mFirstBarSteps = info->mFirstBarSteps;
-    mPercTracks = info->mPercTracks;
+    mTempoRateMin = mInfo->mMinTempo / mInfo->mBaseTempo;
+    mTempoRateMax = mInfo->mMaxTempo / mInfo->mBaseTempo;
+    mTempoRateVeryHigh = mInfo->mVeryHighTempo / mInfo->mBaseTempo;
+    mPitchRateNormal = ::pow(2.0, mInfo->mPitchSemitones / 12.0f);
+    mPitchRateVeryHigh = ::pow(2.0, mInfo->mVeryHighPitchSemitones / 12.0f);
+    mPitchFrames = mInfo->mPitchRiseFrames;
+    mFirstBarSteps = mInfo->mFirstBarSteps;
+    mPercTracks = mInfo->mPercTracks;
 }
 
 // NONMATCHING: register scheduling
@@ -53,7 +58,9 @@ void AudTamakoroBgmCtrl::control(f32 speed, bool disabled, s32 frames) {
         JAISoundHandle* handle = bgm->getHandle();
         if (handle != nullptr && handle->isSoundAttached()) {
             JAISoundID id = handle->getSound()->getID();
-            if (id == BGM_TAMAKORO || id == BGM_TAMAKORO_2) {
+            // The target compares against indices 9 and 10 of the BGM section (0x1000009 / 0x100000A); AudSoundId.hpp lists
+            // BGM_TAMAKORO at 0x100004B, so the shared enum disagrees with the code here.
+            if (id == TAMAKORO_BGM_ID || id == TAMAKORO_BGM_2_ID) {
                 if (mSteps > mFirstBarSteps) {
                     if (speed < ::sSpeedMin) {
                         speed = ::sSpeedMin;

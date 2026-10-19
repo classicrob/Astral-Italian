@@ -4,7 +4,7 @@
 void CamTranslatorCubePlanet::setParam(const CameraParamChunk* pChunk) {
     CameraGeneralParam* general = pChunk->mGeneralParam;
 
-    mCamera->setParam(general->mDist, general->mAngleA, general->mAngleB);
+    mCamera->setParam(general->mDist, general->mAngleA, general->mAngleB, general->mNum1 != 0);
 }
 
 Camera* CamTranslatorCubePlanet::getCamera() const {

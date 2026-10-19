@@ -498,7 +498,12 @@ namespace AudBgmSetting {
     }
     const MuteState* getMuteState(JAISoundID id, s32 track) {
         const BgmSettingInfo* info = findSettingInfo(id);
-        if (info == nullptr || info->mMuteStateIndex < 0) return nullptr;
+        if (info == nullptr) {
+            return nullptr;
+        }
+        if (info->mMuteStateIndex < 0) {
+            return nullptr;
+        }
         return &cMuteState[info->mMuteStateIndex][track];
     }
     u16 getExtraChordNum(JAISoundID id, s32 track) {

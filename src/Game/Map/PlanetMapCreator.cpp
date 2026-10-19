@@ -1,5 +1,10 @@
-// SMG2 value of ACTMES_SPHERE_SELECTOR_TARGET_SELECTED is unknown; only SphereSelector::sendSelectedMsgAndSetTarget uses it (not in this unit).
-#define ACTMES_SPHERE_SELECTOR_TARGET_SELECTED 0
+#include "Game/MapObj/FlowerBlossomRellayPlanet.hpp"
+#include "Game/MapObj/MysteryMountainPlanet.hpp"
+#include "Game/MapObj/MagmaBoatPlanetIce.hpp"
+#include "Game/MapObj/MagmaBoatPlanetMagma.hpp"
+#include "Game/MapObj/RelayDrill2DPlanet.hpp"
+#include "Game/MapObj/QuicksandPlanet.hpp"
+#include "Game/MapObj/PictureJoinPlanet.hpp"
 #include "Game/Map/PlanetMapCreator.hpp"
 #include "Game/Util.hpp"
 #include "Game/Boss/TombSpiderEnvironment.hpp"
@@ -34,7 +39,6 @@
 #include "Game/MapObj/SimpleMapObj.hpp"
 #include "Game/MapObj/SnowCapsulePlanet.hpp"
 #include "Game/MapObj/WormEatenPlanet.hpp"
-#include "Game/MapObj.hpp"
 #include "Game/NameObj/NameObjArchiveListCollector.hpp"
 #include "Game/NameObj/NameObjFactory.hpp"
 #include "Game/Scene/SceneObjHolder.hpp"
@@ -69,48 +73,6 @@ namespace {
         return false;
     }
 };  // namespace
-
-// PLACEHOLDER(core): headers for these SMG2 planets do not exist yet; layout is only the allocation size seen in the
-// PlanetMapCreator factory thunks. Replace with the real header once the unit gets source.
-class FlowerBlossomRellayPlanet : public LiveActor {
-public:
-    FlowerBlossomRellayPlanet(const char*);
-};
-
-class MysteryMountainPlanet : public LiveActor {
-public:
-    MysteryMountainPlanet(const char*);
-};
-
-class MagmaBoatPlanetIce : public LiveActor {
-public:
-    MagmaBoatPlanetIce(const char*);
-    u8 _pad[0xD4 - 0x90];
-};
-
-class MagmaBoatPlanetMagma : public LiveActor {
-public:
-    MagmaBoatPlanetMagma(const char*);
-    u8 _pad[0xD4 - 0x90];
-};
-
-class RelayDrill2DPlanet : public LiveActor {
-public:
-    RelayDrill2DPlanet(const char*);
-    u8 _pad[0xD0 - 0x90];
-};
-
-class QuicksandPlanet : public LiveActor {
-public:
-    QuicksandPlanet(const char*);
-    u8 _pad[0xD4 - 0x90];
-};
-
-class PictureJoinPlanet : public SimpleMapObj {
-public:
-    PictureJoinPlanet(const char* pName) : SimpleMapObj(pName) {
-    }
-};
 
 const PlanetEntry PlanetMapCreator::sUniquePlanetCreateFuncTable[78] = {
     {"BendSwanpPlanet", createNameObj< BendSwanpPlanet >},

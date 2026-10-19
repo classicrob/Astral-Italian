@@ -1,4 +1,4 @@
-#define JGEOMETRY_VEC3_MI_NOINLINE
+#define JGEOMETRY_VEC3_UNARY_NEG_NOINLINE
 #define JGEOMETRY_VEC3_SUB_NEG_NOINLINE
 #include "Game/Map/FishGroup.hpp"
 #include "Game/Util.hpp"
@@ -72,10 +72,11 @@ void Fish::init(const JMapInfoIter& rIter) {
     mFront.set(MR::getRailDirection(mGroup));
 
     const char* names[] = {"FishA", "FishB", "FishC", "FishD", "FishE", "FishF"};
-    initModelManagerWithAnm(names[mFishType], nullptr, false);
+    MR::initActor(this, names[mFishType], false);
     MR::startAction(this, "Swim");
     MR::connectToSceneEnvironment(this);
     initNerve(GET_NERVE(Fish, FishNrvWander));
+    MR::onCalcGravity(this);
     MR::invalidateClipping(this);
     makeActorAppeared();
 }

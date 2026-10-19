@@ -28,11 +28,12 @@ void OmoteuLandSky::init(const JMapInfoIter& rIter) {
     MR::initDefaultPos(this, rIter);
     MR::initActor(this, "OmoteuLandSky", false);
     MR::connectToSceneSky(this);
+    MR::invalidateClipping(this);
     MR::registerDemoSimpleCastAll(this);
     initNerve(&NrvOmoteuLandSky::OmoteuLandSkyNrvFirst::sInstance, 0);
     MR::needStageSwitchReadA(this, rIter);
     MR::useStageSwitchAwake(this, rIter);
-    kill();
+    makeActorAppeared();
 }
 
 void OmoteuLandSky::calcAnim() {

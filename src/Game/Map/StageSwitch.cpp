@@ -184,7 +184,7 @@ bool StageSwitchCtrl::isOnAnyOneSwitchAfterB(int idx) const {
 
 namespace StageSwitchFunction {
 #pragma push
-#pragma auto_inline off
+#pragma dont_inline on
     SwitchIdInfo* createSwitchIdInfo(const char* pName, const JMapInfoIter& rIter, bool /* unused*/) {
         s32 switchVal;
         if (!rIter.getValue< s32 >(pName, &switchVal)) {
@@ -198,7 +198,7 @@ namespace StageSwitchFunction {
         SwitchIdInfo* info = new SwitchIdInfo(switchVal, rIter);
 
         if (switchVal < 1000) {
-            MR::getSceneObj< StageSwitchContainer* >(SceneObj_StageSwitchContainer)->createAndAddZone(*info);
+            static_cast<StageSwitchContainer*>(MR::getSceneObjHolder()->getObj(SceneObj_StageSwitchContainer))->createAndAddZone(*info);
         }
 
         return info;

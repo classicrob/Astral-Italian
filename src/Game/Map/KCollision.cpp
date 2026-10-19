@@ -6,6 +6,7 @@
 #include "Game/Util/MathUtil.hpp"
 #include "Game/Util/MemoryUtil.hpp"
 #include <algorithm>
+#include <stdint.h>
 
 void KCollision_FORCE_MATCH_SDATA2() {
     (void)0.001f;
@@ -48,10 +49,10 @@ void KCollisionServer::setData(void* pData) {
     mFile = reinterpret_cast< KCLFile* >(pData);
 
     if (!isBinaryInitialized(pData)) {
-        mFile->mPos = reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(mFile) + mFile->mPosOffset);
-        mFile->mNorms = reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(mFile) + mFile->mNormOffset);
-        mFile->mPrisms = reinterpret_cast< KC_PrismData* >(reinterpret_cast< u8* >(mFile) + mFile->mPrismOffset);
-        mFile->mOctree = reinterpret_cast< void* >(reinterpret_cast< u8* >(mFile) + mFile->mOctreeOffset);
+        mFile->mPos = reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(mFile) + reinterpret_cast<uintptr_t>(mFile->mPos));
+        mFile->mNorms = reinterpret_cast< TVec3f* >(reinterpret_cast< u8* >(mFile) + reinterpret_cast<uintptr_t>(mFile->mNorms));
+        mFile->mPrisms = reinterpret_cast< KC_PrismData* >(reinterpret_cast< u8* >(mFile) + reinterpret_cast<uintptr_t>(mFile->mPrisms));
+        mFile->mOctree = reinterpret_cast< void* >(reinterpret_cast< u8* >(mFile) + reinterpret_cast<uintptr_t>(mFile->mOctree));
     }
 }
 

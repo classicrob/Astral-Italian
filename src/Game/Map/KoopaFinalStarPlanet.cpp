@@ -10,7 +10,7 @@ void KoopaFinalStarPlanet::init(const JMapInfoIter& rIter) {
     MR::getKoopaBattleAccessor()->registerKoopaFinalStarPlanet(this);
     PlanetMap::init(rIter);
     MR::addBaseMatrixFollowTarget(this, rIter, nullptr, nullptr);
-    makeActorAppeared();
+    makeActorDead();
 }
 
 KoopaFinalStarPlanet::~KoopaFinalStarPlanet() {}

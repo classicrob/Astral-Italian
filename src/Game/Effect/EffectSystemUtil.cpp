@@ -25,6 +25,9 @@
 #include "Game/Util/SystemUtil.hpp"
 #include <JSystem/JParticle/JPAEmitter.hpp>
 #include <JSystem/JParticle/JPAEmitterManager.hpp>
+#include <JSystem/JParticle/JPAResourceManager.hpp>
+#include <JSystem/JParticle/JPAResource.hpp>
+#include <JSystem/JParticle/JPADynamicsBlock.hpp>
 #include <cstdio>
 #include <cstring>
 
@@ -71,6 +74,11 @@ namespace {
 
 namespace MR {
     namespace Effect {
+        void requestMovementOffAllEmitters() {
+            getEffectSystem()->mCalcExec->requestMovementOffPauseIgnore();
+            getEffectSystem()->mEmitterHolder->requestMovementOffAllEmitters();
+        }
+
         void requestMovementOnAllEmitters() {
             getEffectSystem()->mCalcExec->requestMovementOnPauseIgnore();
             getEffectSystem()->mEmitterHolder->requestMovementOnAllEmitters();
@@ -323,3 +331,7 @@ namespace MR {
         }
     };  // namespace Effect
 };  // namespace MR
+
+bool EffectSystem::isContinuousEmitter(u16 resourceId) const {
+    return mEmitterManager->getResourceManager(static_cast<u16>(0))->getResource(resourceId)->getDyn()->getMaxFrame() == 0;
+}

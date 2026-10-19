@@ -327,9 +327,7 @@ void AudMultiBgm::updateTrackControl() {
     }
 }
 
-JAISoundHandle* AudMultiBgm::prepare(u32 id) {
-    u32 bgmId = id & ~(0x01010000);
-
+JAISoundHandle* AudMultiBgm::prepare(u32 bgmId) {
     u32 seqID = AudWrap::getMultiBgmInfo()->getSeqIdForMultiBgm(bgmId);
     u32 streamID = AudWrap::getMultiBgmInfo()->getStreamIdForMultiBgm(bgmId);
 
@@ -342,11 +340,13 @@ JAISoundHandle* AudMultiBgm::prepare(u32 id) {
         }
 
         startTrackControl();
-        changeTrackMuteState(AudFader::FadeState_FadeOut, 0);
+        initTrackMuteState(mRhythmHandle->getID());
+        tryChangeTrackMuteState(0, 0);
     } else {
         return nullptr;
     }
 
+    clearPauseFrames();
     AudWrap::getSystem()->getStreamMgr().startSound(streamID, &mHandle, nullptr);
     if (mHandle.isSoundAttached()) {
         mHandle->lockWhenPrepared();
@@ -425,6 +425,7 @@ void AudMultiBgm::pauseSyncProcess() {
 }
 
 void AudMultiBgm::setStreamVolume(f32 volA, f32 volB) {
+    JASCriticalSection crit;
     mHandle->getChild(0)->getMoveParams()->moveVolume(volA, 0);
     mHandle->getChild(1)->getMoveParams()->moveVolume(volA, 0);
     mHandle->getChild(2)->getMoveParams()->moveVolume(volB, 0);

@@ -451,7 +451,7 @@ Game/Effect/SyncBckEffectChecker.cpp:
 	.sdata2     start:0x807D72C8 end:0x807D72D0
 
 Game/Effect/SyncBckEffectInfo.cpp:
-	.text       start:0x8006F750 end:0x8006F800
+	.text       start:0x8006F670 end:0x8006F800
 
 Game/AreaObj/AreaForm.cpp:
 	.text       start:0x8006F810 end:0x80070730
@@ -713,7 +713,7 @@ Game/AudioLib/AudSeStrategy.cpp:
 	.data       start:0x8066BDA4 end:0x8066BDB8
 
 Game/AudioLib/AudSoundNameConverter.cpp:
-	.text       start:0x80085F20 end:0x80086520
+	.text       start:0x80085EF0 end:0x80086520
 	.data       start:0x8066BDB8 end:0x8066BE00
 	.sdata      start:0x807CF478 end:0x807CF4C0
 	.sbss       start:0x807D0E48 end:0x807D0E50
@@ -739,6 +739,7 @@ Game/AudioLib/AudUtil.cpp:
 
 Game/AudioLib/JASBank.cpp:
 	.text       start:0x800886A0 end:0x800889A0
+	.sdata2     start:0x807D75C0 end:0x807D75CC
 
 Game/AudioLib/JASTrack.cpp:
 	.text       start:0x800889A0 end:0x80088BB0
@@ -2069,6 +2070,7 @@ Game/Camera/CameraRotChecker.cpp:
 
 Game/Camera/CameraPadOrbitCtrl.cpp:
 	.text       start:0x80129070 end:0x80129510
+	.sdata2     start:0x807D9428 end:0x807D9438
 
 Game/Camera/CameraShakePatternSingly.cpp:
 	.text       start:0x80129510 end:0x801296C0
@@ -2334,13 +2336,10 @@ Game/Demo/NormalEndingDemoObj.cpp:
 	.sdata      start:0x807CF730 end:0x807CF758
 
 Game/Demo/DemoAstroPlanet.cpp:
-	.text       start:0x80140A20 end:0x80140D30
+	.text       start:0x80140A20 end:0x80140E50
 	.rodata     start:0x80647D60 end:0x80647D70
 	.data       start:0x806803F8 end:0x80680480
 	.sdata2     start:0x807D97F8 end:0x807D9808
-
-Game/Demo/JointControlDelegator.cpp:
-	.text       start:0x80140D30 end:0x80140E50
 
 Game/Demo/OpeningDemoObj.cpp:
 	.text       start:0x80141000 end:0x80141B40
@@ -2421,23 +2420,9 @@ Game/Effect/MultiEmitter.cpp:
 	.data       start:0x80681958 end:0x806819C8
 	.sdata2     start:0x807D9924 end:0x807D9928
 
-Game/Effect/MultiEmitter2.cpp:
-	.text       start:0x8014B380 end:0x8014B440
-
-Game/Effect/MultiEmitter3.cpp:
-	.text       start:0x8014B440 end:0x8014B5E0
-
-Game/Effect/MultiEmitter4.cpp:
-	.text       start:0x8014B5E0 end:0x8014B6D0
-
-Game/Effect/MultiEmitter5.cpp:
-	.text       start:0x8014B6D0 end:0x8014B7F0
-
-Game/Effect/MultiEmitter6.cpp:
-	.text       start:0x8014B7F0 end:0x8014B910
-
-Game/Effect/MultiEmitter7.cpp:
-	.text       start:0x8014B910 end:0x8014BF70
+Game/Effect/MultiEmitterAccess.cpp:
+	.text       start:0x8014B380 end:0x8014BF70
+	.sdata2     start:0x807D9928 end:0x807D9938
 
 Game/Effect/MultiEmitterCallBack.cpp:
 	.text       start:0x8014BF70 end:0x8014CDF0
@@ -2487,6 +2472,7 @@ Game/Effect/SimpleEffectObj.cpp:
 
 Game/Effect/SingleEmitter.cpp:
 	.text       start:0x8014F2D0 end:0x8014F4C0
+	.sbss       start:0x807D1F18 end:0x807D1F20
 
 Game/Effect/SoundParticleCallBack.cpp:
 	.text       start:0x8014F4C0 end:0x8014F550

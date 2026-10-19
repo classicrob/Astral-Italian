@@ -50,10 +50,7 @@ public:
 
     /* 0x00 */ const char* mName;
     /* 0x04 */ u8 mDirectoryType;
-    union {
-        /* 0x08 */ XanimeDirectory* mSubDirectories;
-        /* 0x08 */ XanimeGroupInfo* mSubInformations;
-    };
+    /* 0x08 */ void* mChildren;
     /* 0x0C */ u32 mHash;
     /* 0x10 */ u32 mSize;
 };
@@ -127,10 +124,7 @@ public:
     /* 0x08 */ u32 mAmountOfBckTables;
     /* 0x0C */ u32 mAmountOfSimpleGroupInfos;
     /* 0x10 */ XanimeGroupInfo* mGroupInfos;
-    union {
-        /* 0x14 */ XanimeDirectory* mDirectories;
-        /* 0x14 */ XanimeBckTable1* mBckTables;
-    };
+    /* 0x14 */ XanimeBckTable1* mBckTables;
     /* 0x18 */ XanimeGroupInfo _1C;
     /* 0x60 */ XanimeGroupInfo* mSimpleGroupInfos;
     /* 0x64 */ ResourceHolder* mResourceHolder;

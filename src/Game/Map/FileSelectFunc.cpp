@@ -10,6 +10,7 @@ namespace {
     static const char* sIconNameMessageID[] = {
         "System_FileSelect_Icon000", "System_FileSelect_Icon001", "System_FileSelect_Icon002",
         "System_FileSelect_Icon003", "System_FileSelect_Icon004",
+        "System_FileSelect_Icon005", "System_FileSelect_Icon006",
     };
 };  // namespace
 
@@ -23,13 +24,15 @@ namespace FileSelectFunc {
             const char* pMessageId = ::sIconNameMessageID[rIcon.getFellowID()];
             const wchar_t* pMessage = MR::getGameMessageDirect(pMessageId);
 
-            MR::copyMemory(pName, pMessage, getMiiNameBufferSize() * sizeof(wchar_t));
+            MR::copyMemory(pName, pMessage, (getMiiNameBufferSize() + 1) * sizeof(u16));
+            pName[getMiiNameBufferSize()] = 0;
         } else if (rIcon.isMii()) {
             RFLAdditionalInfo info;
             RFLErrcode err = RFLGetAdditionalInfoWithSanitizedNames(&info, RFLDataSource_Official, nullptr, rIcon.getMiiIndex());
 
             if (err == RFLErrcode_Success) {
-                MR::copyMemory(pName, info.name, getMiiNameBufferSize() * sizeof(wchar_t));
+                MR::copyMemory(pName, info.name, (getMiiNameBufferSize() + 1) * sizeof(u16));
+                pName[getMiiNameBufferSize()] = 0;
             }
         }
     }

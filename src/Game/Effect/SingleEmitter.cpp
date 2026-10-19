@@ -20,11 +20,14 @@ void SingleEmitter::deleteEmitter() {
 }
 
 void SingleEmitter::scanParticleEmitter(EffectSystem* pSystem) {
-    ParticleEmitter* emitter;
     if (mSpawn == SINGLE_EMITTER_UNDEF_SPAWN) {
-        emitter = pSystem->createEmitter(_4, mGroupId, 0);
-        mSpawn = emitter->isContinuousParticle() ? SINGLE_EMITTER_CONTINUOUS_SPAWN : SINGLE_EMITTER_ONE_TIME_SPAWN;
-        pSystem->forceDeleteEmitter(emitter);
+        if (gScanParticleResourcesByCreatingEmitter) {
+            ParticleEmitter* emitter = pSystem->createEmitter(_4, mGroupId, 0);
+            mSpawn = emitter->isContinuousParticle() ? SINGLE_EMITTER_CONTINUOUS_SPAWN : SINGLE_EMITTER_ONE_TIME_SPAWN;
+            pSystem->forceDeleteEmitter(emitter);
+        } else {
+            mSpawn = pSystem->isContinuousEmitter(_4) ? SINGLE_EMITTER_CONTINUOUS_SPAWN : SINGLE_EMITTER_ONE_TIME_SPAWN;
+        }
     }
 }
 
@@ -53,3 +56,4 @@ void SingleEmitter::unlink() {
     MR::Effect::setLinkSingleEmitter(mEmitter, nullptr);
     mEmitter = nullptr;
 }
+bool gScanParticleResourcesByCreatingEmitter = false;

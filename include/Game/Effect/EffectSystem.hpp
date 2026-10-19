@@ -21,6 +21,7 @@ public:
     virtual void init(const JMapInfoIter& rIter);
 
     ParticleEmitter* createEmitter(u16, u8, u8);
+    bool isContinuousEmitter(u16) const;
     void forceDeleteEmitter(ParticleEmitter*) const;
     void forceDeleteSingleEmitter(SingleEmitter*) const;
     bool createSingleEmitter(SingleEmitter*, MultiEmitterCallBackBase*, MultiEmitterParticleCallBack*);

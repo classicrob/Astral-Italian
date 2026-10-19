@@ -8,9 +8,9 @@
 namespace {
     // const Vec cTitleTargetPos = {};
     // const Vec cTitlePos = {};
-    const Vec cFarTarget = {0.0f, 800.0f, 0.0f};
-    const Vec cFarPoint = {0.0f, 0.0f, 15000.0f};
-    const Vec cNearTargetOffset = {0.0f, 1100.0f, 0.0f};
+    const Vec cFarTarget = {0.0f, 1500.0f, 0.0f};
+    const Vec cFarPoint = {0.0f, 1500.0f, 10000.0f};
+    const Vec cNearTargetOffset = {0.0f, 1400.0f, 0.0f};
     const Vec cNearPointOffset = {0.0f, 0.0f, 4800.0f};
     const f32 cTitleFovy = 60.0f;
     const f32 cFarFovy = 40.0f;
@@ -88,7 +88,7 @@ bool FileSelectCameraController::isToOrAtNearPoint() const {
 void FileSelectCameraController::exeTitle() {
     if (MR::isFirstStep(this)) {
         mWPoint.set< f32 >(::cFarTarget.x, ::cFarTarget.y + 15000.0f, ::cFarTarget.z);
-        mPosition.set< f32 >(::cFarPoint.x, ::cFarTarget.y + 15000.0f, ::cFarPoint.z);
+        MR::setPosition(this, ::cFarPoint.x, ::cFarTarget.y + 15000.0f, ::cFarPoint.z);
         mUpVec.set(0.0f, 1.0f, 0.0f);
     }
 }

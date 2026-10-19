@@ -67,7 +67,10 @@ bool NamePosHolder::find(const NameObj* pObj, const char* pName, TVec3f* pPos, T
             continue;
         }
 
-        if (pObj != nullptr && pInfo->mLinkInfo->isValid() && (pObj != pInfo->_20)) {
+        if (!pInfo->mLinkInfo->isValid()) {
+            return false;
+        }
+        if (pObj != pInfo->_20) {
             continue;
         }
 

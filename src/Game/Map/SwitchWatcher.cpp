@@ -75,7 +75,8 @@ SwitchWatcherHolder::SwitchWatcherHolder() : NameObj("SwitchWatcherHolder") {
 void SwitchWatcherHolder::movement() {
     void (SwitchWatcher::*func)(void) = &SwitchWatcher::movement;
 
-    for (SwitchWatcher** cur = &mWatchers[0]; cur != &mWatchers[mWatcherCount]; cur++) {
+    SwitchWatcher** end = &mWatchers[mWatcherCount];
+    for (SwitchWatcher** cur = &mWatchers[0]; cur != end; cur++) {
         (*cur->*func)();
     }
 }

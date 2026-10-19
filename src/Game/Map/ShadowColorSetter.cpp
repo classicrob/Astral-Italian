@@ -25,8 +25,7 @@ void ShadowColorSetter::movement() {
             mTargetColor.b = b;
             mTargetColor.a = 0xFF;
         } else {
-            GXColor black = JUtility::TColor(0x000000FF);
-            mTargetColor = black;
+            mTargetColor = JUtility::TColor(0x000000FF);
         }
         mPrevColor = mCurColor;
         mBlendT = 0.0f;

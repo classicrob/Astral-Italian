@@ -8,6 +8,10 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
 
+namespace {
+    extern const f32 sBeatTolerance;
+}
+
 SoundSyncSwitch::SoundSyncSwitch(const char* pName)
     : NameObj(pName), mStageSwitchCtrl(NULL), mBeatNum(8), mTimeOffset(0), mInterval(0), mSwitchOnTime(-1), mCounter(0), mSoundType(0), mSound(NULL) {
 }
@@ -98,17 +102,17 @@ void SoundSyncSwitch::emit() {
     }
 
     if (mSoundType == 1) {
-        if (AudRhythmWrap::isBeatTiming(8, 0.07f)) {
+        if (AudRhythmWrap::isBeatTiming(8, sBeatTolerance)) {
             MR::startCSSound("CS_METRO_CLICK2", "SE_SY_CSP_ALT_METRO_CLICK2", -1, 0, 0.7f);
-        } else if (AudRhythmWrap::isBeatTiming(8, 5.0f + 0.07f) || AudRhythmWrap::isBeatTiming(8, 6.0f + 0.07f) || AudRhythmWrap::isBeatTiming(8, 7.0f + 0.07f)) {
+        } else if (AudRhythmWrap::isBeatTiming(8, 5.0f + sBeatTolerance) || AudRhythmWrap::isBeatTiming(8, 6.0f + sBeatTolerance) || AudRhythmWrap::isBeatTiming(8, 7.0f + sBeatTolerance)) {
             MR::startCSSound("CS_METRO_CLICK1", "SE_SY_CSP_ALT_METRO_CLICK1", -1, 0, 0.7f);
         }
         return;
     }
 
-    if (AudRhythmWrap::isBeatTiming(2, 1.0f + 0.07f)) {
+    if (AudRhythmWrap::isBeatTiming(2, 1.0f + sBeatTolerance)) {
         MR::startCSSound("CS_METRO_CLICK2", "SE_SY_CSP_ALT_METRO_CLICK2", -1, 0, 0.7f);
-    } else if (AudRhythmWrap::isBeatTiming(2, 0.07f)) {
+    } else if (AudRhythmWrap::isBeatTiming(2, sBeatTolerance)) {
         MR::startCSSound("CS_METRO_CLICK1", "SE_SY_CSP_ALT_METRO_CLICK1", -1, 0, 0.7f);
     }
 
@@ -120,4 +124,8 @@ void SoundSyncSwitch::emit() {
 }
 
 SoundSyncSwitch::~SoundSyncSwitch() {
+}
+
+namespace {
+    const f32 sBeatTolerance = 0.07f;
 }

@@ -2,6 +2,8 @@
 #include "Game/Effect/AutoEffectInfo.hpp"
 #include "Game/Effect/EffectSystemUtil.hpp"
 #include "Game/Util/JMapInfo.hpp"
+#include "Game/System/ResourceCsvGroupHolder.hpp"
+#include "Game/Util/SystemUtil.hpp"
 
 AutoEffectGroup::AutoEffectGroup(const char* pName, int capacity) : mName(pName), mEffects(), mCapacity(), mCount() {
     mEffects = new AutoEffectInfo*[capacity];
@@ -35,21 +37,17 @@ namespace MR {
             }
         }
 
+        // NONMATCHING: equivalent count-selection branch is materialized with a mask; register allocation differs.
         AutoEffectGroup* createAutoEffectGroup(const char* pName) {
-            JMapInfoIter iter = findJMapInfoElementNoCase(getAutoEffectListBinary(), "GroupName", pName, 0);
-
-            if (!iter.isValid()) {
-                return nullptr;
+            const ResourceCsvGroupInfo* range = getGameSystemObjHolder3C()->fn_804CC650(pName);
+            if (range == nullptr || static_cast<s32>(range->_C) <= 0) return nullptr;
+            s32 count = range != nullptr ? range->_C : 0;
+            AutoEffectGroup* group = new AutoEffectGroup(pName, count);
+            for (s32 i = 0; i < count; i++) {
+                JMapInfoIter iter(getAutoEffectListBinary(), range->_10 + i);
+                group->add(iter);
             }
-
-            AutoEffectGroup* pGroup = new AutoEffectGroup(pName, getAutoEffectNum(pName));
-
-            while (iter != getAutoEffectListBinary()->end()) {
-                pGroup->add(iter);
-                iter = findJMapInfoElementNoCase(getAutoEffectListBinary(), "GroupName", pName, iter.mIndex + 1);
-            }
-
-            return pGroup;
+            return group;
         }
     };  // namespace Effect
 };  // namespace MR

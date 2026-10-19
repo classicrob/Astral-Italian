@@ -8,11 +8,8 @@
 #include "Game/NPC/TalkTextFormer.hpp"
 #include <cstdio>
 
-extern "C" {
-    extern const char* lbl_807D02F8;
-    extern const char lbl_807D02FC[4];
-    extern const char lbl_806F8A5C[];
-    extern char lbl_806F8A50[];
+namespace {
+    const char* sMessagePrefix = "StoryBook";
 }
 
 namespace NrvStoryBookText {
@@ -47,7 +44,7 @@ namespace NrvStoryBookText {
     NEW_NERVE(StoryBookTextNrvShowText, StoryBookText, ShowText);
 }  // namespace NrvStoryBookText
 
-StoryBookText::StoryBookText() : LayoutActor(lbl_806F8A5C, true) {
+StoryBookText::StoryBookText() : LayoutActor("遊べる絵本テキスト", true) {
     mIconAButton = NULL;
     mMessage = NULL;
     mHasIcon = false;
@@ -70,14 +67,14 @@ void StoryBookText::kill() {
 void StoryBookText::setMessageWithoutIcon(s32 pageNo, s32 msgNo) {
     mHasIcon = false;
     char buf[0x100];
-    snprintf(buf, 0x100, "%s%03d", lbl_807D02F8, pageNo);
+    snprintf(buf, 0x100, "%s%03d", sMessagePrefix, pageNo);
     setMessage(buf, msgNo);
 }
 
 void StoryBookText::setMessageWithIcon(s32 msgNo) {
     mHasIcon = true;
     char buf[0x100];
-    snprintf(buf, 0x100, "%s_%s%03d", lbl_807D02F8, MR::getCurrentDemoPartName(), msgNo);
+    snprintf(buf, 0x100, "%s_%s%03d", sMessagePrefix, MR::getCurrentDemoPartName(), msgNo);
     setMessage(buf, -1);
     MR::requestMovementOn(mIconAButton);
 }
@@ -85,22 +82,22 @@ void StoryBookText::setMessageWithIcon(s32 msgNo) {
 // NONMATCHING: register allocation / prologue (target keeps the table base and args in r28-r31)
 void StoryBookText::setMessage(const char* pMsgName, s32 msgNo) {
     mMessage = MR::getSceneMessageDirect(pMsgName, msgNo);
-    MR::initTagProcessorRecursive(this, lbl_806F8A50 + 0x20, 2);
-    MR::setTextBoxMessageRecursive(this, lbl_806F8A50 + 0x20, mMessage);
-    MR::hidePaneRecursive(this, lbl_806F8A50 + 0x20);
-    MR::showPane(this, lbl_806F8A50 + 0x20);
+    MR::initTagProcessorRecursive(this, "StoryBookText", 2);
+    MR::setTextBoxMessageRecursive(this, "StoryBookText", mMessage);
+    MR::hidePaneRecursive(this, "StoryBookText");
+    MR::showPane(this, "StoryBookText");
     if (MR::isStoryBookPageKindA(pMsgName, msgNo) != 0) {
-        const char* pPane = lbl_806F8A50 + 0x6C;
+        const char* pPane = "TextD";
         if (mHasIcon) {
-            pPane = lbl_806F8A50 + 0x60;
+            pPane = "TextDDemo";
         }
         MR::showPaneRecursive(this, pPane);
     } else if (MR::isStoryBookPageKindB(pMsgName, msgNo) != 0) {
-        MR::showPaneRecursive(this, lbl_806F8A50 + 0x74);
+        MR::showPaneRecursive(this, "TextC");
     } else if (MR::isStoryBookPageKindC(pMsgName, msgNo) != 0) {
-        MR::showPaneRecursive(this, lbl_806F8A50 + 0x7C);
+        MR::showPaneRecursive(this, "TextU");
     }
-    MR::startAnimAndSetFrameAndStop(this, lbl_806F8A50 + 0x54, (f32)MR::getTextLineNumMaxRecursive(this, lbl_806F8A50 + 0x20), 1);
+    MR::startAnimAndSetFrameAndStop(this, "WindowSize", (f32)MR::getTextLineNumMaxRecursive(this, "StoryBookText"), 1);
     setNerve(&NrvStoryBookText::StoryBookTextNrvAppear::sInstance);
     LayoutActor::appear();
 }
@@ -165,7 +162,7 @@ void StoryBookText::exeClose() {
             MR::tryRumblePadWeak(this, 0);
             mIconAButton->term();
         }
-        MR::startAnim(this, lbl_807D02FC, 0);
+        MR::startAnim(this, "End", 0);
     }
     if (MR::isAnimStopped(this, 0)) {
         kill();
@@ -178,7 +175,7 @@ void StoryBookText::exeNextPage() {
             MR::tryRumblePadVeryWeak(this, 0);
             mIconAButton->term();
         }
-        MR::startAnim(this, lbl_807D02FC, 0);
+        MR::startAnim(this, "End", 0);
     }
     if (MR::isAnimStopped(this, 0)) {
         setNerve(&NrvStoryBookText::StoryBookTextNrvShowText::sInstance);
@@ -187,12 +184,11 @@ void StoryBookText::exeNextPage() {
 
 // NONMATCHING: register allocation (target hoists the table base into r31 before the isFirstStep branch)
 void StoryBookText::exeShowText() {
-    const char* pTable = lbl_806F8A50;
     if (MR::isFirstStep(this)) {
-        MR::initTagProcessorRecursive(this, pTable + 0x20, 2);
-        MR::setTextBoxMessageRecursive(this, pTable + 0x20, mMessage);
-        MR::startAnim(this, pTable + 0x44, 0);
-        MR::startAnimAndSetFrameAndStop(this, pTable + 0x54, (f32)MR::getTextLineNumMaxRecursive(this, pTable + 0x20), 1);
+        MR::initTagProcessorRecursive(this, "StoryBookText", 2);
+        MR::setTextBoxMessageRecursive(this, "StoryBookText", mMessage);
+        MR::startAnim(this, "Appear", 0);
+        MR::startAnimAndSetFrameAndStop(this, "WindowSize", (f32)MR::getTextLineNumMaxRecursive(this, "StoryBookText"), 1);
     }
     if (MR::isAnimStopped(this, 0)) {
         setNerve(&NrvStoryBookText::StoryBookTextNrvWait::sInstance);

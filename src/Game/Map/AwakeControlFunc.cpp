@@ -23,9 +23,9 @@ bool AwakeControlFunc::addAwakeControl(AreaObj* pArea, const JMapInfoIter& rIter
 }
 
 void AreaObj::awake() {
-    _1D = true;
+    mIsValid = true;
 }
 
 void AreaObj::sleep() {
-    _1D = false;
+    mIsValid = false;
 }

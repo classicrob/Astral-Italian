@@ -29,3 +29,5 @@ public:
     /* 0x6 */ u8 mGroupId;
     /* 0x7 */ s8 mSpawn;
 };
+
+extern bool gScanParticleResourcesByCreatingEmitter;

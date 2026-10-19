@@ -100,3 +100,18 @@ inline bool ParticleEmitter::isValid() const {
 inline bool ParticleEmitter::isContinuousParticle() const NO_INLINE {
     return mEmitter != nullptr && mEmitter->mMaxFrame == 0;
 }
+
+void ParticleEmitterHolder::requestMovementOffAllEmitters() {
+    for (ParticleEmitter* pEmitter = mEmitters.begin(); pEmitter != mEmitters.end(); pEmitter++) {
+        JPABaseEmitter* pBaseEmitter = pEmitter->mEmitter;
+        if (pBaseEmitter == nullptr) {
+            continue;
+        }
+
+        if (pBaseEmitter->getGroupID() == 1 || pBaseEmitter->getGroupID() == 7) {
+            continue;
+        }
+
+        pEmitter->pauseOn();
+    }
+}

@@ -25,22 +25,10 @@ public:
 };
 
 struct KCLFile {
-    union {
-        /* 0x00 */ TVec3f* mPos;
-        /* 0x00 */ u32 mPosOffset;
-    };
-    union {
-        /* 0x04 */ TVec3f* mNorms;
-        /* 0x04 */ u32 mNormOffset;
-    };
-    union {
-        /* 0x08 */ KC_PrismData* mPrisms;
-        /* 0x08 */ u32 mPrismOffset;
-    };
-    union {
-        /* 0x0C */ void* mOctree;
-        /* 0x0C */ u32 mOctreeOffset;
-    };
+    /* 0x00 */ TVec3f* mPos;
+    /* 0x04 */ TVec3f* mNorms;
+    /* 0x08 */ KC_PrismData* mPrisms;
+    /* 0x0C */ void* mOctree;
     /* 0x10 */ f32 mThickness;
     /* 0x14 */ TVec3f mMin;
     /* 0x20 */ s32 mXMask;

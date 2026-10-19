@@ -11,12 +11,12 @@
 #include <JSystem/JGeometry/TUtil.hpp>
 
 CameraCubePlanet::CameraCubePlanet(const char* pName)
-    : Camera(pName), mDist(3000.0f), mAngleX(MR::pi() / 6.0f), mAngleY(0.35f), mUp(0.0f, 1.0f, 0.0f), _70(new CameraPadOrbitCtrl()) {
+    : Camera(pName), mDist(3000.0f), mAngleX(MR::pi() / 6.0f), mAngleY(0.35f), mUp(0.0f, 1.0f, 0.0f), mPadOrbitCtrl(new CameraPadOrbitCtrl()) {
 }
 
 void CameraCubePlanet::reset() {
     mUp.set(-CameraLocalUtil::getTarget(this)->getGravityVector());
-    _70->reset();
+    mPadOrbitCtrl->reset();
 }
 
 // NONMATCHING: regalloc
@@ -52,7 +52,7 @@ CameraTargetObj* CameraCubePlanet::calc() {
     TVec3f newPos = watchPoint - front;
     TVec3f sideDir = CameraLocalUtil::getTarget(this)->getSideVec().cross(up);
     if (MR::normalizeOrZero(&sideDir)) sideDir.set(CameraLocalUtil::getTarget(this)->getFrontVec());
-    if (_60) _70->update(up, sideDir, watchPoint, &newPos);
+    if (mEnablePadOrbit) mPadOrbitCtrl->update(up, sideDir, watchPoint, &newPos);
     CameraLocalUtil::setPos(this, newPos);
     CameraLocalUtil::setUpVec(this, up);
     return CameraLocalUtil::getTarget(this);
@@ -62,7 +62,7 @@ CamTranslatorBase* CameraCubePlanet::createTranslator() {
     return new CamTranslatorCubePlanet(this);
 }
 
-bool CameraCubePlanet::isEnableToReset() const { return _60; }
-bool CameraCubePlanet::isEnableToRoundRight() const { return _60; }
-bool CameraCubePlanet::isEnableToRoundLeft() const { return _60; }
+bool CameraCubePlanet::isEnableToReset() const { return mEnablePadOrbit; }
+bool CameraCubePlanet::isEnableToRoundRight() const { return mEnablePadOrbit; }
+bool CameraCubePlanet::isEnableToRoundLeft() const { return mEnablePadOrbit; }
 

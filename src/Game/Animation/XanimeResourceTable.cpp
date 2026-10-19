@@ -90,7 +90,7 @@ void XanimeResourceTable::init() {
     mAmountOfBckTables = 0;
     mAmountOfSimpleGroupInfos = 0;
     mGroupInfos = nullptr;
-    mDirectories = nullptr;
+    mBckTables = nullptr;
 
     mResourceHolder = nullptr;
     mSortTable = nullptr;
@@ -262,11 +262,11 @@ const XanimeGroupInfo* XanimeResourceTable::getGroupInfo(const char* pPath, Xani
 
             switch (pDir[index].mDirectoryType) {
             case XanimeDirectory::Recursive:
-                return getGroupInfo(&pPath[i + 1], pDir[index].mSubDirectories);
+                return getGroupInfo(&pPath[i + 1], static_cast<XanimeDirectory*>(pDir[index].mChildren));
 
             case XanimeDirectory::Leaf:
                 u32 hash = MR::getHashCode(&pPath[i + 1]);
-                XanimeGroupInfo* infos = pDir[index].mSubInformations;
+                XanimeGroupInfo* infos = static_cast<XanimeGroupInfo*>(pDir[index].mChildren);
 
                 for (int j = 0; j < pDir[index].mSize; j++) {
                     if (infos[j]._40 == hash) {
@@ -291,13 +291,13 @@ const XanimeGroupInfo* XanimeResourceTable::getGroupInfo(const char* pPath, Xani
 
         switch (entry->mDirectoryType) {
         case XanimeDirectory::Recursive:
-            result = getGroupInfo(pPath, entry->mSubDirectories);
+            result = getGroupInfo(pPath, static_cast<XanimeDirectory*>(entry->mChildren));
             break;
         case XanimeDirectory::Leaf:
-            XanimeGroupInfo* subInfo = entry->mSubInformations;
+            XanimeGroupInfo* subInfo = static_cast<XanimeGroupInfo*>(entry->mChildren);
             for (int j = 0; j < entry->mSize; j++) {
                 if (subInfo[j]._40 == hash) {
-                    return &entry->mSubInformations[j];
+                    return &static_cast<XanimeGroupInfo*>(entry->mChildren)[j];
                 }
             }
 

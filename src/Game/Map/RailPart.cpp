@@ -19,7 +19,8 @@ void RailPart::init(const TVec3f& a1, const TVec3f& a2, const TVec3f& a3, const 
 
 /* https://decomp.me/scratch/hV4jg */
 void RailPart::initForBezier(const TVec3f& a1, const TVec3f& a2, const TVec3f& a3, const TVec3f& a4) {
-    mBezierRailPart = new BezierRailPart(a1, a2, a3, a4);
+    mBezierRailPart = new BezierRailPart();
+    mBezierRailPart->set(a1, a2, a3, a4);
 }
 
 void RailPart::calcPos(TVec3f* pPos, f32 a1) const {
@@ -80,7 +81,7 @@ void LinearRailPart::set(const TVec3f& a1, const TVec3f& a2) {
 f32 LinearRailPart::getNearestParam(const TVec3f& a1, f32 a2) const {
     TVec3f vec(a1);
     vec -= mStartPoint;
-    f32 squareMag = mStopPoint.length();
+    f32 squareMag = mStopPoint.squared();
     f32 dot = vec.dot(mStopPoint) / squareMag;
 
     f32 v12 = 0.0f;

@@ -5,6 +5,7 @@
 #include "Game/Util/ObjUtil.hpp"
 #include "Game/Util/PlayerUtil.hpp"
 #include "Game/Util/SoundUtil.hpp"
+#include "Game/Util/ActionSoundUtil.hpp"
 
 namespace {
     static const s32 sQuakeInterval = 400;
@@ -50,7 +51,7 @@ void QuakeEffectGenerator::exeQuaking() {
         MR::shakeCameraInfinity(this, ::sCamShakeIntensity, ::sCamShakeSpeed);
     }
 
-    MR::startAtmosphereLevelSE("SE_AT_LV_EARTHQUAKE");
+    MR::startActionSound(this, "AtLvEarthquake", -1, -1, -1);
 
     if (MR::isStep(this, ::sCamShakeFrame)) {
         MR::stopShakingCamera(this);

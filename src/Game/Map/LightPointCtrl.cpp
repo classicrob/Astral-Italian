@@ -120,8 +120,8 @@ void LightPointCtrl::blendPointLight(PointLightInfo* pDst, const PointLightInfo&
         pDst->mPos = position;
     }
 
-    f32 start = mPreviousActor == nullptr ? 0.95f : rStart.mRefBrightness;
-    f32 end = mCurrentActor == nullptr ? 0.95f : rEnd.mRefBrightness;
+    f32 start = mPreviousActor == nullptr ? 0.0f : rStart.mRefBrightness;
+    f32 end = mCurrentActor == nullptr ? 0.0f : rEnd.mRefBrightness;
     pDst->mRefBrightness = MR::getLinerValue(t, start, end, 1.0f);
     MR::blendColor(&pDst->mColor, rStart.mColor, rEnd.mColor, t);
     pDst->mRefDistance = MR::getLinerValue(t, rStart.mRefDistance, rEnd.mRefDistance, 1.0f);

@@ -8,7 +8,7 @@
 #include <JSystem/JUtility/JUTTexture.hpp>
 
 namespace {
-    f32 gxArray[] = {0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.2f, 1.0f, 0.2f, 0.0f, 0.5f, 1.0f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f};
+    f32 gxArray[] = {0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.19999998807907104f, 1.0f, 0.19999998807907104f, 0.0f, 0.5f, 1.0f, 0.5f, 0.0f, 1.0f, 1.0f, 1.0f};
     static f32 sHeightTable[] = {150.0f, 200.0f, 300.0f, 250.0f};
     static TVec3f sDrawVec(1.0f, 0.0f, 0.0f);
     static f32 sSwingSpeed = 0.03f;
@@ -341,7 +341,7 @@ void WaterPlantDrawInit::updateSwingPos() {
 
     for (int i = 0; i < ::sSwingPosTableSize; i++) {
         mSwingPosTable[i] = ::sSwingWidth * MR::sin(mAngleOffset + angle);
-        angle += 0.2f;
+        angle += 0.19999998807907104f;
     }
 }
 

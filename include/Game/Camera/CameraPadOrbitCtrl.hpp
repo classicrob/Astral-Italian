@@ -9,7 +9,7 @@ public:
     void update(const TVec3f&, const TVec3f&, const TVec3f&, TVec3f*) NO_INLINE;
     void updateRotation(const TVec3f&, const TVec3f&, const TVec3f&, TVec3f*) NO_INLINE;
     void updateInput(const TVec3f&, const TVec3f&, const TVec3f&, TVec3f*) NO_INLINE;
-    bool mRotating;
-    f32 mAngle;
-    f32 mTargetAngle;
+    /* 0x00 */ bool mRotating;
+    /* 0x04 */ f32 mAngle;
+    /* 0x08 */ f32 mTargetAngle;
 };

@@ -12933,7 +12933,7 @@ void Mario::playSoundJ(const char* pSoundName, s32 timing) {
             break;
 
         case 3:
-            MR::startSystemLevelSE(soundlist[index]._14, timing);
+            MR::startSystemLevelSE(soundlist[index]._14, timing, -1, -1);
             break;
         }
 
